@@ -132,7 +132,7 @@ func open() -> void:
 	_build()
 	_restart_open()
 	_skip()   # 10-22 用户：进图鉴不要入场动效（卡片浮现 / 面板滑入），直接出现；换页、换干员的动效不变
-	logo_t0 = -100.0 if _still() else _now()   # 11-05 用户：先显示罗德岛标志再进图鉴（_draw_logo_intro）；减少动态效果时不播
+	_logo_start()   # 11-05 用户：先显示罗德岛标志再进图鉴（_draw_logo_intro，0.55 秒短版）
 	_warm_demo()
 
 
@@ -246,6 +246,7 @@ func _process(delta: float) -> void:
 		return
 	A.warm_step(4000)
 	UIMo.advance(delta)
+	_intro_rec_tick()
 	t += delta
 	form_t += delta
 	# 悬停：120 ms 抬 4 px（触屏不认悬停；减少动态时直接到位）
@@ -1292,7 +1293,7 @@ func _draw() -> void:
 		_draw_panel(e, ph)
 	_draw_hint(ph)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	_draw_logo_intro()   # 罗德岛标志入场（盖在最上面，约 1.1 秒）
+	_draw_logo_intro()   # 罗德岛标志入场（盖在最上面，0.55 秒）
 
 
 ## 职业色斜带 + 延伸到右侧面板底下的回声带（同一扫入：换干员时新颜色从左扫过、透过磨砂玻璃也看得见）
@@ -2465,119 +2466,77 @@ func _ev_detail(e: Dictionary, ph: bool, x0: float, w: float, y: float, a: float
 
 
 
-# ---------------------------------------------------------------- 入场：罗德岛标志（用户 11-05「图鉴页能不能先显示一个罗德岛的图表，然后再进入，增加一个动效」）
-## 标志按原作参照（build/ref_rhodes，不进 git / 包）自绘成矢量线稿：外三角 + 内细三角、城堡塔剪影、「RHODES ISLAND」字条；
-## 三角边上原作的小字简化成刻度点。白线 + 青色描光，同指挥台。时间线（真实秒，共 LOGO_T）：
-## 0–0.35 三角沿边描出 → 0.15–0.45 城堡从底部升起 → 0.3–0.6 字条细线展开、字逐个打出 → 0.45–0.8 下方「干员档案」小字 →
-## 0.8–1.1 标志缩小飞向左上角、暗幕退去露出图鉴。点击 / 按键跳过；减少动态效果时不播
-const LOGO_T := 1.1
+# ---------------------------------------------------------------- 入场：罗德岛标志短版（用户 11-05；Codex 演示 docs/reference/prts-entry-1105「图鉴 · 短版」）
+## 总长 0.55 秒（真实时间）：0–0.06 背景压暗；0–0.13 标志横条归位亮起；0.08–0.24 图鉴黄细扫描线掠过；0.20–0.30 标志退去；
+## 0.24–0.55 中央双侧阶梯幕展开、黄细边退到屏幕外。标志 = 用户原图运行时采样 120×120（screens/rhodes_logo.gd）。
+## 点击 / 按键直接跳到图鉴并吞掉这次输入；减少动态效果时只做 ≤ 0.12 秒淡入；截图 / 无头测试直接终态（--galleryintro 录像时才播）
+const LOGO_T := 0.55
+const LOGO_RM_T := 0.12
+const RhodesLogo = preload("res://scripts/screens/rhodes_logo.gd")
+const LOGO_BG := Color(0.059, 0.063, 0.075)      # #0F1013
+const LOGO_Y := Color(1.0, 0.808, 0.0)           # #FFCE00（只用于图鉴）
 var logo_t0 := -100.0
+var logo_rm := false
 
-const _TOWER := [   # 右半边（x 向右、y 向下，单位 = 外接圆半径），左半边镜像；底边在 y = 0.22，字条在它下面、三角底边之内
-	[0.0, -0.58], [0.032, -0.58], [0.032, -0.52], [0.09, -0.52], [0.09, -0.58], [0.15, -0.58], [0.15, -0.44],
-	[0.115, -0.41], [0.098, -0.36], [0.09, -0.10], [0.125, 0.02], [0.19, 0.11], [0.27, 0.18], [0.27, 0.22], [0.0, 0.22],
-]
+
+func _logo_start() -> void:
+	var test: bool = DisplayServer.get_name() == "headless" or (Array(Cfg.dev_args()).any(func(a): return str(a).begins_with("--galleryshot=")) and not Cfg.dev_args().has("--galleryintro"))
+	logo_t0 = -100.0 if test else _now()
+	logo_rm = UIMo.rm()
+
+
+var _intro_rec := false   # --galleryintro 录像：开图鉴 1.5 秒（等启动卡顿过去）后重播一次入场
+
+
+func _intro_rec_tick() -> void:
+	if not _intro_rec and Cfg.dev_args().has("--galleryintro") and _now() > 1.5:
+		_intro_rec = true
+		_logo_start()
 
 
 func logo_active() -> bool:
-	return _now() - logo_t0 < LOGO_T
+	return _now() - logo_t0 < (LOGO_RM_T if logo_rm else LOGO_T)
 
 
 func _logo_skip() -> void:
 	logo_t0 = -100.0
 
 
-func _logo_k(t: float, a: float, b: float) -> float:
-	return UIMo.out_cubic(clampf((t - a) / maxf(0.001, b - a), 0.0, 1.0))
-
-
-## 一条折线按长度画到 frac
-func _trace(pts: PackedVector2Array, frac: float, col: Color, w: float) -> void:
-	var total := 0.0
-	for i in pts.size() - 1:
-		total += pts[i].distance_to(pts[i + 1])
-	var left: float = total * clampf(frac, 0.0, 1.0)
-	for i in pts.size() - 1:
-		var seg: float = pts[i].distance_to(pts[i + 1])
-		if left <= 0.0:
-			break
-		var e: Vector2 = pts[i].lerp(pts[i + 1], minf(1.0, left / seg))
-		draw_line(pts[i], e, col, w, true)
-		left -= seg
-
-
-func _tri(c: Vector2, R: float) -> PackedVector2Array:
-	var p := PackedVector2Array()
-	for a in [-90.0, 30.0, 150.0, -90.0]:
-		p.append(c + Vector2.from_angle(deg_to_rad(a)) * R)
-	return p
-
-
-## 罗德岛标志（中心 c、外接圆半径 R）；k = [三角, 城堡, 字条, 全体透明度]
-func draw_rhodes_logo(c: Vector2, R: float, kt: float, kc: float, kx: float, a: float) -> void:
-	var W := Color(0.93, 0.935, 0.94, a)
-	var cy := Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.35 * a)
-	_trace(_tri(c, R * 1.04), kt, cy, 6.0)   # 青色描光（粗、淡）
-	_trace(_tri(c, R), kt, W, 2.5)
-	_trace(_tri(c, R * 0.88), _logo_k(kt, 0.25, 1.0), Color(W.r, W.g, W.b, 0.6 * a), 1.0)
-	# 三角两条上边：原作的小字简化成刻度点
-	if kt > 0.6:
-		var ta: float = (kt - 0.6) / 0.4
-		var tp: PackedVector2Array = _tri(c, R * 0.94)
-		for e in [[tp[2], tp[0]], [tp[0], tp[1]]]:
-			for j in range(3, 18):
-				var q: Vector2 = (e[0] as Vector2).lerp(e[1], j / 20.0)
-				draw_rect(Rect2(q - Vector2(0.8, 0.8), Vector2(1.6, 1.6)), Color(W.r, W.g, W.b, 0.45 * a * ta))
-	# 城堡塔：对称多边形，从底部升起（按 kc 纵向展开）
-	if kc > 0.05:   # 太扁时不画（多边形退化会三角剖分失败）
-		var pts := PackedVector2Array()
-		var base_y: float = c.y + 0.22 * R
-		for p in _TOWER:
-			pts.append(Vector2(c.x + float(p[0]) * R, base_y + (c.y + float(p[1]) * R - base_y) * kc))
-		for i in range(_TOWER.size() - 2, 0, -1):
-			var p2: Array = _TOWER[i]
-			pts.append(Vector2(c.x - float(p2[0]) * R, base_y + (c.y + float(p2[1]) * R - base_y) * kc))
-		draw_colored_polygon(pts, Color(W.r, W.g, W.b, a * kc))
-		# 塔身左侧一道暗缝（原作的明暗分界）
-		draw_line(Vector2(c.x - 0.025 * R, base_y - 0.5 * R * kc), Vector2(c.x - 0.045 * R, base_y - 0.04 * R), Color(0.02, 0.03, 0.04, 0.45 * a * kc), 1.5)
-	# 字条：上下两道细线从中间展开 + 字逐个打出
-	if kx > 0.0:
-		var hw: float = 0.6 * R * kx
-		for yy in [c.y + 0.27 * R, c.y + 0.42 * R]:
-			draw_line(Vector2(c.x - hw, yy), Vector2(c.x + hw, yy), W, 1.5)
-		var s := "RHODES ISLAND"
-		var n: int = int(ceil(s.length() * kx))
-		var f: Font = UI.latin()
-		var fs: int = int(round(0.105 * R))
-		var tw: float = f.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-		draw_string(f, Vector2(c.x - tw / 2.0, c.y + 0.385 * R), s.substr(0, n), HORIZONTAL_ALIGNMENT_LEFT, -1, fs, W)
-
-
 func _draw_logo_intro() -> void:
 	var t: float = _now() - logo_t0
-	if t < 0.0 or t >= LOGO_T:
+	if t < 0.0 or not logo_active():
 		return
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	var vs: Vector2 = size
-	var out: float = _logo_k(t, 0.8, LOGO_T)
-	draw_rect(Rect2(Vector2.ZERO, vs), Color(0.008, 0.012, 0.018, 0.98 * (1.0 - out)))
-	var R0: float = minf(vs.x, vs.y) * 0.26
-	var c0: Vector2 = vs / 2.0 - Vector2(0, R0 * 0.15)
-	var c1 := Vector2(R0 * 0.32 + 24.0, R0 * 0.32 + 24.0)
-	var c: Vector2 = c0.lerp(c1, out)
-	var R: float = lerpf(R0, R0 * 0.22, out)
-	draw_rhodes_logo(c, R, _logo_k(t, 0.0, 0.35), _logo_k(t, 0.15, 0.45), _logo_k(t, 0.3, 0.6), 1.0 - out)
-	# 下方小字：等宽英文 + 中文，逐字打出
-	var kc: float = _logo_k(t, 0.45, 0.8)
-	if kc > 0.0 and out < 1.0:
-		var a: float = 1.0 - out
-		var en := "PRTS  //  OPERATOR ARCHIVE"
-		var ne: int = int(ceil(en.length() * kc))
-		var f: Font = UI.latin(true)
-		var fs: int = int(round(R0 * 0.075))
-		var tw: float = f.get_string_size(en, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-		draw_string(f, Vector2(c0.x - tw / 2.0, c0.y + R0 * 0.95), en.substr(0, ne), HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(0.6, 0.63, 0.66, a))
-		var cn := "罗德岛 · 干员档案"
-		var fs2: int = int(round(R0 * 0.11))
-		var tw2: float = font.get_string_size(cn, HORIZONTAL_ALIGNMENT_LEFT, -1, fs2).x
-		draw_string(font, Vector2(c0.x - tw2 / 2.0, c0.y + R0 * 1.15), cn.substr(0, int(ceil(cn.length() * kc))), HORIZONTAL_ALIGNMENT_LEFT, -1, fs2, Color(0.93, 0.935, 0.94, a))
+	if logo_rm:
+		draw_rect(Rect2(Vector2.ZERO, vs), Color(LOGO_BG.r, LOGO_BG.g, LOGO_BG.b, 1.0 - t / LOGO_RM_T))
+		return
+	var appear: float = clampf(t / 0.06, 0.0, 1.0)
+	var unfold: float = UIMo.out_cubic(clampf((t - 0.24) / 0.31, 0.0, 1.0))
+	var cx: float = vs.x / 2.0
+	var row := 6.0
+	var y := 0.0
+	while y < vs.y:
+		var half: float = maxf(0.0, unfold * vs.x * 0.62 - absf(y + row / 2.0 - vs.y / 2.0) * 0.16)
+		var l: float = floorf((cx - half) / 3.0) * 3.0
+		var r: float = ceilf((cx + half) / 3.0) * 3.0
+		var bc := Color(LOGO_BG.r, LOGO_BG.g, LOGO_BG.b, appear)
+		if half <= 0.0:
+			draw_rect(Rect2(0, y, vs.x, row), bc)
+		else:
+			draw_rect(Rect2(0, y, maxf(0.0, l), row), bc)
+			draw_rect(Rect2(r, y, maxf(0.0, vs.x - r), row), bc)
+			if unfold < 0.98:
+				draw_rect(Rect2(l - 3.0, y, 3.0, row), Color(LOGO_Y.r, LOGO_Y.g, LOGO_Y.b, 0.85))
+				draw_rect(Rect2(r, y, 3.0, row), Color(LOGO_Y.r, LOGO_Y.g, LOGO_Y.b, 0.85))
+		y += row
+	if t < 0.30:
+		var reveal: float = UIMo.out_cubic(clampf(t / 0.13, 0.0, 1.0))
+		var span: float = roundf(vs.y * 0.36 / 120.0) * 120.0   # 每个标志像素取整数屏幕像素
+		var s: float = span / 120.0
+		var top: float = roundf(vs.y / 2.0 - span / 2.0)
+		var a: float = (1.0 - clampf((t - 0.20) / 0.10, 0.0, 1.0)) * appear
+		RhodesLogo.draw_bands(self, Vector2(roundf(cx - span / 2.0), top), s, 10, func(b): return roundf((1.0 if b % 2 else -1.0) * 15.0 * s * (1.0 - reveal)), Color(1, 1, 1, a))
+		if t > 0.08 and t < 0.24:
+			var sy: float = top + span * clampf((t - 0.08) / 0.16, 0.0, 1.0)
+			draw_rect(Rect2(roundf(cx - span * 0.59), roundf(sy), roundf(span * 1.18), 2.0), Color(LOGO_Y.r, LOGO_Y.g, LOGO_Y.b, a))

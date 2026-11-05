@@ -195,6 +195,7 @@ def main():
     with open(html_p, "w", encoding="utf-8", newline="\n") as fh:
         fh.write(html)
     shutil.copy2(os.path.join(src, "game", "art", "ui", "title_deep", "logo_mark.png"), os.path.join(tmp, "loader_logo.png"))   # 启动加载页左上标志（loader.css）
+    shutil.copy2(os.path.join(src, "game", "art", "ui", "rhodes_logo_src.png"), os.path.join(tmp, "loader_rhodes.png"))   # 方向 4 PRTS 认证终端的罗德岛标志（loader.js p4Init）
     with open(os.path.join(tmp, "build.txt"), "w", encoding="utf-8") as fh:
         fh.write(commit + "\n")
 

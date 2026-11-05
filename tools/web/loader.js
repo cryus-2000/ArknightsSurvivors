@@ -39,7 +39,7 @@
     else {
       if (!bootT0) bootT0 = performance.now();
       var s = (performance.now() - bootT0) / 1000;
-      f = 0.6 + 0.2 * (1 - Math.exp(-s / 6));   // 引擎启动：拿不到真实进度，按已等秒数向 80% 渐近；之后游戏内启动页（boot_screen.gd）从 80% 接着走
+      f = BV === 4 ? 0.6 : 0.6 + 0.2 * (1 - Math.exp(-s / 6));   // 方向 4（PRTS 认证终端）：拿不到真实进度就不动，画面上显示不定进度（p4ind）   // 引擎启动：拿不到真实进度，按已等秒数向 80% 渐近；之后游戏内启动页（boot_screen.gd）从 80% 接着走
       busy = true;
     }
     f = shownProgress = Math.max(shownProgress, Math.min(1, f));
@@ -105,11 +105,138 @@
   function logBox(cls) { return '<div class="sv-log ' + (cls || '') + '"><div class="sv-cap sy-en">SYSTEM LOG</div><div class="sv-lines"></div></div>'; }
   function tipBox(cls) { return '<div class="sv-tip ' + (cls || '') + '"><div class="sv-cap sy-en">NOTE</div><div class="bd"></div></div>'; }
 
+  // ---------------------------------------------------------------- 方向 4：PRTS 认证终端（11-05 用户「codex 的加载页可以替换我们目前的加载页」）
+  // 造型 / 配色照 Codex 演示（docs/reference/prts-entry-1105），画法与桌面 boot_views.draw_v4 一一对应；进度全接真实状态：
+  // 下载字节 → 解压 → 引擎启动（拿不到进度：不定进度，不按时间推）→ Godot 回传的编译 / 预热进度 → 读完（__syBootReady）一次外扩脉冲 + 「认证通过」。
+  // 标志 = loader_rhodes.png（用户给的 240×240 原图）最近邻采样到 120×120，亮度 > 112 留、> 168 冷白、其余次灰（同 screens/rhodes_logo.gd）。
+  // 主线程被引擎占住时画布会停，扫描线与不定进度条是 CSS 动画照常走。系统「减少动态效果」时：直接终态、不扫描。
+  function p4Init(d) {
+    var cv = d.querySelector('.p4c'), ctx = cv.getContext('2d'), scan = d.querySelector('.p4scan'), ind = d.querySelector('.p4ind');
+    var v = { root: d, tip: { style: {}, textContent: '' }, f: 0, stage: { text: '' }, ind: false, lines: null };
+    var rm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var lg = null, img = new Image(), T0 = performance.now(), readyT = -1;
+    img.onload = function () {
+      var a = document.createElement('canvas'); a.width = a.height = 120;
+      var ax = a.getContext('2d'); ax.imageSmoothingEnabled = false; ax.drawImage(img, 0, 0, 120, 120);
+      var id = ax.getImageData(0, 0, 120, 120), px = id.data;
+      for (var i = 0; i < px.length; i += 4) {
+        var lv = (px[i] + px[i + 1] + px[i + 2]) / 3;
+        if (lv > 112 && px[i + 3] > 127) { var hi = lv > 168; px[i] = hi ? 236 : 146; px[i + 1] = hi ? 238 : 151; px[i + 2] = hi ? 240 : 160; px[i + 3] = 255; }
+        else px[i + 3] = 0;
+      }
+      ax.putImageData(id, 0, 0); lg = a;
+    };
+    img.src = 'loader_rhodes.png';
+    var BG = '#0f1013', PANEL = '#1a1c21', TX = '#eceef0', SUB = '#9297a0', STEEL = '#7e98b8', ACC = '#36e2dc', SCN = '#3cc8e4', RULE = '#353943';
+    var clamp = function (x) { return Math.max(0, Math.min(1, x)); }, ease = function (x) { return 1 - Math.pow(1 - clamp(x), 3); };
+    function box(x, y, w, h, c, a) { ctx.globalAlpha = a === undefined ? 1 : a; ctx.fillStyle = c; ctx.fillRect(Math.round(x), Math.round(y), Math.ceil(w), Math.ceil(h)); ctx.globalAlpha = 1; }
+    function stairs(ax, ay, bx, by, c, a) { var n = Math.ceil(Math.max(Math.abs(bx - ax), Math.abs(by - ay)) / 4); for (var i = 0; i <= n; i++) box(Math.round((ax + (bx - ax) * i / Math.max(1, n)) / 3) * 3, Math.round((ay + (by - ay) * i / Math.max(1, n)) / 3) * 3, 3, 3, c, a); }
+    function lab(s, x, y, sz, c, al) { ctx.fillStyle = c; ctx.font = Math.round(sz) + 'px Consolas,"Microsoft YaHei","PingFang SC",monospace'; ctx.textAlign = al || 'left'; ctx.fillText(s, Math.round(x), Math.round(y)); }
+    function frame() {
+      if (!d.isConnected) return;
+      requestAnimationFrame(frame);
+      var dpr = Math.min(2, window.devicePixelRatio || 1), W = Math.round(innerWidth * dpr), H = Math.round(innerHeight * dpr);
+      if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+      ctx.imageSmoothingEnabled = false;
+      var t = rm ? 9 : (performance.now() - T0) / 1000, p = v.f, rd = d.classList.contains('sy-ready') || p >= 1;
+      if (rd && readyT < 0) readyT = performance.now();
+      var u = readyT < 0 ? -1 : (performance.now() - readyT) / 1000;
+      var k = Math.max(0.8, Math.min(2.4, H / 540)), cx = W / 2, cy = H * 0.425, m = 22 * k;
+      box(0, 0, W, H, BG);
+      for (var gx = 0; gx < W; gx += 24 * k) for (var gy = 0; gy < H; gy += 24 * k) box(gx, gy, 1, 1, STEEL, 0.18);
+      for (var sy = 0; sy < H; sy += 4) box(0, sy, W, 1, '#000', 0.14);
+      lab('PRTS / BOOT TERMINAL', m, 28 * k, 12 * k, TX);
+      if (W > 600 * dpr) lab('ARKNIGHTS FAN GAME', W - m, 28 * k, 11 * k, SUB, 'right');
+      box(m, 40 * k, W - 2 * m, 1, RULE);
+      for (var i = 0; i < 41; i++) { var x = cx - 160 * k + i * 8 * k, mj = i % 5 === 0; box(x, 51 * k, 1, (mj ? 8 : 4) * k, STEEL, 0.4); box(x, H - 52 * k, 1, (mj ? 7 : 3) * k, STEEL, 0.3); }
+      var cf = rm || rd ? 0.5 : (t * 0.65) % 1, cur = cx - 160 * k + cf * 320 * k;
+      box(cur, 50 * k, 9 * k, 3 * k, ACC); box(2 * cx - cur, H - 53 * k, 9 * k, 3 * k, SCN);
+      var s = Math.max(1, Math.floor(H * 0.44 / 120)), span = 120 * s, left = Math.round(cx - span / 2), top = Math.round(cy - span / 2);
+      var asm = rm ? 1 : ease(t / 0.66), split = rd && !rm ? Math.round(Math.sin(clamp(u / 0.17) * Math.PI) * 3) : 0;
+      if (lg) {
+        ctx.globalAlpha = Math.min(1, asm + 0.2);
+        for (var b = 0; b < 15; b++) {
+          var dx = Math.round((b % 2 ? 1 : -1) * ((110 + b * 8) * k * (1 - asm) + split));
+          ctx.drawImage(lg, 0, b * 8, 120, 8, left + dx, top + b * 8 * s, span, 8 * s);
+        }
+        ctx.globalAlpha = 1;
+      }
+      var lock = Math.round((1 - asm) * 65 * k) + (rd && !rm ? Math.round(ease(u / 0.3) * 9 * k) : 0), hw = span / 2 + 19 * k;
+      [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(function (c) {
+        var x0 = cx + c[0] * (hw + lock), y0 = cy + c[1] * (hw + lock);
+        box(x0 - (c[0] > 0 ? 16 * k : 0), y0, 18 * k, 2 * k, ACC, 0.8); box(x0, y0 - (c[1] > 0 ? 16 * k : 0), 2 * k, 18 * k, ACC, 0.8);
+      });
+      for (var j = 0; j < 3; j++) {
+        var r = (140 + j * 10) * k, tr = (1 - (rm ? 1 : ease((t - j * 0.07) / 0.65))) * 95 * k, al = 0.36 - j * 0.09;
+        stairs(cx - tr, cy - r, cx + r * 0.9 - tr, cy + r * 0.62, SCN, al);
+        stairs(cx + r * 0.9, cy + r * 0.62 + tr, cx - r * 0.9, cy + r * 0.62 + tr, SCN, al);
+        stairs(cx - r * 0.9 + tr, cy + r * 0.62, cx + tr, cy - r, SCN, al);
+      }
+      var tt = rm ? 0 : t;
+      for (i = 0; i < 12; i++) {
+        var a = i * Math.PI / 6 + tt * 1.8, r2 = 167 * k;
+        stairs(cx + Math.cos(a) * r2, cy + Math.sin(a) * r2 * 0.65, cx + Math.cos(a + 0.11) * r2, cy + Math.sin(a + 0.11) * r2 * 0.65, i % 3 === 0 ? ACC : STEEL, 0.3 + (i % 3) * 0.15);
+      }
+      for (var side = -1; side <= 1; side += 2) for (var ln = 0; ln < 3; ln++) {
+        var mv = ((tt * 180 + ln * 49) % 125) * k, x2 = cx + side * (185 * k + mv), y2 = cy - 48 * k + ln * 48 * k;
+        box(x2, y2, (side < 0 ? 22 : 14) * k, 2 * k, SCN, 0.55); box(x2 + side * 27 * k, y2, 4 * k, 2 * k, ACC);
+      }
+      if (rd && !rm && u >= 0 && u < 0.38) {
+        var pu = u / 0.38, rr = (134 + pu * 72) * k;
+        for (j = 0; j < 16; j++) { var a2 = j * Math.PI / 8; stairs(cx + Math.cos(a2) * rr, cy + Math.sin(a2) * rr * 0.7, cx + Math.cos(a2) * (rr + 15 * k), cy + Math.sin(a2) * (rr + 15 * k) * 0.7, ACC, (1 - pu) * 0.8); }
+      }
+      // 扫描线（CSS 动画，读取期间在标志上循环；不表示进度）
+      var sc = 'left:' + (cx - span * 0.55) / dpr + 'px;top:' + top / dpr + 'px;width:' + span * 1.1 / dpr + 'px;height:' + span / dpr + 'px';
+      if (scan.__s !== sc) { scan.style.cssText = sc; scan.__s = sc; }
+      scan.style.display = !rd && !rm && t > 0.66 ? 'block' : 'none';
+      // 两侧面板：左 = 真实阶段日志（最近 4 行），右 = 真实进度分项
+      if (W > 760 * dpr) {
+        var lx = m, rx = W - m - 150 * k, py = 104 * k;
+        lab('01 / 启动校验', lx, py, 12 * k, TX); box(lx, py + 12 * k, 170 * k, 1, RULE);
+        var sh = logs.slice(Math.max(0, logs.length - 4));
+        sh.forEach(function (l, i) {
+          var yy = py + 35 * k + i * 26 * k;
+          box(lx, yy - 4 * k, 4 * k, 4 * k, l.ok ? ACC : (l.key === logKey ? SCN : RULE));
+          lab(l.s, lx + 12 * k, yy + 1 * k, 11 * k, l.ok ? TX : SUB);
+        });
+        lab('02 / 资源索引', rx, py, 12 * k, TX); box(rx, py + 12 * k, 128 * k, 1, RULE);
+        var bp = bootProgress === null ? 0 : clamp((bootProgress - 0.6) / 0.4);
+        var parts = [['DOWNLOAD', clamp(got / Math.max(1, total))], ['UNPACK', done ? 1 : 0], ['ENGINE', bootProgress !== null ? 1 : -1], ['WARMUP', rd ? 1 : bp]];
+        parts.forEach(function (q, i) {
+          var yb = py + 40 * k + i * 36 * k, fq = q[1];
+          lab(q[0], rx, yb, 10 * k, SUB); box(rx, yb + 8 * k, 124 * k, 2 * k, RULE);
+          if (fq < 0) { if (done) box(rx + ((t * 0.8) % 1) * 100 * k, yb + 8 * k, 24 * k, 2 * k, SCN); }   // 引擎启动：不定进度
+          else box(rx, yb + 8 * k, Math.floor(fq * 124 * k), 2 * k, fq >= 1 ? ACC : SCN);
+        });
+        lab('SESSION / WEB', lx, H - 105 * k, 10 * k, STEEL); lab(rd ? 'AUTH / VERIFIED' : 'AUTH / CHECKING', lx, H - 87 * k, 10 * k, ACC);
+        lab(v.ind ? 'INDEX / ---' : 'INDEX / ' + ('00' + Math.floor(p * 100)).slice(-3), rx, H - 105 * k, 10 * k, STEEL);
+        lab(rd ? 'LINK / READY' : 'LINK / ACTIVE', rx, H - 87 * k, 10 * k, ACC);
+      }
+      var barw = Math.min(280 * k, W - 100), bx = cx - barw / 2, by = H * 0.8;
+      if (!rd) {
+        lab(v.stage.text || '', cx, H * 0.75, 18 * k, TX, 'center');
+        var on = Math.floor(p * 28);
+        for (i = 0; i < 28; i++) box(bx + i * barw / 28, by, barw / 28 - 3, 5 * k, i < on ? ACC : PANEL);
+        lab('ARCHIVE INDEX', bx, by + 26 * k, 11 * k, SUB);
+        lab(v.ind ? '---%' : ('00' + Math.floor(p * 100)).slice(-3) + '%', bx + barw, by + 26 * k, 12 * k, TX, 'right');
+      } else lab('认证通过', cx, H * 0.75, 18 * k, ACC, 'center');
+      var ic = 'left:' + bx / dpr + 'px;top:' + by / dpr + 'px;width:' + barw / dpr + 'px;height:' + 5 * k / dpr + 'px';
+      if (ind.__s !== ic) { ind.style.cssText = ic; ind.__s = ic; }
+      ind.style.display = v.ind && !rd ? 'block' : 'none';
+      lab('RHODES ISLAND', m, H - 20 * k, 11 * k, SUB);
+      lab(rd ? 'ACCESS / GRANTED' : 'ACCESS / PENDING', W - m, H - 20 * k, 11 * k, rd ? ACC : SUB, 'right');
+    }
+    requestAnimationFrame(frame);
+    return v;
+  }
+
   function buildV(d) {
     var segs = '';
     for (var i = 0; i < 50; i++) segs += '<i></i>';
     var h = '';
-    if (BV === 1) {
+    if (BV === 4) {   // PRTS 认证终端（11-05，Codex docs/reference/prts-entry-1105；同桌面 boot_views.draw_v4）：画布逐帧画，扫描线 / 不定进度是 CSS 动画
+      h = '<canvas class="p4c"></canvas><div class="p4scan"><b></b></div><div class="p4ind"><b></b></div>';
+    } else if (BV === 1) {
       h = '<div class="sv-scan"></div>' + snowLayer(46) + head('罗德岛作战终端 · 启动程序', 1) +
         '<div class="sv-body1">' + logBox('sv-frame') + tipBox() + '</div>' +
         '<div class="sv-prog"><div class="sv-segs">' + segs + '</div><div class="sv-pct">000%</div><div class="sv-what"></div></div>';
@@ -167,6 +294,7 @@
     d.className = 'sv sv' + BV;
     d.innerHTML = h + FOOT;
     var q = function (s) { return d.querySelector(s); };
+    if (BV === 4) return p4Init(d);
     return { root: d, lines: q('.sv-lines'), tip: q('.sv-tip .bd'), code: q('.sv-code'), segs: d.querySelectorAll('.sv-segs i'), pct: q('.sv-pct'),
       what: q('.sv-what'), ruler: q('.sv-ruler'), depth: q('.sv-depth'), sync: q('.sv-sync'), deep: q('.sv-deep'), jelly: q('.sv-jwrap'),
       ticks: d.querySelectorAll('.sv-ticks line'), num: q('.sv-num'), rows: q('.sv-rows'), contacts: q('.sv-contacts'), build: q('.sv-build'), dark: q('.sv-dark'), net: d.querySelectorAll('.sv-net line') };
@@ -175,6 +303,7 @@
   // 每次 upd() 调：f = 进度 0–1，stage = {key, text, ok}，n / total = 编译到第几个（Godot 回传后才有）
   function updV(v, f, stage) {
     logStep(stage.key, stage.text, stage.ok);
+    if (BV === 4) { v.f = f; v.stage = stage; v.ind = done && bootProgress === null; return; }
     var nmax = window.innerHeight < 520 ? 7 : (window.innerHeight > window.innerWidth ? 9 : 12);   // 矮屏（手机横屏）/ 竖屏少留几行，不压页脚和提示
     var html = '', start = Math.max(0, logs.length - nmax);
     for (var i = start; i < logs.length; i++) {
@@ -315,6 +444,7 @@
       var place = function () {
         var low = window.innerHeight < 520, bh = low ? 42 : 50;
         var y = window.innerHeight - (low ? 64 : 96) - bh / 2;   // 缺省：底部
+        if (BV === 4) y = Math.min(window.innerHeight * 0.8, window.innerHeight - 60 - bh / 2);   // 方向 4：进度条的位置（同 boot_views.start_rect）
         if (dial && !(BV === 3 && window.innerHeight > window.innerWidth)) {
           y = dial.getBoundingClientRect().bottom + (BV === 3 ? 34 : 30) + bh / 2;
           y = Math.min(y, window.innerHeight - 30 - bh / 2 - (low ? 0 : 22));   // 让出页脚声明（矮屏不写下面那行英文）
