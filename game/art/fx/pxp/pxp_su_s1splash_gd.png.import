@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://wwwwwwwwwwwww"
-path="res://.godot/imported/pxp_su_s1crown_up.png-bf1c7d253c362de52fda34b41f202737.ctex"
+uid="uid://aaaaaaaaaaaaa"
+path="res://.godot/imported/pxp_su_s1splash_gd.png-3e223fe91561e578626000d2d71c46e2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/fx/pxp/pxp_su_s1crown_up.png"
-dest_files=["res://.godot/imported/pxp_su_s1crown_up.png-bf1c7d253c362de52fda34b41f202737.ctex"]
+source_file="res://art/fx/pxp/pxp_su_s1splash_gd.png"
+dest_files=["res://.godot/imported/pxp_su_s1splash_gd.png-3e223fe91561e578626000d2d71c46e2.ctex"]
 
 [params]
 

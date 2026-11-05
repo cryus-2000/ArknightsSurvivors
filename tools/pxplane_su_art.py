@@ -9,7 +9,7 @@
   · 普攻环斩 = 腰高的一圈锯环（平面压扁 0.72，前后半圈分两张，按脚底 y 和单位排序）：锯齿是前倾的三角齿，每拍往转动方向挪 0.42 个齿距，
     出手两拍有一段白热的「刀头弧」沿转动方向扫过；锯环下方贴地一圈断续的接触影。
   · 精一 = 起手外圈一道往里收的水纹（卷刃）；精二 = 锯齿甩出水珠（新元素），另有替身闪现。
-  · S1 = 头顶落下一道光柱 + 脚下一圈断续符环；期间身边深蓝暗焰（代替原来的红色火焰，红色只给危险）；精一加脚下水冠，精二加两片绕身游的鲨鳍。
+  · S1 = 头顶落下一道光柱 + 脚下一圈断续符环；期间身边深蓝暗焰（代替原来的红色火焰，红色只给危险）；精一加脚下贴地的不规则水花 + 鳍尖破水，精二加两片绕身游的鲨鳍。
   · S2 = 脚下一道横向白闪 + 冒泡；期间身后两道替身残影（运行时画，青白色，与本体区分）；精二加身后幽蓝触须。
   · S3 = 起手一圈大浪卷起绕身（浪顶白沫、断口、不是墙）；期间重锯：齿尖烧成橙热、火星多、地上留切向的锯痕（先橙后冷）。
 色：深海蓝 8 阶 AB、钢 6 阶 ST、火星橙 5 阶 SP（不用危险粉红）、替身青 4 阶 GH。
@@ -455,27 +455,70 @@ def s1_runes(R):
     return out, cx, cy
 
 
-def crown():
-    """S1 精一：脚下水冠（一圈水珠往上跳再落回，白沫）"""
-    W, Hh = 41, 30
-    ox, oy = 20, 25
+def foot_splash():
+    """S1 精一（11-05 用户「脚下的水冠有点奇怪」，取代立起的一圈水冠）：贴地、不规则的几簇短水花往外溅开——
+    每簇方向 / 大小 / 起跳时刻都不同，水滴低低抛出落地成白沫点；一侧一道鲨鳍尖破水划过、身后甩起一小片水花。
+    贴地层另出一两道压扁的细涟漪（s1splash_gd）。原点 = 脚底，6 拍"""
+    W, Hh = 83, 38
+    ox, oy = 41, 28
+    rnd = random.Random(41)
+    clusters = []
+    for q in range(5):
+        a = q * 2 * math.pi / 5 + rnd.uniform(-0.5, 0.5)
+        clusters.append((a, rnd.uniform(10, 16), rnd.uniform(0.0, 1.2), rnd.randint(3, 6), rnd.uniform(0.7, 1.3)))
     out = []
     for f in range(6):
         cv = Cv(W, Hh)
-        for q in range(14):
-            th = q * 2 * math.pi / 14 + 0.2
-            rr = 9 + f * 2.2
-            hgt = [2, 9, 13, 12, 7, 2][f] * (0.7 + 0.3 * hsh(q, "c"))
-            x = ox + rr * math.cos(th)
-            y = oy + rr * math.sin(th) * SY - hgt
-            cv.put(x, y, FOAM if f < 3 else AB[6])
-            cv.put(x, y + 1, AB[5])
-            if f in (1, 2):
-                cv.put(x, y + 2, AB[4])
-        if f <= 3:
-            broken_ring(cv, ox, oy, 8 + f * 2.5, AB[5], seed=2, gapk=0.25)
+        for ci, (a, r0, d0, nd, sz) in enumerate(clusters):
+            t = f - d0
+            if t < 0:
+                continue
+            bx = ox + r0 * math.cos(a)
+            by = oy + r0 * math.sin(a) * SY
+            for k in range(nd):   # 这一簇的水滴：往外低抛
+                aa = a + (hsh(ci, k, "a") - 0.5) * 0.9
+                sp = (2.2 + 2.5 * hsh(ci, k, "s")) * sz
+                hv = (3.0 + 4.0 * hsh(ci, k, "h")) * sz
+                x = bx + math.cos(aa) * sp * t
+                hgt = hv * t - 1.6 * t * t
+                y = by + math.sin(aa) * SY * sp * t
+                if hgt < 0:
+                    if t < 4.5:
+                        cv.put(x, y, FOAM if t < 3 else AB[5])   # 落地成白沫点
+                    continue
+                cv.put(x, y - hgt, FOAM if t < 1.5 else AB[6])
+                if t < 2.5:
+                    cv.put(x - math.cos(aa), y - hgt + 1, AB[5])
+            if t < 2.5:   # 簇根一小撮白沫
+                for k in range(-2, 3):
+                    if hsh(ci, k, f) < 0.7:
+                        cv.put(bx + k * math.cos(a + 1.57), by + k * math.sin(a + 1.57) * SY, FOAM if t < 1.5 else AB[5])
+        # 鲨鳍尖破水：从右后方往右前方划过，鳍尖 3 格高，身后甩水
+        if 1 <= f <= 4:
+            u = (f - 1) / 3.0
+            fx_ = ox + 14 + 10 * u
+            fy_ = oy - 2 + 4 * u
+            for s_ in range(4):
+                for xx in range(-2 + s_ // 2, 2 - s_ // 3):
+                    cv.put(fx_ + xx, fy_ - s_, AB[5] if xx >= 0 else AB[2])
+            for k in range(1, 6):
+                cv.put(fx_ - 2 - k, fy_ + 1 - (1 if k % 2 else 0) - max(0, 3 - k) * (1 - u), FOAM if k < 3 else AB[5])
         out.append(cv)
     return out, ox, oy
+
+
+def foot_ripples():
+    """S1 精一贴地：一两道压扁的细涟漪，断续、不同心，往外慢慢走"""
+    out = []
+    for f in range(6):
+        cv, cx, cy = ground_canvas(26, 4)
+        r1 = 9 + f * 3.0
+        if f < 5:
+            broken_ring(cv, cx + 1, cy, r1, AB[5] if f < 3 else AB[4], seed=51, gapk=0.4 + 0.06 * f)
+        if 1 <= f:
+            broken_ring(cv, cx - 2, cy + 1, r1 * 0.7 + 2, AB[4] if f < 4 else AB[3], seed=57, gapk=0.5 + 0.06 * f)
+        out.append(cv)
+    return out, cx, cy
 
 
 def s1_aura(tier):
@@ -980,8 +1023,10 @@ def build(only=""):
         save("s1col_up", c1, x1, y1)
         rr, rx, ry = s1_runes(60)
         save("s1rune_gd", rr, rx, ry)
-        cr, cx, cy = crown()
-        save("s1crown_up", cr, cx, cy)
+        cr, cx, cy = foot_splash()
+        save("s1splash_up", cr, cx, cy)
+        rp, rx2, ry2 = foot_ripples()
+        save("s1splash_gd", rp, rx2, ry2)
         au, ax, ay = s1_aura(0)
         save("s1aura_up", au, ax, ay, loop=True)
         fb, ff, fx, fy = fins()

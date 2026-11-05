@@ -449,7 +449,7 @@ def doll_flash(P, t0, c, es):
 def mv_s1():
     ps = []
     labels = ["E0  光柱落下 + 脚下符环；期间深海暗焰",
-              "E1  + 脚下水冠",
+              "E1  + 脚下贴地水花 + 鳍尖破水",
               "E2  + 两片鲨鳍绕身游"]
     for t in (0, 1, 2):
         P = Panel(labels[t], tier=t)
@@ -458,7 +458,8 @@ def mv_s1():
         P.add("s1col_up", 0.1, P.me, "up", sk=-2, follow=True)
         P.add("s1rune_gd", 0.1, P.me, "gd", follow=True)
         if t >= 1:
-            P.add("s1crown_up", 0.15, P.me, "up", sk=3, follow=True)
+            P.add("s1splash_up", 0.15, P.me, "up", sk=3, follow=True)
+            P.add("s1splash_gd", 0.15, P.me, "gd", follow=True)
         P.add("s1aura_up", 0.35, P.me, "up", sk=1, loop=True, life=9, follow=True)
         if t >= 2:
             P.add("s1fin_bk_up", 0.35, P.me, "up", sk=-30, loop=True, life=9, follow=True)
