@@ -8,6 +8,7 @@
 ## 帧条：game/art/fx/pxp/pxp_gl_*.png + data/pxp_gladiia.json（tools/pxplane_bake_gladiia.py）；运行时线状件（链、钩头、拖痕、裂断暗沟、沉底锁链）逐美术像素画。
 extends RefCounted
 
+const PxU = preload("res://scripts/render/px_util.gd")   # 共用小工具（docs/281 §2）
 const Bal = preload("res://scripts/core/balance.gd")
 const MI = preload("res://scripts/render/melee_impact.gd")
 const C := [Color("#0d1a2e"), Color("#182f51"), Color("#294a78"), Color("#3a65a0"), Color("#4c80c7"), Color("#8bacdb"), Color("#c9d9ee"), Color("#ffffff")]   # OP.gladiia 7 阶 + 压底
@@ -44,11 +45,7 @@ static func _vn(x: float) -> float:
 
 
 static func _bucket(v: float, opts: Array) -> int:
-	var best: int = int(opts[0])
-	for q in opts:
-		if absf(float(q) - v) < absf(float(best) - v):
-			best = int(q)
-	return best
+	return PxU.nearest(opts, v)
 
 
 static func _strip_pair(r, o, key: String, at: Vector2, follow := false, sk := 0.0) -> void:

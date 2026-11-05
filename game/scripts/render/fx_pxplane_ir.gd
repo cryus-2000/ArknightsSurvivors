@@ -6,6 +6,7 @@
 ## 挂在人身上的件跟她（光刃、月牙、枪口火光、追斩光刺）；起风水旋 / 挑刺 / 严律刺印跟被打的那只；冲击环、爆点、水花碎沫、提灯光圈留在原地。
 extends RefCounted
 
+const PxU = preload("res://scripts/render/px_util.gd")   # 共用小工具（docs/281 §2）
 const Pxp = preload("res://scripts/render/fx_pxplane.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 
@@ -38,11 +39,7 @@ func _init(px) -> void:
 
 
 static func _near(arr: Array, v: float) -> int:
-	var best: int = int(arr[0])
-	for x in arr:
-		if absf(float(x) - v) < absf(float(best) - v):
-			best = int(x)
-	return best
+	return PxU.nearest(arr, v)
 
 
 static func _hsh(x: int, y: int, k: int) -> int:
@@ -54,14 +51,7 @@ static func _hf(x: int, y: int, k: int) -> float:
 
 
 func _beat_n(o, k: String) -> int:
-	var key: String = str(o.id) + k
-	var bt: int = int(floor(g.t * 15.0))
-	var c: Array = _beat.get(key, [bt, 0])
-	if int(c[0]) != bt:
-		c = [bt, 0]
-	c[1] = int(c[1]) + 1
-	_beat[key] = c
-	return int(c[1]) - 1
+	return PxU.beat_n(_beat, g.t, str(o.id) + k)
 
 
 func _fr(t0: float) -> int:

@@ -6,6 +6,7 @@
 ## 挂在人身上的件带 fo（跟她）或 fol（日晷格挡跟队长）；斩痕 / 剑气命中星跟被打的那只（e / ef）；冲击环、声波、烟环、刻痕环留原地。
 extends RefCounted
 
+const PxU = preload("res://scripts/render/px_util.gd")   # 共用小工具（docs/281 §2）
 const Pxp = preload("res://scripts/render/fx_pxplane.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 
@@ -38,22 +39,11 @@ func _init(px) -> void:
 
 
 func _beat_n(o, k: String) -> int:
-	var key: String = str(o.id) + k
-	var bt: int = int(floor(g.t * 15.0))
-	var c: Array = _beat.get(key, [bt, 0])
-	if int(c[0]) != bt:
-		c = [bt, 0]
-	c[1] = int(c[1]) + 1
-	_beat[key] = c
-	return int(c[1]) - 1
+	return PxU.beat_n(_beat, g.t, str(o.id) + k)
 
 
 static func _near(arr: Array, v: float) -> int:
-	var best: int = int(arr[0])
-	for x in arr:
-		if absf(float(x) - v) < absf(float(best) - v):
-			best = int(x)
-	return best
+	return PxU.nearest(arr, v)
 
 
 func _px(ci, p: Vector2, c: Color) -> void:

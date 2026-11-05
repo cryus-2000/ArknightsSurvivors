@@ -17,6 +17,7 @@
 ## 画面随机只用 g.vrng（颗粒）；本模块不抽随机数。
 extends RefCounted
 
+const PxU = preload("res://scripts/render/px_util.gd")   # 共用小工具（docs/281 §2）
 const Bal = preload("res://scripts/core/balance.gd")
 const METAS := {"res://data/pxp_logos.json": "lg_", "res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_eyjafjalla.json": "ey_", "res://data/pxp_siege.json": "", "res://data/pxp_exusiai.json": "ex_", "res://data/pxp_mizuki.json": "", "res://data/pxp_angelina.json": "an_", "res://data/pxp_saria.json": "sa_", "res://data/pxp_texas.json": "", "res://data/pxp_gladiia.json": "gl_", "res://data/pxp_ulpianus.json": "ul_", "res://data/pxp_suzuran.json": "sz_", "res://data/pxp_irene.json": "ir_", "res://data/pxp_kaltsit.json": "ka_", "res://data/pxp_wisadel.json": "wd_", "res://data/pxp_skalter.json": "sk_", "res://data/pxp_specter_unchained.json": "su_", "res://data/pxp_lappland.json": "lp_"}   # 帧条表 → 键前缀（星熊的键自带 hsg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
 const MI = preload("res://scripts/render/melee_impact.gd")   # 近战打击感包（docs/246 §11）：斩痕 / 照地光提亮
@@ -1283,11 +1284,7 @@ func _boom_gp(o, bm: Dictionary) -> Vector2:
 
 ## 尺寸档：判定半径（美术像素）挑最近的一档（帧条按几档预生成，游戏只整数放大）
 static func _bucket(v: float, opts: Array) -> int:
-	var best: int = int(opts[0])
-	for x in opts:
-		if absf(v - float(x)) < absf(v - float(best)):
-			best = int(x)
-	return best
+	return PxU.nearest(opts, v)
 
 
 ## 后期剑气（growth/late_shape → vis_growth._fire_qi）：同一次出手的几道剑气合成一道盾击冲击波（不碎）。
@@ -1544,14 +1541,7 @@ func _ev_lumen(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictiona
 var _beat_cnt := {}
 
 func _lm_beat_n(o, k: String) -> int:
-	var key: String = str(o.id) + k
-	var beat: int = int(floor(g.t * 15.0))
-	var c: Array = _beat_cnt.get(key, [beat, 0])
-	if int(c[0]) != beat:
-		c = [beat, 0]
-	c[1] = int(c[1]) + 1
-	_beat_cnt[key] = c
-	return int(c[1]) - 1
+	return PxU.beat_n(_beat_cnt, g.t, str(o.id) + k)
 
 
 ## 贴地层：一次性件 + 运行时线状贴地件 + 状态件（光雨雨区、灯塔光圈、灯塔守望光扇）

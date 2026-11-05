@@ -8,6 +8,7 @@
 ## 挂在人身上的件（杖头星芒、重力核心）带 fo 跟她走；跟场的件（环带、场边、绸带）跟着场心走；落点、井、碎石留在原地。只画，不碰玩法与玩法随机数。
 extends RefCounted
 
+const PxU = preload("res://scripts/render/px_util.gd")   # 共用小工具（docs/281 §2）
 const Pxp = preload("res://scripts/render/fx_pxplane.gd")
 
 const V := [Color("#140c24"), Color("#312f5c"), Color("#5c4a8e"), Color("#8765c0"), Color("#b280f2"), Color("#cdacf7"), Color("#e8d9fb"), Color("#ffffff")]
@@ -35,14 +36,7 @@ func _init(px) -> void:
 
 
 func _beat_n(o, k: String) -> int:
-	var key: String = str(o.id) + k
-	var bt: int = int(floor(g.t * 15.0))
-	var c: Array = _beat.get(key, [bt, 0])
-	if int(c[0]) != bt:
-		c = [bt, 0]
-	c[1] = int(c[1]) + 1
-	_beat[key] = c
-	return int(c[1]) - 1
+	return PxU.beat_n(_beat, g.t, str(o.id) + k)
 
 
 ## 尺寸档：挑不超过判定 × 1.1 的最大一档

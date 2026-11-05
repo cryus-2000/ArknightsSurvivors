@@ -6,6 +6,7 @@
 ## 挂在人身上的件（枪口焰、过热烟、过载光环）带 fo 跟着她走（docs/246 §11）；命中火花、贴地环留在原地。只画，不碰玩法与玩法随机数。
 extends RefCounted
 
+const PxU = preload("res://scripts/render/px_util.gd")   # 共用小工具（docs/281 §2）
 const Pxp = preload("res://scripts/render/fx_pxplane.gd")
 const ObFx = preload("res://scripts/characters/blocks/ob_fx.gd")
 const ObCore = preload("res://scripts/characters/blocks/ob_core.gd")   # aura_members
@@ -57,14 +58,7 @@ func _c(ramp: String, i: int) -> Color:
 
 ## 这一拍（1/15 秒）某类件已出几个（超过上限就不再加画面）
 func _beat_n(o, k: String) -> int:
-	var key: String = str(o.id) + k
-	var bt: int = int(floor(g.t * 15.0))
-	var c: Array = _beat.get(key, [bt, 0])
-	if int(c[0]) != bt:
-		c = [bt, 0]
-	c[1] = int(c[1]) + 1
-	_beat[key] = c
-	return int(c[1]) - 1
+	return PxU.beat_n(_beat, g.t, str(o.id) + k)
 
 
 func _mtier(m: String, t: int) -> int:
