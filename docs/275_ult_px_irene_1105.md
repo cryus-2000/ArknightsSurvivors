@@ -5,7 +5,7 @@
 2. 开关 `ult/px_plane`（balance.json，缺省 0 = 原画面）。开着时纹章、光链、穿梭斩线、连环爆、收尾斩击和起手蓄力改由 `game/scripts/run/ult_px_ir.gd` 逐格画：1 特效像素 = 1 美术像素，按 15 fps 节拍换帧，贴地层压扁 0.72。
 3. 配色：纹章用白色（11-05 用户「背景会不会太紫了，我觉得白的比较好，然后再加上白紫色斩击」），斩击、光链、爆用白 + 亮紫（同 docs/272），深海蓝潮水只作辅色。
 4. **保留**：冲击帧「整屏白 + 黑剪影」（中村丰式，用户已认可）。剪影主体换成新的收尾斩击和两条主裂缝。
-5. 状态：送审 GIF 和原版 / 新版并排录像已出，等用户看。游戏内还没实跑：本机不开 Godot，GDScript 只人工通读过。
+5. 状态：11-05 用户看崩解版后点头（「最后的崩解特效是最关键的，得做上」）。已接进游戏，挂在开关下（缺省关），分支 `claude/ult-px-irene`；GCP 上的实机录像和开 / 关 TRACE 见 §6。
 
 ## 1. 每段怎么画
 
@@ -55,4 +55,43 @@
 - 没把握的：
   - 游戏内没实跑。点头后上 GCP，先看 SCRIPT ERROR，再跑开 / 关 TRACE 和同局录像。
   - 纹章重采样到 550 宽后，细线有锯齿和断点。
-- 推到其余 19 人的做法（用户点头后）：每人一个 `ult_px_<id>.gd`，在 `ult_moves*.gd` 原来画图的地方发事件；大贴图一律重采样到美术像素格并压扁；冲击帧剪影由各人的 `draw_hf` 画。
+- 推到其余 19 人的做法：见 §5。
+
+## 5. 模板：其余 19 人终结技照这个做
+
+**结构**（每人一套，互不相撞）：
+1. `game/scripts/run/ult_px_<id>.gd`：`static on()` 读同一个开关 `ult/px_plane`；`static ev(u, kind, d)` 记事件；`draw_back(u, w)` 画地面层，`draw_front(u, w)` 画上层，`draw_hf(u, w, fg)` 画冲击帧剪影，需要时再加 `draw_windup(u, w, caster, wk)` 画起手蓄力。
+2. `ult_moves*.gd` 里这人的招式函数：在原来画图的每个调用（`u.strip / u.shape / PF.particles / PF.dust / PF.cracks / PF.rock / PF.aftershock / u.light / 链节 tiles`）外面套 `if 开关开: 发事件 else: 原画法`。玩法调用（`u.hit / _once / add_cc / _lead_move / cam_hold / vfx.stop / u.impact / PF.hf_on / 音效`）一行不动。
+3. `ult.gd` 里四处转发（`draw_world_back / draw_world / _draw_hit_frame / _draw_windup`），每多一个人加一行 `if on(): of(g).draw_*()`，或者改成按施放者 id 查表。
+4. 画法先在 Python 里写一遍（`tools/ult_px_<id>_art.py`），出送审 GIF 和原版对新版并排，用户点头后再逐函数移植成 GDScript，两边一一对应。
+
+**像素规矩**（同 docs/246）：1 特效像素 = 1 美术像素，只按 g.PX 整数放大，原点对齐 2 像素格；15 fps 全局节拍；贴地层压扁 0.72。原来的大贴图（纹章、法阵等）用 `tools/ult_px_irene_bake.py` 的办法重采样到美术像素格，压扁，去掉暗填充只留线稿，再按色阶重新上色。
+
+**崩解分拍**（用户认定是最关键的一段）：主打击之后按拍错开，不同时出现：
+| 拍（打击后秒数） | 内容 | 画法 |
+|---|---|---|
+| 0–0.12 | 裂缝爆亮、从中心往外长出 | 折线 + 短分叉，白 → 本人色 → 0.8 秒后冷成暗灰，2 秒淡掉；冲击帧剪影包含主裂缝 |
+| 0.06 起（离中心越远越晚） | 地面块掀起 | `slab()`：5–8 美术像素实心块，暗面 + 亮顶边（刚起时顶边被打击光照成本人色），上抛 + 往裂缝外飞，地上留影子 |
+| 0.12 起 | 两侧尘墙冲起 | `plume()`：每侧十几团、每团 6 块尘，沿裂缝铺开相叠成片；边翻卷边长大，顶边带本人色光；地面暖灰 |
+| 约 0.5 | 碎石落地 | 弹一下（第二段抛物线约 0.28 倍），三分之一碎成 3 小块，1.5 秒内淡掉 |
+| 0.4–0.8 | 尘土塌散 | 尘块下沉、往外摊开、变淡，0.8 秒散完 |
+
+颗粒封顶照 docs/270 爆发档：碎石总数 ≤ 25（艾丽妮 24），每次连爆 3 颗以内；尘墙是成片的面，不算颗粒，靠 0.8 秒散完保证不糊屏。照地光只留原画面认可过的那几盏（用户嫌短灯闪）。
+
+**冲击帧怎么接**：招式照旧先 `PF.hf_on(u, a)` 再 `u.impact(c)`，冲击帧的开关、两拍时长、底色都由 `ult._draw_hit_frame` 管。开关开着时原来标了 `hf` 的图形不会再生成，剪影由 `draw_hf(u, w, fg)` 画：把这一下的主体（主刃 / 主裂缝等）按 fg 纯色重画一遍，第 1 拍黑、第 2 拍白（或招式自定 `hf_cols`）。
+
+**验收**：
+1. GCP 上 `tools/ult_rec.py --clips u_<id> --extra="--bal=ult/px_plane=1"` 出实机录像，日志查 SCRIPT ERROR。
+2. `--job trace_ab`，`a=ult/px_plane=0`、`b=ult/px_plane=1`，`windowed=1`（要画画面才会走到绘制代码），extra 同 `ult_rec` 的强制放终结技参数，要求逐行一致。
+
+## 6. 游戏内验收（GCP，分支 `claude/ult-px-irene`，提交 1f2389410）
+
+| 项 | 结果 |
+|---|---|
+| 实机录像：`ult_rec.py --clips u_irene --extra="--bal=ult/px_plane=1"`（艾丽妮队长 + 塞雷娅 / 能天使，种子 3，31.5 秒充满放出，30 帧原速 8 秒） | 240 帧，SCRIPT ERROR 0 条；纹章、光链、6 刀穿梭、连环爆、冲击帧两拍（白底黑剪影 / 黑底白剪影，剪影 = 新斩线 + 主裂缝）、收尾崩解全部出现 |
+| TRACE：同一局（种子 3，40 秒，强制 31.5 秒放终结技），`ult/px_plane` 0 vs 1，画画面跑（windowed） | 41 行逐行一致；31–33 秒处终结技的击杀数 49 → 93 → 104、队长位置跳动两组相同 |
+
+- 录像：本机 `Claude outputs/ult_px_irene_1105/ult_irene_live_px_on.mp4`（原始在 `Claude outputs/render-ult-irene-px/`，日志在 `cloud-results/render-ult-irene-px`）。
+- TRACE：`cloud-results/render-ult-irene-trace` 分支 `build/cloud/render-ult-irene-trace/trace_ab.md`。
+- 原版对照录像：`Claude outputs/render-ult-irene-orig/u_irene.mp4`（同种子、同参数，开关关）。
+
