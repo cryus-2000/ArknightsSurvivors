@@ -123,8 +123,10 @@ static func ev(r, o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> v
 					_put(r, o, "spike_up", e.pos, "up")
 					_put(r, o, "spike_gd", e.pos, "gd")
 			_hit(r, o, R, p, es, "", 0, 90.0, 0.35)
-			if not es.is_empty():   # 命中甩出荧光火星 / 碎晶屑：几颗，飞得快、落得快（粒子算在爪痕主元素里）
-				_pp(r, o, _hp(es[0]), float(es[0].pos.y) + 2.0, "ember", 2 + t, GR_HOT, GR_DK, (_hp(es[0]) - at).normalized())
+			if not es.is_empty():   # 命中甩出荧光火星 + 4–6 px 墨绿碎晶屑（docs/270：平均边长 ≥ 3 px）；粒子算在爪痕主元素里
+				var hd: Vector2 = (_hp(es[0]) - at).normalized()
+				_pp(r, o, _hp(es[0]), float(es[0].pos.y) + 2.0, "ember", 1 + mini(t, 1), GR_HOT, GR_DK, hd)
+				_pp(r, o, _hp(es[0]), float(es[0].pos.y) + 2.0, "rock", 2, GR_HOT, GR_DK, hd)
 		"kal_pounce":   # 精一扑击落地（ob_elite._el_land）
 			var at2: Vector2 = d.get("at", o.pos)
 			var fl: bool = float(d.get("face", 1.0)) < 0.0
@@ -143,13 +145,13 @@ static func ev(r, o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> v
 			_put(r, o, "heal_gd", tp, "gd", fo)
 			_pp(r, o, tp + Vector2(0, -4), tp.y, "rise", 3 if d.get("power", false) else 4, HEAL_HOT, HEAL_DK)
 			if d.get("power", false):
-				R._light(o, tp + Vector2(0, -20), 90.0, 0.35, 0.15, p.get("heal", p.light))
+				R._light(o, tp + Vector2(0, -20), 130.0, 0.55, 0.15, p.get("heal", p.light))   # docs/270 治疗类：半径 80–160 / 强度 0.35–0.7
 				return
 			if t >= 1:
 				_put(r, o, "heal_cross_up", tp, "up", fo, false, 1.0)
 			if t >= 2:
 				_put(r, o, "heal_col_up", tp, "up", fo, false, -2.0)
-			R._light(o, tp + Vector2(0, -20), 70.0, 0.3, 0.12, p.get("heal", p.light))
+			R._light(o, tp + Vector2(0, -20), 120.0, 0.5, 0.15, p.get("heal", p.light))   # docs/270：治疗落点照地光补到治疗类下限以上
 		"skill":
 			var i: int = int(d.get("i", -1))
 			var s3 = _m3(o)
@@ -162,7 +164,7 @@ static func ev(r, o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> v
 				_put(r, o, "s1rib_fr2_up" if t >= 2 else "s1rib_fr_up", g.ppos, "up", "lead", false, 1.0)
 				if t >= 1:
 					_put(r, o, "s1hex_gd", g.ppos, "gd", "lead")
-				R._light(o, g.ppos + Vector2(0, -30), 120.0, 0.45, 0.15, p.get("heal", p.light))
+				R._light(o, g.ppos + Vector2(0, -30), 140.0, 0.55, 0.15, p.get("heal", p.light))
 			elif i == 1 and s3 != null:   # S2 战术协同：Mon3tr 身上指令符
 				_put(r, o, "s2hex_gd", s3.pos, "gd", "m3")
 				_put(r, o, "s2cmd_up", s3.pos, "up", "m3", false, 1.0)
