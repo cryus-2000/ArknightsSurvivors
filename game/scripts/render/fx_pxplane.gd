@@ -531,7 +531,12 @@ func _op(oid: String):
 	return null
 
 
+var _step_fr := -1
 func _step() -> void:
+	var fr: int = Engine.get_process_frames()
+	if fr == _step_fr and not (g.opt_old & g.OPT_PXSTEP):   # 一帧只清一次（docs/287 §3 ⑤）：原来每名干员每个绘制层进来都整表 filter 一遍；同一帧 g.t 不变，结果相同
+		return
+	_step_fr = fr
 	var now: float = g.t
 	items = items.filter(func(it): return now - float(it.t0) < (float(it.life) if it.has("life") else _life(str(it.k))) + 0.02 and not (it.has("ef") and it.ef.get("dead", false)))
 	for it in items:   # 卡肉（melee_impact.meat）：命中那一拍（第 1 帧）多停 stk 秒再接着扫
