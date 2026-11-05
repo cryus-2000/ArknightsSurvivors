@@ -1,0 +1,23 @@
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+index.json 已生成（2404 项）
+render_prep 完成：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+== pxplane_shots.py demo --op hoshiguma --modes 3 --n 40 --extra="--bal=growth/late_shape=1 --bal=shape_lv/lv1=1"
+   rc=0  636 秒
+e2_m3_px2 40 帧 []
+e2_m3_px1 40 帧 []
+三栏 cmp_atk_e0 帧 31
+三栏 cmp_atk_e1 帧 16
+三栏 cmp_atk_e2 帧 38
+== pxplane_shots.py demo --op hoshiguma --modes 1 --start 1.0 --every 1 --n 45 --extra="--bal=growth/late_shape=1 --bal=shape_lv/lv1=1"
+   rc=0  300 秒
+e2_m1_px0 45 帧 []
+e2_m1_px2 45 帧 []
+e2_m1_px1 45 帧 []
+三栏 cmp_s2_e1 帧 25
+三栏 cmp_s2_e2 帧 18
+== pxplane_shots.py trace --op hoshiguma --lead texas --seed 11 --maxt 300 --pxs 0,1 --extra="--bal=growth/late_shape=1 --elite2 --sptest"
+   rc=0  394 秒
+('trace0_s11', 301, [], False)
+('trace1_s11', 301, [], False)
+trace0_s11 vs trace1_s11：TRACE 301 / 301 行，逐行一致
+media：12 个文件，13M
