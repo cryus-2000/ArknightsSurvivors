@@ -1,0 +1,28 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（3584 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+局 ('mizuki_atk_A', 180, [])
+局 ('mizuki_atk_B', 180, [])
+局 ('mizuki_atk_C', 180, [])
+局 ('mizuki_s1_A', 180, [])
+局 ('mizuki_s1_B', 180, [])
+局 ('mizuki_s1_C', 180, [])
+体检 {"op": "mizuki", "mode": "atk", "frame": 6, "engine": 35, "secs": 6.0, "hits": 0, "acts": 35, "skill": 0, "skill_frame": null, "parts_total": 76, "parts_per_hit": 2.2, "parts_per_s": 12.7, "bursts": 7, "burst_med": 10.0, "burst_max": 16, "lights_per_burst": 1.0, "parts_s1_1s": null, "skill_burst_max": null, "mats": {"ink": 76}, "life": 0.89, "sz": 5.1, "alive_max": 21, "lights": 7, "lights_per_hit": 0.2, "light_r": 100.0, "light_i": 0.54, "light_life": 0.12, "skill_light_r": null, "skill_light_i": null, "emit_max": 260, "emit_mean": 88.0, "emit_p90": 231, "gl_peak": 43.5, "gl_area_hit": 2279, "gl_mean_hit": 10.5, "em_peak": 224.0, "em_area_hit": 33, "em_mean_hit": 12.8, "crop": [487, 288, 320, 180]}
+体检 {"op": "mizuki", "mode": "s1", "frame": 35, "engine": 64, "secs": 6.0, "hits": 0, "acts": 41, "skill": 0, "skill_frame": null, "parts_total": 114, "parts_per_hit": 2.8, "parts_per_s": 19.0, "bursts": 7, "burst_med": 8.0, "burst_max": 38, "lights_per_burst": 1.86, "parts_s1_1s": null, "skill_burst_max": null, "mats": {"ink": 114}, "life": 0.9, "sz": 4.9, "alive_max": 38, "lights": 13, "lights_per_hit": 0.32, "light_r": 100.0, "light_i": 0.54, "light_life": 0.12, "skill_light_r": null, "skill_light_i": null, "emit_max": 360, "emit_mean": 102.7, "emit_p90": 277, "gl_peak": 73.6, "gl_area_hit": 3554, "gl_mean_hit": 10.4, "em_peak": 232.1, "em_area_hit": 177, "em_mean_hit": 75.0, "crop": [500, 267, 320, 180]}
+局 ('angelina_atk_A', 180, [])
+局 ('angelina_atk_B', 180, [])
+局 ('angelina_atk_C', 180, [])
+局 ('angelina_s1_A', 180, [])
+局 ('angelina_s1_B', 180, [])
+局 ('angelina_s1_C', 180, [])
+体检 {"op": "angelina", "mode": "atk", "frame": 15, "engine": 44, "secs": 6.0, "hits": 0, "acts": 45, "skill": 0, "skill_frame": null, "parts_total": 36, "parts_per_hit": 0.8, "parts_per_s": 6.0, "bursts": 12, "burst_med": 3.0, "burst_max": 4, "lights_per_burst": 1.0, "parts_s1_1s": null, "skill_burst_max": null, "mats": {"twinkle": 12, "shard": 24}, "life": 0.69, "sz": 2.6, "alive_max": 8, "lights": 12, "lights_per_hit": 0.27, "light_r": 98.0, "light_i": 0.61, "light_life": 0.12, "skill_light_r": null, "skill_light_i": null, "emit_max": 48, "emit_mean": 12.7, "emit_p90": 24, "gl_peak": 66.2, "gl_area_hit": 2294, "gl_mean_hit": 13.2, "em_peak": 206.2, "em_area_hit": 33, "em_mean_hit": 16.7, "crop": [530, 283, 320, 180]}
+体检 {"op": "angelina", "mode": "s1", "frame": 25, "engine": 54, "secs": 6.0, "hits": 0, "acts": 34, "skill": 1, "skill_frame": 41, "parts_total": 29, "parts_per_hit": 0.9, "parts_per_s": 4.8, "bursts": 10, "burst_med": 3.0, "burst_max": 4, "lights_per_burst": 1.1, "parts_s1_1s": 6, "skill_burst_max": 4, "mats": {"twinkle": 4, "shard": 16, "tri": 9}, "life": 0.8, "sz": 4.7, "alive_max": 12, "lights": 11, "lights_per_hit": 0.32, "light_r": 100.0, "light_i": 0.6, "light_life": 0.12, "skill_light_r": 95, "skill_light_i": 0.62, "emit_max": 51, "emit_mean": 12.0, "emit_p90": 25, "gl_peak": 80.2, "gl_area_hit": 2235, "gl_mean_hit": 12.8, "em_peak": 237.6, "em_area_hit": 41, "em_mean_hit": 18.1, "crop": [529, 284, 320, 180]}
+局 ('saria_atk_A', 180, [])
+局 ('saria_atk_B', 180, [])
+局 ('saria_atk_C', 180, [])
+局 ('saria_s1_A', 180, [])
+局 ('saria_s1_B', 180, [])
+局 ('saria_s1_C', 180, [])
+体检 {"op": "saria", "mode": "atk", "frame": 19, "engine": 48, "secs": 6.0, "hits": 0, "acts": 25, "skill": 0, "skill_frame": null, "parts_total": 35, "parts_per_hit": 1.4, "parts_per_s": 5.8, "bursts": 7, "burst_med": 5.0, "burst_max": 5, "lights_per_burst": 2.29, "parts_s1_1s": null, "skill_burst_max": null, "mats": {"shard": 35}, "life": 0.79, "sz": 2.7, "alive_max": 9, "lights": 16, "lights_per_hit": 0.64, "light_r": 70.0, "light_i": 0.5, "light_life": 0.1, "skill_light_r": null, "skill_light_i": null, "emit_max": 304, "emit_mean": 84.9, "emit_p90": 217, "gl_peak": 92.8, "gl_area_hit": 1747, "gl_mean_hit": 12.5, "em_peak": 236.1, "em_area_hit": 62, "em_mean_hit": 68.2, "crop": [512, 257, 320, 180]}
+体检 {"op": "saria", "mode": "s1", "frame": 29, "engine": 58, "secs": 6.0, "hits": 0, "acts": 13, "skill": 2, "skill_frame": 42, "parts_total": 25, "parts_per_hit": 1.9, "parts_per_s": 4.2, "bursts": 7, "burst_med": 5.0, "burst_max": 5, "lights_per_burst": 1.0, "parts_s1_1s": 5, "skill_burst_max": 5, "mats": {"shard": 25}, "life": 0.81, "sz": 2.7, "alive_max": 8, "lights": 7, "lights_per_hit": 0.54, "light_r": 100.0, "light_i": 0.65, "light_life": 0.1, "skill_light_r": 100, "skill_light_i": 0.65, "emit_max": 173, "emit_mean": 60.4, "emit_p90": 151, "gl_peak": 90.0, "gl_area_hit": 2367, "gl_mean_hit": 18.2, "em_peak": 230.2, "em_area_hit": 36, "em_mean_hit": 84.6, "crop": [511, 259, 320, 180]}
+media：25 个文件，6.2M

@@ -1,0 +1,28 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（3584 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+局 ('skadi_atk_A', 180, [])
+局 ('skadi_atk_B', 180, [])
+局 ('skadi_atk_C', 180, [])
+局 ('skadi_s1_A', 180, [])
+局 ('skadi_s1_B', 180, [])
+局 ('skadi_s1_C', 180, [])
+体检 {"op": "skadi", "mode": "atk", "frame": 17, "engine": 46, "secs": 6.0, "hits": 0, "acts": 30, "skill": 0, "skill_frame": null, "parts_total": 128, "parts_per_hit": 4.3, "parts_per_s": 21.3, "bursts": 27, "burst_med": 4.0, "burst_max": 9, "lights_per_burst": 1.11, "parts_s1_1s": null, "skill_burst_max": null, "mats": {"ink": 128}, "life": 0.89, "sz": 5.0, "alive_max": 27, "lights": 30, "lights_per_hit": 1.0, "light_r": 90.0, "light_i": 0.41, "light_life": 0.12, "skill_light_r": null, "skill_light_i": null, "emit_max": 327, "emit_mean": 149.8, "emit_p90": 240, "gl_peak": 55.4, "gl_area_hit": 2324, "gl_mean_hit": 11.5, "em_peak": 245.4, "em_area_hit": 34, "em_mean_hit": 81.9, "crop": [513, 260, 320, 180]}
+体检 {"op": "skadi", "mode": "s1", "frame": 42, "engine": 71, "secs": 6.0, "hits": 0, "acts": 25, "skill": 2, "skill_frame": 53, "parts_total": 111, "parts_per_hit": 4.4, "parts_per_s": 18.5, "bursts": 23, "burst_med": 4.0, "burst_max": 8, "lights_per_burst": 1.09, "parts_s1_1s": 23, "skill_burst_max": 8, "mats": {"ink": 111}, "life": 0.91, "sz": 5.0, "alive_max": 23, "lights": 25, "lights_per_hit": 1.0, "light_r": 90.0, "light_i": 0.41, "light_life": 0.12, "skill_light_r": 140, "skill_light_i": 0.68, "emit_max": 273, "emit_mean": 135.8, "emit_p90": 236, "gl_peak": 48.9, "gl_area_hit": 2043, "gl_mean_hit": 10.6, "em_peak": 238.0, "em_area_hit": 246, "em_mean_hit": 102.4, "crop": [495, 303, 320, 180]}
+局 ('hoshiguma_atk_A', 180, [])
+局 ('hoshiguma_atk_B', 180, [])
+局 ('hoshiguma_atk_C', 180, [])
+局 ('hoshiguma_s1_A', 180, [])
+局 ('hoshiguma_s1_B', 180, [])
+局 ('hoshiguma_s1_C', 180, [])
+体检 {"op": "hoshiguma", "mode": "atk", "frame": 20, "engine": 49, "secs": 6.0, "hits": 0, "acts": 11, "skill": 0, "skill_frame": null, "parts_total": 35, "parts_per_hit": 3.2, "parts_per_s": 5.8, "bursts": 7, "burst_med": 5.0, "burst_max": 7, "lights_per_burst": 1.57, "parts_s1_1s": null, "skill_burst_max": null, "mats": {"shard": 19, "rock": 16}, "life": 0.9, "sz": 3.9, "alive_max": 13, "lights": 11, "lights_per_hit": 1.0, "light_r": 90.0, "light_i": 0.35, "light_life": 0.12, "skill_light_r": null, "skill_light_i": null, "emit_max": 167, "emit_mean": 74.4, "emit_p90": 111, "gl_peak": 69.2, "gl_area_hit": 1753, "gl_mean_hit": 12.1, "em_peak": 227.0, "em_area_hit": 47, "em_mean_hit": 27.9, "crop": [501, 267, 320, 180]}
+体检 {"op": "hoshiguma", "mode": "s1", "frame": 7, "engine": 36, "secs": 6.0, "hits": 0, "acts": 11, "skill": 1, "skill_frame": 35, "parts_total": 48, "parts_per_hit": 4.4, "parts_per_s": 8.0, "bursts": 6, "burst_med": 7.0, "burst_max": 14, "lights_per_burst": 1.83, "parts_s1_1s": 21, "skill_burst_max": 14, "mats": {"rock": 32, "shard": 16}, "life": 0.95, "sz": 4.1, "alive_max": 24, "lights": 11, "lights_per_hit": 1.0, "light_r": 110.0, "light_i": 0.4, "light_life": 0.12, "skill_light_r": 200, "skill_light_i": 0.8, "emit_max": 192, "emit_mean": 75.1, "emit_p90": 96, "gl_peak": 73.6, "gl_area_hit": 6853, "gl_mean_hit": 9.7, "em_peak": 224.5, "em_area_hit": 47, "em_mean_hit": 31.1, "crop": [492, 301, 320, 180]}
+局 ('lumen_atk_A', 180, [])
+局 ('lumen_atk_B', 180, [])
+局 ('lumen_atk_C', 180, [])
+局 ('lumen_s1_A', 180, [])
+局 ('lumen_s1_B', 180, [])
+局 ('lumen_s1_C', 180, [])
+体检 {"op": "lumen", "mode": "atk", "frame": 25, "engine": 54, "secs": 6.0, "hits": 0, "acts": 72, "skill": 0, "skill_frame": null, "parts_total": 66, "parts_per_hit": 0.9, "parts_per_s": 11.0, "bursts": 16, "burst_med": 3.0, "burst_max": 12, "lights_per_burst": 3.12, "parts_s1_1s": null, "skill_burst_max": null, "mats": {"ink": 66}, "life": 0.87, "sz": 4.8, "alive_max": 18, "lights": 50, "lights_per_hit": 0.69, "light_r": 90.0, "light_i": 0.54, "light_life": 0.12, "skill_light_r": null, "skill_light_i": null, "emit_max": 212, "emit_mean": 48.9, "emit_p90": 124, "gl_peak": 81.9, "gl_area_hit": 3260, "gl_mean_hit": 16.4, "em_peak": 234.1, "em_area_hit": 14, "em_mean_hit": 79.0, "crop": [502, 292, 320, 180]}
+体检 {"op": "lumen", "mode": "s1", "frame": 36, "engine": 65, "secs": 6.0, "hits": 0, "acts": 45, "skill": 2, "skill_frame": 39, "parts_total": 48, "parts_per_hit": 1.1, "parts_per_s": 8.0, "bursts": 12, "burst_med": 3.0, "burst_max": 9, "lights_per_burst": 2.67, "parts_s1_1s": 9, "skill_burst_max": 3, "mats": {"ink": 48}, "life": 0.89, "sz": 5.3, "alive_max": 15, "lights": 32, "lights_per_hit": 0.71, "light_r": 90.0, "light_i": 0.67, "light_life": 0.12, "skill_light_r": 90, "skill_light_i": 0.68, "emit_max": 240, "emit_mean": 50.9, "emit_p90": 120, "gl_peak": 106.6, "gl_area_hit": 2723, "gl_mean_hit": 14.7, "em_peak": 231.8, "em_area_hit": 108, "em_mean_hit": 78.8, "crop": [480, 299, 320, 180]}
+media：25 个文件，6.2M

@@ -1,0 +1,528 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 22.3.6 - Compatibility - Using Device: Mesa/X.org - llvmpipe (LLVM 15.0.6, 256 bits)
+
+FXA 0 0.000 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=0 emit=0
+FXA 1 0.025 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=0 emit=0
+FXA 2 0.058 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 3 0.100 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 4 0.129 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 5 0.159 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 6 0.192 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 7 0.225 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 8 0.258 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 9 0.292 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 10 0.325 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 11 0.358 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 12 0.392 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 13 0.425 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 14 0.458 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 15 0.492 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 16 0.525 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 17 0.558 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 18 0.592 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXRLOG skadi shape 18 0.625
+PXPLOG 大剑 1.40 18 180 -
+FXA 19 0.625 new=ink:4 life=0.82 sz=5.0 alive=4 L=90/0.41/0.12/6fa4ff gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 20 0.658 new=- life=0.00 sz=0.0 alive=4 L=- gr=0 gnew=0 sp=0 gl=0 glow=202 emit=142
+FXA 21 0.692 new=- life=0.00 sz=0.0 alive=4 L=- gr=0 gnew=0 sp=0 gl=0 glow=155 emit=95
+FXRLOG skadi shape 21 0.725
+PXPLOG 大剑 1.40 21 180 -
+FXA 22 0.725 new=ink:4 life=0.84 sz=4.5 alive=8 L=90/0.41/0.12/6fa4ff gr=0 gnew=0 sp=0 gl=0 glow=110 emit=94
+FXA 23 0.758 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=201 emit=142
+FXA 24 0.792 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=155 emit=140
+FXA 25 0.825 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=155 emit=140
+FXRLOG skadi shape 25 0.858
+PXPLOG 大剑 3.14 25 198 -
+FXA 26 0.858 new=ink:5 life=0.83 sz=5.2 alive=13 L=110/0.47/0.12/6fa4ff gr=0 gnew=0 sp=0 gl=0 glow=153 emit=138
+FXA 27 0.892 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=230 emit=154
+FXA 28 0.925 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=187 emit=177
+FXA 29 0.958 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=145 emit=135
+FXSHOT 0 29
+FXA 30 0.992 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=103 emit=93
+FXSHOT 1 30
+FXA 31 1.025 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=103 emit=93
+FXSHOT 2 31
+FXA 32 1.058 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=105 emit=95
+FXSHOT 3 32
+FXA 33 1.092 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=105 emit=95
+FXSHOT 4 33
+FXA 34 1.125 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=104 emit=94
+FXSHOT 5 34
+FXA 35 1.158 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=104 emit=94
+FXSHOT 6 35
+FXA 36 1.192 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=54 emit=44
+FXSHOT 7 36
+FXA 37 1.225 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=54 emit=44
+FXSHOT 8 37
+FXA 38 1.258 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=52 emit=42
+FXSHOT 9 38
+FXRLOG skadi shape 38 1.292
+PXPLOG 大剑 1.40 38 180 -
+FXA 39 1.292 new=ink:4 life=0.80 sz=5.0 alive=17 L=90/0.41/0.12/6fa4ff gr=0 gnew=0 sp=0 gl=0 glow=52 emit=42
+FXSHOT 10 39
+FXA 40 1.325 new=- life=0.00 sz=0.0 alive=17 L=- gr=0 gnew=0 sp=0 gl=0 glow=270 emit=222
+FXSHOT 11 40
+FXA 41 1.358 new=- life=0.00 sz=0.0 alive=17 L=- gr=0 gnew=0 sp=0 gl=0 glow=238 emit=180
+FXSHOT 12 41
+FXRLOG skadi shape 41 1.392
+PXPLOG 大剑 1.40 41 180 -
+FXA 42 1.392 new=ink:4 life=0.81 sz=4.5 alive=20 L=90/0.41/0.12/6fa4ff gr=0 gnew=0 sp=0 gl=0 glow=155 emit=141
+FXSHOT 13 42
+FXA 43 1.425 new=- life=0.00 sz=0.0 alive=20 L=- gr=0 gnew=0 sp=0 gl=0 glow=246 emit=189
+FXSHOT 14 43
+FXA 44 1.458 new=- life=0.00 sz=0.0 alive=20 L=- gr=0 gnew=0 sp=0 gl=0 glow=204 emit=191
+FXSHOT 15 44
+FXA 45 1.492 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=204 emit=191
+FXSHOT 16 45
+FXRLOG skadi shape 45 1.525
+PXPLOG 大剑 3.14 45 198 -
+FXA 46 1.525 new=ink:5 life=1.02 sz=4.4 alive=22 L=110/0.47/0.12/6fa4ff gr=0 gnew=0 sp=0 gl=0 glow=203 emit=190
+FXSHOT 17 46
+FXA 47 1.558 new=- life=0.00 sz=0.0 alive=21 L=- gr=0 gnew=0 sp=0 gl=0 glow=288 emit=210
+FXSHOT 18 47
+FXA 48 1.592 new=- life=0.00 sz=0.0 alive=19 L=- gr=0 gnew=0 sp=0 gl=0 glow=241 emit=229
+FXSHOT 19 48
+FXA 49 1.625 new=- life=0.00 sz=0.0 alive=19 L=- gr=0 gnew=0 sp=0 gl=0 glow=149 emit=137
+FXSHOT 20 49
+FXA 50 1.658 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=102 emit=90
+FXSHOT 21 50
+FXA 51 1.692 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=102 emit=90
+FXSHOT 22 51
+FXA 52 1.725 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=102 emit=90
+FXSHOT 23 52
+FXA 53 1.758 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=102 emit=90
+FXSHOT 24 53
+FXA 54 1.792 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=105 emit=93
+FXSHOT 25 54
+FXA 55 1.825 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=105 emit=93
+FXSHOT 26 55
+FXA 56 1.858 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=59 emit=47
+FXSHOT 27 56
+FXA 57 1.892 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=59 emit=47
+FXSHOT 28 57
+FXA 58 1.925 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=58 emit=46
+FXSHOT 29 58
+FXRLOG skadi shape 58 1.958
+PXPLOG 大剑 1.40 58 180 -
+FXRLOG skadi shape 58 1.958
+PXPLOG 反手斩 1.40 58 180 -
+FXA 59 1.958 new=ink:6 life=0.87 sz=5.0 alive=19 L=90/0.41/0.12/6fa4ff;72/0.24/0.10/6fa4ff gr=0 gnew=0 sp=0 gl=0 glow=58 emit=46
+FXSHOT 30 59
+FXA 60 1.992 new=- life=0.00 sz=0.0 alive=19 L=- gr=0 gnew=0 sp=0 gl=0 glow=277 emit=232
+FXSHOT 31 60
+FXA 61 2.025 new=- life=0.00 sz=0.0 alive=19 L=- gr=0 gnew=0 sp=0 gl=0 glow=287 emit=232
+FXSHOT 32 61
+FXRLOG skadi shape 61 2.058
+PXPLOG 大剑 1.40 61 180 -
+FXA 62 2.058 new=ink:4 life=0.77 sz=5.5 alive=22 L=90/0.41/0.12/6fa4ff gr=0 gnew=0 sp=0 gl=0 glow=197 emit=186
+FXSHOT 33 62
+FXA 63 2.092 new=- life=0.00 sz=0.0 alive=22 L=- gr=0 gnew=0 sp=0 gl=0 glow=289 emit=234
+FXSHOT 34 63
+FXA 64 2.125 new=- life=0.00 sz=0.0 alive=22 L=- gr=0 gnew=0 sp=0 gl=0 glow=245 emit=234
+FXSHOT 35 64
+FXA 65 2.158 new=- life=0.00 sz=0.0 alive=22 L=- gr=0 gnew=0 sp=0 gl=0 glow=245 emit=234
+FXSHOT 36 65
+FXRLOG skadi shape 65 2.192
+PXPLOG 大剑 3.14 65 198 -
+FXA 66 2.192 new=ink:5 life=0.95 sz=5.2 alive=25 L=110/0.47/0.12/6fa4ff gr=0 gnew=0 sp=0 gl=0 glow=248 emit=237
+FXSHOT 37 66
+FXA 67 2.225 new=- life=0.00 sz=0.0 alive=23 L=- gr=0 gnew=0 sp=0 gl=0 glow=287 emit=211
+FXSHOT 38 67
+FXA 68 2.258 new=- life=0.00 sz=0.0 alive=21 L=- gr=0 gnew=0 sp=0 gl=0 glow=246 emit=236
+FXSHOT 39 68
+FXA 69 2.292 new=- life=0.00 sz=0.0 alive=21 L=- gr=0 gnew=0 sp=0 gl=0 glow=151 emit=141
+FXSHOT 40 69
+FXA 70 2.325 new=- life=0.00 sz=0.0 alive=20 L=- gr=0 gnew=0 sp=0 gl=0 glow=106 emit=96
+FXSHOT 41 70
+FXA 71 2.358 new=- life=0.00 sz=0.0 alive=19 L=- gr=0 gnew=0 sp=0 gl=0 glow=106 emit=96
+FXSHOT 42 71
+FXA 72 2.392 new=- life=0.00 sz=0.0 alive=17 L=- gr=0 gnew=0 sp=0 gl=0 glow=106 emit=96
+FXSHOT 43 72
+FXA 73 2.425 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=106 emit=96
+FXSHOT 44 73
+FXA 74 2.458 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=106 emit=96
+FXSHOT 45 74
+FXA 75 2.492 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=106 emit=96
+FXSHOT 46 75
+FXA 76 2.525 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=58 emit=48
+FXSHOT 47 76
+FXA 77 2.558 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=58 emit=48
+FXSHOT 48 77
+FXA 78 2.592 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=58 emit=48
+FXSHOT 49 78
+FXRLOG skadi shape 78 2.625
+PXPLOG 大剑 1.40 78 180 -
+FXA 79 2.625 new=ink:4 life=0.88 sz=5.0 alive=19 L=90/0.41/0.12/6fa4ff gr=0 gnew=0 sp=0 gl=0 glow=58 emit=48
+FXSHOT 50 79
+FXA 80 2.658 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=290 emit=239
+FXSHOT 51 80
+FXA 81 2.692 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=300 emit=239
+FXSHOT 52 81
+FXRLOG skadi shape 81 2.725
+PXPLOG 大剑 1.40 81 180 -
+FXA 82 2.725 new=ink:4 life=0.91 sz=4.5 alive=22 L=90/0.41/0.12/6fa4ff gr=0 gnew=0 sp=0 gl=0 glow=207 emit=190
+FXSHOT 53 82
+FXA 83 2.758 new=- life=0.00 sz=0.0 alive=21 L=- gr=0 gnew=0 sp=0 gl=0 glow=297 emit=238
+FXSHOT 54 83
+FXA 84 2.792 new=- life=0.00 sz=0.0 alive=21 L=- gr=0 gnew=0 sp=0 gl=0 glow=251 emit=236
+FXSHOT 55 84
+FXA 85 2.825 new=- life=0.00 sz=0.0 alive=20 L=- gr=0 gnew=0 sp=0 gl=0 glow=251 emit=236
+FXSHOT 56 85
+FXRLOG skadi shape 85 2.858
+PXPLOG 大剑 3.14 85 198 -
+FXA 86 2.858 new=ink:5 life=0.89 sz=5.2 alive=25 L=110/0.47/0.12/6fa4ff gr=0 gnew=0 sp=0 gl=0 glow=250 emit=234
+FXSHOT 57 86
+FXA 87 2.892 new=- life=0.00 sz=0.0 alive=22 L=- gr=0 gnew=0 sp=0 gl=0 glow=331 emit=250
+FXSHOT 58 87
+FXA 88 2.925 new=- life=0.00 sz=0.0 alive=20 L=- gr=0 gnew=0 sp=0 gl=0 glow=288 emit=273
+FXSHOT 59 88
+FXA 89 2.958 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=148 emit=135
+FXSHOT 60 89
+FXA 90 2.992 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=105 emit=93
+FXSHOT 61 90
+FXA 91 3.025 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=105 emit=93
+FXSHOT 62 91
+FXA 92 3.058 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=107 emit=95
+FXSHOT 63 92
+FXA 93 3.092 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=107 emit=95
+FXSHOT 64 93
+FXA 94 3.125 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=106 emit=94
+FXSHOT 65 94
+FXA 95 3.158 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=106 emit=94
+FXSHOT 66 95
+FXA 96 3.192 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=56 emit=44
+FXSHOT 67 96
+FXA 97 3.225 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=56 emit=44
+FXSHOT 68 97
+FXA 98 3.258 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=54 emit=42
+FXSHOT 69 98
+FXRLOG skadi shape 98 3.292
+PXPLOG 大剑 1.40 98 180 -
+FXA 99 3.292 new=ink:4 life=0.89 sz=5.0 alive=17 L=90/0.41/0.12/6fa4ff gr=0 gnew=0 sp=0 gl=0 glow=54 emit=42
+FXSHOT 70 99
+FXA 100 3.325 new=- life=0.00 sz=0.0 alive=17 L=- gr=0 gnew=0 sp=0 gl=0 glow=233 emit=186
+FXSHOT 71 100
+FXA 101 3.358 new=- life=0.00 sz=0.0 alive=17 L=- gr=0 gnew=0 sp=0 gl=0 glow=243 emit=186
+FXSHOT 72 101
+FXRLOG skadi shape 101 3.392
+PXPLOG 大剑 1.40 101 180 -
+FXA 102 3.392 new=ink:4 life=0.82 sz=5.0 alive=21 L=90/0.41/0.12/6fa4ff gr=0 gnew=0 sp=0 gl=0 glow=159 emit=144
+FXSHOT 73 102
+FXA 103 3.425 new=- life=0.00 sz=0.0 alive=19 L=- gr=0 gnew=0 sp=0 gl=0 glow=250 emit=192
+FXSHOT 74 103
+FXA 104 3.458 new=- life=0.00 sz=0.0 alive=19 L=- gr=0 gnew=0 sp=0 gl=0 glow=206 emit=192
+FXSHOT 75 104
+FXA 105 3.492 new=- life=0.00 sz=0.0 alive=17 L=- gr=0 gnew=0 sp=0 gl=0 glow=206 emit=192
+FXSHOT 76 105
+FXRLOG skadi shape 105 3.525
+PXPLOG 大剑 3.14 105 198 -
+FXA 106 3.525 new=ink:5 life=0.86 sz=4.8 alive=22 L=110/0.47/0.12/6fa4ff gr=0 gnew=0 sp=0 gl=0 glow=207 emit=192
+FXSHOT 77 106
+FXA 107 3.558 new=- life=0.00 sz=0.0 alive=22 L=- gr=0 gnew=0 sp=0 gl=0 glow=292 emit=214
+FXSHOT 78 107
+FXA 108 3.592 new=- life=0.00 sz=0.0 alive=20 L=- gr=0 gnew=0 sp=0 gl=0 glow=249 emit=237
+FXSHOT 79 108
+FXA 109 3.625 new=- life=0.00 sz=0.0 alive=19 L=- gr=0 gnew=0 sp=0 gl=0 glow=153 emit=141
+FXSHOT 80 109
+FXA 110 3.658 new=- life=0.00 sz=0.0 alive=17 L=- gr=0 gnew=0 sp=0 gl=0 glow=108 emit=96
+FXSHOT 81 110
+FXA 111 3.692 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=108 emit=96
+FXSHOT 82 111
+FXA 112 3.725 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=108 emit=96
+FXSHOT 83 112
+FXA 113 3.758 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=108 emit=96
+FXSHOT 84 113
+FXA 114 3.792 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=108 emit=96
+FXSHOT 85 114
+FXA 115 3.825 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=108 emit=96
+FXSHOT 86 115
+FXA 116 3.858 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=60 emit=48
+FXSHOT 87 116
+FXA 117 3.892 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=60 emit=48
+FXSHOT 88 117
+FXA 118 3.925 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=60 emit=48
+FXSHOT 89 118
+FXA 119 3.958 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=60 emit=48
+FXSHOT 90 119
+FXRLOG skadi shape 119 3.992
+PXPLOG 破浪下劈 1.05 119 209 -
+FXRLOG skadi shape 119 3.992
+PXPLOG 反手斩 1.40 119 180 -
+FXA 120 3.992 new=ink:9 life=0.94 sz=5.1 alive=22 L=140/0.74/0.12/6fa4ff;72/0.24/0.10/6fa4ff gr=0 gnew=0 sp=0 gl=0 glow=60 emit=48
+FXSHOT 91 120
+FXA 121 4.025 new=- life=0.00 sz=0.0 alive=22 L=- gr=0 gnew=0 sp=0 gl=0 glow=280 emit=276
+FXSHOT 92 121
+FXA 122 4.058 new=- life=0.00 sz=0.0 alive=22 L=- gr=0 gnew=0 sp=0 gl=0 glow=284 emit=270
+FXSHOT 93 122
+FXRLOG skadi shape 122 4.092
+PXPLOG 大剑 1.40 122 180 -
+FXA 123 4.092 new=ink:4 life=0.79 sz=4.5 alive=25 L=90/0.41/0.12/6fa4ff gr=0 gnew=0 sp=0 gl=0 glow=285 emit=270
+FXSHOT 94 123
+FXA 124 4.125 new=- life=0.00 sz=0.0 alive=23 L=- gr=0 gnew=0 sp=0 gl=0 glow=371 emit=316
+FXSHOT 95 124
+FXA 125 4.158 new=- life=0.00 sz=0.0 alive=20 L=- gr=0 gnew=0 sp=0 gl=0 glow=371 emit=316
+FXSHOT 96 125
+FXA 126 4.192 new=- life=0.00 sz=0.0 alive=20 L=- gr=0 gnew=0 sp=0 gl=0 glow=338 emit=327
+FXSHOT 97 126
+FXRLOG skadi shape 126 4.225
+PXPLOG 大剑 3.14 126 198 -
+FXA 127 4.225 new=ink:5 life=0.92 sz=5.2 alive=25 L=110/0.47/0.12/6fa4ff gr=0 gnew=0 sp=0 gl=0 glow=339 emit=327
+FXSHOT 98 127
+FXA 128 4.258 new=- life=0.00 sz=0.0 alive=25 L=- gr=0 gnew=0 sp=0 gl=0 glow=370 emit=308
+FXSHOT 99 128
+FXA 129 4.292 new=- life=0.00 sz=0.0 alive=24 L=- gr=0 gnew=0 sp=0 gl=0 glow=370 emit=308
+FXSHOT 100 129
+FXA 130 4.325 new=- life=0.00 sz=0.0 alive=22 L=- gr=0 gnew=0 sp=0 gl=0 glow=246 emit=237
+FXSHOT 101 130
+FXA 131 4.358 new=- life=0.00 sz=0.0 alive=21 L=- gr=0 gnew=0 sp=0 gl=0 glow=246 emit=237
+FXSHOT 102 131
+FXA 132 4.392 new=- life=0.00 sz=0.0 alive=20 L=- gr=0 gnew=0 sp=0 gl=0 glow=197 emit=188
+FXSHOT 103 132
+FXA 133 4.425 new=- life=0.00 sz=0.0 alive=19 L=- gr=0 gnew=0 sp=0 gl=0 glow=197 emit=188
+FXSHOT 104 133
+FXA 134 4.458 new=- life=0.00 sz=0.0 alive=19 L=- gr=0 gnew=0 sp=0 gl=0 glow=105 emit=96
+FXSHOT 105 134
+FXA 135 4.492 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=105 emit=96
+FXSHOT 106 135
+FXA 136 4.525 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=105 emit=96
+FXSHOT 107 136
+FXA 137 4.558 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=105 emit=96
+FXSHOT 108 137
+FXA 138 4.592 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=57 emit=48
+FXSHOT 109 138
+FXRLOG skadi shape 138 4.625
+PXPLOG 大剑 1.40 138 180 -
+FXA 139 4.625 new=ink:4 life=0.90 sz=6.0 alive=22 L=90/0.41/0.12/6fa4ff gr=0 gnew=0 sp=0 gl=0 glow=57 emit=48
+FXSHOT 110 139
+FXA 140 4.658 new=- life=0.00 sz=0.0 alive=22 L=- gr=0 gnew=0 sp=0 gl=0 glow=239 emit=192
+FXSHOT 111 140
+FXA 141 4.692 new=- life=0.00 sz=0.0 alive=22 L=- gr=0 gnew=0 sp=0 gl=0 glow=249 emit=192
+FXSHOT 112 141
+FXRLOG skadi shape 141 4.725
+PXPLOG 大剑 1.40 141 180 -
+FXA 142 4.725 new=ink:4 life=0.95 sz=4.5 alive=26 L=90/0.41/0.12/6fa4ff gr=0 gnew=0 sp=0 gl=0 glow=206 emit=192
+FXSHOT 113 142
+FXA 143 4.758 new=- life=0.00 sz=0.0 alive=24 L=- gr=0 gnew=0 sp=0 gl=0 glow=247 emit=192
+FXSHOT 114 143
+FXA 144 4.792 new=- life=0.00 sz=0.0 alive=24 L=- gr=0 gnew=0 sp=0 gl=0 glow=203 emit=192
+FXSHOT 115 144
+FXA 145 4.825 new=- life=0.00 sz=0.0 alive=23 L=- gr=0 gnew=0 sp=0 gl=0 glow=203 emit=192
+FXSHOT 116 145
+FXRLOG skadi shape 145 4.858
+PXPLOG 大剑 3.14 145 198 -
+FXA 146 4.858 new=ink:5 life=0.88 sz=4.4 alive=27 L=110/0.47/0.12/6fa4ff gr=0 gnew=0 sp=0 gl=0 glow=204 emit=192
+FXSHOT 117 146
+FXA 147 4.892 new=- life=0.00 sz=0.0 alive=24 L=- gr=0 gnew=0 sp=0 gl=0 glow=290 emit=214
+FXSHOT 118 147
+FXA 148 4.925 new=- life=0.00 sz=0.0 alive=22 L=- gr=0 gnew=0 sp=0 gl=0 glow=247 emit=237
+FXSHOT 119 148
+FXA 149 4.958 new=- life=0.00 sz=0.0 alive=21 L=- gr=0 gnew=0 sp=0 gl=0 glow=151 emit=141
+FXSHOT 120 149
+FXA 150 4.992 new=- life=0.00 sz=0.0 alive=21 L=- gr=0 gnew=0 sp=0 gl=0 glow=106 emit=96
+FXSHOT 121 150
+FXA 151 5.025 new=- life=0.00 sz=0.0 alive=19 L=- gr=0 gnew=0 sp=0 gl=0 glow=106 emit=96
+FXSHOT 122 151
+FXA 152 5.058 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=106 emit=96
+FXSHOT 123 152
+FXA 153 5.092 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=106 emit=96
+FXSHOT 124 153
+FXA 154 5.125 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=106 emit=96
+FXSHOT 125 154
+FXA 155 5.158 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=106 emit=96
+FXSHOT 126 155
+FXA 156 5.192 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=58 emit=48
+FXSHOT 127 156
+FXA 157 5.225 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=58 emit=48
+FXSHOT 128 157
+FXA 158 5.258 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=58 emit=48
+FXSHOT 129 158
+FXRLOG skadi shape 158 5.292
+PXPLOG 大剑 1.40 158 180 -
+FXA 159 5.292 new=ink:4 life=0.90 sz=5.0 alive=17 L=90/0.41/0.12/6fa4ff gr=0 gnew=0 sp=0 gl=0 glow=58 emit=48
+FXSHOT 130 159
+FXA 160 5.325 new=- life=0.00 sz=0.0 alive=17 L=- gr=0 gnew=0 sp=0 gl=0 glow=273 emit=228
+FXSHOT 131 160
+FXA 161 5.358 new=- life=0.00 sz=0.0 alive=17 L=- gr=0 gnew=0 sp=0 gl=0 glow=283 emit=228
+FXSHOT 132 161
+FXRLOG skadi shape 161 5.392
+PXPLOG 大剑 1.40 161 180 -
+FXA 162 5.392 new=ink:4 life=0.93 sz=5.0 alive=21 L=90/0.41/0.12/6fa4ff gr=0 gnew=0 sp=0 gl=0 glow=197 emit=186
+FXSHOT 133 162
+FXA 163 5.425 new=- life=0.00 sz=0.0 alive=21 L=- gr=0 gnew=0 sp=0 gl=0 glow=288 emit=234
+FXSHOT 134 163
+FXA 164 5.458 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=248 emit=238
+FXSHOT 135 164
+FXA 165 5.492 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=248 emit=238
+FXSHOT 136 165
+FXRLOG skadi shape 165 5.525
+PXPLOG 大剑 3.14 165 198 -
+FXA 166 5.525 new=ink:5 life=0.91 sz=5.2 alive=22 L=110/0.47/0.12/6fa4ff gr=0 gnew=0 sp=0 gl=0 glow=246 emit=236
+FXSHOT 137 166
+FXA 167 5.558 new=- life=0.00 sz=0.0 alive=20 L=- gr=0 gnew=0 sp=0 gl=0 glow=334 emit=258
+FXSHOT 138 167
+FXA 168 5.592 new=- life=0.00 sz=0.0 alive=19 L=- gr=0 gnew=0 sp=0 gl=0 glow=287 emit=277
+FXSHOT 139 168
+FXA 169 5.625 new=- life=0.00 sz=0.0 alive=19 L=- gr=0 gnew=0 sp=0 gl=0 glow=151 emit=141
+FXSHOT 140 169
+FXA 170 5.658 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=106 emit=96
+FXSHOT 141 170
+FXA 171 5.692 new=- life=0.00 sz=0.0 alive=17 L=- gr=0 gnew=0 sp=0 gl=0 glow=106 emit=96
+FXSHOT 142 171
+FXA 172 5.725 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=106 emit=96
+FXSHOT 143 172
+FXA 173 5.758 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=106 emit=96
+FXSHOT 144 173
+FXA 174 5.792 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=106 emit=96
+FXSHOT 145 174
+FXA 175 5.825 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=106 emit=96
+FXSHOT 146 175
+FXA 176 5.858 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=58 emit=48
+FXSHOT 147 176
+FXA 177 5.892 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=58 emit=48
+FXSHOT 148 177
+FXA 178 5.925 new=- life=0.00 sz=0.0 alive=13 L=- gr=0 gnew=0 sp=0 gl=0 glow=58 emit=48
+FXSHOT 149 178
+FXRLOG skadi shape 178 5.958
+PXPLOG 大剑 1.40 178 180 -
+FXRLOG skadi shape 178 5.958
+PXPLOG 反手斩 1.40 178 180 -
+FXA 179 5.958 new=ink:8 life=0.88 sz=4.5 alive=21 L=90/0.41/0.12/6fa4ff;90/0.41/0.12/6fa4ff gr=0 gnew=0 sp=0 gl=0 glow=58 emit=48
+FXSHOT 150 179
+FXA 180 5.992 new=- life=0.00 sz=0.0 alive=21 L=- gr=0 gnew=0 sp=0 gl=0 glow=329 emit=240
+FXSHOT 151 180
+FXA 181 6.025 new=- life=0.00 sz=0.0 alive=21 L=- gr=0 gnew=0 sp=0 gl=0 glow=339 emit=240
+FXSHOT 152 181
+FXRLOG skadi shape 181 6.058
+PXPLOG 大剑 1.40 181 180 -
+FXA 182 6.058 new=ink:4 life=0.83 sz=4.0 alive=24 L=90/0.41/0.12/6fa4ff gr=0 gnew=0 sp=0 gl=0 glow=203 emit=192
+FXSHOT 153 182
+FXA 183 6.092 new=- life=0.00 sz=0.0 alive=24 L=- gr=0 gnew=0 sp=0 gl=0 glow=294 emit=240
+FXSHOT 154 183
+FXA 184 6.125 new=- life=0.00 sz=0.0 alive=22 L=- gr=0 gnew=0 sp=0 gl=0 glow=250 emit=240
+FXSHOT 155 184
+FXA 185 6.158 new=- life=0.00 sz=0.0 alive=22 L=- gr=0 gnew=0 sp=0 gl=0 glow=250 emit=240
+FXSHOT 156 185
+FXRLOG skadi shape 185 6.192
+PXPLOG 大剑 3.14 185 198 -
+FXA 186 6.192 new=ink:5 life=0.87 sz=5.2 alive=27 L=110/0.47/0.12/6fa4ff gr=0 gnew=0 sp=0 gl=0 glow=250 emit=240
+FXSHOT 157 186
+FXA 187 6.225 new=- life=0.00 sz=0.0 alive=26 L=- gr=0 gnew=0 sp=0 gl=0 glow=287 emit=211
+FXSHOT 158 187
+FXA 188 6.258 new=- life=0.00 sz=0.0 alive=25 L=- gr=0 gnew=0 sp=0 gl=0 glow=246 emit=236
+FXSHOT 159 188
+FXA 189 6.292 new=- life=0.00 sz=0.0 alive=21 L=- gr=0 gnew=0 sp=0 gl=0 glow=150 emit=140
+FXSHOT 160 189
+FXA 190 6.325 new=- life=0.00 sz=0.0 alive=19 L=- gr=0 gnew=0 sp=0 gl=0 glow=104 emit=94
+FXSHOT 161 190
+FXA 191 6.358 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=104 emit=94
+FXSHOT 162 191
+FXA 192 6.392 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=102 emit=92
+FXSHOT 163 192
+FXA 193 6.425 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=102 emit=92
+FXSHOT 164 193
+FXA 194 6.458 new=- life=0.00 sz=0.0 alive=17 L=- gr=0 gnew=0 sp=0 gl=0 glow=100 emit=90
+FXSHOT 165 194
+FXA 195 6.492 new=- life=0.00 sz=0.0 alive=17 L=- gr=0 gnew=0 sp=0 gl=0 glow=100 emit=90
+FXSHOT 166 195
+FXA 196 6.525 new=- life=0.00 sz=0.0 alive=17 L=- gr=0 gnew=0 sp=0 gl=0 glow=52 emit=42
+FXSHOT 167 196
+FXA 197 6.558 new=- life=0.00 sz=0.0 alive=17 L=- gr=0 gnew=0 sp=0 gl=0 glow=52 emit=42
+FXSHOT 168 197
+FXA 198 6.592 new=- life=0.00 sz=0.0 alive=17 L=- gr=0 gnew=0 sp=0 gl=0 glow=55 emit=45
+FXSHOT 169 198
+FXRLOG skadi shape 198 6.625
+PXPLOG 大剑 1.40 198 180 -
+FXA 199 6.625 new=ink:4 life=0.87 sz=6.0 alive=21 L=90/0.41/0.12/6fa4ff gr=0 gnew=0 sp=0 gl=0 glow=55 emit=45
+FXSHOT 170 199
+FXA 200 6.658 new=- life=0.00 sz=0.0 alive=21 L=- gr=0 gnew=0 sp=0 gl=0 glow=286 emit=237
+FXSHOT 171 200
+FXA 201 6.692 new=- life=0.00 sz=0.0 alive=21 L=- gr=0 gnew=0 sp=0 gl=0 glow=296 emit=237
+FXSHOT 172 201
+FXRLOG skadi shape 201 6.725
+PXPLOG 大剑 1.40 201 180 -
+FXA 202 6.725 new=ink:4 life=0.92 sz=5.5 alive=25 L=90/0.41/0.12/6fa4ff gr=0 gnew=0 sp=0 gl=0 glow=203 emit=188
+FXSHOT 173 202
+FXA 203 6.758 new=- life=0.00 sz=0.0 alive=25 L=- gr=0 gnew=0 sp=0 gl=0 glow=295 emit=236
+FXSHOT 174 203
+FXA 204 6.792 new=- life=0.00 sz=0.0 alive=22 L=- gr=0 gnew=0 sp=0 gl=0 glow=247 emit=232
+FXSHOT 175 204
+FXA 205 6.825 new=- life=0.00 sz=0.0 alive=20 L=- gr=0 gnew=0 sp=0 gl=0 glow=247 emit=232
+FXSHOT 176 205
+FXRLOG skadi shape 205 6.858
+PXPLOG 大剑 3.14 205 198 -
+FXA 206 6.858 new=ink:5 life=0.84 sz=5.2 alive=24 L=110/0.47/0.12/6fa4ff gr=0 gnew=0 sp=0 gl=0 glow=243 emit=228
+FXSHOT 177 206
+FXA 207 6.892 new=- life=0.00 sz=0.0 alive=23 L=- gr=0 gnew=0 sp=0 gl=0 glow=327 emit=250
+FXSHOT 178 207
+FXA 208 6.925 new=- life=0.00 sz=0.0 alive=22 L=- gr=0 gnew=0 sp=0 gl=0 glow=284 emit=273
+FXSHOT 179 208
+ERROR: 28 RID allocations of type 'N5GLES37TextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 3 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+ERROR: Texture with GL ID of 37: leaked 4915052 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 38: leaked 786424 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1436: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1437: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1695: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1696: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1697: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1698: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1699: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1700: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1703: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1704: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1705: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1706: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1707: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1708: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1709: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1710: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1711: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1712: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1713: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1714: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1715: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1716: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1721: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1722: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1733: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1734: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+WARNING: 179 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 25 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
