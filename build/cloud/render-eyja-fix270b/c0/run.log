@@ -1,0 +1,12 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（3584 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+局 ('eyjafjalla_atk_A', 150, [])
+局 ('eyjafjalla_atk_B', 150, [])
+局 ('eyjafjalla_atk_C', 150, [])
+局 ('eyjafjalla_s1_A', 150, [])
+局 ('eyjafjalla_s1_B', 150, [])
+局 ('eyjafjalla_s1_C', 150, [])
+体检 {"op": "eyjafjalla", "mode": "atk", "frame": 11, "engine": 70, "secs": 5.0, "hits": 0, "acts": 46, "skill": 0, "parts_total": 76, "parts_per_hit": 1.7, "parts_per_s": 15.2, "parts_s1_1s": null, "mats": {"ember": 52, "rock": 24}, "life": 0.86, "sz": 3.6, "alive_max": 19, "lights": 45, "lights_per_hit": 0.98, "light_r": 48.0, "light_i": 0.4, "light_life": 0.1, "emit_max": 77, "emit_mean": 31.7, "gl_peak": 61.4, "gl_area_hit": 2193, "gl_mean_hit": 14.3, "em_peak": 211.6, "em_area_hit": 53, "em_mean_hit": 37.5, "crop": [526, 293, 320, 180]}
+体检 {"op": "eyjafjalla", "mode": "s1", "frame": 0, "engine": 59, "secs": 5.0, "hits": 0, "acts": 39, "skill": 2, "parts_total": 92, "parts_per_hit": 2.4, "parts_per_s": 18.4, "parts_s1_1s": 18, "mats": {"ember": 76, "rock": 16}, "life": 0.82, "sz": 3.3, "alive_max": 30, "lights": 38, "lights_per_hit": 0.97, "light_r": 48.0, "light_i": 0.4, "light_life": 0.1, "emit_max": 147, "emit_mean": 52.1, "gl_peak": 76.5, "gl_area_hit": 816, "gl_mean_hit": 7.5, "em_peak": 210.5, "em_area_hit": 15, "em_mean_hit": 10.9, "crop": [437, 272, 320, 180]}
+media：9 个文件，2.1M
