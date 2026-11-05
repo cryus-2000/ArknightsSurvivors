@@ -227,6 +227,7 @@ def linkcmp(a, base):
     log = open(os.path.join(LOGS, "link1_s%d_%d.log" % (a.seed, t0)), encoding="utf-8").read()
     pre = OPS[OP].get("link", ["PXPLOG hsg cover", "PXPLOG hsg combo "])
     evs = [l.split() for l in log.splitlines() if any(l.startswith(x) for x in pre)]
+    evs = [e for e in evs if float(e[-1]) >= t0 + 0.2]   # 只要录制窗口里的出手
     print("连携事件", [(e[2], e[-1]) for e in evs], flush=True)
     if not evs:
         print("这段里没有连携技出手", flush=True)
