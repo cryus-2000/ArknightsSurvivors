@@ -19,8 +19,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import pxplane_shots_lumen as S
 
 SETS = [  # (标签, 档, 演示模式, 节点数, 起手后取帧偏移（引擎帧，含约 9 帧启动差）)
-    ("e1", 1, 0, 4, 9 + 30),
-    ("e2", 2, 0, -1, 9 + 30),
+    ("e1", 1, 0, 4, 9 + 12),   # 图鉴演示里沐雨后光束只亮约 0.6 秒（演示换段清场），取起手后 0.4 秒
+    ("e2", 2, 0, -1, 9 + 12),
     ("e2s3", 2, 2, -1, 9 + 60),
 ]
 
@@ -30,6 +30,7 @@ def main():
     ap.add_argument("--out", required=True)
     ap.add_argument("--every", type=int, default=2)
     ap.add_argument("--n", type=int, default=90)
+    ap.add_argument("--sets", default="e1,e2,e2s3", help="只拍其中几组")
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
     S.OP = "lumen"
@@ -37,7 +38,7 @@ def main():
     S.MODE_NAME.update(S.OPS["lumen"][1])
     S.BALS[:] = ["growth/late_shape=1"]
     rows = []
-    for tag, tier, mode, nodes, off in SETS:
+    for tag, tier, mode, nodes, off in [x for x in SETS if x[0] in a.sets.split(",")]:
         start = 1.2 if mode == 2 else 2.0
         ex = ["--route=lumen:watch"] + (["--shot_nodes=%d" % nodes] if nodes >= 0 else [])
         fr, ev = {}, []
@@ -71,7 +72,7 @@ def main():
             dd.text((12, y + rh // 2 - 18), {"e1": "E1", "e2": "E2", "e2s3": "E2·S3"}[tag], fill=(255, 255, 255), font=S.font(30))
             for j, im in enumerate(row):
                 sheet.paste(im.resize((rw, rh)), (130 + j * (rw + 4), y))
-        sheet.save(os.path.join(a.out, "tiers_beam.png"))
+        sheet.save(os.path.join(a.out, "tiers_beam.png" if a.sets == "e1,e2,e2s3" else "tiers_beam_%s.png" % a.sets.replace(",", "_")))
 
 
 if __name__ == "__main__":
