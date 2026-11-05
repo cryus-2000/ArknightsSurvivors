@@ -1239,8 +1239,9 @@ func _lm_draw_raw(o) -> void:
 const SK_SY := 0.72
 const SK_B := [Color("#070d22"), Color("#0e1d4a"), Color("#183486"), Color("#2752c4"), Color("#4f80ec"), Color("#9dbcff"), Color("#ffffff")]   # 深海蓝 7 阶（原作歌域蓝，避开敌弹青 #33ceff）
 const SK_R := [Color("#3a0d1b"), Color("#5e1424"), Color("#86202d"), Color("#a8323c"), Color("#dc4048"), Color("#ffb4bc"), Color("#ffffff")]   # 酒红（house.js OP.skalter，亮段色相 357°，避开危险红 331–353°）
-const SK_NOTE := ["..###", "..#..", "..#..", "..#..", "###..", "###.."]
-const SK_NOTE2 := ["..#####", "..#...#", "..#...#", "###.###", "###.###"]
+const SK_T := [Color("#06141c"), Color("#0b2a35"), Color("#124552"), Color("#1b6466"), Color("#3b8e89"), Color("#86c6bd"), Color("#e8f5f0")]   # 海嗣青（house.js OP.skalter_sea，原作海嗣色，偏灰、避开敌弹青）：伊莎玛拉小歌域与同步声浪
+const SK_NOTE := ["...###", "...#.#", "...#..", "...#..", ".###..", "####..", "####.."]
+const SK_NOTE2 := ["..######", "..#....#", "..#....#", "..#....#", "###..###", "###..###"]
 const SK_FISH := ["#..##..", ".######", "#..##.."]
 var _sk_st := {}          # 干员 id → 画面状态（缓动半径、潮涌下次时刻、上一拍去重），玩法不读
 
@@ -1432,7 +1433,7 @@ func _ev_skalter(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictio
 				"潮汐和声":
 					_sk_push(o, {"skr": "wave", "c": c, "r": r, "tier": t, "rose": true, "thin": true, "ly": "gd", "life": 6.0 / 15.0})
 				"海嗣":   # 精二伊莎玛拉同步声浪（酒红）
-					_sk_push(o, {"skr": "wave", "c": c, "r": r, "tier": t, "rose": true, "ly": "gd", "life": 6.0 / 15.0})
+					_sk_push(o, {"skr": "wave", "c": c, "r": r, "tier": t, "sea": true, "ly": "gd", "life": 6.0 / 15.0})
 					_sk_notes(o, es.slice(0, 2), t, R, p, true)
 				"共鸣":   # 歌域内击杀处的小声浪
 					if _sk_count(o, "mini") < 6:
@@ -1556,7 +1557,7 @@ func _sk_domain(cv, c: Vector2, R: float, t: int, s1: bool, s3: bool, bt: float,
 	if R <= 8.0:
 		return
 	var dim: float = clampf(float(g.world.fx_dim), 0.5, 1.0)
-	var C: Array = SK_R if rose else SK_B
+	var C: Array = SK_T if rose else SK_B
 	var n: int = (3 + t) if not s3 else 6
 	if s1 and not s3:
 		n += 1
@@ -1602,7 +1603,8 @@ func _sk_draw_gd(cv, o, it: Dictionary) -> void:
 			var t: int = int(it.tier)
 			var rose: bool = it.get("rose", false)
 			var thin: bool = it.get("thin", false)
-			var C: Array = SK_R if rose else SK_B
+			var sea: bool = it.get("sea", false)
+			var C: Array = SK_T if sea else (SK_R if rose else SK_B)
 			var R: float = float(it.r) * [0.6, 0.78, 0.9, 0.97, 1.0, 1.02][f]
 			var w: float = ([4.0, 5.0, 6.0][t] if not thin else 2.0) * [1.0, 1.0, 0.85, 0.7, 0.5, 0.35][f]
 			if it.get("big", false):
@@ -1619,7 +1621,7 @@ func _sk_draw_gd(cv, o, it: Dictionary) -> void:
 				var c2: Color = C[4]
 				c2.a = 0.7 if f < 4 else 0.3
 				_sk_ring(cv, c, R * 0.86, 6, 2.0, c2, Color(0, 0, 0, 0), Color(0, 0, 0, 0), seed + 3.0, seed * 0.37 + 0.4, 0.7)
-			if t >= 2 and not rose and f <= 4:   # 精二：浪里一道酒红暗流（专属色），紧贴浪内侧
+			if t >= 2 and not rose and not sea and f <= 4:   # 精二：浪里一道酒红暗流（专属色），紧贴浪内侧
 				var rc: Color = SK_R[3] if f < 3 else SK_R[2]
 				_sk_ring(cv, c, R - (w * 0.5 + 1.5) * px, 7, 2.0, rc, SK_R[4], Color(0, 0, 0, 0), seed + 5.0, seed * 0.37 + 0.2, 0.7)
 			if f <= 1:
@@ -1668,7 +1670,7 @@ func _sk_draw_gd(cv, o, it: Dictionary) -> void:
 				return
 			var Rs: float = float(it.r) * [0.6, 0.78, 0.9, 0.97, 1.0, 1.0, 1.0][f]
 			var fa2: float = [1.0, 1.0, 1.0, 0.9, 0.75, 0.5, 0.25][f]
-			var fill_a: float = [0.5, 0.5, 0.47, 0.42, 0.35, 0.22, 0.1][f]
+			var fill_a: float = [0.5, 0.46, 0.38, 0.26, 0.12, 0.0, 0.0][f]
 			_sk_grad(cv, c, 0.0, Rs * 0.98, SK_B[2], fill_a, fill_a * 0.7)   # 内部实心：中心 0.5 → 边 0.35
 			var nl: int = 8
 			for j in nl:   # 旋转向心笔触线
@@ -1715,7 +1717,7 @@ func _sk_draw_up(ci, it: Dictionary) -> void:
 			var t: int = int(it.tier)
 			var rose: bool = it.get("rose", false)
 			var pat: Array = SK_NOTE2 if t >= 2 else SK_NOTE
-			var C: Array = SK_R if rose or t >= 2 else SK_B
+			var C: Array = SK_T if rose else SK_R   # 酒红音符：敌人多是白 / 蓝，压在上面读得出来；海嗣的音符用海嗣青
 			var col: Color = C[5] if f < 3 else C[4]
 			var head: Color = C[6] if f == 0 else (C[5] if f < 4 else C[4])
 			if f >= 7:
@@ -1731,7 +1733,7 @@ func _sk_draw_up(ci, it: Dictionary) -> void:
 				return
 			var Rr: float = float(it.r)
 			var H: float = 66.0 * px * [0.55, 1.0, 1.0, 0.95, 0.85, 0.7, 0.5][f]
-			var W: int = [5, 7, 7, 6, 5, 3, 2][f]
+			var W: int = [7, 9, 9, 8, 7, 5, 3][f]
 			for j in 5:
 				var a: float = TAU * float(j) / 5.0 + 0.6 + 0.2 * _sk_h(j, float(it.t0))
 				var foot: Vector2 = _snap(_sk_ep(c, Rr * (0.55 + 0.25 * _sk_h(j + 3, 1.0)), a))
