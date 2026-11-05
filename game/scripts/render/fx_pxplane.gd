@@ -195,7 +195,7 @@ func ev(o, kind: String, d: Dictionary) -> void:
 		"skill":
 			if int(d.get("i", -1)) == 2:   # 涌潮悲歌起手：身边冲起一柱大水 + 脚下一圈贴地水环
 				_add_gd(o, "s3cast", o.pos, raw, "raw_ring_e2", 185.0, 92.0)
-				_add_up(o, "s3cast", o.pos + Vector2(0, 2), raw, "raw_splash_e2", 185.0, 75.0, 0.0)
+				_add_up(o, "s3cast", o.pos + Vector2(0, 2), raw, "raw_splash_e2", 185.0, 75.0, 0.0, true)
 				if mode() == 1:
 					R._grains(o, o.pos + Vector2(0, -60), o.pos.y, "ink", 8, {"tier": 2})
 				R._light(o, o.pos + Vector2(0, -10), 150.0, 0.6, 0.15, p.light)
@@ -227,7 +227,7 @@ func _cuts(o, es: Array, t: int, n: int) -> void:
 		var rd: Vector2 = (e.pos - o.pos)
 		var tg: Vector2 = Vector2(-rd.y, rd.x).normalized() if rd.length() > 1.0 else Vector2.RIGHT
 		tg = tg.rotated(-0.45 if tg.x * tg.y >= 0.0 else 0.45)   # 斜一点，不是正横正竖
-		_push({"cut": true, "t0": g.t, "gp": e.pos + Vector2(0, -float(e.r) * 0.55), "gy": float(e.pos.y) + 1.0, "d": tg, "x": t >= 2, "L": 9.0 + 2.0 * t + minf(6.0, float(e.r) * 0.25), "ly": "up", "oid": str(o.id), "k": ""})
+		_push({"cut": true, "e": e, "t0": g.t, "gp": e.pos + Vector2(0, -float(e.r) * 0.55), "gy": float(e.pos.y) + 1.0, "d": tg, "x": t >= 2, "L": 9.0 + 2.0 * t + minf(6.0, float(e.r) * 0.25), "ly": "up", "oid": str(o.id), "k": ""})
 
 
 func _push(it: Dictionary) -> void:
@@ -254,8 +254,19 @@ func _add(o, key: String, at: Vector2, ang: float, r: float, raw: bool, rawk: St
 	var spin: bool = key.begins_with("spin")
 	var ku: String = (key + "_up") if spin else "%s_up_d%d" % [key, dk[0]]
 	var kg: String = (key + "_gd") if spin else "%s_gd_d%d" % [key, dk[0]]
-	_push({"k": ku, "t0": g.t, "gp": _snap(at), "flip": dk[1] and not spin, "ly": "up", "oid": str(o.id), "slash": true})
-	_push({"k": kg, "t0": g.t, "gp": _snap(at), "flip": dk[1] and not spin, "ly": "gd", "oid": str(o.id), "slash": true})
+	_push({"k": ku, "t0": g.t, "gp": _snap(at), "flip": dk[1] and not spin, "ly": "up", "oid": str(o.id), "slash": true, "fo": at - o.pos})
+	_push({"k": kg, "t0": g.t, "gp": _snap(at), "flip": dk[1] and not spin, "ly": "gd", "oid": str(o.id), "slash": true, "fo": at - o.pos})
+
+
+## 以脚底为原点的一对件（立起 + 贴地）
+func _add_pair(o, key: String, at: Vector2, follow := false) -> void:
+	var a := {"k": key + "_up", "t0": g.t, "gp": _snap(at), "flip": false, "ly": "up", "oid": str(o.id)}
+	var b := {"k": key + "_gd", "t0": g.t, "gp": _snap(at), "flip": false, "ly": "gd", "oid": str(o.id)}
+	if follow:
+		a["fo"] = at - o.pos
+		b["fo"] = at - o.pos
+	_push(a)
+	_push(b)
 
 
 ## 方向件（不是斩击：不参与「只留最近两刀」）
@@ -265,11 +276,14 @@ func _add_dir(o, key: String, at: Vector2, ang: float) -> void:
 	_push({"k": "%s_gd_d%d" % [key, dk[0]], "t0": g.t, "gp": _snap(at), "flip": dk[1], "ly": "gd", "oid": str(o.id)})
 
 
-func _add_up(o, key: String, at: Vector2, raw: bool, rawk: String, r: float, fit: float, ang: float) -> void:
+func _add_up(o, key: String, at: Vector2, raw: bool, rawk: String, r: float, fit: float, ang: float, follow := false) -> void:
 	if raw:
 		_push({"k": rawk, "t0": g.t, "gp": at + Vector2(0, -10), "ly": "raw", "rot": ang, "sc": g.PX * (r * 0.5) / fit, "oid": str(o.id)})
 		return
-	_push({"k": key + "_up", "t0": g.t, "gp": _snap(at), "flip": false, "ly": "up", "oid": str(o.id)})
+	var it := {"k": key + "_up", "t0": g.t, "gp": _snap(at), "flip": false, "ly": "up", "oid": str(o.id)}
+	if follow:
+		it["fo"] = at - o.pos
+	_push(it)
 
 
 func _add_gd(o, key: String, at: Vector2, raw: bool, rawk: String, r: float, fit: float) -> void:
@@ -278,6 +292,28 @@ func _add_gd(o, key: String, at: Vector2, raw: bool, rawk: String, r: float, fit
 			_push({"k": rawk, "t0": g.t, "gp": at, "ly": "raw", "rot": 0.0, "sc": g.PX * (r * 0.5) / fit, "oid": str(o.id)})
 		return
 	_push({"k": key + "_gd", "t0": g.t, "gp": _snap(at), "flip": false, "ly": "gd", "oid": str(o.id)})
+
+
+## 件的当前地面点（docs/246 §10，11-05 用户「斩击没有绑定人，会在别的地方出现」）：
+## 挂在人身上的件（fo = 出手时相对施放者脚底的偏移）每次绘制按施放者当前位置重算，朝向保持出手时的方向；
+## 斩痕（e）跟着被砍的那只；其余（落地类：冲击环、碎浪、碎沫、积水、湿痕）留在出手时的世界坐标
+func _gp(it: Dictionary) -> Vector2:
+	if it.has("fo"):
+		var op = _op(str(it.oid))
+		if op != null and op.pos != Vector2.INF:
+			return _snap(op.pos + (it.fo as Vector2))
+	elif it.has("e"):
+		var e: Dictionary = it.e
+		if not e.get("dead", false):
+			return e.pos + Vector2(0, -float(e.r) * 0.55)
+	return it.gp
+
+
+func _op(oid: String):
+	for o in g.squad.ops:
+		if str(o.id) == oid:
+			return o
+	return null
 
 
 func _step() -> void:
@@ -322,7 +358,7 @@ func draw_floor(o) -> void:
 		_draw_strip(cv, "pool_gd", frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
 	for it in items:
 		if str(it.ly) == "gd" and str(it.oid) == id:
-			_draw_strip(cv, str(it.k), frame_of(float(it.t0)), it.gp, it.flip, true)
+			_draw_strip(cv, str(it.k), frame_of(float(it.t0)), _gp(it), it.flip, true)
 	_wall_spawn(o)
 	for w in _waves(o):
 		_draw_strip(cv, w[0] + "_gd_d%d" % w[3], frame_of(0.0), w[1], w[2], false)
@@ -368,6 +404,9 @@ static func sort_items(game) -> Array:
 	var out: Array = []
 	for it in r.items:
 		if str(it.ly) == "up":
+			if it.has("fo") or it.has("e"):   # 跟人 / 跟怪的件按当前位置排序（键名 _skn：星熊的 sk 是排序偏移，别撞）
+				var gp: Vector2 = r._gp(it)
+				it["_skn"] = gp.y + ((float(it.e.r) * 0.55 + 1.0) if it.has("e") else 1.0 + float(it.get("sk", 0.0)))
 			out.append(it)
 	for o in game.squad.ops:
 		if IDS.has(str(o.id)) and o.pos != Vector2.INF:
@@ -409,9 +448,9 @@ static func draw_sorted(game, ci, it: Dictionary) -> void:
 		r._draw_strip(ci, str(it.loopk), r.frame_of(0.0), it.gp, false, false)
 		return
 	if it.has("fi"):   # 星熊剑气：帧号按剑气年龄 / 剩余寿命挑
-		r._draw_strip(ci, str(it.k), int(it.fi), it.gp, it.flip, true)
+		r._draw_strip(ci, str(it.k), int(it.fi), r._gp(it), it.flip, true)
 		return
-	r._draw_strip(ci, str(it.k), r.frame_of(float(it.t0)), it.gp, it.flip, not it.get("loop", false))
+	r._draw_strip(ci, str(it.k), r.frame_of(float(it.t0)), r._gp(it), it.flip, not it.get("loop", false))
 
 
 ## 斩痕：沿方向逐美术像素画（2 世界像素格），第 0 拍白芯 + 两侧浅蓝、第 1 拍浅蓝变短、第 2 拍只剩两头几点
@@ -420,7 +459,7 @@ func _draw_cut(ci, it: Dictionary) -> void:
 	if f < 0 or f > 2:
 		return
 	var px: float = g.PX
-	var c0: Vector2 = _snap(it.gp)
+	var c0: Vector2 = _snap(_gp(it))
 	var dirs: Array = [it.d]
 	if it.x:
 		dirs.append((it.d as Vector2).rotated(1.25))
@@ -447,6 +486,8 @@ func _draw_cut(ci, it: Dictionary) -> void:
 static func sort_key(it: Dictionary) -> float:
 	if it.has("wave"):
 		return float((it.wave[1] as Vector2).y) + 2.0
+	if it.has("_skn"):   # 跟人 / 跟怪的件（docs/246 §10）按当前位置排
+		return float(it._skn)
 	if it.get("cut", false) or it.has("gy"):
 		return float(it.gy)
 	return float((it.gp as Vector2).y) + 1.0 + float(it.get("sk", 0.0))   # sk：身后半圈的件往前排（星熊地刺）
