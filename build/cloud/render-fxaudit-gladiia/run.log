@@ -1,0 +1,13 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（2583 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+局 ('gladiia_atk_A', 150, [])
+局 ('gladiia_atk_B', 150, [])
+局 ('gladiia_atk_C', 150, [])
+局 ('gladiia_s1_A', 150, [])
+局 ('gladiia_s1_B', 150, [])
+局 ('gladiia_s1_C', 150, [])
+体检 {"op": "gladiia", "mode": "atk", "frame": 11, "engine": 70, "secs": 5.0, "hits": 0, "acts": 57, "skill": 0, "parts_total": 90, "parts_per_hit": 1.6, "parts_per_s": 18.0, "parts_s1_1s": null, "mats": {"ink": 90}, "life": 0.91, "sz": 4.9, "alive_max": 25, "lights": 13, "lights_per_hit": 0.23, "light_r": 110.0, "light_i": 0.4, "light_life": 0.12, "emit_max": 200, "emit_mean": 29.0, "gl_peak": 58.8, "gl_area_hit": 5133, "gl_mean_hit": 14.5, "em_peak": 231.8, "em_area_hit": 32, "em_mean_hit": 21.9, "crop": [559, 286, 320, 180]}
+体检 {"op": "gladiia", "mode": "s1", "frame": 3, "engine": 62, "secs": 5.0, "hits": 0, "acts": 49, "skill": 2, "parts_total": 85, "parts_per_hit": 1.7, "parts_per_s": 17.0, "parts_s1_1s": 29, "mats": {"ink": 85}, "life": 0.9, "sz": 4.9, "alive_max": 43, "lights": 10, "lights_per_hit": 0.2, "light_r": 110.0, "light_i": 0.4, "light_life": 0.12, "emit_max": 314, "emit_mean": 54.0, "gl_peak": 55.3, "gl_area_hit": 1457, "gl_mean_hit": 12.6, "em_peak": 230.5, "em_area_hit": 85, "em_mean_hit": 73.4, "crop": [554, 294, 320, 180]}
+录像 ('gladiia', '10.6 MB', [])
+media：10 个文件，13M
