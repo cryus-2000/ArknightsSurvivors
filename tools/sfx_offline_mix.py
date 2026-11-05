@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """离线混音：把 tools/sfx_event_log.py 记下的同一局音效事件表，按「改前 / 改后」两套规则混成音频（docs/255 §7，流明攻击音效对照）。
 本机不开 Godot。只复刻 sfx.gd 里和这次改动有关的规则，其余照事件表原样：
-  - 流明 op_lumen_atk / op_lumen_hit 从 SFXOP（op() 入口、节流前）重新生成：改前 = 旧文件、无命中间隔、命中音高随机 ±5%；改后 = 新文件、命中最短间隔 0.09 秒、±8%；
+  - 流明 op_lumen_atk / op_lumen_hit 从 SFXOP（op() 入口、节流前）重新生成：改前 = 旧文件、无命中间隔、命中音高随机 ±5%；改后 = 新文件、命中最短间隔 0.09 秒、±4%；
     音量 = OP_VOL[类别] + 调用处偏移（OP_DB 两版都没有流明条目）；
   - 其他音效照 SFXLOG（play() 请求）；
   - play() 同名最短间隔 = max(MERGE_T 0.05, LIMIT / OP_LIMIT)，按游戏时间算（游戏里按墙钟，实时局两者一样）；
@@ -34,10 +34,13 @@ LIMIT = read_limit()
 _cache = {}
 
 
+NEWDIR = ""
+
+
 def wav(name, old):
     key = (name, old)
     if key not in _cache:
-        p = os.path.join(OLD, name + "_old.wav") if old else None
+        p = os.path.join(OLD, name + "_old.wav") if old else (os.path.join(NEWDIR, name + ".wav") if NEWDIR and name.startswith("op_lumen_") else None)
         if not p or not os.path.exists(p):
             p = None
             for ext in (".wav", ".ogg"):
@@ -68,8 +71,12 @@ def main():
     ap.add_argument("--secs", type=float, default=10.0)
     ap.add_argument("--out", required=True)
     ap.add_argument("--name", default="lumen_atk_sfx")
+    ap.add_argument("--newdir", default="", help="改后那版流明攻击音从这个目录取 op_lumen_atk.wav / op_lumen_hit.wav（候选对比用；缺省用 game/audio/sfx）")
+    ap.add_argument("--unit_db", type=float, default=0.0, help="改后那版：发光单元 / 非本体的命中（调用处偏移 ≤ −3 dB 的 op_lumen_hit）再加这么多 dB；≤ −60 = 不出声")
     ap.add_argument("--only", default="", help="只混这个前缀的音（如 op_lumen_ 只听流明自己的声音）")
     a = ap.parse_args()
+    global NEWDIR
+    NEWDIR = a.newdir
     fr2t, plays, ops = [], [], []
     for l in open(a.log, encoding="utf-8"):
         p = l.split()
@@ -90,11 +97,15 @@ def main():
                 continue
             t = tm(f)
             kind = sn.split("_")[-1]
+            if ver == "after" and sn == "op_lumen_hit" and v <= -3.0 and a.unit_db != 0.0:
+                if a.unit_db <= -60.0:
+                    continue
+                v += a.unit_db
             if ver == "after" and sn == "op_lumen_hit":
                 if t - gap_last.get(sn, -99.0) < 0.09:
                     continue
                 gap_last[sn] = t
-            pvar = max(pv, {"op_lumen_atk": 0.07, "op_lumen_hit": 0.0 if ver == "before" else 0.08}[sn])
+            pvar = max(pv, {"op_lumen_atk": 0.07, "op_lumen_hit": 0.0 if ver == "before" else 0.04}[sn])
             ev.append((t, sn, OP_VOL.get(kind, -8.0) + v, pi, pvar, ver == "before"))
         ev.sort(key=lambda e: e[0])
         last = {}

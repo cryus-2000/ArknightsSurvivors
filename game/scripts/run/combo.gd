@@ -600,6 +600,8 @@ static func _step_dash(u, a: Dictionary, dt: float) -> bool:
 		p._set_face(1.0 if dir.x >= 0.0 else -1.0, true)
 		if Fxr.owns(p) and str(a.s) == "hoshiguma":
 			Fxr.ev(p, "combo_dash", {"from": p0, "to": stop})   # 转平面（docs/254）：冲刺尘痕代替通用拖影（只画）
+		elif Fxr.owns(p) and str(a.s) == "texas":
+			pass   # 转平面（docs/257）：冲刺刀光在出招时由 fx_pxplane 画（tx_link）
 		else:
 			_tracer(u, p0 + Vector2(0, -20), stop + Vector2(0, -20), p.col(), dur + 0.14, 8.0)   # 干员色拖影
 		a.ph = 1
@@ -648,7 +650,10 @@ static func _strike(u, a: Dictionary) -> void:
 			hits = path
 			a["blocked"] = blocked
 			p.slash_fx(stop, ang, 0.6, 120.0, c, "slash", 0.24)
-			_beam(u, Vector2(a.from) + Vector2(0, -16), stop + Vector2(0, -16), c.lerp(Color.WHITE, 0.4), 0.22, 3.0)
+			if Fxr.owns(p):
+				Fxr.ev(p, "tx_link", {"from": a.from, "to": stop, "mid": stop, "es": hits})   # 转平面（docs/257）：冲刺斩（只画）
+			else:
+				_beam(u, Vector2(a.from) + Vector2(0, -16), stop + Vector2(0, -16), c.lerp(Color.WHITE, 0.4), 0.22, 3.0)
 		"skadi":   # 大剑横扫一周并击退
 			hits = _area(p, stop, 115.0, 1.4, 200.0)
 			p.slash_fx(stop, ang, PI, 110.0, c, "slash", 0.3)
@@ -853,7 +858,9 @@ static func _step_cast(u, a: Dictionary, _dt: float) -> bool:
 		var tp: Vector2 = _cast_pos(u, a)
 		a.tpos = tp
 		var tr: float = float(a.travel)
-		if tr > 0.0 and str(a.s) == "lumen" and _FXR.owns(p):
+		if tr > 0.0 and str(a.s) == "logos" and _FXR.owns(p):
+			_FXR.ev(p, "lg_cshot", {"a": p.pos + Vector2(0, -26), "b": tp, "travel": tr})   # 转平面（docs/258）：只画
+		elif tr > 0.0 and str(a.s) == "lumen" and _FXR.owns(p):
 			_FXR.ev(p, "lm_cshot", {"a": p.pos + Vector2(0, -26), "b": tp + Vector2(0, -30), "travel": tr})   # 转平面（docs/255）：只画
 		elif tr > 0.0:
 			_tracer(u, p.pos + Vector2(0, -26), tp, c, tr + 0.1, 7.0)
@@ -902,12 +909,17 @@ static func _impact(u, a: Dictionary) -> void:
 		"logos":   # 咒文扩散，处决至多 6 名低于 30% 的普通敌人
 			var low: Array = _low_minions(u, 0.3)
 			low.sort_custom(func(x, y): return x.pos.distance_squared_to(tp) < y.pos.distance_squared_to(tp))
+			var pxo: bool = _FXR.owns(p)   # 转平面（docs/258）：咒文扩散改由 fx_pxplane 画，只画
 			for e in low.slice(0, int(Bal.v("ult/logos_n", 6.0))):
-				_beam(u, tp + Vector2(0, -10), e.pos + Vector2(0, -8), c, 0.25, 2.0)
+				if not pxo:
+					_beam(u, tp + Vector2(0, -10), e.pos + Vector2(0, -8), c, 0.25, 2.0)
 				p.log_hit(_src(p), ["连携"])
 				p.deal_damage(e, maxf(_dmg(p, 1.2), float(e.hp) * 4.0 + 50.0))
 				hits.append(e)
-			u.shape({"kind": "ring", "c": tp, "r": 240.0, "r1": 30.0, "w": 3.0, "col": c, "life": 0.45})
+			if pxo:
+				_FXR.ev(p, "lg_combo", {"at": tp, "es": hits})
+			else:
+				u.shape({"kind": "ring", "c": tp, "r": 240.0, "r1": 30.0, "w": 3.0, "col": c, "life": 0.45})
 		"mizuki":   # 触手追击附近低于一半的敌人，束缚 1 秒
 			var cand: Array = []
 			for e in u.in_circle(p.pos, 400.0):
