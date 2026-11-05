@@ -19,7 +19,7 @@ CLS = {"skadi": "爆发", "hoshiguma": "爆发", "lumen": "治疗", "eyjafjalla"
 # n 颗粒/次（下, 上）、nmax 单簇上限、lpb 灯/次下限、lr / li 灯半径 / 强度（普攻 = 每次命中的中位数；其余 = 技能后 1 秒内最亮一盏）、
 # glp 照地亮度峰值、gla 命中帧照地面积、ema 命中帧核心辉光面积、ep emit p90（下, 上）、sz 平均边长下限、life 寿命（下, 上）
 STD = {
-    "普攻": dict(n=(3, 8), nmax=12, lpb=0.9, lr=(80, 160), li=(0.35, 0.8), glp=50, gla=1000, ema=30, ep=(40, 300), sz=3.0, life=(0.7, 1.0)),
+    "普攻": dict(n=(3, 10), nmax=16, lpb=0.9, lr=(80, 160), li=(0.35, 0.8), glp=50, gla=1000, ema=30, ep=(40, 300), sz=3.0, life=(0.7, 1.0)),
     "爆发": dict(n=(6, 16), nmax=25, lpb=1.0, lr=(140, 240), li=(0.6, 0.9), glp=65, gla=1500, ema=60, ep=(60, 300), sz=3.0, life=(0.7, 1.0)),
     "持续": dict(n=(1, 4), nmax=12, lpb=0.5, lr=(80, 200), li=(0.35, 0.7), glp=40, gla=800, ema=20, ep=(20, 300), sz=3.0, life=(0.5, 1.0)),
     "治疗": dict(n=(2, 6), nmax=10, lpb=0.9, lr=(80, 160), li=(0.35, 0.7), glp=40, gla=800, ema=20, ep=(20, 300), sz=2.0, life=(0.5, 1.0)),
@@ -41,7 +41,9 @@ def judge(op, mode, r):
     lr, li = (r.get("skill_light_r"), r.get("skill_light_i")) if (skill and cl != "普攻") else (r["light_r"], r["light_i"])
     lr, li = lr or 0, li or 0
     chk = [
-        ("颗粒数", n is not None and s["n"][0] <= n <= s["nmax"], n),
+        # 普攻 / 治疗：每次中位数在 n 区间、单簇不超 nmax；爆发：技能后 1 秒最大簇在 [n 下限, nmax]；持续：每跳在 [n 下限, nmax]
+        ("颗粒数", n is not None and ((s["n"][0] <= n <= s["n"][1] and (r.get("burst_max") or 0) <= s["nmax"]) if cl in ("普攻", "治疗") else s["n"][0] <= n <= s["nmax"]),
+         "%s（单簇最多 %s）" % (n, r.get("burst_max")) if cl in ("普攻", "治疗") else n),
         ("颗粒边长", r["sz"] >= s["sz"], r["sz"]),
         ("颗粒寿命", s["life"][0] <= r["life"] <= s["life"][1], r["life"]),
         ("照地灯/次", r.get("lights_per_burst", 0) >= s["lpb"], r.get("lights_per_burst")),
