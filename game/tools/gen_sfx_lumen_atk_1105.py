@@ -79,18 +79,17 @@ def stats(x):
 
 
 def make():
-    """v2（11-05 用户「现在这个音效更难听了，看看原作的音效是怎么处理的」）：v1 用治疗水声 + 星光声拼新音色、重低通，发闷、不像流明，作废。
-    改用原作流明自己的普攻 / 命中音（原作安装包 audio/sound_beta_2/player/p_atk_*.ab、p_imp_*.ab 解出，主仓库 build/ak_src/wav_atk/；
-    流明的技能音是 p_skill_lantern*、终结技已在用，普攻对应 p_atk_lantern_n、命中 p_imp_lantern_n）。
-    原作流明出手慢（一下一个目标），命中声带 2 秒长尾；本作 1 秒一发、发光单元 / 额外弹也命中，长尾会糊成一片，所以只截短、不改音色：
-      出手 p_atk_lantern_n 开头 0.45 秒（一声亮音 + 一小段尾巴），150 ms 淡出；
-      命中 p_imp_lantern_n 开头 0.22 秒（第一下最响的那团，后面 0.25 秒起的第二段不要），80 ms 淡出；只加 7 kHz 以上轻微压（×0.6），不再重低通。"""
-    atk = load_atk("p_atk_lantern_n.wav", 0.0, 0.45)
-    atk = fades(atk, 0.001, 0.15)
-    hit = load_atk("p_imp_lantern_n.wav", 0.0, 0.22)
-    hit = shelf_cut(hit, 7000, 0.6)
-    hit = fades(hit, 0.001, 0.08)
-    return {"op_lumen_hit": (hit, -3.0, 0.7), "op_lumen_atk": (atk, 0.0, 0.7)}
+    """v3（11-05 用户选候选 A「按照 A 来可以，但是为什么还有一个旋转的声音」）。
+    A = 原作流明技能状态下的普攻音：出手 p_atk_lantern_s、命中 p_imp_lantern_s（原作安装包解出，主仓库 build/ak_src/wav_atk/）。
+    「旋转」声来自出手 p_atk_lantern_s 的前 0.35 秒：约每 60 ms 一个亮脉冲（提灯转 / 链子晃，原作慢动作技能出手用），
+    本作 1 秒一发就很显眼 → 出手只留中间最响的一下（0.11–0.21 秒，提灯「叮」），前面的摆动和后面几下都不要；5 ms 淡入、60 ms 淡出。
+    命中 p_imp_lantern_s 前 0.32 秒（一团连续的光，没有这种节奏），100 ms 淡出，不加滤波。
+    v1（治疗水声 + 星光声拼接重低通）、v2（普通版 p_atk_lantern_n / p_imp_lantern_n 截短）作废。"""
+    atk = load_atk("p_atk_lantern_s.wav", 0.11, 0.10)
+    atk = fades(atk, 0.005, 0.06)
+    hit = load_atk("p_imp_lantern_s.wav", 0.0, 0.32)
+    hit = fades(hit, 0.001, 0.10)
+    return {"op_lumen_hit": (hit, -3.0, 0.7), "op_lumen_atk": (atk, -3.0, 0.7)}
 
 
 def main():
