@@ -141,7 +141,7 @@ def main():
     total = 0
     for k, (frames, loop) in strips().items():
         im, w, h, ox, oy, emit = render(frames)
-        fn = "pxp_an_%s.png" % k
+        fn = "pxp_an_%s.png" % k.replace("_d-", "_dm").lower()
         p = os.path.join(ART, fn)
         im.save(p, optimize=True)
         total += os.path.getsize(p)

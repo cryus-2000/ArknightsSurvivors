@@ -5,7 +5,7 @@
 // 尺寸按目标大小直接生成（1 像素 = 1 美术像素 = 2 世界像素），游戏里只按 2 倍整数放大，不缩放、不旋转；
 // 方向件（ribbon / blade）按 dir（度，平面角，y 向下 = 朝镜头）逐向生成，游戏挑最近的一张（另一半水平翻转）。
 // view: "raw" 出「旧做法」对照：横版 / 正俯视的原样画（圆不压扁、刀光是平躺的整圆弧、光晕烤进颜色），游戏里旋转 + 小数缩放贴上去。
-// 色：本人深海蓝（house.js OP.skadi）；精二点缀海绿 #5ff0cc；不用危险红。同一招元素 ≤ 3。
+// 色：本人深海蓝（house.js OP.skadi）；点缀冰蓝 #c4dcff（11-05 用户定，原海绿 #5ff0cc）；不用危险红。同一招元素 ≤ 3。
 import { fit, clamp, smooth, ease, noise, noise2, TAU, hex, WHITE } from "../../core/index.js";
 
 export const meta = {
@@ -20,7 +20,7 @@ export const meta = {
   bg: "dark",
   options: {
     palette: ["#081226", "#1b325c", "#30508e", "#446ec0", "#598cf2", "#93b4f7", "#cddcfb", "#ffffff"],
-    accent: "#5ff0cc",
+    accent: "#c4dcff",   // 点缀冰蓝（11-05 用户：海绿换掉，选冰蓝）
     part: "ribbon",   // ribbon 横扫刀光幕 / spin 全向旋斩 / splash 水柱 / blade 潮刃浪头（循环）/ ring 贴地冲击环
     layer: "up",      // up / gd
     view: "plane",    // plane / raw
@@ -43,7 +43,9 @@ const nz = (x, sd) => noise(x, sd) * 0.5 + 0.5;   // 0..1
 // 斩击（11-05 用户「斩击没有刀剑感」后重写）：腰高的水平刀痕——大剑横扫扫过的那一片，按俯视斜角压扁（SY）、抬到腰高（H0）。
 // 刀剑感来自：① 月牙形（中段厚、两头收成针尖，最厚处偏刀头）；② 外缘 1 像素白刃线（刀尖走过的路）+ 刀头一道径向刃光（剑身那一下的反光）；
 // ③ 顺着弧走的速度纹；④ 快：第 0 帧就扫出 55%，第 1 帧扫满，之后从刀尾往前收。命中斩痕在游戏里画（fx_pxplane._cuts）。
-// 精一：刀身加厚 + 刃外一排浪沫点；精二：再加白刃线内侧一道海绿副刃。（11-05 去掉内圈第二刀：叠起来碎）
+// 分档（11-05 用户「浪花没什么用，换一个」→ 每升一档多一个新元素，不靠水花）：
+//   精一：刀身加厚 + 斩击后地上留一道发光的深海裂痕（贴地层 rift）；
+//   精二：刃变重——刀身压成深海暗色、内外两侧各一圈海绿描边（外缘白刃线保留）。（11-05 用户：触须很怪，不要）
 function sweep(t, span, full) {
   const a0 = -span / 2;
   const head = a0 + span * (full ? 0.4 + 0.6 * clamp(t / 0.1) : 0.55 + 0.45 * clamp(t / 0.067));
@@ -93,7 +95,11 @@ function smear(p, t, o, C, ACC, full, k) {
     out.c = C[ci];
     if (st === "s3" && !hot && q < 0.16) out.c = ACC;    // S3 刃线换海绿浪沫
     if (out.a === undefined) out.a = 1;
-    if (el >= 2 && k.edge && !hot && q > 0.13 && q < 0.26) out.c = ACC;   // 精二海绿副刃
+    if (el >= 2 && k.edge && !hot) {   // 精二：刃变重——刀身压成深海暗色，内外两侧各一圈海绿描边（外缘白刃线保留）
+      if (q > 0.13 && q < 0.24) out.c = ACC;
+      else if (q >= 0.24 && q < 0.86) out.c = C[clamp(ci - 2, 1, n - 1)];
+      else if (q >= 0.86) { out.c = ACC; out.a = 1; }
+    }
   });
   if (!k.edge) return;
   // 刀头径向刃光（剑身那一下的反光），只在出手两帧
@@ -130,10 +136,40 @@ function smear(p, t, o, C, ACC, full, k) {
       p.px(Math.round(x), Math.round(y), u < 0.12 ? C[n - 1] : i % 2 ? ACC : C[n - 3]);
     }
   }
-  if (el >= 1 && cool < 0.6) for (let a = tail + (head - tail) * 0.3; a <= head; a += 0.09) {   // 精一起：刃外一排浪沫点（取代内圈第二刀）
-    if (nz(a * 7, o.seed + 13) < 0.62) continue;
-    const rr = R + 2, x = Math.cos(a + th) * rr, y = Math.sin(a + th) * rr * SY - H0;
-    p.px(Math.round(x), Math.round(y), C[n - 1]);
+}
+
+// 裂痕上的点（rift 与 riftTendrils 共用同一条裂口几何）
+function riftPt(o, a, R, th, SY) {
+  const rr = R * 0.8 + 2.6 * (nz(a * 6.5, o.seed + 913) - 0.5) * 2;
+  return [Math.cos(a + th) * rr, Math.sin(a + th) * rr * SY];
+}
+
+// 精二：深海暗影触须（贴「深海猎人」）——从地上的深海裂痕里往上长出 3–4 条卷曲的触须（深蓝身 + 暗边、2 格海绿尖），
+// 刀收之后还在：0.06 秒起长出、扭动，约 0.5 秒缩回裂口。立起层（竖直，底端贴地）
+function riftTendrils(p, t, o, C, ACC, full) {
+  const R = +o.R, SY = +o.SY, th = +o.dir * D2R, n = C.length;
+  const span = full ? TAU * 0.84 : +o.span, a0 = -span / 2;
+  const grow = smooth(0.06, 0.16, t), shrink = smooth(0.34, 0.56, t);
+  if (grow <= 0 || shrink >= 0.99) return;
+  const m = full ? 5 : 4;
+  for (let i = 0; i < m; i++) {
+    const a = a0 + span * (0.18 + (0.66 / (m - 1)) * i + 0.06 * (nz(i * 3.3, o.seed + 901) - 0.5));
+    const [bx, by] = riftPt(o, a, R, th, SY);
+    const L = (20 + 12 * nz(i * 1.7, o.seed + 903)) * grow * (1 - shrink);
+    if (L < 2) continue;
+    const sg = i % 2 ? 1 : -1;
+    let x = bx, y = by, dir = -Math.PI / 2 + sg * 0.25;      // 往上长，略外斜
+    for (let s = 0; s <= L; s += 0.5) {
+      const u = s / Math.max(1, L);
+      dir += sg * (0.045 + 0.06 * u) + 0.03 * Math.sin(t * 24 + i * 2.1);   // 越往上卷得越紧，整条在扭
+      x += Math.cos(dir) * 0.5;
+      y += Math.sin(dir) * 0.5;
+      const X = Math.round(x), Y = Math.round(y), wide = u < 0.5;
+      p.px(X - 1, Y, C[0]);                                   // 暗边
+      if (wide) p.px(X + 1, Y, C[0]);
+      p.px(X, Y, u > 0.84 ? ACC : u > 0.6 ? C[3] : C[2]);
+      if (wide) p.px(X + (sg > 0 ? 1 : -1), Y, C[2]);        // 根部 2 格粗
+    }
   }
 }
 
@@ -142,9 +178,35 @@ function ribbon(p, t, o, C, ACC, full) {
   smear(p, t, o, C, ACC, full, { R, Wr: W, dt: 0, dim: 0, edge: true });
 }
 
+// 精一起：斩击后地上留一道发光的深海裂痕——顺着刀痕在地面上裂开（刀头扫到哪裂到哪），暗色裂口 + 1 格海绿发光芯，
+// 几处小分叉；0.15 秒起芯慢慢暗下去，约 0.6 秒整道消失（比刀痕晚走：刀已收、地上还亮着一会儿）
+function rift(p, t, o, C, ACC, full) {
+  const R = +o.R, SY = +o.SY, th = +o.dir * D2R, n = C.length;
+  const span = full ? TAU * 0.84 : +o.span;
+  const [a0, head] = sweep(t, span, full);
+  const glow = 1 - smooth(0.15, 0.5, t), fade = smooth(0.42, 0.66, t);
+  if (fade >= 0.99) return;
+  const rr0 = R * 0.8;
+  for (let a = a0 + span * 0.08; a <= Math.min(head, a0 + span * 0.96); a += 0.5 / rr0) {
+    if (nz(a * 9, o.seed + 911) < fade) continue;            // 消失时从两头碎开
+    if (nz(a * 2.4, o.seed + 919) < 0.2) continue;           // 裂口断续（不成一条细线环）
+    const [fx, fy] = riftPt(o, a, R, th, SY);
+    const x = Math.round(fx), y = Math.round(fy), rr = Math.hypot(fx, fy / SY);
+    p.px(x, y + 1, C[0]);
+    p.px(x, y - 1, C[0]);
+    const lit = glow > 0.08 && nz(a * 17, o.seed + 915) > 0.22 * (1 - glow);
+    p.px(x, y, lit ? ACC : C[1]);
+    if (lit && glow > 0.45) p.px(x + 1, y, C[n - 2]);            // 亮的时候 2 格宽
+    if (nz(a * 3.1, o.seed + 917) > 0.86) {                   // 小分叉（往外 3 格）
+      for (let s = 1; s <= 3; s++) p.px(Math.round(Math.cos(a + th) * (rr + s * 1.2) + s * 0.4), Math.round(Math.sin(a + th) * (rr + s * 1.2) * SY), s === 1 && lit ? ACC : C[0]);
+    }
+  }
+}
+
 // 地面：刀痕在地上的投影阴影（外半圈，半透明抖动）
 function ribbonGround(p, t, o, C, ACC, full) {
   if (o.view === "raw") return;
+  if (+o.el >= 1) rift(p, t, o, C, ACC, full);
   const R = +o.R, W = +o.W, SY = +o.SY, th = +o.dir * D2R;
   const span = full ? TAU * 0.84 : +o.span;
   const [a0, head, tail] = sweep(t, span, full);
@@ -505,6 +567,130 @@ function backwash(p, t, o, C, ACC, gd) {
   }
 }
 
+// S1 迅捷打击·γ型 = 竖斩（11-05 用户「迅捷打击和普攻太相似，换成竖斩和横斩」）：普攻是腰高的水平横斩，S1 是大剑从头顶后方竖着劈下来——
+// 刀光是一道立在出手方向竖直平面里的月牙（肩高为轴、劈到身前地面），落地那一下：地上沿出手方向炸开一道直裂。
+// 分档同普攻：E1 直裂变成发光的深海裂痕（刀收后还亮一会儿），E2 刀身压成深海暗色 + 内外海绿描边（刃变重）。
+const VS_PIV = 22;   // 轴心离地高度（肩）
+function vsweep(t) {
+  const p0 = 125 * D2R, p1 = -22 * D2R, span = p0 - p1;   // 从头顶后方（125°）劈到身前地下（-22°，地面以下不画）
+  const head = p0 - span * (0.5 + 0.5 * clamp(t / 0.067));
+  const tail = p0 - span * 0.25 * smooth(0.07, 0.3, t);
+  return [p0, head, tail, span];
+}
+
+function vslash(p, t, o, C, ACC) {
+  const raw = o.view === "raw", Rv = +o.RV, W = +o.W, th = +o.dir * D2R, SY = raw ? 1 : +o.SY, el = +o.el, n = C.length;
+  const [p0, head, tail] = vsweep(t);
+  const hot = t < 0.13, cool = smooth(0.1, +o.dur, t);
+  if (cool < 0.72 && tail - head > 0.03) {
+    const cols = [];
+    for (let ph = head; ph <= tail; ph += 0.35 / Rv) {
+      const u = (tail - ph) / Math.max(0.001, tail - head);  // 0 刀尾（头顶后方）→ 1 刀头（劈下去那端）
+      const wr = W * (1 - 0.7 * cool) * Math.pow(Math.sin(Math.PI * Math.pow(u, 1.6)), 0.75);
+      if (wr < 0.7) continue;
+      for (let d = 0; d <= wr; d += 0.5) {
+        const r = Rv - d, hz = r * Math.cos(ph), z = VS_PIV + r * Math.sin(ph);
+        if (z < 0) continue;                                    // 劈进地面的部分不画
+        const q = d / wr;
+        let ci = q < 0.2 ? (hot ? n - 1 : n - 2) : q < 0.45 ? n - 2 : q < 0.7 ? n - 3 : n - 4;
+        if (hot && u > 0.8 && q < 0.6) ci = n - 1;
+        ci = clamp(ci - Math.round(cool * 2.5) - (u < 0.2 ? 1 : 0), 1, n - 1);
+        let col = C[ci];
+        if (el >= 2 && !hot) {                                  // 精二：刃变重
+          if (q > 0.2 && q < 0.3) col = ACC;
+          else if (q >= 0.3 && q < 0.86) col = C[clamp(ci - 2, 1, n - 1)];
+          else if (q >= 0.86) col = ACC;
+        }
+        cols.push([Math.cos(th) * hz, Math.sin(th) * hz * SY - z, col]);
+      }
+    }
+    for (const c of cols) p.px(Math.round(c[0]), Math.round(c[1]), c[2]);
+    if (raw) p.light(Math.cos(th) * Rv * 0.6, -VS_PIV, C[n - 2], 0.5 * (1 - cool));
+  }
+  if (raw) return;
+  // 落地矮浪（11-05 试过：读成另外几道刀光，和竖月牙撞了，关掉；S1 = 竖劈月牙 + 落点直裂 / 深海裂痕）
+  const ti = t - 0.06;
+  if (false && ti > 0) {
+    const R = +o.R, g = ease.outCubic(clamp(ti / 0.28)), r = R * (0.4 + 0.6 * g), fade = smooth(0.18, 0.42, ti);
+    if (fade < 0.99) {
+      const pts = [];
+      for (let a = -1.6; a <= 1.6; a += 0.4 / r) {
+        if (nz(a * 2.2, o.seed + 931) < 0.14) continue;              // 少量断口（连续的一道矮水涌，不碎成块）
+        const env = Math.pow(Math.cos(a / 1.6 * Math.PI / 2), 0.7);
+        const h = (2.5 + 2.5 * nz(a * 3.1, o.seed + 933)) * env * (1 - fade) * clamp(ti / 0.05);
+        const pa = a + th;
+        pts.push({ x: Math.cos(pa) * r, y: Math.sin(pa) * r * SY, h, ca: Math.cos(pa), sa: Math.sin(pa) * SY, near: Math.sin(pa) });
+      }
+      pts.sort((A, B) => A.y - B.y);
+      for (const q of pts) {
+        if (q.h < 1) continue;
+        const B = q.h * 2.2;
+        for (let sb = -B; sb <= 0; sb += 0.5) {                // 内侧缓坡
+          const u = (sb + B) / B, z = q.h * Math.pow(u, 1.6);
+          if (u < 0.3 && nz(sb * 3 + q.x, o.seed + 935) < 0.5) continue;
+          const ci = u < 0.5 ? n - 6 : u < 0.85 ? n - 5 : n - 4;   // 水波：暗、不发白（不跟竖月牙抢）
+          p.px(Math.round(q.x + q.ca * sb), Math.round(q.y + q.sa * sb - z), C[clamp(ci - Math.round(fade * 2) - (q.near < -0.3 ? 1 : 0), 1, n - 1)]);
+        }
+        for (let z = 0; z <= q.h; z += 0.5) {                  // 外侧前脸
+          const k = z / q.h, off = k * k * q.h * 0.3;
+          const ci = k > 0.8 ? n - 3 : k > 0.4 ? n - 4 : n - 5;
+          p.px(Math.round(q.x + q.ca * off), Math.round(q.y + q.sa * off - z), C[clamp(ci - Math.round(fade * 2) - (q.near < -0.3 ? 2 : 0), 1, n - 1)]);
+        }
+      }
+    }
+  }
+}
+
+// 竖斩地面：刀身投影一道直线阴影；落地后沿出手方向炸开一道直裂（几处小分叉），E0 / E1 白热后变暗；E1 起裂口芯发海绿光、刀收后还亮一会儿（深海裂痕）
+function vslashGround(p, t, o, C, ACC) {
+  if (o.view === "raw") return;
+  const R = +o.R, Rv = +o.RV, th = +o.dir * D2R, SY = +o.SY, el = +o.el, n = C.length;
+  const [p0, head] = vsweep(t);
+  const cool = smooth(0.1, +o.dur, t);
+  const reach = Math.sqrt(Math.max(0, Rv * Rv - VS_PIV * VS_PIV));   // 刀尖落地点
+  if (cool < 0.72) for (let h = 4; h <= Math.min(reach, Rv * Math.max(0, Math.cos(head))); h += 1) {   // 刀身投影（跟着刀头往前）
+    p.dot(Math.round(Math.cos(th) * h), Math.round(Math.sin(th) * h * SY), C[0], 0.45 * (1 - cool));
+  }
+  const ti = t - 0.06;
+  if (ti <= 0) return;
+  const grow = ease.outCubic(clamp(ti / 0.1)), glow = 1 - smooth(0.12, 0.5, t), fade = smooth(el >= 1 ? 0.42 : 0.25, el >= 1 ? 0.66 : 0.42, t);
+  if (fade >= 0.99) return;
+  const L = (reach - 4) + (R * 0.95 - reach + 4) * grow;
+  const nx = -Math.sin(th), ny = Math.cos(th) * SY;
+  for (let h = reach - 4; h <= reach - 4 + L; h += 0.5) {
+    if (nz(h * 0.9, o.seed + 941) < fade) continue;
+    const j = 2.2 * (nz(h * 0.45, o.seed + 943) - 0.5) * 2;   // 裂口左右摆
+    const x = Math.round(Math.cos(th) * h + nx * j), y = Math.round(Math.sin(th) * h * SY + ny * j);
+    const fresh = ti < 0.1;
+    p.px(x, y + 1, C[0]);
+    p.px(x, y - 1, C[0]);
+    let core = fresh ? WHITE : C[1];
+    if (el >= 1 && glow > 0.08 && nz(h * 1.7, o.seed + 945) > 0.2 * (1 - glow)) core = ACC;
+    p.px(x, y, core);
+    if (nz(h * 0.33, o.seed + 947) > 0.84) {                     // 小分叉
+      const sg = nz(h, o.seed + 949) > 0.5 ? 1 : -1;
+      for (let s = 1; s <= 3; s++) p.px(Math.round(x + Math.cos(th) * s * 0.6 + nx * sg * s), Math.round(y + Math.sin(th) * s * 0.6 * SY + ny * sg * s), s === 1 && core === ACC ? ACC : C[0]);
+    }
+  }
+}
+
+
+// S1 = 十字斩（11-05 用户「S1 可以是类似于十字斩，先竖着再横着，这样就不用改范围」）：先竖劈（vslash），
+// 落地那一拍（0.12 秒后）接一道比普攻更宽的横扫月牙（弧 200°，对上前方 200° 判定），两刀在身前交成「十」字。
+// 分档：E1 竖劈落点的直裂发光（深海裂痕）；E2 两刀都刃变重。横扫这一刀不另加裂痕（免得地上两道裂痕太乱）
+const CROSS_DT = 0.12;
+function cross(p, t, o, C, ACC) {
+  vslash(p, t, o, C, ACC);
+  const R = +o.R, W = +o.WH || +o.W;
+  smear(p, t, Object.assign({}, o, { span: 3.5, H0: 12 }), C, ACC, false, { R, Wr: W, dt: CROSS_DT, dim: 0, edge: true });
+}
+
+function crossGround(p, t, o, C, ACC) {
+  vslashGround(p, t, o, C, ACC);
+  const tt = t - CROSS_DT;
+  if (tt > 0) ribbonGround(p, tt, Object.assign({}, o, { span: 3.5, el: 0, W: +o.WH || +o.W, style: "basic" }), C, ACC, false);   // 横扫这一刀只要投影阴影
+}
+
 export function draw(p, t, o) {
   const C = fit(o.palette, 8), ACC = hex(o.accent);
   const gd = o.layer === "gd";
@@ -516,6 +702,8 @@ export function draw(p, t, o) {
     case "curtain": return gd ? breakerGround(p, t, o, C, ACC) : breaker(p, t, o, C, ACC);   // S2 碎浪
     case "swell": return swell(p, t, o, C, ACC, gd);
     case "backwash": return backwash(p, t, o, C, ACC, gd);
+    case "cross": return gd ? crossGround(p, t, o, C, ACC) : cross(p, t, o, C, ACC);   // S1 十字斩
+    case "vslash": return gd ? vslashGround(p, t, o, C, ACC) : vslash(p, t, o, C, ACC);   // S1 竖斩
     case "pool": return gd ? pool(p, t, o, C, ACC) : undefined;
     case "ring": return gd || o.view === "raw" ? ring(p, t, o, C, ACC) : undefined;
   }
