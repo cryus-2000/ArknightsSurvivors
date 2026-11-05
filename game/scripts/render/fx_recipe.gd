@@ -186,10 +186,11 @@ func _ev(o, kind: String, d: Dictionary) -> void:
 	if _x_react and pxm != 2:   # 转平面「旧做法」对照（2）不加受击反应
 		var heavy: bool = kind in ["exec", "slam", "lock_tick", "fan_tick"] or (kind == "swing" and d.get("heavy", false))
 		var col: Color = p.get("flash", p.light)
+		var ft2: float = float(recipe(str(o.id)).get("flash_t", REACT_FLASH))   # 干员自己的闪色时长（docs/265 凯尔希：1–2 帧）
 		if d.has("e") and d.e != null:
-			_react(d.e, col, heavy)
+			_react(d.e, col, heavy, ft2)
 		for e in d.get("es", []):
-			_react(e, col, heavy)
+			_react(e, col, heavy, ft2)
 	if Bal.v("fx/recipe_log", 0.0) > 0.0:   # 三档并排图对齐用（tools/fx_canon_shots.py）：事件发生的引擎帧
 		print("FXRLOG %s %s%s %d %.3f" % [str(o.id), kind, str(d.get("i", "")) if kind == "skill" else ("_h" if d.get("heavy", false) else ""), Engine.get_process_frames(), float(g.t)])   # 第 5 列 = 游戏时间（实局找事件时刻用，docs/255）
 	if pxm > 0:
@@ -493,14 +494,14 @@ const REACT_FLASH := 0.06
 const REACT_STOP := 2.0 / 60.0
 
 
-func _react(e, col: Color, heavy: bool) -> void:
+func _react(e, col: Color, heavy: bool, ft2: float = REACT_FLASH) -> void:
 	if not (e is Dictionary) or e.get("dead", false) or e.get("boss", false):
 		return
 	var id = e.get("id", -1)
 	var prev: Array = reacts.get(id, [])
 	var st: float = g.t + REACT_STOP if heavy else (float(prev[2]) if not prev.is_empty() else -1.0)
 	var ft: float = float(prev[3]) if not prev.is_empty() and g.t < float(prev[2]) else g.t
-	reacts[id] = [g.t, col, st, ft]
+	reacts[id] = [g.t, col, st, ft, ft2]   # ft2：闪色时长（配方 / 转平面 json 的 flash_t，缺省 REACT_FLASH）
 
 
 ## world.gd 选帧用：打击停顿期间返回命中那一刻的时间（只这一只的动画停），其余照常 g.t
@@ -539,7 +540,7 @@ static func _react_col_r(game, e: Dictionary) -> Color:
 	var age: float = game.t - float(q[0])
 	if age < 0.0 or age > 0.3:
 		return Color(0, 0, 0, -1)
-	if age < REACT_FLASH:
+	if age < (float(q[4]) if q.size() > 4 else REACT_FLASH):
 		var c: Color = q[1]
 		return Color(c.r, c.g, c.b, 0.85)
 	return Color(0, 0, 0, 0)
@@ -593,6 +594,8 @@ const MATS := {
 	"tri": {"grav": 1000.0, "rest": 0.3, "bounce": 1, "land": 0.5, "sz": [6, 10], "spd": [70.0, 170.0], "up": [140.0, 260.0], "life": 1.0},
 	"puff": {"grav": -40.0, "rest": 0.0, "bounce": 0, "land": 0.0, "sz": [8, 12], "spd": [10.0, 40.0], "up": [10.0, 40.0], "life": 0.6},
 	"shard": {"grav": 760.0, "rest": 0.45, "bounce": 1, "land": 0.35, "sz": [2, 4], "spd": [70.0, 160.0], "up": [90.0, 200.0], "life": 0.8},
+	"rise": {"grav": -55.0, "rest": 0.0, "bounce": 0, "land": 0.0, "sz": [2, 2], "spd": [4.0, 16.0], "up": [18.0, 40.0], "life": 1.0},   # 慢慢上飘的光点（凯尔希治疗 / 熔毁火星，docs/265）
+	"dust": {"grav": 420.0, "rest": 0.0, "bounce": 0, "land": 0.3, "sz": [2, 4], "spd": [40.0, 110.0], "up": [40.0, 100.0], "life": 0.75},   # 落地扬起的尘点（docs/265；docs/270 体检后加大到 2–4 px、寿命 0.75）
 }
 
 
@@ -621,6 +624,9 @@ func _grains(o, at: Vector2, gy: float, mat: String, n: int, m: Dictionary, dir 
 			"vh": g.vrng.randf_range(float(mt.up[0]), float(mt.up[1])), "age": 0.0, "life": float(mt.life) * g.vrng.randf_range(0.8, 1.2),
 			"sz": sz, "nb": 0, "landed": -1.0, "rot": g.vrng.randf() * TAU, "spin": g.vrng.randf_range(-14.0, 14.0),
 			"accent": m.get("tier", 0) >= 2 and mat == "shard"})
+		if m.has("c0"):   # 自带颜色（docs/265：颗粒池按干员一套色，凯尔希的治疗薄荷 / 熔毁红另给）
+			parts[parts.size() - 1]["c0"] = m.c0
+			parts[parts.size() - 1]["c1"] = m.get("c1", m.c0)
 
 
 func _step() -> void:
@@ -1278,6 +1284,19 @@ func _draw_parts(o, cv, p: Dictionary) -> void:
 		var col: Color
 		var u: float = clampf(float(q.age) / maxf(0.001, float(q.life)), 0.0, 1.0)
 		var pos: Vector2 = q.gp - Vector2(0, float(q.h))
+		if q.has("c0"):   # 自带颜色：热 → 冷，落地后再压暗一阶、熄灭前半透明
+			col = (q.c0 as Color).lerp(q.c1, clampf(u * 1.4, 0.0, 1.0))
+			var sz2 := Vector2(sz, sz)
+			if float(q.landed) >= 0.0:
+				var lk3: float = float(q.landed) / maxf(0.01, float(mt.land))
+				col = col.lerp(Color(0, 0, 0), 0.35)
+				if lk3 > 0.6:
+					col.a *= 0.5
+			elif str(q.m) == "rise" and u > 0.7:
+				col.a *= 0.6
+			col.a *= dim
+			cv.draw_rect(Rect2(_snap(pos), sz2), col)
+			continue
 		match str(q.m):
 			"ink", "drop":
 				col = p.main if u < 0.25 else p.dark.lerp(p.main, 0.3)
