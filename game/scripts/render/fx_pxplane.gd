@@ -18,10 +18,10 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
-const METAS := {"res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_eyjafjalla.json": "ey_", "res://data/pxp_siege.json": "", "res://data/pxp_exusiai.json": "ex_", "res://data/pxp_mizuki.json": "", "res://data/pxp_angelina.json": "an_", "res://data/pxp_saria.json": "sa_"}   # 帧条表 → 键前缀（星熊的键自带 hsg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
+const METAS := {"res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_eyjafjalla.json": "ey_", "res://data/pxp_siege.json": "", "res://data/pxp_exusiai.json": "ex_", "res://data/pxp_mizuki.json": "", "res://data/pxp_angelina.json": "an_", "res://data/pxp_saria.json": "sa_", "res://data/pxp_lappland.json": "lp_"}   # 帧条表 → 键前缀（星熊的键自带 hsg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
 const MI = preload("res://scripts/render/melee_impact.gd")   # 近战打击感包（docs/246 §11）：斩痕 / 照地光提亮
 const ART := "res://art/fx/pxp/pxp_%s.png"
-const IDS := {"skadi": true, "hoshiguma": true, "lumen": true, "eyjafjalla": true, "siege": true, "exusiai": true, "mizuki": true, "angelina": true, "saria": true}
+const IDS := {"skadi": true, "hoshiguma": true, "lumen": true, "eyjafjalla": true, "siege": true, "exusiai": true, "mizuki": true, "angelina": true, "saria": true, "lappland": true}
 ## 接管时仍照画的原 pfx 帧条（状态提示，不属于攻击特效）：星熊格挡闪光、反击架势盾沿光
 const KEEP_PFX := {"hoshiguma": {"fx_hoshiguma_block": true, "fx_hoshiguma_guard_glow": true}}
 const LM_C := [Color("#121a2a"), Color("#1d3150"), Color("#2a5282"), Color("#4285ad"), Color("#7fb2d6"), Color("#c4e0f2"), Color("#ffffff")]   # house.js OP.lumen 钢蓝 7 阶
@@ -66,7 +66,7 @@ func mode() -> int:
 static func owns_id(game, oid: String) -> bool:
 	if game == null or not IDS.has(oid):
 		return false
-	if oid in ["exusiai", "angelina", "saria"]:   # 能天使（docs/262）/ 安洁莉娜（docs/267）/ 塞雷娅（docs/269）没有「旧做法原样贴」对照：2 = 不接管（当前游戏原样）
+	if oid in ["exusiai", "angelina", "saria", "lappland"]:   # 能天使（docs/262）/ 安洁莉娜（docs/267）/ 塞雷娅（docs/269）/ 拉普兰德（docs/273）没有「旧做法原样贴」对照：2 = 不接管（当前游戏原样）
 		return of(game).mode() == 1
 	return of(game).mode() > 0
 
@@ -114,6 +114,23 @@ func _sa():
 	if _sam == null:
 		_sam = load("res://scripts/render/fx_pxplane_sa.gd").new(self)
 	return _sam
+
+
+## 拉普兰德一节（docs/273，单独文件 fx_pxplane_lp.gd；运行时 load 避免循环 preload）
+var _lpm = null
+
+
+func _lp():
+	if _lpm == null:
+		_lpm = load("res://scripts/render/fx_pxplane_lp.gd").new(self)
+	return _lpm
+
+
+## ob_summon.sm_draw_over 转来（docs/273，只画）：拉普兰德接管时封印标记画成被斩断的符印、观察层数画成头顶刻痕。没接管返回 null
+static func lp_marks(game):
+	if not (game is Object) or not owns_id(game, "lappland"):
+		return null
+	return of(game)._lp()
 
 
 func _meta(k: String) -> Dictionary:
@@ -205,6 +222,9 @@ func ev(o, kind: String, d: Dictionary) -> void:
 		return
 	if str(o.id) == "saria":
 		_sa().ev(o, kind, d, t, R, p)
+		return
+	if str(o.id) == "lappland":
+		_lp().ev(o, kind, d, t, R, p)
 		return
 	match kind:
 		"shape":
@@ -476,6 +496,9 @@ func draw_floor(o) -> void:
 	if id == "saria":
 		_sa().draw_floor(o)
 		return
+	if id == "lappland":
+		_lp().draw_floor(o)
+		return
 	if o.skill_active_left(2) > 0.0:   # 涌潮悲歌持续期间：脚下一滩积水（循环，跟着人走）
 		_draw_strip(cv, "pool_gd", frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
 	for it in items:
@@ -496,6 +519,10 @@ func draw_over(o) -> void:
 	if str(o.id) == "saria":
 		if mode() == 1:
 			_sa().draw_over(o)   # 状态提示 + 钙化斑（docs/269）
+		return
+	if str(o.id) == "lappland":
+		if mode() == 1:
+			_lp().draw_over(o)   # 封印传染细虚线（docs/273）
 		return
 	if mode() != 2:
 		return
@@ -560,6 +587,9 @@ static func sort_items(game) -> Array:
 			if str(o.id) == "saria":
 				r._sa().sort_items(o, out)
 				continue
+			if str(o.id) == "lappland":
+				r._lp().sort_items(o, out)
+				continue
 			for w in r._waves(o):
 				out.append({"wave": w})
 			if str(o.id) == "skadi":   # 斯卡蒂剑气浪头（docs/246 §9）
@@ -575,6 +605,9 @@ static func sort_items(game) -> Array:
 
 static func draw_sorted(game, ci, it: Dictionary) -> void:
 	var r = game.get_meta("fx_pxplane")
+	if it.has("lp"):   # 拉普兰德运行时件（docs/273）
+		r._lp().draw_rt(ci, it)
+		return
 	if it.has("ex"):   # 能天使运行时件（docs/262）
 		r._ex().draw_rt(ci, it)
 		return
