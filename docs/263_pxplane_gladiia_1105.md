@@ -94,6 +94,22 @@ GIF 的局限：场景压暗 / 受光没模拟（实机会被环境光压暗一�
 
 第三轮（11-05 用户：「歌蕾蒂娅的水墙不用去掉，换一个表现形式，可以稍微华丽一点没关系」）：S1 两侧加回来，但不是立着的墙，改成沿钩线像拉链一样依次掀起的翻卷浪（见 §2 S1 一行），塌下后散成贴地白沫和细涟漪；精二浪更高、透深渊紫、外侧第二层。去掉的直柱不加回来，波纹仍贴地。
 
-## 7. GCP 出图与验收（用户点头后补）
+## 7. GCP 出图与验收（用户 11-05「格雷迪娅可以」后）
 
-（三栏对比、三档图、8:00 开 / 关 mp4、开 / 关 TRACE 逐行一致、脚本错误数）
+提交 e20290722（连携三栏重跑用 36423d179，只改出图脚本），`tools/gcp_render.py --split`（c2d-highcpu-8 × 7，预装镜像），全程 38 分钟 + 连携重跑 9 分钟。
+
+| 项 | 结果 |
+|---|---|
+| TRACE：歌蕾蒂娅队长，种子 23，`--elite2 --sptest`，到 5:00，`fx/px_plane` 0 / 1 / 2 | 301 行，0 vs 1、0 vs 2 逐行一致 |
+| TRACE：8:00 录像那一局（种子 11，歌蕾蒂娅队长，`--realtime`），0 vs 1 | 500 行逐行一致 |
+| TRACE：连携三栏那一局（种子 11，德克萨斯队长 + 歌蕾蒂娅，70 秒起 4 秒），0 vs 1、0 vs 2 | 75 行逐行一致 |
+| 脚本错误 | 全部日志 0 条 SCRIPT ERROR |
+
+交付（本机 `Claude outputs/pxplane_gladiia_1105/gcp/`，不进 git；原始下载在 `render-gladiia-e2029072/`、`render-gladiia-link-36423d17/`）：
+- 三栏对比 `cmp_<招>_e<档>.png` + 2 倍局部 `_x2.png`：atk（E0–E2）、s1（E0–E2）、s2（E1 / E2）、s3（E2）。图鉴演示开 `growth/late_shape=1`。
+- 三档并排 `tiers_atk / s1 / s2 / s3.png`。
+- 连携三栏 `cmp_link.png` / `cmp_link_x2.png`：实战局 71.42 秒那次「聚拢」落地后约 0.27 秒。
+- `late_8m00_onoff.mp4`：种子 11、歌蕾蒂娅队长、8:00 起 20 秒，左关右开，30 帧原速，15.9 MB。
+- ② 旧做法列：只有落地水刺、S1 落地、冲撞、S3 龙卷有旧做法贴图（光晕烤进颜色、小数缩放、盖在上面），其余招在 ② 列不画（接管后原画面也不画）。
+
+出图命令：`python tools/gcp_render.py --branch claude/pxplane-gladiia --job pxplane --split --args 'demo --op gladiia;rec --op gladiia --seed 11 --from 480 --secs 20 --crf 28;trace --op gladiia --seed 23 --maxt 300 --pxs 0,1,2 --extra "--elite2 --sptest";linkcmp --op gladiia --lead texas --seed 11 --from -1 --secs 4 --maxt 600'`（linkcmp `--from -1` 先快跑一局找第一次连携技出手）。
