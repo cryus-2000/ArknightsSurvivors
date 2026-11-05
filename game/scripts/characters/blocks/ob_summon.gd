@@ -1823,7 +1823,7 @@ static func _mf_side(o, s: Dictionary, sd: Dictionary, hov: float) -> void:
 		return
 	var c: Color = _mf_col(sd.get("col", []), o.col())
 	if str(o.id) == "kaltsit" and o.skill_active_left(2) > 0.0 and Fxr.owns(o):
-		c = Fxr.Pxp.KA.MELT_HOT * 0.6   # 转平面（docs/265）：熔毁期间身侧红弧用同一套熔毁红（只画）
+		return   # 转平面（docs/265）：熔毁期间身侧红弧不画（两边对称张开像钳子，用户 11-05「像螃蟹」）；本体已整体换熔毁红（只画）
 	for q in sides:
 		var base_a: float = 0.0 if q >= 0.0 else PI
 		var sway: float = sin(g.t * 3.0 + j * 1.7 + q) * 0.18

@@ -734,36 +734,41 @@ def link(dirdeg):
 
 
 def _m3_body():
-    """Mon3tr 本体贴图（idle 第 0 帧 @1x，64×64，脚底 (32, 60)，头朝右）：返回 (alpha, 亮度, 外轮廓, 甲棱高光, 甲缝)。
-    骨架 / 裂缝都取自本体像素，叠上去位置一一对得上（用户 11-05「骨架可以参照 m3 本体的骨架来做」）。"""
-    p = os.path.join(ROOT, "game", "art", "operators", "kaltsit", "op_mon3tr_idle@1x.png")
-    im = np.asarray(Image.open(p).convert("RGBA"))[:, :64].astype(int)
+    """Mon3tr 本体：游戏里实际画的是 native 帧条（kaltsit.json sprites.m_idle.visual → native_m_idle →
+    art/operators/kaltsit/op_mon3tr_native_idle@1x.png，17 帧，每帧 128×128，脚底 (64, 92)，头朝右；ob_summon.mf_visual_frame）。
+    这里取第 0 帧。返回 (alpha, 亮度, 外轮廓, 甲棱高光, 内部)。"""
+    p = os.path.join(ROOT, "game", "art", "operators", "kaltsit", "op_mon3tr_native_idle@1x.png")
+    im = np.asarray(Image.open(p).convert("RGBA"))[:, :128].astype(int)
     a = im[..., 3] > 100
     lum = im[..., :3].mean(-1)
     hi = (lum > np.percentile(lum[a], 80)) & a
     pad = np.pad(a, 1)
     inner = pad[:-2, 1:-1] & pad[2:, 1:-1] & pad[1:-1, :-2] & pad[1:-1, 2:]
     edge = a & ~inner
-    lp = np.pad(lum, 1)
-    nb = np.maximum.reduce([lp[:-2, 1:-1], lp[2:, 1:-1], lp[1:-1, :-2], lp[1:-1, 2:]])
-    seam = a & inner & (lum < 22) & (nb > 45) & ~hi
-    return a, lum, edge, hi, seam
+    return a, lum, edge, hi, inner
 
 
-M3_HOV = 2      # Mon3tr 悬浮（美术像素，float h 4 世界 ≈ 2）
-M3_CORE = (30, 36)
+M3_HOV = 2              # Mon3tr 悬浮（美术像素，float h 4 世界 ≈ 2）
+M3_FOOT = (64, 92)      # native 帧条脚底
+M3_CORE = (62, 58)      # 躯干中心（native 第 0 帧质心）
+# 躯干中线三道裂缝（native 第 0 帧坐标）：脊往下到尾根、往右上到背甲、往左下一小段
+M3_CRACKS = [
+    [(62, 50), (63, 55), (61, 60), (62, 66), (60, 71), (61, 76)],
+    [(62, 52), (65, 49), (67, 46), (70, 44), (72, 41)],
+    [(61, 60), (58, 63), (56, 67)],
+]
 
 
 def _m3_put(st, f, x, y, c, over=True):
-    """本体贴图像素 (x, y) → 帧条（原点 = Mon3tr 脚底，ox 在 32 对称，翻转时和本体一起镜像）"""
-    st.put(f, st.ox + (x - 32), st.oy - (60 - y) - M3_HOV, c, over=over)
+    """本体贴图像素 (x, y) → 帧条（原点 = Mon3tr 脚底，ox 对称，翻转时和本体一起镜像）"""
+    st.put(f, st.ox + (x - M3_FOOT[0]), st.oy - (M3_FOOT[1] - y) - M3_HOV, c, over=over)
 
 
 def rebuild():
     """不毁重构（Mon3tr 身上，用户 11-05「不毁重构的特效有点太不明显」「骨架参照 m3 本体」）：
     炸散的碎片飞回本体上各自的位置 → 本体的甲棱（脊、肋、前臂刃、爪、尾卷、头冠，取自本体贴图高光）从躯干中心往外一段段亮起 →
     合拢：整个外轮廓一闪 + 实心亮芯 → 熄。14 拍，红色组。"""
-    a, lum, edge, hi, seam = _m3_body()
+    a, lum, edge, hi, inner = _m3_body()
     up = Strip(14, 64, 72, 32, 66)
     gd = Strip(14, 84, 40, 42, 20)
     ys, xs = np.nonzero(hi)
@@ -772,7 +777,7 @@ def rebuild():
     dmax = max(math.hypot(x - cx, y - cy) for x, y in pts)
     order = {(x, y): math.hypot(x - cx, (y - cy) * 1.2) / (dmax * 1.2) for x, y in pts}
     rnd = random.Random(21)
-    tgt = rnd.sample(pts, 14)
+    tgt = rnd.sample(pts, 14)   # 碎片各自飞回本体上一处甲棱
     frag = [(x, y, rnd.uniform(0, 2 * math.pi), rnd.uniform(18, 30)) for (x, y) in tgt]
     ey, ex = np.nonzero(edge)
     for f in range(14):
@@ -833,34 +838,40 @@ def rebuild():
 
 
 def s3_cast():
-    """S3 熔毁起手（用户 11-05「起手那个光柱有点奇怪」）：从 Mon3tr 本体发出来——甲片之间的缝从躯干往外一路裂开、泛出红光，
-    热流从背上往上蒸腾；脚下炸开一圈贴地红色冲击。不再用孤立的竖光柱。10 拍，红色组。"""
-    a, lum, edge, hi, seam = _m3_body()
+    """S3 熔毁起手（用户 11-05「起手那个光柱有点奇怪」「像螃蟹」）：从 Mon3tr 本体发出——只沿躯干中线三道裂缝一路裂开、泛红光
+    （不沿四肢画，剪影不碎）；热流从背上往上蒸腾；脚下炸开一圈贴地红色冲击。10 拍，红色组。"""
+    a, lum, edge, hi, inner = _m3_body()
     up = Strip(10, 64, 90, 32, 84)
     cx, cy = M3_CORE
-    ys, xs = np.nonzero(seam | (hi & (lum > np.percentile(lum[a], 92))))
-    pts = list(zip(xs.tolist(), ys.tolist()))
-    dmax = max(math.hypot(x - cx, y - cy) for x, y in pts)
+    pts = []
+    for line in M3_CRACKS:
+        for i in range(len(line) - 1):
+            for (x, y) in seg_px(line[i], line[i + 1]):
+                pts.append((int(round(x)), int(round(y))))
+    pts = list(dict.fromkeys(pts))
+    dmax = max(math.hypot(x - cx, y - cy) for x, y in pts) + 1
     rnd = random.Random(8)
-    streak = [(rnd.uniform(14, 48), rnd.uniform(10, 22), rnd.uniform(0, 2), rnd.randint(4, 7)) for _ in range(7)]
+    streak = [(rnd.uniform(52, 74), rnd.uniform(40, 50), rnd.uniform(0, 2), rnd.randint(4, 7)) for _ in range(5)]
     for f in range(10):
         spread = min(1.0, (f + 1) / 4.0)
         for (x, y) in pts:
             o = math.hypot(x - cx, y - cy) / dmax
             if o > spread:
                 continue
-            fresh = spread - o < 0.25 and f <= 3
+            fresh = spread - o < 0.3 and f <= 3
             if f <= 3:
-                c = M["w"] if fresh else M["f"]
+                core, glow = (M["w"] if fresh else M["h"]), M["f"]
             elif f <= 5:
-                c = M["h"] if (x + y + f) % 3 == 0 else M["f"]
+                core, glow = M["h"], M["m2"]
             elif f <= 7:
-                c = M["m2"]
+                core, glow = M["f"], M["m1"]
             else:
-                if (x + y) % 2:
-                    continue
-                c = M["m1"]
-            _m3_put(up, f, x, y, c)
+                core, glow = M["m2"], None
+            if glow is not None:   # 裂缝两侧一格泛光（只在本体内部）
+                for (dx, dy) in ((1, 0), (-1, 0)):
+                    if 0 <= y + dy < 128 and 0 <= x + dx < 128 and inner[y + dy, x + dx]:
+                        _m3_put(up, f, x + dx, y + dy, glow, over=False)
+            _m3_put(up, f, x, y, core)
         if f >= 2:   # 热流从背上往上蒸腾
             for (x, y0, ph, L) in streak:
                 tt = f - 2 - ph
@@ -896,7 +907,7 @@ def dye_m3():
     把 Mon3tr 的全部帧条按亮度映射到特效同一套红色阶 RD（暗血红 → 主红 → 亮橙红 → 暖白芯），另存为特效层贴图；
     干员原贴图不动，游戏里熔毁期间画本体时换这一张（fx_pxplane_kal.dye）。"""
     src = os.path.join(ROOT, "game", "art", "operators", "kaltsit")
-    ramp = [(8, RD["k"]), (16, RD["d1"]), (28, RD["d2"]), (45, RD["m1"]), (70, RD["m2"]), (120, RD["f"]), (999, RD["h"])]
+    ramp = [(6, RD["k"]), (24, RD["d1"]), (46, RD["d2"]), (72, RD["m1"]), (115, RD["m2"]), (165, RD["f"]), (999, RD["h"])]   # 体块落在暗血红、甲棱到主红、最亮处到亮橙红；剪影整块不被切碎
     for fn in sorted(os.listdir(src)):
         if not (fn.startswith("op_mon3tr_") and fn.endswith(".png")):
             continue
@@ -909,6 +920,10 @@ def dye_m3():
             out[m, 0], out[m, 1], out[m, 2] = c
             lo = th
         out[..., 3] = a[..., 3]
+        al = a[..., 3] > 100   # 外轮廓一圈压到最暗，保住剪影
+        pad = np.pad(al, 1)
+        edge = al & ~(pad[:-2, 1:-1] & pad[2:, 1:-1] & pad[1:-1, :-2] & pad[1:-1, 2:])
+        out[edge, 0], out[edge, 1], out[edge, 2] = RD["k"]
         name = "pxp_ka_dye_" + fn[:-4].replace("@", "_") + ".png"
         Image.fromarray(out, "RGBA").save(os.path.join(OUT_ART, name))
         DYE.append(name)

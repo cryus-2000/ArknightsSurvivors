@@ -139,7 +139,7 @@ def render(sc, tk):
         elif kind == "m":
             spr = MOND if sc.m3_dye(tk) else MON
             spr = spr if sc.m3_face > 0 else spr.transpose(Image.FLIP_LEFT_RIGHT)
-            x, y = OX + v[0] * PX - 64, OY + v[1] * PX - 120 - HOV - v[2] * PX
+            x, y = OX + v[0] * PX - 128, OY + v[1] * PX - 184 - HOV - v[2] * PX
             # 影子
             ImageDraw.Draw(img).ellipse([OX + v[0] * PX - 16, OY + v[1] * PX - 5, OX + v[0] * PX + 16, OY + v[1] * PX + 5], fill=(18, 24, 24, 255))
             img.alpha_composite(spr, dest=(int(round(x / 2) * 2), int(round(y / 2) * 2)))
@@ -336,8 +336,9 @@ def main():
     arr[..., :3] = arr[..., :3] * 0.32 + np.array([10, 12, 14])
     ENEMY = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), "RGBA")
     KAL = sprite_frames(os.path.join(ROOT, "game", "art", "operators", "kaltsit", "op_kaltsit_idle@2x.png"), 8)[0]
-    MON = sprite_frames(os.path.join(ROOT, "game", "art", "operators", "kaltsit", "op_mon3tr_idle@2x.png"), 4)[0]
-    MOND = sprite_frames(os.path.join(ROOT, "game", "art", "fx", "pxp", "pxp_ka_dye_op_mon3tr_idle_2x.png"), 4)[0]
+    # Mon3tr 用游戏里实际画的 native 帧条（sprites.m_idle.visual → native_m_idle，17 帧，@2x 每帧 256×256，脚底 (128, 184)）
+    MON = sprite_frames(os.path.join(ROOT, "game", "art", "operators", "kaltsit", "op_mon3tr_native_idle@2x.png"), 17)[0]
+    MOND = sprite_frames(os.path.join(ROOT, "game", "art", "fx", "pxp", "pxp_ka_dye_op_mon3tr_native_idle_2x.png"), 17)[0]
     only = set(x for x in a.only.split(",") if x)
     for name, (cols, n, zc) in scenes(lib).items():
         if only and name not in only:

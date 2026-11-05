@@ -3,7 +3,7 @@
 **结论摘要**
 1. 照 docs/246 做法做凯尔希：普攻（治疗 + Mon3tr 爪击）、精一扑击、精二回防 / 护主、S1–S3（含分支「不毁重构」与「余焰」）、节点「骨爪增生」「清创」、连携「Mon3tr 掩护」（link/v2 缺省版）。终结技不动。开关 `fx/px_plane`（缺省 0）。
 2. 帧条用 Python 程序逐像素画（`tools/pxplane_kal_art.py`，84 张、约 175 KB，不用 pixelfx 库），送审 GIF 用同一批帧条拼（`tools/pxplane_gif_kaltsit.py`），所以 GIF 与游戏里的帧一致（颗粒、照地光、场景压暗 GIF 里不模拟）。
-3. 当前状态：**第四版 GIF 已出（§0），等用户看**；还没推分支、没上 GCP（TRACE、三栏、8:00 录像待用户点头后跑）。本机没开 Godot，脚本未经引擎运行，语法 / 运行错误要等 GCP 那一轮验。
+3. 当前状态：**第五版 GIF 已出（§0），等用户看**；还没推分支、没上 GCP（TRACE、三栏、8:00 录像待用户点头后跑）。本机没开 Godot，脚本未经引擎运行，语法 / 运行错误要等 GCP 那一轮验。
 
 ## 0. 第二版（11-05 用户看 GIF：「凯尔希的S3应该是红色的，并且爆炸也是红色的，并且不毁重构的特效有点太不明显了」）
 
@@ -20,6 +20,13 @@
 
 - S3 期间 Mon3tr 本体、甲缝红光、熔毁爪、热流、收尾爆炸全部用同一套熔毁红色阶 RD（`#100405 / #30090a / #5c100d / #941c12 / #cc361a / #ff6c2e / #ffc896`），整体偏橙，热芯走 emit，以此和敌方危险红拉开。
 - 本体染色做在特效层：`tools/pxplane_kal_art.py dye_m3` 把 Mon3tr 全部帧条（11 种 × @1x / @2x）按亮度映射到 RD，另存 `art/fx/pxp/pxp_ka_dye_<原名>.png`；`ob_summon.mf_draw` 在接管且熔毁期间换画这张（找不到对应图就照旧用原来的 tint）。干员原贴图不动。精二身侧红弧同改 RD。
+
+### 第五版（11-05 用户：「现在像是螃蟹，而且为什么是这个m3，不是我们现在游戏里面实装的m3」）
+
+- **贴图查清**：游戏里 Mon3tr 本体走 `ob_summon.mf_draw → _mf_frame → mf_visual_frame`：`kaltsit.json sprites.m_idle / m_run / m_skill` 的 `visual.anim = native_m_idle`，`m_attack → native_m_attack`，`m_attack_melt → native_m_attack_melt`，扑击 / 跃回直接是 `m_lunge / m_leap`。实际贴图 = `game/art/operators/kaltsit/op_mon3tr_native_{idle,attack,s3,s2,lunge,leap}@{1x,2x}.png`（@1x 每帧 128×128，脚底 (64, 92)，待机 17 帧）。前四版误用了旧的 `op_mon3tr_idle@1x/@2x.png`（64×64，脚底 (32, 60)，已不走），所以对不上。
+- 本版 GIF 的 Mon3tr、不毁重构骨架、S3 起手裂缝全部改用 `op_mon3tr_native_idle@1x.png / @2x.png` 第 0 帧。
+- **像螃蟹**：旧贴图两边一对大钳子 + 染红把甲片切成一道道 + 精二两侧对称红弧。改法：换实装本体；染红把外轮廓一圈压到最暗、体块落在暗血红，只有最亮的甲棱到亮橙红，剪影整块；S3 起手裂光只沿躯干中线三道（脊往下到尾根、往右上到背甲、往左下一小段），不沿四肢画；熔毁期间身侧对称红弧不画。爪痕本来就是单侧一组。
+- 换色贴图（`pxp_ka_dye_<原名>.png`）对全部 Mon3tr 帧条都烘了，含 native 各套；熔毁期间画哪一套就换哪一套的红版。
 
 ## 1. 色与招牌（第一版；S3 / 熔毁的颜色见 §0）
 
