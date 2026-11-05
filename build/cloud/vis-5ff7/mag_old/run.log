@@ -1,0 +1,40 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+OpenGL API 4.5 (Core Profile) Mesa 22.3.6 - Compatibility - Using Device: Mesa/X.org - llvmpipe (LLVM 15.0.6, 256 bits)
+
+BEACON mires t=60.1 mires=0
+ENDEV deal m1 ["wish/", "rest/"] t=115.0 cur=standard relics=[]
+ENDEV flip 0 wish  t=115.0 cur=standard relics=[]
+ENDEV open wish_v2 t=115.0 cur=standard relics=[]
+ENDEV pick wish_v2:0 t=115.0 cur=standard relics=[]
+BEACON mires t=120.1 mires=1
+SHOP ["便携经书", "《旧高卢地名源流考》", "恐鱼干", "急救包", "灯油"]
+BEACON spawn t=160.2 mires=5
+BEACON lit cleared=1 in_s=1.9 min_d=54 hold_s=2.3 via=ring t=163.3 mires=5
+BEACON mires t=180.0 mires=4
+DUCK spawn t=211.46 d=648
+DUCK kill t=215.09 after=3.6
+BEACON spawn t=230.3 mires=11
+BEACON lit cleared=0 in_s=1.8 min_d=48 hold_s=2.8 via=ring t=233.6 mires=10
+ENDEV deal c1 ["incident/madness", "elite/", "incident/opening"] t=233.9 cur=standard relics=[]
+ENDEV flip 0 incident madness t=233.9 cur=standard relics=[]
+ENDEV open madness t=233.9 cur=standard relics=[]
+ENDEV pick madness:3 t=233.9 cur=standard relics=[]
+BEACON mires t=240.0 mires=11
+BEACON spawn t=290.8 mires=19
+BEACON lit cleared=11 in_s=1.9 min_d=48 hold_s=2.2 via=ring t=295.1 mires=19
+BEACON mires t=300.0 mires=7
+SHOP ["无瑕宝玉", "地底的灼痕", "演出用香水  (可升级)", "急救包", "灯油"]
+ENDEV deal m2 ["incident/boxes", "elite/"] t=360.0 cur=standard relics=[]
+BEACON mires t=360.0 mires=28
+ENDEV flip 1 elite  t=360.0 cur=standard relics=[]
+BEACON spawn t=360.4 mires=30
+BEACON lit cleared=2 in_s=1.9 min_d=29 hold_s=2.3 via=ring t=365.9 mires=12
+BEACON mires t=420.0 mires=27
+BEACON spawn t=429.3 mires=30
+ENDEV deal c2 ["incident/sellout", "shop/", "fog/"] t=453.4 cur=standard relics=[]
+ENDEV flip 1 shop  t=453.4 cur=standard relics=[]
+SHOP ["扣挠之手", "衍生者终端-超级改", "“小格兰法洛”", "急救包", "灯油"]
+BEACON lit cleared=4 in_s=1.9 min_d=50 hold_s=2.4 via=ring t=456.3 mires=24
+PF RTFROM t=470.1
