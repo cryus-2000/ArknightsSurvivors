@@ -141,16 +141,83 @@ def atk_gd(R, d_deg):
 # ================================================================ 精一「狼之舞」旋身斩：两道刀光首尾相追转一整圈 + 地上爪痕
 
 def dance_frames(R):
+    """狼之舞旋身：两刀首尾相追转一圈（11-05 用户「狼之舞改成爪痕」后降为陪衬：刀身短、细、暗一阶，4 拍收完）"""
     out = []
-    hot = [LP[6], LP[5], LP[4], LP[3]]
-    sub = [LP[5], LP[4], LP[3], LP[2]]
-    for i in range(6):
+    hot = [LP[5], LP[4], LP[3], LP[2]]
+    sub = [LP[4], LP[3], LP[2], LP[1]]
+    for i in range(4):
         b = Buf()
-        rot = i * 1.15
-        fade = 0.0 if i < 2 else (i - 1) / 5.0
+        rot = i * 1.4
+        fade = 0.0 if i < 1 else i / 4.0
         for k, cols in ((0, hot), (1, sub)):
-            d = rot + k * math.pi
-            crescent(b, R * (1.0 if k == 0 else 0.9), d, 1.35, 6.5 if k == 0 else 4.5, 1.0, fade, cols, ccw=True, seed=i * 3 + k)
+            crescent(b, R * (1.0 if k == 0 else 0.9), rot + k * math.pi, 0.75, 3.0 if k == 0 else 2.2, 1.0, fade, cols, ccw=True, seed=i * 3 + k)
+        out.append(b)
+    return out
+
+
+# ================================================================ 狼之舞爪痕（11-05 用户「目前更像是身边的线而不是爪痕」）：
+# 一组三道并排弯钩抓痕，方向一致（右上 → 左下斜抓），头粗尾尖带弧度，白芯紫边；出现一拍刃尖闪白，之后 0.4 秒变暗、断开消失。
+# 原点 = 敌人胸口（脚底上方 r × 0.55）；朝左时整组水平翻转
+CLAW_L = 15        # 每道长（美术像素；1 倍 30 屏幕像素）
+CLAW_GAP = 4       # 三道中心间距（之间留 2–3 美术像素空）
+
+
+def _claw_pts(k):
+    """第 k 道（−1 / 0 / 1）：[(x, y, u, nx, ny)]，u = 0 头 → 1 尾；三道沿法向错开，中间那道略长、两边略短（像爪）"""
+    a = math.radians(118)                     # 抓的方向：右上 → 左下
+    tx, ty = math.cos(a), math.sin(a)
+    nx, ny = -ty, tx
+    L = CLAW_L * (1.0 if k == 0 else 0.85)
+    sx = -tx * CLAW_L * 0.5 + nx * k * CLAW_GAP + tx * (CLAW_L - L) * 0.3
+    sy = -ty * CLAW_L * 0.5 + ny * k * CLAW_GAP + ty * (CLAW_L - L) * 0.3
+    out = []
+    n = 48
+    for i in range(n + 1):
+        u = i / n
+        bend = math.sin(math.pi * u) * 1.6 + (u ** 3) * 1.8   # 弧度 + 尾部回钩
+        out.append((sx + tx * L * u + nx * bend, sy + ty * L * u + ny * bend, u, nx, ny))
+    return out
+
+
+def claw_frames():
+    out = []
+    for f in range(7):
+        b = Buf()
+        for k in (-1, 0, 1):
+            for (x, y, u, nx, ny) in _claw_pts(k):
+                if f == 0 and u > 0.55:
+                    continue
+                if f >= 4 and hf(int(x * 3), int(y * 3), f + k) < (f - 3) * 0.28:
+                    continue   # 断开
+                tip = u < 0.2
+                if f == 0:
+                    core = side = LP[6]
+                elif f == 1:
+                    core, side = LP[6], (LP[6] if tip else LP[4])
+                elif f == 2:
+                    core, side = LP[5], LP[3]
+                elif f == 3:
+                    core, side = LP[4], LP[3]
+                else:
+                    core, side = LP[3], LP[2]
+                b.put_if_empty(x, y, core)
+                if u < 0.55:   # 头粗尾尖：前半段一侧加一格紫边（沿法向）
+                    b.put_if_empty(x + nx, y + ny, side)
+        out.append(b)
+    return out
+
+
+def claw_gd():
+    """地上很淡的爪印投影：三道短暗痕（压扁），7 拍"""
+    out = []
+    for f in range(7):
+        b = Buf()
+        if f < 6:
+            for k in (-1, 0, 1):
+                for s in range(5):
+                    if f >= 4 and hf(k, s, f) < 0.5:
+                        continue
+                    b.put(-2 + k * 3 + s * 0.8, round(-s * 0.6 * SQ), SHADOW)
         out.append(b)
     return out
 

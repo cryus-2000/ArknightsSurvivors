@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dcat19e26ll2"
-path="res://.godot/imported/pxp_lp_dance_r84_gd.png-f717f4ead64d1337b0eb5859e4f90a65.ctex"
+uid="uid://epke9irerd1n"
+path="res://.godot/imported/pxp_lp_claw_up.png-5aeac372712ca6160b8fc52afcbb41a0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/fx/pxp/pxp_lp_dance_r84_gd.png"
-dest_files=["res://.godot/imported/pxp_lp_dance_r84_gd.png-f717f4ead64d1337b0eb5859e4f90a65.ctex"]
+source_file="res://art/fx/pxp/pxp_lp_claw_up.png"
+dest_files=["res://.godot/imported/pxp_lp_claw_up.png-5aeac372712ca6160b8fc52afcbb41a0.ctex"]
 
 [params]
 

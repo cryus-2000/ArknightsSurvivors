@@ -189,10 +189,13 @@ class Col:
     def dance(self, tk, r=120.0):
         R = near(A.DANCE_R, r * 0.5)
         self.add("dance_r%d_up" % R, tk, self.op, gy=self.op[1] + 1)
-        self.add("dance_r%d_gd" % R, tk, self.op, gd=True)
         hits = [ei for ei in self.alive(tk) if math.hypot(self.enemies[ei][0] - self.op[0], self.enemies[ei][1] - self.op[1]) < r + 8]
-        for ei in hits[:4]:
-            self.hit_cut(tk + 1, ei, True)
+        hits.sort(key=lambda ei: math.hypot(self.enemies[ei][0] - self.op[0], self.enemies[ei][1] - self.op[1]))
+        for k, ei in enumerate(hits[:3]):   # 爪痕：至多 3 组，一组隔一拍
+            q = self.enemies[ei]
+            fl = q[0] < self.op[0]
+            self.add("claw_up", tk + k, (q[0], q[1] - 6), fl, gy=q[1] + 1)
+            self.add("claw_gd", tk + k, (q[0], q[1]), fl, gd=True)
         for ei in hits:
             self.seal(ei, tk + 1, 2.0)
         self.light((self.op[0], self.op[1] - 10), 170, 0.75, tk, 3)

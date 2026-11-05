@@ -106,6 +106,30 @@ func _cuts(o, es: Array, t: int, n: int, x: bool) -> void:
 			"d": tg, "x": x, "L": 7.0 + 2.0 * t, "ly": "up", "oid": str(o.id)})
 
 
+## 狼之舞爪痕：一组三道并排弯钩抓痕（帧条 lp_claw_up，方向一致，敌人在她左边时水平翻转），第 k 组晚 k 拍抓出；贴地 lp_claw_gd 很淡的爪印
+func _claws(o, es: Array, rr: float) -> void:
+	var lst: Array = []
+	for e in es:
+		if not e.get("dead", false):
+			lst.append(e)
+	lst.sort_custom(func(a, b): return a.pos.distance_squared_to(o.pos) < b.pos.distance_squared_to(o.pos))
+	var n: int = mini(3, lst.size())
+	for k in n:
+		var e: Dictionary = lst[k]
+		var t0: float = (floor(g.t * 15.0) + k) / 15.0
+		var fl: bool = (e.pos as Vector2).x < o.pos.x
+		r._push({"k": "lp_claw_up", "t0": t0, "gp": Pxp._snap(e.pos + Vector2(0, -float(e.r) * 0.55)), "gy": float(e.pos.y) + 1.0, "flip": fl, "ly": "up", "oid": str(o.id), "e": e})
+		r._push({"k": "lp_claw_gd", "t0": t0, "gp": Pxp._snap(e.pos), "flip": fl, "ly": "gd", "oid": str(o.id)})
+	if n == 0:   # 没打中：身前扇形里两组
+		var fa: float = o.facing_angle() if o.has_method("facing_angle") else 0.0
+		for k in 2:
+			var a: float = fa + (-0.35 if k == 0 else 0.35)
+			var gp: Vector2 = o.pos + Vector2(cos(a), sin(a) * 0.72) * rr * 0.6
+			var t1: float = (floor(g.t * 15.0) + k) / 15.0
+			r._push({"k": "lp_claw_up", "t0": t1, "gp": Pxp._snap(gp + Vector2(0, -12)), "gy": gp.y + 1.0, "flip": cos(a) < 0.0, "ly": "up", "oid": str(o.id)})
+			r._push({"k": "lp_claw_gd", "t0": t1, "gp": Pxp._snap(gp), "flip": cos(a) < 0.0, "ly": "gd", "oid": str(o.id)})
+
+
 ## 命中颗粒（Noita：碎光片 shard 为主 + 1 枚黑三角 tri 压边长）+ 一盏照地短光
 func _hit_fx(o, R, p: Dictionary, es: Array, n_shard: int, n_tri: int, lr: float, li: float, at := Vector2.INF) -> void:
 	var e0 = null
@@ -141,11 +165,11 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 				var c: Vector2 = d.get("c", o.pos)
 				var rr: float = float(d.get("r", 100.0))
 				match src:
-					"狼之舞":   # 精一旋身斩：两刀首尾相追转一圈（跟她）+ 地上五组爪痕（留原地）
+					"狼之舞":   # 精一旋身斩（11-05 用户「改成爪痕」）：被打中的至多 3 只身上各一组三道爪痕，一组隔一拍依次抓出（跟着那只）；
+						# 没打中就落在她身前扇形里；地上只留很淡的爪印投影；转一圈的月牙降为陪衬（短、细、暗）
 						var Rd: int = _near(DANCE_R, rr * 0.5)
 						_on_her(o, "dance_r%d_up" % Rd, "up")
-						_stay(o, "dance_r%d_gd" % Rd, o.pos, "gd")
-						_cuts(o, es, t, 4, true)
+						_claws(o, es, rr)
 						_hit_fx(o, R, p, es, 6, 2, 170.0, 0.75, o.pos + Vector2(0, -12))
 					"断喝":   # 狼嚎声波：锯齿断续双环往外推（地面，留原地）
 						_stay(o, "bark_r%d_gd" % _near(BARK_R, rr * 0.5), c, "gd")
