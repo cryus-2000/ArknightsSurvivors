@@ -55,7 +55,7 @@ def add_col(cmp_path, ref_img, out_path, x2=False):
     dd = ImageDraw.Draw(panel)
     f = ImageFont.truetype(FONT, 20 if x2 else 22)
     dd.rectangle((0, 0, colw, 34), fill=(12, 12, 16))
-    dd.text((10, 5), "⓪ 原作参照（解包回放，近似）", fill=(230, 230, 230), font=f)
+    dd.text((10, 5), "0 原作参照（解包回放，近似）", fill=(230, 230, 230), font=f)
     out = Image.new("RGB", (W3 + colw + 4, H), (12, 12, 16))
     out.paste(im.crop((0, 0, W3, head)), (0, 0))
     out.paste(panel, (0, head))
