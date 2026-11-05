@@ -165,6 +165,18 @@ def analyse(op, mode, out):
     _, lb = lum(os.path.join(BUILD, tags["B"], "f_%04d.png" % bk))
     _, lc = lum(os.path.join(BUILD, tags["C"], "f_%04d.png" % bk))
     dl, de = np.clip(la - lb, 0, None), np.clip(la - lc, 0, None)
+    # 发光层 / 照地光晚一帧上屏（11-05 推进之王 / 水月 / 浊心斯卡蒂会话查出）：命中帧的照地面积、核心辉光取命中帧之后 0–2 帧里的最大值，
+    # 热图也换成取到最大值的那一帧；实机图仍是命中帧
+    for j in (bk + 1, bk + 2):
+        pa, pb, pc = [os.path.join(BUILD, tags[v], "f_%04d.png" % j) for v in "ABC"]
+        if not all(os.path.exists(q) for q in (pa, pb, pc)):
+            continue
+        _, xa = lum(pa)
+        xl, xe = np.clip(xa - lum(pb)[1], 0, None), np.clip(xa - lum(pc)[1], 0, None)
+        if (xl > 4).sum() > (dl > 4).sum():
+            dl = xl
+        if (xe > 8).sum() > (de > 8).sum():
+            de = xe
     pk_l = pk_e = 0.0
     for i in sorted(f2e):
         if i % 3:
