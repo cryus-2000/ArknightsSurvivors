@@ -92,11 +92,10 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 			var m: String = "s1" if s1 else "n"
 			_up(o, "land_%s_e%d_z%d_up" % [m, t, z], c, {"sk": 24.0})   # 星芒在身体高度，排序往前补，压在落点附近的敌人上
 			_gd(o, "land_%s_e%d_z%d_gd" % [m, t, z], c)
-			R._light(o, c + Vector2(0, -10), (110.0 if s1 else 75.0) + 10.0 * t, (0.7 if s1 else 0.5) + 0.06 * t, 0.12, p.light)
-			if s1:
-				R._grains(o, c + Vector2(0, -8), c.y + 2.0, "tri", 3, {"tier": t})
-			elif _beat_n(o, "lgr") == 0:
-				R._grains(o, c + Vector2(0, -10), c.y + 2.0, "twinkle", 2, {"tier": t})
+			# docs/270 补齐（11-05）：落点一盏照地灯（普攻 130–150 / 0.6–0.68，S1 爆发 160–180 / 0.8–0.88，0.15 秒）；
+			# 颗粒改成黑紫三角碎块 tri（6–10 px，有重量、落地会弹）：普攻 4 颗、S1 12 颗
+			R._light(o, c + Vector2(0, -10), (160.0 if s1 else 130.0) + 10.0 * t, (0.8 if s1 else 0.6) + 0.04 * t, 0.15, p.light)
+			R._grains(o, c + Vector2(0, -10), c.y + 2.0, "tri", 12 if s1 else 4, {"tier": t})   # S1 12 颗：拥挤降噪（fx_dim）后约 7 颗
 		"shape":   # 双重 / 三重引力的第二、三次拉：往里收的断续环 + 小星芒（回响）
 			if d.get("circle", false) and str(d.get("src", "")) == "双重引力":
 				if _beat_n(o, "echo") >= 2:

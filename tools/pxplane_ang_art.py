@@ -69,7 +69,7 @@ def orb(tier, big=False):
                     b.put(x, y, V[0] if d < R - 2.0 or tier >= 2 else V[1])
                 elif d <= R + 0.4:
                     a = (math.atan2(y, x) / math.tau * 8 - k * 2) % 8
-                    b.put(x, y, V[6] if a < 1.2 else (V[5] if a < 3 or big else V[4]))
+                    b.put(x, y, V[7] if a < 0.8 else (V[6] if a < 2.4 else (V[5] if a < 4 or big else V[4])))
         b.put(-R + 1, -R + 1, V[7])
         if big:
             b.put(-R + 2, -R + 1, V[7])
@@ -172,29 +172,48 @@ def land(tier, mode, z):
             f.put(sx, sy * SQ - 30, V[7])
             f.put(sx, sy * SQ - 31, V[6])
         up.append(f)
-    for k in range(4):
+    for k in range(6):   # docs/270 补齐：星芒收掉后落点中心留一颗白热「压缩点」再亮 3 拍（发光核心）
         f = Buf()
-        if s1 and k <= 2:
+        if s1 and k <= 3:
             for (sx, sy, sl) in spikes:
                 top = sy * SQ - sl * (1.0 - 0.25 * k)
                 for y in range(int(top), int(sy * SQ) + 1):
                     u = (y - top) / max(1, sy * SQ - top)
-                    f.put(sx, y, V[7] if (k == 0 and u > 0.75) else (V[6] if k == 0 else (V[5] if k == 1 else V[4])))
+                    f.put(sx, y, V[7] if k <= 2 or u > 0.55 else V[6])
+                    if k <= 1:
+                        f.put(sx + 1, y, V[6] if u > 0.3 else V[5])
+                    elif k == 2 and u > 0.4:
+                        f.put(sx + 1, y, V[5])
                 if k == 0:
                     f.put(sx - 1, sy * SQ - 1, V[5])
                     f.put(sx + 1, sy * SQ - 1, V[5])
         if k == 0:
-            _star(f, L, [V[7], V[7], V[6], V[6], V[5], V[4]], n_arm, sd, 2.2, -12)
+            _star(f, L, [V[7], V[7], V[7], V[6], V[6], V[5]], n_arm, sd, 2.8, -12)
+            for x in range(-3, 4):
+                for y in range(-3, 4):
+                    if abs(x) + abs(y) <= 3:
+                        f.put(x, -12 + y, V[7])
+        elif k == 1:
+            _star(f, L * 0.65, [V[7], V[6], V[6], V[5], V[4]], n_arm, sd, 1.8, -12)
             for x in range(-1, 2):
                 for y in range(-1, 2):
                     f.put(x, -12 + y, V[7])
-        elif k == 1:
-            _star(f, L * 0.6, [V[6], V[5], V[5], V[4], V[3]], n_arm, sd, 1.4, -12)
-            f.put(0, -12, V[7])
         elif k == 2:
-            _star(f, L * 0.3, [V[5], V[4], V[3]], 4, sd, 0.8, -12)
+            _star(f, L * (0.5 if s1 else 0.35), [V[7], V[6], V[5], V[4]] if s1 else [V[6], V[5], V[4]], 4, sd, 1.4 if s1 else 1.0, -12)
+            for x in range(-3, 4):
+                for y in range(-3, 4):
+                    if abs(x) + abs(y) <= (3 if s1 else 2):
+                        f.put(x, -12 + y, V[7])
+        elif k <= 4:
+            r0 = 2 if k == 3 else 1
+            for x in range(-r0, r0 + 1):
+                for y in range(-r0, r0 + 1):
+                    if abs(x) + abs(y) <= r0:
+                        f.put(x, -12 + y, V[7] if abs(x) + abs(y) < r0 or k == 4 else V[6])
+            f.put(2, -15, V[5])
+            f.put(-3, -14, V[4])
         else:
-            f.put(0, -12, V[3])
+            f.put(0, -12, V[6])
             f.put(1, -14, V[4])
             f.put(-2, -15, V[3])
         up.append(f)
@@ -622,10 +641,11 @@ def link_land():
     for k in range(4):
         b = Buf()
         if k == 0:
-            _star(b, 22, [V[7], V[7], V[6], V[6], V[5], V[4]], 4, 101, 2.2, -7)
-            for x in range(-1, 2):
-                for y in range(-1, 2):
-                    b.put(x, -7 + y, V[7])
+            _star(b, 22, [V[7], V[7], V[7], V[6], V[6], V[5]], 4, 101, 2.8, -7)
+            for x in range(-3, 4):
+                for y in range(-3, 4):
+                    if abs(x) + abs(y) <= 3:
+                        b.put(x, -7 + y, V[7])
         elif k == 1:
             _star(b, 14, [V[6], V[5], V[4], V[3]], 4, 101, 1.4, -7)
         elif k == 2:
