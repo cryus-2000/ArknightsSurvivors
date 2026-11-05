@@ -702,8 +702,8 @@ def _red_smoke(b, cx, cy, r, f0, f, seed, life=4):
             b.put(cx + x, yy + y, c)
 
 
-def _core(b, cx, cy, r, f):
-    """热芯：第 0 拍亮橙红实团（白芯很小），第 1 拍缩一半变红，第 2 拍起没有"""
+def _core(b, cx, cy, r, f, hot=True):
+    """热芯：第 0 拍亮橙红实团（白芯很小），第 1 拍缩一半变红，第 2 拍起没有。hot = False（普攻，11-05 用户怕后期闪眼）：整体降一档、没有白热"""
     if f >= 2 or f < 0:
         return
     rr = r * (1.0 if f == 0 else 0.55)
@@ -714,30 +714,35 @@ def _core(b, cx, cy, r, f):
             if d > rr * (0.88 + 0.12 * h2(x, y, 5)):
                 continue
             u = d / max(1.0, rr)
+            o = 0 if hot else 1
             if f == 0:
-                c = FIRE[0] if u < 0.3 else (FIRE[1] if u < 0.65 else FIRE[2])
+                c = FIRE[0 + o] if u < 0.3 else (FIRE[1 + o] if u < 0.65 else FIRE[2 + o])
             else:
-                c = FIRE[1] if u < 0.35 else (FIRE[2] if u < 0.7 else FIRE[3])
+                c = FIRE[1 + o] if u < 0.35 else (FIRE[2 + o] if u < 0.7 else FIRE[3 + o])
             b.put(cx + x, cy + y, c)
 
 
-def boom_up(R, v=0):
-    """普攻：热芯 2 拍 → 一圈往外甩的红 / 亮橙火星（带短尾）+ 黑碎点，2–3 小团红边黑烟 0.4 秒散完。共 6 拍，宽 ≤ R"""
+def n_boom(R):
+    return 12 + R // 3
+
+
+def boom_up(R, k=1.0):
+    """普攻：热芯 2 拍（降一档、小一号，没有白热）→ 一圈往外甩的红 / 橙火星（带短尾，头也降一档）+ 黑碎点。共 6 拍，宽 ≤ R。
+    k = 火星比例（同屏火星封顶时游戏挑 _h 半量 / _q 四分之一的帧条）"""
     seed = 11 + R
-    sparks = _spark_set(R, seed, 16 + R // 2, dmin=0.4, dmax=0.98, hmax=0.55, h0=0.35)
+    sparks = _spark_set(R, seed, max(3, int(n_boom(R) * k)), dmin=0.4, dmax=0.98, hmax=0.55, h0=0.35)
     frames = []
+    dim = FIRE[1:] + [FIRE[7]]
     for f in range(6):
         b = Buf()
-        _core(b, 0, -R * 0.3, R * 0.34, f)
+        _core(b, 0, -R * 0.3, R * 0.26, f, hot=False)
         if f == 0:
-            for k in range(8):   # 第 0 拍一圈细长放射刺（原作的放射红线）
-                a = k * math.tau / 8 + h2(k, 9, seed) * 0.4
-                L = R * (0.55 + 0.35 * h2(k, 8, seed))
-                for s_ in range(int(R * 0.34), int(L)):
-                    b.put(math.cos(a) * s_, -R * 0.3 + math.sin(a) * s_ * SQ, FIRE[2] if s_ < L * 0.7 else FIRE[4])
-        for j in range(3 if R >= 30 else 2):
-            _red_smoke(b, (j - 1) * R * 0.28, -R * (0.35 + 0.1 * j), R * 0.13, 1 + (j % 2), f, seed + 40 + j)
-        _draw_sparks(b, sparks, f, 6)
+            for q in range(8):   # 第 0 拍一圈细长放射刺（原作的放射红线）
+                a = q * math.tau / 8 + h2(q, 9, seed) * 0.4
+                L = R * (0.5 + 0.3 * h2(q, 8, seed))
+                for s_ in range(int(R * 0.27), int(L)):
+                    b.put(math.cos(a) * s_, -R * 0.3 + math.sin(a) * s_ * SQ, FIRE[3] if s_ < L * 0.7 else FIRE[5])
+        _draw_sparks(b, sparks, f, 6, cols=dim)
         frames.append(b)
     return frames
 
@@ -754,13 +759,17 @@ def pop_up():
     return frames
 
 
-def pillar_up(R, tier):
+def n_pillar(R):
+    return (14 + R // 5) + (6 + R // 8)
+
+
+def pillar_up(R, tier, k=1.0):
     """S1 处刑火柱：第 0 拍一道细白热竖柱（高 1.35R）+ 地面热芯；之后火星沿柱往上喷泉（地面散开 ≤ 0.3R、抛高到 1.25R）+ 一圈贴地火星到 0.92R，
     细火舌沿柱往上窜；顶上 2 小团红边黑烟。精一：外圈三处小火星簇；精二：一缕暗红魂火绕柱盘旋上升。共 8 拍"""
     seed = 131 + R
     Hc = R * 1.35
-    jet = _spark_set(R, seed, 18 + R // 3, up=0.3, hmax=1.25, h0=0.15, dark=0.12)
-    ring = _spark_set(R, seed + 3, 10 + R // 5, dmin=0.5, dmax=0.92, hmax=0.25, h0=0.1, dark=0.3)
+    jet = _spark_set(R, seed, max(3, int((14 + R // 5) * k)), up=0.3, hmax=1.25, h0=0.15, dark=0.12)
+    ring = _spark_set(R, seed + 3, max(2, int((6 + R // 8) * k)), dmin=0.5, dmax=0.92, hmax=0.25, h0=0.1, dark=0.3)
     subs = [math.tau * (k / 3.0) + 0.6 for k in range(3)]
     sub_sp = _spark_set(8, seed + 5, 6, dmin=0.4, dmax=1.0, hmax=0.9, h0=0.4, dark=0.0)
     frames = []
@@ -786,8 +795,6 @@ def pillar_up(R, tier):
                     if f >= 4 and vnoise(j * 5, s_, seed + f, 2.0) < (f - 3) * 0.4:
                         continue
                     b.put(x0 + math.sin(u * 4.0 + j + f) * 1.3, y0 - s_, FIRE[1] if u < 0.25 else (FIRE[2] if u < 0.6 else FIRE[3]))
-        for j in range(2):
-            _red_smoke(b, (j - 0.5) * R * 0.25, -Hc * (0.95 + 0.08 * j), R * 0.1, 3 + j, f, seed + 40 + j)
         if tier >= 1 and 2 <= f <= 5:
             for s0 in subs:
                 x, y = gpt(R * 0.8, s0)
@@ -808,10 +815,14 @@ def pillar_up(R, tier):
     return frames
 
 
-def dome_up(R):
+def n_dome(R):
+    return 16 + R // 4
+
+
+def dome_up(R, k=1.0):
     """S2 地毯轰炸：第 0 拍贴地扁热芯（0.55R）+ 低放射；之后一大圈贴着地皮往外掠的火星（抛高 ≤ 0.12R）到 0.95R + 黑碎点；1 小团红边烟。6 拍"""
     seed = 171 + R
-    sparks = _spark_set(R, seed, 22 + R // 2, dmin=0.55, dmax=0.95, hmax=0.12, h0=0.08, dark=0.25)
+    sparks = _spark_set(R, seed, max(3, int(n_dome(R) * k)), dmin=0.55, dmax=0.95, hmax=0.12, h0=0.08, dark=0.25)
     frames = []
     for f in range(6):
         b = Buf()
@@ -829,17 +840,20 @@ def dome_up(R):
                     a = k * math.tau / 10 + h2(k, 9, seed) * 0.3
                     for s_ in range(int(R * 0.55), int(R * 0.9)):
                         b.put(math.cos(a) * s_, math.sin(a) * s_ * SQ - R * 0.06, FIRE[2] if s_ < R * 0.75 else FIRE[4])
-        _red_smoke(b, R * 0.1, -R * 0.2, R * 0.1, 2, f, seed + 40)
         _draw_sparks(b, sparks, f, 6, tail=0.2)
         frames.append(b)
     return frames
 
 
-def dawn_up(R):
+def n_dawn(R):
+    return 40 + R // 8
+
+
+def dawn_up(R, k=1.0):
     """S3 爆裂黎明：第 0 拍贴地白热地平线 + 升起的光穹（已压暗一档）；第 1 拍光穹缩成矮热芯；之后一大圈往外甩的火星（到 0.98R、抛高到 0.7R）+ 黑碎点，
     外沿 4 小团红边烟 0.4 秒散完。共 8 拍"""
     seed = 211 + R
-    sparks = _spark_set(R, seed, 50 + R // 2, dmin=0.3, dmax=0.98, hmax=0.7, h0=0.3, dark=0.25)
+    sparks = _spark_set(R, seed, max(4, int(n_dawn(R) * k)), dmin=0.3, dmax=0.98, hmax=0.7, h0=0.3, dark=0.25)
     frames = []
     for f in range(8):
         b = Buf()
@@ -863,19 +877,19 @@ def dawn_up(R):
                     else:
                         c = FIRE[2] if dd < 0.5 else FIRE[3]
                     b.put(x, -2 - y, c)
-        for j in range(4):
-            a = j * math.tau / 4 + 0.5
-            x, y = gpt(R * 0.6, a)
-            _red_smoke(b, x, y - R * 0.12, R * 0.09, 2 + (j % 2), f, seed + 40 + j)
         _draw_sparks(b, sparks, f, 8, tail=0.13)
         frames.append(b)
     return frames
 
 
-def lk_up(R):
+def n_lk(R):
+    return 12 + R // 3
+
+
+def lk_up(R, k=1.0):
     """连携落地：第 0 拍一道插进地面的亮线（弹道最后一段）+ 地面热芯；之后火星往上溅成 V 形（地面散开 ≤ 0.55R、抛高到 1.1R）+ 黑碎点；1 小团红边烟。6 拍"""
     seed = 307 + R
-    sparks = _spark_set(R, seed, 18 + R // 2, up=0.55, hmax=1.1, h0=0.1, dark=0.25)
+    sparks = _spark_set(R, seed, max(3, int(n_lk(R) * k)), up=0.55, hmax=1.1, h0=0.1, dark=0.25)
     frames = []
     for f in range(6):
         b = Buf()
@@ -887,7 +901,6 @@ def lk_up(R):
                     b.put(-1, -y, FIRE[3])
                     b.put(1, -y, FIRE[3])
         _core(b, 0, -2, R * 0.3, f)
-        _red_smoke(b, 0, -R * 0.4, R * 0.12, 2, f, seed + 40)
         _draw_sparks(b, sparks, f, 6, tail=0.12)
         frames.append(b)
     return frames

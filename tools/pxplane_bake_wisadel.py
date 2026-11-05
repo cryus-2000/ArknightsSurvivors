@@ -11,7 +11,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ART = os.path.join(ROOT, "game", "art", "fx", "pxp")
 META = os.path.join(ROOT, "game", "data", "pxp_wisadel.json")
 DIRS = [-90, -45, 0, 45, 90]
-EMIT_LUM = 0.78
+EMIT_LUM = 0.72   # 11-05：普攻热芯降一档后（最亮 #ffa868）仍要出 emit（docs/270 普攻核心辉光 ≥ 30）
 EMIT_MAX = 32
 
 IMPORT_TMPL = """[remap]
@@ -59,20 +59,23 @@ detect_3d/compress_to=1
 
 def strips():
     out = {}
+    def sp(key, fn, n):   # 同屏火星封顶（11-05 用户怕后期闪眼）：全量 / 半量 _h / 四分之一 _q 三张，meta 记 nsp
+        for suf, kk in (("", 1.0), ("_h", 0.5), ("_q", 0.25)):
+            out[key + suf] = (fn(kk), False, {"nsp": max(3, int(n * kk))})
     for R in A.BOOM_R:
-        out["boom_r%d" % R] = (A.boom_up(R), False)
+        sp("boom_r%d" % R, lambda kk, R=R: A.boom_up(R, kk), A.n_boom(R))
         out["sc_r%d" % R] = (A.scorch_gd(R), False)
         out["sc2_r%d" % R] = (A.scorch_gd(R, shock=True), False)
     for R in A.S1_R:
         out["sc_r%d" % R] = (A.scorch_gd(R), False)
         for t in (0, 1, 2):
-            out["pil_r%d_e%d" % (R, t)] = (A.pillar_up(R, t), False)
+            sp("pil_r%d_e%d" % (R, t), lambda kk, R=R, t=t: A.pillar_up(R, t, kk), A.n_pillar(R))
     for R in A.S2_R:
-        out["dome_r%d" % R] = (A.dome_up(R), False)
+        sp("dome_r%d" % R, lambda kk, R=R: A.dome_up(R, kk), A.n_dome(R))
         out["st_r%d_e1" % R] = (A.star_gd(R), False)
         out["st_r%d_e2" % R] = (A.star_gd(R, flames=True), False)
     for R in A.S3_R:
-        out["dawn_r%d" % R] = (A.dawn_up(R), False)
+        sp("dawn_r%d" % R, lambda kk, R=R: A.dawn_up(R, kk), A.n_dawn(R))
         out["dawng_r%d" % R] = (A.dawn_gd(R), False)
     for R in A.Q_R:
         out["q_r%d" % R] = (A.quake_gd(R), False)
@@ -80,14 +83,14 @@ def strips():
         out["sb_r%d" % R] = (A.sblast_up(R), False)
     out["shade"] = (A.shade_up(), False)
     out["smz"] = (A.smz_up(), False)
-    out["pop"] = (A.pop_up(), False)
+    out["pop"] = (A.pop_up(), False, {"nsp": 6})
     out["xpop"] = (A.xpop_up(), False)
     for d in A.DIRS:
         out["mz_d%d" % d] = (A.muzzle_up(d), False)
         out["mzg_d%d" % d] = (A.muzzle_up(d, big=True), False)
     out["glint"] = (A.glint_up(), False)
     out["glintb"] = (A.glint_up(big=True), False)
-    out["lk_up"] = (A.lk_up(30), False)
+    sp("lk_up", lambda kk: A.lk_up(30, kk), A.n_lk(30))
     out["lk_gd"] = (A.lk_gd(30), False)
     return out
 
@@ -134,7 +137,8 @@ def main():
     meta = {"_doc": "docs/274 维什戴尔转平面帧条：tools/pxplane_bake_wisadel.py 生成（图形 tools/pxplane_wisadel_art.py），键加前缀 wd_ 对应 art/fx/pxp/pxp_wd_<键>.png；n 帧数、fps、w / h 单帧尺寸（美术像素）、ox / oy 原点、loop、emit 每帧热芯 [x, y, 颜色]"}
     n = 0
     total = 0
-    for k, (frames, loop) in strips().items():
+    for k, v in strips().items():
+        frames, loop = v[0], v[1]
         im, w, h, ox, oy, emit = render(frames)
         fn = "pxp_wd_%s.png" % k.replace("_d-", "_dm").lower()   # 文件名不许大写（asset_lint N1）；游戏 _tex 同样转小写
         p = os.path.join(ART, fn)
@@ -146,6 +150,8 @@ def main():
             with open(ip, "w", encoding="utf-8", newline="\n") as f:
                 f.write(IMPORT_TMPL.format(uid=uid_of(fn), name=fn, md5=md5))
         meta[k] = {"n": len(frames), "fps": 15, "w": w, "h": h, "ox": ox, "oy": oy, "loop": loop, "emit": emit}
+        if len(v) > 2:
+            meta[k].update(v[2])
         n += 1
     with open(META, "w", encoding="utf-8", newline="\n") as f:
         json.dump(meta, f, ensure_ascii=False, separators=(",", ":"))

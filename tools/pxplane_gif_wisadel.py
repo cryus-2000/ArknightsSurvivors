@@ -100,9 +100,34 @@ class Col:
         self.souls = tier >= 2
         self.seed = 7 + tier
         self.drops = []      # 连携下坠炮弹 (落点, 起拍)
+        self.fogs = []       # 贴地薄雾 (c, r, 起拍, 拍数)
+        self.lib = None      # 挑火星档用（同屏火星封顶 60，同 fx_pxplane_wd._up_sp）
+        self.emit_log = {}
 
     def add(self, k, tk, gp, flip=False, gd=False, gy=None, hold=False):
         self.items.append({"k": k, "t0": tk, "gp": snap(gp), "flip": flip, "gd": gd, "gy": gp[1] if gy is None else gy, "hold": hold})
+
+    def add_sp(self, k, tk, gp, gy=None):
+        """带火星的帧条：同屏火星总数 ≤ 60，放不下全量换 _h / _q（同游戏）"""
+        live = sum(it.get("nsp", 0) for it in self.items if it.get("nsp") and it["t0"] <= tk < it["t0"] + LIB.meta[it["k"]]["n"])
+        pick = k
+        for suf in ("", "_h", "_q"):
+            if k + suf not in LIB.meta:
+                continue
+            pick = k + suf
+            if live + LIB.meta[pick].get("nsp", 0) <= 60:
+                break
+        self.add(pick, tk, gp, gy=gy)
+        self.items[-1]["nsp"] = LIB.meta[pick].get("nsp", 0)
+
+    def fog(self, tk, c, r, life_s):
+        """贴地薄雾：和近处还在的合并（刷新、取大），至多 6 片"""
+        R2 = r * 0.9
+        for i, (fc, fr, f0, fl) in enumerate(self.fogs):
+            if math.hypot(fc[0] - c[0], fc[1] - c[1]) < max(fr, R2) * 0.6 and tk - f0 < fl:
+                self.fogs[i] = (fc, max(fr, R2), tk, max(fl, round(life_s * 15)))
+                return
+        self.fogs.append((tuple(c), R2, tk, round(life_s * 15)))
 
     def light(self, at, r, i, tk, n=2, col=FIRE_L):
         self.lights.append((at[0], at[1] + 6, r, i, tk, n, col))
@@ -179,37 +204,41 @@ class Col:
             self.grain("rock", (c[0], c[1] - 12), c[1] + 2, 2 if kind == "soul" else 3, tk)
         elif kind == "g":
             s3 = pick(A.S3_R, r)
-            self.add("dawn_r%d" % s3, tk, c, gy=c[1] + 2)
+            self.add_sp("dawn_r%d" % s3, tk, c, gy=c[1] + 2)
+            self.fog(tk, c, r, 0.8)
             self.add("dawng_r%d" % s3, tk, c, gd=True, hold=True)
             self.light((c[0], c[1] - 30), min(230, r * 1.15), 0.85, tk, 3)
-            self.grain("rock", (c[0], c[1] - 40), c[1] + 2, 8, tk, 1.4)
-            self.grain("streak", (c[0], c[1] - 30), c[1] + 2, 8, tk, 1.4)
+            self.grain("rock", (c[0], c[1] - 40), c[1] + 2, 6, tk, 1.4)
+            self.grain("streak", (c[0], c[1] - 30), c[1] + 2, 10, tk, 1.4)
         elif kind == "exec":
             s2 = pick(A.S2_R, r)
-            self.add("dome_r%d" % s2, tk, c, gy=c[1] + 1)
+            self.add_sp("dome_r%d" % s2, tk, c, gy=c[1] + 1)
+            self.fog(tk, c, r, 0.6)
             self.add("st_r%d_e%d" % (s2, 2 if self.t >= 2 else 1), tk, c, gd=True, hold=True)
             self.light((c[0], c[1] - 12), min(180, r * 1.6), 0.68, tk)
-            self.grain("rock", (c[0], c[1] - 14), c[1] + 2, 4, tk, 1.2)
-            self.grain("streak", (c[0], c[1] - 10), c[1] + 2, 4, tk, 1.2)
+            self.grain("rock", (c[0], c[1] - 14), c[1] + 2, 2, tk, 1.2)
+            self.grain("streak", (c[0], c[1] - 10), c[1] + 2, 6, tk, 1.2)
         elif s1:
             p1 = pick(A.S1_R, r)
-            self.add("pil_r%d_e%d" % (p1, self.t), tk, c, gy=c[1] + 2)
+            self.add_sp("pil_r%d_e%d" % (p1, self.t), tk, c, gy=c[1] + 2)
+            self.fog(tk, c, r, 0.7)
             self.add("sc_r%d" % pick([22, 26, 30, 34, 38, 43, 48, 50, 56, 62], r), tk, c, gd=True, hold=True)
             self.light((c[0], c[1] - 36), min(190, r * 1.7), 0.75, tk)
-            self.grain("rock", (c[0], c[1] - 30), c[1] + 2, 6, tk, 1.25)
-            self.grain("streak", (c[0], c[1] - 24), c[1] + 2, 6, tk, 1.25)
+            self.grain("rock", (c[0], c[1] - 30), c[1] + 2, 4, tk, 1.25)
+            self.grain("streak", (c[0], c[1] - 24), c[1] + 2, 8, tk, 1.25)
         else:
             bk = pick(A.BOOM_R, r)
-            self.add("boom_r%d" % bk, tk, c, gy=c[1] + 1)
+            self.add_sp("boom_r%d" % bk, tk, c, gy=c[1] + 1)
+            self.fog(tk, c, r, 0.55)
             self.add(("sc2_r%d" if self.t >= 2 else "sc_r%d") % bk, tk, c, gd=True, hold=True)
             self.light((c[0], c[1] - 20), min(150, max(100, r * 1.6)), 0.6, tk)
-            self.grain("rock", (c[0], c[1] - 18), c[1] + 2, 3, tk)
-            self.grain("streak", (c[0], c[1] - 14), c[1] + 2, 3, tk)
+            self.grain("rock", (c[0], c[1] - 18), c[1] + 2, 2, tk)
+            self.grain("streak", (c[0], c[1] - 14), c[1] + 2, 4, tk)
 
 
 # ---------------------------------------------------------------- 绘制
 
-ENEMY = OP = SOUL_SPR = None
+ENEMY = OP = SOUL_SPR = LIB = None
 
 
 def render(lib, col, tk):
@@ -287,6 +316,23 @@ def render(lib, col, tk):
             gy = s["from"][1] + lift + (s["to"][1] - s["from"][1] - lift) * k
             for dx in (-2, 0, 2):
                 put_px(gx + dx, gy, A.SMOKE[0], a=0.55)
+    if col.fogs:
+        arr = np.asarray(img).astype(np.float32)
+        yy0, xx0 = np.mgrid[0:H, 0:W].astype(np.float32)
+        acc = np.zeros((H, W), np.float32)
+        for (fc, fr, f0, fl) in col.fogs:
+            if not (f0 <= tk < f0 + fl):
+                continue
+            u = (tk - f0) / fl
+            a = 0.2 * (1 - u * u) * min(1.0, (tk - f0) / 1.2 + 0.3)
+            rr = fr * (0.75 + 0.25 * math.sqrt(u))
+            dd = np.sqrt((xx0 - fc[0]) ** 2 + ((yy0 - fc[1]) / 0.72) ** 2)
+            for q in range(3):
+                acc += (dd <= rr * (1 - 0.28 * q)) * (a / 3.0)
+        acc = np.clip(acc, 0, 1)[..., None]
+        arr[..., :3] = arr[..., :3] * (1 - acc) + np.array([77, 10, 10], np.float32) * acc
+        img = Image.fromarray(arr.astype(np.uint8), "RGBA")
+        dr = ImageDraw.Draw(img)
     for (dc, d0) in col.drops:
         if d0 <= tk < d0 + 6:
             kd = min(1.0, (tk - d0) / 5.25)
@@ -397,6 +443,7 @@ def render(lib, col, tk):
             if br:
                 for (x, y, c) in A.bracket_px(10, tk):
                     put_px(snap(b)[0] + x * PX, snap(b)[1] + y * PX, c)
+    col.emit_log[tk] = int((np.asarray(emit).max(axis=2) > 0).sum() / (PX * PX))   # 这一拍的 emit 点数（美术像素）
     glow = np.asarray(emit.filter(ImageFilter.GaussianBlur(3))).astype(np.float32) * 0.55
     base = np.asarray(img.convert("RGB")).astype(np.float32) * AMBIENT
     yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
@@ -525,7 +572,8 @@ def sc_link():
         e = c.enemies[ei]
         c.enemies[ei][2] = tk
         c.drops.append(((e[0], e[1]), tk))
-        c.add("lk_up", tk + 5, (e[0], e[1]), gy=e[1] + 1)
+        c.add_sp("lk_up", tk + 5, (e[0], e[1]), gy=e[1] + 1)
+        c.fog(tk + 5, (e[0], e[1]), 60, 0.6)
         c.add("lk_gd", tk + 5, (e[0], e[1]), gd=True)
         if j % 2 == 0:
             c.light((e[0], e[1] - 16), 130, 0.7, tk + 5)
@@ -534,18 +582,45 @@ def sc_link():
     return c
 
 
+def sc_late8():
+    """8:00 后期混战近似（只看刺眼程度）：960×540 1 倍，45 只敌人，精二维什戴尔 + 魂灵之影 + 礼尚往来 + 后期额外弹，攻速约 0.8 秒一发，余震、残影殉爆照常"""
+    rnd = np.random.default_rng(800)
+    en = [(float(rnd.uniform(380, 900)), float(rnd.uniform(140, 500))) for _ in range(45)]
+    c = Col(2, en, op=(220, 320), W=960, H=540)
+    alive = list(range(len(en)))
+    tk = 2
+    while tk < 70:
+        ts = sorted(alive, key=lambda i: math.hypot(en[i][0] - 220, en[i][1] - 320))
+        if len(ts) < 3:
+            break
+        k1 = [ts[3]] if len(ts) > 6 and tk % 3 == 0 else []
+        for i in k1:
+            alive.remove(i)
+        c.fire(tk, ts[0], kill=tuple(k1))
+        c.fire(tk, ts[2], size=0.85, quake=True)
+        for j in range(3):
+            e = c.enemies[ts[4 + j]]
+            frm = (c.op[0], c.op[1] - 18)
+            ln = max(1, round(math.hypot(e[0] - frm[0], e[1] - frm[1]) / 560.0 * 15))
+            c.shells.append({"kind": "x", "from": frm, "to": (e[0], e[1] - 18), "t0": tk + 1 + j, "t1": tk + 1 + j + ln, "r": 10, "s1": False})
+            c.add("xpop", tk + 1 + j + ln, (e[0], e[1]), gy=e[1] + 1)
+        tk += 12
+    return c
+
+
 NAMES = {"atk": "普攻「炮击」（精一：残影 / 标记，精二：魂炮）", "s1": "S1「定点清算」", "s2": "S2「饱和复仇」", "s3": "S3「爆裂黎明」", "late": "后期额外弹"}
 SCENES = {"atk": (sc_atk, 66, (290, 150)), "s1": (sc_s1, 66, (290, 140)), "s2": (sc_s2, 50, (290, 150)), "s3": (sc_s3, 45, (340, 140)), "late": (sc_late, 44, (280, 150))}
 
 
 def main():
-    global ENEMY, OP, SOUL_SPR
+    global ENEMY, OP, SOUL_SPR, LIB
     ap = argparse.ArgumentParser()
     ap.add_argument("--only", default="")
     ap.add_argument("--out", default=os.path.join(MAIN, "Claude outputs", "pxplane_wisadel_1105", "gif"))
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
     lib = Lib()
+    LIB = lib
     en = sprite(os.path.join(ROOT, "game", "art", "enemies", "offspring", "e_offspring@2x.png"), 4)
     arr = np.asarray(en).astype(np.float32)
     arr[..., :3] = arr[..., :3] * 0.32 + np.array([10, 12, 14])
@@ -561,6 +636,20 @@ def main():
         gif(lib, cols, n, os.path.join(a.out, "wisadel_%s.gif" % name), title, zc)
     if not only or "branch" in only:
         gif(lib, [("节点：余烬未冷（三圈余震）/ 续燃（吸向残影）/ 礼尚往来 / 余响（精二）", sc_branch())], 66, os.path.join(a.out, "wisadel_branch.gif"), title, (290, 160))
+    if "late8" in only:   # 8:00 后期混战 1 倍截图 + emit 每拍点数 p90（近似；实测要 GCP fx_audit）
+        col = sc_late8()
+        best, frames = None, []
+        for tk in range(70):
+            im = render(lib, col, tk)
+            frames.append(im)
+        em = [col.emit_log[t] for t in range(12, 70)]
+        p90 = sorted(em)[int(len(em) * 0.9)]
+        k = max(range(12, 70), key=lambda t: col.emit_log[t] + 0 * t)
+        for t, name in ((k, "late8_peak"), (40, "late8_t40")):
+            frames[t].save(os.path.join(a.out, "wisadel_%s.png" % name))
+        gif_frames = [f.quantize(colors=255, method=Image.MEDIANCUT) for f in frames[10:70]]
+        gif_frames[0].save(os.path.join(a.out, "wisadel_late8.gif"), save_all=True, append_images=gif_frames[1:], duration=67, loop=0)
+        print("late8 emit/拍 p90 = %d，峰值 %d（拍 %d），均值 %.1f" % (p90, col.emit_log[k], k, sum(em) / len(em)))
     if not only or "link" in only:
         gif(lib, [("连携技「天降厚礼」（link/v2 缺省，不分档）", sc_link())], 40, os.path.join(a.out, "wisadel_link.gif"), title, (290, 160))
 

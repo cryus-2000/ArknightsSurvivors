@@ -36,6 +36,11 @@ var g
 var _beat := {}
 var _lines: Array = []   # 续燃引线 / 连锁：{a, b, t0, oid}
 var _drops: Array = []   # 连携下坠炮弹：{c, t0, oid}（0.35 秒从 DROP_H 高砸到 c）
+var _fogs: Array = []    # 贴地薄雾：{c, r, t0, life, oid}
+const SPARK_CAP := 60    # 整队同屏帧条火星上限（11-05 用户怕后期闪眼）
+const FOG_MAX := 6
+const FOG_A := 0.2       # 薄雾中心不透明度（三层叠到中心 = FOG_A）
+const FOG_C := Color(0.3, 0.04, 0.04)
 const DROP_T := 0.35     # 同 skill_link l_wisadel 残影 → 炸开的延时
 const DROP_H := 240.0
 
@@ -69,6 +74,60 @@ func _up(o, k: String, at: Vector2, extra := {}) -> void:
 	var it := {"k": "wd_" + k, "t0": g.t, "gp": Pxp._snap(at), "flip": false, "ly": "up", "oid": str(o.id)}
 	it.merge(extra, true)
 	r._push(it)
+
+
+## 带火星的帧条（11-05 用户「后期会不会过于闪眼睛」）：整队同屏火星总数封顶 SPARK_CAP；新爆炸放不下全量就换半量 _h / 四分之一 _q 的帧条（热芯照亮）。
+## 帧条的火星数在 meta 的 nsp；在场的件按自己的 nsp 计到帧条播完
+func _up_sp(o, k: String, at: Vector2, extra := {}) -> void:
+	var now: float = g.t
+	var live := 0
+	for it in r.items:
+		if it.has("nsp") and now - float(it.t0) < float(it.spl) and now >= float(it.t0) - 0.5:
+			live += int(it.nsp)
+	var pick: String = k
+	for suf in ["", "_h", "_q"]:
+		var m: Dictionary = r._meta("wd_" + k + suf)
+		if m.is_empty():
+			continue
+		pick = k + suf
+		if live + int(m.get("nsp", 0)) <= SPARK_CAP:
+			break
+	var m2: Dictionary = r._meta("wd_" + pick)
+	var ex: Dictionary = extra.duplicate()
+	ex["nsp"] = int(m2.get("nsp", 0))
+	ex["spl"] = float(m2.get("n", 6)) / 15.0
+	_up(o, pick, at, ex)
+
+
+## 贴地薄雾（11-05 用户「体积雾保留一点，不用那种烟雾」）：爆炸后贴地铺开一层很淡的暗红雾，边缘柔、半径 ≤ 判定 × 0.9，life 秒内淡掉；
+## 和近处还在的雾合并（刷新、取大），整队同屏至多 FOG_MAX 片，叠加不把地面盖黑
+func _fog(o, c: Vector2, rr: float, life: float, delay := 0.0) -> void:
+	var now: float = g.t + delay
+	var R2: float = rr * 0.9
+	for F in _fogs:
+		if (F.c as Vector2).distance_to(c) < maxf(float(F.r), R2) * 0.6 and now - float(F.t0) < float(F.life):
+			F.t0 = now
+			F.r = maxf(float(F.r), R2)
+			F.life = maxf(float(F.life), life)
+			return
+	_fogs.append({"c": c, "r": R2, "t0": now, "life": life, "oid": str(o.id)})
+	if _fogs.size() > FOG_MAX:
+		_fogs.pop_front()
+
+
+func _draw_fogs(o, cv) -> void:
+	var now: float = g.t
+	_fogs = _fogs.filter(func(F): return now - float(F.t0) < float(F.life))
+	for F in _fogs:
+		if str(F.oid) != str(o.id) or now < float(F.t0):
+			continue
+		var u: float = (now - float(F.t0)) / float(F.life)
+		var a: float = FOG_A * (1.0 - u * u) * minf(1.0, (now - float(F.t0)) / 0.08 + 0.3)
+		var rr: float = float(F.r) * (0.75 + 0.25 * sqrt(u))   # 慢慢铺开
+		cv.draw_set_transform(F.c, 0.0, Vector2(1.0, SQ))
+		for q in 3:   # 三层同心：中心 a、边缘 a / 3（边缘柔）
+			cv.draw_circle(Vector2.ZERO, rr * (1.0 - 0.28 * q), Color(FOG_C.r, FOG_C.g, FOG_C.b, a / 3.0))
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 func _gd(o, k: String, at: Vector2, extra := {}) -> void:
@@ -114,7 +173,7 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 		"wd_pop":   # 同屏封顶 / 同一轮齐射合并掉的爆炸：一小团火（每拍至多 3）
 			if _beat_n(o, "pop") >= POP_CAP:
 				return
-			_up(o, "pop", d.c, {"gy": (d.c as Vector2).y + 1.0})
+			_up_sp(o, "pop", d.c, {"gy": (d.c as Vector2).y + 1.0})
 		"wd_shade":   # 被炸死 / 带标记倒下的敌人留下残影（暗红半透明人形浮出）
 			if _beat_n(o, "shd") >= 3:
 				return
@@ -134,7 +193,7 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 		"wd_splash":   # 升级卡「扩散」：一小团火（同 pop）
 			if _beat_n(o, "pop") >= POP_CAP:
 				return
-			_up(o, "pop", d.at, {"gy": (d.at as Vector2).y + 1.0})
+			_up_sp(o, "pop", d.at, {"gy": (d.at as Vector2).y + 1.0})
 		"wd_lchain":   # 升级卡「连锁」：1 美术像素暗金引线（3 拍）
 			_lines.append({"a": d.a, "b": d.b, "t0": g.t, "oid": str(o.id), "br": false})
 			if _lines.size() > 8:
@@ -153,10 +212,12 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 			var c: Vector2 = d.at
 			if d.get("late", false):   # 补的一发：伤害当下结算，画面等炮弹落地（DROP_T 后）再炸；不挂灯 / 颗粒
 				var tl: float = g.t + DROP_T
-				_up(o, "lk_up", c, {"gy": c.y + 1.0, "t0": tl, "life": DROP_T + 0.5})
+				_up_sp(o, "lk_up", c, {"gy": c.y + 1.0, "t0": tl, "life": DROP_T + 0.5})
+				_fog(o, c, 60.0, 0.6, DROP_T)
 				_gd(o, "lk_gd", c, {"t0": tl, "life": DROP_T + 0.7})
 				return
-			_up(o, "lk_up", c, {"gy": c.y + 1.0})
+			_up_sp(o, "lk_up", c, {"gy": c.y + 1.0})
+			_fog(o, c, 60.0, 0.6)
 			_gd(o, "lk_gd", c)
 			if int(d.get("j", 0)) % 2 == 0:
 				R._light(o, c + Vector2(0, -16), 130.0, 0.7, 0.13, p.light)
@@ -200,7 +261,8 @@ func _boom(o, d: Dictionary, t: int, R, p: Dictionary) -> void:
 			R._grains(o, c + Vector2(0, -12), c.y + 2.0, "streak", 2 if k == "soul" else 3, {"tier": t})
 		"giant":   # 爆裂黎明：地平线白光 + 光穹 + 烟环；地面冲击环 + 放射裂缝 + 焦痕
 			var s3: int = _pick(S3_R, rr)
-			_up(o, "dawn_r%d" % s3, c, {"gy": c.y + 2.0})
+			_up_sp(o, "dawn_r%d" % s3, c, {"gy": c.y + 2.0})
+			_fog(o, c, rr, 0.8)
 			_gd(o, "dawng_r%d" % s3, c, {"hold": true, "life": 7.0 / 15.0 + HOLD})
 			R._light(o, c + Vector2(0, -30), minf(230.0, rr * 1.15), 0.85, 0.15, p.light)
 			R._grains(o, c + Vector2(0, -40), c.y + 2.0, "rock", 6, {"tier": t, "grain_spd": 1.4})
@@ -209,7 +271,8 @@ func _boom(o, d: Dictionary, t: int, R, p: Dictionary) -> void:
 			if _beat_n(o, "bm") >= BOOM_CAP:
 				return
 			var s2: int = _pick(S2_R, rr)
-			_up(o, "dome_r%d" % s2, c, {"gy": c.y + 1.0})
+			_up_sp(o, "dome_r%d" % s2, c, {"gy": c.y + 1.0})
+			_fog(o, c, rr, 0.6)
 			var stk: String = "st_r%d_e%d" % [s2, 2 if t >= 2 else 1]
 			_gd(o, stk, c, {"hold": true, "life": float(r._meta("wd_" + stk).get("n", 6)) / 15.0 + HOLD})
 			R._light(o, c + Vector2(0, -12), minf(180.0, rr * 1.6), 0.68, 0.12, p.light)
@@ -220,14 +283,16 @@ func _boom(o, d: Dictionary, t: int, R, p: Dictionary) -> void:
 				return
 			if str(d.get("pxk", "")) == "s1":   # 定点清算：处刑火柱
 				var s1: int = _pick(S1_R, rr)
-				_up(o, "pil_r%d_e%d" % [s1, t], c, {"gy": c.y + 2.0})
+				_up_sp(o, "pil_r%d_e%d" % [s1, t], c, {"gy": c.y + 2.0})
+				_fog(o, c, rr, 0.7)
 				_scorch(o, "sc_r%d" % _pick(SC_R, rr), c)
 				R._light(o, c + Vector2(0, -36), minf(190.0, rr * 1.7), 0.75, 0.14, p.light)
 				R._grains(o, c + Vector2(0, -30), c.y + 2.0, "rock", 4, {"tier": t, "grain_spd": 1.25})
 				R._grains(o, c + Vector2(0, -24), c.y + 2.0, "streak", 8, {"tier": t, "grain_spd": 1.25})
 			else:   # 普攻：实心爆团 + 焦痕（精二焦痕外圈一道热冲击环）
 				var bk: int = _pick(BOOM_R, rr)
-				_up(o, "boom_r%d" % bk, c, {"gy": c.y + 1.0})
+				_up_sp(o, "boom_r%d" % bk, c, {"gy": c.y + 1.0})
+				_fog(o, c, rr, 0.55)
 				_scorch(o, ("sc2_r%d" if t >= 2 else "sc_r%d") % bk, c)
 				R._light(o, c + Vector2(0, -20), clampf(rr * 1.6, 100.0, 150.0), 0.6, 0.12, p.light)
 				R._grains(o, c + Vector2(0, -18), c.y + 2.0, "rock", 2, {"tier": t})
@@ -274,6 +339,7 @@ func draw_floor(o) -> void:
 	var px: float = g.PX
 	var wd: Dictionary = _wd(o)
 	var bt: int = int(floor(g.t * 15.0))
+	_draw_fogs(o, cv)
 	if not wd.is_empty():
 		for s in wd.shells:   # 落点准星 + 弹影
 			var k: float = _shell_k(s)
