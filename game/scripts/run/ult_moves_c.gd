@@ -2221,6 +2221,8 @@ static func _la_wave_v3(u, a: Dictionary, o, i: int, c: Vector2, R: float) -> vo
 	PF.particles(u, c, 200 if not a.get("fwd", false) else 60, "ult_burst_s", [_lc(LA_ICE), _lc(LA_SILVER)] if not a.get("fwd", false) else [_lc(LA_ICE).darkened(0.3), _lc(LA_ICE).darkened(0.5)], 0.04, vs + 3.0, 140.0)   # 11-01：朝前版叠上空气爆破成一团白，压暗减量
 	if a.get("fwd", false) and LPU.on():   # 转平面（docs/273 §8）：空气爆破改成收尾大爆（预备收拢 → 亮核 → 冲击环推到边 → 粒子云 + 怪物崩解 + 慢动作），由 ult_px_lp 画
 		LPU.ev(u, "final", {"c": c, "dv": dv, "br": float(a.R) * 0.55})
+		# 原版音效保留（ult_audio.json：拉普兰德「ring w 6.5」→ air 空气爆破那一声挂在这圈环上）：同参数、同延时、全透明，只为触发原来的声音
+		u.shape({"kind": "ring", "c": c, "r": float(a.R) * 0.55, "r1": float(a.R) * 0.55 * 0.12, "w": 6.5, "col": Color(0, 0, 0, 0), "life": 0.32, "delay": 0.12})
 	elif a.get("fwd", false):   # 用户 10-31：最后接一个空气爆破——横斩之后 0.12 秒，斩线中点一圈冷白气浪炸开（尘浪环三种挑一）+ 一大团银蓝粒子 + 尘
 		var bc: Vector2 = c
 		var br: float = float(a.R) * 0.55
