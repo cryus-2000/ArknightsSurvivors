@@ -27,7 +27,7 @@ def main():
     args = [GR.find_godot(), "--path", os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--resolution", "1280x720", "--fixed-fps", "30", "--",
             "--balance", "--nodeath", "--trace=1", "--seed=%d" % a.seed, "--maxt=%d" % a.maxt, "--sfxlog", "--bal=fx/recipe_log=1"] + a.extra.split()
     out, err, to = GR.run_godot(args, 5400)
-    keep = [l for l in (out or "").splitlines() if l.startswith(("SFXLOG", "FXRLOG", "TRACE"))]
+    keep = [l for l in (out or "").splitlines() if l.startswith(("SFXLOG", "SFXOP", "FXRLOG", "TRACE"))]
     p = os.path.join(a.out, "sfx_events_%d.log" % a.seed)
     open(p, "w", encoding="utf-8").write("\n".join(keep) + "\n")
     print(p, len(keep), "行", "SCRIPT ERROR:", len(GR.script_errors(out, err)), "超时" if to else "")
