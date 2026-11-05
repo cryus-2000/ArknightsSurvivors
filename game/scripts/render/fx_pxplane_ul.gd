@@ -28,8 +28,6 @@ const S2_REACH := 68.0    # 起手链环扩到的半径（生效后的锚击半�
 const TRAIL_COOL := 0.8   # S3 深海拖痕落地后冷却的时长
 const QI_BREAK := 0.17    # 后期冲击波玩法上消失后，原地碎开的时长（总可见约 0.35 秒）
 const ORCA_LEAP := 0.18   # 虎鲸到落点前跃起的时长（落下那一刻 = 玩法落地重击）
-const WC := [Color("#14306a"), Color("#3a7ccc"), Color("#6fb0ec"), Color("#d6eeff")]   # 鲸形水体：底边深蓝 / 身体青蓝 / 浅水 / 亮青白描边（比地面亮两阶）
-const ORCA_K := 1.45     # 虎鲸放大（体长 44 × 1.45 ≈ 64 美术像素 = 128 世界像素）
 const ORCA_H := 64.0     # 弧顶离地（世界像素）
 const SWING_LIFE := 0.2   # 挥锚弧的时长（短而急）
 const SLAM_KEEP := 2   # 同一名干员同屏至多两记锚击水冠（最新 + 正在收的）
@@ -711,87 +709,232 @@ static func _telegraph(r, ci, o, an: Dictionary) -> void:
 		r._px(ci, r._snap(c + Vector2(cos(a) * R, sin(a) * R * SY) * px), C[4])
 
 
-## 鲸形水体（docs/266 §11，参照原神「公子」鲸、英雄联盟俯视出水的写法）：逐美术像素栅格化，任意方向不转贴图。
-## 主体实心水色、轮廓清楚：3–4 阶蓝——下沿深色底边 C2、身体 C3、上沿浅色 C4、头部前缘最亮 C5（不用白；白只在砸地那一帧）；
-## 透明只留给身体后段（尾柄 + 尾鳍 α 0.55）和体内往后流的光纹。ghost > 0 = 残影：只画身体，逐帧变淡。
-## 体长约 64 美术像素（128 世界像素）；地上一个随高度缩放的椭圆影子
+## 水做的虎鲸（docs/266 §16，用户 11-05「把生图的当作形状约束，然后来做我们自己的」「还是显得有点实」）：
+## 剪影来自生图（A3 空中 / D3 俯冲，tools/pxplane_orcamask_ulpianus.py 烘成 pxp_ul_orcam_<姿态>_a<角度>.png：RGB = 生图明暗、A = 遮罩，
+## 15° 一档预旋转、1 美术像素一格，外框宽 100 美术像素 = 200 世界像素），里面是程序水（Python 试样 draw_shape_whale 的同一算法）：
+##   通透的水壳——暗 / 次暗两阶半透明（α 0.4 / 0.5），只有沿生图亮带走、按节拍往尾巴流的细亮带（隔一条）、上沿浪边、3 个小漩涡、气泡是实的；
+##   腹部下沿断开变淡；每拍 6–10 颗 1–3 像素带短尾的水珠往后往上飞；尾后一股上粗下细的水柱连到地面，落地处一小圈水花。
+## 破水（clip）：地面拉起一段水柱、虎鲸头朝上在柱子上方。ghost > 0 = 残影：只画身体，逐帧变淡
+const W4 := [Color("#10409c"), Color("#1896e2"), Color("#60d6fa"), Color("#cefaff")]   # 照 A3：深海蓝 / 饱和青 / 亮青 / 亮青白
+const ORCA_STEP := 15
+static var _ORCAM := {}
+
+
+## 遮罩缓存：{w, h, img, pts: [x, y, …], lum: […]}；没有帧条时空字典（不画）
+static func _orcam(pose: String, ang: int) -> Dictionary:
+	var key: String = "%s_%d" % [pose, ang]
+	if _ORCAM.has(key):
+		return _ORCAM[key]
+	var path: String = "res://art/fx/pxp/pxp_ul_orcam_%s_a%s.png" % [pose, ("m%d" % -ang) if ang < 0 else str(ang)]
+	var d := {}
+	if ResourceLoader.exists(path):
+		var tx = load(path)
+		var img: Image = tx.get_image() if tx is Texture2D else null
+		if img != null:
+			if img.is_compressed():
+				img.decompress()
+			var w: int = img.get_width()
+			var h: int = img.get_height()
+			var pts := PackedInt32Array()
+			var lum := PackedFloat32Array()
+			for y in h:
+				for x in w:
+					var px: Color = img.get_pixel(x, y)
+					if px.a > 0.5:
+						pts.append(x)
+						pts.append(y)
+						lum.append(px.r)
+			d = {"w": w, "h": h, "img": img, "pts": pts, "lum": lum}
+	_ORCAM[key] = d
+	return d
+
+
+static func _om_in(m: Dictionary, x: int, y: int) -> bool:
+	return x >= 0 and y >= 0 and x < int(m.w) and y < int(m.h) and (m.img as Image).get_pixel(x, y).a > 0.5
+
+
 static func _draw_orca(r, ci, it: Dictionary) -> void:
 	var g = r.g
 	var px: float = g.PX
 	var gpos: Vector2 = r._snap(it.gp)
 	var z: float = float(it.z)
+	var pitch: float = float(it.pitch)
 	var dv: Vector2 = it.dv
-	var clip: bool = it.clip
 	var ghost: int = int(it.get("ghost", 0))
-	var e := Vector2(dv.x, dv.y * SY).normalized()
-	var flip: float = 1.0 if e.x >= 0.0 else -1.0
-	e = e.rotated(float(it.pitch) * flip)
-	var n := Vector2(-e.y, e.x)
-	if n.y > 0.0:
-		n = -n
 	var beat: int = int(floor(g.t * 15.0))
-	if not clip and ghost == 0 and z > 6.0:   # 椭圆影子：越高越小
-		var sk: float = clampf(1.0 - z / 160.0, 0.45, 1.0)
-		var rx: float = 22.0 * sk
-		var ry: float = 6.0 * sk
+	if it.clip:   # 破水：地面拉起一段水柱，鲸在柱子上方、头朝上
+		if ghost == 0:
+			_breach_column(r, ci, gpos, clampf((z + 22.0) / 26.0, 0.0, 1.0), beat)
+		z += 6.0
+		pitch = -0.8
+	var e0 := Vector2(dv.x, dv.y * SY).normalized()
+	var flip: bool = e0.x < 0.0
+	var base: float = rad_to_deg(atan2(e0.y, absf(e0.x)))
+	var ang: float = base + rad_to_deg(pitch)
+	var pose: String = "dive" if pitch > 0.6 else "apex"
+	var q: int = clampi(int(round(ang / float(ORCA_STEP))) * ORCA_STEP, -90, 90)
+	var m: Dictionary = _orcam(pose, q)
+	if m.is_empty():
+		return
+	var w: int = int(m.w)
+	var h: int = int(m.h)
+	var th: float = deg_to_rad(float(q))
+	var e := Vector2(cos(th), sin(th))
+	var n := Vector2(sin(th), -cos(th))
+	var sx: float = -1.0 if flip else 1.0
+	var c: Vector2 = r._snap(gpos + Vector2(0, -z - float(h)))
+	var cx: int = w / 2
+	var cy: int = h / 2
+	if ghost == 0 and z > 6.0:   # 地上的水影（随高度缩放）
+		var sk: float = clampf(1.0 - z / 220.0, 0.45, 1.0)
+		var rx: float = 30.0 * sk
+		var ry: float = 7.0 * sk
 		for iy in range(-int(ry), int(ry) + 1):
 			for ix in range(-int(rx), int(rx) + 1):
 				if pow(float(ix) / rx, 2.0) + pow(float(iy) / ry, 2.0) <= 1.0:
-					r._px(ci, gpos + Vector2(ix, iy) * px, Color(C[0], 0.45))
-	if clip:   # 破水：一道水弧把头顶出来，弧边带水花
-		var beat2: int = int(floor(g.t * 15.0))
-		for i in range(-18, 19):
-			var a2: float = float(i) / 18.0
-			var hgt: float = 11.0 * sqrt(maxf(0.0, 1.0 - a2 * a2))
-			var p0: Vector2 = gpos + Vector2(e.x, e.y) * float(i) * px * 1.0
-			r._px(ci, p0 + Vector2(0, -hgt * px), WC[3])
-			for zz in range(int(hgt)):
-				r._px(ci, p0 + Vector2(0, -float(zz) * px), Color(WC[1], 0.7))
-			if absi(i) > 12 and _h(float(i) + float(beat2)) > 0.4:
-				r._px(ci, p0 + Vector2(float(signi(i)) * 2.0, -hgt - 3.0 - _h(float(i) * 1.7 + float(beat2)) * 6.0) * px, WC[2])
-	var c: Vector2 = r._snap(gpos + Vector2(0, -z - 10.0))
-	var K: float = ORCA_K
-	var ga: float = [1.0, 0.35, 0.18][clampi(ghost, 0, 2)]
-	for jy in range(-26, 27):
-		for ix in range(-40, 41):
-			var q := Vector2(ix, jy)
-			var u: float = q.dot(e) / K
-			var w: float = q.dot(n) / K
-			var k: int = _orca_cell(u, w, beat)
-			if k < 0:
-				continue
-			var pp: Vector2 = c + q * px
-			if clip and pp.y > gpos.y - 2.0:
-				continue   # 水面（地面线）以下不画：破水
-			if ghost > 0:
-				r._px(ci, pp, Color(WC[1], ga))
-				continue
-			var qu := q + Vector2(0, -1)
-			var qd := q + Vector2(0, 1)
-			var up: bool = _orca_cell(qu.dot(e) / K, qu.dot(n) / K, beat) < 0
-			var dn: bool = _orca_cell(qd.dot(e) / K, qd.dot(n) / K, beat) < 0
-			var rear: bool = u < -8.0
-			var col: Color
-			if up:
-				col = WC[3]   # 上沿 1 像素亮青白描边；头部前缘进发光层
-				if u > 12.0 or k == 0:
-					r._glow(pp, WC[3])
-			elif dn:
-				col = WC[0]   # 只在底边压暗
-			elif u > 17.0:
-				col = WC[3]
-			elif k == 3:
-				col = WC[3]   # 眼后白斑（浅色水沫）
-			elif k == 4:
-				col = WC[2]   # 腹部浅色带
+					r._px(ci, gpos + Vector2(ix, iy) * px, Color("#0a1e46", 0.4))
+	var ga: float = [1.0, 0.3, 0.15][clampi(ghost, 0, 2)]
+	var flow: int = (beat * 2) % 12
+	var pts: PackedInt32Array = m.pts
+	var lums: PackedFloat32Array = m.lum
+	var img: Image = m.img
+	var tops: Array = []
+	var tail := Vector2i(-1, -1)
+	var best_tail: float = 1e9
+	for i in lums.size():
+		var x: int = pts[i * 2]
+		var y: int = pts[i * 2 + 1]
+		var xx: int = (w - 1 - x) if flip else x
+		var pp: Vector2 = c + Vector2(xx - cx, y - cy) * px
+		if ghost > 0:
+			r._px(ci, pp, Color(W4[1], 0.3 * ga))
+			continue
+		var ox: float = float(x - cx)
+		var oy: float = float(y - cy)
+		var u: float = ox * e.x + oy * e.y
+		var vv: float = ox * n.x + oy * n.y
+		if u < best_tail:
+			best_tail = u
+			tail = Vector2i(xx, y)
+		if not _om_in(m, x, y - 1):   # 上沿：实、亮
+			r._px(ci, pp, W4[3])
+			tops.append(Vector2i(xx, y))
+			if (x & 1) == 0:
+				r._glow(pp, W4[3])
+			continue
+		if not _om_in(m, x, y + 1):   # 腹部下沿：断开、变淡
+			if _h(float(x) * 0.9 + float(beat) * 0.5) > 0.45:
+				r._px(ci, pp, Color(W4[2], 0.55))
+			continue
+		if not _om_in(m, x - 1, y) or not _om_in(m, x + 1, y):
+			r._px(ci, pp, W4[2])
+			continue
+		var sxp: int = int(round(float(x) + e.x * float(flow)))
+		var syp: int = int(round(float(y) + e.y * float(flow)))
+		var L: float = img.get_pixel(sxp, syp).r if _om_in(m, sxp, syp) else lums[i]
+		L = 0.65 * L + 0.35 * lums[i]
+		var lane: int = int(floor(vv * 0.8 + 2.2 * sin(u * 0.13 - float(beat) * 0.35)))
+		if L > 0.5 and posmod(lane, 2) == 0:   # 细而稀的亮带（实）
+			r._px(ci, pp, W4[3] if L > 0.7 else W4[2])
+			if L > 0.7 and (x + y + beat) % 3 == 0:
+				r._glow(pp, W4[3])
+		elif L > 0.22:
+			r._px(ci, pp, Color(W4[1], 0.5))
+		else:
+			r._px(ci, pp, Color(W4[0], 0.4))   # 透出地面和怪
+	if ghost > 0 or tops.is_empty():
+		return
+	# 3 个小漩涡（实）
+	var fus := [0.7, 0.45, 0.22]
+	for i in 3:
+		var ux: float = (float(fus[i]) - 0.5) * float(w)
+		var vy: float = (-1.0 if i == 1 else 1.0) * float(h) * 0.06
+		var px0: float = float(cx) + (ux * e.x + vy * n.x) * sx
+		var py0: float = float(cy) + ux * e.y + vy * n.y
+		var xm: int = int((float(w - 1) - px0) if flip else px0)
+		if not _om_in(m, xm, int(py0)):
+			continue
+		var rot: float = float(beat) * 0.9 + float(i) * 2.1
+		for j in 7:
+			var a: float = rot + float(j) * 0.75
+			var rr: float = 1.0 + float(j) * 0.42
+			r._px(ci, c + Vector2(px0 - float(cx) + cos(a) * rr, py0 - float(cy) + sin(a) * rr * 0.8) * px, W4[3] if j > 4 else W4[2])
+	# 3 个往上漂的气泡
+	for i in 3:
+		var ph: int = (beat + i * 3) % 8
+		var fx: float = 0.3 + 0.2 * float(i)
+		var bx0: float = float(cx) + (fx - 0.5) * float(w) * e.x * sx
+		var by0: float = float(cy) + (fx - 0.5) * float(w) * e.y - float(ph) * 1.6
+		var xm2: int = int((float(w - 1) - bx0) if flip else bx0)
+		if not _om_in(m, xm2, int(by0)):
+			continue
+		var bp: Vector2 = c + Vector2(bx0 - float(cx), by0 - float(cy)) * px
+		if i % 2 == 0:
+			for d4 in [Vector2(-1, 0), Vector2(1, 0), Vector2(0, -1), Vector2(0, 1)]:
+				r._px(ci, bp + d4 * px, W4[3])
+		else:
+			r._px(ci, bp, W4[3])
+	# 每拍 6–10 颗水珠（1–3 像素、带短尾），从上沿 / 鳍尖往后往上飞，3 拍落下
+	var nd: int = 6 + int(_h(float(beat) * 0.91) * 5.0)
+	var tsorted: Array = tops.duplicate()
+	tsorted.sort_custom(func(a, b): return a.y < b.y)
+	for k in nd:
+		for ph in 3:
+			var sd: float = float(k) * 3.7 + float(beat - ph) * 0.41
+			var src: Vector2i = tsorted[k] if k < 2 and k < tsorted.size() else tops[int(_h(sd + 5.0) * float(tops.size())) % tops.size()]
+			var back: float = 2.0 + float(ph) * 3.0 + _h(sd) * 4.0
+			var upz: float = 2.0 + float(ph) * 3.0 - float(ph * ph) * 1.3 + _h(sd + 1.0) * 3.0
+			var dp: Vector2 = c + Vector2(float(src.x - cx) - e.x * back * sx, float(src.y - cy) - upz - e.y * back) * px
+			var size: int = maxi(1, 1 + int(_h(sd + 2.0) * 3.0) - ph)
+			var col: Color = W4[3] if ph == 0 else (W4[2] if ph == 1 else W4[1])
+			for qx in size:
+				for qy in size:
+					r._px(ci, dp + Vector2(qx, qy) * px, col)
+			for tt in [1, 2]:
+				r._px(ci, dp + Vector2(e.x * sx * float(tt), float(tt) * 0.8 + e.y * float(tt)) * px, W4[2])
+	# 尾后水柱（上粗下细）连到地面，落地处一小圈水花
+	if tail.x < 0:
+		return
+	var t0: Vector2 = c + Vector2(tail.x - cx, tail.y - cy) * px
+	var t1: Vector2 = gpos - e0 * 40.0
+	for j in 40:
+		var kk: float = float(j) / 39.0
+		var bx: float = t0.x + (t1.x - t0.x) * kk + (-e.x * sx) * 20.0 * sin(kk * PI) * px
+		var by: float = t0.y + (t1.y - t0.y) * kk * kk
+		var wob: float = sin(float(j) * 0.5 - float(beat) * 1.6) * 1.5
+		var half: float = 6.0 - 4.0 * kk
+		for s in range(-int(half) - 1, int(half) + 2):
+			var sp := Vector2(bx + (wob + float(s)) * px, by)
+			if absf(float(s)) > half:
+				if _h(float(j) * 1.1 + float(s) + float(beat)) > 0.5:
+					r._px(ci, sp, W4[3])
+			elif (j + s + beat) % 5 == 0:
+				r._px(ci, sp, W4[3])
 			else:
-				col = WC[1]
-				var fl: float = _h(floorf(u * 0.6 + float(beat) * 1.5) * 0.37 + floorf(w * 0.5))   # 体内往后流的光纹
-				if fl > 0.82:
-					col = Color(WC[2], 0.8)
-			if rear and not up:
-				col = Color(col, 0.55)   # 后段透明
-			r._px(ci, pp, col)
+				r._px(ci, sp, Color(W4[2], 0.55))
+	for i in 16:
+		var a2: float = TAU * float(i) / 16.0 + float(beat) * 0.3
+		var rr2: float = 6.0 + float(beat % 3) * 2.0
+		if _h(float(i) * 1.7 + float(beat)) > 0.3:
+			r._px(ci, t1 + Vector2(cos(a2) * rr2, sin(a2) * rr2 * SY - (2.0 if i % 3 == 0 else 0.0)) * px, W4[3] if i % 2 == 0 else W4[2])
+
+
+## 破水：从地面拉起一段水柱（k = 破水进度 0..1），边上白沫，四周溅水
+static func _breach_column(r, ci, gp: Vector2, k: float, beat: int) -> void:
+	var px: float = r.g.PX
+	var hgt: float = 10.0 + 24.0 * k
+	for zz in int(hgt):
+		var half: float = 5.0 - float(zz) * 0.08 + sin(float(zz) * 0.5 - float(beat)) * 1.0
+		for x in range(-int(half), int(half) + 1):
+			var p := gp + Vector2(float(x) + float(zz) * 0.5, -float(zz)) * px
+			if absi(x) >= int(half):
+				r._px(ci, p, W4[3] if _h(float(zz) * 1.3 + float(beat)) > 0.4 else W4[2])
+			else:
+				r._px(ci, p, Color(W4[2] if (x + zz + beat) % 5 == 0 else W4[1], 0.6))
+	for j in 8:
+		var a: float = _h(float(j) * 2.1 + float(beat)) * PI
+		var rr: float = 6.0 + _h(float(j) + float(beat) * 0.7) * 10.0
+		r._px(ci, gp + Vector2(cos(a) * rr * (1.0 if j % 2 == 1 else -1.0), -sin(a) * rr * 0.8) * px, W4[3] if j % 2 == 1 else W4[2])
 
 
 ## 挥锚（S3 起手）：锚尖从他身前的地面抡起一道带水的弧（竖直面内，0.2 秒从前下方扫到头顶后方），弧头白、往后降阶，
@@ -831,34 +974,3 @@ static func _draw_swing(r, ci, it: Dictionary) -> void:
 			var th2: float = th_h - _h(float(j) * 2.3 + float(beat)) * 1.2
 			var out: float = Ra + 4.0 + _h(float(j) + float(beat) * 0.9) * 10.0
 			r._px(ci, piv + hs * cos(th2) * out + Vector2(0, -sin(th2) * out), C[6] if j % 2 == 0 else C[5])
-
-
-## 虎鲸剖面：u 沿体长（尾 -22 → 吻 +22），w 垂直体长朝上（背）为正。返回 0 背鳍 / 1 上半身 / 2 下半身 / 3 眼斑，-1 = 不画
-static func _orca_cell(u: float, w: float, beat: int) -> int:
-	if u > 21.0 or u < -23.0:
-		return -1
-	var tw: float = sin(float(beat) * 1.8) * 1.5 if u < -12.0 else 0.0   # 尾部随节拍摆
-	w -= tw
-	var hh: float
-	if u >= 4.0:
-		hh = 7.5 * pow(maxf(0.0, 1.0 - pow((u - 4.0) / 17.0, 3.0)), 0.33)   # 头部圆钝（超椭圆）
-	elif u >= -10.0:
-		hh = 7.5 * sqrt(maxf(0.0, 1.0 - pow((u - 4.0) / 18.0, 2.0)))
-	elif u >= -18.0:
-		hh = lerpf(1.6, 4.8, (u + 18.0) / 8.0)
-	else:
-		hh = 1.4 + (-18.0 - u) * 1.3   # 尾鳍张开
-		if absf(w) < 1.0 and u < -21.0:
-			return -1   # 尾鳍分叉
-	var fin: float = 0.0
-	if u > -3.0 and u < 3.0:
-		fin = 14.0 * minf((u + 3.0) / 1.5, (3.0 - u) / 3.5)   # 背鳍：高、竖直（前缘陡）
-	if w > hh + fin or w < -hh:
-		return -1
-	if w > hh:
-		return 0
-	if pow((u - 11.0) / 4.0, 2.0) + pow((w - 2.4) / 1.5, 2.0) <= 1.0:
-		return 3   # 眼后白斑
-	if w < -hh * 0.45 and u > -7.0 and u < 18.0:
-		return 4   # 腹部浅色带
-	return 1 if w > -hh * 0.2 else 2

@@ -419,6 +419,12 @@ def orca_bubble(u, w, beat):
 
 
 def draw_orca(cv, gp, z, pitch, dv, clip, T, ghost=0):
+    """S3 虎鲸（docs/266 §16）：生图剪影 + 程序水，算法在 tools/pxplane_orcamask_ulpianus.py（读游戏里的 pxp_ul_orcam_* 帧条）"""
+    import pxplane_orcamask_ulpianus as OM
+    OM.draw_whale(cv, gp, z, pitch, dv, clip, T, ghost)
+
+
+def draw_orca_v11(cv, gp, z, pitch, dv, clip, T, ghost=0):
     """抄 fx_pxplane_ul._draw_orca（鲸形水体：实心主体、3–4 阶蓝、后段透明、残影）"""
     gp = snap(gp)
     e = norm((dv[0], dv[1] * SY))
@@ -590,6 +596,8 @@ class Scene:
         self.tier, self.dur, self.focus = tier, dur, focus
         self.items, self.enemies, self.overs, self.opos = [], [], [], (lambda T: (0.0, 0.0))
         self.ox = 150
+        self.oy = 170
+        self.h = 270
 
     def strip(self, k, t0, gp, ly):
         self.items.append({"k": "ul_" + k, "t0": t0, "gp": gp, "ly": ly})
@@ -641,8 +649,8 @@ def render_scene(sc, lib, T):
 
 
 def column_frames(sc, lib):
-    global OX
-    OX = sc.ox
+    global OX, OY, H
+    OX, OY, H = sc.ox, sc.oy, sc.h
     n = int(round(sc.dur * FPS))
     out = []
     for f in range(n):
@@ -666,7 +674,7 @@ def assemble(cols, labels, title):
     n = max(len(c) for c in cols)
     frames = []
     for f in range(n):
-        im = Image.new("RGB", (len(cols) * (W + 6) - 6, H * 2 + 2 + 26), (10, 12, 14))
+        im = Image.new("RGB", (len(cols) * (W + 6) - 6, cols[0][0].height + 26), (10, 12, 14))
         d = ImageDraw.Draw(im)
         for i, c in enumerate(cols):
             im.paste(c[f % len(c)], (i * (W + 6), 26))
@@ -831,6 +839,7 @@ def sc_s3():
     （时长 = 距离/900 夹 0.12–0.36，先快后慢，路径上每个敌人吃一次），再跃起 0.18 秒砸下 = 落地重击（爆白 → 水团 → 潮水退去）；身后深海拖痕"""
     sc = Scene(2, 1.9, (150, -16))
     sc.ox = 70
+    sc.oy, sc.h = 330, 420   # 鲸外框 200 世界像素、跃起 64：画框加高
     to = (250, -24)
     d = norm(to)
     t0 = 0.1
