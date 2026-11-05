@@ -112,4 +112,6 @@ GCP 体检（同一条 `tools/fx_audit.py shots --ops exusiai`）：补前 rende
 | 核心辉光面积 | 89 → 107 | 64 → 50 | ≥ 30 |
 
 - **每秒约 230 颗 2 px 模板颗粒不是能天使的弹道拖尾**：体检探针（`game/tests/fx_audit_shot.gd`，本稿加了按 fx_grains 模板名分类和编队记录）显示这些颗粒全部是 `slash`（刀光第四版），5 秒里只在 11 帧成团出现，每团约 130 颗。演示编队是能天使 + 德克萨斯，来源是德克萨斯的刀痕颗粒（`seg_texas._tx_rift_grains`）。能天使的弹体逐格画、不出颗粒；`bullet_fx` 弹道颗粒在接管时已关。体检表的「颗粒/次」「parts_per_s」被德克萨斯的刀光撑高（9–11 / 230），上表按能天使自己的颗粒重算。要让体检表本身干净，需要给演示换一个不带刀光颗粒的队友，或者让探针只数本人的颗粒（体检会话的事，没动）。
+- TRACE：fce559cec，能天使队长精二 5:00 局（种子 23，`--elite2 --sptest`，开 late_shape），px_plane 开 / 关 301 行逐行一致，0 条 SCRIPT ERROR（render-fxa-exu-trace2）。
+- 合 integ 时 `tools/pxplane_shots.py` 里能天使的干员表、演示去重、连携事件三处被推进之王的版本覆盖，已补回（两边都留）。
 - 对比图：`Claude outputs/fx_audit_1105/fix_exusiai/cmp_atk_x2.png`、`cmp_s1_x2.png`（上补前、下补后，命中帧 2 倍 + 照地光 / 辉光热图；挑的是第一下命中那一帧，碎屑还没飞出来，差别主要看数值），before_audit.json / after_audit.json。
