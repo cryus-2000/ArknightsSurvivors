@@ -116,7 +116,21 @@ GCP 体检（同一条 `tools/fx_audit.py shots --ops exusiai`）：补前 rende
 - 合 integ 时 `tools/pxplane_shots.py` 里能天使的干员表、演示去重、连携事件三处被推进之王的版本覆盖，已补回（两边都留）。
 - 对比图：`Claude outputs/fx_audit_1105/fix_exusiai/cmp_atk_x2.png`、`cmp_s1_x2.png`（上补前、下补后，命中帧 2 倍 + 照地光 / 辉光热图；挑的是第一下命中那一帧，碎屑还没飞出来，差别主要看数值），before_audit.json / after_audit.json。
 
-## 11. 终结技画面升级（ult/px_plane，11-05，**已暂停**）
+## 11. 终结技画面升级（ult/px_plane，缺省关；11-05 晚按 ult_brief §9 恢复，并排已送审）
+
+**现行版本（§9 口径：以原版为底，主要做配色对齐，能用 px_plane 加强的顺手加强）**，本地提交，未推：
+- 原画面的造型、节奏、体量不动（锁定框环绕、双枪连射、爆点帧条成片）。
+- 配色对齐：`ult_moves` 能天使段的 `EX_RED` / `EX_GOLD` 改成 `_exr()` / `_exg()`，开关开着时换成定稿朱橙 `#f07048` 和金 `#ffd86a`（原红 (0.95, 0.16, 0.2) 是危险红），关着照原色。
+- 举枪时那对斜举光刃（像翅膀）换成新 S3 的头顶大光环（`UPX.halo`，docs/280 的建议）。
+- 爆点上那块平涂金色实心圆去掉，叠一层闪烁粒子云（`UPX.cloud`；docs/280：爆炸块状、偏平涂）。
+- 最大那一下（冲击帧那一发）：原爆点帧条 ×2.4、碎环和冲击帧剪影照旧，上面叠 8 格厚冲击环、照地灯 240、轻震 3px、160 颗粒子云和崩解（引擎击杀碎屑 + 本色喷散）；`u.impact(爆心)` 让共用冲击慢放落在这一下。
+- 音效回到原版（原作的 charge / cast 照用，A / B 候选和收尾声都已撤掉）。只在开关开着时，`ult.gd _ua` 优先播 `<名>_px.wav`：`ult_exusiai_impact_px.wav` = 原 impact 原样做底，补 Sonniss Trailer Booms 075 的低频余音，从 1.3 秒拉到 2.6 秒，跟着慢放拖尾（`tools/gen_sfx_ult_exusiai_px.py`）。
+- 并排（GCP 同种子同参数实拍，各 240 帧，0 条 SCRIPT ERROR）：`Claude outputs/ult_px_exusiai_1105/exusiai_ult_vs_newaudio.mp4` / `_origaudio.mp4` / `exusiai_ult_vs.gif`；原片在 `render-ult-exusiai-px4/orig` 和 `pxon`。
+- 待定：共用慢放的回速 `ult/imp_ease` 全员都是 0.35 秒，brief 要 0.15 秒，改它会影响所有人，交协调人定。还要跑开 / 关 TRACE，以及 8:00 怪多场面的并排。
+
+以下是之前几版的记录（第一、二版整套替换，第三版加了 A / B 音效），都已被上面的版本取代。
+
+### 11.0 旧记录
 
 > **状态（11-05 晚）**：用户「所有终结技先停下来，除了艾莉妮的」，本节工作暂停，本地提交留着、不推。停在第三版（提交见 git log）：按 ult_brief §8「以原版为底，只往上加」，`ult_moves` 已恢复原画面，只在最大那一下（冲击帧那一发）叠冲击环、照地灯 240、轻震、160 颗粒子云、崩解（引擎击杀碎屑 + 本色喷散），并主动 `u.impact(爆心)` 让共用冲击慢放落在这一下；路上的原爆点上叠闪烁粒子云。音效 A / B 两套候选已写进 `game/audio/sfx`（`tools/gen_sfx_ult_exusiai_px.py`；原 charge / cast 是原作客户端音源，必须换；impact 以原文件为底加长余音；新增收尾弹壳 `u.cue("end")`），`ult/sfx_alt = 1` 试听 B。还没做：GCP 录像的并排 GIF、音效清单、「原版好在哪里 / 新版加了什么」对照表；`ult.imp_ease` 共用 0.35 秒（brief 要 0.15）待定。注意：音效文件替换不受 `ult/px_plane` 控制，关着开关也是新音效。已有素材（恢复时直接用）：原终结技实拍 `Claude outputs/render-ult-exusiai-orig2/`；第三版开关打开的实拍 `Claude outputs/render-ult-exusiai-px3/pxa`（音效 A）/ `pxb`（音效 B），各 240 帧、0 条 SCRIPT ERROR、带离线混音。下面是第一 / 第二版（整套替换）时写的说明，已被第三版取代。
 
