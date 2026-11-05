@@ -318,6 +318,40 @@ func sample_mem_mb() -> float:
 	return total / 1048576.0
 
 
+## --memlog（docs/287 §3 ③）：已注册成网页样本的音频按来源分组的秒数（music / op_<干员> / ult_<干员> / voice / 其他），只在测试参数下打印
+func sample_report() -> String:
+	var seen := {}
+	var by := {}
+	var names := {}
+	for n in streams:
+		names[streams[n]] = str(n)
+	var lists: Array = streams.values()
+	for tn in lay.keys() + groups.keys():
+		for st in _track_streams(tn):
+			if st is AudioStream and not names.has(st):
+				names[st] = "music"
+			lists.append(st)
+	for child in get_children():
+		if child is AudioStreamPlayer and child.stream is AudioStream:
+			lists.append(child.stream)
+			if not names.has(child.stream):
+				names[child.stream] = "player/" + str(child.bus)
+	for st in lists:
+		if st is AudioStream and not seen.has(st) and AudioServer.is_stream_registered_as_sample(st):
+			seen[st] = true
+			var nm: String = str(names.get(st, "?"))
+			var k: String = nm
+			if nm.begins_with("op_") or nm.begins_with("ult_"):
+				var pp := nm.split("_")
+				k = pp[0] + "_" + (pp[1] if pp.size() > 1 else "")
+			elif nm != "music" and not nm.begins_with("player/"):
+				k = "sfx"
+			by[k] = float(by.get(k, 0.0)) + st.get_length()
+	var ks: Array = by.keys()
+	ks.sort_custom(func(x, y): return by[x] > by[y])
+	return "rate=%d n=%d " % [int(AudioServer.get_mix_rate()), seen.size()] + " ".join(ks.map(func(k): return "%s=%.0fs" % [k, by[k]]))
+
+
 func warm_busy() -> bool:
 	return not _warm_q.is_empty()
 
