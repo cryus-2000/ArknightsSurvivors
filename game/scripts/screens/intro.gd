@@ -485,6 +485,7 @@ static func fill_numbers(ln: String) -> String:
 		"{crate_magnet}": pc100.call("crate/magnet_p", 0.1), "{crate_shield}": pc100.call("crate/shield_p", 0.1),
 		"{cmd_stamina}": Sq._num(Bal.v("command/stamina_secs", 25.0)), "{cmd_min}": pc100.call("command/min_start", 0.3),
 		"{cmd_revive}": Sq._num(Bal.v("command/revive_secs", 25.0)),
+		"{cmd_aspd}": str(roundi(Bal.v("command/rush_aspd", 0.25) * 100.0)), "{cmd_sp}": Sq._num(Bal.v("command/rush_sp", 1.5)),   # 指挥加成（11-05 用户「开局指南里在指挥模式的时候可以写上队友加成」）
 	}
 	for k in vals:
 		ln = ln.replace(k, vals[k])

@@ -15,7 +15,9 @@ python tools/gcp_render.py --branch HEAD --job custom --cmd 'python3 tools/pxpla
 
 - `--branch`：本机分支、origin 上的分支或提交号都可以。提交不在 origin 上时，batch.py 会自动传 bundle，所以本机还没推的提交也能跑。
 - `--name`：结果名，缺省为「任务-提交前 8 位」。`--out cloud-results/render-<名>` 的写法也认。
-- `--machine`：缺省 `e2-standard-8` 抢占式。GCP 配额一共 12 核，所以同时最多一台 8 核 + 一台 4 核。
+- `--machine`：缺省 `c2d-highcpu-8` 抢占式（11-05 起，见 §7）。全项目配额 64 核；每区外网 IP 只有 8 个，一区开满自动换区（us-central1 → us-east1 → us-east4 → us-west1 → us-west4）。
+- `--split`：一个任务拆到多台机器并行，结果合到同一个 `cloud-results/render-<名>`（§8）。
+- `--no-image`：不用预装镜像，按老办法从 debian-12 装环境（对照用）。
 - `--hours`：缺省 2，到点 GCE 强制删机。
 - `--dry`：只打印要下发到虚拟机的整段命令，不开机。
 
@@ -66,3 +68,44 @@ python tools/gcp_render.py --branch HEAD --job custom --cmd 'python3 tools/pxpla
 - `rec` 用 `--fixed-fps 30 --realtime`。虚拟机跑不满实时也不丢帧（按帧号存图），mp4 仍是 30 帧原速。
 - 抢占式机器被回收时，batch.py 自动改用标准机重跑一次。中途断了可以 `python tools/gcp/batch.py collect render-<名>` 收结果，再用 `gcloud storage cp -r gs://<项目>-batch/render-<名>/media/* <本机目录>` 取媒体。
 - **本机没推的提交**：batch.py 打 bundle 上传。11-05 前只浅拉一个基准提交，分支里合进过别的分支（如 integ-1105）时，bundle 还有别的前置提交，虚拟机报「Repository lacks these prerequisite commits」（星熊出图前两次就是这样失败的）。现在 batch.py 读出 bundle 头里的全部前置提交，虚拟机逐个从 origin 浅拉后再取 bundle；本机已用同样的合并结构模拟验证。推到 origin 再跑最稳，不推也行。
+
+## 7. 提速（11-05，协调人转用户「GCP 的任务能不能再快一点」）
+
+**预装镜像** `arkr-render`（`python tools/gcp/build_image.py`，约 5 分钟）：
+- 镜像里装好 apt 包、pip 包、Godot 4.7.2、中文字体，并带一份预热过的导入缓存（`/opt/arkr/godot_cache`，取自做镜像时的 `claude/integ-1105`）。
+- 开机时 `vm_startup.sh` 看到 `/opt/arkr/ready` 就跳过安装：只做 checkout、拷导入缓存、增量导入，`render_prep.sh` 只生成 index.json、起 Xvfb。
+- batch.py / gcp_render.py 缺省都用这个镜像（批跑、CI 也一起变快）；项目里没有这个 family 时自动退回 debian-12。
+- 素材大改后重做一次镜像，导入缓存就跟上了。
+
+**开机到开始渲染**（同一个斯卡蒂普攻 demo，`env.txt` 的 secs 行 + render_prep 用时）：
+
+| 配置 | 开机 | 拉代码 | 装环境 + 导入 | render_prep | 合计 | demo 渲染 | 一次花费 |
+|---|---|---|---|---|---|---|---|
+| e2-standard-8，老办法 | 35 | 55 | 41 | 51 | **182 秒** | 844 秒 | $0.028 |
+| e2-standard-8，镜像 | 48 | 24 | 21 | 3 | 96 秒 | 847 秒 | $0.025 |
+| n2-standard-8，镜像 | 20 | 18 | 16 | 2 | **56 秒** | 568 秒 | $0.017 |
+| c2d-highcpu-8，镜像 | 40 | 17 | 12 | 2 | 71 秒 | **449 秒** | **$0.013** |
+
+**机型**：缺省 `c2d-highcpu-8`。软件渲染吃单核速度，c2d 比 e2 快 1.9 倍、比 n2 快 1.3 倍，抢占价还最低（约 $0.061/小时，n2-standard-8 约 $0.079）。
+- 配额：C2D 每区 100 核，C2 才是只有 8 核的那个。
+- 开机慢十几秒不要紧，渲染占大头。
+- 要 n2 就 `--machine n2-standard-8`（每区 200 核）。
+
+**外网 IP**：每区只有 8 个，所以 batch.py 一区开满（`IN_USE_ADDRESSES`、机型配额或机房没货）就自动换下一区；全项目 CPU 满（`CPUS_ALL_REGIONS`）才每分钟排队重试。
+- 建 Cloud NAT 后可以不用外网 IP，但那要改共享网络，未做，等用户定。
+- 系统盘缩到 20 GB：pd-balanced 算 SSD 配额，每区 300 GB。
+
+## 8. 一个任务拆到多台（`--split`）
+
+```
+python tools/gcp_render.py --branch <分支> --job pxplane --split --name <名>
+```
+
+- **pxplane**：按分号拆子命令；不带 `--modes` 的 `demo` 再按招拆成 4 台（普攻 / S1 / S2 / S3，各自出三栏 + 三档图）。缺省共 6 台：demo × 4 + rec + trace。
+- **trace_ab**：`cases` 里每局一台。
+- **custom**：每条 `--cmd` 一台。
+- 各段先推自己的 `cloud-results/render-<名>-<段>`，全部跑完合成一个 `cloud-results/render-<名>`（`build/cloud/render-<名>/<段>/…`），再删掉各段分支；图和录像都下载到同一个 `Claude outputs/render-<名>/`。
+- **斯卡蒂实测**（a1016374e，c2d-highcpu-8 × 6，镜像）：全程 **16.3 分钟**，原来单台 e2 是 48 分钟。23 个文件、75 MB 全部拿回。
+  - 各段：trace 7.1、demo-S3 7.3、demo-S2 8.5、demo-普攻 11.0、demo-S1 11.4、rec 15.7 分钟。
+  - 最慢的是 rec：要先快跑到 8:00，再实时录 20 秒，两局串行。
+  - 每段除了开机和渲染，还有约 3 分钟花在轮询间隔、收结果、推分支和下载上。

@@ -99,7 +99,7 @@ func _process(_d: float) -> void:
 	var tmid: float = (v.FIN_IN + v.FIN_DUR - v.FIN_OUT) * 0.5
 	v.real = tmid
 	var want: float = FR * v.time_scale(v.real + FR)
-	near(adv(), want, "击破慢动作中（圆盘开 + 1.5×）：只乘 victory.time_scale = 0.15，圆盘与倍速不乘")
+	near(adv(), want, "击破慢动作中（圆盘开 + 1.5×）：只乘 victory.time_scale（FIN_SCALE），圆盘与倍速不乘")
 	ok(absf(v.time_scale(tmid) - v.FIN_SCALE) < 1e-6, "慢动作中段系数 = FIN_SCALE")
 	# 退出各模态后全部回到 1
 	v.active = false
