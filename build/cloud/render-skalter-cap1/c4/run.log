@@ -1,0 +1,34 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（2467 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+| [expert] suzuran+skalter | 4 | 75% | 10:39 / 7:56 | 0.0 / - | 8 / 16 / 22 / 26 | 18% | 100% | 26 | 1808 | 狐火 22% 终结技·suzuran·斩痕 9% 声浪 8% 狐火点点 5% | 浊心斯卡蒂 28% 自身回复 25% 铃兰 16% (1289 / 0.0) | contact_tracer |
+
+### 机器人指标（docs/29）
+
+| 机器人 · 开局 | n | 胜率 | 存活 均/最短 | 3:30 存活 | 5:00 存活 | 首次招募 | 首次精一 / 精二 | 中期 Boss 击杀数 / 平均用时 | 受击/分 | 承伤/分 | 低血(<35%)秒 | 熄灯秒 | 静止% | 开局干员 伤害占比 / 每分钟 | 主要死因 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| [expert] wisadel+skalter | 4 | 75% | 10:34 / 8:28 | 100% | 100% | 1:08 | 0:50 / 2:01 | 2.8 / 41s | 134.0 | 84 | 2 | 0 | 4 | 55% / 49718 | corrode |
+| [expert] eyjafjalla+skalter | 4 | 25% | 7:36 / 3:42 | 100% | 50% | 1:04 | 0:44 / 2:40 | 1.2 / 30s | 120.5 | 117 | 17 | 0 | 4 | 49% / 23683 | corrode |
+| [expert] skadi+skalter | 4 | 100% | 11:35 / 11:26 | 100% | 100% | 1:18 | 0:50 / 4:13 | 2.8 / 64s | 125.0 | 90 | 0 | 0 | 4 | 45% / 37625 | - |
+| [expert] mizuki+skalter | 4 | 0% | 10:56 / 4:44 | 100% | 75% | 1:07 | 0:47 / 2:46 | 1.2 / 103s | 148.3 | 140 | 2 | 0 | 3 | 37% / 16349 | corrode |
+| [expert] saria+skalter | 4 | 25% | 12:41 / 11:44 | 100% | 100% | 1:24 | 0:48 / 3:47 | 2.2 / 120s | 149.1 | 96 | 0 | 11 | 4 | 10% / 6763 | corrode |
+| [expert] kaltsit+skalter | 4 | 75% | 11:49 / 11:06 | 100% | 100% | 1:34 | 0:48 / 3:01 | 2.5 / 62s | 204.2 | 91 | 0 | 2 | 4 | 26% / 21152 | shock_paranoia |
+| [expert] suzuran+skalter | 4 | 75% | 10:39 / 7:56 | 100% | 100% | 1:12 | 0:44 / 2:50 | 2.2 / 45s | 193.4 | 118 | 4 | 17 | 5 | 28% / 19930 | bullet |
+
+### 藏品（docs/35）
+
+| 机器人 | 开局 | 局数 | 平均藏品数 | 藏品直接伤害 | 各流派 出现 / 拿取 | 无效拿取 |
+|---|---|---|---|---|---|---|
+| expert | eyjafjalla | 4 | 7.5 | 0.0% | class 8/1 control 2/0 economy 11/4 general 22/15 heal 2/1 melee 3/1 multi 11/3 shield 2/0 summon 3/1 survival 9/3 weak 3/1 | 0 |
+| expert | kaltsit | 4 | 16.0 | 8.5% | class 16/6 control 4/2 economy 17/5 general 37/13 heal 27/12 melee 7/2 multi 8/0 shield 9/4 summon 7/2 survival 33/15 weak 6/3 | 0 |
+| expert | mizuki | 4 | 10.0 | 3.6% | class 8/2 control 1/0 economy 16/9 general 34/8 heal 2/2 melee 5/2 shield 4/0 summon 21/10 survival 12/6 weak 4/1 | 0 |
+| expert | saria | 4 | 14.8 | 14.9% | class 16/5 control 8/6 economy 23/7 general 45/15 heal 21/7 melee 9/3 multi 2/0 shield 6/5 summon 7/2 survival 19/7 weak 4/2 | 0 |
+| expert | skadi | 4 | 15.8 | 7.0% | class 22/8 control 4/2 economy 22/5 general 44/21 heal 8/2 melee 37/8 multi 10/3 shield 5/3 summon 5/2 survival 20/8 weak 3/1 | 0 |
+| expert | suzuran | 4 | 13.2 | 5.2% | class 12/3 control 20/13 economy 14/5 general 37/14 heal 6/0 melee 8/2 multi 4/0 shield 6/3 summon 10/7 survival 16/6 weak 3/0 | 0 |
+| expert | wisadel | 4 | 15.0 | 7.9% | class 17/3 control 4/2 economy 19/8 general 48/21 heal 6/0 melee 8/2 multi 21/10 shield 10/4 summon 4/1 survival 22/8 weak 1/1 | 0 |
+| 合计 | | | | | class 99/28 control 43/25 economy 122/43 general 267/107 heal 72/24 melee 77/20 multi 56/16 shield 42/19 summon 57/25 survival 131/53 weak 24/9 | |
+
+拿取最多（出现 / 拿取）：《旧高卢地名源流考》 19/9，安洁莉娜的创想 16/9，赶车夫的长鞭 17/7，散轶诗简 14/7，损坏的左轮弹巢 6/6，支柱-援护 13/6，鸭爵金砖 6/6，皇帝的恩宠 22/5，演出用香水 11/5，“小格兰法洛” 7/5，“绽放” 7/4，生还者合约 8/4
+耗时 341s
+写入 build/cloud/render-skalter-cap1-c4/capon_mate/capon_mate_1105_0503.{json,md}
+media：0 个文件，4.0K
