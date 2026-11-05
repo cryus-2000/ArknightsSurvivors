@@ -26,10 +26,10 @@ SRC = os.path.join(G.MAIN, "Claude outputs", "pxplane_ulpianus_1105", "orca_gen"
 OUT = SRC
 PX = 2
 SY = 0.72
-BODY = 64            # 体长（美术像素）
+BODY = 128           # 体长（美术像素，= 256 世界像素；按 A3 吻到尾鳍末端的外框宽算；协调人 11-05「体长要真的有约 128 美术像素」，大的部分在跃起高度上）
 STEP = 15            # 遮罩旋转档（度）
 # 水色 4 阶（比上一版亮、通透）：深 / 中 / 浅 / 最亮（进发光层）
-W4 = [(36, 96, 186), (64, 146, 224), (128, 202, 248), (214, 242, 255)]
+W4 = [(16, 64, 156), (24, 150, 226), (96, 214, 250), (206, 250, 255)]   # 照 A3：深海蓝 / 饱和青 / 亮青 / 亮青白（比上一版高两阶）
 FOAM = (226, 246, 255)
 
 
@@ -89,11 +89,9 @@ def principal_len(m):
     return proj.max() - proj.min(), math.degrees(math.atan2(ax[1], ax[0]))
 
 
-def bake(pose_path, base_angle):
-    """→ {角度档: (art 掩码 bool, art 亮度, 中心偏移)}；角度 = 屏幕上体长方向（0 = 朝右水平，正 = 往下转）"""
+def bake(pose_path, base_angle, sc):
+    """→ {角度档: (art 掩码 bool, art 亮度 0..1)}；角度 = 屏幕上体长方向（0 = 朝右水平，正 = 往下转）；sc = 原图像素 → 美术像素"""
     m, lum = key_mask(pose_path)
-    L, _ = principal_len(m)
-    sc = BODY / L
     mi = Image.fromarray((m * 255).astype(np.uint8))
     li = Image.fromarray((lum * 255).astype(np.uint8))
     out = {}
@@ -114,10 +112,13 @@ MASKS = {}
 
 
 def masks():
+    """体长按 A3 吻到尾鳍末端的外框宽算：BODY 美术像素；D3 用同一比例（同一批生图的同一个鲸，大小一致）"""
     if not MASKS:
-        MASKS["apex"] = bake(os.path.join(SRC, "v3_apex3_3_raw.png"), 0.0)
-        _, dang = principal_len(key_mask(os.path.join(SRC, "v3_dive3_3_raw.png"))[0])
-        MASKS["dive"] = bake(os.path.join(SRC, "v3_dive3_3_raw.png"), 40.0)
+        m, _ = key_mask(os.path.join(SRC, "v3_apex3_3_raw.png"))
+        sc = BODY / float(m.shape[1])
+        MASKS["sc"] = sc
+        MASKS["apex"] = bake(os.path.join(SRC, "v3_apex3_3_raw.png"), 0.0, sc)
+        MASKS["dive"] = bake(os.path.join(SRC, "v3_dive3_3_raw.png"), 40.0, sc)
     return MASKS
 
 
@@ -126,11 +127,13 @@ def h_(x):
 
 
 def draw_shape_whale(cv, gp, z, pitch, dv, clip, T, ghost=0):
-    """gp 地面点、z 离地高度、pitch（正 = 头朝下）、dv 前进方向（地面）。按 15° 档取遮罩逐格画"""
+    """gp 地面点、z 离地高度、pitch（正 = 头朝下）、dv 前进方向（地面）。按 15° 档取遮罩逐格画（docs/266 §15）：
+    配色照 A3（深海蓝 / 饱和青 / 亮青白），内部 = A3 的弯曲亮带（按生图亮度分层）顺体往后流 + 3 个小漩涡；
+    整圈 1 像素亮青浪边（实），上沿与鳍尖每拍甩 3–5 颗水珠；只有最暗一阶半透明；尾后一股水柱连到地面"""
     gp = G.snap(gp)
     e0 = G.norm((dv[0], dv[1] * SY))
     flip = e0[0] < 0
-    base = math.degrees(math.atan2(e0[1], abs(e0[0])))   # 朝右时的地面方向角
+    base = math.degrees(math.atan2(e0[1], abs(e0[0])))
     ang = base + math.degrees(pitch)
     pose = "dive" if pitch > 0.6 else "apex"
     q = int(round(ang / STEP)) * STEP
@@ -140,18 +143,22 @@ def draw_shape_whale(cv, gp, z, pitch, dv, clip, T, ghost=0):
     beat = int(math.floor(T * 15))
     th = math.radians(q)
     e = (math.cos(th), math.sin(th))
-    n = (math.sin(th), -math.cos(th))   # 朝上的法线（朝右时）
-    c = G.snap((gp[0], gp[1] - z - 12))
+    n = (math.sin(th), -math.cos(th))
+    sx = -1 if flip else 1
+    c = G.snap((gp[0], gp[1] - z - h))   # 鲸身中心离地：至少半个身高
+    cx, cy = w // 2, h // 2
     if not clip and ghost == 0 and z > 6:   # 地上的水影（随高度缩放）
-        sk = min(1.0, max(0.45, 1 - z / 160.0))
-        rx, ry = 24 * sk, 6 * sk
+        sk = min(1.0, max(0.45, 1 - z / 220.0))
+        rx, ry = 36 * sk, 8 * sk
         for iy in range(-int(ry), int(ry) + 1):
             for ix in range(-int(rx), int(rx) + 1):
                 if (ix / rx) ** 2 + (iy / ry) ** 2 <= 1:
-                    cv.pxa((gp[0] + ix * PX, gp[1] + iy * PX), (10, 26, 52), 0.4)
-    cx, cy = w // 2, h // 2   # 整数中心：保持在 2 世界像素格上（半格会让相邻两行取整到同一行、出条纹）
+                    cv.pxa((gp[0] + ix * PX, gp[1] + iy * PX), (10, 30, 70), 0.45)
     ga = [1.0, 0.3, 0.15][min(2, ghost)]
-    edge_pts = []
+    # 流动：亮度沿体长往后取样偏移（亮带从头往尾流），周期 12 格
+    flow = (beat * 2) % 12
+    top_pts, tail_pt = [], None
+    best_tail = 1e9
     for y in range(h):
         for x in range(w):
             if not mk[y, x]:
@@ -166,61 +173,85 @@ def draw_shape_whale(cv, gp, z, pitch, dv, clip, T, ghost=0):
                 continue
             u = ox * e[0] + oy * e[1]
             vv = ox * n[0] + oy * n[1]
-            up = y == 0 or not mk[y - 1, x]
-            dn = y == h - 1 or not mk[y + 1, x]
-            if up:
-                edge_pts.append((xx, y, u, vv))
-                if h_(math.floor(u * 0.8 + beat * 1.6) * 1.37 + 0.3) > 0.25:
-                    cv.px(pp, FOAM)
+            if u < best_tail:
+                best_tail, tail_pt = u, (xx, y)
+            edge = (y == 0 or not mk[y - 1, x] or y == h - 1 or not mk[y + 1, x]
+                    or x == 0 or not mk[y, x - 1] or x == w - 1 or not mk[y, x + 1])
+            if edge:   # 整圈 1 像素亮青浪边（实）
+                topedge = y == 0 or not mk[y - 1, x]
+                cv.px(pp, W4[3] if (topedge or h_(x * 0.7 + beat) > 0.6) else W4[2])
+                if topedge:
+                    top_pts.append((xx, y))
                     if x % 2 == 0:
                         cv.glow(pp, W4[3])
-                else:
-                    cv.pxa(pp, W4[2], 0.9)
                 continue
-            if dn:
-                cv.pxa(pp, W4[2] if h_(math.floor(u * 0.7 + beat * 1.3) * 2.1) > 0.55 else W4[1], 0.75)
-                continue
-            # 内部：生图亮度定底（亮带沿背 / 腹），细长流线按节拍往后走；半透明
-            L = lum[y, x]
-            lane = math.floor(vv * 0.9 + 2.2 * math.sin(u * 0.13 - beat * 0.35))
-            seg = h_(math.floor((u + beat * 2.5) / 7.0) * 1.91 + lane * 0.77)
-            if lane % 3 == 0 and seg > 0.4:
-                col, a = (W4[3], 0.9) if L > 0.62 else (W4[2], 0.85)
-                if L > 0.62 and seg > 0.8:
+            # 亮带：取头一侧 flow 格处的亮度（亮带往尾巴方向流）
+            sxp = int(round(x + e[0] * flow * (1 if not flip else 1)))
+            syp = int(round(y + e[1] * flow))
+            L = lum[syp, sxp] if (0 <= sxp < w and 0 <= syp < h and mk[syp, sxp]) else lum[y, x]
+            L = 0.65 * L + 0.35 * lum[y, x]
+            if L > 0.72:
+                cv.px(pp, W4[3])
+                if (x + y + beat) % 3 == 0:
                     cv.glow(pp, W4[3])
             elif L > 0.55:
-                col, a = W4[2], 0.6
+                cv.px(pp, W4[2])
             elif L > 0.38:
-                col, a = W4[1], 0.55
+                cv.px(pp, W4[1])
             else:
-                col, a = W4[0], 0.5
-            cv.pxa(pp, col, a)
-    if ghost or clip or not edge_pts:
+                cv.pxa(pp, W4[0], 0.6)   # 只有最暗一阶透出地面
+    if ghost or clip or not top_pts:
         return
-    # 背鳍尖、尾鳍末端每拍碎出水花 / 甩水滴：取上沿里最高的几点（鳍尖）和体长方向最靠后的几点（尾）
-    tip = sorted(edge_pts, key=lambda p: p[1])[:3]
-    tail = sorted(edge_pts, key=lambda p: p[2])[:4]
-    for k, (xx, y, u, vv) in enumerate(tip + tail):
-        for j in range(3):
-            ph = (beat + j + k) % 3
-            sd = k * 3.7 + j * 1.3 + (beat - ph) * 0.41
-            back = (2 + ph * 3 + h_(sd) * 3)
-            up = (2 + ph * 2 - ph * ph * 0.8 + h_(sd + 1) * 2)
-            dx = -e[0] * back * (-1 if flip else 1) + n[0] * up * (-1 if flip else 1)
-            dy = -e[1] * back + n[1] * up
-            p = (c[0] + (xx - cx + dx) * PX, c[1] + (y - cy + dy) * PX)
-            cv.px(p, FOAM if ph == 0 else (W4[2] if ph == 1 else W4[1]))
-    # 尾后散成 4 股水流
-    tx, ty = tail[0][0], tail[0][1]
-    for k in range(4):
-        for j in range(24):
-            wob = math.sin(j * 0.35 - beat * 1.4 + k * 1.3) * (1 + j * 0.1)
-            if h_(j * 0.9 + k * 3.1 + beat * 0.37) < j / 28.0:
-                continue
-            bx = -e[0] * (j + 1) * (-1 if flip else 1) + n[0] * ((k - 1.5) * 1.8 + wob) * (-1 if flip else 1)
-            by = -e[1] * (j + 1) + n[1] * ((k - 1.5) * 1.8 + wob)
-            p = (c[0] + (tx - cx + bx) * PX, c[1] + (ty - cy + by) * PX)
-            cv.pxa(p, W4[2] if j < 8 else (FOAM if j % 5 == 0 else W4[1]), 0.85 if j < 12 else 0.65)
+    # 3 个小漩涡：沿体长 0.25 / 0.5 / 0.7 处、背腹之间，按节拍转（5 格弧 + 亮头）
+    for i, fu in enumerate((0.7, 0.45, 0.22)):
+        ux = (fu - 0.5) * w
+        vy = (-1 if i == 1 else 1) * h * 0.06
+        px0 = cx + (ux * e[0] + vy * n[0]) * sx
+        py0 = cy + ux * e[1] + vy * n[1]
+        xi, yi = int(px0), int(py0)
+        xm = (w - 1 - xi) if flip else xi
+        if not (0 <= xm < w and 0 <= yi < h and mk[yi, xm]):
+            continue
+        rot = beat * 0.9 + i * 2.1
+        for j in range(7):
+            a = rot + j * 0.75
+            r = 1.0 + j * 0.42
+            p = (c[0] + (px0 - cx + math.cos(a) * r) * PX, c[1] + (py0 - cy + math.sin(a) * r * 0.8) * PX)
+            cv.px(p, W4[3] if j > 4 else W4[2])
+    # 上沿与鳍尖每拍甩出 3–5 颗水珠（往上、往后飞，3 拍落下缩成点）
+    top_sorted = sorted(top_pts, key=lambda p: p[1])
+    srcs = top_sorted[:2] + [top_pts[int(h_(beat * 0.37 + k) * len(top_pts)) % len(top_pts)] for k in range(3)]
+    for k, (xx, y) in enumerate(srcs):
+        for ph in range(3):
+            sd = k * 3.7 + (beat - ph) * 0.41
+            back = 2 + ph * 3 + h_(sd) * 3
+            upz = 3 + ph * 3 - ph * ph * 1.2 + h_(sd + 1) * 2
+            p = (c[0] + (xx - cx - e[0] * back * sx) * PX, c[1] + (y - cy - upz - e[1] * back) * PX)
+            col = W4[3] if ph == 0 else (W4[2] if ph == 1 else W4[1])
+            cv.px(p, col)
+            if ph == 0:
+                cv.px((p[0] + PX, p[1]), W4[2])
+    # 尾后一股水柱连到地面（加长、加亮）：从尾鳍末端顺体长往后，弯向地面上的投影点后方
+    if tail_pt is None:
+        return
+    tx, ty = tail_pt
+    t0 = (c[0] + (tx - cx) * PX, c[1] + (ty - cy) * PX)
+    t1 = (gp[0] - e0[0] * 40 * (1 if not flip else 1), gp[1] - e0[1] * 40)
+    for j in range(40):
+        k = j / 39.0
+        bx = t0[0] + (t1[0] - t0[0]) * k + (-e[0] * sx) * 20 * math.sin(k * math.pi) * PX
+        by = t0[1] + (t1[1] - t0[1]) * k * k
+        wob = math.sin(j * 0.5 - beat * 1.6) * 1.5
+        half = 4.0 - 2.5 * k   # 水柱上粗下细
+        for s in range(-int(half) - 1, int(half) + 2):
+            p = (bx + (wob + s) * PX, by)
+            if abs(s) > half:
+                if h_(j * 1.1 + s + beat) > 0.5:
+                    cv.px(p, W4[3])
+            else:
+                cv.px(p, W4[2] if (j + beat) % 4 else W4[3])
+        if j % 6 == 3 and h_(j + beat * 0.7) > 0.4:
+            cv.px((bx + (half + 2) * PX, by - 2 * PX), W4[3])
 
 
 def breach_column(cv, gp, T, k):
@@ -256,16 +287,24 @@ def main():
         draw_shape_whale(cv, gp, z, pitch, dv, clip, T, ghost)
     G.draw_orca = draw
     lib = G.Lib()
-    G.OX, G.OY = 150, 170
+    G.H = 420   # 鲸体长 256 世界像素、跃起 64：画框加高（GIF 上 1 倍 / 下 2 倍各 420 高），不裁
+    G.OX, G.OY = 150, 330
     fr = [G.column_frames(G.sc_s3(), lib)]
     frames = G.assemble(fr, ["生图剪影 + 程序水（试样）"], "S3 虎鲸")
     G.save_gif(frames, os.path.join(OUT, "shapewhale_s3.gif"))
     # 静帧对照：A3 原图 | 程序水 1 倍 | 4 倍
+    G.H = 270
     cv = G.Canvas()
-    G.OX, G.OY = 220, 200
-    draw_shape_whale(cv, (0, 0), 50, 0.0, (1.0, 0.0), False, 0.4)
+    G.OX, G.OY = 200, 262
+    draw_shape_whale(cv, (0, 0), 30, 0.0, (1.0, 0.0), False, 0.4)
     still = cv.final()
-    crop = still.crop((110, 60, 330, 190)).resize((880, 520), Image.NEAREST)
+    arr2 = np.asarray(still).astype(int)
+    diff = np.abs(arr2 - np.array(G.GROUND)[None, None, :]).sum(2) > 40
+    ys, xs = np.nonzero(diff)
+    x0, x1, y0, y1 = max(0, xs.min() - 6), min(still.width, xs.max() + 6), max(0, ys.min() - 6), min(still.height, ys.max() + 6)
+    crop = still.crop((x0, y0, x1, y1))
+    k4 = max(1, min(880 // crop.width, 520 // crop.height))
+    crop = crop.resize((crop.width * k4, crop.height * k4), Image.NEAREST)
     a3 = Image.open(os.path.join(SRC, "v3_apex3_3_raw.png")).convert("RGB")
     arr = np.asarray(a3).astype(int)
     mag = (arr[..., 0] > 140) & (arr[..., 2] > 140) & (arr[..., 1] < 120) & (np.abs(arr[..., 0] - arr[..., 2]) < 90)
@@ -275,7 +314,7 @@ def main():
     sheet = Image.new("RGB", (880 * 2 + 30, 520 + 300 + 70), (14, 16, 20))
     d = ImageDraw.Draw(sheet)
     sheet.paste(a3, (10, 36)); d.text((14, 6), "A3 生图原图（只取剪影和明暗走向）", fill=(220, 226, 236), font=font)
-    sheet.paste(crop, (900, 36)); d.text((904, 6), "程序水 · 4 倍局部", fill=(220, 226, 236), font=font)
+    sheet.paste(crop, (900, 36)); d.text((904, 6), "程序水 · %d 倍" % k4, fill=(220, 226, 236), font=font)
     sheet.paste(still, (10, 590)); d.text((14, 562), "程序水 · 1 倍（实机大小）", fill=(220, 226, 236), font=font)
     sheet.save(os.path.join(OUT, "shapewhale_still.png"))
     print("ok")
