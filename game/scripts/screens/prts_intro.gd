@@ -21,6 +21,7 @@ const TRI := [Vector2(60, 14), Vector2(114, 103), Vector2(6, 103)]
 var kind := "decrypt"
 var t0 := -100.0
 var rmode := false
+var slow := 1.0   # 时间轴放慢倍数（图鉴 1.5 = 1.2 秒，11-05 用户「可以稍微慢一点」）；下面写的秒数都是 1 倍时的
 var info := {}   # 宿主给的档案信息：count / total（图鉴收录数）
 var host_frost := false   # 宿主有拷屏磨砂层（揭开阶段底色由它画）
 
@@ -32,11 +33,11 @@ func start(k: String, test := false) -> void:
 
 
 func elapsed() -> float:
-	return UIMo.now() - t0
+	return (UIMo.now() - t0) / slow
 
 
 func active() -> bool:
-	return elapsed() < (RM_T if rmode else T)
+	return (UIMo.now() - t0) < (RM_T if rmode else T * slow)
 
 
 func skip() -> void:
@@ -85,7 +86,7 @@ func draw(ci: CanvasItem, vs: Vector2, font: Font) -> void:
 	if t < 0.0 or not active():
 		return
 	if rmode:
-		ci.draw_rect(Rect2(Vector2.ZERO, vs), Color(BG, 1.0 - t / RM_T))
+		ci.draw_rect(Rect2(Vector2.ZERO, vs), Color(BG, 1.0 - (UIMo.now() - t0) / RM_T))
 		return
 	if kind == "access":
 		_draw_access(ci, vs, font, t)

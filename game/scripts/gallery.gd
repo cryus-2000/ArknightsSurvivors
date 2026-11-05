@@ -1293,7 +1293,7 @@ func _draw() -> void:
 		_draw_panel(e, ph)
 	_draw_hint(ph)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	_draw_logo_intro()   # 「档案解密」入场（盖在最上面，0.8 秒）
+	_draw_logo_intro()   # 「档案解密」入场（盖在最上面，1.2 秒）
 
 
 ## 职业色斜带 + 延伸到右侧面板底下的回声带（同一扫入：换干员时新颜色从左扫过、透过磨砂玻璃也看得见）
@@ -2483,6 +2483,7 @@ func _logo_start() -> void:
 		if not e.get("locked", false):
 			nc += 1
 	intro.info = {"count": nc, "total": entries.size()}
+	intro.slow = 1.5   # 用户 11-05「可以稍微慢一点」：0.8 → 1.2 秒
 	intro.start("decrypt", test)
 	if frost_ci == null and glass_mat != null and glass_fx:
 		frost_bbc = BackBufferCopy.new()
