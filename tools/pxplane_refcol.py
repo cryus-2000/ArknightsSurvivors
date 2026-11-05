@@ -40,7 +40,7 @@ def ref_column(op, key, refdir, H):
     col = Image.new("RGB", (W, H), (12, 12, 16))
     d = ImageDraw.Draw(col)
     d.rectangle((8, 8, 8 + 300, 50), fill=(0, 0, 0))
-    d.text((16, 10), "⓪ 原作参照（本机回放，近似）", fill=(255, 255, 255), font=font(24))
+    d.text((16, 10), "0 原作参照（本机回放，近似）", fill=(255, 255, 255), font=font(24))
     cells = REF.get(op, {}).get(key)
     if not cells:
         d.multiline_text((24, 90), NOTE.get(op, {}).get(key, "无原作参照"), fill=(200, 200, 200), font=font(24), spacing=10)
