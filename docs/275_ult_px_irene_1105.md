@@ -153,3 +153,8 @@
 - 11-06 用户：「艾莉妮新版没问题」。开关改成按干员分的 `ult/px_plane_irene`，缺省 1（开）；0 = 原画面。其余 19 人照 §5 模板做，各用自己的 `ult/px_plane_<id>`，用户点头后再改缺省。
 - 改名后在 GCP 重跑开 / 关 TRACE，结果见下。
 
+| 项（提交 64da13b97） | 结果 |
+|---|---|
+| TRACE（windowed）：种子 3 · 40 秒 / 种子 3 · 490 秒，`ult/px_plane_irene` 0 vs 1 | 41 / 41 行、491 / 491 行逐行一致 |
+| 缺省设置的 8:00 实机录像（不传开关） | 300 帧，新版画面（白纹章、白紫斩线、粒子云、小亮核 + 冲击环）；本机 `Claude outputs/render-ult-irene-final/ult_irene_8m_default.mp4` |
+
