@@ -1,0 +1,39 @@
+{
+ "op": "texas",
+ "mode": "atk",
+ "frame": 21,
+ "engine": 80,
+ "secs": 5.0,
+ "hits": 0,
+ "acts": 19,
+ "skill": 0,
+ "parts_total": 72,
+ "parts_per_hit": 3.8,
+ "parts_per_s": 14.4,
+ "parts_s1_1s": null,
+ "mats": {
+  "shard": 72
+ },
+ "life": 0.77,
+ "sz": 3.1,
+ "alive_max": 28,
+ "lights": 20,
+ "lights_per_hit": 1.05,
+ "light_r": 110.0,
+ "light_i": 0.5,
+ "light_life": 0.12,
+ "emit_max": 144,
+ "emit_mean": 53.6,
+ "gl_peak": 34.2,
+ "gl_area_hit": 38,
+ "gl_mean_hit": 8.5,
+ "em_peak": 233.4,
+ "em_area_hit": 35,
+ "em_mean_hit": 11.6,
+ "crop": [
+  438,
+  212,
+  320,
+  180
+ ]
+}
