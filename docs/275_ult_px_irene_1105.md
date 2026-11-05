@@ -2,7 +2,7 @@
 
 **结论摘要**
 1. 用户 11-05：「能不能拿艾莉妮当粒子（例子），在这个基础上改进一下我们的终结技？只是改画面，方式我们都定下来了」。本稿只改艾丽妮终结技 Q「宣判」的画面。招式的时间轴、判定、伤害、钉住、镜头钉住、冲击帧逻辑都照 `ult_moves_c._irv_*`（docs/198、docs/199 §7.10），一律没动。
-2. 开关 `ult/px_plane`（balance.json，缺省 0 = 原画面）。开着时纹章、光链、穿梭斩线、连环爆、收尾斩击和起手蓄力改由 `game/scripts/run/ult_px_ir.gd` 逐格画：1 特效像素 = 1 美术像素，按 15 fps 节拍换帧，贴地层压扁 0.72。
+2. 开关 `ult/px_plane_irene`（balance.json，缺省 0 = 原画面）。开着时纹章、光链、穿梭斩线、连环爆、收尾斩击和起手蓄力改由 `game/scripts/run/ult_px_ir.gd` 逐格画：1 特效像素 = 1 美术像素，按 15 fps 节拍换帧，贴地层压扁 0.72。
 3. 配色：纹章用白色（11-05 用户「背景会不会太紫了，我觉得白的比较好，然后再加上白紫色斩击」），斩击、光链、爆用白 + 亮紫（同 docs/272），深海蓝潮水只作辅色。
 4. **保留**：冲击帧「整屏白 + 黑剪影」（中村丰式，用户已认可）。剪影主体换成新的收尾斩击和两条主裂缝。
 5. 状态：11-05 用户看崩解版后点头（「最后的崩解特效是最关键的，得做上」）。已接进游戏，挂在开关下（缺省关），分支 `claude/ult-px-irene`；GCP 上的实机录像和开 / 关 TRACE 见 §6。
@@ -88,7 +88,7 @@
 ## 5. 模板：其余 19 人终结技照这个做
 
 **结构**（每人一套，互不相撞）：
-1. `game/scripts/run/ult_px_<id>.gd`：`static on()` 读同一个开关 `ult/px_plane`；`static ev(u, kind, d)` 记事件；`draw_back(u, w)` 画地面层，`draw_front(u, w)` 画上层，`draw_hf(u, w, fg)` 画冲击帧剪影，需要时再加 `draw_windup(u, w, caster, wk)` 画起手蓄力。
+1. `game/scripts/run/ult_px_<id>.gd`：`static on()` 读同一个开关 `ult/px_plane_irene`；`static ev(u, kind, d)` 记事件；`draw_back(u, w)` 画地面层，`draw_front(u, w)` 画上层，`draw_hf(u, w, fg)` 画冲击帧剪影，需要时再加 `draw_windup(u, w, caster, wk)` 画起手蓄力。
 2. `ult_moves*.gd` 里这人的招式函数：在原来画图的每个调用（`u.strip / u.shape / PF.particles / PF.dust / PF.cracks / PF.rock / PF.aftershock / u.light / 链节 tiles`）外面套 `if 开关开: 发事件 else: 原画法`。玩法调用（`u.hit / _once / add_cc / _lead_move / cam_hold / vfx.stop / u.impact / PF.hf_on / 音效`）一行不动。
 3. `ult.gd` 里四处转发（`draw_world_back / draw_world / _draw_hit_frame / _draw_windup`），每多一个人加一行 `if on(): of(g).draw_*()`，或者改成按施放者 id 查表。
 4. 画法先在 Python 里写一遍（`tools/ult_px_<id>_art.py`），出送审 GIF 和原版对新版并排，用户点头后再逐函数移植成 GDScript，两边一一对应。
@@ -115,15 +115,15 @@
 **冲击帧怎么接**：招式照旧先 `PF.hf_on(u, a)` 再 `u.impact(c)`，冲击帧的开关、两拍时长、底色都由 `ult._draw_hit_frame` 管。开关开着时原来标了 `hf` 的图形不会再生成，剪影由 `draw_hf(u, w, fg)` 画：把这一下的主体（主刃 / 主裂缝等）按 fg 纯色重画一遍，第 1 拍黑、第 2 拍白（或招式自定 `hf_cols`）。
 
 **验收**：
-1. GCP 上 `tools/ult_rec.py --clips u_<id> --extra="--bal=ult/px_plane=1"` 出实机录像，日志查 SCRIPT ERROR。
-2. `--job trace_ab`，`a=ult/px_plane=0`、`b=ult/px_plane=1`，`windowed=1`（要画画面才会走到绘制代码），extra 同 `ult_rec` 的强制放终结技参数，要求逐行一致。
+1. GCP 上 `tools/ult_rec.py --clips u_<id> --extra="--bal=ult/px_plane_<id>=1"` 出实机录像，日志查 SCRIPT ERROR。
+2. `--job trace_ab`，`a=ult/px_plane_<id>=0`、`b=ult/px_plane_<id>=1`，`windowed=1`（要画画面才会走到绘制代码），extra 同 `ult_rec` 的强制放终结技参数，要求逐行一致。
 
 ## 6. 游戏内验收（GCP，分支 `claude/ult-px-irene`，提交 1f2389410）
 
 | 项 | 结果 |
 |---|---|
-| 实机录像：`ult_rec.py --clips u_irene --extra="--bal=ult/px_plane=1"`（艾丽妮队长 + 塞雷娅 / 能天使，种子 3，31.5 秒充满放出，30 帧原速 8 秒） | 240 帧，SCRIPT ERROR 0 条；纹章、光链、6 刀穿梭、连环爆、冲击帧两拍（白底黑剪影 / 黑底白剪影，剪影 = 新斩线 + 主裂缝）、收尾崩解全部出现 |
-| TRACE：同一局（种子 3，40 秒，强制 31.5 秒放终结技），`ult/px_plane` 0 vs 1，画画面跑（windowed） | 41 行逐行一致；31–33 秒处终结技的击杀数 49 → 93 → 104、队长位置跳动两组相同 |
+| 实机录像：`ult_rec.py --clips u_irene --extra="--bal=ult/px_plane_<id>=1"`（艾丽妮队长 + 塞雷娅 / 能天使，种子 3，31.5 秒充满放出，30 帧原速 8 秒） | 240 帧，SCRIPT ERROR 0 条；纹章、光链、6 刀穿梭、连环爆、冲击帧两拍（白底黑剪影 / 黑底白剪影，剪影 = 新斩线 + 主裂缝）、收尾崩解全部出现 |
+| TRACE：同一局（种子 3，40 秒，强制 31.5 秒放终结技），`ult/px_plane_irene` 0 vs 1，画画面跑（windowed） | 41 行逐行一致；31–33 秒处终结技的击杀数 49 → 93 → 104、队长位置跳动两组相同 |
 
 - 录像：本机 `Claude outputs/ult_px_irene_1105/ult_irene_live_px_on.mp4`（原始在 `Claude outputs/render-ult-irene-px/`，日志在 `cloud-results/render-ult-irene-px`）。
 - TRACE：`cloud-results/render-ult-irene-trace` 分支 `build/cloud/render-ult-irene-trace/trace_ab.md`。
@@ -134,8 +134,27 @@
 | 项 | 结果 |
 |---|---|
 | 怪物多的场面实机录像：`ult_rec.py --clips u_irene --at 480 --secs 10`，开 / 关各一段（8:01.5 放终结技） | 两段各 300 帧，SCRIPT ERROR 0 条。开着时依次出现：亮核 → 冲击环 → 被宣判的怪成片炸成自身颜色的像素粒子；地面碎石和尘作配角 |
-| TRACE：种子 3 · 40 秒（31.5 秒放）/ 种子 3 · 490 秒（481.5 秒放），`ult/px_plane` 0 vs 1，windowed | 41 / 41 行、491 / 491 行逐行一致 |
+| TRACE：种子 3 · 40 秒（31.5 秒放）/ 种子 3 · 490 秒（481.5 秒放），`ult/px_plane_irene` 0 vs 1，windowed | 41 / 41 行、491 / 491 行逐行一致 |
 | 中途修的错 | 冲击环「地面一闪」的点表少了第 4 项（不透明度），`_pts` 读 q[3] 时报 SCRIPT ERROR（8:00 那局查出，调用栈指到 `_draw_blast`），已修 |
 
 - 录像：本机 `Claude outputs/ult_px_irene_1105/ult_irene_8m_before_after.mp4`（左原版、右转平面，同种子同一时刻），`ult_irene_8m_on.mp4`（开着的原片）。
+
+### 6.2 粒子云 + 小亮核版（提交 b426eabd7）
+
+| 项 | 结果 |
+|---|---|
+| 8:00 怪物多的场面，开 / 关同局同时刻录像 | 两段各 300 帧，SCRIPT ERROR 0 条；路上每处连环爆都是白紫闪烁粒子云，棕灰烟已删；收尾大爆是中心小亮核 + 8 格冲击环 + 往外喷的粒子云 |
+| TRACE（windowed）：种子 3 · 40 秒 / 种子 3 · 490 秒，`ult/px_plane_irene` 0 vs 1 | 41 / 41 行、491 / 491 行逐行一致 |
+
+- 录像：`Claude outputs/ult_px_irene_1105/ult_irene_8m_before_after.mp4`（左原版右新版，已覆盖 §6.1 那版）、`ult_irene_8m_on.mp4`。
+
+## 7. 定稿（11-06）
+
+- 11-06 用户：「艾莉妮新版没问题」。开关改成按干员分的 `ult/px_plane_irene`，缺省 1（开）；0 = 原画面。其余 19 人照 §5 模板做，各用自己的 `ult/px_plane_<id>`，用户点头后再改缺省。
+- 改名后在 GCP 重跑开 / 关 TRACE，结果见下。
+
+| 项（提交 64da13b97） | 结果 |
+|---|---|
+| TRACE（windowed）：种子 3 · 40 秒 / 种子 3 · 490 秒，`ult/px_plane_irene` 0 vs 1 | 41 / 41 行、491 / 491 行逐行一致 |
+| 缺省设置的 8:00 实机录像（不传开关） | 300 帧，新版画面（白纹章、白紫斩线、粒子云、小亮核 + 冲击环）；本机 `Claude outputs/render-ult-irene-final/ult_irene_8m_default.mp4` |
 
