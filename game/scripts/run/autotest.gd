@@ -45,6 +45,7 @@ var bm_next_t := 0.0
 var bm_tag := ""
 var choice_wait := 0
 var choice_shot := false
+var _tabplay_f := -1   # --tabplay：属性栏打开时的渲染帧号
 var choice_n := 0   # --choiceshots：每个选卡画面都截一张（shot_choice_<n>.png，干员文字验收）
 var trace_last := -1
 # --perf（仅测试，开窗口跑 --balance 时用）：按游戏时间分段记真实帧时间、渲染 CPU / GPU 时间与同屏敌人数，
@@ -419,7 +420,7 @@ func _rec_step() -> void:
 			if a == "--legacyfeel":
 				g.perf_alt = true
 				PlayClockT.test_legacy = true
-	if _rec_t0 >= 0.0 and _rec_left > 0 and g.t >= _rec_t0 and (g.state == g.S.PLAY or (g.state == g.S.CHOICE and Cfg.dev_args().has("--recchoice")) or (g.state == g.S.INTRO and g.onboard.modal() and Cfg.dev_args().has("--recintro"))) and DisplayServer.get_name() != "headless":
+	if _rec_t0 >= 0.0 and _rec_left > 0 and g.t >= _rec_t0 and (g.state == g.S.PLAY or (g.state == g.S.CHOICE and Cfg.dev_args().has("--recchoice")) or (g.state == g.S.INTRO and g.onboard.modal() and Cfg.dev_args().has("--recintro")) or (g.state == g.S.STATS and Cfg.dev_args().has("--recstats"))) and DisplayServer.get_name() != "headless":
 		if _rec_i == 0 and Cfg.dev_args().has("--sfxtrace"):
 			Sfx.trace_on = true   # --sfxtrace：录屏配音（测试局照样静音）：记下每次真正放出的音效，结束时打印 SFXTRACE，离线混音合进 mp4（tools/exu_sync_rec.py）
 			_rec_f0 = Engine.get_process_frames()
@@ -873,6 +874,15 @@ func step() -> void:
 			lv_marks[m] = g.level
 	if Cfg.dev_args().has("--knightshots"):
 		_knight_shots()
+	# --tabplay=<秒>,<帧>：录像用（属性栏入场 / 退场动效，docs/222 §19）：局内 <秒> 时打开 Tab 属性面板，<帧> 个渲染帧后关上（配 --recframes --recstats 连着录）
+	for a in Cfg.dev_args():
+		if a.begins_with("--tabplay="):
+			var tp: PackedStringArray = a.substr(10).split(",")
+			if _tabplay_f < 0 and g.state == g.S.PLAY and g.t >= float(tp[0]):
+				_tabplay_f = Engine.get_process_frames()
+				g.state = g.S.STATS
+			elif _tabplay_f >= 0 and g.state == g.S.STATS and Engine.get_process_frames() - _tabplay_f >= int(tp[1]):
+				g.state = g.S.PLAY
 	# --tabshot=<帧>：第 <帧> 帧打开 Tab 属性面板，3 帧后截图 shot_tab.png 并退出（干员文字验收：技能 / 天赋 / 普攻形态行，10-14）
 	for a in Cfg.dev_args():
 		if a.begins_with("--tabshot="):
