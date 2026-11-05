@@ -115,8 +115,9 @@ function canopy(p, t, o, C, X, k) {
   if ((st === "s1" || st === "s3") && tt > 0.03 && tt < 0.32) {
     const u = tt - 0.03, N = st === "s1" ? 14 + 3 * el : 18;
     for (let i = 0; i < N; i++) {
-      const a = tail + (head - tail) * nz(i * 2.3, +o.seed + 301) + th, sp = 45 + 55 * nz(i * 1.9, +o.seed + 303);
-      const x = Math.cos(a) * (R + sp * u), y = Math.sin(a) * (R + sp * u) * SY - H0 - 30 * u + 280 * u * u;
+      // 11-05 用户「特效范围会过大吗」：水滴只在伞面边内侧甩起、往下落，不越过判定半径（外缘 ≤ R × 1.04）
+      const a = tail + (head - tail) * nz(i * 2.3, +o.seed + 301) + th, rr = R * (0.86 + 0.18 * nz(i * 1.9, +o.seed + 303) * Math.min(1, u / 0.25));
+      const x = Math.cos(a) * rr, y = Math.sin(a) * rr * SY - H0 - 30 * u + 280 * u * u;
       const c = u < 0.1 ? WHITE : st === "s3" ? (i % 2 ? X.ac : C[n - 3]) : (i % 2 ? X.cy : C[n - 3]);
       p.px(R0(x), R0(y), c);
       if (i % 3 === 0) p.px(R0(x) + 1, R0(y), c);
@@ -386,7 +387,7 @@ function bloomGround(p, t, o, C, X) {
   if (o.view === "raw") return;
   const SY = +o.SY, st = o.style || "hit", R = +o.R;
   if (st !== "burst") return;
-  const Rg = R * 2.2 * ease.outCubic(clamp(t / 0.2));
+  const Rg = R * 2.0 * ease.outCubic(clamp(t / 0.2));   // 判定 burst r 80 → 美术 40；精二 R 20 × 2.0 = 40（不超）
   const fade = smooth(0.18, 0.42, t);
   if (fade >= 1 || Rg < 2) return;
   const m = Math.ceil(Rg * TAU);

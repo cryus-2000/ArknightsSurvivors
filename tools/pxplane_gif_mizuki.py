@@ -141,7 +141,7 @@ class Panel:
     def tent(self, key, t0, e, bind=0.0, tier=1):
         x, y = e["pos"]
         side = 1 if x >= self.mz[0] else -1
-        bx, by = x + side * e["r"] * 0.55, y + 3
+        bx, by = x + side * (e["r"] * 0.55 + (16 if ("_slam_" in key or "_big_" in key) else 0)), y + 3
         self.add(key + "_up", t0, (bx, by), "up", side > 0, gy=by + 0.5)
         self.add(key + "_gd", t0, (bx, by), "gd", side > 0)
         if bind >= 0.45:

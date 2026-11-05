@@ -176,7 +176,7 @@ def variants_mizuki():
             v.append(("spin3_r%d_%s" % (R, ly), {"part": "spin", "layer": ly, "R": R, "W": 16 + (R - 81) // 8, "H0": 13, "el": 2, "dur": 0.36, "style": "s3", "seed": 9}, 0.4))
     # 触手五种形态（11-05 用户「多做几个形态」），每种 3 个变体（弯向 / 长短 / 粗细随种子变）：
     # slam 拍击（普攻追击，精二多一根卷须）/ pierce 刺穿（唤醒大水母下、触手桩）/ curl 卷须（囚徒困境束缚）/ big 粗拍击（镜花水月）/ cluster 群生（连携）
-    FORMS = [("slam", (1, 2), 30), ("pierce", (1, 2), 32), ("curl", (1, 2), 30), ("big", (2,), 40), ("cluster", (2,), 34)]
+    FORMS = [("slam", (1, 2), 24), ("pierce", (1, 2), 32), ("curl", (1, 2), 30), ("big", (2,), 32), ("cluster", (2,), 34)]   # 拍击横向够到约 1.25H：H 24 / 32 → 落点不越出目标一带
     for form, els, H in FORMS:
         for el in els:
             for vv in range(3):
@@ -195,8 +195,8 @@ def variants_mizuki():
         for ly in ("up", "gd"):
             v.append(("s2cast_e%d_%s" % (el, ly), {"part": "tring", "layer": ly, "R": 46, "n": 6 + el, "H": 30, "el": el, "style": "s2", "seed": 31}, 0.6))
     for ly in ("up", "gd"):
-        v.append(("awk2_%s" % ly, {"part": "tring", "layer": ly, "R": 58, "n": 6, "H": 22, "el": 1, "style": "ring", "seed": 33}, 0.55))   # 惊跳反射·余悸
-        v.append(("moon_%s" % ly, {"part": "moon", "layer": ly, "R": 80, "el": 2, "seed": 35}, 0.66))   # 镜花水月起手
+        v.append(("awk2_%s" % ly, {"part": "tring", "layer": ly, "R": 44, "n": 6, "H": 22, "el": 1, "style": "ring", "seed": 33}, 0.55))   # 惊跳反射·余悸
+        v.append(("moon_%s" % ly, {"part": "moon", "layer": ly, "R": 68, "el": 2, "seed": 35}, 0.66))   # 镜花水月起手
     for R in (81, 104):   # 镜花水月持续：脚下水镜（循环）
         v.append(("pool_r%d_gd" % R, {"part": "pool", "layer": "gd", "R": R, "el": 2, "seed": 37, "_loop": True}, 0.4))
     v.append(("jelly_up", {"part": "jelly", "layer": "up", "R": 5, "H0": 0, "el": 2, "_loop": True}, 0.4))   # 深蓝之籽（循环）

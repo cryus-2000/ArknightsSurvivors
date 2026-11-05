@@ -1412,7 +1412,8 @@ func _mz_bloom(o, e: Dictionary, key: String, raw: bool, t: int) -> void:
 func _mz_tent(o, e: Dictionary, at: Vector2, key: String, raw: bool, t: int, bind: float) -> void:
 	var side: float = 1.0 if at.x >= o.pos.x else -1.0
 	var er: float = float(e.get("r", 14.0))
-	var base: Vector2 = at + Vector2(side * er * 0.55, 3.0)
+	var arc: bool = key.contains("_slam_") or key.contains("_big_")   # 拍击要越过头顶拍下来：底座放远一点，落点正好在目标上（不拍到旁边空地）
+	var base: Vector2 = at + Vector2(side * (er * 0.55 + (16.0 if arc else 0.0)), 3.0)
 	if raw:
 		_push({"k": "mz_raw_tent_e%d" % t, "t0": g.t, "gp": base, "ly": "raw", "rot": 0.0, "sc": g.PX * 1.15, "oid": str(o.id)})
 		return
