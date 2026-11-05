@@ -299,7 +299,6 @@ static func _sd_step(u, a: Dictionary, o) -> bool:
 				if Bal.v("ult/sd_crash_hf", 1.0) > 0.0:
 					PF.hf_on(u, a)
 			SDP.ev(u, "crash", {})
-			u.shake(Bal.v("ult/sd_px_shake", 3.0), Bal.v("ult/sd_px_shake_t", 0.12))   # 用户 11-05：轻震 3px / 0.12 秒（原画面 6 / 0.2）
 			w["wet_x"] = F
 		if w.has("roll"):   # 分镜 A：一堵卷浪压着往前滚，滚到前方砸成水爆
 			_sd_roll_tick(u, a, w, o0, d, n, hw, t, F, L, col, foam)

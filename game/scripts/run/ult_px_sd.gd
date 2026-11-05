@@ -13,6 +13,8 @@ const META := "res://data/ult_px_skadi.json"
 const ART := "res://art/fx/pxp/ult_sd/%s.png"
 const ICE := Color(0.77, 0.86, 1.0)
 const FPS := 15.0
+const UM = preload("res://scripts/ui_motion.gd")
+const SPLIT := 0.25     # 劈开慢动作那段的游戏秒（同 ak-skadi-ult-pp.js SPLIT）：冲击帧后剑光劈进浪、两半分开，之后才起爆
 
 var g
 var meta := {}
@@ -87,10 +89,14 @@ func _ev(u, kind: String, d: Dictionary) -> void:
 		"cleave":   # 下劈落地：落点一盏照地光（冰蓝）
 			if not st.is_empty():
 				u.light(_plane(150.0, 0.0), 160.0, ICE, 0.35)
-		"crash":   # 劈口爆点：满亮照地灯（接近 docs/270 爆发档上限）；冲击帧 / 顿帧由招式照旧打
+		"crash":   # 劈浪：冲击帧 / 顿帧由招式照旧打；之后劈开慢动作（slow_scale），起爆时（boom_t）点满亮照地灯
 			if not st.is_empty():
 				st.crash_t = g.t
-				u.light(_plane(540.0, 0.0), 460.0, Color(0.85, 0.92, 1.0), 0.6)
+				st["crash_rt"] = UM.now()
+				st["lit"] = false
+				var sx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
+				if sx != null:
+					sx.play("boom", -6.0, 0.5, 0.0)   # 慢放时一声低沉的余音（复用现有 boom，降八度）
 		"hit":   # 被下劈 / 浪头打中的怪：冲击环扫到它那一拍补崩解（同一只只记一次）
 			if not st.is_empty() and st.hits.size() < HIT_MAX:
 				var e: Dictionary = d.e
@@ -169,7 +175,7 @@ func _emits() -> void:
 		for i in 12:
 			_glow(_plane(60.0 + 30.0 * i, 0.0), ICE)
 	if float(st.crash_t) >= 0.0:
-		var b: int = int(floor(g.t * FPS + 0.0001)) - int(floor(float(st.crash_t) * FPS + 0.0001))
+		var b: int = int(floor(g.t * FPS + 0.0001)) - int(floor(_boom_t() * FPS + 0.0001))
 		if b >= 0 and b <= 2:
 			var c: Vector2 = _plane(540.0, 0.0) + Vector2(0, -36)
 			for i in 40:
@@ -207,10 +213,42 @@ static func _hf(x: int, y: int, k: int) -> float:
 	return float(((x * 73856093) ^ (y * 19349663) ^ (k * 83492791)) & 0xFFFF) / 65535.0
 
 
+## 劈开慢动作（用户 11-05「斯卡蒂终结技应该是最后浪被劈开的时候这时候应该慢动作」）：按真实时间算，冲击帧顿帧（ult/sd_crash_stop）过后
+## ult/sd_px_slow_t（0.5）秒 ult/sd_px_slow（0.3）倍速，再 ult/sd_px_slow_ease（0.15）秒加速回原速。挂在 ult.time_scale（演出类，批跑 / TRACE 不缩，同起手慢放）
+static func slow_scale(game) -> float:
+	if not on() or not game.has_meta("ult_px_sd"):
+		return 1.0
+	var r = game.get_meta("ult_px_sd")
+	if r.st.is_empty() or not r.st.has("crash_rt"):
+		return 1.0
+	var t: float = UM.now() - float(r.st.crash_rt) - Bal.v("ult/sd_crash_stop", 0.08)
+	var lo: float = Bal.v("ult/sd_px_slow", 0.3)
+	var hold: float = Bal.v("ult/sd_px_slow_t", 0.5)
+	var ez: float = Bal.v("ult/sd_px_slow_ease", 0.15)
+	if t < 0.0 or t >= hold + ez:
+		return 1.0
+	if t < hold:
+		return lo
+	var k: float = (t - hold) / ez
+	return lerpf(lo, 1.0, k * k)
+
+
+func _boom_t() -> float:
+	return float(st.crash_t) + SPLIT if float(st.crash_t) >= 0.0 else -1.0
+
+
 func _shatter_tick() -> void:
-	if float(st.crash_t) < 0.0 or st.hits.is_empty():
+	if float(st.crash_t) < 0.0:
 		return
-	var ac: float = g.t - float(st.crash_t)
+	var ac: float = g.t - _boom_t()
+	if ac < 0.0:
+		return
+	if not st.get("lit", true):
+		st.lit = true
+		g.ult.light(_plane(540.0, 0.0), 460.0, Color(0.85, 0.92, 1.0), 0.6)   # 起爆：满亮照地灯（接近 docs/270 爆发档上限）
+		g.ult.shake(Bal.v("ult/sd_px_shake", 3.0), Bal.v("ult/sd_px_shake_t", 0.12))   # 用户 11-05：起爆轻震 3px / 0.12 秒（原画面劈浪时 6 / 0.2）
+	if st.hits.is_empty():
+		return
 	var bc: Vector2 = _plane(540.0, 0.0)
 	var rr: float = _shock_r(ac)
 	for h in st.hits:

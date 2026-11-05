@@ -93,7 +93,9 @@ def build(tmp, bg, foot, dir_deg=0):
         tc += 0.002
     ihf = int(np.ceil(tc * FPS))
     # 冲击帧两拍插在爆点那一拍之前：游戏里顿帧期间招式时间不走，冲击帧过后爆点两拍照常亮
-    seq = [("charge", i) for i in range(CHG_N)] + [("ult", i) for i in range(ihf)] + [("hf", ihf)] * HF_N + [("ult", i) for i in range(ihf, len(uu))]
+    # 劈开慢动作：冲击帧后 SPLIT（0.25 游戏秒 ≈ 4 拍）按 0.3 倍速放（每拍停 3 帧），之后原速起爆
+    ns = 4
+    seq = [("charge", i) for i in range(CHG_N)] + [("ult", i) for i in range(ihf)] + [("hf", ihf)] * HF_N + [("ult", i) for i in range(ihf, ihf + ns) for _ in range(3)] + [("ult", i) for i in range(ihf + ns, len(uu))]
     for part, i in seq:
         im = bg.copy().convert("RGBA")
         hf = part == "hf"

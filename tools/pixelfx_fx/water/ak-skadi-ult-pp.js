@@ -15,7 +15,7 @@ export const meta = {
   tags: ["water", "slash", "topdown", "skadi", "ultimate", "one-shot"],
   size: [1120, 700],
   origin: [560, 360],
-  duration: 1.6,
+  duration: 1.85,
   loop: false,
   fps: 15,
   bg: "dark",
@@ -176,13 +176,15 @@ function wave(p, t, o, C, ACC) {
   const curl = smooth(T0 + 0.05, T0 + 0.25, t);
   const ac = t - tc;                                                     // 劈浪后
   const pre = ac < 0 ? smooth(-PRE, 0, ac) : 0;                          // 炸开前 2 拍：往劈口中心收
-  const split = ac > 0 ? ease.outCubic(clamp(ac / SHOCK_T)) : 0;         // 两半和冲击环同步往外
-  const brk = ac > 0 ? smooth(0.0, 0.22, ac) : 0;   // 两半随冲击环塌平（别留一道直的浪线）
+  const bt = ac - SPLIT;                                                  // 起爆后
+  const open = ac > 0 ? ease.outQuad(clamp(ac / SPLIT)) : 0;             // 劈开段：两半慢慢分开
+  const split = bt > 0 ? ease.outCubic(clamp(bt / SHOCK_T)) : 0;         // 起爆：两半和冲击环同步往外
+  const brk = bt > 0 ? smooth(0.0, 0.22, bt) : 0;   // 两半随冲击环塌平（别留一道直的浪线）
   if (brk >= 0.98) return;
   const cols = waveCols(o).map((c) => {
     const side = c.l >= 0 ? 1 : -1;
-    return Object.assign({}, c, { a: F - c.lag + 10 * pre * (1 - Math.abs(c.l) / +o.HW), ll: c.l * (1 - 0.14 * pre) + side * 110 * split, side, pre });
-  }).filter((c) => !(ac > 0 && Math.abs(c.l) < 4 + 70 * split));      // 劈口
+    return Object.assign({}, c, { a: F - c.lag + 10 * pre * (1 - Math.abs(c.l) / +o.HW), ll: c.l * (1 - 0.14 * pre) + side * (26 * open + 90 * split), side, pre });
+  }).filter((c) => !(ac > 0 && Math.abs(c.l) < 4 + 22 * open + 50 * split));      // 劈口
   // 远的先画（屏幕 y 小的先）
   cols.sort((A, B) => P(o, A.a, A.ll)[1] - P(o, B.a, B.ll)[1]);
   const th = +o.dir * D2R;
@@ -234,17 +236,17 @@ function wave(p, t, o, C, ACC) {
 // 劈浪：剑光一道顺着出手方向从身前劈到浪后（一帧到位，白 → 冰蓝 → 收）
 function crashBlade(p, t, o, C, ACC) {
   const tc = crashT(o), ac = t - tc, n = C.length;
-  if (ac < 0 || ac > 0.26) return;
-  const a0 = 30, a1 = +o.CRASH + 80, w = ac < 0.07 ? 4 : ac < 0.14 ? 3 : 1;
+  if (ac < 0 || ac > SPLIT + 0.2) return;
+  const a0 = 30, a1 = +o.CRASH + 80, w = ac < SPLIT ? 4 : ac < SPLIT + 0.1 ? 3 : 1;
   for (let a = a0; a <= a1; a += 0.5) {
     const u = (a - a0) / (a1 - a0), ww = w * Math.sin(Math.PI * Math.pow(u, 0.8));
     for (let s = -ww; s <= ww; s += 0.5) {
       const [x, y] = P(o, a, s, 26 + 10 * u);
       const q = Math.abs(s) / Math.max(0.5, ww);
-      p.px(Math.round(x), Math.round(y), ac < 0.07 ? (q < 0.6 ? WHITE : ACC) : q < 0.4 ? ACC : C[n - 3]);
+      p.px(Math.round(x), Math.round(y), ac < SPLIT ? (q < 0.6 ? WHITE : ACC) : q < 0.4 ? ACC : C[n - 3]);
     }
   }
-  if (ac < 0.1) p.light(...P(o, +o.CRASH, 0, 30), WHITE, 1.0);
+  if (ac < SPLIT) p.light(...P(o, +o.CRASH, 0, 30), WHITE, 1.0);
 }
 
 // ---------------------------------------------------------------- 劈口水爆（11-05 用户「新版本主要是缺少最后的爆炸的冲击力」「爆炸是冲击力最为关键的部分」）
@@ -252,6 +254,9 @@ function crashBlade(p, t, o, C, ACC) {
 // 冲击波：一圈压扁的厚水环 0.25 秒（约 4 拍）推到判定边缘，推过的地面闪一下，环边甩出大水团和水滴；落水水爆 / 浪的两半和环同步往外。
 // 游戏里冲击帧（整屏白 + 黑剪影，ult 自己画）落在爆点第 0 拍上、顿帧期间招式时间不走，所以亮核两拍在冲击帧之后照样看得到。
 const PRE = 0.134, SHOCK_T = 0.25, CORE_R = 64;
+// 劈开慢动作（用户 11-05「最后浪被劈开的时候应该慢动作」）：冲击帧后剑光劈进浪、浪往两边分开这一段 SPLIT 游戏秒，
+// 游戏里这段按真实时间 0.5 秒 0.3 倍速 + 0.15 秒加速回原速（ult_px_sd.slow_scale，挂在 ult.time_scale 演出类），之后才起爆（亮核 / 冲击环 / 水爆 / 崩解）
+const SPLIT = 0.25;
 function boomC(o) { return [+o.CRASH + 10, 0]; }           // 爆心（平面：沿出手方向 a、侧向 l）
 function shockR(o, ac) { return 26 + (+o.HW - 26) * ease.outCubic(clamp(ac / SHOCK_T)); }
 // 冲击环到达平面距离 r 的时刻（落水水爆 / 水团按它出发）
@@ -270,8 +275,10 @@ function boomUp(p, t, o, C, ACC) {
     }
   }
   if (ac < 0) return;
+  const bt = ac - SPLIT;   // 劈开慢动作之后才起爆
+  if (bt < 0) return;
   // 爆点亮核：两拍实心（白芯 55%、冰蓝环、海蓝外缘，外缘有起伏），第 3 拍缩成一圈冰蓝亮边、第 4 拍散
-  const beat = Math.floor(ac * 15 + 1e-6);
+  const beat = Math.floor(bt * 15 + 1e-6);
   if (beat <= 3) {
     const R = CORE_R * [0.92, 1.0, 0.8, 0.55][beat], zc = 18;
     const [cx, cy] = P(o, ba, bl, zc);
@@ -286,7 +293,7 @@ function boomUp(p, t, o, C, ACC) {
     if (beat <= 1) p.light(cx, cy, WHITE, 1.0);
   }
   // 冲击环的立起浪唇（前半圈、矮）+ 环边甩出的大水团 / 水滴
-  const rs = shockR(o, ac), ff = smooth(SHOCK_T * 0.8, SHOCK_T + 0.18, ac);
+  const rs = shockR(o, bt), ff = smooth(SHOCK_T * 0.8, SHOCK_T + 0.18, bt);
   if (ff < 0.99) for (let a = 0; a < TAU; a += 0.8 / rs) {
     const q = nz(a * 3.3, o.seed + 407);
     if (q < 0.2 + 0.7 * ff) continue;
@@ -297,7 +304,7 @@ function boomUp(p, t, o, C, ACC) {
     }
   }
   for (const b of shockBlobs(o)) {
-    const u = ac - b.t0;
+    const u = bt - b.t0;
     if (u <= 0 || u >= b.T) continue;
     const r = b.r0 + b.v * u, z = b.vz * u - 260 * u * u;
     const [x, y] = P(o, ba + Math.cos(b.a) * r, bl + Math.sin(b.a) * r, z);
@@ -321,15 +328,16 @@ function shockBlobs(o) {
 function boomGround(p, t, o, C, ACC) {
   const tc = crashT(o), ac = t - tc, n = C.length, [ba, bl] = boomC(o), HW = +o.HW;
   // 预备：爆心周围压暗（统一透明度），留出对比；爆点后 0.15 秒退掉
-  const dk = ac < 0 ? smooth(-PRE, 0, ac) : 1 - smooth(0, 0.15, ac);
+  const dk = ac < 0 ? smooth(-PRE, 0, ac) : 1 - smooth(SPLIT, SPLIT + 0.15, ac);   // 劈开段一直压暗，起爆后退掉
   if (dk > 0.02) for (let y = -150 * +o.SY; y <= 150 * +o.SY; y += 1) for (let x = -150; x <= 150; x += 1) {
     if (x * x + (y / +o.SY) * (y / +o.SY) > 150 * 150) continue;
     const [cx, cy] = P(o, ba, bl);
     dotA(p, Math.round(cx + x), Math.round(cy + y), C[0], 0.32 * dk);
   }
-  if (ac < 0) return;
+  const bt = ac - SPLIT;
+  if (bt < 0) return;
   // 冲击环：压扁的厚水环（实色三阶 + 白外沿，不规则浪唇），推过的地面闪一下（环后 26 美术像素宽一圈浅色，统一透明度）
-  const rs = shockR(o, ac), ff = smooth(SHOCK_T * 0.8, SHOCK_T + 0.2, ac), th = 7 * (1 - 0.5 * ease.outCubic(clamp(ac / SHOCK_T)));
+  const rs = shockR(o, bt), ff = smooth(SHOCK_T * 0.8, SHOCK_T + 0.2, bt), th = 7 * (1 - 0.5 * ease.outCubic(clamp(bt / SHOCK_T)));
   if (ff < 0.99) for (let a = 0; a < TAU; a += 0.7 / rs) {
     const q = nz(a * 3.3, o.seed + 407);
     if (q < 0.15 + 0.7 * ff) continue;
@@ -339,14 +347,14 @@ function boomGround(p, t, o, C, ACC) {
       const c = d > -0.6 ? WHITE : d > -th * 0.4 ? C[n - 2] : d > -th * 0.75 ? C[n - 3] : C[n - 4];
       p.px(Math.round(x), Math.round(y), c);
     }
-    if (ac < SHOCK_T + 0.05) for (let d = th; d <= th + 26; d += 1) {   // 推过的地面闪一下
+    if (bt < SHOCK_T + 0.05) for (let d = th; d <= th + 26; d += 1) {   // 推过的地面闪一下
       const [x, y] = P(o, ba + Math.cos(a) * (lip - d), bl + Math.sin(a) * (lip - d));
-      dotA(p, Math.round(x), Math.round(y), C[n - 3], 0.35 * (1 - (d - th) / 26) * (1 - smooth(0, SHOCK_T + 0.05, ac)));
+      dotA(p, Math.round(x), Math.round(y), C[n - 3], 0.35 * (1 - (d - th) / 26) * (1 - smooth(0, SHOCK_T + 0.05, bt)));
     }
   }
   // 水团的地面影子 + 落地白点
   for (const b of shockBlobs(o)) {
-    const u = ac - b.t0;
+    const u = bt - b.t0;
     if (u <= 0) continue;
     const fl = Math.min(u, b.T), r = b.r0 + b.v * fl;
     const [x, y] = P(o, ba + Math.cos(b.a) * r, bl + Math.sin(b.a) * r);
@@ -370,7 +378,7 @@ function spoutUp(p, t, o, C, ACC, gd = false) {   // 劈浪落水水爆（贴地
   const tc = crashT(o);
   for (const [i, s] of spouts(o).entries()) {
     const [x, y] = P(o, s.a, s.l);
-    crown(p, t - tc - s.dl, C, ACC, { x, y, W: s.W * 2.4, H: 16, SY: +o.SY, seed: +o.seed * 13 + i * 17, layer: gd ? "gd" : "up", nd: s.H > 60 ? 14 : s.H > 45 ? 11 : 8 });
+    crown(p, t - tc - SPLIT - s.dl, C, ACC, { x, y, W: s.W * 2.4, H: 16, SY: +o.SY, seed: +o.seed * 13 + i * 17, layer: gd ? "gd" : "up", nd: s.H > 60 ? 14 : s.H > 45 ? 11 : 8 });
   }
 }
 
@@ -389,7 +397,7 @@ function waveGround(p, t, o, C, ACC) {
     }
   }
   // 湿痕：浪拖过去留下十几道顺着出手方向的断续水纹（稀疏，不铺色板）；劈浪后 1.1 秒收完
-  const wf = ac > 0 ? smooth(0.2, 1.15, ac) : 0;
+  const wf = ac > SPLIT ? smooth(0.2, 1.15, ac - SPLIT) : 0;
   if (wf < 0.99) for (let i = 0; i < 26; i++) {
     const l = -HW * 0.92 + HW * 1.84 * ((i + 0.5 * nz(i * 2.1, o.seed + 113)) / 26);
     const a0 = 24 + 40 * nz(i * 1.3, o.seed + 114), a1 = F - 10 - 30 * nz(i * 3.7, o.seed + 116);
@@ -402,7 +410,7 @@ function waveGround(p, t, o, C, ACC) {
   }
   // 劈浪后：浪脚碎沫往前 / 两侧摊开
   if (ac > 0) {
-    const sp = ease.outCubic(clamp(ac / SHOCK_T)), ff = smooth(0.3, 1.1, ac);
+    const sp = ease.outCubic(clamp((ac - SPLIT) / SHOCK_T)), ff = smooth(0.3 + SPLIT, 1.1 + SPLIT, ac);
     if (ff < 0.99) for (let l = -HW; l <= HW; l += 1) {
       if (Math.abs(l) < 30) continue;
       const side = l >= 0 ? 1 : -1, reach = (10 + 40 * nz(l * 0.07, o.seed + 115)) * sp;

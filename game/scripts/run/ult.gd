@@ -1385,6 +1385,7 @@ func time_scale() -> float:
 		s = minf(s, Bal.v("ult/link_slow", 0.6))   # 技能连携出手瞬间的轻微放慢（比终结技弱一档）
 	if UM.now() - _prep_rt < _prep_t:
 		s = minf(s, _prep_s)   # 招式自己要的预备式慢动作（prep_slow；铃兰忍冬拔刀蓄势，用户 10-31）
+	s = minf(s, SDP.slow_scale(g))   # 斯卡蒂转平面：劈浪后浪被劈开的慢动作（docs/246 §16.4，ult/px_plane 开着才有）
 	return s
 
 
