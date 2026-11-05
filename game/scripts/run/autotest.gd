@@ -155,6 +155,9 @@ func trace_nerve_hash() -> int:
 
 
 ## --resultwait=<秒>：结算截图再多等这么久（底栏按钮淡入完，11-01 巡检看按键牌）
+var _winrec_f0 := -1
+
+
 func _ss_wait() -> float:
 	for a in Cfg.dev_args():
 		if a.begins_with("--resultwait="):
@@ -1481,6 +1484,21 @@ func step() -> void:
 			bb.hp -= 4.0 if bosstest else 40.0
 			if bb.hp <= 0.0:
 				g.combat.kill(bb)
+	# --winrec=<秒>（11-05 结算数字滚动录像，配 --fixed-fps 60）：机器人打到第 <秒> 秒直接进胜利结算（结局一），之后每 2 帧存 rec_<n>.png（30 fps）共 5 秒
+	for a in Cfg.dev_args():
+		if a.begins_with("--winrec=") and DisplayServer.get_name() != "headless":
+			if _winrec_f0 < 0 and g.t >= float(a.substr(9)):
+				_winrec_f0 = g.at_frames
+				winshot = true   # 别让「AUTOTEST END」在进结算那一刻退出
+				g.ending = "standard"
+				g.endg.cur = g.ending
+				g.state = g.S.WIN
+			if _winrec_f0 >= 0:
+				var df: int = g.at_frames - _winrec_f0
+				if df % 2 == 0:
+					g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/rec_%04d.png" % (df / 2))
+				if df >= 300:
+					g.get_tree().quit()
 	for a in Cfg.dev_args():
 		# --winshot=deep：第 60 帧直接进入胜利结算并截图
 		if a.begins_with("--winshot=") and g.at_frames == 60:

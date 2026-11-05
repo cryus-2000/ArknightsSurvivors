@@ -142,6 +142,65 @@ func relic_tex(id: String) -> Texture2D:
 	return s.g.run_stats._relic_tex(id)
 
 
+## 逐位滚动的计数器（11-05 用户「结算页的数字加一下」，手法参考 RhineLabUI 的 Rolling Number）：kk = 0–1 线性进度（内部缓出），
+## 数值从 0 涨到终值，每一位像机械计数器往上翻（个位一直转，高位在低位进位时才翻一格：旧字上移淡出、新字自下升入）；
+## 数字等宽排（不抖），千分位逗号随位数出现；落定后 0.3 秒带一道青光（land = 落定时刻，时间轴秒，同 k() 的 t0 口径）。
+## 减少动态 / 无头：直接终值。align 0 左 1 中 2 右（按终值宽度对齐，滚动中不跳位）
+func odo(x: float, y: float, value: float, kk: float, size := 18, col := HH.LIGHT, prefix := "", suffix := "", land := -1.0, align := 0) -> void:
+	if fa <= 0.0:
+		return
+	if UM.rm() or UM.skip_all():
+		kk = 1.0
+	var z := fs(size)
+	var fnt: Font = s.g.font
+	var n_final: int = int(round(value))
+	var final_s: String = num(float(n_final))
+	var dw: float = fnt.get_string_size("0", HORIZONTAL_ALIGNMENT_LEFT, -1, z).x
+	var cw: float = fnt.get_string_size(",", HORIZONTAL_ALIGNMENT_LEFT, -1, z).x
+	var nd := 0
+	for ch in final_s:
+		if ch >= "0" and ch <= "9":
+			nd += 1
+	var total_w: float = tw(prefix, size) + nd * dw + (final_s.length() - nd) * cw + tw(suffix, size)
+	var cx: float = x - (0.0 if align == 0 else (total_w * 0.5 if align == 1 else total_w))
+	var by: float = y + size
+	var c := Color(col, col.a * fa)
+	if kk >= 1.0 and land >= 0.0:
+		var lf: float = 1.0 - clampf((t - land * (1.0 if won else end_loss() / end_win())) / 0.3, 0.0, 1.0)
+		if lf > 0.0:
+			c = c.lerp(Color(HH.CYB, c.a), lf)
+	var v: float = float(n_final) if kk >= 1.0 else value * UM.out_cubic(kk)
+	var shown: int = maxi(1, str(int(floor(v))).length())
+	if prefix != "":
+		ci.draw_string(fnt, Vector2(cx, by), prefix, HORIZONTAL_ALIGNMENT_LEFT, -1, z, c)
+		cx += tw(prefix, size)
+	var di: int = nd   # 从高位往低位：di = 这一位的位次 + 1
+	for ch in final_s:
+		if not (ch >= "0" and ch <= "9"):
+			if di <= shown:
+				ci.draw_string(fnt, Vector2(cx, by), ch, HORIZONTAL_ALIGNMENT_LEFT, -1, z, c)
+			cx += cw
+			continue
+		di -= 1
+		if di >= shown:
+			cx += dw   # 还没涨到这一位：留位不画前导零
+			continue
+		var p10: float = pow(10.0, di)
+		var d: int = int(floor(v / p10)) % 10
+		var fr := 0.0
+		if kk < 1.0:
+			fr = fmod(v, 1.0) if di == 0 else clampf(fmod(v, p10) - (p10 - 1.0), 0.0, 1.0)
+		if fr > 0.0:
+			var off: float = z * 0.8 * fr
+			ci.draw_string(fnt, Vector2(cx, by - off), str(d), HORIZONTAL_ALIGNMENT_LEFT, -1, z, Color(c, c.a * (1.0 - fr)))
+			ci.draw_string(fnt, Vector2(cx, by + z * 0.8 - off), str((d + 1) % 10), HORIZONTAL_ALIGNMENT_LEFT, -1, z, Color(c, c.a * fr))
+		else:
+			ci.draw_string(fnt, Vector2(cx, by), str(d), HORIZONTAL_ALIGNMENT_LEFT, -1, z, c)
+		cx += dw
+	if suffix != "":
+		ci.draw_string(fnt, Vector2(cx, by), suffix, HORIZONTAL_ALIGNMENT_LEFT, -1, z, c)
+
+
 func num(v: float) -> String:
 	return s.g.run_stats.fmt_n(v)
 
