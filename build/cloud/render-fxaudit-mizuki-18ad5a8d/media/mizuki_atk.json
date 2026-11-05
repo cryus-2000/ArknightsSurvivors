@@ -1,0 +1,39 @@
+{
+ "op": "mizuki",
+ "mode": "atk",
+ "frame": 2,
+ "engine": 61,
+ "secs": 5.0,
+ "hits": 0,
+ "acts": 32,
+ "skill": 0,
+ "parts_total": 30,
+ "parts_per_hit": 0.9,
+ "parts_per_s": 6.0,
+ "parts_s1_1s": null,
+ "mats": {
+  "ink": 30
+ },
+ "life": 0.89,
+ "sz": 5.2,
+ "alive_max": 9,
+ "lights": 6,
+ "lights_per_hit": 0.19,
+ "light_r": 100.0,
+ "light_i": 0.54,
+ "light_life": 0.12,
+ "emit_max": 193,
+ "emit_mean": 69.2,
+ "gl_peak": 49.6,
+ "gl_area_hit": 1370,
+ "gl_mean_hit": 8.8,
+ "em_peak": 226.8,
+ "em_area_hit": 14,
+ "em_mean_hit": 10.5,
+ "crop": [
+  484,
+  284,
+  320,
+  180
+ ]
+}
