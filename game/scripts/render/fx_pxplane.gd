@@ -1,4 +1,4 @@
-## pixelfx「转平面」试验（docs/246，11-05 用户「把 pixelfx 的二维平面转移到我们这个平面上来，再结合 Noita 特效」）：斯卡蒂（docs/246）、星熊（docs/254）、流明（docs/255）、艾雅法拉（docs/259），各自一节在文件末尾；凯尔希（docs/265）在 fx_pxplane_kal.gd。
+## pixelfx「转平面」试验（docs/246，11-05 用户「把 pixelfx 的二维平面转移到我们这个平面上来，再结合 Noita 特效」）：斯卡蒂（docs/246）、星熊（docs/254）、流明（docs/255）、艾雅法拉（docs/259）、水月（docs/261），各自一节在文件末尾；凯尔希（docs/265）在 fx_pxplane_kal.gd。
 ## 开关 fx/px_plane（balance.json，缺省 0 = 关）：1 = 转平面版，2 = 旧做法原样贴（对照用，重现之前的问题）。
 ## 借配方系统（fx_recipe.gd）的接管：开着时 Fxr.owns(斯卡蒂) 为真，她原来的刀光 / 帧条 / pfx / 命中颗粒只跳过绘制（玩法照旧，TRACE 逐行一致）；
 ## 事件由 fx_recipe._ev 转到这里，颗粒（Noita 水滴）和照地光走 fx_recipe 的颗粒池与灯光预算。
@@ -18,10 +18,10 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
-const METAS := {"res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_eyjafjalla.json": "ey_", "res://data/pxp_kaltsit.json": "ka_"}   # 帧条表 → 键前缀（星熊的键自带 hsg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
+const METAS := {"res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_eyjafjalla.json": "ey_", "res://data/pxp_siege.json": "", "res://data/pxp_exusiai.json": "ex_", "res://data/pxp_mizuki.json": "", "res://data/pxp_angelina.json": "an_", "res://data/pxp_saria.json": "sa_", "res://data/pxp_kaltsit.json": "ka_"}   # 帧条表 → 键前缀（星熊的键自带 hsg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
 const MI = preload("res://scripts/render/melee_impact.gd")   # 近战打击感包（docs/246 §11）：斩痕 / 照地光提亮
 const ART := "res://art/fx/pxp/pxp_%s.png"
-const IDS := {"skadi": true, "hoshiguma": true, "lumen": true, "eyjafjalla": true, "kaltsit": true}
+const IDS := {"skadi": true, "hoshiguma": true, "lumen": true, "eyjafjalla": true, "siege": true, "exusiai": true, "mizuki": true, "angelina": true, "saria": true, "kaltsit": true}
 const KA = preload("res://scripts/render/fx_pxplane_kal.gd")   # 凯尔希一节（docs/265）单独成文件
 ## 接管时仍照画的原 pfx 帧条（状态提示，不属于攻击特效）：星熊格挡闪光、反击架势盾沿光
 const KEEP_PFX := {"hoshiguma": {"fx_hoshiguma_block": true, "fx_hoshiguma_guard_glow": true}}
@@ -67,9 +67,54 @@ func mode() -> int:
 static func owns_id(game, oid: String) -> bool:
 	if game == null or not IDS.has(oid):
 		return false
-	if oid == "kaltsit" and of(game).mode() == 2:
-		return false   # 凯尔希没有「旧做法原样贴」版（docs/265）：对照 2 = 当前游戏
+	if oid in ["exusiai", "angelina", "saria", "kaltsit"]:   # 能天使（docs/262）/ 安洁莉娜（docs/267）/ 塞雷娅（docs/269）/ 凯尔希（docs/265）没有「旧做法原样贴」对照：2 = 不接管（当前游戏原样）
+		return of(game).mode() == 1
 	return of(game).mode() > 0
+
+
+## 能天使一节（docs/262，单独文件 fx_pxplane_exu.gd；运行时 load 避免循环 preload）
+var _exm = null
+
+
+## 开火后坐（docs/262，只改画面）：character.draw_body 每帧每人调一次；不是能天使 / 没接管时返回 0
+static func recoil(o) -> Vector2:
+	if str(o.id) != "exusiai" or o.g == null or not o.g.has_meta("fx_pxplane"):
+		return Vector2.ZERO
+	var r = o.g.get_meta("fx_pxplane")
+	if r.mode() != 1:
+		return Vector2.ZERO
+	return r._ex().kick(o)
+
+func _ex():
+	if _exm == null:
+		_exm = load("res://scripts/render/fx_pxplane_exu.gd").new(self)
+	return _exm
+## 安洁莉娜一节（docs/267，单独文件 fx_pxplane_ang.gd；运行时 load 避免循环 preload）
+var _anm = null
+
+
+func _an():
+	if _anm == null:
+		_anm = load("res://scripts/render/fx_pxplane_ang.gd").new(self)
+	return _anm
+
+
+## world.gd 画悬浮敌人时调（docs/267，只画）：x = 影子缩放，y = 悬停上下浮动；不是安洁莉娜托起的 / 没接管时 (1, 0) = 原样
+static func air_look(game, e: Dictionary) -> Vector2:
+	if game == null or not game.has_meta("fx_pxplane"):
+		return Vector2(1.0, 0.0)
+	var r = game.get_meta("fx_pxplane")
+	if r._anm == null or r.mode() != 1:
+		return Vector2(1.0, 0.0)
+	return r._anm.air_look(e)
+## 塞雷娅一节（docs/269，单独文件 fx_pxplane_sa.gd；运行时 load 避免循环 preload）
+var _sam = null
+
+
+func _sa():
+	if _sam == null:
+		_sam = load("res://scripts/render/fx_pxplane_sa.gd").new(self)
+	return _sam
 
 
 func _meta(k: String) -> Dictionary:
@@ -88,7 +133,7 @@ func _meta(k: String) -> Dictionary:
 
 func _tex(k: String) -> Texture2D:
 	if not tex.has(k):
-		var p: String = ART % k.replace("_d-", "_dm")   # 负方向键（d-45）的文件名写成 dm45：素材命名不许连字符（asset_lint N1）
+		var p: String = ART % k.replace("_d-", "_dm").to_lower()   # 负方向键（d-45）的文件名写成 dm45：素材命名不许连字符 / 大写（asset_lint N1；塞雷娅 pilB / pilS 的文件名一律小写）
 		tex[k] = load(p) if ResourceLoader.exists(p) else null
 	return tex[k]
 
@@ -149,6 +194,21 @@ func ev(o, kind: String, d: Dictionary) -> void:
 		return
 	if str(o.id) == "kaltsit":
 		KA.ev(self, o, kind, d, t, R, p)
+		return
+	if str(o.id) == "siege":
+		_ev_sg(o, kind, d, raw, t, R, p)
+		return
+	if str(o.id) == "exusiai":
+		_ex().ev(o, kind, d, t, R, p)
+		return
+	if str(o.id) == "mizuki":
+		_ev_mz(o, kind, d, raw, t, R, p)
+		return
+	if str(o.id) == "angelina":   # docs/267：没有「旧做法原样贴」对照，2 时同 1 不画（owns_id 只在 1 接管）
+		_an().ev(o, kind, d, t, R, p)
+		return
+	if str(o.id) == "saria":
+		_sa().ev(o, kind, d, t, R, p)
 		return
 	match kind:
 		"shape":
@@ -322,10 +382,14 @@ func _add_gd(o, key: String, at: Vector2, raw: bool, rawk: String, r: float, fit
 	_push({"k": key + "_gd", "t0": g.t, "gp": _snap(at), "flip": false, "ly": "gd", "oid": str(o.id)})
 
 
-## 件的当前地面点（docs/246 §10，11-05 用户「斩击没有绑定人，会在别的地方出现」）：
+## 件的当前地面点（docs/246 §11，11-05 用户「斩击没有绑定人，会在别的地方出现」）：
 ## 挂在人身上的件（fo = 出手时相对施放者脚底的偏移）每次绘制按施放者当前位置重算，朝向保持出手时的方向；
 ## 斩痕（e）跟着被砍的那只；其余（落地类：冲击环、碎浪、碎沫、积水、湿痕）留在出手时的世界坐标
 func _gp(it: Dictionary) -> Vector2:
+	if it.has("mv"):   # 推进之王锤击冲击波（docs/264）：自己往前推（前快后慢），按 15 fps 节拍跳格
+		var mv: Dictionary = it.mv
+		var age: float = float(int(floor(g.t * 15.0)) - int(floor(float(it.t0) * 15.0))) / 15.0
+		return _snap(mv.p0 + (mv.dir as Vector2) * (600.0 * age - 500.0 * age * age))
 	if it.has("fo"):
 		var op = _op(str(it.oid))
 		if op != null and op.pos != Vector2.INF:
@@ -334,6 +398,10 @@ func _gp(it: Dictionary) -> Vector2:
 		var e: Dictionary = it.e
 		if not e.get("dead", false):
 			return e.pos + Vector2(0, -float(e.r) * 0.55)
+	elif it.has("ef"):   # 缠绕（docs/261 水月）：跟着被缠住那只的脚底
+		var ef: Dictionary = it.ef
+		if not ef.get("dead", false):
+			return _snap(ef.pos)
 	return it.gp
 
 
@@ -346,7 +414,7 @@ func _op(oid: String):
 
 func _step() -> void:
 	var now: float = g.t
-	items = items.filter(func(it): return now - float(it.t0) < (float(it.life) if it.has("life") else _life(str(it.k))) + 0.02)
+	items = items.filter(func(it): return now - float(it.t0) < (float(it.life) if it.has("life") else _life(str(it.k))) + 0.02 and not (it.has("ef") and it.ef.get("dead", false)))
 	var tk: int = int(floor(g.t * 15.0))
 	if tk != _fol_tick:   # 跟人走的件：位置每拍（15 fps）跳一格，对齐美术像素格
 		_fol_tick = tk
@@ -382,6 +450,8 @@ func _life(k: String) -> float:
 ## 地面层（data_operator.draw_entities_floor → fx_recipe.draw_floor 转来）：贴地件、潮刃 / 浪墙的地面尾迹
 func draw_floor(o) -> void:
 	_step()
+	if str(o.id) == "mizuki" and o.hw.has("mz"):
+		_smz()._h3mz_draw_keep(o)   # 缠住标记 / 触手桩范围 / 灯火圈：状态件，接管时照画（docs/261）
 	if mode() != 1:
 		return
 	var cv = o.cv
@@ -398,6 +468,21 @@ func draw_floor(o) -> void:
 	if id == "kaltsit":
 		KA.floor_layer(self, o)
 		return
+	if id == "siege":
+		_floor_sg(o)
+		return
+	if id == "exusiai":
+		_ex().draw_floor(o)
+		return
+	if id == "mizuki":
+		_mz_draw_floor(o)
+		return
+	if id == "angelina":
+		_an().draw_floor(o)
+		return
+	if id == "saria":
+		_sa().draw_floor(o)
+		return
 	if o.skill_active_left(2) > 0.0:   # 涌潮悲歌持续期间：脚下一滩积水（循环，跟着人走）
 		_draw_strip(cv, "pool_gd", frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
 	for it in items:
@@ -413,6 +498,12 @@ func draw_floor(o) -> void:
 func draw_over(o) -> void:
 	if str(o.id) == "lumen" and o.hw.has("lm"):
 		_sl()._h3lm_draw_units(o)   # 发光单元是本体附属物（不是攻击特效），接管时照画
+	if str(o.id) == "siege" and mode() == 1:
+		_sg_draw_motes(o)   # 冲锋号令 / 跃空锤的全队技力粒子（状态提示：技力飞向队友）
+	if str(o.id) == "saria":
+		if mode() == 1:
+			_sa().draw_over(o)   # 状态提示 + 钙化斑（docs/269）
+		return
 	if mode() != 2:
 		return
 	var cv = o.cv
@@ -423,6 +514,8 @@ func draw_over(o) -> void:
 	if id == "eyjafjalla":
 		_ey_draw_raw(o)
 		return
+	if id == "mizuki" and o.hw.has("mz"):
+		_smz()._h3mz_draw_jellies(o)   # 旧做法对照：深蓝之籽照原画法
 	for it in items:
 		if str(it.ly) != "raw" or str(it.oid) != id:
 			continue
@@ -465,6 +558,18 @@ static func sort_items(game) -> Array:
 			if str(o.id) == "kaltsit":
 				KA.sort_items(r, o, out)
 				continue
+			if str(o.id) == "mizuki":
+				r._mz_sort_items(o, out)
+				continue
+			if str(o.id) == "exusiai":
+				r._ex().sort_items(o, out)
+				continue
+			if str(o.id) == "angelina":
+				r._an().sort_items(o, out)
+				continue
+			if str(o.id) == "saria":
+				r._sa().sort_items(o, out)
+				continue
 			for w in r._waves(o):
 				out.append({"wave": w})
 			if str(o.id) == "skadi":   # 斯卡蒂剑气浪头（docs/246 §9）
@@ -480,6 +585,9 @@ static func sort_items(game) -> Array:
 
 static func draw_sorted(game, ci, it: Dictionary) -> void:
 	var r = game.get_meta("fx_pxplane")
+	if it.has("ex"):   # 能天使运行时件（docs/262）
+		r._ex().draw_rt(ci, it)
+		return
 	if it.has("wave"):
 		var w: Array = it.wave
 		r._draw_strip(ci, w[0] + "_up_d%d" % w[3], r.frame_of(0.0), w[1], w[2], false)
@@ -488,7 +596,13 @@ static func draw_sorted(game, ci, it: Dictionary) -> void:
 		r._draw_cut(ci, it)
 		return
 	if it.has("fi"):   # 星熊剑气：帧号按剑气年龄 / 剩余寿命挑
-		r._draw_strip(ci, str(it.k), int(it.fi), it.gp, it.flip, true)
+		r._draw_strip(ci, str(it.k), int(it.fi), r._gp(it), it.flip, true)
+		return
+	if it.has("an"):   # 安洁莉娜运行时件（docs/267）
+		r._an().draw_rt(ci, it)
+		return
+	if it.has("sa"):   # 塞雷娅运行时件（docs/269）
+		r._sa().draw_rt(ci, it)
 		return
 	if it.has("ert"):   # 艾雅法拉运行时件（docs/259）
 		r._ey_draw_rt(ci, it)
@@ -496,8 +610,11 @@ static func draw_sorted(game, ci, it: Dictionary) -> void:
 	if it.has("rt"):
 		r._lm_draw_rt(ci, it)
 		return
+	if it.has("mzj"):
+		r._mz_draw_jelly(ci, it)
+		return
 	if it.has("loopk"):
-		r._draw_strip(ci, str(it.loopk), r.frame_of(0.0), it.gp, false, false)
+		r._draw_strip(ci, str(it.loopk), r.frame_of(0.0), r._gp(it), false, false)
 		return
 	if it.get("loop", false) and it.has("life"):   # 循环一次性件（艾雅法拉连携熔岩泡）：带淡入淡出
 		r._draw_strip(ci, str(it.k), r.frame_of(0.0), r._gp(it), false, false, Color(1, 1, 1, r._ey_loop_a(it)))
@@ -671,8 +788,10 @@ func _draw_strip(ci, k: String, fi: int, gp: Vector2, flip: bool, once: bool, mo
 	var top: float = gp.y - float(m.oy) * px
 	var left: float = gp.x - (w - float(m.ox)) * px if flip else gp.x - float(m.ox) * px
 	var src := Rect2(fi * w, 0.0, w, h)
-	if flip:
-		ci.draw_texture_rect_region(tx, Rect2(Vector2(left + w * px, top), Vector2(-w * px, h * px)), src, mod)
+	if flip:   # 水平翻转用镜像变换，不用负宽矩形：负宽矩形在 GL 兼容渲染下整张往右错开一个帧宽（11-05 德克萨斯旋斩实测，发光点却在原位）
+		ci.draw_set_transform(Vector2(left + w * px, top), 0.0, Vector2(-1.0, 1.0))
+		ci.draw_texture_rect_region(tx, Rect2(Vector2.ZERO, Vector2(w * px, h * px)), src, mod)
+		ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	else:
 		ci.draw_texture_rect_region(tx, Rect2(Vector2(left, top), Vector2(w * px, h * px)), src, mod)
 	_emit(m, fi, Vector2(left, top), w, flip)
@@ -857,7 +976,7 @@ func _floor_hsg(o) -> void:
 		_draw_strip(cv, "hsg_s3aura_gd", frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
 	for it in items:
 		if str(it.ly) == "gd" and str(it.oid) == id:
-			_draw_strip(cv, str(it.k), frame_of(float(it.t0)), it.gp, it.flip, true)
+			_draw_strip(cv, str(it.k), frame_of(float(it.t0)), _gp(it), it.flip, true)
 	for bm in _booms(o):
 		_draw_strip(cv, "hsg_saw_gd", frame_of(0.0), _boom_gp(o, bm), false, false)
 	for qv in _qi_volleys(o):
@@ -935,7 +1054,7 @@ func _qi_volleys(o) -> Array:
 		var S: int = 10 if n <= 1 else (16 if n == 2 else 22)
 		var dk: Array = pick_dir((e.v as Vector2).angle())
 		var f: int = 0 if float(e.t) < 1.0 / 15.0 else (2 if float(e.life) < 0.07 else 1)
-		out.append({"k": "hsg_qi_s%d_e%d" % [S, t], "d": dk[0], "flip": dk[1], "gp": _snap(e.p / float(n)), "f": f})
+		out.append({"k": "%s_qi_s%d_e%d" % ["sg" if str(o.id) == "siege" else "hsg", S, t], "d": dk[0], "flip": dk[1], "gp": _snap(e.p / float(n)), "f": f})
 	return out
 
 
@@ -1892,3 +2011,531 @@ func _ey_draw_raw(o) -> void:
 	for it in items:
 		if str(it.oid) == id and str(it.get("ert", "")) == "lrock" and it.get("raw", false):
 			_ey_draw_rt(cv, it)
+
+
+# ================================================================ 推进之王（docs/264，照 docs/246 斯卡蒂 / docs/254 星熊的做法）
+## 帧条 pxp_sg_*（tools/pixelfx_fx/melee/ak-siege-pp.js，tools/pxplane_bake.py --op siege）。主色本人金（熔金 8 阶），尘 / 碎石暖土，精二点缀白金熔芯。
+## 普攻「锤击」= 下砸锤弧（挂在人身上，跟人走）+ 落点白闪 / 火星线 / 分叉裂网（落地留在原地）；精一碎石 + 隆起尘墙 + 「粉碎」碎石迸开；精二裂缝熔芯 + 「破阵」地裂与岩刺；
+## S1「冲锋号令·γ型」= 腰高号令声浪 + 脚下冲击环，下一锤换「号令一锤」（锤弧更粗、落点金色冲击环）；分支「万兽之王」号令波读玩法状态 o.hw.sg.waves；
+## S2「跃空锤」= 起跳一小圈 → 落地竖直冲柱 + 大裂网 + 冲击环 + 碎石 + 尘墙（精二熔芯 + 环外前向枝裂）；
+## S3「碎颅击」= 起手腰高横向光带 + 冲击环，持续时脚下炭火边，每锤横向扁白闪 + 向前分叉的地裂扇；
+## 后期剑气（钝器）= 锤击冲击波（贴地往前滚的土浪 + 身后裂痕），同一次出手几道合成一道；技能连携 v2「冲阵」= 尾锤大砸坑。
+
+var _motes: Array = []   # 技力粒子：{to 队友, from, t0, life, bend}（只画）
+var _sg_imp := {}        # 干员 id → 最近一锤的落点（只画）
+
+
+func _ev_sg(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary) -> void:
+	if Bal.v("fx/recipe_log", 0.0) > 0.0:   # 看图对齐用：事件的游戏时间
+		print("PXPLOG sg %s %s %.3f" % [kind, str(d.get("src", d.get("i", ""))), g.t])
+	var id: String = str(o.id)
+	match kind:
+		"swing":   # 锤击（普攻 / 冲锋号令强化一锤 / 碎颅）：seg_siege._h4_hammer_release
+			var ang: float = float(d.get("ang", 0.0))
+			var reach: float = float(d.get("reach", 92.0))
+			var heavy: bool = d.get("heavy", false)
+			var patch: bool = d.get("patch", false)
+			var dv := Vector2.from_angle(ang)
+			var imp: Vector2 = o.pos + Vector2(dv.x, dv.y * 0.72) * reach * 0.7   # 锤弧落点（平面里压扁的那一点）
+			var dk: Array = pick_dir(ang)
+			_sg_imp[id] = imp   # 这一锤的落点（破阵地裂从这里裂出去；只画）
+			if raw:
+				var rk: String = "sg_raw_s3" if heavy else "sg_raw_imp_e%d" % t
+				_push({"k": rk, "t0": g.t, "gp": imp + Vector2(0, -6), "ly": "raw", "rot": ang, "sc": g.PX * (reach * 0.5) / 46.0, "oid": id})
+				return
+			var ak: String
+			if heavy:
+				ak = "sg_arc_s3_up_d%d" % dk[0]
+			elif patch:
+				ak = "sg_arc_s1_e%d_up_d%d" % [t, dk[0]]
+			else:
+				ak = "sg_arc_r%d_e%d_up_d%d" % [_bucket(reach * 0.5, [46, 56, 66]), t, dk[0]]
+			# 同一名干员同屏只留最新一锤 + 正在收的一锤（不叠成一团）
+			var sl: Array = []
+			for it in items:
+				if str(it.oid) == id and it.get("slash", false):
+					sl.append(float(it.t0))
+			if sl.size() >= 2:
+				sl.sort()
+				var keep_t: float = float(sl[sl.size() - 1])
+				items = items.filter(func(it): return not (it.get("slash", false) and str(it.oid) == id and float(it.t0) < keep_t))
+			_push({"k": ak, "t0": g.t, "gp": _snap(o.pos), "flip": dk[1], "ly": "up", "oid": id, "slash": true, "fo": Vector2.ZERO})   # 锤弧挂在人身上：跟人走
+			if heavy:
+				_push({"k": "sg_s3_up", "t0": g.t, "gp": _snap(imp), "flip": false, "ly": "up", "oid": id})
+				_push({"k": "sg_s3_gd_d%d" % dk[0], "t0": g.t, "gp": _snap(imp), "flip": dk[1], "ly": "gd", "oid": id})
+			else:
+				var ik: String = "sg_imp_%s_e%d" % ["s1" if patch else "atk", t]
+				_push({"k": ik + "_up", "t0": g.t, "gp": _snap(imp), "flip": false, "ly": "up", "oid": id})
+				_push({"k": ik + "_gd", "t0": g.t, "gp": _snap(imp), "flip": false, "ly": "gd", "oid": id})
+			var big: bool = heavy or patch
+			_burst_m(o, R, p, imp + Vector2(0, -8), imp.y + 2.0, d.get("es", []), (2 + t) + (4 if big else 0), "rock", 100.0 + (60.0 if big else 0.0), 0.4 + (0.3 if big else 0.0))
+		"crush":   # 精一「粉碎」：击倒处碎石迸开（强制低档画面时不画）
+			if t < 1 or raw:
+				return
+			var at: Vector2 = d.get("at", o.pos)
+			_push({"k": "sg_crush_up", "t0": g.t, "gp": _snap(at), "flip": false, "ly": "up", "oid": id})
+			_push({"k": "sg_crush_gd", "t0": g.t, "gp": _snap(at), "flip": false, "ly": "gd", "oid": id})
+			if mode() == 1:
+				R._grains(o, at + Vector2(0, -8), at.y, "rock", 3, {"tier": t})
+		"breach":   # 精二「破阵」地裂 + 岩刺 / 再跃（队长版）原地砸出的地裂（不出岩刺）
+			var pts: PackedVector2Array = d.get("pts", PackedVector2Array())
+			if pts.size() < 2 or raw:
+				return
+			var spikes: bool = d.get("spikes", false)
+			if spikes and t < 2:
+				return
+			var a: Vector2 = pts[0]
+			var b: Vector2 = pts[pts.size() - 1]
+			var fa: float = (b - a).angle()
+			var dk2: Array = pick_dir(fa)
+			var st: Vector2 = _sg_imp.get(id, a) if spikes else o.pos + Vector2(a.x - o.pos.x, (a.y - o.pos.y) * 0.72)
+			var L: int = 90 if spikes else _bucket(a.distance_to(b) * 0.5, [60, 90, 110])
+			var pre: String = "sg_fis" if spikes else "sg_crk"
+			_push({"k": "%s_l%d_gd_d%d" % [pre, L, dk2[0]], "t0": g.t, "gp": _snap(st), "flip": dk2[1], "ly": "gd", "oid": id})
+			if spikes:
+				_push({"k": "sg_fis_l90_up_d%d" % dk2[0], "t0": g.t, "gp": _snap(st), "flip": dk2[1], "ly": "up", "oid": id})
+			if mode() == 1:
+				var mid: Vector2 = st + Vector2(cos(fa), sin(fa) * 0.72) * float(L)
+				R._grains(o, mid + Vector2(0, -6), mid.y, "rock", 3, {"tier": t})
+				R._light(o, mid, 120.0, 0.45, 0.15, p.light)
+		"quake":   # 成长「震地」/「狮吼」：落点一圈贴地冲击环（狮吼双环）
+			if raw:
+				return
+			var qa: Vector2 = d.get("at", o.pos)
+			_push({"k": "sg_quake_r%d_%s_gd" % [_bucket(float(d.get("r", 70.0)) * 0.5, [35, 45, 55]), "roar" if d.get("roar", false) else "q"], "t0": g.t, "gp": _snap(qa), "flip": false, "ly": "gd", "oid": id})
+		"crash":   # 狮吼：被击退的敌人撞上别的敌人 / 障碍
+			if raw:
+				return
+			var ca: Vector2 = d.get("at", o.pos) + Vector2(0, 8)
+			_push({"k": "sg_crash_up", "t0": g.t, "gp": _snap(ca), "flip": false, "ly": "up", "oid": id})
+			_push({"k": "sg_crash_gd", "t0": g.t, "gp": _snap(ca), "flip": false, "ly": "gd", "oid": id})
+			if mode() == 1:
+				R._light(o, ca, 70.0, 0.35, 0.1, p.light)
+		"leap":   # 跃空锤起跳：脚下一小圈 + 起跳点 → 落点一道金色残影弧（她在空中抡锤转一圈）
+			if raw:
+				return
+			_push({"k": "sg_crash_gd", "t0": g.t, "gp": _snap(o.pos), "flip": false, "ly": "gd", "oid": id})
+			var to: Vector2 = d.get("to", o.pos)
+			if to.distance_to(o.pos) > 8.0:
+				var dk3: Array = pick_dir((to - o.pos).angle())
+				_push({"k": "sg_trail_l%d_e%d_up_d%d" % [_bucket(to.distance_to(o.pos) * 0.5, [24, 45]), maxi(t, 1), dk3[0]], "t0": g.t, "gp": _snap(o.pos), "flip": dk3[1], "ly": "up", "oid": id})
+			if mode() == 1:
+				R._grains(o, o.pos + Vector2(0, -4), o.pos.y, "rock", 3, {"tier": t})
+		"slam":   # 跃空锤落地（含再跃第二下）
+			_sg_slam(o, R, p, d.get("at", o.pos), float(d.get("r", 110.0)), d.get("es", []), raw, maxi(t, 1), "slam")
+			_sg_motes(o, 1)
+		"shape":   # 路线「再跃·裂地」：跃空锤落地 0.8 秒后以自身为心再震一圈（circle 震地 r140）
+			if d.get("circle", false) and str(d.get("src", "")) == "震地":
+				_sg_slam(o, R, p, d.get("c", o.pos), float(d.get("r", 140.0)), d.get("es", []), raw, maxi(t, 1), "rift")
+		"skill":
+			var i: int = int(d.get("i", -1))
+			if raw:
+				return
+			if i == 0:   # 冲锋号令：身后战旗 + 身前狮头剪影与狮吼声波环（朝她面向，跟人走）+ 脚下淡金涟漪 + 技力粒子飞向队友 + 轻震
+				_push({"k": "sg_s1cast_e%d_up" % t, "t0": g.t, "gp": _snap(o.pos), "flip": float(o.face) < 0.0, "ly": "up", "oid": id, "fo": Vector2.ZERO})
+				_push({"k": "sg_lion_e%d_up" % t, "t0": g.t, "gp": _snap(o.pos), "flip": float(o.face) < 0.0, "ly": "up", "oid": id, "fo": Vector2.ZERO})   # 狮头（生图转帧条，docs/264 §8）
+				if mode() == 1 and g.ult != null:
+					g.ult.shake(2.0, 0.12)   # 狮吼：轻微震屏（用户同意的 3px / 0.12s 量级以内，按真实时间）
+				_push({"k": "sg_s1cast_e%d_gd" % t, "t0": g.t, "gp": _snap(o.pos), "flip": false, "ly": "gd", "oid": id})
+				_sg_motes(o, 2)
+				if mode() == 1:
+					R._light(o, o.pos + Vector2(0, -30), 130.0, 0.5, 0.15, p.light)
+			elif i == 2:   # 碎颅击起手：腰高横向光带（跟人走）+ 脚下冲击环
+				_push({"k": "sg_s3cast_up", "t0": g.t, "gp": _snap(o.pos), "flip": false, "ly": "up", "oid": id, "fo": Vector2.ZERO})
+				_push({"k": "sg_s3cast_gd", "t0": g.t, "gp": _snap(o.pos), "flip": false, "ly": "gd", "oid": id})
+				if mode() == 1:
+					R._light(o, o.pos + Vector2(0, -24), 150.0, 0.6, 0.15, p.light)
+		"link_dash":   # 技能连携 v2「冲阵」冲刺途中：脚下扬起的碎土（代替通用拖影 / 尘）
+			if mode() == 1 and g.vrng.randf() < 0.35:
+				var q: Vector2 = d.get("q", o.pos)
+				R._grains(o, q + Vector2(0, -2), q.y + 2.0, "rock", 1, {"tier": 1})
+		"link_slam":   # 「冲阵」尾锤：大砸坑 + 裂网 + 冲击环 + 碎石 + 两层尘墙
+			var lc: Vector2 = d.get("c", o.pos)
+			if raw:
+				_push({"k": "sg_raw_slam_e1", "t0": g.t, "gp": lc, "ly": "raw", "rot": 0.0, "sc": g.PX * 46.0 / 55.0, "oid": id})
+				return
+			_push({"k": "sg_link_up", "t0": g.t, "gp": _snap(lc), "flip": false, "ly": "up", "oid": id})
+			_push({"k": "sg_link_gd", "t0": g.t, "gp": _snap(lc), "flip": false, "ly": "gd", "oid": id})
+			_burst_m(o, R, p, lc + Vector2(0, -10), lc.y + 2.0, d.get("es", []), 10, "rock", 170.0, 0.7)
+
+
+## S2 落地 = 环形尘浪（slam，不开裂）；路线「再跃·裂地」= 冲柱 + 裂网（rift）
+func _sg_slam(o, R, p: Dictionary, at: Vector2, r: float, es: Array, raw: bool, t: int, kind: String) -> void:
+	if raw:
+		_push({"k": "sg_raw_slam_e%d" % t, "t0": g.t, "gp": at, "ly": "raw", "rot": 0.0, "sc": g.PX * (r * 0.5) / 55.0, "oid": str(o.id)})
+		return
+	var sk: String = ("sg_rift_r70_e%d" % t) if kind == "rift" else ("sg_slam_r55_e%d" % t)
+	_push({"k": sk + "_up", "t0": g.t, "gp": _snap(at), "flip": false, "ly": "up", "oid": str(o.id)})
+	_push({"k": sk + "_gd", "t0": g.t, "gp": _snap(at), "flip": false, "ly": "gd", "oid": str(o.id)})
+	_burst_m(o, R, p, at + Vector2(0, -10), at.y + 2.0, es, 8 + 3 * t, "rock", 200.0, 0.85)
+
+
+## 技力粒子：从她飞向每名队友（状态提示，原程序 h4_spmote 接管时不画，这里按美术像素格画）
+func _sg_motes(o, n: int) -> void:
+	if mode() != 1:
+		return
+	for m in g.squad.ops:
+		if m == o or m.pos == Vector2.INF:
+			continue
+		for k in n:
+			if _motes.size() >= 24:
+				_motes.pop_front()
+			_motes.append({"to": m, "from": o.pos + Vector2(0, -22), "t0": g.t + 0.06 * k, "life": 0.45 + 0.08 * k, "bend": g.vrng.randf_range(-40.0, 40.0)})
+
+
+func _sg_draw_motes(o) -> void:
+	if _motes.is_empty():
+		return
+	var cv = o.cv
+	var px: float = g.PX
+	var keep: Array = []
+	for mt in _motes:
+		var age: float = g.t - float(mt.t0)
+		if age > float(mt.life):
+			continue
+		keep.append(mt)
+		if age < 0.0 or mt.to.pos == Vector2.INF:
+			continue
+		var k: float = age / float(mt.life)
+		var st: Vector2 = mt.from
+		var to: Vector2 = mt.to.pos + Vector2(0, -24)
+		var at: Vector2 = st.lerp(to, k) + Vector2(0, -sin(k * PI) * 30.0) + st.direction_to(to).orthogonal() * sin(k * PI) * float(mt.bend)
+		var k2: float = maxf(0.0, k - 0.1)
+		var tl: Vector2 = st.lerp(to, k2) + Vector2(0, -sin(k2 * PI) * 30.0) + st.direction_to(to).orthogonal() * sin(k2 * PI) * float(mt.bend)
+		cv.draw_rect(Rect2(_snap(tl), Vector2(px, px)), Color("#e08e26"))
+		var c: Vector2 = _snap(at)
+		cv.draw_rect(Rect2(c - Vector2(px, px) * 0.5, Vector2(px, px) * 2.0), Color("#ffbf3c"))
+		cv.draw_rect(Rect2(c, Vector2(px, px)), Color("#fff1b8"))
+		if g.optical_on and _emit_n < EMIT_CAP:
+			_emit_n += 1
+			g.glow_next.append([c, px, Color(1.0, 0.85, 0.5, Bal.v("fx/px_plane_emit", 0.8))])
+	_motes = keep
+
+
+## 地面层（推进之王）：贴地件、号令波（读 o.hw.sg.waves）、碎颅击持续时脚下炭火边、锤击冲击波的影子与裂痕
+func _floor_sg(o) -> void:
+	var cv = o.cv
+	var id: String = str(o.id)
+	if o.skill_active_left(2) > 0.0:
+		_draw_strip(cv, "sg_s3aura_gd", frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
+	if o.hw.has("sg"):
+		for w in o.hw.sg.get("waves", []):   # 万兽之王号令波：帧号按波自己的年龄（0.4 秒扩满 + 0.25 秒淡掉）
+			_draw_strip(cv, "sg_cmd_gd", int(floor(float(w.t) * 15.0)), _snap(w.pos), false, true)
+	for it in items:
+		if str(it.ly) == "gd" and str(it.oid) == id:
+			_draw_strip(cv, str(it.k), frame_of(float(it.t0)), _gp(it), it.flip, true)
+	_sg_qi_track(o)
+
+
+## 后期剑气（late_shape → vis_growth._fire_qi，只读 o.vg.qi）：每次出手新生成的几道合成一道冲击波，自己往前推约 0.5 秒（判定照旧，画面比判定走得远）；
+## 前沿扫过的怪打出火星（每道冲击波至多 5 只）。同屏每人至多两道。新剑气记一个画面专用键 _pxw（玩法不读）
+var _sgw: Array = []   # {oid, mv, t0, hits, S}
+
+
+func _sg_qi_track(o) -> void:
+	var id: String = str(o.id)
+	if not o.vg.is_empty() and o.vg.has("qi"):
+		var grp: Array = []
+		for q in o.vg.qi:
+			if not q.has("_pxw"):
+				q["_pxw"] = true
+				grp.append(q)
+		if not grp.is_empty():
+			var p0 := Vector2.ZERO
+			var dsum := Vector2.ZERO
+			for q in grp:
+				p0 += q.p
+				dsum += (q.v as Vector2).normalized()
+			p0 /= float(grp.size())
+			var dir: Vector2 = dsum.normalized() if dsum.length() > 0.01 else Vector2.RIGHT
+			var n: int = grp.size()
+			var S: int = 18 if n <= 1 else (24 if n == 2 else 30)
+			var dk: Array = pick_dir(dir.angle())
+			var mv := {"p0": p0, "dir": Vector2(dir.x, dir.y * 0.72).normalized()}
+			var k: String = "sg_wave_s%d_e%d" % [S, tier(o)]
+			var mine: Array = _sgw.filter(func(w): return str(w.oid) == id)
+			if mine.size() >= 2:   # 同屏每人至多两道：最早的一道立刻收掉
+				var old: Dictionary = mine[0]
+				var omv: Dictionary = old.mv
+				items = items.filter(func(it): return not (it.has("mv") and is_same(it.mv, omv)))
+				_sgw.erase(old)
+			_push({"k": k + "_up_d%d" % dk[0], "t0": g.t, "gp": _snap(p0), "flip": dk[1], "ly": "up", "oid": id, "mv": mv})
+			_push({"k": k + "_gd_d%d" % dk[0], "t0": g.t, "gp": _snap(p0), "flip": dk[1], "ly": "gd", "oid": id, "mv": mv})
+			_sgw.append({"oid": id, "mv": mv, "t0": g.t, "hits": {}, "S": float(S) * 2.0})
+	if _sgw.is_empty() or mode() != 1:
+		return
+	var R = load("res://scripts/render/fx_recipe.gd").of(g)
+	var keep: Array = []
+	for w in _sgw:
+		if g.t - float(w.t0) > 0.55:
+			continue
+		keep.append(w)
+		if str(w.oid) != id or w.hits.size() >= 5:
+			continue
+		var front: Vector2 = _gp({"mv": w.mv, "t0": w.t0})
+		for j in o.query_ids(front, float(w.S) + 20.0):
+			var e: Dictionary = g.enemies[j]
+			if e.dead or w.hits.has(e.id) or e.pos.distance_to(front) > float(w.S) * 0.8 + float(e.r):
+				continue
+			w.hits[e.id] = true
+			R._grains(o, e.pos + Vector2(0, -float(e.r) * 0.5), float(e.pos.y) + 2.0, "streak", 2, {"tier": tier(o)}, w.mv.dir)
+			if w.hits.size() >= 5:
+				break
+	_sgw = keep
+
+
+# ================================================================ 水月（docs/261，照 docs/246 斯卡蒂的做法）
+## 意象：深海、水母、触手、幻象。色：深蓝紫 8 阶（OP.mizuki）+ 水母荧光青；精二点缀荧光紫。
+## 分档按「每升一档多一个新元素」（11-05 用户）：精零 = 伞面 + 水母；精一起触手出现；精二荧光紫 + 深蓝之籽 + 双触手 / 对缠。
+## 普攻「伞击」= 腰高伞面月牙（伞沿扇贝 + 伞骨；精二伞骨荧光紫）+ 命中处青色水母绽开 + 精一起生命最低的那只脚下钻出触手（精零只绽开水母）；
+## S1「唤醒」= 更大更白的伞面 + 青白沿 + 向外甩水，命中处三团大水母绽开 + 地上冲击环；精一起每团下面钻出触手；
+## S2「囚徒困境」= 起手一圈触手钻出 + 中心冰蓝尖晶；持续期间伞击更薄更快、青白沿 + 幻影残弧，被触手打中的缠住（前后两半圈）；
+## S3「镜花水月」= 起手大水母从脚下浮起 + 地上一圈水镜带月影；持续期间深蓝紫旋斩 + 荧光紫刃，脚下水镜，触手更粗；
+## 触手五种形态按场合用：普攻追击拍击（精二多一根卷须）、唤醒刺穿、束缚卷须 + 缠绕、镜花水月粗拍击、连携群生。
+## 精二「深蓝之籽」= 身后小水母改画像素水母（离身游猎时拖三点尾），蛰中一朵紫色小水母；连携「小触手」= 高触手钻出 + 缠住 1 秒。
+const MZ_TENT_MAX := 5     # 同屏触手（同一名干员）；GCP 实机 E1 一次 5–6 根拍击堆成一丛，8 → 5
+const MZ_COIL_MAX := 10    # 同屏缠绕
+const MZ_BLOOM_MAX := 5    # 同屏命中水母绽开
+
+var _smzs = null
+
+
+func _smz():
+	if _smzs == null:
+		_smzs = load("res://scripts/characters/blocks/seg_mizuki.gd")   # 运行时取（避免和积木链循环 preload）
+	return _smzs
+
+
+static func _mz_pick(r: float, opts: Array) -> int:
+	var best: int = int(opts[0])
+	for v in opts:
+		if absf(float(v) - r) < absf(float(best) - r):
+			best = int(v)
+	return best
+
+
+func _mz_count(o, pre: String) -> int:
+	var n := 0
+	for it in items:
+		if str(it.oid) == str(o.id) and str(it.k).begins_with(pre) and str(it.ly) == "up":
+			n += 1
+	return n
+
+
+## 伞面月牙（方向件 / 旋斩）：挂在人身上（fo，跟人走）；同一名干员只留上一刀 + 这一刀（不碎）
+func _mz_slash(o, key: String, ang: float, spin: bool) -> void:
+	var sl: Array = []
+	for it in items:
+		if str(it.oid) == str(o.id) and it.get("slash", false) and str(it.ly) == "up":
+			sl.append(it.t0)
+	if sl.size() >= 2:
+		sl.sort()
+		var keep_t: float = float(sl[sl.size() - 1])
+		items = items.filter(func(it): return not (it.get("slash", false) and str(it.oid) == str(o.id) and float(it.t0) < keep_t))
+	var dk: Array = pick_dir(ang)
+	var ku: String = (key + "_up") if spin else "%s_up_d%d" % [key, dk[0]]
+	var kg: String = (key + "_gd") if spin else "%s_gd_d%d" % [key, dk[0]]
+	var fl: bool = dk[1] and not spin
+	_push({"k": ku, "t0": g.t, "gp": _snap(o.pos), "flip": fl, "ly": "up", "oid": str(o.id), "slash": true, "fo": Vector2.ZERO})
+	_push({"k": kg, "t0": g.t, "gp": _snap(o.pos), "flip": fl, "ly": "gd", "oid": str(o.id), "slash": true, "fo": Vector2.ZERO})
+
+
+## 命中水母绽开：原点 = 命中点，排在被打那只前面；同屏至多 MZ_BLOOM_MAX 团
+func _mz_bloom(o, e: Dictionary, key: String, raw: bool, t: int) -> void:
+	var hp: Vector2 = e.pos + Vector2(0, -float(e.r) * 0.55)
+	if raw:
+		_push({"k": "mz_raw_bloom_e%d" % t, "t0": g.t, "gp": hp, "ly": "raw", "rot": 0.0, "sc": g.PX * 1.2, "oid": str(o.id)})
+		return
+	if _mz_count(o, "mz_bloom") + _mz_count(o, "mz_sting") >= MZ_BLOOM_MAX:
+		return
+	_push({"k": key, "t0": g.t, "gp": _snap(hp), "gy": float(e.pos.y) + 2.0, "flip": false, "ly": "up", "oid": str(o.id)})
+
+
+## 触手：目标脚边（离水月远的一侧）钻出，朝水月倾（拖拽感）；束缚（stun ≥ 0.45，非 Boss）时再缠住 min(stun, 1.2) 秒
+func _mz_tent(o, e: Dictionary, at: Vector2, key: String, raw: bool, t: int, bind: float) -> void:
+	var side: float = 1.0 if at.x >= o.pos.x else -1.0
+	var er: float = float(e.get("r", 14.0))
+	var arc: bool = key.contains("_slam_") or key.contains("_big_")   # 拍击要越过头顶拍下来：底座放远一点，落点正好在目标上（不拍到旁边空地）
+	var base: Vector2 = at + Vector2(side * (er * 0.55 + (16.0 if arc else 0.0)), 3.0)
+	if raw:
+		_push({"k": "mz_raw_tent_e%d" % t, "t0": g.t, "gp": base, "ly": "raw", "rot": 0.0, "sc": g.PX * 1.15, "oid": str(o.id)})
+		return
+	var busy := false   # 同一只身上已经有一根还没缩回的触手：不再叠（囚徒困境 / 镜花水月连挥时不堆成一丛）
+	for it in items:
+		if it.has("tg") and is_same(it.tg, e) and g.t - float(it.t0) < 0.35:
+			busy = true
+			break
+	if not busy and _mz_count(o, "mz_tent") < MZ_TENT_MAX:
+		_push({"k": key + "_up", "t0": g.t, "gp": _snap(base), "gy": base.y + 0.5, "flip": side > 0.0, "ly": "up", "oid": str(o.id), "tg": e})
+		_push({"k": key + "_gd", "t0": g.t, "gp": _snap(base), "flip": side > 0.0, "ly": "gd", "oid": str(o.id)})
+	if bind >= 0.45 and not e.get("boss", false) and not e.get("dead", false):
+		_mz_coil(o, e, clampi(t, 1, 2), minf(bind, 1.2))
+
+
+func _mz_coil(o, e: Dictionary, t: int, life: float) -> void:
+	var found := false
+	for it in items:   # 同一只已经缠着：续时间，不叠
+		if it.has("ef") and is_same(it.ef, e):
+			it.life = maxf(float(it.life), g.t - float(it.t0) + life)
+			found = true
+	if found or _mz_count(o, "mz_coil") >= MZ_COIL_MAX * 2:
+		return
+	var rx: int = _mz_pick(float(e.r) * 0.5, [6, 9, 13, 18])
+	for half in ["back", "front"]:
+		_push({"k": "mz_coil_r%d_e%d_%s_up" % [rx, t, half], "t0": g.t, "gp": _snap(e.pos), "ef": e, "sk": -1.5 if half == "back" else 1.5,
+			"flip": false, "ly": "up", "oid": str(o.id), "loop": true, "life": life})
+
+
+func _ev_mz(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary) -> void:
+	match kind:
+		"mz_umb":
+			var ang: float = float(d.get("ang", 0.0))
+			var r: float = float(d.get("r", 112.0))
+			var lst: Array = (d.get("es", []) as Array).duplicate()
+			lst.sort_custom(func(a, b): return a.pos.distance_squared_to(o.pos) < b.pos.distance_squared_to(o.pos))
+			var nb := 2
+			var bk: String = "mz_bloom_e%d_up" % t
+			if d.get("s3", false):   # 镜花水月：全范围深蓝紫旋斩
+				if raw:
+					_push({"k": "mz_raw_spin3", "t0": g.t, "gp": o.pos + Vector2(0, -10), "ly": "raw", "rot": 0.0, "sc": g.PX * (r * 0.5) / 81.0, "oid": str(o.id)})
+				else:
+					_mz_slash(o, "mz_spin3_r%d" % _mz_pick(r * 0.5, [81, 104]), 0.0, true)
+				nb = 3
+				bk = "mz_bloom_e2_up"
+			elif d.get("emp", false):   # 唤醒强化的那一击（命中处另有三团大水母：mz_burst）
+				if raw:
+					_push({"k": "mz_raw_s1_e%d" % t, "t0": g.t, "gp": o.pos + Vector2(0, -10), "ly": "raw", "rot": ang, "sc": g.PX * (r * 0.5) / 73.0, "oid": str(o.id)})
+				else:
+					_mz_slash(o, "mz_s1_r%d_e%d" % [_mz_pick(r * 0.5, [73, 92]), t], ang, false)
+				nb = 1
+			else:
+				var r0: int = _mz_pick(r * 0.5, [56, 70])
+				if raw:
+					_push({"k": "mz_raw_atk_e%d" % t, "t0": g.t, "gp": o.pos + Vector2(0, -10), "ly": "raw", "rot": ang, "sc": g.PX * (r * 0.5) / 56.0, "oid": str(o.id)})
+				elif d.get("s2", false):   # 囚徒困境期间
+					_mz_slash(o, "mz_s2_r%d_e%d" % [r0, clampi(t, 1, 2)], ang, false)
+				else:
+					_mz_slash(o, "mz_atk_r%d_e%d" % [r0, t], ang, false)
+			for i in mini(nb, lst.size()):
+				_mz_bloom(o, lst[i], bk, raw, t)
+			if mode() == 1 and not lst.is_empty():
+				var hp: Vector2 = lst[0].pos + Vector2(0, -float(lst[0].r) * 0.5)
+				R._grains(o, hp, float(lst[0].pos.y) + 2.0, "ink", mini(2 + t, 1 + lst.size()), {"tier": t}, (hp - o.pos).normalized())
+				R._light(o, hp, 100.0, 0.4 * MI.lit_k(g), 0.12, p.light)
+		"mz_tent":
+			var e: Dictionary = d.get("e", {})
+			if e.is_empty():
+				return
+			var s3: bool = d.get("s3", false)
+			if t == 0 and not s3:   # 11-05 用户：精零普攻不出触手（触手是精一的招牌），追击那一下只在目标身上绽开一朵水母
+				_mz_bloom(o, e, "mz_bloom_e0_up", raw, t)
+				return
+			var stn: float = float(d.get("stun", 0.0))
+			_mz_tent(o, e, d.get("at", e.pos), _mz_tk("big", 2) if s3 else (_mz_tk("curl", t) if stn >= 0.45 else _mz_tk("slam", t)), raw, t, stn)
+			if mode() == 1 and not s3:
+				R._grains(o, e.pos + Vector2(0, -6), float(e.pos.y) + 2.0, "ink", 2, {"tier": t})
+		"mz_burst":   # 唤醒创伤扩散：大水母绽开 + 地上冲击环
+			var at: Vector2 = d.get("at", o.pos)
+			if raw:
+				_push({"k": "mz_raw_bloom_e%d" % t, "t0": g.t, "gp": at + Vector2(0, -16), "ly": "raw", "rot": 0.0, "sc": g.PX * 2.2, "oid": str(o.id)})
+				return
+			_push({"k": "mz_burst_e%d_up" % t, "t0": g.t, "gp": _snap(at + Vector2(0, -16)), "gy": at.y + 3.0, "flip": false, "ly": "up", "oid": str(o.id)})
+			_push({"k": "mz_burst_e%d_gd" % t, "t0": g.t, "gp": _snap(at), "flip": false, "ly": "gd", "oid": str(o.id)})
+			if t >= 1:   # 精一起：每团大水母下面钻出一根触手（分档加新元素，不靠换色）
+				_mz_tent(o, {"pos": at, "r": 10.0, "boss": true}, at, _mz_tk("pierce", t), raw, t, 0.0)
+			if mode() == 1:
+				R._grains(o, at + Vector2(0, -18), at.y, "ink", 4 + t, {"tier": t})
+				R._light(o, at + Vector2(0, -14), 140.0, 0.55 * MI.lit_k(g), 0.14, p.light)
+		"mz_sting":   # 深蓝之籽蛰中：一朵紫色小水母
+			var e2: Dictionary = d.get("e", {})
+			if not e2.is_empty() and not raw:
+				_mz_bloom(o, e2, "mz_sting_up", raw, t)
+		"mz_stake":
+			var at2: Vector2 = d.get("at", o.pos)
+			_mz_tent(o, {"pos": at2, "r": 8.0, "boss": true}, at2, _mz_tk("pierce", t), raw, t, 0.0)
+		"mz_splash":   # 扩散：一圈细水纹（每拍至多 3 圈）
+			if raw or _mz_count_gd(o, "mz_ripple") >= 3:
+				return
+			_push({"k": "mz_ripple_gd", "t0": g.t, "gp": _snap(d.get("at", o.pos)), "flip": false, "ly": "gd", "oid": str(o.id)})
+		"mz_link":   # 连携「小触手」：高触手钻出 + 缠住 1 秒（不分档）
+			for e3 in d.get("es", []):
+				if e3.get("dead", false):
+					continue
+				_mz_tent(o, e3, e3.pos, _mz_tk("cluster", 2), raw, 2, 0.0 if e3.get("boss", false) else 1.0)
+			if mode() == 1:
+				R._light(o, d.get("c", o.pos), 150.0, 0.5, 0.15, p.light)
+		"shape":   # 惊跳反射·余悸（circle，src 触手）：身边一圈触手抽打
+			if d.get("circle", false) and not raw:
+				var c: Vector2 = d.get("c", o.pos)
+				_push({"k": "mz_awk2_up", "t0": g.t, "gp": _snap(c), "flip": false, "ly": "up", "oid": str(o.id)})
+				_push({"k": "mz_awk2_gd", "t0": g.t, "gp": _snap(c), "flip": false, "ly": "gd", "oid": str(o.id)})
+		"skill":
+			if raw:
+				return
+			var i: int = int(d.get("i", -1))
+			if i == 1:   # 囚徒困境起手：一圈触手钻出 + 中心冰蓝尖晶（跟人）
+				var tt: int = clampi(t, 1, 2)
+				_push({"k": "mz_s2cast_e%d_up" % tt, "t0": g.t, "gp": _snap(o.pos), "flip": false, "ly": "up", "oid": str(o.id), "fo": Vector2.ZERO})
+				_push({"k": "mz_s2cast_e%d_gd" % tt, "t0": g.t, "gp": _snap(o.pos), "flip": false, "ly": "gd", "oid": str(o.id)})
+				R._light(o, o.pos + Vector2(0, -14), 160.0, 0.7, 0.15, p.hot)
+			elif i == 2:   # 镜花水月起手：大水母浮起（跟人）+ 水镜月影
+				_push({"k": "mz_moon_up", "t0": g.t, "gp": _snap(o.pos), "flip": false, "ly": "up", "oid": str(o.id), "fo": Vector2.ZERO})
+				_push({"k": "mz_moon_gd", "t0": g.t, "gp": _snap(o.pos), "flip": false, "ly": "gd", "oid": str(o.id)})
+				R._grains(o, o.pos + Vector2(0, -40), o.pos.y, "ink", 6, {"tier": 2})
+				R._light(o, o.pos + Vector2(0, -30), 170.0, 0.7, 0.15, p.light)
+
+
+## 触手形态键（11-05 用户「多做几个形态」）：slam 拍击（普攻追击）/ pierce 刺穿（唤醒大水母下、触手桩）/ curl 卷须（束缚）/ big 粗拍击（镜花水月）/ cluster 群生（连携）；
+## 每种 3 个变体（弯向 / 长短 / 粗细不同），按画面随机数挑，不像复制粘贴
+func _mz_tk(form: String, t: int) -> String:
+	var tt: int = 2 if form in ["big", "cluster"] else clampi(t, 1, 2)
+	return "mz_tent_%s_e%d_v%d" % [form, tt, g.vrng.randi_range(0, 2)]
+
+
+func _mz_count_gd(o, pre: String) -> int:
+	var n := 0
+	for it in items:
+		if str(it.oid) == str(o.id) and str(it.k).begins_with(pre) and str(it.ly) == "gd" and g.t - float(it.t0) < 1.0 / 15.0:
+			n += 1
+	return n
+
+
+## 地面层：贴地件 + 唤醒充能小环 + 镜花水月水镜（跟人）
+func _mz_draw_floor(o) -> void:
+	var cv = o.cv
+	var id: String = str(o.id)
+	if o.ammo[0] > 0:
+		_draw_strip(cv, "mz_ready_gd", frame_of(0.0), _snap(o.pos + Vector2(0, 4)), false, false)
+	if o.skill_active_left(2) > 0.0:
+		var rr: float = float(o.hw.mz.get("s3_fx_radius", 0.0)) if o.hw.has("mz") else 0.0
+		if rr <= 0.0:
+			rr = 162.0
+		_draw_strip(cv, "mz_pool_r%d_gd" % _mz_pick(rr * 0.5, [81, 104]), frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
+	for it in items:
+		if str(it.ly) == "gd" and str(it.oid) == id:
+			_draw_strip(cv, str(it.k), frame_of(float(it.t0)), _gp(it), it.flip, true)
+
+
+## 排序项：深蓝之籽（身后 / 离身游猎的小水母）、藏品剑气（小水母游过去）
+func _mz_sort_items(o, out: Array) -> void:
+	var t: int = tier(o)
+	var mz: Dictionary = o.hw.get("mz", {})
+	for j in mz.get("jel", []):
+		var jp: Vector2 = j.p
+		out.append({"mzj": "mz_jelly_up", "a": jp, "v": j.get("v", Vector2.ZERO) if str(j.ph) != "home" else Vector2.ZERO, "gp": _snap(jp + Vector2(0, 6)), "gy": jp.y + 34.0})
+	if o.get("vg") is Dictionary and not o.vg.is_empty():
+		for q in o.vg.get("qi", []):
+			var qp: Vector2 = _wpos({"pos": q.p, "_pxq": q.get("_pxq")}, q)
+			out.append({"mzj": "mz_qi_e%d_up" % t, "a": qp + Vector2(0, -14), "v": q.v, "gp": _snap(qp + Vector2(0, -8)), "gy": qp.y + 1.0})
+
+
+## 小水母：循环帧条 + 离身时身后三点尾（逐美术像素，越后越暗）
+func _mz_draw_jelly(ci, it: Dictionary) -> void:
+	var v: Vector2 = it.v
+	if v.length() > 1.0:
+		var back: Vector2 = -v.normalized()
+		var cols := [Color.html("#9aa8ff"), Color.html("#5a7cf0"), Color.html("#3150c8")]
+		for i in 3:
+			var pp: Vector2 = _snap((it.a as Vector2) + back * float(6 + i * 6))
+			ci.draw_rect(Rect2(pp, Vector2(g.PX, g.PX)), cols[i])
+	_draw_strip(ci, str(it.mzj), frame_of(0.0), it.gp, false, false)

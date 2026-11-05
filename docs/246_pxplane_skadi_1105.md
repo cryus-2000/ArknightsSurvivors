@@ -117,22 +117,6 @@
 - **额外剑气 = 水刃 + 浪痕**：`VisGrowth` 的剑气（`o.vg.qi`，`_fire_qi` 生成）在接管时不画通用剑气，改画一道竖直的小浪头（同潮刃意象，按精英档变大），身后地上一道 V 字白沫浪痕逐渐淡掉；位置按 15 fps 节拍跳格、对齐像素格。
 - **连携技「落潮横扫」**（`run/combo.gd`，不分档）：跃到队长冲刺落点后，一道整圈白刃大月牙（带甩水）+ 脚下一圈矮浪往外推开 + 水滴；判定后一行 `Fxr.ev(p, "combo", …)` 只画。
 
-## 10. 出图流程（11-05 起放 GCP，docs/256）
-
-本机只写代码、不开 Godot 渲染；截图、录像和 TRACE 都用一条命令放到 GCP 上出：
-
-```
-python tools/gcp_render.py --branch <自己的分支> --job pxplane --name <名>                # demo + rec + trace 三段全跑
-python tools/gcp_render.py --branch <自己的分支> --job pxplane --args "demo --modes 3,0" # 只出普攻 / S1 三栏
-python tools/gcp_render.py --branch <自己的分支> --job trace_ab --args 'cases=skadi:23:300 a="--bal=fx/px_plane=0" b="--bal=fx/px_plane=1"'
-```
-
-- **产物**：图和 mp4 自动下载到 `<主仓库>/Claude outputs/render-<名>/`。日志和 TRACE 结果在 `cloud-results/render-<名>` 分支的 `build/cloud/render-<名>/` 下：`pxplane_rec.log` / `pxplane_trace.log` 末行写着是否逐行一致。
-- **index.json**：虚拟机上自动跑 `asset_index.py` 生成，不用管。
-- **原作参照**：图只在本机，不上 GCP。三栏里要加「原作」一栏，下载后在本机用 PIL 拼到左边。
-- **斯卡蒂实测**（本稿 3108c1778，8 核抢占式）：本节 §7 的 23 个文件、69 MB 全部拿回，全程 48 分钟，约 0.07 美元。其中 demo 26 分钟、rec 14 分钟、trace 3 分钟。TRACE 301 行、录像局 499 行逐行一致，同 §6。
-- **星熊、流明等其他人**：照 `pxplane_shots.py` 写自己的出图脚本，Godot 只经 `godot_runner.run_godot` 启动，输出目录取 `--out`。然后用 `--job custom --cmd 'python3 tools/<脚本>.py … --out $MEDIA'` 跑，或在 `tools/gcp/render_jobs/` 加一个任务文件。
-
 ## 10. 框架修复：挂在人身上的特效跟着人走（11-05 用户实机「斯卡蒂的斩击没有绑定人，导致斩击会在别的地方出现」「星熊也有同样的问题」）
 
 - 根因：`fx_pxplane` 的件在出手那一帧把世界坐标 `gp` 存死，存续期间（4–7 拍）干员走动或被队形拉走，刀光留在原地。取的单位没错（就是出手的那名干员）。
@@ -155,3 +139,18 @@ python tools/gcp_render.py --branch <自己的分支> --job trace_ab --args 'cas
 - 旋钮：`fx/melee_impact_stop / _stop_heavy / _mate / _shake_px / _shake_t / _push / _push_heavy / _lit`。
 - 验证：TRACE 在批跑模式比（顿帧在玩家时钟里会真的停模拟，开 / 关两局本来就会分岔，所以 TRACE 口径同 docs/245：`--balance` 非 `--playclock`）；对照录像用 `--realtime --playclock`（顿帧看得见）。脚本 `tools/melee_impact_rec.py`，在 GCP 上跑（`tools/gcp_render.py --job custom`）。
 
+## 12. 出图流程（11-05 起放 GCP，docs/256）
+
+本机只写代码、不开 Godot 渲染；截图、录像和 TRACE 都用一条命令放到 GCP 上出：
+
+```
+python tools/gcp_render.py --branch <自己的分支> --job pxplane --name <名>                # demo + rec + trace 三段全跑
+python tools/gcp_render.py --branch <自己的分支> --job pxplane --args "demo --modes 3,0" # 只出普攻 / S1 三栏
+python tools/gcp_render.py --branch <自己的分支> --job trace_ab --args 'cases=skadi:23:300 a="--bal=fx/px_plane=0" b="--bal=fx/px_plane=1"'
+```
+
+- **产物**：图和 mp4 自动下载到 `<主仓库>/Claude outputs/render-<名>/`。日志和 TRACE 结果在 `cloud-results/render-<名>` 分支的 `build/cloud/render-<名>/` 下：`pxplane_rec.log` / `pxplane_trace.log` 末行写着是否逐行一致。
+- **index.json**：虚拟机上自动跑 `asset_index.py` 生成，不用管。
+- **原作参照**：图只在本机，不上 GCP。三栏里要加「原作」一栏，下载后在本机用 PIL 拼到左边。
+- **斯卡蒂实测**（本稿 3108c1778，8 核抢占式）：本节 §7 的 23 个文件、69 MB 全部拿回，全程 48 分钟，约 0.07 美元。其中 demo 26 分钟、rec 14 分钟、trace 3 分钟。TRACE 301 行、录像局 499 行逐行一致，同 §6。
+- **星熊、流明等其他人**：照 `pxplane_shots.py` 写自己的出图脚本，Godot 只经 `godot_runner.run_godot` 启动，输出目录取 `--out`。然后用 `--job custom --cmd 'python3 tools/<脚本>.py … --out $MEDIA'` 跑，或在 `tools/gcp/render_jobs/` 加一个任务文件。

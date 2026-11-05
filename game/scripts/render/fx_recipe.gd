@@ -37,8 +37,8 @@ var stat_parts := 0
 
 
 static func of(game):
-	if game == null:
-		return null
+	if game == null or not (game is Object):
+		return null   # 契约测试的假 g 是 Dictionary（eyja_volcanic_weight）：不接管
 	if game.has_meta("fx_recipe"):
 		return game.get_meta("fx_recipe")
 	var r = new()
@@ -60,12 +60,12 @@ const _NONE := {}
 
 func recipe(id: String) -> Dictionary:
 	# 转平面试验（docs/246）的干员只在 fx/px_plane 开着时有配方（读 data/fx_pxplane/）；其余干员只在 fx/recipe 开着时有
-	var px: bool = Pxp.IDS.has(id)
-	if px and not Pxp.owns_id(g, id):
-		return _NONE
+	# 推进之王（docs/264）原本有 docs/245 的配方：转平面关着时照旧走 fx/recipe 的配方（缓存键分开）
+	var px: bool = Pxp.IDS.has(id) and Pxp.owns_id(g, id)
 	if not px and Bal.v("fx/recipe", 0.0) <= 0.0:
 		return _NONE
-	if not recipes.has(id):
+	var ck: String = ("px:" + id) if px else id
+	if not recipes.has(ck):
 		var d := {}
 		var p: String = (PXP_DIR if px else DIR) + id + ".json"
 		if FileAccess.file_exists(p):
@@ -74,8 +74,8 @@ func recipe(id: String) -> Dictionary:
 			if v is Dictionary:
 				d = v
 				_prep(d)
-		recipes[id] = d
-	return recipes[id]
+		recipes[ck] = d
+	return recipes[ck]
 
 
 ## 颜色字段（"#rrggbb" 或 [r, g, b]）预先转成 Color
@@ -126,14 +126,14 @@ static func owns(o) -> bool:
 	if o == null or o.g == null:
 		return false
 	var r = of(o.g)
-	return r.enabled() and not r.recipe(str(o.id)).is_empty()
+	return r != null and r.enabled() and not r.recipe(str(o.id)).is_empty()
 
 
 static func owns_id(game, oid: String) -> bool:
 	if game == null or oid == "":
 		return false
 	var r = of(game)
-	return r.enabled() and not r.recipe(oid).is_empty()
+	return r != null and r.enabled() and not r.recipe(oid).is_empty()
 
 
 # ================================================================ 配方读取
@@ -519,7 +519,7 @@ static func react_t(game, e: Dictionary) -> float:
 
 
 ## world.gd 受击闪用：a < 0 = 不接管（照旧白闪）；a = 0 = 接管、这一帧不闪（白闪由本人色取代）；a > 0 = 闪这个颜色
-## 配方 / 转平面的受击反应没接管时回落到近战打击感包（docs/246 §11）：闪本人色
+## 配方 / 转平面的受击反应没接管时回落到近战打击感包（docs/246 §12）：闪本人色
 static func react_col(game, e: Dictionary) -> Color:
 	var c: Color = _react_col_r(game, e)
 	if c.a < 0.0:

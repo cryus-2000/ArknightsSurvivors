@@ -1794,6 +1794,8 @@ func impact(c: Vector2) -> void:
 ## 力场（verb.field look）：ring = 地面环带虚线缓慢旋转 + 内外两圈相向的光点（S2 重力场）；lift = 大圆 + 上升光点（S3 悬浮场）。
 ## 悬浮中的敌人脚下挂 fx_angelina_levitate。全部只读 g.t，不碰随机数
 func _draw_fields() -> void:
+	if Fxr.Pxp.owns_id(g, str(id)):   # 转平面（docs/267）接管：环带 / 悬浮场 / 悬浮脚下改由 fx_pxplane_ang 画
+		return
 	for u in _state:
 		var st = _state[u]
 		if not (st is Dictionary) or not st.has("look") or st.look == "none" or st.c == Vector2.INF:
@@ -1851,7 +1853,7 @@ func _draw_fields() -> void:
 
 ## 重力弹：杖头飞向落点，略带弧线；proj_angelina_orb 循环帧条（docs/25 §6，锚点居中）+ 落点地面预示圈
 func _draw_shots() -> void:
-	if shots.is_empty():
+	if shots.is_empty() or Fxr.Pxp.owns_id(g, str(id)):   # 转平面（docs/267）接管：重力弹由 fx_pxplane_ang 画
 		return
 	var a: Dictionary = B.get("attack", {})
 	for s in shots:

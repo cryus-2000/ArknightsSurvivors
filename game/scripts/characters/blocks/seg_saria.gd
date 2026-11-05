@@ -79,6 +79,7 @@ static func _h4_bash_release(o, a: Dictionary) -> void:
 		return
 	var hits: Array = o.melee_hit(str(a.get("src", "")), o.pos + Vector2(0, float(a.get("y", -10.0))), ang, float(a.get("half", 1.1)), reach, _h4_bash_dmg(o), float(a.get("kb", 200.0)), float(a.get("stun", 0.2)), a.get("tags", []))
 	_h4_marks_pop(o, hits, _h4_bash_dmg(o))   # 晶簇（docs/202）：被拳击命中的带碎片敌人，碎片爆开
+	_FXR.ev(o, "sa_bash", {"ang": ang, "r": reach, "es": hits, "calc": float(sa.calc) > 0.0})   # 转平面（docs/269）：只画
 	var d := Vector2.from_angle(ang)
 	var fk: float = reach / maxf(1.0, float(a.get("r", 115.0)))   # 盾击帧条跟判定半径走（范围藏品放大判定时一起放大，163B §3）
 	if not o.spawn_fx_sprite("fx_saria_shield_bash", o.pos + Vector2(0, -12) + d * (14.0 + 20.0 * g.PX * 0.9) * fk, g.PX * 0.9 * fk, ang):
@@ -118,6 +119,7 @@ static func _h4_suit_blast(o, a: Dictionary, su: Dictionary) -> void:
 	var r: float = float(su.get("r", 110.0)) * o.stat(&"op_range")   # 范围藏品同样放大满格冲击（判定与六道冲击 / 环一起）
 	var hits: Array = o.melee_hit(str(a.get("src", "")), o.pos + Vector2(0, -6), 0.0, PI, r, _h4_bash_dmg(o) * float(su.get("mult", 1.8)), float(su.get("kb", 320.0)), float(su.get("stun", 0.3)), su.get("tags", ["empowered"]))
 	_h4_marks_pop(o, hits, _h4_bash_dmg(o))
+	_FXR.ev(o, "sa_suit", {"r": r, "es": hits})   # 转平面（docs/269）：只画
 	for k in 6:
 		o.fx({"kind": "h4_bash", "pos": o.pos + Vector2(0, -14), "ang": k * TAU / 6.0, "reach": r * 0.8, "life": 0.26, "big": true})
 	o.fx({"kind": "ring", "pos": o.pos, "r": r, "r0": 16.0, "life": 0.35, "col": H4_AMBER, "floor": true, "w": 4.0})
@@ -162,6 +164,7 @@ static func _h4_pillars_raise(o, pc: Dictionary, c: Vector2) -> void:
 
 static func _h4_pillars_break(o, cr: Dictionary) -> void:
 	var g = o.g
+	_FXR.ev(o, "sa_pbreak", {"posts": cr.posts, "small": float(cr.b.get("pr", 14.0)) <= 12.0})   # 转平面（docs/269）：只画
 	for p in cr.posts:
 		if not o.spawn_fx_sprite("fx_saria_pillar_break", p + Vector2(0, -30), g.PX):
 			o.spawn_fx_sprite("fx_rock_burst", p, g.PX * 0.7, 0.0, false, false, Color(1.3, 1.0, 0.6))
@@ -213,6 +216,7 @@ static func _h4sa_tick(o, sa: Dictionary, dt: float) -> void:
 			sa.hot_acc = float(sa.hot_acc) - 1.0
 			if g.hp < g.max_hp:
 				o.heal_leader(g.max_hp * float(sa.hot_pct), o.display_name())
+				_FXR.ev(o, "sa_hot", {})   # 转平面（docs/269）：只画
 				o.fx({"kind": "mote", "pos": g.ppos + Vector2(g.vrng.randf_range(-16, 16), -20), "vel": Vector2(0, -35), "life": 0.7, "col": H4_AMBER, "sz": 2.0})
 	var shb: Dictionary = _h4_sub(o, ob.get("shatter", null)) if not ob.is_empty() else {}
 	if float(sa.calc) > 0.0:
@@ -395,6 +399,9 @@ static func h4_extra_bodies(o) -> Array:
 static func h4_draw_extra(o, it: Dictionary) -> void:
 	var g = o.g
 	var cv = o.cv
+	if _FXR.Pxp.owns_id(g, str(o.id)):   # 转平面（docs/269）：晶柱 / 晶簇改画像素版
+		_FXR.Pxp.of(g)._sa().draw_extra(o, it)
+		return
 	if str(it.h4) == "calc":
 		var sl: Dictionary = o.hw.sa.slots[int(it.k)]
 		var t: float = float(sl.t)
@@ -477,6 +484,7 @@ static func _h4_orbs_tick(o, sa: Dictionary, ob: Dictionary, orb_n: int, dt: flo
 			cdd[e.id] = float(ob.get("cd", 0.5))
 			o.log_hit(str(ob.get("src", "")))
 			o.deal_damage(e, dmg)
+			_FXR.ev(o, "sa_chip", {"at": p + Vector2(0, -16), "gy": p.y})   # 转平面（docs/269）：只画
 			o.fx({"kind": "glow", "pos": p + Vector2(0, -16), "r": 7.0, "life": 0.14, "col": H4_AMBER, "alpha": 0.6})
 			o.fx({"kind": "shard", "pos": p + Vector2(0, -16), "vel": Vector2.from_angle(g.vrng.randf() * TAU) * 90.0, "life": 0.22, "col": H4_AMBER, "sz": 3.0, "ang": g.vrng.randf() * TAU, "spin": 12.0})
 			if mk_on and not e.dead:
@@ -508,6 +516,7 @@ static func _h4_shots_tick(o, sa: Dictionary, dt: float) -> void:
 				continue
 			o.log_hit(str(s.src))
 			o.deal_damage(e, s.dmg)
+			_FXR.ev(o, "sa_shot_hit", {"kind": s.kind, "at": s.pos})   # 转平面（docs/269）：只画
 			if s.kind == "syringe":
 				if not e.dead:
 					o.add_cc(e, -INF, float(s.slow))
@@ -555,6 +564,7 @@ static func _h4_mark_burst(o, mk: Dictionary, p: Vector2, dmg: float) -> void:
 			continue
 		o.log_hit(str(mk.get("src", "")))
 		o.deal_damage(e, d * (o.vs_elite() if e.elite or e.boss else 1.0))
+	_FXR.ev(o, "sa_mark", {"at": p, "r": r})   # 转平面（docs/269）：只画
 	o.fx({"kind": "ring", "pos": p, "r": r, "r0": 8.0, "life": 0.28, "col": H4_AMBER, "floor": true, "w": 2.5})
 	o.fx({"kind": "glow", "pos": p + Vector2(0, -12), "r": 14.0, "life": 0.2, "col": Color(1.9, 1.5, 0.9), "alpha": 0.8})
 	for q in 7:
@@ -648,6 +658,7 @@ static func _h4_shatter(o, sa: Dictionary, cb: Dictionary, cs: Dictionary) -> bo
 	ts = o.los_sort(ts, ts.size(), p)   # 地形阻挡：碎片是直线弹，视线内的先
 	sa.pillars.erase(pl)
 	pl.ref.life = 0.001
+	_FXR.ev(o, "sa_shatter", {"at": p})   # 转平面（docs/269）：只画
 	o.fx({"kind": "glow", "pos": p + Vector2(0, -18), "r": 16.0, "life": 0.22, "col": Color(1.8, 1.4, 0.8), "alpha": 0.8})
 	o.fx({"kind": "ring", "pos": p, "r": 26.0, "r0": 4.0, "life": 0.25, "col": H4_AMBER, "floor": true, "w": 2.0})
 	for q in 8:
@@ -680,6 +691,7 @@ static func _h4_shatter_orb(o, sa: Dictionary, ob: Dictionary, shb: Dictionary, 
 	sa.orb_broken[best] = float(shb.get("regrow", 1.0))
 	var p: Vector2 = _h4_orb_ground(o, ob, orb_n, best) + Vector2(0, -16)
 	ts = o.los_sort(ts, ts.size(), _h4_orb_ground(o, ob, orb_n, best))
+	_FXR.ev(o, "sa_orbbrk", {"at": p})   # 转平面（docs/269）：只画
 	o.fx({"kind": "glow", "pos": p, "r": 12.0, "life": 0.2, "col": Color(1.8, 1.4, 0.8), "alpha": 0.8})
 	for q in 6:
 		o.fx({"kind": "shard", "pos": p, "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(80, 150), "life": 0.3, "col": H4_AMBER,
@@ -710,6 +722,7 @@ static func h4_saria_heal(o, b: Dictionary) -> void:
 	var h: float = g.max_hp * float(b.get("pct", 0.068)) * o.skill_power() * (float(b.get("low_mult", 1.0)) if g.hp < g.max_hp * float(b.get("low_hp", 0.0)) else 1.0)
 	o.heal_leader(h, o.display_name())
 	_h4_heal_fx(o, h)
+	_FXR.ev(o, "sa_heal", {"s": 2 if b.get("hot", null) is Dictionary else 1})   # 转平面（docs/269）：只画
 	if b.get("cleanse", false):
 		h4_cleanse_ctrl(o, true)
 	o.fx({"kind": "ring", "pos": g.ppos, "r": float(b.get("ring", 40.0)), "r0": 8.0 if float(b.get("ring", 40.0)) < 50.0 else 10.0, "life": 0.4 if float(b.get("ring", 40.0)) < 50.0 else 0.5, "col": H4_AMBER, "floor": true})
@@ -762,6 +775,7 @@ static func _h4_slot_break(o, sl: Dictionary, cb: Dictionary) -> void:
 	sl.t = 0.0
 	sl.life = 0.0
 	var p: Vector2 = sl.pos
+	_FXR.ev(o, "sa_slot", {"at": p})   # 转平面（docs/269）：只画
 	var kb: float = float(cb.get("kb", 140.0))
 	var stun: float = float(cb.get("stun", 0.2))
 	for j in o.query_ids(p, 60.0):
@@ -845,6 +859,7 @@ static func h4_calc_start(o, b: Dictionary) -> void:
 			var an: float = k * TAU / 8.0 + 0.3
 			_h4_calcite(o, g.ppos + Vector2(cos(an) * 34.0, sin(an) * 34.0 * 0.55 + 4.0), g.vrng.randf_range(0.9, 1.15), g.vrng.randf_range(22, 40), 1.5 + k * 0.03)
 	var R: float = float(b.get("r", 180.0))
+	_FXR.ev(o, "sa_calc", {"c": g.ppos, "r": R})   # 转平面（docs/269）：只画
 	o.fx({"kind": "ring", "pos": g.ppos, "r": R, "r0": 30.0, "life": 0.5, "col": H4_AMBER, "floor": true, "w": 4.0})
 	o.fx({"kind": "crack", "pos": g.ppos, "r": 90.0, "life": 0.45, "col": H4_AMBER, "floor": true, "n": 10})
 	o.spawn_fx_sprite("fx_holy_pillar_amber", g.ppos + Vector2(0, 6), g.PX * 1.5, 0.0, false, true)
@@ -919,6 +934,13 @@ static func _h4sa_draw_over(o) -> void:
 			cv.draw_line(s.pos - d * 14.0, s.pos, Color(H4_AMBER.r, H4_AMBER.g, H4_AMBER.b, 0.35), 2.0)
 			cv.draw_colored_polygon(PackedVector2Array([s.pos - sv, s.pos + sv.orthogonal() * 0.5, s.pos + sv]), Color(1.9, 1.5, 0.9))
 	_h4sa_draw_nodes(o, sa)
+	_h4sa_draw_suit(o, sa)
+
+
+## 护服充能格（状态提示；转平面接管时 fx_pxplane_sa 也照画这一段）
+static func _h4sa_draw_suit(o, sa: Dictionary) -> void:
+	var g = o.g
+	var cv = o.cv
 	var su: Dictionary = _h4_live(o, "verb.suit")
 	if not su.is_empty():
 		var segs: int = int(su.get("segs", 4))
