@@ -1749,7 +1749,11 @@ func _ev_ey(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 				_ey_push(o, "s1cast_e%d_up" % t, o.pos, "up", {"fopo": o, "foff": Vector2.ZERO})
 				if t >= 2:
 					_ey_push(o, "s1cast_e2_gd", o.pos, "gd", {"fopo": o, "foff": Vector2.ZERO})
-				R._light(o, o.pos + Vector2(0, -100), 100.0, 0.5, 0.15, p.light)
+				# docs/270 补齐：起手本身也按爆发档——杖头一盏 160 / 0.7、杖头热芯进发光层、迸几颗火星（强化弹要等下一次普攻约 1.2 秒后才落地）
+				R._light(o, o.pos + Vector2(0, -100), 160.0, 0.7, 0.15, p.light)
+				_push({"ert": "core", "at": o.pos + Vector2(0, -110), "rr": 4.0 + 0.5 * t, "t0": g.t, "life": 4.0 / 15.0, "ly": "up", "gy": o.pos.y + 1.0, "oid": str(o.id), "k": "", "fop": o, "foff": Vector2(0, -110)})
+				if mode() == 1:
+					R._grains(o, o.pos + Vector2(0, -110), o.pos.y, "ember", 6 + t, {"tier": t})
 			elif i == 2:   # 火山起手：身后熔岩喷柱 + 脚下裂缝圈
 				var fl: bool = float(o.face) < 0.0
 				if raw:
