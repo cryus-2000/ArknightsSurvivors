@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://v43orkdq8xcm1"
-path="res://.godot/imported/pxp_ey_ball_ign_dm90.png-9404130c0bf79c0f16b4cc27fd3648ce.ctex"
+uid="uid://cs2ctarifwxt7"
+path="res://.godot/imported/pxp_ey_ball_ign_dm90.png-967350d0fbb9a2a9f56211238ad55eca.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://art/fx/pxp/pxp_ey_ball_ign_dm90.png"
-dest_files=["res://.godot/imported/pxp_ey_ball_ign_dm90.png-9404130c0bf79c0f16b4cc27fd3648ce.ctex"]
+dest_files=["res://.godot/imported/pxp_ey_ball_ign_dm90.png-967350d0fbb9a2a9f56211238ad55eca.ctex"]
 
 [params]
 

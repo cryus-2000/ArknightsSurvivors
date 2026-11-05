@@ -41,10 +41,10 @@ const OP_LIMIT := {"atk": 0.06, "hit": 0.06, "quake": 0.08, "big": 0.1, "heal": 
 ## 音效盘点（docs/113，10-21 用户「枪击、锁链等各种音效都需要优化」）按请求名（op_<干员>_<类别>）的三张旋钮表：
 ## OP_DB 音量偏移（dB，叠在 OP_VOL 与调用处偏移上）；OP_GAP 最短间隔（秒，按请求名算，借用同一文件的干员各算各的）；
 ## OP_PVAR 音高随机（±，取它与调用处的较大值）。数字来自 docs/113 §2 实测：混音里最响的是长尾低频重击的高频连发
-const OP_DB := {"op_eyjafjalla_big": -3.0, "op_kaltsit_big": -2.0, "op_wisadel_quake": -3.0, "op_wisadel_hit": -1.5, "op_exusiai_hit": -5.0,
+const OP_DB := {"op_eyjafjalla_big": -3.0, "op_kaltsit_big": -2.0, "op_wisadel_quake": -3.0, "op_wisadel_hit": -1.5, "op_exusiai_hit": -6.5,
 	"op_siege_s1_soft": -2.0, "op_texas_s2_soft": -2.0, "op_exusiai_s1": -3.0, "op_exusiai_s2": -3.0, "op_exusiai_s3": -3.0, "op_exusiai_big": -3.0, "op_texas_hit": -3.0}
 ## 流明（docs/255 §7，11-05 用户「攻击音效有点吵」）：命中光弹 / 发光单元每颗都放，后期一秒十来次 → 最短间隔 0.09 秒 + 音高随机 ±8%（连发不像同一声复读）；音色、响度在文件里（game/tools/gen_sfx_lumen_atk_1105.py）
-const OP_GAP := {"op_exusiai_atk": 0.03, "op_exusiai_hit": 0.14, "op_exusiai_big": 0.5, "op_eyjafjalla_big": 0.2, "op_lumen_hit": 0.09}
+const OP_GAP := {"op_exusiai_atk": 0.05, "op_exusiai_hit": 0.2, "op_exusiai_big": 0.5, "op_eyjafjalla_big": 0.2, "op_lumen_hit": 0.09}   # 能天使两项取 docs/262 最新
 const OP_PVAR := {"op_exusiai_atk": 0.09, "op_exusiai_hit": 0.1, "op_irene_atk": 0.08, "op_texas_atk": 0.08, "op_eyjafjalla_atk": 0.08, "op_lumen_atk": 0.07, "op_lumen_hit": 0.08, "op_wisadel_quake": 0.12}
 var limit_override := {}
 var op_last := {}          # 请求名 -> 上次放行的墙钟秒（OP_GAP）

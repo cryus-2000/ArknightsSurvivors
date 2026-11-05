@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ys0pd4qq8clwr"
-path="res://.godot/imported/pxp_ey_ball_lava_dm45.png-bcd52d24bd0e72788e5d333d980edf5a.ctex"
+uid="uid://bmkhtr78t4dd6"
+path="res://.godot/imported/pxp_ey_ball_lava_dm45.png-da046a2200109c3bacc5e8ddb2b91733.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://art/fx/pxp/pxp_ey_ball_lava_dm45.png"
-dest_files=["res://.godot/imported/pxp_ey_ball_lava_dm45.png-bcd52d24bd0e72788e5d333d980edf5a.ctex"]
+dest_files=["res://.godot/imported/pxp_ey_ball_lava_dm45.png-da046a2200109c3bacc5e8ddb2b91733.ctex"]
 
 [params]
 

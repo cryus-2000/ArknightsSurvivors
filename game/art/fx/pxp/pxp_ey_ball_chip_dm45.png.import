@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://9fjl7i2qsfggl"
-path="res://.godot/imported/pxp_ey_ball_chip_dm45.png-4a6c20ff7da56797d75732be45d5aa6e.ctex"
+uid="uid://dianh2pqasgeh"
+path="res://.godot/imported/pxp_ey_ball_chip_dm45.png-0d72c77df7b578ea4ec0ba72635204b8.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://art/fx/pxp/pxp_ey_ball_chip_dm45.png"
-dest_files=["res://.godot/imported/pxp_ey_ball_chip_dm45.png-4a6c20ff7da56797d75732be45d5aa6e.ctex"]
+dest_files=["res://.godot/imported/pxp_ey_ball_chip_dm45.png-0d72c77df7b578ea4ec0ba72635204b8.ctex"]
 
 [params]
 

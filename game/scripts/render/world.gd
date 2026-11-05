@@ -13,7 +13,7 @@ const A = preload("res://scripts/art.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const Fxr = preload("res://scripts/render/fx_recipe.gd")
 const Pxp = preload("res://scripts/render/fx_pxplane.gd")   # 转平面试验（docs/246）
-const MeleeImpact = preload("res://scripts/render/melee_impact.gd")   # 近战打击感包（docs/246 §11）：画面击退   # 配方受击反应（docs/245 §5.9，fx/recipe_hitreact）：闪本人色 + 被打那只的局部打击停顿，只改画面
+const MeleeImpact = preload("res://scripts/render/melee_impact.gd")   # 近战打击感包（docs/246 §12）：画面击退   # 配方受击反应（docs/245 §5.9，fx/recipe_hitreact）：闪本人色 + 被打那只的局部打击停顿，只改画面
 const Look = preload("res://scripts/render/look.gd")   # 观感预设：角色本体受光封顶（render/look ≥ 1）
 const LateRead = preload("res://scripts/render/late_read.gd")   # 后期可读性第一批（docs/247，render/late_read）
 const Dc = preload("res://scripts/render/declutter.gd")   # 后期降噪预设（render/declutter）
@@ -3600,10 +3600,11 @@ func _draw_enemy_full(e: Dictionary) -> void:
 	if e.get("sword_t", 0.0) > 0.0:
 		_sword_glint(e, bpos)
 	if e.get("air", 0.0) > 0.0:
+		var alk: Vector2 = Pxp.air_look(g, e)   # 转平面（docs/267）：安洁莉娜托起的敌人影子随高度缩小变淡、悬停时上下浮动 1 美术像素（只画；其余 (1, 0) 原样）
 		g.wcv.draw_set_transform(e.pos + Vector2(0, e.r * 0.8), 0.0, Vector2(1.0, 0.45))
-		g.wcv.draw_circle(Vector2.ZERO, e.r * 0.9, Color(0, 0, 0, 0.35))
+		g.wcv.draw_circle(Vector2.ZERO, e.r * 0.9 * alk.x, Color(0, 0, 0, 0.35 * (0.4 + 0.6 * alk.x)))
 		g.wcv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-		g.draw_off.y -= e.air
+		g.draw_off.y -= e.air + alk.y
 	# 轮廓光：深色怪物在灯光外也能看清（颜色 >1，抵消环境暗色）
 	if e.get("part", false):
 		# 部件（塑路者核心等）：心跳脉动——每拍一次放大 + 金色光晕；描边不受「怪物轮廓光」开关影响
