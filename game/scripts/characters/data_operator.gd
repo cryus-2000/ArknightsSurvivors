@@ -1103,12 +1103,15 @@ func draw_auras() -> void:
 	for u in _fxb:
 		rm = minf(rm, ObVortex.vortex_ring_mul(self, _fxb[u]))
 	if str(B.zone.get("look", "")) == "particles":   # 10-29 浊心斯卡蒂：领域改粒子勾边、内部稀疏，不画实心圆；画面半径缓动 + 波纹（seg_skalter）
-		SegSkalter.sk_draw_domain(self, c, SegSkalter.sk_vis_r(self, "self", c, zr, SegSkalter.SK_DOM), SegSkalter.SK_DOM, on, 0.0)
+		var pxs: int = _px_sk()   # 转平面（docs/260）：1 = 歌域 / 小歌域 / 漩涡全由 fx_pxplane 画；2 = 旧做法对照只去掉漩涡与常驻帧条
+		if pxs != 1:
+			SegSkalter.sk_draw_domain(self, c, SegSkalter.sk_vis_r(self, "self", c, zr, SegSkalter.SK_DOM), SegSkalter.SK_DOM, on, 0.0)
 		SegSkalter.sk_gn_draw(self)   # 成长节点（docs/202）：潮声音符 / 共振层
-		if not sm.is_empty():
+		if not sm.is_empty() and pxs != 1:
 			SegSkalter.e5_draw_zones(self, cc, on)
-		_draw_hold_strips(cv, "floor")
-		_draw_vortex(cv, "floor")
+		if pxs == 0:
+			_draw_hold_strips(cv, "floor")
+			_draw_vortex(cv, "floor")
 		return
 	cv.draw_set_transform(c + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
 	# 10-29 特效审查：去掉整片半透明填充圆盘（会把战场糊成灰白、遮敌人和弹幕），只留边线
@@ -1185,6 +1188,8 @@ func _zone_vis_r() -> float:
 
 ## squad.draw_ground_fx → 这里（world.draw_world 画完地砖紧接着调；没有 ground 层条目时什么都不画）
 func draw_ground_fx() -> void:
+	if _px_sk() > 0:   # 转平面（docs/260）接管浊心斯卡蒂：S3 漩涡地面帧条、海嗣小歌域地面帧条不画
+		return
 	_draw_hold_strips(cv, "ground")
 	if not sm.is_empty():
 		SegSkalter.e5_draw_zone_ground(self)   # 精英化第 5 批段：召唤物区域的地面帧条
@@ -1212,8 +1217,9 @@ func draw_fx_add(ci: CanvasItem, loop: int) -> void:
 	super(ci, loop)
 	if not hw.is_empty():
 		ObHw.h3_draw_add_all(self, ci, loop)   # 手写迁移段第 3 批：提灯光 / 灯塔光 / 光束、技能光环帧条
-	_draw_hold_strips(ci, "add")
-	_draw_vortex(ci, "add")
+	if _px_sk() == 0:
+		_draw_hold_strips(ci, "add")
+		_draw_vortex(ci, "add")
 	if Fxr.owns(self):
 		return
 	for f in pfx:
@@ -1221,6 +1227,13 @@ func draw_fx_add(ci: CanvasItem, loop: int) -> void:
 			ObFx.fx_draw(ci, g, f, g.world.fx_dim, self)
 		elif str(f.kind) == "tx_rain" and f.get("add", false):
 			SegTexas.tx_rain_draw(ci, self, f)
+
+
+## 转平面（docs/260）接管浊心斯卡蒂时的模式：0 没接管 / 1 转平面 / 2 旧做法对照
+func _px_sk() -> int:
+	if str(id) != "skalter" or not Fxr.Pxp.owns_id(g, "skalter"):
+		return 0
+	return Fxr.Pxp.of(g).mode()
 
 
 func _find_uid(u: int) -> Dictionary:

@@ -954,7 +954,10 @@ static func _impact(u, a: Dictionary) -> void:
 		"skalter":   # 声浪 + 3 秒全队攻击速度 +12%
 			hits = _area(p, tp, 160.0, 1.2, 60.0)
 			u.team_buff("combo:skalter", Bal.v("ult/skalter_t", 3.0), [[&"op_aspd", "mult", 1.0 + Bal.v("ult/skalter_aspd", 0.12)]])
-			u.shape({"kind": "ring", "c": tp, "r": 160.0, "r1": 30.0, "w": 4.0, "col": c, "life": 0.45})
+			if _FXR.owns(p):
+				_FXR.ev(p, "sk_combo", {"at": tp, "r": 160.0, "es": hits})   # 转平面（docs/260）：大一号声浪 + 音符，只画
+			else:
+				u.shape({"kind": "ring", "c": tp, "r": 160.0, "r1": 30.0, "w": 4.0, "col": c, "life": 0.45})
 			support = true
 		"suzuran":   # 狐火追向那批敌人：减速 2 秒、受到的伤害 +10%
 			for e in p.nearest_enemies(6, 220.0, tp):

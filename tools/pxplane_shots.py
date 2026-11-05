@@ -28,6 +28,8 @@ OPS = {
     "skadi": {"name": "斯卡蒂", "modes": {3: "普攻", 0: "S1 迅捷打击·γ型", 1: "S2 跃浪击", 2: "S3 涌潮悲歌"}, "off": {0: 3, 1: 12, 2: 10}},
     # 星熊：S1 出手即判定（下劈 + 裂网）；S2 取地刺破土后 3 帧；S3 取起手后约 0.3 秒（青绿弧 + 第一记直线撕裂）
     "lumen": {"name": "流明", "modes": {3: "普攻 荧光", 0: "S1 沐雨", 1: "S2 沛霖", 2: "S3 灯火不灭"}, "off": {0: 13, 1: 12, 2: 13}},   # 流明：另含引擎帧号比连拍帧号多的约 9 帧（启动帧）
+    # 浊心斯卡蒂（docs/260）：S1 / S2 出手即画；S3 取第一次潮涌后 2 帧（红光柱最高）
+    "skalter": {"name": "浊心斯卡蒂", "modes": {3: "普攻 声浪", 0: "S1 同归殊途之吟", 1: "S2 同葬无光之愿", 2: "S3 潮涌，潮枯"}, "off": {0: 4, 1: 5, 2: 3}},
     "hoshiguma": {"name": "星熊", "modes": {3: "普攻 盾斧斩", 0: "S1 战意", 1: "S2 荆棘", 2: "S3 力之锯"}, "off": {0: 4, 1: 10, 2: 12}},
 }
 OP = "skadi"
@@ -216,7 +218,7 @@ def linkcmp(a, base):
         dirs[px] = os.path.join(BUILD, tag + "_frames")
         print(run(tag, ex, 30, dirs[px]), flush=True)
     log = open(os.path.join(LOGS, "link1_s%d_%d.log" % (a.seed, t0)), encoding="utf-8").read()
-    evs = [l.split() for l in log.splitlines() if l.startswith("PXPLOG hsg cover") or l.startswith("PXPLOG hsg combo ")]
+    evs = [l.split() for l in log.splitlines() if l.startswith("PXPLOG hsg cover") or l.startswith("PXPLOG hsg combo ") or l.startswith("PXPLOG sk sk_link") or l.startswith("PXPLOG sk sk_combo")]
     print("连携事件", [(e[2], e[-1]) for e in evs], flush=True)
     if not evs:
         print("这段里没有连携技出手", flush=True)
@@ -233,7 +235,7 @@ def linkcmp(a, base):
     f30 = font(30)
     sheet = Image.new("RGB", (W * 3 + 8, H + 56), (12, 12, 16))
     dd = ImageDraw.Draw(sheet)
-    dd.text((12, 8), OPS[OP]["name"] + " 连携技「%s」· 实战局同种子 %d · %.2f 秒" % ("举盾" if evs[0][2] == "cover" else "举盾推挡", a.seed, T), fill=(230, 230, 230), font=f30)
+    dd.text((12, 8), OPS[OP]["name"] + " 连携技「%s」· 实战局同种子 %d · %.2f 秒" % ({"cover": "举盾", "combo": "举盾推挡", "sk_link": "歌声", "sk_combo": "声浪"}.get(evs[0][2], evs[0][2]), a.seed, T), fill=(230, 230, 230), font=f30)
     for i, (im, (px, lab)) in enumerate(zip(ims, COLS)):
         sheet.paste(label(im.copy(), lab), (i * (W + 4), 56))
     os.makedirs(a.out, exist_ok=True)
