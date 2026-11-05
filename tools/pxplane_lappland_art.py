@@ -209,7 +209,7 @@ def cut_px(f, L, d, x=False):
 _SIG = sorted({(round(4 * math.cos(k * math.tau / 24)), round(4 * math.sin(k * math.tau / 24))) for k in range(24)})   # 符印圆环（十字斩第 0 拍 / 传染碎片）
 
 
-# 封招叉（11-05 用户「封印原作的表现形式就是一个叉，用叉就行」）：照原作 buff_silence 的 chenmo_02——深灰笔画 + 浅灰描边的方正 X
+# 封招叉（11-05 用户「封印原作的表现形式就是一个叉，用叉就行」）：照原作 buff_silence 的 chenmo_02——深灰实心粗笔画 + 1 像素浅灰描边的方正 X
 CROSS_N = 4                      # 半臂长（美术像素）→ 9 × 9
 CROSS_CORE = "#46464a"           # 原作笔画深灰（chenmo_02 主色 #424142 一带）
 CROSS_RIM = "#c4c6ca"            # 原作描边浅灰（#828382 × 粒子 _TintColor 提亮，暗地面上要读得出）
@@ -221,13 +221,13 @@ def cross_px(age_tk, left_s):
     al = max(0.0, min(1.0, left_s / 0.3))
     n = CROSS_N
     core = []
-    a_len = -n + (n + 1) * (age_tk + 1) if age_tk < 1 else n          # 第一笔
-    b_len = n if age_tk >= 2 else (-n - 1 + (n + 1) * age_tk if age_tk >= 1 else -n - 1)
-    for i in range(-n, n + 1):   # 笔画 2 像素宽（左右镜像，叉心在 x = 0.5）
+    a_len = 0 if age_tk < 1 else n + 1          # 第一笔（第 0 拍先划到叉心）
+    b_len = n + 1 if age_tk >= 2 else (0 if age_tk >= 1 else -n - 1)
+    for i in range(-n, n + 2):   # 叉心在 (0.5, 0.5)：上下左右对称   # 实心粗笔画 3 像素宽（11-05 用户「叉可以是实心的」；左右镜像，叉心在 x = 0.5）
         if i <= a_len:
-            core += [(i, i), (i + 1, i)]
+            core += [(i - 1, i), (i, i), (i + 1, i)]
         if i <= b_len:
-            core += [(1 - i, i), (-i, i)]
+            core += [(2 - i, i), (1 - i, i), (-i, i)]
     flash = 2 <= age_tk < 4
     cs = set(core)
     rim = set()

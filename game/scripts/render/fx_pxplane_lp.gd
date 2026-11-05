@@ -466,7 +466,7 @@ func _draw_cut(ci, it: Dictionary) -> void:
 # ================================================================ 状态提示（ob_summon.sm_draw_over 转来，接管时代替灰叉 / 银圈）
 
 ## 封招叉（同 pxplane_lappland_art.cross_px；11-05 用户「封印原作的表现形式就是一个叉，用叉就行」）：照原作 buff_silence 的 chenmo_02——
-## 深灰 2 像素笔画 + 浅灰描边的方正 X。只给精英 / Boss 画（普通怪不画，免得满屏）。
+## 深灰实心粗笔画（3 像素宽）+ 1 像素浅灰描边的方正 X。只给精英 / Boss 画（普通怪不画，免得满屏）。
 ## 第 0–1 拍左上→右下一笔划出、第 1–2 拍右上→左下第二笔，第 2–3 拍整叉闪白（进发光层），之后保持，最后 0.3 秒淡出。
 ## 起拍记在本模块的 _seal_st（[封印止时刻, 起拍时刻]，止时刻变了 = 新的一次封印，重来一遍划出）
 func draw_seal(cv, e: Dictionary, lift: float) -> void:
@@ -484,16 +484,16 @@ func draw_seal(cv, e: Dictionary, lift: float) -> void:
 	var age: int = r.frame_of(float(st[1]))
 	var al: float = clampf((float(e.seal_t) - g.t) / 0.3, 0.0, 1.0)
 	var n: int = CROSS_N
-	var a_len: int = -n + (n + 1) * (age + 1) if age < 1 else n
-	var b_len: int = n if age >= 2 else (-n - 1 + (n + 1) * age if age >= 1 else -n - 1)
+	var a_len: int = 0 if age < 1 else n + 1          # 第一笔（第 0 拍先划到叉心）
+	var b_len: int = n + 1 if age >= 2 else (0 if age >= 1 else -n - 1)
 	var core := {}
-	for i in range(-n, n + 1):   # 笔画 2 像素宽（左右镜像，叉心在 x = 0.5）
+	for i in range(-n, n + 2):   # 叉心在 (0.5, 0.5)：上下左右对称   # 实心粗笔画 3 像素宽（11-05 用户「叉可以是实心的」；左右镜像，叉心在 x = 0.5）
 		if i <= a_len:
-			core[Vector2i(i, i)] = true
-			core[Vector2i(i + 1, i)] = true
+			for dx in [-1, 0, 1]:
+				core[Vector2i(i + dx, i)] = true
 		if i <= b_len:
-			core[Vector2i(1 - i, i)] = true
-			core[Vector2i(-i, i)] = true
+			for dx in [-1, 0, 1]:
+				core[Vector2i(1 - i + dx, i)] = true
 	var flash: bool = age >= 2 and age < 4
 	var c0: Vector2 = Pxp._snap(e.pos + Vector2(0, -float(e.r) * 2.0 - 20.0 - lift))
 	var px: float = g.PX
