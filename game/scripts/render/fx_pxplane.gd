@@ -18,10 +18,10 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
-const METAS := {"res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_eyjafjalla.json": "ey_", "res://data/pxp_siege.json": ""}   # 帧条表 → 键前缀（星熊的键自带 hsg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
+const METAS := {"res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_eyjafjalla.json": "ey_", "res://data/pxp_siege.json": "", "res://data/pxp_exusiai.json": "ex_"}   # 帧条表 → 键前缀（星熊的键自带 hsg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
 const MI = preload("res://scripts/render/melee_impact.gd")   # 近战打击感包（docs/246 §11）：斩痕 / 照地光提亮
 const ART := "res://art/fx/pxp/pxp_%s.png"
-const IDS := {"skadi": true, "hoshiguma": true, "lumen": true, "eyjafjalla": true, "siege": true}
+const IDS := {"skadi": true, "hoshiguma": true, "lumen": true, "eyjafjalla": true, "siege": true, "exusiai": true}
 ## 接管时仍照画的原 pfx 帧条（状态提示，不属于攻击特效）：星熊格挡闪光、反击架势盾沿光
 const KEEP_PFX := {"hoshiguma": {"fx_hoshiguma_block": true, "fx_hoshiguma_guard_glow": true}}
 const LM_C := [Color("#121a2a"), Color("#1d3150"), Color("#2a5282"), Color("#4285ad"), Color("#7fb2d6"), Color("#c4e0f2"), Color("#ffffff")]   # house.js OP.lumen 钢蓝 7 阶
@@ -66,7 +66,28 @@ func mode() -> int:
 static func owns_id(game, oid: String) -> bool:
 	if game == null or not IDS.has(oid):
 		return false
+	if oid == "exusiai":   # 能天使（docs/262）没有「旧做法原样贴」对照：2 = 不接管（当前游戏原样）
+		return of(game).mode() == 1
 	return of(game).mode() > 0
+
+
+## 能天使一节（docs/262，单独文件 fx_pxplane_exu.gd；运行时 load 避免循环 preload）
+var _exm = null
+
+
+## 开火后坐（docs/262，只改画面）：character.draw_body 每帧每人调一次；不是能天使 / 没接管时返回 0
+static func recoil(o) -> Vector2:
+	if str(o.id) != "exusiai" or o.g == null or not o.g.has_meta("fx_pxplane"):
+		return Vector2.ZERO
+	var r = o.g.get_meta("fx_pxplane")
+	if r.mode() != 1:
+		return Vector2.ZERO
+	return r._ex().kick(o)
+
+func _ex():
+	if _exm == null:
+		_exm = load("res://scripts/render/fx_pxplane_exu.gd").new(self)
+	return _exm
 
 
 func _meta(k: String) -> Dictionary:
@@ -146,6 +167,9 @@ func ev(o, kind: String, d: Dictionary) -> void:
 		return
 	if str(o.id) == "siege":
 		_ev_sg(o, kind, d, raw, t, R, p)
+		return
+	if str(o.id) == "exusiai":
+		_ex().ev(o, kind, d, t, R, p)
 		return
 	match kind:
 		"shape":
@@ -319,7 +343,7 @@ func _add_gd(o, key: String, at: Vector2, raw: bool, rawk: String, r: float, fit
 	_push({"k": key + "_gd", "t0": g.t, "gp": _snap(at), "flip": false, "ly": "gd", "oid": str(o.id)})
 
 
-## 件的当前地面点（docs/246 §10，11-05 用户「斩击没有绑定人，会在别的地方出现」）：
+## 件的当前地面点（docs/246 §11，11-05 用户「斩击没有绑定人，会在别的地方出现」）：
 ## 挂在人身上的件（fo = 出手时相对施放者脚底的偏移）每次绘制按施放者当前位置重算，朝向保持出手时的方向；
 ## 斩痕（e）跟着被砍的那只；其余（落地类：冲击环、碎浪、碎沫、积水、湿痕）留在出手时的世界坐标
 func _gp(it: Dictionary) -> Vector2:
@@ -399,6 +423,9 @@ func draw_floor(o) -> void:
 	if id == "siege":
 		_floor_sg(o)
 		return
+	if id == "exusiai":
+		_ex().draw_floor(o)
+		return
 	if o.skill_active_left(2) > 0.0:   # 涌潮悲歌持续期间：脚下一滩积水（循环，跟着人走）
 		_draw_strip(cv, "pool_gd", frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
 	for it in items:
@@ -465,6 +492,9 @@ static func sort_items(game) -> Array:
 			if str(o.id) == "eyjafjalla":
 				r._ey_sort_items(o, out)
 				continue
+			if str(o.id) == "exusiai":
+				r._ex().sort_items(o, out)
+				continue
 			for w in r._waves(o):
 				out.append({"wave": w})
 			if str(o.id) == "skadi":   # 斯卡蒂剑气浪头（docs/246 §9）
@@ -480,6 +510,9 @@ static func sort_items(game) -> Array:
 
 static func draw_sorted(game, ci, it: Dictionary) -> void:
 	var r = game.get_meta("fx_pxplane")
+	if it.has("ex"):   # 能天使运行时件（docs/262）
+		r._ex().draw_rt(ci, it)
+		return
 	if it.has("wave"):
 		var w: Array = it.wave
 		r._draw_strip(ci, w[0] + "_up_d%d" % w[3], r.frame_of(0.0), w[1], w[2], false)

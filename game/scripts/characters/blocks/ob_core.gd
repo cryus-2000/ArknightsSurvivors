@@ -20,7 +20,7 @@ const _ED: Dictionary = {}
 
 
 const _FXR = preload("res://scripts/render/fx_recipe.gd")
-const _MI = preload("res://scripts/render/melee_impact.gd")   # 近战打击感包（docs/246 §11，fx/melee_impact）：只画   # 配方 / 转平面试验（docs/245 / 246）的画面钩子：只画，接管的干员才有事件
+const _MI = preload("res://scripts/render/melee_impact.gd")   # 近战打击感包（docs/246 §12，fx/melee_impact）：只画   # 配方 / 转平面试验（docs/245 / 246）的画面钩子：只画，接管的干员才有事件
 const Dc = preload("res://scripts/render/declutter.gd")   # render/hit_rings：攻击 / 技能命中的装饰圆圈开关（剑雨终结亮环）
 
 

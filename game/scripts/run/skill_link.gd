@@ -821,12 +821,15 @@ static func _step16(u, a: Dictionary) -> bool:
 				var fp: Vector2 = p.pos + Vector2(0, -20)
 				var tp: Vector2 = fp + d * (fp.distance_to(c) + 250.0)
 				var tc: Color = Color(1.0, 0.3, 0.25) if i % 2 == 0 else Color(1.0, 0.82, 0.4)   # 红金交替
-				if LFA.on(u, "fx_lk_tx1"):
+				var band: Array = u.in_band(fp, tp, 14.0)
+				if _FXR.owns(p):   # 转平面（docs/262）：一发长曳光 + 枪口焰 + 前 2 只被穿的火花，只画
+					_FXR.ev(p, "exu_link", {"fp": fp, "tp": tp, "i": i, "es": band.slice(0, 2)})
+				elif LFA.on(u, "fx_lk_tx1"):
 					LFA.exusiai_shot(u, fp, tp, i)
 				else:
 					u.shape({"kind": "line", "a": fp, "b": tp, "w": 3.0, "col": tc, "life": 0.16})
 					u.grain("bfx_flash", fp + d * 30.0, d, tc, 2)
-				for e in u.in_band(fp, tp, 14.0):
+				for e in band:
 					_hit16(p, e, "穿透扫射", 0.35)
 				a.k = i + 1
 			if t >= 0.1 and once.call("lt"):

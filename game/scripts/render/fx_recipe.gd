@@ -518,7 +518,7 @@ static func react_t(game, e: Dictionary) -> float:
 
 
 ## world.gd 受击闪用：a < 0 = 不接管（照旧白闪）；a = 0 = 接管、这一帧不闪（白闪由本人色取代）；a > 0 = 闪这个颜色
-## 配方 / 转平面的受击反应没接管时回落到近战打击感包（docs/246 §11）：闪本人色
+## 配方 / 转平面的受击反应没接管时回落到近战打击感包（docs/246 §12）：闪本人色
 static func react_col(game, e: Dictionary) -> Color:
 	var c: Color = _react_col_r(game, e)
 	if c.a < 0.0:
