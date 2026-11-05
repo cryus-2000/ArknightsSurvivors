@@ -2780,6 +2780,13 @@ func _ev_skalter(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictio
 						if e0 is Dictionary and not e0.get("dead", false):
 							lp = e0.pos + Vector2(0, -float(e0.r) * 0.5)
 							break
+					var n2 := 0
+					for e2 in es:   # 第二只命中的再挂一盏小的（每次 ≤ 2 盏）
+						if e2 is Dictionary and not e2.get("dead", false):
+							n2 += 1
+							if n2 == 2:
+								R._light(o, e2.pos + Vector2(0, -float(e2.r) * 0.5), 80.0, 0.38, 0.12, p.light)
+								break
 					R._light(o, lp, 100.0, 0.5, 0.12, p.light)   # docs/270：每次命中一盏、半径 100、强度 0.5（原来半径 = 0.7 歌域，摊满半屏照不出命中点）
 				"余音":   # 精一：外圈回声
 					_sk_push(o, {"skr": "echo_ring", "c": c, "r": r, "tier": t, "ly": "gd", "life": 4.0 / 15.0, "o": o, "fz": true})
@@ -2875,7 +2882,7 @@ func _sk_notes(o, es: Array, t: int, R, p: Dictionary, rose := false) -> void:
 		if not (e is Dictionary) or e.get("dead", false):
 			continue
 		var hp: Vector2 = e.pos + Vector2(0, -float(e.r) - 6.0)
-		_sk_push(o, {"skr": "note", "c": hp, "tier": t, "rose": rose, "fl": (n % 2) == 1, "ly": "up", "gy": float(e.pos.y) + 1.0, "life": 9.0 / 15.0})
+		_sk_push(o, {"skr": "note", "c": hp, "hp": e.pos + Vector2(0, -float(e.r) * 0.5), "tier": t, "rose": rose, "fl": (n % 2) == 1, "ly": "up", "gy": float(e.pos.y) + 1.0, "life": 9.0 / 15.0})
 		if n == 0 and mode() == 1:
 			R._grains(o, hp, float(e.pos.y) + 2.0, "ink", 3 + t, {"tier": t})   # docs/270：Noita 水滴 4–6 px、寿命约 0.9 秒，每下 3 / 4 / 5 颗
 		n += 1
@@ -3146,6 +3153,14 @@ func _sk_draw_up(ci, it: Dictionary) -> void:
 			var shc: Color = C[0]
 			shc.a = 0.85 if f < 7 else 0.0
 			_sk_pat(ci, pat, c + Vector2(-w * 0.5 + (10.0 if it.get("fl", false) else -10.0), -float(pat.size()) * px - up - 8.0), col, head, it.get("fl", false), shc)
+			if f <= 1 and it.has("hp"):   # 命中点白芯（音符的「起音」）：十字 5 格 + 外圈 4 格浅色，头两拍，整块进发光层（docs/270：命中帧核心辉光）
+				var hc: Vector2 = _snap(it.hp)
+				for dq in [Vector2(0, 0), Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1), Vector2(2, 0), Vector2(-2, 0), Vector2(0, 2), Vector2(0, -2)]:
+					var core: bool = absf(dq.x) + absf(dq.y) <= 1.0
+					if f == 1 and not core:
+						continue
+					ci.draw_rect(Rect2(hc + dq * px, Vector2(px, px)), C[6] if core else C[5])
+					_glow(hc + dq * px, C[6])
 			if f <= 1:
 				var tl: Vector2 = _snap(c + Vector2(-w * 0.5 + (10.0 if it.get("fl", false) else -10.0), -float(pat.size()) * px - up - 8.0))
 				for y in pat.size():   # 命中头两拍：整枚音符进发光层（docs/270：命中帧核心辉光）
