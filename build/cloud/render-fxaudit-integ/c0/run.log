@@ -1,0 +1,31 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（3584 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+局 ('skadi_atk_A', 150, [])
+局 ('skadi_atk_B', 150, [])
+局 ('skadi_atk_C', 150, [])
+局 ('skadi_s1_A', 150, [])
+局 ('skadi_s1_B', 150, [])
+局 ('skadi_s1_C', 150, [])
+体检 {"op": "skadi", "mode": "atk", "frame": 7, "engine": 66, "secs": 5.0, "hits": 0, "acts": 25, "skill": 0, "parts_total": 115, "parts_per_hit": 4.6, "parts_per_s": 23.0, "parts_s1_1s": null, "mats": {"ink": 115}, "life": 0.88, "sz": 5.0, "alive_max": 27, "lights": 27, "lights_per_hit": 1.08, "light_r": 90.0, "light_i": 0.41, "light_life": 0.12, "emit_max": 327, "emit_mean": 156.9, "gl_peak": 56.3, "gl_area_hit": 2662, "gl_mean_hit": 12.7, "em_peak": 245.4, "em_area_hit": 66, "em_mean_hit": 100.4, "crop": [499, 298, 320, 180]}
+体检 {"op": "skadi", "mode": "s1", "frame": 16, "engine": 75, "secs": 5.0, "hits": 0, "acts": 21, "skill": 2, "parts_total": 90, "parts_per_hit": 4.3, "parts_per_s": 18.0, "parts_s1_1s": 23, "mats": {"ink": 90}, "life": 0.91, "sz": 5.0, "alive_max": 23, "lights": 21, "lights_per_hit": 1.0, "light_r": 90.0, "light_i": 0.41, "light_life": 0.12, "emit_max": 267, "emit_mean": 136.5, "gl_peak": 81.9, "gl_area_hit": 837, "gl_mean_hit": 7.9, "em_peak": 238.0, "em_area_hit": 238, "em_mean_hit": 117.8, "crop": [493, 302, 320, 180]}
+局 ('hoshiguma_atk_A', 150, [])
+局 ('hoshiguma_atk_B', 150, [])
+局 ('hoshiguma_atk_C', 150, [])
+局 ('hoshiguma_s1_A', 150, [])
+局 ('hoshiguma_s1_B', 150, [])
+局 ('hoshiguma_s1_C', 150, [])
+体检 {"op": "hoshiguma", "mode": "atk", "frame": 32, "engine": 91, "secs": 5.0, "hits": 0, "acts": 9, "skill": 0, "parts_total": 28, "parts_per_hit": 3.1, "parts_per_s": 5.6, "parts_s1_1s": null, "mats": {"rock": 13, "shard": 15}, "life": 0.9, "sz": 3.9, "alive_max": 12, "lights": 9, "lights_per_hit": 1.0, "light_r": 90.0, "light_i": 0.35, "light_life": 0.12, "emit_max": 167, "emit_mean": 71.6, "gl_peak": 73.1, "gl_area_hit": 1568, "gl_mean_hit": 12.3, "em_peak": 227.0, "em_area_hit": 54, "em_mean_hit": 29.1, "crop": [519, 268, 320, 180]}
+体检 {"op": "hoshiguma", "mode": "s1", "frame": 0, "engine": 59, "secs": 5.0, "hits": 0, "acts": 8, "skill": 1, "parts_total": 27, "parts_per_hit": 3.4, "parts_per_s": 5.4, "parts_s1_1s": 21, "mats": {"rock": 15, "shard": 12}, "life": 0.94, "sz": 3.8, "alive_max": 21, "lights": 8, "lights_per_hit": 1.0, "light_r": 110.0, "light_i": 0.4, "light_life": 0.12, "emit_max": 192, "emit_mean": 67.8, "gl_peak": 69.0, "gl_area_hit": 213, "gl_mean_hit": 7.1, "em_peak": 224.5, "em_area_hit": 125, "em_mean_hit": 77.3, "crop": [519, 267, 320, 180]}
+局 ('lumen_atk_A', 150, [])
+局 ('lumen_atk_B', 150, [])
+局 ('lumen_atk_C', 150, [])
+局 ('lumen_s1_A', 150, [])
+局 ('lumen_s1_B', 150, [])
+局 ('lumen_s1_C', 150, [])
+体检 {"op": "lumen", "mode": "atk", "frame": 18, "engine": 77, "secs": 5.0, "hits": 0, "acts": 58, "skill": 0, "parts_total": 51, "parts_per_hit": 0.9, "parts_per_s": 10.2, "parts_s1_1s": null, "mats": {"ink": 51}, "life": 0.87, "sz": 4.7, "alive_max": 18, "lights": 41, "lights_per_hit": 0.71, "light_r": 90.0, "light_i": 0.54, "light_life": 0.12, "emit_max": 212, "emit_mean": 49.7, "gl_peak": 79.2, "gl_area_hit": 2396, "gl_mean_hit": 14.3, "em_peak": 234.1, "em_area_hit": 82, "em_mean_hit": 60.6, "crop": [478, 293, 320, 180]}
+体检 {"op": "lumen", "mode": "s1", "frame": 6, "engine": 65, "secs": 5.0, "hits": 0, "acts": 42, "skill": 2, "parts_total": 42, "parts_per_hit": 1.0, "parts_per_s": 8.4, "parts_s1_1s": 9, "mats": {"ink": 42}, "life": 0.9, "sz": 5.2, "alive_max": 15, "lights": 27, "lights_per_hit": 0.64, "light_r": 90.0, "light_i": 0.68, "light_life": 0.12, "emit_max": 240, "emit_mean": 49.2, "gl_peak": 103.3, "gl_area_hit": 2308, "gl_mean_hit": 16.8, "em_peak": 231.8, "em_area_hit": 92, "em_mean_hit": 88.4, "crop": [479, 301, 320, 180]}
+录像 ('skadi', '15.3 MB', [])
+录像 ('hoshiguma', '11.0 MB', [])
+录像 ('lumen', '17.5 MB', [])
+media：28 个文件，50M

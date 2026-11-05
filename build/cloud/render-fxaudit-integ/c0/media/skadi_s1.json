@@ -1,0 +1,39 @@
+{
+ "op": "skadi",
+ "mode": "s1",
+ "frame": 16,
+ "engine": 75,
+ "secs": 5.0,
+ "hits": 0,
+ "acts": 21,
+ "skill": 2,
+ "parts_total": 90,
+ "parts_per_hit": 4.3,
+ "parts_per_s": 18.0,
+ "parts_s1_1s": 23,
+ "mats": {
+  "ink": 90
+ },
+ "life": 0.91,
+ "sz": 5.0,
+ "alive_max": 23,
+ "lights": 21,
+ "lights_per_hit": 1.0,
+ "light_r": 90.0,
+ "light_i": 0.41,
+ "light_life": 0.12,
+ "emit_max": 267,
+ "emit_mean": 136.5,
+ "gl_peak": 81.9,
+ "gl_area_hit": 837,
+ "gl_mean_hit": 7.9,
+ "em_peak": 238.0,
+ "em_area_hit": 238,
+ "em_mean_hit": 117.8,
+ "crop": [
+  493,
+  302,
+  320,
+  180
+ ]
+}
