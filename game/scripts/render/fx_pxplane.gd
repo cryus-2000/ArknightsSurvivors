@@ -1656,7 +1656,8 @@ func _ev_ey(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 					_ey_push(o, "s1boom_r%d_e%d_gd" % [b1, t], at, "gd")
 					if mode() == 1:
 						R._grains(o, at + Vector2(0, -30), at.y, "ember", 4 + 2 * t, {"tier": t})
-					R._light(o, at + Vector2(0, -24), r * 1.6, 0.55, 0.15, p.light)
+					R._light(o, at + Vector2(0, -24), 160.0, 0.7, 0.15, p.light)   # docs/270 补齐（爆发类下限）：每发爆点一盏 160 / 0.7
+					_push({"ert": "core", "at": at + Vector2(0, -float(b1) * 0.45 * g.PX), "rr": 5.0 + 0.5 * t, "t0": g.t, "life": 4.0 / 15.0, "ly": "up", "gy": at.y + 1.0, "oid": str(o.id), "k": ""})   # 爆心进 emit
 				_:
 					R._light(o, at + Vector2(0, -20), r * 1.3, 0.4, 0.12, p.light)
 					if _ey_cnt(o, "ey_boom") >= 6:
@@ -1909,6 +1910,16 @@ func _ey_draw_rt(ci, it: Dictionary) -> void:
 	match str(it.ert):
 		"ball":
 			_ey_ball(ci, str(it.st), it.pos, it.dir, int(it.get("ph", 0)))
+		"core":   # 爆心发光点团（docs/270 补齐）：不画色块，只往发光层送一团热芯点，4 拍里由大到小
+			var fc: int = frame_of(float(it.t0))
+			if fc < 0 or fc > 3:
+				return
+			var rr: int = int(round(float(it.rr) * [1.0, 0.8, 0.55, 0.3][fc]))
+			var cc: Vector2 = _snap(it.at)
+			for yy in range(-rr, rr + 1):
+				for xx in range(-rr, rr + 1):
+					if xx * xx + yy * yy <= rr * rr and ((xx + yy) & 1) == 0:
+						_glow(cc + Vector2(xx, yy) * px, EY_C[7] if xx * xx + yy * yy > rr * rr / 3 else EY_C[6])
 		"muz":
 			var f: int = frame_of(float(it.t0))
 			if f < 0 or f > 1:
