@@ -1240,9 +1240,9 @@ const SK_SY := 0.72
 const SK_B := [Color("#070d22"), Color("#0e1d4a"), Color("#183486"), Color("#2752c4"), Color("#4f80ec"), Color("#9dbcff"), Color("#ffffff")]   # 深海蓝 7 阶（原作歌域蓝，避开敌弹青 #33ceff）
 const SK_R := [Color("#3a0d1b"), Color("#5e1424"), Color("#86202d"), Color("#a8323c"), Color("#dc4048"), Color("#ffb4bc"), Color("#ffffff")]   # 酒红（house.js OP.skalter，亮段色相 357°，避开危险红 331–353°）
 const SK_T := [Color("#06141c"), Color("#0b2a35"), Color("#124552"), Color("#1b6466"), Color("#3b8e89"), Color("#86c6bd"), Color("#e8f5f0")]   # 海嗣青（house.js OP.skalter_sea，原作海嗣色，偏灰、避开敌弹青）：伊莎玛拉小歌域与同步声浪
-const SK_NOTE := ["...###", "...#.#", "...#..", "...#..", ".###..", "####..", "####.."]
-const SK_NOTE2 := ["..######", "..#....#", "..#....#", "..#....#", "###..###", "###..###"]
-const SK_FISH := ["#..##..", ".######", "#..##.."]
+const SK_NOTE := ["....####", "....#..#", "....#..#", "....#...", "....#...", "....#...", ".####...", "#####...", "#####...", ".###...."]
+const SK_NOTE2 := ["...########", "...#......#", "...#......#", "...#......#", "...#......#", ".###....###", "####...####", "####...####", ".##.....##."]
+const SK_FISH := ["#...####..", "##.######.", ".#########", "##.######.", "#...####.."]
 var _sk_st := {}          # 干员 id → 画面状态（缓动半径、潮涌下次时刻、上一拍去重），玩法不读
 
 
@@ -1360,10 +1360,18 @@ func _sk_grad(cv, c: Vector2, r0: float, r1: float, col: Color, a0: float, a1: f
 
 
 ## 逐美术像素的小图案（立起件：音符、小鱼）；左上角 tl（世界），fl 水平翻转
-func _sk_pat(ci, pat: Array, tl: Vector2, col: Color, head: Color, fl := false) -> void:
+func _sk_pat(ci, pat: Array, tl: Vector2, col: Color, head: Color, fl := false, sh := Color(0, 0, 0, 0)) -> void:
 	var px: float = g.PX
 	var p0: Vector2 = _snap(tl)
 	var hh: int = pat.size()
+	if sh.a > 0.0:   # 1 美术像素暗描边（右下投影）：压在白色敌人 / 伤害数字上也读得出
+		for y in hh:
+			var row0: String = pat[y]
+			var w0: int = row0.length()
+			for x in w0:
+				if row0[x] == "#":
+					var x0: int = (w0 - 1 - x) if fl else x
+					ci.draw_rect(Rect2(p0 + Vector2(x0 + 1, y + 1) * px, Vector2(px, px)), sh)
 	for y in hh:
 		var row: String = pat[y]
 		var ww: int = row.length()
@@ -1666,7 +1674,7 @@ func _sk_draw_gd(cv, o, it: Dictionary) -> void:
 				return
 			var t2: int = int(it.tier)
 			var arms: int = 3 if t2 < 2 else 5
-			var Rv: float = 84.0 * [0.4, 0.6, 0.75, 0.85, 0.92, 0.97, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0][f]
+			var Rv: float = 130.0 * [0.4, 0.6, 0.75, 0.85, 0.92, 0.97, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0][f]
 			var al: float = 1.0 if f < 7 else (1.0 - float(f - 6) / 6.0)
 			for j in arms:
 				var base: float = TAU * float(j) / float(arms) + float(f) * 0.35
@@ -1674,15 +1682,15 @@ func _sk_draw_gd(cv, o, it: Dictionary) -> void:
 					var rr: float = Rv * (0.35 + 0.25 * float(s))
 					var cl: Color = [SK_B[5], SK_B[4], SK_B[3]][s]
 					cl.a = al * [1.0, 0.9, 0.75][s]
-					_sk_arc(cv, c, rr, base + 0.55 * float(s), base + 0.55 * float(s) + 1.0, [3.0, 3.0, 2.0][s] + (1.0 if t2 >= 2 else 0.0), cl, SK_B[6] if s == 0 and f < 4 else Color(0, 0, 0, 0), SK_B[1], float(j) * 3.0 + float(s))
+					_sk_arc(cv, c, rr, base + 0.55 * float(s), base + 0.55 * float(s) + 1.0, [4.0, 4.0, 3.0][s] + (1.0 if t2 >= 2 else 0.0), cl, SK_B[6] if s == 0 and f < 4 else Color(0, 0, 0, 0), SK_B[1], float(j) * 3.0 + float(s))
 			_sk_grad(cv, c, 0.0, Rv * 0.5, SK_B[2], 0.35 * al, 0.0)
 		"surge":   # S3 潮涌：粗笔触亮蓝环扩到歌域边 + 深蓝内影 + 内部实心渐变 + 8 道旋转笔触线
 			if f < 0 or f > 6:
 				return
 			var Rs: float = float(it.r) * [0.6, 0.78, 0.9, 0.97, 1.0, 1.0, 1.0][f]
 			var fa2: float = [1.0, 1.0, 1.0, 0.9, 0.75, 0.5, 0.25][f]
-			var fill_a: float = [0.5, 0.46, 0.38, 0.26, 0.12, 0.0, 0.0][f]
-			_sk_grad(cv, c, 0.0, Rs * 0.98, SK_B[2], fill_a, fill_a * 0.7)   # 内部实心：中心 0.5 → 边 0.35
+			var fill_k: float = [1.0, 0.9, 0.7, 0.45, 0.2, 0.0, 0.0][f]
+			_sk_grad(cv, c, 0.0, Rs * 0.98, SK_B[2], 0.35 * fill_k, 0.5 * fill_k)   # 内部实心：中心 0.35（站人处清楚）→ 边 0.5，5 拍内收掉
 			var nl: int = 8
 			for j in nl:   # 旋转向心笔触线
 				var a0: float = TAU * float(j) / float(nl) + float(f) * 0.32
@@ -1736,7 +1744,9 @@ func _sk_draw_up(ci, it: Dictionary) -> void:
 				head.a = 0.6
 			var up: float = float(f) * px * (1.0 if f < 5 else 0.6)
 			var w: float = float((pat[0] as String).length()) * px
-			_sk_pat(ci, pat, c + Vector2(-w * 0.5, -float(pat.size()) * px - up), col, head, it.get("fl", false))
+			var shc: Color = C[0]
+			shc.a = 0.85 if f < 7 else 0.0
+			_sk_pat(ci, pat, c + Vector2(-w * 0.5 + (10.0 if it.get("fl", false) else -10.0), -float(pat.size()) * px - up - 8.0), col, head, it.get("fl", false), shc)
 			if f <= 1:
 				_glow(c + Vector2(0, -up - px), C[6])
 		"pillars":   # S3 潮涌：5 根粗亮红竖光柱从歌域里冲起又回落（原作 skill_03_buff_02 的红光柱）；白热芯、亮红身、暗酒红边，顶端淡出
@@ -1757,15 +1767,15 @@ func _sk_draw_up(ci, it: Dictionary) -> void:
 			var n: int = 3 if t2 < 2 else 5
 			for j in n:
 				var a: float = TAU * float(j) / float(n) + float(f) * 0.3
-				var rr: float = (10.0 + 6.0 * float(f)) * px
+				var rr: float = (12.0 + 7.0 * float(f)) * px
 				var q: Vector2 = _sk_ep(c, rr, a) + Vector2(0, -10.0 - 1.5 * float(f))
 				var fl: bool = cos(a + PI * 0.5) < 0.0
-				_sk_pat(ci, SK_FISH, q, SK_R[3], SK_R[4], fl)
+				_sk_pat(ci, SK_FISH, q, SK_R[3], SK_R[4], fl, Color(SK_R[0].r, SK_R[0].g, SK_R[0].b, 0.8))
 		"spout":   # S2 精二：涡眼冲起一道水柱
 			if f < 0 or f > 7:
 				return
-			var Hs: float = 34.0 * px * [0.4, 0.8, 1.0, 1.0, 0.9, 0.75, 0.55, 0.35][f]
-			_sk_column(ci, _snap(c), [3, 4, 4, 4, 3, 3, 2, 2][f], Hs, SK_B, f)
+			var Hs: float = 52.0 * px * [0.4, 0.8, 1.0, 1.0, 0.9, 0.75, 0.55, 0.35][f]
+			_sk_column(ci, _snap(c), [4, 5, 5, 5, 4, 4, 3, 2][f], Hs, SK_B, f)
 		"songnotes":   # 连携 v2：区域里每 0.5 秒冒 3 个音符往上飘
 			var age: float = g.t - float(it.t0)
 			if age > 3.0:
@@ -1781,7 +1791,7 @@ func _sk_draw_up(ci, it: Dictionary) -> void:
 				var headN: Color = (SK_R if k == 1 else SK_B)[6 if fb == 0 else 5]
 				if fb >= 6:
 					colN.a = 0.0
-				_sk_pat(ci, SK_NOTE, q + Vector2(-5.0, -24.0 - float(fb) * px), colN, headN, k == 2)
+				_sk_pat(ci, SK_NOTE, q + Vector2(-8.0, -30.0 - float(fb) * px), colN, headN, k == 2, Color(SK_B[0].r, SK_B[0].g, SK_B[0].b, 0.0 if fb >= 6 else 0.8))
 
 
 ## 红光柱：宽 W 美术像素、高 H 世界像素；脚下一小片亮红地光
@@ -1839,7 +1849,7 @@ func _sk_draw_state_up(ci, it: Dictionary) -> void:
 		"bubble":   # S1：身周一团气泡（细膜 + 左上高光 + 淡淡的水 0.16）；E1 双层膜、E2 三团（主泡两侧各连一个小泡）
 			var c: Vector2 = _snap(o.pos + Vector2(0, -26))
 			var wob: float = [0.0, 1.0, 0.0, -1.0][bt % 4] * px
-			var Rb: float = 23.0 * px
+			var Rb: float = (23.0 if t == 0 else 26.0) * px
 			var bubs: Array = [[c, Rb + wob]]
 			if t >= 2:
 				bubs.append([_snap(c + Vector2(-Rb * 1.05, Rb * 0.45)), Rb * 0.42 - wob * 0.5])
@@ -1858,6 +1868,11 @@ func _sk_draw_state_up(ci, it: Dictionary) -> void:
 			for k in 25:
 				fr.append(_snap(_sk_ep(o.pos + Vector2(0, 2), 20.0 * px, TAU * float(k) / 24.0)))
 			ci.draw_polyline(fr, Color(SK_R[3].r, SK_R[3].g, SK_R[3].b, 0.85), px)
+			if t >= 1:   # 精一：外面再一圈酒红细环
+				var fr2 := PackedVector2Array()
+				for k in 25:
+					fr2.append(_snap(_sk_ep(o.pos + Vector2(0, 2), 26.0 * px, TAU * float(k) / 24.0 + 0.1)))
+				ci.draw_polyline(fr2, Color(SK_R[2].r, SK_R[2].g, SK_R[2].b, 0.7), px)
 			# 上浮小泡：每拍错落 3–5 个
 			var nb: int = 3 + t
 			for k in nb:
@@ -1873,7 +1888,7 @@ func _sk_draw_state_up(ci, it: Dictionary) -> void:
 				var a: float = TAU * float(j) / float(n) + float(bt) / 15.0 * 0.22 * (1.0 if j % 2 == 0 else 0.8)
 				var q: Vector2 = _sk_ep(zc, zv * (0.9 + 0.06 * _sk_h(j, 6.0)), a) + Vector2(-7.0, -16.0 - px * float((bt + j * 4) % 6 / 3))
 				var fl: bool = sin(a) > 0.0   # 顺时针游：上半圈朝右、下半圈朝左
-				_sk_pat(ci, SK_FISH, q, Color(SK_R[3].r, SK_R[3].g, SK_R[3].b, 0.9), SK_R[4], fl)
+				_sk_pat(ci, SK_FISH, q, Color(SK_R[3].r, SK_R[3].g, SK_R[3].b, 0.9), SK_R[4], fl, Color(SK_R[0].r, SK_R[0].g, SK_R[0].b, 0.7))
 
 
 ## 旧做法（2）：整张贴（光晕烤进颜色，按歌域半径小数缩放、盖在所有单位上）；S1 / S3 期间按技能剩余时间循环
