@@ -42,7 +42,7 @@ def shoot(op, mode, var):
     args = [GR.find_godot(), "--audio-driver", "Dummy", "--fixed-fps", "30", "--path", GAME, "res://tests/fx_audit_shot.tscn", "--",
             "--shot_op=" + op, "--shot_stage=2", "--shot_mode=%d" % mode, "--shot_dir=" + fdir.replace("\\", "/"),
             "--shot_start=%g" % START, "--shot_every=1", "--shot_n=%d" % N, "--shot_w=1280", "--shot_h=720",
-            "--bal=fx/px_plane=1", "--bal=fx/recipe_log=1"] + LATE + VARS[var]
+            "--bal=fx/px_plane=1", "--bal=fx/recipe_log=1", "--seed=11"] + LATE + VARS[var]
     out, err, to = GR.run_godot(args, 1500)
     open(os.path.join(BUILD, tag + ".log"), "w", encoding="utf-8").write((out or "") + "\n" + (err or ""))
     return tag, len(glob.glob(os.path.join(fdir, "f_*.png"))), GR.script_errors(out or "", err or "")[:2]
