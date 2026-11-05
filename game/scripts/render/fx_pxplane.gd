@@ -2179,7 +2179,6 @@ func _sg_motes(o, n: int) -> void:
 
 
 func _sg_draw_motes(o) -> void:
-	_sg_draw_cores()
 	if _motes.is_empty():
 		return
 	var cv = o.cv
@@ -2212,6 +2211,7 @@ func _sg_draw_motes(o) -> void:
 func _floor_sg(o) -> void:
 	var cv = o.cv
 	var id: String = str(o.id)
+	_sg_draw_cores()   # 落点亮芯先排进发光层：地面层每帧最先画，整队 EMIT_CAP 顶满时也不被挤掉（docs/270）
 	if o.skill_active_left(2) > 0.0:
 		_draw_strip(cv, "sg_s3aura_gd", frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
 	if o.hw.has("sg"):
