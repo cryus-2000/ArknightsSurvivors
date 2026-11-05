@@ -1,0 +1,12 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（3584 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+局 ('angelina_atk_A', 150, [])
+局 ('angelina_atk_B', 150, [])
+局 ('angelina_atk_C', 150, [])
+局 ('angelina_s1_A', 150, [])
+局 ('angelina_s1_B', 150, [])
+局 ('angelina_s1_C', 150, [])
+体检 {"op": "angelina", "mode": "atk", "frame": 11, "engine": 70, "secs": 5.0, "hits": 0, "acts": 40, "skill": 0, "parts_total": 40, "parts_per_hit": 1.0, "parts_per_s": 8.0, "parts_s1_1s": null, "mats": {"tri": 20, "shard": 20}, "life": 0.9, "sz": 6.0, "alive_max": 12, "lights": 10, "lights_per_hit": 0.25, "light_r": 125.0, "light_i": 0.64, "light_life": 0.14, "emit_max": 128, "emit_mean": 28.3, "gl_peak": 60.5, "gl_area_hit": 31, "gl_mean_hit": 8.2, "em_peak": 231.1, "em_area_hit": 43, "em_mean_hit": 89.6, "crop": [532, 288, 320, 180]}
+体检 {"op": "angelina", "mode": "s1", "frame": 7, "engine": 66, "secs": 5.0, "hits": 0, "acts": 29, "skill": 2, "parts_total": 40, "parts_per_hit": 1.4, "parts_per_s": 8.0, "parts_s1_1s": 8, "mats": {"tri": 28, "shard": 12}, "life": 0.92, "sz": 6.6, "alive_max": 21, "lights": 8, "lights_per_hit": 0.28, "light_r": 125.0, "light_i": 0.64, "light_life": 0.14, "emit_max": 128, "emit_mean": 26.5, "gl_peak": 83.9, "gl_area_hit": 37, "gl_mean_hit": 12.6, "em_peak": 236.2, "em_area_hit": 22, "em_mean_hit": 172.2, "crop": [452, 256, 320, 180]}
+media：9 个文件，2.1M
