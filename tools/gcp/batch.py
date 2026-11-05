@@ -127,7 +127,17 @@ def create_vm(a, name, gs, sha, base, cmds, model):
             "--metadata", ",".join("%s=%s" % kv for kv in md.items()),
             "--metadata-from-file", "startup-script=%s,batch-cmds=%s" % (os.path.join(HERE, "vm_startup.sh"), cmdf)]
     print("开机 %s（%s %s，%s，最长 %.1f 小时）" % (name, a.machine, model, a.zone, a.hours))
-    gc(*args)
+    # 配额满（全项目共 16 核，多个会话同时出图 / 批跑时常见）：每分钟重试，最多等 --quota-wait 分钟（11-05）
+    t0 = time.time()
+    while True:
+        r = gc(*args, check=False)
+        if r.returncode == 0:
+            return
+        if "Quota" not in (r.stderr or "") or time.time() - t0 > getattr(a, "quota_wait", 90) * 60:
+            raise RuntimeError("开机失败：\n" + (r.stderr or "")[-1500:])
+        if time.time() - t0 < 61:
+            print("配额满（%s），排队等别的虚拟机结束，每分钟重试" % (re.search(r"Quota '([A-Z_]+)'", r.stderr or "") or [None, "?"])[1], flush=True)
+        time.sleep(60)
 
 
 def wait(name, zone, gs, poll):
@@ -296,6 +306,7 @@ def main():
     r.add_argument("--standard", action="store_true", help="用标准机（缺省抢占式 spot，便宜约 70%%）")
     r.add_argument("--hours", type=float, default=3.0, help="最长运行时间，到点 GCE 强制删机")
     r.add_argument("--poll", type=int, default=60)
+    r.add_argument("--quota-wait", type=float, default=90, help="配额满时最多排队等多少分钟（每分钟重试开机）")
     r.add_argument("--no-push", action="store_true", help="只建结果提交不推（调试用）")
     c = sub.add_parser("collect")
     c.add_argument("tag")
