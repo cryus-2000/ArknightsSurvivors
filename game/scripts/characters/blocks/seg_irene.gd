@@ -92,6 +92,7 @@ static func _h3_thrust_release(o, a: Dictionary) -> void:
 	if not first.is_empty() and not first.boss and "strict" in o.taken:   # docs/202 严律：第 1 段命中的第一个敌人停顿，第 2 段直刺它
 		var halt: float = o.base("strict_halt", 0.3) * (0.5 if first.elite else 1.0)
 		o.add_cc_growth(first, halt)
+		_FXR.ev(o, "ir_strict", {"en": first, "dur": halt})   # 转平面（docs/272）：只画
 		ir["strict_e"] = first
 		var hp: Vector2 = first.pos + Vector2(0, -float(first.r) * 2.4 - 12.0)   # 头顶一圈白色刺印
 		o.fx({"kind": "ring", "pos": hp, "r": 13.0, "r0": 13.0, "life": halt + 0.15, "col": Color(2.0, 1.7, 2.0), "keep": true, "w": 3.0})
@@ -99,6 +100,7 @@ static func _h3_thrust_release(o, a: Dictionary) -> void:
 			var d4 := Vector2.from_angle(q * PI * 0.5 + PI * 0.25)
 			o.fx({"kind": "line", "pos": hp + d4 * 13.0, "to": hp + d4 * 21.0, "life": halt + 0.15, "col": Color(1.1, 0.8, 1.1), "w": 2.5})
 	if not patch.is_empty() and not first.is_empty():
+		_FXR.ev(o, "ir_gust", {"en": first})   # 转平面（docs/272）：起风水旋，只画
 		for s in patch.get("on_first", _EA):
 			apply_status(o, first, s, first.pos)
 		if patch.has("first_fx"):
@@ -188,12 +190,14 @@ static func _h3_thrust(o, a: Dictionary, ang: float, mult: float, patch: Diction
 		o.deal_damage(e, dmg * h3_ctrl_mult(o, e, a))
 		if pursue:
 			ir.pcd = float(pu.get("cd", 0.4))
-			_h3_cannon(o, pu, e.pos, hw_mul(o.base(str(pu.get("atk_key", "atk")), 0.0), pu.get("mult", 1.0)) * o._dmg_bonus())
+			_h3_cannon(o, pu, e.pos, hw_mul(o.base(str(pu.get("atk_key", "atk")), 0.0), pu.get("mult", 1.0)) * o._dmg_bonus(), e)
 		o.fx({"kind": "spark", "pos": e.pos + Vector2(0, -e.r * 0.5), "vel": d * 120.0 + Vector2(g.vrng.randf_range(-40, 40), -60), "life": 0.25, "col": _mf_col(lk.get("spark", []), H3_SILVER), "sz": 2.0, "drag": 3.0})
 		if first.is_empty():
 			first = e
 			o.spawn_fx_sprite(str(lk.get("hit", "fx_thrust_hit_rose")), e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.9, ang)
 	_h3_thrust_fx(o, a, d, L, ang, gust, stage)
+	if _FXR.owns(o):   # 转平面（docs/272）：光刃 + 贯穿，只画
+		_FXR.ev(o, "ir_thrust", {"d": d, "L": L, "es": hits.map(func(x): return x[1]), "gust": gust, "stage": stage})
 	if stage > 1:   # 第一段的出手音由 data_operator._release 播
 		_h3_sfx(o, "atk", 0.0, 1.0, 0.08)
 	if not first.is_empty():
@@ -252,10 +256,11 @@ static func _h3_ctrl_value(o) -> float:
 
 
 ## 手炮一发：c 周围 r 内 area_hit（同手写 _cannon），炮口一闪 → 弹道光 → 黑烟小爆炸
-static func _h3_cannon(o, cb: Dictionary, c: Vector2, dmg: float) -> void:
+static func _h3_cannon(o, cb: Dictionary, c: Vector2, dmg: float, e = null) -> void:
 	var g = o.g
 	o.area_hit(str(cb.get("src", "")), c, float(cb.get("r", 40.0)), dmg, 0.0, 0.0)
 	var muzzle: Vector2 = o.pos + Vector2(12.0 * o.face, -30)
+	_FXR.ev(o, "ir_cannon", {"c": c, "mz": muzzle, "en": e})   # 转平面（docs/272）：只画（e = 打的那只，浮空时爆点跟着抬）
 	o.spawn_fx_sprite(str(cb.get("muzzle", "fx_muzzle_flash")), muzzle, g.PX * 0.7)
 	o.fx({"kind": "line", "pos": muzzle, "to": c + Vector2(0, -10), "life": 0.08, "col": Color(1.0, 0.8, 0.6), "w": 2.0, "laser": true})
 	if not o.spawn_fx_sprite(str(cb.get("burst", "fx_cannon_burst")), c + Vector2(0, 6), g.PX * 1.2, 0.0, false, true):
@@ -279,6 +284,7 @@ static func h3_launch(o, e: Dictionary, dur: float, h: float) -> void:
 			return
 	ir.air.append({"e": e, "t": 0.0, "dur": dur, "h": h})
 	o.add_cc(e, dur, -INF, "airborne")
+	_FXR.ev(o, "ir_launch", {"en": e, "h": h})   # 转平面（docs/272）：挑刺细弧，只画
 
 
 static func _h3_is_air(o, e: Dictionary) -> bool:
@@ -319,6 +325,7 @@ static func h3_lift_around(o, b: Dictionary, at: Vector2) -> void:
 		if e.dead or is_same(e, skip) or e.pos.distance_to(at) > r + e.r:
 			continue
 		h3_launch(o, e, float(b.get("dur", 0.8)), float(b.get("h", 20.0)))
+	_FXR.ev(o, "ir_gale", {"at": at, "r": r})   # 转平面（docs/272）：只画
 	if b.has("fx"):
 		fx_play(o, b.fx, at, r)
 	else:
@@ -365,6 +372,7 @@ static func h3_cleave(o, b: Dictionary, at: Vector2) -> Array:
 			apply_status(o, e, s, org)
 		out.append(e)
 	hw_record(o, dmg, ang, r, org)
+	_FXR.ev(o, "ir_cleave", {"ang": ang, "r": r, "half": float(b.get("half", PI)), "look": str(b.get("look", "")), "src": src, "es": out})   # 转平面（docs/272）：只画
 	if o.hw.has("ir"):
 		o.hw.ir["last_hits"] = out
 	var lk = b.get("look", "")
@@ -435,7 +443,7 @@ static func _h3_strikes_tick(o, ir: Dictionary, dt: float) -> void:
 			var dmg: float = hw_mul(o.base(str(cb.get("atk_key", "atk")), 0.0), cb.get("mult", 1.0)) * o._dmg_bonus()
 			if cb.get("power", false):
 				dmg *= o.skill_power()
-			_h3_cannon(o, cb, c, dmg)
+			_h3_cannon(o, cb, c, dmg, e)
 	ir.strikes = ir.strikes.filter(func(s): return s.t > 0.0)
 
 
@@ -512,7 +520,7 @@ static func _e3_ir_tick(o, ir: Dictionary, dt: float) -> void:
 		var cb: Dictionary = b.duplicate()
 		if not cb.has("muzzle"):
 			cb["muzzle"] = "fx_irene_gun_burst"
-		_h3_cannon(o, cb, e.pos, hw_mul(o.base(str(b.get("atk_key", "atk")), 0.0), b.get("mult", 1.0)) * o._dmg_bonus())
+		_h3_cannon(o, cb, e.pos, hw_mul(o.base(str(b.get("atk_key", "atk")), 0.0), b.get("mult", 1.0)) * o._dmg_bonus(), e)
 
 
 ## 收尾动作帧条（anim_state 转来）
