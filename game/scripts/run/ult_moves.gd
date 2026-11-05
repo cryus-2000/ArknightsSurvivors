@@ -8,6 +8,7 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
+const UPX = preload("res://scripts/run/ult_px_exusiai.gd")   # 能天使终结技转平面（docs/262 §11，ult/px_plane，只画）：原画面照旧，最大那一下叠冲击环 / 照地光 / 崩解 / 粒子云
 const A = preload("res://scripts/art.gd")
 ## 其余 15 人（用户 10-29「20 个干员的都做好」）：分两个文件写，接口同本文件（handles / aim_kind / aim_r / start / step）
 const MB = preload("res://scripts/run/ult_moves_b.gd")   # 斯卡蒂 / 歌蕾蒂娅 / 安洁莉娜 / 艾雅法拉 / 维什戴尔 / 归溟幽灵鲨 / 水月
@@ -503,6 +504,17 @@ static func _tx_sp(u, o) -> void:
 ## 持续期间满屏都是她的弹道与爆炸。锁定半径 480 → ult/ex_r（505 → 545，10-30 §3.4 对齐：均匀场景小怪倒下 44 → 51%；聚怪由 ult/ex_tgt 目标上限压在 75% 内）：参考场景 500 处那只精英原来锁不上（精英只到 27%）
 const EX_RED := Color(0.95, 0.16, 0.2)
 const EX_GOLD := Color(1.0, 0.8, 0.28)
+const EX_VERM := Color("#f07048")   # 转平面配色对齐（docs/262 §11，ult_brief §9）：原红 (0.95, 0.16, 0.2) 是危险红，换成普攻 / 技能定稿的朱橙
+const EX_GOLD2 := Color("#ffd86a")
+
+
+## 能天使终结技的红 / 金：ult/px_plane 开着时对齐到普攻 / 技能定稿的朱橙 / 金（docs/262），关着照原色
+static func _exr() -> Color:
+	return EX_VERM if UPX.on() else EX_RED
+
+
+static func _exg() -> Color:
+	return EX_GOLD2 if UPX.on() else EX_GOLD
 const EX_MZ := [Vector2(-30.0, -30.0), Vector2(30.0, -30.0)]   # 左右两把枪的枪口（脚底为原点）
 
 
@@ -541,28 +553,31 @@ static func _ex_start(u, o) -> Dictionary:
 		var s: Dictionary = u.strip("fx_ult_exusiai_lock_orbit", e.pos, {"o": Vector2(48, 48), "f": 0, "sc": sc, "life": dur + 0.5, "col": Color(1.0, 0.72, 0.55)})
 		var fr: Array = []
 		for j in 4:
-			fr.append(_ex_keep(u, {"kind": "line", "a": e.pos, "b": e.pos, "w": 4.0 if not (e.elite or e.boss) else 6.0, "col": EX_RED, "life": dur + 0.5}))
-		fr.append(_ex_keep(u, {"kind": "ring", "c": e.pos, "r": 20.0, "w": 3.0, "col": EX_GOLD, "life": dur + 0.5, "solid": true}))
+			fr.append(_ex_keep(u, {"kind": "line", "a": e.pos, "b": e.pos, "w": 4.0 if not (e.elite or e.boss) else 6.0, "col": _exr(), "life": dur + 0.5}))
+		fr.append(_ex_keep(u, {"kind": "ring", "c": e.pos, "r": 20.0, "w": 3.0, "col": _exg(), "life": dur + 0.5, "solid": true}))
 		locks.append({"e": e, "out": -1.0, "s": s, "fr": fr, "h": float(e.get("r", 14.0)) + (26.0 if (e.elite or e.boss) else 16.0), "i": locks.size()})
 	# 出手：双枪举起（两侧往上斜举的白芯金光 + 枪口火光亮起）、脚下一道红金光柱、锁定圈从她身上扩出去
 	o.play_vis_anim("attack")
 	for k in 2:
 		var mz: Vector2 = c + EX_MZ[k]
 		var up: Vector2 = Vector2(-0.55 if k == 0 else 0.55, -1.0).normalized()
-		u.shape({"kind": "blade", "a": mz - up * 10.0, "b": mz + up * 120.0, "w": 10.0, "col": EX_GOLD.lerp(Color.WHITE, 0.3), "glow": EX_RED, "grow": 0.08, "life": 0.4})
-		u.shape({"kind": "circle", "c": mz, "r": 30.0, "col": EX_GOLD, "fill": 0.9, "life": 0.25})
-		u.grain("bul_spawn", mz, up, EX_GOLD, 10)
-		u.light(mz, 150.0, EX_GOLD, 0.4)
-	u.shape({"kind": "band", "a": c + Vector2(0, 10), "b": c + Vector2(0, -300), "w": 60.0, "col": EX_RED, "fill": 0.35, "life": 0.35})
-	u.shape({"kind": "band", "a": c + Vector2(0, 10), "b": c + Vector2(0, -300), "w": 24.0, "col": EX_GOLD, "fill": 0.7, "life": 0.25})
-	u.grain("mote_up", c, Vector2.UP, EX_GOLD, 14)
-	_ring(u, c, R, 40.0, EX_RED, 0.5, 8.0)
-	_ring(u, c, R, 60.0, EX_GOLD, 0.6, 4.0, 0.06)
+		if not UPX.on():   # 转平面：两道斜举光刃（一对翅膀）换成头顶大光环（UPX.halo，循环到扫射结束）
+			u.shape({"kind": "blade", "a": mz - up * 10.0, "b": mz + up * 120.0, "w": 10.0, "col": _exg().lerp(Color.WHITE, 0.3), "glow": _exr(), "grow": 0.08, "life": 0.4})
+		u.shape({"kind": "circle", "c": mz, "r": 30.0, "col": _exg(), "fill": 0.9, "life": 0.25})
+		u.grain("bul_spawn", mz, up, _exg(), 10)
+		u.light(mz, 150.0, _exg(), 0.4)
+	u.shape({"kind": "band", "a": c + Vector2(0, 10), "b": c + Vector2(0, -300), "w": 60.0, "col": _exr(), "fill": 0.35, "life": 0.35})
+	u.shape({"kind": "band", "a": c + Vector2(0, 10), "b": c + Vector2(0, -300), "w": 24.0, "col": _exg(), "fill": 0.7, "life": 0.25})
+	u.grain("mote_up", c, Vector2.UP, _exg(), 14)
+	_ring(u, c, R, 40.0, _exr(), 0.5, 8.0)
+	if UPX.on():
+		UPX.halo(u, o, dur)
+	_ring(u, c, R, 60.0, _exg(), 0.6, 4.0, 0.06)
 	u.shake(4.0, 0.2)
 	# 枪口火光（持续期间常亮，每发闪一下）
 	var mzf: Array = []
 	for k in 2:
-		mzf.append(_ex_keep(u, {"kind": "circle", "c": c + EX_MZ[k], "r": 16.0, "col": EX_GOLD, "fill": 0.75, "life": dur + 0.2}))
+		mzf.append(_ex_keep(u, {"kind": "circle", "c": c + EX_MZ[k], "r": 16.0, "col": _exg(), "fill": 0.75, "life": dur + 0.2}))
 	return {"k": "exusiai", "R": R, "mult": 0.9 if rt == "range" else 1.0, "rico": rt == "ricochet", "eq": eq, "ne": ne,
 		"normals": normals, "done": {}, "fired": 0, "ncap": cap, "nhit": 0, "tcap": int(Bal.v("ult/ex_tgt", 100.0)), "dur": dur, "rate": Bal.v("ult/ex_rate", 24.0), "ring_t": 0.5,
 		"locks": locks, "lk_done": {}, "bt": [], "mzf": mzf, "fx": mzf.duplicate(), "no_ring": true, "bul": [], "hitd": {}, "pt": 0.0}
@@ -628,10 +643,10 @@ static func _ex_break(u, lk: Dictionary) -> void:
 		var s: Dictionary = lk.fr[j]
 		_ex_drop(s, 0.16)
 		s["v"] = ((s.a + s.b) * 0.5 - p).normalized() * 260.0
-		s.col = EX_GOLD
+		s.col = _exg()
 	_ex_drop(lk.fr[4], 0.12)
-	lk.fr[4].col = EX_GOLD.lerp(Color.WHITE, 0.3)
-	u.grain("sh_shard", p, Vector2.UP, EX_RED, 5)
+	lk.fr[4].col = _exg().lerp(Color.WHITE, 0.3)
+	u.grain("sh_shard", p, Vector2.UP, _exr(), 5)
 	lk.fr = []
 
 
@@ -645,21 +660,24 @@ static func _ex_burst(u, a: Dictionary, p: Vector2, sc: float) -> void:
 		return
 	bt.append(t)
 	u.strip("fx_ult_exusiai_burst_front", p, {"o": Vector2(64, 64), "sc": sc * 1.5})
-	u.shape({"kind": "circle", "c": p, "r": 46.0 * sc, "col": EX_GOLD, "fill": 0.4 if _ex_v3() else 0.7, "life": 0.1})
-	u.shape({"kind": "ring", "c": p, "r": 92.0 * sc, "r1": 20.0, "w": 6.0, "col": EX_RED, "life": 0.24})   # 缺省碎裂：一圈红色碎块往外崩
+	if UPX.on():   # 转平面（docs/262 §11）：原爆点照旧，上面叠一层闪烁粒子云（朱橙 / 金，加强原版的粒子云）
+		UPX.cloud(u, p + Vector2(0, -12), int(a.fired) * 7 + bt.size(), 30.0, 30)
+	if not UPX.on():   # 转平面：平涂实心圆去掉（docs/280），体量交给粒子云
+		u.shape({"kind": "circle", "c": p, "r": 46.0 * sc, "col": _exg(), "fill": 0.4 if _ex_v3() else 0.7, "life": 0.1})
+	u.shape({"kind": "ring", "c": p, "r": 92.0 * sc, "r1": 20.0, "w": 6.0, "col": _exr(), "life": 0.24})   # 缺省碎裂：一圈红色碎块往外崩
 	var i: int = bt.size()
-	u.grain("bul_pop", p, Vector2.from_angle(float(int(a.fired)) * 2.39996), EX_GOLD if i % 2 == 0 else EX_RED, 7)
+	u.grain("bul_pop", p, Vector2.from_angle(float(int(a.fired)) * 2.39996), _exg() if i % 2 == 0 else _exr(), 7)
 	if int(a.fired) % 3 == 0:   # 灯只有 16 盏：每 3 发一盏，火星 / 碎屑同样抽稀
-		u.light(p, 150.0 * sc, EX_RED.lerp(EX_GOLD, 0.5), 0.18)
-		u.spark(p, EX_GOLD, 3, 20.0)
+		u.light(p, 150.0 * sc, _exr().lerp(_exg(), 0.5), 0.18)
+		u.spark(p, _exg(), 3, 20.0)
 	if int(a.fired) % 5 == 0:
-		u.debris(p, EX_RED, 1)
+		u.debris(p, _exr(), 1)
 
 
 ## 连锁闪线：红色外层 + 金白芯
 static func _ex_chain(u, p0: Vector2, p1: Vector2, life: float) -> void:
-	u.shape({"kind": "line", "a": p0, "b": p1, "w": 6.0, "col": EX_RED, "life": life})
-	u.shape({"kind": "line", "a": p0, "b": p1, "w": 2.0, "col": EX_GOLD.lerp(Color.WHITE, 0.5), "life": life * 0.8})
+	u.shape({"kind": "line", "a": p0, "b": p1, "w": 6.0, "col": _exr(), "life": life})
+	u.shape({"kind": "line", "a": p0, "b": p1, "w": 2.0, "col": _exg().lerp(Color.WHITE, 0.5), "life": life * 0.8})
 
 
 ## 子弹（10-30 用户「到后面变成了光束」返工）：原来每发画一整条枪口 → 落点的长曳光（0.09 秒、24 发 / 秒、两层），几发叠在一起就连成光束，
@@ -667,10 +685,10 @@ static func _ex_chain(u, p0: Vector2, p1: Vector2, life: float) -> void:
 ## 以 ult/ex_bspd（2600 / 秒）飞向目标（跟着目标走），飞到才结算伤害、开爆点；相邻两发间隔约 100（同一把枪约 200），飞行中同时在场约 4–6 颗，各自分得开。
 ## 一发分打多个框 / 跳弹同样从爆点飞出一颗子弹（不再画长连线）；只保留爆点到溅射目标（≤ 60）的短连锁闪线
 static func _ex_bullet(u, a: Dictionary, p0: Vector2, dest: Vector2, tg, k: int, info: Dictionary) -> void:
-	var cc: Color = EX_RED if k % 2 == 0 else EX_GOLD
+	var cc: Color = _exr() if k % 2 == 0 else _exg()
 	var sh: Array = [
 		_ex_keep(u, {"kind": "line", "a": p0, "b": p0, "w": 6.0, "col": cc, "life": 2.0}),
-		_ex_keep(u, {"kind": "line", "a": p0, "b": p0, "w": 3.0, "col": EX_GOLD if _ex_v3() else Color(1.0, 0.95, 0.75), "life": 2.0}),   # v3 芯改金色：近距离连射白芯叠成一片白（预审 10-31）
+		_ex_keep(u, {"kind": "line", "a": p0, "b": p0, "w": 3.0, "col": _exg() if _ex_v3() else Color(1.0, 0.95, 0.75), "life": 2.0}),   # v3 芯改金色：近距离连射白芯叠成一片白（预审 10-31）
 		_ex_keep(u, {"kind": "circle", "c": p0, "r": 4.0 if _ex_v3() else 5.0, "col": Color(1.0, 0.88, 0.55) if _ex_v3() else Color(1.0, 0.97, 0.85), "fill": 1.0, "life": 2.0}),
 	]
 	a.fx.append_array(sh)
@@ -737,13 +755,15 @@ static func _ex_land(u, a: Dictionary, o, b: Dictionary) -> void:
 	if fv:
 		a["fv"] = true
 		u.strip("fx_ult_exusiai_burst_front", imp, {"o": Vector2(64, 64), "sc": 2.4})
-		u.shape({"kind": "ring", "c": imp, "r": 170.0, "r1": 30.0, "w": 10.0, "col": EX_GOLD, "life": 0.35})
+		u.shape({"kind": "ring", "c": imp, "r": 170.0, "r1": 30.0, "w": 10.0, "col": _exg(), "life": 0.35})
 		PF.hf_since(u, n0)
 		for s in u.shapes:   # 同屏还在炸的爆点一起进剪影（第一轮一片爆点）
 			if str(s.get("name", "")) == "fx_ult_exusiai_burst_front":
 				s["hf"] = true
 		PF.hf_on(u, a)
 		u.g.vfx.stop(Bal.v("ult/ex_hitstop", 0.08), "ult", true)
+		if UPX.on():   # 转平面（docs/262 §11）：原画面照旧，最大那一下再叠冲击环 / 照地灯 / 轻震 / 粒子云 / 崩解，共用冲击慢放落在这一下
+			UPX.big_blast(u, a, imp, _exg(), _exr())
 	if kind == "ground":
 		_ex_burst(u, a, imp, 0.8)
 		return
@@ -801,8 +821,8 @@ static func _ex_shoot(u, a: Dictionary, o, dest: Vector2, tg, info: Dictionary) 
 	var k: int = int(a.fired) % 2
 	var mz: Vector2 = o.pos + EX_MZ[k]
 	var d: Vector2 = (dest - mz).normalized() if dest.distance_to(mz) > 1.0 else Vector2.RIGHT
-	u.shape({"kind": "blade", "a": mz - d * 4.0, "b": mz + d * 30.0, "w": 8.0, "col": EX_GOLD.lerp(Color.WHITE, 0.3), "glow": EX_RED, "life": 0.05})
-	u.grain("bul_spawn", mz + d * 14.0, d, EX_GOLD, 2)
+	u.shape({"kind": "blade", "a": mz - d * 4.0, "b": mz + d * 30.0, "w": 8.0, "col": _exg().lerp(Color.WHITE, 0.3), "glow": _exr(), "life": 0.05})
+	u.grain("bul_spawn", mz + d * 14.0, d, _exg(), 2)
 	var mf: Dictionary = a.mzf[k]
 	mf.r = 30.0
 	if _ex_v3():   # 火药烟（每把枪每 3 发一小团逐帧烟尘）+ 弹壳（每 2 发往外侧后方抛一枚黄铜壳，带重力落地）
@@ -831,7 +851,7 @@ static func _ex_step(u, a: Dictionary, o) -> bool:
 	_ex_fly(u, a, o, dt)
 	if t >= float(a.ring_t) and t < dur:
 		a.ring_t = float(a.ring_t) + 0.5
-		u.shape({"kind": "ring", "c": o.pos, "r": a.R, "w": 3.0, "col": EX_RED.lerp(EX_GOLD, 0.5), "life": 0.5})
+		u.shape({"kind": "ring", "c": o.pos, "r": a.R, "w": 3.0, "col": _exr().lerp(_exg(), 0.5), "life": 0.5})
 	for k in a.mzf.size():   # 枪口火光跟着她，闪过之后缩回常亮大小
 		var mf: Dictionary = a.mzf[k]
 		mf.c = o.pos + EX_MZ[k]

@@ -115,3 +115,53 @@ GCP 体检（同一条 `tools/fx_audit.py shots --ops exusiai`）：补前 rende
 - TRACE：fce559cec，能天使队长精二 5:00 局（种子 23，`--elite2 --sptest`，开 late_shape），px_plane 开 / 关 301 行逐行一致，0 条 SCRIPT ERROR（render-fxa-exu-trace2）。
 - 合 integ 时 `tools/pxplane_shots.py` 里能天使的干员表、演示去重、连携事件三处被推进之王的版本覆盖，已补回（两边都留）。
 - 对比图：`Claude outputs/fx_audit_1105/fix_exusiai/cmp_atk_x2.png`、`cmp_s1_x2.png`（上补前、下补后，命中帧 2 倍 + 照地光 / 辉光热图；挑的是第一下命中那一帧，碎屑还没飞出来，差别主要看数值），before_audit.json / after_audit.json。
+
+## 11. 终结技画面升级（ult/px_plane_exusiai，**缺省开**；11-06 用户「能天使没问题」）
+
+**定稿（11-06）**：单人开关 `ult/px_plane_exusiai = 1`（balance.json `ult` 段，写法同斯卡蒂 / 艾丽妮；总开关 `ult/px_plane` 仍可一键全开，0 = 原画面）。加长版 impact（`_px.wav`）跟着单人开关走。
+GCP 验收（提交 449e15e8c，`trace_ab`，windowed，能天使队长 + 塞雷娅 / 拉普兰德，种子 3，强制放终结技，A = 开关 0、B = 开关 1）：
+
+| 局 | 行数 A / B | 结果 |
+|---|---|---|
+| 40 秒（31.5 秒放） | 41 / 41 | 逐行一致（cloud-results/render-ult-exusiai-trace40） |
+| 490 秒（8:01.5 放，怪多） | 491 / 491 | 逐行一致（cloud-results/render-ult-exusiai-trace490） |
+
+日志 0 条 SCRIPT ERROR；同局实拍并排见下文。
+
+**现行版本（§9 口径：以原版为底，主要做配色对齐，能用 px_plane 加强的顺手加强）**，本地提交，未推：
+- 原画面的造型、节奏、体量不动（锁定框环绕、双枪连射、爆点帧条成片）。
+- 配色对齐：`ult_moves` 能天使段的 `EX_RED` / `EX_GOLD` 改成 `_exr()` / `_exg()`，开关开着时换成定稿朱橙 `#f07048` 和金 `#ffd86a`（原红 (0.95, 0.16, 0.2) 是危险红），关着照原色。
+- 举枪时那对斜举光刃（像翅膀）换成新 S3 的头顶大光环（`UPX.halo`，docs/280 的建议）。
+- 爆点上那块平涂金色实心圆去掉，叠一层闪烁粒子云（`UPX.cloud`；docs/280：爆炸块状、偏平涂）。
+- 最大那一下（冲击帧那一发）：原爆点帧条 ×2.4、碎环和冲击帧剪影照旧，上面叠 8 格厚冲击环、照地灯 240、轻震 3px、160 颗粒子云和崩解（引擎击杀碎屑 + 本色喷散）；`u.impact(爆心)` 让共用冲击慢放落在这一下。
+- 音效回到原版（原作的 charge / cast 照用，A / B 候选和收尾声都已撤掉）。只在开关开着时，`ult.gd _ua` 优先播 `<名>_px.wav`：`ult_exusiai_impact_px.wav` = 原 impact 原样做底，补 Sonniss Trailer Booms 075 的低频余音，从 1.3 秒拉到 2.6 秒，跟着慢放拖尾（`tools/gen_sfx_ult_exusiai_px.py`）。
+- 并排（GCP 同种子同参数实拍，各 240 帧，0 条 SCRIPT ERROR）：`Claude outputs/ult_px_exusiai_1105/exusiai_ult_vs_newaudio.mp4` / `_origaudio.mp4` / `exusiai_ult_vs.gif`；原片在 `render-ult-exusiai-px4/orig` 和 `pxon`。
+- 待定：共用慢放的回速 `ult/imp_ease` 全员都是 0.35 秒，brief 要 0.15 秒，改它会影响所有人，交协调人定。
+
+以下是之前几版的记录（第一、二版整套替换，第三版加了 A / B 音效），都已被上面的版本取代。
+
+### 11.0 旧记录
+
+> **状态（11-05 晚）**：用户「所有终结技先停下来，除了艾莉妮的」，本节工作暂停，本地提交留着、不推。停在第三版（提交见 git log）：按 ult_brief §8「以原版为底，只往上加」，`ult_moves` 已恢复原画面，只在最大那一下（冲击帧那一发）叠冲击环、照地灯 240、轻震、160 颗粒子云、崩解（引擎击杀碎屑 + 本色喷散），并主动 `u.impact(爆心)` 让共用冲击慢放落在这一下；路上的原爆点上叠闪烁粒子云。音效 A / B 两套候选已写进 `game/audio/sfx`（`tools/gen_sfx_ult_exusiai_px.py`；原 charge / cast 是原作客户端音源，必须换；impact 以原文件为底加长余音；新增收尾弹壳 `u.cue("end")`），`ult/sfx_alt = 1` 试听 B。还没做：GCP 录像的并排 GIF、音效清单、「原版好在哪里 / 新版加了什么」对照表；`ult.imp_ease` 共用 0.35 秒（brief 要 0.15）待定。注意：音效文件替换不受 `ult/px_plane` 控制，关着开关也是新音效。已有素材（恢复时直接用）：原终结技实拍 `Claude outputs/render-ult-exusiai-orig2/`；第三版开关打开的实拍 `Claude outputs/render-ult-exusiai-px3/pxa`（音效 A）/ `pxb`（音效 B），各 240 帧、0 条 SCRIPT ERROR、带离线混音。下面是第一 / 第二版（整套替换）时写的说明，已被第三版取代。
+
+协调人转用户：「终结技可以安排起来了，先再做四个人的，在原有的基础上改进美术」。只改画面。终结技的方式、判定、时长、伤害、发数都照 docs/198 和 `ult_moves` 原样不动；开关 `ult/px_plane` 缺省 0，即原画面。
+
+做法同 px_plane：1 特效像素 = 1 美术像素，15 fps 节拍，贴地件压扁；配色和普攻那套一致（朱橙 / 金），子弹沿用肉鸽式光弹。
+
+| 段 | 原画面 | 新版（ult/px_plane = 1） |
+|---|---|---|
+| 举枪 | 两道斜上白金矢量光刃 + 枪口圆 + 红金竖光带 + 两圈矢量环 | 两把枪各一个硬星形大闪光（前芒 22 格，3 拍）+ 脚下竖光柱（4 拍收窄）+ 头顶大光环（rx 15 格，带 16 道闪烁光刺，跟着她，持续整个扫射；原作 S3 光环的放大版）+ 锁定范围环从脚下推开（断续像素边，4 拍白金 → 暗朱） |
+| 锁定 | 锁定环绕帧条 ×1.5 + 程序菱形框 + 金环 | 像素四角括号：0–3 帧收紧，之后按拍呼吸；精英 4 格臂、2 格粗；碎时往外弹开两帧 + 碎晶 |
+| 扫射 | 每发枪口矢量光刃；子弹 = 线 + 芯 + 圆头 | 每发硬星形枪口火（两种变体交替）；子弹 = 肉鸽式光弹（左枪朱橙、右枪金，精二规格） |
+| 爆裂弹 | 原爆点帧条 ×1.5 + 金圆 + 红环 + 2 px 模板颗粒 | 像素爆团（9×9 白金芯 + 8 道硬芒 → 朱橙火团 + 火星圈 → 碎屑 → 烟，5 拍，两种变体）+ 地上焦痕环（压扁，4 拍）+ 每个爆点 2–3 颗 4–6 px Noita 碎屑 + 每 2 个爆点一盏照地光 |
+| 连锁 / 范围脉冲 | 矢量线 / 矢量环 | 1 美术像素朱橙 / 金交替细线；每 0.5 秒范围环脉冲（像素断续边） |
+| 冲击帧 | 整屏白 + 黑剪影（用户认可） | **原样保留**：原来那一下的爆点帧条 ×2.4 + 碎环照旧画、照旧进剪影；新爆点帧条也一起进剪影 |
+| 弹壳 / 火药烟 / 镜头轻震 / 枪口常亮光 | 有 | 弹壳、火药烟、轻震照旧；枪口常亮光改像素星点 |
+
+实现：
+- `game/scripts/run/ult_px_exusiai.gd`：画面件都是 ult 的图形（`u.shape`），kind 为 `pxfn`、`px` 字段写画法。`ult.gd` 的 `draw_world`、`draw_world_back`、冲击帧遇到 `pxfn` 就交给它画；冲击帧时按剪影色画。别的干员也可以用 `pxfn` 接自己的画法。
+- `ult_moves.gd` 能天使段在 `UPX.on()` 时换成新画面，逻辑、数据、计时都不动。锁定框的帧号仍由 `_ex_locks` 写；子弹仍由 `_ex_fly` 每帧写头尾位置。
+- 帧条 `pxp_ex_ult_raise / pillar / halo / burst_v0 / burst_v1 / scorch_gd`，图形定义在 `tools/pxplane_exu_ult_art.py`，烘焙仍用 `pxplane_bake_exusiai.py`。锁定框和范围环在运行时逐格画，与 `ring_px` / `reticle_px` 是同一算法。
+- Noita 碎屑走 `fx_recipe` 的颗粒池，只有 `fx/px_plane` 接管能天使时才画（当前缺省开）。
+
+送审 GIF（本机 `Claude outputs/ult_px_exusiai_1105/`）：`exusiai_ult_seq.gif`（整段：起手 → 蓄力 → 释放 → 冲击帧 → 收尾，1 倍、15 fps）；`exusiai_ult_vs.gif`（原终结技 GCP 实拍 与 新版 并排）。起手、蓄力阶段的舞台压暗和超必杀暂停是 ult.gd 的公共演出，GIF 里只近似成整屏压暗。
