@@ -1451,8 +1451,10 @@ func _ev_sg(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 			var i: int = int(d.get("i", -1))
 			if raw:
 				return
-			if i == 0:   # 冲锋号令：腰高号令声浪（跟人走）+ 脚下冲击环（留在原地）+ 技力粒子飞向队友
-				_push({"k": "sg_s1cast_e%d_up" % t, "t0": g.t, "gp": _snap(o.pos), "flip": false, "ly": "up", "oid": id, "fo": Vector2.ZERO})
+			if i == 0:   # 冲锋号令：身后战旗 + 身前狮头剪影与狮吼声波环（朝她面向，跟人走）+ 脚下淡金涟漪 + 技力粒子飞向队友 + 轻震
+				_push({"k": "sg_s1cast_e%d_up" % t, "t0": g.t, "gp": _snap(o.pos), "flip": float(o.face) < 0.0, "ly": "up", "oid": id, "fo": Vector2.ZERO})
+				if mode() == 1 and g.ult != null:
+					g.ult.shake(2.0, 0.12)   # 狮吼：轻微震屏（用户同意的 3px / 0.12s 量级以内，按真实时间）
 				_push({"k": "sg_s1cast_e%d_gd" % t, "t0": g.t, "gp": _snap(o.pos), "flip": false, "ly": "gd", "oid": id})
 				_sg_motes(o, 2)
 				if mode() == 1:

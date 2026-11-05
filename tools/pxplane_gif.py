@@ -259,7 +259,7 @@ def siege_scenes(lib):
     cols = []
     for t in (0, 1, 2):
         s = base(26, E_RIGHT)
-        s.pair("sg_s1cast_e%d" % t, 1, (0, 0))
+        s.pair("sg_s1cast_e%d" % t, 1, (0, 0))   # 朝右（面向敌群）
         hammer(s, 8, t, 0, style="s1", kill=1)
         cols.append(("S1「冲锋号令·γ型」 精英 %d" % t, s))
     out["s1"] = (cols, 26, (24, -10))
