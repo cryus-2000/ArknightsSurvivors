@@ -3,7 +3,7 @@
 ## 色：Mon3tr 攻击 = 黑 / 墨绿 / 荧光绿；治疗 = 骨白 + 薄荷（不用红，和攻击分开）。只画，不碰玩法与玩法随机数（颗粒走 g.vrng）。
 ## 招牌：普攻爪击 = 三道平行爪痕（精一 + 地上犁痕，精二 + 命中处黑晶刺）；治疗 = 缝合环（精一 + 头顶骨白十字，精二 + 下针光柱）；
 ##       扑击 = 交叉爪 + 四道地爪印；回防 / 护主 = 一圈黑骨刺破土；S1 = 骨肋合拢（精一 + 六角板，精二 + 头顶结扣）；
-##       S3 期间 Mon3tr 全身换熔毁红换色贴图（ob_summon.mf_draw 调 dye），本体与甲缝 / 爪痕 / 热流 / 爆炸同一套红色阶；
+##       S3 期间 Mon3tr 本体保持原色，叠熔毁红粒子轮廓 + 外沿局部染红（ob_summon.mf_draw 调 rim）+ 火星从轮廓上往上飘；与甲缝 / 爪痕 / 爆炸同一套红色阶；
 ##       S2 = 荧光指令符上升（精二 + 热流）；S3（红，用户 11-05 指定，和 Mon3tr 本体染红统一）= 本体甲缝裂开泛红光 + 脚下红色冲击 → 熔毁爪（实心重月牙 + 熔滴）+ 身边热流 → 结束红色实心大爆团；
 ##       不毁重构 = 小红爆 + 回响环 → 碎片飞回本体、本体甲棱（取自 Mon3tr 贴图）从躯干往外一段段亮起、外轮廓合拢一闪（+ 一盏照地光）；余焰 = 淡边；连携「Mon3tr 掩护」= 朝敌一侧半圈骨刺墙 + 推波。
 ## 旧做法对照（fx/px_plane = 2）凯尔希不接管（fx_pxplane.owns_id 返回 false），画面 = 当前游戏。
@@ -22,17 +22,18 @@ const MELT_RED := Color8(204, 54, 26)     # 熔毁红色阶主红（RD m2）：�
 const MELT_HOT := Color8(255, 108, 46)    # 亮橙红（RD f）
 
 
-## S3 熔毁期间 Mon3tr 本体换熔毁红换色贴图（tools/pxplane_kal_art.py dye_m3 烘，和特效同一套红色阶；干员原贴图不动）。没有对应的换色图返回 null
-static func dye(tx: Texture2D) -> Texture2D:
-	if tx == null:
+## S3 熔毁期间 Mon3tr 的红轮廓叠层（用户 11-05「m3 的染红可以是那种粒子特效带来的轮廓和部分染色」）：
+## tools/pxplane_kal_art.py rim_m3 按实装 native 帧条逐帧烘（外轮廓一圈熔毁红 + 外沿甲片局部染红 + 轮廓外零星火星），A / B 两版按 15 fps 节拍交替。
+## 和本体同一帧、同一套画法参数叠画（ob_summon.mf_draw）；没有对应叠层（旧帧条）返回 null
+static func rim(tx: Texture2D, beat: int) -> Texture2D:
+	if tx == null or tx.resource_path == "":
 		return null
-	var rp: String = tx.resource_path
-	if rp == "":
-		return null
-	if not _dye.has(rp):
-		var p: String = "res://art/fx/pxp/pxp_ka_dye_%s.png" % rp.get_file().get_basename().replace("@", "_")
-		_dye[rp] = load(p) if ResourceLoader.exists(p) else null
-	return _dye[rp]
+	var key: String = tx.resource_path + str(beat & 1)
+	if not _dye.has(key):
+		var b: String = tx.resource_path.get_file().get_basename()   # op_mon3tr_native_idle@2x
+		var p: String = "res://art/fx/pxp/pxp_ka_rim%s_%s.png" % ["ab"[beat & 1], b.replace("@", "_")]
+		_dye[key] = load(p) if ResourceLoader.exists(p) else null
+	return _dye[key]
 
 
 static func _m3(o):

@@ -1787,13 +1787,15 @@ static func mf_draw(o, s: Dictionary, kd: Dictionary) -> bool:
 	var col := Color.WHITE
 	if float(s.pout) <= 0.0 and s.pcur.has("tint"):
 		col = _mf_col(s.pcur.tint)
-	var btx: Texture2D = fr[0]
-	if str(o.id) == "kaltsit" and o.skill_active_left(2) > 0.0 and Fxr.owns(o):   # 转平面（docs/265）：熔毁期间全身换熔毁红换色贴图，和特效同一套红（只画）
-		var dt: Texture2D = Fxr.Pxp.KA.dye(btx)
-		if dt != null:
-			btx = dt
-			col = Color.WHITE
-	o.draw_sprite_at(s.pos + Vector2(0, hov), (float(s.face) < 0.0) != o.sprite_mirror(str(fr[3])), col, fr[1], btx, fr[2], o.foot_off(fr[0], fr[3]), VisGrowth.summon_scale(g))
+	var rim: Texture2D = null
+	if str(o.id) == "kaltsit" and o.skill_active_left(2) > 0.0 and Fxr.owns(o):   # 转平面（docs/265）：熔毁期间本体只带一点暖色，红由粒子轮廓叠层给（只画）
+		rim = Fxr.Pxp.KA.rim(fr[0], int(floor(g.t * 15.0)))
+		if rim != null:
+			col = Color(1.1, 0.92, 0.9)
+	var mir: bool = (float(s.face) < 0.0) != o.sprite_mirror(str(fr[3]))
+	o.draw_sprite_at(s.pos + Vector2(0, hov), mir, col, fr[1], fr[0], fr[2], o.foot_off(fr[0], fr[3]), VisGrowth.summon_scale(g))
+	if rim != null:
+		o.draw_sprite_at(s.pos + Vector2(0, hov), mir, Color.WHITE, fr[1], rim, fr[2], o.foot_off(fr[0], fr[3]), VisGrowth.summon_scale(g))
 	if s.has("m3"):
 		s["draw_top"] = [fr[0], fr[2], o.foot_off(fr[0], fr[3]), VisGrowth.summon_scale(g), hov]   # 头顶血条找头顶（hud_allyhp._m3_head，10-31）
 	for f in fl:

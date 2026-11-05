@@ -540,37 +540,6 @@ def hex_ring(R, col_hi, col_lo, n=8):
 
 
 # ================================================================ S3 熔毁：起手竖直爆柱；持续期间 Mon3tr 身边竖直热流（循环，跟着走）
-def s3_aura():
-    up = Strip(12, 44, 60, 22, 54, loop=True)
-    rnd = random.Random(3)
-    ss = [(rnd.choice([-1, 1]) * rnd.uniform(9, 17), rnd.uniform(-4, 4), j * 3, rnd.randint(4, 7)) for j in range(4)]
-    ash = [(rnd.uniform(-14, 14), rnd.uniform(-3, 3), j * 6) for j in range(2)]
-    for f in range(12):
-        for (x, y, ph, L) in ss:
-            t = (f - ph) % 12
-            base = 2 + t * 3.6
-            for i in range(L):
-                lift = base + i
-                c = M["h"] if (i == L - 1 and t < 4) else (M["f"] if t < 5 else (M["m2"] if t < 8 else M["d2"]))
-                if t >= 10:
-                    continue
-                up.gput(f, x + math.sin((lift + ph) * 0.3) * 1.2, y, c, lift=lift)
-        for (x, y, ph) in ash:
-            t = (f - ph) % 12
-            up.gput(f, x + t * 0.3, y, M["k"], lift=6 + t * 2.6)
-            up.gput(f, x + t * 0.3 + 1, y, M["d1"], lift=6 + t * 2.6)
-    gd = Strip(12, 40, 26, 20, 13, loop=True)
-    for f in range(12):
-        r = 15
-        n = int(2 * math.pi * r * 1.3)
-        for i in range(n):
-            a = 2 * math.pi * i / n
-            on = (i + f * 2) % 9 < 2
-            gd.gput(f, r * math.cos(a), r * math.sin(a) * SY, M["f"] if on else M["d2"], 255 if on else 150)
-    return up, gd
-
-
-# ================================================================ 熔毁 / 不毁重构：一枚墨绿结晶长出 → 爆亮 → 碎成黑绿碎晶往外飞落；贴地冲击环
 def melt(Rw, big):
     """熔毁爆（红）：结晶一闪 → 实心大爆团两拍（白热芯 → 橙红）→ 破成火环 + 碎晶飞落；贴地冲击环 + 焦心。10 拍。"""
     R = Rw / 2.0
@@ -899,34 +868,94 @@ def s3_cast():
     return up, gd
 
 
-DYE = []   # 熔毁换色贴图的文件名（write_imports 一起出 .import）
+DYE = []   # 熔毁红轮廓叠层的文件名（write_imports 一起出 .import）
 
 
-def dye_m3():
-    """S3 熔毁期间 Mon3tr 全身染熔毁红（用户 11-05「S3 期间 monstr 全身都应该是红的……要统一一下」）：
-    把 Mon3tr 的全部帧条按亮度映射到特效同一套红色阶 RD（暗血红 → 主红 → 亮橙红 → 暖白芯），另存为特效层贴图；
-    干员原贴图不动，游戏里熔毁期间画本体时换这一张（fx_pxplane_kal.dye）。"""
+def rim_m3():
+    """S3 熔毁期间 Mon3tr 的红（用户 11-05「m3 的染红可以是那种粒子特效带来的轮廓和部分染色」）：本体保持原色，
+    按游戏实际画的每一帧烘红色轮廓叠层——外轮廓一圈熔毁红、靠外沿两格的甲片局部染红（越往里越淡）、轮廓外零星脱离的火星；
+    每张原帧条烘 A / B 两版（亮点与火星位置错开），游戏里按 15 fps 节拍交替 → 闪动的粒子轮廓。
+    只烘实装的 native 帧条（op_mon3tr_native_*，@1x / @2x 同一图样）。"""
     src = os.path.join(ROOT, "game", "art", "operators", "kaltsit")
-    ramp = [(6, RD["k"]), (24, RD["d1"]), (46, RD["d2"]), (72, RD["m1"]), (115, RD["m2"]), (165, RD["f"]), (999, RD["h"])]   # 体块落在暗血红、甲棱到主红、最亮处到亮橙红；剪影整块不被切碎
     for fn in sorted(os.listdir(src)):
-        if not (fn.startswith("op_mon3tr_") and fn.endswith(".png")):
+        if not (fn.startswith("op_mon3tr_native_") and fn.endswith("@1x.png")):
             continue
-        a = np.asarray(Image.open(os.path.join(src, fn)).convert("RGBA")).copy()
-        lum = a[..., :3].astype(int).mean(-1)
-        out = np.zeros_like(a)
-        lo = -1
-        for th, c in ramp:
-            m = (lum > lo) & (lum <= th)
-            out[m, 0], out[m, 1], out[m, 2] = c
-            lo = th
-        out[..., 3] = a[..., 3]
-        al = a[..., 3] > 100   # 外轮廓一圈压到最暗，保住剪影
-        pad = np.pad(al, 1)
-        edge = al & ~(pad[:-2, 1:-1] & pad[2:, 1:-1] & pad[1:-1, :-2] & pad[1:-1, 2:])
-        out[edge, 0], out[edge, 1], out[edge, 2] = RD["k"]
-        name = "pxp_ka_dye_" + fn[:-4].replace("@", "_") + ".png"
-        Image.fromarray(out, "RGBA").save(os.path.join(OUT_ART, name))
-        DYE.append(name)
+        a = np.asarray(Image.open(os.path.join(src, fn)).convert("RGBA")).astype(int)
+        H_, W_ = a.shape[:2]
+        al = a[..., 3] > 100
+        lum = a[..., :3].mean(-1)
+
+        def shrink(m):
+            p = np.pad(m, 1)
+            return m & p[:-2, 1:-1] & p[2:, 1:-1] & p[1:-1, :-2] & p[1:-1, 2:]
+
+        def grow(m):
+            p = np.pad(m, 1)
+            return m | p[:-2, 1:-1] | p[2:, 1:-1] | p[1:-1, :-2] | p[1:-1, 2:]
+
+        in1 = shrink(al)
+        in2 = shrink(in1)
+        edge = al & ~in1            # 外轮廓
+        band = in1 & ~in2           # 往里第二圈
+        halo = grow(grow(al)) & ~grow(al)   # 轮廓外隔一格的一圈（火星）
+        yy, xx = np.mgrid[0:H_, 0:W_]
+        frw = 128
+        for v in (0, 1):
+            out = np.zeros((H_, W_, 4), np.uint8)
+            hsh = (xx * 7 + yy * 13 + v * 5) % 11
+            hsh2 = (xx * 5 + yy * 3 + (xx // frw) * 3 + v * 7) % 23
+
+            def paint(m, c, alpha):
+                out[m, 0], out[m, 1], out[m, 2] = c
+                out[m, 3] = alpha
+
+            # 靠外沿第二圈：只染甲片亮处（局部），淡
+            paint(band & (lum > 30) & (hsh < 7), RD["m1"], 150)
+            # 外轮廓：整圈熔毁红，A / B 各有一批亮点（亮橙红 / 暖白）
+            paint(edge, RD["m2"], 235)
+            paint(edge & (hsh < 3), RD["f"], 255)
+            paint(edge & (hsh == 3) & (lum > 20), RD["h"], 255)
+            # 轮廓外零星火星（脱离轮廓的粒子），上半身多一些
+            paint(halo & (hsh2 == 0), RD["f"], 255)
+            paint(halo & (hsh2 == 1) & ((yy % 128) < 70), RD["m2"], 220)
+            base = fn[:-len("@1x.png")]
+            for res, k in (("1x", 1), ("2x", 2)):
+                img = Image.fromarray(out, "RGBA")
+                if k == 2:
+                    img = img.resize((W_ * 2, H_ * 2), Image.NEAREST)
+                name = "pxp_ka_rim%s_%s_%s.png" % ("ab"[v], base, res)
+                img.save(os.path.join(OUT_ART, name))
+                DYE.append(name)
+
+
+def s3_aura():
+    """S3 熔毁期间 Mon3tr 身边（循环，跟着走）：火星从本体上半身的轮廓上冒出、往上飘、由亮橙红褪到暗血红；不再是身外几根竖线。
+    轮廓取实装 native 待机第 0 帧。12 拍循环。"""
+    a, lum, edge, hi, inner = _m3_body()
+    up = Strip(12, 72, 96, 36, 90, loop=True)
+    ys, xs = np.nonzero(edge & (np.arange(128)[:, None] < 72))
+    pts = list(zip(xs.tolist(), ys.tolist()))
+    rnd = random.Random(3)
+    em = [(*rnd.choice(pts), j * 1.5 + rnd.uniform(0, 1), rnd.uniform(-0.4, 0.4), rnd.randint(1, 2)) for j in range(8)]
+    for f in range(12):
+        for (x, y, ph, dx, L) in em:
+            t = (f - ph) % 12
+            if t >= 9:
+                continue
+            c = M["h"] if t < 1.5 else (M["f"] if t < 4 else (M["m2"] if t < 6.5 else M["m1"]))
+            for i in range(L):
+                _m3_put(up, f, x + dx * t + math.sin(t * 0.9 + ph) * 0.8, y - t * 3.2 - i, c)
+    gd = Strip(12, 64, 30, 32, 15, loop=True)   # 脚下一圈淡环，零星亮点绕着走
+    for f in range(12):
+        r = 18
+        n = int(2 * math.pi * r * 1.3)
+        for i in range(n):
+            aa = 2 * math.pi * i / n
+            on = (i + f * 2) % 11 < 2
+            if not on and i % 2:
+                continue
+            gd.gput(f, r * math.cos(aa), r * math.sin(aa) * SY, M["f"] if on else M["d2"], 255 if on else 140)
+    return up, gd
 
 
 IMPORT_TPL = open(os.path.join(ROOT, "game", "art", "fx", "pxp", "pxp_backwash_gd.png.import"), encoding="utf-8").read() if os.path.exists(os.path.join(ROOT, "game", "art", "fx", "pxp", "pxp_backwash_gd.png.import")) else None
@@ -1021,7 +1050,7 @@ def main():
     out.update(META)
     with open(OUT_META, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, separators=(",", ":"))
-    dye_m3()
+    rim_m3()
     write_imports()
     tot = sum(os.path.getsize(os.path.join(OUT_ART, "pxp_ka_%s.png" % k.replace("_d-", "_dm"))) for k in META)
     print(len(META), "张帧条，共 %.0f KB" % (tot / 1024))

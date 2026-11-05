@@ -137,7 +137,11 @@ def render(sc, tk):
             x, y = OX + v[0] * PX - 64, OY + v[1] * PX - 120
             img.alpha_composite(KAL, dest=(int(round(x / 2) * 2), int(round(y / 2) * 2)))
         elif kind == "m":
-            spr = MOND if sc.m3_dye(tk) else MON
+            if sc.m3_dye(tk):   # 熔毁期间：本体一点暖色 + 红粒子轮廓叠层（A / B 按拍交替）
+                spr = MOND[0].copy()
+                spr.alpha_composite(MOND[1][tk % 2])
+            else:
+                spr = MON
             spr = spr if sc.m3_face > 0 else spr.transpose(Image.FLIP_LEFT_RIGHT)
             x, y = OX + v[0] * PX - 128, OY + v[1] * PX - 184 - HOV - v[2] * PX
             # 影子
@@ -338,7 +342,13 @@ def main():
     KAL = sprite_frames(os.path.join(ROOT, "game", "art", "operators", "kaltsit", "op_kaltsit_idle@2x.png"), 8)[0]
     # Mon3tr 用游戏里实际画的 native 帧条（sprites.m_idle.visual → native_m_idle，17 帧，@2x 每帧 256×256，脚底 (128, 184)）
     MON = sprite_frames(os.path.join(ROOT, "game", "art", "operators", "kaltsit", "op_mon3tr_native_idle@2x.png"), 17)[0]
-    MOND = sprite_frames(os.path.join(ROOT, "game", "art", "fx", "pxp", "pxp_ka_dye_op_mon3tr_native_idle_2x.png"), 17)[0]
+    RIM = [sprite_frames(os.path.join(ROOT, "game", "art", "fx", "pxp", "pxp_ka_rim%s_op_mon3tr_native_idle_2x.png" % v), 17)[0] for v in "ab"]
+    warm = np.asarray(MON).astype(np.float32)
+    warm[..., 0] *= 1.1
+    warm[..., 1] *= 0.92
+    warm[..., 2] *= 0.9
+    MW = Image.fromarray(np.clip(warm, 0, 255).astype(np.uint8), "RGBA")
+    MOND = (MW, RIM)
     only = set(x for x in a.only.split(",") if x)
     for name, (cols, n, zc) in scenes(lib).items():
         if only and name not in only:
