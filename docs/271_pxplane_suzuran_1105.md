@@ -3,7 +3,7 @@
 **结论摘要**
 1. 第五批（最后四人并行）之一：照 docs/246 的做法做铃兰（`suzuran`）的普攻、S1–S3、分支 / 节点招、后期额外攻击（late_shape：她是控场流派，额外攻击 = 升级卡「扩散」）、连携技（`link/v2` 缺省版「狐火」）。终结技不动；干员本体、怪物、环境不动。开关同 `fx/px_plane`（1 = 转平面；0 / 2 = 当前游戏原样，铃兰没有「旧做法原样贴」对照）。
 2. 帧条全部纯 Python 烤（`tools/pxplane_bake_suzuran.py`，图形在 `tools/pxplane_suzuran_art.py`），送审 GIF 读同一份帧条：`Claude outputs/pxplane_suzuran_1105/gif/`。
-3. 当前状态：**GIF 送审中，未推分支、未上 GCP**。光感 / 粒子感按 docs/270 §3 的上下限写进代码（§5 列设计值）；实测要等用户点头后在 GCP 跑 `fx_audit.py`。
+3. 用户看第二轮 GIF 后点头（「铃兰没什么问题」）。已推 `claude/pxplane-suzuran`（最新 ce64c95c1），GCP 出完三栏 / 三档 / 连携三栏 / 8:00 开关 mp4；SCRIPT ERROR 0 条；同种子 TRACE 开 / 关逐行一致；docs/270 体检核心项全过（§6）。
 
 ---
 
@@ -98,6 +98,25 @@ GIF 里狐火追踪按玩法参数（330 / 秒、转向 7、±0.6 rad 发散）�
 - docs/270 的实测（颗粒数 / 照地面积 / 核心辉光）要上 GCP 跑 `fx_audit.py` 才有；
 - 游戏内未实跑（本机不开 Godot）：GDScript 只人工通读，GCP 首跑先看日志 SCRIPT ERROR。
 
-## 6. 游戏内验收
+## 6. 游戏内验收（GCP，docs/256）
 
-待用户看 GIF 点头后：推 `claude/pxplane-suzuran`，`tools/gcp_render.py --split` 出三栏 / 三档 / 连携三栏 / 8:00 开关 mp4 + TRACE 开 / 关逐行一致，再跑 docs/270 §1 的 `fx_audit.py` 把实测写进本节。
+| 批 | 提交 | 内容 | 结果 |
+|---|---|---|---|
+| render-suzuran-1105（8 台，26 分钟） | 7888096ce | 四招三栏 / 三档、8:00 录像、TRACE、连携、体检 | 精二各段 SCRIPT ERROR：拖尾火苗排序项键名 `fi` 被 `fx_pxplane.draw_sorted` 当星熊剑气件取 `k`；连携录制起点 10 秒晚于出手（7.1 秒）。TRACE 两局逐行一致（种子 23 301 行、录像局 501 行） |
+| render-suzuran-1105b（7 台，23 分钟） | 2488a4e85（键名改 `tf`） | 重出四招、录像、连携（4–34 秒）、体检 | 全部 SCRIPT ERROR 0 条；录像局 TRACE 501 / 501、连携局 35 / 35 逐行一致；S3 段结果推 GitHub 失败（机器上 rc 0），媒体从 GCS 桶取回 |
+| render-suzuran-1105c（2 台，15 分钟） | ce64c95c1（命中灯限频） | 体检复测 + TRACE | SCRIPT ERROR 0；TRACE 种子 23（`--elite2 --sptest`，late_shape，5:00）301 / 301 逐行一致 |
+
+**docs/270 体检**（`fx_audit.py both --ops suzuran`，精二，种子 11，ce64c95c1；簇 = 相隔 ≤ 2 帧的新颗粒 / 新灯归一次）：
+
+| 招（按类） | 颗粒/次 中位 / 最多 | 寿命 s | 边长 px | 材质 | 灯/次 均 / 最多 | 最大灯 半径 / 强度 | 照地峰值 / 命中帧面积 | 核心辉光面积 | emit p90 / 最大 |
+|---|---|---|---|---|---|---|---|---|---|
+| 普攻（普攻命中；精二 = 大狐火贯穿） | 3 / 10 | 0.87 | 4.0 | flame | 1.42 / 3 | 120 / 0.60 | +94 / 1648 | 181 | 244 / 335 |
+| S1（爆发） | 4 / 12 | 0.84 | 4.0 | flame | 1.53 / 3 | 120 / 0.60 | +93 / 3722 | 68 | 222 / 360 |
+
+- 第一次体检（1105b，限频前）：精二大狐火一串贯穿一簇灯 6、颗粒 18；S1 五发同到一簇灯 6、颗粒 21，超 §3 上限。改成命中照地灯 0.12 秒一盏、其后命中颗粒 1 颗（ce64c95c1）后都回到范围内。
+- 仍差一点的：普攻一簇灯最多 3（上限 2，大狐火离手灯 + 命中灯落在同一簇）；S1 最大灯 120 / 0.6（爆发下限 140 / 0.6）——体检的图鉴演示里 S1 是直接换下一发普攻，没走技能起手事件，所以起手符阵那盏 140 / 0.7 的灯没进统计；S1 emit 最大值碰到 360 上限一帧（p90 222，合格）。
+
+**产物**（本机，不进 git）：
+- `Claude outputs/render-suzuran-1105b/`：三栏 `cmp_atk_e0–e2`、`cmp_s1_e0–e2`、`cmp_s2_e1 / e2`、`cmp_s3_e2`（各带 `_x2` 2 倍局部）；三档 `tiers_atk / s1 / s2 / s3.png`；连携三栏 `cmp_link.png` / `cmp_link_x2.png`（德克萨斯队长、铃兰队员，种子 11，32.16 秒）；`late_8m00_onoff.mp4`（左关右开，种子 11，8:00 起 20 秒，开 late_shape，crf 26，26.2 MB）。② 栏同 ①（铃兰没有旧做法对照）。
+- `Claude outputs/render-suzuran-1105c/`：体检 `suzuran_atk / s1.png`、`_x2.png`、`.json`、`audit_suzuran.json`、`suzuran_late_8m00.mp4`。
+- 出图脚本 `tools/pxplane_shots_suzuran.py`（塞雷娅版另存，加 `--op suzuran` 和连携事件 `sz_link`），走 `gcp_render.py --job custom --split`。
