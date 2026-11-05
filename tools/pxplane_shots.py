@@ -28,6 +28,9 @@ OPS = {
     "skadi": {"name": "斯卡蒂", "modes": {3: "普攻", 0: "S1 迅捷打击·γ型", 1: "S2 跃浪击", 2: "S3 涌潮悲歌"}, "off": {0: 3, 1: 12, 2: 10}},
     # 星熊：S1 出手即判定（下劈 + 裂网）；S2 取地刺破土后 3 帧；S3 取起手后约 0.3 秒（青绿弧 + 第一记直线撕裂）
     "hoshiguma": {"name": "星熊", "modes": {3: "普攻 盾斧斩", 0: "S1 战意", 1: "S2 荆棘", 2: "S3 力之锯"}, "off": {0: 4, 1: 10, 2: 12}},
+    # 塞雷娅（docs/269）：S1 / S2 治疗出手后约 0.1 秒（星芒 / 药环外扩中）；S3 起手后约 0.2 秒（琥珀裂纹 + 晶簇长出）；没有「旧做法」对照，② 栏同 ①
+    "saria": {"name": "塞雷娅", "modes": {3: "普攻 盾击", 0: "S1 急救", 1: "S2 药物配置", 2: "S3 钙质化"}, "off": {0: 3, 1: 4, 2: 6},
+              "cols": [(0, "① 当前游戏原样"), (0, "②（塞雷娅没有旧做法对照，同 ①）"), (1, "③ 转平面 + 统一像素 + 吃光 + Noita")]},
 }
 OP = "skadi"
 MODE_NAME = OPS[OP]["modes"]
@@ -90,6 +93,8 @@ def demo(a):
     for mode in [int(x) for x in a.modes.split(",")]:
         for tier in MODE_TIERS[mode]:
             for px, _ in COLS:
+                if (tier, mode, px) in res:
+                    continue   # 同一画法只拍一次（塞雷娅 ② 栏同 ①）
                 tag, frames, errs, ev = shoot(px, tier, mode, a.start, a.every, a.n, extra=a.extra.split())
                 print(tag, len(frames), "帧", errs[:2], flush=True)
                 res[(tier, mode, px)] = frames
@@ -194,14 +199,15 @@ def linkcmp(a, base):
     从 1 那局的 PXPLOG（fx/recipe_log = 1）找连携事件（cover / combo）的游戏时间，换算成录像帧号，拼三栏 + 2 倍局部。"""
     t0, secs, st = a.t0, a.secs, 2
     dirs = {}
-    for px in (1, 0, 2):
+    pxl = sorted(set(px for px, _ in COLS), key=lambda v: (v != 1, v))   # 没有旧做法对照的干员（② 同 ①）只录 1 / 0 两局
+    for px in pxl:
         tag = "link%d_s%d_%d" % (px, a.seed, t0)
         ex = base + ["--bal=fx/px_plane=%d" % px, "--bal=fx/recipe_log=1", "--realtime", "--rtfrom=%d" % t0, "--recframes=%d,%d" % (t0, secs * 30),
                      "--recstride=%d" % st, "--maxt=%d" % (t0 + secs + 1)]
         dirs[px] = os.path.join(BUILD, tag + "_frames")
         print(run(tag, ex, 30, dirs[px]), flush=True)
     log = open(os.path.join(LOGS, "link1_s%d_%d.log" % (a.seed, t0)), encoding="utf-8").read()
-    evs = [l.split() for l in log.splitlines() if l.startswith("PXPLOG hsg cover") or l.startswith("PXPLOG hsg combo ")]
+    evs = [l.split() for l in log.splitlines() if l.startswith("PXPLOG hsg cover") or l.startswith("PXPLOG hsg combo ") or l.startswith("FXRLOG saria sa_link")]
     print("连携事件", [(e[2], e[-1]) for e in evs], flush=True)
     if not evs:
         print("这段里没有连携技出手", flush=True)
@@ -209,7 +215,7 @@ def linkcmp(a, base):
     T = float(evs[0][-1])
     k = int(round((T - t0) * 30.0)) + 8   # 落定后约 0.25 秒（盾立定、冲击环扩开）
     k -= k % st
-    fr = {px: os.path.join(dirs[px], "rec_%05d.png" % k) for px in (0, 2, 1)}
+    fr = {px: os.path.join(dirs[px], "rec_%05d.png" % k) for px in pxl}
     if not all(os.path.exists(f) for f in fr.values()):
         print("缺帧", fr, flush=True)
         return False
@@ -218,7 +224,7 @@ def linkcmp(a, base):
     f30 = font(30)
     sheet = Image.new("RGB", (W * 3 + 8, H + 56), (12, 12, 16))
     dd = ImageDraw.Draw(sheet)
-    dd.text((12, 8), OPS[OP]["name"] + " 连携技「%s」· 实战局同种子 %d · %.2f 秒" % ("举盾" if evs[0][2] == "cover" else "举盾推挡", a.seed, T), fill=(230, 230, 230), font=f30)
+    dd.text((12, 8), OPS[OP]["name"] + " 连携技「%s」· 实战局同种子 %d · %.2f 秒" % ({"cover": "举盾", "sa_link": "钙质护盾"}.get(evs[0][2], "举盾推挡"), a.seed, T), fill=(230, 230, 230), font=f30)
     for i, (im, (px, lab)) in enumerate(zip(ims, COLS)):
         sheet.paste(label(im.copy(), lab), (i * (W + 4), 56))
     os.makedirs(a.out, exist_ok=True)
@@ -238,7 +244,11 @@ def linkcmp(a, base):
         crop.paste(label(im.crop((x0, y0, x0 + cw, y0 + ch)).resize((cw * 2, ch * 2), Image.NEAREST), lab, 20), (i * (cw * 2 + 4), 56))
     crop.save(os.path.join(a.out, "cmp_link_x2.png"))
     print("三栏 cmp_link 帧", k, flush=True)
-    return diff("link0_s%d_%d" % (a.seed, t0), "link1_s%d_%d" % (a.seed, t0)) & diff("link0_s%d_%d" % (a.seed, t0), "link2_s%d_%d" % (a.seed, t0))
+    ok = True
+    for px in pxl:
+        if px != 0:
+            ok &= diff("link0_s%d_%d" % (a.seed, t0), "link%d_s%d_%d" % (px, a.seed, t0))
+    return ok
 
 
 def branch(a):
@@ -373,7 +383,7 @@ def diff(a, b):
 
 
 def main():
-    global OP, MODE_NAME, BUILD, LOGS, REUSE
+    global OP, MODE_NAME, BUILD, LOGS, REUSE, COLS
     ap = argparse.ArgumentParser()
     ap.add_argument("cmd", choices=["demo", "rec", "trace", "diff", "fps", "linkcmp", "branch", "combo"])
     ap.add_argument("--out", default=os.path.join(BUILD, "out"))
@@ -396,6 +406,7 @@ def main():
     a = ap.parse_args()
     REUSE = a.reuse
     OP, MODE_NAME = a.op, OPS[a.op]["modes"]
+    COLS = OPS[a.op].get("cols", COLS)
     if a.op != "skadi":
         BUILD = os.path.join(ROOT, "build", "pxplane_" + a.op)
         LOGS = os.path.join(BUILD, "logs")
