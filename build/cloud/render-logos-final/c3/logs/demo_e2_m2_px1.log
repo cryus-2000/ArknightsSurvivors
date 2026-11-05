@@ -1,0 +1,135 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 22.3.6 - Compatibility - Using Device: Mesa/X.org - llvmpipe (LLVM 15.0.6, 256 bits)
+
+FXRLOG logos fire 25 0.858
+PXPLOG lg fire  0.858
+FXRLOG logos fire 28 0.958
+PXPLOG lg fire  0.958
+FXRLOG logos hit 31 1.058
+PXPLOG lg hit  1.058
+FXRLOG logos lg_xhit 32 1.092
+PXPLOG lg lg_xhit  1.092
+FXRLOG logos lg_xhit 33 1.125
+PXPLOG lg lg_xhit  1.125
+FXRLOG logos lg_xhit 33 1.125
+PXPLOG lg lg_xhit  1.125
+FXRLOG logos hit 35 1.192
+PXPLOG lg hit  1.192
+FXRLOG logos skill2 48 1.625
+PXPLOG lg skill 2 1.625
+FXRLOG logos fan_tick 48 1.625
+PXPLOG lg fan_tick  1.625
+FXRLOG logos fan_tick 63 2.125
+PXPLOG lg fan_tick  2.125
+FXRLOG logos fire 67 2.258
+PXPLOG lg fire  2.258
+FXRLOG logos fire 70 2.358
+PXPLOG lg fire  2.358
+FXRLOG logos fire 74 2.492
+PXPLOG lg fire  2.492
+FXRLOG logos hit 74 2.492
+PXPLOG lg hit  2.492
+FXRLOG logos lg_xhit 76 2.558
+PXPLOG lg lg_xhit  2.558
+FXRLOG logos fan_tick 78 2.625
+PXPLOG lg fan_tick  2.625
+FXRLOG logos hit 78 2.625
+PXPLOG lg hit  2.625
+FXRLOG logos lg_xhit 78 2.625
+PXPLOG lg lg_xhit  2.625
+FXRLOG logos hit 85 2.858
+PXPLOG lg hit  2.858
+FXRLOG logos fan_tick 93 3.125
+PXPLOG lg fan_tick  3.125
+FXRLOG logos fan_tick 108 3.625
+PXPLOG lg fan_tick  3.625
+FXRLOG logos fire 109 3.658
+PXPLOG lg fire  3.658
+FXRLOG logos fire 112 3.758
+PXPLOG lg fire  3.758
+FXRLOG logos hit 115 3.858
+PXPLOG lg hit  3.858
+FXRLOG logos lg_xhit 118 3.958
+PXPLOG lg lg_xhit  3.958
+FXRLOG logos lg_xhit 119 3.992
+PXPLOG lg lg_xhit  3.992
+FXRLOG logos lg_xhit 120 4.025
+PXPLOG lg lg_xhit  4.025
+FXRLOG logos fan_tick 123 4.125
+PXPLOG lg fan_tick  4.125
+FXRLOG logos fan_tick 138 4.625
+PXPLOG lg fan_tick  4.625
+FXRLOG logos fire 151 5.058
+PXPLOG lg fire  5.058
+FXRLOG logos fan_tick 153 5.125
+PXPLOG lg fan_tick  5.125
+ERROR: 28 RID allocations of type 'N5GLES37TextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 3 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+ERROR: Texture with GL ID of 37: leaked 4915052 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 38: leaked 786424 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1436: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1437: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1697: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1698: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1699: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1700: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1702: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1703: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1704: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1705: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1706: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1707: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1708: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1709: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1710: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1711: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1712: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1713: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1721: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1722: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1723: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1724: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1725: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1726: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1727: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1728: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+WARNING: 179 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 25 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
