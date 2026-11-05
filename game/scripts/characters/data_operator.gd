@@ -598,6 +598,7 @@ func _heal(b: Dictionary) -> void:
 		var m3 = M3Hp.heal_pick(self)
 		if m3 != null:
 			var over_m: float = M3Hp.heal_apply(self, m3, b)
+			Fxr.ev(self, "kal_heal", {"m3": true, "power": b.get("power", false)})   # 转平面（docs/265）：只画
 			if b.has("sfx"):
 				_sfx_op(str(b.sfx))
 			if over_m > 0.0 and b.has("on_over"):
@@ -614,6 +615,8 @@ func _heal(b: Dictionary) -> void:
 		h *= skill_power()
 	var over: float = maxf(0.0, g.hp + h - g.max_hp)
 	heal_leader(h, str(b.get("src", display_name())), "技能" if b.get("power", false) else "常驻")   # 子项只进 docs/88 遥测
+	if str(id) == "kaltsit":
+		Fxr.ev(self, "kal_heal", {"m3": false, "power": b.get("power", false)})   # 转平面（docs/265）：只画
 	if b.has("sfx"):
 		_sfx_op(str(b.sfx))
 	if over > 0.0 and b.has("on_over"):

@@ -369,6 +369,8 @@ static func _el_land(o, s: Dictionary, kd: Dictionary, mods: Dictionary, d: Dict
 			if not "summon" in tags:
 				tags.append("summon")
 			var hits: Array = o.area_hit(str(s.pcur.get("src", a.get("src", ""))), s.pos, r, dmg, 0.0, 0.0, tags)
+			if str(o.id) == "kaltsit":
+				Fxr.ev(o, "kal_pounce", {"at": s.pos, "face": float(s.face), "es": hits})   # 转平面（docs/265）：只画
 			if lg.has("fx"):
 				fx_play(o, lg.fx, s.pos, r, hits)
 			else:
