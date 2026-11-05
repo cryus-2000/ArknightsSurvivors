@@ -35,6 +35,8 @@ static func load_def(cid: String) -> Dictionary:
 	if not ob.is_empty() and d.get("base") is Dictionary:
 		for k in ob:
 			d.base[k] = ob[k]
+	# 英文版（docs/276 §10）：说明 / 简介 / 触发条件等长文本按路径键换成英文模板，再由 fill_text 填数；名字、伤害来源名留中文（代码拿它们当 ID），显示时 UI 再查表
+	preload("res://scripts/core/loc.gd").tree(d, "op." + cid)
 	fill_text(d, text_base(cid, d.get("base", {}) if d.get("base") is Dictionary else {}))
 	return d
 

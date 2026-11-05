@@ -1212,6 +1212,8 @@ SCENE_REGRESSIONS = {
     "recruit_offer_touch": ("入队邀请二选一 · 触屏排版（同上，--touch）", "recruit_offer_test", r"RECRUIT OFFER failures=0", ["--bal=ult/rework=0", "--bal=growth/late_shape=0", "--bal=growth/visible_nodes=0", "--bal=growth/elite_show=0", "--balance", "--seed=1", "--op=eyjafjalla", "--touch"]),
     "recruit_offer_solo": ("--bot_solo=1 单人局机器人：邀请一律婉拒、升级不选招募卡、不进强制招募画面（docs/252）", "recruit_offer_test", r"RECRUIT OFFER failures=0", ["--balance", "--seed=1", "--op=eyjafjalla", "--bot_solo=1"]),
     "trace_fields": ("TRACE 新增字段 sq / lamp / nd / rl（10-29，docs/126 R3）：只读、不动 rng、对队友位置 / 突击生命 / 技力 / 普攻计时 / 灯火 / 神经损伤 / 藏品数各自敏感、还原后回到原值", "trace_fields_test", r"TRACE FIELDS failures=0", ["--balance", "--op=skadi", "--squad=kaltsit,texas"]),
+    "l10n": ("本地化（docs/276 §10）：英文查表 / 模板 / 短版 / 查不到回退中文，干员说明换英文且无残留占位，切回中文一字不差", "l10n_test", r"L10N TEST failures=0", ["--balance"]),
+    "ui_smoke_en": ("界面冒烟 · 英文（--lang=en，同 ui_smoke）", "ui_smoke_test", r"UI SMOKE failures=0", ["--lang=en"]),
     "ui_smoke": ("界面冒烟（docs/126 R6）：标题页十屏 + 局内 HUD / 暂停 / 设置 / 属性 / 结算 / 作战记录 / 对局记录各开关两遍，无缺图、无残留节点", "ui_smoke_test", r"UI SMOKE failures=0", []),
     "time_scale_combo": ("时间缩放组合（圆盘 × 倍速 / 顿帧 / 击破慢动作）：有效缩放等于现行组合规则，退出各模态后回到 1", "time_scale_combo_test", r"TIME SCALE COMBO failures=0", ["--balance", "--op=skadi", "--squad=kaltsit"]),
     "runs_log_guard": ("自动测试不写玩家对局记录：tests/ 下场景（含不带 -- 参数直接起的）被 telemetry.save_local 拦下（10-14 / 10-20 / 10-27 runs.jsonl 里的空局）", "runs_log_guard_test", r"RUNS LOG GUARD failures=0", []),

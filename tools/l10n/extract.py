@@ -135,6 +135,8 @@ def gd_strings(path):
             continue
         for m in re.finditer(r'"((?:[^"\\\n]|\\.)*)"', code):
             s = m.group(1)
+            # 还原 GDScript 字面量转义，键要和运行时的字符串一字不差（\" → "、\n → 换行）
+            s = s.replace('\\"', '"').replace("\\n", "\n").replace("\\t", "\t").replace("\\\\", "\\")
             if CJK.search(s) and s not in seen:
                 seen.add(s)
                 res.append((ln, s))

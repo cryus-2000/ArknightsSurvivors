@@ -37,6 +37,9 @@ func effective_max_fps() -> int:
 	return 30 if fps_lock30 else 60
 const RESOLUTIONS := [Vector2i(1280, 720), Vector2i(1920, 1080), Vector2i(2560, 1440), Vector2i(3840, 2160)]   # 都是 1280×720 的整数倍，像素对齐
 var res_index := 0        # 窗口分辨率（RESOLUTIONS 下标；全屏时按屏幕）
+## 语言（docs/276 §10）："auto" = 跟随系统（Loc.resolve；B站 Toy 版固定中文），"zh" / "en" = 手动选。存档 game/lang
+var lang_pref := "auto"
+const Loc = preload("res://scripts/core/loc.gd")
 var dmg_numbers := false   # 11-05 用户「把字什么的都缩小吧，并且默认关闭」：新档缺省关；老档里存过的值照旧读
 var hitstop := true
 var boss_intro := true   # Boss 登场演出（黑边 + 名片，纯画面；screens/boss_intro.gd，用户 10-10）
@@ -300,6 +303,11 @@ var _toy_cb: JavaScriptObject = null
 var toy_env: Dictionary = {}
 
 
+## 按 lang_pref 切换生效语言（设置页改语言后也调这里）
+func apply_lang() -> void:
+	Loc.setup(Loc.resolve(lang_pref, _toy_js != null))
+
+
 func _toy_init() -> void:
 	if not OS.has_feature("web"):
 		return
@@ -416,6 +424,10 @@ func _ready() -> void:
 	if _set_sig == "":
 		_set_sig = _settings_sig()   # 旧存档 / 首次启动：以现在的设置为基准，没改过就不算「新」（cloud_set_t 保持 0，换设备时让云端的设置生效）
 	_apply_unlock_all()
+	for a0 in dev_args():   # 测试 / 截图：--lang=en / --lang=zh 本次启动强制语言（只在 debug 构建读命令行）
+		if a0.begins_with("--lang="):
+			lang_pref = a0.substr(7)
+	apply_lang()
 	load("res://scripts/core/medals.gd").sync()   # 蚀刻章补录：旧存档里已有的结局 / 藏品 / 认知记录，读档时按真实记录补上（下次存档写盘）
 	for a in dev_args():
 		# 截图 / 测试：--medals=all / none / key,key 预置已得蚀刻章，--medalbest=key:n 预置进度（只在内存，测试局不写存档）
@@ -512,6 +524,7 @@ func _read_cfg(c: ConfigFile) -> void:
 	if not MAX_FPS_OPTS.has(max_fps):
 		max_fps = 0
 	res_index = clampi(int(c.get_value("video", "res_index", res_index)), 0, RESOLUTIONS.size() - 1)
+	lang_pref = str(c.get_value("game", "lang", lang_pref))
 	dmg_numbers = c.get_value("game", "dmg_numbers", dmg_numbers)
 	hitstop = c.get_value("game", "hitstop", hitstop)
 	boss_intro = c.get_value("game", "boss_intro", boss_intro)
@@ -838,6 +851,7 @@ func save() -> void:
 	c.set_value("video", "fps_mode", max_fps)
 	c.set_value("video", "max_fps", effective_max_fps())   # 旧键：老版本读到的仍是 60 / 30
 	c.set_value("video", "res_index", res_index)
+	c.set_value("game", "lang", lang_pref)
 	c.set_value("game", "dmg_numbers", dmg_numbers)
 	c.set_value("game", "hitstop", hitstop)
 	c.set_value("game", "boss_intro", boss_intro)

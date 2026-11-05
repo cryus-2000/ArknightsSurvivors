@@ -60,6 +60,7 @@ const TextQ = preload("res://scripts/screens/hud_textq.gd")
 ## 世界层（Node2D 上的头顶字）不变；量字的助手（cwidth / wrap_lines / fit / fit_line / chip_fits / strip_width）按同一倍率量，
 ## 调用方自己用 font.get_string_size 量、再交给这些助手画的地方要改用 fs() 换算
 ## 10-26 用户 iPhone 实机（Safari 横屏，1 界面像素约 0.6 pt）：放大后仍不到 FS_MIN 的小字（9–10 号的标签）一律抬到 FS_MIN
+const Loc = preload("res://scripts/core/loc.gd")
 static var fk := 1.0
 const FS_CAP := 24
 const FS_MIN := 13
@@ -110,6 +111,7 @@ static func cond(base: Font, italic := false) -> Font:
 
 ## 压缩字文字（数字、英文）
 static func ctext(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: int, col: Color, align := HORIZONTAL_ALIGNMENT_LEFT, width := -1.0, italic := false) -> void:
+	s = Loc.s(s)   # 本地化（docs/276 §10）：中文模式原样返回
 	if tq != null:
 		if tq is Array:
 			tq.append(func(): ctext(ci, font, pos, s, size, col, align, width, italic))
@@ -122,6 +124,7 @@ static func ctext(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: int
 
 
 static func cwidth(font: Font, s: String, size: int, italic := false) -> float:
+	s = Loc.s(s)   # 本地化（docs/276 §10）：中文模式原样返回
 	return cond(font, italic).get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, fs(size)).x
 
 
@@ -158,6 +161,7 @@ static func en_width(font: Font, text: String, size: int, spacing := 2.0) -> flo
 
 
 static func text(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: int, col: Color, align := HORIZONTAL_ALIGNMENT_LEFT, width := -1.0, outline := 0) -> void:
+	s = Loc.s(s)   # 本地化（docs/276 §10）：中文模式原样返回
 	if tq != null:
 		if tq is Array:
 			tq.append(func(): text(ci, font, pos, s, size, col, align, width, outline))
@@ -230,6 +234,7 @@ static func vines(_ci: CanvasItem, _r: Rect2, _seed: int, _t: float, _k := 1.0) 
 
 ## 小标签头（原作「目标生命值 / 指挥等级」）：彩色底 + 白字，放在数值上方；返回宽度
 static func tab(ci: CanvasItem, font: Font, pos: Vector2, s: String, bg: Color, size := 11) -> float:
+	s = Loc.short(s)   # 本地化（docs/276 §10）：中文模式原样返回
 	size = _ks(ci, size)
 	var w := font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + 12.0
 	if sink != null:
@@ -249,6 +254,9 @@ static func tab(ci: CanvasItem, font: Font, pos: Vector2, s: String, bg: Color, 
 
 ## 节点标签条（原作地图上的「COMBAT OPS. ✕ 虫群横行」）：左段彩色底 + 压缩斜体英文，右段暗底中文；返回宽度
 static func strip(ci: CanvasItem, font: Font, pos: Vector2, en_s: String, cn: String, col: Color, cn_col := TEXT, size := 12, bg := Color(0.0, 0.0, 0.0, 0.6)) -> float:
+	cn = Loc.s(cn)   # 本地化（docs/276 §10）：中文模式原样返回
+	if Loc.en() and cn.to_upper() == en_s.to_upper():
+		cn = ""   # 英文版：英文小标与译名相同时只写一次（docs/276 §2.6 第 5 条）
 	size = _ks(ci, size)
 	var cf := cond(font, true)
 	var h := size + 8.0
@@ -283,6 +291,7 @@ static func _strip_text(ci: CanvasItem, font: Font, cf: Font, pos: Vector2, h: f
 
 ## 标签片：暗底 + 左侧色条 + 文字，返回宽度
 static func chip(ci: CanvasItem, font: Font, pos: Vector2, s: String, col: Color, size := 12) -> float:
+	s = Loc.short(s)   # 本地化（docs/276 §10）：中文模式原样返回
 	return _chip(ci, font, pos, s, col, _ks(ci, size))
 
 
@@ -334,7 +343,7 @@ static func chip_fits(font: Font, chips: Array, max_w: float, rows := 1, size :=
 
 
 static func _chip_items(font: Font, chips: Array, size: int) -> Array:
-	return chips.map(func(c): return [c[0], c[1], font.get_string_size(c[0], HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + 16.0])
+	return chips.map(func(c): return [Loc.short(str(c[0])), c[1], font.get_string_size(Loc.short(str(c[0])), HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + 16.0])
 
 
 ## chip_row 的排版：{packed: 每行的标签片 [文字, 颜色, 宽度, (是「+N」)], lw: 第一行 label 占的宽度（去掉了为 0）}
@@ -423,6 +432,7 @@ static func keycap(ci: CanvasItem, font: Font, pos: Vector2, key: String, col :=
 
 ## A 风格按钮：kind = "primary"（青底深字）/ "normal"（钢蓝半透明底）/ "outline"（暗底细边）/ "off"（禁用）
 static func button(ci: CanvasItem, font: Font, r: Rect2, s: String, kind := "normal", hot := false, size := 15, a := 1.0) -> void:
+	s = Loc.s(s)   # 本地化（docs/276 §10）：中文模式原样返回
 	size = _ks(ci, size)
 	var fg := Color(1, 1, 1, a)
 	match kind:
@@ -583,6 +593,7 @@ static func fade_band(ci: CanvasItem, r: Rect2, col: Color, edge := 50.0) -> voi
 
 ## 面板标题（原作「选择支援」）：居中白字，两侧渐隐细线，靠近文字处各一小段粗白线
 static func heading(ci: CanvasItem, font: Font, center: Vector2, s: String, size: int, _col: Color, half_w := 240.0) -> void:
+	s = Loc.s(s)   # 本地化（docs/276 §10）：中文模式原样返回
 	var tw := font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
 	var gap := tw / 2.0 + 24.0
 	for sgn in [-1.0, 1.0]:
@@ -794,6 +805,9 @@ static func curly_emblem(ci: CanvasItem, lines: Array, c: Vector2, r: float, col
 
 ## 节点标签条的宽度（排版前量一下，放不下时可以只留英文）
 static func strip_width(font: Font, en_s: String, cn: String, size := 12) -> float:
+	cn = Loc.s(cn)   # 本地化（docs/276 §10）：中文模式原样返回
+	if Loc.en() and cn.to_upper() == en_s.to_upper():
+		cn = ""   # 英文版：英文小标与译名相同时只写一次（docs/276 §2.6 第 5 条）
 	size = fs(size)
 	var ew := cond(font, true).get_string_size(en_s, HORIZONTAL_ALIGNMENT_LEFT, -1, size - 1).x + 13.0 if en_s != "" else 0.0
 	var cw := font.get_string_size(cn, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + 15.0 if cn != "" else 0.0
@@ -804,6 +818,7 @@ static func strip_width(font: Font, en_s: String, cn: String, size := 12) -> flo
 ## 按像素宽度折行（中文按字断行，遵守 soft() 的标点规则）；\n 分段。返回每一行的文字。
 ## 防孤字：某段末行只剩一两个字（多为「字 + 句号」）时，把这段收窄一到四个字宽重排，行数不变才采用（不会让文字变高）
 static func wrap_lines(font: Font, s: String, size: int, width: float) -> PackedStringArray:
+	s = Loc.s(s)   # 本地化（docs/276 §10）：中文模式原样返回
 	return _wrap_lines(font, s, fs(size), width)
 
 
@@ -857,6 +872,11 @@ static func _wrap_para(font: Font, sp: String, size: int, width: float) -> Packe
 ## 最小字号也放不下时截断，末行加「…」（fit = false，调用方可以另给悬停提示）。
 ## 返回 {size, lines, lh（行高）, h（总高）, fit}
 static func fit(font: Font, s: String, width: float, max_h: float, sizes: Array = [13, 12, 11], gap := 0.0) -> Dictionary:
+	s = Loc.s(s)   # 本地化（docs/276 §10）：中文模式原样返回
+	if Loc.en() and sizes.size() > 0:
+		var lo := int(sizes[-1]) - 1
+		if lo >= ceili(int(sizes[0]) * 0.85):
+			sizes = sizes + [lo]
 	var res := {}
 	for fs0 in sizes:
 		var sz := fs(int(fs0))
@@ -892,16 +912,20 @@ static func draw_fit(ci: CanvasItem, font: Font, pos: Vector2, f: Dictionary, co
 
 ## 单行文字限宽：太宽先缩字号（最小 min_size），还放不下就截断加「…」
 static func text_fit(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: int, col: Color, max_w: float, min_size := 10) -> void:
+	s = Loc.s(s)   # 本地化（docs/276 §10）：中文模式原样返回
 	var fl := _fit_line(font, s, _ks(ci, size), max_w, _ks(ci, min_size))
 	ci.draw_string(font, pos, fl[0], HORIZONTAL_ALIGNMENT_LEFT, -1, fl[1], col)
 
 
 ## text_fit 的排版部分：返回 [文字, 字号]
 static func fit_line(font: Font, s: String, size: int, max_w: float, min_size := 10) -> Array:
+	s = Loc.s(s)   # 本地化（docs/276 §10）：中文模式原样返回
 	return _fit_line(font, s, fs(size), max_w, fs(min_size))
 
 
 static func _fit_line(font: Font, s: String, size: int, max_w: float, min_size: int) -> Array:
+	if Loc.en():
+		min_size = mini(min_size, ceili(size * 0.85))   # 英文版：缩字号下限放宽到原字号 85%（docs/276 §9 第 3 条）
 	var sz := size
 	while sz > min_size and font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x > max_w:
 		sz -= 1
@@ -970,6 +994,7 @@ static func rbox(ci: CanvasItem, r: Rect2, radius: float, fill: Color, border :=
 
 ## 文字按锚点画（移植概念图坐标用）：anchor = la（左上）/ lm（左中）/ mm（正中）/ ma（中上）/ ra（右上）/ rm（右中）；bold = 同色 1px 描边加粗
 static func text_at(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: int, col: Color, anchor := "la", bold := false) -> float:
+	s = Loc.s(s)   # 本地化（docs/276 §10）：中文模式原样返回
 	var w := font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
 	var x := pos.x
 	if anchor[0] == "m":
@@ -1012,6 +1037,7 @@ static func bpanel(ci: CanvasItem, r: Rect2, accent := false, sel := false, a :=
 
 ## B 圆角标签片：solid = 实色底深字，否则暗底 + 彩色细边；返回占位宽度（含 6 像素间距）
 static func pill(ci: CanvasItem, font: Font, pos: Vector2, s: String, col: Color, size := 11, solid := false, a := 1.0) -> float:
+	s = Loc.short(s)   # 本地化（docs/276 §10）：中文模式原样返回
 	var h := size + 8.0
 	var w := font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + 18.0
 	rbox(ci, Rect2(pos, Vector2(w, h)), h / 2.0, fa(col, a) if solid else Color(0, 0, 0, 0.51 * a), fa(Color(col.r, col.g, col.b, 0.86), a))
@@ -1020,11 +1046,13 @@ static func pill(ci: CanvasItem, font: Font, pos: Vector2, s: String, col: Color
 
 
 static func pill_width(font: Font, s: String, size := 11) -> float:
+	s = Loc.short(s)   # 本地化（docs/276 §10）：中文模式原样返回
 	return font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + 24.0
 
 
 ## B 小标签头（圆角 3，彩色底白字）；pos 左上，返回宽度
 static func btab(ci: CanvasItem, font: Font, pos: Vector2, s: String, col: Color, size := 9, a := 1.0) -> float:
+	s = Loc.short(s)   # 本地化（docs/276 §10）：中文模式原样返回
 	var w := font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + 10.0
 	rbox(ci, Rect2(pos, Vector2(w, size + 5)), 3, fa(col, a))
 	text_at(ci, font, pos + Vector2(5, 1), s, size, Color(1, 1, 1, a))
@@ -1173,6 +1201,8 @@ static func btabs(ci: CanvasItem, font: Font, r: Rect2, names: Array, pos: float
 
 ## B 出击按钮：青底圆角 + 金外框 + 两侧金菱形；breathe 0–1 = 外圈青光呼吸（1.6 秒一次，调用方算）；press 0–1 = 按下（下沉 3 px + 闪白）
 static func deploy_button(ci: CanvasItem, font: Font, r: Rect2, s: String, sub: String, breathe: float, press := 0.0, size := 24, a := 1.0, sink_px := 3.0) -> void:
+	s = Loc.s(s)   # 本地化（docs/276 §10）：中文模式原样返回
+	sub = Loc.s(sub)   # 本地化（docs/276 §10）：中文模式原样返回
 	if press > 0.0 and press < 1.0:
 		r.position.y += roundf(sink_px * sin(PI * press))
 	rbox(ci, r.grow(7.0), 12, Color(0, 0, 0, 0), Color(CYAN.r, CYAN.g, CYAN.b, (0.16 + 0.24 * breathe) * a), 2)
@@ -1302,6 +1332,7 @@ static func class_box(ci: CanvasItem, pos: Vector2, s: float, cls: String, on :=
 
 ## 大数字：微型英文代码 + 小号中文标签，下方大号数值（右侧数据面板）；返回数值宽度
 static func stat_big(ci: CanvasItem, font: Font, pos: Vector2, label: String, en_s: String, val: String, size := 22, ink := C_L_INK, sub := C_L_SUB, a := 1.0) -> float:
+	label = Loc.s(label)   # 本地化（docs/276 §10）：中文模式原样返回
 	var ew := code(ci, font, pos, en_s, 8, fa(sub, a))
 	text_at(ci, font, pos + Vector2(ew + 4, -2), label, 9, fa(sub, a))
 	return text_at(ci, font, pos + Vector2(0, 12), val, size, fa(ink, a), "la", size >= 18)
@@ -1336,6 +1367,7 @@ static func cpanel(ci: CanvasItem, r: Rect2, sel := false, a := 1.0) -> void:
 
 ## C 标签片：面板底 + 左侧 UI.PURPLE 色条（PURPLE 仍只做干员标签）；dark = 画在暗场上；返回占位宽度（含 6 间距）
 static func ctag(ci: CanvasItem, font: Font, pos: Vector2, s: String, size := 11, dark := true, a := 1.0) -> float:
+	s = Loc.short(s)   # 本地化（docs/276 §10）：中文模式原样返回
 	var w := font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x + 16.0
 	var h := size + 8.0
 	var ink := C_D_INK if dark else C_L_INK

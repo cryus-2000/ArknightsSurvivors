@@ -34,6 +34,15 @@ CTX = {
 }
 
 
+
+def read_rows(mod):
+    """game/l10n/<模块>.csv（Godot 格式）→ 旧列名 key / zh / en / source / note；跳过原文键与短版行"""
+    for r in csv.DictReader(open(ROOT / "game/l10n" / (mod + ".csv"), encoding="utf-8")):
+        if r["_source"] in ("原文键", "短版"):
+            continue
+        yield {"key": r["keys"], "zh": r["_zh"], "en": r["en"], "source": r["_source"], "note": r["_note"]}
+
+
 def ctx_of(key, field):
     if key.endswith("gallery.intro") or ".progression." in key and field in ("desc", "brief"):
         return "card"
@@ -184,7 +193,7 @@ def verdict(m, c):
 def run(md=False):
     rows = []
     for mod in ("ops", "enemies"):
-        for r in csv.DictReader(open(ROOT / "game/l10n" / (mod + ".csv"), encoding="utf-8")):
+        for r in read_rows(mod):
             if not r["en"]:
                 continue
             k = r["key"]

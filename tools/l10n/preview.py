@@ -30,6 +30,15 @@ PICK = [
 ]
 
 
+
+def read_rows(mod):
+    """game/l10n/<模块>.csv（Godot 格式）→ 旧列名 key / zh / en / source / note；跳过原文键与短版行"""
+    for r in csv.DictReader(open(ROOT / "game/l10n" / (mod + ".csv"), encoding="utf-8")):
+        if r["_source"] in ("原文键", "短版"):
+            continue
+        yield {"key": r["keys"], "zh": r["_zh"], "en": r["en"], "source": r["_source"], "note": r["_note"]}
+
+
 def cell(s):
     return s.replace("|", "\\|").replace("\n", "<br>")
 
@@ -40,7 +49,7 @@ def main():
     stats = {}
     for m in ("ops", "enemies"):
         st = {}
-        for r in csv.DictReader(open(ROOT / "game/l10n" / (m + ".csv"), encoding="utf-8")):
+        for r in read_rows(m):
             rows[r["key"]] = r
             st[r["source"]] = st.get(r["source"], 0) + 1
         stats[m] = st

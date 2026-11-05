@@ -300,7 +300,10 @@ def cmd_csv(a):
             renames[z] = (old, h["en"])
     with open(out, "w", encoding="utf-8", newline="") as f:
         w = csv.writer(f)
-        w.writerow(["key", "zh", "en", "source", "note"])
+        # Godot CSV 翻译表格式（docs/276 §10）：首列 keys，en 是唯一的语言列；_ 开头的列 Godot 导入时跳过（中文原文 / 来源 / 备注只给人看）
+        w.writerow(["keys", "en", "_zh", "_source", "_note"])
+        srcmap = {}   # 中文原文 → 英文：显示时按原文查表（名字、标签、招式名、已填数的说明）用
+        rank = {"官方": 0, "暂定": 1, "人改": 2, "模型": 3}
         for it in items:
             zh, note, src = it["zh"], [], ""
             if "official" in it:
@@ -341,7 +344,21 @@ def cmd_csv(a):
                     if qe and qe.lower() not in en.lower():
                         note.append("「%s」本表译 %s，这里没对上" % (q, qe))
             stats[src] += 1
-            w.writerow([it["key"], zh, en, src, "；".join(dict.fromkeys(n for n in note if n))])
+            w.writerow([it["key"], en, zh, src, "；".join(dict.fromkeys(n for n in note if n))])
+            if en and (zh not in srcmap or rank.get(src, 9) < rank.get(srcmap[zh][1], 9)):
+                srcmap[zh] = (en, src)
+        # 原文键行：键 = 中文原文本身（Godot tr() 查不到时原样返回中文，不会出现空 key）
+        for zh, (en, src) in srcmap.items():
+            if zh != en:
+                w.writerow([zh, en, "", "原文键", src])
+        # 短版：定宽格子（HUD 状态名、标签、按钮）用，键 short:<中文原文>（docs/276 §9 第 4 条）
+        nshort = 0
+        sp = ROOT / "tools/l10n/review/short.json"
+        if a.module == "ops" and sp.exists():   # 短版是全局的（TranslationServer 不分模块），只写进 ops.csv 一份
+            for zh, v in json.load(open(sp, encoding="utf-8")).items():
+                if not zh.startswith("_"):
+                    w.writerow(["short:" + zh, v, zh, "短版", "docs/276 §9 第 4 条"]); nshort += 1
+        stats["原文键"] = len(srcmap); stats["短版"] = nshort
     print(out.relative_to(ROOT), stats)
 
 

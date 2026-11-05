@@ -2233,7 +2233,8 @@ func _row_heights(descs: Array, avail: float, hh: float, gap: float, dw: float, 
 	var tmin := 0.0
 	for d in descs:
 		var nd: float = hh + (UI.fit(font, d, dw, 9999.0, [10]).h if d != "" else 0.0) + 8.0
-		var mn: float = minf(nd, hh + (44.0 if big3.has(mins.size()) else 22.0))
+		# 每行保底：标题 + 一行说明（三技能 / 终结技两行）；英文版行数约是中文 1.6–2 倍（docs/276 §9），保底多给一行
+		var mn: float = minf(nd, hh + ((58.0 if big3.has(mins.size()) else 36.0) if UI.Loc.en() else (44.0 if big3.has(mins.size()) else 22.0)))
 		need.append(nd)
 		mins.append(mn)
 		tmin += mn
