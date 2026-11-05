@@ -1,0 +1,9 @@
+{
+ "op": "wisadel",
+ "frames": 300,
+ "glow_median": 2908,
+ "glow_p90": 4442,
+ "glow_max": 7167,
+ "glow_mean": 3158.2,
+ "glowmax_frame": 5
+}
