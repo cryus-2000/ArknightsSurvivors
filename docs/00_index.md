@@ -1,5 +1,8 @@
 # 00 · 文档索引
 
+- [282_bond_non_numeric](282_bond_non_numeric.md)：设计稿，待审；8 条羁绊的数值盘点 + 每条 2–3 个玩法差异方案与推荐。
+- [283_mid_boss_visibility](283_mid_boss_visibility.md)：设计稿，待审；中期 Boss 不显眼的诊断（体型与精英相同）与改法，不加弹幕提示。
+- [284_magnet_visibility_and_guide_copy](284_magnet_visibility_and_guide_copy.md)：设计稿，待审；磁铁地图可见性两种画法 + 开局指南（指挥台 / 集火 / 冲刺）文案草稿。
 - [281_asset_inventory_1106](281_asset_inventory_1106.md)：现行；11-06 素材引用扫描、已删 3 张无引用贴图、保留项与被否决终结技的分支清单。
 - [280_ult_art_gap_1105](280_ult_art_gap_1105.md)：现行；§6 为 11-06 终结技逐人定稿与通用口径（慢动作回速 0.35 秒）。
 
