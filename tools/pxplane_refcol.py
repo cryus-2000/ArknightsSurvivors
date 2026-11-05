@@ -64,7 +64,7 @@ def main():
     f24 = ImageFont.truetype(FONT, 24)
     for path in sorted(glob.glob(os.path.join(a.cmp, "cmp_*.png"))):
         base = os.path.basename(path)[:-4]
-        if base.endswith("_x2") or base.endswith("_ref"):
+        if base.endswith("_ref"):
             continue
         mv = base.split("_")[1]
         if mv not in pick:

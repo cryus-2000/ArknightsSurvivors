@@ -1497,7 +1497,44 @@ func _lg_pool(ci, l: Dictionary) -> void:
 		_lg_glyph(ci, l.pos + Vector2(x, -18.0 - bob) * g.PX, int(l.pos.x) + i * 3 + beat / 8, c)
 
 
-## 延异视阈咒域（原作 range_01）：只画边 + 内侧淡渐变（不平涂、不分层）；外沿一排细字随拍流动；每跳外边亮一拍
+## 延异视阈咒域（原作 range_01；11-05 第三轮用户「改成渐变填充」「符文条太直」）：
+## 填充 = 亮蓝边缘往中心渐暗（7 阶，最浓 α 0.38，怪透得出来），每个美术像素按 interleaved gradient noise 抖动取相邻两阶，不出平涂色带；
+## 外边 2 格亮边保留；4 条弯曲符文带（一条贴外边的弧、三条往中心收的螺旋），字沿带子每 2 拍挪一格，像在吟诵；每跳外边亮一拍
+const LG_FILL := [[Color("#0b0d22"), 0.34], [Color("#161c3e"), 0.34], [Color("#28355f"), 0.32], [Color("#495694"), 0.33],
+	[Color("#6a78ca"), 0.36], [Color("#8c99ff"), 0.38], [Color("#b4bdff"), 0.38]]
+## 符文带：[起始角（相对扇形中线，× 半角）, 起始半径比例, 角步进方向, 每像素半径收缩比例, 字数, 种子]
+const LG_STRIPS := [[-0.90, 0.86, 1.0, 0.0, 16, 1], [0.05, 0.74, 1.0, -0.006, 14, 2], [-0.70, 0.56, 1.0, -0.007, 12, 3], [0.85, 0.60, -1.0, -0.006, 11, 4]]
+var _lg_fill_tex := {}
+
+
+static func _lg_ign(x: int, y: int) -> float:   # interleaved gradient noise：细密、不成格子（不是 Bayer）
+	return fposmod(52.9829189 * fposmod(0.06711056 * x + 0.00583715 * y, 1.0), 1.0)
+
+
+## 整盘渐变（压扁椭圆，半径 R 美术像素）只生成一次（按 R 缓存）；扇形用带 UV 的多边形取其中一块，1 贴图像素 = 1 美术像素
+func _lg_fill(R: int) -> Texture2D:
+	if _lg_fill_tex.has(R):
+		return _lg_fill_tex[R]
+	var ry: int = int(ceil(R * LG_SY))
+	var img := Image.create_empty(2 * R + 1, 2 * ry + 1, false, Image.FORMAT_RGBA8)
+	var n: int = LG_FILL.size()
+	for y in range(-ry, ry + 1):
+		for x in range(-R, R + 1):
+			var q: float = Vector2(float(x) / R, float(y) / (R * LG_SY)).length()
+			if q > 1.0:
+				continue
+			var ang: float = atan2(float(y) / LG_SY, float(x))
+			var flow: float = 0.35 * sin(ang * 5.0 + q * 7.0)   # 一道静止的旋涡纹，抖动阈值跟着弯（读作缓慢流动的墨域）
+			var v: float = pow(q, 2.4) * (n - 1) + (_lg_ign(x + 4000, y + 4000) - 0.5) * 1.15 + flow * 0.5
+			var k: int = clampi(int(floor(v + 0.5)), 0, n - 1)
+			var c: Color = LG_FILL[k][0]
+			c.a = float(LG_FILL[k][1])
+			img.set_pixel(x + R, y + ry, c)
+	var tx := ImageTexture.create_from_image(img)
+	_lg_fill_tex[R] = tx
+	return tx
+
+
 func _lg_fan(ci, o, fn: Dictionary) -> void:
 	var b: Dictionary = fn.b
 	var px: float = g.PX
@@ -1512,39 +1549,38 @@ func _lg_fan(ci, o, fn: Dictionary) -> void:
 	var c: Vector2 = _snap(o.pos)
 	var tk: float = float(b.get("tick", 0.5))
 	var pulse: bool = float(fn.get("tick", 0.0)) > tk - 1.0 / 15.0
-	# 内侧淡渐变：贴着外边往里约 16 美术像素，α 0 → 0.14（真半透明，中间不铺）
-	var band: float = 16.0 * px
-	var N := 32
-	for j in 6:
-		var r0: float = maxf(4.0, rr - band * (1.0 - float(j) / 6.0))
-		var r1: float = rr - band * (1.0 - (float(j) + 1.0) / 6.0)
-		var col: Color = LG_C[2]
-		col.a = 0.14 * pow((float(j) + 1.0) / 6.0, 2.0) * fade
-		var pts := PackedVector2Array()
-		for i in N + 1:
-			var a: float = fa - half + 2.0 * half * i / N
-			pts.append(c + Vector2(cos(a), sin(a) * LG_SY) * r1)
-		for i in range(N, -1, -1):
-			var a2: float = fa - half + 2.0 * half * i / N
-			pts.append(c + Vector2(cos(a2), sin(a2) * LG_SY) * r0)
-		ci.draw_colored_polygon(pts, col)
-	# 外边：2 美术像素（外亮内墨），按噪声有亮暗起伏；两侧边：1 像素断续
+	var beat: int = int(floor(g.t * 15.0))
+	# 渐变填充
+	var R: int = maxi(8, int(round(r / px)))
+	var tex: Texture2D = _lg_fill(R)
+	var tw: float = 2.0 * R + 1.0
+	var th: float = 2.0 * ceil(R * LG_SY) + 1.0
+	var k: float = float(R) * px / rr   # 张开期间按比例取（张满后 = 1，贴图像素正好落在美术像素格上）
+	var N := 40
+	var pts := PackedVector2Array([c])
+	var uvs := PackedVector2Array([Vector2((R + 0.5) / tw, (ceil(R * LG_SY) + 0.5) / th)])
+	for i in N + 1:
+		var a: float = fa - half + 2.0 * half * i / N
+		var p: Vector2 = Vector2(cos(a), sin(a) * LG_SY) * rr
+		pts.append(c + p)
+		var lp: Vector2 = p * k / px
+		uvs.append(Vector2((lp.x + R + 0.5) / tw, (lp.y + ceil(R * LG_SY) + 0.5) / th))
+	ci.draw_colored_polygon(pts, Color(1, 1, 1, fade), uvs, tex)
+	# 外边：2 美术像素（外亮内墨），按噪声断续加厚；两侧边：1 像素断续
 	var rc: float = rr / px
 	var n: int = maxi(16, int(2.0 * half * rc))
-	var beat: int = int(floor(g.t * 15.0))
 	for i in n + 1:
 		var a3: float = fa - half + 2.0 * half * i / n
 		var hv: float = _lg_h(i * 31 + 7)
 		var q: Vector2 = c + Vector2(cos(a3), sin(a3) * LG_SY) * rr
-		var q2: Vector2 = c + Vector2(cos(a3), sin(a3) * LG_SY) * (rr - px * 1.2)
 		var ec: Color = LG_C[6] if pulse else (LG_C[5] if hv > 0.66 else LG_C[4])
 		ec.a = fade
+		ci.draw_rect(Rect2(_snap(q), Vector2(px, px)), ec)
+		if hv > 0.45:
+			ci.draw_rect(Rect2(_snap(c + Vector2(cos(a3), sin(a3) * LG_SY) * (rr + px)), Vector2(px, px)), Color(LG_C[4].r, LG_C[4].g, LG_C[4].b, fade))
 		var ic: Color = LG_INK[1] if hv > 0.3 else LG_C[1]
 		ic.a = fade
-		ci.draw_rect(Rect2(_snap(q), Vector2(px, px)), ec)
-		if hv > 0.45:   # 外边 2 格亮（一圈断续加厚，不是匀称圆环）
-			ci.draw_rect(Rect2(_snap(c + Vector2(cos(a3), sin(a3) * LG_SY) * (rr + px)), Vector2(px, px)), Color(LG_C[4].r, LG_C[4].g, LG_C[4].b, fade))
-		ci.draw_rect(Rect2(_snap(q2), Vector2(px, px)), ic)
+		ci.draw_rect(Rect2(_snap(c + Vector2(cos(a3), sin(a3) * LG_SY) * (rr - px * 1.2)), Vector2(px, px)), ic)
 		if pulse and (i % 3) == 0:
 			_glow(q, LG_C[5])
 	for sgn in [-1.0, 1.0]:
@@ -1555,21 +1591,43 @@ func _lg_fan(ci, o, fn: Dictionary) -> void:
 		for i in m:
 			if (i / 3) % 3 == 2:
 				continue
-			var ec2: Color = LG_C[3]
-			ec2.a = 0.8 * fade
-			ci.draw_rect(Rect2(_snap(c + dn * float(i) * px), Vector2(px, px)), ec2)
-	# 外沿细字行：沿外边外侧每 9 像素一个字，每 2 拍换字（原作 zifu 字条闪现）
-	var ng: int = int(2.0 * half * (rc + 6.0) / 9.0)
-	for i in ng:
-		var a4: float = fa - half + 2.0 * half * (float(i) + 0.5) / ng
-		if _lg_h(i * 13 + beat / 6) < 0.3:
-			continue
-		var gp: Vector2 = c + Vector2(cos(a4), sin(a4) * LG_SY) * (rr + 7.0 * px)
-		var gc: Color = LG_C[5] if (i + beat / 2) % 5 != 0 else LG_AC
-		gc.a = fade * open
-		_lg_glyph(ci, gp, i * 7 + beat / 2, gc)
-	var R = load("res://scripts/render/fx_recipe.gd").of(g)
-	R._light_follow(o, c + Vector2(cos(fa), sin(fa) * LG_SY) * rr * 0.6, rr * 0.9, (0.45 if pulse else 0.25) * fade, LG_C[3])
+			ci.draw_rect(Rect2(_snap(c + dn * float(i) * px), Vector2(px, px)), Color(LG_C[3].r, LG_C[3].g, LG_C[3].b, 0.8 * fade))
+	# 弯曲符文带（张开过半才写）：底线每 2 格一点暗蓝，字距 4 格，每 2 拍沿带挪一格；带头带尾的字按拍明灭
+	if open > 0.5:
+		var shift: int = (beat / 2) % 4
+		for st in LG_STRIPS:
+			var s0: float = float(st[0])
+			var r0: float = float(st[1])
+			var sgn2: float = float(st[2])
+			var pitch: float = float(st[3])
+			var nch: int = int(st[4])
+			var sd: int = int(st[5])
+			for kb in range(0, nch * 4 + 1, 2):
+				var sb: float = float(kb + shift)
+				var rb: float = rc * (r0 + pitch * sb)
+				if rb < 12.0:
+					continue
+				var ab: float = fa + half * s0 + sgn2 * sb / rb
+				if absf(wrapf(ab - fa, -PI, PI)) > half * 0.97:
+					continue
+				var bp: Vector2 = c + Vector2(cos(ab) * rb, sin(ab) * rb * LG_SY + 3.0) * px
+				ci.draw_rect(Rect2(_snap(bp), Vector2(px, px)), Color(LG_C[2].r, LG_C[2].g, LG_C[2].b, 0.8 * fade))
+			for j in nch + 1:
+				var s: float = float(j * 4 + shift)
+				var rad: float = rc * (r0 + pitch * s)
+				if rad < 12.0:
+					continue
+				var ang: float = fa + half * s0 + sgn2 * s / rad
+				if absf(wrapf(ang - fa, -PI, PI)) > half * 0.97:
+					continue
+				var edge: int = mini(j, nch - j)
+				if edge == 0 and _lg_h(sd * 7 + beat / 6) < 0.5:
+					continue
+				var gc: Color = LG_AC if (j + sd) % 4 == 0 else LG_C[5]
+				gc.a = fade * (0.95 if edge > 0 else 0.6)
+				_lg_glyph(ci, c + Vector2(cos(ang) * rad, sin(ang) * rad * LG_SY) * px, j * 3 + sd * 5 - (beat / 2) / 4, gc)
+	var R2 = load("res://scripts/render/fx_recipe.gd").of(g)
+	R2._light_follow(o, c + Vector2(cos(fa), sin(fa) * LG_SY) * rr * 0.6, rr * 0.9, (0.45 if pulse else 0.25) * fade, LG_C[3])
 
 
 ## 立起层的状态件：「言」彗星（运行时）、后期额外弹、提喻咒文行、连缀咒文链
@@ -1602,7 +1660,7 @@ func _lg_comet(ci, head: Vector2, dv: Vector2, L: int, t: int, al := 1.0, big :=
 	for i in range(2, L + 1):
 		var v: float = float(i) / float(L)
 		var w: float = W * (1.0 - pow((v - 0.3) / 0.7, 1.5)) if v > 0.3 else W * smoothstep(0.05, 0.3, v)
-		var split: float = maxf(0.0, v - 0.55) * 7.0 if t >= 1 else 0.0
+		var split: float = (1.2 + 2.6 * v) * absf(sin(v * 5.0 + float(beat) * 0.4)) + 0.8 if (t >= 1 and v > 0.12) else 0.0   # 精一新元素：墨尾分成两股绞着走（11-05 第三轮）
 		var ctr: Vector2 = head - dv * float(i) * px
 		var sides: Array = [-1.0, 1.0] if split > 0.6 else [0.0]
 		for sgn in sides:

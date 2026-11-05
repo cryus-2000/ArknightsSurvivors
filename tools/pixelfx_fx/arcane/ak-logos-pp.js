@@ -55,7 +55,7 @@ function star(p, cx, cy, rays, k, cool, C, INK) {
       for (let q = -th; q <= th; q += 0.5) {
         const edge = Math.abs(q) > th * 0.5;
         let c;
-        if (cool < 0.2) c = v < 0.3 && !edge ? C[6] : edge ? C[4] : C[5];   // 白只给芯（11-05 首轮：整团发白）
+        if (cool < 0.2) c = v < 0.16 && !edge ? C[6] : edge ? C[3] : v < 0.5 ? C[5] : C[4];   // 白只给芯（11-05：怪群里偏白，再收一档）
         else if (cool < 0.55) c = v < 0.2 ? C[6] : edge ? C[2] : C[4];
         else c = v < 0.15 ? C[3] : edge ? INK[0] : INK[1];
         p.px(cx + dx * s - dy * q, cy + dy * s + dx * q, c);
@@ -71,7 +71,7 @@ function thorn(p, cx, cy, a, L, w0, bend, ret, C, hot) {
     const v = s / L, kink = Math.sin(v * 5.2 + bend) * bend * 1.6 * v, th = w0 * (1 - v);
     for (let q = -th; q <= th; q += 0.5) {
       const x = cx + ca * s - sa * (q + kink), y = cy + sa * s + ca * (q + kink);
-      const c = hot ? (v < 0.3 ? C[6] : Math.abs(q) > th * 0.5 ? C[4] : C[5]) : Math.abs(q) > th * 0.5 ? C[3] : v < 0.25 ? C[5] : C[4];
+      const c = hot ? (v < 0.18 ? C[6] : Math.abs(q) > th * 0.5 ? C[3] : C[4]) : Math.abs(q) > th * 0.5 ? C[3] : v < 0.25 ? C[5] : C[4];
       p.px(x, y, c);
     }
   }
@@ -101,7 +101,7 @@ export function create(o) {
     // 普攻命中（原作 hit_01）：白色四芒星芒（首帧白 → 深蓝 → 墨）+ 一圈不规整长碎刺（一根特长）；地上一圈墨环。
     // E1：斜向四芒成八芒 + 外圈多 3 根短刺 + 第 1 拍再爆亮；E2 质变：白热八芒星核更大、2 根深蓝墨羽从命中处甩开（羽梢紫）、两块细字碎块落下
     const tk = part === "tick";
-    S.K = (tk ? 0.62 : 1) * [1, 1.15, 1.3][E] * kk;
+    S.K = (tk ? 0.55 : 0.85) * [1, 1.15, 1.3][E] * kk;   // 11-05 第三轮：命中面积收一档（怪群里偏白）
     const n = tk ? 3 + E : [5, 8, 8][E];
     S.th = [];
     for (let i = 0; i < n; i++) {
@@ -169,7 +169,10 @@ export function create(o) {
           if (t > 0.06 && u < 1) {
             const a = 1 - smooth(0.45, 1, u), gr = 1 + 0.25 * ease.outCubic(u);
             inkRing(p, 11 * K * gr, SY, a, C, INK, +o.seed, t < 0.25);
-            if (E >= 1) inkRing(p, 16 * K * gr, SY, a * 0.85, C, INK, +o.seed + 5, false);
+            if (E >= 1) {   // E1 新元素：外圈第二道墨环（亮弧、加一道内墨，1 倍下也看得出是两圈）
+              inkRing(p, 17 * K * gr, SY, a, C, INK, +o.seed + 5, true);
+              inkRing(p, 16 * K * gr, SY, a * 0.9, C, INK, +o.seed + 6, false);
+            }
             if (E === 2) {
               const r0 = 5 * K;
               for (let y = -r0 * SY; y <= r0 * SY; y++) for (let x = -r0; x <= r0; x++) {
