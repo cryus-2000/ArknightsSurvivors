@@ -18,10 +18,10 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
-const METAS := {"res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_eyjafjalla.json": "ey_"}   # 帧条表 → 键前缀（星熊的键自带 hsg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
+const METAS := {"res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_eyjafjalla.json": "ey_", "res://data/pxp_saria.json": "sa_"}   # 帧条表 → 键前缀（星熊的键自带 hsg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
 const MI = preload("res://scripts/render/melee_impact.gd")   # 近战打击感包（docs/246 §11）：斩痕 / 照地光提亮
 const ART := "res://art/fx/pxp/pxp_%s.png"
-const IDS := {"skadi": true, "hoshiguma": true, "lumen": true, "eyjafjalla": true}
+const IDS := {"skadi": true, "hoshiguma": true, "lumen": true, "eyjafjalla": true, "saria": true}
 ## 接管时仍照画的原 pfx 帧条（状态提示，不属于攻击特效）：星熊格挡闪光、反击架势盾沿光
 const KEEP_PFX := {"hoshiguma": {"fx_hoshiguma_block": true, "fx_hoshiguma_guard_glow": true}}
 const LM_C := [Color("#121a2a"), Color("#1d3150"), Color("#2a5282"), Color("#4285ad"), Color("#7fb2d6"), Color("#c4e0f2"), Color("#ffffff")]   # house.js OP.lumen 钢蓝 7 阶
@@ -66,7 +66,19 @@ func mode() -> int:
 static func owns_id(game, oid: String) -> bool:
 	if game == null or not IDS.has(oid):
 		return false
+	if oid == "saria":   # 塞雷娅（docs/269）没有「旧做法原样贴」对照：2 = 不接管（当前游戏原样）
+		return of(game).mode() == 1
 	return of(game).mode() > 0
+
+
+## 塞雷娅一节（docs/269，单独文件 fx_pxplane_sa.gd；运行时 load 避免循环 preload）
+var _sam = null
+
+
+func _sa():
+	if _sam == null:
+		_sam = load("res://scripts/render/fx_pxplane_sa.gd").new(self)
+	return _sam
 
 
 func _meta(k: String) -> Dictionary:
@@ -143,6 +155,9 @@ func ev(o, kind: String, d: Dictionary) -> void:
 		return
 	if str(o.id) == "eyjafjalla":
 		_ev_ey(o, kind, d, raw, t, R, p)
+		return
+	if str(o.id) == "saria":
+		_sa().ev(o, kind, d, t, R, p)
 		return
 	match kind:
 		"shape":
@@ -389,6 +404,9 @@ func draw_floor(o) -> void:
 	if id == "eyjafjalla":
 		_ey_floor(o)
 		return
+	if id == "saria":
+		_sa().draw_floor(o)
+		return
 	if o.skill_active_left(2) > 0.0:   # 涌潮悲歌持续期间：脚下一滩积水（循环，跟着人走）
 		_draw_strip(cv, "pool_gd", frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
 	for it in items:
@@ -404,6 +422,10 @@ func draw_floor(o) -> void:
 func draw_over(o) -> void:
 	if str(o.id) == "lumen" and o.hw.has("lm"):
 		_sl()._h3lm_draw_units(o)   # 发光单元是本体附属物（不是攻击特效），接管时照画
+	if str(o.id) == "saria":
+		if mode() == 1:
+			_sa().draw_over(o)   # 状态提示 + 钙化斑（docs/269）
+		return
 	if mode() != 2:
 		return
 	var cv = o.cv
@@ -453,6 +475,9 @@ static func sort_items(game) -> Array:
 			if str(o.id) == "eyjafjalla":
 				r._ey_sort_items(o, out)
 				continue
+			if str(o.id) == "saria":
+				r._sa().sort_items(o, out)
+				continue
 			for w in r._waves(o):
 				out.append({"wave": w})
 			if str(o.id) == "skadi":   # 斯卡蒂剑气浪头（docs/246 §9）
@@ -477,6 +502,9 @@ static func draw_sorted(game, ci, it: Dictionary) -> void:
 		return
 	if it.has("fi"):   # 星熊剑气：帧号按剑气年龄 / 剩余寿命挑
 		r._draw_strip(ci, str(it.k), int(it.fi), it.gp, it.flip, true)
+		return
+	if it.has("sa"):   # 塞雷娅运行时件（docs/269）
+		r._sa().draw_rt(ci, it)
 		return
 	if it.has("ert"):   # 艾雅法拉运行时件（docs/259）
 		r._ey_draw_rt(ci, it)
