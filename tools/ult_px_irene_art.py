@@ -367,8 +367,8 @@ def hx3(s):
 # ================================================================ 收尾斩击后的崩解（11-05 用户「碎石和尘土比原版薄，少了原作那种崩解感」）
 # 节奏：0–0.12 裂缝爆亮长出 → 0.06 起地面块沿裂缝掀起（离中心越远越晚）→ 0.12 起两侧尘墙冲起翻卷 → 约 0.5 秒碎石落地、弹一下、部分碎成小块 → 0.45 秒起尘土塌下散开，0.8 秒散完。
 WARM = ["#211d1a", "#332d28", "#4a423b", "#655b52", "#8a8076", "#aea398"]   # 地面暖灰（尘 / 碎石）
-SLAB_N = 24       # 地面块总数（两侧合计；docs/270 爆发档一簇 ≤ 25）
-PLUME_N = 14      # 每侧尘墙团数（相邻相叠成一片墙）
+SLAB_N = 12       # 地面块总数（两侧合计）：配角，11-05 改主角为怪物崩解后减半
+PLUME_N = 8       # 每侧尘墙团数（配角，压暗）
 
 
 def slab(age, seed, nd=(1.0, 0.0)):
@@ -446,7 +446,7 @@ def plume(age, seed, nside):
         along = (b - 2.5) * 3.5
         bx = nside[0] * spread + tx * along + curl
         by = (nside[1] * spread + ty * along) * SQ - H
-        al = 0.9 * (1 - fall) ** 1.3
+        al = 0.5 * (1 - fall) ** 1.3   # 配角：压暗，不盖住怪物崩解
         if al <= 0.03:
             continue
         ri = int(math.ceil(r))
@@ -525,3 +525,35 @@ def shock_ring(R, tau):
                     continue
                 out.append((round(cx * (rr - j2)), round(cy * (rr - j2)), LT[3], 0.45 * (1 - j2 / 15)))
     return out
+
+
+# ================================================================ 怪物崩解喷散（同 ult_px_ir.gd _draw_sprays；游戏里另叠引擎原有的按怪物贴图像素碎开 kill_burst）
+SPRAY_N = 22
+
+
+def spray(age, sd, out_ang, k, col):
+    """怪物代表色像素喷散：col = (r, g, b) 0–1；返回 [(x, y, (r,g,b,a), 发光, 边长)]"""
+    res = []
+    if age < 0 or age > 1.3:
+        return res
+    def lt(c, a):
+        return tuple(min(1.0, x + (1 - x) * a) for x in c)
+    def dk(c, a):
+        return tuple(x * (1 - a) for x in c)
+    cols = [lt(col, 0.45), lt(col, 0.15), col, dk(col, 0.3)]
+    for q in range(int(SPRAY_N * min(1.4, k))):
+        ang = out_ang + (hf(q, sd, 71) - 0.5) * 2.2
+        spd = (30 + 70 * hf(q, sd, 72)) * k
+        vh = 30 + 60 * hf(q, sd, 73)
+        G = 260.0
+        t_land = 2 * vh / G
+        t = min(age, 0.9)
+        tt = min(t, t_land)
+        h = max(0.0, vh * tt - 0.5 * G * tt * tt) if t < t_land else 0.0
+        c = cols[q % 4]
+        hot = age < 2 / 15 and q % 3 == 0
+        if hot:
+            c = (1.0, 1.0, 1.0)
+        al = 1.0 if age < 0.9 else max(0.0, (1.3 - age) / 0.4)
+        res.append((math.cos(ang) * spd * tt, math.sin(ang) * spd * tt * SQ - h, c + (al,), hot, 2 if q % 3 != 2 else 1))
+    return res
