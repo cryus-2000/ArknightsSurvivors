@@ -509,7 +509,7 @@ op.kaltsit.gallery.tags.1,护队长,Guard Leader,人改,可能偏长：12 字母
 op.kaltsit.gallery.tags.2,召唤,Summon,模型,
 op.kaltsit.gallery.tags.3,近战,Melee,模型,
 op.kaltsit.gallery.desc,医疗干员，罗德岛医疗项目负责人，为队长与 Mon3tr 回复生命；随行的 Mon3tr 撕碎靠近的敌人并替队长引走一部分近战敌人，倒下后 {$m3_revive_secs} 秒复活,"Medic Operator, head of the Rhodes Island medical project, restores HP to the Leader and Mon3tr; the Follow Mon3tr tears apart approaching enemies and draws away some melee enemies for the Leader, reviving {$m3_revive_secs}s after falling.",模型,
-op.kaltsit.gallery.intro,这片大地的代言人（划掉）,The voice of this land (crossed out),人改,难翻，待用户定：梗在「（划掉）」，英文可用删除线或括号。候选2：Spokesperson for all of Terra ~~(not really)~~
+op.kaltsit.gallery.intro,这片大地的代言人（划掉）,The voice of this land (crossed out),人改,用户已确认（11-05，经协调人）
 op.kaltsit.blocks.summons.mon3tr.on_down.0.src,Mon3tr · 熔毁,Mon3tr: Meltdown,模型,
 op.kaltsit.blocks.summons.mon3tr.patch.0.src,Mon3tr · 真伤,Mon3tr: True Damage,模型,
 op.kaltsit.blocks.attack.do.0.on_over.0.name,庇护,Sanctuary,官方,gamedata_const.termDescriptionDict.ba.protect
@@ -1073,7 +1073,7 @@ op.skadi.gallery.tags.0,近战,Melee,模型,
 op.skadi.gallery.tags.1,范围,AoE,模型,
 op.skadi.gallery.tags.2,高频,Rapid,模型,
 op.skadi.gallery.desc,近卫干员，赏金猎人、深海猎人成员，贴身高频横扫；技能展开大范围重斩,"Guard Operator, Bounty Hunter and Abyssal Hunter member. Performs close-range rapid sweeps; skills execute wide-range heavy slashes.",模型,
-op.skadi.gallery.intro,前阿戈尔传奇电工，能够以一己之力维护一整座城市的海底灯光阵列,"Former legendary Ægir electrician, able to maintain an entire city's undersea lighting array single-handedly.",人改,难翻，待用户定：「电工」是国服玩家梗，英文社区不一定懂；候选2 换成国际服玩家熟悉的说法：Former legendary Ægir maintenance worker. Keeps a whole city's undersea lights on all by herself.
+op.skadi.gallery.intro,前阿戈尔传奇电工，能够以一己之力维护一整座城市的海底灯光阵列,"Former legendary Ægir electrician, able to maintain an entire city's undersea lighting array single-handedly.",人改,用户已确认（11-05，经协调人）
 op.skadi.blocks.attack.src,大剑,Greatsword,模型,
 op.skadi.blocks.attack.combo.0.do.0.src,大剑,Greatsword,模型,
 op.skadi.blocks.attack.combo.0.do.1.src,大剑,Greatsword,模型,
@@ -1567,7 +1567,7 @@ op.wisadel.gallery.tags.1,爆炸,Explosion,模型,
 op.wisadel.gallery.tags.2,精英克制,Anti-Elite,模型,
 op.wisadel.gallery.tags.3,连锁,Chain,模型,
 op.wisadel.gallery.desc,狙击干员，巫术增幅单元开炮，命中后原地余震并留下残影诱爆：一发炮弹能在敌群里连炸三次,"Sniper Operator. Fires with an Arts amplification unit, causing aftershocks on hit and leaving a Revenant Shadow that detonates: a single shell can explode three times in a group of enemies.",模型,
-op.wisadel.gallery.intro,我的天哪维什戴尔大人,"Oh my god, Lady Wiš'adel",人改,难翻，待用户定：国服玩家梗，英文没有对应的固定说法。候选2：OMG it's Wiš'adel-sama
+op.wisadel.gallery.intro,我的天哪维什戴尔大人,"Oh my god, Lady Wiš'adel",人改,用户已确认（11-05，经协调人）
 op.wisadel.blocks.attack.src,炮击,Bombardment,模型,
 op.wisadel.blocks.attack.quake_src,余震,Aftershock,模型,
 op.wisadel.blocks.attack.shade.src,殉爆,Detonation,模型,

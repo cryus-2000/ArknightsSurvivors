@@ -20,9 +20,9 @@
 | 7 | 成长节点说明 | 触手追击同一名敌人，{$rep_window} 秒内第二次命中时，触手缠绕它：束缚 {$rep_bind} 秒（精英减半，Boss 除外），并再受一次 {$rep_mult*100}% 触手伤害 | When tentacles pursue the same enemy and hit a second time within {$rep_window}s, they entangle the target: inflicts Bind for {$rep_bind}s (halved on Elites, Bosses excepted) and deals another instance of {$rep_mult*100}% tentacle damage. | 模型 |  |
 | 8 | 终结技说明 | 冲进落点一圈内接连斩出刀痕，同时斩开，隔半拍换个角度再斩一次，收刀回到原位 | Dashes into the target area and releases consecutive slashes, slashing outward simultaneously, then slashes again from a different angle after a short pause, before returning to her original position. | 模型 |  |
 | 9 | 干员档案（首句换成官方招聘合同原文） | 「审判庭信使艾丽妮，为守护伊比利亚的海岸线而战。」<br>前伊比利亚审判官，大审判官达里奥的学生。幼时一场自然灾害席卷了她居住的小镇，她失去了所有家人，是达里奥把她从废墟下救了出来。「愚人号」事件后她辞去审判官一职，由凯尔希推荐，以审判庭信使的身份与罗德岛合作，为应对海洋的威胁做准备。她擅长迅捷的剑术，随身带着审判庭制式的提灯（一种法杖）与手炮。 | 'Inquisition Messenger Irene, fighting to protect Iberia's coastline.'<br>Former Iberian Inquisitor and student of High Inquisitor Dario. When a natural disaster swept through her town in her childhood, she lost all her family, and Dario saved her from the ruins. After the 'Stultifera Navis' incident, she resigned as an Inquisitor. Recommended by Kal'tsit, she collaborated with Rhodes Island as an Inquisition Messenger to prepare for the threat of the ocean. She excelled in swift swordsmanship and carried a standard Inquisition lantern (a type of staff) and a hand cannon. | 模型 | 首句招聘合同已换官方原文 character_table.char_4009_irene.itemUsage |
-| 10 | 招募卡简介（梗，待定） | 这片大地的代言人（划掉） | The voice of this land (crossed out) | 人改 | 难翻，待用户定：梗在「（划掉）」，英文可用删除线或括号。候选2：Spokesperson for all of Terra ~~(not really)~~ |
+| 10 | 招募卡简介（梗，待定） | 这片大地的代言人（划掉） | The voice of this land (crossed out) | 人改 | 用户已确认（11-05，经协调人） |
 | 11 | 招募卡简介（官方原句 + 玩家梗） | 罗德岛干员铃兰，九倍的温柔与坚强。她是罗德岛的光 | Suzuran, Rhodes Island Operator, has nine times the strength, and the fluffiness. She is the light of Rhodes Island. | 人改 | 前句是官方 char_358_lisa.itemUsage 原文；后句是玩家梗，英文社区有 she is our light 的说法，暂定直译（协调人 11-05 暂定） |
-| 12 | 招募卡简介（梗，待定） | 我的天哪维什戴尔大人 | Oh my god, Lady Wiš'adel | 人改 | 难翻，待用户定：国服玩家梗，英文没有对应的固定说法。候选2：OMG it's Wiš'adel-sama |
+| 12 | 招募卡简介（梗，待定） | 我的天哪维什戴尔大人 | Oh my god, Lady Wiš'adel | 人改 | 用户已确认（11-05，经协调人） |
 | 13 | 招募卡简介（双声部排版） | 名为斯卡蒂的深海猎人//名为伊莎玛拉的海嗣<br>正停留此处<br>等待你的部署//渴盼你的呼唤 | The Abyssal Hunter named Skadi // The Seaborn named Ishar'mla<br>waits here<br>for your deployment // for your call | 人改 | 伊莎玛拉官方拼写 Ishar'mla（初稿写成 Ishar-mla）；保留 // 双声部排版。候选2：An Abyssal Hunter called Skadi // A Seaborn called Ishar'mla<br>lingers here<br>awaiting your orders // longing for your call |
 | 14 | 敌人名（官方） | 骨海漂流体 | Bone Sea Drifter | 官方 | enemy_handbook_table.enemy_2021_syfish |
 | 15 | 敌人档案 | 最常见的海嗣个体。它们成群地漂过海床，像被潮水推着的白骨，任何靠近的温热之物都会引来它们的撕咬。 | The most common Seaborn specimen. They drift across the seabed in swarms like white bones pushed by the tide; any warm object that approaches draws their bite. | 模型 |  |
@@ -32,10 +32,7 @@
 | 19 | Boss 战横幅 | 伊祖米克进入「阐释」阶段！ | Izumik enters the 'Elucidation' phase! | 人改 | 横幅保留感叹号（原文有） |
 | 20 | 精英图鉴机制行 | 精英。伪装成补给箱，受到攻击后现形。现形后尖叫 2.5 秒：周围 150 内累积神经损伤并吞噬灯火，期间照常追击、不啃咬；尖叫结束前击倒，源石锭 ×1.5。啃咬两连，第二口伤害 ×0.6。免疫眩晕、寒冷和封印；击败后掉落源石锭。 | Elite. Disguised as a supply box, revealing itself when attacked. Screams for 2.5s after revealing itself: accumulates Nervous Impairment within a 150 radius and consumes Light. Pursues normally but does not bite during this period; defeating it before the Scream ends yields Originium Ingot ×1.5. Bites twice, with the second bite dealing ×0.6 damage. Immune to Stun, Cold, and Silence; drops Originium Ingots upon defeat. | 模型 |  |
 
-## 待用户定：难翻的招募卡简介（3 条）
+## 待用户定：难翻的招募卡简介（0 条）
 
 | 干员 | 中文 | 推荐 | 候选与说明 |
 |---|---|---|---|
-| kaltsit | 这片大地的代言人（划掉） | The voice of this land (crossed out) | 难翻，待用户定：梗在「（划掉）」，英文可用删除线或括号。候选2：Spokesperson for all of Terra ~~(not really)~~ |
-| skadi | 前阿戈尔传奇电工，能够以一己之力维护一整座城市的海底灯光阵列 | Former legendary Ægir electrician, able to maintain an entire city's undersea lighting array single-handedly. | 难翻，待用户定：「电工」是国服玩家梗，英文社区不一定懂；候选2 换成国际服玩家熟悉的说法：Former legendary Ægir maintenance worker. Keeps a whole city's undersea lights on all by herself. |
-| wisadel | 我的天哪维什戴尔大人 | Oh my god, Lady Wiš'adel | 难翻，待用户定：国服玩家梗，英文没有对应的固定说法。候选2：OMG it's Wiš'adel-sama |

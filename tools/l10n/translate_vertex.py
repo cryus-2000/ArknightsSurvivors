@@ -246,7 +246,7 @@ FIXES = [(r"Ishar[-‐]mla", "Ishar'mla"), (r"\b[Tt]he We Many\b", "We Many"), (
          # 恐鱼：官方英文统一叫 Seaborn（箱形恐鱼 = Chest Seaborn）
          (r"\bterrorfish\b", "Seaborn"), (r"\b[Tt]errors?\b(?! of)", "Seaborn"),
          (r"\bnot Move\b", "not move"), (r"\b(sturdy|swift|robust|fast) Melee\b", r"\1 melee"), (r"\bRanged entity\b", "ranged entity"),
-         (r"Defier of Death or (a )?Repeller of Death", "Archon or Immortal"),
+         (r"Defier of Death or (a )?Repeller of Death", "Archon or Immortal"), (r"\ba Archon\b", "an Archon"),
          # docs/276 §4 禁用词
          (r"\bunleashes\b", "releases"), (r"\bunleashing\b", "releasing"), (r"\bpowerful rounds\b", "enhanced rounds"),
          (r"\btheir Bite\b", "their bite")]
