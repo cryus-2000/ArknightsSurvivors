@@ -21,9 +21,9 @@ const RAMP := {
 	"t2": ["#2a1c06", "#5c3e0a", "#a8741a", "#f0c050", "#ffe08a", "#fff6d8", "#ffffff"],
 	"t3": ["#2a1c06", "#5c3e0a", "#a8741a", "#e8b030", "#ffd86a", "#fff2c0", "#ffffff"],
 }
-## 11-05 第四轮（用户「还是以肉鸽的可视化为优先级最高」）：高可读光弹——弹身 B 格（3 宽 + 一圈光晕描边）+ 亮尾 T 格（同 pxplane_exu_art）
-const B_BODY := {"n": [6, 7, 8], "s1": [8, 8, 9], "s2": [5, 6, 6], "s3": [7, 7, 8], "g": [7, 8, 8], "t1": [6, 7, 8], "t2": [6, 7, 8], "t3": [6, 7, 8], "tr": [8, 8, 8], "x": [4, 4, 4]}
-const B_TAIL := {"n": [8, 10, 12], "s1": [10, 12, 14], "s2": [6, 7, 8], "s3": [8, 10, 12], "g": [8, 10, 12], "t1": [9, 10, 12], "t2": [9, 10, 12], "t3": [9, 10, 12], "tr": [16, 16, 16], "x": [5, 5, 5]}
+## 11-05 第四轮（用户「还是以肉鸽的可视化为优先级最高」）：高可读光弹——弹身 B 格（4 宽 + 一圈光晕描边，第五轮加大约 30%）+ 亮尾 T 格（同 pxplane_exu_art）
+const B_BODY := {"n": [8, 9, 9], "s1": [10, 10, 10], "s2": [7, 8, 8], "s3": [9, 9, 9], "g": [9, 10, 10], "t1": [8, 9, 9], "t2": [8, 9, 9], "t3": [8, 9, 9], "tr": [10, 10, 10], "x": [5, 5, 5]}
+const B_TAIL := {"n": [10, 12, 13], "s1": [13, 14, 14], "s2": [8, 9, 10], "s3": [11, 12, 12], "g": [10, 12, 12], "t1": [11, 12, 13], "t2": [11, 12, 13], "t3": [11, 12, 13], "tr": [18, 18, 18], "x": [6, 6, 6]}
 const TIER_MIN := {"n": 0, "s1": 0, "s2": 1, "s3": 2, "g": 1}
 const BKIND := {"proj_exusiai_bullet": "n", "proj_exusiai_bullet_s1": "s1", "proj_exusiai_bullet_s2": "s2", "proj_exusiai_bullet_s3": "s3",
 	"proj_exusiai_bullet_power": "g", "proj_exusiai_bullet_t1": "t1", "proj_exusiai_bullet_t2": "t2", "proj_exusiai_bullet_t3": "t3"}
@@ -343,7 +343,7 @@ func _bul_px(key: String, t: int, small: bool, ai: int) -> Array:
 	var dy: float = sin(ang)
 	var B: int = int(B_BODY[key][t])
 	var T: int = int(B_TAIL[key][t])
-	var wide: int = 2 if (t >= 2 and not small) else 1
+	var wide: int = 2 if not small else 1   # 11-05 第五轮：精零 / 精一也 4 宽
 	var c0: float = -1.5
 	var c1: float = 1.5 + float(wide - 1)
 	var R: int = B + T + 4
@@ -371,7 +371,7 @@ func _bul_px(key: String, t: int, small: bool, ai: int) -> Array:
 	return out
 
 
-## 一颗光弹（同 pxplane_exu_art.bullet，肉鸽式高可读弹）：弹身中线白芯 + 两侧亮色（3 宽，精二 4 宽）+ 一圈光晕描边（精一起金色）、两头圆钝，
+## 一颗光弹（同 pxplane_exu_art.bullet，肉鸽式高可读弹）：弹身中线白芯 + 两侧亮色（4 宽）+ 一圈光晕描边（精一起金色）、两头圆钝，
 ## 芯进发光层；亮尾前 3 格 3 宽、之后 1 宽渐暗；精二弹头两侧按拍闪金点；额外弹小一号无描边。back = 只画面的后移（美术像素）
 func _bullet(ci, pos: Vector2, vel: Vector2, kind: String, t: int, small: bool, tracer: bool, back := 0.0) -> void:
 	var rp: String = "g" if tracer else kind
