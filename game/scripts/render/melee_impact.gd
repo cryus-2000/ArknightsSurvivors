@@ -26,6 +26,9 @@ static func lit_k(g) -> float:
 
 ## ob_core.exec_shape 判定结算后调（只画）：o 出手的干员，src 招式名，tags，hits 被打中的敌人
 static func hit(o, src: String, tags: Array, hits: Array) -> void:
+	if not hits.is_empty() and has_op(str(o.id)):   # 按干员调的卡肉（fx/melee_impact_op/<干员>，德克萨斯 11-05）
+		meat(o, src, hits)
+		return
 	if hits.is_empty() or not IDS.has(str(o.id)) or SKIP.has(src):
 		return
 	if str(o.id) == "ulpianus" and src in ["撼地", "定点爆破", "锁链回旋"]:   # 乌尔比安（docs/266）：锚击的附带冲击不再顿一次
@@ -79,3 +82,66 @@ static func col(g, e: Dictionary) -> Color:
 		return Color(0, 0, 0, -1)
 	var c: Color = e.mi_col
 	return Color(c.r, c.g, c.b, 0.85)
+
+
+# ================================================================ 卡肉（局部顿帧，11-05 用户用德克萨斯打「没有卡肉感」）
+## 旋钮 fx/melee_impact_op/<干员>/…（balance.json，按干员调，没写的干员走上面的通用包）：
+##   hitstop_ms/<招式名>  命中停多少毫秒（0 = 这招不卡）；cap_ms 每 1 游戏秒顿帧总量上限（后期怪多不一直卡）；
+##   targets 一次最多冻结几只（离施放者最近的）；push / push_heavy 推开距离（世界像素；≥ heavy_ms 的招算重）；snd_db 斩肉声音量。
+## 局部：只停施放者本体那一帧（character.vis_hold_until，draw_body 只画）、被打的怪的选帧（fx_recipe.reacts，只画）和斩痕帧条多停一拍（fx_pxplane），
+## 世界、g.t、玩法一概不停，所以同种子 TRACE 开关一致。被打的怪先白闪（停住期间），停完再往后推开、弹回。
+static func has_op(oid: String) -> bool:
+	return not Bal.sec("fx/melee_impact_op/" + oid).is_empty()
+
+
+static func opk(oid: String, key: String, d: float) -> float:
+	return Bal.v("fx/melee_impact_op/%s/%s" % [oid, key], d)
+
+
+static func meat(o, src: String, hits: Array) -> void:
+	var g = o.g
+	if hits.is_empty() or not on(g):
+		return
+	var oid: String = str(o.id)
+	var ms: float = opk(oid, "hitstop_ms/" + src, 0.0)
+	if ms <= 0.0:
+		return
+	var heavy: bool = ms >= opk(oid, "heavy_ms", 50.0)
+	var sec: float = ms / 1000.0 * (1.0 if o.is_leader else Bal.v("fx/melee_impact_mate", 0.6))
+	var q: Array = o.get_meta("mi_q", [])
+	q = q.filter(func(x): return g.t - float(x[0]) < 1.0 and g.t >= float(x[0]))
+	var used := 0.0
+	for x in q:
+		used += float(x[1])
+	sec = minf(sec, opk(oid, "cap_ms", 150.0) / 1000.0 - used)   # 同一秒里顿帧总量封顶
+	var hold: bool = sec >= 0.015
+	if hold:
+		q.append([g.t, sec])
+		o.vis_hold_until = g.t + sec
+		o.vis_hold_st = {}
+	o.set_meta("mi_q", q)
+	var lst: Array = hits.filter(func(e): return e is Dictionary and not e.get("dead", false))
+	lst.sort_custom(func(a, b): return a.pos.distance_squared_to(o.pos) < b.pos.distance_squared_to(o.pos))
+	var R = load("res://scripts/render/fx_recipe.gd").of(g)
+	var px: float = opk(oid, "push_heavy" if heavy else "push", 7.0 if heavy else 4.0)
+	var nt: int = int(opk(oid, "targets", 4.0))
+	for i in lst.size():
+		var e: Dictionary = lst[i]
+		var frz: bool = hold and i < nt and not e.get("boss", false)
+		var hs: float = sec if frz else 0.0
+		R.reacts[e.id] = [g.t, Color(1, 1, 1), g.t + hs if frz else -1.0, g.t, hs + 0.04]   # 先白闪（停住期间）
+		var d: Vector2 = (e.pos - o.pos)
+		e["mi_at"] = g.t + hs   # 停完再推开
+		e["mi_dir"] = d.normalized() if d.length() > 0.5 else Vector2.RIGHT
+		e["mi_px"] = px * (0.4 if e.get("boss", false) else (0.7 if e.get("elite", false) else 1.0))
+		e["mi_col"] = Color(1, 1, 1)
+	if not hold:
+		return
+	if g.has_meta("fx_pxplane"):
+		g.get_meta("fx_pxplane").stuck(o, sec)   # 斩痕命中那一拍多停一拍
+	var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
+	if sfx != null:
+		var nm: String = "op_%s_flesh_%d" % [oid, 1 + int(g.t * 13.0) % 2]
+		sfx.ensure([nm])
+		sfx.play(nm, opk(oid, "snd_db", -5.0) + (0.0 if heavy else -3.0), 1.0, 0.05)
+

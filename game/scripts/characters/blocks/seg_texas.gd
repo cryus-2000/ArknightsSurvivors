@@ -332,6 +332,8 @@ static func _tx_sweep(o, a: Vector2, c: Vector2, w: float, hit: Dictionary, dmg:
 		o.deal_damage(e, dmg * (ve if e.elite or e.boss else 1.0))
 		for s in b.get("on_hit", _EA):
 			apply_status(o, e, s)
+		if dash and hit.size() == 1:   # 卡肉（render/melee_impact.meat，只画）：一次冲刺只在第一只身上卡一下
+			_MI.hit(o, src, tags, [e])
 		if dash:   # 精英化段：verb.dash_mod 的 on_hit（idx = 这次冲刺扫到的第几个，first_only 只给第 0 个）
 			for s in o.tx.get("on_hit", _EA):
 				apply_status(o, e, s, Vector2.INF, -1.0, 0.0, hit.size() - 1)
