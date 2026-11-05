@@ -1,0 +1,2 @@
+1263235	cmp_link.png
+170146	cmp_link_x2.png

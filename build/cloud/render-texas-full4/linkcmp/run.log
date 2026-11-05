@@ -1,0 +1,11 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（3314 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+== pxplane_shots.py linkcmp --op texas --lead lumen --seed 11 --from 24 --secs 40 --extra="--elite2 --sptest --bal=growth/late_shape=1"
+   rc=0  594 秒
+('link2_s11_24', 65, [], False)
+连携事件 [('tx_link', '46.789')]
+三栏 cmp_link 帧 686
+link0_s11_24 vs link1_s11_24：TRACE 65 / 65 行，逐行一致
+link0_s11_24 vs link2_s11_24：TRACE 65 / 65 行，逐行一致
+media：2 个文件，1.4M
