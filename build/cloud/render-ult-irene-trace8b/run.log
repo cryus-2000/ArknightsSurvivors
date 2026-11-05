@@ -1,0 +1,11 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（3682 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+# 同种子 TRACE 对比
+
+A：`--bal=ult/px_plane_irene=0`　B：`--bal=ult/px_plane_irene=1`　共用：`--nodeath --squad=saria,exusiai --bot=expert --maxprog --bal=ult/bot_n=1 --bal=ult/test_swarm_every=6 --bal=ult/test_swarm_at=480.3 --bal=ult/test_fill_at=481.5`
+
+| 局 | A 行数 | B 行数 | 结果 | 第一处差异 |
+|---|---|---|---|---|
+| irene 种子 3 490 秒 | 491 | 491 | 逐行一致 |  |
+media：0 个文件，4.0K
