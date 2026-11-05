@@ -1,4 +1,4 @@
-## pixelfx「转平面」试验（docs/246，11-05 用户「把 pixelfx 的二维平面转移到我们这个平面上来，再结合 Noita 特效」）：斯卡蒂（docs/246）、星熊（docs/254）、流明（docs/255），各自一节在文件后部。
+## pixelfx「转平面」试验（docs/246，11-05 用户「把 pixelfx 的二维平面转移到我们这个平面上来，再结合 Noita 特效」）：斯卡蒂（docs/246）、星熊（docs/254）、流明（docs/255）、德克萨斯（docs/257），各自一节在文件后部。
 ## 开关 fx/px_plane（balance.json，缺省 0 = 关）：1 = 转平面版，2 = 旧做法原样贴（对照用，重现之前的问题）。
 ## 借配方系统（fx_recipe.gd）的接管：开着时 Fxr.owns(斯卡蒂) 为真，她原来的刀光 / 帧条 / pfx / 命中颗粒只跳过绘制（玩法照旧，TRACE 逐行一致）；
 ## 事件由 fx_recipe._ev 转到这里，颗粒（Noita 水滴）和照地光走 fx_recipe 的颗粒池与灯光预算。
@@ -18,9 +18,9 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
-const METAS := {"res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_"}   # 帧条表 → 键前缀（星熊的键在文件里已带 hsg_ 前缀；流明加 lm_）
+const METAS := {"res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_texas.json": ""}   # 帧条表 → 键前缀（星熊 / 德克萨斯的键在文件里已带 hsg_ / tx_ 前缀；流明加 lm_）
 const ART := "res://art/fx/pxp/pxp_%s.png"
-const IDS := {"skadi": true, "hoshiguma": true, "lumen": true}
+const IDS := {"skadi": true, "hoshiguma": true, "lumen": true, "texas": true}
 ## 接管时仍照画的原 pfx 帧条（状态提示，不属于攻击特效）：星熊格挡闪光、反击架势盾沿光
 const KEEP_PFX := {"hoshiguma": {"fx_hoshiguma_block": true, "fx_hoshiguma_guard_glow": true}}
 const LM_C := [Color("#121a2a"), Color("#1d3150"), Color("#2a5282"), Color("#4285ad"), Color("#7fb2d6"), Color("#c4e0f2"), Color("#ffffff")]   # house.js OP.lumen 钢蓝 7 阶
@@ -136,6 +136,9 @@ func ev(o, kind: String, d: Dictionary) -> void:
 	var oid0: String = str(o.id)
 	if oid0 == "hoshiguma":
 		_ev_hsg(o, kind, d, raw, t, R, p)
+		return
+	if oid0 == "texas":
+		_ev_tx(o, kind, d, raw, t, R, p)
 		return
 	if oid0 == "lumen":
 		_ev_lumen(o, kind, d, raw, t, R, p)
@@ -287,6 +290,8 @@ func _step() -> void:
 		for it in items:
 			if it.has("fol"):
 				it.gp = _snap(g.ppos + (it.fol as Vector2))
+			elif it.has("fe") and not it.fe.dead:   # 钉剑：跟着被钉的敌人（只读位置）
+				it.gp = _snap(it.fe.pos)
 
 
 func _life(k: String) -> float:
@@ -309,6 +314,9 @@ func draw_floor(o) -> void:
 	var id: String = str(o.id)
 	if id == "hoshiguma":
 		_floor_hsg(o)
+		return
+	if id == "texas":
+		_floor_tx(o)
 		return
 	if id == "lumen":
 		_lm_draw_floor(o)
@@ -334,6 +342,8 @@ func draw_over(o) -> void:
 	if id == "lumen":
 		_lm_draw_raw(o)
 		return
+	if id == "texas":
+		_tx_draw_raw_lines(o)
 	for it in items:
 		if str(it.ly) != "raw" or str(it.oid) != id:
 			continue
@@ -366,6 +376,9 @@ static func sort_items(game) -> Array:
 			if str(o.id) == "lumen":
 				r._lm_sort_items(o, out)
 				continue
+			if str(o.id) == "texas":
+				r._tx_sort_items(o, out)
+				continue
 			for w in r._waves(o):
 				out.append({"wave": w})
 			if str(o.id) == "hoshiguma":
@@ -384,6 +397,9 @@ static func draw_sorted(game, ci, it: Dictionary) -> void:
 		return
 	if it.get("cut", false):
 		r._draw_cut(ci, it)
+		return
+	if it.has("ln"):   # 德克萨斯：运行时直线刀光（冲刺 / 次元斩 / 连携）
+		r._tx_draw_line(ci, it, false)
 		return
 	if it.has("fi"):   # 星熊剑气：帧号按剑气年龄 / 剩余寿命挑
 		r._draw_strip(ci, str(it.k), int(it.fi), it.gp, it.flip, true)
@@ -407,8 +423,8 @@ func _draw_cut(ci, it: Dictionary) -> void:
 	var dirs: Array = [it.d]
 	if it.x:
 		dirs.append((it.d as Vector2).rotated(1.25))
-	var core := Color(1, 1, 1) if f == 0 else Color.html("#cddcfb")
-	var side := Color.html("#93b4f7") if f == 0 else Color.html("#598cf2")
+	var core := Color(1, 1, 1) if f == 0 else Color.html(str(it.get("c1", "#cddcfb")))   # c1 / c2：干员自己的斩痕色（德克萨斯琥珀）
+	var side := Color.html(str(it.get("c2", "#93b4f7"))) if f == 0 else Color.html(str(it.get("c3", "#598cf2")))
 	var L: float = float(it.L) * [1.0, 0.8, 0.5][f]
 	for d in dirs:
 		var dv: Vector2 = d
@@ -1205,3 +1221,394 @@ func _lm_draw_raw(o) -> void:
 	if S._h3_beam_on(o, bb):
 		var dv: Vector2 = S._h3_beam_dir(o, bb)
 		_draw_raw(cv, "lm_raw_sweep", posmod(lf, maxi(1, int(_meta("lm_raw_sweep").get("n", 1)))), S._h3_beam_origin(o), dv.angle(), g.PX * float(bb.get("len", 260.0)) / 260.0 * 1.13)
+
+
+# ================================================================ 德克萨斯（docs/257，照 docs/246 斯卡蒂 / docs/254 星熊的做法）
+## 普攻「拔刀」= 腰高琥珀刀痕，两头针尖（精一刀头甩碎晶 + 钉剑，精二白刃内侧冷青刃光）；骤雨 / 回马剑 = 整道约 300° 旋斩；
+## S1「剑雨」= 源石剑从天而降、插地、刃光沿刃走一趟、碎成碎晶（精一更多更大，精二再大一号 + 收尾中心巨剑 + 地面剑阵）；
+## S2「冲锋号令·γ型」= 起手琥珀光柱，之后所有冲刺的直线刀光加粗（精二带冷青刃光点）；
+## S3「剑雨滂沱」= 起手身边一圈落剑 + 剑阵；次元斩每刀一道腰高细长直线刀痕 + 目标处落一柄大剑；
+## 精二余像 = 地上两道残像边线，消散时沿路落剑；后期剑气 = 飞出去的源石剑（同一次出手合成一柄），沿路落小剑；
+## 连携（追击 / 冲刺斩）= 冲刺直线刀光 + 目标处十字斩。
+## 帧条键前缀 tx_（data/pxp_texas.json，tools/pxplane_bake.py --op texas）；直线刀光按美术像素格运行时逐格画（方向任意，不旋转贴图）。
+
+const TX_C: Array[Color] = [Color("#120804"), Color("#2c1406"), Color("#5a2808"), Color("#9c4610"), Color("#e2781c"), Color("#ffac3c"), Color("#ffdc9c"), Color("#ffffff")]
+const TX_AC := Color("#9fe3ff")
+const TX_H := 24.0                       # 腰高（世界像素）：直线刀光离地高度
+const TX_RAIN_CAP := [10, 13, 16]        # 剑雨同一次至多画几柄（三档）；其余照常结算，只是不画
+const TX_SW := [[16, 0], [19, 1], [22, 2]]   # 剑雨三档的剑：[剑长, 档]
+
+var _tx_spin := 0
+var _txq: Array = []                     # 画面延时事件：[时刻, 种类, 数据]（落剑落地那一下的碎晶 / 照地光）
+
+
+func _ev_tx(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary) -> void:
+	if Bal.v("fx/recipe_log", 0.0) > 0.0:   # 看图对齐用（tools/pxplane_shots.py）：事件的游戏时间
+		print("PXPLOG tx %s %s %.3f" % [kind, str(d.get("src", d.get("i", ""))), g.t])
+	match kind:
+		"shape":
+			var src: String = str(d.get("src", ""))
+			var es: Array = d.get("es", [])
+			if d.get("circle", false):
+				var c: Vector2 = d.get("c", o.pos)
+				var r: float = float(d.get("r", 100.0))
+				match src:
+					"骤雨", "回马剑":   # 360° 旋斩（骤雨连斩 4 下左右交替）
+						_tx_spin += 1
+						var sk: String = "tx_spin_r%d_e%d" % [_bucket(r * 0.5, [50, 56, 63]), t]
+						if raw:
+							_push({"k": "tx_raw_spin_e%d" % t, "t0": g.t, "gp": c + Vector2(0, -10), "ly": "raw", "rot": float(_tx_spin) * 1.3, "sc": g.PX * (r * 0.5) / 50.0, "oid": str(o.id)})
+						else:
+							var fl: bool = (_tx_spin % 2) == 1
+							_push({"k": sk + "_up", "t0": g.t, "gp": _snap(c), "flip": fl, "ly": "up", "oid": str(o.id)})
+							_push({"k": sk + "_gd", "t0": g.t, "gp": _snap(c), "flip": fl, "ly": "gd", "oid": str(o.id)})
+						_tx_cuts(o, es, t, 2)
+						_burst_m(o, R, p, c + Vector2(0, -16), c.y + 2.0, es, 2 + t, "shard", 110.0, 0.35)
+					_:
+						pass   # 剑雨 / 余像·剑雨的判定圈：画面由落剑（tx_rain 事件）画，不逐圈画
+				return
+			# 锥形：拔刀（普攻）
+			var ang: float = float(d.get("ang", 0.0))
+			var r2: float = float(d.get("r", 112.0))
+			var dv := Vector2.from_angle(ang)
+			_add(o, "tx_slash_r%d_e%d" % [_bucket(r2 * 0.5, [56, 63, 70]), t], o.pos, ang, r2, raw, "tx_raw_slash_e%d" % t, 56.0)
+			_tx_cuts(o, es, t, 2)
+			_burst_m(o, R, p, o.pos + dv * r2 * 0.6 + Vector2(0, -14), o.pos.y + dv.y * r2 * 0.6 * 0.72, es, 2 + t, "shard", 90.0, 0.3)
+			if t >= 1 and not raw and mode() == 1:   # 精一钉剑：命中里离她最近的 2 名（非 Boss）各插一柄源石剑，跟着敌人，0.7 秒后碎掉
+				var lst: Array = es.filter(func(x): return not x.boss and not x.dead)
+				lst.sort_custom(func(x1, x2): return x1.pos.distance_squared_to(o.pos) < x2.pos.distance_squared_to(o.pos))
+				for i in mini(2, lst.size()):
+					var pe: Dictionary = lst[i]
+					_push({"k": "tx_pin_h%d_e%d_up" % [15 if float(pe.r) >= 22.0 else 9, mini(t, 2)], "t0": g.t, "gp": _snap(pe.pos), "fe": pe, "flip": (pe.pos.x < o.pos.x), "ly": "up", "oid": str(o.id)})
+		"tx_rain":   # verb.fx_rain（剑雨 / 剑雨·连 / 剑雨·连绵 / 余像·剑雨）：落剑清单由玩法画面那份（g.vrng）给出
+			var bl: Array = d.get("bl", [])
+			if bl.is_empty():
+				return
+			var path: bool = d.get("path", false)
+			var sw: Array = [14, 2] if path else TX_SW[t]
+			var cap: int = 12 if path else TX_RAIN_CAP[t]
+			var lst2: Array = bl.slice(0, cap)
+			var ft: float = float(d.get("ft", 0.1))
+			var cc: Vector2 = d.get("c", o.pos)
+			_tx_rain(o, lst2, "tx_sw_s%d_e%d" % [sw[0], sw[1]], raw, t)
+			if not path:
+				if t >= 2 and not d.get("echo", false):   # 精二收尾：中心一柄巨剑 + 地面剑阵（质变）
+					var tm := 0.0
+					for b in lst2:
+						tm = maxf(tm, float(b.d))
+					var fin_d: float = tm + 0.12
+					_tx_rain(o, [{"p": cc, "d": fin_d, "a": 0.0, "fl": false}], "tx_sw_s40_e2", raw, t)
+					if not raw:
+						_push({"k": "tx_array_r65_gd", "t0": g.t + fin_d + ft, "gp": _snap(cc), "flip": false, "ly": "gd", "oid": str(o.id)})
+					if mode() == 1:
+						_txq.append([g.t + fin_d + ft, "land", {"o": o, "p": cc, "n": 8, "lr": 220.0, "li": 0.8}])
+				if mode() == 1:
+					R._light(o, cc + Vector2(0, -20), 160.0, 0.45, 0.12, p.light)
+		"tx_dash":   # 冲刺（拔刀冲刺 / 战术快递 / 突进 / 冲刺斩）：腰高直线刀光 + 地上焦痕；S2 永久生效后加粗
+			var a0: Vector2 = d.get("from", o.pos)
+			var b0: Vector2 = d.get("to", o.pos)
+			var s2: bool = t >= 1 and o.perm.size() > 1 and o.perm[1]
+			_tx_line(o, a0, b0, 2 if s2 else 1, 1, 1 if s2 else 0, raw, true)
+			if mode() == 1:
+				R._light(o, b0 + Vector2(0, -20), 120.0, 0.35, 0.1, p.light)
+		"tx_trail":   # 精二余像：地上两道残像边线，life 秒内淡掉（消散时的落剑走 tx_rain path）
+			if not raw:
+				_push({"tr": true, "a": d.get("from", o.pos), "b": d.get("to", o.pos), "w": float(d.get("w", 44.0)), "t0": g.t, "life": float(d.get("life", 0.6)), "ly": "gd2", "oid": str(o.id), "k": ""})
+		"tx_scar":   # 次元斩：一道腰高细长直线刀痕（判定线两端外延），scar 秒后碎开
+			var hold: int = maxi(1, int(round(float(d.get("life", 0.22)) * 15.0)))
+			_tx_line(o, d.get("a", o.pos), d.get("c", o.pos), 2 if float(d.get("wmax", 2.0)) >= 3.0 else 1, hold, 2, raw, false)
+		"tx_cut":   # 次元斩每一刀：目标处落一柄大剑（剑雨滂沱）
+			var at: Vector2 = d.get("at", o.pos)
+			_tx_rain(o, [{"p": at, "d": 0.0, "a": 0.0, "fl": (int(g.t * 15.0) % 2) == 0}], "tx_sw_s26_e2", raw, 2)
+			_burst_m(o, R, p, at + Vector2(0, -20), at.y + 2.0, [], 4, "shard", 130.0, 0.45)
+		"tx_link":   # 连携（技能连携 v2「追击」/ combo「冲刺斩」）：粗直线刀光 + 目标处十字斩
+			var fa: Vector2 = d.get("from", o.pos)
+			var tb: Vector2 = d.get("to", o.pos)
+			var mid: Vector2 = d.get("mid", tb)
+			var dv2: Vector2 = (tb - fa).normalized() if tb != fa else Vector2.RIGHT
+			_tx_line(o, fa, tb, 2, 2, 1, raw, true)
+			if raw:
+				_push({"k": "tx_raw_xcut", "t0": g.t, "gp": mid + Vector2(0, -24), "ly": "raw", "rot": dv2.angle(), "sc": g.PX * 1.37, "oid": str(o.id)})
+			else:
+				var dk: Array = pick_dir(dv2.angle())
+				_push({"k": "tx_xcut_up_d%d" % dk[0], "t0": g.t, "gp": _snap(mid), "flip": dk[1], "ly": "up", "oid": str(o.id)})
+				_push({"k": "tx_xcut_gd_d%d" % dk[0], "t0": g.t, "gp": _snap(mid), "flip": dk[1], "ly": "gd", "oid": str(o.id)})
+			_tx_cuts(o, d.get("es", []), 1, 3)
+			_burst_m(o, R, p, mid + Vector2(0, -20), mid.y + 2.0, d.get("es", []), 8, "shard", 200.0, 0.8)
+		"skill":
+			var i: int = int(d.get("i", -1))
+			if i == 1:   # 冲锋号令·γ型起手：琥珀光柱 + 脚下断续环
+				var tt: int = maxi(t, 1)
+				if raw:
+					_push({"k": "tx_raw_spin_e%d" % tt, "t0": g.t, "gp": o.pos + Vector2(0, -10), "ly": "raw", "rot": 0.0, "sc": g.PX * 0.6, "oid": str(o.id)})
+				else:
+					_push({"k": "tx_order_e%d_up" % tt, "t0": g.t, "gp": _snap(o.pos), "flip": float(o.face) < 0.0, "ly": "up", "oid": str(o.id)})
+					_push({"k": "tx_order_e%d_gd" % tt, "t0": g.t, "gp": _snap(o.pos), "flip": false, "ly": "gd", "oid": str(o.id)})
+				if mode() == 1:
+					R._grains(o, o.pos + Vector2(0, -30), o.pos.y, "shard", 5 + 2 * tt, {"tier": tt})
+					R._light(o, o.pos + Vector2(0, -30), 140.0, 0.6, 0.15, p.light)
+			elif i == 2:   # 剑雨滂沱起手：身边一圈 8 柄剑依次落下 + 剑阵
+				var ring: Array = []
+				for k in 8:
+					var a: float = TAU * float(k) / 8.0 + 0.2
+					ring.append({"p": o.pos + Vector2(cos(a), sin(a) * 0.72) * 104.0, "d": 0.035 * float(k), "a": 0.0, "fl": k % 2 == 1})
+				_tx_rain(o, ring, "tx_sw_s22_e2", raw, 2)
+				if not raw:
+					_push({"k": "tx_array_r56_gd", "t0": g.t + 0.1, "gp": _snap(o.pos), "flip": false, "ly": "gd", "oid": str(o.id)})
+				if mode() == 1:
+					R._light(o, o.pos + Vector2(0, -20), 180.0, 0.6, 0.15, p.light)
+
+
+## 斩痕（同斯卡蒂 _cuts，琥珀色）
+func _tx_cuts(o, es: Array, t: int, n: int) -> void:
+	var k0: int = items.size()
+	_cuts(o, es, t, n)
+	for i in range(maxi(0, k0 - n), items.size()):
+		var it: Dictionary = items[i]
+		if it.get("cut", false) and str(it.oid) == str(o.id):
+			it["c1"] = "#ffdc9c"
+			it["c2"] = "#ffac3c"
+			it["c3"] = "#e2781c"
+
+
+## 一组落剑：bl = [{p 落点, d 延时, a 倾角, fl 翻转}]；一条组件（ly rain），画时按每柄的出手时刻展开（sort_items / 地面层）
+func _tx_rain(o, bl: Array, key: String, raw: bool, t: int) -> void:
+	if bl.is_empty():
+		return
+	var lf: float = _life(key + "_l0_up")
+	var tm := 0.0
+	for b in bl:
+		tm = maxf(tm, float(b.d))
+	if raw:   # 旧做法：每柄一张旋转 + 小数缩放的整张贴图，盖在最上层
+		for b in bl.slice(0, 10):
+			_push({"k": "tx_raw_sword_e%d" % t, "t0": g.t + float(b.d), "gp": (b.p as Vector2) + Vector2(0, -24), "ly": "raw", "rot": float(b.a), "sc": g.PX * 1.37, "oid": str(o.id)})
+		return
+	_push({"rain": bl, "key": key, "t0": g.t, "life": tm + lf, "ly": "rain", "oid": str(o.id), "k": ""})
+	if mode() == 1:   # 前三柄落地那一下：几颗碎晶 + 一盏短照地光
+		for b in bl.slice(0, 3):
+			_txq.append([g.t + float(b.d) + 0.1, "land", {"o": o, "p": b.p, "n": 3, "lr": 90.0, "li": 0.3}])
+
+
+## 直线刀光（运行时逐格）：w 芯宽（格）、hold 保持几拍再碎、style 0 冲刺 / 1 加粗（号令 · 连携）/ 2 次元斩；gs = 地上留焦痕
+func _tx_line(o, a: Vector2, b: Vector2, w: int, hold: int, style: int, raw: bool, gs: bool) -> void:
+	if a.distance_to(b) < 4.0:
+		return
+	if raw:
+		_push({"rawln": true, "a": a, "b": b, "t0": g.t, "life": 0.34, "ly": "rawln", "oid": str(o.id), "k": ""})
+		return
+	_push({"ln": true, "a": a, "b": b, "w": w, "hold": hold, "st": style, "gs": gs, "cold": tier(o) >= 2, "t0": g.t, "life": float(hold + 4) / 15.0, "gy": maxf(a.y, b.y) + 2.0, "ly": "up", "oid": str(o.id), "k": ""})
+
+
+func _tx_cell(ci, p: Vector2, c: Color) -> void:
+	ci.draw_rect(Rect2(_snap(p), Vector2(g.PX, g.PX)), c)
+
+
+## 直线刀光一帧：第 0 拍白芯 + 两侧亮琥珀；之后芯转淡琥珀、两侧暗一阶；hold 拍后两拍里逐格断开；两头收尖。ground = 地上的焦痕（只画暗琥珀，晚两拍断完）
+func _tx_draw_line(ci, it: Dictionary, ground: bool) -> void:
+	var f: int = frame_of(float(it.t0))
+	var hold: int = int(it.hold)
+	if f < 0:
+		return
+	var a: Vector2 = it.a
+	var b: Vector2 = it.b
+	var px: float = g.PX
+	var L: float = a.distance_to(b)
+	var dv: Vector2 = (b - a) / maxf(1.0, L)
+	var nv := Vector2(-dv.y, dv.x)
+	var n: int = maxi(2, int(L / px))
+	if ground:
+		if f > hold + 3:
+			return
+		var brk: float = clampf(float(f - hold + 1) / 4.0, 0.0, 1.0)
+		for i in n + 1:
+			if fposmod(float(i) * 0.618034 + float(int(absf(a.x)) % 13) * 0.07, 1.0) < brk:
+				continue
+			var u0: float = float(i) / float(n)
+			if u0 < 0.06 or u0 > 0.96:
+				continue
+			_tx_cell(ci, a + dv * float(i) * px + Vector2(0, 2), TX_C[3] if f <= 1 else (TX_C[2] if f <= hold + 1 else TX_C[1]))
+		return
+	if f > hold + 1:
+		return
+	var st: int = int(it.st)
+	var w: int = int(it.w)
+	var lift := Vector2(0, -TX_H)
+	var broke: bool = f >= hold
+	var cold: bool = st == 1 and w >= 2 and it.get("cold", false)
+	for i in n + 1:
+		var u: float = float(i) / float(n)
+		var prof: float = pow(sin(PI * clampf(u * 0.92 + 0.04, 0.0, 1.0)), 0.5)   # 两头收尖
+		if broke and fposmod(float(i) * 0.618034 + float(f) * 0.31, 1.0) < (0.45 if f == hold else 0.75):
+			continue
+		var q: Vector2 = a + dv * float(i) * px + lift
+		var cw: int = w if prof > 0.55 else 1
+		var core: Color = Color(1, 1, 1) if f == 0 else (TX_C[6] if not broke else TX_C[5])
+		var side: Color = TX_C[5] if f == 0 else (TX_C[4] if not broke else TX_C[3])
+		for k in cw:
+			_tx_cell(ci, q + nv * float(k) * px, core)
+		if prof > 0.3:
+			_tx_cell(ci, q - nv * px, TX_AC if (cold and (i % 7) == 3 and not broke) else side)   # 精二号令 / 连携：冷青刃光点
+			_tx_cell(ci, q + nv * float(cw) * px, side)
+			if st >= 1 and prof > 0.7 and f <= 1:
+				_tx_cell(ci, q + nv * float(cw + 1) * px, TX_C[3])
+		if f == 0 and (i & 1) == 0 and prof > 0.4:
+			_glow(q, Color(1.0, 0.85, 0.6))
+
+
+## 精二余像：地上两道残像边线（断续、贴边一格暗内边），life 秒内淡掉；不铺满
+func _tx_draw_trail(ci, it: Dictionary) -> void:
+	var age: float = g.t - float(it.t0)
+	var life: float = float(it.life)
+	if age < 0.0 or age >= life:
+		return
+	var k: float = age / life
+	var a: Vector2 = it.a
+	var b: Vector2 = it.b
+	var px: float = g.PX
+	var L: float = a.distance_to(b)
+	var dv: Vector2 = (b - a) / maxf(1.0, L)
+	var nv := Vector2(-dv.y, dv.x * 0.72).normalized()
+	var hw: float = float(it.w) * 0.5
+	var n: int = maxi(2, int(L / px))
+	var tick: int = int(floor(g.t * 15.0))
+	for side in [-1.0, 1.0]:
+		for i in n + 1:
+			if fposmod(float(i) * 0.618034 + side * 0.3 + float(tick) * 0.11, 1.0) < 0.25 + 0.6 * k:   # 越来越稀
+				continue
+			var q: Vector2 = a + dv * float(i) * px + nv * hw * side
+			_tx_cell(ci, q, TX_C[5] if k < 0.3 else (TX_C[4] if k < 0.65 else TX_C[3]))
+			_tx_cell(ci, q - nv * px * side, TX_C[1])
+
+
+func _tx_due() -> void:
+	if _txq.is_empty():
+		return
+	var now: float = g.t
+	var keep: Array = []
+	var R = load("res://scripts/render/fx_recipe.gd").of(g)
+	for q in _txq:
+		if now < float(q[0]):
+			keep.append(q)
+			continue
+		if mode() != 1 or now - float(q[0]) > 0.2:
+			continue
+		var dd: Dictionary = q[2]
+		var o = dd.o
+		var at: Vector2 = dd.p
+		R._grains(o, at + Vector2(0, -6), at.y + 1.0, "shard", int(dd.n), {"tier": tier(o)})
+		R._light(o, at + Vector2(0, -8), float(dd.lr), float(dd.li), 0.1, R.pal(o).get("light", TX_C[5]))
+	_txq = keep
+
+
+## 落剑组展开：每柄的立起件（出手前不画；按剑倾角挑 l0 / l1）
+func _tx_rain_items(it: Dictionary, ground: bool) -> Array:
+	var out: Array = []
+	var key: String = it.key
+	var t0: float = float(it.t0)
+	var lf: float = _life(key + "_l0_up")
+	for b in it.rain:
+		var ts: float = t0 + float(b.d)
+		if g.t < ts or g.t > ts + lf:
+			continue
+		var gp: Vector2 = _snap(b.p)
+		if ground:
+			out.append({"k": key + "_gd", "t0": ts, "gp": gp, "flip": b.fl})
+		else:
+			out.append({"k": key + ("_l1_up" if absf(float(b.a)) > 0.03 else "_l0_up"), "t0": ts, "gp": gp, "flip": b.fl})
+	return out
+
+
+func _tx_sort_items(o, out: Array) -> void:
+	var id: String = str(o.id)
+	for it in items:
+		if str(it.ly) == "rain" and str(it.oid) == id:
+			out.append_array(_tx_rain_items(it, false))
+	for qv in _tx_qi(o):
+		out.append({"k": qv.k + "_up_d%d" % qv.d, "fi": qv.f, "gp": qv.gp, "flip": qv.flip})
+
+
+## 地面层（德克萨斯）：贴地件、落剑的冲击 / 焦痕、余像边线、直线刀光的地上焦痕、剑气影子
+func _floor_tx(o) -> void:
+	var cv = o.cv
+	var id: String = str(o.id)
+	_tx_due()
+	for it in items:
+		if str(it.oid) != id:
+			continue
+		match str(it.ly):
+			"gd":
+				_draw_strip(cv, str(it.k), frame_of(float(it.t0)), it.gp, it.flip, true)
+			"gd2":
+				_tx_draw_trail(cv, it)
+			"rain":
+				for s in _tx_rain_items(it, true):
+					_draw_strip(cv, str(s.k), frame_of(float(s.t0)), s.gp, s.flip, true)
+			"up":
+				if it.has("ln") and it.gs:
+					_tx_draw_line(cv, it, true)
+	for qv in _tx_qi(o):
+		_draw_strip(cv, qv.k + "_gd_d%d" % qv.d, int(qv.f), qv.gp, qv.flip, true)
+
+
+## 旧做法（2）：直线刀光 = 一张光晕烤进颜色的横条，旋转 + 横向拉伸到线长，盖在最上层
+func _tx_draw_raw_lines(o) -> void:
+	var cv = o.cv
+	var m: Dictionary = _meta("tx_raw_line")
+	var tx: Texture2D = _tex("tx_raw_line")
+	if m.is_empty() or tx == null:
+		return
+	for it in items:
+		if str(it.ly) != "rawln" or str(it.oid) != str(o.id):
+			continue
+		var fi: int = int((g.t - float(it.t0)) * Bal.v("fx/px_plane_raw_fps", 12.8))
+		if fi < 0 or fi >= int(m.n):
+			continue
+		var a: Vector2 = it.a
+		var b: Vector2 = it.b
+		var w: float = float(m.w)
+		var h: float = float(m.h)
+		cv.draw_set_transform((a + b) * 0.5 + Vector2(0, -TX_H), (b - a).angle(), Vector2(a.distance_to(b) / w, g.PX * 1.37))
+		cv.draw_texture_rect_region(tx, Rect2(Vector2(-float(m.ox), -float(m.oy)), Vector2(w, h)), Rect2(fi * w, 0.0, w, h))
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## 后期剑气（growth/late_shape → vis_growth._fire_qi）：同一次出手的几道合成一柄飞剑（同星熊 _qi_volleys 的分组）；
+## 飞行途中每 3 拍在身后落一柄小剑（剑雨意象，每组至多 3 柄；画面计时记在剑气字典的画面专用键 _pxd，玩法不读）
+func _tx_qi(o) -> Array:
+	var out: Array = []
+	if mode() != 1 or o.vg.is_empty() or not o.vg.has("qi") or o.vg.qi.is_empty():
+		return out
+	var grp: Dictionary = {}
+	for q in o.vg.qi:
+		var key: int = int(round((g.t - float(q.t)) * 60.0))
+		if not grp.has(key):
+			grp[key] = {"p": Vector2.ZERO, "v": Vector2.ZERO, "n": 0, "t": float(q.t), "life": float(q.life), "q0": q}
+		var e: Dictionary = grp[key]
+		e.p += _qpos(q)
+		e.v += (q.v as Vector2).normalized()
+		e.n += 1
+		e.life = minf(float(e.life), float(q.life))
+	var t: int = tier(o)
+	var keys: Array = grp.keys()
+	keys.sort()
+	keys.reverse()
+	var tick: int = int(floor(g.t * 15.0))
+	for key in keys.slice(0, 2):   # 同屏至多两组（最新两次出手）
+		var e: Dictionary = grp[key]
+		var n: int = int(e.n)
+		var S: int = 1 if n <= 1 else (2 if n == 2 else 3)
+		var dk: Array = pick_dir((e.v as Vector2).angle())
+		var f: int = 0 if float(e.t) < 1.0 / 15.0 else (2 if float(e.life) < 0.07 else 1)
+		var gp: Vector2 = _snap(e.p / float(n))
+		out.append({"k": "tx_qi_s%d_e%d" % [S, t], "d": dk[0], "flip": dk[1], "gp": gp, "f": f})
+		var q0: Dictionary = e.q0
+		if not q0.has("_pxd"):
+			q0["_pxd"] = [tick, 0]
+			continue
+		var dn: Array = q0._pxd
+		if tick - int(dn[0]) < 3 or int(dn[1]) >= 3:
+			continue
+		q0["_pxd"] = [tick, int(dn[1]) + 1]
+		var back: Vector2 = gp - (e.v as Vector2).normalized() * 30.0
+		_tx_rain(o, [{"p": back, "d": 0.0, "a": 0.0, "fl": (tick % 2) == 0}], "tx_sw_s14_e%d" % t, false, t)
+	return out

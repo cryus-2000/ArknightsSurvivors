@@ -600,6 +600,8 @@ static func _step_dash(u, a: Dictionary, dt: float) -> bool:
 		p._set_face(1.0 if dir.x >= 0.0 else -1.0, true)
 		if Fxr.owns(p) and str(a.s) == "hoshiguma":
 			Fxr.ev(p, "combo_dash", {"from": p0, "to": stop})   # 转平面（docs/254）：冲刺尘痕代替通用拖影（只画）
+		elif Fxr.owns(p) and str(a.s) == "texas":
+			pass   # 转平面（docs/257）：冲刺刀光在出招时由 fx_pxplane 画（tx_link）
 		else:
 			_tracer(u, p0 + Vector2(0, -20), stop + Vector2(0, -20), p.col(), dur + 0.14, 8.0)   # 干员色拖影
 		a.ph = 1
@@ -648,7 +650,10 @@ static func _strike(u, a: Dictionary) -> void:
 			hits = path
 			a["blocked"] = blocked
 			p.slash_fx(stop, ang, 0.6, 120.0, c, "slash", 0.24)
-			_beam(u, Vector2(a.from) + Vector2(0, -16), stop + Vector2(0, -16), c.lerp(Color.WHITE, 0.4), 0.22, 3.0)
+			if Fxr.owns(p):
+				Fxr.ev(p, "tx_link", {"from": a.from, "to": stop, "mid": stop, "es": hits})   # 转平面（docs/257）：冲刺斩（只画）
+			else:
+				_beam(u, Vector2(a.from) + Vector2(0, -16), stop + Vector2(0, -16), c.lerp(Color.WHITE, 0.4), 0.22, 3.0)
 		"skadi":   # 大剑横扫一周并击退
 			hits = _area(p, stop, 115.0, 1.4, 200.0)
 			p.slash_fx(stop, ang, PI, 110.0, c, "slash", 0.3)

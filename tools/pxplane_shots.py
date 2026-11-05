@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""转平面试验（docs/246 斯卡蒂、docs/254 星熊、docs/255 流明；fx/px_plane）的看图工具。--op 选干员（缺省 skadi）。本机 Windows，窗口在屏幕外、静音（godot_runner），一次只开 1 个 Godot（串行）。
+"""转平面试验（docs/246 斯卡蒂、docs/254 星熊、docs/255 流明、docs/257 德克萨斯；fx/px_plane）的看图工具。--op 选干员（缺省 skadi）。本机 Windows，窗口在屏幕外、静音（godot_runner），一次只开 1 个 Godot（串行）。
 
   demo  图鉴演示模式（tests/elite_demo_shot.tscn）逐招连拍：三种画法（0 当前游戏 / 2 旧做法原样贴 / 1 转平面）× 精英档，
         同一招同一时刻对齐（同一演示、同一帧号），拼「三栏对比」：每招一张 + 2 倍局部；另拼三档并排（只转平面版）。
@@ -30,7 +30,11 @@ OPS = {
     "hoshiguma": {"name": "星熊", "modes": {3: "普攻 盾斧斩", 0: "S1 战意", 1: "S2 荆棘", 2: "S3 力之锯"}, "off": {0: 4, 1: 10, 2: 12}},
     # 流明：另含引擎帧号比连拍帧号多的约 9 帧（启动帧）
     "lumen": {"name": "流明", "modes": {3: "普攻 荧光", 0: "S1 沐雨", 1: "S2 沛霖", 2: "S3 灯火不灭"}, "off": {0: 13, 1: 12, 2: 13}},
+    # 德克萨斯（docs/257）：S1 取第一批剑插地后（约 0.25 秒）；S2 取号令光柱冲起；S3 取起手剑阵 + 第一刀次元斩
+    "texas": {"name": "德克萨斯", "modes": {3: "普攻 拔刀", 0: "S1 剑雨", 1: "S2 冲锋号令·γ型", 2: "S3 剑雨滂沱"}, "off": {0: 8, 1: 4, 2: 16}},
 }
+LINK_EV = {"hoshiguma": ("PXPLOG hsg cover", "PXPLOG hsg combo "), "texas": ("PXPLOG tx tx_link",)}   # 连携事件行前缀（fx/recipe_log = 1）
+LINK_NAME = {"cover": "举盾", "combo": "举盾推挡", "tx_link": "追击"}
 OP = "skadi"
 START = {("lumen", 2): 1.2}   # 流明 S3 在演示开头约 1.3 秒就起手：提前开拍
 BALS = []   # --bals 透传的旋钮（如 growth/late_shape=1），截图 / 录像 / TRACE 都带上
@@ -217,13 +221,13 @@ def linkcmp(a, base):
         dirs[px] = os.path.join(BUILD, tag + "_frames")
         print(run(tag, ex, 30, dirs[px]), flush=True)
     log = open(os.path.join(LOGS, "link1_s%d_%d.log" % (a.seed, t0)), encoding="utf-8").read()
-    evs = [l.split() for l in log.splitlines() if l.startswith("PXPLOG hsg cover") or l.startswith("PXPLOG hsg combo ")]
+    evs = [l.split() for l in log.splitlines() if l.startswith(LINK_EV.get(OP, ("PXPLOG hsg cover", "PXPLOG hsg combo ")))]
     print("连携事件", [(e[2], e[-1]) for e in evs], flush=True)
     if not evs:
         print("这段里没有连携技出手", flush=True)
         return False
     T = float(evs[0][-1])
-    k = int(round((T - t0) * 30.0)) + 8   # 落定后约 0.25 秒（盾立定、冲击环扩开）
+    k = int(round((T - t0) * 30.0)) + (3 if OP == "texas" else 8)   # 星熊：落定后约 0.25 秒（盾立定、冲击环扩开）；德克萨斯：出刀后 0.1 秒（直线刀光 + 十字斩还亮着）
     k -= k % st
     fr = {px: os.path.join(dirs[px], "rec_%05d.png" % k) for px in (0, 2, 1)}
     if not all(os.path.exists(f) for f in fr.values()):
@@ -234,7 +238,7 @@ def linkcmp(a, base):
     f30 = font(30)
     sheet = Image.new("RGB", (W * 3 + 8, H + 56), (12, 12, 16))
     dd = ImageDraw.Draw(sheet)
-    dd.text((12, 8), OPS[OP]["name"] + " 连携技「%s」· 实战局同种子 %d · %.2f 秒" % ("举盾" if evs[0][2] == "cover" else "举盾推挡", a.seed, T), fill=(230, 230, 230), font=f30)
+    dd.text((12, 8), OPS[OP]["name"] + " 连携技「%s」· 实战局同种子 %d · %.2f 秒" % (LINK_NAME.get(evs[0][2], evs[0][2]), a.seed, T), fill=(230, 230, 230), font=f30)
     for i, (im, (px, lab)) in enumerate(zip(ims, COLS)):
         sheet.paste(label(im.copy(), lab), (i * (W + 4), 56))
     os.makedirs(a.out, exist_ok=True)

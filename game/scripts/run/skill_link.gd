@@ -341,7 +341,10 @@ static func _step_sample(u, a: Dictionary) -> bool:
 				var tg2: Variant = a.tg
 				var mid: Vector2 = tg2.pos if tg2 != null and not tg2.dead else (Vector2(a.from_p) + Vector2(a.to_p)) * 0.5
 				var d2: Vector2 = (Vector2(a.to_p) - Vector2(a.from_p)).normalized()
-				if LFA.on(u, "fx_lk_tx1"):
+				var pxo2: bool = Fxr.owns(p)
+				if pxo2:   # 转平面（docs/257）：冲刺直线刀光 + 目标处十字斩由 fx_pxplane 画（只画）
+					Fxr.ev(p, "tx_link", {"from": a.from_p, "to": a.to_p, "mid": mid, "es": u.in_band(a.from_p, a.to_p, 34.0)})
+				elif LFA.on(u, "fx_lk_tx1"):
 					LFA.texas_cut(u, a.from_p, a.to_p, mid)
 				else:
 					u.shape({"kind": "blade", "a": mid - d2 * 110.0, "b": mid + d2 * 110.0, "w": 7.0, "col": Color.WHITE, "glow": cp, "grow": 0.03, "life": 0.7})
