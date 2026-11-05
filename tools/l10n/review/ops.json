@@ -188,8 +188,8 @@
   "note": "候选2：She is a wolf without a pack. As a Guard Operator, she excels at breaching and clearing operations."
  },
  "女妖河谷年轻的「女主人」，罗德岛圆凳滑行赛组织创始人": {
-  "en": "The young 'Mistress' of the Banshee Valley, and founder of Rhodes Island's stool-sliding races.",
-  "note": "难翻，待用户定：「女主人」是梗（逻各斯是男性），英文保留引号；「圆凳滑行赛」出处我没查到原作，按字面译。候选2：Young 'Lady' of the Banshee Valley; founder of the Rhodes Island Office Chair Racing League."
+  "en": "The young 'Lady' of the Banshee Valley, organizer of Rhodes Island's stool racing competition.",
+  "note": "「圆凳滑行赛」出自档案资料三，en_US handbook_info_table 原文 the stool racing competition…Logos organized that；原作只说组织，不说创始人。「女主人」暂定 'Lady'，保留引号（协调人 11-05 暂定）"
  },
  "无论是什么身份，他始终只是竭尽自己所能，为同伴提供支持和援助": {
   "en": "Whatever his title, he simply does all he can to support and aid his companions.",
@@ -204,8 +204,8 @@
   "note": "候选2：Everyone knows what Saria on the battlefield means. Trust her with your back, then advance."
  },
  "“举起大锤，领着大伙，毫不畏惧地冲锋”，对她来说，这些一直都是理所当然的事情。": {
-  "en": "'Raise the hammer, lead the crew, charge without fear.' For her, that has always gone without saying.",
-  "note": "难翻，待用户定：引号里那句如果出自原作语音 / 档案，应换成官方英文，我没在 character_table 里找到出处。候选2：'Hammer up, gang behind me, charge without fear.' To her, it has always been the obvious thing to do."
+  "en": "'Lead from the front, charging fearlessly into the fray with the hammer.' To her, it has always been her nature.",
+  "note": "出处：悖论模拟「头阵冲锋」关卡简介（handbook_info_table.handbookStageData.char_112_siege，mem_siege_1，en 关卡名 Heading the Charge）。en_US 原表是意译，没有引号句，原文：From the streets to the battlefield, it has always been her nature to lead from the front, charging fearlessly into the fray with her hammer. 这里按官方措辞改写。wiki.gg 引的 Bring the hammer out, bring the gang in, charge without fear 在 en_US 原表里查不到"
  },
  "前阿戈尔传奇电工，能够以一己之力维护一整座城市的海底灯光阵列": {
   "en": "Former legendary Ægir electrician, able to maintain an entire city's undersea lighting array single-handedly.",
@@ -221,7 +221,7 @@
  },
  "罗德岛干员铃兰，九倍的温柔与坚强。她是罗德岛的光": {
   "en": "Suzuran, Rhodes Island Operator, has nine times the strength, and the fluffiness. She is the light of Rhodes Island.",
-  "note": "难翻，待用户定：前句是官方 char_358_lisa.itemUsage 原文（官方把「温柔」译成 fluffiness，呼应九尾）；「她是罗德岛的光」是玩家梗，直译。候选2：... She is Rhodes Island's little sun."
+  "note": "前句是官方 char_358_lisa.itemUsage 原文；后句是玩家梗，英文社区有 she is our light 的说法，暂定直译（协调人 11-05 暂定）"
  },
  "企鹅物流员工，虽然平时沉默寡言，但战斗风格却可以用“暴风骤雨”来形容。": {
   "en": "Penguin Logistics employee. Usually a woman of few words, but her fighting style is best described as a 'torrential storm'.",
