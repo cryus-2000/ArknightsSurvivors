@@ -1308,12 +1308,18 @@ func ensure(names: Array) -> void:
 			streams[n] = _load_wav("res://audio/sfx/%s.wav" % n)
 
 
-## --sfxlog（仅测试，Cfg.dev_args）：干员音效请求（op，节流前）打 SFXOP，每次播放请求打一行 SFXLOG <引擎帧> <音名> <音量 dB> <音高> <音高随机>（节流前；离线按同一份事件表混音对照新旧音效用，docs/255 §7）
+## --sfxlog（仅测试，Cfg.dev_args）：干员音效请求（op，节流前）打 SFXOP，每次播放请求打一行 SFXLOG <游戏时间> <音名> <音量 dB> <音高> <音高随机>（节流前；离线按同一份事件表混音对照新旧音效用，docs/255 §7）
 var sfx_log := false
+
+
+## --sfxlog 用的游戏时间（快进局一帧走好几步，引擎帧号对不上时间）：当前场景是 game.gd 时取它的 t，否则 −1
+func _log_t() -> float:
+	var sc := get_tree().current_scene
+	return float(sc.get("t")) if sc != null and sc.get("t") != null else -1.0
 
 func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
 	if sfx_log:
-		print("SFXLOG %d %s %.2f %.3f %.3f" % [Engine.get_process_frames(), name, vol, pitch, pitch_var])
+		print("SFXLOG %.4f %s %.2f %.3f %.3f" % [_log_t(), name, vol, pitch, pitch_var])
 	if not streams.has(name) and name.begins_with("hh_"):
 		ensure([name])
 	if not streams.has(name) or streams[name] == null:
@@ -1412,7 +1418,7 @@ func op(oid: String, kind: String, vol := 0.0, pitch := 1.0, pitch_var := 0.05) 
 		return   # 终结技播放中：队友 / 队长技能自带的音效不出声（10-31 用户：推进之王落地给全队回技力，技能当场放出，那声「咚」盖住砸地）
 	var sn := "op_%s_%s" % [oid, kind]
 	if sfx_log:
-		print("SFXOP %d %s %.2f %.3f %.3f" % [Engine.get_process_frames(), sn, vol, pitch, pitch_var])   # 干员音效请求（OP_GAP 节流前）
+		print("SFXOP %.4f %s %.2f %.3f %.3f" % [_log_t(), sn, vol, pitch, pitch_var])   # 干员音效请求（OP_GAP 节流前）
 	if sn in CMD_CUE_NAMES and cmd_cue != "old":
 		if cmd_cue == "mute":
 			return

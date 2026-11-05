@@ -75,13 +75,10 @@ def main():
         if l.startswith("FXRLOG") and len(p) >= 5:
             fr2t.append((int(p[3]), float(p[4])))
         elif l.startswith("SFXLOG") and len(p) >= 6:
-            plays.append((int(p[1]), p[2], float(p[3]), float(p[4]), float(p[5])))
+            plays.append((float(p[1]), p[2], float(p[3]), float(p[4]), float(p[5])))
         elif l.startswith("SFXOP") and len(p) >= 6:
-            ops.append((int(p[1]), p[2], float(p[3]), float(p[4]), float(p[5])))
-    fr2t.sort()
-    F = np.array([x[0] for x in fr2t], float)
-    T = np.array([x[1] for x in fr2t], float)
-    tm = lambda f: float(np.interp(f, F, T))
+            ops.append((float(p[1]), p[2], float(p[3]), float(p[4]), float(p[5])))
+    tm = lambda f: f   # 事件行第 2 列就是游戏时间（sfx.gd _log_t）
     LM = ("op_lumen_atk", "op_lumen_hit")
     outs = {}
     for ver in ("before", "after"):
