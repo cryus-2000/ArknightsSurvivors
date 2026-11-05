@@ -203,6 +203,7 @@ func draw_front(u, w) -> void:
 			continue
 		var bp: Vector2 = b.p
 		_pts(w, bp, _boom(f2, b.big))
+		_pts(w, bp + Vector2(0, -8), _cloud(age, int(b.sd) * 3 + 1, 48.0 if b.big else 40.0, 60))   # 连环爆粒子云（11-05 用户「原本路上爆炸是有粒子效果的，这里换成烟雾了」）
 		for q in 3:
 			var gr: Array = _grain(age, int(b.sd) * 7 + q, "shard" if q < 2 else "drop")
 			if not gr.is_empty():
@@ -220,12 +221,8 @@ func draw_front(u, w) -> void:
 			var bp2: Vector2 = c + dv2 * Rw * x * 0.95 + nv * (_hf(i, 1, 2) - 0.5) * 30.0
 			var dl: float = 0.08 + 0.04 * absf(x) * 3.0
 			_pts(w, bp2, _boom(int(floor((fa - dl) * 15.0)), true, 2.4))
-		# 崩解：尘墙先画、碎石压在上面（11-05 用户「少了原作那种崩解感」）
-		for side in [-1.0, 1.0]:
-			var ns: Vector2 = nv * side
-			for k in PLUME_N:
-				var x3: float = (k - (PLUME_N - 1) / 2.0) / ((PLUME_N - 1) / 2.0)
-				_pts(w, c + dv2 * Rw * x3 * 0.92 + ns * 12.0, _plume(fa - _shock_at(R, absf(x3) * 0.92 * R) - 0.02, k * 2 + (1 if side > 0.0 else 0) + 300, ns))   # 跟着冲击环往外起
+			_pts(w, bp2 + Vector2(0, -8), _cloud(fa - dl, 500 + i, 50.0, 60))   # 斩线上每一爆也是粒子云（不用烟）
+		# 地面碎石（配角）；棕灰尘墙已删（11-05 用户嫌「换成烟雾了」）
 		for q in SLAB_N:
 			var side2: float = 1.0 if q % 2 == 1 else -1.0
 			var x4: float = (float(q / 2) - (SLAB_N / 2 - 1) / 2.0) / ((SLAB_N / 2 - 1) / 2.0)
@@ -741,9 +738,10 @@ func _draw_blast(u, w, c: Vector2, R: float, fa: float) -> void:
 		for pn in st.pins:   # 崩解第二波：和大爆同一拍，所有被宣判的怪沿斩线往外再炸一次（更大）
 			var ep: Vector2 = pn.last if pn.e.get("dead", false) else pn.e.pos
 			_monster_burst(pn.e, ep, 1.6)
-	# ③ 亮核（2 拍）：白芯外一圈亮紫，半径约判定一半
+	# ③ 亮核（2 拍）：只留中心小一圈（白芯 + 亮紫边），体量靠冲击环和往外喷的粒子撑（11-05：平涂大椭圆像贴纸）
+	_pts(w, c + Vector2(0, -6), _cloud(tau, 777, R * 0.6, 160))
 	if bf <= 1:
-		var rx: float = R * (0.5 if bf == 0 else 0.44)
+		var rx: float = R * (0.16 if bf == 0 else 0.12)
 		_disc(w, c + Vector2(0, -6), rx, rx * SQ, LT[4] if bf == 0 else LT[3])
 		_disc(w, c + Vector2(0, -6), rx * 0.78, rx * 0.78 * SQ, LT[5] if bf == 0 else LT[4])
 		_disc(w, c + Vector2(0, -6), rx * 0.52, rx * 0.52 * SQ, LT[6] if bf == 0 else LT[5])
@@ -752,25 +750,25 @@ func _draw_blast(u, w, c: Vector2, R: float, fa: float) -> void:
 			var a2: float = TAU * i / 24.0
 			gl.append([cos(a2) * rx * 0.3, sin(a2) * rx * 0.3 * SQ - 3.0, LT[6], true])
 		_pts(w, c, gl)
-	# ④ 冲击环（约 3.5 拍）：厚 5 格、亮，推过的地方地面一闪
+	# ④ 冲击环（约 3.5 拍）：厚 8 格、亮，推过的地方地面一闪
 	if tau < SHOCK_T + 2.0 / 15.0:
 		var us: float = clampf(tau / SHOCK_T, 0.0, 1.0)
 		var rr: float = R * (0.5 + 0.5 * (1.0 - pow(1.0 - us, 2.0)))
 		var fade: float = 1.0 if tau < SHOCK_T else clampf(1.0 - (tau - SHOCK_T) / (2.0 / 15.0), 0.0, 1.0)
 		var ring: Array = []
-		var cols: Array = [LT[6], LT[6], LT[5], LT[4], LT[3]] if tau < SHOCK_T else [LT[5], LT[4], LT[3], LT[2], LT[2]]
+		var cols: Array = [LT[6], LT[6], LT[6], LT[5], LT[5], LT[4], LT[4], LT[3]] if tau < SHOCK_T else [LT[5], LT[5], LT[4], LT[4], LT[3], LT[3], LT[2], LT[2]]
 		var n: int = int(rr * 6.6) + 16
 		for q in n:
 			var t: float = float(q) / float(n) * TAU
 			var ct := Vector2(cos(t), sin(t) * SQ)
-			for j in 5:
+			for j in 8:
 				var cj: Color = cols[j]
 				ring.append([roundf(ct.x * (rr - j)), roundf(ct.y * (rr - j)), Color(cj.r, cj.g, cj.b, fade), j == 0 and q % 3 == 0])
 			if tau < SHOCK_T:   # 地面一闪：环后 6–14 格一道淡亮紫
-				for j2 in range(6, 15, 2):
+				for j2 in range(9, 18, 2):
 					if (q + j2) % 3 == 0:
 						continue
-					ring.append([roundf(ct.x * (rr - j2)), roundf(ct.y * (rr - j2)), LT[3], 0.45 * (1.0 - float(j2) / 15.0)])   # [x, y, 颜色, 不透明度]（原来少了第 4 项，_pts 读 q[3] 报错）
+					ring.append([roundf(ct.x * (rr - j2)), roundf(ct.y * (rr - j2)), LT[3], 0.45 * (1.0 - float(j2) / 18.0)])   # [x, y, 颜色, 不透明度]（原来少了第 4 项，_pts 读 q[3] 报错）
 		_pts(w, c, ring)
 
 
@@ -830,3 +828,32 @@ func _draw_sprays(w) -> void:
 			var al: float = 1.0 if age < 0.9 else maxf(0.0, (1.3 - age) / 0.4)
 			lst.append([x, y, Color(c.r, c.g, c.b, al), age < 2.0 / 15.0 and q % 3 == 0, 2.0 if q % 3 != 2 else 1.0])
 		_pts(w, sp.p, lst)
+
+
+## 粒子云（连环爆 / 斩线上的爆 / 收尾大爆往外喷；11-05 用户：原版路上的爆炸是一大团闪烁的粒子云，不要烟）：
+## 白 / 亮紫 / 淡紫 + 少量浅蓝的 1 格小亮点（每 3 颗一颗 2 格），0.35 秒内往外炸开到 size（美术像素）、之后慢慢漂上去散掉；
+## 0.25 秒后逐拍闪烁（每拍三分之一不亮），越往后剩得越少，1.2 秒散完。n = 颗数（缺省按 size 定，60 封顶）。散布按坐标哈希
+func _cloud(age: float, sd: int, size: float, n := -1) -> Array:
+	var out: Array = []
+	if age < 0.0 or age > 1.2:
+		return out
+	if n < 0:
+		n = mini(60, int(30.0 + size * 0.6))
+	var fr: int = int(age * 15.0)
+	var u: float = minf(1.0, age / 0.35)
+	var grow: float = 1.0 - pow(1.0 - u, 2.0)
+	for k in n:
+		if age > 0.25 and (fr + k) % 3 == 0:
+			continue
+		if _hf(k, sd, 84) < age / 1.2:
+			continue
+		var a: float = TAU * _hf(k, sd, 81)
+		var r: float = size * sqrt(_hf(k, sd, 82)) * grow + age * 4.0   # 按面积均匀铺满（不成空心圈）
+		var x: float = cos(a) * r
+		var y: float = sin(a) * r * SQ - age * 10.0 * _hf(k, sd, 83)
+		var hc: float = _hf(k, sd, 85)
+		var c: Color = LT[6] if hc < 0.35 else (LT[5] if hc < 0.75 else (LT[4] if hc < 0.9 else TIDE[5]))
+		if age > 0.6:
+			c = LT[5] if c == LT[6] else (LT[4] if c == LT[5] else c)
+		out.append([x, y, c, c == LT[6] and age < 0.3, 2.0 if k % 3 == 0 else 1.0])
+	return out

@@ -497,10 +497,10 @@ def blast_prep(R, fa):
 
 
 def blast_core(R, bf):
-    """亮核（2 拍）：三层实心椭圆，外亮紫 → 淡紫 → 白芯，半径 0.5 R（第 2 拍 0.44 R、暗一阶）。返回 [(rx, 颜色)] 由外到内"""
+    """亮核（2 拍）：三层实心椭圆，外亮紫 → 淡紫 → 白芯，只留中心小一圈 0.16 R（第 2 拍 0.12 R、暗一阶）；体量靠冲击环 + cloud(…, R × 0.6, 120) 往外喷。返回 [(rx, 颜色)] 由外到内"""
     if bf < 0 or bf > 1:
         return []
-    rx = R * (0.5 if bf == 0 else 0.44)
+    rx = R * (0.16 if bf == 0 else 0.12)   # 11-05：只留中心小一圈，不用平涂大椭圆
     return [(rx, LT[4] if bf == 0 else LT[3]), (rx * 0.78, LT[5] if bf == 0 else LT[4]), (rx * 0.52, LT[6] if bf == 0 else LT[5])]
 
 
@@ -512,18 +512,18 @@ def shock_ring(R, tau):
     us = min(1.0, tau / SHOCK_T)
     rr = R * (0.5 + 0.5 * (1 - (1 - us) ** 2))
     fade = 1.0 if tau < SHOCK_T else max(0.0, 1 - (tau - SHOCK_T) / (2 / 15))
-    cols = [LT[6], LT[6], LT[5], LT[4], LT[3]] if tau < SHOCK_T else [LT[5], LT[4], LT[3], LT[2], LT[2]]
+    cols = [LT[6], LT[6], LT[6], LT[5], LT[5], LT[4], LT[4], LT[3]] if tau < SHOCK_T else [LT[5], LT[5], LT[4], LT[4], LT[3], LT[3], LT[2], LT[2]]
     n = int(rr * 6.6) + 16
     for q in range(n):
         t = q / n * math.tau
         cx, cy = math.cos(t), math.sin(t) * SQ
-        for j in range(5):
+        for j in range(8):
             out.append((round(cx * (rr - j)), round(cy * (rr - j)), cols[j], fade))
         if tau < SHOCK_T:
-            for j2 in range(6, 15, 2):
+            for j2 in range(9, 18, 2):
                 if (q + j2) % 3 == 0:
                     continue
-                out.append((round(cx * (rr - j2)), round(cy * (rr - j2)), LT[3], 0.45 * (1 - j2 / 15)))
+                out.append((round(cx * (rr - j2)), round(cy * (rr - j2)), LT[3], 0.45 * (1 - j2 / 18)))
     return out
 
 
@@ -557,3 +557,30 @@ def spray(age, sd, out_ang, k, col):
         al = 1.0 if age < 0.9 else max(0.0, (1.3 - age) / 0.4)
         res.append((math.cos(ang) * spd * tt, math.sin(ang) * spd * tt * SQ - h, c + (al,), hot, 2 if q % 3 != 2 else 1))
     return res
+
+
+# ================================================================ 粒子云（同 ult_px_ir.gd _cloud；连环爆 / 斩线上的爆 / 收尾大爆往外喷，不用烟）
+
+def cloud(age, sd, size, n=-1):
+    out = []
+    if age < 0 or age > 1.2:
+        return out
+    if n < 0:
+        n = min(60, int(30 + size * 0.6))
+    fr = int(age * 15)
+    u = min(1.0, age / 0.35)
+    grow = 1 - (1 - u) ** 2
+    for k in range(n):
+        if age > 0.25 and (fr + k) % 3 == 0:
+            continue
+        if hf(k, sd, 84) < age / 1.2:
+            continue
+        a = math.tau * hf(k, sd, 81)
+        r = size * math.sqrt(hf(k, sd, 82)) * grow + age * 4   # 按面积均匀铺满（不成空心圈）
+        x, y = math.cos(a) * r, math.sin(a) * r * SQ - age * 10 * hf(k, sd, 83)
+        hc = hf(k, sd, 85)
+        c = LT[6] if hc < 0.35 else LT[5] if hc < 0.75 else LT[4] if hc < 0.9 else TIDE[5]
+        if age > 0.6:
+            c = LT[5] if c == LT[6] else LT[4] if c == LT[5] else c
+        out.append((x, y, c, c == LT[6] and age < 0.3, 2 if k % 3 == 0 else 1))
+    return out
