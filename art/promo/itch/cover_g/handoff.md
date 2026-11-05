@@ -38,3 +38,6 @@
 - C 的光圈是生图自带的同心色带，偏平；如选 C 可再手修。
 - 横幅里 logo 居中偏上，会压到 A 的 Mon3tr 尾部、C 的光圈顶。
 - 干员是生图里的像素造型，非逐像素对本作帧条；如选定后要求严格一致，需对照 `art/incoming/op_*_idle@2x.png` 手修。
+
+## A2（A′，11-06 待选）
+底图与补光同 A（第 150 行以下逐像素一致），只把 logo 区改成标题页 `title_jelly_menu.gd _draw_logo` 的排法：徽记平涂原色、右上「ARKNIGHTS」、细线 + 左端青色加粗、线下「RHODES ISLAND · SURVIVORS」；英文字体 / 字距 / 颜色照 `_en` 与 `UI.cond`。保留深蓝描边 + 下投影，去掉外发光。线宽按 2 像素格取整（1→2、2→4）。脚本 `build_cover_g_a2.py`，并排图 `cover_G_A_vs_A2.png`。
