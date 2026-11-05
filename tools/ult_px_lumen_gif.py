@@ -521,11 +521,7 @@ def label(t, ph, hfk):
     return "光柱熄灭 · 余辉"
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--out", default=os.path.join(MAIN, "Claude outputs", "ult_px_lumen_1105"))
-    a = ap.parse_args()
-    os.makedirs(a.out, exist_ok=True)
+def load_assets():
     SPR["lumen"] = load_sprite(os.path.join(ROOT, "game", "art", "operators", "lumen", "op_lumen_idle@2x.png"), 8)
     for nm in ("offspring", "slider", "bone", "stone"):
         p = os.path.join(ROOT, "game", "art", "enemies", nm, "e_%s@2x.png" % nm)
@@ -544,6 +540,14 @@ def main():
                 if sa[yy, xx, 3] > 128 and (xx + yy) % 2 == 0:
                     px.append((xx - sa.shape[1] / 2, yy - sa.shape[0] + 3, "#%02x%02x%02x" % tuple(int(v) for v in sa[yy, xx, :3])))
         SPR[nm] = {"img": im_d, "px": px}
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--out", default=os.path.join(MAIN, "Claude outputs", "ult_px_lumen_1105"))
+    a = ap.parse_args()
+    os.makedirs(a.out, exist_ok=True)
+    load_assets()
     font = ImageFont.truetype(FONT, 20)
     meta = {}
     for ver, hf_on in (("A", True), ("B", False)):
