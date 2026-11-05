@@ -18,6 +18,7 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
+const MI = preload("res://scripts/render/melee_impact.gd")   # 近战打击感包（docs/246 §11）：斩痕 / 照地光提亮
 const META := "res://data/pxp_skadi.json"
 const ART := "res://art/fx/pxp/pxp_%s.png"
 const IDS := {"skadi": true}
@@ -212,10 +213,10 @@ func _burst(o, R, p: Dictionary, at: Vector2, gy: float, es: Array, n: int, lr: 
 		var e: Dictionary = es[0]
 		var hp: Vector2 = e.pos + Vector2(0, -float(e.r) * 0.5)
 		R._grains(o, hp, float(e.pos.y) + 2.0, "ink", mini(n, 2 + es.size()), m, (hp - o.pos).normalized())
-		R._light(o, hp, lr, li, 0.12, p.light)
+		R._light(o, hp, lr, li * MI.lit_k(g), 0.12, p.light)
 	else:
 		R._grains(o, at, gy, "ink", maxi(1, n / 2), m)
-		R._light(o, at, lr * 0.8, li * 0.6, 0.1, p.light)
+		R._light(o, at, lr * 0.8, li * 0.6 * MI.lit_k(g), 0.1, p.light)
 
 
 ## 命中斩痕（刀剑感：被砍中的那只身上一道 1 美术像素白芯的斜线，3 拍收掉；精二交叉成 X）。只在转平面版；至多 n 只（离斯卡蒂由近到远）
@@ -419,7 +420,8 @@ func _draw_cut(ci, it: Dictionary) -> void:
 		dirs.append((it.d as Vector2).rotated(1.25))
 	var core := Color(1, 1, 1) if f == 0 else Color.html("#cddcfb")
 	var side := Color.html("#93b4f7") if f == 0 else Color.html("#598cf2")
-	var L: float = float(it.L) * [1.0, 0.8, 0.5][f]
+	var lk: float = MI.lit_k(g)
+	var L: float = float(it.L) * [1.0, 0.8, 0.5][f] * (1.0 + (lk - 1.0) * 0.6)   # 打击感包开：斩痕长一点、亮一点
 	for d in dirs:
 		var dv: Vector2 = d
 		var nv := Vector2(-dv.y, dv.x)
@@ -430,11 +432,13 @@ func _draw_cut(ci, it: Dictionary) -> void:
 			var w: float = 1.0 - absf(float(i)) / float(m + 1)   # 两头收尖
 			var p: Vector2 = _snap(c0 + dv * float(i) * px)
 			ci.draw_rect(Rect2(p, Vector2(px, px)), core if w > 0.25 else side)
-			if f == 0 and w > 0.55:
+			if f == 0 and w > (0.55 if lk <= 1.0 else 0.3):
 				ci.draw_rect(Rect2(_snap(p + nv * px), Vector2(px, px)), side)
+			if f <= 1 and lk > 1.0 and w > 0.5:
+				ci.draw_rect(Rect2(_snap(p - nv * px), Vector2(px, px)), side)
 			if f == 0 and w > 0.4 and g.optical_on and _emit_n < EMIT_CAP and (i & 1) == 0:
 				_emit_n += 1
-				g.glow_next.append([p, px, Color(1, 1, 1, Bal.v("fx/px_plane_emit", 0.8))])
+				g.glow_next.append([p, px, Color(1, 1, 1, minf(1.0, Bal.v("fx/px_plane_emit", 0.8) * lk))])
 
 
 static func sort_key(it: Dictionary) -> float:

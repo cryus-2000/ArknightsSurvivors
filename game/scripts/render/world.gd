@@ -12,7 +12,8 @@ const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const Fxr = preload("res://scripts/render/fx_recipe.gd")
-const Pxp = preload("res://scripts/render/fx_pxplane.gd")   # 转平面试验（docs/246）   # 配方受击反应（docs/245 §5.9，fx/recipe_hitreact）：闪本人色 + 被打那只的局部打击停顿，只改画面
+const Pxp = preload("res://scripts/render/fx_pxplane.gd")   # 转平面试验（docs/246）
+const MeleeImpact = preload("res://scripts/render/melee_impact.gd")   # 近战打击感包（docs/246 §11）：画面击退   # 配方受击反应（docs/245 §5.9，fx/recipe_hitreact）：闪本人色 + 被打那只的局部打击停顿，只改画面
 const Look = preload("res://scripts/render/look.gd")   # 观感预设：角色本体受光封顶（render/look ≥ 1）
 const LateRead = preload("res://scripts/render/late_read.gd")   # 后期可读性第一批（docs/247，render/late_read）
 const Dc = preload("res://scripts/render/declutter.gd")   # 后期降噪预设（render/declutter）
@@ -154,7 +155,10 @@ var rc_px := 3.0
 var rc_t := 0.1
 
 func _eoff(e: Dictionary) -> Vector2:
-	return D.enemy_offset(e, g.t, rc_px, rc_t)   # 纯函数在 data.gd（docs/101 B1）
+	var off: Vector2 = D.enemy_offset(e, g.t, rc_px, rc_t)   # 纯函数在 data.gd（docs/101 B1）
+	if e.has("mi_at"):
+		off += MeleeImpact.off(g, e)   # 近战打击感包：被打的怪画面上推开再弹回（判定位置不动）
+	return off
 
 
 func update_visuals(dt: float) -> void:
