@@ -8,8 +8,10 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
-const IDS := {"skadi": Color(0.55, 0.78, 1.0), "hoshiguma": Color(1.0, 0.78, 0.42)}
-const HEAVY := {"迅捷打击·γ型": true, "跃浪击": true, "破浪下劈": true, "反手斩": false}
+const IDS := {"skadi": Color(0.55, 0.78, 1.0), "hoshiguma": Color(1.0, 0.78, 0.42), "gladiia": Color(0.62, 0.72, 1.0)}   # 歌蕾蒂娅（docs/263）：钩索落地 / 拖回到位 / 冲撞
+const HEAVY := {"迅捷打击·γ型": true, "跃浪击": true, "破浪下劈": true, "反手斩": false, "大洋裂断": true, "冲撞": true}
+## 不走打击感包的招：歌蕾蒂娅 S3 每 0.75 秒一跳、反震（持续 / 被动，顿帧震屏会一直抖）
+const SKIP := {"碎漩狂舞": true, "反震": true}
 const FLASH_T := 0.07
 
 
@@ -24,7 +26,7 @@ static func lit_k(g) -> float:
 
 ## ob_core.exec_shape 判定结算后调（只画）：o 出手的干员，src 招式名，tags，hits 被打中的敌人
 static func hit(o, src: String, tags: Array, hits: Array) -> void:
-	if hits.is_empty() or not IDS.has(str(o.id)):
+	if hits.is_empty() or not IDS.has(str(o.id)) or SKIP.has(src):
 		return
 	var g = o.g
 	if not on(g):

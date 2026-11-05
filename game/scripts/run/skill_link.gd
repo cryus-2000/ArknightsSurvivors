@@ -444,13 +444,16 @@ static func _step_sample(u, a: Dictionary) -> bool:
 			return t >= T + 0.9
 		"gather":   # 歌蕾蒂娅：甩钩 0.14 秒 → 拖 0.36 秒 → 落地，钩索残留 0.5 秒慢慢收
 			var pull: Array = a.pull
+			var pxg: bool = Fxr.owns(p)   # 转平面（docs/263）：接管时链 / 落地画面改由 fx_pxplane 画（只画）
 			if not a.done.has("go"):
 				a.done["go"] = true
 				p._set_face(1.0 if c.x >= p.pos.x else -1.0, true)
 				p.play_vis_anim("attack")
+				if pxg:
+					Fxr.ev(p, "gl_lthrow", {"pull": pull, "c": c, "r": r})
 			if t < 0.14:
 				for e in pull:
-					if not e.dead:
+					if not e.dead and not pxg:
 						u.shape({"kind": "line", "a": p.pos + Vector2(0, -20), "b": Vector2(p.pos).lerp(e.pos, t / 0.14), "w": 3.0, "col": HOOK, "life": 0.04})
 				return false
 			if t < 0.5:
@@ -462,18 +465,22 @@ static func _step_sample(u, a: Dictionary) -> bool:
 						continue
 					var to: Vector2 = c + (e.pos - c).normalized() * r * 0.45
 					p.nudge(e, (to - e.pos) * 0.22)
-					u.shape({"kind": "line", "a": p.pos + Vector2(0, -20), "b": e.pos, "w": 3.0, "col": HOOK, "life": 0.04})
-					u.shape({"kind": "circle", "c": e.pos, "r": 6.0, "col": HOOK, "fill": 1.0, "life": 0.04})
+					if not pxg:
+						u.shape({"kind": "line", "a": p.pos + Vector2(0, -20), "b": e.pos, "w": 3.0, "col": HOOK, "life": 0.04})
+						u.shape({"kind": "circle", "c": e.pos, "r": 6.0, "col": HOOK, "fill": 1.0, "life": 0.04})
 				return false
 			if not a.done.has("land"):
 				a.done["land"] = true
-				if not LFB.gl_land(u, c, r):
+				if pxg:
+					Fxr.ev(p, "gl_lland", {"c": c, "r": r, "pull": pull})
+				elif not LFB.gl_land(u, c, r):
 					u.shape({"kind": "ring", "c": c, "r": r, "r1": r * 0.4, "w": 4.0, "col": HOOK, "life": 0.5})
 					u.light(c, 220.0, HOOK, 0.4)
 				for e in pull:
 					if not e.dead:
-						u.grain("water", e.pos, Vector2.UP, HOOK, 6)   # 被拖到的怪落地溅水
-						u.shape({"kind": "line", "a": p.pos + Vector2(0, -20), "b": e.pos, "w": 2.0, "col": HOOK, "life": 0.5})   # 钩索残留
+						if not pxg:
+							u.grain("water", e.pos, Vector2.UP, HOOK, 6)   # 被拖到的怪落地溅水
+							u.shape({"kind": "line", "a": p.pos + Vector2(0, -20), "b": e.pos, "w": 2.0, "col": HOOK, "life": 0.5})   # 钩索残留
 						p.log_hit(_src(p, "聚拢"), ["连携"])
 						p.deal_damage(e, _dmg(p, Bal.v("ult/link_gather_mult", 0.6), e))
 						if not e.boss:

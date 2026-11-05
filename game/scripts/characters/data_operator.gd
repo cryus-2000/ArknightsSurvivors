@@ -1514,6 +1514,10 @@ func _ext_sustain(act: Array, dt: float) -> void:
 
 ## 区域画面的收尾只读原场快照，不修改区域伤害、tick 数或最后命中点。
 func _end_field_visual(f: Dictionary) -> void:
+	if f.get("pxp", false) and not f.get("visual_done", false):   # 歌蕾蒂娅转平面（docs/263）：龙卷收拢炸开（只画）
+		f["visual_done"] = true
+		Fxr.ev(self, "gl_s3end", {"f": f})
+		return
 	if f.has("pix") and not f.get("visual_done", false):   # pixfx 画面（只读区域快照）：龙卷砸回海面，不播原收尾帧条
 		f["visual_done"] = true
 		FxGlS3.finish(self, f)
@@ -1558,7 +1562,10 @@ func _ext_exec(b: Dictionary, at: Vector2) -> void:
 			if fields.size() > FIELD_CAP:
 				_end_field_visual(fields[0])
 				fields.pop_front()
-			if str(b.get("pix", "")) == "gl_s3" and FxGlS3.start(self, field):
+			if str(b.get("pix", "")) == "gl_s3" and Fxr.Pxp.owns_id(g, str(id)):   # 歌蕾蒂娅转平面（docs/263）：龙卷由 fx_pxplane 按区域状态画（只画）
+				field["pxp"] = true
+				Fxr.ev(self, "gl_s3", {"f": field})
+			elif str(b.get("pix", "")) == "gl_s3" and FxGlS3.start(self, field):
 				pass   # 歌蕾蒂娅 S3：pixfx 漩涡 + 龙卷（g.ult 关 / 缺图时 start 返回 false，照播下面的原帧条）
 			elif b.has("fx"):   # 通用 fx（§5.6）：中心 = 区域中心、半径 = 区域半径；没写 life 的条目循环到区域结束（once：只播一遍，精英化段）
 				var fl: Array = []
