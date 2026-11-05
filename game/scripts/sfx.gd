@@ -329,7 +329,7 @@ func sample_report() -> String:
 	for tn in lay.keys() + groups.keys():
 		for st in _track_streams(tn):
 			if st is AudioStream and not names.has(st):
-				names[st] = "music"
+				names[st] = "music:" + str(tn)
 			lists.append(st)
 	for child in get_children():
 		if child is AudioStreamPlayer and child.stream is AudioStream:
@@ -344,7 +344,7 @@ func sample_report() -> String:
 			if nm.begins_with("op_") or nm.begins_with("ult_"):
 				var pp := nm.split("_")
 				k = pp[0] + "_" + (pp[1] if pp.size() > 1 else "")
-			elif nm != "music" and not nm.begins_with("player/"):
+			elif not nm.begins_with("music:") and not nm.begins_with("player/"):
 				k = "sfx"
 			by[k] = float(by.get(k, 0.0)) + st.get_length()
 	var ks: Array = by.keys()
