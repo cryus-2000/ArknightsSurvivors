@@ -31,4 +31,7 @@ if [ -n "${BASE:-}" ]; then
     ( cd /work/base && python3 tools/asset_index.py >/dev/null 2>&1; "$GODOT" --headless --path game --import >/dev/null 2>&1 )
     shoot /work/base/game "$OUT/base"
 fi
+# 批跑只收 md / json / txt / log：截图打包另传到本批的桶目录（本机取：gcloud storage cp gs://<项目>-batch/<tag>/shots.tar.gz .）
+GS="$(curl -s -H 'Metadata-Flavor: Google' http://metadata.google.internal/computeMetadata/v1/instance/attributes/batch-gs)"
+( cd "$OUT" && find . -name '*.png' | tar -czf /work/shots.tar.gz -T - ) && gcloud storage cp /work/shots.tar.gz "$GS/shots.tar.gz" -q && echo "截图已传 $GS/shots.tar.gz" | tee "$OUT/shots.txt"
 exit 0
