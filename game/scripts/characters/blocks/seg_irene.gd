@@ -48,6 +48,8 @@ static func h3_attack_start(o, a: Dictionary, dt: float) -> void:
 	if str(a.get("shape", "")) == "thrust" and o.ammo.size() > 0 and int(o.ammo[0]) > 0:   # 转平面（docs/272）：起风那一刺的蓄光，只画（只读弹药）
 		_FXR.ev(o, "ir_charge", {"ang": (at - o.pos).angle()})
 	_e3_windup(o)   # 精英化第 3 批：trig.on_windup（卷刃）
+	if str(a.get("shape", "")) == "saw":
+		_FXR.ev(o, "su_windup", {})   # 转平面（docs/268）：卷刃水纹，只画
 
 
 ## 普攻出手（data_operator._release）

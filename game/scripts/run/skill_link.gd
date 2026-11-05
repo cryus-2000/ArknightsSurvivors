@@ -665,9 +665,14 @@ static func _step16(u, a: Dictionary) -> bool:
 				var d0: Vector2 = (tp - p.pos).normalized() if tp != p.pos else Vector2.RIGHT
 				a["fp"] = p.pos
 				a["tp"] = tp + d0 * 120.0
+				if Fxr.owns(p):
+					Fxr.ev(p, "su_lgo", {"fp": a.fp, "tp": a.tp, "T": 0.2})   # 转平面（docs/268）：替身残影冲过由 fx_pxplane 画（只画）
 			var T := 0.2
+			var pxs: bool = Fxr.owns(p)
 			if t < T:
 				var q: Vector2 = Vector2(a.fp).lerp(a.tp, t / T)
+				if pxs:
+					return false
 				if not LFB.sp_ghost(u, p, q, (Vector2(a.tp) - Vector2(a.fp)).normalized()):
 					u.shape({"kind": "ellipse", "c": q + Vector2(0, -20), "rx": 10.0, "ry": 22.0, "col": cl, "fill": 0.55, "life": 0.18})   # 替身残影（人形竖块）
 					u.shape({"kind": "ellipse", "c": q + Vector2(0, -46), "rx": 7.0, "ry": 7.0, "col": cl, "fill": 0.55, "life": 0.18})
@@ -677,7 +682,9 @@ static func _step16(u, a: Dictionary) -> bool:
 				_beat(u)
 				var fp: Vector2 = a.fp
 				var tp2: Vector2 = a.tp
-				if not LFB.sp_cut(u, fp, tp2):
+				if pxs:
+					Fxr.ev(p, "su_lcut", {"fp": fp, "tp": tp2, "es": u.in_band(fp, tp2, 40.0)})   # 转平面（docs/268）：斩线 / 火星（只画）
+				elif not LFB.sp_cut(u, fp, tp2):
 					u.shape({"kind": "blade", "a": fp, "b": tp2, "w": 7.0, "col": Color(1.0, 0.86, 0.84), "glow": cl, "grow": 0.03, "life": 0.6})
 					u.grain("blade", fp.lerp(tp2, 0.5), (tp2 - fp).normalized().orthogonal(), cl, 8)
 					u.light(fp.lerp(tp2, 0.6), 150.0, cl, 0.3)

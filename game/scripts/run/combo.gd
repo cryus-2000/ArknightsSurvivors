@@ -695,6 +695,7 @@ static func _strike(u, a: Dictionary) -> void:
 		"specter_unchained":   # 替身连斩（三下，后两下在 _post），之后 2 秒队长生命不会低于 1
 			hits = _area(p, stop, 90.0, 0.55, 60.0, 0.0, ang, 1.6)
 			p.slash_fx(stop, ang, 1.4, 90.0, c, "slash", 0.2)
+			_FXR.ev(p, "su_combo", _su_cut(stop, ang, hits))   # 转平面（docs/268）：只画
 			_linger(u, p, {"kind": "undying", "dur": Bal.v("ult/specter_t", 2.0)})
 		"ulpianus":   # 砸锚：击退并眩晕 0.4 秒
 			hits = _area(p, stop, 125.0, 1.5, 220.0, 0.4)
@@ -709,6 +710,13 @@ static func _strike(u, a: Dictionary) -> void:
 	_ring(u, tp, 70.0, c)
 	p.sparks(tp, Vector2(a.dir), c, 6, 160.0)
 	_landed(u, a, stop, hits.size())
+
+
+## 归溟幽灵鲨旧连携三斩的画面（转平面 docs/268）：一道横过落点的斩线（垂直于出手方向，长 = 斩击半径 × 2）
+static func _su_cut(stop: Vector2, ang: float, hits: Array) -> Dictionary:
+	var nv: Vector2 = Vector2.from_angle(ang).orthogonal()
+	var at: Vector2 = stop + Vector2.from_angle(ang) * 40.0
+	return {"fp": at - nv * 80.0, "tp": at + nv * 80.0, "es": hits}
 
 
 ## 收势：多段（艾丽妮第二刺、幽灵鲨后两斩）在这里出；hold 秒后结束，编队跟随拉回
@@ -728,6 +736,7 @@ static func _post(u, a: Dictionary) -> bool:
 				var ang: float = (_tpos(a) - stop).angle() + (0.7 if int(a.sl) == 2 else -0.7)
 				var hits: Array = _area(p, stop, 90.0, 0.5, 60.0, 0.0, ang, 1.6)
 				p.slash_fx(stop, ang, 1.4, 90.0, p.col().lerp(Color.WHITE, 0.3), "slash", 0.2)
+				_FXR.ev(p, "su_combo", _su_cut(stop, ang, hits))   # 转平面（docs/268）：只画
 				_landed(u, a, stop, hits.size())
 	return el >= float(a.get("hold", 0.22))
 
