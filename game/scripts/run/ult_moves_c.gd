@@ -21,6 +21,21 @@ const COL_AMBER := Color(1.0, 0.72, 0.3)
 const COL_LIGHT := Color(0.96, 0.98, 1.0)
 const LU_WARM := Color(1.0, 0.72, 0.36)   # 流明 v3 暖光：外层 / 光芒
 const LU_HI := Color(1.0, 0.93, 0.78)     # 流明 v3 暖光：内芯 / 光圈
+## 流明「只改颜色」（11-05 用户「流明能不能只是在原本的改个颜色？」，ult/px_plane_lumen 或总开关 ult/px_plane）：
+## 原版 v3 的形状、画法（含棋盘格半透明）、节奏、体量、音效一律不动，只把暖黄 / 金换成普攻 / 技能定稿的钢蓝白（house.js OP.lumen），
+## 两张暖黄帧条换成 tools/ult_lumen_recolor.py 出的 *_lm 版（灯芯一点灯火橙）
+const LU_S_MAIN := Color("#7fb2d6")   # 换 LU_WARM（外层 / 光芒）
+const LU_S_HI := Color("#c4e0f2")     # 换 LU_HI（内芯 / 光圈）
+const LU_S_DEEP := Color("#4285ad")   # 换余辉铺底的深暖金
+
+
+static func _lu_steel() -> bool:
+	return Bal.v("ult/px_plane", 0.0) > 0.0 or Bal.v("ult/px_plane_lumen", 0.0) > 0.0
+
+
+## 原版暖色 → 钢蓝（开关关时原样返回）
+static func _luc(warm: Color, steel: Color) -> Color:
+	return steel if _lu_steel() else warm
 const COL_INK := Color(0.3, 0.32, 0.85)
 const COL_RED := Color(0.95, 0.25, 0.18)
 const COL_ROCK := Color(0.62, 0.48, 0.3)
@@ -2276,8 +2291,9 @@ static func _lu_start(u, o) -> Dictionary:
 	var c: Vector2 = o.pos
 	var dur: float = Bal.v("ult/lu_dur", 2.0)
 	var v3: bool = Bal.v("ult/lu_fx_v3", 1.0) > 0.0
-	var col: Color = LU_WARM if v3 else u._col(o)   # v3 暖光（用户 10-31「流明的光现在还是蓝色的」）：干员色偏蓝青、COL_LIGHT 偏冷白，都换暖色
-	var hi: Color = LU_HI if v3 else COL_LIGHT
+	var col: Color = _luc(LU_WARM, LU_S_MAIN) if v3 else u._col(o)   # v3 暖光（用户 10-31「流明的光现在还是蓝色的」）：干员色偏蓝青、COL_LIGHT 偏冷白，都换暖色
+	var hi: Color = _luc(LU_HI, LU_S_HI) if v3 else COL_LIGHT
+	var st: bool = v3 and _lu_steel()
 	var H: float = 620.0
 	var v2: bool = (not v3) and FC.lu_v2(u)   # 光柱 v2（ult-fx-c2 pixgen 光面）只在 v3 暖光关掉时用：流明以 ult-fx-power v3 为准（用户 10-31 确认的 13 人之一）
 	if not v2:
@@ -2285,8 +2301,12 @@ static func _lu_start(u, o) -> Dictionary:
 		u.shape({"kind": "band", "a": c + Vector2(0, 10), "b": c + Vector2(0, -H), "w": 86.0, "col": col, "fill": 0.45, "life": dur + 0.3})
 		u.shape({"kind": "band", "a": c + Vector2(0, 6), "b": c + Vector2(0, -H), "w": 30.0, "col": hi, "fill": 0.85, "life": dur + 0.25})
 		u.shape({"kind": "blade", "a": c + Vector2(0, 20), "b": c + Vector2(0, -H - 40.0), "w": 22.0, "col": hi, "glow": col, "grow": 0.15, "life": 0.4})
-		u.strip("fx_beacon_ignite", c, {"sc": 3.0, "col": Color(1.0, 0.85, 0.6) if v3 else Color(0.85, 0.95, 1.0)})
-		u.strip("fx_lumen_beam_flare", c + Vector2(0, -H), {"sc": 2.5, "loop": true, "life": dur + 0.2, "col": Color(1.0, 0.82, 0.55) if v3 else Color.WHITE})
+		if st:   # 只改颜色：换色帧条，不再叠暖色调制
+			u.strip("fx_beacon_ignite_lm", c, {"sc": 3.0, "col": Color.WHITE})
+			u.strip("fx_lumen_beam_flare_lm", c + Vector2(0, -H), {"sc": 2.5, "loop": true, "life": dur + 0.2, "col": Color.WHITE})
+		else:
+			u.strip("fx_beacon_ignite", c, {"sc": 3.0, "col": Color(1.0, 0.85, 0.6) if v3 else Color(0.85, 0.95, 1.0)})
+			u.strip("fx_lumen_beam_flare", c + Vector2(0, -H), {"sc": 2.5, "loop": true, "life": dur + 0.2, "col": Color(1.0, 0.82, 0.55) if v3 else Color.WHITE})
 	g.lamp = maxf(g.lamp, float(g.lamp_cap))   # 附带：灯火补满
 	g.nerve = 0.0   # 清除神经损伤，6 秒内不再累积
 	g.nerve_lock = maxf(g.nerve_lock, Bal.v("ult/lu_nerve_t", 6.0))
@@ -2306,8 +2326,8 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 	var c: Vector2 = a.c
 	var R: float = a.R
 	var v3: bool = Bal.v("ult/lu_fx_v3", 1.0) > 0.0
-	var col: Color = LU_WARM if v3 else u._col(o)
-	var lc: Color = LU_HI if v3 else COL_LIGHT   # v3 暖光：本函数里的「光色」全换暖白
+	var col: Color = _luc(LU_WARM, LU_S_MAIN) if v3 else u._col(o)
+	var lc: Color = _luc(LU_HI, LU_S_HI) if v3 else COL_LIGHT   # v3 暖光：本函数里的「光色」全换暖白（只改颜色开关下换钢蓝白）
 	var rc: float = a.rc
 	var t0: float = a.t0
 	if t < t0:
@@ -2323,10 +2343,10 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 			_ring(u, c, R, 40.0, lc, 0.5, 18.0)
 			_ring(u, c, R * 0.92, 40.0, col, 0.5, 6.0, 0.05)
 			if v3:   # 暖光（用户 10-31「他应该是暖光」「改的有点多了」）：满圈填充浓度同旧版、只换成暖金；放射光芒 20 → 12 道、暖色、更短
-				u.shape({"kind": "circle", "c": c, "r": R, "col": Color(1.0, 0.78, 0.45), "fill": 0.2, "life": 0.45})
+				u.shape({"kind": "circle", "c": c, "r": R, "col": _luc(Color(1.0, 0.78, 0.45), LU_S_MAIN), "fill": 0.2, "life": 0.45})
 				for j in 12:
 					var dv := Vector2.from_angle(j * TAU / 12.0 + 0.13)
-					u.shape({"kind": "line", "a": c + dv * 50.0, "b": c + dv * R * 0.85, "w": 2.0, "col": Color(1.0, 0.86, 0.55), "life": 0.22})
+					u.shape({"kind": "line", "a": c + dv * 50.0, "b": c + dv * R * 0.85, "w": 2.0, "col": _luc(Color(1.0, 0.86, 0.55), LU_S_HI), "life": 0.22})
 			else:
 				u.shape({"kind": "circle", "c": c, "r": R, "col": col.lerp(Color.WHITE, 0.4), "fill": 0.22, "life": 0.45})
 				for j in 20:   # 光芒放射
@@ -2336,9 +2356,9 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 				a["soft"] = true
 				u.act["soft"] = true
 				# 余辉（用户 10-31「余辉像弹出来的」）：光圈扩散起就铺一层地面暖光，随光柱持续慢慢亮起，熄灭后 2 秒褪掉
-				a["glow_s"] = {"kind": "circle", "c": c, "r": R * 0.85, "col": Color(1.0, 0.72, 0.38), "fill": 0.0, "life": 99.0, "layer": "back"}
+				a["glow_s"] = {"kind": "circle", "c": c, "r": R * 0.85, "col": _luc(Color(1.0, 0.72, 0.38), LU_S_DEEP), "fill": 0.0, "life": 99.0, "layer": "back"}
 				u.shape(a.glow_s)
-				a["glow_r"] = {"kind": "ring", "c": c, "r": R * 0.85, "w": 4.0, "col": Color(1.0, 0.8, 0.45, 0.0), "solid": true, "life": 99.0}
+				a["glow_r"] = {"kind": "ring", "c": c, "r": R * 0.85, "w": 4.0, "col": Color(_luc(Color(1.0, 0.8, 0.45), LU_S_MAIN), 0.0), "solid": true, "life": 99.0}
 				u.shape(a.glow_r)
 	var T: float = a.exp
 	if not a.get("edone", false):   # 光圈扩散：前沿经过时 80%（扩到 R 的那一帧必扫一次）
@@ -2395,7 +2415,7 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 		if el < dur + 0.05:
 			a.glow_s.fill = 0.12 * kg
 			a.glow_s.age = 0.0
-			a.glow_r.col = Color(1.0, 0.8, 0.45, 0.55 * kg)
+			a.glow_r.col = Color(_luc(Color(1.0, 0.8, 0.45), LU_S_MAIN), 0.55 * kg)
 			a.glow_r.age = 0.0
 		elif not a.get("glow_done", false):
 			a["glow_done"] = true
@@ -2409,7 +2429,7 @@ static func _lu_step(u, a: Dictionary, o, dt: float) -> bool:
 			for q in 2:
 				var vs: float = PF.h(float(mi * 2 + q) * 0.71 + c.x * 0.01)
 				var pm: Vector2 = c + Vector2.from_angle(vs * TAU) * R * 0.8 * sqrt(PF.h(vs * 13.0))
-				u.grain("mote_up", pm, Vector2.UP, Color(1.0, 0.82, 0.48), 2)
+				u.grain("mote_up", pm, Vector2.UP, _luc(Color(1.0, 0.82, 0.48), LU_S_HI), 2)
 	if el >= dur + 0.05 and a.has("v2"):
 		FC.lu_end(u, a)
 	return el >= dur + 0.05
