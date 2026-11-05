@@ -8,7 +8,7 @@
   data/pxp_skadi.json 帧数、fps、帧尺寸、原点（脚底 / 地面点），以及每帧的 emit 点表（最亮的热芯像素：进光学层发光通道）。
 raw（旧做法对照，fx/px_plane = 2）：色层 + 光层烤成一张（光晕变成颜色），游戏里旋转 + 小数缩放直接贴。
 
-用法（仓库根目录）：python tools/pxplane_bake.py [--op skadi|hoshiguma|siege]（推进之王 docs/264：帧条 pxp_sg_*、元数据 data/pxp_siege.json） [--only 键前缀]（星熊 docs/254：帧条 pxp_hsg_*、元数据 data/pxp_hoshiguma.json）
+用法（仓库根目录）：python tools/pxplane_bake.py [--op skadi|hoshiguma|siege|mizuki]（推进之王 docs/264：帧条 pxp_sg_*、元数据 data/pxp_siege.json） [--only 键前缀]（星熊 docs/254：帧条 pxp_hsg_*、元数据 data/pxp_hoshiguma.json）
 """
 import argparse, json, os, shutil, subprocess, sys
 from concurrent.futures import ThreadPoolExecutor
@@ -26,6 +26,7 @@ OPS = {
     "skadi": ("water/ak-skadi-pp", "pxp_skadi.json", "", [(0x5f, 0xf0)]),
     "hoshiguma": ("melee/ak-hoshiguma-pp", "pxp_hoshiguma.json", "hsg_", [(0xf2, 0xbf)]),
     "siege": ("melee/ak-siege-pp", "pxp_siege.json", "sg_", [(0xff, 0xf1)]),
+    "mizuki": ("water/ak-mizuki-pp", "pxp_mizuki.json", "mz_", [(0xb9, 0x8c), (0x6f, 0xe8), (0xc4, 0xf7)]),
     "texas": ("melee/ak-texas-pp", "pxp_texas.json", "tx_", [(0x9f, 0xe3)]),
 }
 TMP = os.path.join(ROOT, "build", "pxp_bake")
@@ -209,6 +210,70 @@ def variants_siege():
     return v
 
 
+def variants_mizuki():
+    """水月（docs/261）：判定从 mizuki.json 读，美术像素 = 世界 / 2。范围成长（late_shape 召唤流派 +12% / 档、范围卡）会放大判定，
+    伞击 / 唤醒 / 镜花水月按两档半径预生成，游戏挑最近的一档（只整数放大，不缩放）。"""
+    v = []
+    T = [0, 1, 2]
+    SPAN = 2.62   # 伞击半角 75° → 弧 150°
+    for R in (56, 70):   # 普攻伞击：swing_radius 112 → 56
+        for el in T:
+            for d in DIRS:
+                for ly in ("up", "gd"):
+                    v.append(("atk_r%d_e%d_%s_d%d" % (R, el, ly, d), {"part": "sweep", "layer": ly, "R": R, "span": SPAN, "W": [10, 12, 14][el] + (R - 56) // 7, "dir": d, "el": el, "dur": 0.3, "style": "basic"}, 0.34))
+    for R in (56, 70):   # 囚徒困境期间的伞击（间隔减半）：更薄更快、青白沿 + 幻影残弧
+        for el in (1, 2):
+            for d in DIRS:
+                for ly in ("up", "gd"):
+                    v.append(("s2_r%d_e%d_%s_d%d" % (R, el, ly, d), {"part": "sweep", "layer": ly, "R": R, "span": SPAN, "W": [9, 11][el - 1] + (R - 56) // 7, "dir": d, "el": el, "dur": 0.26, "style": "s2", "seed": 5}, 0.3))
+    for R in (73, 92):   # 唤醒强化的那一击：范围 × 1.3 → 73
+        for el in T:
+            for d in DIRS:
+                for ly in ("up", "gd"):
+                    v.append(("s1_r%d_e%d_%s_d%d" % (R, el, ly, d), {"part": "sweep", "layer": ly, "R": R, "span": SPAN, "W": [14, 16, 18][el] + (R - 73) // 8, "H0": 13, "dir": d, "el": el, "dur": 0.36, "style": "s1", "seed": 7}, 0.4))
+    for R in (81, 104):   # 镜花水月旋斩：全范围、范围 × 1.45 → 81
+        for ly in ("up", "gd"):
+            v.append(("spin3_r%d_%s" % (R, ly), {"part": "spin", "layer": ly, "R": R, "W": 16 + (R - 81) // 8, "H0": 13, "el": 2, "dur": 0.36, "style": "s3", "seed": 9}, 0.4))
+    # 触手五种形态（11-05 用户「多做几个形态」），每种 3 个变体（弯向 / 长短 / 粗细随种子变）：
+    # slam 拍击（普攻追击，精二多一根卷须）/ pierce 刺穿（唤醒大水母下、触手桩）/ curl 卷须（囚徒困境束缚）/ big 粗拍击（镜花水月）/ cluster 群生（连携）
+    FORMS = [("slam", (1, 2), 24), ("pierce", (1, 2), 32), ("curl", (1, 2), 30), ("big", (2,), 32), ("cluster", (2,), 34)]   # 拍击横向够到约 1.25H：H 24 / 32 → 落点不越出目标一带
+    for form, els, H in FORMS:
+        for el in els:
+            for vv in range(3):
+                for ly in ("up", "gd"):
+                    v.append(("tent_%s_e%d_v%d_%s" % (form, el, vv, ly), {"part": "tent", "layer": ly, "form": form, "H": H, "el": el, "v": vv, "seed": 11 + vv * 5}, 0.52))
+    for el in T:   # 命中水母绽开（原点 = 命中点）；唤醒创伤扩散（大，带地上冲击环）
+        v.append(("bloom_e%d_up" % el, {"part": "bloom", "layer": "up", "R": [7, 9, 11][el], "H0": 0, "el": el, "style": "hit", "seed": 21 + el}, 0.42))
+        v.append(("burst_e%d_up" % el, {"part": "bloom", "layer": "up", "R": [14, 17, 20][el], "H0": 0, "el": el, "style": "burst", "seed": 24 + el}, 0.42))
+        v.append(("burst_e%d_gd" % el, {"part": "bloom", "layer": "gd", "R": [14, 17, 20][el], "el": el, "style": "burst", "seed": 24 + el}, 0.45))
+    v.append(("sting_up", {"part": "bloom", "layer": "up", "R": 6, "H0": 0, "el": 2, "style": "sting", "seed": 27}, 0.42))   # 深蓝之籽蛰中
+    for rx in (6, 9, 13, 18):   # 缠绕（束缚）：按敌人体型四档，前 / 后半圈两张，循环
+        for el in (1, 2):
+            for half in ("front", "back"):
+                v.append(("coil_r%d_e%d_%s_up" % (rx, el, half), {"part": "coil", "layer": "up", "R": rx, "half": half, "el": el, "_loop": True}, 0.4))
+    for el in (1, 2):   # 囚徒困境起手：一圈触手钻出 + 中心冰蓝尖晶 + 碎屑
+        for ly in ("up", "gd"):
+            v.append(("s2cast_e%d_%s" % (el, ly), {"part": "tring", "layer": ly, "R": 46, "n": 6 + el, "H": 30, "el": el, "style": "s2", "seed": 31}, 0.6))
+    for ly in ("up", "gd"):
+        v.append(("awk2_%s" % ly, {"part": "tring", "layer": ly, "R": 44, "n": 6, "H": 22, "el": 1, "style": "ring", "seed": 33}, 0.55))   # 惊跳反射·余悸
+        v.append(("moon_%s" % ly, {"part": "moon", "layer": ly, "R": 68, "el": 2, "seed": 35}, 0.66))   # 镜花水月起手
+    for R in (81, 104):   # 镜花水月持续：脚下水镜（循环）
+        v.append(("pool_r%d_gd" % R, {"part": "pool", "layer": "gd", "R": R, "el": 2, "seed": 37, "_loop": True}, 0.4))
+    v.append(("jelly_up", {"part": "jelly", "layer": "up", "R": 5, "H0": 0, "el": 2, "_loop": True}, 0.4))   # 深蓝之籽（循环）
+    for el in T:   # 藏品剑气 → 小水母游过去（循环）
+        v.append(("qi_e%d_up" % el, {"part": "jelly", "layer": "up", "R": [5, 6, 7][el], "H0": 0, "el": el, "seed": 41, "_loop": True}, 0.4))
+    v.append(("ready_gd", {"part": "ready", "layer": "gd", "R": 17, "_loop": True}, 0.4))   # 唤醒充能好
+    v.append(("ripple_gd", {"part": "ripple", "layer": "gd", "R": 30, "seed": 43}, 0.36))   # 扩散
+    # raw：旧做法（正俯视 / 正圆、光晕烤进颜色），游戏里旋转 + 小数缩放
+    for el in T:
+        v.append(("raw_atk_e%d" % el, {"part": "sweep", "view": "raw", "R": 56, "span": SPAN, "W": [10, 12, 14][el], "dir": 0, "el": el, "dur": 0.3}, 0.34))
+        v.append(("raw_s1_e%d" % el, {"part": "sweep", "view": "raw", "R": 73, "span": SPAN, "W": [14, 16, 18][el], "dir": 0, "el": el, "dur": 0.36, "style": "s1"}, 0.4))
+        v.append(("raw_tent_e%d" % el, {"part": "tent", "view": "raw", "form": "slam", "H": 30, "el": el, "seed": 11}, 0.5))
+        v.append(("raw_bloom_e%d" % el, {"part": "bloom", "view": "raw", "R": [7, 9, 11][el], "H0": 0, "el": el}, 0.42))
+    v.append(("raw_spin3", {"part": "spin", "view": "raw", "R": 81, "W": 16, "el": 2, "dur": 0.36, "style": "s3"}, 0.4))
+    return v
+
+
 def variants_texas():
     """德克萨斯（docs/257）：判定从 texas.json 读，美术像素 = 世界 / 2。"""
     v = []
@@ -257,7 +322,7 @@ def variants_texas():
     return v
 
 
-VARIANTS = {"skadi": variants_skadi, "hoshiguma": variants_hoshiguma, "siege": variants_siege, "texas": variants_texas}
+VARIANTS = {"skadi": variants_skadi, "hoshiguma": variants_hoshiguma, "siege": variants_siege, "mizuki": variants_mizuki, "texas": variants_texas}
 FX_ID = "water/ak-skadi-pp"
 PREFIX = ""
 ACC_RG = [(0x5f, 0xf0)]
@@ -360,7 +425,7 @@ def main():
         reg[PREFIX + k] = m
         print("%-22s %2d 帧 %3d×%3d emit %d" % (k, m["n"], m["w"], m["h"], max((len(e) for e in m["emit"]), default=0)))
     reg = {k: reg[k] for k in sorted(reg)}
-    reg["_doc"] = {"hoshiguma": "docs/254 星熊", "siege": "docs/264 推进之王", "texas": "docs/257 德克萨斯"}.get(a.op, "docs/246 斯卡蒂") + "转平面帧条（tools/pxplane_bake.py 生成，勿手改）：n 帧数、fps、w×h 帧尺寸（美术像素）、ox / oy 原点（脚底地面点）、loop、emit 每帧热芯点 [x, y, 颜色]"
+    reg["_doc"] = {"hoshiguma": "docs/254 星熊", "siege": "docs/264 推进之王", "mizuki": "docs/261 水月", "texas": "docs/257 德克萨斯"}.get(a.op, "docs/246 斯卡蒂") + "转平面帧条（tools/pxplane_bake.py 生成，勿手改）：n 帧数、fps、w×h 帧尺寸（美术像素）、ox / oy 原点（脚底地面点）、loop、emit 每帧热芯点 [x, y, 颜色]"
     json.dump(reg, open(OUT_META, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     print("共 %d 件" % (len(reg) - 1))
 

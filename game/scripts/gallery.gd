@@ -1293,7 +1293,7 @@ func _draw() -> void:
 		_draw_panel(e, ph)
 	_draw_hint(ph)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	_draw_logo_intro()   # 罗德岛标志入场（盖在最上面，0.55 秒）
+	_draw_logo_intro()   # 「档案解密」入场（盖在最上面，0.8 秒）
 
 
 ## 职业色斜带 + 延伸到右侧面板底下的回声带（同一扫入：换干员时新颜色从左扫过、透过磨砂玻璃也看得见）
@@ -2466,23 +2466,48 @@ func _ev_detail(e: Dictionary, ph: bool, x0: float, w: float, y: float, a: float
 
 
 
-# ---------------------------------------------------------------- 入场：罗德岛标志短版（用户 11-05；Codex 演示 docs/reference/prts-entry-1105「图鉴 · 短版」）
-## 总长 0.55 秒（真实时间）：0–0.06 背景压暗；0–0.13 标志横条归位亮起；0.08–0.24 图鉴黄细扫描线掠过；0.20–0.30 标志退去；
-## 0.24–0.55 中央双侧阶梯幕展开、黄细边退到屏幕外。标志 = 用户原图运行时采样 120×120（screens/rhodes_logo.gd）。
-## 点击 / 按键直接跳到图鉴并吞掉这次输入；减少动态效果时只做 ≤ 0.12 秒淡入；截图 / 无头测试直接终态（--galleryintro 录像时才播）
-const LOGO_T := 0.55
-const LOGO_RM_T := 0.12
-const RhodesLogo = preload("res://scripts/screens/rhodes_logo.gd")
-const LOGO_BG := Color(0.059, 0.063, 0.075)      # #0F1013
-const LOGO_Y := Color(1.0, 0.808, 0.0)           # #FFCE00（只用于图鉴）
-var logo_t0 := -100.0
-var logo_rm := false
+# ---------------------------------------------------------------- 入场：「档案解密」（screens/prts_intro.gd，11-05 用户「参考莱茵生命风格的动效」，短版 0.8 秒）
+## 罗德岛标志逐笔描出 → 两条对角线合拢到中心、停一下、收回 → 磨砂层由糊变清揭开图鉴。磨砂用一层拷屏模糊（ui_glass.gdshader：
+## 半径与底色透明度随 intro.frost() 退到 0）；不能拷屏（手机网页 / 苹果 WebKit，Cfg.screen_copy_ok）时 prts_intro 自己平涂淡出。
+## 点击 / 按键直接跳到图鉴并吞掉这次输入；减少动态 ≤ 0.12 秒淡出；截图 / 无头直接终态（--galleryintro 录像时才播）
+const PrtsIntro = preload("res://scripts/screens/prts_intro.gd")
+var intro = PrtsIntro.new()
+var frost_bbc: BackBufferCopy = null
+var frost_ci: ColorRect = null
 
 
 func _logo_start() -> void:
 	var test: bool = DisplayServer.get_name() == "headless" or (Array(Cfg.dev_args()).any(func(a): return str(a).begins_with("--galleryshot=")) and not Cfg.dev_args().has("--galleryintro"))
-	logo_t0 = -100.0 if test else _now()
-	logo_rm = UIMo.rm()
+	var nc := 0
+	for e in entries:
+		if not e.get("locked", false):
+			nc += 1
+	intro.info = {"count": nc, "total": entries.size()}
+	intro.start("decrypt", test)
+	if frost_ci == null and glass_mat != null and glass_fx:
+		frost_bbc = BackBufferCopy.new()
+		frost_bbc.copy_mode = BackBufferCopy.COPY_MODE_VIEWPORT
+		frost_ci = ColorRect.new()
+		frost_ci.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		frost_ci.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		var m := ShaderMaterial.new()
+		m.shader = glass_mat.shader
+		frost_ci.material = m
+		add_child(frost_bbc)
+		add_child(frost_ci)
+	_frost_tick()
+
+
+## 磨砂层：只在揭开阶段显示，半径 14 → 0、底色 0.85 → 0
+func _frost_tick() -> void:
+	if frost_ci == null:
+		return
+	var f: float = intro.frost()
+	frost_ci.visible = f >= 0.0
+	frost_bbc.visible = f >= 0.0
+	if f >= 0.0:
+		frost_ci.material.set_shader_parameter("radius", 14.0 * f)
+		frost_ci.material.set_shader_parameter("tint", Color(PrtsIntro.BG.r, PrtsIntro.BG.g, PrtsIntro.BG.b, 0.85 * f))
 
 
 var _intro_rec := false   # --galleryintro 录像：开图鉴 1.5 秒（等启动卡顿过去）后重播一次入场
@@ -2492,51 +2517,21 @@ func _intro_rec_tick() -> void:
 	if not _intro_rec and Cfg.dev_args().has("--galleryintro") and _now() > 1.5:
 		_intro_rec = true
 		_logo_start()
+	_frost_tick()
 
 
 func logo_active() -> bool:
-	return _now() - logo_t0 < (LOGO_RM_T if logo_rm else LOGO_T)
+	return intro.active()
 
 
 func _logo_skip() -> void:
-	logo_t0 = -100.0
+	intro.skip()
+	_frost_tick()
 
 
 func _draw_logo_intro() -> void:
-	var t: float = _now() - logo_t0
-	if t < 0.0 or not logo_active():
+	if not intro.active():
 		return
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	var vs: Vector2 = size
-	if logo_rm:
-		draw_rect(Rect2(Vector2.ZERO, vs), Color(LOGO_BG.r, LOGO_BG.g, LOGO_BG.b, 1.0 - t / LOGO_RM_T))
-		return
-	var appear: float = clampf(t / 0.06, 0.0, 1.0)
-	var unfold: float = UIMo.out_cubic(clampf((t - 0.24) / 0.31, 0.0, 1.0))
-	var cx: float = vs.x / 2.0
-	var row := 6.0
-	var y := 0.0
-	while y < vs.y:
-		var half: float = maxf(0.0, unfold * vs.x * 0.62 - absf(y + row / 2.0 - vs.y / 2.0) * 0.16)
-		var l: float = floorf((cx - half) / 3.0) * 3.0
-		var r: float = ceilf((cx + half) / 3.0) * 3.0
-		var bc := Color(LOGO_BG.r, LOGO_BG.g, LOGO_BG.b, appear)
-		if half <= 0.0:
-			draw_rect(Rect2(0, y, vs.x, row), bc)
-		else:
-			draw_rect(Rect2(0, y, maxf(0.0, l), row), bc)
-			draw_rect(Rect2(r, y, maxf(0.0, vs.x - r), row), bc)
-			if unfold < 0.98:
-				draw_rect(Rect2(l - 3.0, y, 3.0, row), Color(LOGO_Y.r, LOGO_Y.g, LOGO_Y.b, 0.85))
-				draw_rect(Rect2(r, y, 3.0, row), Color(LOGO_Y.r, LOGO_Y.g, LOGO_Y.b, 0.85))
-		y += row
-	if t < 0.30:
-		var reveal: float = UIMo.out_cubic(clampf(t / 0.13, 0.0, 1.0))
-		var span: float = roundf(vs.y * 0.36 / 120.0) * 120.0   # 每个标志像素取整数屏幕像素
-		var s: float = span / 120.0
-		var top: float = roundf(vs.y / 2.0 - span / 2.0)
-		var a: float = (1.0 - clampf((t - 0.20) / 0.10, 0.0, 1.0)) * appear
-		RhodesLogo.draw_bands(self, Vector2(roundf(cx - span / 2.0), top), s, 10, func(b): return roundf((1.0 if b % 2 else -1.0) * 15.0 * s * (1.0 - reveal)), Color(1, 1, 1, a))
-		if t > 0.08 and t < 0.24:
-			var sy: float = top + span * clampf((t - 0.08) / 0.16, 0.0, 1.0)
-			draw_rect(Rect2(roundf(cx - span * 0.59), roundf(sy), roundf(span * 1.18), 2.0), Color(LOGO_Y.r, LOGO_Y.g, LOGO_Y.b, a))
+	intro.host_frost = frost_ci != null
+	intro.draw(self, size, font)

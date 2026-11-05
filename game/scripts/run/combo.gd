@@ -920,12 +920,16 @@ static func _impact(u, a: Dictionary) -> void:
 					cand.append(e)
 			var pp: Vector2 = p.pos
 			cand.sort_custom(func(x, y): return x.pos.distance_squared_to(pp) < y.pos.distance_squared_to(pp))
+			var mzpx: bool = _FXR.owns(p)   # 转平面（docs/261）：接管时触手追击 + 缠住由 fx_pxplane 画（只画）
 			for e in cand.slice(0, 8):
-				_beam(u, pp + Vector2(0, -16), e.pos + Vector2(0, -6), c, 0.3, 3.0)
+				if not mzpx:
+					_beam(u, pp + Vector2(0, -16), e.pos + Vector2(0, -6), c, 0.3, 3.0)
 				_hit1(p, e, 1.2)
 				if not e.dead and not e.boss:
 					p.add_cc(e, 1.0 * (0.5 if e.elite else 1.0))
 				hits.append(e)
+			if mzpx:
+				_FXR.ev(p, "mz_link", {"es": hits})
 			tp = _centroid(hits) if not hits.is_empty() else pp
 		"kaltsit":   # Mon3tr 扑击击退，队长回复 8% 并清神经损伤
 			hits = _area(p, tp, 130.0, 1.5, 220.0)

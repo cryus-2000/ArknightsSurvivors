@@ -9,6 +9,11 @@ extends RefCounted
 
 const UI = preload("res://scripts/ui.gd")
 const UM = preload("res://scripts/ui_motion.gd")
+const PrtsIntro = preload("res://scripts/screens/prts_intro.gd")
+## 入场「接入请求」（11-05 用户「寻访也加上图标动效，参考莱茵生命风格」，screens/prts_intro.gd，0.8 秒）：盖在最上面；
+## 揭开时（0.6 秒）才放本页原有的 enter 过渡；点击 / 按键跳过并吞掉这次输入
+var intro = PrtsIntro.new()
+var _intro_enter := false
 const A = preload("res://scripts/art.gd")
 const HS = preload("res://scripts/screens/hh_style.gd")
 const Character = preload("res://scripts/characters/character.gd")
@@ -175,7 +180,7 @@ func maybe_open() -> void:
 		return
 	open = true
 	_entry()
-	_trans("enter")
+	_intro_go()
 
 
 ## 标题页入口：没有凭证 / 名册已满也打开（只能看，寻访按钮灰显）；返回是否打开了
@@ -186,8 +191,15 @@ func open_browse() -> bool:
 	open = true
 	_entry()
 	if open:
-		_trans("enter")
+		_intro_go()
 	return open
+
+
+func _intro_go() -> void:
+	intro.start("access", UM.skip_all() or (Cfg.dev_args().has("--huntshot") and not Cfg.dev_args().has("--huntrec")))   # 截图直接终态；--huntrec 录像时播
+	_intro_enter = intro.active()
+	if not _intro_enter:
+		_trans("enter")
 
 
 func _entry() -> void:
@@ -480,6 +492,11 @@ func _act(a) -> void:
 
 ## 输入（game.gd _unhandled_input 在寻访打开时整段交给这里）；返回是否用掉了这次输入
 func input(event: InputEvent) -> bool:
+	if intro.active():
+		if (event is InputEventMouseButton or event is InputEventScreenTouch or event is InputEventKey or event is InputEventJoypadButton) and event.pressed:
+			intro.skip()
+			return true
+		return event is InputEventMouseButton or event is InputEventScreenTouch
 	if mode == "pick" and choices.size() > _pick_geom().cap:
 		if event is InputEventMouseButton and event.pressed and event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_LEFT, MOUSE_BUTTON_WHEEL_DOWN, MOUSE_BUTTON_WHEEL_RIGHT]:
 			_pick_step(-1 if event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_LEFT] else 1)
@@ -694,6 +711,10 @@ func draw(vs: Vector2) -> void:
 	ci.draw_set_transform(_off, 0.0, Vector2(_k, _k))
 	_draw_trans(p)
 	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if _intro_enter and (not intro.active() or intro.elapsed() >= 0.6):
+		_intro_enter = false
+		_trans("enter")   # 入场揭开时才放本页 enter 过渡
+	intro.draw(ci, vs, g.font)
 
 
 func _trans(kind: String) -> void:

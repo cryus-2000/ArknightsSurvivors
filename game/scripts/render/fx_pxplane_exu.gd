@@ -137,7 +137,7 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 		"exu_chain":   # 「连锁」弹射：1 美术像素细线（3 拍）+ 落点小火花；每拍至多 3 道
 			if _beat_n(o, "ch") >= 3:
 				return
-			r._push({"ex": "line", "a": d.a, "b": d.b, "t0": g.t, "life": 3.0 / 15.0, "ly": "up", "gy": float(d.get("gy", 0.0)), "oid": str(o.id), "k": ""})
+			r._push({"ex": "line", "a": d.a, "b": d.b, "gp": d.b, "t0": g.t, "life": 3.0 / 15.0, "ly": "up", "gy": float(d.get("gy", 0.0)), "oid": str(o.id), "k": ""})
 			var cd: Array = Pxp.pick_dir(((d.b as Vector2) - (d.a as Vector2)).angle())
 			_up(o, "hit_x_d%d" % int(cd[0]), d.b, float(d.get("gy", 0.0)), {"hit": true, "flip": bool(cd[1])})
 		"exu_splash":   # 「扩散」溅射：贴地断续红环；每拍至多 2
@@ -154,7 +154,7 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 			var fp: Vector2 = d.fp
 			var tp: Vector2 = d.tp
 			var i: int = int(d.i)
-			r._push({"ex": "ltr", "a": fp, "b": tp, "i": i, "t0": g.t, "life": 3.0 / 15.0, "ly": "up", "gy": fp.y + 20.0, "oid": str(o.id), "k": ""})
+			r._push({"ex": "ltr", "a": fp, "b": tp, "gp": fp, "i": i, "t0": g.t, "life": 3.0 / 15.0, "ly": "up", "gy": fp.y + 20.0, "oid": str(o.id), "k": ""})
 			var dp2: Array = Pxp.pick_dir((tp - fp).angle())
 			var id2: String = str(o.id)
 			r.items = r.items.filter(func(it): return not (it.has("mz") and str(it.oid) == id2))
