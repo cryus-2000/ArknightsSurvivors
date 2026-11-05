@@ -29,6 +29,8 @@ OPS = {
     # 星熊：S1 出手即判定（下劈 + 裂网）；S2 取地刺破土后 3 帧；S3 取起手后约 0.3 秒（青绿弧 + 第一记直线撕裂）
     "hoshiguma": {"name": "星熊", "modes": {3: "普攻 盾斧斩", 0: "S1 战意", 1: "S2 荆棘", 2: "S3 力之锯"}, "off": {0: 4, 1: 10, 2: 12}},
     # 推进之王（docs/264）：S1 取起手后 4 帧（战旗 + 狮头 + 声波环）；S2 起跳 0.42 秒后落地，取落地后约 3 帧；S3 取起手后约 0.3 秒（光带 + 炭火边）
+    # 浊心斯卡蒂（docs/260）：S1 / S2 出手即画；S3 取第一次潮涌后约 7 帧（红光柱最高）；S3 演示请加 --start 1.2（演示开头约 1.5 秒就起手）
+    "skalter": {"name": "浊心斯卡蒂", "modes": {3: "普攻 声浪", 0: "S1 同归殊途之吟", 1: "S2 同葬无光之愿", 2: "S3 潮涌，潮枯"}, "off": {0: 4, 1: 5, 2: 7}},
     # 能天使（docs/262）：技能起手后约 0.2–0.3 秒（S1 第一发强力弹命中、S2 扫射、S3 第一轮 4 连射）；没有「旧做法」对照，② 栏同 ①
     "exusiai": {"name": "能天使", "modes": {3: "普攻 速射", 0: "S1 冲锋模式", 1: "S2 扫射模式", 2: "S3 过载模式"}, "off": {0: 8, 1: 8, 2: 9},
                 "cols": [(0, "① 当前游戏原样"), (0, "②（能天使没有旧做法对照，同 ①）"), (1, "③ 转平面 + 统一像素 + 吃光 + Noita")]},
@@ -208,8 +210,8 @@ def linkcmp(a, base):
         dirs[px] = os.path.join(BUILD, tag + "_frames")
         print(run(tag, ex, 30, dirs[px]), flush=True)
     log = open(os.path.join(LOGS, "link1_s%d_%d.log" % (a.seed, t0)), encoding="utf-8").read()
-    evs = [l.split() for l in log.splitlines() if l.startswith("PXPLOG hsg cover") or l.startswith("PXPLOG hsg combo ") or l.startswith("PXPLOG sg link_slam") or l.startswith("FXRLOG exusiai exu_link")]
-    evs = [e for e in evs if not e[0].startswith("FXRLOG") or t0 <= float(e[-1]) <= t0 + secs - 1]   # 能天使：只取录像窗口里的（FXRLOG 从开局记起）
+    evs = [l.split() for l in log.splitlines() if l.startswith("PXPLOG hsg cover") or l.startswith("PXPLOG hsg combo ") or l.startswith("PXPLOG sg link_slam") or l.startswith("FXRLOG exusiai exu_link") or l.startswith("PXPLOG sk sk_link") or l.startswith("PXPLOG sk sk_combo")]
+    evs = [e for e in evs if not (e[0].startswith("FXRLOG") or e[1] == "sk") or t0 <= float(e[-1]) <= t0 + secs - 1]   # 能天使：只取录像窗口里的（FXRLOG 从开局记起）
     print("连携事件", [(e[2], e[-1]) for e in evs], flush=True)
     if not evs:
         print("这段里没有连携技出手", flush=True)
@@ -226,7 +228,7 @@ def linkcmp(a, base):
     f30 = font(30)
     sheet = Image.new("RGB", (W * 3 + 8, H + 56), (12, 12, 16))
     dd = ImageDraw.Draw(sheet)
-    lname = {"cover": "举盾", "link_slam": "冲阵", "exu_link": "穿透扫射"}.get(evs[0][2], "举盾推挡")
+    lname = {"cover": "举盾", "link_slam": "冲阵", "exu_link": "穿透扫射", "sk_link": "歌声", "sk_combo": "声浪"}.get(evs[0][2], "举盾推挡")
     dd.text((12, 8), OPS[OP]["name"] + " 连携技「%s」· 实战局同种子 %d · %.2f 秒" % (lname, a.seed, T), fill=(230, 230, 230), font=f30)
     for i, (im, (px, lab)) in enumerate(zip(ims, COLS)):
         sheet.paste(label(im.copy(), lab), (i * (W + 4), 56))

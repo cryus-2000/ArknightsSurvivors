@@ -1153,7 +1153,11 @@ static func _step16(u, a: Dictionary) -> bool:
 				_beat(u)
 				u.team_buff("link:skalter", 3.0, [[&"dmg", "mult", Bal.v("ult/link_skalter_atk", 1.2)]], c, r)
 				u.light(c, r, cl, 0.5)
+				if _FXR.owns(p):
+					_FXR.ev(p, "sk_link", {"c": c, "r": r})   # 转平面（docs/260）：歌声区域由 fx_pxplane 画 3 秒，只画
 			if t < 3.0:
+				if _FXR.owns(p):
+					return false
 				var fa: float = 1.0 if t < 2.6 else (3.0 - t) / 0.4
 				if LFA.on(u, "fx_ult_skalter_domain_back"):
 					LFA.skalter_song(u, c, r, t, a)

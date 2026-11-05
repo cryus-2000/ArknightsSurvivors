@@ -189,7 +189,10 @@ func _ev(o, kind: String, d: Dictionary) -> void:
 		var ft2: float = float(recipe(str(o.id)).get("flash_t", REACT_FLASH))   # 干员自己的闪色时长（docs/265 凯尔希：1–2 帧）
 		if d.has("e") and d.e != null:
 			_react(d.e, col, heavy, ft2)
-		for e in d.get("es", []):
+		var es_r: Array = d.get("es", [])
+		if str(o.id) == "skalter" and es_r.size() > 4:
+			es_r = es_r.slice(0, 4)   # 转平面（docs/260）：她每秒一圈打 16 只，全闪太吵，只闪前 4 只
+		for e in es_r:
 			_react(e, col, heavy, ft2)
 	if Bal.v("fx/recipe_log", 0.0) > 0.0:   # 三档并排图对齐用（tools/fx_canon_shots.py）：事件发生的引擎帧
 		print("FXRLOG %s %s%s %d %.3f" % [str(o.id), kind, str(d.get("i", "")) if kind == "skill" else ("_h" if d.get("heavy", false) else ""), Engine.get_process_frames(), float(g.t)])   # 第 5 列 = 游戏时间（实局找事件时刻用，docs/255）

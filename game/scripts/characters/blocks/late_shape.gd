@@ -191,6 +191,8 @@ static func on_hit(o, e: Dictionary, dmg: float, h) -> void:
 			_FXR.ev(o, "sz_splash", {"at": e.pos})   # 转平面（docs/271）：只画
 		elif str(o.id) == "wisadel":
 			_FXR.ev(o, "wd_splash", {"at": e.pos})   # 转平面（docs/274）：只画
+		elif str(o.id) == "skalter":
+			_FXR.ev(o, "splash", {"at": e.pos, "r": r})   # 转平面（docs/260）：浊心斯卡蒂溅射环，只画
 	if ch > 0:
 		var cur: Dictionary = e
 		var done := {e.id: true}
