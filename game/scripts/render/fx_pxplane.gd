@@ -1730,8 +1730,11 @@ func _sk_draw_gd(cv, o, it: Dictionary) -> void:
 				return
 			var Rs: float = float(it.r) * [0.6, 0.78, 0.9, 0.97, 1.0, 1.0, 1.0][f]
 			var fa2: float = [1.0, 1.0, 1.0, 0.9, 0.75, 0.5, 0.25][f]
-			var fill_k: float = [1.0, 0.9, 0.7, 0.45, 0.2, 0.0, 0.0][f]
-			_sk_grad(cv, c, 0.0, Rs * 0.98, SK_B[2], 0.35 * fill_k, 0.5 * fill_k)   # 内部实心：中心 0.35（站人处清楚）→ 边 0.5，5 拍内收掉
+			if Bal.v("fx/px_plane_sk_fill", 1.0) <= 0.0:   # 0 = 旧版平滑渐变（对照用）
+				var fill_k: float = [1.0, 0.9, 0.7, 0.45, 0.2, 0.0, 0.0][f]
+				_sk_grad(cv, c, 0.0, Rs * 0.98, SK_B[2], 0.35 * fill_k, 0.5 * fill_k)
+			else:
+				_sk_surge_fill(cv, c, Rs, f)
 			var nl: int = 8
 			for j in nl:   # 旋转向心笔触线
 				var a0: float = TAU * float(j) / float(nl) + float(f) * 0.32
@@ -1763,6 +1766,46 @@ func _sk_draw_gd(cv, o, it: Dictionary) -> void:
 				var a0: float = -bt * 0.5 + TAU * float(j) / 3.0
 				_sk_arc(cv, c, Rg * 0.82, a0, a0 + 1.2, 2.0, rcol, Color(SK_R[4].r, SK_R[4].g, SK_R[4].b, fa3), Color(0, 0, 0, 0), 31.0 + float(j))
 			_sk_grad(cv, c, Rg - px * 14.0, Rg, SK_B[3], 0.0, 0.16 * fa3)
+
+
+## S3 潮涌内部（11-05 用户「内部需要渐变填充或者别的填充方法吗」→ 试分阶色带）：贴着潮涌环往里 3 圈硬边色带
+## （深 → 中 → 暗，每圈一个颜色、一个透明度，按颜色阶跳，不做平滑过渡），靠里 40% 不填（站人处清楚）；
+## 色带里一层水纹：短亮线随节拍转（按固定散列成团，不抖动）；收的时候色带从外往里一段段断开，不整片淡出
+func _sk_surge_fill(cv, c: Vector2, Rs: float, f: int) -> void:
+	if f > 5:
+		return
+	var px: float = g.PX
+	var cover: float = [1.0, 1.0, 1.0, 0.8, 0.55, 0.3][f]
+	var widths: Array = [9.0, 9.0, 12.0]   # 美术像素
+	var cols: Array = [SK_B[3], SK_B[2], SK_B[1]]
+	var alps: Array = [0.5, 0.42, 0.34]
+	var r: float = Rs - 4.0 * px   # 从潮涌环的内影往里
+	for k in 3:
+		var w: float = float(widths[k])
+		var rc: float = r - w * px * 0.5
+		var col: Color = cols[k]
+		col.a = float(alps[k]) * (1.0 if f < 4 else 0.8)
+		var kc: float = cover * (1.0 if k == 0 else (0.92 if k == 1 else 0.85)) if f >= 3 else 1.0
+		if kc >= 0.999:
+			_sk_grad(cv, c, rc - w * px * 0.5, rc + w * px * 0.5, col, col.a, col.a)
+		else:   # 断开：每圈 10 段，覆盖率按拍降，外圈先断
+			var nseg: int = 10
+			for j in nseg:
+				var a0: float = TAU * (float(j) + 0.3 * _sk_h(j + k * 13, 2.0)) / float(nseg) + 0.2 * float(k)
+				var a1: float = a0 + TAU / float(nseg) * kc * (0.75 + 0.25 * _sk_h(j + 5, float(k)))
+				_sk_arc(cv, c, rc, a0, a1, w, col, Color(0, 0, 0, 0), Color(0, 0, 0, 0), float(j + k * 10), false)
+		r -= w * px
+		if r < Rs * 0.42:
+			break
+	# 水纹：色带里 14 道短亮线，按拍转、成团分布
+	if f <= 4:
+		var gc: Color = SK_B[5] if f <= 1 else SK_B[4]
+		gc.a = [0.95, 0.9, 0.8, 0.6, 0.35][f]
+		for j in 14:
+			var rr: float = Rs * (0.5 + 0.42 * _sk_h(j, 7.0))
+			var a0: float = TAU * _sk_h(j + 20, 7.0) + float(f) * (0.22 if j % 2 == 0 else -0.16)
+			var ln: float = (6.0 + 8.0 * _sk_h(j + 40, 7.0)) * px / maxf(rr, 1.0)
+			_sk_arc(cv, c, rr, a0, a0 + ln, 1.0, gc, Color(0, 0, 0, 0), Color(0, 0, 0, 0), float(j) + 90.0)
 
 
 ## 立起层（排序项 kind 7）
