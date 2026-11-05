@@ -71,6 +71,13 @@ def strips():
         out["hit_x_d%d" % d] = (A.hit("x", 0, d), False)
         out["hit_full_d%d" % d] = (A.hit("full", 1, d), False)
     out["smoke_up"] = (A.smoke(), False)
+    import pxplane_exu_ult_art as U   # 终结技（docs/262 §11，ult/px_plane）
+    out["ult_raise"] = (U.ult_raise(), False)
+    out["ult_pillar"] = (U.ult_pillar(), False)
+    out["ult_halo"] = (U.ult_halo(), True)
+    out["ult_burst_v0"] = (U.ult_burst(0), False)
+    out["ult_burst_v1"] = (U.ult_burst(1), False)
+    out["ult_scorch_gd"] = (U.ult_scorch(), False)
     out["ring_s1_gd"] = (A.ring_gd("s1", 26), False)
     out["ring_s3_gd"] = (A.ring_gd("s3", 36), False)
     out["ring_splash_gd"] = (A.ring_gd("n", 30), False)

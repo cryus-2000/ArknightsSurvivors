@@ -7,6 +7,7 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
+const UPX = preload("res://scripts/run/ult_px_exusiai.gd")   # 转平面终结技画面（docs/262 §11，ult/px_plane）：kind = "pxfn" 的图形交给它画
 const Moves = preload("res://scripts/run/ult_moves.gd")
 const Combo = preload("res://scripts/run/combo.gd")
 const Link = preload("res://scripts/run/skill_link.gd")   # 技能连携（combo/skill_link，10-30 起缺省开）
@@ -1257,7 +1258,10 @@ func draw_world_back(w) -> void:
 	var dim: float = _dim()
 	for s in shapes:
 		if s.age >= 0.0 and str(s.get("layer", "front")) == "back":
-			if str(s.kind) == "strip":
+			if str(s.kind) == "pxfn":   # 转平面终结技画面（docs/262 §11）：贴地件
+				w.tb_flush()
+				UPX.draw(g, s, dim)
+			elif str(s.kind) == "strip":
 				_draw_strip(w, s, dim)
 			else:
 				_px_shape(w, s, 1.0 - s.age / maxf(0.001, s.max), s.get("col", Color.WHITE), dim)   # 灼地 / 影子等地面图形（一律像素画法）
@@ -1396,6 +1400,10 @@ func draw_world(w) -> void:
 			continue
 		if str(s.get("layer", "front")) == "back":
 			continue
+		if str(s.kind) == "pxfn":   # 转平面终结技画面（docs/262 §11）
+			w.tb_flush()
+			UPX.draw(g, s, dim)
+			continue
 		if str(s.kind) == "strip":
 			w.tb_flush()
 			_draw_strip(w, s, dim)
@@ -1510,6 +1518,10 @@ func _draw_hit_frame(w) -> void:
 		fg = hc[1] if inv else hc[3]
 	for s in shapes:
 		if s.age < 0.0 or not s.get("hf", false):
+			continue
+		if str(s.kind) == "pxfn":   # 转平面终结技画面（docs/262 §11）：按剪影色画
+			w.tb_flush()
+			UPX.draw(g, s, 1.0, Color(fg, 1.0))
 			continue
 		if str(s.kind) == "strip":
 			var s2: Dictionary = s.duplicate()

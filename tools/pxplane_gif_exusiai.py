@@ -486,6 +486,18 @@ SCENES = {"atk": (sc_atk, 48, (200, 140)), "s1": (sc_s1, 40, (190, 130)), "s2": 
           "mag": (sc_mag, 34, (170, 140)), "late": (sc_late, 46, (220, 150))}
 
 
+def load_sprites():
+    """怪物剪影 + 干员待机第 0 帧（终结技 GIF 也用）"""
+    en = sprite(os.path.join(ROOT, "game", "art", "enemies", "offspring", "e_offspring@2x.png"), 4)
+    arr = np.asarray(en).astype(np.float32)
+    arr[..., :3] = arr[..., :3] * 0.32 + np.array([10, 12, 14])
+    enemy = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), "RGBA")
+    ops = {"exusiai": sprite(os.path.join(ROOT, "game", "art", "operators", "exusiai", "op_exusiai_idle@2x.png"), 8),
+           "texas": sprite(os.path.join(ROOT, "game", "art", "operators", "texas", "op_texas_idle@2x.png"), 7),
+           "lumen": sprite(os.path.join(ROOT, "game", "art", "operators", "lumen", "op_lumen_idle@2x.png"), 8)}
+    return enemy, ops
+
+
 def main():
     global ENEMY, OPS
     ap = argparse.ArgumentParser()
