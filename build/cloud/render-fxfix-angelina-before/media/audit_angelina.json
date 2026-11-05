@@ -1,0 +1,83 @@
+[
+ {
+  "op": "angelina",
+  "mode": "atk",
+  "frame": 3,
+  "engine": 62,
+  "secs": 5.0,
+  "hits": 0,
+  "acts": 40,
+  "skill": 0,
+  "parts_total": 30,
+  "parts_per_hit": 0.8,
+  "parts_per_s": 6.0,
+  "parts_s1_1s": null,
+  "mats": {
+   "twinkle": 10,
+   "shard": 20
+  },
+  "life": 0.7,
+  "sz": 2.5,
+  "alive_max": 8,
+  "lights": 10,
+  "lights_per_hit": 0.25,
+  "light_r": 98.0,
+  "light_i": 0.61,
+  "light_life": 0.12,
+  "emit_max": 48,
+  "emit_mean": 13.4,
+  "gl_peak": 58.3,
+  "gl_area_hit": 32,
+  "gl_mean_hit": 6.5,
+  "em_peak": 205.2,
+  "em_area_hit": 6,
+  "em_mean_hit": 143.7,
+  "crop": [
+   449,
+   248,
+   320,
+   180
+  ]
+ },
+ {
+  "op": "angelina",
+  "mode": "s1",
+  "frame": 0,
+  "engine": 59,
+  "secs": 5.0,
+  "hits": 0,
+  "acts": 29,
+  "skill": 2,
+  "parts_total": 23,
+  "parts_per_hit": 0.8,
+  "parts_per_s": 4.6,
+  "parts_s1_1s": 6,
+  "mats": {
+   "tri": 9,
+   "shard": 12,
+   "twinkle": 2
+  },
+  "life": 0.84,
+  "sz": 5.1,
+  "alive_max": 12,
+  "lights": 8,
+  "lights_per_hit": 0.28,
+  "light_r": 100.0,
+  "light_i": 0.61,
+  "light_life": 0.12,
+  "emit_max": 51,
+  "emit_mean": 13.1,
+  "gl_peak": 81.6,
+  "gl_area_hit": 47,
+  "gl_mean_hit": 13.8,
+  "em_peak": 229.9,
+  "em_area_hit": 47,
+  "em_mean_hit": 50.1,
+  "crop": [
+   418,
+   254,
+   320,
+   180
+  ]
+ }
+]

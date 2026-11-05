@@ -1,0 +1,40 @@
+{
+ "op": "angelina",
+ "mode": "atk",
+ "frame": 3,
+ "engine": 62,
+ "secs": 5.0,
+ "hits": 0,
+ "acts": 40,
+ "skill": 0,
+ "parts_total": 30,
+ "parts_per_hit": 0.8,
+ "parts_per_s": 6.0,
+ "parts_s1_1s": null,
+ "mats": {
+  "twinkle": 10,
+  "shard": 20
+ },
+ "life": 0.7,
+ "sz": 2.5,
+ "alive_max": 8,
+ "lights": 10,
+ "lights_per_hit": 0.25,
+ "light_r": 98.0,
+ "light_i": 0.61,
+ "light_life": 0.12,
+ "emit_max": 48,
+ "emit_mean": 13.4,
+ "gl_peak": 58.3,
+ "gl_area_hit": 32,
+ "gl_mean_hit": 6.5,
+ "em_peak": 205.2,
+ "em_area_hit": 6,
+ "em_mean_hit": 143.7,
+ "crop": [
+  449,
+  248,
+  320,
+  180
+ ]
+}
