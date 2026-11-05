@@ -42,6 +42,7 @@ def variants():
     v.append(("flare_up", PP, {"part": "flare", "layer": "up", "el": 2}, 0.27, False))
     for ly in ("up", "gd"):   # 连携技「清创光弹」落点（不分档）
         v.append(("cleanse_%s" % ly, PP, {"part": "cleanse", "layer": ly, "el": 1, "R": 75, "seed": 7}, 0.6, False))
+    v.append(("pulse_gd", PP, {"part": "burst", "layer": "gd", "el": 2, "R": 60, "seed": 5}, 0.53, False))   # 灯塔守望·回光（每秒一圈，r 120）：边弧原地闪一下
     v.append(("lmotes_up", PP, {"part": "tower", "layer": "up", "el": 2, "R": 75, "seed": 9, "dur": 1.2}, 1.2, False))   # 连携 v2 区域光尘（1.2 秒一次）
     for ly in ("up", "gd"):
         v.append(("rain_%s" % ly, PP, {"part": "rainloop", "layer": ly, "R": 70, "seed": 6, "dur": 1.2}, 1.2, True))
