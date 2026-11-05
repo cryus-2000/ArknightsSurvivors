@@ -28,6 +28,7 @@ const S2_REACH := 68.0    # 起手链环扩到的半径（生效后的锚击半�
 const TRAIL_COOL := 0.8   # S3 深海拖痕落地后冷却的时长
 const QI_BREAK := 0.17    # 后期冲击波玩法上消失后，原地碎开的时长（总可见约 0.35 秒）
 const ORCA_LEAP := 0.18   # 虎鲸到落点前跃起的时长（落下那一刻 = 玩法落地重击）
+const WC := [Color("#14306a"), Color("#3a7ccc"), Color("#6fb0ec"), Color("#d6eeff")]   # 鲸形水体：底边深蓝 / 身体青蓝 / 浅水 / 亮青白描边（比地面亮两阶）
 const ORCA_K := 1.45     # 虎鲸放大（体长 44 × 1.45 ≈ 64 美术像素 = 128 世界像素）
 const ORCA_H := 64.0     # 弧顶离地（世界像素）
 const SWING_LIFE := 0.2   # 挥锚弧的时长（短而急）
@@ -667,7 +668,7 @@ static func _orca_pose_t(o, an: Dictionary, t: float) -> Array:
 		if t < tb:
 			return []
 		var k: float = clampf((t - tb) / (2.0 / 15.0), 0.0, 1.0)
-		return [o.pos + dv * 20.0, lerpf(-30.0, 14.0, k), -1.0, dv, true]
+		return [o.pos + dv * 20.0, lerpf(-22.0, 4.0, k), -0.55, dv, true]   # 斜着把头顶出水弧
 	if str(an.phase) != "orca" or t < 0.0:
 		return []
 	var dv2: Vector2 = ((an.land as Vector2) - (an.S as Vector2)).normalized() if (an.land as Vector2).distance_to(an.S) > 1.0 else Vector2(o.face, 0)
@@ -737,6 +738,17 @@ static func _draw_orca(r, ci, it: Dictionary) -> void:
 			for ix in range(-int(rx), int(rx) + 1):
 				if pow(float(ix) / rx, 2.0) + pow(float(iy) / ry, 2.0) <= 1.0:
 					r._px(ci, gpos + Vector2(ix, iy) * px, Color(C[0], 0.45))
+	if clip:   # 破水：一道水弧把头顶出来，弧边带水花
+		var beat2: int = int(floor(g.t * 15.0))
+		for i in range(-18, 19):
+			var a2: float = float(i) / 18.0
+			var hgt: float = 11.0 * sqrt(maxf(0.0, 1.0 - a2 * a2))
+			var p0: Vector2 = gpos + Vector2(e.x, e.y) * float(i) * px * 1.0
+			r._px(ci, p0 + Vector2(0, -hgt * px), WC[3])
+			for zz in range(int(hgt)):
+				r._px(ci, p0 + Vector2(0, -float(zz) * px), Color(WC[1], 0.7))
+			if absi(i) > 12 and _h(float(i) + float(beat2)) > 0.4:
+				r._px(ci, p0 + Vector2(float(signi(i)) * 2.0, -hgt - 3.0 - _h(float(i) * 1.7 + float(beat2)) * 6.0) * px, WC[2])
 	var c: Vector2 = r._snap(gpos + Vector2(0, -z - 10.0))
 	var K: float = ORCA_K
 	var ga: float = [1.0, 0.35, 0.18][clampi(ghost, 0, 2)]
@@ -752,7 +764,7 @@ static func _draw_orca(r, ci, it: Dictionary) -> void:
 			if clip and pp.y > gpos.y - 2.0:
 				continue   # 水面（地面线）以下不画：破水
 			if ghost > 0:
-				r._px(ci, pp, Color(C[3], ga))
+				r._px(ci, pp, Color(WC[1], ga))
 				continue
 			var qu := q + Vector2(0, -1)
 			var qd := q + Vector2(0, 1)
@@ -761,20 +773,22 @@ static func _draw_orca(r, ci, it: Dictionary) -> void:
 			var rear: bool = u < -8.0
 			var col: Color
 			if up:
-				col = C[5] if u > 6.0 else C[4]   # 前缘（头）最亮
-				if u > 14.0:
-					r._glow(pp, C[5])
+				col = WC[3]   # 上沿 1 像素亮青白描边；头部前缘进发光层
+				if u > 12.0 or k == 0:
+					r._glow(pp, WC[3])
 			elif dn:
-				col = C[2]
+				col = WC[0]   # 只在底边压暗
 			elif u > 17.0:
-				col = C[5]   # 吻部前缘
+				col = WC[3]
 			elif k == 3:
-				col = C[5]   # 眼后一点浅色
+				col = WC[3]   # 眼后白斑（浅色水沫）
+			elif k == 4:
+				col = WC[2]   # 腹部浅色带
 			else:
-				col = C[3] if k != 2 else C[2]
+				col = WC[1]
 				var fl: float = _h(floorf(u * 0.6 + float(beat) * 1.5) * 0.37 + floorf(w * 0.5))   # 体内往后流的光纹
 				if fl > 0.82:
-					col = Color(C[4], 0.75)
+					col = Color(WC[2], 0.8)
 			if rear and not up:
 				col = Color(col, 0.55)   # 后段透明
 			r._px(ci, pp, col)
@@ -821,13 +835,15 @@ static func _draw_swing(r, ci, it: Dictionary) -> void:
 
 ## 虎鲸剖面：u 沿体长（尾 -22 → 吻 +22），w 垂直体长朝上（背）为正。返回 0 背鳍 / 1 上半身 / 2 下半身 / 3 眼斑，-1 = 不画
 static func _orca_cell(u: float, w: float, beat: int) -> int:
-	if u > 22.0 or u < -23.0:
+	if u > 21.0 or u < -23.0:
 		return -1
 	var tw: float = sin(float(beat) * 1.8) * 1.5 if u < -12.0 else 0.0   # 尾部随节拍摆
 	w -= tw
 	var hh: float
-	if u >= -10.0:
-		hh = 7.0 * sqrt(maxf(0.0, 1.0 - pow((u - 4.0) / 18.0, 2.0)))
+	if u >= 4.0:
+		hh = 7.5 * pow(maxf(0.0, 1.0 - pow((u - 4.0) / 17.0, 3.0)), 0.33)   # 头部圆钝（超椭圆）
+	elif u >= -10.0:
+		hh = 7.5 * sqrt(maxf(0.0, 1.0 - pow((u - 4.0) / 18.0, 2.0)))
 	elif u >= -18.0:
 		hh = lerpf(1.6, 4.8, (u + 18.0) / 8.0)
 	else:
@@ -835,12 +851,14 @@ static func _orca_cell(u: float, w: float, beat: int) -> int:
 		if absf(w) < 1.0 and u < -21.0:
 			return -1   # 尾鳍分叉
 	var fin: float = 0.0
-	if u > -4.0 and u < 5.0:
-		fin = 10.0 * minf((u + 4.0) / 3.0, (5.0 - u) / 6.0)   # 背鳍：高、往后掠
+	if u > -3.0 and u < 3.0:
+		fin = 14.0 * minf((u + 3.0) / 1.5, (3.0 - u) / 3.5)   # 背鳍：高、竖直（前缘陡）
 	if w > hh + fin or w < -hh:
 		return -1
 	if w > hh:
 		return 0
-	if absf(u - 10.0) <= 1.5 and absf(w - 2.6) <= 0.8:
-		return 3   # 眼后白斑：只点一两格
+	if pow((u - 11.0) / 4.0, 2.0) + pow((w - 2.4) / 1.5, 2.0) <= 1.0:
+		return 3   # 眼后白斑
+	if w < -hh * 0.45 and u > -7.0 and u < 18.0:
+		return 4   # 腹部浅色带
 	return 1 if w > -hh * 0.2 else 2

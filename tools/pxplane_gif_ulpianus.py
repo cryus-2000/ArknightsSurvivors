@@ -370,14 +370,21 @@ def orca_head(S, P, land, dur, t):
     return lerp(P, land, min(1.0, max(0.0, (t - sw) / ORCA_LEAP)))
 
 
+WC = [hx(c) for c in ["#14306a", "#3a7ccc", "#6fb0ec", "#d6eeff"]]
+ORCA_K = 1.45
+ORCA_H = 64.0
+
+
 def orca_cell(u, w, beat):
-    """抄 fx_pxplane_ul._orca_cell"""
-    if u > 22 or u < -23:
+    """抄 fx_pxplane_ul._orca_cell（头圆钝、背鳍高竖直、眼后白斑 3、腹部浅色带 4）"""
+    if u > 21 or u < -23:
         return -1
     tw = math.sin(beat * 1.8) * 1.5 if u < -12 else 0.0
     w -= tw
-    if u >= -10:
-        hh = 7.0 * math.sqrt(max(0.0, 1 - ((u - 4) / 18.0) ** 2))
+    if u >= 4:
+        hh = 7.5 * max(0.0, 1 - ((u - 4) / 17.0) ** 3) ** 0.33
+    elif u >= -10:
+        hh = 7.5 * math.sqrt(max(0.0, 1 - ((u - 4) / 18.0) ** 2))
     elif u >= -18:
         hh = 1.6 + (4.8 - 1.6) * (u + 18) / 8.0
     else:
@@ -385,19 +392,17 @@ def orca_cell(u, w, beat):
         if abs(w) < 1.0 and u < -21:
             return -1
     fin = 0.0
-    if -4 < u < 5:
-        fin = 10.0 * min((u + 4) / 3.0, (5 - u) / 6.0)
+    if -3 < u < 3:
+        fin = 14.0 * min((u + 3) / 1.5, (3 - u) / 3.5)
     if w > hh + fin or w < -hh:
         return -1
     if w > hh:
         return 0
-    if abs(u - 10) <= 1.5 and abs(w - 2.6) <= 0.8:
+    if ((u - 11) / 4.0) ** 2 + ((w - 2.4) / 1.5) ** 2 <= 1.0:
         return 3
+    if w < -hh * 0.45 and -7 < u < 18:
+        return 4
     return 1 if w > -hh * 0.2 else 2
-
-
-ORCA_K = 1.45
-ORCA_H = 64.0
 
 
 def orca_bubble(u, w, beat):
@@ -431,6 +436,17 @@ def draw_orca(cv, gp, z, pitch, dv, clip, T, ghost=0):
             for ix in range(-int(rx), int(rx) + 1):
                 if (ix / rx) ** 2 + (iy / ry) ** 2 <= 1:
                     cv.pxa((gp[0] + ix * PX, gp[1] + iy * PX), C[0], 0.45)
+    if clip:   # 破水：一道水弧把头顶出来
+        for i in range(-18, 19):
+            a2 = i / 18.0
+            hgt = 11.0 * math.sqrt(max(0.0, 1 - a2 * a2))
+            p0 = (gp[0] + e[0] * i * PX, gp[1] + e[1] * i * PX)
+            cv.px((p0[0], p0[1] - hgt * PX), WC[3])
+            for zz in range(int(hgt)):
+                cv.pxa((p0[0], p0[1] - zz * PX), WC[1], 0.7)
+            if abs(i) > 12 and h_(i + beat) > 0.4:
+                sg = 1 if i > 0 else -1
+                cv.px((p0[0] + sg * 2 * PX, p0[1] - (hgt + 3 + h_(i * 1.7 + beat) * 6) * PX), WC[2])
     c = snap((gp[0], gp[1] - z - 10))
     K = ORCA_K
     ga = [1.0, 0.35, 0.18][min(2, ghost)]
@@ -446,25 +462,27 @@ def draw_orca(cv, gp, z, pitch, dv, clip, T, ghost=0):
             if clip and pp[1] > gp[1] - 2:
                 continue
             if ghost > 0:
-                cv.pxa(pp, C[3], ga)
+                cv.pxa(pp, WC[1], ga)
                 continue
             up = orca_cell(dot((ix, jy - 1), e) / K, dot((ix, jy - 1), n) / K, beat) < 0
             dn = orca_cell(dot((ix, jy + 1), e) / K, dot((ix, jy + 1), n) / K, beat) < 0
             rear = u < -8
             al = 1.0
             if up:
-                col = C[5] if u > 6 else C[4]
-                if u > 14:
-                    cv.glow(pp, C[5])
+                col = WC[3]
+                if u > 12 or k == 0:
+                    cv.glow(pp, WC[3])
             elif dn:
-                col = C[2]
+                col = WC[0]
             elif u > 17 or k == 3:
-                col = C[5]
+                col = WC[3]
+            elif k == 4:
+                col = WC[2]
             else:
-                col = C[3] if k != 2 else C[2]
+                col = WC[1]
                 fl = h_(math.floor(u * 0.6 + beat * 1.5) * 0.37 + math.floor(w * 0.5))
                 if fl > 0.82:
-                    col, al = C[4], 0.75
+                    col, al = WC[2], 0.8
             if rear and not up:
                 al *= 0.55
             if al >= 0.999:
@@ -627,9 +645,9 @@ def column_frames(sc, lib):
     OX = sc.ox
     n = int(round(sc.dur * FPS))
     out = []
-    fx, fy = sc.focus
     for f in range(n):
         T = f / FPS
+        fx, fy = sc.focus_fn(T) if getattr(sc, "focus_fn", None) else sc.focus
         im = render_scene(sc, lib, T)
         cx, cy = OX + fx, OY + fy
         cw, ch = W // 2, H // 2
@@ -850,7 +868,7 @@ def sc_s3():
             if tt < tbr:
                 return None
             k = min(1.0, (tt - tbr) / (2 * B))
-            return S, -30 + 44 * k, -1.0, True
+            return S, -22 + 26 * k, -0.55, True
         if tb <= T < tl:
             tt = T - tb
             hd = orca_head(S, P, land, dur, tt)
@@ -882,6 +900,13 @@ def sc_s3():
     it = {"ly": "rt_up", "t0": t0, "gy": 0.0, "fn": fn}
     sc.items.append(it)
     sc.orca_gy = (it, lambda T: (pose(math.floor(T * 15 + 1e-6) / 15.0)[0][1] + 1) if pose(math.floor(T * 15 + 1e-6) / 15.0) else 0.0)
+
+    def focus(T):   # 2 倍图跟着虎鲸（含跃起高度），落地后对准落点，不裁出画框
+        ps = pose(math.floor(T * 15 + 1e-6) / 15.0)
+        if ps:
+            return ps[0][0], ps[0][1] - ps[1] * 0.6 - 20
+        return (land[0], land[1] - 10) if T >= tl else (S[0], S[1] - 10)
+    sc.focus_fn = focus
     return sc
 
 

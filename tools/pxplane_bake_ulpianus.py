@@ -251,70 +251,90 @@ def teardrop(f, x, y, vx, vy, size, cols):
         f.put(x - dx * (rr + i), y - dy * (rr + i), cols[1] if i <= size else cols[2])
 
 
-def s3_impact_up(f, fi, R, seed):
-    """S3 砸地（立起；docs/266 §11，15 fps 两拍）：
-    第 0 帧（全招最亮）：中心实心白团 + 主冲击一柱水（白芯）；
-    第 1 帧：水柱塌一半、降一阶；更快的「裙边」：一圈低水环冲到 0.4R；
-    第 2 帧：水环到 0.65R、断成 5 段；第 3–5 帧：每段变成尖尾泪滴沿弧线往外落，一帧缩一格，缩成 1 格点后消失。不用白（第 0 帧除外）"""
-    if fi == 0:
-        for dx in range(-13, 14):
-            for dy in range(-22, 3):
-                d2 = (dx / 12.0) ** 2 + ((dy + 8) / 10.0) ** 2
-                if d2 < 1.0:
-                    f.put(dx, dy, WHITE if d2 < 0.55 else C[6])
-        for y in range(0, 44):   # 主冲击：一柱水（白芯）
-            hw = 4 - y // 14
-            for x in range(-hw, hw + 1):
-                f.put(x, -y, WHITE if abs(x) <= 1 else C[6])
-        return
-    if fi == 1:
-        for y in range(0, 26):
-            hw = 3 - y // 10
-            for x in range(-hw, hw + 1):
-                f.put(x, -y, C[5] if abs(x) <= 1 else C[4])
+def crown_spikes(f, R0, hmax, seed, fi, cols):
+    """一圈往上掀的不规则尖水花（水冠）：底在半径 R0 的压扁圆上，每根 2 格宽、尖朝外斜，高低不一"""
     rnd = random.Random(seed)
-    nseg = 5
+    n = 22
+    for i in range(n):
+        a = (i + rnd.uniform(-0.3, 0.3)) * math.tau / n
+        h = hmax * rnd.uniform(0.45, 1.0)
+        bx, by = math.cos(a) * R0, math.sin(a) * R0 * SY
+        lean = math.cos(a) * 0.45
+        for z in range(int(h)):
+            u = z / max(1.0, h)
+            c = cols[0] if u > 0.7 else (cols[1] if u > 0.3 else cols[2])
+            x = bx + lean * z
+            f.put(x, by - z, c)
+            if u < 0.55:
+                f.put(x + (1 if math.cos(a) >= 0 else -1), by - z, cols[2])
+
+
+def s3_impact_up(f, fi, R, seed):
+    """S3 砸地（立起；docs/266 §12）：宽而矮的水冠，不是细柱。
+    第 0 帧（全招最亮）：中心实心白团（宽、矮）+ 四周一圈往上掀的尖水花（半径约 R/2，尖白）；
+    第 1 帧：水冠降一阶、更高、往外开；裙边水环冲到 0.6R；第 2 帧：水环断成段；
+    第 3–5 帧：7 颗 3–4 格的尖尾泪滴沿弧线往外落，一帧缩一格后消失"""
+    if fi == 0:
+        for dx in range(-20, 21):
+            for dy in range(-14, 3):
+                d2 = (dx / 19.0) ** 2 + ((dy + 4) / 8.0) ** 2
+                if d2 < 1.0:
+                    f.put(dx, dy, WHITE if d2 < 0.6 else C[6])
+        crown_spikes(f, R * 0.5, 14, seed, fi, (WHITE, C[6], C[5]))
+        return
+    rnd = random.Random(seed)
+    nseg = 7
     a0 = rnd.random() * math.tau
+    if fi == 1:
+        crown_spikes(f, R * 0.55, 18, seed, fi, (C[6], C[5], C[4]))
     if fi in (1, 2):
-        rr = R * (0.4 if fi == 1 else 0.65)
+        rr = R * (0.6 if fi == 1 else 0.78)
         for a, x, y in ellipse_pts(rr):
             seg = ((a - a0) % math.tau) / (math.tau / nseg)
-            if fi == 2 and (seg % 1.0) > 0.7:
-                continue   # 第 2 帧断开
+            if fi == 2 and (seg % 1.0) > 0.65:
+                continue
             hh = 4 if fi == 1 else 3
             for z in range(hh):
-                f.put(x, y - z, C[5] if z == hh - 1 else C[4])
-            f.put(x, y + 1, C[2], over=False)
+                f.put(x, y - z, C[6] if z == hh - 1 else C[5])
+        if fi == 2:
+            crown_spikes(f, R * 0.6, 10, seed, fi, (C[5], C[4], C[3]))
         return
     if fi > 5:
         return
-    k = fi - 3   # 0, 1, 2
-    for i in range(nseg * 2):
-        a = a0 + (i // 2 + 0.35 + 0.3 * (i % 2)) * math.tau / nseg
-        r0 = R * 0.65
-        r1 = R * (0.8 + 0.08 * k + 0.04 * (i % 2))
+    k = fi - 3
+    for i in range(nseg):
+        a = a0 + (i + 0.5) * math.tau / nseg
+        r1 = R * (0.86 + 0.06 * k)
         x, y = math.cos(a) * r1, math.sin(a) * r1 * SY
-        z = [10, 6, 2][k] + (i % 3)
+        z = [12, 7, 2][k] + (i % 3)
         vx, vy = math.cos(a) * 3.0, math.sin(a) * SY * 3.0 + [1.0, 3.0, 4.0][k]
-        size = [3, 2, 1][k]
-        teardrop(f, x, y - z, vx, vy, size, (C[5], C[4], C[3]))
+        size = [4, 3, 2][k]
+        teardrop(f, x, y - z, vx, vy, size, (C[6], C[5], C[4]))
 
 
 def s3_impact_gd(f, fi, R, seed):
-    """S3 砸地（贴地）：第 0 帧预兆细环变成实环（2 格厚）在 0.3R 炸开，0–3 帧推到判定半径；落点一块深色湿印，4–6 帧按拍收掉"""
-    if fi > 6:
+    """S3 砸地（贴地）：第 0 帧预兆细环变成实环（2 格厚）在 0.3R 炸开，0–3 帧推到判定半径；
+    落点一片浅色水面：亮边（1 格 C6 + 内侧 1 格 C5），不涂深色；第 2 帧起往回退、一段段断开，第 7 帧收完"""
+    if fi > 7:
         return
     if fi <= 3:
         rr = R * [0.3, 0.6, 0.85, 1.0][fi]
-        col = [C[5], C[5], C[4], C[3]][fi]
+        col = [C[6], C[5], C[5], C[4]][fi]
         for a, x, y in ellipse_pts(rr):
             if fi >= 2 and vn(a * 6.0 + seed + fi) < 0.25:
                 continue
             f.put(x, y, col)
             k = (rr - 1.3) / rr
-            f.put(x * k, y * k, C[3] if fi < 2 else C[2])
-    wet = [0.42, 0.42, 0.4, 0.36, 0.28, 0.18, 0.1][fi]
-    blob(f, R * wet, seed, [C[2], C[1]] if fi < 4 else [C[1]], 1.0)
+            f.put(x * k, y * k, C[4] if fi < 2 else C[3])
+    wr = R * [0.42, 0.46, 0.46, 0.42, 0.36, 0.28, 0.2, 0.12][fi]
+    gap = [0.0, 0.0, 0.15, 0.3, 0.4, 0.5, 0.6, 0.7][fi]
+    for a, x, y in ellipse_pts(wr):
+        if vn(a * 4.0 + seed * 1.3 + fi * 0.7) < gap:
+            continue
+        k = 0.88 + 0.16 * vn(a * 2.5 + seed)
+        f.put(x * k, y * k, C[6] if fi < 5 else C[5])
+        kk = (wr * k - 1.3) / max(1.0, wr)
+        f.put(x * kk, y * kk, C[5] if fi < 5 else C[4], over=False)
 
 
 def spray_low(f, fi, R, seed, n=10):
@@ -500,7 +520,7 @@ def variants():
     # S2 锁链界限：运行时画（fx_pxplane_ul._ring，会转），没有帧条
     # S3 落地（s3_r 140 → 70）
     v.append(("s3_up", "s3up", {"R": 70, "H": 40, "seed": 91}, 6, "up"))
-    v.append(("s3_gd", "s3gd", {"R": 70, "seed": 91}, 7, "gd"))
+    v.append(("s3_gd", "s3gd", {"R": 70, "seed": 91}, 8, "gd"))
     # 连携掷锚钉下（拖 180 内的小怪 → 90）
     v.append(("pin_gd", "inward", {"R": 90, "seed": 97}, 10, "gd"))
     return v
