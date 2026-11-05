@@ -613,6 +613,9 @@ func _grains(o, at: Vector2, gy: float, mat: String, n: int, m: Dictionary, dir 
 			a = dir.angle() + g.vrng.randf_range(-0.9, 0.9)
 		var spd: float = g.vrng.randf_range(float(mt.spd[0]), float(mt.spd[1])) * float(m.get("grain_spd", 1.0))
 		var sz: int = int(mt.sz[0]) if g.vrng.randf() < 0.5 else int(mt.sz[1])
+		if m.has("grain_sz"):   # 招式自定颗粒边长表（等概率挑一个；docs/270 §3 平均边长 ≥ 3，塞雷娅碎晶屑 docs/269）
+			var szs: Array = m.grain_sz
+			sz = int(szs[g.vrng.randi() % szs.size()])
 		parts.append({"op": str(o.id), "m": mat, "gp": Vector2(at.x, gy), "h": h0, "v": Vector2(cos(a), sin(a) * SY) * spd,
 			"vh": g.vrng.randf_range(float(mt.up[0]), float(mt.up[1])), "age": 0.0, "life": float(mt.life) * g.vrng.randf_range(0.8, 1.2),
 			"sz": sz, "nb": 0, "landed": -1.0, "rot": g.vrng.randf() * TAU, "spin": g.vrng.randf_range(-14.0, 14.0),
