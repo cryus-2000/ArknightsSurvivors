@@ -33,6 +33,17 @@ def load(name, t0, dur):
     return x[int(t0 * sr):int((t0 + dur) * sr)].copy()
 
 
+AKA = os.path.join(MAIN, "build", "ak_src", "wav_atk")
+
+
+def load_atk(name, t0, dur):
+    x, sr = sf.read(os.path.join(AKA, name), always_2d=True)
+    x = x.mean(axis=1)
+    if sr != SR:
+        x = np.interp(np.arange(0, len(x), sr / SR), np.arange(len(x)), x)
+    return x[int(t0 * SR):int((t0 + dur) * SR)].copy()
+
+
 def lp(x, hz, order=8):
     return sosfilt(butter(order, hz, "low", fs=SR, output="sos"), x)
 
@@ -68,14 +79,18 @@ def stats(x):
 
 
 def make():
-    hit = hp(load("p_skill_fishhealbuff1.wav", 0.0, 0.14), 250)   # 去掉 250 Hz 以下的闷响（只留水滴本身）
-    sp = lp(load("p_skill_shinestar.wav", 0.0, 0.14), 2800) * 0.5   # 原作流明星光声开头，低通到 2.8 kHz，压一半：给一点「光」的亮，不刺
-    hit = shelf_cut(lp(hit + sp, 3200), 5000, 0.3)
-    hit = fades(hit, 0.002, 0.04)
-    atk = load("p_skill_lantern_cast.wav", 0.015, 0.2)
-    atk = lp(atk, 4000)
-    atk = fades(atk, 0.008, 0.06)   # 8 ms 淡入：去掉提灯起手那一下的尖峰（不然峰值 −1 dB，比原文件还冲）
-    return {"op_lumen_hit": (hit, -4.0, 0.5), "op_lumen_atk": (atk, -4.0, 0.5)}
+    """v2（11-05 用户「现在这个音效更难听了，看看原作的音效是怎么处理的」）：v1 用治疗水声 + 星光声拼新音色、重低通，发闷、不像流明，作废。
+    改用原作流明自己的普攻 / 命中音（原作安装包 audio/sound_beta_2/player/p_atk_*.ab、p_imp_*.ab 解出，主仓库 build/ak_src/wav_atk/；
+    流明的技能音是 p_skill_lantern*、终结技已在用，普攻对应 p_atk_lantern_n、命中 p_imp_lantern_n）。
+    原作流明出手慢（一下一个目标），命中声带 2 秒长尾；本作 1 秒一发、发光单元 / 额外弹也命中，长尾会糊成一片，所以只截短、不改音色：
+      出手 p_atk_lantern_n 开头 0.45 秒（一声亮音 + 一小段尾巴），150 ms 淡出；
+      命中 p_imp_lantern_n 开头 0.22 秒（第一下最响的那团，后面 0.25 秒起的第二段不要），80 ms 淡出；只加 7 kHz 以上轻微压（×0.6），不再重低通。"""
+    atk = load_atk("p_atk_lantern_n.wav", 0.0, 0.45)
+    atk = fades(atk, 0.001, 0.15)
+    hit = load_atk("p_imp_lantern_n.wav", 0.0, 0.22)
+    hit = shelf_cut(hit, 7000, 0.6)
+    hit = fades(hit, 0.001, 0.08)
+    return {"op_lumen_hit": (hit, -3.0, 0.7), "op_lumen_atk": (atk, 0.0, 0.7)}
 
 
 def main():
@@ -91,7 +106,7 @@ def main():
         old, _ = sf.read(old_copy)
         x = x * 10 ** ((eff(old) + rel - eff(x)) / 20.0)
         pk = np.abs(x).max()
-        if pk > pk_cap:   # 峰值封顶 −6 dB（命中、出手都是高频连发的小声，不要尖）
+        if pk > pk_cap:   # 峰值封顶 −3 dB
             x *= pk_cap / pk
         print(name, "原：", stats(old))
         print(name, "新：", stats(x))

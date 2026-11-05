@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """离线混音：把 tools/sfx_event_log.py 记下的同一局音效事件表，按「改前 / 改后」两套规则混成音频（docs/255 §7，流明攻击音效对照）。
 本机不开 Godot。只复刻 sfx.gd 里和这次改动有关的规则，其余照事件表原样：
-  - 流明 op_lumen_atk / op_lumen_hit 从 SFXOP（op() 入口、节流前）重新生成：改前 = 旧文件、无命中间隔、命中音高随机 ±5%；改后 = 新文件、命中最短间隔 0.09 秒、±8%；
+  - 流明 op_lumen_atk / op_lumen_hit 从 SFXOP（op() 入口、节流前）重新生成：改前 = 旧文件、无命中间隔、命中音高随机 ±5%；改后 = 新文件、命中最短间隔 0.09 秒、±4%；
     音量 = OP_VOL[类别] + 调用处偏移（OP_DB 两版都没有流明条目）；
   - 其他音效照 SFXLOG（play() 请求）；
   - play() 同名最短间隔 = max(MERGE_T 0.05, LIMIT / OP_LIMIT)，按游戏时间算（游戏里按墙钟，实时局两者一样）；
@@ -94,7 +94,7 @@ def main():
                 if t - gap_last.get(sn, -99.0) < 0.09:
                     continue
                 gap_last[sn] = t
-            pvar = max(pv, {"op_lumen_atk": 0.07, "op_lumen_hit": 0.0 if ver == "before" else 0.08}[sn])
+            pvar = max(pv, {"op_lumen_atk": 0.07, "op_lumen_hit": 0.0 if ver == "before" else 0.04}[sn])
             ev.append((t, sn, OP_VOL.get(kind, -8.0) + v, pi, pvar, ver == "before"))
         ev.sort(key=lambda e: e[0])
         last = {}
