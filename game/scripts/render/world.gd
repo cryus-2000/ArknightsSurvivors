@@ -20,6 +20,7 @@ const Dc = preload("res://scripts/render/declutter.gd")   # 后期降噪预设�
 const LateRead2 = preload("res://scripts/render/late_read2.gd")   # 后期可读性第二批（docs/251：light_share / ground_ring_edge / crowd_env_dim）
 const FD = preload("res://scripts/render/frame_dst.gd")   # 精灵取帧 + 落点（docs/101 B4 ②）
 const GroundCrack = preload("res://scripts/render/ground_crack.gd")
+const MagnetDraw = preload("res://scripts/render/magnet_draw.gd")   # 磁铁画法（docs/284 §2 A）
 const EnemyAtlas = preload("res://scripts/render/enemy_atlas.gd")
 const TeleDraw = preload("res://scripts/render/telegraph_draw.gd")   # 预警填充层（docs/101 B2，原 boss_ai.draw_warns）
 const LAMP_READ_EXT := 1.6   # 可读灯圈：余光延到灯半径的倍数，game.gd 的灯光贴图按它生成
@@ -1113,6 +1114,9 @@ func _pq_sprite(name: String, pos: Vector2) -> void:
 func _pq_item(g_item: Dictionary, pos: Vector2, gz: float, kind: String, t: float) -> void:
 	if gz > 1.0:
 		_pq_air_shadow(pos, gz)
+	if kind == "magnet" and MagnetDraw.on():
+		MagnetDraw.draw(self, g_item, pos, gz, t, Game.PX)   # 磁铁双色马蹄 + 铁屑 + 像素脉冲（docs/284 §2 A，render/magnet_v2）
+		return
 	if g_item.special:
 		var ic := g.pickups.item_col(kind)
 		var age: float = g_item.age
@@ -2889,6 +2893,32 @@ func enemy_scale(e: Dictionary) -> float:
 	return D.enemy_scale(e, g.t, Game.PX)   # 纯函数在 data.gd（docs/101 B1：模拟侧直接调它，不经 render）
 
 
+## 中期 Boss 画面放大（docs/283 A1，11-06 用户「中期 Boss 不明显」：截图里体型和干员一样大）。只乘 _draw_enemy_full 的绘制缩放，
+## 判定 e.r、模拟侧的 D.enemy_scale 都不变（同 seed TRACE 不变）。中期 Boss = waves.json mid_pool 里的类型；部件不放大。
+## render/mid_boss_scale 缺省 1.35（1 = 原样）；单只可用 render/mid_boss_scale_<类型> 覆盖（塑路者本来就大，缺省 1.2）
+var _mbk := {}
+
+func is_mid_boss(e: Dictionary) -> bool:
+	if not e.boss or e.get("part", false):
+		return false
+	return _mid_k(str(e.type)) > 0.0
+
+
+func mid_boss_k(e: Dictionary) -> float:
+	return maxf(1.0, _mid_k(str(e.type))) if is_mid_boss(e) else 1.0
+
+
+## 中期 Boss 类型 → 放大倍数；不是中期 Boss 返回 0（按类型缓存）
+func _mid_k(ty: String) -> float:
+	if not _mbk.has(ty):
+		var k := 0.0
+		for grp in D.MID_POOL:
+			if ty in grp:
+				k = Bal.v("render/mid_boss_scale_" + ty, Bal.v("render/mid_boss_scale", 1.35))
+		_mbk[ty] = k
+	return _mbk[ty]
+
+
 ## 敌人画法缓存（docs/50 §9.9，2026-10-01，第 0 步实测稳态普通怪「选帧 + 算色」每帧约 2.2 毫秒、参数变化率 11.8%）：
 ## 能缓存的敌人把「贴图名 / 帧数 / 帧率 / 颜色 / 缩放 / 锚点偏移 / 描边开关」存在 e.dc，签名变了才重算（_dc_compute）；
 ## 帧号（同一表达式按 g.t 算）、翻转、击退偏移、白闪、描边透明度（随 ecrowd 连续变）、词条、弱点每帧照算（_dc_emit）。
@@ -3422,7 +3452,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 	var rage_fx: bool = e.get("enraged", false) and not D.ENEMIES.get(e.type, _NO_DEF).get("rage_keep_tint", false) and not e.get("squad", false) and Bal.v("render/rage_tint", 0.0) > 0.0   # rage_keep_tint：收割者的狂奔保持冷蓝本色；波纹另画。精英小队不叠狂暴的脚下红椭圆和全身红调（红描边已标危险；10-26 用户「还是有红色的底，并且全身发红」）；10-27 用户：普通怪狂暴也不染红、不画脚下红椭圆（render/rage_tint 缺省 0，1 = 恢复）
 	# 巢涌者神经光环改到地面层画（draw_nest_auras），不再按 4.6 倍放大帧条盖在实体上
 	# 染色复用贴图的敌人（巨海、撕裂者、潜地者、吐酸者）按自身半径放大：enemies.json 的 draw_scale（docs/48 §1 第 7 项）
-	var sc: float = enemy_scale(e)
+	var sc: float = enemy_scale(e) * mid_boss_k(e)   # 中期 Boss 只放大画面（docs/283 A1）
 	var col: Color = ed.get("tint", Color.WHITE)
 	if e.evo:
 		col = col * Color(1.0, 0.62, 0.68)

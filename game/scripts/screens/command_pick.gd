@@ -209,6 +209,8 @@ func draw(vs: Vector2) -> void:
 	var W = g.wheel
 	if sq.order_kind != "" and not active:
 		_draw_order(hud, ct)
+	if not active:
+		_draw_boss_marks(hud, ct)
 	if _done_t >= 0.0 and not active and _done_ok:
 		var a: float = 1.0 - _done_t / 0.6
 		var sp: Vector2 = ct * _done_pt
@@ -365,6 +367,29 @@ func _lock(hud: CanvasItem, font: Font, ct: Transform2D, en: Dictionary, col: Co
 	hud.draw_rect(Rect2(sp + Vector2(-r, r + 6.0), Vector2(bw * hp, 4)), Color(col.r, col.g, col.b, 0.95 * e))
 	if picked:
 		UI.ctext(hud, font, sp + Vector2(-r, -r - 8.0), "LOCK // " + ("BOSS" if en.boss else "ELITE"), 10, col, HORIZONTAL_ALIGNMENT_LEFT, 120)
+
+
+## 中期 Boss 常驻锁定框（docs/283 §6 第 1 条，11-06 用户「中期 Boss 不明显」）：集火时才有的取景角标 + 「BOSS」小字，改成中期 Boss
+## 在画面里就一直画，亮度低于集火锁定；正被集火的那只由 _draw_order 画（不重复）。只画，不改判定。
+## render/boss_mark：1 = 开（缺省），0 = 关。框按 world.mid_boss_k 跟着放大后的身体走
+func _draw_boss_marks(hud: CanvasItem, ct: Transform2D) -> void:
+	if Bal.v("render/boss_mark", 1.0) <= 0.0 or g.state != g.S.PLAY:
+		return
+	var W = g.wheel
+	var tgt = g.squad.order_target if g.squad.order_kind == "focus" else null
+	for b in g.bosses:
+		if b.dead or b.get("friendly", false) or b.get("part", false) or is_same(b, tgt):
+			continue
+		if not g.world.is_mid_boss(b):
+			continue
+		var k: float = g.world.mid_boss_k(b)
+		var r0: float = float(b.r) * k
+		var sp: Vector2 = ct * (b.pos + Vector2(0, -r0 * 0.6))
+		var r: float = (r0 * 1.1 + 8.0) * ct.get_scale().x
+		var pu: float = 0.0 if Cfg.reduce_motion else 0.5 + 0.5 * sin(g.t * 3.0)
+		var col := Color(W.C_WARN.r, W.C_WARN.g, W.C_WARN.b, 0.42 + 0.12 * pu)
+		_corners(hud, sp, r, col, 1.6)
+		UI.ctext(hud, g.font, sp + Vector2(-r, -r - 6.0), "BOSS", 10, col, HORIZONTAL_ALIGNMENT_LEFT, 60)
 
 
 ## 录片说明字幕（--democap 才画，只在示意录像里用）：按当前状态自动换——圆盘开着 / 选点中 / 指令生效中

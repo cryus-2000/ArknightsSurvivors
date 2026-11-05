@@ -6,6 +6,7 @@ const UM = preload("res://scripts/ui_motion.gd")
 const A = preload("res://scripts/art.gd")
 const Character = preload("res://scripts/characters/character.gd")   # CLASS_COL（指挥模式屏外标记）
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
+const MagnetDraw = preload("res://scripts/render/magnet_draw.gd")   # 磁铁屏外指示用同一张贴图与配色（docs/284 §2）
 var g: Game
 var _b_serial := -1   # 横幅动效：正在画的是哪一条（vfx.banner_serial）、第一次真正画出来的界面时刻
 var _b_t0 := 0.0
@@ -129,6 +130,35 @@ func draw_duck_pointer(vs: Vector2, ct: Transform2D) -> void:
 	var notch: Vector2 = edge - d * 2.0
 	g.hud.draw_colored_polygon(PackedVector2Array([tip + d * 3.0, base + sd * 1.25 - d * 2.0, notch - d * 2.0, base - sd * 1.25 - d * 2.0]), Color(0.05, 0.04, 0.02, 0.7))
 	g.hud.draw_colored_polygon(PackedVector2Array([tip, base + sd, notch, base - sd]), DUCK_PTR_COL.lerp(Color.WHITE, 0.35 * pulse))
+
+
+## 磁铁屏外指示（docs/284 §2 A，11-06 用户「磁铁在地图上要能看见」）：磁铁在画面外时屏幕边缘一枚深色小圈，里面是磁铁贴图，
+## 外侧一枚红 / 蓝双色箭头指向它；画面内不画。render/magnet_v2 关时不画（旧画法没有屏外提示）
+func draw_magnet_pointers(vs: Vector2, ct: Transform2D) -> void:
+	if g.state != Game.S.PLAY or not MagnetDraw.on() or g.pickups.magnets.is_empty():
+		return
+	var mags: Array = g.pickups.magnets
+	for i in range(mags.size() - 1, -1, -1):
+		if mags[i].dead:
+			mags.remove_at(i)
+	var tx: Texture2D = MagnetDraw.tex()
+	var pulse := 0.5 + 0.5 * sin(g.t * 6.0)
+	for m in mags:
+		var sp: Vector2 = ct * (m.pos as Vector2)
+		if Rect2(Vector2(24, 24), vs - Vector2(48, 48)).has_point(sp):
+			continue
+		var edge: Vector2 = _edge(vs, sp, 44.0)
+		var d: Vector2 = (sp - edge).normalized()
+		g.hud.draw_circle(edge, 22.0 + 3.0 * pulse, Color(0.95, 0.4, 0.45, 0.10))
+		g.hud.draw_circle(edge, 18.0, Color(0.04, 0.04, 0.06, 0.85))
+		g.hud.draw_arc(edge, 18.0, PI / 2.0, PI * 1.5, 16, MagnetDraw.RED, 2.0)
+		g.hud.draw_arc(edge, 18.0, -PI / 2.0, PI / 2.0, 16, MagnetDraw.BLUE, 2.0)
+		g.hud.draw_texture_rect(tx, Rect2((edge - Vector2(10, 10)).round(), Vector2(20, 20)), false)
+		var tip: Vector2 = edge + d * (30.0 + 4.0 * pulse)
+		var base: Vector2 = edge + d * 21.0
+		var sd := d.orthogonal() * 8.0
+		g.hud.draw_colored_polygon(PackedVector2Array([tip, base + sd, base]), MagnetDraw.RED)
+		g.hud.draw_colored_polygon(PackedVector2Array([tip, base, base - sd]), MagnetDraw.BLUE)
 
 
 ## Boss 屏外指示（docs/48 P1：Boss 在屏幕外登场，商人有指示，Boss 没有）：

@@ -19,6 +19,10 @@ func _init(game: Game) -> void:
 var stress := false
 
 
+## 场上磁铁的引用（与 g.gems 里同一个字典；拾取后 dead = true，读的人自己剔除）。只给屏外指针用，不读它做判定（docs/284 §2）
+var magnets: Array = []
+
+
 ## 场上的磁铁 + 回复药剂数；传 kind 时只数这一种（磁铁单独上限用）
 func count_items(kind := "") -> int:
 	var n := 0
@@ -52,6 +56,8 @@ func drop(pos: Vector2, kind: String, val: float, src := "") -> void:
 		"z": 6.0, "vz": r.randf_range(260.0, 300.0) if special else r.randf_range(190.0, 260.0), "vel": sp * (0.5 if special else 1.1),
 		"special": special, "landed": false, "age": 0.0, "seed": r.randf() * TAU, "out_t": 0.0})
 	_cap_count_size = -1 # Appends also invalidate same-size demo/reset replacements.
+	if kind == "magnet":
+		magnets.append(g.gems[-1])   # 只给屏外指针用（hud_banners.draw_magnet_pointers），不参与判定
 	if src != "":
 		g.gems[-1]["src"] = src   # 宝箱来源（遥测，docs/191）
 
