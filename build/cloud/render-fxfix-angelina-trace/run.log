@@ -1,0 +1,11 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（3584 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+== pxplane_shots.py trace --op angelina --seed 23 --maxt 300 --extra="--elite2 --sptest --bal=growth/late_shape=1"
+   rc=2  0 秒
+                        [--extra EXTRA] [--pxs PXS]
+                        [--op {hoshiguma,siege,skadi}] [--crf CRF]
+                        [--lead LEAD] [--reuse] [--force_k FORCE_K]
+                        {demo,rec,trace,diff,fps,linkcmp,branch,combo}
+pxplane_shots.py: error: argument --op: invalid choice: 'angelina' (choose from 'hoshiguma', 'siege', 'skadi')
+media：0 个文件，4.0K
