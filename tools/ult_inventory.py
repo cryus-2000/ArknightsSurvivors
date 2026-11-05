@@ -44,7 +44,15 @@ def ult(a):
     subprocess.run(cmd)
     base = os.path.join(ROOT, "build", "ult_rec", tag)
     for op in ops:
-        fr = sorted(glob.glob(os.path.join(base, "fr_u_" + op, "rec_*.png")))
+        # ult_rec 出完 mp4 就删帧：从 mp4 解回 PNG（crf 24 有损，联系表够用）
+        mp4 = os.path.join(base, "u_%s.mp4" % op)
+        fdir = os.path.join(base, "dec_" + op)
+        if os.path.exists(mp4):
+            import imageio_ffmpeg
+            shutil.rmtree(fdir, ignore_errors=True)
+            os.makedirs(fdir)
+            subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error", "-i", mp4, os.path.join(fdir, "rec_%05d.png")])
+        fr = sorted(glob.glob(os.path.join(fdir, "rec_*.png")))
         if len(fr) < 60:
             print("缺帧", op, len(fr), flush=True)
             continue
@@ -68,9 +76,8 @@ def ult(a):
             d.text((x + 6, y + 2), "%+.2f 秒%s" % ((i - 45) / 30.0, "（最亮）" if i == pk else ""), fill=(255, 210, 120), font=font(18))
         sh.save(os.path.join(a.out, "%s_ult_sheet.png" % op))
         shutil.copy(fr[pk], os.path.join(a.out, "%s_ult_peak.png" % op))
-        mp4 = os.path.join(base, "u_%s.mp4" % op)
-        if os.path.exists(mp4):
-            shutil.copy(mp4, os.path.join(a.out, "%s_ult.mp4" % op))
+        shutil.copy(mp4, os.path.join(a.out, "%s_ult.mp4" % op))
+        shutil.rmtree(fdir, ignore_errors=True)
         print("联系表", op, idx, "最亮", pk, flush=True)
 
 
