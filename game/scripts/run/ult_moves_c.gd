@@ -12,6 +12,7 @@ const Bal = preload("res://scripts/core/balance.gd")
 const PF = preload("res://scripts/run/ult_pixfx.gd")   # pixfx 大贴图画法（docs/199 §7.8）
 const FC = preload("res://scripts/run/ult_fx_c.gd")   # pixfx 第三组：流明 / 铃兰（docs/199 §7.9）
 const IRP = preload("res://scripts/run/ult_px_ir.gd")   # 艾丽妮「宣判」转平面画面（docs/275，ult/px_plane；只画）
+const LPU = preload("res://scripts/run/ult_px_lp.gd")   # 拉普兰德「狂舞乱砍」转平面：配色对齐紫白 + 收尾大爆（docs/273 §8，ult/px_plane；只画）
 const IDS: Array = ["saria", "suzuran", "logos", "hoshiguma", "siege", "irene", "lappland", "lumen"]
 const DIR_OPS: Array = ["suzuran", "logos", "irene"]   # 塞雷娅 10-30 改成以自身为圆心的拳风环，不瞄
 const POINT_OPS: Array = ["siege"]
@@ -1928,6 +1929,11 @@ static func _ir_boom_v2(u, eye: Vector2, br: float, org: Vector2, R: float, ang:
 ## 用户 10-31「拉普兰德改成往前攻击，高频剑气保留但朝前方乱砍，不要绕身」（开关 ult/la_fwd 缺省 1；0 = 原绕身四圈）：
 ## 判定改成前方扇形——顶点在她身后 ult/la_back（100），半角 ult/la_half、半径 ult/la_fr（按 ult_bench --area 定到标准面积 950 千平方像素 ±15%，docs/199 §5.10）；
 ## 四圈剑气照旧按时序从顶点往外扫（每圈 1/n、沉默、断喝末圈击退），只是只打扇形里的；乱砍剑气铺满扇形，收尾横斩横在扇形中段、垂直于朝向
+## 转平面（docs/273 §8，ult/px_plane 开着）：原画面的银灰 / 冷蓝按亮度换成普攻 / 技能定稿的紫白色阶（造型、节奏不动）；关着原样返回
+static func _lc(c: Color) -> Color:
+	return LPU.tint(c) if LPU.on() else c
+
+
 static func _la_fwd() -> bool:
 	return Bal.v("ult/la_fwd", 1.0) > 0.0
 
@@ -1971,7 +1977,7 @@ static func _la_wave(u, a: Dictionary, o, i: int) -> void:
 	var R: float = a.R
 	var fly: float = a.fly
 	var col: Color = u._col(o)
-	var glow: Color = col.lerp(Color(0.55, 0.35, 1.0), 0.65)
+	var glow: Color = col.lerp(_lc(Color(0.55, 0.35, 1.0)), 0.65)
 	var spd: float = (R - 40.0) / fly
 	var nb: int = 12
 	var a0: float = (PI / nb) * float(i % 2) + 0.13 * i
@@ -1994,7 +2000,7 @@ static func _la_wave(u, a: Dictionary, o, i: int) -> void:
 			u.shape({"kind": "blade", "a": p - bd * 30.0, "b": p + bd * 30.0, "w": 7.0, "col": Color.WHITE, "glow": glow, "life": fly, "v": dv * spd})
 	u.shape({"kind": "ring", "c": c, "r": R, "r1": 40.0, "w": 2.0, "col": Color(glow, 0.5), "life": fly * 2.0})
 	for k in 3:   # 她身边旋舞的剑光
-		u.strip("fx_lappland_slash", c + Vector2(0, -16), {"ang": a0 + TAU * k / 3.0, "sc": 1.3, "col": Color(1, 1, 1, 0.9)})
+		u.strip("fx_lappland_slash", c + Vector2(0, -16), {"ang": a0 + TAU * k / 3.0, "sc": 1.3, "col": _lc(Color(1, 1, 1, 0.9))})
 	o.play_vis_anim("attack")
 	if i == 0:
 		o.screen_shake(0.5)
@@ -2032,6 +2038,8 @@ static func _la_step(u, a: Dictionary, o) -> bool:
 			var hit_now: bool = _once(u, a, o, a.segs[i], e, float(a.f), op)
 			if hit_now and _la_r3() and a.get("v3", false):
 				_la_hit_fx(u, a, e, t)
+			if hit_now and i == n - 1 and LPU.on():
+				LPU.ev(u, "hit", {"e": e})   # 转平面（docs/273 §8）：末圈打中的怪，收尾大爆的冲击环扫到时崩解（只画）
 			if hit_now and not e.dead and not e.boss:
 				var sl: float = Bal.v("ult/la_silence", 4.0) * (0.5 if e.elite else 1.0)
 				g.enemies_sys.silence(e, g.t + sl)
@@ -2064,8 +2072,8 @@ static func _la_hit_fx(u, a: Dictionary, e: Dictionary, t: float) -> void:
 	for q in (1 if one else 2):   # 刀口：长短 / 交叉角 / 先后都错开
 		var dv := Vector2.from_angle(ang + q * (0.9 + 0.9 * PF.h(sd + 2.0)))
 		var L: float = (36.0 if q == 0 else 22.0) * (0.6 + 0.8 * PF.h(sd + q * 1.3))
-		u.shape({"kind": "blade", "a": p - dv * L, "b": p + dv * L, "w": 3.0 - q, "col": Color(0.9, 0.9, 0.88), "glow": Color(0.35, 0.35, 0.4), "grow": 0.0, "life": 0.05 + 0.04 * PF.h(sd + 7.0), "fo": 0.04, "delay": 0.01 * q + 0.02 * PF.h(sd + 8.0)})
-	PF.particles(u, p, 20, "ult_burst_s", [Color(0.46, 0.47, 0.5), LA_ICE.darkened(0.45)], 0.0, sd, 34.0)
+		u.shape({"kind": "blade", "a": p - dv * L, "b": p + dv * L, "w": 3.0 - q, "col": _lc(Color(0.9, 0.9, 0.88)), "glow": _lc(Color(0.35, 0.35, 0.4)), "grow": 0.0, "life": 0.05 + 0.04 * PF.h(sd + 7.0), "fo": 0.04, "delay": 0.01 * q + 0.02 * PF.h(sd + 8.0)})
+	PF.particles(u, p, 20, "ult_burst_s", [_lc(Color(0.46, 0.47, 0.5)), _lc(LA_ICE).darkened(0.45)], 0.0, sd, 34.0)
 
 
 ## ---- 拉普兰德 pixfx（docs/199 §7.10，开关 ult/la_fx_v2 缺省 1；0 = 程序白刃十字版）
@@ -2122,20 +2130,20 @@ static func _la_fly_wave(u, a: Dictionary, dv: Vector2, sd: float, pr: float, i:
 	var ang: float = dv.angle() + PI * 0.5 + (PF.h(sd + 3.0) - 0.5) * lerpf(0.3, 0.8, pr)
 	var ln: float = lerpf(150.0, 260.0, PF.h(sd + 4.0))   # 用户 10-31「稍微小一点，现在太粗糙」：长 220–420 → 150–260、粗 2–3 → 1.1–1.5（放大过头像素块糊）
 	var th: float = lerpf(1.1, 1.5, PF.h(sd + 5.5))
-	var col: Color = LA_SILVER if i % 3 == 1 else LA_ICE
+	var col: Color = _lc(LA_SILVER) if i % 3 == 1 else _lc(LA_ICE)
 	if _la_r3():   # 第三轮：刀身细一档 + 细亮刀芯，边缘干净；不画厚残影、不叠冷蓝十字刃
 		_la_cut(u, p0, ang, ln, sd, life, Color(col.darkened(0.12), 0.85), th * 0.45, true, dv * spd)
-		_la_cut(u, p0, ang, ln * 0.92, sd, life * 0.85, Color(0.97, 0.97, 0.95, 0.95), th * 0.16, true, dv * spd)
+		_la_cut(u, p0, ang, ln * 0.92, sd, life * 0.85, _lc(Color(0.97, 0.97, 0.95, 0.95)), th * 0.16, true, dv * spd)
 		if i % 4 == 0:
-			PF.particles(u, p0, 30, "ult_burst_s", [Color(0.5, 0.5, 0.53), LA_ICE.darkened(0.3)], 0.0, sd, 40.0)
+			PF.particles(u, p0, 30, "ult_burst_s", [_lc(Color(0.5, 0.5, 0.53)), _lc(LA_ICE).darkened(0.3)], 0.0, sd, 40.0)
 		return
-	_la_cut(u, p0, ang, ln * 0.95, sd + 0.5, life, Color(0.4, 0.4, 0.43, 0.55), th * 1.25, true, dv * spd, 0.03)   # 残影
+	_la_cut(u, p0, ang, ln * 0.95, sd + 0.5, life, _lc(Color(0.4, 0.4, 0.43, 0.55)), th * 1.25, true, dv * spd, 0.03)   # 残影
 	_la_cut(u, p0, ang, ln, sd, life, Color(col, 0.95), th, true, dv * spd)
 	if PF.h(sd + 7.0) < 0.18:
 		var xn := PF.pick(u, LA_X, sd)
-		u.strip(xn, p0, {"ang": dv.angle(), "sc": 90.0 / PF.tex_w(u, xn), "life": life, "fade": life * 0.35, "v": dv * spd * 0.9, "col": Color(1.25, 1.0, 0.85)})   # 十字刃原图冷蓝，压成灰白
+		u.strip(xn, p0, {"ang": dv.angle(), "sc": 90.0 / PF.tex_w(u, xn), "life": life, "fade": life * 0.35, "v": dv * spd * 0.9, "col": _lc(Color(1.25, 1.0, 0.85))})   # 十字刃原图冷蓝，压成灰白
 	if i % 4 == 0:
-		PF.particles(u, p0, 40, "ult_burst_s", [LA_ICE, LA_SILVER], 0.0, sd, 50.0)
+		PF.particles(u, p0, 40, "ult_burst_s", [_lc(LA_ICE), _lc(LA_SILVER)], 0.0, sd, 50.0)
 
 
 static func _la_frenzy(u, a: Dictionary, t: float) -> void:
@@ -2156,17 +2164,17 @@ static func _la_frenzy(u, a: Dictionary, t: float) -> void:
 		var p: Vector2 = (Vector2(a.org) if a.get("fwd", false) else Vector2(a.c)) + dv * R * (0.18 + 0.68 * PF.h(sd + 1.0))
 		var ang: float = dv.angle() + PI * 0.5 + (PF.h(sd + 3.0) - 0.5) * PI * lerpf(0.45, 1.0, pr)   # 越砍越乱
 		var ln: float = lerpf(260.0, 560.0, PF.h(sd + 4.0)) * (0.9 + 0.3 * pr)
-		var col: Color = LA_SILVER if i % 3 == 1 else LA_ICE
+		var col: Color = _lc(LA_SILVER) if i % 3 == 1 else _lc(LA_ICE)
 		var th: float = lerpf(1.8, 2.8, PF.h(sd + 5.5))   # 粗：用户「太卵」
-		_la_cut(u, p - Vector2.from_angle(ang) * 26.0, ang, ln * 0.9, sd + 0.5, 0.18, Color(0.4, 0.4, 0.43, 0.55), th * 1.3)   # 后一层暗灰残影，给刀身厚度
+		_la_cut(u, p - Vector2.from_angle(ang) * 26.0, ang, ln * 0.9, sd + 0.5, 0.18, _lc(Color(0.4, 0.4, 0.43, 0.55)), th * 1.3)   # 后一层暗灰残影，给刀身厚度
 		_la_cut(u, p, ang, ln, sd, 0.26 + 0.1 * PF.h(sd + 6.0), Color(col, 0.95), th)
 		if i % 2 == 0:
-			PF.particles(u, p + Vector2(0, 10), 40, "ult_ember", [Color(0.6, 0.6, 0.6)], 0.02, sd, 60.0)
+			PF.particles(u, p + Vector2(0, 10), 40, "ult_ember", [_lc(Color(0.6, 0.6, 0.6))], 0.02, sd, 60.0)
 		if PF.h(sd + 7.0) < 0.22:   # 偶尔一道双刃十字
 			var xn := PF.pick(u, LA_X, sd)
-			u.strip(xn, p, {"ang": ang, "sc": 110.0 / PF.tex_w(u, xn), "life": 0.16, "fade": 0.1, "v": dv * 500.0, "col": Color(1.25, 1.0, 0.85)})
+			u.strip(xn, p, {"ang": ang, "sc": 110.0 / PF.tex_w(u, xn), "life": 0.16, "fade": 0.1, "v": dv * 500.0, "col": _lc(Color(1.25, 1.0, 0.85))})
 		if i % 5 == 0:
-			PF.particles(u, p, 60, "ult_burst_s", [LA_ICE, LA_SILVER], 0.0, sd, 60.0)
+			PF.particles(u, p, 60, "ult_burst_s", [_lc(LA_ICE), _lc(LA_SILVER)], 0.0, sd, 60.0)
 		a.sl_i = i + 1
 		a.sl_t = float(a.sl_t) + (lerpf(0.045, 0.028, pr) if a.get("fwd", false) else lerpf(0.06, 0.02, pow(pr, 1.2)))   # 朝前版：几乎匀速连斩，越到后面略密
 
@@ -2188,50 +2196,52 @@ static func _la_wave_v3(u, a: Dictionary, o, i: int, c: Vector2, R: float) -> vo
 	var dv := Vector2.from_angle(ang)
 	var n0: int = u.shapes.size()
 	_la_cut(u, c + dv.orthogonal() * 14.0, ang, R * 2.3, vs + 101.0, 0.45, Color(LA_ICE, 0.55), 1.3, true)   # 一整道（两段拼会成海鸥翅膀形）
-	_la_cut(u, c, ang, R * 2.2, vs + 101.0, 0.5, Color(0.86, 0.86, 0.84, 0.9), 0.95, true)   # 压暗（预审报横斩发白）
+	_la_cut(u, c, ang, R * 2.2, vs + 101.0, 0.5, _lc(Color(0.86, 0.86, 0.84, 0.9)), 0.95, true)   # 压暗（预审报横斩发白）
 	if _la_r3() and a.get("fwd", false):   # 第三轮：细亮刀芯（一帧到位、0.18 秒冷掉）+ 沿斩线 6 处命中爆点错开炸开
-		_la_cut(u, c, ang, R * 2.15, vs + 101.0, 0.18, Color(0.98, 0.98, 0.96, 1.0), 0.3, true)
+		_la_cut(u, c, ang, R * 2.15, vs + 101.0, 0.18, _lc(Color(0.98, 0.98, 0.96, 1.0)), 0.3, true)
 		for q in 6:
 			var hq: float = PF.h(vs + q * 2.9)
 			var pq: Vector2 = c + dv * (float(q) / 5.0 - 0.5 + (hq - 0.5) * 0.12) * R * 1.9 + dv.orthogonal() * (hq - 0.5) * 24.0
-			u.shape({"kind": "circle", "c": pq, "r": 16.0 + 14.0 * hq, "col": Color(0.88, 0.88, 0.86), "fill": 0.8, "life": 0.05, "delay": 0.02 + 0.025 * q})
-			PF.particles(u, pq, 300, "ult_burst", [Color(0.5, 0.51, 0.54), LA_ICE.darkened(0.5)], 0.02 + 0.025 * q, vs + q * 4.0, 60.0 + 40.0 * hq)
+			u.shape({"kind": "circle", "c": pq, "r": 16.0 + 14.0 * hq, "col": _lc(Color(0.88, 0.88, 0.86)), "fill": 0.8, "life": 0.05, "delay": 0.02 + 0.025 * q})
+			PF.particles(u, pq, 300, "ult_burst", [_lc(Color(0.5, 0.51, 0.54)), _lc(LA_ICE).darkened(0.5)], 0.02 + 0.025 * q, vs + q * 4.0, 60.0 + 40.0 * hq)
 		u.shake(3.0, 0.12)
 	if a.get("fwd", false) and Bal.v("ult/la_final_hf", 1.0) > 0.0:   # 11-01 细调：收尾横斩是全招最重一拍 → 冲击帧（横斩进剪影）
 		PF.hf_since(u, n0)
 		PF.hf_on(u, a)
 	if a.get("fwd", false) and Bal.v("ult/la_r2", 1.0) > 0.0:   # 11-01 第二轮：横斩在地上留一道暗刀口（先亮后冷、慢慢褪），沿刀口崩出几道不规整细裂缝
-		_la_cut(u, c, ang, R * 2.1, vs + 101.0, 1.4, Color(0.14, 0.14, 0.17, 0.85), 0.5, true)
+		_la_cut(u, c, ang, R * 2.1, vs + 101.0, 1.4, _lc(Color(0.14, 0.14, 0.17, 0.85)), 0.5, true)
 		u.shapes[u.shapes.size() - 1]["layer"] = "back"
 		for q in 4:
 			var pq: Vector2 = c + dv * (PF.h(vs + q * 3.1) - 0.5) * R * 1.6
 			var sg: float = 1.0 if q % 2 == 0 else -1.0
 			PF.cracks(u, ["fx_sg_fork1", "fx_sg_fork2", "fx_sg_fork3", "fx_sg_fork4"], pq, [(dv.orthogonal() * sg).angle() + (PF.h(vs + q) - 0.5) * 1.0], [80.0 + 70.0 * PF.h(vs + q * 1.7)],
 				{"seed": vs + q * 5.0, "r0": 4.0, "rev": 0.06, "rev0": 0.0, "delay": 0.0, "life": 1.3, "fade": 0.7, "small": 0.4, "big": 0.5,
-				"col": Color(0.9, 0.9, 0.92), "col1": Color(0.16, 0.16, 0.19, 0.9), "cold": 0.12})
-	u.light(c, R * 1.2, LA_ICE, 0.3 if not (a.get("fwd", false) and Bal.v("ult/la_r2", 1.0) > 0.0) else 0.15)
-	PF.particles(u, c, 200 if not a.get("fwd", false) else 60, "ult_burst_s", [LA_ICE, LA_SILVER] if not a.get("fwd", false) else [LA_ICE.darkened(0.3), LA_ICE.darkened(0.5)], 0.04, vs + 3.0, 140.0)   # 11-01：朝前版叠上空气爆破成一团白，压暗减量
-	if a.get("fwd", false):   # 用户 10-31：最后接一个空气爆破——横斩之后 0.12 秒，斩线中点一圈冷白气浪炸开（尘浪环三种挑一）+ 一大团银蓝粒子 + 尘
+				"col": _lc(Color(0.9, 0.9, 0.92)), "col1": _lc(Color(0.16, 0.16, 0.19, 0.9)), "cold": 0.12})
+	u.light(c, R * 1.2, _lc(LA_ICE), 0.3 if not (a.get("fwd", false) and Bal.v("ult/la_r2", 1.0) > 0.0) else 0.15)
+	PF.particles(u, c, 200 if not a.get("fwd", false) else 60, "ult_burst_s", [_lc(LA_ICE), _lc(LA_SILVER)] if not a.get("fwd", false) else [_lc(LA_ICE).darkened(0.3), _lc(LA_ICE).darkened(0.5)], 0.04, vs + 3.0, 140.0)   # 11-01：朝前版叠上空气爆破成一团白，压暗减量
+	if a.get("fwd", false) and LPU.on():   # 转平面（docs/273 §8）：空气爆破改成收尾大爆（预备收拢 → 亮核 → 冲击环推到边 → 粒子云 + 怪物崩解 + 慢动作），由 ult_px_lp 画
+		LPU.ev(u, "final", {"c": c, "dv": dv, "br": float(a.R) * 0.55})
+	elif a.get("fwd", false):   # 用户 10-31：最后接一个空气爆破——横斩之后 0.12 秒，斩线中点一圈冷白气浪炸开（尘浪环三种挑一）+ 一大团银蓝粒子 + 尘
 		var bc: Vector2 = c
 		var br: float = float(a.R) * 0.55
 		# 11-01 细调：原用推进之王粗块尘浪环 + 500 颗灰白粒子（录像里是白团 + 灰烟甜甜圈 + 满屏白点，像放烟花）→
 		# 气压一下撕开：两道碎裂细冲击波（一快一慢、带缺口）+ 少量压暗的银灰碎屑沿斩线两侧甩出 + 几团逐帧烟尘
 		var r2: bool = Bal.v("ult/la_r2", 1.0) > 0.0
-		u.shape({"kind": "ring", "c": bc, "r": br, "r1": br * 0.12, "w": 6.5, "col": Color(0.78, 0.8, 0.82) if not r2 else Color(0.6, 0.62, 0.66), "life": 0.32, "delay": 0.12})
-		u.shape({"kind": "ring", "c": bc, "r": br * 0.7, "r1": br * 0.1, "w": 3.0, "col": Color(0.55, 0.58, 0.62), "life": 0.45, "delay": 0.18})
+		u.shape({"kind": "ring", "c": bc, "r": br, "r1": br * 0.12, "w": 6.5, "col": _lc(Color(0.78, 0.8, 0.82)) if not r2 else _lc(Color(0.6, 0.62, 0.66)), "life": 0.32, "delay": 0.12})
+		u.shape({"kind": "ring", "c": bc, "r": br * 0.7, "r1": br * 0.1, "w": 3.0, "col": _lc(Color(0.55, 0.58, 0.62)), "life": 0.45, "delay": 0.18})
 		if r2:   # 11-01 第二轮：录像里中心还是一团白点 → 碎屑只往斩线两侧（垂直斩向）甩、颜色再压一档；烟尘改成沿刀口两侧各一排往外推（气压撕开）
 			for sg in [-1.0, 1.0]:
-				PF.particles(u, bc + dv.orthogonal() * sg * br * 0.25, 30, "ult_burst_s", [Color(0.38, 0.39, 0.42), LA_ICE.darkened(0.6)], 0.12, vs + 9.0 + sg, br * 0.5)
+				PF.particles(u, bc + dv.orthogonal() * sg * br * 0.25, 30, "ult_burst_s", [_lc(Color(0.38, 0.39, 0.42)), _lc(LA_ICE).darkened(0.6)], 0.12, vs + 9.0 + sg, br * 0.5)
 				for q in 3:
 					var pq: Vector2 = bc + dv * (q - 1.0) * br * 0.55 + dv.orthogonal() * sg * 30.0
-					PF.dust(u, pq, 130.0 + 50.0 * PF.h(vs + q * 2.0 + sg), 0.13 + 0.04 * q, vs + q + sg * 5.0, dv.orthogonal() * sg * 120.0, Color(0.42, 0.44, 0.48))
+					PF.dust(u, pq, 130.0 + 50.0 * PF.h(vs + q * 2.0 + sg), 0.13 + 0.04 * q, vs + q + sg * 5.0, dv.orthogonal() * sg * 120.0, _lc(Color(0.42, 0.44, 0.48)))
 		else:
-			PF.particles(u, bc, 70, "ult_burst", [Color(0.5, 0.51, 0.53), LA_ICE.darkened(0.5)], 0.12, vs + 9.0, br * 0.9)
-			PF.particles(u, bc, 50, "ult_ember", [Color(0.5, 0.5, 0.52)], 0.2, vs + 4.0, br * 0.6)
+			PF.particles(u, bc, 70, "ult_burst", [_lc(Color(0.5, 0.51, 0.53)), _lc(LA_ICE).darkened(0.5)], 0.12, vs + 9.0, br * 0.9)
+			PF.particles(u, bc, 50, "ult_ember", [_lc(Color(0.5, 0.5, 0.52))], 0.2, vs + 4.0, br * 0.6)
 			for q in 3:
 				var dq: Vector2 = dv * (1.0 if q % 2 == 0 else -1.0) * (0.35 + 0.25 * PF.h(vs + q)) * br
-				PF.dust(u, bc + dq, 150.0 + 60.0 * PF.h(vs + q * 2.0), 0.14 + 0.05 * q, vs + q, dq.normalized() * 70.0, Color(0.5, 0.52, 0.55))
-			u.light(bc, br * 1.4, LA_ICE, 0.3)
+				PF.dust(u, bc + dq, 150.0 + 60.0 * PF.h(vs + q * 2.0), 0.14 + 0.05 * q, vs + q, dq.normalized() * 70.0, _lc(Color(0.5, 0.52, 0.55)))
+			u.light(bc, br * 1.4, _lc(LA_ICE), 0.3)
 		var sfx: Node = u.g.get_node_or_null("/root/Sfx") if u.g.is_inside_tree() and not r2 else null   # 第二轮：硬写的通用 boom 去掉（和 ult_audio 的 air 叠成两声）
 		if sfx != null:
 			sfx.play("boom", -2.0, 1.3)
@@ -2250,11 +2260,11 @@ static func _la_wave_v2(u, a: Dictionary, o, i: int, c: Vector2, R: float, fly: 
 		var name := PF.pick(u, LA_X, vs * 0.31 + k * 2.3)
 		var r0: float = 30.0 + 40.0 * PF.h(hh * 13.0)
 		u.strip(name, c + dv * r0, {"ang": dv.angle() + (PF.h(hh * 5.0) - 0.5) * 0.7, "sc": len / PF.tex_w(u, name) * (0.75 + 0.5 * hh), "sx": 1.4 if bark else 1.0,
-			"sy": 1.0 if PF.h(hh * 3.0) < 0.5 else -1.0, "v": dv * spd * (R - r0) / (R - 40.0), "life": fly + 0.04, "fade": 0.1, "col": Color(1.05, 1.05, 1.05)})
-	PF.ring(u, LA_RING, c, 50.0, R, fly, fly + 0.06, {"seed": vs, "layer": "back", "fade": fly * 0.6, "col": Color(1.0, 1.0, 1.0, 0.3)})
+			"sy": 1.0 if PF.h(hh * 3.0) < 0.5 else -1.0, "v": dv * spd * (R - r0) / (R - 40.0), "life": fly + 0.04, "fade": 0.1, "col": _lc(Color(1.05, 1.05, 1.05))})
+	PF.ring(u, LA_RING, c, 50.0, R, fly, fly + 0.06, {"seed": vs, "layer": "back", "fade": fly * 0.6, "col": _lc(Color(1.0, 1.0, 1.0, 0.3))})
 	var rr: float = PF.tex_w(u, LA_WHIRL) * 0.5
 	u.strip(LA_WHIRL, c, {"sx": -1.0 if i % 2 == 1 else 1.0, "layer": "back", "sc": 70.0 / rr, "sc1": 95.0 / rr, "scd": 0.2, "spin": 14.0 * (1.0 if i % 2 == 0 else -1.0), "ang": PF.h(vs) * TAU, "life": 0.24, "fade": 0.12})
-	u.light(c, 220.0, LA_COL, 0.15)
+	u.light(c, 220.0, _lc(LA_COL), 0.15)
 	o.play_vis_anim("attack")
 
 

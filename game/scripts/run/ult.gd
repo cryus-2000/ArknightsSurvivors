@@ -15,6 +15,7 @@ const A = preload("res://scripts/art.gd")
 const Aim = preload("res://scripts/run/ult_aim.gd")
 const PF = preload("res://scripts/run/ult_pixfx.gd")   # 收尾加强的余震碎屑 / 烟尘（docs/216 §5）
 const IRP = preload("res://scripts/run/ult_px_ir.gd")   # 艾丽妮「宣判」转平面画面（docs/275，ult/px_plane；只画）
+const LPU = preload("res://scripts/run/ult_px_lp.gd")   # 拉普兰德「狂舞乱砍」转平面：收尾大爆 + 崩解 + 慢动作（docs/273 §8，同开关；只画）
 const SDP = preload("res://scripts/run/ult_px_sd.gd")   # 斯卡蒂「斩浪」转平面画面（docs/246 §16，同开关；只画）
 const Bond = preload("res://scripts/run/link_bond.gd")   # 羁绊连携（link/bond，docs/217）
 const LinkV2 = preload("res://scripts/run/link_v2.gd")   # 连携 v2（link/v2，docs/209 §2）：全自动、只由队长触发、按姿态挑人   # 慢动作瞄准 v2（ult/aim，docs/209 §3）
@@ -1271,6 +1272,8 @@ func draw_world_back(w) -> void:
 		IRP.of(g).draw_back(self, w)   # 艾丽妮「宣判」转平面：纹章 + 裂缝（docs/275）
 	if SDP.on():
 		SDP.of(g).draw_back(self, w)   # 斯卡蒂「斩浪」转平面：贴地层（docs/246 §16）
+	if LPU.on():
+		LPU.of(g).draw_back(self, w)   # 拉普兰德转平面：收尾大爆的压暗 + 冲击环（docs/273 §8）
 
 
 # ================================================================ 舞台（技能连携样片，用户 10-29；之后终结技也用）
@@ -1385,7 +1388,8 @@ func time_scale() -> float:
 		s = minf(s, Bal.v("ult/link_slow", 0.6))   # 技能连携出手瞬间的轻微放慢（比终结技弱一档）
 	if UM.now() - _prep_rt < _prep_t:
 		s = minf(s, _prep_s)   # 招式自己要的预备式慢动作（prep_slow；铃兰忍冬拔刀蓄势，用户 10-31）
-	s = minf(s, SDP.slow_scale(g))   # 斯卡蒂转平面：劈浪后浪被劈开的慢动作（docs/246 §16.4，ult/px_plane 开着才有）
+	s = minf(s, SDP.slow_scale(g))
+	s = minf(s, LPU.slow_scale(g))   # 拉普兰德转平面：收尾大爆的慢动作（docs/273 §8，ult/px_plane 开着才有）   # 斯卡蒂转平面：劈浪后浪被劈开的慢动作（docs/246 §16.4，ult/px_plane 开着才有）
 	return s
 
 
@@ -1466,6 +1470,8 @@ func draw_world(w) -> void:
 		IRP.of(g).draw_front(self, w)   # 艾丽妮「宣判」转平面：光链 / 斩线 / 爆 / 收尾斩击（docs/275）
 	if SDP.on():
 		SDP.of(g).draw_front(self, w)   # 斯卡蒂「斩浪」转平面：立起层（docs/246 §16）
+	if LPU.on():
+		LPU.of(g).draw_front(self, w)   # 拉普兰德转平面：亮核 / 粒子云 / 崩解（docs/273 §8）
 	_draw_inhale(w)
 	_draw_hit_frame(w)
 
