@@ -1159,7 +1159,7 @@ SCENE_REGRESSIONS = {
     "wisadel_cannon": ("维什戴尔炮击", "wisadel_cannon_test", r"WISADEL CANNON failures=0", ["--op=wisadel"]),
     "wisadel_fx_radius": ("维什戴尔爆炸特效跟着判定半径（实心边对齐判定圈）", "wisadel_fx_radius_test", r"WISADEL FX RADIUS checks=\d+ failures=0", ["--balance", "--seed=1", "--op=wisadel"]),
     "wisadel_boom": ("维什戴尔同处爆炸动画只画一次（伤害照打）", "wisadel_boom_test", r"WISADEL BOOM checks=\d+ failures=0", ["--balance", "--seed=1", "--op=wisadel", "--bal=fx/wd_calm=0"]),
-    "mon3tr_fx": ("Mon3tr 熔毁效果", "mon3tr_fx_test", r"MON3TR FX failures=0", ["--op=kaltsit"]),
+    "mon3tr_fx": ("Mon3tr 熔毁效果（旧帧条画法；凯尔希转平面接管时不画这些帧条，故固定 fx/px_plane=0）", "mon3tr_fx_test", r"MON3TR FX failures=0", ["--op=kaltsit", "--bal=fx/px_plane=0"]),
     "relic_impl": ("藏品第二批原语（docs/57）", "relic_impl_test", r"RELIC IMPL failures=0", ["--balance", "--op=siege", "--squad=saria,wisadel"]),
     "gladiia_hook": ("歌蕾蒂娅钩索把人拉到身前（10-24）", "gladiia_hook_test", r"GLADIIA HOOK failures=0", ["--balance", "--op=gladiia"]),
     "hoshiguma_taunt": ("星熊 S1 重斩 + 拉怪（10-30 改版，docs/140）", "hoshiguma_taunt_test", r"HOSHIGUMA TAUNT failures=0", ["--balance", "--op=mizuki", "--squad=hoshiguma"]),

@@ -501,6 +501,7 @@ static func sm_debride(o, hits: Array) -> void:
 	for e in booms:
 		var dmg: float = sm_dmg(o, {"atk_key": "m_atk", "mult": o.base("clear_mult", 0.4), "power": true})
 		o.area_hit("Mon3tr · 清创", e.pos, r, dmg, 0.0, 0.0, ["summon"])
+		Fxr.ev(o, "kal_debride", {"e": e, "r": r})   # 转平面（docs/265）：只画
 		var c2: Vector2 = e.pos + Vector2(0, -float(e.r) * 0.4)
 		o.fx({"kind": "ring", "pos": e.pos, "r": r, "r0": 10.0, "life": 0.3, "col": Color(1.6, 0.15, 0.12), "floor": true, "keep": true, "w": 3.0})
 		o.fx({"kind": "glow", "pos": c2, "r": r * 0.6, "life": 0.22, "col": Color(2.0, 0.3, 0.15), "alpha": 0.6})
@@ -1649,6 +1650,8 @@ static func _mf_claw(o, s: Dictionary, kd: Dictionary, mult: float, second: bool
 			sm_debride(o, hits)   # docs/202 清创：爪击累积
 		if i > 0 and hits.is_empty():
 			continue   # 身后一击没打到时不画（刀光会正好盖在本干员和主控身上，docs/45 #6）
+		if str(o.id) == "kaltsit":
+			Fxr.ev(o, "kal_claw", {"s": s, "ang": ang, "reach": reach + float(a.get("pad", 0.0)), "second": second, "es": hits})   # 转平面（docs/265）：只画
 		if a.has("fx"):
 			for f in a.fx:
 				if f is Dictionary and fx_on(o, f) and not (second and f.get("first_only", false)):
@@ -1776,6 +1779,8 @@ static func mf_draw(o, s: Dictionary, kd: Dictionary) -> bool:
 	for f in fl:
 		if not (f is Dictionary) or not fx_on(o, f):
 			continue
+		if (f.has("ghost") or f.has("mist")) and Fxr.owns(o):
+			continue   # 转平面（docs/265）接管时熔毁期间的红残影 / 红雾不画（改画 fx_pxplane_kal 的热流）
 		if f.has("ghost") and not s.ghost.is_empty() and s.ghost.pos.distance_to(s.pos) > 3.0:
 			var gf: Array = s.ghost.get("frame", [])
 			if not gf.is_empty():
@@ -1790,7 +1795,15 @@ static func mf_draw(o, s: Dictionary, kd: Dictionary) -> bool:
 	var col := Color.WHITE
 	if float(s.pout) <= 0.0 and s.pcur.has("tint"):
 		col = _mf_col(s.pcur.tint)
-	o.draw_sprite_at(s.pos + Vector2(0, hov), (float(s.face) < 0.0) != o.sprite_mirror(str(fr[3])), col, fr[1], fr[0], fr[2], o.foot_off(fr[0], fr[3]), VisGrowth.summon_scale(g))
+	var rim: Texture2D = null
+	if str(o.id) == "kaltsit" and o.skill_active_left(2) > 0.0 and Fxr.owns(o):   # 转平面（docs/265）：熔毁期间本体只带一点暖色，红由粒子轮廓叠层给（只画）
+		rim = Fxr.Pxp.KA.rim(fr[0], int(floor(g.t * 15.0)))
+		if rim != null:
+			col = Color(1.1, 0.92, 0.9)
+	var mir: bool = (float(s.face) < 0.0) != o.sprite_mirror(str(fr[3]))
+	o.draw_sprite_at(s.pos + Vector2(0, hov), mir, col, fr[1], fr[0], fr[2], o.foot_off(fr[0], fr[3]), VisGrowth.summon_scale(g))
+	if rim != null:
+		o.draw_sprite_at(s.pos + Vector2(0, hov), mir, Color.WHITE, fr[1], rim, fr[2], o.foot_off(fr[0], fr[3]), VisGrowth.summon_scale(g))
 	if s.has("m3"):
 		s["draw_top"] = [fr[0], fr[2], o.foot_off(fr[0], fr[3]), VisGrowth.summon_scale(g), hov]   # 头顶血条找头顶（hud_allyhp._m3_head，10-31）
 	for f in fl:
@@ -1819,6 +1832,8 @@ static func _mf_side(o, s: Dictionary, sd: Dictionary, hov: float) -> void:
 	if sd.has("strip") and not sd.has("col"):
 		return
 	var c: Color = _mf_col(sd.get("col", []), o.col())
+	if str(o.id) == "kaltsit" and o.skill_active_left(2) > 0.0 and Fxr.owns(o):
+		return   # 转平面（docs/265）：熔毁期间身侧红弧不画（两边对称张开像钳子，用户 11-05「像螃蟹」）；本体已整体换熔毁红（只画）
 	for q in sides:
 		var base_a: float = 0.0 if q >= 0.0 else PI
 		var sway: float = sin(g.t * 3.0 + j * 1.7 + q) * 0.18
