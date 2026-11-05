@@ -38,6 +38,7 @@ var _emit_n := 0
 var _emit_frame := -1
 var _ecol := {}
 var _fol_tick := -1
+var _fop_tick := -1
 
 
 static func of(game):
@@ -288,6 +289,16 @@ func _step() -> void:
 		for it in items:
 			if it.has("fol"):
 				it.gp = _snap(g.ppos + (it.fol as Vector2))
+	if tk != _fop_tick:   # 挂在施放者身上的件（逻各斯笔光 / 字环，docs/258）：每拍（15 fps）跟到施放者当前脚底与朝向
+		_fop_tick = tk
+		for it in items:
+			if it.has("fop"):
+				var fo = it.fop
+				if is_instance_valid(fo) and fo.pos != Vector2.INF:
+					it.gp = _snap(fo.pos)
+					it.flip = float(fo.face) < 0.0
+					if it.has("gy"):
+						it.gy = float(fo.pos.y) + 2.0
 
 
 func _life(k: String) -> float:
@@ -1245,7 +1256,7 @@ static func _lg_h(i: int) -> float:
 	return fposmod(sin(float(i) * 12.9898) * 43758.5453, 1.0)
 
 
-func _lg_up(o, k: String, at: Vector2, gy: float, flip := false) -> void:
+func _lg_up(o, k: String, at: Vector2, gy: float, flip := false, follow := false) -> void:
 	if k.begins_with("hit_"):   # 同屏上限：主命中至多 3 团同时在画，再多换小一号；小一号至多 3 团（后期多弹不叠成一片白）
 		var n := 0
 		for it in items:
@@ -1260,7 +1271,10 @@ func _lg_up(o, k: String, at: Vector2, gy: float, flip := false) -> void:
 				n2 += 1
 		if n2 >= 3:
 			return
-	_push({"k": "lg_" + k, "t0": g.t, "gp": _snap(at), "gy": gy, "flip": flip, "ly": "up", "oid": "logos"})
+	var it := {"k": "lg_" + k, "t0": g.t, "gp": _snap(at), "gy": gy, "flip": flip, "ly": "up", "oid": "logos"}
+	if follow:
+		it["fop"] = o
+	_push(it)
 
 
 func _lg_gd(k: String, at: Vector2) -> void:
@@ -1289,7 +1303,7 @@ func _ev_logos(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictiona
 			if raw:
 				_lg_raw("raw_start_e%d" % t, hand, (d.get("dir", Vector2.RIGHT) as Vector2).angle(), px)
 				return
-			_lg_up(o, "fire_e%d_up" % t, o.pos, o.pos.y + 2.0, float(o.face) < 0.0)
+			_lg_up(o, "fire_e%d_up" % t, o.pos, o.pos.y + 2.0, float(o.face) < 0.0, true)
 			R._light(o, hand, 60.0, 0.3, 0.1, p.light)
 			if t >= 1:
 				R._grains(o, hand, o.pos.y + 2.0, "twinkle", 1 + t, {"tier": t}, d.get("dir", Vector2.RIGHT))
@@ -1400,13 +1414,13 @@ func _ev_logos(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictiona
 				if raw:
 					_lg_raw("raw_start_e%d" % maxi(t, 1), _lg_tip(o), 0.0, px * 1.2)
 					return
-				_lg_up(o, "fire_e%d_up" % maxi(t, 1), o.pos, o.pos.y + 2.0, float(o.face) < 0.0)
+				_lg_up(o, "fire_e%d_up" % maxi(t, 1), o.pos, o.pos.y + 2.0, float(o.face) < 0.0, true)
 				R._light(o, o.pos + Vector2(0, -30), 110.0, 0.5, 0.14, p.light)
 			elif si == 2:   # 延异视阈起手：双层字环 → 笔尖蓄势 → 开域爆亮
 				if raw:
 					_lg_raw("raw_seal", o.pos + Vector2(0, -20), 0.0, px)
 					return
-				_lg_up(o, "s3open_up", o.pos, o.pos.y + 2.0, float(o.face) < 0.0)
+				_lg_up(o, "s3open_up", o.pos, o.pos.y + 2.0, float(o.face) < 0.0, true)
 				var tip2: Vector2 = _lg_tip(o)
 				R._light(o, tip2, 160.0, 0.8, 0.15, p.light)
 				R._grains(o, tip2, o.pos.y + 2.0, "twinkle", 5, {"tier": 2})

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""给 GCP 出的三栏对比图（cmp_<招>_e<档>.png，docs/256）在左边拼上「⓪ 原作」一栏（docs/258）。只用 PIL，不开 Godot。
+"""给 GCP 出的三栏对比图（cmp_<招>_e<档>.png，docs/256）在左边拼上「0 原作」一栏（docs/258）。只用 PIL，不开 Godot。
 
 原作参照只在本机（Claude outputs/<干员>_ref/*_keyframes.png，PRTS 解包回放的关键帧拼图，3 列 × 4 行），不进 git、不上 GCP。
 按 --pick 选每招取哪一格（行, 列），缩放到三栏图同高，贴在最左。输出 <名>_ref.png，原图不动。
@@ -72,7 +72,7 @@ def main():
         f, r, c = pick[mv]
         im, rows, cw = panels(os.path.join(a.ref, f))
         h0, h1, y1 = rows[r]
-        cell = im.crop((c * cw, h1, (c + 1) * cw, y1))
+        cell = im.crop((c * cw, h1 + 10, (c + 1) * cw, y1))
         sheet = Image.open(path).convert("RGB")
         W, H = sheet.size
         ch = H - 56
@@ -81,9 +81,9 @@ def main():
         out.paste(sheet, (cell.width + 4, 0))
         out.paste(cell, (0, 56))
         d = ImageDraw.Draw(out)
-        d.text((12, 8), "⓪ 原作（PRTS 解包回放，只作参照）", fill=(230, 230, 230), font=f30)
+        d.text((12, 8), "0 原作（PRTS 解包回放，只作参照）", fill=(230, 230, 230), font=f30)
         d.rectangle((8, 64, 8 + cell.width - 16, 104), fill=(0, 0, 0))
-        d.text((16, 68), "⓪ 原作参照（%s 第 %d 行第 %d 格）" % (f.replace("_keyframes.png", ""), r + 1, c + 1), fill=(255, 255, 255), font=f24)
+        d.text((16, 68), "原作参照（%s 第 %d 行第 %d 格）" % (f.replace("_keyframes.png", ""), r + 1, c + 1), fill=(255, 255, 255), font=f24)
         out.save(os.path.join(a.out, base + "_ref.png"))
         print(base + "_ref.png", out.size)
 
