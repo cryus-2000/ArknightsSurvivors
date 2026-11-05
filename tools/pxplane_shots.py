@@ -30,6 +30,8 @@ OPS = {
     "hoshiguma": {"name": "星熊", "modes": {3: "普攻 盾斧斩", 0: "S1 战意", 1: "S2 荆棘", 2: "S3 力之锯"}, "off": {0: 4, 1: 10, 2: 12}},
     # 推进之王（docs/264）：S1 取起手后 4 帧（战旗 + 狮头 + 声波环）；S2 起跳 0.42 秒后落地，取落地后约 3 帧；S3 取起手后约 0.3 秒（光带 + 炭火边）
     "siege": {"name": "推进之王", "modes": {3: "普攻 锤击", 0: "S1 冲锋号令·γ型", 1: "S2 跃空锤", 2: "S3 碎颅击"}, "off": {0: 4, 1: 16, 2: 10}},
+    # 凯尔希（docs/265）：S1 取起手后 4 帧（骨肋合拢）；S2 取 3 帧（指令符上升）；S3 取 5 帧（本体甲缝裂开 + 脚下红冲击）。没有「旧做法」版，② 栏 = 当前游戏
+    "kaltsit": {"name": "凯尔希", "modes": {3: "普攻 Mon3tr 爪击 + 治疗", 0: "S1 结构加固", 1: "S2 战术协同", 2: "S3 熔毁"}, "off": {0: 4, 1: 3, 2: 5}},
 }
 OP = "skadi"
 MODE_NAME = OPS[OP]["modes"]
@@ -203,7 +205,9 @@ def linkcmp(a, base):
         dirs[px] = os.path.join(BUILD, tag + "_frames")
         print(run(tag, ex, 30, dirs[px]), flush=True)
     log = open(os.path.join(LOGS, "link1_s%d_%d.log" % (a.seed, t0)), encoding="utf-8").read()
-    evs = [l.split() for l in log.splitlines() if l.startswith("PXPLOG hsg cover") or l.startswith("PXPLOG hsg combo ") or l.startswith("PXPLOG sg link_slam")]
+    evs = [l.split() for l in log.splitlines() if l.startswith("PXPLOG hsg cover") or l.startswith("PXPLOG hsg combo ") or l.startswith("PXPLOG sg link_slam")
+           or l.startswith("FXRLOG kaltsit kal_link ")]   # 凯尔希「Mon3tr 掩护」（docs/265）：fx_recipe 的事件日志
+    evs = [e for e in evs if t0 <= float(e[-1]) <= t0 + secs - 1]   # 只取录像窗口内的（快跑段的事件会算出负帧号，docs/267）
     print("连携事件", [(e[2], e[-1]) for e in evs], flush=True)
     if not evs:
         print("这段里没有连携技出手", flush=True)
@@ -220,7 +224,7 @@ def linkcmp(a, base):
     f30 = font(30)
     sheet = Image.new("RGB", (W * 3 + 8, H + 56), (12, 12, 16))
     dd = ImageDraw.Draw(sheet)
-    lname = {"cover": "举盾", "link_slam": "冲阵"}.get(evs[0][2], "举盾推挡")
+    lname = {"cover": "举盾", "link_slam": "冲阵", "kal_link": "Mon3tr 掩护"}.get(evs[0][2], "举盾推挡")
     dd.text((12, 8), OPS[OP]["name"] + " 连携技「%s」· 实战局同种子 %d · %.2f 秒" % (lname, a.seed, T), fill=(230, 230, 230), font=f30)
     for i, (im, (px, lab)) in enumerate(zip(ims, COLS)):
         sheet.paste(label(im.copy(), lab), (i * (W + 4), 56))
