@@ -23,6 +23,7 @@ if not os.path.isdir(PFX):
 SRC = os.path.join(ROOT, "tools", "pixelfx_fx", "water", "ak-skadi-pp.js")
 OUT_ART = os.path.join(ROOT, "game", "art", "fx", "pxp")
 OUT_META = os.path.join(ROOT, "game", "data", "pxp_skadi.json")
+ACCENT = ""
 TMP = os.path.join(ROOT, "build", "pxp_bake")
 FPS = 15                       # 统一动画时钟（协调人 11-05）：一律 15 fps，时长不对增删帧
 DIRS = [-90, -45, 0, 45, 90]   # 平面角；另一半（135 / 180 / -135）游戏里水平翻转
@@ -102,6 +103,8 @@ def render(key, opts, dur):
     os.makedirs(d, exist_ok=True)
     o = dict(opts)
     o.setdefault("dur", min(0.46, dur - 0.04))
+    if ACCENT:
+        o["accent"] = ACCENT
     p = subprocess.run(["node", "tools/ak_layers.mjs", "water/ak-skadi-pp", "--out", d, "--fps", str(FPS), "--opts", json.dumps(o)], cwd=PFX, capture_output=True, text=True)
     if p.returncode != 0:
         raise RuntimeError(key + ": " + p.stderr[-400:])
@@ -150,7 +153,9 @@ def bake(key, d, dur):
             emit.append([])
             continue
         luma = c[..., 0] * 0.2126 + c[..., 1] * 0.7152 + c[..., 2] * 0.0722
-        acc = (np.abs(c[..., 0] - 0x5f / 255) < 0.02) & (np.abs(c[..., 1] - 0xf0 / 255) < 0.02)
+        ah = (ACCENT or "#c4dcff").lstrip("#")
+        ar, ag, ab = int(ah[0:2], 16) / 255, int(ah[2:4], 16) / 255, int(ah[4:6], 16) / 255
+        acc = (np.abs(c[..., 0] - ar) < 0.02) & (np.abs(c[..., 1] - ag) < 0.02) & (np.abs(c[..., 2] - ab) < 0.02)
         m = (c[..., 3] > 0.5) & ((luma >= EMIT_LUMA) | acc)
         py, px = np.nonzero(m)
         idx = np.arange(len(px))
@@ -169,7 +174,16 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--only", default="")
     ap.add_argument("--jobs", type=int, default=6)
+    ap.add_argument("--accent", default="", help="点缀色（精二描边 / 深海裂痕发光芯 / S3 刃线）；缺省用效果文件里的")
+    ap.add_argument("--out-art", default="", help="对比用：帧条写到别处（不动 game/art）")
+    ap.add_argument("--out-meta", default="")
     a = ap.parse_args()
+    global ACCENT, OUT_ART, OUT_META, TMP
+    ACCENT = a.accent
+    if a.out_art:
+        OUT_ART = a.out_art
+        OUT_META = a.out_meta or os.path.join(a.out_art, "meta.json")
+        TMP = os.path.join(a.out_art, "_tmp")
     shutil.copy(SRC, os.path.join(PFX, "src", "fx", "water", "ak-skadi-pp.js"))
     os.makedirs(OUT_ART, exist_ok=True)
     os.makedirs(TMP, exist_ok=True)

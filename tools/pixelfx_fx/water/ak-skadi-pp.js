@@ -5,7 +5,7 @@
 // 尺寸按目标大小直接生成（1 像素 = 1 美术像素 = 2 世界像素），游戏里只按 2 倍整数放大，不缩放、不旋转；
 // 方向件（ribbon / blade）按 dir（度，平面角，y 向下 = 朝镜头）逐向生成，游戏挑最近的一张（另一半水平翻转）。
 // view: "raw" 出「旧做法」对照：横版 / 正俯视的原样画（圆不压扁、刀光是平躺的整圆弧、光晕烤进颜色），游戏里旋转 + 小数缩放贴上去。
-// 色：本人深海蓝（house.js OP.skadi）；精二点缀海绿 #5ff0cc；不用危险红。同一招元素 ≤ 3。
+// 色：本人深海蓝（house.js OP.skadi）；点缀冰蓝 #c4dcff（11-05 用户定，原海绿 #5ff0cc）；不用危险红。同一招元素 ≤ 3。
 import { fit, clamp, smooth, ease, noise, noise2, TAU, hex, WHITE } from "../../core/index.js";
 
 export const meta = {
@@ -20,7 +20,7 @@ export const meta = {
   bg: "dark",
   options: {
     palette: ["#081226", "#1b325c", "#30508e", "#446ec0", "#598cf2", "#93b4f7", "#cddcfb", "#ffffff"],
-    accent: "#5ff0cc",
+    accent: "#c4dcff",   // 点缀冰蓝（11-05 用户：海绿换掉，选冰蓝）
     part: "ribbon",   // ribbon 横扫刀光幕 / spin 全向旋斩 / splash 水柱 / blade 潮刃浪头（循环）/ ring 贴地冲击环
     layer: "up",      // up / gd
     view: "plane",    // plane / raw
@@ -191,7 +191,7 @@ function rift(p, t, o, C, ACC, full) {
     if (nz(a * 9, o.seed + 911) < fade) continue;            // 消失时从两头碎开
     if (nz(a * 2.4, o.seed + 919) < 0.2) continue;           // 裂口断续（不成一条细线环）
     const [fx, fy] = riftPt(o, a, R, th, SY);
-    const x = Math.round(fx), y = Math.round(fy);
+    const x = Math.round(fx), y = Math.round(fy), rr = Math.hypot(fx, fy / SY);
     p.px(x, y + 1, C[0]);
     p.px(x, y - 1, C[0]);
     const lit = glow > 0.08 && nz(a * 17, o.seed + 915) > 0.22 * (1 - glow);

@@ -14,7 +14,7 @@ ART = os.path.join(ROOT, "game", "art", "fx", "pxp")
 META = json.load(open(os.path.join(ROOT, "game", "data", "pxp_skadi.json"), encoding="utf-8"))
 OP = os.path.join(ROOT, "game", "art", "operators", "skadi", "op_skadi_idle@2x.png")
 NAME = {"basic": "普攻（横斩）", "s1": "S1 迅捷打击·γ型（十字斩：先竖后横）", "spin": "旋斩（异乡之舞第三下）"}
-TIER = ["E0", "E1（+ 深海裂痕）", "E2（+ 刃变重：深海暗身、海绿双描边）"]
+TIER = ["E0", "E1（+ 深海裂痕）", "E2（+ 刃变重：深海暗身、冰蓝双描边）"]
 BG = (34, 46, 52)
 PX = 2          # 1 帧条像素 = 2 世界像素（游戏里同样整数放大）
 SHOW = 2        # GIF 再放大 2 倍看得清
@@ -40,7 +40,13 @@ def main():
     ap.add_argument("--moves", default="basic,s1")
     ap.add_argument("--dir", type=int, default=0)
     ap.add_argument("--out", required=True)
+    ap.add_argument("--art", default="", help="对比用：别处的帧条目录（含 meta.json）")
+    ap.add_argument("--title", default="")
     a = ap.parse_args()
+    global ART, META
+    if a.art:
+        ART = a.art
+        META = json.load(open(os.path.join(a.art, "meta.json"), encoding="utf-8"))
     moves = a.moves.split(",")
     cw, ch = 210, 170                   # 每格（美术像素）
     ox, oy = 70, 110                    # 格内脚底位置
@@ -66,7 +72,7 @@ def main():
         im = Image.new("RGB", (W, H), (14, 16, 20))
         d = ImageDraw.Draw(im)
         for c in range(3):
-            d.text((c * cw * SHOW + 10, 6), TIER[c], fill=(235, 235, 235), font=fnt)
+            d.text((c * cw * SHOW + 10, 6), TIER[c].replace("海绿", a.title) if a.title else TIER[c], fill=(235, 235, 235), font=fnt)
         for r, mv in enumerate(moves):
             y0 = head + r * (ch * SHOW + head)
             d.text((10, y0 + 4), NAME.get(mv, mv) + "（朝右出手；15 fps，2 倍）", fill=(200, 210, 220), font=fnt)
