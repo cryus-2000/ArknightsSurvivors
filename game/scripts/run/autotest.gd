@@ -524,6 +524,11 @@ func _flashrec_step() -> void:
 				_fr_spawn = a.substr(13)
 	# 带 --rtfrom 时等快进结束再刷（10-27 骑士特效帧时：后期 100 只同屏 + Boss 战），否则照旧第 20 帧
 	var fr_due: bool = g.at_frames == 20 if g.rt_from < 0.0 else (not _fr_spawned and g.t >= g.rt_from)
+	# --flashdrop：同一时刻在主控右下 / 屏外左上各放一个磁铁（看地图上的磁铁和屏外指针，docs/284）
+	if fr_due and Cfg.dev_args().has("--flashdrop"):
+		_fr_spawned = true
+		g.pickups.drop(g.ppos + Vector2(260, 90), "magnet", 1.0)
+		g.pickups.drop(g.ppos + Vector2(-1100, -500), "magnet", 1.0)
 	if _fr_spawn != "" and fr_due:
 		_fr_spawned = true
 		var b: Dictionary = g.spawner.spawn_enemy(_fr_spawn.trim_suffix("2").trim_suffix("_cocoon"), g.ppos + Vector2(230, -40))

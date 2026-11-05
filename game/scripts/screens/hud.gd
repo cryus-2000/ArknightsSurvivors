@@ -286,6 +286,7 @@ func _draw_body() -> void:
 		banners.draw_merchant_pointer(vs, ct)
 		banners.draw_boss_pointers(vs, ct)
 		banners.draw_duck_pointer(vs, ct)
+		banners.draw_magnet_pointers(vs, ct)
 		banners.draw_offscreen_edges(vs, ct)   # 镜头拉近（战斗画面缩放 > 100%）时屏外近处敌人的边缘红边
 		banners.draw_field_wave(vs)
 		banners.draw_beacon_pointers(vs, ct))
@@ -748,7 +749,7 @@ func _elite_mark_batch(ct: Transform2D) -> RefCounted:
 	for b in g.bosses:
 		if b.dead or b.get("friendly", false) or not D.ENEMIES[b.type].get("role", "") == "boss":
 			continue
-		var bp: Vector2 = ct * (b.pos + Vector2(0, -b.r - 22.0))
+		var bp: Vector2 = ct * (b.pos + Vector2(0, -b.r * g.world.mid_boss_k(b) - 22.0))   # 中期 Boss 画面放大后血条跟着上移（docs/283）
 		if bp.x < -40 or bp.y < -40 or bp.x > vs.x + 40 or bp.y > vs.y + 40:
 			continue
 		var bw: float = 64.0
