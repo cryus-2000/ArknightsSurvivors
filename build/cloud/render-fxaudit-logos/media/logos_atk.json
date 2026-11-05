@@ -1,0 +1,40 @@
+{
+ "op": "logos",
+ "mode": "atk",
+ "frame": 19,
+ "engine": 78,
+ "secs": 5.0,
+ "hits": 11,
+ "acts": 21,
+ "skill": 0,
+ "parts_total": 67,
+ "parts_per_hit": 6.1,
+ "parts_per_s": 13.4,
+ "parts_s1_1s": null,
+ "mats": {
+  "twinkle": 34,
+  "ink": 33
+ },
+ "life": 0.7,
+ "sz": 3.6,
+ "alive_max": 16,
+ "lights": 15,
+ "lights_per_hit": 1.36,
+ "light_r": 130.0,
+ "light_i": 0.7,
+ "light_life": 0.12,
+ "emit_max": 149,
+ "emit_mean": 63.0,
+ "gl_peak": 80.7,
+ "gl_area_hit": 5005,
+ "gl_mean_hit": 13.4,
+ "em_peak": 230.9,
+ "em_area_hit": 27,
+ "em_mean_hit": 63.6,
+ "crop": [
+  504,
+  279,
+  320,
+  180
+ ]
+}
