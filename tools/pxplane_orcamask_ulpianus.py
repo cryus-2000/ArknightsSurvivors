@@ -207,6 +207,13 @@ def draw_shape_whale(cv, gp, z, pitch, dv, clip, T, ghost=0):
             if sideedge:
                 cv.px(pp, W4[2])
                 continue
+            if pitch > 1.2:   # 下砸那一帧：头部先碎开
+                umin, umax = urange(mk, q)
+                un = (u - umin) / max(1.0, umax - umin)
+                if un > 0.7:
+                    if h_(x * 7.1 + y * 3.3 + beat) > 0.55:
+                        cv.px((pp[0], pp[1] + (un - 0.7) * 20 * PX), W4[3])
+                    continue
             sxp = int(round(x + e[0] * flow))
             syp = int(round(y + e[1] * flow))
             L = lum[syp, sxp] if (0 <= sxp < w and 0 <= syp < h and mk[syp, sxp]) else lum[y, x]
@@ -272,33 +279,114 @@ def draw_shape_whale(cv, gp, z, pitch, dv, clip, T, ghost=0):
                     cv.px((p[0] + qx * PX, p[1] + qy * PX), col)
             for t in range(1, 3):   # 短尾（逆着飞行方向）
                 cv.px((p[0] + (e[0] * sx * t) * PX, p[1] + (t * 0.8 + e[1] * t) * PX), W4[2])
-    # 尾后水柱（加粗、上粗下细）连到地面，落地处一小圈水花
-    if tail_pt is None:
-        return
-    tx, ty = tail_pt
-    t0 = (c[0] + (tx - cx) * PX, c[1] + (ty - cy) * PX)
-    t1 = (gp[0] - e0[0] * 40, gp[1] - e0[1] * 40)
-    for j in range(40):
-        k = j / 39.0
-        bx = t0[0] + (t1[0] - t0[0]) * k + (-e[0] * sx) * 20 * math.sin(k * math.pi) * PX
-        by = t0[1] + (t1[1] - t0[1]) * k * k
-        wob = math.sin(j * 0.5 - beat * 1.6) * 1.5
-        half = 6.0 - 4.0 * k
-        for s in range(-int(half) - 1, int(half) + 2):
-            p = (bx + (wob + s) * PX, by)
-            if abs(s) > half:
-                if h_(j * 1.1 + s + beat) > 0.5:
-                    cv.px(p, W4[3])
-            elif (j + s + beat) % 5 == 0:
-                cv.px(p, W4[3])
-            else:
-                cv.pxa(p, W4[2], 0.55)
-    for i in range(16):   # 落地一小圈水花
-        a = math.tau * i / 16 + beat * 0.3
-        r = 6 + (beat % 3) * 2
-        p = (t1[0] + math.cos(a) * r * PX, t1[1] + math.sin(a) * r * SY * PX - (2 if i % 3 == 0 else 0) * PX)
-        if h_(i * 1.7 + beat) > 0.3:
-            cv.px(p, W4[3] if i % 2 == 0 else W4[2])
+
+
+_UR = {}
+
+
+def urange(mk, q):
+    key = (id(mk), q)
+    if key not in _UR:
+        h, w = mk.shape
+        ys, xs = np.nonzero(mk)
+        th = math.radians(q)
+        u = (xs - w // 2) * math.cos(th) + (ys - h // 2) * math.sin(th)
+        i = int(np.argmin(u))
+        jh = int(np.argmax(u))
+        _UR[key] = (float(u.min()), float(u.max()), (int(xs[i]), int(ys[i])), (int(xs[jh]), int(ys[jh])))
+    return _UR[key][:2]
+
+
+def geom(gp, z, pitch, dv, clip):
+    """同 fx_pxplane_ul._orca_geom"""
+    if clip:
+        z += 6
+        pitch = -0.8
+    e0 = G.norm((dv[0], dv[1] * SY))
+    flip = e0[0] < 0
+    ang = math.degrees(math.atan2(e0[1], abs(e0[0]))) + math.degrees(pitch)
+    q = max(-90, min(90, int(round(ang / STEP)) * STEP))
+    mk, lum = masks()["dive" if pitch > 0.6 else "apex"][q]
+    gp = G.snap(gp)
+    return {"mk": mk, "lum": lum, "q": q, "flip": flip, "c": G.snap((gp[0], gp[1] - z - mk.shape[0]))}
+
+
+def tail_world(geo):
+    mk = geo["mk"]
+    h, w = mk.shape
+    urange(mk, geo["q"])
+    tx, ty = _UR[(id(mk), geo["q"])][2]
+    xx = (w - 1 - tx) if geo["flip"] else tx
+    return (geo["c"][0] + (xx - w // 2) * PX, geo["c"][1] + (ty - h // 2) * PX)
+
+
+def land_age(y0, vy, yg):
+    A = 350.0
+    D = vy * vy + 4 * A * (yg - y0)
+    return 0.0 if D < 0 else (-vy + math.sqrt(D)) / (2 * A)
+
+
+def draw_trail(cv, pose_fn, tq, dv):
+    """同 fx_pxplane_ul._draw_trail：受重力的粒子拖尾（pose_fn(t) → (gp, z, pitch, clip) 或 None）"""
+    B = 1 / 15.0
+    for k in range(1, 9):
+        te = tq - k * B
+        p0, p1 = pose_fn(te), pose_fn(te - B)
+        if not p0 or not p1 or p0[3]:
+            continue
+        g0, g1 = geom(p0[0], p0[1], p0[2], dv, p0[3]), geom(p1[0], p1[1], p1[2], dv, p1[3])
+        t0, t1 = tail_world(g0), tail_world(g1)
+        vel = ((t0[0] - t1[0]) / B, (t0[1] - t1[1]) / B)
+        L = math.hypot(*vel)
+        dirv = (vel[0] / L, vel[1] / L) if L > 1 else (0.0, 0.0)
+        yg = G.snap(p0[0])[1]
+        age = k * B
+        for j in range(3):
+            hj = h_(k * 1.37 + j * 4.1 + math.floor(te * 15) * 0.53)
+            v = (-dirv[0] * (60 + 40 * hj) + (hj - 0.5) * 40, -dirv[1] * (60 + 40 * hj) + 30)
+            p = (t0[0] + v[0] * age, t0[1] + v[1] * age + 350 * age * age)
+            if p[1] >= yg:
+                al = land_age(t0[1], v[1], yg)
+                if age - al < 0.15:
+                    cv.px((t0[0] + v[0] * al, yg), W4[3] if j == 0 else W4[2])
+                continue
+            col = W4[3] if k <= 2 else (W4[2] if k <= 5 else W4[1])
+            cv.px(p, col)
+            if j == 0:
+                cv.px((p[0] + PX, p[1]), col)
+                cv.px((p[0], p[1] + PX), W4[2])
+            vv = (v[0], v[1] + 700 * age)
+            Lv = math.hypot(*vv) or 1.0
+            cv.px((p[0] - vv[0] / Lv * PX * 1.5, p[1] - vv[1] / Lv * PX * 1.5), W4[2] if k <= 3 else W4[1])
+
+
+def draw_shatter(cv, gp, dv, k):
+    """同 fx_pxplane_ul._draw_shatter：鲸身后半截在落点碎开（k = 0 / 1 拍）"""
+    geo = geom(gp, 64 * 0.15, 1.3, dv, False)
+    mk, lum = geo["mk"], geo["lum"]
+    h, w = mk.shape
+    umin, umax = urange(mk, geo["q"])
+    th = math.radians(geo["q"])
+    cut = [0.5, 0.22][k]
+    hx_, hy_ = _UR[(id(mk), geo["q"])][3]   # 头（吻）那一格：整只挪到让吻扎在落点，余下的身子往里沉
+    hxx = (w - 1 - hx_) if geo["flip"] else hx_
+    hw = (geo["c"][0] + (hxx - w // 2) * PX, geo["c"][1] + (hy_ - h // 2) * PX)
+    gpp = G.snap(gp)
+    sh = (gpp[0] - hw[0], gpp[1] - 4 - hw[1] + 6 * k * PX)
+    geo["c"] = (geo["c"][0] + sh[0], geo["c"][1] + sh[1])
+    ys, xs = np.nonzero(mk)
+    for i, (y, x) in enumerate(zip(ys, xs)):
+        u = (x - w // 2) * math.cos(th) + (y - h // 2) * math.sin(th)
+        un = (u - umin) / max(1.0, umax - umin)
+        if un > cut + 0.08:
+            continue
+        xx = (w - 1 - x) if geo["flip"] else x
+        pp = G.snap((geo["c"][0] + (xx - w // 2) * PX, geo["c"][1] + (y - h // 2) * PX))
+        if un > cut:
+            if h_(i * 0.37 + k) > 0.5:
+                cv.px((pp[0] + (h_(i) - 0.5) * 8 * PX, pp[1] - h_(i * 1.7) * 4 * PX), W4[3])
+            continue
+        cv.pxa(pp, W4[2] if lum[y, x] > 0.5 else W4[1], 0.75 - 0.25 * k)
 
 
 def breach_column(cv, gp, T, k):

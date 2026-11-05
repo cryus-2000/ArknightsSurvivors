@@ -167,6 +167,9 @@ static func ev(r, o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dicti
 			if d.get("s3", false):
 				if g.ult != null and not MI.on(g):   # 虎鲸砸下那一拍轻震（打击感包开着时它已经震了）
 					g.ult.shake(3.0, 0.12)
+				var an6: Dictionary = o.hw.get("anchor", {})
+				var dv6: Vector2 = ((an6.land as Vector2) - (an6.S as Vector2)).normalized() if an6.has("S") and (an6.land as Vector2).distance_to(an6.S) > 1.0 else Vector2(o.face, 0)
+				_rt(r, o, "shatter", "up", 2.0 / 15.0 + 0.02, {"gp": c2, "gy": c2.y + 2.0, "dv": dv6, "t0": _beat_t0(g)})
 				var bt0: float = _beat_t0(g)   # 爆点第 1 帧（最亮）要占满一拍
 				_strip(r, o, "s3_up", c2, "up", false, {"t0": bt0})
 				_strip(r, o, "s3_gd", c2, "gd", false, {"t0": bt0})
@@ -331,7 +334,12 @@ static func sort_items(r, o, out: Array) -> void:
 		for gi in [2, 1, 0]:   # 身后 2 帧残影（逐帧变淡）+ 本体
 			var pose: Array = _orca_pose_t(o, an, tq - float(gi) / 15.0)
 			if not pose.is_empty():
-				out.append({"ulrt": "orca", "gp": pose[0], "z": pose[1], "pitch": pose[2], "dv": pose[3], "clip": pose[4], "ghost": gi, "skey": (pose[0] as Vector2).y + 1.0 - 0.01 * float(gi), "oid": str(o.id)})
+				var oi := {"ulrt": "orca", "gp": pose[0], "z": pose[1], "pitch": pose[2], "dv": pose[3], "clip": pose[4], "ghost": gi, "skey": (pose[0] as Vector2).y + 1.0 - 0.01 * float(gi), "oid": str(o.id)}
+				if gi == 0:
+					oi["op"] = o
+					oi["an"] = an
+					oi["tq"] = tq
+				out.append(oi)
 	if o.vg.is_empty() or not o.vg.has("qi"):
 		return
 	for q in o.vg.qi:
@@ -360,6 +368,8 @@ static func draw_rt(r, ci, it: Dictionary) -> void:
 			_draw_qib(r, ci, it)
 		"orca":
 			_draw_orca(r, ci, it)
+		"shatter":
+			_draw_shatter(r, ci, it)
 		"swing":
 			_draw_swing(r, ci, it)
 
@@ -744,9 +754,136 @@ static func _orcam(pose: String, ang: int) -> Dictionary:
 						pts.append(x)
 						pts.append(y)
 						lum.append(px.r)
-			d = {"w": w, "h": h, "img": img, "pts": pts, "lum": lum}
+			var th0: float = deg_to_rad(float(ang))
+			var umin: float = 1e9
+			var umax: float = -1e9
+			var tail := Vector2i(0, 0)
+			var head := Vector2i(0, 0)
+			for i in lum.size():
+				var uu: float = float(pts[i * 2] - w / 2) * cos(th0) + float(pts[i * 2 + 1] - h / 2) * sin(th0)
+				if uu < umin:
+					umin = uu
+					tail = Vector2i(pts[i * 2], pts[i * 2 + 1])
+				if uu > umax:
+					umax = uu
+					head = Vector2i(pts[i * 2], pts[i * 2 + 1])
+			d = {"w": w, "h": h, "img": img, "pts": pts, "lum": lum, "tail": tail, "head": head, "umin": umin, "umax": umax}
 	_ORCAM[key] = d
 	return d
+
+
+## 某一姿势下的遮罩与摆放：{m, q, flip, c（遮罩中心的世界点）, z, pitch}；破水（clip）时同 _draw_orca 的调整
+static func _orca_geom(r, gp: Vector2, z: float, pitch: float, dv: Vector2, clip: bool) -> Dictionary:
+	if clip:
+		z += 6.0
+		pitch = -0.8
+	var e0 := Vector2(dv.x, dv.y * SY).normalized()
+	var flip: bool = e0.x < 0.0
+	var ang: float = rad_to_deg(atan2(e0.y, absf(e0.x))) + rad_to_deg(pitch)
+	var q: int = clampi(int(round(ang / float(ORCA_STEP))) * ORCA_STEP, -90, 90)
+	var m: Dictionary = _orcam("dive" if pitch > 0.6 else "apex", q)
+	if m.is_empty():
+		return {}
+	return {"m": m, "q": q, "flip": flip, "c": r._snap(r._snap(gp) + Vector2(0, -z - float(m.h))), "z": z, "pitch": pitch}
+
+
+## 尾鳍末端的世界点
+static func _orca_tail(r, geo: Dictionary) -> Vector2:
+	var m: Dictionary = geo.m
+	var w: int = int(m.w)
+	var tl: Vector2i = m.tail
+	var xx: int = (w - 1 - tl.x) if geo.flip else tl.x
+	return (geo.c as Vector2) + Vector2(xx - w / 2, tl.y - int(m.h) / 2) * r.g.PX
+
+
+## 尾后水流 = 受重力的粒子拖尾（docs/266 §18，用户「到中间的时候那个没有跟着身体合物理规律走」）：
+## 过去 8 拍里每拍从当时的尾鳍末端放出 3 颗（1 团 2 格 + 2 滴 1 格），初速 = 尾巴当时运动方向的反方向 × 80 + 向下 30（世界像素 / 秒），
+## 之后受重力（700）按抛物线落，落到放出时那一拍的地面线就变成白沫点，0.15 秒后消失；顶点停住时照样往下落（读出惯性），俯冲时自然甩向上后方。
+## 不画连到出发点的固定水柱。纯按时刻算（不存状态、不抽随机数）
+static func _draw_trail(r, ci, it: Dictionary) -> void:
+	var g = r.g
+	var px: float = g.PX
+	var o = it.op
+	var an: Dictionary = it.an
+	var tq: float = float(it.tq)
+	var B: float = 1.0 / 15.0
+	for k in range(1, 9):
+		var te: float = tq - float(k) * B
+		var p0: Array = _orca_pose_t(o, an, te)
+		var p1: Array = _orca_pose_t(o, an, te - B)
+		if p0.is_empty() or p1.is_empty() or p0[4]:
+			continue
+		var g0: Dictionary = _orca_geom(r, p0[0], float(p0[1]), float(p0[2]), p0[3], p0[4])
+		var g1: Dictionary = _orca_geom(r, p1[0], float(p1[1]), float(p1[2]), p1[3], p1[4])
+		if g0.is_empty() or g1.is_empty():
+			continue
+		var t0: Vector2 = _orca_tail(r, g0)
+		var vel: Vector2 = (t0 - _orca_tail(r, g1)) / B
+		var dirv: Vector2 = vel.normalized() if vel.length() > 1.0 else Vector2.ZERO
+		var yg: float = float((p0[0] as Vector2).y)
+		var age: float = float(k) * B
+		for j in 3:
+			var hj: float = _h(float(k) * 1.37 + float(j) * 4.1 + floorf(te * 15.0) * 0.53)
+			var v: Vector2 = -dirv * (60.0 + 40.0 * hj) + Vector2((hj - 0.5) * 40.0, 30.0)
+			var p: Vector2 = t0 + v * age + Vector2(0, 0.5 * 700.0 * age * age)
+			if p.y >= yg:   # 已落地：落点处一点白沫，0.15 秒后消失
+				var a_l: float = _land_age(t0.y, v.y, yg)
+				if age - a_l < 0.15:
+					var pl: Vector2 = t0 + Vector2(v.x * a_l, yg - t0.y)
+					r._px(ci, pl, W4[3] if j == 0 else W4[2])
+				continue
+			var col: Color = W4[3] if k <= 2 else (W4[2] if k <= 5 else W4[1])
+			r._px(ci, p, col)
+			if j == 0:   # 水团：2 格 + 逆着运动的短尾
+				r._px(ci, p + Vector2(px, 0), col)
+				r._px(ci, p + Vector2(0, px), W4[2])
+			var vn2: Vector2 = (v + Vector2(0, 700.0 * age)).normalized()
+			r._px(ci, p - vn2 * px * 1.5, W4[2] if k <= 3 else W4[1])
+
+
+## 抛物线落到 yg 用的时间（y0 + vy·a + 350·a² = yg 的正根）
+static func _land_age(y0: float, vy: float, yg: float) -> float:
+	var A: float = 350.0
+	var D: float = vy * vy + 4.0 * A * (yg - y0)
+	if D < 0.0:
+		return 0.0
+	return (-vy + sqrt(D)) / (2.0 * A)
+
+
+## 砸地后鲸身余下的后半截在落点碎开（2 拍）：从头往尾一截截消失，断口处碎成亮青水花往外甩
+static func _draw_shatter(r, ci, it: Dictionary) -> void:
+	var g = r.g
+	var px: float = g.PX
+	var k: int = clampi(r.frame_of(float(it.t0)), 0, 1)
+	var geo: Dictionary = _orca_geom(r, it.gp, ORCA_H * 0.15, 1.3, it.dv, false)
+	if geo.is_empty():
+		return
+	var m: Dictionary = geo.m
+	var w: int = int(m.w)
+	var h: int = int(m.h)
+	var th: float = deg_to_rad(float(geo.q))
+	var cut: float = [0.5, 0.22][k]
+	var hd: Vector2i = m.head   # 整只挪到让吻扎在落点，余下的身子往里沉
+	var hxx: int = (w - 1 - hd.x) if geo.flip else hd.x
+	var hw: Vector2 = (geo.c as Vector2) + Vector2(hxx - w / 2, hd.y - h / 2) * px
+	geo["c"] = (geo.c as Vector2) + (r._snap(it.gp) + Vector2(0, -4.0 + 6.0 * float(k) * px) - hw)
+	var pts: PackedInt32Array = m.pts
+	var lums: PackedFloat32Array = m.lum
+	var span: float = maxf(1.0, float(m.umax) - float(m.umin))
+	for i in lums.size():
+		var x: int = pts[i * 2]
+		var y: int = pts[i * 2 + 1]
+		var u: float = float(x - w / 2) * cos(th) + float(y - h / 2) * sin(th)
+		var un: float = (u - float(m.umin)) / span
+		if un > cut + 0.08:
+			continue
+		var xx: int = (w - 1 - x) if geo.flip else x
+		var pp: Vector2 = r._snap((geo.c as Vector2) + Vector2(xx - w / 2, y - h / 2) * px)
+		if un > cut:   # 断口：碎成水花往外甩
+			if _h(float(i) * 0.37 + float(k)) > 0.5:
+				r._px(ci, pp + Vector2((_h(float(i)) - 0.5) * 8.0, -_h(float(i) * 1.7) * 4.0) * px, W4[3])
+			continue
+		r._px(ci, pp, Color(W4[2] if lums[i] > 0.5 else W4[1], 0.75 - 0.25 * float(k)))
 
 
 static func _om_in(m: Dictionary, x: int, y: int) -> bool:
@@ -829,6 +966,12 @@ static func _draw_orca(r, ci, it: Dictionary) -> void:
 		if not _om_in(m, x - 1, y) or not _om_in(m, x + 1, y):
 			r._px(ci, pp, W4[2])
 			continue
+		if pitch > 1.2:   # 下砸那一帧：头部先碎开（前 30% 只剩散开的亮青水花）
+			var un: float = (u - float(m.umin)) / maxf(1.0, float(m.umax) - float(m.umin))
+			if un > 0.7:
+				if _h(float(i) * 0.53 + float(beat)) > 0.55:
+					r._px(ci, pp + Vector2(0, (un - 0.7) * 20.0) * px, W4[3])
+				continue
 		var sxp: int = int(round(float(x) + e.x * float(flow)))
 		var syp: int = int(round(float(y) + e.y * float(flow)))
 		var L: float = img.get_pixel(sxp, syp).r if _om_in(m, sxp, syp) else lums[i]
@@ -892,31 +1035,8 @@ static func _draw_orca(r, ci, it: Dictionary) -> void:
 					r._px(ci, dp + Vector2(qx, qy) * px, col)
 			for tt in [1, 2]:
 				r._px(ci, dp + Vector2(e.x * sx * float(tt), float(tt) * 0.8 + e.y * float(tt)) * px, W4[2])
-	# 尾后水柱（上粗下细）连到地面，落地处一小圈水花
-	if tail.x < 0:
-		return
-	var t0: Vector2 = c + Vector2(tail.x - cx, tail.y - cy) * px
-	var t1: Vector2 = gpos - e0 * 40.0
-	for j in 40:
-		var kk: float = float(j) / 39.0
-		var bx: float = t0.x + (t1.x - t0.x) * kk + (-e.x * sx) * 20.0 * sin(kk * PI) * px
-		var by: float = t0.y + (t1.y - t0.y) * kk * kk
-		var wob: float = sin(float(j) * 0.5 - float(beat) * 1.6) * 1.5
-		var half: float = 6.0 - 4.0 * kk
-		for s in range(-int(half) - 1, int(half) + 2):
-			var sp := Vector2(bx + (wob + float(s)) * px, by)
-			if absf(float(s)) > half:
-				if _h(float(j) * 1.1 + float(s) + float(beat)) > 0.5:
-					r._px(ci, sp, W4[3])
-			elif (j + s + beat) % 5 == 0:
-				r._px(ci, sp, W4[3])
-			else:
-				r._px(ci, sp, Color(W4[2], 0.55))
-	for i in 16:
-		var a2: float = TAU * float(i) / 16.0 + float(beat) * 0.3
-		var rr2: float = 6.0 + float(beat % 3) * 2.0
-		if _h(float(i) * 1.7 + float(beat)) > 0.3:
-			r._px(ci, t1 + Vector2(cos(a2) * rr2, sin(a2) * rr2 * SY - (2.0 if i % 3 == 0 else 0.0)) * px, W4[3] if i % 2 == 0 else W4[2])
+	if it.has("an"):
+		_draw_trail(r, ci, it)
 
 
 ## 破水：从地面拉起一段水柱（k = 破水进度 0..1），边上白沫，四周溅水

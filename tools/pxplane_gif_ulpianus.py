@@ -856,6 +856,7 @@ def sc_s3():
     t0b = (math.ceil(bt) if bt - math.floor(bt) > 0.5 else math.floor(bt)) / 15.0   # 同 fx_pxplane_ul._beat_t0
     sc.strip("s3_up", t0b, land, "up")
     sc.strip("s3_gd", t0b, land, "gd")
+    sc.items.append({"ly": "rt_up", "t0": t0b, "gy": land[1] + 3, "fn": lambda cv, T: shatter_fn(cv, T)})
     path_es = [(70, -6), (130, -14), (180, -18)]
     for p in path_es:   # 路径上：虎鲸经过时被撞开一点（画面上的轻击退近似）
         def ep(T, p=p):
@@ -906,6 +907,21 @@ def sc_s3():
         ps = pose(math.floor(T * 15 + 1e-6) / 15.0)
         if ps:
             draw_orca(cv, ps[0], ps[1], ps[2], d, ps[3], T)
+    def pose4(Tt):   # 拖尾用：(gp, z, pitch, clip)
+        ps = pose(math.floor(Tt * 15 + 1e-6) / 15.0) if Tt >= t0 else None
+        return ps
+
+    def trail_fn(cv, T):
+        import pxplane_orcamask_ulpianus as OM
+        if t0 <= T < tl + 0.6:
+            OM.draw_trail(cv, pose4, math.floor(T * 15 + 1e-6) / 15.0, d)
+    sc.items.append({"ly": "rt_up", "t0": t0, "gy": -2.0, "fn": trail_fn})
+
+    def shatter_fn(cv, T):
+        import pxplane_orcamask_ulpianus as OM
+        k = int(math.floor(T * 15 + 1e-6)) - int(math.floor(t0b * 15 + 1e-6))
+        if 0 <= k <= 1:
+            OM.draw_shatter(cv, land, d, k)
     it = {"ly": "rt_up", "t0": t0, "gy": 0.0, "fn": fn}
     sc.items.append(it)
     sc.orca_gy = (it, lambda T: (pose(math.floor(T * 15 + 1e-6) / 15.0)[0][1] + 1) if pose(math.floor(T * 15 + 1e-6) / 15.0) else 0.0)
