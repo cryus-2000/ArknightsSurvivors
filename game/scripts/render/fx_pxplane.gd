@@ -606,6 +606,7 @@ func draw_over(o) -> void:
 		return
 	if str(o.id) == "siege" and mode() == 1:
 		_sg_draw_motes(o)   # 冲锋号令 / 跃空锤的全队技力粒子（状态提示：技力飞向队友）
+		_sg_draw_sprays(o)   # 终结技崩解（ult/px_plane）
 	if str(o.id) == "saria":
 		if mode() == 1:
 			_sa().draw_over(o)   # 状态提示 + 钙化斑（docs/269）
@@ -3629,6 +3630,24 @@ func ult_sg(o, kind: String, d: Dictionary) -> void:
 			R._grains(o, fp + Vector2(0, -4), fp.y, "rock", 2, {"tier": 2})
 		"cmd":
 			_push({"k": "sg_cmd_gd", "t0": g.t, "gp": _snap(d.get("c", o.pos)), "flip": false, "ly": "gd", "oid": id})
+		"crumble":   # 崩解（ult_brief §4 / docs/275 §1.0）：被主砸打中的怪，在冲击环推到它的那一刻整只炸成自身颜色的像素
+			var c4: Vector2 = d.get("c", o.pos)
+			var R4: float = float(d.get("R", 540.0))
+			var n4 := 0
+			for e in d.get("es", []):
+				if n4 >= SG_CRUMBLE_MAX:
+					break
+				if not (e is Dictionary):
+					continue
+				n4 += 1
+				var dist: float = Vector2((e.pos as Vector2).x - c4.x, ((e.pos as Vector2).y - c4.y) / 0.72).length()
+				var kk: float = clampf((dist / R4 - 0.3) / 0.7, 0.0, 1.0)
+				var dl: float = 0.23 * (1.0 - sqrt(1.0 - kk))   # 同帧条 shockAt：冲击环推到这一圈的时刻
+				var col: Color = _SGD.ENEMIES.get(str(e.get("type", "")), {}).get("ecol", Color(0.6, 0.9, 0.9))
+				var out: Vector2 = ((e.pos as Vector2) - c4).normalized() if (e.pos as Vector2) != c4 else Vector2.RIGHT
+				_sg_sprays.append({"e": e, "p": (e.pos as Vector2) + Vector2(0, -10), "t0": g.t + dl, "col": col, "out": out, "sd": int(e.get("id", 0)) * 13, "burst": false})
+			while _sg_sprays.size() > SG_CRUMBLE_MAX:
+				_sg_sprays.pop_front()
 
 # ================================================================ 德克萨斯（docs/257，照 docs/246 斯卡蒂 / docs/254 星熊的做法）
 ## 普攻「拔刀」= 腰高琥珀刀痕，两头针尖（精一刀头甩碎晶 + 钉剑，精二白刃内侧冷青刃光）；骤雨 / 回马剑 = 整道约 300° 旋斩；
@@ -4048,3 +4067,56 @@ func _tx_qi(o) -> Array:
 		var back: Vector2 = gp - (e.v as Vector2).normalized() * 30.0
 		_tx_rain(o, [{"p": back, "d": 0.0, "a": 0.0, "fl": (tick % 2) == 0}], "tx_sw_s14_e%d" % t, false, t)
 	return out
+
+
+## 推进之王终结技的怪物崩解（ult/px_plane）：两层——到点补一次引擎原有的击杀碎屑（optical_particles.kill_burst，按怪物贴图像素碎开，颜色就是怪物自身），
+## 再加一圈怪物代表色（enemies.json ecol 亮 / 本色 / 暗 + 头两拍白芯）的像素顺着冲击方向往外喷，有重量、落地、停一下熄灭。只画；散布按序号哈希，不抽随机数
+const _SGD = preload("res://scripts/data.gd")
+const SG_CRUMBLE_MAX := 40   # 同屏崩解只数上限
+const SG_SPRAY_N := 22       # 每只喷散颗数（docs/270 爆发档一簇 ≤ 25）
+var _sg_sprays: Array = []
+
+
+static func _sgh(q: int, sd: int, k: int) -> float:
+	var x: int = (q * 73856093) ^ (sd * 19349663) ^ (k * 83492791)
+	x = (x ^ (x >> 13)) & 0x7fffffff
+	return float(x % 10007) / 10006.0
+
+
+func _sg_draw_sprays(o) -> void:
+	if _sg_sprays.is_empty():
+		return
+	var cv = o.cv
+	var px: float = g.PX
+	var keep: Array = []
+	for sp in _sg_sprays:
+		var age: float = g.t - float(sp.t0)
+		if age > 1.3:
+			continue
+		keep.append(sp)
+		if age < 0.0:
+			continue
+		if not sp.burst:   # 到点那一拍补一次引擎击杀碎屑（Boss 不碎）
+			sp.burst = true
+			var e: Dictionary = sp.e
+			if g.optical_on and g.optical != null and g.optical.particles != null and not e.get("boss", false):
+				g.optical.particles.kill_burst(e)
+		var col: Color = sp.col
+		var cols: Array = [col.lightened(0.45), col.lightened(0.15), col, col.darkened(0.3)]
+		var sd: int = int(sp.sd)
+		for q in SG_SPRAY_N:
+			var ang: float = (sp.out as Vector2).angle() + (_sgh(q, sd, 1) - 0.5) * 2.2
+			var spd: float = 40.0 + 90.0 * _sgh(q, sd, 2)
+			var vh: float = 40.0 + 70.0 * _sgh(q, sd, 3)
+			var G := 300.0
+			var tl: float = 2.0 * vh / G
+			var tt: float = minf(minf(age, 0.9), tl)
+			var hz: float = maxf(0.0, vh * tt - 0.5 * G * tt * tt)
+			var p: Vector2 = (sp.p as Vector2) + Vector2(cos(ang) * spd * tt, sin(ang) * spd * tt * 0.72 - hz)
+			var c: Color = cols[q % 4]
+			if age < 2.0 / 15.0 and q % 3 == 0:
+				c = Color(1, 1, 1)
+			c.a = 1.0 if age < 0.9 else maxf(0.0, (1.3 - age) / 0.4)
+			var sz: float = px * (2.0 if q % 3 != 2 else 1.0)
+			cv.draw_rect(Rect2(_snap(p), Vector2(sz, sz)), c)
+	_sg_sprays = keep

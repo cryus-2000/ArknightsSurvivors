@@ -59,6 +59,22 @@ function warn(p, t, o, C, ACC, DU) {
     if (nz(f * 30 + x, +o.seed + 23) < 0.25) continue;
     p.px(Math.round(x), Math.round(y * SY), k > 0.7 && blink ? C[n - 4] : C[n - 6]);
   }
+  // 预备（落地前最后 2 拍，ult_brief §3）：判定圈内压暗 + 金色光点从 0.55–0.8 R 往中心吸，越近越亮
+  const pr = clamp((t - 0.467) / 0.133);
+  if (pr > 0) {
+    const rd = R * 0.85;
+    p.shade(-rd, -rd * SY, rd, rd * SY, (x, y, out) => {
+      const d = Math.hypot(x / rd, y / (rd * SY));
+      if (d > 1) return;
+      p.blend(x, y, DU[0], 0.3 * pr * (1 - d * d));
+    });
+    for (let i = 0; i < 36; i++) {
+      const a = TAU * nz(i * 1.9, +o.seed + 41), r0 = R * (0.55 + 0.25 * nz(i * 2.7, +o.seed + 43));
+      const r = r0 * (1 - 0.85 * pr), X = Math.cos(a) * r, Y = Math.sin(a) * r * SY - 4;
+      const c = pr > 0.6 ? (i % 3 === 0 ? WHITE : C[n - 2]) : C[n - 3];
+      for (let s2 = 0; s2 < 3; s2++) p.px(Math.round(X + Math.cos(a) * s2 * 2), Math.round(Y + Math.sin(a) * s2 * 2 * SY), s2 === 0 ? c : C[n - 5]);
+    }
+  }
   for (let i = 0; i < 18; i++) {
     const a = TAU * nz(i * 2.3, +o.seed + 25), r = R * (0.1 + 0.85 * nz(i * 3.1, +o.seed + 27));
     const ph = (t * 7.5 + nz(i, +o.seed + 29) * 3) % 1;
@@ -90,15 +106,82 @@ function charge(p, t, o, C, ACC) {
 }
 
 // ---------------------------------------------------------------- 砸落（立起层）
+// 冲击环到半径 r 的时刻（游戏秒）：同 smashGd 的 shock()，0.23 秒（3.5 拍）从 0.3 R 先快后慢推到 R
+function shockAt(R, r) {
+  const k = clamp((r / R - 0.3) / 0.7);
+  return 0.23 * (1 - Math.sqrt(1 - k));
+}
+
+// 亮核：中心一小团实心白芯 + 四长四短星芒，亮 2 拍（体量靠冲击环和粒子云撑，不画整块平涂的大圆 / 椭圆）
+function core(p, t, C, ACC) {
+  const n = C.length;
+  if (t >= 0.134) return;
+  const f2 = t >= 0.067, z = 8, r0 = f2 ? 7 : 10;
+  for (let y = -r0; y <= r0; y++) for (let x = -r0 * 1.6; x <= r0 * 1.6; x++) {
+    const d = Math.hypot(x / (r0 * 1.6), y / r0);
+    if (d > 1 || (d > 0.75 && ((Math.round(x) + y) & 1))) continue;
+    p.px(Math.round(x), Math.round(y - z), d < 0.5 ? WHITE : d < 0.8 ? ACC : C[n - 3]);
+  }
+  const L = f2 ? [34, 16] : [48, 22];
+  for (let q = 0; q < 8; q++) {
+    const a = q * Math.PI / 4 + 0.1, len = q % 2 ? L[1] : L[0];
+    for (let s2 = r0; s2 < len; s2++) {
+      const w = s2 < len * 0.5 ? 1 : 0;
+      for (let k = -w; k <= w; k++) p.px(Math.round(Math.cos(a) * s2 - Math.sin(a) * k), Math.round(Math.sin(a) * s2 * 0.72 + Math.cos(a) * k - z), s2 < len * 0.6 ? WHITE : C[n - 2]);
+    }
+  }
+}
+
+// 粒子云（ult_brief §5）：1–2 格的金白闪点，0.35 秒内往外炸开铺满 0.6 R 的圆，之后逐拍闪烁、往上漂、越剩越少，1.2 秒散完
+function cloud(p, t, o, C, ACC, R, N, sd, t0) {
+  const SY = +o.SY, n = C.length, u = t - (t0 || 0);
+  if (u <= 0 || u > 1.2) return;
+  const f = Math.floor(t * 15);
+  for (let i = 0; i < N; i++) {
+    const a = TAU * nz(i * 1.37, sd + 1), rr = R * Math.sqrt(nz(i * 2.11, sd + 3));
+    const g = ease.outCubic(clamp(u / 0.35)), r = rr * g;
+    const live = 1 - smooth(0.35, 1.2, u);
+    if (nz(i * 3.3, sd + 5) > live) continue;
+    if (u > 0.3 && ((i + f) % 3 === 0)) continue;                         // 闪烁：逐拍有一部分灭
+    const z = 4 + 30 * u * nz(i * 4.7, sd + 7);
+    const X = Math.round(Math.cos(a) * r), Y = Math.round(Math.sin(a) * r * SY - z);
+    const c = u < 0.134 ? WHITE : i % 5 === 0 ? ACC : i % 3 === 0 ? C[n - 2] : C[n - 3];
+    p.px(X, Y, c);
+    if (i % 3 === 0 && u < 0.6) p.px(X + 1, Y, c);
+  }
+}
+
+// 掀起的地面块：每块在冲击环推到它那一圈的时刻掀起（离中心越远越晚），实心块暗面 + 亮顶边，上抛落回
+function slabs(p, t, o, C, ST, R, N, sd) {
+  const SY = +o.SY, n = C.length;
+  for (let i = 0; i < N; i++) {
+    const a = TAU * nz(i * 2.3, sd + 11), rr = R * (0.2 + 0.75 * nz(i * 1.9, sd + 13));
+    const u = t - shockAt(R, rr);
+    if (u <= 0) continue;
+    const vy = 120 + 110 * nz(i * 3.7, sd + 15), vr = 20 + 40 * nz(i * 4.3, sd + 17);
+    const z = vy * u - 330 * u * u;
+    if (z < 0) continue;
+    const gx = Math.cos(a) * (rr + vr * u), gy = Math.sin(a) * (rr + vr * u) * SY;
+    const sz = 3 + Math.round(3 * nz(i * 6.1, sd + 19));
+    for (let dx = 0; dx < sz; dx++) for (let dy = 0; dy < sz - 1; dy++) {
+      let c = dy === 0 ? (u < 0.1 ? C[n - 3] : ST[4]) : dx === 0 ? ST[3] : ST[2];
+      p.px(Math.round(gx) + dx, Math.round(gy - z) + dy, c);
+    }
+    p.px(Math.round(gx), Math.round(gy) + 1, DU0);                       // 地上一点影子
+  }
+}
+let DU0 = 0;
+
 function smashUp(p, t, o, C, ACC, ST, DU) {
   const R = +o.R;
-  pillar(p, t, C, ACC, 120, 20, 2);
-  flash(p, t, C, 46, 15, 6, 0.0);
-  streaks(p, t, o, C, 26, 320, +o.seed + 41, 0.0, 160);
-  rubble(p, t, o, ST, DU, 30, R * 0.4, +o.seed + 43, 0.03, ACC);
-  rubble(p, t, o, ST, DU, 18, R * 0.75, +o.seed + 44, 0.09, null);
-  bigWall(p, t, o, C, DU, R * 0.95, 34, 30, +o.seed + 45, 0.05);   // 隆起尘墙：外圈（大团、往上冒、受光顶，散的时候整团缩掉）
-  bigWall(p, t, o, C, DU, R * 0.55, 22, 20, +o.seed + 46, 0.14);   // 内圈晚一拍
+  DU0 = DU[0];
+  pillar(p, t, C, ACC, 110, 12, 2);
+  core(p, t, C, ACC);
+  streaks(p, t, o, C, 20, 320, +o.seed + 41, 0.0, 160);
+  cloud(p, t, o, C, ACC, R * 0.6, 160, +o.seed + 47, 0.067);
+  slabs(p, t, o, C, ST, R, 24, +o.seed + 43);
+  bigWall(p, t, o, C, DU, R * 0.95, 34, 30, +o.seed + 45, shockAt(R, R * 0.95));   // 隆起尘墙：冲击环推到外圈那一刻冲起（大团、受光顶，散的时候整团缩掉）
+  bigWall(p, t, o, C, DU, R * 0.55, 22, 20, +o.seed + 46, shockAt(R, R * 0.55) + 0.067);   // 内圈
 }
 
 // 终结技尺度的尘墙：每团半径 5–8 美术像素，从地面隆起到 hMax 再缩掉；前半圈压在后半圈前面（按 y 先后画）
@@ -150,10 +233,30 @@ function beat(p, t, o, C, DU, r, t0, i) {
   }
 }
 
+function shock(p, t, o, C, ACC, DU, R) {
+  const SY = +o.SY, n = C.length;
+  if (t > 0.23 + 0.134) return;
+  const k = clamp(t / 0.23), r = R * (0.3 + 0.7 * (1 - (1 - k) * (1 - k)));
+  const fade = clamp((t - 0.23) / 0.134), TH = 8;
+  const m = Math.ceil(r * TAU * 1.1);
+  for (let j = 0; j < m; j++) {
+    const a = (j / m) * TAU, ca = Math.cos(a), sa = Math.sin(a);
+    if (fade > 0 && nz(a * 4.7, +o.seed + 71) < fade) continue;
+    const rr = r + 1.5 * nz(a * 6, +o.seed + 73);
+    for (let q = 0; q < TH; q += 0.5) {                                  // 厚环：外缘白 → 白金 → 金 → 暗金
+      const c = q < 2 ? (t < 0.134 ? WHITE : ACC) : q < 4 ? C[n - 2] : q < 6 ? C[n - 3] : C[n - 4];
+      p.px(Math.round(ca * (rr - q)), Math.round(sa * (rr - q) * SY), c);
+    }
+    if (fade < 0.5) for (let q = TH + 6; q < TH + 14; q += 1) {          // 环后 6–14 格的地面一闪（半透明）
+      p.blend(Math.round(ca * (rr - q)), Math.round(sa * (rr - q) * SY), C[n - 3], 0.28 * (1 - fade * 2));
+    }
+  }
+}
+
 function smashGd(p, t, o, C, ACC, DU) {
   const R = +o.R, SY = +o.SY;
   crater(p, t, o, DU, R * 0.14, SY, 0.85);
-  ring(p, t, o, C, R, SY, 0.0, 4);
+  shock(p, t, o, C, ACC, DU, R);
   drawCracks(p, t, o, C, ACC, DU, crackPaths(o, R * 0.95, 14, +o.seed + 61, undefined, undefined, 0.1), SY, true, 0.0);   // 长裂缝：弯曲度 0.1（裂地 v3：不规整、分叉，不绕圈）
   [0.3, 0.55, 0.8, 1.0].forEach((k, i) => beat(p, t, o, C, DU, R * k, 0.18 * i + 0.02, i));
 }

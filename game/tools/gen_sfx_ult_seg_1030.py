@@ -478,16 +478,20 @@ def hoshiguma():
 
 
 def siege():
-    """docs/205 §4.7（用户 11-01「推进之王的终结技音效需要修改」；10-31 要「拿着锤子爆裂的感觉」、不要「咚」——那一声已查实是队友技能音效，放出期间静音）：
-    11-01 选定 ① 原作盾斧爆裂：提示 = 原作磁锤 → 起跳 = 原作跳劈起手 → 落地砸地 smash（fx circle r100，高潮）= 原作盾斧砸地榴弹爆裂 + 原作磁锤砸实瞬态 + 碎石
-    → 再跃小砸地 smash2 = 原作盾斧重击 → 碎岩 rock_1..3 = 原作碎盾 3 个音高 → 敌人落地 land = 原作盾斧收势。90 Hz 以下切，保留锤身的重量"""
+    """docs/205 §4.7 → docs/264 §10（11-05 终结技画面升级，ult_brief §7：不能用原作客户端里解出来的音源，原来的 sf / cast / smash / smash2 / rock / land 全是原作磁锤 / 盾斧，整套换掉）。
+    全部 Sonniss GDC 2026 录音（免版税、可商用，docs/113 §20）：
+    提示 sf = 金属重击共鸣降调 → 起跳 cast = 低音起跳 + 风声上扬 → 主砸 smash（fx circle r100，冲击帧那一下，全招最响）= 重击瞬态 + 预告片低频长尾（配合冲击慢放，1.9 秒）
+    + 碎屑呼啸 + 一层压低降调的巨兽吼（狮吼）→ 再跃第二下 smash2 = 挥击闷响 + 重击瞬态升调 → 余震碎岩 rock_1..3 = 冰裂三个音高 → 敌人落地 land = 挥击闷响降调 + 碎屑。
+    高频收着：主砸 6 kHz 以上低通、狮吼 1.5 kHz 低通；90 Hz 以下切掉（保留锤身重量）"""
+    roar = "344 Audio - Dinosaurs Vol. 2/ANMLRept_Large Herbivore Roar 01_344 Audio_Dinosaurs Vol 2.wav"
     return {
-        "sf": akd("p_skill_magnetichammer.wav", 0.0, 0.45, 1.0, fout=0.2), "cast": akd("p_skill_jumphammer_1.wav", 0.0, 0.7, fout=0.25),
-        "smash": hp(pad(akd("p_skill_MHshieldaxe_ground2.wav", 0.0, 1.35, fout=0.5), akd("p_skill_magnetichammer.wav", 0.0, 0.5, fout=0.2) * 0.6,
-                        sn("debris", 0.1, 1.0, fout=0.4) * 0.4), 90, 4),
-        "smash2": hp(akd("p_skill_MHshieldaxe_h2.wav", 0.0, 0.7, fout=0.25), 200),
-        **{"rock_%d" % (i + 1): hp(akd("p_skill_shieldbreak.wav", 0.0, 0.45, r, fout=0.2), 400) for i, r in enumerate([0.85, 0.95, 0.78])},
-        "land": hp(akd("p_skill_MHshieldaxe_end.wav", 0.0, 0.5, fout=0.2), 300),
+        "sf": hp(sn("ring", 0.0, 0.55, 0.8, fout=0.25), 120),
+        "cast": hp(pad(sn("jump", 0.0, 0.7, fout=0.25), sn("wind", 0.2, 0.6, 1.1, fout=0.25) * 0.45), 90),
+        "smash": hp(pad(lp(sn("smash", 0.0, 0.9, fout=0.4), 6000), lp(sn("b214", 0.25, 1.9, fout=0.9), 900) * 1.0,
+                        sn("debris", 0.1, 1.2, fout=0.5) * 0.35, at(lp(lib(roar, 0.15, 1.3, 0.82, fout=0.5), 1500) * 0.45, 0.06)), 90, 4),
+        "smash2": hp(pad(sn("thud", 0.0, 0.6, fout=0.25), lp(sn("smash", 0.0, 0.5, 1.15, fout=0.2), 6000) * 0.6), 120),
+        **{"rock_%d" % (i + 1): hp(sn("ice", 0.0, 0.4, r, fout=0.15), 400) for i, r in enumerate([0.85, 0.95, 0.78])},
+        "land": hp(pad(sn("thud", 0.0, 0.55, 0.88, fout=0.2), sn("debris", 0.3, 0.5, fout=0.25) * 0.3), 120),
     }
 
 

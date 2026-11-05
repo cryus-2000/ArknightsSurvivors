@@ -286,7 +286,7 @@ def variants_siege_ult():
     return [
         ("ult_warn_gd", {"part": "warn", "layer": "gd", "R": 270, "seed": 31}, 0.6),
         ("ult_charge_up", {"part": "charge", "layer": "up", "seed": 33}, 0.6),
-        ("ult_smash_up", {"part": "smash", "layer": "up", "R": 270, "seed": 35}, 1.1),
+        ("ult_smash_up", {"part": "smash", "layer": "up", "R": 270, "seed": 35}, 1.3),
         ("ult_smash_gd", {"part": "smash", "layer": "gd", "R": 270, "seed": 35}, 1.5),
     ]
 

@@ -127,6 +127,32 @@ def scene(lib, n_ticks):
                 img.alpha_composite(OP, dest=(int(round(x / 2) * 2), int(round(y / 2) * 2)))
             else:
                 paste_strip(img, lib, v[0], v[1], v[2], ed)
+        # 崩解（同 fx_pxplane._sg_draw_sprays）：冲击环推到那只怪的时刻，怪整只喷成自身颜色（offspring ecol 0.6,0.9,0.5）的像素
+        if tk >= t_hit:
+            age_g = (tk - t_hit) / 15.0
+            d2 = ImageDraw.Draw(img)
+            base_c = np.array([0.6, 0.9, 0.5]) * 255
+            cols = [tuple(int(min(255, v)) for v in (base_c + (255 - base_c) * 0.45)), tuple(int(min(255, v)) for v in (base_c + (255 - base_c) * 0.15)), tuple(int(v) for v in base_c), tuple(int(v * 0.7) for v in base_c)]
+            for ei, e in enumerate([e for e in ens if e[2]][:40]):
+                dist = math.hypot(e[0] - C[0], (e[1] - C[1]) / SY) / R
+                kk = min(1.0, max(0.0, (dist - 0.3) / 0.7))
+                age = age_g - 0.23 * (1 - math.sqrt(1 - kk))
+                if age < 0 or age > 1.3:
+                    continue
+                out_a = math.atan2(e[1] - C[1], e[0] - C[0])
+                hr = np.random.default_rng(ei * 13)
+                for q in range(22):
+                    ang = out_a + (hr.uniform() - 0.5) * 2.2
+                    spd, vh = 40 + 90 * hr.uniform(), 40 + 70 * hr.uniform()
+                    tl = 2 * vh / 300.0
+                    tt = min(min(age, 0.9), tl)
+                    hz = max(0.0, vh * tt - 150 * tt * tt)
+                    x = OX + e[0] * PX + math.cos(ang) * spd * tt
+                    y = OY + e[1] * PX - 10 + math.sin(ang) * spd * tt * 0.72 - hz
+                    c = (255, 255, 255) if (age < 2 / 15 and q % 3 == 0) else cols[q % 4]
+                    sz = PX * (2 if q % 3 != 2 else 1)
+                    x, y = round(x / 2) * 2, round(y / 2) * 2
+                    d2.rectangle([x, y, x + sz - 1, y + sz - 1], fill=c)
         if tk == t_fall:   # 落地：前 8 只各一小圈尘
             for e in [e for e in ens if e[2]][:8]:
                 fall_items.append(("sg_crash_gd", tk, (e[0], e[1])))
