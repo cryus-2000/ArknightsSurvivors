@@ -421,7 +421,12 @@ static func sort_items(game) -> Array:
 	for it in r.items:
 		if str(it.ly) == "up":
 			var gp: Vector2 = r._gp(it)   # 跟人 / 跟怪的件按当前位置排序
-			it["sk"] = gp.y + (1.0 if not it.get("cut", false) else float(it.e.r) * 0.55 + 1.0 if it.has("e") else 1.0)
+			if it.get("cut", false) and it.has("e"):
+				it["skc"] = gp.y + float(it.e.r) * 0.55 + 1.0
+			elif it.has("gy"):
+				it["skc"] = float(it.gy)
+			else:
+				it["skc"] = gp.y + 1.0 + float(it.get("sk", 0.0))   # sk：身后半圈的件往前排（星熊地刺）
 			out.append(it)
 	for o in game.squad.ops:
 		if IDS.has(str(o.id)) and o.pos != Vector2.INF:
@@ -498,8 +503,8 @@ func _draw_cut(ci, it: Dictionary) -> void:
 static func sort_key(it: Dictionary) -> float:
 	if it.has("wave"):
 		return float((it.wave[1] as Vector2).y) + 2.0
-	if it.has("sk"):
-		return float(it.sk)
+	if it.has("skc"):   # sort_items 按当前位置算好的键（跟人 / 跟怪的件）
+		return float(it.skc)
 	if it.get("cut", false) or it.has("gy"):
 		return float(it.gy)
 	return float((it.gp as Vector2).y) + 1.0 + float(it.get("sk", 0.0))   # sk：身后半圈的件往前排（星熊地刺）
