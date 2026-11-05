@@ -17,6 +17,7 @@ def main():
     ap.add_argument("--langs", default="en,zh")
     ap.add_argument("--extra", default="", help="附加游戏参数，空格分隔（如 --touch）")
     a = ap.parse_args()
+    a.out = os.path.abspath(a.out)   # $MEDIA 可能是相对路径；Godot 的工作目录不同，相对路径的 PNG 会写到别处（11-06 第二次就丢了图）
     os.makedirs(a.out, exist_ok=True)
     bad = 0
     for lang in a.langs.split(","):
