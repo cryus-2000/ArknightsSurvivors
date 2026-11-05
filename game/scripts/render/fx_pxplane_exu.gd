@@ -21,7 +21,7 @@ const RAMP := {
 	"t2": ["#2a1c06", "#5c3e0a", "#a8741a", "#f0c050", "#ffe08a", "#fff6d8", "#ffffff"],
 	"t3": ["#2a1c06", "#5c3e0a", "#a8741a", "#e8b030", "#ffd86a", "#fff2c0", "#ffffff"],
 }
-const B_LEN := {"n": [9, 11, 13], "s1": [13, 15, 17], "s2": [7, 8, 9], "s3": [10, 11, 12], "g": [12, 13, 14], "t1": [11, 11, 13], "t2": [11, 11, 13], "t3": [11, 11, 13], "tr": [18, 18, 18], "x": [6, 6, 6]}
+const B_LEN := {"n": [7, 8, 9], "s1": [9, 10, 11], "s2": [6, 6, 7], "s3": [8, 8, 9], "g": [8, 9, 10], "t1": [8, 8, 9], "t2": [8, 8, 9], "t3": [8, 8, 9], "tr": [14, 14, 14], "x": [5, 5, 5]}
 const TIER_MIN := {"n": 0, "s1": 0, "s2": 1, "s3": 2, "g": 1}
 const BKIND := {"proj_exusiai_bullet": "n", "proj_exusiai_bullet_s1": "s1", "proj_exusiai_bullet_s2": "s2", "proj_exusiai_bullet_s3": "s3",
 	"proj_exusiai_bullet_power": "g", "proj_exusiai_bullet_t1": "t1", "proj_exusiai_bullet_t2": "t2", "proj_exusiai_bullet_t3": "t3"}
@@ -37,6 +37,8 @@ var r      # fx_pxplane 实例
 var g
 var _cols := {}
 var _beat := {}
+var _vc := {}      # 每人第几轮射击（枪口火两种变体交替、每 3 轮一缕枪口烟）
+var _kick := {}    # 每人最近一次开火的时刻（后坐 1 美术像素，只改画面）
 
 
 func _init(px) -> void:
@@ -96,9 +98,14 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 			var dp: Array = Pxp.pick_dir((d.d as Vector2).angle())
 			var id: String = str(o.id)
 			r.items = r.items.filter(func(it): return not (it.has("mz") and str(it.oid) == id))
-			_on_her(o, "mz_%s_e%d_d%d" % [m, tt, int(dp[0])], mz, bool(dp[1]), "mz")
-			if _beat_n(o, "fire") == 0:
-				R._light(o, mz, 50.0 + 12.0 * tt + (20.0 if m != "n" else 0.0), 0.3 + 0.08 * tt, 0.08, p.light)
+			var vc: int = int(_vc.get(id, 0)) + 1
+			_vc[id] = vc
+			_kick[id] = g.t
+			_on_her(o, "mz_%s_e%d_v%d_d%d" % [m, tt, vc % 2, int(dp[0])], mz, bool(dp[1]), "mz")
+			if vc % 3 == 0:   # 偶尔一缕枪口烟
+				_on_her(o, "smoke_up", mz)
+			if _beat_n(o, "fire") == 0:   # 枪口照地：短而亮
+				R._light(o, mz, 70.0 + 12.0 * tt + (20.0 if m != "n" else 0.0), 0.5 + 0.08 * tt, 0.07, p.light)
 				R._grains(o, mz + Vector2(-4.0 * float(o.face), 0), o.pos.y + 2.0, "shard", 2 if d.get("fan", false) else 1, {"tier": 0}, Vector2(-float(o.face), -0.4))   # 弹壳：往后上方抛出、落地弹一下
 		"exu_hit":
 			var e: Dictionary = d.e
@@ -109,10 +116,11 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 			var cap: int = 3 if m2 in ["n", "s2"] else 4
 			if m2 == "full":
 				cap = 5
-			if _beat_n(o, "hit") >= cap or _live(o, "hit") >= HIT_LIVE:
-				return
-			var key: String = "hit_full" if m2 == "full" else "hit_%s_e%d" % [m2, _mtier(m2, t)]
-			_up(o, key, at, float(e.pos.y) + 1.0, {"hit": true})
+			if _fresh_near(o, at) or _beat_n(o, "hit") >= cap or _live(o, "hit") >= HIT_LIVE:
+				return   # 同一只身上 2 拍内只留一团（过载 4 连射 / 扫射不叠成一团白）
+			var hd: Array = Pxp.pick_dir((d.get("v", e.pos - o.pos) as Vector2).angle())
+			var key: String = ("hit_full_d%d" % int(hd[0])) if m2 == "full" else "hit_%s_e%d_d%d" % [m2, _mtier(m2, t), int(hd[0])]
+			_up(o, key, at, float(e.pos.y) + 1.0, {"hit": true, "flip": bool(hd[1])})
 			if _beat_n(o, "hl") == 0:
 				var big: bool = m2 != "n" and m2 != "s2"
 				R._light(o, at, (60.0 if big else 45.0) + 12.0 * t, (0.4 if big else 0.28) + 0.08 * t, 0.1, p.light)
@@ -121,12 +129,14 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 		"exu_xhit":   # 后期额外弹 / 跳弹落点：小一号，每拍至多 3 团
 			if _beat_n(o, "xh") >= 3 or _live(o, "hit") >= HIT_LIVE:
 				return
-			_up(o, "hit_x", d.at, float(d.e.pos.y) + 1.0, {"hit": true})
+			var xd: Array = Pxp.pick_dir(((d.e.pos as Vector2) - o.pos).angle())
+			_up(o, "hit_x_d%d" % int(xd[0]), d.at, float(d.e.pos.y) + 1.0, {"hit": true, "flip": bool(xd[1])})
 		"exu_chain":   # 「连锁」弹射：1 美术像素细线（3 拍）+ 落点小火花；每拍至多 3 道
 			if _beat_n(o, "ch") >= 3:
 				return
 			r._push({"ex": "line", "a": d.a, "b": d.b, "t0": g.t, "life": 3.0 / 15.0, "ly": "up", "gy": float(d.get("gy", 0.0)), "oid": str(o.id), "k": ""})
-			_up(o, "hit_x", d.b, float(d.get("gy", 0.0)), {"hit": true})
+			var cd: Array = Pxp.pick_dir(((d.b as Vector2) - (d.a as Vector2)).angle())
+			_up(o, "hit_x_d%d" % int(cd[0]), d.b, float(d.get("gy", 0.0)), {"hit": true, "flip": bool(cd[1])})
 		"exu_splash":   # 「扩散」溅射：贴地断续红环；每拍至多 2
 			if _beat_n(o, "sp") >= 2:
 				return
@@ -145,13 +155,14 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 			var dp2: Array = Pxp.pick_dir((tp - fp).angle())
 			var id2: String = str(o.id)
 			r.items = r.items.filter(func(it): return not (it.has("mz") and str(it.oid) == id2))
-			_on_her(o, "mz_g_e2_d%d" % int(dp2[0]), fp, bool(dp2[1]), "mz")
+			_kick[id2] = g.t
+			_on_her(o, "mz_g_e2_v%d_d%d" % [i % 2, int(dp2[0])], fp, bool(dp2[1]), "mz")
 			var L: float = maxf(1.0, fp.distance_to(tp))
 			var es: Array = d.get("es", [])
 			for k in mini(2, es.size()):
 				var e2: Dictionary = es[k]
 				var hp: Vector2 = e2.pos + Vector2(0, -float(e2.r) * 0.55)
-				r._push({"k": "ex_hit_%s_e2" % ("n" if i % 2 == 0 else "g"), "t0": g.t + 0.2 * clampf(fp.distance_to(hp) / L, 0.0, 1.0), "gp": Pxp._snap(hp), "gy": float(e2.pos.y) + 1.0, "flip": false, "ly": "up", "oid": str(o.id), "hit": true})
+				r._push({"k": "ex_hit_%s_e2_d%d" % ["n" if i % 2 == 0 else "g", int(dp2[0])], "t0": g.t + 0.2 * clampf(fp.distance_to(hp) / L, 0.0, 1.0), "gp": Pxp._snap(hp), "gy": float(e2.pos.y) + 1.0, "flip": bool(dp2[1]), "ly": "up", "oid": str(o.id), "hit": true})
 			if i % 2 == 0:
 				R._light(o, fp, 90.0, 0.45, 0.1, p.light)
 		"shape":   # 「跳弹·碎裂」击杀处弹片：贴地金色弹片环
@@ -173,6 +184,14 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 				_on_her(o, "halo_fire_up", foot + Vector2(0, -80))
 				R._light(o, foot + Vector2(0, -40), 160.0, 0.7, 0.15, p.light)
 				R._grains(o, foot + Vector2(0, -70), foot.y, "shard", 5, {"tier": 2})
+
+
+func _fresh_near(o, at: Vector2) -> bool:
+	var id: String = str(o.id)
+	for it in r.items:
+		if it.has("hit") and str(it.oid) == id and g.t - float(it.t0) < 2.0 / 15.0 and (it.gp as Vector2).distance_to(at) < 10.0:
+			return true
+	return false
 
 
 func _live(o, tag: String) -> int:
@@ -201,7 +220,7 @@ func sort_items(o, out: Array) -> void:
 		var bs: Array = st.bul
 		for i in range(maxi(0, bs.size() - BUL_DRAW), bs.size()):
 			var bu: Dictionary = bs[i]
-			out.append({"ex": "bul", "b": bu, "o": o, "gy": (bu.p as Vector2).y + 20.0})
+			out.append({"ex": "bul", "b": bu, "o": o, "gy": (bu.p as Vector2).y + 20.0, "n": i})
 	var vg = o.get("vg")
 	if vg is Dictionary and not vg.is_empty():
 		var xs: Array = vg.get("bul", [])
@@ -254,7 +273,8 @@ func draw_rt(ci, it: Dictionary) -> void:
 			var bu: Dictionary = it.b
 			var kind: String = str(BKIND.get(str(bu.get("tex", "")), "n"))
 			var tr: bool = not (bu.get("tr", {}) as Dictionary).is_empty()
-			_bullet(ci, bu.p, bu.v, kind, r.tier(it.o), not bu.get("ric", true), tr)
+			var back: float = float(int(it.n) % 4) * 3.0 if kind == "g" else 0.0   # 倾泻 8 发同一帧出膛：画面上按序号前后错开（只画），不成一排梳子
+			_bullet(ci, bu.p, bu.v, kind, r.tier(it.o), not bu.get("ric", true), tr, back)
 		"xbul":
 			var xb: Dictionary = it.b
 			_bullet(ci, (xb.p as Vector2) + Vector2(0, -18.0), xb.v, "n", r.tier(it.o), true, false)
@@ -308,29 +328,36 @@ static func _hsh(x: int, y: int, k: int) -> int:
 	return ((x * 73856093) ^ (y * 19349663) ^ (k * 83492791)) & 0xFFFF
 
 
-## 一颗弹（同 pxplane_exu_art.bullet）：弹头白 + 渐暗细长尾、身段 2 像素厚；S1 / 倾泻弹头菱形 3 宽；S3 弹头 2 宽 + 尾侧红点；精二弹头两侧按拍闪金点；曳光弹金色长尾
-func _bullet(ci, pos: Vector2, vel: Vector2, kind: String, t: int, small: bool, tracer: bool) -> void:
+## 一颗弹（同 pxplane_exu_art.bullet）：细长、尾迹短——2 格白热弹头（第 0 格 2 像素宽）+ 很快变暗的 1 像素尾；S1 / 倾泻第 1 格 3 宽；
+## S3 前 2 格 2 宽 + 尾侧橙红点；精二弹头两侧按拍闪金点；曳光弹金色长尾。back = 只画面的后移（美术像素）
+func _bullet(ci, pos: Vector2, vel: Vector2, kind: String, t: int, small: bool, tracer: bool, back := 0.0) -> void:
 	var rp: String = "g" if tracer else kind
 	var L: int = int(B_LEN["tr" if tracer else ("x" if small else kind)][t])
 	var d: Vector2 = vel.normalized()
 	var nv := Vector2(-d.y, d.x)
-	var head: Vector2 = Pxp._snap(pos)
 	var px: float = g.PX
-	var dia: bool = kind in ["s1", "g"] and not small
+	var head: Vector2 = Pxp._snap(pos - d * back * px)
 	for i in L:
 		var u: float = float(i) / float(L)
-		var ci2: int = 6 if i == 0 else (5 if i < 2 else (4 if u < 0.5 else (3 if u < 0.8 else 2)))
+		var ci2: int = 6 if i < 2 else (5 if i < 3 else (4 if u < 0.45 else (3 if u < 0.7 else 2)))
 		var q: Vector2 = head - d * float(i) * px
 		r._px(ci, q, _c(rp, ci2))
-		if not small and float(i) < float(L) * 0.6:   # 身段 2 像素厚（一侧暗一阶）
-			r._px(ci, q + nv * px, _c(rp, 4 if i < 2 else (3 if u < 0.5 else 2)))
-		if (dia and i == 1) or (kind == "s3" and not small and i < 2) or (dia and i == 2):
-			r._px(ci, q + nv * px, _c(rp, 5 if i < 2 else 4))
-			r._px(ci, q - nv * px, _c(rp, 5 if i < 2 else 4))
-		if kind == "s3" and not small and i >= 2 and i < L - 2 and i % 2 == 0:
+		if i == 0 and not small:
+			r._px(ci, q + nv * px, _c(rp, 5))
+		if not small and ((kind in ["s1", "g"] and i == 1) or (kind == "s3" and i < 2)):
+			r._px(ci, q + nv * px, _c(rp, 5))
+			r._px(ci, q - nv * px, _c(rp, 5))
+		if kind == "s3" and not small and i >= 3 and i < L - 1 and i % 2 == 1:
 			r._px(ci, q + nv * px, _c(rp, 3))
 	r._px(ci, head + d * px, _c(rp, 5))
 	if t >= 2 and not small and int(floor(g.t * 15.0)) % 2 == 0:
 		r._px(ci, head + nv * px * 2.0 - d * px, _c("g", 5))
 		r._px(ci, head - nv * px * 2.0 - d * px * 2.0, _c("g", 4))
 	r._glow(head, _c(rp, 6))
+
+
+## 后坐（只改画面，character.draw_body 读）：开火那一拍本体往枪口反方向挪 1 美术像素
+func kick(o) -> Vector2:
+	if g.t - float(_kick.get(str(o.id), -99.0)) < 1.0 / 15.0:
+		return Vector2(-float(o.face) * g.PX, 0.0)
+	return Vector2.ZERO

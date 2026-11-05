@@ -64,10 +64,13 @@ def strips():
     for m, ts in TIERS.items():
         for t in ts:
             for d in DIRS:
-                out["mz_%s_e%d_d%d" % (m, t, d)] = (A.muzzle(m, t, d), False)
-            out["hit_%s_e%d" % (m, t)] = (A.hit(m, t), False)
-    out["hit_x"] = (A.hit("x", 0), False)
-    out["hit_full"] = (A.hit("full", 1), False)
+                for v in (0, 1):   # 连射时两种枪口火交替（十字 / 斜星）
+                    out["mz_%s_e%d_v%d_d%d" % (m, t, v, d)] = (A.muzzle(m, t, d, v), False)
+                out["hit_%s_e%d_d%d" % (m, t, d)] = (A.hit(m, t, d), False)
+    for d in DIRS:
+        out["hit_x_d%d" % d] = (A.hit("x", 0, d), False)
+        out["hit_full_d%d" % d] = (A.hit("full", 1, d), False)
+    out["smoke_up"] = (A.smoke(), False)
     out["ring_s1_gd"] = (A.ring_gd("s1", 26), False)
     out["ring_s3_gd"] = (A.ring_gd("s3", 36), False)
     out["ring_splash_gd"] = (A.ring_gd("n", 30), False)

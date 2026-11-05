@@ -52,7 +52,11 @@ class Buf:
 
 # ---------------------------------------------------------------- 尺寸表（模式 → 三档）
 MZ_L = {"n": [7, 8, 9], "s1": [9, 10, 11], "s2": [7, 8, 9], "s3": [9, 10, 11], "g": [8, 9, 10]}
-HIT_R = {"n": [6, 7, 8], "s1": [8, 9, 10], "s2": [6, 7, 7], "s3": [8, 9, 10], "g": [8, 9, 10], "x": [4, 4, 4], "full": [10, 10, 10]}
+HIT_N = {"n": [5, 7, 9], "s1": [7, 9, 11], "s2": [5, 7, 8], "s3": [7, 9, 11], "g": [7, 9, 11], "x": [3, 3, 3], "full": [9, 9, 9]}
+HIT_L = {"n": [5, 6, 7], "s1": [6, 7, 8], "s2": [5, 6, 6], "s3": [6, 7, 8], "g": [6, 7, 8], "x": [4, 4, 4], "full": [8, 8, 8]}
+# 金属火花（橙白，所有模式共用；模式色只在命中芯上）与碎屑
+SPARK = ["#5a2a0c", "#9a4a14", "#d87a28", "#ffb050", "#ffe0a0", "#fff6e0", "#ffffff"]
+CHIP = ["#2a2628", "#4a4448", "#6e666c"]
 
 
 def _rot(d, a):
@@ -60,114 +64,128 @@ def _rot(d, a):
     return (d[0] * c - d[1] * s, d[0] * s + d[1] * c)
 
 
-def muzzle(mode, tier, deg):
-    """枪口焰（立起层，原点 = 枪口）：3 帧。第 0 拍白芯 + 火舌 + 两侧短喷口；第 1 拍火舌缩短变暗 + 两点烟；第 2 拍烟上飘。
-    精一：火舌前多一道细芒；精二：火舌根部两侧各一颗金星。倾泻 g = 五道扇形火舌；S3 = 十字星芒"""
+def _spike(b, o, d, L, cols, keep=False):
+    """一道 1 像素硬芒：从 o 沿 d 走 L 格，颜色按 cols 依次（最后一个延续到底）"""
+    for s in range(L):
+        c = cols[min(s, len(cols) - 1)]
+        (b.put_if_empty if keep else b.put)(o[0] + d[0] * s, o[1] + d[1] * s, c)
+
+
+def muzzle(mode, tier, deg, var=0):
+    """枪口火（立起层，原点 = 枪口）：2 拍硬星形短闪。第 0 拍：3×3 白芯 + 前向长芒（根部 3 像素宽、收成 1 像素尖）+ 侧芒 + 后向短芒；
+    第 1 拍：芯暗一阶、前芒剩一半、侧芒剩 1 格。var 0 = 侧芒垂直（十字），var 1 = 侧芒斜前 45°（星形、前芒短 1）——连射时交替，有节奏变化。
+    倾泻 g = 前向五道扇形硬芒；S3 = 垂直 + 斜向都有（八芒）。精一：前芒 +2；精二：芯两侧各一颗金星"""
     C = RAMP[mode]
     a = math.radians(deg)
     d = (math.cos(a), math.sin(a))
     nv = (-d[1], d[0])
-    L = MZ_L[mode][tier]
-    fr = [Buf(), Buf(), Buf()]
-    b = fr[0]
-    # 火舌
-    rays = [0.0] if mode != "g" else [-0.44, -0.22, 0.0, 0.22, 0.44]
-    for ra in rays:
+    L = MZ_L[mode][tier] + (2 if tier >= 1 else 0) - (1 if var == 1 else 0)
+    P = 3 + tier
+    f0, f1 = Buf(), Buf()
+    fronts = [0.0] if mode != "g" else [-0.42, -0.21, 0.0, 0.21, 0.42]
+    for ra in fronts:
         dd = _rot(d, ra)
         nn = (-dd[1], dd[0])
-        LL = L if ra == 0.0 else L - 1
-        s = 0.0
-        while s <= LL:
-            u = s / LL
-            w = (1.0 - u) * (1.6 if mode != "g" else 0.6) + (0.4 if s < 2 else 0.0)
-            col = C[5] if u < 0.35 else (C[4] if u < 0.7 else C[3])
-            m = int(round(w))
-            for q in range(-m, m + 1):
-                if abs(q) == m and m > 0 and hsh(int(s * 2), q, 7) % 3 == 0:
-                    continue   # 边缘参差
-                b.put(dd[0] * s + nn[0] * q, dd[1] * s + nn[1] * q, col)
-            s += 0.5
-    if tier >= 1 and mode != "g":   # 精一：前方细芒
-        for s in range(L + 1, L + 3):
-            b.put(d[0] * s, d[1] * s, C[5] if s == L + 1 else C[4])
-    js = 2 if tier == 0 else 3
-    for sd in (-1, 1):   # 两侧短喷口（±60°）
-        jd = _rot(d, sd * 1.05)
-        for s in range(1, js + 1):
-            b.put(jd[0] * (s + 0.5), jd[1] * (s + 0.5), C[4] if s == 1 else C[3])
-    if mode == "s3":   # 过载：垂直方向十字星芒
-        for sd in (-1, 1):
-            for s in range(2, 6):
-                b.put(nv[0] * s * sd + d[0], nv[1] * s * sd + d[1], C[5] if s < 4 else C[4])
-    for x in (-1, 0, 1):   # 白芯
+        LL = L if ra == 0.0 else L - 2
+        _spike(f0, (dd[0] * 2, dd[1] * 2), dd, LL, [C[6], C[6], C[5], C[5], C[4], C[4], C[3]])
+        if ra == 0.0:
+            for q in (-1, 1):   # 根部 3 像素宽，收尖
+                _spike(f0, (dd[0] * 2 + nn[0] * q, dd[1] * 2 + nn[1] * q), dd, max(2, LL // 3), [C[5], C[4]], keep=True)
+        _spike(f1, (dd[0] * 2, dd[1] * 2), dd, max(2, LL // 2), [C[5], C[4], C[3]])
+    sides = []
+    if var == 0 or mode == "s3":
+        sides += [nv, (-nv[0], -nv[1])]
+    if var == 1 or mode == "s3":
+        sides += [_rot(d, 0.785), _rot(d, -0.785)]
+    for sd in sides:
+        _spike(f0, (sd[0] * 2, sd[1] * 2), sd, P, [C[5], C[4], C[3]])
+        f1.put(sd[0] * 2, sd[1] * 2, C[3])
+    _spike(f0, (-d[0] * 2, -d[1] * 2), (-d[0], -d[1]), 2, [C[4], C[3]])
+    for x in (-1, 0, 1):
         for y in (-1, 0, 1):
+            f0.put(x, y, C[6] if abs(x) + abs(y) <= 1 else C[5])
             if abs(x) + abs(y) <= 1:
-                b.put(d[0] * 1 + x, d[1] * 1 + y, C[6])
-    # 第 1 拍：缩短、暗一阶、无白芯
-    b1 = fr[1]
-    for ra in rays:
-        dd = _rot(d, ra)
-        for s in range(1, int(L * 0.6) + 1):
-            b1.put(dd[0] * s, dd[1] * s, C[4] if s < L * 0.3 else C[3])
-    b1.put(d[0] * (L * 0.6 + 1), d[1] * (L * 0.6 + 1) - 1, SMOKE[2])
-    b1.put(d[0] * (L * 0.4), d[1] * (L * 0.4) - 2, SMOKE[1])
-    # 第 2 拍：烟上飘 + 一点余烬
-    b2 = fr[2]
-    b2.put(d[0] * (L * 0.6 + 1), d[1] * (L * 0.6 + 1) - 3, SMOKE[1])
-    b2.put(d[0] * (L * 0.4) + 1, d[1] * (L * 0.4) - 4, SMOKE[0])
-    b2.put(d[0] * 2, d[1] * 2, C[2])
-    if tier >= 2:   # 精二：火舌根部两颗金星（天使的金色）
+                f1.put(x, y, C[5] if (x, y) == (0, 0) else C[4])
+    if tier >= 2:
         for sd in (-1, 1):
-            fr[0].put(nv[0] * 3 * sd + d[0] * 2, nv[1] * 3 * sd + d[1] * 2, GOLD[6])
-            fr[0].put(nv[0] * 4 * sd + d[0] * 2, nv[1] * 4 * sd + d[1] * 2, GOLD[5])
-            fr[1].put(nv[0] * 4 * sd + d[0] * 3, nv[1] * 4 * sd + d[1] * 3, GOLD[4])
+            f0.put(nv[0] * 2 * sd - d[0], nv[1] * 2 * sd - d[1], GOLD[6])
+            f1.put(nv[0] * 3 * sd - d[0], nv[1] * 3 * sd - d[1], GOLD[4])
+    return [f0, f1]
+
+
+def smoke():
+    """偶发枪口烟（每 3 轮一缕，原点 = 枪口）：5 拍，一缕灰烟弯着往上飘、变淡"""
+    fr = []
+    for k in range(5):
+        b = Buf()
+        for j in range(3 + k // 2):
+            y = -1 - k * 2 - j
+            x = round(math.sin((j + k) * 0.9) * (1 + k * 0.4)) + k // 2
+            col = SMOKE[max(0, 3 - (k + j) // 2)]
+            b.put(x, y, col)
+            if k >= 2 and j % 2 == 0:
+                b.put(x + 1, y, SMOKE[max(0, 2 - (k + j) // 2)])
+        fr.append(b)
     return fr
 
 
-def hit(mode, tier):
-    """命中火花（立起层，原点 = 命中点，不分方向）：4 帧。第 0 拍白芯 + 放射短芒（E0 4 道 / E1 6 / E2 8）；第 1 拍芒外移断开；
-    第 2 拍尖端几点下坠；第 3 拍两点余烬。精二速射质变：金色细十字星（天使的星芒）；S3 加一圈过载环；full = 精一叠满金色 X"""
+def hit(mode, tier, deg):
+    """命中（立起层，原点 = 命中点，deg = 弹道方向）：4 拍硬质金属火花溅射 + 碎屑，不是一团光。
+    第 0 拍：模式色 3×3 芯 + n 道 1 像素火花（多数往回溅：弹道反向 ±75°，两道往前穿），橙白；
+    第 1 拍：火花外移变橙、剩外半段，2–3 块深色碎屑飞起；第 2 拍：火花尖端几点下坠、碎屑下落；第 3 拍：余烬 + 碎屑落地。
+    精二质变：一道沿弹道往前的穿甲亮线（白金，2 拍）。full = 精一叠满金色 X；x = 额外弹 / 连锁的小火花（3 道、无碎屑）"""
     C = RAMP["g" if mode == "full" else ("n" if mode == "x" else mode)]
-    R = HIT_R[mode][tier]
-    nr = 4 if mode == "x" else [4, 6, 8][tier]
+    S = SPARK if mode != "full" else GOLD
+    a = math.radians(deg)
+    d = (math.cos(a), math.sin(a))
+    n = HIT_N[mode][tier]
+    Lm = HIT_L[mode][tier]
     fr = [Buf() for _ in range(4)]
-    off = math.pi / 4 if nr == 4 else 0.0
-    for i in range(nr):
-        a = off + i / nr * math.tau + (0.12 if i % 2 else 0.0)
-        d = (math.cos(a), math.sin(a))
-        rl = R * (1.0 if i % 2 == 0 else 0.75)
-        for s in range(2, int(rl * 0.8) + 1):
-            fr[0].put(d[0] * s, d[1] * s, C[5] if s < 4 else C[4])
-        for s in range(int(rl * 0.55), int(rl) + 1):
-            fr[1].put(d[0] * s, d[1] * s, C[4] if s < rl * 0.8 else C[3])
-        fr[2].put(d[0] * (rl + 1), d[1] * (rl + 1) + 1, C[3])
+    for i in range(n):
+        if i < 2 and mode != "x":   # 两道往前穿
+            ang = a + (0.35 if i == 0 else -0.4)
+        else:
+            ang = a + math.pi + (-1.3 + 2.6 * ((i * 0.618 + hsh(i, tier, 3) % 7 * 0.02) % 1.0))
+        sd = (math.cos(ang), math.sin(ang))
+        L = Lm - (hsh(i, n, 5) % 3)
+        _spike(fr[0], (sd[0] * 2, sd[1] * 2), sd, max(2, int(L * 0.6)), [S[5], S[4], S[4], S[3]])
+        for s in range(int(L * 0.5), L + 1):   # 第 1 拍：外半段，带一点下坠
+            u = s / max(1, L)
+            fr[1].put(sd[0] * (s + 1), sd[1] * (s + 1) + u * 1.5, S[4] if u < 0.75 else S[3])
+        fr[2].put(sd[0] * (L + 2), sd[1] * (L + 2) + 3, S[3])
+        if i % 2 == 0:
+            fr[2].put(sd[0] * (L + 1), sd[1] * (L + 1) + 2, S[2])
         if i % 3 == 0:
-            fr[3].put(d[0] * (rl + 1), d[1] * (rl + 1) + 3, C[2])
-    for x in range(-2, 3):
-        for y in range(-2, 3):
-            if abs(x) + abs(y) <= 2:
-                fr[0].put(x, y, C[6] if abs(x) + abs(y) <= 1 else C[5])
-    for (x, y) in ((0, 0), (1, 0), (0, 1), (-1, 0), (0, -1)):
-        fr[1].put(x, y, C[4] if (x, y) == (0, 0) else C[3])
+            fr[3].put(sd[0] * (L + 2), sd[1] * (L + 2) + 6, S[2])
+    for x in (-1, 0, 1):
+        for y in (-1, 0, 1):
+            fr[0].put(x, y, C[6] if abs(x) + abs(y) <= 1 else C[5])
+    fr[1].put(0, 0, C[4])
+    if mode != "x":   # 碎屑：深色小块往回上方飞、落下
+        for j in range(2 + (1 if tier >= 1 else 0)):
+            ang = a + math.pi + (-0.7 + 0.7 * j)
+            sd = (math.cos(ang), math.sin(ang))
+            fr[1].put(sd[0] * 3, sd[1] * 3 - 2, CHIP[2])
+            fr[2].put(sd[0] * 5, sd[1] * 5 - 1, CHIP[1])
+            if j == 0:
+                fr[2].put(sd[0] * 5 + 1, sd[1] * 5 - 1, CHIP[1])
+            fr[3].put(sd[0] * 6, sd[1] * 6 + 4, CHIP[0])
     if mode == "s3":
         for i in range(24):
             t = i / 24 * math.tau
-            fr[1].put_if_empty(math.cos(t) * (R - 1), math.sin(t) * (R - 1), C[3])
+            fr[1].put_if_empty(math.cos(t) * (Lm - 1), math.sin(t) * (Lm - 1), C[3])
     if mode == "full":
-        for s in range(-R, R + 1):
+        for s in range(-Lm, Lm + 1):
             for w in (0, 1):
                 fr[0].put(s, s + w, GOLD[6] if abs(s) < 3 else GOLD[5])
                 fr[0].put(s, -s + w, GOLD[6] if abs(s) < 3 else GOLD[5])
-                if abs(s) > 2:
-                    fr[1].put(s, s, GOLD[4])
-                    fr[1].put(s, -s, GOLD[4])
-    if tier >= 2 and mode in ("n", "s1", "s2", "s3", "g"):   # 精二：金色细十字星
-        for s in range(1, R + 3):
-            col = GOLD[6] if s < 3 else GOLD[5]
-            for (dx, dy) in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-                fr[0].put_if_empty(dx * s, dy * s, col)
-                if s >= 2 and s <= R:
-                    fr[1].put_if_empty(dx * (s + 1), dy * (s + 1), GOLD[4])
+            if abs(s) > 2:
+                fr[1].put(s, s, GOLD[4])
+                fr[1].put(s, -s, GOLD[4])
+    if tier >= 2 and mode in ("n", "s1", "s2", "s3", "g"):   # 精二：穿甲亮线
+        _spike(fr[0], (d[0] * 3, d[1] * 3), d, 11, [GOLD[5], GOLD[6], GOLD[6], GOLD[5], GOLD[5], GOLD[4]], keep=True)
+        for s in range(6, 12):
+            fr[1].put_if_empty(d[0] * s, d[1] * s, GOLD[4] if s < 10 else GOLD[3])
     return fr
 
 
@@ -271,8 +289,8 @@ def steam():
 
 
 # ---------------------------------------------------------------- 运行时件（游戏里 fx_pxplane_exu.gd 逐格画，这里是同一算法的 Python 版）
-B_LEN = {"n": [9, 11, 13], "s1": [13, 15, 17], "s2": [7, 8, 9], "s3": [10, 11, 12], "g": [12, 13, 14], "t1": [11, 11, 13], "t2": [11, 11, 13], "t3": [11, 11, 13],
-         "tr": [18, 18, 18], "x": [6, 6, 6]}
+B_LEN = {"n": [7, 8, 9], "s1": [9, 10, 11], "s2": [6, 6, 7], "s3": [8, 8, 9], "g": [8, 9, 10], "t1": [8, 8, 9], "t2": [8, 8, 9], "t3": [8, 8, 9],
+         "tr": [14, 14, 14], "x": [5, 5, 5]}
 
 
 def bullet_kind(tex):
@@ -281,36 +299,33 @@ def bullet_kind(tex):
             "proj_exusiai_bullet_power": "g", "proj_exusiai_bullet_t1": "t1", "proj_exusiai_bullet_t2": "t2", "proj_exusiai_bullet_t3": "t3"}.get(tex, "n")
 
 
-def bullet(kind, tier, d, beat, small=False, tracer=False):
-    """一颗弹（原点 = 弹头，d = 单位方向）：白弹头 + 渐暗的细长尾（原作 trail_32 的细长尖梭）。S1 / 倾泻：弹头前 3 格 3 像素宽（菱形）；
-    S3：弹头 2 像素宽、尾带一格红边；精二：弹头两侧按拍闪一颗金点（天使的金星）。曳光弹（tr）：金色长尾。small = 额外弹 / 跳弹"""
+def bullet(kind, tier, d, beat, small=False, tracer=False, back=0):
+    """一颗弹（原点 = 弹头，d = 单位方向）：细长、尾迹短——2 格白热弹头（第 0 格 2 像素宽）+ 很快变暗的 1 像素尾。
+    S1 / 倾泻：第 1 格 3 像素宽（重弹）；S3：前 2 格 2 像素宽 + 尾侧橙红点；精二：弹头两侧按拍闪金点；曳光弹（tr）：金色长尾。
+    small = 额外弹 / 跳弹；back = 只画面的后移（美术像素，倾泻扇形错开用）"""
     C = RAMP["g" if kind in ("tr",) else ("n" if kind == "x" else kind)]
     L = B_LEN["tr" if tracer else ("x" if small else kind)][tier]
     if tracer:
         C = GOLD
     nv = (-d[1], d[0])
+    ox, oy = -d[0] * back, -d[1] * back
     b = Buf()
     for i in range(L):
         u = i / L
-        col = C[6] if i == 0 else (C[5] if i < 2 else (C[4] if u < 0.5 else (C[3] if u < 0.8 else C[2])))
-        x, y = -d[0] * i, -d[1] * i
+        col = C[6] if i < 2 else (C[5] if i < 3 else (C[4] if u < 0.45 else (C[3] if u < 0.7 else C[2])))
+        x, y = ox - d[0] * i, oy - d[1] * i
         b.put(x, y, col)
-        if i < L * 0.6 and not small:   # 身段 2 像素厚（一侧暗一阶），后期满屏也读得出
-            b.put_if_empty(x + nv[0], y + nv[1], C[4] if i < 2 else (C[3] if u < 0.5 else C[2]))
-        wide = (kind in ("s1", "g") and i < 3 and not small) or (kind == "s3" and i < 2 and not small)
-        if wide:
-            w = 1 if not (kind in ("s1", "g") and i == 0) else 0
-            if kind in ("s1", "g") and i == 1:
-                w = 1
+        if i == 0 and not small:
+            b.put(x + nv[0], y + nv[1], C[5])
+        if (kind in ("s1", "g") and i == 1 and not small) or (kind == "s3" and i < 2 and not small):
             for sd in (-1, 1):
-                if w:
-                    b.put(x + nv[0] * sd, y + nv[1] * sd, C[5] if i < 2 else C[4])
-        if kind == "s3" and 2 <= i < L - 2 and i % 2 == 0:
+                b.put(x + nv[0] * sd, y + nv[1] * sd, C[5])
+        if kind == "s3" and not small and 3 <= i < L - 1 and i % 2 == 1:
             b.put(x + nv[0], y + nv[1], C[3])
-    b.put(d[0], d[1], C[5])   # 弹头前一格
+    b.put(ox + d[0], oy + d[1], C[5])
     if tier >= 2 and not small and beat % 2 == 0:
-        b.put(nv[0] * 2 - d[0], nv[1] * 2 - d[1], GOLD[5])
-        b.put(-nv[0] * 2 - d[0] * 2, -nv[1] * 2 - d[1] * 2, GOLD[4])
+        b.put(ox + nv[0] * 2 - d[0], oy + nv[1] * 2 - d[1], GOLD[5])
+        b.put(ox - nv[0] * 2 - d[0] * 2, oy - nv[1] * 2 - d[1] * 2, GOLD[4])
     return b
 
 

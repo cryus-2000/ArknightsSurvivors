@@ -7,7 +7,8 @@
 摆法照游戏：枪口 = 脚底 (+30, −35)，瞄准点 = 敌人脚底上 10，弹速 520 / 秒，速射间隔 0.35 秒、扫射 0.2 秒、过载 4 连射间隔 0.06 秒；
 同屏封顶同游戏（枪口焰每人 1 个、命中火花每拍 ≤ 3（技能 4）、同时 ≤ 8 团、额外弹 / 连锁每拍 ≤ 3）。
 每招一张：E0 / E1 / E2 左右并排（只放实际存在的档）；上半 1 倍（实机大小：1 美术像素 = 2 屏幕像素）、下半 2 倍放大；15 fps 原速循环。
-场景压暗 / 受光、照地光不模拟（实机会被环境光压暗一些，命中处多一盏短照地光）；热芯（emit 点）近似发光层加一层柔光。
+光照近似：整体压暗到 AMBIENT（实机环境光把色层压暗），枪口 / 命中各挂一盏短照地光（暖色径向提亮，1–2 拍）；热芯（emit 点）近似发光层加一层柔光。
+后坐：开火那一拍干员本体往后挪 1 美术像素（同游戏 fx_pxplane_exu.kick）。
 
 用法：python tools/pxplane_gif_exusiai.py [--only atk,s1] [--out 目录]
 """
@@ -28,6 +29,8 @@ GROUND = (36, 46, 48)
 DIRS = [-90, -45, 0, 45, 90]
 FONT = "C:/Windows/Fonts/msyh.ttc"
 SPD = 520.0 / 15.0          # 每拍弹体位移（世界像素）
+AMBIENT = 0.8               # 场景压暗（近似实机环境光）
+LIGHT_COL = (1.0, 0.72, 0.5)
 MZ = (30, -35)
 AIM_Y = -10
 
@@ -90,6 +93,8 @@ class Col:
         self.barrel = None
         self.beat = {}
         self.op = (OX, OY)
+        self.lights = []    # (x, y, 半径, 强度, 起拍, 拍数)
+        self.vc = 0
         if mates:
             self.mates = [(OX - 34, OY - 26, "texas"), (OX - 30, OY + 26, "lumen")]
 
@@ -108,10 +113,16 @@ class Col:
                 n += 1
         return n
 
-    def hit(self, tk, key, at, gy, cap=3, ckey="hit"):
+    def hit(self, tk, key, at, gy, cap=3, ckey="hit", ang=0.0):
+        for it in self.items:   # 同一只身上 2 拍内只留一团（同游戏 _fresh_near）
+            if it["tag"] == "hit" and 0 <= tk - it["t0"] < 2 and math.hypot(it["gp"][0] - at[0], it["gp"][1] - at[1]) < 10:
+                return
         if not self.count(ckey, tk, cap) or self.live_hits(tk) >= 8:
             return
-        self.add(key, tk, at, gy=gy, tag="hit")
+        d, fl = pick_dir(math.degrees(ang))
+        self.add(key + "_d%d" % d, tk, at, fl, gy=gy, tag="hit")
+        if self.count("hl", tk, 1):
+            self.lights.append((at[0], at[1] + 6, 55 + 10 * self.t, 0.55, tk, 2))
 
     def muzzle(self, tk, mode, ang, mz=None):
         for it in self.items:
@@ -120,10 +131,15 @@ class Col:
         tt = max(self.t, {"n": 0, "s1": 0, "s2": 1, "s3": 2, "g": 1}[mode])
         d, fl = pick_dir(math.degrees(ang))
         m = mz or (self.op[0] + MZ[0], self.op[1] + MZ[1])
-        self.add("mz_%s_e%d_d%d" % (mode, tt, d), tk, m, fl, gy=self.op[1], tag="mz")
+        self.vc += 1
+        self.add("mz_%s_e%d_v%d_d%d" % (mode, tt, self.vc % 2, d), tk, m, fl, gy=self.op[1], tag="mz")
+        if self.vc % 3 == 0:
+            self.add("smoke_up", tk, m, gy=self.op[1])
         if self.count("casing", tk, 1):
             a = -2.4 + (tk % 3) * 0.15
             self.grains.append({"p": (m[0] - 4, m[1]), "v": (math.cos(a) * 60, -120 - (tk % 2) * 30), "t0": tk, "gy": self.op[1] + 2, "col": ["#ffd86a", "#a8741a"]})
+        if self.count("ml", tk, 1):
+            self.lights.append((m[0] + 6, m[1] + 30, 80 + 12 * tt, 0.8, tk, 1))
         self.fire_ticks.append(tk)
 
     def shoot(self, tk, targets, mode="n", kinds=None, pierce=0, small=False, tracer_k=None, hit_mode=None, rng=330.0, cap=3, mark_k=None):
@@ -155,14 +171,14 @@ class Col:
             end = hits[-1][0] if len(hits) > pierce else rng
             t1 = tk + max(1, math.ceil(end / SPD))
             kind = kinds[j] if kinds else mode
-            self.buls.append({"p0": mz, "v": (d[0] * SPD, d[1] * SPD), "t0": tk, "t1": t1, "kind": kind, "small": small, "tracer": tracer_k is not None and j in tracer_k})
+            self.buls.append({"p0": mz, "v": (d[0] * SPD, d[1] * SPD), "t0": tk, "t1": t1, "kind": kind, "small": small, "tracer": tracer_k is not None and j in tracer_k, "back": (j % 4) * 3 if kind == "g" else 0})
             th = []
             for s, ei in hits:
                 ht = tk + max(1, math.ceil(s / SPD))
                 e = self.enemies[ei]
                 hm = hit_mode(j, ei) if callable(hit_mode) else (hit_mode or mode)
                 key = "hit_full" if hm == "full" else ("hit_x" if hm == "x" else "hit_%s_e%d" % (hm, max(self.t, {"n": 0, "s1": 0, "s2": 1, "s3": 2, "g": 1}[hm])))
-                self.hit(ht, key, (e[0], e[1] + AIM_Y), e[1] + 1, cap=cap if hm != "x" else 3, ckey="hit" if hm != "x" else "xh")
+                self.hit(ht, key, (e[0], e[1] + AIM_Y), e[1] + 1, cap=cap if hm != "x" else 3, ckey="hit" if hm != "x" else "xh", ang=ang)
                 if mark_k is not None and j in mark_k:
                     self.add("mark_gd", ht, (e[0], e[1]), gd=True)
                 th.append((ht, ei))
@@ -250,7 +266,8 @@ def render(lib, col, tk):
         if kind == "e":
             img.alpha_composite(ENEMY, dest=(int(v[0] - ENEMY.width // 2), int(v[1] - ENEMY.height + 6)))
         elif kind == "op":
-            img.alpha_composite(OPS["exusiai"], dest=snap((col.op[0] - 64, col.op[1] - 120)))
+            kick = -PX if tk in col.fire_ticks else 0
+            img.alpha_composite(OPS["exusiai"], dest=snap((col.op[0] - 64 + kick, col.op[1] - 120)))
         elif kind == "mate":
             img.alpha_composite(OPS[v[2]], dest=snap((v[0] - 64, v[1] - 120)))
         elif kind == "strip":
@@ -260,11 +277,11 @@ def render(lib, col, tk):
         elif kind == "bul":
             b, p = v
             d = (b["v"][0] / SPD, b["v"][1] / SPD)
-            buf = A.bullet(b["kind"], col.t, d, tk, b["small"], b["tracer"])
+            buf = A.bullet(b["kind"], col.t, d, tk, b["small"], b["tracer"], b.get("back", 0))
             hd = snap(p)
             for (x, y), c in buf.p.items():
                 cc = A.hx(c)
-                put_px(dr, hd[0] + x * PX, hd[1] + y * PX, cc, glow=(x, y) == (0, 0))
+                put_px(dr, hd[0] + x * PX, hd[1] + y * PX, cc, glow=c == "#ffffff")
         elif kind == "line":
             f = tk - v["t0"]
             a, b2 = v["a"], v["b"]
@@ -290,7 +307,15 @@ def render(lib, col, tk):
         x = gr["p"][0] + gr["v"][0] * u
         y = gr["p"][1] + gr["v"][1] * u + 0.5 * 900 * u * u
         landed = y >= gr["gy"]
-        y = min(y, gr["gy"])
+        if landed:   # 落地弹一下：反弹 0.4、再落下停住
+            disc = gr["v"][1] ** 2 + 2 * 900 * (gr["gy"] - gr["p"][1])
+            tl = (-gr["v"][1] + math.sqrt(max(0.0, disc))) / 900
+            ub = u - tl
+            vb = math.sqrt(max(0.0, disc)) * 0.4
+            hb = vb * ub - 0.5 * 900 * ub * ub
+            x = gr["p"][0] + gr["v"][0] * (tl + min(ub, 2 * vb / 900) * 0.5)
+            y = gr["gy"] - max(0.0, hb)
+            landed = hb <= 0
         dr.rectangle([*snap((x, y)), snap((x, y))[0] + PX - 1, snap((x, y))[1] + PX - 1], fill=A.hx(gr["col"][1] if landed else gr["col"][0]))
     if col.barrel and col.barrel[0] <= tk < col.barrel[1]:
         m = (col.op[0] + MZ[0], col.op[1] + MZ[1])
@@ -298,7 +323,16 @@ def render(lib, col, tk):
         for q in ((0, 0), (2, 0), (0, 2), (2, 2)):
             put_px(dr, m[0] + q[0], m[1] + q[1], c, glow=True)
     glow = np.asarray(emit.filter(ImageFilter.GaussianBlur(3))).astype(np.float32) * 0.55
-    base = np.asarray(img.convert("RGB")).astype(np.float32)
+    base = np.asarray(img.convert("RGB")).astype(np.float32) * AMBIENT
+    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+    lit = np.zeros((H, W), np.float32)
+    for (lx, ly, lr, li, lt0, ln) in col.lights:
+        if lt0 <= tk < lt0 + ln:
+            k = li * (1.0 - (tk - lt0) / (ln + 0.5))
+            dd = np.sqrt((xx - lx) ** 2 + ((yy - ly) / 0.72) ** 2) / lr
+            lit += k * np.clip(1.0 - dd, 0.0, 1.0) ** 2
+    lc = np.array(LIGHT_COL, np.float32)
+    base = base * (1.0 + lit[..., None] * 1.3 * lc) + lit[..., None] * 40.0 * lc
     return Image.fromarray(np.clip(base + glow, 0, 255).astype(np.uint8), "RGB")
 
 
@@ -412,7 +446,7 @@ def sc_late(t):
                 a = (E_MAIN[ei][0], E_MAIN[ei][1] - 16)
                 b = (E_MAIN[nx][0], E_MAIN[nx][1] - 16)
                 c.lines.append({"kind": "chain", "a": a, "b": b, "t0": ht, "gy": E_MAIN[nx][1] + 1})
-                c.hit(ht, "hit_x", b, E_MAIN[nx][1] + 1, ckey="xh")
+                c.hit(ht, "hit_x", b, E_MAIN[nx][1] + 1, ckey="xh", ang=math.atan2(b[1] - a[1], b[0] - a[0]))
             if k % 3 == 1:   # 扩散溅射
                 c.add("ring_splash_gd", ht, E_MAIN[ei], gd=True)
     c.add("ring_frag_gd", 30, E_MAIN[2], gd=True)   # 跳弹·碎裂（击杀处弹片）
@@ -442,7 +476,8 @@ def sc_link():
         hs.sort()
         for s, ei in hs[:2]:
             e = c.enemies[ei]
-            c.add("hit_%s_e2" % ("n" if i % 2 == 0 else "g"), tk + max(0, round(3 * s / L)), (e[0], e[1] - 11), gy=e[1] + 1, tag="hit")
+            dd2, fl2 = pick_dir(math.degrees(a))
+            c.add("hit_%s_e2_d%d" % ("n" if i % 2 == 0 else "g", dd2), tk + max(0, round(3 * s / L)), (e[0], e[1] - 11), fl2, gy=e[1] + 1, tag="hit")
     return c
 
 

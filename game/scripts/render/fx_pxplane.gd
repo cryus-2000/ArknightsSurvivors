@@ -73,6 +73,16 @@ static func owns_id(game, oid: String) -> bool:
 ## 能天使一节（docs/262，单独文件 fx_pxplane_exu.gd；运行时 load 避免循环 preload）
 var _exm = null
 
+
+## 开火后坐（docs/262，只改画面）：character.draw_body 每帧每人调一次；不是能天使 / 没接管时返回 0
+static func recoil(o) -> Vector2:
+	if str(o.id) != "exusiai" or o.g == null or not o.g.has_meta("fx_pxplane"):
+		return Vector2.ZERO
+	var r = o.g.get_meta("fx_pxplane")
+	if r.mode() != 1:
+		return Vector2.ZERO
+	return r._ex().kick(o)
+
 func _ex():
 	if _exm == null:
 		_exm = load("res://scripts/render/fx_pxplane_exu.gd").new(self)
