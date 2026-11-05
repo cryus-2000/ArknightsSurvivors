@@ -112,6 +112,7 @@ def main():
     ap.add_argument("--seed", type=int, default=7)
     ap.add_argument("--maxt", type=int, default=300)
     a = ap.parse_args()
+    a.out = os.path.abspath(a.out)   # Godot 带 --path game 启动：相对路径会落到 game/ 下存不进去
     os.makedirs(a.out, exist_ok=True)
     ok = True
     if a.cmd in ("trace", "all"):
