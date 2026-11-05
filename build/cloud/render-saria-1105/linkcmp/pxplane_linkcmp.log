@@ -1,0 +1,4 @@
+('link1_s11_24', 65, [], False)
+('link0_s11_24', 65, [], False)
+连携事件 [('sa_link', '19.470')]
+缺帧 {1: '/work/repo/build/pxplane_saria/link1_s11_24_frames/rec_-0128.png', 0: '/work/repo/build/pxplane_saria/link0_s11_24_frames/rec_-0128.png'}

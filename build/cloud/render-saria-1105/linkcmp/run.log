@@ -1,0 +1,10 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（2764 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+== pxplane_shots.py linkcmp --op saria --lead texas --seed 11 --from 24 --secs 40 --extra "--elite2 --sptest --bal=growth/late_shape=1"
+   rc=1  398 秒
+('link1_s11_24', 65, [], False)
+('link0_s11_24', 65, [], False)
+连携事件 [('sa_link', '19.470')]
+缺帧 {1: '/work/repo/build/pxplane_saria/link1_s11_24_frames/rec_-0128.png', 0: '/work/repo/build/pxplane_saria/link0_s11_24_frames/rec_-0128.png'}
+media：0 个文件，4.0K
