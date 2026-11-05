@@ -1016,7 +1016,7 @@ const V6_FRAMES := {
 	"proj_lumen_bolt": [6, 12.0], "fx_holy_impact_lantern": [7, 16.0],
 	# ansimuz 爆炸与魔法合集（tools/fx_import.py 'dir' 模式，2026-09-26）
 	# docs/54 §6 事件特效帧条（tools/gen_fx_strips.py，程序生成；有图用图、没图走原程序画法）
-	"fx_beacon_ignite": [8, 16.0], "fx_ember": [4, 8.0], "fx_mire_dissolve": [6, 8.0], "fx_levelup_pillar": [6, 12.0], "fx_elite_spawn": [6, 6.7],
+	"fx_beacon_ignite": [8, 16.0], "fx_beacon_ignite_lm": [8, 16.0], "fx_ember": [4, 8.0], "fx_mire_dissolve": [6, 8.0], "fx_levelup_pillar": [6, 12.0], "fx_elite_spawn": [6, 6.7],
 	"fx_splash_blue": [9, 18.0],
 	"fx_thrust_hit_rose": [5, 20.0], "fx_star_hit_rose": [7, 20.0], "fx_cannon_burst": [10, 20.0], "fx_muzzle_flash": [7, 28.0],
 	# Codex fx30（docs/30，双密度 @2x）：帧数 / fps 按 art/incoming/fx30_handoff.md；钙质晶体放慢到 10fps 以延长停留
@@ -1090,7 +1090,7 @@ const V6_FRAMES := {
 	"fx_specter_inward_ripple": [6, 18.0], "fx_specter_doll_appear": [5, 18.0], "fx_specter_doll_burst": [6, 18.0],
 	"fx_mizuki_tentacle_curl": [4, 14.0], "fx_mizuki_jelly_dart": [6, 14.0], "fx_mizuki_jelly_sting": [5, 18.0], "fx_mizuki_bind_ring": [6, 10.0],
 	"fx_irene_lift_arc": [4, 20.0], "fx_irene_crescent_wide": [5, 20.0], "fx_irene_gun_burst": [3, 24.0],
-	"fx_lumen_refract_hit": [4, 20.0], "fx_lumen_beam": [4, 20.0], "fx_lumen_beam_flare": [5, 20.0], "fx_lumen_beam_hit": [4, 20.0],
+	"fx_lumen_refract_hit": [4, 20.0], "fx_lumen_beam": [4, 20.0], "fx_lumen_beam_flare": [5, 20.0], "fx_lumen_beam_flare_lm": [5, 20.0], "fx_lumen_beam_hit": [4, 20.0],
 	# Codex 精英化第 4 批（docs/93 §4，art/incoming/elite_art_4_manifest.json；接入见 docs/91 §26）：帧数 / fps 按 manifest。
 	# 重画的 fx_wisadel_soul / fx_wisadel_mark（9140fe7b，尺寸帧数同原文件）照原规格切帧，不在这里登记
 	"fx_siege_pebbles": [6, 16.0], "fx_siege_rock_spike": [7, 18.0], "fx_siege_fissure_tile": [4, 12.0],
