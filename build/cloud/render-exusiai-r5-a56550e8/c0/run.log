@@ -1,0 +1,12 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（2675 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+e0_m3_px1 60 帧 []
+e1_m3_px0 60 帧 []
+e1_m3_px1 60 帧 []
+e2_m3_px0 60 帧 []
+e2_m3_px1 60 帧 []
+三栏 cmp_atk_e0 帧 30
+三栏 cmp_atk_e1 帧 26
+三栏 cmp_atk_e2 帧 55
+media：7 个文件，6.0M

@@ -1,0 +1,14 @@
+632989	shots/on_000.png
+711803	shots/on_030.png
+658710	shots/on_060.png
+684105	shots/on_090.png
+679799	shots/on_120.png
+689650	shots/on_150.png
+695165	shots/on_180.png
+683641	shots/on_210.png
+692051	shots/on_240.png
+703403	shots/on_270.png
+743610	shots/on_300.png
+732059	shots/on_330.png
+702553	shots/on_360.png
+693510	shots/on_390.png
