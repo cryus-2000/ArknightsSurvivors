@@ -200,3 +200,15 @@ python tools/gcp_render.py --branch <自己的分支> --job trace_ab --args 'cas
 - 实现：`tools/pixelfx_fx/water/ak-skadi-ult-pp.js` 画；`tools/ult_px_skadi_bake.py` 按平面角 -90…90 每 22.5° 烤 9 张帧图集（`game/art/fx/pxp/ult_sd/`，合计 2.8 MB；另一半水平翻转），帧表 `game/data/ult_px_skadi.json`；`game/scripts/run/ult_px_sd.gd` 按出招后第几拍（15 fps 全局拍子）贴 up / gd 两层，冲击帧剪影用烤好的白色剪影 × fg；起手时按瞄准方向先载入那一张图集（约 20 MB 显存），出招 3.5 秒后放掉。`ult.gd` 四处转发各加一行（同艾丽妮）。
 - 送审 GIF（本机 Python 拼，静止底图、无推镜）：`Claude outputs/ult_px_skadi_1105/ult_skadi_seq_v2.gif`（整段）、`ult_skadi_side_v2.gif`（左原版 GCP 实录、右新版，按冲击帧对齐）；`python tools/pxplane_ult_gif_skadi.py seq|side`。
 - 已知差别：方向按 22.5° 取最近一档（最多差 11°）；纵向按 0.72 压扁，和 px_plane 其余招式一样，画面比判定带略窄。
+
+### 16.3 游戏内验收（GCP，提交 5d5f46f7e）
+
+| 项 | 结果 |
+|---|---|
+| 实机录像 `ult_rec.py --clips u_skadi --extra="--bal=ult/px_plane=1"`（0:31，种子 3） | 270 帧，SCRIPT ERROR 0；起手、下劈、推浪、预备、冲击帧两拍（剪影 = 浪两半 + 剑光 + 亮核）、爆点亮核、冲击水环、落水水爆、怪物击杀碎屑全部出现 |
+| 实机录像同上 `--at 480`（8:00） | 270 帧，SCRIPT ERROR 0；这一局机器人朝正上方放，劈浪点（前方 520 世界像素，压扁后约 375）在屏幕上沿外，爆点只露下半；关开关对照 `ult_skadi_live_0800_px_off.mp4` |
+| TRACE：种子 3、40 秒、31.5 秒强制放，`ult/px_plane` 0 vs 1，画画面跑（windowed） | 41 行逐行一致（`cloud-results/render-ult-skadi-trace2`） |
+
+- 第一次上 GCP（cdfc46a2a）新画面整段没出：方向键用了 GDScript 不支持的 `"%g"`，已修。录像命令前加 `godot_runner.ensure_imported`（新图集在预装镜像的导入缓存里没有）。
+- 怪物崩解（用户「原版那个粒子特效，怪物炸开」）：是 `combat.gd` 击杀时的 `optical_particles.kill_burst`，与 `ult/px_plane` 无关，开关打开照常；它跟着判定走（浪头扫到才死、才炸），不是跟着劈浪那一拍。要让它和劈浪同一拍、顺着冲击往外喷，得改击杀碎屑的出发时刻 / 方向（只改画面也能做：劈浪前被浪打死的怪推迟到冲击环扫到时再碎），待定。
+- 本单的录像：`Claude outputs/ult_px_skadi_1105/ult_skadi_live_0031_px_on.mp4`、`ult_skadi_live_0800_px_on.mp4`、`ult_skadi_live_0800_px_off.mp4`。
