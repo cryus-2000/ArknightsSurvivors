@@ -183,3 +183,20 @@ python tools/gcp_render.py --branch <自己的分支> --job trace_ab --args 'cas
 - 顺带修了一个烘焙 bug：深海裂痕小分叉一行引用已删的变量，碰到分叉时整批烘焙中断（之前静默失败，部分帧条没更新）；现在全部 174 件重烘焙。
 - `tools/pxplane_bake.py` 新增 `--accent / --out-art / --out-meta`（出颜色对比不动 game/art），`tools/pxplane_gif_skadi.py`（斯卡蒂并排 GIF，合 integ 时改名，`tools/pxplane_gif.py` 是推进之王等用的多人送审 GIF）新增 `--art / --title`。
 
+
+## 16. 落水水爆 + 终结技「斩浪」转平面（11-05）
+
+### 16.1 落水改贴地水爆（用户实机截图「斯卡蒂的这个要不要修改一下」→「水花冠有点奇怪」）
+
+- 改的是 `splash` 件：S3 涌潮悲歌起手（`s3cast_up / _gd`）、S2 破浪下劈（`leap_e1 / e2`）、旧做法对照 `raw_splash_e*`。原来是实心锥柱、锯齿边，看着像冰块；第一版水花冠是一根根细水舌 + 棋盘格半透明，像珊瑚 / 手指、显脏。
+- 现在（`ak-skadi-pp.js` 的 `crown`）以贴地为主：压扁的环形水爆（中心白沫环迅速外扩、不规则浪唇、实心海蓝 + 亮边）+ 环内统一透明度的湿印 + 8–14 颗水滴 / 小水团抛物线外甩（地面小影子跟着走，落地变白点）；立起的只剩一圈 ≤ 16 美术像素（角色身高一半）的矮浪唇，往外翻、往下塌。宽度按判定半径封顶。
+- 半透明一律写真 alpha（`dotA`），不用 pixelfx `p.dot` 的有序抖动。
+- 送审：`Claude outputs/skadi_splash_crown/skadi_splash_v2_before_after.gif`。
+
+### 16.2 终结技「斩浪」（开关 `ult/px_plane`，缺省 0；同艾丽妮 docs/275）
+
+- 只改画面：时间轴 / 判定 / 伤害 / 顿帧（下劈 0.06、劈浪 0.08）/ 冲击帧（整屏白 + 黑剪影）全照 `ult_moves_b._sd_*`。开关开着时招式里原来画图的调用跳过、改发 `SDP.ev`（start / cleave / crash / surge）；劈浪时刻、顿帧、`PF.hf_on` 的条件照搬 `_sd_roll_tick`。震屏改轻震 3px / 0.12 秒（`ult/sd_px_shake / _t`，原 6 / 0.2）。
+- 分段：起手慢放（头顶冰蓝细光长到星芒、水珠往里收、脚下水圈收紧）→ 下劈（巨型竖劈月牙 + 地上冰蓝长裂 + 落点照地光）→ 推浪（几座高低错落的浪峰、有断口、浪唇白沫前卷，不是墙）→ **劈浪（用户「新版本主要是缺少最后的爆炸的冲击力」）**：预备 2 拍浪往劈口收、水往里吸、周围压暗 → 冲击帧两拍（剪影 = 浪两半 + 剑光 + 亮核）→ 爆点实心亮核（白芯裹冰蓝，约判定一半大）亮 2 拍 + 满亮照地灯 → 压扁厚水环 0.25 秒推到判定边，推过的地面闪一下，环边甩出 14 团水 → 落水水爆、浪的两半跟着环同步往外 → 收尾只留稀疏水纹。
+- 实现：`tools/pixelfx_fx/water/ak-skadi-ult-pp.js` 画；`tools/ult_px_skadi_bake.py` 按平面角 -90…90 每 22.5° 烤 9 张帧图集（`game/art/fx/pxp/ult_sd/`，合计 2.8 MB；另一半水平翻转），帧表 `game/data/ult_px_skadi.json`；`game/scripts/run/ult_px_sd.gd` 按出招后第几拍（15 fps 全局拍子）贴 up / gd 两层，冲击帧剪影用烤好的白色剪影 × fg；起手时按瞄准方向先载入那一张图集（约 20 MB 显存），出招 3.5 秒后放掉。`ult.gd` 四处转发各加一行（同艾丽妮）。
+- 送审 GIF（本机 Python 拼，静止底图、无推镜）：`Claude outputs/ult_px_skadi_1105/ult_skadi_seq_v2.gif`（整段）、`ult_skadi_side_v2.gif`（左原版 GCP 实录、右新版，按冲击帧对齐）；`python tools/pxplane_ult_gif_skadi.py seq|side`。
+- 已知差别：方向按 22.5° 取最近一档（最多差 11°）；纵向按 0.72 压扁，和 px_plane 其余招式一样，画面比判定带略窄。

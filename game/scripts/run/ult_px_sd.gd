@@ -55,7 +55,7 @@ static func dir_key(d: Vector2) -> Array:
 		a = -180.0 - a
 		flip = true
 	var q: float = clampf(roundf(a / 22.5) * 22.5, -90.0, 90.0)
-	return ["%g" % q, flip]
+	return [str(int(q)) if is_equal_approx(q, roundf(q)) else str(q), flip]   # 同烤图脚本的 "%g"（GDScript 没有 %g）：-90 / -67.5 / 0 / 22.5
 
 
 # ================================================================ 事件（ult_moves_b._sd_* 发；只记画面）
