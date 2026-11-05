@@ -14,6 +14,7 @@ const UM = preload("res://scripts/ui_motion.gd")
 const A = preload("res://scripts/art.gd")
 const Aim = preload("res://scripts/run/ult_aim.gd")
 const PF = preload("res://scripts/run/ult_pixfx.gd")   # 收尾加强的余震碎屑 / 烟尘（docs/216 §5）
+const SZP = preload("res://scripts/run/ult_px_sz.gd")   # 铃兰忍冬瞬斩转平面补强：冲击环 + 怪物崩解（docs/271 §7，ult/px_plane；只画）
 const IRP = preload("res://scripts/run/ult_px_ir.gd")   # 艾丽妮「宣判」转平面画面（docs/275，ult/px_plane；只画）
 const Bond = preload("res://scripts/run/link_bond.gd")   # 羁绊连携（link/bond，docs/217）
 const LinkV2 = preload("res://scripts/run/link_v2.gd")   # 连携 v2（link/v2，docs/209 §2）：全自动、只由队长触发、按姿态挑人   # 慢动作瞄准 v2（ult/aim，docs/209 §3）
@@ -1263,6 +1264,8 @@ func draw_world_back(w) -> void:
 			else:
 				_px_shape(w, s, 1.0 - s.age / maxf(0.001, s.max), s.get("col", Color.WHITE), dim)   # 灼地 / 影子等地面图形（一律像素画法）
 	w.tb_flush()
+	if SZP.on():
+		SZP.of(g).draw_back(self, w)   # 铃兰转平面：冲击环（docs/271 §7）
 	if IRP.on():
 		IRP.of(g).draw_back(self, w)   # 艾丽妮「宣判」转平面：纹章 + 裂缝（docs/275）
 
@@ -1455,6 +1458,8 @@ func draw_world(w) -> void:
 			var r2: float = Moves.aim_r(str(caster.id)) if kind != "cult" else VIEW.x * 0.5
 			_px_disc(w, caster.pos, r2 + 1.5, r2 - 1.5, _pc(c, 0.8))
 	w.tb_flush()
+	if SZP.on():
+		SZP.of(g).draw_front(self, w)   # 铃兰转平面：怪物本色崩解（docs/271 §7）
 	if IRP.on():
 		IRP.of(g).draw_front(self, w)   # 艾丽妮「宣判」转平面：光链 / 斩线 / 爆 / 收尾斩击（docs/275）
 	_draw_inhale(w)
@@ -2506,6 +2511,8 @@ func _fin_release() -> void:
 	var grey := Color(0.56, 0.54, 0.51)
 	PF.particles(self, _imp_pos, 260, "ult_burst", [col.lerp(grey, 0.5), col.darkened(0.45)], 0.0, sd, 220.0)
 	PF.aftershock(self, _imp_pos, 170.0, sd, 0.05, 8, col.lerp(grey, 0.65))
+	if SZP.on() and caster != null and str(caster.id) == "suzuran":
+		return   # 铃兰转平面（docs/271 §7）：不要烟团（ult_brief 第 5 条）
 	for q in 3:   # 烟尘三团：大小 / 延迟 / 漂移错开
 		var dq := Vector2.from_angle(TAU * (q + PF.h(sd + q)) / 3.0)
 		PF.dust(self, _imp_pos + dq * (40.0 + 50.0 * PF.h(sd + q * 2.0)), 150.0 + 90.0 * PF.h(sd + q * 3.0), 0.03 * q, sd + q, dq * 30.0, grey)

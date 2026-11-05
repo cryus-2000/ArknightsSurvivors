@@ -238,6 +238,24 @@ const SZ_RSLASH := ["fx_sz_rslash1", "fx_sz_rslash2", "fx_sz_rslash3"]   # 忍�
 const SZ_ICE := Color(0.8, 0.85, 0.92)   # 冷白（用户 10-31「刀光冷白 + 红」）
 const SZ_RED := Color(0.78, 0.1, 0.08)
 const SZ_FOX := Color(0.7, 0.42, 0.16)
+## 转平面配色（docs/271 §7，ult/px_plane = 1）：冷白 + 红换成米金狐火色系（取色 PRTS 立绘尾巴 / 头发，docs/271 §1），红去掉；造型、节奏、体量不动
+const SZ_FSLASH := ["fx_sz_fslash1", "fx_sz_fslash2", "fx_sz_fslash3"]   # tools/ult_px_suzuran_bake.py 从 fx_sz_rslash* 逐像素换色
+const SZP = preload("res://scripts/run/ult_px_sz.gd")
+const SZ_MI := Color(0.91, 0.83, 0.66)      # 米金（#e8d4a8）
+const SZ_AMB := Color(0.6, 0.5, 0.35)       # 狐火琥珀暗边（#9a8058，代替红）
+
+
+static func _szpx() -> bool:
+	return SZP.on()
+
+
+## 冷色 / 红 → 米金：原版颜色 c 在转平面开时换成 w
+static func _szc(c: Color, w: Color) -> Color:
+	return w if _szpx() else c
+
+
+static func _sz_names() -> Array:
+	return SZ_FSLASH if _szpx() else SZ_RSLASH
 
 
 static func sz_v2(u) -> bool:
@@ -295,10 +313,11 @@ static func sz_body_step(u, a: Dictionary, t: float, tp: float) -> void:
 	if k >= 1.0 and not a.has("sz_pop"):
 		a["sz_pop"] = t
 		var side: Vector2 = a.sz_stand
-		u.g.vfx.stop(0.06, "ult", true)
-		u.prep_slow(Bal.v("ult/sz_prep_slow_t", 0.55), Bal.v("ult/sz_prep_slow", 0.3))   # 预备式慢动作：拔刀蓄势那段放慢（演出类，不改模拟）
-		u.light(side + Vector2(0, -40), 180.0, Color(0.75, 0.78, 0.85), 0.3)
-		PF.particles(u, side + Vector2(0, -30), 24, "ult_ember", [SZ_RED, SZ_ICE], 0.0, float(a.sz_vs) + 7.0, 70.0)
+		if not _szpx():   # 转平面（docs/271 §7）：顿帧和慢动作只留给最大那一下（ult_brief 第 2 条）
+			u.g.vfx.stop(0.06, "ult", true)
+			u.prep_slow(Bal.v("ult/sz_prep_slow_t", 0.55), Bal.v("ult/sz_prep_slow", 0.3))   # 预备式慢动作：拔刀蓄势那段放慢（演出类，不改模拟）
+		u.light(side + Vector2(0, -40), 180.0, _szc(Color(0.75, 0.78, 0.85), SZ_MI), 0.3)
+		PF.particles(u, side + Vector2(0, -30), 24, "ult_ember", [_szc(SZ_RED, SZ_AMB), _szc(SZ_ICE, SZ_MI)], 0.0, float(a.sz_vs) + 7.0, 70.0)
 	a.sz_cut.f = clampi(int(clampf((t - tp * 0.35) / (tp * 0.65), 0.0, 0.999) * 4.0), 0, 3)
 
 
@@ -315,7 +334,8 @@ static func sz_appear(u, a: Dictionary, t: float, tp: float) -> void:
 	if k >= 1.0 and not a.has("sz_pop"):
 		a["sz_pop"] = t
 		var side: Vector2 = a.side
-		u.g.vfx.stop(Bal.v("ult/sz_appear_stop", 0.22), "ult", true)   # 画面层顿帧，不改模拟步长
+		if not _szpx():
+			u.g.vfx.stop(Bal.v("ult/sz_appear_stop", 0.22), "ult", true)   # 画面层顿帧，不改模拟步长
 		u.light(side + Vector2(0, -50), 200.0, Color(0.8, 0.78, 0.68), 0.3)
 		PF.particles(u, side + Vector2(0, -40), 40, "ult_ember", [SZ_FOX, Color(0.62, 0.55, 0.36)], 0.0, float(a.sz_vs) + 7.0, 80.0)
 
@@ -335,7 +355,7 @@ static func sz_dash(u, a: Dictionary, side: Vector2, tip: Vector2, stall: float)
 		side = Vector2(a.sz_stand) + Vector2(0, -24)   # 刀口高度
 		if a.has("sz_cut"):   # 化光闪出：人形亮成冷白一闪即消，沿斩向拖两层冷白残影
 			var cs: Dictionary = a.sz_cut
-			cs.col = Color(1.6, 1.6, 1.7, 1.0)
+			cs.col = _szc(Color(1.6, 1.6, 1.7, 1.0), Color(1.6, 1.5, 1.3, 1.0))
 			cs.f = 4
 			cs.max = float(cs.age) + 0.05
 			if a.has("sz_dim"):   # 压暗撤掉
@@ -344,14 +364,14 @@ static func sz_dash(u, a: Dictionary, side: Vector2, tip: Vector2, stall: float)
 			var dd: Vector2 = (tip - side).normalized()
 			for g in 2:
 				u.strip(SZ_CUT, Vector2(a.sz_stand) + dd * 60.0 * (g + 1), {"o": cs.o, "sc": SZ_SC, "f": 4, "sx": float(a.sz_fs) * (1.0 + 0.5 * (g + 1)),
-					"life": 0.07, "fade": 0.07, "delay": 0.01 * g, "col": Color(0.82, 0.88, 0.96, 0.5 - 0.2 * g)})
+					"life": 0.07, "fade": 0.07, "delay": 0.01 * g, "col": _szc(Color(0.82, 0.88, 0.96), SZ_MI) * Color(1, 1, 1, 0.5 - 0.2 * g)})
 	if a.has("sz_fig"):
 		a.sz_fig.max = float(a.sz_fig.age) + 0.06
-	var name: String = PF.pick(u, SZ_RSLASH, vs)
+	var name: String = PF.pick(u, _sz_names(), vs)
 	var L: float = side.distance_to(tip)
 	var ang: float = (tip - side).angle()
 	a["sz_main"] = _sz_slash(u, name, side, ang, L, {"sy": 0.5, "rev": 0.03, "rev0": 0.0, "life": stall + 0.12, "col": Color(1.0, 1.0, 1.04, 1.0)})
-	u.light(side.lerp(tip, 0.5), 200.0, SZ_ICE, 0.12)
+	u.light(side.lerp(tip, 0.5), 200.0, _szc(SZ_ICE, SZ_MI), 0.12)
 
 
 static func sz_boom(u, a: Dictionary, org: Vector2, d: Vector2, bk: float, L: float, hw: float) -> void:
@@ -359,7 +379,7 @@ static func sz_boom(u, a: Dictionary, org: Vector2, d: Vector2, bk: float, L: fl
 	var a0: Vector2 = org - d * bk
 	var b0: Vector2 = org + d * L
 	var ang: float = d.angle()
-	var sname: String = PF.pick(u, SZ_RSLASH, vs)
+	var sname: String = PF.pick(u, _sz_names(), vs)
 	if a.has("sz_main"):
 		var m: Dictionary = a.sz_main
 		a0 = m.c
@@ -372,34 +392,45 @@ static func sz_boom(u, a: Dictionary, org: Vector2, d: Vector2, bk: float, L: fl
 	var nv: Vector2 = dv.orthogonal()
 	# 这一道爆亮（冲击帧）：冷白 → 冷钢灰迅速冷却
 	var KW: float = Bal.v("ult/sz_cut_w", 1.35)   # 11-01 细调：原作录像里这一道偏细、隔远看像一根线 → 斩痕整体加粗 1.35 倍
-	_sz_slash(u, sname, a0, ang, SL, {"sy": 0.95 * KW, "life": 0.3, "fade": 0.18, "col": Color(1.08, 1.08, 1.12, 1.0), "col1": Color(0.42, 0.46, 0.54, 0.9), "cold": 0.14, "hf": true})
+	var px: bool = _szpx()
+	var hot: Color = _szc(Color(1.08, 1.08, 1.12, 1.0), Color(1.1, 1.06, 0.96, 1.0))
+	var cool: Color = _szc(Color(0.42, 0.46, 0.54, 0.9), Color(0.6, 0.5, 0.34, 0.9))
+	var scar: Color = _szc(Color(0.16, 0.08, 0.09, 0.9), Color(0.2, 0.15, 0.09, 0.9))   # 刀口：暗红 → 焦褐
+	_sz_slash(u, sname, a0, ang, SL, {"sy": 0.95 * KW, "life": 0.3, "fade": 0.18, "col": hot, "col1": cool, "cold": 0.14, "hf": true})
 	# 斩开：上下两半往两边错开、同时沿刀向滑一点
 	for sd in [1.0, -1.0]:
 		_sz_slash(u, sname, a0 + nv * sd * 4.0, ang, SL, {"sy": 0.45 * sd * KW, "delay": 0.04, "life": 0.26, "fade": 0.2, "v": nv * sd * 70.0 + dv * 60.0 * sd,
-			"col": Color(0.95, 0.95, 1.0, 0.9), "col1": Color(0.42, 0.46, 0.54, 0.7), "cold": 0.16})
+			"col": _szc(Color(0.95, 0.95, 1.0, 0.9), Color(1.0, 0.95, 0.84, 0.9)), "col1": Color(cool.r, cool.g, cool.b, 0.7), "cold": 0.16})
 	# 刀口：地上一道暗红细痕，慢慢褪
-	_sz_slash(u, sname, a0, ang, SL, {"layer": "back", "sy": 0.32, "delay": 0.04, "life": 1.6, "fade": 0.7, "col": Color(0.16, 0.08, 0.09, 0.9)})
+	_sz_slash(u, sname, a0, ang, SL, {"layer": "back", "sy": 0.32, "delay": 0.04, "life": 1.6, "fade": 0.7, "col": scar})
 	# 刀痕爆裂（用户 10-31「最后接一个刀痕爆裂」→「喷溅去掉，要收敛但冲击力足」）：不加任何喷溅，力量全靠一条线上的反差——
 	# 斩开后周围再压暗静一拍，刀口独亮；然后整条刀痕一下子绷开（一帧冷白细芯 + 爆宽冷白 + 顿帧），立刻收回成更深更宽的刀口
-	var TB: float = Bal.v("ult/sz_rupt_t", 0.32)
-	u.shape({"kind": "circle", "c": a0.lerp(b0, 0.5), "r": 2600.0, "col": Color(0.0, 0.0, 0.02), "fill": 0.35, "hold": true, "delay": 0.14, "life": TB - 0.14})   # 静一拍：压暗
-	_sz_slash(u, sname, a0, ang, SL, {"sy": 0.32, "delay": 0.14, "life": TB - 0.14, "col": Color(0.72, 0.76, 0.84, 0.95)})   # 刀口在压暗层上独亮
+	# 转平面（docs/271 §7）：最大那一下 = 刀痕绷开 + 连环爆裂。冲击帧 / 顿帧 / 冲击慢放由框架落在斩痕爆裂伤害那一拍（ult.impact；吸气压暗代替原来的「静一拍」），
+	# 绷开提前到 ult/sz_px_rupt_t（0.05 游戏秒），让爆裂落进冲击慢放里；不再另加顿帧（只留一处）
+	var TB: float = Bal.v("ult/sz_px_rupt_t", 0.05) if px else Bal.v("ult/sz_rupt_t", 0.32)
+	if not px:
+		u.shape({"kind": "circle", "c": a0.lerp(b0, 0.5), "r": 2600.0, "col": Color(0.0, 0.0, 0.02), "fill": 0.35, "hold": true, "delay": 0.14, "life": TB - 0.14})   # 静一拍：压暗
+		_sz_slash(u, sname, a0, ang, SL, {"sy": 0.32, "delay": 0.14, "life": TB - 0.14, "col": Color(0.72, 0.76, 0.84, 0.95)})   # 刀口在压暗层上独亮
 	_sz_slash(u, sname, a0, ang, SL, {"sy": 1.35 * KW, "delay": TB, "life": 0.2, "fade": 0.14,
-		"col": Color(1.08, 1.08, 1.12, 1.0), "col1": Color(0.42, 0.46, 0.54, 0.9), "cold": 0.1})   # 绷开：爆宽后收
-	u.shape({"kind": "band", "a": a0, "b": b0, "w": 8.0, "col": Color(0.86, 0.89, 0.93), "fill": 0.85, "life": 0.05, "delay": TB})   # 冷白细芯一帧（≤ 0.9）
-	u.stop_later(TB, Bal.v("ult/sz_rupt_stop", 0.1))
-	_sz_slash(u, sname, a0, ang, SL, {"layer": "back", "sy": 0.5 * KW, "delay": TB, "life": 1.2, "fade": 0.8, "col": Color(0.15, 0.06, 0.07, 0.95)})   # 收成更深更宽的刀口
-	for k in 2:   # 11-01 细调：绷开那一下刀口两侧各掀起一团冷灰逐帧烟尘往外推（体积；不是喷溅）
-		var sd2: float = 1.0 if k == 0 else -1.0
-		PF.dust(u, a0.lerp(b0, 0.35 + 0.3 * k) + nv * sd2 * 18.0, 140.0, TB + 0.02, vs + 30.0 + k, nv * sd2 * 90.0, Color(0.5, 0.53, 0.58))
-	u.light(a0.lerp(b0, 0.5), SL * 0.45, SZ_ICE, 0.22)
+		"col": hot, "col1": cool, "cold": 0.1})   # 绷开：爆宽后收
+	u.shape({"kind": "band", "a": a0, "b": b0, "w": 8.0, "col": _szc(Color(0.86, 0.89, 0.93), Color(0.95, 0.9, 0.78)), "fill": 0.85, "life": 0.05, "delay": TB})   # 细芯一帧（≤ 0.9）
+	if not px:
+		u.stop_later(TB, Bal.v("ult/sz_rupt_stop", 0.1))
+	_sz_slash(u, sname, a0, ang, SL, {"layer": "back", "sy": 0.5 * KW, "delay": TB, "life": 1.2, "fade": 0.8, "col": _szc(Color(0.15, 0.06, 0.07, 0.95), Color(0.19, 0.14, 0.08, 0.95))})   # 收成更深更宽的刀口
+	if px:   # 冲击环 + 怪物本色崩解（ult_px_sz）；不加烟团（ult_brief 第 5 条）
+		SZP.ev(u, "rupt", {"a0": a0, "b0": b0, "hw": hw, "TB": TB, "es": a.get("sz_es", [])})
+	else:
+		for k in 2:   # 11-01 细调：绷开那一下刀口两侧各掀起一团冷灰逐帧烟尘往外推（体积；不是喷溅）
+			var sd2: float = 1.0 if k == 0 else -1.0
+			PF.dust(u, a0.lerp(b0, 0.35 + 0.3 * k) + nv * sd2 * 18.0, 140.0, TB + 0.02, vs + 30.0 + k, nv * sd2 * 90.0, Color(0.5, 0.53, 0.58))
+	u.light(a0.lerp(b0, 0.5), SL * 0.45, _szc(SZ_ICE, SZ_MI), 0.22)
 	if Bal.v("ult/sz_rupt_chain", 1.0) > 0.0:
 		_sz_rupt_chain(u, a0, b0, dv, nv, SL, TB, vs)
 		return
 	for k in 3:   # 只迸几颗火星：刀口三处
 		var hh: float = PF.h(vs + k * 3.7)
 		var p: Vector2 = a0.lerp(b0, (k + 0.3 + 0.4 * hh) / 3.0)
-		PF.particles(u, p, 18, "ult_burst_s", [SZ_ICE, SZ_RED], 0.02 * k, vs + k, 50.0)
+		PF.particles(u, p, 18, "ult_burst_s", [_szc(SZ_ICE, SZ_MI), _szc(SZ_RED, SZ_AMB)], 0.02 * k, vs + k, 50.0)
 
 
 ## 刀痕连环爆裂（用户 11-01「忍冬最后的爆裂要做出来」，ult/sz_rupt_chain；0 = 10-31 收敛版只迸三颗火星）：
@@ -415,12 +446,14 @@ static func _sz_rupt_chain(u, a0: Vector2, b0: Vector2, dv: Vector2, nv: Vector2
 		var p: Vector2 = a0.lerp(b0, clampf((k + 0.1 + 0.8 * hh) / float(N), 0.0, 1.0)) + nv * (PF.h(vs + k * 5.3) - 0.5) * 16.0
 		var dl: float = TB + 0.045 * k + 0.02 * PF.h(vs + k * 2.9)
 		var big: float = (1.0 if k < N - 1 else 1.6) * (0.65 + 0.7 * hh)
-		PF.particles(u, p, 600, "ult_burst", [Color(0.66, 0.7, 0.78), Color(0.5, 0.54, 0.6)], dl, vs + k * 5.0, 170.0 * big)   # 第二轮录像里 85 太小、看着像火星 → 加大到 170、两层；颜色压一档（粒子着色 ×1.35，冷白原色会成纯白团）
-		u.shape({"kind": "circle", "c": p, "r": 34.0 * big, "col": Color(0.86, 0.89, 0.94), "fill": 0.85, "life": 0.05, "delay": dl})   # 每处爆亮一帧（≤ 0.9），随后粒子冷成钢灰
+		var px: bool = _szpx()   # 转平面：粒子云保留并加强（颗数 ×1.3），冷灰 → 米金（粒子着色 ×1.35 后约 #f6dc9e / #c4a87a）
+		PF.particles(u, p, 780 if px else 600, "ult_burst", [_szc(Color(0.66, 0.7, 0.78), Color(0.73, 0.65, 0.47)), _szc(Color(0.5, 0.54, 0.6), Color(0.58, 0.5, 0.36))], dl, vs + k * 5.0, 170.0 * big)   # 第二轮录像里 85 太小、看着像火星 → 加大到 170、两层；颜色压一档（粒子着色 ×1.35，冷白原色会成纯白团）
+		u.shape({"kind": "circle", "c": p, "r": 34.0 * big, "col": _szc(Color(0.86, 0.89, 0.94), Color(0.95, 0.9, 0.78)), "fill": 0.85, "life": 0.05, "delay": dl})   # 每处爆亮一帧（≤ 0.9），随后粒子冷成钢灰
 		if k % 3 == 2:
-			PF.particles(u, p, 20, "ult_ember", [SZ_RED.darkened(0.45)], dl + 0.06, vs + k * 5.0 + 2.0, 50.0 * big)   # 狐火红只留零星几缕（红点团像血珠）
+			PF.particles(u, p, 20, "ult_ember", [_szc(SZ_RED.darkened(0.45), SZ_AMB)], dl + 0.06, vs + k * 5.0 + 2.0, 50.0 * big)   # 狐火红只留零星几缕（红点团像血珠）
 		var sgn: float = 1.0 if PF.h(vs + k * 1.9) < 0.5 else -1.0
-		PF.dust(u, p + nv * sgn * 14.0, 90.0 * big, dl + 0.03, vs + 60.0 + k, nv * sgn * 70.0, Color(0.46, 0.48, 0.53))
+		if not px:   # 转平面：路上不用烟团（ult_brief 第 5 条）
+			PF.dust(u, p + nv * sgn * 14.0, 90.0 * big, dl + 0.03, vs + 60.0 + k, nv * sgn * 70.0, Color(0.46, 0.48, 0.53))
 		if k % 2 == 0 or k == N - 1:   # 刀口两侧崩出的细裂缝（斜着岔出去、长短不一）
 			var fa: Array = [(nv * sgn).angle() + (PF.h(vs + k) - 0.5) * 1.1]
 			if k == N - 1:
@@ -429,8 +462,8 @@ static func _sz_rupt_chain(u, a0: Vector2, b0: Vector2, dv: Vector2, nv: Vector2
 			for q in fa.size():
 				fl.append(70.0 + 70.0 * PF.h(vs + k * 2.3 + q))
 			PF.cracks(u, SZ_FORKS, p, fa, fl, {"seed": vs + k * 7.0, "r0": 6.0, "rev": 0.06, "rev0": 0.0, "delay": 0.0, "life": 1.3, "fade": 0.7,
-				"small": 0.4, "big": 0.55, "col": Color(1.0, 0.95, 0.95), "col1": Color(0.2, 0.08, 0.09, 0.9), "cold": 0.12})
-	u.light(b0, SL * 0.3, SZ_ICE, 0.2)
+				"small": 0.4, "big": 0.55, "col": _szc(Color(1.0, 0.95, 0.95), Color(1.0, 0.96, 0.86)), "col1": _szc(Color(0.2, 0.08, 0.09, 0.9), Color(0.22, 0.17, 0.1, 0.9)), "cold": 0.12})
+	u.light(b0, SL * 0.3, _szc(SZ_ICE, SZ_MI), 0.2)
 
 
 # ================================================================ 水月 · 水母群（ult/mz_jelly，协调人 10-30 转用户「做个大概的给我看看」：粗稿）

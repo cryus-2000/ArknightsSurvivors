@@ -628,6 +628,8 @@ static func _su_step(u, a: Dictionary, o) -> bool:
 		if v2:
 			a["hf"] = true   # 冲击帧：斩痕爆裂那一下（这一刀进剪影）
 			u.act["hf"] = true
+			if FC.SZP.on():
+				a["sz_es"] = _in_rect(u, org, d, -bk, L, hw)   # 转平面（docs/271 §7）：被斩的怪在爆裂那一拍崩解（只读查询，只画）
 			FC.sz_boom(u, a, org, d, bk, L, hw)
 		else:
 			u.shape({"kind": "band", "a": org - d * bk, "b": org + d * L, "w": hw * 2.0, "col": COL_LIGHT, "fill": 0.2, "life": 0.3})
