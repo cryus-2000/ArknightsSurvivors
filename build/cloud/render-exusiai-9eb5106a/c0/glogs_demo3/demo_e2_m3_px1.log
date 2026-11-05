@@ -1,0 +1,253 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 22.3.6 - Compatibility - Using Device: Mesa/X.org - llvmpipe (LLVM 15.0.6, 256 bits)
+
+FXRLOG exusiai exu_fire 18 0.625
+FXRLOG exusiai exu_bless 19 0.658
+FXRLOG exusiai exu_hit 24 0.825
+FXRLOG exusiai exu_xhit 25 0.858
+FXRLOG exusiai exu_xhit 26 0.892
+FXRLOG exusiai exu_xhit 27 0.925
+FXRLOG exusiai exu_xhit 27 0.925
+FXRLOG exusiai exu_hit 27 0.925
+FXRLOG exusiai exu_fire 28 0.958
+FXRLOG exusiai exu_xhit 28 0.958
+FXRLOG exusiai exu_xhit 28 0.958
+FXRLOG exusiai exu_hit 28 0.958
+FXRLOG exusiai exu_hit 34 1.158
+FXRLOG exusiai exu_xhit 35 1.192
+FXRLOG exusiai exu_hit 36 1.225
+FXRLOG exusiai exu_xhit 37 1.258
+FXRLOG exusiai exu_hit 37 1.258
+FXRLOG exusiai exu_fire 38 1.292
+FXRLOG exusiai exu_xhit 38 1.292
+FXRLOG exusiai exu_xhit 38 1.292
+FXRLOG exusiai exu_xhit 39 1.325
+FXRLOG exusiai exu_xhit 39 1.325
+FXRLOG exusiai exu_xhit 47 1.592
+FXRLOG exusiai exu_hit 47 1.592
+FXRLOG exusiai exu_fire 48 1.625
+FXRLOG exusiai exu_xhit 48 1.625
+FXRLOG exusiai exu_xhit 48 1.625
+FXRLOG exusiai exu_hit 48 1.625
+FXRLOG exusiai exu_xhit 49 1.658
+FXRLOG exusiai exu_xhit 49 1.658
+FXRLOG exusiai exu_xhit 49 1.658
+FXRLOG exusiai exu_hit 50 1.692
+FXRLOG exusiai exu_hit 56 1.892
+FXRLOG exusiai exu_fire 58 1.958
+FXRLOG exusiai exu_xhit 58 1.958
+FXRLOG exusiai exu_xhit 58 1.958
+FXRLOG exusiai exu_xhit 58 1.958
+FXRLOG exusiai exu_hit 58 1.958
+FXRLOG exusiai exu_xhit 59 1.992
+FXRLOG exusiai exu_xhit 59 1.992
+FXRLOG exusiai exu_xhit 60 2.025
+FXRLOG exusiai exu_xhit 60 2.025
+FXRLOG exusiai exu_hit 60 2.025
+FXRLOG exusiai exu_hit 67 2.258
+FXRLOG exusiai exu_fire 68 2.292
+FXRLOG exusiai exu_xhit 68 2.292
+FXRLOG exusiai exu_xhit 69 2.325
+FXRLOG exusiai exu_xhit 69 2.325
+FXRLOG exusiai exu_xhit 70 2.358
+FXRLOG exusiai exu_xhit 70 2.358
+FXRLOG exusiai exu_xhit 71 2.392
+FXRLOG exusiai exu_fire 78 2.625
+FXRLOG exusiai exu_hit 78 2.625
+FXRLOG exusiai exu_xhit 79 2.658
+FXRLOG exusiai exu_hit 79 2.658
+FXRLOG exusiai exu_hit 79 2.658
+FXRLOG exusiai exu_hit 79 2.658
+FXRLOG exusiai exu_bless 80 2.692
+FXRLOG exusiai exu_xhit 80 2.692
+FXRLOG exusiai exu_hit 80 2.692
+FXRLOG exusiai exu_hit 80 2.692
+FXRLOG exusiai exu_xhit 81 2.725
+FXRLOG exusiai exu_xhit 81 2.725
+FXRLOG exusiai exu_xhit 82 2.758
+FXRLOG exusiai exu_xhit 82 2.758
+FXRLOG exusiai exu_xhit 82 2.758
+FXRLOG exusiai exu_xhit 83 2.792
+FXRLOG exusiai exu_xhit 83 2.792
+FXRLOG exusiai exu_xhit 86 2.892
+FXRLOG exusiai exu_fire 88 2.958
+FXRLOG exusiai exu_xhit 88 2.958
+FXRLOG exusiai exu_xhit 93 3.125
+FXRLOG exusiai exu_xhit 95 3.192
+FXRLOG exusiai exu_xhit 95 3.192
+FXRLOG exusiai exu_hit 95 3.192
+FXRLOG exusiai exu_xhit 97 3.258
+FXRLOG exusiai exu_xhit 97 3.258
+FXRLOG exusiai exu_fire 98 3.292
+FXRLOG exusiai exu_xhit 103 3.458
+FXRLOG exusiai exu_hit 103 3.458
+FXRLOG exusiai exu_xhit 104 3.492
+FXRLOG exusiai exu_xhit 104 3.492
+FXRLOG exusiai exu_bless 106 3.558
+FXRLOG exusiai exu_xhit 106 3.558
+FXRLOG exusiai exu_xhit 106 3.558
+FXRLOG exusiai exu_fire 108 3.625
+FXRLOG exusiai exu_hit 113 3.792
+FXRLOG exusiai exu_xhit 114 3.825
+FXRLOG exusiai exu_xhit 115 3.858
+FXRLOG exusiai exu_xhit 116 3.892
+FXRLOG exusiai exu_xhit 116 3.892
+FXRLOG exusiai exu_xhit 116 3.892
+FXRLOG exusiai exu_xhit 116 3.892
+FXRLOG exusiai exu_xhit 117 3.925
+FXRLOG exusiai exu_xhit 117 3.925
+FXRLOG exusiai exu_fire 118 3.958
+FXRLOG exusiai exu_hit 123 4.125
+FXRLOG exusiai exu_xhit 125 4.192
+FXRLOG exusiai exu_xhit 125 4.192
+FXRLOG exusiai exu_xhit 126 4.225
+FXRLOG exusiai exu_xhit 126 4.225
+FXRLOG exusiai exu_xhit 126 4.225
+FXRLOG exusiai exu_fire 128 4.292
+FXRLOG exusiai exu_hit 131 4.392
+FXRLOG exusiai exu_hit 131 4.392
+FXRLOG exusiai exu_bless 132 4.425
+FXRLOG exusiai exu_xhit 135 4.525
+FXRLOG exusiai exu_xhit 135 4.525
+FXRLOG exusiai exu_xhit 136 4.558
+FXRLOG exusiai exu_xhit 136 4.558
+FXRLOG exusiai exu_xhit 136 4.558
+FXRLOG exusiai exu_fire 138 4.625
+FXRLOG exusiai exu_xhit 139 4.658
+FXRLOG exusiai exu_hit 141 4.725
+FXRLOG exusiai exu_xhit 145 4.858
+FXRLOG exusiai exu_xhit 145 4.858
+FXRLOG exusiai exu_xhit 146 4.892
+FXRLOG exusiai exu_xhit 146 4.892
+FXRLOG exusiai exu_xhit 147 4.925
+FXRLOG exusiai exu_fire 148 4.958
+FXRLOG exusiai exu_xhit 148 4.958
+FXRLOG exusiai exu_xhit 155 5.192
+FXRLOG exusiai exu_xhit 156 5.225
+FXRLOG exusiai exu_hit 156 5.225
+FXRLOG exusiai exu_xhit 157 5.258
+FXRLOG exusiai exu_fire 158 5.292
+FXRLOG exusiai exu_bless 158 5.292
+FXRLOG exusiai exu_xhit 158 5.292
+FXRLOG exusiai exu_xhit 158 5.292
+FXRLOG exusiai exu_hit 160 5.358
+FXRLOG exusiai exu_xhit 162 5.425
+FXRLOG exusiai exu_xhit 162 5.425
+FXRLOG exusiai exu_xhit 166 5.558
+FXRLOG exusiai exu_xhit 167 5.592
+FXRLOG exusiai exu_fire 168 5.625
+FXRLOG exusiai exu_xhit 174 5.825
+FXRLOG exusiai exu_hit 174 5.825
+FXRLOG exusiai exu_xhit 175 5.858
+FXRLOG exusiai exu_xhit 175 5.858
+FXRLOG exusiai exu_xhit 176 5.892
+FXRLOG exusiai exu_xhit 176 5.892
+FXRLOG exusiai exu_xhit 176 5.892
+ERROR: 47 RID allocations of type 'N5GLES37TextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 3 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+ERROR: Texture with GL ID of 37: leaked 4915052 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 38: leaked 786424 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1436: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1437: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1587: leaked 4304 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1694: leaked 3992 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1695: leaked 1928 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1698: leaked 1244 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1699: leaked 10216 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1701: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1702: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1703: leaked 3412 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1704: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1705: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1706: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1707: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1708: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1709: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1710: leaked 2800 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1711: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1712: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1713: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1714: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1715: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1716: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1717: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1718: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1719: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1720: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1721: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1722: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1723: leaked 3480 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1724: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1725: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1730: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1731: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1733: leaked 2948 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1734: leaked 2060 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1735: leaked 11036 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1736: leaked 2536 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1737: leaked 2320 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1738: leaked 3112 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1739: leaked 3736 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1740: leaked 9268 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1741: leaked 12800 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1742: leaked 3028 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1743: leaked 10552 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+WARNING: 202 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 46 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
