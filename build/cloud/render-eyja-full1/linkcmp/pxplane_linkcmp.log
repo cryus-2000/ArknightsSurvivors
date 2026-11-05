@@ -1,0 +1,5 @@
+('link1_s11_24', 65, [], False)
+('link0_s11_24', 65, [], False)
+('link2_s11_24', 65, [], False)
+连携事件 [('ey_link', '7.128')]
+缺帧 {0: '/work/repo/build/pxplane_eyjafjalla/link0_s11_24_frames/rec_-0490.png', 2: '/work/repo/build/pxplane_eyjafjalla/link2_s11_24_frames/rec_-0490.png', 1: '/work/repo/build/pxplane_eyjafjalla/link1_s11_24_frames/rec_-0490.png'}

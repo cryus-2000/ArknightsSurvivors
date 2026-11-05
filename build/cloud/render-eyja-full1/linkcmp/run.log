@@ -1,0 +1,11 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（2576 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+== pxplane_shots.py linkcmp --op eyjafjalla --lead texas --seed 11 --from 24 --secs 40 --extra "--elite2 --sptest"
+   rc=1  864 秒
+('link1_s11_24', 65, [], False)
+('link0_s11_24', 65, [], False)
+('link2_s11_24', 65, [], False)
+连携事件 [('ey_link', '7.128')]
+缺帧 {0: '/work/repo/build/pxplane_eyjafjalla/link0_s11_24_frames/rec_-0490.png', 2: '/work/repo/build/pxplane_eyjafjalla/link2_s11_24_frames/rec_-0490.png', 1: '/work/repo/build/pxplane_eyjafjalla/link1_s11_24_frames/rec_-0490.png'}
+media：0 个文件，4.0K

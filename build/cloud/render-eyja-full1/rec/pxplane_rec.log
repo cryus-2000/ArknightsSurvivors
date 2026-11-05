@@ -1,0 +1,4 @@
+('rec0_eyjafjalla_s11_480', 501, [], False)
+('rec1_eyjafjalla_s11_480', 501, [], False)
+录像 build/cloud/render-eyja-full1-rec/media/late_8m00_onoff.mp4 600 帧 13.6 MB
+rec0_eyjafjalla_s11_480 vs rec1_eyjafjalla_s11_480：TRACE 501 / 501 行，逐行一致
