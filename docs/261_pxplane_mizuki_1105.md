@@ -196,3 +196,7 @@
 
 - 录像（本机 `Claude outputs/ult_px_mizuki_1105/`）：`ult_mizuki_live_px_on.mp4`（31.5 秒放、原版声音）、`ult_mizuki_8m_before_after.mp4`（左原版右新版，声音取右边）、`ult_mizuki_8m_on.mp4`。原始在 `render-ult-mizuki-px-14a44ebd/`。
 - **注意**：8:00 并排的两段是实时录像（`--realtime --playclock`），两局在终结技放出前就已分叉（08:01 时击杀数 1502 / 1524），放出时刻差几帧，所以并排只是大致对齐、不是逐帧同一时刻；玩法一致以 TRACE（非实时）为准。8:00 两段音效次数 402 / 334 的差也来自这个分叉。
+
+### 8.6 末尾渐隐（11-06 用户「末尾那个要不要加个渐变消失」；提交 a3d035479）
+
+末尾突然没的是原版那团粒子云（`PF.particles` 动画帧条，寿命 0.95 秒、只淡 0.25 秒，赶上慢放显得一下子没了）。开关开时：粒子云寿命 1.35 秒、末尾 0.45 秒按 15 fps 一拍一拍降真透明度（`ult._draw_strip` 的 `fade_q`；`PF.particles` 加可选 `extra` 参数，缺省原样）；崩解像素、缠绕触手同样按拍渐隐；照地光另加一盏同长的低亮灯一起减弱。GCP：录像 240 帧 0 报错（音效 216 次不变），TRACE 种子 3 · 40 秒 41 行逐行一致。录像 `Claude outputs/ult_px_mizuki_1105/ult_mizuki_end_fade.mp4`（冲击帧前 0.5 秒起 3.6 秒）。
