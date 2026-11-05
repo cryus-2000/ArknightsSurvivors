@@ -1,0 +1,617 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 22.3.6 - Compatibility - Using Device: Mesa/X.org - llvmpipe (LLVM 15.0.6, 256 bits)
+
+TRACE t=0.00 lv=1 k=0 hp=134.55 n=0 rng=-5889678139608474319/2002407988179128893/3532164864575846458/-3196536939106347295/6065646721096788134 pos=0.00,0.00 h=0.000 sq=1486314106 lamp=10000 nd=4197670970 rl=0
+TRACE t=1.06 lv=1 k=0 hp=134.55 n=0 rng=-5889678139608474319/2002407988179128893/3532164864575846458/-3196536939106347295/6065646721096788134 pos=51.32,8.72 h=0.000 sq=2598428722 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_calc 6 1.650
+FXRLOG saria skill2 6 1.650
+TRACE t=2.05 lv=1 k=0 hp=134.55 n=1 rng=-5889678139608474319/-5935421690527341294/3532164864575846458/-3196536939106347295/-8036583838274738594 pos=94.74,31.06 h=155.066 sq=1558245311 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_heal 7 2.112
+FXRLOG saria skill1 7 2.112
+TRACE t=3.04 lv=1 k=0 hp=134.55 n=2 rng=-5889678139608474319/-4848009173076761845/3532164864575846458/-3196536939106347295/-8036583838274738594 pos=129.71,65.12 h=435.401 sq=1904840657 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_heal 9 3.168
+FXRLOG saria skill1 9 3.168
+FXRLOG saria sa_heal 10 3.696
+FXRLOG saria skill0 10 3.696
+TRACE t=4.03 lv=1 k=0 hp=134.55 n=3 rng=-5889678139608474319/7105442049114922232/3532164864575846458/-3196536939106347295/-8036583838274738594 pos=153.19,107.94 h=608.512 sq=2904042539 lamp=10000 nd=4197670970 rl=0
+TRACE t=5.02 lv=1 k=0 hp=134.55 n=4 rng=-5889678139608474319/6448341176767486953/3532164864575846458/-3196536939106347295/-8036583838274738594 pos=163.11,155.74 h=527.465 sq=3215514072 lamp=10000 nd=4197670970 rl=0
+TRACE t=6.01 lv=1 k=0 hp=134.55 n=5 rng=-5889678139608474319/-3065436241405974994/3532164864575846458/-3196536939106347295/-8036583838274738594 pos=158.60,204.36 h=805.778 sq=3981200610 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_heal 15 6.138
+FXRLOG saria skill1 15 6.138
+FXRLOG saria sa_heal 16 6.666
+FXRLOG saria skill0 16 6.666
+FXRLOG saria sa_shot_hit 16 6.930
+TRACE t=7.06 lv=1 k=1 hp=134.55 n=5 rng=-5889678139608474319/3651433761434757207/3532164864575846458/-7715013897153174913/-8036583838274738594 pos=163.46,288.56 h=929.513 sq=2159785013 lamp=10000 nd=4197670970 rl=0
+TRACE t=8.05 lv=1 k=1 hp=134.55 n=6 rng=-5889678139608474319/-4686069274164620748/3532164864575846458/-7715013897153174913/-8036583838274738594 pos=171.40,404.19 h=1233.568 sq=3706833747 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_bash 18 8.184
+TRACE t=9.04 lv=1 k=2 hp=134.55 n=6 rng=-5889678139608474319/-4830670202834552875/3532164864575846458/-441290790338352083/-8036583838274738594 pos=161.50,505.85 h=1059.770 sq=1556443295 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_heal 20 9.108
+FXRLOG saria skill1 20 9.108
+FXRLOG saria sa_heal 21 9.636
+FXRLOG saria skill0 21 9.636
+FXRLOG saria sa_shot_hit 22 9.834
+PF RTFROM t=10.0
+TRACE t=10.03 lv=1 k=3 hp=134.55 n=6 rng=-5889678139608474319/-1378207458284091766/3532164864575846458/-3094664007421645973/-8036583838274738594 pos=88.01,538.12 h=964.428 sq=4125699425 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_calc 22 10.230
+FXRLOG saria skill2 22 10.230
+TRACE t=11.03 lv=1 k=3 hp=134.55 n=7 rng=-5889678139608474319/-8663300077832938013/8107198041359857756/-3094664007421645973/6636141612581646614 pos=6.25,540.73 h=820.104 sq=1778082503 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_heal 52 11.296
+FXRLOG saria skill1 52 11.296
+FXRLOG saria sa_heal 68 11.829
+FXRLOG saria skill0 68 11.829
+TRACE t=12.03 lv=1 k=3 hp=134.55 n=8 rng=-5889678139608474319/-4248701973949129552/8107198041359857756/-3094664007421645973/6636141612581646614 pos=-40.53,525.11 h=600.407 sq=290475273 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_heal 97 12.796
+FXRLOG saria skill1 97 12.796
+FXRLOG saria sa_slot 99 12.863
+TRACE t=13.03 lv=1 k=3 hp=134.55 n=9 rng=-5889678139608474319/-6718349122890943999/8107198041359857756/-3094664007421645973/6636141612581646614 pos=-80.60,496.37 h=509.947 sq=2408158202 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_heal 113 13.329
+FXRLOG saria skill0 113 13.329
+TRACE t=14.03 lv=1 k=3 hp=134.55 n=10 rng=-5889678139608474319/472871676101198374/8107198041359857756/-3094664007421645973/6636141612581646614 pos=-110.39,457.07 h=760.267 sq=1448752539 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_heal 142 14.296
+FXRLOG saria skill1 142 14.296
+FXRLOG saria sa_heal 158 14.829
+FXRLOG saria skill0 158 14.829
+TRACE t=15.03 lv=1 k=3 hp=134.55 n=11 rng=-5889678139608474319/-655851335205228625/8107198041359857756/-3094664007421645973/6636141612581646614 pos=-128.79,430.34 h=592.832 sq=2991795975 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_shot_hit 170 15.229
+FXRLOG saria sa_shot_hit 171 15.263
+FXRLOG saria sa_heal 187 15.796
+FXRLOG saria skill1 187 15.796
+TRACE t=16.03 lv=1 k=5 hp=134.55 n=11 rng=-5889678139608474319/2340917368573548141/8107198041359857756/-8996226405542372201/6636141612581646614 pos=-126.39,534.76 h=99.055 sq=3073120068 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_heal 203 16.329
+FXRLOG saria skill0 203 16.329
+TRACE t=17.03 lv=2 k=5 hp=134.55 n=12 rng=-5889678139608474319/-8755857483443596030/8107198041359857756/-8996226405542372201/6636141612581646614 pos=-113.55,579.72 h=-43.253 sq=850484883 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_heal 232 17.296
+FXRLOG saria skill1 232 17.296
+FXRLOG saria sa_heal 248 17.829
+FXRLOG saria skill0 248 17.829
+TRACE t=18.03 lv=2 k=5 hp=134.55 n=13 rng=-158278120182073269/3607082467305900475/1320833079527264590/-8996226405542372201/6636141612581646614 pos=-67.26,533.46 h=245.533 sq=2863869701 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_shot_hit 258 18.163
+FXRLOG saria sa_bash 263 18.329
+TRACE t=19.03 lv=2 k=8 hp=134.55 n=11 rng=-158278120182073269/6696356329190220136/1320833079527264590/-7016922537145779823/6636141612581646614 pos=-90.64,439.03 h=505.135 sq=2316113348 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_calc 286 19.096
+FXRLOG saria skill2 286 19.096
+FXRLOG saria sa_heal 300 19.563
+FXRLOG saria skill1 300 19.563
+FXRLOG saria sa_link 307 19.796
+TRACE t=20.03 lv=2 k=9 hp=134.55 n=12 rng=-158278120182073269/8043858258289363809/5805698057631338384/3415224123878614959/-7914354108144621362 pos=-95.52,338.90 h=78.410 sq=1420420563 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_heal 316 20.096
+FXRLOG saria skill0 316 20.096
+FXRLOG saria sa_shot_hit 327 20.463
+FXRLOG saria sa_heal 332 20.629
+FXRLOG saria skill1 332 20.629
+TRACE t=21.03 lv=2 k=10 hp=134.55 n=12 rng=-158278120182073269/-3996240933669665018/5805698057631338384/8743093946588069853/-7914354108144621362 pos=-209.85,272.93 h=-302.220 sq=1253547372 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_heal 348 21.163
+FXRLOG saria skill0 348 21.163
+FXRLOG saria sa_shot_hit 359 21.529
+FXRLOG saria sa_suit 363 21.663
+TRACE t=22.03 lv=2 k=14 hp=134.55 n=8 rng=-158278120182073269/793864568255268367/5805698057631338384/-1408636784420828836/-7914354108144621362 pos=-273.72,189.68 h=298.250 sq=1472891797 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_heal 384 22.363
+FXRLOG saria skill1 384 22.363
+FXRLOG saria sa_heal 400 22.896
+FXRLOG saria skill0 400 22.896
+TRACE t=23.03 lv=2 k=14 hp=134.55 n=9 rng=-158278120182073269/1426433433942384204/-1373384694701534302/-1408636784420828836/-7914354108144621362 pos=-372.53,186.01 h=-129.790 sq=725522086 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_shot_hit 410 23.229
+FXRLOG saria sa_heal 416 23.429
+FXRLOG saria skill1 416 23.429
+FXRLOG saria sa_pbreak 422 23.629
+FXRLOG saria sa_heal 432 23.963
+FXRLOG saria skill0 432 23.963
+TRACE t=24.03 lv=2 k=15 hp=134.55 n=9 rng=-158278120182073269/1926965313058767309/-1373384694701534302/-8291057593894151006/-7914354108144621362 pos=-409.79,295.33 h=-238.960 sq=902951461 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_heal 457 24.796
+FXRLOG saria skill1 457 24.796
+FXRLOG saria sa_slot 459 24.863
+TRACE t=25.03 lv=2 k=15 hp=134.55 n=11 rng=-158278120182073269/-670040103595679205/-1373384694701534302/-8291057593894151006/-7914354108144621362 pos=-466.07,253.14 h=-881.490 sq=1953112247 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_heal 473 25.329
+FXRLOG saria skill0 473 25.329
+FXRLOG saria sa_shot_hit 479 25.529
+FXRLOG saria sa_slot 486 25.763
+TRACE t=26.03 lv=2 k=16 hp=134.55 n=11 rng=-158278120182073269/682213141252575560/-1373384694701534302/251229152244061368/-7914354108144621362 pos=-545.93,179.53 h=-659.019 sq=3952539914 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_heal 502 26.296
+FXRLOG saria skill1 502 26.296
+FXRLOG saria sa_slot 503 26.329
+FXRLOG saria sa_slot 504 26.363
+FXRLOG saria sa_heal 518 26.829
+FXRLOG saria skill0 518 26.829
+FXRLOG saria sa_shot_hit 524 27.029
+TRACE t=27.03 lv=2 k=17 hp=134.55 n=11 rng=-158278120182073269/-6548222714514305415/-1373384694701534302/2635894374418879262/-7914354108144621362 pos=-614.40,129.37 h=-503.212 sq=4051868820 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_calc 536 27.429
+FXRLOG saria skill2 536 27.429
+FXRLOG saria sa_heal 550 27.896
+FXRLOG saria skill1 550 27.896
+TRACE t=28.03 lv=2 k=17 hp=134.55 n=12 rng=-158278120182073269/-9096284725283056642/-1373384694701534302/2635894374418879262/-3229638636812898938 pos=-695.95,94.53 h=-1093.925 sq=1249052523 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_heal 566 28.429
+FXRLOG saria skill0 566 28.429
+TRACE t=29.03 lv=2 k=17 hp=134.55 n=13 rng=-158278120182073269/-2688682944687074713/-1373384694701534302/2635894374418879262/-3229638636812898938 pos=-733.75,124.49 h=-1325.278 sq=1744514800 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_heal 592 29.296
+FXRLOG saria skill1 592 29.296
+FXRLOG saria sa_heal 608 29.829
+FXRLOG saria skill0 608 29.829
+FXRLOG saria sa_shot_hit 612 29.963
+TRACE t=30.03 lv=2 k=18 hp=134.55 n=14 rng=-158278120182073269/5135173277609016677/-8082569464909308/-8746720167520555692/-3229638636812898938 pos=-815.12,101.01 h=-1490.776 sq=853116923 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_heal 637 30.796
+FXRLOG saria skill1 637 30.796
+TRACE t=31.03 lv=2 k=18 hp=134.55 n=15 rng=-158278120182073269/7888184618051224410/7706746959164494646/-8746720167520555692/-3229638636812898938 pos=-868.14,101.32 h=-1900.760 sq=179065245 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_heal 653 31.329
+FXRLOG saria skill0 653 31.329
+FXRLOG saria sa_shot_hit 663 31.663
+FXRLOG saria sa_bash 668 31.829
+TRACE t=32.03 lv=2 k=19 hp=134.55 n=15 rng=-158278120182073269/4418027896330519283/7706746959164494646/756136514974272730/-3229638636812898938 pos=-827.42,186.71 h=-2462.780 sq=1062769266 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_heal 689 32.529
+FXRLOG saria skill1 689 32.529
+TRACE t=33.03 lv=2 k=19 hp=134.55 n=16 rng=-158278120182073269/-1252485143617507584/7706746959164494646/756136514974272730/-3229638636812898938 pos=-787.57,271.14 h=-2720.305 sq=2332764810 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_heal 705 33.063
+FXRLOG saria skill0 705 33.063
+FXRLOG saria sa_shot_hit 710 33.229
+FXRLOG saria sa_shot_hit 714 33.363
+FXRLOG saria sa_shot_hit 714 33.363
+FXRLOG saria sa_heal 727 33.796
+FXRLOG saria skill1 727 33.796
+TRACE t=34.03 lv=2 k=22 hp=134.55 n=15 rng=-158278120182073269/-7372772732308644362/7059477793190286264/8988539441556452940/-3229638636812898938 pos=-745.49,335.95 h=-2801.538 sq=2585807205 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_heal 743 34.329
+FXRLOG saria skill0 743 34.329
+FXRLOG saria sa_shot_hit 750 34.563
+FXRLOG saria sa_shot_hit 754 34.696
+FXRLOG saria sa_bash 758 34.829
+TRACE t=35.03 lv=2 k=26 hp=134.55 n=12 rng=-158278120182073269/-4897417973108924481/6592630178588992522/1382478124504843332/-3229638636812898938 pos=-672.37,269.92 h=-2256.056 sq=3642355858 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_heal 779 35.529
+FXRLOG saria skill1 779 35.529
+TRACE t=36.03 lv=2 k=26 hp=134.55 n=13 rng=-158278120182073269/-5886004332791557700/6592630178588992522/1382478124504843332/-3229638636812898938 pos=-697.18,390.89 h=-2611.215 sq=3666533014 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_calc 797 36.129
+FXRLOG saria skill2 797 36.129
+FXRLOG saria sa_heal 811 36.596
+FXRLOG saria skill0 811 36.596
+FXRLOG saria sa_shot_hit 821 36.929
+FXRLOG saria sa_shot_hit 823 36.996
+FXRLOG saria sa_shot_hit 823 36.996
+TRACE t=37.03 lv=3 k=28 hp=134.55 n=12 rng=-5263212621106445835/-1754386099376393731/6592630178588992522/-7732534704029080800/4058037427045719870 pos=-697.56,325.15 h=-2836.153 sq=3842201661 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_heal 827 37.129
+FXRLOG saria skill1 827 37.129
+FXRLOG saria sa_heal 843 37.663
+FXRLOG saria skill0 843 37.663
+FXRLOG saria sa_shot_hit 854 38.029
+TRACE t=38.03 lv=3 k=29 hp=134.55 n=13 rng=-5263212621106445835/-1200563038012762933/-3878709261742315348/-4155017158536662458/4058037427045719870 pos=-701.60,260.95 h=-3290.207 sq=3868176030 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_shot_hit 856 38.096
+FXRLOG saria sa_shot_hit 857 38.129
+FXRLOG saria sa_heal 862 38.296
+FXRLOG saria skill1 862 38.296
+FXRLOG saria sa_heal 878 38.829
+FXRLOG saria skill0 878 38.829
+TRACE t=39.03 lv=3 k=33 hp=134.55 n=10 rng=-5263212621106445835/4258596297718796728/-3878709261742315348/7260785638555642878/4058037427045719870 pos=-597.99,264.26 h=-2830.722 sq=1547795347 lamp=10000 nd=4197670970 rl=0
+FXRLOG saria sa_shot_hit 889 39.196
+FXRLOG saria sa_heal 907 39.796
+FXRLOG saria skill1 907 39.796
+TRACE t=40.03 lv=3 k=34 hp=134.55 n=10 rng=-5263212621106445835/-5064704950236295255/-3878709261742315348/-6476092505537941708/4058037427045719870 pos=-550.65,198.40 h=-2473.174 sq=935170664 lamp=10000 nd=4197670970 rl=0
+ERROR: 210 RID allocations of type 'N5GLES37TextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 4 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+ERROR: Texture with GL ID of 25: leaked 4915052 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 26: leaked 786424 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 97: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 98: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 99: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 100: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 101: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 102: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 103: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 104: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 106: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 107: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 108: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1509: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1510: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1542: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1543: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1544: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1545: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1546: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1547: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1548: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1549: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1550: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1551: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1552: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1553: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1554: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1555: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1556: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1557: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1558: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1559: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1560: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1561: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1562: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1563: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1564: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1565: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1566: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1567: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1568: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1569: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1570: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1571: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1572: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1573: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1574: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1575: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1576: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1577: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1578: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1579: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1580: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1581: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1582: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1583: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1584: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1585: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1586: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1587: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1588: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1589: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1590: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1591: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1592: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1593: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1594: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1595: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1596: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1597: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1598: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1599: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1600: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1601: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1602: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1603: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1604: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1605: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1606: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1607: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1608: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1609: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1610: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1611: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1612: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1613: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1614: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1615: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1616: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1617: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1618: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1619: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1620: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1621: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1622: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1623: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1624: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1625: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1626: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1627: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1628: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1629: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1630: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1631: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1632: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1633: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1634: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1635: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1636: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1637: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1638: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1639: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1640: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1641: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1642: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1643: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1644: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1645: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1646: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1647: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1648: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1649: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1650: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1651: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1652: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1653: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1654: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1655: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1656: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1657: leaked 2796202 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1658: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1659: leaked 2796202 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1660: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1661: leaked 2796202 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1662: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1663: leaked 2796202 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1664: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1665: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1666: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1667: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1668: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1669: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1670: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1671: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1672: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1673: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1674: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1675: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1676: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1677: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1678: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1679: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1680: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1681: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1682: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1683: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1684: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1685: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1686: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1699: leaked 611676 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1702: leaked 699068 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1709: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1710: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1711: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1758: leaked 4476 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1759: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1760: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1791: leaked 1036004 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1792: leaked 1036004 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1793: leaked 15948 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1794: leaked 19168 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1795: leaked 52364 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1796: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1797: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1809: leaked 345420 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1810: leaked 13384 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1811: leaked 15148 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1812: leaked 46980 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1813: leaked 30872 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1852: leaked 49812 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1853: leaked 65884 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1864: leaked 252 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1865: leaked 1864 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1903: leaked 99784 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1942: leaked 42156 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1944: leaked 556 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1954: leaked 72684 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1955: leaked 122608 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1956: leaked 4756 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1957: leaked 4756 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1968: leaked 161136 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1969: leaked 60368 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1970: leaked 70868 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1971: leaked 73016 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1972: leaked 236868 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1973: leaked 208368 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1977: leaked 354844 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1978: leaked 13960 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1979: leaked 15988 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1980: leaked 15292 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1981: leaked 18464 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1982: leaked 15368 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1983: leaked 15824 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1984: leaked 15344 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1985: leaked 39080 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1986: leaked 46836 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1987: leaked 53716 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1989: leaked 42276 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1993: leaked 86364 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+WARNING: 542 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 100 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)

@@ -1,0 +1,5 @@
+('link1_s11_10', 41, [], False)
+('link0_s11_10', 41, [], False)
+连携事件 [('sa_link', '19.796')]
+三栏 cmp_link 帧 302
+link0_s11_10 vs link1_s11_10：TRACE 41 / 41 行，逐行一致
