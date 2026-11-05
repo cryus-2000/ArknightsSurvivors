@@ -11,103 +11,103 @@
 	"ops": {
 		"texas": {
 			"ult": {"name": "刀痕雨幕", "en": "BLADE CURTAIN", "desc": "冲进落点一圈内接连斩出刀痕，同时斩开，隔半拍换个角度再斩一次，收刀回到原位"},
-			"link": {"name": "追风斩", "en": "TAILWIND CUT", "desc": "沿队长冲刺的方向冲刺斩，路径上的敌人都挨一刀，前两名被阻挡", "trigger": "队长冲刺起步"},
-			"link_v2": {"name": "瞬身斩", "en": "BLINK CUT", "kind": "追击", "desc": "瞬身穿过连携区域的主目标（精英优先），停在它身后；路径上的敌人受到伤害并眩晕 0.5 秒（精英减半）"}
+			"link": {"name": "剑影随行", "en": "BLADE SHADOW", "desc": "沿队长冲刺的方向冲刺斩，路径上的敌人都挨一刀，前两名被阻挡", "trigger": "队长冲刺起步"},
+			"link_v2": {"name": "剑影随行", "en": "BLADE SHADOW", "kind": "追击", "desc": "瞬身穿过连携区域的主目标（精英优先），停在它身后；路径上的敌人受到伤害并眩晕 0.5 秒（精英减半）"}
 		},
 		"exusiai": {
 			"ult": {"name": "全弹倾泻", "en": "FULL BARRAGE", "desc": "自动锁定周围敌人，转瞬之间连续倾泻爆裂弹"},
-			"link": {"name": "回身扫射", "en": "COVER SWEEP", "desc": "朝队长身后最近的敌群扫射一轮", "trigger": "队长冲刺起步"},
-			"link_v2": {"name": "穿透扫射", "en": "PIERCING SWEEP", "kind": "附加", "desc": "原地朝区域打出 8 发穿透曳光，每发穿过区域后再飞 250"}
+			"link": {"name": "弹雨福音", "en": "GOSPEL OF BULLETS", "desc": "朝队长身后最近的敌群扫射一轮", "trigger": "队长冲刺起步"},
+			"link_v2": {"name": "弹雨福音", "en": "GOSPEL OF BULLETS", "kind": "附加", "desc": "原地朝区域打出 8 发穿透曳光，每发穿过区域后再飞 250"}
 		},
 		"skalter": {
 			"ult": {"name": "海嗣吐息", "en": "ABYSSAL BREATH", "desc": "海嗣张口聚光，粗吐息追着敌群烧过去、沿途接连爆炸，收尾一次大爆并留下领域"},
-			"link": {"name": "和声低语", "en": "ECHO CHORUS", "desc": "声浪扫过敌群，之后 3 秒全队攻击速度提升", "trigger": "另一名队友的连携命中后"},
-			"link_v2": {"name": "和声", "en": "RED CHORUS", "kind": "掩护", "desc": "歌声覆盖区域 3 秒；队长站在区域里时，全队伤害 +{$link_skalter_atk*100-100:0}%"}
+			"link": {"name": "远海之歌", "en": "SONG OF THE FAR SEA", "desc": "声浪扫过敌群，之后 3 秒全队攻击速度提升", "trigger": "另一名队友的连携命中后"},
+			"link_v2": {"name": "远海之歌", "en": "SONG OF THE FAR SEA", "kind": "掩护", "desc": "歌声覆盖区域 3 秒；队长站在区域里时，全队伤害 +{$link_skalter_atk*100-100:0}%"}
 		},
 		"kaltsit": {
 			"ult": {"name": "三环裂解", "en": "TRIPLE RUPTURE", "desc": "Mon3tr 冲到落点，连续三圈熔毁爆发；8 秒后重构归队"},
-			"link": {"name": "急救扑击", "en": "AID POUNCE", "desc": "Mon3tr 扑击击退敌人，队长回复生命并清除神经损伤", "trigger": "队长生命低于 40%，或神经损伤达到 80%"},
-			"link_v2": {"name": "Mon3tr 掩护", "en": "MON3TR COVER", "kind": "掩护", "desc": "Mon3tr 落到队长前方挡一次伤害（1.2 秒内）并推开身前的敌人，凯尔希为队长回复 {$link_kaltsit_heal*100:0}% 最大生命"}
+			"link": {"name": "指令：守护", "en": "COMMAND: GUARD", "desc": "Mon3tr 扑击击退敌人，队长回复生命并清除神经损伤", "trigger": "队长生命低于 40%，或神经损伤达到 80%"},
+			"link_v2": {"name": "指令：守护", "en": "COMMAND: GUARD", "kind": "掩护", "desc": "Mon3tr 落到队长前方挡一次伤害（1.2 秒内）并推开身前的敌人，凯尔希为队长回复 {$link_kaltsit_heal*100:0}% 最大生命"}
 		},
 		"ulpianus": {
 			"ult": {"name": "锚链裂地", "en": "ANCHOR QUAKE", "desc": "掷出铁锚，沿锁链冲过去，落地后四圈裂地"},
-			"link": {"name": "沉锚", "en": "SINKING ANCHOR", "desc": "砸下铁锚，击退并眩晕周围敌人", "trigger": "另一名队友的连携命中、附近敌人聚成一团时"},
-			"link_v2": {"name": "钉锚", "en": "ANCHOR PIN", "kind": "聚拢", "desc": "掷锚钉住区域主目标（精英优先）1.5 秒，附近 180 内的普通敌人被拖向它"}
+			"link": {"name": "沉渊之锚", "en": "ABYSSAL ANCHOR", "desc": "砸下铁锚，击退并眩晕周围敌人", "trigger": "另一名队友的连携命中、附近敌人聚成一团时"},
+			"link_v2": {"name": "沉渊之锚", "en": "ABYSSAL ANCHOR", "kind": "聚拢", "desc": "掷锚钉住区域主目标（精英优先）1.5 秒，附近 180 内的普通敌人被拖向它"}
 		},
 		"skadi": {
 			"ult": {"name": "巨浪推进", "en": "TIDAL WALL", "desc": "大剑下劈，身前立起一堵巨浪往前滚压，浪头被一剑劈开、溅起水柱"},
-			"link": {"name": "落潮横扫", "en": "EBB SWEEP", "desc": "跃到队长冲刺的落点，大剑横扫一周并击退", "trigger": "队长冲刺结束"},
-			"link_v2": {"name": "拖刃冲锋", "en": "DRAGGING CHARGE", "kind": "追击", "desc": "拖着大剑冲过区域，身后留下一道水痕 1.5 秒，踩在水痕上的敌人每 0.5 秒受到一次伤害"}
+			"link": {"name": "潮落剑起", "en": "EBB AND BLADE", "desc": "跃到队长冲刺的落点，大剑横扫一周并击退", "trigger": "队长冲刺结束"},
+			"link_v2": {"name": "潮落剑起", "en": "EBB AND BLADE", "kind": "追击", "desc": "拖着大剑冲过区域，身后留下一道水痕 1.5 秒，踩在水痕上的敌人每 0.5 秒受到一次伤害"}
 		},
 		"gladiia": {
 			"ult": {"name": "渊涡", "en": "ABYSSAL VORTEX", "desc": "掷出长枪，落点卷起海渊漩涡，把大范围的敌人拖向中心，收拢一砸，潮水再从中心爆开"},
-			"link": {"name": "远钩", "en": "LONG HOOK", "desc": "甩出钩索，把远处的精英或远程敌人拖到身边", "trigger": "屏幕内远离队长处出现精英或远程敌人"},
-			"link_v2": {"name": "甩钩", "en": "HOOK HAUL", "kind": "聚拢", "desc": "甩出钩索，把区域外 210 内最近的 6 名敌人拖进区域，眩晕 0.4 秒（精英减半）"}
+			"link": {"name": "怒海追索", "en": "RAGING PURSUIT", "desc": "甩出钩索，把远处的精英或远程敌人拖到身边", "trigger": "屏幕内远离队长处出现精英或远程敌人"},
+			"link_v2": {"name": "怒海追索", "en": "RAGING PURSUIT", "kind": "聚拢", "desc": "甩出钩索，把区域外 210 内最近的 6 名敌人拖进区域，眩晕 0.4 秒（精英减半）"}
 		},
 		"angelina": {
 			"ult": {"name": "奇点坠落", "en": "SINGULARITY FALL", "desc": "重力奇点把圈内敌人吸起悬空，停顿半拍后全部砸向地面"},
-			"link": {"name": "牵引弹", "en": "TETHER SHOT", "desc": "重力弹把周围敌人拉向目标，给出手的队友聚怪", "trigger": "另一名队友的连携亮起时（抢在它出手前）"},
-			"link_v2": {"name": "引力环", "en": "GRAVITY RING", "kind": "聚拢", "desc": "三枚碎片绕区域外圈往里收，把区域外 180 内的敌人带进区域并减速"}
+			"link": {"name": "引力信笺", "en": "GRAVITY LETTER", "desc": "重力弹把周围敌人拉向目标，给出手的队友聚怪", "trigger": "另一名队友的连携亮起时（抢在它出手前）"},
+			"link_v2": {"name": "引力信笺", "en": "GRAVITY LETTER", "kind": "聚拢", "desc": "三枚碎片绕区域外圈往里收，把区域外 180 内的敌人带进区域并减速"}
 		},
 		"eyjafjalla": {
 			"ult": {"name": "地火喷涌", "en": "MAGMA SURGE", "desc": "地面龟裂、火柱冲起，熔岩块落满一圈，中间留下熔岩地面"},
-			"link": {"name": "熔岩重投", "en": "LAVA HURL", "desc": "投出放大的熔岩弹，落点留下 2 秒熔岩", "trigger": "队长站定满 1.2 秒"},
-			"link_v2": {"name": "熔岩高抛", "en": "MAGMA LOB", "kind": "附加", "desc": "高抛一块熔岩砸进区域，落点溅出碎岩并点燃命中的敌人，之后再灼烧两次"}
+			"link": {"name": "熔岩之息", "en": "MAGMA BREATH", "desc": "投出放大的熔岩弹，落点留下 2 秒熔岩", "trigger": "队长站定满 1.2 秒"},
+			"link_v2": {"name": "熔岩之息", "en": "MAGMA BREATH", "kind": "附加", "desc": "高抛一块熔岩砸进区域，落点溅出碎岩并点燃命中的敌人，之后再灼烧两次"}
 		},
 		"wisadel": {
 			"ult": {"name": "地毯式炮击", "en": "CARPET BARRAGE", "desc": "架炮后仰，朝指定方向一排排炮击，每处炮击后还有余震"},
-			"link": {"name": "余震炮", "en": "AFTERSHOCK SHELL", "desc": "朝敌群补一发炮击，随后余震", "trigger": "另一名队友的连携命中后"},
-			"link_v2": {"name": "残影爆破", "en": "AFTERIMAGE BURST", "kind": "附加", "desc": "队长这次技能后 1 秒内在区域里被打死的敌人留下暗红残影，0.35 秒后炸开（半径 60）；没有敌人被打死时，在主目标处补一发"}
+			"link": {"name": "天降厚礼", "en": "GIFT FROM ABOVE", "desc": "朝敌群补一发炮击，随后余震", "trigger": "另一名队友的连携命中后"},
+			"link_v2": {"name": "天降厚礼", "en": "GIFT FROM ABOVE", "kind": "附加", "desc": "队长这次技能后 1 秒内在区域里被打死的敌人留下暗红残影，0.35 秒后炸开（半径 60）；没有敌人被打死时，在主目标处补一发"}
 		},
 		"specter_unchained": {
 			"ult": {"name": "巨锯回旋", "en": "SAWBLADE ORBIT", "desc": "巨锯放大、绕身旋转，跟着队长移动；放出后 3 秒内不会倒下，受到的伤害降低"},
-			"link": {"name": "替身连斩", "en": "PROXY SLASH", "desc": "替身连斩三下，之后 2 秒队长生命不会低于 1", "trigger": "队长一次受到最大生命 10% 以上的伤害"},
-			"link_v2": {"name": "替身斩", "en": "SHADE CUT", "kind": "追击", "desc": "本人不动，分出一个暗红替身冲过区域斩一次"}
+			"link": {"name": "替身相拥", "en": "PROXY EMBRACE", "desc": "替身连斩三下，之后 2 秒队长生命不会低于 1", "trigger": "队长一次受到最大生命 10% 以上的伤害"},
+			"link_v2": {"name": "替身相拥", "en": "PROXY EMBRACE", "kind": "追击", "desc": "本人不动，分出一个暗红替身冲过区域斩一次"}
 		},
 		"mizuki": {
 			"ult": {"name": "巨触横扫", "en": "GREAT TENTACLE", "desc": "身后破土一条巨型触手，横扫指定方向的半圆，小触手再抓漏网之敌"},
-			"link": {"name": "缠足触手", "en": "SNARE TENDRILS", "desc": "触手追击附近生命低于一半的敌人并束缚", "trigger": "身边多名敌人生命低于一半"},
-			"link_v2": {"name": "缚足触手", "en": "BINDING TENDRILS", "kind": "聚拢", "desc": "区域里 6 名敌人脚下钻出触手，束缚 1 秒（精英减半）"}
+			"link": {"name": "镜中附肢", "en": "MIRRORED LIMBS", "desc": "触手追击附近生命低于一半的敌人并束缚", "trigger": "身边多名敌人生命低于一半"},
+			"link_v2": {"name": "镜中附肢", "en": "MIRRORED LIMBS", "kind": "聚拢", "desc": "区域里 6 名敌人脚下钻出触手，束缚 1 秒（精英减半）"}
 		},
 		"saria": {
 			"ult": {"name": "冲击裂环", "en": "SHOCK RING", "desc": "举拳蓄力一拳砸地，冲击环向四周打出，脚下裂纹沿途接连爆开"},
-			"link": {"name": "琥珀晶壁", "en": "AMBER WALL", "desc": "琥珀晶柱围住队长挡 2 秒，队长回复生命", "trigger": "队长生命低于 50%"},
-			"link_v2": {"name": "钙质护盾", "en": "CALCITE GUARD", "kind": "掩护", "desc": "给队长一层护盾，挡一次伤害（1.5 秒内没用掉就收回）；区域地面钙化 1.5 秒，踩在上面的敌人减速 40%"}
+			"link": {"name": "凝晶之壁", "en": "CRYSTAL BULWARK", "desc": "琥珀晶柱围住队长挡 2 秒，队长回复生命", "trigger": "队长生命低于 50%"},
+			"link_v2": {"name": "凝晶之壁", "en": "CRYSTAL BULWARK", "kind": "掩护", "desc": "给队长一层护盾，挡一次伤害（1.5 秒内没用掉就收回）；区域地面钙化 1.5 秒，踩在上面的敌人减速 40%"}
 		},
 		"suzuran": {
 			"ult": {"name": "白光瞬斩", "en": "WHITE FLASH", "desc": "忍冬在身旁现身，化作白光瞬身斩出，停顿半拍后斩痕爆裂"},
-			"link": {"name": "灵狐追迹", "en": "FOX TRAIL", "desc": "狐火追向那批敌人，减速并使其受到的伤害提升", "trigger": "另一名队友的连携命中后"},
-			"link_v2": {"name": "追踪狐火", "en": "FOXFIRE CHASE", "kind": "附加", "desc": "4 团狐火绕她转一圈，再各追向区域内一名敌人，命中后减速 30%，持续 1.5 秒"}
+			"link": {"name": "灵狐留步", "en": "FOX'S PAUSE", "desc": "狐火追向那批敌人，减速并使其受到的伤害提升", "trigger": "另一名队友的连携命中后"},
+			"link_v2": {"name": "灵狐留步", "en": "FOX'S PAUSE", "kind": "附加", "desc": "4 团狐火绕她转一圈，再各追向区域内一名敌人，命中后减速 30%，持续 1.5 秒"}
 		},
 		"logos": {
 			"ult": {"name": "咒域宣判", "en": "EDICT FIELD", "desc": "面前展开圆形咒域，区域内敌人头顶慢慢浮现咒文，一词念出后咒印一起压缩爆开，并清除区域内弹幕"},
-			"link": {"name": "咒文扩散", "en": "SPREADING GLYPH", "desc": "咒文扩散，处决至多 6 名生命低于 30% 的普通敌人", "trigger": "屏幕内多名普通敌人生命低于 30%"},
-			"link_v2": {"name": "消弹咒文", "en": "NULLIFY SIGIL", "kind": "附加", "desc": "区域上空展开一圈咒文，当场消除区域内的敌方弹幕，区域内敌人减速 50%，持续 1 秒；不造成伤害"}
+			"link": {"name": "终焉句点", "en": "FINAL PERIOD", "desc": "咒文扩散，处决至多 6 名生命低于 30% 的普通敌人", "trigger": "屏幕内多名普通敌人生命低于 30%"},
+			"link_v2": {"name": "帷幕咒言", "en": "VEILING WORDS", "kind": "附加", "desc": "区域上空展开一圈咒文，当场消除区域内的敌方弹幕，区域内敌人减速 50%，持续 1 秒；不造成伤害"}
 		},
 		"hoshiguma": {
 			"ult": {"name": "般若反震", "en": "HANNYA RECOIL", "desc": "盾「般若」砸地，嘲讽全场并把敌人吸到盾前，硬挡片刻后盾甲反震炸开"},
-			"link": {"name": "举盾推挡", "en": "SHIELD SHOVE", "desc": "冲到队长身边举盾推开周围敌人，队长短时间受到的伤害降低", "trigger": "队长短时间内连续被近战命中，或被敌人围住"},
-			"link_v2": {"name": "举盾", "en": "SHIELD UP", "kind": "掩护", "desc": "瞬到队长身侧举盾，挡一次伤害（1.5 秒内）；区域内的近战敌人被嘲讽 1 秒"}
+			"link": {"name": "寸步不让", "en": "HOLD THE LINE", "desc": "冲到队长身边举盾推开周围敌人，队长短时间受到的伤害降低", "trigger": "队长短时间内连续被近战命中，或被敌人围住"},
+			"link_v2": {"name": "寸步不让", "en": "HOLD THE LINE", "kind": "掩护", "desc": "瞬到队长身侧举盾，挡一次伤害（1.5 秒内）；区域内的近战敌人被嘲讽 1 秒"}
 		},
 		"siege": {
 			"ult": {"name": "天降重锤", "en": "SKYFALL HAMMER", "desc": "高高跃起，巨锤砸向落点，冲击波横扫、敌人被震上半空"},
-			"link": {"name": "落点砸锤", "en": "LANDING SMASH", "desc": "跃向队长落点附近最密的敌群砸锤，眩晕敌人，其他干员技力回复加快", "trigger": "队长冲刺结束"},
-			"link_v2": {"name": "冲阵", "en": "BREACH", "kind": "冲阵", "desc": "从队长身边冲进区域，撞开沿途的敌人，到尽头一锤砸地，眩晕 0.5 秒（精英减半）"}
+			"link": {"name": "一锤定局", "en": "DECIDING BLOW", "desc": "跃向队长落点附近最密的敌群砸锤，眩晕敌人，其他干员技力回复加快", "trigger": "队长冲刺结束"},
+			"link_v2": {"name": "一锤定局", "en": "DECIDING BLOW", "kind": "冲阵", "desc": "从队长身边冲进区域，撞开沿途的敌人，到尽头一锤砸地，眩晕 0.5 秒（精英减半）"}
 		},
 		"irene": {
 			"ult": {"name": "宣判", "en": "VERDICT", "desc": "脚下盖下审判纹章，锁链钉住圈内敌人；原地旋身连斩三圈、朝四周连射，被钉住的敌人由近到远连环炸开"},
-			"link": {"name": "浮空双刺", "en": "AERIAL THRUST", "desc": "连刺两下，对浮空、眩晕中的敌人伤害提升", "trigger": "屏幕内多名敌人浮空或眩晕"},
-			"link_v2": {"name": "提灯一照", "en": "LANTERN SWEEP", "kind": "附加", "desc": "提灯照亮区域，区域内敌人 3 秒内受到的伤害 +{$link_irene_amp*100:0}%，随后补一刺穿过主目标"}
+			"link": {"name": "劈潮双刺", "en": "TIDE-SPLITTING THRUST", "desc": "连刺两下，对浮空、眩晕中的敌人伤害提升", "trigger": "屏幕内多名敌人浮空或眩晕"},
+			"link_v2": {"name": "净邪之灯", "en": "PURIFYING LANTERN", "kind": "附加", "desc": "提灯照亮区域，区域内敌人 3 秒内受到的伤害 +{$link_irene_amp*100:0}%，随后补一刺穿过主目标"}
 		},
 		"lappland": {
 			"ult": {"name": "十字剑舞", "en": "CROSS DANCE", "desc": "朝前方扇形狂舞乱砍，剑气越砍越快越乱，最后一记横斩收尾，命中沉默"},
-			"link": {"name": "封招横扫", "en": "SEALING SWEEP", "desc": "横扫打断精英这次出招，2 秒内不能再放特殊招式", "trigger": "精英开始读招"},
-			"link_v2": {"name": "月牙剑气", "en": "CRESCENT WAVE", "kind": "追击", "desc": "站到区域边缘，掷出一道月牙剑气横扫过区域，命中的敌人沉默 1 秒"}
+			"link": {"name": "摧心之刃", "en": "MINDBREAKER", "desc": "横扫打断精英这次出招，2 秒内不能再放特殊招式", "trigger": "精英开始读招"},
+			"link_v2": {"name": "摧心之刃", "en": "MINDBREAKER", "kind": "追击", "desc": "站到区域边缘，掷出一道月牙剑气横扫过区域，命中的敌人沉默 1 秒"}
 		},
 		"lumen": {
 			"ult": {"name": "长明灯柱", "en": "EVERLIGHT PILLAR", "desc": "队长脚下升起灯塔光柱，光圈扩散灼烧，光束扫过周围一圈后熄灭"},
-			"link": {"name": "清创光弹", "en": "CLEANSING SHOT", "desc": "光弹清除队长的神经损伤，灯火回复，并照亮队长身边", "trigger": "队长神经损伤达到 60%，或灯火暗淡"},
-			"link_v2": {"name": "引灯", "en": "LAMPLIGHT", "kind": "掩护", "desc": "队长灯火 +{$link_lumen_lamp:0}，清除神经损伤；区域里飘起灼烧光点 1.2 秒，每 0.3 秒对区域内敌人造成伤害"}
+			"link": {"name": "凡人之灯", "en": "MORTAL LAMP", "desc": "光弹清除队长的神经损伤，灯火回复，并照亮队长身边", "trigger": "队长神经损伤达到 60%，或灯火暗淡"},
+			"link_v2": {"name": "凡人之灯", "en": "MORTAL LAMP", "kind": "掩护", "desc": "队长灯火 +{$link_lumen_lamp:0}，清除神经损伤；区域里飘起灼烧光点 1.2 秒，每 0.3 秒对区域内敌人造成伤害"}
 		}
 	}
 }

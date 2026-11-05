@@ -146,8 +146,9 @@ func _dyn_lights(xf: Transform2D, k: float) -> void:
 					cand.append([0.6 * float(L[3]) / maxf(0.001, float(L[4])) + 0.3, L[0], float(L[1]), L[2], 0, 1])
 		# 配方 / 转平面照地光（docs/245 / 246）：分账开（render/light_share）时并进候选按份额分；关时先留出自己的份额（至多 fx/recipe_dl 盏、不超过总数一半、强度总和封顶），其余照旧按亮度取
 		var mine: Array = FxRecipe.lights_for(g, vr, nmax)
-		for c in mine:
-			c.append_array([0, 1])
+		for m in mine:
+			while m.size() < 6:
+				m.append(0 if m.size() == 4 else 1)
 		var share: bool = LateRead2.on("light_share")
 		if share:
 			cand.append_array(mine)

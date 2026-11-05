@@ -197,6 +197,7 @@ static func dense_collapse(o, c: Vector2, hits: Array) -> void:
 			displace_one(o, e, c, gb)
 	q.append({"t": o.base("dense_delay", 0.3), "c": c})
 	o.set_meta("gr_q", q)
+	_FXR.ev(o, "ang_dense", {"c": c, "ph": "in"})   # 转平面（docs/267）：只画
 	var r: float = o.base("dense_r", 60.0) * float(o.loc.area)
 	o.fx({"kind": "ring", "pos": c, "r": 6.0, "r0": r * 1.1, "life": 0.3, "col": GRAV_C * 1.4, "floor": true, "keep": true, "w": 2.5})   # 向内收拢的环
 	o.fx({"kind": "glow", "pos": c, "r": 10.0, "life": 0.3, "col": Color(0.35, 0.2, 0.6), "alpha": 0.9})                 # 压缩成黑点
@@ -216,6 +217,7 @@ static func dense_tick(o, dt: float) -> void:
 		var r: float = o.base("dense_r", 60.0) * float(o.loc.area)
 		var dmg: float = o.base("atk", 0.0) * o.base("dense_mult", 0.3) * float(o.loc.dmg) * o._dmg_bonus()
 		o.area_hit("致密", it.c, r, dmg)
+		_FXR.ev(o, "ang_dense", {"c": it.c, "ph": "pop"})   # 转平面（docs/267）：只画
 		o.fx({"kind": "ring", "pos": it.c, "r": r, "r0": r * 0.2, "life": 0.28, "col": GRAV_C * 1.6, "floor": true, "keep": true, "w": 3.0})
 		o.fx({"kind": "glow", "pos": it.c, "r": r * 0.7, "life": 0.2, "col": Color(1.2, 0.8, 1.6), "alpha": 0.75})
 		for k in 7:
@@ -245,6 +247,7 @@ static func sink_tick(o, e: Dictionary, s: Dictionary, c: Vector2, ring: float, 
 	e["ang_dw"] = 0.0
 	e["ang_sk"] = g.t
 	lift_growth(o, e, float(s.dur), float(s.get("h", 22.0)))
+	_FXR.ev(o, "ang_sink", {"e": e})   # 转平面（docs/267）：只画
 	o.fx({"kind": "ring", "pos": e.pos, "r": float(e.r) + 14.0, "r0": float(e.r), "life": 0.3, "col": GRAV_C * 1.6, "floor": true, "keep": true, "w": 2.5})
 	for k in 3:
 		o.fx({"kind": "mote", "pos": e.pos + Vector2((k - 1) * float(e.r) * 0.5, -float(e.r) * 0.3), "vel": Vector2(0, -50), "life": 0.5, "col": GRAV_C * 1.5, "sz": 2.0})
@@ -279,10 +282,12 @@ static func field_tick(o, b: Dictionary, st: Dictionary, dt: float) -> void:
 	st.acc -= every
 	var c: Vector2 = st.c
 	var rw: float = float(b.get("ring_w", 24.0))
+	var nin := 0   # 场内敌人数（只给画面：docs/267 微粒绸带）
 	for j in o.query_ids(c, st.r + 24.0):
 		var e: Dictionary = o.g.enemies[j]
 		if e.dead or e.pos.distance_to(c) > st.r:
 			continue
+		nin += 1
 		for s in b.get("tick", _EA):
 			if e.dead:
 				break
@@ -297,6 +302,7 @@ static func field_tick(o, b: Dictionary, st: Dictionary, dt: float) -> void:
 						apply_status(o, e, s2, c, st.ring, rw)
 			else:
 				apply_status(o, e, s, c, st.ring, rw)
+	_FXR.ev(o, "ang_field", {"look": st.look, "c": c, "r": st.r, "ring": st.ring, "n": nin})   # 转平面（docs/267）：只画
 
 
 ## shape.point_aoe 选落点：land = densest（射程内敌群最密处，缺省）/ nearest
@@ -326,6 +332,7 @@ static func point_aoe_land(o, b: Dictionary, s: Dictionary) -> void:
 	var r: float = float(b.get("r", 0.0)) * float(o.loc.area) * float(patch.get("r_mult", 1.0))
 	var dmg: float = o.base(str(b.get("atk_key", "atk")), 0.0) * float(b.get("mult", 1.0)) * float(patch.get("mult", 1.0)) * float(o.loc.dmg) * o._dmg_bonus()
 	var hits: Array = o.area_hit(str(patch.get("src", b.get("src", ""))), c, r, dmg, 0.0, 0.0, b.get("tags", []), int(b.get("max_n", 0)))
+	_FXR.ev(o, "ang_land", {"c": c, "r": r, "es": hits, "s1": not patch.is_empty()})   # 转平面（docs/267）：只画
 	for lst in [b.get("on_hit", []), patch.get("on_hit", [])]:
 		for st in lst:
 			for e in hits:

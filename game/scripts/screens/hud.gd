@@ -337,6 +337,7 @@ func _draw_body() -> void:
 	if g.ult != null:
 		g.ult.draw_aim(vs)   # 终结技慢动作瞄准 v2（ult/aim，docs/209 §3）：PRTS 范围格 + 信息板，同指点一套画法
 	g.wheel.draw(vs)   # 指挥圆盘（docs/114 §12）：打开时盖在 HUD 上，直接画在 hud 画布（缓存层之上）
+	g.stats_screen.draw_close_fade(vs)   # 属性栏关闭后 0.15 秒淡出（docs/222 §19）
 	match g.state:
 		Game.S.SHOW:
 			g.show_screen.draw(vs)
@@ -759,7 +760,7 @@ func _elite_mark_batch(ct: Transform2D) -> RefCounted:
 ## 主控倒下后的过渡（2026-09-27 用户：结算弹得太快）：画面定格在倒下那一刻，约 2.4 秒（10-28 起，加最后一击定格 + 队友化光尘，docs/62 §3.21c）——
 ## 0–1.6 秒灯火熄灭（world 里灯光半径收到 0）、画面沉进深海色（整屏压暗 + 海水青黑暗角从四周合拢）；
 ## 1.3 秒起「探索终止」浮出（中文大字 + 英文 + 洋红细线从中间向两边展开）；2.4 秒后结算面板淡入。任意键 / 点击跳过（game.gd）
-const DEATH_T := 2.4   # 10-28 退场演出（docs/62 §3.21c）：1.7 → 2.4
+const DEATH_T := 3.8   # 10-28 退场演出（docs/62 §3.21c）：1.7 → 2.4；11-05 用户「慢动作和时间可以拉长一点」→ 3.8（结算延后）
 
 func draw_death_transition(vs: Vector2) -> void:
 	# 最后一击：全屏红白一闪（run/defeat_outro.gd 同时放冲击环 + 火花）

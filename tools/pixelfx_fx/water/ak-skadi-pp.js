@@ -12,9 +12,9 @@ export const meta = {
   name: "Skadi plane",
   desc: "Skadi's greatsword and tide moves redrawn for a 3/4 top-down plane: standing blade curtains, water columns and tide crests, and squashed ground rings, wakes and shadows.",
   tags: ["water", "slash", "topdown", "skadi", "one-shot"],
-  size: [240, 200],
-  origin: [120, 140],
-  duration: 0.5,
+  size: [320, 260],
+  origin: [160, 180],
+  duration: 0.8,
   loop: false,
   fps: 15,   // 统一动画时钟（协调人 11-05）：本作特效帧条一律 15 fps，60 Hz 下每帧正好停 4 个游戏帧；时长不对增删帧，不改 fps
   bg: "dark",
@@ -181,7 +181,7 @@ function breakerCols(o) {
     const gap = nz(a * 4.1, o.seed + 705);
     if (gap < 0.2) continue;                                            // 缺口
     const rj = R * (0.86 + 0.28 * nz(a * 2.3, o.seed + 707));           // 浪线前后错落
-    const peak = Math.pow(nz(a * 5.2, o.seed + 709), 1.6) * 0.7 + 0.45 * nz(a * 1.7, o.seed + 711);
+    const peak = 0.35 + 0.55 * nz(a * 2.1, o.seed + 709) + 0.15 * nz(a * 6.3, o.seed + 711);   // 宽缓起伏的浪峰
     const edge = Math.min(1, (a - a0) / 0.35, (a1 - a) / 0.35);          // 两头收低
     const h = +o.H * (0.25 + peak) * Math.max(0.15, edge);
     const pa = a + th;
@@ -194,26 +194,44 @@ function breaker(p, t, o, C, ACC) {
   const SY = +o.SY, el = +o.el, n = C.length;
   const rise = ease.outCubic(clamp(t / 0.1)), curl = smooth(0.08, 0.2, t), brk = smooth(0.17, 0.36, t);
   const cols = breakerCols(o).sort((A, B) => A.gy - B.gy);
-  for (const c of cols) {
+  const s0 = +o.H * 0.7 * ease.outQuad(clamp(t / 0.42));                 // 整道浪往前走（不是原地立起的墙）
+  for (const c0 of cols) {
+    const c = Object.assign({}, c0, { gx: c0.gx + c0.ox * s0, gy: c0.gy + c0.oy * s0 });
     const hb = c.h * rise * (1 - 0.92 * brk);                            // 浪身塌下
-    if (hb >= 1) for (let z = 0; z <= hb; z += 0.5) {
-      const k = z / Math.max(1, c.h);
-      const lean = curl * c.h * 0.35 * k * k;                            // 越高越往前倾
-      const x = c.gx + c.ox * lean, y = c.gy - z + c.oy * lean;
-      let ci = k < 0.25 ? n - 6 : k < 0.55 ? n - 5 : k < 0.8 ? n - 4 : n - 3;
-      if (c.near > 0.3) ci += 1;
-      const strk = nz(c.a * 23, o.seed + 713);                           // 竖向水纹
-      if (strk > 0.68) ci += 1; else if (strk < 0.25) ci -= 1;
-      if (k < 0.2 && nz(z * 3 + c.a * 40, o.seed + 715) < 0.45) continue; // 底部抖动变稀
-      if (el >= 2 && k > 0.35 && k < 0.5) { p.px(Math.round(x), Math.round(y), ACC); continue; }
-      p.px(Math.round(x), Math.round(y), C[clamp(ci - Math.round(brk * 2), 1, n - 1)]);
+    const strk = nz(c.a * 23, o.seed + 713);                             // 顺浪方向的水纹
+    if (hb >= 1 && brk < 0.85) {
+      // ① 背面缓坡：从身后（朝斯卡蒂一侧）贴地处缓缓升到浪顶，表面由深到浅；坡长跟着浪高一起塌，塌完就没
+      const B = hb * 1.5;
+      for (let sb = -B; sb <= 0; sb += 0.5) {
+        const u = (sb + B) / B, z = hb * Math.pow(u, 1.7);
+        const x = c.gx + c.ox * sb, y = c.gy + c.oy * sb - z;
+        let ci = u < 0.35 ? n - 6 : u < 0.65 ? n - 5 : u < 0.88 ? n - 4 : n - 3;
+        const band = nz(u * 7 + c.a * 2.5, o.seed + 713);              // 和浪顶平行的横纹（不按浪柱取色，免得排成放射线）
+        if (band > 0.7) ci += 1; else if (band < 0.25) ci -= 1;
+        if (u < 0.3 && nz(sb * 2 + c.a * 40, o.seed + 715) < 0.5) continue;   // 坡脚抖动变稀
+        let col = C[clamp(ci - Math.round(brk * 2), 1, n - 1)];
+        if (el >= 2 && u > 0.55 && u < 0.7) col = ACC;
+        p.px(Math.round(x), Math.round(y), col);
+        p.px(Math.round(x), Math.round(y) + 1, col);
+      }
+      // ② 前脸：浪顶往前倾、脸是凹弧（上面伸出去，下面收回来）；朝镜头的一侧亮一阶
+      for (let z = 0; z <= hb; z += 0.5) {
+        const k = z / hb, off = curl * hb * 0.45 * k * k;
+        const x = c.gx + c.ox * off, y = c.gy + c.oy * off - z;
+        const kj = k + 0.22 * (nz(c.a * 9.3, o.seed + 741) - 0.5) + 0.1 * (nz(z * 0.7 + c.a * 3, o.seed + 743) - 0.5);   // 色带随浪柱起伏错开（不成一块平板）
+        if (k < 0.18 && nz(z * 2 + c.a * 50, o.seed + 745) < 0.5) continue;
+        let ci = kj > 0.86 ? n - 1 : kj > 0.6 ? n - 3 : kj > 0.3 ? n - 4 : n - 5;
+        if (c.near > 0.3 && k <= 0.86) ci += 1;
+        if (c.near < -0.2 && k <= 0.86) ci -= 2;                          // 背向镜头的前脸看不太到：压暗
+        p.px(Math.round(x), Math.round(y), C[clamp(ci - Math.round(brk * 2), 1, n - 1)]);
+      }
     }
     // 白唇：浪顶往前卷出的一截白沫（碎开前）
     if (curl > 0 && brk < 0.6 && hb >= 2) {
       const L = 2 + 5 * curl * (0.5 + nz(c.a * 9, o.seed + 717));
       for (let s = 0; s <= L; s += 0.5) {
         const u = s / L;
-        const x = c.gx + c.ox * (c.h * 0.35 * curl + s), y = c.gy - hb - 1 + c.oy * s + u * u * 3;
+        const x = c.gx + c.ox * (hb * 0.45 * curl + s), y = c.gy - hb - 1 + c.oy * (hb * 0.45 * curl + s) + u * u * 3;
         p.px(Math.round(x), Math.round(y), u < 0.6 ? WHITE : C[n - 2]);
       }
     }
@@ -225,7 +243,7 @@ function breaker(p, t, o, C, ACC) {
         const u = (t - 0.17 - 0.03 * nz(sd, o.seed + 721)) ;
         if (u <= 0) continue;
         const v = 40 + 50 * nz(sd * 1.7, o.seed + 723), up = 30 + 40 * nz(sd * 2.3, o.seed + 725);
-        const fx = c.gx + c.ox * (c.h * 0.35 + v * u), fy0 = c.gy - c.h * (0.75 + 0.2 * nz(sd, o.seed + 727)) + c.oy * v * u;
+        const fx = c.gx + c.ox * (c.h * 0.45 + v * u), fy0 = c.gy - c.h * (0.75 + 0.2 * nz(sd, o.seed + 727)) + c.oy * (c.h * 0.45 + v * u);
         const fy = fy0 - up * u + 420 * u * u;
         if (fy > c.gy + c.oy * v * u + 2) continue;                      // 落地就没了（地上的白沫交给贴地层）
         const sz = nz(sd * 3.1, o.seed + 729) > 0.5 ? 3 : 2;
@@ -241,7 +259,8 @@ function breakerGround(p, t, o, C, ACC) {
   const R = +o.R, SY = +o.SY, n = C.length, th = +o.dir * D2R;
   const rise = clamp(t / 0.1), spread = smooth(0.22, 0.5, t), fade = smooth(0.32, +o.dur, t);
   if (fade >= 0.99) return;
-  const cols = breakerCols(o);
+  const s0 = +o.H * 0.7 * ease.outQuad(clamp(t / 0.42));
+  const cols = breakerCols(o).map((c0) => Object.assign({}, c0, { gx: c0.gx + c0.ox * s0, gy: c0.gy + c0.oy * s0 }));
   for (const c of cols) {
     if (rise > 0.3 && spread < 0.7) for (let d = -1; d <= 1; d++) {   // 浪脚暗湿带（实色细带，浪还立着的时候）
       const x = c.gx + c.ox * d, y = c.gy + c.oy * d;
@@ -409,6 +428,83 @@ function splashGround(p, t, o, C, ACC) {
   });
 }
 
+// ---- 分支招（11-05 用户「分支招数能不能做出点差距出来」）
+
+// 涌潮（S1 分支一 / 悲歌期间每秒一圈）：脚下涌出一圈矮水涌——低矮的立起水边（带白沫浪顶）往外推开，高低不一、有断口，不是平贴地的环
+function swell(p, t, o, C, ACC, gd) {
+  const R = +o.R, H = +o.H, SY = +o.SY, el = +o.el, n = C.length;
+  const g = ease.outCubic(clamp(t / 0.32)), r = R * (0.25 + 0.75 * g), fade = smooth(0.2, +o.dur, t);
+  if (fade >= 0.99) return;
+  const m = Math.ceil(r * TAU * 1.1);
+  const pts = [];
+  for (let j = 0; j < m; j++) {
+    const a = (j / m) * TAU, k = nz(a * 3.7, o.seed + 801);
+    if (k < 0.42) continue;                                             // 断口（多、宽）
+    const h = H * (0.2 + 1.1 * Math.pow(nz(a * 5.3, o.seed + 803), 1.5)) * (1 - fade) * clamp(t / 0.06);
+    pts.push({ a, x: Math.cos(a) * r, y: Math.sin(a) * r * SY, h, near: Math.sin(a) });
+  }
+  if (gd) {   // 水涌脚下：前沿内侧 2 格暗湿带 + 身后零星白沫
+    for (const q of pts) {
+      for (let d = 1; d <= 2; d++) p.px(Math.round(q.x * (1 - d / r)), Math.round(q.y * (1 - d / r)), C[1]);
+      if (nz(q.a * 17, o.seed + 805) > 0.8) p.px(Math.round(q.x * 0.85), Math.round(q.y * 0.85), C[n - 3]);
+    }
+    return;
+  }
+  pts.sort((A, B) => A.y - B.y);
+  for (const q of pts) {
+    if (q.h < 1) continue;
+    const ca = Math.cos(q.a), sa = Math.sin(q.a) * SY, B = q.h * 2.4;
+    for (let sb = -B; sb <= 0; sb += 0.5) {   // 内侧缓坡
+      const u = (sb + B) / B, z = q.h * Math.pow(u, 1.6);
+      if (u < 0.3 && nz(sb * 3 + q.a * 30, o.seed + 807) < 0.5) continue;
+      let ci = u < 0.45 ? n - 5 : u < 0.8 ? n - 4 : u < 0.93 ? n - 2 : n - 1;
+      if (q.near < -0.3 && u < 0.93) ci -= 1;
+      let col = C[clamp(ci - Math.round(fade * 2), 1, n - 1)];
+      if (el >= 2 && u > 0.5 && u < 0.7) col = ACC;
+      p.px(Math.round(q.x + ca * sb), Math.round(q.y + sa * sb - z), col);
+    }
+    for (let z = 0; z <= q.h; z += 0.5) {     // 外侧前脸（略前倾）
+      const k = z / q.h, off = k * k * q.h * 0.35;
+      let ci = k > 0.8 ? n - 1 : k > 0.4 ? n - 4 : n - 5;
+      if (q.near > 0.3 && k <= 0.8) ci += 1;
+      if (q.near < -0.3 && k <= 0.8) ci -= 2;
+      p.px(Math.round(q.x + ca * off), Math.round(q.y + sa * off - z), C[clamp(ci - Math.round(fade * 2), 1, n - 1)]);
+    }
+  }
+}
+
+// 回澜（S2 分支二「海水回卷」）：反过来——四周海水往脚下倒卷回来，浪沫边越收越快（不规则、有断口，身后拖往外的水纹），
+// 汇到中心后冲起一柱水
+function backwash(p, t, o, C, ACC, gd) {
+  const R = +o.R, SY = +o.SY, n = C.length;
+  const g = ease.inCubic(clamp(t / 0.3)), r = R * (1 - 0.85 * g);
+  if (t < 0.32) {
+    const m = Math.ceil(r * TAU * 1.1);
+    for (let j = 0; j < m; j++) {
+      const a = (j / m) * TAU;
+      if (nz(a * 3.3, o.seed + 811) < 0.28) continue;
+      const rr = r * (0.9 + 0.2 * nz(a * 6.1, o.seed + 813));
+      const x = Math.cos(a) * rr, y = Math.sin(a) * rr * SY;
+      if (gd) {   // 地上：前沿暗湿带 + 往外拖的水纹（越收越快，纹越长）
+        p.px(Math.round(x), Math.round(y), C[1]);
+        const L = 2 + 10 * g * nz(a * 9, o.seed + 815);
+        for (let s = 1; s <= L; s += 1) if (nz(a * 31 + s, o.seed + 817) > 0.4)
+          p.px(Math.round(x + Math.cos(a) * s), Math.round(y + Math.sin(a) * SY * s), s < 3 ? C[n - 4] : C[n - 5]);
+        continue;
+      }
+      // 立起：一道往里卷的矮浪沫边（高 3–7、顶白沫、往圆心倾）
+      const h = 3 + 4 * nz(a * 4.7, o.seed + 819);
+      for (let z = 0; z <= h; z += 0.5) {
+        const k = z / h, lean = -k * k * 3;
+        p.px(Math.round(x + Math.cos(a) * lean), Math.round(y - z + Math.sin(a) * SY * lean), k > 0.65 ? WHITE : k > 0.35 ? C[n - 3] : C[n - 5]);
+      }
+    }
+  }
+  if (!gd && t >= 0.27) {   // 汇到中心：冲起一柱水（时间平移的水柱）
+    splash(p, t - 0.27, Object.assign({}, o, { H: 54, R: 34 }), C, ACC);
+  }
+}
+
 export function draw(p, t, o) {
   const C = fit(o.palette, 8), ACC = hex(o.accent);
   const gd = o.layer === "gd";
@@ -418,6 +514,8 @@ export function draw(p, t, o) {
     case "splash": return gd ? splashGround(p, t, o, C, ACC) : splash(p, t, o, C, ACC);
     case "blade": return gd ? bladeGround(p, t, o, C) : blade(p, t, o, C, ACC);
     case "curtain": return gd ? breakerGround(p, t, o, C, ACC) : breaker(p, t, o, C, ACC);   // S2 碎浪
+    case "swell": return swell(p, t, o, C, ACC, gd);
+    case "backwash": return backwash(p, t, o, C, ACC, gd);
     case "pool": return gd ? pool(p, t, o, C, ACC) : undefined;
     case "ring": return gd || o.view === "raw" ? ring(p, t, o, C, ACC) : undefined;
   }
