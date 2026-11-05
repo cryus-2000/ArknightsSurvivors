@@ -1,0 +1,4 @@
+{
+	"_doc": "docs/263 歌蕾蒂娅转平面（fx/px_plane）：颜色组只给 Noita 水滴颗粒（ink）、照地光（light）、受击反应（flash）用；主形是 pixelfx 帧条（data/pxp_gladiia.json）+ 运行时链 / 钩头 / 拖痕。主色 OP.gladiia 深海蓝，精二点缀深渊紫",
+	"palette": {"dark": "#0d1a2e", "main": "#4c80c7", "hot": "#c9d9ee", "accent": "#b3a8ee", "light": "#7fa6e0", "flash": "#8bacdb"}
+}

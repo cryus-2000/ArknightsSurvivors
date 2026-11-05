@@ -29,12 +29,15 @@ OPS = {
     "hoshiguma": ("melee/ak-hoshiguma-pp", "pxp_hoshiguma.json", "hsg_", [(0xf2, 0xbf)]),
     "siege": ("melee/ak-siege-pp", "pxp_siege.json", "sg_", [(0xff, 0xf1)]),
     "mizuki": ("water/ak-mizuki-pp", "pxp_mizuki.json", "mz_", [(0xb9, 0x8c), (0x6f, 0xe8), (0xc4, 0xf7)]),
+    "texas": ("melee/ak-texas-pp", "pxp_texas.json", "tx_", [(0x9f, 0xe3)]),
 }
 TMP = os.path.join(ROOT, "build", "pxp_bake")
 FPS = 15                       # 统一动画时钟（协调人 11-05）：一律 15 fps，时长不对增删帧
 DIRS = [-90, -45, 0, 45, 90]   # 平面角；另一半（135 / 180 / -135）游戏里水平翻转
 EMIT_LUMA = 0.95               # 色层亮度 ≥ 这个的像素算热芯（只取白热：定帧头部、冠部白沫；精二海绿点缀另算）
 EMIT_MAX = 48                  # 每帧 emit 点上限（均匀抽）
+# 只对某些件额外算进 emit 的颜色（键前缀 → 件名第一段 → [(r, g)]）。推进之王锤击落点（docs/270 §5 补法：命中帧核心辉光 17 → ≥ 30）：淡金亮芯 #ffe9a0 也进发光层
+EMIT_EXTRA = {"sg_": {"imp": [(0xff, 0xe9)]}}
 
 
 def variants_skadi():
@@ -277,7 +280,55 @@ def variants_mizuki():
     return v
 
 
-VARIANTS = {"skadi": variants_skadi, "hoshiguma": variants_hoshiguma, "siege": variants_siege, "mizuki": variants_mizuki}
+def variants_texas():
+    """德克萨斯（docs/257）：判定从 texas.json 读，美术像素 = 世界 / 2。"""
+    v = []
+    T = [0, 1, 2]
+    for R in (56, 63, 70):   # 普攻「拔刀」：锥形 slash_r 112 / 半角 1.2 → 半径 56、弧 2.4；尺寸档按 late_shape 近战 +12% / 档、范围卡
+        for el in T:
+            for d in DIRS:
+                for ly in ("up", "gd"):
+                    v.append(("slash_r%d_e%d_%s_d%d" % (R, el, ly, d), {"part": "slash", "layer": ly, "R": R, "span": 2.4, "W": [8, 12, 14][el] + (R - 56) // 7, "dir": d, "el": el, "dur": 0.27}, 0.54 if (ly == "gd" and el >= 1) else 0.34))   # 精一起刀身明显加粗 + 地上焦痕弧（多留 0.2 秒）
+    for R in (50, 56, 63):   # 骤雨 360° 连斩（storm_r 100 → 50）/ 回马剑（slash_r 112 → 56）
+        for el in T:
+            for ly in ("up", "gd"):
+                v.append(("spin_r%d_e%d_%s" % (R, el, ly), {"part": "spin", "layer": ly, "R": R, "W": [8, 12, 14][el], "el": el, "dur": 0.3, "seed": 3}, 0.4))
+    # 源石剑落下（剑雨 / 余像·剑雨 / 剑阵 / 次元斩落剑 / 剑气沿路落剑）：L 剑长、fall 下落高度、stick 插地停留（同玩法 stick）
+    SW = [(14, 0, 30, 0.2), (14, 1, 30, 0.2), (14, 2, 34, 0.2),   # 后期剑气沿路落剑（三档）/ 余像·剑雨（精二）
+          (16, 0, 48, 0.3), (19, 1, 48, 0.3), (22, 2, 48, 0.3),   # S1 剑雨三档（fall 96 → 48）
+          (26, 2, 54, 0.3), (40, 2, 64, 0.42)]                    # 次元斩落剑、剑阵中心巨剑（精二）
+    for L, el, fall, st in SW:
+        W = 3 if L < 18 else (4 if L < 30 else 7)
+        for ln, lean in (("l0", 0.0), ("l1", 0.12)):
+            v.append(("sw_s%d_e%d_%s_up" % (L, el, ln), {"part": "sword", "layer": "up", "L": L, "W": W, "lean": lean, "fall": fall, "stick": st, "el": el, "seed": L + el}, 0.1 + st + 0.16))
+        v.append(("sw_s%d_e%d_gd" % (L, el), {"part": "sword", "layer": "gd", "L": L, "W": W, "fall": fall, "stick": st, "el": el, "seed": L + el}, 0.1 + st + 0.16))
+    v.append(("array_r65_gd", {"part": "array", "layer": "gd", "R": 65, "el": 2, "seed": 5}, 0.56))   # 精二剑雨收尾剑阵（s1_r 130 → 65）
+    v.append(("array_r56_gd", {"part": "array", "layer": "gd", "R": 56, "el": 2, "seed": 9}, 0.56))   # 剑雨滂沱起手
+    for h in (9, 15):   # 精一钉剑（敌人小 / 大两档插剑高度）
+        for el in (1, 2):
+            v.append(("pin_h%d_e%d_up" % (h, el), {"part": "pin", "layer": "up", "h": h, "el": el, "seed": 4 + h}, 0.86))
+    for S in (1, 2, 3):   # 后期剑气：一次出手 1 / 2 / 3+ 道合成一柄飞剑，三帧（热白 / 常态 / 碎开）
+        for el in T:
+            for d in DIRS:
+                for ly in ("up", "gd"):
+                    v.append(("qi_s%d_e%d_%s_d%d" % (S, el, ly, d), {"part": "qi", "layer": ly, "S": S, "dir": d, "el": el, "seed": 3 + S}, 0.2))
+    for el in (1, 2):   # S2 冲锋号令·γ型起手
+        for ly in ("up", "gd"):
+            v.append(("order_e%d_%s" % (el, ly), {"part": "order", "layer": ly, "R": 30, "el": el, "seed": 6}, 0.54))
+    for d in DIRS:   # 连携技：目标处十字斩
+        for ly in ("up", "gd"):
+            v.append(("xcut_%s_d%d" % (ly, d), {"part": "xcut", "layer": ly, "R": 34, "dir": d, "el": 1, "seed": 8}, 0.6))
+    # raw：旧做法（正俯视 / 正圆、光晕烤进颜色），游戏里旋转 + 小数缩放
+    for el in T:
+        v.append(("raw_slash_e%d" % el, {"part": "slash", "view": "raw", "R": 56, "span": 2.4, "W": [8, 12, 14][el], "dir": 0, "el": el, "dur": 0.27}, 0.34))
+        v.append(("raw_spin_e%d" % el, {"part": "spin", "view": "raw", "R": 50, "W": [8, 12, 14][el], "el": el, "dur": 0.3, "seed": 3}, 0.4))
+        v.append(("raw_sword_e%d" % el, {"part": "sword", "view": "raw", "L": [16, 19, 22][el], "W": 4, "fall": 48, "stick": 0.3, "el": el}, 0.56))
+    v.append(("raw_xcut", {"part": "xcut", "view": "raw", "R": 34, "dir": 0, "el": 1}, 0.6))
+    v.append(("raw_line", {"part": "line", "view": "raw", "el": 1}, 0.34))
+    return v
+
+
+VARIANTS = {"skadi": variants_skadi, "hoshiguma": variants_hoshiguma, "siege": variants_siege, "mizuki": variants_mizuki, "texas": variants_texas}
 FX_ID = "water/ak-skadi-pp"
 PREFIX = ""
 ACC_RG = [(0x5f, 0xf0)]
@@ -339,7 +390,7 @@ def bake(key, d, dur, loop=False):
             continue
         luma = c[..., 0] * 0.2126 + c[..., 1] * 0.7152 + c[..., 2] * 0.0722
         acc = np.zeros(c.shape[:2], bool)
-        for ar, ag in ACC_RG:
+        for ar, ag in ACC_RG + (EMIT_EXTRA.get(PREFIX, {}).get(key.split("_")[0], [])):
             acc |= (np.abs(c[..., 0] - ar / 255) < 0.02) & (np.abs(c[..., 1] - ag / 255) < 0.02)
         m = (c[..., 3] > 0.5) & ((luma >= EMIT_LUMA) | acc)
         py, px = np.nonzero(m)
@@ -351,7 +402,11 @@ def bake(key, d, dur, loop=False):
             r, g_, b = c[py[j], px[j], :3]
             pts.append([int(px[j]), int(py[j]), "%02x%02x%02x" % (int(r * 255), int(g_ * 255), int(b * 255))])
         emit.append(pts)
-    Image.fromarray((strip * 255 + 0.5).astype(np.uint8), "RGBA").save(os.path.join(OUT_ART, "pxp_%s%s.png" % (PREFIX, key.replace("_d-", "_dm"))), optimize=True)
+    if PREFIX == "tx_" and key.startswith("sw_"):   # 德克萨斯落剑（docs/270 §5）：emit 只留插地那一拍（第 2 帧，t ≈ 0.13 秒），插地后两拍、立起层每帧至多 12 点（大剑 32）、贴地层减半；一次剑雨十几柄剑不再顶满 360
+        big = 32 if key.startswith(("sw_s40", "sw_s26")) else 12   # 收尾巨剑 / 次元斩大剑多给点（同屏只有一两柄）；一波十几柄的小剑压在 p90 200 以内
+        cap = big // 2 if key.endswith("_gd") else big
+        emit = [(pts[::max(1, len(pts) // cap)][:cap] if i in (2, 3) else []) for i, pts in enumerate(emit)]   # 插地那一拍 + 刃光起走的下一拍
+    Image.fromarray((strip * 255 + 0.5).astype(np.uint8), "RGBA").save(os.path.join(OUT_ART, "pxp_%s%s.png" % (PREFIX, key.replace("_d-", "_dm").lower())), optimize=True)
     return key, {"n": len(frames), "fps": fps, "w": int(w), "h": int(h), "ox": int(ox - x0), "oy": int(oy - y0), "loop": loop, "emit": emit}
 
 
@@ -393,7 +448,7 @@ def main():
         reg[PREFIX + k] = m
         print("%-22s %2d 帧 %3d×%3d emit %d" % (k, m["n"], m["w"], m["h"], max((len(e) for e in m["emit"]), default=0)))
     reg = {k: reg[k] for k in sorted(reg)}
-    reg["_doc"] = {"hoshiguma": "docs/254 星熊", "siege": "docs/264 推进之王", "mizuki": "docs/261 水月"}.get(a.op, "docs/246 斯卡蒂") + "转平面帧条（tools/pxplane_bake.py 生成，勿手改）：n 帧数、fps、w×h 帧尺寸（美术像素）、ox / oy 原点（脚底地面点）、loop、emit 每帧热芯点 [x, y, 颜色]"
+    reg["_doc"] = {"hoshiguma": "docs/254 星熊", "siege": "docs/264 推进之王", "mizuki": "docs/261 水月", "texas": "docs/257 德克萨斯"}.get(a.op, "docs/246 斯卡蒂") + "转平面帧条（tools/pxplane_bake.py 生成，勿手改）：n 帧数、fps、w×h 帧尺寸（美术像素）、ox / oy 原点（脚底地面点）、loop、emit 每帧热芯点 [x, y, 颜色]"
     json.dump(reg, open(OUT_META, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     print("共 %d 件" % (len(reg) - 1))
 
