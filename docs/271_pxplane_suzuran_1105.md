@@ -1,5 +1,8 @@
 # 271 pixelfx「转平面」· 铃兰（11-05）
 
+> **11-06 用户定：本干员终结技保留原版**；本文中的终结技新版不合入 main（普攻 / 技能的转平面照旧）。全员终结技定稿见 [docs/280 §6](280_ult_art_gap_1105.md#6-1106-定稿)。
+
+
 **结论摘要**
 1. 第五批（最后四人并行）之一：照 docs/246 的做法做铃兰（`suzuran`）的普攻、S1–S3、分支 / 节点招、后期额外攻击（late_shape：她是控场流派，额外攻击 = 升级卡「扩散」）、连携技（`link/v2` 缺省版「狐火」）。终结技不动；干员本体、怪物、环境不动。开关同 `fx/px_plane`（1 = 转平面；0 / 2 = 当前游戏原样，铃兰没有「旧做法原样贴」对照）。
 2. 帧条全部纯 Python 烤（`tools/pxplane_bake_suzuran.py`，图形在 `tools/pxplane_suzuran_art.py`），送审 GIF 读同一份帧条：`Claude outputs/pxplane_suzuran_1105/gif/`。
