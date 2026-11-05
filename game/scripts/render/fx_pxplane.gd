@@ -2794,6 +2794,16 @@ func _ev_skalter(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictio
 				_:
 					if _sk_count(o, "mini") < 6:
 						_sk_push(o, {"skr": "mini", "c": c, "r": r, "ly": "gd", "life": 4.0 / 15.0})
+			if src != "声浪" and mode() == 1:   # docs/270：每一圈（海嗣 / 余音 / 回声 / 小声浪）也各挂一盏灯 + 2 颗水滴，落在第一只命中的敌人身上
+				var hp2: Vector2 = c + Vector2(0, -8)
+				var gy2: float = c.y + 2.0
+				for e1 in es:
+					if e1 is Dictionary and not e1.get("dead", false):
+						hp2 = e1.pos + Vector2(0, -float(e1.r) * 0.5)
+						gy2 = float(e1.pos.y) + 2.0
+						break
+				R._light(o, hp2, 90.0, 0.42, 0.12, SK_T[5] if src == "海嗣" else p.light)
+				R._grains(o, hp2, gy2, "ink", 2, {"tier": t})
 		"sk_burst":   # 深海的回响：满层爆开（酒红小爆环 + 几颗碎光）
 			var at: Vector2 = d.at
 			if raw:
@@ -3137,8 +3147,12 @@ func _sk_draw_up(ci, it: Dictionary) -> void:
 			shc.a = 0.85 if f < 7 else 0.0
 			_sk_pat(ci, pat, c + Vector2(-w * 0.5 + (10.0 if it.get("fl", false) else -10.0), -float(pat.size()) * px - up - 8.0), col, head, it.get("fl", false), shc)
 			if f <= 1:
-				for q in 4:
-					_glow(c + Vector2(-6.0 + 4.0 * float(q), -up - px * 2.0 - 8.0), C[6])
+				var tl: Vector2 = _snap(c + Vector2(-w * 0.5 + (10.0 if it.get("fl", false) else -10.0), -float(pat.size()) * px - up - 8.0))
+				for y in pat.size():   # 命中头两拍：整枚音符进发光层（docs/270：命中帧核心辉光）
+					var row: String = pat[y]
+					for x in row.length():
+						if row[x] == "#":
+							_glow(tl + Vector2(float(x), float(y)) * px, C[6] if y >= pat.size() - 2 else C[5])
 		"pillars":   # S3 潮涌：5 根粗亮红竖光柱从歌域里冲起又回落（原作 skill_03_buff_02 的红光柱）；白热芯、亮红身、暗酒红边，顶端淡出
 			if f < 0 or f > 6:
 				return
