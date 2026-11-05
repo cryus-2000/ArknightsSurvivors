@@ -1,0 +1,82 @@
+[
+ {
+  "op": "logos",
+  "mode": "atk",
+  "frame": 13,
+  "engine": 72,
+  "secs": 5.0,
+  "hits": 11,
+  "acts": 24,
+  "skill": 0,
+  "parts_total": 67,
+  "parts_per_hit": 6.1,
+  "parts_per_s": 13.4,
+  "parts_s1_1s": null,
+  "mats": {
+   "twinkle": 34,
+   "ink": 33
+  },
+  "life": 0.69,
+  "sz": 3.4,
+  "alive_max": 16,
+  "lights": 15,
+  "lights_per_hit": 1.36,
+  "light_r": 130.0,
+  "light_i": 0.7,
+  "light_life": 0.12,
+  "emit_max": 179,
+  "emit_mean": 69.7,
+  "gl_peak": 77.5,
+  "gl_area_hit": 3439,
+  "gl_mean_hit": 16.3,
+  "em_peak": 233.1,
+  "em_area_hit": 63,
+  "em_mean_hit": 103.3,
+  "crop": [
+   493,
+   269,
+   320,
+   180
+  ]
+ },
+ {
+  "op": "logos",
+  "mode": "s1",
+  "frame": 19,
+  "engine": 78,
+  "secs": 5.0,
+  "hits": 11,
+  "acts": 46,
+  "skill": 1,
+  "parts_total": 67,
+  "parts_per_hit": 6.1,
+  "parts_per_s": 13.4,
+  "parts_s1_1s": 13,
+  "mats": {
+   "twinkle": 34,
+   "ink": 33
+  },
+  "life": 0.7,
+  "sz": 3.3,
+  "alive_max": 17,
+  "lights": 34,
+  "lights_per_hit": 3.09,
+  "light_r": 70.0,
+  "light_i": 0.35,
+  "light_life": 0.1,
+  "emit_max": 191,
+  "emit_mean": 59.8,
+  "gl_peak": 76.7,
+  "gl_area_hit": 4999,
+  "gl_mean_hit": 14.1,
+  "em_peak": 234.4,
+  "em_area_hit": 42,
+  "em_mean_hit": 76.0,
+  "crop": [
+   505,
+   276,
+   320,
+   180
+  ]
+ }
+]
