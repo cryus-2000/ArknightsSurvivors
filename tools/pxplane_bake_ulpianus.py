@@ -7,12 +7,12 @@
 送审 GIF（tools/pxplane_gif_ulpianus.py）直接 import 本文件取同一批帧。
 
 意象：重锚、锁链、深海（和推进之王的锤击裂地区分：这里不画裂网，砸下去是海水）。
-  - 普攻「锚击」：锚落点炸起一圈不规则的**水冠**（一股股水往外斜着冲起、顶上碎成水珠落回）+ 地上**锚印**（深色湿印 + 一圈白沫往外推）；
+  - 普攻「锚击」：锚落点爆闪 + 一把短促、不规则的**水团**飞起落回（11-05 用户「太像触手」后不画细长水舌）+ 地上**锚印**（深色湿印 + 一圈白沫往外推）；
     精一「收链」：锚印外圈几道**白沫拖痕往落点收**（玩法：外圈敌人被拉向落点）；精二：锚印里多一个**深渊暗涡**（三条暗涡臂 + 血纹暗段 + 浅色水光，转着收）。
     每一下同时「撼地」：以他为心一圈 1 美术像素的**细涟漪**往外推到撼地半径（断续、压扁），不画裂缝。
   - S1「必须促成的接触」：主角是锁链（运行时画）；钩回后重砸 = **中心一柱水**冲起、顶上分叉碎开 + 小水冠；精一起拖拽水沟（运行时）。
-  - S2「必须维系的界限」：起手**锁链在脚下盘成一圈界限**（一节节亮起，绕一圈），中心锚插地一小柱水；精二链上多一道**跑圈的冷光**。
-  - S3「必须开辟的通路」：冲锋（运行时：脚下破浪 + V 字尾迹）；落地 = 大号不规则水冠 + 地上**漩涡**（四条暗水臂往里旋）+ 外圈细涟漪推到判定半径。
+  - S2「必须维系的界限」：锁链环（运行时画，fx_pxplane_ul._ring）——起手从脚下扩到锚击半径，之后脚下一圈实心链环慢慢转（常驻）。
+  - S3「必须开辟的通路」：掷锚 → 咬地 → 锁链绷直一闪 → 本体沿锁链冲过去留下深海拖痕（运行时）→ 落地重击（爆闪 + 一大把水团 + 细涟漪推到判定半径）+ 冷却水花（一处处小水花依次蹦起，白 → 蓝 → 暗）。
   - 锁链回旋（成长）：地上一圈**被甩出去的水弧**（螺旋水沫，一拍一拍扫满一圈）。
   - 定点爆破（成长）：同一落点**回涌**（一圈水珠落回 + 细涟漪）。
   - 连携「掷锚」：锚钉下处**海水往锚回卷**（三道涟漪往中心收、越收越快）+ 小水花。
@@ -88,43 +88,22 @@ def ease_out(u):
 
 # ================================================================ 立起层
 
-def draw_jet(f, bx, by, out_x, hgt, w, lean, cols, top_white):
-    """一股水：从地面点 (bx, by) 往上 hgt 美术像素，顶端往外斜 lean；cols = 下 → 上的色阶"""
-    n = max(1, int(hgt))
-    for i in range(n):
-        u = i / max(1, n - 1)
-        x = bx + out_x * lean * u * u * hgt
-        y = by - i
-        ww = max(1, int(round(w * (1.0 - 0.55 * u))))
-        ci = min(len(cols) - 1, int(u * len(cols)))
-        c = cols[ci]
-        if top_white and u > 0.82:
-            c = WHITE
-        for k in range(ww):
-            xx = x + k - (ww - 1) / 2.0
-            # 受光：左侧亮一阶
-            cc = c
-            if k == 0 and ww > 1 and ci + 1 < len(cols):
-                cc = cols[ci + 1]
-            f.put(xx, y, cc)
-
-
-def star(f, fi, R, seed, up_k=1.0):
-    """命中爆闪（原作 attack_hit / skill_hit 的蓝白尖刺）：第 0 拍白芯 + 6–9 根尖刺（根部 2 格、尖 1 格，横向的压扁），第 1 拍缩一半、降一阶，第 2 拍起没有"""
+def star(f, fi, R, seed, up_k=1.0, cap=14.0):
+    """命中爆闪（原作 attack_hit / skill_hit 的蓝白尖刺）：第 0 拍白芯 + 6–8 根短直刺（根部 2 格、尖 1 格，横向的压扁），第 1 拍缩一半、降一阶，第 2 拍起没有"""
     if fi > 1:
         return
     rnd = random.Random(seed + 77)
-    k = 1.0 if fi == 0 else 0.55
-    n = rnd.randint(6, 9)
+    k = 1.0 if fi == 0 else 0.5
+    n = rnd.randint(6, 8)
     for i in range(n):
         a = (i + rnd.uniform(-0.3, 0.3)) * math.tau / n
-        L = R * rnd.uniform(0.35, 0.75) * k
+        L = min(cap, R * rnd.uniform(0.22, 0.42)) * k
         dx, dy = math.cos(a), math.sin(a) * SY
         if dy < -0.3:
-            dy *= 1.0 + 0.6 * up_k   # 往上的刺长一点（立起来）
+            dy *= 1.0 + 0.4 * up_k
         for j in range(int(L)):
             u = j / max(1.0, L)
-            c = WHITE if (u < 0.35 and fi == 0) else (C[6] if u < 0.7 else C[5])
+            c = WHITE if (u < 0.4 and fi == 0) else (C[6] if u < 0.75 else C[5])
             if fi == 1:
                 c = C[6] if u < 0.4 else C[5]
             x, y = dx * j, dy * j - 4
@@ -139,13 +118,13 @@ def star(f, fi, R, seed, up_k=1.0):
 
 
 def bubbles(f, fi, R, seed, n, t0=2):
-    """水泡（原作的标志）：3×3 小环 + 1 格高光，从水冠里慢慢往上飘、左右晃，到寿破成四个散点"""
+    """水泡（原作的标志）：3×3 小环 + 1 格高光，从落点慢慢往上飘、左右晃，到寿破成四个散点"""
     if fi < t0:
         return
     for i in range(n):
         dr = random.Random(seed * 29 + i)
         a = dr.random() * math.tau
-        r = R * dr.uniform(0.1, 0.6)
+        r = R * dr.uniform(0.1, 0.5)
         life = dr.randint(5, 8)
         age = fi - t0 - dr.randint(0, 2)
         if age < 0 or age >= life:
@@ -166,117 +145,134 @@ def bubbles(f, fi, R, seed, n, t0=2):
             f.put(x, y - 1, WHITE)
 
 
+GRAV = 1000.0   # 水团重力（美术像素 / 秒²）：重一点，飞起落回不超过约 0.4 秒（短促）
+
+
+def clumps(f, fi, R, H, n, seed, cone=1.0, t_delay=0.0):
+    """短促、不规则的水团：每团是一小坨 2–4 格的不规则水（顶亮底暗），按抛物线飞起落回，越飞越小；
+    落地处摊成一小片白沫、再降阶成一点暗水。水平速度按「落点不出 R」夹住。cone < 1 时往上收（S1 的一束）"""
+    t = fi / FPS - t_delay
+    if t < 0:
+        return
+    for j in range(n):
+        dr = random.Random(seed * 53 + j)
+        a = dr.random() * math.tau
+        rr = R * dr.uniform(0.1, 0.45) * cone
+        hp = H * dr.uniform(0.3, 1.0)
+        vz = math.sqrt(2 * GRAV * max(1.0, hp))
+        tmax = 2 * vz / GRAV
+        vh = min(dr.uniform(18, 46) * cone, (R * 0.98 - rr) / tmax)
+        d0 = dr.uniform(0.0, 0.05)
+        tt = t - d0
+        if tt < 0:
+            continue
+        dist = rr + vh * tt
+        x, y = math.cos(a) * dist, math.sin(a) * dist * SY
+        z = vz * tt - 0.5 * GRAV * tt * tt
+        if z > 0:
+            s = max(1, int(round(dr.uniform(2.0, 3.6) * (1.0 - 0.6 * tt / tmax))))
+            for px in range(-s, s + 1):
+                for py in range(-s, s + 1):
+                    if px * px + py * py > s * s + 0.5:
+                        continue
+                    if s >= 2 and h1(px * 3.1 + py * 7.7 + j + fi * 0.3) < 0.25:   # 边缘缺几格，不规则
+                        continue
+                    ci = 6 if py < 0 else (5 if py == 0 else 4)
+                    if fi <= 1 and py < 0:
+                        ci = 7
+                    if px < 0 and py <= 0:
+                        ci = min(7, ci + 1)   # 左上受光
+                    f.put(x + px, y - z + py, C[ci])
+            if s >= 2 and dr.random() < 0.6:   # 甩出的单颗水滴
+                f.put(x - math.cos(a) * (s + 2), y - z + s + 1, C[5])
+        else:
+            land = tt - tmax
+            if land < 0.12:
+                for q in (-1, 0, 1):
+                    f.put(x + q, y, FOAM if q == 0 else C[5])
+            elif land < 0.36:
+                f.put(x, y, C[3])
+
+
+def skirt(f, fi, R, seed):
+    """贴地一圈很矮的水裙（1–3 格），只在第 1–2 拍，断口多，顶上白沫"""
+    if fi not in (1, 2):
+        return
+    rr = R * (0.3 + 0.06 * fi)
+    for a, x, y in ellipse_pts(rr):
+        if vn(a * 3.0 + seed) < 0.4:
+            continue
+        hh = 1 + int(2.5 * vn(a * 5.0 + seed * 1.3)) - (fi - 1)
+        for z in range(max(1, hh)):
+            f.put(x, y - z, C[4] if z == 0 else C[5])
+        f.put(x, y - max(1, hh), FOAM)
+
+
 def crown(f, fi, R, H, nj, seed, tier, flash=True):
-    """锚落点水冠：第 0–1 拍尖刺爆闪；1–3 拍一圈参差的水裙冲起（顶边白沫、近半圈亮、断口多）、上面几股水舌往外斜；
-    4 拍起水裙塌下、水舌碎成水珠落回；之后水泡往上飘"""
-    rnd = random.Random(seed)
+    """锚落点水花（11-05 用户第二轮「水花有点太像触手」后改）：第 0–1 拍尖刺爆闪 + 一圈很矮的水裙，
+    主体是一把短促、不规则的水团往外飞起落回（不画细长弯曲的水舌）；落地成白沫点；之后水泡往上飘"""
     if flash:
         star(f, fi, R, seed)
-    t = fi / FPS
-    rise = 0.12 + 0.02 * tier
-    rr0 = R * 0.5
-    if 1 <= fi <= 3:   # 水裙：矮、断口多（主角是水舌），第 3 拍塌一半、第 4 拍没了，不留一圈「碗边」
-        u = ease_out(fi / 2.0) if fi <= 2 else 0.45
-        n = max(30, int(rr0 * 7))
-        pts = []
-        for i in range(n):
-            a = math.tau * i / n
-            if vn(a * 3.0 + seed) < 0.36:   # 断口
-                continue
-            hh = H * 0.3 * u * (0.45 + 0.9 * vn(a * 4.0 + seed * 1.7))
-            rr = rr0 * (1.0 + 0.15 * (fi / 6.0))
-            pts.append((math.sin(a), a, rr, hh))
-        pts.sort()
-        for (_s, a, rr, hh) in pts:
-            bx, by = math.cos(a) * rr, math.sin(a) * rr * SY
-            far = math.sin(a) < 0
-            lean = math.cos(a) * 0.35
-            for z in range(int(hh)):
-                v = z / max(1.0, hh)
-                ci = (2 + int(v * 3)) if far else (3 + int(v * 3))
-                if z >= int(hh) - 1:
-                    ci = 6 if fi <= 3 else 5
-                if math.cos(a) < -0.3 and not far:
-                    ci = min(7, ci + 1)
-                f.put(bx + lean * z, by - z, C[min(7, ci)])
-    jets = []
-    a0 = rnd.random() * math.tau
-    for j in range(nj):
-        a = a0 + math.tau * (j + rnd.uniform(-0.3, 0.3)) / nj
-        if rnd.random() < 0.3:
-            continue
-        rr = rr0 * rnd.uniform(0.85, 1.15)
-        jets.append((a, rr, rnd.uniform(0.55, 1.0), rnd.choice([2, 3, 3]), rnd.uniform(0.35, 0.7)))
-    jets.sort(key=lambda q: math.sin(q[0]))
-    for (a, rr, hk, w, lean) in jets:
-        if fi == 0:
-            continue
-        bx, by = math.cos(a) * rr, math.sin(a) * rr * SY
-        hmax = H * hk
-        far = math.sin(a) < 0
-        cols = [C[3], C[4], C[5], C[6]] if far else [C[4], C[5], C[6], C[6]]
-        T = rise + 1.0 / FPS
-        if t <= T:
-            draw_jet(f, bx, by, math.cos(a), hmax * ease_out(t / T), w, lean, cols, fi <= 2)
-        else:
-            tt = t - T
-            hh = hmax * max(0.0, 1.0 - tt / 0.2) ** 1.5
-            if hh >= 2:
-                draw_jet(f, bx, by, math.cos(a), hh, max(1, w - 1), lean, cols[:-1], False)
-            for d in range(2 + int(hk * 3)):
-                dr = random.Random(seed * 131 + int(a * 1000) + d)
-                vx = math.cos(a) * dr.uniform(10, 26) + dr.uniform(-5, 5)   # 水珠落回不出判定圈（画面 ≤ 判定 × 1.1）
-                vy0 = dr.uniform(5, 30)
-                x = bx + math.cos(a) * lean * hmax + vx * tt
-                z = hmax * dr.uniform(0.75, 1.0) + vy0 * tt - 0.5 * 300 * tt * tt
-                y = by + math.sin(a) * SY * abs(vx) * 0.4 * tt
-                if z > 0:
-                    f.put(x, y - z, FOAM if d % 3 == 0 else C[5])
-                    f.put(x, y - z + 1, C[4])
-                elif tt < 0.45:
-                    f.put(x, y, C[3])
-                    f.put(x + 1, y, C[2])
+    skirt(f, fi, R, seed)
+    clumps(f, fi, R, H, nj, seed)
     bubbles(f, fi, R, seed, int(3 + tier * 2 + R // 20))
 
 
 def column(f, fi, Wd, H, seed):
-    """S1 重砸：一团水从地面炸起（越往上越散开的不规则水团，不是柱子），顶上分成几根水舌往外翻、碎成水珠；0.5 秒塌完"""
-    rnd = random.Random(seed)
-    t = fi / FPS
+    """S1 重砸：一大团水从落点往上炸（水团都往上收成一束、个头大），不是柱子也不是细条；落回成白沫点"""
     star(f, fi, Wd * 2.2, seed, 1.6)
-    rise = 0.14
     if fi == 0:
         return
-    hh = H * ease_out(t / rise) if t <= rise else H * max(0.0, 1.0 - (t - rise) / 0.28) ** 1.3
-    # 一束五六股水从落点炸起（底窄、往上散开、高低不齐），不是一根柱子
-    for k in range(6):
-        dr = random.Random(seed * 11 + k)
-        a = (k - 2.5) * 0.32 + dr.uniform(-0.1, 0.1)
-        hk = dr.uniform(0.55, 1.0) if k not in (2, 3) else 1.0
-        bx = (k - 2.5) * 1.2
-        cols = [C[4], C[5], C[6], C[6]] if k % 2 == 0 else [C[3], C[4], C[5], C[6]]
-        draw_jet(f, bx, 0, math.sin(a) * 2.2, hh * hk, 3 if k in (2, 3) else 2, abs(math.sin(a)) * 0.9 + 0.05, cols, fi <= 2)
-    if t > 0.05:
-        tt = t - 0.05
-        for k in range(5):
-            ang = -math.pi / 2 + (k - 2) * 0.5 + rnd.uniform(-0.15, 0.15)
-            L = min(1.0, tt / 0.16) * rnd.uniform(8, 15)
-            for i in range(int(L)):
-                u = i / max(1.0, L)
-                x = math.cos(ang) * i * 1.3
-                y = -hh + math.sin(ang) * i + 0.07 * i * i
-                f.put(x, y, FOAM if u > 0.4 else C[5])
-                if u < 0.5:
-                    f.put(x + 1, y, C[5])
-            if tt > 0.1:
-                for d in range(3):
-                    dr = random.Random(seed * 7 + k * 13 + d)
-                    t2 = tt - 0.1
-                    x = math.cos(ang) * (L * 1.3 + dr.uniform(10, 30) * t2 * 4)
-                    z = hh - math.sin(ang) * L + dr.uniform(0, 20) * t2 - 0.5 * 320 * t2 * t2
-                    if z > 0:
-                        f.put(x, -z, FOAM if d == 0 else C[5])
+    clumps(f, fi, Wd * 1.6, H, 14, seed + 5, cone=0.45)
+    clumps(f, fi, Wd * 1.6, H * 0.6, 8, seed + 9, cone=0.8, t_delay=0.03)
     bubbles(f, fi, Wd * 2, seed, 5, t0=3)
+
+
+def cool_spots(R, seed, n=14):
+    rnd = random.Random(seed + 31)
+    out = []
+    for i in range(n):
+        a = rnd.random() * math.tau
+        r = R * math.sqrt(rnd.uniform(0.15, 0.85))
+        out.append((math.cos(a) * r, math.sin(a) * r * SY, rnd.randint(1, 6)))
+    return out
+
+
+def s3_impact_up(f, fi, R, seed):
+    """S3 落地重击（立起）：大爆闪 + 一大把水团（落点不出判定）+ 之后冷却水花：判定圈里一处处小水花依次蹦起（白 → 蓝 → 暗）"""
+    star(f, fi, R * 1.4, seed, 1.2, 24.0)
+    skirt(f, fi, R * 0.7, seed)
+    clumps(f, fi, R, 28, 40, seed)
+    clumps(f, fi, R * 0.5, 20, 14, seed + 3)
+    for (x, y, d) in cool_spots(R, seed):
+        age = fi - d
+        if age < 0 or age > 3:
+            continue
+        hh = [3, 4, 2, 1][age]
+        c = [WHITE, C[6], C[5], C[4]][age]
+        for z in range(hh):
+            f.put(x, y - z - 1, c if z == hh - 1 else C[5])
+        if age <= 1:
+            f.put(x - 1, y - hh, C[5])
+            f.put(x + 1, y - hh, C[5])
+
+
+def s3_impact_gd(f, fi, R, seed):
+    """S3 落地重击（贴地）：前三拍深色湿印，一道细涟漪推到判定半径；冷却水花落地处白沫斑，白 → 蓝 → 暗、一拍一拍冷下去"""
+    if fi <= 2:
+        blob(f, R * 0.3, seed, [C[3], C[2], C[1]] if fi == 0 else [C[2], C[1]], 1.0)
+    ripple(f, fi, R, seed, n_beats=8, r0=0.3, gap=0.3)
+    for (x, y, d) in cool_spots(R, seed):
+        age = fi - d
+        if age < 0 or age > 7:
+            continue
+        c = [WHITE, FOAM, FOAM, C[5], C[5], C[4], C[3], C[2]][age]
+        r = 1 if age < 2 else 2
+        for q in range(-r, r + 1):
+            f.put(x + q, y, c)
+        if age < 4:
+            f.put(x, y - 1, c)
+            f.put(x, y + 1, C[4])
 
 
 def spray_low(f, fi, R, seed, n=10):
@@ -412,71 +408,6 @@ def whirl_gd(f, fi, R, seed):
             f.put(math.cos(a) * (r - 1.5), math.sin(a) * (r - 1.5) * SY, C[3], over=False)
 
 
-def chain_ring(f, fi, R, seed, tier):
-    """S2 起手：锁链在脚下盘成一圈（从正前方开始一节节亮起，5 拍绕满），之后冷却、10 拍后淡掉；精二多一道跑圈的冷光"""
-    if fi >= 13:
-        return
-    n = int(math.tau * R / 4.0)
-    shown = n * min(1.0, (fi + 1) / 5.0)
-    for i in range(n):
-        if i > shown:
-            break
-        a = math.pi / 2 + math.tau * i / n
-        x, y = round(math.cos(a) * R), round(math.sin(a) * R * SY)
-        age = (shown - i) / max(1.0, n) * 5.0 + max(0, fi - 4)
-        hot = age < 1.0
-        if fi >= 10:
-            body, hi = DUST[1], DUST[2]
-        elif hot:
-            body, hi = DUST[5], WHITE
-        else:
-            body, hi = DUST[3], DUST[5]
-        tx, ty = -math.sin(a), math.cos(a) * SY   # 切向
-        if i % 2 == 0:   # 正面链节：4×3 的扁环（中间空）
-            for q in ((-2, 0), (2, 0), (-1, -1), (0, -1), (1, -1), (-1, 1), (0, 1), (1, 1)):
-                px = x + q[0] * (1 if abs(tx) > 0.5 else 0) + q[1] * (0 if abs(tx) > 0.5 else 1) * 0
-                f.put(x + q[0], y + q[1], hi if q[1] < 0 else body)
-            f.put(x, y + 2, DUST[0], over=False)
-        else:            # 侧面链节：一横 3 格
-            for q in (-1, 0, 1):
-                f.put(x + q, y, body)
-            f.put(x, y - 1, hi if hot else DUST[2])
-            f.put(x, y + 1, DUST[0], over=False)
-    if tier >= 2 and 3 <= fi < 11:
-        k = (fi - 3) / 7.0
-        for j in range(5):
-            a = math.pi / 2 + math.tau * (k - j * 0.012)
-            f.put(math.cos(a) * R, math.sin(a) * R * SY - 1, WHITE if j == 0 else C[6])
-    # 内侧一圈淡水痕（2 格暗边，界限的内沿）
-    if fi < 10:
-        for a, x, y in ellipse_pts(R - 3):
-            if vn(a * 4 + seed) < 0.45:
-                continue
-            f.put(x, y, C[2] if fi < 7 else C[1], over=False)
-
-
-def vortex_gd(f, fi, R, seed):
-    """S3 落地漩涡：四条暗水臂往里旋（白沫顶边），外圈细涟漪推到 R"""
-    life = 12
-    if fi >= life:
-        return
-    rot = fi * 0.45
-    fade = max(0, fi - 7)
-    for arm in range(4):
-        for s in range(int(R * 1.4)):
-            v = s / (R * 1.4)
-            a = arm * math.tau / 4 + rot + v * 3.4
-            r = R * 0.85 * (1.0 - v * 0.9)
-            x, y = math.cos(a) * r, math.sin(a) * r * SY
-            if fade >= 4:
-                continue
-            f.put(x, y, [C[1], C[1], C[0], C[0]][fade])
-            f.put(x * 0.96, y * 0.96, [C[2], C[1], C[1], C[0]][fade], over=False)
-            if s % 4 == 0 and fade < 2:
-                f.put(x * 1.04, y * 1.04, FOAM if fi < 3 else C[5])
-    ripple(f, fi, R, seed, n_beats=9, r0=0.35, gap=0.3)
-
-
 def inward(f, fi, R, seed):
     """连携掷锚：三道涟漪从外往锚收（越收越快），每道白沫断续；第 9 拍收完"""
     for k in range(3):
@@ -501,7 +432,7 @@ def variants():
     # 普攻锚击：判定半径 reach 89 / S2 后 105 × 1.3 = 136；late_shape 近战扩域每档 +15%（→ 约 110 / 170）。按 44 / 56 / 68 / 84 四档预生成
     for R in (44, 56, 68, 84):
         for el in (0, 1, 2):
-            v.append(("atk_r%d_e%d_up" % (R, el), "crown", {"R": R, "H": int(R * (0.62 + 0.1 * el)), "nj": 10 + 2 * el + R // 14, "tier": el, "seed": 11 + R + el}, 9, "up"))
+            v.append(("atk_r%d_e%d_up" % (R, el), "crown", {"R": R, "H": int(R * (0.42 + 0.06 * el)), "nj": 14 + 3 * el + R // 10, "tier": el, "seed": 11 + R + el}, 9, "up"))
             v.append(("atk_r%d_e%d_gd" % (R, el), "splat", {"R": R, "tier": el, "pull": R * 1.43 if el >= 1 else 0.0, "seed": 21 + R}, 9, "gd"))
     # 撼地（每一下普攻以自身为心 quake_r 150 / 精二 180；late_shape 放大）：细涟漪
     for R in (75, 90, 105, 125):
@@ -524,13 +455,10 @@ def variants():
         for el in (0, 1, 2):
             v.append(("s1_r%d_e%d_up" % (R, el), "s1", {"R": R, "H": 30 + 6 * el + R // 6, "tier": el, "seed": 71 + R + el}, 10, "up"))
             v.append(("s1_r%d_e%d_gd" % (R, el), "splat", {"R": R, "tier": el, "pull": 0.0, "seed": 73 + R}, 9, "gd"))
-    # S2 起手（锁链界限：半径 = 生效后的锚击半径 136 → 68）
-    for el in (1, 2):
-        v.append(("s2_e%d_gd" % el, "ring", {"R": 68, "tier": el, "seed": 81}, 13, "gd"))
-        v.append(("s2_e%d_up" % el, "s2up", {"tier": el, "seed": 83}, 9, "up"))
+    # S2 锁链界限：运行时画（fx_pxplane_ul._ring，会转），没有帧条
     # S3 落地（s3_r 140 → 70）
-    v.append(("s3_up", "crown", {"R": 70, "H": 50, "nj": 24, "tier": 2, "seed": 91}, 10, "up"))
-    v.append(("s3_gd", "vortex", {"R": 70, "seed": 93}, 12, "gd"))
+    v.append(("s3_up", "s3up", {"R": 70, "H": 40, "seed": 91}, 12, "up"))
+    v.append(("s3_gd", "s3gd", {"R": 70, "seed": 91}, 14, "gd"))
     # 连携掷锚钉下（拖 180 内的小怪 → 90）
     v.append(("pin_gd", "inward", {"R": 90, "seed": 97}, 10, "gd"))
     return v
@@ -538,13 +466,11 @@ def variants():
 
 def size_of(kind, p):
     R = p.get("R", 10)
-    if kind in ("crown", "s1"):
+    if kind in ("crown", "s1", "s3up"):
         H = p.get("H", 20) + 30
         return int(R * 2 + 70), int(H + R * SY + 16), int(R + 35), int(H + 2)
     if kind == "spray":
         return int(R * 2 + 12), int(R * SY * 2 + 40), int(R + 6), int(R * SY + 34)
-    if kind == "s2up":
-        return 50, 60, 25, 52
     pr = p.get("pull", 0.0) or 0.0
     RR = max(R, pr) * (1.5 if kind == "whirl" else 1.0) + 6
     return int(RR * 2 + 4), int(RR * SY * 2 + 6), int(RR + 2), int(RR * SY + 3)
@@ -570,12 +496,10 @@ def render(kind, p, n):
             spray_low(f, fi, p["R"], p["seed"], p["n"])
         elif kind == "whirl":
             whirl_gd(f, fi, p["R"], p["seed"])
-        elif kind == "ring":
-            chain_ring(f, fi, p["R"], p["seed"], p["tier"])
-        elif kind == "s2up":
-            column(f, fi, 5 + p["tier"], 22 + 4 * p["tier"], p["seed"])
-        elif kind == "vortex":
-            vortex_gd(f, fi, p["R"], p["seed"])
+        elif kind == "s3up":
+            s3_impact_up(f, fi, p["R"], p["seed"])
+        elif kind == "s3gd":
+            s3_impact_gd(f, fi, p["R"], p["seed"])
         elif kind == "inward":
             inward(f, fi, p["R"], p["seed"])
         frames.append(f.a)

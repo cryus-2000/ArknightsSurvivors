@@ -155,7 +155,11 @@ def chain(cv, a, b, taut, tier, thin, T):
         m = i % 4
         body = DUST[4] if taut > 0 else DUST[3]
         hi = DUST[5] if taut > 0 else DUST[4]
-        if abs(i - glint) <= 1:
+        if taut == 3:
+            body, hi = C[6], C[7]
+            if i % 3 == 0:
+                cv.glow(p, C[6])
+        elif abs(i - glint) <= 1:
             body, hi = C[6], C[7]
             cv.glow(p, C[6])
         elif tier >= 2 and m == 2 and (i // 4 + beat) % 5 == 0:
@@ -187,6 +191,82 @@ def vwake(cv, frm, to, w, fade, sd):
             cv.px((p[0] - nv[0] * spread * PX, p[1] - nv[1] * spread * PX), foam if h_(i * 1.3 + sd) > 0.25 else C[5])
         if i % 2 == 0:
             cv.px(p, dark)
+
+
+def trail(cv, a, b_full, age, dur, cool_t=0.8):
+    """S3 深海拖痕（抄 fx_pxplane_ul._draw_zip）"""
+    k = min(1.0, max(0.0, age / max(0.001, dur)))
+    b = lerp(a, b_full, k * k)
+    L = math.hypot(b[0] - a[0], b[1] - a[1])
+    if L < 4:
+        return
+    d = ((b[0] - a[0]) / L, (b[1] - a[1]) / L)
+    nv = norm((-d[1], d[0] * SY))
+    cool = max(0.0, age - dur) / cool_t
+    n = int(L / PX)
+    for i in range(n):
+        p = (a[0] + d[0] * i * PX, a[1] + d[1] * i * PX)
+        fresh = (n - i) < 8 and cool <= 0
+        if h_(i * 0.61 + 2.3) < cool * 1.2 - 0.2:
+            continue
+        cv.px(p, C[0] if cool < 0.6 else C[1])
+        if cool < 0.75:
+            cv.px((p[0] + nv[0] * PX, p[1] + nv[1] * PX), C[1])
+            cv.px((p[0] - nv[0] * PX, p[1] - nv[1] * PX), C[1])
+        if cool < 0.45 and h_(i * 0.37 + 5.1) > 0.3:
+            cv.px((p[0] + nv[0] * 2 * PX, p[1] + nv[1] * 2 * PX), C[5] if fresh else C[2])
+        if cool < 0.45 and h_(i * 0.83 + 1.7) > 0.3:
+            cv.px((p[0] - nv[0] * 2 * PX, p[1] - nv[1] * 2 * PX), C[6] if fresh else C[3])
+
+
+def ring(cv, c, R, rot, tone, tier, T):
+    """S2 锁链环（抄 fx_pxplane_ul._ring）"""
+    n = max(8, int(math.tau * R / 5.0))
+    body = DUST[4] if tone == 1 else DUST[3]
+    hi = DUST[5] if tone == 1 else DUST[4]
+    gl = int(math.floor(T * 15)) % n if tier >= 2 else -1
+    for i in range(n):
+        a = rot + math.tau * i / n
+        p = snap((c[0] + math.cos(a) * R * PX, c[1] + math.sin(a) * R * SY * PX))
+        h2 = hi
+        if i == gl:
+            h2 = C[6]
+            cv.glow((p[0], p[1] - PX), C[6])
+        if i % 2 == 0:
+            for x in (-1, 0, 1):
+                cv.px((p[0] + x * PX, p[1]), body)
+                cv.px((p[0] + x * PX, p[1] - PX), h2)
+            cv.px((p[0], p[1] + PX), DUST[0])
+        else:
+            cv.px(p, DUST[2])
+            cv.px((p[0], p[1] - PX), body)
+
+
+def qib(cv, c, v, tier, gone, sd, brk=0.17):
+    """后期冲击波原地碎开（抄 fx_pxplane_ul._draw_qib）：先站一下，再塌成水点"""
+    if gone < 0.0 or gone > brk + 0.015:
+        return
+    u = gone / brk
+    if u < 0.45:
+        crest(cv, snap(c), norm(v), tier, False, sd, 1.0 - u * 0.6, False)
+        return
+    d = norm(v)
+    nv = norm((-d[1], d[0] * SY))
+    c = snap(c)
+    half = 12 + 3 * tier
+    v2 = (u - 0.45) / 0.55
+    for s_ in range(-half, half + 1):
+        w = 1.0 - (s_ / half) ** 2
+        hs = h_(s_ * 1.7 + sd)
+        base = (c[0] + nv[0] * s_ * PX + d[0] * v2 * 6 * hs * PX, c[1] + nv[1] * s_ * PX + d[1] * v2 * 6 * hs * PX)
+        cv.px(base, C[1] if v2 < 0.6 else C[0])
+        if hs < v2 * 0.8:
+            continue
+        z = (6.0 + 3.0 * tier) * w * (1 - v2) * (0.6 + 0.4 * hs)
+        top = (base[0], base[1] - z * PX)
+        cv.px(top, C[6] if v2 < 0.5 else C[5])
+        if w > 0.5:
+            cv.px((top[0] + PX, top[1]), C[5])
 
 
 def rift(cv, a, b, age, sd):
@@ -232,32 +312,31 @@ def bub(cv, a, age, sd):
 
 
 def qi(cv, c, v, tier, hot, dying, sd, T):
-    d = norm(v)
+    crest(cv, snap(c), norm(v), tier, hot, sd, 1.0, True)
+
+
+def crest(cv, c, d, tier, hot, sd, k, wake):
+    """抄 fx_pxplane_ul._crest"""
     nv = norm((-d[1], d[0] * SY))
-    c = snap(c)
-    half = 9 + 3 * tier
-    Hh = 7.0 + 3.0 * tier
-    th = 3 + tier
+    half = 12 + 3 * tier
+    Hh = (9.0 + 3.0 * tier) * k
+    th = 5 + tier
     for s in range(-half, half + 1):
         u = s / half
         hh0 = Hh * (1 - u * u) * (0.75 + 0.5 * h_(s * 0.7 + sd))
-        if dying:
-            if h_(s * 1.9 + sd + int(T * 15)) > 0.45:
-                cv.px((c[0] + nv[0] * s * PX, c[1] + nv[1] * s * PX - hh0 * 0.5 * PX), C[5])
-            continue
         for j in range(th - 1, -1, -1):
             base = (c[0] + nv[0] * s * PX - d[0] * j * PX, c[1] + nv[1] * s * PX - d[1] * j * PX)
             hh = int(round(hh0 * (1.0 - 0.6 * j / th)))
             cv.px(base, C[1])
             for z in range(hh):
-                col = C[4] if j == 0 else (C[3] if j < th - 1 else C[2])
+                col = (C[6] if z >= hh - 2 else C[5]) if j == 0 else (C[4] if j < th - 2 else C[3])
                 cv.px((base[0], base[1] - (z + 1) * PX), col)
-            if j == 0:
+            if j == 0 and hh > 0:
                 top = (base[0], base[1] - (hh + 1) * PX)
-                cv.px(top, C[7] if hot else C[6])
-                if hot and abs(s) * 2 < half:
+                cv.px(top, C[7])
+                if abs(s) * 2 < half and (hot or s % 2 == 0):
                     cv.glow(top, C[6])
-    if not dying:
+    if wake:
         for j in range(th + 1, th + 12):
             p = (c[0] - d[0] * j * PX, c[1] - d[1] * j * PX)
             w = half * (1.0 - (j - th) / 14.0)
@@ -534,8 +613,18 @@ def sc_s1_branch(kind):
 
 def sc_s2(tier):
     sc = Scene(tier, 1.8, (0, -10))
-    sc.strip("s2_e%d_gd" % tier, 0.1, (0, 0), "gd")
-    sc.strip("s2_e%d_up" % tier, 0.1, (0, 2), "up")
+    t0 = 0.1
+
+    def ringfn(cv, T):
+        age = T - t0
+        if age < 0:
+            return
+        if age < 0.9:   # 起手：从脚下扩到锚击半径再收回
+            u = min(1.0, age / 0.33)
+            rr = 24 + (68 - 24) * (1 - (1 - u) ** 2) if age < 0.55 else 68 + (24 - 68) * min(1.0, (age - 0.55) / 0.3)
+            ring(cv, (0, 2), rr, math.floor(T * 15) * 0.09, 1 if age < 0.55 else 0, tier, T)
+        ring(cv, (0, 2), 24, math.floor(T * 15) * 0.02, 0, tier, T)   # 常驻
+    sc.items.append({"ly": "rt_gd", "t0": 0.0, "fn": ringfn})
     sc.pair("atk_r68_e%d" % tier, 1.0, (75, 0))
     sc.strip("quake_r%d_gd" % (90 if tier >= 2 else 75), 1.0, (0, 0), "gd")
     for p in ((96, -12), (60, 16), (120, 20), (-80, 30)):
@@ -554,7 +643,7 @@ def sc_s3():
     dur = min(0.34, max(0.14, math.hypot(*land) / 1100.0))
     tl = tb + dur
     sc.pair("bite_r22", tb, to)
-    sc.items.append({"ly": "rt_gd", "t0": tb, "fn": lambda cv, T: vwake(cv, (0, 0), lerp((0, 0), land, min(1, (T - tb) / dur) ** 2), 3, 0 if T < tl else (1 if T < tl + 0.2 else 2), 3.7) if T < tl + 0.45 else None})
+    sc.items.append({"ly": "rt_gd", "t0": tb, "fn": lambda cv, T: trail(cv, (0, 0), land, T - tb, dur) if T < tl + 0.8 else None})
     sc.strip("s3_up", tl, land, "up")
     sc.strip("s3_gd", tl, land, "gd")
     for p in ((80, -14), (140, -10), (236, -16), (200, 4), (270, -50), (180, -56)):
@@ -577,7 +666,7 @@ def sc_s3():
             draw_anchor(cv, pa, d)
         elif tb <= T < tl:
             pz = (to[0], to[1] - 6)
-            chain(cv, hand, pz, 2, 2, False, T)
+            chain(cv, hand, pz, 3 if T - tb < 0.1 else 2, 2, False, T)
             draw_anchor(cv, pz, d)
     sc.overs.append(over)
     return sc
@@ -698,7 +787,7 @@ def sc_qi(tier):
     t0 = 0.1
     for p in ((150, -6), (190, 6), (60, 14)):   # 只画冲击波本身（同一下的锚击水冠见 atk，叠在一起看不清冲击波）
         sc.enemies.append(static_enemy(p))
-    v = (420.0, -160.0)   # 斜着走，看得出浪身厚度
+    v = (500.0, -60.0)
 
     def fn(cv, T):
         age = T - t0
@@ -708,7 +797,14 @@ def sc_qi(tier):
         a2 = max(0.0, tick - t0)
         p = (skip + v[0] * a2 * 0.995, v[1] * a2 * 0.995 * (skip and 1))
         qi(cv, p, v, tier, age < 1 / 15.0, life - age < 0.07, 0.3, T)
+
+    def fnb(cv, T):   # 玩法上消失后原地碎开
+        tick_end = math.floor((t0 + life) * 15) / 15.0
+        a2 = max(0.0, tick_end - t0)
+        p = (skip + v[0] * a2 * 0.995, v[1] * a2 * 0.995)
+        qib(cv, p, v, tier, T - (t0 + life), 0.47)   # 玩法上没了以后原地再立 0.17 秒
     sc.items.append({"ly": "rt_up", "t0": t0, "gy": 0.5, "fn": fn})
+    sc.items.append({"ly": "rt_up", "t0": t0, "gy": 0.6, "fn": fnb})
     return sc
 
 
@@ -716,8 +812,8 @@ SCENES = {
     "atk": ("普攻锚击", [("E0", lambda: sc_atk(0)), ("E1 收链", lambda: sc_atk(1)), ("E2 暗涡", lambda: sc_atk(2))]),
     "s1": ("S1 必须促成的接触", [("E0", lambda: sc_s1(0)), ("E1 拖拽水沟", lambda: sc_s1(1)), ("E2", lambda: sc_s1(2))]),
     "s1_branch": ("S1 分支", [("通路洞开", lambda: sc_s1_branch("rift")), ("不容挣脱 + 绞杀", lambda: sc_s1_branch("leash"))]),
-    "s2": ("S2 必须维系的界限", [("E1", lambda: sc_s2(1)), ("E2", lambda: sc_s2(2))]),
-    "s3": ("S3 必须开辟的通路", [("E2", sc_s3)]),
+    "s2": ("S2 必须维系的界限", [("E1", lambda: sc_s2(1)), ("E2 冷光", lambda: sc_s2(2))]),
+    "s3": ("S3 必须开辟的通路（冲锋）", [("E2", sc_s3)]),
     "e2throw": ("精二掷锚 / 锚链应答", [("E2", sc_e2throw)]),
     "nodes": ("成长", [("锁链回旋", lambda: sc_nodes("whirl")), ("定点爆破", lambda: sc_nodes("blast"))]),
     "qi": ("后期冲击波（late_shape）", [("E0", lambda: sc_qi(0)), ("E1", lambda: sc_qi(1)), ("E2", lambda: sc_qi(2))]),

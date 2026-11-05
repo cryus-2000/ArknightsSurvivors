@@ -22,6 +22,11 @@ const S1_R := [45, 56, 68]
 const WHIRL_R := [65, 78]
 const WAKE_TAIL := 0.4
 const RIFT_LIFE := 0.8
+const S2_OPEN := 0.9      # S2 起手链环从脚下扩到锚击半径再收回的时长
+const S2_RING := 24.0     # 常驻链环半径（美术像素，= 48 世界像素，在精二血脉环 30 外面）
+const S2_REACH := 68.0    # 起手链环扩到的半径（生效后的锚击半径 136）
+const TRAIL_COOL := 0.8   # S3 深海拖痕落地后冷却的时长
+const QI_BREAK := 0.17    # 后期冲击波玩法上消失后，原地碎开的时长（总可见约 0.35 秒）
 const SLAM_KEEP := 2   # 同一名干员同屏至多两记锚击水冠（最新 + 正在收的）
 
 static var _SegU = null
@@ -138,8 +143,8 @@ static func ev(r, o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dicti
 			_trim_slams(r, o)
 			_pair(r, o, "s1_r%d_e%d" % [_bucket(float(d.r) * 0.5, S1_R), t], c1, false, {"ulslam": true})
 			_burst(r, o, R, p, c1, d.get("es", []), 8 + 2 * t, 170.0, 0.65)
-		"ul_zip":   # S3 冲锋开始：V 字尾迹（落地后留一会）
-			_rt(r, o, "zip", "gd", float(d.dur) + 0.45, {"a": d.a, "b": d.b, "dur": float(d.dur), "gp": d.a})
+		"ul_zip":   # S3 冲锋开始：身后一道深海拖痕（落地后一拍一拍冷下去）
+			_rt(r, o, "zip", "gd", float(d.dur) + TRAIL_COOL, {"a": d.a, "b": d.b, "dur": float(d.dur), "gp": d.a})
 		"ul_land":
 			var c2: Vector2 = d.c
 			if d.get("s3", false):
@@ -180,11 +185,8 @@ static func ev(r, o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dicti
 				_strip(r, o, "small_r16_gd", e0.pos, "gd")
 				R._grains(o, e0.pos + Vector2(0, -6), float(e0.pos.y) + 2.0, "ink", 2 + mini(3, es2.size()), {"tier": t})
 		"skill":
-			if int(d.get("i", -1)) == 1:   # S2 必须维系的界限：锁链盘成一圈（跟着人走）+ 锚插地一小束水
-				var tt: int = maxi(t, 1)
-				_strip(r, o, "s2_e%d_gd" % tt, o.pos, "gd", true)
-				_strip(r, o, "s2_e%d_up" % tt, o.pos + Vector2(0, 2), "up", true)
-				R._grains(o, o.pos + Vector2(0, -20), o.pos.y, "ink", 5, {"tier": tt})
+			if int(d.get("i", -1)) == 1:   # S2 必须维系的界限：实心链环从脚下扩到锚击半径（跟着人走），之后脚下常驻一圈慢慢转（floor_layer）
+				_rt(r, o, "s2ring", "gd", S2_OPEN, {"gp": o.pos, "fo": Vector2.ZERO, "tier": maxi(t, 1)})
 				R._light(o, o.pos + Vector2(0, -14), 140.0, 0.45, 0.15, p.light)
 		"ul_link":   # 连携「掷锚」：锚飞 0.2 秒 → 钉住 0.5 秒（锁链绷着），被拖的小怪身后水沟
 			_rt(r, o, "link", "ov", 0.2 + 0.55, {"fp": d.fp, "tg": d.get("tg"), "tp": d.tp, "gp": d.tp})
@@ -206,6 +208,9 @@ static func floor_layer(r, o) -> void:
 	var cv = o.cv
 	var id: String = str(o.id)
 	_segu().hw_draw_look(o, "auras")
+	var t: int = r.tier(o)
+	if o.get("perm_on") is Array and o.perm_on[1]:   # S2 常驻：脚下一圈实心链环慢慢转
+		_ring(r, cv, r._snap(o.pos + Vector2(0, 2)), S2_RING, float(int(floor(g.t * 15.0))) * 0.02, 0, t)
 	for it in r.items:
 		if str(it.ly) != "gd" or str(it.oid) != id:
 			continue
@@ -215,6 +220,11 @@ static func floor_layer(r, o) -> void:
 					_draw_wake(r, cv, it)
 				"zip":
 					_draw_zip(r, cv, it)
+				"s2ring":
+					var age: float = g.t - float(it.t0)
+					var u: float = clampf(age / 0.33, 0.0, 1.0)
+					var rr: float = lerpf(S2_RING, S2_REACH, 1.0 - (1.0 - u) * (1.0 - u)) if age < 0.55 else lerpf(S2_REACH, S2_RING, clampf((age - 0.55) / 0.3, 0.0, 1.0))
+					_ring(r, cv, r._gp(it) + Vector2(0, 2), rr, float(int(floor(g.t * 15.0))) * 0.09, 1 if age < 0.55 else 0, int(it.tier))
 				"rift":
 					_draw_rift(r, cv, it)
 			continue
@@ -248,7 +258,7 @@ static func over(r, o) -> void:
 				SU._hw_draw_anchor(o, ph, -d, 1.0)
 			"zip":
 				var pz: Vector2 = (an.to as Vector2) + Vector2(0, -6)
-				chain(r, o.cv, hand, pz, 2, t, false)
+				chain(r, o.cv, hand, pz, 3 if float(an.t) < 0.1 else 2, t, false)   # 咬地后头两拍锁链绷直一闪
 				SU._hw_draw_anchor(o, pz, d, 1.0)
 				var beat: int = int(floor(g.t * 15.0))
 				if r.mode() == 1 and int(an.get("_pxb", -1)) != beat:   # 画面专用键：每拍脚下甩两颗水滴（玩法不读）
@@ -286,6 +296,17 @@ static func sort_items(r, o, out: Array) -> void:
 	for q in o.vg.qi:
 		var p: Vector2 = r._qpos(q)
 		out.append({"ulrt": "qi", "q": q, "gp": p, "skey": p.y + 1.0, "oid": str(o.id), "tier": r.tier(o)})
+		var bk = q.get("_ulb")   # 画面专用键（玩法不读）：这一道冲击波玩法上消失后原地碎开的件
+		if bk == null:
+			bk = {"ulrt": "qib", "t0": r.g.t, "life": 3.0, "ly": "up", "oid": str(o.id), "k": "", "gp": p, "gy": p.y + 1.0, "p": p, "v": q.v, "tier": r.tier(o), "seen": r.g.t, "sd": _h(p.x * 0.31 + p.y)}
+			q["_ulb"] = bk
+			r._push(bk)
+			var R = load("res://scripts/render/fx_recipe.gd").of(r.g)
+			R._light(o, p + Vector2(0, -8), 120.0, 0.55, 0.15, R.pal(o).get("light", C[5]))   # 出手一盏照地光
+		bk.p = p
+		bk.gp = p
+		bk.gy = p.y + 1.0
+		bk.seen = r.g.t
 
 
 static func draw_rt(r, ci, it: Dictionary) -> void:
@@ -294,6 +315,8 @@ static func draw_rt(r, ci, it: Dictionary) -> void:
 			_draw_qi(r, ci, it)
 		"bub":
 			_draw_bub(r, ci, it)
+		"qib":
+			_draw_qib(r, ci, it)
 
 
 # ================================================================ 运行时件（逐美术像素，2 世界像素一格；15 fps 节拍换形）
@@ -319,7 +342,12 @@ static func chain(r, ci, a: Vector2, b: Vector2, taut: int, tier: int, thin: boo
 		var m: int = i % 4
 		var body: Color = DUST[4] if taut > 0 else DUST[3]
 		var hi: Color = DUST[5] if taut > 0 else DUST[4]
-		if absi(i - glint) <= 1:
+		if taut == 3:   # 绷直一闪：整条链亮
+			body = C[6]
+			hi = C[7]
+			if i % 3 == 0:
+				r._glow(p, C[6])
+		elif absi(i - glint) <= 1:
 			body = C[6]
 			hi = C[7]
 			r._glow(p, C[6])
@@ -370,16 +398,37 @@ static func _vwake(r, ci, from: Vector2, to: Vector2, w: int, fade: int, sd: flo
 			r._px(ci, p, dark)
 
 
-## S3 冲锋尾迹：从起点到他当前位置（按玩法同一缓动 k²）的 V 字白沫 + 中间暗水，落地后降阶淡掉
+## S3 深海拖痕：从起点到他当前位置（按玩法同一缓动 k²）一道深色水带——中间最暗、两侧暗水、边上断续的水光；
+## 离他最近的一段边是白沫（新划开的），落地后整条一拍一拍冷下去（边先灭、中间最后）
 static func _draw_zip(r, ci, it: Dictionary) -> void:
 	var g = r.g
+	var px: float = g.PX
 	var age: float = g.t - float(it.t0)
 	var dur: float = float(it.dur)
 	var k: float = clampf(age / maxf(0.001, dur), 0.0, 1.0)
 	var a: Vector2 = it.a
 	var b: Vector2 = a.lerp(it.b, k * k)
-	var fade: int = 0 if age < dur else (1 if age < dur + 0.2 else 2)
-	_vwake(r, ci, a, b, 3, fade, 3.7)
+	var L: float = a.distance_to(b)
+	if L < 4.0:
+		return
+	var d: Vector2 = (b - a) / L
+	var nv := Vector2(-d.y, d.x * SY).normalized()
+	var cool: float = maxf(0.0, age - dur) / TRAIL_COOL   # 0 → 1
+	var n: int = int(L / px)
+	for i in n:
+		var p: Vector2 = a + d * float(i) * px
+		var fresh: bool = (n - i) < 8 and cool <= 0.0
+		var hs: float = _h(float(i) * 0.61 + 2.3)
+		if hs < cool * 1.2 - 0.2:
+			continue
+		r._px(ci, p, C[0] if cool < 0.6 else C[1])
+		if cool < 0.75:
+			r._px(ci, p + nv * px, C[1])
+			r._px(ci, p - nv * px, C[1])
+		if cool < 0.45 and _h(float(i) * 0.37 + 5.1) > 0.3:
+			r._px(ci, p + nv * 2.0 * px, C[5] if fresh else C[2])
+		if cool < 0.45 and _h(float(i) * 0.83 + 1.7) > 0.3:
+			r._px(ci, p - nv * 2.0 * px, C[6] if fresh else C[3])
 
 
 ## 暗流通路（通路洞开）：一道 2–3 格宽的深色水道，两侧断续白沫边，0.8 秒里先亮后冷
@@ -454,46 +503,106 @@ static func _draw_link(r, o, it: Dictionary) -> void:
 		SU._hw_draw_anchor(o, tp + Vector2(0, -6), d, 1.0)
 
 
-## 后期冲击波（锚类）：贴地往前推的一道低浪——浪脚暗水、浪身本色、浪顶一线白沫，中间高两头低；
-## 出手第一拍浪顶白（进发光层），最后 0.07 秒碎成水沫。宽 / 高按精英档
+## 后期冲击波（锚类）：贴地往前推的一道低浪——浪身厚（沿前进方向 5–7 格）、前脸亮、背坡暗，中间高两头低，浪顶一线白（进发光层），
+## 身后两道白沫拖痕。玩法上这一道只活约 0.18 秒，消失后原地再立 QI_BREAK 秒（_draw_qib：先站着、再塌成水点），总共约 0.35 秒
 static func _draw_qi(r, ci, it: Dictionary) -> void:
+	var q: Dictionary = it.q
+	var d: Vector2 = (q.v as Vector2).normalized()
+	_crest(r, ci, r._snap(it.gp), d, int(it.tier), float(q.t) < 1.0 / 15.0, float(q.get("o0", Vector2.ZERO).x) * 0.13, 1.0, true)
+
+
+static func _crest(r, ci, c: Vector2, d: Vector2, tier: int, hot: bool, sd: float, k: float, wake: bool) -> void:
 	var g = r.g
 	var px: float = g.PX
-	var q: Dictionary = it.q
-	var tier: int = int(it.tier)
-	var d: Vector2 = (q.v as Vector2).normalized()
 	var nv := Vector2(-d.y, d.x * SY).normalized()
-	var c: Vector2 = r._snap(it.gp)
-	var half: int = 9 + 3 * tier
-	var H: float = 7.0 + 3.0 * float(tier)
-	var th: int = 3 + tier   # 浪身厚度（沿前进方向）：前脸亮、背坡暗
-	var hot: bool = float(q.t) < 1.0 / 15.0
-	var dying: bool = float(q.life) < 0.07
-	var sd: float = float(q.get("o0", Vector2.ZERO).x) * 0.13
+	var half: int = 12 + 3 * tier
+	var H: float = (9.0 + 3.0 * float(tier)) * k
+	var th: int = 5 + tier
 	for s in range(-half, half + 1):
 		var u: float = float(s) / float(half)
 		var hh0: float = H * (1.0 - u * u) * (0.75 + 0.5 * _h(float(s) * 0.7 + sd))
-		if dying:
-			if _h(float(s) * 1.9 + sd + float(int(g.t * 15.0))) > 0.45:
-				r._px(ci, c + nv * float(s) * px + Vector2(0, -hh0 * 0.5 * px), C[5])
-			continue
 		for j in range(th - 1, -1, -1):
 			var base: Vector2 = c + nv * float(s) * px - d * float(j) * px
 			var hh: int = int(round(hh0 * (1.0 - 0.6 * float(j) / float(th))))
 			r._px(ci, base, C[1])
 			for z in hh:
-				var col: Color = C[4] if j == 0 else (C[3] if j < th - 1 else C[2])
+				var col: Color = (C[6] if z >= hh - 2 else C[5]) if j == 0 else (C[4] if j < th - 2 else C[3])
 				r._px(ci, base + Vector2(0, -float(z + 1) * px), col)
-			if j == 0:
+			if j == 0 and hh > 0:
 				var top: Vector2 = base + Vector2(0, -float(hh + 1) * px)
-				r._px(ci, top, C[7] if hot else C[6])
-				if hot and absi(s) * 2 < half:
+				r._px(ci, top, C[7])
+				if absi(s) * 2 < half and (hot or (s & 1) == 0):
 					r._glow(top, C[6])
-	# 身后贴地一道白沫拖痕（两拍长）
-	if not dying:
+	if wake:
 		for j in range(th + 1, th + 12):
 			var p: Vector2 = c - d * float(j) * px
 			var w: float = float(half) * (1.0 - float(j - th) / 14.0)
 			if _h(float(j) + sd) > 0.25:
 				r._px(ci, p + nv * w * px, C[5] if j < th + 6 else C[4])
 				r._px(ci, p - nv * w * px, C[5] if j < th + 6 else C[4])
+
+
+## 锁链环（S2）：沿压扁的圈每 5 格一节，正面链节 = 3×2 实心块（上一排亮、下面一格暗影），侧面链节 = 一竖两格；
+## rot 按 15 fps 节拍转；tone 0 常驻（暗、低调）/ 1 起手（亮）；精二一节冷光沿圈跑（进发光层）
+static func _ring(r, ci, c: Vector2, R: float, rot: float, tone: int, tier: int) -> void:
+	var g = r.g
+	var px: float = g.PX
+	var n: int = maxi(8, int(TAU * R / 5.0))
+	var body: Color = DUST[4] if tone == 1 else DUST[3]
+	var hi: Color = DUST[5] if tone == 1 else DUST[4]
+	var gl: int = posmod(int(floor(g.t * 15.0)), n) if tier >= 2 else -1
+	for i in n:
+		var a: float = rot + TAU * float(i) / float(n)
+		var p: Vector2 = r._snap(c + Vector2(cos(a) * R, sin(a) * R * SY) * px)
+		var h2: Color = hi
+		if i == gl:
+			h2 = C[6]
+			r._glow(p + Vector2(0, -px), C[6])
+		if i % 2 == 0:
+			for x in [-1, 0, 1]:
+				r._px(ci, p + Vector2(x * px, 0), body)
+				r._px(ci, p + Vector2(x * px, -px), h2)
+			r._px(ci, p + Vector2(0, px), DUST[0])
+		else:
+			r._px(ci, p, DUST[2])
+			r._px(ci, p + Vector2(0, -px), body)
+
+
+## 后期冲击波玩法上消失后原地碎开（QI_BREAK 秒）：浪顶塌成一排白沫水点往前落，浪脚一摊暗水，照地光一盏
+static func _draw_qib(r, ci, it: Dictionary) -> void:
+	var g = r.g
+	var px: float = g.PX
+	var gone: float = g.t - float(it.seen)
+	if gone < 0.015:   # 这一道还活着（sort_items 每帧更新 seen）
+		return
+	if gone > QI_BREAK + 0.015:
+		it["life"] = 0.0
+		return
+	if not it.get("lit", false):
+		it["lit"] = true
+		var R = load("res://scripts/render/fx_recipe.gd").of(g)
+		var op = r._op(str(it.oid))
+		if op != null:
+			R._light(op, it.p + Vector2(0, -8), 110.0, 0.5, 0.12, R.pal(op).get("light", C[5]))
+	var tier: int = int(it.tier)
+	var d: Vector2 = (it.v as Vector2).normalized()
+	var c: Vector2 = r._snap(it.p)
+	var u: float = gone / QI_BREAK
+	if u < 0.45:   # 先原地站一下（实心浪身，不出拖痕）
+		_crest(r, ci, c, d, tier, false, float(it.sd), 1.0 - u * 0.6, false)
+		return
+	var nv := Vector2(-d.y, d.x * SY).normalized()
+	var half: int = 12 + 3 * tier
+	var v2: float = (u - 0.45) / 0.55   # 再塌成一排白沫水点往前落，浪脚一摊暗水
+	for s in range(-half, half + 1):
+		var w: float = 1.0 - pow(float(s) / float(half), 2.0)
+		var hs: float = _h(float(s) * 1.7 + float(it.sd))
+		var base: Vector2 = c + nv * float(s) * px + d * (v2 * 6.0 * hs) * px
+		r._px(ci, base, C[1] if v2 < 0.6 else C[0])
+		if hs < v2 * 0.8:
+			continue
+		var z: float = (6.0 + 3.0 * float(tier)) * w * (1.0 - v2) * (0.6 + 0.4 * hs)
+		var top: Vector2 = base + Vector2(0, -z * px)
+		r._px(ci, top, C[6] if v2 < 0.5 else C[5])
+		if w > 0.5:
+			r._px(ci, top + Vector2(px, 0), C[5])
