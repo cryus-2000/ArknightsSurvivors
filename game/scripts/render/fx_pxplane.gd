@@ -2811,6 +2811,8 @@ func _ev_skalter(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictio
 						break
 				R._light(o, hp2, 90.0, 0.42, 0.12, SK_T[5] if src == "海嗣" else p.light)
 				R._grains(o, hp2, gy2, "ink", 2, {"tier": t})
+				if not es.is_empty() and _sk_count(o, "pop") < 8:   # 命中点白芯（同音符的起音），头两拍进发光层
+					_sk_push(o, {"skr": "pop", "c": hp2, "sea": src == "海嗣", "ly": "up", "gy": gy2, "life": 2.0 / 15.0})
 		"sk_burst":   # 深海的回响：满层爆开（酒红小爆环 + 几颗碎光）
 			var at: Vector2 = d.at
 			if raw:
@@ -3168,6 +3170,17 @@ func _sk_draw_up(ci, it: Dictionary) -> void:
 					for x in row.length():
 						if row[x] == "#":
 							_glow(tl + Vector2(float(x), float(y)) * px, C[6] if y >= pat.size() - 2 else C[5])
+		"pop":   # 命中点白芯：十字 5 格 + 外圈 4 格浅色（第 1 拍只剩十字），整块进发光层
+			if f < 0 or f > 1:
+				return
+			var Cp: Array = SK_T if it.get("sea", false) else SK_B
+			var hcp: Vector2 = _snap(c)
+			for dq in [Vector2(0, 0), Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1), Vector2(2, 0), Vector2(-2, 0), Vector2(0, 2), Vector2(0, -2)]:
+				var core2: bool = absf(dq.x) + absf(dq.y) <= 1.0
+				if f == 1 and not core2:
+					continue
+				ci.draw_rect(Rect2(hcp + dq * px, Vector2(px, px)), Cp[6] if core2 else Cp[5])
+				_glow(hcp + dq * px, Cp[6])
 		"pillars":   # S3 潮涌：5 根粗亮红竖光柱从歌域里冲起又回落（原作 skill_03_buff_02 的红光柱）；白热芯、亮红身、暗酒红边，顶端淡出
 			if f < 0 or f > 6:
 				return
