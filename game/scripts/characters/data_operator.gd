@@ -598,6 +598,7 @@ func _heal(b: Dictionary) -> void:
 		var m3 = M3Hp.heal_pick(self)
 		if m3 != null:
 			var over_m: float = M3Hp.heal_apply(self, m3, b)
+			Fxr.ev(self, "kal_heal", {"m3": true, "power": b.get("power", false)})   # 转平面（docs/265）：只画
 			if b.has("sfx"):
 				_sfx_op(str(b.sfx))
 			if over_m > 0.0 and b.has("on_over"):
@@ -614,6 +615,8 @@ func _heal(b: Dictionary) -> void:
 		h *= skill_power()
 	var over: float = maxf(0.0, g.hp + h - g.max_hp)
 	heal_leader(h, str(b.get("src", display_name())), "技能" if b.get("power", false) else "常驻")   # 子项只进 docs/88 遥测
+	if str(id) == "kaltsit":
+		Fxr.ev(self, "kal_heal", {"m3": false, "power": b.get("power", false)})   # 转平面（docs/265）：只画
 	if b.has("sfx"):
 		_sfx_op(str(b.sfx))
 	if over > 0.0 and b.has("on_over"):
@@ -1141,7 +1144,7 @@ func draw_body() -> void:
 	if not hw.is_empty() and SegSiege.h4_draw_body(self):   # 手写迁移段第 4 批：跃空锤在空中（翻转的本体 + 扫光）
 		return
 	_draw_body_fx(false)
-	if not hw.is_empty() and not Fxr.owns(self):
+	if not hw.is_empty() and (not Fxr.owns(self) or hw.has("wd")):   # 转平面（docs/274）：维什戴尔的魂灵之影是召唤物本体（不是攻击特效），接管时照画
 		ObHw.hw_draw_body(self, false)   # 手写迁移段：咒域绕身符咒（后层）、血脉轮廓光……
 	elif not hw.is_empty() and str(id) == "ulpianus":
 		ObHw.hw_draw_body(self, false)   # 转平面接管（docs/266）：乌尔比安精二血脉红纹是本体状态，照画
