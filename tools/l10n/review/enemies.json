@@ -1,0 +1,8 @@
+{
+ "_doc": "人工复核改稿（docs/276 §8）：键 = 中文原文，覆盖模型初稿；csv 来源记「人改」",
+ "护盾 −1": {"en": "Shield −1", "note": "初稿用了集成战略的 Objective Shield，这里是队长护盾"},
+ "抚愈之歌": {"en": "Soothing Song"},
+ "灯下三叶": {"en": "Trefoil Beneath the Lamp"},
+ "伊祖米克进入「阐释」阶段！": {"en": "Izumik enters the 'Elucidation' phase!", "note": "横幅保留感叹号（原文有）"},
+ "曾经同行的猎潮骑士。": {"en": "The Tide-Hunt Knight who once rode with you.", "note": "猎潮的骑士 官方 Tide-Hunt Knight（trap_079_allydonq）"}
+}
