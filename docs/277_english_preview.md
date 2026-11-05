@@ -21,7 +21,7 @@
 | 8 | 终结技说明 | 冲进落点一圈内接连斩出刀痕，同时斩开，隔半拍换个角度再斩一次，收刀回到原位 | Dashes into the target area and releases consecutive slashes, slashing outward simultaneously, then slashes again from a different angle after a short pause, before returning to her original position. | 模型 |  |
 | 9 | 干员档案（首句换成官方招聘合同原文） | 「审判庭信使艾丽妮，为守护伊比利亚的海岸线而战。」<br>前伊比利亚审判官，大审判官达里奥的学生。幼时一场自然灾害席卷了她居住的小镇，她失去了所有家人，是达里奥把她从废墟下救了出来。「愚人号」事件后她辞去审判官一职，由凯尔希推荐，以审判庭信使的身份与罗德岛合作，为应对海洋的威胁做准备。她擅长迅捷的剑术，随身带着审判庭制式的提灯（一种法杖）与手炮。 | 'Inquisition Messenger Irene, fighting to protect Iberia's coastline.'<br>Former Iberian Inquisitor and student of High Inquisitor Dario. When a natural disaster swept through her town in her childhood, she lost all her family, and Dario saved her from the ruins. After the 'Stultifera Navis' incident, she resigned as an Inquisitor. Recommended by Kal'tsit, she collaborated with Rhodes Island as an Inquisition Messenger to prepare for the threat of the ocean. She excelled in swift swordsmanship and carried a standard Inquisition lantern (a type of staff) and a hand cannon. | 模型 | 首句招聘合同已换官方原文 character_table.char_4009_irene.itemUsage |
 | 10 | 招募卡简介（梗，待定） | 这片大地的代言人（划掉） | The voice of this land (crossed out) | 人改 | 难翻，待用户定：梗在「（划掉）」，英文可用删除线或括号。候选2：Spokesperson for all of Terra ~~(not really)~~ |
-| 11 | 招募卡简介（官方原句 + 玩家梗） | 罗德岛干员铃兰，九倍的温柔与坚强。她是罗德岛的光 | Suzuran, Rhodes Island Operator, has nine times the strength, and the fluffiness. She is the light of Rhodes Island. | 人改 | 难翻，待用户定：前句是官方 char_358_lisa.itemUsage 原文（官方把「温柔」译成 fluffiness，呼应九尾）；「她是罗德岛的光」是玩家梗，直译。候选2：... She is Rhodes Island's little sun. |
+| 11 | 招募卡简介（官方原句 + 玩家梗） | 罗德岛干员铃兰，九倍的温柔与坚强。她是罗德岛的光 | Suzuran, Rhodes Island Operator, has nine times the strength, and the fluffiness. She is the light of Rhodes Island. | 人改 | 前句是官方 char_358_lisa.itemUsage 原文；后句是玩家梗，英文社区有 she is our light 的说法，暂定直译（协调人 11-05 暂定） |
 | 12 | 招募卡简介（梗，待定） | 我的天哪维什戴尔大人 | Oh my god, Lady Wiš'adel | 人改 | 难翻，待用户定：国服玩家梗，英文没有对应的固定说法。候选2：OMG it's Wiš'adel-sama |
 | 13 | 招募卡简介（双声部排版） | 名为斯卡蒂的深海猎人//名为伊莎玛拉的海嗣<br>正停留此处<br>等待你的部署//渴盼你的呼唤 | The Abyssal Hunter named Skadi // The Seaborn named Ishar'mla<br>waits here<br>for your deployment // for your call | 人改 | 伊莎玛拉官方拼写 Ishar'mla（初稿写成 Ishar-mla）；保留 // 双声部排版。候选2：An Abyssal Hunter called Skadi // A Seaborn called Ishar'mla<br>lingers here<br>awaiting your orders // longing for your call |
 | 14 | 敌人名（官方） | 骨海漂流体 | Bone Sea Drifter | 官方 | enemy_handbook_table.enemy_2021_syfish |
@@ -32,13 +32,10 @@
 | 19 | Boss 战横幅 | 伊祖米克进入「阐释」阶段！ | Izumik enters the 'Elucidation' phase! | 人改 | 横幅保留感叹号（原文有） |
 | 20 | 精英图鉴机制行 | 精英。伪装成补给箱，受到攻击后现形。现形后尖叫 2.5 秒：周围 150 内累积神经损伤并吞噬灯火，期间照常追击、不啃咬；尖叫结束前击倒，源石锭 ×1.5。啃咬两连，第二口伤害 ×0.6。免疫眩晕、寒冷和封印；击败后掉落源石锭。 | Elite. Disguised as a supply box, revealing itself when attacked. Screams for 2.5s after revealing itself: accumulates Nervous Impairment within a 150 radius and consumes Light. Pursues normally but does not bite during this period; defeating it before the Scream ends yields Originium Ingot ×1.5. Bites twice, with the second bite dealing ×0.6 damage. Immune to Stun, Cold, and Silence; drops Originium Ingots upon defeat. | 模型 |  |
 
-## 待用户定：难翻的招募卡简介（6 条）
+## 待用户定：难翻的招募卡简介（3 条）
 
 | 干员 | 中文 | 推荐 | 候选与说明 |
 |---|---|---|---|
 | kaltsit | 这片大地的代言人（划掉） | The voice of this land (crossed out) | 难翻，待用户定：梗在「（划掉）」，英文可用删除线或括号。候选2：Spokesperson for all of Terra ~~(not really)~~ |
-| logos | 女妖河谷年轻的「女主人」，罗德岛圆凳滑行赛组织创始人 | The young 'Mistress' of the Banshee Valley, and founder of Rhodes Island's stool-sliding races. | 难翻，待用户定：「女主人」是梗（逻各斯是男性），英文保留引号；「圆凳滑行赛」出处我没查到原作，按字面译。候选2：Young 'Lady' of the Banshee Valley; founder of the Rhodes Island Office Chair Racing League. |
-| siege | “举起大锤，领着大伙，毫不畏惧地冲锋”，对她来说，这些一直都是理所当然的事情。 | 'Raise the hammer, lead the crew, charge without fear.' For her, that has always gone without saying. | 难翻，待用户定：引号里那句如果出自原作语音 / 档案，应换成官方英文，我没在 character_table 里找到出处。候选2：'Hammer up, gang behind me, charge without fear.' To her, it has always been the obvious thing to do. |
 | skadi | 前阿戈尔传奇电工，能够以一己之力维护一整座城市的海底灯光阵列 | Former legendary Ægir electrician, able to maintain an entire city's undersea lighting array single-handedly. | 难翻，待用户定：「电工」是国服玩家梗，英文社区不一定懂；候选2 换成国际服玩家熟悉的说法：Former legendary Ægir maintenance worker. Keeps a whole city's undersea lights on all by herself. |
-| suzuran | 罗德岛干员铃兰，九倍的温柔与坚强。她是罗德岛的光 | Suzuran, Rhodes Island Operator, has nine times the strength, and the fluffiness. She is the light of Rhodes Island. | 难翻，待用户定：前句是官方 char_358_lisa.itemUsage 原文（官方把「温柔」译成 fluffiness，呼应九尾）；「她是罗德岛的光」是玩家梗，直译。候选2：... She is Rhodes Island's little sun. |
 | wisadel | 我的天哪维什戴尔大人 | Oh my god, Lady Wiš'adel | 难翻，待用户定：国服玩家梗，英文没有对应的固定说法。候选2：OMG it's Wiš'adel-sama |

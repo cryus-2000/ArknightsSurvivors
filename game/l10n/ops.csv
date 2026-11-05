@@ -676,7 +676,7 @@ op.logos.gallery.tags.1,单体,Single,人改,
 op.logos.gallery.tags.2,法术,Arts,模型,
 op.logos.gallery.tags.3,反弹幕,Anti-Bullet,人改,可能偏长：11 字母 / 中文 3 字
 op.logos.gallery.desc,术师干员，咒术单体攻击，命中附加「安魂」提升目标所受法术伤害；精英一后处决残血非精英，精英二后清除敌方弹幕,"Caster Operator. Single-target incantation attacks. Hits inflict 'Requiem', increasing Arts damage taken by the target. After Elite 1, executes non-Elite enemies with low HP. After Elite 2, clears enemy projectiles.",模型,
-op.logos.gallery.intro,女妖河谷年轻的「女主人」，罗德岛圆凳滑行赛组织创始人,"The young 'Mistress' of the Banshee Valley, and founder of Rhodes Island's stool-sliding races.",人改,难翻，待用户定：「女主人」是梗（逻各斯是男性），英文保留引号；「圆凳滑行赛」出处我没查到原作，按字面译。候选2：Young 'Lady' of the Banshee Valley; founder of the Rhodes Island Office Chair Racing League.
+op.logos.gallery.intro,女妖河谷年轻的「女主人」，罗德岛圆凳滑行赛组织创始人,"The young 'Lady' of the Banshee Valley, organizer of Rhodes Island's stool racing competition.",人改,「圆凳滑行赛」出自档案资料三，en_US handbook_info_table 原文 the stool racing competition…Logos organized that；原作只说组织，不说创始人。「女主人」暂定 'Lady'，保留引号（协调人 11-05 暂定）
 op.logos.blocks.attack.src,言,Word,模型,
 op.logos.blocks.attack.then.0.src,殁亡,Perish,官方,skill_table.skchr_logos_1
 op.logos.blocks.attack.then.0.over_src,言,Word,模型,
@@ -1002,7 +1002,7 @@ op.siege.gallery.tags.1,节奏,Rhythm,模型,
 op.siege.gallery.tags.2,技力,SP,暂定,暂定（docs/276 §3.6）
 op.siege.gallery.tags.3,控制,Control,人改,标签用短词
 op.siege.gallery.desc,先锋干员，持锤冲阵，锤击命中为全队回复技力,"Vanguard Operator. Charges into battle with a hammer, restoring SP to the squad when hammer strikes hit.",模型,
-op.siege.gallery.intro,“举起大锤，领着大伙，毫不畏惧地冲锋”，对她来说，这些一直都是理所当然的事情。,"'Raise the hammer, lead the crew, charge without fear.' For her, that has always gone without saying.",人改,"难翻，待用户定：引号里那句如果出自原作语音 / 档案，应换成官方英文，我没在 character_table 里找到出处。候选2：'Hammer up, gang behind me, charge without fear.' To her, it has always been the obvious thing to do."
+op.siege.gallery.intro,“举起大锤，领着大伙，毫不畏惧地冲锋”，对她来说，这些一直都是理所当然的事情。,"'Lead from the front, charging fearlessly into the fray with the hammer.' To her, it has always been her nature.",人改,"出处：悖论模拟「头阵冲锋」关卡简介（handbook_info_table.handbookStageData.char_112_siege，mem_siege_1，en 关卡名 Heading the Charge）。en_US 原表是意译，没有引号句，原文：From the streets to the battlefield, it has always been her nature to lead from the front, charging fearlessly into the fray with her hammer. 这里按官方措辞改写。wiki.gg 引的 Bring the hammer out, bring the gang in, charge without fear 在 en_US 原表里查不到"
 op.siege.blocks.attack.src,锤击,Hammer Strike,模型,
 op.siege.blocks.attack.quake.src,震地余波,Earthshatter Aftermath,模型,
 op.siege.blocks.attack.quake.roar.col_src,狮吼,Lion's Roar,模型,
@@ -1306,7 +1306,7 @@ op.suzuran.gallery.tags.0,控制,Control,人改,标签用短词
 op.suzuran.gallery.tags.1,减速,Slow,模型,
 op.suzuran.gallery.tags.2,增益,Buff,模型,
 op.suzuran.gallery.desc,辅助干员，操控狐火与光域。光域减速敌人，狐火追踪命中；技能为全队提升攻击力,"Supporter Operator, manipulates foxfires and Foxfire Fields. Foxfire Fields Slow enemies, and foxfires track and hit targets; skills increase ATK for the entire squad.",模型,
-op.suzuran.gallery.intro,罗德岛干员铃兰，九倍的温柔与坚强。她是罗德岛的光,"Suzuran, Rhodes Island Operator, has nine times the strength, and the fluffiness. She is the light of Rhodes Island.",人改,难翻，待用户定：前句是官方 char_358_lisa.itemUsage 原文（官方把「温柔」译成 fluffiness，呼应九尾）；「她是罗德岛的光」是玩家梗，直译。候选2：... She is Rhodes Island's little sun.
+op.suzuran.gallery.intro,罗德岛干员铃兰，九倍的温柔与坚强。她是罗德岛的光,"Suzuran, Rhodes Island Operator, has nine times the strength, and the fluffiness. She is the light of Rhodes Island.",人改,前句是官方 char_358_lisa.itemUsage 原文；后句是玩家梗，英文社区有 she is our light 的说法，暂定直译（协调人 11-05 暂定）
 op.suzuran.blocks.attack.src,狐火,Foxfire,模型,
 op.suzuran.blocks.attack.attach.src,狐火点点,Scattered Foxfires,模型,
 op.suzuran.blocks.attack.merge.trail.src,狐火拖尾,Foxfire Trail,模型,
