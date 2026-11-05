@@ -1,4 +1,4 @@
-## 艾丽妮终结技「宣判」转平面画面（docs/275，开关 ult/px_plane，缺省 0 = 原画面）：只改画面，招式时间轴 / 判定 / 伤害 / 冲击帧逻辑全照 ult_moves_c._irv_*。
+## 艾丽妮终结技「宣判」转平面画面（docs/275，开关 ult/px_plane_irene，11-06 用户点头后缺省 1；0 = 原画面）：只改画面，招式时间轴 / 判定 / 伤害 / 冲击帧逻辑全照 ult_moves_c._irv_*。
 ## 纹章用用户 10-31 认可的图案，重采样到美术像素格并压扁、只留线稿、改白色阶（11-05 用户：纹章用白、紫留给斩击；tools/ult_px_irene_bake.py → art/fx/pxp/pxp_ult_ir_seal.png）。
 ## 1 特效像素 = 1 美术像素（g.PX = 2 世界像素），15 fps 节拍（帧号按全局拍子），贴地层压扁 0.72；白 + 亮紫为主，深海蓝潮水作辅色（docs/272 §1）。
 ## 画法与 tools/ult_px_irene_art.py 一一对应（windup / seal_mod / chain / blade / thread / splash / boom / final_blade / crack / slab / plume / grain），改一边要改另一边。
@@ -24,7 +24,7 @@ var _emit_frame := -1
 
 
 static func on() -> bool:
-	return Bal.v("ult/px_plane", 0.0) > 0.0
+	return Bal.v("ult/px_plane_irene", 1.0) > 0.0
 
 
 static func of(game):

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""艾丽妮终结技「宣判」转平面画面（docs/275，ult/px_plane）送审 GIF：只用 Python、不开 Godot。
+"""艾丽妮终结技「宣判」转平面画面（docs/275，ult/px_plane_irene）送审 GIF：只用 Python、不开 Godot。
 画法读 tools/ult_px_irene_art.py（与 game/scripts/run/ult_px_ir.gd 同算法）。时间轴照游戏：
 超必杀暂停 0.35 秒（世界压暗）→ 起手慢放 0.5 秒（蓄力）→ 招式（ult_moves_c._irv_step，游戏时间）：
 0.1 秒盖章（纹章 + 光链）→ 0.18–0.78 秒 6 刀穿梭 → 0.85 秒起由近到远连环爆 → 1.25 秒收尾斩击（冲击帧两拍：白底黑剪影 / 黑底白剪影，
