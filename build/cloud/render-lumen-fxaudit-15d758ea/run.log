@@ -1,0 +1,12 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（3584 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+局 ('lumen_atk_A', 180, [])
+局 ('lumen_atk_B', 180, [])
+局 ('lumen_atk_C', 180, [])
+局 ('lumen_s1_A', 180, [])
+局 ('lumen_s1_B', 180, [])
+局 ('lumen_s1_C', 180, [])
+体检 {"op": "lumen", "mode": "atk", "frame": 25, "engine": 54, "secs": 6.0, "hits": 0, "acts": 72, "skill": 0, "skill_frame": null, "parts_total": 66, "parts_per_hit": 0.9, "parts_per_s": 11.0, "bursts": 16, "burst_med": 3.0, "burst_max": 12, "lights_per_burst": 3.12, "parts_s1_1s": null, "skill_burst_max": null, "mats": {"ink": 66}, "life": 0.87, "sz": 4.8, "alive_max": 18, "lights": 50, "lights_per_hit": 0.69, "light_r": 90.0, "light_i": 0.54, "light_life": 0.12, "skill_light_r": null, "skill_light_i": null, "emit_max": 212, "emit_mean": 52.0, "emit_p90": 126, "gl_peak": 80.7, "gl_area_hit": 3224, "gl_mean_hit": 16.5, "em_peak": 234.1, "em_area_hit": 16, "em_mean_hit": 76.9, "crop": [502, 292, 320, 180]}
+体检 {"op": "lumen", "mode": "s1", "frame": 23, "engine": 52, "secs": 6.0, "hits": 0, "acts": 45, "skill": 2, "skill_frame": 39, "parts_total": 48, "parts_per_hit": 1.1, "parts_per_s": 8.0, "bursts": 12, "burst_med": 3.0, "burst_max": 9, "lights_per_burst": 2.67, "parts_s1_1s": 9, "skill_burst_max": 3, "mats": {"ink": 48}, "life": 0.89, "sz": 5.3, "alive_max": 15, "lights": 32, "lights_per_hit": 0.71, "light_r": 90.0, "light_i": 0.67, "light_life": 0.12, "skill_light_r": 90, "skill_light_i": 0.68, "emit_max": 270, "emit_mean": 53.7, "emit_p90": 129, "gl_peak": 109.6, "gl_area_hit": 1997, "gl_mean_hit": 16.2, "em_peak": 236.7, "em_area_hit": 61, "em_mean_hit": 82.2, "crop": [484, 280, 320, 180]}
+media：10 个文件，2.1M
