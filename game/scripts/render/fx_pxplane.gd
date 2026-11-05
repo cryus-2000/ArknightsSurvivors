@@ -867,7 +867,9 @@ func _ev_hsg(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary
 							_push({"k": sk + "_up", "t0": g.t, "gp": _snap(c), "flip": fl, "ly": "up", "oid": str(o.id), "fop": true})   # 下劈弧跟人；裂网冲击环（_gd）是落在地上的，留在原地
 							_push({"k": sk + "_gd", "t0": g.t, "gp": _snap(c), "flip": fl, "ly": "gd", "oid": str(o.id)})
 						_cuts(o, es, t, 4)
-						_burst_m(o, R, p, c + Vector2(-30.0 if fl else 30.0, -6), c.y + 2.0, es, 8 + 3 * t, "rock", 200.0, 0.8)
+						_burst_m(o, R, p, c + Vector2(-30.0 if fl else 30.0, -6), c.y + 2.0, es, 8 + 3 * t, "rock", 0.0, 0.0, false)
+						if mode() == 1:   # 落地那一下：落点固定一盏照地灯（docs/270 §3「爆发」140–240 / 0.6–0.9；体检时 110 / 0.4 偏暗，11-05 补到 160 / 0.7），有没有打中都挂
+							R._light(o, c + Vector2(-30.0 if fl else 30.0, -6), 160.0, 0.7, 0.15, p.light)
 					"热砂", "热砂沸腾":
 						pass   # 热砂每 0.5 秒结算一次：画面由区域本身（_floor_hsg 读 o.fields）表现，不逐跳画
 					_:   # 般若之重 / 盾墙反震：贴地冲击环
@@ -935,7 +937,7 @@ func _ev_hsg(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary
 
 
 ## 命中：少量颗粒（材质可选）+ 一盏照地短光；只在转平面版
-func _burst_m(o, R, p: Dictionary, at: Vector2, gy: float, es: Array, n: int, mat: String, lr: float, li: float) -> void:
+func _burst_m(o, R, p: Dictionary, at: Vector2, gy: float, es: Array, n: int, mat: String, lr: float, li: float, light := true) -> void:
 	if mode() != 1:
 		return
 	var m := {"tier": tier(o), "grain_spd": 1.0}
@@ -943,10 +945,12 @@ func _burst_m(o, R, p: Dictionary, at: Vector2, gy: float, es: Array, n: int, ma
 		var e: Dictionary = es[0]
 		var hp: Vector2 = e.pos + Vector2(0, -float(e.r) * 0.5)
 		R._grains(o, hp, float(e.pos.y) + 2.0, mat, mini(n, 2 + es.size()), m, (hp - o.pos).normalized())
-		R._light(o, hp, lr, li, 0.12, p.light)
+		if light:
+			R._light(o, hp, lr, li, 0.12, p.light)
 	else:
 		R._grains(o, at, gy, mat, maxi(1, n / 2), m)
-		R._light(o, at, lr * 0.8, li * 0.6, 0.1, p.light)
+		if light:
+			R._light(o, at, lr * 0.8, li * 0.6, 0.1, p.light)
 
 
 ## 地面层（星熊）：贴地件、热砂（读 o.fields，循环 + 淡入淡出）、力之锯持续时脚下齿印、锯盾影子
