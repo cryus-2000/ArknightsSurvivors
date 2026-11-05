@@ -1204,7 +1204,7 @@ static func _an_step(u, a: Dictionary, o) -> bool:
 
 ## 安洁莉娜 v2（ult/an_fx_v2，缺省 1；pixfx，docs/199 §7.8 第一批）：奇点 = Codex 重力核心关键帧持续旋转、越吸越小越亮；
 ## 砸地 = 顿帧 + 砸坑 + 两层紫 / 紫灰粒子 + 两拍隆起（尘环贴图预审报重复拼接，已去掉）。吸起 / 砸地判定与时序不动
-## 安洁莉娜终结技只改颜色（ult/px_plane_angelina，缺省 0；11-06 用户看完更喜欢原版：画面、节奏、体量、音效都不动，只把配色对齐到 docs/267 定稿的紫色 8 阶）。
+## 安洁莉娜终结技只改颜色（ult/px_plane_angelina，11-06 用户「安洁莉娜终结技过」起缺省 1；11-06 用户看完更喜欢原版：画面、节奏、体量、音效都不动，只把配色对齐到 docs/267 定稿的紫色 8 阶）。
 ## 程序画的颜色（环、线、尘、粒子、碎屑、砸坑调色）按亮度映射到这 8 阶，alpha 原样，> 1 的过曝倍数原样；帧条贴图本身已是紫色，不动
 const AN_V := [Color("#140c24"), Color("#312f5c"), Color("#5c4a8e"), Color("#8765c0"), Color("#b280f2"), Color("#cdacf7"), Color("#e8d9fb"), Color("#ffffff")]
 static var _an_vl: Array = []
