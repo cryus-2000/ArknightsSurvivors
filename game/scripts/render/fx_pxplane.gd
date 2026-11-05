@@ -2058,7 +2058,7 @@ func _ev_sg(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 				_push({"k": ik + "_up", "t0": g.t, "gp": _snap(imp), "flip": false, "ly": "up", "oid": id})
 				_push({"k": ik + "_gd", "t0": g.t, "gp": _snap(imp), "flip": false, "ly": "gd", "oid": id})
 			var big: bool = heavy or patch
-			_burst_m(o, R, p, imp + Vector2(0, -8), imp.y + 2.0, d.get("es", []), (2 + t) + (4 if big else 0), "rock", 100.0 + (60.0 if big else 0.0), 0.4 + (0.3 if big else 0.0))
+			_burst_m(o, R, p, imp + Vector2(0, -8), imp.y + 2.0, d.get("es", []), (2 + mini(t, 1)) + (4 if big else 0), "rock", 100.0 + (60.0 if big else 0.0), 0.4 + (0.3 if big else 0.0))   # docs/270：普攻颗粒中位 10 → 压回 3–8
 		"crush":   # 精一「粉碎」：击倒处碎石迸开（强制低档画面时不画）
 			if t < 1 or raw:
 				return
@@ -2066,7 +2066,7 @@ func _ev_sg(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 			_push({"k": "sg_crush_up", "t0": g.t, "gp": _snap(at), "flip": false, "ly": "up", "oid": id})
 			_push({"k": "sg_crush_gd", "t0": g.t, "gp": _snap(at), "flip": false, "ly": "gd", "oid": id})
 			if mode() == 1:
-				R._grains(o, at + Vector2(0, -8), at.y, "rock", 3, {"tier": t})
+				R._grains(o, at + Vector2(0, -8), at.y, "rock", 2, {"tier": t})
 		"breach":   # 精二「破阵」地裂 + 岩刺 / 再跃（队长版）原地砸出的地裂（不出岩刺）
 			var pts: PackedVector2Array = d.get("pts", PackedVector2Array())
 			if pts.size() < 2 or raw:
@@ -2086,7 +2086,7 @@ func _ev_sg(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 				_push({"k": "sg_fis_l90_up_d%d" % dk2[0], "t0": g.t, "gp": _snap(st), "flip": dk2[1], "ly": "up", "oid": id})
 			if mode() == 1:
 				var mid: Vector2 = st + Vector2(cos(fa), sin(fa) * 0.72) * float(L)
-				R._grains(o, mid + Vector2(0, -6), mid.y, "rock", 3, {"tier": t})
+				R._grains(o, mid + Vector2(0, -6), mid.y, "rock", 2, {"tier": t})
 				R._light(o, mid, 120.0, 0.45, 0.15, p.light)
 		"quake":   # 成长「震地」/「狮吼」：落点一圈贴地冲击环（狮吼双环）
 			if raw:

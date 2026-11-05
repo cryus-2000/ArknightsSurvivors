@@ -33,6 +33,8 @@ FPS = 15                       # 统一动画时钟（协调人 11-05）：一�
 DIRS = [-90, -45, 0, 45, 90]   # 平面角；另一半（135 / 180 / -135）游戏里水平翻转
 EMIT_LUMA = 0.95               # 色层亮度 ≥ 这个的像素算热芯（只取白热：定帧头部、冠部白沫；精二海绿点缀另算）
 EMIT_MAX = 48                  # 每帧 emit 点上限（均匀抽）
+# 只对某些件额外算进 emit 的颜色（键前缀 → 件名第一段 → [(r, g)]）。推进之王锤击落点（docs/270 §5 补法：命中帧核心辉光 17 → ≥ 30）：淡金亮芯 #ffe9a0 也进发光层
+EMIT_EXTRA = {"sg_": {"imp": [(0xff, 0xe9)]}}
 
 
 def variants_skadi():
@@ -333,7 +335,7 @@ def bake(key, d, dur, loop=False):
             continue
         luma = c[..., 0] * 0.2126 + c[..., 1] * 0.7152 + c[..., 2] * 0.0722
         acc = np.zeros(c.shape[:2], bool)
-        for ar, ag in ACC_RG:
+        for ar, ag in ACC_RG + (EMIT_EXTRA.get(PREFIX, {}).get(key.split("_")[0], [])):
             acc |= (np.abs(c[..., 0] - ar / 255) < 0.02) & (np.abs(c[..., 1] - ag / 255) < 0.02)
         m = (c[..., 3] > 0.5) & ((luma >= EMIT_LUMA) | acc)
         py, px = np.nonzero(m)
