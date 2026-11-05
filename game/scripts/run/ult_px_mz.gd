@@ -1,4 +1,4 @@
-## 水月终结技 Q「水母群」转平面画面（docs/261 §8，开关 ult/px_plane 且 ult/px_plane_mizuki；只画）。
+## 水月终结技 Q「水母群」转平面画面（docs/261 §8，开关 ult/px_plane_mizuki，缺省 1；只画）。
 ## 以原版为底（ult_moves_b._mz_* + ult_fx_c.mz_jelly_*，ult/mz_jelly 缺省开）：时间轴、水母位置、漂浮 / 压缩 / 一起炸开、全屏渐暗、
 ## 每只 600 粒闪烁粒子云（换本人配色，原调用不动）、灯、顿帧、冲击帧时机都照旧；原版的声音全保留（出声的图形照常生成、只设成全透明）。
 ## 往上加的：水母画成海月水母（用户 11-05）——扁碟形半透明伞、四个马蹄形生殖腺环（荧光紫，进发光层）、细缘须、褶边口腕，压缩按整格一档档缩；
@@ -35,7 +35,7 @@ var _cache := {}
 
 
 static func on() -> bool:
-	return Bal.v("ult/px_plane", 0.0) > 0.0 and Bal.v("ult/px_plane_mizuki", 1.0) > 0.0
+	return Bal.v("ult/px_plane_mizuki", 1.0) > 0.0   # 11-06 用户看过末尾渐隐后「过」：水月单独一个开关、缺省开（不跟艾丽妮的 ult/px_plane 绑）
 
 
 static func of(game):

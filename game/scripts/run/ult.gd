@@ -15,7 +15,7 @@ const A = preload("res://scripts/art.gd")
 const Aim = preload("res://scripts/run/ult_aim.gd")
 const PF = preload("res://scripts/run/ult_pixfx.gd")   # 收尾加强的余震碎屑 / 烟尘（docs/216 §5）
 const IRP = preload("res://scripts/run/ult_px_ir.gd")   # 艾丽妮「宣判」转平面画面（docs/275，ult/px_plane；只画）
-const MZP = preload("res://scripts/run/ult_px_mz.gd")   # 水月「水母群」转平面画面（docs/261 §8，ult/px_plane + ult/px_plane_mizuki；只画）
+const MZP = preload("res://scripts/run/ult_px_mz.gd")   # 水月「水母群」转平面画面（docs/261 §8，ult/px_plane_mizuki；只画）
 const Bond = preload("res://scripts/run/link_bond.gd")   # 羁绊连携（link/bond，docs/217）
 const LinkV2 = preload("res://scripts/run/link_v2.gd")   # 连携 v2（link/v2，docs/209 §2）：全自动、只由队长触发、按姿态挑人   # 慢动作瞄准 v2（ult/aim，docs/209 §3）
 

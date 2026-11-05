@@ -6,7 +6,7 @@ extends RefCounted
 const Bal = preload("res://scripts/core/balance.gd")
 const PF = preload("res://scripts/run/ult_pixfx.gd")
 const A = preload("res://scripts/art.gd")
-const MZP = preload("res://scripts/run/ult_px_mz.gd")   # 水月水母群转平面画面（docs/261 §8，ult/px_plane + ult/px_plane_mizuki；只画）
+const MZP = preload("res://scripts/run/ult_px_mz.gd")   # 水月水母群转平面画面（docs/261 §8，ult/px_plane_mizuki；只画）
 const NOCOL := Color(0, 0, 0, 0)   # 转平面开着时：原版里「出声」的图形照常生成（音效按图形种类 / 半径挂，docs/205 §4），只是不画
 
 
