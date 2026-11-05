@@ -21,6 +21,12 @@ const S1_R := [35, 48, 61]
 const S3_R := 65.0   # 美术像素（s3_r 130）
 const WAKE_TAIL := 0.45   # 到位后拖痕散掉的时长
 const SPLASH_BEAT := 2    # 扩散（late_shape）每拍至多几团
+## S1 爆发档的照地灯（docs/270 §3：爆发 半径 140–240 / 强度 0.6–0.9，取中段；11-05 体检照地峰值 +55 卡在边上后补）
+const S1_LIGHT_R := 190.0
+const S1_LIGHT_I := 0.75
+const S1_WAVE_LIGHT_R := 160.0
+const S1_WAVE_LIGHT_I := 0.6
+const S1_LIGHT_CAP := 0.85   # 打击感包提亮 ×1.35 后也不超过上限 0.9
 
 static var _SegU = null
 
@@ -104,7 +110,10 @@ static func ev(r, o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dicti
 			if heavy:
 				_strip_pair(r, o, "s1hit_r%d_e%d" % [_bucket(ra, S1_R), t], c)
 				_parting(r, o, o.pos, c, t)
-				_burst(r, o, R, p, c, d.get("es", []), 8 + 3 * t, 170.0, 0.65)
+				_burst(r, o, R, p, c, d.get("es", []), 8 + 3 * t, S1_LIGHT_R, S1_LIGHT_I)   # docs/270 爆发档：灯取标准中段（半径 140–240 / 强度 0.6–0.9）
+				if o.pos.distance_to(c) >= 60.0:   # 翻卷浪掀到一半处再挂一盏（浪身本身也是爆发的一部分，照亮钩线）
+					var mid: Vector2 = o.pos.lerp(c, 0.55) + Vector2(0, -12)
+					R._light(o, mid, S1_WAVE_LIGHT_R, minf(S1_LIGHT_CAP, S1_WAVE_LIGHT_I * MI.lit_k(g)), 0.15, p.light)
 			else:
 				_strip_pair(r, o, "hit_r%d_e%d" % [_bucket(ra, HIT_R), t], c)
 				_burst(r, o, R, p, c, d.get("es", []), 3 + t, 110.0, 0.4)
@@ -215,7 +224,7 @@ static func _burst(r, o, R, p: Dictionary, at: Vector2, es: Array, n: int, lr: f
 		var e: Dictionary = es[0]
 		hp = e.pos + Vector2(0, -float(e.r) * 0.5)
 	R._grains(o, hp, at.y + 2.0, "ink", mini(n, 2 + es.size() + n / 2), m)
-	R._light(o, hp, lr, li * MI.lit_k(r.g), 0.12, p.light)
+	R._light(o, hp, lr, minf(S1_LIGHT_CAP, li * MI.lit_k(r.g)), 0.12, p.light)
 
 
 ## S1「裂断」（用户 11-05 第三轮：「水墙不用去掉，换一个表现形式，可以稍微华丽一点」）：沿钩线两侧掀起翻卷的浪——
