@@ -173,7 +173,7 @@ def main():
         for kind in SIZES:
             img, lamp = build(plan, kind)
             W, H = SIZES[kind]
-            name = f"cover_G{plan}_{W}x{H}"
+            name = f"cover_G_{plan}_{W}x{H}"
             img.save(OUT / f"{name}.png", optimize=True)
             tw = 315
             th = int(round(H * tw / W))
@@ -206,7 +206,7 @@ def main():
     d.text((g, y), "列表缩略 315×250 / 315×131（实际大小）", font=fnt, fill=(220, 230, 235))
     x = g
     for i, plan in enumerate("ABC"):
-        t = Image.open(OUT / f"cover_G{plan}_630x500_thumb.png")
+        t = Image.open(OUT / f"cover_G_{plan}_630x500_thumb.png")
         sheet.paste(t, (x, y + 30))
         x += t.width + g
     sheet.paste(toy.resize((315, 236), Image.BOX), (x, y + 30))

@@ -2,8 +2,13 @@
 
 用户原话：「itch的封面我觉得能不能在toy的基础上再改进？加强光影的同时要有游戏封面感」。底图是 `art/promo/toy/toy_poster_shadow_1014_4x3_notext.png`。
 
+## 定稿：用户 11-06 选定 A
+- itch 封面：`art/promo/itch/cover_g/cover_G_A_630x500.png`
+- itch 横幅：`art/promo/itch/cover_g/cover_G_A_960x400.png`
+- itch 后台需用户手动换图；B / C 留档不用。
+
 ## 文件
-- `cover_G{A,B,C}_630x500.png`：itch 封面；`cover_G{A,B,C}_960x400.png`：横幅。
+- `cover_G_{A,B,C}_630x500.png`：itch 封面；`cover_G_{A,B,C}_960x400.png`：横幅。
 - `*_thumb.png`：缩到列表大小（封面 315×250，横幅 315×131），核对灯火和主角一眼可见。
 - `cover_G_compare.png`：原 Toy 封面 vs A/B/C，下面是横幅和实际大小缩略。
 - `build_cover_g.py`：后期脚本（可重跑）。原始生图在 `build/imagegen/itchg_*`（不进 git）。
