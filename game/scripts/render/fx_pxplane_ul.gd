@@ -10,7 +10,7 @@
 ## 旧做法对照（fx/px_plane = 2）：乌尔比安没有旧 pixelfx 帧条，2 时只画锁链和锚（不画特效），三栏图那一栏留空。
 extends RefCounted
 
-const PxU = preload("res://scripts/render/px_util.gd")   # 共用小工具（docs/281 §2）
+const PxU = preload("res://scripts/render/px_util.gd")   # 共用小工具（docs/282 §2）
 const Bal = preload("res://scripts/core/balance.gd")
 const MI = preload("res://scripts/render/melee_impact.gd")
 const SY := 0.72

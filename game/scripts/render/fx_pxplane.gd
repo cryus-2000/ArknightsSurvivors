@@ -17,7 +17,7 @@
 ## 画面随机只用 g.vrng（颗粒）；本模块不抽随机数。
 extends RefCounted
 
-const PxU = preload("res://scripts/render/px_util.gd")   # 共用小工具（docs/281 §2）
+const PxU = preload("res://scripts/render/px_util.gd")   # 共用小工具（docs/282 §2）
 const Bal = preload("res://scripts/core/balance.gd")
 const METAS := {"res://data/pxp_logos.json": "lg_", "res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_eyjafjalla.json": "ey_", "res://data/pxp_siege.json": "", "res://data/pxp_exusiai.json": "ex_", "res://data/pxp_mizuki.json": "", "res://data/pxp_angelina.json": "an_", "res://data/pxp_saria.json": "sa_", "res://data/pxp_texas.json": "", "res://data/pxp_gladiia.json": "gl_", "res://data/pxp_ulpianus.json": "ul_", "res://data/pxp_suzuran.json": "sz_", "res://data/pxp_irene.json": "ir_", "res://data/pxp_kaltsit.json": "ka_", "res://data/pxp_wisadel.json": "wd_", "res://data/pxp_skalter.json": "sk_", "res://data/pxp_specter_unchained.json": "su_", "res://data/pxp_lappland.json": "lp_"}   # 帧条表 → 键前缀（星熊的键自带 hsg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
 const MI = preload("res://scripts/render/melee_impact.gd")   # 近战打击感包（docs/246 §11）：斩痕 / 照地光提亮

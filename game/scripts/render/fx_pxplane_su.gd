@@ -10,7 +10,7 @@
 ## 只画：读玩法状态（o.hw.sp、o.vg.qi），画面计时 / 火星 / 残影快照都存在 fx_pxplane 实例的 meta「su」里；随机只用 g.vrng。红色只给危险：原 S3 / 困兽 / 锯鸣的红改成橙热 / 青白。
 extends RefCounted
 
-const PxU = preload("res://scripts/render/px_util.gd")   # 共用小工具（docs/281 §2）
+const PxU = preload("res://scripts/render/px_util.gd")   # 共用小工具（docs/282 §2）
 const Bal = preload("res://scripts/core/balance.gd")
 const SY := 0.72
 const RING_R := {"n": [51, 58, 66], "w": [51, 58, 66], "d": [36, 41, 46, 53], "s": [66, 76, 88], "h": [76, 88, 100]}

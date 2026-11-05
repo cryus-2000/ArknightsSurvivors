@@ -1,5 +1,5 @@
 extends RefCounted
-## fx_pxplane 与各干员分文件（fx_pxplane_<id>.gd）共用的小工具（docs/281 §2：原来每个文件各抄一份）。
+## fx_pxplane 与各干员分文件（fx_pxplane_<id>.gd）共用的小工具（docs/282 §2：原来每个文件各抄一份）。
 ## 纯函数，不读写对局状态。
 
 

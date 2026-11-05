@@ -5,7 +5,7 @@
 ## 挂在人身上的件带 fo（跟她：符阵、火柱、尾焰、九尾）或 fol（跟队长：祝福）；命中 / 落点 / 火环留在原地；金印 / 灼印 / 附着火跟着那只敌人。
 extends RefCounted
 
-const PxU = preload("res://scripts/render/px_util.gd")   # 共用小工具（docs/281 §2）
+const PxU = preload("res://scripts/render/px_util.gd")   # 共用小工具（docs/282 §2）
 const Pxp = preload("res://scripts/render/fx_pxplane.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 
