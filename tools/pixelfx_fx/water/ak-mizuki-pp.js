@@ -191,12 +191,112 @@ function tentacle(p, t, o, C, X, k) {
   }
 }
 
+// 触手形态（11-05 用户「触手是不是可以多做几个形态，现在只有一个像是钩子一样的」）：按场合用不同形态，同一形态按 v（变体）随机弯向、长短、粗细。
+//   slam  拍击：从地下甩起一道弧、越过头顶拍到前方地上（普攻追击）
+//   pierce 刺穿：细长尖端从地面直刺上来，一拍到顶、尖端白亮，快收（唤醒每团大水母下）
+//   curl  卷须：身子像水母触须一样波浪起伏，末端卷两小圈（囚徒困境束缚，配缠绕）
+//   cluster 群生：四五根细触手像水草一样摇曳着冒出来（连携）
+//   big   粗拍击（镜花水月）
+// 画法：沿中心线逐点按宽度横向填色（背光侧暗靛 → 深蓝 → 受光侧亮边 1 格），吸盘点精一淡色 / 精二荧光紫。
+function strand(p, pts, wfn, C, X, o, opt) {
+  const el = +o.el, n = C.length;
+  for (let i = 0; i < pts.length; i++) {
+    const [x, y, v, nx, ny] = pts[i];
+    const w = wfn(v), hw = w / 2;
+    for (let d = -hw; d <= hw; d += 0.5) {
+      const q = (d + hw) / Math.max(0.5, w);
+      let ci = q < 0.25 ? 1 : q < 0.6 ? 2 : q < 0.85 ? 3 : 5;
+      if (opt.big) ci += q > 0.5 ? 1 : 0;
+      let c = C[clamp(ci, 1, n - 1)];
+      if (q >= 0.85 && opt.rim) c = opt.rim;
+      if (opt.tipHot && v > 0.86) c = v > 0.94 ? WHITE : X.cyL;
+      p.px(R0(x + nx * d), R0(y + ny * d), c);
+    }
+    if (el >= 1 && !opt.noSuck && v > 0.15 && v < 0.85 && i % 3 === 0) p.px(R0(x - nx * hw * 0.4), R0(y - ny * hw * 0.4), el >= 2 ? X.ac : C[n - 3]);
+  }
+}
+
+// 按航向积分出中心线：从 (x0, 0) 朝上出发，第 s 段航向 = 朝上 + turn(v)
+function path(x0, L, turn, ds = 0.5) {
+  const pts = [];
+  let x = x0, y = 0, h = -Math.PI / 2;
+  const N = Math.max(2, Math.ceil(L / ds));
+  for (let i = 0; i <= N; i++) {
+    const v = i / N;
+    const hh = -Math.PI / 2 + turn(v);
+    pts.push([x, y, v, -Math.sin(hh), Math.cos(hh)]);   // 法线（横向填色方向）
+    x += Math.cos(hh) * ds;
+    y += Math.sin(hh) * ds;
+  }
+  return pts;
+}
+
+function tentForm(p, t, o, C, X) {
+  const el = +o.el, form = o.form || "slam", H = +o.H, vs = +o.v || 0, sd = +o.seed + vs * 17;
+  const jL = 0.85 + 0.3 * nz(1.7, sd), jW = Math.round((nz(2.9, sd) - 0.5) * 2), jB = 0.75 + 0.5 * nz(4.1, sd), sg = nz(5.3, sd) < 0.25 ? -1 : 1;
+  const out = smooth(0.32, 0.47, t);   // 缩回
+  if (form === "slam" || form === "big") {
+    const big = form === "big", L = H * 1.25 * jL * (1 - 0.9 * out);
+    const w0 = (big ? 10 : 6 + el) + jW;
+    if (L < 2) return;
+    const up = ease.outCubic(clamp(t / 0.1));
+    const sw = smooth(0.08, 0.2, t);                       // 甩过头顶
+    const Lc = L * (0.45 + 0.55 * up);
+    const turn = (v) => sg * (0.15 * up + (Math.PI * 0.95 * jB) * sw) * Math.pow(v, 1.4) + Math.sin(v * 5 + sd) * 0.12;
+    const pts = path(0, Lc, turn);
+    strand(p, pts, (v) => Math.max(1.5, w0 * (1 - v * 0.8)), C, X, o, { big, rim: big ? null : null });
+    if (t >= 0.19 && t < 0.3) {                            // 拍到地上：尖端处一圈溅起的水点
+      const tip = pts[pts.length - 1];
+      for (let i = 0; i < 9; i++) {
+        const a = (i / 9) * Math.PI + Math.PI, r = 3 + 4 * nz(i * 1.9, sd) + (t - 0.19) * 60;
+        p.px(R0(tip[0] + Math.cos(a) * r), R0(tip[1] + Math.sin(a) * r * 0.6), i % 2 ? X.cyL : C[5]);
+      }
+    }
+    if (el >= 2 && !big) {                                 // 精二：旁边多一根卷须（第二种形态）
+      tentForm(p, t - 0.05, Object.assign({}, o, { form: "curl", H: H * 0.6, el: 2, v: vs + 1, _x: -7 * sg }), C, X);
+    }
+    return;
+  }
+  if (form === "pierce") {
+    const L = H * 1.15 * jL * (t < 0.067 ? 0.7 : 1) * (1 - smooth(0.2, 0.33, t));
+    if (L < 2) return;
+    const w0 = 4 + Math.min(1, el) + jW * 0.5, lean = sg * 0.12 * jB;
+    const pts = path(+o._x || 0, L, (v) => lean + Math.sin(v * 3 + sd) * 0.04);
+    strand(p, pts, (v) => Math.max(1, w0 * Math.pow(1 - v, 0.8)), C, X, o, { tipHot: t < 0.14, noSuck: true });
+    if (t < 0.067) for (let i = 0; i < 6; i++) {           // 破土碎点
+      const a = Math.PI + (i / 5) * Math.PI;
+      p.px(R0(Math.cos(a) * (4 + i)), R0(Math.sin(a) * 2), C[4]);
+    }
+    return;
+  }
+  if (form === "curl") {
+    const L = H * 1.2 * jL * ease.outCubic(clamp(t / 0.12)) * (1 - 0.92 * out);
+    if (L < 2) return;
+    const w0 = 4 + Math.min(1, el) + jW * 0.5, ph = t * 12 + sd;
+    const turn = (v) => sg * (0.55 * jB * Math.sin(v * 6 - ph) * Math.min(1, v * 1.6) + (v > 0.72 ? Math.pow((v - 0.72) / 0.28, 1.3) * Math.PI * 1.7 : 0));
+    const pts = path(+o._x || 0, L, turn, 0.4);
+    strand(p, pts, (v) => Math.max(1.2, v > 0.72 ? 2.2 * (1 - (v - 0.72) / 0.28) + 0.8 : w0 * (1 - v * 0.55)), C, X, o, {});
+    return;
+  }
+  if (form === "cluster") {
+    const N = 4 + (vs % 2);
+    for (let k = 0; k < N; k++) {
+      const x0 = (k / (N - 1) - 0.5) * 18 + (nz(k * 2.3, sd) - 0.5) * 4;
+      const tt = t - 0.025 * ((k * 3) % N);
+      if (tt < 0) continue;
+      const L = H * (0.55 + 0.45 * nz(k * 3.7, sd)) * ease.outCubic(clamp(tt / 0.12)) * (1 - 0.9 * smooth(0.32, 0.5, tt));
+      if (L < 2) continue;
+      const ph = tt * 10 + k * 1.9;
+      const s2 = nz(k * 5.1, sd) < 0.5 ? -1 : 1;
+      const pts = path(x0, L, (v) => s2 * (0.35 * Math.sin(v * 4 - ph) * v + 0.25 * v) + (x0 / 18) * 0.5 * v, 0.5);
+      strand(p, pts, (v) => Math.max(1, 3.2 * (1 - v * 0.7)), C, X, o, { rim: X.cyL, noSuck: k % 2 === 1 });
+    }
+  }
+}
+
 function tent(p, t, o, C, X) {
-  const el = +o.el, st = o.style || "basic", H = +o.H;
-  const w0 = st === "big" ? 10 : st === "link" ? 9 : 6 + el;
-  tentacle(p, t, o, C, X, { H, w0, lean: 1 });
-  if (el >= 2 || st === "link") tentacle(p, t, o, C, X, { H: H * 0.62, w0: Math.max(3, w0 - 3), dx: -6, lean: -0.8, dt: 0.05 });
-  if (o.view === "raw") p.light(0, -H * 0.5, C[5], 0.4);
+  tentForm(p, t, o, C, X);
+  if (o.view === "raw") p.light(0, -(+o.H) * 0.5, C[5], 0.4);
 }
 
 // 地上：触手钻出的裂隙——一摊参差的暗水（深靛芯 + 深蓝边 + 几点荧光），收拢消失
@@ -376,10 +476,9 @@ function tring(p, t, o, C, X, gd) {
   for (const it of items) {
     const lean = it.x >= 0 ? 0.7 : -0.7;
     const H = +o.H * (0.8 + 0.4 * nz(it.a * 3, +o.seed + 93));
-    const sub = (x0, y0) => tentacle({
-      px: (x, y, c) => p.px(x + R0(x0), y + R0(y0), c),
-    }, t, o, C, X, { H, w0: 5 + el, lean, dt: it.dt });
-    sub(it.x, it.y);
+    const form = ["slam", "pierce", "curl", "cluster"][(items.indexOf(it) + +o.seed) % 4];   // 一圈里各种形态混着出（不复制粘贴）
+    tentForm({ px: (x, y, c) => p.px(x + R0(it.x), y + R0(it.y), c) }, t - it.dt, Object.assign({}, o, { form, H: H * (form === "cluster" ? 0.8 : 1), v: items.indexOf(it) % 3 }), C, X);
+    void lean;
   }
   if (st === "s2" && t < 0.27) {   // 中心冰蓝尖晶
     const f = Math.floor(t * 15 + 1e-6), L0 = [14, 24, 20, 12][f] || 0;

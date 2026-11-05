@@ -1348,6 +1348,7 @@ func _lm_draw_raw(o) -> void:
 ## S1「唤醒」= 更大更白的伞面 + 青白沿 + 向外甩水，命中处三团大水母绽开 + 地上冲击环；精一起每团下面钻出触手；
 ## S2「囚徒困境」= 起手一圈触手钻出 + 中心冰蓝尖晶；持续期间伞击更薄更快、青白沿 + 幻影残弧，被触手打中的缠住（前后两半圈）；
 ## S3「镜花水月」= 起手大水母从脚下浮起 + 地上一圈水镜带月影；持续期间深蓝紫旋斩 + 荧光紫刃，脚下水镜，触手更粗；
+## 触手五种形态按场合用：普攻追击拍击（精二多一根卷须）、唤醒刺穿、束缚卷须 + 缠绕、镜花水月粗拍击、连携群生。
 ## 精二「深蓝之籽」= 身后小水母改画像素水母（离身游猎时拖三点尾），蛰中一朵紫色小水母；连携「小触手」= 高触手钻出 + 缠住 1 秒。
 const MZ_TENT_MAX := 8     # 同屏触手（同一名干员）
 const MZ_COIL_MAX := 10    # 同屏缠绕
@@ -1485,7 +1486,8 @@ func _ev_mz(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 			if t == 0 and not s3:   # 11-05 用户：精零普攻不出触手（触手是精一的招牌），追击那一下只在目标身上绽开一朵水母
 				_mz_bloom(o, e, "mz_bloom_e0_up", raw, t)
 				return
-			_mz_tent(o, e, d.get("at", e.pos), "mz_tentbig" if s3 else "mz_tent_e%d" % t, raw, t, float(d.get("stun", 0.0)))
+			var stn: float = float(d.get("stun", 0.0))
+			_mz_tent(o, e, d.get("at", e.pos), _mz_tk("big", 2) if s3 else (_mz_tk("curl", t) if stn >= 0.45 else _mz_tk("slam", t)), raw, t, stn)
 			if mode() == 1 and not s3:
 				R._grains(o, e.pos + Vector2(0, -6), float(e.pos.y) + 2.0, "ink", 2, {"tier": t})
 		"mz_burst":   # 唤醒创伤扩散：大水母绽开 + 地上冲击环
@@ -1496,7 +1498,7 @@ func _ev_mz(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 			_push({"k": "mz_burst_e%d_up" % t, "t0": g.t, "gp": _snap(at + Vector2(0, -16)), "gy": at.y + 3.0, "flip": false, "ly": "up", "oid": str(o.id)})
 			_push({"k": "mz_burst_e%d_gd" % t, "t0": g.t, "gp": _snap(at), "flip": false, "ly": "gd", "oid": str(o.id)})
 			if t >= 1:   # 精一起：每团大水母下面钻出一根触手（分档加新元素，不靠换色）
-				_mz_tent(o, {"pos": at, "r": 10.0, "boss": true}, at, "mz_tent_e%d" % t, raw, t, 0.0)
+				_mz_tent(o, {"pos": at, "r": 10.0, "boss": true}, at, _mz_tk("pierce", t), raw, t, 0.0)
 			if mode() == 1:
 				R._grains(o, at + Vector2(0, -18), at.y, "ink", 4 + t, {"tier": t})
 				R._light(o, at + Vector2(0, -14), 140.0, 0.55 * MI.lit_k(g), 0.14, p.light)
@@ -1506,7 +1508,7 @@ func _ev_mz(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 				_mz_bloom(o, e2, "mz_sting_up", raw, t)
 		"mz_stake":
 			var at2: Vector2 = d.get("at", o.pos)
-			_mz_tent(o, {"pos": at2, "r": 8.0, "boss": true}, at2, "mz_tent_e%d" % t, raw, t, 0.0)
+			_mz_tent(o, {"pos": at2, "r": 8.0, "boss": true}, at2, _mz_tk("pierce", t), raw, t, 0.0)
 		"mz_splash":   # 扩散：一圈细水纹（每拍至多 3 圈）
 			if raw or _mz_count_gd(o, "mz_ripple") >= 3:
 				return
@@ -1515,7 +1517,7 @@ func _ev_mz(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 			for e3 in d.get("es", []):
 				if e3.get("dead", false):
 					continue
-				_mz_tent(o, e3, e3.pos, "mz_tentlink", raw, 2, 0.0 if e3.get("boss", false) else 1.0)
+				_mz_tent(o, e3, e3.pos, _mz_tk("cluster", 2), raw, 2, 0.0 if e3.get("boss", false) else 1.0)
 			if mode() == 1:
 				R._light(o, d.get("c", o.pos), 150.0, 0.5, 0.15, p.light)
 		"shape":   # 惊跳反射·余悸（circle，src 触手）：身边一圈触手抽打
@@ -1537,6 +1539,13 @@ func _ev_mz(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 				_push({"k": "mz_moon_gd", "t0": g.t, "gp": _snap(o.pos), "flip": false, "ly": "gd", "oid": str(o.id)})
 				R._grains(o, o.pos + Vector2(0, -40), o.pos.y, "ink", 6, {"tier": 2})
 				R._light(o, o.pos + Vector2(0, -30), 170.0, 0.7, 0.15, p.light)
+
+
+## 触手形态键（11-05 用户「多做几个形态」）：slam 拍击（普攻追击）/ pierce 刺穿（唤醒大水母下、触手桩）/ curl 卷须（束缚）/ big 粗拍击（镜花水月）/ cluster 群生（连携）；
+## 每种 3 个变体（弯向 / 长短 / 粗细不同），按画面随机数挑，不像复制粘贴
+func _mz_tk(form: String, t: int) -> String:
+	var tt: int = 2 if form in ["big", "cluster"] else clampi(t, 1, 2)
+	return "mz_tent_%s_e%d_v%d" % [form, tt, g.vrng.randi_range(0, 2)]
 
 
 func _mz_count_gd(o, pre: String) -> int:

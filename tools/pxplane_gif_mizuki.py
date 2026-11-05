@@ -96,6 +96,15 @@ def mz_sprite(t, swings, casts, face):
 
 
 # ---------------------------------------------------------------- 场景：一格 = 一个档位
+_VC = [0]
+
+
+def tk(form, t):
+    """同 fx_pxplane._mz_tk：形态 + 档 + 变体（预览里轮流取变体）"""
+    _VC[0] += 1
+    return "mz_tent_%s_e%d_v%d" % (form, 2 if form in ("big", "cluster") else max(1, min(2, t)), _VC[0] % 3)
+
+
 class Panel:
     def __init__(self, label, mz=(130, 150), face=1):
         self.label, self.mz, self.face = label, mz, face
@@ -286,7 +295,7 @@ def jel_fn(P, n, out=None):
 def mv_atk():
     ps = []
     for t in (0, 1, 2):
-        P = Panel(["E0  伞面 + 水母（无触手）", "E1  + 触手（精一新元素）", "E2  + 荧光紫 / 双触手 / 深蓝之籽"][t])
+        P = Panel(["E0  伞面 + 水母（无触手）", "E1  + 拍击触手（精一新元素）", "E2  + 卷须第二形态 / 荧光紫 / 深蓝之籽"][t])
         es = cone_enemies(P)
         for sw in (0.35, 1.25):
             P.slash("mz_atk_r56_e%d" % t, sw)
@@ -295,7 +304,7 @@ def mv_atk():
             if t == 0:
                 P.bloom("mz_bloom_e0_up", sw, es[1] if sw < 1 else es[4])
             else:
-                P.tent("mz_tent_e%d" % t, sw, es[1] if sw < 1 else es[4])
+                P.tent(tk("slam", t), sw, es[1] if sw < 1 else es[4])
         if t == 2:
             P.jel.append(jel_fn(P, 2, (0, 0.8, es[2])))
             P.bloom("mz_sting_up", 1.1, es[2])
@@ -306,7 +315,7 @@ def mv_atk():
 def mv_s1():
     ps = []
     for t in (0, 1, 2):
-        P = Panel(["E0  唤醒：大水母 ×3", "E1  + 每团下面钻出触手", "E2  + 荧光紫 / 四瓣纹 / 双触手"][t])
+        P = Panel(["E0  唤醒：大水母 ×3", "E1  + 每团下面刺穿触手", "E2  + 荧光紫 / 四瓣纹 / 双触手"][t])
         es = cone_enemies(P)
         P.add("mz_ready_gd", 0, (P.mz[0], P.mz[1] + 4), "gd", loop=True, life=0.42)
         sw = 0.45
@@ -317,11 +326,11 @@ def mv_s1():
             P.add("mz_burst_e%d_up" % t, sw + 0.06 * k, (x, y - 16), "up", gy=y + 3)
             P.add("mz_burst_e%d_gd" % t, sw + 0.06 * k, (x, y), "gd")
             if t >= 1:
-                P.tent("mz_tent_e%d" % t, sw + 0.06 * k, {"pos": (x, y), "r": 10})
+                P.tent(tk("pierce", t), sw + 0.06 * k, {"pos": (x, y), "r": 10})
         if t == 0:
             P.bloom("mz_bloom_e0_up", sw, es[2])
         else:
-            P.tent("mz_tent_e%d" % t, sw, es[2])
+            P.tent(tk("slam", t), sw, es[2])
         if t == 2:
             P.jel.append(jel_fn(P, 2))
         ps.append(P)
@@ -331,7 +340,7 @@ def mv_s1():
 def mv_s2():
     ps = []
     for t in (1, 2):
-        P = Panel(["", "E1  囚徒困境：触手缠一股", "E2  双触手 + 两股交叉对缠"][t])
+        P = Panel(["", "E1  卷须触手 + 缠一股", "E2  卷须 + 两股交叉对缠"][t])
         es = cone_enemies(P)
         P.casts.append(0.1)
         P.add("mz_s2cast_e%d_up" % t, 0.1, P.mz, "up")
@@ -340,8 +349,8 @@ def mv_s2():
             P.slash("mz_s2_r56_e%d" % t, sw)
             a, b = [(es[0], es[1]), (es[3], es[2]), (es[4], es[0])][i]
             P.bloom("mz_bloom_e%d_up" % t, sw, a)
-            P.tent("mz_tent_e%d" % t, sw, a, bind=1.0, tier=t)
-            P.tent("mz_tent_e%d" % t, sw, b, bind=1.0, tier=t)
+            P.tent(tk("curl", t), sw, a, bind=1.0, tier=t)
+            P.tent(tk("curl", t), sw, b, bind=1.0, tier=t)
         if t == 2:
             P.jel.append(jel_fn(P, 3))
         ps.append(P)
@@ -360,7 +369,7 @@ def mv_s3():
         tg = [es[0], es[2], es[4]] if i == 0 else [es[1], es[3], es[5]]
         for e in tg:
             P.bloom("mz_bloom_e2_up", sw, e)
-            P.tent("mz_tentbig", sw, e, bind=0.6, tier=2)
+            P.tent(tk("big", 2), sw, e, bind=0.6, tier=2)
     P.jel.append(jel_fn(P, 3))
     return [P], 2.6, "S3「镜花水月」：大水母浮起 + 水镜；旋斩 + 粗触手"
 
@@ -370,7 +379,7 @@ def mv_link():
     es = [P.en(200, 120), P.en(240, 150, "slider", 22), P.en(210, 185), P.en(280, 120, "slider", 22), P.en(290, 190), P.en(170, 155)]
     P.casts.append(0.15)
     for e in es:
-        P.tent("mz_tentlink", 0.2, e, bind=1.0, tier=2)
+        P.tent(tk("cluster", 2), 0.2, e, bind=1.0, tier=2)
     return [P], 1.6, "连携「小触手」：6 名敌人脚下高触手，缠住 1 秒"
 
 
@@ -383,7 +392,7 @@ def mv_extra():
     P2 = Panel("惊跳反射·余悸：身边一圈触手；触手桩", mz=(160, 140))
     P2.en(230, 120); P2.en(100, 170, "slider", 22); P2.en(220, 190)
     P2.pair("mz_awk2", 0.2, P2.mz)
-    P2.tent("mz_tent_e1", 1.0, {"pos": (280, 200), "r": 8})
+    P2.tent(tk("pierce", 1), 1.0, {"pos": (280, 200), "r": 8})
     return [P1, P2], 1.6, "额外攻击（late_shape 召唤流派只加范围 / 伤害；藏品剑气、扩散卡、分支招）"
 
 

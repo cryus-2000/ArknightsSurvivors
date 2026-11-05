@@ -174,12 +174,14 @@ def variants_mizuki():
     for R in (81, 104):   # 镜花水月旋斩：全范围、范围 × 1.45 → 81
         for ly in ("up", "gd"):
             v.append(("spin3_r%d_%s" % (R, ly), {"part": "spin", "layer": ly, "R": R, "W": 16 + (R - 81) // 8, "H0": 13, "el": 2, "dur": 0.36, "style": "s3", "seed": 9}, 0.4))
-    for el in T:   # 触手追击：目标脚下钻出
-        for ly in ("up", "gd"):
-            v.append(("tent_e%d_%s" % (el, ly), {"part": "tent", "layer": ly, "H": [28, 34, 40][el], "el": el, "seed": 11}, 0.5))
-    for ly in ("up", "gd"):
-        v.append(("tentbig_%s" % ly, {"part": "tent", "layer": ly, "H": 44, "el": 2, "style": "big", "seed": 12}, 0.5))   # 镜花水月的触手
-        v.append(("tentlink_%s" % ly, {"part": "tent", "layer": ly, "H": 46, "el": 2, "style": "link", "seed": 13}, 0.5))   # 连携「小触手」
+    # 触手五种形态（11-05 用户「多做几个形态」），每种 3 个变体（弯向 / 长短 / 粗细随种子变）：
+    # slam 拍击（普攻追击，精二多一根卷须）/ pierce 刺穿（唤醒大水母下、触手桩）/ curl 卷须（囚徒困境束缚）/ big 粗拍击（镜花水月）/ cluster 群生（连携）
+    FORMS = [("slam", (1, 2), 30), ("pierce", (1, 2), 32), ("curl", (1, 2), 30), ("big", (2,), 40), ("cluster", (2,), 34)]
+    for form, els, H in FORMS:
+        for el in els:
+            for vv in range(3):
+                for ly in ("up", "gd"):
+                    v.append(("tent_%s_e%d_v%d_%s" % (form, el, vv, ly), {"part": "tent", "layer": ly, "form": form, "H": H, "el": el, "v": vv, "seed": 11 + vv * 5}, 0.52))
     for el in T:   # 命中水母绽开（原点 = 命中点）；唤醒创伤扩散（大，带地上冲击环）
         v.append(("bloom_e%d_up" % el, {"part": "bloom", "layer": "up", "R": [7, 9, 11][el], "H0": 0, "el": el, "style": "hit", "seed": 21 + el}, 0.42))
         v.append(("burst_e%d_up" % el, {"part": "bloom", "layer": "up", "R": [14, 17, 20][el], "H0": 0, "el": el, "style": "burst", "seed": 24 + el}, 0.42))
@@ -206,7 +208,7 @@ def variants_mizuki():
     for el in T:
         v.append(("raw_atk_e%d" % el, {"part": "sweep", "view": "raw", "R": 56, "span": SPAN, "W": [10, 12, 14][el], "dir": 0, "el": el, "dur": 0.3}, 0.34))
         v.append(("raw_s1_e%d" % el, {"part": "sweep", "view": "raw", "R": 73, "span": SPAN, "W": [14, 16, 18][el], "dir": 0, "el": el, "dur": 0.36, "style": "s1"}, 0.4))
-        v.append(("raw_tent_e%d" % el, {"part": "tent", "view": "raw", "H": [28, 34, 40][el], "el": el, "seed": 11}, 0.5))
+        v.append(("raw_tent_e%d" % el, {"part": "tent", "view": "raw", "form": "slam", "H": 30, "el": el, "seed": 11}, 0.5))
         v.append(("raw_bloom_e%d" % el, {"part": "bloom", "view": "raw", "R": [7, 9, 11][el], "H0": 0, "el": el}, 0.42))
     v.append(("raw_spin3", {"part": "spin", "view": "raw", "R": 81, "W": 16, "el": 2, "dur": 0.36, "style": "s3"}, 0.4))
     return v
