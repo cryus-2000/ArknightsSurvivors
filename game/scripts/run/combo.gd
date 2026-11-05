@@ -7,8 +7,8 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
+const _FXR = preload("res://scripts/render/fx_recipe.gd")   # 配方 / 转平面试验的画面钩子（docs/246 §9：连携技也接管；只画）
 const Fxr = preload("res://scripts/render/fx_recipe.gd")   # 转平面（docs/254）：接管的干员连携技改由 fx_pxplane 画（只画）
-const _FXR = preload("res://scripts/render/fx_recipe.gd")   # 转平面（docs/255）：流明「清创光弹」接管时改画流明光弹，只画
 
 const CLS := {
 	"texas": "A", "exusiai": "A", "skadi": "A", "siege": "A", "eyjafjalla": "A",
@@ -657,6 +657,7 @@ static func _strike(u, a: Dictionary) -> void:
 		"skadi":   # 大剑横扫一周并击退
 			hits = _area(p, stop, 115.0, 1.4, 200.0)
 			p.slash_fx(stop, ang, PI, 110.0, c, "slash", 0.3)
+			_FXR.ev(p, "combo", {"at": stop, "ang": ang, "r": 115.0, "es": hits})   # 只画（docs/246 §9）
 		"siege":   # 砸锤：眩晕 0.6 秒，其他干员技力 +1 秒
 			hits = _area(p, stop, 105.0, 1.5, 120.0, 0.6)
 			for o2 in g.squad.ops:

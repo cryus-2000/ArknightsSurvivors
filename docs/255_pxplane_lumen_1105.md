@@ -80,3 +80,5 @@
 - `link_8m19_onoff.mp4`：同局 8:19 起 4 秒，左关右开，含 8:21.4 的连携技出手，7.5 MB。
 
 出图命令（本机，2026-11-05 之后按 docs/256 改到 GCP）：`python tools/pxplane_shots.py demo --op lumen --bals growth/late_shape=1 --out …`；`rec --op lumen --leader texas --squad lumen --seed 11 --from 480 --secs 20 --bals growth/late_shape=1,fx/recipe_log=1`；连携短片 `--from 499 --secs 4 --pxs 0,1,2 --name link`。
+
+> 11-05 合入 integ-1105 注：本稿的看图工具在仓库里是 `tools/pxplane_shots_lumen.py`（`tools/pxplane_shots.py` 已是斯卡蒂 + 星熊合版，参数不同）；文中 `pxplane_shots.py` 的命令对流明改用这份。

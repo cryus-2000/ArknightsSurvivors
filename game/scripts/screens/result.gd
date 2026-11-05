@@ -168,9 +168,17 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 		var idx: int = ["standard", "knight", "deep", "resolve"].find(g.ending)   # 显示编号，同 gallery.ENDING_ORDER
 		UI.text(g.hud, g.font, Vector2(gc.x - 90, gc.y + 124), "结局 %s" % ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ"][maxi(idx, 0)], 14, Color(col.r, col.g, col.b, 0.8), HORIZONTAL_ALIGNMENT_CENTER, 180)
 		UI.text(g.hud, g.font, Vector2(gc.x - 110, gc.y + 144), "已达成 %d / 4" % Cfg.endings_cleared.size(), 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 220)
-	UI.frame(g.hud, r, col, {"t": g.t})
-	g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x, 2)), Color(col.r, col.g, col.b, 0.85))
-	UI.caustic(g.hud, Rect2(r.position + Vector2(24, 10), Vector2(r.size.x - 48, 24)), g.t, col)
+	# 暂停 · 指挥台统一（docs/222 §20）：不画面板框和水纹，只留一片暗底 + 对角两枚直角刻度；按钮去钢蓝底，悬停 / 手柄选中才是青
+	var v3p: bool = g.state == Game.S.PAUSE and g.hud_view.v3 != null and g.hud_view.v3.on()
+	if v3p:
+		g.hud.draw_rect(r, Color(0.01, 0.015, 0.02, 0.55 * dim))
+		var tk := Color(1, 1, 1, 0.5 * dim)
+		g.hud.draw_polyline(PackedVector2Array([r.position + Vector2(0, 14), r.position, r.position + Vector2(14, 0)]), tk, 1.0)
+		g.hud.draw_polyline(PackedVector2Array([r.end - Vector2(0, 14), r.end, r.end - Vector2(14, 0)]), tk, 1.0)
+	else:
+		UI.frame(g.hud, r, col, {"t": g.t})
+		g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x, 2)), Color(col.r, col.g, col.b, 0.85))
+		UI.caustic(g.hud, Rect2(r.position + Vector2(24, 10), Vector2(r.size.x - 48, 24)), g.t, col)
 	var ew := g.font.get_string_size(en_title, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x + en_title.length() * 4.0
 	# 标题连两侧装饰线要在面板内：结局名长（「xx · 探索完成」36 号字）时缩字号，装饰线收到面板边内 24
 	var tsz := 36
@@ -241,7 +249,11 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 		if bm[1] <= 0.0:
 			continue
 		br.position.x += bm[0]
-		g.hud.draw_rect(br, _fa(UI.CYAN if hov else Color(UI.STEEL.r, UI.STEEL.g, UI.STEEL.b, 0.4), bm[1]))
+		if v3p and not hov:
+			g.hud.draw_rect(br, _fa(Color(1, 1, 1, 0.04), bm[1]))
+			g.hud.draw_rect(br, _fa(Color(1, 1, 1, 0.28), bm[1]), false, 1.0)
+		else:
+			g.hud.draw_rect(br, _fa(UI.CYAN if hov else Color(UI.STEEL.r, UI.STEEL.g, UI.STEEL.b, 0.4), bm[1]))
 		var bink := _fa(Color(0.04, 0.07, 0.09) if hov else UI.TEXT, bm[1])
 		if Pad.touch and not Pad.using:   # 触屏不画按键牌：字居中（11-01 巡检二轮：原先靠左、右半空着）
 			UI.text(g.hud, g.font, Vector2(br.position.x, br.position.y + (38 if touch else 26)), op[0], 19 if touch else 15, bink, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
@@ -254,8 +266,9 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 
 ## Tab 面板攻击栏下半：开局干员的三个技能 + 天赋。说明按栏宽折行；先每条给 1 行，再轮流给还没排完的加行，
 ## 直到把剩余高度用完。排不完的末行加「…」，鼠标移到这一行上看完整说明（stats_cells 的 skill 项）
-func draw_generic_skill_rows(b1: Rect2, y: float, rows: Array, dfs := 11, nfs := 14) -> float:
-	var c: Color = g.ch.col()
+## mono：属性栏 v3（docs/222 §19）画法——说明一律白 / 灰（不再用干员色），正在攒技力的技能左边一道青竖条
+func draw_generic_skill_rows(b1: Rect2, y: float, rows: Array, dfs := 11, nfs := 14, mono := false) -> float:
+	var c: Color = g.ch.col() if not mono else Color(0.85, 0.87, 0.89)
 	var x0 := b1.position.x + 62.0
 	var dw := b1.end.x - 14.0 - x0
 	var lh: float = g.font.get_height(UI.fs(dfs)) + 1.0
@@ -296,6 +309,8 @@ func draw_generic_skill_rows(b1: Rect2, y: float, rows: Array, dfs := 11, nfs :=
 		UI.text_fit(g.hud, g.font, Vector2(x0, y + 16), row[1] + ("  ·排异" if row[4] else ""), nfs, UI.TEXT if on else UI.SUB, dw, 11)
 		var lines: PackedStringArray = wrapped[k]
 		var dcol: Color = col if on else Color(0.42, 0.48, 0.52)
+		if mono and on and str(row[1]).contains("所需技力"):
+			g.hud.draw_rect(Rect2(b1.position.x + 10, y + 4, 2, 32), UI.CYAN)
 		for j in give[k]:
 			var ln: String = lines[j]
 			if j == give[k] - 1 and give[k] < lines.size():

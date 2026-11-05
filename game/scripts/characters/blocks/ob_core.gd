@@ -355,7 +355,7 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 				hits = o.area_hit(src, c, r, dmg, kb, stun, tags, max_n)
 			if b.get("ring", true):   # ring: false = 不画缺省地面环（fx 里自己画，§15.9）
 				o.fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.55, "life": 0.32, "col": o.col(), "floor": true, "w": 2.0, "alpha": 0.6})
-			_FXR.ev(o, "shape", {"src": src, "circle": true, "c": c, "r": r, "es": hits})   # 只画（docs/246）
+			_FXR.ev(o, "shape", {"src": src, "circle": true, "c": c, "r": r, "es": hits, "tags": tags})   # 只画（docs/246）
 			fx_c = c
 			fx_r = r
 			_F().hw_record(o, dmg, fx_a, r, c)   # 手写迁移段：记下这一下（basis prev / 普攻的 attack）

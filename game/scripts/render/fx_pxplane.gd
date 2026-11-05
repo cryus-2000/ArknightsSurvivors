@@ -1,4 +1,4 @@
-## pixelfx「转平面」试验（docs/246，11-05 用户「把 pixelfx 的二维平面转移到我们这个平面上来，再结合 Noita 特效」）：斯卡蒂（docs/246）、星熊（docs/254）、流明（docs/255）、德克萨斯（docs/257），各自一节在文件后部。
+## pixelfx「转平面」试验（docs/246，11-05 用户「把 pixelfx 的二维平面转移到我们这个平面上来，再结合 Noita 特效」）：斯卡蒂（docs/246）、星熊（docs/254）、流明（docs/255）、德克萨斯（docs/257），各自一节在文件末尾。
 ## 开关 fx/px_plane（balance.json，缺省 0 = 关）：1 = 转平面版，2 = 旧做法原样贴（对照用，重现之前的问题）。
 ## 借配方系统（fx_recipe.gd）的接管：开着时 Fxr.owns(斯卡蒂) 为真，她原来的刀光 / 帧条 / pfx / 命中颗粒只跳过绘制（玩法照旧，TRACE 逐行一致）；
 ## 事件由 fx_recipe._ev 转到这里，颗粒（Noita 水滴）和照地光走 fx_recipe 的颗粒池与灯光预算。
@@ -18,7 +18,7 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
-const METAS := {"res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_texas.json": ""}   # 帧条表 → 键前缀（星熊 / 德克萨斯的键在文件里已带 hsg_ / tx_ 前缀；流明加 lm_）
+const METAS := {"res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_texas.json": ""}   # 帧条表 → 键前缀（星熊 / 德克萨斯的键自带 hsg_ / tx_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
 const ART := "res://art/fx/pxp/pxp_%s.png"
 const IDS := {"skadi": true, "hoshiguma": true, "lumen": true, "texas": true}
 ## 接管时仍照画的原 pfx 帧条（状态提示，不属于攻击特效）：星熊格挡闪光、反击架势盾沿光
@@ -133,28 +133,36 @@ func ev(o, kind: String, d: Dictionary) -> void:
 	var t: int = tier(o)
 	var R = load("res://scripts/render/fx_recipe.gd").of(g)
 	var p: Dictionary = R.pal(o)
-	var oid0: String = str(o.id)
-	if oid0 == "hoshiguma":
+	if str(o.id) == "hoshiguma":
 		_ev_hsg(o, kind, d, raw, t, R, p)
 		return
-	if oid0 == "texas":
-		_ev_tx(o, kind, d, raw, t, R, p)
-		return
-	if oid0 == "lumen":
+	if str(o.id) == "lumen":
 		_ev_lumen(o, kind, d, raw, t, R, p)
+		return
+	if str(o.id) == "texas":
+		_ev_tx(o, kind, d, raw, t, R, p)
 		return
 	match kind:
 		"shape":
 			var src: String = str(d.get("src", ""))
 			if Bal.v("fx/recipe_log", 0.0) > 0.0:
-				print("PXPLOG %s %s %d" % [src, "c" if d.get("circle", false) else "%.2f" % float(d.get("half", 0.0)), Engine.get_process_frames()])
+				print("PXPLOG %s %s %d %d %s" % [src, "c" if d.get("circle", false) else "%.2f" % float(d.get("half", 0.0)), Engine.get_process_frames(), int(d.get("r", 0.0)), "skill" if "skill" in d.get("tags", []) else "-"])
 			if d.get("circle", false):
 				var c: Vector2 = d.get("c", o.pos)
 				var r: float = float(d.get("r", 60.0))
+				# 分支招各有各的样子（11-05 用户「分支招数能不能做出点差距出来」）
 				if src == "大剑":   # 冲刺收尾的响应横扫（圆形）：按全向旋斩画
 					_add(o, "spin_e%d" % t, c, 0.0, r, raw, "raw_spin_e%d" % t, 62.0)
-				elif r >= 160.0:
-					_add_gd(o, "s3cast", c, raw, "raw_ring_e2", r, 92.0)
+				elif raw:
+					_add_gd(o, "", c, raw, "raw_ring_e%d" % t, r, 60.0)
+				elif src == "跃浪":   # 回澜：海水倒卷回脚下，汇到中心冲起一柱水
+					_add_pair(o, "backwash", c)
+				elif src == "涌潮" and r >= 160.0:   # 怒涛：悲歌结束环身一记大碎浪
+					_add_pair(o, "nutao", c)
+				elif src == "涌潮" and "skill" in d.get("tags", []):   # 怒涛：0.4 秒后的第二圈，更高 + 海绿
+					_add_pair(o, "swell2", c)
+				elif src == "涌潮":   # 涌潮：脚下涌出一圈矮水涌往外推
+					_add_pair(o, "swell_e%d" % t, c)
 				else:
 					_add_gd(o, "pulse_e%d" % t, c, raw, "raw_ring_e%d" % t, r, 60.0)
 				_burst(o, R, p, c + Vector2(0, -10), c.y + 4.0, d.get("es", []), 4 + 2 * t, 120.0, 0.45)
@@ -193,6 +201,17 @@ func ev(o, kind: String, d: Dictionary) -> void:
 					_add_up(o, "leap_e%d" % t2, at2, raw, "raw_splash_e%d" % t2, r2, 65.0, ang)
 					_add_gd(o, "leap_e%d" % t2, at2, raw, "", r2, 65.0)
 					_burst(o, R, p, at2 + Vector2(0, -22), at2.y, es, 5 + t2, 140.0, 0.55)
+		"combo":   # 连携技「落潮横扫」（docs/246 §9，不分档）：整圈白刃大月牙 + 脚下一圈矮浪往外推 + 水滴、照地光
+			var at3: Vector2 = d.get("at", o.pos)
+			if Bal.v("fx/recipe_log", 0.0) > 0.0:
+				print("PXPLOG combo c %d 115 -" % Engine.get_process_frames())
+			if raw:
+				_add(o, "", at3, 0.0, float(d.get("r", 115.0)), raw, "raw_spin_e1", 62.0)
+			else:
+				_add_pair(o, "combo_spin", at3)
+				_add_pair(o, "combo_swell", at3)
+				_cuts(o, d.get("es", []), 1, 4)
+			_burst(o, R, p, at3 + Vector2(0, -14), at3.y, d.get("es", []), 8, 160.0, 0.65)
 		"skill":
 			if int(d.get("i", -1)) == 2:   # 涌潮悲歌起手：身边冲起一柱大水 + 脚下一圈贴地水环
 				_add_gd(o, "s3cast", o.pos, raw, "raw_ring_e2", 185.0, 92.0)
@@ -259,6 +278,12 @@ func _add(o, key: String, at: Vector2, ang: float, r: float, raw: bool, rawk: St
 	_push({"k": kg, "t0": g.t, "gp": _snap(at), "flip": dk[1] and not spin, "ly": "gd", "oid": str(o.id), "slash": true})
 
 
+## 以脚底为原点的一对件（立起 + 贴地）
+func _add_pair(o, key: String, at: Vector2) -> void:
+	_push({"k": key + "_up", "t0": g.t, "gp": _snap(at), "flip": false, "ly": "up", "oid": str(o.id)})
+	_push({"k": key + "_gd", "t0": g.t, "gp": _snap(at), "flip": false, "ly": "gd", "oid": str(o.id)})
+
+
 ## 方向件（不是斩击：不参与「只留最近两刀」）
 func _add_dir(o, key: String, at: Vector2, ang: float) -> void:
 	var dk: Array = pick_dir(ang)
@@ -315,11 +340,11 @@ func draw_floor(o) -> void:
 	if id == "hoshiguma":
 		_floor_hsg(o)
 		return
-	if id == "texas":
-		_floor_tx(o)
-		return
 	if id == "lumen":
 		_lm_draw_floor(o)
+		return
+	if id == "texas":
+		_floor_tx(o)
 		return
 	if o.skill_active_left(2) > 0.0:   # 涌潮悲歌持续期间：脚下一滩积水（循环，跟着人走）
 		_draw_strip(cv, "pool_gd", frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
@@ -327,6 +352,7 @@ func draw_floor(o) -> void:
 		if str(it.ly) == "gd" and str(it.oid) == id:
 			_draw_strip(cv, str(it.k), frame_of(float(it.t0)), it.gp, it.flip, true)
 	_wall_spawn(o)
+	_draw_qi_wakes(o, cv)
 	for w in _waves(o):
 		_draw_strip(cv, w[0] + "_gd_d%d" % w[3], frame_of(0.0), w[1], w[2], false)
 
@@ -352,6 +378,9 @@ func draw_over(o) -> void:
 		for bm in _booms(o):
 			_draw_raw(cv, "hsg_raw_saw", posmod(int(g.t * Bal.v("fx/px_plane_raw_fps", 12.8)), int(_meta("hsg_raw_saw").get("n", 1))), o.pos + bm.dir * _boom_d(bm) + Vector2(0, -22), 0.0, g.PX)
 		return
+	if id == "skadi" and o.get("vg") is Dictionary and not o.vg.is_empty():   # 斯卡蒂剑气（docs/246 §9）；星熊走上面自己的
+		for q in o.vg.get("qi", []):
+			_draw_raw(cv, "raw_blade", posmod(int(g.t * Bal.v("fx/px_plane_raw_fps", 12.8)), int(_meta("raw_blade").get("n", 1))), q.p + Vector2(0, -16), (q.v as Vector2).angle(), g.PX * 1.3)
 	for w in o.hw.get("waves", []):
 		var b: Dictionary = w.b
 		if not b.has("proj") and not b.has("tex"):
@@ -381,7 +410,10 @@ static func sort_items(game) -> Array:
 				continue
 			for w in r._waves(o):
 				out.append({"wave": w})
-			if str(o.id) == "hoshiguma":
+			if str(o.id) == "skadi":   # 斯卡蒂剑气浪头（docs/246 §9）
+				for qw in r._qis(o):
+					out.append({"wave": qw})
+			elif str(o.id) == "hoshiguma":   # 星熊锯盾 + 剑气齐射（docs/254）
 				for bm in r._booms(o):
 					out.append({"k": "hsg_saw_up", "t0": 0.0, "gp": r._boom_gp(o, bm), "flip": false, "loop": true})
 				for qv in r._qi_volleys(o):
@@ -469,6 +501,47 @@ func _wall_spawn(o) -> void:
 		_add_dir(o, "wallbrk_e%d" % t, org, dv.angle())
 
 
+## late_shape / 可见成长的额外剑气（o.vg.qi）→ 水刃：[帧条前缀, 地面点（按 15 fps 节拍跳格）, 翻转, 方向]
+func _qis(o) -> Array:
+	var out: Array = []
+	if mode() != 1 or not (o.get("vg") is Dictionary) or o.vg.is_empty():
+		return out
+	var t: int = tier(o)
+	for q in o.vg.get("qi", []):
+		var dk: Array = pick_dir((q.v as Vector2).angle())
+		out.append(["qi_e%d" % t, _wpos({"pos": q.p, "_pxq": q.get("_pxq")}, q), dk[1], dk[0]])
+	return out
+
+
+## 剑气身后地上的 V 字白沫浪痕：从出手点到当前位置，越靠后越稀、越暗；逐美术像素画（对齐 2 世界像素格）
+func _draw_qi_wakes(o, cv) -> void:
+	if not (o.get("vg") is Dictionary) or o.vg.is_empty():
+		return
+	var px: float = g.PX
+	for q in o.vg.get("qi", []):
+		var dv: Vector2 = (q.v as Vector2).normalized()
+		var nv := Vector2(-dv.y, dv.x * 0.72)
+		var head: Vector2 = _wpos({"pos": q.p, "_pxq": q.get("_pxq")}, q)
+		var L: float = minf(90.0, (q.p as Vector2).distance_to(q.get("p0", q.p)) + 20.0)
+		var sd: int = int(q.get("o0", Vector2.ZERO).x * 7.0) & 1023
+		var s := 4.0
+		while s < L:
+			var u: float = s / L
+			for side in [-1.0, 1.0]:
+				if Fxr_h(sd + int(s) * 3 + (1 if side > 0 else 0)) < 0.25 + 0.6 * u:
+					continue
+				var pp: Vector2 = _snap(head - Vector2(dv.x, dv.y * 0.72) * s + nv * side * (3.0 + s * 0.32))
+				cv.draw_rect(Rect2(pp, Vector2(px, px)), Color.html("#ffffff") if u < 0.25 else (Color.html("#93b4f7") if u < 0.6 else Color.html("#446ec0")))
+			s += px
+
+
+static func Fxr_h(i: int) -> float:
+	var x: int = (i * 0x9E3779B1) & 0x7fffffff
+	x = x ^ (x >> 13)
+	x = (x * 1103515245 + 12345) & 0x7fffffff
+	return float((x >> 8) & 0xffff) / 65535.0
+
+
 ## 潮刃（弹体式）：直接读玩法状态 o.hw.waves → [帧条前缀, 地面点, 翻转, 方向]（浪墙改由 _wall_spawn 生成碎浪，不在这里）
 func _waves(o) -> Array:
 	var out: Array = []
@@ -485,14 +558,17 @@ func _waves(o) -> Array:
 
 ## 潮刃 / 浪墙的画面位置：统一节拍时每 1/15 秒才跳一次格（对齐 2 世界像素 = 1 美术像素）；对照档平滑跟随。
 ## 记在浪自己的字典里（画面专用键 _pxq，玩法不读）
-func _wpos(w: Dictionary) -> Vector2:
+func _wpos(w: Dictionary, store = null) -> Vector2:
 	if not is_equal_approx(clock(), 15.0):
 		return w.pos
 	var tick: int = int(floor(g.t * 15.0))
 	var q = w.get("_pxq")
 	if q == null or int(q[0]) != tick:
 		q = [tick, _snap(w.pos)]
-		w["_pxq"] = q
+		if store != null:
+			store["_pxq"] = q
+		else:
+			w["_pxq"] = q
 	return q[1]
 
 
@@ -787,7 +863,6 @@ func _qpos(q: Dictionary) -> Vector2:
 		c = [tick, q.p]
 		q["_pxq"] = c
 	return c[1]
-
 
 # ================================================================ 流明（docs/255，照斯卡蒂 docs/246 的做法）
 ## 帧条件（tools/pxplane_bake_lumen.py，键前缀 lm_）：光弹命中 / 折光落点 / 荧光治疗 / 出光点 / 沐雨 v3 / 光雨雨区（循环）/ 沛霖水柱 / 灯火不灭起手 · 光圈（循环）· 光爆；
