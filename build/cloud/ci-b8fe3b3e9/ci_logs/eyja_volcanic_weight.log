@@ -1,0 +1,74 @@
+# eyja_volcanic_weight
+# 参数：--headless --path /work/repo/game res://tests/eyja_volcanic_weight_test.tscn -- --regression --seed=1 --balance --seed=1 --op=eyjafjalla --route=eyjafjalla:meteor
+# 用时 14 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+EYJA VOLCANIC WEIGHT failures=0
+ERROR: 74 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 4 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+
+## stderr
+SCRIPT ERROR: Invalid call. Nonexistent function 'has_meta' in base 'Dictionary'.
+          at: of (res://scripts/render/fx_recipe.gd:42)
+          GDScript backtrace (most recent call first):
+              [0] of (res://scripts/render/fx_recipe.gd:42)
+              [1] owns (res://scripts/render/fx_recipe.gd:128)
+              [2] ev (res://scripts/render/fx_recipe.gd:177)
+              [3] _hw2_tick (res://scripts/characters/blocks/seg_eyjafjalla.gd:496)
+              [4] check_pulse (res://tests/eyja_volcanic_weight_test.gd:63)
+              [5] _ready (res://tests/eyja_volcanic_weight_test.gd:45)
+SCRIPT ERROR: Invalid call. Nonexistent function 'enabled' in base 'Nil'.
+          at: owns (res://scripts/render/fx_recipe.gd:129)
+          GDScript backtrace (most recent call first):
+              [0] owns (res://scripts/render/fx_recipe.gd:129)
+              [1] ev (res://scripts/render/fx_recipe.gd:177)
+              [2] _hw2_tick (res://scripts/characters/blocks/seg_eyjafjalla.gd:496)
+              [3] check_pulse (res://tests/eyja_volcanic_weight_test.gd:63)
+              [4] _ready (res://tests/eyja_volcanic_weight_test.gd:45)
+SCRIPT ERROR: Invalid call. Nonexistent function 'has_meta' in base 'Dictionary'.
+          at: of (res://scripts/render/fx_recipe.gd:42)
+          GDScript backtrace (most recent call first):
+              [0] of (res://scripts/render/fx_recipe.gd:42)
+              [1] owns (res://scripts/render/fx_recipe.gd:128)
+              [2] ev (res://scripts/render/fx_recipe.gd:177)
+              [3] _hw2_tick (res://scripts/characters/blocks/seg_eyjafjalla.gd:496)
+              [4] check_pulse (res://tests/eyja_volcanic_weight_test.gd:63)
+              [5] _ready (res://tests/eyja_volcanic_weight_test.gd:45)
+SCRIPT ERROR: Invalid call. Nonexistent function 'enabled' in base 'Nil'.
+          at: owns (res://scripts/render/fx_recipe.gd:129)
+          GDScript backtrace (most recent call first):
+              [0] owns (res://scripts/render/fx_recipe.gd:129)
+              [1] ev (res://scripts/render/fx_recipe.gd:177)
+              [2] _hw2_tick (res://scripts/characters/blocks/seg_eyjafjalla.gd:496)
+              [3] check_pulse (res://tests/eyja_volcanic_weight_test.gd:63)
+              [4] _ready (res://tests/eyja_volcanic_weight_test.gd:45)
+SCRIPT ERROR: Invalid call. Nonexistent function 'has_meta' in base 'Dictionary'.
+          at: of (res://scripts/render/fx_recipe.gd:42)
+          GDScript backtrace (most recent call first):
+              [0] of (res://scripts/render/fx_recipe.gd:42)
+              [1] owns (res://scripts/render/fx_recipe.gd:128)
+              [2] ev (res://scripts/render/fx_recipe.gd:177)
+              [3] _hw2_tick (res://scripts/characters/blocks/seg_eyjafjalla.gd:496)
+              [4] check_pulse (res://tests/eyja_volcanic_weight_test.gd:63)
+              [5] _ready (res://tests/eyja_volcanic_weight_test.gd:45)
+SCRIPT ERROR: Invalid call. Nonexistent function 'enabled' in base 'Nil'.
+          at: owns (res://scripts/render/fx_recipe.gd:129)
+          GDScript backtrace (most recent call first):
+              [0] owns (res://scripts/render/fx_recipe.gd:129)
+              [1] ev (res://scripts/render/fx_recipe.gd:177)
+              [2] _hw2_tick (res://scripts/characters/blocks/seg_eyjafjalla.gd:496)
+              [3] check_pulse (res://tests/eyja_volcanic_weight_test.gd:63)
+              [4] _ready (res://tests/eyja_volcanic_weight_test.gd:45)
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+WARNING: 418 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 27 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+
