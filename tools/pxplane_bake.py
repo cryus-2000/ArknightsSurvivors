@@ -37,18 +37,18 @@ def variants():
     for el in T:
         for d in DIRS:
             for ly in ("up", "gd"):
-                v.append(("basic_e%d_%s_d%d" % (el, ly, d), {"part": "ribbon", "layer": ly, "R": [56, 60, 64][el], "span": 2.8, "W": [12, 14, 16][el], "dir": d, "el": el, "dur": 0.3}, 0.34))
+                v.append(("basic_e%d_%s_d%d" % (el, ly, d), {"part": "ribbon", "layer": ly, "R": [56, 60, 64][el], "span": 2.8, "W": [12, 14, 16][el], "dir": d, "el": el, "dur": 0.3}, 0.7))
     # 迅捷打击·γ型：半径 73（132 × 1.1 / 2）、弧 3.5
     for el in T:
         for d in DIRS:
             for ly in ("up", "gd"):
-                v.append(("s1_e%d_%s_d%d" % (el, ly, d), {"part": "ribbon", "layer": ly, "R": [73, 78, 84][el], "span": 3.5, "W": [16, 18, 21][el], "H0": 12, "dir": d, "el": el, "dur": 0.36, "style": "s1"}, 0.4))
+                v.append(("s1_e%d_%s_d%d" % (el, ly, d), {"part": "ribbon", "layer": ly, "R": [73, 78, 84][el], "span": 3.5, "W": [16, 18, 21][el], "H0": 12, "dir": d, "el": el, "dur": 0.36, "style": "s1"}, 0.7))
     # 全方向旋斩：异乡之舞第三下（62）、涌潮悲歌（92）
     for el in T:
         for ly in ("up", "gd"):
-            v.append(("spin_e%d_%s" % (el, ly), {"part": "spin", "layer": ly, "R": [62, 66, 70][el], "W": [12, 14, 16][el], "el": el, "dur": 0.36}, 0.4))
+            v.append(("spin_e%d_%s" % (el, ly), {"part": "spin", "layer": ly, "R": [62, 66, 70][el], "W": [12, 14, 16][el], "el": el, "dur": 0.36}, 0.7))
     for ly in ("up", "gd"):
-        v.append(("spin_s3_%s" % ly, {"part": "spin", "layer": ly, "R": 92, "W": 20, "H0": 12, "el": 2, "dur": 0.4, "seed": 7, "style": "s3"}, 0.47))
+        v.append(("spin_s3_%s" % ly, {"part": "spin", "layer": ly, "R": 92, "W": 20, "H0": 12, "el": 2, "dur": 0.4, "seed": 7, "style": "s3"}, 0.7))
     # 水柱：破浪下劈（精一普攻，落点）/ 跃浪击（S2）
     for el in (1, 2):
         v.append(("leap_e%d_up" % el, {"part": "splash", "layer": "up", "R": 40, "H": [40, 48][el - 1], "el": el}, 0.5))

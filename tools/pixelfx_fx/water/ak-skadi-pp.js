@@ -43,7 +43,9 @@ const nz = (x, sd) => noise(x, sd) * 0.5 + 0.5;   // 0..1
 // 斩击（11-05 用户「斩击没有刀剑感」后重写）：腰高的水平刀痕——大剑横扫扫过的那一片，按俯视斜角压扁（SY）、抬到腰高（H0）。
 // 刀剑感来自：① 月牙形（中段厚、两头收成针尖，最厚处偏刀头）；② 外缘 1 像素白刃线（刀尖走过的路）+ 刀头一道径向刃光（剑身那一下的反光）；
 // ③ 顺着弧走的速度纹；④ 快：第 0 帧就扫出 55%，第 1 帧扫满，之后从刀尾往前收。命中斩痕在游戏里画（fx_pxplane._cuts）。
-// 精一：刀身加厚 + 刃外一排浪沫点；精二：再加白刃线内侧一道海绿副刃。（11-05 去掉内圈第二刀：叠起来碎）
+// 分档（11-05 用户「浪花没什么用，换一个」→ 每升一档多一个新元素，不靠水花）：
+//   精一：刀身加厚 + 斩击后地上留一道发光的深海裂痕（贴地层 rift）；
+//   精二：再加从裂痕里往上长出的深海暗影触须（深蓝身、海绿尖，扭一下缩回裂口）+ 白刃线内侧一道海绿副刃（刃变重）。
 function sweep(t, span, full) {
   const a0 = -span / 2;
   const head = a0 + span * (full ? 0.4 + 0.6 * clamp(t / 0.1) : 0.55 + 0.45 * clamp(t / 0.067));
@@ -130,21 +132,78 @@ function smear(p, t, o, C, ACC, full, k) {
       p.px(Math.round(x), Math.round(y), u < 0.12 ? C[n - 1] : i % 2 ? ACC : C[n - 3]);
     }
   }
-  if (el >= 1 && cool < 0.6) for (let a = tail + (head - tail) * 0.3; a <= head; a += 0.09) {   // 精一起：刃外一排浪沫点（取代内圈第二刀）
-    if (nz(a * 7, o.seed + 13) < 0.62) continue;
-    const rr = R + 2, x = Math.cos(a + th) * rr, y = Math.sin(a + th) * rr * SY - H0;
-    p.px(Math.round(x), Math.round(y), C[n - 1]);
+}
+
+// 裂痕上的点（rift 与 riftTendrils 共用同一条裂口几何）
+function riftPt(o, a, R, th, SY) {
+  const rr = R * 0.8 + 2.6 * (nz(a * 6.5, o.seed + 913) - 0.5) * 2;
+  return [Math.cos(a + th) * rr, Math.sin(a + th) * rr * SY];
+}
+
+// 精二：深海暗影触须（贴「深海猎人」）——从地上的深海裂痕里往上长出 3–4 条卷曲的触须（深蓝身 + 暗边、2 格海绿尖），
+// 刀收之后还在：0.06 秒起长出、扭动，约 0.5 秒缩回裂口。立起层（竖直，底端贴地）
+function riftTendrils(p, t, o, C, ACC, full) {
+  const R = +o.R, SY = +o.SY, th = +o.dir * D2R, n = C.length;
+  const span = full ? TAU * 0.84 : +o.span, a0 = -span / 2;
+  const grow = smooth(0.06, 0.16, t), shrink = smooth(0.34, 0.56, t);
+  if (grow <= 0 || shrink >= 0.99) return;
+  const m = full ? 5 : 4;
+  for (let i = 0; i < m; i++) {
+    const a = a0 + span * (0.18 + (0.66 / (m - 1)) * i + 0.06 * (nz(i * 3.3, o.seed + 901) - 0.5));
+    const [bx, by] = riftPt(o, a, R, th, SY);
+    const L = (20 + 12 * nz(i * 1.7, o.seed + 903)) * grow * (1 - shrink);
+    if (L < 2) continue;
+    const sg = i % 2 ? 1 : -1;
+    let x = bx, y = by, dir = -Math.PI / 2 + sg * 0.25;      // 往上长，略外斜
+    for (let s = 0; s <= L; s += 0.5) {
+      const u = s / Math.max(1, L);
+      dir += sg * (0.045 + 0.06 * u) + 0.03 * Math.sin(t * 24 + i * 2.1);   // 越往上卷得越紧，整条在扭
+      x += Math.cos(dir) * 0.5;
+      y += Math.sin(dir) * 0.5;
+      const X = Math.round(x), Y = Math.round(y), wide = u < 0.5;
+      p.px(X - 1, Y, C[0]);                                   // 暗边
+      if (wide) p.px(X + 1, Y, C[0]);
+      p.px(X, Y, u > 0.84 ? ACC : u > 0.6 ? C[3] : C[2]);
+      if (wide) p.px(X + (sg > 0 ? 1 : -1), Y, C[2]);        // 根部 2 格粗
+    }
   }
 }
 
 function ribbon(p, t, o, C, ACC, full) {
   const R = +o.R, W = +o.W, el = +o.el;
+  if (el >= 2 && o.view !== "raw") riftTendrils(p, t, o, C, ACC, full);   // 精二：从裂痕里长出的暗影触须（先画，刀身盖在上面）
   smear(p, t, o, C, ACC, full, { R, Wr: W, dt: 0, dim: 0, edge: true });
+}
+
+// 精一起：斩击后地上留一道发光的深海裂痕——顺着刀痕在地面上裂开（刀头扫到哪裂到哪），暗色裂口 + 1 格海绿发光芯，
+// 几处小分叉；0.15 秒起芯慢慢暗下去，约 0.6 秒整道消失（比刀痕晚走：刀已收、地上还亮着一会儿）
+function rift(p, t, o, C, ACC, full) {
+  const R = +o.R, SY = +o.SY, th = +o.dir * D2R, n = C.length;
+  const span = full ? TAU * 0.84 : +o.span;
+  const [a0, head] = sweep(t, span, full);
+  const glow = 1 - smooth(0.15, 0.5, t), fade = smooth(0.42, 0.66, t);
+  if (fade >= 0.99) return;
+  const rr0 = R * 0.8;
+  for (let a = a0 + span * 0.08; a <= Math.min(head, a0 + span * 0.96); a += 0.5 / rr0) {
+    if (nz(a * 9, o.seed + 911) < fade) continue;            // 消失时从两头碎开
+    if (nz(a * 2.4, o.seed + 919) < 0.2) continue;           // 裂口断续（不成一条细线环）
+    const [fx, fy] = riftPt(o, a, R, th, SY);
+    const x = Math.round(fx), y = Math.round(fy);
+    p.px(x, y + 1, C[0]);
+    p.px(x, y - 1, C[0]);
+    const lit = glow > 0.08 && nz(a * 17, o.seed + 915) > 0.22 * (1 - glow);
+    p.px(x, y, lit ? ACC : C[1]);
+    if (lit && glow > 0.45) p.px(x + 1, y, C[n - 2]);            // 亮的时候 2 格宽
+    if (nz(a * 3.1, o.seed + 917) > 0.86) {                   // 小分叉（往外 3 格）
+      for (let s = 1; s <= 3; s++) p.px(Math.round(Math.cos(a + th) * (rr + s * 1.2) + s * 0.4), Math.round(Math.sin(a + th) * (rr + s * 1.2) * SY), s === 1 && lit ? ACC : C[0]);
+    }
+  }
 }
 
 // 地面：刀痕在地上的投影阴影（外半圈，半透明抖动）
 function ribbonGround(p, t, o, C, ACC, full) {
   if (o.view === "raw") return;
+  if (+o.el >= 1) rift(p, t, o, C, ACC, full);
   const R = +o.R, W = +o.W, SY = +o.SY, th = +o.dir * D2R;
   const span = full ? TAU * 0.84 : +o.span;
   const [a0, head, tail] = sweep(t, span, full);
