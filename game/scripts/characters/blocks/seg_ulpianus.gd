@@ -234,6 +234,8 @@ static func hw_tether_start(o, b: Dictionary) -> void:
 		return
 	h.anchor = {"b": b, "phase": "throw", "t": 0.0, "dur": float(b.get("throw", 0.16)), "from": Vector2.ZERO, "to": to, "trail": []}
 	h.anchor.from = _hw_hand(o)
+	if b.has("path_w"):
+		_FXR.ev(o, "ul_orca", {"from": o.pos, "to": to, "throw": float(b.get("throw", 0.16))})   # 转平面（docs/266 §7）：S3 虎鲸，只画
 
 
 static func _hw_anchor_pos(an: Dictionary, k: float) -> Vector2:

@@ -239,40 +239,46 @@ def cool_spots(R, seed, n=14):
 
 
 def s3_impact_up(f, fi, R, seed):
-    """S3 落地重击（立起）：大爆闪 + 一大把水团（落点不出判定）+ 之后冷却水花：判定圈里一处处小水花依次蹦起（白 → 蓝 → 暗）"""
+    """S3 落地重击（虎鲸砸下，立起）：大爆白 + 一大把不规则水团（落点不出判定）"""
     star(f, fi, R * 1.4, seed, 1.2, 24.0)
+    if fi == 0:   # 爆白：中心一大团白
+        for dx in range(-9, 10):
+            for dy in range(-12, 3):
+                if dx * dx * 0.5 + (dy + 4) * (dy + 4) < 40:
+                    f.put(dx, dy, WHITE if dx * dx * 0.5 + (dy + 4) * (dy + 4) < 24 else C[6])
     skirt(f, fi, R * 0.7, seed)
     clumps(f, fi, R, 28, 40, seed)
     clumps(f, fi, R * 0.5, 20, 14, seed + 3)
-    for (x, y, d) in cool_spots(R, seed):
-        age = fi - d
-        if age < 0 or age > 3:
-            continue
-        hh = [3, 4, 2, 1][age]
-        c = [WHITE, C[6], C[5], C[4]][age]
-        for z in range(hh):
-            f.put(x, y - z - 1, c if z == hh - 1 else C[5])
-        if age <= 1:
-            f.put(x - 1, y - hh, C[5])
-            f.put(x + 1, y - hh, C[5])
 
 
 def s3_impact_gd(f, fi, R, seed):
-    """S3 落地重击（贴地）：前三拍深色湿印，一道细涟漪推到判定半径；冷却水花落地处白沫斑，白 → 蓝 → 暗、一拍一拍冷下去"""
+    """S3 落地（贴地）：潮水先往外漫到 0.85R（断续白沫边 + 内侧 2 格暗水带，不平涂），再一拍一拍往回退、变暗、散掉"""
     if fi <= 2:
         blob(f, R * 0.3, seed, [C[3], C[2], C[1]] if fi == 0 else [C[2], C[1]], 1.0)
-    ripple(f, fi, R, seed, n_beats=8, r0=0.3, gap=0.3)
-    for (x, y, d) in cool_spots(R, seed):
-        age = fi - d
-        if age < 0 or age > 7:
+    if fi <= 3:
+        rr = R * 0.85 * ease_out((fi + 1) / 4.0)
+    else:
+        rr = R * 0.85 * max(0.15, 1.0 - (fi - 3) / 10.0)
+    fade = max(0, fi - 7)
+    if fade > 5:
+        return
+    edge = [WHITE, FOAM, FOAM, C[5], C[4], C[3]][fade] if fi > 0 else WHITE
+    for a, x, y in ellipse_pts(rr):
+        if vn(a * 5.0 + seed + fi * 0.4) < 0.25 + 0.08 * fade:
             continue
-        c = [WHITE, FOAM, FOAM, C[5], C[5], C[4], C[3], C[2]][age]
-        r = 1 if age < 2 else 2
-        for q in range(-r, r + 1):
-            f.put(x + q, y, c)
-        if age < 4:
-            f.put(x, y - 1, c)
-            f.put(x, y + 1, C[4])
+        k = 0.92 + 0.12 * vn(a * 3.0 + seed)
+        f.put(x * k, y * k, edge)
+        for j in (1, 2):
+            kk = (rr * k - j * 1.3) / max(1.0, rr)
+            f.put(x * kk, y * kk, C[2] if fade < 3 else C[1], over=False)
+    if fi >= 4:   # 退下去留下的湿痕白沫点
+        rnd = random.Random(seed + fi)
+        for i in range(int(R * 0.5)):
+            a = rnd.random() * math.tau
+            r2 = rnd.uniform(rr, R * 0.85)
+            if rnd.random() < 0.25 + 0.1 * fade:
+                continue
+            f.put(math.cos(a) * r2, math.sin(a) * r2 * SY, C[5] if fade < 2 else C[3])
 
 
 def spray_low(f, fi, R, seed, n=10):
@@ -458,7 +464,7 @@ def variants():
     # S2 锁链界限：运行时画（fx_pxplane_ul._ring，会转），没有帧条
     # S3 落地（s3_r 140 → 70）
     v.append(("s3_up", "s3up", {"R": 70, "H": 40, "seed": 91}, 12, "up"))
-    v.append(("s3_gd", "s3gd", {"R": 70, "seed": 91}, 14, "gd"))
+    v.append(("s3_gd", "s3gd", {"R": 70, "seed": 91}, 14, "gd"))   # 13 拍潮水退完
     # 连携掷锚钉下（拖 180 内的小怪 → 90）
     v.append(("pin_gd", "inward", {"R": 90, "seed": 97}, 10, "gd"))
     return v
