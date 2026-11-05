@@ -317,6 +317,8 @@ func _step() -> void:
 				it.gp = _snap(g.ppos + (it.fol as Vector2))
 			elif it.has("fe") and not it.fe.dead:   # 钉剑：跟着被钉的敌人（只读位置）
 				it.gp = _snap(it.fe.pos)
+			elif it.has("fo") and is_instance_valid(it.fo) and it.fo.pos != Vector2.INF:   # 挂在人身上的斩击 / 光柱（德克萨斯）：跟着施放者当前位置（11-05 用户实机「斩击不跟人走」）
+				it.gp = _snap(it.fo.pos)
 
 
 func _life(k: String) -> float:
@@ -1335,8 +1337,8 @@ func _ev_tx(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 							_push({"k": "tx_raw_spin_e%d" % t, "t0": g.t, "gp": c + Vector2(0, -10), "ly": "raw", "rot": float(_tx_spin) * 1.3, "sc": g.PX * (r * 0.5) / 50.0, "oid": str(o.id)})
 						else:
 							var fl: bool = (_tx_spin % 2) == 1
-							_push({"k": sk + "_up", "t0": g.t, "gp": _snap(c), "flip": fl, "ly": "up", "oid": str(o.id)})
-							_push({"k": sk + "_gd", "t0": g.t, "gp": _snap(c), "flip": fl, "ly": "gd", "oid": str(o.id)})
+							_push({"k": sk + "_up", "t0": g.t, "gp": _snap(c), "flip": fl, "ly": "up", "oid": str(o.id), "fo": o})
+							_push({"k": sk + "_gd", "t0": g.t, "gp": _snap(c), "flip": fl, "ly": "gd", "oid": str(o.id), "fo": o})
 						_tx_cuts(o, es, t, 2)
 						_burst_m(o, R, p, c + Vector2(0, -16), c.y + 2.0, es, 2 + t, "shard", 110.0, 0.35)
 					_:
@@ -1347,6 +1349,7 @@ func _ev_tx(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 			var r2: float = float(d.get("r", 112.0))
 			var dv := Vector2.from_angle(ang)
 			_add(o, "tx_slash_r%d_e%d" % [_bucket(r2 * 0.5, [56, 63, 70]), t], o.pos, ang, r2, raw, "tx_raw_slash_e%d" % t, 56.0)
+			_tx_follow(o, 2)
 			_tx_cuts(o, es, t, 2)
 			_burst_m(o, R, p, o.pos + dv * r2 * 0.6 + Vector2(0, -14), o.pos.y + dv.y * r2 * 0.6 * 0.72, es, 2 + t, "shard", 90.0, 0.3)
 			if t >= 1 and not raw and mode() == 1:   # 精一钉剑：命中里离她最近的 2 名（非 Boss）各插一柄源石剑，跟着敌人，0.7 秒后碎掉
@@ -1417,8 +1420,8 @@ func _ev_tx(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 				if raw:
 					_push({"k": "tx_raw_spin_e%d" % tt, "t0": g.t, "gp": o.pos + Vector2(0, -10), "ly": "raw", "rot": 0.0, "sc": g.PX * 0.6, "oid": str(o.id)})
 				else:
-					_push({"k": "tx_order_e%d_up" % tt, "t0": g.t, "gp": _snap(o.pos), "flip": float(o.face) < 0.0, "ly": "up", "oid": str(o.id)})
-					_push({"k": "tx_order_e%d_gd" % tt, "t0": g.t, "gp": _snap(o.pos), "flip": false, "ly": "gd", "oid": str(o.id)})
+					_push({"k": "tx_order_e%d_up" % tt, "t0": g.t, "gp": _snap(o.pos), "flip": float(o.face) < 0.0, "ly": "up", "oid": str(o.id), "fo": o})
+					_push({"k": "tx_order_e%d_gd" % tt, "t0": g.t, "gp": _snap(o.pos), "flip": false, "ly": "gd", "oid": str(o.id), "fo": o})
 				if mode() == 1:
 					R._grains(o, o.pos + Vector2(0, -30), o.pos.y, "shard", 5 + 2 * tt, {"tier": tt})
 					R._light(o, o.pos + Vector2(0, -30), 140.0, 0.6, 0.15, p.light)
@@ -1432,6 +1435,18 @@ func _ev_tx(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 					_push({"k": "tx_array_r56_gd", "t0": g.t + 0.1, "gp": _snap(o.pos), "flip": false, "ly": "gd", "oid": str(o.id)})
 				if mode() == 1:
 					R._light(o, o.pos + Vector2(0, -20), 180.0, 0.6, 0.15, p.light)
+
+
+## 最近推进去的 n 件（同一名干员）跟着施放者走（_step 每拍按 o.pos 跳格）
+func _tx_follow(o, n: int) -> void:
+	var k: int = 0
+	for i in range(items.size() - 1, -1, -1):
+		if k >= n:
+			return
+		var it: Dictionary = items[i]
+		if str(it.oid) == str(o.id) and str(it.ly) != "raw":
+			it["fo"] = o
+			k += 1
 
 
 ## 斩痕（同斯卡蒂 _cuts，琥珀色）
