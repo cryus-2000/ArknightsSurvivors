@@ -1,0 +1,7 @@
+('linkprobe_s11', 601, [], False)
+找到连携技 [71.478, 133.254, 385.176, 568.128]
+('link1_s11_70', 75, [], False)
+('link0_s11_70', 75, [], False)
+('link2_s11_70', 75, [], False)
+连携事件 [('gl_lland', '8.976'), ('gl_lland', '71.422')]
+缺帧 {0: '/work/repo/build/pxplane_gladiia/link0_s11_70_frames/rec_-1824.png', 2: '/work/repo/build/pxplane_gladiia/link2_s11_70_frames/rec_-1824.png', 1: '/work/repo/build/pxplane_gladiia/link1_s11_70_frames/rec_-1824.png'}

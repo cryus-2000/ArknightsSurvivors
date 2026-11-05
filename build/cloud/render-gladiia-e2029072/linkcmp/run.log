@@ -1,0 +1,11 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（2583 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+== pxplane_shots.py linkcmp --op gladiia --lead texas --seed 11 --from -1 --secs 4 --maxt 600
+   rc=1  352 秒
+('link1_s11_70', 75, [], False)
+('link0_s11_70', 75, [], False)
+('link2_s11_70', 75, [], False)
+连携事件 [('gl_lland', '8.976'), ('gl_lland', '71.422')]
+缺帧 {0: '/work/repo/build/pxplane_gladiia/link0_s11_70_frames/rec_-1824.png', 2: '/work/repo/build/pxplane_gladiia/link2_s11_70_frames/rec_-1824.png', 1: '/work/repo/build/pxplane_gladiia/link1_s11_70_frames/rec_-1824.png'}
+media：0 个文件，4.0K
