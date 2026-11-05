@@ -239,19 +239,23 @@ def cool_spots(R, seed, n=14):
 
 
 def s3_impact_up(f, fi, R, seed):
-    """S3 落地水爆（水塑虎鲸砸进地面，立起）：第 0 拍一大团爆白（实心椭圆 + 尖刺），第 1 拍白团裂开成一圈大水团往外炸，
-    之后大水团（3–5 格）和水滴落回，约 0.5 秒结束"""
+    """S3 落地水爆（虎鲸砸进地面，立起；docs/266 §10「爆炸是从中心往外爆炸」）：
+    第 0 拍中心一团实心白（+ 尖刺）；第 1 拍白团化成一圈往外推的白环；水团分三圈依次往外炸（内圈先、外圈晚 0.05 秒一档），水滴跟着；约 0.6 秒"""
     star(f, fi, R * 1.4, seed, 1.2, 26.0)
-    if fi <= 1:
-        rx, ry = (14, 13) if fi == 0 else (10, 8)
-        for dx in range(-rx - 1, rx + 2):
-            for dy in range(-ry * 2, 3):
-                d2 = (dx / rx) ** 2 + ((dy + ry * 0.8) / ry) ** 2
+    if fi == 0:
+        for dx in range(-15, 16):
+            for dy in range(-26, 3):
+                d2 = (dx / 14.0) ** 2 + ((dy + 10) / 12.0) ** 2
                 if d2 < 1.0:
-                    f.put(dx, dy, WHITE if (d2 < 0.55 or fi == 0) else C[6])
-    skirt(f, fi, R * 0.6, seed)
-    clumps(f, fi, R, 30, 30, seed, size=(3.0, 5.2))
-    clumps(f, fi, R * 0.7, 20, 24, seed + 3)
+                    f.put(dx, dy, WHITE if d2 < 0.6 else C[6])
+    elif fi <= 2:
+        rr = R * (0.22 if fi == 1 else 0.4)
+        for a, x, y in ellipse_pts(rr):
+            for z in range(0, 5 - fi * 2 + 1):
+                f.put(x, y - z, WHITE if (fi == 1 and z > 1) else C[6])
+    clumps(f, fi, R * 0.45, 30, 14, seed, size=(3.0, 5.2))
+    clumps(f, fi, R * 0.75, 26, 18, seed + 3, t_delay=0.05, size=(2.5, 4.4))
+    clumps(f, fi, R, 20, 22, seed + 7, t_delay=0.1)
 
 
 def s3_impact_gd(f, fi, R, seed):
@@ -259,11 +263,11 @@ def s3_impact_gd(f, fi, R, seed):
     再一拍一拍往回退、变暗散掉（约 0.8 秒）"""
     if fi <= 2:
         blob(f, R * 0.32, seed, [C[3], C[2], C[1]] if fi == 0 else [C[2], C[1]], 1.0)
-    ripple(f, fi, R, seed, n_beats=6, r0=0.35, gap=0.2)
-    if fi <= 2:
-        rr = R * 0.8 * ease_out((fi + 1) / 3.0)
+    ripple(f, fi, R, seed, n_beats=7, r0=0.12, gap=0.2)   # 冲击涟漪从中心推出去
+    if fi <= 3:   # 积水跟在冲击后面往外漫
+        rr = R * 0.8 * ease_out((fi + 1) / 4.0)
     else:
-        rr = R * 0.8 * max(0.15, 1.0 - (fi - 2) / 9.0)
+        rr = R * 0.8 * max(0.15, 1.0 - (fi - 3) / 9.0)
     fade = max(0, fi - 6)
     if fade > 5:
         return

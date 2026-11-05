@@ -107,6 +107,16 @@ class Canvas:
         x, y = snap((OX + p[0], OY + p[1]))
         self.d.rectangle([x, y, x + 1, y + 1], fill=c)
 
+    def pxa(self, p, c, a):
+        """半透明的一个美术像素（2×2），按 a 混到底图上"""
+        x, y = snap((OX + p[0], OY + p[1]))
+        if not (0 <= x < W - 1 and 0 <= y < H - 1):
+            return
+        for dx in (0, 1):
+            for dy in (0, 1):
+                o = self.img.getpixel((x + dx, y + dy))
+                self.img.putpixel((x + dx, y + dy), tuple(int(o[i] * (1 - a) + c[i] * a) for i in range(3)) + (255,))
+
     def glow(self, p, c):
         x, y = snap((OX + p[0], OY + p[1]))
         self.ed.rectangle([x, y, x + 1, y + 1], fill=c[:3])
@@ -386,8 +396,25 @@ def orca_cell(u, w, beat):
     return 1 if w > -hh * 0.2 else 2
 
 
+ORCA_K = 1.45
+ORCA_H = 64.0
+
+
+def orca_bubble(u, w, beat):
+    for i in range(4):
+        cu = (12.0 - beat * 2.5 + i * 11.0) % 34.0 - 18.0
+        cw = math.sin(i * 1.7) * 3.0
+        du, dw = u - cu, w - cw
+        d2 = du * du + dw * dw
+        if d2 < 0.5:
+            return 0
+        if d2 < 2.6:
+            return 2 if (du < -0.4 and dw > 0.4) else 1
+    return 0
+
+
 def draw_orca(cv, gp, z, pitch, dv, clip, T):
-    """抄 fx_pxplane_ul._draw_orca（水塑虎鲸）"""
+    """抄 fx_pxplane_ul._draw_orca（水精灵式虎鲸，半透明）"""
     gp = snap(gp)
     e = norm((dv[0], dv[1] * SY))
     flip = 1.0 if e[0] >= 0 else -1.0
@@ -397,47 +424,91 @@ def draw_orca(cv, gp, z, pitch, dv, clip, T):
     if n[1] > 0:
         n = (-n[0], -n[1])
     beat = int(math.floor(T * 15))
-    if z > 10 and not clip:
-        sw = int(14 * (1 - min(0.5, max(0.0, z / 80.0))))
+    if not clip:
+        sw = int(20 * (1 - min(0.5, max(0.0, z / 140.0))))
         for i in range(-sw, sw + 1):
-            cv.px((gp[0] + i * dv[0] * PX, gp[1] + i * dv[1] * SY * PX), C[1])
-    if z < 10:
-        for i in range(14, 32):
-            if h_(i * 0.7 + beat) > 0.45:
-                cv.px((gp[0] - dv[0] * i * PX, gp[1] - dv[1] * SY * i * PX - PX), C[6] if i < 22 else C[5])
-    c = snap((gp[0], gp[1] - z - 8))
+            cv.pxa((gp[0] + i * dv[0] * PX, gp[1] + i * dv[1] * SY * PX), C[1], 0.55)
+    c = snap((gp[0], gp[1] - z - 10))
+    K = ORCA_K
     dot = lambda q, v: q[0] * v[0] + q[1] * v[1]
-    for jy in range(-17, 18):
-        for ix in range(-27, 28):
+    for jy in range(-26, 27):
+        for ix in range(-40, 41):
             q = (ix, jy)
-            k = orca_cell(dot(q, e), dot(q, n), beat)
+            u, w = dot(q, e) / K, dot(q, n) / K
+            k = orca_cell(u, w, beat)
             if k < 0:
                 continue
             pp = (c[0] + ix * PX, c[1] + jy * PX)
             if clip and pp[1] > gp[1] - 2:
                 continue
-            up = orca_cell(dot((ix, jy - 1), e), dot((ix, jy - 1), n), beat) < 0
-            dn = orca_cell(dot((ix, jy + 1), e), dot((ix, jy + 1), n), beat) < 0
+            up = orca_cell(dot((ix, jy - 1), e) / K, dot((ix, jy - 1), n) / K, beat) < 0
+            dn = orca_cell(dot((ix, jy + 1), e) / K, dot((ix, jy + 1), n) / K, beat) < 0
             if up:
-                col = C[7] if (k == 0 or dot(q, e) > 14) else C[6]
-                if (ix + beat) % 3 == 0:
+                cv.px(pp, C[7] if (k == 0 or u > 14 or (ix + beat) % 4 == 0) else C[6])
+                if ix % 2 == 0:
                     cv.glow(pp, C[6])
-            elif dn:
-                col = C[2]
-            elif k == 3:
-                col = C[7]
+                continue
+            if dn:
+                cv.pxa(pp, C[5], 0.7)
+                continue
+            if k == 3:
+                cv.px(pp, C[7])
+                continue
+            bb = orca_bubble(u, w, beat)
+            if bb > 0:
+                if bb == 2:
+                    cv.px(pp, C[7])
+                else:
+                    cv.pxa(pp, C[6], 0.85)
+                continue
+            fl = h_(math.floor(u * 0.6 + beat * 1.5) * 0.37 + math.floor(w * 0.5))
+            if fl > 0.8:
+                cv.pxa(pp, C[5], 0.6)
+                if fl > 0.93:
+                    cv.glow(pp, C[5])
             else:
-                fl = h_(math.floor(dot(q, e) * 0.5 + beat * 1.5) * 0.37 + math.floor(dot(q, n) * 0.6))
-                col = C[4] if fl > 0.78 else (C[3] if k != 2 else C[2])
-                if k == 1 and dot(q, n) > 3 and fl > 0.6:
-                    col = C[5]
-            cv.px(pp, col)
+                cv.pxa(pp, C[3] if k != 2 else C[2], 0.36)
     if not clip:
-        for i in range(6):
+        for i in range(8):
             hs = h_(i * 3.1 + beat * 0.71)
-            back = 20 + hs * 14
-            lift = 2 + h_(i + beat * 1.3) * 10
+            back = (20 + hs * 16) * K
+            lift = (2 + h_(i + beat * 1.3) * 12) * K * 0.6
             cv.px((c[0] + (-e[0] * back + n[0] * lift) * PX, c[1] + (-e[1] * back + n[1] * lift) * PX), C[6] if i % 2 == 0 else C[5])
+
+
+def draw_swing(cv, c, dv, age, T):
+    """抄 fx_pxplane_ul._draw_swing（挥锚带水弧）"""
+    hs = norm((dv[0], dv[1] * SY))
+    piv = (c[0], c[1] - 20)
+    Ra = 30.0
+    kk = min(1.0, max(0.0, age / 0.2))
+    th_h = -0.75 + (2.5 + 0.75) * (1 - (1 - kk) ** 2)
+    fade = 0 if age < 0.2 else (1 if age < 0.28 else 2)
+    th0 = max(-0.75, th_h - 1.9)
+    steps = int((th_h - th0) * Ra / PX) + 1
+    for i in range(steps):
+        th = th_h - i * PX / Ra
+        v = i / max(1, steps)
+        p = (piv[0] + hs[0] * math.cos(th) * Ra, piv[1] + hs[1] * math.cos(th) * Ra - math.sin(th) * Ra)
+        col = C[7] if v < 0.12 else (C[6] if v < 0.35 else (C[5] if v < 0.7 else C[4]))
+        if fade == 1:
+            col = C[5] if v < 0.5 else C[4]
+        elif fade == 2:
+            if h_(i * 0.7) < 0.5:
+                continue
+            col = C[4]
+        cv.px(p, col)
+        if v < 0.5 and fade == 0:
+            R2 = Ra + PX
+            cv.px((piv[0] + hs[0] * math.cos(th) * R2, piv[1] + hs[1] * math.cos(th) * R2 - math.sin(th) * R2), C[5])
+            if v < 0.12:
+                cv.glow(p, C[6])
+    if fade < 2:
+        beat = int(math.floor(T * 15))
+        for j in range(5):
+            th2 = th_h - h_(j * 2.3 + beat) * 1.2
+            out = Ra + 4 + h_(j + beat * 0.9) * 10
+            cv.px((piv[0] + hs[0] * math.cos(th2) * out, piv[1] + hs[1] * math.cos(th2) * out - math.sin(th2) * out), C[6] if j % 2 == 0 else C[5])
 
 
 # ---------------------------------------------------------------- 本体 / 怪 / 锚
@@ -745,6 +816,7 @@ def sc_s3():
     sw = dur - ORCA_LEAP
     tl = tb + dur
     sc.pair("bite_r22", t0, S)   # 破水
+    sc.items.append({"ly": "rt_up", "t0": t0, "gy": 1.5, "fn": lambda cv, T: draw_swing(cv, (0, 0), d, T - t0, T) if 0 <= T - t0 < 0.36 else None})   # 挥锚带水弧
     sc.strip("s3_up", tl, land, "up")
     sc.strip("s3_gd", tl, land, "gd")
     path_es = [(70, -6), (130, -14), (180, -18)]
@@ -759,17 +831,23 @@ def sc_s3():
     for p in ((246, -20), (210, 6), (280, -60), (190, -60)):
         sc.enemies.append(static_enemy(p, 11 if p == (246, -20) else 9))
 
-    def pose(T):
+    def pose(T):   # 抄 fx_pxplane_ul._orca_pose
         if t0 <= T < tb:
             k = (T - t0) / 0.22
-            return S, -16 + 20 * k * (2 - k), -0.35, True
+            return S, -40 + 56 * k * (2 - k), -0.95, True
         if tb <= T < tl:
             tt = T - tb
             hd = orca_head(S, P, land, dur, tt)
-            if tt <= sw:
-                return hd, 4.0, -0.15, False
-            v = (tt - sw) / ORCA_LEAP
-            return hd, 4.0 + 44.0 * math.sin(v * math.pi), -0.6 + 1.4 * v, False
+            u = tt / dur
+            ua = 0.5
+            hold = min(0.2, (1 / 15.0) / dur)
+            if u < ua:
+                s0 = u / ua
+                return hd, 16 + (ORCA_H - 16) * math.sin(s0 * math.pi / 2), -0.8 + 0.8 * s0, False
+            if u < ua + hold:
+                return hd, ORCA_H, 0.05, False
+            v = (u - ua - hold) / max(0.001, 1 - ua - hold)
+            return hd, ORCA_H * (1 - v * v), 0.1 + 1.15 * v, False
         return None
 
     def fn(cv, T):
