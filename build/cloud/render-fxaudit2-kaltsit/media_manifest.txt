@@ -1,0 +1,9 @@
+1694	audit_kaltsit.json
+799	kaltsit_atk.json
+893823	kaltsit_atk.png
+25872	kaltsit_atk_A.log
+139986	kaltsit_atk_x2.png
+789	kaltsit_s1.json
+897563	kaltsit_s1.png
+25561	kaltsit_s1_A.log
+142483	kaltsit_s1_x2.png
