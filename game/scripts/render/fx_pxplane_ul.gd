@@ -131,18 +131,15 @@ static func ev(r, o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dicti
 				"锁链回旋":
 					_strip(r, o, "whirl_r%d_gd" % _bucket(ra, WHIRL_R), c, "gd", true)
 					R._grains(o, c + Vector2(0, -16), c.y + 2.0, "ink", 4, {"tier": t, "grain_spd": 1.3})
-		"ul_orca":   # S3（docs/266 §7，用户「一头虎鲸打出去，因为他本来就是虎鲸」）：掷锚出手同时虎鲸破水冲出
+		"ul_breach":   # S3 虎鲸（docs/266 §8）掷锚出手：身前破水
 			var fr: Vector2 = d.from
-			var to: Vector2 = d.to
-			var dv: Vector2 = (to - fr).normalized() if to.distance_to(fr) > 1.0 else Vector2(o.face, 0)
-			var land: Vector2 = to - dv * 18.0
-			var est: float = clampf(fr.distance_to(land) / 1100.0, 0.14, 0.34)   # 同 _hw_anchor_bite 的冲锋时长（到咬地时再用实际值校正）
-			_rt(r, o, "orca", "up", float(d.throw) + est + 0.3, {"S": fr + dv * 20.0, "land": land, "dv": dv, "T1": g.t + float(d.throw) + est, "gp": fr, "gy": fr.y + 1.0})
-			_pair(r, o, "bite_r22", fr + dv * 20.0)   # 破水
-			R._grains(o, fr + dv * 20.0 + Vector2(0, -10), fr.y + 2.0, "ink", 4, {"tier": 2})
-		"ul_bite":   # 锚咬地（S1 掷锚落点；S3 由虎鲸代替，不出）
-			if d.get("big", false):
-				return
+			var dv0: Vector2 = ((d.to as Vector2) - fr).normalized() if (d.to as Vector2).distance_to(fr) > 1.0 else Vector2(o.face, 0)
+			_pair(r, o, "bite_r22", fr + dv0 * 20.0)
+			R._grains(o, fr + dv0 * 20.0 + Vector2(0, -10), fr.y + 2.0, "ink", 4, {"tier": 2})
+		"ul_orca":   # 虎鲸出发：身后一道深海拖痕（S → 跃起点，按虎鲸同一缓动）
+			var an0: Dictionary = d.an
+			_rt(r, o, "zip", "gd", float(an0.dur) + TRAIL_COOL, {"a": an0.S, "b": an0.P, "dur": float(an0.dur) - ORCA_LEAP, "ease_out": true, "gp": an0.S})
+		"ul_bite":   # 锚咬地（S1 掷锚落点；S3 旧冲锋版。S3 虎鲸不经过这里）
 			var at: Vector2 = d.at
 			_pair(r, o, "bite_r%d" % (22 if d.get("big", false) else 14), at)
 			R._grains(o, at + Vector2(0, -8), at.y + 2.0, "ink", 3, {"tier": t})
@@ -158,17 +155,9 @@ static func ev(r, o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dicti
 			_burst(r, o, R, p, c1, d.get("es", []), 8 + 2 * t, 170.0, 0.65)
 		"ul_zip":   # S3 冲锋开始：身后一道深海拖痕（落地后一拍一拍冷下去）；虎鲸按实际冲锋时长校正到点时刻
 			_rt(r, o, "zip", "gd", float(d.dur) + TRAIL_COOL, {"a": d.a, "b": d.b, "dur": float(d.dur), "gp": d.a})
-			for it in r.items:
-				if str(it.get("ulrt", "")) == "orca" and str(it.oid) == str(o.id):
-					it["T1"] = g.t + float(d.dur)
-					it["land"] = d.b
-					it["life"] = g.t - float(it.t0) + float(d.dur) + 0.3
 		"ul_land":
 			var c2: Vector2 = d.c
 			if d.get("s3", false):
-				for it in r.items:   # 虎鲸砸下去就没了（落地重击接手）
-					if str(it.get("ulrt", "")) == "orca" and str(it.oid) == str(o.id):
-						it["life"] = 0.0
 				_strip(r, o, "s3_up", c2, "up")
 				_strip(r, o, "s3_gd", c2, "gd")
 				_burst(r, o, R, p, c2, d.get("es", []), 14, 240.0, 0.75)
@@ -261,19 +250,15 @@ static func over(r, o) -> void:
 	var t: int = r.tier(o)
 	var SU = _segu()
 	var hand: Vector2 = SU._hw_hand(o)
-	for it in r.items:   # 虎鲸的排序位置（地面点）每帧按时刻更新
-		if str(it.get("ulrt", "")) == "orca" and str(it.oid) == str(o.id):
-			var op: Array = _orca_pose(it, g.t)
-			it["gp"] = op[0]
-			it["gy"] = (op[0] as Vector2).y + 1.0
-	if h.has("anchor") and not h.anchor.is_empty() and h.anchor.b.has("path_w") and r.mode() == 1:   # S3：锚和锁链由虎鲸代替，不画（只画脚下水滴）
+	if h.has("anchor") and not h.anchor.is_empty() and h.anchor.get("orca", false):   # S3 虎鲸：不画锚和锁链；虎鲸贴水游时每拍身边甩两颗水滴
 		var an3: Dictionary = h.anchor
-		if str(an3.phase) == "zip":
+		if str(an3.phase) == "orca" and r.mode() == 1 and float(an3.t) < float(an3.dur) - SU.ORCA_LEAP:
 			var beat3: int = int(floor(g.t * 15.0))
 			if int(an3.get("_pxb", -1)) != beat3:
 				an3["_pxb"] = beat3
 				var R3 = load("res://scripts/render/fx_recipe.gd").of(g)
-				R3._grains(o, o.pos + Vector2(0, -6), o.pos.y + 2.0, "ink", 2, {"tier": 2, "grain_spd": 0.8}, -(((an3.land as Vector2) - (an3.start as Vector2)).normalized()))
+				var hp3: Vector2 = an3.head
+				R3._grains(o, hp3 + Vector2(0, -8), hp3.y + 2.0, "ink", 2, {"tier": 2, "grain_spd": 0.8}, -(((an3.land as Vector2) - (an3.S as Vector2)).normalized()))
 	elif h.has("anchor") and not h.anchor.is_empty():
 		var an: Dictionary = h.anchor
 		var k: float = clampf(float(an.t) / maxf(0.001, float(an.dur)), 0.0, 1.0)
@@ -325,7 +310,14 @@ static func over(r, o) -> void:
 
 ## 后期冲击波（growth/late_shape → vis_growth._fire_qi，锚类 blunt）：排序项
 static func sort_items(r, o, out: Array) -> void:
-	if r.mode() != 1 or o.vg.is_empty() or not o.vg.has("qi"):
+	if r.mode() != 1:
+		return
+	var an: Dictionary = o.hw.get("anchor", {})
+	if not an.is_empty() and an.get("orca", false):
+		var pose: Array = _orca_pose(o, an)
+		if not pose.is_empty():
+			out.append({"ulrt": "orca", "gp": pose[0], "z": pose[1], "pitch": pose[2], "dv": pose[3], "clip": pose[4], "skey": (pose[0] as Vector2).y + 1.0, "oid": str(o.id)})
+	if o.vg.is_empty() or not o.vg.has("qi"):
 		return
 	for q in o.vg.qi:
 		var p: Vector2 = r._qpos(q)
@@ -443,7 +435,7 @@ static func _draw_zip(r, ci, it: Dictionary) -> void:
 	var dur: float = float(it.dur)
 	var k: float = clampf(age / maxf(0.001, dur), 0.0, 1.0)
 	var a: Vector2 = it.a
-	var b: Vector2 = a.lerp(it.b, k * k)
+	var b: Vector2 = a.lerp(it.b, k * (2.0 - k) if it.get("ease_out", false) else k * k)   # 虎鲸先快后慢 / 冲锋 k²
 	var L: float = a.distance_to(b)
 	if L < 4.0:
 		return
@@ -644,21 +636,24 @@ static func _draw_qib(r, ci, it: Dictionary) -> void:
 			r._px(ci, top + Vector2(px, 0), C[5])
 
 
-## 虎鲸位置：[地面点, 离地高度（世界像素）, 俯仰（弧度，正 = 头朝下）]。
-## 出手后沿锁链方向游到落点前 24 世界像素处（先快后慢），最后 ORCA_LEAP 秒跃起成弧、正好在玩法落地时刻砸到落点
-static func _orca_pose(it: Dictionary, now: float) -> Array:
-	var S: Vector2 = it.S
-	var land: Vector2 = it.land
-	var dv: Vector2 = it.dv
-	var T1: float = float(it.T1)
-	var P: Vector2 = land - dv * 24.0
-	var tl: float = T1 - ORCA_LEAP
-	if now < tl:
-		var k: float = clampf((now - float(it.t0)) / maxf(0.01, tl - float(it.t0)), 0.0, 1.0)
-		k = k * (2.0 - k)
-		return [S.lerp(P, k), 4.0 + 3.0 * (1.0 - k), -0.15]
-	var v: float = clampf((now - tl) / ORCA_LEAP, 0.0, 1.0)
-	return [P.lerp(land, v), 4.0 + 44.0 * sin(v * PI), lerpf(-0.6, 0.8, v)]
+## 虎鲸位置（读玩法状态 o.hw.anchor，docs/266 §8）：[地面点, 离地高度（世界像素）, 俯仰（正 = 头朝下）, 前进方向, 是否只画水面以上]。
+## 掷锚那段（throw）：在身前 20 处从水里冒出来（往上升、水面以下不画）；orca 段：游的位置 = 玩法结算用的同一个 orca_head，跃起那 ORCA_LEAP 秒成弧、正好在落地重击那一刻砸到落点
+static func _orca_pose(o, an: Dictionary) -> Array:
+	var SU = _segu()
+	var to: Vector2 = an.to
+	if str(an.phase) == "throw":
+		var dv: Vector2 = (to - o.pos).normalized() if to.distance_to(o.pos) > 1.0 else Vector2(o.face, 0)
+		var k: float = clampf(float(an.t) / maxf(0.001, float(an.dur)), 0.0, 1.0)
+		return [o.pos + dv * 20.0, lerpf(-16.0, 4.0, k * (2.0 - k)), -0.35, dv, true]
+	if str(an.phase) != "orca":
+		return []
+	var dv2: Vector2 = ((an.land as Vector2) - (an.S as Vector2)).normalized() if (an.land as Vector2).distance_to(an.S) > 1.0 else Vector2(o.face, 0)
+	var sw: float = float(an.dur) - SU.ORCA_LEAP
+	var head: Vector2 = SU.orca_head(an)
+	if float(an.t) <= sw:
+		return [head, 4.0, -0.15, dv2, false]
+	var v: float = clampf((float(an.t) - sw) / SU.ORCA_LEAP, 0.0, 1.0)
+	return [head, 4.0 + 44.0 * sin(v * PI), lerpf(-0.6, 0.8, v), dv2, false]
 
 
 ## 虎鲸本体（逐美术像素栅格化；任意方向不转贴图）：黑背白腹、眼斑白、背鳍高、尾鳍分叉随节拍摆；
@@ -666,19 +661,21 @@ static func _orca_pose(it: Dictionary, now: float) -> Array:
 static func _draw_orca(r, ci, it: Dictionary) -> void:
 	var g = r.g
 	var px: float = g.PX
-	var pose: Array = _orca_pose(it, g.t)
-	var gpos: Vector2 = r._snap(pose[0])
-	var z: float = float(pose[1])
+	var gpos: Vector2 = r._snap(it.gp)
+	var z: float = float(it.z)
 	var dv: Vector2 = it.dv
+	var clip: bool = it.clip
 	var e := Vector2(dv.x, dv.y * SY).normalized()
 	var flip: float = 1.0 if e.x >= 0.0 else -1.0
-	e = e.rotated(float(pose[2]) * flip)
+	e = e.rotated(float(it.pitch) * flip)
 	var n := Vector2(-e.y, e.x)
 	if n.y > 0.0:
 		n = -n
 	var beat: int = int(floor(g.t * 15.0))
 	# 地上暗影（离地越高越小）
 	var sw: int = int(16.0 * (1.0 - clampf(z / 80.0, 0.0, 0.5)))
+	if clip:   # 还在水里：只有一圈翻起的水，不画影子
+		sw = 0
 	for i in range(-sw, sw + 1):
 		for j in [-1, 0, 1]:
 			if absi(i) + absi(j) * 6 <= sw:
@@ -695,7 +692,10 @@ static func _draw_orca(r, ci, it: Dictionary) -> void:
 			var w: float = q.dot(n)
 			var k: int = _orca_cell(u, w, beat)
 			if k >= 0:
-				r._px(ci, c + q * px, ORCA[k])
+				var pp: Vector2 = c + q * px
+				if clip and pp.y > gpos.y - 2.0:
+					continue   # 水面（地面线）以下不画：从水里冒出来
+				r._px(ci, pp, ORCA[k])
 
 
 ## 虎鲸剖面：u 沿体长（尾 -22 → 吻 +22），w 垂直体长朝上（背）为正。返回 ORCA 色号，-1 = 不画

@@ -193,10 +193,10 @@ def vwake(cv, frm, to, w, fade, sd):
             cv.px(p, dark)
 
 
-def trail(cv, a, b_full, age, dur, cool_t=0.8):
+def trail(cv, a, b_full, age, dur, cool_t=0.8, ease_out=False):
     """S3 深海拖痕（抄 fx_pxplane_ul._draw_zip）"""
     k = min(1.0, max(0.0, age / max(0.001, dur)))
-    b = lerp(a, b_full, k * k)
+    b = lerp(a, b_full, k * (2 - k) if ease_out else k * k)
     L = math.hypot(b[0] - a[0], b[1] - a[1])
     if L < 4:
         return
@@ -351,16 +351,13 @@ ORCA = [hx(c) for c in ["#0d0f15", "#262c38", "#4a5781", "#e8ecf4", "#b4bccc", "
 ORCA_LEAP = 0.18
 
 
-def orca_pose(S, land, dv, t0, T1, now):
-    """抄 fx_pxplane_ul._orca_pose"""
-    P = (land[0] - dv[0] * 24, land[1] - dv[1] * 24)
-    tl = T1 - ORCA_LEAP
-    if now < tl:
-        k = min(1.0, max(0.0, (now - t0) / max(0.01, tl - t0)))
-        k = k * (2 - k)
-        return lerp(S, P, k), 4.0 + 3.0 * (1 - k), -0.15
-    v = min(1.0, max(0.0, (now - tl) / ORCA_LEAP))
-    return lerp(P, land, v), 4.0 + 44.0 * math.sin(v * math.pi), -0.6 + 1.4 * v
+def orca_head(S, P, land, dur, t):
+    """抄 seg_ulpianus.orca_head（玩法路径结算与画面共用）"""
+    sw = dur - ORCA_LEAP
+    if t <= sw:
+        k = min(1.0, max(0.0, t / max(0.001, sw)))
+        return lerp(S, P, k * (2 - k))
+    return lerp(P, land, min(1.0, max(0.0, (t - sw) / ORCA_LEAP)))
 
 
 def orca_cell(u, w, beat):
@@ -395,9 +392,8 @@ def orca_cell(u, w, beat):
     return 1 if w > 0 else 0
 
 
-def draw_orca(cv, S, land, dv, t0, T1, T):
+def draw_orca(cv, gp, z, pitch, dv, clip, T):
     """抄 fx_pxplane_ul._draw_orca"""
-    gp, z, pitch = orca_pose(S, land, dv, t0, T1, T)
     gp = snap(gp)
     e = norm((dv[0], dv[1] * SY))
     flip = 1.0 if e[0] >= 0 else -1.0
@@ -408,6 +404,8 @@ def draw_orca(cv, S, land, dv, t0, T1, T):
         n = (-n[0], -n[1])
     beat = int(math.floor(T * 15))
     sw = int(16 * (1 - min(0.5, max(0.0, z / 80.0))))
+    if clip:
+        sw = 0
     for i in range(-sw, sw + 1):
         for j in (-1, 0, 1):
             if abs(i) + abs(j) * 6 <= sw:
@@ -423,7 +421,10 @@ def draw_orca(cv, S, land, dv, t0, T1, T):
             w = ix * n[0] + jy * n[1]
             k = orca_cell(u, w, beat)
             if k >= 0:
-                cv.px((c[0] + ix * PX, c[1] + jy * PX), ORCA[k])
+                pp = (c[0] + ix * PX, c[1] + jy * PX)
+                if clip and pp[1] > gp[1] - 2:
+                    continue
+                cv.px(pp, ORCA[k])
 
 
 # ---------------------------------------------------------------- 本体 / 怪 / 锚
@@ -716,40 +717,56 @@ def sc_s2(tier):
 
 
 def sc_s3():
-    """S3（docs/266 §7 虎鲸版）：掷锚出手（0.22 秒）的同时虎鲸破水冲出、沿锁链方向冲过去；咬地后他跟着冲锋（k²）、身后深海拖痕；
-    虎鲸到落点前 0.18 秒跃起、在玩法落地时刻砸下 = 落地重击（爆白 → 水团 → 潮水退去）。锚和锁链不画"""
-    sc = Scene(2, 1.9, (200, -16))
-    sc.ox = 60
-    to = (230, -24)
+    """S3 虎鲸（docs/266 §8，改玩法）：本人不动。掷锚那 0.22 秒虎鲸在身前 20 处从水里冒出来；之后沿直线游到落点前 24
+    （时长 = 距离/900 夹 0.12–0.36，先快后慢，路径上每个敌人吃一次），再跃起 0.18 秒砸下 = 落地重击（爆白 → 水团 → 潮水退去）；身后深海拖痕"""
+    sc = Scene(2, 1.9, (150, -16))
+    sc.ox = 70
+    to = (250, -24)
     d = norm(to)
     t0 = 0.1
     tb = t0 + 0.22
     land = (to[0] - d[0] * 18, to[1] - d[1] * 18)
-    dur = min(0.34, max(0.14, math.hypot(*land) / 1100.0))
-    tl = tb + dur
     S = (d[0] * 20, d[1] * 20)
+    P = (land[0] - d[0] * 24, land[1] - d[1] * 24)
+    dur = min(0.36, max(0.12, math.hypot(P[0] - S[0], P[1] - S[1]) / 900.0)) + ORCA_LEAP
+    sw = dur - ORCA_LEAP
+    tl = tb + dur
     sc.pair("bite_r22", t0, S)   # 破水
-    sc.items.append({"ly": "rt_gd", "t0": tb, "fn": lambda cv, T: trail(cv, (0, 0), land, T - tb, dur) if T < tl + 0.8 else None})
+    sc.items.append({"ly": "rt_gd", "t0": tb, "fn": lambda cv, T: trail(cv, S, P, T - tb, sw, ease_out=True) if T < tl + 0.8 else None})
     sc.strip("s3_up", tl, land, "up")
     sc.strip("s3_gd", tl, land, "gd")
-    for p in ((80, -14), (140, -10), (236, -16), (200, 4), (270, -50), (180, -56)):
-        sc.enemies.append(static_enemy(p, 11 if p == (236, -16) else 9))
+    path_es = [(70, -6), (130, -14), (180, -18)]
+    for p in path_es:   # 路径上：虎鲸经过时被撞开一点（画面上的轻击退近似）
+        def ep(T, p=p):
+            if T < tb:
+                return p
+            hd = orca_head(S, P, land, dur, min(T - tb, sw))
+            passed = (hd[0] - p[0]) * d[0] + (hd[1] - p[1]) * d[1] > 0
+            return (p[0], p[1] + (6 if passed else 0))
+        sc.enemies.append({"path": ep, "r": 9})
+    for p in ((246, -20), (210, 6), (280, -60), (190, -60)):
+        sc.enemies.append(static_enemy(p, 11 if p == (246, -20) else 9))
 
-    def opos(T):
-        if T < tb:
-            return (0.0, 0.0)
-        k = min(1.0, (T - tb) / dur)
-        return lerp((0, 0), land, k * k)
-    sc.opos = opos
+    def pose(T):
+        if t0 <= T < tb:
+            k = (T - t0) / 0.22
+            return S, -16 + 20 * k * (2 - k), -0.35, True
+        if tb <= T < tl:
+            tt = T - tb
+            hd = orca_head(S, P, land, dur, tt)
+            if tt <= sw:
+                return hd, 4.0, -0.15, False
+            v = (tt - sw) / ORCA_LEAP
+            return hd, 4.0 + 44.0 * math.sin(v * math.pi), -0.6 + 1.4 * v, False
+        return None
 
-    def orca_gy(T):
-        return orca_pose(S, land, d, t0, tl, T)[0][1] + 1
-
-    class OrcaItem(dict):
-        pass
-    it = {"ly": "rt_up", "t0": t0, "gy": 0.0, "fn": lambda cv, T: draw_orca(cv, S, land, d, t0, tl, T) if t0 <= T < tl else None}
+    def fn(cv, T):
+        ps = pose(T)
+        if ps:
+            draw_orca(cv, ps[0], ps[1], ps[2], d, ps[3], T)
+    it = {"ly": "rt_up", "t0": t0, "gy": 0.0, "fn": fn}
     sc.items.append(it)
-    sc.orca_gy = (it, orca_gy)
+    sc.orca_gy = (it, lambda T: (pose(T)[0][1] + 1) if pose(T) else 0.0)
     return sc
 
 
@@ -894,7 +911,7 @@ SCENES = {
     "s1": ("S1 必须促成的接触", [("E0", lambda: sc_s1(0)), ("E1 拖拽水沟", lambda: sc_s1(1)), ("E2", lambda: sc_s1(2))]),
     "s1_branch": ("S1 分支", [("通路洞开", lambda: sc_s1_branch("rift")), ("不容挣脱 + 绞杀", lambda: sc_s1_branch("leash"))]),
     "s2": ("S2 必须维系的界限", [("E1", lambda: sc_s2(1)), ("E2 冷光", lambda: sc_s2(2))]),
-    "s3": ("S3 必须开辟的通路（虎鲸冲锋）", [("E2", sc_s3)]),
+    "s3": ("S3 虎鲸（本人不动）", [("E2", sc_s3)]),
     "e2throw": ("精二掷锚 / 锚链应答", [("E2", sc_e2throw)]),
     "nodes": ("成长", [("锁链回旋", lambda: sc_nodes("whirl")), ("定点爆破", lambda: sc_nodes("blast"))]),
     "qi": ("后期冲击波（late_shape）", [("E0", lambda: sc_qi(0)), ("E1", lambda: sc_qi(1)), ("E2", lambda: sc_qi(2))]),

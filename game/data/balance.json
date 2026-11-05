@@ -163,7 +163,7 @@
    "aspd": 0.0,
    "range": 0.0,
    "skill_power": 0.03
-  },
+  , "s3_orca": 1, "_s3_orca": "S3 虎鲸（docs/266 §8，11-05 用户「改玩法」）：1 = 本人不位移，打出一头虎鲸沿直线游到落点（沿途 path_mult、宽 path_w）后跃起砸下（落地 s3_mult / s3_r / 眩晕 / 轻击退照旧）；0 = docs/129 冲锋"},
   "irene": {
    "tier": "S",
    "atk": 0.03,

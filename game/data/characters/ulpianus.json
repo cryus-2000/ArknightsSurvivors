@@ -452,7 +452,7 @@
    "dur": 8.0,
    "mode": "manual",
    "aim": "point",
-   "desc": "掷锚并沿锁链冲向落点：沿途宽 {$s3_path_w} 内的敌人各受一次 ×{$s3_path_mult*$k_pow:2} 伤害；落地半径 {$s3_r} 内 ×{$s3_mult*$k_pow:2} 伤害、击退并眩晕 {$s3_stun} 秒（精英减半、Boss {$s3_stun*$s3_stun_boss:1} 秒）；之后 {$s3_haste} 秒锚击间隔 -{(1-$haste_mult)*100}%。自动瞄准敌群最密处",
+   "desc": "向落点打出一头虎鲸：虎鲸破水直冲，沿途宽 {$s3_path_w} 内的敌人各受一次 ×{$s3_path_mult*$k_pow:2} 伤害；到落点跃起砸下，半径 {$s3_r} 内 ×{$s3_mult*$k_pow:2} 伤害、击退并眩晕 {$s3_stun} 秒（精英减半、Boss {$s3_stun*$s3_stun_boss:1} 秒）；之后 {$s3_haste} 秒锚击间隔 -{(1-$haste_mult)*100}%。自动瞄准敌群最密处",
    "icon": "skill_ulpianus_s3"
   }
  ],
