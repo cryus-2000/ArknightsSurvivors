@@ -1,0 +1,7 @@
+2033285	cmp_atk_e0.png
+238826	cmp_atk_e0_x2.png
+1986836	cmp_atk_e1.png
+208309	cmp_atk_e1_x2.png
+1960007	cmp_atk_e2.png
+223869	cmp_atk_e2_x2.png
+990559	tiers_atk.png
