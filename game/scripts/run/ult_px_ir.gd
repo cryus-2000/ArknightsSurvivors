@@ -770,7 +770,7 @@ func _draw_blast(u, w, c: Vector2, R: float, fa: float) -> void:
 				for j2 in range(6, 15, 2):
 					if (q + j2) % 3 == 0:
 						continue
-					ring.append([roundf(ct.x * (rr - j2)), roundf(ct.y * (rr - j2)), Color(LT[3].r, LT[3].g, LT[3].b, 0.45 * (1.0 - float(j2) / 15.0))])
+					ring.append([roundf(ct.x * (rr - j2)), roundf(ct.y * (rr - j2)), LT[3], 0.45 * (1.0 - float(j2) / 15.0)])   # [x, y, 颜色, 不透明度]（原来少了第 4 项，_pts 读 q[3] 报错）
 		_pts(w, c, ring)
 
 
