@@ -1,0 +1,15 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4815 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+path frames 540 crops 183 first_warn 19 errors [] 
+iberia frames 540 crops 135 first_warn -999 errors [] 
+carmen frames 540 crops 203 first_warn 428 errors [] 
+bishop frames 540 crops 169 first_warn 0 errors [] 
+archon frames 540 crops 204 first_warn 298 errors [] 
+immortal frames 540 crops 169 first_warn 0 errors [] 
+paranoia frames 540 crops 199 first_warn 40 errors [] 
+paranoia2 frames 540 crops 135 first_warn -999 errors [] 
+knight_boss frames 540 crops 169 first_warn 0 errors [] 
+izumik frames 540 crops 203 first_warn 213 errors [] 
+ishar frames 540 crops 203 first_warn 377 errors [] 
+media：1983 个文件，243M
