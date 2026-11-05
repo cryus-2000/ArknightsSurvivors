@@ -1,0 +1,35 @@
+error: externally-managed-environment
+
+× This environment is externally managed
+╰─> To install Python packages system-wide, try apt install
+    python3-xyz, where xyz is the package you are trying to
+    install.
+    
+    If you wish to install a non-Debian-packaged Python package,
+    create a virtual environment using python3 -m venv path/to/venv.
+    Then use path/to/venv/bin/python and path/to/venv/bin/pip. Make
+    sure you have python3-full installed.
+    
+    If you wish to install a non-Debian packaged Python application,
+    it may be easiest to use pipx install xyz, which will manage a
+    virtual environment for you. Make sure you have pipx installed.
+    
+    See /usr/share/doc/python3.11/README.venv for more information.
+
+note: If you believe this is a mistake, please contact your Python installation or OS distribution provider. You can override this, at the risk of breaking your Python installation or OS, by passing --break-system-packages.
+hint: See PEP 668 for the detailed specification.
+  · 素材命名与目录 asset_lint — ERROR 132、WARN 512、INFO 158（D1 114、N1 132、N2 342、N3 4、N4 27、N5 22、N6 3）（明细 python tools/asset_lint.py）
+    日志：（无）
+  · 贴图索引 asset_index — game/art/index.json 2489 个名字
+    日志：（无）
+  · 乌尔比安 S3 冲锋：沿途 + 落地伤害（10-24） — 没有通过标记
+    日志：/work/repo/build/check/quick_1105_000149/ulpianus_charge.log
+  · 分支培养 + 培养保底（docs/119 §4.1 / §4.2）：一张培养卡进二选一、返回不重抽、只扣一次升级、节点 5 按路线、赠送推进排队 / 固定路线、换人继承选路线、其余干员兼容 — 没有通过标记
+    日志：/work/repo/build/check/quick_1105_000149/build_progression.log
+  · 普通怪伤害曲线（docs/194）：单调、封顶、一阶连续、池平均一下 = 目标曲线、换池不跳 — 没有通过标记
+    日志：/work/repo/build/check/quick_1105_000149/dmg_curve.log
+  · 入队邀请二选一（docs/252，用户 11-05）：铜印 / 银印 / 立即招募事件机器人同一帧接受、玩家局弹「接受入队 / 婉拒」并暂停，数字键 / 方向键回车 / 点卡都能选，婉拒给成长三选一（银印另加全队推进），满员不弹 — 没有通过标记
+    日志：/work/repo/build/check/quick_1105_000149/recruit_offer.log
+  · 入队邀请二选一 · 触屏排版（同上，--touch） — 没有通过标记
+    日志：/work/repo/build/check/quick_1105_000149/recruit_offer_touch.log
+分项日志：build/ci_logs/（235 个文件）；退出码 1
