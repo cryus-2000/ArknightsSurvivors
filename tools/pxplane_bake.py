@@ -158,7 +158,7 @@ def variants_texas():
         for el in T:
             for d in DIRS:
                 for ly in ("up", "gd"):
-                    v.append(("slash_r%d_e%d_%s_d%d" % (R, el, ly, d), {"part": "slash", "layer": ly, "R": R, "span": 2.4, "W": [9, 11, 13][el] + (R - 56) // 7, "dir": d, "el": el, "dur": 0.27}, 0.34))
+                    v.append(("slash_r%d_e%d_%s_d%d" % (R, el, ly, d), {"part": "slash", "layer": ly, "R": R, "span": 2.4, "W": [8, 12, 14][el] + (R - 56) // 7, "dir": d, "el": el, "dur": 0.27}, 0.54 if (ly == "gd" and el >= 1) else 0.34))   # 精一起刀身明显加粗 + 地上焦痕弧（多留 0.2 秒）
     for R in (50, 56, 63):   # 骤雨 360° 连斩（storm_r 100 → 50）/ 回马剑（slash_r 112 → 56）
         for el in T:
             for ly in ("up", "gd"):
@@ -190,7 +190,7 @@ def variants_texas():
             v.append(("xcut_%s_d%d" % (ly, d), {"part": "xcut", "layer": ly, "R": 34, "dir": d, "el": 1, "seed": 8}, 0.6))
     # raw：旧做法（正俯视 / 正圆、光晕烤进颜色），游戏里旋转 + 小数缩放
     for el in T:
-        v.append(("raw_slash_e%d" % el, {"part": "slash", "view": "raw", "R": 56, "span": 2.4, "W": [9, 11, 13][el], "dir": 0, "el": el, "dur": 0.27}, 0.34))
+        v.append(("raw_slash_e%d" % el, {"part": "slash", "view": "raw", "R": 56, "span": 2.4, "W": [8, 12, 14][el], "dir": 0, "el": el, "dur": 0.27}, 0.34))
         v.append(("raw_spin_e%d" % el, {"part": "spin", "view": "raw", "R": 50, "W": [9, 11, 13][el], "el": el, "dur": 0.3, "seed": 3}, 0.4))
         v.append(("raw_sword_e%d" % el, {"part": "sword", "view": "raw", "L": [16, 19, 22][el], "W": 4, "fall": 48, "stick": 0.3, "el": el}, 0.56))
     v.append(("raw_xcut", {"part": "xcut", "view": "raw", "R": 34, "dir": 0, "el": 1}, 0.6))

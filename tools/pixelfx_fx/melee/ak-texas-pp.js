@@ -60,7 +60,8 @@ function slash(p, t, o, C, ACC, ST) {
     const q = (R + 0.6 * nz(a * 17, o.seed + 3) - r) / wr;
     if (q < 0 || q > 1) return;
     let ci;
-    if (q < 0.16) ci = hot ? n - 1 : n - 2;           // 外缘白刃线
+    const rim = el >= 1 ? 0.27 : 0.14;                 // 精一起白刃线加厚一倍（1 倍下也看得出刀变「亮」了）
+    if (q < rim) ci = hot ? n - 1 : (el >= 1 ? n - 2 : n - 3);   // 外缘刃线：精零出手后是亮琥珀，精一起才是一道粗白刃（档差一眼可见）
     else if (q < 0.4) ci = n - 3;
     else if (q < 0.68) ci = n - 4;
     else if (q < 0.88) ci = n - 5;
@@ -70,7 +71,7 @@ function slash(p, t, o, C, ACC, ST) {
     ci = clamp(ci - Math.round(cool * 2.6), 1, n - 1);
     out.c = C[ci];
     if (out.a === undefined) out.a = cool > 0.6 ? 0.6 : 1;
-    if (el >= 2 && !hot && q > 0.16 && q < 0.3 && cool < 0.5) out.c = ACC;   // 精二：白刃内侧一道冷青刃光
+    if (el >= 2 && !hot && q > rim && q < rim + 0.14 && cool < 0.5) out.c = ACC;   // 精二：白刃内侧一道冷青刃光
   });
   if (raw) {
     for (let a = tail; a <= head; a += 0.12) p.light(Math.cos(a + th) * R * 0.9, Math.sin(a + th) * R * 0.9, C[n - 2], 0.35 * (1 - cool));
@@ -87,7 +88,7 @@ function slash(p, t, o, C, ACC, ST) {
   // 精一起：刀头甩出源石碎晶（2 格小三角，受重力）；精二多、混冷青
   if (el >= 1 && t > 0.02 && t < 0.3) {
     const ha = head + th, tx = -Math.sin(ha), ty = Math.cos(ha) * SY, hx = Math.cos(ha) * R, hy = Math.sin(ha) * R * SY - H0;
-    const N = el >= 2 ? 9 : 6, u = t - 0.02;
+    const N = el >= 2 ? 12 : 10, u = t - 0.02;
     for (let i = 0; i < N; i++) {
       const sp = 80 + 110 * nz(i * 3.1, o.seed + 201), da = (nz(i * 1.7, o.seed + 203) - 0.5) * 1.4;
       const dx = tx * Math.cos(da) - ty * Math.sin(da), dy = tx * Math.sin(da) + ty * Math.cos(da);
@@ -95,15 +96,27 @@ function slash(p, t, o, C, ACC, ST) {
       const X = Math.round(x), Y = Math.round(y);
       const cold = el >= 2 && i % 3 === 0;
       const c = cold ? (u < 0.12 ? WHITE : ACC) : (u < 0.1 ? C[n - 2] : u < 0.2 ? C[n - 3] : C[n - 4]);
-      p.px(X, Y, c); p.px(X + 1, Y, c); p.px(X, Y - 1, u < 0.2 ? C[n - 3] : C[n - 5]);   // 小三角
+      p.px(X, Y, c); p.px(X + 1, Y, c); p.px(X + 2, Y, c); p.px(X, Y - 1, u < 0.2 ? C[n - 3] : C[n - 5]); p.px(X + 1, Y - 1, u < 0.2 ? C[n - 3] : C[n - 5]); p.px(X, Y - 2, C[n - 5]);   // 3 格三角碎晶
     }
   }
 }
 
-function slashGround(p, t, o, C) {
+function slashGround(p, t, o, C, DU) {
   if (o.view === "raw") return;
-  const R = +o.R, W = +o.W, SY = +o.SY, th = +o.dir * D2R;
-  const [a0, head, tail] = iaiT(t, +o.span);
+  const R = +o.R, W = +o.W, SY = +o.SY, th = +o.dir * D2R, el = +o.el, n = C.length, span = +o.span;
+  // 精一起：刀尖扫过的地面留一道焦痕弧（刚斩时亮琥珀 → 暗琥珀 → 焦黑，0.25 秒后一节节断开，0.5 秒散完）——刀痕本身的精一变化，不靠钉剑
+  if (el >= 1) {
+    const brk = smooth(0.22, 0.5, t), a0b = -span / 2, a1b = a0b + span * (0.82 + 0.18 * clamp(t / 0.067));
+    if (brk < 0.99) for (let a = a0b + span * 0.06; a <= a1b - span * 0.03; a += 0.5 / R) {
+      if (nz(a * 23, o.seed + 41) < brk) continue;
+      const rr = R * 0.96 + 0.8 * nz(a * 9, o.seed + 43), X = Math.round(Math.cos(a + th) * rr), Y = Math.round(Math.sin(a + th) * rr * SY);
+      const c = t < 0.1 ? C[n - 2] : t < 0.2 ? C[n - 3] : t < 0.32 ? C[n - 5] : DU[1];
+      p.px(X, Y, c);
+      if (el >= 2 && t < 0.2) p.px(X, Y + 1, C[n - 4]);
+      else p.px(X, Y + 1, DU[0]);
+    }
+  }
+  const [a0, head, tail] = iaiT(t, span);
   const cool = smooth(0.07, +o.dur, t);
   if (head - tail < 0.05 || cool >= 0.62) return;
   for (let a = tail; a <= head; a += 0.4 / R) {
@@ -461,7 +474,7 @@ export function draw(p, t, o) {
   const C = fit(o.palette, 8), ST = fit(o.steel, 6), DU = fit(o.dust, 5), ACC = hex(o.accent);
   const gd = o.layer === "gd";
   switch (o.part) {
-    case "slash": return gd ? slashGround(p, t, o, C) : slash(p, t, o, C, ACC, ST);
+    case "slash": return gd ? slashGround(p, t, o, C, DU) : slash(p, t, o, C, ACC, ST);
     case "spin": return gd ? spinGround(p, t, o, C) : spin(p, t, o, C, ACC);
     case "sword": return gd ? swordGround(p, t, o, C, ACC, ST, DU) : sword(p, t, o, C, ACC, ST, DU);
     case "array": return gd ? array(p, t, o, C, ACC, ST, DU) : undefined;
