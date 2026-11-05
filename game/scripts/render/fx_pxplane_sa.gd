@@ -20,6 +20,7 @@ const SHAT2_R := [45, 54]
 const HEAL_LIGHT := Color(0.5, 1.0, 0.65)
 const QI_STEP := 20.0      # 剑气晶刺：每推进 20 世界像素冒一根
 const QI_MAX := 20         # 每人同屏晶刺上限（fx_pxplane 件表整队共用 72 个）
+const CHIP_SZ := [4, 4, 4, 2]   # 碎晶屑边长（世界像素）：3 / 4 是 4 px 大颗、1 / 4 是 2 px 点缀，平均 3.5（docs/270 §3：平均边长 ≥ 3；原 shard 2 / 4 各半实测 2.8）
 const HIT_N := 3           # 一记盾击至多画 3 只身上的命中芒
 
 var r      # fx_pxplane 实例
@@ -111,14 +112,14 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 				var hp: Vector2 = e0.pos + Vector2(0, -float(e0.r) * 0.55)
 				R._light(o, hp, 80.0 + 10.0 * t, 0.55 + 0.05 * t, 0.1, p.light)
 				if t >= 1 or d.get("calc", false):
-					R._grains(o, hp, float(e0.pos.y) + 2.0, "shard", 2 + mini(es.size(), 3), {"tier": t}, ((e0.pos as Vector2) - o.pos).normalized())
+					R._grains(o, hp, float(e0.pos.y) + 2.0, "shard", 2 + mini(es.size(), 3), {"tier": t, "grain_sz": CHIP_SZ}, ((e0.pos as Vector2) - o.pos).normalized())
 		"sa_suit":   # 精二满格环冲：贴地冲击环 + 6 道推地楔痕（留原地）+ 身前爆闪（跟她）
 			var Rs: int = _near(SUIT_R, float(d.r) * 0.5)
 			_gd(o, "suit_r%d_gd" % Rs, o.pos)
 			_on_her(o, "suit_up", false, "up")
 			_hit_pts(o, d.get("es", []), "hitc")
 			R._light(o, o.pos + Vector2(0, -20), float(d.r) * 1.1, 0.8, 0.15, p.light)
-			R._grains(o, o.pos + Vector2(0, -24), o.pos.y + 2.0, "shard", 8, {"tier": 2})
+			R._grains(o, o.pos + Vector2(0, -24), o.pos.y + 2.0, "shard", 8, {"tier": 2, "grain_sz": CHIP_SZ})
 		"sa_pbreak":   # 晶柱环到时碎掉：每根一张碎裂帧条（立起，留原地）
 			var big: bool = not d.get("small", false)
 			var ps: Array = d.get("posts", [])
@@ -145,7 +146,7 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 				return
 			var at2: Vector2 = d.at
 			R._light(o, at2 + Vector2(0, -16), 70.0, 0.45, 0.1, p.light)
-			R._grains(o, at2 + Vector2(0, -16), at2.y + 2.0, "shard", 3, {"tier": t})
+			R._grains(o, at2 + Vector2(0, -16), at2.y + 2.0, "shard", 3, {"tier": t, "grain_sz": CHIP_SZ})
 		"sa_heal":   # S1 急救 / S2 药物配置（医疗绿，跟着队长）
 			if int(d.get("s", 1)) == 2:
 				_on_lead(o, "s2_e%d_gd" % maxi(1, t), "gd")
@@ -160,7 +161,7 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 			_gd(o, "s3cast_gd", d.c)
 			_up(o, "s3cast_up", d.c, float((d.c as Vector2).y) + 1.0)
 			R._light(o, (d.c as Vector2) + Vector2(0, -16), 200.0, 0.8, 0.15, p.light)
-			R._grains(o, (d.c as Vector2) + Vector2(0, -20), float((d.c as Vector2).y) + 2.0, "shard", 8, {"tier": 2})
+			R._grains(o, (d.c as Vector2) + Vector2(0, -20), float((d.c as Vector2).y) + 2.0, "shard", 8, {"tier": 2, "grain_sz": CHIP_SZ})
 		"sa_link":   # 连携「钙质护盾」：队长身周 6 片晶板（前后两张，跟队长）+ 区域里 7 块钙化地面斑（留原地）
 			_on_lead(o, "lk_ring_gd", "gd")   # 11-05 用户「护盾会挡住队长」：晶全长在地上，后半圈排在队长身后、前半圈只有脚前小晶尖
 			_on_lead(o, "lk_b", "up", -3.0)
@@ -177,7 +178,7 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 				var Rr: int = _near(SHAT2_R, float(d.get("r", 91.0)) * 0.5)
 				_up(o, "shat2_r%d_up" % Rr, c2, c2.y + 1.0)
 				_gd(o, "shat2_r%d_gd" % Rr, c2)
-				R._grains(o, c2 + Vector2(0, -12), c2.y + 2.0, "shard", 5, {"tier": t})
+				R._grains(o, c2 + Vector2(0, -12), c2.y + 2.0, "shard", 5, {"tier": t, "grain_sz": CHIP_SZ})
 
 
 # ================================================================ 绘制
