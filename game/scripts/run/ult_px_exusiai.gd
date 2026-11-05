@@ -1,5 +1,6 @@
 ## 能天使终结技转平面画面（docs/262 §11，开关 ult/px_plane，缺省 0 = 原画面）：只改画面，判定 / 时长 / 伤害 / 发数一律照 ult_moves 原样。
-## 11-05 口径「以原版为底，只往上加」（ult_brief.md §8）：原画面全部照旧，只在最大那一下叠 big_blast、路上的爆点叠 cloud；下面其余的生成函数（举枪 / 锁定框 / 光弹 / 像素爆团）是第一版整套替换的画法，暂不调用。
+## 11-05 晚口径（ult_brief.md §9）：以原版为底，主要做配色对齐（ult_moves 的 _exr / _exg：危险红换朱橙），能用 px_plane 加强的顺手加强——
+## 最大那一下叠 big_blast、路上的爆点叠 cloud、平涂实心圆去掉、斜举光刃换头顶大光环（halo）；下面其余的生成函数（举枪闪光 / 锁定框 / 光弹 / 像素爆团）是第一版整套替换的画法，暂不调用。
 ## 画面件都是 ult 的图形（u.shape），kind = "pxfn"、px = 画法；ult.gd 的 draw_world / draw_world_back / 冲击帧见到 pxfn 就交给 draw()。
 ## 帧条（举枪大闪光、光柱、头顶大光环、爆点、焦痕、枪口火）用 fx_pxplane 的 pxp_ex_* 帧条（tools/pxplane_bake_exusiai.py 烤，图形 tools/pxplane_exu_ult_art.py），
 ## 1 特效像素 = 1 美术像素、按 15 fps 节拍选帧；锁定框、锁定范围环、连锁闪线运行时逐格画（同 pxplane_exu_ult_art.reticle_px / ring_px）；子弹用 fx_pxplane_exu 的肉鸽式光弹。
@@ -121,6 +122,11 @@ static func big_blast(u, a: Dictionary, imp: Vector2, gold: Color, red: Color) -
 		u.shape({"kind": "pxfn", "px": "spray", "e": e, "c": e.pos + Vector2(0, -10), "out": out, "sd": id * 13 + 5, "draw_spray": n < SPRAY_CAP, "delay": ta, "life": 1.3})
 		n += 1
 	u.impact(imp)
+
+
+## 举枪：头顶大光环（新 S3 光环的放大版，跟着她，循环到扫射结束），代替原来那对斜举光刃
+static func halo(u, o, dur: float) -> void:
+	strip(u, "ex_ult_halo", o.pos, dur + 0.3, {"loop": true, "o": o, "off": Vector2(0, HALO_Y)})
 
 
 ## 路上的爆点：原爆点帧条照旧，上面叠一层闪烁粒子云

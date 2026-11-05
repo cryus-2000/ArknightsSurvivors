@@ -7,7 +7,7 @@
              "blade": {"slot": "cut", "gap": 0.12, "vol": -2.0},
              "blade+v": {"slot": ""},
              "strip:fx_ult_texas_sword_front": {"slot": ""}}},
-    "exusiai": {"vol": {"end": -6.0}, "voice": "exusiai_ult", "voice_alt": ["exusiai_skill_3", "exusiai_entry_3"], "seg": {"爆裂弹": {}, "跳弹": {}},
+    "exusiai": {"voice": "exusiai_ult", "voice_alt": ["exusiai_skill_3", "exusiai_entry_3"], "seg": {"爆裂弹": {}, "跳弹": {}},
       "fx": {"strip:fx_ult_exusiai_burst_front": {"slot": ["pop_1", "pop_2", "pop_3"], "gap": 0.06, "vol": -6.0}}},
     "skalter": {"hf_slot": "final", "voice": "skalter_command_2", "voice_alt": ["skalter_entry", "skalter_skill_3"], "seg": {"激光": {}, "爆裂": {}},
       "fx": {"strip:fx_ult_skalter_seaborn_front": {"slot": "rise"},
