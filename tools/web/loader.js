@@ -144,6 +144,7 @@
       var q = function (sel) { return fx.querySelector(sel); }, px = function (x) { return (x / dpr).toFixed(1) + 'px'; };
       fx.style.cssText = 'left:' + px(cx) + ';top:' + px(cy);
       var lg = q('.p4logo'); lg.style.width = lg.style.height = px(span); lg.style.left = lg.style.top = px(-span / 2);
+      var ha = q('.p4halo'); ha.style.width = ha.style.height = px(R * 2.5); ha.style.left = ha.style.top = px(-R * 1.25);
       var gw = q('.p4glow'); gw.style.width = gw.style.height = px(span * 1.3); gw.style.left = gw.style.top = px(-span * 0.65);
       var T = R * 0.66 / 0.66 * 1.5, tri = q('.p4tri');   // 外接圆 1.5 倍环
       tri.setAttribute('viewBox', [-T, -T, 2 * T, 2 * T].join(' ')); tri.style.width = tri.style.height = px(2 * T); tri.style.left = tri.style.top = px(-T);
@@ -168,11 +169,12 @@
       var u = readyT < 0 ? -1 : (performance.now() - readyT) / 1000;
       // 画布只在内容变时重画（进度格 / 日志 / 阶段 / 不定进度的转格 / 读完脉冲 / 计时到 0.1 秒）
       var spin = Math.floor((t * 14) % 60);
-      var sig = [W, H, Math.floor(p * 1000), v.stage.text, logs.length, logs.filter(function (l) { return l.ok; }).length, v.ind ? spin : -1, rd, rd && u < 0.6 ? Math.floor(u * 30) : -1, Math.floor(t * 10), got, done, bootProgress].join('|');
+      var sig = [W, H, Math.floor(p * 1000), v.stage.text, logs.length, logs.filter(function (l) { return l.ok; }).length, v.ind ? spin : -1, rd, rd && u < 0.6 ? Math.floor(u * 30) : -1, Math.floor(t * 30), got, done, bootProgress].join('|');   // 30 次 / 秒：刻度环 / 当前格 / 日志小方块随呼吸
       if (sig === lastSig) return;
       lastSig = sig;
       if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
       var k = Math.max(0.8, Math.min(2.4, H / 540)), cx = W / 2, cy = H * 0.42, m = 22 * k;
+      var br = rm ? 1 : 0.5 + 0.5 * Math.cos(t * 2 * Math.PI / 2.6), rb = rd ? 1 : 0.8 + 0.2 * br;   // 呼吸相位（同 CSS p4br：0 秒最亮）
       var span = 120 * Math.max(1, Math.floor(H * 0.34 / 120)), R = span * 0.66, R2 = R + 22 * k;
       var hx0 = cx - R - 46 * k, hx1 = cx + R + 46 * k, hl = W > 760 * dpr ? W / 2 - 200 * k : W / 2 - 10;
       layout(W, H, dpr, k, cx, cy, span, R, R2, hl, hx1);
@@ -195,13 +197,13 @@
         if (rd) { col = ACC; al = 0.9; }
         else if (v.ind && ((i - spin + 60) % 60) < 5) { col = ACC; al = 0.35 + 0.13 * ((i - spin + 60) % 60); }   // 不定进度：一段青格慢转
         else if (i < lit) { col = TX; al = 0.85; }
-        else if (i === lit && !v.ind) { col = ACC; al = 1; }
-        else { col = SUB; al = 0.27; }
-        ctx.globalAlpha = al; ctx.strokeStyle = col; ctx.lineWidth = (mj ? 2 : 1.5) * dpr;
+        else if (i === lit && !v.ind) { col = ACC; al = (0.55 + 0.45 * br) / rb; }   // 当前格随呼吸闪
+        else { col = SUB; al = 0.2 + 0.14 * br; }
+        ctx.globalAlpha = Math.min(1, al * rb); ctx.strokeStyle = col; ctx.lineWidth = (mj ? 2 : 1.5) * dpr;
         ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * R, cy + Math.sin(a) * R); ctx.lineTo(cx + Math.cos(a) * (R + l), cy + Math.sin(a) * (R + l)); ctx.stroke();
       }
       ctx.globalAlpha = 0.18; ctx.strokeStyle = SUB; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(cx, cy, R - 6 * k, 0, 2 * Math.PI); ctx.stroke();
-      ctx.globalAlpha = 0.16; ctx.beginPath(); ctx.arc(cx, cy, R2, 0, 2 * Math.PI); ctx.stroke();
+      ctx.globalAlpha = 0.1 + 0.12 * br; ctx.beginPath(); ctx.arc(cx, cy, R2, 0, 2 * Math.PI); ctx.stroke();
       if (rd && !rm && u >= 0 && u < 0.5) { var q = ease(u / 0.5); ctx.globalAlpha = 0.6 * (1 - q); ctx.strokeStyle = ACC; ctx.lineWidth = 1.5 * dpr; ctx.beginPath(); ctx.arc(cx, cy, R + 14 * k + q * 40 * k, 0, 2 * Math.PI); ctx.stroke(); }
       var nd = 4 * k;
       for (var j = 0; j < 4; j++) {
@@ -221,7 +223,7 @@
         head(lx, py, '启动校验', k, 170 * k);
         logs.slice(Math.max(0, logs.length - 4)).forEach(function (ln, i) {
           var yy = py + 35 * k + i * 24 * k;
-          box(lx, yy - 4 * k, 3 * k, 3 * k, ln.ok ? TX : (ln.key === logKey ? ACC : RULE));
+          box(lx, yy - 4 * k, 3 * k, 3 * k, ln.ok ? TX : (ln.key === logKey ? ACC : RULE), ln.ok || ln.key !== logKey ? 1 : 0.45 + 0.55 * br);
           lab(ln.s, lx + 12 * k, yy + 1 * k, 11 * k, ln.ok ? TX : SUB);
         });
         head(rx, py, '资源索引', k, 150 * k);
@@ -229,12 +231,14 @@
         [['DOWNLOAD', clamp(got / Math.max(1, total))], ['UNPACK', done ? 1 : 0], ['ENGINE', bootProgress !== null ? 1 : -1], ['WARMUP', rd ? 1 : bp]].forEach(function (q2, i) {
           var yb = py + 38 * k + i * 32 * k, fq = q2[1];
           lab(q2[0], rx, yb, 10 * k, SUB); box(rx, yb + 8 * k, 150 * k, 1, RULE);
-          if (fq < 0) { if (done) box(rx + ((t * 0.8) % 1) * 126 * k, yb + 7.5 * k, 24 * k, 2, ACC); }   // 引擎启动：不定进度
+          if (fq < 0) { var eph = (t / 1.6) % 1; if (done) box(rx + ease(eph) * 126 * k, yb + 7.5 * k, 24 * k, 2, ACC, Math.sin(eph * Math.PI)); }   // 引擎启动：不定进度（两端淡入淡出，不硬跳回）
           else box(rx, yb + 7.5 * k, Math.floor(fq * 150 * k), 2, fq >= 1 ? ACC : TX);
         });
       }
       lab('RHODES ISLAND', m, H - 20 * k, 11 * k, SUB);
+      ctx.globalAlpha = rd ? 1 : 0.6 + 0.4 * br;
       lab(rd ? 'ACCESS / GRANTED' : 'ACCESS / PENDING', W - m, H - 20 * k, 11 * k, rd ? ACC : SUB, 'right');
+      ctx.globalAlpha = 1;
     }
     requestAnimationFrame(frame);
     return v;
@@ -245,7 +249,7 @@
     for (var i = 0; i < 50; i++) segs += '<i></i>';
     var h = '';
     if (BV === 4) {   // PRTS 认证终端（11-05，Codex docs/reference/prts-entry-1105；同桌面 boot_views.draw_v4）：画布逐帧画，扫描线 / 不定进度是 CSS 动画
-      h = '<canvas class="p4c"></canvas><div class="p4fx"><b class="p4glow"></b><svg class="p4tri"></svg><canvas class="p4logo" width="120" height="120"></canvas>' +
+      h = '<canvas class="p4c"></canvas><div class="p4fx"><b class="p4halo"></b><b class="p4glow"></b><svg class="p4tri"></svg><canvas class="p4logo" width="120" height="120"></canvas>' +
         '<div class="p4rot a"></div><div class="p4rot b"></div><div class="p4run r"><b></b></div><div class="p4run l"><b></b></div></div>';
     } else if (BV === 1) {
       h = '<div class="sv-scan"></div>' + snowLayer(46) + head('罗德岛作战终端 · 启动程序', 1) +

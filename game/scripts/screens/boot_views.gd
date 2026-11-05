@@ -816,8 +816,10 @@ func draw_v4(vs: Vector2, st: Dictionary) -> void:
 	var C := Vector2(cx, cy)
 	# 背后：光晕（同心淡圆叠出来）+ 大淡三角（外接圆 = 1.5 倍环），都随呼吸
 	var gl: float = (0.6 + 0.4 * br) * fade
-	for j in 4:
-		c.draw_circle(C, span * (0.62 - j * 0.1), Color(P_ACC, 0.022 * gl))
+	var hs: float = 0.94 + 0.1 * br   # 大光晕随呼吸缩放（11-05 用户「整个界面缺少一点呼吸感」）
+	for j in 6:
+		c.draw_circle(C, R0 * (1.25 - j * 0.17) * hs, Color(P_ACC, 0.016 * gl))
+	var rb: float = 1.0 if ready else 0.8 + 0.2 * br   # 刻度环 / 外圈整体明暗
 	var tri := PackedVector2Array()
 	for a3 in [-90.0, 30.0, 150.0, -90.0]:
 		tri.append(C + Vector2.from_angle(deg_to_rad(a3)) * R0 * 1.5)
@@ -831,9 +833,15 @@ func draw_v4(vs: Vector2, st: Dictionary) -> void:
 	for e in [cx - hl, cx + hl]:
 		_box(e - 1.5, cy - 1.0, 3, 3, P_SUB)
 	if not ready or rm:
-		var run: float = fposmod(tt / 2.2, 1.0) * (hl - (hx1 - cx))
-		_box(hx1 + run, cy, 26.0 * k, 1, P_ACC, 0.8)
-		_box(hx0 - run - 26.0 * k, cy, 26.0 * k, 1, P_ACC, 0.8)
+		# 青光从环边淡入 → 往外走 → 到头淡出 → 停一拍（11-05 用户「两侧加载的那个直接跳回原点显得很奇怪」）
+		var ph: float = fposmod(tt / 2.6, 1.0)
+		var mv: float = clampf(ph / 0.8, 0.0, 1.0)
+		var ra: float = clampf(mv / 0.15, 0.0, 1.0) * clampf((1.0 - mv) / 0.25, 0.0, 1.0) * (1.0 if ph < 0.8 else 0.0)
+		if rm:
+			ra = 0.0
+		var run: float = _ease(mv) * (hl - (hx1 - cx) - 26.0 * k)
+		_box(hx1 + run, cy, 26.0 * k, 1, P_ACC, 0.8 * ra)
+		_box(hx0 - run - 26.0 * k, cy, 26.0 * k, 1, P_ACC, 0.8 * ra)
 	var breath: float = 1.0 if (rm or ready) else 0.72 + 0.28 * (0.5 + 0.5 * cos(t * TAU / 2.6))
 	RhodesLogo.draw_bands(c, Vector2(roundf(cx - span / 2.0), roundf(cy - span / 2.0)), s, 120, func(_b): return 0.0, Color(1, 1, 1, fade * breath))
 	# 刻度环 = 进度（60 格，每 5 格一根长的；亮到 st.p，当前格青色；读完整圈青）
@@ -849,15 +857,15 @@ func draw_v4(vs: Vector2, st: Dictionary) -> void:
 		elif i < lit:
 			col = Color(P_TXT, 0.85)
 		elif i == lit:
-			col = P_ACC
+			col = Color(P_ACC, 0.55 + 0.45 * br)   # 当前格随呼吸闪
 		else:
 			col = Color(P_SUB, 0.2 + 0.14 * br)
 		var dir := Vector2.from_angle(a)
-		c.draw_line(Vector2(cx, cy) + dir * R, Vector2(cx, cy) + dir * (R + l), Color(col, col.a * fade), 2.0 if major else 1.5, true)
+		c.draw_line(Vector2(cx, cy) + dir * R, Vector2(cx, cy) + dir * (R + l), Color(col, col.a * fade * (1.0 if i == lit else rb)), 2.0 if major else 1.5, true)
 	c.draw_arc(Vector2(cx, cy), R - 6.0 * k, 0.0, TAU, 96, Color(P_SUB, 0.18 * fade), 1.0, true)
 	# 外圈：细环 + 三段白弧顺转、两段青弧反转（慢）；四方位菱形节点 + 读数（下方让给状态字，只写上 / 左 / 右）
 	var R2: float = R + 22.0 * k
-	c.draw_arc(C, R2, 0.0, TAU, 128, Color(P_SUB, 0.16 * fade), 1.0, true)
+	c.draw_arc(C, R2, 0.0, TAU, 128, Color(P_SUB, (0.1 + 0.12 * br) * fade), 1.0, true)
 	for j in 3:
 		var a0: float = tt * 0.16 + j * TAU / 3.0
 		c.draw_arc(C, R2, a0, a0 + deg_to_rad(34.0), 24, Color(P_TXT, 0.5 * fade), 1.5, true)
@@ -898,7 +906,7 @@ func draw_v4(vs: Vector2, st: Dictionary) -> void:
 			var ln: Dictionary = shown[i]
 			var yy: float = py + 35.0 * k + i * 24.0 * k
 			var ok: bool = ln.ok
-			_box(lx, yy - 4.0 * k, 3.0 * k, 3.0 * k, P_TXT if ok else (P_ACC if ln.get("cur", false) else P_RULE))
+			_box(lx, yy - 4.0 * k, 3.0 * k, 3.0 * k, P_TXT if ok else (Color(P_ACC, 0.45 + 0.55 * br) if ln.get("cur", false) else P_RULE))
 			txt(Vector2(lx + 12.0 * k, yy + 1.0 * k), str(ln.s), int(round(11.0 * k)), P_TXT if ok else P_SUB)
 		_p4_head(rx, py, "资源索引", k, 150.0 * k)
 		var n: int = int(st.get("n", 0))
@@ -912,5 +920,5 @@ func draw_v4(vs: Vector2, st: Dictionary) -> void:
 			_box(rx, yb + 7.5 * k, floorf(q2 * 150.0 * k), 2, P_TXT if q2 < 1.0 else P_ACC)
 	mono(Vector2(m, h - 20.0 * k), "RHODES ISLAND", int(round(11.0 * k)), P_SUB)
 	var acc := "ACCESS / GRANTED" if ready else "ACCESS / PENDING"
-	mono(Vector2(w - m - mono_w(acc, int(round(11.0 * k))), h - 20.0 * k), acc, int(round(11.0 * k)), P_ACC if ready else P_SUB)
+	mono(Vector2(w - m - mono_w(acc, int(round(11.0 * k))), h - 20.0 * k), acc, int(round(11.0 * k)), P_ACC if ready else Color(P_SUB, 0.6 + 0.4 * br))
 	txt(Vector2(0, h - 20.0 * k), "明日方舟同人作品 · 非商业 · 与鹰角网络无关", int(round(10.0 * k)), Color(P_SUB.r, P_SUB.g, P_SUB.b, 0.7), HORIZONTAL_ALIGNMENT_CENTER, w)
