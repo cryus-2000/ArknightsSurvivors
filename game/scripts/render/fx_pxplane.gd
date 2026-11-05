@@ -3091,7 +3091,46 @@ func _ey_lrock_pos(it: Dictionary, u: float) -> Vector2:
 ## 一颗弹体：帧条 ey_ball_<样式>_d<方向>（按飞行方向挑最近的平面角 + 水平翻转），循环；原点 = 弹头，位置每帧走、取整到美术像素格
 func _ey_ball(ci, st: String, pos: Vector2, dir: Vector2, ph: int) -> void:
 	var dk: Array = pick_dir(dir.angle() if dir.length_squared() > 0.0001 else 0.0)
+	if EY_TAIL.has(st) and dir.length_squared() > 0.0001 and Bal.v("fx/eyja_ball_tail", 1.0) > 0.0:
+		_ey_tail(ci, pos, dir.normalized(), float(EY_TAIL[st]), ph)
 	_draw_strip(ci, "ey_ball_%s_d%d" % [st, dk[0]], frame_of(0.0) + ph, _snap(pos), dk[1], false)
+
+
+## 直线弹（普攻火球 / 熔岩弹 / 二重咏唱强化 / 点燃弹）的尾焰（11-06 用户「现在的普通攻击像是平移出去的火球，没有了之前的方向感」）：
+## 帧条只有 5 个 45° 角、烟一律往上飘，看不出头尾；转平面前靠 proj_lavaball 按飞行角连续旋转的彗星形。
+## 这里沿真实飞行反方向排一串由白热到暗红、由粗到细的像素团（帧条底下），头部一颗热芯进发光层；只画，不抽随机数（抖动按 g.t 与 ph）。
+## 开关 fx/eyja_ball_tail（缺省 1，0 = 只有帧条）
+const EY_TAIL := {"fire": 1.0, "lava": 1.1, "pow": 1.3, "ign": 1.45}
+const EY_TAIL_C := [6, 7, 5, 5, 4, 4, 3, 3, 2, 2, 1]   # 从头到尾的 EY_C 色阶
+
+func _ey_tail(ci, pos: Vector2, d: Vector2, k: float, ph: int) -> void:
+	var px: float = g.PX
+	var nrm: Vector2 = d.orthogonal()
+	var n: int = int(round(9.0 * k))
+	var flick: int = int(floor(g.t * 15.0)) + ph
+	for i in n:
+		var u: float = float(i) / float(maxi(1, n - 1))   # 0 头 → 1 尾
+		var back: float = (3.0 + float(i) * 2.6) * px * 0.5 * (1.0 + 0.5 * (k - 1.0))
+		var wob: float = sin(float(flick + i * 3) * 1.7) * u * 2.2 * px * 0.5
+		var c: Vector2 = _snap(pos - d * back + nrm * wob)
+		var r: int = 2 if u < 0.25 else (1 if u < 0.7 else 0)   # 半宽（美术像素）
+		if k >= 1.3 and u < 0.45:
+			r += 1
+		var ci_k: int = EY_TAIL_C[mini(EY_TAIL_C.size() - 1, int(u * float(EY_TAIL_C.size() - 1) + 0.5))]
+		var col: Color = EY_C[ci_k]
+		col.a = 1.0 - 0.55 * u
+		for yy in range(-r, r + 1):
+			for xx in range(-r, r + 1):
+				if xx * xx + yy * yy > r * r + (1 if r > 0 else 0):
+					continue
+				if r >= 2 and (xx + yy + flick + i) % 5 == 0:
+					continue   # 边上缺几格，不成实心胶囊
+				ci.draw_rect(Rect2(c + Vector2(xx, yy) * px, Vector2(px, px)), col)
+		# 尾段偶尔甩出一颗火星（离轴）
+		if u > 0.45 and (flick + i) % 4 == 0:
+			var sp: Vector2 = _snap(c + nrm * (3.0 if (flick + i) % 8 == 0 else -3.0) * px)
+			ci.draw_rect(Rect2(sp, Vector2(px, px)), Color(EY_C[5], 0.8 - 0.5 * u))
+	_glow(_snap(pos - d * 2.0 * px), EY_C[6])
 
 
 ## 旧做法（2）：同一形状光晕烤进颜色、小数缩放、旋转，盖在所有单位上；弹体用 0° 帧条按飞行方向旋转 1.3 倍贴
