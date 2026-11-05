@@ -458,6 +458,7 @@ static func _h3_beam_tick(o, lm: Dictionary, dt: float) -> void:
 		o.log_hit(str(bb.get("src", "")))
 		o.deal_damage(e, o.base(str(bb.get("atk_key", "atk")), 0.0) * o._dmg_bonus() * float(bb.get("mult", 0.4)) * o.skill_power())
 		o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 9.0, "life": 0.2, "col": H3_WARM, "alpha": 0.6})
+		_FXR.ev(o, "lm_xhit", {"e": e, "at": e.pos + Vector2(0, -e.r * 0.5)})   # 转平面（docs/255）：光束扫中处一团小水花（同屏上限同额外弹），只画
 
 
 ## 天赋：灯火 ≥ lamp 时自身技力额外充能（同手写，在出手判定之前）

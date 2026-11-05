@@ -943,6 +943,15 @@ func _ev_lumen(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictiona
 				_push({"rt": "rawline", "a": d.a, "b": d.b, "t0": g.t, "life": 0.25, "ly": "raw", "oid": str(o.id), "k": ""})
 				return
 			_push({"rt": "link", "a": d.a, "b": d.b, "t0": g.t, "life": 2.0 / 15.0, "ly": "up", "gy": (d.b as Vector2).y + 24.0, "oid": str(o.id), "k": ""})
+		"shape":   # 灯塔守望·回光（watch2：沐雨时与灯火不灭期间每秒一圈，玩法是 ob_core 圆形判定）：判定半径上边弧原地闪一下 + 一盏照地光
+			if not d.get("circle", false):
+				return
+			var pc: Vector2 = d.get("c", g.ppos)
+			if raw:
+				_lm_raw(o, "raw_burst", pc, 0.0, px * float(d.get("r", 120.0)) / 220.0 * 1.13)
+				return
+			_lm_gd(o, "pulse_gd", pc)
+			R._light(o, pc + Vector2(0, -10), float(d.get("r", 120.0)), 0.4, 0.12, p.light)
 		"lm_xhit":   # 后期额外弹命中：小一号水花；同一拍至多 3 团（弹数随档位增加，画面不跟着碎）
 			var xe: Dictionary = d.e
 			if _lm_beat_n(o, "xh") >= 3:
@@ -1062,7 +1071,7 @@ func _lm_draw_floor(o) -> void:
 		_draw_strip(cv, "lm_tower_gd", frame_of(0.0), _snap(lm.tower_pos), false, false)
 	var bb: Dictionary = S._h3_beam_block(o)
 	if S._h3_beam_on(o, bb):
-		_lm_draw_fan(cv, o, lm, bb)
+		_lm_beam_trace(cv, o, lm, bb)
 
 
 ## 立起层的状态件：光弹（运行时）、光雨雨点（循环帧条）、灯塔光尘（循环帧条）
@@ -1082,6 +1091,10 @@ func _lm_sort_items(o, out: Array) -> void:
 	if _sl()._h3_tower_on(o):
 		var tp: Vector2 = lm.tower_pos
 		out.append({"loopk": "lm_tower_up", "gp": _snap(tp), "gy": tp.y + 1.0})
+	var bb: Dictionary = _sl()._h3_beam_block(o)
+	if _sl()._h3_beam_on(o, bb):   # 灯塔守望光束（立起层，和队长 / 灯塔一起按脚底 y 排）
+		var gb: Vector2 = lm.tower_pos if _sl()._h3_tower_on(o) else g.ppos
+		out.append({"rt": "wbeam", "o": o, "bb": bb, "gy": gb.y + 1.0})
 
 
 func _px(ci, p: Vector2, c: Color) -> void:
@@ -1164,6 +1177,8 @@ func _lm_draw_rt(ci, it: Dictionary) -> void:
 		"xbolt":   # 后期额外弹（growth/late_shape 等的 vis_growth 弹体）：同一套光弹，小一号（同发光单元）
 			var xb: Dictionary = it.b
 			_lm_bolt(ci, (xb.p as Vector2) + Vector2(0, -18.0), xb.v, tier(it.o), false, true)
+		"wbeam":
+			_lm_draw_wbeam(ci, it.o, it.bb)
 		"cbolt":   # 连携技「清创光弹」：提灯到队长胸口飞 travel 秒，大一号、不分档（尾 18 格 + 两格宽芯 + 灯火橙芯）
 			var u: float = clampf((g.t - float(it.t0)) / maxf(0.01, float(it.life)), 0.0, 1.0)
 			var ca: Vector2 = it.a
@@ -1206,40 +1221,92 @@ func _lm_bolt(ci, pos: Vector2, vel: Vector2, t: int, big: bool, unit: bool, lin
 	_glow(head - dv2 * px, C[5])
 
 
-## 灯塔守望光扇（贴地，按 15 fps 节拍转）：只画两道边 + 中线，不平涂
-func _lm_draw_fan(cv, o, lm: Dictionary, bb: Dictionary) -> void:
+## 灯塔守望光束（11-05 用户「流明那个光束得重新做一下」；原来是贴地光扇、两道边带缺口——又碎又平、不亮）。
+## 重做：一道实心光束从队长胸口（灯塔在场时从灯塔灯口）射出，由高到低斜落到判定线末端（立起、有高度差），窄 → 宽、整道连续；
+## 白只给芯的前 35%，身子冰蓝 / 钢蓝，远端降一阶；出光点一颗小四芒星（精二芯一点灯火橙）；沿光束两盏照地光（亮度靠光，不靠大片白）；
+## 地上一道 1 美术像素暗钢蓝光痕把光束「落」在地面上。方向取玩法的连续角度（每帧转，不按 15 fps 跳格：2 秒一圈、按拍跳一次就是 12°，末端一跳 50 多像素），形状逐格画、对齐像素格。
+## 三档：光束末端半宽 5 / 6.5 / 8 美术像素，精一起芯加宽一格，精二出光点灯火橙。淡入淡出只收宽度、降色阶，不用半透明。
+func _lm_wbeam_geo(o, lm: Dictionary, bb: Dictionary) -> Dictionary:
 	var S = _sl()
-	var px: float = g.PX
-	var tq: float = floor(g.t * 15.0) / 15.0
-	var a: float = tq * TAU / float(bb.get("period", 2.0))
-	var dv := Vector2(cos(a), sin(a) * 0.55)
-	var org: Vector2 = S._h3_beam_origin(o)
-	var L: float = float(bb.get("len", 260.0))
 	var twr: bool = S._h3_tower_on(o)
+	var gorg: Vector2 = lm.tower_pos if twr else g.ppos
+	var dv: Vector2 = S._h3_beam_dir(o, bb)
+	var L: float = float(bb.get("len", 260.0))
+	var src: Vector2 = S._h3_tower_lamp(o) if twr else g.ppos + Vector2(0, -34)
 	var fade: float = clampf((float(lm.get("tower_t", 0.0)) if twr else float(lm.get("beam_t", 0.0))) / 0.5, 0.0, 1.0)
+	return {"gorg": gorg, "dv": dv, "L": L, "src": src, "tip": gorg + dv * L + Vector2(0, -6), "fade": fade}
+
+
+func _lm_beam_trace(cv, o, lm: Dictionary, bb: Dictionary) -> void:
+	var ge: Dictionary = _lm_wbeam_geo(o, lm, bb)
+	if float(ge.fade) <= 0.05:
+		return
+	var L: float = float(ge.L)
+	var s: float = L * 0.2
+	while s <= L:
+		_px(cv, (ge.gorg as Vector2) + (ge.dv as Vector2) * s, LM_C[3] if s > L * 0.45 else LM_C[2])
+		s += g.PX
+
+
+func _lm_draw_wbeam(ci, o, bb: Dictionary) -> void:
+	var lm: Dictionary = o.hw.lm
+	var ge: Dictionary = _lm_wbeam_geo(o, lm, bb)
+	var fade: float = float(ge.fade)
 	if fade <= 0.05:
 		return
-	var nv := Vector2(-dv.y, dv.x).normalized()
+	var px: float = g.PX
+	var C: Array = LM_C
 	var t: int = tier(o)
-	var half: float = 13.0 * [1.0, 1.25, 1.5][t]   # 扇口半宽（美术像素），精一 ×1.25、精二 ×1.5
-	var s: float = 8.0
+	var src: Vector2 = ge.src
+	var tip: Vector2 = ge.tip
+	var span: Vector2 = tip - src
+	var Ls: float = span.length()
+	if Ls < 4.0:
+		return
+	var du: Vector2 = span / Ls
+	var nv := Vector2(-du.y, du.x)
+	var w1: float = [5.0, 6.5, 8.0][t] * (0.35 + 0.65 * fade)
+	var dim: int = 1 if fade < 0.5 else 0
+	var core_w: int = 0 if t == 0 else 1
+	var s: float = 0.0
 	var k := 0
-	while s <= L:
-		var u: float = s / L
-		var w: float = 1.5 + (half - 1.5) * u
-		var c0: Vector2 = org + dv * s
-		_px(cv, c0, LM_C[5] if u < 0.7 else LM_C[4])
-		if t >= 1:
-			_px(cv, c0 + nv * px, LM_C[4])
-		for sd in [-1.0, 1.0]:
-			if (k + int(u * 7.0)) % 5 != 4:   # 边线有缺口，不是两条死线
-				_px(cv, c0 + nv * w * px * sd, LM_C[3] if u > 0.3 else LM_C[4])
-		if k % 4 == 0:
-			_glow(c0, LM_C[5])
+	while s <= Ls:
+		var u: float = s / Ls
+		var w: float = 1.0 + (w1 - 1.0) * u
+		if u > 0.88:
+			w *= 1.0 - (u - 0.88) / 0.12 * 0.6   # 远端收一点，不是方头
+		var m: int = int(round(w))
+		var far: int = (1 if u > 0.75 else 0) + dim
+		var c0: Vector2 = src + du * s
+		for q in range(-m, m + 1):
+			var aq: int = absi(q)
+			var ci_: int
+			if aq <= core_w:
+				ci_ = 6 if u < 0.35 else 5
+			elif aq < maxi(1, int(m * 0.5)):
+				ci_ = 5
+			elif aq < m:
+				ci_ = 4
+			else:
+				ci_ = 3
+			_px(ci, c0 + nv * float(q) * px, C[clampi(ci_ - far, 2, 6)])
+		if u < 0.6 and k % 3 == 0:
+			_glow(c0, C[6] if u < 0.35 else C[5])
 		s += px
 		k += 1
-	if t >= 2:
-		_px(cv, org, LM_AC)
+	# 出光点：小四芒星（精二芯一点灯火橙）
+	var arm: int = 3 + t
+	for dd in range(1, arm + 1):
+		var cc: Color = C[6] if dd <= 1 else C[5]
+		for v in [Vector2.RIGHT, Vector2.LEFT, Vector2.UP, Vector2.DOWN]:
+			_px(ci, src + v * px * float(dd), cc)
+	_px(ci, src, LM_AC if t >= 2 else C[6])
+	_glow(src, C[6])
+	# 照地光：光束中段与末端各一盏（每帧跟着光束走，走配方灯光预算）
+	var R = load("res://scripts/render/fx_recipe.gd").of(g)
+	var p: Dictionary = R.pal(o)
+	R._light_follow(o, (ge.gorg as Vector2) + (ge.dv as Vector2) * float(ge.L) * 0.5, 80.0 + 10.0 * t, 0.45 * fade, p.light)
+	R._light_follow(o, (ge.gorg as Vector2) + (ge.dv as Vector2) * float(ge.L) * 0.9, 70.0 + 10.0 * t, 0.35 * fade, p.light)
 
 
 ## 旧做法（2）：旧放开版帧条整张贴（光晕烤进颜色、小数缩放、旋转），盖在所有单位上

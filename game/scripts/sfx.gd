@@ -43,8 +43,9 @@ const OP_LIMIT := {"atk": 0.06, "hit": 0.06, "quake": 0.08, "big": 0.1, "heal": 
 ## OP_PVAR 音高随机（±，取它与调用处的较大值）。数字来自 docs/113 §2 实测：混音里最响的是长尾低频重击的高频连发
 const OP_DB := {"op_eyjafjalla_big": -3.0, "op_kaltsit_big": -2.0, "op_wisadel_quake": -3.0, "op_wisadel_hit": -1.5, "op_exusiai_hit": -5.0,
 	"op_siege_s1_soft": -2.0, "op_texas_s2_soft": -2.0, "op_exusiai_s1": -3.0, "op_exusiai_s2": -3.0, "op_exusiai_s3": -3.0, "op_exusiai_big": -3.0, "op_texas_hit": -3.0}
-const OP_GAP := {"op_exusiai_atk": 0.03, "op_exusiai_hit": 0.14, "op_exusiai_big": 0.5, "op_eyjafjalla_big": 0.2}
-const OP_PVAR := {"op_exusiai_atk": 0.09, "op_exusiai_hit": 0.1, "op_irene_atk": 0.08, "op_texas_atk": 0.08, "op_eyjafjalla_atk": 0.08, "op_lumen_atk": 0.07, "op_wisadel_quake": 0.12}
+## 流明（docs/255 §7，11-05 用户「攻击音效有点吵」）：命中光弹 / 发光单元每颗都放，后期一秒十来次 → 最短间隔 0.09 秒 + 音高随机 ±8%（连发不像同一声复读）；音色、响度在文件里（game/tools/gen_sfx_lumen_atk_1105.py）
+const OP_GAP := {"op_exusiai_atk": 0.03, "op_exusiai_hit": 0.14, "op_exusiai_big": 0.5, "op_eyjafjalla_big": 0.2, "op_lumen_hit": 0.09}
+const OP_PVAR := {"op_exusiai_atk": 0.09, "op_exusiai_hit": 0.1, "op_irene_atk": 0.08, "op_texas_atk": 0.08, "op_eyjafjalla_atk": 0.08, "op_lumen_atk": 0.07, "op_lumen_hit": 0.08, "op_wisadel_quake": 0.12}
 var limit_override := {}
 var op_last := {}          # 请求名 -> 上次放行的墙钟秒（OP_GAP）
 ## 轮换：同一请求名有多个录音时按次序轮着放（连射不像同一声复读）；次序只用于声音，不碰玩法随机
@@ -182,6 +183,7 @@ func _ready() -> void:
 	if cfg != null and "voice" in cfg:
 		AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Voice"), linear_to_db(maxf(float(cfg.voice), 0.0001)))
 	voice_log = cfg != null and cfg.has_method("dev_args") and cfg.dev_args().has("--voicelog")
+	sfx_log = cfg != null and cfg.has_method("dev_args") and cfg.dev_args().has("--sfxlog")
 	if cfg != null and cfg.has_method("dev_args"):
 		for a in cfg.dev_args():
 			if a.begins_with("--cmdcue="):
@@ -1306,7 +1308,12 @@ func ensure(names: Array) -> void:
 			streams[n] = _load_wav("res://audio/sfx/%s.wav" % n)
 
 
+## --sfxlog（仅测试，Cfg.dev_args）：每次播放请求打一行 SFXLOG <引擎帧> <音名> <音量 dB> <音高> <音高随机>（节流前；离线按同一份事件表混音对照新旧音效用，docs/255 §7）
+var sfx_log := false
+
 func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
+	if sfx_log:
+		print("SFXLOG %d %s %.2f %.3f %.3f" % [Engine.get_process_frames(), name, vol, pitch, pitch_var])
 	if not streams.has(name) and name.begins_with("hh_"):
 		ensure([name])
 	if not streams.has(name) or streams[name] == null:
