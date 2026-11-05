@@ -19,7 +19,8 @@ const _EA: Array = []
 const _ED: Dictionary = {}
 
 
-const _FXR = preload("res://scripts/render/fx_recipe.gd")   # 配方 / 转平面试验（docs/245 / 246）的画面钩子：只画，接管的干员才有事件
+const _FXR = preload("res://scripts/render/fx_recipe.gd")
+const _MI = preload("res://scripts/render/melee_impact.gd")   # 近战打击感包（docs/246 §11，fx/melee_impact）：只画   # 配方 / 转平面试验（docs/245 / 246）的画面钩子：只画，接管的干员才有事件
 const Dc = preload("res://scripts/render/declutter.gd")   # render/hit_rings：攻击 / 技能命中的装饰圆圈开关（剑雨终结亮环）
 
 
@@ -356,6 +357,7 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 			if b.get("ring", true):   # ring: false = 不画缺省地面环（fx 里自己画，§15.9）
 				o.fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.55, "life": 0.32, "col": o.col(), "floor": true, "w": 2.0, "alpha": 0.6})
 			_FXR.ev(o, "shape", {"src": src, "circle": true, "c": c, "r": r, "es": hits, "tags": tags})   # 只画（docs/246）
+			_MI.hit(o, src, tags, hits)
 			fx_c = c
 			fx_r = r
 			_F().hw_record(o, dmg, fx_a, r, c)   # 手写迁移段：记下这一下（basis prev / 普攻的 attack）
@@ -381,6 +383,7 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 			if b.get("ring", true):
 				o.fx({"kind": "ring", "pos": o.pos, "r": r2 * 0.6, "r0": 8.0, "life": 0.25, "col": o.col(), "floor": true, "w": 3.0})
 			_FXR.ev(o, "shape", {"src": src, "ang": ang, "r": r2, "half": half, "es": hits})   # 只画（docs/246）
+			_MI.hit(o, src, tags, hits)
 			fx_c = o.pos
 			fx_r = r2
 			fx_a = ang
