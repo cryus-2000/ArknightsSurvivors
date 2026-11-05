@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://o49x01p1oqirt"
-path="res://.godot/imported/pxp_tx_slash_r56_e2_up_dm90.png-0583210c3cf41405f5ae8d4be701077a.ctex"
+uid="uid://dj2c8uyay4vij"
+path="res://.godot/imported/pxp_tx_slash_r56_e2_up_dm90.png-f57c45d709086c6a3787ddb6d036a7ca.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://art/fx/pxp/pxp_tx_slash_r56_e2_up_dm90.png"
-dest_files=["res://.godot/imported/pxp_tx_slash_r56_e2_up_dm90.png-0583210c3cf41405f5ae8d4be701077a.ctex"]
+dest_files=["res://.godot/imported/pxp_tx_slash_r56_e2_up_dm90.png-f57c45d709086c6a3787ddb6d036a7ca.ctex"]
 
 [params]
 

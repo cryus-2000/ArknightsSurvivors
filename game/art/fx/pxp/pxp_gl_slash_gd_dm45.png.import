@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://pw5sp9qdx3jef"
-path="res://.godot/imported/pxp_gl_slash_gd_dm45.png-801acca061ee98ae7c304db852c0ac36.ctex"
+uid="uid://hjcd12dpa1dd"
+path="res://.godot/imported/pxp_gl_slash_gd_dm45.png-e506be32ff5fcffc7a65ec9f86a759ae.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://art/fx/pxp/pxp_gl_slash_gd_dm45.png"
-dest_files=["res://.godot/imported/pxp_gl_slash_gd_dm45.png-801acca061ee98ae7c304db852c0ac36.ctex"]
+dest_files=["res://.godot/imported/pxp_gl_slash_gd_dm45.png-e506be32ff5fcffc7a65ec9f86a759ae.ctex"]
 
 [params]
 

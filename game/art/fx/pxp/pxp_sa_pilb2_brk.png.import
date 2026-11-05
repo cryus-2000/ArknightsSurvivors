@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://r56s2iaca1ax"
-path="res://.godot/imported/pxp_sa_pilb2_brk.png-367b37f1464fe6542d50bf3ab8a5c6b6.ctex"
+path="res://.godot/imported/pxp_sa_pilb2_brk.png-524786d852c3a2533814636fc184ea13.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://art/fx/pxp/pxp_sa_pilb2_brk.png"
-dest_files=["res://.godot/imported/pxp_sa_pilb2_brk.png-367b37f1464fe6542d50bf3ab8a5c6b6.ctex"]
+dest_files=["res://.godot/imported/pxp_sa_pilb2_brk.png-524786d852c3a2533814636fc184ea13.ctex"]
 
 [params]
 
