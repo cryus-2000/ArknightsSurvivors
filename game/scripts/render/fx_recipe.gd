@@ -60,7 +60,7 @@ const _NONE := {}
 
 func recipe(id: String) -> Dictionary:
 	# 转平面试验（docs/246）的干员只在 fx/px_plane 开着时有配方（读 data/fx_pxplane/）；其余干员只在 fx/recipe 开着时有
-	# 推进之王（docs/264）原本有 docs/245 的配方：转平面关着时照旧走 fx/recipe 的配方（缓存键分开）
+	# 推进之王（docs/264）、逻各斯（docs/258）原本有 docs/245 的配方：转平面关着时照旧走 fx/recipe 的配方（缓存键分开）
 	var px: bool = Pxp.IDS.has(id) and Pxp.owns_id(g, id)
 	if not px and Bal.v("fx/recipe", 0.0) <= 0.0:
 		return _NONE
@@ -590,6 +590,7 @@ const MATS := {
 	"drop": {"grav": 700.0, "rest": 0.0, "bounce": 0, "land": 0.4, "sz": [2, 4], "spd": [4.0, 18.0], "up": [-10.0, 20.0], "life": 0.8},
 	"twinkle": {"grav": 60.0, "rest": 0.0, "bounce": 0, "land": 0.0, "sz": [2, 2], "spd": [20.0, 60.0], "up": [20.0, 60.0], "life": 0.5},
 	"ember": {"grav": 900.0, "rest": 0.38, "bounce": 1, "land": 0.3, "sz": [2, 4], "spd": [60.0, 170.0], "up": [80.0, 210.0], "life": 0.8},
+	"flame": {"grav": 760.0, "rest": 0.32, "bounce": 1, "land": 0.3, "sz": [4, 4], "spd": [50.0, 140.0], "up": [100.0, 220.0], "life": 0.85},   # 铃兰狐火星（docs/271）：同 ember 画法，4 px 大颗（docs/270 边长 ≥ 3）
 	"streak": {"grav": 520.0, "rest": 0.3, "bounce": 1, "land": 0.2, "sz": [2, 4], "spd": [170.0, 320.0], "up": [60.0, 180.0], "life": 0.42},
 	"rock": {"grav": 1100.0, "rest": 0.3, "bounce": 2, "land": 0.6, "sz": [4, 6], "spd": [50.0, 130.0], "up": [110.0, 230.0], "life": 1.0},
 	"tri": {"grav": 1000.0, "rest": 0.3, "bounce": 1, "land": 0.5, "sz": [6, 10], "spd": [70.0, 170.0], "up": [140.0, 260.0], "life": 1.0},
@@ -616,6 +617,9 @@ func _grains(o, at: Vector2, gy: float, mat: String, n: int, m: Dictionary, dir 
 			a = dir.angle() + g.vrng.randf_range(-0.9, 0.9)
 		var spd: float = g.vrng.randf_range(float(mt.spd[0]), float(mt.spd[1])) * float(m.get("grain_spd", 1.0))
 		var sz: int = int(mt.sz[0]) if g.vrng.randf() < 0.5 else int(mt.sz[1])
+		if m.has("grain_sz"):   # 招式自定颗粒边长表（等概率挑一个；docs/270 §3 平均边长 ≥ 3，塞雷娅碎晶屑 docs/269）
+			var szs: Array = m.grain_sz
+			sz = int(szs[g.vrng.randi() % szs.size()])
 		parts.append({"op": str(o.id), "m": mat, "gp": Vector2(at.x, gy), "h": h0, "v": Vector2(cos(a), sin(a) * SY) * spd,
 			"vh": g.vrng.randf_range(float(mt.up[0]), float(mt.up[1])), "age": 0.0, "life": float(mt.life) * g.vrng.randf_range(0.8, 1.2),
 			"sz": sz, "nb": 0, "landed": -1.0, "rot": g.vrng.randf() * TAU, "spin": g.vrng.randf_range(-14.0, 14.0),
@@ -1280,7 +1284,7 @@ func _draw_parts(o, cv, p: Dictionary) -> void:
 		match str(q.m):
 			"ink", "drop":
 				col = p.main if u < 0.25 else p.dark.lerp(p.main, 0.3)
-			"ember":
+			"ember", "flame":
 				col = p.hot if u < 0.2 else (p.main if u < 0.55 else p.main.lerp(p.dark, 0.6))
 			"rock":
 				col = p.main.lerp(p.dark, 0.3) if u < 0.12 else Color(0.22, 0.2, 0.21)

@@ -24,7 +24,9 @@ BUILD = os.path.join(ROOT, "build", "fx_audit")
 MODES = {3: "atk", 0: "s1"}
 VARS = {"A": [], "B": ["--bal=fx/recipe_dl=0"], "C": ["--bal=fx/px_plane_emit=0"]}
 LATE = ["--bal=growth/late_shape=1"]
-START, N = 2.0, 150   # 2 秒起逐帧 5 秒
+# S1 的技能事件名：缺省 FXRLOG skill0；转平面接管后改记自己事件名的干员在这里登记（水月 S1 = 三团大水母 mz_burst）
+SKILL_EV = {"mizuki": "mz_burst"}
+START, N = 1.0, 180   # 1 秒起逐帧 6 秒（S1 第一次释放约在第 33–53 帧，2 秒起拍会漏掉，11-05 星熊会话查出）
 
 
 def font(sz):
@@ -84,19 +86,37 @@ def newparts(d):
     return n + g, mats
 
 
+def bursts(fxa, f0, f1):
+    """爆发簇：有新颗粒或新灯的帧，前后相隔 ≤ 2 帧并成一簇（= 一次命中 / 一个爆点）"""
+    out, cur = [], None
+    for f in range(f0, f1 + 1):
+        d = fxa.get(f)
+        if not d:
+            continue
+        n = newparts(d)[0]
+        L = [] if d.get("L", "-") == "-" else [x.split("/") for x in d["L"].split(";")]
+        if n or L:
+            if cur and f - cur["f1"] <= 2:
+                cur["n"] += n
+                cur["L"] += L
+                cur["f1"] = f
+            else:
+                cur = {"f0": f, "f1": f, "n": n, "L": list(L)}
+                out.append(cur)
+    return out
+
+
 def analyse(op, mode, out):
     key = MODES[mode]
     tags = {v: "%s_%s_%s" % (op, key, v) for v in VARS}
     fxa, shot, ev = parse(op, tags["A"])
     f2e = {i: e for i, e in shot.items()}
-    e2f = {e: i for i, e in shot.items()}
     if not shot:
         return {"op": op, "mode": key, "err": "没有帧"}
     e0, e1 = min(f2e.values()), max(f2e.values())
-    # 统计窗：整段（5 秒）里的事件、颗粒、灯
     hits = [e for k, e in ev if k.startswith("hit") and e0 <= e <= e1]
     acts = [e for k, e in ev if not k.startswith("hit") and not k.startswith("skill") and e0 <= e <= e1]
-    sk = [e for k, e in ev if k == "skill0" and e0 - 30 <= e <= e1]
+    sk = [e for k, e in ev if k == SKILL_EV.get(op, "skill0") and e0 <= e <= e1 - 15]   # 技能事件要落在拍摄段里（后面至少留 0.5 秒）
     tot, mats, lifes, szs, lights, emits, alive = 0, {}, [], [], [], [], []
     for e in range(e0, e1 + 1):
         d = fxa.get(e)
@@ -115,29 +135,48 @@ def analyse(op, mode, out):
                 lights.append((int(r), float(i), float(lf), c))
         emits.append(int(d.get("emit", 0)))
         alive.append(int(d.get("alive", 0)) + int(d.get("gr", 0)))
-    # 命中那一刻：普攻 = 第一下命中事件后、照地光差分最大的帧；S1 = 技能事件后 1 秒内同法
-    anchor = (sk[0] if (mode == 0 and sk) else (hits[0] if hits else (acts[0] if acts else e0 + 15)))
-    cand = [i for i in sorted(f2e) if anchor <= f2e[i] <= anchor + (30 if mode == 0 else 8)] or [0]
-    best, bk = -1, cand[0]
-    cache = {}
+    bs = bursts(fxa, e0, e1)
+    bn = [x["n"] for x in bs] or [0]
+    # 技能窗：技能事件后 1 秒（30 帧）——爆发类 / S1 的灯取这一窗里最亮的一盏（强度优先、再看半径），不取整段中位数（会被普攻小灯拉低）
+    s0 = sk[0] if (mode == 0 and sk) else None
+    skl, skb = None, None
+    if s0 is not None:
+        wl = [(float(x[1]), int(x[0])) for bb in bursts(fxa, s0, s0 + 30) for x in bb["L"]]
+        skl = max(wl) if wl else (0.0, 0)
+        skb = max([bb["n"] for bb in bursts(fxa, s0, s0 + 30)] or [0])
+    # 命中那一刻：普攻 = 第一下命中（或出手）后 8 帧内；S1 = 技能事件后 1 秒内。
+    # 打分 = 照地亮度（A−B 总和，按窗内最大值归一）× 0.6 + 近 4 帧新颗粒数（归一）× 0.4：不再只看颗粒，免得挑到灯还没亮的帧
+    anchor = s0 if s0 is not None else (hits[0] if hits else (acts[0] if acts else e0 + 15))
+    cand = [i for i in sorted(f2e) if anchor <= f2e[i] <= anchor + (30 if mode == 0 else 8)] or [min(f2e)]
+    sc = {}
     for i in cand:
-        pa = os.path.join(BUILD, tags["A"], "f_%04d.png" % i)
-        pb = os.path.join(BUILD, tags["B"], "f_%04d.png" % i)
-        pc = os.path.join(BUILD, tags["C"], "f_%04d.png" % i)
-        if not all(os.path.exists(p) for p in (pa, pb, pc)):
+        pa, pb = os.path.join(BUILD, tags["A"], "f_%04d.png" % i), os.path.join(BUILD, tags["B"], "f_%04d.png" % i)
+        if not (os.path.exists(pa) and os.path.exists(pb)):
             continue
-        A, la = lum(pa)
-        _, lb = lum(pb)
-        _, lc = lum(pc)
-        dl, de = np.clip(la - lb, 0, None), np.clip(la - lc, 0, None)
-        sc = float(dl.sum() + de.sum()) + 1e4 * newparts(fxa.get(f2e[i], {}))[0]
-        cache[i] = (A, dl, de)
-        if sc > best:
-            best, bk = sc, i
-    if bk not in cache:
+        gl = float(np.clip(lum(pa)[1] - lum(pb)[1], 0, None).sum())
+        pn = sum(newparts(fxa.get(f2e[i] - k, {}))[0] for k in range(4))
+        sc[i] = (gl, pn)
+    if not sc:
         return {"op": op, "mode": key, "err": "缺帧"}
-    A, dl, de = cache[bk]
-    # 整段的光差分（每帧）：照地光峰值 / 面积，发光核心峰值 / 面积
+    mg = max(v[0] for v in sc.values()) or 1.0
+    mp = max(v[1] for v in sc.values()) or 1
+    bk = max(sc, key=lambda i: 0.6 * sc[i][0] / mg + 0.4 * sc[i][1] / mp)
+    A, la = lum(os.path.join(BUILD, tags["A"], "f_%04d.png" % bk))
+    _, lb = lum(os.path.join(BUILD, tags["B"], "f_%04d.png" % bk))
+    _, lc = lum(os.path.join(BUILD, tags["C"], "f_%04d.png" % bk))
+    dl, de = np.clip(la - lb, 0, None), np.clip(la - lc, 0, None)
+    # 发光层 / 照地光晚一帧上屏（11-05 推进之王 / 水月 / 浊心斯卡蒂会话查出）：命中帧的照地面积、核心辉光取命中帧之后 0–2 帧里的最大值，
+    # 热图也换成取到最大值的那一帧；实机图仍是命中帧
+    for j in (bk + 1, bk + 2):
+        pa, pb, pc = [os.path.join(BUILD, tags[v], "f_%04d.png" % j) for v in "ABC"]
+        if not all(os.path.exists(q) for q in (pa, pb, pc)):
+            continue
+        _, xa = lum(pa)
+        xl, xe = np.clip(xa - lum(pb)[1], 0, None), np.clip(xa - lum(pc)[1], 0, None)
+        if (xl > 4).sum() > (dl > 4).sum():
+            dl = xl
+        if (xe > 8).sum() > (de > 8).sum():
+            de = xe
     pk_l = pk_e = 0.0
     for i in sorted(f2e):
         if i % 3:
@@ -145,37 +184,35 @@ def analyse(op, mode, out):
         pa, pb, pc = [os.path.join(BUILD, tags[v], "f_%04d.png" % i) for v in "ABC"]
         if not all(os.path.exists(p) for p in (pa, pb, pc)):
             continue
-        _, la = lum(pa)
-        _, lb = lum(pb)
-        _, lc = lum(pc)
-        pk_l = max(pk_l, float(np.clip(la - lb, 0, None).max()))
-        pk_e = max(pk_e, float(np.clip(la - lc, 0, None).max()))
+        _, xa = lum(pa)
+        pk_l = max(pk_l, float(np.clip(xa - lum(pb)[1], 0, None).max()))
+        pk_e = max(pk_e, float(np.clip(xa - lum(pc)[1], 0, None).max()))
     ml, me = dl > 4, de > 8
     secs = (e1 - e0 + 1) / 30.0
     nh = len(hits) or len(acts) or 1
     res = {
         "op": op, "mode": key, "frame": bk, "engine": f2e[bk], "secs": round(secs, 2),
-        "hits": len(hits), "acts": len(acts), "skill": len(sk),
+        "hits": len(hits), "acts": len(acts), "skill": len(sk), "skill_frame": s0,
         "parts_total": tot, "parts_per_hit": round(tot / nh, 1), "parts_per_s": round(tot / secs, 1),
-        "parts_s1_1s": None, "mats": mats,
+        "bursts": len(bs), "burst_med": float(np.median(bn)), "burst_max": max(bn),
+        "lights_per_burst": round(sum(len(x["L"]) for x in bs) / max(1, len(bs)), 2),
+        "parts_s1_1s": None, "skill_burst_max": skb, "mats": mats,
         "life": round(sum(a * b for a, b in lifes) / max(1, sum(b for _, b in lifes)), 2),
         "sz": round(sum(a * b for a, b in szs) / max(1, sum(b for _, b in szs)), 1),
         "alive_max": max(alive) if alive else 0,
         "lights": len(lights), "lights_per_hit": round(len(lights) / nh, 2),
+        # 普攻：每次命中灯的中位数；技能：技能后 1 秒内最亮的一盏
         "light_r": round(float(np.median([l[0] for l in lights])), 0) if lights else 0,
         "light_i": round(float(np.median([l[1] for l in lights])), 2) if lights else 0,
         "light_life": round(float(np.median([l[2] for l in lights])), 2) if lights else 0,
+        "skill_light_r": skl[1] if skl else None, "skill_light_i": round(skl[0], 2) if skl else None,
         "emit_max": max(emits) if emits else 0, "emit_mean": round(float(np.mean([x for x in emits if x] or [0])), 1),
+        "emit_p90": int(sorted(emits)[int(len(emits) * 0.9)]) if emits else 0,
         "gl_peak": round(pk_l, 1), "gl_area_hit": int(ml.sum()), "gl_mean_hit": round(float(dl[ml].mean()) if ml.any() else 0.0, 1),
         "em_peak": round(pk_e, 1), "em_area_hit": int(me.sum()), "em_mean_hit": round(float(de[me].mean()) if me.any() else 0.0, 1),
     }
-    if sk:
-        s0 = sk[0]
-        tt = 0
-        for e in range(s0, s0 + 31):
-            if e in fxa:
-                tt += newparts(fxa[e])[0]
-        res["parts_s1_1s"] = tt
+    if s0 is not None:
+        res["parts_s1_1s"] = sum(newparts(fxa[e])[0] for e in range(s0, s0 + 31) if e in fxa)
     # 图：命中那一刻 1 倍；2 倍局部 = 以特效差分中心取 320×180 放大，旁边配照地光 / 发光差分热图
     im = Image.fromarray(A.astype(np.uint8))
     im.save(os.path.join(out, "%s_%s.png" % (op, key)))

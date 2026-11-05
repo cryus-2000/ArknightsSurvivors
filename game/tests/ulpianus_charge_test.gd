@@ -2,6 +2,8 @@ extends Node
 ## 乌尔比安 S3「必须开辟的通路」冲锋（10-24）：godot --headless --path game res://tests/ulpianus_charge_test.tscn -- --regression --balance --seed=1 --op=ulpianus
 ## 掷锚咬地后本体沿锁链冲向落点：路径宽 s3_path_w 内的敌人各吃一次 s3_path_mult 伤害，落地半径 s3_r 内 ×s3_mult；
 ## 走廊外的敌人不受路径伤害；冲锋期间本体真的位移；S1（没写 path_w）仍然原地砸、不位移。全部通过时打印 "ULPIANUS CHARGE failures=0"。
+## 11-05 起 S3 缺省是虎鲸（docs/266 §8，operators/ulpianus/s3_orca = 1）：本体不位移、虎鲸沿同一条路径结算，伤害口径不变；
+## 加 --bal=operators/ulpianus/s3_orca=0 测旧冲锋。
 
 var game: Node
 var frames := 0
@@ -82,21 +84,26 @@ func test_s3(o) -> void:
 		hp[e.id] = float(e.hp)
 	o.sp[2] = o.sp_need(2)
 	ok(o.cast_manual(2, Vector2.ZERO, o.pos + Vector2(330, 0)), "S3：手动放出（选落点）")
+	var orca: bool = preload("res://scripts/core/balance.gd").v("operators/ulpianus/s3_orca", 1.0) > 0.0
+	var phase_name: String = "orca" if orca else "zip"
 	var moved_mid := false
 	var was_zip := false
 	var snap := {}
 	for i in 200:
 		step(o)
 		var ph: String = str(o.hw.get("anchor", {}).get("phase", "")) if not o.hw.get("anchor", {}).is_empty() else ""
-		if ph == "zip":
+		if ph == phase_name:
 			was_zip = true
 			if o.pos.x > x0 + 40.0:
 				moved_mid = true
 		elif was_zip and snap.is_empty():
 			for e in [on1, on2, off, land]:   # 落地结算完那一帧：之后她的普攻 / 余波不再算进技能伤害
 				snap[e.id] = float(e.hp)
-	ok(moved_mid, "S3：冲锋段本体真的在位移（phase zip 期间 x 增加）")
-	ok(o.pos.x > x0 + 250.0, "S3：冲到落点附近（x0 %.0f → %.0f）" % [x0, o.pos.x])
+	if orca:
+		ok(not moved_mid and absf(o.pos.x - x0) < 1.0, "S3 虎鲸：本体不位移（x0 %.0f → %.0f）" % [x0, o.pos.x])
+	else:
+		ok(moved_mid, "S3：冲锋段本体真的在位移（phase zip 期间 x 增加）")
+		ok(o.pos.x > x0 + 250.0, "S3：冲到落点附近（x0 %.0f → %.0f）" % [x0, o.pos.x])
 	ok(not snap.is_empty(), "S3：冲锋结束并落地")
 	for e in [on1, on2, off, land]:
 		if snap.has(e.id):

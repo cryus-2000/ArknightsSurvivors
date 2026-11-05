@@ -99,7 +99,8 @@ func run(o) -> void:
 			dir_ok = dir_ok and ((an.to as Vector2) - p0).normalized().dot((tgt - p0).normalized()) > 0.95
 	ok(cast_started(o) or o.pos.x > p0.x + 100.0, "左键点击后 S3 放出（技力 %.1f / %.1f，位置 %s）" % [o.sp[2], o.sp_need(2), o.pos])
 	ok(dir_ok, "锚掷向点击方向")
-	ok(o.pos.x > p0.x + 100.0, "冲向点击处（x %.0f → %.0f）" % [p0.x, o.pos.x])
+	if load("res://scripts/core/balance.gd").v("operators/ulpianus/s3_orca", 1.0) <= 0.0:   # 11-05 起 S3 缺省改「虎鲸」（docs/266）：放出去的是虎鲸，本人不冲；旧版才冲向点击处
+		ok(o.pos.x > p0.x + 100.0, "冲向点击处（x %.0f → %.0f）" % [p0.x, o.pos.x])
 	# 2. 技力没满：不接管、不放
 	reset(o, false)
 	ok(not game.doctor.click_skill(vp), "技力没满时点击不被接管（点击照旧）")
