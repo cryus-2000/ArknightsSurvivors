@@ -1,0 +1,566 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 22.3.6 - Compatibility - Using Device: Mesa/X.org - llvmpipe (LLVM 15.0.6, 256 bits)
+
+FXA 0 0.000 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=0 emit=0
+FXA 1 0.025 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=0 emit=0
+FXA 2 0.058 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 3 0.100 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 4 0.129 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 5 0.159 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 6 0.192 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 7 0.225 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 8 0.258 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 9 0.292 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 10 0.325 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 11 0.358 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 12 0.392 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 13 0.425 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 14 0.458 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 15 0.492 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 16 0.525 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 17 0.558 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 18 0.592 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 19 0.625 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 20 0.658 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 21 0.692 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 22 0.725 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 23 0.758 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 24 0.792 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXRLOG eyjafjalla ey_fire 24 0.825
+PXPLOG ey ey_fire  0.825
+FXA 25 0.825 new=- life=0.00 sz=0.0 alive=0 L=60/0.35/0.08/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXA 26 0.858 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=43 emit=27
+FXA 27 0.892 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=43 emit=27
+FXA 28 0.925 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=43 emit=27
+FXA 29 0.958 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=48 emit=32
+FXSHOT 0 29
+FXA 30 0.992 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=44 emit=28
+FXSHOT 1 30
+FXA 31 1.025 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=44 emit=28
+FXSHOT 2 31
+FXA 32 1.058 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=36 emit=20
+FXSHOT 3 32
+FXA 33 1.092 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=36 emit=20
+FXSHOT 4 33
+FXRLOG eyjafjalla ey_xhit 33 1.125
+PXPLOG ey ey_xhit  1.125
+FXRLOG eyjafjalla ey_xhit 33 1.125
+PXPLOG ey ey_xhit  1.125
+FXRLOG eyjafjalla skill0 33 1.125
+PXPLOG ey skill 0 1.125
+FXA 34 1.125 new=ember:8 life=0.81 sz=2.8 alive=8 L=48/0.40/0.10/ff8a3d;48/0.40/0.10/ff8a3d;160/0.70/0.15/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=26 emit=10
+FXSHOT 5 34
+FXA 35 1.158 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=77 emit=61
+FXSHOT 6 35
+FXRLOG eyjafjalla ey_boom 35 1.192
+PXPLOG ey ey_boom tri 1.192
+FXRLOG eyjafjalla ey_xhit 35 1.192
+PXPLOG ey ey_xhit  1.192
+FXA 36 1.192 new=ember:4 life=0.84 sz=3.5 alive=12 L=113/0.40/0.12/ff8a3d;48/0.40/0.10/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=59 emit=43
+FXSHOT 7 36
+FXA 37 1.225 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=116 emit=100
+FXSHOT 8 37
+FXA 38 1.258 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=89 emit=73
+FXSHOT 9 38
+FXRLOG eyjafjalla ey_boom 38 1.292
+PXPLOG ey ey_boom tri 1.292
+FXA 39 1.292 new=ember:4 life=0.79 sz=2.5 alive=16 L=113/0.40/0.12/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=87 emit=71
+FXSHOT 10 39
+FXA 40 1.325 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=84 emit=70
+FXSHOT 11 40
+FXA 41 1.358 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=86 emit=72
+FXSHOT 12 41
+FXA 42 1.392 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=73 emit=59
+FXSHOT 13 42
+FXRLOG eyjafjalla ey_boom 42 1.425
+PXPLOG ey ey_boom tri 1.425
+FXA 43 1.425 new=ember:4 life=0.80 sz=3.0 alive=20 L=113/0.40/0.12/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=73 emit=59
+FXSHOT 14 43
+FXA 44 1.458 new=- life=0.00 sz=0.0 alive=20 L=- gr=0 gnew=0 sp=0 gl=0 glow=69 emit=60
+FXSHOT 15 44
+FXA 45 1.492 new=- life=0.00 sz=0.0 alive=20 L=- gr=0 gnew=0 sp=0 gl=0 glow=69 emit=60
+FXSHOT 16 45
+FXA 46 1.525 new=- life=0.00 sz=0.0 alive=20 L=- gr=0 gnew=0 sp=0 gl=0 glow=71 emit=62
+FXSHOT 17 46
+FXRLOG eyjafjalla ey_splash 46 1.558
+PXPLOG ey ey_splash  1.558
+FXA 47 1.558 new=rock:2 life=1.10 sz=4.0 alive=22 L=48/0.40/0.10/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=71 emit=62
+FXSHOT 18 47
+FXRLOG eyjafjalla ey_splash 47 1.592
+PXPLOG ey ey_splash  1.592
+FXA 48 1.592 new=rock:2 life=0.89 sz=5.0 alive=24 L=48/0.40/0.10/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=35 emit=26
+FXSHOT 19 48
+FXA 49 1.625 new=- life=0.00 sz=0.0 alive=24 L=- gr=0 gnew=0 sp=0 gl=0 glow=36 emit=27
+FXSHOT 20 49
+FXA 50 1.658 new=- life=0.00 sz=0.0 alive=24 L=- gr=0 gnew=0 sp=0 gl=0 glow=25 emit=16
+FXSHOT 21 50
+FXA 51 1.692 new=- life=0.00 sz=0.0 alive=24 L=- gr=0 gnew=0 sp=0 gl=0 glow=25 emit=16
+FXSHOT 22 51
+FXRLOG eyjafjalla ey_splash 51 1.725
+PXPLOG ey ey_splash  1.725
+FXA 52 1.725 new=rock:2 life=0.85 sz=4.0 alive=26 L=48/0.40/0.10/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=15 emit=6
+FXSHOT 23 52
+FXA 53 1.758 new=- life=0.00 sz=0.0 alive=26 L=- gr=0 gnew=0 sp=0 gl=0 glow=15 emit=9
+FXSHOT 24 53
+FXA 54 1.792 new=- life=0.00 sz=0.0 alive=26 L=- gr=0 gnew=0 sp=0 gl=0 glow=12 emit=6
+FXSHOT 25 54
+FXA 55 1.825 new=- life=0.00 sz=0.0 alive=26 L=- gr=0 gnew=0 sp=0 gl=0 glow=12 emit=6
+FXSHOT 26 55
+FXA 56 1.858 new=- life=0.00 sz=0.0 alive=26 L=- gr=0 gnew=0 sp=0 gl=0 glow=6 emit=0
+FXSHOT 27 56
+FXA 57 1.892 new=- life=0.00 sz=0.0 alive=26 L=- gr=0 gnew=0 sp=0 gl=0 glow=6 emit=0
+FXSHOT 28 57
+FXA 58 1.925 new=- life=0.00 sz=0.0 alive=26 L=- gr=0 gnew=0 sp=0 gl=0 glow=6 emit=0
+FXSHOT 29 58
+FXRLOG eyjafjalla ey_fire 58 1.958
+PXPLOG ey ey_fire  1.958
+FXA 59 1.958 new=- life=0.00 sz=0.0 alive=25 L=60/0.35/0.08/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=6 emit=0
+FXSHOT 30 59
+FXA 60 1.992 new=- life=0.00 sz=0.0 alive=25 L=- gr=0 gnew=0 sp=0 gl=0 glow=33 emit=27
+FXSHOT 31 60
+FXA 61 2.025 new=- life=0.00 sz=0.0 alive=25 L=- gr=0 gnew=0 sp=0 gl=0 glow=33 emit=27
+FXSHOT 32 61
+FXA 62 2.058 new=- life=0.00 sz=0.0 alive=24 L=- gr=0 gnew=0 sp=0 gl=0 glow=30 emit=24
+FXSHOT 33 62
+FXA 63 2.092 new=- life=0.00 sz=0.0 alive=22 L=- gr=0 gnew=0 sp=0 gl=0 glow=34 emit=28
+FXSHOT 34 63
+FXA 64 2.125 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=36 emit=30
+FXSHOT 35 64
+FXA 65 2.158 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=36 emit=30
+FXSHOT 36 65
+FXA 66 2.192 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=30 emit=24
+FXSHOT 37 66
+FXA 67 2.225 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=31 emit=25
+FXSHOT 38 67
+FXA 68 2.258 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=28 emit=22
+FXSHOT 39 68
+FXRLOG eyjafjalla ey_xhit 68 2.292
+PXPLOG ey ey_xhit  2.292
+FXA 69 2.292 new=- life=0.00 sz=0.0 alive=18 L=48/0.40/0.10/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=28 emit=22
+FXSHOT 40 69
+FXRLOG eyjafjalla ey_boom 69 2.325
+PXPLOG ey ey_boom s1 2.325
+FXRLOG eyjafjalla ey_xhit 69 2.325
+PXPLOG ey ey_xhit  2.325
+FXRLOG eyjafjalla ey_xhit 69 2.325
+PXPLOG ey ey_xhit  2.325
+FXA 70 2.325 new=ember:8 life=0.86 sz=2.5 alive=26 L=160/0.70/0.15/ff8a3d;48/0.40/0.10/ff8a3d;48/0.40/0.10/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=25 emit=19
+FXSHOT 41 70
+FXA 71 2.358 new=- life=0.00 sz=0.0 alive=26 L=- gr=0 gnew=0 sp=0 gl=0 glow=153 emit=147
+FXSHOT 42 71
+FXA 72 2.392 new=- life=0.00 sz=0.0 alive=23 L=- gr=0 gnew=0 sp=0 gl=0 glow=119 emit=113
+FXSHOT 43 72
+FXRLOG eyjafjalla ey_boom 72 2.425
+PXPLOG ey ey_boom s1 2.425
+FXA 73 2.425 new=ember:8 life=0.75 sz=2.8 alive=27 L=160/0.70/0.15/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=119 emit=113
+FXSHOT 44 73
+FXA 74 2.458 new=- life=0.00 sz=0.0 alive=25 L=- gr=0 gnew=0 sp=0 gl=0 glow=145 emit=142
+FXSHOT 45 74
+FXA 75 2.492 new=- life=0.00 sz=0.0 alive=24 L=- gr=0 gnew=0 sp=0 gl=0 glow=154 emit=141
+FXSHOT 46 75
+FXA 76 2.525 new=- life=0.00 sz=0.0 alive=24 L=- gr=0 gnew=0 sp=0 gl=0 glow=119 emit=106
+FXSHOT 47 76
+FXRLOG eyjafjalla ey_boom 76 2.558
+PXPLOG ey ey_boom s1 2.558
+FXA 77 2.558 new=ember:8 life=0.79 sz=2.5 alive=30 L=160/0.70/0.15/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=118 emit=105
+FXSHOT 48 77
+FXA 78 2.592 new=- life=0.00 sz=0.0 alive=30 L=- gr=0 gnew=0 sp=0 gl=0 glow=157 emit=147
+FXSHOT 49 78
+FXRLOG eyjafjalla ey_splash 78 2.625
+PXPLOG ey ey_splash  2.625
+FXA 79 2.625 new=rock:2 life=1.05 sz=4.0 alive=31 L=48/0.40/0.10/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=156 emit=146
+FXSHOT 50 79
+FXA 80 2.658 new=- life=0.00 sz=0.0 alive=29 L=- gr=0 gnew=0 sp=0 gl=0 glow=138 emit=128
+FXSHOT 51 80
+FXA 81 2.692 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=138 emit=128
+FXSHOT 52 81
+FXRLOG eyjafjalla ey_splash 81 2.725
+PXPLOG ey ey_splash  2.725
+FXA 82 2.725 new=rock:2 life=1.07 sz=5.0 alive=30 L=48/0.40/0.10/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=44 emit=34
+FXSHOT 53 82
+FXA 83 2.758 new=- life=0.00 sz=0.0 alive=29 L=- gr=0 gnew=0 sp=0 gl=0 glow=47 emit=39
+FXSHOT 54 83
+FXA 84 2.792 new=- life=0.00 sz=0.0 alive=29 L=- gr=0 gnew=0 sp=0 gl=0 glow=41 emit=33
+FXSHOT 55 84
+FXA 85 2.825 new=- life=0.00 sz=0.0 alive=29 L=- gr=0 gnew=0 sp=0 gl=0 glow=41 emit=33
+FXSHOT 56 85
+FXRLOG eyjafjalla ey_splash 85 2.858
+PXPLOG ey ey_splash  2.858
+FXA 86 2.858 new=- life=0.00 sz=0.0 alive=29 L=- gr=0 gnew=0 sp=0 gl=0 glow=22 emit=14
+FXSHOT 57 86
+FXA 87 2.892 new=- life=0.00 sz=0.0 alive=29 L=- gr=0 gnew=0 sp=0 gl=0 glow=15 emit=8
+FXSHOT 58 87
+FXA 88 2.925 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=15 emit=8
+FXSHOT 59 88
+FXA 89 2.958 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=15 emit=8
+FXSHOT 60 89
+FXA 90 2.992 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=15 emit=8
+FXSHOT 61 90
+FXA 91 3.025 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=15 emit=8
+FXSHOT 62 91
+FXA 92 3.058 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=14 emit=7
+FXSHOT 63 92
+FXRLOG eyjafjalla ey_fire 92 3.092
+PXPLOG ey ey_fire  3.092
+FXA 93 3.092 new=- life=0.00 sz=0.0 alive=28 L=60/0.35/0.08/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=14 emit=7
+FXSHOT 64 93
+FXA 94 3.125 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=38 emit=31
+FXSHOT 65 94
+FXA 95 3.158 new=- life=0.00 sz=0.0 alive=27 L=- gr=0 gnew=0 sp=0 gl=0 glow=38 emit=31
+FXSHOT 66 95
+FXA 96 3.192 new=- life=0.00 sz=0.0 alive=25 L=- gr=0 gnew=0 sp=0 gl=0 glow=37 emit=30
+FXSHOT 67 96
+FXA 97 3.225 new=- life=0.00 sz=0.0 alive=23 L=- gr=0 gnew=0 sp=0 gl=0 glow=44 emit=37
+FXSHOT 68 97
+FXRLOG eyjafjalla ey_xhit 97 3.258
+PXPLOG ey ey_xhit  3.258
+FXA 98 3.258 new=- life=0.00 sz=0.0 alive=22 L=48/0.40/0.10/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=40 emit=33
+FXSHOT 69 98
+FXRLOG eyjafjalla ey_xhit 98 3.292
+PXPLOG ey ey_xhit  3.292
+FXRLOG eyjafjalla ey_xhit 98 3.292
+PXPLOG ey ey_xhit  3.292
+FXA 99 3.292 new=- life=0.00 sz=0.0 alive=21 L=48/0.40/0.10/ff8a3d;48/0.40/0.10/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=42 emit=35
+FXSHOT 70 99
+FXA 100 3.325 new=- life=0.00 sz=0.0 alive=20 L=- gr=0 gnew=0 sp=0 gl=0 glow=43 emit=36
+FXSHOT 71 100
+FXA 101 3.358 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=49 emit=42
+FXSHOT 72 101
+FXA 102 3.392 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=36 emit=29
+FXSHOT 73 102
+FXA 103 3.425 new=- life=0.00 sz=0.0 alive=17 L=- gr=0 gnew=0 sp=0 gl=0 glow=36 emit=29
+FXSHOT 74 103
+FXRLOG eyjafjalla ey_boom 103 3.458
+PXPLOG ey ey_boom s1 3.458
+FXA 104 3.458 new=ember:8 life=0.87 sz=2.5 alive=19 L=160/0.70/0.15/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=23 emit=16
+FXSHOT 75 104
+FXA 105 3.492 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=128 emit=125
+FXSHOT 76 105
+FXA 106 3.525 new=- life=0.00 sz=0.0 alive=14 L=- gr=0 gnew=0 sp=0 gl=0 glow=110 emit=97
+FXSHOT 77 106
+FXRLOG eyjafjalla ey_boom 106 3.558
+PXPLOG ey ey_boom s1 3.558
+FXA 107 3.558 new=ember:8 life=0.75 sz=3.0 alive=20 L=160/0.70/0.15/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=110 emit=97
+FXSHOT 78 107
+FXA 108 3.592 new=- life=0.00 sz=0.0 alive=20 L=- gr=0 gnew=0 sp=0 gl=0 glow=154 emit=144
+FXSHOT 79 108
+FXA 109 3.625 new=- life=0.00 sz=0.0 alive=20 L=- gr=0 gnew=0 sp=0 gl=0 glow=152 emit=142
+FXSHOT 80 109
+FXA 110 3.658 new=- life=0.00 sz=0.0 alive=19 L=- gr=0 gnew=0 sp=0 gl=0 glow=128 emit=118
+FXSHOT 81 110
+FXRLOG eyjafjalla ey_boom 110 3.692
+PXPLOG ey ey_boom s1 3.692
+FXA 111 3.692 new=ember:8 life=0.79 sz=2.8 alive=27 L=160/0.70/0.15/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=128 emit=118
+FXSHOT 82 111
+FXA 112 3.725 new=- life=0.00 sz=0.0 alive=26 L=- gr=0 gnew=0 sp=0 gl=0 glow=132 emit=132
+FXSHOT 83 112
+FXRLOG eyjafjalla ey_splash 112 3.758
+PXPLOG ey ey_splash  3.758
+FXA 113 3.758 new=rock:2 life=0.86 sz=5.0 alive=27 L=48/0.40/0.10/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=143 emit=133
+FXSHOT 84 113
+FXA 114 3.792 new=- life=0.00 sz=0.0 alive=27 L=- gr=0 gnew=0 sp=0 gl=0 glow=117 emit=107
+FXSHOT 85 114
+FXA 115 3.825 new=- life=0.00 sz=0.0 alive=27 L=- gr=0 gnew=0 sp=0 gl=0 glow=117 emit=107
+FXSHOT 86 115
+FXRLOG eyjafjalla ey_splash 115 3.858
+PXPLOG ey ey_splash  3.858
+FXA 116 3.858 new=rock:2 life=1.12 sz=5.0 alive=29 L=48/0.40/0.10/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=41 emit=31
+FXSHOT 87 116
+FXA 117 3.892 new=- life=0.00 sz=0.0 alive=29 L=- gr=0 gnew=0 sp=0 gl=0 glow=45 emit=35
+FXSHOT 88 117
+FXA 118 3.925 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=27 emit=17
+FXSHOT 89 118
+FXA 119 3.958 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=27 emit=17
+FXSHOT 90 119
+FXA 120 3.992 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=21 emit=11
+FXSHOT 91 120
+FXA 121 4.025 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=21 emit=11
+FXSHOT 92 121
+FXA 122 4.058 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=6
+FXSHOT 93 122
+FXA 123 4.092 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=6
+FXSHOT 94 123
+FXA 124 4.125 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=17 emit=7
+FXSHOT 95 124
+FXA 125 4.158 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=17 emit=7
+FXSHOT 96 125
+FXA 126 4.192 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=17 emit=7
+FXSHOT 97 126
+FXRLOG eyjafjalla ey_fire 126 4.225
+PXPLOG ey ey_fire  4.225
+FXRLOG eyjafjalla ey_splash 126 4.225
+PXPLOG ey ey_splash  4.225
+FXA 127 4.225 new=rock:2 life=0.82 sz=4.0 alive=30 L=60/0.35/0.08/ff8a3d;48/0.40/0.10/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=17 emit=7
+FXSHOT 98 127
+FXA 128 4.258 new=- life=0.00 sz=0.0 alive=30 L=- gr=0 gnew=0 sp=0 gl=0 glow=53 emit=43
+FXSHOT 99 128
+FXA 129 4.292 new=- life=0.00 sz=0.0 alive=30 L=- gr=0 gnew=0 sp=0 gl=0 glow=54 emit=44
+FXSHOT 100 129
+FXA 130 4.325 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=45 emit=35
+FXSHOT 101 130
+FXRLOG eyjafjalla ey_xhit 130 4.358
+PXPLOG ey ey_xhit  4.358
+FXRLOG eyjafjalla ey_xhit 130 4.358
+PXPLOG ey ey_xhit  4.358
+FXA 131 4.358 new=- life=0.00 sz=0.0 alive=26 L=48/0.40/0.10/ff8a3d;48/0.40/0.10/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=50 emit=40
+FXSHOT 102 131
+FXRLOG eyjafjalla ey_xhit 131 4.392
+PXPLOG ey ey_xhit  4.392
+FXA 132 4.392 new=- life=0.00 sz=0.0 alive=25 L=48/0.40/0.10/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=50 emit=40
+FXSHOT 103 132
+FXRLOG eyjafjalla ey_xhit 132 4.425
+PXPLOG ey ey_xhit  4.425
+FXA 133 4.425 new=- life=0.00 sz=0.0 alive=25 L=- gr=0 gnew=0 sp=0 gl=0 glow=52 emit=42
+FXSHOT 104 133
+FXA 134 4.458 new=- life=0.00 sz=0.0 alive=21 L=- gr=0 gnew=0 sp=0 gl=0 glow=35 emit=25
+FXSHOT 105 134
+FXA 135 4.492 new=- life=0.00 sz=0.0 alive=20 L=- gr=0 gnew=0 sp=0 gl=0 glow=42 emit=32
+FXSHOT 106 135
+FXA 136 4.525 new=- life=0.00 sz=0.0 alive=18 L=- gr=0 gnew=0 sp=0 gl=0 glow=26 emit=16
+FXSHOT 107 136
+FXA 137 4.558 new=- life=0.00 sz=0.0 alive=16 L=- gr=0 gnew=0 sp=0 gl=0 glow=26 emit=16
+FXSHOT 108 137
+FXRLOG eyjafjalla ey_boom 137 4.592
+PXPLOG ey ey_boom s1 4.592
+FXA 138 4.592 new=ember:8 life=0.77 sz=2.8 alive=22 L=160/0.70/0.15/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=20 emit=10
+FXSHOT 109 138
+FXA 139 4.625 new=- life=0.00 sz=0.0 alive=19 L=- gr=0 gnew=0 sp=0 gl=0 glow=141 emit=131
+FXSHOT 110 139
+FXA 140 4.658 new=- life=0.00 sz=0.0 alive=17 L=- gr=0 gnew=0 sp=0 gl=0 glow=118 emit=108
+FXSHOT 111 140
+FXRLOG eyjafjalla ey_boom 140 4.692
+PXPLOG ey ey_boom s1 4.692
+FXA 141 4.692 new=ember:8 life=0.84 sz=3.5 alive=25 L=160/0.70/0.15/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=118 emit=108
+FXSHOT 112 141
+FXA 142 4.725 new=- life=0.00 sz=0.0 alive=23 L=- gr=0 gnew=0 sp=0 gl=0 glow=143 emit=140
+FXSHOT 113 142
+FXA 143 4.758 new=- life=0.00 sz=0.0 alive=22 L=- gr=0 gnew=0 sp=0 gl=0 glow=151 emit=138
+FXSHOT 114 143
+FXA 144 4.792 new=- life=0.00 sz=0.0 alive=21 L=- gr=0 gnew=0 sp=0 gl=0 glow=123 emit=110
+FXSHOT 115 144
+FXRLOG eyjafjalla ey_boom 144 4.825
+PXPLOG ey ey_boom s1 4.825
+FXA 145 4.825 new=ember:8 life=0.80 sz=3.2 alive=29 L=160/0.70/0.15/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=123 emit=110
+FXSHOT 116 145
+FXA 146 4.858 new=- life=0.00 sz=0.0 alive=29 L=- gr=0 gnew=0 sp=0 gl=0 glow=141 emit=131
+FXSHOT 117 146
+FXA 147 4.892 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=142 emit=132
+FXSHOT 118 147
+FXA 148 4.925 new=- life=0.00 sz=0.0 alive=27 L=- gr=0 gnew=0 sp=0 gl=0 glow=124 emit=114
+FXSHOT 119 148
+FXA 149 4.958 new=- life=0.00 sz=0.0 alive=26 L=- gr=0 gnew=0 sp=0 gl=0 glow=124 emit=114
+FXSHOT 120 149
+FXRLOG eyjafjalla ey_splash 149 4.992
+PXPLOG ey ey_splash  4.992
+FXA 150 4.992 new=rock:2 life=0.93 sz=5.0 alive=28 L=48/0.40/0.10/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=49 emit=39
+FXSHOT 121 150
+FXA 151 5.025 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=54 emit=44
+FXSHOT 122 151
+FXA 152 5.058 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=41 emit=31
+FXSHOT 123 152
+FXA 153 5.092 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=41 emit=31
+FXSHOT 124 153
+FXRLOG eyjafjalla ey_splash 153 5.125
+PXPLOG ey ey_splash  5.125
+FXA 154 5.125 new=rock:2 life=0.97 sz=4.0 alive=30 L=48/0.40/0.10/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=40 emit=30
+FXSHOT 125 154
+FXA 155 5.158 new=- life=0.00 sz=0.0 alive=30 L=- gr=0 gnew=0 sp=0 gl=0 glow=37 emit=27
+FXSHOT 126 155
+FXA 156 5.192 new=- life=0.00 sz=0.0 alive=30 L=- gr=0 gnew=0 sp=0 gl=0 glow=28 emit=18
+FXSHOT 127 156
+FXA 157 5.225 new=- life=0.00 sz=0.0 alive=30 L=- gr=0 gnew=0 sp=0 gl=0 glow=28 emit=18
+FXSHOT 128 157
+FXA 158 5.258 new=- life=0.00 sz=0.0 alive=29 L=- gr=0 gnew=0 sp=0 gl=0 glow=24 emit=14
+FXSHOT 129 158
+FXA 159 5.292 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=24 emit=14
+FXSHOT 130 159
+FXA 160 5.325 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=24 emit=14
+FXSHOT 131 160
+FXRLOG eyjafjalla ey_fire 160 5.358
+PXPLOG ey ey_fire  5.358
+FXRLOG eyjafjalla ey_splash 160 5.358
+PXPLOG ey ey_splash  5.358
+FXA 161 5.358 new=rock:2 life=0.96 sz=5.0 alive=30 L=60/0.35/0.08/ff8a3d;48/0.40/0.10/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=24 emit=14
+FXSHOT 132 161
+FXA 162 5.392 new=- life=0.00 sz=0.0 alive=30 L=- gr=0 gnew=0 sp=0 gl=0 glow=54 emit=44
+FXSHOT 133 162
+FXA 163 5.425 new=- life=0.00 sz=0.0 alive=30 L=- gr=0 gnew=0 sp=0 gl=0 glow=56 emit=46
+FXSHOT 134 163
+FXA 164 5.458 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=52 emit=42
+FXSHOT 135 164
+FXRLOG eyjafjalla ey_xhit 164 5.492
+PXPLOG ey ey_xhit  5.492
+FXRLOG eyjafjalla ey_xhit 164 5.492
+PXPLOG ey ey_xhit  5.492
+FXRLOG eyjafjalla ey_xhit 164 5.492
+PXPLOG ey ey_xhit  5.492
+FXA 165 5.492 new=- life=0.00 sz=0.0 alive=28 L=48/0.40/0.10/ff8a3d;48/0.40/0.10/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=57 emit=47
+FXSHOT 136 165
+FXA 166 5.525 new=- life=0.00 sz=0.0 alive=28 L=- gr=0 gnew=0 sp=0 gl=0 glow=48 emit=38
+FXSHOT 137 166
+FXA 167 5.558 new=- life=0.00 sz=0.0 alive=24 L=- gr=0 gnew=0 sp=0 gl=0 glow=48 emit=38
+FXSHOT 138 167
+FXA 168 5.592 new=- life=0.00 sz=0.0 alive=20 L=- gr=0 gnew=0 sp=0 gl=0 glow=41 emit=31
+FXSHOT 139 168
+FXA 169 5.625 new=- life=0.00 sz=0.0 alive=20 L=- gr=0 gnew=0 sp=0 gl=0 glow=46 emit=36
+FXSHOT 140 169
+FXA 170 5.658 new=- life=0.00 sz=0.0 alive=19 L=- gr=0 gnew=0 sp=0 gl=0 glow=33 emit=23
+FXSHOT 141 170
+FXA 171 5.692 new=- life=0.00 sz=0.0 alive=15 L=- gr=0 gnew=0 sp=0 gl=0 glow=34 emit=24
+FXSHOT 142 171
+FXA 172 5.725 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=30 emit=21
+FXSHOT 143 172
+FXA 173 5.758 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=17 emit=0
+FXSHOT 144 173
+FXA 174 5.792 new=- life=0.00 sz=0.0 alive=10 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 145 174
+FXA 175 5.825 new=- life=0.00 sz=0.0 alive=9 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 146 175
+FXA 176 5.858 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 147 176
+FXA 177 5.892 new=- life=0.00 sz=0.0 alive=6 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 148 177
+FXA 178 5.925 new=- life=0.00 sz=0.0 alive=6 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 149 178
+FXA 179 5.958 new=- life=0.00 sz=0.0 alive=6 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 150 179
+FXA 180 5.992 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 151 180
+FXA 181 6.025 new=- life=0.00 sz=0.0 alive=5 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 152 181
+FXA 182 6.058 new=- life=0.00 sz=0.0 alive=4 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 153 182
+FXA 183 6.092 new=- life=0.00 sz=0.0 alive=4 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 154 183
+FXA 184 6.125 new=- life=0.00 sz=0.0 alive=4 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 155 184
+FXA 185 6.158 new=- life=0.00 sz=0.0 alive=4 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 156 185
+FXA 186 6.192 new=- life=0.00 sz=0.0 alive=4 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 157 186
+FXA 187 6.225 new=- life=0.00 sz=0.0 alive=2 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 158 187
+FXA 188 6.258 new=- life=0.00 sz=0.0 alive=2 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 159 188
+FXA 189 6.292 new=- life=0.00 sz=0.0 alive=1 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 160 189
+FXA 190 6.325 new=- life=0.00 sz=0.0 alive=1 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 161 190
+FXA 191 6.358 new=- life=0.00 sz=0.0 alive=1 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 162 191
+FXA 192 6.392 new=- life=0.00 sz=0.0 alive=1 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 163 192
+FXA 193 6.425 new=- life=0.00 sz=0.0 alive=1 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 164 193
+FXA 194 6.458 new=- life=0.00 sz=0.0 alive=1 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 165 194
+FXA 195 6.492 new=- life=0.00 sz=0.0 alive=1 L=- gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 166 195
+FXRLOG eyjafjalla ey_fire 195 6.525
+PXPLOG ey ey_fire  6.525
+FXA 196 6.525 new=- life=0.00 sz=0.0 alive=1 L=60/0.35/0.08/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=16 emit=0
+FXSHOT 167 196
+FXA 197 6.558 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=46 emit=30
+FXSHOT 168 197
+FXA 198 6.592 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=41 emit=25
+FXSHOT 169 198
+FXA 199 6.625 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=41 emit=25
+FXSHOT 170 199
+FXA 200 6.658 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=51 emit=35
+FXSHOT 171 200
+FXA 201 6.692 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=51 emit=35
+FXSHOT 172 201
+FXA 202 6.725 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=44 emit=28
+FXSHOT 173 202
+FXA 203 6.758 new=- life=0.00 sz=0.0 alive=0 L=- gr=0 gnew=0 sp=0 gl=0 glow=44 emit=28
+FXSHOT 174 203
+FXRLOG eyjafjalla ey_xhit 203 6.792
+PXPLOG ey ey_xhit  6.792
+FXRLOG eyjafjalla ey_xhit 203 6.792
+PXPLOG ey ey_xhit  6.792
+FXA 204 6.792 new=- life=0.00 sz=0.0 alive=0 L=48/0.40/0.10/ff8a3d;48/0.40/0.10/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=54 emit=38
+FXSHOT 175 204
+FXRLOG eyjafjalla ey_xhit 204 6.825
+PXPLOG ey ey_xhit  6.825
+FXRLOG eyjafjalla skill0 204 6.825
+PXPLOG ey skill 0 6.825
+FXA 205 6.825 new=ember:8 life=0.76 sz=2.8 alive=8 L=48/0.40/0.10/ff8a3d;160/0.70/0.15/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=56 emit=40
+FXSHOT 176 205
+FXA 206 6.858 new=- life=0.00 sz=0.0 alive=8 L=- gr=0 gnew=0 sp=0 gl=0 glow=90 emit=74
+FXSHOT 177 206
+FXRLOG eyjafjalla ey_boom 206 6.892
+PXPLOG ey ey_boom tri 6.892
+FXA 207 6.892 new=ember:4 life=0.79 sz=2.5 alive=12 L=113/0.40/0.12/ff8a3d gr=0 gnew=0 sp=0 gl=0 glow=90 emit=74
+FXSHOT 178 207
+FXA 208 6.925 new=- life=0.00 sz=0.0 alive=12 L=- gr=0 gnew=0 sp=0 gl=0 glow=105 emit=89
+FXSHOT 179 208
+ERROR: 28 RID allocations of type 'N5GLES37TextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 3 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+ERROR: Texture with GL ID of 37: leaked 4915052 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 38: leaked 786424 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1436: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1437: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1700: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1701: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1702: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1703: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1704: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1705: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1706: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1707: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1711: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1712: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1713: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1714: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1715: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1716: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1717: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1718: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1720: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1721: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1722: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1723: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1724: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1725: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1726: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1727: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+WARNING: 179 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 25 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
