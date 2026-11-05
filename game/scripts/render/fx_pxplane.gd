@@ -1461,8 +1461,13 @@ func _lm_bolt(ci, pos: Vector2, vel: Vector2, t: int, big: bool, unit: bool, lin
 			_px(ci, head + dv2 * px * float(dd + 1), cc)
 			_px(ci, head + nv2 * px * float(dd), cc)
 			_px(ci, head - nv2 * px * float(dd), cc)
-	_glow(head, C[6])
-	_glow(head - dv2 * px, C[5])
+	if unit:
+		_glow(head, C[6])
+		_glow(head - dv2 * px, C[5])
+	else:   # 主弹弹头一团 3×3 亮芯进发光层（光感体检 docs/270：发光层晚一帧显示，命中那一帧亮的是弹头上一帧留下的辉光，2 点太弱）
+		for yy in [-1, 0, 1]:
+			for xx in [-1, 0, 1]:
+				_glow(head + Vector2(xx, yy) * px, C[6] if absi(xx) + absi(yy) <= 1 else C[5])
 
 
 ## 灯塔守望光束（11-05 用户「流明那个光束得重新做一下」；原来是贴地光扇、两道边带缺口——又碎又平、不亮）。
