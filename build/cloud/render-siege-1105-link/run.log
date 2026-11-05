@@ -1,0 +1,8 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（2756 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+('link1_s11_24', 65, [], False)
+('link0_s11_24', 65, [], False)
+('link2_s11_24', 65, [], False)
+连携事件 [('link_slam', '7.392')]
+缺帧 {0: '/work/repo/build/pxplane_siege/link0_s11_24_frames/rec_-0490.png', 2: '/work/repo/build/pxplane_siege/link2_s11_24_frames/rec_-0490.png', 1: '/work/repo/build/pxplane_siege/link1_s11_24_frames/rec_-0490.png'}
