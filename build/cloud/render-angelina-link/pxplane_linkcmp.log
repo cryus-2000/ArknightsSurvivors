@@ -1,0 +1,7 @@
+('link1_s11_68', 73, [], False)
+('link0_s11_68', 73, [], False)
+('link2_s11_68', 73, [], False)
+连携事件 [('ang_link', '7.128'), ('ang_link', '69.811')]
+三栏 cmp_link 帧 60
+link0_s11_68 vs link1_s11_68：TRACE 73 / 73 行，逐行一致
+link0_s11_68 vs link2_s11_68：TRACE 73 / 73 行，逐行一致
