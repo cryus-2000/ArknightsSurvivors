@@ -162,7 +162,7 @@ def variants_texas():
     for R in (50, 56, 63):   # 骤雨 360° 连斩（storm_r 100 → 50）/ 回马剑（slash_r 112 → 56）
         for el in T:
             for ly in ("up", "gd"):
-                v.append(("spin_r%d_e%d_%s" % (R, el, ly), {"part": "spin", "layer": ly, "R": R, "W": [9, 11, 13][el], "el": el, "dur": 0.3, "seed": 3}, 0.4))
+                v.append(("spin_r%d_e%d_%s" % (R, el, ly), {"part": "spin", "layer": ly, "R": R, "W": [8, 12, 14][el], "el": el, "dur": 0.3, "seed": 3}, 0.4))
     # 源石剑落下（剑雨 / 余像·剑雨 / 剑阵 / 次元斩落剑 / 剑气沿路落剑）：L 剑长、fall 下落高度、stick 插地停留（同玩法 stick）
     SW = [(14, 0, 30, 0.2), (14, 1, 30, 0.2), (14, 2, 34, 0.2),   # 后期剑气沿路落剑（三档）/ 余像·剑雨（精二）
           (16, 0, 48, 0.3), (19, 1, 48, 0.3), (22, 2, 48, 0.3),   # S1 剑雨三档（fall 96 → 48）
@@ -191,7 +191,7 @@ def variants_texas():
     # raw：旧做法（正俯视 / 正圆、光晕烤进颜色），游戏里旋转 + 小数缩放
     for el in T:
         v.append(("raw_slash_e%d" % el, {"part": "slash", "view": "raw", "R": 56, "span": 2.4, "W": [8, 12, 14][el], "dir": 0, "el": el, "dur": 0.27}, 0.34))
-        v.append(("raw_spin_e%d" % el, {"part": "spin", "view": "raw", "R": 50, "W": [9, 11, 13][el], "el": el, "dur": 0.3, "seed": 3}, 0.4))
+        v.append(("raw_spin_e%d" % el, {"part": "spin", "view": "raw", "R": 50, "W": [8, 12, 14][el], "el": el, "dur": 0.3, "seed": 3}, 0.4))
         v.append(("raw_sword_e%d" % el, {"part": "sword", "view": "raw", "L": [16, 19, 22][el], "W": 4, "fall": 48, "stick": 0.3, "el": el}, 0.56))
     v.append(("raw_xcut", {"part": "xcut", "view": "raw", "R": 34, "dir": 0, "el": 1}, 0.6))
     v.append(("raw_line", {"part": "line", "view": "raw", "el": 1}, 0.34))

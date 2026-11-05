@@ -146,14 +146,15 @@ function spin(p, t, o, C, ACC) {
     if (wr < 1.6) return;
     const q = (R - r) / wr;
     if (q < 0 || q > 1) return;
-    let ci = q < 0.16 ? (hot ? n - 1 : n - 2) : q < 0.42 ? n - 3 : q < 0.72 ? n - 4 : n - 5;
+    const rim = el >= 1 ? 0.27 : 0.14;   // 同拔刀：精零亮琥珀细刃，精一起粗白刃
+    let ci = q < rim ? (hot ? n - 1 : (el >= 1 ? n - 2 : n - 3)) : q < 0.42 ? n - 3 : q < 0.72 ? n - 4 : n - 5;
     if (q > 0.88) out.a = 0.6;
     if (hot && u > 0.86 && q < 0.4) ci = n - 1;
     if (pz < 0) ci -= 1;   // 远侧（身后那半圈）暗一阶
     ci = clamp(ci - Math.round(cool * 2.6), 1, n - 1);
     out.c = C[ci];
     if (out.a === undefined) out.a = cool > 0.6 ? 0.6 : 1;
-    if (el >= 2 && !hot && q > 0.16 && q < 0.3 && cool < 0.5) out.c = ACC;
+    if (el >= 2 && !hot && q > rim && q < rim + 0.14 && cool < 0.5) out.c = ACC;
   });
   if (raw) for (let a = tail; a <= head; a += 0.2) p.light(Math.cos(a) * R * 0.9, Math.sin(a) * R * 0.9, C[n - 2], 0.3 * (1 - cool));
 }
