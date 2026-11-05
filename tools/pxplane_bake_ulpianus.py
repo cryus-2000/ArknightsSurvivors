@@ -269,72 +269,120 @@ def crown_spikes(f, R0, hmax, seed, fi, cols):
                 f.put(x + (1 if math.cos(a) >= 0 else -1), by - z, cols[2])
 
 
+W4 = [(16, 64, 156, 255), (24, 150, 226, 255), (96, 214, 250, 255), (206, 250, 255, 255)]   # 同鲸身（fx_pxplane_ul.W4）：深海蓝 / 饱和青 / 亮青 / 亮青白
+
+
 def s3_impact_up(f, fi, R, seed):
-    """S3 砸地（立起；docs/266 §12）：宽而矮的水冠，不是细柱。
-    第 0 帧（全招最亮）：中心实心白团（宽、矮）+ 四周一圈往上掀的尖水花（半径约 R/2，尖白）；
-    第 1 帧：水冠降一阶、更高、往外开；裙边水环冲到 0.6R；第 2 帧：水环断成段；
-    第 3–5 帧：7 颗 3–4 格的尖尾泪滴沿弧线往外落，一帧缩一格后消失"""
-    if fi == 0:
-        for dx in range(-20, 21):
-            for dy in range(-14, 3):
-                d2 = (dx / 19.0) ** 2 + ((dy + 4) / 8.0) ** 2
-                if d2 < 1.0:
-                    f.put(dx, dy, WHITE if d2 < 0.6 else C[6])
-        crown_spikes(f, R * 0.5, 14, seed, fi, (WHITE, C[6], C[5]))
-        return
+    """S3 鲸砸地水爆（立起；docs/266 §17，协调人 11-05「砸下去那一刻反而变弱了，颜色也和鲸对不上」）：
+    全用鲸身的四阶青蓝。第 0 帧：中心一大团实心亮团（宽约 0.6R、上半亮青白）+ 一圈往上掀的粗水花（3 格宽，半径 0.6R，尖亮青白）——
+    砸地那一拍的水量不少于鲸身；第 1 帧：水冠更高、往外开，大水团（3–5 格）开始往外炸；第 2–3 帧：水冠塌、水团飞；
+    第 2 帧起一次甩出 18 颗 1–3 格带尾的水珠，第 5–7 帧落回成白沫点"""
     rnd = random.Random(seed)
-    nseg = 7
-    a0 = rnd.random() * math.tau
-    if fi == 1:
-        crown_spikes(f, R * 0.55, 18, seed, fi, (C[6], C[5], C[4]))
-    if fi in (1, 2):
-        rr = R * (0.6 if fi == 1 else 0.78)
-        for a, x, y in ellipse_pts(rr):
-            seg = ((a - a0) % math.tau) / (math.tau / nseg)
-            if fi == 2 and (seg % 1.0) > 0.65:
+    R0 = R * 0.6
+    if fi == 0 or fi == 1:
+        rx, ry = (R0 * 0.8, 14) if fi == 0 else (R0 * 0.6, 10)
+        for dx in range(-int(rx) - 1, int(rx) + 2):
+            for dy in range(-ry * 2 - 2, 3):
+                d2 = (dx / rx) ** 2 + ((dy + ry) / ry) ** 2
+                if d2 < 1.0:
+                    c = W4[3] if (d2 < 0.5 or fi == 0) else W4[2]
+                    if fi == 0 and d2 < 0.3:
+                        c = WHITE
+                    f.put(dx, dy, c)
+    if fi <= 2:   # 粗水冠：一圈厚的不规则水（0.7–1.0 倍冠半径之间都填），顶边参差、隔几处冲出粗尖；后半圈先画、前半圈盖上
+        hmax = [18, 24, 12][fi]   # 第 3 帧起不留一圈「碗」
+        rr0 = R0 * [1.0, 1.1, 1.18][fi]
+        cols = []
+        n = 200   # 相邻两列挨着，不留竖条缝
+        for i in range(n):
+            a = math.tau * i / n
+            nz = vn(a * 4.0 + seed * 0.7)
+            spike = vn(a * 9.0 + seed * 1.9) > 0.68
+            hgt = hmax * (0.3 + 0.55 * nz) * (1.6 if spike else 1.0)
+            for rk in (0.72, 0.8, 0.88, 0.96, 1.04):
+                cols.append((math.sin(a), a, rr0 * rk, hgt * (1.0 - abs(rk - 0.9) * 1.2), spike))
+        cols.sort(key=lambda q: q[0])
+        for (_s, a, rr, hgt, spike) in cols:
+            bx, by = math.cos(a) * rr, math.sin(a) * rr * SY
+            lean = math.cos(a) * 0.45
+            far = math.sin(a) < 0
+            for z in range(max(1, int(hgt))):
+                u = z / max(1.0, hgt)
+                c = W4[3] if u > 0.7 else (W4[2] if u > 0.3 else W4[1])
+                if far and u < 0.5:
+                    c = W4[1] if u > 0.15 else W4[0]
+                f.put(bx + lean * z, by - z, c)
+    if 1 <= fi <= 4:   # 大水团往外炸（3–5 格，顶亮底暗）
+        t = (fi - 1) / FPS
+        for j in range(16):
+            dr = random.Random(seed * 31 + j)
+            a = dr.random() * math.tau
+            r0 = R0 * dr.uniform(0.5, 0.9)
+            vh = dr.uniform(60, 110)
+            vz = dr.uniform(70, 140)
+            dist = min(R * 0.98, r0 + vh * t)
+            z = vz * t - 0.5 * 900 * t * t + 6
+            if z < 0:
                 continue
-            hh = 4 if fi == 1 else 3
-            for z in range(hh):
-                f.put(x, y - z, C[6] if z == hh - 1 else C[5])
-        if fi == 2:
-            crown_spikes(f, R * 0.6, 10, seed, fi, (C[5], C[4], C[3]))
-        return
-    if fi > 5:
-        return
-    k = fi - 3
-    for i in range(nseg):
-        a = a0 + (i + 0.5) * math.tau / nseg
-        r1 = R * (0.86 + 0.06 * k)
-        x, y = math.cos(a) * r1, math.sin(a) * r1 * SY
-        z = [12, 7, 2][k] + (i % 3)
-        vx, vy = math.cos(a) * 3.0, math.sin(a) * SY * 3.0 + [1.0, 3.0, 4.0][k]
-        size = [4, 3, 2][k]
-        teardrop(f, x, y - z, vx, vy, size, (C[6], C[5], C[4]))
+            x, y = math.cos(a) * dist, math.sin(a) * dist * SY - z
+            s = max(1, int(round(dr.uniform(3, 5) * (1 - 0.25 * (fi - 1)))))
+            for px in range(-s, s + 1):
+                for py in range(-s, s + 1):
+                    if px * px + py * py <= s * s:
+                        f.put(x + px, y + py, W4[3] if py < 0 else (W4[2] if py == 0 else W4[1]))
+    if fi >= 2:   # 18 颗带尾水珠，第 5 帧起落回成白沫点
+        for j in range(18):
+            dr = random.Random(seed * 53 + j)
+            a = dr.random() * math.tau
+            r1 = R * dr.uniform(0.6, 0.95)
+            k = fi - 2
+            if k <= 2:
+                rr = R0 + (r1 - R0) * (k + 1) / 3.0
+                z = [14, 10, 4][k] * dr.uniform(0.7, 1.3)
+                x, y = math.cos(a) * rr, math.sin(a) * rr * SY - z
+                size = max(1, 3 - k - (j % 2))
+                teardrop(f, x, y, math.cos(a) * 3, math.sin(a) * SY * 3 + 2 + k, size, (W4[3], W4[2], W4[1]))
+            elif k <= 5:
+                x, y = math.cos(a) * r1, math.sin(a) * r1 * SY
+                c = [W4[3], W4[2], W4[1]][k - 3]
+                f.put(x, y, c)
+                if k == 3:
+                    f.put(x + 1, y, W4[2])
 
 
 def s3_impact_gd(f, fi, R, seed):
-    """S3 砸地（贴地）：第 0 帧预兆细环变成实环（2 格厚）在 0.3R 炸开，0–3 帧推到判定半径；
-    落点一片浅色水面：亮边（1 格 C6 + 内侧 1 格 C5），不涂深色；第 2 帧起往回退、一段段断开，第 7 帧收完"""
-    if fi > 7:
-        return
-    if fi <= 3:
-        rr = R * [0.3, 0.6, 0.85, 1.0][fi]
-        col = [C[6], C[5], C[5], C[4]][fi]
+    """S3 鲸砸地（贴地）：冲击环降为次要——和鲸同色的青色 2 格粗、带白沫断点，0–3 帧推到判定半径后淡掉；
+    落点一片浅青水面（亮边 + 内侧淡青，不涂深色），保持约 0.6 秒（第 0–8 帧），之后一段段断开退去（第 9–14 帧）"""
+    if fi <= 4:
+        rr = R * [0.35, 0.62, 0.84, 1.0, 1.0][fi]
         for a, x, y in ellipse_pts(rr):
-            if fi >= 2 and vn(a * 6.0 + seed + fi) < 0.25:
+            if vn(a * 7.0 + seed + fi) < (0.12 if fi < 3 else 0.45):
                 continue
+            white = vn(a * 3.3 + seed * 2.1 + fi) > 0.8
+            col = W4[3] if white else (W4[2] if fi < 3 else W4[1])
             f.put(x, y, col)
-            k = (rr - 1.3) / rr
-            f.put(x * k, y * k, C[4] if fi < 2 else C[3])
-    wr = R * [0.42, 0.46, 0.46, 0.42, 0.36, 0.28, 0.2, 0.12][fi]
-    gap = [0.0, 0.0, 0.15, 0.3, 0.4, 0.5, 0.6, 0.7][fi]
+            k = (rr - 1.0) / rr
+            f.put(x * k, y * k, col if fi < 3 else W4[1])
+    if fi > 14:
+        return
+    wr = R * (0.55 if fi <= 8 else 0.55 * max(0.2, 1.0 - (fi - 8) / 7.0))
+    gap = 0.0 if fi <= 8 else 0.12 * (fi - 8)
     for a, x, y in ellipse_pts(wr):
-        if vn(a * 4.0 + seed * 1.3 + fi * 0.7) < gap:
+        if vn(a * 4.0 + seed * 1.3 + fi * 0.5) < gap:
             continue
         k = 0.88 + 0.16 * vn(a * 2.5 + seed)
-        f.put(x * k, y * k, C[6] if fi < 5 else C[5])
+        f.put(x * k, y * k, W4[3] if fi < 11 else W4[2], over=False)
         kk = (wr * k - 1.3) / max(1.0, wr)
-        f.put(x * kk, y * kk, C[5] if fi < 5 else C[4], over=False)
+        f.put(x * kk, y * kk, W4[2] if fi < 11 else W4[1], over=False)
+    if fi <= 8:   # 水面里几条淡青水纹（不平涂）
+        for j in range(6):
+            dr = random.Random(seed + j)
+            a0 = dr.random() * math.tau
+            rr = wr * dr.uniform(0.3, 0.8)
+            for s in range(10):
+                a = a0 + s * 0.08
+                if (s + fi) % 3:
+                    f.put(math.cos(a) * rr, math.sin(a) * rr * SY, W4[1], over=False)
 
 
 def spray_low(f, fi, R, seed, n=10):
@@ -519,8 +567,8 @@ def variants():
             v.append(("s1_r%d_e%d_gd" % (R, el), "splat", {"R": R, "tier": el, "pull": 0.0, "seed": 73 + R}, 9, "gd"))
     # S2 锁链界限：运行时画（fx_pxplane_ul._ring，会转），没有帧条
     # S3 落地（s3_r 140 → 70）
-    v.append(("s3_up", "s3up", {"R": 70, "H": 40, "seed": 91}, 6, "up"))
-    v.append(("s3_gd", "s3gd", {"R": 70, "seed": 91}, 8, "gd"))
+    v.append(("s3_up", "s3up", {"R": 70, "H": 40, "seed": 91}, 8, "up"))
+    v.append(("s3_gd", "s3gd", {"R": 70, "seed": 91}, 15, "gd"))
     # 连携掷锚钉下（拖 180 内的小怪 → 90）
     v.append(("pin_gd", "inward", {"R": 90, "seed": 97}, 10, "gd"))
     return v
