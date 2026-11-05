@@ -2775,7 +2775,12 @@ func _ev_skalter(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictio
 				"声浪":
 					_sk_push(o, {"skr": "wave", "c": c, "r": r, "tier": t, "ly": "gd", "life": 6.0 / 15.0, "o": o, "fz": true})
 					_sk_notes(o, es, t, R, p)
-					R._light(o, c + Vector2(0, -6), r * 0.7, 0.25 + 0.08 * t, 0.12, p.light)
+					var lp: Vector2 = c + Vector2(0, -6)
+					for e0 in es:
+						if e0 is Dictionary and not e0.get("dead", false):
+							lp = e0.pos + Vector2(0, -float(e0.r) * 0.5)
+							break
+					R._light(o, lp, 100.0, 0.5, 0.12, p.light)   # docs/270：每次命中一盏、半径 100、强度 0.5（原来半径 = 0.7 歌域，摊满半屏照不出命中点）
 				"余音":   # 精一：外圈回声
 					_sk_push(o, {"skr": "echo_ring", "c": c, "r": r, "tier": t, "ly": "gd", "life": 4.0 / 15.0, "o": o, "fz": true})
 				"潮汐和声":
@@ -2797,7 +2802,7 @@ func _ev_skalter(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictio
 			if _sk_count(o, "burst") < 4:
 				_sk_push(o, {"skr": "burst", "c": at, "r": float(d.r), "ly": "gd", "life": 5.0 / 15.0})
 				if mode() == 1:
-					R._grains(o, at + Vector2(0, -10), at.y + 2.0, "twinkle", 4, {"tier": t})
+					R._grains(o, at + Vector2(0, -10), at.y + 2.0, "shard", 6, {"tier": t})
 					R._light(o, at + Vector2(0, -8), 60.0, 0.35, 0.1, SK_R[4])
 		"splash":   # late_shape「扩散」：命中溅射（同一拍至多 3 个）
 			var at2: Vector2 = d.at
@@ -2819,7 +2824,7 @@ func _ev_skalter(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictio
 					_sk_push(o, {"skr": "wave", "c": zc, "r": zr, "tier": t, "ly": "gd", "life": 6.0 / 15.0, "o": o, "fz": true})
 					R._light(o, o.pos + Vector2(0, -24), 90.0, 0.5, 0.15, SK_B[5])
 					if mode() == 1:
-						R._grains(o, o.pos + Vector2(0, -30), o.pos.y, "twinkle", 3 + 2 * t, {"tier": t})
+						R._grains(o, o.pos + Vector2(0, -30), o.pos.y, "ink", 3 + t, {"tier": t})
 				1:   # S2 同葬无光之愿：脚下旋涡 + 小鱼散开
 					var tt: int = maxi(t, 1)
 					_sk_push(o, {"skr": "vortex", "c": o.pos, "tier": tt, "ly": "gd", "life": 12.0 / 15.0, "o": o, "fs": true})
@@ -2862,7 +2867,7 @@ func _sk_notes(o, es: Array, t: int, R, p: Dictionary, rose := false) -> void:
 		var hp: Vector2 = e.pos + Vector2(0, -float(e.r) - 6.0)
 		_sk_push(o, {"skr": "note", "c": hp, "tier": t, "rose": rose, "fl": (n % 2) == 1, "ly": "up", "gy": float(e.pos.y) + 1.0, "life": 9.0 / 15.0})
 		if n == 0 and mode() == 1:
-			R._grains(o, hp, float(e.pos.y) + 2.0, "twinkle", 1 + t, {"tier": t})
+			R._grains(o, hp, float(e.pos.y) + 2.0, "ink", 3 + t, {"tier": t})   # docs/270：Noita 水滴 4–6 px、寿命约 0.9 秒，每下 3 / 4 / 5 颗
 		n += 1
 
 
@@ -2879,9 +2884,9 @@ func _sk_draw_floor(o) -> void:
 		_sk_push(o, {"skr": "surge", "c": o.zone_c(), "r": float(o.zr), "ly": "gd", "life": 7.0 / 15.0, "o": o, "fz": true})
 		_sk_push(o, {"skr": "pillars", "c": o.zone_c(), "r": float(o.zr), "ly": "up", "gy": o.zone_c().y + 2.0, "life": 7.0 / 15.0, "o": o, "fz": true})
 		var R = load("res://scripts/render/fx_recipe.gd").of(g)
-		R._light(o, o.zone_c() + Vector2(0, -20), float(o.zr), 0.8, 0.15, SK_B[4])
+		R._light(o, o.zone_c() + Vector2(0, -20), minf(float(o.zr), 220.0), 0.8, 0.15, SK_B[4])
 		R._light(o, o.zone_c() + Vector2(0, -60), 120.0, 0.6, 0.15, SK_R[4])
-		R._grains(o, o.zone_c() + Vector2(0, -30), o.zone_c().y, "twinkle", 6, {"tier": 2})
+		R._grains(o, o.zone_c() + Vector2(0, -30), o.zone_c().y, "ink", 10, {"tier": 2})
 	elif s3 <= 0.0:
 		st.s3_next = -1.0
 	if o.pos != Vector2.INF and o.B.has("zone"):
@@ -2984,8 +2989,9 @@ func _sk_draw_gd(cv, o, it: Dictionary) -> void:
 				var rc: Color = SK_R[3] if f < 3 else SK_R[2]
 				_sk_ring(cv, c, R - (w * 0.5 + 1.5) * px, 7, 2.0, rc, SK_R[4], Color(0, 0, 0, 0), seed + 5.0, seed * 0.37 + 0.2, 0.7)
 			if f <= 1:
-				for j in 6:   # 浪头热白点进发光层
-					_glow(_sk_ep(c, R, seed + TAU * float(j) / 6.0), C[6])
+				var ne: int = clampi(int(R / (px * 3.0)), 16, 64)   # docs/270：浪头白热整圈进发光层（约每 16 世界像素一点）
+				for j in ne:
+					_glow(_sk_ep(c, R, seed + TAU * float(j) / float(ne)), C[6])
 		"echo_ring":   # 余音：歌域外圈一道酒红细环闪 3 拍
 			if f < 0 or f > 3:
 				return
@@ -3131,7 +3137,8 @@ func _sk_draw_up(ci, it: Dictionary) -> void:
 			shc.a = 0.85 if f < 7 else 0.0
 			_sk_pat(ci, pat, c + Vector2(-w * 0.5 + (10.0 if it.get("fl", false) else -10.0), -float(pat.size()) * px - up - 8.0), col, head, it.get("fl", false), shc)
 			if f <= 1:
-				_glow(c + Vector2(0, -up - px), C[6])
+				for q in 4:
+					_glow(c + Vector2(-6.0 + 4.0 * float(q), -up - px * 2.0 - 8.0), C[6])
 		"pillars":   # S3 潮涌：5 根粗亮红竖光柱从歌域里冲起又回落（原作 skill_03_buff_02 的红光柱）；白热芯、亮红身、暗酒红边，顶端淡出
 			if f < 0 or f > 6:
 				return
@@ -3247,7 +3254,9 @@ func _sk_draw_state_up(ci, it: Dictionary) -> void:
 				ci.draw_arc(bc, br - px * 2.0, PI * 1.05, PI * 1.45, 8, SK_B[6], px)   # 左上高光
 				if t >= 1 and br > Rb * 0.6:
 					ci.draw_arc(bc, br - px * 3.0, PI * 0.1, PI * 0.9, 14, Color(SK_B[4].r, SK_B[4].g, SK_B[4].b, 0.6), px)   # 精一：第二层膜（下半）
-			_glow(c + Vector2(-Rb * 0.55, -Rb * 0.6), SK_B[6])
+			for q in 10:   # 气泡左上高光弧进发光层（docs/270：持续类核心辉光）
+				var aq: float = PI * (1.05 + 0.04 * float(q))
+				_glow(c + Vector2(cos(aq), sin(aq)) * (Rb - px * 2.0), SK_B[6])
 			# 脚下酒红细环（贴地，跟在立起件里画：它跟着气泡走、本来就在她脚下）
 			var fr := PackedVector2Array()
 			for k in 25:
