@@ -153,6 +153,16 @@ func _ready() -> void:
 			get_tree().create_timer(i).timeout.connect(func():
 				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_intro_%d.png" % int(i * 10)))
 		get_tree().create_timer(5.0).timeout.connect(func(): get_tree().quit())
+	if Cfg.dev_args().has("--transrec"):
+		# 页面切换录像（11-05 快门切换，配 --fixed-fps 30）：开场放完后（3.2 秒）进认知塑造，逐帧存 rec_<n>.png 共 45 帧
+		var fr2 := [0]
+		get_tree().create_timer(3.2).timeout.connect(func():
+			_activate(6)
+			get_tree().process_frame.connect(func():
+				fr2[0] += 1
+				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/rec_%04d.png" % fr2[0])
+				if fr2[0] >= 45:
+					get_tree().quit()))
 	if Cfg.dev_args().has("--metashot"):
 		# 认知塑造页截图（docs/109 §4）：配 --metacells=<累计生机细胞>；--metabuy=<n> 先按推荐点法点 n 个
 		meta_ui.open()

@@ -5,6 +5,10 @@ var busy := false
 var opacity := 0.0
 var tween: Tween
 var slash := -1.0   # 斜切黑带进度 0–1（图鉴 C4' 打开，docs/58 §11.2）；< 0 = 不在斜切
+## 快门切换（11-05 用户「页面切换可以加一下」，PRTS 风格）：上下两片暗幕带白细线向中间合拢（0.16 秒）、中线亮一道青光 → 换页 →
+## 两片暗幕向上下分开（0.26 秒），中线向两侧拉开淡出。shut = 合拢程度 0–1，opening = 是否在打开段；减少动态效果退回原来的短压暗
+var shut := -1.0
+var opening := false
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -15,6 +19,20 @@ func switch_page(change: Callable) -> void:
 	if busy:
 		return
 	_lock()
+	if not Cfg.reduce_motion:
+		opening = false
+		tween = create_tween()
+		tween.tween_method(_set_shut, 0.0, 1.0, 0.16).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+		tween.tween_callback(change)
+		tween.tween_callback(func(): opening = true)
+		tween.tween_interval(0.04)
+		tween.tween_method(_set_shut, 1.0, 0.0, 0.26).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		tween.tween_callback(func():
+			shut = -1.0
+			opening = false
+			queue_redraw()
+			_unlock())
+		return
 	tween = create_tween()
 	tween.tween_method(_set_opacity, 0.0, 1.0, 0.13).set_trans(Tween.TRANS_SINE)
 	tween.tween_callback(change)
@@ -48,6 +66,17 @@ func reveal_page() -> void:
 	if busy:
 		return
 	_lock()
+	if not Cfg.reduce_motion:   # 只打开段（从合拢处分开）
+		opening = true
+		_set_shut(0.85)
+		tween = create_tween()
+		tween.tween_method(_set_shut, 0.85, 0.0, 0.24).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		tween.tween_callback(func():
+			shut = -1.0
+			opening = false
+			queue_redraw()
+			_unlock())
+		return
 	_set_opacity(0.65)
 	tween = create_tween()
 	tween.tween_method(_set_opacity, 0.65, 0.0, 0.18).set_trans(Tween.TRANS_SINE)
@@ -67,6 +96,11 @@ func _input(_event: InputEvent) -> void:
 	if busy:
 		get_viewport().set_input_as_handled()
 
+func _set_shut(v: float) -> void:
+	shut = v
+	queue_redraw()
+
+
 func _set_opacity(value: float) -> void:
 	opacity = value
 	queue_redraw()
@@ -74,6 +108,9 @@ func _set_opacity(value: float) -> void:
 func _draw() -> void:
 	if slash >= 0.0:
 		_draw_slash()
+		return
+	if shut >= 0.0:
+		_draw_shutter()
 		return
 	if opacity <= 0.0:
 		return
@@ -98,3 +135,32 @@ func _draw_slash() -> void:
 		var lead2 := -h - 200.0 + span * (t - 0.5) * 2.0
 		draw_colored_polygon(PackedVector2Array([Vector2(lead2 + h, 0), Vector2(w + h + 400.0, 0), Vector2(w + h + 400.0, h), Vector2(lead2, h)]), ink)
 		draw_colored_polygon(PackedVector2Array([Vector2(lead2 + h - 26.0, 0), Vector2(lead2 + h, 0), Vector2(lead2, h), Vector2(lead2 - 26.0, h)]), UI.C_ACC)
+
+
+func _draw_shutter() -> void:
+	var w := size.x
+	var h := size.y
+	var cy := h * 0.5
+	var half: float = cy * shut   # 每片暗幕盖住的高度
+	var ink: Color = UI.BG2
+	draw_rect(Rect2(0, 0, w, half), ink)
+	draw_rect(Rect2(0, h - half, w, half), ink)
+	var la: float = clampf(shut * 1.4, 0.0, 1.0)
+	draw_rect(Rect2(0, half - 1.0, w, 1.0), Color(1, 1, 1, 0.55 * la))   # 暗幕前沿白细线
+	draw_rect(Rect2(0, h - half, w, 1.0), Color(1, 1, 1, 0.55 * la))
+	# 中线：合拢时从中间向两侧亮出；打开时向两侧拉长并淡出
+	var cw: float
+	var ca: float
+	if opening:
+		cw = w * (1.0 - shut * 0.6)
+		ca = shut
+	else:
+		cw = w * 0.4 * UI.ease_out(shut)
+		ca = shut
+	if ca > 0.0:
+		var cyan: Color = UI.CYAN
+		draw_rect(Rect2(w * 0.5 - cw * 0.5, cy - 1.0, cw, 2.0), Color(cyan, 0.9 * ca))
+		draw_rect(Rect2(w * 0.5 - cw * 0.5, cy - 5.0, cw, 10.0), Color(cyan, 0.12 * ca))
+		for sx in [-1.0, 1.0]:   # 两端小刻度
+			var ex: float = w * 0.5 + sx * cw * 0.5
+			draw_rect(Rect2(ex - 1.0, cy - 7.0, 2.0, 14.0), Color(1, 1, 1, 0.8 * ca))
