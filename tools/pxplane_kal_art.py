@@ -26,7 +26,22 @@ M = {
 }
 # 治疗：薄荷 + 骨白（不用红；和荧光黄绿拉开：偏冷、低饱和）
 HC = {"d": (24, 66, 52), "m": (70, 168, 124), "l": (160, 232, 196), "b": (238, 246, 228), "w": (255, 255, 255)}
-HOT = {M["h"], M["w"], HC["b"], HC["w"], M["f"]}
+# 熔毁（用户 11-05「凯尔希的 S3 应该是红色的，爆炸也是红色的」）：暗血红 → 亮橙红，热芯偏暖白；和敌方危险预警的纯红 / 玫红拉开
+RD = {
+    "k": (16, 4, 5), "d1": (48, 9, 9), "d2": (92, 16, 13), "m1": (148, 28, 18), "m2": (204, 54, 26),
+    "f": (255, 108, 46), "h": (255, 200, 150), "w": (255, 246, 232),
+}
+GREEN = dict(M)
+
+
+def red(fn, *a):
+    """用熔毁红色组画一张（各画法读全局 M）"""
+    global M
+    M = RD
+    try:
+        return fn(*a)
+    finally:
+        M = GREEN
 
 META = {}
 
@@ -65,7 +80,7 @@ class Strip:
                 ys, xs = np.nonzero(self.a[i, :, :, 3] > 200)
                 for y, x in zip(ys, xs):
                     c = tuple(int(v) for v in self.a[i, y, x, :3])
-                    if c in (M["h"], M["w"], HC["w"], HC["b"]):
+                    if c in (GREEN["h"], GREEN["w"], HC["w"], HC["b"], RD["h"], RD["w"], RD["f"]):
                         pts.append([int(x), int(y), hx(c)])
                 if len(pts) > 48:
                     step = len(pts) / 48.0
@@ -589,69 +604,156 @@ def s3_aura():
 
 # ================================================================ 熔毁 / 不毁重构：一枚墨绿结晶长出 → 爆亮 → 碎成黑绿碎晶往外飞落；贴地冲击环
 def melt(Rw, big):
+    """熔毁爆（红）：结晶一闪 → 实心大爆团两拍（白热芯 → 橙红）→ 破成火环 + 碎晶飞落；贴地冲击环 + 焦心。10 拍。"""
     R = Rw / 2.0
-    ch, cw = (30, 14) if big else (20, 9)
+    ch, cw = (24, 12) if big else (16, 8)
+    rb0 = 21 if big else 12          # 爆团半径（美术像素）
+    zc = int(rb0 + 4)                # 爆团中心高度
     w = int(2 * R + 12)
-    up = Strip(12, w, int(2 * R * SY + ch + 30), w // 2, int(R * SY + ch + 22))
-    gd = Strip(12, w, int(2 * R * SY + 8), w // 2, int(R * SY + 4))
+    up = Strip(10, w, int(2 * R * SY + 2 * rb0 + 34), w // 2, int(R * SY + 2 * rb0 + 26))
+    gd = Strip(10, w, int(2 * R * SY + 8), w // 2, int(R * SY + 4))
     rnd = random.Random(77 if big else 78)
-    shards = [(rnd.uniform(0, 2 * math.pi), rnd.uniform(0.35, 0.9), rnd.uniform(8, 22), rnd.choice([0, 1, 1])) for _ in range(14 if big else 9)]
-    for f in range(12):
-        if f <= 2:
-            k = [0.45, 1.0, 1.0][f]
-            crystal(up, f, 0, 0, ch * k, cw, 0.0, hot=f == 1, crack=False, lift=4)
-            if f == 2:   # 裂纹
-                for y in range(4, int(ch) - 2, 3):
-                    up.gput(f, (y % 5) - 2, 0, M["h"], lift=4 + y)
-        elif f == 3:   # 爆亮：实心白芯团
-            rb = cw * 0.9
+    shards = [(rnd.uniform(0, 2 * math.pi), rnd.uniform(0.4, 0.92), rnd.uniform(8, 22), rnd.choice([0, 1, 1])) for _ in range(16 if big else 10)]
+    for f in range(10):
+        if f <= 1:
+            crystal(up, f, 0, 0, ch * (0.6 if f == 0 else 1.0), cw, 0.0, hot=f == 1, crack=f == 1, lift=4)
+        elif f <= 4:   # 实心爆团
+            rb = rb0 * [1.0, 1.15, 1.22][f - 2]
             for yy in range(-int(rb) - 2, int(rb) + 3):
                 for xx in range(-int(rb) - 2, int(rb) + 3):
-                    d = math.hypot(xx, yy)
+                    d = math.hypot(xx, yy * 1.05)
+                    if f == 4 and d < rb * 0.55:
+                        continue   # 第三拍中心烧空，破成火环
+                    if f == 4 and (xx * 5 + yy * 3) % 7 == 0:
+                        continue
                     if d <= rb:
-                        up.gput(f, xx, 0, M["w"] if d < rb * 0.55 else M["h"], lift=int(4 + ch * 0.45) + yy)
-                    elif d <= rb + 2:
-                        up.gput(f, xx, 0, M["f"], lift=int(4 + ch * 0.45) + yy)
-        if f >= 3:   # 碎晶飞出（平面向外 + 高度抛物线）
-            t = (f - 3) / 8.0
+                        if f == 2:
+                            c = M["w"] if d < rb * 0.6 else (M["h"] if d < rb * 0.85 else M["f"])
+                        elif f == 3:
+                            c = M["h"] if d < rb * 0.4 else (M["f"] if d < rb * 0.8 else M["m2"])
+                        else:
+                            c = M["f"] if d < rb * 0.72 else (M["m2"] if d < rb * 0.9 else M["m1"])
+                        up.gput(f, xx, 0, c, lift=zc + yy)
+                    elif d <= rb + 1.5 and f <= 3:
+                        up.gput(f, xx, 0, M["m1"], lift=zc + yy)
+        if f >= 4:   # 碎晶 / 火星飞出（平面向外 + 高度抛物线）；爆团亮的两拍里不画，免得中心留一个小点
+            t = (f - 3) / 6.0
             for (a, dist, vz, dark) in shards:
-                d = dist * R * min(1.0, t * 1.6)
-                z = 4 + ch * 0.45 + vz * t * 3 - 70 * t * t
+                d = dist * R * min(1.0, t * 1.5)
+                z = zc + vz * t * 2.5 - 80 * t * t
                 gx, gy = d * math.cos(a), d * math.sin(a) * SY
                 if z <= 0:
-                    if f < 11:
+                    if f < 9:
                         up.gput(f, gx, gy, M["d1"] if dark else M["m1"])
                     continue
-                c = M["k"] if dark else (M["f"] if f < 6 else M["m1"])
-                for (dx, dz) in ((0, 0), (1, 0), (0, 1)):
+                c = M["k"] if dark else (M["f"] if f < 6 else M["m2"])
+                for (dx, dz) in ((0, 0), (1, 0), (0, 1), (1, 1)):
                     up.gput(f, gx + dx, gy, c, lift=z + dz)
                 if not dark and f < 6:
                     up.gput(f, gx, gy, M["h"], lift=z + 1)
-    for f in range(12):
-        if f < 3:   # 蓄势：脚下暗圈收紧
-            r = R * [0.3, 0.24, 0.18][f]
+    for f in range(10):
+        if f < 2:   # 蓄势：脚下暗圈收紧
+            r = R * [0.26, 0.18][f]
             n = int(2 * math.pi * r * 1.2) + 4
             for i in range(n):
                 a = 2 * math.pi * i / n
-                gd.gput(f, r * math.cos(a), r * math.sin(a) * SY, M["m2"] if f == 2 else M["d2"])
+                gd.gput(f, r * math.cos(a), r * math.sin(a) * SY, M["m2"] if f == 1 else M["d2"])
             continue
-        r = R * [0.35, 0.62, 0.84, 0.97, 1.0, 1.0, 1.0, 1.0, 1.0][f - 3]
+        r = R * [0.45, 0.7, 0.88, 0.98, 1.0, 1.0, 1.0, 1.0][f - 2]
         n = int(2 * math.pi * r * 1.3)
         for i in range(n):
             a = 2 * math.pi * i / n
             gx, gy = r * math.cos(a), r * math.sin(a) * SY
-            if f <= 6:
-                gd.gput(f, gx, gy, M["h"] if f == 3 else (M["f"] if f <= 5 else M["m2"]))
-                for k in (1, 2):
-                    gd.gput(f, gx * (r - k) / r, gy * (r - k) / r, M["d1"] if k == 1 else M["k"], 220)
-            elif (i + f) % (f - 5) == 0:
-                gd.gput(f, gx, gy, M["d2"] if f < 10 else M["d1"], 200 if f < 10 else 110)
-        # 焦心：中心一摊暗斑
-        rc = 9 if big else 6
+            if f <= 5:
+                gd.gput(f, gx, gy, M["h"] if f == 2 else (M["f"] if f <= 4 else M["m2"]))
+                for k in (1, 2, 3):
+                    if k == 3 and f > 3:
+                        continue
+                    gd.gput(f, gx * (r - k) / r, gy * (r - k) / r, M["m1"] if k == 1 else (M["d1"] if k == 2 else M["k"]), 220)
+            elif (i + f) % (f - 4) == 0:
+                gd.gput(f, gx, gy, M["d2"] if f < 8 else M["d1"], 200 if f < 8 else 110)
+        rc = 10 if big else 6   # 焦心
         for yy in range(-rc, rc + 1):
             for xx in range(-rc, rc + 1):
                 if xx * xx + (yy / SY) ** 2 <= rc * rc and (xx * 3 + yy * 7 + f) % 5 != 0:
-                    gd.gput(f, xx, yy, M["k"], max(0, 200 - (f - 3) * 20), over=False)
+                    gd.gput(f, xx, yy, M["k"], max(0, 200 - (f - 2) * 22), over=False)
+                    if f <= 4 and (xx * 7 + yy * 3 + f) % 11 == 0:
+                        gd.gput(f, xx, yy, M["m2"])
+    return up, gd
+
+
+def rebuild():
+    """不毁重构（Mon3tr 身上，用户 11-05「不毁重构的特效有点太不明显」）：炸散的碎片往本体回收 →
+    骨架线（脊 + 四对肋）从下往上一段段亮起 → 合拢一闪 → 熄。14 拍，红色组，2 像素粗，1 倍下读得清。"""
+    up = Strip(14, 84, 70, 42, 60)
+    gd = Strip(14, 84, 40, 42, 20)
+    rnd = random.Random(21)
+    frag = [(rnd.uniform(0, 2 * math.pi), rnd.uniform(26, 36), rnd.uniform(0, 14)) for _ in range(12)]
+    cz = 22      # 本体中心高度
+    bones = []   # 骨架：脊（竖）+ 四对肋（从脊往两侧弯下）；第三项 = 亮起顺序
+    for y in range(6, 42):
+        bones.append((0, y, (y - 6) / 36.0 * 0.3))
+    for j, y0 in enumerate((16, 22, 28, 34)):
+        L = [9, 12, 12, 9][j]
+        for i in range(1, L + 1):
+            u = i / L
+            for sgn in (1, -1):
+                bones.append((sgn * i, y0 - 4 * u * u, 0.3 + j * 0.16 + u * 0.1))
+    for f in range(14):
+        if f <= 6:   # 碎片回收：从外圈飞向本体中心（带拖尾），到本体时变热白
+            t = min(1.0, f / 6.0)
+            e = t * t * (3 - 2 * t)
+            for (a, d0, z0) in frag:
+                d = d0 * (1 - e)
+                gx, gy = d * math.cos(a), d * math.sin(a) * SY
+                z = z0 + (cz - z0) * e
+                c = M["h"] if f >= 5 else (M["f"] if f >= 2 else M["m2"])
+                for (dx, dz) in ((0, 0), (1, 0), (0, 1), (1, 1)):
+                    up.gput(f, gx + dx, gy, c, lift=z + dz)
+                if f >= 1:
+                    for q in (3, 4):
+                        tg = d + q
+                        up.gput(f, tg * math.cos(a), tg * math.sin(a) * SY, M["m1"], lift=z, over=False)
+                if f <= 1:
+                    gd.gput(f, gx, gy, M["k"], 180)
+        if f >= 4:   # 骨架一段段亮起（f4–10），合拢一闪（f11），熄（f12–13）
+            lit = min(1.0, (f - 4) / 6.0)
+            for (x, y, o) in bones:
+                if o > lit + 1e-6:
+                    continue
+                fresh = lit - o < 0.18
+                if f <= 10:
+                    c = M["w"] if fresh else M["f"]
+                elif f == 11:
+                    c = M["w"]
+                elif f == 12:
+                    c = M["m2"]
+                else:
+                    if (x + int(y)) % 2:
+                        continue
+                    c = M["m1"]
+                up.gput(f, x, 0, c, lift=y)
+                up.gput(f, x, 0, M["m1"] if f <= 11 else M["d2"], lift=y - 1, over=False)
+                if x == 0:
+                    up.gput(f, 1, 0, c, lift=y)
+            if f == 11:
+                for yy in range(-5, 6):
+                    for xx in range(-5, 6):
+                        d = math.hypot(xx, yy)
+                        if d <= 5:
+                            up.gput(f, xx, 0, M["w"] if d < 3 else M["h"], lift=cz + yy)
+        # 地面：回收时一圈收紧的暗红环，合拢时一圈亮环
+        if f <= 7 or f in (11, 12):
+            r = 34 * (1 - min(1.0, f / 7.0)) + 8
+            if f in (11, 12):
+                r = 20 if f == 11 else 26
+            n = int(2 * math.pi * r * 1.3)
+            for i in range(n):
+                a = 2 * math.pi * i / n
+                if f <= 7 and i % 3 == 0:
+                    continue
+                c = M["f"] if f == 11 else (M["m2"] if f <= 7 else M["m1"])
+                gd.gput(f, r * math.cos(a), r * math.sin(a) * SY, c)
     return up, gd
 
 
@@ -778,7 +880,7 @@ def main():
             up.save("claw_r%d_s%d_up" % (Rw, sw))
             g0.save("claw_r%d_s%d_gd" % (Rw, sw), emit_hot=False)
             g1.save("claw_r%d_s%d_gd1" % (Rw, sw), emit_hot=False)
-            mu, mg = melt_claw(Rw, sw)
+            mu, mg = red(melt_claw, Rw, sw)
             mu.save("mclaw_r%d_s%d_up" % (Rw, sw))
             mg.save("mclaw_r%d_s%d_gd" % (Rw, sw), emit_hot=False)
     u, g = spike()
@@ -805,21 +907,24 @@ def main():
     s2_cmd().save("s2cmd_up")
     s2_streaks().save("s2str_up")
     hex_ring(16, M["f"], M["m2"]).save("s2hex_gd", emit_hot=False)
-    u, g = s3_cast()
+    u, g = red(s3_cast)
     u.save("s3cast_up")
     g.save("s3cast_gd", emit_hot=False)
-    u, g = s3_aura()
+    u, g = red(s3_aura)
     u.save("s3aura_up")
     g.save("s3aura_gd", emit_hot=False)
     for Rw, big in ((130, True), (70, False)):
-        u, g = melt(Rw, big)
+        u, g = red(melt, Rw, big)
         u.save("melt_r%d_up" % Rw)
         g.save("melt_r%d_gd" % Rw, emit_hot=False)
     for Rw in (70, 87, 105, 130, 162, 195):
-        echo_ring(Rw).save("echo_r%d_gd" % Rw, emit_hot=False)
-    echo_spray().save("echo_up")
+        red(echo_ring, Rw).save("echo_r%d_gd" % Rw, emit_hot=False)
+    red(echo_spray).save("echo_up")
+    u, g = red(rebuild)
+    u.save("rebuild_up")
+    g.save("rebuild_gd", emit_hot=False)
     for Rw in (105, 130):
-        smolder(Rw).save("smol_r%d_gd" % Rw, emit_hot=False)
+        red(smolder, Rw).save("smol_r%d_gd" % Rw, emit_hot=False)
     for d in (-90, -45, 0, 45, 90):
         u, g = link(d)
         u.save("link_up_d%d" % d)

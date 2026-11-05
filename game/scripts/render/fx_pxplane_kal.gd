@@ -3,8 +3,8 @@
 ## 色：Mon3tr 攻击 = 黑 / 墨绿 / 荧光绿；治疗 = 骨白 + 薄荷（不用红，和攻击分开）。只画，不碰玩法与玩法随机数（颗粒走 g.vrng）。
 ## 招牌：普攻爪击 = 三道平行爪痕（精一 + 地上犁痕，精二 + 命中处黑晶刺）；治疗 = 缝合环（精一 + 头顶骨白十字，精二 + 下针光柱）；
 ##       扑击 = 交叉爪 + 四道地爪印；回防 / 护主 = 一圈黑骨刺破土；S1 = 骨肋合拢（精一 + 六角板，精二 + 头顶结扣）；
-##       S2 = 荧光指令符上升（精二 + 热流）；S3 = 竖直爆柱 → 熔毁爪（墨绿实心重月牙 + 熔滴）+ 身边热流 → 结束一枚墨绿结晶炸开；
-##       不毁重构 = 小结晶爆 + 回响环；余焰 = 淡边；连携「Mon3tr 掩护」= 朝敌一侧半圈骨刺墙 + 推波。
+##       S2 = 荧光指令符上升（精二 + 热流）；S3（红，用户 11-05 指定，和 Mon3tr 本体染红统一）= 竖直爆柱 → 熔毁爪（实心重月牙 + 熔滴）+ 身边热流 → 结束红色实心大爆团；
+##       不毁重构 = 小红爆 + 回响环 → Mon3tr 身上碎片回收、骨架一段段亮起合拢（+ 一盏照地光）；余焰 = 淡边；连携「Mon3tr 掩护」= 朝敌一侧半圈骨刺墙 + 推波。
 ## 旧做法对照（fx/px_plane = 2）凯尔希不接管（fx_pxplane.owns_id 返回 false），画面 = 当前游戏。
 extends RefCounted
 
@@ -34,8 +34,8 @@ static func _bucket(arr: Array, r: float) -> int:
 
 
 ## 一件：k 不带前缀；ly up / gd；fol = "m3" / "lead" / "" 跟谁走（存续期间按对方当前位置 + 偏移，每拍跳格）
-static func _put(r, o, k: String, at: Vector2, ly: String, fol := "", flip := false, sk := 0.0) -> void:
-	var it := {"k": "ka_" + k, "t0": r.g.t, "gp": r._snap(at), "flip": flip, "ly": ly, "oid": ID}
+static func _put(r, o, k: String, at: Vector2, ly: String, fol := "", flip := false, sk := 0.0, delay := 0.0) -> Dictionary:
+	var it := {"k": "ka_" + k, "t0": r.g.t + delay, "gp": r._snap(at), "flip": flip, "ly": ly, "oid": ID}
 	if sk != 0.0:
 		it["sk"] = sk
 	if fol == "m3":
@@ -45,6 +45,7 @@ static func _put(r, o, k: String, at: Vector2, ly: String, fol := "", flip := fa
 	elif fol == "lead":
 		it["kfl"] = at - r.g.ppos
 	r._push(it)
+	return it
 
 
 # ================================================================ 事件
@@ -67,7 +68,7 @@ static func ev(r, o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> v
 			if o.skill_active_left(2) > 0.0:   # S3 熔毁期间：墨绿实心重月牙 + 熔滴
 				_put(r, o, "mclaw_r%d_s%d_up" % [Rb, sw], at, "up", "m3", flip)
 				_put(r, o, "mclaw_r%d_s%d_gd" % [Rb, sw], at, "gd", "m3", flip)
-				_hit(r, o, R, p, es, "ember", 3, 110.0, 0.5)
+				_hit(r, o, R, p, es, "", 0, 110.0, 0.5, p.get("melt", p.light))   # 红色招式不撒颗粒（颗粒池按干员一套绿色）
 				return
 			_put(r, o, "claw_r%d_s%d_up" % [Rb, sw], at, "up", "m3", flip)
 			_put(r, o, "claw_r%d_s%d_%s" % [Rb, sw, "gd1" if t >= 1 else "gd"], at, "gd", "", flip)   # 犁痕落地不跟走
@@ -105,6 +106,10 @@ static func ev(r, o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> v
 		"skill":
 			var i: int = int(d.get("i", -1))
 			var s3 = _m3(o)
+			if i == 0 and s3 != null and "melt_triple" in o.taken:   # S1 分支「不毁重构」：三连爆之后 Mon3tr 身上碎片回收 + 骨架一段段亮起合拢（用户 11-05「太不明显」）
+				var rb := _put(r, o, "rebuild_up", s3.pos, "up", "m3", false, 2.0, 7.0 / 15.0)
+				rb["klit"] = true
+				_put(r, o, "rebuild_gd", s3.pos, "gd", "m3", false, 0.0, 7.0 / 15.0)
 			if i == 0 and g.ppos != Vector2.INF:   # S1 结构加固：队长身边骨肋合拢
 				_put(r, o, "s1rib_bk_up", g.ppos, "up", "lead", false, -3.0)
 				_put(r, o, "s1rib_fr2_up" if t >= 2 else "s1rib_fr_up", g.ppos, "up", "lead", false, 1.0)
@@ -119,7 +124,7 @@ static func ev(r, o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> v
 			elif i == 2 and s3 != null:   # S3 熔毁起手：竖直爆柱 + 焦环
 				_put(r, o, "s3cast_up", s3.pos, "up", "m3", false, 1.0)
 				_put(r, o, "s3cast_gd", s3.pos, "gd", "m3")
-				R._light(o, s3.pos + Vector2(0, -40), 130.0, 0.6, 0.15, p.light)
+				R._light(o, s3.pos + Vector2(0, -40), 130.0, 0.6, 0.15, p.get("melt", p.light))
 		"shape":
 			if not d.get("circle", false):
 				return
@@ -135,23 +140,18 @@ static func ev(r, o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> v
 			elif src.ends_with("熔毁"):
 				if "dot" in d.get("tags", []):   # 不毁重构·余焰：每跳一圈淡边 + 少量余烬
 					_put(r, o, "smol_r%d_gd" % (130 if rr >= 117.0 else 105), c, "gd")
-					if not es2.is_empty() and r.mode() == 1:
-						R._grains(o, es2[0].pos + Vector2(0, -8), float(es2[0].pos.y), "ember", 1, {"tier": t})
 					return
 				var last: float = float(o.get_meta("ka_melt_t", -9.0))
 				if g.t - last < 0.6:   # 三连爆的第 2 / 3 下：回响环 + 碎晶
 					_put(r, o, "echo_r%d_gd" % _bucket(ECHO_R, rr), c, "gd")
 					_put(r, o, "echo_up", c, "up", "", false, 3.0)
-					_hit(r, o, R, p, es2, "tri", 4, 150.0, 0.5)
+					_hit(r, o, R, p, es2, "", 0, 150.0, 0.5, p.get("melt", p.light))
 				else:   # 熔毁爆（S3 结束，大）/ 不毁重构 · 倒地重构（小）：一枚墨绿结晶炸开
 					o.set_meta("ka_melt_t", g.t)
 					var big: bool = rr >= 115.0
 					_put(r, o, "melt_r%d_up" % (130 if big else 70), c, "up", "", false, 3.0)
 					_put(r, o, "melt_r%d_gd" % (130 if big else 70), c, "gd")
-					if r.mode() == 1:
-						R._grains(o, c + Vector2(0, -24), c.y, "tri", 8 if big else 5, {"tier": t})
-						R._grains(o, c + Vector2(0, -24), c.y, "shard", 6 if big else 4, {"tier": 2})
-					R._light(o, c + Vector2(0, -20), 220.0 if big else 150.0, 0.9 if big else 0.6, 0.15, p.light)
+					R._light(o, c + Vector2(0, -20), 240.0 if big else 160.0, 1.0 if big else 0.65, 0.15, p.get("melt", p.light))   # 红色熔毁爆：碎晶在帧条里，不另撒颗粒
 		"kal_link":   # 连携「Mon3tr 掩护」（skill_link l_kaltsit）：朝敌一侧半圈骨刺墙 + 推波；队长身上治疗
 			var at3: Vector2 = d.get("at", o.pos)
 			var sd: Vector2 = d.get("side", Vector2.RIGHT)
@@ -174,14 +174,14 @@ static func ev(r, o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> v
 
 
 ## 命中：少量 Noita 颗粒（fx_recipe 颗粒池）+ 一盏照地短光；只在转平面版
-static func _hit(r, o, R, p: Dictionary, es: Array, mat: String, n: int, lr: float, li: float) -> void:
+static func _hit(r, o, R, p: Dictionary, es: Array, mat: String, n: int, lr: float, li: float, lc = null) -> void:
 	if r.mode() != 1 or es.is_empty():
 		return
 	var e: Dictionary = es[0]
 	var hp: Vector2 = e.pos + Vector2(0, -float(e.r) * 0.5)
 	if n > 0:
 		R._grains(o, hp, float(e.pos.y) + 2.0, mat, mini(n, 1 + es.size()), {"tier": r.tier(o)}, (hp - o.pos).normalized())
-	R._light(o, hp, lr, li * MI.lit_k(r.g), 0.12, p.light)
+	R._light(o, hp, lr, li * MI.lit_k(r.g), 0.12, p.light if lc == null else lc)
 
 
 # ================================================================ 绘制
@@ -210,6 +210,10 @@ static func floor_layer(r, o) -> void:
 	if s != null and o.skill_active_left(2) > 0.0:   # 熔毁期间 Mon3tr 脚下一圈淡环（循环，跟着走）
 		r._draw_strip(cv, "ka_s3aura_gd", r.frame_of(0.0), r._snap(s.pos), false, false)
 	for it in r.items:
+		if it.get("klit", false) and r.frame_of(float(it.t0)) >= 11:   # 不毁重构合拢那一拍：一盏照地光
+			it["klit"] = false
+			var R = load("res://scripts/render/fx_recipe.gd").of(r.g)
+			R._light(o, (it.gp as Vector2) + Vector2(0, -22), 150.0, 0.7, 0.15, R.pal(o).get("melt", Color(1.0, 0.42, 0.18)))
 		if str(it.ly) == "gd" and str(it.oid) == ID:
 			r._draw_strip(cv, str(it.k), r.frame_of(float(it.t0)), it.gp, it.flip, true)
 
