@@ -2299,7 +2299,7 @@
    "name": "阿卡胡拉饭碗",
    "original": "回复4目标生命，护盾值+2",
    "tier": "B",
-   "adapt": "回复 40% 最大生命，立即补满护盾",
+   "adapt": "护盾生成间隔 -20%（没有护盾时获得护盾），获得时补满护盾",
    "rarity": "基础",
    "lane": "survival",
    "first_batch": false,
