@@ -1015,7 +1015,10 @@ static func _step16(u, a: Dictionary) -> bool:
 				_beat(u)
 				a["shield0"] = int(u.g.shield)
 				u.g.shield = int(u.g.shield) + 1
-				if not LFB.sa_ground(u, c, r):
+				var pxo_sa: bool = Fxr.owns(p)   # 转平面（docs/269）：晶板护盾 + 钙化地面斑改由 fx_pxplane 画（只画）
+				if pxo_sa:
+					Fxr.ev(p, "sa_link", {"c": c, "r": r})
+				elif not LFB.sa_ground(u, c, r):
 					for j in 7:
 						var off: Vector2 = Vector2.from_angle(j * 2.39996) * r * (0.25 + 0.55 * fposmod(j * 0.618, 1.0))
 						u.shape({"kind": "ellipse", "c": c + off, "rx": 30.0, "ry": 13.0, "col": cl.darkened(0.35), "fill": 0.6, "layer": "back", "life": 1.6})
@@ -1023,7 +1026,7 @@ static func _step16(u, a: Dictionary) -> bool:
 				u.light(c, r, cl, 0.6)
 			if t < 1.5:
 				var hk: float = 1.0 if t < 1.2 else (1.5 - t) / 0.3
-				for j in 6:   # 队长身周一圈钙质护盾块
+				for j in (0 if Fxr.owns(p) else 6):   # 队长身周一圈钙质护盾块（转平面接管时由 fx_pxplane 画）
 					var sp: Vector2 = lp2 + Vector2(0, -16) + Vector2.from_angle(TAU * j / 6.0 + t) * 30.0
 					u.shape({"kind": "rock", "c": sp, "r": 6.0, "col": cl, "glow": Color(1.0, 0.92, 0.7), "seed": float(j), "fill": hk, "life": 0.04})
 				if int(t * 10.0) % 3 == 0:
