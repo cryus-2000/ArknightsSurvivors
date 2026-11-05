@@ -1655,20 +1655,23 @@ func _lg_sort_items(o, out: Array) -> void:
 			out.append({"lrt": "links", "l": lkk, "o": o, "gy": float((lkk.m[0] as Dictionary).pos.y) + 1.0})
 
 
-## 弧线弹道（只画面，11-05 第四轮用户「增加些投射的弧度」）：从 a 往上抛、弧线落到 b，s ∈ [0, 1]；判定与命中时间仍走玩法里的追踪弹位
-static func _lg_arc(a: Vector2, b: Vector2, s: float, lift: float) -> Vector2:
-	return a.lerp(b, s) + Vector2(0, -4.0 * lift * s * (1.0 - s))
+## 法术弹道（只画面）：第四轮的上抛弧被用户否了（11-05「不应该是迫击炮的感觉，而应该是法术投射的感觉」），
+## 改成贴着平面飞、只带一点侧向弯曲：一道浅弧（side 决定往哪边弯）加一点 S 形摆动，两端都落在 a / b 上，s ∈ [0, 1]；判定与命中时间仍走玩法里的追踪弹位
+static func _lg_arc(a: Vector2, b: Vector2, s: float, lift: float, side := 1.0) -> Vector2:
+	var d: Vector2 = b - a
+	var n := Vector2(-d.y, d.x).normalized() * side
+	return a.lerp(b, s) + n * (lift * sin(PI * s) + 0.3 * lift * sin(TAU * s))
 
 
 ## 沿弧线从弹头往回取墨尾的点（每点相隔约 1 美术像素），弹头在前
-func _lg_arc_path(a: Vector2, b: Vector2, u: float, n: int, lift: float) -> PackedVector2Array:
+func _lg_arc_path(a: Vector2, b: Vector2, u: float, n: int, lift: float, side := 1.0) -> PackedVector2Array:
 	var out := PackedVector2Array()
 	var ds: float = g.PX / maxf(8.0, a.distance_to(b) * 1.15)
 	for k in n + 1:
 		var s: float = u - float(k) * ds
 		if s < 0.0:
 			break
-		out.append(_lg_arc(a, b, s, lift))
+		out.append(_lg_arc(a, b, s, lift, side))
 	return out
 
 
@@ -1736,14 +1739,14 @@ func _lg_comet(ci, path: PackedVector2Array, t: int, al := 1.0, big := false, sd
 		if ph > 0.7:
 			for o4 in [Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]:
 				ci.draw_rect(Rect2(gp + o4 * px, Vector2(px, px)), Color(gc.r, gc.g, gc.b, al * 0.7))
-	if t >= 2:   # 精二：尾后一行细字
-		var tail: Vector2 = path[L]
-		var dvt: Vector2 = (path[maxi(0, L - 1)] - path[L]).normalized()
-		for k in 3:
-			var gp2: Vector2 = tail - dvt * float(5 + 6 * k) * px
-			var gc2: Color = LG_AC if (k + beat / 3) % 3 == 0 else LG_C[5]
-			gc2.a = al * (0.9 - 0.25 * k)
-			_lg_glyph(ci, gp2, k + beat / 3, gc2)
+	# 咒文残光（法术弹的拖尾感）：尾后几个细字一路变淡；精零 1 个暗字、精一 2 个、精二 3 个亮字（白 / 紫）
+	var tail: Vector2 = path[L]
+	var dvt: Vector2 = (path[maxi(0, L - 1)] - path[L]).normalized()
+	for k in t + 1:
+		var gp2: Vector2 = tail - dvt * float(5 + 6 * k) * px
+		var gc2: Color = (LG_AC if (k + beat / 3) % 3 == 0 else LG_C[5]) if t >= 2 else LG_C[3 + t]
+		gc2.a = al * (0.9 - 0.25 * k) * (1.0 if t >= 2 else 0.7)
+		_lg_glyph(ci, gp2, k + beat / 3 + sd, gc2)
 
 
 ## 运行时件
@@ -1766,18 +1769,19 @@ func _lg_draw_rt(ci, it: Dictionary) -> void:
 				u0 = maxf(float(bo.get("_pxu", 0.0)), clampf(1.0 - (bo.pos as Vector2).distance_to(bo.to) / d0, 0.0, 1.0))
 				bo["_pxu"] = u0
 			var tt: int = tier(o)
-			var lift: float = minf(56.0, a0.distance_to(bo.to) * 0.28)
-			_lg_comet(ci, _lg_arc_path(a0, bo.to, u0, LG_BOLT_LEN[tt], lift), tt, 1.0, false, int(bo.get("rune", 0)) & 1023)
+			var lift: float = minf(26.0, a0.distance_to(bo.to) * 0.12)
+			var sd0: int = int(bo.get("rune", 0)) & 1023
+			_lg_comet(ci, _lg_arc_path(a0, bo.to, u0, LG_BOLT_LEN[tt], lift, 1.0 if sd0 % 2 == 0 else -1.0), tt, 1.0, false, sd0)
 		"xbolt":
 			var xb: Dictionary = it.b
 			_lg_comet(ci, _lg_line_path((xb.p as Vector2) + Vector2(0, -16), (xb.v as Vector2).normalized(), 14), mini(1, tier(it.o)))
-		"vbolt":   # 咒域每跳 / 连携出手：从 a 往上抛、弧线落到 b，飞到即止
+		"vbolt":   # 咒域每跳 / 连携出手：贴着平面带一点侧弯飞到 b，飞到即止
 			var u: float = (g.t - float(it.t0)) / float(it.life)
 			if u < 0.0 or u > 1.0:
 				return
 			var big: bool = it.get("big", false)
-			var lift2: float = minf(48.0, (it.a as Vector2).distance_to(it.b) * 0.25)
-			_lg_comet(ci, _lg_arc_path(it.a, it.b, u, 36 if big else 24, lift2), int(it.tier), 1.0, big, int(it.get("side", 1.0) > 0.0))
+			var lift2: float = minf(24.0, (it.a as Vector2).distance_to(it.b) * 0.12)
+			_lg_comet(ci, _lg_arc_path(it.a, it.b, u, 36 if big else 24, lift2, float(it.get("side", 1.0))), int(it.tier), 1.0, big, int(it.get("side", 1.0) > 0.0))
 		"lock":   # 提喻：笔尖 → 目标一道蓝丝线 + 上方一行细字向目标流动；精一上下两行；精二字白紫相间、丝线成一串墨珠
 			var o2 = it.o
 			var lk: Dictionary = o2.hw.lock
