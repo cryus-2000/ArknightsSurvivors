@@ -19,6 +19,7 @@ from scipy import ndimage
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 H = 38                     # 目标高度（美术像素）= 76 世界像素
 CX, CZ = 30, 34            # 狮头中心相对脚底（美术像素）
+H_ULT, CZ_ULT = 92, 78     # 终结技大狮头：高 92 美术像素（184 世界），中心在落点正上方 78
 TONES = [(0xa8, 0x5e, 0x1a), (0xe0, 0x8e, 0x26), (0xff, 0xbf, 0x3c), (0xff, 0xe9, 0xa0)]   # 4 阶金（同 ak-siege-pp.js 熔金）
 OUTLINE = (0x2c, 0x16, 0x0a)
 DEEP = (0x55, 0x2a, 0x10)  # 口里 / 源图深线
@@ -92,13 +93,16 @@ def dissolve(rgba, amt, seed):
     return out
 
 
-def build(src, el):
+def build(src, el, ult=False):
     mask, luma = load(src)
     scales = [0.7, 0.88, 1.0, 1.0, 1.0, 1.0, 1.0]
     dis = [0, 0, 0, 0, 0.35, 0.62, 0.86]
+    if ult:   # 终结技大狮头（docs/264 §10）：从坑里吼起来、停得久一点再散
+        scales = [0.55, 0.75, 0.9, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+        dis = [0, 0, 0, 0, 0, 0, 0.25, 0.5, 0.72, 0.9]
     frames = []
     for f, (sc, dv) in enumerate(zip(scales, dis)):
-        inside, idx = pixelize(mask, luma, max(6, int(round(H * sc))))
+        inside, idx = pixelize(mask, luma, max(6, int(round((H_ULT if ult else H) * sc))))
         fr = render(inside, idx, el, f)
         if dv > 0:
             fr = dissolve(fr, dv, 7 + f)
@@ -122,7 +126,8 @@ def build(src, el):
                 pts.append([int(px[j] + ox), int(py[j] + oy), "%02x%02x%02x" % (r, g, b)])
         emit.append(pts)
     # 原点 = 脚底：狮头中心（W/2, HH/2）在脚底右 CX、上 CZ
-    meta = {"n": len(frames), "fps": 15, "w": W, "h": HH, "ox": int(W // 2 - CX), "oy": int(HH // 2 + CZ), "loop": False, "emit": emit}
+    cx, cz = (0, CZ_ULT) if ult else (CX, CZ)
+    meta = {"n": len(frames), "fps": 15, "w": W, "h": HH, "ox": int(W // 2 - cx), "oy": int(HH // 2 + cz), "loop": False, "emit": emit}
     return strip, meta, frames
 
 
@@ -142,6 +147,17 @@ def main():
         if el == 2:
             big = frames
         print("sg_lion_e%d_up" % el, meta["n"], "帧", meta["w"], "x", meta["h"])
+    um = os.path.join(ROOT, "game", "data", "pxp_siege_ult.json")   # 终结技大狮头（精二配色）
+    if os.path.exists(um):
+        ur = json.load(open(um, encoding="utf-8"))
+        strip, meta, _ = build(a.src, 2, True)
+        Image.fromarray(strip, "RGBA").save(os.path.join(ROOT, "game", "art", "fx", "pxp", "pxp_sg_ult_lion_up.png"), optimize=True)
+        ur["sg_ult_lion_up"] = meta
+        d2 = ur.pop("_doc", "")
+        ur = {k: ur[k] for k in sorted(ur)}
+        ur["_doc"] = d2
+        json.dump(ur, open(um, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+        print("sg_ult_lion_up", meta["n"], "帧", meta["w"], "x", meta["h"])
     doc = reg.pop("_doc", "")
     reg = {k: reg[k] for k in sorted(reg)}
     reg["_doc"] = doc

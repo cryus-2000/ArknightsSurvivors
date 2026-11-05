@@ -26,6 +26,7 @@ OPS = {
     "skadi": ("water/ak-skadi-pp", "pxp_skadi.json", "", [(0x5f, 0xf0)]),
     "hoshiguma": ("melee/ak-hoshiguma-pp", "pxp_hoshiguma.json", "hsg_", [(0xf2, 0xbf)]),
     "siege": ("melee/ak-siege-pp", "pxp_siege.json", "sg_", [(0xff, 0xf1)]),
+    "siege_ult": ("melee/ak-siege-ult-pp", "pxp_siege_ult.json", "sg_", [(0xff, 0xf1)]),   # 推进之王终结技（docs/264 §10，ult/px_plane）
     "mizuki": ("water/ak-mizuki-pp", "pxp_mizuki.json", "mz_", [(0xb9, 0x8c), (0x6f, 0xe8), (0xc4, 0xf7)]),
 }
 TMP = os.path.join(ROOT, "build", "pxp_bake")
@@ -275,7 +276,17 @@ def variants_mizuki():
     return v
 
 
-VARIANTS = {"skadi": variants_skadi, "hoshiguma": variants_hoshiguma, "siege": variants_siege, "mizuki": variants_mizuki}
+def variants_siege_ult():
+    """推进之王终结技（docs/264 §10）：判定半径 ult/sg_r 540 → 270 美术像素（再跃路线 506 → 253，同一张）"""
+    return [
+        ("ult_warn_gd", {"part": "warn", "layer": "gd", "R": 270, "seed": 31}, 0.6),
+        ("ult_charge_up", {"part": "charge", "layer": "up", "seed": 33}, 0.6),
+        ("ult_smash_up", {"part": "smash", "layer": "up", "R": 270, "seed": 35}, 1.1),
+        ("ult_smash_gd", {"part": "smash", "layer": "gd", "R": 270, "seed": 35}, 1.5),
+    ]
+
+
+VARIANTS = {"skadi": variants_skadi, "hoshiguma": variants_hoshiguma, "siege": variants_siege, "mizuki": variants_mizuki, "siege_ult": variants_siege_ult}
 FX_ID = "water/ak-skadi-pp"
 PREFIX = ""
 ACC_RG = [(0x5f, 0xf0)]
@@ -362,12 +373,14 @@ def main():
     OUT_META = os.path.join(ROOT, "game", "data", meta_name)
     sub, fn = FX_ID.split("/")
     shutil.copy(os.path.join(ROOT, "tools", "pixelfx_fx", sub, fn + ".js"), os.path.join(PFX, "src", "fx", sub, fn + ".js"))
+    if a.op == "siege_ult":   # 终结技文件 import 了推进之王的画法文件
+        shutil.copy(os.path.join(ROOT, "tools", "pixelfx_fx", sub, "ak-siege-pp.js"), os.path.join(PFX, "src", "fx", sub, "ak-siege-pp.js"))
     os.makedirs(OUT_ART, exist_ok=True)
     os.makedirs(TMP, exist_ok=True)
     vs = [x for x in VARIANTS[a.op]() if x[0].startswith(a.only)]
     reg = json.load(open(OUT_META, encoding="utf-8")) if os.path.exists(OUT_META) else {}
     if not a.only:   # 全量重烘：清掉旧件，只留不由本脚本生成的（推进之王狮头 sg_lion_*，tools/pxplane_lion.py）
-        reg = {k: v for k, v in reg.items() if k.startswith("sg_lion_")}
+        reg = {k: v for k, v in reg.items() if "lion" in k}
     with ThreadPoolExecutor(a.jobs) as ex:
         rs = list(ex.map(lambda x: render(*x), vs))
     for key, d, dur, lp in rs:
@@ -378,7 +391,7 @@ def main():
         reg[PREFIX + k] = m
         print("%-22s %2d 帧 %3d×%3d emit %d" % (k, m["n"], m["w"], m["h"], max((len(e) for e in m["emit"]), default=0)))
     reg = {k: reg[k] for k in sorted(reg)}
-    reg["_doc"] = {"hoshiguma": "docs/254 星熊", "siege": "docs/264 推进之王", "mizuki": "docs/261 水月"}.get(a.op, "docs/246 斯卡蒂") + "转平面帧条（tools/pxplane_bake.py 生成，勿手改）：n 帧数、fps、w×h 帧尺寸（美术像素）、ox / oy 原点（脚底地面点）、loop、emit 每帧热芯点 [x, y, 颜色]"
+    reg["_doc"] = {"hoshiguma": "docs/254 星熊", "siege": "docs/264 推进之王", "mizuki": "docs/261 水月", "siege_ult": "docs/264 §10 推进之王终结技"}.get(a.op, "docs/246 斯卡蒂") + "转平面帧条（tools/pxplane_bake.py 生成，勿手改）：n 帧数、fps、w×h 帧尺寸（美术像素）、ox / oy 原点（脚底地面点）、loop、emit 每帧热芯点 [x, y, 颜色]"
     json.dump(reg, open(OUT_META, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     print("共 %d 件" % (len(reg) - 1))
 

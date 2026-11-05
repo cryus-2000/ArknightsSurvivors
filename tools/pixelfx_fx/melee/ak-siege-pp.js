@@ -82,7 +82,8 @@ function arc(p, t, o, C, ACC) {
 }
 
 // ---------------------------------------------------------------- 分叉裂网（裂地 v3：不规整、分叉、近落点宽）
-function crackPaths(o, R, N, sd, fwd, spread) {
+function crackPaths(o, R, N, sd, fwd, spread, wig) {
+  const wg = wig === undefined ? 1 : wig / 0.36;   // 弯曲度（缺省同原来 0.36）；终结技大裂网用小一点，长裂缝才不会绕成一团
   const paths = [];
   for (let j = 0; j < N; j++) {
     let a = fwd === undefined ? TAU * (j + (nz(j * 1.7, sd + 701) - 0.5) * 0.7) / N : fwd + (j / Math.max(1, N - 1) - 0.5) * 2 * spread + (nz(j * 1.7, sd + 701) - 0.5) * 0.25;
@@ -90,7 +91,7 @@ function crackPaths(o, R, N, sd, fwd, spread) {
     const L = R * (0.5 + 0.45 * nz(j * 2.9, sd + 703));
     const pts = [[x, y, 0]];
     for (let s = 0; s < L; s += 1) {
-      a += (nz(s * 0.25 + j * 11, sd + 705) - 0.5) * 0.36;
+      a += (nz(s * 0.25 + j * 11, sd + 705) - 0.5) * 0.36 * wg;
       x += Math.cos(a); y += Math.sin(a);
       pts.push([x, y, s / L]);
     }
@@ -99,7 +100,7 @@ function crackPaths(o, R, N, sd, fwd, spread) {
       const k = Math.floor(pts.length * (0.3 + 0.35 * nz(j * 5.3, sd + 709)));
       let [bx, by] = pts[k], ba = a + (nz(j * 6.7, sd + 711) > 0.5 ? 0.85 : -0.85);
       const bp = [[bx, by, pts[k][2]]], BL = L * (0.3 + 0.2 * nz(j, sd + 713));
-      for (let s2 = 0; s2 < BL; s2++) { ba += (nz(s2 * 0.3 + j * 7, sd + 715) - 0.5) * 0.4; bx += Math.cos(ba); by += Math.sin(ba); bp.push([bx, by, pts[k][2] + s2 / L]); }
+      for (let s2 = 0; s2 < BL; s2++) { ba += (nz(s2 * 0.3 + j * 7, sd + 715) - 0.5) * 0.4 * wg; bx += Math.cos(ba); by += Math.sin(ba); bp.push([bx, by, pts[k][2] + s2 / L]); }
       paths.push(bp);
     }
   }
@@ -902,3 +903,6 @@ export function draw(p, t, o) {
     case "link": return gd ? linkGd(p, t, o, C, ACC, DU) : linkUp(p, t, o, C, ACC, ST, DU);
   }
 }
+
+// 终结技（ak-siege-ult-pp.js，画幅更大）复用这些画法
+export { nz, crackPaths, drawCracks, crater, ring, streaks, rubble, dustWall, flash, spatter, roarRings, radialCracks, dustWave, pillar };
