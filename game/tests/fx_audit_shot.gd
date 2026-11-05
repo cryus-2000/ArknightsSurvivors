@@ -116,6 +116,22 @@ func _probe() -> String:
 	var gts: Array = []
 	for k2 in gtn:
 		gts.append("%s:%d" % [k2, gtn[k2]])
+	var lz := {}   # 场上的激光件 / 颗粒化帧条（查 slash 颗粒来源，docs/262 §10）
+	if "fx" in g and g.fx is Array:
+		for f in g.fx:
+			var fk: String = str(f.get("kind", ""))
+			if fk in ["beam", "bbeam", "tracer"]:
+				lz[fk] = int(lz.get(fk, 0)) + 1
+			elif fk == "sprite" and str(f.get("name", "")) == "fx_slash_heavy_deep":
+				lz["shd"] = int(lz.get("shd", 0)) + 1
+	if "squad" in g and g.squad != null:
+		for o2 in g.squad.ops:
+			lz["op_" + str(o2.id)] = 1
+			for f2 in o2.get("pfx") if o2.get("pfx") is Array else []:
+				if str(f2.get("kind", "")) == "line" and f2.get("laser", false):
+					lz["lzline_" + str(o2.id)] = int(lz.get("lzline_" + str(o2.id), 0)) + 1
+	for k3 in lz:
+		gts.append("%s:%d" % [k3, lz[k3]])
 	return "FXA %d %.3f new=%s life=%.2f sz=%.1f alive=%d L=%s gr=%d gnew=%d sp=%d gl=%d glow=%d emit=%d gt=%s" % [
 		Engine.get_process_frames(), float(g.t), ",".join(ns) if ns.size() else "-", lsum / maxf(1, nn), ssum / maxf(1, nn), alive,
 		";".join(ls) if ls.size() else "-", gr, gnew, sp, gl, glow, emit, ",".join(gts) if gts.size() else "-"]

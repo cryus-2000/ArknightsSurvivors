@@ -127,8 +127,9 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 			if _beat_n(o, "hl") < 2:   # 命中照地：亮度压过受击闪色
 				var big: bool = m2 != "n" and m2 != "s2"
 				R._light(o, at, (80.0 if big else 65.0) + 12.0 * t, (0.6 if big else 0.5) + 0.08 * t, 0.1, p.light)
-				if m2 == "full" or m2 == "s3":
-					R._grains(o, at, float(e.pos.y) + 2.0, "ember", 2, {"tier": t}, d.get("v", Vector2.ZERO).normalized())
+			if _beat_n(o, "hg") == 0:   # 命中碎屑（Noita，docs/270 §3）：2–4 颗 4–6 px 金属碎屑往回溅、落地弹一下；每拍只给第一下，不刷屏
+				var ng: int = 2 + (1 if t >= 1 else 0) + (1 if m2 != "n" and m2 != "s2" else 0)
+				R._grains(o, at, float(e.pos.y) + 2.0, "rock", ng, {"tier": t}, -(d.get("v", Vector2.ZERO) as Vector2).normalized())
 		"exu_xhit":   # 后期额外弹 / 跳弹落点：小一号，每拍至多 3 团
 			if _beat_n(o, "xh") >= 3 or _live(o, "hit") >= HIT_LIVE:
 				return
