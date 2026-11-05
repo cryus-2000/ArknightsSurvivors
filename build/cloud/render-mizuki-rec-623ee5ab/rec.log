@@ -1,0 +1,5 @@
+('rec0_s11_480', 500, [], False)
+('rec1_s11_480', 500, [], False)
+录像 build/cloud/render-mizuki-rec-623ee5ab/media/late_8m00_onoff.mp4 600 帧 25.8 MB
+rec0_s11_480 vs rec1_s11_480：TRACE 500 / 500 行，逐行一致
+rec_rc=0
