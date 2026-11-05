@@ -1,0 +1,4 @@
+('rec0_s11_480', 500, [], False)
+('rec1_s11_480', 500, [], False)
+录像 build/cloud/render-kaltsit-rec/media/late_8m00_onoff.mp4 600 帧 46.0 MB
+rec0_s11_480 vs rec1_s11_480：TRACE 500 / 500 行，逐行一致
