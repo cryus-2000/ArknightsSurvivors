@@ -171,8 +171,9 @@ static func ev(r, o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dicti
 				var dv6: Vector2 = ((an6.land as Vector2) - (an6.S as Vector2)).normalized() if an6.has("S") and (an6.land as Vector2).distance_to(an6.S) > 1.0 else Vector2(o.face, 0)
 				_rt(r, o, "shatter", "up", 2.0 / 15.0 + 0.02, {"gp": c2, "gy": c2.y + 2.0, "dv": dv6, "t0": _beat_t0(g)})
 				var bt0: float = _beat_t0(g)   # 爆点第 1 帧（最亮）要占满一拍
-				_strip(r, o, "s3_up", c2, "up", false, {"t0": bt0})
-				_strip(r, o, "s3_gd", c2, "gd", false, {"t0": bt0})
+				var s3k: String = "s3_r%d" % _bucket(float(d.r) * 0.5, [70, 85])
+				_strip(r, o, s3k + "_up", c2, "up", false, {"t0": bt0})
+				_strip(r, o, s3k + "_gd", c2, "gd", false, {"t0": bt0})
 				_burst(r, o, R, p, c2, d.get("es", []), 14, 240.0, 0.75)
 			else:   # S1 钩不到人：锚原地砸
 				_trim_slams(r, o)
@@ -709,7 +710,7 @@ static func _telegraph(r, ci, o, an: Dictionary) -> void:
 	var px: float = g.PX
 	var dv: Vector2 = ((an.to as Vector2) - o.pos).normalized() if (an.to as Vector2).distance_to(o.pos) > 1.0 else Vector2(o.face, 0)
 	var c: Vector2 = an.get("land", (an.to as Vector2) - dv * 18.0)
-	var R: float = float(an.b.get("r", 140.0)) * o.stat(&"op_range") * 0.5   # 美术像素
+	var R: float = float(an.get("orca_r", an.b.get("r", 140.0))) * o.stat(&"op_range") * 0.5   # 美术像素（虎鲸范围 s3_orca_r，docs/266 §20）
 	var n: int = int(TAU * R / 2.0)
 	var beat: int = int(floor(g.t * 15.0))
 	for i in n:

@@ -840,7 +840,7 @@ def sc_s3():
     sc = Scene(2, 1.9, (150, -16))
     sc.ox = 70
     sc.oy, sc.h = 330, 420   # 鲸外框 200 世界像素、跃起 64：画框加高
-    to = (250, -24)
+    to = (205, -20)   # 落地半径 170：落点往里收，水爆整圈在画框内
     d = norm(to)
     t0 = 0.1
     tb = t0 + 0.22
@@ -854,8 +854,8 @@ def sc_s3():
     sc.items.append({"ly": "rt_up", "t0": t0, "gy": 1.5, "fn": lambda cv, T: draw_swing(cv, (0, 0), d, T - t0, T) if 0 <= T - t0 < 0.2 else None})   # 挥锚带水弧（短而急）
     bt = tl * 15
     t0b = (math.ceil(bt) if bt - math.floor(bt) > 0.5 else math.floor(bt)) / 15.0   # 同 fx_pxplane_ul._beat_t0
-    sc.strip("s3_up", t0b, land, "up")
-    sc.strip("s3_gd", t0b, land, "gd")
+    sc.strip("s3_r85_up", t0b, land, "up")   # 虎鲸范围 170（docs/266 §20）
+    sc.strip("s3_r85_gd", t0b, land, "gd")
     sc.items.append({"ly": "rt_up", "t0": t0b, "gy": land[1] + 3, "fn": lambda cv, T: shatter_fn(cv, T)})
     path_es = [(70, -6), (130, -14), (180, -18)]
     for p in path_es:   # 路径上：虎鲸经过时被撞开一点（画面上的轻击退近似）
@@ -901,7 +901,7 @@ def sc_s3():
         return fn
     for gi in (2, 1):
         sc.items.append({"ly": "rt_up", "t0": t0, "gy": -0.01 * gi, "fn": fn_g(gi), "gi": gi})
-    sc.items.append({"ly": "rt_gd", "t0": t0, "fn": lambda cv, T: telegraph(cv, land, 70, T) if t0 <= T < tl else None})
+    sc.items.append({"ly": "rt_gd", "t0": t0, "fn": lambda cv, T: telegraph(cv, land, 85, T) if t0 <= T < tl else None})
 
     def fn(cv, T):
         ps = pose(math.floor(T * 15 + 1e-6) / 15.0)

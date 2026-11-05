@@ -257,6 +257,9 @@ static func hw_tether_start(o, b: Dictionary) -> void:
 	h.anchor.from = _hw_hand(o)
 	if b.has("path_w") and orca_on(o):
 		h.anchor["orca"] = true
+		if MfBal.v("operators/ulpianus/s3_orca_big", 1.0) > 0.0:   # 虎鲸范围（docs/266 §20，11-05 用户「虎鲸的技能范围是不是也有点小了」）：落地 s3_orca_r、路径宽 s3_orca_w；0 = 回到 s3_r / s3_path_w
+			h.anchor["orca_r"] = o.base("s3_orca_r", float(b.get("r", 90.0)))
+			h.anchor["orca_w"] = o.base("s3_orca_w", float(b.get("path_w", 50.0)))
 		_FXR.ev(o, "ul_breach", {"from": o.pos, "to": to})   # 转平面（docs/266 §8）：虎鲸破水，只画
 
 
@@ -396,7 +399,7 @@ static func _hw_orca_launch(o, an: Dictionary, to: Vector2, dir: Vector2) -> voi
 static func _hw_charge_sweep(o, an: Dictionary, a: Vector2, c: Vector2) -> void:
 	var g = o.g
 	var b: Dictionary = an.b
-	var w: float = float(b.get("path_w", 50.0))
+	var w: float = float(an.get("orca_w", b.get("path_w", 50.0)))
 	var seg: Vector2 = c - a
 	var L: float = seg.length()
 	if L < 0.01:
@@ -533,7 +536,7 @@ static func _hw_zip_land(o) -> void:
 	var an: Dictionary = h.anchor
 	var b: Dictionary = an.b
 	var c: Vector2 = an.land
-	var r: float = float(b.get("r", 90.0)) * o.stat(&"op_range")
+	var r: float = float(an.get("orca_r", b.get("r", 90.0))) * o.stat(&"op_range")
 	var dmg: float = o.base(str(b.get("atk_key", "atk")), 0.0) * float(b.get("mult", 1.0)) * o._dmg_bonus() * o.skill_power()
 	var src: String = str(b.get("src", ""))
 	var sb: float = float(b.get("stun_boss", 0.5))

@@ -567,8 +567,9 @@ def variants():
             v.append(("s1_r%d_e%d_gd" % (R, el), "splat", {"R": R, "tier": el, "pull": 0.0, "seed": 73 + R}, 9, "gd"))
     # S2 锁链界限：运行时画（fx_pxplane_ul._ring，会转），没有帧条
     # S3 落地（s3_r 140 → 70）
-    v.append(("s3_up", "s3up", {"R": 70, "H": 40, "seed": 91}, 8, "up"))
-    v.append(("s3_gd", "s3gd", {"R": 70, "seed": 91}, 15, "gd"))
+    for R in (70, 85):   # s3_r 140 / 虎鲸范围 s3_orca_r 170（docs/266 §20）
+        v.append(("s3_r%d_up" % R, "s3up", {"R": R, "H": 40, "seed": 91}, 8, "up"))
+        v.append(("s3_r%d_gd" % R, "s3gd", {"R": R, "seed": 91}, 15, "gd"))
     # 连携掷锚钉下（拖 180 内的小怪 → 90）
     v.append(("pin_gd", "inward", {"R": 90, "seed": 97}, 10, "gd"))
     return v

@@ -2,15 +2,15 @@
 
 importer="texture"
 type="CompressedTexture2D"
-path="res://.godot/imported/pxp_ul_s3_gd.png-0af170a696ab0332d3f1008a17976bcc.ctex"
+path="res://.godot/imported/pxp_ul_s3_r70_gd.png-0f7bf13be27a932a5b8bed9e18104ffa.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/fx/pxp/pxp_ul_s3_gd.png"
-dest_files=["res://.godot/imported/pxp_ul_s3_gd.png-0af170a696ab0332d3f1008a17976bcc.ctex"]
+source_file="res://art/fx/pxp/pxp_ul_s3_r70_gd.png"
+dest_files=["res://.godot/imported/pxp_ul_s3_r70_gd.png-0f7bf13be27a932a5b8bed9e18104ffa.ctex"]
 
 [params]
 
