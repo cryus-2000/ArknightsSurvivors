@@ -273,11 +273,15 @@ func _step() -> void:
 	var now: float = g.t
 	items = items.filter(func(it): return now - float(it.t0) < _life(str(it.k)) + 0.02)
 	var tk: int = int(floor(g.t * 15.0))
-	if g.ppos != Vector2.INF and tk != _fol_tick:   # 跟着队长走的件（举盾）：位置每拍（15 fps）跳一格，对齐美术像素格
+	if tk != _fol_tick:   # 跟人走的件：位置每拍（15 fps）跳一格，对齐美术像素格
 		_fol_tick = tk
 		for it in items:
-			if it.has("fol"):
+			if it.has("fol") and g.ppos != Vector2.INF:   # 举盾：跟着队长
 				it.gp = _snap(g.ppos + (it.fol as Vector2))
+			elif it.get("fop", false):   # 星熊挂在身上的件（月牙刀痕、下劈弧、力之锯起手弧）：存续期间跟着出手的干员（11-05 用户实机「斩击不跟着人走」）
+				var op = _op_by_id(str(it.oid))
+				if op != null and op.pos != Vector2.INF:
+					it.gp = _snap(op.pos)
 
 
 func _life(k: String) -> float:
@@ -554,7 +558,7 @@ func _ev_hsg(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary
 							_push({"k": "hsg_raw_slam_e%d" % t, "t0": g.t, "gp": c, "ly": "raw", "rot": 0.0, "sc": g.PX * (r * 0.5) / 75.0, "oid": str(o.id)})
 						else:
 							var sk: String = "hsg_slam_r%d_e%d" % [_bucket(r * 0.5, [75, 95]), t]
-							_push({"k": sk + "_up", "t0": g.t, "gp": _snap(c), "flip": fl, "ly": "up", "oid": str(o.id)})
+							_push({"k": sk + "_up", "t0": g.t, "gp": _snap(c), "flip": fl, "ly": "up", "oid": str(o.id), "fop": true})   # 下劈弧跟人；裂网冲击环（_gd）是落在地上的，留在原地
 							_push({"k": sk + "_gd", "t0": g.t, "gp": _snap(c), "flip": fl, "ly": "gd", "oid": str(o.id)})
 						_cuts(o, es, t, 4)
 						_burst_m(o, R, p, c + Vector2(-30.0 if fl else 30.0, -6), c.y + 2.0, es, 8 + 3 * t, "rock", 200.0, 0.8)
@@ -570,6 +574,8 @@ func _ev_hsg(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary
 			var r2: float = float(d.get("r", 94.0))
 			var dv2 := Vector2.from_angle(ang2)
 			_add(o, "hsg_sweep_r%d_e%d" % [_bucket(r2 * 0.5, [47, 56, 66]), t], o.pos, ang2, r2, raw, "hsg_raw_sweep_e%d" % t, 47.0)
+			if not raw:
+				_follow_last(o, 2)   # 刀痕（立起 + 投影）跟着星熊走
 			_cuts(o, es, t, 2)
 			_burst_m(o, R, p, o.pos + dv2 * r2 * 0.6 + Vector2(0, -12), o.pos.y + dv2.y * r2 * 0.6 * 0.72, es, 2 + t, "shard" if t >= 1 else "rock", 90.0, 0.35)
 		"cover":   # 技能连携 v2「举盾」：队长身侧立起鬼面大盾 1.5 秒（盾跟着队长走：fol = 相对队长的偏移）
@@ -616,7 +622,7 @@ func _ev_hsg(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary
 				if raw:
 					_push({"k": "hsg_raw_slam_e2", "t0": g.t, "gp": o.pos, "ly": "raw", "rot": 0.0, "sc": g.PX * 50.0 / 75.0, "oid": str(o.id)})
 				else:
-					_push({"k": "hsg_s3cast_up", "t0": g.t, "gp": _snap(o.pos), "flip": false, "ly": "up", "oid": str(o.id)})
+					_push({"k": "hsg_s3cast_up", "t0": g.t, "gp": _snap(o.pos), "flip": false, "ly": "up", "oid": str(o.id), "fop": true})   # 身边旋起的青绿弧跟人
 					_push({"k": "hsg_s3cast_gd", "t0": g.t, "gp": _snap(o.pos), "flip": false, "ly": "gd", "oid": str(o.id)})
 				if mode() == 1:
 					R._light(o, o.pos + Vector2(0, -20), 140.0, 0.6, 0.15, p.light)
@@ -745,3 +751,17 @@ func _qpos(q: Dictionary) -> Vector2:
 		c = [tick, q.p]
 		q["_pxq"] = c
 	return c[1]
+
+
+## 最后 n 件标成「跟着出手的干员走」（fop）
+func _follow_last(o, n: int) -> void:
+	for i in range(maxi(0, items.size() - n), items.size()):
+		if str(items[i].oid) == str(o.id):
+			items[i]["fop"] = true
+
+
+func _op_by_id(oid: String):
+	for m in g.squad.ops:
+		if str(m.id) == oid:
+			return m
+	return null
