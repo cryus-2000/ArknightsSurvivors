@@ -8,7 +8,7 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
-const IDS := {"skadi": Color(0.55, 0.78, 1.0), "hoshiguma": Color(1.0, 0.78, 0.42)}
+const IDS := {"skadi": Color(0.55, 0.78, 1.0), "hoshiguma": Color(1.0, 0.78, 0.42), "specter_unchained": Color(0.6, 0.85, 1.0)}   # 归溟幽灵鲨（docs/268）：锯刃环斩走 seg_specter._h3_spin 的钩子
 const HEAVY := {"迅捷打击·γ型": true, "跃浪击": true, "破浪下劈": true, "反手斩": false}
 const FLASH_T := 0.07
 

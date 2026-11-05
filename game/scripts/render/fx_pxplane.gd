@@ -1,4 +1,4 @@
-## pixelfx「转平面」试验（docs/246，11-05 用户「把 pixelfx 的二维平面转移到我们这个平面上来，再结合 Noita 特效」）：斯卡蒂（docs/246）、星熊（docs/254）、流明（docs/255）、艾雅法拉（docs/259），各自一节在文件末尾。
+## pixelfx「转平面」试验（docs/246，11-05 用户「把 pixelfx 的二维平面转移到我们这个平面上来，再结合 Noita 特效」）：斯卡蒂（docs/246）、星熊（docs/254）、流明（docs/255）、艾雅法拉（docs/259），各自一节在文件末尾；归溟幽灵鲨（docs/268）在 fx_pxplane_su.gd。
 ## 开关 fx/px_plane（balance.json，缺省 0 = 关）：1 = 转平面版，2 = 旧做法原样贴（对照用，重现之前的问题）。
 ## 借配方系统（fx_recipe.gd）的接管：开着时 Fxr.owns(斯卡蒂) 为真，她原来的刀光 / 帧条 / pfx / 命中颗粒只跳过绘制（玩法照旧，TRACE 逐行一致）；
 ## 事件由 fx_recipe._ev 转到这里，颗粒（Noita 水滴）和照地光走 fx_recipe 的颗粒池与灯光预算。
@@ -18,10 +18,11 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
-const METAS := {"res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_eyjafjalla.json": "ey_"}   # 帧条表 → 键前缀（星熊的键自带 hsg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
+const METAS := {"res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_eyjafjalla.json": "ey_", "res://data/pxp_specter_unchained.json": "su_"}   # 帧条表 → 键前缀（星熊的键自带 hsg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
 const MI = preload("res://scripts/render/melee_impact.gd")   # 近战打击感包（docs/246 §11）：斩痕 / 照地光提亮
 const ART := "res://art/fx/pxp/pxp_%s.png"
-const IDS := {"skadi": true, "hoshiguma": true, "lumen": true, "eyjafjalla": true}
+const IDS := {"skadi": true, "hoshiguma": true, "lumen": true, "eyjafjalla": true, "specter_unchained": true}
+const SU = preload("res://scripts/render/fx_pxplane_su.gd")   # 归溟幽灵鲨一节（docs/268）单独成文件
 ## 接管时仍照画的原 pfx 帧条（状态提示，不属于攻击特效）：星熊格挡闪光、反击架势盾沿光
 const KEEP_PFX := {"hoshiguma": {"fx_hoshiguma_block": true, "fx_hoshiguma_guard_glow": true}}
 const LM_C := [Color("#121a2a"), Color("#1d3150"), Color("#2a5282"), Color("#4285ad"), Color("#7fb2d6"), Color("#c4e0f2"), Color("#ffffff")]   # house.js OP.lumen 钢蓝 7 阶
@@ -143,6 +144,9 @@ func ev(o, kind: String, d: Dictionary) -> void:
 		return
 	if str(o.id) == "eyjafjalla":
 		_ev_ey(o, kind, d, raw, t, R, p)
+		return
+	if str(o.id) == "specter_unchained":
+		SU.ev(self, o, kind, d, raw, t, R, p)
 		return
 	match kind:
 		"shape":
@@ -389,6 +393,9 @@ func draw_floor(o) -> void:
 	if id == "eyjafjalla":
 		_ey_floor(o)
 		return
+	if id == "specter_unchained":
+		SU.floor_layer(self, o)
+		return
 	if o.skill_active_left(2) > 0.0:   # 涌潮悲歌持续期间：脚下一滩积水（循环，跟着人走）
 		_draw_strip(cv, "pool_gd", frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
 	for it in items:
@@ -402,6 +409,9 @@ func draw_floor(o) -> void:
 
 ## 上层（_draw_skill_over → fx_recipe.draw_over 转来）：旧做法（2）的整张贴图都画在这里（盖在所有单位上）
 func draw_over(o) -> void:
+	if str(o.id) == "specter_unchained":
+		SU.over(self, o)   # 火星、连携斩线；旧做法对照（2）的整张贴图
+		return
 	if str(o.id) == "lumen" and o.hw.has("lm"):
 		_sl()._h3lm_draw_units(o)   # 发光单元是本体附属物（不是攻击特效），接管时照画
 	if mode() != 2:
@@ -453,6 +463,9 @@ static func sort_items(game) -> Array:
 			if str(o.id) == "eyjafjalla":
 				r._ey_sort_items(o, out)
 				continue
+			if str(o.id) == "specter_unchained":
+				SU.sort_items(r, o, out)
+				continue
 			for w in r._waves(o):
 				out.append({"wave": w})
 			if str(o.id) == "skadi":   # 斯卡蒂剑气浪头（docs/246 §9）
@@ -468,6 +481,9 @@ static func sort_items(game) -> Array:
 
 static func draw_sorted(game, ci, it: Dictionary) -> void:
 	var r = game.get_meta("fx_pxplane")
+	if it.has("surt"):   # 归溟幽灵鲨运行时件（docs/268）
+		SU.draw_rt(r, ci, it)
+		return
 	if it.has("wave"):
 		var w: Array = it.wave
 		r._draw_strip(ci, w[0] + "_up_d%d" % w[3], r.frame_of(0.0), w[1], w[2], false)

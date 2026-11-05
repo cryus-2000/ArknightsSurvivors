@@ -96,6 +96,9 @@ static func _h3_spin(o, a: Dictionary, dmg: float, kind: int) -> void:
 	var rev: bool = (o.face < 0.0) != (kind == 1)
 	if kind == 2:
 		rev = (o.face < 0.0) != (int(sp.whirl_n) % 2 == 1)
+	_FXR.ev(o, "su_spin", {"kind": kind, "r": r, "heavy": heavy, "rev": rev, "es": hits})   # 转平面（docs/268）：锯环 / 火星，只画
+	if kind != 2:
+		_MI.hit(o, src, ["skill"] if heavy else [], hits)   # 近战打击感包（docs/246 §11）：只画；旋锯每 0.15 秒一段不加
 	var lk: Dictionary = a.get("look", {})
 	if kind == 2 or not o.spawn_fx_sprite(str(lk.get("blood", "fx_specter_saw_blood")) if heavy else str(lk.get("saw", "fx_specter_saw")), o.pos + Vector2(0, -6), r / 40.0, 0.0, rev):
 		o.fx({"kind": "h3_saw", "pos": o.pos + Vector2(0, -8), "r": r * (0.9 if kind == 2 else 1.0), "life": 0.3 if heavy else 0.24, "col": H3_RED if heavy else H3_GHOST,
@@ -200,6 +203,7 @@ static func h3_saw_echo(o, _b: Dictionary) -> void:
 	var a: Dictionary = o.B.get("attack", {})
 	var g = o.g
 	_h3_spin(o, a, _g202_sd(o, a), 0)
+	_FXR.ev(o, "su_echo", {})   # 转平面（docs/268）：只画
 	o.fx({"kind": "ring", "pos": o.pos + Vector2(0, 4), "r": h3_saw_r(o, a), "r0": 20.0, "life": 0.3, "col": Color(1.7, 0.4, 0.5), "floor": true, "w": 3.0, "alpha": 0.9})
 
 
@@ -297,6 +301,7 @@ static func _g202_whirl_end(o, a: Dictionary, sp: Dictionary) -> void:
 		o.deal_damage(e, d)
 		if not e.dead:
 			displace_one(o, e, o.pos, {"dir": "push", "dist": float(rs.get("push", 60.0)), "elite_mult": 0.5})
+	_FXR.ev(o, "su_quake", {"r": r})   # 转平面（docs/268）：只画
 	o.fx({"kind": "ring", "pos": o.pos + Vector2(0, 4), "r": r, "r0": r * 0.25, "life": 0.45, "col": Color(1.7, 0.4, 0.5), "floor": true, "w": 4.0, "alpha": 0.95})
 	o.fx({"kind": "ring", "pos": o.pos + Vector2(0, 4), "r": r * 0.7, "r0": r * 0.1, "life": 0.35, "col": H3_GHOST, "floor": true, "w": 2.5, "alpha": 0.8})
 	o.fx({"kind": "crack", "pos": o.pos + Vector2(0, 4), "r": r * 0.8, "life": 0.6, "col": H3_RED, "floor": true, "n": 8})
@@ -391,6 +396,7 @@ static func _h3_fall(o, sp: Dictionary) -> void:
 	sp.doll_at = 0.0
 	o.melee_tgt = null
 	o.float_text(o.pos + Vector2(0, -60), str(b.get("text", "替身")), H3_GHOST, 15)
+	_FXR.ev(o, "su_fall", {"at": sp.doll_pos})   # 转平面（docs/268）：只画
 	o.fx({"kind": "glow", "pos": o.pos + Vector2(0, -24), "r": 30.0, "life": 0.5, "col": H3_GHOST, "alpha": 0.6})
 	_h3_vsparks(o, o.pos + Vector2(0, -20), H3_GHOST, 10, 120.0, 0.5, 2.5)
 
@@ -450,6 +456,7 @@ static func _h3_doll_tick(o, sp: Dictionary, dt: float) -> void:
 					continue
 				o.log_hit(str(au.get("src", "")), au.get("tags", []))
 				o.deal_damage(e, float(au.get("dps", 10.0)) * o._dmg_bonus())
+			_FXR.ev(o, "su_dpulse", {"at": dp2, "r": r})   # 转平面（docs/268）：替身光环一圈，只画
 			if not o.spawn_fx_sprite("fx_circle_ghost", dp2 + Vector2(0, 4), g.PX * (r / 40.0)):
 				o.fx({"kind": "ring", "pos": dp2, "r": r, "r0": r * 0.6, "life": 0.5, "col": H3_GHOST, "floor": true, "alpha": 0.5, "keep": true})
 	if float(sp.doll_t) <= 0.0:
@@ -457,6 +464,7 @@ static func _h3_doll_tick(o, sp: Dictionary, dt: float) -> void:
 		o.pos = sp.doll_pos
 		sp.doll_pos = Vector2.INF
 		o.float_text(o.pos + Vector2(0, -60), str(b.get("back_text", "归队")), H3_GHOST, 14)
+		_FXR.ev(o, "su_back", {"at": o.pos})   # 转平面（docs/268）：只画
 		o.fx({"kind": "glow", "pos": o.pos + Vector2(0, -24), "r": 24.0, "life": 0.4, "col": H3_GHOST, "alpha": 0.5})
 		if o.is_leader:   # 队长：操控回到本体，回归要看得出来——替身碎成光尘、地面一圈冷光环
 			o.fx({"kind": "ring", "pos": o.pos + Vector2(0, 2), "r": 70.0, "r0": 12.0, "life": 0.5, "col": H3_GHOST, "floor": true, "w": 3.0, "alpha": 0.8})
@@ -735,6 +743,7 @@ static func h3_doll_flash(o, b: Dictionary) -> void:
 	var near: Array = o.nearest_enemies(1, rr, c)
 	var rev: bool = near[0].pos.x < c.x if not near.is_empty() else o.face < 0.0   # 替身朝最近的敌人（10-21：不再左右镜像旋身）
 	sp["flash"] = {"pos": c, "t": 0.0, "dmg": dmg, "hit": false, "b": b, "rev": rev}
+	_FXR.ev(o, "su_flash", {"c": c, "ap": float(b.get("appear", 0.25)), "sw": float(b.get("spin", 0.3))})   # 转平面（docs/268）：只画
 	var g = o.g
 	if not o.spawn_fx_sprite("fx_water_splash", c + Vector2(0, 4), g.PX, 0.0, false, true):
 		o.fx({"kind": "ring", "pos": c, "r": 26.0, "r0": 4.0, "life": 0.3, "col": H3_COLD, "floor": true, "w": 2.0})
@@ -757,8 +766,10 @@ static func _e3_flash_tick(o, sp: Dictionary, dt: float) -> void:
 		# 10-21 用户定：替身出手同浊心斯卡蒂普攻——以替身为心一圈法术脉冲，打圈内最近 max_n 个（Boss / 精英优先，area_hit → cap_targets）
 		var r: float = float(b.get("r", 100.0)) * o.stat(&"op_range")
 		var c: Vector2 = f.pos
-		for e in o.area_hit(str(b.get("src", "")), c, r, float(f.dmg), 0.0, 0.0, b.get("tags", []), int(b.get("max_n", 0))):
+		var fes: Array = o.area_hit(str(b.get("src", "")), c, r, float(f.dmg), 0.0, 0.0, b.get("tags", []), int(b.get("max_n", 0)))
+		for e in fes:
 			o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 8.0, "life": 0.15, "col": H3_COLD, "alpha": 0.5})
+		_FXR.ev(o, "su_fpulse", {"c": c, "r": r, "es": fes})   # 转平面（docs/268）：只画
 		o.fx({"kind": "ring", "pos": c, "r": r, "r0": r * (0.15 + 0.12 * k), "life": 0.36, "col": H3_COLD, "floor": true, "w": 3.0, "alpha": 0.95})   # 法术脉冲外扩（同浊心声浪的地面环）
 		o.fx({"kind": "ring", "pos": c, "r": r * 0.6, "r0": r * 0.08, "life": 0.28, "col": H3_GHOST, "floor": true, "w": 2.0, "alpha": 0.8})
 		_h3_sfx(o, "atk", -3.0, 1.2 + 0.08 * k, 0.06)
@@ -783,7 +794,7 @@ static func _e3_flash_draw(o) -> void:
 		var k: float = t / ap
 		var nm: String = str(b.get("appear_fx", "fx_specter_doll_appear"))
 		_e3_doll_phase(o, "doll_appear", p, f.rev, k)
-		if g.tex.get(nm) != null:
+		if g.tex.get(nm) != null and not _FXR.owns(o):   # 转平面（docs/268）接管时现身水花由 fx_pxplane 画
 			fx_frame(cv, g, nm, 5, mini(int(k * 5.0), 4), mid, g.PX, Color.WHITE)
 		elif o.anim_tex("doll_appear") == null:
 			_e3_doll_body(o, p, f.rev, Color(0.85, 0.92, 1.1, k), 0)
@@ -801,6 +812,8 @@ static func _e3_flash_draw(o) -> void:
 	var kb: float = clampf((t - ap - sw) / bu, 0.0, 1.0)
 	var nb: String = str(b.get("burst_fx", "fx_specter_doll_burst"))
 	_e3_doll_phase(o, "doll_vanish", p, f.rev, kb)
+	if _FXR.owns(o):
+		return   # 转平面（docs/268）接管时碎成泡沫由 fx_pxplane 画
 	if g.tex.get(nb) != null:
 		fx_frame(cv, g, nb, 6, mini(int(kb * 6.0), 5), mid, g.PX, Color.WHITE)
 	elif o.anim_tex("doll_vanish") == null:
