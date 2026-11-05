@@ -132,6 +132,7 @@ func open() -> void:
 	_build()
 	_restart_open()
 	_skip()   # 10-22 用户：进图鉴不要入场动效（卡片浮现 / 面板滑入），直接出现；换页、换干员的动效不变
+	logo_t0 = -100.0 if _still() else _now()   # 11-05 用户：先显示罗德岛标志再进图鉴（_draw_logo_intro）；减少动态效果时不播
 	_warm_demo()
 
 
@@ -927,6 +928,10 @@ var drag_acc := 0.0   # 触屏上下滑动翻页（没有滚轮）
 
 
 func _gui_input(event: InputEvent) -> void:
+	if logo_active() and ((event is InputEventMouseButton and event.pressed) or (event is InputEventScreenTouch and event.pressed) or (event is InputEventKey and event.pressed)):
+		_logo_skip()   # 标志入场中：点一下 / 按键直接进图鉴
+		accept_event()
+		return
 	if event is InputEventMouseMotion:
 		if tab == TAB_EVENT and (event.button_mask & MOUSE_BUTTON_MASK_LEFT) and ev_list_r.has_point(_design(event.position)):
 			ev_scroll = clampf(ev_scroll - event.relative.y / maxf(dk, 0.01), 0.0, ev_scroll_max)
@@ -1287,6 +1292,7 @@ func _draw() -> void:
 		_draw_panel(e, ph)
 	_draw_hint(ph)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	_draw_logo_intro()   # 罗德岛标志入场（盖在最上面，约 1.1 秒）
 
 
 ## 职业色斜带 + 延伸到右侧面板底下的回声带（同一扫入：换干员时新颜色从左扫过、透过磨砂玻璃也看得见）
@@ -2456,3 +2462,122 @@ func _ev_detail(e: Dictionary, ph: bool, x0: float, w: float, y: float, a: float
 		draw_rect(track, UI.fa(UI.C_L_INK, 0.15 * a))
 		var th: float = track.size.y * track.size.y / (track.size.y + ev_scroll_max)
 		draw_rect(Rect2(track.position.x - 1.0, y + (track.size.y - th) * ev_scroll / ev_scroll_max, 4.0, th), UI.fa(UI.C_L_INK, 0.6 * a))
+
+
+
+# ---------------------------------------------------------------- 入场：罗德岛标志（用户 11-05「图鉴页能不能先显示一个罗德岛的图表，然后再进入，增加一个动效」）
+## 标志按原作参照（build/ref_rhodes，不进 git / 包）自绘成矢量线稿：外三角 + 内细三角、城堡塔剪影、「RHODES ISLAND」字条；
+## 三角边上原作的小字简化成刻度点。白线 + 青色描光，同指挥台。时间线（真实秒，共 LOGO_T）：
+## 0–0.35 三角沿边描出 → 0.15–0.45 城堡从底部升起 → 0.3–0.6 字条细线展开、字逐个打出 → 0.45–0.8 下方「干员档案」小字 →
+## 0.8–1.1 标志缩小飞向左上角、暗幕退去露出图鉴。点击 / 按键跳过；减少动态效果时不播
+const LOGO_T := 1.1
+var logo_t0 := -100.0
+
+const _TOWER := [   # 右半边（x 向右、y 向下，单位 = 外接圆半径），左半边镜像；底边在 y = 0.22，字条在它下面、三角底边之内
+	[0.0, -0.58], [0.032, -0.58], [0.032, -0.52], [0.09, -0.52], [0.09, -0.58], [0.15, -0.58], [0.15, -0.44],
+	[0.115, -0.41], [0.098, -0.36], [0.09, -0.10], [0.125, 0.02], [0.19, 0.11], [0.27, 0.18], [0.27, 0.22], [0.0, 0.22],
+]
+
+
+func logo_active() -> bool:
+	return _now() - logo_t0 < LOGO_T
+
+
+func _logo_skip() -> void:
+	logo_t0 = -100.0
+
+
+func _logo_k(t: float, a: float, b: float) -> float:
+	return UIMo.out_cubic(clampf((t - a) / maxf(0.001, b - a), 0.0, 1.0))
+
+
+## 一条折线按长度画到 frac
+func _trace(pts: PackedVector2Array, frac: float, col: Color, w: float) -> void:
+	var total := 0.0
+	for i in pts.size() - 1:
+		total += pts[i].distance_to(pts[i + 1])
+	var left: float = total * clampf(frac, 0.0, 1.0)
+	for i in pts.size() - 1:
+		var seg: float = pts[i].distance_to(pts[i + 1])
+		if left <= 0.0:
+			break
+		var e: Vector2 = pts[i].lerp(pts[i + 1], minf(1.0, left / seg))
+		draw_line(pts[i], e, col, w, true)
+		left -= seg
+
+
+func _tri(c: Vector2, R: float) -> PackedVector2Array:
+	var p := PackedVector2Array()
+	for a in [-90.0, 30.0, 150.0, -90.0]:
+		p.append(c + Vector2.from_angle(deg_to_rad(a)) * R)
+	return p
+
+
+## 罗德岛标志（中心 c、外接圆半径 R）；k = [三角, 城堡, 字条, 全体透明度]
+func draw_rhodes_logo(c: Vector2, R: float, kt: float, kc: float, kx: float, a: float) -> void:
+	var W := Color(0.93, 0.935, 0.94, a)
+	var cy := Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.35 * a)
+	_trace(_tri(c, R * 1.04), kt, cy, 6.0)   # 青色描光（粗、淡）
+	_trace(_tri(c, R), kt, W, 2.5)
+	_trace(_tri(c, R * 0.88), _logo_k(kt, 0.25, 1.0), Color(W.r, W.g, W.b, 0.6 * a), 1.0)
+	# 三角两条上边：原作的小字简化成刻度点
+	if kt > 0.6:
+		var ta: float = (kt - 0.6) / 0.4
+		var tp: PackedVector2Array = _tri(c, R * 0.94)
+		for e in [[tp[2], tp[0]], [tp[0], tp[1]]]:
+			for j in range(3, 18):
+				var q: Vector2 = (e[0] as Vector2).lerp(e[1], j / 20.0)
+				draw_rect(Rect2(q - Vector2(0.8, 0.8), Vector2(1.6, 1.6)), Color(W.r, W.g, W.b, 0.45 * a * ta))
+	# 城堡塔：对称多边形，从底部升起（按 kc 纵向展开）
+	if kc > 0.05:   # 太扁时不画（多边形退化会三角剖分失败）
+		var pts := PackedVector2Array()
+		var base_y: float = c.y + 0.22 * R
+		for p in _TOWER:
+			pts.append(Vector2(c.x + float(p[0]) * R, base_y + (c.y + float(p[1]) * R - base_y) * kc))
+		for i in range(_TOWER.size() - 2, 0, -1):
+			var p2: Array = _TOWER[i]
+			pts.append(Vector2(c.x - float(p2[0]) * R, base_y + (c.y + float(p2[1]) * R - base_y) * kc))
+		draw_colored_polygon(pts, Color(W.r, W.g, W.b, a * kc))
+		# 塔身左侧一道暗缝（原作的明暗分界）
+		draw_line(Vector2(c.x - 0.025 * R, base_y - 0.5 * R * kc), Vector2(c.x - 0.045 * R, base_y - 0.04 * R), Color(0.02, 0.03, 0.04, 0.45 * a * kc), 1.5)
+	# 字条：上下两道细线从中间展开 + 字逐个打出
+	if kx > 0.0:
+		var hw: float = 0.6 * R * kx
+		for yy in [c.y + 0.27 * R, c.y + 0.42 * R]:
+			draw_line(Vector2(c.x - hw, yy), Vector2(c.x + hw, yy), W, 1.5)
+		var s := "RHODES ISLAND"
+		var n: int = int(ceil(s.length() * kx))
+		var f: Font = UI.latin()
+		var fs: int = int(round(0.105 * R))
+		var tw: float = f.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		draw_string(f, Vector2(c.x - tw / 2.0, c.y + 0.385 * R), s.substr(0, n), HORIZONTAL_ALIGNMENT_LEFT, -1, fs, W)
+
+
+func _draw_logo_intro() -> void:
+	var t: float = _now() - logo_t0
+	if t < 0.0 or t >= LOGO_T:
+		return
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	var vs: Vector2 = size
+	var out: float = _logo_k(t, 0.8, LOGO_T)
+	draw_rect(Rect2(Vector2.ZERO, vs), Color(0.008, 0.012, 0.018, 0.98 * (1.0 - out)))
+	var R0: float = minf(vs.x, vs.y) * 0.26
+	var c0: Vector2 = vs / 2.0 - Vector2(0, R0 * 0.15)
+	var c1 := Vector2(R0 * 0.32 + 24.0, R0 * 0.32 + 24.0)
+	var c: Vector2 = c0.lerp(c1, out)
+	var R: float = lerpf(R0, R0 * 0.22, out)
+	draw_rhodes_logo(c, R, _logo_k(t, 0.0, 0.35), _logo_k(t, 0.15, 0.45), _logo_k(t, 0.3, 0.6), 1.0 - out)
+	# 下方小字：等宽英文 + 中文，逐字打出
+	var kc: float = _logo_k(t, 0.45, 0.8)
+	if kc > 0.0 and out < 1.0:
+		var a: float = 1.0 - out
+		var en := "PRTS  //  OPERATOR ARCHIVE"
+		var ne: int = int(ceil(en.length() * kc))
+		var f: Font = UI.latin(true)
+		var fs: int = int(round(R0 * 0.075))
+		var tw: float = f.get_string_size(en, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		draw_string(f, Vector2(c0.x - tw / 2.0, c0.y + R0 * 0.95), en.substr(0, ne), HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(0.6, 0.63, 0.66, a))
+		var cn := "罗德岛 · 干员档案"
+		var fs2: int = int(round(R0 * 0.11))
+		var tw2: float = font.get_string_size(cn, HORIZONTAL_ALIGNMENT_LEFT, -1, fs2).x
+		draw_string(font, Vector2(c0.x - tw2 / 2.0, c0.y + R0 * 1.15), cn.substr(0, int(ceil(cn.length() * kc))), HORIZONTAL_ALIGNMENT_LEFT, -1, fs2, Color(0.93, 0.935, 0.94, a))
