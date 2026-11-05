@@ -915,7 +915,7 @@ static func tx_rift_update(o, dt: float) -> void:
 			var ext: float = len * float(b.get("scar_ext", 0.6))
 			var sw: float = float(b.get("sweep", 0.03))
 			var wm: float = 3.0 if last else 2.0
-			# 一刀一道（11-06 用户「S3 每一次斩击可以是更加明显的一道斩击，而不是多次斩击」，fx/texas_s3_single_slash，缺省 0）：
+			# 一刀一道（11-06 用户「S3 每一次斩击可以是更加明显的一道斩击，而不是多次斩击」，fx/texas_s3_single_slash，缺省 1）：
 			# 只画——不再叠只画不判的细斩线，主刀痕更长（外延 ×1.6）、更粗（4 格，末刀 5 格）、多留 0.08 秒；判定线 p0→p1 / 伤害 / 段数 / 出手时刻不动
 			var one: bool = MfBal.v("fx/texas_s3_single_slash", 0.0) > 0.0
 			if one:
@@ -988,7 +988,7 @@ static func _tx_rift_grains(o, a: Vector2, c: Vector2, step: float) -> void:
 static func tx_rift_draw_body(o) -> bool:
 	_tx_rift_draw_trails(o)
 	var rf = o.tx.get("rift")
-	# S3 期间隐藏原地的队长（11-06 用户「S3 的时候干员飞出去了，是不是可以隐藏跑动的队长」，fx/texas_s3_hide_captain，缺省 0）：
+	# S3 期间隐藏原地的队长（11-06 用户「S3 的时候干员飞出去了，是不是可以隐藏跑动的队长」，fx/texas_s3_hide_captain，缺省 1）：
 	# 只画——她当队长、剑雨滂沱持续期间（或这一轮次元斩还没斩完），两轮次元斩之间不再在原地画本体；结束时从最后一刀的落点留一串瞬移残影回到原位、本体 0.18 秒淡入。
 	# 玩家位置、受击判定、镜头、拾取都不碰（本体逻辑位置本来就全程在原地）
 	var g = o.g
