@@ -137,5 +137,5 @@
 ## 9. 终结技 Q「灯塔」只改颜色（11-05 晚–11-06）
 
 - 过程：任务单 ult_brief 先要「重做 / 以原版为底只往上加」，出过两稿送审 GIF（`tools/ult_px_lumen_gif.py`、`ult_px_lumen_gif2.py`，A 加冲击帧 / B 不加，均未进游戏）；用户最后定：「流明能不能只是在原本的改个颜色？」——A / B 撤掉。
-- 现在的做法（开关 `ult/px_plane_lumen`，缺省 0；总开关 `ult/px_plane` 也会打开它）：`ult_moves_c._lu_start / _lu_step` 原版 v3 的暖黄 / 金换成普攻 / 技能定稿的钢蓝白——`LU_WARM → #7fb2d6`、`LU_HI → #c4e0f2`、余辉铺底 → `#4285ad`、放射线 / 光点 → `#c4e0f2`；脚下「灯塔点亮」与光柱顶上星芒两张帧条换成 `tools/ult_lumen_recolor.py` 出的 `*_lm@2x.png`（按亮度映射到钢蓝色阶，alpha 一个像素不动、原版棋盘格照旧，点亮帧条正中心一点灯火橙）。形状、画法、时长、体量、音效、冲击帧（原版本来就不打）一律不动。
+- 现在的做法（开关 `ult/px_plane_lumen`，11-06 用户「流明也没问题」起缺省 1；总开关 `ult/px_plane` 也会打开它）：`ult_moves_c._lu_start / _lu_step` 原版 v3 的暖黄 / 金换成普攻 / 技能定稿的钢蓝白——`LU_WARM → #7fb2d6`、`LU_HI → #c4e0f2`、余辉铺底 → `#4285ad`、放射线 / 光点 → `#c4e0f2`；脚下「灯塔点亮」与光柱顶上星芒两张帧条换成 `tools/ult_lumen_recolor.py` 出的 `*_lm@2x.png`（按亮度映射到钢蓝色阶，alpha 一个像素不动、原版棋盘格照旧，点亮帧条正中心一点灯火橙）。形状、画法、时长、体量、音效、冲击帧（原版本来就不打）一律不动。
 - 验收（GCP）：同种子录像开 / 关各一段（`ult_rec.py --clips u_lumen --sfx`，8 秒）拼并排 `Claude outputs/ult_px_lumen_1105/ult_lumen_color_only_side.gif`（小图 `_small.gif`）：放出段两边形状 / 位置 / 节奏一致，只差颜色（差异像素处 R−B 平均 +5 → −27，平均亮度 100 → 101）；放出前两边也有零星差异，是 `--realtime` 录像截帧时刻的抖动（怪的动画帧、小地图光点），不是画面改动。TRACE：流明队长种子 3、40 秒、31.5 秒强制放终结技，`ult/px_plane_lumen` 0 vs 1，画画面跑，41 行逐行一致（31–32 秒击杀 49 → 93，终结技确实放了）。
