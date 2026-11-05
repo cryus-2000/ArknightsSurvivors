@@ -1,0 +1,15 @@
+7127350	mizuki_ult.mp4
+322354	mizuki_ult_peak.png
+1404273	mizuki_ult_sheet.png
+6650891	saria_ult.mp4
+284838	saria_ult_peak.png
+1349488	saria_ult_sheet.png
+6306199	siege_ult.mp4
+345031	siege_ult_peak.png
+1248234	siege_ult_sheet.png
+5932423	skadi_ult.mp4
+311954	skadi_ult_peak.png
+1330534	skadi_ult_sheet.png
+7049585	skalter_ult.mp4
+292247	skalter_ult_peak.png
+1372700	skalter_ult_sheet.png

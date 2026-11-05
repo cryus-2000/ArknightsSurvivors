@@ -1,0 +1,16 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4226 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+/usr/bin/python3 /work/repo/tools/ult_rec.py --clips u_angelina,u_exusiai,u_eyjafjalla,u_gladiia,u_hoshiguma --tag inv --jobs 5 --secs 10 --at 30
+u_exusiai frames 300 (10.0 秒) errors []  
+u_eyjafjalla frames 300 (10.0 秒) errors []  
+u_gladiia frames 300 (10.0 秒) errors []  
+u_angelina frames 300 (10.0 秒) errors []  
+u_hoshiguma frames 300 (10.0 秒) errors []  
+输出 /work/repo/build/ult_rec/inv
+联系表 angelina [40, 46, 52, 114, 122, 132, 147, 172] 最亮 122
+联系表 exusiai [40, 46, 52, 96, 104, 114, 129, 154] 最亮 104
+联系表 eyjafjalla [40, 46, 52, 100, 108, 118, 133, 158] 最亮 108
+联系表 gladiia [40, 46, 52, 112, 120, 130, 145, 170] 最亮 120
+联系表 hoshiguma [40, 46, 52, 132, 140, 150, 165, 190] 最亮 140
+media：15 个文件，38M

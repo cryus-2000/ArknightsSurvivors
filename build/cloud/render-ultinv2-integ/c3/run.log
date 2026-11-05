@@ -1,0 +1,16 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4226 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+/usr/bin/python3 /work/repo/tools/ult_rec.py --clips u_specter_unchained,u_suzuran,u_texas,u_ulpianus,u_wisadel --tag inv --jobs 5 --secs 10 --at 30
+u_wisadel frames 300 (10.0 秒) errors []  
+u_texas frames 300 (10.0 秒) errors []  
+u_specter_unchained frames 300 (10.0 秒) errors []  
+u_ulpianus frames 300 (10.0 秒) errors []  
+u_suzuran frames 300 (10.0 秒) errors []  
+输出 /work/repo/build/ult_rec/inv
+联系表 specter_unchained [40, 46, 52, 174, 182, 192, 207, 232] 最亮 182
+联系表 suzuran [40, 46, 52, 112, 120, 130, 145, 170] 最亮 120
+联系表 texas [40, 46, 52, 102, 110, 120, 135, 160] 最亮 110
+联系表 ulpianus [40, 46, 52, 100, 108, 118, 133, 158] 最亮 108
+联系表 wisadel [40, 46, 52, 96, 104, 114, 129, 154] 最亮 104
+media：15 个文件，39M

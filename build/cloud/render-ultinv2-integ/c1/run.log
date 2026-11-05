@@ -1,0 +1,16 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4226 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+/usr/bin/python3 /work/repo/tools/ult_rec.py --clips u_irene,u_kaltsit,u_lappland,u_logos,u_lumen --tag inv --jobs 5 --secs 10 --at 30
+u_lappland frames 300 (10.0 秒) errors []  
+u_logos frames 300 (10.0 秒) errors []  
+u_kaltsit frames 300 (10.0 秒) errors []  
+u_lumen frames 300 (10.0 秒) errors []  
+u_irene frames 300 (10.0 秒) errors []  
+输出 /work/repo/build/ult_rec/inv
+联系表 irene [40, 46, 52, 134, 142, 152, 167, 192] 最亮 142
+联系表 kaltsit [40, 46, 52, 114, 122, 132, 147, 172] 最亮 122
+联系表 lappland [40, 46, 52, 144, 152, 162, 177, 202] 最亮 152
+联系表 logos [40, 46, 52, 120, 128, 138, 153, 178] 最亮 128
+联系表 lumen [40, 46, 52, 94, 102, 112, 127, 152] 最亮 102
+media：15 个文件，40M

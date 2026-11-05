@@ -1,0 +1,15 @@
+6090474	angelina_ult.mp4
+267004	angelina_ult_peak.png
+1300132	angelina_ult_sheet.png
+5863368	exusiai_ult.mp4
+298598	exusiai_ult_peak.png
+1264815	exusiai_ult_sheet.png
+6405370	eyjafjalla_ult.mp4
+273729	eyjafjalla_ult_peak.png
+1401677	eyjafjalla_ult_sheet.png
+6311005	gladiia_ult.mp4
+282960	gladiia_ult_peak.png
+1330998	gladiia_ult_sheet.png
+6954647	hoshiguma_ult.mp4
+319294	hoshiguma_ult_peak.png
+1430874	hoshiguma_ult_sheet.png

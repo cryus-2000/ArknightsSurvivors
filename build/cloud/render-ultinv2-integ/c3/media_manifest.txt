@@ -1,0 +1,15 @@
+6689774	specter_unchained_ult.mp4
+290114	specter_unchained_ult_peak.png
+1432261	specter_unchained_ult_sheet.png
+6075075	suzuran_ult.mp4
+336524	suzuran_ult_peak.png
+1213694	suzuran_ult_sheet.png
+7010136	texas_ult.mp4
+381288	texas_ult_peak.png
+1388091	texas_ult_sheet.png
+6201621	ulpianus_ult.mp4
+221473	ulpianus_ult_peak.png
+1296724	ulpianus_ult_sheet.png
+6194535	wisadel_ult.mp4
+327764	wisadel_ult_peak.png
+1411809	wisadel_ult_sheet.png
