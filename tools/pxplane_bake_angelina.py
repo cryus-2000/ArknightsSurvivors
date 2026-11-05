@@ -146,7 +146,7 @@ def main():
         # docs/270 补齐：落点类（星芒 / 压缩点 / 光刺 / 坍缩）亮紫一阶也进发光层——白芯本来就是纯白，只给白像素加辉光量不出、也看不出
         hot = k.startswith(("land_", "lk_land_up", "dense_pop"))
         im, w, h, ox, oy, emit = render(frames, EMIT_LUM_HOT if hot else EMIT_LUM, EMIT_MAX_HOT if hot else None)
-        fn = "pxp_an_%s.png" % k
+        fn = "pxp_an_%s.png" % k.replace("_d-", "_dm").lower()
         p = os.path.join(ART, fn)
         im.save(p, optimize=True)
         total += os.path.getsize(p)
