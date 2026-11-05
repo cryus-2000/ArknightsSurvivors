@@ -1,0 +1,5 @@
+('link1_s11_70', 77, [], False)
+('link0_s11_70', 77, [], False)
+('link2_s11_70', 77, [], False)
+连携事件 [('sk_link', '7.128'), ('sk_link', '73.291')]
+缺帧 {0: '/work/repo/build/pxplane_skalter/link0_s11_70_frames/rec_-1878.png', 2: '/work/repo/build/pxplane_skalter/link2_s11_70_frames/rec_-1878.png', 1: '/work/repo/build/pxplane_skalter/link1_s11_70_frames/rec_-1878.png'}
