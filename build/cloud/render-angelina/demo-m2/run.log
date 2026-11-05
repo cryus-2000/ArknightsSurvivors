@@ -1,0 +1,9 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（2708 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+== pxplane_shots.py demo --op angelina --modes 2
+   rc=0  112 秒
+e2_m2_px0 60 帧 []
+e2_m2_px1 60 帧 []
+三栏 cmp_s3_e2 帧 2
+media：3 个文件，2.2M

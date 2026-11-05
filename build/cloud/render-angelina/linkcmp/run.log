@@ -1,0 +1,11 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（2708 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+== pxplane_shots.py linkcmp --op angelina --lead texas --seed 11 --from 60 --secs 30 --extra=--bal=ult/link_gap=8
+   rc=1  497 秒
+('link1_s11_60', 91, [], False)
+('link0_s11_60', 91, [], False)
+('link2_s11_60', 91, [], False)
+连携事件 [('ang_link', '7.128'), ('ang_link', '69.991')]
+缺帧 {0: '/work/repo/build/pxplane_angelina/link0_s11_60_frames/rec_-1580.png', 2: '/work/repo/build/pxplane_angelina/link2_s11_60_frames/rec_-1580.png', 1: '/work/repo/build/pxplane_angelina/link1_s11_60_frames/rec_-1580.png'}
+media：0 个文件，4.0K

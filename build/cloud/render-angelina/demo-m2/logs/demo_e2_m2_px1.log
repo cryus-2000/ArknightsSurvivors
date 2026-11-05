@@ -1,0 +1,171 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 22.3.6 - Compatibility - Using Device: Mesa/X.org - llvmpipe (LLVM 15.0.6, 256 bits)
+
+FXRLOG angelina ang_land 40 1.358
+FXRLOG angelina ang_dense 40 1.358
+FXRLOG angelina skill2 41 1.392
+FXRLOG angelina ang_field 41 1.392
+FXRLOG angelina ang_field 47 1.592
+FXRLOG angelina shape 50 1.692
+FXRLOG angelina ang_dense 50 1.692
+FXRLOG angelina shape 52 1.758
+FXRLOG angelina ang_field 53 1.792
+FXRLOG angelina shape 59 1.992
+FXRLOG angelina ang_field 59 1.992
+FXRLOG angelina shape 64 2.158
+FXRLOG angelina ang_field 65 2.192
+FXRLOG angelina ang_land 70 2.358
+FXRLOG angelina ang_dense 70 2.358
+FXRLOG angelina ang_field 71 2.392
+FXRLOG angelina shape 76 2.558
+FXRLOG angelina ang_field 77 2.592
+FXRLOG angelina shape 80 2.692
+FXRLOG angelina ang_dense 80 2.692
+FXRLOG angelina shape 82 2.758
+FXRLOG angelina ang_field 83 2.792
+FXRLOG angelina shape 89 2.992
+FXRLOG angelina ang_field 89 2.992
+FXRLOG angelina ang_land 91 3.058
+FXRLOG angelina ang_dense 91 3.058
+FXRLOG angelina shape 94 3.158
+FXRLOG angelina ang_field 95 3.192
+FXRLOG angelina shape 101 3.392
+FXRLOG angelina ang_field 101 3.392
+FXRLOG angelina ang_dense 101 3.392
+FXRLOG angelina shape 103 3.458
+FXRLOG angelina shape 106 3.558
+FXRLOG angelina ang_field 107 3.592
+FXRLOG angelina shape 110 3.692
+FXRLOG angelina ang_field 113 3.792
+FXRLOG angelina ang_land 114 3.825
+FXRLOG angelina ang_dense 114 3.825
+FXRLOG angelina shape 115 3.858
+FXRLOG angelina ang_field 119 3.992
+FXRLOG angelina shape 124 4.158
+FXRLOG angelina ang_dense 124 4.158
+FXRLOG angelina ang_field 125 4.192
+FXRLOG angelina shape 126 4.225
+FXRLOG angelina shape 127 4.258
+FXRLOG angelina ang_field 131 4.392
+FXRLOG angelina shape 133 4.458
+FXRLOG angelina ang_field 137 4.592
+FXRLOG angelina shape 138 4.625
+FXRLOG angelina ang_land 140 4.692
+FXRLOG angelina ang_dense 140 4.692
+FXRLOG angelina ang_field 143 4.792
+FXRLOG angelina ang_field 149 4.992
+FXRLOG angelina shape 150 5.025
+FXRLOG angelina shape 150 5.025
+FXRLOG angelina ang_dense 150 5.025
+FXRLOG angelina shape 152 5.092
+FXRLOG angelina ang_field 155 5.192
+FXRLOG angelina shape 159 5.325
+FXRLOG angelina ang_field 161 5.392
+FXRLOG angelina shape 164 5.492
+FXRLOG angelina ang_field 167 5.592
+FXRLOG angelina ang_field 173 5.792
+FXRLOG angelina shape 176 5.892
+ERROR: 45 RID allocations of type 'N5GLES37TextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 3 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+ERROR: Texture with GL ID of 37: leaked 4915052 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 38: leaked 786424 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1436: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1437: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1693: leaked 140 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1694: leaked 3868 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1695: leaked 287788 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1696: leaked 95740 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1697: leaked 413660 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1699: leaked 19000 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1700: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1701: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1702: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1703: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1704: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1705: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1706: leaked 3666932 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1707: leaked 312 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1708: leaked 1206588 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1709: leaked 4092 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1710: leaked 70452 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1711: leaked 65424 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1713: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1714: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1715: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1716: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1717: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1718: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1719: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1720: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1721: leaked 228 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1722: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1723: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1724: leaked 188 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1725: leaked 153556 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1726: leaked 43596 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1727: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1728: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1729: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1730: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1731: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1732: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1733: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1734: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1735: leaked 4344 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+WARNING: 200 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 44 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
