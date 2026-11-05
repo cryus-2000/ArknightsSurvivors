@@ -1,0 +1,3 @@
+usage: ult_rec.py [-h] [--clips CLIPS] [--at AT] [--secs SECS] [--tag TAG]
+                  [--jobs JOBS] [--extra EXTRA] [--sfx]
+ult_rec.py: error: argument --extra: expected one argument
