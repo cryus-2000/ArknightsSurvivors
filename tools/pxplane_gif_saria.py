@@ -507,7 +507,8 @@ def sc_branch():
 def sc_link():
     c = Col(2, E_MAIN, op=(100, 120), lead=(150, 160))
     cz = (240, 150)
-    c.add("lk_b", 3, c.lead, gy=c.lead[1] - 1)
+    c.add("lk_ring_gd", 3, c.lead, gd=True)
+    c.add("lk_b", 3, c.lead, gy=c.lead[1] - 3)
     c.add("lk_f", 3, c.lead, gy=c.lead[1] + 1)
     for j in range(7):
         a = j * 2.39996

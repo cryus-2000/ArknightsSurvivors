@@ -108,6 +108,7 @@ def strips():
     out["hot_tick"] = (A.hot_tick(), False)
     out["lk_b"] = (A.link_shell(False), False)
     out["lk_f"] = (A.link_shell(True), False)
+    out["lk_ring_gd"] = (A.link_ring_gd(), False)
     for v in (0, 1, 2):
         out["lk_patch_v%d" % v] = (A.link_patch(v), False)
     return out

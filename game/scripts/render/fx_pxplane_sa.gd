@@ -162,7 +162,8 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 			R._light(o, (d.c as Vector2) + Vector2(0, -16), 200.0, 0.8, 0.15, p.light)
 			R._grains(o, (d.c as Vector2) + Vector2(0, -20), float((d.c as Vector2).y) + 2.0, "shard", 8, {"tier": 2})
 		"sa_link":   # 连携「钙质护盾」：队长身周 6 片晶板（前后两张，跟队长）+ 区域里 7 块钙化地面斑（留原地）
-			_on_lead(o, "lk_b", "up", -1.0)
+			_on_lead(o, "lk_ring_gd", "gd")   # 11-05 用户「护盾会挡住队长」：晶全长在地上，后半圈排在队长身后、前半圈只有脚前小晶尖
+			_on_lead(o, "lk_b", "up", -3.0)
 			_on_lead(o, "lk_f", "up", 1.0)
 			var c: Vector2 = d.c
 			var rr: float = float(d.get("r", 150.0))

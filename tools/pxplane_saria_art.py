@@ -908,35 +908,55 @@ def hot_tick():
 # ================================================================ 连携技「钙质护盾」（skill_link l_saria）
 
 def link_shell(front):
-    """钙质护盾（立起，原点 = 队长脚底）：6 片琥珀晶板绕腰一圈（front = 前半圈 / 后半圈各一张，分别排在队长前后）。
-    23 拍 ≈ 1.5 秒：0–3 晶板从地上飞起合拢，4–18 立着（高光逐片走），19–22 碎开落地"""
+    """钙质护盾（立起，原点 = 队长脚底）：贴地一圈琥珀矮晶围住队长（11-05 用户「钙质护盾会挡住队长，需要改一下图层位置」：
+    原来 6 片晶板浮在腰高、前半圈盖住队长本体）。现在晶全部长在地上：后半圈（front = False，排在队长身后）高 9；
+    前半圈（front = True，排在队长前面）只有 4 像素高的小晶尖、离脚 ≥ 10 像素，1 倍下队长本体完整看得见。
+    23 拍 ≈ 1.5 秒：0–3 破土长出，4–18 立着（高光逐根走），19–22 碎开"""
     fr = []
+    rx = 20
+    n = 10
     for k in range(23):
         b = Buf()
-        for i in range(6):
-            a = i / 6 * math.tau + 0.52
-            s = math.sin(a)
-            if (s > 0) != front:
+        for i in range(n):
+            a = i / n * math.tau + 0.31
+            sa = math.sin(a)
+            if (sa > 0.05) != front:
                 continue
+            x, y = math.cos(a) * rx, sa * rx * SQ
+            H = 4 if front else (9 if abs(math.cos(a)) < 0.8 else 7)
             if k <= 3:
-                u = (k + 1) / 4
-                r = 20 + (1 - u) * 10
-                lift = 14 * u
+                hh = max(1, int(H * (k + 1) / 4))
             elif k <= 18:
-                r, lift = 20, 14
+                hh = H
             else:
-                u = (k - 18) / 4
-                r = 20 + u * 8
-                lift = 14 * (1 - u * u)
-            x, y = math.cos(a) * r, s * r * 0.42 - lift
-            if k <= 20:
-                hot = (4 <= k <= 18) and ((k - 4) // 2) % 6 == i
-                pb = Buf()
-                crystal_prism(pb, 0, 0, 5, 9, lean=math.cos(a) * 0.3, glint=2 if hot else -1, top_hot=k == 4 or hot)
-                for (px, py), c in pb.p.items():
-                    b.put(x + px, y + py + 4, c if s > 0 else AMB[max(1, AMB.index(c) - 1)] if c in AMB else c)
+                hh = 0
+            if hh > 0:
+                hot = 4 <= k <= 18 and ((k - 4) // 2) % n == i
+                base_shadow(b, x, y, 2)
+                crystal_prism(b, x, y, 3 if front else 4, hh, lean=math.cos(a) * 0.25, glint=1 if hot and hh > 4 else -1, top_hot=k == 4 or hot)
             else:
-                shards_fly(b, x, y + 2, 3, 3 + (k - 20) * 3, AMB, 61 + i, down=(k - 20) * 4)
+                shards_fly(b, x, y - 3, 3, 2 + (k - 19) * 3, AMB, 61 + i, down=(k - 19) * 3)
+        fr.append(b)
+    return fr
+
+
+def link_ring_gd():
+    """钙质护盾贴地晶环（贴地，原点 = 队长脚底）：半径 20 的断续琥珀环 + 2 格暗内边，23 拍，最后 4 拍断开褪掉"""
+    fr = []
+    r = 20
+    for k in range(23):
+        b = Buf()
+        u = min(1.0, (k + 1) / 3)
+        fade = max(0, k - 18)
+        m = int(r * 6.4)
+        for q in range(m):
+            t = q / m * math.tau
+            if hsh(q, 5, 81) % 4 == 0 or (fade and hsh(q, k, 83) % (5 - min(4, fade)) == 0):
+                continue
+            x, y = _gpt(r * u, t)
+            b.put(x, y, AMB[4] if (q + k * 2) % 23 else AMB[6])
+            x2, y2 = _gpt(r * u - 1.5, t)
+            b.put_if_empty(x2, y2, AMB[1])
         fr.append(b)
     return fr
 
