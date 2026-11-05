@@ -449,6 +449,41 @@ func draw_icon(kind: String, c: Vector2) -> void:
 				var ec: Color = ends[k][1]
 				UI.diamond(g.hud, c + Vector2(-66 + k * 44, 92), 9.0, Color(ec.r, ec.g, ec.b, 0.35), ec)
 				UI.text(g.hud, g.font, c + Vector2(-86 + k * 44, 122), ends[k][0], 13, ec, HORIZONTAL_ALIGNMENT_CENTER, 40)
+		"console":
+			# 指挥台示意（hud_v3 的缩略版）：中间队长头像 + 终结技环，左边生命 / 灯火 / 冲刺，右边两名队友 + 指令牌
+			var ek: float = fmod(g.intro_t * 0.25, 1.0)
+			var ac := c + Vector2(0, -6)
+			g.hud.draw_circle(ac, 26.0, Color(0.05, 0.08, 0.1))
+			g.hud.draw_arc(ac, 31.0, 0.0, TAU, 40, Color(1, 1, 1, 0.2), 3.0, true)
+			g.hud.draw_arc(ac, 31.0, -PI / 2.0, -PI / 2.0 + TAU * ek, 40, Color(0.93, 0.94, 0.95), 3.0, true)
+			UI.text(g.hud, g.font, ac + Vector2(-40, 52), "终结技", 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 80)
+			var lx0: float = c.x - 126.0
+			var lx1: float = c.x - 42.0
+			UI.text(g.hud, g.font, Vector2(lx0, c.y - 22), "生命", 11, UI.SUB)
+			g.hud.draw_rect(Rect2(lx0, c.y - 15, lx1 - lx0, 3.0), Color(0.93, 0.94, 0.95))
+			UI.text(g.hud, g.font, Vector2(lx0, c.y + 6), "灯火", 11, UI.GOLD)
+			var bx: float = lx0 + 28.0
+			var lamp_k: float = 0.55 + 0.25 * sin(g.intro_t * 1.3)
+			g.hud.draw_rect(Rect2(bx - 1, c.y - 2, lx1 - bx + 2, 7.0), Color(0, 0, 0, 0.55))
+			g.hud.draw_rect(Rect2(lx1 - (lx1 - bx) * lamp_k, c.y - 1, (lx1 - bx) * lamp_k, 5.0), UI.GOLD)
+			for tv in [0.3, 0.7]:
+				var tx4: float = lx1 - (lx1 - bx) * tv
+				g.hud.draw_line(Vector2(tx4, c.y - 4), Vector2(tx4, c.y + 7), Color(1, 1, 1, 0.6), 1.0)
+			UI.text(g.hud, g.font, Vector2(lx1 - 30, c.y + 30), "冲刺", 11, UI.SUB)
+			for q in 2:
+				var px := Vector2(lx1 - 44 - q * 10, c.y + 25)
+				g.hud.draw_colored_polygon(PackedVector2Array([px + Vector2(0, -4), px + Vector2(4, -4), px + Vector2(8, 0), px + Vector2(4, 4), px + Vector2(0, 4), px + Vector2(4, 0)]), UI.CYAN if q == 0 else Color(1, 1, 1, 0.2))
+			for q in 2:
+				var tr4 := Rect2(c + Vector2(44 + q * 32, -20), Vector2(26, 26))
+				g.hud.draw_rect(tr4, Color(0.08, 0.12, 0.15))
+				g.hud.draw_rect(tr4, Color(1, 1, 1, 0.3), false, 1.0)
+				g.hud.draw_rect(Rect2(tr4.position + Vector2(0, 30), Vector2(26 * (0.9 - q * 0.4), 2.0)), Color(0.93, 0.94, 0.95))
+			UI.text(g.hud, g.font, c + Vector2(44, 34), "队友", 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 58)
+			var cr4 := Rect2(c + Vector2(110, -20), Vector2(26, 26))
+			g.hud.draw_rect(cr4, Color(0.08, 0.12, 0.15))
+			g.hud.draw_rect(cr4, UI.CYAN, false, 1.0)
+			UI.text(g.hud, g.font, c + Vector2(95, 34), "指令", 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 56)
+			UI.text(g.hud, g.font, c + Vector2(-100, 96), "屏幕正下方", 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 200)
 		"command":
 			# 指挥圆盘：直接缩小画当前的圆盘（终末地风格，command_wheel.gd 同一份画法），每 1.4 秒轮流悬停一项
 			g.wheel.draw_preview(c + Vector2(0, 4), 0.56, g.intro_t)
@@ -486,6 +521,7 @@ static func fill_numbers(ln: String) -> String:
 		"{cmd_stamina}": Sq._num(Bal.v("command/stamina_secs", 25.0)), "{cmd_min}": pc100.call("command/min_start", 0.3),
 		"{cmd_revive}": Sq._num(Bal.v("command/revive_secs", 25.0)),
 		"{cmd_aspd}": str(roundi(Bal.v("command/rush_aspd", 0.25) * 100.0)), "{cmd_sp}": Sq._num(Bal.v("command/rush_sp", 1.5)),   # 指挥加成（11-05 用户「开局指南里在指挥模式的时候可以写上队友加成」）
+		"{dash_cd}": Sq._num(Bal.v("dash/cd", 1.2)),   # 冲刺冷却（docs/284 §3：操作页单列「冲刺」行）
 	}
 	for k in vals:
 		ln = ln.replace(k, vals[k])

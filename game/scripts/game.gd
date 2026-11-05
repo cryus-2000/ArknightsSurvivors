@@ -66,7 +66,6 @@ const VictoryFlow = preload("res://scripts/run/victory_flow.gd")
 const EnemyDemo = preload("res://scripts/run/enemy_demo.gd")
 const GalleryProgress = preload("res://scripts/run/gallery_progress.gd")
 const DemoRun = preload("res://scripts/run/demo.gd")
-const AutoTest = preload("res://scripts/run/autotest.gd")
 ## 伤害描述符：每次造成伤害前用 _hit(src) 设置，_damage 与藏品规则只读它，不认角色。
 ##   src      来源名（统计与显示）        emitter  operator / summon / support / relic
 ##   origin   core / talent / skill / route / support / relic
@@ -106,7 +105,9 @@ var defeat_outro = preload("res://scripts/run/defeat_outro.gd").new(self)   # �
 var vis_t := 0.0   # 只给画面用的时钟偏移：失败慢放里敌人走路帧照常走（g.t 已停）；平时恒为 0
 var speed_btn := Rect2()
 var state: int = S.PLAY
-var autotest_sys = AutoTest.new(self)   # 自动测试 / 平衡机器人（docs/29、docs/36）
+## 自动测试 / 平衡机器人（docs/29、docs/36）。只在开发版加载（11-06 docs/285：正式包不静态引用 autotest.gd，网页包可以把它和
+## 它预载的 outwin_probe / ak_mock 一起排除）；正式包 Cfg.dev_args() 恒空、mode 恒为 PLAY，下面各调用点都在 mode != PLAY 之后
+var autotest_sys = load("res://scripts/run/autotest.gd").new(self) if OS.is_debug_build() else null
 var demo_sys = DemoRun.new(self)   # 图鉴攻击演示 / 精英化演出（gallery.gd 把 game.tscn 以 demo_op 模式放进 SubViewport）
 var spawner = Spawner.new(self)   # 刷怪
 var shop_sys = ShopSys.new(self)   # 商人与商店（逻辑）

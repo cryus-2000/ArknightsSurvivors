@@ -131,7 +131,7 @@ func _console(vs: Vector2) -> void:
 	var right_ext: float = RR + 16.0 * s + slots * (sq + gap) + 2.0 * s + blockw
 	var lw: float = maxf(128.0 * s, right_ext - (RR + 16.0 * s + 56.0 * s))
 	var ext: float = maxf(right_ext, RR + 16.0 * s + lw + 56.0 * s)
-	_top = base - 50.0 * s
+	_top = base - 50.0 * s   # 先给个缺省，_left 按实际字高覆盖
 	# 底部渐变：只托字，不是底板
 	var gh: float = 66.0 * s
 	var cols := PackedColorArray([Color(0.016, 0.024, 0.031, 0.0), Color(0.016, 0.024, 0.031, 0.0), Color(0.016, 0.024, 0.031, 0.62), Color(0.016, 0.024, 0.031, 0.62)])
@@ -140,7 +140,7 @@ func _console(vs: Vector2) -> void:
 	_left(cx - RR - 16.0 * s, base, lw, s)
 	_right(cx + RR + 16.0 * s, base, sq, gap, tile, rush, md, s, slots)
 	# 一对直角刻度
-	var tl := Vector2(cx - ext, base - 50.0 * s)
+	var tl := Vector2(cx - ext, _top)   # _left 按实际字高排完后更新 _top
 	var br := Vector2(cx + ext, base + 8.0 * s)
 	var tc := Color(1, 1, 1, 0.45)
 	g.hud.draw_polyline(PackedVector2Array([tl + Vector2(0, 7.0 * s), tl, tl + Vector2(7.0 * s, 0)]), tc, 1.0)
@@ -200,23 +200,32 @@ func _leader(c: Vector2, r: float, RR: float, base: float, s: float) -> void:
 	UI.ctext(g.hud, g.font, Vector2(lr.position.x, lr.end.y - 3.0), lvs, lfs, WHITE.lerp(UI.GOLD, lf), HORIZONTAL_ALIGNMENT_CENTER, lw)
 
 
-## 左：马灯 + 状态行 + 生命（大数字、细线）+ 灯火细线（30 / 70 刻度）+ 冲刺行。gx = 左翼右端
+## 左：马灯 + 状态行 + 生命（大数字、细线）+ 灯火一行（「灯火」标签 · 带深色底槽的粗条 · 金色数字，30 / 70 刻度）+ 冲刺行。gx = 左翼右端
+## 11-06 用户「灯火条不够清楚，被生命值的界面挡住了」：原来灯火只有一道 3 像素细线紧贴生命线、数字挤在冲刺行左边。
+## 现在从底往上按实际字高排（手机字号有下限，字比 s 算的高）：冲刺行 → 灯火行 → 生命细线 → 生命数字 → 状态行，行间都留空隙
 func _left(gx: float, base: float, lw: float, s: float) -> void:
 	var hit: bool = g.t - _hit_t < 0.4
 	var low: bool = g.hp / g.max_hp < 0.3
 	var hpc: Color = UI.RED if (hit or low) else WHITE
 	var hs := Vector2(sin(g.t * 90.0), cos(g.t * 70.0)) * 3.0 * g.hp_shake / 0.35
-	var sw: float = h.v2.big(Vector2(gx, base - 19.0 * s) + hs, "/ %d" % int(g.max_hp), 7.5 * s, GREY, 2)
-	h.v2.big(Vector2(gx - sw - 3.0, base - 19.0 * s) + hs, "%d" % int(g.hp), 20.0 * s, hpc, 2)
 	var x0: float = gx - lw
-	h.v2.txt(Vector2(x0, base - 19.0 * s), "生命", int(round(7.5 * s)), GREY)
-	var dx: float = x0 + h.v2.twidth("生命", int(round(7.5 * s))) + 8.0
+	var lab: int = int(round(7.5 * s))
+	var lks: float = float(UI._ks(g.hud, lab))
+	var dash_top: float = base + 9.0 * s - 0.85 * float(UI._ks(g.hud, int(round(8.5 * s))))   # 冲刺行（_dash_row 8.5 号字）的字顶
+	var lrow: float = dash_top - 4.0 - lks * 0.5   # 灯火行中线
+	var hy: float = lrow - lks * 0.5 - 5.0   # 生命细线
+	var hb: float = hy - 6.0 * s   # 生命数字 / 「生命」底线
+	var sw: float = h.v2.big(Vector2(gx, hb) + hs, "/ %d" % int(g.max_hp), 7.5 * s, GREY, 2)
+	h.v2.big(Vector2(gx - sw - 3.0, hb) + hs, "%d" % int(g.hp), 20.0 * s, hpc, 2)
+	h.v2.txt(Vector2(x0, hb), "生命", lab, GREY)
+	var dx: float = x0 + h.v2.twidth("生命", lab) + 8.0
 	# 护盾：「生命」后一排小菱形
 	for q in g.shield_max:
-		UI.diamond(g.hud, Vector2(dx + q * 9.0, base - 19.0 * s - 4.0), 3.0, Color(0.5, 0.85, 1.0) if q < g.shield else Color(1, 1, 1, 0.14), Color(0.6, 0.9, 1.0, 0.8))
-	_status_line(Vector2(x0, base - 38.0 * s), lw)
+		UI.diamond(g.hud, Vector2(dx + q * 9.0, hb - 4.0), 3.0, Color(0.5, 0.85, 1.0) if q < g.shield else Color(1, 1, 1, 0.14), Color(0.6, 0.9, 1.0, 0.8))
+	var sy: float = minf(hb - 19.0 * s, hb - lks - 6.0)   # 状态行底线：在大数字之上
+	_status_line(Vector2(x0, sy), lw)
+	_top = sy - 0.85 * float(UI._ks(g.hud, int(round(8.0 * k())))) - 4.0   # 整台上沿（lift 用）
 	# 生命细线（从右往左长：靠头像那端是满的）
-	var hy: float = base - 12.0 * s
 	var f: float = clampf(g.hp / g.max_hp, 0.0, 1.0)
 	var tr: float = clampf(g.hp_trail / g.max_hp, 0.0, 1.0)
 	g.hud.draw_rect(Rect2(x0, hy, lw, 1.6), DIM)
@@ -226,16 +235,24 @@ func _left(gx: float, base: float, lw: float, s: float) -> void:
 	if hit and not Cfg.reduce_motion:
 		g.hud.draw_rect(Rect2(gx - lw * f - 2.0, hy - 3.0, lw * f + 4.0, 7.6), Color(UI.RED.r, UI.RED.g, UI.RED.b, 0.25 * (1.0 - (g.t - _hit_t) / 0.4)))
 	h.corrode_seg(Rect2(Vector2(gx - lw * f, hy - 0.8), Vector2(lw * f, 3.2)), 1.0)
-	# 灯火细线
-	var ly: float = base - 4.0 * s
+	# 灯火一行：标签（左）· 粗条（中，深色底槽 + 金色填充，同生命从右往左长）· 数字（右，金色）
 	var lamp_low: bool = g.lamp < 30.0
 	var lc: Color = UI.GOLD if not lamp_low else UI.RED.lerp(UI.GOLD, 0.5 + 0.5 * sin(g.t * 8.0))
 	var lf: float = clampf(g.lamp / 100.0, 0.0, 1.0)
-	g.hud.draw_rect(Rect2(x0, ly, lw, 1.6), Color(1.0, 0.8, 0.5, 0.16))
-	g.hud.draw_rect(Rect2(gx - lw * lf, ly - 0.8, lw * lf, 3.2), lc)
+	var lt: float = lrow + lks * 0.36   # 字的底线（字身居中在 lrow）
+	h.v2.txt(Vector2(x0, lt), "灯火", lab, Color(1.0, 0.86, 0.6).lerp(lc, 0.5))
+	var nw: float = h.v2.big(Vector2(gx, lt), "%d" % int(g.lamp), maxf(10.0 * s, lks), lc, 2)
+	var bx0: float = x0 + h.v2.twidth("灯火", lab) + 6.0
+	var bx1: float = gx - nw - 6.0
+	var bw: float = maxf(8.0, bx1 - bx0)
+	var bh: float = maxf(4.0, 4.0 * s)
+	var br := Rect2(bx0, lrow - bh / 2.0, bw, bh)
+	g.hud.draw_rect(br.grow(1.0), Color(0.0, 0.0, 0.0, 0.55))
+	g.hud.draw_rect(br, Color(1.0, 0.8, 0.5, 0.14))
+	g.hud.draw_rect(Rect2(br.end.x - bw * lf, br.position.y, bw * lf, bh), lc)
 	for t in [0.3, 0.7]:
-		g.hud.draw_rect(Rect2(gx - lw * t - 0.5, ly - 2.5, 1.0, 6.6), Color(1, 1, 1, 0.45))
-	h.v2.txt(Vector2(x0, base + 6.5 * s), "灯火 %d" % int(g.lamp), int(round(7.5 * s)), lc)
+		var tx: float = br.end.x - bw * t
+		g.hud.draw_rect(Rect2(tx - 0.5, br.position.y - 2.0, 1.0, bh + 4.0), Color(1, 1, 1, 0.55) if lf < t else Color(0, 0, 0, 0.6))
 	# 冲刺：和头像下「Q 终结技」同一条底线
 	_dash_row(gx, base + 9.0 * s, s)
 	# 马灯：左翼最外侧，底座落在底线上
