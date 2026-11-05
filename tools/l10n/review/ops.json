@@ -1,0 +1,258 @@
+{
+ "_doc": "人工复核改稿（docs/276 §8）：键 = 中文原文，覆盖模型初稿；csv 来源记「人改」。note 写改动原因或待用户定的点",
+ "护卫": {
+  "en": "Bodyguard",
+  "note": "与职业 Guard 区分"
+ },
+ "格挡": {
+  "en": "Parry",
+  "note": "官方 Block 是「阻挡」，这里是格挡"
+ },
+ "连射": {
+  "en": "Volley",
+  "note": "与「高频」Rapid、「爆发」区分"
+ },
+ "爆发": {
+  "en": "Burst DMG",
+  "note": "原稿 Nuker 是玩家俗称，标签用 Burst DMG"
+ },
+ "位移": {
+  "en": "Displace"
+ },
+ "附加": {
+  "en": "Bonus"
+ },
+ "开辟": {
+  "en": "Paths Open",
+  "note": "乌尔比安三技能「必须开辟的通路」状态名"
+ },
+ "巨炮": {
+  "en": "Heavy Shell"
+ },
+ "巨炮 ×%d": {
+  "en": "Heavy Shell ×%d"
+ },
+ "出身地": {
+  "en": "Birthplace",
+  "note": "档案栏位，定宽格子用短词"
+ },
+ "所属": {
+  "en": "Affiliation"
+ },
+ "控制": {
+  "en": "Control",
+  "note": "标签用短词"
+ },
+ "护队长": {
+  "en": "Guard Leader"
+ },
+ "单体": {
+  "en": "Single"
+ },
+ "反弹幕": {
+  "en": "Anti-Bullet"
+ },
+ "指挥：归队": {
+  "en": "Command: Regroup"
+ },
+ "指挥：突击": {
+  "en": "Command: Assault"
+ },
+ "指挥：突击 / 归队": {
+  "en": "Command: Assault / Regroup"
+ },
+ "队长冲刺": {
+  "en": "Leader dashes"
+ },
+ "队长冲刺起步": {
+  "en": "Leader starts a dash"
+ },
+ "队长冲刺结束": {
+  "en": "Leader's dash ends"
+ },
+ "队长开技能": {
+  "en": "Leader uses a skill"
+ },
+ "队长站定": {
+  "en": "Leader stands still"
+ },
+ "队长站定满 1.2 秒": {
+  "en": "Leader stands still for 1.2s"
+ },
+ "队长生命低于 50%": {
+  "en": "Leader's HP below 50%"
+ },
+ "队长生命低于 40%，或神经损伤达到 80%": {
+  "en": "Leader's HP below 40%, or Nervous Impairment at 80%"
+ },
+ "队长神经损伤达到 60%，或灯火暗淡": {
+  "en": "Leader's Nervous Impairment at 60%, or Light is Dim"
+ },
+ "队长一次受到最大生命 10% 以上的伤害": {
+  "en": "Leader takes over 10% Max HP in one hit"
+ },
+ "队长短时间内连续被近战命中，或被敌人围住": {
+  "en": "Leader is hit by melee several times in a row, or is surrounded"
+ },
+ "屏幕内多名敌人浮空或眩晕": {
+  "en": "Several on-screen enemies are Levitated or Stunned"
+ },
+ "屏幕内多名普通敌人生命低于 30%": {
+  "en": "Several on-screen normal enemies below 30% HP"
+ },
+ "屏幕内远离队长处出现精英或远程敌人": {
+  "en": "An Elite or ranged enemy appears on screen far from the Leader"
+ },
+ "精英开始读招": {
+  "en": "An Elite starts winding up an attack"
+ },
+ "身边多名敌人生命低于一半": {
+  "en": "Several nearby enemies below 50% HP"
+ },
+ "另一名队友的连携亮起时（抢在它出手前）": {
+  "en": "Another squad member's Link lights up (acts before it does)"
+ },
+ "另一名队友的连携命中后": {
+  "en": "After another squad member's Link hits"
+ },
+ "另一名队友的连携命中、附近敌人聚成一团时": {
+  "en": "Another squad member's Link hits and nearby enemies are bunched up"
+ },
+ "惊跳反射": {
+  "en": "Startle Reflex"
+ },
+ "惊跳反射·余悸": {
+  "en": "Startle Reflex: Aftershock",
+  "note": "统一为 Startle Reflex"
+ },
+ "回防": {
+  "en": "Fall Back"
+ },
+ "护主": {
+  "en": "Guard the Master"
+ },
+ "专属冲刺": {
+  "en": "Signature Dash"
+ },
+ "余烬未冷": {
+  "en": "Still-Warm Embers"
+ },
+ "余烬未冷·续燃": {
+  "en": "Still-Warm Embers: Rekindle"
+ },
+ "终焉句点": {
+  "en": "Final Full Stop",
+  "note": "逻各斯，「句点」保留标点的双关"
+ },
+ "剑影随行": {
+  "en": "Shadowblade Escort"
+ },
+ "灯影成双": {
+  "en": "Twin Lamplight"
+ },
+ "回马剑": {
+  "en": "Turnback Blade"
+ },
+ "回马剑·回技": {
+  "en": "Turnback Blade: SP Return"
+ },
+ "钉剑": {
+  "en": "Pinning Sword"
+ },
+ "罗德岛辅助干员、信使安洁莉娜，用自己奇妙的源石技艺为你提供协助": {
+  "en": "Angelina, Supporter Operator and Messenger of Rhodes Island, helps you out with her amazing Originium Arts.",
+  "note": "改写自官方招聘合同 char_291_aglina.itemUsage（原句是 would like to provide help）；候选2：Angelina, Supporter Operator and Messenger of Rhodes Island, here to help with her amazing Originium Arts."
+ },
+ "火山学家，天灾信使。在战场上，她的法术是最可靠的决战力量": {
+  "en": "Volcanologist and Catastrophe Messenger. On the battlefield, her Arts are the force you can count on to win.",
+  "note": "候选2：Volcanologist and Catastrophe Messenger. On the battlefield, her Arts are your most reliable trump card."
+ },
+ "阿戈尔技术执政官、荣誉军团长，阿戈尔军事团体“深海猎人”总战争设计师之一": {
+  "en": "Ægir Consul of Technology, Honorary Legion Commander, and one of the chief war designers of the Ægir military group, the Abyssal Hunters.",
+  "note": "头衔词序未在官方英文档案里逐一核对，第二步核 handbook_info_table；候选2：Consul of Technology of Ægir, honorary Legion Commander, one of the chief war architects of the Abyssal Hunters."
+ },
+ "龙门近卫局特别任务组精英干员，害怕的时候可以站在她身边壮胆": {
+  "en": "Elite Operator of the Special Service of the Lungmen Guard Department. Stand by her side when you are scared. It really helps.",
+  "note": "第二句是官方 char_136_hsguma.itemDesc 原文"
+ },
+ "面对邪教徒和海嗣时，她手中细剑绝对不会姑息任何一个敌人": {
+  "en": "Against cultists and Seaborn, the rapier in her hand spares no one.",
+  "note": "候选2：When she faces cultists and Seaborn, her rapier shows no mercy to a single enemy."
+ },
+ "这片大地的代言人（划掉）": {
+  "en": "The voice of this land (crossed out)",
+  "note": "难翻，待用户定：梗在「（划掉）」，英文可用删除线或括号。候选2：Spokesperson for all of Terra ~~(not really)~~"
+ },
+ "她是落单的狼，现作为近卫干员，于战术攻坚与肃清作战中展现出十足的歼灭能力": {
+  "en": "A lone wolf. Now a Guard Operator, she shows full annihilation capability in tactical assaults and mop-up operations.",
+  "note": "候选2：She is a wolf without a pack. As a Guard Operator, she excels at breaching and clearing operations."
+ },
+ "女妖河谷年轻的「女主人」，罗德岛圆凳滑行赛组织创始人": {
+  "en": "The young 'Mistress' of the Banshee Valley, and founder of Rhodes Island's stool-sliding races.",
+  "note": "难翻，待用户定：「女主人」是梗（逻各斯是男性），英文保留引号；「圆凳滑行赛」出处我没查到原作，按字面译。候选2：Young 'Lady' of the Banshee Valley; founder of the Rhodes Island Office Chair Racing League."
+ },
+ "无论是什么身份，他始终只是竭尽自己所能，为同伴提供支持和援助": {
+  "en": "Whatever his title, he simply does all he can to support and aid his companions.",
+  "note": "候选2：No matter who he is meant to be, he always does his utmost to support his companions."
+ },
+ "这就是你的选择吗？他或许想要一个锚点来固定住自己，他会紧紧抓牢你": {
+  "en": "So this is your choice? He may want an anchor with which to fix himself, and he'll have you tight in his clutches when he does.",
+  "note": "官方 char_437_mizuki.itemDesc 原文"
+ },
+ "所有人都知道塞雷娅站在战场上意味着什么，把后背交给她，然后，向前进吧。": {
+  "en": "Everyone knows what it means when Saria takes the field. Leave your back to her, and move forward.",
+  "note": "候选2：Everyone knows what Saria on the battlefield means. Trust her with your back, then advance."
+ },
+ "“举起大锤，领着大伙，毫不畏惧地冲锋”，对她来说，这些一直都是理所当然的事情。": {
+  "en": "'Raise the hammer, lead the crew, charge without fear.' For her, that has always gone without saying.",
+  "note": "难翻，待用户定：引号里那句如果出自原作语音 / 档案，应换成官方英文，我没在 character_table 里找到出处。候选2：'Hammer up, gang behind me, charge without fear.' To her, it has always been the obvious thing to do."
+ },
+ "前阿戈尔传奇电工，能够以一己之力维护一整座城市的海底灯光阵列": {
+  "en": "Former legendary Ægir electrician, able to maintain an entire city's undersea lighting array single-handedly.",
+  "note": "难翻，待用户定：「电工」是国服玩家梗，英文社区不一定懂；候选2 换成国际服玩家熟悉的说法：Former legendary Ægir maintenance worker. Keeps a whole city's undersea lights on all by herself."
+ },
+ "名为斯卡蒂的深海猎人//名为伊莎玛拉的海嗣\n正停留此处\n等待你的部署//渴盼你的呼唤": {
+  "en": "The Abyssal Hunter named Skadi // The Seaborn named Ishar'mla\nwaits here\nfor your deployment // for your call",
+  "note": "伊莎玛拉官方拼写 Ishar'mla（初稿写成 Ishar-mla）；保留 // 双声部排版。候选2：An Abyssal Hunter called Skadi // A Seaborn called Ishar'mla\nlingers here\nawaiting your orders // longing for your call"
+ },
+ "本名劳伦缇娜，自囚笼里挣脱，从疯狂中苏醒。": {
+  "en": "Born Laurentina, free from her cage, awake from her madness.",
+  "note": "后半句是官方 char_1023_ghost2.itemUsage 原文；候选2：Laurentina by birth. Free from her cage, awake from her madness."
+ },
+ "罗德岛干员铃兰，九倍的温柔与坚强。她是罗德岛的光": {
+  "en": "Suzuran, Rhodes Island Operator, has nine times the strength, and the fluffiness. She is the light of Rhodes Island.",
+  "note": "难翻，待用户定：前句是官方 char_358_lisa.itemUsage 原文（官方把「温柔」译成 fluffiness，呼应九尾）；「她是罗德岛的光」是玩家梗，直译。候选2：... She is Rhodes Island's little sun."
+ },
+ "企鹅物流员工，虽然平时沉默寡言，但战斗风格却可以用“暴风骤雨”来形容。": {
+  "en": "Penguin Logistics employee. Usually a woman of few words, but her fighting style is best described as a 'torrential storm'.",
+  "note": "「暴风骤雨」呼应她的技能「剑雨」，英文用 storm 保留；候选2：... her fighting style can only be called a downpour of blades."
+ },
+ "阿戈尔军事团体“深海猎人”作战指挥官之一。他独行，一如他刚成为深海猎人时那样。": {
+  "en": "One of the field commanders of the Ægir military group, the Abyssal Hunters. He walks alone, just as when he first became an Abyssal Hunter.",
+  "note": "第二句是官方 char_4145_ulpia.itemDesc 原文"
+ },
+ "我的天哪维什戴尔大人": {
+  "en": "Oh my god, Lady Wiš'adel",
+  "note": "难翻，待用户定：国服玩家梗，英文没有对应的固定说法。候选2：OMG it's Wiš'adel-sama"
+ },
+ "「惊跳反射」使「唤醒」的强化攻击追加触手攻击；「病理性依恋」使被触手拖到身边的敌人被缠住": {
+  "en": "'Startle Reflex' causes the enhanced attack of 'Awaken' to deal an additional tentacle attack; 'Pathological Attachment' causes enemies dragged to him by tentacles to be entangled.",
+  "note": "统一「惊跳反射」译名"
+ },
+ "解锁二技能「跃空锤」；解锁天赋「鼓舞」：锤击命中时为其他干员回复的技力翻倍；普攻「粉碎」：锤击击倒敌人时迸出碎石，对半径 {$crush_r} 内的敌人造成锤击 {$crush_mult*100}% 伤害（每次锤击至多 {$crush_cap} 处）": {
+  "en": "Unlocks Skill 2 'Aerial Hammer'; Unlocks Talent 'Rally': Doubles SP restored to other Operators when hammer strikes hit; Normal attack 'Crushing': When a hammer strike defeats an enemy, debris bursts forth, dealing {$crush_mult*100}% of hammer strike damage to enemies within a radius of {$crush_r} (up to {$crush_cap} bursts per hammer strike)",
+  "note": "天赋「鼓舞」暂定 Rally（避开官方状态词 Inspiration）"
+ },
+ "解锁三技能「必须开辟的通路」：掷锚冲锋，沿途与落点都造成伤害、落点眩晕一片，之后 {$s3_haste} 秒锚击加速；撼地范围扩大到 {$quake_r_e2}、伤害提高到 {$quake_mult_e2*100}%；普通攻击强化「掷锚」：每第 {$throw_n} 次锚击改为把锚掷向 {$throw_min} 外最远的敌人（没有就掷向最近的），落地造成锚击 ×{$throw_mult} 伤害，随后顺锁链把沿线敌人拖回面前，再造成 {$throw_back*100}% 伤害（拖动 Boss 除外）": {
+  "en": "Unlocks Skill 3 'Paths Must Be Opened': throws the anchor and dashes, dealing damage along the path and at the target location, Stunning enemies at the target location, then accelerating Anchor Strike for {$s3_haste}s. Earthshake range expands to {$quake_r_e2}, damage increases to {$quake_mult_e2*100}%. Normal attack enhanced to 'Cast Anchor': every {$throw_n}th Anchor Strike instead throws the anchor at the furthest enemy beyond {$throw_min} (or the nearest if none), dealing ×{$throw_mult} Anchor Strike damage upon landing, then dragging enemies along the chain back to himself, dealing an additional {$throw_back*100}% damage (dragging Bosses excepted).",
+  "note": "统一「掷锚」译名"
+ },
+ "天赋「指挥」治疗量提升至 +{$e2_heal*100-100}%；解锁三技能「指令：熔毁」：Mon3tr {$s3_dur} 秒内爪击改为真实伤害且伤害 ×{$s3_mult*$k_pow:2}；结束时熔毁：周围 {$melt_r} 内造成 {$melt_mult*$k_pow:2} 倍真实伤害；普通攻击强化「八面展开」：Mon3tr 前后同时出爪（身后一爪 {$m_back_mult*100}%）；「回防」：队长受到攻击时，Mon3tr 跃回队长身边，对周围半径 {$leap_r} 内的敌人造成 ×{$leap_mult} 伤害并击退（每 {$guard_cd} 秒至多一次）；「不毁重构」：Mon3tr 倒下时就地爆炸，对周围半径 {$rebuild_r} 内的敌人造成 ×{$rebuild_mult} 倍真实伤害并眩晕 {$rebuild_stun} 秒": {
+  "en": "Talent 'Command' healing increased to +{$e2_heal*100-100}%; unlocks Skill 3 'Command: Meltdown': Mon3tr's claw attacks deal True damage and damage is multiplied by {$s3_mult*$k_pow:2} for {$s3_dur}s; upon ending, melts down: deals True damage equal to {$melt_mult*$k_pow:2} times ATK to enemies within a radius of {$melt_r}; Normal attack enhancement 'Omnidirectional Deployment': Mon3tr attacks with claws to the front and back simultaneously (the backward claw deals {$m_back_mult*100}% damage); 'Fall Back': When the Leader is attacked, Mon3tr leaps back to the Leader, dealing {$leap_mult} times damage to enemies within a radius of {$leap_r} and causing knockback (at most once every {$guard_cd}s); 'Non-Damaging Restructuring': When Mon3tr falls, it explodes on the spot, dealing True damage equal to {$rebuild_mult} times ATK to enemies within a radius of {$rebuild_r} and Stuns them for {$rebuild_stun}s.",
+  "note": "统一译名"
+ },
+ "解锁二技能「冲锋号令·γ型」；解锁天赋「战术快递」：队长每次冲刺，她同向冲刺一次；穿过敌人时为全队回技力，拔刀每次出手再回一点；普通攻击强化「钉剑」：被阻挡的敌人各插一柄源石剑，定住时间延长到 {$pin_dur} 秒（精英减半，Boss 除外）": {
+  "en": "Unlocks Skill 2 'Charge γ'. Unlocks Talent 'Tactical Delivery': Whenever the Leader dashes, she dashes once in the same direction; passing through enemies restores SP to all squad members, and each Sword Draw attack restores a small amount of SP. Basic attack upgraded to 'Pinning Sword': Enemies Blocked are each pierced by an Originium sword, extending the immobilization time to {$pin_dur}s (halved on Elites, Bosses excepted).",
+  "note": "统一译名"
+ }
+}
