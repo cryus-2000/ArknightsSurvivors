@@ -15,6 +15,7 @@ const A = preload("res://scripts/art.gd")
 const Aim = preload("res://scripts/run/ult_aim.gd")
 const PF = preload("res://scripts/run/ult_pixfx.gd")   # 收尾加强的余震碎屑 / 烟尘（docs/216 §5）
 const IRP = preload("res://scripts/run/ult_px_ir.gd")   # 艾丽妮「宣判」转平面画面（docs/275，ult/px_plane；只画）
+const MZP = preload("res://scripts/run/ult_px_mz.gd")   # 水月「水母群」转平面画面（docs/261 §8，ult/px_plane + ult/px_plane_mizuki；只画）
 const Bond = preload("res://scripts/run/link_bond.gd")   # 羁绊连携（link/bond，docs/217）
 const LinkV2 = preload("res://scripts/run/link_v2.gd")   # 连携 v2（link/v2，docs/209 §2）：全自动、只由队长触发、按姿态挑人   # 慢动作瞄准 v2（ult/aim，docs/209 §3）
 
@@ -1457,6 +1458,8 @@ func draw_world(w) -> void:
 	w.tb_flush()
 	if IRP.on():
 		IRP.of(g).draw_front(self, w)   # 艾丽妮「宣判」转平面：光链 / 斩线 / 爆 / 收尾斩击（docs/275）
+	if MZP.on():
+		MZP.of(g).draw_front(self, w)   # 水月「水母群」转平面：海月水母 / 压缩环 / 炸开亮核与冲击环 / 崩解 / 缠绕（docs/261 §8）
 	_draw_inhale(w)
 	_draw_hit_frame(w)
 
@@ -1529,6 +1532,8 @@ func _draw_hit_frame(w) -> void:
 	w.tb_flush()
 	if IRP.on():
 		IRP.of(g).draw_hf(self, w, Color(fg.r, fg.g, fg.b) if (inv or hc.size() == 4) else Color.WHITE)   # 转平面（docs/275）：收尾斩击 + 主裂缝的剪影
+	if MZP.on():
+		MZP.of(g).draw_hf(self, w, Color(fg.r, fg.g, fg.b) if (inv or hc.size() == 4) else Color.WHITE)   # 转平面（docs/261 §8）：9 只海月水母剪影
 
 
 # ================================================================ 像素风光栅化（用户 10-30「特效都要对齐我们的美术风格」）
@@ -1882,6 +1887,8 @@ func _imp_scale() -> float:
 	var t: float = _imp_age() - _imp_fr()
 	var st: float = _imp_st()
 	var et: float = Bal.v("ult/imp_ease", 0.35)
+	if MZP.on() and caster != null and str(caster.id) == "mizuki":
+		et = Bal.v("ult/px_mz_ease", 0.15)   # 水月转平面（docs/261 §8，终结技任务单：慢放后 0.15 秒加速回正常）；只缩真实时间，批跑不缩、TRACE 不受影响
 	var lo: float = Bal.v("ult/imp_slow", 0.25)
 	if t < 0.0 or t >= st + et:
 		return 1.0
