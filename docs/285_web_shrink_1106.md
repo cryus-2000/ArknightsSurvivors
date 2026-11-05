@@ -148,3 +148,15 @@ python tools/web_pck_report.py build/release/final_319b5de4b/web build/release/f
 ```
 
 `build/release/` 在主仓库 `E:\ArknightsSurvivors\build\release\`；重导网页包用 `python tools/export_web.py --toy`。
+
+## 9. 实施记录（11-06，分支 `claude/web-shrink-1106`）
+
+做了 §2.1、§2.2：`release_slim.is_pxp_raw` + `prune_game_art`（对外包 / 网页包不带 `pxp_*raw_*`，对内包保留）；`SUBSET_FONTS` 加 `ui_phone.ttf`。从 f367846fe 起导出网页包（`release_all --ref <提交> --only web`，commit 8343795d6）：
+
+| | 319b5de4b | 8343795d6 | 差 |
+|---|---:|---:|---:|
+| 网页目录 | 51.07 MiB | **49.2 MiB** | −1.87 |
+| pxp 帧条（pck 估算） | 8.54（2790 张） | 7.26（2675 张） | −1.28（115 张） |
+| 字体（pck 估算） | 1.88 | 1.36 | −0.52 |
+
+`verify_web_build` 通过（failures 为空）。**§2.3 开发脚本没做**：`game.gd` 静态 `preload` 了 `autotest` / `boss_bench`，`autotest.gd` 又静态 `preload` 了 `outwin_probe` / `ak_mock`，包里去掉它们会让解析失败；要先把这些改成运行时 `load()` 并受开发版守卫，收益只有约 0.2 MiB，不值得现在动，**记给代码整理会话**。
