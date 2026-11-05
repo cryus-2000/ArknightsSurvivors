@@ -1162,6 +1162,8 @@ static func hw_hook_start(o, b: Dictionary) -> void:
 	var dur: float = clampf(hand.distance_to(to) / float(b.get("speed", 900.0)), 0.1, 0.24)
 	h.hooks.append({"b": b, "phase": "fly", "t": 0.0, "dur": dur, "from": hand, "to": to, "head": hand, "drag": [], "dmg": hw_basis(o, str(b.get("basis", "atk"))), "tgt": tgt_e,
 		"gl": o.B.get("attack", {}).has("hook_nodes")})   # gl：歌蕾蒂娅成长节点（docs/202，seg_gladiia）
+	if h.hooks[-1].gl:
+		_FXR.ev(o, "gl_throw", {"hk": h.hooks[-1]})   # 歌蕾蒂娅转平面（docs/263）：只画
 	if b.has("fx"):
 		fx_play(o, b.fx, hand, 20.0, [], (to - hand).angle())
 
@@ -1213,6 +1215,9 @@ static func _hw5_hook_impact(o, hk: Dictionary) -> void:
 		o.last_hit_pos = hits[0].pos
 	if b.has("impact_fx"):
 		fx_play(o, b.impact_fx, c, r, hits)
+	if hk.gl:
+		_FXR.ev(o, "gl_impact", {"hk": hk, "c": c, "r": r, "es": hits, "src": str(b.get("src", ""))})   # 歌蕾蒂娅转平面（docs/263）：只画
+		_MI.hit(o, str(b.get("src", "")), b.get("tags", []), hits)   # 近战打击感包（docs/246 §11）：只画
 	hk.phase = "taut"
 	hk.t = 0.0
 	hk.dur = float(b.get("taut", 0.2))
@@ -1277,6 +1282,8 @@ static func _hw5_hook_drag_start(o, hk: Dictionary) -> void:
 	hk.t = 0.0
 	hk.dur = float(b.get("drag", 0.18))
 	hk.front = front
+	if hk.gl:
+		_FXR.ev(o, "gl_drag", {"hk": hk})   # 歌蕾蒂娅转平面（docs/263）：拖痕，只画
 
 
 static func _hw5_hook_arrive(o, hk: Dictionary) -> void:
@@ -1301,6 +1308,9 @@ static func _hw5_hook_arrive(o, hk: Dictionary) -> void:
 		hits.append(e)
 	if b.has("arrive_fx") and not hits.is_empty():
 		fx_play(o, b.arrive_fx, hk.front, 40.0, hits)
+	if hk.gl and not hits.is_empty():
+		_FXR.ev(o, "gl_arrive", {"hk": hk, "es": hits, "src": src})   # 歌蕾蒂娅转平面（docs/263）：只画
+		_MI.hit(o, src, b.get("tags", []), hits)   # 近战打击感包（docs/246 §11）：只画
 	if hk.gl and not hits.is_empty():
 		_F().gl_arrive(o, hk)   # docs/202 歌蕾蒂娅成长节点：倒钩结算 / 回收斩 / 锁链沉底（seg_gladiia）
 	if not hits.is_empty() and o.has_method("notify_mate_hook"):   # 联动段（docs/123 §2.7「钩与锚」）：告诉队友「我把人拖到 front 了」
