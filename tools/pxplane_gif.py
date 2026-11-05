@@ -14,7 +14,7 @@ ART = os.path.join(ROOT, "game", "art", "fx", "pxp")
 META = json.load(open(os.path.join(ROOT, "game", "data", "pxp_skadi.json"), encoding="utf-8"))
 OP = os.path.join(ROOT, "game", "art", "operators", "skadi", "op_skadi_idle@2x.png")
 NAME = {"basic": "普攻", "s1": "S1 迅捷打击·γ型", "spin": "旋斩（异乡之舞第三下）"}
-TIER = ["E0", "E1（+ 深海裂痕）", "E2（+ 暗影触须、海绿副刃）"]
+TIER = ["E0", "E1（+ 深海裂痕）", "E2（+ 刃变重：深海暗身、海绿双描边）"]
 BG = (34, 46, 52)
 PX = 2          # 1 帧条像素 = 2 世界像素（游戏里同样整数放大）
 SHOW = 2        # GIF 再放大 2 倍看得清

@@ -45,7 +45,7 @@ const nz = (x, sd) => noise(x, sd) * 0.5 + 0.5;   // 0..1
 // ③ 顺着弧走的速度纹；④ 快：第 0 帧就扫出 55%，第 1 帧扫满，之后从刀尾往前收。命中斩痕在游戏里画（fx_pxplane._cuts）。
 // 分档（11-05 用户「浪花没什么用，换一个」→ 每升一档多一个新元素，不靠水花）：
 //   精一：刀身加厚 + 斩击后地上留一道发光的深海裂痕（贴地层 rift）；
-//   精二：再加从裂痕里往上长出的深海暗影触须（深蓝身、海绿尖，扭一下缩回裂口）+ 白刃线内侧一道海绿副刃（刃变重）。
+//   精二：刃变重——刀身压成深海暗色、内外两侧各一圈海绿描边（外缘白刃线保留）。（11-05 用户：触须很怪，不要）
 function sweep(t, span, full) {
   const a0 = -span / 2;
   const head = a0 + span * (full ? 0.4 + 0.6 * clamp(t / 0.1) : 0.55 + 0.45 * clamp(t / 0.067));
@@ -95,7 +95,11 @@ function smear(p, t, o, C, ACC, full, k) {
     out.c = C[ci];
     if (st === "s3" && !hot && q < 0.16) out.c = ACC;    // S3 刃线换海绿浪沫
     if (out.a === undefined) out.a = 1;
-    if (el >= 2 && k.edge && !hot && q > 0.13 && q < 0.26) out.c = ACC;   // 精二海绿副刃
+    if (el >= 2 && k.edge && !hot) {   // 精二：刃变重——刀身压成深海暗色，内外两侧各一圈海绿描边（外缘白刃线保留）
+      if (q > 0.13 && q < 0.24) out.c = ACC;
+      else if (q >= 0.24 && q < 0.86) out.c = C[clamp(ci - 2, 1, n - 1)];
+      else if (q >= 0.86) { out.c = ACC; out.a = 1; }
+    }
   });
   if (!k.edge) return;
   // 刀头径向刃光（剑身那一下的反光），只在出手两帧
@@ -171,7 +175,6 @@ function riftTendrils(p, t, o, C, ACC, full) {
 
 function ribbon(p, t, o, C, ACC, full) {
   const R = +o.R, W = +o.W, el = +o.el;
-  if (el >= 2 && o.view !== "raw") riftTendrils(p, t, o, C, ACC, full);   // 精二：从裂痕里长出的暗影触须（先画，刀身盖在上面）
   smear(p, t, o, C, ACC, full, { R, Wr: W, dt: 0, dim: 0, edge: true });
 }
 
