@@ -3093,7 +3093,46 @@ func _ey_ball(ci, st: String, pos: Vector2, dir: Vector2, ph: int) -> void:
 	var dk: Array = pick_dir(dir.angle() if dir.length_squared() > 0.0001 else 0.0)
 	if EY_TAIL.has(st) and dir.length_squared() > 0.0001 and Bal.v("fx/eyja_ball_tail", 1.0) > 0.0:
 		_ey_tail(ci, pos, dir.normalized(), float(EY_TAIL[st]), ph)
+		_ey_strip_rot(ci, "ey_ball_%s_d%d" % [st, dk[0]], frame_of(0.0) + ph, _snap(pos), dk[1], dir.angle(), float(dk[0]))
+		return
 	_draw_strip(ci, "ey_ball_%s_d%d" % [st, dk[0]], frame_of(0.0) + ph, _snap(pos), dk[1], false)
+
+
+## 帧条只有 5 个 45° 角：挑最近的一张后再转掉剩下的偏差（≤ 22.5°），火球朝向和真实飞行方向一致——
+## 原来 25° 飞的火球画成 45°，看着像斜着「平移」（11-06）。热芯发光点按同一变换放
+func _ey_strip_rot(ci, k: String, fi: int, gp: Vector2, flip: bool, ang: float, bucket: float) -> void:
+	var m: Dictionary = _meta(k)
+	var tx: Texture2D = _tex(k)
+	if m.is_empty() or tx == null:
+		return
+	fi = posmod(fi, int(m.n))
+	var w: float = float(m.w)
+	var h: float = float(m.h)
+	var px: float = g.PX
+	var shown: float = deg_to_rad(180.0 - bucket if flip else bucket)
+	var res: float = wrapf(ang - shown, -PI, PI)
+	# 局部坐标：锚点（ox, oy）在原点；翻转时镜像
+	var xf := Transform2D(res, gp)
+	if flip:
+		xf = xf * Transform2D(0.0, Vector2(-1.0, 1.0), 0.0, Vector2.ZERO)
+	var tl := Vector2(-float(m.ox) * px, -float(m.oy) * px)
+	ci.draw_set_transform_matrix(xf)
+	ci.draw_texture_rect_region(tx, Rect2(tl, Vector2(w * px, h * px)), Rect2(fi * w, 0.0, w, h))
+	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if not g.optical_on:
+		return
+	var fr: int = Engine.get_process_frames()
+	if fr != _emit_frame:
+		_emit_frame = fr
+		_emit_n = 0
+	var pts: Array = m.emit[fi] if fi < m.emit.size() else []
+	var ke: float = Bal.v("fx/px_plane_emit", 0.8)
+	for q in pts:
+		if _emit_n >= EMIT_CAP:
+			return
+		_emit_n += 1
+		var c: Color = _hexc(str(q[2]))
+		g.glow_next.append([_snap(xf * (tl + Vector2(float(q[0]), float(q[1])) * px)), px, Color(c.r, c.g, c.b, ke)])
 
 
 ## 直线弹（普攻火球 / 熔岩弹 / 二重咏唱强化 / 点燃弹）的尾焰（11-06 用户「现在的普通攻击像是平移出去的火球，没有了之前的方向感」）：
