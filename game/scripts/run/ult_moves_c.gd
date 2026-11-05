@@ -9,6 +9,7 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
+const HOP = preload("res://scripts/run/ult_px_ho.gd")   # 星熊终结技配色对齐 + 转平面加强（docs/254 §9，ult/px_plane_hoshiguma，只画）
 const PF = preload("res://scripts/run/ult_pixfx.gd")   # pixfx 大贴图画法（docs/199 §7.8）
 const FC = preload("res://scripts/run/ult_fx_c.gd")   # pixfx 第三组：流明 / 铃兰（docs/199 §7.9）
 const IRP = preload("res://scripts/run/ult_px_ir.gd")   # 艾丽妮「宣判」转平面画面（docs/275，ult/px_plane；只画）
@@ -1045,7 +1046,8 @@ static func _ho_start(u, o) -> Dictionary:
 	var R: float = Bal.v("ult/ho_r", 502.0)
 	var pr: float = Bal.v("ult/ho_pull_r", 438.0)
 	var hold: float = Bal.v("ult/ho_hold", 1.5)
-	var col: Color = u._col(o)
+	var px: bool = HOP.on()
+	var col: Color = HOP.JADE if px else u._col(o)   # 转平面：满屏橙黄 → 青绿（docs/254 §9）
 	o.play_vis_anim("attack")
 	o.screen_shake(0.6)
 	u.strip("fx_hoshiguma_block", c + Vector2(0, -14), {"sc": 3.0, "life": 0.3})
@@ -1071,18 +1073,18 @@ static func _ho_start(u, o) -> Dictionary:
 		u.g.vfx.stop(Bal.v("ult/ho_hitstop", 0.1), "ult", true)
 		var vs0: float = PF.vseed(u, c)
 		u.strip("fx_hs_crack", c, {"layer": "back", "sc": 0.35, "sc1": 0.55, "scd": 0.1, "ang": PF.h(vs0) * TAU, "sx": -1.0 if PF.h(vs0 + 1.0) < 0.5 else 1.0,
-			"life": hold + 1.4, "fade": 0.6, "col": Color(1.1, 1.08, 1.05), "col1": Color(0.6, 0.58, 0.56), "cold": hold + 0.6})
-		PF.heave(u, c, 120.0, vs0 + 3.0)
+			"life": hold + 1.4, "fade": 0.6, "col": HOP.STONE if px else Color(1.1, 1.08, 1.05), "col1": HOP.STONE_D if px else Color(0.6, 0.58, 0.56), "cold": hold + 0.6})
+		PF.heave(u, c, 120.0, vs0 + 3.0, 0.0, HOP.STONE if px else Color.WHITE)
 		if _ho_v3():   # 打击感（pixfx §6.6）：盾下四团逐帧烟尘往外推，代替灰点粒子
 			for q in 4:
 				var hq: float = PF.h(vs0 * 3.0 + q)
 				var dq := Vector2.from_angle(TAU * (q + hq * 0.6) / 4.0)
-				PF.dust(u, c + dq * 70.0, 170.0 + 60.0 * hq, 0.03 * q, vs0 + q, dq * (60.0 + 40.0 * hq))
+				PF.dust(u, c + dq * 70.0, 170.0 + 60.0 * hq, 0.03 * q, vs0 + q, dq * (60.0 + 40.0 * hq), HOP.STONE if px else Color.WHITE)
 		else:
-			PF.particles(u, c, 100, "ult_burst_s", [Color(0.85, 0.82, 0.76)], 0.0, vs0, 140.0)
+			PF.particles(u, c, 100, "ult_burst_s", [HOP.STONE if px else Color(0.85, 0.82, 0.76)], 0.0, vs0, 140.0)
 	return {"v2": hv2, "c": c, "R": R, "rc": R * Bal.v("ult/ho_core", 0.872), "hold": hold, "tick": 0, "tseg": [{}, {}, {}, {}, {}], "rseg": {}, "boom": -1.0,
 		"rf": 0.78 if rt == "ember" else Bal.v("ult/ho_boom", 0.9), "wall": rt == "wall", "ember": rt == "ember", "et": 0, "eseg": [{}, {}, {}],
-		"glow": u.strip("fx_hoshiguma_guard_glow", c + Vector2(0, -16), {"sc": 2.2, "loop": true, "life": hold})}
+		"glow": u.strip("fx_hoshiguma_guard_glow", c + Vector2(0, -16), {"sc": 2.2, "loop": true, "life": hold}), "px": px}
 
 
 static func _ho_step(u, a: Dictionary, o) -> bool:
@@ -1091,7 +1093,9 @@ static func _ho_step(u, a: Dictionary, o) -> bool:
 	var c: Vector2 = a.c
 	var R: float = a.R
 	var hold: float = a.hold
-	var col: Color = u._col(o)
+	var px: bool = a.get("px", false)
+	var col: Color = HOP.JADE if px else u._col(o)
+	var hot: Color = HOP.AMBER if px else COL_RED   # 转平面：越挡越热走暖金（原版红；红只给危险）
 	var rc: float = a.rc
 	if t < hold:
 		g.invuln = maxf(g.invuln, 0.2)   # 挡的期间队长无敌
@@ -1099,7 +1103,7 @@ static func _ho_step(u, a: Dictionary, o) -> bool:
 			if not e.boss:
 				g.enemies_sys.set_aggro(e, c)
 		var k: float = t / hold
-		a.glow.col = Color.WHITE.lerp(COL_RED, k)
+		a.glow.col = HOP.heat(k) if px else Color.WHITE.lerp(COL_RED, k)
 		while int(a.tick) < 5 and t >= 0.3 * (int(a.tick) + 1) - 0.01:
 			var i: int = int(a.tick)
 			a.tick = i + 1
@@ -1108,15 +1112,15 @@ static func _ho_step(u, a: Dictionary, o) -> bool:
 			if a.v2:   # 裂纹扩大：每跳地面碎裂再撑大一圈 + 一下震 + 碎石（v2 不画程序线段裂纹）
 				var vs1: float = PF.vseed(u, c) + i
 				u.strip("fx_hs_crack", c, {"layer": "back", "sc": 0.55 + 0.12 * i, "sc1": 0.6 + 0.12 * (i + 1), "scd": 0.08, "ang": PF.h(vs1) * TAU,
-					"life": hold - t + 1.2, "fade": 0.6, "col": Color(0.95, 0.9, 0.88, 0.8), "col1": Color(0.55, 0.52, 0.5, 0.8), "cold": 0.5})
+					"life": hold - t + 1.2, "fade": 0.6, "col": Color(HOP.STONE, 0.8) if px else Color(0.95, 0.9, 0.88, 0.8), "col1": Color(HOP.STONE_D, 0.8) if px else Color(0.55, 0.52, 0.5, 0.8), "cold": 0.5})
 				u.shake(2.0 + i, 0.12)
-				PF.heave(u, c, 130.0 + 40.0 * i, vs1 + 7.0)
+				PF.heave(u, c, 130.0 + 40.0 * i, vs1 + 7.0, 0.0, HOP.STONE if px else Color.WHITE)
 			for j in (0 if a.v2 else 3 + i):
 				var ang: float = j * 2.39996 + i * 0.7
 				var dv := Vector2.from_angle(ang)
-				u.shape({"kind": "line", "a": c + dv * 60.0, "b": c + dv * (90.0 + 40.0 * i), "w": 3.0, "col": col.lerp(COL_RED, k), "life": hold - t + 0.15})
-			_hex(u, c, 110.0, 0.0, col.lerp(COL_RED, k), 6.0, 0.12)
-			o.sparks(c + Vector2(0, -16), Vector2.UP, COL_RED.lerp(col, 0.5), 6, 260.0)
+				u.shape({"kind": "line", "a": c + dv * 60.0, "b": c + dv * (90.0 + 40.0 * i), "w": 3.0, "col": col.lerp(hot, k), "life": hold - t + 0.15})
+			_hex(u, c, 110.0, 0.0, col.lerp(hot, k), 6.0, 0.12)
+			o.sparks(c + Vector2(0, -16), Vector2.UP, hot.lerp(col, 0.5), 6, 260.0)
 		return false
 	if float(a.boom) < 0.0:
 		a.boom = t
@@ -1126,7 +1130,7 @@ static func _ho_step(u, a: Dictionary, o) -> bool:
 		if a.v2:   # 反震：顿帧 + 石尘冲击环（fx_hs_ring）推到 R + 灰白粒子迸开 + 四拍往外震（节奏同乌尔比安四圈）
 			u.g.vfx.stop(Bal.v("ult/ho_hitstop", 0.1), "ult", true)
 			var vs2: float = PF.vseed(u, c) + 50.0
-			var rs: Dictionary = PF.ring(u, ["fx_hs_ring"], c, 110.0, R * 1.02, 0.16, 0.45, {"seed": vs2, "fade": 0.3, "col": Color(1.05, 1.0, 0.98, 0.85)})
+			var rs: Dictionary = PF.ring(u, ["fx_hs_ring"], c, 110.0, R * 1.02, 0.16, 0.45, {"seed": vs2, "fade": 0.3, "col": Color(HOP.STONE, 0.85) if px else Color(1.05, 1.0, 0.98, 0.85)})
 			if _ho_v3():   # 冲击帧：反震那一下，石尘环 + 盾下碎裂进剪影；外圈八团逐帧烟尘往外推
 				a["hf"] = true
 				u.act["hf"] = true
@@ -1134,11 +1138,11 @@ static func _ho_step(u, a: Dictionary, o) -> bool:
 				for q in 8:
 					var hq: float = PF.h(vs2 * 3.0 + q)
 					var dq := Vector2.from_angle(TAU * (q + hq * 0.7) / 8.0)
-					PF.dust(u, c + dq * R * (0.55 + 0.25 * hq), 200.0 + 80.0 * hq, 0.05 + 0.03 * (q % 3), vs2 + q, dq * (70.0 + 50.0 * hq))
-			PF.particles(u, c, 300, "ult_burst", [Color(0.95, 0.9, 0.85), Color(1.0, 0.55, 0.45)], 0.0, vs2, R * 0.8)
+					PF.dust(u, c + dq * R * (0.55 + 0.25 * hq), 200.0 + 80.0 * hq, 0.05 + 0.03 * (q % 3), vs2 + q, dq * (70.0 + 50.0 * hq), HOP.STONE if px else Color.WHITE)
+			PF.particles(u, c, 300, "ult_burst", [HOP.JADE_L, HOP.AMBER] if px else [Color(0.95, 0.9, 0.85), Color(1.0, 0.55, 0.45)], 0.0, vs2, R * 0.8)
 			a["vs"] = vs2
 			a["beats"] = [[t, R * 0.3, 0], [t + 0.18, R * 0.55, 1], [t + 0.36, R * 0.8, 2], [t + 0.54, R, 3]]
-			PF.aftershock(u, c, R, vs2 + 9.0, 0.84, 10)
+			PF.aftershock(u, c, R, vs2 + 9.0, 0.84, 10, HOP.STONE if px else Color.WHITE)
 		else:
 			u.shape({"kind": "circle", "c": c, "r": R, "col": COL_RED.lerp(col, 0.5), "fill": 0.3, "life": 0.22})
 			_ring(u, c, R, 80.0, col.lerp(Color.WHITE, 0.3), 0.45, 14.0)
@@ -1146,13 +1150,17 @@ static func _ho_step(u, a: Dictionary, o) -> bool:
 			var dv := Vector2.from_angle(j * TAU / 18.0 + 0.17)
 			u.shape({"kind": "blade", "a": c + dv * 90.0, "b": c + dv * 130.0, "w": 7.0, "col": Color(1.0, 0.9, 0.7), "glow": COL_RED, "life": 0.4, "v": dv * 900.0})
 	if a.v2:
-		PF.beats_tick(u, a, t, c, Color(1.0, 0.85, 0.8))
+		PF.beats_tick(u, a, t, c, HOP.JADE_L if px else Color(1.0, 0.85, 0.8))
 	var el: float = t - float(a.boom)
 	var T: float = 0.14
 	if el <= T + 0.1:   # 反震：两层六边形从盾前扩到 R（逐帧描，形状一眼是盾阵）
 		var r: float = lerpf(110.0, R, clampf(el / T, 0.0, 1.0))
-		_hex(u, c, r, 0.0, col.lerp(Color.WHITE, 0.4), 10.0, 0.06)
-		_hex(u, c, r * 0.8, PI / 6.0, COL_RED.lerp(col, 0.4), 6.0, 0.06)
+		if px:   # 转平面：每帧只留当前这一圈（原版每圈留 0.06 秒，叠成满屏同心条纹），外圈青绿加粗、内圈暖金芯，真 alpha
+			_hex(u, c, r, 0.0, Color(HOP.JADE_L, 0.95), 14.0, 1.0 / 60.0)
+			_hex(u, c, r * 0.8, PI / 6.0, Color(HOP.AMBER, 0.85), 8.0, 1.0 / 60.0)
+		else:
+			_hex(u, c, r, 0.0, col.lerp(Color.WHITE, 0.4), 10.0, 0.06)
+			_hex(u, c, r * 0.8, PI / 6.0, COL_RED.lerp(col, 0.4), 6.0, 0.06)
 		for e in u.in_circle(c, r + 20.0):
 			if a.rseg.has(int(e.id)):
 				continue
@@ -1162,6 +1170,8 @@ static func _ho_step(u, a: Dictionary, o) -> bool:
 			if a.wall:
 				op["stun"] = 1.0 if _minion(e) else 0.5
 			_once(u, a, o, a.rseg, e, float(a.rf), op)
+			if px:
+				HOP.of(u.g).burst(e, c, R)   # 怪物崩解：冲击扫到那一拍补击杀碎屑 + 本色像素往外喷（只画）
 	if a.ember:   # 热砂·余烬：反震圈留热砂，每 0.6 秒 4%（3 跳）
 		while int(a.et) < 3 and el >= 0.6 * (int(a.et) + 1):
 			var i: int = int(a.et)
