@@ -24,7 +24,7 @@ var _emit_frame := -1
 
 
 static func on() -> bool:
-	return Bal.v("ult/px_plane", 0.0) > 0.0
+	return Bal.v("ult/px_plane", 0.0) > 0.0 or Bal.v("ult/px_plane_irene", 0.0) > 0.0   # 总开关或艾丽妮一人（11-05 拆成按干员开）
 
 
 static func of(game):

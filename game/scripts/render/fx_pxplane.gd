@@ -18,12 +18,13 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
-const METAS := {"res://data/pxp_logos.json": "lg_", "res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_eyjafjalla.json": "ey_", "res://data/pxp_siege.json": "", "res://data/pxp_exusiai.json": "ex_", "res://data/pxp_mizuki.json": "", "res://data/pxp_angelina.json": "an_", "res://data/pxp_saria.json": "sa_", "res://data/pxp_texas.json": "", "res://data/pxp_gladiia.json": "gl_", "res://data/pxp_ulpianus.json": "ul_", "res://data/pxp_suzuran.json": "sz_", "res://data/pxp_irene.json": "ir_"}   # 帧条表 → 键前缀（星熊的键自带 hsg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
+const METAS := {"res://data/pxp_logos.json": "lg_", "res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_eyjafjalla.json": "ey_", "res://data/pxp_siege.json": "", "res://data/pxp_exusiai.json": "ex_", "res://data/pxp_mizuki.json": "", "res://data/pxp_angelina.json": "an_", "res://data/pxp_saria.json": "sa_", "res://data/pxp_texas.json": "", "res://data/pxp_gladiia.json": "gl_", "res://data/pxp_ulpianus.json": "ul_", "res://data/pxp_suzuran.json": "sz_", "res://data/pxp_irene.json": "ir_", "res://data/pxp_kaltsit.json": "ka_", "res://data/pxp_wisadel.json": "wd_"}   # 帧条表 → 键前缀（星熊的键自带 hsg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
 const MI = preload("res://scripts/render/melee_impact.gd")   # 近战打击感包（docs/246 §11）：斩痕 / 照地光提亮
 const ART := "res://art/fx/pxp/pxp_%s.png"
-const IDS := {"logos": true, "skadi": true, "hoshiguma": true, "lumen": true, "eyjafjalla": true, "siege": true, "exusiai": true, "mizuki": true, "angelina": true, "saria": true, "texas": true, "gladiia": true, "ulpianus": true, "suzuran": true, "irene": true}
+const IDS := {"logos": true, "skadi": true, "hoshiguma": true, "lumen": true, "eyjafjalla": true, "siege": true, "exusiai": true, "mizuki": true, "angelina": true, "saria": true, "texas": true, "gladiia": true, "ulpianus": true, "suzuran": true, "irene": true, "kaltsit": true, "wisadel": true}
 const GL = preload("res://scripts/render/fx_pxplane_gl.gd")   # 歌蕾蒂娅一节（docs/263）单独成文件
 const UL = preload("res://scripts/render/fx_pxplane_ul.gd")   # 乌尔比安一节（docs/266）单独成文件
+const KA = preload("res://scripts/render/fx_pxplane_kal.gd")   # 凯尔希一节（docs/265）单独成文件
 ## 接管时仍照画的原 pfx 帧条（状态提示，不属于攻击特效）：星熊格挡闪光、反击架势盾沿光
 const KEEP_PFX := {"hoshiguma": {"fx_hoshiguma_block": true, "fx_hoshiguma_guard_glow": true}, "gladiia": {"fx_gladiia_water_glide": true}}   # 歌蕾蒂娅水滑行是跑动拖尾，不属攻击特效
 const LM_C := [Color("#121a2a"), Color("#1d3150"), Color("#2a5282"), Color("#4285ad"), Color("#7fb2d6"), Color("#c4e0f2"), Color("#ffffff")]   # house.js OP.lumen 钢蓝 7 阶
@@ -69,7 +70,7 @@ func mode() -> int:
 static func owns_id(game, oid: String) -> bool:
 	if game == null or not IDS.has(oid):
 		return false
-	if oid in ["exusiai", "angelina", "saria", "suzuran", "irene"]:   # 能天使（docs/262）/ 安洁莉娜（docs/267）/ 塞雷娅（docs/269）/ 艾丽妮（docs/272）没有「旧做法原样贴」对照：2 = 不接管（当前游戏原样）
+	if oid in ["exusiai", "angelina", "saria", "suzuran", "irene", "kaltsit", "wisadel"]:   # 能天使（docs/262）/ 安洁莉娜（docs/267）/ 塞雷娅（docs/269）/ 艾丽妮（docs/272）没有「旧做法原样贴」对照：2 = 不接管（当前游戏原样）
 		return of(game).mode() == 1
 	return of(game).mode() > 0
 
@@ -140,6 +141,15 @@ func _ir():
 	if _irm == null:
 		_irm = load("res://scripts/render/fx_pxplane_ir.gd").new(self)
 	return _irm
+
+## 维什戴尔一节（docs/274，单独文件 fx_pxplane_wd.gd；运行时 load 避免循环 preload）
+var _wdm = null
+
+
+func _wd():
+	if _wdm == null:
+		_wdm = load("res://scripts/render/fx_pxplane_wd.gd").new(self)
+	return _wdm
 
 
 func _meta(k: String) -> Dictionary:
@@ -223,6 +233,9 @@ func ev(o, kind: String, d: Dictionary) -> void:
 	if str(o.id) == "eyjafjalla":
 		_ev_ey(o, kind, d, raw, t, R, p)
 		return
+	if str(o.id) == "kaltsit":
+		KA.ev(self, o, kind, d, t, R, p)
+		return
 	if str(o.id) == "siege":
 		_ev_sg(o, kind, d, raw, t, R, p)
 		return
@@ -249,6 +262,9 @@ func ev(o, kind: String, d: Dictionary) -> void:
 		return
 	if str(o.id) == "irene":
 		_ir().ev(o, kind, d, t, R, p)
+		return
+	if str(o.id) == "wisadel":
+		_wd().ev(o, kind, d, t, R, p)
 		return
 	match kind:
 		"shape":
@@ -555,6 +571,9 @@ func draw_floor(o) -> void:
 	if id == "eyjafjalla":
 		_ey_floor(o)
 		return
+	if id == "kaltsit":
+		KA.floor_layer(self, o)
+		return
 	if id == "siege":
 		_floor_sg(o)
 		return
@@ -585,6 +604,9 @@ func draw_floor(o) -> void:
 	if id == "irene":
 		_ir().draw_floor(o)
 		return
+	if id == "wisadel":
+		_wd().draw_floor(o)
+		return
 	if o.skill_active_left(2) > 0.0:   # 涌潮悲歌持续期间：脚下一滩积水（循环，跟着人走）
 		_draw_strip(cv, "pool_gd", frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
 	for it in items:
@@ -613,6 +635,10 @@ func draw_over(o) -> void:
 	if str(o.id) == "ulpianus":
 		_step()
 		UL.over(self, o)   # 锁链 + 锚（转平面版、旧做法对照都画）
+		return
+	if str(o.id) == "wisadel":
+		if mode() == 1:
+			_wd().draw_over(o)   # 残影标记 + 续燃引线（docs/274）
 		return
 	if mode() != 2:
 		return
@@ -674,6 +700,9 @@ static func sort_items(game) -> Array:
 			if str(o.id) == "eyjafjalla":
 				r._ey_sort_items(o, out)
 				continue
+			if str(o.id) == "kaltsit":
+				KA.sort_items(r, o, out)
+				continue
 			if str(o.id) == "mizuki":
 				r._mz_sort_items(o, out)
 				continue
@@ -700,6 +729,9 @@ static func sort_items(game) -> Array:
 				continue
 			if str(o.id) == "irene":
 				r._ir().sort_items(o, out)
+				continue
+			if str(o.id) == "wisadel":
+				r._wd().sort_items(o, out)
 				continue
 			for w in r._waves(o):
 				out.append({"wave": w})
@@ -749,6 +781,9 @@ static func draw_sorted(game, ci, it: Dictionary) -> void:
 		return
 	if it.has("ir"):   # 艾丽妮运行时件（docs/272）
 		r._ir().draw_rt(ci, it)
+		return
+	if it.has("wd"):   # 维什戴尔运行时件（docs/274）：炮弹
+		r._wd().draw_rt(ci, it)
 		return
 	if it.has("ert"):   # 艾雅法拉运行时件（docs/259）
 		r._ey_draw_rt(ci, it)
@@ -3430,8 +3465,12 @@ func _ev_mz(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 				_mz_bloom(o, lst[i], bk, raw, t)
 			if mode() == 1 and not lst.is_empty():
 				var hp: Vector2 = lst[0].pos + Vector2(0, -float(lst[0].r) * 0.5)
-				R._grains(o, hp, float(lst[0].pos.y) + 2.0, "ink", mini(2 + t, 1 + lst.size()), {"tier": t}, (hp - o.pos).normalized())
-				R._light(o, hp, 100.0, 0.4 * MI.lit_k(g), 0.12, p.light)
+				for i in mini(2, lst.size()):   # docs/270：命中帧要量得出核心辉光——命中点一小撮白芯进 emit（4 拍）
+					var hot := {"k": "", "mzhot": true, "t0": g.t, "gp": _snap(lst[i].pos + Vector2(0, -float(lst[i].r) * 0.55)), "ly": "gd", "oid": str(o.id), "life": 4.0 / 15.0}
+					if i == 0:   # 颗粒等白芯第一次画的时候再撒（发光层晚一帧上屏：颗粒和辉光落在同一帧）；每次挥伞 4–5 颗（原来伞击 + 每根触手各撒，一簇 13 颗）
+						hot["gr"] = [hp, float(lst[0].pos.y) + 2.0, 4 + (1 if t >= 2 else 0), t, (hp - o.pos).normalized()]
+					_push(hot)
+				R._light(o, hp, 100.0, 0.5 * MI.lit_k(g), 0.12, p.light)   # docs/270 复测：照地亮度峰值 +42 → 0.45 时 +48（下限 +50）→ 0.5（实测约 0.68）
 		"mz_tent":
 			var e: Dictionary = d.get("e", {})
 			if e.is_empty():
@@ -3441,9 +3480,7 @@ func _ev_mz(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 				_mz_bloom(o, e, "mz_bloom_e0_up", raw, t)
 				return
 			var stn: float = float(d.get("stun", 0.0))
-			_mz_tent(o, e, d.get("at", e.pos), _mz_tk("big", 2) if s3 else (_mz_tk("curl", t) if stn >= 0.45 else _mz_tk("slam", t)), raw, t, stn)
-			if mode() == 1 and not s3:
-				R._grains(o, e.pos + Vector2(0, -6), float(e.pos.y) + 2.0, "ink", 2, {"tier": t})
+			_mz_tent(o, e, d.get("at", e.pos), _mz_tk("big", 2) if s3 else (_mz_tk("curl", t) if stn >= 0.45 else _mz_tk("slam", t)), raw, t, stn)   # 触手不再另撒颗粒（颗粒数算进伞击那一簇）
 		"mz_burst":   # 唤醒创伤扩散：大水母绽开 + 地上冲击环
 			var at: Vector2 = d.get("at", o.pos)
 			if raw:
@@ -3454,7 +3491,8 @@ func _ev_mz(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 			if t >= 1:   # 精一起：每团大水母下面钻出一根触手（分档加新元素，不靠换色）
 				_mz_tent(o, {"pos": at, "r": 10.0, "boss": true}, at, _mz_tk("pierce", t), raw, t, 0.0)
 			if mode() == 1:
-				R._grains(o, at + Vector2(0, -18), at.y, "ink", 4 + t, {"tier": t})
+				R._grains(o, at + Vector2(0, -18), at.y, "ink", 3, {"tier": t})   # docs/270：三团合一簇 ≤ 16（伞击 4–5 + 3 × 3）
+				_push({"k": "", "mzhot": true, "t0": g.t, "gp": _snap(at + Vector2(0, -16)), "ly": "gd", "oid": str(o.id), "life": 4.0 / 15.0})
 				R._light(o, at + Vector2(0, -14), 140.0, 0.55 * MI.lit_k(g), 0.14, p.light)
 		"mz_sting":   # 深蓝之籽蛰中：一朵紫色小水母
 			var e2: Dictionary = d.get("e", {})
@@ -3523,7 +3561,41 @@ func _mz_draw_floor(o) -> void:
 		_draw_strip(cv, "mz_pool_r%d_gd" % _mz_pick(rr * 0.5, [81, 104]), frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
 	for it in items:
 		if str(it.ly) == "gd" and str(it.oid) == id:
+			if it.has("mzhot"):
+				_mz_hot(it)
+				continue
 			_draw_strip(cv, str(it.k), frame_of(float(it.t0)), _gp(it), it.flip, true)
+
+
+## 命中白芯：只进发光层（4 拍：十字 + 斜角，逐拍收小变淡，emit 预算内），不画色层——色层的亮由水母绽开那一帧自己画；
+## docs/270 复测：体检挑的命中帧在出手后约 0.2 秒，2 拍白芯已熄（辉光面积 8），延到 4 拍
+func _mz_hot(it: Dictionary) -> void:
+	if it.has("gr"):
+		var gr: Array = it.gr
+		it.erase("gr")
+		var oo = _op(str(it.oid))
+		if oo != null:
+			load("res://scripts/render/fx_recipe.gd").of(g)._grains(oo, gr[0], gr[1], "ink", int(gr[2]), {"tier": int(gr[3])}, gr[4])
+	if not g.optical_on:
+		return
+	var f: int = frame_of(float(it.t0))
+	if f < 0 or f > 3:
+		return
+	var fr: int = Engine.get_process_frames()
+	if fr != _emit_frame:
+		_emit_frame = fr
+		_emit_n = 0
+	var px: float = g.PX
+	var c0: Vector2 = it.gp
+	var k: float = minf(1.0, Bal.v("fx/px_plane_emit", 0.8) * MI.lit_k(g) * [1.0, 0.9, 0.75, 0.55][f])
+	var pts: Array = [Vector2.ZERO, Vector2(px, 0), Vector2(-px, 0), Vector2(0, px), Vector2(0, -px), Vector2(px, px), Vector2(-px, px), Vector2(px, -px), Vector2(-px, -px)]
+	if f <= 1:
+		pts += [Vector2(px * 2, 0), Vector2(-px * 2, 0), Vector2(0, px * 2), Vector2(0, -px * 2)]
+	for q in pts:
+		if _emit_n >= EMIT_CAP:
+			return
+		_emit_n += 1
+		g.glow_next.append([c0 + q, px, Color(0.85, 0.97, 1.0, k)])
 
 
 ## 排序项：深蓝之籽（身后 / 离身游猎的小水母）、藏品剑气（小水母游过去）
