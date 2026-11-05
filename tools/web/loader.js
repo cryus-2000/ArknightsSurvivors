@@ -110,6 +110,8 @@
   // 画法与桌面 boot_views.draw_v4 一一对应——标志淡入后慢呼吸，外圈 60 格刻度环 = 进度（同指挥台头像环），白细线分项，青色只表示「在走 / 完成」。
   // 进度全接真实状态：下载字节 → 解压 → 引擎启动（拿不到进度：不定进度——刻度环上一段青格慢转、百分比 ---，不按时间推）→ Godot 回传 → 读完整圈转青。
   // 标志 = loader_rhodes.png（用户给的 240×240 原图）最近邻采样到 120×120，亮度 > 112 留、> 168 冷白、其余次灰（同 screens/rhodes_logo.gd）。
+  // 同日三改（用户「有点素了，没有科技感、几何感、呼吸感」）：外圈细环 + 反向慢转弧段、四方位菱形节点 + 读数、标志后大淡三角 + 光晕、
+  // 贯穿环两侧的水平细线 + 青光、淡点阵 + 扫描纹，呼吸统一 2.6 秒（同桌面 draw_v4）。
   // 主线程被引擎占住时画布会停一下（引擎编译 wasm 那几秒）。系统「减少动态效果」时：直接终态、不呼吸。
   function p4Init(d) {
     var cv = d.querySelector('.p4c'), ctx = cv.getContext('2d');
@@ -144,11 +146,28 @@
       var u = readyT < 0 ? -1 : (performance.now() - readyT) / 1000;
       var k = Math.max(0.8, Math.min(2.4, H / 540)), cx = W / 2, cy = H * 0.42, m = 22 * k;
       box(0, 0, W, H, BG);
+      var tt = rm ? 0 : t, br = rm ? 1 : 0.5 + 0.5 * Math.cos(t * 2 * Math.PI / 2.6);
+      ctx.fillStyle = SUB; ctx.globalAlpha = 0.12;
+      for (var gx = 0; gx < W; gx += 24 * k) for (var gy = 0; gy < H; gy += 24 * k) ctx.fillRect(Math.round(gx), Math.round(gy), 1, 1);
+      ctx.fillStyle = '#000';
+      for (var sy = 0; sy < H; sy += 3) ctx.fillRect(0, sy, W, 1);
+      ctx.globalAlpha = 1;
+      lab('SYS 1105 · T+' + ('00' + (rm ? 0 : t).toFixed(1)).slice(-5), cx, 28 * k, 10 * k, SUB, 'center');
       lab('PRTS', m, 28 * k, 12 * k, TX); lab('/ 启动校验', m + 50 * k, 28 * k, 12 * k, SUB);
       if (W > 600 * dpr) lab('ARKNIGHTS FAN GAME', W - m, 28 * k, 11 * k, SUB, 'right');
       box(m, 40 * k, W - 2 * m, 1, RULE);
       var s = Math.max(1, Math.floor(H * 0.34 / 120)), span = 120 * s;
       var fade = rm ? 1 : ease(t / 0.4), breath = rm || rd ? 1 : 0.72 + 0.28 * (0.5 + 0.5 * Math.cos(t * 2 * Math.PI / 2.6));
+      var R0 = span * 0.66, gl = (0.6 + 0.4 * br) * fade;
+      ctx.fillStyle = ACC;
+      for (var j = 0; j < 4; j++) { ctx.globalAlpha = 0.022 * gl; ctx.beginPath(); ctx.arc(cx, cy, span * (0.62 - j * 0.1), 0, 2 * Math.PI); ctx.fill(); }
+      ctx.globalAlpha = (0.05 + 0.05 * br) * fade; ctx.strokeStyle = TX; ctx.lineWidth = 1; ctx.beginPath();
+      [-90, 30, 150, -90].forEach(function (a3, i) { var px = cx + Math.cos(a3 * Math.PI / 180) * R0 * 1.5, py = cy + Math.sin(a3 * Math.PI / 180) * R0 * 1.5; if (i) ctx.lineTo(px, py); else ctx.moveTo(px, py); });
+      ctx.stroke(); ctx.globalAlpha = 1;
+      var hx0 = cx - R0 - 46 * k, hx1 = cx + R0 + 46 * k, hl = W > 760 * dpr ? W / 2 - 200 * k : W / 2 - 10;
+      box(cx - hl, cy, hx0 - (cx - hl), 1, RULE); box(hx1, cy, cx + hl - hx1, 1, RULE);
+      box(cx - hl - 1.5, cy - 1, 3, 3, SUB); box(cx + hl - 1.5, cy - 1, 3, 3, SUB);
+      if (!rd || rm) { var run = ((tt / 2.2) % 1) * (hl - (hx1 - cx)); box(hx1 + run, cy, 26 * k, 1, ACC, 0.8); box(hx0 - run - 26 * k, cy, 26 * k, 1, ACC, 0.8); }
       if (lg) { ctx.globalAlpha = fade * breath; ctx.drawImage(lg, Math.round(cx - span / 2), Math.round(cy - span / 2), span, span); ctx.globalAlpha = 1; }
       var R = span * 0.66, lit = Math.floor(p * 60), spin = Math.floor((t * 14) % 60);
       ctx.lineCap = 'butt';
@@ -158,14 +177,29 @@
         else if (v.ind && ((i - spin + 60) % 60) < 5) { col = ACC; al = 0.35 + 0.13 * ((i - spin + 60) % 60); }   // 不定进度：一段青格慢转
         else if (i < lit) { col = TX; al = 0.85; }
         else if (i === lit && !v.ind) { col = ACC; al = 1; }
-        else { col = SUB; al = 0.28; }
+        else { col = SUB; al = 0.2 + 0.14 * br; }
         ctx.globalAlpha = al * fade; ctx.strokeStyle = col; ctx.lineWidth = (mj ? 2 : 1.5) * dpr;
         ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * R, cy + Math.sin(a) * R); ctx.lineTo(cx + Math.cos(a) * (R + l), cy + Math.sin(a) * (R + l)); ctx.stroke();
       }
       ctx.globalAlpha = 0.18 * fade; ctx.strokeStyle = SUB; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(cx, cy, R - 6 * k, 0, 2 * Math.PI); ctx.stroke();
+      var R2 = R + 22 * k;
+      ctx.globalAlpha = 0.16 * fade; ctx.strokeStyle = SUB; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(cx, cy, R2, 0, 2 * Math.PI); ctx.stroke();
+      ctx.lineWidth = 1.5 * dpr; ctx.strokeStyle = TX; ctx.globalAlpha = 0.5 * fade;
+      for (j = 0; j < 3; j++) { var a0 = tt * 0.16 + j * 2 * Math.PI / 3; ctx.beginPath(); ctx.arc(cx, cy, R2, a0, a0 + 34 * Math.PI / 180); ctx.stroke(); }
+      ctx.lineWidth = 2 * dpr; ctx.strokeStyle = rd ? TX : ACC; ctx.globalAlpha = 0.55 * fade;
+      for (j = 0; j < 2; j++) { var a1 = -tt * 0.28 + j * Math.PI; ctx.beginPath(); ctx.arc(cx, cy, R2 + 7 * k, a1, a1 + 14 * Math.PI / 180); ctx.stroke(); }
+      var nd = 4 * k;
+      for (j = 0; j < 4; j++) {
+        var na = -Math.PI / 2 + j * Math.PI / 2, nx = cx + Math.cos(na) * R2, ny = cy + Math.sin(na) * R2;
+        ctx.globalAlpha = 0.7 * fade; ctx.fillStyle = j === 2 ? SUB : TX;
+        ctx.beginPath(); ctx.moveTo(nx, ny - nd); ctx.lineTo(nx + nd, ny); ctx.lineTo(nx, ny + nd); ctx.lineTo(nx - nd, ny); ctx.closePath(); ctx.fill();
+      }
+      ctx.globalAlpha = fade;
+      lab('000', cx, cy - R2 - 10 * k, 9 * k, SUB, 'center'); lab('090', cx + R2 + 10 * k, cy - 6 * k, 9 * k, SUB); lab('270', cx - R2 - 10 * k, cy - 6 * k, 9 * k, SUB, 'right');
+      ctx.globalAlpha = 1;
       if (rd && !rm && u >= 0 && u < 0.5) { var q = ease(u / 0.5); ctx.globalAlpha = 0.6 * (1 - q); ctx.strokeStyle = ACC; ctx.lineWidth = 1.5 * dpr; ctx.beginPath(); ctx.arc(cx, cy, R + 14 * k + q * 40 * k, 0, 2 * Math.PI); ctx.stroke(); }
       ctx.globalAlpha = 1;
-      var ly = cy + R + 34 * k;
+      var ly = cy + R + 48 * k;
       if (!rd) {
         lab(v.stage.text || '', cx, ly, 16 * k, TX, 'center');
         lab('ARCHIVE INDEX  ' + (v.ind ? '---' : ('00' + Math.floor(p * 100)).slice(-3)) + '%', cx, ly + 20 * k, 10 * k, SUB, 'center');

@@ -751,6 +751,9 @@ func _log_light(r: Rect2, lines: Array, t: float, sz: int, lh: float) -> void:
 ## 改成局内指挥台的语言：白细线 + 刻度环 + 青色只表示「在走 / 完成」。删掉阶梯三角、环绕碎线、两侧流线、上下游标刻度、扫描线。
 ## 罗德岛标志淡入后慢呼吸（2.6 秒一次）；外圈 60 格刻度环 = 进度（同指挥台头像的终结技环，st.p 亮到哪格就是哪格，当前格青色）；
 ## 读完（st.ready）整圈转青、一道细圈外扩一次，「认证通过」，下面出「开始游戏」（draw_start）。没有任何定时推进度。
+## 同日三改（用户「有点素了，没有那种科技感和几何感还有呼吸感」）：几何全部围着刻度环成套、不散落——外圈细环 + 两组反向慢转弧段、
+## 四方位菱形节点 + 方位读数、标志后一个大淡三角（呼应标志）、贯穿环两侧的水平细线 + 一道青光往外走；淡点阵 + 扫描纹；
+## 呼吸统一 2.6 秒：标志、背后光晕、大三角、未亮刻度同相起伏。减少动态时全部静止。
 const P_BG := Color(0.059, 0.063, 0.075)      # #0F1013
 const P_TXT := Color(0.925, 0.933, 0.941)     # #ECEEF0（同指挥台 WHITE）
 const P_SUB := Color(0.573, 0.592, 0.627)     # #9297A0
@@ -783,6 +786,19 @@ func draw_v4(vs: Vector2, st: Dictionary) -> void:
 	var cx: float = w / 2.0
 	var cy: float = h * 0.42
 	_box(0, 0, w, h, P_BG)
+	var tt: float = 0.0 if rm else t
+	var br: float = 1.0 if rm else 0.5 + 0.5 * cos(t * TAU / 2.6)   # 呼吸相位（1 = 最亮）
+	var gx := 0.0
+	while gx < w:   # 淡点阵
+		var gy := 0.0
+		while gy < h:
+			_box(gx, gy, 1, 1, P_SUB, 0.12)
+			gy += 24.0 * k
+		gx += 24.0 * k
+	var sy := 0.0
+	while sy < h:   # 扫描纹
+		_box(0, sy, w, 1, Color.BLACK, 0.12)
+		sy += 3.0
 	var m: float = 22.0 * k
 	# 页眉：同局内的克制版式（白字 + 灰字 + 一条细线）
 	mono(Vector2(m, 28.0 * k), "PRTS", int(round(12.0 * k)), P_TXT)
@@ -790,10 +806,34 @@ func draw_v4(vs: Vector2, st: Dictionary) -> void:
 	var fan := "ARKNIGHTS FAN GAME"
 	mono(Vector2(w - m - mono_w(fan, int(round(11.0 * k))), 28.0 * k), fan, int(round(11.0 * k)), P_SUB)
 	_box(m, 40.0 * k, w - 2.0 * m, 1, P_RULE)
+	var tclk := "SYS 1105 · T+%05.1f" % t
+	mono(Vector2(cx - mono_w(tclk, int(round(10.0 * k))) / 2.0, 28.0 * k), tclk, int(round(10.0 * k)), Color(P_SUB, 0.8))
 	# 标志：淡入 0.4 秒，之后慢呼吸；读完停在最亮
 	var s: float = maxf(1.0, floorf(h * 0.34 / 120.0))
 	var span: float = 120.0 * s
 	var fade: float = 1.0 if rm else _ease(t / 0.4)
+	var R0: float = span * 0.66
+	var C := Vector2(cx, cy)
+	# 背后：光晕（同心淡圆叠出来）+ 大淡三角（外接圆 = 1.5 倍环），都随呼吸
+	var gl: float = (0.6 + 0.4 * br) * fade
+	for j in 4:
+		c.draw_circle(C, span * (0.62 - j * 0.1), Color(P_ACC, 0.022 * gl))
+	var tri := PackedVector2Array()
+	for a3 in [-90.0, 30.0, 150.0, -90.0]:
+		tri.append(C + Vector2.from_angle(deg_to_rad(a3)) * R0 * 1.5)
+	c.draw_polyline(tri, Color(P_TXT, (0.05 + 0.05 * br) * fade), 1.0, true)
+	# 水平细线贯穿环两侧（让开侧栏），一道青光往外走
+	var hx0: float = cx - R0 - 46.0 * k
+	var hx1: float = cx + R0 + 46.0 * k
+	var hl: float = (w * 0.5 - 200.0 * k) if w > 760.0 else (w * 0.5 - 10.0)
+	_box(cx - hl, cy, hx0 - (cx - hl), 1, P_RULE)
+	_box(hx1, cy, cx + hl - hx1, 1, P_RULE)
+	for e in [cx - hl, cx + hl]:
+		_box(e - 1.5, cy - 1.0, 3, 3, P_SUB)
+	if not ready or rm:
+		var run: float = fposmod(tt / 2.2, 1.0) * (hl - (hx1 - cx))
+		_box(hx1 + run, cy, 26.0 * k, 1, P_ACC, 0.8)
+		_box(hx0 - run - 26.0 * k, cy, 26.0 * k, 1, P_ACC, 0.8)
 	var breath: float = 1.0 if (rm or ready) else 0.72 + 0.28 * (0.5 + 0.5 * cos(t * TAU / 2.6))
 	RhodesLogo.draw_bands(c, Vector2(roundf(cx - span / 2.0), roundf(cy - span / 2.0)), s, 120, func(_b): return 0.0, Color(1, 1, 1, fade * breath))
 	# 刻度环 = 进度（60 格，每 5 格一根长的；亮到 st.p，当前格青色；读完整圈青）
@@ -811,15 +851,32 @@ func draw_v4(vs: Vector2, st: Dictionary) -> void:
 		elif i == lit:
 			col = P_ACC
 		else:
-			col = Color(P_SUB, 0.28)
+			col = Color(P_SUB, 0.2 + 0.14 * br)
 		var dir := Vector2.from_angle(a)
 		c.draw_line(Vector2(cx, cy) + dir * R, Vector2(cx, cy) + dir * (R + l), Color(col, col.a * fade), 2.0 if major else 1.5, true)
 	c.draw_arc(Vector2(cx, cy), R - 6.0 * k, 0.0, TAU, 96, Color(P_SUB, 0.18 * fade), 1.0, true)
+	# 外圈：细环 + 三段白弧顺转、两段青弧反转（慢）；四方位菱形节点 + 读数（下方让给状态字，只写上 / 左 / 右）
+	var R2: float = R + 22.0 * k
+	c.draw_arc(C, R2, 0.0, TAU, 128, Color(P_SUB, 0.16 * fade), 1.0, true)
+	for j in 3:
+		var a0: float = tt * 0.16 + j * TAU / 3.0
+		c.draw_arc(C, R2, a0, a0 + deg_to_rad(34.0), 24, Color(P_TXT, 0.5 * fade), 1.5, true)
+	for j in 2:
+		var a1: float = -tt * 0.28 + j * PI
+		c.draw_arc(C, R2 + 7.0 * k, a1, a1 + deg_to_rad(14.0), 12, Color(P_ACC if not ready else P_TXT, 0.55 * fade), 2.0, true)
+	var nd: float = 4.0 * k
+	for j in 4:
+		var np: Vector2 = C + Vector2.from_angle(-PI / 2.0 + j * PI / 2.0) * R2
+		c.draw_colored_polygon(PackedVector2Array([np + Vector2(0, -nd), np + Vector2(nd, 0), np + Vector2(0, nd), np + Vector2(-nd, 0)]), Color(P_TXT if j != 2 else P_SUB, 0.7 * fade))
+	var fs9: int = int(round(9.0 * k))
+	mono(Vector2(cx - mono_w("000", fs9) / 2.0, cy - R2 - 10.0 * k), "000", fs9, Color(P_SUB, fade))
+	mono(Vector2(cx + R2 + 10.0 * k, cy - 6.0 * k), "090", fs9, Color(P_SUB, fade))
+	mono(Vector2(cx - R2 - 10.0 * k - mono_w("270", fs9), cy - 6.0 * k), "270", fs9, Color(P_SUB, fade))
 	if ready and not rm and u >= 0.0 and u < 0.5:
 		var q: float = _ease(u / 0.5)
 		c.draw_arc(Vector2(cx, cy), R + 14.0 * k + q * 40.0 * k, 0.0, TAU, 128, Color(P_ACC, 0.6 * (1.0 - q)), 1.5, true)
 	# 环下：阶段 + 百分比（真实）；读完后换「认证通过」，再下面是「开始游戏」
-	var ly: float = cy + R + 34.0 * k
+	var ly: float = cy + R + 48.0 * k
 	if not ready:
 		txt(Vector2(0, ly), str(st.label), int(round(16.0 * k)), P_TXT, HORIZONTAL_ALIGNMENT_CENTER, w)
 		var pct := "ARCHIVE INDEX  %03d%%" % int(floor(p * 100.0))
