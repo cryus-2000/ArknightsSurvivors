@@ -132,7 +132,7 @@ func _meta(k: String) -> Dictionary:
 
 func _tex(k: String) -> Texture2D:
 	if not tex.has(k):
-		var p: String = ART % k.replace("_d-", "_dm")   # 负方向键（d-45）的文件名写成 dm45：素材命名不许连字符（asset_lint N1）
+		var p: String = ART % k.replace("_d-", "_dm").to_lower()   # 负方向键（d-45）的文件名写成 dm45：素材命名不许连字符 / 大写（asset_lint N1；塞雷娅 pilB / pilS 的文件名一律小写）
 		tex[k] = load(p) if ResourceLoader.exists(p) else null
 	return tex[k]
 

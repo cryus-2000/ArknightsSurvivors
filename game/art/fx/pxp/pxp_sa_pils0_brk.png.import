@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://so76po660081"
-path="res://.godot/imported/pxp_sa_pilB0_brk.png-ee81001341ab68b5da51bebd03fd870e.ctex"
+uid="uid://df7upjlknf1a"
+path="res://.godot/imported/pxp_sa_pils0_brk.png-3ba3f2b3918d85ff88802d1a62f5a8f6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/fx/pxp/pxp_sa_pilB0_brk.png"
-dest_files=["res://.godot/imported/pxp_sa_pilB0_brk.png-ee81001341ab68b5da51bebd03fd870e.ctex"]
+source_file="res://art/fx/pxp/pxp_sa_pils0_brk.png"
+dest_files=["res://.godot/imported/pxp_sa_pils0_brk.png-3ba3f2b3918d85ff88802d1a62f5a8f6.ctex"]
 
 [params]
 

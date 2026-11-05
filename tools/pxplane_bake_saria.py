@@ -158,7 +158,7 @@ def main():
     total = 0
     for k, (frames, loop) in strips().items():
         im, w, h, ox, oy, emit = render(frames)
-        fn = "pxp_sa_%s.png" % k.replace("_d-", "_dm")
+        fn = "pxp_sa_%s.png" % k.replace("_d-", "_dm").lower()   # 文件名不许大写（asset_lint N1）；游戏 _tex 同样转小写
         p = os.path.join(ART, fn)
         im.save(p, optimize=True)
         total += os.path.getsize(p)
