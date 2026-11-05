@@ -1014,7 +1014,7 @@ def main():
     bk.save("guard_bk_up_r")
     fr.save("guard_fr_up_r")
     g.save("guard_gd_r", emit_hot=False)
-    heal_ring().save("heal_gd")
+    heal_ring().save("heal_gd")   # 缝合环的骨白针脚进 emit（docs/270：治疗核心辉光 ≥ 20）
     heal_cross().save("heal_cross_up")
     heal_column().save("heal_col_up")
     for seal in (False, True):
@@ -1024,7 +1024,7 @@ def main():
             fr.save("s1rib_fr_up")
         else:
             fr.save("s1rib_fr2_up")
-    s1_hex().save("s1hex_gd", emit_hot=False)
+    s1_hex().save("s1hex_gd")   # 六角板骨白边进 emit（docs/270）
     s2_cmd().save("s2cmd_up")
     s2_streaks().save("s2str_up")
     hex_ring(16, M["f"], M["m2"]).save("s2hex_gd", emit_hot=False)
