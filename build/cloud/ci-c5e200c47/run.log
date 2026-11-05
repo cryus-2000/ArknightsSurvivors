@@ -1,0 +1,35 @@
+error: externally-managed-environment
+
+× This environment is externally managed
+╰─> To install Python packages system-wide, try apt install
+    python3-xyz, where xyz is the package you are trying to
+    install.
+    
+    If you wish to install a non-Debian-packaged Python package,
+    create a virtual environment using python3 -m venv path/to/venv.
+    Then use path/to/venv/bin/python and path/to/venv/bin/pip. Make
+    sure you have python3-full installed.
+    
+    If you wish to install a non-Debian packaged Python application,
+    it may be easiest to use pipx install xyz, which will manage a
+    virtual environment for you. Make sure you have pipx installed.
+    
+    See /usr/share/doc/python3.11/README.venv for more information.
+
+note: If you believe this is a mistake, please contact your Python installation or OS distribution provider. You can override this, at the risk of breaking your Python installation or OS, by passing --break-system-packages.
+hint: See PEP 668 for the detailed specification.
+通过 界面冒烟（docs/126 R6）：标题页十屏 + 局内 HUD / 暂停 / 设置 / 属性 / 结算 / 作战记录 / 对局记录各开关两遍，无缺图、无残留节点  UI SMOKE failures=0  [21 秒]
+通过 时间缩放组合（圆盘 × 倍速 / 顿帧 / 击破慢动作）：有效缩放等于现行组合规则，退出各模态后回到 1  TIME SCALE COMBO failures=0  [16 秒]
+通过 自动测试不写玩家对局记录：tests/ 下场景（含不带 -- 参数直接起的）被 telemetry.save_local 拦下（10-14 / 10-20 / 10-27 runs.jsonl 里的空局）  RUNS LOG GUARD failures=0  [16 秒]
+通过 g.hit 空描述符沿用上次：特征测试（已知缺陷：空 h 会错记给上一个干员），显式 h 回归保护  HIT FALLBACK failures=0  [15 秒]
+通过 神经损伤积累规则特征测试（溟痕 / 光环 / 光域 / 锁定 / 满条真伤 / Boss 来源未截断 / 灯火档位），为 afflict 重构兜底  NERVE RULES failures=0  [16 秒]
+通过 第一位商人预告（docs/119 §4.5）：生成时定货架、进店不重抽、联动位、价格同步、售出 / 刷新 / 离开撤销、开关关不提前抽  MERCHANT BUILD OFFER failures=0  [18 秒]
+
+耗时前 10（秒，不含排队）：积木等价（数据版 vs 金样） 1053；同 seed 复现 430；按住瞄准全员验收 402；成长节点当场生效 319；美术帧条 art_lint 72；冒烟 · exusiai 48；冒烟 · angelina 48；冒烟 · eyjafjalla 45；冒烟 · hoshiguma 41；冒烟 · gladiia 40
+
+快检失败：195 项，失败 1 项（已知红 0 项另计），耗时 1054 秒（开始时全机 0 个 Godot，结束时 0 个）；未用缓存
+
+失败项：
+  · 图鉴连携一行 v2（docs/209 §2：20 人 link_v2 文案、类别对 KIND4、占位填满、自动出手无 E 键、开关 0 退回旧行；终结技行按住瞄准） — 没有通过标记
+    日志：/work/repo/build/check/quick_1105_003328/link_text.log
+分项日志：build/ci_logs/（235 个文件）；退出码 1

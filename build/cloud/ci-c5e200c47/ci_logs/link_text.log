@@ -1,0 +1,30 @@
+# link_text
+# 参数：--headless --path /work/repo/game res://tests/link_text_test.tscn -- --regression --seed=1 --regression
+# 用时 5 秒；结束时全机 Godot 4 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+LINK TEXT checks=164 failures=18
+
+
+## stderr
+FAIL: texas v2 名称与旧 E 连携技不同
+FAIL: eyjafjalla v2 名称与旧 E 连携技不同
+FAIL: gladiia v2 名称与旧 E 连携技不同
+FAIL: hoshiguma v2 名称与旧 E 连携技不同
+FAIL: lappland v2 名称与旧 E 连携技不同
+FAIL: specter_unchained v2 名称与旧 E 连携技不同
+FAIL: mizuki v2 名称与旧 E 连携技不同
+FAIL: skadi v2 名称与旧 E 连携技不同
+FAIL: siege v2 名称与旧 E 连携技不同
+FAIL: exusiai v2 名称与旧 E 连携技不同
+FAIL: wisadel v2 名称与旧 E 连携技不同
+FAIL: suzuran v2 名称与旧 E 连携技不同
+FAIL: angelina v2 名称与旧 E 连携技不同
+FAIL: ulpianus v2 名称与旧 E 连携技不同
+FAIL: saria v2 名称与旧 E 连携技不同
+FAIL: kaltsit v2 名称与旧 E 连携技不同
+FAIL: lumen v2 名称与旧 E 连携技不同
+FAIL: skalter v2 名称与旧 E 连携技不同
+
