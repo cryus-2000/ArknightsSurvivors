@@ -367,8 +367,8 @@ def hx3(s):
 # ================================================================ 收尾斩击后的崩解（11-05 用户「碎石和尘土比原版薄，少了原作那种崩解感」）
 # 节奏：0–0.12 裂缝爆亮长出 → 0.06 起地面块沿裂缝掀起（离中心越远越晚）→ 0.12 起两侧尘墙冲起翻卷 → 约 0.5 秒碎石落地、弹一下、部分碎成小块 → 0.45 秒起尘土塌下散开，0.8 秒散完。
 WARM = ["#211d1a", "#332d28", "#4a423b", "#655b52", "#8a8076", "#aea398"]   # 地面暖灰（尘 / 碎石）
-SLAB_N = 24       # 地面块总数（两侧合计；docs/270 爆发档一簇 ≤ 25）
-PLUME_N = 14      # 每侧尘墙团数（相邻相叠成一片墙）
+SLAB_N = 12       # 地面块总数（两侧合计）：配角，11-05 改主角为怪物崩解后减半
+PLUME_N = 8       # 每侧尘墙团数（配角，压暗）
 
 
 def slab(age, seed, nd=(1.0, 0.0)):
@@ -446,7 +446,7 @@ def plume(age, seed, nside):
         along = (b - 2.5) * 3.5
         bx = nside[0] * spread + tx * along + curl
         by = (nside[1] * spread + ty * along) * SQ - H
-        al = 0.9 * (1 - fall) ** 1.3
+        al = 0.5 * (1 - fall) ** 1.3   # 配角：压暗，不盖住怪物崩解
         if al <= 0.03:
             continue
         ri = int(math.ceil(r))
@@ -497,10 +497,10 @@ def blast_prep(R, fa):
 
 
 def blast_core(R, bf):
-    """亮核（2 拍）：三层实心椭圆，外亮紫 → 淡紫 → 白芯，半径 0.5 R（第 2 拍 0.44 R、暗一阶）。返回 [(rx, 颜色)] 由外到内"""
+    """亮核（2 拍）：三层实心椭圆，外亮紫 → 淡紫 → 白芯，只留中心小一圈 0.16 R（第 2 拍 0.12 R、暗一阶）；体量靠冲击环 + cloud(…, R × 0.6, 120) 往外喷。返回 [(rx, 颜色)] 由外到内"""
     if bf < 0 or bf > 1:
         return []
-    rx = R * (0.5 if bf == 0 else 0.44)
+    rx = R * (0.16 if bf == 0 else 0.12)   # 11-05：只留中心小一圈，不用平涂大椭圆
     return [(rx, LT[4] if bf == 0 else LT[3]), (rx * 0.78, LT[5] if bf == 0 else LT[4]), (rx * 0.52, LT[6] if bf == 0 else LT[5])]
 
 
@@ -512,16 +512,75 @@ def shock_ring(R, tau):
     us = min(1.0, tau / SHOCK_T)
     rr = R * (0.5 + 0.5 * (1 - (1 - us) ** 2))
     fade = 1.0 if tau < SHOCK_T else max(0.0, 1 - (tau - SHOCK_T) / (2 / 15))
-    cols = [LT[6], LT[6], LT[5], LT[4], LT[3]] if tau < SHOCK_T else [LT[5], LT[4], LT[3], LT[2], LT[2]]
+    cols = [LT[6], LT[6], LT[6], LT[5], LT[5], LT[4], LT[4], LT[3]] if tau < SHOCK_T else [LT[5], LT[5], LT[4], LT[4], LT[3], LT[3], LT[2], LT[2]]
     n = int(rr * 6.6) + 16
     for q in range(n):
         t = q / n * math.tau
         cx, cy = math.cos(t), math.sin(t) * SQ
-        for j in range(5):
+        for j in range(8):
             out.append((round(cx * (rr - j)), round(cy * (rr - j)), cols[j], fade))
         if tau < SHOCK_T:
-            for j2 in range(6, 15, 2):
+            for j2 in range(9, 18, 2):
                 if (q + j2) % 3 == 0:
                     continue
-                out.append((round(cx * (rr - j2)), round(cy * (rr - j2)), LT[3], 0.45 * (1 - j2 / 15)))
+                out.append((round(cx * (rr - j2)), round(cy * (rr - j2)), LT[3], 0.45 * (1 - j2 / 18)))
+    return out
+
+
+# ================================================================ 怪物崩解喷散（同 ult_px_ir.gd _draw_sprays；游戏里另叠引擎原有的按怪物贴图像素碎开 kill_burst）
+SPRAY_N = 22
+
+
+def spray(age, sd, out_ang, k, col):
+    """怪物代表色像素喷散：col = (r, g, b) 0–1；返回 [(x, y, (r,g,b,a), 发光, 边长)]"""
+    res = []
+    if age < 0 or age > 1.3:
+        return res
+    def lt(c, a):
+        return tuple(min(1.0, x + (1 - x) * a) for x in c)
+    def dk(c, a):
+        return tuple(x * (1 - a) for x in c)
+    cols = [lt(col, 0.45), lt(col, 0.15), col, dk(col, 0.3)]
+    for q in range(int(SPRAY_N * min(1.4, k))):
+        ang = out_ang + (hf(q, sd, 71) - 0.5) * 2.2
+        spd = (30 + 70 * hf(q, sd, 72)) * k
+        vh = 30 + 60 * hf(q, sd, 73)
+        G = 260.0
+        t_land = 2 * vh / G
+        t = min(age, 0.9)
+        tt = min(t, t_land)
+        h = max(0.0, vh * tt - 0.5 * G * tt * tt) if t < t_land else 0.0
+        c = cols[q % 4]
+        hot = age < 2 / 15 and q % 3 == 0
+        if hot:
+            c = (1.0, 1.0, 1.0)
+        al = 1.0 if age < 0.9 else max(0.0, (1.3 - age) / 0.4)
+        res.append((math.cos(ang) * spd * tt, math.sin(ang) * spd * tt * SQ - h, c + (al,), hot, 2 if q % 3 != 2 else 1))
+    return res
+
+
+# ================================================================ 粒子云（同 ult_px_ir.gd _cloud；连环爆 / 斩线上的爆 / 收尾大爆往外喷，不用烟）
+
+def cloud(age, sd, size, n=-1):
+    out = []
+    if age < 0 or age > 1.2:
+        return out
+    if n < 0:
+        n = min(60, int(30 + size * 0.6))
+    fr = int(age * 15)
+    u = min(1.0, age / 0.35)
+    grow = 1 - (1 - u) ** 2
+    for k in range(n):
+        if age > 0.25 and (fr + k) % 3 == 0:
+            continue
+        if hf(k, sd, 84) < age / 1.2:
+            continue
+        a = math.tau * hf(k, sd, 81)
+        r = size * math.sqrt(hf(k, sd, 82)) * grow + age * 4   # 按面积均匀铺满（不成空心圈）
+        x, y = math.cos(a) * r, math.sin(a) * r * SQ - age * 10 * hf(k, sd, 83)
+        hc = hf(k, sd, 85)
+        c = LT[6] if hc < 0.35 else LT[5] if hc < 0.75 else LT[4] if hc < 0.9 else TIDE[5]
+        if age > 0.6:
+            c = LT[5] if c == LT[6] else LT[4] if c == LT[5] else c
+        out.append((x, y, c, c == LT[6] and age < 0.3, 2 if k % 3 == 0 else 1))
     return out

@@ -6,6 +6,7 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
+const D = preload("res://scripts/data.gd")   # 怪物代表色 ecol（崩解喷散取怪物自身颜色）
 
 const LT := [Color("#1a0c28"), Color("#3a1a58"), Color("#6a32a0"), Color("#9d58e0"), Color("#cf98ff"), Color("#f0e2ff"), Color("#ffffff")]
 const TIDE := [Color("#050b1a"), Color("#0b1a38"), Color("#143062"), Color("#21508c"), Color("#3f80bc"), Color("#90c4ea"), Color("#e6f6ff")]
@@ -84,6 +85,7 @@ func _ev(u, kind: String, d: Dictionary) -> void:
 			st.booms.append({"p": d.p, "t0": g.t, "big": d.get("big", false), "sd": int(e2.get("id", 0))})
 			if st.booms.size() > 40:
 				st.booms.pop_front()
+			_monster_burst(e2, d.p, 1.0)   # 崩解：被宣判的怪整只炸成自身像素粒子（11-05 用户「我说的崩解是……怪物炸开的这个特效」）
 		"final":   # 收尾斩击：斩线 + 主 / 副裂缝 + 沿线 7 爆 + 14 块碎石 + 尘墙
 			if st.is_empty():
 				return
@@ -123,7 +125,7 @@ func _glow(p: Vector2, c: Color) -> void:
 
 
 ## 一组美术像素点（[x, y, 颜色, 发光 bool / 不透明度 float]），原点 o0 对齐 2 像素格；sz = 每点边长（美术像素）
-func _pts(w, o0: Vector2, lst: Array, fg = null) -> void:
+func _pts(w, o0: Vector2, lst: Array, fg = null) -> void:   # 第 3 项颜色可带透明度（第 4 项是 bool 时照用）
 	var px: float = g.PX
 	var base: Vector2 = (o0 / 2.0).round() * 2.0
 	for q in lst:
@@ -201,10 +203,12 @@ func draw_front(u, w) -> void:
 			continue
 		var bp: Vector2 = b.p
 		_pts(w, bp, _boom(f2, b.big))
+		_pts(w, bp + Vector2(0, -8), _cloud(age, int(b.sd) * 3 + 1, 48.0 if b.big else 40.0, 60))   # 连环爆粒子云（11-05 用户「原本路上爆炸是有粒子效果的，这里换成烟雾了」）
 		for q in 3:
 			var gr: Array = _grain(age, int(b.sd) * 7 + q, "shard" if q < 2 else "drop")
 			if not gr.is_empty():
 				_pts(w, bp + Vector2(0, -8), [[gr[0], gr[1], gr[2], 1.0, gr[3]]])
+	_draw_sprays(w)
 	if float(st.fin_t0) >= 0.0:
 		var fa: float = g.t - float(st.fin_t0)
 		var dv2: Vector2 = st.dv
@@ -217,12 +221,8 @@ func draw_front(u, w) -> void:
 			var bp2: Vector2 = c + dv2 * Rw * x * 0.95 + nv * (_hf(i, 1, 2) - 0.5) * 30.0
 			var dl: float = 0.08 + 0.04 * absf(x) * 3.0
 			_pts(w, bp2, _boom(int(floor((fa - dl) * 15.0)), true, 2.4))
-		# 崩解：尘墙先画、碎石压在上面（11-05 用户「少了原作那种崩解感」）
-		for side in [-1.0, 1.0]:
-			var ns: Vector2 = nv * side
-			for k in PLUME_N:
-				var x3: float = (k - (PLUME_N - 1) / 2.0) / ((PLUME_N - 1) / 2.0)
-				_pts(w, c + dv2 * Rw * x3 * 0.92 + ns * 12.0, _plume(fa - _shock_at(R, absf(x3) * 0.92 * R) - 0.02, k * 2 + (1 if side > 0.0 else 0) + 300, ns))   # 跟着冲击环往外起
+			_pts(w, bp2 + Vector2(0, -8), _cloud(fa - dl, 500 + i, 50.0, 60))   # 斩线上每一爆也是粒子云（不用烟）
+		# 地面碎石（配角）；棕灰尘墙已删（11-05 用户嫌「换成烟雾了」）
 		for q in SLAB_N:
 			var side2: float = 1.0 if q % 2 == 1 else -1.0
 			var x4: float = (float(q / 2) - (SLAB_N / 2 - 1) / 2.0) / ((SLAB_N / 2 - 1) / 2.0)
@@ -570,8 +570,8 @@ func _grain(age: float, seed: int, kind: String) -> Array:
 ## 收尾斩击后的崩解（11-05 用户「碎石和尘土比原版薄，少了原作那种崩解感」；同 slab() / plume()）：
 ## 0–0.12 裂缝爆亮长出 → 0.06 起地面块沿裂缝掀起 → 0.12 起两侧尘墙冲起翻卷 → 约 0.5 秒碎石落地、弹一下、部分碎成小块 → 0.45 秒起尘土塌下散开，0.8 秒散完
 const WARM := [Color("#211d1a"), Color("#332d28"), Color("#4a423b"), Color("#655b52"), Color("#8a8076"), Color("#aea398")]
-const SLAB_N := 24     # 地面块总数（两侧合计；docs/270 爆发档一簇 ≤ 25）
-const PLUME_N := 14    # 每侧尘墙团数
+const SLAB_N := 12     # 地面块总数（两侧合计）：配角，11-05 改主角为怪物崩解后减半
+const PLUME_N := 8     # 每侧尘墙团数（配角，压暗）
 
 
 func _slab(age: float, seed: int, nd: Vector2) -> Array:
@@ -654,7 +654,7 @@ func _plume(age: float, seed: int, ns: Vector2) -> Array:
 		var along: float = (b - 2.5) * 3.5
 		var bx: float = ns.x * spread - ns.y * along + curl
 		var by: float = (ns.y * spread + ns.x * along) * SQ - H
-		var al: float = 0.9 * pow(1.0 - fall, 1.3)
+		var al: float = 0.5 * pow(1.0 - fall, 1.3)   # 配角：压暗，不盖住怪物崩解
 		if al <= 0.03:
 			continue
 		var ri: int = int(ceil(r))
@@ -735,9 +735,13 @@ func _draw_blast(u, w, c: Vector2, R: float, fa: float) -> void:
 		u.light(c, 240.0, Color(1.0, 0.85, 1.25), 0.15)   # docs/270 爆发档上限附近（半径 240）
 		u.shake(3.0, 0.12)   # 用户同意过的量级；ult.shake 取正在震的较大者，打击感包同时在震时不叠加
 		g.vfx.stop(0.05, "ult_blast", true)
-	# ③ 亮核（2 拍）：白芯外一圈亮紫，半径约判定一半
+		for pn in st.pins:   # 崩解第二波：和大爆同一拍，所有被宣判的怪沿斩线往外再炸一次（更大）
+			var ep: Vector2 = pn.last if pn.e.get("dead", false) else pn.e.pos
+			_monster_burst(pn.e, ep, 1.6)
+	# ③ 亮核（2 拍）：只留中心小一圈（白芯 + 亮紫边），体量靠冲击环和往外喷的粒子撑（11-05：平涂大椭圆像贴纸）
+	_pts(w, c + Vector2(0, -6), _cloud(tau, 777, R * 0.6, 160))
 	if bf <= 1:
-		var rx: float = R * (0.5 if bf == 0 else 0.44)
+		var rx: float = R * (0.16 if bf == 0 else 0.12)
 		_disc(w, c + Vector2(0, -6), rx, rx * SQ, LT[4] if bf == 0 else LT[3])
 		_disc(w, c + Vector2(0, -6), rx * 0.78, rx * 0.78 * SQ, LT[5] if bf == 0 else LT[4])
 		_disc(w, c + Vector2(0, -6), rx * 0.52, rx * 0.52 * SQ, LT[6] if bf == 0 else LT[5])
@@ -746,23 +750,110 @@ func _draw_blast(u, w, c: Vector2, R: float, fa: float) -> void:
 			var a2: float = TAU * i / 24.0
 			gl.append([cos(a2) * rx * 0.3, sin(a2) * rx * 0.3 * SQ - 3.0, LT[6], true])
 		_pts(w, c, gl)
-	# ④ 冲击环（约 3.5 拍）：厚 5 格、亮，推过的地方地面一闪
+	# ④ 冲击环（约 3.5 拍）：厚 8 格、亮，推过的地方地面一闪
 	if tau < SHOCK_T + 2.0 / 15.0:
 		var us: float = clampf(tau / SHOCK_T, 0.0, 1.0)
 		var rr: float = R * (0.5 + 0.5 * (1.0 - pow(1.0 - us, 2.0)))
 		var fade: float = 1.0 if tau < SHOCK_T else clampf(1.0 - (tau - SHOCK_T) / (2.0 / 15.0), 0.0, 1.0)
 		var ring: Array = []
-		var cols: Array = [LT[6], LT[6], LT[5], LT[4], LT[3]] if tau < SHOCK_T else [LT[5], LT[4], LT[3], LT[2], LT[2]]
+		var cols: Array = [LT[6], LT[6], LT[6], LT[5], LT[5], LT[4], LT[4], LT[3]] if tau < SHOCK_T else [LT[5], LT[5], LT[4], LT[4], LT[3], LT[3], LT[2], LT[2]]
 		var n: int = int(rr * 6.6) + 16
 		for q in n:
 			var t: float = float(q) / float(n) * TAU
 			var ct := Vector2(cos(t), sin(t) * SQ)
-			for j in 5:
+			for j in 8:
 				var cj: Color = cols[j]
 				ring.append([roundf(ct.x * (rr - j)), roundf(ct.y * (rr - j)), Color(cj.r, cj.g, cj.b, fade), j == 0 and q % 3 == 0])
 			if tau < SHOCK_T:   # 地面一闪：环后 6–14 格一道淡亮紫
-				for j2 in range(6, 15, 2):
+				for j2 in range(9, 18, 2):
 					if (q + j2) % 3 == 0:
 						continue
-					ring.append([roundf(ct.x * (rr - j2)), roundf(ct.y * (rr - j2)), Color(LT[3].r, LT[3].g, LT[3].b, 0.45 * (1.0 - float(j2) / 15.0))])
+					ring.append([roundf(ct.x * (rr - j2)), roundf(ct.y * (rr - j2)), LT[3], 0.45 * (1.0 - float(j2) / 18.0)])   # [x, y, 颜色, 不透明度]（原来少了第 4 项，_pts 读 q[3] 报错）
 		_pts(w, c, ring)
+
+
+# ================================================================ 怪物崩解（11-05 用户：「我说的崩解是原版那个粒子特效，就是怪物炸开的这个特效」）
+## 主角：被宣判的怪整只炸成自身像素粒子。两层：
+##   ① 引擎原有的击杀碎屑（optical_particles.kill_burst：按怪物贴图像素碎开，颜色就是怪物自身）——每次连环爆和收尾大爆各补一次（超过 ult/fx_kill_cap 静默的怪也照样碎）；
+##   ② 怪物代表色（enemies.json ecol 的亮 / 本色 / 暗三阶 + 头两拍白芯）的像素喷散，沿斩线往外（离斩线越近越往法向喷），有重量、落地、停一下熄灭。
+## 只画；粒子散布按坐标哈希（不抽随机数），GPU 碎屑本来就不碰模拟随机数
+const SPRAY_N := 22      # 每只每波喷散颗数（docs/270 爆发档一簇 ≤ 25）
+const SPRAY_MAX := 70    # 同屏喷散批数上限
+
+
+func _monster_burst(e: Dictionary, p: Vector2, k: float) -> void:
+	if g.optical_on and g.optical != null and g.optical.particles != null and not e.get("boss", false):
+		g.optical.particles.kill_burst(e)
+	if st.is_empty():
+		return
+	if not st.has("sprays"):
+		st["sprays"] = []
+	var col: Color = D.ENEMIES.get(str(e.get("type", "")), {}).get("ecol", Color(0.6, 0.9, 0.9))
+	var c: Vector2 = st.c
+	var dv: Vector2 = st.dv if float(st.fin_t0) >= 0.0 else (p - c).normalized()
+	var nv := Vector2(-dv.y, dv.x)
+	var side: float = 1.0 if (p - c).dot(nv) >= 0.0 else -1.0
+	var out: Vector2 = (nv * side * 1.4 + (p - c).normalized() * 0.6).normalized() if p != c else nv
+	st.sprays.append({"p": p + Vector2(0, -10), "gy": p.y, "t0": g.t, "col": col, "out": out, "k": k, "sd": int(e.get("id", 0)) * 13 + int(k * 7.0)})
+	if st.sprays.size() > SPRAY_MAX:
+		st.sprays.pop_front()
+
+
+func _draw_sprays(w) -> void:
+	if not st.has("sprays"):
+		return
+	for sp in st.sprays:
+		var age: float = g.t - float(sp.t0)
+		if age > 1.3:
+			continue
+		var col: Color = sp.col
+		var cols: Array = [col.lightened(0.45), col.lightened(0.15), col, col.darkened(0.3)]
+		var k: float = float(sp.k)
+		var lst: Array = []
+		for q in int(SPRAY_N * minf(1.4, k)):
+			var sd: int = int(sp.sd)
+			var ang: float = (sp.out as Vector2).angle() + (_hf(q, sd, 71) - 0.5) * 2.2
+			var spd: float = (30.0 + 70.0 * _hf(q, sd, 72)) * k
+			var vh: float = 30.0 + 60.0 * _hf(q, sd, 73)
+			var G := 260.0
+			var t_land: float = 2.0 * vh / G
+			var t: float = minf(age, 0.9)
+			var tt: float = minf(t, t_land)
+			var h: float = maxf(0.0, vh * tt - 0.5 * G * tt * tt) if t < t_land else 0.0
+			var x: float = cos(ang) * spd * tt
+			var y: float = sin(ang) * spd * tt * SQ - h
+			var c: Color = cols[q % 4]
+			if age < 2.0 / 15.0 and q % 3 == 0:
+				c = Color(1, 1, 1)
+			var al: float = 1.0 if age < 0.9 else maxf(0.0, (1.3 - age) / 0.4)
+			lst.append([x, y, Color(c.r, c.g, c.b, al), age < 2.0 / 15.0 and q % 3 == 0, 2.0 if q % 3 != 2 else 1.0])
+		_pts(w, sp.p, lst)
+
+
+## 粒子云（连环爆 / 斩线上的爆 / 收尾大爆往外喷；11-05 用户：原版路上的爆炸是一大团闪烁的粒子云，不要烟）：
+## 白 / 亮紫 / 淡紫 + 少量浅蓝的 1 格小亮点（每 3 颗一颗 2 格），0.35 秒内往外炸开到 size（美术像素）、之后慢慢漂上去散掉；
+## 0.25 秒后逐拍闪烁（每拍三分之一不亮），越往后剩得越少，1.2 秒散完。n = 颗数（缺省按 size 定，60 封顶）。散布按坐标哈希
+func _cloud(age: float, sd: int, size: float, n := -1) -> Array:
+	var out: Array = []
+	if age < 0.0 or age > 1.2:
+		return out
+	if n < 0:
+		n = mini(60, int(30.0 + size * 0.6))
+	var fr: int = int(age * 15.0)
+	var u: float = minf(1.0, age / 0.35)
+	var grow: float = 1.0 - pow(1.0 - u, 2.0)
+	for k in n:
+		if age > 0.25 and (fr + k) % 3 == 0:
+			continue
+		if _hf(k, sd, 84) < age / 1.2:
+			continue
+		var a: float = TAU * _hf(k, sd, 81)
+		var r: float = size * sqrt(_hf(k, sd, 82)) * grow + age * 4.0   # 按面积均匀铺满（不成空心圈）
+		var x: float = cos(a) * r
+		var y: float = sin(a) * r * SQ - age * 10.0 * _hf(k, sd, 83)
+		var hc: float = _hf(k, sd, 85)
+		var c: Color = LT[6] if hc < 0.35 else (LT[5] if hc < 0.75 else (LT[4] if hc < 0.9 else TIDE[5]))
+		if age > 0.6:
+			c = LT[5] if c == LT[6] else (LT[4] if c == LT[5] else c)
+		out.append([x, y, c, c == LT[6] and age < 0.3, 2.0 if k % 3 == 0 else 1.0])
+	return out

@@ -167,7 +167,7 @@ def render(tk, ph, t, hfk):
     def pts(o, lst):
         for q in lst:
             if isinstance(q[3], bool):
-                put(o[0] + q[0] * PX, o[1] + q[1] * PX, q[2], glow=q[3])
+                put(o[0] + q[0] * PX, o[1] + q[1] * PX, q[2], glow=q[3], sz=int(q[4]) if len(q) > 4 else 1)
             else:
                 put(o[0] + q[0] * PX, o[1] + q[1] * PX, q[2], a=q[3])
 
@@ -242,6 +242,7 @@ def render(tk, ph, t, hfk):
             if 0 <= f <= 6:
                 e = ENS[p["e"]]
                 pts(e, A.boom(f, big=p["d"] < R_W * 0.5))
+                pts((e[0], e[1] - 16), A.cloud(ct - p["tb"], p["e"] * 3 + 1, 48 if p["d"] < R_W * 0.5 else 40, 60))
                 for q in range(3):
                     gr = A.grain(ct - p["tb"], p["e"] * 7 + q, "shard" if q < 2 else "drop")
                     if gr:
@@ -265,6 +266,7 @@ def render(tk, ph, t, hfk):
                 if 0 <= tau < 2 / 15:
                     lights.append((C[0], C[1], 240, 0.9, (1.0, 0.85, 1.25)))
                 pts(C, A.shock_ring(R, tau))
+                pts((C[0], C[1] - 12), A.cloud(tau, 777, R * 0.6, 160))
             nv = (-DV[1], DV[0])
             for i in range(7):
                 x = (i - 3) / 3
@@ -272,12 +274,8 @@ def render(tk, ph, t, hfk):
                 dl = 0.08 + 0.04 * abs(x) * 3
                 f = int(math.floor((age - dl) * 15))
                 pts(bp, A.boom(f, s=2.4))
+                pts((bp[0], bp[1] - 16), A.cloud(age - dl, 500 + i, 50, 60))
             # 崩解（用户 11-05「碎石和尘土比原版薄，少了崩解感」）：尘墙先画、碎石压在上面
-            for side in (-1, 1):
-                for k in range(A.PLUME_N):
-                    x = (k - (A.PLUME_N - 1) / 2) / ((A.PLUME_N - 1) / 2)
-                    root = (C[0] + DV[0] * R_W * x * 0.92 + nv[0] * side * 12, C[1] + DV[1] * R_W * x * 0.92 + nv[1] * side * 12)
-                    pts(root, A.plume(age - A.shock_at(R, abs(x) * 0.92 * R) - 0.02, k * 2 + (side > 0) + 300, (nv[0] * side, nv[1] * side)))
             for q in range(A.SLAB_N):
                 side = 1 if q % 2 else -1
                 x = ((q // 2) - (A.SLAB_N // 2 - 1) / 2) / ((A.SLAB_N // 2 - 1) / 2)
