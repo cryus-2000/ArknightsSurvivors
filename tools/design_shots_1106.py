@@ -13,7 +13,7 @@ import godot_runner as gr
 
 SQUAD = "--squad=skadi,saria,texas,exusiai,eyjafjalla"
 SCENES = {
-    "mag": ["--rtfrom=470", "--flashrec=472,300,1280", "--maxt=490", "--bal=pickup/magnet_kill_chance=0.2", "--bal=pickup/elite_magnet_share=1.0"],
+    "mag": ["--rtfrom=470", "--dropmagnet=472", "--flashrec=474,120,1280", "--maxt=482"],
     "carmen": ["--rtfrom=400", "--flashspawn=carmen", "--flashrec=402,300,1280", "--maxt=415"],
     "bishop": ["--rtfrom=190", "--flashspawn=bishop", "--flashrec=192,300,1280", "--maxt=205"],
 }

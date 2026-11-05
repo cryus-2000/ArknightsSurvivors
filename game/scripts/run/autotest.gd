@@ -510,6 +510,7 @@ var _fr_i := 0
 var _fr_csv: FileAccess = null
 var _fr_spawn := ""
 var _fr_spawned := false
+var _dm_t := -2.0   # 取证用（不合 main）：--dropmagnet=<秒> 到点在主控旁两侧各掉一个磁铁
 func _flashrec_step() -> void:
 	if _fr_t0 < -1.0:
 		_fr_t0 = -1.0
@@ -522,6 +523,12 @@ func _flashrec_step() -> void:
 					_fr_w = int(p[2])
 			if a.begins_with("--flashspawn="):
 				_fr_spawn = a.substr(13)
+			if a.begins_with("--dropmagnet="):
+				_dm_t = float(a.substr(13))
+	if _dm_t >= 0.0 and g.t >= _dm_t and g.state == g.S.PLAY:
+		_dm_t = -1.0
+		g.pickups.drop(g.ppos + Vector2(170, 70), "magnet", 1.0)
+		g.pickups.drop(g.ppos + Vector2(-230, -90), "magnet", 1.0)
 	# 带 --rtfrom 时等快进结束再刷（10-27 骑士特效帧时：后期 100 只同屏 + Boss 战），否则照旧第 20 帧
 	var fr_due: bool = g.at_frames == 20 if g.rt_from < 0.0 else (not _fr_spawned and g.t >= g.rt_from)
 	if _fr_spawn != "" and fr_due:
