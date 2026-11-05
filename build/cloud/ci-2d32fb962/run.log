@@ -1,0 +1,35 @@
+error: externally-managed-environment
+
+× This environment is externally managed
+╰─> To install Python packages system-wide, try apt install
+    python3-xyz, where xyz is the package you are trying to
+    install.
+    
+    If you wish to install a non-Debian-packaged Python package,
+    create a virtual environment using python3 -m venv path/to/venv.
+    Then use path/to/venv/bin/python and path/to/venv/bin/pip. Make
+    sure you have python3-full installed.
+    
+    If you wish to install a non-Debian packaged Python application,
+    it may be easiest to use pipx install xyz, which will manage a
+    virtual environment for you. Make sure you have pipx installed.
+    
+    See /usr/share/doc/python3.11/README.venv for more information.
+
+note: If you believe this is a mistake, please contact your Python installation or OS distribution provider. You can override this, at the risk of breaking your Python installation or OS, by passing --break-system-packages.
+hint: See PEP 668 for the detailed specification.
+通过 入队邀请二选一（docs/252，用户 11-05）：铜印 / 银印 / 立即招募事件机器人同一帧接受、玩家局弹「接受入队 / 婉拒」并暂停，数字键 / 方向键回车 / 点卡都能选，婉拒给成长三选一（银印另加全队推进），满员不弹  RECRUIT OFFER failures=0  [15 秒]
+通过 入队邀请二选一 · 触屏排版（同上，--touch）  RECRUIT OFFER failures=0  [15 秒]
+通过 --bot_solo=1 单人局机器人：邀请一律婉拒、升级不选招募卡、不进强制招募画面（docs/252）  RECRUIT OFFER failures=0  [14 秒]
+通过 TRACE 新增字段 sq / lamp / nd / rl（10-29，docs/126 R3）：只读、不动 rng、对队友位置 / 突击生命 / 技力 / 普攻计时 / 灯火 / 神经损伤 / 藏品数各自敏感、还原后回到原值  TRACE FIELDS failures=0  [14 秒]
+通过 界面冒烟（docs/126 R6）：标题页十屏 + 局内 HUD / 暂停 / 设置 / 属性 / 结算 / 作战记录 / 对局记录各开关两遍，无缺图、无残留节点  UI SMOKE failures=0  [19 秒]
+通过 时间缩放组合（圆盘 × 倍速 / 顿帧 / 击破慢动作）：有效缩放等于现行组合规则，退出各模态后回到 1  TIME SCALE COMBO failures=0  [15 秒]
+通过 自动测试不写玩家对局记录：tests/ 下场景（含不带 -- 参数直接起的）被 telemetry.save_local 拦下（10-14 / 10-20 / 10-27 runs.jsonl 里的空局）  RUNS LOG GUARD failures=0  [14 秒]
+通过 g.hit 空描述符沿用上次：特征测试（已知缺陷：空 h 会错记给上一个干员），显式 h 回归保护  HIT FALLBACK failures=0  [14 秒]
+通过 神经损伤积累规则特征测试（溟痕 / 光环 / 光域 / 锁定 / 满条真伤 / Boss 来源未截断 / 灯火档位），为 afflict 重构兜底  NERVE RULES failures=0  [14 秒]
+通过 第一位商人预告（docs/119 §4.5）：生成时定货架、进店不重抽、联动位、价格同步、售出 / 刷新 / 离开撤销、开关关不提前抽  MERCHANT BUILD OFFER failures=0  [16 秒]
+
+耗时前 10（秒，不含排队）：积木等价（数据版 vs 金样） 457；成长节点当场生效 434；同 seed 复现 413；按住瞄准全员验收 218；美术帧条 art_lint 62；冒烟 · skadi 35；塑路者 / 接潮组弹幕与连段（docs/170） 34；冒烟 · angelina 34；冒烟 · exusiai 34；冒烟 · lumen 33
+
+快检通过：195 项，失败 0 项（已知红 0 项另计），耗时 457 秒（开始时全机 0 个 Godot，结束时 0 个）；未用缓存
+分项日志：build/ci_logs/（235 个文件）；退出码 0
