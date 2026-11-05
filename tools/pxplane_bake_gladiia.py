@@ -148,7 +148,7 @@ def bake(key, d, dur, loop):
         if len(idx) > EMIT_MAX:
             idx = idx[np.linspace(0, len(idx) - 1, EMIT_MAX).astype(int)]
         emit.append([[int(px[j]), int(py[j]), "%02x%02x%02x" % tuple(int(v * 255) for v in c[py[j], px[j], :3])] for j in idx])
-    name = "pxp_%s%s.png" % (PREFIX, key)
+    name = "pxp_%s%s.png" % (PREFIX, key.replace("_d-", "_dm").lower())
     Image.fromarray((strip * 255 + 0.5).astype(np.uint8), "RGBA").save(os.path.join(OUT_ART, name), optimize=True)
     write_import(name)
     return key, {"n": len(frames), "fps": fps, "w": int(w), "h": int(h), "ox": int(ox - x0), "oy": int(oy - y0), "loop": bool(loop), "emit": emit}

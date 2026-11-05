@@ -406,7 +406,7 @@ def bake(key, d, dur, loop=False):
         big = 32 if key.startswith(("sw_s40", "sw_s26")) else 12   # 收尾巨剑 / 次元斩大剑多给点（同屏只有一两柄）；一波十几柄的小剑压在 p90 200 以内
         cap = big // 2 if key.endswith("_gd") else big
         emit = [(pts[::max(1, len(pts) // cap)][:cap] if i in (2, 3) else []) for i, pts in enumerate(emit)]   # 插地那一拍 + 刃光起走的下一拍
-    Image.fromarray((strip * 255 + 0.5).astype(np.uint8), "RGBA").save(os.path.join(OUT_ART, "pxp_%s%s.png" % (PREFIX, key.replace("_d-", "_dm"))), optimize=True)
+    Image.fromarray((strip * 255 + 0.5).astype(np.uint8), "RGBA").save(os.path.join(OUT_ART, "pxp_%s%s.png" % (PREFIX, key.replace("_d-", "_dm").lower())), optimize=True)
     return key, {"n": len(frames), "fps": fps, "w": int(w), "h": int(h), "ox": int(ox - x0), "oy": int(oy - y0), "loop": loop, "emit": emit}
 
 

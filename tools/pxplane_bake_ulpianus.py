@@ -708,7 +708,7 @@ def main():
         if a.only and not key.startswith(a.only):
             continue
         strip, m = bake_one(key, kind, p, n)
-        fn = "pxp_%s%s.png" % (PREFIX, key)
+        fn = "pxp_%s%s.png" % (PREFIX, key.replace("_d-", "_dm").lower())
         path = os.path.join(OUT_ART, fn)
         Image.fromarray(strip, "RGBA").save(path, optimize=True)
         total += os.path.getsize(path)

@@ -122,7 +122,7 @@ def bake(key, d, dur, loop):
             r, g_, b = c[py[j], px[j], :3]
             pts.append([int(px[j]), int(py[j]), "%02x%02x%02x" % (int(r * 255), int(g_ * 255), int(b * 255))])
         emit.append(pts)
-    Image.fromarray((strip * 255 + 0.5).astype(np.uint8), "RGBA").save(os.path.join(OUT_ART, "pxp_lg_%s.png" % key), optimize=True)
+    Image.fromarray((strip * 255 + 0.5).astype(np.uint8), "RGBA").save(os.path.join(OUT_ART, "pxp_lg_%s.png" % key.replace("_d-", "_dm").lower()), optimize=True)
     return key, {"n": len(frames), "fps": fps, "w": int(w), "h": int(h), "ox": int(ox - x0), "oy": int(oy - y0), "loop": loop, "emit": emit}
 
 
