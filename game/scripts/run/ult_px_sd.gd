@@ -26,7 +26,7 @@ var _emit_frame := -1
 
 
 static func on() -> bool:
-	return Bal.v("ult/px_plane", 0.0) > 0.0 and ResourceLoader.exists(META)
+	return (Bal.v("ult/px_plane", 0.0) > 0.0 or Bal.v("ult/px_plane_skadi", 0.0) > 0.0) and ResourceLoader.exists(META)   # 总开关或斯卡蒂一人（11-05 拆成按干员开）
 
 
 static func of(game):
