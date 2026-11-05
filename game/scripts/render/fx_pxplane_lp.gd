@@ -1,7 +1,7 @@
 ## 拉普兰德转平面（docs/273，fx/px_plane = 1）：fx_pxplane.gd 按 id 转来的一节，单独成文件（第五批四人并行，少撞 fx_pxplane.gd）。
 ## 帧条由 tools/pxplane_bake_lappland.py 烤（图形 tools/pxplane_lappland_art.py），键前缀 lp_；
 ## 剑气细针 / 狼首弹拖尾与晶片 / 命中斩痕 / 封招符印 / 观察刻痕 / 连携斩痕在这里按美术像素格逐格画（算法同 pxplane_lappland_art.py 的
-## needle() / cut_px() / chain_px() / tally_px()，改一边要改另一边）。
+## needle() / cut_px() / cross_px() / tally_px()，改一边要改另一边）。
 ## 只画：读玩法状态（o.hw.waves、o.vg.qi、敌人的 seal_t / 观察层数），画面专用键只写剑气字典的 _pxq（按 15 fps 跳格的位置），玩法不读；不碰玩法与玩法随机数。
 ## 挂在人身上的件带 fo（跟她）或 fol（日晷格挡跟队长）；斩痕 / 剑气命中星跟被打的那只（e / ef）；冲击环、声波、烟环、刻痕环留原地。
 extends RefCounted
@@ -15,9 +15,9 @@ const SHADOW := Color("#100e16")
 const ATK_R := [44, 50, 58, 68]
 const DANCE_R := [60, 70, 84]
 const BARK_R := [75, 90]
-const CHAIN_R := 6.0       # 封招锁链环半径（美术像素，同 pxplane_lappland_art.CHAIN_R）
-const CHAIN_GAP := -0.8    # 断口方向（右上）
-const QV2 := Color("#9a86ea")
+const CROSS_N := 4                      # 封招叉半臂长（美术像素，同 pxplane_lappland_art.CROSS_N）
+const CROSS_CORE := Color("#46464a")     # 原作 chenmo_02 笔画深灰
+const CROSS_RIM := Color("#c4c6ca")      # 原作描边浅灰（提亮，暗地面上读得出）
 const SIG := [Vector2i(0, -3), Vector2i(1, -2), Vector2i(2, -1), Vector2i(3, 0), Vector2i(2, 1), Vector2i(1, 2), Vector2i(0, 3), Vector2i(-1, 2), Vector2i(-2, 1), Vector2i(-3, 0), Vector2i(-2, -1), Vector2i(-1, -2)]
 const HIT_N := 3           # 一记横扫至多画 3 只身上的斩痕
 const WHIT_BEAT := 3       # 剑气命中星每拍至多 3 个
@@ -465,9 +465,10 @@ func _draw_cut(ci, it: Dictionary) -> void:
 
 # ================================================================ 状态提示（ob_summon.sm_draw_over 转来，接管时代替灰叉 / 银圈）
 
-## 封招锁链环（同 pxplane_lappland_art.chain_px；11-05 用户「头上那个方块加线是什么」→ 改成一眼能懂的断开锁链环）：
-## 只给精英 / Boss 画（普通怪不画，免得满屏）。头顶一圈紫色锁链环，右上一道断口，断口两端出现时闪白、之后每秒闪一下；
-## 封印期间断口慢慢张大、两半往外错开、整圈渐淡，最后 0.3 秒褪掉。起拍记在本模块的 _seal_st（[封印止时刻, 起拍时刻]，止时刻变了 = 新的一次封印）
+## 封招叉（同 pxplane_lappland_art.cross_px；11-05 用户「封印原作的表现形式就是一个叉，用叉就行」）：照原作 buff_silence 的 chenmo_02——
+## 深灰 2 像素笔画 + 浅灰描边的方正 X。只给精英 / Boss 画（普通怪不画，免得满屏）。
+## 第 0–1 拍左上→右下一笔划出、第 1–2 拍右上→左下第二笔，第 2–3 拍整叉闪白（进发光层），之后保持，最后 0.3 秒淡出。
+## 起拍记在本模块的 _seal_st（[封印止时刻, 起拍时刻]，止时刻变了 = 新的一次封印，重来一遍划出）
 func draw_seal(cv, e: Dictionary, lift: float) -> void:
 	if not (e.get("elite", false) or e.get("boss", false)):
 		return
@@ -481,48 +482,34 @@ func draw_seal(cv, e: Dictionary, lift: float) -> void:
 				if float(_seal_st[k][0]) < g.t:
 					_seal_st.erase(k)
 	var age: int = r.frame_of(float(st[1]))
-	var left: float = float(e.seal_t) - g.t
-	var total: float = maxf(0.1, float(st[0]) - float(st[1]))
-	var crack: float = clampf(1.0 - left / total, 0.0, 1.0)
-	var al: float = clampf(left / 0.3, 0.0, 1.0) * (1.0 - 0.45 * crack)
-	var gap: float = 0.22 + 0.75 * crack
-	var drift: float = roundf(1.6 * crack)
-	var flash: bool = age < 3 or (age % 15) < 1
-	var c0: Vector2 = Pxp._snap(e.pos + Vector2(0, -float(e.r) * 2.0 - 22.0 - lift))
+	var al: float = clampf((float(e.seal_t) - g.t) / 0.3, 0.0, 1.0)
+	var n: int = CROSS_N
+	var a_len: int = -n + (n + 1) * (age + 1) if age < 1 else n
+	var b_len: int = n if age >= 2 else (-n - 1 + (n + 1) * age if age >= 1 else -n - 1)
+	var core := {}
+	for i in range(-n, n + 1):   # 笔画 2 像素宽（左右镜像，叉心在 x = 0.5）
+		if i <= a_len:
+			core[Vector2i(i, i)] = true
+			core[Vector2i(i + 1, i)] = true
+		if i <= b_len:
+			core[Vector2i(1 - i, i)] = true
+			core[Vector2i(-i, i)] = true
+	var flash: bool = age >= 2 and age < 4
+	var c0: Vector2 = Pxp._snap(e.pos + Vector2(0, -float(e.r) * 2.0 - 20.0 - lift))
 	var px: float = g.PX
-	var gv := Vector2(cos(CHAIN_GAP), sin(CHAIN_GAP))
-	var body := {}
-	var outl := {}
-	for k in 48:
-		var a: float = k * TAU / 48.0
-		var da: float = angle_difference(CHAIN_GAP, a)
-		if absf(da) < gap:
-			continue
-		var side: float = 1.0 if da > 0.0 else -1.0
-		var off := Vector2(-gv.y * side * drift, gv.x * side * drift)
-		for rr in [CHAIN_R + 0.5, CHAIN_R - 0.5]:
-			var q := Vector2i(roundi(rr * cos(a) + off.x), roundi(rr * sin(a) + off.y))
-			if body.has(q):
-				continue
-			var end: bool = absf(da) < gap + 0.45
-			var c: Color
-			if end and flash:
-				c = LP[6]
-			elif int(k / 3.0) % 2 == 0:
-				c = LP[5] if rr > CHAIN_R else LP[4]
-			else:
-				c = QV2
-			body[q] = c
-		for rr2 in [CHAIN_R + 1.6, CHAIN_R - 1.6]:
-			outl[Vector2i(roundi(rr2 * cos(a) + off.x), roundi(rr2 * sin(a) + off.y))] = true
-	for q in outl:
-		if not body.has(q):
-			cv.draw_rect(Rect2(c0 + Vector2(q) * px, Vector2(px, px)), Color(SHADOW, 0.75 * al))
-	for q in body:
-		var c2: Color = body[q]
-		cv.draw_rect(Rect2(c0 + Vector2(q) * px, Vector2(px, px)), Color(c2, al))
-		if c2 == LP[6]:
-			_glow(c0 + Vector2(q) * px, LP[6])
+	var rim := {}
+	for q in core:
+		for o2 in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+			var q2: Vector2i = q + o2
+			if not core.has(q2):
+				rim[q2] = true
+	for q in rim:
+		var p: Vector2 = c0 + Vector2(q) * px
+		cv.draw_rect(Rect2(p, Vector2(px, px)), Color(LP[6] if flash else CROSS_RIM, al))
+		if flash:
+			_glow(p, LP[6])
+	for q in core:
+		cv.draw_rect(Rect2(c0 + Vector2(q) * px, Vector2(px, px)), Color(LP[5] if flash else CROSS_CORE, al))
 
 
 ## 观察刻痕（同 pxplane_lappland_art.tally_px）：头顶 n 道斜竖短刻，新叠的那道白热

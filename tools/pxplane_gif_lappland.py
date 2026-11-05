@@ -378,8 +378,8 @@ def render(lib, col, tk):
         if ei not in col.elites:
             continue
         if t0 <= tk < t1 and tk < e[2] and not any(s0 <= tk < s1 and s0 > t0 for (ej, s0, s1) in col.seals if ej == ei):
-            c0 = snap((e[0], e[1] - 66 - (10 if ei in col.tally else 0)))
-            for (dx, dy, c, a, gl) in A.chain_px(tk - t0, (t1 - t0) / 15.0, (t1 - tk) / 15.0):
+            c0 = snap((e[0], e[1] - 62 - (10 if ei in col.tally else 0)))
+            for (dx, dy, c, a, gl) in A.cross_px(tk - t0, (t1 - tk) / 15.0):
                 put_px(c0[0] + dx * PX, c0[1] + dy * PX, c, glow=gl, a=a)
     for (a, b, t0) in col.chains:   # 封印传染：死亡处到新目标的细虚线
         age = tk - t0

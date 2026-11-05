@@ -1,12 +1,12 @@
 """拉普兰德转平面（docs/273）的像素图形：纯 Python，tools/pxplane_bake_lappland.py 用它烤帧条（game/art/fx/pxp/pxp_lp_*.png + game/data/pxp_lappland.json），
 tools/pxplane_gif_lappland.py 用它拼送审 GIF。运行时件（剑气细针、狼首弹的拖尾 / 晶片、命中斩痕、封招符印、观察刻痕、连携斩痕）在游戏里由
-fx_pxplane_lp.gd 逐格画，算法与本文件 needle() / cut_px() / chain_px() / tally_px() 一一对应，改一边要改另一边。
+fx_pxplane_lp.gd 逐格画，算法与本文件 needle() / cut_px() / cross_px() / tally_px() 一一对应，改一边要改另一边。
 单位：美术像素（游戏里 1 美术像素 = g.PX = 2 世界像素）。全部确定性（抖动用坐标哈希）。
 
 配色（原作 whitew_* 参照：贴图全是冷灰白，普攻是两段细月牙刀光，S2 是黑白狼首弹 + 菱形晶片 + 烟；Claude outputs/pixelfx_ul_lappland/original_moves.md）：
 - LP：冷紫灰 → 白 7 阶（剑光；任务单「紫白剑光」）；
 - WOLF：黑紫 → 灰白（S2 狼魂：狼首、烟、晶片）。
-- 封招：精英 / Boss 头顶一圈断开的紫色锁链环（11-05 用户认不出原来的「方块加线」符印）；剑气 = 贴地低飞的紫白月牙。不用红（红只给危险）。"""
+- 封招：精英 / Boss 头顶一个原作样式的叉（buff_silence：深灰笔画 + 浅灰描边；11-05 用户定）；剑气 = 贴地低飞的紫白月牙。不用红（红只给危险）。"""
 import math
 
 LP = ["#15121f", "#2b2542", "#4a4274", "#7b70b4", "#b3aae4", "#e4e0ff", "#ffffff"]
@@ -207,46 +207,38 @@ def cut_px(f, L, d, x=False):
 
 # 封招符印（7×7）：菱形符框 + 中心点；斩线从左上到右下，两半错开一格（被斩断）
 _SIG = sorted({(round(4 * math.cos(k * math.tau / 24)), round(4 * math.sin(k * math.tau / 24))) for k in range(24)})   # 符印圆环（十字斩第 0 拍 / 传染碎片）
-CHAIN_R = 6        # 封招锁链环半径（美术像素）
-CHAIN_GAP = -0.8   # 断口方向（右上）
 
 
-def chain_px(age_tk, total_s, left_s):
-    """封招锁链环（只画精英 / Boss）：头顶一圈紫色锁链环，右上一道断口；断口两端出现时闪白，之后每秒闪一下；
-    封印期间断口慢慢张大、两半往外错开、整圈渐淡，最后 0.3 秒褪掉。返回 [(dx, dy, 颜色, 不透明度, 发光)]，原点 = 环心"""
-    out = []
-    crack = max(0.0, min(1.0, 1.0 - left_s / max(0.1, total_s)))
-    al = max(0.0, min(1.0, left_s / 0.3)) * (1.0 - 0.45 * crack)
-    gap = 0.22 + 0.75 * crack                    # 断口半张角（弧度）
-    drift = round(1.6 * crack)                   # 两半往外错开
-    flash = age_tk < 3 or (age_tk % 15) < 1
-    n = 48
-    gx, gy = math.cos(CHAIN_GAP), math.sin(CHAIN_GAP)
-    seen = set()
-    for k in range(n):
-        a = k * math.tau / n
-        da = _ang_d(a, CHAIN_GAP)
-        if abs(da) < gap:
-            continue
-        side = 1 if da > 0 else -1
-        ox, oy = -gy * side * drift, gx * side * drift   # 垂直断口方向错开
-        for rr, kind in ((CHAIN_R + 1.6, "o"), (CHAIN_R - 1.6, "o"), (CHAIN_R + 0.5, "c"), (CHAIN_R - 0.5, "c")):
-            x, y = round(rr * math.cos(a) + ox), round(rr * math.sin(a) + oy)
-            if (x, y, kind) in seen:
-                continue
-            seen.add((x, y, kind))
-            if kind == "o":
-                out.append((x, y, SHADOW, 0.75 * al, False))
-            else:
-                end = abs(da) < gap + 0.45
-                link = (k // 3) % 2 == 0
-                if end and flash:
-                    out.append((x, y, LP[6], al, True))
-                else:
-                    out.append((x, y, (LP[5] if rr > CHAIN_R else LP[4]) if link else QV[2], al, False))
-    # 去掉被链身盖住的暗边（暗边只留在外侧 / 内侧）
-    body = {(x, y) for (x, y, c, a2, gl) in out if c != SHADOW}
-    return [q for q in out if not (q[2] == SHADOW and (q[0], q[1]) in body)]
+# 封招叉（11-05 用户「封印原作的表现形式就是一个叉，用叉就行」）：照原作 buff_silence 的 chenmo_02——深灰笔画 + 浅灰描边的方正 X
+CROSS_N = 4                      # 半臂长（美术像素）→ 9 × 9
+CROSS_CORE = "#46464a"           # 原作笔画深灰（chenmo_02 主色 #424142 一带）
+CROSS_RIM = "#c4c6ca"            # 原作描边浅灰（#828382 × 粒子 _TintColor 提亮，暗地面上要读得出）
+
+
+def cross_px(age_tk, left_s):
+    """封招叉（只画精英 / Boss）：第 0–1 拍左上→右下一笔划出，第 1–2 拍右上→左下第二笔；第 2–3 拍整叉闪白；之后保持，最后 0.3 秒淡出。
+    返回 [(dx, dy, 颜色, 不透明度, 发光)]，原点 = 叉心"""
+    al = max(0.0, min(1.0, left_s / 0.3))
+    n = CROSS_N
+    core = []
+    a_len = -n + (n + 1) * (age_tk + 1) if age_tk < 1 else n          # 第一笔
+    b_len = n if age_tk >= 2 else (-n - 1 + (n + 1) * age_tk if age_tk >= 1 else -n - 1)
+    for i in range(-n, n + 1):   # 笔画 2 像素宽（左右镜像，叉心在 x = 0.5）
+        if i <= a_len:
+            core += [(i, i), (i + 1, i)]
+        if i <= b_len:
+            core += [(1 - i, i), (-i, i)]
+    flash = 2 <= age_tk < 4
+    cs = set(core)
+    rim = set()
+    for (x, y) in core:
+        for (ox, oy) in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            q = (x + ox, y + oy)
+            if q not in cs:
+                rim.add(q)
+    out = [(x, y, LP[6] if flash else CROSS_RIM, al, flash) for (x, y) in sorted(rim)]
+    out += [(x, y, LP[5] if flash else CROSS_CORE, al, False) for (x, y) in sorted(cs)]
+    return out
 
 
 def tally_px(n, fresh):
