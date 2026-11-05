@@ -148,7 +148,7 @@ def bubbles(f, fi, R, seed, n, t0=2):
 GRAV = 1000.0   # 水团重力（美术像素 / 秒²）：重一点，飞起落回不超过约 0.4 秒（短促）
 
 
-def clumps(f, fi, R, H, n, seed, cone=1.0, t_delay=0.0):
+def clumps(f, fi, R, H, n, seed, cone=1.0, t_delay=0.0, size=(2.0, 3.6)):
     """短促、不规则的水团：每团是一小坨 2–4 格的不规则水（顶亮底暗），按抛物线飞起落回，越飞越小；
     落地处摊成一小片白沫、再降阶成一点暗水。水平速度按「落点不出 R」夹住。cone < 1 时往上收（S1 的一束）"""
     t = fi / FPS - t_delay
@@ -170,7 +170,7 @@ def clumps(f, fi, R, H, n, seed, cone=1.0, t_delay=0.0):
         x, y = math.cos(a) * dist, math.sin(a) * dist * SY
         z = vz * tt - 0.5 * GRAV * tt * tt
         if z > 0:
-            s = max(1, int(round(dr.uniform(2.0, 3.6) * (1.0 - 0.6 * tt / tmax))))
+            s = max(1, int(round(dr.uniform(size[0], size[1]) * (1.0 - 0.6 * tt / tmax))))
             for px in range(-s, s + 1):
                 for py in range(-s, s + 1):
                     if px * px + py * py > s * s + 0.5:
@@ -239,46 +239,51 @@ def cool_spots(R, seed, n=14):
 
 
 def s3_impact_up(f, fi, R, seed):
-    """S3 落地重击（虎鲸砸下，立起）：大爆白 + 一大把不规则水团（落点不出判定）"""
-    star(f, fi, R * 1.4, seed, 1.2, 24.0)
-    if fi == 0:   # 爆白：中心一大团白
-        for dx in range(-9, 10):
-            for dy in range(-12, 3):
-                if dx * dx * 0.5 + (dy + 4) * (dy + 4) < 40:
-                    f.put(dx, dy, WHITE if dx * dx * 0.5 + (dy + 4) * (dy + 4) < 24 else C[6])
-    skirt(f, fi, R * 0.7, seed)
-    clumps(f, fi, R, 28, 40, seed)
-    clumps(f, fi, R * 0.5, 20, 14, seed + 3)
+    """S3 落地水爆（水塑虎鲸砸进地面，立起）：第 0 拍一大团爆白（实心椭圆 + 尖刺），第 1 拍白团裂开成一圈大水团往外炸，
+    之后大水团（3–5 格）和水滴落回，约 0.5 秒结束"""
+    star(f, fi, R * 1.4, seed, 1.2, 26.0)
+    if fi <= 1:
+        rx, ry = (14, 13) if fi == 0 else (10, 8)
+        for dx in range(-rx - 1, rx + 2):
+            for dy in range(-ry * 2, 3):
+                d2 = (dx / rx) ** 2 + ((dy + ry * 0.8) / ry) ** 2
+                if d2 < 1.0:
+                    f.put(dx, dy, WHITE if (d2 < 0.55 or fi == 0) else C[6])
+    skirt(f, fi, R * 0.6, seed)
+    clumps(f, fi, R, 30, 30, seed, size=(3.0, 5.2))
+    clumps(f, fi, R * 0.7, 20, 24, seed + 3)
 
 
 def s3_impact_gd(f, fi, R, seed):
-    """S3 落地（贴地）：潮水先往外漫到 0.85R（断续白沫边 + 内侧 2 格暗水带，不平涂），再一拍一拍往回退、变暗、散掉"""
+    """S3 落地水爆（贴地）：一圈压扁的细冲击涟漪 0.3 秒推到判定半径；积水先漫到 0.8R（断续白沫边 + 内侧 2 格暗水带，不平涂），
+    再一拍一拍往回退、变暗散掉（约 0.8 秒）"""
     if fi <= 2:
-        blob(f, R * 0.3, seed, [C[3], C[2], C[1]] if fi == 0 else [C[2], C[1]], 1.0)
-    if fi <= 3:
-        rr = R * 0.85 * ease_out((fi + 1) / 4.0)
+        blob(f, R * 0.32, seed, [C[3], C[2], C[1]] if fi == 0 else [C[2], C[1]], 1.0)
+    ripple(f, fi, R, seed, n_beats=6, r0=0.35, gap=0.2)
+    if fi <= 2:
+        rr = R * 0.8 * ease_out((fi + 1) / 3.0)
     else:
-        rr = R * 0.85 * max(0.15, 1.0 - (fi - 3) / 10.0)
-    fade = max(0, fi - 7)
+        rr = R * 0.8 * max(0.15, 1.0 - (fi - 2) / 9.0)
+    fade = max(0, fi - 6)
     if fade > 5:
         return
-    edge = [WHITE, FOAM, FOAM, C[5], C[4], C[3]][fade] if fi > 0 else WHITE
+    edge = [FOAM, FOAM, C[5], C[5], C[4], C[3]][fade]
     for a, x, y in ellipse_pts(rr):
         if vn(a * 5.0 + seed + fi * 0.4) < 0.25 + 0.08 * fade:
             continue
-        k = 0.92 + 0.12 * vn(a * 3.0 + seed)
-        f.put(x * k, y * k, edge)
+        k = 0.9 + 0.14 * vn(a * 3.0 + seed)
+        f.put(x * k, y * k, edge, over=False)
         for j in (1, 2):
             kk = (rr * k - j * 1.3) / max(1.0, rr)
             f.put(x * kk, y * kk, C[2] if fade < 3 else C[1], over=False)
-    if fi >= 4:   # 退下去留下的湿痕白沫点
+    if fi >= 3:   # 退下去留下的湿痕白沫点
         rnd = random.Random(seed + fi)
         for i in range(int(R * 0.5)):
             a = rnd.random() * math.tau
-            r2 = rnd.uniform(rr, R * 0.85)
+            r2 = rnd.uniform(rr, R * 0.8)
             if rnd.random() < 0.25 + 0.1 * fade:
                 continue
-            f.put(math.cos(a) * r2, math.sin(a) * r2 * SY, C[5] if fade < 2 else C[3])
+            f.put(math.cos(a) * r2, math.sin(a) * r2 * SY, C[5] if fade < 2 else C[3], over=False)
 
 
 def spray_low(f, fi, R, seed, n=10):
@@ -463,8 +468,8 @@ def variants():
             v.append(("s1_r%d_e%d_gd" % (R, el), "splat", {"R": R, "tier": el, "pull": 0.0, "seed": 73 + R}, 9, "gd"))
     # S2 锁链界限：运行时画（fx_pxplane_ul._ring，会转），没有帧条
     # S3 落地（s3_r 140 → 70）
-    v.append(("s3_up", "s3up", {"R": 70, "H": 40, "seed": 91}, 12, "up"))
-    v.append(("s3_gd", "s3gd", {"R": 70, "seed": 91}, 14, "gd"))   # 13 拍潮水退完
+    v.append(("s3_up", "s3up", {"R": 70, "H": 40, "seed": 91}, 9, "up"))
+    v.append(("s3_gd", "s3gd", {"R": 70, "seed": 91}, 13, "gd"))   # 12 拍积水退完
     # 连携掷锚钉下（拖 180 内的小怪 → 90）
     v.append(("pin_gd", "inward", {"R": 90, "seed": 97}, 10, "gd"))
     return v

@@ -381,19 +381,13 @@ def orca_cell(u, w, beat):
         return -1
     if w > hh:
         return 0
-    if ((u - 10) / 4.0) ** 2 + ((w - 2.6) / 1.5) ** 2 <= 1.0:
+    if abs(u - 10) <= 1.5 and abs(w - 2.6) <= 0.8:
         return 3
-    if w < -hh * 0.2 and u > -9:
-        return 4 if w > -hh * 0.45 else 3
-    if -9 < u < -3 and w > hh - 2.2:
-        return 5
-    if w > hh - 1.0:
-        return 2
-    return 1 if w > 0 else 0
+    return 1 if w > -hh * 0.2 else 2
 
 
 def draw_orca(cv, gp, z, pitch, dv, clip, T):
-    """抄 fx_pxplane_ul._draw_orca"""
+    """抄 fx_pxplane_ul._draw_orca（水塑虎鲸）"""
     gp = snap(gp)
     e = norm((dv[0], dv[1] * SY))
     flip = 1.0 if e[0] >= 0 else -1.0
@@ -403,28 +397,47 @@ def draw_orca(cv, gp, z, pitch, dv, clip, T):
     if n[1] > 0:
         n = (-n[0], -n[1])
     beat = int(math.floor(T * 15))
-    sw = int(16 * (1 - min(0.5, max(0.0, z / 80.0))))
-    if clip:
-        sw = 0
-    for i in range(-sw, sw + 1):
-        for j in (-1, 0, 1):
-            if abs(i) + abs(j) * 6 <= sw:
-                cv.px((gp[0] + i * dv[0] * PX, gp[1] + (i * dv[1] * SY + j) * PX), C[0])
+    if z > 10 and not clip:
+        sw = int(14 * (1 - min(0.5, max(0.0, z / 80.0))))
+        for i in range(-sw, sw + 1):
+            cv.px((gp[0] + i * dv[0] * PX, gp[1] + i * dv[1] * SY * PX), C[1])
     if z < 10:
-        for i in range(14, 30):
+        for i in range(14, 32):
             if h_(i * 0.7 + beat) > 0.45:
                 cv.px((gp[0] - dv[0] * i * PX, gp[1] - dv[1] * SY * i * PX - PX), C[6] if i < 22 else C[5])
     c = snap((gp[0], gp[1] - z - 8))
-    for jy in range(-16, 17):
-        for ix in range(-26, 27):
-            u = ix * e[0] + jy * e[1]
-            w = ix * n[0] + jy * n[1]
-            k = orca_cell(u, w, beat)
-            if k >= 0:
-                pp = (c[0] + ix * PX, c[1] + jy * PX)
-                if clip and pp[1] > gp[1] - 2:
-                    continue
-                cv.px(pp, ORCA[k])
+    dot = lambda q, v: q[0] * v[0] + q[1] * v[1]
+    for jy in range(-17, 18):
+        for ix in range(-27, 28):
+            q = (ix, jy)
+            k = orca_cell(dot(q, e), dot(q, n), beat)
+            if k < 0:
+                continue
+            pp = (c[0] + ix * PX, c[1] + jy * PX)
+            if clip and pp[1] > gp[1] - 2:
+                continue
+            up = orca_cell(dot((ix, jy - 1), e), dot((ix, jy - 1), n), beat) < 0
+            dn = orca_cell(dot((ix, jy + 1), e), dot((ix, jy + 1), n), beat) < 0
+            if up:
+                col = C[7] if (k == 0 or dot(q, e) > 14) else C[6]
+                if (ix + beat) % 3 == 0:
+                    cv.glow(pp, C[6])
+            elif dn:
+                col = C[2]
+            elif k == 3:
+                col = C[7]
+            else:
+                fl = h_(math.floor(dot(q, e) * 0.5 + beat * 1.5) * 0.37 + math.floor(dot(q, n) * 0.6))
+                col = C[4] if fl > 0.78 else (C[3] if k != 2 else C[2])
+                if k == 1 and dot(q, n) > 3 and fl > 0.6:
+                    col = C[5]
+            cv.px(pp, col)
+    if not clip:
+        for i in range(6):
+            hs = h_(i * 3.1 + beat * 0.71)
+            back = 20 + hs * 14
+            lift = 2 + h_(i + beat * 1.3) * 10
+            cv.px((c[0] + (-e[0] * back + n[0] * lift) * PX, c[1] + (-e[1] * back + n[1] * lift) * PX), C[6] if i % 2 == 0 else C[5])
 
 
 # ---------------------------------------------------------------- 本体 / 怪 / 锚
@@ -732,7 +745,6 @@ def sc_s3():
     sw = dur - ORCA_LEAP
     tl = tb + dur
     sc.pair("bite_r22", t0, S)   # 破水
-    sc.items.append({"ly": "rt_gd", "t0": tb, "fn": lambda cv, T: trail(cv, S, P, T - tb, sw, ease_out=True) if T < tl + 0.8 else None})
     sc.strip("s3_up", tl, land, "up")
     sc.strip("s3_gd", tl, land, "gd")
     path_es = [(70, -6), (130, -14), (180, -18)]

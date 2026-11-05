@@ -27,7 +27,6 @@ const S2_RING := 24.0     # 常驻链环半径（美术像素，= 48 世界像�
 const S2_REACH := 68.0    # 起手链环扩到的半径（生效后的锚击半径 136）
 const TRAIL_COOL := 0.8   # S3 深海拖痕落地后冷却的时长
 const QI_BREAK := 0.17    # 后期冲击波玩法上消失后，原地碎开的时长（总可见约 0.35 秒）
-const ORCA := [Color("#0d0f15"), Color("#262c38"), Color("#4a5781"), Color("#e8ecf4"), Color("#b4bccc"), Color("#5c6577")]   # 虎鲸：黑 / 暗 / 背脊受光 / 白 / 白的暗面 / 鞍斑灰
 const ORCA_LEAP := 0.18   # 虎鲸到落点前跃起的时长（落下那一刻 = 玩法落地重击）
 const SLAM_KEEP := 2   # 同一名干员同屏至多两记锚击水冠（最新 + 正在收的）
 
@@ -136,9 +135,8 @@ static func ev(r, o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dicti
 			var dv0: Vector2 = ((d.to as Vector2) - fr).normalized() if (d.to as Vector2).distance_to(fr) > 1.0 else Vector2(o.face, 0)
 			_pair(r, o, "bite_r22", fr + dv0 * 20.0)
 			R._grains(o, fr + dv0 * 20.0 + Vector2(0, -10), fr.y + 2.0, "ink", 4, {"tier": 2})
-		"ul_orca":   # 虎鲸出发：身后一道深海拖痕（S → 跃起点，按虎鲸同一缓动）
-			var an0: Dictionary = d.an
-			_rt(r, o, "zip", "gd", float(an0.dur) + TRAIL_COOL, {"a": an0.S, "b": an0.P, "dur": float(an0.dur) - ORCA_LEAP, "ease_out": true, "gp": an0.S})
+		"ul_orca":   # 虎鲸出发（docs/266 §9：不再画整条拖痕，免得读成他冲出去；尾后白沫与水滴在 _draw_orca 里）
+			pass
 		"ul_bite":   # 锚咬地（S1 掷锚落点；S3 旧冲锋版。S3 虎鲸不经过这里）
 			var at: Vector2 = d.at
 			_pair(r, o, "bite_r%d" % (22 if d.get("big", false) else 14), at)
@@ -656,8 +654,9 @@ static func _orca_pose(o, an: Dictionary) -> Array:
 	return [head, 4.0 + 44.0 * sin(v * PI), lerpf(-0.6, 0.8, v), dv2, false]
 
 
-## 虎鲸本体（逐美术像素栅格化；任意方向不转贴图）：黑背白腹、眼斑白、背鳍高、尾鳍分叉随节拍摆；
-## 体长 44 美术像素（88 世界像素，< 冲锋路径与落地判定 140）；地上一块压扁的暗影，游的时候尾后一线白沫
+## 水塑的虎鲸（docs/266 §9，用户「虎鲸只是一个意象，可以是水组成的」）：逐美术像素栅格化，任意方向不转贴图。
+## 身体是深蓝水体（顺体流动的水纹往后走），上沿一圈白沫浪尖勾出头、背鳍、尾鳍的轮廓，下沿一格暗水；眼后只点一两格白沫；
+## 游的时候尾后甩水滴、贴地一线白沫，像一道成形的浪在游。体长 44 美术像素（88 世界像素），小于路径与落地判定 140
 static func _draw_orca(r, ci, it: Dictionary) -> void:
 	var g = r.g
 	var px: float = g.PX
@@ -672,33 +671,51 @@ static func _draw_orca(r, ci, it: Dictionary) -> void:
 	if n.y > 0.0:
 		n = -n
 	var beat: int = int(floor(g.t * 15.0))
-	# 地上暗影（离地越高越小）
-	var sw: int = int(16.0 * (1.0 - clampf(z / 80.0, 0.0, 0.5)))
-	if clip:   # 还在水里：只有一圈翻起的水，不画影子
-		sw = 0
-	for i in range(-sw, sw + 1):
-		for j in [-1, 0, 1]:
-			if absi(i) + absi(j) * 6 <= sw:
-				r._px(ci, gpos + Vector2(float(i) * dv.x, float(i) * dv.y * SY + float(j)) * px, C[0])
-	if z < 10.0:   # 贴着水面游：尾后白沫
-		for i in range(14, 30):
+	if z > 10.0 and not clip:   # 跃起时地上一块压扁的暗水影
+		var sw: int = int(14.0 * (1.0 - clampf(z / 80.0, 0.0, 0.5)))
+		for i in range(-sw, sw + 1):
+			r._px(ci, gpos + Vector2(float(i) * dv.x, float(i) * dv.y * SY) * px, C[1])
+	if z < 10.0:   # 贴地游：尾后一线白沫
+		for i in range(14, 32):
 			if _h(float(i) * 0.7 + float(beat)) > 0.45:
 				r._px(ci, gpos - Vector2(dv.x, dv.y * SY) * float(i) * px + Vector2(0, -px), C[6] if i < 22 else C[5])
 	var c: Vector2 = r._snap(gpos + Vector2(0, -z - 8.0))
-	for jy in range(-16, 17):
-		for ix in range(-26, 27):
+	for jy in range(-17, 18):
+		for ix in range(-27, 28):
 			var q := Vector2(ix, jy)
-			var u: float = q.dot(e)
-			var w: float = q.dot(n)
-			var k: int = _orca_cell(u, w, beat)
-			if k >= 0:
-				var pp: Vector2 = c + q * px
-				if clip and pp.y > gpos.y - 2.0:
-					continue   # 水面（地面线）以下不画：从水里冒出来
-				r._px(ci, pp, ORCA[k])
+			var k: int = _orca_cell(q.dot(e), q.dot(n), beat)
+			if k < 0:
+				continue
+			var pp: Vector2 = c + q * px
+			if clip and pp.y > gpos.y - 2.0:
+				continue   # 水面（地面线）以下不画：从水里冒出来
+			var up: bool = _orca_cell((q + Vector2(0, -1)).dot(e), (q + Vector2(0, -1)).dot(n), beat) < 0
+			var dn: bool = _orca_cell((q + Vector2(0, 1)).dot(e), (q + Vector2(0, 1)).dot(n), beat) < 0
+			var col: Color
+			if up:
+				col = C[7] if (k == 0 or q.dot(e) > 14.0) else C[6]   # 浪尖：背鳍、吻部最亮
+				if (ix + beat) % 3 == 0:
+					r._glow(pp, C[6])
+			elif dn:
+				col = C[2]
+			elif k == 3:
+				col = C[7]   # 眼后一点白沫
+			else:
+				var fl: float = _h(floorf(q.dot(e) * 0.5 + float(beat) * 1.5) * 0.37 + floorf(q.dot(n) * 0.6))   # 顺体往后流的水纹
+				col = C[4] if fl > 0.78 else (C[3] if k != 2 else C[2])
+				if k == 1 and q.dot(n) > 3.0 and fl > 0.6:
+					col = C[5]
+			r._px(ci, pp, col)
+	if not clip:   # 尾后、背鳍后甩出的水滴（每拍换位置）
+		for i in 6:
+			var hs: float = _h(float(i) * 3.1 + float(beat) * 0.71)
+			var back: float = 20.0 + hs * 14.0
+			var lift: float = 2.0 + _h(float(i) + float(beat) * 1.3) * 10.0
+			var dp: Vector2 = c + (-e * back + n * lift) * px
+			r._px(ci, dp, C[6] if i % 2 == 0 else C[5])
 
 
-## 虎鲸剖面：u 沿体长（尾 -22 → 吻 +22），w 垂直体长朝上（背）为正。返回 ORCA 色号，-1 = 不画
+## 虎鲸剖面：u 沿体长（尾 -22 → 吻 +22），w 垂直体长朝上（背）为正。返回 0 背鳍 / 1 上半身 / 2 下半身 / 3 眼斑，-1 = 不画
 static func _orca_cell(u: float, w: float, beat: int) -> int:
 	if u > 22.0 or u < -23.0:
 		return -1
@@ -719,16 +736,7 @@ static func _orca_cell(u: float, w: float, beat: int) -> int:
 	if w > hh + fin or w < -hh:
 		return -1
 	if w > hh:
-		return 0   # 背鳍
-	# 眼斑：眼后上方一块白椭圆
-	if pow((u - 10.0) / 4.0, 2.0) + pow((w - 2.6) / 1.5, 2.0) <= 1.0:
-		return 3
-	# 腹部白（从下颌到腹部，往尾巴收窄）
-	if w < -hh * 0.2 and u > -9.0:
-		return 4 if w > -hh * 0.45 else 3
-	# 鞍斑（背鳍后）
-	if u > -9.0 and u < -3.0 and w > hh - 2.2:
-		return 5
-	if w > hh - 1.0:
-		return 2   # 背脊受光
-	return 1 if w > 0.0 else 0
+		return 0
+	if absf(u - 10.0) <= 1.5 and absf(w - 2.6) <= 0.8:
+		return 3   # 眼后白斑：只点一两格
+	return 1 if w > -hh * 0.2 else 2
