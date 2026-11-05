@@ -77,7 +77,7 @@ LV = {"mark": -13.0, "sword": -18.0, "shatter": -17.0, "cut": -11.0, "shot": -16
 
 
 LV_SLOT = {"boom_1": -15.0, "boom_hit": -15.0}
-LV_OP = {("logos", "cast"): -12.0, ("logos", "charge"): -9.0, ("mizuki", "rise_1"): -15.0, ("mizuki", "rise_2"): -15.0, ("mizuki", "rise_3"): -15.0, ("mizuki", "compress"): -13.0, ("mizuki", "end"): -18.0}   # 水月（docs/261 §8）：高潮群爆 -9，其余低 ≥ 4 dB，收尾涟漪最轻   # 逻各斯时停（docs/205 §4.10）；起手秒针要压过同时开口的台词（11-01 第六轮）   # 艾丽妮连环爆（11-01 夜定稿时的响度）；星熊 boom 是高潮，走 LV 的 -9
+LV_OP = {("logos", "cast"): -12.0, ("logos", "charge"): -9.0}   # 逻各斯时停（docs/205 §4.10）；起手秒针要压过同时开口的台词（11-01 第六轮）   # 艾丽妮连环爆（11-01 夜定稿时的响度）；星熊 boom 是高潮，走 LV 的 -9
 
 
 def level(slot, x):
@@ -337,56 +337,16 @@ def specter_unchained():
     }
 
 
-MZ_BUB = "Cinematic Sound Design - Cartoon & Animation Vol 2/Cartoon Bubbles Short.wav"
-MZ_LAP = "Epic Stock Media - Public Spaces - Storms Lakes Parks and Rural Nature Exteriors/WATRLap_Summer Tennessee Lake Dock Water Ripples Wake Wave Gentle 05 Distant_ESM_CPS.wav"
-MZ_DRONE = "Alexander Kopeikin - Emotion and Magic/magic, drone, tension, spellbound, evanescence-002.wav"
-MZ_TONE = "344 Audio - Bass Drops & Downers Vol. 3/DSGNBass_Tone Downer (Reverb)_344 Audio_Bass Drops and Downers Vol 3.wav"
-MZ_BOX = "Sonic Bat - Music Boxes/SBmb_Music Box B 028.wav"
-
-
-def _mz_tail(rate=0.55, dur=1.9):
-    """慢放里的低频余音：预告片低频轰按 rate 放慢（变低、变长）+ 600 Hz 低通"""
-    return fadeio(lp(sn("b075", 0.25, dur * rate, rate), 600), 0.01, 0.9)
-
-
-def mizuki(v=1):
-    """docs/261 §8（11-05 终结技转平面，任务单「不能用原作客户端里解出来的音源」）：10-31 定稿 ① 用的原作 waterbubble / seasummon / darkholespell /
-    bigwatercannon / tidesurging 全换成库里有授权的录音（Sonniss GDC 2026，docs/113 §20），槽名不变，另加收尾 end。
-    原版辨识度在两处：水泡一路往上的「咕噜」、群爆那一下的深水炮响——这两处用录音还原；群爆加厚 + 补慢放低频余音，高频压掉。
-    v=1 候选 A「深海水压」：水泡 / 深水下沉 / 水面涟漪；v=2 候选 B「幻象」：音乐盒一音 + 魔法嗡鸣倒吸，群爆同 A 但多一层低音下坠；
-    v=3 候选 C：原作几声原样保留（用户 11-05 确认原作音源可用），只加厚群爆、补余音、压 4–6.5 kHz"""
-    rev = lambda x: x[::-1].copy()
-    soft = lambda x: np.tanh(x * 4.0) / np.tanh(4.0)   # 音乐盒起音峰太尖：先柔和削峰，再按槽对齐响度（否则软限幅把整段压平、反而比高潮还响）
-    if v == 3:   # 候选 C（11-05 用户「原作的音源没问题，我问过了可以用」）：保留 10-31 定稿的原作几声，只加厚高潮、补慢放低频余音、压 4–6.5 kHz 尖声
-        tame = lambda x: lp(x - lp(hp(x, 4000), 6500) * 0.65, 7500)   # 4–6.5 kHz 压约 9 dB，7.5 kHz 以上滚掉
-        return {
-            "sf": soft(tame(akd("p_skill_waterbubble.wav", 0.15, 0.5, 0.8, fout=0.25))), "cast": tame(akd("p_skill_seasummon.wav", 0.0, 0.6, 1.1, fout=0.3)),
-            **{"rise_%d" % (i + 1): tame(akd("p_skill_waterbubble.wav", 0.15, 0.5, r, fout=0.2)) for i, r in enumerate([1.3, 1.42, 1.55])},
-            "compress": tame(akd("p_skill_darkholespell.wav", 0.0, 0.55, 1.1, fout=0.1)),
-            "burst": soft(tame(pad(akd("p_skill_bigwatercannon.wav", 0.0, 1.6, 0.9, fout=0.6), akd("p_skill_tidesurging.wav", 0.45, 1.2, 1.1, fout=0.5) * 0.6,
-                              lp(sn("b075", 0.25, 1.0, fout=0.4), 900) * 0.7, lp(sn("sub", 0.0, 1.4, 0.85, fout=0.6), 2500) * 0.6,
-                              lp(sn("b214", 0.25, 1.4, fout=0.6), 900) * 0.8, _mz_tail() * 0.9))),   # 加厚：深水下沉 + 预告片低频 + 慢放余音
-            **{"pop_%d" % (i + 1): tame(akd("p_skill_waterbubble.wav", 0.15, 0.4, r, fout=0.15)) for i, r in enumerate([1.7, 1.85, 2.0])},
-            "end": fadeio(lp(akd("p_skill_tidesurging.wav", 1.2, 1.4, 0.9), 2500), 0.15, 0.9),   # 收尾：潮涌尾巴退下去
-        }
-    if v == 2:
-        return {
-            "sf": soft(fadeio(lp(lib(MZ_BOX, 0.0, 0.9, 0.85, fout=0.4), 5000), 0.002, 0.4)),
-            "cast": soft(pad(lib(SN["astral"], 0.0, 0.7, 0.95, fout=0.3), lp(lib(MZ_BOX, 0.0, 0.6, 0.7, fout=0.3), 4000) * 0.5)),
-            **{"rise_%d" % (i + 1): soft(lp(lib(MZ_BOX, 0.0, 0.5, r, fout=0.3), 4500)) for i, r in enumerate([1.0, 1.12, 1.26])},
-            "compress": pad(rev(lib(MZ_DRONE, 20.0, 0.6, 1.0, fin=0.05, fout=0.01)), rev(lp(sn("sub", 0.0, 0.6, 1.1), 1500)) * 0.7),
-            "burst": pad(lp(sn("sub", 0.0, 1.5, 0.85, fout=0.6), 3500), lp(sn("drop", 0.0, 1.4, 0.9, fout=0.6), 1200) * 0.8, lp(sn("b214", 0.25, 1.4, fout=0.6), 900) * 0.9, _mz_tail() * 0.8),
-            **{"pop_%d" % (i + 1): lp(lib(MZ_BUB, 0.0, 0.35, r, fout=0.15), 4000) for i, r in enumerate([0.9, 1.0, 1.1])},
-            "end": fadeio(lp(lib(MZ_TONE, 0.0, 2.0, 1.0), 1800), 0.05, 1.2),
-        }
+def mizuki():
+    """docs/205 §4.4（用户 10-31 选 ① 原作；画面按 claude/ult-fx-c2 水母群第三轮）：提示 = 原作水泡降调 → 放出 = 原作召潮升调
+    → 每只水母冒出一声水泡 rise_1..3（fx circle r26 地面暗斑）→ 一起压缩 compress（原作黑洞吸入，fx ring r90 w4 出现）
+    → 一起炸开 burst（高潮，fx ring w10 r1 60 群心冲击波）= 原作水炮 + 潮涌 + 低频 → 每只爆闪一声小水泡 pop_1..3（fx circle r34）"""
     return {
-        "sf": rev(lp(sn("liq", 0.0, 0.55, 0.8, fin=0.06, fout=0.004), 4000)),   # 水泡倒吸
-        "cast": pad(lp(sn("sub", 0.0, 0.6, 1.1, fout=0.3), 4000), lib(SN["astral"], 0.0, 0.5, 1.0, fout=0.3) * 0.35),
-        **{"rise_%d" % (i + 1): lp(lib(MZ_BUB, 0.0, 0.55, r, fout=0.2), 3500) for i, r in enumerate([1.0, 1.12, 1.25])},   # 每只水母冒出：一串上浮的咕噜
-        "compress": pad(rev(lp(sn("sub", 0.0, 0.7, 1.0, fin=0.08, fout=0.01), 2500)), rev(sn("drop", 0.0, 0.6, 1.0, fin=0.05, fout=0.01)) * 0.5),   # 深水倒吸（下沉声反放）
-        "burst": pad(lp(sn("sub", 0.0, 1.5, 0.85, fout=0.6), 3500), lp(sn("b214", 0.25, 1.4, fout=0.6), 900) * 0.9, lp(sn("liq", 0.0, 0.8, 0.7, fout=0.4), 2500) * 0.5, _mz_tail() * 0.9),   # 群爆：深水炮 + 低频轰 + 慢放余音
-        **{"pop_%d" % (i + 1): lp(sn("liq", 0.0, 0.35, r, fout=0.15), 4000) for i, r in enumerate([1.3, 1.45, 1.6])},
-        "end": fadeio(lp(lib(MZ_LAP, 12.0, 1.6, 1.0), 2500), 0.2, 0.9),   # 收尾：水面涟漪退下去
+        "sf": akd("p_skill_waterbubble.wav", 0.15, 0.5, 0.8, fout=0.25), "cast": akd("p_skill_seasummon.wav", 0.0, 0.6, 1.1, fout=0.3),
+        **{"rise_%d" % (i + 1): akd("p_skill_waterbubble.wav", 0.15, 0.5, r, fout=0.2) for i, r in enumerate([1.3, 1.42, 1.55])},
+        "compress": akd("p_skill_darkholespell.wav", 0.0, 0.55, 1.1, fout=0.1),
+        "burst": pad(akd("p_skill_bigwatercannon.wav", 0.0, 1.6, 0.9, fout=0.6), akd("p_skill_tidesurging.wav", 0.45, 1.2, 1.1, fout=0.5) * 0.6, lp(sn("b075", 0.25, 1.0, fout=0.4), 900) * 0.7),
+        **{"pop_%d" % (i + 1): akd("p_skill_waterbubble.wav", 0.15, 0.4, r, fout=0.15) for i, r in enumerate([1.7, 1.85, 2.0])},
     }
 
 
