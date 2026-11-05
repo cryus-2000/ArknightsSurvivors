@@ -9,7 +9,8 @@ extends RefCounted
 const Pxp = preload("res://scripts/render/fx_pxplane.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 
-const GOLD := [Color("#1c1408"), Color("#4a3612"), Color("#8c6a26"), Color("#cfa24a"), Color("#efd08a"), Color("#fff0c6"), Color("#ffffff")]
+const LT := [Color("#1a0c28"), Color("#3a1a58"), Color("#6a32a0"), Color("#9d58e0"), Color("#cf98ff"), Color("#f0e2ff"), Color("#ffffff")]   # 白 + 亮紫（11-05 用户改定主基调，docs/272 §1）
+const LAMP := [Color("#1c1408"), Color("#4a3612"), Color("#8c6a26"), Color("#cfa24a"), Color("#efd08a"), Color("#fff0c6"), Color("#ffffff")]   # 金：只留给手提灯
 const TIDE := [Color("#050b1a"), Color("#0b1a38"), Color("#143062"), Color("#21508c"), Color("#3f80bc"), Color("#90c4ea"), Color("#e6f6ff")]
 const SHADOW := Color("#0e1218")
 const SQ := 0.72
@@ -391,18 +392,18 @@ func _lance(L: float, d: Vector2, f: int, tier: int, gust: bool, link := false) 
 			hw = maxi(0, wmax - 1)
 		if u < 0.18:
 			if (i / 2) % 2 == 0 and f <= hot_f:
-				out.append([cx, cy, GOLD[3 - dim], false])
+				out.append([cx, cy, LT[3 - dim], false])
 			continue
 		if dim >= 1:
 			hw = maxi(0, hw - 1)
-		var core: Color = GOLD[6 - dim] if u < 0.97 else GOLD[5 - dim]
+		var core: Color = LT[6 - dim] if u < 0.97 else LT[5 - dim]
 		if dim >= 2 and i % 2 == 1:
 			continue
 		out.append([cx, cy, core, dim == 0])
 		for w in range(1, hw + 1):
 			if dim >= 1 and (i + w) % 2 == 1:
 				continue
-			var c: Color = GOLD[5 - dim] if w == 1 else GOLD[4 - dim]
+			var c: Color = LT[5 - dim] if w == 1 else LT[4 - dim]
 			out.append([cx + n2.x * w, cy + n2.y * w, c, false])
 			out.append([cx - n2.x * w, cy - n2.y * w, c, false])
 		if tier >= 2 and u > 0.5 and u < 0.93 and (i + f) % 3 != 2:
@@ -411,14 +412,14 @@ func _lance(L: float, d: Vector2, f: int, tier: int, gust: bool, link := false) 
 			out.append([cx - n2.x * w2, cy - n2.y * w2, TIDE[4 - dim], false])
 	if f <= hot_f + 1:
 		var arm: int = ((3 if (gust or tier >= 2) else 2) if f <= hot_f else 1)
-		_star(out, d.x * (L + 1.0), d.y * (L + 1.0) - LANCE_H, arm, GOLD[6], GOLD[5 - dim], GOLD[3])
+		_star(out, d.x * (L + 1.0), d.y * (L + 1.0) - LANCE_H, arm, LT[6], LT[5 - dim], LT[3])
 	if f <= hot_f and not link:
 		for side in [-3, 3]:
 			for i in range(int(n * 0.3), int(n * 0.6)):
 				if (i / 2) % 2 == 1:
 					continue
 				var s2: float = s0 + (L - s0) * float(i) / float(n)
-				out.append([d.x * s2 + n2.x * side, d.y * s2 - LANCE_H + n2.y * side, GOLD[2], false])
+				out.append([d.x * s2 + n2.x * side, d.y * s2 - LANCE_H + n2.y * side, LT[2], false])
 	return out
 
 
@@ -466,12 +467,12 @@ func _pierce(d: Vector2, f: int, tier: int) -> Array:
 	var rng: Array = [[-3, 7], [1, 9], [6, 10]][f]
 	var a1: int = rng[1]
 	for s in range(int(rng[0]), a1 + 1):
-		var c: Color = GOLD[6] if f == 0 else (GOLD[5] if f == 1 else GOLD[3])
+		var c: Color = LT[6] if f == 0 else (LT[5] if f == 1 else LT[3])
 		if s >= a1 - 1:
-			c = GOLD[4] if f < 2 else GOLD[2]
+			c = LT[4] if f < 2 else LT[2]
 		out.append([d.x * s, d.y * s, c, f == 0])
 		if f == 0 and s >= 0 and s <= 4:
-			out.append([d.x * s + n2.x, d.y * s + n2.y, GOLD[4], false])
+			out.append([d.x * s + n2.x, d.y * s + n2.y, LT[4], false])
 	var k := 0
 	for side in [-1, 1]:
 		var s3: float = 6.0 + 3.0 * f + k
@@ -495,9 +496,9 @@ func _tracer(p1: Vector2, f: int) -> Array:
 			continue
 		if u < 0.25 and i % 2 == 1:
 			continue
-		var c: Color = GOLD[6] if u > 0.8 else (GOLD[5] if u > 0.4 else GOLD[3])
+		var c: Color = LT[6] if u > 0.8 else (LT[5] if u > 0.4 else LT[3])
 		if f == 1:
-			c = GOLD[4] if u > 0.85 else GOLD[2]
+			c = LT[4] if u > 0.85 else LT[2]
 		out.append([p1.x * u, p1.y * u, c, f == 0 and u > 0.8])
 	return out
 
@@ -508,10 +509,10 @@ func _qi_needle(d: Vector2, tier: int, bt: int) -> Array:
 	var n2 := Vector2(-d.y, d.x)
 	var L: int = 6 + 3 * tier
 	for s in L:
-		var c: Color = GOLD[6] if s == 0 else (GOLD[5] if s < 3 else (GOLD[4] if s < L - 2 else GOLD[3]))
+		var c: Color = LT[6] if s == 0 else (LT[5] if s < 3 else (LT[4] if s < L - 2 else LT[3]))
 		out.append([-d.x * s, -d.y * s, c, s <= 1])
 		if s >= 1 and s <= 2 + tier:
-			out.append([-d.x * s + n2.x, -d.y * s + n2.y, GOLD[3], false])
+			out.append([-d.x * s + n2.x, -d.y * s + n2.y, LT[3], false])
 	var tl: int = 5 + 4 * tier
 	for s in range(L, L + tl):
 		if (s + bt) % 3 == 0:
@@ -520,7 +521,7 @@ func _qi_needle(d: Vector2, tier: int, bt: int) -> Array:
 		var wk: int = 0 if s < L + 2 else 1
 		out.append([-d.x * s + n2.x * w * wk, -d.y * s + n2.y * w * wk, TIDE[5] if s < L + 3 else (TIDE[4] if s < L + 6 else TIDE[3]), false])
 	if tier >= 2:
-		_star(out, d.x, d.y, 1 + (bt % 2), GOLD[6], GOLD[5], GOLD[3])
+		_star(out, d.x, d.y, 1 + (bt % 2), LT[6], LT[5], LT[3])
 	return out
 
 
@@ -536,9 +537,9 @@ func _lamp_ring(rr: float, bt: int, age: float, life: float) -> Array:
 		var t: float = float(q) / float(n) * TAU
 		var seg: float = fposmod(t - rot, TAU / 10.0) / (TAU / 10.0)
 		if seg < 0.72:
-			out.append([roundf(rr * cos(t)), roundf(rr * sin(t) * SQ), GOLD[5] if seg < 0.5 else GOLD[4], al])
+			out.append([roundf(rr * cos(t)), roundf(rr * sin(t) * SQ), LT[5] if seg < 0.5 else LT[4], al])
 		if q % 2 == 0:
-			out.append([roundf((rr - 2.0) * cos(t)), roundf((rr - 2.0) * sin(t) * SQ), GOLD[2], al * 0.8])
+			out.append([roundf((rr - 2.0) * cos(t)), roundf((rr - 2.0) * sin(t) * SQ), LT[2], al * 0.8])
 	return out
 
 
@@ -551,9 +552,9 @@ func _lamp_motes(rr: float, bt: int, sd: float) -> Array:
 		var ph: int = (bt + k * 3) % 9
 		var x: float = roundf(r2 * cos(a))
 		var y: float = roundf(r2 * sin(a) * SQ) - 2.0 - ph * 2.0
-		out.append([x, y, GOLD[6] if ph < 2 else (GOLD[5] if ph < 5 else GOLD[3]), ph < 2])
+		out.append([x, y, LT[6] if ph < 2 else (LT[5] if ph < 5 else LT[3]), ph < 2])
 		if ph < 4:
-			out.append([x, y + 1.0, GOLD[3], false])
+			out.append([x, y + 1.0, LT[3], false])
 	return out
 
 
@@ -561,17 +562,17 @@ func _lamp_motes(rr: float, bt: int, sd: float) -> Array:
 func _lantern(bt: int) -> Array:
 	var cells := {}
 	for y in range(1, 6):
-		cells[Vector2i(-2, y)] = GOLD[2]
-		cells[Vector2i(2, y)] = GOLD[2]
+		cells[Vector2i(-2, y)] = LAMP[2]
+		cells[Vector2i(2, y)] = LAMP[2]
 	for x in range(-2, 3):
-		cells[Vector2i(x, 0)] = GOLD[3]
-		cells[Vector2i(x, 6)] = GOLD[2]
-	cells[Vector2i(0, -1)] = GOLD[3]
+		cells[Vector2i(x, 0)] = LAMP[3]
+		cells[Vector2i(x, 6)] = LAMP[2]
+	cells[Vector2i(0, -1)] = LAMP[3]
 	var hot: bool = (bt / 2) % 2 == 0
 	for y in range(2, 5):
 		for x in range(-1, 2):
-			cells[Vector2i(x, y)] = GOLD[6] if (x == 0 and y == 3) or (hot and absi(x) + absi(y - 3) <= 1) else GOLD[5]
+			cells[Vector2i(x, y)] = LAMP[6] if (x == 0 and y == 3) or (hot and absi(x) + absi(y - 3) <= 1) else LAMP[5]
 	var out: Array = []
 	for k in cells:
-		out.append([float(k.x), float(k.y), cells[k], cells[k] == GOLD[6]])
+		out.append([float(k.x), float(k.y), cells[k], cells[k] == LAMP[6]])
 	return out

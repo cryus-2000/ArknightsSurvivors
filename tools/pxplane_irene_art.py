@@ -3,8 +3,8 @@ tools/pxplane_bake_irene.py 用它烤帧条（game/art/fx/pxp/pxp_ir_*.png + gam
 tools/pxplane_gif_irene.py 用它拼送审 GIF；运行时件在游戏里由 fx_pxplane_ir.gd 逐格画，算法与本文件 lance() / tracer() / qi_needle() / lamp_ring() 一一对应，改一边要改另一边。
 单位：美术像素（游戏里 1 美术像素 = g.PX = 2 世界像素）。全部确定性（不用随机数，抖动用坐标哈希）。
 
-意象（任务单：深海审判、光与潮；金白光刃配深蓝潮水）：
-- 光刃 GOLD：金 → 白（刺剑、裂潮刀光、判决光矛、手炮火光）；
+意象（深海审判、光与潮；11-05 用户改定：白 + 亮紫光刃为主，深蓝潮水作辅色，金色只留手提灯）：
+- 光刃 LT：白 → 亮紫（刺剑、裂潮刀光、判决光矛、手炮火光；11-05 用户改定主基调白 + 亮紫）；手提灯 LAMP 金色作点缀；
 - 潮水 TIDE：深海蓝 → 白沫（刺击潮痕、裂潮水花、起风水旋）。不用红。
 每招招牌不同：普攻 = 细长穿刺光刃；S1 = 粗白光刃 + 目标脚下卷起一道水旋；S2 = 金色大月牙劈开潮水（月牙外沿一排水花炸开）；
 裂潮余波 = 细薄新月；S3 = 地面审判光环 + 环上竖起一圈光矛 + 提灯光柱；手炮 = 弹道细线 + 小爆 + 黑烟。"""
@@ -12,7 +12,8 @@ import math
 
 from pxplane_saria_art import Buf, hx, hsh, hf
 
-GOLD = ["#1c1408", "#4a3612", "#8c6a26", "#cfa24a", "#efd08a", "#fff0c6", "#ffffff"]
+LT = ["#1a0c28", "#3a1a58", "#6a32a0", "#9d58e0", "#cf98ff", "#f0e2ff", "#ffffff"]   # 白 + 亮紫（11-05 用户：主基调白色 + 亮紫色，依据见 docs/272 §1）
+LAMP = ["#1c1408", "#4a3612", "#8c6a26", "#cfa24a", "#efd08a", "#fff0c6", "#ffffff"]   # 金：只留给手提灯（点缀）
 TIDE = ["#050b1a", "#0b1a38", "#143062", "#21508c", "#3f80bc", "#90c4ea", "#e6f6ff"]
 SMOKE = ["#141418", "#24242a", "#3a383e", "#56525a"]
 SHADOW = "#0e1218"
@@ -87,18 +88,18 @@ def lance(L, d, f, tier, gust=False, link=False):
             hw = 0
         if u < 0.18:   # 刃尾：断续速度纹
             if (i // 2) % 2 == 0 and f <= hot_f:
-                out.append((cx, cy, GOLD[3 - dim], False))
+                out.append((cx, cy, LT[3 - dim], False))
             continue
         if dim >= 1:   # 收刀：刃身窄一格、外侧稀疏，不成一块砖
             hw = max(0, hw - 1)
-        core = GOLD[6 - dim] if u < 0.97 else GOLD[5 - dim]
+        core = LT[6 - dim] if u < 0.97 else LT[5 - dim]
         if dim >= 2 and i % 2:
             continue
         out.append((cx, cy, core, dim == 0))
         for w in range(1, hw + 1):
             if dim >= 1 and (i + w) % 2:
                 continue
-            c = GOLD[5 - dim] if w == 1 else GOLD[4 - dim]
+            c = LT[5 - dim] if w == 1 else LT[4 - dim]
             out.append((cx + nx * w, cy + ny * w, c, False))
             out.append((cx - nx * w, cy - ny * w, c, False))
         if tier >= 2 and 0.5 < u < 0.93 and (i + f) % 3 != 2:   # 精二：潮光裹刃
@@ -109,16 +110,16 @@ def lance(L, d, f, tier, gust=False, link=False):
         tx, ty = dx * (L + 1), dy * (L + 1) - LANCE_H
         arm = (3 if (gust or tier >= 2) else 2) if f <= hot_f else 1
         b = Buf()
-        _star(b, tx, ty, arm, [GOLD[6], GOLD[5 - dim], GOLD[3]])
+        _star(b, tx, ty, arm, [LT[6], LT[5 - dim], LT[3]])
         for (x, y), c in b.p.items():
-            out.append((x, y, c, c == GOLD[6]))
+            out.append((x, y, c, c == LT[6]))
     if f <= hot_f and not link:   # 速度纹：刃身两侧各一道短虚线
         for side in (-3, 3):
             for i in range(int(n * 0.3), int(n * 0.6)):
                 if (i // 2) % 2:
                     continue
                 s = s0 + (L - s0) * i / n
-                out.append((dx * s + nx * side, dy * s - LANCE_H + ny * side, GOLD[2], False))
+                out.append((dx * s + nx * side, dy * s - LANCE_H + ny * side, LT[2], False))
     return out
 
 
@@ -168,12 +169,12 @@ def pierce(d, f, tier):
         return out
     a0, a1 = [(-3, 7), (1, 9), (6, 10)][f]
     for s in range(a0, a1 + 1):
-        c = GOLD[6] if f == 0 else (GOLD[5] if f == 1 else GOLD[3])
+        c = LT[6] if f == 0 else (LT[5] if f == 1 else LT[3])
         if s >= a1 - 1:
-            c = GOLD[4] if f < 2 else GOLD[2]
+            c = LT[4] if f < 2 else LT[2]
         out.append((dx * s, dy * s, c, f == 0))
         if f == 0 and 0 <= s <= 4:
-            out.append((dx * s + nx, dy * s + ny, GOLD[4], False))
+            out.append((dx * s + nx, dy * s + ny, LT[4], False))
     for k, side in enumerate((-1, 1)):
         s = 6 + 3 * f + k
         h = [0, 1, 3][f]
@@ -197,9 +198,9 @@ def tracer(p0, p1, f):
             continue
         if u < 0.25 and i % 2:
             continue
-        c = GOLD[6] if u > 0.8 else (GOLD[5] if u > 0.4 else GOLD[3])
+        c = LT[6] if u > 0.8 else (LT[5] if u > 0.4 else LT[3])
         if f == 1:
-            c = GOLD[4] if u > 0.85 else GOLD[2]
+            c = LT[4] if u > 0.85 else LT[2]
         out.append((x0 + (x1 - x0) * u, y0 + (y1 - y0) * u, c, f == 0 and u > 0.8))
     return out
 
@@ -211,10 +212,10 @@ def qi_needle(d, tier, bt):
     out = []
     L = 6 + 3 * tier
     for s in range(L):
-        c = GOLD[6] if s == 0 else (GOLD[5] if s < 3 else GOLD[4] if s < L - 2 else GOLD[3])
+        c = LT[6] if s == 0 else (LT[5] if s < 3 else LT[4] if s < L - 2 else LT[3])
         out.append((-dx * s, -dy * s, c, s <= 1))
         if 1 <= s <= 2 + tier:
-            out.append((-dx * s + nx, -dy * s + ny, GOLD[3], False))
+            out.append((-dx * s + nx, -dy * s + ny, LT[3], False))
     tl = 5 + 4 * tier
     for s in range(L, L + tl):
         if (s + bt) % 3 == 0:
@@ -223,9 +224,9 @@ def qi_needle(d, tier, bt):
         out.append((-dx * s + nx * w * (0 if s < L + 2 else 1), -dy * s + ny * w * (0 if s < L + 2 else 1), TIDE[5] if s < L + 3 else TIDE[4] if s < L + 6 else TIDE[3], False))
     if tier >= 2:
         b = Buf()
-        _star(b, dx * 1, dy * 1, 1 + (bt % 2), [GOLD[6], GOLD[5], GOLD[3]])
+        _star(b, dx * 1, dy * 1, 1 + (bt % 2), [LT[6], LT[5], LT[3]])
         for (x, y), c in b.p.items():
-            out.append((x, y, c, c == GOLD[6]))
+            out.append((x, y, c, c == LT[6]))
     return out
 
 
@@ -242,10 +243,10 @@ def lamp_ring(r, bt, age, life):
         seg = ((t - rot) % (math.tau / 10.0)) / (math.tau / 10.0)
         x, y = round(r * math.cos(t)), round(r * math.sin(t) * SQ)
         if seg < 0.72:
-            out.append((x, y, GOLD[5] if seg < 0.5 else GOLD[4], al))
+            out.append((x, y, LT[5] if seg < 0.5 else LT[4], al))
         x2, y2 = round((r - 2) * math.cos(t)), round((r - 2) * math.sin(t) * SQ)
         if q % 2 == 0:
-            out.append((x2, y2, GOLD[2], al * 0.8))
+            out.append((x2, y2, LT[2], al * 0.8))
     return out
 
 
@@ -258,10 +259,10 @@ def lamp_motes(r, bt, seed):
         ph = (bt + k * 3) % 9
         x = round(rr * math.cos(a))
         y = round(rr * math.sin(a) * SQ) - 2 - ph * 2
-        c = GOLD[6] if ph < 2 else GOLD[5] if ph < 5 else GOLD[3]
+        c = LT[6] if ph < 2 else LT[5] if ph < 5 else LT[3]
         out.append((x, y, c, ph < 2))
         if ph < 4:
-            out.append((x, y + 1, GOLD[3], False))
+            out.append((x, y + 1, LT[3], False))
     return out
 
 
@@ -269,17 +270,17 @@ def lantern(bt, raised):
     """手提灯（S3 / 连携期间她手里的提灯，状态件）：小灯笼框 + 灯芯，灯芯每 2 拍闪一下。原点 = 提灯挂点"""
     b = Buf()
     for y in range(1, 6):
-        b.put(-2, y, GOLD[2])
-        b.put(2, y, GOLD[2])
+        b.put(-2, y, LAMP[2])
+        b.put(2, y, LAMP[2])
     for x in range(-2, 3):
-        b.put(x, 0, GOLD[3])
-        b.put(x, 6, GOLD[2])
-    b.put(0, -1, GOLD[3])
+        b.put(x, 0, LAMP[3])
+        b.put(x, 6, LAMP[2])
+    b.put(0, -1, LAMP[3])
     hot = (bt // 2) % 2 == 0
     for y in range(2, 5):
         for x in range(-1, 2):
-            b.put(x, y, GOLD[6] if (x == 0 and y == 3) or hot and abs(x) + abs(y - 3) <= 1 else GOLD[5])
-    return [(x, y, c, c == GOLD[6]) for (x, y), c in b.p.items()]
+            b.put(x, y, LAMP[6] if (x == 0 and y == 3) or hot and abs(x) + abs(y - 3) <= 1 else LAMP[5])
+    return [(x, y, c, c == LAMP[6]) for (x, y), c in b.p.items()]
 
 
 # ================================================================ 帧条（烤）
@@ -331,7 +332,7 @@ def _spray(b, x0, y0, out_dx, out_dy, h, f, seed, scale=1.0):
             x, y = at(u)
             if f >= 2 and k < m * 0.5 and (k + s) % 2:
                 continue
-            c = TIDE[6] if k >= m - 2 else (TIDE[5] if u > 0.35 else TIDE[4])
+            c = TIDE[6] if (k >= m - 2 or u > 0.6) else (TIDE[5] if u > 0.3 else TIDE[4])
             b.put(x, y, c)
             if u < 0.55 and f <= 2:
                 b.put(x + 1, y, TIDE[5] if u > 0.25 else TIDE[3])
@@ -379,12 +380,12 @@ def s2_up(R, tier, deg):
         if sp is not None:
             lo, hi, th = sp
             m = Buf()
-            _moon(m, R, a, half, th, lo, hi, GOLD, WAIST, inner_dim=f >= 2)
+            _moon(m, R, a, half, th, lo, hi, LT, WAIST, inner_dim=f >= 2)
             if tier >= 2 and 1 <= f <= 4:
                 _moon(m, R - th - 2, a, half * 0.92, max(1, th - 3), max(0.0, lo - 0.1), hi, TIDE, WAIST, inner_dim=True)
             if f == 0:   # 刀头热白
                 x, y = _gpt(R - 2, a - half + 2 * half * 0.62, WAIST)
-                _star(m, x, y, 2, [GOLD[6], GOLD[5], GOLD[4]])
+                _star(m, x, y, 2, [LT[6], LT[5], LT[4]])
             b.merge(m)
         fr.append(b)
     return fr
@@ -435,7 +436,7 @@ def fin_up(R, deg):
         b = Buf()
         if sp is not None:
             lo, hi, th = sp
-            _moon(b, R, a, half, th, lo, hi, GOLD, WAIST)
+            _moon(b, R, a, half, th, lo, hi, LT, WAIST)
             # 新月内弧：内侧再挖掉一道（两边都是弧）
             n = int(R * half * 2.2)
             for i in range(n + 1):
@@ -493,7 +494,7 @@ def s3_gd(R):
             t = q / n * math.tau
             if f >= 4 and hsh(q // 3, f, 61) % (2 if f < 7 else 1 + f - 5) != 0:
                 continue
-            cols = [GOLD[6], GOLD[5], GOLD[2], GOLD[1]] if f <= 3 else ([GOLD[4], GOLD[3], GOLD[1]] if f <= 5 else [GOLD[3], GOLD[2]])
+            cols = [LT[6], LT[5], LT[2], LT[1]] if f <= 3 else ([LT[4], LT[3], LT[1]] if f <= 5 else [LT[3], LT[2]])
             jit = 1 if hsh(q // 5, 3, 62) % 3 == 0 else 0   # 边上随机鼓出 1 格（不成规整圆）
             if f <= 3 and hsh(q // 4, f, 63) % 9 == 0:
                 continue
@@ -503,7 +504,7 @@ def s3_gd(R):
         if f <= 2:   # 脚下一圈热白（冲击起点）
             for q in range(24):
                 t = q / 24 * math.tau
-                b.put_if_empty(round(6 * math.cos(t)), round(6 * math.sin(t) * SQ), GOLD[5])
+                b.put_if_empty(round(6 * math.cos(t)), round(6 * math.sin(t) * SQ), LT[5])
         fr.append(b)
     return fr
 
@@ -531,12 +532,12 @@ def s3_up(R):
             bot = [0.0, 0.0, 0.35, 0.65, 0.9][age]
             for y in range(int(h * bot), int(h * top)):
                 u = y / h
-                c = GOLD[6] if u > 0.82 and age <= 2 else GOLD[5] if u > 0.6 else GOLD[4] if u > 0.3 else GOLD[3]
+                c = LT[6] if u > 0.82 and age <= 2 else LT[5] if u > 0.6 else LT[4] if u > 0.3 else LT[3]
                 if age >= 3:
-                    c = GOLD[4] if u > 0.8 else GOLD[2]
+                    c = LT[4] if u > 0.8 else LT[2]
                 b.put(x0, y0 - y, c)
                 if u < 0.9 and age <= 3:   # 光矛 2 格：左亮右暗，矛尖收成 1 格
-                    b.put(x0 + 1, y0 - y, GOLD[3] if age <= 2 else GOLD[2])
+                    b.put(x0 + 1, y0 - y, LT[3] if age <= 2 else LT[2])
             if age <= 1:
                 b.put(x0 - 1, y0, TIDE[5])
                 b.put(x0 + 1, y0, TIDE[6] if age == 0 else TIDE[4])
@@ -545,10 +546,10 @@ def s3_up(R):
             for y in range(28, 28 + top):
                 if f >= 3 and y % 3 == 0:
                     continue
-                b.put(0, -y, GOLD[6] if f <= 2 else GOLD[5])
+                b.put(0, -y, LT[6] if f <= 2 else LT[5])
                 if f <= 3:
-                    b.put(-1, -y, GOLD[4])
-                    b.put(1, -y, GOLD[4] if f <= 2 else GOLD[3])
+                    b.put(-1, -y, LT[4])
+                    b.put(1, -y, LT[4] if f <= 2 else LT[3])
         fr.append(b)
     return fr
 
@@ -563,7 +564,7 @@ def boom_up():
             for dx in range(-3, 4):
                 for dy in range(-3, 4):
                     if abs(dx) + abs(dy) <= 3:
-                        b.put(dx, cy + dy, GOLD[6] if abs(dx) + abs(dy) <= 1 else GOLD[5])
+                        b.put(dx, cy + dy, LT[6] if abs(dx) + abs(dy) <= 1 else LT[5])
         elif f <= 2:
             r = 4 + f
             for dx in range(-r, r + 1):
@@ -571,12 +572,12 @@ def boom_up():
                     d = math.hypot(dx, dy * 1.15)
                     if d > r or hsh(dx, dy, 80 + f) % 5 == 0:
                         continue
-                    c = GOLD[6] if d < 1.5 and f == 1 else GOLD[5] if d < r * 0.45 else GOLD[4] if d < r * 0.75 else GOLD[3]
+                    c = LT[6] if d < 1.5 and f == 1 else LT[5] if d < r * 0.45 else LT[4] if d < r * 0.75 else LT[3]
                     b.put(dx, cy + dy - f, c)
             for q in range(6):
                 a = q / 6 * math.tau + 0.3
                 rr = 6 + 3 * f
-                b.put(round(math.cos(a) * rr), round(cy - f + math.sin(a) * rr * 0.8), GOLD[5] if f == 1 else GOLD[4])
+                b.put(round(math.cos(a) * rr), round(cy - f + math.sin(a) * rr * 0.8), LT[5] if f == 1 else LT[4])
         if f >= 2:   # 暗烟
             for q in range(5):
                 a = q / 5 * math.tau + 0.9
@@ -608,7 +609,7 @@ def boom_gd():
                 continue
             if f >= 3 and hsh(q // 2, f, 95) % 2:
                 continue
-            c = GOLD[5] if f == 0 else GOLD[3] if f == 1 else GOLD[1] if f <= 3 else SMOKE[1]
+            c = LT[5] if f == 0 else LT[3] if f == 1 else LT[1] if f <= 3 else SMOKE[1]
             b.put(round(rr * math.cos(t)), round(rr * math.sin(t) * SQ), c)
         for q in range(7):
             if f < 1:
@@ -626,13 +627,13 @@ def muzzle():
     for f in range(3):
         b = Buf()
         if f == 0:
-            _star(b, 0, 0, 3, [GOLD[6], GOLD[5], GOLD[4]])
-            b.put(1, -1, GOLD[5])
-            b.put(-1, 1, GOLD[5])
+            _star(b, 0, 0, 3, [LT[6], LT[5], LT[4]])
+            b.put(1, -1, LT[5])
+            b.put(-1, 1, LT[5])
         elif f == 1:
-            _star(b, 0, 0, 2, [GOLD[5], GOLD[4], GOLD[3]])
+            _star(b, 0, 0, 2, [LT[5], LT[4], LT[3]])
         else:
-            b.put(0, 0, GOLD[3])
+            b.put(0, 0, LT[3])
             b.put(0, -2, SMOKE[3])
         fr.append(b)
     return fr
@@ -662,8 +663,8 @@ def gust_up(tier):
                     if y % 2 and not front:
                         continue
                     if front and y < top - 3:
-                        b.put(x, -y - 1, GOLD[4])
-                    c = GOLD[6] if front and y > top - 5 else GOLD[5] if front else GOLD[3]
+                        b.put(x, -y - 1, LT[4])
+                    c = LT[6] if front and y > top - 5 else LT[5] if front else LT[3]
                 (b.put if front else b.put_if_empty)(x, -y, c)
                 if strand == 0 and y < top - 2:   # 水流 2 格粗（后半圈暗一阶）
                     b.put_if_empty(x + (1 if math.cos(ang) >= 0 else -1), -y, TIDE[4] if front else TIDE[2])
@@ -716,10 +717,10 @@ def pick_up():
             a = -math.pi * 0.15 + math.pi * 0.7 * v
             x = round(-7 * math.cos(a) + 3)
             y = round(-2 - 18 * v)
-            c = GOLD[6] if f <= 1 and v > 0.5 else GOLD[5] if f <= 2 else GOLD[3]
+            c = LT[6] if f <= 1 and v > 0.5 else LT[5] if f <= 2 else LT[3]
             b.put(x, y, c)
             if v > 0.3 and f <= 2:
-                b.put(x + 1, y, GOLD[4])
+                b.put(x + 1, y, LT[4])
         if 1 <= f <= 3:
             b.put(5, -18 + f * 2, TIDE[5])
             b.put(-2, -14 + f * 2, TIDE[4])
@@ -743,7 +744,7 @@ def gale_gd(R):
                     continue
                 if u > 0.25 + 0.12 * f and f < 5:
                     pass
-                c = TIDE[5] if u < 0.35 else TIDE[4] if u < 0.7 else GOLD[4]
+                c = TIDE[5] if u < 0.35 else TIDE[4] if u < 0.7 else LT[4]
                 if f >= 5:
                     c = TIDE[3]
                 b.put(round(rr * math.cos(t)), round(rr * math.sin(t) * SQ), c)
@@ -764,7 +765,7 @@ def gale_up(R):
             lift = f * 3 + 2
             ln = max(0, 6 - f)
             for y in range(ln):
-                b.put(x0, y0 - lift - y, GOLD[5] if y == ln - 1 and f <= 2 else TIDE[5] if y < ln // 2 else GOLD[4])
+                b.put(x0, y0 - lift - y, LT[5] if y == ln - 1 and f <= 2 else TIDE[5] if y < ln // 2 else LT[4])
         fr.append(b)
     return fr
 
@@ -782,9 +783,9 @@ def nova_up(R):
             for i in range(n):
                 u = i / max(1, n)
                 x, y = _gpt(r0 + i, t, WAIST)
-                c = GOLD[6] if u > 0.8 and f <= 1 else GOLD[5] if u > 0.4 else GOLD[3]
+                c = LT[6] if u > 0.8 and f <= 1 else LT[5] if u > 0.4 else LT[3]
                 if f >= 3:
-                    c = GOLD[3] if u > 0.6 else GOLD[2]
+                    c = LT[3] if u > 0.6 else LT[2]
                     if i % 2:
                         continue
                 b.put(x, y, c)
@@ -838,8 +839,8 @@ def brand_up():
     for f in range(4):
         b = Buf()
         hot = f < 2
-        _star(b, 0, 0, 3 if hot else 2, [GOLD[6] if hot else GOLD[5], GOLD[5] if hot else GOLD[4], GOLD[3]])
+        _star(b, 0, 0, 3 if hot else 2, [LT[6] if hot else LT[5], LT[5] if hot else LT[4], LT[3]])
         for dx, dy in ((2, 2), (-2, 2), (2, -2), (-2, -2)):
-            b.put(dx, dy, GOLD[3])
+            b.put(dx, dy, LT[3])
         fr.append(b)
     return fr
