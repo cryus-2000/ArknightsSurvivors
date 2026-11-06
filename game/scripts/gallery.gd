@@ -670,7 +670,7 @@ func _grid() -> Dictionary:
 	if phone():
 		# 干员页左侧是职业筛选栏（10-26 用户：手机也只留这一条，好选），卡缩到 54 宽，网格整体右移，不压立绘区（x 146 起）
 		var c := Vector2(54, 86) if op else Vector2(62, 74)
-		var s := Vector2(57, 94) if op else Vector2(68, 80)
+		var s := Vector2(57, 100) if op else Vector2(68, 80)   # 11-06 用户「手机版这里会重叠」：行距 94 → 100（卡间 8 → 14），选中卡抬起与上沿黄线不再压上一行的名字条
 		return {"x0": 32.0 if op else 8.0, "y0": 42.0, "card": c, "step": s, "cols": 2, "rows": maxi(1, int((PHONE.y - 18.0 - 42.0 + s.y - c.y) / s.y))}
 	var c2 := Vector2(80, 110 if op else 92)
 	var s2 := Vector2(88, 120 if op else 100)
@@ -1757,7 +1757,8 @@ func _class_band(p: Vector2, w: float, cls: String, a: float, ph: bool) -> void:
 func _card(r: Rect2, e: Dictionary, i: int, a: float, flash: float, ph: bool) -> void:
 	var lift := _lift(i)
 	var hv: float = hover.get(i, 0.0)
-	r.position.y -= roundf(10.0 * lift + 4.0 * hv)
+	var ph_lift := phone()   # 手机卡间只有 14：抬起 10 → 4、上沿黄线 7 → 5，留在缝里不压上一行
+	r.position.y -= roundf((4.0 if ph_lift else 10.0) * lift + 4.0 * hv)
 	var locked: bool = e.get("locked", false)
 	var op: bool = e.has("op")
 	var selv := lift > 0.5
@@ -1788,7 +1789,7 @@ func _card(r: Rect2, e: Dictionary, i: int, a: float, flash: float, ph: bool) ->
 	if hl > 0.01:
 		var e2 := UI.ease_out(minf(hl, 1.0))
 		draw_rect(Rect2(r.position.x, r.end.y - 4, r.size.x * e2, 4), UI.fa(UI.C_ACC, a))
-		draw_rect(Rect2(r.position.x - 4, r.position.y - 7, (r.size.x + 8) * e2, 2), UI.fa(UI.C_ACC, a))
+		draw_rect(Rect2(r.position.x - 4, r.position.y - (5.0 if ph_lift else 7.0), (r.size.x + 8) * e2, 2), UI.fa(UI.C_ACC, a))
 	if flash > 0.0:
 		draw_rect(r, Color(1, 1, 1, 0.3 * flash))
 
