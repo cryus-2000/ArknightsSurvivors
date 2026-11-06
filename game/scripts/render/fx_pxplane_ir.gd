@@ -10,9 +10,9 @@ const PxU = preload("res://scripts/render/px_util.gd")   # 共用小工具（doc
 const Pxp = preload("res://scripts/render/fx_pxplane.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 
-const LT := [Color("#1a0c28"), Color("#3a1a58"), Color("#6a32a0"), Color("#9d58e0"), Color("#cf98ff"), Color("#f0e2ff"), Color("#ffffff")]   # 白 + 亮紫（11-05 用户改定主基调，docs/272 §1）
+const LT := [Color("#1e0c16"), Color("#4a1c32"), Color("#8a3a5a"), Color("#c8668a"), Color("#eaa0b8"), Color("#fbe0ea"), Color("#ffffff")]   # 白 + 粉（11-07 用户「主色调应该是白+粉为主，一技能的蓝色去掉」；粉取 PRTS 立绘 #d090a0 色相约 345°，docs/272 §8）
 const LAMP := [Color("#1c1408"), Color("#4a3612"), Color("#8c6a26"), Color("#cfa24a"), Color("#efd08a"), Color("#fff0c6"), Color("#ffffff")]   # 金：只留给手提灯
-const TIDE := [Color("#050b1a"), Color("#0b1a38"), Color("#143062"), Color("#21508c"), Color("#3f80bc"), Color("#90c4ea"), Color("#e6f6ff")]
+const TIDE := [Color("#140a10"), Color("#2a1620"), Color("#46283a"), Color("#6e4458"), Color("#a8788c"), Color("#e0bfca"), Color("#fff2f5")]   # 原深海蓝潮水，11-07 改粉雾（去蓝，docs/272 §8）
 const SHADOW := Color("#0e1218")
 const SQ := 0.72
 const LANCE_H := 11.0
@@ -20,7 +20,7 @@ const S2_R := [100, 116, 132]
 const FIN_R := [75, 87, 99]
 const S3_R := [80, 93, 106]
 const GALE_R := [35, 45]
-const TIDE_LIGHT := Color(0.5, 0.75, 1.0)
+const TIDE_LIGHT := Color(1.0, 0.72, 0.84)
 const PIERCE_N := 3        # 一刺至多画 3 只身上的贯穿
 const RT_MAX := 48         # 运行时件上限（整队）
 
