@@ -3044,7 +3044,13 @@ func _ey_lift(bl: Dictionary) -> Array:
 	var L2: float = seg.length_squared()
 	if L2 < 1.0:
 		return [p, v]
-	var k: float = clampf((p - f).dot(seg) / L2, 0.0, 1.0)
+	var kr: float = (p - f).dot(seg) / L2
+	var k: float = clampf(kr, 0.0, 1.0)
+	if Bal.v("fx/eyja_ball_rot_all", 1.0) > 0.0:
+		# 朝向 = 画面上这一帧实际的移动方向（11-07 用户「不能任意方向吗」）：画面位置 p - (0, lift·k)，k 在 0–1 之间随 p 线性变，
+		# 对时间求导 = v - (0, lift)·(v·seg)/|seg|²；飞过瞄准点后 k 停在 1，画面速度就是 v
+		var sv: Vector2 = v - Vector2(0, lift) * (v.dot(seg) / L2) if kr > 0.0 and kr < 1.0 else v
+		return [p + Vector2(0, -lift * k), sv]
 	var vd: Vector2 = (t - Vector2(0, lift)) - f   # 画面路径：出手点 → 敌人身子
 	return [p + Vector2(0, -lift * k), vd.normalized() * v.length() if vd.length_squared() > 0.01 else v]
 
@@ -3136,16 +3142,21 @@ func _ey_lrock_pos(it: Dictionary, u: float) -> Vector2:
 ## 一颗弹体：帧条 ey_ball_<样式>_d<方向>（按飞行方向挑最近的平面角 + 水平翻转），循环；原点 = 弹头，位置每帧走、取整到美术像素格
 ## ln < 1：沿飞行方向把弹身压短（弹头不动）、不加尾焰——精二三重咏唱 3 发低抛弹间隔 0.12 秒、走几乎同一条弧，
 ## 帧条弹身约 45 美术像素长，三发首尾相接连成一条「火绳」（11-06 用户「精二像条火绳」）；开关 fx/eyja_lob_len（1 = 原样）
+## 朝向统一（11-07 用户「艾雅法拉这个火焰还是歪着过去的，不能任意方向吗」）：所有弹体样式（含火星迸溅 / 火山弹的 chip / rock / boulder，
+## 原来不转、直接贴 5 个角里最近的一张，抛物线刚升起时就落到 45° 那张）一律「最近角 + 转掉剩余偏差」，朝向 = 调用方给的画面移动方向
+## （直线弹 _ey_lift 的画面速度、抛射弹轨迹切线）。开关 fx/eyja_ball_rot_all（缺省 1；0 = 只有带尾焰的四种转）。帧条像素按最近邻转，不另烤方向
 func _ey_ball(ci, st: String, pos: Vector2, dir: Vector2, ph: int, ln := 1.0) -> void:
-	var dk: Array = pick_dir(dir.angle() if dir.length_squared() > 0.0001 else 0.0)
-	if EY_TAIL.has(st) and dir.length_squared() > 0.0001 and Bal.v("fx/eyja_ball_tail", 1.0) > 0.0:
-		if ln >= 1.0:
+	var has_dir: bool = dir.length_squared() > 0.0001
+	var dk: Array = pick_dir(dir.angle() if has_dir else 0.0)
+	var tail: bool = EY_TAIL.has(st) and has_dir and Bal.v("fx/eyja_ball_tail", 1.0) > 0.0
+	if has_dir and (tail or Bal.v("fx/eyja_ball_rot_all", 1.0) > 0.0):
+		if tail and ln >= 1.0:
 			_ey_tail(ci, pos, dir.normalized(), float(EY_TAIL[st]), ph)
 		_ey_strip_rot(ci, "ey_ball_%s_d%d" % [st, dk[0]], frame_of(0.0) + ph, _snap(pos), dk[1], dir.angle(), float(dk[0]), ln)
-		if _ball_dbg():
-			_ey_ball_dbg(ci, pos, dir)
-		return
-	_draw_strip(ci, "ey_ball_%s_d%d" % [st, dk[0]], frame_of(0.0) + ph, _snap(pos), dk[1], false)
+	else:
+		_draw_strip(ci, "ey_ball_%s_d%d" % [st, dk[0]], frame_of(0.0) + ph, _snap(pos), dk[1], false)
+	if has_dir and _ball_dbg():
+		_ey_ball_dbg(ci, pos, dir)
 
 
 ## 帧条只有 5 个 45° 角：挑最近的一张后再转掉剩下的偏差（≤ 22.5°），火球朝向和真实飞行方向一致——
