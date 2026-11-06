@@ -1,0 +1,17 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4815 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+s1_e0_c1 180 帧 []
+s1_e1_c1 180 帧 []
+s1_e2_c1 180 帧 []
+fatal: invalid reference: 873eda0d2
+Traceback (most recent call last):
+  File "/work/repo/tools/irene_star_rec.py", line 173, in <module>
+    main()
+  File "/work/repo/tools/irene_star_rec.py", line 124, in main
+    switch(a.old)
+  File "/work/repo/tools/irene_star_rec.py", line 56, in switch
+    subprocess.run(["git", "checkout", ref, "--", "game"], cwd=ROOT, check=True)
+  File "/usr/lib/python3.11/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['git', 'checkout', '873eda0d2', '--', 'game']' returned non-zero exit status 128.
