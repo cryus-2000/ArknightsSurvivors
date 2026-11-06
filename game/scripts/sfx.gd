@@ -1122,7 +1122,7 @@ func _track_streams(tname: String) -> Array:
 			sts.append(pl.stream)
 	return sts
 
-## 旧曲淡完到释放的等待（docs/303）：缺省 FREE_AFTER；手机网页换进 Boss / 最终 Boss 曲时不等——
+## 旧曲淡完到释放的等待（docs/305）：缺省 FREE_AFTER；手机网页换进 Boss / 最终 Boss 曲时不等——
 ## 旧曲 1.5 / 秒淡出约 0.67 秒到 0，Boss 曲 BOSS_HIT（0.75 秒）后才开：原来旧战斗曲要再挂 3 秒，最终 Boss 曲（406 秒 × 双声道）注册进来那几秒两首同驻，
 ## 网页实测音频 123 → 198 MB、护栏读数 452 → 527 MB（超 520 线触发清缓存）。web/mobile_music_swap = 0 退回旧写法
 var _swap_fast := -1
