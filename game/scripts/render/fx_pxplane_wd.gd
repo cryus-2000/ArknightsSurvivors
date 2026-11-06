@@ -109,7 +109,102 @@ func _fog(o, c: Vector2, rr: float, life: float, delay := 0.0) -> void:
 		_fogs.pop_front()
 
 
+## 红色体积雾（11-06 用户「维什戴尔的红色体积雾我觉得也还是得加上」，fx/wd_fog_v，缺省 1；0 = 11-05 第四版的淡薄雾原样）：
+## 贴地一层偏红的底雾 + 几团慢慢外扩、上浮的雾团（各团大小 / 方向 / 浮高按落点哈希定，不抽随机数），寿命拉长 1.6 倍；手机网页雾团减半（仍画）。
+## fx/wd_smoke（缺省 0，给用户对照）：再叠第三版那种往上冒的黑红烟团，画在单位上面（draw_over）
+const FOG5_BASE := Color(0.5, 0.07, 0.06)
+const FOG5_HI := Color(0.72, 0.13, 0.08)
+const FOG5_LO := Color(0.34, 0.05, 0.05)
+const SMOKE_C := Color(0.3, 0.08, 0.07)
+var _fog_puffs := -1
+
+func _fog_v() -> int:
+	return int(Bal.v("fx/wd_fog_v", 1.0))
+
+
+func _puff_n() -> int:
+	if _fog_puffs < 0:
+		var cfg = g.get_node_or_null("/root/Cfg")
+		_fog_puffs = 3 if cfg != null and cfg.has_method("mobile_web") and cfg.mobile_web() else 5
+	return _fog_puffs
+
+
+static func _fh(x: float) -> float:
+	return fposmod(sin(x * 12.9898) * 43758.5453, 1.0)
+
+
+func _draw_fogs_v5(o, cv) -> void:
+	var now: float = g.t
+	_fogs = _fogs.filter(func(F): return now - float(F.t0) < float(F.life) * 1.6)
+	var np: int = _puff_n()
+	for F in _fogs:
+		if str(F.oid) != str(o.id) or now < float(F.t0):
+			continue
+		var life: float = float(F.life) * 1.6
+		var age: float = now - float(F.t0)
+		var u: float = age / life
+		var fin: float = minf(1.0, age / 0.08 + 0.3)
+		var R: float = float(F.r)
+		var c: Vector2 = F.c
+		var sd: float = c.x * 0.37 + c.y * 1.13
+		# 底雾：贴地扁圆，三层同心，边柔
+		var a0: float = 0.3 * (1.0 - u * u) * fin
+		var rr: float = R * (0.8 + 0.3 * sqrt(u))
+		cv.draw_set_transform(c, 0.0, Vector2(1.0, SQ))
+		for q in 3:
+			cv.draw_circle(Vector2.ZERO, rr * (1.0 - 0.28 * q), Color(FOG5_BASE.r, FOG5_BASE.g, FOG5_BASE.b, a0 / 3.0))
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		# 雾团：向外铺开 + 上浮，越往上越淡、越暗
+		var ap: float = 0.34 * pow(1.0 - u, 1.4) * fin
+		for i in np:
+			var h1: float = _fh(sd + float(i) * 3.1)
+			var h2: float = _fh(sd + float(i) * 7.7 + 1.0)
+			var h3: float = _fh(sd + float(i) * 5.3 + 2.0)
+			var ang: float = TAU * (float(i) + 0.6 * h1) / float(np)
+			var dist: float = R * (0.2 + 0.45 * h2) * (0.6 + 0.6 * sqrt(u))
+			var lift: float = R * (0.25 + 0.35 * h3) * u
+			var pc: Vector2 = c + Vector2(cos(ang) * dist, sin(ang) * dist * SQ - lift)
+			pc = (pc / 2.0).round() * 2.0
+			var pr: float = R * (0.3 + 0.2 * h1) * (0.85 + 0.5 * sqrt(u))
+			var k: float = clampf(lift / maxf(R * 0.6, 1.0), 0.0, 1.0)
+			var col: Color = FOG5_HI.lerp(FOG5_LO, k)
+			cv.draw_set_transform(pc, 0.0, Vector2(1.0, 0.8))
+			cv.draw_circle(Vector2.ZERO, pr, Color(col.r, col.g, col.b, ap * 0.45))
+			cv.draw_circle(Vector2.ZERO, pr * 0.62, Color(col.r, col.g, col.b, ap * 0.55))
+			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## fx/wd_smoke = 1：第三版式烟团（暗黑红、往上冒、盖在单位上面），只在爆炸后前 0.7 段画
+func _draw_smoke(o, cv) -> void:
+	if Bal.v("fx/wd_smoke", 0.0) <= 0.0:
+		return
+	var now: float = g.t
+	for F in _fogs:
+		if str(F.oid) != str(o.id) or now < float(F.t0):
+			continue
+		var life: float = float(F.life) * 1.1
+		var age: float = now - float(F.t0)
+		if age > life:
+			continue
+		var u: float = age / life
+		var R: float = float(F.r)
+		var c: Vector2 = F.c
+		var sd: float = c.x * 0.53 + c.y * 0.91 + 9.0
+		var a: float = 0.5 * pow(1.0 - u, 1.2) * minf(1.0, age / 0.06)
+		for i in 3:
+			var h1: float = _fh(sd + float(i) * 4.3)
+			var h2: float = _fh(sd + float(i) * 2.9 + 3.0)
+			var pc: Vector2 = c + Vector2((h1 - 0.5) * R * 0.7, -R * (0.3 + 0.9 * u) * (0.6 + 0.5 * h2))
+			pc = (pc / 2.0).round() * 2.0
+			var pr: float = R * (0.22 + 0.14 * h2) * (0.8 + 0.7 * u)
+			cv.draw_circle(pc, pr, Color(SMOKE_C.r, SMOKE_C.g, SMOKE_C.b, a * 0.6))
+			cv.draw_circle(pc, pr * 0.6, Color(SMOKE_C.r * 1.3, SMOKE_C.g, SMOKE_C.b, a * 0.4))
+
+
 func _draw_fogs(o, cv) -> void:
+	if _fog_v() >= 1 and not (g.opt_old & g.OPT_WDFOG):   # --optmask=67108864 同局轮换：置位画 11-05 淡薄雾（量帧时净差）
+		_draw_fogs_v5(o, cv)
+		return
 	var now: float = g.t
 	_fogs = _fogs.filter(func(F): return now - float(F.t0) < float(F.life))
 	for F in _fogs:
@@ -390,6 +485,7 @@ func draw_floor(o) -> void:
 ## 上层：残影标记（悬在敌人头上，跟着那只）、续燃引线 / 连锁
 func draw_over(o) -> void:
 	var cv = o.cv
+	_draw_smoke(o, cv)
 	var px: float = g.PX
 	var bt: int = int(floor(g.t * 15.0))
 	var wd: Dictionary = _wd(o)
