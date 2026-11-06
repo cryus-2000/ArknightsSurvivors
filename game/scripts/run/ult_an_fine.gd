@@ -20,7 +20,12 @@ const COL_DARK := Color("#140c24")
 
 
 static func on() -> bool:
-	return Bal.v("ult/an_fine", 1.0) > 0.0
+	return mode() > 0
+
+
+## 0 旧版帧条 / 1 细螺旋 / 2 引力黑洞（缺省；11-07 用户「做成那种引力黑洞的感觉是不是更加华丽一点」）
+static func mode() -> int:
+	return int(Bal.v("ult/an_fine", 2.0))
 
 
 static func _h(x: float) -> float:
@@ -43,7 +48,10 @@ static func draw(u, s: Dictionary, dim: float) -> void:
 			img = Image.create(n, n, false, Image.FORMAT_RGBA8)
 			s["img"] = img
 		img.fill(Color(0, 0, 0, 0))
-		_paint(u, img, s, n, G, float(beat) / FPS)
+		if mode() >= 2:
+			_paint_bh(u, img, s, n, G, float(beat) / FPS)
+		else:
+			_paint(u, img, s, n, G, float(beat) / FPS)
 		if s.has("tex"):
 			(s.tex as ImageTexture).update(img)
 		else:
@@ -132,3 +140,127 @@ static func _paint(u, img: Image, s: Dictionary, n: int, G: float, tq: float) ->
 		var p3: Vector2 = d2 * (r2 + 1.0) + Vector2(-d2.y, d2.x) * 0.6
 		_put(img, n, int(floorf(h0 + p3.x)), int(floorf(h0 + p3.y)), cs)
 		_put(img, n, int(floorf(h0 + p2.x)), int(floorf(h0 + p2.y)), cc)
+
+
+## ── 引力黑洞版（ult/an_fine = 2，11-07 用户「做成那种引力黑洞的感觉是不是更加华丽一点」）──
+## 元素三种：① 吸积盘（压扁成椭圆的细光流，开普勒转速：越靠里越快；迎面一侧（左）近白、背离一侧退成暗紫——多普勒增亮）；
+## ② 视界（纯黑影 + 1 格光子环 + 越过黑影顶上的透镜弧，即盘背面被引力弯上来的像）；③ 往里落的细碎片。
+## 另外后期层引力透镜（post.gdshader lens）：视界外一圈地面 / 敌人被往里挤、拖着转。视界以内不扭。
+## 画法：盘背面 → 黑影 → 光子环 / 透镜弧 → 盘前面（挡住黑影下沿）→ 碎片。全是 1 格线，调色板 5 级
+const BH_P := [Color("#f6eeff"), Color("#dcc8fb"), Color("#b280f2"), Color("#7a58bf"), Color("#45307a")]
+const BH_SQ := 0.38      # 盘的倾角（椭圆短轴 / 长轴）
+const BH_NR := 26        # 盘的轨道圈数
+
+
+static func bh_rh(R: float, k: float) -> float:
+	return R * lerpf(0.075, 0.12, clampf(k, 0.0, 1.0))   # 视界半径（世界）
+
+
+static func _bh_col(u, v: float) -> Color:
+	if v > 0.8:
+		return u._pc(BH_P[0], 1.0)
+	if v > 0.62:
+		return u._pc(BH_P[1], 1.0)
+	if v > 0.42:
+		return u._pc(BH_P[2], 1.0)
+	if v > 0.25:
+		return u._pc(BH_P[3], 0.95)
+	return u._pc(BH_P[4], 0.85)
+
+
+static func _bh_disk(u, img: Image, n: int, h0: float, sd: float, k: float, tq: float, rin: float, rout: float, front: bool) -> void:
+	for i in BH_NR:
+		var hr: float = _h(sd + float(i) * 2.3)
+		var f: float = pow((float(i) + hr) / float(BH_NR), 1.4)
+		var r: float = rin + (rout - rin) * f
+		var w: float = pow(rin / r, 1.5)
+		var ph: float = (2.2 * tq + 1.6 * tq * tq) * w * 2.0            # 越吸越快、越靠里越快
+		var heat: float = 1.0 - f
+		var m: int = 4 + int(6.0 * (1.0 - f))
+		for j in m:
+			var hj: float = _h(sd * 0.7 + float(i) * 7.1 + float(j) * 3.3)
+			if hj > 0.25 + 0.75 * k:
+				continue   # 盘慢慢聚起来
+			var a0: float = TAU * (float(j) + hj) / float(m) + ph
+			var la: float = (0.3 + 0.45 * hj) * (0.6 + 0.6 * heat)
+			var steps: int = int(la * r) + 1
+			for st in steps:
+				var qs: float = float(st) / float(steps)
+				var th: float = a0 - la * qs   # 头在前、尾巴拖在后
+				if (sin(th) > 0.0) != front:
+					continue
+				var dop: float = 0.5 * (1.0 - cos(th))
+				var v: float = (0.5 * heat + 0.5 * dop) * (1.0 - 0.65 * qs) * (0.55 + 0.45 * k)
+				if v < 0.12:
+					continue
+				_put(img, n, int(floorf(h0 + cos(th) * r)), int(floorf(h0 + sin(th) * r * BH_SQ)), _bh_col(u, v))
+
+
+static func _paint_bh(u, img: Image, s: Dictionary, n: int, G: float, tq: float) -> void:
+	var k: float = clampf(float(s.k), 0.0, 1.0)
+	var sd: float = float(s.seed)
+	var R: float = float(s.R)
+	var h0: float = float(n / 2)
+	var rh: float = maxf(5.0, bh_rh(R, k) / G)
+	var rin: float = rh * 1.55
+	var rout: float = R * 0.66 * (1.0 - 0.15 * k) / G
+	_bh_disk(u, img, n, h0, sd, k, tq, rin, rout, false)
+	# 视界黑影 + 光子环（左亮右暗、按弧段轻闪）
+	var rr: int = int(ceil(rh)) + 4
+	var black := Color("#04020a")
+	for yy in range(-rr, rr + 1):
+		for xx in range(-rr, rr + 1):
+			var d: float = sqrt(float(xx * xx + yy * yy))
+			var x: int = int(h0) + xx
+			var y: int = int(h0) + yy
+			if d <= rh:
+				_put(img, n, x, y, black)
+				continue
+			var ang: float = atan2(float(yy), float(xx))
+			var dop: float = 0.5 * (1.0 - cos(ang))
+			if d <= rh + 1.0:
+				var fl: float = _h(sd + floorf((ang + PI) * 5.0) + floorf(tq * 15.0) * 0.37)
+				_put(img, n, x, y, _bh_col(u, 0.55 + 0.3 * dop + 0.15 * fl))
+			elif yy < 0 and d > rh + 1.6 and d <= rh + 3.4:
+				# 透镜弧：盘背面被弯到黑影顶上，越靠正上方越亮；按角度切成流动的断续段
+				var top: float = -float(yy) / d
+				var sa: float = (ang + PI) * rh * 0.9 - tq * 18.0
+				if fposmod(sa, 6.0) > 4.6:
+					continue
+				var v: float = (0.35 + 0.45 * top + 0.25 * dop) * (0.4 + 0.6 * k) * (1.0 if d <= rh + 2.5 else 0.7)
+				if v > 0.2:
+					_put(img, n, x, y, _bh_col(u, v))
+			elif yy > 0 and d > rh + 1.4 and d <= rh + 2.4 and k > 0.3:
+				_put(img, n, x, y, _bh_col(u, 0.28 + 0.2 * dop))   # 下方次像：细、暗
+	_bh_disk(u, img, n, h0, sd, k, tq, rin, rout, true)
+	# 往里落的碎片：在盘面上沿螺旋落向视界（头近白、尾紫）
+	for j in 18:
+		var hj: float = _h(sd * 1.3 + float(j) * 5.7)
+		var ph: float = fposmod(tq * (0.9 + 0.7 * k) + hj, 1.0)
+		var r2: float = lerpf(rout * (0.75 + 0.25 * hj), rin * 0.9, ph * ph)
+		var th2: float = TAU * (float(j) + hj) / 18.0 + 2.6 * ph + tq * 2.0
+		var p2 := Vector2(cos(th2) * r2, sin(th2) * r2 * BH_SQ)
+		var th3: float = th2 - 1.6 / maxf(4.0, r2)
+		var p3 := Vector2(cos(th3) * (r2 + 1.0), sin(th3) * (r2 + 1.0) * BH_SQ)
+		_put(img, n, int(floorf(h0 + p3.x)), int(floorf(h0 + p3.y)), u._pc(BH_P[2], 1.0))
+		_put(img, n, int(floorf(h0 + p2.x)), int(floorf(h0 + p2.y)), u._pc(BH_P[0], 1.0))
+
+
+## 每帧写后期层的引力透镜（只黑洞版；没续上 0.15 秒后 post_fx 自动关）
+static func lens_tick(u, s: Dictionary) -> void:
+	if mode() < 2:
+		return
+	var g = u.g
+	if g == null or g.post == null or not ("lens" in g.post):
+		return
+	var cfg = g.get_node_or_null("/root/Cfg") if g.is_inside_tree() else null
+	if cfg != null and cfg.reduce_motion:
+		return
+	var vs: Vector2 = g.get_viewport().get_visible_rect().size
+	var ct: Transform2D = g.hud_ct()
+	var sp: Vector2 = ct * Vector2(s.c)
+	var k: float = clampf(float(s.k), 0.0, 1.0)
+	var rh: float = bh_rh(float(s.R), k) * ct.get_scale().x / maxf(1.0, vs.y)
+	g.post.lens = Vector4(sp.x / maxf(1.0, vs.x), sp.y / maxf(1.0, vs.y), rh, smoothstep(0.0, 0.35, k))
+	g.post.lens2 = Vector2(5.5, lerpf(0.6, 1.4, k))
+	g.post.lens_ttl = 0.15

@@ -1115,6 +1115,7 @@ static func _an_step(u, a: Dictionary, o) -> bool:
 	if int(a.slams) == 0 and a.get("fine", false):
 		a.core.k = kc
 		a.core.tt = t
+		ANF.lens_tick(u, a.core)
 	elif int(a.slams) == 0:
 		a.core.r = lerpf(30.0, 90.0, kc)
 		a.halo.r = lerpf(60.0, 120.0, kc) + 6.0 * sin(t * 30.0)
