@@ -1,0 +1,4 @@
+fatal: couldn't find remote ref 6c82c4138
+tools/gcp/render_jobs/trace_ab.sh: line 14: cd: /work/base: No such file or directory
+B 组用提交 6c82c4138（/work/base）
+python3: can't open file '/work/render_trace_ab.py': [Errno 2] No such file or directory
