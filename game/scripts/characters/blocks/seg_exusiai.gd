@@ -148,7 +148,7 @@ static func _exu_targets(o, n: int, rr: float, prio: float) -> Array:
 		o.ext["pfs"] = pf
 	var pmode: int = _pf_mode() if prefer else 0   # docs/298 改版开关：0 = 原样
 	var pf_fb := false   # A 版：射程内没有受控目标时改为精英 / Boss 优先
-	if pmode == 1 or (pmode == 2 and MfBal.v("growth_nodes/exu_pf_fb", 1.0) > 0.0):   # B 版同样带精英兜底（exu_pf_fb=0 关）
+	if (pmode == 1 or pmode == 2) and MfBal.v("growth_nodes/exu_pf_fb", 1.0) > 0.0:   # A / B 版精英兜底（exu_pf_fb=0 关；1 + 关 = 只加画面）
 		pf_fb = true
 		for e1 in pool:
 			if not e1.dead and _exu_controlled(o.g, e1) and o.hittable(e1):
@@ -492,10 +492,12 @@ static func _exu_bullets(o, dt: float) -> void:
 				_pf_burst(o, e.pos, 1)
 				if _pf_on(o):
 					o.ext.pfs["stn"] = int(o.ext.pfs.get("stn", 0)) + 1
-				bu.pierce = 0
+				if MfBal.v("growth_nodes/exu_stun_stop", 1.0) > 0.0:
+					bu.pierce = 0
 			elif stn > 0.0 and e.boss:
 				_pf_burst(o, e.pos, 1)
-				bu.pierce = 0
+				if MfBal.v("growth_nodes/exu_stun_stop", 1.0) > 0.0:
+					bu.pierce = 0
 			if was_ctrl:   # 对空优先：打中受控目标命中即停（不再穿透），目标追加定身 pin 秒（精英减半，Boss 除外；同一敌人 1 秒内至多一次）
 				bu.pierce = 0
 				if not e.dead and not e.boss and g.t - float(e.get("exu_pin", -99.0)) >= 1.0:
