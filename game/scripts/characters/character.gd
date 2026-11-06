@@ -3077,7 +3077,28 @@ func _sample_motion(vel: Vector2, dt: float) -> void:
 		ghost_t = GHOST_EVERY
 		var st := anim_state()
 		if not st.is_empty():
-			ghosts.push_front({"p": pos, "st": st, "age": 0.0})
+			# 一串残影里的第几个（上一个残影刚留下就接着数，隔开了从 0 起）：ghost_pose 按它取冲刺段的帧
+			var seq: int = 0 if ghosts.is_empty() or float(ghosts[0].age) > GHOST_EVERY * 2.5 else int(ghosts[0].get("seq", 0)) + 1
+			var gp := ghost_pose(seq, vel.x < -1.0 or (absf(vel.x) <= 1.0 and face < 0.0))
+			ghosts.push_front({"p": pos, "st": gp if not gp.is_empty() else st, "age": 0.0, "seq": seq})
+
+
+## 冲刺残影的姿势（11-07 用户「德克萨斯冲锋的时候残影的动作我觉得得是冲刺的动作」）：干员定义顶层 ghost_pose = {slot, frames}
+## 声明了就把残影换成该帧条的冲刺段——一串残影里第 i 个取 frames[i]（超出取末帧），朝向 left = 位移方向朝左；
+## 没声明 / 开关关 / 缺图返回 {}（照旧用残影那一刻的本体帧）。开关 fx/ghost_dash_pose（缺省 0，用户点头再开）。只画
+func ghost_pose(i: int, left: bool) -> Dictionary:
+	var gp = def.get("ghost_pose")
+	if not (gp is Dictionary) or CmdBal.v("fx/ghost_dash_pose", 0.0) <= 0.0:
+		return {}
+	var slot := str(gp.get("slot", ""))
+	var tx: Texture2D = anim_tex(slot) if slot != "" else null
+	if tx == null:
+		return {}
+	var fs: Array = gp.get("frames", [0])
+	var f: int = int(fs[clampi(i, 0, fs.size() - 1)]) if not fs.is_empty() else 0
+	if i < 0:
+		f = int(gp.get("strike", f))   # i < 0：出刀定格（德克萨斯次元斩每刀落点的定格，11-07 用户「S3 的时候攻击的残影是待机动作」）
+	return {"tex": tx, "frame": f, "hf": anim_hframes(tx, slot), "flip": left != sprite_mirror(slot), "kind": slot}
 
 
 ## 在别处画一份当前帧（分身 / 残影）：flip = 朝左；帧条带 mirror 标记时在这里取反
