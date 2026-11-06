@@ -64,6 +64,13 @@ func move_vec() -> Vector2:
 	return vec if stick_id >= 0 else Vector2.ZERO
 
 
+## 属性面板放不下的列表拖动滚（docs/290）：按下时落在可滚区域的那根手指；每拖 SCROLL_STEP 界面像素滚一行
+const SCROLL_STEP := 44.0
+var scroll_id := -1
+var scroll_at := Vector2.ZERO
+var scroll_acc := 0.0
+
+
 ## 返回 true 表示事件已消费
 func handle(event: InputEvent) -> bool:
 	if not active or g.tour.active:   # 聚光框引导期间按键只是画给人看的，输入归 tour.gd
@@ -115,6 +122,10 @@ func handle(event: InputEvent) -> bool:
 				return true
 			# 属性面板：点图标 = 看效果（不消费，触摸模拟的鼠标移过去，悬停提示照常出）；点别处关闭
 			if g.state == g.S.STATS:
+				if g.stats_screen.scroll_hit(p):   # 放不下的列表（docs/290）：这根手指上下拖动就滚这块；点在格子上照常看效果
+					scroll_id = fid
+					scroll_at = p
+					scroll_acc = 0.0
 				for c in g.stats_cells:
 					if c[1] == "tab" and _hit(c[0]).has_point(p):
 						# 触屏版属性面板的页签（属性 / 技能 / 编队）
@@ -125,6 +136,8 @@ func handle(event: InputEvent) -> bool:
 				for c in g.stats_cells:
 					if c[0].has_point(p):
 						return false
+				if scroll_id == fid:
+					return true   # 按在可滚区域的空当上：不关面板，等拖动
 				g.state = g.S.PLAY
 				return true
 			if g.state == g.S.PLAY and stick_id < 0 and _stick_zone(p, vs):
@@ -139,6 +152,8 @@ func handle(event: InputEvent) -> bool:
 					_stick_move(p)
 				return true
 		else:
+			if fid == scroll_id:
+				scroll_id = -1
 			if fid == atk_id:
 				_atk_release()
 				return true
@@ -162,6 +177,12 @@ func handle(event: InputEvent) -> bool:
 				vec = Vector2.ZERO
 				return true
 	elif event is InputEventScreenDrag:
+		if fid == scroll_id and g.state == g.S.STATS:
+			scroll_acc += event.relative.y / Cfg.ui_k
+			while absf(scroll_acc) >= SCROLL_STEP:   # 手指往上推 = 往下翻
+				g.stats_screen.wheel(1 if scroll_acc < 0.0 else -1, scroll_at)
+				scroll_acc -= signf(scroll_acc) * SCROLL_STEP
+			return true
 		if fid == atk_id:
 			atk_drag = p - atk_origin
 			g.doctor.touch_atk_dir = atk_drag if atk_drag.length() >= AIM_DEAD else Vector2.ZERO

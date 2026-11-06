@@ -56,6 +56,8 @@ func dmg_mix_text() -> String:
 
 ## 属性面板（Tab / C 打开，游戏暂停）
 func draw(vs: Vector2) -> void:
+	_sc_rect.clear()   # 可滚区域每帧重登记（换页后旧页的区域不再接滚轮 / 拖动）
+	_sc_more.clear()
 	if Cfg.touch_device():
 		draw_phone(vs)
 		return
@@ -412,7 +414,7 @@ func draw_phone(vs: Vector2) -> void:
 		2:
 			UI.text(g.hud, g.font, b.position + Vector2(16, 28), "技能与天赋", 18, UI.CYAN)
 			UI.en(g.hud, g.font, b.position + Vector2(28 + _cnw("技能与天赋", 18), 27), "SKILLS", 10, UI.CYAN_DIM, 3.0)
-			g.result_screen.draw_generic_skill_rows(b, b.position.y + 46, skill_rows_data(), 17, 20)
+			_skill_list("p_skills", Rect2(b.position.x, b.position.y + 46, b.size.x, b.size.y - 46), 17, 20, false)   # 放不下手指上下拖动翻（docs/290）
 		3:
 			_phone_squad(b)
 		4:
@@ -534,14 +536,16 @@ func _phone_relics(b2: Rect2) -> void:
 	UI.text(g.hud, g.font, Vector2(b2.position.x + 150, y + 20), "点图标查看效果", 15, UI.CYAN_DIM)
 	y += 32
 	var mouse2 := g.hud.get_local_mouse_position()
-	var skip: int = _relic_skip(nr, per, pitch, cs, y, b2.end.y - 2.0)
-	var slot := 0
-	if skip > 0:
-		_draw_more_cell(Vector2(gx, y), cs, skip, 16)
-		slot = 1
-	for i in range(skip, nr):
+	# 放不下按排滚动（docs/290，手指上下拖动）：原来把前面的藏品收成「+N」格
+	var nrow: int = int(ceil(nr / float(per)))
+	var hs: Array = []
+	hs.resize(nrow)
+	hs.fill(pitch)
+	var area := Rect2(gx, y, b2.size.x - 40.0, b2.end.y - 2.0 - y + (pitch - cs))
+	var row0: int = _scroll("p_relics", area, hs)
+	for i in range(row0 * per, nr):
+		var slot: int = i - row0 * per
 		var rc := Vector2(gx + (slot % per) * pitch, y + (slot / per) * pitch)
-		slot += 1
 		if rc.y + cs > b2.end.y - 2:
 			break
 		var rd: Dictionary = g.RL[g.relics[i]]
@@ -822,18 +826,7 @@ func _v3_offense(x: float, top: float, w: float, bottom: float) -> void:
 	y += 20
 	# 放不下就滚轮（docs/290，用户 11-06「技能那一栏放不下，可以改成滚轮」）：每行按说明全文算高、不截断，
 	# 从偏移那行往下放得下几行画几行；原来是把说明压成一行「…」，天赋行还是会掉出面板
-	var rows: Array = skill_rows_data()
-	var sr := Rect2(x - 14, y, w + 28, bottom - y)
-	var hs: Array = rows.map(func(rw): return g.result_screen.skill_row_full_h(sr, rw, 11))
-	var off: int = _scroll("skills", Rect2(sr.position, sr.size - Vector2(14, 6)), hs)
-	var take: Array = []
-	var used := 0.0
-	for k in range(off, rows.size()):
-		if not take.is_empty() and used + float(hs[k]) > sr.size.y - 6.0 + 0.5:
-			break
-		take.append(rows[k])
-		used += float(hs[k])
-	g.result_screen.draw_generic_skill_rows(sr, y, take, 11, 14, true)
+	_skill_list("skills", Rect2(x - 14, y, w + 28, bottom - y), 11, 14, true)
 
 
 func _v3_squad(x: float, top: float, w: float, bottom: float) -> void:
@@ -962,6 +955,21 @@ func _v3_squad(x: float, top: float, w: float, bottom: float) -> void:
 		ly += float(ln[2])
 
 
+## 技能列表（桌面技能栏 / 手机技能页共用）：每行按说明全文算高、不截断，从偏移那行往下放得下几行画几行
+func _skill_list(key: String, sr: Rect2, dfs: int, nfs: int, mono: bool) -> void:
+	var rows: Array = skill_rows_data()
+	var hs: Array = rows.map(func(rw): return g.result_screen.skill_row_full_h(sr, rw, dfs))
+	var off: int = _scroll(key, Rect2(sr.position, sr.size - Vector2(14, 6)), hs)
+	var take: Array = []
+	var used := 0.0
+	for k in range(off, rows.size()):
+		if not take.is_empty() and used + float(hs[k]) > sr.size.y - 6.0 + 0.5:
+			break
+		take.append(rows[k])
+		used += float(hs[k])
+	g.result_screen.draw_generic_skill_rows(sr, sr.position.y, take, dfs, nfs, mono)
+
+
 # ================================================================ 放不下就滚轮（docs/290，用户 11-06）
 ## 面板里一块列表放不下时：按「行」滚动（行高可以不一样），鼠标在哪块上就滚哪块；右沿一道细滚动条。
 ## 每帧画的时候登记区域并把偏移夹进范围，所以滚过头也没事。打开面板时回到顶上（game.gd 进 STATS 时调 reset_scroll）
@@ -999,8 +1007,8 @@ func _scroll(key: String, r: Rect2, hs: Array) -> int:
 
 
 ## 滚轮（game.gd 在 STATS 里转来）：鼠标所在那块滚一行；没落在可滚区域上返回 false
-func wheel(dy: int) -> bool:
-	var mp: Vector2 = g.hud.get_local_mouse_position()
+func wheel(dy: int, at := Vector2(-1.0, -1.0)) -> bool:
+	var mp: Vector2 = at if at.x >= 0.0 else g.hud.get_local_mouse_position()
 	for key in _sc_rect:
 		if (_sc_rect[key] as Rect2).has_point(mp) and _sc_more.get(key, false):
 			_sc[key] = maxi(0, int(_sc.get(key, 0)) + dy)
@@ -1011,6 +1019,14 @@ func wheel(dy: int) -> bool:
 
 func reset_scroll() -> void:
 	_sc.clear()
+
+
+## 触屏：p 落在一块放不下（能滚）的区域上（touch.gd 按下时问，是的话这根手指拖动就滚这块）
+func scroll_hit(p: Vector2) -> bool:
+	for key in _sc_rect:
+		if (_sc_rect[key] as Rect2).has_point(p) and _sc_more.get(key, false):
+			return true
+	return false
 
 ## 悬停提示：藏品 / 成长 / 技能沿用原来的提示框；成长进度点弹出节点表
 func _v3_tips(vs: Vector2) -> void:

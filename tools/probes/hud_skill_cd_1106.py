@@ -24,6 +24,10 @@ SCENES = {
     "ph": (PH, []),
     "pc_tab_all": (PC, ["--tabat=91", "--relics=all"]),                    # 全部藏品：藏品列表放不下 → 滚动条
     "pc_tab_scroll": (PC, ["--tabat=91", "--relics=all", "--tabscroll=3"]),  # 同上，技能栏与藏品栏各滚 3 行
+    "ph_tab_skills": (PH, ["--tabat=91", "--tabpage=2"]),                   # 手机技能页（放不下 → 滚动条）
+    "ph_tab_skills_drag": (PH, ["--tabat=91", "--tabpage=2", "--tabdrag=600,420,100"]),  # 同上，真的拖动往下翻约 2 行
+    "ph_tab_relics": (PH, ["--tabat=91", "--tabpage=4", "--relics=all"]),
+    "ph_tab_relics_drag": (PH, ["--tabat=91", "--tabpage=4", "--relics=all", "--tabdrag=600,420,140"]),
 }
 
 ap = argparse.ArgumentParser()
