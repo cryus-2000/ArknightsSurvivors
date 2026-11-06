@@ -148,7 +148,7 @@ static func _exu_targets(o, n: int, rr: float, prio: float) -> Array:
 		o.ext["pfs"] = pf
 	var pmode: int = _pf_mode() if prefer else 0   # docs/298 改版开关：0 = 原样
 	var pf_fb := false   # A 版：射程内没有受控目标时改为精英 / Boss 优先
-	if pmode == 1 or pmode == 2:   # B 版同样带精英兜底
+	if pmode == 1 or (pmode == 2 and MfBal.v("growth_nodes/exu_pf_fb", 1.0) > 0.0):   # B 版同样带精英兜底（exu_pf_fb=0 关）
 		pf_fb = true
 		for e1 in pool:
 			if not e1.dead and _exu_controlled(o.g, e1) and o.hittable(e1):

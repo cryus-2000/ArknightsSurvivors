@@ -5,7 +5,7 @@ set +e
 ARM=${ARM:-2}
 for sq in exusiai exusiai,saria,suzuran exusiai,angelina,texas exusiai,wisadel,eyjafjalla; do
     python3 tools/balance_run.py --squad $sq --bots normal,expert --seeds 4 --placebos 0,1,2 --jobs $(nproc) --nocache --keep EXUPF \
-        --extra "--prog=1 --exupf --bal=growth_nodes/exu_prefer=$ARM" --out "$OUT/${sq//,/_}" > "$OUT/${sq//,/_}.log" 2>&1
+        --extra "--prog=1 --exupf --bal=growth_nodes/exu_prefer=$ARM ${XB:-}" --out "$OUT/${sq//,/_}" > "$OUT/${sq//,/_}.log" 2>&1
     echo "$sq rc=$? $(grep -m1 -E '胜率' $OUT/${sq//,/_}.log)" | tee -a "$OUT/runs.txt"
 done
 exit 0
