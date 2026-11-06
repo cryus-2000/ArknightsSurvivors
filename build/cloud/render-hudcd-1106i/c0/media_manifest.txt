@@ -1,0 +1,12 @@
+455430	ph_tab_relics/fr_00000.png
+457967	ph_tab_relics/fr_00015.png
+452410	ph_tab_relics/fr_00030.png
+164049	ph_tab_relics/fr_00045.png
+26521	ph_tab_relics/run.log
+164087	ph_tab_relics/shot_tab.png
+454968	ph_tab_relics_drag/fr_00000.png
+459214	ph_tab_relics_drag/fr_00015.png
+452761	ph_tab_relics_drag/fr_00030.png
+164719	ph_tab_relics_drag/fr_00045.png
+26521	ph_tab_relics_drag/run.log
+164654	ph_tab_relics_drag/shot_tab.png
