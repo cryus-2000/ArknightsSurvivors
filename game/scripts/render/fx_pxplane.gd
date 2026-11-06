@@ -2978,7 +2978,8 @@ func _ey_sort_items(o, out: Array) -> void:
 			continue
 		var lk: Dictionary = bl.hw_b.get("look", {})
 		var st: String = "ign" if lk.has("big_tex") else ("pow" if bl.get("pxs", false) else ("fire" if bl.get("hw_fireball", false) else "lava"))
-		out.append({"ert": "ball", "st": st, "pos": bl.pos, "dir": bl.vel, "gy": (bl.pos as Vector2).y + 40.0, "ph": int(absf(bl.pos.x)) % 7})
+		var lv: Array = _ey_lift(bl)
+		out.append({"ert": "ball", "st": st, "pos": lv[0], "dir": lv[1], "gy": (bl.pos as Vector2).y + 40.0, "ph": int(absf(bl.pos.x)) % 7})
 	if not o.hw.is_empty():
 		for l in o.hw.get("lobs", []):   # 火星迸溅 / 星火燎原 / 熔岩天降的熔岩块
 			if float(l.t) >= float(l.dur):
@@ -2996,7 +2997,8 @@ func _ey_sort_items(o, out: Array) -> void:
 				var k2: float = clampf(float(s.t) / float(s.dur), 0.0, 1.0)
 				var sp: Vector2 = _ey_arc(s.from, s.to, k2, apex) + Vector2(0, -8)
 				var sp0: Vector2 = _ey_arc(s.from, s.to, maxf(0.0, k2 - 0.05), apex) + Vector2(0, -8)
-				out.append({"ert": "ball", "st": "lava", "pos": sp, "dir": sp - sp0 if sp.distance_squared_to(sp0) > 0.01 else Vector2.RIGHT, "gy": (s.from as Vector2).lerp(s.to, k2).y + 30.0, "ph": int(absf(s.to.x)) % 7})
+				out.append({"ert": "ball", "st": "lava", "pos": sp, "dir": sp - sp0 if sp.distance_squared_to(sp0) > 0.01 else Vector2.RIGHT, "gy": (s.from as Vector2).lerp(s.to, k2).y + 30.0, "ph": int(absf(s.to.x)) % 7,
+					"len": Bal.v("fx/eyja_lob_len", 0.45)})
 		for ev in o.hw.get("erupts", []):   # 火山弹
 			if not ev.has("shot") or float(ev.t) <= 0.0:
 				continue
@@ -3025,6 +3027,26 @@ func _ey_sort_items(o, out: Array) -> void:
 			out.append({"ert": "ball", "st": "chip", "pos": (xb.p as Vector2) + Vector2(0, -18.0), "dir": xb.v, "gy": (xb.p as Vector2).y + 1.0, "ph": i % 7})
 
 
+## 直线弹的画面抬升（11-06 用户「感觉是不是还是斜着飞过去的」）：弹从法杖尖（脚下往上 40）出手、瞄的是敌人脚下，
+## 判定点一路往下斜着走；眼睛看的是敌人身子（脚下往上一截），于是火球总像斜着往地上扎。画面上把弹按飞行进度逐渐抬到敌人身子的高度
+## （fx/eyja_ball_lift 像素，0 = 不抬），朝向 / 尾焰顺着抬升后的画面路径；判定、爆点位置不动。
+func _ey_lift(bl: Dictionary) -> Array:
+	var p: Vector2 = bl.pos
+	var v: Vector2 = bl.vel
+	var lift: float = Bal.v("fx/eyja_ball_lift", 20.0)
+	if lift <= 0.0 or not bl.has("vt") or not bl.has("vf"):
+		return [p, v]
+	var f: Vector2 = bl.vf
+	var t: Vector2 = bl.vt
+	var seg: Vector2 = t - f
+	var L2: float = seg.length_squared()
+	if L2 < 1.0:
+		return [p, v]
+	var k: float = clampf((p - f).dot(seg) / L2, 0.0, 1.0)
+	var vd: Vector2 = (t - Vector2(0, lift)) - f   # 画面路径：出手点 → 敌人身子
+	return [p + Vector2(0, -lift * k), vd.normalized() * v.length() if vd.length_squared() > 0.01 else v]
+
+
 ## MagmaProjectile.position_at 的同一条弧（纯函数抄一份，只读）
 static func _ey_arc(from: Vector2, to: Vector2, k: float, height: float) -> Vector2:
 	return from.lerp(to, k) + Vector2(0, -4.0 * height * k * (1.0 - k) * (1.18 - 0.36 * k))
@@ -3035,7 +3057,7 @@ func _ey_draw_rt(ci, it: Dictionary) -> void:
 	var px: float = g.PX
 	match str(it.ert):
 		"ball":
-			_ey_ball(ci, str(it.st), it.pos, it.dir, int(it.get("ph", 0)))
+			_ey_ball(ci, str(it.st), it.pos, it.dir, int(it.get("ph", 0)), float(it.get("len", 1.0)))
 		"core":   # 爆心发光点团（docs/270 补齐）：不画色块，只往发光层送一团热芯点，4 拍里由大到小
 			var fc: int = frame_of(float(it.t0))
 			if fc < 0 or fc > 3:
@@ -3110,9 +3132,124 @@ func _ey_lrock_pos(it: Dictionary, u: float) -> Vector2:
 
 
 ## 一颗弹体：帧条 ey_ball_<样式>_d<方向>（按飞行方向挑最近的平面角 + 水平翻转），循环；原点 = 弹头，位置每帧走、取整到美术像素格
-func _ey_ball(ci, st: String, pos: Vector2, dir: Vector2, ph: int) -> void:
+## ln < 1：沿飞行方向把弹身压短（弹头不动）、不加尾焰——精二三重咏唱 3 发低抛弹间隔 0.12 秒、走几乎同一条弧，
+## 帧条弹身约 45 美术像素长，三发首尾相接连成一条「火绳」（11-06 用户「精二像条火绳」）；开关 fx/eyja_lob_len（1 = 原样）
+func _ey_ball(ci, st: String, pos: Vector2, dir: Vector2, ph: int, ln := 1.0) -> void:
 	var dk: Array = pick_dir(dir.angle() if dir.length_squared() > 0.0001 else 0.0)
+	if EY_TAIL.has(st) and dir.length_squared() > 0.0001 and Bal.v("fx/eyja_ball_tail", 1.0) > 0.0:
+		if ln >= 1.0:
+			_ey_tail(ci, pos, dir.normalized(), float(EY_TAIL[st]), ph)
+		_ey_strip_rot(ci, "ey_ball_%s_d%d" % [st, dk[0]], frame_of(0.0) + ph, _snap(pos), dk[1], dir.angle(), float(dk[0]), ln)
+		if _ball_dbg():
+			_ey_ball_dbg(ci, pos, dir)
+		return
 	_draw_strip(ci, "ey_ball_%s_d%d" % [st, dk[0]], frame_of(0.0) + ph, _snap(pos), dk[1], false)
+
+
+## 帧条只有 5 个 45° 角：挑最近的一张后再转掉剩下的偏差（≤ 22.5°），火球朝向和真实飞行方向一致——
+## 原来 25° 飞的火球画成 45°，看着像斜着「平移」（11-06）。热芯发光点按同一变换放
+const EY_BALL_VIS := {-90: -85.6, -45: -40.7, 0: 4.4, 45: 49.3, 90: 94.4}   # 标称角 → 帧条里火体（亮像素，不含烟）实测主轴（度；烤图整体顺时针偏约 4.5°，lava / pow / ign 同）
+
+## 局部坐标里沿角 a 方向缩放 ln、垂直方向不变：R(a) · diag(ln, 1) · R(-a)
+static func _ey_squash(a: float, ln: float) -> Transform2D:
+	var c := cos(a)
+	var si := sin(a)
+	var off := c * si * (ln - 1.0)
+	return Transform2D(Vector2(c * c * ln + si * si, off), Vector2(off, si * si * ln + c * c), Vector2.ZERO)
+
+func _ey_strip_rot(ci, k: String, fi: int, gp: Vector2, flip: bool, ang: float, bucket: float, ln := 1.0) -> void:
+	var m: Dictionary = _meta(k)
+	var tx: Texture2D = _tex(k)
+	if m.is_empty() or tx == null:
+		return
+	fi = posmod(fi, int(m.n))
+	var w: float = float(m.w)
+	var h: float = float(m.h)
+	var px: float = g.PX
+	# 帧条里火体主轴比标称角顺时针偏约 4.5°（烤图带的；亮像素主成分，18 帧中位数，tools/eyja_ball_dir_sheet.py 核对图）
+	var vis: float = float(EY_BALL_VIS.get(int(bucket), bucket))
+	var shown: float = deg_to_rad(180.0 - vis if flip else vis)
+	var res: float = wrapf(ang - shown, -PI, PI)
+	# 局部坐标：锚点（ox, oy）在原点；翻转时镜像
+	var xf := Transform2D(res, gp)
+	if flip:
+		xf = xf * Transform2D(0.0, Vector2(-1.0, 1.0), 0.0, Vector2.ZERO)
+	if ln < 1.0:   # 帧条局部坐标里沿火体主轴（vis 角）压短，锚点（弹头）不动
+		xf = xf * _ey_squash(deg_to_rad(vis), ln)
+	var tl := Vector2(-float(m.ox) * px, -float(m.oy) * px)
+	ci.draw_set_transform_matrix(xf)
+	ci.draw_texture_rect_region(tx, Rect2(tl, Vector2(w * px, h * px)), Rect2(fi * w, 0.0, w, h))
+	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if not g.optical_on:
+		return
+	var fr: int = Engine.get_process_frames()
+	if fr != _emit_frame:
+		_emit_frame = fr
+		_emit_n = 0
+	var pts: Array = m.emit[fi] if fi < m.emit.size() else []
+	var ke: float = Bal.v("fx/px_plane_emit", 0.8)
+	for q in pts:
+		if _emit_n >= EMIT_CAP:
+			return
+		_emit_n += 1
+		var c: Color = _hexc(str(q[2]))
+		g.glow_next.append([_snap(xf * (tl + Vector2(float(q[0]), float(q[1])) * px)), px, Color(c.r, c.g, c.b, ke)])
+
+
+## --balldbg（调试，只开发版）：青线 = 该弹此刻的速度方向（真实飞行方向），白点 = 所有火球最近 10 帧的真实位置（看弹道是否拐弯、火球主轴是否顺着点列）
+var _bdbg := -1
+var _bdbg_pts: Array = []   # [帧号, 位置]
+func _ball_dbg() -> bool:
+	if _bdbg < 0:
+		_bdbg = 1 if (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--balldbg") else 0
+	return _bdbg == 1
+
+func _ey_ball_dbg(ci, pos: Vector2, dir: Vector2) -> void:
+	var d: Vector2 = dir.normalized()
+	ci.draw_line(pos - d * 80.0, pos + d * 40.0, Color(0.2, 0.95, 1.0, 0.95), 1.0)
+	var fr: int = Engine.get_process_frames()
+	_bdbg_pts.append([fr, pos])
+	while not _bdbg_pts.is_empty() and fr - int(_bdbg_pts[0][0]) > 10:
+		_bdbg_pts.pop_front()
+	for q in _bdbg_pts:
+		ci.draw_rect(Rect2((q[1] as Vector2) - Vector2(1, 1), Vector2(2, 2)), Color.WHITE)
+
+
+## 直线弹（普攻火球 / 熔岩弹 / 二重咏唱强化 / 点燃弹）的尾焰（11-06 用户「现在的普通攻击像是平移出去的火球，没有了之前的方向感」）：
+## 帧条只有 5 个 45° 角、烟一律往上飘，看不出头尾；转平面前靠 proj_lavaball 按飞行角连续旋转的彗星形。
+## 这里沿真实飞行反方向排一串由白热到暗红、由粗到细的像素团（帧条底下），头部一颗热芯进发光层；只画，不抽随机数（抖动按 g.t 与 ph）。
+## 开关 fx/eyja_ball_tail（缺省 1，0 = 只有帧条）
+const EY_TAIL := {"fire": 1.0, "lava": 1.1, "pow": 1.3, "ign": 1.45}
+const EY_TAIL_C := [6, 7, 5, 5, 4, 4, 3, 3, 2, 2, 1]   # 从头到尾的 EY_C 色阶
+
+func _ey_tail(ci, pos: Vector2, d: Vector2, k: float, ph: int) -> void:
+	var px: float = g.PX
+	var nrm: Vector2 = d.orthogonal()
+	var n: int = int(round(9.0 * k))
+	var flick: int = int(floor(g.t * 15.0)) + ph
+	for i in n:
+		var u: float = float(i) / float(maxi(1, n - 1))   # 0 头 → 1 尾
+		var back: float = (3.0 + float(i) * 2.6) * px * 0.5 * (1.0 + 0.5 * (k - 1.0))
+		var wob: float = sin(float(flick + i * 3) * 1.7) * u * 2.2 * px * 0.5
+		var c: Vector2 = _snap(pos - d * back + nrm * wob)
+		var r: int = 2 if u < 0.25 else (1 if u < 0.7 else 0)   # 半宽（美术像素）
+		if k >= 1.3 and u < 0.45:
+			r += 1
+		var ci_k: int = EY_TAIL_C[mini(EY_TAIL_C.size() - 1, int(u * float(EY_TAIL_C.size() - 1) + 0.5))]
+		var col: Color = EY_C[ci_k]
+		col.a = 1.0 - 0.55 * u
+		for yy in range(-r, r + 1):
+			for xx in range(-r, r + 1):
+				if xx * xx + yy * yy > r * r + (1 if r > 0 else 0):
+					continue
+				if r >= 2 and (xx + yy + flick + i) % 5 == 0:
+					continue   # 边上缺几格，不成实心胶囊
+				ci.draw_rect(Rect2(c + Vector2(xx, yy) * px, Vector2(px, px)), col)
+		# 尾段偶尔甩出一颗火星（离轴）
+		if u > 0.45 and (flick + i) % 4 == 0:
+			var sp: Vector2 = _snap(c + nrm * (3.0 if (flick + i) % 8 == 0 else -3.0) * px)
+			ci.draw_rect(Rect2(sp, Vector2(px, px)), Color(EY_C[5], 0.8 - 0.5 * u))
+	_glow(_snap(pos - d * 2.0 * px), EY_C[6])
 
 
 ## 旧做法（2）：同一形状光晕烤进颜色、小数缩放、旋转，盖在所有单位上；弹体用 0° 帧条按飞行方向旋转 1.3 倍贴

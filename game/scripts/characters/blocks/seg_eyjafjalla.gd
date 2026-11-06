@@ -121,7 +121,7 @@ static func _hw_cast(o, b: Dictionary, from: Vector2, target: Vector2, pre: floa
 		o._set_face(signf(d.x))
 	g.bullets.append({"kind": "fire", "pos": from, "vel": d * float(b.get("speed", 360.0)), "dmg": pre * o._dmg_bonus(), "life": float(b.get("life", 1.3)), "r": float(b.get("r", 8.0)) * sz,
 		"aoe": aoe, "src": str(b.get("src", "")), "op": o.id, "on_hit": o, "burn": false, "weak": 0.0, "fx_col": _mf_col(b.get("col", []), HW_ORANGE), "hidden": true,
-		"etrail": 0.0, "sz": sz, "hw_b": b, "hw_oe": oe,
+		"etrail": 0.0, "sz": sz, "hw_b": b, "hw_oe": oe, "vf": from, "vt": target,   # vf / vt：出手点与瞄准点，只给画面算抬升（fx_pxplane._ey_lift）
 		"hw_fireball": o.elite < 1 and b.get("look", {}).get("weighted", false)})
 	if sfx:
 		o._sfx_op("atk")
