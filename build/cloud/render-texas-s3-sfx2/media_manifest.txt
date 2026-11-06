@@ -1,0 +1,3 @@
+143652	rec_texas_0.log
+144350	rec_texas_1.log
+7702957	texas_s3_sfx.mp4
