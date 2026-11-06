@@ -18,8 +18,9 @@ LU[B]="--op=mizuki --squad=skadi,wisadel,exusiai"
 declare -A MATES
 MATES[A]="texas suzuran eyjafjalla"
 MATES[B]="skadi wisadel exusiai"
+GS="$(curl -s -H 'Metadata-Flavor: Google' http://metadata.google.internal/computeMetadata/v1/instance/attributes/batch-gs)"
 jobs=()
-for lu in A B; do
+for lu in ${LUS:-A B}; do   # LUS=A / LUS=B：一台机只跑一组阵容（两台并跑，单台 16 路同开约 2 小时一波）
     for ly in full nofriend nofoe noenemy nolead nomates; do jobs+=("$lu $ly"); done
     for m in ${MATES[$lu]}; do jobs+=("$lu noop_$m"); done
 done
@@ -30,8 +31,10 @@ run() {   # $1 阵容 $2 层
     XDG_DATA_HOME=$ud timeout -k 30 3600 "$GODOT" --rendering-driver opengl3 --audio-driver Dummy --resolution 1280x720 --position 0,0 --fixed-fps 60 --path game -- \
         --balance --nodeath --seed=11 ${LU[$1]} --quality=high --prog=20 --maxt=625 --shots=$FR --clutterlog --shotdir="$d" $dbg > "$d/run.log" 2>&1
     echo "$1 $2 rc=$? $(ls $d/shot_*.png 2>/dev/null | wc -l) 张 $(grep -c 'SCRIPT ERROR' $d/run.log) 处脚本错误" | tee -a "$OUT/runs.txt"
+    # 每层跑完就传自己的截图（11-06 lfd-d01a 整机超时、末尾统一打包没跑到，16 层截图全丢）
+    ( cd "$OUT" && tar -czf "/work/s_$1_$2.tgz" "$1_$2"/*.png ) && gcloud storage cp "/work/s_$1_$2.tgz" "$GS/shots/$1_$2.tgz" -q
 }
-export -f run; export OUT GODOT FR
+export -f run; export OUT GODOT FR GS
 export LU_A="${LU[A]}" LU_B="${LU[B]}"
 P=${GODOT_MAX_PROCS:-6}
 i=0
@@ -41,6 +44,5 @@ for j in "${jobs[@]}"; do
     if [ $((i % P)) -eq 0 ]; then wait; fi
 done
 wait
-GS="$(curl -s -H 'Metadata-Flavor: Google' http://metadata.google.internal/computeMetadata/v1/instance/attributes/batch-gs)"
 ( cd "$OUT" && find . -name '*.png' | tar -czf /work/shots.tar.gz -T - ) && gcloud storage cp /work/shots.tar.gz "$GS/shots.tar.gz" -q && echo "截图已传 $GS/shots.tar.gz" | tee "$OUT/shots.txt"
 exit 0
