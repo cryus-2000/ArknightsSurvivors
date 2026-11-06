@@ -359,3 +359,6 @@
 | [干员特效审查 10-29](195_op_fx_audit_1029.md) | 全员干员特效排查：整片填充圆盘去除、白灰色、待确认项 | 已落地一批 | 浊心 / 逻各斯另会话处理；拉普兰德失色圈待用户定 | data_operator、seg_lumen 等、tools/op_fx_audit_rec.py |
 | [测试体系方案 10-30](204_test_system_plan.md) | 快检耗时盘点、`--changed` 路径映射、说明对账、节点可达性、红项登记、分期 | 方案待审 | 未实装；附只读原型 text_reconcile_scan / graph_lint | check.py、known_red、check_map、tools/graph_lint.py |
 | [279_audio_source_inventory](279_audio_source_inventory.md) | 音频来源清单 11-05 | 备查（用户确认原作音源可用） | game/audio 620 个：原作客户端 336（音效 99 + 语音 237）、授权录音 83、程序合成 178、Suno 配乐 22、待查 1（music/shop.ogg）；credits.json 音乐与音效一栏未写原作音效与 Suno | 113、21 |
+| [295_toy_package_audit](295_toy_trim_audit_1107.md) | Toy 包白占地方盘点 11-07 | 备查 | 几乎无死文件，可不进包约 0.3–0.4 MiB | tools/export 预设 |
+| [297_lappland_pose_audit](297_lappland_pose_audit_1107.md) | 拉普兰德双手前推姿势帧核对 + S1 改播原作 Attack 段 | 已落地 | 只改画面，同种子 TRACE 相同；蹲身前推只留 S3 | lappland.json、character.gd（dash_run） |
+| [304_doctor_sprite_audit](304_doctor_sprite_audit_1107.md) | 博士帧条核查：现行为 1 倍放大版、无更新版；补画方案 + Codex 派单 | 待用户 / 制作人定是否派 Codex | 先重画 idle + run | game/art/operators/doctor/、doctor.json |
