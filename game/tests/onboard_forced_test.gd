@@ -41,11 +41,11 @@ func _ready() -> void:
 	# 2. 两条线的步骤：都含本作特色，按顺序
 	for key in ["drill", "drill_vet"]:
 		var lst: Array = ob.data.get(key, [])
-		for need in ["recruit", "link", "ult", "deploy", "regroup"]:
+		for need in ["recruit", "link", "ult", "deploy", "regroup", "beacon", "focus"]:
 			check(lst.has(need), "%s 缺 %s" % [key, need])
 		check(lst.back() == "drill_end", key + " 以演示结束收尾")
 	check(ob.data.get("drill", []).has("move") and not ob.data.get("drill_vet", []).has("move"), "没玩过才教移动 / 升级")
-	check(ob.drill_ids() == ["recruit", "link", "ult", "deploy", "regroup"], "快速线步骤：" + str(ob.drill_ids()))
+	check(ob.drill_ids() == ["recruit", "link", "ult", "deploy", "regroup", "beacon", "focus"], "快速线步骤：" + str(ob.drill_ids()))
 	check(ob._trigger("recruit") and not ob._trigger("link") and not ob._trigger("ult"), "按顺序：先出招募")
 	ob.seen_mem.append("recruit")
 	check(ob._trigger("link") and not ob._trigger("ult"), "招募做完才出连携")
@@ -92,6 +92,46 @@ func _ready() -> void:
 	g.wheel.open()
 	g.wheel.confirm(g.wheel.item_index("guard"))
 	check(g.squad.order_kind == "" and g.squad.stance != g.squad.ROAM and ob._done("regroup"), "选随行：部署撤销、回到随行")
+	# 3c. 引航灯标：身边放一座 + 溟痕；等太久代点亮；灯标没了重放、放不下跳过
+	ob._finish()
+	ob.cur = ""
+	var m0: int = g.mires.size()
+	var bc0: int = g.beacons.size()
+	ob._show("beacon")
+	check(ob.demo_beacon != null and g.beacons.size() == bc0 + 1, "灯标一步：身边放一座灯标")
+	check(g.mires.size() - m0 == ob.BEACON_MIRES, "灯标一步：周围放 %d 片溟痕" % ob.BEACON_MIRES)
+	check(ob.demo_beacon.pos.distance_to(g.ppos) > 100.0 and ob.demo_beacon.pos.distance_to(g.ppos) < 400.0, "灯标离队长一小段路")
+	check(not ob._done("beacon"), "灯标一步：还没点燃不算")
+	ob.cur_t = ob.BEACON_WAIT + 0.1
+	ob._beacon_tick()
+	check(bool(ob.demo_beacon.lit) and ob._done("beacon"), "等太久没点：引导代点亮并算做完")
+	ob.cur = ""
+	ob.demo_beacon.dead = true
+	ob.beacon_tries = ob.STEP_TRIES
+	ob.cur = "beacon"
+	ob.demo_beacon = {"dead": true, "lit": false}
+	ob._beacon_tick()
+	check(ob._skip_beacon and ob._done("beacon"), "灯标重放用完：跳过这一步")
+	# 3d. 集火：身边放一只精英；等太久代下；精英没了重放、放不下跳过
+	ob._finish()
+	ob.cur = ""
+	var n2: int = g.enemies.size()
+	ob._show("focus")
+	check(ob.focus_tgt != null and g.enemies.size() - n2 == 1 and bool(ob.focus_tgt.elite), "集火一步：身边放一只精英")
+	check(not ob._done("focus"), "集火一步：还没下令不算")
+	ob.cur_t = ob.FOCUS_WAIT + 0.1
+	g.squad.clear_order()
+	ob._focus_tick()
+	check(ob._done("focus") and (g.squad.order_kind == "focus" or ob._skip_focus), "等太久没下：引导代下一次集火并算做完")
+	check(ob.text_of("focus", false).find("{cmd}") < 0, "集火文案里的键名占位已替换：" + ob.text_of("focus", false))
+	ob.cur = "focus"
+	ob._focus_given = false
+	ob._skip_focus = false
+	ob.focus_tries = ob.STEP_TRIES
+	ob.focus_tgt = {"dead": true}
+	g.squad.clear_order()
+	ob._focus_tick()
+	check(ob._skip_focus and ob._done("focus"), "精英重放用完：跳过这一步")
 	# 4. 存档往返与旧档迁移
 	var saved: bool = Cfg.onboard_done
 	var cf := ConfigFile.new()

@@ -3466,11 +3466,20 @@
   "191": {
    "effects": [
     {
+     "type": "stat",
+     "stat": "shield_interval",
+     "op": "add",
+     "value": -0.2
+    },
+    {
      "type": "on_gain",
-     "do": "shield_fill"
+     "do": "shield_fill",
+     "args": {
+      "ensure": 1
+     }
     }
    ],
-   "desc": "获得时补满护盾",
+   "desc": "护盾生成间隔 -20%（没有护盾时获得每 15 秒一层的护盾），获得时补满护盾",
    "rarity": "基础",
    "late_weight": 0.3
   },

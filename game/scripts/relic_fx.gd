@@ -502,6 +502,9 @@ func _on_gain_impl(what: String, args: Dictionary) -> void:
 			g.combat.heal(g.max_hp * amt, "藏品")
 			g.vfx.add_text(g.ppos + Vector2(0, -90), "生命 +%d%%" % int(amt * 100.0), Color(0.55, 1.0, 0.6), 16)
 		"shield_fill":
+			# args.ensure（191 阿卡胡拉饭碗，11-06 用户）：没有护盾的队长先给 1 层上限（每 shield_interval 秒回一层）
+			if int(args.get("ensure", 0)) > 0 and g.shield_max <= 0:
+				_apply_stat("shield_max", "flat", 1.0)
 			if g.shield_max > 0:
 				g.shield = g.shield_max
 		"growth_pick":

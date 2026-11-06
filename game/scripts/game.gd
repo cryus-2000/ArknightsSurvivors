@@ -505,6 +505,7 @@ const OPT_PARA := 4194304   # 偏执狂二阶段「海嗣滴」弹：两个多�
 const OPT_SKDOM := 8388608   # 浊心斯卡蒂歌域笔触弧（fx_pxplane._sk_arc，docs/287 §3 ②）：角度 cos / sin 与粗细按节拍缓存；置位走旧写法（逐点重算）。画面逐位相同（--skdomtest）
 const OPT_SZAURA := 16777216   # 铃兰狐火光域（fx_pxplane_sz.draw_floor，docs/287 §3 ④）：展开好的像素矩形整组平移进批；置位走旧写法（逐像素 draw_rect）。画面逐位相同
 const OPT_PXSTEP := 33554432   # 转平面条目清理（fx_pxplane._step，docs/287 §3 ⑤）：一帧只跑一次；置位走旧写法（每名干员每层都跑）。画面相同
+const OPT_WDFOG := 67108864   # 维什戴尔红色体积雾（fx_pxplane_wd，fx/wd_fog_v）：置位画 11-05 淡薄雾，供 --optab 同局轮换量雾的帧时净差。只改画面
 const OPT_TOUCHB := 1048576  # 触屏按钮（touch.gd draw_hud）：圆 / 弧 / 线进 TriBatch、图标与字随后成组画；置位走旧写法（逐个 draw_*）。画面相同（按钮互不重叠时）
 var bal_dt := 0.066             # --dt=<秒>（仅 --balance）：批跑每帧步长，缺省 0.066（9/30 起所有难度校准 / 云端基线的口径）；按位移判定的改动可用 --dt=0.016667 抽查（docs/36 §8.2）
 var placebo_n := 0              # --placebo=N（仅测试）：开局多抽 N 次主 rng——机制不变、换一份随机实现，判「改动」还是「这组 seed 的运气」（docs/36 §8.2）

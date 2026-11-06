@@ -4793,9 +4793,22 @@ func _ev_tx(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary)
 				_push({"tr": true, "a": d.get("from", o.pos), "b": d.get("to", o.pos), "w": float(d.get("w", 44.0)), "t0": g.t, "life": float(d.get("life", 0.6)), "ly": "gd2", "oid": str(o.id), "k": ""})
 		"tx_scar":   # 次元斩：一道腰高细长直线刀痕（判定线两端外延），scar 秒后碎开
 			var hold: int = maxi(1, int(round(float(d.get("life", 0.22)) * 15.0)))
-			_tx_line(o, d.get("a", o.pos), d.get("c", o.pos), 2 if float(d.get("wmax", 2.0)) >= 3.0 else 1, hold, 2, raw, false)
+			if d.get("one", false):   # 一刀一道（fx/texas_s3_single_slash；11-06 用户「不要太粗，但是要亮」）：芯 2 格（末刀 3 格）近白 + 两侧一格淡琥珀，命中两拍过曝白 + 每格辉光，到点一拍断掉
+				_tx_line(o, d.get("a", o.pos), d.get("c", o.pos), 3 if float(d.get("wmax", 4.0)) >= 5.0 else 2, hold, 3, raw, false)
+			else:
+				_tx_line(o, d.get("a", o.pos), d.get("c", o.pos), 2 if float(d.get("wmax", 2.0)) >= 3.0 else 1, hold, 2, raw, false)
 		"tx_cut":   # 次元斩每一刀：目标处落一柄大剑（剑雨滂沱）
 			var at: Vector2 = d.get("at", o.pos)
+			if d.get("one", false):   # 一刀一道：不落剑（读起来像又一击），命中点一簇火星 + 沿刀线两头各几颗碎屑 + 照地光
+				_burst_m(o, R, p, at + Vector2(0, -20), at.y + 2.0, [], 10 if d.get("last", false) else 7, "shard", 170.0, 0.7)
+				if mode() == 1:   # 命中两拍：刀线中段再一盏亮照地光（和白芯辉光同一帧挂）
+					_txq.append([g.t, "lt", {"o": o, "p": at + Vector2(0, -TX_H), "lr": 200.0, "li": 0.9}])
+				if mode() == 1:
+					var ca: Vector2 = d.get("a", at)
+					var cc2: Vector2 = d.get("c", at)
+					for q in [ca.lerp(cc2, 0.25), ca.lerp(cc2, 0.75)]:
+						R._grains(o, q + Vector2(0, -TX_H), q.y + 2.0, "shard", 2, {"tier": 2}, (cc2 - ca).normalized())
+				return
 			_tx_rain(o, [{"p": at, "d": 0.0, "a": 0.0, "fl": (int(g.t * 15.0) % 2) == 0}], "tx_sw_s26_e2", raw, 2)
 			_burst_m(o, R, p, at + Vector2(0, -20), at.y + 2.0, [], 4, "shard", 130.0, 0.45)
 		"tx_link":   # 连携（技能连携 v2「追击」/ combo「冲刺斩」）：粗直线刀光 + 目标处十字斩
@@ -4934,6 +4947,9 @@ func _tx_draw_line(ci, it: Dictionary, ground: bool) -> void:
 	var st: int = int(it.st)
 	var w: int = int(it.w)
 	var lift := Vector2(0, -TX_H)
+	if st == 3:
+		_tx_draw_line1(ci, it, f, hold, a, b, dv, nv, n, w, lift)
+		return
 	var broke: bool = f >= hold
 	var cold: bool = st == 1 and w >= 2 and it.get("cold", false)
 	for i in n + 1:
@@ -4954,6 +4970,34 @@ func _tx_draw_line(ci, it: Dictionary, ground: bool) -> void:
 				_tx_cell(ci, q + nv * float(cw + 1) * px, TX_C[3])
 		if f == 0 and (i & 1) == 0 and prof > 0.4:
 			_glow(q, Color(1.0, 0.85, 0.6))
+
+
+## 一刀一道（style 3，fx/texas_s3_single_slash）：一条细而亮的斩线——芯 2–3 格近白（第 0–1 拍过曝 + 每格辉光，命中那一拍停住）、两侧一格淡琥珀，没有暗外缘；
+## hold 那一拍断一半，下一拍没了（干脆收掉，不拖碎尾）；两头收尖
+func _tx_draw_line1(ci, it: Dictionary, f: int, hold: int, a: Vector2, b: Vector2, dv: Vector2, nv: Vector2, n: int, w: int, lift: Vector2) -> void:
+	if f > hold:
+		return
+	var px: float = g.PX
+	var hot: bool = f <= 1
+	var broke: bool = f == hold and f > 1
+	var core: Color = Color(1.35, 1.3, 1.2) if hot else Color(1.0, 0.95, 0.86)   # 芯近白（命中两拍过曝），琥珀只在两侧
+	var side: Color = TX_C[6] if hot else TX_C[5]
+	for i in n + 1:
+		var u: float = float(i) / float(n)
+		var prof: float = pow(sin(PI * clampf(u * 0.94 + 0.03, 0.0, 1.0)), 0.6)
+		if broke and fposmod(float(i) * 0.618034 + 0.2, 1.0) < 0.5:
+			continue
+		var cw: int = maxi(1, int(round(float(w) * prof)))
+		var q: Vector2 = a + dv * float(i) * px + lift - nv * float(cw / 2) * px
+		for k in cw:
+			_tx_cell(ci, q + nv * float(k) * px, core)
+		if prof > 0.25:
+			_tx_cell(ci, q - nv * px, side)
+			_tx_cell(ci, q + nv * float(cw) * px, side)
+		if hot and prof > 0.2:
+			_glow(q + nv * float(cw / 2) * px, Color(1.0, 0.88, 0.66))
+		elif (i & 1) == 0 and prof > 0.4 and not broke:
+			_glow(q + nv * float(cw / 2) * px, Color(0.8, 0.6, 0.4))
 
 
 ## 精二余像：地上两道残像边线（断续、贴边一格暗内边），life 秒内淡掉；不铺满

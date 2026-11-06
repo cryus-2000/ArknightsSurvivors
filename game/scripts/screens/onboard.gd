@@ -21,6 +21,7 @@ const Bal = preload("res://scripts/core/balance.gd")
 const Demos = preload("res://scripts/screens/onboard_demos.gd")
 const Character = preload("res://scripts/characters/character.gd")
 const LinkV2 = preload("res://scripts/run/link_v2.gd")
+const PlayKeys = preload("res://scripts/core/play_keys.gd")
 
 const INFO_SECS := 9.0       # 看完自动收起的卡（hint 为空）停留秒数
 const MOVE_NEED := 450.0     # 「移动」做完：累计移动像素
@@ -36,6 +37,13 @@ const PACK_D := 400.0        # 这群怪离队长多远出现（屏内靠边：�
 const LINK_PACK := 8         # 演示局「连携」：在队长身边放几只怪
 const LINK_NUDGE := 3.0      # 演示局「连携」：这么久队长还没放出技能就直接触发连携
 const LINK_WAIT := 10.0      # 演示局「连携」：充满队长技力后等这么久还没连携（附近没敌人）就往下走
+const BEACON_DIST := 240.0   # 演示局「引航灯标」：灯标放在队长身边多远（走几步就到，光圈半径 70）
+const BEACON_WAIT := 24.0    # 等这么久还没点燃就由引导代点亮（演示一遍效果），不让人卡在这一步
+const BEACON_MIRES := 3      # 灯标周围放几片溟痕（点燃后退散，看得见效果）
+const FOCUS_DIST := 380.0    # 演示局「集火」：精英放在队长身边多远（圆盘选点范围内，屏内）
+const FOCUS_WAIT := 24.0     # 等这么久还没下集火就由引导代下一次
+const FOCUS_HP_K := 8.0      # 精英生命 ×：别被自动攻击提前打死
+const STEP_TRIES := 2        # 灯标 / 精英刷不出来或被打掉：最多重放几次，再不行就跳过这一步
 const MATE_FALLBACK := ["saria", "exusiai", "texas", "silverash", "ptilopsis"]
 
 var g: Game
@@ -48,6 +56,13 @@ var drill := false           # 演示局进行中
 var drill_left := -1.0       # 「演示结束」卡出现后的倒计时（≥ 0 时到 0 进正式局）
 var forced := false          # 第一次进游戏：引导不可跳过（docs/219 §6）
 var _nudged := false
+var demo_beacon = null        # 演示局「引航灯标」：放出来的那座灯标（字典，g.beacons 里同一个）
+var beacon_tries := 0
+var focus_tgt = null          # 演示局「集火」：放出来的精英
+var focus_tries := 0
+var _focus_given := false     # 玩家（或引导代做）已经下过集火
+var _skip_beacon := false     # 「引航灯标」刷不出来：这一步直接跳过
+var _skip_focus := false      # 「集火」刷不出精英 / 编队不能下令：这一步直接跳过
 var pack_dir := Vector2.RIGHT   # 演示局「部署」：怪群从哪一侧来（世界方向）
 var drill_t0 := -1.0         # 演示局开始的局内时刻（强制部分时长）
 static var _reloaded := false   # --onboardreload：演示局结束后已重开过场景
@@ -237,7 +252,13 @@ func card(id: String) -> Dictionary:
 
 func text_of(id: String, touch: bool) -> String:
 	var c := card(id)
-	return str(c.get("touch", c.get("text", ""))) if touch else str(c.get("text", ""))
+	var tx: String = str(c.get("touch", c.get("text", ""))) if touch else str(c.get("text", ""))
+	return tx.replace("{cmd}", key_of("command"))
+
+
+## 局内按键提示（键名按 play_keys 取，手柄时给手柄键；演示卡 / 文案共用）
+func key_of(action: String) -> String:
+	return Pad.hint(PlayKeys.hint(action, true, false), PlayKeys.hint(action, true, true))
 
 
 ## 本局演示局的步骤（玩过 = 快速版 drill_vet）
@@ -318,6 +339,10 @@ func _moot(id: String) -> bool:
 			return (drill and (g.squad.size() < 2 or not g.squad.cmd_on())) or (not drill and _seen("deploy"))   # 演示局教过部署 / 随行：正式局不再出圆盘卡
 		"deploy", "regroup":
 			return drill and (g.squad.size() < 2 or not g.squad.cmd_on() or not g.pick.proto_on())
+		"focus":
+			return drill and (g.squad.size() < 2 or not g.squad.cmd_on() or g.wheel.item_index("focus") < 0 or _skip_focus)
+		"beacon":
+			return drill and (Bal.v("beacon/enabled", 1.0) <= 0.0 or _skip_beacon)
 	return false
 
 
@@ -346,6 +371,10 @@ func _done(id: String) -> bool:
 			return not g.ult.full() or (cur_t > ACT_SECS and not drill)
 		"mire":
 			return _lit_count() > beacons0 or cur_t > 25.0
+		"beacon":
+			return _skip_beacon or (demo_beacon != null and bool(demo_beacon.lit))
+		"focus":
+			return _skip_focus or _focus_given
 	return cur_t >= INFO_SECS
 
 
@@ -358,6 +387,87 @@ func _deployed() -> bool:
 		if not o.is_leader and o.pos != Vector2.INF and o.cmd_down <= 0.0 and o.pos.distance_to(sq.station_of(o)) <= 48.0:
 			return true
 	return false
+
+
+## 演示局放东西用的空地：队长身边 dist 处，朝部署怪群的侧面起转一圈 8 个方向，挑第一个放得下（没被地形挡、在缩圈里）的；都不行返回 INF
+func _free_spot(dist: float, margin: float) -> Vector2:
+	var a0: float = pack_dir.angle() + PI * 0.5
+	for k in 8:
+		var want: Vector2 = g.spawner.safe_event_pos(g.ppos + Vector2.from_angle(a0 + TAU * k / 8.0) * dist, 110.0)
+		var got: Vector2 = g.map.push_out(want, margin)
+		if got.distance_to(want) < 24.0 and got.distance_to(g.ppos) > dist * 0.5:
+			return got
+	return Vector2.INF
+
+
+## 演示局「引航灯标」：队长身边放一座灯标，周围几片溟痕（点燃后退散）；放不下就跳过这一步
+func _place_beacon() -> void:
+	demo_beacon = null
+	for b in g.beacons:
+		if not b.lit and not b.dead:
+			demo_beacon = b   # 场上已经有一座没点的：直接用它
+			return
+	var p: Vector2 = _free_spot(BEACON_DIST, 40.0)
+	if p == Vector2.INF:
+		_skip_beacon = true
+		return
+	demo_beacon = g.beacon_sys.spawn_demo(p)
+	for k in BEACON_MIRES:
+		var m: Dictionary = g.map.mire_new(p + Vector2.from_angle(TAU * k / BEACON_MIRES + 0.5) * 120.0, g.t, false)
+		m.r = m.maxr
+		m.life = 90.0
+		m["boss"] = true   # 演示局灯火是满的，自然溟痕会被灯火自己退散；按 Boss 溟痕画 / 算（不吃灯火退散、伤害轻），点燃灯标时一起驱散
+		g.mires.append(m)
+
+
+## 演示局「集火」：队长身边放一只精英（生命加厚，别被自动攻击提前打死）；放不下就跳过这一步
+func _place_focus() -> void:
+	focus_tgt = null
+	var p: Vector2 = _free_spot(FOCUS_DIST, 30.0)
+	if p == Vector2.INF:
+		_skip_focus = true
+		return
+	var e: Dictionary = g.spawner.new_enemy("mother", p)
+	e.hp *= FOCUS_HP_K
+	e.maxhp = e.hp
+	g.enemies.append(e)
+	focus_tgt = e
+
+
+## 「引航灯标」一步每帧：灯标被熄灭 / 清掉就重放（最多 STEP_TRIES 次）；等太久没点就代点亮
+func _beacon_tick() -> void:
+	if _skip_beacon:
+		return
+	if demo_beacon == null or bool(demo_beacon.dead):
+		beacon_tries += 1
+		if beacon_tries > STEP_TRIES:
+			_skip_beacon = true
+			return
+		_place_beacon()
+		return
+	if cur_t >= BEACON_WAIT and not bool(demo_beacon.lit):
+		g.beacon_sys.light_demo(demo_beacon)
+
+
+## 「集火」一步每帧：下了集火指令就算做完；精英被打掉就重放（最多 STEP_TRIES 次）；等太久没下就代下一次
+func _focus_tick() -> void:
+	if _skip_focus or _focus_given:
+		return
+	if g.squad.order_kind == "focus":
+		_focus_given = true
+		return
+	if focus_tgt == null or bool(focus_tgt.dead):
+		focus_tries += 1
+		if focus_tries > STEP_TRIES:
+			_skip_focus = true
+			return
+		_place_focus()
+		return
+	if cur_t >= FOCUS_WAIT:
+		g.squad.apply_order("focus", focus_tgt.pos, focus_tgt)
+		_focus_given = g.squad.order_kind == "focus"
+		if not _focus_given:
+			_skip_focus = true   # 编队不能下令（作战时限没恢复之类）：不卡在这一步
 
 
 ## 指挥圆盘打开时各扇区依次亮起（command_wheel.draw 读）：演示局「部署」这一步
@@ -411,6 +521,15 @@ func _show(id: String) -> void:
 					g.squad.apply_command("guard")   # 从随行开始
 			"ult":
 				g.ult.energy = g.ult.FULL   # 终结技直接充满
+			"beacon":
+				beacon_tries = 0
+				_skip_beacon = false
+				_place_beacon()
+			"focus":
+				focus_tries = 0
+				_skip_focus = false
+				_focus_given = false
+				_place_focus()
 			"drill_end":
 				drill_left = END_SECS
 	Sfx.play("ui_move", -6.0)
@@ -495,6 +614,10 @@ func update(dt: float) -> void:
 		cur_t += dt
 		if forced and dev != "":
 			_dev_act()
+		if drill and cur == "beacon":
+			_beacon_tick()
+		elif drill and cur == "focus":
+			_focus_tick()
 		if drill and cur == "link" and cur_t >= LINK_NUDGE and not _nudged and _links() <= int(ev0.get("links", 0)):
 			_nudged = true   # 有的队长技能是蓄在下一次普攻里的（水月）或要等目标：到点按「队长放了技能」触发一次连携
 			var ld = g.squad.leader()
@@ -538,6 +661,24 @@ func _dev_act() -> void:
 				g.wheel.confirm(g.wheel.item_index("point"))
 			elif g.pick.active:
 				g.pick._goal = g.hud_ct() * (g.ppos + pack_dir * float(_dev_arg("--onboarddeploy=", "220"))) - g.pick._offset()   # --onboarddeploy=<距离>：录片用，部署点放远一点（撤回时触发瞬回）
+				if g.pick.t >= 1.3:
+					g.pick.confirm()
+		"beacon":
+			# 机器人不会踩灯标：队长挪到灯标上，光圈自己读条点燃
+			if demo_beacon != null and not bool(demo_beacon.lit) and not bool(demo_beacon.dead):
+				g.ppos = demo_beacon.pos   # 每帧钉在灯标上，直到光圈读条点燃（机器人自己会走开）
+				if g.ch != null:
+					g.ch.pos = demo_beacon.pos
+		"focus":
+			# 打开圆盘 → 选「集火」→ 准星挪到精英上 → 确认
+			if _focus_given or focus_tgt == null or bool(focus_tgt.dead):
+				return
+			if not g.wheel.is_open and not g.pick.active and cur_t >= 1.6 and cur_t < 2.0:
+				g.wheel.open()
+			elif g.wheel.is_open and g.wheel.t_open >= 0.9:
+				g.wheel.confirm(g.wheel.item_index("focus"))
+			elif g.pick.active:
+				g.pick._goal = g.hud_ct() * focus_tgt.pos - g.pick._offset()
 				if g.pick.t >= 1.3:
 					g.pick.confirm()
 		"regroup":

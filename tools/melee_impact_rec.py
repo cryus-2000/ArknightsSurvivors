@@ -19,7 +19,14 @@ import godot_runner as GR
 OPS = [("skadi", ["--bal=fx/px_plane=1"]), ("hoshiguma", [])]
 NAMES = {"skadi": "斯卡蒂", "hoshiguma": "星熊", "texas": "德克萨斯"}
 NAME = "melee_impact_onoff"
-PLAYCLOCK_TRACE = False   # --playclock_trace：TRACE 也走玩家时钟（局部卡肉不停世界，开关两局应逐行一致；全局顿帧会在这里分岔）
+PLAYCLOCK_TRACE = False
+KNOB = "fx/melee_impact"   # --knob：开 / 关对照的旋钮（缺省打击感包）；逗号分隔 = 几项一起开 / 关
+
+
+def kb(on):
+    return ["--bal=%s=%d" % (k, on) for k in KNOB.split(",") if k]
+EXTRA = []                 # --extra：两局都带的启动参数（如 --elite2 --sptest）
+KLABEL = "打击感包"   # --playclock_trace：TRACE 也走玩家时钟（局部卡肉不停世界，开关两局应逐行一致；全局顿帧会在这里分岔）
 
 
 def godot(args, timeout=5400):
@@ -138,7 +145,7 @@ def rec(out, t0, secs, seed):
             os.makedirs(fdir)
             log = godot(["--resolution", "1280x720", "--fixed-fps", "30", "--", "--balance", "--nodeath", "--realtime", "--playclock",
                          "--rtfrom=%d" % (t0 - 3), "--seed=%d" % seed, "--op=" + op, "--bot=expert", "--maxprog",
-                         "--bal=fx/melee_impact=%d" % on, "--recframes=%d,%d" % (t0, secs * 30), "--shotdir=" + fdir, "--maxt=%d" % (t0 + secs + 2), "--sfxtrace"] + ex)
+                         ] + kb(on) + ["--recframes=%d,%d" % (t0, secs * 30), "--shotdir=" + fdir, "--maxt=%d" % (t0 + secs + 2), "--sfxtrace"] + ex + EXTRA)
             open(os.path.join(out, "rec_%s_%d.log" % (op, on)), "w").write(log)
             errs = [l for l in log.splitlines() if "SCRIPT ERROR" in l or "Parse Error" in l]
             print(op, on, len(glob.glob(os.path.join(fdir, "rec_*.png"))), "帧", errs[:3], flush=True)
@@ -159,7 +166,7 @@ def rec(out, t0, secs, seed):
     n = min(len(glob.glob(os.path.join(d, "rec_*.png"))) for d in tiles)
     mp4 = os.path.join(out, NAME + ".mp4")
     fnt = os.environ.get("CJK_FONT", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf")
-    labs = [lb for op, _ in OPS for lb in (NAMES.get(op, op) + " 打击感包 关", NAMES.get(op, op) + " 打击感包 开（fx/melee_impact=1）")]
+    labs = [lb for op, _ in OPS for lb in (NAMES.get(op, op) + " " + KLABEL + " 关", NAMES.get(op, op) + " " + KLABEL + " 开（%s=1）" % KNOB)]
     args = [ff, "-y", "-loglevel", "error"]
     for d in tiles:
         args += ["-framerate", "30", "-i", os.path.join(d, "rec_%05d.png")]
@@ -194,7 +201,7 @@ def trace(out, seed, maxt):
         for on in (0, 1):
             pc = ["--realtime", "--playclock"] if PLAYCLOCK_TRACE else []
             log = godot(["--resolution", "1280x720", "--fixed-fps", "60", "--", "--balance", "--nodeath", "--trace=1",
-                         "--seed=%d" % seed, "--op=" + op, "--elite2", "--sptest", "--maxt=%d" % maxt, "--bal=fx/melee_impact=%d" % on] + pc + ex)
+                         "--seed=%d" % seed, "--op=" + op, "--elite2", "--sptest", "--maxt=%d" % maxt] + kb(on) + pc + ex + EXTRA)
             open(os.path.join(out, "trace_%s_%d.log" % (op, on)), "w").write(log)
             errs = [l for l in log.splitlines() if "SCRIPT ERROR" in l or "Parse Error" in l]
             if errs:
@@ -234,12 +241,18 @@ def main():
     ap.add_argument("--ops", default="", help="逗号分隔的干员（缺省斯卡蒂、星熊）；如 texas")
     ap.add_argument("--name", default="melee_impact_onoff", help="录像文件名")
     ap.add_argument("--playclock_trace", action="store_true")
+    ap.add_argument("--knob", default="fx/melee_impact")
+    ap.add_argument("--klabel", default="打击感包")
+    ap.add_argument("--extra", default="")
     a = ap.parse_args()
-    global OPS, NAME, PLAYCLOCK_TRACE
+    global OPS, NAME, PLAYCLOCK_TRACE, KNOB, EXTRA, KLABEL
     if a.ops:
         OPS = [(x, ["--bal=fx/px_plane=1"]) for x in a.ops.split(",") if x]
     NAME = a.name
     PLAYCLOCK_TRACE = a.playclock_trace
+    KNOB = a.knob
+    KLABEL = a.klabel
+    EXTRA = a.extra.split()
     a.out = os.path.abspath(a.out)   # Godot 带 --path game 启动：相对路径会落到 game/ 下存不进去
     os.makedirs(a.out, exist_ok=True)
     ok = True
