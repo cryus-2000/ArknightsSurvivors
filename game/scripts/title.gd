@@ -115,7 +115,8 @@ func _ready() -> void:
 				if a2 == "--gallerygroup":
 					gallery._set_group(true)   # 截图自测：干员页按职业分组（10-26）
 				if a2.begins_with("--galleryrow="):
-					gallery.row_sel = int(a2.substr(13))   # 手机：技能 / 成长页展开第几行
+					gallery.row_sel = int(a2.substr(13))   # 技能页（桌面 + 手机）/ 成长页（手机）展开第几行
+					gallery.sk_follow = true
 				if a2 == "--reducemotion":
 					Cfg.reduce_motion = true
 				if a2.begins_with("--codexglass="):

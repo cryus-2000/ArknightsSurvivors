@@ -226,6 +226,56 @@ func run() -> void:
 	check(gal._p(gal.sw_t0, 0.06, 0.3) == 1.0 and gal._lift(gal.sel) == 1.0, "reduce motion snaps to end state")
 	check(gal._row(0).x == 0.0 and gal._open_dx() == 0.0, "reduce motion: no panel slide")
 	Cfg.reduce_motion = false
+	# 技能页点开全文（11-07）：点一行展开、再点收起；↑↓ 逐行展开；展开后放不下时滚轮滚列表
+	await settle()
+	await click(hit("itab", 2))
+	check(gal.info_tab == 2 and gal._skill_page(), "skills info tab shown")
+	await settle()
+	r = hit("row", 0)
+	check(r.size.x > 0.0, "desktop skill rows clickable")
+	await click(r)
+	check(gal.row_sel == 0, "desktop click expands skill row")
+	await settle()
+	await click(hit("row", 0))
+	check(gal.row_sel == -1, "second click collapses skill row")
+	await key(KEY_DOWN)
+	check(gal.row_sel == 0, "down expands first skill row")
+	await key(KEY_DOWN)
+	check(gal.row_sel == 1, "down moves expansion to next row")
+	await key(KEY_UP)
+	await key(KEY_UP)
+	check(gal.row_sel == -1, "up past first row collapses")
+	var nrows: int = gal._skill_rows(gal.entries[gal.sel].op).size()
+	var wheel_seen := false
+	for ri in nrows:
+		gal._toggle_row(ri)
+		await settle()
+		check(not gal.sk_follow, "expanded row %d scrolled into view" % ri)
+		if gal.sk_scroll_max > 0.0 and not wheel_seen:
+			wheel_seen = true
+			gal.sk_scroll = 0.0
+			var sw := InputEventMouseButton.new()
+			sw.button_index = MOUSE_BUTTON_WHEEL_DOWN
+			sw.pressed = true
+			sw.position = gal.get_global_transform() * (gal.doff + gal.sk_list_r.get_center() * gal.dk)
+			get_viewport().push_input(sw, true)
+			await settle()
+			check(gal.sk_scroll > 0.0, "wheel scrolls expanded skill list (row %d)" % ri)
+	gal._toggle_row(-1)
+	# 成长页同一套：点开 / 再点收起 / ↓ 逐行
+	await key(KEY_4)
+	await settle()
+	r = hit("row", 1)
+	check(r.size.x > 0.0, "desktop growth rows clickable")
+	await click(r)
+	check(gal.row_sel == 1, "desktop click expands growth row")
+	await settle()
+	await click(hit("row", 1))
+	check(gal.row_sel == -1, "second click collapses growth row")
+	await key(KEY_DOWN)
+	check(gal.row_sel == 0, "down expands first growth row")
+	gal._toggle_row(-1)
+	await key(KEY_1)
 	# 返回：点返回 / Esc
 	await settle()
 	await click(hit("back", null))
