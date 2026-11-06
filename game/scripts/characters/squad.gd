@@ -1466,6 +1466,7 @@ func _pfx_cap_plan() -> void:
 ## 加色层不经 cv，改乘 fx_dim。画完由调用方恢复。缺省两个系数恒 1 = 不变
 func _op_dim(o, d0: float) -> void:
 	g.world.fx_dim = d0
+	g.world.lf_emit_k = g.world.late_emit_k(o.is_leader)   # 后期特效控制（docs/293）：队友发光点减量；队长最后画，阶段结束回 1
 	# 经 cv 的绘制统一乘（自定义干员脚本不读 fx_dim 的特效也算上）：透明度（拥挤降噪）、队友去饱和（docs/139 §10，缺省关）、
 	# 队长提亮 / 暖色（docs/139 §11 render/lead_emph，缺省关）
 	if o.is_leader:
@@ -1473,3 +1474,6 @@ func _op_dim(o, d0: float) -> void:
 	else:
 		cv.set_mod(g.world.mate_dim, g.world.mate_desat)
 	cv.mute = g.world._dbg_friend   # --clutterdbg=nofriend（量测）：这些阶段只有特效，整段不显示
+	if g.world._dbg_opmask and preload("res://scripts/render/declutter.gd").mute_op(str(o.id), o.is_leader):
+		cv.mute = true   # --clutterdbg=nolead / nomates / noop_<id>（后期特效分账）
+		g.world.fx_dim = 0.0

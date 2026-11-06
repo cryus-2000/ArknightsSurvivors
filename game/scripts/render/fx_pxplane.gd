@@ -938,7 +938,7 @@ func _draw_cut(ci, it: Dictionary) -> void:
 			var ek: bool = it.has("emk")   # emk：斩痕白芯每格都进发光层、留两拍（德克萨斯，docs/270 §5「核心辉光 0」）
 			if (f == 0 or (ek and f == 1)) and w > (0.25 if ek else 0.4) and g.optical_on and _emit_n < EMIT_CAP and ((i & 1) == 0 or ek):
 				_emit_n += 1
-				g.glow_next.append([p, px, Color(1, 1, 1, minf(1.0, Bal.v("fx/px_plane_emit", 0.8) * lk)) if not ek else Color(1.0, 0.9, 0.7, minf(1.0, Bal.v("fx/px_plane_emit", 0.8) * lk * (1.0 if f == 0 else 0.7)))])
+				g.glow_next.append([p, px, Color(1, 1, 1, minf(1.0, (Bal.v("fx/px_plane_emit", 0.8) * float(g.world.lf_emit_k)) * lk)) if not ek else Color(1.0, 0.9, 0.7, minf(1.0, (Bal.v("fx/px_plane_emit", 0.8) * float(g.world.lf_emit_k)) * lk * (1.0 if f == 0 else 0.7)))])
 
 
 ## 立起件当前的排序位置：有 gyo（相对原点的脚底偏移）按当前原点 + gyo；有 gy 的跟着原点平移；斩痕按被砍那只的脚底；其余原点 + 1；再加 sk 偏移（星熊地刺）。
@@ -1633,7 +1633,7 @@ func _glow(p: Vector2, c: Color) -> void:
 	if _emit_n >= EMIT_CAP:
 		return
 	_emit_n += 1
-	g.glow_next.append([_snap(p), g.PX, Color(c.r, c.g, c.b, Bal.v("fx/px_plane_emit", 0.8))])
+	g.glow_next.append([_snap(p), g.PX, Color(c.r, c.g, c.b, Bal.v("fx/px_plane_emit", 0.8) * float(g.world.lf_emit_k))])   # lf_emit_k：后期队友减量（docs/293）
 
 
 ## 运行时线状件：line 折光 / link 治疗连线 / beam 灯塔光柱 / streak 光柱地面光痕 / bolt 光弹
@@ -2280,7 +2280,7 @@ func _lg_fan(ci, o, fn: Dictionary) -> void:
 		pts.append(c + p)
 		var lp: Vector2 = p * k / px
 		uvs.append(Vector2((lp.x + R + 0.5) / tw, (lp.y + ceil(R * LG_SY) + 0.5) / th))
-	ci.draw_colored_polygon(pts, Color(1, 1, 1, fade), uvs, tex)
+	ci.draw_colored_polygon(pts, Color(1, 1, 1, fade * float(g.world.late_fill_k())), uvs, tex)   # 后期填充变薄、边照画（docs/293 late_fx_fill）
 	# 外边：2 美术像素（外亮内墨），按噪声断续加厚；两侧边：1 像素断续
 	var rc: float = rr / px
 	var n: int = maxi(16, int(2.0 * half * rc))
@@ -3479,7 +3479,7 @@ func _sg_draw_motes(o) -> void:
 		cv.draw_rect(Rect2(c, Vector2(px, px)), Color("#fff1b8"))
 		if g.optical_on and _emit_n < EMIT_CAP:
 			_emit_n += 1
-			g.glow_next.append([c, px, Color(1.0, 0.85, 0.5, Bal.v("fx/px_plane_emit", 0.8))])
+			g.glow_next.append([c, px, Color(1.0, 0.85, 0.5, (Bal.v("fx/px_plane_emit", 0.8) * float(g.world.lf_emit_k)))])
 	_motes = keep
 
 
