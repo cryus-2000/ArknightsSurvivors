@@ -42,7 +42,7 @@ def sprite(key):
 
 OVER_BANNER = 1.06
 SHIFT_ON = True
-SHIFT_PLACED = {"itch_cover": 9, "toy_poster": 6, "itch_banner": 0}   # --placed 时只为让开标题副行的小下移
+SHIFT_PLACED = {"itch_cover": 3, "toy_poster": 0, "itch_banner": 0}   # --placed 时只为让开标题副行的小下移
 OVER = 1.15   # 背景多做 15% 的余量，按青光圈中心再裁（11-07：光圈要和人物对齐居中）
 
 
@@ -74,7 +74,19 @@ def ring_center(g):
     ys, xs = np.nonzero(m)
     cx = (np.percentile(xs, 5) + np.percentile(xs, 95)) / 2
     cy = (np.percentile(ys, 5) + np.percentile(ys, 95)) / 2
+    if POOL_CENTROID:
+        # 11-07 用户「人物往光的中间站」：竖直落点改用下半幅光池亮度重心（光圈轮廓中心偏后 8–10 格）
+        lum = (g.astype(np.float32) * [0.299, 0.587, 0.114]).sum(-1)
+        w = np.clip(lum - 150, 0, None)
+        w[: int(gh * 0.55)] = 0
+        yy, xx = np.mgrid[0:gh, 0:gw]
+        if w.sum() > 0:
+            cy = (w * yy).sum() / w.sum()
+            cx = (w * xx).sum() / w.sum()
     return int(round(cx)), int(round(cy)), m
+
+
+POOL_CENTROID = False
 
 
 def crop_on_ring(big, gw, gh, floor_y, ring_x=0.5):
@@ -259,6 +271,8 @@ def main():
     global BG, OVER, OVER_BANNER, SHIFT_ON
     if a.placed:
         OVER, OVER_BANNER, SHIFT_ON = 1.0, 1.0, False
+        global POOL_CENTROID
+        POOL_CENTROID = True
     if a.bg:
         BG = a.bg
     outs = []
