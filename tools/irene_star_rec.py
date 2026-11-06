@@ -53,7 +53,10 @@ def font(sz):
 
 def switch(ref):
     """把 game/ 切到 ref（HEAD = 切回），重新导入、生成 index.json"""
-    subprocess.run(["git", "checkout", ref, "--", "game"], cwd=ROOT, check=True)
+    if subprocess.run(["git", "checkout", ref, "--", "game"], cwd=ROOT).returncode != 0:   # 虚拟机是浅克隆：旧提交要先按完整号取下来
+        full = subprocess.run(["git", "rev-parse", ref], cwd=ROOT, capture_output=True, text=True).stdout.strip()
+        subprocess.run(["git", "fetch", "-q", "--depth", "1", "origin", full if len(full) == 40 else ref], cwd=ROOT)
+        subprocess.run(["git", "checkout", "FETCH_HEAD" if ref != "HEAD" else ref, "--", "game"], cwd=ROOT, check=True)
     if ref == "HEAD":
         subprocess.run(["git", "clean", "-fdq", "--", "game/art/fx/pxp", "game/data"], cwd=ROOT)
     subprocess.run([GR.find_godot(), "--headless", "--path", GAME, "--import"], cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
