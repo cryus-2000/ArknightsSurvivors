@@ -3,7 +3,7 @@
 --coi 加 COOP / COEP 头（Cross-Origin-Opener-Policy: same-origin、Cross-Origin-Embedder-Policy: require-corp），模拟 itch 勾了
 「SharedArrayBuffer support」的情况；不加就是普通托管。只绑 127.0.0.1。
 /__itch.html：模拟 itch 的嵌入页（游戏在 iframe 里，allow="fullscreen"；右下角「全屏」按钮像 itch 那样把外层容器全屏），
-测网页全屏与 Esc（docs/297）用。"""
+测网页全屏与 Esc（docs/299）用。"""
 import argparse, functools, http.server
 
 
