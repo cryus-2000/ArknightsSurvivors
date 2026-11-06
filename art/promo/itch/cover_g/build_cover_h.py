@@ -40,7 +40,7 @@ def sprite(key):
 def bg_pixels(W, H, cell):
     raw = K.fill_band(Image.open(BG).convert("RGB"))
     gw, gh = W // cell, H // cell
-    x, y, cw, ch = X.crop_box(raw, gw, gh, 0.5, 0.5)
+    x, y, cw, ch = X.crop_box(raw, gw, gh, FLOOR[0], 0.5)   # 11-07：裁切以青光空地为中心，人物居中后仍踩在光圈中央
     c = raw.crop((x, y, x + cw, y + ch))
     # 怪潮发闷：中间调对比 ×1.25（以 0.3 为中点），让深色海嗣剪影读得出
     ca = np.asarray(c, np.float32) / 255
@@ -64,22 +64,58 @@ def compose_grid(grid, spr, n_shift=0):
     gh, gw = g.shape[:2]
     a = np.asarray(spr)
     sh, sw = a.shape[:2]
-    fx, fy = int(gw * FLOOR[0]), int(gh * FLOOR[1]) + n_shift
-    x0, y0 = fx - sw // 2, fy - sh
     m = a[..., 3] > 127
+    # 11-07 用户「人物居中一点」：以头部（精灵最上面 30% 的不透明像素）水平中心对准画面中线，伞伸出去多长都不影响
+    top = m[: max(1, int(sh * 0.3))]
+    hx = int(np.nonzero(top.any(0))[0].mean())
+    fx, fy = gw // 2, int(gh * FLOOR[1]) + n_shift
+    x0, y0 = fx - hx, fy - sh
     # 描边光：alpha 外扩 1 格的一圈，按 60% 混青色
     p = np.pad(m, 1)
     ring = (p[:-2, 1:-1] | p[2:, 1:-1] | p[1:-1, :-2] | p[1:-1, 2:]) & ~m
     # 脚下暗影：一条 2 格高的椭圆
     yy, xx = np.mgrid[0:gh, 0:gw]
-    shadow = ((xx - fx) / (sw * 0.45)) ** 2 + ((yy - fy) / 2.2) ** 2 < 1
-    g[shadow] = (g[shadow] * 0.45).astype(np.uint8)
+    shadow = ((xx - fx) / (sw * 0.22)) ** 2 + ((yy - fy) / 1.6) ** 2 < 1
+    g[shadow] = (g[shadow] * 0.7).astype(np.uint8)   # 11-07：原来的硬黑条太突兀，改浅、窄
     reg = g[y0:y0 + sh, x0:x0 + sw]
     rr = ring[:reg.shape[0], :reg.shape[1]]
     reg[rr] = (reg[rr] * 0.4 + CYAN * 0.6).astype(np.uint8)
     mm = m[:reg.shape[0], :reg.shape[1]]
     reg[mm] = a[..., :3][:reg.shape[0], :reg.shape[1]][mm]
+    if THRUST:
+        thrust_lines(g, m, x0, y0)
     return g
+
+
+THRUST = True
+
+
+def thrust_lines(g, m, x0, y0):
+    """刺击方向（向左）的像素冲刺线：伞尖前方几道青色横线（亮芯 + 暗青尾），伞尖一个十字亮点"""
+    gh, gw = g.shape[:2]
+    cols = np.nonzero(m.any(0))[0]
+    tip_x = cols[0]
+    rows = np.nonzero(m[:, tip_x])[0]
+    ty, tx = y0 + int(rows.mean()), x0 + tip_x
+    core, mid, tail = np.array([235, 255, 255]), np.array([120, 235, 245]), np.array([40, 140, 160])
+    rng = np.random.default_rng(7)
+    for dy, ln in ((0, 26), (-3, 16), (3, 18), (-6, 9), (6, 11), (-1, 34), (2, 22)):
+        y = ty + dy
+        if not 0 <= y < gh:
+            continue
+        start = tx - 2 - int(rng.integers(0, 4))
+        for k in range(ln):
+            x = start - k
+            if not 0 <= x < gw:
+                break
+            t = k / ln
+            c = core if t < 0.25 else (mid if t < 0.6 else tail)
+            al = 1.0 if t < 0.6 else 0.6
+            g[y, x] = (g[y, x] * (1 - al) + c * al).astype(np.uint8)
+    for dx, dy in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1), (-2, 0), (0, -2), (0, 2)):
+        x, y = tx - 1 + dx, ty + dy
+        if 0 <= x < gw and 0 <= y < gh:
+            g[y, x] = core if abs(dx) + abs(dy) <= 1 else mid
 
 
 def build(key, kind):
