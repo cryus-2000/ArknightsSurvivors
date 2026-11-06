@@ -8,7 +8,6 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
-const UM = preload("res://scripts/ui_motion.gd")
 const IDS := {"skadi": Color(0.55, 0.78, 1.0), "hoshiguma": Color(1.0, 0.78, 0.42), "siege": Color(1.0, 0.75, 0.3), "mizuki": Color(0.44, 0.91, 1.0), "gladiia": Color(0.62, 0.72, 1.0), "ulpianus": Color(0.62, 0.69, 0.94), "specter_unchained": Color(0.6, 0.85, 1.0), "lappland": Color(0.8, 0.76, 1.0)}   # 推进之王（docs/264）：锤击 / 跃空锤落地；水月（docs/261）：水母荧光青
 const HEAVY := {"迅捷打击·γ型": true, "跃浪击": true, "破浪下劈": true, "反手斩": false, "大洋裂断": true, "冲撞": true, "狼之舞": true, "断喝": true, "噤声": true}
 ## 不走打击感包的招：歌蕾蒂娅 S3 每 0.75 秒一跳、反震（持续 / 被动，顿帧震屏会一直抖）
@@ -199,7 +198,8 @@ static func _flesh(o, n: int, heavy: bool) -> void:
 
 static func _cam(o, hits: Array) -> void:
 	var g = o.g
-	if not o.is_leader or g.world == null or Cfg.reduce_motion:
+	var cfg = g.get_node_or_null("/root/Cfg")   # 不直接写 Cfg：核心契约测试（-s 脚本模式）没有自动加载
+	if not o.is_leader or g.world == null or (cfg != null and cfg.reduce_motion):
 		return
 	var best = null
 	var bd := INF
@@ -213,7 +213,9 @@ static func _cam(o, hits: Array) -> void:
 		return
 	g.world.kick(o.pos - best.pos, int(Bal.v("fx/hf_push_px", 2.0)), Bal.v("fx/hf_push_t", 0.12))   # kick 往 -to_target 推：传反向 = 往出手方向推
 	if Bal.v("fx/hf_rumble", 1.0) > 0.0:
-		Pad.rumble(Bal.v("fx/hf_rumble_weak", 0.2), Bal.v("fx/hf_rumble_strong", 0.35), Bal.v("fx/hf_rumble_t", 0.08))
+		var pad = g.get_node_or_null("/root/Pad")   # 同上：不直接写自动加载 Pad
+		if pad != null:
+			pad.rumble(Bal.v("fx/hf_rumble_weak", 0.2), Bal.v("fx/hf_rumble_strong", 0.35), Bal.v("fx/hf_rumble_t", 0.08))
 
 
 ## 中期 Boss 击杀慢放（docs/291 §7.4）：combat.kill 在原来的 0.12 秒停顿之后调；最终 Boss 已有 victory_flow 约 2 秒慢放，不叠。
@@ -221,14 +223,14 @@ static func _cam(o, hits: Array) -> void:
 static func boss_kill(g, e: Dictionary) -> void:
 	if Bal.v("fx/hf_boss_slow", 0.0) <= 0.0 or not e.get("boss", false) or e.get("part", false) or g.spawner == null or g.spawner.is_final_boss_type(str(e.get("type", ""))):
 		return
-	g.set_meta("hf_boss_rt", UM.now())
+	g.set_meta("hf_boss_rt", _um_now())
 
 
 ## 倍率（真实时间轴）：顿帧 hf_boss_wait 秒后 × hf_boss_lo 保持 hf_boss_t 秒，再按终结技的 ult/imp_ease 先慢后快回 1
 static func boss_slow(g) -> float:
 	if not g.has_meta("hf_boss_rt"):
 		return 1.0
-	var t: float = UM.now() - float(g.get_meta("hf_boss_rt")) - Bal.v("fx/hf_boss_wait", 0.12)
+	var t: float = _um_now() - float(g.get_meta("hf_boss_rt")) - Bal.v("fx/hf_boss_wait", 0.12)
 	var st: float = Bal.v("fx/hf_boss_t", 0.25)
 	var et: float = Bal.v("ult/imp_ease", 0.35)
 	var lo: float = Bal.v("fx/hf_boss_lo", 0.3)
@@ -406,3 +408,8 @@ static func _fan(o, m: Dictionary, base: Vector2, ph: int) -> void:
 		if run_c.a > 0.0:
 			cv.draw_rect(Rect2(run_x, y, x - run_x, s), Color(run_c.r, run_c.g, run_c.b, run_c.a * aa))
 		y += s
+
+
+## 表现时钟（ui_motion.now）：运行时 load，不 preload——ui_motion 引用自动加载 Cfg，核心契约测试（-s 脚本模式）里会编译失败
+static func _um_now() -> float:
+	return load("res://scripts/ui_motion.gd").now()
