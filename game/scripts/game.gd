@@ -315,6 +315,7 @@ var knight_alive := false          # 猎潮的骑士在队中（结局二）
 var force_boss := -1
 var atk_slow := 0.0
 var ebullets: Array = []
+var _eb_stash = null   # 临时探针 --ebhide
 var shocks: Array = []
 var warns: Array = []
 var shots: RefCounted = null    # 敌方投射物池：抛物 / 敌弹 / 冲击环的推进（scripts/enemies/shot_pool.gd，docs/101 B7 ④）
@@ -1521,6 +1522,9 @@ func mobile_cap() -> bool:
 
 
 func _process(delta: float) -> void:
+	if _eb_stash != null:
+		ebullets = _eb_stash
+		_eb_stash = null
 	UM.advance(delta)   # 界面动效时钟（真实帧间隔，不乘对局倍速；scripts/ui_motion.gd）
 	_pm("engine")   # 上一帧结束到这一帧开始：引擎自身、_draw 回调、其他节点（只在 --prof 下记）
 	onboard.update(delta)   # 新手引导（screens/onboard.gd）：真实帧间隔
@@ -1623,6 +1627,9 @@ func _process(delta: float) -> void:
 		dof_layer.visible = Cfg.dof and not optical_on   # 光学开时景深由光学 pass 取代（原来这里开、optical.gd 再关，一帧翻两次）
 		fg.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST if optical_on else CanvasItem.TEXTURE_FILTER_LINEAR   # 前景剪影：光学下像素风（map.draw_foreground）
 		hud.queue_redraw()
+	if Cfg.dev_args().has("--ebhide"):
+		_eb_stash = ebullets
+		ebullets = ebullets.filter(func(b): return not b.get("boss", false))
 	world.present_step()   # 表现事件步骤（Boss 换幕 / 倒下演出；docs/101 B3）：每帧一次，在本帧绘制之前，无头也走
 	_pm("tail")
 
