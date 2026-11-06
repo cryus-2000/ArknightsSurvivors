@@ -78,6 +78,7 @@ static func _h4_bash_release(o, a: Dictionary) -> void:
 		_h4_suit_blast(o, a, su)
 		return
 	var hits: Array = o.melee_hit(str(a.get("src", "")), o.pos + Vector2(0, float(a.get("y", -10.0))), ang, float(a.get("half", 1.1)), reach, _h4_bash_dmg(o), float(a.get("kb", 200.0)), float(a.get("stun", 0.2)), a.get("tags", []))
+	_MI.hit(o, str(a.get("src", "")), a.get("tags", []), hits)   # 近战打击感包（11-07 推全员，docs/291 §8）：只画 / 只发声
 	_h4_marks_pop(o, hits, _h4_bash_dmg(o))   # 晶簇（docs/202）：被拳击命中的带碎片敌人，碎片爆开
 	_FXR.ev(o, "sa_bash", {"ang": ang, "r": reach, "es": hits, "calc": float(sa.calc) > 0.0})   # 转平面（docs/269）：只画
 	var d := Vector2.from_angle(ang)

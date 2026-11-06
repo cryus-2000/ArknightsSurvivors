@@ -1,5 +1,6 @@
 # 00 · 文档索引
 
+- [291_hit_feel_evo](291_hit_feel_evo.md)：试点待审；用户 11-07 给的像素近战文章对照（过冲 / 扇形拉丝 / 收招慢于爆发 / 巅峰帧 / 残影）+ §6 刀光以外的手法，德克萨斯 + 星熊挂 `fx/melee_evo` 缺省 0。
 - [288_standard_up_1106](288_standard_up_1106.md)：已实施；普通难度略微调高，`difficulty/standard/enemy_hp` 1.08 → 1.14，GCP 对照 m18 76 → 70、m0 54.5 → 53。
 - [285_web_shrink_1106](285_web_shrink_1106.md)：方案，待审；319b5de4b 网页包 51.07 MiB 拆账（涨在 pxp 转平面帧条 +8.5）与压缩方案，含无损 2.0 MiB + 有损选项。
 - [282_bond_non_numeric](282_bond_non_numeric.md)：设计稿，待审；8 条羁绊的数值盘点 + 每条 2–3 个玩法差异方案与推荐。

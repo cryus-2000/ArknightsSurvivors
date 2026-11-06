@@ -187,6 +187,7 @@ static func _h3_thrust(o, a: Dictionary, ang: float, mult: float, patch: Diction
 	var pu: Dictionary = _h3_pursue(o, a)
 	var lk: Dictionary = a.get("look", {})
 	var first := {}
+	_MI.hit(o, src, a.get("tags", []), hits.map(func(x): return x[1]))   # 近战打击感包（11-07 推全员，docs/291 §8）：只画 / 只发声
 	for hh in hits:
 		var e: Dictionary = hh[1]
 		var pursue: bool = not pu.is_empty() and float(ir.pcd) <= 0.0 and not e.dead and (float(e.get("air", 0.0)) > 0.0 or _h3_is_air(o, e))
