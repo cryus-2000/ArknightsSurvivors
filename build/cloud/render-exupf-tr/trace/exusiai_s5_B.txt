@@ -1,0 +1,3 @@
+# --headless --audio-driver Dummy --path /work/base/game -- --balance --seed=5 --op=exusiai --maxt=300 --trace=1 --bot=expert --prog=1 --op=exusiai --squad=saria,suzuran
+
+
