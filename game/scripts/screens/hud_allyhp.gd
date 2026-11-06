@@ -18,7 +18,13 @@ const LinkBond = preload("res://scripts/run/link_bond.gd")   # 羁绊成立的�
 const HudUltV = preload("res://scripts/screens/hud_ult_v.gd")
 const HudV2 = preload("res://scripts/screens/hud_v2.gd")   # 编辑式 HUD（docs/222，ui/hud_v2）   # 终结技并进左上的原型（A / C）在生命条下多一层，队友行下移 top_add
 var g: Game
-var h
+## The HUD owns its sections; the return link must not retain it after a run.
+var _owner_ref: WeakRef
+var h:
+	get:
+		return _owner_ref.get_ref() if _owner_ref != null else null
+	set(value):
+		_owner_ref = weakref(value) if value != null else null
 
 const LOW := 0.3            # 低于它算低血（红色呼吸）
 const LAG_HOLD := 0.35      # 受击后残影停留秒数，之后按 LAG_SPD / 秒缩到当前血量

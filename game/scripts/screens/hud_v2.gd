@@ -12,7 +12,13 @@ const D = preload("res://scripts/data.gd")
 const LinkBond = preload("res://scripts/run/link_bond.gd")
 const Character = preload("res://scripts/characters/character.gd")
 var g: Game
-var h   # screens/hud.gd
+## The HUD owns its sections; the return link must not retain it after a run.
+var _owner_ref: WeakRef
+var h:
+	get:
+		return _owner_ref.get_ref() if _owner_ref != null else null
+	set(value):
+		_owner_ref = weakref(value) if value != null else null
 
 const HP_COL := Color(0.275, 0.882, 0.941)      # 生命细线（青，同旧条）
 const LINE := Color(1, 1, 1, 0.28)

@@ -114,10 +114,12 @@ func add_tris(pts: PackedVector2Array, cols: PackedColorArray, idx: PackedInt32A
 	var qc := PackedColorArray()
 	q.resize(n)
 	qc.resize(n)
+	# RenderingServer accepts one color for the whole mesh; preserve it when expanding indices.
+	var solid: bool = cols.size() == 1
 	for k in n:
 		var i: int = idx[k]
 		q[k] = pts[i]
-		qc[k] = cols[i]
+		qc[k] = cols[0] if solid else cols[i]
 	_pts.append_array(q)
 	_cols.append_array(qc)
 
@@ -243,8 +245,15 @@ func add_quads(pts: PackedVector2Array, cols: PackedColorArray) -> void:
 		return
 	if mod_on:
 		cols = cols.duplicate()
+		var previous := Color()
+		var dimmed := Color()
+		# Rectangles normally repeat one color six times; modulation is identical for each.
 		for i in cols.size():
-			cols[i] = _dim(cols[i])
+			var raw: Color = cols[i]
+			if i == 0 or raw != previous:
+				previous = raw
+				dimmed = _dim(raw)
+			cols[i] = dimmed
 	_pts.append_array(pts if xf == Transform2D.IDENTITY else xf * pts)
 	_cols.append_array(cols)
 

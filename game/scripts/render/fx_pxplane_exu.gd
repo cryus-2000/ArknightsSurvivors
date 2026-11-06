@@ -36,7 +36,10 @@ const HIT_LIVE := 8
 const MZ_Y := 35.0        # 枪口在脚底上方约 35（seg_exusiai muzzle [30, -35]）：挂在人身上的件排序时往下补回脚底
 const HALO_Y := -72.0     # 队友头顶光环（原数据 off [0, -66] 压在头发上，抬到头顶）
 
-var r      # fx_pxplane 实例
+var _parent: WeakRef
+var r:   # Owner holds this helper; the backreference must not retain its cache.
+	get:
+		return _parent.get_ref()
 var g
 var _cols := {}
 var _beat := {}
@@ -45,7 +48,7 @@ var _kick := {}    # 每人最近一次开火的时刻（后坐 1 美术像素�
 
 
 func _init(px) -> void:
-	r = px
+	_parent = weakref(px)
 	g = px.g
 
 
@@ -258,29 +261,30 @@ func _halos(o, out: Array) -> void:
 
 
 func draw_rt(ci, it: Dictionary) -> void:
+	var renderer = r
 	match str(it.ex):
 		"loop":
-			r._draw_strip(ci, str(it.k), r.frame_of(0.0), it.gp, false, false)
+			renderer._draw_strip(ci, str(it.k), renderer.frame_of(0.0), it.gp, false, false)
 		"once":
-			r._draw_strip(ci, str(it.k), r.frame_of(float(it.t0)), it.gp, false, true)
+			renderer._draw_strip(ci, str(it.k), renderer.frame_of(float(it.t0)), it.gp, false, true)
 		"bul":
 			var bu: Dictionary = it.b
 			var kind: String = str(BKIND.get(str(bu.get("tex", "")), "n"))
 			var tr: bool = not (bu.get("tr", {}) as Dictionary).is_empty()
 			var back: float = float(int(it.n) % 4) * 3.0 if kind == "g" else 0.0   # 倾泻 8 发同一帧出膛：画面上按序号前后错开（只画），不成一排梳子
-			_bullet(ci, bu.p, bu.v, kind, r.tier(it.o), not bu.get("ric", true), tr, back)
+			_bullet(ci, bu.p, bu.v, kind, renderer.tier(it.o), not bu.get("ric", true), tr, back)
 		"xbul":
 			var xb: Dictionary = it.b
-			_bullet(ci, (xb.p as Vector2) + Vector2(0, -18.0), xb.v, "n", r.tier(it.o), true, false)
+			_bullet(ci, (xb.p as Vector2) + Vector2(0, -18.0), xb.v, "n", renderer.tier(it.o), true, false)
 		"barrel":   # 扫射期间枪口发红：2×2 美术像素琥珀，按拍明暗
 			var o = it.o
 			var mz: Vector2 = o.pos + Vector2(30.0 * float(o.face), -MZ_Y)
 			var hot: bool = int(floor(g.t * 15.0)) % 2 == 0
 			for q in [Vector2.ZERO, Vector2(2, 0), Vector2(0, 2), Vector2(2, 2)]:
-				r._px(ci, mz + q, _c("s2", 4 if hot else 3))
-			r._glow(mz, _c("s2", 5))
+				renderer._px(ci, mz + q, _c("s2", 4 if hot else 3))
+			renderer._glow(mz, _c("s2", 5))
 		"line":
-			var f: int = r.frame_of(float(it.t0))
+			var f: int = renderer.frame_of(float(it.t0))
 			if f < 0 or f > 2:
 				return
 			var a: Vector2 = it.a
@@ -290,11 +294,11 @@ func draw_rt(ci, it: Dictionary) -> void:
 				var u: float = float(i) / float(n)
 				if f == 2 and u < 0.5:
 					continue
-				r._px(ci, a.lerp(b, u), _c("n", 5 if f == 0 else 4) if i % 2 == 0 else _c("g", 5 if f == 0 else 4))
+				renderer._px(ci, a.lerp(b, u), _c("n", 5 if f == 0 else 4) if i % 2 == 0 else _c("g", 5 if f == 0 else 4))
 				if f == 0 and i % 4 == 0:
-					r._glow(a.lerp(b, u), _c("g", 6))
+					renderer._glow(a.lerp(b, u), _c("g", 6))
 		"ltr":   # 连携曳光（同 pxplane_exu_art.tracer_line）
-			var f2: int = r.frame_of(float(it.t0))
+			var f2: int = renderer.frame_of(float(it.t0))
 			if f2 < 0 or f2 > 2:
 				return
 			var a2: Vector2 = it.a
@@ -309,13 +313,13 @@ func draw_rt(ci, it: Dictionary) -> void:
 				var q: Vector2 = a2 + dv * float(s) * g.PX
 				if float(s) > head - 18.0:
 					var u2: float = (head - float(s)) / 18.0
-					r._px(ci, q, _c(rp, 6 if u2 < 0.12 else (5 if u2 < 0.4 else 4)))
+					renderer._px(ci, q, _c(rp, 6 if u2 < 0.12 else (5 if u2 < 0.4 else 4)))
 					if u2 < 0.4:
-						r._px(ci, q - nv * g.PX, _c(rp, 4))
+						renderer._px(ci, q - nv * g.PX, _c(rp, 4))
 					if u2 < 0.12:
-						r._glow(q, _c(rp, 6))
+						renderer._glow(q, _c(rp, 6))
 				elif f2 < 2 and _hsh(s, i2, 1) % 3 != 0:
-					r._px(ci, q, _c(rp, 2))
+					renderer._px(ci, q, _c(rp, 2))
 
 
 static func _hsh(x: int, y: int, k: int) -> int:

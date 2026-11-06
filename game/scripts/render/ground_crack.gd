@@ -135,9 +135,12 @@ static func draw(cd: Dictionary, age: float, a: float, c: Color, sink, grow_t :=
 
 ## 写进干员的绘制入口 owner.cv（编队合批画布 characters/batch_canvas.gd，没有时是 g）；每次现取，不缓存画布对象
 class CvSink:
-	var owner
+	var _owner: WeakRef
+	var owner:   # The character owns its sink.
+		get:
+			return _owner.get_ref()
 	func _init(o) -> void:
-		owner = o
+		_owner = weakref(o)
 	func poly(pts: PackedVector2Array, col: Color) -> void:
 		owner.cv.draw_colored_polygon(pts, col)
 	func line(a: Vector2, b: Vector2, col: Color, w: float) -> void:
@@ -146,9 +149,12 @@ class CvSink:
 
 ## 写进 world 的 tb_* 无贴图批（调用方负责之后 tb_flush）
 class TbSink:
-	var w
+	var _world: WeakRef
+	var w:   # The world owns its sink.
+		get:
+			return _world.get_ref()
 	func _init(world) -> void:
-		w = world
+		_world = weakref(world)
 	func poly(pts: PackedVector2Array, col: Color) -> void:
 		w.tb_poly(pts, col)
 	func line(a: Vector2, b: Vector2, col: Color, wd: float) -> void:

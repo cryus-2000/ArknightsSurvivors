@@ -13,7 +13,13 @@ const OpFig = preload("res://scripts/screens/op_figure.gd")
 const MAG := Color8(232, 64, 128)      # 失败 / 击倒（洋红，docs/37）
 const PHONE_MIN_FS := 15
 
-var s          # settlement_screen
+# The screen owns its style; the backref must not retain run artwork.
+var _screen_ref: WeakRef
+var s:
+	get:
+		return _screen_ref.get_ref() if _screen_ref != null else null
+	set(value):
+		_screen_ref = weakref(value) if value != null else null
 var ci: CanvasItem
 var won := true
 var t := 0.0

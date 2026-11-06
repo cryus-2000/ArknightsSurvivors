@@ -24,7 +24,10 @@ const TIDE_LIGHT := Color(1.0, 0.72, 0.84)
 const PIERCE_N := 3        # 一刺至多画 3 只身上的贯穿
 const RT_MAX := 48         # 运行时件上限（整队）
 
-var r      # fx_pxplane 实例
+var _parent: WeakRef
+var r:   # Owner holds this helper; the backreference must not retain its cache.
+	get:
+		return _parent.get_ref()
 var g
 var rt: Array = []         # 运行时件：{k, t0, life, …}
 var _lamp := {}            # 连携提灯：干员对象 id → 截止时间
@@ -34,7 +37,7 @@ var _beat := {}
 
 
 func _init(px) -> void:
-	r = px
+	_parent = weakref(px)
 	g = px.g
 
 

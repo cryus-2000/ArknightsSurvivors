@@ -24,14 +24,17 @@ const QI_MAX := 20         # 每人同屏晶刺上限（fx_pxplane 件表整队�
 const CHIP_SZ := [4, 4, 4, 2]   # 碎晶屑边长（世界像素）：3 / 4 是 4 px 大颗、1 / 4 是 2 px 点缀，平均 3.5（docs/270 §3：平均边长 ≥ 3；原 shard 2 / 4 各半实测 2.8）
 const HIT_N := 3           # 一记盾击至多画 3 只身上的命中芒
 
-var r      # fx_pxplane 实例
+var _parent: WeakRef
+var r:   # Owner holds this helper; the backreference must not retain its cache.
+	get:
+		return _parent.get_ref()
 var g
 var _beat := {}
 var _seg = null
 
 
 func _init(px) -> void:
-	r = px
+	_parent = weakref(px)
 	g = px.g
 
 
