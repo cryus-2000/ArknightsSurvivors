@@ -5700,10 +5700,13 @@ func update_player_feel(dt: float) -> void:
 		var ph: float = absf(sin(g.walk_t))
 		target_sq = Vector2(1.0 + 0.05 * ph, 1.0 - 0.06 * ph)
 		target_lean = 0.09 * g.facing
-		p_dust_t -= dt
-		if p_dust_t <= 0.0:
-			p_dust_t = 0.2
-			feet_dust(2, 60.0)
+		# 扬尘只在对局里出（docs/303）：这里按真实时间走，暂停 / 三选一 / 属性面板时 g.moving 还停在 true，
+		# 原来每秒照出 10 颗、而 fx 寿命只在模拟里扣 —— 面板开多久就堆多久（实测 15 分钟 7600 个、网页帧时 25 → 90 ms）
+		if g.state == Game.S.PLAY:
+			p_dust_t -= dt
+			if p_dust_t <= 0.0:
+				p_dust_t = 0.2
+				feet_dust(2, 60.0)
 	elif alive:
 		target_sq = Vector2(1.0 - 0.012 * sin(g.t * 2.2), 1.0 + 0.022 * sin(g.t * 2.2))
 	# 挥伞：出手瞬间前倾 + 拉伸，随后回弹
