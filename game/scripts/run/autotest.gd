@@ -1830,6 +1830,8 @@ func _bossmoves_step(spec: String) -> void:
 	match bm_state:
 		"idle":
 			if bm_i >= bm_list.size():
+				if _fr_left > 0 and _fr_t0 > 0.0:
+					return   # 临时探针：录帧没录完先不退
 				if g.at_frames % 10 == 0:
 					print("BOSSMOVES END %s shots=%d" % [bm_tag, bm_i])
 					g.get_tree().quit()
