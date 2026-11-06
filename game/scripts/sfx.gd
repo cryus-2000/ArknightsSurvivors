@@ -31,7 +31,7 @@ const OP_SFX := {
 	"ulpianus": ["atk", "s1", "s2", "s3", "big"],
 	# 网上 CC0 录音截取（docs/113 §8，tools/import_sfx_cc0.py）：能天使枪声 / 命中 / 弹匣倾泻、德克萨斯刀划、星熊格挡；其余类别仍走 OP_ALT 借用
 	"exusiai": ["atk", "atk_b", "atk_c", "hit", "s1", "s2", "s3", "big"],   # 10-25 用户「能天使的音效没有替换」：三条枪声轮换 + 技能连射全换（docs/113 §17）
-	"texas": ["atk", "hit"],
+	"texas": ["atk", "hit", "s3"],   # s3：原作剑雨 p_skill_swordrain（11-07，game/tools/gen_sfx_texas_s3_1107.py），不再借艾丽妮
 	"hoshiguma": ["hit"],
 }
 ## 各类别的默认音量（dB）：普攻 / 命中最频繁，压低；技能发动是一局里少数几次的"高光"，放开
