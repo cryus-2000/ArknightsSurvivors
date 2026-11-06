@@ -79,3 +79,13 @@
 - K0–K3（`K_review.png` 有 K0 / K2）：水月单人站立 + 青光水母。用户：不好看、没设计感。
 - 三方向草稿（`concepts_scale_dyn_halo.png`，生图 build/imagegen/cover1107_{scale,dyn,halo}）：尺度对比 / 动势斜冲 / 图形光环。各只出 1 张（Vertex 限流 RESOURCE_EXHAUSTED）。
 - 待办：用户挑方向 → 该方向多出几张、提示词加大顶部留白（现三张都让标题压到画面）→ 出 itch 封面 / 横幅（21:9 外扩）/ Toy 1200×900 → 交协调人合入。Claude 倾向「动势斜冲」。
+
+## 定稿（11-07 用户「定稿合入」）：重绘版 H_t1_regen
+- itch 封面：`art/promo/itch/cover_g/cover_H_t1_regen_itch_cover_630x500.png`
+- itch 横幅：`art/promo/itch/cover_g/cover_H_t1_regen_itch_banner_960x400.png`
+- B站 Toy 海报：`art/promo/itch/cover_g/cover_H_t1_regen_toy_poster_1200x900.png`（4:3）
+- 副本：`Claude outputs/cover_1107/final/`。上传 itch / Toy 由用户本人做（发布脚本里没有封面路径，不用改代码）。
+- 做法：背景 = relit0 去怪 → 游戏海嗣高清原稿按「灯火暗淡」（docs/222 DARK_MOD）手工摆位 → 场景交 Gemini 整体重绘（cover1107_regen / regenw）；
+  水月 = 游戏内精灵 mizuki_runtime_s1_attack 第 1 帧（不经 AI），1 精灵像素 = 1 格，站光池亮度重心；标题 = 标题页 A′ 排法；右下「明日方舟同人 · Arknights fan work」。
+- 重出：`python art/promo/itch/cover_g/build_cover_h.py --frames t:1 --bg build/imagegen/cover1107_regen/raw_*_1.png --banner_bg build/imagegen/cover1107_regenw/raw_*.png --placed --suffix _regen`（生图在 build/，不进 git）。
+- 本目录其余 cover_*.png 是过程稿，可留档或另行清理。
