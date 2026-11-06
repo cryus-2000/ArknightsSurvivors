@@ -1,0 +1,12 @@
+# render_lifetime
+# 参数：--headless --path /work/repo/game res://tests/render_lifetime_test.tscn -- --regression --seed=1 --lifetime-test
+# 用时 9 秒；结束时全机 Godot 15 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+RENDER LIFETIME failures=0
+
+
+## stderr
+
