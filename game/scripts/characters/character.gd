@@ -2965,7 +2965,7 @@ func draw_body() -> void:
 		var fl: float = g.elite_moment.flash(self)   # 精英化时刻爆亮（docs/249 §2）
 		if fl > 0.0:
 			mod = Color(mod.r * (1.0 + 2.2 * fl), mod.g * (1.0 + 2.2 * fl), mod.b * (1.0 + 2.2 * fl), mod.a)
-	var evo_k: float = Fxr.Pxp.MI.peak(self)   # 打击感进化（docs/289，fx/melee_evo，只画）：巅峰帧提亮 / 扇形拉丝 / 拉丝残影 / 过冲前探
+	var evo_k: float = Fxr.Pxp.MI.peak(self)   # 打击感进化（docs/291，fx/melee_evo，只画）：巅峰帧提亮 / 扇形拉丝 / 拉丝残影 / 过冲前探
 	if evo_k != 1.0:
 		mod = Color(mod.r * evo_k, mod.g * evo_k, mod.b * evo_k, mod.a)
 	var base: Vector2 = pos + Vector2(0, arrive_dy()) + Fxr.Pxp.recoil(self)

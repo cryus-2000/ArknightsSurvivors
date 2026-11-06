@@ -57,7 +57,7 @@ static func hit(o, src: String, tags: Array, hits: Array) -> void:
 		e["mi_dir"] = d.normalized() if d.length() > 0.5 else Vector2.RIGHT
 		e["mi_px"] = px * (0.4 if e.get("boss", false) else (0.7 if e.get("elite", false) else 1.0))
 		e["mi_col"] = col
-	_evo_hit(o, hits, 0.0, heavy, col)   # 打击感进化（docs/289）：全局顿帧停 g.t，自然停住
+	_evo_hit(o, hits, 0.0, heavy, col)   # 打击感进化（docs/291）：全局顿帧停 g.t，自然停住
 
 
 ## world._eoff 叠加：推开 fx/melee_impact_push_in 秒、fx/melee_impact_push_back 秒弹回（画面位移，按美术像素取整）
@@ -136,7 +136,7 @@ static func meat(o, src: String, hits: Array) -> void:
 		e["mi_dir"] = d.normalized() if d.length() > 0.5 else Vector2.RIGHT
 		e["mi_px"] = px * (0.4 if e.get("boss", false) else (0.7 if e.get("elite", false) else 1.0))
 		e["mi_col"] = Color(1, 1, 1)
-	_evo_hit(o, hits, sec if hold else 0.0, heavy, EVO_COL.get(oid, IDS.get(oid, Color(1.0, 0.8, 0.5))))   # 打击感进化（docs/289）
+	_evo_hit(o, hits, sec if hold else 0.0, heavy, EVO_COL.get(oid, IDS.get(oid, Color(1.0, 0.8, 0.5))))   # 打击感进化（docs/291）
 	if not hold:
 		return
 	if g.has_meta("fx_pxplane"):
@@ -149,7 +149,7 @@ static func meat(o, src: String, hits: Array) -> void:
 
 
 
-# ================================================================ 打击感进化（docs/289，11-07 用户给的像素近战文章：蓄力 → 过冲爆发 → 稳重心收招）
+# ================================================================ 打击感进化（docs/291，11-07 用户给的像素近战文章：蓄力 → 过冲爆发 → 稳重心收招）
 ## 开关 fx/melee_evo（缺省 0 = 关）+ 按干员 fx/melee_evo_op/<干员>（试点德克萨斯、星熊）。全部只画，不抽 g.rng，不新增顿帧（时钟不变）。
 ##   ① 过冲前探：命中那一拍本体往目标方向探出 lunge_px（爆发 = 一拍到位），停帧期间保持，之后 lunge_back 秒按 15 fps 节拍退回（收招慢于爆发）；
 ##   ② 拉丝残影：探出那两拍在原位与探出位之间留 2 个本色渐隐分身（像素拉丝）；
