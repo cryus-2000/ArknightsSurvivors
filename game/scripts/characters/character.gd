@@ -2965,7 +2965,12 @@ func draw_body() -> void:
 		var fl: float = g.elite_moment.flash(self)   # 精英化时刻爆亮（docs/249 §2）
 		if fl > 0.0:
 			mod = Color(mod.r * (1.0 + 2.2 * fl), mod.g * (1.0 + 2.2 * fl), mod.b * (1.0 + 2.2 * fl), mod.a)
-	draw_sprite_at(pos + Vector2(foot_dx(st), 0) + Vector2(0, arrive_dy()) + Fxr.Pxp.recoil(self), st.flip, mod, st.frame, st.tex, st.hf, foot_off(st.tex, st.get("kind", "")))   # recoil：转平面开火后坐（docs/262，只画）
+	var evo_k: float = Fxr.Pxp.MI.peak(self)   # 打击感进化（docs/289，fx/melee_evo，只画）：巅峰帧提亮 / 扇形拉丝 / 拉丝残影 / 过冲前探
+	if evo_k != 1.0:
+		mod = Color(mod.r * evo_k, mod.g * evo_k, mod.b * evo_k, mod.a)
+	var base: Vector2 = pos + Vector2(0, arrive_dy()) + Fxr.Pxp.recoil(self)
+	Fxr.Pxp.MI.draw_under(self, st, base, foot_dx(st), foot_off(st.tex, st.get("kind", "")))
+	draw_sprite_at(base + Vector2(foot_dx(st), 0) + Fxr.Pxp.MI.lunge(self), st.flip, mod, st.frame, st.tex, st.hf, foot_off(st.tex, st.get("kind", "")))   # recoil：转平面开火后坐（docs/262，只画）
 
 
 ## 就地解散后在落点淡入（squad.blink_fx，11-02 取代向上跳出屏幕）：warp_t 由 world.update_visuals 推进，< 0 = 不在瞬回。纯画面

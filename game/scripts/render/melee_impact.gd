@@ -57,6 +57,7 @@ static func hit(o, src: String, tags: Array, hits: Array) -> void:
 		e["mi_dir"] = d.normalized() if d.length() > 0.5 else Vector2.RIGHT
 		e["mi_px"] = px * (0.4 if e.get("boss", false) else (0.7 if e.get("elite", false) else 1.0))
 		e["mi_col"] = col
+	_evo_hit(o, hits, 0.0, heavy, col)   # 打击感进化（docs/289）：全局顿帧停 g.t，自然停住
 
 
 ## world._eoff 叠加：推开 fx/melee_impact_push_in 秒、fx/melee_impact_push_back 秒弹回（画面位移，按美术像素取整）
@@ -135,6 +136,7 @@ static func meat(o, src: String, hits: Array) -> void:
 		e["mi_dir"] = d.normalized() if d.length() > 0.5 else Vector2.RIGHT
 		e["mi_px"] = px * (0.4 if e.get("boss", false) else (0.7 if e.get("elite", false) else 1.0))
 		e["mi_col"] = Color(1, 1, 1)
+	_evo_hit(o, hits, sec if hold else 0.0, heavy, EVO_COL.get(oid, IDS.get(oid, Color(1.0, 0.8, 0.5))))   # 打击感进化（docs/289）
 	if not hold:
 		return
 	if g.has_meta("fx_pxplane"):
@@ -145,3 +147,160 @@ static func meat(o, src: String, hits: Array) -> void:
 		sfx.ensure([nm])
 		sfx.play(nm, opk(oid, "snd_db", -5.0) + (0.0 if heavy else -3.0), 1.0, 0.05)
 
+
+
+# ================================================================ 打击感进化（docs/289，11-07 用户给的像素近战文章：蓄力 → 过冲爆发 → 稳重心收招）
+## 开关 fx/melee_evo（缺省 0 = 关）+ 按干员 fx/melee_evo_op/<干员>（试点德克萨斯、星熊）。全部只画，不抽 g.rng，不新增顿帧（时钟不变）。
+##   ① 过冲前探：命中那一拍本体往目标方向探出 lunge_px（爆发 = 一拍到位），停帧期间保持，之后 lunge_back 秒按 15 fps 节拍退回（收招慢于爆发）；
+##   ② 拉丝残影：探出那两拍在原位与探出位之间留 2 个本色渐隐分身（像素拉丝）；
+##   ③ 扇形拉丝：本体手部高度朝目标画一道实心扇形色块（不对称月牙：尾细头粗，头部近白），2 拍：满形 → 只剩头部暗带 → 没；按 2 世界像素格逐行画；
+##   ④ 巅峰帧：命中第一拍本体提亮（peak）；
+##   ⑤ 蹬地尘：命中时脚下往身后扬 dust 颗尘点（g.vrng）。
+const EVO_COL := {"texas": Color("#ffac3c")}   # 德克萨斯定稿琥珀次色（docs/257 §10）
+
+
+static func evo(o) -> bool:
+	return o != null and on(o.g) and Bal.v("fx/melee_evo", 0.0) > 0.0 and Bal.v("fx/melee_evo_op/" + str(o.id), 0.0) > 0.0
+
+
+static func ek(key: String, d: float) -> float:
+	return Bal.v("fx/melee_evo_" + key, d)
+
+
+## 命中时记下（hit / meat 调）：hold 局部停帧秒数（全局顿帧本来就停 g.t，传 0）
+static func _evo_hit(o, hits: Array, hold: float, heavy: bool, col: Color) -> void:
+	if not evo(o):
+		return
+	var g = o.g
+	var best = null
+	var bd := INF
+	for e in hits:
+		if e is Dictionary and not e.get("dead", false):
+			var dd: float = e.pos.distance_squared_to(o.pos)
+			if dd < bd:
+				bd = dd
+				best = e
+	if best == null:
+		return
+	var d: Vector2 = best.pos - o.pos
+	var dir: Vector2 = d.normalized() if d.length() > 0.5 else Vector2.RIGHT
+	var m: Dictionary = o.get_meta("me_ev", {})
+	if not m.is_empty() and g.t - float(m.t) < 1.0 / 15.0:
+		return   # 同一拍里的第二下不再重起（高频出刀不抖）
+	o.set_meta("me_ev", {"t": g.t, "hold": maxf(0.0, hold), "dir": dir, "reach": clampf(sqrt(bd), 26.0, 64.0), "col": col, "heavy": heavy, "sd": int(g.t * 997.0) % 7})
+	var n: int = int(ek("dust", 3.0))
+	if n > 0 and g.has_meta("fx_recipe"):
+		var R = g.get_meta("fx_recipe")
+		R._grains(o, o.pos + Vector2(0, -2), o.pos.y, "dust", n + (1 if heavy else 0), {"c0": Color(0.62, 0.58, 0.52), "c1": Color(0.38, 0.35, 0.32), "grain_spd": 0.7}, -dir)
+
+
+static func _evo_age(o) -> Array:
+	var m: Dictionary = o.get_meta("me_ev", {})
+	if m.is_empty() or not evo(o):
+		return []
+	var age: float = o.g.t - float(m.t)
+	if age < 0.0 or age > float(m.hold) + 0.5:
+		return []
+	return [m, age]
+
+
+## ① 本体画面偏移（character.draw_body 叠加；判定位置不动）
+static func lunge(o) -> Vector2:
+	var a := _evo_age(o)
+	if a.is_empty():
+		return Vector2.ZERO
+	var m: Dictionary = a[0]
+	var age: float = a[1]
+	var b := 1.0 / 15.0
+	var px: float = ek("lunge_heavy_px", 7.0) if m.heavy else ek("lunge_px", 4.0)
+	var k := 1.0
+	var t1: float = float(m.hold) + b
+	if age > t1:
+		var back: float = maxf(b, ek("lunge_back", 0.2))
+		var u: float = floor((age - t1) * 15.0) / 15.0 / back   # 按节拍跳格退回
+		if u >= 1.0:
+			return Vector2.ZERO
+		k = (1.0 - u) * (1.0 - u)   # 先退得快、最后稳住（收招有落地感）
+	return ((m.dir as Vector2) * px * k / 2.0).round() * 2.0
+
+
+## ④ 本体提亮倍数
+static func peak(o) -> float:
+	var a := _evo_age(o)
+	if a.is_empty() or float(a[1]) >= 1.0 / 15.0:
+		return 1.0
+	return ek("peak", 1.7)
+
+
+## ②③ 画在本体下面（character.draw_body 在画本体之前调）
+static func draw_under(o, st: Dictionary, base: Vector2, foot_dx: float, foot_off: float) -> void:
+	var a := _evo_age(o)
+	if a.is_empty():
+		return
+	var m: Dictionary = a[0]
+	var age: float = a[1]
+	var g = o.g
+	var beat: int = int(floor(age * 15.0))
+	var hb: int = int(floor(float(m.hold) * 15.0))   # 停帧期间扇形停在第一拍
+	var ph: int = beat - hb if beat > hb else 0
+	if ek("fan", 1.0) > 0.0 and ph <= 1:
+		_fan(o, m, base, ph)
+	if ek("smear", 1.0) > 0.0 and ph <= 1:
+		var ln: Vector2 = lunge(o)
+		var c: Color = (m.col as Color).lerp(Color.WHITE, 0.25)
+		var al: Array = [0.42, 0.2] if ph == 0 else [0.2, 0.0]
+		for i in 2:
+			if float(al[i]) <= 0.0:
+				continue
+			var p: Vector2 = base + (ln * (0.5 - 0.5 * i) - (m.dir as Vector2) * 4.0 * i / 2.0).round()
+			o.draw_sprite_at(p + Vector2(foot_dx, 0), st.flip, Color(c.r * 1.3, c.g * 1.3, c.b * 1.3, float(al[i])), st.frame, st.tex, st.hf, foot_off)
+
+
+static func _fan(o, m: Dictionary, base: Vector2, ph: int) -> void:
+	var g = o.g
+	var cv = o.cv
+	var dir: Vector2 = m.dir
+	var c0: Vector2 = base + Vector2(0, -ek("hand_y", 20.0)) + dir * 4.0
+	var R1: float = float(m.reach) * ek("fan_reach", 0.8) * (1.15 if m.heavy else 1.0)
+	var R0: float = R1 * 0.38
+	var sw: float = deg_to_rad(ek("fan_deg", 84.0))
+	var flip: float = -1.0 if dir.x < 0.0 else 1.0   # 自上而下挥：尾在上、头在目标方向略偏下
+	var a_head: float = dir.angle() + 0.18 * flip
+	var a_tail: float = a_head - sw * flip
+	var col: Color = m.col
+	var cc: Color = col.lerp(Color.WHITE, 0.15)
+	var hot: Color = col.lerp(Color.WHITE, 0.8)
+	var aa: float = ek("fan_alpha", 0.72) * (1.0 if ph == 0 else 0.55)
+	var s := 2.0   # 美术像素格（世界 2 px）
+	var bx := Rect2(c0 - Vector2(R1, R1), Vector2(R1, R1) * 2.0)
+	var y: float = floor(bx.position.y / s) * s
+	while y < bx.end.y:
+		var x: float = floor(bx.position.x / s) * s
+		var run_x := -1.0
+		var run_c := Color(0, 0, 0, 0)
+		while x <= bx.end.x + s:
+			var q: Vector2 = Vector2(x + s * 0.5, y + s * 0.5) - c0
+			var cell := Color(0, 0, 0, 0)
+			var r: float = q.length()
+			if r <= R1 and r >= R0 * 0.6:
+				var da: float = wrapf((q.angle() - a_tail) * flip, -PI, PI)
+				var u: float = da / sw   # 0 尾 → 1 头
+				if u >= 0.0 and u <= 1.0:
+					var inner: float = lerpf(R1 - 3.0, R0, pow(u, 0.7)) + 2.0 * sin(u * 11.0 + float(m.sd))   # 尾细头粗，内缘略不规整
+					if ph == 1:
+						inner = maxf(inner, R1 - lerpf(2.0, 8.0, u))   # 第二拍只剩头部外缘暗带
+					if r >= inner:
+						var edge: bool = r > R1 - 4.0 and u > 0.35
+						if ph == 0:
+							cell = hot if edge or u > 0.86 else cc
+						else:
+							cell = col.darkened(0.25)
+			if cell != run_c:
+				if run_c.a > 0.0:
+					cv.draw_rect(Rect2(run_x, y, x - run_x, s), Color(run_c.r, run_c.g, run_c.b, aa))
+				run_c = cell
+				run_x = x
+			x += s
+		if run_c.a > 0.0:
+			cv.draw_rect(Rect2(run_x, y, x - run_x, s), Color(run_c.r, run_c.g, run_c.b, aa))
+		y += s
