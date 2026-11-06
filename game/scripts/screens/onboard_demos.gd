@@ -17,7 +17,7 @@ const C_DEPLOY := Color(0.36, 0.78, 1.0)
 
 ## 每张卡一轮的秒数
 const LOOP := {"move": 4.0, "xp": 4.8, "lamp": 5.2, "recruit": 5.0, "merchant": 5.0, "boss": 4.4, "squad": 4.0,
-	"command": 8.0, "deploy": 8.0, "regroup": 8.0, "drill_end": 4.0, "ult": 4.4, "link": 4.2, "mire": 5.2, "nodes": 4.0}
+	"command": 8.0, "deploy": 8.0, "regroup": 8.0, "drill_end": 4.0, "ult": 4.4, "link": 4.2, "mire": 5.2, "beacon": 5.6, "focus": 7.0, "nodes": 4.0}
 
 
 static func draw(ci: CanvasItem, id: String, r: Rect2, t: float, ctx: Dictionary) -> void:
@@ -45,8 +45,10 @@ static func draw(ci: CanvasItem, id: String, r: Rect2, t: float, ctx: Dictionary
 			_ult(ci, r, tl, ctx)
 		"link":
 			_link(ci, r, tl, ctx)
-		"mire":
-			_mire(ci, r, tl, ctx)
+		"mire", "beacon":
+			_mire(ci, r, tl, ctx, id)   # 演示局「引航灯标」沿用溟痕卡的画法，点燃后多一行灯火 / 庇护
+		"focus":
+			_focus(ci, r, tl, ctx)
 		"nodes":
 			_nodes(ci, r, tl, ctx)
 	ci.draw_rect(r, Color(1, 1, 1, 0.14), false, 1.0)
@@ -572,7 +574,7 @@ static func _link(ci: CanvasItem, r: Rect2, t: float, ctx: Dictionary) -> void:
 
 
 ## 溟痕与引航灯标：溟痕铺地 → 站到灯标旁读条 → 灯标亮起，溟痕退散
-static func _mire(ci: CanvasItem, r: Rect2, t: float, ctx: Dictionary) -> void:
+static func _mire(ci: CanvasItem, r: Rect2, t: float, ctx: Dictionary, id := "mire") -> void:
 	var clear: float = _e(ph(t, 3.0, 4.2))
 	var spots := [[0.3, 0.5, 0.2], [0.7, 0.72, 0.22], [0.82, 0.4, 0.16], [0.18, 0.82, 0.15], [0.55, 0.85, 0.14]]
 	for s in spots:
@@ -593,7 +595,94 @@ static func _mire(ci: CanvasItem, r: Rect2, t: float, ctx: Dictionary) -> void:
 		ci.draw_arc(bc + Vector2(0, -_h(r) * 0.85), r.size.y * 0.1, -PI / 2.0, -PI / 2.0 + TAU * prog, 32, UI.GOLD, 2.5)
 	light(ci, lp, r.size.y * 0.3, 0.8)
 	fig(ci, ctx.lead, lp, r, t)
+	if id == "beacon":
+		# 演示局：点燃后圈里亮起暖光、队长头上飘「灯火 +5」，再标出庇护（回复 / 攻速）
+		if lit > 0.0:
+			var up: float = ph(t, 3.3, 4.3)
+			tag(ci, ctx.font, lp + Vector2(-_h(r) * 0.2, -_h(r) * 1.0 - up * r.size.y * 0.08), "灯火 +5", UI.GOLD, _fsz(r), (1.0 - ph(t, 4.4, 5.0)) * ph(t, 3.3, 3.5))
+		tag(ci, ctx.font, P(r, 0.03, 0.05), "走进光圈，停留约 3 秒" if lit < 1.0 else "溟痕退散 · 灯标庇护 30 秒", UI.GOLD, _fsz(r), 0.9)
+		return
 	tag(ci, ctx.font, P(r, 0.03, 0.05), "点燃引航灯标" if lit < 1.0 else "溟痕退散", UI.GOLD, _fsz(r), 0.9)
+
+
+## 集火：指挥键 → 圆盘选「集火」→ 准星 / 手指点中精英 → 全队冲上去集中攻击它（周围的小怪不理），精英倒下
+static func _focus(ci: CanvasItem, r: Rect2, t: float, ctx: Dictionary) -> void:
+	var g = ctx.g
+	var font: Font = ctx.font
+	var FOCUS_COL := Color(1.0, 0.239, 0.545)
+	var lp := P(r, 0.2, 0.66)
+	var home := [P(r, 0.12, 0.5), P(r, 0.11, 0.82)]
+	var tgt := P(r, 0.74, 0.58)
+	var spots := [P(r, 0.52, 0.4), P(r, 0.55, 0.78)]
+	light(ci, lp, r.size.y * 0.4, 1.0)
+	# 精英：比小怪大一圈；被锁定后外面一圈洋红准星角标；3.1 秒起挨打，血条掉到 0，4.9 秒倒下
+	var hp: float = 1.0 - ph(t, 3.2, 4.9)
+	var dead: float = ph(t, 4.9, 5.2)
+	# 周围两只小怪：不会被集火带走（一直在原位晃）
+	for i in 2:
+		blob(ci, P(r, 0.5 + 0.34 * i, 0.3 + 0.4 * i), r.size.y * 0.05, 1.0, 0.0)
+	if t < 5.2:
+		blob(ci, tgt, r.size.y * 0.11, 1.0 - dead, dead + (0.25 if t >= 3.2 and fmod(t, 0.3) < 0.1 else 0.0))
+		var bw: float = r.size.y * 0.3
+		ci.draw_rect(Rect2(tgt + Vector2(-bw / 2.0, -r.size.y * 0.17), Vector2(bw, 3.0)), Color(0, 0, 0, 0.6 * (1.0 - dead)))
+		ci.draw_rect(Rect2(tgt + Vector2(-bw / 2.0, -r.size.y * 0.17), Vector2(bw * hp, 3.0)), _ca(FOCUS_COL, 1.0 - dead))
+	# 锁定角标（准星点中的那一刻起）
+	var lk: float = ph(t, 2.5, 2.7)
+	if lk > 0.0 and t < 5.2:
+		var q: float = r.size.y * (0.2 - 0.04 * lk)
+		for sx in [-1.0, 1.0]:
+			for sy in [-1.0, 1.0]:
+				var c0: Vector2 = tgt + Vector2(sx * q, sy * q)
+				ci.draw_line(c0, c0 + Vector2(-sx * q * 0.4, 0), _ca(FOCUS_COL, lk * (1.0 - dead)), 2.0)
+				ci.draw_line(c0, c0 + Vector2(0, -sy * q * 0.4), _ca(FOCUS_COL, lk * (1.0 - dead)), 2.0)
+	# 队友：2.7 秒起冲到精英身边，3.2 起连续斩击
+	for i in 2:
+		var p: Vector2 = home[i]
+		if t >= 2.7:
+			p = home[i].lerp(spots[i], _e(ph(t, 2.7, 3.2)))
+		if t >= 5.4:
+			p = spots[i].lerp(home[i], _e(ph(t, 5.4, 6.1)))
+		if t > 2.75 and t < 3.2:
+			ci.draw_line(home[i], p, _ca(UI.GOLD, 0.5), 3.0)
+		if t > 3.2 and t < 4.9:
+			var sl: float = fmod((t - 3.2) * 2.4 + i * 0.5, 1.0)
+			ci.draw_arc(p + Vector2(_h(r) * 0.35, -_h(r) * 0.4), _h(r) * 0.35, -1.2 + sl * 1.6, -0.4 + sl * 1.6, 10, _ca(FOCUS_COL, 1.0 - sl), 2.0)
+		fig(ci, ctx.mates[i] if i < (ctx.mates as Array).size() else {}, p, r, t + i * 0.3)
+	fig(ci, ctx.lead, lp, r, t)
+	# 圆盘（0.3–1.7 秒）：真圆盘，悬停「集火」
+	var wc := r.get_center()
+	if g != null and g.get("wheel") != null and t >= 0.3 and t < 1.95:
+		var fi: int = g.wheel.item_index("focus")
+		ci.draw_rect(r, Color(0, 0, 0, 0.35 * (1.0 - ph(t, 1.7, 1.95))))
+		var k: float = r.size.y / (2.0 * 196.0 + 90.0)
+		var hov: int = fi if t >= 1.1 else -1
+		g.wheel.draw_demo(wc, k, t - 0.3, hov, t - 1.1 if t >= 1.1 else 0.0, ph(t, 1.7, 1.95))
+		if fi >= 0:
+			var ang: float = deg_to_rad(float(g.wheel.ANG[fi]))
+			var to: Vector2 = wc + Vector2.from_angle(ang) * (70.0 + 196.0) * 0.5 * k
+			var pp: Vector2 = wc.lerp(to, _e(ph(t, 0.55, 1.1)))
+			if ctx.touch:
+				finger(ci, pp, r.size.y * 0.06, ph(t, 1.5, 1.7))
+			else:
+				cursor(ci, pp, r.size.y * 0.11)
+	# 选完：准星从圆盘中心移到精英，点一下
+	if t >= 1.95 and t < 3.0:
+		var pp2: Vector2 = wc.lerp(tgt, _e(ph(t, 1.95, 2.5)))
+		if ctx.touch:
+			finger(ci, pp2, r.size.y * 0.06, ph(t, 2.45, 2.6))
+		else:
+			cursor(ci, pp2, r.size.y * 0.11)
+	# 指挥键（开圆盘前按一下），键名按 play_keys 取
+	var lit: float = 1.0 if t >= 0.05 and t < 0.35 else 0.0
+	if ctx.touch:
+		tbtn(ci, font, P(r, 0.9, 0.84), r.size.y * 0.1, "指挥", lit)
+	else:
+		var kn: String = g.onboard.key_of("command") if g != null and g.get("onboard") != null else "F"
+		key(ci, font, P(r, 0.92, 0.86), r.size.y * 0.15, kn, lit)
+	var labels := [["① 打开圆盘，选「集火」", 0.0, 2.0, FOCUS_COL], ["② 点中精英", 2.0, 3.1, FOCUS_COL], ["③ 全队攻击该目标", 3.1, 5.4, UI.GOLD], ["目标倒下，恢复自动作战", 5.4, 7.0, UI.GOLD]]
+	for lb in labels:
+		if t >= lb[1] and t < lb[2]:
+			tag(ci, font, P(r, 0.03, 0.05), lb[0], lb[3], _fsz(r), ph(t, lb[1], lb[1] + 0.15) * (1.0 - ph(t, lb[2] - 0.15, lb[2])))
 
 
 ## 节点卡：三张卡背 → 选中一张抬起 → 翻开

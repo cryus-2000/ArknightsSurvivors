@@ -394,7 +394,7 @@
   "_doc": "新手引导演示局（docs/219）：Cfg.onboard = new 且没走过演示局时，第一局是 1–2 分钟的演示局（移动 → 升级 → 招募 → 终结技），结束后重开进正式局；演示局里怪物密度 × density、敌人伤害 × enemy_dmg，最晚 drill_max 秒强制结束（11-02 起两条线都走演示局：玩过 = 快速版；第一次进游戏强制走完、总长 ≤ 90 秒，150 → 90，docs/219 §6）。只在真人局生效，机器人 / 批跑不受影响",
   "density": 0.5,
   "enemy_dmg": 0.5,
-  "drill_max": 90
+  "drill_max": 160
  },
  "levelup": {
   "_doc": "升级卡池（game.gd _open_levelup）",

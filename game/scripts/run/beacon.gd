@@ -50,11 +50,12 @@ func update(dt: float) -> void:
 		_log("mires")
 	if next_at < 0.0:
 		var first: float = float(g.map.mire_cfg().get("first_at", 100.0))
-		if g.t < first:
-			return
-		next_at = g.t + g.rng.randf_range(_k("every_min", 60.0), _k("every_max", 75.0)) * float(g.dmod.get("beacon_every", 1.0)) * _guide("every", 1.0)
+		if g.t >= first:
+			next_at = g.t + g.rng.randf_range(_k("every_min", 60.0), _k("every_max", 75.0)) * float(g.dmod.get("beacon_every", 1.0)) * _guide("every", 1.0)
+		elif g.beacons.is_empty():
+			return   # 自然溟痕还没开始、场上也没灯标（演示局放的除外：新手引导「引航灯标」一步要能读条点燃）
 	# 刷新：场上最多 1 座未点燃；Boss 在场时照样刷（协调人 9/29：Boss 战正是溟痕最多、最需要安全区的时候）
-	if g.t >= next_at:
+	if next_at >= 0.0 and g.t >= next_at:
 		next_at = g.t + g.rng.randf_range(_k("every_min", 60.0), _k("every_max", 75.0)) * float(g.dmod.get("beacon_every", 1.0)) * _guide("every", 1.0)
 		if not g.beacons.any(func(b): return not b.lit):
 			_spawn()
@@ -174,6 +175,22 @@ func _spawn() -> void:
 	spawned_n += 1
 	g.vfx.show_banner("引航灯标出现了 —— 站进光圈点燃它，驱散溟痕")
 	_log("spawn")
+
+
+## 新手引导演示局放一座灯标（onboard.gd「引航灯标」一步）：不取随机数（同 seed 的正式局不受影响）、不弹横幅（卡片已经在说）
+func spawn_demo(p: Vector2) -> Dictionary:
+	var b := {"pos": p, "lit": false, "prog": 0.0, "need": _k("need", 2.5), "lit_t": -1.0, "count_end": 0.0, "count_max": 0.0, "dead": false,
+		"r": _k("r", 70.0), "clear_r": _k("clear_r", 260.0), "safe_end": 0.0, "age": 0.0, "out_t": 0.0,
+		"min_d": INF, "hold_s": 0.0, "guide_r": 0.0, "guide_life": _k("guide_life", 45.0), "in_s": 0.0, "maxp": 0.0}
+	g.beacons.append(b)
+	return b
+
+
+## 新手引导：玩家等太久没点，由引导代点亮（演示一遍效果）
+func light_demo(b: Dictionary) -> void:
+	if not b.lit and not b.dead:
+		b["via"] = "demo"
+		_light(b)
 
 
 func _light(b: Dictionary) -> void:
