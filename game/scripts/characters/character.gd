@@ -935,6 +935,33 @@ func route_choices(n: Dictionary = next_node()) -> Dictionary:
 	return out
 
 
+## 分支节点卡面的路线行（docs/302）：每条路线一行「「路线名」：一句效果」。优先按 branch_desc 的「；」分段（段首就是「路线名」时对上），
+## 对不上或没写 branch_desc 时，取该路线 desc 的第一句兜底。tools/branch_card_audit.py 清点 20 人
+func branch_lines(n: Dictionary = next_node()) -> Array:
+	var rc := route_choices(n)
+	var parts: Array = []
+	for p in str(n.get("branch_desc", "")).split("；", false):
+		parts.append(str(p).strip_edges().trim_suffix("。"))
+	var out: Array = []
+	for k in rc:
+		var nm: String = str(rc[k].get("name", k))
+		var tag := "「%s」" % nm
+		var eff := ""
+		for p in parts:
+			if str(p).begins_with(tag):
+				eff = str(p).substr(tag.length()).strip_edges()
+				break
+		if eff == "":   # 兜底：路线自己的说明第一句
+			var rd: String = str(rc[k].get("desc", ""))
+			eff = rd.split("。", false)[0] if rd != "" else ""
+			eff = eff.get_slice("；", 0).strip_edges()
+			if eff.begins_with(tag):
+				eff = eff.substr(tag.length())
+		eff = eff.trim_prefix("：").trim_prefix("使").strip_edges()
+		out.append(tag + "：" + eff if eff != "" else tag)
+	return out
+
+
 ## 机器人 / 赠送推进（典训、博士银印）/ 测试直接 advance("") 时的固定路线（docs/119 §4.1：可记录、不凭界面外随机）：
 ## --route=<op>:<路线>（可逗号分几人，调试构建）→ 节点 "bot" 字段 → 第一条路线
 func bot_route(n: Dictionary) -> String:
@@ -1018,13 +1045,13 @@ func deep_cards() -> Array:
 		var chs: Dictionary = elite_choices(n) if n.type == "elite" else {}
 		if needs_route():
 			# 分支节点（docs/119 §4.1）：外层只出一张培养卡，选中后进二选一（progression.open_branch）；卡面列出两条路线
-			var rc := route_choices(n)
-			var names: Array = []
-			for k in rc:
-				names.append("「%s」" % str(rc[k].get("name", k)))
-			var bdesc: String = str(n.get("branch_desc", "选定一条成长路线：%s。之后的节点沿同一路线强化。" % " / ".join(names)))
-			out.append({"kind": "prog", "op": id, "choice": "", "branch": true, "name": "%s · %s" % [display_name(), n.get("name", "成长路线")],
-				"desc": bdesc + (VisNodesC.node_text(self) if VisNodesC.on(g) else ("；攻击 +%d%%" % int(round(NODE_ATK * 100.0)))) + (("\n条件：%s（已满足）" % node_requires_text(n)) if node_requires_text(n) != "" and avail else ""),
+			# 卡面两条路线各一行「「路线」：一句效果」+ 一行「选定后…」（11-07 用户「卡面上的文字只描述了第一个效果，但是点进去是两个分支」：
+			# 以前标题用节点名 = 第一条路线名、手机一句话只取到 branch_desc 的第一段）。完整说明在点开后的二选一里
+			var bl: Array = branch_lines(n)
+			var tail: String = "选定后，之后的节点沿该路线强化" + (VisNodesC.node_text(self) if VisNodesC.on(g) else ("；攻击 +%d%%" % int(round(NODE_ATK * 100.0))))
+			out.append({"kind": "prog", "op": id, "choice": "", "branch": true, "name": "%s · 选择成长路线" % display_name(),
+				"desc": "\n".join(bl) + "\n" + tail + (("\n条件：%s（已满足）" % node_requires_text(n)) if node_requires_text(n) != "" and avail else ""),
+				"brief": "\n".join(bl),
 				"icon": n.get("icon", ""), "avail": avail, "req": node_requires_text(n), "elite": 0})
 		elif not chs.is_empty():
 			for c in chs:
