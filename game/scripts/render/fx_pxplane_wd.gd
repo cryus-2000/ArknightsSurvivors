@@ -368,9 +368,9 @@ func _boom(o, d: Dictionary, t: int, R, p: Dictionary) -> void:
 			if k == "shade" or _beat_n(o, "sbl") == 0:
 				R._light(o, c + Vector2(0, -16), clampf(rr * 1.4, 90.0, 140.0), 0.55, 0.12, SOUL_L)
 			R._grains(o, c + Vector2(0, -12), c.y + 2.0, "streak", 2 if k == "soul" else 3, {"tier": t})
-		"giant":   # 爆裂黎明：地平线白光 + 光穹 + 烟环；地面冲击环 + 放射裂缝 + 焦痕
+		"giant":   # 爆裂黎明：照原作 skill_03_hit（fx/wd_dawn_v 1）= 贴地白热芯 + 十字白闪 + 一圈红刺 + 电弧 → 火星；0 = 11-05 自创的地平线 + 光穹；地面冲击环 + 放射裂缝 + 焦痕
 			var s3: int = _pick(S3_R, rr)
-			_up_sp(o, "dawn_r%d" % s3, c, {"gy": c.y + 2.0})
+			_up_sp(o, ("dawn2_r%d" if Bal.v("fx/wd_dawn_v", 1.0) > 0.5 else "dawn_r%d") % s3, c, {"gy": c.y + 2.0})
 			_fog(o, c, rr, 0.8)
 			_gd(o, "dawng_r%d" % s3, c, {"hold": true, "life": 7.0 / 15.0 + HOLD})
 			R._light(o, c + Vector2(0, -30), minf(230.0, rr * 1.15), 0.85, 0.15, p.light)
