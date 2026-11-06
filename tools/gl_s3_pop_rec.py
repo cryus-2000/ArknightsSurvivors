@@ -25,6 +25,7 @@ GAME = os.path.join(ROOT, "game")
 BUILD = os.path.join(ROOT, "build", "gl_s3_pop")
 COLS = [("现在（细水柱收尾）", ["--bal=fx/gl_s3_pop=0"]), ("新版（压缩 → 小水爆）", ["--bal=fx/gl_s3_pop=1"])]
 W, H = 640, 360
+OUT_DIR = "."
 
 
 def font(sz):
@@ -43,8 +44,9 @@ def shoot(ci, start, n):
     os.makedirs(fdir)
     args = [GR.find_godot(), "--audio-driver", "Dummy", "--fixed-fps", "30", "--path", GAME, "res://tests/elite_demo_shot.tscn", "--",
             "--shot_op=gladiia", "--shot_stage=2", "--shot_mode=2", "--shot_dir=" + fdir.replace("\\", "/"),
-            "--shot_start=%g" % start, "--shot_every=1", "--shot_n=%d" % n, "--shot_w=%d" % W, "--shot_h=%d" % H] + COLS[ci][1]
+            "--shot_start=%g" % start, "--shot_every=1", "--shot_n=%d" % n, "--shot_w=%d" % W, "--shot_h=%d" % H, "--bal=fx/recipe_log=1"] + COLS[ci][1]
     out, err, _ = GR.run_godot(args, 900)
+    open(os.path.join(OUT_DIR, "godot_c%d.log" % ci), "w").write("\n".join(l for l in ((out or "") + "\n" + (err or "")).splitlines() if "gl_s3" in l or "ERROR" in l or "rror" in l)[:200000])
     fs = sorted(glob.glob(os.path.join(fdir, "f_*.png")))
     print("c%d" % ci, len(fs), "帧", GR.script_errors(out, err)[:3], flush=True)
     return fs
@@ -69,6 +71,8 @@ def main():
     ap.add_argument("--secs", type=float, default=14.0)
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
+    global OUT_DIR
+    OUT_DIR = a.out
     cols = [shoot(ci, a.start, int(a.secs * 30)) for ci in range(2)]
     m = min(len(c) for c in cols)
     if m == 0:

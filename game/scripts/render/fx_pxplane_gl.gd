@@ -191,6 +191,8 @@ static func ev(r, o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dicti
 		"gl_s3end":
 			var f2: Dictionary = d.f
 			var pop: bool = not raw and Bal.v("fx/gl_s3_pop", 0.0) > 0.0   # 11-07 用户「S3 最后缺一个漩涡压缩之后小型爆炸」
+			if Bal.v("fx/recipe_log", 0.0) > 0.0:
+				print("PXPLOG gl_s3end pop=%s raw=%s n=%d" % [str(pop), str(raw), r.items.size()])
 			if not raw:
 				_strip(r, o, "s3close_bk", f2.pos, "up", false, -S3_R * 2.0 * SY)
 				_strip(r, o, "s3close_up", f2.pos, "up", false, S3_R * 2.0 * SY)
