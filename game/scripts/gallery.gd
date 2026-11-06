@@ -2228,10 +2228,13 @@ func _exp_list(items: Array, hl: Array, area: Rect2, hh: float, gap: float, ph: 
 		if rr.size.y < 3.0:
 			continue
 		var opened: bool = i == cur
+		var head_in: bool = full.position.y >= list_r.position.y and full.position.y + hh <= list_r.end.y
+		if not opened and not head_in and e_t >= 1.0:
+			continue   # 收着的行滚到一半：整行不画（只剩空框不好看），展开行才按行裁
 		UI.cpanel(self, rr, bool(hl[i]) or opened, a)
 		hits.append([rr, "row", i])   # 点一行展开 / 再点收起（桌面 + 手机）
 		_sk_chevron(rr, opened, a)
-		if full.position.y >= list_r.position.y and full.position.y + hh <= list_r.end.y:
+		if head_in:
 			head.call(i, full, a)
 		if opened:
 			_sk_detail(items[i], full, list_r, hh, ph, a)
