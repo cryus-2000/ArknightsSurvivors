@@ -11,7 +11,7 @@ run() {   # $1 场景 ctrl|noctrl  $2 模式
     d="$(realpath -m "$OUT/$1_m$2")"; mkdir -p "$d"
     sq="saria,suzuran"; [ "$1" = ctrl ] && sq="angelina,texas"
     ud=$(mktemp -d); mkdir -p "$ud/ArknightsSurvivors"; printf '[game]\ndmg_numbers=false\n[video]\nquality="high"\n' > "$ud/ArknightsSurvivors/settings.cfg"
-    XDG_DATA_HOME=$ud timeout -k 30 1500 "$GODOT" --audio-driver Dummy --resolution 1920x1080 --position 0,0 --fixed-fps 30 --path game -- \
+    XDG_DATA_HOME=$ud timeout -k 30 3300 "$GODOT" --audio-driver Dummy --resolution 1280x720 --position 0,0 --fixed-fps 30 --path game -- \
         --balance --realtime --nodeath --seed=${SEED:-5} --op=exusiai --squad=$sq --prog=1 --bot=circle --nohud --bal=enemy/density=1 --bal=growth_nodes/exu_prefer=$2 \
         --shotdir="$d" --rtfrom=$(( T - 4 )) --flashrec=$T,$N,1280 --maxt=$(( T + N / 30 + 4 )) > "$d.log" 2>&1
     rm -f "$d"/flashrec.csv
@@ -19,9 +19,8 @@ run() {   # $1 场景 ctrl|noctrl  $2 模式
 }
 GS="$(curl -s -H 'Metadata-Flavor: Google' http://metadata.google.internal/computeMetadata/v1/instance/attributes/batch-gs)"
 up() { ( cd "$OUT" && find . -name '*.png' | tar -czf /work/shots.tar.gz -T - ) && gcloud storage cp /work/shots.tar.gz "$GS/shots.tar.gz" -q && echo "截图已传（$1）" | tee "$OUT/shots.txt"; }
+# 一场一传：先录无控四档，再录有控四档（每档单独上传，超时也留得下已录的）
 for s in noctrl ctrl; do
-    run $s 0 & run $s 1 & wait
-    run $s 2 & run $s 3 & wait
-    up $s
+    for m in 0 1 2 3; do ( run $s $m; up "$s m$m" ) & done; wait
 done
 exit 0
