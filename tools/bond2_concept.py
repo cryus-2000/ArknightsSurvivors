@@ -1364,7 +1364,7 @@ def big_chain(cv, a, b, k_len, taut, t, snap=0.0, red_to=0.0):
         cx, cy = a[0] + dv[0] * i, a[1] + dv[1] * i + sag + jit
         horiz = (i // 12) % 2 == 0
         red = red_to > 0 and i / max(1, n) < red_to
-        P = SKR if red else UL
+        P = SKD if red else UL
         for u in range(12):
             for v in range(7 if horiz else 4):
                 edge = u in (0, 1, 10, 11) or v in (0, 1, (5 if horiz else 2), (6 if horiz else 3))
@@ -1372,7 +1372,7 @@ def big_chain(cv, a, b, k_len, taut, t, snap=0.0, red_to=0.0):
                     continue
                 x = cx + dv[0] * u + nv[0] * (v - 3)
                 y = cy + dv[1] * u + nv[1] * (v - 3) * (1 if horiz else 0.5)
-                cv.cell(x, y, P[5] if v in (0, 1) else (P[4] if horiz else P[3]))
+                cv.cell(x, y, ((255, 255, 255) if v in (0, 1) else P[5]) if red else (P[5] if v in (0, 1) else (P[4] if horiz else P[3])))
         if (taut and i % 24 == 0) or red:
             cv.glow(cx, cy, gl(P[4]), 0.9 if red else 0.5)
         i += 12
@@ -1395,7 +1395,7 @@ def big_anchor(cv, p):
 
 
 def spray(cv, p, k, seed):
-    """斯卡蒂拖剑溅起的红色水花（往后、往上）"""
+    """斯卡蒂拖剑溅起的水花（深海蓝，往后、往上）"""
     rng = random.Random(seed)
     for i in range(36):
         vx = -rng.uniform(30, 120)
@@ -1404,9 +1404,9 @@ def spray(cv, p, k, seed):
         y = p[1] + vy * k + 120 * k * k
         for dx in range(2):
             for dy in range(2):
-                cv.cell(x + dx, y + dy, SKR[5] if i % 3 == 0 else SKR[4])
+                cv.cell(x + dx, y + dy, SKD[5] if i % 3 == 0 else SKD[4])
         if i % 4 == 0:
-            cv.glow(x, y, gl(SKR[4]), 0.6)
+            cv.glow(x, y, gl(SKD[4]), 0.6)
 
 
 def pair_lesson_chain(A):
@@ -1428,7 +1428,7 @@ def pair_lesson_chain(A):
         elif d < 70 and int(e["p0"][0] * 5 + e["p0"][1]) % 2 == 0:
             e["kt"] = T_slide0 + u * (T_slide1 - T_slide0) + 0.06
     keys = [(0.3, "示范：乌尔比安把锚掷向怪群另一头，锚链跟着甩出去"), (0.5, "绷链：锚钉进地面，锚链横跨怪群一下绷直"),
-            (0.85, "疾驰：斯卡蒂踩上锚链一路滑过去，拖剑溅起红色水花，链两侧的怪被扫倒"), (1.35, "收链：斯卡蒂在锚边落地，锚链往回收、断节飞散")]
+            (0.85, "疾驰：斯卡蒂踩上锚链一路滑过去，拖剑溅起蓝白水花，链两侧的怪被扫倒"), (1.35, "收链：斯卡蒂在锚边落地，锚链往回收、断节飞散")]
     out = []
     for t, lab in keys:
         img = frame(A, w, t, lambda cv, tt: None, []).convert("RGBA")
@@ -1449,7 +1449,7 @@ def pair_lesson_chain(A):
             sp = (S[0] + (E[0] - S[0]) * u, S[1] + (E[1] - S[1]) * u - 20)
             for j in range(3, 0, -1):
                 uj = max(0.0, u - 0.08 * j)
-                B.put_op(im, A["skadi_atk"][4], (S[0] + (E[0] - S[0]) * uj, S[1] + (E[1] - S[1]) * uj - 20), False, 0.25 * (1 - j / 4), (1.1, 0.8, 0.85))
+                B.put_op(im, A["skadi_atk"][4], (S[0] + (E[0] - S[0]) * uj, S[1] + (E[1] - S[1]) * uj - 20), False, 0.25 * (1 - j / 4), (0.85, 0.95, 1.15))
             B.put_op(im, A["skadi_atk"][4], sp, False, 0.95)
             cv = B.Canvas(im)
             spray(cv, (sp[0] - 10, sp[1] + 14), (t * 5) % 1, int(t * 15))
@@ -1457,7 +1457,7 @@ def pair_lesson_chain(A):
                 if i % 3:
                     continue
                 q = (S[0] + (sp[0] - S[0]) * i / max(1, math.dist(S, sp)), S[1] + (sp[1] + 20 - S[1]) * i / max(1, math.dist(S, sp)) + 8)
-                cv.cell(q[0], q[1], SKR[2], 0.8)
+                cv.cell(q[0], q[1], SKD[2], 0.8)
         else:
             if t >= T_slide1 + 0.1:
                 B.put_op(im, A["skadi_atk"][6], (E[0] - 20, E[1] + 4), True, 1.0)
@@ -1521,14 +1521,12 @@ def pair_fools_dance(A):
         p = w.pos(e, 1.2)
         if any(math.dist(p, s["p"]) < 42 for s in steps):
             e["kt"] = 1.25 + 0.0003 * (p[0] - 200)
-    keys = [(0.18, "登场：幽灵船「愚人号」靠岸，两人从船上一前一后跃下（船只在开头出现一下）"), (0.7, "对舞：两人沿「8」字舞步一左一右交替出刀，每一步留下一枚发光脚印（紫 / 青）"),
+    keys = [(0.18, "相邀：两人从「8」字两端走进怪群，相对伸手（不要船）"), (0.7, "对舞：两人沿「8」字舞步一左一右交替出刀，每一步留下一枚发光脚印（紫 / 青）"),
             (1.15, "合拍：两人在 8 字中心相遇，剑尖轻碰，手牵手收势，满地脚印一齐亮"), (1.42, "余韵：所有脚印同时炸开，舞步路线上的怪一齐倒下")]
     out = []
     for t, lab in keys:
         img = frame(A, w, t, lambda cv, tt: None, []).convert("RGBA")
         cv = B.Canvas(img)
-        if t < 0.3:
-            ghost_ship(cv, (C[0] - 150, 230), 1 - max(0.0, (t - 0.15) / 0.15), 0.7)
         for who, R, ph in (("irene", IR, 0.0), ("specter_unchained", GH, 0.5)):   # 舞步路线：一条淡点线把脚印连起来
             if t < 1.25:
                 uu = min(1.0, max(0.0, (t - T0) / (T1 - T0)))
@@ -1562,8 +1560,8 @@ def pair_fools_dance(A):
                 B.put_op(im, A["irene_atk"][6], (C[0] - 12, C[1] + 6), False, 1.0)
                 B.put_op(im, A["specter_unchained_atk"][8], (C[0] + 12, C[1] + 6), True, 1.0)
             else:
-                B.put_op(im, A["irene_idle"][0], (C[0] - 130, C[1] + 20), False, 0.9)
-                B.put_op(im, A["specter_unchained_idle"][0], (C[0] - 100, C[1] + 10), False, 0.9)
+                B.put_op(im, A["irene_idle"][0], fig8(C, RX, RY, 0.0), True, 0.95)
+                B.put_op(im, A["specter_unchained_idle"][0], fig8(C, RX, RY, 0.5), False, 0.95)
             cv = B.Canvas(im)
             if t >= T1:
                 tip_spark(cv, (C[0], C[1] - 26), IR)
@@ -1573,7 +1571,254 @@ def pair_fools_dance(A):
     return out
 
 
-PAIRS = {"fools_dance": ("愚人号 · 双剑对舞（艾丽妮 × 归溟幽灵鲨）", pair_fools_dance)}
+# ---------------------------------------------------------------- 11-07：剩下四对深海猎人 + 斯卡蒂改深海蓝
+
+SKD = ramp(["#050c1e", "#0b1a3a", "#1c3c80", "#3a64c4", "#598cf2", "#cddcfb", "#ffffff"])   # 斯卡蒂深海蓝（data/fx_pxplane/skadi.json，docs/246）
+GLC = ramp(["#0d1a2e", "#182f51", "#294a78", "#3a65a0", "#4c80c7", "#8bacdb", "#c9d9ee"])   # 歌蕾蒂娅（fx_pxplane_gl.C）
+ABY = ramp(["#030509", "#060a15", "#0d1832", "#172f5e", "#234d94"])                       # 深渊底色
+
+
+def need(A, *ops):
+    for o in ops:
+        if o + "_atk" in A:
+            continue
+        od = os.path.join(ROOT, "game", "art", "operators", o)
+        if o == "specter_unchained":
+            A[o + "_atk"] = B.frames_of(os.path.join(od, "op_%s_attack@1x.png" % o), fw=96)
+        else:
+            A[o + "_atk"] = B.frames_of(os.path.join(od, "op_%s_attack@1x.png" % o), 8)
+        A[o + "_run"] = B.frames_of(os.path.join(od, "op_%s_run@1x.png" % o), 8)
+        A[o + "_idle"] = B.frames_of(os.path.join(od, "op_%s_idle@1x.png" % o), 8)
+
+
+def sink(w, test, t0, t1):
+    for e in w.es:
+        p = w.pos(e, t0)
+        r = test(p)
+        if r is not None:
+            e["kt"] = t0 + (t1 - t0) * r
+
+
+# ---- 引潮夺命 · 海沟
+def trench(cv, a, b, k, close=0.0):
+    """海沟：一道锯齿形裂谷（深渊底色、内壁暗蓝、上沿歌蕾蒂娅亮蓝描边 + 白沫点），k 0..1 从一头裂到另一头、宽度张开；close > 0 合拢"""
+    L = math.dist(a, b)
+    dv = ((b[0] - a[0]) / L, (b[1] - a[1]) / L)
+    nv = (-dv[1], dv[0])
+    rng = random.Random(11)
+    jit = [rng.uniform(-3, 3) for _ in range(int(L) + 2)]
+    for i in range(int(L * min(1.0, k * 1.4))):
+        u = i / L
+        hw = (14 + 6 * math.sin(u * 9.0)) * math.sin(math.pi * u) ** 0.5 * min(1.0, k * 1.6) * (1 - close)
+        if hw < 1:
+            continue
+        cx = a[0] + dv[0] * i + nv[0] * jit[i]
+        cy = a[1] + dv[1] * i + nv[1] * jit[i] * SQ
+        for j in range(-int(hw), int(hw) + 1):
+            q = abs(j) / hw
+            col = ABY[0] if q < 0.5 else (ABY[2] if q < 0.8 else GLC[2])
+            cv.cell(cx + nv[0] * j, cy + nv[1] * j * SQ, col)
+        for s in (-1, 1):
+            ex, ey = cx + nv[0] * hw * s, cy + nv[1] * hw * s * SQ
+            cv.cell(ex, ey, GLC[5])
+            if i % 5 == 0:
+                cv.cell(ex, ey - 1, (230, 240, 250))
+                cv.glow(ex, ey, gl(GLC[5]), 0.4)
+
+
+def pair_tide_trench(A):
+    need(A, "gladiia", "specter_unchained")
+    w = B.World(29, A)
+    a, b = (250, 150), (620, 240)
+    def test(p):
+        d, u = B.seg_dist(p, a, b)
+        return u if d < 70 else None
+    sink(w, test, 0.6, 1.0)
+    keys = [(0.35, "引潮：歌蕾蒂娅残影甩钩一拉，地面沿钩线裂开一道海沟"), (0.7, "吞没：两侧的怪被潮水拖进沟里往下沉"),
+            (0.95, "夺命：归溟幽灵鲨残影在沟里来回穿梭，青色残像折返三趟"), (1.35, "收尾：海沟合拢，只剩一道湿痕，沟两侧清空")]
+    out = []
+    for t, lab in keys:
+        img = frame(A, w, t, lambda cv, tt: None, [("gladiia", (B.SQUAD[0], B.SQUAD[1]), "atk" if t < 0.5 else "run")]).convert("RGBA")
+        cv = B.Canvas(img)
+        k = min(1.0, max(0.0, (t - 0.25) / 0.3))
+        close = max(0.0, (t - 1.15) / 0.2)
+        if t < 1.4:
+            trench(cv, a, b, k, close)
+        else:
+            for i in range(int(math.dist(a, b))):
+                if i % 3 == 0:
+                    u = i / math.dist(a, b)
+                    cv.cell(a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, GLC[2], 0.7)
+        if t >= 0.75 and t < 1.15:
+            u = ((t - 0.75) / 0.4 * 3) % 2
+            u = u if u <= 1 else 2 - u
+            cv = ghost(cv, A, "specter_unchained", a, (a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u), 1.0, GH)
+        out.append((cv.finish(), lab, (120, 40, 660, 320)))
+    return out
+
+
+# ---- 漩涡钉锚 · 作战推演
+def plan_arrow(cv, a, b, k, R, flash=False):
+    """推演箭头：粗箭杆（3 格）+ 大三角箭头，从 a 往 b 画出去；flash 时芯白"""
+    L = math.dist(a, b)
+    dv = ((b[0] - a[0]) / L, (b[1] - a[1]) / L)
+    nv = (-dv[1], dv[0])
+    n = int(L * k)
+    for i in range(0, n, 1):
+        if (i // 6) % 3 == 2 and not flash:
+            continue
+        x, y = a[0] + dv[0] * i, a[1] + dv[1] * i
+        for j in (-1, 0, 1):
+            cv.cell(x + nv[0] * j, y + nv[1] * j, (255, 255, 255) if flash and j == 0 else (R[5] if j == 0 else R[4]))
+    if k >= 1.0:
+        for s in range(14):
+            hw = (14 - s) * 0.7
+            cx, cy = b[0] - dv[0] * (14 - s), b[1] - dv[1] * (14 - s)
+            for j in range(-int(hw), int(hw) + 1):
+                cv.cell(cx + nv[0] * j, cy + nv[1] * j, (255, 255, 255) if flash else (R[5] if abs(j) < hw - 1 else R[3]))
+        cv.glow(b[0], b[1], gl(R[5]), 0.8)
+
+
+def pair_vortex_plan(A):
+    need(A, "gladiia", "ulpianus")
+    w = B.World(41, A)
+    C = (440, 200)
+    starts = [(C[0] + math.cos(a) * 190, C[1] + math.sin(a) * 190 * SQ) for a in (math.pi * 0.95, math.pi * 1.35, math.pi * 1.75, math.pi * 0.2, math.pi * 0.6)]
+    tips = [(C[0] + (s[0] - C[0]) * 0.28, C[1] + (s[1] - C[1]) * 0.28) for s in starts]
+    def test(p):
+        d = math.hypot(p[0] - C[0], (p[1] - C[1]) / SQ)
+        return 0.0 if d < 190 else None
+    sink(w, test, 1.0, 1.0)
+    keys = [(0.45, "推演：地上亮出作战推演图，歌蕾蒂娅的箭头一支支从外往里画"), (0.8, "收拢：五支箭头指向中心，怪被潮水顺着箭头推着往里聚"),
+            (1.02, "落锚：乌尔比安的锚依次砸在每个箭头尖上"), (1.4, "收尾：推演图熄灭，锚坑留在原地，圈里清空")]
+    out = []
+    for t, lab in keys:
+        img = frame(A, w, t, lambda cv, tt: None, [("gladiia", (B.SQUAD[0], B.SQUAD[1]), "run"), ("ulpianus", (B.SQUAD[0] - 34, B.SQUAD[1] - 26), "run")]).convert("RGBA")
+        # 箭头推怪往里：草图里把怪画得往中心挪
+        cv = B.Canvas(img)
+        for i, (s, tp) in enumerate(zip(starts, tips)):
+            k = min(1.0, max(0.0, (t - 0.2 - i * 0.08) / 0.2))
+            if k > 0 and t < 1.3:
+                plan_arrow(cv, s, tp, k, GLC, flash=0.95 <= t < 1.05)
+        for i, tp in enumerate(tips):
+            ts = 0.95 + i * 0.03
+            if t >= ts:
+                big_anchor(cv, tp)
+                if t < ts + 0.15:
+                    blast_ring(cv, tp, (t - ts) / 0.15, UL)
+        out.append((cv.finish(), lab, (200, 40, 680, 330)))
+    return out
+
+
+# ---- 双鳍 · 背鳍巡游
+def fin(cv, p, R, k=1.0, left=False):
+    """背鳍（14×18 美术像素，后掠三角）+ 前方白色破浪 + 身后一对水线"""
+    for y in range(36):
+        w_ = int((36 - y) * 0.75)
+        for x in range(w_):
+            xx = (-x if left else x) - (y * 0.5 if not left else -y * 0.5)
+            col = (255, 255, 255) if x < 2 and y > 20 else (R[5] if x < 4 else (R[4] if x < w_ - 3 else R[3]))
+            cv.cell(p[0] + xx, p[1] - y, col, k)
+    for i in range(18):
+        for j in range(2):
+            cv.cell(p[0] + (i - 9), p[1] + 1 + j, (235, 245, 250), k)
+    cv.glow(p[0], p[1] - 12, gl(R[5]), 1.2 * k)
+
+
+def fin_wake(cv, pts, R):
+    for i, p in enumerate(pts):
+        if i % 2:
+            continue
+        a = i / len(pts)
+        for j in range(-3, 4):
+            cv.cell(p[0], p[1] + j, (225, 238, 248) if abs(j) == 3 or a > 0.75 else R[4], 0.35 + 0.6 * a)
+
+
+def pair_fins(A):
+    need(A, "skadi", "specter_unchained")
+    w = B.World(43, A)
+    C = (440, 200)
+    R = 150
+    def path(u, ph, sgn):
+        a = sgn * u * math.tau * 2 + ph
+        rr = R * (0.75 + 0.25 * math.sin(u * math.tau * 2 + ph))
+        return (C[0] + math.cos(a) * rr, C[1] + math.sin(a) * rr * SQ)
+    def test(p):
+        d = math.hypot(p[0] - C[0], (p[1] - C[1]) / SQ)
+        return 0.6 if d < R * 1.05 else None
+    sink(w, test, 0.55, 0.6)
+    keys = [(0.3, "下潜：两片背鳍（斯卡蒂深海蓝 / 幽灵鲨幽灵青）从地面下划出"), (0.65, "巡游：两片背鳍绕着怪群交错游两圈，身后拖白色破浪，圈里的怪被卷倒"),
+            (1.0, "跃出：两人从背鳍下同时跃出水面，在圈心交错一下"), (1.35, "收尾：两人落回地下，破浪散成水痕，圈里清空")]
+    out = []
+    T0, T1 = 0.2, 0.9
+    for t, lab in keys:
+        img = frame(A, w, t, lambda cv, tt: None, []).convert("RGBA")
+        cv = B.Canvas(img)
+        u = min(1.0, max(0.0, (t - T0) / (T1 - T0)))
+        for R_, ph, sgn in ((SKD, 0.0, 1), (GH, math.pi, -1)):
+            pts = [path(u * i / 60, ph, sgn) for i in range(61)]
+            fin_wake(cv, pts, R_)
+            if t < T1 + 0.05:
+                p = pts[-1]
+                q = path(min(1.0, u + 0.01), ph, sgn)
+                fin(cv, p, R_, 1.0, q[0] < p[0])
+        if 0.92 <= t < 1.2:
+            im = cv.finish().convert("RGBA")
+            h = math.sin(math.pi * (t - 0.92) / 0.28) * 40
+            B.put_op(im, A["skadi_atk"][4], (C[0] - 18, C[1] - h), False, 0.95)
+            B.put_op(im, A["specter_unchained_atk"][6], (C[0] + 18, C[1] - h), True, 0.95)
+            cv = B.Canvas(im)
+            blast_ring(cv, C, (t - 0.92) / 0.28, SKD)
+        out.append((cv.finish(), lab, (220, 50, 660, 320)))
+    return out
+
+
+# ---- 群猎 · 暗潮合围
+def tide_ring(cv, c, r, k):
+    """暗潮环：一圈深色潮水（宽 20，深渊底 + 亮蓝浪唇 + 白沫），从外往里收；k 0..1"""
+    n = int(r * 7)
+    for i in range(n):
+        a = i / n * math.tau
+        lip = r + 3 * math.sin(a * 9 + k * 12)
+        for j in range(0, 22):
+            rr = lip + j
+            x, y = c[0] + math.cos(a) * rr, c[1] + math.sin(a) * rr * SQ
+            col = (235, 245, 250) if j < 2 and (i % 3) else (SKD[4] if j < 4 else (ABY[3] if j < 9 else ABY[1]))
+            cv.cell(x, y, col, 0.95 if j < 9 else 0.75)
+        if i % 9 == 0:
+            cv.glow(c[0] + math.cos(a) * lip, c[1] + math.sin(a) * lip * SQ, gl(SKD[5]), 0.5)
+
+
+def pair_hunt(A):
+    need(A, "skadi", "gladiia", "specter_unchained", "ulpianus")
+    w = B.World(47, A)
+    C = (440, 200)
+    def test(p):
+        d = math.hypot(p[0] - C[0], (p[1] - C[1]) / SQ)
+        return 0.0 if d < 210 else None
+    sink(w, test, 1.05, 1.05)
+    hunters = [("skadi", SKD, math.pi * 1.0), ("gladiia", GLC, math.pi * 1.5), ("specter_unchained", GH, 0.0), ("ulpianus", UL, math.pi * 0.5)]
+    keys = [(0.35, "涌潮：一圈暗色潮水从四面涌进来，把怪群围住"), (0.75, "合围：潮水往里收，浪唇翻着白沫"),
+            (1.0, "群猎：四名深海猎人的残影同时从潮水里跃出，扑向圈心"), (1.4, "收尾：潮水在圈心合拢溅起，退去后圈里清空")]
+    out = []
+    for t, lab in keys:
+        img = frame(A, w, t, lambda cv, tt: None, []).convert("RGBA")
+        cv = B.Canvas(img)
+        if t < 1.1:
+            r = 260 - 170 * min(1.0, max(0.0, (t - 0.2) / 0.8))
+            tide_ring(cv, C, r, t)
+        elif t < 1.5:
+            blast_ring(cv, C, (t - 1.1) / 0.4, SKD)
+        if 0.9 <= t < 1.12:
+            u = (t - 0.9) / 0.2
+            for o, R_, a in hunters:
+                s = (C[0] + math.cos(a) * 110, C[1] + math.sin(a) * 110 * SQ)
+                cv = ghost(cv, A, o, s, (C[0] + math.cos(a) * 20, C[1] + math.sin(a) * 20 * SQ), u, R_)
+        out.append((cv.finish(), lab, (180, 20, 700, 340)))
+    return out
+
+
+PAIRS = {"lesson_chain": ("潮下授课 · 链上疾驰（乌尔比安 × 斯卡蒂）", pair_lesson_chain), "fools_dance": ("愚人号 · 双剑对舞（艾丽妮 × 归溟幽灵鲨）", pair_fools_dance), "tide_trench": ("引潮夺命 · 海沟（歌蕾蒂娅 × 归溟幽灵鲨）", pair_tide_trench), "vortex_plan": ("漩涡钉锚 · 作战推演（歌蕾蒂娅 × 乌尔比安）", pair_vortex_plan), "fins": ("双鳍 · 背鳍巡游（斯卡蒂 × 归溟幽灵鲨）", pair_fins), "hunt": ("群猎 · 暗潮合围（深海猎人 ≥ 3）", pair_hunt)}
 
 
 def sheet(title, keys, sc):
