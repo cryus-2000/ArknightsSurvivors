@@ -571,7 +571,7 @@ func _flashrec_step() -> void:
 		var bl: Array = []
 		for b in g.ebullets:
 			if b.life > 0.0 and b.get("boss", false):
-				bl.append([snappedf(b.pos.x, 0.1), snappedf(b.pos.y, 0.1), snappedf(b.vel.x, 0.1), snappedf(b.vel.y, 0.1), b.r, str(b.get("kind", "")), str(b.get("pc_tier", "")), snappedf(b.life, 0.01)])
+				bl.append([snappedf(b.pos.x, 0.1), snappedf(b.pos.y, 0.1), snappedf(b.vel.x, 0.1), snappedf(b.vel.y, 0.1), b.r, str(b.get("kind", "")), str(b.get("pc_tier", "")), snappedf(b.life, 0.01), str(b.get("src_type", "")), int(b.get("tier", -1))])
 		var bbp: Vector2 = bb.pos if bb != null else Vector2.ZERO
 		var fd := FileAccess.open(g.shot_dir + "/eb_%05d.json" % _fr_i, FileAccess.WRITE)
 		fd.store_string(JSON.stringify({"t": g.t, "img": [img.get_width(), img.get_height()], "vs": [vp0.get_visible_rect().size.x, vp0.get_visible_rect().size.y],
@@ -1808,6 +1808,12 @@ func _bossmoves_step(spec: String) -> void:
 		for a in Cfg.dev_args():
 			if a.begins_with("--bossonly="):   # 只放这几招，按给出的顺序、可重复（逗号分隔；录修后短片 / 改前改后对照用，docs/215、docs/212 §5）
 				bm_list = Array(a.substr(11).split(","))
+		for xa in Cfg.dev_args():
+			if xa.begins_with("--extraspawn="):   # 临时探针：普通远程怪围一圈（弹幕对比图里要有小怪弹）
+				var xl: PackedStringArray = xa.substr(13).split(",")
+				for xi in xl.size():
+					var xe: Dictionary = g.spawner.spawn_enemy(xl[xi], g.ppos + Vector2.from_angle(TAU * xi / xl.size() + 2.2) * 330.0)
+					xe.age = 5.0
 		bm_next_t = g.t + 1.0
 		print("BOSSMOVES %s moves=%s" % [spec, str(bm_list)])
 		return
