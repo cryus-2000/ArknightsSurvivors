@@ -197,7 +197,7 @@ static func ev(r, o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dicti
 				_strip(r, o, "s3close_bk", f2.pos, "up", false, -S3_R * 2.0 * SY)
 				_strip(r, o, "s3close_up", f2.pos, "up", false, S3_R * 2.0 * SY)
 				if pop:   # 收拢的水墙只放前 4 拍（细白水柱那几拍换成压缩亮点 + 小水爆）
-					r.items[-1]["life"] = 4.0 / 15.0
+					r.items[-1]["life"] = 3.0 / 15.0 - 0.025   # 存活判断带 0.02 余量、帧号按全局拍：这样第 4 拍（细白水柱）一定不画
 					r._push({"glrt": "pop", "c": r._snap(f2.pos), "t0": g.t, "life": POP_LIFE, "ly": "up", "oid": str(o.id), "k": "", "gp": f2.pos, "gy": float(f2.pos.y) + 2.0, "sd": fposmod(f2.pos.x * 0.37 + f2.pos.y * 0.11, 97.0)})
 				_strip(r, o, "s3close_gd", f2.pos, "gd")
 				R._grains(o, f2.pos + Vector2(0, -50), float(f2.pos.y) + 2.0, "ink", 12, {"tier": 2})
@@ -407,36 +407,46 @@ static func _draw_pop(r, ci, it: Dictionary) -> void:
 	if f <= 3:   # 压缩：三股螺旋往芯里卷
 		for arm in 3:
 			var a0: float = float(arm) * TAU / 3.0 + float(f) * 1.1 + sd
-			var r0: float = [34.0, 24.0, 15.0, 8.0][f]
-			var r1: float = [20.0, 12.0, 6.0, 2.0][f]
-			var n: int = 7 - f
+			var r0: float = [44.0, 32.0, 20.0, 10.0][f]
+			var r1: float = [26.0, 16.0, 8.0, 3.0][f]
+			var n: int = 10 - f * 2
 			for k in n:
 				var u: float = float(k) / float(maxi(1, n - 1))
 				var rr: float = lerpf(r0, r1, u)
 				var a: float = a0 + u * 1.6
 				var c: Color = C[7] if (u > 0.7 and f >= 2) else (C[6] if u > 0.4 else C[5])
 				pts.append([cos(a) * rr, cy + sin(a) * rr * SY * 0.6, c, u > 0.7 and f >= 2])
-	elif f == 4:   # 压成亮点
-		for q in [Vector2i(0, 0), Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
-			pts.append([float(q.x), cy + float(q.y), C[7], true])
-		for q2 in [Vector2i(2, 0), Vector2i(-2, 0), Vector2i(0, 2), Vector2i(0, -2)]:
-			pts.append([float(q2.x), cy + float(q2.y), C[6], false])
+	elif f == 4:   # 压成亮点：3×3 白芯 + 十字芒
+		for dy0 in range(-1, 2):
+			for dx0 in range(-1, 2):
+				pts.append([float(dx0), cy + float(dy0), C[7], true])
+		for i4 in range(2, 6):
+			var c4: Color = C[7] if i4 <= 3 else C[6]
+			for q2 in [Vector2(i4, 0), Vector2(-i4, 0), Vector2(0, i4), Vector2(0, -i4)]:
+				pts.append([q2.x, cy + q2.y, c4, i4 <= 3])
 	elif f == 5:   # 内爆一拍：缩成 1 格，四角四颗点往里吸
 		pts.append([0.0, cy, C[7], true])
 		for sg in [Vector2(1, 1), Vector2(1, -1), Vector2(-1, 1), Vector2(-1, -1)]:
-			pts.append([sg.x * 3.0, cy + sg.y * 2.0, C[6], false])
+			pts.append([sg.x * 4.0, cy + sg.y * 3.0, C[6], false])
+			pts.append([sg.x * 6.0, cy + sg.y * 4.0, C[5], false])
 	else:   # 外爆
 		var age: int = f - 6
 		if age == 0:   # 近白小圆芯一拍
-			for dy in range(-3, 4):
-				for dx in range(-4, 5):
-					var k2: float = float(dx * dx) / 16.0 + float(dy * dy) / 9.0
+			for dy in range(-5, 6):
+				for dx in range(-7, 8):
+					var k2: float = float(dx * dx) / 49.0 + float(dy * dy) / 25.0
 					if k2 <= 1.0:
 						pts.append([float(dx), cy + float(dy), C[7] if k2 < 0.45 else C[6], k2 < 0.45 and (dx + dy) % 2 == 0])
-		var N := 18
+		if age == 1:   # 小圆芯散成一圈薄水环（压扁）
+			for q5 in 28:
+				var a5: float = float(q5) / 28.0 * TAU
+				if _h(sd + float(q5) * 0.7) < 0.25:
+					continue
+				pts.append([roundf(cos(a5) * 10.0), cy + roundf(sin(a5) * 10.0 * SY), C[6] if q5 % 2 == 0 else C[5], q5 % 4 == 0])
+		var N := 24
 		for q3 in N:
 			var a3: float = float(q3) / float(N) * TAU + _h(sd + float(q3)) * 0.3
-			var sp: float = 5.0 + 4.5 * _h(sd * 1.7 + float(q3) * 3.1)   # 每拍外飞格数
+			var sp: float = 7.0 + 6.0 * _h(sd * 1.7 + float(q3) * 3.1)   # 每拍外飞格数
 			var t3: float = float(age) + 1.0
 			var x3: float = cos(a3) * sp * t3
 			var y3: float = cy + sin(a3) * sp * t3 * SY - 2.0 * sp * 0.25 * t3 + 1.6 * t3 * t3   # 先略往上抛，再按重力落
@@ -452,7 +462,11 @@ static func _draw_pop(r, ci, it: Dictionary) -> void:
 				c3 = ACC2 if purple else C[4]
 			else:
 				c3 = C[3]
-			pts.append([x3, y3, c3, false])
+			pts.append([x3, y3, c3, age == 0])
+			if age <= 2 and q3 % 4 == 0:   # 大一点的水珠：2×2
+				pts.append([x3 + 1.0, y3, c3, false])
+				pts.append([x3, y3 + 1.0, c3, false])
+				pts.append([x3 + 1.0, y3 + 1.0, c3, false])
 			if age <= 1 and q3 % 3 != 2:   # 拖一格尾巴
 				pts.append([x3 - cos(a3) * 1.0, y3 - sin(a3) * SY, C[4] if age == 0 else C[3], false])
 	var px: float = g.PX

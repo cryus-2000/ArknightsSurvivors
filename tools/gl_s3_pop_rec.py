@@ -26,6 +26,7 @@ BUILD = os.path.join(ROOT, "build", "gl_s3_pop")
 COLS = [("现在（细水柱收尾）", ["--bal=fx/gl_s3_pop=0"]), ("新版（压缩 → 小水爆）", ["--bal=fx/gl_s3_pop=1"])]
 W, H = 640, 360
 OUT_DIR = "."
+END = {}
 
 
 def font(sz):
@@ -48,6 +49,8 @@ def shoot(ci, start, n):
     out, err, _ = GR.run_godot(args, 900)
     open(os.path.join(OUT_DIR, "godot_c%d.log" % ci), "w").write("\n".join(l for l in ((out or "") + "\n" + (err or "")).splitlines() if "gl_s3" in l or "ERROR" in l or "rror" in l)[:200000])
     fs = sorted(glob.glob(os.path.join(fdir, "f_*.png")))
+    ends = [float(l.split()[-1]) for l in (out or "").splitlines() if l.startswith("FXRLOG") and " gl_s3end " in l]
+    END[ci] = ends[0] if ends else -1.0
     print("c%d" % ci, len(fs), "帧", GR.script_errors(out, err)[:3], flush=True)
     return fs
 
@@ -92,7 +95,8 @@ def main():
         sheet.save(os.path.join(fdir, "f_%04d.png" % i))
     enc(fdir, os.path.join(a.out, "gladiia_s3_pop.mp4"), 30)
     # 收尾段：两栏差异最早出现的地方前 0.5 秒起 1.5 秒，0.5 倍慢放 + 逐拍（每 2 帧一张）定格条（2 倍局部）
-    hit = [i for i, d in enumerate(diffs) if d > 30]
+    e1 = END.get(1, -1.0)   # 新版那一局 S3 收尾事件的游戏时间（两局演示刷怪不完全一样，不能靠像素差找）
+    hit = [int((e1 - a.start) * 30)] if e1 > 0 else []
     if hit:
         s0 = max(0, hit[0] - 15)
         s1 = min(m, s0 + 45)
@@ -106,7 +110,7 @@ def main():
         strip = Image.new("RGB", (240 * len(fr), 360), (12, 12, 16))
         for k, i in enumerate(fr):
             for ci in range(2):
-                im = Image.open(cols[ci][i]).convert("RGB").crop((W // 2 - 60, H // 2 - 70, W // 2 + 60, H // 2 + 20)).resize((240, 180), Image.NEAREST)
+                im = Image.open(cols[ci][i]).convert("RGB").crop((W // 2 - 40, H // 2 - 110, W // 2 + 80, H // 2 - 20)).resize((240, 180), Image.NEAREST)
                 strip.paste(im, (k * 240, ci * 180))
         strip.save(os.path.join(a.out, "gladiia_s3_pop_beats.png"))
         print("收尾差异起点帧", hit[0], flush=True)
