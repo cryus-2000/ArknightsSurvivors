@@ -16,14 +16,16 @@ import build_cover_g_a2 as A2  # noqa: E402
 import build_cover_g_c2l as X  # noqa: E402
 import build_cover_k as K  # noqa: E402
 
-BG = sorted(glob.glob(str(B.RAW / "cover1107_bgdome" / "raw_*.png")))[0]
+BG = sorted(glob.glob(str(B.RAW / "cover1107_bgopen" / "raw_*.png")))[0]   # 11-07 用户：盾不要了 → 无护盾、中间青光空地的背景
 OPS = B.ROOT / "game/art/operators/mizuki"
 FRAMES = {"a": "mizuki_runtime_attack@2x.png", "s": "mizuki_runtime_skill_attack@2x.png",
-          "l": "mizuki_runtime_skill_loop@2x.png", "e": "mizuki_runtime_skill_end@2x.png"}
+          "l": "mizuki_runtime_skill_loop@2x.png", "e": "mizuki_runtime_skill_end@2x.png",
+          "t": "mizuki_runtime_s1_attack@2x.png", "r": "mizuki_runtime_run@2x.png", "b": "mizuki_runtime_skill_start@2x.png",
+          "n": "op_mizuki_entry@2x.png"}
 # 名字：(成品尺寸, 像素格, logo/标注倍数, logo 顶边)
 SIZES = {"itch_cover": ((630, 500), 3, 1, 16), "toy_poster": ((1200, 900), 5, 2, 14)}
 SHIFT = {"itch_cover": 12, "toy_poster": 10}   # 整个画面下移的格数（给标题让位，水月头顶不碰副行）
-FLOOR = (0.50, 0.70)   # 护盾地面中心（相对去掉黑带后的画面）
+FLOOR = (0.47, 0.71)   # 青光空地中心（相对整张生图）
 CYAN = np.array([120, 235, 245], np.uint8)
 
 
