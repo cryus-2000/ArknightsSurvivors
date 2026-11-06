@@ -325,7 +325,7 @@ static func peak(o) -> float:
 	var a := _evo_age(o)
 	if a.is_empty() or float(a[1]) >= 1.0 / 15.0:
 		return 1.0
-	return ek("peak", 1.7)
+	return ek("peak", 1.25)   # 11-07 用户截图：×1.7 把浅色干员（斯卡蒂）冲成一团白剪影，降到 1.25
 
 
 ## ②③ 画在本体下面（character.draw_body 在画本体之前调）
@@ -343,13 +343,13 @@ static func draw_under(o, st: Dictionary, base: Vector2, foot_dx: float, foot_of
 		_fan(o, m, base, ph)
 	if ek("smear", 1.0) > 0.0 and ph <= 1:
 		var ln: Vector2 = lunge(o)
-		var c: Color = (m.col as Color).lerp(Color.WHITE, 0.25)
-		var al: Array = [0.42, 0.2] if ph == 0 else [0.2, 0.0]
+		var c: Color = (m.col as Color).lerp(Color.WHITE, 0.1)
+		var al: Array = [ek("smear_a", 0.22), ek("smear_a", 0.22) * 0.45] if ph == 0 else [ek("smear_a", 0.22) * 0.45, 0.0]   # 11-07：0.42 / 0.2 + 加亮 ×1.3 叠成白剪影，减半、不加亮
 		for i in 2:
 			if float(al[i]) <= 0.0:
 				continue
 			var p: Vector2 = base + (ln * (0.5 - 0.5 * i) - (m.dir as Vector2) * 4.0 * i / 2.0).round()
-			o.draw_sprite_at(p + Vector2(foot_dx, 0), st.flip, Color(c.r * 1.3, c.g * 1.3, c.b * 1.3, float(al[i])), st.frame, st.tex, st.hf, foot_off)
+			o.draw_sprite_at(p + Vector2(foot_dx, 0), st.flip, Color(c.r, c.g, c.b, float(al[i])), st.frame, st.tex, st.hf, foot_off)
 
 
 static func _fan(o, m: Dictionary, base: Vector2, ph: int) -> void:
