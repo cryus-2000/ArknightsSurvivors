@@ -389,7 +389,7 @@ func open_branch(card: Dictionary, sel: int, source := "level") -> void:
 	for rid in rc:
 		var cd: Dictionary = rc[rid]
 		var item := {"kind": "branch_pick", "op": str(card.get("new", card.get("op", ""))), "route": str(rid), "name": str(cd.get("name", rid)),
-			"desc": str(cd.get("desc", "")), "icon": str(cd.get("icon", n.get("icon", ""))), "cat": "路线 · %s  PATH" % who}
+			"desc": str(cd.get("desc", "")), "icon": str(cd.get("icon", n.get("icon", ""))), "cat": "成长路线 · %s  PATH" % who}
 		if cd.has("col"):
 			item["col"] = cd.col
 		opts.append(item)
@@ -397,7 +397,7 @@ func open_branch(card: Dictionary, sel: int, source := "level") -> void:
 		opts.append({"kind": "branch_back", "name": "返回", "desc": "回到上一步重新选择。\n这次升级不消耗。", "cat": "返回  BACK", "col": UI.SUB})
 	var bidx: int = branch_node_of(Character.load_def(str(card.get("new", card.get("op", "")))))[1]
 	var stage: String = ("第 %d 节点" % (bidx + 1)) if bidx >= 0 else "分支节点"
-	var sub := "「%s」%s：选定一条培养路线 · 之后的节点沿它强化" % [who, stage]
+	var sub := "「%s」%s：选定一条成长路线 · 之后的节点沿它强化" % [who, stage]
 	match source:
 		"level":
 			sub += " · 只消耗这一次升级"
@@ -405,7 +405,7 @@ func open_branch(card: Dictionary, sel: int, source := "level") -> void:
 			sub += " · 换入后按此路线继承成长"
 		"free":
 			sub += " · 赠送的推进：选定后立即生效，不消耗升级"
-	g.panel_ui.show_choices("培养路线", opts, "branch", sub, true)
+	g.panel_ui.show_choices("成长路线", opts, "branch", sub, true)
 	g.nav_sel = 0
 
 

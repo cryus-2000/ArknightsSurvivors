@@ -1022,8 +1022,8 @@ func deep_cards() -> Array:
 			var names: Array = []
 			for k in rc:
 				names.append("「%s」" % str(rc[k].get("name", k)))
-			var bdesc: String = str(n.get("branch_desc", "选定一条培养路线：%s。之后的节点沿同一路线强化。" % " / ".join(names)))
-			out.append({"kind": "prog", "op": id, "choice": "", "branch": true, "name": "%s · %s" % [display_name(), n.get("name", "培养路线")],
+			var bdesc: String = str(n.get("branch_desc", "选定一条成长路线：%s。之后的节点沿同一路线强化。" % " / ".join(names)))
+			out.append({"kind": "prog", "op": id, "choice": "", "branch": true, "name": "%s · %s" % [display_name(), n.get("name", "成长路线")],
 				"desc": bdesc + (VisNodesC.node_text(self) if VisNodesC.on(g) else ("；攻击 +%d%%" % int(round(NODE_ATK * 100.0)))) + (("\n条件：%s（已满足）" % node_requires_text(n)) if node_requires_text(n) != "" and avail else ""),
 				"icon": n.get("icon", ""), "avail": avail, "req": node_requires_text(n), "elite": 0})
 		elif not chs.is_empty():
