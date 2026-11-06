@@ -23,7 +23,7 @@ const Character = preload("res://scripts/characters/character.gd")
 const LinkV2 = preload("res://scripts/run/link_v2.gd")
 const PlayKeys = preload("res://scripts/core/play_keys.gd")
 
-## 指挥台开着时（v3）卡片 / 问题框按属性面板画（11-07 用户「开局指南卡要不要改成面板风格 要的」，docs/300）：
+## 指挥台开着时（v3）卡片 / 问题框按属性面板画（11-07 用户「开局指南卡要不要改成面板风格 要的」，docs/301）：
 ## 深底 + 白直角刻度、标题（Heavy）+ 灰英文小签 + 细分隔线与白短条、细线进度条、灰字小按钮；可操作的仍是青
 const W3 := Color(0.925, 0.933, 0.941)
 const G3 := Color(0.588, 0.612, 0.643)

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""docs/300 开局指南卡按属性面板画（11-07）：实机截图，在 GCP（tools/gcp_render.py --job custom）上跑。
+"""docs/301 开局指南卡按属性面板画（11-07）：实机截图，在 GCP（tools/gcp_render.py --job custom）上跑。
 卡片：--onboarddemo=<id>（进局即出、常驻）；问题框：--onboard=ask（2.4 秒后自动选，截第 20 帧，此前已滑入）。
 桌面 1920×1080 / 触屏手机横屏 1170×540。新旧对照：同一提交跑一遍，再把 onboard.gd 换成 --old-ref 的版本跑一遍。
 用法：python3 tools/probes/onboard_card_1107.py --out <目录> [--only ...] [--tag new]
