@@ -70,7 +70,7 @@ var _right_end := 0.0   # 本帧整台右端 x（展开的编队卡跟它重叠�
 ## 展开编队卡时卡组的右下角：跟整台横向重叠就抬到整台上沿之上
 func peek_br(vs: Vector2, w: float) -> Vector2:
 	var br := Vector2(vs.x - 16.0, vs.y - 16.0)
-	if br.x - w < _right_end + 8.0 and _top > 0.0:
+	if br.x - w < _right_end + 8.0 and _top > 0.0 and not g.touch.active:   # 触屏不抬：整台上方是右手按键，宁可盖住整台右翼（展开时那块信息相同）
 		br.y = _top - 10.0
 	return br
 
@@ -159,7 +159,7 @@ func _console(vs: Vector2) -> void:
 	var base: float = vs.y - 14.0 * s
 	var r: float = 25.0 * s
 	var RR: float = r + 5.0 * s
-	var by: float = base - r - 7.0 * s - (6.0 * s if skills_mode() == 1 else 0.0)   # 布局一：环上抬一行，给环下的技能细格让位
+	var by: float = base - r - 7.0 * s - _ring_lift(s)   # 布局一：环上抬一行，给环下的技能细格让位
 	var md: int = _mode()
 	# 右翼宽度先算（左翼按它对称）
 	var sq: float = 34.0 * s
@@ -231,8 +231,10 @@ func _leader(c: Vector2, r: float, RR: float, base: float, s: float) -> void:
 		h.v2.txt(Vector2(x0, ly), lab, fs, UI.CYAN if full else Color(WHITE.r, WHITE.g, WHITE.b, 0.88))
 	if skills_mode() == 1 and ld != null:   # 布局一：环与「终结技 64%」之间一行
 		var w1: float = 2.0 * r * 0.9
-		var act1: Array = _skill_segs(ld, c.x - w1 / 2.0, base - 1.6 * s, w1, maxf(2.0, 2.4 * s), s)
-		_skill_secs(act1, Vector2(c.x + w1 / 2.0 + 4.0 * s, base + 1.4 * s), s)
+		var hh1: float = maxf(2.0, 2.4 * s)
+		var y1: float = _ult_label_top(base, s) - 2.0 - hh1   # 贴着「终结技 64%」字顶往上（手机字号有下限，字比 s 算的高）
+		var act1: Array = _skill_segs(ld, c.x - w1 / 2.0, y1, w1, hh1, s)
+		_skill_secs(act1, Vector2(c.x + w1 / 2.0 + 4.0 * s, y1 + hh1 + 3.0 * s), s)
 	# 等级：头像顶上一枚小牌（同 B′ 徽记的等级牌，缩小）
 	var lf: float = g.hud_lv_flash
 	var lvs: String = "LV %d" % g.level
@@ -247,6 +249,20 @@ func _leader(c: Vector2, r: float, RR: float, base: float, s: float) -> void:
 		var hh2: float = maxf(2.0, 2.4 * s)
 		var act2: Array = _skill_segs(ld, lr.end.x + 4.0 * s, lr.get_center().y - hh2 / 2.0, w2, hh2, s)
 		_skill_secs(act2, Vector2(lr.end.x + 4.0 * s + w2 + 4.0 * s, lr.get_center().y + 3.0 * s), s)
+
+
+## 头像下「终结技 64%」一行的字顶 y
+func _ult_label_top(base: float, s: float) -> float:
+	return base + 9.0 * s - 0.85 * float(UI._ks(g.hud, int(round(8.5 * s))))
+
+
+## 布局一环上抬多少：细格一行 + 上下空隙，按实际字高算（手机字号有下限时多抬一点）
+func _ring_lift(s: float) -> float:
+	if skills_mode() != 1:
+		return 0.0
+	var ring_bottom: float = 3.2 * s   # 原来环外圈刻度底（相对 base）：base - r - 7s + RR + 5.2s
+	var need: float = maxf(2.0, 2.4 * s) + 4.0   # 细格 + 上下各 2
+	return maxf(0.0, ring_bottom + need - (_ult_label_top(0.0, s)))
 
 
 ## 一名干员的三段技能细格（x, y 左上，w 三段总宽）：没解锁 = 空框；充能中 = 灰色随技力填满；生效中 = 白色，剩余时长从满往下退；
