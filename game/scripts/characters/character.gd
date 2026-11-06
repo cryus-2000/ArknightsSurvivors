@@ -938,6 +938,35 @@ func route_choices(n: Dictionary = next_node()) -> Dictionary:
 ## 分支节点卡面的路线行（docs/302）：每条路线一行「「路线名」：一句效果」。优先按 branch_desc 的「；」分段（段首就是「路线名」时对上），
 ## 对不上或没写 branch_desc 时，取该路线 desc 的第一句兜底。tools/branch_card_audit.py 清点 20 人
 const BRANCH_SHORT := 16   # 卡面一句话里每条路线效果超过这么多字就压到第一个逗号前
+const BRANCH_CAP := 18     # 压完仍超过这么多字就截断加「…」
+
+
+## 显示长度：数值占位 {$key} 按 2 个字算（求值后一般是一两位数）
+static func _vis_len(t: String) -> int:
+	var n := 0
+	var i := 0
+	while i < t.length():
+		if t.substr(i, 2) == "{$" and t.find("}", i) > i:
+			i = t.find("}", i) + 1
+			n += 2
+		else:
+			i += 1
+			n += 1
+	return n
+
+
+## 按显示长度截前 k 个字，不切断数值占位
+static func _vis_cut(t: String, k: int) -> String:
+	var n := 0
+	var i := 0
+	while i < t.length() and n < k:
+		if t.substr(i, 2) == "{$" and t.find("}", i) > i:
+			i = t.find("}", i) + 1
+			n += 2
+		else:
+			i += 1
+			n += 1
+	return t.substr(0, i)
 
 
 func branch_lines(n: Dictionary = next_node(), short := false) -> Array:
@@ -961,8 +990,10 @@ func branch_lines(n: Dictionary = next_node(), short := false) -> Array:
 			if eff.begins_with(tag):
 				eff = eff.substr(tag.length())
 		eff = eff.trim_prefix("：").trim_prefix("使").strip_edges()
-		if short and eff.length() > BRANCH_SHORT and eff.find("，") >= 6:
+		if short and _vis_len(eff) > BRANCH_SHORT and eff.find("，") >= 6:
 			eff = eff.substr(0, eff.find("，"))   # 卡面一句话：长的压到第一个逗号前（完整的在详情 / 二选一里）
+		if short and _vis_len(eff) > BRANCH_CAP:
+			eff = _vis_cut(eff, BRANCH_CAP - 1) + "…"   # 还长就各自截断：两条路线各占一半版面，不让第二条被整段挤掉（手机）
 		out.append(tag + "：" + eff if eff != "" else tag)
 	return out
 

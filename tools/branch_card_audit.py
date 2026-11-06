@@ -11,6 +11,26 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 
 SHORT = 16
+CAP = 18
+
+
+def _walk(t, k=None):
+    n = i = 0
+    while i < len(t) and (k is None or n < k):
+        j = t.find("}", i)
+        if t[i:i + 2] == "{$" and j > i:
+            i, n = j + 1, n + 2
+        else:
+            i, n = i + 1, n + 1
+    return n, i
+
+
+def vis_len(t):
+    return _walk(t)[0]
+
+
+def vis_cut(t, k):
+    return t[:_walk(t, k)[1]]
 
 
 def lines_of(n, short=False):
@@ -35,8 +55,10 @@ def lines_of(n, short=False):
         eff = eff.lstrip("：").strip()
         if eff.startswith("使"):
             eff = eff[1:].strip()
-        if short and len(eff) > SHORT and eff.find("，") >= 6:
+        if short and vis_len(eff) > SHORT and eff.find("，") >= 6:
             eff = eff[:eff.find("，")]
+        if short and vis_len(eff) > CAP:
+            eff = vis_cut(eff, CAP - 1) + "…"
         out.append(tag + "：" + eff if eff else tag)
     return out, fb
 
