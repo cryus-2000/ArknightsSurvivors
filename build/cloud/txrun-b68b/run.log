@@ -1,0 +1,10 @@
+e0 old rc=0 360 err=0
+e0 new rc=0 360 err=0
+e2 old rc=0 360 err=0
+e2 new rc=0 360 err=0
+ERROR: Cannot check if the destination bucket is compatible for running parallel composite uploads as the user does not permission to perform GET operation on the bucket. The operation will be performed without parallel composite upload feature and hence might perform relatively slower.
+Copying file:///work/shots.tar.gz to gs://project-a565589c-4357-4f89-a98-batch/txrun-b68b/shots.tar.gz
+  
+..................................
+
+Average throughput: 170.2MiB/s
