@@ -402,7 +402,7 @@
   "recruit_chance": 0.55, "heal_weight": 1.2, "heal_low_hp": 0.5, "heal_low_hp_mult": 1.3,
   "_swap_chance": "10-26 用户「后期换干员的频率高吗，过高就降」：实测（docs/162）满员后过半的升级面板带换人卡（中段约每 46 秒一张）。满员后换人卡出现率 swap_chance，swap_late_t 秒后再降为 swap_chance_late；本次已有两张干员深度卡时不出（不挤成长卡）。swap_chance = recruit_chance、swap_late_t 极大、swap_keep_growth 0 = 改前（10-29 死开关清理，docs/197：上文提到的 swap_keep_growth 开关已删，只留现行路径）",
   "swap_chance": 0.25,
-  "swap_chance_late": 0.12,
+  "swap_chance_late": 0.18,
   "swap_late_t": 420,
   "force_recruit_level_1": 5,
   "force_recruit_level_3": 9,
