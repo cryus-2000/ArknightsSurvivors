@@ -1,0 +1,10 @@
+20438	levelup_desktop/log.txt
+723778	levelup_desktop/shot_motion_levelup_full_1217.png
+20898	recruit_desktop/log.txt
+773515	recruit_desktop/shot_motion_recruit_full_1217.png
+20436	relic_desktop/log.txt
+752146	relic_desktop/shot_motion_relic_full_1217.png
+20760	shop_desktop/log.txt
+736999	shop_desktop/shot_motion_shop_full_1217.png
+20665	swap_desktop/log.txt
+769449	swap_desktop/shot_motion_swap_full_1217.png
