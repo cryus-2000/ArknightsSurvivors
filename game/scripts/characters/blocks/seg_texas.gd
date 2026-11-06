@@ -912,9 +912,16 @@ static func tx_rift_update(o, dt: float) -> void:
 			var ext: float = len * float(b.get("scar_ext", 0.6))
 			var sw: float = float(b.get("sweep", 0.03))
 			var wm: float = 3.0 if last else 2.0
-			_tx_rift_scar(o, p0 - ud * ext, p1 + ud * ext, life, sw, wm)
-			_FXR.ev(o, "tx_cut", {"at": ctr, "last": last})   # 转平面（docs/257）：目标处落剑，只画
-			var nx: int = int(b.get("scar_extra", 2)) + (1 if last else 0)
+			# 一刀一道（11-06 用户「S3 每一次斩击可以是更加明显的一道斩击，而不是多次斩击」，fx/texas_s3_single_slash，缺省 1）：
+			# 只画——不再叠只画不判的细斩线，主刀痕更长（外延 ×1.6）、更粗（4 格，末刀 5 格）、多留 0.08 秒；判定线 p0→p1 / 伤害 / 段数 / 出手时刻不动
+			var one: bool = MfBal.v("fx/texas_s3_single_slash", 0.0) > 0.0
+			if one:
+				ext *= 1.6
+				wm = 5.0 if last else 4.0
+				life += 0.08
+			_tx_rift_scar(o, p0 - ud * ext, p1 + ud * ext, life, sw, wm, one)
+			_FXR.ev(o, "tx_cut", {"at": ctr, "last": last, "one": one, "a": p0 - ud * ext, "c": p1 + ud * ext})   # 转平面（docs/257）：目标处落剑，只画
+			var nx: int = 0 if one else int(b.get("scar_extra", 2)) + (1 if last else 0)
 			for xi in nx:
 				var xa: float = ud.angle() + (1.0 if (k + xi) % 2 == 0 else -1.0) * g.vrng.randf_range(0.35, 1.35)
 				var xu: Vector2 = Vector2.from_angle(xa)
@@ -925,6 +932,7 @@ static func tx_rift_update(o, dt: float) -> void:
 			sc.append({"a": p0 - ud * ext, "c": p1 + ud * ext, "until": g.t + life})
 			tx["scars"] = sc
 			rf.flash = {"p": p1, "from": p0, "t": rf.t}
+			o.tx["lf"] = {"p": p1, "from": p0, "gt": float(g.t), "pose": float(b.get("pose", 0.12))}   # 只画（S3 隐藏队长时两轮之间画上一刀的定格用），玩法不读
 			_tx_rift_trail(o, rf.from, p1)   # 瞬移残影：上一处 → 这一刀落点
 			rf.from = p1
 			o._sfx_op("hit")
@@ -943,9 +951,9 @@ static func tx_rift_update(o, dt: float) -> void:
 
 
 ## 一条刀痕（画面）：直线、两端尖，bow 恒 0
-static func _tx_rift_scar(o, a: Vector2, c: Vector2, life: float, sweep: float, wmax: float) -> void:
+static func _tx_rift_scar(o, a: Vector2, c: Vector2, life: float, sweep: float, wmax: float, one := false) -> void:
 	o.fx({"kind": "tx_scar", "a": a, "c": c, "life": life, "col": o.col(), "sweep": sweep, "bow": 0.0, "wmax": wmax})
-	_FXR.ev(o, "tx_scar", {"a": a, "c": c, "life": life, "wmax": wmax})   # 转平面（docs/257）：只画
+	_FXR.ev(o, "tx_scar", {"a": a, "c": c, "life": life, "wmax": wmax, "one": one})   # 转平面（docs/257）：只画
 	_tx_rift_grains(o, a, c, 14.0)
 
 
@@ -977,7 +985,35 @@ static func _tx_rift_grains(o, a: Vector2, c: Vector2, step: float) -> void:
 static func tx_rift_draw_body(o) -> bool:
 	_tx_rift_draw_trails(o)
 	var rf = o.tx.get("rift")
+	# S3 期间隐藏原地的队长（11-06 用户「S3 的时候干员飞出去了，是不是可以隐藏跑动的队长」，fx/texas_s3_hide_captain，缺省 1）：
+	# 只画——她当队长、剑雨滂沱持续期间（或这一轮次元斩还没斩完），两轮次元斩之间不再在原地画本体；结束时从最后一刀的落点留一串瞬移残影回到原位、本体 0.18 秒淡入。
+	# 玩家位置、受击判定、镜头、拾取都不碰（本体逻辑位置本来就全程在原地）
+	var g = o.g
+	var hide: bool = MfBal.v("fx/texas_s3_hide_captain", 0.0) > 0.0 and o.is_leader and (o.skill_active_left(2) > 0.0 or rf != null)
+	if hide:
+		o.tx["s3h"] = true
+		_tx_pos_mark(o)
+	elif o.tx.get("s3h", false):
+		o.tx.erase("s3h")
+		o.tx["s3_app"] = float(g.t)
+		var lf0: Dictionary = o.tx.get("lf", {})
+		if not lf0.is_empty():
+			_tx_rift_trail(o, lf0.p, o.pos)
 	if rf == null:
+		if hide:
+			var lf: Dictionary = o.tx.get("lf", {})   # 上一轮最后一刀的定格：照原来的定格时长画完（之后原地什么都不画，直到下一轮）
+			if not lf.is_empty():
+				var age: float = float(g.t) - float(lf.gt)
+				var pose0: float = float(lf.pose)
+				if age >= 0.0 and age < pose0:
+					var dv0: Vector2 = (lf.p as Vector2) - (lf.from as Vector2)
+					var k0: float = clampf((1.0 - age / pose0) / 0.3, 0.0, 1.0)
+					o.draw_body_at(lf.p, dv0.x < 0.0, Color(1.0, 1.0, 1.0, 0.35 + 0.65 * k0))
+			return true
+		var ap: float = float(o.tx.get("s3_app", -1.0))
+		if ap >= 0.0 and float(g.t) - ap < 0.18:   # 现身：淡入
+			o.draw_body_at(o.pos, float(o.face) < 0.0, Color(1.0, 1.0, 1.0, clampf((float(g.t) - ap) / 0.18, 0.15, 1.0)))
+			return true
 		return false
 	var fl: Dictionary = rf.flash
 	var pose: float = float(rf.b.get("pose", 0.12))   # 定格：每刀斩完在落点停住的时间（下一刀先到就换位），最后 30% 渐隐
@@ -986,6 +1022,21 @@ static func tx_rift_draw_body(o) -> bool:
 		var k: float = clampf((1.0 - (float(rf.t) - float(fl.t)) / pose) / 0.3, 0.0, 1.0)
 		o.draw_body_at(fl.p, dv.x < 0.0, Color(1.0, 1.0, 1.0, 0.35 + 0.65 * k))
 	return true
+
+
+## 隐藏队长时原地的位置标记（11-06 协调人：隐身期间怪仍打原地的判定点，玩家要知道自己站在哪）：脚下一个半透明小菱形，琥珀细边 + 暗芯，
+## 2 px 格逐格画、随 15 fps 节拍轻微呼吸。只画
+static func _tx_pos_mark(o) -> void:
+	var cv = o.cv
+	var c: Vector2 = (o.pos / 2.0).floor() * 2.0 + Vector2(0, 2)
+	var br: float = 0.62 + 0.12 * sin(float(int(float(o.g.t) * 15.0)) * 0.7)   # 11-06 用户选 A 后：1 倍下偏淡，0.42 → 0.62
+	var edge := Color(1.0, 0.78, 0.44, br)
+	var core := Color(0.12, 0.08, 0.05, br * 0.6)
+	for y in range(-3, 4):
+		var hw: int = 6 - 2 * absi(y)
+		for x in range(-hw, hw + 1):
+			var onedge: bool = absi(x) == hw or absi(x) == hw - 1 and absi(y) == 3
+			cv.draw_rect(Rect2(c + Vector2(x, y) * 2.0, Vector2(2, 2)), edge if onedge else core)
 
 
 ## 刀痕（kind = tx_scar）：像素刀口——2 px 格，两头尖、中间宽（宽度按 sin 起伏，最宽 wmax 格），一律直线（bow 缺省 0）；
