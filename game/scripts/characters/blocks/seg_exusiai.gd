@@ -328,7 +328,8 @@ static func _exu_volley(o, p: Dictionary, main: bool, last: bool) -> void:
 				tr_b = trb
 				btex = "proj_exusiai_bullet_t3"   # 曳光弹：金色弹体
 		var stn := 0.0
-		var pfb: Dictionary = _exu_active(o, "verb.aim_prefer") if main and _pf_mode() == 2 and o.tags_all.has("verb.aim_prefer") else {}
+		var pfa: Array = _exu_active(o, "verb.aim_prefer") if main and _pf_mode() == 2 and o.tags_all.has("verb.aim_prefer") else []
+		var pfb: Dictionary = pfa[0] if not pfa.is_empty() else {}
 		if not pfb.is_empty():
 			st["pf_n"] = int(st.get("pf_n", 0)) + 1
 			if int(st.pf_n) % maxi(1, int(pfb.get("stun_every", MfBal.v("growth_nodes/exu_stun_every", 6.0)))) == 0:
