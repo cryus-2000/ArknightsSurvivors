@@ -196,10 +196,15 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--frames", default="s:0,a:2")
     ap.add_argument("--sheet")
+    ap.add_argument("--bg", default="", help="背景生图路径（缺省 cover1107_bgopen；11-07 重打光版在 cover1107_relit）")
+    ap.add_argument("--suffix", default="")
     a = ap.parse_args()
+    global BG
+    if a.bg:
+        BG = a.bg
     outs = []
     for key in a.frames.split(","):
-        name = "H_" + key.replace(":", "")
+        name = "H_" + key.replace(":", "") + a.suffix
         it, ty = build(key, "itch_cover"), build(key, "toy_poster")
         it.save(HERE / f"cover_{name}_itch_cover_630x500.png", optimize=True)
         ty.save(HERE / f"cover_{name}_toy_poster_1200x900.png", optimize=True)
