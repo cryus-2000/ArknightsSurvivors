@@ -22,7 +22,7 @@ run() {
         B) b="$ON" ;;
         M) b="$ON --bal=render/late_fx_mate=0.4 --bal=render/late_fx_grains=0.35 --bal=render/late_fx_fill=0.4 --bal=render/late_fx_emit=0.3" ;;
     esac
-    d="$MEDIA/${LU}_$1"; mkdir -p "$d"
+    d="$(realpath -m "$MEDIA/${LU}_$1")"; mkdir -p "$d"   # 绝对路径：--path game 会改工作目录
     ud=$(mktemp -d); mkdir -p "$ud/ArknightsSurvivors"; printf '[game]\ndmg_numbers=true\n' > "$ud/ArknightsSurvivors/settings.cfg"
     XDG_DATA_HOME=$ud timeout -k 30 7000 "$GODOT" --rendering-driver opengl3 --audio-driver Dummy --resolution 1280x720 --position 0,0 --fixed-fps 60 --path game -- \
         --balance --nodeath --seed=11 --slot4 $SQ --quality=high --prog=20 --maxt=${MAXT:-600} --shots=$FR --shotdir="$d" $b > "$OUT/${LU}_$1.log" 2>&1
