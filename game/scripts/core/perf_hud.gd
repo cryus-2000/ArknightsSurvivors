@@ -237,7 +237,7 @@ func _tick_sec() -> void:
 	var tail := events[events.size() - 1] if not events.is_empty() else ""
 	var txt := "\n".join(_nz([l1, l2, l3, l4, l5, tail, "点此查看 / 复制日志"]))
 	lb.text = txt
-	var k: float = 1.0 if not Pad.touch_ui() else 1.25
+	var k: float = 1.7 if Cfg.mobile_web() else (1.25 if Pad.touch_ui() else 1.0)   # 手机网页画布缩得厉害：字放大才看得清
 	lb.add_theme_font_size_override("font_size", int(11 * k))
 	lb.position = Vector2(6, 26)
 	var sz: Vector2 = lb.get_combined_minimum_size()
