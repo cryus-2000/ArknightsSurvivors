@@ -24,18 +24,14 @@ import build_cover_m as M  # noqa: E402
 SRC = B.ROOT / "art/archive/incoming_1028/enemy_redraw_1023/remaining/generated"
 MIZ = "t:1"
 # (名, 高〔水月高的倍数〕, dx, dy〔水月高为单位，相对光圈中心脚底〕, 亮度, 朝左?)
+# 11-07 用户「少了点压迫感」：怪潮更密更近（程序铺 CROWD 只、两侧叠成墙、只留正前方）、
+# 前景两角大怪拉回画面内、光柱后面一只巨大的育母暗影俯视水月
 LAYOUT = [
-    # 后景（远、暗、小）
-    ("mother", 0.70, -1.30, -0.45, 0.55), ("path", 0.70, 1.40, -0.48, 0.55),
-    ("floater", 0.42, -0.55, -0.62, 0.55), ("offspring", 0.38, 0.62, -0.62, 0.55),
-    ("nest", 0.42, -2.05, -0.30, 0.5), ("tracer", 0.45, 2.10, -0.32, 0.5),
-    # 中景一圈
-    ("slider", 0.58, -1.08, -0.14, 0.8), ("spitter", 0.62, 1.05, -0.16, 0.8),
-    ("skimmer", 0.66, -1.62, 0.02, 0.75), ("runner", 0.50, 1.70, 0.00, 0.8),
-    ("offspring", 0.46, -0.88, 0.20, 0.9), ("slider", 0.50, 0.98, 0.22, 0.9),
-    # 前景两角（只露半身、偏暗）
-    ("paranoia", 1.55, -2.00, 1.10, 0.5), ("izumik", 1.65, 2.02, 1.20, 0.45),
+    ("paranoia", 1.75, -1.55, 1.00, 0.45), ("izumik", 1.85, 1.60, 1.08, 0.42),
 ]
+LOOM = ("mother", 3.6, 0.0, -0.35, 0.30)       # 背景巨物：(名, 高, dx, dy, 亮度)
+CROWD_KINDS = ["slider", "spitter", "skimmer", "runner", "offspring", "floater", "nest", "tracer"]
+CROWD = 38
 CACHE = {}
 
 
@@ -90,6 +86,13 @@ def paste(g, spr, fx, fy, light, bright, hm, face_left):
     d = math.hypot(fx - light[0], (fy - sh / 2) - light[1]) / hm
     k = float(np.clip(1.1 - 0.28 * d, 0.35, 1.0)) * bright
     rgb = a[..., :3] * np.array([0.78, 0.90, 1.0]) * k
+    sil = bright < 0.66          # 后排 / 背景巨物：平涂深色剪影（只留一点明暗 + 青色眼光），做成怪墙
+    if sil:
+        lum = (a[..., :3] * [0.299, 0.587, 0.114]).sum(-1, keepdims=True) / 255
+        rgb = np.array([8, 16, 26], np.float32) + lum * np.array([16, 30, 42]) * (bright / 0.66)
+        r_, g_, b_ = a[..., 0], a[..., 1], a[..., 2]
+        eye = m & (g_ > 150) & (b_ > 170) & (r_ < 150)
+        rgb = np.where(eye[..., None], M.CYAN * 0.9, rgb)
     vx, vy = light[0] - fx, light[1] - (fy - sh / 2)
     nv = math.hypot(vx, vy) or 1
     sx, sy = int(round(vx / nv)), int(round(vy / nv))
@@ -97,7 +100,7 @@ def paste(g, spr, fx, fy, light, bright, hm, face_left):
     p = np.pad(mf, 1)
     nb = p[1 + sy:1 + sy + sh, 1 + sx:1 + sx + sw]
     rim = m & ~nb
-    rk = float(np.clip(0.95 - 0.22 * d, 0.25, 0.8))
+    rk = float(np.clip(0.95 - 0.22 * d, 0.25, 0.8)) * (0.45 if sil else 1.0)
     rgb[rim] = rgb[rim] * (1 - rk) + M.CYAN * rk
     ys0, xs0 = max(0, y0), max(0, x0)
     ys1, xs1 = min(gh, y0 + sh), min(gw, x0 + sw)
@@ -123,8 +126,25 @@ def build(kind):
     miz = Hh.sprite(MIZ)
     hm = miz.height
     light = (cx, cy - hm * 0.15)
-    items = sorted((cy + dy * hm, name, hr, cx + dx * hm, br) for name, hr, dx, dy, br in LAYOUT)
+    lay = list(LAYOUT)
+    rng = np.random.default_rng(23)
+    while len(lay) < len(LAYOUT) + CROWD:
+        ang = rng.uniform(0, 2 * math.pi)
+        if 0.30 * math.pi < ang < 0.70 * math.pi:        # 正前方留空
+            continue
+        rad = rng.uniform(0.85, 2.2)
+        dx, dy = rad * math.cos(ang), rad * 0.40 * math.sin(ang)
+        if abs(dx) < 0.62 and dy < 0.05:                  # 水月身后正中不叠
+            continue
+        depth = (dy + 0.9) / 1.3                          # 越靠后越小越暗
+        hr = float(np.clip(0.38 + 0.32 * depth, 0.3, 0.75)) * rng.uniform(0.85, 1.15)
+        br = float(np.clip(0.45 + 0.45 * depth, 0.4, 0.95))
+        lay.append((CROWD_KINDS[int(rng.integers(0, len(CROWD_KINDS)))], hr, dx, dy, br))
+    items = sorted((cy + dy * hm, name, hr, cx + dx * hm, br) for name, hr, dx, dy, br in lay)
     g = grid.copy()
+    # 背景巨物：压暗成剪影，只留一点轮廓光，最先画（在所有怪和水月后面）
+    ln, lh, ldx, ldy, lbr = LOOM
+    paste(g, to_cells(load_src(ln), int(lh * hm)), cx + ldx * hm, cy + ldy * hm, light, lbr, hm, False)
     for fy, name, hr, fx, br in items:
         if fy > cy:
             continue
