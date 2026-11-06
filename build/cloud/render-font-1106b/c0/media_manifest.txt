@@ -1,0 +1,12 @@
+819693	now/pc_tab/fr_00000.png
+812052	now/pc_tab/fr_00015.png
+814550	now/pc_tab/fr_00030.png
+543438	now/pc_tab/fr_00045.png
+41655	now/pc_tab/run.log
+543655	now/pc_tab/shot_tab.png
+425142	now/ph_p3/fr_00000.png
+419552	now/ph_p3/fr_00015.png
+419331	now/ph_p3/fr_00030.png
+220941	now/ph_p3/fr_00045.png
+39071	now/ph_p3/run.log
+221185	now/ph_p3/shot_tab.png
