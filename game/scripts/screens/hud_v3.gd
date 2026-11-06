@@ -651,6 +651,8 @@ func _m3_badge(o, c: Vector2, sz: float, s: float) -> void:
 	g.hud.draw_rect(r.grow(1.0), Color(0.016, 0.024, 0.031, 0.92))
 	if not down:   # 字牌「M3」（11-06：召唤物帧条四周透明边大、本体偏黑，13 像素里缩成一团看不清，改写字）
 		var mfs: int = maxi(7, int(round(6.5 * s)))
+		while mfs > 5 and UI.cwidth(g.font, "M3", mfs) > r.size.x - 2.0:   # 手机字号有放大（UI.fs）：放不下就缩
+			mfs -= 1
 		UI.ctext(g.hud, g.font, Vector2(r.position.x, r.get_center().y + 0.32 * mfs), "M3", mfs, WHITE, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 	var f: float = clampf(float(st.hp) / maxf(1.0, float(st.max_hp)), 0.0, 1.0)
 	var bh: float = maxf(1.6, 1.8 * s)
