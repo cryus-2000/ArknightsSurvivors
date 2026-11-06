@@ -12,7 +12,7 @@ func _initialize() -> void:
 	await process_frame
 	var out: Array = []
 	for ph in [false, true]:
-		Cfg._touch = 1 if ph else 0
+		root.get_node("Cfg")._touch = 1 if ph else 0
 		for e in gal.entries:
 			if not e.has("op"):
 				continue
