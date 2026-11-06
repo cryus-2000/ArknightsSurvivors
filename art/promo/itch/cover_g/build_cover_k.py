@@ -40,6 +40,8 @@ def fill_band(raw):
     a = np.asarray(raw, np.float32)
     sd = a.mean(-1).std(1)
     top = next(i for i in range(a.shape[0]) if sd[i] > 6)
+    if top < 8:                                # 没有黑带（如 11-07 重绘版）：原样返回
+        return raw
     k = top + 60                               # 取画面里往下一点的一行作起点（顶边几行常有过渡杂色）
     src = Image.fromarray(a[k:k + 1].astype(np.uint8)).resize((a.shape[1] // 40, 1), Image.BOX).resize((a.shape[1], 1), Image.BILINEAR)
     row = np.asarray(src, np.float32)[0]

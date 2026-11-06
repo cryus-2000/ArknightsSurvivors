@@ -161,7 +161,7 @@ def paste(g, spr, fx, fy, light, bright, hm, face_left, name="", ring_r=0.62):
     reg[sm] = np.clip(rgb[ys0 - y0:ys1 - y0, xs0 - x0:xs1 - x0][sm], 0, 255).astype(np.uint8)
 
 
-def build(kind):
+def build(kind, with_miz=True, with_title=True):
     (W, H), cell, up, logo_y = Hh.SIZES[kind]
     gw, gh = W // cell, H // cell
     if kind == "itch_banner":
@@ -200,7 +200,8 @@ def build(kind):
         if fy > cy:
             continue
         paste(g, to_cells(load_src(name), max(6, int(hr * hm))), fx, fy, light, 1.0, hm, fx > cx, name)
-    g = Hh.compose_grid(g, miz, rmask, (cx, cy), 0)
+    if with_miz:
+        g = Hh.compose_grid(g, miz, rmask, (cx, cy), 0)
     for fy, name, hr, fx, br in items:
         if fy <= cy:
             continue
@@ -215,6 +216,8 @@ def build(kind):
     img = Image.fromarray(g).resize((g.shape[1] * cell, g.shape[0] * cell), Image.NEAREST)
     canvas = Image.new("RGB", (W, H), (6, 10, 16))
     canvas.paste(img, ((W - img.width) // 2, (H - img.height) // 2))
+    if not with_title:
+        return canvas
     bg = np.asarray(canvas).copy()
     rgb, cov, padt = A2.logo_block(482)
     if up > 1:

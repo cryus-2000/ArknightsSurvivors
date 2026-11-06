@@ -40,6 +40,9 @@ def sprite(key):
     return fr.crop(fr.getbbox())
 
 
+OVER_BANNER = 1.06
+SHIFT_ON = True
+SHIFT_PLACED = {"itch_cover": 9, "toy_poster": 6, "itch_banner": 0}   # --placed 时只为让开标题副行的小下移
 OVER = 1.15   # 背景多做 15% 的余量，按青光圈中心再裁（11-07：光圈要和人物对齐居中）
 
 
@@ -205,12 +208,12 @@ def build(key, kind):
     (W, H), cell, up, logo_y = SIZES[kind]
     gw, gh = W // cell, H // cell
     if kind == "itch_banner":
-        big = bg_pixels_path(BANNER["bg"], W, H, cell, 1.06)
+        big = bg_pixels_path(BANNER["bg"], W, H, cell, OVER_BANNER)
         grid, rmask, center = crop_on_ring(big, gw, gh, BANNER["floor_y"], BANNER["ring_x"])
     else:
         big = bg_pixels(W, H, cell)
         grid, rmask, center = crop_on_ring(big, gw, gh, FLOOR[1])
-    n = SHIFT[kind]
+    n = SHIFT[kind] if SHIFT_ON else SHIFT_PLACED[kind]
     grid, rmask = shift_down(grid, n), shift_down(rmask, n)
     grid = compose_grid(grid, sprite(key), rmask, center, n)
     # 顶部平滑压暗到统一深色（盖掉生图黑带补过渡留下的台阶，也给标题干净底）
@@ -251,8 +254,11 @@ def main():
     ap.add_argument("--bg", default="", help="背景生图路径（缺省 cover1107_bgopen；11-07 重打光版在 cover1107_relit）")
     ap.add_argument("--suffix", default="")
     ap.add_argument("--banner_bg", default="", help="横幅背景生图（21:9 外扩）")
+    ap.add_argument("--placed", action="store_true", help="背景已按封面排好（11-07 Gemini 重绘版）：不加余量裁切、不下移")
     a = ap.parse_args()
-    global BG
+    global BG, OVER, OVER_BANNER, SHIFT_ON
+    if a.placed:
+        OVER, OVER_BANNER, SHIFT_ON = 1.0, 1.0, False
     if a.bg:
         BG = a.bg
     outs = []
