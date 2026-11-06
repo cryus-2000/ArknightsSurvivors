@@ -1,0 +1,13 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4815 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+old rc=0 180 张 0 处脚本错误
+new rc=0 180 张 0 处脚本错误
+[in#0 @ 0x5555ae7be180] Impossible to open 'build/cloud/render-anfine2/build/cloud/render-anfine2/old.mp4'
+[in#0 @ 0x5555ae7bde00] Error opening input: No such file or directory
+Error opening input file build/cloud/render-anfine2/list.txt.
+Error opening input files: No such file or directory
+total 8
+drwxr-xr-x 2 root root 4096 Nov  6 13:04 .
+drwxr-xr-x 7 root root 4096 Nov  6 13:08 ..
+media：24 个文件，22M
