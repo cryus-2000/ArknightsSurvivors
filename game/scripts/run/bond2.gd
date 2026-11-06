@@ -132,8 +132,11 @@ static func _cast(u, bid: String, pr: Array, c: Vector2, e2: bool) -> void:
 			a["rmax"] = Bal.v("bond2/rival_r", 440.0) * k
 		"b_penguin":   # 开车：车是侧面贴图，只走横向（斜率封顶 0.25）；从最密处后方 car_back 处开进画面，穿过最密处再开出去
 			var sx: float = 1.0 if d0.x >= 0.0 else -1.0
-			var dl: Vector2 = Vector2(sx, clampf(d0.y / maxf(absf(d0.x), 0.001), -0.25, 0.25)).normalized()
-			a["s"] = c - dl * Bal.v("bond2/car_back", 450.0) * k
+			var dl: Vector2 = Vector2(sx, clampf(d0.y / maxf(absf(d0.x), 0.001), -0.12, 0.12)).normalized()
+			var ld = g.squad.leader()
+			var ly: float = ld.pos.y if ld != null and ld.pos != Vector2.INF else from.y
+			var cy: float = clampf(c.y, ly - Bal.v("bond2/car_dy", 170.0), ly + Bal.v("bond2/car_dy", 170.0))   # 11-07 录像：车道贴屏幕顶边被 HUD 压住；车道限在队长上下 car_dy 内
+			a["s"] = Vector2(c.x, cy) - dl * Bal.v("bond2/car_back", 450.0) * k
 			a["dl"] = dl
 			a["len"] = Bal.v("bond2/car_len", 1000.0) * k
 			a["hw"] = Bal.v("bond2/car_hw", 56.0) * k
