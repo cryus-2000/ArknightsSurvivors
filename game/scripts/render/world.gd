@@ -88,7 +88,7 @@ var _dbg_amb: bool = Dc.dbg("noamb")
 var _dbg_ground: bool = Dc.dbg("noground")
 var _dbg_gem: bool = Dc.dbg("nogem")
 var _dbg_mire: bool = Dc.dbg("nomire")
-var _dbg_opmask: bool = Dc.dbg("nolead") or Dc.dbg("nomates") or Cfg.dev_args().any(func(a): return a.begins_with("--clutterdbg=") and a.contains("noop_"))   # 后期特效分账（Dc.mute_op）
+var _dbg_opmask: bool = Dc.opmask_any()   # 后期特效分账（--clutterdbg=nolead / nomates / noop_<id>，Dc.mute_op）
 # docs/139 §8 怪物攻击圈环盘点（量测，只隐藏不改逻辑）：nowarn 地面预警（填充 + 轮廓）、notell 敌人自带危险提示、nofoefx 敌方一次性特效、
 # noshock 冲击环、noaura 光环（巢涌者 / 伪人负担圈）
 var _dbg_warn: bool = Dc.dbg("nowarn")

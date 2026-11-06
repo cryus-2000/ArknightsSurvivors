@@ -98,6 +98,14 @@ static func dbg_any() -> bool:
 
 ## --clutterdbg=nolead / nomates / noop_<干员 id>（后期特效分账量测）：只把队长 / 队友 / 某一名干员的特效画成全透明
 ## （干员特效阶段的合批画布 + fx_dim + 该干员出手生成的 g.fx 帧条；GPU 光学颗粒不分人，量不到）
+static func opmask_any() -> bool:
+	dbg("")
+	for k in _dbg:
+		if str(k) == "nolead" or str(k) == "nomates" or str(k).begins_with("noop_"):
+			return true
+	return false
+
+
 static func mute_op(oid: String, leader: bool) -> bool:
 	if not dbg_any():
 		return false

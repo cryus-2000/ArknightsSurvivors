@@ -7,6 +7,9 @@ Xvfb :99 -screen 0 1280x720x24 -nolisten tcp >/tmp/xvfb.log 2>&1 &
 export DISPLAY=:99
 sleep 2
 python3 tools/asset_index.py >/dev/null 2>&1
+# 先用无头短局查编译错误（有就直接退出，不白跑一小时）
+timeout 300 "$GODOT" --headless --audio-driver Dummy --path game -- --balance --seed=11 --op=logos --squad=texas --maxt=3 --clutterdbg=noop_texas > "$OUT/precheck.log" 2>&1
+if grep -q "SCRIPT ERROR" "$OUT/precheck.log"; then echo "预检有脚本错误，见 precheck.log" | tee "$OUT/runs.txt"; exit 1; fi
 SPF=0.0659   # --fixed-fps 60 非实时，约 0.0659 局内秒 / 帧（docs/243 §1.3 同口径）
 FR=$(python3 -c "print(','.join(str(int(round(t/$SPF))) for t in (470,480,490,500,590,600,610,620)))")
 declare -A LU
