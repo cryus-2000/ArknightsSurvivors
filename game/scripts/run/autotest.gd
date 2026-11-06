@@ -565,6 +565,19 @@ func _flashrec_step() -> void:
 				near.append("%s/%s#%d@%d,%d%s" % [e.type, e.tex, e.id, e.pos.x, e.pos.y, " B" if e.boss else ""])
 		print("ENEMYDUMP i=%d %s" % [_fr_i, " ".join(near)])
 	var img: Image = g.get_viewport().get_texture().get_image()
+	if Cfg.dev_args().has("--ebdump"):
+		var vp0: Viewport = g.get_viewport()
+		var xf0: Transform2D = vp0.get_final_transform() * vp0.get_canvas_transform()
+		var bl: Array = []
+		for b in g.ebullets:
+			if b.life > 0.0 and b.get("boss", false):
+				bl.append([snappedf(b.pos.x, 0.1), snappedf(b.pos.y, 0.1), snappedf(b.vel.x, 0.1), snappedf(b.vel.y, 0.1), b.r, str(b.get("kind", "")), str(b.get("pc_tier", "")), snappedf(b.life, 0.01)])
+		var bbp: Vector2 = bb.pos if bb != null else Vector2.ZERO
+		var fd := FileAccess.open(g.shot_dir + "/eb_%05d.json" % _fr_i, FileAccess.WRITE)
+		fd.store_string(JSON.stringify({"t": g.t, "img": [img.get_width(), img.get_height()], "vs": [vp0.get_visible_rect().size.x, vp0.get_visible_rect().size.y],
+			"xf": [xf0.x.x, xf0.x.y, xf0.y.x, xf0.y.y, xf0.origin.x, xf0.origin.y], "ct": [g.get_canvas_transform().x.x, g.get_canvas_transform().origin.x, g.get_canvas_transform().origin.y],
+			"boss": [bbp.x, bbp.y], "pp": [g.ppos.x, g.ppos.y], "b": bl}))
+		fd.close()
 	img.resize(_fr_w, int(_fr_w * img.get_height() / float(img.get_width())), Image.INTERPOLATE_BILINEAR)
 	img.save_png(g.shot_dir + "/fr_%05d.png" % _fr_i)
 	var hs := 0
