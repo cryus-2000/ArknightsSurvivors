@@ -130,11 +130,12 @@ static func _cast(u, bid: String, pr: Array, c: Vector2, e2: bool) -> void:
 	match bid:
 		"b_rival":   # 对砍：交锋点 = 最密处；冲击波最大半径
 			a["rmax"] = Bal.v("bond2/rival_r", 440.0) * k
-		"b_penguin":   # 开车：从小队旁出发，穿过最密处再开出去一段
-			var dl: Vector2 = d0
-			a["s"] = from - dl * 120.0
+		"b_penguin":   # 开车：车是侧面贴图，只走横向（斜率封顶 0.25）；从最密处后方 car_back 处开进画面，穿过最密处再开出去
+			var sx: float = 1.0 if d0.x >= 0.0 else -1.0
+			var dl: Vector2 = Vector2(sx, clampf(d0.y / maxf(absf(d0.x), 0.001), -0.25, 0.25)).normalized()
+			a["s"] = c - dl * Bal.v("bond2/car_back", 450.0) * k
 			a["dl"] = dl
-			a["len"] = maxf(from.distance_to(c) + 420.0, Bal.v("bond2/car_len", 900.0)) * k
+			a["len"] = Bal.v("bond2/car_len", 1000.0) * k
 			a["hw"] = Bal.v("bond2/car_hw", 56.0) * k
 		"b_inq":   # 灯塔：立在流明身后，光锥以朝最密处为中线左右各扫 sweep 弧度
 			var lm = who.lumen
