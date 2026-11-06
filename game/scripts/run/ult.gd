@@ -19,6 +19,7 @@ const IRP = preload("res://scripts/run/ult_px_ir.gd")   # 艾丽妮「宣判」�
 const SDP = preload("res://scripts/run/ult_px_sd.gd")   # 斯卡蒂「斩浪」转平面画面（docs/246 §16，同开关；只画）
 const HOP = preload("res://scripts/run/ult_px_ho.gd")   # 星熊终结技配色对齐 + 崩解（docs/254 §9）
 const GLP = preload("res://scripts/run/ult_px_gl.gd")   # 歌蕾蒂娅终结技转平面叠加层（docs/263 §9，ult/px_plane_gladiia；只画）
+const ANF = preload("res://scripts/run/ult_an_fine.gd")   # 安洁莉娜终结技精细版旋臂 / 奇点（ult/an_fine，11-06；kind = "an_fine"）
 const MZP = preload("res://scripts/run/ult_px_mz.gd")   # 水月「水母群」转平面画面（docs/261 §8，ult/px_plane_mizuki；只画）
 const Bond = preload("res://scripts/run/link_bond.gd")   # 羁绊连携（link/bond，docs/217）
 const LinkV2 = preload("res://scripts/run/link_v2.gd")   # 连携 v2（link/v2，docs/209 §2）：全自动、只由队长触发、按姿态挑人   # 慢动作瞄准 v2（ult/aim，docs/209 §3）
@@ -1272,6 +1273,9 @@ func draw_world_back(w) -> void:
 			if str(s.kind) == "pxfn":   # 转平面终结技画面（docs/262 §11）：贴地件
 				w.tb_flush()
 				UPX.draw(g, s, dim)
+			elif str(s.kind) == "an_fine":
+				w.tb_flush()
+				ANF.draw(self, s, dim)
 			elif str(s.kind) == "strip":
 				_draw_strip(w, s, dim)
 			else:

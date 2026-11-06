@@ -15,6 +15,7 @@ const FC = preload("res://scripts/run/ult_fx_c.gd")   # pixfx 第三组：归溟
 const SDP = preload("res://scripts/run/ult_px_sd.gd")   # 斯卡蒂「斩浪」转平面画面（docs/246 §16，ult/px_plane；只画）
 const GLP = preload("res://scripts/run/ult_px_gl.gd")   # 歌蕾蒂娅终结技转平面叠加层（docs/263 §9：配色对齐 + 爆开那一下加强；只画）
 const MZP = preload("res://scripts/run/ult_px_mz.gd")   # 水月水母群转平面画面（docs/261 §8；只画）
+const ANF = preload("res://scripts/run/ult_an_fine.gd")   # 安洁莉娜终结技精细版（ult/an_fine）
 const IDS: Array = ["skadi", "gladiia", "angelina", "eyjafjalla", "wisadel", "specter_unchained", "mizuki"]
 const DIR_OPS: Array = ["skadi", "wisadel", "mizuki"]
 const POINT_OPS: Array = ["gladiia", "angelina", "eyjafjalla"]
@@ -1037,15 +1038,22 @@ static func _an_start(u, o, c: Vector2) -> Dictionary:
 	o.play_vis_anim("attack")
 	var a := {"c": c, "R": R, "lift": lift, "bosses": bosses, "TL": Bal.v("ult/an_lift", 0.6), "TH": Bal.v("ult/an_hold", 0.3), "lifted": false, "slams": 0,
 		"nslam": 2 if rt == "pull" else 1, "tide": rt == "lock", "tide_t": 0.0, "ring_t": 0.0, "streak_t": 0.0, "fx": []}
-	a["core"] = _keep(u, a, {"kind": "circle", "c": c, "r": 30.0, "col": _anc(Color(0.1, 0.02, 0.16)), "fill": 0.9, "life": 3.0})
-	a["halo"] = _keep(u, a, {"kind": "ring", "c": c, "r": 60.0, "w": 5.0, "col": col.lerp(Color.WHITE, 0.4), "life": 3.0})
+	var fine: bool = ANF.on()   # 精细版（11-06 用户「太粗了」）：旋臂 / 奇点改代码细画，旧的粗光环、宽帧条、收拢圈、速度线都不画
+	a["fine"] = fine
+	if fine:
+		a["core"] = _keep(u, a, ANF.make(c, R, PF.vseed(u, c)))
+		a["halo"] = {"r": 0.0}
+	else:
+		a["core"] = _keep(u, a, {"kind": "circle", "c": c, "r": 30.0, "col": _anc(Color(0.1, 0.02, 0.16)), "fill": 0.9, "life": 3.0})
+		a["halo"] = _keep(u, a, {"kind": "ring", "c": c, "r": 60.0, "w": 5.0, "col": col.lerp(Color.WHITE, 0.4), "life": 3.0})
 	_keep(u, a, {"kind": "circle", "c": c, "r": R, "col": _anc(Color(0.25, 0.08, 0.35)), "fill": 0.14, "life": 3.0})
 	_keep(u, a, {"kind": "ring", "c": c, "r": R, "w": 2.5, "col": col, "life": 3.0})
 	var ks: float = R / 470.0   # 帧条按 470 时的比例跟着半径缩放
-	if _an_v2(u):   # 奇点：Codex 第二批重力核心关键帧（fx_an_core），代码持续旋转、吸起期间缩小变亮
+	if _an_v2(u) and not fine:   # 奇点：Codex 第二批重力核心关键帧（fx_an_core），代码持续旋转、吸起期间缩小变亮
 		a["core"] = u.strip("fx_an_core", c, {"sc": 0.8 * ks, "life": 3.0, "col": _anc(Color(1.0, 1.0, 1.0, 0.9))})
 		a.fx.append(a.core)
-	a.fx.append(u.strip("fx_angelina_well_back", c, {"sc": 3.2 * ks, "layer": "back", "loop": true, "life": 3.0}))
+	if not fine:
+		a.fx.append(u.strip("fx_angelina_well_back", c, {"sc": 3.2 * ks, "layer": "back", "loop": true, "life": 3.0}))
 	if _an_v3():   # 被吸的碎屑（只画面）：一圈地块先慢后快吸向奇点、悬着抖，砸地时弹开落下（用户 10-31「吸入要有重量感」）
 		var vs: float = PF.vseed(u, c)
 		var deb: Array = []
@@ -1056,14 +1064,16 @@ static func _an_start(u, o, c: Vector2) -> Dictionary:
 			u.shape(s)
 			deb.append({"s": s, "a0": TAU * (q + hq * 0.8) / 16.0, "r0": R * (0.55 + 0.4 * hq), "h": hq})
 		a["deb"] = deb
-	a.fx.append(u.strip("fx_angelina_well_front", c, {"sc": 1.6 * ks, "loop": true, "life": 3.0}))
+	if not fine:
+		a.fx.append(u.strip("fx_angelina_well_front", c, {"sc": 1.6 * ks, "loop": true, "life": 3.0}))
 	return a
 
 
 static func _an_step(u, a: Dictionary, o) -> bool:
 	var t: float = a.t
 	var c: Vector2 = a.c
-	_an_core_tick(a, float(a.t), 0.45)
+	if not a.get("fine", false):
+		_an_core_tick(a, float(a.t), 0.45)
 	var R: float = a.R
 	var TL: float = a.TL
 	var TH: float = a.TH
@@ -1102,7 +1112,10 @@ static func _an_step(u, a: Dictionary, o) -> bool:
 		g.enemies_sys.set_air(e, h, true)
 	# 奇点：核心变大、引力环往里收、碎屑往里拉
 	var kc: float = clampf(t / ts, 0.0, 1.0)
-	if int(a.slams) == 0:
+	if int(a.slams) == 0 and a.get("fine", false):
+		a.core.k = kc
+		a.core.tt = t
+	elif int(a.slams) == 0:
 		a.core.r = lerpf(30.0, 90.0, kc)
 		a.halo.r = lerpf(60.0, 120.0, kc) + 6.0 * sin(t * 30.0)
 		if t >= float(a.ring_t):
