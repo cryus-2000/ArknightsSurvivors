@@ -2976,7 +2976,8 @@ func _ey_sort_items(o, out: Array) -> void:
 				var k2: float = clampf(float(s.t) / float(s.dur), 0.0, 1.0)
 				var sp: Vector2 = _ey_arc(s.from, s.to, k2, apex) + Vector2(0, -8)
 				var sp0: Vector2 = _ey_arc(s.from, s.to, maxf(0.0, k2 - 0.05), apex) + Vector2(0, -8)
-				out.append({"ert": "ball", "st": "lava", "pos": sp, "dir": sp - sp0 if sp.distance_squared_to(sp0) > 0.01 else Vector2.RIGHT, "gy": (s.from as Vector2).lerp(s.to, k2).y + 30.0, "ph": int(absf(s.to.x)) % 7})
+				out.append({"ert": "ball", "st": "lava", "pos": sp, "dir": sp - sp0 if sp.distance_squared_to(sp0) > 0.01 else Vector2.RIGHT, "gy": (s.from as Vector2).lerp(s.to, k2).y + 30.0, "ph": int(absf(s.to.x)) % 7,
+					"len": Bal.v("fx/eyja_lob_len", 0.45)})
 		for ev in o.hw.get("erupts", []):   # 火山弹
 			if not ev.has("shot") or float(ev.t) <= 0.0:
 				continue
@@ -3035,7 +3036,7 @@ func _ey_draw_rt(ci, it: Dictionary) -> void:
 	var px: float = g.PX
 	match str(it.ert):
 		"ball":
-			_ey_ball(ci, str(it.st), it.pos, it.dir, int(it.get("ph", 0)))
+			_ey_ball(ci, str(it.st), it.pos, it.dir, int(it.get("ph", 0)), float(it.get("len", 1.0)))
 		"core":   # 爆心发光点团（docs/270 补齐）：不画色块，只往发光层送一团热芯点，4 拍里由大到小
 			var fc: int = frame_of(float(it.t0))
 			if fc < 0 or fc > 3:
@@ -3110,11 +3111,14 @@ func _ey_lrock_pos(it: Dictionary, u: float) -> Vector2:
 
 
 ## 一颗弹体：帧条 ey_ball_<样式>_d<方向>（按飞行方向挑最近的平面角 + 水平翻转），循环；原点 = 弹头，位置每帧走、取整到美术像素格
-func _ey_ball(ci, st: String, pos: Vector2, dir: Vector2, ph: int) -> void:
+## ln < 1：沿飞行方向把弹身压短（弹头不动）、不加尾焰——精二三重咏唱 3 发低抛弹间隔 0.12 秒、走几乎同一条弧，
+## 帧条弹身约 45 美术像素长，三发首尾相接连成一条「火绳」（11-06 用户「精二像条火绳」）；开关 fx/eyja_lob_len（1 = 原样）
+func _ey_ball(ci, st: String, pos: Vector2, dir: Vector2, ph: int, ln := 1.0) -> void:
 	var dk: Array = pick_dir(dir.angle() if dir.length_squared() > 0.0001 else 0.0)
 	if EY_TAIL.has(st) and dir.length_squared() > 0.0001 and Bal.v("fx/eyja_ball_tail", 1.0) > 0.0:
-		_ey_tail(ci, pos, dir.normalized(), float(EY_TAIL[st]), ph)
-		_ey_strip_rot(ci, "ey_ball_%s_d%d" % [st, dk[0]], frame_of(0.0) + ph, _snap(pos), dk[1], dir.angle(), float(dk[0]))
+		if ln >= 1.0:
+			_ey_tail(ci, pos, dir.normalized(), float(EY_TAIL[st]), ph)
+		_ey_strip_rot(ci, "ey_ball_%s_d%d" % [st, dk[0]], frame_of(0.0) + ph, _snap(pos), dk[1], dir.angle(), float(dk[0]), ln)
 		if _ball_dbg():
 			_ey_ball_dbg(ci, pos, dir)
 		return
@@ -3125,7 +3129,14 @@ func _ey_ball(ci, st: String, pos: Vector2, dir: Vector2, ph: int) -> void:
 ## 原来 25° 飞的火球画成 45°，看着像斜着「平移」（11-06）。热芯发光点按同一变换放
 const EY_BALL_VIS := {-90: -85.6, -45: -40.7, 0: 4.4, 45: 49.3, 90: 94.4}   # 标称角 → 帧条里火体（亮像素，不含烟）实测主轴（度；烤图整体顺时针偏约 4.5°，lava / pow / ign 同）
 
-func _ey_strip_rot(ci, k: String, fi: int, gp: Vector2, flip: bool, ang: float, bucket: float) -> void:
+## 局部坐标里沿角 a 方向缩放 ln、垂直方向不变：R(a) · diag(ln, 1) · R(-a)
+static func _ey_squash(a: float, ln: float) -> Transform2D:
+	var c := cos(a)
+	var si := sin(a)
+	var off := c * si * (ln - 1.0)
+	return Transform2D(Vector2(c * c * ln + si * si, off), Vector2(off, si * si * ln + c * c), Vector2.ZERO)
+
+func _ey_strip_rot(ci, k: String, fi: int, gp: Vector2, flip: bool, ang: float, bucket: float, ln := 1.0) -> void:
 	var m: Dictionary = _meta(k)
 	var tx: Texture2D = _tex(k)
 	if m.is_empty() or tx == null:
@@ -3142,6 +3153,8 @@ func _ey_strip_rot(ci, k: String, fi: int, gp: Vector2, flip: bool, ang: float, 
 	var xf := Transform2D(res, gp)
 	if flip:
 		xf = xf * Transform2D(0.0, Vector2(-1.0, 1.0), 0.0, Vector2.ZERO)
+	if ln < 1.0:   # 帧条局部坐标里沿火体主轴（vis 角）压短，锚点（弹头）不动
+		xf = xf * _ey_squash(deg_to_rad(vis), ln)
 	var tl := Vector2(-float(m.ox) * px, -float(m.oy) * px)
 	ci.draw_set_transform_matrix(xf)
 	ci.draw_texture_rect_region(tx, Rect2(tl, Vector2(w * px, h * px)), Rect2(fi * w, 0.0, w, h))

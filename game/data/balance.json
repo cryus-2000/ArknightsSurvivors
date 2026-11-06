@@ -988,6 +988,8 @@
   "eyja_ball_tail": 1,
   "_eyja_ball_lift_doc": "艾雅法拉直线弹画面抬升（11-06 用户「感觉是不是还是斜着飞过去的」，fx_pxplane._ey_lift）：弹从法杖尖出手、瞄敌人脚下，判定点一路往下斜；画面按飞行进度把弹抬到敌人身子高度（像素），朝向 / 尾焰顺着画面路径；0 = 不抬。判定、爆点不动；debug 加 --balldbg 叠青线 = 飞行方向、白点 = 最近 10 帧画面位置",
   "eyja_ball_lift": 20,
+  "_eyja_lob_len_doc": "精二三重咏唱低抛弹沿飞行方向压短到几成长（弹头不动、不加尾焰）：3 发间隔 0.12 秒走几乎同一条弧，原长首尾相接连成一条火绳（11-06 用户）；1 = 原样；只画",
+  "eyja_lob_len": 0.45,
   "px_plane": 1, "px_plane_tier": -1, "px_plane_emit": 0.8, "px_plane_fps": 15, "px_plane_raw_fps": 12.8, "px_plane_sk_fill": 1,
   "recipe": 0, "recipe_grains": 160, "recipe_dl": 4, "recipe_dl_sum": 1.8, "recipe_tier": -1, "recipe_log": 0, "recipe_outline": 1, "recipe_hitlight": 1, "recipe_hitlight_r": 1.3, "recipe_hitlight_i": 1.4, "recipe_hitreact": 1,
   "_hit_tiers_doc": "特效第 2 步（10-23）：普攻命中三档模板（render/vfx.gd hit_tier / _tier_fx）。hit_tiers 总开关；hit_mid / hit_heavy 相对干员普攻基准的倍数门槛（暴击 / 弱点直接重档，召唤物 / 追加打击一律轻）；hit_n1–3 每档迸溅颗粒数；hit_pause_m / hit_pause_h 中 / 重档顿帧（走 impact_pause 共享限频）；melee_arc 近战刀光开关（半径 / 半角读实际判定）、melee_arc_life 刀光时长（秒）（10-29 死开关清理，docs/197：上文提到的 hit_tiers / melee_arc 开关已删，只留现行路径）",
