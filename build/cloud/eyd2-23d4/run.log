@@ -1,0 +1,45 @@
+e0 new rc=0 105 张 0 处脚本错误
+e0 old rc=0 105 张 0 处脚本错误
+ERROR: Cannot check if the destination bucket is compatible for running parallel composite uploads as the user does not permission to perform GET operation on the bucket. The operation will be performed without parallel composite upload feature and hence might perform relatively slower.
+Copying file:///work/shots.tar.gz to gs://project-a565589c-4357-4f89-a98-batch/eyd2-23d4/shots.tar.gz
+  
+.............
+
+Average throughput: 90.2MiB/s
+截图已传 gs://project-a565589c-4357-4f89-a98-batch/eyd2-23d4/shots.tar.gz（e0）
+e1 new rc=0 105 张 0 处脚本错误
+e1 old rc=0 105 张 0 处脚本错误
+ERROR: Cannot check if the destination bucket is compatible for running parallel composite uploads as the user does not permission to perform GET operation on the bucket. The operation will be performed without parallel composite upload feature and hence might perform relatively slower.
+Copying file:///work/shots.tar.gz to gs://project-a565589c-4357-4f89-a98-batch/eyd2-23d4/shots.tar.gz
+  
+....................
+
+Average throughput: 123.2MiB/s
+截图已传 gs://project-a565589c-4357-4f89-a98-batch/eyd2-23d4/shots.tar.gz（e1）
+e2 new rc=0 105 张 0 处脚本错误
+e2 old rc=0 105 张 0 处脚本错误
+ERROR: Cannot check if the destination bucket is compatible for running parallel composite uploads as the user does not permission to perform GET operation on the bucket. The operation will be performed without parallel composite upload feature and hence might perform relatively slower.
+Copying file:///work/shots.tar.gz to gs://project-a565589c-4357-4f89-a98-batch/eyd2-23d4/shots.tar.gz
+  
+................................................................................
+
+Average throughput: 40.7MiB/s
+截图已传 gs://project-a565589c-4357-4f89-a98-batch/eyd2-23d4/shots.tar.gz（e2）
+e0 new_dbg rc=0 105 张 0 处脚本错误
+e0 old_dbg rc=0 105 张 0 处脚本错误
+ERROR: Cannot check if the destination bucket is compatible for running parallel composite uploads as the user does not permission to perform GET operation on the bucket. The operation will be performed without parallel composite upload feature and hence might perform relatively slower.
+Copying file:///work/shots.tar.gz to gs://project-a565589c-4357-4f89-a98-batch/eyd2-23d4/shots.tar.gz
+  
+......................................................
+
+Average throughput: 84.9MiB/s
+截图已传 gs://project-a565589c-4357-4f89-a98-batch/eyd2-23d4/shots.tar.gz（e0_dbg）
+e2 new_dbg rc=0 105 张 0 处脚本错误
+e2 old_dbg rc=0 105 张 0 处脚本错误
+ERROR: Cannot check if the destination bucket is compatible for running parallel composite uploads as the user does not permission to perform GET operation on the bucket. The operation will be performed without parallel composite upload feature and hence might perform relatively slower.
+Copying file:///work/shots.tar.gz to gs://project-a565589c-4357-4f89-a98-batch/eyd2-23d4/shots.tar.gz
+  
+...........................................................
+
+Average throughput: 98.6MiB/s
+截图已传 gs://project-a565589c-4357-4f89-a98-batch/eyd2-23d4/shots.tar.gz（e2_dbg）

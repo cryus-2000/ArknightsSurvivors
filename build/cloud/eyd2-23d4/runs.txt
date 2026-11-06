@@ -1,0 +1,10 @@
+e0 new rc=0 105 张 0 处脚本错误
+e0 old rc=0 105 张 0 处脚本错误
+e1 new rc=0 105 张 0 处脚本错误
+e1 old rc=0 105 张 0 处脚本错误
+e2 new rc=0 105 张 0 处脚本错误
+e2 old rc=0 105 张 0 处脚本错误
+e0 new_dbg rc=0 105 张 0 处脚本错误
+e0 old_dbg rc=0 105 张 0 处脚本错误
+e2 new_dbg rc=0 105 张 0 处脚本错误
+e2 old_dbg rc=0 105 张 0 处脚本错误
