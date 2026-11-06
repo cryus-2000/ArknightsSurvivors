@@ -1,7 +1,7 @@
 """itch / Toy 封面 C2L（11-07 用户：「C2，但是暖点只保留灯我觉得最好」）：
 C2 配色（整体压冷灰蓝、同伴降饱和），水月也和同伴一样降饱和，高饱和暖色只留提灯一处。
 一次出三张：itch 封面 630×500、itch 横幅 960×400、Toy 1200×900（在 600×450 上做完再最近邻 ×2，像素格 4×4）。
-另加「明日方舟同人 · 非官方」（右下角，ui.ttf 二值化）。
+另加「明日方舟同人」（右下角，ui.ttf 二值化）。
 人物 / 灯的位置：C2 的 FIGS 是封面坐标，这里先换回生图原图坐标，再换到各成品；
 横幅生图（itchg_Aw）是封面生图外扩的，用模板匹配测得 = 封面生图 × 0.75 + (684, 0)。
 用法：python art/promo/itch/cover_g/build_cover_g_c2l.py
@@ -18,7 +18,7 @@ import build_cover_g_a2 as A2  # noqa: E402
 import build_cover_g_color as CO  # noqa: E402
 
 OUT_DIR = HERE
-NOTICE = "明日方舟同人 · 非官方"
+NOTICE = "明日方舟同人"   # 11-07 用户：「非官方去掉」
 SCHEME = dict(CO.SCHEMES["C2"])
 SCHEME.update({"name": "C2L 整体压冷，暖点只留灯",
                "keep": {"mizuki": 0.3, "doctor": 0.25, "kaltsit": 0.3}, "hue_keep": 0.12})
