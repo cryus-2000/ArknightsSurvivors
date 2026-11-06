@@ -510,6 +510,7 @@ const OPT_WDFOG := 67108864   # 维什戴尔红色体积雾（fx_pxplane_wd，fx
 const OPT_SKPAT := 134217728   # 浊心斯卡蒂小图案（fx_pxplane._sk_pat：鱼 / 音符 / 上浮箭头，docs/287 §3 ⑧）：逐像素矩形展开成三角形缓存、一次提交；置位走旧写法（逐个 draw_rect）。画面相同
 const OPT_SDPF := 268435456   # 斯卡蒂终结技方向图集预读（run/ult_px_sd._prefetch，docs/287 §3 ⑦）：方向档稳定 3 帧才读、先放旧的；置位走旧写法（每跨一档就读）
 const OPT_PXEVICT := 536870912   # 转平面帧条 60 秒没画就放（fx_pxplane._tex_evict，docs/287 §3 ⑥）；置位不放（旧写法）
+const OPT_LATEFX := 1073741824   # 后期特效控制（render/late_fx，docs/293）帧时对照（docs/303）：置位时本帧 late_k = 0（同 8:00 前的画法）。只供 --optab 量净差
 const OPT_TOUCHB := 1048576  # 触屏按钮（touch.gd draw_hud）：圆 / 弧 / 线进 TriBatch、图标与字随后成组画；置位走旧写法（逐个 draw_*）。画面相同（按钮互不重叠时）
 var bal_dt := 0.066             # --dt=<秒>（仅 --balance）：批跑每帧步长，缺省 0.066（9/30 起所有难度校准 / 云端基线的口径）；按位移判定的改动可用 --dt=0.016667 抽查（docs/36 §8.2）
 var placebo_n := 0              # --placebo=N（仅测试）：开局多抽 N 次主 rng——机制不变、换一份随机实现，判「改动」还是「这组 seed 的运气」（docs/36 §8.2）

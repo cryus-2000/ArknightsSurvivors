@@ -1389,7 +1389,7 @@ func _se_draw(ob, kd: int) -> void:
 
 
 func _late_fx_k() -> float:
-	if Bal.v("render/late_fx", 0.0) <= 0.0 or g.demo_op != "":
+	if Bal.v("render/late_fx", 0.0) <= 0.0 or g.demo_op != "" or (g.opt_old & 1073741824):   # OPT_LATEFX（仅 --optab 对照）
 		return 0.0
 	return clampf((g.t - Bal.v("render/late_fx_t0", 480.0)) / maxf(Bal.v("render/late_fx_ramp", 60.0), 0.001), 0.0, 1.0)
 
