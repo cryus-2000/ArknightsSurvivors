@@ -1,0 +1,8 @@
+20323	levelup_desktop/log.txt
+724708	levelup_desktop/shot_motion_levelup_full_1217.png
+17971	levelup_phone/log.txt
+318324	levelup_phone/shot_motion_levelup_full_1217.png
+20632	shop_desktop/log.txt
+727812	shop_desktop/shot_motion_shop_full_1217.png
+18042	shop_phone/log.txt
+304191	shop_phone/shot_motion_shop_full_1217.png
