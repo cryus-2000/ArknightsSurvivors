@@ -74,7 +74,7 @@ def export(ref):
     open(gd, "w", encoding="utf-8", newline="").write(s2)
     ep = os.path.join(work, "game", "export_presets.cfg")
     s = open(ep, encoding="utf-8").read()
-    for dev in ["scripts/run/autotest.gd*", "scripts/core/bot.gd*", "scripts/run/motion_shot.gd*", "scripts/run/outwin_probe.gd*", "scripts/run/ult_bench.gd*"]:
+    for dev in ["scripts/run/autotest.gd*", "scripts/core/bot.gd*", "scripts/run/motion_shot.gd*", "scripts/run/outwin_probe.gd*", "scripts/run/ult_bench.gd*", "scripts/screens/ak_mock.gd*"]:
         s = s.replace(", " + dev, "")
     open(ep, "w", encoding="utf-8", newline="").write(s)
     art_src = os.path.join(work, "art", "incoming")
