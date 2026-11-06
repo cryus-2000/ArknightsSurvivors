@@ -17,6 +17,12 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 import godot_runner as GR
 
+try:
+    import imageio_ffmpeg as _iff
+    FF = _iff.get_ffmpeg_exe()   # 虚拟机镜像上没有系统 ffmpeg（render_prep 装的是 imageio-ffmpeg）
+except Exception:
+    FF = "ffmpeg"
+
 GAME = os.path.join(ROOT, "game")
 BUILD = os.path.join(ROOT, "build", "irene_star")
 TIER = {0: "精零", 1: "精一", 2: "精二"}
@@ -158,7 +164,7 @@ def main():
                 big.save(os.path.join(a.out, "irene_%s_e%d_still.png" % (mv, t)))
         if k:
             mp4 = os.path.join(a.out, "irene_%s.mp4" % mv)
-            subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", "30", "-i", os.path.join(fdir, "f_%04d.png"),
+            subprocess.run([FF, "-y", "-loglevel", "error", "-framerate", "30", "-i", os.path.join(fdir, "f_%04d.png"),
                             "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "20", mp4], check=True)
             print("mp4", mp4, os.path.getsize(mp4) // 1024, "KB", flush=True)
 
