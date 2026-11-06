@@ -314,7 +314,7 @@
    "anchor": "foot",
    "ai": "melee",
    "pattern": "thrust",
-   "prepare_range": 260,
+   "prepare_range": 300,
    "thrust_range": 230,
    "thrust_cd": 3.2,
    "thrust_windup": 0.8,
