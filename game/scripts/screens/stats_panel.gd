@@ -337,6 +337,9 @@ func _draw_footer_tips(vs: Vector2) -> void:
 ## 手机版（触屏，界面层放大后逻辑约 1044×481，手机端 UI 优化 r2）：五页「属性 / 攻击 / 技能 / 编队 / 藏品」轮流占整个面板，
 ## 一页只放一类信息：属性行 19 号字、行距 32、两栏；页签 42 高（点击区按 touch.gd HIT 外扩）。桌面排版见 draw()
 func draw_phone(vs: Vector2) -> void:
+	if Bal.vi("ui/stats_v3", 1) > 0:
+		draw_phone_v3(vs)   # 按指挥台统一（docs/290，用户 11-06「手机属性面板没同步到最新风格」）
+		return
 	g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.05, 0.82))
 	var r := Rect2(24, 10, vs.x - 48, vs.y - 20)
 	UI.frame(g.hud, r, UI.GLOW, {"t": g.t, "vines": true, "seed": 31, "cut": 14.0, "bracket": 14.0, "glow": 0.3})
@@ -1064,3 +1067,277 @@ func _v3_prog_pop(vs: Vector2, at: Rect2, o) -> void:
 		var st: String = "已选" if done else ("下一步" if k == o.prog else "")
 		if st != "":
 			_hv.v2.txt(Vector2(p.x + w - 12 - _hv.v2.twidth(st, 11), yy), st, 11, UI.CYAN if st == "下一步" else V3_GREY)
+
+
+# ================================================================ 手机 v3：五页版按指挥台统一（docs/290，用户 11-06「重做」）
+## 结构不变（属性 / 攻击 / 技能 / 编队 / 藏品五页，手机字号有下限，三栏放不下），造型同桌面 v3：不画框、不用彩色标签片和藤蔓，
+## 只留一对直角刻度；常态黑白灰，青 = 当前页 / 可操作，金 = 灯火 / 羁绊，洋红 = 危险。顶上一行是桌面头部的缩小版
+## （头像刻度环 + 名字 + 英文小标签 + 灰字一行 + 右侧本局读数），页签只留字和下划线。放不下的列表手指拖动翻（docs/290）
+func draw_phone_v3(vs: Vector2) -> void:
+	_hv = g.hud_view
+	_anim_tick()
+	g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.008, 0.012, 0.018, 0.95))
+	g.stats_cells.clear()
+	_tips = []
+	var L := 28.0
+	var T := 14.0
+	var R: float = vs.x - 28.0
+	var B: float = vs.y - 12.0
+	var tc := Color(1, 1, 1, 0.45)
+	g.hud.draw_polyline(PackedVector2Array([Vector2(L, T + 12), Vector2(L, T), Vector2(L + 12, T)]), tc, 1.0)
+	g.hud.draw_polyline(PackedVector2Array([Vector2(R, B - 12), Vector2(R, B), Vector2(R - 12, B)]), tc, 1.0)
+	_phone_header(L + 8.0, T, R - 8.0)
+	# 页签：字 + 下划线（当前页白字、青线）
+	var page: int = clampi(g.stats_page, 0, 4)
+	var tabs := ["属性", "攻击", "技能", "编队", "藏品"]
+	var tabs_en := ["STATS", "OFFENSE", "SKILLS", "SQUAD", "RELICS"]
+	var ty: float = T + 74.0
+	var tw: float = (R - L - 16.0) / float(tabs.size())
+	g.hud.draw_rect(Rect2(L + 8.0, ty + 40.0, R - L - 16.0, 1), Color(1, 1, 1, 0.14))
+	for i in tabs.size():
+		var tr := Rect2(L + 8.0 + i * tw, ty, tw, 42)
+		var on: bool = i == page
+		_hv.v2.txt(Vector2(tr.position.x + 10, tr.position.y + 26), tabs[i], 18, V3_WHITE if on else V3_GREY)
+		_hv.v2.cap(Vector2(tr.position.x + 18 + _hv.v2.twidth(tabs[i], 18), tr.position.y + 25), tabs_en[i], 6.0, UI.CYAN if on else Color(V3_GREY.r, V3_GREY.g, V3_GREY.b, 0.6), 1.6)
+		if on:
+			g.hud.draw_rect(Rect2(tr.position.x, ty + 39.0, tr.size.x - 12.0, 3), UI.CYAN)
+		g.stats_cells.append([tr, "tab", i])
+	var b := Rect2(L + 8.0, ty + 54.0, R - L - 16.0, B - 26.0 - (ty + 54.0))
+	var k: float = _ak(ANIM_GAP)
+	g.hud.draw_set_transform(Vector2(0, 8.0 * (1.0 - k)))
+	match page:
+		0:
+			_phone_v3_survival(b)
+		1:
+			_phone_v3_offense(b)
+		2:
+			_skill_list("p_skills", b, 17, 20, true)
+		3:
+			_phone_v3_squad(b)
+		4:
+			_phone_v3_relics(b)
+	g.hud.draw_set_transform(Vector2.ZERO)
+	_curtain(Rect2(b.position - Vector2(6, 6), b.size + Vector2(12, 12)), k)
+	var back: String = "点空白处返回" + ("  ·  上下拖动翻看" if _sc_more.values().has(true) else "")
+	_hv.v2.txt(Vector2(R - 8.0 - _hv.v2.twidth(back, 13), B - 6), back, 13, V3_GREY)
+	_draw_footer_tips(vs)
+	for t in _tips:
+		_hv.v3.skill_tip(t[0], t[1], t[2], vs, 1.25)
+
+
+## 手机头部：头像刻度环（终结技充能）+ 等级牌 + 名字 / 英文小标签 + 灰字一行；右侧本局读数
+func _phone_header(L: float, T: float, R: float) -> void:
+	var ld = g.squad.leader() if g.squad.leader() != null else g.ch
+	var c := Vector2(L + 28, T + 40)
+	var r := 22.0
+	var RR := r + 4.0
+	g.hud.draw_circle(c, r + 1, Color(0, 0, 0, 0.6))
+	if _hv.ult != null and _hv.ult.v != null:
+		_hv.ult.v._avatar_hi(ld, c, r)
+	if g.ult != null:
+		var full: bool = g.ult.full()
+		var ek: float = clampf(g.ult.energy / 100.0, 0.0, 1.0) * _ak(0.05, 0.4)
+		g.hud.draw_arc(c, RR, 0.0, TAU, 48, Color(1, 1, 1, 0.2), 2.5, true)
+		if ek > 0.0:
+			g.hud.draw_arc(c, RR, -PI / 2.0, -PI / 2.0 + TAU * ek, 48, UI.CYAN if full else V3_WHITE, 2.5, true)
+	var lvs: String = "LV %d" % g.level
+	var lw: float = UI.cwidth(g.font, lvs, 9) + 10.0
+	var lr := Rect2(c.x - lw / 2.0, c.y + RR - 4.0, lw, 14.0)
+	g.hud.draw_rect(lr, Color(0.02, 0.03, 0.05, 0.92))
+	g.hud.draw_rect(lr, Color(1, 1, 1, 0.35), false, 1.0)
+	UI.ctext(g.hud, g.font, Vector2(lr.position.x, lr.end.y - 3.0), lvs, 9, V3_WHITE, HORIZONTAL_ALIGNMENT_CENTER, lw)
+	var nx: float = L + 66.0
+	var ln: String = ld.display_name()
+	_hv.v2.txt(Vector2(nx, T + 36), ln, 24, V3_WHITE)
+	_hv.v2.cap(Vector2(nx + _hv.v2.twidth(ln, 24) + 12, T + 34), str(ld.def.get("en", str(ld.id).to_upper())).to_upper() + "  ·  LEADER", 6.0, V3_GREY, 1.8)
+	var meta: String = "%s  /  编队 %d/%d  /  %s  /  %s" % [str(ld.cls), g.squad.size(), g.squad.cap(), D.tier_name(g.tier), g.endg.cur_name()]
+	_hv.v2.txt(Vector2(nx, T + 60), meta, 14, V3_GREY)
+	var dt: float = maxf(0.0, g.t - g.trial.started_at) if g.trial.active else g.t
+	var rx: float = R
+	for it in [["源石锭", str(g.ingots)], ["藏品", str(g.relics.size())], ["击杀", str(g.kills)], ["时间", "%02d:%02d" % [int(dt) / 60, int(dt) % 60]]]:
+		var vw: float = _hv.v2.big(Vector2(rx, T + 36), it[1], 20, V3_WHITE, 2)
+		_hv.v2.txt(Vector2(rx - _hv.v2.twidth(it[0], 13), T + 58), it[0], 13, V3_GREY)
+		rx -= maxf(vw, _hv.v2.twidth(it[0], 13)) + 26.0
+
+
+## 手机两栏细线行（左右各一半）；行距按剩余高度 30–40
+func _phone_v3_rows(b: Rect2, y: float, rows: Array) -> void:
+	var per: int = maxi(1, int(ceil(rows.size() / 2.0)))
+	var half: float = (b.size.x - 40.0) / 2.0
+	var row_h: float = clampf((b.end.y - 4.0 - y) / float(per), 30.0, 40.0)
+	for i in rows.size():
+		var x: float = b.position.x + (i / per) * (half + 40.0)
+		_v3_row(x, y + 18.0 + (i % per) * row_h, half, rows[i][0], rows[i][1], 17)
+
+
+func _phone_v3_survival(b: Rect2) -> void:
+	var x: float = b.position.x
+	var w: float = b.size.x
+	var y: float = b.position.y + 6.0
+	_hv.v3._lantern(Vector2(x + 14, y + 52), 1.0)
+	var gx: float = x + 44
+	var bw: float = x + w - gx
+	var kv: float = _ak(ANIM_GAP, 0.4)
+	var low: bool = g.hp / g.max_hp < 0.3
+	_hv.v2.txt(Vector2(gx, y + 10), "生命", 16, V3_GREY)
+	for q in g.shield_max:
+		UI.diamond(g.hud, Vector2(gx + 44 + q * 11, y + 4), 4.0, Color(0.5, 0.85, 1.0) if q < g.shield else Color(1, 1, 1, 0.14), Color(0.6, 0.9, 1.0, 0.8))
+	var sw: float = _hv.v2.big(Vector2(x + w, y + 12), "/ %d" % int(g.max_hp), 12, V3_GREY, 2)
+	_hv.v2.big(Vector2(x + w - sw - 4, y + 12), "%d" % int(round(g.hp * kv)), 26, UI.RED if low else V3_WHITE, 2)
+	_v3_hair(gx, y + 22, bw, g.hp / g.max_hp * kv, UI.RED if low else V3_WHITE)
+	var li: Array = _hv.v2.lamp_item()
+	var lc: Color = UI.GOLD if g.lamp >= 30.0 else UI.RED
+	_hv.v2.txt(Vector2(gx, y + 50), "灯火", 16, V3_GREY)
+	_hv.v2.txt(Vector2(gx + 44, y + 50), str(li[0]).replace("灯火", ""), 16, lc)
+	_hv.v2.big(Vector2(x + w, y + 52), "%d" % int(round(g.lamp * kv)), 20, lc, 2)
+	_v3_hair(gx, y + 62, bw, g.lamp / 100.0 * kv, lc, [0.3, 0.7])
+	var rows0 := [
+		["生命回复", regen_text()], ["物理减伤 / 法抗", armor_text()], ["闪避 物 / 法", "%d%% / %d%%" % [int(minf(g.dodge + g.dodge_phys, 0.6) * 100.0), int(minf(g.dodge + g.dodge_arts, 0.6) * 100.0)]],
+		["移动速度", "%d" % int(g.speed)], ["拾取范围", "%d" % int(g.pickup)], ["受击灯火损失", "×%.2f" % g.lamp_decay],
+		["照亮范围", "%d" % int(g.lamp_r())],
+		["护盾", ("%d / %d · 每 %.1f 秒" % [g.shield, g.shield_max, g.shield_every]) if g.shield_max > 0 else "无"],
+	]
+	_phone_v3_rows(b, y + 76.0, rows0)
+
+
+func _phone_v3_offense(b: Rect2) -> void:
+	var rows1: Array = g.ch.stats_rows()
+	rows1.append_array([
+		["近战 / 远程", "×%.2f / ×%.2f" % [g.melee_mult, g.ranged_mult]], ["物理 / 法术", "×%.2f / ×%.2f" % [g.phys_mult, g.arts_mult]],
+		["本局构成", dmg_mix_text()],
+	])
+	rows1.append_array(rush_rows())
+	_phone_v3_rows(b, b.position.y, rows1)
+
+
+## 手机编队页：每人一行（方头像 + 技能细格 · 名字 / LEADER · 职业 · 精英化 · 成长点 · 下一步），下面小队指令牌、支援、羁绊
+func _phone_v3_squad(b: Rect2) -> void:
+	var x: float = b.position.x
+	var w: float = b.size.x
+	var y: float = b.position.y + 4.0
+	var n: int = maxi(1, g.squad.ops.size())
+	var sq := 40.0
+	var rh: float = clampf((b.size.y - 110.0) / float(n), 50.0, 62.0)
+	var mouse2 := g.hud.get_local_mouse_position()
+	for o in g.squad.ops:
+		var hd: Array = _hv.ult.v._hi_head(o) if _hv.ult != null and _hv.ult.v != null else []
+		g.hud.draw_rect(Rect2(x, y, sq, sq), Color(0, 0, 0, 0.5))
+		if not hd.is_empty():
+			g.hud.draw_texture_rect_region(hd[0], Rect2(x, y, sq, sq), hd[1])
+		g.hud.draw_rect(Rect2(x, y, sq, sq), Color(1, 1, 1, 0.2), false, 1.0)
+		if _hv.v3.skills_mode() > 0:
+			_hv.v3._skill_segs(o, x, y + sq + 3.0, sq, 3.0, 1.0)
+			if Rect2(x, y, sq, sq + 8.0).has_point(mouse2):
+				_tips.append([o, x + sq / 2.0, y - 4.0])
+		var nm: String = o.display_name()
+		_hv.v2.txt(Vector2(x + 54, y + 18), nm, 19, V3_WHITE)
+		if o.is_leader:
+			_hv.v2.cap(Vector2(x + 62 + _hv.v2.twidth(nm, 19), y + 16), "LEADER", 6.0, UI.CYAN, 1.4)
+		_hv.v2.txt(Vector2(x + 54, y + 40), "%s · %s" % [o.cls, ["精零", "精一", "精二"][clampi(o.elite, 0, 2)]], 15, V3_GREY)
+		var pg: Array = o.prog_view()
+		var dx0: float = x + w * 0.5
+		for kk in pg.size():
+			var dc := Vector2(dx0 + kk * 15.0, y + 13)
+			var done: bool = kk < o.prog
+			var cc: Color = V3_WHITE if done else Color(1, 1, 1, 0.25)
+			if str(pg[kk].get("type", "")) == "elite":
+				UI.diamond(g.hud, dc, 5.0, cc if done else Color(0, 0, 0, 0), cc)
+			else:
+				g.hud.draw_circle(dc, 3.2, cc)
+		var nn: Dictionary = o.next_node()
+		if not nn.is_empty():
+			var rq: String = o.node_requires_text(nn)
+			var ok_rq: bool = o.node_available(nn)
+			UI.text_fit(g.hud, g.font, Vector2(dx0, y + 40), ("下一步 %s" % nn.get("name", "")) + (("（需%s）" % rq) if rq != "" and not ok_rq else ""), 15, Color(V3_WHITE.r, V3_WHITE.g, V3_WHITE.b, 0.7) if ok_rq else V3_GREY, x + w - dx0, 12)
+		else:
+			_hv.v2.txt(Vector2(dx0, y + 40), "已满", 15, UI.GOLD)
+		y += rh
+	g.hud.draw_rect(Rect2(x, y - 4, w, 1), Color(1, 1, 1, 0.1))
+	y += 6
+	var tile := 34.0
+	_hv.v3._cmd_block(x, y + tile + 2.0, tile, _hv.v3._rush_text(), _hv.v2.seg_index(), 1.3)
+	var ax: float = x + w * 0.5
+	var yy: float = y + 16
+	if not g.weapons.is_empty():
+		_hv.v2.txt(Vector2(ax, yy), "支援", 16, V3_GREY)
+		var wx: float = ax + 50
+		for wid in g.weapons:
+			var ws: String = "%s Lv.%d" % [D.WEAPONS[wid].name, g.weapons[wid]]
+			_hv.v2.txt(Vector2(wx, yy), ws, 15, V3_WHITE)
+			wx += _hv.v2.twidth(ws, 15) + 18
+		yy += 28
+	for bd in LinkBond.formed_now(g):
+		UI.diamond(g.hud, Vector2(ax + 6, yy - 5), 4.0, UI.GOLD)
+		UI.text_fit(g.hud, g.font, Vector2(ax + 18, yy), LinkBond.row_text(bd), 15, Color(V3_WHITE.r, V3_WHITE.g, V3_WHITE.b, 0.85), x + w - ax - 18, 12)
+		yy += 26
+
+
+## 手机藏品页：成长 + 藏品图标格（格子 62 → 最小 46，再放不下按排拖动滚，docs/290），v3 暗格白边、不用彩色角标
+func _phone_v3_relics(b2: Rect2) -> void:
+	var x: float = b2.position.x
+	var ng: int = g.growth.size()
+	var nr: int = g.relics.size()
+	var room: float = b2.size.y - 70.0
+	var pitch := 62.0
+	var per := 1
+	for pc in [62.0, 54.0, 46.0]:
+		pitch = pc
+		per = maxi(1, int(b2.size.x / pitch))
+		if (maxi(1, int(ceil(ng / float(per)))) + maxi(1, int(ceil(nr / float(per))))) * pitch <= room:
+			break
+	var cs := pitch - 6.0
+	var isz := cs - 6.0
+	var mouse2 := g.hud.get_local_mouse_position()
+	var lines: Array = []
+	if ng > 0:
+		lines.append(["ghead", null, 30.0])
+		var gids: Array = g.growth.keys()
+		for k in range(0, ng, per):
+			lines.append(["grow", gids.slice(k, k + per), pitch])
+	lines.append(["rhead", null, 30.0])
+	for k in range(0, nr, per):
+		lines.append(["rel", range(k, mini(k + per, nr)), pitch])
+	var area := Rect2(x, b2.position.y, b2.size.x - 14.0, b2.size.y + (pitch - cs))
+	var off: int = _scroll("p_relics", area, lines.map(func(l): return float(l[2])))
+	var ly: float = b2.position.y
+	for li in range(off, lines.size()):
+		var ln: Array = lines[li]
+		if ly + float(ln[2]) > b2.end.y + (pitch - cs) + 0.5:
+			break
+		match str(ln[0]):
+			"ghead":
+				_hv.v2.txt(Vector2(x, ly + 20), "成长", 16, V3_GREY)
+			"rhead":
+				_hv.v2.txt(Vector2(x, ly + 20), "藏品", 16, V3_GREY)
+				_hv.v2.big(Vector2(x + 42, ly + 21), str(nr), 16, V3_WHITE)
+				_hv.v2.txt(Vector2(x + 90, ly + 20), "点图标查看效果", 14, V3_GREY)
+			"grow":
+				var gc := Vector2(x, ly)
+				for gid in ln[1]:
+					g.hud.draw_rect(Rect2(gc, Vector2(cs, cs)), Color(0, 0, 0, 0.4))
+					g.hud.draw_rect(Rect2(gc, Vector2(cs, cs)), Color(1, 1, 1, 0.16), false, 1.0)
+					var gt: Texture2D = g.tex.get("growth_" + gid)
+					if gt != null:
+						g.hud.draw_texture_rect(gt, Rect2(gc + Vector2(3, 3), Vector2(isz, isz)), false)
+					UI.text(g.hud, g.font, gc + Vector2(cs - 26, cs - 1), "×%d" % g.growth[gid], 13, V3_WHITE, HORIZONTAL_ALIGNMENT_RIGHT, 26, 2)
+					g.stats_cells.append([Rect2(gc, Vector2(cs, cs)), "growth", gid])
+					gc.x += pitch
+			_:
+				var rc := Vector2(x, ly)
+				for ri in ln[1]:
+					var rd: Dictionary = g.RL[g.relics[ri]]
+					var cr := Rect2(rc, Vector2(cs, cs))
+					var hov: bool = cr.has_point(mouse2)
+					g.hud.draw_rect(cr, Color(0, 0, 0, 0.4) if not hov else Color(1, 1, 1, 0.12))
+					g.hud.draw_rect(cr, Color(1, 1, 1, 0.16) if not hov else V3_WHITE, false, 1.0)
+					var rt: Texture2D = g.tex.get("relic_" + g.relics[ri])
+					if rt != null:
+						g.hud.draw_texture_rect(rt, Rect2(rc + Vector2(3, 3), Vector2(isz, isz)), false)
+					else:
+						UI.text(g.hud, g.font, rc + Vector2(0, cs * 0.68), rd.name.substr(0, 1), int(cs * 0.42), V3_WHITE, HORIZONTAL_ALIGNMENT_CENTER, cs)
+					var rl: int = g.rfx.lv.get(g.relics[ri], 1)
+					if rl > 1:
+						UI.text(g.hud, g.font, rc + Vector2(cs - 26, cs - 1), "L%d" % rl, 13, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 26, 2)
+					g.stats_cells.append([cr, "relic", g.relics[ri]])
+					rc.x += pitch
+		ly += float(ln[2])
