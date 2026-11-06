@@ -349,13 +349,13 @@ def pair_rival(A):
     C = (430, 196)
     for e in w.es:   # 余波扫到哪只哪只倒：菱形距离 d（|dx| + |dy| / SQ）对上冲击波半径 30 + 190k
         p = w.pos(e, 0.7)
-        d = abs(p[0] - C[0]) + abs(p[1] - C[1]) / SQ
+        d = math.hypot(p[0] - C[0], (p[1] - C[1]) / SQ)   # 第五轮：圆形冲击波
         if d <= 220:
             e["kt"] = 0.6 if d < 34 else 0.72 + (d - 30) / 190 * 0.5
     TXp, LPp = (C[0] - 26, C[1] + 22), (C[0] + 26, C[1] + 22)
 
-    keys = [(0.3, "冲上：两人残影从两侧相向冲进怪群（各自攻击帧）"), (0.62, "相交定格：刀锋相撞停一拍，菱形火花（左琥珀 / 右淡紫）"),
-            (0.85, "余波：两道半菱形冲击波向左右推开，扫过的怪被打死"), (1.4, "收尾：冲击波断开，楔形火星落地，两人残影淡出，菱形里清空")]
+    keys = [(0.3, "冲上：两人残影从两侧相向冲进怪群（各自攻击帧）"), (0.62, "相交定格：刀锋相撞停一拍，交点两色星芒（左琥珀 / 右淡紫）"),
+            (0.85, "余波：冲击波从交锋点向四周散开（左半琥珀、右半淡紫），扫到即倒"), (1.4, "收尾：冲击波断开，火星落地，两人残影淡出，圈里清空")]
     out = []
     for t, lab in keys:
         img = frame(A, w, t, lambda cv, tt: None, [("lappland", (B.SQUAD[0] - 34, B.SQUAD[1] - 26), "run"), ("texas", B.SQUAD, "run")]).convert("RGBA")
@@ -371,14 +371,13 @@ def pair_rival(A):
             B.put_op(im, A["lappland_atk"][5], LPp, True, al)
             cv = B.Canvas(im)
         if 0.55 <= t < 0.72:
-            diamond_spark(cv, (C[0], C[1] - 10), 16, TX, LP)
+            clash_star(cv, (C[0], C[1] - 10), 34, TX, LP)
             cv.lamp(C[0], C[1], 140, (255, 225, 210), 55)
         if t >= 0.72:
             k = min(1.0, (t - 0.72) / 0.5)
             r = 30 + 190 * k
             brk = max(0.0, (k - 0.6) / 0.4)
-            half_diamond(cv, (C[0], C[1]), r, -1, TX, brk=brk)
-            half_diamond(cv, (C[0], C[1]), r, 1, LP, brk=brk)
+            shock_ring(cv, (C[0], C[1]), r, k, TX, LP)
             wedges(cv, (C[0], C[1] - 10), k, TX, LP)
         out.append((cv.finish(), lab, (180, 50, 680, 330)))
     return out
@@ -737,7 +736,198 @@ def pair_inq_lamps(A):
     return out
 
 
-PAIRS = {"rival_v3": ("宿敌 · 十字旧怨（对砍）", pair_rival), "penguin_car": ("企鹅物流 · 急件航线（开车）", pair_penguin_car), "inq_shadow": ("灯下审决（方案甲：灯下之影）", pair_inq_shadow), "inq_lamps": ("灯下审决（方案乙：七灯阵）", pair_inq_lamps)}
+# ---------------------------------------------------------------- 11-06 第五轮：对砍冲击波散开 / 立体车 / 灯塔照海
+
+def shock_ring(cv, c, r, k, RA, RB):
+    """对砍余波：从交锋点向外散开的冲击波——粗环（左半琥珀、右半淡紫，芯白）+ 外侧一圈淡的气浪 + 贴地尘环；k > 0.6 后断开"""
+    brk = max(0.0, (k - 0.6) / 0.4)
+    for rr, th, dim in ((r, 5, 1.0), (r * 1.12, 2, 0.45)):
+        n = int(rr * 7)
+        for i in range(n):
+            if brk and (i * 7) % 10 < brk * 10:
+                continue
+            a = i / n * math.tau
+            R = RA if math.cos(a) < 0 else RB
+            for j in range(th):
+                x = c[0] + math.cos(a) * (rr - j)
+                y = c[1] + math.sin(a) * (rr - j) * SQ
+                q = j / th
+                col = (255, 255, 255) if q < 0.3 and dim == 1.0 and k < 0.4 else (R[5] if q < 0.6 else R[4])
+                cv.cell(x, y, col, dim)
+            if i % 6 == 0 and dim == 1.0 and brk < 0.5:
+                cv.glow(c[0] + math.cos(a) * rr, c[1] + math.sin(a) * rr * SQ, gl(R[5]), 0.7)
+    n = int(r * 0.9 * 6)   # 贴地尘环（暗，紧跟在后）
+    for i in range(n):
+        if (i * 3) % 5 == 0:
+            continue
+        a = i / n * math.tau
+        cv.cell(c[0] + math.cos(a) * r * 0.88, c[1] + math.sin(a) * r * 0.88 * SQ + 2, SMOKE[2], 0.8 * (1 - k))
+
+
+def car3(cv, p, ang_k, bounce=0):
+    """立体小车（俯视 3/4，72×50 美术像素）：车顶 + 车身侧面（朝镜头那面暗一档）+ 前后挡风玻璃 + 四个轮子 + 车顶警示灯；
+    车身深灰、琥珀腰线（德克萨斯色）、红橙顶灯（能天使色）；ang_k = 甩尾时车头上翘的量（草图只做水平朝右）"""
+    W_, D = 72, 22          # 车长、车宽（俯视深度）
+    Hs = 16                 # 侧面高度
+    x0 = int(p[0] - W_ / 2)
+    yb = int(p[1] - bounce)  # 车底线
+    skew = int(ang_k * 10)
+    def px(x, y, c, a=1.0):
+        cv.cell(x0 + x, y - (x * skew) // W_, c, a)
+    # 影子
+    for x in range(-2, W_ + 2):
+        for y in range(4):
+            px(x, yb + 2 + y, (10, 10, 12), 0.6)
+    # 侧面（朝镜头）
+    for x in range(W_):
+        for y in range(Hs):
+            col = CAR[1] if y > Hs - 4 else CAR[2]
+            if y in (5, 6):
+                col = TX[4] if 4 < x < W_ - 4 else CAR[2]
+            if 14 < x < 30 and 1 <= y <= 4 or 34 < x < 52 and 1 <= y <= 4:
+                col = (150, 180, 200) if (x + y) % 5 else (210, 230, 240)   # 侧窗
+            if x in (0, W_ - 1):
+                col = CAR[0]
+            px(x, yb - y, col)
+    # 车顶（往上、往后缩）
+    for x in range(6, W_ - 10):
+        for y in range(D):
+            col = CAR[3] if y > 2 else CAR[4]
+            if x > W_ - 22:
+                col = (170, 200, 220) if (x + y) % 6 else (220, 235, 245)  # 前挡风（朝前）
+            if x < 14:
+                col = (120, 140, 160)   # 后窗
+            px(x, yb - Hs - y + (D // 3) - 2, col)
+    # 顶灯
+    for dx in range(-3, 4):
+        px(W_ // 2 - 6 + dx, yb - Hs - D + 4, EX[4] if abs(dx) < 2 else EX[3])
+    cv.glow(x0 + W_ // 2 - 6, yb - Hs - D + 4, gl(EX[5]), 1.4)
+    # 轮子
+    for wx in (10, W_ - 18):
+        for dx in range(10):
+            for dy in range(6):
+                r = math.hypot(dx - 4.5, (dy - 2.5) * 1.6)
+                if r < 5:
+                    px(wx + dx, yb + dy - 3, (16, 16, 18) if r > 2 else CAR[3])
+
+
+def pair_penguin_car3(A):
+    w = B.World(23, A)
+    path_y = lambda x: 250 - (x - 120) * 0.17
+    T0, T1 = 0.2, 1.3
+    X0, X1 = 100, 640
+    for e in w.es:
+        for i in range(60):
+            u = i / 59
+            x = X0 + (X1 - X0) * u
+            p = w.pos(e, T0 + u * (T1 - T0))
+            d = math.hypot(p[0] - x, (p[1] - path_y(x)) / SQ)
+            if d < 44 or (d < 110 and int(e["p0"][0] * 7 + e["p0"][1]) % 3 == 0):
+                e["kt"] = T0 + u * (T1 - T0) + (0.0 if d < 44 else 0.08)
+                break
+    keys = [(0.35, "上车：德克萨斯开车冲进怪群，能天使站在车顶"), (0.75, "碾过 + 扫射：车撞开挡路的，能天使朝四周一圈开枪"),
+            (1.15, "甩尾：车头一摆，扬起尘土"), (1.55, "收尾：车开远，胎痕留在清空的路上")]
+    out = []
+    for t, lab in keys:
+        img = frame(A, w, t, lambda cv, tt: None, []).convert("RGBA")
+        cv = B.Canvas(img)
+        u = min(1.0, max(0.0, (t - T0) / (T1 - T0)))
+        x = X0 + (X1 - X0) * u
+        p = (x, path_y(x))
+        trail = [(X0 + (x - X0) * i / 40, path_y(X0 + (x - X0) * i / 40)) for i in range(41)]
+        if u > 0.02:
+            skid(cv, trail, max(0.0, (t - 1.3) / 0.5))
+        if t < 1.45:
+            dust(cv, (p[0] - 30, p[1]), (t * 3) % 1, int(t * 15))
+            car3(cv, p, min(1.0, max(0.0, (t - 1.0) / 0.15)) if t > 1.0 else 0.0, 2 if int(t * 15) % 2 else 0)
+            im = cv.finish().convert("RGBA")
+            B.put_op(im, A["texas_run"][0], (p[0] + 12, p[1] - 30), False, 1.0)     # 驾驶位（从侧窗露出上半身，草图直接叠在车顶前部）
+            B.put_op(im, A["exusiai_atk"][int(t * 12) % 8], (p[0] - 8, p[1] - 44), False, 1.0)
+            cv = B.Canvas(im)
+            if 0.4 <= t < 1.2:
+                src = (p[0] - 8, p[1] - 66)
+                for k in range(8):
+                    a = k / 8 * math.tau + t * 6
+                    for j in range(20):
+                        cv.cell(src[0] + math.cos(a) * (22 + j), src[1] + math.sin(a) * (22 + j) * SQ, EX[6] if j < 4 else EX[4], 1 - j / 22)
+                    cv.glow(src[0] + math.cos(a) * 22, src[1] + math.sin(a) * 22 * SQ, gl(EX[5]), 1.0)
+        out.append((cv.finish(), lab, (80, 40, 640, 330)))
+    return out
+
+
+def lighthouse(cv, p, k):
+    """灯塔虚像（流明身后升起，32×110 美术像素）：钢蓝塔身、白芯灯室；k 0..1 升起 + 亮"""
+    h = int(110 * min(1.0, k * 1.5))
+    for y in range(h):
+        wd = 7 + int((y / 110) * 6)
+        for x in range(-wd, wd + 1):
+            band = (y // 14) % 2 == 0
+            col = LM[3] if band else LM[2]
+            if abs(x) == wd:
+                col = LM[4]
+            cv.cell(p[0] + x, p[1] - y + (110 - h) * 0, col, 0.85)
+    if k > 0.4:
+        for y in range(12):
+            for x in range(-9, 10):
+                d = math.hypot(x, (y - 6) * 1.3) / 10
+                cv.cell(p[0] + x, p[1] - 110 - y, (255, 255, 255) if d < 0.4 else (LM[5] if d < 0.8 else LM[4]))
+        cv.glow(p[0], p[1] - 116, (0.9, 0.95, 1.0), 4.0)
+
+
+def sweep_beam(cv, o, ang, R, spread=0.28):
+    """旋转灯塔光束：从灯室发出的一道扇形光（只画两条边缘亮线 + 稀疏光尘，不铺底），贴地压扁"""
+    for side in (-1, 1):
+        a = ang + side * spread / 2
+        for j in range(int(R)):
+            x, y = o[0] + math.cos(a) * j, o[1] + math.sin(a) * j * SQ
+            cv.cell(x, y, LM[5] if j < R * 0.7 else LM[4], 0.9)
+            if j % 8 == 0:
+                cv.glow(x, y, gl(LM[5]), 0.5)
+    rng = random.Random(int(ang * 100))
+    for i in range(70):
+        j = rng.uniform(20, R)
+        a = ang + rng.uniform(-spread / 2, spread / 2)
+        cv.cell(o[0] + math.cos(a) * j, o[1] + math.sin(a) * j * SQ, (255, 255, 255) if i % 5 == 0 else LM[5], 0.8)
+
+
+def pair_inq_lighthouse(A):
+    w = B.World(37, A)
+    O = (300, 230)
+    R = 330
+    A0, A1 = -1.2, 0.9   # 光束从左上扫到右下（弧度）
+    for e in w.es:
+        p = w.pos(e, 0.8)
+        d = math.hypot(p[0] - O[0], (p[1] - O[1]) / SQ)
+        a = math.atan2((p[1] - O[1]) / SQ, p[0] - O[0])
+        if d < R and A0 <= a <= A1:
+            e["kt"] = 0.45 + (a - A0) / (A1 - A0) * 0.7 + 0.05
+    keys = [(0.3, "点灯：流明身后升起灯塔虚像（「伊比利亚之眼」），灯室亮起"), (0.7, "照海：灯塔光束扫过怪群，被照到的怪头顶亮紫印"),
+            (0.95, "守岸：艾丽妮残影追着光束一路刺过，照到的逐个受审倒下"), (1.4, "收尾：光束扫完熄灭，灯塔虚像淡去，扇形里清空")]
+    out = []
+    for t, lab in keys:
+        img = frame(A, w, t, lambda cv, tt: None, [("lumen", (O[0] - 30, O[1] + 10), "atk"), ("irene", (O[0] - 60, O[1] + 30), "run")]).convert("RGBA")
+        cv = B.Canvas(img)
+        k = min(1.0, t / 0.35) * (1 - max(0.0, (t - 1.25) / 0.3))
+        lighthouse(cv, (O[0] - 6, O[1] - 4), k)
+        if 0.4 <= t < 1.25:
+            ang = A0 + (A1 - A0) * min(1.0, (t - 0.4) / 0.75)
+            sweep_beam(cv, (O[0] - 6, O[1] - 30), ang, R)
+            for e in w.es:
+                if e["kt"] and t - 0.25 < e["kt"] and e["kt"] > t:
+                    pp = w.pos(e, t)
+                    a = math.atan2((pp[1] - O[1]) / SQ, pp[0] - O[0])
+                    if a <= ang:
+                        for d in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1)):
+                            cv.cell(pp[0] + d[0], pp[1] - 22 + d[1], IR[5] if d == (0, 0) else IR[3])
+            if t >= 0.6:
+                ang2 = A0 + (A1 - A0) * min(1.0, (t - 0.55) / 0.75)
+                tip = (O[0] + math.cos(ang2) * R * 0.6, O[1] + math.sin(ang2) * R * 0.6 * SQ)
+                cv = ghost(cv, A, "irene", (tip[0] - 40, tip[1]), tip, 1.0, IR)
+        out.append((cv.finish(), lab, (170, 20, 660, 320)))
+    return out
+
+
+PAIRS = {"rival_v5": ("宿敌 · 十字旧怨（对砍，冲击波散开）", pair_rival), "penguin_car3": ("企鹅物流 · 急件航线（开车，立体车）", pair_penguin_car3), "inq_lighthouse": ("灯下审决 · 提灯宣判（灯塔照海、审判守岸）", pair_inq_lighthouse)}
 
 
 def sheet(title, keys, sc):
