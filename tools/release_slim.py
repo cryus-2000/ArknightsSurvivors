@@ -7,7 +7,9 @@
 2. 字体按实际用字子集化：只在打包副本里把 fonts/ui.ttf、fonts/serif.ttf 换成子集（仓库里的原字体不动）。
    用字 = game/scripts 的字符串与注释 + game/data 的 JSON + 场景 / project.godot 的全部字符 + ASCII + 原字体里所有非汉字字符（标点、数字、符号、全角）。
    ui_fallback.otf 不动，回退链（settings.gd 挂到 ui.ttf 上）照旧。
-3. 测试与工具脚本不进包：两个预设的 exclude_filter 都有 tests/*、tools/*（发布版不读命令行，测试入口不可达，check_release 第 1 项）。
+3. 测试与工具脚本不进包：两个预设的 exclude_filter 都有 tests/*、tools/*（发布版不读命令行，测试入口不可达，check_release 第 1 项）；
+   scripts/ 下只给开发参数用的脚本（DEV_SCRIPTS：自动测试、平衡机器人、录像 / 基准探针）也排除（11-07 docs/295）。
+   前提：包里其余脚本不得 preload 它们（只许开发守卫后的运行时 load()），本脚本 check_dev_scripts 检查。
 
     python tools/release_slim.py            # 快检项：审阅图规则不误伤运行时引用的贴图、预设与规则一致、扫描到的字全在子集字体里
     python tools/release_slim.py --report   # 另列出：被排除的审阅图、未被引用但保留的 PNG、字体子集前后大小
@@ -28,6 +30,16 @@ REVIEW_ART_GLOBS = (
 )
 # 只在开发 / 测试时用的目录（相对 game/）
 DEV_EXCLUDES = ("tests/*", "tools/*")
+# 只在开发参数（--autotest / --balance / --motionshot / --outwin / --ultbench …）下加载的脚本（相对 game/）。
+# boss_bench.gd 不在内：Boss 演练的成品分队（boss_trial → bench.apply_build）正式包也用；perf_report / frame_rec 也被正式界面 / 启动页调用
+DEV_SCRIPTS = (
+    "scripts/run/autotest.gd",       # game.gd：OS.is_debug_build() 才 load
+    "scripts/core/bot.gd",           # run_setup：Mode.BALANCE（只由 --balance 进）才 load
+    "scripts/run/motion_shot.gd",    # 以下四个只被 autotest.gd 引用
+    "scripts/run/outwin_probe.gd",
+    "scripts/run/ult_bench.gd",
+    "scripts/screens/ak_mock.gd",
+)
 SUBSET_FONTS = ("ui.ttf", "serif.ttf", "ui_phone.ttf", "ui_heavy.ttf", "ui_regular.ttf")   # ui_phone.ttf（11-05 手机字体）字表同 ui.ttf；11-06 起也子集化（docs/285 §2.2：840 KB → 约 300 KB）；ui_heavy / ui_regular（11-06 原作式字重，docs/292）字表同 ui.ttf，也子集化
 # FreeType 自动微调（serif.ttf 是没有微调指令的 TrueType，Godot 用 FreeType 自动微调）按「标准字」量全字体的笔画宽度：
 # 汉字用「田」（缺了退「囗」）。子集里少了它，所有字的微调结果都会变（实测 serif 子集全体像素有差），所以一律保留
@@ -51,7 +63,34 @@ def is_fallback_2x(name, siblings):
 
 def preset_excludes():
     """两个导出预设 exclude_filter 里应有的项（art/incoming 前缀 + 开发目录）"""
-    return ["art/incoming/" + g for g in REVIEW_ART_GLOBS] + list(DEV_EXCLUDES)
+    return ["art/incoming/" + g for g in REVIEW_ART_GLOBS] + list(DEV_EXCLUDES) + [s + "*" for s in DEV_SCRIPTS]   # * 连 .gd.uid 一起
+
+
+def check_dev_scripts(game=GAME):
+    """DEV_SCRIPTS 不进包：包里其余脚本 / 场景不得 preload 或挂载它们（运行时 load() 须在开发守卫后，check_release 管命令行读法）"""
+    errs = []
+    dev = set("res://" + s for s in DEV_SCRIPTS)
+    for s in DEV_SCRIPTS:
+        if not os.path.isfile(os.path.join(game, s)):
+            errs.append("DEV_SCRIPTS 里的 %s 不存在（改名了要同步）" % s)
+    for root, dirs, files in os.walk(game):
+        rel_root = os.path.relpath(root, game).replace("\\", "/")
+        if rel_root.split("/")[0] in ("tests", "tools", "addons", ".godot", "build", "bin"):
+            dirs[:] = []
+            continue
+        for f in files:
+            if not f.endswith((".gd", ".tscn", ".tres")):
+                continue
+            rel = (f if rel_root == "." else rel_root + "/" + f)
+            if rel in DEV_SCRIPTS:
+                continue
+            txt = open(os.path.join(root, f), encoding="utf-8", errors="replace").read()
+            for d in dev:
+                if f.endswith(".gd") and re.search(r'preload\(\s*"%s"' % re.escape(d), txt):
+                    errs.append("%s 静态 preload 了开发脚本 %s（发行包不带它，改成开发守卫后的 load()）" % (rel, d))
+                elif not f.endswith(".gd") and ('path="%s"' % d) in txt:
+                    errs.append("%s 挂载了开发脚本 %s（发行包不带它）" % (rel, d))
+    return errs
 
 
 # ---------- 运行时文本 ----------
@@ -322,10 +361,11 @@ def check(report=False):
     for f in rep["violations"]:
         errs.append("审阅图规则排除了运行时文本里引用到的贴图：%s" % f)
     errs += check_presets()
+    errs += check_dev_scripts()
     ferrs, finfo = check_fonts(report=report)
     errs += ferrs
     rb = sum(s for _, s in rep["review"])
-    detail = "审阅图 %d 张（%.2f MB）不进包，未误伤运行时引用；字体子集 %s" % (len(rep["review"]), rb / 1e6, "，".join(finfo))
+    detail = "审阅图 %d 张（%.2f MB）不进包，未误伤运行时引用；开发脚本 %d 个不进包；字体子集 %s" % (len(rep["review"]), rb / 1e6, len(DEV_SCRIPTS), "，".join(finfo))
     if report:
         print("== 审阅图（排除）%d 张，%.2f MB" % (len(rep["review"]), rb / 1e6))
         for f, s in rep["review"]:
