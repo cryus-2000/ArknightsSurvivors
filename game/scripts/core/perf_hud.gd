@@ -290,10 +290,21 @@ func log_text() -> String:
 	return s
 
 
+## 点浮层：在 _input 里先截（标题 / 启动页 / 对局会在 _input 里吃掉点击，等不到 GUI 事件）；浮层挂在根的最后，最先收到
+func _input(ev: InputEvent) -> void:
+	var p := Vector2.INF
+	if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
+		p = ev.position
+	elif ev is InputEventScreenTouch and ev.pressed:
+		p = ev.position
+	if p != Vector2.INF and bg.get_global_rect().has_point(p):
+		get_viewport().set_input_as_handled()
+		open_log()
+
+
 func _on_tap(ev: InputEvent) -> void:
 	if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
 		bg.accept_event()
-		open_log()
 
 
 ## 日志面板：网页用 DOM（复制 / 保存文件 / 关闭三个按钮，点按钮本身就是用户手势）；桌面直接进剪贴板 + 存文件
