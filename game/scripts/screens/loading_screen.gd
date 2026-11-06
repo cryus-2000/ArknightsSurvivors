@@ -213,20 +213,26 @@ const TIDE_LAYERS := [
 	[0, 2.0, 0.09, 1.7, Color(0.18, 0.72, 0.78), Color(0.18, 0.27, 0.35), Color(0.02, 0.09, 0.14), 0.92],
 ]
 const TIDE_DEPTH := 8   # 水面以下画几格（前层水体到这儿）
+var tide_m := 1.0      # 矮屏缩放（_tide_geom 设）
 
 func _tide_geom(vs: Vector2, k: float) -> Array:
 	var c: float = maxf(3.0, roundf(3.0 * k))   # 一格的屏幕像素（同标题页 3 像素格；大屏按版式放大，手机竖屏也不小于 3）
 	var x0: float = floorf(vs.x * 0.125 / c) * c
 	var x1: float = floorf(vs.x * 0.875 / c) * c
-	var y: float = floorf(vs.y * 0.82 / c) * c
+	var y: float = floorf(vs.y * 0.8 / c) * c
+	tide_m = clampf(vs.y / 720.0, 0.5, 1.0)   # 矮屏（手机横屏 390 高）层距 / 振幅 / 水深按比例收，不顶到标志、不压提示
 	return [c, x0, x1, y]
+
+
+func _depth() -> int:
+	return int(roundf(float(TIDE_DEPTH) * tide_m))
 
 
 ## 第 L 层第 i 列的波峰高度（格，向上为负）
 func _crest(L: int, i: int, rm: bool) -> int:
 	var ly: Array = TIDE_LAYERS[L]
 	var ph: float = float(i) * float(ly[2]) + (0.0 if rm else t * float(ly[3])) + float(L) * 1.7
-	return int(ly[0]) - int(roundf(float(ly[1]) * (sin(ph) * 0.7 + sin(ph * 0.43 + 1.1) * 0.3)))
+	return int(roundf(float(ly[0]) * tide_m)) - int(roundf(float(ly[1]) * tide_m * (sin(ph) * 0.7 + sin(ph * 0.43 + 1.1) * 0.3)))
 
 
 func _draw_tide(vs: Vector2, k: float, a: float) -> void:
@@ -248,12 +254,12 @@ func _draw_tide(vs: Vector2, k: float, a: float) -> void:
 			var lit: bool = i < lit_n
 			var wc: Color = ly[6]
 			wc.a = float(ly[7]) * e * a * (1.0 if L == 2 else (1.0 if lit else 0.7))
-			draw_rect(Rect2(x, y + float(cr + 1) * c, c, float(TIDE_DEPTH - cr - 1) * c), wc)
+			draw_rect(Rect2(x, y + float(cr + 1) * c, c, float(_depth() - cr - 1) * c), wc)
 			var cc: Color = ly[4] if lit else ly[5]
 			cc.a = e * a * (0.55 + 0.15 * float(L) if lit else 0.35 + 0.1 * float(L))
 			draw_rect(Rect2(x, y + float(cr) * c, c, c), cc)
 			# 白沫：点亮的浪头，波峰最高处偶尔一格白（按列号与时间节拍，不取随机数）
-			if lit and L > 0 and not rm and cr <= int(ly[0]) - 1 and (i * 7 + int(t * 6.0) + L * 3) % 11 == 0:
+			if lit and L > 0 and not rm and cr <= int(roundf(float(ly[0]) * tide_m)) - 1 and (i * 7 + int(t * 6.0) + L * 3) % 11 == 0:
 				draw_rect(Rect2(x, y + float(cr - 1) * c, c, c), Color(0.9, 1.0, 1.0, 0.85 * e * a))
 	# 航标灯：随前层浪浮沉，灯在顶上；进度 0 时停在起点
 	var bi: int = clampi(lit_n, 0, n - 1)
@@ -270,7 +276,7 @@ func _draw_tide(vs: Vector2, k: float, a: float) -> void:
 	draw_rect(Rect2(bx, by - c * 7.0, c, c * 2.0), Color(0.92, 1.0, 1.0, a * blink))   # 灯
 	var cy := UI.CYAN
 	cy.a = a
-	var ly2 := y + float(TIDE_DEPTH + 3) * c
+	var ly2 := y + float(_depth()) * c + 14.0 * k
 	UI.en(self, font, Vector2(x0, ly2), "LOADING", 11, cy, 4.0)
 	UI.text(self, font, Vector2(x0 + 84.0, ly2), stage, 13, Color(0.62, 0.72, 0.75, a))
 	var rt := "%d%%" % int(round(clampf(target, 0.0, 1.0) * 100.0))
