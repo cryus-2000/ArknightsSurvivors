@@ -102,3 +102,5 @@
 | 4 | 普通精英维持 0.12 秒停；只给 Boss 击杀慢放 | 中期 Boss：原 0.12 秒停顿后 × 0.3 保持 0.25 秒，再按终结技 `ult/imp_ease` 先慢后快回 1。最终 Boss **已有** victory_flow 约 2 秒慢放，不叠 | `fx/hf_boss_slow`（`hf_boss_wait` 0.12、`hf_boss_t` 0.25、`hf_boss_lo` 0.3） | **改游戏步长**：走 time_dilation 的 fx 类（同终结技冲击慢放），玩家局 / `--realtime` / `--playclock` 里缩 dt，机器人批跑不缩。所以批跑 TRACE 逐行一致；玩家时钟下慢放那 0.6 秒的步长变小，之后的模拟会分岔（和终结技慢放同一性质，不影响平衡批跑） |
 
 验证（GCP `render-hitfeel-4`）：批跑 TRACE 四条 + 进化全开 vs 全关；玩家时钟 TRACE 只开纯画面 / 声音的（flesh、cam、evo）；对照录像两段：进化（德克萨斯、推进之王）、取舍三条（layer + flesh + cam）。Boss 慢放这轮没录（需要打死一只中期 Boss 的录像，另录）。
+
+结果：批跑 TRACE（四条 + 进化全开 vs 全关）德克萨斯 / 推进之王 301/301 逐行一致；玩家时钟（flesh + cam + evo）61/61 逐行一致。录像 `Claude outputs/render-hitfeel-4/evo_texas_siege.mp4`、`hf_texas_siege.mp4`，11-07 已发用户待审。
