@@ -1,0 +1,6 @@
+17856	levelup_phone/log.txt
+307323	levelup_phone/shot_motion_levelup_full_1217.png
+18201	recruit_phone/log.txt
+339377	recruit_phone/shot_motion_recruit_full_1217.png
+17854	relic_phone/log.txt
+317815	relic_phone/shot_motion_relic_full_1217.png
