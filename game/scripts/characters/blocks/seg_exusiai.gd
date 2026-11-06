@@ -138,6 +138,22 @@ static func _exu_targets(o, n: int, rr: float, prio: float) -> Array:
 				if not ee.dead and not ee.chest and ee.pos.distance_to(o.pos) <= rr:
 					pool.append(ee)
 		o.ext["esc_on"] = escorting
+	if _pf_on(o):   # --exupf 量测（只计数，不改选目标）
+		var pf: Dictionary = o.ext.get("pfs", {})
+		pf["tc"] = int(pf.get("tc", 0)) + 1
+		for e0 in pool:
+			if not e0.dead and _exu_controlled(o.g, e0) and o.hittable(e0):
+				pf["tcc"] = int(pf.get("tcc", 0)) + 1
+				break
+		o.ext["pfs"] = pf
+	var pmode: int = _pf_mode() if prefer else 0   # docs/298 改版开关：0 = 原样
+	var pf_fb := false   # A 版：射程内没有受控目标时改为精英 / Boss 优先
+	if (pmode == 1 or pmode == 2) and MfBal.v("growth_nodes/exu_pf_fb", 1.0) > 0.0:   # A / B 版精英兜底（exu_pf_fb=0 关；1 + 关 = 只加画面）
+		pf_fb = true
+		for e1 in pool:
+			if not e1.dead and _exu_controlled(o.g, e1) and o.hittable(e1):
+				pf_fb = false
+				break
 	var keyed: Array = []
 	for i in pool.size():
 		var e = pool[i]
@@ -147,6 +163,8 @@ static func _exu_targets(o, n: int, rr: float, prio: float) -> Array:
 		if (e.elite or e.boss) and not mob_first and not escorting:
 			d /= maxf(1.0, prio)
 		if prefer and _exu_controlled(o.g, e) and o.hittable(e):
+			d -= 5.0e8
+		elif pf_fb and (e.elite or e.boss) and o.hittable(e):
 			d -= 5.0e8
 		if not o.hittable(e):
 			d += 1.0e9   # 打不动的（无敌 Boss 等，op_api.hittable）垫底，只剩它们时照旧
@@ -160,6 +178,13 @@ static func _exu_targets(o, n: int, rr: float, prio: float) -> Array:
 		out.push_front(pool[0])   # 保留 op_api 的 Boss 优先（ai/boss_focus）
 		if out.size() > n:
 			out.resize(n)
+	if pmode > 0:   # 锁定框（只画）：头号目标是受控目标（A 版另含精英兜底）时框住它
+		var lk = null
+		if not out.is_empty() and (_exu_controlled(o.g, out[0]) or (pf_fb and (out[0].elite or out[0].boss))):
+			lk = out[0]
+		if not is_same(lk, o.ext.get("pf_lock")):
+			o.ext["pf_lock"] = lk
+			o.ext["pf_lock_t"] = o.g.t
 	if not o.held_aim() and o.g.map.tb_aim and o.g.map.blocks():
 		# 地形阻挡（terrain/aim_los）：自动瞄准时视线内的先（按上面的顺序补被挡的；全被挡 = 原结果）
 		var all: Array = out.duplicate()
@@ -266,6 +291,11 @@ static func _exu_volley(o, p: Dictionary, main: bool, last: bool) -> void:
 		var trs: Array = _exu_active(o, "verb.tracer")
 		if not trs.is_empty():
 			trb = trs.back()   # 收网（5A）排在曳光弹（4A）之后，取它的 max
+	var hv = null   # docs/298 C 版：每 exu_hv_cd 秒一发重弹，射程内最近的精英 / Boss（没有就最近的敌人）
+	if main and not fan and _pf_mode() == 3 and o.tags_all.has("verb.aim_prefer") and not _exu_active(o, "verb.aim_prefer").is_empty() 			and g.t - float(st.get("pf_hv_t", -99.0)) >= MfBal.v("growth_nodes/exu_hv_cd", 4.0):
+		hv = _pf_threat(o, _exu_range(o, p))
+		if hv != null:
+			st["pf_hv_t"] = g.t
 	for k in n:
 		var q := p
 		if ap[0] >= 0 and int(st.ammo[ap[0]]) > 0:
@@ -279,7 +309,7 @@ static func _exu_volley(o, p: Dictionary, main: bool, last: bool) -> void:
 		if fan:
 			dir = d0.rotated(lerpf(-sp, sp, float(k) / float(n - 1)) if n > 1 else 0.0)
 		else:
-			var e: Dictionary = ts[k % ts.size()]
+			var e: Dictionary = hv if (k == 0 and hv != null) else ts[k % ts.size()]
 			btex = el_stack_tex(o, str(q.get("src", "")), e, btex)   # 精英化段（st.stack）：瞄准的敌人身上的层数决定弹体颜色
 			var rep: int = k / ts.size()
 			var off: float = sp * float((rep + 1) / 2) * (1.0 if rep % 2 == 1 else -1.0)
@@ -297,8 +327,20 @@ static func _exu_volley(o, p: Dictionary, main: bool, last: bool) -> void:
 			if int(st.tr_n) % maxi(1, int(trb.every)) == 0:
 				tr_b = trb
 				btex = "proj_exusiai_bullet_t3"   # 曳光弹：金色弹体
+		var stn := 0.0
+		var pfa: Array = _exu_active(o, "verb.aim_prefer") if main and _pf_mode() == 2 and o.tags_all.has("verb.aim_prefer") else []
+		var pfb: Dictionary = pfa[0] if not pfa.is_empty() else {}
+		if not pfb.is_empty():
+			st["pf_n"] = int(st.get("pf_n", 0)) + 1
+			if int(st.pf_n) % maxi(1, int(pfb.get("stun_every", MfBal.v("growth_nodes/exu_stun_every", 6.0)))) == 0:
+				stn = float(pfb.get("stun", MfBal.v("growth_nodes/exu_stun", 0.6)))   # B 版：每第 N 发主弹是一发眩晕弹（金色大弹）；数值在干员参数 prefer_stun_every / prefer_stun
+				btex = "proj_exusiai_bullet_t3"
+		if k == 0 and hv != null:
+			stn = MfBal.v("growth_nodes/exu_hv_stun", 1.0)
+			dmg *= MfBal.v("growth_nodes/exu_hv_mult", 2.0)
+			btex = "proj_exusiai_bullet_t3"
 		if st.bul.size() < EXU_BULLET_MAX:
-			st.bul.append({"p": mz, "v": dir * speed, "life": _exu_range(o, q) * 1.15 / speed, "dmg": dmg, "src": str(q.get("src", "")),
+			st.bul.append({"stn": stn, "p": mz, "v": dir * speed, "life": _exu_range(o, q) * 1.15 / speed, "dmg": dmg, "src": str(q.get("src", "")),
 				"tags": q.get("tags", []), "pierce": o.atk_pierce(int(q.get("pierce", 0))) if main else int(q.get("pierce", 0)), "main": main, "kb": float(q.get("kb", 0.0)) + esc_kb, "hit": {}, "tex": btex, "hfx": str(q.get("hit_fx", "fx_exusiai_hit")), "on_hit": oh, "ric": true, "tr": tr_b})
 	o.spawn_fx_sprite(mfx, mz + d0 * 7.0 * g.PX * 0.8, g.PX * 0.8, d0.angle())
 	_FXR.ev(o, "exu_fire", {"mz": mz, "d": d0, "fx": mfx, "fan": fan})   # 转平面（docs/262）：只画
@@ -341,6 +383,66 @@ static func exu_tick(o, dt: float) -> void:
 	_exu_bullets(o, dt)
 
 
+## docs/298 对空优先改版开关 growth_nodes/exu_prefer：0 = 原样；1 = A（锁定框 + 定身星 + 无受控目标时精英优先）；2 = B（A 的画面 + 每第 N 发眩晕弹）
+static func _pf_mode() -> int:
+	return int(MfBal.v("growth_nodes/exu_prefer", 0.0))
+
+
+## 定身 / 眩晕弹命中的金色小星（只画；k 0 = 定身 6 颗、1 = 眩晕弹 8 颗更大）
+static func _pf_burst(o, at: Vector2, k: int) -> void:
+	var fx: Array = o.ext.get("pf_fx", [])
+	fx = fx.filter(func(x): return o.g.t - float(x.t0) < 0.5)
+	if fx.size() < 12:
+		fx.append({"p": at, "t0": o.g.t, "k": k})
+	o.ext["pf_fx"] = fx
+
+
+## C 版重弹目标：射程内最近的精英 / Boss；没有就最近的敌人（同距离按 id）
+static func _pf_threat(o, rr: float):
+	var best = null
+	var bd := INF
+	for j in o.query_ids(o.pos, rr):
+		var e: Dictionary = o.g.enemies[j]
+		if e.dead or e.chest or not o.hittable(e):
+			continue
+		var d: float = o.pos.distance_to(e.pos)
+		if d > rr:
+			continue
+		if not (e.elite or e.boss):
+			d += 1.0e6
+		if d < bd or (d == bd and best != null and int(e.id) < int(best.id)):
+			bd = d
+			best = e
+	return best
+
+
+## --exupf 量测（docs/298）：受控目标出现频率、主弹命中受控目标的次数与伤害占比；每 60 秒打一行 EXUPF，不取随机数、不改状态以外的东西
+static var _pf_flag := -1
+static func _pf_on(o) -> bool:
+	if _pf_flag < 0:
+		var cfg = o.g.get_node_or_null("/root/Cfg")
+		_pf_flag = 1 if cfg != null and cfg.dev_args().has("--exupf") else 0
+	return _pf_flag == 1
+
+
+static func _pf_hit(o, e: Dictionary, d: float) -> void:
+	var pf: Dictionary = o.ext.get("pfs", {})
+	var c: bool = _exu_controlled(o.g, e)
+	pf["h"] = int(pf.get("h", 0)) + 1
+	pf["d"] = float(pf.get("d", 0.0)) + d
+	if c:
+		pf["hc"] = int(pf.get("hc", 0)) + 1
+		pf["dc"] = float(pf.get("dc", 0.0)) + d
+	if e.elite or e.boss:
+		pf["he"] = int(pf.get("he", 0)) + 1
+	o.ext["pfs"] = pf
+	var m: int = int(o.g.t / 60.0)
+	if m > int(pf.get("m", 0)):
+		pf["m"] = m
+		print("EXUPF t=%d on=%d tc=%d tcc=%d h=%d hc=%d he=%d d=%d dc=%d pins=%d stn=%d mode=%d" % [int(o.g.t), 0 if _exu_active(o, "verb.aim_prefer").is_empty() else 1,
+			int(pf.get("tc", 0)), int(pf.get("tcc", 0)), int(pf.h), int(pf.get("hc", 0)), int(pf.get("he", 0)), int(pf.d), int(pf.get("dc", 0.0)), int(pf.get("pins", 0)), int(pf.get("stn", 0)), _pf_mode()])
+
+
 static func _exu_bullets(o, dt: float) -> void:
 	var st: Dictionary = o.ext
 	if st.bul.is_empty():
@@ -375,6 +477,8 @@ static func _exu_bullets(o, dt: float) -> void:
 			var sk: Array = el_stack_hit(o, e, str(bu.src))   # 精英化段（st.stack）：[伤害倍率, 满层命中火花（"" = 照旧）]
 			o.log_hit(bu.src, bu.tags)
 			o.deal_damage(e, bu.dmg * (ve if e.elite or e.boss else 1.0) * float(sk[0]) * pm)
+			if _pf_on(o) and bu.get("main", false):
+				_pf_hit(o, e, bu.dmg * (ve if e.elite or e.boss else 1.0) * float(sk[0]) * pm)
 			if not e.dead and g.rfx.sniper_execute(e, g.hit):   # 藏品 #169 扼喉之手：狙击攻击直接处决低血敌人（同维什戴尔 _h4_explode 的门槛与写法；10-15 补漏接）
 				o.log_hit("真实")
 				o.deal_damage(e, e.hp + 1.0)
@@ -382,11 +486,27 @@ static func _exu_bullets(o, dt: float) -> void:
 				o.apply_kb(e, bu.v.normalized() * float(bu.kb) * (0.3 if e.elite else 1.0))   # 同 melee_hit：精英 ×0.3、Boss 不受
 			for s in bu.on_hit:
 				apply_status(o, e, s)
+			var stn: float = float(bu.get("stn", 0.0))
+			if stn > 0.0 and not e.dead and not e.boss:   # docs/298 B 版眩晕弹：精英减半、Boss 不受；走成长节点控制递减
+				o.add_cc_growth(e, stn * (0.5 if e.elite else 1.0))
+				_pf_burst(o, e.pos, 1)
+				if _pf_on(o):
+					o.ext.pfs["stn"] = int(o.ext.pfs.get("stn", 0)) + 1
+				if MfBal.v("growth_nodes/exu_stun_stop", 1.0) > 0.0:
+					bu.pierce = 0
+			elif stn > 0.0 and e.boss:
+				_pf_burst(o, e.pos, 1)
+				if MfBal.v("growth_nodes/exu_stun_stop", 1.0) > 0.0:
+					bu.pierce = 0
 			if was_ctrl:   # 对空优先：打中受控目标命中即停（不再穿透），目标追加定身 pin 秒（精英减半，Boss 除外；同一敌人 1 秒内至多一次）
 				bu.pierce = 0
 				if not e.dead and not e.boss and g.t - float(e.get("exu_pin", -99.0)) >= 1.0:
 					e["exu_pin"] = g.t
 					o.add_cc_growth(e, float(pref.pin) * (0.5 if e.elite else 1.0))
+					if _pf_mode() > 0:
+						_pf_burst(o, e.pos, 0)
+					if _pf_on(o):
+						o.ext.pfs["pins"] = int(o.ext.pfs.get("pins", 0)) + 1
 					o.fx({"kind": "ring", "pos": e.pos, "r": float(e.r) + 14.0, "r0": float(e.r), "life": 0.25, "col": Color(1.0, 0.85, 0.35), "w": 2.5, "alpha": 0.95})
 			if not e.dead and not bu.get("tr", {}).is_empty():   # 曳光弹命中：标记
 				_exu_mark(o, e, bu.tr)
@@ -726,6 +846,8 @@ static func _exu_gm_validate(b: Dictionary, p: String, ctx: Dictionary, tag: Str
 	match tag:
 		"verb.aim_prefer":
 			_num(b, "pin", p, ctx, true, 0.0, 2.0)
+			_num(b, "stun_every", p, ctx, false, 2.0, 60.0)
+			_num(b, "stun", p, ctx, false, 0.0, 3.0)
 		"verb.escort":
 			_num(b, "r", p, ctx, true, 30.0, 600.0)
 			_num(b, "n", p, ctx, true, 1.0, 30.0)
@@ -794,7 +916,9 @@ static func exu_gm_draw(o) -> void:
 		cv.draw_set_transform(g.ppos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
 		cv.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 40, Color(0.5, 0.85, 1.0, 0.4 + 0.15 * sin(g.t * 6.0)), 2.0)
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	if not _exu_active(o, "verb.aim_prefer").is_empty():
+	if not _exu_active(o, "verb.aim_prefer").is_empty() and _pf_mode() > 0:
+		_pf_draw(o)
+	elif not _exu_active(o, "verb.aim_prefer").is_empty():
 		var n := 0
 		for j in o.query_ids(o.pos, _exu_range(o, o.B.get("attack", {}))):
 			var e: Dictionary = g.enemies[j]
@@ -805,3 +929,61 @@ static func exu_gm_draw(o) -> void:
 			n += 1
 			if n >= 8:
 				break
+
+
+## docs/298 改版画面（能天使转平面配色 g 阶：#5c3e0a 描边、#e8b030 / #ffd86a 主色、#fff2c0 高光；按美术像素格对齐）：
+## 锁定框 = 头号目标四角金色折角，锁上瞬间从外 10 像素收紧（0.12 秒）、之后按拍轻闪；受控但没锁的照旧画小括号；
+## 定身 / 眩晕弹 = 一圈金色四角小星往外飞 0.35 秒
+const PF_GOLD := [Color(0.36, 0.24, 0.04), Color(0.91, 0.69, 0.19), Color(1.0, 0.85, 0.42), Color(1.0, 0.95, 0.75)]
+
+static func _pf_px(cv, p: Vector2, px: float, c: Color) -> void:
+	cv.draw_rect(Rect2((p / px).floor() * px, Vector2(px, px)), c)
+
+
+static func _pf_draw(o) -> void:
+	var g = o.g
+	var cv = o.cv
+	var px: float = g.PX
+	var lk = o.ext.get("pf_lock")
+	var n := 0
+	for j in o.query_ids(o.pos, _exu_range(o, o.B.get("attack", {}))):
+		var e: Dictionary = g.enemies[j]
+		if e.dead or is_same(e, lk) or not _exu_controlled(g, e) or not o.hittable(e):
+			continue
+		var tp2: Vector2 = e.pos + Vector2(0, -float(e.r) - 12.0)
+		cv.draw_polyline(PackedVector2Array([tp2 + Vector2(-6, -3), tp2 + Vector2(0, 3), tp2 + Vector2(6, -3)]), PF_GOLD[2], 1.6)
+		n += 1
+		if n >= 8:
+			break
+	if lk != null and not lk.dead:
+		var u: float = clampf((g.t - float(o.ext.get("pf_lock_t", 0.0))) / 0.12, 0.0, 1.0)
+		var c: Vector2 = lk.pos + Vector2(0, EXU_AIM_Y - float(lk.r) * 0.3)
+		var h: float = float(lk.r) + 6.0 + 10.0 * (1.0 - u)
+		var arm: int = 3
+		var hi: bool = int(floor(g.t * 15.0)) % 4 != 0
+		for sx in [-1.0, 1.0]:
+			for sy in [-1.0, 1.0]:
+				var k0: Vector2 = c + Vector2(sx * h, sy * h)
+				for i in arm + 1:
+					for q in [Vector2(-sx * i, 0), Vector2(0, -sy * i)]:
+						var p: Vector2 = k0 + q * px
+						_pf_px(cv, p + Vector2(sx, sy) * px, px, PF_GOLD[0])
+						_pf_px(cv, p, px, PF_GOLD[2] if hi else PF_GOLD[1])
+		_pf_px(cv, c, px, PF_GOLD[3] if hi else PF_GOLD[2])
+	for f in o.ext.get("pf_fx", []):
+		var a: float = (g.t - float(f.t0)) / 0.35
+		if a < 0.0 or a >= 1.0:
+			continue
+		var big: bool = int(f.k) == 1
+		var m: int = 8 if big else 6
+		var rr: float = (14.0 if big else 10.0) + (26.0 if big else 18.0) * a
+		for i in m:
+			var p2: Vector2 = f.p + Vector2(0, EXU_AIM_Y) + Vector2.from_angle(float(i) * TAU / float(m) + 0.3) * rr
+			var col: Color = PF_GOLD[3] if a < 0.35 else (PF_GOLD[2] if a < 0.7 else PF_GOLD[1])
+			_pf_px(cv, p2, px, col)
+			if a < 0.7:
+				for q2 in [Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]:
+					_pf_px(cv, p2 + q2 * px, px, PF_GOLD[2] if a < 0.35 else PF_GOLD[1])
+				if big and a < 0.4:
+					for q3 in [Vector2(2, 0), Vector2(-2, 0), Vector2(0, 2), Vector2(0, -2)]:
+						_pf_px(cv, p2 + q3 * px, px, PF_GOLD[1])
