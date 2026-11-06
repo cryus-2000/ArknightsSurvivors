@@ -32,7 +32,7 @@ run() {   # $1 阵容 $2 层
     ud=$(mktemp -d); mkdir -p "$ud/ArknightsSurvivors"; printf '[game]\ndmg_numbers=true\n' > "$ud/ArknightsSurvivors/settings.cfg"
     dbg=""; [ "$2" != full ] && dbg="--clutterdbg=$2"
     XDG_DATA_HOME=$ud timeout -k 30 3600 "$GODOT" --rendering-driver opengl3 --audio-driver Dummy --resolution 1280x720 --position 0,0 --fixed-fps 60 --path game -- \
-        --balance --nodeath --seed=11 ${LU[$1]} --quality=high --prog=20 --maxt=625 --shots=$FR --clutterlog --shotdir="$d" $dbg > "$d/run.log" 2>&1
+        --balance --nodeath --seed=11 --slot4 ${LU[$1]} --quality=high --prog=20 --maxt=625 --shots=$FR --clutterlog --shotdir="$d" $dbg > "$d/run.log" 2>&1
     echo "$1 $2 rc=$? $(ls $d/shot_*.png 2>/dev/null | wc -l) 张 $(grep -c 'SCRIPT ERROR' $d/run.log) 处脚本错误" | tee -a "$OUT/runs.txt"
     # 每层跑完就传自己的截图（11-06 lfd-d01a 整机超时、末尾统一打包没跑到，16 层截图全丢）
     ( cd "$OUT" && tar -czf "/work/s_$1_$2.tgz" "$1_$2"/*.png ) && gcloud storage cp "/work/s_$1_$2.tgz" "$GS/shots/$1_$2.tgz" -q
