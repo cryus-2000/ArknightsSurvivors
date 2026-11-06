@@ -16,6 +16,8 @@ const KILL_SHOTS := [-1, 3, 8, 14, 22]   # --killshot 截图帧（相对击杀�
 var _kill_row: Array = []
 var hunt_rec_end := 0  # --huntrec：进寻访结果后又录了几张
 var _dash_at: Array = []
+var _tab_at := 0.0
+var _tab_f := -1
 var _elite_at := -1.0   # --eliteat=秒（docs/249 §5）：-1 = 还没读参数，0 = 不用 / 已触发
 var touchtest_p0 := Vector2.ZERO
 var bal_done := false
@@ -1071,6 +1073,19 @@ func step() -> void:
 		for a in Cfg.dev_args():
 			if a.begins_with("--dashat="):
 				_dash_at = Array(a.substr(9).split(",")).map(func(x): return float(x))   # 截图（docs/290 冲刺格充能）：到点让队长冲刺一次
+	if _tab_at == 0.0:
+		_tab_at = -1.0
+		for a in Cfg.dev_args():
+			if a.begins_with("--tabat="):
+				_tab_at = float(a.substr(8))   # 截图（docs/290 Tab 编队栏技能细格）：到点打开属性面板，20 帧后存 shot_tab.png 并退出
+	if _tab_at > 0.0 and g.state == g.S.PLAY and g.t >= _tab_at and _tab_f < 0:
+		g.state = g.S.STATS
+		_tab_f = 0
+	elif _tab_f >= 0:
+		_tab_f += 1
+		if _tab_f == 20 and DisplayServer.get_name() != "headless":
+			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_tab.png")
+			g.get_tree().quit()
 	if _dash_at[0] > 0.0 and g.state == g.S.PLAY and g.t >= _dash_at[0]:
 		g._try_dash()
 		_dash_at.pop_front()

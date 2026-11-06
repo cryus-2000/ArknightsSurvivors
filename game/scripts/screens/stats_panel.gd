@@ -608,6 +608,7 @@ const ANIM_GAP := 0.06
 const ANIM_DUR := 0.3
 const CLOSE_T := 0.15
 var _last_frame := -10
+var _tips: Array = []   # 本帧要画的编队技能提示：[干员, 中心 x, 底边 y]
 var _open_rt := 0.0
 var _close_rt := -9.0
 var _at := 9.0   # 本帧距打开的真实秒数
@@ -704,6 +705,8 @@ func draw_v3(vs: Vector2) -> void:
 	var back: String = Pad.hint("TAB / C / ESC 返回", "SELECT / Ⓑ 返回", "点空白处返回")
 	_hv.v2.txt(Vector2(R - _hv.v2.twidth(back, 11), B - 8), back, 11, V3_GREY)
 	_v3_tips(vs)
+	for t in _tips:   # 编队栏技能提示（docs/290）：压在三栏与其余提示之上
+		_hv.v3.skill_tip(t[0], t[1], t[2], vs, 1.25)
 
 
 func _v3_header(L: float, T: float, R: float) -> void:
@@ -821,6 +824,7 @@ func _v3_offense(x: float, top: float, w: float, bottom: float) -> void:
 
 
 func _v3_squad(x: float, top: float, w: float, bottom: float) -> void:
+	_tips = []
 	_v3_head(x, top + 10, w, "编队", "SQUAD  %d / %d" % [g.squad.size(), g.squad.cap()])
 	var y: float = top + 34
 	var sq := 30.0
@@ -836,6 +840,12 @@ func _v3_squad(x: float, top: float, w: float, bottom: float) -> void:
 		if o.is_leader:
 			_hv.v2.cap(Vector2(x + 46 + _hv.v2.twidth(nm, 14), y + 12), "LEADER", 5.5, UI.CYAN, 1.4)
 		_hv.v2.txt(Vector2(x + 40, y + 29), "%s · %s" % [o.cls, ["精零", "精一", "精二"][clampi(o.elite, 0, 2)]], 11, V3_GREY)
+		# 技能细格（docs/290，同指挥台头像下那行）：头像正下方；鼠标移上去弹出三招名字与状态
+		if _hv.v3.skills_mode() > 0:
+			var skr := Rect2(x, y + sq + 3.0, sq, 3.0)
+			_hv.v3._skill_segs(o, skr.position.x, skr.position.y, skr.size.x, skr.size.y, 1.0)
+			if Rect2(x, y, sq, sq + 8.0).has_point(mouse2):
+				_tips.append([o, x + sq / 2.0, y - 4.0])
 		# 成长进度：普通节点圆点、精英化菱形；选过的亮。整块是悬停区（弹出节点表）
 		var pg: Array = o.prog_view()
 		var dx0: float = x + w - pg.size() * 12.0 - 2.0

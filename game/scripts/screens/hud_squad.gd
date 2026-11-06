@@ -1,8 +1,7 @@
 extends RefCounted
 ## 界面 · HUD 右下编队栏与手动技能（2026-10-10 从 hud.gd 拆出，docs/55 §6）：干员部署卡 + 技能格（静态层缓存 + 每帧层）、
 ## 源石锭框、手动技能首次就绪提示、手动技能瞄准指示（方向 / 落点）。触屏分支原样保留。
-const HudV2 = preload("res://scripts/screens/hud_v2.gd")
-const HudV3 = preload("res://scripts/screens/hud_v3.gd")   # 指挥台开着时（docs/290 方案 B 临时展开）一律画旧部署卡 + 技能格   # 编辑式 HUD（docs/222，ui/hud_v2）
+const HudV2 = preload("res://scripts/screens/hud_v2.gd")   # 编辑式 HUD（docs/222，ui/hud_v2）
 const LinkBond = preload("res://scripts/run/link_bond.gd")   # 编队人数旁「羁绊 N」（docs/221 B1）
 const A = preload("res://scripts/art.gd")
 const UI = preload("res://scripts/ui.gd")
@@ -34,8 +33,6 @@ var _open_until := -1.0
 
 
 func compact_on() -> bool:
-	if HudV3.on():
-		return false   # 指挥台开着时编队卡只在临时展开时画，展开就是整卡
 	return Cfg.phone_ui() and g.touch.active and Bal.vi("ui/phone_squad_compact", 1) > 0
 
 
@@ -69,9 +66,7 @@ func draw(vs: Vector2) -> void:
 	# 编队栏：静态部分（底、立绘、名字、职业 / 精英标签、技能格底与图标、源石锭框）只在内容变了才重画；
 	# 充能遮罩、进度条、边框、倒计时、悬停提示等每帧画（在父画布上，压在静态层之上）
 	var sbr := Vector2(vs.x - 16, vs.y - 16)
-	if HudV3.on():
-		sbr = h.v3.peek_br(vs, g.squad.size() * SQ_COL_W)
-	elif HudV2.on():
+	if HudV2.on():
 		h._layer("squad", null, func():
 			h.v2.squad(sbr)
 			if g.knight.alive or g.knight.submerged:

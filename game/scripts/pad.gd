@@ -113,8 +113,6 @@ func _input(event: InputEvent) -> void:
 				_ult_hold(event.button_index, event.pressed)
 				return
 			if event.button_index == JOY_BUTTON_Y:
-				if Bal.vi("ui/console_peek", 0) > 0:
-					_key(KEY_ALT, event.pressed)   # 指挥台按住 Ⓨ 临时展开编队卡（docs/290 方案 B）= 按住 Alt
 				return   # 原连携技键（11-05 收回）：对局里没有动作，也不落到下面的旧映射（Ⓨ = Q）
 		elif not _q_hold.is_empty():
 			_q_hold.clear()

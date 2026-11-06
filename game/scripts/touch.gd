@@ -111,7 +111,7 @@ func handle(event: InputEvent) -> bool:
 				flash[hit_b[1]] = 0.2
 				return true
 			# 手机编队卡收起（docs/221 P1）：点编队区展开 / 收回
-			if g.state == g.S.PLAY and (g.hud_view.v3.peek_tap(p) or g.hud_view.squad.tap(p)):   # 指挥台：点队友头像区临时展开编队卡（docs/290 B）
+			if g.state == g.S.PLAY and g.hud_view.squad.tap(p):
 				return true
 			# 属性面板：点图标 = 看效果（不消费，触摸模拟的鼠标移过去，悬停提示照常出）；点别处关闭
 			if g.state == g.S.STATS:

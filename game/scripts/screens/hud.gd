@@ -304,7 +304,7 @@ func _draw_body() -> void:
 	if not pq:
 		relics.register_tray(vs)   # 藏品栏缓存层（藏品 / 等级 / 悬停格变了才重画）
 	_layer("boss", null, func(): bars.draw_boss_bars(vs))
-	if not pq and (not console or v3.peeking()):   # 指挥台开着时只在临时展开（docs/290 方案 B）时画
+	if not pq and not console:
 		squad.draw(vs)   # 登记编队栏静态层（squad）与每帧层（squad_fr）
 	if g.ult != null:
 		_layer("ult", null, func(): ult.draw(vs))   # 终结技能量 / 协同 / 连携排队（触屏：终结技键与连携键）
