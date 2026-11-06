@@ -507,6 +507,7 @@ const OPT_SZAURA := 16777216   # 铃兰狐火光域（fx_pxplane_sz.draw_floor�
 const OPT_PXSTEP := 33554432   # 转平面条目清理（fx_pxplane._step，docs/287 §3 ⑤）：一帧只跑一次；置位走旧写法（每名干员每层都跑）。画面相同
 const OPT_WDFOG := 67108864   # 维什戴尔红色体积雾（fx_pxplane_wd，fx/wd_fog_v）：置位画 11-05 淡薄雾，供 --optab 同局轮换量雾的帧时净差。只改画面
 const OPT_SKPAT := 134217728   # 浊心斯卡蒂小图案（fx_pxplane._sk_pat：鱼 / 音符 / 上浮箭头，docs/287 §3 ⑧）：逐像素矩形展开成三角形缓存、一次提交；置位走旧写法（逐个 draw_rect）。画面相同
+const OPT_SDPF := 268435456   # 斯卡蒂终结技方向图集预读（run/ult_px_sd._prefetch，docs/287 §3 ⑦）：方向档稳定 3 帧才读、先放旧的；置位走旧写法（每跨一档就读）
 const OPT_TOUCHB := 1048576  # 触屏按钮（touch.gd draw_hud）：圆 / 弧 / 线进 TriBatch、图标与字随后成组画；置位走旧写法（逐个 draw_*）。画面相同（按钮互不重叠时）
 var bal_dt := 0.066             # --dt=<秒>（仅 --balance）：批跑每帧步长，缺省 0.066（9/30 起所有难度校准 / 云端基线的口径）；按位移判定的改动可用 --dt=0.016667 抽查（docs/36 §8.2）
 var placebo_n := 0              # --placebo=N（仅测试）：开局多抽 N 次主 rng——机制不变、换一份随机实现，判「改动」还是「这组 seed 的运气」（docs/36 §8.2）
