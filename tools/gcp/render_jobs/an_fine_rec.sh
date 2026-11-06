@@ -17,13 +17,23 @@ run() {   # $1 变体名 $2.. 参数
 }
 run old --bal=ult/an_fine=0
 run new
-FONT=$(fc-list :lang=zh -f '%{file}\n' | head -1)
+FONT="$CJK_FONT"
+FF="$(python3 -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')"
 for v in old new; do
     lab="旧版"; [ "$v" = new ] && lab="精细版"
-    ffmpeg -v error -y -framerate 30 -pattern_type glob -i "$OUT/$v/f_*.png" -vf "drawtext=fontfile=$FONT:text='$lab':fontsize=36:fontcolor=white:borderw=3:x=24:y=20" -c:v libx264 -pix_fmt yuv420p -r 30 "$OUT/$v.mp4"
+    mkdir -p "$OUT/lab_$v"
+    python3 -c "
+import sys, glob, os
+from PIL import Image, ImageDraw, ImageFont
+f = ImageFont.truetype(sys.argv[1], 36); n = 0
+for p in sorted(glob.glob(sys.argv[2] + '/f_*.png')):
+    im = Image.open(p).convert('RGB'); ImageDraw.Draw(im).text((24, 20), sys.argv[3], font=f, fill='white', stroke_width=3, stroke_fill='black')
+    im.save(sys.argv[4] + '/l_%04d.png' % n); n += 1
+" "$FONT" "$OUT/$v" "$lab" "$OUT/lab_$v"
+    "$FF" -v error -y -framerate 30 -i "$OUT/lab_$v/l_%04d.png" -c:v libx264 -pix_fmt yuv420p -r 30 "$OUT/$v.mp4"
 done
 printf "file '%s'\nfile '%s'\nfile '%s'\nfile '%s'\n" "$OUT/old.mp4" "$OUT/new.mp4" "$OUT/old.mp4" "$OUT/new.mp4" > "$OUT/list.txt"
-ffmpeg -v error -y -f concat -safe 0 -i "$OUT/list.txt" -c copy "$MEDIA/angelina_ult_old_new.mp4"
+"$FF" -v error -y -f concat -safe 0 -i "$OUT/list.txt" -c copy "$MEDIA/angelina_ult_old_new.mp4"
 ls -la "$MEDIA" | tee -a "$OUT/runs.txt"
 for v in old new; do mkdir -p "$MEDIA/$v"; ls "$OUT/$v"/f_*.png | awk 'NR%15==0' | xargs -I{} cp {} "$MEDIA/$v/"; done
 exit 0
