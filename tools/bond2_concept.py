@@ -1198,7 +1198,152 @@ def pair_inq_lighthouse3(A):
     return out
 
 
-PAIRS = {"inq_lighthouse3": ("灯下审决 · 灯塔照海、审判守岸（按参考图重画灯塔）", pair_inq_lighthouse3)}
+# ---------------------------------------------------------------- 11-06 第七轮：愚人号（艾丽妮 × 归溟幽灵鲨）
+
+GH = ramp(["#0e3846", "#2a7c96", "#6ccde4", "#c6f4ff", "#e8fbff", "#f4fdff", "#ffffff"])   # 归溟幽灵鲨幽灵青（fx_pxplane_su.GH 延长）
+HULL = ramp(["#060a15", "#0d1832", "#172f5e", "#234d94", "#3a77c2"])                       # 深海蓝（fx_pxplane_su.AB 前段）
+
+
+def ghost_ship(cv, p, k, al=0.85):
+    """幽灵船（侧视，约 160×110 美术像素，船首朝右）：深船舷（上沿幽灵青描边、一排舷窗）、尖船首上翘 + 船首像、船尾楼、
+    主桅 + 两面破帆（青色半透明、有破洞）；整体半透明，k 控制淡入淡出"""
+    a = al * k
+    W_ = 160
+    deck = p[1] - 30
+    for x in range(W_):
+        u = x / W_
+        top = deck - (10 if u < 0.18 else 0) - (int((u - 0.8) / 0.2 * 16) if u > 0.8 else 0)   # 船尾楼高、船首上翘
+        bot = deck + 26 - int(((u - 0.45) * 2.2) ** 2 * 18)
+        if u > 0.82:
+            bot = min(bot, top + 4 + int((1 - u) / 0.18 * 20))
+        for y in range(int(top), int(bot)):
+            col = HULL[2] if y < deck + 10 else HULL[1]
+            if y == int(top):
+                col = GH[3]
+            elif y == int(bot) - 1:
+                col = GH[1]
+            elif y == deck + 6 and x % 10 < 5 and 0.2 < u < 0.78:
+                col = GH[2]
+            elif (x + y) % 9 == 0:
+                col = HULL[3]
+            cv.cell(p[0] - W_ / 2 + x, y, col, a)
+    for i in range(14):   # 船首像（斜出）
+        cv.cell(p[0] + W_ / 2 + i * 0.8, deck - 16 - i * 0.6, GH[3], a)
+        cv.cell(p[0] + W_ / 2 + i * 0.8, deck - 15 - i * 0.6, GH[2], a)
+    mx = p[0] - 6
+    for y in range(int(deck - 92), int(deck)):   # 主桅
+        cv.cell(mx, y, HULL[3], a)
+        cv.cell(mx + 1, y, HULL[2], a)
+    for (y0, y1, w0, w1) in ((deck - 86, deck - 54, 34, 44), (deck - 50, deck - 18, 44, 56)):   # 两面横帆
+        for y in range(int(y0), int(y1)):
+            f = (y - y0) / (y1 - y0)
+            hw = int(w0 + (w1 - w0) * f) // 2
+            for x in range(-hw, hw + 1):
+                if (x * 7 + y * 3) % 23 < 2 or (f > 0.75 and (x + y) % 4 == 0):
+                    continue
+                cv.cell(mx + x + int(6 * f), y, GH[2] if (x + y) % 5 else GH[3], a * 0.7)
+    cv.glow(p[0], deck - 40, gl(GH[2]), 1.2 * k)
+
+
+def wake(cv, p, length, k):
+    for i in range(int(length)):
+        x = p[0] - 75 - i
+        if (i * 7) % 5 == 0:
+            continue
+        for s in (-1, 1):
+            y = p[1] + s * (4 + i * 0.12) * SQ
+            cv.cell(x, y, (235, 245, 250) if i < 30 else GH[2], max(0.0, 0.9 - i / length) * (1 - k))
+
+
+def helix(cv, c, r, t, k):
+    """携手旋舞的拖尾：紫（艾丽妮）、青（幽灵鲨）两条带子绕同一圆心缠成双螺旋——各自半径按正弦交替起伏、彼此交错"""
+    n = int(r * 7)
+    for i in range(int(n * k)):
+        u = i / n
+        a = u * math.tau * 1.2 + t * 4
+        for R, ph in ((IR, 0.0), (GH, math.pi)):
+            rr = r * (0.82 + 0.18 * math.sin(u * math.tau * 3 + ph))
+            x, y = c[0] + math.cos(a) * rr, c[1] + math.sin(a) * rr * SQ
+            front = math.sin(u * math.tau * 3 + ph) > 0
+            col = R[5] if front else R[3]
+            cv.cell(x, y, col)
+            cv.cell(x, y + 1, R[2] if R is IR else R[1])
+            if front and i % 5 == 0:
+                cv.glow(x, y, gl(R[4]), 0.6)
+
+
+def linked_rings(cv, c, r, k):
+    """并肩落刃：两只交扣的环（紫 / 青）在落点外扩、断开"""
+    brk = max(0.0, (k - 0.6) / 0.4)
+    for R, dx in ((IR, -r * 0.35), (GH, r * 0.35)):
+        rr = r * (0.5 + 0.5 * k)
+        n = int(rr * 7)
+        for i in range(n):
+            if brk and (i * 7) % 10 < brk * 10:
+                continue
+            a = i / n * math.tau
+            x, y = c[0] + dx * (0.5 + 0.5 * k) + math.cos(a) * rr, c[1] + math.sin(a) * rr * SQ
+            for j in range(3):
+                cv.cell(x, y + j - 1, (255, 255, 255) if j == 1 and k < 0.3 else (R[5] if j == 1 else R[3]))
+
+
+def pair_fools(A):
+    if "specter_unchained_atk" not in A:
+        od = os.path.join(ROOT, "game", "art", "operators", "specter_unchained")
+        A["specter_unchained_atk"] = B.frames_of(os.path.join(od, "op_specter_unchained_attack@1x.png"), fw=96)
+        A["specter_unchained_run"] = B.frames_of(os.path.join(od, "op_specter_unchained_run@1x.png"), 8)
+        A["specter_unchained_idle"] = B.frames_of(os.path.join(od, "op_specter_unchained_idle@1x.png"), 8)
+    w = B.World(37, A)
+    C = (440, 200)
+    for e in w.es:
+        p = w.pos(e, 0.5)
+        if abs(p[1] - 200) < 46 and p[0] < 470:
+            e["kt"] = 0.15 + max(0.0, (p[0] - 180)) / 290 * 0.35
+        elif math.hypot(p[0] - C[0], (p[1] - C[1]) / SQ) < 120:
+            e["kt"] = 0.75 + math.hypot(p[0] - C[0], (p[1] - C[1]) / SQ) / 120 * 0.15
+        elif math.hypot(p[0] - C[0] - 30, (p[1] - C[1] - 10) / SQ) < 170:
+            e["kt"] = 1.1
+    keys = [(0.3, "驶来：幽灵船「愚人号」劈开怪群驶过，甲板上两人背靠背"), (0.8, "携手旋舞：幽灵鲨牵起艾丽妮的手一起转，紫青两条拖尾缠成双螺旋卷走一圈"),
+            (1.12, "并肩落刃：两人一起跃下，落点炸开两只交扣的环"), (1.5, "收尾：船隐入雾里，两人背靠背收势，路上和圈里清空")]
+    out = []
+    for t, lab in keys:
+        img = frame(A, w, t, lambda cv, tt: None, []).convert("RGBA")
+        cv = B.Canvas(img)
+        sx = 150 + 290 * min(1.0, t / 0.55)
+        shp = (sx, 210)
+        if t < 1.45:
+            sk = min(1.0, t / 0.15) * (1 - max(0.0, (t - 1.0) / 0.45))
+            wake(cv, shp, 120, max(0.0, (t - 0.6) / 0.8))
+            ghost_ship(cv, shp, sk)
+        im = cv.finish().convert("RGBA")
+        if t < 0.6:   # 甲板上背靠背
+            B.put_op(im, A["irene_idle"][0], (shp[0] + 26, shp[1] - 34), True, 0.95)
+            B.put_op(im, A["specter_unchained_idle"][0], (shp[0] + 50, shp[1] - 34), False, 0.95)
+        elif t < 1.0:   # 携手旋舞：两人隔着圆心对转
+            a = (t - 0.6) * 9
+            r = 26
+            p1 = (C[0] + math.cos(a) * r, C[1] + math.sin(a) * r * SQ)
+            p2 = (C[0] - math.cos(a) * r, C[1] - math.sin(a) * r * SQ)
+            B.put_op(im, A["irene_atk"][4], p1, math.cos(a) > 0, 0.9, (1.05, 0.95, 1.15))
+            B.put_op(im, A["specter_unchained_atk"][6], p2, math.cos(a) < 0, 0.9, (0.85, 1.05, 1.15))
+        else:   # 落刃 → 背靠背收势
+            al = 1.0 if t < 1.35 else max(0.3, 1 - (t - 1.35) / 0.4)
+            B.put_op(im, A["irene_atk"][6], (C[0] - 14, C[1] + 6), True, al)
+            B.put_op(im, A["specter_unchained_atk"][8], (C[0] + 14, C[1] + 6), False, al)
+        cv = B.Canvas(im)
+        if 0.6 <= t < 1.05:
+            helix(cv, C, 110, t, min(1.0, (t - 0.6) / 0.3))
+        if 1.0 <= t < 1.45:
+            linked_rings(cv, (C[0], C[1] + 10), 150, min(1.0, (t - 1.0) / 0.45))
+        if t >= 1.3:   # 收势：两人之间一点小星芒
+            for d in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1), (2, 0), (-2, 0)):
+                cv.cell(C[0] + d[0], C[1] - 30 + d[1], (255, 255, 255) if d == (0, 0) else IR[5] if d[0] < 0 else GH[3])
+            cv.glow(C[0], C[1] - 30, (0.9, 0.9, 1.0), 1.5)
+        out.append((cv.finish(), lab, (100, 30, 660, 320)))
+    return out
+
+
+PAIRS = {"fools": ("愚人号（艾丽妮 × 归溟幽灵鲨）", pair_fools)}
 
 
 def sheet(title, keys, sc):
