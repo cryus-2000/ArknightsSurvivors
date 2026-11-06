@@ -25,7 +25,6 @@ var bg: ColorRect
 var ft := PackedFloat32Array()   # 最近 10 秒的帧间隔（毫秒）
 var ft_at := PackedFloat64Array()
 var _last_us := 0
-var _sec := 0.0
 var _log_t := 0.0
 var lines: PackedStringArray = []
 var prev := ""            # 上次（异常退出那次）的日志
@@ -145,7 +144,7 @@ func _notification(what: int) -> void:
 			DirAccess.remove_absolute(ALIVE_FILE)
 
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	var now := Time.get_ticks_usec()
 	if _last_us > 0:
 		var ms := (now - _last_us) / 1000.0
@@ -153,17 +152,17 @@ func _process(delta: float) -> void:
 			ft.append(ms)
 			ft_at.append(now / 1e6)
 	_last_us = now
+	# 整秒帧数与每秒刷新都按真实时间（delta 在 --fixed-fps / 慢动作 / 倍速下不是真实间隔）
+	var ts := now / 1e6
 	_fsec += 1
-	_fsec_t += delta
-	if _fsec_t >= 1.0:
-		_min10.append(_fsec / _fsec_t)
+	if _fsec_t <= 0.0:
+		_fsec_t = ts
+	elif ts - _fsec_t >= 1.0:
+		_min10.append(_fsec / (ts - _fsec_t))
 		if _min10.size() > int(WIN_S):
 			_min10.remove_at(0)
 		_fsec = 0
-		_fsec_t = 0.0
-	_sec += delta
-	if _sec >= 1.0:
-		_sec = 0.0
+		_fsec_t = ts
 		_tick_sec()
 
 
@@ -228,7 +227,7 @@ func _tick_sec() -> void:
 	else:
 		l2 = "内存 引擎 %.0f  显存 %.0f  贴图 %.0f MB" % [m.stat, m.vid, m.tex]
 	var l3 := ""
-	var l4 := "画质 %s%s  上限 %d%s%s" % [Cfg.quality, "（自动）" if Cfg.quality_mode == "auto" else "", Engine.max_fps,
+	var l4 := "画质 %s%s  帧率上限 %s%s%s" % [Cfg.quality, "（自动）" if Cfg.quality_mode == "auto" else "", str(Engine.max_fps) if Engine.max_fps > 0 else "不限",
 		"  锁30" if Cfg.fps_lock30 else "", ("  护栏 %d" % stage) if stage > 0 else ""]
 	var l5 := ""
 	if g != null:
