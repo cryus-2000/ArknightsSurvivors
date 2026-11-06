@@ -1,0 +1,12 @@
+# link_text
+# 参数：--headless --path /work/repo/game res://tests/link_text_test.tscn -- --regression --seed=1 --regression
+# 用时 6 秒；结束时全机 Godot 15 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+LINK TEXT checks=164 failures=0
+
+
+## stderr
+
