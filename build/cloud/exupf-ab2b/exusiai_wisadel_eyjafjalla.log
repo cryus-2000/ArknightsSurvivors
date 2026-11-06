@@ -1,0 +1,149 @@
+跑 24 局（3 份实现 × 1 流派 × 2 机器人 × 1 编队 × 4 seed），并行 16（全机上限 16），不用缓存
+### 最终 Boss（按类型；上面的「终局」列是四种混算）
+
+| 机器人 | 最终 Boss | 结局 | 出场 | 击杀 | 用时 均 / 中 / P90 / 最短–最长（出现起算） | 中 / P90（可受伤起算） | 阶段护盾秒 / 过卡点数 均 | 未击杀时剩余血量 |
+|---|---|---|---|---|---|---|---|---|
+| expert | 偏执泡影 | standard 7 | 7 | 5 | 86s / 87s / 88s / 85–88s | 87s / 88s | 34.3 / 3.0 | 39% |
+| expert | 最后的骑士 | knight 2 | 2 | 1 | 49s / 49s / 49s / 49–49s | 49s / 49s | 7.9 / 1.0 | 90% |
+| normal | 偏执泡影 | standard 2 | 2 | 0 | - | - | 3.9 / 0.5 | 50% |
+| normal | 最后的骑士 | knight 1 | 1 | 0 | - | - | 0.0 / 0.0 | 85% |
+
+### 中期 Boss（按类型）
+
+| 机器人 | 中期 Boss | 出场 | 击杀 | 用时中位 | on_boss 中位 | 周围敌人 均 | 慌乱次数 均 | 慌乱期间掉血 均 |
+|---|---|---|---|---|---|---|---|---|
+| expert | 塑路者 | 8 | 8 | 31s | 0.69 | 2 | - | - |
+| expert | 接潮主教 | 7 | 6 | 20s | 0.24 | 3 | 1.0 | 9% |
+| expert | 圣徒卡门 | 4 | 3 | 30s | 0.71 | 2 | - | - |
+| expert | 接潮蔑死体 | 4 | 4 | 18s | 0.29 | 2 | - | - |
+| expert | 圣徒伊比利亚 | 3 | 3 | 38s | 0.37 | 3 | - | - |
+| expert | 接潮斥亡体 | 3 | 2 | 22s | 0.19 | 2 | - | - |
+| normal | 塑路者 | 6 | 5 | 34s | 0.62 | 3 | - | - |
+| normal | 圣徒卡门 | 5 | 3 | 43s | 0.63 | 3 | - | - |
+| normal | 接潮主教 | 3 | 3 | 25s | 0.23 | 3 | - | - |
+| normal | 接潮蔑死体 | 3 | 3 | 25s | 0.25 | 3 | - | - |
+
+### 控制（按来源，每局平均）
+
+| 机器人 | 难度 | 局数 | 奠基者 冻结次 / 秒 / 挣脱 / 减速秒 | 漂移体 冻结次 / 秒 / 挣脱 / 减速秒 | Boss 冻结次 / 秒 / 挣脱 / 减速秒 | 其他 冻结次 / 秒 / 挣脱 / 减速秒 | 任何减速秒 |
+|---|---|---|---|---|---|---|---|
+| expert | 0 | 12 | 0.1 / 0.0 / 0.0 / 2 | 0.0 / 0.0 / 0.0 / 0 | 0.0 / 0.0 / 0.0 / 7 | 0.0 / 0.0 / 0.0 / 0 | 9 |
+| normal | 0 | 12 | 0.0 / 0.0 / 0.0 / 1 | 0.0 / 0.0 / 0.0 / 0 | 0.0 / 0.0 / 0.0 / 3 | 0.0 / 0.0 / 0.0 / 0 | 3 |
+
+### 胜负构成（超时 = 满血 Boss 未打完，照算失败，死因统计不含）
+
+| 机器人 | 难度 | 局数 | 胜 | 死亡 | 超时（满血 Boss 未打完） | 超时时 Boss 剩余血 均 |
+|---|---|---|---|---|---|---|
+| expert | 0 | 12 | 50% | 50% | 0% (0) | - |
+| normal | 0 | 12 | 0% | 100% | 0% (0) | - |
+
+### 难度 / 缩圈 / 同屏峰值
+
+#### 前 3 分钟
+
+| 机器人 | 难度 | 局数 | 3:00 前死亡 | 前 3 分钟承伤 均 / 中 | 3:00 时生命 |
+|---|---|---|---|---|---|
+| expert | 0 | 12 | 0% | 61 / 56 | 97% |
+| normal | 0 | 12 | 8% | 85 / 65 | 90% |
+
+#### 死因 × 缩圈阶段 × Boss 在场（失败的局）
+
+| 机器人 | 难度 | 死因 | 缩圈（第几轮 · 阶段） | 圈外 | Boss 在场 | 局数 | 平均死亡时间 |
+|---|---|---|---|---|---|---|---|
+| expert | 0 | boss_carmen | 第 1 轮 · 稳定 | 否 | 是 | 1 | 4:04 |
+| expert | 0 | shock_paranoia | 第 5 轮 · 稳定 | 否 | 是 | 1 | 10:42 |
+| expert | 0 | boss_knight_boss | 第 5 轮 · 稳定 | 否 | 是 | 1 | 10:08 |
+| expert | 0 | corrode | 第 5 轮 · 稳定 | 否 | 是 | 1 | 10:39 |
+| expert | 0 | corrode | 第 3 轮 · 收缩 | 否 | 否 | 1 | 6:27 |
+| expert | 0 | contact_founder | 第 3 轮 · 稳定 | 否 | 是 | 1 | 7:10 |
+| normal | 0 | atk_reaper | 第 2 轮 · 收缩 | 否 | 否 | 1 | 5:06 |
+| normal | 0 | atk_reaper | 第 2 轮 · 预告 | 否 | 否 | 1 | 4:50 |
+| normal | 0 | bullet | 第 5 轮 · 稳定 | 否 | 是 | 1 | 10:17 |
+| normal | 0 | boss_knight_boss | 第 5 轮 · 稳定 | 否 | 是 | 1 | 10:14 |
+| normal | 0 | contact_path | 第 1 轮 · 稳定 | 否 | 是 | 1 | 4:05 |
+| normal | 0 | bullet | 第 1 轮 · 稳定 | 否 | 是 | 1 | 3:59 |
+| normal | 0 | corrode | 第 1 轮 · 稳定 | 否 | 是 | 1 | 3:33 |
+| normal | 0 | corrode | 第 1 轮 · 稳定 | 否 | 否 | 1 | 4:33 |
+| normal | 0 | contact_tracer | 第 3 轮 · 预告 | 否 | 否 | 1 | 6:05 |
+| normal | 0 | atk_tracer | 第 1 轮 · 预告 | 否 | 否 | 1 | 2:46 |
+| normal | 0 | contact_founder | 第 2 轮 · 预告 | 否 | 否 | 1 | 5:14 |
+| normal | 0 | boss_paranoia | 第 5 轮 · 稳定 | 否 | 是 | 1 | 10:19 |
+
+#### 同屏数量峰值（每局峰值的 平均 / 最大）
+
+| 机器人 | 难度 | 局数 | 范围 | 敌人 | 敌方弹幕（含抛射） | 我方子弹 | 特效 | 飘字 |
+|---|---|---|---|---|---|---|---|---|
+| expert | 0 | 12 | 全程 | 70 / 79 | 174 / 250 | 4 / 4 | 334 / 399 | 30 / 38 |
+| expert | 0 | 9 | 8:00–10:00 | 53 / 62 | 9 / 16 | 1 / 1 | 320 / 399 | 28 / 32 |
+| normal | 0 | 12 | 全程 | 64 / 92 | 57 / 104 | 3 / 4 | 209 / 394 | 27 / 32 |
+| normal | 0 | 3 | 8:00–10:00 | 46 / 52 | 4 / 8 | 3 / 4 | 372 / 394 | 30 / 32 |
+
+### 2 秒上限 / Boss 保护 / 单次上限触发（--telemetry=full）
+
+| 机器人 | 难度 | 结果 | 局数 | 受击笔数 均 | 全免(截到0)笔数 均 | 任意2秒上限 触发笔数 / 截掉量占比 | Boss保护 触发笔数 / 占比 | 单次上限 触发笔数 / 占比 | 截掉一半以上笔数 均 |
+|---|---|---|---|---|---|---|---|---|---|
+| expert | 0 | 失败 | 6 | 458 | 0.2 | 1.7 / 1.1% | 2.2 / 10.4% | 0.0 / 0.0% | 0.5 |
+| expert | 0 | 胜 | 6 | 602 | 0.0 | 0.2 / 0.1% | 2.0 / 3.9% | 0.0 / 0.0% | 0.2 |
+| normal | 0 | 失败 | 12 | 113 | 0.0 | 0.2 / 0.1% | 0.9 / 4.1% | 0.0 / 0.0% | 0.1 |
+
+### 大群（按第几次）
+
+| 机器人 | 第几次 | 出现 | 时间 | 数量 | 清 80% 用时 均 / 中（清完/出现） | 20 秒内掉血 均 / 最大 | 30 秒内死亡 | 编成 |
+|---|---|---|---|---|---|---|---|---|
+| expert | 1 | 12 | 1:15 | 15 | 9s / 9s（12/12） | 12 / 23 | 0 | bone/slider ×9；bone/slider/stone ×3 |
+| expert | 2 | 12 | 2:45 | 20 | 7s / 7s（12/12） | 11 / 33 | 0 | bone/slider/stone ×9；bone/slider ×3 |
+| expert | 3 | 11 | 4:07 | 24 | 8s / 7s（11/11） | 15 / 50 | 0 | bone/offspring/slider/stone ×6；bone/slider/stone ×4；bone/floater/runner/slider ×1 |
+| expert | 4 | 11 | 5:00 | 35 | 10s / 10s（11/11） | 23 / 96 | 0 | bone/offspring/reaper/runner/slider/spitter/tracer ×5；bone/reaper/runner/slider/tracer ×4；bone/floater/reaper/runner/slider/tracer ×2 |
+| expert | 5 | 11 | 6:15 | 40 | 9s / 8s（11/11） | 13 / 43 | 1 | bone/reaper/runner/slider/tracer ×6；bone/offspring/reaper/runner/slider/spitter/tracer ×4；bone/floater/reaper/runner/slider/tracer ×1 |
+| expert | 6 | 9 | 7:46 | 26 | 7s / 6s（9/9） | 6 / 19 | 0 | bone/floater/founder/nest/runner/slider/stone/tracer ×4；bone/founder/nest/offspring/runner/slider/stone/tracer ×3；bone/founder/nest/runner/slider/spitter/stone/tracer ×2 |
+| expert | 7 | 9 | 8:56 | 21 | 7s / 8s（9/9） | 22 / 87 | 0 | bone/floater/founder/nest/reaper/runner/slider/spitter/stone ×6；bone/floater/founder/nest/reaper/runner/slider/stone/tracer ×2；bone/floater/offspring/reaper/runner/slider/spitter/stone ×1 |
+| normal | 1 | 12 | 1:15 | 15 | 8s / 8s（12/12） | 16 / 40 | 0 | bone/slider ×12 |
+| normal | 2 | 12 | 2:45 | 20 | 8s / 8s（11/12） | 15 / 56 | 1 | bone/slider/stone ×12 |
+| normal | 3 | 8 | 4:16 | 25 | 8s / 8s（8/8） | 25 / 79 | 2 | bone/offspring/slider/stone ×4；bone/slider/stone ×3；bone/floater/runner/slider ×1 |
+| normal | 4 | 6 | 5:00 | 35 | 10s / 10s（5/6） | 70 / 133 | 2 | bone/reaper/runner/slider/tracer ×4；bone/floater/reaper/runner/slider/tracer ×2 |
+| normal | 5 | 3 | 6:15 | 40 | 9s / 10s（3/3） | 43 / 55 | 0 | bone/offspring/reaper/runner/slider/spitter/tracer ×2；bone/floater/reaper/runner/slider/tracer ×1 |
+| normal | 6 | 3 | 7:46 | 26 | 6s / 5s（3/3） | 16 / 38 | 0 | bone/founder/nest/runner/slider/spitter/stone/tracer ×1；bone/founder/nest/offspring/runner/slider/stone/tracer ×1；bone/floater/founder/nest/runner/slider/stone/tracer ×1 |
+| normal | 7 | 3 | 8:56 | 22 | 6s / 6s（3/3） | 4 / 13 | 0 | bone/floater/founder/nest/reaper/runner/slider/spitter/stone ×1；bone/floater/founder/nest/reaper/runner/slider/stone/tracer ×1；bone/floater/offspring/reaper/runner/slider/spitter/stone ×1 |
+
+### 按机器人汇总
+
+| 机器人 | 局数 | 胜率 | 平均存活 | 3:30 存活 | 平均终局等级 | 平均击杀 | 目标（通关率，docs/38 §8.12） | 判定 |
+|---|---|---|---|---|---|---|---|---|
+| normal | 12 | 0% | 5:55 | 91% | 18.0 | 950 | - | **参考** |
+| expert | 12 | 50% | 9:46 | 100% | 26.3 | 1749 | 50–70%（含超时） | **达标** |
+
+### 明细
+
+### 按实现（安慰剂）汇总
+
+| 实现 | 局数 | 胜率 | 平均用时 |
+|---|---|---|---|
+| 0 | 8 | 25.0% | 511 |
+| 1 | 8 | 37.5% | 450 |
+| 2 | 8 | 12.5% | 451 |
+
+组间：均值 25.0%，标准差 12.5 点（3 份实现）
+
+| 编队 | n | 胜率 | 存活(均/最短) | 托底(次/首次) | Lv 2:00/5:00/8:00/末 | 终Boss剩余 | 精二占比 | 灯火 | 击杀 | 主要伤害来源 | 治疗来源(总量/无人机Lv) | 主要死因 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| [normal] exusiai+wisadel+eyjafjalla | 12 | 0% | 5:55 / 2:46 | 0.0 / - | 8 / 16 / 24 / 18 | 59% | 41% | 53 | 950 | 散射 17% 余震 13% 炮击 9% 熔岩弹 8% | 自身回复 69% 补给 10% 拾取 9% (285 / 0.0) | contact_tracer |
+| [expert] exusiai+wisadel+eyjafjalla | 12 | 50% | 9:46 / 4:04 | 0.0 / - | 8 / 16 / 24 / 26 | 45% | 97% | 75 | 1749 | 余震 22% 散射 16% 熔岩弹 8% 饱和复仇 7% | 自身回复 51% 补给 24% 拾取 21% (538 / 0.0) | bullet |
+
+### 机器人指标（docs/29）
+
+| 机器人 · 开局 | n | 胜率 | 存活 均/最短 | 3:30 存活 | 5:00 存活 | 首次招募 | 首次精一 / 精二 | 中期 Boss 击杀数 / 平均用时 | 受击/分 | 承伤/分 | 低血(<35%)秒 | 熄灯秒 | 静止% | 开局干员 伤害占比 / 每分钟 | 主要死因 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| [normal] exusiai+wisadel+eyjafjalla | 12 | 0% | 5:55 / 2:46 | 91% | 50% | - | 1:07 / 2:25 | 1.2 / 34s | 13.4 | 66 | 15 | 0 | 0 | 23% / 8031 | atk_reaper |
+| [expert] exusiai+wisadel+eyjafjalla | 12 | 50% | 9:46 / 4:04 | 100% | 91% | - | 0:30 / 1:22 | 2.2 / 27s | 45.6 | 61 | 6 | 0 | 3 | 14% / 11917 | corrode |
+
+### 藏品（docs/35）
+
+| 机器人 | 开局 | 局数 | 平均藏品数 | 藏品直接伤害 | 各流派 出现 / 拿取 | 无效拿取 |
+|---|---|---|---|---|---|---|
+| expert | exusiai | 12 | 15.3 | 6.5% | class 37/18 control 17/11 economy 68/26 general 118/57 heal 13/3 melee 18/7 multi 61/20 shield 19/10 summon 29/13 survival 53/16 weak 9/3 | 0 |
+| normal | exusiai | 12 | 7.1 | 5.9% | class 16/10 control 5/1 economy 23/9 general 53/22 heal 9/3 melee 13/6 multi 39/14 shield 5/2 summon 17/4 survival 13/7 weak 12/7 | 0 |
+| 合计 | | | | | class 53/28 control 22/12 economy 91/35 general 171/79 heal 22/6 melee 31/13 multi 100/34 shield 24/12 summon 46/17 survival 66/23 weak 21/10 | |
+
+拿取最多（出现 / 拿取）：银餐叉 29/10，穿甲弹 22/8，洁白的舞鞋 19/8，“多功能”发夹 10/6，显圣吊坠 25/6，恐鱼干 8/6，衍生者终端-超级改 12/5，破坏协议-压制 7/5，锈蚀刀片 4/5，玻璃小鸟 6/4，血魔的银杯 6/4，源石鸢尾花 7/4
+耗时 107s
+写入 build/cloud/exupf-ab2b/exusiai_wisadel_eyjafjalla/run_1106_1648.{json,md}
