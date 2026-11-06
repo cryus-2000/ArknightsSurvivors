@@ -86,7 +86,7 @@ func _glow(p: Vector2, c: Color) -> void:
 	if r._emit_n >= Pxp.EMIT_CAP:
 		return
 	r._emit_n += 1
-	g.glow_next.append([p, g.PX, Color(c.r, c.g, c.b, Bal.v("fx/px_plane_emit", 0.8))])
+	g.glow_next.append([p, g.PX, Color(c.r, c.g, c.b, (Bal.v("fx/px_plane_emit", 0.8) * float(g.world.lf_emit_k)))])
 
 
 ## 一组 [x, y, 颜色, 发光 / 不透明度] 美术像素点，原点 = 世界坐标 o0（对齐 2 像素格）

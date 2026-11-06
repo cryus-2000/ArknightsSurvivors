@@ -655,7 +655,7 @@ func draw_close_fade(vs: Vector2) -> void:
 
 
 func _v3_head(x: float, y: float, w: float, cn: String, en: String) -> void:
-	_hv.v2.txt(Vector2(x, y), cn, 16, V3_WHITE)
+	_hv.v2.txt(Vector2(x, y), cn, 16, V3_WHITE, HORIZONTAL_ALIGNMENT_LEFT, -1.0, UI.name_font(g.font))
 	var cw: float = _hv.v2.twidth(cn, 16)
 	_hv.v2.cap(Vector2(x + cw + 8, y - 1), en, 6.0, V3_GREY, 1.6)
 	g.hud.draw_rect(Rect2(x, y + 8, w, 1), Color(1, 1, 1, 0.2))
@@ -742,7 +742,7 @@ func _v3_header(L: float, T: float, R: float) -> void:
 	UI.ctext(g.hud, g.font, Vector2(lr.position.x, lr.end.y - 3.0), lvs, 10, V3_WHITE, HORIZONTAL_ALIGNMENT_CENTER, lw)
 	var nx: float = L + 100.0
 	var ln: String = ld.display_name()
-	_hv.v2.txt(Vector2(nx, T + 46), ln, 28, V3_WHITE)
+	_hv.v2.txt(Vector2(nx, T + 46), ln, 28, V3_WHITE, HORIZONTAL_ALIGNMENT_LEFT, -1.0, UI.name_font(g.font))
 	_hv.v2.cap(Vector2(nx + _hv.v2.twidth(ln, 28) + 14, T + 44), str(ld.def.get("en", str(ld.id).to_upper())).to_upper() + "  ·  LEADER", 6.5, V3_GREY, 2.0)
 	var meta: String = "%s  /  编队 %d/%d  /  %s  /  %s" % [str(ld.cls), g.squad.size(), g.squad.cap(), D.tier_name(g.tier), g.endg.cur_name()]
 	_hv.v2.txt(Vector2(nx, T + 70), meta, 12, V3_GREY)
@@ -845,7 +845,7 @@ func _v3_squad(x: float, top: float, w: float, bottom: float) -> void:
 			g.hud.draw_texture_rect_region(hd[0], Rect2(x, y, sq, sq), hd[1])
 		g.hud.draw_rect(Rect2(x, y, sq, sq), Color(1, 1, 1, 0.2), false, 1.0)
 		var nm: String = o.display_name()
-		_hv.v2.txt(Vector2(x + 40, y + 13), nm, 14, V3_WHITE)
+		_hv.v2.txt(Vector2(x + 40, y + 13), nm, 14, V3_WHITE, HORIZONTAL_ALIGNMENT_LEFT, -1.0, UI.name_font(g.font))
 		if o.is_leader:
 			_hv.v2.cap(Vector2(x + 46 + _hv.v2.twidth(nm, 14), y + 12), "LEADER", 5.5, UI.CYAN, 1.4)
 		_hv.v2.txt(Vector2(x + 40, y + 29), "%s · %s" % [o.cls, ["精零", "精一", "精二"][clampi(o.elite, 0, 2)]], 11, V3_GREY)
@@ -1148,7 +1148,7 @@ func _phone_header(L: float, T: float, R: float) -> void:
 	UI.ctext(g.hud, g.font, Vector2(lr.position.x, lr.end.y - 3.0), lvs, 9, V3_WHITE, HORIZONTAL_ALIGNMENT_CENTER, lw)
 	var nx: float = L + 66.0
 	var ln: String = ld.display_name()
-	_hv.v2.txt(Vector2(nx, T + 36), ln, 24, V3_WHITE)
+	_hv.v2.txt(Vector2(nx, T + 36), ln, 24, V3_WHITE, HORIZONTAL_ALIGNMENT_LEFT, -1.0, UI.name_font(g.font))
 	_hv.v2.cap(Vector2(nx + _hv.v2.twidth(ln, 24) + 12, T + 34), str(ld.def.get("en", str(ld.id).to_upper())).to_upper() + "  ·  LEADER", 7.5, V3_GREY, 1.8)
 	_hv.v2.txt(Vector2(nx, T + 60), "%s  /  编队 %d/%d" % [str(ld.cls), g.squad.size(), g.squad.cap()], 14, V3_GREY)   # 难度与结局在属性页
 	var dt: float = maxf(0.0, g.t - g.trial.started_at) if g.trial.active else g.t
@@ -1231,7 +1231,7 @@ func _phone_v3_squad(b: Rect2) -> void:
 				_tips.append([o, x + sq / 2.0, y - 4.0])
 		var nm: String = o.display_name()
 		var tx: float = x + sq + 16.0
-		_hv.v2.txt(Vector2(tx, y + sq * 0.42), nm, 20, V3_WHITE)
+		_hv.v2.txt(Vector2(tx, y + sq * 0.42), nm, 20, V3_WHITE, HORIZONTAL_ALIGNMENT_LEFT, -1.0, UI.name_font(g.font))
 		if o.is_leader:
 			_hv.v2.cap(Vector2(tx + 8 + _hv.v2.twidth(nm, 20), y + sq * 0.42 - 2), "LEADER", 7.5, UI.CYAN, 1.4)
 		_hv.v2.txt(Vector2(tx, y + sq * 0.42 + 26), "%s · %s" % [o.cls, ["精零", "精一", "精二"][clampi(o.elite, 0, 2)]], 15, V3_GREY)

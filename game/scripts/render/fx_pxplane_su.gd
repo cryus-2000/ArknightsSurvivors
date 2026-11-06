@@ -283,7 +283,7 @@ static func _draw_sparks(r, o, cv) -> void:
 		cv.draw_rect(Rect2(p, Vector2(hs, hs)), SPK[ci])
 		if ci <= 1 and g.optical_on and r._emit_n < EMIT_CAP:
 			r._emit_n += 1
-			g.glow_next.append([p, px, Color(SPK[ci].r, SPK[ci].g, SPK[ci].b, Bal.v("fx/px_plane_emit", 0.8))])
+			g.glow_next.append([p, px, Color(SPK[ci].r, SPK[ci].g, SPK[ci].b, (Bal.v("fx/px_plane_emit", 0.8) * float(g.world.lf_emit_k)))])
 
 
 # ================================================================ 绘制
@@ -409,7 +409,7 @@ static func _cut_line(r, cv, a: Vector2, b: Vector2, core: Color, side: Color, t
 			if emit and (i & 1) == 0 and ne < 40 and g.optical_on and r._emit_n < EMIT_CAP:
 				ne += 1
 				r._emit_n += 1
-				g.glow_next.append([p, px, Color(1, 1, 1, Bal.v("fx/px_plane_emit", 0.8))])
+				g.glow_next.append([p, px, Color(1, 1, 1, (Bal.v("fx/px_plane_emit", 0.8) * float(g.world.lf_emit_k)))])
 		if side.a > 0.0 and w > 0.35:
 			cv.draw_rect(Rect2(r._snap(x + nv * px), Vector2(px, px)), side)
 			cv.draw_rect(Rect2(r._snap(x - nv * px), Vector2(px, px)), side)

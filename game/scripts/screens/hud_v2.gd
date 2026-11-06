@@ -60,10 +60,11 @@ func big(pos: Vector2, s: String, size: float, col: Color = UI.TEXT, align := 0)
 
 
 ## 中文正文（ui.ttf），带投影
-func txt(pos: Vector2, s: String, size: int, col: Color = UI.TEXT, align := HORIZONTAL_ALIGNMENT_LEFT, width := -1.0) -> void:
+func txt(pos: Vector2, s: String, size: int, col: Color = UI.TEXT, align := HORIZONTAL_ALIGNMENT_LEFT, width := -1.0, font: Font = null) -> void:
 	var ks: int = UI._ks(g.hud, size)
-	g.hud.draw_string(g.font, pos + Vector2(1, 1), s, align, width, ks, SHADOW)
-	g.hud.draw_string(g.font, pos, s, align, width, ks, col)
+	var f: Font = g.font if font == null else font
+	g.hud.draw_string(f, pos + Vector2(1, 1), s, align, width, ks, SHADOW)
+	g.hud.draw_string(f, pos, s, align, width, ks, col)
 
 
 func twidth(s: String, size: int) -> float:

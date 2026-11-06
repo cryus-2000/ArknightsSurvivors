@@ -79,6 +79,25 @@ static func _ks(ci: CanvasItem, size: int) -> int:
 ## 拉丁几何粗体（docs/222 §10，用户 11-02 定加 Montserrat）：局内大数字与英文小标签。子集只含 ASCII 与 × · − – — 等符号，
 ## 其余字（中文）回退到 ui.ttf。semibold = 小号字距标签用的半粗
 static var _latin := {}
+## 原作式字重对照（docs/292，11-06 用户「做对照」）：ui/font_ark = 1 时名字 / 标题用思源黑体 Heavy（字距收 1 像素），
+## 正文换 Regular（settings.gd 换 ui.ttf 的数据；手机仍用 ui_phone 的 Medium）。0 = 现状（全 Bold），name_font 原样返回
+static var _heavy: Font = null
+static func ark_on() -> bool:
+	return load("res://scripts/core/balance.gd").vi("ui/font_ark", 0) > 0
+
+
+static func name_font(def: Font) -> Font:
+	if not ark_on():
+		return def
+	if _heavy == null:
+		var fv := FontVariation.new()
+		fv.base_font = load("res://fonts/ui_heavy.ttf")
+		fv.spacing_glyph = -1
+		fv.fallbacks = [load("res://fonts/ui_fallback.otf")]
+		_heavy = fv
+	return _heavy
+
+
 static func latin(semibold := false) -> Font:
 	if _latin.has(semibold):
 		return _latin[semibold]

@@ -29,7 +29,6 @@ const StatDefs = preload("res://scripts/core/stat_defs.gd")
 const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数值旋钮（docs/27）
 const RunSetup = preload("res://scripts/run/run_setup.gd")   # 开局：难度、批跑 / 测试参数（docs/126 C1）
 const RunEnd = preload("res://scripts/run/run_end.gd")   # 局终：局外结算
-const Bot = preload("res://scripts/core/bot.gd")       # --balance 四档机器人 + 指标采集（docs/29）
 const Telemetry = preload("res://scripts/run/telemetry.gd")
 const PerfReport = preload("res://scripts/core/perf_report.gd")
 const WorldView = preload("res://scripts/render/world.gd")

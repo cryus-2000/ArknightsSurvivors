@@ -193,7 +193,7 @@ func draw_cards(items: Array, st: float) -> void:
 	var dy: float = 66.0 if ph else 96.0    # 说明区顶部离卡顶（手机：名字与说明上移）
 	# 10-31 TA 审阅 docs/208 H8「同一组卡字号不一」：原来逐卡 UI.fit，放不下的那张单独缩小。改成整组取都放得下的最大字号
 	var dsz: int = 12
-	for sz in ([20, 19, 18, 17, 16, 15] if ph else [15, 14, 13, 12]):
+	for sz in ([16, 15, 14, 13] if ph else [15, 14, 13, 12]):   # 手机 11-06：原 20 起，放大后同名字（24）一样大
 		if items.all(func(it2): return UI.fit(g.font, str(it2.desc), cw - 172.0, ch - dy, [sz]).fit):
 			dsz = sz
 			break
