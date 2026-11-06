@@ -1,0 +1,12 @@
+818704	pc_tab/fr_00000.png
+811050	pc_tab/fr_00015.png
+814649	pc_tab/fr_00030.png
+543900	pc_tab/fr_00045.png
+41886	pc_tab/run.log
+544550	pc_tab/shot_tab.png
+425913	ph_p2/fr_00000.png
+419879	ph_p2/fr_00015.png
+418792	ph_p2/fr_00030.png
+248124	ph_p2/fr_00045.png
+39302	ph_p2/run.log
+248019	ph_p2/shot_tab.png
