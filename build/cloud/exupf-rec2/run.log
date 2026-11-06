@@ -1,0 +1,15 @@
+ctrl m3 rc=0 210 张 0 处脚本错误
+Copying file:///work/shots.tar.gz to gs://project-a565589c-4357-4f89-a98-batch/exupf-rec2/shots.tar.gz
+  
+........
+
+Average throughput: 86.9MiB/s
+截图已传（ctrl）
+noctrl m3 rc=0 210 张 0 处脚本错误
+ERROR: Cannot check if the destination bucket is compatible for running parallel composite uploads as the user does not permission to perform GET operation on the bucket. The operation will be performed without parallel composite upload feature and hence might perform relatively slower.
+Copying file:///work/shots.tar.gz to gs://project-a565589c-4357-4f89-a98-batch/exupf-rec2/shots.tar.gz
+  
+............
+
+Average throughput: 128.4MiB/s
+截图已传（noctrl）
