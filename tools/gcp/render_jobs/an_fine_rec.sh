@@ -2,6 +2,7 @@
 # 两段拼成一个 mp4（左上标「旧版 / 精细版」），放 $MEDIA/angelina_ult_old_new.mp4
 # 用法：python tools/gcp_render.py --branch <提交> --job custom --cmd 'bash tools/gcp/render_jobs/an_fine_rec.sh'
 set +e
+OUT="$(realpath -m "$OUT")"; MEDIA="$(realpath -m "$MEDIA")"   # concat 列表按列表所在目录解析相对路径
 Xvfb :99 -screen 0 1280x720x24 -nolisten tcp >/tmp/xvfb.log 2>&1 &
 export DISPLAY=:99
 sleep 2
