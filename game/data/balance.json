@@ -990,7 +990,7 @@
   "_texas_s3_hide_captain_doc": "11-06 用户「德克萨斯 S3 的时候干员飞出去了，是不是可以隐藏跑动的队长」（11-06 用户看 GIF「没问题，我喜欢新的」，缺省开）：texas_s3_hide_captain 1 = 她当队长、剑雨滂沱持续期间两轮次元斩之间不在原地画本体（只画；玩家位置 / 判定 / 镜头 / 拾取不变），结束时留一串瞬移残影回原位、0.18 秒淡入；隐身期间原地脚下留半透明小菱形标出判定位置",
   "texas_s3_hide_captain": 1,
   "_ghost_dash_pose_doc": "11-07 用户「德克萨斯冲锋的时候残影的动作我觉得得是冲刺的动作」：ghost_dash_pose 1 = 干员定义里写了 ghost_pose（现只德克萨斯：s3_dash 第 0–3 帧）的，冲刺残影（character.ghosts：队长冲刺 / 普攻冲刺 / 冲刺斩 / 同向疾行 / 技能冲刺 / 终结技位移）和次元斩瞬移残影都改画冲刺姿势、朝向跟位移方向；0 = 照旧取残影那一刻的本体帧（普攻冲刺是挥剑帧）。只画；缺省 0，用户点头再开",
-  "ghost_dash_pose": 0,
+  "ghost_dash_pose": 1,
   "_texas_s3_single_slash_doc": "11-06 用户「德克萨斯的 S3 每一次斩击我觉得可以是更加明显的一道斩击，而不是多次斩击」（11-06 用户看 GIF 认可，缺省开）：texas_s3_single_slash 1 = 次元斩每一刀只画一道醒目斩线（不叠只画不判的细斩线、不在目标处落剑；主刀痕外延 ×1.6、芯 2–3 格近白 + 两侧一格淡琥珀（11-06 用户「不要太粗，但是要亮」）、命中两拍过曝 + 辉光 + 照地光、到点一拍断掉；命中点一簇火星 + 刀线两头碎屑）。只画：判定 / 伤害 / 段数 / 出手时刻不动",
   "texas_s3_single_slash": 1,
   "melee_impact": 1, "melee_impact_stop": 0.0225, "melee_impact_stop_heavy": 0.0375, "melee_impact_mate": 0.6, "melee_impact_shake_px": 3.0, "melee_impact_shake_t": 0.12, "melee_impact_push": 2.7, "melee_impact_push_heavy": 4.7, "melee_impact_push_in": 0.027, "melee_impact_push_back": 0.08, "melee_impact_lit": 1.35,
