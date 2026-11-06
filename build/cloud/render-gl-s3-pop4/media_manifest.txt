@@ -1,0 +1,5 @@
+3787245	gladiia_s3_pop.mp4
+274505	gladiia_s3_pop_beats.png
+648999	gladiia_s3_pop_slow05.mp4
+2217	godot_c0.log
+2216	godot_c1.log

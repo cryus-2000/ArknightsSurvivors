@@ -1,0 +1,40 @@
+FXRLOG gladiia gl_s3 45 1.525
+PXPLOG gl gl_s3  45 1.525
+FXRLOG gladiia gl_s3end 285 9.525
+PXPLOG gl gl_s3end  285 9.525
+PXPLOG gl_s3end pop=false raw=false n=3
+FXRLOG gladiia gl_s3 375 12.525
+PXPLOG gl gl_s3  375 12.525
+ERROR: 28 RID allocations of type 'N5GLES37TextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 3 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+ERROR: Texture with GL ID of 37: leaked 4915052 bytes.
+ERROR: Texture with GL ID of 38: leaked 786424 bytes.
+ERROR: Texture with GL ID of 1630: leaked 4586748 bytes.
+ERROR: Texture with GL ID of 1631: leaked 4586748 bytes.
+ERROR: Texture with GL ID of 1876: leaked 131072 bytes.
+ERROR: Texture with GL ID of 1877: leaked 131072 bytes.
+ERROR: Texture with GL ID of 1878: leaked 131072 bytes.
+ERROR: Texture with GL ID of 1879: leaked 131072 bytes.
+ERROR: Texture with GL ID of 1880: leaked 131072 bytes.
+ERROR: Texture with GL ID of 1881: leaked 131072 bytes.
+ERROR: Texture with GL ID of 1882: leaked 131072 bytes.
+ERROR: Texture with GL ID of 1883: leaked 131072 bytes.
+ERROR: Texture with GL ID of 1884: leaked 131072 bytes.
+ERROR: Texture with GL ID of 1885: leaked 131072 bytes.
+ERROR: Texture with GL ID of 1886: leaked 131072 bytes.
+ERROR: Texture with GL ID of 1887: leaked 131072 bytes.
+ERROR: Texture with GL ID of 1888: leaked 131072 bytes.
+ERROR: Texture with GL ID of 1889: leaked 131072 bytes.
+ERROR: Texture with GL ID of 1890: leaked 131072 bytes.
+ERROR: Texture with GL ID of 1891: leaked 131072 bytes.
+ERROR: Texture with GL ID of 1892: leaked 131072 bytes.
+ERROR: Texture with GL ID of 1893: leaked 131072 bytes.
+ERROR: Texture with GL ID of 1898: leaked 131072 bytes.
+ERROR: Texture with GL ID of 1899: leaked 131072 bytes.
+ERROR: Texture with GL ID of 1904: leaked 131072 bytes.
+ERROR: Texture with GL ID of 1905: leaked 131072 bytes.
+ERROR: Texture with GL ID of 1917: leaked 131072 bytes.
+ERROR: Texture with GL ID of 1918: leaked 131072 bytes.
+ERROR: 25 resources still in use at exit (run with --verbose for details).
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
