@@ -26,12 +26,26 @@ MIZ = "t:1"
 # (名, 高〔水月高的倍数〕, dx, dy〔水月高为单位，相对光圈中心脚底〕, 亮度, 朝左?)
 # 11-07 用户「少了点压迫感」：怪潮更密更近（程序铺 CROWD 只、两侧叠成墙、只留正前方）、
 # 前景两角大怪拉回画面内、光柱后面一只巨大的育母暗影俯视水月
+# 11-07 用户「手工摆位清理」：每只怪的位置 / 大小 / 亮度手定（不再随机撒）。
+# (名, 高〔水月高倍数〕, dx, dy〔水月高为单位，相对光圈中心脚底〕, 亮度〔< 0.66 = 平涂剪影〕)
+# 原则：中景只放轮廓清楚的（spitter / skimmer / slider / offspring），浅色细碎的（runner 骨鱼、floater 白水母）
+# 放后排当剪影或浮在上方；左右两组呈楔形朝水月压过来，正前方和她身后正中留空。
 LAYOUT = [
-    ("paranoia", 1.75, -1.55, 1.00, 0.45), ("izumik", 1.85, 1.60, 1.08, 0.42),
+    # 前景两角（彩色偏暗，压住下角）
+    ("paranoia", 1.25, -1.78, 1.02, 0.72), ("izumik", 1.30, 1.82, 1.08, 0.70),
+    # 中景左组
+    ("spitter", 0.72, -1.02, 0.10, 0.95), ("skimmer", 0.62, -1.38, -0.16, 0.85),
+    # 中景右组
+    ("slider", 0.64, 1.02, 0.12, 0.95), ("offspring", 0.52, 1.36, -0.14, 0.85),
+    # 后排剪影墙
+    ("runner", 0.46, -1.62, -0.40, 0.55), ("nest", 0.48, -1.18, -0.48, 0.52), ("tracer", 0.44, -0.74, -0.56, 0.5),
+    ("tracer", 0.44, 0.76, -0.56, 0.5), ("skimmer", 0.48, 1.20, -0.48, 0.52), ("runner", 0.46, 1.64, -0.40, 0.55),
+    # 浮在上方的白水母（剪影）
+    ("floater", 0.38, -0.95, -1.05, 0.5), ("floater", 0.34, 1.05, -1.15, 0.48),
 ]
-LOOM = ("mother", 3.6, 0.0, -0.35, 0.30)       # 背景巨物：(名, 高, dx, dy, 亮度)
+LOOM = None   # 11-07：背后育母暗影在顶部只露出锯齿碎边、读不出是怪，去掉（压迫感交给四周怪墙）       # 背景巨物：(名, 高, dx, dy, 亮度)
 CROWD_KINDS = ["slider", "spitter", "skimmer", "runner", "offspring", "floater", "nest", "tracer"]
-CROWD = 38
+CROWD = 0   # 11-07 改为全部手工摆位
 CACHE = {}
 
 
@@ -143,8 +157,9 @@ def build(kind):
     items = sorted((cy + dy * hm, name, hr, cx + dx * hm, br) for name, hr, dx, dy, br in lay)
     g = grid.copy()
     # 背景巨物：压暗成剪影，只留一点轮廓光，最先画（在所有怪和水月后面）
-    ln, lh, ldx, ldy, lbr = LOOM
-    paste(g, to_cells(load_src(ln), int(lh * hm)), cx + ldx * hm, cy + ldy * hm, light, lbr, hm, False)
+    if LOOM:
+        ln, lh, ldx, ldy, lbr = LOOM
+        paste(g, to_cells(load_src(ln), int(lh * hm)), cx + ldx * hm, cy + ldy * hm, light, lbr, hm, False)
     for fy, name, hr, fx, br in items:
         if fy > cy:
             continue
