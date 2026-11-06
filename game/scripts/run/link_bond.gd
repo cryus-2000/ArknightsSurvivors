@@ -6,6 +6,7 @@ extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
 const Link = preload("res://scripts/run/skill_link.gd")
+const Bond2 = preload("res://scripts/run/bond2.gd")   # 羁绊技 v2（docs/294）：接管的几对跳过合击与常驻加成
 
 const HUNT_MAX := 3
 const DIM := Color(0.5, 0.53, 0.56)   # 羁绊未成立（搭档不在队）的灰显色
@@ -39,7 +40,7 @@ static func buff_v(bid: String) -> float:
 ## 加成文案，例「全队攻速 +8%」
 static func buff_text(bid: String) -> String:
 	var bf: Array = BUFF.get(bid, [])
-	if bf.is_empty():
+	if bf.is_empty() or Bond2.handles(bid):
 		return ""
 	return str(bf[4]) % str(snappedf(absf(buff_v(bid)) * 100.0, 0.1)).trim_suffix(".0")
 
@@ -86,7 +87,7 @@ static func refresh(g) -> void:
 	g.stats.remove_source("bond")
 	for b in fm:
 		var bf: Array = BUFF.get(str(b.id), [])
-		if bf.is_empty() or not g.stats.has_stat(bf[0]):
+		if bf.is_empty() or not g.stats.has_stat(bf[0]) or Bond2.handles(str(b.id)):
 			continue
 		var v: float = buff_v(str(b.id))
 		g.stats.add(bf[0], bf[1], (1.0 + v) if str(bf[1]) == "mult" else v, "bond")
@@ -96,8 +97,8 @@ static func refresh(g) -> void:
 	for x in log:
 		had[str(x.id)] = true
 	for b in fm:
-		if had.has(str(b.id)):
-			continue
+		if had.has(str(b.id)) or Bond2.handles(str(b.id)):
+			continue   # 羁绊技 v2 接管的几对：解锁时有自己的演出卡（render/fx_bond2.gd）
 		log.append({"id": str(b.id), "tag": str(b.tag), "name": str(b.name), "t": snappedf(g.t, 0.1)})
 		if g.get("vfx") != null and g.demo_op == "":
 			g.vfx.show_banner("羁绊成立 · %s：%s" % [str(b.tag), buff_text(str(b.id))], 1)
@@ -161,6 +162,8 @@ static func pick(u, ld, cands: Array) -> Dictionary:
 	var best := {}
 	var best_t := INF
 	for b in Link.BONDS:
+		if Bond2.handles(str(b.id)):
+			continue   # 羁绊技 v2 接管：这对人不再接 60 秒合击
 		if b.has("group"):
 			if not b.group.has(lid):
 				continue

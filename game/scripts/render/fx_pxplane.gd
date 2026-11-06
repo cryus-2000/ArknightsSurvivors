@@ -829,10 +829,15 @@ static func sort_items(game) -> Array:
 					out.append({"k": "hsg_saw_up", "t0": 0.0, "gp": r._boom_gp(o, bm), "flip": false, "loop": true})
 				for qv in r._qi_volleys(o):
 					out.append({"k": qv.k + "_up_d%d" % qv.d, "fi": qv.f, "gp": qv.gp, "flip": qv.flip})
+	if game.has_meta("fx_bond2"):   # 羁绊技 v2（docs/294，render/fx_bond2.gd）：同一套排序与画法
+		out.append_array(load("res://scripts/render/fx_bond2.gd").sort_items(game))
 	return out
 
 
 static func draw_sorted(game, ci, it: Dictionary) -> void:
+	if it.has("bd2"):
+		load("res://scripts/render/fx_bond2.gd").draw_sorted(game, ci, it)
+		return
 	var r = game.get_meta("fx_pxplane")
 	if it.has("skr"):   # 浊心斯卡蒂（docs/260）：运行时立起件
 		r._sk_draw_up(ci, it)
