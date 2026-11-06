@@ -124,3 +124,14 @@ Tab 属性面板（桌面三栏版）编队栏的每个头像下，也画同一�
 `ui/stats_v3 = 0` 时手机和桌面都退回旧版。代码在 `stats_panel.gd` 的 `draw_phone_v3` 和 `_phone_v3_*`。
 
 截图：GCP `render-hudcd-1106k`，提交 b1562e2ad（截图参数 `--tabpage=0..4`）。ui_smoke / touch_layout / touch_move / card_desc 都通过。
+
+### 手机版松排版（11-06 用户嫌挤；英文小标签按用户意见保留，「也算是一种特色」）
+
+- **技能页：** 名字和说明之间多空 12，招与招之间也拉开，图标 40（`draw_generic_skill_rows` 的 `pad` 参数；桌面 pad = 0，画法不变）。
+- **英文小标签：** 6 放大到 7.5。
+- **顶部灰字：** 只留「职业 / 编队」，难度和结局挪进属性页，占一整行。
+- **编队页：** 头像 52，技能细格 5 像素；成长点和下一步靠右。
+- **属性页 / 攻击页：** 行距 30–44；「本局构成」占一整行。
+- **藏品页：** 格子最小 54，放不下按排拖动翻。
+
+截图：GCP `render-hudcd-1106l`、`render-hudcd-1106m`，提交 36d014a09。ui_smoke / touch_layout / touch_move / card_desc 都通过（`render-hudcd-1106l`）。
