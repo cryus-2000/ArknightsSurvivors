@@ -1343,7 +1343,132 @@ def pair_fools(A):
     return out
 
 
-PAIRS = {"fools": ("愚人号（艾丽妮 × 归溟幽灵鲨）", pair_fools)}
+# ---------------------------------------------------------------- 11-07：潮下授课 · 链上疾驰（乌尔比安 × 斯卡蒂）
+
+UL = ramp(["#0c1235", "#1b2a66", "#2c4397", "#4463c8", "#7b93e6", "#c0cbf6", "#ffffff"])   # fx_pxplane_ul.C（乌尔比安审定色）
+SKR = ramp(["#3a0d1b", "#5e1424", "#86202d", "#a8323c", "#dc4048", "#ffb4bc", "#ffffff"])  # 斯卡蒂酒红（fx_pxplane SK_R）
+
+
+def big_chain(cv, a, b, k_len, taut, t, snap=0.0, red_to=0.0):
+    """授课锚链：比乌尔比安普攻锁链粗一档的方环链（每节 8×5，一横一竖交替），绷直时微微抖、绷到头亮一格；snap > 0 时从锚端往回收、断节飞散"""
+    L = math.dist(a, b)
+    dv = ((b[0] - a[0]) / L, (b[1] - a[1]) / L)
+    nv = (-dv[1], dv[0])
+    n = int(L * k_len)
+    i = 0
+    while i < n:
+        if snap and i > n * (1 - snap):
+            break
+        sag = 0 if taut else math.sin(math.pi * i / max(1, n)) * 18
+        jit = (1 if (i // 8 + int(t * 30)) % 2 else -1) if taut else 0
+        cx, cy = a[0] + dv[0] * i, a[1] + dv[1] * i + sag + jit
+        horiz = (i // 12) % 2 == 0
+        red = red_to > 0 and i / max(1, n) < red_to
+        P = SKR if red else UL
+        for u in range(12):
+            for v in range(7 if horiz else 4):
+                edge = u in (0, 1, 10, 11) or v in (0, 1, (5 if horiz else 2), (6 if horiz else 3))
+                if not edge:
+                    continue
+                x = cx + dv[0] * u + nv[0] * (v - 3)
+                y = cy + dv[1] * u + nv[1] * (v - 3) * (1 if horiz else 0.5)
+                cv.cell(x, y, P[5] if v in (0, 1) else (P[4] if horiz else P[3]))
+        if (taut and i % 24 == 0) or red:
+            cv.glow(cx, cy, gl(P[4]), 0.9 if red else 0.5)
+        i += 12
+
+
+def big_anchor(cv, p):
+    """钉进地面的锚（24×30）：锚杆 + 横档 + 两只锚爪，冷蓝，砸地处一圈碎石"""
+    for y in range(-30, 0):
+        cv.cell(p[0], p[1] + y, UL[4])
+        cv.cell(p[0] + 1, p[1] + y, UL[3])
+    for x in range(-7, 8):
+        cv.cell(p[0] + x, p[1] - 24, UL[4])
+    for s in (-1, 1):
+        for i in range(10):
+            cv.cell(p[0] + s * (2 + i), p[1] - i * 0.6, UL[5] if i < 3 else UL[4])
+            cv.cell(p[0] + s * (2 + i), p[1] - i * 0.6 + 1, UL[2])
+    for i in range(3):
+        cv.cell(p[0] - 1 + i, p[1] - 31, UL[5])
+    cv.glow(p[0], p[1] - 10, gl(UL[4]), 1.2)
+
+
+def spray(cv, p, k, seed):
+    """斯卡蒂拖剑溅起的红色水花（往后、往上）"""
+    rng = random.Random(seed)
+    for i in range(36):
+        vx = -rng.uniform(30, 120)
+        vy = -rng.uniform(20, 70)
+        x = p[0] + vx * k
+        y = p[1] + vy * k + 120 * k * k
+        for dx in range(2):
+            for dy in range(2):
+                cv.cell(x + dx, y + dy, SKR[5] if i % 3 == 0 else SKR[4])
+        if i % 4 == 0:
+            cv.glow(x, y, gl(SKR[4]), 0.6)
+
+
+def pair_lesson_chain(A):
+    for o, n in (("ulpianus", 8), ("skadi", 8)):
+        if o + "_atk" not in A:
+            od = os.path.join(ROOT, "game", "art", "operators", o)
+            A[o + "_atk"] = B.frames_of(os.path.join(od, "op_%s_attack@1x.png" % o), n)
+            A[o + "_run"] = B.frames_of(os.path.join(od, "op_%s_run@1x.png" % o), 8)
+            A[o + "_idle"] = B.frames_of(os.path.join(od, "op_%s_idle@1x.png" % o), 8)
+    w = B.World(23, A)
+    S = (B.SQUAD[0] + 10, B.SQUAD[1] - 10)
+    E = (610, 168)
+    T_throw, T_slide0, T_slide1 = (0.15, 0.4), 0.55, 1.05
+    for e in w.es:
+        p = w.pos(e, 0.7)
+        d, u = B.seg_dist(p, S, E)
+        if d < 34:
+            e["kt"] = T_slide0 + u * (T_slide1 - T_slide0)
+        elif d < 70 and int(e["p0"][0] * 5 + e["p0"][1]) % 2 == 0:
+            e["kt"] = T_slide0 + u * (T_slide1 - T_slide0) + 0.06
+    keys = [(0.3, "示范：乌尔比安把锚掷向怪群另一头，锚链跟着甩出去"), (0.5, "绷链：锚钉进地面，锚链横跨怪群一下绷直"),
+            (0.85, "疾驰：斯卡蒂踩上锚链一路滑过去，拖剑溅起红色水花，链两侧的怪被扫倒"), (1.35, "收链：斯卡蒂在锚边落地，锚链往回收、断节飞散")]
+    out = []
+    for t, lab in keys:
+        img = frame(A, w, t, lambda cv, tt: None, []).convert("RGBA")
+        cv = B.Canvas(img)
+        if t >= T_throw[0]:
+            kl = min(1.0, (t - T_throw[0]) / (T_throw[1] - T_throw[0]))
+            taut = t >= T_throw[1] + 0.05
+            snap = max(0.0, (t - 1.15) / 0.3)
+            a_end = (S[0] + (E[0] - S[0]) * kl, S[1] + (E[1] - S[1]) * kl - (1 - kl) * kl * 80)
+            red_to = min(1.0, max(0.0, (t - T_slide0) / (T_slide1 - T_slide0))) if t < 1.15 else 0.0
+            big_chain(cv, (S[0], S[1] - 20), (E[0], E[1] - 6) if taut else a_end, 1.0, taut, t, snap, red_to)
+            if kl >= 1.0:
+                big_anchor(cv, E)
+        im = cv.finish().convert("RGBA")
+        B.put_op(im, A["ulpianus_atk"][3 if t < 0.5 else 5], (S[0] - 14, S[1] + 6), False, 1.0)
+        if T_slide0 <= t < T_slide1 + 0.1:
+            u = min(1.0, (t - T_slide0) / (T_slide1 - T_slide0))
+            sp = (S[0] + (E[0] - S[0]) * u, S[1] + (E[1] - S[1]) * u - 20)
+            for j in range(3, 0, -1):
+                uj = max(0.0, u - 0.08 * j)
+                B.put_op(im, A["skadi_atk"][4], (S[0] + (E[0] - S[0]) * uj, S[1] + (E[1] - S[1]) * uj - 20), False, 0.25 * (1 - j / 4), (1.1, 0.8, 0.85))
+            B.put_op(im, A["skadi_atk"][4], sp, False, 0.95)
+            cv = B.Canvas(im)
+            spray(cv, (sp[0] - 10, sp[1] + 14), (t * 5) % 1, int(t * 15))
+            for i in range(int(math.dist(S, sp))):   # 剑尖划过的地面红痕（贴地、暗）
+                if i % 3:
+                    continue
+                q = (S[0] + (sp[0] - S[0]) * i / max(1, math.dist(S, sp)), S[1] + (sp[1] + 20 - S[1]) * i / max(1, math.dist(S, sp)) + 8)
+                cv.cell(q[0], q[1], SKR[2], 0.8)
+        else:
+            if t >= T_slide1 + 0.1:
+                B.put_op(im, A["skadi_atk"][6], (E[0] - 20, E[1] + 4), True, 1.0)
+            else:
+                B.put_op(im, A["skadi_run"][int(t * 12) % 8], (S[0] - 40, S[1] + 18), False, 1.0)
+            cv = B.Canvas(im)
+        out.append((cv.finish(), lab, (90, 50, 650, 320)))
+    return out
+
+
+PAIRS = {"lesson_chain": ("潮下授课 · 链上疾驰（乌尔比安 × 斯卡蒂）", pair_lesson_chain)}
 
 
 def sheet(title, keys, sc):
