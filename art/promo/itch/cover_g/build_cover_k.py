@@ -62,10 +62,19 @@ def pixel_art(raw, W, H, fx=0.5, fy=0.5):
     return small.resize((W, H), Image.NEAREST)
 
 
+PAINT = False   # --paint：插画风（11-07 用户给的参考 Crimsonland / Soulstone Survivors 都是插画 / 3D），不做像素化
+
+
+def paint(raw, W, H, fx=0.5, fy=0.5):
+    raw = fill_band(raw)
+    x, y, cw, ch = X.crop_box(raw, W, H, fx, fy)
+    return raw.crop((x, y, x + cw, y + ch)).resize((W, H), Image.LANCZOS)
+
+
 def build(raw_path, kind):
     (W, H), up, logo_y = SIZES[kind]
     raw = Image.open(raw_path).convert("RGB")
-    bg = np.asarray(pixel_art(raw, W, H, 0.5, 0.5)).copy()
+    bg = np.asarray((paint if PAINT else pixel_art)(raw, W, H, 0.5, 0.5)).copy()
     rgb, cov, padt = A2.logo_block(482)
     if up > 1:
         rgb = np.kron(rgb, np.ones((up, up, 1), np.uint8))
@@ -102,7 +111,10 @@ def main():
     ap.add_argument("--raw", default="")
     ap.add_argument("--tags", default="", help="另取 build/imagegen/<tag>/raw_*.png，逗号分隔（11-07 设计感三方向：cover1107_scale / _dyn / _halo）")
     ap.add_argument("--sheet")
+    ap.add_argument("--paint", action="store_true")
     a = ap.parse_args()
+    global PAINT
+    PAINT = a.paint
     if a.tags:
         jobs = []
         for t in a.tags.split(","):
