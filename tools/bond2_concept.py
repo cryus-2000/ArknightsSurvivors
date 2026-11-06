@@ -289,43 +289,98 @@ def diamond_wave(cv, c, r, k, RA, RB):
         cv.cell(c[0] + x, c[1] + y + 1, R[2])
 
 
+def half_diamond(cv, c, r, side, R, thick=5, brk=0.0):
+    """半边菱形冲击波：side = -1 往左推（尖朝左，琥珀），+1 往右推（尖朝右，淡紫）；两臂从中线上下两点连到尖端"""
+    tip = (c[0] + side * r, c[1])
+    for arm in (-1, 1):
+        st = (c[0], c[1] + arm * r * SQ)
+        n = int(math.dist(st, tip)) + 1
+        for i in range(n + 1):
+            u = i / n
+            if brk > 0 and (i * 7) % 10 < brk * 9:
+                continue
+            x = st[0] + (tip[0] - st[0]) * u
+            y = st[1] + (tip[1] - st[1]) * u
+            th = max(1, round(thick * (0.5 + 0.5 * u)))
+            for j in range(th):
+                q = j / max(1, th)
+                col = (255, 255, 255) if q < 0.34 and brk < 0.3 else (R[5] if q < 0.67 else R[4])
+                cv.cell(x - side * j, y, col)
+            cv.cell(x - side * th, y, R[2])
+            if i % 4 == 0 and brk < 0.5:
+                cv.glow(x, y, gl(R[5]), 0.7)
+
+
+def diamond_spark(cv, c, s, RA, RB):
+    """刀锋相交的菱形火花：实心菱形（左半琥珀、右半淡紫，芯白）+ 横向长尖、竖向短尖 + 楔形碎火星"""
+    for dy in range(-s, s + 1):
+        hw = int((s - abs(dy)) * 1.4)
+        for dx in range(-hw, hw + 1):
+            q = (abs(dx) / 1.4 + abs(dy)) / s
+            R = RA if dx < 0 else RB
+            col = (255, 255, 255) if q < 0.45 else (R[5] if q < 0.75 else R[4])
+            cv.cell(c[0] + dx, c[1] + dy * 0.8, col)
+    for i in range(s * 3):
+        k = i / (s * 3)
+        cv.cell(c[0] - s * 1.4 - i, c[1], RA[5] if k < 0.5 else RA[4])
+        cv.cell(c[0] + s * 1.4 + i, c[1], RB[5] if k < 0.5 else RB[4])
+    for i in range(int(s * 1.2)):
+        cv.cell(c[0], c[1] - s * 0.8 - i, (255, 255, 255) if i < 4 else RA[5])
+        cv.cell(c[0], c[1] + s * 0.8 + i, (255, 255, 255) if i < 4 else RB[5])
+    cv.glow(c[0], c[1], (1, 0.95, 0.9), 4.0)
+
+
+def wedges(cv, c, k, RA, RB):
+    rng = random.Random(7)
+    for i in range(18):
+        side = -1 if i % 2 == 0 else 1
+        a = rng.uniform(-0.9, 0.9) + (math.pi if side < 0 else 0)
+        sp = rng.uniform(60, 140)
+        x = c[0] + math.cos(a) * sp * k
+        y = c[1] + math.sin(a) * sp * k * 0.7 + 50 * k * k
+        R = RA if side < 0 else RB
+        for t in range(4):
+            for u in range(4 - t):
+                cv.cell(x + side * u, y + t - 2, R[5] if t == 0 else R[3])
+
+
 def pair_rival(A):
     w = B.World(11, A)
-    C = (430, 192)
-    HALF = 120
-    w.kill_circle(0.72, C, 150, 0.62)
-    PT, PL = pal(TX), pal(LP)
+    C = (430, 196)
+    for e in w.es:   # 余波扫到哪只哪只倒：菱形距离 d（|dx| + |dy| / SQ）对上冲击波半径 30 + 190k
+        p = w.pos(e, 0.7)
+        d = abs(p[0] - C[0]) + abs(p[1] - C[1]) / SQ
+        if d <= 220:
+            e["kt"] = 0.6 if d < 34 else 0.72 + (d - 30) / 190 * 0.5
+    TXp, LPp = (C[0] - 26, C[1] + 22), (C[0] + 26, C[1] + 22)
 
-    def fx(cv, t):
-        if t < 0.7:   # 两只尖括号从两侧合拢（新帧条）
-            k = min(1.0, max(0.0, (t - 0.2) / 0.5)) ** 1.6
-            off = 230 * (1 - k) + 6
-            chevron(cv, C, off, HALF, -1, TX)
-            chevron(cv, C, off, HALF, 1, LP)
-        elif t < 0.82:   # 咬合：两只尖端顶在一起 + 中缝两色星芒
-            chevron(cv, C, 6, HALF, -1, TX)
-            chevron(cv, C, 6, HALF, 1, LP)
-            clash_star(cv, (C[0], C[1]), 30, TX, LP)
-            cv.lamp(C[0], C[1], 150, (255, 220, 200), 60)
-        else:   # 菱形冲击波外扩 + 括号断成段掉落
-            k = min(1.0, (t - 0.82) / 0.5)
-            diamond_wave(cv, C, 40 + 150 * k, k, TX, LP)
-            chevron(cv, C, 6 + 30 * k, HALF, -1, TX, brk=k)
-            chevron(cv, C, 6 + 30 * k, HALF, 1, LP, brk=k)
-
-    keys = [(0.45, "起手：两人残影从两侧冲出，两只巨型尖括号张开（新帧条）"), (0.6, "合拢：琥珀「>」与淡紫「<」把怪群夹在中间往里收"),
-            (0.76, "咬合：尖端顶住，中缝两色星芒，夹住的一片全吃伤害"), (1.1, "余韵：菱形冲击波外扩、括号断成段掉落，中间清空")]
+    keys = [(0.3, "冲上：两人残影从两侧相向冲进怪群（各自攻击帧）"), (0.62, "相交定格：刀锋相撞停一拍，菱形火花（左琥珀 / 右淡紫）"),
+            (0.85, "余波：两道半菱形冲击波向左右推开，扫过的怪被打死"), (1.4, "收尾：冲击波断开，楔形火星落地，两人残影淡出，菱形里清空")]
     out = []
     for t, lab in keys:
         img = frame(A, w, t, lambda cv, tt: None, [("lappland", (B.SQUAD[0] - 34, B.SQUAD[1] - 26), "run"), ("texas", B.SQUAD, "run")]).convert("RGBA")
         cv = B.Canvas(img)
-        if t < 0.7:
-            k = min(1.0, max(0.0, (t - 0.2) / 0.5)) ** 1.6
-            off = 230 * (1 - k) + 6
-            cv = ghost(cv, A, "texas", (C[0] - off - 40, C[1] + 10), (C[0] - off - 20, C[1] + 10), 1.0, TX)
-            cv = ghost(cv, A, "lappland", (C[0] + off + 40, C[1] + 10), (C[0] + off + 20, C[1] + 10), 1.0, LP)
-        fx(cv, t)
-        out.append((cv.finish(), lab, (200, 50, 660, 330)))
+        if t < 0.55:
+            u = min(1.0, t / 0.5)
+            cv = ghost(cv, A, "texas", (C[0] - 230, C[1] + 22), TXp, u, TX)
+            cv = ghost(cv, A, "lappland", (C[0] + 230, C[1] + 22), LPp, u, LP)
+        else:
+            im = cv.finish().convert("RGBA")
+            al = 1.0 if t < 1.0 else max(0.0, 1 - (t - 1.0) / 0.4)
+            B.put_op(im, A["texas_atk"][5], TXp, False, al)
+            B.put_op(im, A["lappland_atk"][5], LPp, True, al)
+            cv = B.Canvas(im)
+        if 0.55 <= t < 0.72:
+            diamond_spark(cv, (C[0], C[1] - 10), 16, TX, LP)
+            cv.lamp(C[0], C[1], 140, (255, 225, 210), 55)
+        if t >= 0.72:
+            k = min(1.0, (t - 0.72) / 0.5)
+            r = 30 + 190 * k
+            brk = max(0.0, (k - 0.6) / 0.4)
+            half_diamond(cv, (C[0], C[1]), r, -1, TX, brk=brk)
+            half_diamond(cv, (C[0], C[1]), r, 1, LP, brk=brk)
+            wedges(cv, (C[0], C[1] - 10), k, TX, LP)
+        out.append((cv.finish(), lab, (180, 50, 680, 330)))
     return out
 
 
