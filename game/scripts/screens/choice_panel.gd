@@ -48,7 +48,9 @@ const EV_COL_TOP_PHONE := 70.0
 ## 不再按最长说明加高），字从 24 号起、最小 19（× 0.9 ≈ 17 界面像素），整排放大到 0.9；完整说明点卡片右上「详情」再看（detail_i）。
 ## 「界面大小」照常生效（整层再乘）；平板 / 16:9 触屏 / 电脑不缩、照旧写完整说明
 const CARD_SCALE_PHONE := 0.9
-const BRIEF_SIZES_PHONE := [24, 23, 22, 21, 20, 19]
+## 11-06 用户「卡牌上的文字也重新排版一下大小」：原来 24 起，UI.fs 放大后封顶 24，和名字（24）一样大，10-30 定的
+## 「名字 24 > 选择 19 > 说明 17 > 标签 14」被打破。改成 15 起（× 1.18 ≈ 18、最小 13 ≈ 15），同一排取都放得下的最大一档（_even_brief_phone）
+const BRIEF_SIZES_PHONE := [15, 14, 13]
 ## 手机：正在看完整说明的那张卡（-1 = 没有）；点「详情」开 / 关，换一批卡、选中时清掉
 var detail_i := -1
 ## 选中余光（10-26 用户「优化动效」：以前一选卡片就凭空消失）：选中那一刻记下这张卡的屏幕矩形，
@@ -88,7 +90,7 @@ const CHIP_UP_PHONE := 66.0
 const DESC_PAD_PHONE := 275.0
 const BTN_FS_PHONE := 16      # 选择（× phone_font_mult 1.18 ≈ 19）
 const CHIP_FS_PHONE := 12     # 流派 / 影响标签（≈ 14）
-const DESC_SIZES_PHONE := [20, 19, 18, 17, 16, 15]
+const DESC_SIZES_PHONE := [15, 14, 13]   # 同上（11-06：原 20 起，放大后同名字一样大）
 ## 电脑卡片说明（11-01 docs/211 D12）：14 起、最小 13（docs/37 桌面正文 ≥ 13）；说明区往下用到「影响」标签行上方（标准 244 起 / 紧凑 198 起，标签行顶约 318）
 const DESC_SIZES_DESK := [14, 13]
 const DESC_H_DESK := 72.0
@@ -760,11 +762,12 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 						card.set_meta("intro_box", [display_desc, dw, dh])
 					else:
 						f0 = UI.fit(g.font, display_desc, dw, dh, BRIEF_SIZES_PHONE if briefs else DESC_SIZES_PHONE)
+						card.set_meta("brief_box", [display_desc, dw, dh, BRIEF_SIZES_PHONE if briefs else DESC_SIZES_PHONE])
 					card.set_meta("roomy", true)
 					if not f0.fit:
 						card.set_meta("more", true)   # 缩到 15 还放不下：给「详情」键，点开看全文
 				else:
-					f0 = UI.fit(g.font, display_desc, card_w - 40.0, card_h() - 176.0 - 53.0 - 4.0, [20, 19, 18, 17, 16, 15])
+					f0 = UI.fit(g.font, display_desc, card_w - 40.0, card_h() - 176.0 - 53.0 - 4.0, DESC_SIZES_PHONE)
 			elif compact:
 				f0 = UI.fit(g.font, display_desc, card_w - 40.0, 108.0 if Pad.touch_ui() else DESC_H_DESK_C, [15, 14, 13, 12, 11] if Pad.touch_ui() else DESC_SIZES_DESK)
 			card.set_meta("fit", f0)
@@ -796,6 +799,7 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 			_even_desk(cards)
 	if not ev and L.touch:
 		_even_recruit_phone()
+		_even_brief_phone()
 	g.panel.visible = true
 	g.panel_fg.queue_redraw()
 
@@ -837,6 +841,24 @@ func _even_recruit_phone() -> void:
 		var f := _recruit_fit(str(b[0]), float(b[1]), float(b[2]), boxes)
 		c.set_meta("fit", f)
 		c.set_meta("more", c.get_meta("more", false) or not f.fit)
+
+
+## 同一屏的手机卡说明用同一字号（11-06：以前各卡各自缩，同排一张 18 一张 15）：取全组都放得下的最大一档；
+## 都放不下用最小一档，放不下的那张照旧给「详情」
+func _even_brief_phone() -> void:
+	var cards: Array = g.panel_box.get_children().filter(func(c): return c is Button and c.has_meta("brief_box"))
+	if cards.size() < 2:
+		return
+	var sizes: Array = cards[0].get_meta("brief_box")[3]
+	for sz in sizes:
+		var fits: Array = cards.map(func(c):
+			var b: Array = c.get_meta("brief_box")
+			return UI.fit(g.font, str(b[0]), float(b[1]), float(b[2]), [sz]))
+		if fits.all(func(f): return f.fit) or sz == sizes[-1]:
+			for k in cards.size():
+				cards[k].set_meta("fit", fits[k])
+				cards[k].set_meta("more", cards[k].get_meta("more", false) or not fits[k].fit)
+			return
 
 
 ## 手机卡片上的一句核心效果：说明第一行的第一句（到「；」「。」为止），去掉括号里的补充说明；还长于 BRIEF_MAX 字
