@@ -272,7 +272,9 @@ func _thrust(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float)
 	var tr := float(d.get("thrust_range", 170))
 	if dist < tr and dist > 30.0 and e.wind <= 0.0 and g.bai.cd_ready(e, "thrust", float(d.get("thrust_cd", 3.2))):
 		Sfx.enemy("bite", dist)
-		g.tele.warn(e, "line", _wu(e, 0.55), {"ang": dir.angle(), "len": tr + 20.0, "wid": 12.0, "track": 0.25, "act": "stab", "spd": 700.0, "col": Color(1.0, 0.35, 0.45), "dmg": e.dmg * float(d.get("thrust_mult", 1.2)),
+		# 蓄力 / 追踪 / 冲速可按敌人配（docs/307，11-07：引痕者原 0.4 秒蓄力里追踪 0.25，锁定后只剩 0.15 秒可躲）；
+		# 实际刺出距离 = thrust_spd² / 1800 + 半径（telegraph.warn 按冲速重算 len），thrust_range 只管多远开始蓄力
+		g.tele.warn(e, "line", _wu(e, float(d.get("thrust_windup", 0.55))), {"ang": dir.angle(), "len": tr + 20.0, "wid": 12.0, "track": float(d.get("thrust_track", 0.25)), "act": "stab", "spd": float(d.get("thrust_spd", 700.0)), "col": Color(1.0, 0.35, 0.45), "dmg": e.dmg * float(d.get("thrust_mult", 1.2)),
 			"atk_fx": str(d.get("atk_fx_enraged", d.get("atk_fx", "")) if e.enraged else d.get("atk_fx", "")), "atk_fx_origin": d.get("atk_fx_origin", [-1, -1])})
 	return Vector2.INF
 
