@@ -1468,7 +1468,112 @@ def pair_lesson_chain(A):
     return out
 
 
-PAIRS = {"lesson_chain": ("潮下授课 · 链上疾驰（乌尔比安 × 斯卡蒂）", pair_lesson_chain)}
+# ---------------------------------------------------------------- 11-07：愚人号 · 双剑对舞（艾丽妮 × 归溟幽灵鲨）
+
+def fig8(c, rx, ry, u):
+    """「8」字舞步路线（伯努利双纽线），u 0..1 走一整圈"""
+    a = u * math.tau
+    d = 1 + math.sin(a) ** 2
+    return (c[0] + rx * math.cos(a) / d, c[1] + ry * math.sin(a) * math.cos(a) / d * 2 * SQ)
+
+
+def footprint(cv, p, R, left, k, burst=0.0):
+    """发光脚印（3×5 椭圆 + 一格脚跟），左右脚错开 4 像素；burst > 0 时炸成一圈小火星"""
+    ox = -2 if left else 2
+    if burst <= 0:
+        for y in range(8):
+            for x in range(5):
+                if (x in (0, 4) and y in (0, 1, 7)) or (y == 5 and x in (0, 4)):
+                    continue
+                cv.cell(p[0] + ox + x - 2, p[1] + y - 4, (255, 255, 255) if (k >= 1.0 and 1 <= x <= 3 and y < 3) else (R[5] if y < 4 else R[4]), k)
+        cv.glow(p[0] + ox, p[1], gl(R[4]), 0.8 * k)
+    else:
+        rr = 3 + 20 * burst
+        for i in range(8):
+            a = i / 8 * math.tau
+            cv.cell(p[0] + math.cos(a) * rr, p[1] + math.sin(a) * rr * SQ, (255, 255, 255) if burst < 0.3 else R[5], 1 - burst)
+        if burst < 0.4:
+            cv.glow(p[0], p[1], gl(R[5]), 1.2)
+
+
+def tip_spark(cv, p, R):
+    for d in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1), (2, 0), (-2, 0), (0, -2)):
+        cv.cell(p[0] + d[0], p[1] + d[1], (255, 255, 255) if d == (0, 0) else R[5])
+    cv.glow(p[0], p[1], gl(R[5]), 1.0)
+
+
+def pair_fools_dance(A):
+    if "specter_unchained_atk" not in A:
+        od = os.path.join(ROOT, "game", "art", "operators", "specter_unchained")
+        A["specter_unchained_atk"] = B.frames_of(os.path.join(od, "op_specter_unchained_attack@1x.png"), fw=96)
+        A["specter_unchained_idle"] = B.frames_of(os.path.join(od, "op_specter_unchained_idle@1x.png"), 8)
+    w = B.World(37, A)
+    C = (430, 200)
+    RX, RY = 190, 70
+    T0, T1 = 0.25, 1.05      # 跳一圈「8」字
+    NST = 40                 # 每人脚印数
+    steps = []
+    for who, R, ph in (("irene", IR, 0.0), ("specter_unchained", GH, 0.5)):
+        for i in range(NST):
+            u = i / NST
+            steps.append({"who": who, "R": R, "u": u, "p": fig8(C, RX, RY, (u + ph) % 1.0), "t": T0 + u * (T1 - T0), "left": i % 2 == 0})
+    for e in w.es:
+        p = w.pos(e, 1.2)
+        if any(math.dist(p, s["p"]) < 42 for s in steps):
+            e["kt"] = 1.25 + 0.0003 * (p[0] - 200)
+    keys = [(0.18, "登场：幽灵船「愚人号」靠岸，两人从船上一前一后跃下（船只在开头出现一下）"), (0.7, "对舞：两人沿「8」字舞步一左一右交替出刀，每一步留下一枚发光脚印（紫 / 青）"),
+            (1.15, "合拍：两人在 8 字中心相遇，剑尖轻碰，手牵手收势，满地脚印一齐亮"), (1.42, "余韵：所有脚印同时炸开，舞步路线上的怪一齐倒下")]
+    out = []
+    for t, lab in keys:
+        img = frame(A, w, t, lambda cv, tt: None, []).convert("RGBA")
+        cv = B.Canvas(img)
+        if t < 0.3:
+            ghost_ship(cv, (C[0] - 150, 230), 1 - max(0.0, (t - 0.15) / 0.15), 0.7)
+        for who, R, ph in (("irene", IR, 0.0), ("specter_unchained", GH, 0.5)):   # 舞步路线：一条淡点线把脚印连起来
+            if t < 1.25:
+                uu = min(1.0, max(0.0, (t - T0) / (T1 - T0)))
+                for i in range(int(400 * uu)):
+                    if i % 4:
+                        continue
+                    q = fig8(C, RX, RY, (i / 400 + ph) % 1.0)
+                    cv.cell(q[0], q[1] + 3, R[3], 0.6)
+        for s in steps:
+            if t >= s["t"]:
+                if t < 1.25:
+                    flash = 1.1 <= t < 1.25
+                    footprint(cv, s["p"], s["R"], s["left"], 1.0 if flash else 0.8)
+                else:
+                    footprint(cv, s["p"], s["R"], s["left"], 1.0, min(1.0, (t - 1.25) / 0.25))
+        im = cv.finish().convert("RGBA")
+        if T0 <= t < T1:
+            u = (t - T0) / (T1 - T0)
+            for who, R, ph, fr in (("irene", IR, 0.0, 4 + int(t * 15) % 3), ("specter_unchained", GH, 0.5, 5 + int(t * 15) % 4)):
+                p = fig8(C, RX, RY, (u + ph) % 1.0)
+                q = fig8(C, RX, RY, (u + ph + 0.01) % 1.0)
+                spr = A[who + "_atk"][fr]
+                B.put_op(im, spr, (p[0], p[1] + 6), q[0] < p[0], 0.92, tuple(1 + (c / 255 - 1) * 0.25 for c in R[4]))
+            cv = B.Canvas(im)
+            for who, R, ph in (("irene", IR, 0.0), ("specter_unchained", GH, 0.5)):
+                p = fig8(C, RX, RY, (u + ph) % 1.0)
+                if int(t * 15) % 2 == 0:
+                    tip_spark(cv, (p[0] + 14, p[1] - 18), R)
+        else:
+            if t >= T1:
+                B.put_op(im, A["irene_atk"][6], (C[0] - 12, C[1] + 6), False, 1.0)
+                B.put_op(im, A["specter_unchained_atk"][8], (C[0] + 12, C[1] + 6), True, 1.0)
+            else:
+                B.put_op(im, A["irene_idle"][0], (C[0] - 130, C[1] + 20), False, 0.9)
+                B.put_op(im, A["specter_unchained_idle"][0], (C[0] - 100, C[1] + 10), False, 0.9)
+            cv = B.Canvas(im)
+            if t >= T1:
+                tip_spark(cv, (C[0], C[1] - 26), IR)
+                for d in range(-3, 4):   # 两人之间牵着的手：一点紫青相接的亮线
+                    cv.cell(C[0] + d, C[1] - 10, IR[5] if d < 0 else GH[3])
+        out.append((cv.finish(), lab, (180, 60, 680, 320)))
+    return out
+
+
+PAIRS = {"fools_dance": ("愚人号 · 双剑对舞（艾丽妮 × 归溟幽灵鲨）", pair_fools_dance)}
 
 
 def sheet(title, keys, sc):
