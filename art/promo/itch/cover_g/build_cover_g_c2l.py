@@ -93,7 +93,7 @@ def grade(a, figs, lamp):
     allm = np.maximum.reduce(list(ms.values()))
     edge = np.asarray(Image.fromarray((L * 255).astype(np.uint8)).filter(ImageFilter.FIND_EDGES), np.float32) / 255
     ring = np.clip(allm * 2, 0, 1) * (1 - np.clip(allm * 1.4 - 0.4, 0, 1))
-    out = out + (np.clip(edge * 2.5, 0, 1) * ring * 0.35)[..., None] * CO.hx(s["rim"])
+    out = out + (np.clip(edge * 2.5, 0, 1) * ring * 0.15)[..., None] * CO.hx(s["rim"])
     # 灯火亮核 + 暖晕：半径按成品宽归一（与 C2 相同的相对大小）
     d2 = ((xx - lamp[0]) ** 2 + (yy - lamp[1]) ** 2) / (W * W) * (W / 630) ** 2 * (630 / W) ** 2
     warm = CO.hx(s["lamp"])
@@ -112,11 +112,10 @@ def pixelize2(img, figm, cell):
     small = img.resize((w, h), Image.BOX)
     sharp = img.filter(ImageFilter.UnsharpMask(radius=1.2, percent=60, threshold=2)).resize((w, h), Image.BOX)
     fm = np.asarray(Image.fromarray((figm * 255).astype(np.uint8)).resize((w, h), Image.BOX), np.float32) / 255 > 0.5
-    a = np.asarray(small, np.float32)
-    th = np.tile(BAYER, (h // 4 + 1, w // 4 + 1))[:h, :w]
-    ad = np.clip(a + th[..., None] * 10.0, 0, 255).astype(np.uint8)
+    # 11-07 用户嫌脏：不再抖动（点阵本身就是颗粒），改为背景先 3×3 中值去噪、多收颜色（160）来消色带
+    ad = np.asarray(small.filter(ImageFilter.MedianFilter(3)))
     q = lambda im, n, mask=None: np.asarray(Image.fromarray(im).quantize(colors=n, method=Image.Quantize.MAXCOVERAGE, dither=Image.Dither.NONE, kmeans=3).convert("RGB"))
-    bgq = q(ad, 96)
+    bgq = q(ad, 160)
     fa = np.asarray(sharp)
     fq = q(fa, 96)
     out = bgq.copy()
