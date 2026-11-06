@@ -1024,7 +1024,7 @@ static func tx_rift_draw_body(o) -> bool:
 				if age >= 0.0 and age < pose0:
 					var dv0: Vector2 = (lf.p as Vector2) - (lf.from as Vector2)
 					var k0: float = clampf((1.0 - age / pose0) / 0.3, 0.0, 1.0)
-					o.draw_body_at(lf.p, dv0.x < 0.0, Color(1.0, 1.0, 1.0, 0.35 + 0.65 * k0))
+					o.draw_body_at(lf.p, dv0.x < 0.0, Color(1.0, 1.0, 1.0, 0.35 + 0.65 * k0), o.ghost_pose(-1, dv0.x < 0.0))   # 开 fx/ghost_dash_pose：出刀定格帧（原来隐身期间本体停在待机，定格画成待机）
 			return true
 		var ap: float = float(o.tx.get("s3_app", -1.0))
 		if ap >= 0.0 and float(g.t) - ap < 0.18:   # 现身：淡入
@@ -1036,7 +1036,7 @@ static func tx_rift_draw_body(o) -> bool:
 	if not fl.is_empty() and float(rf.t) - float(fl.t) < pose:
 		var dv: Vector2 = (fl.p as Vector2) - (fl.from as Vector2)
 		var k: float = clampf((1.0 - (float(rf.t) - float(fl.t)) / pose) / 0.3, 0.0, 1.0)
-		o.draw_body_at(fl.p, dv.x < 0.0, Color(1.0, 1.0, 1.0, 0.35 + 0.65 * k))
+		o.draw_body_at(fl.p, dv.x < 0.0, Color(1.0, 1.0, 1.0, 0.35 + 0.65 * k), o.ghost_pose(-1, dv.x < 0.0))   # 同上：每刀落点的定格
 	return true
 
 

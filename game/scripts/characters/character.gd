@@ -3067,6 +3067,8 @@ func ghost_pose(i: int, left: bool) -> Dictionary:
 		return {}
 	var fs: Array = gp.get("frames", [0])
 	var f: int = int(fs[clampi(i, 0, fs.size() - 1)]) if not fs.is_empty() else 0
+	if i < 0:
+		f = int(gp.get("strike", f))   # i < 0：出刀定格（德克萨斯次元斩每刀落点的定格，11-07 用户「S3 的时候攻击的残影是待机动作」）
 	return {"tex": tx, "frame": f, "hf": anim_hframes(tx, slot), "flip": left != sprite_mirror(slot), "kind": slot}
 
 
