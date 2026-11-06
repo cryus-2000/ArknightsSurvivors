@@ -94,6 +94,8 @@ static func apply_test_args(g) -> void:
 		if a.begins_with("--forceboss="):
 			g.force_boss = int(a.substr(12))
 		# 测试：开局直接编入干员（逗号分隔 id，跟在开局干员之后）
+		if a == "--slot4":
+			g.squad.extra_slot = true   # 截图：第 4 位直接解锁（docs/290 指挥台队长 + 3 队友），放在 --squad= 前面
 		if a.begins_with("--squad="):
 			for cid in a.substr(8).split(","):
 				if g.squad.add(cid) != null:

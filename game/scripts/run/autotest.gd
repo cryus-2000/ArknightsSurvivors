@@ -15,6 +15,9 @@ const KILL_TYPES := ["bone", "stone", "offspring", "runner", "floater", "reaper"
 const KILL_SHOTS := [-1, 3, 8, 14, 22]   # --killshot 截图帧（相对击杀那一帧；-1 = 击杀前一帧）
 var _kill_row: Array = []
 var hunt_rec_end := 0  # --huntrec：进寻访结果后又录了几张
+var _dash_at: Array = []
+var _tab_at := 0.0
+var _tab_f := -1
 var _elite_at := -1.0   # --eliteat=秒（docs/249 §5）：-1 = 还没读参数，0 = 不用 / 已触发
 var touchtest_p0 := Vector2.ZERO
 var bal_done := false
@@ -1065,6 +1068,56 @@ func step() -> void:
 		for a in Cfg.dev_args():
 			if a.begins_with("--eliteat="):
 				_elite_at = float(a.substr(10))   # 截图 / 录屏（docs/249 §5）：到点把队长推到精英二，拍精英化时刻
+	if _dash_at.is_empty():
+		_dash_at = [-1.0]
+		for a in Cfg.dev_args():
+			if a.begins_with("--dashat="):
+				_dash_at = Array(a.substr(9).split(",")).map(func(x): return float(x))   # 截图（docs/290 冲刺格充能）：到点让队长冲刺一次
+	if _tab_at == 0.0:
+		_tab_at = -1.0
+		for a in Cfg.dev_args():
+			if a.begins_with("--tabat="):
+				_tab_at = float(a.substr(8))   # 截图（docs/290 Tab 编队栏技能细格）：到点打开属性面板，20 帧后存 shot_tab.png 并退出
+	if _tab_at > 0.0 and g.state == g.S.PLAY and g.t >= _tab_at and _tab_f < 0:
+		g.state = g.S.STATS
+		_tab_f = 0
+	elif _tab_f >= 0:
+		_tab_f += 1
+		if _tab_f == 5:
+			for a in Cfg.dev_args():
+				if a.begins_with("--tabscroll="):   # 截图：属性面板各块滚 N 行（docs/290 放不下就滚轮）
+					for key in ["skills", "squad_items", "p_skills", "p_relics"]:
+						g.stats_screen._sc[key] = int(a.substr(12))
+				if a.begins_with("--tabpage="):
+					g.stats_page = int(a.substr(10))   # 手机五页版翻到第 N 页（0 起）
+				if a.begins_with("--tabdrag="):   # 手机：在 (x, y) 按下、往上拖 d 界面像素再松开，走真的触屏输入（touch.gd 拖动滚）
+					var v: PackedStringArray = a.substr(10).split(",")
+					var at := Vector2(float(v[0]), float(v[1])) * Cfg.ui_k
+					var t0 := InputEventScreenTouch.new()
+					t0.index = 0
+					t0.position = at
+					t0.pressed = true
+					Input.parse_input_event(t0)
+					for k in 6:
+						var dr := InputEventScreenDrag.new()
+						dr.index = 0
+						dr.relative = Vector2(0, -float(v[2]) / 6.0 * Cfg.ui_k)
+						at += dr.relative
+						dr.position = at
+						Input.parse_input_event(dr)
+					var t1 := InputEventScreenTouch.new()
+					t1.index = 0
+					t1.position = at
+					t1.pressed = false
+					Input.parse_input_event(t1)
+		if _tab_f == 20 and DisplayServer.get_name() != "headless":
+			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_tab.png")
+			g.get_tree().quit()
+	if _dash_at[0] > 0.0 and g.state == g.S.PLAY and g.t >= _dash_at[0]:
+		g._try_dash()
+		_dash_at.pop_front()
+		if _dash_at.is_empty():
+			_dash_at = [-1.0]
 	if _elite_at > 0.0 and g.state == g.S.PLAY and g.t >= _elite_at:
 		_elite_at = 0.0
 		var lo = g.squad.leader()

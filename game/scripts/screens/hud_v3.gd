@@ -42,10 +42,24 @@ var _top := 0.0   # 本帧整台上沿（界面坐标），开局提示等底部
 func _init(hud) -> void:
 	h = hud
 	g = hud.g
+	for a in Cfg.dev_args():
+		if a.begins_with("--hoverop="):
+			_hover_op = int(a.substr(10))
 
 
 static func on() -> bool:
 	return Bal.vi("ui/hud_v3", 1) > 0
+
+
+## 技能细格（docs/290，用户 11-06 定 A 常驻、队长那行放等级旁）：头像下一个技能一段。2 = 队长细格在等级牌右边（缺省，不抬高）；
+## 1 = 队长细格在终结技环下方（环整体上抬一行，备选）；0 = 不画。队友都画在头像血量线下方
+static func skills_mode() -> int:
+	return Bal.vi("ui/console_skills", 2)
+
+
+## 悬停提示（桌面）：鼠标停在队长头像 / 队友头像上，浮出三招的名字与状态。本帧各头像的区域：[矩形, 干员]
+var _hov: Array = []
+var _hover_op := -1
 
 
 func k() -> float:
@@ -117,9 +131,11 @@ func _console(vs: Vector2) -> void:
 	var s: float = k()
 	var cx: float = vs.x / 2.0
 	var base: float = vs.y - 14.0 * s
+	if g.touch.active:   # 手机字号有下限：最下一行（「终结技 64%」「冲刺」）按实际字高留底，不被屏幕下沿裁掉
+		base -= maxf(0.0, 0.3 * float(UI._ks(g.hud, int(round(8.5 * s)))) - 2.0)
 	var r: float = 25.0 * s
 	var RR: float = r + 5.0 * s
-	var by: float = base - r - 7.0 * s
+	var by: float = base - r - 7.0 * s - _ring_lift(s)   # 布局一：环上抬一行，给环下的技能细格让位
 	var md: int = _mode()
 	# 右翼宽度先算（左翼按它对称）
 	var sq: float = 34.0 * s
@@ -132,6 +148,7 @@ func _console(vs: Vector2) -> void:
 	var lw: float = maxf(128.0 * s, right_ext - (RR + 16.0 * s + 56.0 * s))
 	var ext: float = maxf(right_ext, RR + 16.0 * s + lw + 56.0 * s)
 	_top = base - 50.0 * s   # 先给个缺省，_left 按实际字高覆盖
+	_hov = []
 	# 底部渐变：只托字，不是底板
 	var gh: float = 66.0 * s
 	var cols := PackedColorArray([Color(0.016, 0.024, 0.031, 0.0), Color(0.016, 0.024, 0.031, 0.0), Color(0.016, 0.024, 0.031, 0.62), Color(0.016, 0.024, 0.031, 0.62)])
@@ -145,6 +162,7 @@ func _console(vs: Vector2) -> void:
 	var tc := Color(1, 1, 1, 0.45)
 	g.hud.draw_polyline(PackedVector2Array([tl + Vector2(0, 7.0 * s), tl, tl + Vector2(7.0 * s, 0)]), tc, 1.0)
 	g.hud.draw_polyline(PackedVector2Array([br - Vector2(0, 7.0 * s), br, br - Vector2(7.0 * s, 0)]), tc, 1.0)
+	_hover_tip(vs, s)
 
 
 ## 中：队长头像 + 终结技（外圈 40 格刻度 + 3 像素环）；头像下一行「Q 终结技 64%」，满了整环转青、外圈光环、「终结技 就绪」
@@ -158,6 +176,8 @@ func _leader(c: Vector2, r: float, RR: float, base: float, s: float) -> void:
 		g.hud.draw_circle(c, RR + 10.0 * s, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.10 + 0.12 * pu))
 		g.hud.draw_arc(c, RR + 6.0 * s + 3.0 * pu, 0.0, TAU, 48, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.5), 1.0, true)
 	g.hud.draw_circle(c, r + 1.0, Color(0, 0, 0, 0.62))
+	if ld != null:
+		_hov.append([Rect2(c - Vector2(RR, RR + 10.0 * s), Vector2(RR * 2.0, RR * 2.0 + 10.0 * s)), ld])
 	if ld != null and h.ult != null and h.ult.v != null:
 		h.ult.v._avatar_hi(ld, c, r)
 	if has_ult:
@@ -189,6 +209,12 @@ func _leader(c: Vector2, r: float, RR: float, base: float, s: float) -> void:
 			UI.text(g.hud, g.font, Vector2(kr.position.x, ly - 1.0 * s), key, int(round(6.5 * s)), Color(0.04, 0.06, 0.07) if full else WHITE, HORIZONTAL_ALIGNMENT_CENTER, kw)
 			x0 += kw + 4.0
 		h.v2.txt(Vector2(x0, ly), lab, fs, UI.CYAN if full else Color(WHITE.r, WHITE.g, WHITE.b, 0.88))
+	if skills_mode() == 1 and ld != null:   # 布局一：环与「终结技 64%」之间一行
+		var w1: float = 2.0 * r * 0.9
+		var hh1: float = maxf(2.0, 2.4 * s)
+		var y1: float = _ult_label_top(base, s) - 2.0 - hh1   # 贴着「终结技 64%」字顶往上（手机字号有下限，字比 s 算的高）
+		var act1: Array = _skill_segs(ld, c.x - w1 / 2.0, y1, w1, hh1, s)
+		_skill_secs(act1, Vector2(c.x + w1 / 2.0 + 4.0 * s, y1 + hh1 + 3.0 * s), s)
 	# 等级：头像顶上一枚小牌（同 B′ 徽记的等级牌，缩小）
 	var lf: float = g.hud_lv_flash
 	var lvs: String = "LV %d" % g.level
@@ -198,6 +224,120 @@ func _leader(c: Vector2, r: float, RR: float, base: float, s: float) -> void:
 	g.hud.draw_rect(lr, Color(0.02, 0.03, 0.05, 0.9))
 	g.hud.draw_rect(lr, Color(1, 1, 1, 0.35).lerp(UI.GOLD, lf), false, 1.0)
 	UI.ctext(g.hud, g.font, Vector2(lr.position.x, lr.end.y - 3.0), lvs, lfs, WHITE.lerp(UI.GOLD, lf), HORIZONTAL_ALIGNMENT_CENTER, lw)
+	if skills_mode() == 2 and ld != null:   # 布局二：等级牌右边一行，不抬高
+		var w2: float = 30.0 * s
+		var hh2: float = maxf(2.0, 2.4 * s)
+		var act2: Array = _skill_segs(ld, lr.end.x + 4.0 * s, lr.get_center().y - hh2 / 2.0, w2, hh2, s)
+		_skill_secs(act2, Vector2(lr.end.x + 4.0 * s + w2 + 4.0 * s, lr.get_center().y + 3.0 * s), s)
+
+
+## 头像下「终结技 64%」一行的字顶 y
+func _ult_label_top(base: float, s: float) -> float:
+	return base + 9.0 * s - 0.85 * float(UI._ks(g.hud, int(round(8.5 * s))))
+
+
+## 布局一环上抬多少：细格一行 + 上下空隙，按实际字高算（手机字号有下限时多抬一点）
+func _ring_lift(s: float) -> float:
+	if skills_mode() != 1:
+		return 0.0
+	var ring_bottom: float = 3.2 * s   # 原来环外圈刻度底（相对 base）：base - r - 7s + RR + 5.2s
+	var need: float = maxf(2.0, 2.4 * s) + 4.0   # 细格 + 上下各 2
+	return maxf(0.0, ring_bottom + need - (_ult_label_top(0.0, s)))
+
+
+## 一名干员的三段技能细格（x, y 左上，w 三段总宽）：没解锁 = 空框；充能中 = 灰色随技力填满；生效中 = 白色，剩余时长从满往下退；
+## 永久型生效后整段白；充满待放（自动技能等敌人进范围时会停在这里）= 亮青。返回生效中各段 [矩形, 剩余秒]
+func _skill_segs(o, x: float, y: float, w: float, hh: float, s: float) -> Array:
+	var items: Array = o.skill_hud()
+	var gp: float = maxf(2.0, 2.0 * s)
+	var sw: float = (w - gp * 2.0) / 3.0
+	var act: Array = []
+	for k in 3:
+		var it: Array = items[k]
+		var r := Rect2(x + k * (sw + gp), y, sw, hh)
+		var left: float = it[3]
+		var frac: float = clampf(it[5], 0.0, 1.0)
+		g.hud.draw_rect(r.grow(1.0), Color(0, 0, 0, 0.45))
+		if not it[2]:
+			g.hud.draw_rect(Rect2(r.position + Vector2(0.5, 0.5), r.size - Vector2(1, 1)), Color(1, 1, 1, 0.3), false, 1.0)
+		elif o.perm[k] or left > 0.0:
+			var f: float = 1.0 if o.perm[k] else clampf(left / maxf(0.01, float(it[4])), 0.0, 1.0)
+			g.hud.draw_rect(r, Color(1, 1, 1, 0.16))
+			g.hud.draw_rect(Rect2(r.position, Vector2(sw * f, hh)), WHITE)
+			if left > 0.0 and not o.perm[k]:
+				act.append([r, left])
+		elif frac >= 1.0:
+			g.hud.draw_rect(r, UI.CYAN)
+		else:
+			g.hud.draw_rect(r, Color(1, 1, 1, 0.12))
+			g.hud.draw_rect(Rect2(r.position, Vector2(sw * frac, hh)), GREY)
+	return act
+
+
+## 悬停提示：头像正上方一块小牌，一招一行「名字 · 状态」。状态：就绪 / 生效中 剩余秒 / 充能中 约 N 秒 / 精英一（二）解锁。
+## 充能秒数按当前自然充能速度估（命中回技力的招会更快），所以写「约」
+func _hover_tip(vs: Vector2, s: float) -> void:
+	if g.touch.active or g.state != Game.S.PLAY:
+		return
+	var mp: Vector2 = g.hud.get_local_mouse_position()
+	if _hover_op >= 0 and _hover_op < _hov.size():
+		mp = (_hov[_hover_op][0] as Rect2).get_center()   # 截图：--hoverop=N 当作鼠标停在第 N 个头像上（0 = 队长）
+	for hv in _hov:
+		var hr: Rect2 = hv[0]
+		if not hr.has_point(mp):
+			continue
+		_active_t = g.t   # 看提示时整台保持全亮
+		skill_tip(hv[1], hr.get_center().x, _top - 8.0 * s, vs, s)
+		return
+
+
+## 一名干员三招的提示牌（指挥台悬停与 Tab 编队栏共用）：底边在 bottom_y、水平居中在 cx（夹进屏幕）
+func skill_tip(o, cx: float, bottom_y: float, vs: Vector2, s: float) -> void:
+	var items: Array = o.skill_hud()
+	var fs: int = int(round(8.0 * s))
+	var lines: Array = []
+	var tw := 0.0
+	for k in 3:
+		var it: Array = items[k]
+		var st: String
+		var col: Color = GREY
+		if not it[2]:
+			st = ["招募", "精英一", "精英二"][k] + "解锁"
+		elif o.perm[k]:
+			st = "永久生效"
+			col = WHITE
+		elif float(it[3]) > 0.0:
+			st = "生效中 %d 秒" % int(ceil(float(it[3])))
+			col = WHITE
+		elif float(it[5]) >= 1.0:
+			st = "就绪"
+			col = UI.CYAN
+		else:
+			var need: float = o.sp_need(k)
+			var rate: float = g.sp_mult * o.stat(&"op_skill_sp") * o.lamp_sp()
+			st = ("充能中 约 %d 秒" % int(ceil((need - float(o.sp[k])) / rate))) if rate > 0.001 else "充能暂停"
+		var nm: String = str(o.skill_def(k).get("name", "技能 %d" % (k + 1)))
+		lines.append([nm, st, col])
+		tw = maxf(tw, h.v2.twidth(nm, fs) + 14.0 * s + h.v2.twidth(st, fs))
+	var lh: float = float(UI._ks(g.hud, fs)) + 5.0
+	var pad: float = 7.0 * s
+	var tsz := Vector2(tw + pad * 2.0, lh * 3.0 + pad * 2.0 - 4.0)
+	var tp := Vector2(clampf(cx - tsz.x / 2.0, 8.0, vs.x - tsz.x - 8.0), maxf(8.0, bottom_y - tsz.y))
+	g.hud.draw_rect(Rect2(tp, tsz), Color(0.016, 0.024, 0.031, 0.88))
+	g.hud.draw_rect(Rect2(tp, tsz), Color(1, 1, 1, 0.22), false, 1.0)
+	g.hud.draw_rect(Rect2(tp, Vector2(14.0 * s, 1.6)), WHITE)
+	for i in 3:
+		var ln: Array = lines[i]
+		var ly: float = tp.y + pad + lh * (i + 1) - 5.0
+		h.v2.txt(Vector2(tp.x + pad, ly), ln[0], fs, Color(WHITE.r, WHITE.g, WHITE.b, 0.9) if items[i][2] else GREY)
+		h.v2.txt(Vector2(tp.x + tsz.x - pad - h.v2.twidth(ln[1], fs), ly), ln[1], fs, ln[2])
+
+
+## 队长细格的剩余秒数：写在细格行右边，几段同时生效就按顺序排（一般只有一段）
+func _skill_secs(act: Array, p: Vector2, s: float) -> void:
+	var x: float = p.x
+	for a in act:
+		x += h.v2.big(Vector2(x, p.y), "%d" % int(ceil(a[1])), maxf(7.0, 7.0 * s), WHITE) + 4.0 * s
 
 
 ## 左：马灯 + 状态行 + 生命（大数字、细线）+ 灯火一行（「灯火」标签 · 带深色底槽的粗条 · 金色数字，30 / 70 刻度）+ 冲刺行。gx = 左翼右端
@@ -297,9 +437,12 @@ func _dash_row(xr: float, ly: float, s: float) -> void:
 			g.hud.draw_colored_polygon(pts, UI.CYAN)
 		else:
 			g.hud.draw_colored_polygon(pts, Color(1, 1, 1, 0.15))
-			if j == n and nxt < 1.0:   # 正在充能的那格：底下一截青色回填
-				var fh: float = chh * nxt
-				g.hud.draw_rect(Rect2(x0 + cw * 0.15, cy + chh / 2.0 - fh, cw * 0.55, fh), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.55))
+			if j == n and nxt < 1.0:
+				if dash_trace():   # 沿图标轮廓走一圈（docs/290，用户 11-06「沿着图标加载而不是笔直往上」）：同终结技环，从正上方起、顺时针
+					_trace(pts, nxt, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.9), maxf(1.0, 1.2 * s))
+				else:   # 正在充能的那格：底下一截青色回填
+					var fh: float = chh * nxt
+					g.hud.draw_rect(Rect2(x0 + cw * 0.15, cy + chh / 2.0 - fh, cw * 0.55, fh), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.55))
 		x = x0 - 2.5 * s
 	if g.t - _dash_t < 0.3 and not Cfg.reduce_motion:
 		var a: float = 1.0 - (g.t - _dash_t) / 0.3
@@ -312,6 +455,36 @@ func _dash_row(xr: float, ly: float, s: float) -> void:
 		g.hud.draw_rect(kr, Color(0, 0, 0, 0.5))
 		g.hud.draw_rect(kr, Color(1, 1, 1, 0.6), false, 1.0)
 		UI.text(g.hud, g.font, Vector2(kr.position.x, ly - 1.0 * s), key, ks, WHITE, HORIZONTAL_ALIGNMENT_CENTER, kw)
+
+
+## 冲刺格充能画法（docs/290，用户 11-06 定）：1 = 沿图标轮廓走一圈（缺省）；0 = 原来的竖直回填
+static func dash_trace() -> bool:
+	return Bal.vi("ui/console_dash_trace", 1) > 0
+
+
+## 沿闭合多边形轮廓画一道亮边（frac = 已走比例）。起点是第一条边（图标上沿）的中点，按 pts 顺序走（冲刺图标的点序在屏幕上是顺时针）
+func _trace(pts: PackedVector2Array, frac: float, col: Color, w: float) -> void:
+	var ring: Array = [(pts[0] + pts[1]) / 2.0]
+	for i in range(1, pts.size()):
+		ring.append(pts[i])
+	ring.append(pts[0])
+	ring.append(ring[0])
+	var total := 0.0
+	for i in ring.size() - 1:
+		total += (ring[i] as Vector2).distance_to(ring[i + 1])
+	var left: float = total * clampf(frac, 0.0, 1.0)
+	var line := PackedVector2Array([ring[0]])
+	for i in ring.size() - 1:
+		var a: Vector2 = ring[i]
+		var b: Vector2 = ring[i + 1]
+		var seg: float = a.distance_to(b)
+		if left <= seg:
+			line.append(a.lerp(b, left / maxf(0.001, seg)))
+			break
+		line.append(b)
+		left -= seg
+	if line.size() >= 2:
+		g.hud.draw_polyline(line, col, w)
 
 
 ## 马灯：四档帧条（通明 ≥ 70 / 摇曳 30–70 / 暗淡 < 30 / 寂灭 0），15 帧 / 秒循环；按整数倍像素画（桌面 4/3 逻辑像素 = 1080p 上 2 倍）
@@ -332,6 +505,7 @@ func _right(qx: float, base: float, sq: float, gap: float, tile: float, rush: St
 		var x: float = qx + i * (sq + gap)
 		var y: float = base - sq - 5.0 * s
 		var down: bool = o.cmd_down > 0.0
+		_hov.append([Rect2(x, y, sq, base + 12.0 * s - y), o])
 		g.hud.draw_rect(Rect2(x, y, sq, sq), Color(0, 0, 0, 0.5))
 		var hd: Array = h.ult.v._hi_head(o) if h.ult != null and h.ult.v != null else []
 		if not hd.is_empty():
@@ -339,6 +513,10 @@ func _right(qx: float, base: float, sq: float, gap: float, tile: float, rush: St
 		g.hud.draw_rect(Rect2(x, y, sq, sq), Color(1, 1, 1, 0.2), false, 1.0)
 		var hp: float = clampf(o.cmd_hp, 0.0, 1.0)
 		var low: bool = hp < 0.35 and not down
+		if skills_mode() > 0:   # 技能细格：血量线下方一行；生效中的段下面写剩余秒数
+			for a in _skill_segs(o, x, base + 2.0 * s, sq, maxf(2.0, 2.4 * s), s):
+				var ar: Rect2 = a[0]
+				h.v2.big(Vector2(ar.get_center().x, ar.end.y + maxf(8.0, 7.5 * s)), "%d" % int(ceil(a[1])), maxf(7.0, 6.5 * s), WHITE, 1)
 		g.hud.draw_rect(Rect2(x, base - 1.5 * s, sq, 1.6), DIM)
 		if not down:
 			g.hud.draw_rect(Rect2(x, base - 1.5 * s - 0.8, sq * hp, 3.2), UI.RED if low else WHITE)
