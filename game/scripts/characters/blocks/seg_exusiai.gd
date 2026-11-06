@@ -138,6 +138,14 @@ static func _exu_targets(o, n: int, rr: float, prio: float) -> Array:
 				if not ee.dead and not ee.chest and ee.pos.distance_to(o.pos) <= rr:
 					pool.append(ee)
 		o.ext["esc_on"] = escorting
+	if _pf_on(o):   # --exupf 量测（只计数，不改选目标）
+		var pf: Dictionary = o.ext.get("pfs", {})
+		pf["tc"] = int(pf.get("tc", 0)) + 1
+		for e0 in pool:
+			if not e0.dead and _exu_controlled(o.g, e0) and o.hittable(e0):
+				pf["tcc"] = int(pf.get("tcc", 0)) + 1
+				break
+		o.ext["pfs"] = pf
 	var keyed: Array = []
 	for i in pool.size():
 		var e = pool[i]
@@ -341,6 +349,33 @@ static func exu_tick(o, dt: float) -> void:
 	_exu_bullets(o, dt)
 
 
+## --exupf 量测（docs/297）：受控目标出现频率、主弹命中受控目标的次数与伤害占比；每 60 秒打一行 EXUPF，不取随机数、不改状态以外的东西
+static var _pf_flag := -1
+static func _pf_on(o) -> bool:
+	if _pf_flag < 0:
+		var cfg = o.g.get_node_or_null("/root/Cfg")
+		_pf_flag = 1 if cfg != null and cfg.dev_args().has("--exupf") else 0
+	return _pf_flag == 1
+
+
+static func _pf_hit(o, e: Dictionary, d: float) -> void:
+	var pf: Dictionary = o.ext.get("pfs", {})
+	var c: bool = _exu_controlled(o.g, e)
+	pf["h"] = int(pf.get("h", 0)) + 1
+	pf["d"] = float(pf.get("d", 0.0)) + d
+	if c:
+		pf["hc"] = int(pf.get("hc", 0)) + 1
+		pf["dc"] = float(pf.get("dc", 0.0)) + d
+	if e.elite or e.boss:
+		pf["he"] = int(pf.get("he", 0)) + 1
+	o.ext["pfs"] = pf
+	var m: int = int(o.g.t / 60.0)
+	if m > int(pf.get("m", 0)):
+		pf["m"] = m
+		print("EXUPF t=%d on=%d tc=%d tcc=%d h=%d hc=%d he=%d d=%d dc=%d pins=%d" % [int(o.g.t), 0 if _exu_active(o, "verb.aim_prefer").is_empty() else 1,
+			int(pf.get("tc", 0)), int(pf.get("tcc", 0)), int(pf.h), int(pf.get("hc", 0)), int(pf.get("he", 0)), int(pf.d), int(pf.get("dc", 0.0)), int(pf.get("pins", 0))])
+
+
 static func _exu_bullets(o, dt: float) -> void:
 	var st: Dictionary = o.ext
 	if st.bul.is_empty():
@@ -375,6 +410,8 @@ static func _exu_bullets(o, dt: float) -> void:
 			var sk: Array = el_stack_hit(o, e, str(bu.src))   # 精英化段（st.stack）：[伤害倍率, 满层命中火花（"" = 照旧）]
 			o.log_hit(bu.src, bu.tags)
 			o.deal_damage(e, bu.dmg * (ve if e.elite or e.boss else 1.0) * float(sk[0]) * pm)
+			if _pf_on(o) and bu.get("main", false):
+				_pf_hit(o, e, bu.dmg * (ve if e.elite or e.boss else 1.0) * float(sk[0]) * pm)
 			if not e.dead and g.rfx.sniper_execute(e, g.hit):   # 藏品 #169 扼喉之手：狙击攻击直接处决低血敌人（同维什戴尔 _h4_explode 的门槛与写法；10-15 补漏接）
 				o.log_hit("真实")
 				o.deal_damage(e, e.hp + 1.0)
@@ -387,6 +424,8 @@ static func _exu_bullets(o, dt: float) -> void:
 				if not e.dead and not e.boss and g.t - float(e.get("exu_pin", -99.0)) >= 1.0:
 					e["exu_pin"] = g.t
 					o.add_cc_growth(e, float(pref.pin) * (0.5 if e.elite else 1.0))
+					if _pf_on(o):
+						o.ext.pfs["pins"] = int(o.ext.pfs.get("pins", 0)) + 1
 					o.fx({"kind": "ring", "pos": e.pos, "r": float(e.r) + 14.0, "r0": float(e.r), "life": 0.25, "col": Color(1.0, 0.85, 0.35), "w": 2.5, "alpha": 0.95})
 			if not e.dead and not bu.get("tr", {}).is_empty():   # 曳光弹命中：标记
 				_exu_mark(o, e, bu.tr)
