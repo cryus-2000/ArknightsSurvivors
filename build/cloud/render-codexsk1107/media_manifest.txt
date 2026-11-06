@@ -1,0 +1,8 @@
+518114	desk_none.png
+597216	desk_row0.png
+578909	desk_row3.png
+571007	desk_row5.png
+249218	phone_none.png
+266118	phone_row0.png
+256964	phone_row3.png
+249228	phone_row5.png

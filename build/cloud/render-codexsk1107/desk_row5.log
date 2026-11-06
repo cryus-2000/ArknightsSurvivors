@@ -1,0 +1,34 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+OpenGL API 4.5 (Core Profile) Mesa 22.3.6 - Compatibility - Using Device: Mesa/X.org - llvmpipe (LLVM 15.0.6, 256 bits)
+
+ERROR: Cannot open file 'res://.godot/imported/op_texas_s3.wav-b1abc483f1e61d5aef856254db1714b3.sample'.
+   at: load (core/io/resource_format_binary.cpp:1156)
+   GDScript backtrace (most recent call first):
+       [0] _load_wav (res://scripts/sfx.gd:377)
+       [1] _ready (res://scripts/sfx.gd:199)
+ERROR: Failed loading resource: res://.godot/imported/op_texas_s3.wav-b1abc483f1e61d5aef856254db1714b3.sample.
+   at: _load (core/io/resource_loader.cpp:317)
+   GDScript backtrace (most recent call first):
+       [0] _load_wav (res://scripts/sfx.gd:377)
+       [1] _ready (res://scripts/sfx.gd:199)
+ERROR: Failed loading resource: res://audio/sfx/op_texas_s3.wav.
+   at: _load (core/io/resource_loader.cpp:317)
+   GDScript backtrace (most recent call first):
+       [0] _load_wav (res://scripts/sfx.gd:377)
+       [1] _ready (res://scripts/sfx.gd:199)
+ERROR: Cannot open file 'res://.godot/imported/ui_regular.ttf-a5aaf44acc33c6548edec4294da6964e.fontdata'.
+   at: load (core/io/resource_format_binary.cpp:1156)
+   GDScript backtrace (most recent call first):
+       [0] _ready (res://scripts/settings.gd:398)
+ERROR: Failed loading resource: res://.godot/imported/ui_regular.ttf-a5aaf44acc33c6548edec4294da6964e.fontdata.
+   at: _load (core/io/resource_loader.cpp:317)
+   GDScript backtrace (most recent call first):
+       [0] _ready (res://scripts/settings.gd:398)
+ERROR: Failed loading resource: res://fonts/ui_regular.ttf.
+   at: _load (core/io/resource_loader.cpp:317)
+   GDScript backtrace (most recent call first):
+       [0] _ready (res://scripts/settings.gd:398)
+WARNING: 1 ObjectDB instance was leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
