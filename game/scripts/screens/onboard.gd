@@ -867,7 +867,8 @@ func draw(vs: Vector2) -> void:
 	if a <= 0.01:
 		return
 	var touch: bool = g.touch != null and g.touch.active
-	var w: float = minf(vs.x - 24.0, 540.0 if touch else 500.0)
+	var v3on: bool = g.hud_view.v3 != null and g.hud_view.v3.on()
+	var w: float = minf(vs.x - 24.0, (470.0 if touch else 440.0) if v3on else (540.0 if touch else 500.0))   # v3 卡收小一号（11-07 用户「新手引导的格子能不能小一点」）
 	var pos := Vector2(16.0, 72.0) if touch else Vector2(16.0, 112.0)   # 触屏也放左上（生命 / 灯火条下方）：顶部居中会盖住屏幕中央的队长
 	pos.x -= slide * 50.0
 	_card(vs, id, Rect2(pos, Vector2(w, 0.0)), now, a, done_k, cur != "", touch, false)
@@ -995,9 +996,9 @@ func _card_v3(id: String, frame: Rect2, t: float, a: float, done_k: float, live:
 	var v2 = g.hud_view.v2
 	var c := card(id)
 	var w: float = frame.size.x
-	var stacked: bool = w < 440.0
-	var pad: float = 16.0 if not big else 24.0
-	var dw: float = (w - pad * 2.0) if stacked else (w * 0.44)
+	var stacked: bool = w < 380.0
+	var pad: float = 12.0 if not big else 24.0
+	var dw: float = (w - pad * 2.0) if stacked else (w * (0.44 if big else 0.4))
 	var dh: float = dw * 0.6
 	var tx_w: float = (w - pad * 2.0) if stacked else (w - dw - pad * 3.0)
 	var fsz: int = 15 if not big else 18
