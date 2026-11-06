@@ -67,6 +67,10 @@ var deco_dim := 1.0               # 装饰层（火花 / 碎片 / 光点 / 拖�
 var lr_v3 := false                # 本帧 late_read V3 生效（降噪只压装饰层）
 var dcrowd := 0.0                 # 降噪用的拥挤度：max(crowd, ecrowd × declutter crowd_mix)
 var mate_dim := 1.0               # 队友（非主控）特效再乘的系数（declutter mate_k；squad 绘制时按干员临时乘进 fx_dim）
+## 后期特效控制（docs/289 方案，render/late_fx，缺省 0）：late_k = 0（前期）→ 1（late_fx_t0 秒起 late_fx_ramp 秒内爬满）；
+## 队友整体透明度再乘 lerp(1, late_fx_mate, late_k)，队友转平面立起层也走这个系数，队友装饰颗粒按 late_fx_grains 减量。队长、敌弹、预警不动
+var late_k := 0.0
+var _lf_cv = null
 var lead_dim := 1.0               # 主控自己的特效再乘的系数（declutter lead_k）
 var mate_desat := 0.0             # 队友特效去饱和（docs/139 §10，render/mate_desat）
 var lead_boost := 1.0             # 队长特效提亮（docs/139 §11，render/lead_emph 档位或 render/lead_boost）
@@ -88,6 +92,7 @@ var _dbg_amb: bool = Dc.dbg("noamb")
 var _dbg_ground: bool = Dc.dbg("noground")
 var _dbg_gem: bool = Dc.dbg("nogem")
 var _dbg_mire: bool = Dc.dbg("nomire")
+var _dbg_opmask: bool = Dc.opmask_any()   # 后期特效分账（--clutterdbg=nolead / nomates / noop_<id>，Dc.mute_op）
 # docs/139 §8 怪物攻击圈环盘点（量测，只隐藏不改逻辑）：nowarn 地面预警（填充 + 轮廓）、notell 敌人自带危险提示、nofoefx 敌方一次性特效、
 # noshock 冲击环、noaura 光环（巢涌者 / 伪人负担圈）
 var _dbg_warn: bool = Dc.dbg("nowarn")
@@ -275,6 +280,9 @@ func update_visuals(dt: float) -> void:
 	fx_dim = lerpf(1.0, Dc.p("dim_floor"), dcrowd)
 	mate_dim = Dc.at("mate_k", dcrowd)
 	lead_dim = Dc.at("lead_k", dcrowd)
+	late_k = _late_fx_k()
+	if late_k > 0.0:
+		mate_dim *= lerpf(1.0, late_fx_v("mate", 0.55), late_k)
 	# 主次分层试验（docs/139 §10）：render/mate_layer 1 = 队友特效恒定压到 render/mate_fx（0.55）并去饱和 render/mate_desat；
 	# 用户 10-25「队友特效不要降，想其它办法」→ 缺省 0（只剩原来的拥挤降噪），改走 §11「突出队长」
 	mate_desat = 0.0
@@ -1345,7 +1353,7 @@ func _sorted_fast(evr: Rect2) -> bool:
 					if not _dbg_ground:
 						g.map.draw_sort_prop(ob)
 				7:
-					Pxp.draw_sorted(g, g.wcv, ob)
+					_pxp_sorted(ob)
 		else:
 			for i in v:
 				_se_draw(objs[i], kind[i])
@@ -1372,7 +1380,35 @@ func _se_draw(ob, kd: int) -> void:
 			if not _dbg_ground:
 				g.map.draw_sort_prop(ob)
 		7:
-			Pxp.draw_sorted(g, g.wcv, ob)
+			_pxp_sorted(ob)
+
+
+func _late_fx_k() -> float:
+	if Bal.v("render/late_fx", 0.0) <= 0.0 or g.demo_op != "":
+		return 0.0
+	return clampf((g.t - Bal.v("render/late_fx_t0", 480.0)) / maxf(Bal.v("render/late_fx_ramp", 60.0), 0.001), 0.0, 1.0)
+
+
+## 后期特效控制的参数：手机网页取 late_fx_<键>_mobile（没写就同桌面）
+func late_fx_v(key: String, dflt: float) -> float:
+	var v: float = Bal.v("render/late_fx_" + key, dflt)
+	if Cfg.mobile_web():
+		v = Bal.v("render/late_fx_" + key + "_mobile", v)
+	return v
+
+
+## 转平面立起层（排序项）：队友的件在后期走带队友系数的画布（原来直接画在世界画布上，拥挤降噪 / 队友系数都不生效）
+func _pxp_sorted(ob) -> void:
+	if late_k > 0.0 and Bal.v("render/late_fx_up", 1.0) > 0.0 and ob is Dictionary:
+		var ld = g.squad.leader() if g.squad != null else null
+		if ld != null and str(ob.get("oid", "")) != "" and str(ob.get("oid", "")) != str(ld.id):
+			if _lf_cv == null:
+				_lf_cv = preload("res://scripts/characters/batch_canvas.gd").new(g)
+			_lf_cv.g = g.wcv
+			_lf_cv.set_mod(mate_dim, 0.0)
+			Pxp.draw_sorted(g, _lf_cv, ob)
+			return
+	Pxp.draw_sorted(g, g.wcv, ob)
 
 
 ## 敌人身上层（词条特效批、弱点菱形）→ 干员技能上层 → 护盾 → 无人机三遍（影子光晕 / 机体 / 核心）
@@ -1649,6 +1685,8 @@ func _draw_fx() -> void:
 		var foe: bool = f.get("enemy", false) or FOE_KINDS.has(f.kind)
 		if ((_dbg_foe or _dbg_foefx) and foe) or (_dbg_friend and not foe and not AMB_KINDS.has(f.kind)) or (_dbg_amb and AMB_KINDS.has(f.kind)):
 			continue   # --clutterdbg 量测：这一层不画
+		if _dbg_opmask and not foe and f.has("sop") and Dc.mute_op(str(f.sop), f.get("lead", false)):
+			continue   # 后期特效分账：该干员出手生成的帧条不画
 		if bfx_grains != null and f.has("bfx") and BFX_KINDS.has(f.kind):
 			# Boss 结算特效（telegraph.warn_resolve 打的 bfx = 专属色）：第一帧迸出颗粒，矢量形压成半透明的底（起手 = 预警、爆发 = 颗粒、消散 = 颗粒飘散）
 			if not f.has("bg"):

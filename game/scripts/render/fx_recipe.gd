@@ -610,6 +610,8 @@ func _grains(o, at: Vector2, gy: float, mat: String, n: int, m: Dictionary, dir 
 	# 拥挤降噪只减装饰层：fx_dim 1 → 0.45 时颗粒数 ×1 → ×0.55
 	var k: float = clampf(g.world.fx_dim, 0.0, 1.0) if g.world != null else 1.0
 	n = maxi(1, int(round(n * lerpf(0.55, 1.0, k) * float(m.get("grain_k", 1.0)))))
+	if g.world != null and g.world.late_k > 0.0 and o != null and not o.is_leader:   # 后期特效控制（render/late_fx）：队友装饰颗粒减量
+		n = maxi(1, int(round(n * lerpf(1.0, g.world.late_fx_v("grains", 0.5), g.world.late_k))))
 	var cap: int = int(Bal.v("fx/recipe_grains", 160.0))
 	var h0: float = maxf(0.0, gy - at.y)
 	for i in n:
