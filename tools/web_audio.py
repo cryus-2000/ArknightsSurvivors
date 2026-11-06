@@ -13,7 +13,7 @@
   D / E（10-28 试听档，docs/187 §7，只动配乐、语音同 B）：配乐 22.05 / 16 kHz，level 1.1 = Vorbis 质量 -0.1。
     libsndfile 最低只到质量 0，这两档改用 imageio_ffmpeg 自带 ffmpeg 的 libvorbis 编码（global_quality = 质量 × 10 × 118）
 这是有损压缩。网页 PCM 大小取决于 AudioContext 采样率，文件降采样本身只减包体；手机上下文另由 power.js 设为 24 kHz。
-用法：export_web.py --audio-tier C（10-28 起缺省，B 可回退）；单独试：python tools/web_audio.py <game 目录副本> <A|B|C> （只改传进去的目录）
+用法：export_web.py --audio-tier C（10-28 起缺省，B 可回退）--final-tier D（11-06 起缺省）；单独试：python tools/web_audio.py <game 目录副本> <A|B|C> [最终 Boss 档 C|D|E]（只改传进去的目录）
 """
 import io, json, os, sys
 from math import gcd
@@ -28,6 +28,16 @@ TIERS = {
     "D": {"music_rate": 22050, "music": {"default": 1.1}, "voice": (24000, 0.85)},
     "E": {"music_rate": 16000, "music": {"default": 1.1}, "voice": (24000, 0.85)},
 }
+
+# 最终 Boss 配乐单独档位（11-06 用户批 docs/285 §3 A 项「A可以做」：只有最终战听得到；全局仍是 C 档）。
+# 8 首 = suno_final{,_knight,_izumik,_ishar}_p1 / _p2。只在全局档位是 C 时生效（A / B 是回退档，不跟着降）。
+# 实测（11-06，C 档 7.14 MiB）：D = 22.05 kHz / 1.1 → 6.12（−1.02，C 档 p1 本来就是这个，只有 p2 由 1.0 降到 1.1）；
+# E = 16 kHz / 1.1 → 4.94（−2.20）。libvorbis 最低质量 −0.1，再往下要更低采样率。
+FINAL_TIERS = {"C": None, "D": (22050, 1.1), "E": (16000, 1.1)}
+
+
+def is_final(name):
+    return name.startswith("suno_final") and (name.endswith("_p1") or name.endswith("_p2"))
 
 
 def music_group(name):
@@ -85,9 +95,10 @@ def encode_ff(x, sr, q):
             return fh.read()
 
 
-def shrink(gamedir, tier):
-    """改 gamedir/audio 下的配乐与语音；返回 {"music": [前, 后], "voice": [前, 后]}（字节）"""
+def shrink(gamedir, tier, final_tier="C"):
+    """改 gamedir/audio 下的配乐与语音；返回 {"music": [前, 后], "voice": [前, 后]}（字节）。final_tier：最终 Boss 8 首的单独档位（FINAL_TIERS）"""
     t = TIERS[tier]
+    fo = FINAL_TIERS[final_tier] if tier == "C" else None
     stat = {"music": [0, 0], "voice": [0, 0]}
     mdir = os.path.join(gamedir, "audio", "music")
     for f in sorted(os.listdir(mdir)):
@@ -97,7 +108,9 @@ def shrink(gamedir, tier):
         old = os.path.getsize(p)
         x, sr = sf.read(p, dtype="float32")
         sr_out = min(sr, t["music_rate"])
-        if tier == "C":
+        if fo is not None and is_final(f[:-4]):
+            sr_out = min(sr, fo[0])
+        elif tier == "C":
             sr_out = min(sr, music_rate(x, sr, sr_out))
         duration = len(x) / sr
         if sr_out != sr:
@@ -106,6 +119,8 @@ def shrink(gamedir, tier):
             # Periodic padding preserves the tail/head neighbourhood of looped music.
             x = resample_poly(x, sr_out // g, sr // g, padtype="wrap").astype(np.float32)
         lv = t["music"].get(music_group(f[:-4]), t["music"]["default"])
+        if fo is not None and is_final(f[:-4]):
+            lv = fo[1]
         new = encode(x, sr_out, lv)
         assert sf.info(io.BytesIO(new)).frames == len(x), "%s：重新编码后帧数变了" % f
         assert abs(len(x) / sr_out - duration) <= 1 / sr_out, "%s：重采样时长变了" % f
@@ -179,4 +194,4 @@ def report(stat):
 
 
 if __name__ == "__main__":
-    print(report(shrink(sys.argv[1], sys.argv[2])))
+    print(report(shrink(sys.argv[1], sys.argv[2], sys.argv[3] if len(sys.argv) > 3 else "C")))

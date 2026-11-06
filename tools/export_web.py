@@ -86,6 +86,7 @@ def main():
     ap.add_argument("--part-mib", type=float, default=10)
     ap.add_argument("--worktree-presets", action="store_true", help="用工作区的 export_presets.cfg（改预设时本地试导出用）")
     ap.add_argument("--audio-tier", default="C", choices=["off", "A", "B", "C", "D", "E"], help="网页包音频再压缩档位（tools/web_audio.py：A 近无损 / B 平衡 / C 缺省（10-28 用户定，B 可回退） / D、E 试听档（docs/187 §7）；off = 不压）")
+    ap.add_argument("--final-tier", default="D", choices=["C", "D", "E"], help="最终 Boss 8 首配乐的单独档位（tools/web_audio.py FINAL_TIERS；11-06 用户批 D，docs/285 §3）；只在 --audio-tier C 时生效")
     ap.add_argument("--wasm-gzip", action="store_true", help="index.wasm 分片退回 gzip（缺省 LZMA，docs/187 §5）")
     ap.add_argument("--no-web-lossy", action="store_true", help="关掉网页专用的近无损压缩（事件插画有损 WebP 0.85、音效 32 kHz 上限，docs/187 §8），对照用")
     ap.add_argument("--no-lossless", action="store_true", help="关掉无损瘦身（字体 WOFF2 + WebP 无损最高档，docs/187），对照用")
@@ -142,7 +143,7 @@ def main():
     if freed:
         print("[瘦身] 旧程序合成配乐（Suno 分层已取代）不进网页包：%.2f MiB" % (freed / 1048576), flush=True)
     if a.audio_tier != "off":
-        print("[瘦身] " + web_audio.report(web_audio.shrink(gpath, a.audio_tier)) + "（档位 %s）" % a.audio_tier, flush=True)
+        print("[瘦身] " + web_audio.report(web_audio.shrink(gpath, a.audio_tier, a.final_tier)) + "（档位 %s，最终 Boss %s）" % (a.audio_tier, a.final_tier), flush=True)
     tmp = os.path.join(WORK, "out")
     os.makedirs(tmp)
     run([GODOT, "--headless", "--path", gpath, "--import"], check=False)  # 无头导入退出时偶发崩溃，结果以导出为准
