@@ -1005,7 +1005,7 @@ static func tx_rift_draw_body(o) -> bool:
 	# 只画——她当队长、剑雨滂沱持续期间（或这一轮次元斩还没斩完），两轮次元斩之间不再在原地画本体；结束时从最后一刀的落点留一串瞬移残影回到原位、本体 0.18 秒淡入。
 	# 玩家位置、受击判定、镜头、拾取都不碰（本体逻辑位置本来就全程在原地）
 	var g = o.g
-	var hide: bool = MfBal.v("fx/texas_s3_hide_captain", 0.0) > 0.0 and o.is_leader and (o.skill_active_left(2) > 0.0 or rf != null)
+	var hide: bool = MfBal.v("fx/texas_s3_hide_captain", 0.0) > 0.0 and str(o.id) == "texas" and o.is_leader and (o.skill_active_left(2) > 0.0 or rf != null)   # 只限德克萨斯：11-07 用户「艾丽妮 S3 的时候人消失了」——原来漏了这一条，任何队长放 S3 都会被藏起来
 	if hide:
 		o.tx["s3h"] = true
 		_tx_pos_mark(o)

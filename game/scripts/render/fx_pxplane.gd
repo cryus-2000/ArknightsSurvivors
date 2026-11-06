@@ -1006,6 +1006,8 @@ func _draw_qi_wakes(o, cv) -> void:
 	var px: float = g.PX
 	for q in o.vg.get("qi", []):
 		var dv: Vector2 = (q.v as Vector2).normalized()
+		if absf(dv.y) > 0.6 and Bal.v("fx/skadi_qi_wake_vert", 0.0) <= 0.0:
+			continue   # 11-07 用户截图「奇怪」：竖着跑的剑气，身后 V 字浪痕变成两条垂下的虚线，配上浪头像降落伞——竖向不画浪痕（横 / 斜照旧）
 		var nv := Vector2(-dv.y, dv.x * 0.72)
 		var head: Vector2 = _wpos({"pos": q.p, "_pxq": q.get("_pxq")}, q)
 		var L: float = minf(90.0, (q.p as Vector2).distance_to(q.get("p0", q.p)) + 20.0)
