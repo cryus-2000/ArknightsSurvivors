@@ -1,0 +1,6 @@
+986477	still_e0_atk_new.png
+986973	still_e0_atk_old.png
+987930	still_e1_atk_new.png
+988240	still_e1_atk_old.png
+991066	still_e2_atk_new.png
+989819	still_e2_atk_old.png

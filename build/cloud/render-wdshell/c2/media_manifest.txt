@@ -1,0 +1,6 @@
+991583	still_e1_s2_new.png
+987318	still_e1_s2_old.png
+992867	still_e2_s2_new.png
+995308	still_e2_s2_old.png
+1008152	still_e2_s3_new.png
+1011322	still_e2_s3_old.png

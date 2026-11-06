@@ -1,0 +1,12 @@
+e1 s2 old rc=0 180 张 0 处脚本错误
+e1 s2 new rc=0 180 张 0 处脚本错误
+tools/gcp/render_jobs/wd_shell_rec.sh: line 26: ffmpeg: command not found
+tools/gcp/render_jobs/wd_shell_rec.sh: line 29: ffmpeg: command not found
+e2 s2 old rc=0 180 张 0 处脚本错误
+e2 s2 new rc=0 180 张 0 处脚本错误
+tools/gcp/render_jobs/wd_shell_rec.sh: line 26: ffmpeg: command not found
+tools/gcp/render_jobs/wd_shell_rec.sh: line 29: ffmpeg: command not found
+e2 s3 old rc=0 180 张 0 处脚本错误
+e2 s3 new rc=0 180 张 0 处脚本错误
+tools/gcp/render_jobs/wd_shell_rec.sh: line 26: ffmpeg: command not found
+tools/gcp/render_jobs/wd_shell_rec.sh: line 29: ffmpeg: command not found
