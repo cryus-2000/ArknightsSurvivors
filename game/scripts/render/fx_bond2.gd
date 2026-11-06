@@ -3,7 +3,7 @@
 ## 色层当普通物体画进单位排序（吃场景光），最亮的热芯进光学发光层（共用转平面的 EMIT_CAP），命中挂 ≤ 0.15 秒的照地光、Noita 颗粒。
 ## 斩线 = 德克萨斯「一刀一道」（_tx_draw_line1）的画法：芯近白（前两拍过曝）、两侧一格角色色、两头收尖，hold 拍后断成碎段收掉。
 ## 角色定稿色：德克萨斯琥珀 TX_C（docs/257）、拉普兰德淡紫 LP（docs/273）、能天使红橙 RAMP.n（docs/262）、艾丽妮白 + 亮紫 LT（docs/272）、流明钢蓝 LM_C（docs/255）。
-## 每招元素 ≤ 3 种：宿敌 = 两道斩线 + 交点星芒 / 冲击环；企鹅物流 = 航线虚线 + 曳光 + 落剑；灯下审决 = 光圈 + 刺线 + 受审光针。
+## 每招元素 ≤ 3 种（第二版，docs/296）：宿敌 = 两人残影 + 交锋星芒 + 散开的冲击波；企鹅物流 = 车（运行时生成贴图）+ 车顶曳光 + 胎痕；灯下审决 = 灯塔虚像（运行时生成贴图）+ 暖金光锥 + 紫印。
 ## 地面件（航线虚线、光圈、冲击环）排序键压到最前（画在所有单位下面）；立起件（斩线、曳光、落剑、光针）按最低点 y 排进单位层。
 ## 演出卡（解锁 / 精二强化）画在 HUD（hud.gd 调 draw_hud）。
 extends RefCounted
@@ -85,80 +85,43 @@ func cast(a: Dictionary) -> void:
 	var t: float = g.t
 	var c: Vector2 = a.c
 	match str(a.id):
-		"b_rival":
-			var L: float = a.L
-			var d1: Vector2 = a.d1
-			var d2: Vector2 = a.d2
-			var w: int = 5 if a.e2 else 4   # 11-06 录像：2–3 格在后期满屏里认不出 X，加到 4–5 格（8–10 世界像素）
-			_push({"k": "mark", "c": c, "t0": t, "life": 0.25, "pal": LP})
-			_ghost(a.who.texas, c - d1 * L, c + d1 * L, t + 0.22, 0.18, TX)   # 两人残影真的出手（用户 11-06 选定）：沿各自那道斩线冲过怪群
-			_ghost(a.who.lappland, c - d2 * L, c + d2 * L, t + 0.44, 0.18, LP)
-			_push({"k": "ln", "a": c - d1 * L, "b": c + d1 * L, "t0": t + 0.25, "w": w, "hold": 12, "grow": 2, "pal": TX, "life": 1.4})
-			_push({"k": "ln", "a": c - d2 * L, "b": c + d2 * L, "t0": t + 0.47, "w": w, "hold": 9, "grow": 2, "pal": LP, "life": 1.2})
-			_push({"k": "cross", "c": c, "t0": t + 0.78, "life": 0.5, "r": 160.0 * float(a.k), "pa": TX, "pb": LP})
-			due.append([t + 0.25, "light", {"o": a.who.texas, "p": c - d1 * L * 0.3, "r": 180.0, "i": 0.6, "c": TX[4]}])
-			due.append([t + 0.47, "light", {"o": a.who.lappland, "p": c + d2 * L * 0.3, "r": 180.0, "i": 0.6, "c": LP[4]}])
-			due.append([t + 0.78, "light", {"o": a.who.texas, "p": c, "r": 260.0, "i": 0.9, "c": Color(1.0, 0.86, 0.8)}])
-			due.append([t + 0.78, "grains", {"o": a.who.texas, "p": c, "n": 8, "c0": TX[5], "c1": TX[3]}])
-			due.append([t + 0.8, "grains", {"o": a.who.lappland, "p": c, "n": 8, "c0": LP[5], "c1": LP[3]}])
-			if a.e2:
-				var d3: Vector2 = Vector2(a.d0).orthogonal()
-				_push({"k": "ln", "a": c - d3 * L * 0.8, "b": c + d3 * L * 0.8, "t0": t + 0.95, "w": 4, "hold": 7, "grow": 2, "pal": TX, "life": 1.0})
-				_ghost(a.who.texas, c + d3 * L * 0.8, c - d3 * L * 0.8, t + 0.92, 0.16, TX)
-		"b_penguin":
-			var s0: Vector2 = a.s
-			var dl: Vector2 = a.dl
-			var nl: Vector2 = dl.orthogonal()
-			var ln: float = a.len
-			var hw: float = a.hw
-			_push({"k": "lane", "s": s0, "dl": dl, "len": ln, "hw": hw, "t0": t, "life": 1.75})
-			var hop: Vector2 = s0 - dl * 40.0
-			_ghost(a.who.exusiai, hop, hop, t + 0.18, 1.1, EX, 34.0)   # 能天使残影跃起、悬空扫射整条航线
-			if a.who.texas != null:
-				_ghost(a.who.texas, s0, s0 + dl * ln * 0.2, t + 0.62, 0.12, TX)
-			var ex = a.who.exusiai
-			var mz: Vector2 = (ex.pos if ex != null and is_instance_valid(ex) else s0) + Vector2(0, -26)
-			for i in 30:
-				var u0: float = float(i) / 29.0
-				var off: float = (fposmod(float(i) * 0.618034, 1.0) * 2.0 - 1.0) * (hw - 16.0)
-				var p: Vector2 = s0 + dl * (ln * (0.08 + 0.9 * u0)) + nl * off
-				var ts: float = t + 0.25 + 0.032 * i
-				_push({"k": "tracer", "a": mz, "b": p, "t0": ts, "life": 0.3})
-				if i % 3 == 0:
-					due.append([ts + 0.067, "grains", {"o": ex, "p": p, "n": 2, "c0": EX[5], "c1": EX[3]}])
-				if i % 5 == 0:
-					due.append([ts + 0.067, "light", {"o": ex, "p": p, "r": 90.0, "i": 0.45, "c": EX[4]}])
-			var nsw: int = 10 if a.e2 else 6
-			for j in nsw:
-				var ts2: float = t + 0.75 + 0.09 * j * (6.0 / float(nsw))
-				var big: bool = j == nsw - 1
-				var u1: float = (float(j) + 0.5) / float(nsw)
-				var p2: Vector2 = s0 + dl * (ln * (0.12 + 0.84 * u1)) + nl * (18.0 if j % 2 == 0 else -18.0)
-				_push({"k": "sword", "p": p2, "t0": ts2, "big": big, "life": 0.75})
-				_ghost(a.who.texas, p2 - dl * 50.0, p2 + dl * 20.0, ts2 + 0.06, 0.08, TX)   # 德克萨斯残影逐把落剑点闪身斩下
-				var L2: float = 64.0 if big else 46.0
-				_push({"k": "ln", "a": p2 + Vector2(-L2, -L2 * 0.45), "b": p2 + Vector2(L2, L2 * 0.45), "t0": ts2 + 0.133, "w": 2, "hold": 2, "grow": 1, "pal": TX, "life": 0.4, "lift": 6.0})
-				_push({"k": "ln", "a": p2 + Vector2(-L2, L2 * 0.45), "b": p2 + Vector2(L2, -L2 * 0.45), "t0": ts2 + 0.133, "w": 2, "hold": 2, "grow": 1, "pal": TX, "life": 0.4, "lift": 6.0})
-				due.append([ts2 + 0.133, "light", {"o": a.who.texas, "p": p2, "r": 160.0 if big else 120.0, "i": 0.75 if big else 0.55, "c": TX[4]}])
-				due.append([ts2 + 0.133, "grains", {"o": a.who.texas, "p": p2, "n": 6 if big else 3, "c0": TX[5], "c1": TX[3]}])
-		"b_inq":
-			var R: float = a.r
-			_push({"k": "lamp", "c": c, "r": R, "t0": t + 0.05, "life": 0.55 + 0.17 * (4 if a.e2 else 3) + 0.2 + 0.55, "op": a.who.lumen})
-			due.append([t + 0.1, "light", {"o": a.who.lumen, "p": c, "r": R * 1.6, "i": 0.55, "c": LM[4], "life": 0.15}])
-			due.append([t + 0.2, "motes", {"o": a.who.lumen, "c": c, "r": R}])
-			var angs: Array = [-0.21, 0.84, 1.88, 2.9] if a.e2 else [-0.21, 0.84, 1.88]
-			for i in angs.size():
-				var d := Vector2.from_angle(float(angs[i]))
-				var p0: Vector2 = c - d * (R + 40.0)
-				var p1: Vector2 = c + d * (R + 40.0)
-				if i % 2 == 1:
-					var tmp: Vector2 = p0
-					p0 = p1
-					p1 = tmp
-				var ts3: float = t + 0.55 + 0.17 * i
-				_push({"k": "ln", "a": p0, "b": p1, "t0": ts3, "w": 3, "hold": 5, "grow": 1, "pal": IR, "life": 0.6, "star": true})
-				_ghost(a.who.irene, p0, p1, ts3 - 0.03, 0.1, IR)   # 艾丽妮残影沿刺线贯穿
-				due.append([ts3, "light", {"o": a.who.irene, "p": c + d * R * 0.2, "r": 170.0, "i": 0.6, "c": IR[4]}])
+		"b_rival":   # 对砍（docs/296）：两人残影相向冲上 → 刀锋相交定格 → 冲击波向四周散开
+			var tx = a.who.texas
+			var lp = a.who.lappland
+			_ghost(tx, c + Vector2(-380, 10), c + Vector2(-30, 10), t, 0.42, TX)
+			_ghost(lp, c + Vector2(380, 10), c + Vector2(30, 10), t, 0.42, LP)
+			_push({"k": "ghost", "op": tx, "a": c + Vector2(-30, 10), "b": c + Vector2(-30, 10), "t0": t + 0.42, "dur": 0.6, "pal": TX, "up": 0.0, "life": 0.95, "fr": -2, "flip": false})
+			_push({"k": "ghost", "op": lp, "a": c + Vector2(30, 10), "b": c + Vector2(30, 10), "t0": t + 0.42, "dur": 0.6, "pal": LP, "up": 0.0, "life": 0.95, "fr": -2, "flip": true})
+			_push({"k": "clash", "c": c + Vector2(0, -30), "t0": t + 0.45, "life": 0.2})
+			_push({"k": "shock", "c": c, "t0": t + 0.6, "rmax": float(a.rmax), "life": 0.8})
+			due.append([t + 0.45, "light", {"o": tx, "p": c, "r": 300.0, "i": 1.0, "c": Color(1.0, 0.9, 0.85), "life": 0.15}])
+			due.append([t + 0.47, "grains", {"o": tx, "p": c + Vector2(-8, -20), "n": 10, "c0": TX[5], "c1": TX[3]}])
+			due.append([t + 0.47, "grains", {"o": lp, "p": c + Vector2(8, -20), "n": 10, "c0": LP[5], "c1": LP[3]}])
+			due.append([t + 0.65, "grains", {"o": tx, "p": c, "n": 12, "c0": Color(0.55, 0.58, 0.62), "c1": Color(0.3, 0.32, 0.36), "mat": "dust"}])
+		"b_penguin":   # 开车：车身 + 车顶能天使 + 驾驶位德克萨斯 + 胎痕；扫射曳光由 shots() 逐发加
+			_push({"k": "car", "s": a.s, "dl": a.dl, "len": float(a.len), "t0": t, "T0": 0.15, "T1": 1.25, "ex": a.who.exusiai, "tx": a.who.texas, "life": 1.45})
+			_push({"k": "skid", "s": a.s, "dl": a.dl, "len": float(a.len), "t0": t, "T0": 0.15, "T1": 1.25, "life": 2.4})
+			for i in 11:
+				var u: float = float(i) / 10.0
+				due.append([t + 0.15 + 1.1 * u, "grains", {"o": a.who.texas, "p": Vector2(a.s) + Vector2(a.dl) * float(a.len) * u - Vector2(a.dl) * 60.0, "n": 3, "c0": Color(0.5, 0.52, 0.56), "c1": Color(0.28, 0.3, 0.34), "mat": "dust"}])
+		"b_inq":   # 灯塔照海：灯塔虚像 + 旋转光锥 + 扫到的紫印；艾丽妮残影追着光锥
+			_push({"k": "lh", "O": a.O, "t0": t, "life": 1.65, "ang0": float(a.ang0), "ang1": float(a.ang1), "R": float(a.R)})
+			var O: Vector2 = a.O
+			var n := 4
+			for i in n:
+				var a0: float = lerpf(float(a.ang0), float(a.ang1), float(i) / float(n))
+				var a1: float = lerpf(float(a.ang0), float(a.ang1), float(i + 1) / float(n))
+				_ghost(a.who.irene, O + Vector2.from_angle(a0) * float(a.R) * 0.55, O + Vector2.from_angle(a1) * float(a.R) * 0.55, t + 0.55 + 0.75 * float(i) / float(n), 0.75 / float(n), IR)
+			due.append([t + 0.35, "light", {"o": a.who.lumen, "p": O + Vector2(0, -20), "r": 240.0, "i": 0.8, "c": LAMPG[4], "life": 0.15}])
+
+
+## 能天使车顶一轮扫射（bond2._penguin 每 0.08 秒调一次）：从车顶枪口到每个目标一道曳光
+func shots(a: Dictionary, car: Vector2, targets: Array) -> void:
+	var mz: Vector2 = car + Vector2(-8.0 * signf(Vector2(a.dl).x if Vector2(a.dl).x != 0.0 else 1.0), -70)
+	for p in targets:
+		_push({"k": "tracer", "a": mz, "b": p, "t0": g.t, "life": 0.3})
+	if not targets.is_empty() and a.who.exusiai != null:
+		due.append([g.t + 0.067, "light", {"o": a.who.exusiai, "p": targets[0], "r": 90.0, "i": 0.4, "c": EX[4]}])
 
 
 ## 残影：o 的出手帧条（attack）半透明分身从 a 冲到 b（dur 秒；a == b 时原地出招），身后拖 4 层越来越淡的残像，到点后停 0.12 秒淡出。
@@ -227,8 +190,15 @@ static func sort_items(game) -> Array:
 		var k: String = str(it.k)
 		var sk: float
 		match k:
-			"lane", "lamp", "cross", "mark":
+			"lane", "lamp", "cross", "mark", "shock", "skid":
 				sk = GROUND_KEY
+			"car":
+				sk = r._car_pos(it).y + 1.0
+			"lh":
+				sk = float((it.O as Vector2).y) + 1.0
+				out.append({"bd2": it, "skey": 1.0e9, "beam": true})   # 光锥画在所有单位上面
+			"clash":
+				sk = float((it.c as Vector2).y) + 40.0
 			"ln", "tracer", "ghost":
 				sk = maxf((it.a as Vector2).y, (it.b as Vector2).y) + 2.0
 			_:
@@ -240,7 +210,20 @@ static func sort_items(game) -> Array:
 static func draw_sorted(game, ci, item: Dictionary) -> void:
 	var r = game.get_meta("fx_bond2")
 	var it: Dictionary = item.bd2
+	if item.get("beam", false):
+		r._draw_beam(ci, it)
+		return
 	match str(it.k):
+		"clash":
+			r._draw_clash(ci, it)
+		"shock":
+			r._draw_shock(ci, it)
+		"car":
+			r._draw_car(ci, it)
+		"skid":
+			r._draw_skid(ci, it)
+		"lh":
+			r._draw_lh(ci, it)
 		"ln":
 			r._draw_ln(ci, it)
 		"lane":
@@ -518,11 +501,13 @@ func _draw_ghost(it: Dictionary) -> void:
 	var still: bool = a.distance_to(b) < 2.0
 	var u: float = clampf(age / maxf(0.01, dur), 0.0, 1.0)
 	var fade: float = 1.0 - clampf((age - dur - 0.12) / 0.22, 0.0, 1.0)
-	var flip: bool = (b.x < a.x) if not still else (o.face < 0.0)
+	var flip: bool = bool(it.flip) if it.has("flip") else ((b.x < a.x) if not still else (o.face < 0.0))
 	var pc: Color = it.pal[4]
 	var lift := Vector2(0, -float(it.up))
 	var bt: int = _beat(float(it.t0))
 	var fr: int = (bt % hf) if still else mini(hf - 1, int(u * float(hf - 1)) + 1)
+	if int(it.get("fr", -1)) == -2:
+		fr = hf / 2   # 交锋定格：停在出刀那一帧
 	if not still:
 		for j in range(4, 0, -1):   # 残像：越后越淡、越偏本人颜色
 			var uj: float = u - 0.14 * float(j)
@@ -555,6 +540,307 @@ func _draw_bolt(ci, it: Dictionary) -> void:
 		_glow(top + Vector2(0, float(m) * px), IR[5])
 	else:
 		_star(ci, hd, 3 if f == 2 else 2, IR)
+
+
+
+# ================================================================ 第二版主形（docs/296）：运行时按像素格生成贴图（不进包）+ 代码画
+
+const LAMPG := [Color("#1c1408"), Color("#4a3612"), Color("#8c6a26"), Color("#cfa24a"), Color("#efd08a"), Color("#fff0c6"), Color("#ffffff")]   # 艾丽妮手提灯暖金（docs/272 LAMP）
+const BLK := [Color("#07080a"), Color("#101216"), Color("#1a1d23"), Color("#272b33"), Color("#3a3f4a")]
+const CARC := [Color("#0e1014"), Color("#1c2028"), Color("#2e3440"), Color("#48505e"), Color("#6c7686")]
+const LH_W := 96
+const LH_H := 190
+const LH_LAMP_Y := 21
+const CAR_W := 72
+const CAR_H := 50
+
+var _tex := {}
+
+
+func _img_tex(key: String, w: int, h: int, fill: Callable) -> Texture2D:
+	if _tex.has(key):
+		return _tex[key]
+	var im := Image.create(w, h, false, Image.FORMAT_RGBA8)
+	im.fill(Color(0, 0, 0, 0))
+	fill.call(im)
+	var t := ImageTexture.create_from_image(im)
+	_tex[key] = t
+	return t
+
+
+static func _px(im: Image, x: int, y: int, c: Color) -> void:
+	if x >= 0 and y >= 0 and x < im.get_width() and y < im.get_height():
+		im.set_pixel(x, y, c)
+
+
+## 灯塔（用户 11-07 给的参考：黑色细高塔身 + 带城垛与两角塔楼的堡垒基座 + 正面金色徽记 + 竖栅格灯室透暖光 + 尖顶）；同 tools/bond2_concept.py lighthouse3
+func _lighthouse_tex(lit: bool) -> Texture2D:
+	return _img_tex("lh%d" % int(lit), LH_W, LH_H, func(im: Image):
+		var cx := LH_W / 2
+		for y in range(158, 190):
+			var hw: int = 40 + (y - 158) / 6
+			for x in range(-hw, hw + 1):
+				var col: Color = BLK[1] if (x + y) % 11 else BLK[2]
+				if absi(x) >= hw - 1:
+					col = BLK[0]
+				if y == 158 or x == -hw:
+					col = LAMPG[2] if lit else BLK[3]
+				_px(im, cx + x, y, col)
+		for y in range(152, 158):
+			for x in range(-40, 41):
+				if posmod(x, 8) < 4:
+					_px(im, cx + x, y, BLK[2] if y > 152 else BLK[3])
+		for tcx in [-38, 38]:
+			for y in range(140, 158):
+				for x in range(-7, 8):
+					_px(im, cx + tcx + x, y, BLK[2] if x < 0 else BLK[1])
+			for y in range(135, 140):
+				for x in range(-7, 8):
+					if posmod(x, 6) < 3:
+						_px(im, cx + tcx + x, y, BLK[3])
+		for y in 7:
+			for x in range(-7, 8):
+				var wing: bool = absi(x) >= 2 and y <= 4 - (absi(x) - 2) / 2 + 1 and y >= (absi(x) - 2) / 3
+				var body: bool = absi(x) <= 1 and y >= 1 and y <= 6
+				if wing or body:
+					_px(im, cx + x, 166 + y, LAMPG[4] if (x + y) % 3 else LAMPG[5])
+		for y in range(40, 152):
+			var hw2: int = 7 + int(float(y - 40) / 112.0 * 6.0)
+			for x in range(-hw2, hw2 + 1):
+				var col2: Color = BLK[2] if x < -hw2 / 3 else BLK[1]
+				if x == -hw2:
+					col2 = LAMPG[3] if lit else BLK[4]
+				elif x == -hw2 + 1 and lit:
+					col2 = LAMPG[1]
+				elif x == hw2:
+					col2 = BLK[0]
+				_px(im, cx + x, y, col2)
+		for y in range(34, 40):
+			for x in range(-9, 10):
+				_px(im, cx + x, y, BLK[3] if y == 34 or y == 39 else BLK[2])
+		for y in range(8, 34):
+			for x in range(-9, 10):
+				var bar: bool = absi(x) == 9 or posmod(x, 3) == 0 or y == 8 or y == 20 or y == 33
+				if bar:
+					_px(im, cx + x, y, BLK[2] if lit else BLK[1])
+				else:
+					var d: float = Vector2(x, (y - 21) * 0.6).length() / 10.0
+					_px(im, cx + x, y, (Color.WHITE if d < 0.3 else (LAMPG[5] if d < 0.6 else LAMPG[4])) if lit else BLK[0])
+		for y in 8:
+			var hw3: int = maxi(0, (y - 2) / 2)
+			for x in range(-hw3, hw3 + 1):
+				_px(im, cx + x, y, LAMPG[4] if lit and x == 0 else BLK[2]))
+
+
+## 车（俯视 3/4，72×50）：车顶 + 朝镜头的侧面（侧窗、琥珀腰线）+ 前后挡风 + 四个轮子 + 红橙顶灯；同 tools/bond2_concept.py car3（车头朝右）
+func _car_tex() -> Texture2D:
+	return _img_tex("car", CAR_W, CAR_H, func(im: Image):
+		var yb := CAR_H - 6
+		var hs := 16
+		var dpt := 22
+		for x in range(-2, CAR_W + 2):
+			for y in 4:
+				_px(im, x, yb + 2 + y, Color(0.04, 0.04, 0.05, 0.6))
+		for x in CAR_W:
+			for y in hs:
+				var col: Color = CARC[1] if y > hs - 4 else CARC[2]
+				if y == 5 or y == 6:
+					col = TX[4] if x > 4 and x < CAR_W - 4 else CARC[2]
+				if (x > 14 and x < 30 and y >= 1 and y <= 4) or (x > 34 and x < 52 and y >= 1 and y <= 4):
+					col = Color8(150, 180, 200) if (x + y) % 5 else Color8(210, 230, 240)
+				if x == 0 or x == CAR_W - 1:
+					col = CARC[0]
+				_px(im, x, yb - y, col)
+		for x in range(6, CAR_W - 10):
+			for y in dpt:
+				var col2: Color = CARC[3] if y > 2 else CARC[4]
+				if x > CAR_W - 22:
+					col2 = Color8(170, 200, 220) if (x + y) % 6 else Color8(220, 235, 245)
+				if x < 14:
+					col2 = Color8(120, 140, 160)
+				_px(im, x, yb - hs - y + dpt / 3 - 2, col2)
+		for dx in range(-3, 4):
+			_px(im, CAR_W / 2 - 6 + dx, yb - hs - dpt + 4, EX[4] if absi(dx) < 2 else EX[3])
+		for wx in [10, CAR_W - 18]:
+			for dx in 10:
+				for dy in 6:
+					var r: float = Vector2(dx - 4.5, (dy - 2.5) * 1.6).length()
+					if r < 5.0:
+						_px(im, wx + dx, yb + dy - 3, Color8(16, 16, 18) if r > 2.0 else CARC[3]))
+
+
+## 对砍交锋：两色四芒（横向左琥珀 / 右淡紫，竖向白 → 本人色），3 拍收
+func _draw_clash(ci, it: Dictionary) -> void:
+	var f: int = _beat(float(it.t0))
+	if f < 0 or f > 2:
+		return
+	var c: Vector2 = _snap(it.c)
+	var px: float = g.PX
+	var arm: int = [22, 16, 9][f]
+	for i in range(1, arm + 1):
+		var k: float = float(i) / float(arm)
+		_cell(ci, c + Vector2(-i, 0) * px, Color.WHITE if k < 0.25 else (TX[5] if k < 0.6 else TX[4]))
+		_cell(ci, c + Vector2(i, 0) * px, Color.WHITE if k < 0.25 else (LP[5] if k < 0.6 else LP[4]))
+		if i < arm * 0.6:
+			_cell(ci, c + Vector2(0, -i) * px, Color.WHITE if k < 0.3 else TX[5])
+			_cell(ci, c + Vector2(0, i) * px, Color.WHITE if k < 0.3 else LP[5])
+		if i % 3 == 0:
+			_glow(c + Vector2(-i, 0) * px, TX[5])
+			_glow(c + Vector2(i, 0) * px, LP[5])
+	for dx in range(-1, 2):
+		for dy in range(-1, 2):
+			_cell(ci, c + Vector2(dx, dy) * px, Color(1.35, 1.3, 1.25))
+	_glow(c, Color.WHITE)
+
+
+## 对砍余波：冲击波向四周散开（左半琥珀、右半淡紫；芯前 0.2 秒近白），外侧一圈淡气浪，后面一圈贴地尘环；0.5 秒到最大半径，之后断开淡出
+func _draw_shock(ci, it: Dictionary) -> void:
+	var age: float = g.t - float(it.t0)
+	if age < 0.0 or age > 0.8:
+		return
+	var k: float = clampf(age / 0.5, 0.0, 1.0)
+	var r: float = lerpf(40.0, float(it.rmax), k)
+	var fade: float = 1.0 - clampf((age - 0.45) / 0.35, 0.0, 1.0)
+	var c: Vector2 = _snap(it.c)
+	var segs := 32
+	ci.draw_set_transform(c, 0.0, Vector2(1.0, SQ))
+	for i in segs:
+		if age > 0.45 and (i * 7) % 10 < int((age - 0.45) / 0.35 * 10.0):
+			continue
+		var a0: float = TAU * float(i) / float(segs)
+		var a1: float = TAU * float(i + 1) / float(segs) - 0.01
+		var right: bool = cos((a0 + a1) * 0.5) >= 0.0
+		var pal: Array = LP if right else TX
+		ci.draw_arc(Vector2.ZERO, r + 2.0, a0, a1, 4, Color(pal[4].r, pal[4].g, pal[4].b, fade), 8.0)
+		var core: Color = Color(1.3, 1.28, 1.25, fade) if age < 0.2 else Color(pal[5].r, pal[5].g, pal[5].b, fade)
+		ci.draw_arc(Vector2.ZERO, r, a0, a1, 4, core, 4.0)
+		ci.draw_arc(Vector2.ZERO, r * 1.1, a0, a1, 4, Color(pal[4].r, pal[4].g, pal[4].b, 0.4 * fade), 2.0)
+		if i % 2 == 0:
+			ci.draw_arc(Vector2.ZERO, r * 0.86, a0, a1, 4, Color(0.2, 0.22, 0.25, 0.55 * fade), 4.0)
+	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if age < 0.4:
+		for i in 12:
+			var a: float = TAU * float(i) / 12.0
+			_glow(c + Vector2(cos(a) * r, sin(a) * r * SQ), LP[5] if cos(a) >= 0.0 else TX[5])
+
+
+## 车：驾驶位德克萨斯（只露上半身）→ 车身贴图 → 车顶能天使（出手帧）；两拍一颠
+func _car_pos(it: Dictionary) -> Vector2:
+	var u: float = clampf((g.t - float(it.t0) - float(it.T0)) / (float(it.T1) - float(it.T0)), 0.0, 1.0)
+	return Vector2(it.s) + Vector2(it.dl) * float(it.len) * u
+
+
+func _draw_car(ci, it: Dictionary) -> void:
+	var age: float = g.t - float(it.t0)
+	if age < float(it.T0) - 0.05 or age > float(it.T1) + 0.2:
+		return
+	var p: Vector2 = _snap(_car_pos(it))
+	var flip: bool = Vector2(it.dl).x < 0.0
+	var fs: float = -1.0 if flip else 1.0
+	var bounce: float = g.PX if (_beat(float(it.t0)) / 2) % 2 == 0 else 0.0
+	var al: float = clampf((age - float(it.T0) + 0.05) / 0.1, 0.0, 1.0) * (1.0 - clampf((age - float(it.T1)) / 0.2, 0.0, 1.0))
+	var tx = it.tx
+	if tx != null and is_instance_valid(tx) and tx.has_method("draw_body_at"):
+		var ti: Texture2D = tx.anim_tex("idle")
+		if ti != null:
+			tx.draw_body_at(p + Vector2(fs * 22.0, -40.0 - bounce), flip, Color(1, 1, 1, al), {"tex": ti, "frame": 0, "hf": tx.anim_hframes(ti, "idle"), "kind": "idle"})
+			tx._cv_flush()
+	var t: Texture2D = _car_tex()
+	var sz := Vector2(CAR_W, CAR_H) * g.PX
+	ci.draw_set_transform(p + Vector2(0, -bounce), 0.0, Vector2(fs, 1.0))
+	ci.draw_texture_rect(t, Rect2(Vector2(-sz.x * 0.5, -sz.y + 6.0 * g.PX), sz), false, Color(1, 1, 1, al))
+	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	_glow(p + Vector2(fs * -12.0, -sz.y + 14.0 * g.PX), EX[5])
+	var ex = it.ex
+	if ex != null and is_instance_valid(ex) and ex.has_method("draw_body_at"):
+		var ta: Texture2D = ex.anim_tex("attack")
+		if ta != null:
+			var hf: int = ex.anim_hframes(ta, "attack")
+			ex.draw_body_at(p + Vector2(fs * -10.0, -62.0 - bounce), (_beat(float(it.t0)) / 3) % 2 == 1, Color(1, 1, 1, al), {"tex": ta, "frame": _beat(float(it.t0)) % hf, "hf": hf, "kind": "attack"})
+			ex._cv_flush()
+
+
+## 胎痕：车后两道断续暗痕，车开过后 1 秒内逐渐断开
+func _draw_skid(ci, it: Dictionary) -> void:
+	var age: float = g.t - float(it.t0)
+	if age < float(it.T0):
+		return
+	var s0: Vector2 = it.s
+	var dl: Vector2 = it.dl
+	var nl: Vector2 = dl.orthogonal()
+	var u: float = clampf((age - float(it.T0)) / (float(it.T1) - float(it.T0)), 0.0, 1.0)
+	var brk: float = clampf((age - float(it.T1)) / 1.0, 0.0, 0.9)
+	var n: int = int(float(it.len) * u / g.PX)
+	for i in range(0, n, 2):
+		if brk > 0.0 and fposmod(float(i) * 0.618034, 1.0) < brk:
+			continue
+		var q: Vector2 = s0 + dl * float(i) * g.PX
+		for sd in [-1.0, 1.0]:
+			_cell(ci, q + nl * 20.0 * sd + Vector2(0, 4), Color(0.06, 0.06, 0.07, 0.85))
+
+
+## 灯塔：从下往上显形（0–0.4 秒），0.25 秒起灯室亮；最后 0.35 秒淡出
+func _draw_lh(ci, it: Dictionary) -> void:
+	var age: float = g.t - float(it.t0)
+	var life: float = float(it.life)
+	if age < 0.0 or age > life:
+		return
+	var k: float = clampf(age / 0.4, 0.0, 1.0)
+	var al: float = 0.95 * (1.0 - clampf((age - (life - 0.35)) / 0.35, 0.0, 1.0))
+	var t: Texture2D = _lighthouse_tex(age >= 0.25)
+	var px: float = g.PX
+	var O: Vector2 = _snap(it.O)
+	var vis: float = float(LH_H) * minf(1.0, k * 1.3)
+	var src := Rect2(0, float(LH_H) - vis, LH_W, vis)
+	ci.draw_texture_rect_region(t, Rect2(O + Vector2(-LH_W * 0.5, -vis) * px, Vector2(LH_W, vis) * px), src, Color(1, 1, 1, al))
+	if age >= 0.25:
+		var lp: Vector2 = O + Vector2(0, -(LH_H - LH_LAMP_Y)) * px
+		for i in 6:
+			_glow(lp + Vector2((i % 3 - 1) * 6, (i / 3) * 8 - 4), LAMPG[5])
+
+
+## 光锥：灯室发出的暖金扇形光（两条亮边 + 中线 + 隔点抖动），从灯室斜落到地面；扫到的敌人头顶亮紫印（只画 0.15 秒，之后受审倒下）
+func _draw_beam(ci, it: Dictionary) -> void:
+	var age: float = g.t - float(it.t0)
+	if age < 0.4 or age > 1.2:
+		return
+	var k: float = clampf((age - 0.4) / 0.75, 0.0, 1.0)
+	var a0: float = it.ang0
+	var a1: float = it.ang1
+	var ang: float = lerpf(a0, a1, k)
+	var R: float = it.R
+	var px: float = g.PX
+	var O: Vector2 = _snap(it.O)
+	var lp: Vector2 = O + Vector2(0, -(LH_H - LH_LAMP_Y)) * px
+	var spread := 0.3
+	for sd in [-1, 0, 1]:
+		var e: Vector2 = O + Vector2.from_angle(ang + spread * 0.5 * sd) * R
+		var n: int = int(lp.distance_to(e) / px)
+		for i in range(0, n, 1 if sd != 0 else 3):
+			var u: float = float(i) / float(n)
+			var q: Vector2 = lp.lerp(e, u)
+			_cell(ci, q, Color.WHITE if (sd == 0 or u < 0.35) else LAMPG[5])
+			if sd != 0 and i % 12 == 0:
+				_glow(q, LAMPG[5])
+	var bt: int = int(floor(g.t * 15.0))
+	for i in 90:
+		var h1: float = fposmod(float(i) * 0.618034 + float(bt) * 0.137, 1.0)
+		var h2: float = fposmod(float(i) * 0.414214 + float(bt) * 0.071, 1.0)
+		var aa: float = ang + (h1 - 0.5) * spread
+		var q2: Vector2 = lp.lerp(O + Vector2.from_angle(aa) * R, 0.15 + 0.85 * h2)
+		_cell(ci, q2, LAMPG[5] if (i % 4) else Color.WHITE)
+	var rate: float = (a1 - a0) / 0.75
+	for e2 in g.enemies:
+		if e2.dead or e2.get("friendly", false):
+			continue
+		if e2.pos.distance_squared_to(O) > R * R:
+			continue
+		var lag: float = wrapf(ang - (e2.pos - O).angle(), -PI, PI) / rate
+		if lag >= 0.0 and lag < 0.18:
+			var hp: Vector2 = _snap(e2.pos + Vector2(0, -float(e2.get("r", 10.0)) * 1.6 - 10.0))
+			for d in [Vector2.ZERO, Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]:
+				_cell(ci, hp + d * px, IR[5] if d == Vector2.ZERO else IR[3])
+			_glow(hp, IR[4])
 
 
 # ================================================================ 演出卡（HUD）

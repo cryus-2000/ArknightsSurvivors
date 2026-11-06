@@ -9,9 +9,9 @@ const Bal = preload("res://scripts/core/balance.gd")
 
 ## 3 对：成员、标签、招式名、一句话（docs/294 §4，玩家可见文字按 docs/76）
 const MOVES := {
-	"b_rival": {"ops": ["texas", "lappland"], "tag": "宿敌", "name": "十字旧怨", "desc": "两道剑刃交成十字，交点炸开；拉普兰德那一道附带沉默"},
-	"b_penguin": {"ops": ["exusiai", "texas"], "tag": "企鹅物流", "name": "急件航线", "desc": "能天使扫出一条航线，德克萨斯的剑沿航线依次落下"},
-	"b_inq": {"ops": ["lumen", "irene"], "tag": "灯下审决", "name": "提灯宣判", "desc": "流明提灯照出一圈光，艾丽妮三刺穿过，光里的敌人一齐受审"},
+	"b_rival": {"ops": ["texas", "lappland"], "tag": "宿敌", "name": "十字旧怨", "desc": "两人对砍，刀锋相撞的余波向四周散开；拉普兰德一侧附带沉默"},
+	"b_penguin": {"ops": ["exusiai", "texas"], "tag": "企鹅物流", "name": "急件航线", "desc": "德克萨斯开车冲过怪群，能天使站在车顶朝四周扫射"},
+	"b_inq": {"ops": ["lumen", "irene"], "tag": "灯下审决", "name": "提灯宣判", "desc": "流明身后升起灯塔，光锥扫过的敌人由艾丽妮逐个审判"},
 }
 const ORDER := ["b_rival", "b_penguin", "b_inq"]
 const SRC_TAGS := ["skill", "羁绊技"]
@@ -128,20 +128,23 @@ static func _cast(u, bid: String, pr: Array, c: Vector2, e2: bool) -> void:
 	var k: float = Bal.v("bond2/size_e2", 1.3) if e2 else Bal.v("bond2/size", 1.0)
 	var a := {"id": bid, "who": who, "c": c, "d0": d0, "k": k, "e2": e2, "age": 0.0, "done": {}, "fr": {}, "from": from}
 	match bid:
-		"b_rival":
-			var L: float = 420.0 * k
-			a["L"] = L
-			a["d1"] = d0.rotated(0.52)
-			a["d2"] = d0.rotated(-0.52)
-		"b_penguin":
-			var ex = who.exusiai
-			var dl: Vector2 = (c - ex.pos).normalized() if c != ex.pos else d0
-			a["s"] = ex.pos + dl * 70.0
+		"b_rival":   # 对砍：交锋点 = 最密处；冲击波最大半径
+			a["rmax"] = Bal.v("bond2/rival_r", 440.0) * k
+		"b_penguin":   # 开车：从小队旁出发，穿过最密处再开出去一段
+			var dl: Vector2 = d0
+			a["s"] = from - dl * 120.0
 			a["dl"] = dl
-			a["len"] = 760.0 * k
-			a["hw"] = 90.0 * k
-		"b_inq":
-			a["r"] = 230.0 * k
+			a["len"] = maxf(from.distance_to(c) + 420.0, Bal.v("bond2/car_len", 900.0)) * k
+			a["hw"] = Bal.v("bond2/car_hw", 56.0) * k
+		"b_inq":   # 灯塔：立在流明身后，光锥以朝最密处为中线左右各扫 sweep 弧度
+			var lm = who.lumen
+			var O: Vector2 = lm.pos - d0 * 90.0 + Vector2(0, -4)
+			var dc: Vector2 = (c - O).normalized() if c != O else d0
+			var sw: float = Bal.v("bond2/inq_sweep", 0.95)
+			a["O"] = O
+			a["R"] = Bal.v("bond2/inq_r", 700.0) * k
+			a["ang0"] = dc.angle() - sw
+			a["ang1"] = dc.angle() + sw
 	st(u).acts.append(a)
 	var s: Dictionary = st(u)
 	s.log.append({"id": bid, "ev": "cast", "t": snappedf(g.t, 0.1)})
@@ -212,126 +215,132 @@ static func _step(u, a: Dictionary, dt: float) -> bool:
 	return true
 
 
-## 宿敌「十字旧怨」：0.25 秒德克萨斯一道（琥珀），0.47 秒拉普兰德一道（附沉默），两道在最密处交成 X；0.78 秒交点炸开
+## 宿敌「十字旧怨」· 对砍（docs/296 第五轮，用户 11-06 定）：两人残影相向冲上（0–0.45 秒），刀锋相交停一拍（0.45–0.6），
+## 冲击波从交锋点向四周散开（0.6–1.1 秒，半径 40 → rmax），冲到哪只打哪只；拉普兰德一侧（交点右半边）附带沉默
 static func _rival(u, a: Dictionary, t: float) -> bool:
 	var tx = a.who.texas
 	var lp = a.who.lappland
 	var c: Vector2 = a.c
-	var L: float = a.L
-	var hw: float = 40.0 * float(a.k)
 	if _once(a, "go"):
 		if _ok(tx):
 			tx.play_vis_anim("attack")
 		if _ok(lp):
 			lp.play_vis_anim("attack")
 		_sfx(u.g, "op_texas_s3", -6.0, 1.05)
-	if t >= 0.25 and _once(a, "l1"):
-		var d: Vector2 = a.d1
-		for e in u.in_band(c - d * L, c + d * L, hw):
-			_hit(u, tx if _ok(tx) else lp, e, 1.0, "十字旧怨", a)
-		_sfx(u.g, "op_texas_s3_cut_1", -3.0, 1.0)
-	if t >= 0.47 and _once(a, "l2"):
-		var d2: Vector2 = a.d2
+	if t >= 0.45 and _once(a, "clash"):
+		_sfx(u.g, "ult_lappland_impact", -3.0, 1.0)
+		_sfx(u.g, "op_texas_s3_cut_1", -4.0, 0.9)
+	if t >= 0.6:
+		var rmax: float = a.rmax
+		var r: float = lerpf(40.0, rmax, clampf((t - 0.6) / 0.5, 0.0, 1.0))
+		var hit: Dictionary = a.get("hitset", {})
 		var sil: bool = Bal.v("bond2/rival_silence", 1.0) > 0.0
-		for e in u.in_band(c - d2 * L, c + d2 * L, hw):
-			_hit(u, lp if _ok(lp) else tx, e, 1.0, "十字旧怨", a)
-			if sil and not e.dead and not e.boss:
+		for e in u.in_circle(c, r):
+			var eid: int = int(e.get("id", -1))
+			if hit.has(eid):
+				continue
+			hit[eid] = true
+			var right: bool = e.pos.x >= c.x
+			_hit(u, (lp if right else tx) if (_ok(lp) and _ok(tx)) else (tx if _ok(tx) else lp), e, 1.2, "十字旧怨", a)
+			if right and sil and not e.dead and not e.boss:
 				u.g.enemies_sys.silence(e, u.g.t + (0.5 if e.elite else 1.0))
-		_sfx(u.g, "ult_lappland_slash_2", -3.0, 1.0)
-	if t >= 0.78 and _once(a, "x"):
-		var who = tx if _ok(tx) else lp
-		for e in u.in_circle(c, 160.0 * float(a.k)):
-			_hit(u, who, e, 0.6, "十字旧怨", a)
-		_sfx(u.g, "ult_lappland_impact", -4.0, 1.0)
-		if a.e2:   # 精二：交点再补一道竖斩（成「米」字）
-			a["l3"] = true
-	if a.get("l3", false) and t >= 0.95 and _once(a, "l3hit"):
-		var d3: Vector2 = Vector2(a.d0).orthogonal()
-		for e in u.in_band(c - d3 * L * 0.8, c + d3 * L * 0.8, hw):
-			_hit(u, tx if _ok(tx) else lp, e, 0.8, "十字旧怨", a)
-		_sfx(u.g, "op_texas_s3_cut_2", -4.0, 1.0)
-	return t >= 1.6
+		a["hitset"] = hit
+	return t >= 1.4
 
 
-## 企鹅物流「急件航线」：航线 = 能天使 → 最密处方向一条宽带；0.25–1.2 秒一路扫射（沿线由近及远 30 个落点），0.75 秒起 6 把剑沿线依次落下；1.35 秒整条航线收尾结算
+## 企鹅物流「急件航线」· 开车（docs/296 第五轮）：德克萨斯开车从小队旁冲过怪群（0.15–1.25 秒），车身碾过的带状区域打一下；
+## 能天使站在车顶，每 0.08 秒朝车周围 260 内最近的 3 只各开一枪（不抽随机数，按 g.enemies 顺序取最近）
 static func _penguin(u, a: Dictionary, t: float) -> bool:
 	var ex = a.who.exusiai
 	var tx = a.who.texas
 	var s0: Vector2 = a.s
 	var dl: Vector2 = a.dl
-	var nl: Vector2 = dl.orthogonal()
 	var ln: float = a.len
-	var hw: float = a.hw
+	var T0 := 0.15
+	var T1 := 1.25
+	var driver = tx if _ok(tx) else ex
 	var shooter = ex if _ok(ex) else tx
-	var sworder = tx if _ok(tx) else ex
 	if _once(a, "go"):
-		if _ok(ex):
-			ex.play_vis_anim("attack")
-		_sfx(u.g, "op_exusiai_s3", -5.0, 1.0)
-	var nshot: int = 30
-	var shots: int = clampi(int((t - 0.25) / 0.032) + 1, 0, nshot) if t >= 0.25 else 0
-	while int(a.done.get("k", 0)) < shots:
-		var i: int = int(a.done.get("k", 0))
-		var u0: float = float(i) / float(nshot - 1)
-		var off: float = (fposmod(float(i) * 0.618034, 1.0) * 2.0 - 1.0) * (hw - 16.0)   # 落点按黄金比例错开，不抽随机数
-		var p: Vector2 = s0 + dl * (ln * (0.08 + 0.9 * u0)) + nl * off
-		for e in u.in_circle(p, 38.0):
-			_hit(u, shooter, e, 0.35, "急件航线", a)
-		a.done["k"] = i + 1
-		if i % 6 == 0:
-			_sfx(u.g, "op_exusiai_atk", -9.0, 1.0)
-	var nsw: int = 10 if a.e2 else 6
-	for j in nsw:
-		var ts: float = 0.75 + 0.09 * j * (6.0 / float(nsw))
-		if t >= ts + 0.12 and _once(a, "sw%d" % j):
-			var big: bool = j == nsw - 1
-			var u1: float = (float(j) + 0.5) / float(nsw)
-			var p2: Vector2 = s0 + dl * (ln * (0.12 + 0.84 * u1)) + nl * (18.0 if j % 2 == 0 else -18.0)
-			for e in u.in_circle(p2, (130.0 if big else 100.0) * float(a.k)):
-				_hit(u, sworder, e, 1.0 if big else 0.8, "急件航线", a)
-			if j % 2 == 0 or big:
-				_sfx(u.g, "op_texas_s3_cut_%d" % (1 + j % 3), -6.0, 1.0)
-	if t >= 1.35 and _once(a, "sweep"):
-		for e in u.in_band(s0, s0 + dl * ln, hw):
-			_hit(u, sworder, e, 0.5, "急件航线", a)
-		_sfx(u.g, "ult_texas_impact", -6.0, 1.1)
-	return t >= 1.9
+		_sfx(u.g, "op_exusiai_s3", -6.0, 1.0)
+	if t < T0:
+		return false
+	var uu: float = clampf((t - T0) / (T1 - T0), 0.0, 1.0)
+	var p: Vector2 = s0 + dl * ln * uu
+	var p0: Vector2 = a.get("cp", s0)
+	a["cp"] = p
+	var hit: Dictionary = a.get("hitset", {})
+	for e in u.in_band(p0, p, float(a.hw)):
+		var eid: int = int(e.get("id", -1))
+		if hit.has(eid):
+			continue
+		hit[eid] = true
+		_hit(u, driver, e, 1.0, "急件航线", a)
+		if not e.dead and not e.boss:
+			driver.apply_kb(e, dl.orthogonal() * (140.0 if (e.pos - p).dot(dl.orthogonal()) >= 0.0 else -140.0))
+	a["hitset"] = hit
+	var nshot: int = int((minf(t, T1) - T0) / 0.08)
+	while int(a.done.get("shots", 0)) < nshot:
+		a.done["shots"] = int(a.done.get("shots", 0)) + 1
+		var near: Array = u.in_circle(p, 260.0)
+		near.sort_custom(func(x, y): return x.pos.distance_squared_to(p) < y.pos.distance_squared_to(p))
+		var tg: Array = near.slice(0, 3)
+		for e in tg:
+			_hit(u, shooter, e, 0.5, "急件航线", a)
+		var fx = _fx(u.g)
+		if fx != null:
+			fx.shots(a, p, tg.map(func(e): return e.pos))
+		if int(a.done.shots) % 3 == 0:
+			_sfx(u.g, "op_exusiai_atk", -10.0, 1.0)
+	if t >= T1 and _once(a, "end"):
+		_sfx(u.g, "ult_texas_impact", -8.0, 1.2)
+	return t >= 1.6
 
 
-## 灯下审决「提灯宣判」：0.05 秒流明提灯张开光圈（0.3 秒张满）；0.55 / 0.72 / 0.89 秒艾丽妮三刺穿过光圈（精二四刺）；1.25 秒光里剩下的一齐受审
+## 灯下审决「提灯宣判」· 灯塔照海、审判守岸（docs/296 第七轮，用户给参考图）：流明身后升起灯塔虚像（0–0.4 秒），
+## 光锥从 ang0 扫到 ang1（0.4–1.15 秒，半径 R），扫到的敌人亮紫印、0.15 秒后受审（艾丽妮出手）
 static func _inq(u, a: Dictionary, t: float) -> bool:
 	var lm = a.who.lumen
 	var ir = a.who.irene
-	var c: Vector2 = a.c
-	var R: float = a.r
+	var O: Vector2 = a.O
+	var R: float = a.R
 	if _once(a, "go"):
 		if _ok(lm):
 			lm.play_vis_anim("skill")
-		_sfx(u.g, "op_lumen_s2", -5.0, 1.0)
-	var angs: Array = [-0.21, 0.84, 1.88, 2.9] if a.e2 else [-0.21, 0.84, 1.88]
-	for i in angs.size():
-		var tt: float = 0.55 + 0.17 * i
-		if t >= tt and _once(a, "th%d" % i):
-			var d := Vector2.from_angle(float(angs[i]))
-			var p0: Vector2 = c - d * (R + 40.0)
-			var p1: Vector2 = c + d * (R + 40.0)
-			if _ok(ir):
-				ir.play_vis_anim("attack")
-			for e in u.in_band(p0, p1, 30.0 * float(a.k)):
-				_hit(u, ir if _ok(ir) else lm, e, 1.0, "提灯宣判", a)
-			_sfx(u.g, "op_irene_atk", -4.0, 1.0 + 0.05 * i)
-	var tv: float = 0.55 + 0.17 * angs.size() + 0.2
-	if t >= tv and _once(a, "judge"):
-		var who = ir if _ok(ir) else lm
-		var es: Array = u.in_circle(c, R)
-		a["judged"] = es.slice(0, 40)
-		for e in es:
-			_hit(u, who, e, 1.0, "提灯宣判", a)
-		_sfx(u.g, "op_irene_big", -4.0, 1.0)
-		var fx = _fx(u.g)
-		if fx != null:
-			fx.judge(a, es.slice(0, 40))
-	return t >= tv + 0.6
+		_sfx(u.g, "op_lumen_s2", -5.0, 0.9)
+	if t >= 0.4 and t < 1.2:
+		var k: float = clampf((t - 0.4) / 0.75, 0.0, 1.0)
+		var ang: float = lerpf(float(a.ang0), float(a.ang1), k)
+		var pa: float = float(a.get("pang", a.ang0))
+		a["pang"] = ang
+		var marks: Array = a.get("marks", [])
+		var seen: Dictionary = a.get("seen", {})
+		for e in u.in_circle(O, R):
+			var eid: int = int(e.get("id", -1))
+			if seen.has(eid):
+				continue
+			var ea: float = (e.pos - O).angle()
+			var rel: float = wrapf(ea - float(a.ang0), -PI, PI)
+			var lo: float = wrapf(pa - float(a.ang0), -PI, PI)
+			var hi: float = wrapf(ang - float(a.ang0), -PI, PI)
+			if rel >= minf(lo, hi) - 0.02 and rel <= maxf(lo, hi) + 0.02:
+				seen[eid] = true
+				marks.append([e, t + 0.15])
+		a["seen"] = seen
+		a["marks"] = marks
+		if int(t * 15) % 3 == 0 and _ok(ir) and _once(a, "ia%d" % int(t * 5)):
+			ir.play_vis_anim("attack")
+	var keep: Array = []
+	for m in a.get("marks", []):
+		if t >= float(m[1]):
+			_hit(u, ir if _ok(ir) else lm, m[0], 1.2, "提灯宣判", a)
+			if _once(a, "js%d" % int(t * 10)):
+				_sfx(u.g, "op_irene_atk", -7.0, 1.0)
+		else:
+			keep.append(m)
+	a["marks"] = keep
+	if t >= 1.2 and _once(a, "end"):
+		_sfx(u.g, "op_irene_big", -5.0, 1.0)
+	return t >= 1.6 and keep.is_empty()
 
 
 ## 作战记录 / 测试用：本局解锁与释放
