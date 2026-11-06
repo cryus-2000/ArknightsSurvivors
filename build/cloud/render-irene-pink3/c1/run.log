@@ -1,0 +1,14 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4815 项）
+render_prep 完成，用时 3 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+s1_e0_c1 180 帧 []
+s1_e1_c1 180 帧 []
+s1_e2_c1 180 帧 []
+fatal: reference is not a tree: 873eda0d232088ad1d100766f67b68be0e332686
+== game/ → 873eda0d232088ad1d100766f67b68be0e332686
+s1_e0_c0 180 帧 []
+s1_e1_c0 180 帧 []
+s1_e2_c0 180 帧 []
+== game/ → HEAD
+mp4 build/cloud/render-irene-pink3-c1/media/irene_s1.mp4 4310 KB
+media：4 个文件，5.9M
