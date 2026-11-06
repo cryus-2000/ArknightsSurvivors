@@ -34,6 +34,49 @@ func _verify():
             failures.append("art_tex:" + base)
         # 按实际选中的变体核密度：render/op_1x 开且包里有同名 @1x → 1.0（干员 1 倍帧条，docs/128），否则 @2x → 2.0
         var want_d := 1.0 if Art.op_1x_on() and Art._packed_path(base + "@1x") != "" else (2.0 if str(item[0]).ends_with("@2x") else -1.0)
+        # 敌人帧条减半读（docs/287 §3 ⑩ half_enemy_desktop / 手机网页）：探针独立重判 @2x 是不是 1 倍图整 2 倍放大——
+        # 是 → 应读成 1 倍（密度 1、尺寸恰好一半、内容 = 原图最近邻缩半，屏幕大小不变）；不是 → 照旧 @2x 密度 2、原尺寸。
+        # 真丢了高清图（@2x 换成别的 / 缩坏）这里照样报 half_size / half_pixels / hires_density
+        if want_d == 2.0 and texture != null and resource is Texture2D and Art.half_enemy_on() and base.begins_with("e_"):
+            var raw: Image = resource.get_image()
+            if raw != null and not raw.is_empty():
+                raw = raw.duplicate()
+                if raw.is_compressed():
+                    raw.decompress()
+                if raw.get_format() != Image.FORMAT_RGBA8:
+                    raw.convert(Image.FORMAT_RGBA8)
+                var up := false
+                var half: Image = null
+                if raw.get_width() % 2 == 0 and raw.get_height() % 2 == 0:
+                    half = raw.duplicate()
+                    half.resize(raw.get_width() / 2, raw.get_height() / 2, Image.INTERPOLATE_NEAREST)
+                    var back: Image = half.duplicate()
+                    back.resize(raw.get_width(), raw.get_height(), Image.INTERPOLATE_NEAREST)
+                    var pa: Image = raw.duplicate()
+                    pa.premultiply_alpha()
+                    back.premultiply_alpha()
+                    up = back.get_data() == pa.get_data()
+                if up:
+                    want_d = 1.0
+                    if texture.get_width() * 2 != raw.get_width() or texture.get_height() * 2 != raw.get_height():
+                        failures.append("half_size:" + base)
+                    else:
+                        var exp: Image = half.duplicate()
+                        if Art.pop_wanted(base):
+                            Art.pop_image(exp)
+                        var got: Image = texture.get_image()
+                        if got == null or got.is_empty():
+                            failures.append("half_pixels:" + base)
+                        else:
+                            got = got.duplicate()
+                            if got.get_format() != Image.FORMAT_RGBA8:
+                                got.convert(Image.FORMAT_RGBA8)
+                            exp.premultiply_alpha()
+                            got.premultiply_alpha()
+                            if got.get_data() != exp.get_data():
+                                failures.append("half_pixels:" + base)
+                elif texture.get_width() != raw.get_width() or texture.get_height() != raw.get_height():
+                    failures.append("kept2x_size:" + base)
         if want_d > 0.0 and Art.hires(base) != want_d:
             failures.append("hires_density:" + base)
     for alias_name in Art.ALIAS:
@@ -127,7 +170,7 @@ func _verify():
                 failures.append("gallery_roster_open:" + str(n_open))
         gallery.queue_free()
     var rost = load("res://scripts/core/roster.gd")
-    var result = {"roster_count": (rost.all_ids().size() - rost.locked_ids().size()) if cfg != null else 0, "tickets": rost.tickets() if cfg != null else 0, "user_dir": str(ProjectSettings.get_setting("application/config/custom_user_dir_name", "")), "unlock_all": cfg != null and cfg.unlock_all, "runs_log": cfg != null and cfg.runs_log_enabled(), "packed_png_count": images.size(), "alias_count": Art.ALIAS.size(), "audio_count": audio_paths.size(), "json_count": json_paths.size(), "audience": audience, "failures": failures}
+    var result = {"roster_count": (rost.all_ids().size() - rost.locked_ids().size()) if cfg != null else 0, "tickets": rost.tickets() if cfg != null else 0, "user_dir": str(ProjectSettings.get_setting("application/config/custom_user_dir_name", "")), "unlock_all": cfg != null and cfg.unlock_all, "runs_log": cfg != null and cfg.runs_log_enabled(), "packed_png_count": images.size(), "half_enemy": [Art.half_enemy_on(), Art.half_n, Art.half_keep], "alias_count": Art.ALIAS.size(), "audio_count": audio_paths.size(), "json_count": json_paths.size(), "audience": audience, "failures": failures}
     Art._cache.clear()
     Art._hires.clear()
     Art._hires_rid.clear()
