@@ -81,4 +81,4 @@ Tab 属性面板（桌面三栏版）编队栏的每个头像下，也画同一�
 ## 截图记录
 
 - 示意轮：GCP `render-hudcd-1106e`，提交 746a07e96，挑出的帧在 `Claude outputs/hud_skill_cd_1106/`。
-- 定稿轮：见本分支下一次提交说明。
+- 定稿轮：GCP `render-hudcd-1106f`，提交 f385edadc，图在 `Claude outputs/hud_skill_cd_1106_final/`。ui_smoke / touch_layout / card_desc / core 在同一提交上都通过。
