@@ -905,67 +905,102 @@ def _bolt(b, x0, y0, a, L, seed, cols):
         k += 1
 
 
-def dawn2_up(R, k=1.0):
-    """S3 爆裂黎明（11-07 用户「半圆有点奇怪」→ 照原作 wisdel_skill_03_hit_02 / hit_03 重做，去掉自创的地平线 + 光穹）：
-    第 0 拍贴地白热芯 + 横长竖短的十字闪光（原作 baoshan 大白闪 0.1 秒）+ 一圈不规整的红刺往外扎（baoci）+ 4 道电弧（shandian）；
-    第 1 拍热芯缩成红、红刺推到外半圈变细变暗、电弧换一条路径变暗；第 2 拍只剩刺尖和一道残弧；
-    火星从第 1 拍起往外甩（同旧版）。原作的 huan_yanhei 烟环不进帧条：游戏里爆炸后本来就叠红色体积雾 / 烟团（fx/wd_fog_v、wd_smoke），再画就超过一招 3 种元素。共 8 拍。地面冲击环 / 裂缝 / 焦痕仍是 dawn_gd"""
-    seed = 211 + R
-    sparks = _spark_set(R, seed, max(4, int(n_dawn(R) * k)), dmin=0.3, dmax=0.98, hmax=0.7, h0=0.3, dark=0.25)
-    cy = -R * 0.12
-    frames = []
-    for f in range(8):
-        b = Buf()
-        if f <= 1:   # 贴地热芯（压扁的椭圆）
-            rr = R * (0.26 if f == 0 else 0.15)
-            ri = int(math.ceil(rr))
-            for y in range(-ri, ri + 1):
-                for x in range(-ri, ri + 1):
-                    d = math.hypot(x, y / SQ)
-                    if d > rr * (0.86 + 0.14 * h2(x, y, seed)):
-                        continue
-                    u = d / max(1.0, rr)
-                    c = (FIRE[0] if u < 0.35 else (FIRE[1] if u < 0.7 else FIRE[2])) if f == 0 else (FIRE[1] if u < 0.4 else (FIRE[2] if u < 0.75 else FIRE[3]))
-                    b.put(x, cy + y, c)
-            W, H = R * (0.9 if f == 0 else 0.45), R * (0.42 if f == 0 else 0.2)   # 十字闪光：横长竖短，越往外越暗
-            for s_ in range(int(R * 0.2), int(W)):
-                u = s_ / W
-                c = FIRE[0] if u < 0.35 else (FIRE[1] if u < 0.65 else FIRE[3])
-                if f == 1:
-                    c = FIRE[2] if u < 0.6 else FIRE[4]
-                for sg in (-1, 1):
-                    b.put(sg * s_, cy, c)
-                    if u < 0.3 and f == 0:
-                        b.put(sg * s_, cy - 1, FIRE[1])
-                        b.put(sg * s_, cy + 1, FIRE[1])
-            for s_ in range(int(R * 0.15), int(H)):
-                u = s_ / H
-                c = (FIRE[0] if u < 0.4 else FIRE[2]) if f == 0 else (FIRE[2] if u < 0.5 else FIRE[4])
-                b.put(0, cy - s_, c)
-                b.put(0, cy + s_ * 0.6, c)
-        if f <= 2:   # 红刺：12 根，角度 / 长短 / 粗细按哈希定（不规整）
-            for q in range(12):
-                a = q * math.tau / 12 + (h2(q, 9, seed) - 0.5) * 0.45
-                L = R * (0.62 + 0.36 * h2(q, 8, seed))
-                r0 = R * [0.24, 0.5, 0.78][f]
-                r1 = L * [0.82, 1.0, 1.04][f]
-                if r1 <= r0 + 2:
+def _burst(b, cx, cy, R, f, seed, n_sp=12, big=True):
+    """一团原作式爆点（skill_03_hit）：贴地白热芯 + 十字白闪（大爆加斜向四芒）+ 一圈不规整红刺。f = 这团自己的第几拍（0–2 有画面）"""
+    if f < 0 or f > 2:
+        return
+    if f <= 1 or big:   # 热芯：大爆撑 3 拍（白 → 橙白 → 红），小爆 2 拍
+        rr = R * ([0.32, 0.22, 0.12][f] if big else [0.3, 0.16][f])
+        ri = int(math.ceil(rr))
+        for y in range(-ri, ri + 1):
+            for x in range(-ri, ri + 1):
+                d = math.hypot(x, y / SQ)
+                if d > rr * (0.86 + 0.14 * h2(x, y, seed)):
                     continue
-                wd0 = [3, 2, 1][f] if h2(q, 7, seed) > 0.35 else max(1, [2, 1, 1][f])
-                for s_ in range(int(r0), int(r1)):
-                    u = (s_ - r0) / max(1.0, r1 - r0)
-                    c = [FIRE[2] if u < 0.4 else (FIRE[3] if u < 0.8 else FIRE[5]), FIRE[3] if u < 0.6 else FIRE[5], FIRE[5] if u < 0.5 else FIRE[6]][f]
-                    px, py = math.cos(a) * s_, cy * (1.0 - 0.6 * u) + math.sin(a) * s_ * SQ
-                    w = max(1, int(round(wd0 * (1.0 - u))))
-                    for t in range(w):
-                        b.put(px - math.sin(a) * (t - w // 2), py + math.cos(a) * (t - w // 2) * SQ, c)
-        if f <= 2:   # 电弧：第 0 拍 4 道亮的，第 1 拍换路径变暗，第 2 拍剩 1 道
-            nb = [4, 3, 1][f]
-            cols = [(FIRE[0], FIRE[2]), (FIRE[1], FIRE[3]), (FIRE[3], FIRE[5])][f]
+                u = d / max(1.0, rr)
+                if f == 0:
+                    c = FIRE[0] if u < 0.45 else (FIRE[1] if u < 0.75 else FIRE[2])
+                elif f == 1:
+                    c = FIRE[0] if u < 0.2 else (FIRE[1] if u < 0.55 else (FIRE[2] if u < 0.85 else FIRE[3]))
+                else:
+                    c = FIRE[2] if u < 0.45 else (FIRE[3] if u < 0.8 else FIRE[4])
+                b.put(cx + x, cy + y, c)
+    # 十字白闪：横长竖短（贴地压扁），大爆第 0 拍再加斜向四芒；越往外越暗
+    W = R * ([1.2, 0.8, 0.4][f] if big else [0.8, 0.45, 0.0][f])
+    H = W * 0.5
+    th = [2, 1, 1][f] if big else 1
+    for s_ in range(int(R * 0.18), int(W)):
+        u = s_ / max(1.0, W)
+        c = [FIRE[0] if u < 0.4 else (FIRE[1] if u < 0.7 else FIRE[3]), FIRE[1] if u < 0.5 else FIRE[3], FIRE[3] if u < 0.5 else FIRE[5]][f]
+        for sg in (-1, 1):
+            b.put(cx + sg * s_, cy, c)
+            if u < 0.35 * th:
+                b.put(cx + sg * s_, cy - 1, FIRE[1] if f == 0 else FIRE[2])
+                b.put(cx + sg * s_, cy + 1, FIRE[1] if f == 0 else FIRE[2])
+    for s_ in range(int(R * 0.14), int(H)):
+        u = s_ / max(1.0, H)
+        c = [FIRE[0] if u < 0.45 else FIRE[2], FIRE[1] if u < 0.5 else FIRE[3], FIRE[3]][f]
+        b.put(cx, cy - s_, c)
+        b.put(cx, cy + s_ * 0.6, c)
+    if big and f == 0:
+        for q in range(4):
+            a = math.pi / 4 + q * math.pi / 2
+            L = R * 0.6
+            for s_ in range(int(R * 0.2), int(L)):
+                u = s_ / L
+                b.put(cx + math.cos(a) * s_, cy + math.sin(a) * s_ * SQ, FIRE[1] if u < 0.5 else FIRE[3])
+    # 红刺：大爆两波（第 0 拍粗刺、第 1 拍再扎出一圈细刺），角度 / 长短 / 粗细按哈希定
+    waves = [(0, n_sp, 0.0)] + ([(1, n_sp, math.pi / n_sp)] if big else [])
+    for w0, n, off in waves:
+        k = f - w0
+        if k < 0 or k > 2:
+            continue
+        for q in range(n):
+            a = q * math.tau / n + off + (h2(q, 9 + w0, seed) - 0.5) * 0.45
+            L = R * (0.7 + 0.38 * h2(q, 8 + w0, seed)) * (1.0 if w0 == 0 else 0.85)
+            r0 = R * [0.26, 0.52, 0.8][k]
+            r1 = L * [0.84, 1.0, 1.05][k]
+            if r1 <= r0 + 2:
+                continue
+            wd0 = ([3, 2, 1][k] if h2(q, 7 + w0, seed) > 0.35 else [2, 1, 1][k]) if w0 == 0 else 1
+            for s_ in range(int(r0), int(r1)):
+                u = (s_ - r0) / max(1.0, r1 - r0)
+                c = [FIRE[1] if u < 0.25 else (FIRE[2] if u < 0.6 else (FIRE[3] if u < 0.85 else FIRE[5])), FIRE[2] if u < 0.4 else (FIRE[3] if u < 0.75 else FIRE[5]), FIRE[4] if u < 0.5 else FIRE[6]][k]
+                px, py = cx + math.cos(a) * s_, cy * (1.0 - 0.5 * u) + math.sin(a) * s_ * SQ
+                ww = max(1, int(round(wd0 * (1.0 - u))))
+                for t in range(ww):
+                    b.put(px - math.sin(a) * (t - ww // 2), py + math.cos(a) * (t - ww // 2) * SQ, c)
+
+
+def dawn2_up(R, k=1.0):
+    """S3 爆裂黎明（11-07 用户「半圆有点奇怪」→ 照原作 wisdel_skill_03_hit / hit_02 / hit_03 重做，去掉自创的地平线 + 光穹；同日「爆炸要华丽点」）：
+    主爆 3 拍（贴地白热芯 → 橙白 → 红；横长竖短十字白闪 + 斜向四芒；粗红刺一波、第 1 拍再扎出一圈细刺）；
+    电弧（原作 shandian）6 → 5 → 3 → 1 道，带分叉；第 3–5 拍外圈依次连环炸开 3 团小爆（同一种爆点，小一号）；
+    火星从第 1 拍起往外甩、尾巴长一点。共 9 拍。原作 huan_yanhei 烟环不进帧条（游戏里本来叠红色体积雾 / 烟团）；地面冲击环 / 裂缝 / 焦痕仍是 dawn_gd"""
+    seed = 211 + R
+    sparks = _spark_set(R, seed, max(4, int(n_dawn(R) * k)), dmin=0.3, dmax=1.0, hmax=0.8, h0=0.3, dark=0.2)
+    cy = -R * 0.12
+    subs = []
+    for q in range(3):   # 连环小爆：落点外圈 0.5–0.65R，三个方向错开
+        a = q * math.tau / 3 + 0.5 + (h2(q, 2, seed) - 0.5) * 0.8
+        x, y = gpt(R * (0.5 + 0.15 * h2(q, 3, seed)), a)
+        subs.append((x, y - R * 0.06, 3 + q))
+    nf = 9
+    frames = []
+    for f in range(nf):
+        b = Buf()
+        _burst(b, 0, cy, R, f, seed, n_sp=14, big=True)
+        if f <= 3:
+            nb = [6, 5, 3, 1][f]
+            cols = [(FIRE[0], FIRE[1]), (FIRE[0], FIRE[2]), (FIRE[1], FIRE[3]), (FIRE[3], FIRE[5])][f]
             for q in range(nb):
-                a = q * math.tau / 4 + 0.4 + (h2(q, 5, seed + f) - 0.5) * 0.8 - 0.6
-                _bolt(b, 0, cy, a, R * (0.45 + 0.3 * h2(q, 6, seed + f)), seed * 7 + q * 13 + f * 101, cols)
-        _draw_sparks(b, sparks, f, 8, tail=0.13)
+                a = q * math.tau / 6 + 0.3 + (h2(q, 5, seed + f) - 0.5) * 0.7
+                _bolt(b, 0, cy, a, R * (0.55 + 0.4 * h2(q, 6, seed + f)), seed * 7 + q * 13 + f * 101, cols)
+        for (x, y, f0) in subs:
+            _burst(b, x, y, R * 0.42, f - f0, seed + int(f0) * 31, n_sp=8, big=False)
+            if f == f0:
+                _bolt(b, x, y, h2(f0, 7, seed) * math.tau, R * 0.3, seed + f0 * 17, (FIRE[0], FIRE[2]))
+        _draw_sparks(b, sparks, f, nf, tail=0.18)
         frames.append(b)
     return frames
 
