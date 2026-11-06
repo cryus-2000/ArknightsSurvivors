@@ -1,8 +1,9 @@
 # 图鉴技能 / 成长页「点一行展开全文」截图（11-07）：桌面 1920×1080 + 触屏手机比例 1560×720（--touch），展开前 / 展开后。
 # 用法：python tools/gcp_render.py --branch <提交> --job codex_skill_shots --name <名>
-#   可选变量：OPS=干员 id 表（缺省 gladiia,specter_unchained）、BASE=<提交>（同参数在旧提交上拍「修前」一套到 $MEDIA/base_*）
+#   可选变量（--args 'BASE=… OPS=…'）：OPS=干员 id 表（缺省 gladiia,specter_unchained）、BASE=<提交>（同参数在旧提交上拍「修前」一套到 $MEDIA/base_*）
 # 结果：$MEDIA/<op>_<desk|phone>_<skill|growth>_<none|rowN>.png；$OUT/audit.txt（全部干员说明清点）；$OUT/check_*.txt
 set +e
+[ -n "${RENDER_ARGS:-}" ] && eval "$RENDER_ARGS"   # --args 'BASE=<提交> OPS=…'
 OPS="${OPS:-gladiia,specter_unchained}"
 Xvfb :99 -screen 0 1920x1080x24 -nolisten tcp >/tmp/xvfb.log 2>&1 &
 export DISPLAY=:99
