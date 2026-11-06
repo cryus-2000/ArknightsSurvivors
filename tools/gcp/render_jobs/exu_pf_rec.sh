@@ -17,7 +17,7 @@ run() {   # $1 场景 ctrl|noctrl  $2 模式 0|1|2
 GS="$(curl -s -H 'Metadata-Flavor: Google' http://metadata.google.internal/computeMetadata/v1/instance/attributes/batch-gs)"
 up() { ( cd "$OUT" && find . -name '*.png' | tar -czf /work/shots.tar.gz -T - ) && gcloud storage cp /work/shots.tar.gz "$GS/shots.tar.gz" -q && echo "截图已传（$1）" | tee "$OUT/shots.txt"; }
 for s in ctrl noctrl; do
-    for m in 0 1 2; do run $s $m; done
+    for m in ${MODES:-0 1 2 3}; do run $s $m; done
     up $s
 done
 exit 0

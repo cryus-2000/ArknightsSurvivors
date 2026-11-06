@@ -291,6 +291,11 @@ static func _exu_volley(o, p: Dictionary, main: bool, last: bool) -> void:
 		var trs: Array = _exu_active(o, "verb.tracer")
 		if not trs.is_empty():
 			trb = trs.back()   # 收网（5A）排在曳光弹（4A）之后，取它的 max
+	var hv = null   # docs/297 C 版：每 exu_hv_cd 秒一发重弹，射程内最近的精英 / Boss（没有就最近的敌人）
+	if main and not fan and _pf_mode() == 3 and o.tags_all.has("verb.aim_prefer") and not _exu_active(o, "verb.aim_prefer").is_empty() 			and g.t - float(st.get("pf_hv_t", -99.0)) >= MfBal.v("growth_nodes/exu_hv_cd", 4.0):
+		hv = _pf_threat(o, _exu_range(o, p))
+		if hv != null:
+			st["pf_hv_t"] = g.t
 	for k in n:
 		var q := p
 		if ap[0] >= 0 and int(st.ammo[ap[0]]) > 0:
@@ -304,7 +309,7 @@ static func _exu_volley(o, p: Dictionary, main: bool, last: bool) -> void:
 		if fan:
 			dir = d0.rotated(lerpf(-sp, sp, float(k) / float(n - 1)) if n > 1 else 0.0)
 		else:
-			var e: Dictionary = ts[k % ts.size()]
+			var e: Dictionary = hv if (k == 0 and hv != null) else ts[k % ts.size()]
 			btex = el_stack_tex(o, str(q.get("src", "")), e, btex)   # 精英化段（st.stack）：瞄准的敌人身上的层数决定弹体颜色
 			var rep: int = k / ts.size()
 			var off: float = sp * float((rep + 1) / 2) * (1.0 if rep % 2 == 1 else -1.0)
@@ -328,6 +333,10 @@ static func _exu_volley(o, p: Dictionary, main: bool, last: bool) -> void:
 			if int(st.pf_n) % maxi(1, int(MfBal.v("growth_nodes/exu_stun_every", 6.0))) == 0:
 				stn = MfBal.v("growth_nodes/exu_stun", 0.6)   # B 版：每第 N 发主弹是一发眩晕弹（金色大弹）
 				btex = "proj_exusiai_bullet_t3"
+		if k == 0 and hv != null:
+			stn = MfBal.v("growth_nodes/exu_hv_stun", 1.0)
+			dmg *= MfBal.v("growth_nodes/exu_hv_mult", 2.0)
+			btex = "proj_exusiai_bullet_t3"
 		if st.bul.size() < EXU_BULLET_MAX:
 			st.bul.append({"stn": stn, "p": mz, "v": dir * speed, "life": _exu_range(o, q) * 1.15 / speed, "dmg": dmg, "src": str(q.get("src", "")),
 				"tags": q.get("tags", []), "pierce": o.atk_pierce(int(q.get("pierce", 0))) if main else int(q.get("pierce", 0)), "main": main, "kb": float(q.get("kb", 0.0)) + esc_kb, "hit": {}, "tex": btex, "hfx": str(q.get("hit_fx", "fx_exusiai_hit")), "on_hit": oh, "ric": true, "tr": tr_b})
@@ -384,6 +393,25 @@ static func _pf_burst(o, at: Vector2, k: int) -> void:
 	if fx.size() < 12:
 		fx.append({"p": at, "t0": o.g.t, "k": k})
 	o.ext["pf_fx"] = fx
+
+
+## C 版重弹目标：射程内最近的精英 / Boss；没有就最近的敌人（同距离按 id）
+static func _pf_threat(o, rr: float):
+	var best = null
+	var bd := INF
+	for j in o.query_ids(o.pos, rr):
+		var e: Dictionary = o.g.enemies[j]
+		if e.dead or e.chest or not o.hittable(e):
+			continue
+		var d: float = o.pos.distance_to(e.pos)
+		if d > rr:
+			continue
+		if not (e.elite or e.boss):
+			d += 1.0e6
+		if d < bd or (d == bd and best != null and int(e.id) < int(best.id)):
+			bd = d
+			best = e
+	return best
 
 
 ## --exupf 量测（docs/297）：受控目标出现频率、主弹命中受控目标的次数与伤害占比；每 60 秒打一行 EXUPF，不取随机数、不改状态以外的东西
@@ -459,6 +487,9 @@ static func _exu_bullets(o, dt: float) -> void:
 			var stn: float = float(bu.get("stn", 0.0))
 			if stn > 0.0 and not e.dead and not e.boss:   # docs/297 B 版眩晕弹：精英减半、Boss 不受；走成长节点控制递减
 				o.add_cc_growth(e, stn * (0.5 if e.elite else 1.0))
+				_pf_burst(o, e.pos, 1)
+				bu.pierce = 0
+			elif stn > 0.0 and e.boss:
 				_pf_burst(o, e.pos, 1)
 				bu.pierce = 0
 			if was_ctrl:   # 对空优先：打中受控目标命中即停（不再穿透），目标追加定身 pin 秒（精英减半，Boss 除外；同一敌人 1 秒内至多一次）
