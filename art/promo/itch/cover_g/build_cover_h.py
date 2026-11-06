@@ -24,7 +24,10 @@ FRAMES = {"a": "mizuki_runtime_attack@2x.png", "s": "mizuki_runtime_skill_attack
           "n": "op_mizuki_entry@2x.png"}
 # 名字：(成品尺寸, 像素格, logo/标注倍数, logo 顶边)
 SIZES = {"itch_cover": ((630, 500), 3, 1, 16), "toy_poster": ((1200, 900), 5, 2, 14)}
-SHIFT = {"itch_cover": 12, "toy_poster": 10}   # 整个画面下移的格数（给标题让位，水月头顶不碰副行）
+SHIFT = {"itch_cover": 12, "toy_poster": 10, "itch_banner": 0}
+SIZES["itch_banner"] = ((960, 400), 2, 1, 0)
+# 横幅（11-07）：背景用 relit0 左右外扩到 21:9 的生图；光圈 / 水月在右侧，标题在左侧暗区
+BANNER = {"bg": None, "ring_x": 0.68, "floor_y": 0.86, "logo_xy": (34, 72)}   # 整个画面下移的格数（给标题让位，水月头顶不碰副行）
 FLOOR = (0.47, 0.71)   # 青光空地中心（相对整张生图）
 CYAN = np.array([120, 235, 245], np.uint8)
 
@@ -49,9 +52,12 @@ def bg_pixels(W, H, cell, over=OVER):
     ca = np.clip(0.3 + (ca - 0.3) * 1.25, 0, 1)
     c = Image.fromarray((ca * 255).astype(np.uint8))
     big = c.resize((gw * 4, gh * 4), Image.LANCZOS)
-    q = big.quantize(colors=K.COLORS, method=Image.Quantize.MAXCOVERAGE, dither=Image.Dither.NONE, kmeans=4)
-    pal = np.array(q.getpalette()[:K.COLORS * 3], np.uint8).reshape(-1, 3)
+    q = big.quantize(colors=BG_COLORS, method=Image.Quantize.MAXCOVERAGE, dither=Image.Dither.NONE, kmeans=4)
+    pal = np.array(q.getpalette()[:BG_COLORS * 3], np.uint8).reshape(-1, 3)
     return pal[K.mode_down(np.asarray(q), 4)]
+
+
+BG_COLORS = 112   # 11-07 用户「头上面的光线有点割裂」：48 色把柔和光柱切成硬边竖色带，多收些色让台阶变细
 
 
 def ring_center(g):
@@ -68,17 +74,29 @@ def ring_center(g):
     return int(round(cx)), int(round(cy)), m
 
 
-def crop_on_ring(big, gw, gh, floor_y):
-    """把带余量的格子图裁到 gw×gh：光圈中心落在水平正中、竖直 floor_y 处"""
+def crop_on_ring(big, gw, gh, floor_y, ring_x=0.5):
+    """把带余量的格子图裁到 gw×gh：光圈中心落在水平 ring_x、竖直 floor_y 处"""
     cx, cy, m = ring_center(big)
     Hb, Wb = big.shape[:2]
-    x0 = int(np.clip(cx - gw // 2, 0, Wb - gw))
+    x0 = int(np.clip(cx - int(gw * ring_x), 0, Wb - gw))
     y0 = int(np.clip(cy - int(gh * floor_y), 0, Hb - gh))
     return big[y0:y0 + gh, x0:x0 + gw], m[y0:y0 + gh, x0:x0 + gw], (cx - x0, cy - y0)
 
 
+def bg_pixels_path(path, W, H, cell, over):
+    global BG
+    old = BG
+    BG = path
+    try:
+        return bg_pixels(W, H, cell, over)
+    finally:
+        BG = old
+
+
 def shift_down(grid, n):
     """整幅下移 n 格：顶上补最上一行的颜色（本来就是暗渐变区），底部裁掉"""
+    if n <= 0:
+        return grid
     top = np.repeat(grid[:1], n, axis=0)
     return np.concatenate([top, grid[:-n]], 0)
 
@@ -108,6 +126,27 @@ def compose_grid(grid, spr, ringmask, center, n_shift=0):
     lower = (np.arange(sh)[:, None] > sh * 0.45)
     rim = edge & lower
     rgb[rim] = rgb[rim] * 0.45 + np.array([120, 235, 245]) * 0.55
+    # 11-07 用户「头像是贴上去的，和背景不在一个图层」：
+    # ① 选择性描边：外圈近黑描边换成「背后背景色 + 深青」，不再一圈黑线；
+    # ② 顶光：光柱从头顶来，朝上的边缘（上邻透明）在上半身加淡青白受光；
+    # ③ 光包边：边缘一格按背后亮度混入背景光（背后越亮混得越多）。
+    gh_, gw_ = grid.shape[:2]
+    bx0, by0 = fx - hx, fy - sh + 1
+    behind = np.zeros((sh, sw, 3), np.float32)
+    ys0, xs0 = max(0, by0), max(0, bx0)
+    ys1, xs1 = min(gh_, by0 + sh), min(gw_, bx0 + sw)
+    behind[ys0 - by0:ys1 - by0, xs0 - bx0:xs1 - bx0] = grid[ys0:ys1, xs0:xs1]
+    blum = (behind * [0.299, 0.587, 0.114]).sum(-1)
+    lum = (rgb * [0.299, 0.587, 0.114]).sum(-1)
+    dark_edge = edge & (lum < 70)
+    rgb[dark_edge] = behind[dark_edge] * 0.5 + np.array([18, 52, 66]) * 0.5
+    up_open = m & ~p[:-2, 1:-1]
+    upper = (np.arange(sh)[:, None] < sh * 0.55)
+    toplit = up_open & upper
+    rgb[toplit] = rgb[toplit] * 0.5 + np.array([205, 245, 250]) * 0.5
+    wrap = edge & ~dark_edge & ~toplit
+    k = np.clip((blum - 60) / 140, 0, 0.45)[..., None]
+    rgb = np.where(wrap[..., None], rgb * (1 - k) + behind * k, rgb)
     # 脚下暗影（浅、窄）
     gy, gx = np.mgrid[0:gh, 0:gw]
     shadow = ((gx - fx) / (sw * 0.2)) ** 2 + ((gy - fy) / 1.4) ** 2 < 1
@@ -165,14 +204,24 @@ def thrust_lines(g, m, x0, y0):
 def build(key, kind):
     (W, H), cell, up, logo_y = SIZES[kind]
     gw, gh = W // cell, H // cell
-    big = bg_pixels(W, H, cell)
-    grid, rmask, center = crop_on_ring(big, gw, gh, FLOOR[1])
+    if kind == "itch_banner":
+        big = bg_pixels_path(BANNER["bg"], W, H, cell, 1.06)
+        grid, rmask, center = crop_on_ring(big, gw, gh, BANNER["floor_y"], BANNER["ring_x"])
+    else:
+        big = bg_pixels(W, H, cell)
+        grid, rmask, center = crop_on_ring(big, gw, gh, FLOOR[1])
     n = SHIFT[kind]
     grid, rmask = shift_down(grid, n), shift_down(rmask, n)
     grid = compose_grid(grid, sprite(key), rmask, center, n)
     # 顶部平滑压暗到统一深色（盖掉生图黑带补过渡留下的台阶，也给标题干净底）
-    t = np.clip(1 - np.arange(gh) / (gh * 0.34), 0, 1)[:, None, None] ** 1.3 * 0.9
+    t = np.clip(1 - np.arange(gh) / (gh * 0.48), 0, 1)[:, None, None] ** 1.8 * 0.92   # 拉长放缓：光柱往上慢慢淡出，不被截断
     grid = (grid * (1 - t) + np.array([6, 10, 16]) * t).astype(np.uint8)
+    if kind == "itch_banner":
+        # 底边压暗（外扩生图左下有一截黑边）+ 左侧压暗（标题区）
+        tb = np.clip((np.arange(gh) - gh * 0.72) / (gh * 0.28), 0, 1)[:, None, None] ** 1.5 * 0.85
+        tl = np.clip(1 - np.arange(gw) / (gw * 0.45), 0, 1)[None, :, None] ** 1.4 * 0.6
+        t2 = np.maximum(tb, tl)
+        grid = (grid * (1 - t2) + np.array([6, 10, 16]) * t2).astype(np.uint8)
     img = Image.fromarray(grid).resize((grid.shape[1] * cell, grid.shape[0] * cell), Image.NEAREST)
     canvas = Image.new("RGB", (W, H), (6, 10, 16))
     canvas.paste(img, ((W - img.width) // 2, (H - img.height) // 2))
@@ -183,9 +232,12 @@ def build(key, kind):
         cov = np.kron(cov, np.ones((up, up), bool))
         padt *= up
     hb, wb = cov.shape
-    x0 = (W - 482 * up) // 2
-    x0 -= x0 % 2
-    y0 = max(logo_y * up - padt, 0)
+    if kind == "itch_banner":
+        x0, y0 = BANNER["logo_xy"][0], BANNER["logo_xy"][1] - padt
+    else:
+        x0 = (W - 482 * up) // 2
+        x0 -= x0 % 2
+        y0 = max(logo_y * up - padt, 0)
     reg = bg[y0:y0 + hb, x0:x0 + wb]
     cc = cov[:reg.shape[0], :reg.shape[1]]
     reg[cc] = rgb[:reg.shape[0], :reg.shape[1]][cc]
@@ -198,6 +250,7 @@ def main():
     ap.add_argument("--sheet")
     ap.add_argument("--bg", default="", help="背景生图路径（缺省 cover1107_bgopen；11-07 重打光版在 cover1107_relit）")
     ap.add_argument("--suffix", default="")
+    ap.add_argument("--banner_bg", default="", help="横幅背景生图（21:9 外扩）")
     a = ap.parse_args()
     global BG
     if a.bg:
@@ -206,6 +259,10 @@ def main():
     for key in a.frames.split(","):
         name = "H_" + key.replace(":", "") + a.suffix
         it, ty = build(key, "itch_cover"), build(key, "toy_poster")
+        if a.banner_bg:
+            BANNER["bg"] = a.banner_bg
+            bn = build(key, "itch_banner")
+            bn.save(HERE / f"cover_{name}_itch_banner_960x400.png", optimize=True)
         it.save(HERE / f"cover_{name}_itch_cover_630x500.png", optimize=True)
         ty.save(HERE / f"cover_{name}_toy_poster_1200x900.png", optimize=True)
         outs.append((name, it, ty))
