@@ -418,7 +418,7 @@ func draw(w) -> void:
 	if not _on:
 		return
 	# 光学观感下世界层受光照 / 暗角压暗：弹体按 HDR 提亮（旧画法的弹也是过曝色），弹在暗处照样亮（Noita 的自发光）
-	var hk: float = Bal.v("render/danmaku_v2_hdr", 1.4) if g.optical_on else 1.0
+	var hk: float = Bal.v("render/danmaku_v2_hdr", 1.2) if g.optical_on else 1.0
 	_mod = Color(hk, hk, hk, 1.0)
 	var list := []
 	for b in g.ebullets:
