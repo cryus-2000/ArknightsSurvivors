@@ -23,7 +23,7 @@ func _ready() -> void:
 		g._mem_guard(5.0)
 	check(g.trims == 1, "sustained pressure trims once, got %d" % g.trims)
 	check(g.evictions == 20, "every over-budget probe still evicts newly idle textures")
-	check(Cfg.guard_lowered and Cfg.quality == "low", "fallback still lowers quality")
+	check(Cfg.quality != "low", "default fallback no longer lowers quality (render/mem_guard_lowq 0, 11-07)")
 	# A near-threshold oscillation must not re-arm expensive trimming.
 	for i in 20:
 		g._mem_guard_apply(519.0, 520.0)

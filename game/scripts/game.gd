@@ -1426,7 +1426,7 @@ func _mem_guard_apply(used: float, budget: float, elapsed := MG_EVERY) -> void:
 		_mg_trim_cd = MG_TRIM_COOLDOWN
 		_mem_guard_trim_fonts()
 		step = "清缓存"
-	if _mg_stage >= 2 and Cfg.quality != "low":
+	if _mg_stage >= 2 and Cfg.quality != "low" and Bal.v("render/mem_guard_lowq", 0.0) > 0.0:   # 11-07 用户：缺省不再自动降画质（balance render/mem_guard_lowq）
 		Cfg.guard_prev = Cfg.quality
 		Cfg.set_quality("low")
 		Cfg.guard_lowered = true
