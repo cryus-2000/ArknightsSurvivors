@@ -45,7 +45,7 @@ for name in a.only.split(","):
     shutil.rmtree(d, ignore_errors=True)
     os.makedirs(d)
     args = [gr.find_godot(), "--path", os.path.join(ROOT, "game"), "--rendering-driver", "opengl3", "--audio-driver", "Dummy",
-            "--fixed-fps", "30"] + pre + ["--"] + BASE + post + extra + ["--shotdir=" + d.replace(os.sep, "/")]
+            "--fixed-fps", "30"] + pre + ["--"] + BASE + post + extra + os.environ.get("HSC_EXTRA", "").split() + ["--shotdir=" + d.replace(os.sep, "/")]
     o, e, to = gr.run_godot(args, 1500)
     open(os.path.join(d, "run.log"), "w", encoding="utf-8").write(o + "\n----\n" + e)
     fr = sorted(f for f in os.listdir(d) if f.startswith("fr_"))
