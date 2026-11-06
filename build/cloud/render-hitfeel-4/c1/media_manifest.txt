@@ -1,0 +1,5 @@
+8705337	hf_texas_siege.mp4
+111025	rec_siege_0.log
+111001	rec_siege_1.log
+103931	rec_texas_0.log
+103967	rec_texas_1.log
