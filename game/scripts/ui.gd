@@ -83,7 +83,7 @@ static var _latin := {}
 ## 正文换 Regular（settings.gd 换 ui.ttf 的数据；手机仍用 ui_phone 的 Medium）。0 = 现状（全 Bold），name_font 原样返回
 static var _heavy: Font = null
 static func ark_on() -> bool:
-	return load("res://scripts/core/balance.gd").vi("ui/font_ark", 0) > 0
+	return load("res://scripts/core/balance.gd").vi("ui/font_ark", 1) > 0
 
 
 static func name_font(def: Font) -> Font:
