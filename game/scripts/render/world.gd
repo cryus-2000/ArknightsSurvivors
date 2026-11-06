@@ -148,7 +148,7 @@ const P48 := {"idle": [4.0, true], "run": [10.0, true], "hurt": [10.0, false], "
 func _init(game: Game) -> void:
 	g = game
 	bulfx = preload("res://scripts/render/bullet_fx.gd").new(game, self)
-	bbv2 = preload("res://scripts/render/boss_bullet_draw.gd").new(game)   # Boss 弹幕东方化第二版（docs/305 §8，render/danmaku_v2）
+	bbv2 = preload("res://scripts/render/boss_bullet_draw.gd").new(game)   # Boss 弹幕东方化第二版（docs/306 §8，render/danmaku_v2）
 	_gc_sink = GroundCrack.TbSink.new(self)
 	dc_check = Cfg.dev_args().has("--dccheck")
 	dc_on = Bal.v("fx/enemy_draw_cache", 1.0) > 0.0   # 开局读一次（--bal=fx/enemy_draw_cache=0 对照旧路径；测量脚本可直接改 world.dc_on 轮换）
@@ -1629,7 +1629,7 @@ class _BfxCap:
 			return
 		left -= 1
 		gr.push(name, p, dir, c, delay)
-var bbv2   # render/boss_bullet_draw.gd：Boss 弹幕第二版（弹体图集 + Noita 粒子，docs/305 §8）
+var bbv2   # render/boss_bullet_draw.gd：Boss 弹幕第二版（弹体图集 + Noita 粒子，docs/306 §8）
 var bulfx   # render/bullet_fx.gd： 子弹出现 / 消失画面（用户 10-27；Boss 覆盖钩子 bulfx.set_hook / set_spawn_hook）
 var bfx_grains = null   # 本帧可用的颗粒层（光学观感颗粒开着且 boss_fx_grains 开时），_draw_fx 开头取
 

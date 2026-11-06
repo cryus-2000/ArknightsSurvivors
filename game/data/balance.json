@@ -1107,7 +1107,7 @@
  },
  "render": {
   "_mid_boss_doc": "中期 Boss 看得见（docs/283，11-06 用户「中期 Boss 不明显」；只改画面，判定 e.r / 模拟侧 D.enemy_scale 不变，同 seed TRACE 不变）：mid_boss_scale 中期 Boss（waves.json mid_pool）本体绘制放大倍数，1 = 原样；mid_boss_scale_<类型> 单只覆盖（塑路者本来就大，1.2）；boss_mark 1 = 中期 Boss 在画面里常驻取景角标 +「BOSS」小字（集火锁定的低亮度版，command_pick._draw_boss_marks），0 = 只有集火时才有",
-  "_danmaku_v2_doc": "Boss 弹幕东方化第二版（docs/305 §8，用户 11-07）：1 = 新画法（运行时代码生成弹体图集 + Noita 粒子 + 逐格发射 / 消弹 / 命中闪光；最后的骑士不改），0 = 旧画法。只画面，判定 / 速度 / 弹数不变",
+  "_danmaku_v2_doc": "Boss 弹幕东方化第二版（docs/306 §8，用户 11-07）：1 = 新画法（运行时代码生成弹体图集 + Noita 粒子 + 逐格发射 / 消弹 / 命中闪光；最后的骑士不改），0 = 旧画法。只画面，判定 / 速度 / 弹数不变",
   "danmaku_v2": 1,
   "mid_boss_scale": 1.35,
   "mid_boss_scale_path": 1.2,

@@ -1,4 +1,4 @@
-# Boss 弹幕第二版新旧对照录像（docs/305 §8）：同一提交、同 seed，render/danmaku_v2 = 0（旧）/ 1（新）各录一遍（30 帧原速）。
+# Boss 弹幕第二版新旧对照录像（docs/306 §8）：同一提交、同 seed，render/danmaku_v2 = 0（旧）/ 1（新）各录一遍（30 帧原速）。
 # 用法：python tools/gcp_render.py --branch <提交> --job custom --split --cmd 'SPEC=carmen MOVES=环射,环射,环射 bash tools/gcp/render_jobs/danmaku_ab.sh' …
 #   SPEC = --bossmoves 参数（二阶段加 2）；MOVES = --bossonly（重复几次，录满 SECS 秒）；SECS 缺省 7
 #   --nocross --norecruit：2:30 的翻卡 / 商人 / 招募面板会把画面停住，录像里关掉

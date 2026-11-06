@@ -1,4 +1,4 @@
-## Boss 弹幕东方化第二版（docs/305 §6–§8；用户 11-07：东方感圆弹、pixelfx + Noita 粒子感；骑士不改）。
+## Boss 弹幕东方化第二版（docs/306 §6–§8；用户 11-07：东方感圆弹、pixelfx + Noita 粒子感；骑士不改）。
 ## 只画面：判定半径 / 速度 / 弹数不动，不读写模拟状态，不用玩法随机数（自带 RandomNumberGenerator），同 seed TRACE 不变。
 ## 开关 render/danmaku_v2（缺省 1；0 = 旧画法）。
 ##
