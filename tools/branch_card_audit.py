@@ -10,7 +10,10 @@ import argparse, glob, json, os, sys
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 
-def lines_of(n):
+SHORT = 16
+
+
+def lines_of(n, short=False):
     parts = [p.strip().rstrip("。") for p in str(n.get("branch_desc", "")).split("；") if p.strip()]
     out, fb = [], []
     for k, r in n.get("branch", {}).items():
@@ -32,6 +35,8 @@ def lines_of(n):
         eff = eff.lstrip("：").strip()
         if eff.startswith("使"):
             eff = eff[1:].strip()
+        if short and len(eff) > SHORT and eff.find("，") >= 6:
+            eff = eff[:eff.find("，")]
         out.append(tag + "：" + eff if eff else tag)
     return out, fb
 
@@ -50,12 +55,13 @@ def main():
             old_title = "%s · %s" % (nm, n.get("name", "培养路线"))
             old_face = str(n.get("branch_desc", "")).split("；")[0].strip()
             new, fb = lines_of(n)
+            face, _ = lines_of(n, True)
             if not n.get("branch_desc"):
                 bad.append("%s 节点 %d 没写 branch_desc" % (nm, i + 1))
             if fb:
                 bad.append("%s 节点 %d 兜底：%s" % (nm, i + 1, "、".join(fb)))
-            rows.append((nm, i + 1, old_title, old_face, "%s · 选择成长路线" % nm, " / ".join(new), "、".join(fb)))
-    md = ["| 干员 | 节点 | 以前标题 | 以前卡面一句话 | 现在标题 | 现在卡面两行 | 兜底 |", "|---|---|---|---|---|---|---|"]
+            rows.append((nm, i + 1, old_title, old_face, "%s · 选择成长路线" % nm, " / ".join(face), " / ".join(new), "、".join(fb)))
+    md = ["| 干员 | 节点 | 以前标题 | 以前卡面一句话 | 现在标题 | 现在卡面两行 | 现在详情两行 | 兜底 |", "|---|---|---|---|---|---|---|---|"]
     for r in rows:
         md.append("| " + " | ".join(str(x).replace("|", "／") for x in r) + " |")
     text = "\n".join(md)

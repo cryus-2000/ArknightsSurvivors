@@ -937,7 +937,10 @@ func route_choices(n: Dictionary = next_node()) -> Dictionary:
 
 ## 分支节点卡面的路线行（docs/302）：每条路线一行「「路线名」：一句效果」。优先按 branch_desc 的「；」分段（段首就是「路线名」时对上），
 ## 对不上或没写 branch_desc 时，取该路线 desc 的第一句兜底。tools/branch_card_audit.py 清点 20 人
-func branch_lines(n: Dictionary = next_node()) -> Array:
+const BRANCH_SHORT := 16   # 卡面一句话里每条路线效果超过这么多字就压到第一个逗号前
+
+
+func branch_lines(n: Dictionary = next_node(), short := false) -> Array:
 	var rc := route_choices(n)
 	var parts: Array = []
 	for p in str(n.get("branch_desc", "")).split("；", false):
@@ -958,6 +961,8 @@ func branch_lines(n: Dictionary = next_node()) -> Array:
 			if eff.begins_with(tag):
 				eff = eff.substr(tag.length())
 		eff = eff.trim_prefix("：").trim_prefix("使").strip_edges()
+		if short and eff.length() > BRANCH_SHORT and eff.find("，") >= 6:
+			eff = eff.substr(0, eff.find("，"))   # 卡面一句话：长的压到第一个逗号前（完整的在详情 / 二选一里）
 		out.append(tag + "：" + eff if eff != "" else tag)
 	return out
 
@@ -1051,7 +1056,7 @@ func deep_cards() -> Array:
 			var tail: String = "选定后，之后的节点沿该路线强化" + (VisNodesC.node_text(self) if VisNodesC.on(g) else ("；攻击 +%d%%" % int(round(NODE_ATK * 100.0))))
 			out.append({"kind": "prog", "op": id, "choice": "", "branch": true, "name": "%s · 选择成长路线" % display_name(),
 				"desc": "\n".join(bl) + "\n" + tail + (("\n条件：%s（已满足）" % node_requires_text(n)) if node_requires_text(n) != "" and avail else ""),
-				"brief": "\n".join(bl),
+				"brief": "\n".join(branch_lines(n, true)),
 				"icon": n.get("icon", ""), "avail": avail, "req": node_requires_text(n), "elite": 0})
 		elif not chs.is_empty():
 			for c in chs:

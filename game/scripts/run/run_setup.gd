@@ -109,3 +109,4 @@ static func apply_test_args(g) -> void:
 					o.advance()
 			if g.get("elite_moment") != null:
 				g.elite_moment.queue.clear()   # 开局直接推进不是真的晋升：不播精英化时刻（docs/249）
+			g.show_queue.clear()   # 也不播精英化全屏演出（它内嵌一局演示游戏，会读到同一组截图参数、把 540×300 的演示画面存成截图，docs/302）
