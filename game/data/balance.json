@@ -988,6 +988,7 @@
   "_texas_s3_single_slash_doc": "11-06 用户「德克萨斯的 S3 每一次斩击我觉得可以是更加明显的一道斩击，而不是多次斩击」（11-06 用户看 GIF 认可，缺省开）：texas_s3_single_slash 1 = 次元斩每一刀只画一道醒目斩线（不叠只画不判的细斩线、不在目标处落剑；主刀痕外延 ×1.6、芯 2–3 格近白 + 两侧一格淡琥珀（11-06 用户「不要太粗，但是要亮」）、命中两拍过曝 + 辉光 + 照地光、到点一拍断掉；命中点一簇火星 + 刀线两头碎屑）。只画：判定 / 伤害 / 段数 / 出手时刻不动",
   "texas_s3_single_slash": 1,
   "melee_impact": 1, "melee_impact_stop": 0.0225, "melee_impact_stop_heavy": 0.0375, "melee_impact_mate": 0.6, "melee_impact_shake_px": 3.0, "melee_impact_shake_t": 0.12, "melee_impact_push": 2.7, "melee_impact_push_heavy": 4.7, "melee_impact_push_in": 0.027, "melee_impact_push_back": 0.08, "melee_impact_lit": 1.35,
+  "_wd_fog_doc": "维什戴尔转平面爆炸后的雾（render/fx_pxplane_wd.gd，11-06 用户「红色体积雾也还是得加上」）：wd_fog_v 1 = 红色体积雾（偏红底雾 + 外扩上浮的雾团，寿命 ×1.6，手机雾团减半），0 = 11-05 第四版淡薄雾；wd_smoke 1 = 另叠第三版式黑红烟团（11-06 用户选第三栏「体积雾 + 烟团」，缺省 1）。只改画面", "wd_fog_v": 1, "wd_smoke": 1,
   "px_plane": 1, "px_plane_tier": -1, "px_plane_emit": 0.8, "px_plane_fps": 15, "px_plane_raw_fps": 12.8, "px_plane_sk_fill": 1,
   "recipe": 0, "recipe_grains": 160, "recipe_dl": 4, "recipe_dl_sum": 1.8, "recipe_tier": -1, "recipe_log": 0, "recipe_outline": 1, "recipe_hitlight": 1, "recipe_hitlight_r": 1.3, "recipe_hitlight_i": 1.4, "recipe_hitreact": 1,
   "_hit_tiers_doc": "特效第 2 步（10-23）：普攻命中三档模板（render/vfx.gd hit_tier / _tier_fx）。hit_tiers 总开关；hit_mid / hit_heavy 相对干员普攻基准的倍数门槛（暴击 / 弱点直接重档，召唤物 / 追加打击一律轻）；hit_n1–3 每档迸溅颗粒数；hit_pause_m / hit_pause_h 中 / 重档顿帧（走 impact_pause 共享限频）；melee_arc 近战刀光开关（半径 / 半角读实际判定）、melee_arc_life 刀光时长（秒）（10-29 死开关清理，docs/197：上文提到的 hit_tiers / melee_arc 开关已删，只留现行路径）",
