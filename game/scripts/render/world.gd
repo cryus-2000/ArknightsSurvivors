@@ -148,6 +148,7 @@ const P48 := {"idle": [4.0, true], "run": [10.0, true], "hurt": [10.0, false], "
 func _init(game: Game) -> void:
 	g = game
 	bulfx = preload("res://scripts/render/bullet_fx.gd").new(game, self)
+	bbv2 = preload("res://scripts/render/boss_bullet_draw.gd").new(game)   # Boss 弹幕东方化第二版（docs/306 §8，render/danmaku_v2）
 	_gc_sink = GroundCrack.TbSink.new(self)
 	dc_check = Cfg.dev_args().has("--dccheck")
 	dc_on = Bal.v("fx/enemy_draw_cache", 1.0) > 0.0   # 开局读一次（--bal=fx/enemy_draw_cache=0 对照旧路径；测量脚本可直接改 world.dc_on 轮换）
@@ -458,6 +459,7 @@ func draw_world() -> void:
 	if _lr_ab > 0 and Engine.get_process_frames() % _lr_ab == 0:
 		_ft_force_off = not _ft_force_off   # --lrab=N：每 N 帧轮换敌方顶层 + 队长剪影开 / 关（同局量帧时净差，docs/226 §4）
 	_ft_on = Bal.v("render/foe_top", 1.0) > 0.0 and g.foe_top != null and not _ft_force_off
+	bbv2.frame(bulfx)   # 先注册出现 / 消失钩子、推进粒子时钟（render/boss_bullet_draw.gd）
 	bulfx.frame()   # 子弹出现 / 消失（render/bullet_fx.gd）：先认出本帧新弹 / 消失的弹，下面各遍画弹时乘出现缩放
 	scr_flash = maxf(0.0, scr_flash - g.get_process_delta_time())
 	if _dbg_ground:
@@ -1627,6 +1629,7 @@ class _BfxCap:
 			return
 		left -= 1
 		gr.push(name, p, dir, c, delay)
+var bbv2   # render/boss_bullet_draw.gd：Boss 弹幕第二版（弹体图集 + Noita 粒子，docs/306 §8）
 var bulfx   # render/bullet_fx.gd： 子弹出现 / 消失画面（用户 10-27；Boss 覆盖钩子 bulfx.set_hook / set_spawn_hook）
 var bfx_grains = null   # 本帧可用的颗粒层（光学观感颗粒开着且 boss_fx_grains 开时），_draw_fx 开头取
 
@@ -2330,8 +2333,9 @@ func _draw_ebullets_lobs_shocks() -> void:
 	# 分遍后同类连续提交能合批）：① 无贴图：影子椭圆、深色底圈、光晕；② 贴图：弹体；③ 无贴图：弹芯、亮描边
 	var blades: Array = []
 	var mcs: Array = []   # 中期 Boss 分级弹（docs/170，render/mid_card_draw 单独画）
+	bbv2.draw(self)   # 第二版画法的 Boss 弹（影子 / 地面光 / 弹体 / 粒子）先画，下面各遍跳过这些弹
 	for b in g.ebullets:
-		if b.life <= 0.0 or b.get("own_draw", false):
+		if b.life <= 0.0 or b.get("own_draw", false) or bbv2.mine(b):
 			continue   # 命中 / 到期、还没被回收的敌弹不画（同我方子弹；正式局 _cleanup 每帧回收，图鉴演示由 enemy_demo 回收）；own_draw = 弹体由 Boss 自己画（偏执泡影二阶段，docs/170）
 		if b.get("kind", "") == "boss_blade":
 			blades.append(b)
@@ -2362,7 +2366,7 @@ func _draw_ebullets_lobs_shocks() -> void:
 				tb_circle(bp, (b.r + 4.0) * vk, Color(1.0, 0.3, 0.6, 0.25))
 	tb_flush()
 	for b in g.ebullets:
-		if b.life <= 0.0 or b.get("mc", false) or b.get("own_draw", false):
+		if b.life <= 0.0 or b.get("mc", false) or b.get("own_draw", false) or bbv2.mine(b):
 			continue
 		var kd: String = b.get("kind", "orb")
 		var bp: Vector2 = _ebp(b)
@@ -2384,7 +2388,7 @@ func _draw_ebullets_lobs_shocks() -> void:
 	var eb_ow: float = Bal.v("render/ebullet_outline", 0.0) if g.optical_on else 0.0
 	for b in g.ebullets:
 		var kd: String = b.get("kind", "orb")
-		if kd == "boss_blade" or kd == "mc" or b.life <= 0.0 or b.get("own_draw", false):
+		if kd == "boss_blade" or kd == "mc" or b.life <= 0.0 or b.get("own_draw", false) or bbv2.mine(b):
 			continue
 		var bp: Vector2 = _ebp(b)
 		var vk: float = bulfx.k(b)
