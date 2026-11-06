@@ -258,6 +258,17 @@ def webp_max(gpath):
 CG_LOSSY_Q = 0.85    # 事件插画网页版（art/event_cg/web）有损 WebP 质量：源图本来就是有损 WebP，按无损导入反而翻倍（docs/187 §8）
 SFX_MAX_HZ = 32000   # 音效采样率上限：只对 16 kHz 以上能量 < 3% 的文件设，QOA 体积按采样数线性下降（docs/187 §8）
 SFX_HF_MAX = 0.03
+# 按类别的音效采样率上限（11-06 用户「先去做语音和音效降采样」，Toy 50 MB 线）：细碎音效 22.05 kHz，
+# 终结技与低频重击要保厚度单列 24 kHz。现状 2.84 MiB（QOA）→ 约 2.44（−0.40）；全部是单声道，不用转
+SFX_CAP_HZ = 22050
+SFX_HEAVY_HZ = 24000
+SFX_HEAVY = ("ult_", "boom", "hurt_heavy", "break_", "ishar_land_break")
+
+
+def sfx_cap(name):
+    return SFX_HEAVY_HZ if name.startswith(SFX_HEAVY) else SFX_CAP_HZ
+
+
 SFX_LOW_HZ = 22050   # 11 kHz 以上能量 < 0.3% 的音效再降到 22.05 kHz（11-02，docs/187 §10）
 SFX_LOW_HF_MAX = 0.003
 
@@ -280,7 +291,7 @@ def _set_import(path, kv):
 def web_lossy_assets(gpath):
     """网页包专用的近无损压缩（10-31 第八批超预算，docs/187 §8）。只改打包副本的 .import，桌面包与仓库不动：
     - 事件插画 art/event_cg/web/*.webp：源图本身是有损 WebP（合计 1.24 MiB），缺省按无损重编后 2.48 MiB；改有损导入 0.85（相对源图 PSNR 中位 40.4 dB、最低 37.8）。
-    - 音效 audio/sfx/*.wav：16 kHz 以上能量不到 3% 的设 force/max_rate 32 kHz（听不出的高频本来就几乎没有；其余照旧 44.1 kHz），QOA 按采样数缩小"""
+    - 音效 audio/sfx/*.wav：几乎没有 11 kHz 以上内容的降到 22.05 kHz；其余按类别设上限（11-06：细碎 22.05 kHz，终结技 / 重击 24 kHz，sfx_cap），QOA 按采样数缩小"""
     import numpy as np
     import soundfile as sf
     n_cg = 0
@@ -300,10 +311,12 @@ def web_lossy_assets(gpath):
         if X[fr > SFX_LOW_HZ / 2].sum() < SFX_LOW_HF_MAX * tot:
             _set_import(f + ".import", {"force/max_rate": "true", "force/max_rate_hz": str(SFX_LOW_HZ)})
             n_sfx += 1
-        elif sr > SFX_MAX_HZ and X[fr > SFX_MAX_HZ / 2].sum() < SFX_HF_MAX * tot:
-            _set_import(f + ".import", {"force/max_rate": "true", "force/max_rate_hz": str(SFX_MAX_HZ)})
-            n_sfx += 1
-    print("[瘦身] 网页近无损：事件插画 %d 张改有损 WebP %.2f；音效 %d 个设采样率上限（%d / %d Hz）" % (n_cg, CG_LOSSY_Q, n_sfx, SFX_LOW_HZ, SFX_MAX_HZ), flush=True)
+        else:
+            cap = sfx_cap(os.path.basename(f)[:-4])
+            if sr > cap:
+                _set_import(f + ".import", {"force/max_rate": "true", "force/max_rate_hz": str(cap)})
+                n_sfx += 1
+    print("[瘦身] 网页近无损：事件插画 %d 张改有损 WebP %.2f；音效 %d 个设采样率上限（%d / 重击与终结技 %d Hz）" % (n_cg, CG_LOSSY_Q, n_sfx, SFX_CAP_HZ, SFX_HEAVY_HZ), flush=True)
 
 
 TOY_LIMIT = 50 * 1000 * 1000   # Toy 新内测作者 50 MB（docs/99 §0），按十进制算更保守
