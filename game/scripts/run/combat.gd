@@ -5,7 +5,8 @@ extends RefCounted
 const A = preload("res://scripts/art.gd")
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
-const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数值旋钮（docs/27）
+const Bal = preload("res://scripts/core/balance.gd")
+const _MI = preload("res://scripts/render/melee_impact.gd")   # 打击感取舍四条（docs/291 §7）   # data/balance.json 数值旋钮（docs/27）
 const LateRead = preload("res://scripts/render/late_read.gd")   # 后期可读性第一批（docs/247，只改画面）
 const Meta = preload("res://scripts/core/meta.gd")   # 认知塑造质变节点（docs/109 §14 v5）
 
@@ -1377,6 +1378,7 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 	if e.elite or e.boss:
 		Sfx.play("boom", 0.0, 1.0, 0.0)
 		g.vfx.stop(0.12, "elite_kill", true)
+		_MI.boss_kill(g, e)   # 中期 Boss 击杀慢放（docs/291 §7.4，fx/hf_boss_slow 缺省 0；只缩表现步长，批跑不缩）
 		g.vfx.shake_screen(1.0)
 		g.vfx.sparks(e.pos, Vector2.ZERO, UI.GOLD, 24, 320.0)
 	g.squad.on_kill(e)

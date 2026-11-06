@@ -8,6 +8,7 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
+const UM = preload("res://scripts/ui_motion.gd")
 const IDS := {"skadi": Color(0.55, 0.78, 1.0), "hoshiguma": Color(1.0, 0.78, 0.42), "siege": Color(1.0, 0.75, 0.3), "mizuki": Color(0.44, 0.91, 1.0), "gladiia": Color(0.62, 0.72, 1.0), "ulpianus": Color(0.62, 0.69, 0.94), "specter_unchained": Color(0.6, 0.85, 1.0), "lappland": Color(0.8, 0.76, 1.0)}   # 推进之王（docs/264）：锤击 / 跃空锤落地；水月（docs/261）：水母荧光青
 const HEAVY := {"迅捷打击·γ型": true, "跃浪击": true, "破浪下劈": true, "反手斩": false, "大洋裂断": true, "冲撞": true, "狼之舞": true, "断喝": true, "噤声": true}
 ## 不走打击感包的招：歌蕾蒂娅 S3 每 0.75 秒一跳、反震（持续 / 被动，顿帧震屏会一直抖）
@@ -37,19 +38,30 @@ static func hit(o, src: String, tags: Array, hits: Array) -> void:
 	if not on(g):
 		return
 	var heavy: bool = "skill" in tags or bool(HEAVY.get(src, false))
-	# ① 顿帧
-	var sec: float = Bal.v("fx/melee_impact_stop_heavy", 0.0375) if heavy else Bal.v("fx/melee_impact_stop", 0.0225)
-	if not o.is_leader:
-		sec *= Bal.v("fx/melee_impact_mate", 0.6)
-	if g.vfx != null:
-		g.vfx.stop(sec, "melee_impact")
-	# ② 重击轻震
-	if heavy and g.ult != null:
-		g.ult.shake(Bal.v("fx/melee_impact_shake_px", 3.0), Bal.v("fx/melee_impact_shake_t", 0.12))
-	# ③ 闪色 + 画面击退（每只记在敌人字典的画面专用键 mi_*，玩法不读）
 	var col: Color = IDS[str(o.id)]
 	var px: float = Bal.v("fx/melee_impact_push_heavy", 4.7) if heavy else Bal.v("fx/melee_impact_push", 2.7)
-	for e in hits:
+	# ① 顿帧
+	var sec: float = Bal.v("fx/melee_impact_stop_heavy", 0.0375) if heavy else Bal.v("fx/melee_impact_stop", 0.0225)
+	var frozen := 0.0
+	if hfo(o, "layer"):   # 顿帧分层（docs/291 §7.1）：队长普攻局部停、重击全局停；队友不停
+		if o.is_leader and heavy and g.vfx != null:
+			g.vfx.stop(sec, "melee_impact")
+		elif o.is_leader:
+			frozen = _freeze(o, hits, Bal.v("fx/hf_local_ms", 45.0) / 1000.0, Bal.v("fx/hf_local_cap_ms", 150.0) / 1000.0, int(Bal.v("fx/hf_local_targets", 4.0)), px)
+	else:
+		if not o.is_leader:
+			sec *= Bal.v("fx/melee_impact_mate", 0.6)
+		if g.vfx != null:
+			g.vfx.stop(sec, "melee_impact")
+	# ② 重击轻震
+	if heavy and hfo(o, "cam"):
+		_cam(o, hits)   # 定向推镜 + 手柄短震（docs/291 §7.3），只给队长
+	elif heavy and g.ult != null:
+		g.ult.shake(Bal.v("fx/melee_impact_shake_px", 3.0), Bal.v("fx/melee_impact_shake_t", 0.12))
+	if hfo(o, "flesh"):
+		_flesh(o, hits.size(), heavy)
+	# ③ 闪色 + 画面击退（每只记在敌人字典的画面专用键 mi_*，玩法不读）；局部停住的已在 _freeze 里写好（先白闪、停完再推）
+	for e in ([] if frozen > 0.0 else hits):
 		if not (e is Dictionary) or e.get("dead", false):
 			continue
 		var d: Vector2 = (e.pos - o.pos)
@@ -109,12 +121,35 @@ static func meat(o, src: String, hits: Array) -> void:
 		return
 	var heavy: bool = ms >= opk(oid, "heavy_ms", 50.0)
 	var sec: float = ms / 1000.0 * (1.0 if o.is_leader else Bal.v("fx/melee_impact_mate", 0.6))
+	if hfo(o, "layer") and not o.is_leader:
+		sec = 0.0   # 顿帧分层（docs/291 §7.1）：队友不顿帧
+	var px: float = opk(oid, "push_heavy" if heavy else "push", 7.0 if heavy else 4.0)
+	var got: float = _freeze(o, hits, sec, opk(oid, "cap_ms", 150.0) / 1000.0, int(opk(oid, "targets", 4.0)), px)
+	_evo_hit(o, hits, got, heavy, EVO_COL.get(oid, IDS.get(oid, Color(1.0, 0.8, 0.5))))   # 打击感进化（docs/291）
+	if heavy and hfo(o, "cam"):
+		_cam(o, hits)
+	if hfo(o, "flesh"):
+		_flesh(o, hits.size(), heavy)
+		return
+	if got <= 0.0:
+		return
+	var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
+	if sfx != null:
+		var nm: String = "op_%s_flesh_%d" % [oid, 1 + int(g.t * 13.0) % 2]
+		sfx.ensure([nm])
+		sfx.play(nm, opk(oid, "snd_db", -5.0) + (0.0 if heavy else -3.0), 1.0, 0.05)
+
+
+## 局部停帧（只画，从 meat 抽出来给通用包共用）：施放者本体停 sec 秒、离得最近的 nt 只被打的怪冻住并白闪，停完再推开 px；
+## 同一游戏秒里总量封顶 cap 秒。返回实际停了多少秒（0 = 这下没停，被打的怪照样白闪 + 推开）
+static func _freeze(o, hits: Array, sec: float, cap: float, nt: int, px: float) -> float:
+	var g = o.g
 	var q: Array = o.get_meta("mi_q", [])
 	q = q.filter(func(x): return g.t - float(x[0]) < 1.0 and g.t >= float(x[0]))
 	var used := 0.0
 	for x in q:
 		used += float(x[1])
-	sec = minf(sec, opk(oid, "cap_ms", 150.0) / 1000.0 - used)   # 同一秒里顿帧总量封顶
+	sec = minf(sec, cap - used)   # 同一秒里顿帧总量封顶
 	var hold: bool = sec >= 0.015
 	if hold:
 		q.append([g.t, sec])
@@ -124,8 +159,6 @@ static func meat(o, src: String, hits: Array) -> void:
 	var lst: Array = hits.filter(func(e): return e is Dictionary and not e.get("dead", false))
 	lst.sort_custom(func(a, b): return a.pos.distance_squared_to(o.pos) < b.pos.distance_squared_to(o.pos))
 	var R = load("res://scripts/render/fx_recipe.gd").of(g)
-	var px: float = opk(oid, "push_heavy" if heavy else "push", 7.0 if heavy else 4.0)
-	var nt: int = int(opk(oid, "targets", 4.0))
 	for i in lst.size():
 		var e: Dictionary = lst[i]
 		var frz: bool = hold and i < nt and not e.get("boss", false)
@@ -136,17 +169,78 @@ static func meat(o, src: String, hits: Array) -> void:
 		e["mi_dir"] = d.normalized() if d.length() > 0.5 else Vector2.RIGHT
 		e["mi_px"] = px * (0.4 if e.get("boss", false) else (0.7 if e.get("elite", false) else 1.0))
 		e["mi_col"] = Color(1, 1, 1)
-	_evo_hit(o, hits, sec if hold else 0.0, heavy, EVO_COL.get(oid, IDS.get(oid, Color(1.0, 0.8, 0.5))))   # 打击感进化（docs/291）
-	if not hold:
-		return
-	if g.has_meta("fx_pxplane"):
+	if hold and g.has_meta("fx_pxplane"):
 		g.get_meta("fx_pxplane").stuck(o, sec)   # 斩痕命中那一拍多停一拍
-	var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
-	if sfx != null:
-		var nm: String = "op_%s_flesh_%d" % [oid, 1 + int(g.t * 13.0) % 2]
-		sfx.ensure([nm])
-		sfx.play(nm, opk(oid, "snd_db", -5.0) + (0.0 if heavy else -3.0), 1.0, 0.05)
+	return sec if hold else 0.0
 
+
+# ================================================================ 打击感取舍四条（docs/291 §7，11-07 用户「按你的取舍做」）
+## 每条一个开关（缺省 0），按干员 fx/hf_op/<干员> 试点（德克萨斯、推进之王）；Boss 击杀慢放不分干员。
+##   layer  顿帧分层：队长普攻改局部停（hf_local_ms，世界不停）、重击仍全局停；队友不顿帧
+##   flesh  肉感层：一下只播一次 op_<干员>_flesh_1/2，按这一下命中数加 0–3 dB（每多 2 只 +hf_flesh_db_per）、音高略降；队友再 −4 dB
+##   cam    重击定向推镜：沿出手方向推 hf_push_px 美术像素、hf_push_t 秒阶梯回位，代替随机轻震；队长重击加手柄短震
+##   boss_slow  中期 Boss 击杀慢放（见 boss_slow）
+static func hfo(o, key: String) -> bool:
+	return Bal.v("fx/hf_" + key, 0.0) > 0.0 and Bal.v("fx/hf_op/" + str(o.id), 0.0) > 0.0
+
+
+static func _flesh(o, n: int, heavy: bool) -> void:
+	var g = o.g
+	var oid: String = str(o.id)
+	var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
+	if sfx == null or not ResourceLoader.exists("res://audio/sfx/op_%s_flesh_1.wav" % oid):
+		return
+	var nm: String = "op_%s_flesh_%d" % [oid, 1 + int(g.t * 13.0) % 2]
+	sfx.ensure([nm])
+	var add: float = clampf(floor(float(n) / 2.0) * Bal.v("fx/hf_flesh_db_per", 1.0), 0.0, 3.0)   # 1 只 0、2–3 只 +1、4–5 只 +2、6 只以上 +3 dB
+	var db: float = opk(oid, "snd_db", Bal.v("fx/hf_flesh_db", -5.0)) + (0.0 if heavy else -3.0) + add + (0.0 if o.is_leader else -4.0)
+	sfx.play(nm, db, 1.0 - 0.02 * add, 0.05)
+
+
+static func _cam(o, hits: Array) -> void:
+	var g = o.g
+	if not o.is_leader or g.world == null or Cfg.reduce_motion:
+		return
+	var best = null
+	var bd := INF
+	for e in hits:
+		if e is Dictionary:
+			var dd: float = e.pos.distance_squared_to(o.pos)
+			if dd < bd:
+				bd = dd
+				best = e
+	if best == null:
+		return
+	g.world.kick(o.pos - best.pos, int(Bal.v("fx/hf_push_px", 2.0)), Bal.v("fx/hf_push_t", 0.12))   # kick 往 -to_target 推：传反向 = 往出手方向推
+	if Bal.v("fx/hf_rumble", 1.0) > 0.0:
+		Pad.rumble(Bal.v("fx/hf_rumble_weak", 0.2), Bal.v("fx/hf_rumble_strong", 0.35), Bal.v("fx/hf_rumble_t", 0.08))
+
+
+## 中期 Boss 击杀慢放（docs/291 §7.4）：combat.kill 在原来的 0.12 秒停顿之后调；最终 Boss 已有 victory_flow 约 2 秒慢放，不叠。
+## 走 time_dilation 的 fx 类（同终结技冲击慢放）：只在玩家局 / --realtime / --playclock 缩游戏步长，机器人批跑不缩。
+static func boss_kill(g, e: Dictionary) -> void:
+	if Bal.v("fx/hf_boss_slow", 0.0) <= 0.0 or not e.get("boss", false) or e.get("part", false) or g.spawner == null or g.spawner.is_final_boss_type(str(e.get("type", ""))):
+		return
+	g.set_meta("hf_boss_rt", UM.now())
+
+
+## 倍率（真实时间轴）：顿帧 hf_boss_wait 秒后 × hf_boss_lo 保持 hf_boss_t 秒，再按终结技的 ult/imp_ease 先慢后快回 1
+static func boss_slow(g) -> float:
+	if not g.has_meta("hf_boss_rt"):
+		return 1.0
+	var t: float = UM.now() - float(g.get_meta("hf_boss_rt")) - Bal.v("fx/hf_boss_wait", 0.12)
+	var st: float = Bal.v("fx/hf_boss_t", 0.25)
+	var et: float = Bal.v("ult/imp_ease", 0.35)
+	var lo: float = Bal.v("fx/hf_boss_lo", 0.3)
+	if t < 0.0:
+		return 1.0
+	if t >= st + et:
+		g.remove_meta("hf_boss_rt")
+		return 1.0
+	if t < st:
+		return lo
+	var k: float = (t - st) / et
+	return lerpf(lo, 1.0, k * k)
 
 
 # ================================================================ 打击感进化（docs/291，11-07 用户给的像素近战文章：蓄力 → 过冲爆发 → 稳重心收招）
@@ -169,8 +263,6 @@ static func ek(key: String, d: float) -> float:
 
 ## 命中时记下（hit / meat 调）：hold 局部停帧秒数（全局顿帧本来就停 g.t，传 0）
 static func _evo_hit(o, hits: Array, hold: float, heavy: bool, col: Color) -> void:
-	if OS.is_debug_build() and Bal.v("fx/melee_evo_dbg", 0.0) > 0.0:
-		print("EVODBG hit ", o.id, " evo=", evo(o), " n=", hits.size(), " t=", o.g.t)
 	if not evo(o):
 		return
 	var g = o.g
@@ -237,8 +329,6 @@ static func peak(o) -> float:
 ## ②③ 画在本体下面（character.draw_body 在画本体之前调）
 static func draw_under(o, st: Dictionary, base: Vector2, foot_dx: float, foot_off: float) -> void:
 	var a := _evo_age(o)
-	if OS.is_debug_build() and Bal.v("fx/melee_evo_dbg", 0.0) > 0.0 and o.has_meta("me_ev"):
-		print("EVODBG draw ", o.id, " a=", a.size(), " t=", o.g.t)
 	if a.is_empty():
 		return
 	var m: Dictionary = a[0]
