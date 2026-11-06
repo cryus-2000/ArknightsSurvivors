@@ -1,0 +1,16 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4815 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+meta desktop 1 ['shot_meta.png']  []
+meta phone 1 ['shot_meta.png']  []
+oppick desktop 1 ['shot_oppick.png']  []
+oppick phone 1 ['shot_oppick.png']  []
+codex desktop 1 ['shot_gallery_ui.png']  []
+codex phone 1 ['shot_gallery_ui.png']  []
+codex_skill desktop 1 ['shot_gallery_ui.png']  []
+codex_skill phone 1 ['shot_gallery_ui.png']  []
+pause desktop 1 ['shot_motion_pause_full_1217.png']  []
+pause phone 1 ['shot_motion_pause_full_1217.png']  []
+tab desktop 1 ['shot_tab.png']  []
+tab phone 2 ['shot_choice.png', 'shot_tab.png']  []
+media：25 个文件，4.1M
