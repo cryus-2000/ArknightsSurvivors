@@ -1,0 +1,16 @@
+4473	pc_ask_new.log
+447257	pc_ask_new.png
+4473	pc_command_new.log
+814664	pc_command_new.png
+4473	pc_lamp_new.log
+796650	pc_lamp_new.png
+4473	pc_move_new.log
+795386	pc_move_new.png
+4473	ph_ask_new.log
+218623	ph_ask_new.png
+4473	ph_command_new.log
+406059	ph_command_new.png
+4473	ph_lamp_new.log
+396405	ph_lamp_new.png
+4473	ph_move_new.log
+397182	ph_move_new.png
