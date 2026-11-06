@@ -1,0 +1,4 @@
+file '/work/repo/build/cloud/render-anfine3/old.mp4'
+file '/work/repo/build/cloud/render-anfine3/new.mp4'
+file '/work/repo/build/cloud/render-anfine3/old.mp4'
+file '/work/repo/build/cloud/render-anfine3/new.mp4'

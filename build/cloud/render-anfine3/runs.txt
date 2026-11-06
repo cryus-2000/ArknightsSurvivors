@@ -1,0 +1,6 @@
+old rc=0 180 张 0 处脚本错误
+new rc=0 180 张 0 处脚本错误
+total 6336
+drwxr-xr-x 2 root root    4096 Nov  6 13:16 .
+drwxr-xr-x 7 root root    4096 Nov  6 13:16 ..
+-rw-r--r-- 1 root root 6478148 Nov  6 13:16 angelina_ult_old_new.mp4
