@@ -504,7 +504,7 @@ func _phone_relics(b2: Rect2) -> void:
 	var room: float = b2.end.y - 8.0 - (y + 36.0) - 36.0 - 14.0
 	var pitch := 62.0
 	var per := 1
-	for pc in [62.0, 54.0, 46.0, 40.0, 34.0, 30.0]:
+	for pc in [62.0, 54.0, 46.0]:   # 最小 46（手机点得准）；再放不下就按排拖动滚（docs/290），不再缩到 30
 		pitch = pc
 		per = maxi(1, int((b2.size.x - 32) / pitch))
 		if (maxi(1, int(ceil(ng / float(per)))) + maxi(1, int(ceil(nr / float(per))))) * pitch <= room:
