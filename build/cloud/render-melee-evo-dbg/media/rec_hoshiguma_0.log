@@ -1,0 +1,357 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 22.3.6 - Compatibility - Using Device: Mesa/X.org - llvmpipe (LLVM 15.0.6, 256 bits)
+
+PF RTFROM t=17.1
+EVODBG hit hoshiguma on=true evo=0.0 op=1.0 n=1
+EVODBG hit hoshiguma on=true evo=0.0 op=1.0 n=1
+SFXTRACE {"frame0":174,"trace":[[174,"pickup",-14.0,1.09658324718475],[205,"op_saria_atk",-11.0,0.854240894317627],[205,"enemy_screech",-16.056734085083,0.963854670524597],[205,"roar",-2.0,1.31028735637665],[208,"hit",-17.0,1.24966597557068],[208,"op_hoshiguma_hit",-10.0,0.984112083911896],[224,"hit",-17.0,1.19037866592407],[224,"op_hoshiguma_hit",-10.0,1.04800999164581],[234,"op_saria_atk",-11.0,0.871647894382477],[261,"hit",-17.0,1.22967970371246],[261,"kill",-8.0,0.937346279621124],[261,"op_saria_atk",-11.0,0.890704751014709]]}
+MUSTRACE {"buses":{"Music":-1.93820023536682,"SFX":-0.915149807929993,"Voice":-1.93820023536682},"frames":[[174,19999.94921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,15.8839998245239],["res://audio/music/suno_battle1_pulse.ogg",-84.0,15.8839998245239],["res://audio/music/suno_battle1_drive.ogg",-84.0,15.8839998245239]]],[175,19999.955078125,[["res://audio/music/suno_battle1_base.ogg",-4.0,15.9759998321533],["res://audio/music/suno_battle1_pulse.ogg",-84.0,15.9759998321533],["res://audio/music/suno_battle1_drive.ogg",-84.0,15.9759998321533]]],[176,19999.958984375,[["res://audio/music/suno_battle1_base.ogg",-4.0,16.1639995574951],["res://audio/music/suno_battle1_pulse.ogg",-84.0,16.1639995574951],["res://audio/music/suno_battle1_drive.ogg",-84.0,16.1639995574951]]],[177,19999.962890625,[["res://audio/music/suno_battle1_base.ogg",-4.0,16.3479995727539],["res://audio/music/suno_battle1_pulse.ogg",-84.0,16.3479995727539],["res://audio/music/suno_battle1_drive.ogg",-84.0,16.3479995727539]]],[178,19999.966796875,[["res://audio/music/suno_battle1_base.ogg",-4.0,16.5359992980957],["res://audio/music/suno_battle1_pulse.ogg",-84.0,16.5359992980957],["res://audio/music/suno_battle1_drive.ogg",-84.0,16.5359992980957]]],[179,19999.970703125,[["res://audio/music/suno_battle1_base.ogg",-4.0,16.7199993133545],["res://audio/music/suno_battle1_pulse.ogg",-84.0,16.7199993133545],["res://audio/music/suno_battle1_drive.ogg",-84.0,16.7199993133545]]],[180,19999.97265625,[["res://audio/music/suno_battle1_base.ogg",-4.0,16.9039993286133],["res://audio/music/suno_battle1_pulse.ogg",-84.0,16.9039993286133],["res://audio/music/suno_battle1_drive.ogg",-84.0,16.9039993286133]]],[181,19999.974609375,[["res://audio/music/suno_battle1_base.ogg",-4.0,17.0919990539551],["res://audio/music/suno_battle1_pulse.ogg",-84.0,17.0919990539551],["res://audio/music/suno_battle1_drive.ogg",-84.0,17.0919990539551]]],[182,19999.9765625,[["res://audio/music/suno_battle1_base.ogg",-4.0,17.2759990692139],["res://audio/music/suno_battle1_pulse.ogg",-13.5424251556396,17.2759990692139],["res://audio/music/suno_battle1_drive.ogg",-84.0,17.2759990692139]]],[183,19999.978515625,[["res://audio/music/suno_battle1_base.ogg",-4.0,17.4640007019043],["res://audio/music/suno_battle1_pulse.ogg",-7.52182531356812,17.4640007019043],["res://audio/music/suno_battle1_drive.ogg",-84.0,17.4640007019043]]],[184,19999.98046875,[["res://audio/music/suno_battle1_base.ogg",-4.0,17.6480007171631],["res://audio/music/suno_battle1_pulse.ogg",-4.0,17.6480007171631],["res://audio/music/suno_battle1_drive.ogg",-84.0,17.6480007171631]]],[185,19999.982421875,[["res://audio/music/suno_battle1_base.ogg",-4.0,17.8360004425049],["res://audio/music/suno_battle1_pulse.ogg",-4.0,17.8360004425049],["res://audio/music/suno_battle1_drive.ogg",-84.0,17.8360004425049]]],[186,19999.984375,[["res://audio/music/suno_battle1_base.ogg",-4.0,18.0200004577637],["res://audio/music/suno_battle1_pulse.ogg",-4.0,18.0200004577637],["res://audio/music/suno_battle1_drive.ogg",-84.0,18.0200004577637]]],[187,19999.986328125,[["res://audio/music/suno_battle1_base.ogg",-4.0,18.2080001831055],["res://audio/music/suno_battle1_pulse.ogg",-4.0,18.2080001831055],["res://audio/music/suno_battle1_drive.ogg",-84.0,18.2080001831055]]],[188,19999.98828125,[["res://audio/music/suno_battle1_base.ogg",-4.0,18.2999992370605],["res://audio/music/suno_battle1_pulse.ogg",-4.0,18.2999992370605],["res://audio/music/suno_battle1_drive.ogg",-84.0,18.2999992370605]]],[189,19999.990234375,[["res://audio/music/suno_battle1_base.ogg",-4.0,18.4839992523193],["res://audio/music/suno_battle1_pulse.ogg",-4.0,18.4839992523193],["res://audio/music/suno_battle1_drive.ogg",-84.0,18.4839992523193]]],[190,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,18.6720008850098],["res://audio/music/suno_battle1_pulse.ogg",-4.0,18.6720008850098],["res://audio/music/suno_battle1_drive.ogg",-84.0,18.6720008850098]]],[191,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,18.8560009002686],["res://audio/music/suno_battle1_pulse.ogg",-4.0,18.8560009002686],["res://audio/music/suno_battle1_drive.ogg",-84.0,18.8560009002686]]],[192,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,19.0440006256104],["res://audio/music/suno_battle1_pulse.ogg",-4.0,19.0440006256104],["res://audio/music/suno_battle1_drive.ogg",-84.0,19.0440006256104]]],[193,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,19.2280006408691],["res://audio/music/suno_battle1_pulse.ogg",-4.0,19.2280006408691],["res://audio/music/suno_battle1_drive.ogg",-84.0,19.2280006408691]]],[194,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,19.4120006561279],["res://audio/music/suno_battle1_pulse.ogg",-4.0,19.4120006561279],["res://audio/music/suno_battle1_drive.ogg",-84.0,19.4120006561279]]],[195,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,19.6000003814697],["res://audio/music/suno_battle1_pulse.ogg",-4.0,19.6000003814697],["res://audio/music/suno_battle1_drive.ogg",-84.0,19.6000003814697]]],[196,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,19.7840003967285],["res://audio/music/suno_battle1_pulse.ogg",-4.0,19.7840003967285],["res://audio/music/suno_battle1_drive.ogg",-84.0,19.7840003967285]]],[197,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,19.9720001220703],["res://audio/music/suno_battle1_pulse.ogg",-4.0,19.9720001220703],["res://audio/music/suno_battle1_drive.ogg",-84.0,19.9720001220703]]],[198,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,20.1560001373291],["res://audio/music/suno_battle1_pulse.ogg",-4.0,20.1560001373291],["res://audio/music/suno_battle1_drive.ogg",-84.0,20.1560001373291]]],[199,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,20.3439998626709],["res://audio/music/suno_battle1_pulse.ogg",-4.0,20.3439998626709],["res://audio/music/suno_battle1_drive.ogg",-84.0,20.3439998626709]]],[200,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,20.4360008239746],["res://audio/music/suno_battle1_pulse.ogg",-4.0,20.4360008239746],["res://audio/music/suno_battle1_drive.ogg",-84.0,20.4360008239746]]],[201,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,20.6200008392334],["res://audio/music/suno_battle1_pulse.ogg",-4.0,20.6200008392334],["res://audio/music/suno_battle1_drive.ogg",-84.0,20.6200008392334]]],[202,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,20.8080005645752],["res://audio/music/suno_battle1_pulse.ogg",-4.0,20.8080005645752],["res://audio/music/suno_battle1_drive.ogg",-84.0,20.8080005645752]]],[203,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,20.992000579834],["res://audio/music/suno_battle1_pulse.ogg",-4.0,20.992000579834],["res://audio/music/suno_battle1_drive.ogg",-84.0,20.992000579834]]],[204,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,21.1800003051758],["res://audio/music/suno_battle1_pulse.ogg",-4.0,21.1800003051758],["res://audio/music/suno_battle1_drive.ogg",-84.0,21.1800003051758]]],[205,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,21.3640003204346],["res://audio/music/suno_battle1_pulse.ogg",-4.0,21.3640003204346],["res://audio/music/suno_battle1_drive.ogg",-84.0,21.3640003204346]]],[206,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,21.5480003356934],["res://audio/music/suno_battle1_pulse.ogg",-4.0,21.5480003356934],["res://audio/music/suno_battle1_drive.ogg",-84.0,21.5480003356934]]],[207,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,21.7360000610352],["res://audio/music/suno_battle1_pulse.ogg",-4.0,21.7360000610352],["res://audio/music/suno_battle1_drive.ogg",-84.0,21.7360000610352]]],[208,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,21.9200000762939],["res://audio/music/suno_battle1_pulse.ogg",-4.0,21.9200000762939],["res://audio/music/suno_battle1_drive.ogg",-84.0,21.9200000762939]]],[209,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,22.1079998016357],["res://audio/music/suno_battle1_pulse.ogg",-4.0,22.1079998016357],["res://audio/music/suno_battle1_drive.ogg",-84.0,22.1079998016357]]],[210,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,22.2919998168945],["res://audio/music/suno_battle1_pulse.ogg",-4.0,22.2919998168945],["res://audio/music/suno_battle1_drive.ogg",-84.0,22.2919998168945]]],[211,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,22.4799995422363],["res://audio/music/suno_battle1_pulse.ogg",-4.0,22.4799995422363],["res://audio/music/suno_battle1_drive.ogg",-84.0,22.4799995422363]]],[212,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,22.6639995574951],["res://audio/music/suno_battle1_pulse.ogg",-4.0,22.6639995574951],["res://audio/music/suno_battle1_drive.ogg",-84.0,22.6639995574951]]],[213,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,22.8519992828369],["res://audio/music/suno_battle1_pulse.ogg",-4.0,22.8519992828369],["res://audio/music/suno_battle1_drive.ogg",-84.0,22.8519992828369]]],[214,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,23.0359992980957],["res://audio/music/suno_battle1_pulse.ogg",-4.0,23.0359992980957],["res://audio/music/suno_battle1_drive.ogg",-84.0,23.0359992980957]]],[215,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,23.2199993133545],["res://audio/music/suno_battle1_pulse.ogg",-4.0,23.2199993133545],["res://audio/music/suno_battle1_drive.ogg",-84.0,23.2199993133545]]],[216,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,23.4080009460449],["res://audio/music/suno_battle1_pulse.ogg",-4.0,23.4080009460449],["res://audio/music/suno_battle1_drive.ogg",-84.0,23.4080009460449]]],[217,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,23.5919990539551],["res://audio/music/suno_battle1_pulse.ogg",-4.0,23.5919990539551],["res://audio/music/suno_battle1_drive.ogg",-84.0,23.5919990539551]]],[218,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,23.7800006866455],["res://audio/music/suno_battle1_pulse.ogg",-4.0,23.7800006866455],["res://audio/music/suno_battle1_drive.ogg",-84.0,23.7800006866455]]],[219,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,23.8719997406006],["res://audio/music/suno_battle1_pulse.ogg",-4.0,23.8719997406006],["res://audio/music/suno_battle1_drive.ogg",-84.0,23.8719997406006]]],[220,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,24.0559997558594],["res://audio/music/suno_battle1_pulse.ogg",-4.0,24.0559997558594],["res://audio/music/suno_battle1_drive.ogg",-84.0,24.0559997558594]]],[221,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,24.2439994812012],["res://audio/music/suno_battle1_pulse.ogg",-4.0,24.2439994812012],["res://audio/music/suno_battle1_drive.ogg",-84.0,24.2439994812012]]],[222,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,24.42799949646],["res://audio/music/suno_battle1_pulse.ogg",-4.0,24.42799949646],["res://audio/music/suno_battle1_drive.ogg",-84.0,24.42799949646]]],[223,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,24.6159992218018],["res://audio/music/suno_battle1_pulse.ogg",-4.0,24.6159992218018],["res://audio/music/suno_battle1_drive.ogg",-84.0,24.6159992218018]]],[224,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,24.7999992370605],["res://audio/music/suno_battle1_pulse.ogg",-4.0,24.7999992370605],["res://audio/music/suno_battle1_drive.ogg",-84.0,24.7999992370605]]],[225,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,24.988000869751],["res://audio/music/suno_battle1_pulse.ogg",-4.0,24.988000869751],["res://audio/music/suno_battle1_drive.ogg",-84.0,24.988000869751]]],[226,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,25.1720008850098],["res://audio/music/suno_battle1_pulse.ogg",-4.0,25.1720008850098],["res://audio/music/suno_battle1_drive.ogg",-84.0,25.1720008850098]]],[227,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,25.3560009002686],["res://audio/music/suno_battle1_pulse.ogg",-4.0,25.3560009002686],["res://audio/music/suno_battle1_drive.ogg",-84.0,25.3560009002686]]],[228,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,25.5440006256104],["res://audio/music/suno_battle1_pulse.ogg",-4.0,25.5440006256104],["res://audio/music/suno_battle1_drive.ogg",-84.0,25.5440006256104]]],[229,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,25.7280006408691],["res://audio/music/suno_battle1_pulse.ogg",-4.0,25.7280006408691],["res://audio/music/suno_battle1_drive.ogg",-84.0,25.7280006408691]]],[230,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,25.9160003662109],["res://audio/music/suno_battle1_pulse.ogg",-4.0,25.9160003662109],["res://audio/music/suno_battle1_drive.ogg",-84.0,25.9160003662109]]],[231,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,26.1000003814697],["res://audio/music/suno_battle1_pulse.ogg",-4.0,26.1000003814697],["res://audio/music/suno_battle1_drive.ogg",-84.0,26.1000003814697]]],[232,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,26.2880001068115],["res://audio/music/suno_battle1_pulse.ogg",-4.0,26.2880001068115],["res://audio/music/suno_battle1_drive.ogg",-84.0,26.2880001068115]]],[233,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,26.4720001220703],["res://audio/music/suno_battle1_pulse.ogg",-4.0,26.4720001220703],["res://audio/music/suno_battle1_drive.ogg",-84.0,26.4720001220703]]],[234,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,26.6599998474121],["res://audio/music/suno_battle1_pulse.ogg",-4.0,26.6599998474121],["res://audio/music/suno_battle1_drive.ogg",-84.0,26.6599998474121]]],[235,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,26.8439998626709],["res://audio/music/suno_battle1_pulse.ogg",-4.0,26.8439998626709],["res://audio/music/suno_battle1_drive.ogg",-84.0,26.8439998626709]]],[236,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,27.0279998779297],["res://audio/music/suno_battle1_pulse.ogg",-4.0,27.0279998779297],["res://audio/music/suno_battle1_drive.ogg",-84.0,27.0279998779297]]],[237,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,27.2159996032715],["res://audio/music/suno_battle1_pulse.ogg",-4.0,27.2159996032715],["res://audio/music/suno_battle1_drive.ogg",-84.0,27.2159996032715]]],[238,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,27.3999996185303],["res://audio/music/suno_battle1_pulse.ogg",-4.0,27.3999996185303],["res://audio/music/suno_battle1_drive.ogg",-84.0,27.3999996185303]]],[239,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,27.5879993438721],["res://audio/music/suno_battle1_pulse.ogg",-4.0,27.5879993438721],["res://audio/music/suno_battle1_drive.ogg",-84.0,27.5879993438721]]],[240,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,27.7719993591309],["res://audio/music/suno_battle1_pulse.ogg",-4.0,27.7719993591309],["res://audio/music/suno_battle1_drive.ogg",-84.0,27.7719993591309]]],[241,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,27.9599990844727],["res://audio/music/suno_battle1_pulse.ogg",-4.0,27.9599990844727],["res://audio/music/suno_battle1_drive.ogg",-84.0,27.9599990844727]]],[242,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,28.1439990997314],["res://audio/music/suno_battle1_pulse.ogg",-4.0,28.1439990997314],["res://audio/music/suno_battle1_drive.ogg",-84.0,28.1439990997314]]],[243,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,28.3320007324219],["res://audio/music/suno_battle1_pulse.ogg",-4.0,28.3320007324219],["res://audio/music/suno_battle1_drive.ogg",-84.0,28.3320007324219]]],[244,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,28.5160007476807],["res://audio/music/suno_battle1_pulse.ogg",-4.0,28.5160007476807],["res://audio/music/suno_battle1_drive.ogg",-84.0,28.5160007476807]]],[245,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,28.7000007629395],["res://audio/music/suno_battle1_pulse.ogg",-4.0,28.7000007629395],["res://audio/music/suno_battle1_drive.ogg",-84.0,28.7000007629395]]],[246,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,28.8880004882812],["res://audio/music/suno_battle1_pulse.ogg",-4.0,28.8880004882812],["res://audio/music/suno_battle1_drive.ogg",-84.0,28.8880004882812]]],[247,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,29.07200050354],["res://audio/music/suno_battle1_pulse.ogg",-4.0,29.07200050354],["res://audio/music/suno_battle1_drive.ogg",-84.0,29.07200050354]]],[248,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,29.2600002288818],["res://audio/music/suno_battle1_pulse.ogg",-4.0,29.2600002288818],["res://audio/music/suno_battle1_drive.ogg",-84.0,29.2600002288818]]],[249,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,29.4440002441406],["res://audio/music/suno_battle1_pulse.ogg",-4.0,29.4440002441406],["res://audio/music/suno_battle1_drive.ogg",-84.0,29.4440002441406]]],[250,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,29.6319999694824],["res://audio/music/suno_battle1_pulse.ogg",-4.0,29.6319999694824],["res://audio/music/suno_battle1_drive.ogg",-84.0,29.6319999694824]]],[251,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,29.8159999847412],["res://audio/music/suno_battle1_pulse.ogg",-4.0,29.8159999847412],["res://audio/music/suno_battle1_drive.ogg",-84.0,29.8159999847412]]],[252,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,30.0],["res://audio/music/suno_battle1_pulse.ogg",-4.0,30.0],["res://audio/music/suno_battle1_drive.ogg",-84.0,30.0]]],[253,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,30.1879997253418],["res://audio/music/suno_battle1_pulse.ogg",-4.0,30.1879997253418],["res://audio/music/suno_battle1_drive.ogg",-84.0,30.1879997253418]]],[254,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,30.3719997406006],["res://audio/music/suno_battle1_pulse.ogg",-4.0,30.3719997406006],["res://audio/music/suno_battle1_drive.ogg",-84.0,30.3719997406006]]],[255,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,30.5599994659424],["res://audio/music/suno_battle1_pulse.ogg",-4.0,30.5599994659424],["res://audio/music/suno_battle1_drive.ogg",-84.0,30.5599994659424]]],[256,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,30.7439994812012],["res://audio/music/suno_battle1_pulse.ogg",-4.0,30.7439994812012],["res://audio/music/suno_battle1_drive.ogg",-84.0,30.7439994812012]]],[257,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,30.931999206543],["res://audio/music/suno_battle1_pulse.ogg",-4.0,30.931999206543],["res://audio/music/suno_battle1_drive.ogg",-84.0,30.931999206543]]],[258,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,31.1159992218018],["res://audio/music/suno_battle1_pulse.ogg",-4.0,31.1159992218018],["res://audio/music/suno_battle1_drive.ogg",-84.0,31.1159992218018]]],[259,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,31.3040008544922],["res://audio/music/suno_battle1_pulse.ogg",-4.0,31.3040008544922],["res://audio/music/suno_battle1_drive.ogg",-84.0,31.3040008544922]]],[260,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,31.488000869751],["res://audio/music/suno_battle1_pulse.ogg",-4.0,31.488000869751],["res://audio/music/suno_battle1_drive.ogg",-84.0,31.488000869751]]],[261,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,31.6720008850098],["res://audio/music/suno_battle1_pulse.ogg",-4.0,31.6720008850098],["res://audio/music/suno_battle1_drive.ogg",-84.0,31.6720008850098]]],[262,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,31.8600006103516],["res://audio/music/suno_battle1_pulse.ogg",-4.0,31.8600006103516],["res://audio/music/suno_battle1_drive.ogg",-84.0,31.8600006103516]]],[263,19999.9921875,[["res://audio/music/suno_battle1_base.ogg",-4.0,31.9519996643066],["res://audio/music/suno_battle1_pulse.ogg",-4.0,31.9519996643066],["res://audio/music/suno_battle1_drive.ogg",-84.0,31.9519996643066]]]]}
+SFXREQ {}
+ERROR: 167 RID allocations of type 'N5GLES37TextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 4 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+ERROR: Texture with GL ID of 25: leaked 4915052 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 26: leaked 786424 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 97: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 98: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 99: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 100: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 101: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 102: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 103: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 104: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 106: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 107: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 108: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1522: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1523: leaked 17539708 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1555: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1556: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1557: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1558: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1559: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1560: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1561: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1562: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1563: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1564: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1565: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1566: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1567: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1568: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1569: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1570: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1571: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1572: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1573: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1574: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1575: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1576: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1577: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1578: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1579: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1580: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1581: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1582: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1583: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1584: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1585: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1586: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1587: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1588: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1589: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1590: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1591: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1592: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1593: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1594: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1595: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1596: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1597: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1598: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1599: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1600: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1601: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1602: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1603: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1604: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1605: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1606: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1607: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1608: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1609: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1610: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1611: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1612: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1613: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1614: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1615: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1616: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1617: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1618: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1619: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1620: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1621: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1622: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1623: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1624: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1625: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1626: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1627: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1628: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1629: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1630: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1631: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1632: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1633: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1634: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1635: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1636: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1637: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1638: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1639: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1640: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1641: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1642: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1643: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1644: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1645: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1646: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1647: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1648: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1649: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1650: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1651: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1652: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1653: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1654: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1655: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1656: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1657: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1658: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1659: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1660: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1661: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1662: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1663: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1664: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1665: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1666: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1667: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1668: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1669: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1670: leaked 2796202 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1671: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1672: leaked 2796202 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1673: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1674: leaked 2796202 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1675: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1676: leaked 2796202 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1677: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1678: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1679: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1680: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1681: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1682: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1683: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1684: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1685: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1686: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1687: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1688: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1689: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1690: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1691: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1692: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1693: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1694: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1695: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1696: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1697: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1698: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1699: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1712: leaked 611676 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1721: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1722: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1723: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1726: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1728: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1745: leaked 252 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+WARNING: 459 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 29 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
