@@ -1,0 +1,8 @@
+19902	new/levelup_desktop/log.txt
+547131	new/levelup_desktop/shot_motion_levelup_full_1217.png
+17249	new/levelup_phone/log.txt
+319194	new/levelup_phone/shot_motion_levelup_full_1217.png
+19902	old/levelup_desktop/log.txt
+547072	old/levelup_desktop/shot_motion_levelup_full_1217.png
+17134	old/levelup_phone/log.txt
+310061	old/levelup_phone/shot_motion_levelup_full_1217.png
