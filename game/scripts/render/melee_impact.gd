@@ -175,7 +175,7 @@ static func _evo_hit(o, hits: Array, hold: float, heavy: bool, col: Color) -> vo
 	var best = null
 	var bd := INF
 	for e in hits:
-		if e is Dictionary and not e.get("dead", false):
+		if e is Dictionary:   # 这一下打死的也算（前期几乎刀刀击杀）
 			var dd: float = e.pos.distance_squared_to(o.pos)
 			if dd < bd:
 				bd = dd
