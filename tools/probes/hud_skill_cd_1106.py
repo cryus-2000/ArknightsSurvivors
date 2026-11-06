@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.join(ROOT, "tools"))
 import godot_runner as gr
 
 BASE = ["--balance", "--realtime", "--nodeath", "--seed=3", "--op=mizuki", "--slot4", "--squad=texas,exusiai,saria", "--elite2",
-        "--bot=master", "--bal=ui/console_idle=1", "--bal=ui/console_dash_trace=1", "--rtfrom=86", "--maxt=101"]
+        "--bot=master", "--bal=ui/console_idle=1", "--bal=ui/console_dash_trace=1", "--rtfrom=86", "--maxt=101", "--dashat=90.2,90.6"]
 PC = (["--resolution", "1920x1080"], ["--flashrec=90,330,1920"])
 PH = (["--resolution", "1170x540"], ["--touch", "--flashrec=90,330,1170"])
 SCENES = {

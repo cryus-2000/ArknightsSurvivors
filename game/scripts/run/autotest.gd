@@ -15,6 +15,7 @@ const KILL_TYPES := ["bone", "stone", "offspring", "runner", "floater", "reaper"
 const KILL_SHOTS := [-1, 3, 8, 14, 22]   # --killshot 截图帧（相对击杀那一帧；-1 = 击杀前一帧）
 var _kill_row: Array = []
 var hunt_rec_end := 0  # --huntrec：进寻访结果后又录了几张
+var _dash_at: Array = []
 var _elite_at := -1.0   # --eliteat=秒（docs/249 §5）：-1 = 还没读参数，0 = 不用 / 已触发
 var touchtest_p0 := Vector2.ZERO
 var bal_done := false
@@ -1065,6 +1066,16 @@ func step() -> void:
 		for a in Cfg.dev_args():
 			if a.begins_with("--eliteat="):
 				_elite_at = float(a.substr(10))   # 截图 / 录屏（docs/249 §5）：到点把队长推到精英二，拍精英化时刻
+	if _dash_at.is_empty():
+		_dash_at = [-1.0]
+		for a in Cfg.dev_args():
+			if a.begins_with("--dashat="):
+				_dash_at = Array(a.substr(9).split(",")).map(func(x): return float(x))   # 截图（docs/290 冲刺格充能）：到点让队长冲刺一次
+	if _dash_at[0] > 0.0 and g.state == g.S.PLAY and g.t >= _dash_at[0]:
+		g._try_dash()
+		_dash_at.pop_front()
+		if _dash_at.is_empty():
+			_dash_at = [-1.0]
 	if _elite_at > 0.0 and g.state == g.S.PLAY and g.t >= _elite_at:
 		_elite_at = 0.0
 		var lo = g.squad.leader()
