@@ -174,6 +174,9 @@ def main():
     # 帧时浮层（tools/web/fps_meter.js，docs/50 §21.7）：只在网址带 ?fps=1 时显示，给真机量帧率
     with open(os.path.join(WEB, "fps_meter.js"), encoding="utf-8") as fh:
         js += fh.read() + "\n"
+    # 性能自检浮层的 WASM 内存读数（tools/web/perf_probe.js，core/perf_hud.gd）：引擎实例化之前装好
+    with open(os.path.join(WEB, "perf_probe.js"), encoding="utf-8") as fh:
+        js += fh.read() + "\n"
     # LZMA 解码器（tools/web/lzma_dec.js，本作自写）：加载器解 wasm 分片用，要在 loader.js 之前
     with open(os.path.join(WEB, "lzma_dec.js"), encoding="utf-8") as fh:
         js += fh.read() + "\n"
