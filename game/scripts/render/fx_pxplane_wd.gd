@@ -53,7 +53,7 @@ const DROP_H := 240.0
 ## 只画：出膛事件记一条画面记录（同 seg_wisadel._h4_fire 的 dur 算法），不读写玩法状态。
 const TRC := [Color("#fff4f0"), Color("#ff4a60"), Color("#e8102a"), Color("#a80c26"), Color("#5e0c22"), Color("#2c0e26"), Color("#15224e"), Color("#0b1330")]
 const TR_HEADN := [Color("#1c2a5c"), Color("#34488a")]   # 弹身藏蓝（暗 / 受光）
-const TR_RIB := [Color("#ff7a7a"), Color("#3a52a8")]     # 红 / 蓝两股细带
+const TR_RIB := [Color("#ff7979"), Color("#263679")]     # 红 / 蓝两股细带（原作 trail_hong / trail_lan 原色；蓝带压暗，免得在暗地面上发紫）
 const TR_SPK := [Color("#ffe4e4"), Color("#ff2e2e"), Color("#a80c26")]
 const TR_TT := 0.12      # 尾迹长度 = 多少秒的飞行
 const TR_FADE := 0.3     # 落地后尾迹收尾
@@ -677,12 +677,12 @@ func _draw_trail(ci, T: Dictionary) -> void:
 			var kk: float = lerpf(kh, kt, u)
 			var p: Vector2 = Pxp._snap(_tr_at(T, kk))
 			var w: int = maxi(1, int(round(lerpf(wmax, 1.0, u))))
-			var al: float = fade * (1.0 if u < 0.35 else lerpf(1.0, 0.25, (u - 0.35) / 0.65))
+			var al: float = fade * (1.0 if u < 0.35 else lerpf(1.0, 0.0, (u - 0.35) / 0.65))
 			var c: Color = _tr_col(u)
-			if u < 0.6 and w >= 2:   # 外缘 Trail_an：暗一阶的深蓝边（只在靠弹头的一段）
+			if u < 0.4 and w >= 2:   # 外缘 Trail_an：暗一阶的深蓝边（只在靠弹头的一段）
 				_span(ci, p, w + 2, horiz, Color(TRC[7].r, TRC[7].g, TRC[7].b, 0.7 * al))
 			_span(ci, p, w, horiz, Color(c.r, c.g, c.b, al))
-			if u > 0.04 and u < 0.78 and not (lo and i % 2 == 1):   # 红蓝两股细带绕着拧（相位跟着弹道走、按拍转）
+			if u > 0.04 and u < 0.55 and not (lo and i % 2 == 1):   # 红蓝两股细带绕着拧（相位跟着弹道走、按拍转）
 				var dist: float = kk * total
 				var phs: float = dist / lam * TAU - float(bt) * 1.3
 				var off: float = amp * (1.0 - u * 0.5) * sin(phs)
