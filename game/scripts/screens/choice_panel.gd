@@ -60,13 +60,6 @@ var picked_r := Rect2()
 var picked_t := -10.0
 var picked_to := "op:"   # 余光飞向：「op:<干员 id>」（空 id = 队长）/「relic」
 const HEADER_H := 80.0         # 标题块（英文小标 + 大标题 + 说明行）到卡片顶边的高度
-## 手机升级卡重排（11-06 用户「卡片偏窄两边空、多行说明居中参差、中间空一截、详情挤在顶部、最上面升级那些也有点拥挤」）：
-## 标题块高 96（说明行与卡片顶边之间留 20）；卡宽上限 340（原 272，三张铺满可用宽）；卡底让出指挥台（hud_v3.lift）；
-## 同一排按最长那张的内容收高（_shrink_phone_row），不再留一截空；说明多于一行左对齐；「影响」标签贴在说明下面，「详情」放到标签行右端
-const HEADER_H_PHONE := 96.0
-const TITLE_UP_PHONE := 92.0
-const CARD_W_PHONE := 340.0
-const ROW_SEP_PHONE := 26.0
 ## 三档布局参数（docs/126 C6）：下标 = Cfg.ui_form()（0 桌面 / 1 触屏 / 2 手机横屏）。正文只读 lay()，不再各自判断平台。
 ## touch：触屏版式（事件条横跨整屏、卡片紧凑排版、面板压暗带从顶到底）；phone：手机横屏（整排缩 card_scale、按说明加高、上下居中）；
 ## cards_top：卡片顶边；title_up：标题块在卡片顶边上方多少；ev_col_top：事件选项列顶边；ev_title_dy / ev_hint_fs：事件右侧标题下移、提示字号
@@ -131,15 +124,12 @@ func fit_row(n: int) -> void:
 	row_k = 1.0
 	if n <= 0:
 		return
-	var ph: bool = lay().phone
-	var cw_max: float = CARD_W_PHONE if ph else CARD_W
-	var sep_max: float = ROW_SEP_PHONE if ph else ROW_SEP
 	var ins: Array = Cfg.safe_insets()
 	var avail: float = (g.panel.size.x - float(ins[0]) - float(ins[2]) - 2.0 * ROW_MARGIN) / card_scale()
 	var gaps := float(n - 1)
 	if gaps > 0.0:
-		row_sep = clampf((avail - n * cw_max) / gaps, ROW_SEP_MIN, sep_max)
-	card_w = floorf(clampf((avail - gaps * row_sep) / n, CARD_W_MIN, cw_max))
+		row_sep = clampf((avail - n * CARD_W) / gaps, ROW_SEP_MIN, ROW_SEP)
+	card_w = floorf(clampf((avail - gaps * row_sep) / n, CARD_W_MIN, CARD_W))
 	row_k = minf(1.0, avail / (n * card_w + gaps * row_sep))
 
 
@@ -147,17 +137,9 @@ func cards_top() -> float:
 	var L: Dictionary = lay()
 	if L.phone and g.panel != null:
 		# 标题块 + 缩小后的卡片整体上下居中，卡片顶边不早于原来的 80
-		var block: float = HEADER_H_PHONE + (row_h if row_h > 0.0 else card_h()) * CARD_SCALE_PHONE * row_k
-		return maxf(HEADER_H_PHONE + 4.0, round((g.panel.size.y - phone_bottom_room() - block) / 2.0) + HEADER_H_PHONE)
+		var block: float = HEADER_H + (row_h if row_h > 0.0 else card_h()) * CARD_SCALE_PHONE * row_k
+		return maxf(CARDS_TOP_PHONE, round((g.panel.size.y - block) / 2.0) + HEADER_H)
 	return float(L.cards_top)
-
-
-## 手机卡片底下要让出的高度：指挥台开着时让出整台（选卡时生命 / 灯火照常看得到，10-26），否则 12
-func phone_bottom_room() -> float:
-	var hv = g.hud_view
-	if hv != null and load("res://scripts/core/balance.gd").vi("ui/hud_v3", 1) > 0 and g.panel != null:   # 同 hud_v3.on()
-		return hv.v3.lift(g.panel.size) + 8.0
-	return 12.0
 
 
 func card_h() -> float:
@@ -405,7 +387,7 @@ func draw_bg() -> void:
 			var L: Dictionary = lay()
 			var ph: bool = L.touch
 			# 手机：标题整体下移 4（英文小标原来基线 12，顶边贴着画面上沿被切掉一截）；顶栏中央的计时器在选卡时不画（hud.panel_over_top）
-			header(vs, en_label + "  ·  CHOOSE ONE", g.panel_title_text, panel_sub_text, cards_top() - (TITLE_UP_PHONE if L.phone else float(L.title_up)))
+			header(vs, en_label + "  ·  CHOOSE ONE", g.panel_title_text, panel_sub_text, cards_top() - float(L.title_up))
 			if not ph:   # 手机：卡片顶到底，没有提示行的位置（点卡片本身就是操作）
 				var hint := "←→ 选择 · Ⓐ 确认" if Pad.using else ("点击卡片选择" if Pad.touch else "点击卡片，或按 1–%d 选择" % g.choices.size())
 				if g.choice_kind == "cross":
@@ -689,7 +671,7 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 	var row_cards: bool = kind != "event" and kind != "cross"
 	if L.phone and kind != "event":
 		# 手机横屏：卡高固定（不再按最长说明加高，10-26 实机挤满），只是缩放后整块放不下时按画面高收一点
-		var max_h: float = (g.panel.size.y - HEADER_H_PHONE - 4.0 - phone_bottom_room()) / (CARD_SCALE_PHONE * row_k)
+		var max_h: float = (g.panel.size.y - HEADER_H - 12.0) / (CARD_SCALE_PHONE * row_k)
 		row_h = minf(card_h(), maxf(DESC_PAD_PHONE + 90.0, max_h))
 	layout(kind)
 	motion.start(kind, opts)
@@ -818,9 +800,6 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 	if not ev and L.touch:
 		_even_recruit_phone()
 		_even_brief_phone()
-		if L.phone and row_h > 0.0:
-			_shrink_phone_row()
-			layout(kind)   # 卡高变了：重算整排顶边（上下居中）
 	g.panel.visible = true
 	g.panel_fg.queue_redraw()
 
@@ -862,27 +841,6 @@ func _even_recruit_phone() -> void:
 		var f := _recruit_fit(str(b[0]), float(b[1]), float(b[2]), boxes)
 		c.set_meta("fit", f)
 		c.set_meta("more", c.get_meta("more", false) or not f.fit)
-
-
-## 手机：同一排按内容最多的那张收卡高（名字 → 说明 → 影响标签 → 选择条，中间不再空一截），不高于原来按屏幕算的高度
-func _shrink_phone_row() -> void:
-	var cards: Array = g.panel_box.get_children().filter(func(c): return c is Button and c.get_meta("roomy", false))
-	if cards.is_empty():
-		return
-	var need := 0.0
-	for c in cards:
-		var fd: Dictionary = c.get_meta("fit", {})
-		var dh: float = float(fd.lines.size()) * float(fd.lh) if not fd.is_empty() else 0.0
-		need = maxf(need, DESC_Y_PHONE + dh + PHONE_DESC_TO_CHIP + PHONE_CHIP_TO_BOTTOM)
-	var h: float = clampf(need, DESC_Y_PHONE + 40.0 + PHONE_DESC_TO_CHIP + PHONE_CHIP_TO_BOTTOM, row_h)
-	row_h = h
-	for c in cards:
-		c.custom_minimum_size.y = h
-		c.size.y = h
-
-
-const PHONE_DESC_TO_CHIP := 34.0     # 说明末行底 → 影响标签行底
-const PHONE_CHIP_TO_BOTTOM := 66.0   # 影响标签行底 → 卡底（选择条 42 + 上下空）
 
 
 ## 同一屏的手机卡说明用同一字号（11-06：以前各卡各自缩，同排一张 18 一张 15）：取全组都放得下的最大一档；
@@ -1084,14 +1042,12 @@ func detail_tap(card: Button, i: int) -> bool:
 
 
 ## 手机卡片右上的「详情」键（开着时青底、箭头朝下）；small = 商店窄卡用小一号
-func draw_detail_chip(card: Button, r: Rect2, i: int, small := false, at := Vector2(-1.0, -1.0)) -> void:
+func draw_detail_chip(card: Button, r: Rect2, i: int, small := false) -> void:
 	var on: bool = detail_i == i
 	var fs := 15 if small else 17
 	var dw := UI.cwidth(g.font, "详情", fs) + (28.0 if small else 34.0)
 	var dh := 28.0 if small else 32.0
 	var dr := Rect2(r.position + Vector2(r.size.x - dw - (6.0 if small else 10.0), 6.0 if small else 8.0), Vector2(dw, dh))
-	if at.x >= 0.0:
-		dr.position = r.position + at   # 手机升级卡：放在影响标签行右端（11-06）
 	card.set_meta("detail_r", dr)
 	card.draw_rect(dr, UI.CYAN if on else Color(UI.STEEL.r, UI.STEEL.g, UI.STEEL.b, 0.45))
 	card.draw_rect(dr, Color(UI.CYAN, 0.9 if on else 0.5), false, 1.0)
@@ -1276,7 +1232,7 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	card.draw_rect(r, UI.CYAN if hov else Color(1, 1, 1, 0.11), false, 1.0)
 	var tag := card_tag(o)
 	UI.strip(card, g.font, r.position + Vector2(14, 14), tag[0], tag[1], UI.CYAN if hov else Color(1, 1, 1, 0.88), UI.TEXT, 12)
-	if card.get_meta("more", false) and card.get_meta("phone", false) and not card.get_meta("roomy", false):
+	if card.get_meta("more", false) and card.get_meta("phone", false):
 		draw_detail_chip(card, r, i)
 	elif not Pad.touch_ui():   # 右上序号 = 数字键，触屏不画（10-31 TA H7）
 		UI.ctext(card, g.font, r.position + Vector2(r.size.x - 40, 32), str(i + 1), 17, UI.TEXT if hov else Color(0.43, 0.47, 0.51), HORIZONTAL_ALIGNMENT_RIGHT, 24)
@@ -1342,20 +1298,11 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	if not fd.is_empty():
 		var dy: float = DESC_Y_PHONE if roomy else ((176.0 if ph else 198.0) if compact else 244.0)
 		var dc := Color(0.86, 0.9, 0.93, ta) if card.has_meta("brief") and card.get_meta("phone", false) else Color(0.655, 0.69, 0.725, ta)   # 电脑：各类卡说明同字号同色（用户 10-30）；phone = 建卡时的 lay().touch
-		var al: int = HORIZONTAL_ALIGNMENT_LEFT if (roomy and fd.lines.size() > 1) else HORIZONTAL_ALIGNMENT_CENTER   # 手机多行左对齐（11-06）
-		UI.draw_fit(card, g.font, r.position + Vector2(px, dy), fd, dc, al, r.size.x - 2.0 * px)
+		UI.draw_fit(card, g.font, r.position + Vector2(px, dy), fd, dc, HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 2.0 * px)
 	# 作用对象：这张卡影响编队里的哪些干员（招募卡列这名干员的伤害特征）；说明区最多到 306，标签行在 310
 	var chips: Array = card.get_meta("affects", [])
-	var chip_b: float = r.size.y - (CHIP_UP_PHONE if roomy else 53.0)
-	if roomy and not fd.is_empty():
-		chip_b = minf(chip_b, DESC_Y_PHONE + float(fd.lines.size()) * float(fd.lh) + PHONE_DESC_TO_CHIP)   # 手机：标签贴在说明下面
-	var more_r: bool = roomy and card.get_meta("more", false) and ph
-	var dw_more: float = (UI.cwidth(g.font, "详情", 17) + 42.0) if more_r else 0.0
 	if not chips.is_empty():
-		var cw_all: float = r.size.x - (2.0 * px if roomy else 32.0) - dw_more
-		UI.chip_row(card, g.font, r.position + Vector2((r.size.x - dw_more) / 2.0, chip_b), chips, cw_all, 1, "流派" if o.kind in ["recruit", "swap_out"] else "影响", CHIP_FS_PHONE if (ph and card.has_meta("brief")) else 11, ta)
-	if more_r:
-		draw_detail_chip(card, r, i, false, Vector2(r.size.x - px - dw_more + 8.0, chip_b - 28.0))   # 手机：「详情」在标签行右端，不再挤在卡头
+		UI.chip_row(card, g.font, r.position + Vector2(r.size.x / 2.0, r.size.y - (CHIP_UP_PHONE if roomy else 53.0)), chips, r.size.x - (2.0 * px if roomy else 32.0), 1, "流派" if o.kind in ["recruit", "swap_out"] else "影响", CHIP_FS_PHONE if (ph and card.has_meta("brief")) else 11, ta)
 	# 底部操作条：普通钢蓝；悬停青底深字
 	var ab := Rect2(r.position + Vector2(20, r.size.y - 46), Vector2(r.size.x - 40, 30)) if roomy else Rect2(r.position + Vector2(16, r.size.y - 44), Vector2(r.size.x - 32, 30))
 	if ph and card.has_meta("brief"):
