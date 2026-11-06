@@ -139,7 +139,8 @@ func _growth_demo(dt: float) -> void:
 	var gl: Dictionary = g.ch.def.get("gallery", {})
 	if gl.has("demo_dash_cd"):
 		g.dash_cd = maxf(g.dash_cd, float(gl.demo_dash_cd))
-	if gl.has("demo_ctrl"):
+	var cfg = g.get_node_or_null("/root/Cfg")
+	if gl.has("demo_ctrl") and not (cfg != null and cfg.dev_args().has("--nodemoctrl")):   # --nodemoctrl：录「没有控制型队友」的对照（docs/297）
 		demo_ctrl_t += dt
 		if demo_ctrl_t >= float(gl.demo_ctrl):
 			demo_ctrl_t = 0.0

@@ -1369,6 +1369,10 @@
  "growth_nodes": {
   "_doc": "成长节点去数值化（docs/202）：控制递减口径。同一敌人 cc_dr_window 秒内第二次受成长节点控制，时长 × cc_dr_mult；cc_dr_mult = 1 即关",
   "cc_dr_window": 3.0,
-  "cc_dr_mult": 0.5
+  "cc_dr_mult": 0.5,
+  "_exu_prefer_doc": "能天使「对空优先」改版原型（docs/297）：exu_prefer 0 = 原样；1 = A（锁定框 + 定身星 + 射程内没有受控目标时精英 / Boss 优先）；2 = B（A 的画面 + 每第 exu_stun_every 发主弹是眩晕弹，眩晕 exu_stun 秒，精英减半、Boss 不受）",
+  "exu_prefer": 0,
+  "exu_stun_every": 6,
+  "exu_stun": 0.6
  }
 }

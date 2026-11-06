@@ -268,6 +268,11 @@ func draw_rt(ci, it: Dictionary) -> void:
 			var kind: String = str(BKIND.get(str(bu.get("tex", "")), "n"))
 			var tr: bool = not (bu.get("tr", {}) as Dictionary).is_empty()
 			var back: float = float(int(it.n) % 4) * 3.0 if kind == "g" else 0.0   # 倾泻 8 发同一帧出膛：画面上按序号前后错开（只画），不成一排梳子
+			if float(bu.get("stn", 0.0)) > 0.0:   # docs/297 B 版眩晕弹：金色曳光弹体画两遍（错开 1 格 = 6 宽）+ 弹头一圈亮光
+				_bullet(ci, bu.p, bu.v, kind, 2, false, true, 0.0)
+				_bullet(ci, (bu.p as Vector2) + Vector2((bu.v as Vector2).normalized().y, -(bu.v as Vector2).normalized().x) * g.PX * 2.0, bu.v, kind, 2, false, true, 0.0)
+				r._glow(Pxp._snap(bu.p), _c("g", 6))
+				return
 			_bullet(ci, bu.p, bu.v, kind, r.tier(it.o), not bu.get("ric", true), tr, back)
 		"xbul":
 			var xb: Dictionary = it.b
