@@ -104,3 +104,11 @@
 验证（GCP `render-hitfeel-4`）：批跑 TRACE 四条 + 进化全开 vs 全关；玩家时钟 TRACE 只开纯画面 / 声音的（flesh、cam、evo）；对照录像两段：进化（德克萨斯、推进之王）、取舍三条（layer + flesh + cam）。Boss 慢放这轮没录（需要打死一只中期 Boss 的录像，另录）。
 
 结果：批跑 TRACE（四条 + 进化全开 vs 全关）德克萨斯 / 推进之王 301/301 逐行一致；玩家时钟（flesh + cam + evo）61/61 逐行一致。录像 `Claude outputs/render-hitfeel-4/evo_texas_siege.mp4`、`hf_texas_siege.mp4`，11-07 已发用户待审。
+
+## 8. 推到全员（11-07 用户「先推到全员吧」）
+
+- 名单：近战 11 人——德克萨斯、推进之王、星熊、斯卡蒂、水月、歌蕾蒂娅、乌尔比安、归溟幽灵鲨、拉普兰德、艾丽妮、塞雷娅（`fx/hf_op`、`fx/melee_evo_op` 都是这 11 人）；远程 / 医疗 / 辅助不动。开关缺省 1（0ad7ae9c0 起）。
+- 艾丽妮（刺剑）、塞雷娅（拳击）原来不在近战打击感包里：补挂点（seg_irene `_h3_thrust`、seg_saria `_h4_bash_release`），IDS 加本人色（艾丽妮银蓝、塞雷娅钙白金）。这两人因此也有了原来的通用包（白闪本人色、推开、重击轻震），开关仍是 `fx/melee_impact`。
+- 肉感音：`game/tools/gen_sfx_flesh_1107.py` 按武器分三类咬合——刀剑（ninjasword_imp：斯卡蒂、拉普兰德、艾丽妮）、锤 / 锚 / 拳（magnetichammer：推进之王、乌尔比安、塞雷娅）、盾斧 / 锯 / 钩（MHshieldaxe_h2：星熊、水月、歌蕾蒂娅、归溟幽灵鲨），身体层都是 bound3_hit。响度统一对齐用户认可的 op_texas_flesh_1（各人命中音文件响度相差 13 dB，原来对齐各自命中音会忽大忽小；推进之王、星熊因此比试点版轻约 7–9 dB）。
+- 不进来的：歌蕾蒂娅 S3 碎漩狂舞、反震（SKIP，持续伤害每跳不卡）；乌尔比安锚击附带冲击不再顿一次（原规则照旧）。
+

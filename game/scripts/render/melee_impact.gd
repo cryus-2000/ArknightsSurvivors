@@ -9,7 +9,7 @@ extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
 const UM = preload("res://scripts/ui_motion.gd")
-const IDS := {"skadi": Color(0.55, 0.78, 1.0), "hoshiguma": Color(1.0, 0.78, 0.42), "siege": Color(1.0, 0.75, 0.3), "mizuki": Color(0.44, 0.91, 1.0), "gladiia": Color(0.62, 0.72, 1.0), "ulpianus": Color(0.62, 0.69, 0.94), "specter_unchained": Color(0.6, 0.85, 1.0), "lappland": Color(0.8, 0.76, 1.0)}   # 推进之王（docs/264）：锤击 / 跃空锤落地；水月（docs/261）：水母荧光青
+const IDS := {"skadi": Color(0.55, 0.78, 1.0), "hoshiguma": Color(1.0, 0.78, 0.42), "siege": Color(1.0, 0.75, 0.3), "mizuki": Color(0.44, 0.91, 1.0), "gladiia": Color(0.62, 0.72, 1.0), "ulpianus": Color(0.62, 0.69, 0.94), "specter_unchained": Color(0.6, 0.85, 1.0), "lappland": Color(0.8, 0.76, 1.0), "irene": Color(0.82, 0.88, 1.0), "saria": Color(1.0, 0.9, 0.62)}   # 推进之王（docs/264）：锤击 / 跃空锤落地；水月（docs/261）：水母荧光青
 const HEAVY := {"迅捷打击·γ型": true, "跃浪击": true, "破浪下劈": true, "反手斩": false, "大洋裂断": true, "冲撞": true, "狼之舞": true, "断喝": true, "噤声": true}
 ## 不走打击感包的招：歌蕾蒂娅 S3 每 0.75 秒一跳、反震（持续 / 被动，顿帧震屏会一直抖）
 const SKIP := {"碎漩狂舞": true, "反震": true}
