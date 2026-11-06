@@ -1,0 +1,18 @@
+1280x720 rc=0 err=0
+844x390 rc=0 err=0
+390x844 rc=0 err=0
+log_1280.txt
+log_390.txt
+log_844.txt
+ls_1280x720_p000.png
+ls_1280x720_p035.png
+ls_1280x720_p070.png
+ls_1280x720_p100.png
+ls_390x844_p000.png
+ls_390x844_p035.png
+ls_390x844_p070.png
+ls_390x844_p100.png
+ls_844x390_p000.png
+ls_844x390_p035.png
+ls_844x390_p070.png
+ls_844x390_p100.png
