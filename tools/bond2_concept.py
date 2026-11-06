@@ -927,7 +927,278 @@ def pair_inq_lighthouse(A):
     return out
 
 
-PAIRS = {"rival_v5": ("宿敌 · 十字旧怨（对砍，冲击波散开）", pair_rival), "penguin_car3": ("企鹅物流 · 急件航线（开车，立体车）", pair_penguin_car3), "inq_lighthouse": ("灯下审决 · 提灯宣判（灯塔照海、审判守岸）", pair_inq_lighthouse)}
+# ---------------------------------------------------------------- 11-06 第六轮：灯塔重画
+
+ROCK = ramp(["#0c1014", "#1a2026", "#2a323a", "#3c4650"])
+
+
+def lighthouse2(cv, p, k, al=0.92):
+    """灯塔虚像（48×160 美术像素）：礁石底座 → 收分塔身（钢蓝两色横带、左亮右暗、一列小窗）→ 观景回廊（栏杆 + 外挑平台）
+    → 灯室（四面窗格、白芯灯）→ 穹顶 + 风向针。k 0..1 = 从下往上显形；整体半透明（虚像），轮廓一格亮边"""
+    base_y = p[1]
+    H = 160
+    vis = int(H * min(1.0, k * 1.4))
+    def put(x, y, c, a=al):
+        if y >= H - vis:
+            cv.cell(p[0] + x, base_y - H + y, c, a)
+    # 礁石底座（y 140..160）
+    for y in range(140, 160):
+        hw = 26 - (159 - y) // 2 + (3 if y > 152 else 0)
+        for x in range(-hw, hw + 1):
+            col = ROCK[2] if (x * 3 + y) % 7 else ROCK[3]
+            if abs(x) >= hw - 1 or y == 159:
+                col = ROCK[1]
+            put(x, y, col)
+    # 塔身（y 52..140，从 15 收到 10）
+    for y in range(52, 140):
+        hw = 10 + int((y - 52) / 88 * 6)
+        band = ((y - 52) // 16) % 2 == 0
+        for x in range(-hw, hw + 1):
+            light = x < 0
+            col = (LM[4] if light else LM[3]) if band else (LM[2] if light else LM[1])
+            if abs(x) == hw:
+                col = LM[5] if x < 0 else LM[2]
+            put(x, y, col)
+        if y in (70, 71, 72, 98, 99, 100, 124, 125, 126):
+            for x in (-2, -1, 0, 1):
+                put(x, y, (255, 230, 170) if k > 0.6 else LM[1])
+    # 回廊平台（y 46..52）+ 栏杆（y 38..46）
+    for y in range(46, 52):
+        for x in range(-16, 17):
+            put(x, y, LM[4] if y == 46 else LM[2])
+    for y in range(38, 46):
+        for x in range(-15, 16):
+            if x % 3 == 0 or y == 38:
+                put(x, y, LM[3])
+    # 灯室（y 14..38）：四面窗格 + 灯芯
+    for y in range(14, 38):
+        for x in range(-9, 10):
+            frame = abs(x) == 9 or y in (14, 37) or x in (-3, 3)
+            if frame:
+                put(x, y, LM[2])
+            else:
+                d = math.hypot(x, (y - 26) * 0.8) / 9
+                lit = k > 0.6
+                put(x, y, ((255, 255, 255) if d < 0.4 else (LM[5] if d < 0.75 else LM[4])) if lit else LM[1], 1.0)
+    # 穹顶 + 风向针
+    for y in range(4, 14):
+        hw = 2 + (y - 4)
+        for x in range(-hw, hw + 1):
+            put(x, y, LM[3] if x < 0 else LM[2])
+    for y in range(0, 4):
+        put(0, y, LM[4])
+    if k > 0.6:
+        cv.glow(p[0], base_y - H + 26, (0.95, 0.97, 1.0), 5.0)
+
+
+def beam_cone(cv, o, ang, R, spread=0.34):
+    """旋转光锥：灯室发出的一束扇形光——两条亮边 + 中线 + 抖动点阵（棋盘格隔点画，不铺实心底），离灯越远越稀；贴地压扁"""
+    for side in (-1, 0, 1):
+        a = ang + side * spread / 2
+        for j in range(int(R)):
+            if side == 0 and j % 3:
+                continue
+            x, y = o[0] + math.cos(a) * j, o[1] + math.sin(a) * j * SQ
+            cv.cell(x, y, (255, 255, 255) if side == 0 or j < R * 0.4 else LM[5], 0.9 if side else 0.7)
+            if j % 10 == 0 and side:
+                cv.glow(x, y, gl(LM[5]), 0.5)
+    rng = random.Random(3)
+    for i in range(int(R * 3)):
+        j = rng.uniform(10, R)
+        a = ang + rng.uniform(-spread / 2, spread / 2)
+        if rng.random() > 1.1 - j / R:
+            x, y = o[0] + math.cos(a) * j, o[1] + math.sin(a) * j * SQ
+            if (int(x) + int(y)) % 2 == 0:
+                cv.cell(x, y, LM[5], 0.55)
+
+
+def pair_inq_lighthouse2(A):
+    w = B.World(37, A)
+    O = (300, 236)
+    R = 330
+    A0, A1 = -1.1, 0.85
+    for e in w.es:
+        p = w.pos(e, 0.8)
+        d = math.hypot(p[0] - O[0], (p[1] - O[1]) / SQ)
+        a = math.atan2((p[1] - O[1]) / SQ, p[0] - O[0])
+        if d < R and A0 <= a <= A1:
+            e["kt"] = 0.45 + (a - A0) / (A1 - A0) * 0.7 + 0.05
+    keys = [(0.3, "点灯：流明身后从礁石上升起灯塔虚像，灯室亮起"), (0.7, "照海：灯室转动，光锥扫过怪群，照到的头顶亮紫印"),
+            (0.95, "守岸：艾丽妮残影追着光锥刺过，照到的逐个受审倒下"), (1.4, "收尾：光锥扫完，灯塔虚像从上往下淡去，扇形里清空")]
+    out = []
+    for t, lab in keys:
+        img = frame(A, w, t, lambda cv, tt: None, [("lumen", (O[0] + 26, O[1] + 18), "atk"), ("irene", (O[0] + 4, O[1] + 40), "run")]).convert("RGBA")
+        cv = B.Canvas(img)
+        k = min(1.0, t / 0.3)
+        al = 0.92 * (1 - max(0.0, (t - 1.25) / 0.35))
+        if al > 0.02:
+            lighthouse2(cv, (O[0] - 20, O[1] + 10), k, al)
+        lamp = (O[0] - 20, O[1] + 10 - 160 + 26)
+        if 0.4 <= t < 1.25:
+            ang = A0 + (A1 - A0) * min(1.0, (t - 0.4) / 0.75)
+            beam_cone(cv, lamp, ang, R)
+            for e in w.es:
+                if e["kt"] and t - 0.25 < e["kt"] and e["kt"] > t:
+                    pp = w.pos(e, t)
+                    a = math.atan2((pp[1] - O[1]) / SQ, pp[0] - O[0])
+                    if a <= ang:
+                        for d in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1)):
+                            cv.cell(pp[0] + d[0], pp[1] - 22 + d[1], IR[5] if d == (0, 0) else IR[3])
+            if t >= 0.6:
+                ang2 = A0 + (A1 - A0) * min(1.0, (t - 0.55) / 0.75)
+                tip = (O[0] + math.cos(ang2) * R * 0.6, O[1] + math.sin(ang2) * R * 0.6 * SQ)
+                cv = ghost(cv, A, "irene", (tip[0] - 40, tip[1]), tip, 1.0, IR)
+        out.append((cv.finish(), lab, (170, 20, 660, 320)))
+    return out
+
+
+# ---------------------------------------------------------------- 11-06 第七轮：灯塔按用户参考图（黑塔 + 堡垒基座 + 金色徽记 + 栅格灯室暖光）
+
+BLK = ramp(["#07080a", "#101216", "#1a1d23", "#272b33", "#3a3f4a"])
+LAMPG = ramp(["#1c1408", "#4a3612", "#8c6a26", "#cfa24a", "#efd08a", "#fff0c6", "#ffffff"])   # 艾丽妮手提灯的暖金（docs/272 LAMP）
+
+
+def lighthouse3(cv, p, k, al=0.95):
+    """灯塔虚像（约 96×190 美术像素）：堡垒基座（城垛 + 两角小塔楼 + 正面金色徽记）→ 细高黑色塔身（收分、左缘一格受光边）
+    → 顶部箍环 → 竖栅格灯室（暖橙白光从栅格间透出）→ 尖顶。k 0..1 从下往上显形，灯室在 k > 0.6 后点亮"""
+    H = 190
+    vis = int(H * min(1.0, k * 1.4))
+    lit = k > 0.6
+
+    def put(x, y, c, a=al):
+        if y >= H - vis:
+            cv.cell(p[0] + x, p[1] - H + y, c, a)
+
+    # 基座（y 150..190）：主墙 + 城垛 + 两角塔楼
+    for y in range(158, 190):
+        hw = 40 + (y - 158) // 6
+        for x in range(-hw, hw + 1):
+            col = BLK[1] if (x + y) % 11 else BLK[2]
+            if abs(x) >= hw - 1:
+                col = BLK[0]
+            if y == 158 or x == -hw:
+                col = LAMPG[2] if lit else BLK[3]
+            put(x, y, col)
+    for y in range(152, 158):   # 城垛
+        for x in range(-40, 41):
+            if (x // 4) % 2 == 0:
+                put(x, y, BLK[2] if y > 152 else BLK[3])
+    for cx in (-38, 38):        # 两角塔楼
+        for y in range(140, 158):
+            for x in range(-7, 8):
+                put(cx + x, y, BLK[2] if x < 0 else BLK[1])
+        for y in range(135, 140):
+            for x in range(-7, 8):
+                if (x // 3) % 2 == 0:
+                    put(cx + x, y, BLK[3])
+    # 正面金色徽记（展翅形，12×7）
+    for y in range(7):
+        for x in range(-7, 8):
+            wing = abs(x) >= 2 and y <= 4 - (abs(x) - 2) // 2 + 1 and y >= (abs(x) - 2) // 3
+            body = abs(x) <= 1 and 1 <= y <= 6
+            if wing or body:
+                put(x, 166 + y, LAMPG[4] if (x + y) % 3 else LAMPG[5], 1.0)
+    if lit:
+        cv.glow(p[0], p[1] - H + 169, gl(LAMPG[4]), 0.8)
+    # 塔身（y 40..152）：从 7 收到 12 半宽
+    for y in range(40, 152):
+        hw = 7 + int((y - 40) / 112 * 6)
+        for x in range(-hw, hw + 1):
+            col = BLK[2] if x < -hw // 3 else BLK[1]
+            if x == -hw:
+                col = LAMPG[3] if lit else BLK[4]   # 灯室暖光打在塔身左缘：一格暖金受光边，黑塔在暗地面上不融
+            elif x == -hw + 1 and lit:
+                col = LAMPG[1]
+            elif x == hw:
+                col = BLK[0]
+            put(x, y, col)
+        if y in (90, 91):
+            put(0, y, BLK[4])
+    # 顶部箍环（y 34..40）
+    for y in range(34, 40):
+        for x in range(-9, 10):
+            put(x, y, BLK[3] if y in (34, 39) else BLK[2])
+    # 栅格灯室（y 8..34）：竖栏 + 横档，栏间透暖光
+    for y in range(8, 34):
+        for x in range(-9, 10):
+            bar = abs(x) == 9 or x % 3 == 0 or y in (8, 20, 33)
+            if bar:
+                put(x, y, BLK[1] if not lit else BLK[2], 1.0)
+            else:
+                d = math.hypot(x, (y - 21) * 0.6) / 10
+                col = ((255, 255, 255) if d < 0.3 else (LAMPG[5] if d < 0.6 else LAMPG[4])) if lit else BLK[0]
+                put(x, y, col, 1.0)
+    # 尖顶
+    for y in range(0, 8):
+        hw = max(0, (y - 2) // 2)
+        for x in range(-hw, hw + 1):
+            put(x, y, LAMPG[4] if lit and x == 0 else BLK[2])
+    if lit:
+        cv.glow(p[0], p[1] - H + 21, (1.0, 0.9, 0.7), 6.0)
+
+
+def beam_warm(cv, o, ang, R, spread=0.34):
+    """暖金光锥（同灯室光色）：两条亮边 + 中线 + 棋盘格抖动点阵，越远越稀，不铺实心底"""
+    for side in (-1, 0, 1):
+        a = ang + side * spread / 2
+        for j in range(int(R)):
+            if side == 0 and j % 3:
+                continue
+            x, y = o[0] + math.cos(a) * j, o[1] + math.sin(a) * j * SQ
+            cv.cell(x, y, (255, 255, 255) if side == 0 or j < R * 0.35 else LAMPG[5], 0.9 if side else 0.7)
+            if j % 10 == 0 and side:
+                cv.glow(x, y, gl(LAMPG[5]), 0.5)
+    rng = random.Random(3)
+    for i in range(int(R * 4)):
+        j = rng.uniform(10, R)
+        a = ang + rng.uniform(-spread / 2, spread / 2)
+        if rng.random() > 1.15 - j / R:
+            x, y = o[0] + math.cos(a) * j, o[1] + math.sin(a) * j * SQ
+            if (int(x) + int(y)) % 2 == 0:
+                cv.cell(x, y, LAMPG[5], 0.6)
+
+
+def pair_inq_lighthouse3(A):
+    w = B.World(37, A)
+    O = (290, 240)
+    R = 340
+    A0, A1 = -1.0, 0.85
+    for e in w.es:
+        p = w.pos(e, 0.8)
+        d = math.hypot(p[0] - O[0], (p[1] - O[1]) / SQ)
+        a = math.atan2((p[1] - O[1]) / SQ, p[0] - O[0])
+        if d < R and A0 <= a <= A1:
+            e["kt"] = 0.45 + (a - A0) / (A1 - A0) * 0.7 + 0.05
+    keys = [(0.3, "点灯：流明身后升起灯塔虚像（黑塔、堡垒基座、金色徽记），栅格灯室亮起"), (0.7, "照海：灯室转动，暖金光锥扫过怪群，照到的头顶亮紫印"),
+            (0.95, "守岸：艾丽妮残影追着光锥刺过，照到的逐个受审倒下"), (1.4, "收尾：光锥扫完，灯塔虚像淡去，扇形里清空")]
+    out = []
+    for t, lab in keys:
+        img = frame(A, w, t, lambda cv, tt: None, [("lumen", (O[0] + 50, O[1] + 22), "atk"), ("irene", (O[0] + 26, O[1] + 44), "run")]).convert("RGBA")
+        cv = B.Canvas(img)
+        k = min(1.0, t / 0.3)
+        al = 0.95 * (1 - max(0.0, (t - 1.25) / 0.35))
+        if al > 0.02:
+            lighthouse3(cv, (O[0] - 30, O[1] + 14), k, al)
+        lamp = (O[0] - 30, O[1] + 14 - 190 + 21)
+        if 0.4 <= t < 1.25:
+            ang = A0 + (A1 - A0) * min(1.0, (t - 0.4) / 0.75)
+            beam_warm(cv, lamp, ang, R)
+            for e in w.es:
+                if e["kt"] and t - 0.25 < e["kt"] and e["kt"] > t:
+                    pp = w.pos(e, t)
+                    a = math.atan2((pp[1] - O[1]) / SQ, pp[0] - O[0])
+                    if a <= ang:
+                        for d in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1)):
+                            cv.cell(pp[0] + d[0], pp[1] - 22 + d[1], IR[5] if d == (0, 0) else IR[3])
+            if t >= 0.6:
+                ang2 = A0 + (A1 - A0) * min(1.0, (t - 0.55) / 0.75)
+                tip = (O[0] + math.cos(ang2) * R * 0.6, O[1] + math.sin(ang2) * R * 0.6 * SQ)
+                cv = ghost(cv, A, "irene", (tip[0] - 40, tip[1]), tip, 1.0, IR)
+        out.append((cv.finish(), lab, (150, 0, 660, 330)))
+    return out
+
+
+PAIRS = {"inq_lighthouse3": ("灯下审决 · 灯塔照海、审判守岸（按参考图重画灯塔）", pair_inq_lighthouse3)}
 
 
 def sheet(title, keys, sc):
