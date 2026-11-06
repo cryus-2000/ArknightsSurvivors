@@ -503,7 +503,8 @@
         e.preventDefault();
         e.stopPropagation();
         // 点按是用户手势：先把引擎的音频上下文唤醒（power.js 记下的实例），引擎读到 __syStart 时按下音效才放得出来
-        (window.__syAudioCtx || []).forEach(function (c) { try { c.resume(); } catch (err) {} });
+        // 触屏的 pointerdown 不算激活手势，这里唤醒在手机上不生效；真正的解锁在 power.js 的 pointerup / touchend / click 监听里（同一次点按紧接着就到）
+        if (window.__syAudioKick) window.__syAudioKick(); else (window.__syAudioCtx || []).forEach(function (c) { try { c.resume(); } catch (err) {} });
         window.__syStart = 1;
         b.classList.add('on');
         // 按下：整屏一下压暗 + 三圈声呐脉冲从按钮扩到整屏（引擎 0.28 秒后揭开标题页）
