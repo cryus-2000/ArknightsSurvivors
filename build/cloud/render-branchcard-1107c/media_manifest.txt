@@ -1,0 +1,16 @@
+19786	old_kaltsit/levelup_desktop/log.txt
+531185	old_kaltsit/levelup_desktop/shot_motion_levelup_full_1217.png
+17018	old_kaltsit/levelup_phone/log.txt
+296502	old_kaltsit/levelup_phone/shot_motion_levelup_full_1217.png
+19902	old_skalter/levelup_desktop/log.txt
+550093	old_skalter/levelup_desktop/shot_motion_levelup_full_1217.png
+17364	old_skalter/levelup_phone/log.txt
+317907	old_skalter/levelup_phone/shot_motion_levelup_full_1217.png
+19934	old_suzuran/levelup_desktop/log.txt
+535100	old_suzuran/levelup_desktop/shot_motion_levelup_full_1217.png
+17166	old_suzuran/levelup_phone/log.txt
+298007	old_suzuran/levelup_phone/shot_motion_levelup_full_1217.png
+20016	old_texas/levelup_desktop/log.txt
+557413	old_texas/levelup_desktop/shot_motion_levelup_full_1217.png
+17133	old_texas/levelup_phone/log.txt
+302760	old_texas/levelup_phone/shot_motion_levelup_full_1217.png
