@@ -526,7 +526,218 @@ def pair_inq(A):
     return out
 
 
-PAIRS = {"rival": ("宿敌 · 十字旧怨", pair_rival), "penguin": ("企鹅物流 · 急件航线", pair_penguin), "inq": ("灯下审决 · 提灯宣判", pair_inq)}
+# ---------------------------------------------------------------- 11-06 第四轮：企鹅物流开车 / 灯下审决两个新方向
+
+CAR = ramp(["#0e1014", "#1c2028", "#2e3440", "#48505e", "#6c7686"])   # 车身深灰（不是原作涂装，草图用）
+
+
+def car(cv, p, ang, k_bounce=0):
+    """俯视 3/4 小车（56×30 美术像素）：深灰车身、琥珀腰线（德克萨斯）、红橙车顶灯（能天使）、四个轮子"""
+    w, h = 56, 30
+    ca, sa = math.cos(ang), math.sin(ang)
+
+    def put(x, y, col):
+        X = p[0] + (x - w / 2) * ca - (y - h / 2) * sa * SQ
+        Y = p[1] + (x - w / 2) * sa + (y - h / 2) * ca * SQ - k_bounce
+        cv.cell(X, Y, col)
+
+    for y in range(h):
+        for x in range(w):
+            rx, ry = abs(x - w / 2 + 0.5) / (w / 2), abs(y - h / 2 + 0.5) / (h / 2)
+            if rx > 0.92 and ry > 0.75:
+                continue
+            col = CAR[2]
+            if rx > 0.9 or ry > 0.85:
+                col = CAR[0]
+            elif ry < 0.55 and (x / w) >= 0.62:
+                col = CAR[4] if (x + y) % 6 else (200, 220, 235)   # 挡风玻璃（朝前）
+            elif ry < 0.5:
+                col = CAR[3]
+            if abs(y - h / 2) in (9, 10) and rx < 0.85:
+                col = TX[4]
+            put(x, y, col)
+    for wx in (8, w - 14):
+        for wy in (-2, h - 1):
+            for dx in range(6):
+                for dy in range(3):
+                    put(wx + dx, wy + dy, (14, 14, 16))
+    for dx in range(4):
+        put(w * 0.35 + dx, h / 2 - 1, EX[4])
+        put(w * 0.35 + dx, h / 2, EX[5])
+
+
+def skid(cv, pts, k):
+    for i in range(1, len(pts)):
+        a, b = pts[i - 1], pts[i]
+        n = int(math.dist(a, b)) + 1
+        for j in range(n):
+            u = j / n
+            x, y = a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u
+            if k > 0.5 and (i * 31 + j) % 7 < (k - 0.5) * 10:
+                continue
+            for o in (-10, 10):
+                cv.cell(x, y + o * SQ, (20, 18, 16), 0.9)
+
+
+def dust(cv, p, k, seed):
+    rng = random.Random(seed)
+    for i in range(6):
+        ox, oy = rng.uniform(-30, -10), rng.uniform(-6, 6)
+        rr = 3 + 7 * k
+        for yy in range(-int(rr), int(rr) + 1):
+            for xx in range(-int(rr), int(rr) + 1):
+                if xx * xx + yy * yy <= rr * rr and (xx + yy) % 2 == 0:
+                    cv.cell(p[0] + ox + xx - 20 * k, p[1] + oy + yy - 6 * k, SMOKE[3] if yy < 0 else SMOKE[2], 0.7 * (1 - k))
+
+
+def pair_penguin_car(A):
+    w = B.World(23, A)
+    path = [(120, 250), (260, 225), (400, 200), (520, 190), (600, 160)]
+    seg = [math.dist(path[i], path[i + 1]) for i in range(len(path) - 1)]
+
+    def at(u):
+        s = u * sum(seg)
+        for i, l in enumerate(seg):
+            if s <= l or i == len(seg) - 1:
+                f = min(1.0, s / l)
+                return (path[i][0] + (path[i + 1][0] - path[i][0]) * f, path[i][1] + (path[i + 1][1] - path[i][1]) * f), math.atan2(path[i + 1][1] - path[i][1], path[i + 1][0] - path[i][0])
+            s -= l
+        return path[-1], 0.0
+
+    T0, T1 = 0.2, 1.3
+    for e in w.es:   # 碾过：车身 38 内；车顶扫射：95 内三只里倒一只
+        for i in range(60):
+            u = i / 59
+            p, _ = at(u)
+            d = math.dist(p, w.pos(e, T0 + u * (T1 - T0)))
+            if d < 38 or (d < 95 and int(e["p0"][0] * 7 + e["p0"][1]) % 3 == 0):
+                e["kt"] = T0 + u * (T1 - T0) + (0.0 if d < 38 else 0.08)
+                break
+    keys = [(0.35, "上车：德克萨斯开车冲进怪群，能天使站在车顶"), (0.75, "碾过 + 扫射：车身撞开挡路的，能天使朝四周一圈开枪"),
+            (1.15, "甩尾：车头一摆，扬起尘土，车后两道胎痕"), (1.55, "收尾：车开出画面，胎痕留在清空的路上")]
+    out = []
+    for t, lab in keys:
+        img = frame(A, w, t, lambda cv, tt: None, []).convert("RGBA")
+        cv = B.Canvas(img)
+        u = min(1.0, max(0.0, (t - T0) / (T1 - T0)))
+        trail = [at(i / 40 * u)[0] for i in range(41)]
+        if u > 0.02:
+            skid(cv, trail, max(0.0, (t - 1.3) / 0.5))
+        if t < 1.45:
+            p, ang = at(u)
+            if t > 1.0:
+                ang += 0.35 * min(1.0, (t - 1.0) / 0.15)
+            dust(cv, p, (t * 3) % 1, int(t * 15))
+            car(cv, p, ang, 2 if int(t * 15) % 2 else 0)
+            im = cv.finish().convert("RGBA")
+            B.put_op(im, A["texas_run"][0], (p[0] + 6, p[1] - 4), False, 1.0)
+            B.put_op(im, A["exusiai_atk"][int(t * 12) % 8], (p[0] - 8, p[1] - 20), False, 1.0)
+            cv = B.Canvas(im)
+            if 0.4 <= t < 1.2:   # 车顶一圈扫射：8 个方向
+                src = (p[0] - 8, p[1] - 40)
+                for k in range(8):
+                    a = k / 8 * math.tau + t * 6
+                    for j in range(18):
+                        cv.cell(src[0] + math.cos(a) * (24 + j), src[1] + math.sin(a) * (24 + j) * SQ, EX[6] if j < 4 else EX[4], 1 - j / 20)
+                    cv.glow(src[0] + math.cos(a) * 24, src[1] + math.sin(a) * 24 * SQ, gl(EX[5]), 1.0)
+        out.append((cv.finish(), lab, (80, 60, 640, 330)))
+    return out
+
+
+def silhouette(spr, R, stretch=3.2, ang=-20):
+    """人影：本人帧做成平涂剪影（艾丽妮暗紫 + 一格亮紫描边），拉长、斜躺在地上"""
+    a = np.asarray(spr).copy()
+    m = a[..., 3] > 40
+    out = np.zeros_like(a)
+    out[m] = (*R[1], 220)
+    edge = m & ~(np.roll(m, 1, 0) & np.roll(m, -1, 0) & np.roll(m, 1, 1) & np.roll(m, -1, 1))
+    out[edge] = (*R[4], 255)
+    im = Image.fromarray(out).resize((spr.width, max(1, int(spr.height * stretch))), Image.NEAREST)
+    return im.rotate(ang, expand=True, resample=Image.NEAREST)
+
+
+def pair_inq_shadow(A):
+    w = B.World(37, A)
+    L = (300, 230)
+    for e in w.es:
+        p = w.pos(e, 1.0)
+        if 330 < p[0] < 620 and abs((p[1] - 215)) < 60:
+            e["kt"] = 1.3 + (p[0] - 330) / 1500
+    keys = [(0.35, "灯起：流明在怪群边上举灯，艾丽妮站进灯光里"), (0.7, "灯下之影：灯把艾丽妮的影子拉长，横躺着压过一大片怪"),
+            (1.05, "审决：影子跟本人同步挥剑，影子盖住的怪头顶亮紫印"), (1.45, "收尾：灯一闪熄，影子收回，被影子压过的一片同时倒下")]
+    out = []
+    for t, lab in keys:
+        img = frame(A, w, t, lambda cv, tt: None, []).convert("RGBA")
+        cv = B.Canvas(img)
+        cv.lamp(L[0] - 30, L[1] - 30, 160, (120, 180, 230), 30 if t < 1.3 else 60)
+        im = cv.finish().convert("RGBA")
+        if 0.5 <= t < 1.4:
+            fr = A["irene_atk"][4 if t < 0.95 else 6]
+            st = 4.2 if t < 1.25 else max(1.0, 4.2 - (t - 1.25) * 20)
+            sh = silhouette(fr, IR, st, -90)
+            im.alpha_composite(sh, (int(L[0] + 14), int(L[1] - sh.height * 0.5)))
+        B.put_op(im, A["lumen_atk"][2], (L[0] - 40, L[1] - 10))
+        B.put_op(im, A["irene_atk"][4 if t < 0.95 else 6], (L[0] + 4, L[1] + 4))
+        cv = B.Canvas(im)
+        if 0.95 <= t < 1.32:
+            for e in w.es:
+                if e["kt"] and e["kt"] > t:
+                    p = w.pos(e, t)
+                    for d in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1)):
+                        cv.cell(p[0] + d[0], p[1] - 22 + d[1], IR[5] if d == (0, 0) else IR[3])
+        out.append((cv.finish(), lab, (180, 60, 660, 320)))
+    return out
+
+
+def lantern_small(cv, p, lit):
+    for y in range(12):
+        for x in range(8):
+            fr = x in (0, 7) or y in (0, 11)
+            cv.cell(p[0] - 4 + x, p[1] - 12 + y, LM[3] if fr else ((255, 255, 255) if lit and 2 < y < 9 and 2 < x < 5 else (LM[5] if lit else LM[1])))
+    for y in range(10):
+        cv.cell(p[0], p[1] + y, LM[2])
+    if lit:
+        cv.glow(p[0], p[1] - 6, gl(LM[5]), 2.0)
+
+
+def pair_inq_lamps(A):
+    w = B.World(37, A)
+    C = (420, 196)
+    R = 140
+    pts = [(C[0] + math.cos(-math.pi / 2 + i / 7 * math.tau) * R, C[1] + math.sin(-math.pi / 2 + i / 7 * math.tau) * R * SQ) for i in range(7)]
+    w.kill_circle(1.1, C, R * 0.9, SQ)
+    keys = [(0.45, "布灯：七盏提灯沿圈插在地上，一盏接一盏点亮"), (0.8, "连线：七灯点齐，灯与灯之间连成一个七角星（流明钢蓝）"),
+            (1.05, "审决：七角星一闪白，艾丽妮残影从星心贯穿，星里的怪受审"), (1.6, "收尾：灯熄，星线断开，星里清空")]
+    out = []
+    for t, lab in keys:
+        img = frame(A, w, t, lambda cv, tt: None, [("lumen", (B.SQUAD[0] - 34, B.SQUAD[1] - 26), "atk"), ("irene", B.SQUAD, "run")]).convert("RGBA")
+        cv = B.Canvas(img)
+        nlit = min(7, int((t - 0.2) / 0.07) + 1) if t >= 0.2 else 0
+        if t >= 0.72:
+            k = min(1.0, (t - 0.72) / 0.1)
+            brk = max(0.0, (t - 1.25) / 0.3)
+            for i in range(7):
+                a, b = pts[i], pts[(i + 3) % 7]
+                D = math.dist(a, b)
+                for j in range(int(D * k)):
+                    if brk and (j * 7 + i) % 10 < brk * 9:
+                        continue
+                    x = a[0] + (b[0] - a[0]) * j / D
+                    y = a[1] + (b[1] - a[1]) * j / D
+                    hot = 1.0 <= t < 1.12
+                    cv.cell(x, y, (255, 255, 255) if hot else LM[5])
+                    cv.cell(x, y + 1, IR[3] if hot else LM[2])
+                    if j % 6 == 0:
+                        cv.glow(x, y, gl(LM[5] if not hot else IR[5]), 0.6)
+        for i, p in enumerate(pts):
+            lantern_small(cv, p, i < nlit and t < 1.35)
+        if 1.0 <= t < 1.2:
+            cv = ghost(cv, A, "irene", (C[0] - R, C[1]), (C[0] + R, C[1]), (t - 1.0) / 0.15, IR)
+        out.append((cv.finish(), lab, (230, 50, 620, 320)))
+    return out
+
+
+PAIRS = {"rival_v3": ("宿敌 · 十字旧怨（对砍）", pair_rival), "penguin_car": ("企鹅物流 · 急件航线（开车）", pair_penguin_car), "inq_shadow": ("灯下审决（方案甲：灯下之影）", pair_inq_shadow), "inq_lamps": ("灯下审决（方案乙：七灯阵）", pair_inq_lamps)}
 
 
 def sheet(title, keys, sc):
