@@ -169,6 +169,7 @@ static func ek(key: String, d: float) -> float:
 
 ## 命中时记下（hit / meat 调）：hold 局部停帧秒数（全局顿帧本来就停 g.t，传 0）
 static func _evo_hit(o, hits: Array, hold: float, heavy: bool, col: Color) -> void:
+	print("EVODBG hit ", o.id, " on=", on(o.g), " evo=", Bal.v("fx/melee_evo", -1.0), " op=", Bal.v("fx/melee_evo_op/" + str(o.id), -1.0), " n=", hits.size())
 	if not evo(o):
 		return
 	var g = o.g
@@ -235,6 +236,8 @@ static func peak(o) -> float:
 ## ②③ 画在本体下面（character.draw_body 在画本体之前调）
 static func draw_under(o, st: Dictionary, base: Vector2, foot_dx: float, foot_off: float) -> void:
 	var a := _evo_age(o)
+	if o.has_meta("me_ev"):
+		print("EVODBG draw ", o.id, " t=", o.g.t, " m=", o.get_meta("me_ev").get("t"), " a=", a.size())
 	if a.is_empty():
 		return
 	var m: Dictionary = a[0]
