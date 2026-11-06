@@ -382,9 +382,12 @@ func _dash_row(xr: float, ly: float, s: float) -> void:
 			g.hud.draw_colored_polygon(pts, UI.CYAN)
 		else:
 			g.hud.draw_colored_polygon(pts, Color(1, 1, 1, 0.15))
-			if j == n and nxt < 1.0:   # 正在充能的那格：底下一截青色回填
-				var fh: float = chh * nxt
-				g.hud.draw_rect(Rect2(x0 + cw * 0.15, cy + chh / 2.0 - fh, cw * 0.55, fh), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.55))
+			if j == n and nxt < 1.0:
+				if dash_trace():   # 沿图标轮廓走一圈（docs/290，用户 11-06「沿着图标加载而不是笔直往上」）：同终结技环，从正上方起、顺时针
+					_trace(pts, nxt, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.9), maxf(1.0, 1.2 * s))
+				else:   # 正在充能的那格：底下一截青色回填
+					var fh: float = chh * nxt
+					g.hud.draw_rect(Rect2(x0 + cw * 0.15, cy + chh / 2.0 - fh, cw * 0.55, fh), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.55))
 		x = x0 - 2.5 * s
 	if g.t - _dash_t < 0.3 and not Cfg.reduce_motion:
 		var a: float = 1.0 - (g.t - _dash_t) / 0.3
@@ -397,6 +400,36 @@ func _dash_row(xr: float, ly: float, s: float) -> void:
 		g.hud.draw_rect(kr, Color(0, 0, 0, 0.5))
 		g.hud.draw_rect(kr, Color(1, 1, 1, 0.6), false, 1.0)
 		UI.text(g.hud, g.font, Vector2(kr.position.x, ly - 1.0 * s), key, ks, WHITE, HORIZONTAL_ALIGNMENT_CENTER, kw)
+
+
+## 冲刺格充能画法（docs/290 示意，缺省 0 = 原来的竖直回填；1 = 沿图标轮廓走一圈）
+static func dash_trace() -> bool:
+	return Bal.vi("ui/console_dash_trace", 0) > 0
+
+
+## 沿闭合多边形轮廓画一道亮边（frac = 已走比例）。起点是第一条边（图标上沿）的中点，按 pts 顺序走（冲刺图标的点序在屏幕上是顺时针）
+func _trace(pts: PackedVector2Array, frac: float, col: Color, w: float) -> void:
+	var ring: Array = [(pts[0] + pts[1]) / 2.0]
+	for i in range(1, pts.size()):
+		ring.append(pts[i])
+	ring.append(pts[0])
+	ring.append(ring[0])
+	var total := 0.0
+	for i in ring.size() - 1:
+		total += (ring[i] as Vector2).distance_to(ring[i + 1])
+	var left: float = total * clampf(frac, 0.0, 1.0)
+	var line := PackedVector2Array([ring[0]])
+	for i in ring.size() - 1:
+		var a: Vector2 = ring[i]
+		var b: Vector2 = ring[i + 1]
+		var seg: float = a.distance_to(b)
+		if left <= seg:
+			line.append(a.lerp(b, left / maxf(0.001, seg)))
+			break
+		line.append(b)
+		left -= seg
+	if line.size() >= 2:
+		g.hud.draw_polyline(line, col, w)
 
 
 ## 马灯：四档帧条（通明 ≥ 70 / 摇曳 30–70 / 暗淡 < 30 / 寂灭 0），15 帧 / 秒循环；按整数倍像素画（桌面 4/3 逻辑像素 = 1080p 上 2 倍）

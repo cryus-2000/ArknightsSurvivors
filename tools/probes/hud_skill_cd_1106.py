@@ -5,7 +5,7 @@
   pc_l1 / pc_l2      桌面 1920×1080，ui/console_skills = 1（环下）/ 2（等级旁）
   pc_peek            桌面，布局一 + ui/console_peek = 1，编队卡强制展开（--consolepeek）
   ph_l1 / ph_l2 / ph_peek   同上，触屏手机横屏 1170×540（--touch）
-整台闲时变淡（ui/console_idle）拍图时关掉，方便看清。
+整台闲时变淡（ui/console_idle）拍图时关掉，方便看清；冲刺格充能沿轮廓走（ui/console_dash_trace = 1）一起开。
 用法：python3 tools/probes/hud_skill_cd_1106.py --out <目录> [--only pc_l1,...]
 """
 import argparse, os, shutil, sys
@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.join(ROOT, "tools"))
 import godot_runner as gr
 
 BASE = ["--balance", "--realtime", "--nodeath", "--seed=3", "--op=mizuki", "--slot4", "--squad=texas,exusiai,saria", "--elite2",
-        "--bot=master", "--bal=ui/console_idle=1", "--rtfrom=86", "--maxt=101"]
+        "--bot=master", "--bal=ui/console_idle=1", "--bal=ui/console_dash_trace=1", "--rtfrom=86", "--maxt=101"]
 PC = (["--resolution", "1920x1080"], ["--flashrec=90,330,1920"])
 PH = (["--resolution", "1170x540"], ["--touch", "--flashrec=90,330,1170"])
 SCENES = {
