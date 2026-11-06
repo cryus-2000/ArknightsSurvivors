@@ -64,6 +64,19 @@ def export(ref):
                     open(p, "w", encoding="utf-8", newline="").write(s2)
                     n += k
     print("[副本] 发布版读命令行：改了 %d 处" % n)
+    # 11-06 起发行包不带开发脚本（be9da95f8 autotest 开发版守卫、f7b624eea 导出预设排除 autotest / bot 等）：
+    # 测量副本要靠它们跑 --balance 机器人局，副本里放回（docs/303；不放回时网页局停在启动页、一行 PERF 都没有）
+    gd = os.path.join(work, "game", "scripts", "game.gd")
+    s = open(gd, encoding="utf-8").read()
+    s2 = s.replace('load("res://scripts/run/autotest.gd").new(self) if OS.is_debug_build() else null', 'load("res://scripts/run/autotest.gd").new(self)')
+    if s2 == s and "autotest.gd\").new(self) if OS.is_debug_build()" in s:
+        sys.exit("game.gd 的 autotest 守卫写法变了，测量副本放不回 autotest")
+    open(gd, "w", encoding="utf-8", newline="").write(s2)
+    ep = os.path.join(work, "game", "export_presets.cfg")
+    s = open(ep, encoding="utf-8").read()
+    for dev in ["scripts/run/autotest.gd*", "scripts/core/bot.gd*", "scripts/run/motion_shot.gd*", "scripts/run/outwin_probe.gd*", "scripts/run/ult_bench.gd*"]:
+        s = s.replace(", " + dev, "")
+    open(ep, "w", encoding="utf-8", newline="").write(s)
     art_src = os.path.join(work, "art", "incoming")
     art_dst = os.path.join(work, "game", "art", "incoming")
     os.makedirs(art_dst, exist_ok=True)
@@ -219,6 +232,8 @@ def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False, dp
         port = s.getsockname()[1]
     srv = http.server.ThreadingHTTPServer(("127.0.0.1", port), H)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
+    if "--" not in game_args:
+        game_args = ["--"] + list(game_args)   # 网页上 get_cmdline_user_args 只认 -- 之后的参数（11-07 实测：不带 -- 时游戏收不到 --balance，停在启动页，docs/303）
     url = "http://127.0.0.1:%d/index.html?%s" % (port, urllib.parse.urlencode([("a", x) for x in game_args]))
     ud = os.path.join(BASE, "_edge_" + tag)
     shutil.rmtree(ud, ignore_errors=True)
@@ -277,6 +292,12 @@ def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False, dp
         print("[网页] Edge 进程树私有内存峰值 %.0f MB" % (memk / 1048576))
         open(log_p, "a", encoding="utf-8").write("PF EDGEMEM peak_mb=%.0f\n" % (memk / 1048576))
     if cdp is not None:
+        if "--perfhud" in game_args:   # 性能自检浮层日志（docs/303）：结束前从 localStorage 取出，存 out_<tag>_hud.txt
+            try:
+                r = cdp.cmd("Runtime.evaluate", {"expression": "localStorage.getItem('sy_perf_log')||''", "returnByValue": True})
+                open(os.path.join(d, "out_%s_hud.txt" % tag), "w", encoding="utf-8").write(r.get("result", {}).get("result", {}).get("value", ""))
+            except Exception as e:
+                print("[网页] 取浮层日志失败：%s" % e)
         cdp.close()
     subprocess.run(["taskkill", "/PID", str(p.pid), "/T", "/F"], capture_output=True)
     srv.shutdown()
