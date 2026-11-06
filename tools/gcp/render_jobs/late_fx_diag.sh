@@ -24,6 +24,9 @@ for lu in ${LUS:-A B}; do   # LUS=A / LUS=B：一台机只跑一组阵容（两�
     for ly in full nofriend nofoe noenemy nolead nomates; do jobs+=("$lu $ly"); done
     for m in ${MATES[$lu]}; do jobs+=("$lu noop_$m"); done
 done
+if [ -n "${LAYERS:-}" ]; then   # LAYERS="full nofoe ..."：只跑这几层（拆小任务，避免整机 3 小时超时）
+    keep=(); for j in "${jobs[@]}"; do for l in $LAYERS; do [ "${j#* }" = "$l" ] && keep+=("$j"); done; done; jobs=("${keep[@]}")
+fi
 run() {   # $1 阵容 $2 层
     d="$(realpath -m "$OUT/$1_$2")"; mkdir -p "$d"
     ud=$(mktemp -d); mkdir -p "$ud/ArknightsSurvivors"; printf '[game]\ndmg_numbers=true\n' > "$ud/ArknightsSurvivors/settings.cfg"
