@@ -49,14 +49,14 @@ const DROP_H := 240.0
 ## 照原作 wisdel_attack_01_trail / skill_01_trail（同一套）/ skill_03_trail（弹头、尾迹 ×2）：
 ## 胶囊弹头（贴图 wisdel_03：粉红弹尖 → 藏蓝弹身 → 白热尾口）+ 红色辉光；主尾迹 Trail_anhong 血红 #ff001a → 藏蓝 #002963 渐隐，
 ## 外缘 Trail_an 暗红 → 深蓝 → 黑；红（trail_hong #ff7979 → #ff0000）蓝（trail_lan #263679）两股细带绕着尾迹拧；沿途按距离撒红色碎星（lizi #ff2e2e，白 → 红）。
-## 原作尾迹 1–1.5 秒，本作炮弹 1500 px/s 只飞 0.08–0.3 秒：尾迹按 0.12 秒飞行长度截、落地后 0.2 秒收尾淡掉（不铺满弹道）。魂炮（魂灵之影）不变。
+## 原作尾迹 1–1.5 秒，本作炮弹 1500 px/s 只飞 0.08–0.3 秒：尾迹按 0.12 秒飞行长度截、落地后 0.3 秒收尾淡掉（不铺满弹道）。魂炮（魂灵之影）不变。
 ## 只画：出膛事件记一条画面记录（同 seg_wisadel._h4_fire 的 dur 算法），不读写玩法状态。
 const TRC := [Color("#fff4f0"), Color("#ff4a60"), Color("#e8102a"), Color("#a80c26"), Color("#5e0c22"), Color("#2c0e26"), Color("#15224e"), Color("#0b1330")]
 const TR_HEADN := [Color("#1c2a5c"), Color("#34488a")]   # 弹身藏蓝（暗 / 受光）
 const TR_RIB := [Color("#ff7a7a"), Color("#3a52a8")]     # 红 / 蓝两股细带
 const TR_SPK := [Color("#ffe4e4"), Color("#ff2e2e"), Color("#a80c26")]
 const TR_TT := 0.12      # 尾迹长度 = 多少秒的飞行
-const TR_FADE := 0.2     # 落地后尾迹收尾
+const TR_FADE := 0.3     # 落地后尾迹收尾
 const TR_MAX := 24
 var _tr: Array = []      # {fr, to, t0, dur, big, oid}
 var _tr_lo := -1

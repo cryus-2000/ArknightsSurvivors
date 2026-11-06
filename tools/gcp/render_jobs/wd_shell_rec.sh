@@ -7,6 +7,14 @@ set +e
 pgrep Xvfb >/dev/null || { Xvfb :99 -screen 0 1280x720x24 -nolisten tcp >/tmp/xvfb.log 2>&1 & sleep 2; }
 export DISPLAY=:99
 python3 tools/asset_index.py >/dev/null 2>&1
+# 预装镜像里没有 ffmpeg（11-07 第一次只回来静帧）：缺就装 imageio-ffmpeg 的静态版
+FF="$(command -v ffmpeg)"
+if [ -z "$FF" ]; then
+    pip3 install -q imageio-ffmpeg >/dev/null 2>&1 || python3 -m pip install -q --break-system-packages imageio-ffmpeg >/dev/null 2>&1
+    FF="$(python3 -c 'import imageio_ffmpeg;print(imageio_ffmpeg.get_ffmpeg_exe())' 2>/dev/null)"
+fi
+[ -z "$FF" ] && { sudo apt-get update -qq >/dev/null 2>&1; sudo apt-get install -y -qq ffmpeg >/dev/null 2>&1; FF="$(command -v ffmpeg)"; }
+echo "ffmpeg=$FF" | tee -a "$OUT/runs.txt"
 FR="$(realpath -m "${OUT:-/work/out}/frames")"; mkdir -p "$FR" "$MEDIA"
 declare -A NAME=([3]=atk [0]=s1 [1]=s2 [2]=s3)
 declare -A TIERS=([3]="0 1 2" [0]="0 1 2" [1]="1 2" [2]="2")
@@ -23,10 +31,10 @@ for m in "$@"; do
         run $t $m old 0
         run $t $m new 1
         a="$FR/e${t}_${NAME[$m]}_old"; b="$FR/e${t}_${NAME[$m]}_new"
-        ffmpeg -y -loglevel error -framerate 30 -pattern_type glob -i "$a/f_*.png" -framerate 30 -pattern_type glob -i "$b/f_*.png" \
+        "$FF" -y -loglevel error -framerate 30 -pattern_type glob -i "$a/f_*.png" -framerate 30 -pattern_type glob -i "$b/f_*.png" \
             -filter_complex "[0:v]drawtext=text='old':x=16:y=16:fontsize=28:fontcolor=white[l];[1:v]drawtext=text='new':x=16:y=16:fontsize=28:fontcolor=white[r];[l][r]hstack=inputs=2" \
             -c:v libx264 -pix_fmt yuv420p -crf 18 "$MEDIA/wd_shell_e${t}_${NAME[$m]}.mp4" 2>>"$OUT/runs.txt" \
-          || ffmpeg -y -loglevel error -framerate 30 -pattern_type glob -i "$a/f_*.png" -framerate 30 -pattern_type glob -i "$b/f_*.png" \
+          || "$FF" -y -loglevel error -framerate 30 -pattern_type glob -i "$a/f_*.png" -framerate 30 -pattern_type glob -i "$b/f_*.png" \
             -filter_complex "[0:v][1:v]hstack=inputs=2" -c:v libx264 -pix_fmt yuv420p -crf 18 "$MEDIA/wd_shell_e${t}_${NAME[$m]}.mp4" 2>>"$OUT/runs.txt"
         # 两张静帧（中间一帧）留作快速看图
         f=$(ls "$b"/f_*.png 2>/dev/null | sed -n "$(( ${NF[$m]} / 3 ))p"); [ -n "$f" ] && cp "$f" "$MEDIA/still_e${t}_${NAME[$m]}_new.png"
