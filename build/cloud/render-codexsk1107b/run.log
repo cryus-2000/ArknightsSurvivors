@@ -1,0 +1,62 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4815 项）
+render_prep 完成，用时 3 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+gladiia_desk_skill_none：1 张；0 处脚本错误
+gladiia_desk_growth_none：1 张；0 处脚本错误
+gladiia_desk_skill_row3：1 张；0 处脚本错误
+gladiia_desk_skill_row8：1 张；0 处脚本错误
+gladiia_desk_growth_row3：1 张；0 处脚本错误
+gladiia_phone_skill_none：1 张；0 处脚本错误
+gladiia_phone_growth_none：1 张；0 处脚本错误
+gladiia_phone_skill_row3：1 张；0 处脚本错误
+gladiia_phone_skill_row8：1 张；0 处脚本错误
+gladiia_phone_growth_row3：1 张；0 处脚本错误
+specter_unchained_desk_skill_none：1 张；0 处脚本错误
+specter_unchained_desk_growth_none：1 张；0 处脚本错误
+specter_unchained_desk_skill_row3：1 张；0 处脚本错误
+specter_unchained_desk_skill_row8：1 张；0 处脚本错误
+specter_unchained_desk_growth_row3：1 张；0 处脚本错误
+specter_unchained_phone_skill_none：1 张；0 处脚本错误
+specter_unchained_phone_growth_none：1 张；0 处脚本错误
+specter_unchained_phone_skill_row3：1 张；0 处脚本错误
+specter_unchained_phone_skill_row8：1 张；0 处脚本错误
+specter_unchained_phone_growth_row3：1 张；0 处脚本错误
+audit：0 行；1 处脚本错误
+/work/cmds.sh: line 132:  3152 Aborted                 "$GODOT" --headless --path game --import > /dev/null 2>&1
+base_gladiia_desk_skill_none：1 张；0 处脚本错误
+base_gladiia_desk_growth_none：1 张；0 处脚本错误
+base_gladiia_phone_skill_none：1 张；0 处脚本错误
+base_gladiia_phone_growth_none：1 张；0 处脚本错误
+base_specter_unchained_desk_skill_none：1 张；0 处脚本错误
+base_specter_unchained_desk_growth_none：1 张；0 处脚本错误
+base_specter_unchained_phone_skill_none：1 张；0 处脚本错误
+base_specter_unchained_phone_growth_none：1 张；0 处脚本错误
+check codex rc=0
+通过 数据 JSON 解析  game/data 全部可解析
+通过 图鉴 C4' 键鼠 / 手柄 / 触屏输入与立绘适配  CODEX INPUT: 0 failures  [12 秒]
+
+耗时前 10（秒，不含排队）：图鉴 C4' 键鼠 / 手柄 / 触屏输入与立绘 12
+
+快检通过：2 项，失败 0 项（已知红 0 项另计），耗时 13 秒（开始时全机 0 个 Godot，结束时 0 个）；Godot 结果缓存命中 0 / 1（不用缓存加 --nocache）
+check ui_smoke rc=0
+通过 数据 JSON 解析  game/data 全部可解析
+通过 界面冒烟（docs/126 R6）：标题页十屏 + 局内 HUD / 暂停 / 设置 / 属性 / 结算 / 作战记录 / 对局记录各开关两遍，无缺图、无残留节点  UI SMOKE failures=0  [13 秒]
+
+耗时前 10（秒，不含排队）：界面冒烟（docs/126 R6）：标题页十屏  13
+
+快检通过：2 项，失败 0 项（已知红 0 项另计），耗时 13 秒（开始时全机 0 个 Godot，结束时 0 个）；Godot 结果缓存命中 0 / 1（不用缓存加 --nocache）
+check touch_layout rc=0
+通过 数据 JSON 解析  game/data 全部可解析
+通过 触屏按键布局：存档往返 / 换比例锚点 / 越界夹进安全区 / 局内按新位置点击 / 编辑页拖动推开调大小 / 选卡让位 / 转屏重算 ui_k  TOUCH LAYOUT failures=0  [9 秒]
+
+耗时前 10（秒，不含排队）：触屏按键布局：存档往返 / 换比例锚点 / 越界 9
+
+快检通过：2 项，失败 0 项（已知红 0 项另计），耗时 9 秒（开始时全机 0 个 Godot，结束时 0 个）；Godot 结果缓存命中 0 / 1（不用缓存加 --nocache）
+check card_desc rc=0
+通过 数据 JSON 解析  game/data 全部可解析
+通过 卡片描述不串台：公共成长 / 填充 / 支援卡不含队长手动技能提示（10-22 截图），干员卡只提自己的技能  CARD DESC failures=0  [8 秒]
+
+耗时前 10（秒，不含排队）：卡片描述不串台：公共成长 / 填充 / 支援卡不 8
+
+快检通过：2 项，失败 0 项（已知红 0 项另计），耗时 8 秒（开始时全机 0 个 Godot，结束时 0 个）；Godot 结果缓存命中 0 / 1（不用缓存加 --nocache）
+media：28 个文件，11M
