@@ -1,0 +1,10 @@
+114786	trace_irene_0.log
+115015	trace_irene_1.log
+127435	trace_lappland_0.log
+127435	trace_lappland_1.log
+110418	trace_pxp_0.log
+120388	trace_pxp_1.log
+115664	trace_saria_0.log
+115664	trace_saria_1.log
+120388	trace_skadi_0.log
+120388	trace_skadi_1.log

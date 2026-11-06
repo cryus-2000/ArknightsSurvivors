@@ -1,0 +1,8 @@
+117384	trace_gladiia_0.log
+117269	trace_gladiia_1.log
+121875	trace_mizuki_0.log
+121875	trace_mizuki_1.log
+111217	trace_specter_unchained_0.log
+111217	trace_specter_unchained_1.log
+109132	trace_ulpianus_0.log
+109132	trace_ulpianus_1.log
