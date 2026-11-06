@@ -104,7 +104,7 @@ func build(restart := false) -> void:
 		# 触屏说明字先试大 2 号（手机上 12 号只有约 6.5 pt），放不下再退回原字号；手机一句话 20 起、最小 17
 		var szs: Array = ([18, 17, 16, 15, 14] if touch else [14, 13, 12, 11]) if Pad.touch_ui() else [13]   # 电脑：说明一律 13（docs/37 最小字号；D9 同排同字号）
 		if ph:
-			szs = [20, 19, 18, 17]
+			szs = [15, 14, 13]   # 11-06：原 20 起，放大后比名字（18 ≈ 21）还大；改成比名字小一级（≈ 18 / 17 / 15）
 		var chips := Affects.chips(g, it)
 		# 触屏：说明区底边留到「影响」标签上方（标签行底在卡底上方 52，每行 22 高，最多 2 行）。原来固定留 60，
 		# 标签一行时压 10、两行时压 32（10-13 手机实测「炸裂之手」说明末行压在标签上）
@@ -207,7 +207,7 @@ func draw_card(card: Button, it: Dictionary, i: int) -> void:
 	var nfs: int = int(lay().name_fs)
 	if nfs > 0 and fit_all.call(nfs):
 		fs = nfs   # 手机：名字 18（整排都放得下才用）
-	UI.text(card, g.font, r.position + Vector2(0, 144.0 if sc_compact else 156.0), it.name, fs, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 2)
+	UI.text(card, UI.name_font(g.font), r.position + Vector2(0, 144.0 if sc_compact else 156.0), it.name, fs, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 2)
 	var fd: Dictionary = card.get_meta("fit", {})
 	if not fd.is_empty():
 		var dc := Color(0.86, 0.9, 0.93, a) if card.has_meta("brief") else Color(0.655, 0.69, 0.725, a)

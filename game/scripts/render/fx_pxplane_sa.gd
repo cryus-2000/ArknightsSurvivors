@@ -324,7 +324,7 @@ func draw_rt(ci, it: Dictionary) -> void:
 				ci.draw_rect(Rect2(p2, Vector2(px, px)), q[2])
 			if g.optical_on and r._emit_n < Pxp.EMIT_CAP:
 				r._emit_n += 1
-				g.glow_next.append([head, px, Color(HEAL[5] if syr else AMB[6], Bal.v("fx/px_plane_emit", 0.8))])
+				g.glow_next.append([head, px, Color(HEAL[5] if syr else AMB[6], (Bal.v("fx/px_plane_emit", 0.8) * float(g.world.lf_emit_k)))])
 
 
 ## 同 pxplane_saria_art.syringe()：[沿向 s（往后为正）, 法向 w, 颜色]

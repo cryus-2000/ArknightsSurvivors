@@ -467,7 +467,7 @@ func _bolt(ci, head: Vector2, d: Vector2, bt: int, big: bool) -> void:
 		ci.draw_rect(Rect2(p2, Vector2(px, px)), q[2])
 	if g.optical_on and r._emit_n < Pxp.EMIT_CAP:
 		r._emit_n += 1
-		g.glow_next.append([head, px, Color(F[6], Bal.v("fx/px_plane_emit", 0.8))])
+		g.glow_next.append([head, px, Color(F[6], (Bal.v("fx/px_plane_emit", 0.8) * float(g.world.lf_emit_k)))])
 
 
 # ================================================================ 运行时像素（同 tools/pxplane_suzuran_art.py）

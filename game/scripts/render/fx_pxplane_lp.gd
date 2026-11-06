@@ -53,7 +53,7 @@ func _px(ci, p: Vector2, c: Color) -> void:
 func _glow(p: Vector2, c: Color) -> void:
 	if g.optical_on and r._emit_n < Pxp.EMIT_CAP:
 		r._emit_n += 1
-		g.glow_next.append([Pxp._snap(p), g.PX, Color(c, Bal.v("fx/px_plane_emit", 0.8))])
+		g.glow_next.append([Pxp._snap(p), g.PX, Color(c, (Bal.v("fx/px_plane_emit", 0.8) * float(g.world.lf_emit_k)))])
 
 
 ## 一对挂在她身上的方向件（立起 + 贴地）；斩击类只留最近两刀（11-05 用户「碎斩击」口径，同 fx_pxplane._add）

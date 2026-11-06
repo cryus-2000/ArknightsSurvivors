@@ -69,7 +69,7 @@ def run(item):
     shutil.rmtree(d, ignore_errors=True)
     os.makedirs(d, exist_ok=True)
     so, se, to = gr.run_godot([godot, '--path', game, '--resolution', res, '--position', '-4000,0', '--fixed-fps', '60', '--',
-                               '--shotdir=' + d] + extra + args, 420)
+                               '--shotdir=' + d] + extra + args + os.environ.get('UIA_EXTRA', '').split(), 420)   # UIA_EXTRA：每项追加的参数（如 --bal=ui/font_ark=1）
     errs = [ln for ln in ((so or '') + (se or '')).splitlines() if 'SCRIPT ERROR' in ln or 'Parse Error' in ln]
     with open(os.path.join(d, 'log.txt'), 'w', encoding='utf-8') as f:
         f.write((so or '') + '\n----\n' + (se or ''))
