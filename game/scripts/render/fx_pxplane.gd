@@ -185,7 +185,27 @@ func _meta(k: String) -> Dictionary:
 	return meta.get(k, {})
 
 
+## 帧条按用到才读、60 秒（TEX_KEEP，局内时间）没画过就放掉（docs/287 §3 ⑥：原来读了整局不放，三人编队最重约 150 MB）；
+## 再用到时重读（一张几 MB，几毫秒）。OPT_PXEVICT（--optold=536870912）置位不放
+const TEX_KEEP := 60.0
+var _tex_t := {}
+var _tex_sweep := 0.0
+
+func _tex_evict() -> void:
+	if g.opt_old & g.OPT_PXEVICT or g.t - _tex_sweep < 10.0:
+		return
+	_tex_sweep = g.t
+	var drop: Array = []
+	for k in _tex_t:
+		if g.t - float(_tex_t[k]) > TEX_KEEP:
+			drop.append(k)
+	for k in drop:
+		_tex_t.erase(k)
+		tex.erase(k)
+
+
 func _tex(k: String) -> Texture2D:
+	_tex_t[k] = g.t
 	if not tex.has(k):
 		var p: String = ART % k.replace("_d-", "_dm").to_lower()   # 负方向键（d-45）的文件名写成 dm45：素材命名不许连字符 / 大写（asset_lint N1；塞雷娅 pilB / pilS 的文件名一律小写）
 		tex[k] = load(p) if ResourceLoader.exists(p) else null
@@ -537,6 +557,7 @@ func _step() -> void:
 	if fr == _step_fr and not (g.opt_old & g.OPT_PXSTEP):   # 一帧只清一次（docs/287 §3 ⑤）：原来每名干员每个绘制层进来都整表 filter 一遍；同一帧 g.t 不变，结果相同
 		return
 	_step_fr = fr
+	_tex_evict()
 	var now: float = g.t
 	items = items.filter(func(it): return now - float(it.t0) < (float(it.life) if it.has("life") else _life(str(it.k))) + 0.02 and not (it.has("ef") and it.ef.get("dead", false)))
 	for it in items:   # 卡肉（melee_impact.meat）：命中那一拍（第 1 帧）多停 stk 秒再接着扫
@@ -4016,6 +4037,25 @@ func _sk_grad(cv, c: Vector2, r0: float, r1: float, col: Color, a0: float, a1: f
 
 ## 逐美术像素的小图案（立起件：音符、小鱼）；左上角 tl（世界），fl 水平翻转
 func _sk_pat(ci, pat: Array, tl: Vector2, col: Color, head: Color, fl := false, sh := Color(0, 0, 0, 0)) -> void:
+	if ci is CanvasItem and not (g.opt_old & g.OPT_SKPAT):
+		if _skp_test:   # --skpattest：旧写法交出的矩形（记录器）与新写法的三角形逐个比（顶点 / 颜色 / 次序），PF SKPAT 打印
+			var rec := _SkRectRec.new()
+			_sk_pat(rec, pat, tl, col, head, fl, sh)
+			var e2: Array = _sk_pat_geo(pat, fl, col, head, sh)
+			var pts: PackedVector2Array = Transform2D(0.0, _snap(tl)) * (e2[0] as PackedVector2Array)
+			var ok: bool = pts.size() == rec.rects.size() * 4
+			for i in rec.rects.size():
+				if not ok:
+					break
+				var r2: Rect2 = rec.rects[i][0]
+				ok = pts[i * 4] == r2.position and pts[i * 4 + 1] == r2.position + Vector2(r2.size.x, 0.0) and pts[i * 4 + 2] == r2.end and pts[i * 4 + 3] == r2.position + Vector2(0.0, r2.size.y) and (e2[1] as PackedColorArray)[i * 4] == rec.rects[i][1]
+			_skp_test_n += 1
+			if not ok:
+				_skp_test_bad += 1
+			if _skp_test_n % 500 == 0:
+				print("PF SKPAT n=%d bad=%d" % [_skp_test_n, _skp_test_bad])
+		_sk_pat_tris(ci, pat, tl, col, head, fl, sh)
+		return
 	var px: float = g.PX
 	var p0: Vector2 = _snap(tl)
 	var hh: int = pat.size()
@@ -4035,6 +4075,73 @@ func _sk_pat(ci, pat: Array, tl: Vector2, col: Color, head: Color, fl := false, 
 				continue
 			var xx: int = (ww - 1 - x) if fl else x
 			ci.draw_rect(Rect2(p0 + Vector2(xx, y) * px, Vector2(px, px)), head if y >= hh - 2 else col)
+
+
+## 小图案的合批写法（docs/287 §3 ⑧，OPT_SKPAT）：同一（图案, 翻转, 颜色, 头色, 投影色）把逐像素矩形展开成三角形（先投影后本体、
+## 行列次序同上），以左上角为原点缓存；每次平移后一条 canvas_item_add_triangle_array 交给画布（原来每个美术像素一次 draw_rect，
+## 鱼 / 音符 / 上浮箭头带投影每个图案几十次）。左上角对齐 2 像素格、顶点都是整数，覆盖的像素与逐个 draw_rect 相同
+var _skp_cache := {}
+var _skp_idx := {}
+
+class _SkRectRec:
+	var rects: Array = []
+	func draw_rect(r: Rect2, c: Color, _f := true, _w := -1.0, _aa := false) -> void:
+		rects.append([r, c])
+
+var _skp_test: bool = (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--skpattest")
+var _skp_test_n := 0
+var _skp_test_bad := 0
+
+func _sk_pat_tris(ci: CanvasItem, pat: Array, tl: Vector2, col: Color, head: Color, fl: bool, sh: Color) -> void:
+	var e: Array = _sk_pat_geo(pat, fl, col, head, sh)
+	if (e[0] as PackedVector2Array).is_empty():
+		return
+	RenderingServer.canvas_item_add_triangle_array(ci.get_canvas_item(), e[2], Transform2D(0.0, _snap(tl)) * (e[0] as PackedVector2Array), e[1])
+
+
+func _sk_pat_geo(pat: Array, fl: bool, col: Color, head: Color, sh: Color) -> Array:
+	var key := [pat, fl, col, head, sh]
+	var e = _skp_cache.get(key)
+	if e == null:
+		var px: float = g.PX
+		var pts := PackedVector2Array()
+		var cols := PackedColorArray()
+		var hh: int = pat.size()
+		var rects: Array = []
+		if sh.a > 0.0:
+			for y in hh:
+				var row0: String = pat[y]
+				var w0: int = row0.length()
+				for x in w0:
+					if row0[x] == "#":
+						var x0: int = (w0 - 1 - x) if fl else x
+						rects.append([Vector2(x0 + 1, y + 1) * px, sh])
+		for y in hh:
+			var row: String = pat[y]
+			var ww: int = row.length()
+			for x in ww:
+				if row[x] != "#":
+					continue
+				var xx: int = (ww - 1 - x) if fl else x
+				rects.append([Vector2(xx, y) * px, head if y >= hh - 2 else col])
+		for rc in rects:
+			var q0: Vector2 = rc[0]
+			pts.append_array([q0, q0 + Vector2(px, 0.0), q0 + Vector2(px, px), q0 + Vector2(0.0, px)])
+			for j in 4:
+				cols.append(rc[1])
+		var n: int = rects.size()
+		var idx = _skp_idx.get(n)
+		if idx == null:
+			idx = PackedInt32Array()
+			for i in n:
+				var k: int = i * 4
+				idx.append_array([k, k + 1, k + 2, k, k + 2, k + 3])
+			_skp_idx[n] = idx
+		e = [pts, cols, idx]
+		if _skp_cache.size() > 256:
+			_skp_cache.clear()
+		_skp_cache[key] = e
+	return e
 
 
 ## 一圈断口笔触浪（普攻声浪 / 回声 / 海嗣同步 / 小声浪）：k 断成几段，w 宽，rot 起始角

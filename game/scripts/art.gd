@@ -309,6 +309,8 @@ static func half_enemy_on() -> bool:
 		if cfg == null:
 			return false   # 自动加载还没起（更早的自动加载里取贴图）：先不记结果，等 Cfg 在了再判
 		var on: bool = cfg.mobile_web() and cfg.mobile_knob("mobile_half_enemy", 1.0)
+		if not cfg.mobile_web() and load("res://scripts/core/balance.gd").v("fx/half_enemy_desktop", 1.0) > 0.0:
+			on = true   # 桌面也减半读（docs/287 §3 ⑩）：1 倍图整 2 倍放大的帧条读回 1 倍，绘制按密度换算，屏幕上一样大；真有 2 倍细节的照旧
 		if (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--halfenemy"):
 			on = true
 		_half_e = 1 if on else 0

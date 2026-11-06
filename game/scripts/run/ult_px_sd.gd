@@ -80,10 +80,23 @@ func _ev(u, kind: String, d: Dictionary) -> void:
 				return
 			var nm: String = "sd_d" + str(kf[0]).replace("-", "m").replace(".", "_")
 			var p: String = ART % nm
-			var tex = _cache.get(p, null)
-			if tex == null:
-				tex = load(p) if ResourceLoader.exists(p) else null
+			var tex = null
+			if g.opt_old & g.OPT_SDPF:
+				tex = _cache.get(p, null)
+				if tex == null:
+					if ResourceLoader.exists(p):
+						_load_log(p)
+					tex = load(p) if ResourceLoader.exists(p) else null
+			else:
+				tex = _cache.get(p, null)
+				if tex == null:
+					_cache = {}   # 手上那张方向不对：先放掉再读
+					if ResourceLoader.exists(p):
+						_load_log(p)
+					tex = load(p) if ResourceLoader.exists(p) else null
 			_cache = {}
+			_pf_key = ""
+			_pf_n = 0
 			st = {"o0": d.o0, "d": d.d, "dk": kf[0], "flip": kf[1], "t0": g.t, "tex": tex,
 				"rects": dirs[kf[0]], "crash_t": -1.0, "end_t": -1.0, "hits": [], "sprays": []}
 		"cleave":   # 下劈落地：落点一盏照地光（冰蓝）
@@ -184,13 +197,40 @@ func _emits() -> void:
 				_glow(c + Vector2(cos(a) * r, sin(a) * r * 0.7), Color.WHITE if r < 70.0 else ICE)
 
 
+## 起手蓄力期间按瞄准方向预读（docs/287 §3 ⑦）：方向档连续 PF_STABLE 帧不变才读（原来瞄准每跨一档就同步读一张 23–28 MB 的图集，
+## 摇杆来回扫时连读好几张、每张一次卡顿）；读之前先放掉手上那张，同一时刻只留一张。OPT_SDPF（--optold=268435456）走旧写法
+const PF_STABLE := 3
+var _pf_key := ""
+var _pf_n := 0
+
 func _prefetch(d: Vector2) -> void:
 	if d == Vector2.ZERO:
 		return
 	var kf: Array = dir_key(d)
 	var p: String = ART % ("sd_d" + str(kf[0]).replace("-", "m").replace(".", "_"))
-	if not _cache.has(p) and ResourceLoader.exists(p):
-		_cache = {p: load(p)}
+	if g.opt_old & g.OPT_SDPF:
+		if not _cache.has(p) and ResourceLoader.exists(p):
+			_load_log(p)
+			_cache = {p: load(p)}
+		return
+	if p != _pf_key:
+		_pf_key = p
+		_pf_n = 0
+	_pf_n += 1
+	if _pf_n < PF_STABLE or _cache.has(p) or not ResourceLoader.exists(p):
+		return
+	_cache = {}   # 先放旧的再读新的：峰值只有一张
+	_load_log(p)
+	_cache = {p: load(p)}
+
+
+func _load_log(p: String) -> void:
+	if (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).is_empty():
+		return
+	var t0 := Time.get_ticks_usec()
+	var tx = load(p)
+	print("PF SDLOAD t=%.2f %s ms=%.1f mb=%.1f" % [g.t, p.get_file(), (Time.get_ticks_usec() - t0) / 1000.0,
+		(tx.get_width() * tx.get_height() * 4.0 / 1048576.0) if tx is Texture2D else 0.0])
 
 
 # ================================================================ 怪物崩解（用户 11-05「我说的崩解是原版那个粒子特效，就是怪物炸开的这个特效」；做法同艾丽妮 docs/275 §1.0）
