@@ -169,6 +169,8 @@ static func ek(key: String, d: float) -> float:
 
 ## 命中时记下（hit / meat 调）：hold 局部停帧秒数（全局顿帧本来就停 g.t，传 0）
 static func _evo_hit(o, hits: Array, hold: float, heavy: bool, col: Color) -> void:
+	if OS.is_debug_build() and Bal.v("fx/melee_evo_dbg", 0.0) > 0.0:
+		print("EVODBG hit ", o.id, " evo=", evo(o), " n=", hits.size(), " t=", o.g.t)
 	if not evo(o):
 		return
 	var g = o.g
@@ -235,6 +237,8 @@ static func peak(o) -> float:
 ## ②③ 画在本体下面（character.draw_body 在画本体之前调）
 static func draw_under(o, st: Dictionary, base: Vector2, foot_dx: float, foot_off: float) -> void:
 	var a := _evo_age(o)
+	if OS.is_debug_build() and Bal.v("fx/melee_evo_dbg", 0.0) > 0.0 and o.has_meta("me_ev"):
+		print("EVODBG draw ", o.id, " a=", a.size(), " t=", o.g.t)
 	if a.is_empty():
 		return
 	var m: Dictionary = a[0]
@@ -269,8 +273,8 @@ static func _fan(o, m: Dictionary, base: Vector2, ph: int) -> void:
 	var a_tail: float = a_head - sw * flip
 	var col: Color = m.col
 	var cc: Color = col.lerp(Color.WHITE, 0.15)
-	var hot: Color = col.lerp(Color.WHITE, 0.8)
-	var aa: float = ek("fan_alpha", 0.72) * (1.0 if ph == 0 else 0.55)
+	var hot: Color = col.lerp(Color.WHITE, 0.85)
+	var aa: float = ek("fan_alpha", 0.9)
 	var s := 2.0   # 美术像素格（世界 2 px）
 	var bx := Rect2(c0 - Vector2(R1, R1), Vector2(R1, R1) * 2.0)
 	var y: float = floor(bx.position.y / s) * s
@@ -286,21 +290,29 @@ static func _fan(o, m: Dictionary, base: Vector2, ph: int) -> void:
 				var da: float = wrapf((q.angle() - a_tail) * flip, -PI, PI)
 				var u: float = da / sw   # 0 尾 → 1 头
 				if u >= 0.0 and u <= 1.0:
-					var inner: float = lerpf(R1 - 3.0, R0, pow(u, 0.7)) + 2.0 * sin(u * 11.0 + float(m.sd))   # 尾细头粗，内缘略不规整
+					var th: float = lerpf(2.0, (R1 - R0) * ek("fan_th", 0.5), pow(u, 0.8))   # 月牙：尾一格细、头部最厚
+					var inner: float = R1 - th + 2.0 * sin(u * 11.0 + float(m.sd)) * u   # 内缘略不规整
 					if ph == 1:
-						inner = maxf(inner, R1 - lerpf(2.0, 8.0, u))   # 第二拍只剩头部外缘暗带
+						inner = maxf(inner, R1 - lerpf(2.0, 6.0, u))   # 第二拍只剩头部外缘暗带
 					if r >= inner:
-						var edge: bool = r > R1 - 4.0 and u > 0.35
+						var lv: float = 0.35 if u < 0.33 else (0.65 if u < 0.66 else 1.0)   # 尾巴渐隐（三阶，不做平滑渐变）
 						if ph == 0:
-							cell = hot if edge or u > 0.86 else cc
+							if r > R1 - 2.5 and u > 0.25:
+								cell = hot   # 外缘一格热白
+							elif r < inner + 2.5:
+								cell = col.darkened(0.35)   # 内缘一格压暗，读出体积
+							else:
+								cell = cc
 						else:
-							cell = col.darkened(0.25)
+							cell = col.darkened(0.3)
+							lv *= 0.6
+						cell.a = lv
 			if cell != run_c:
 				if run_c.a > 0.0:
-					cv.draw_rect(Rect2(run_x, y, x - run_x, s), Color(run_c.r, run_c.g, run_c.b, aa))
+					cv.draw_rect(Rect2(run_x, y, x - run_x, s), Color(run_c.r, run_c.g, run_c.b, run_c.a * aa))
 				run_c = cell
 				run_x = x
 			x += s
 		if run_c.a > 0.0:
-			cv.draw_rect(Rect2(run_x, y, x - run_x, s), Color(run_c.r, run_c.g, run_c.b, aa))
+			cv.draw_rect(Rect2(run_x, y, x - run_x, s), Color(run_c.r, run_c.g, run_c.b, run_c.a * aa))
 		y += s
