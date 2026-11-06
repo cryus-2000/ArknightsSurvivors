@@ -324,7 +324,7 @@ try{navigator.clipboard.writeText(t).then(ok,function(){a.focus();a.select();try
 catch(e){a.focus();a.select();try{document.execCommand('copy');ok()}catch(e2){n.textContent='没能复制：请长按文字全选后复制'}}});
 B('保存文件',function(){try{var u=URL.createObjectURL(new Blob([t],{type:'text/plain'}));var l=document.createElement('a');l.href=u;l.download='perf_log.txt';document.body.appendChild(l);l.click();l.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000);n.textContent='已保存（在「文件」或下载里）'}catch(e){n.textContent='这里不能存文件：请用「复制」'}});
 B('关闭',function(){o.remove()});
-o.appendChild(a);o.appendChild(n);o.appendChild(row);document.body.appendChild(o)})(%s)""" % JSON.stringify(t), true)
+o.appendChild(a);o.appendChild(n);o.appendChild(row);document.body.appendChild(o)})(__T__)""".replace("__T__", JSON.stringify(t)), true)   # CSS 里有 %，不能用 % 格式化
 		return
 	DisplayServer.clipboard_set(t)
 	var p := "user://perf_log_%d.txt" % int(Time.get_unix_time_from_system())
