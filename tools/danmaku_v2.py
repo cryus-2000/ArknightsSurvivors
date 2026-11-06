@@ -38,11 +38,16 @@ STYLE = {
     "path":     {"ramp": ramp_from((150, 178, 230)), "shape": "diamond", "small": "diamond", "name": "塑路者", "shape_name": "菱晶弹"},
     "bishop":   {"ramp": ramp_from((92, 112, 250)), "shape": "bubble_ring", "small": "orb", "name": "接潮主教", "shape_name": "水泡环"},
     "archon":   {"ramp": ramp_from((92, 230, 118)), "shape": "orb", "small": "orb", "name": "接潮蔑死体", "shape_name": "光玉（无弹幕招）"},
-    "immortal": {"ramp": ramp_from((168, 160, 255)), "shape": "knife", "small": "orb", "name": "接潮斥亡体", "shape_name": "刀弹"},
-    "iberia":   {"ramp": {"white": (255, 252, 236), "pale": (255, 230, 150), "light": (255, 176, 76), "main": (244, 108, 38), "deep": (178, 50, 20), "edge": (70, 18, 8)},
-                 "shape": "fireball", "small": "orb", "name": "圣徒伊比利亚", "shape_name": "火球"},
-    "carmen":   {"ramp": {"white": (255, 255, 246), "pale": (255, 244, 200), "light": (255, 220, 128), "main": (238, 178, 66), "deep": (170, 110, 34), "edge": (70, 44, 14)},
-                 "shape": "star", "small": "orb", "name": "圣徒卡门", "shape_name": "星弹"},
+    "immortal": {"ramp": {"white": (255, 255, 255), "pale": (238, 232, 255), "light": (206, 196, 248), "main": (160, 146, 226), "deep": (98, 84, 168), "edge": (34, 26, 66)},
+                 "shape": "crescent", "small": "orb", "name": "接潮斥亡体", "shape_name": "月牙刃（原样精修）"},
+    # 圣徒两位（用户 11-07「卡门星弹、伊比利亚火球都太丑了，在原本的基础上修改」）：保留现在的圆炮弹外形与配色，精修画法 + 本色曳光尾
+    "iberia":   {"ramp": {"white": (255, 246, 214), "pale": (255, 214, 140), "light": (250, 160, 80), "main": (226, 110, 48), "deep": (168, 58, 24), "edge": (64, 18, 8)},
+                 "shape": "shell", "small": "shell", "name": "圣徒伊比利亚", "shape_name": "炮弹（原样精修 + 余烬曳光）"},
+    "carmen":   {"ramp": {"white": (255, 255, 250), "pale": (255, 250, 232), "light": (250, 236, 200), "main": (232, 208, 158), "deep": (190, 152, 96), "edge": (87, 62, 30)},
+                 "shape": "shell", "small": "shell", "name": "圣徒卡门", "shape_name": "炮弹（原样精修 + 金色曳光）"},
+    # 伊祖米克（用户 11-07「为什么没有一组米克的」）：本体是白色水母；原样淡天蓝圆弹精修（白芯 + 渐变 + 高光 + 柔光）
+    "izumik":   {"ramp": {"white": (255, 255, 255), "pale": (222, 242, 255), "light": (172, 220, 255), "main": (112, 178, 250), "deep": (52, 104, 200), "edge": (14, 32, 78)},
+                 "shape": "orb", "small": "orb", "name": "伊祖米克", "shape_name": "光玉（原样精修）"},
     "ishar":    {"ramp": ramp_from((64, 240, 160)), "shape": "drop", "small": "orb", "name": "伊莎玛拉", "shape_name": "泪滴"},
     "paranoia": {"ramp": ramp_from((178, 96, 255)), "shape": "bubble", "small": "bubble", "name": "偏执泡影", "shape_name": "泡弹"},
 }
@@ -170,7 +175,39 @@ def f_diamond(u, v, R, x, y, ph):
     return sdf, e, 0.0, 1.0
 
 
-SHAPES = {"orb": f_orb, "bubble": f_bubble, "bubble_ring": f_bubble_ring, "drop": f_drop, "knife": f_knife, "star": f_star,
+def f_shell(u, v, R, x, y, ph):
+    """炮弹：实心圆，热芯偏向前方（飞行方向），后方一条细曳光（2–3 倍半径，越远越淡）。"""
+    r = math.hypot(u, v)
+    sdf = r - R
+    e = 1.0 - min(1.0, math.hypot(u - R * 0.28, v) / (R * 1.05)) ** 1.35
+    a = 1.0
+    spec = 1.0 if R >= 5 and math.hypot(x + R * 0.34, y + R * 0.34) < max(0.7, R * 0.14) else 0.0
+    if sdf >= 0 and u < 0:
+        L = R * 2.2
+        if -R - L < u < -R + 1.0 and abs(v) <= 0.5:
+            t = (-u - R) / L   # 0 = 贴着弹体，1 = 尾端
+            if t < 1.0:
+                return -0.5, 0.9 - 0.35 * t, 0.0, max(0.05, 0.8 - 0.8 * t)
+    return sdf, e, spec, a
+
+
+def f_crescent(u, v, R, x, y, ph):
+    """月牙刃（斥亡体原样：白 → 淡紫的新月，凸面朝飞行方向）：外圆减去向后偏的内圆；凸面刃口最亮、向内收暗；后方几点碎光。"""
+    ro = math.hypot(u, v)
+    ri = math.hypot(u + R * 0.42, v)
+    sdf = max(ro - R, R * 0.93 - ri)
+    t = R - ro   # 离刃口的距离
+    e = 1.0 - 0.6 * min(1.0, t / (R * 0.32))
+    spec = 0.0
+    if sdf >= 0:
+        # 碎光：月牙后方固定 4 点（随相位闪）
+        for k, (du, dv) in enumerate(((-0.75, -0.55), (-0.95, 0.25), (-1.25, -0.15), (-1.5, 0.5))):
+            if abs(u - du * R) < 0.5 and abs(v - dv * R) < 0.5 and (k + int(ph * 3)) % 3 != 0:
+                return -0.5, 0.9, 0.0, 0.7
+    return sdf, e, spec, 1.0
+
+
+SHAPES = {"crescent": f_crescent, "shell": f_shell, "orb": f_orb, "bubble": f_bubble, "bubble_ring": f_bubble_ring, "drop": f_drop, "knife": f_knife, "star": f_star,
           "fireball": f_fireball, "diamond": f_diamond}
 
 
@@ -179,7 +216,7 @@ def sprite(boss, shape, R, ang=0.0, ph=0.0, glow=2):
     st = STYLE[boss]
     ramp = st["ramp"]
     fn = SHAPES[shape]
-    ext = R * (2.3 if shape in ("drop", "fireball") else 1.0) + glow + 1.5
+    ext = R * (2.3 if shape in ("drop", "fireball") else (3.7 if shape == "shell" else (1.7 if shape == "crescent" else 1.0))) + glow + 1.5
     n = int(math.ceil(ext)) * 2 + 1
     c = (n - 1) / 2.0
     ca, sa = math.cos(ang), math.sin(ang)
@@ -217,7 +254,14 @@ def sprite(boss, shape, R, ang=0.0, ph=0.0, glow=2):
             if not inside[py, px]:
                 continue
             sd, e, sp, a = info[(py, px)]
-            if edge[py, px]:
+            if edge[py, px] and a >= 0.999 and shape == "crescent":
+                # 月牙：凸面刃口描白、凹面描深紫（原样以白为主，叠刃时不糊成暗团）
+                xx, yy = px - c, py - c
+                uu = xx * ca + yy * sa
+                vv = -xx * sa + yy * ca
+                col = ramp["white"] if math.hypot(uu, vv) > R - 1.3 else ramp["deep"]
+                al = 255
+            elif edge[py, px] and a >= 0.999:   # 半透明部分（泡身、曳光尾）不描暗边
                 col = ramp["edge"]
                 al = 255
             else:
@@ -233,7 +277,7 @@ def sprite(boss, shape, R, ang=0.0, ph=0.0, glow=2):
             body[py, px] = col + (al,)
     # 柔光晕：暗边外 glow 格，3 档透明度
     g = np.zeros((n, n), np.float32)
-    cur = inside.copy()
+    cur = inside & (body[..., 3] >= 250) & ~_tail_mask(body, info, n)   # 光晕只从实心弹体长出（曳光尾、碎光不带光晕）
     levels = [0.5, 0.26, 0.12][:glow]
     for lv in levels:
         grow = cur.copy()
@@ -246,6 +290,14 @@ def sprite(boss, shape, R, ang=0.0, ph=0.0, glow=2):
     return body, g, ramp["main"]
 
 
+def _tail_mask(body, info, n):
+    m = np.zeros((n, n), bool)
+    for (py, px), (sd, e, sp, a) in info.items():
+        if a < 0.999 and sd == -0.5:
+            m[py, px] = True
+    return m
+
+
 def kind_for(boss, b):
     """实机弹 → (弹形, 半径美术像素)。b = eb json 一项。"""
     r = float(b[4])
@@ -254,10 +306,12 @@ def kind_for(boss, b):
     if b[5] == "mc" and tier >= 0:
         r = (6.0, 7.0, 11.0)[min(2, tier)]
     if boss == "immortal" or b[5] == "boss_blade":
-        return "knife", 7.0 * max(1.0, r / 9.0)
+        return "crescent", 9.0 * max(0.75, r / 12.0)   # 原样高约 36 世界像素 = 18 美术像素
     if r <= 6.0:
         return st["small"], 4.5 if st["small"] != "diamond" else 5.0
-    big = {"drop": (5.0, 7.0), "fireball": (5.0, 7.0), "star": (7.5, 10.5)}.get(st["shape"], (6.0, 9.0))   # 星形面积比圆小，放大一档
+    big = {"drop": (5.0, 7.0), "fireball": (5.0, 7.0), "star": (7.5, 10.5), "shell": (6.5, 9.0)}.get(st["shape"], (6.0, 9.0))   # 星形面积比圆小，放大一档
+    if boss == "izumik":
+        big = (6.5, 7.5)   # 伊祖米克两档（r9 / r10.5）差得少
     return st["shape"], big[0] if r < 10.0 else big[1]
 
 
@@ -268,7 +322,7 @@ def draw(canvas, boss, shape, R, cx, cy, vx, vy, scale, ph=0.0, layer="body"):
     ang = math.atan2(vy, vx) if (vx or vy) else 0.0
     if shape != "star":
         ang = round(ang / (math.tau / 16)) * (math.tau / 16)
-    phq = round(ph / (math.tau / 10)) % 10 if shape in ("star", "fireball") else 0
+    phq = round(ph / (math.tau / 10)) % 10 if shape in ("star", "fireball", "crescent") else 0
     key = (boss, shape, R, round(ang, 3), phq)
     if key not in _cache:
         _cache[key] = sprite(boss, shape, R, ang, phq * math.tau / 10 / 5 if shape == "star" else phq * 0.6, glow=2 if R >= 5 else 1)
@@ -277,6 +331,8 @@ def draw(canvas, boss, shape, R, cx, cy, vx, vy, scale, ph=0.0, layer="body"):
         V1.add_glow(canvas, g, 0, main, cx, cy, scale, 1.0)
         return
     if layer == "core":
+        if shape in ("shell", "crescent"):
+            return   # 浅色为主的弹形不补芯：一颗压一颗画完整，叠弹时每颗的描边都在（同原样）
         top = body.copy()
         ramp = STYLE[boss]["ramp"]
         m = np.zeros(top.shape[:2], bool)
@@ -364,7 +420,7 @@ def fx_v2(boss, what, n=5):
 # ---------------- 样板表
 def sheet(outdir):
     os.makedirs(outdir, exist_ok=True)
-    bosses = ["path", "bishop", "immortal", "iberia", "carmen", "ishar", "paranoia"]
+    bosses = ["path", "bishop", "immortal", "iberia", "carmen", "izumik", "ishar", "paranoia"]
     for dark in (True, False):
         for scale in (2, 4):
             cw = 30 * scale + 10
@@ -389,11 +445,11 @@ def sheet(outdir):
             cv = np.array(img)
             for bi, b in enumerate(bosses):
                 y = 70 + bi * rh + rh // 2
-                big = {"drop": (5.0, 7.0), "fireball": (5.0, 7.0), "star": (7.5, 10.5)}.get(STYLE[b]["shape"], (6.0, 9.0))
+                big = {"drop": (5.0, 7.0), "fireball": (5.0, 7.0), "star": (7.5, 10.5), "shell": (6.5, 9.0)}.get(STYLE[b]["shape"], (6.0, 9.0))
                 specs = [(STYLE[b]["small"], 4.5 if STYLE[b]["small"] != "diamond" else 5.0, 0.0),
                          (STYLE[b]["shape"], big[0], 0.0), (STYLE[b]["shape"], big[1], 0.0), (STYLE[b]["shape"], big[0], -0.7)]
                 if b == "immortal":
-                    specs = [("orb", 4.5, 0.0), ("knife", 7.0, 0.0), ("knife", 9.3, 0.0), ("knife", 7.0, -0.7)]
+                    specs = [("orb", 4.5, 0.0), ("crescent", 7.0, 0.0), ("crescent", 9.0, 0.0), ("crescent", 9.0, -0.7)]
                 for ci, (sh, R, a) in enumerate(specs):
                     x = lw + ci * cw + cw // 2
                     for lay in ("glow", "body"):
@@ -410,8 +466,8 @@ def sheet(outdir):
 
 
 # ---------------- 同帧对比：现在 | 第二版
-MOVE = {"path": "探路分形", "bishop": "交错潮环", "immortal": "斥亡旋刃", "iberia": "散射", "carmen": "环射", "ishar": "泪雨", "paranoia": "偏执双旋"}
-SPEC = {"path": "path", "bishop": "bishop", "immortal": "immortal", "iberia": "iberia", "carmen": "carmen", "ishar2": "ishar", "paranoia": "paranoia"}
+MOVE = {"izumik": "螺旋弹臂", "path": "探路分形", "bishop": "交错潮环", "immortal": "斥亡旋刃", "iberia": "散射", "carmen": "环射", "ishar": "泪雨", "paranoia": "偏执双旋"}
+SPEC = {"path": "path", "bishop": "bishop", "immortal": "immortal", "iberia": "iberia", "carmen": "carmen", "ishar2": "ishar", "paranoia": "paranoia", "izumik2": "izumik"}
 
 
 def render_v2(bg, js, boss, scale):
@@ -434,7 +490,10 @@ def render_v2(bg, js, boss, scale):
 def compare(curdir, outdir):
     os.makedirs(outdir, exist_ok=True)
     for spec, boss in SPEC.items():
-        cd, hd = os.path.join(curdir, spec + "_cur"), os.path.join(curdir, spec + "_hide")
+        roots = [r for r in curdir.split(";") if os.path.isdir(os.path.join(r, spec + "_cur"))]
+        if not roots:
+            continue
+        cd, hd = os.path.join(roots[0], spec + "_cur"), os.path.join(roots[0], spec + "_hide")
         best = None
         for f in sorted(glob.glob(os.path.join(cd, "fr_*.png"))):
             i = os.path.basename(f)[3:8]
