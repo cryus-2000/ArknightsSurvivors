@@ -3,6 +3,7 @@ extends "res://scripts/screens/title_diff_pick.gd"
 const HS = preload("res://scripts/screens/hh_style.gd")
 const FR = preload("res://scripts/core/frame_rec.gd")
 func _ready() -> void:
+	load("res://scripts/core/perf_hud.gd").ensure(get_tree())   # 性能自检浮层（缺省关，core/perf_hud.gd）
 	if Cfg.dev_args().has("--loadprof"):
 		# 启动计时（docs/36 §5）：引擎启动 → 标题页 _ready → 标题页首帧画完（毫秒，从引擎启动算）
 		print("BOOTPROF title_ready=%d" % Time.get_ticks_msec())
