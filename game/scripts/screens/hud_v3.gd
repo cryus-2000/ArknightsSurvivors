@@ -231,7 +231,7 @@ func _leader(c: Vector2, r: float, RR: float, base: float, s: float) -> void:
 		var act2: Array = _skill_segs(ld, lr.end.x + 4.0 * s, lr.get_center().y - hh2 / 2.0, w2, hh2, s)
 		_skill_secs(act2, Vector2(lr.end.x + 4.0 * s + w2 + 4.0 * s, lr.get_center().y + 3.0 * s), s)
 	if ld != null:   # 凯尔希当队长：Mon3tr 小牌挂在环外——桌面左下（150°，环下「终结技 64%」一行较宽）；触屏右下（30°，环下只写「64%」，左边紧挨灯火数字）
-		_m3_badge(ld, c + Vector2.from_angle(PI / 6.0 if g.touch.active else PI * 5.0 / 6.0) * (RR + 9.0 * s), 13.0 * s, s)
+		_m3_badge(ld, c + Vector2.from_angle(PI / 6.0 if g.touch.active else PI * 5.0 / 6.0) * (RR + 11.0 * s), 18.0 * s, s)
 
 
 ## 头像下「终结技 64%」一行的字顶 y
@@ -530,7 +530,7 @@ func _right(qx: float, base: float, sq: float, gap: float, tile: float, rush: St
 			var pk: float = 0.5 + 0.5 * sin(g.t * 6.0)
 			g.hud.draw_rect(Rect2(x - 1, y - 1, sq + 2, sq + 2), Color(UI.RED.r, UI.RED.g, UI.RED.b, 0.35 + 0.35 * pk), false, 1.5)
 			h.v2.big(Vector2(x + sq / 2.0, y + sq / 2.0 + 4.0 * s), "%02d" % int(ceil(o.cmd_down)), 10.0 * s, UI.GOLD if h.allyhp.boosted(o) else UI.RED, 1)
-		_m3_badge(o, Vector2(x + sq, y), 13.0 * s, s)   # 凯尔希当队友：Mon3tr 小牌压在头像格右上角
+		_m3_badge(o, Vector2(x + sq - 2.0 * s, y + 2.0 * s), 18.0 * s, s)   # 凯尔希当队友：Mon3tr 小牌压在头像格右上角
 	for i in range(ms.size(), slots):   # 已解锁但还没人的格：淡框占位
 		var x: float = qx + i * (sq + gap)
 		var y: float = base - sq - 5.0 * s
@@ -625,10 +625,22 @@ func _icon(c: Vector2, i: int, r: float, col: Color, w: float) -> void:
 
 ## 点击判定（hud.blocks_click）：整台的外框
 ## Mon3tr 小牌（11-06 用户「凯尔希的 m3 死掉之后我觉得可以加一个复活的倒计时标志」，docs/298）：
-## 活着 = 「M3」字牌 + 牌内底边血量细条（白，低于 35% 洋红）；倒下 = 头像变灰、洋红顶线 + 呼吸框、牌上红字复活秒数、底条走复活进度；
+## 活着 = 小头像 + 牌内底边血量细条（白，低于 35% 洋红）；倒下 = 头像变灰、洋红顶线 + 呼吸框、牌上红字复活秒数、底条走复活进度；
 ## 起身那一下青色闪 0.45 秒。只读召唤物状态（m3_hp.gd），不改玩法
 var _m3_was := {}   # 召唤物 id → 上一帧是否倒下
 var _m3_up := {}    # 召唤物 id → 起身时刻（g.t）
+var _m3_tex: Texture2D = null
+const M3_ICON_BOX := Rect2(39, 36, 49, 49)   # 1 倍帧（128 高）里 Mon3tr 身体的方框（op_mon3tr_native_idle 第 0 帧不透明区 40..87 × 37..85）
+
+
+## Mon3tr 小头像贴图：有 @2x 用 @2x（桌面），网页包去掉了 @2x 回退就用 @1x
+func _m3_icon() -> Texture2D:
+	if _m3_tex == null:
+		for pth in ["res://art/operators/kaltsit/op_mon3tr_native_idle@2x.png", "res://art/operators/kaltsit/op_mon3tr_native_idle@1x.png"]:
+			if ResourceLoader.exists(pth):
+				_m3_tex = load(pth)
+				break
+	return _m3_tex
 
 
 func _m3_of(o) -> Dictionary:
@@ -649,9 +661,11 @@ func _m3_badge(o, c: Vector2, sz: float, s: float) -> void:
 	_m3_was[sid] = down
 	var r := Rect2((c - Vector2(sz, sz) / 2.0).round(), Vector2(sz, sz).round())
 	g.hud.draw_rect(r.grow(1.0), Color(0.016, 0.024, 0.031, 0.92))
-	if not down:   # 字牌「M3」（11-06：召唤物帧条四周透明边大、本体偏黑，13 像素里缩成一团看不清，改写字）
-		var mfs: int = maxi(5, int(floor(r.size.x * 0.5)))   # 直接按牌宽定字号、不走 UI.fs（手机放大后「M3」放不下，只剩「M」）
-		g.hud.draw_string(g.font, Vector2(r.position.x, r.get_center().y + 0.36 * mfs), "M3", HORIZONTAL_ALIGNMENT_CENTER, r.size.x, mfs, WHITE)
+	var ic: Texture2D = _m3_icon()
+	if ic != null:   # 小头像：原生待机第 0 帧的身体框（11-07 用户「M3 的也做个头像小图标」）；身体偏黑，垫一层浅灰底
+		g.hud.draw_rect(r, Color(0.24, 0.255, 0.29, 1.0) if not down else Color(0.12, 0.13, 0.15, 1.0))
+		var kk: float = float(ic.get_height()) / 128.0
+		g.hud.draw_texture_rect_region(ic, r, Rect2(M3_ICON_BOX.position * kk, M3_ICON_BOX.size * kk), Color(0.5, 0.5, 0.55, 0.75) if down else Color.WHITE)
 	var f: float = clampf(float(st.hp) / maxf(1.0, float(st.max_hp)), 0.0, 1.0)
 	var bh: float = maxf(1.6, 1.8 * s)
 	var bar := Rect2(r.position.x, r.end.y - bh, r.size.x, bh)
