@@ -568,7 +568,7 @@ func _img_tex(key: String, w: int, h: int, fill: Callable) -> Texture2D:
 	return t
 
 
-static func _px(im: Image, x: int, y: int, c: Color) -> void:
+static func _ip(im: Image, x: int, y: int, c: Color) -> void:
 	if x >= 0 and y >= 0 and x < im.get_width() and y < im.get_height():
 		im.set_pixel(x, y, c)
 
@@ -585,25 +585,25 @@ func _lighthouse_tex(lit: bool) -> Texture2D:
 					col = BLK[0]
 				if y == 158 or x == -hw:
 					col = LAMPG[2] if lit else BLK[3]
-				_px(im, cx + x, y, col)
+				_ip(im, cx + x, y, col)
 		for y in range(152, 158):
 			for x in range(-40, 41):
 				if posmod(x, 8) < 4:
-					_px(im, cx + x, y, BLK[2] if y > 152 else BLK[3])
+					_ip(im, cx + x, y, BLK[2] if y > 152 else BLK[3])
 		for tcx in [-38, 38]:
 			for y in range(140, 158):
 				for x in range(-7, 8):
-					_px(im, cx + tcx + x, y, BLK[2] if x < 0 else BLK[1])
+					_ip(im, cx + tcx + x, y, BLK[2] if x < 0 else BLK[1])
 			for y in range(135, 140):
 				for x in range(-7, 8):
 					if posmod(x, 6) < 3:
-						_px(im, cx + tcx + x, y, BLK[3])
+						_ip(im, cx + tcx + x, y, BLK[3])
 		for y in 7:
 			for x in range(-7, 8):
 				var wing: bool = absi(x) >= 2 and y <= 4 - (absi(x) - 2) / 2 + 1 and y >= (absi(x) - 2) / 3
 				var body: bool = absi(x) <= 1 and y >= 1 and y <= 6
 				if wing or body:
-					_px(im, cx + x, 166 + y, LAMPG[4] if (x + y) % 3 else LAMPG[5])
+					_ip(im, cx + x, 166 + y, LAMPG[4] if (x + y) % 3 else LAMPG[5])
 		for y in range(40, 152):
 			var hw2: int = 7 + int(float(y - 40) / 112.0 * 6.0)
 			for x in range(-hw2, hw2 + 1):
@@ -614,22 +614,22 @@ func _lighthouse_tex(lit: bool) -> Texture2D:
 					col2 = LAMPG[1]
 				elif x == hw2:
 					col2 = BLK[0]
-				_px(im, cx + x, y, col2)
+				_ip(im, cx + x, y, col2)
 		for y in range(34, 40):
 			for x in range(-9, 10):
-				_px(im, cx + x, y, BLK[3] if y == 34 or y == 39 else BLK[2])
+				_ip(im, cx + x, y, BLK[3] if y == 34 or y == 39 else BLK[2])
 		for y in range(8, 34):
 			for x in range(-9, 10):
 				var bar: bool = absi(x) == 9 or posmod(x, 3) == 0 or y == 8 or y == 20 or y == 33
 				if bar:
-					_px(im, cx + x, y, BLK[2] if lit else BLK[1])
+					_ip(im, cx + x, y, BLK[2] if lit else BLK[1])
 				else:
 					var d: float = Vector2(x, (y - 21) * 0.6).length() / 10.0
-					_px(im, cx + x, y, (Color.WHITE if d < 0.3 else (LAMPG[5] if d < 0.6 else LAMPG[4])) if lit else BLK[0])
+					_ip(im, cx + x, y, (Color.WHITE if d < 0.3 else (LAMPG[5] if d < 0.6 else LAMPG[4])) if lit else BLK[0])
 		for y in 8:
 			var hw3: int = maxi(0, (y - 2) / 2)
 			for x in range(-hw3, hw3 + 1):
-				_px(im, cx + x, y, LAMPG[4] if lit and x == 0 else BLK[2]))
+				_ip(im, cx + x, y, LAMPG[4] if lit and x == 0 else BLK[2]))
 
 
 ## 车（俯视 3/4，72×50）：车顶 + 朝镜头的侧面（侧窗、琥珀腰线）+ 前后挡风 + 四个轮子 + 红橙顶灯；同 tools/bond2_concept.py car3（车头朝右）
@@ -640,7 +640,7 @@ func _car_tex() -> Texture2D:
 		var dpt := 22
 		for x in range(-2, CAR_W + 2):
 			for y in 4:
-				_px(im, x, yb + 2 + y, Color(0.04, 0.04, 0.05, 0.6))
+				_ip(im, x, yb + 2 + y, Color(0.04, 0.04, 0.05, 0.6))
 		for x in CAR_W:
 			for y in hs:
 				var col: Color = CARC[1] if y > hs - 4 else CARC[2]
@@ -650,7 +650,7 @@ func _car_tex() -> Texture2D:
 					col = Color8(150, 180, 200) if (x + y) % 5 else Color8(210, 230, 240)
 				if x == 0 or x == CAR_W - 1:
 					col = CARC[0]
-				_px(im, x, yb - y, col)
+				_ip(im, x, yb - y, col)
 		for x in range(6, CAR_W - 10):
 			for y in dpt:
 				var col2: Color = CARC[3] if y > 2 else CARC[4]
@@ -658,15 +658,15 @@ func _car_tex() -> Texture2D:
 					col2 = Color8(170, 200, 220) if (x + y) % 6 else Color8(220, 235, 245)
 				if x < 14:
 					col2 = Color8(120, 140, 160)
-				_px(im, x, yb - hs - y + dpt / 3 - 2, col2)
+				_ip(im, x, yb - hs - y + dpt / 3 - 2, col2)
 		for dx in range(-3, 4):
-			_px(im, CAR_W / 2 - 6 + dx, yb - hs - dpt + 4, EX[4] if absi(dx) < 2 else EX[3])
+			_ip(im, CAR_W / 2 - 6 + dx, yb - hs - dpt + 4, EX[4] if absi(dx) < 2 else EX[3])
 		for wx in [10, CAR_W - 18]:
 			for dx in 10:
 				for dy in 6:
 					var r: float = Vector2(dx - 4.5, (dy - 2.5) * 1.6).length()
 					if r < 5.0:
-						_px(im, wx + dx, yb + dy - 3, Color8(16, 16, 18) if r > 2.0 else CARC[3]))
+						_ip(im, wx + dx, yb + dy - 3, Color8(16, 16, 18) if r > 2.0 else CARC[3]))
 
 
 ## 对砍交锋：两色四芒（横向左琥珀 / 右淡紫，竖向白 → 本人色），3 拍收
@@ -746,7 +746,7 @@ func _draw_car(ci, it: Dictionary) -> void:
 			tx.draw_body_at(p + Vector2(fs * 22.0, -40.0 - bounce), flip, Color(1, 1, 1, al), {"tex": ti, "frame": 0, "hf": tx.anim_hframes(ti, "idle"), "kind": "idle"})
 			tx._cv_flush()
 	var t: Texture2D = _car_tex()
-	var sz := Vector2(CAR_W, CAR_H) * g.PX
+	var sz: Vector2 = Vector2(CAR_W, CAR_H) * float(g.PX)
 	ci.draw_set_transform(p + Vector2(0, -bounce), 0.0, Vector2(fs, 1.0))
 	ci.draw_texture_rect(t, Rect2(Vector2(-sz.x * 0.5, -sz.y + 6.0 * g.PX), sz), false, Color(1, 1, 1, al))
 	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
