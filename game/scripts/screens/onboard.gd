@@ -23,6 +23,10 @@ const Character = preload("res://scripts/characters/character.gd")
 const LinkV2 = preload("res://scripts/run/link_v2.gd")
 const PlayKeys = preload("res://scripts/core/play_keys.gd")
 
+## 指挥台开着时（v3）卡片 / 问题框按属性面板画（11-07 用户「开局指南卡要不要改成面板风格 要的」，docs/300）：
+## 深底 + 白直角刻度、标题（Heavy）+ 灰英文小签 + 细分隔线与白短条、细线进度条、灰字小按钮；可操作的仍是青
+const W3 := Color(0.925, 0.933, 0.941)
+const G3 := Color(0.588, 0.612, 0.643)
 const INFO_SECS := 9.0       # 看完自动收起的卡（hint 为空）停留秒数
 const MOVE_NEED := 450.0     # 「移动」做完：累计移动像素
 const XP_DIST := 170.0       # 演示局「经验与升级」：经验结晶放在队长身边多远（拾取半径之外，要走过去）
@@ -871,6 +875,8 @@ func draw(vs: Vector2) -> void:
 
 ## 一张卡：左演示、右文字（窄屏上下排）。big = 演示图鉴里的大卡。返回卡片矩形
 func _card(vs: Vector2, id: String, frame: Rect2, t: float, a: float, done_k: float, live: bool, touch: bool, big: bool) -> Rect2:
+	if g.hud_view.v3 != null and g.hud_view.v3.on():
+		return _card_v3(id, frame, t, a, done_k, live, touch, big)
 	var hud: CanvasItem = g.hud
 	var font: Font = g.font
 	var c := card(id)
@@ -944,6 +950,142 @@ func _card(vs: Vector2, id: String, frame: Rect2, t: float, a: float, done_k: fl
 	return pr
 
 
+static func _ca(c: Color, a: float) -> Color:
+	return Color(c.r, c.g, c.b, c.a * a)
+
+
+## 两角直角刻度（同属性面板 draw_v3 / draw_phone_v3）
+func _brackets(r: Rect2, a: float) -> void:
+	var tc := Color(1, 1, 1, 0.45 * a)
+	g.hud.draw_polyline(PackedVector2Array([r.position + Vector2(0, 12), r.position, r.position + Vector2(12, 0)]), tc, 1.0)
+	g.hud.draw_polyline(PackedVector2Array([r.end - Vector2(0, 12), r.end, r.end - Vector2(12, 0)]), tc, 1.0)
+
+
+## 节标题（同属性面板 _v3_head）：中文标题（Heavy）+ 右侧灰英文小签，下面一道细线 + 左端白短条
+func _head_v3(p: Vector2, w: float, cn: String, en: String, fs: int, cfs: float, a: float) -> void:
+	var v2 = g.hud_view.v2
+	v2.txt(p, cn, fs, _ca(W3, a), HORIZONTAL_ALIGNMENT_LEFT, -1.0, UI.name_font(g.font))
+	if en != "":
+		v2.cap(Vector2(p.x + v2.twidth(cn, fs) + 10.0, p.y - 1.0), en, cfs, _ca(G3, a), 1.6)
+	g.hud.draw_rect(Rect2(p.x, p.y + 8.0, w, 1), Color(1, 1, 1, 0.2 * a))
+	g.hud.draw_rect(Rect2(p.x, p.y + 7.5, 18, 2), _ca(W3, a))
+
+
+## 细线进度条（同属性面板 _v3_hair）
+func _hair_v3(x: float, y: float, w: float, frac: float, col: Color, a: float) -> void:
+	g.hud.draw_rect(Rect2(x, y, w, 1.6), Color(1, 1, 1, 0.16 * a))
+	g.hud.draw_rect(Rect2(x, y - 0.8, w * clampf(frac, 0.0, 1.0), 3.2), _ca(col, a))
+
+
+## v3 卡片：几何与行为同 _card（左演示、右文字，窄屏上下排；做完条件 / 进度 / 跳过 / 打勾），只换画法
+func _card_v3(id: String, frame: Rect2, t: float, a: float, done_k: float, live: bool, touch: bool, big: bool) -> Rect2:
+	var hud: CanvasItem = g.hud
+	var font: Font = g.font
+	var v2 = g.hud_view.v2
+	var c := card(id)
+	var w: float = frame.size.x
+	var stacked: bool = w < 440.0
+	var pad: float = 16.0 if not big else 24.0
+	var dw: float = (w - pad * 2.0) if stacked else (w * 0.44)
+	var dh: float = dw * 0.6
+	var tx_w: float = (w - pad * 2.0) if stacked else (w - dw - pad * 3.0)
+	var fsz: int = 15 if not big else 18
+	var tfs: int = (22 if touch else 18) if not big else 24   # 标题：手机同手机属性面板名字一级（24 / 22），桌面同节标题放大一级
+	var cfs: float = 7.5 if touch else 6.5                  # 英文小签：同各自属性面板
+	var lines: PackedStringArray = UI.wrap_lines(font, text_of(id, touch), fsz, tx_w)
+	var lh: float = font.get_height(UI.fs(fsz)) + 3.0
+	var head_h: float = 46.0 if touch else 42.0
+	var text_h: float = head_h + lines.size() * lh + 30.0
+	var h: float = (pad + dh + 12.0 + text_h) if stacked else maxf(dh + pad * 2.0, text_h + pad)
+	var pr := Rect2(frame.position, Vector2(w, h))
+	hud.draw_rect(pr, Color(0.008, 0.012, 0.018, 0.92 * a))
+	_brackets(pr, a)
+	var dr := Rect2(pr.position + Vector2(pad, pad), Vector2(dw, dh))
+	if a > 0.6:
+		Demos.draw(hud, id, dr, t, _ctx())
+	hud.draw_rect(dr.grow(1.0), Color(1, 1, 1, 0.2 * a), false, 1.0)   # 演示框：细框（同属性面板分隔线亮度）
+	var tp: Vector2 = (dr.position + Vector2(0, dh + 14.0)) if stacked else Vector2(dr.end.x + pad, pr.position.y + pad - 2.0)
+	var basic: Array = drill_ids()
+	var en: String = ("TUTORIAL  %d / %d" % [basic.find(id) + 1, basic.size()]) if (drill and basic.has(id) and not big) else (("TUTORIAL  ·  %s" % c.get("en", "")) if id == "drill_end" else ("NEW  ·  %s" % c.get("en", "")))
+	var sk_w: float = 0.0
+	if live and not big and not (forced and drill):
+		sk_w = (58.0 if touch else 46.0) + (28.0 if drill else 0.0) + 12.0
+	_head_v3(tp + Vector2(0, 20.0 if touch else 18.0), tx_w if stacked else (pr.end.x - pad - tp.x), str(c.get("title", "")), en, tfs, cfs, a)
+	var asc: float = font.get_ascent(UI.fs(fsz))
+	for i in lines.size():
+		hud.draw_string(font, Vector2(tp.x, tp.y + head_h + asc + i * lh), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fsz), _ca(W3, 0.9 * a))
+	# 做完条件 / 进度
+	var hy: float = tp.y + head_h + lines.size() * lh + 10.0
+	var hint: String = str(c.get("hint", ""))
+	if live and not big:
+		if hint != "":
+			var pulse: float = 0.6 + 0.4 * sin(t * 5.0)
+			hud.draw_rect(Rect2(Vector2(tp.x, hy + 3.0), Vector2(6, 6)), _ca(UI.CYAN, pulse * a))   # 方点（指挥台没有圆点）
+			UI.text(hud, font, Vector2(tp.x + 14.0, hy + 13.0), hint, 13, _ca(UI.CYAN, a))
+			if id == "move":
+				var bw: float = minf(120.0, tx_w - 110.0)
+				_hair_v3(tp.x + tx_w - bw, hy + 7.0, bw, moved / MOVE_NEED, UI.CYAN, a)
+		else:
+			var left: float = clampf(drill_left / END_SECS, 0.0, 1.0) if id == "drill_end" else clampf(1.0 - cur_t / INFO_SECS, 0.0, 1.0)
+			_hair_v3(tp.x, hy + 7.0, tx_w, left, W3, 0.55 * a)
+		# 跳过（只跳这一张）；第一次进游戏的演示局不给
+		if forced and drill:
+			return pr
+		var skip_s: String = "跳过演示" if drill else "跳过"
+		var sw: float = sk_w - 12.0
+		var sh: float = 30.0 if touch else 22.0
+		skip_rect = Rect2(Vector2(pr.end.x - sw - 10.0, pr.position.y + 8.0), Vector2(sw, sh))
+		hud.draw_rect(skip_rect, Color(0.02, 0.03, 0.05, 0.92 * a))   # 同属性面板等级牌：深底 + 35% 白框
+		hud.draw_rect(skip_rect, Color(1, 1, 1, 0.35 * a), false, 1.0)
+		var sfs: int = 13 if touch else 12
+		v2.txt(Vector2(skip_rect.position.x, skip_rect.get_center().y + UI.fs(sfs) * 0.36), skip_s, sfs, _ca(G3, a), HORIZONTAL_ALIGNMENT_CENTER, skip_rect.size.x)
+	# 做完：打勾（青方块 + 勾，同指挥台「可用」色）
+	if done_k > 0.0:
+		var cc: Vector2 = pr.position + Vector2(pr.size.x - 30.0, 26.0)
+		var k: float = Demos._e(done_k)
+		hud.draw_rect(Rect2(cc - Vector2(12, 12) * k, Vector2(24, 24) * k), _ca(UI.CYAN, a))
+		hud.draw_polyline(PackedVector2Array([cc + Vector2(-6, 0) * k, cc + Vector2(-1.5, 5) * k, cc + Vector2(7, -5) * k]), Color(0.04, 0.07, 0.09, a), 2.5)
+	return pr
+
+
+## v3 问题框：几何同 _draw_ask，只换画法
+func _draw_ask_v3(vs: Vector2) -> void:
+	var hud: CanvasItem = g.hud
+	var font: Font = g.font
+	var ask: Dictionary = data.get("ask", {})
+	var opts: Array = _ask_opts()
+	var e: float = Demos._e(clampf(ask_t / 0.3, 0.0, 1.0))
+	var touch: bool = g.touch != null and g.touch.active
+	hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.008, 0.012, 0.018, 0.72 * e))
+	var w: float = minf(vs.x - 32.0, 560.0)
+	var oh: float = 64.0 if touch else 56.0
+	var h: float = 150.0 + opts.size() * (oh + 10.0) + 20.0
+	var pr := Rect2(Vector2((vs.x - w) / 2.0, (vs.y - h) / 2.0 + (1.0 - e) * 24.0), Vector2(w, h))
+	hud.draw_rect(pr, Color(0.008, 0.012, 0.018, 0.96 * e))
+	_brackets(pr, e)
+	_head_v3(pr.position + Vector2(32, 60), w - 64.0, str(ask.get("title", "")), str(ask.get("en", "")), 24 if touch else 22, 7.5 if touch else 6.5, e)
+	UI.text(hud, font, pr.position + Vector2(32, 106), str(ask.get("q", "")), 17, _ca(W3, 0.85 * e))
+	ask_rects = []
+	for i in opts.size():
+		var r := Rect2(pr.position + Vector2(32, 134 + i * (oh + 10.0)), Vector2(w - 64.0, oh))
+		ask_rects.append(r)
+		var hot: bool = i == ask_sel
+		if hot:   # 选中：青框 + 淡青底 + 左青竖条（同属性面板页签当前项用青）
+			hud.draw_rect(r, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.12 * e))
+			hud.draw_rect(r, _ca(UI.CYAN, e), false, 1.0)
+			hud.draw_rect(Rect2(r.position, Vector2(3, r.size.y)), _ca(UI.CYAN, e))
+		else:
+			hud.draw_rect(r, Color(1, 1, 1, 0.03 * e))
+			hud.draw_rect(r, Color(1, 1, 1, 0.2 * e), false, 1.0)
+		var fg: Color = _ca(W3, e)
+		var sub: Color = _ca(G3, e)
+		if not touch:
+			UI.keycap(hud, font, r.position + Vector2(14, oh / 2.0 - 18.0), str(i + 1), _ca(UI.CYAN, e) if hot else fg, 11)
+		var x0: float = 50.0 if not touch else 18.0
+		UI.text(hud, font, r.position + Vector2(x0, oh / 2.0 - 3.0), str(opts[i][0]), 18, fg)
+		UI.text(hud, font, r.position + Vector2(x0, oh / 2.0 + 17.0), str(opts[i][1]), 12, sub)
+
+
 ## 模态（state INTRO，intro.draw 转进来）：问题框 / 演示图鉴
 func draw_modal(vs: Vector2) -> void:
 	if ask_on:
@@ -953,6 +1095,9 @@ func draw_modal(vs: Vector2) -> void:
 
 
 func _draw_ask(vs: Vector2) -> void:
+	if g.hud_view.v3 != null and g.hud_view.v3.on():
+		_draw_ask_v3(vs)
+		return
 	var hud: CanvasItem = g.hud
 	var font: Font = g.font
 	var ask: Dictionary = data.get("ask", {})
