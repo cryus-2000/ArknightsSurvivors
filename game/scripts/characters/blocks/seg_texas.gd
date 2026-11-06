@@ -832,6 +832,21 @@ static func tx_rain_draw(ci, o, f: Dictionary) -> void:   # ci：干员的 cv（
 const RIFT_CELL := 2.0   # 刀痕像素格（世界像素；低分辨率层上 1 格）
 
 
+## 每一刀的刀剑声（11-07 用户「德克萨斯 S3 技能的时候得是有声音的，调整一下，刀剑声」，fx/texas_s3_cut 缺省 1）：
+## 原作 arccutting + ninjasword_imp 合成的三个变体轮着播（op_texas_s3_cut_1/2/3），末刀更响更沉；队友 −4 dB。只发声，不碰模拟
+static func _tx_rift_cut_sfx(o, k: int, last: bool) -> void:
+	if MfBal.v("fx/texas_s3_cut", 1.0) <= 0.0:
+		return
+	var g = o.g
+	var sfx: Node = g.get_node_or_null("/root/Sfx") if g != null and g.is_inside_tree() else null
+	if sfx == null:
+		return
+	var nm: String = "op_texas_s3_cut_%d" % (1 + k % 3)
+	sfx.ensure([nm])
+	var db: float = MfBal.v("fx/texas_s3_cut_db", -6.0) + (3.0 if last else 0.0) + (0.0 if o.is_leader else -4.0)
+	sfx.play(nm, db, 0.9 if last else 1.0, 0.04)
+
+
 ## 出手（瞬时）：定方向、排好 n 个出手时刻；每一刀斩谁在到点那一刻再挑（追着活的敌人打，10-25 用户「追踪敌人去打，而不是打虚空」）
 static func tx_rift_start(o, b: Dictionary) -> void:
 	var r: float = float(b.r) * o.stat(&"op_range")
@@ -936,6 +951,7 @@ static func tx_rift_update(o, dt: float) -> void:
 			_tx_rift_trail(o, rf.from, p1)   # 瞬移残影：上一处 → 这一刀落点
 			rf.from = p1
 			o._sfx_op("hit")
+			_tx_rift_cut_sfx(o, k, last)
 		if rf.t >= rf.end:
 			_tx_rift_trail(o, rf.from, o.pos)   # 斩完回原位，同样留残影
 			tx.erase("rift")

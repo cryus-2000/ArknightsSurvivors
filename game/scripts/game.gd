@@ -22,6 +22,7 @@ const Character = preload("res://scripts/characters/character.gd")
 const Squad = preload("res://scripts/characters/squad.gd")
 const PlayKeys = preload("res://scripts/core/play_keys.gd")   # 局内按键表（动作 → 键盘 / 手柄 / 触屏，arch_review_1029 P0-2）
 const Ult = preload("res://scripts/run/ult.gd")   # 终结技 / 连携技 / 连携终结技（docs/198；ult/on = 0 时为 null）
+const MeleeImpact = preload("res://scripts/render/melee_impact.gd")   # 中期 Boss 击杀慢放（docs/291 §7.4）
 const Doctor = preload("res://scripts/characters/doctor.gd")
 const StatBlock = preload("res://scripts/core/stat_block.gd")
 const StatDefs = preload("res://scripts/core/stat_defs.gd")
@@ -917,6 +918,7 @@ func _ready() -> void:
 	ult = Ult.new(self) if Ult.on() else null
 	tdil.add("wheel", wheel.slow, "play")   # 圆盘打开：局内放慢（不全停），批跑里也生效
 	tdil.add("pick", func() -> float: return Bal.v("command/wheel_slow", 0.2) if pick.active else 1.0, "play")   # 指点选点中：同圆盘放慢（integ-1029 合入）
+	tdil.add("hf_boss", func() -> float: return MeleeImpact.boss_slow(self), "fx")   # 中期 Boss 击杀慢放（docs/291 §7.4）：演出性，批跑不缩
 	if ult != null:
 		tdil.add("ult", ult.time_scale, "fx")   # 终结技瞄准慢动作（docs/198 §2.4）：演出性，批跑不缩
 		cam_fx.add("ult", ult.cam_punch)   # 终结技推镜（§7.1）
