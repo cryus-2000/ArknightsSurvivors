@@ -1,0 +1,7 @@
+ffmpeg=/usr/local/lib/python3.11/dist-packages/imageio_ffmpeg/binaries/ffmpeg-linux-x86_64-v9.0.2
+e0 atk old rc=0 120 张 0 处脚本错误
+e0 atk new rc=0 120 张 0 处脚本错误
+e1 atk old rc=0 120 张 0 处脚本错误
+e1 atk new rc=0 120 张 0 处脚本错误
+e2 atk old rc=0 120 张 0 处脚本错误
+e2 atk new rc=0 120 张 0 处脚本错误

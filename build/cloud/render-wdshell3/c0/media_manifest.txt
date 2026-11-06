@@ -1,0 +1,9 @@
+986106	still_e0_atk_new.png
+984879	still_e0_atk_old.png
+987150	still_e1_atk_new.png
+987955	still_e1_atk_old.png
+992543	still_e2_atk_new.png
+993129	still_e2_atk_old.png
+1619837	wd_shell_e0_atk.mp4
+1806538	wd_shell_e1_atk.mp4
+1989848	wd_shell_e2_atk.mp4
