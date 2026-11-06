@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-"""Boss 弹幕东方化样板（docs/302）：弹型样板表 + 实机对比示意。只出图，不改游戏。
+"""Boss 弹幕东方化样板（docs/305）：弹型样板表 + 实机对比示意。只出图，不改游戏。
 
   python tools/concept_danmaku.py sheet  --out <目录>                 # 弹型样板表：深 / 浅地面 × 1 倍 / 2 倍
   python tools/concept_danmaku.py compare --cur <目录> --out <目录>   # 对比图：左实机、中 A、右 B（同一帧）
 
 弹体全部按美术像素格逐格画（1 特效像素 = 1 美术像素，游戏里 1 美术像素 = 2 世界像素），旋转弹（米弹 / 针弹）按角度直接在格上重新栅格化，
-不旋转贴图，所以斜着飞也不糊。进游戏时同一套函数改写成 GDScript（16 向预烘到小图集或逐格 draw_rect，二选一见 docs/302 §5）。
+不旋转贴图，所以斜着飞也不糊。进游戏时同一套函数改写成 GDScript（16 向预烘到小图集或逐格 draw_rect，二选一见 docs/305 §5）。
 
 compare 读 GCP 实机截图（tools/gcp_render.py 跑带 --ebdump 的临时探针，同一局跑「原样」和「--ebhide 不画 Boss 弹」两遍）：
 <cur>/<spec>_cur/fr_*.png 是现在的样子，<spec>_hide/fr_*.png 是同一帧去掉 Boss 弹的底图，eb_*.json 是该帧每颗 Boss 弹的位置 / 速度 / 判定半径。
@@ -109,7 +109,7 @@ def shaped_sprite(kind, pal, ang, k=1.0):
 
 
 def bullet_kind(b, boss):
-    """把实机弹映射到新弹型（docs/302 §2 表）。b = eb json 一项 [x, y, vx, vy, r, kind, tier, life]。"""
+    """把实机弹映射到新弹型（docs/305 §2 表）。b = eb json 一项 [x, y, vx, vy, r, kind, tier, life]。"""
     r = float(b[4])
     tier = int(b[9]) if len(b) > 9 else -1
     if len(b) > 8 and b[8] in PAL:

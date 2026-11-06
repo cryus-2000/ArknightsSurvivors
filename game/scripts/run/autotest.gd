@@ -2017,6 +2017,8 @@ func _perf_sample() -> void:
 				perf_min = true
 			elif a.begins_with("--perfab="):
 				perf_ab = int(a.substr(9))
+			elif a.begins_with("--danmakuab="):
+				g.set_meta("danmaku_ab", maxi(1, int(a.substr(12))))   # Boss 弹幕第二版同局轮换（render/boss_bullet_draw.gd，docs/305 §8）
 			elif a == "--perfline":
 				perf_line = true
 			elif a.begins_with("--perfdump="):

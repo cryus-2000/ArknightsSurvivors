@@ -1,4 +1,4 @@
-## Boss 弹幕东方化第二版（docs/302 §6–§8；用户 11-07：东方感圆弹、pixelfx + Noita 粒子感；骑士不改）。
+## Boss 弹幕东方化第二版（docs/305 §6–§8；用户 11-07：东方感圆弹、pixelfx + Noita 粒子感；骑士不改）。
 ## 只画面：判定半径 / 速度 / 弹数不动，不读写模拟状态，不用玩法随机数（自带 RandomNumberGenerator），同 seed TRACE 不变。
 ## 开关 render/danmaku_v2（缺省 1；0 = 旧画法）。
 ##
@@ -69,6 +69,9 @@ func on() -> bool:
 ## 每帧一次（world.draw_world 开头，bullet_fx.frame 之前）：推进时钟、注册钩子
 func frame(bulfx) -> void:
 	_on = Bal.v("render/danmaku_v2", 1.0) > 0.0
+	if g.has_meta("danmaku_ab"):   # --danmakuab=N（仅测试，autotest 写 meta）：每 N 帧轮换新 / 旧画法，同局量帧时
+		var nab: int = int(g.get_meta("danmaku_ab"))
+		_on = (int(g.at_frames) / nab) % 2 == 0
 	if not _hooked and bulfx != null:
 		_hooked = true
 		for t in TYPES:
@@ -307,8 +310,9 @@ func _make(t: String, sh: String, R: float, di: int, ph: int) -> Array:
 
 
 ## ---- 图集（每个 Boss 一张；行式装箱，满了翻倍）
-func _key(sh: String, R: float, di: int, ph: int, core: bool) -> String:
-	return "%s|%.1f|%d|%d|%d" % [sh, R, di, ph, 1 if core else 0]
+const SHAPES := ["orb", "bubble", "bubble_ring", "drop", "diamond", "shell", "crescent"]
+func _key(sh: String, R: float, di: int, ph: int, core: bool) -> int:
+	return ((((SHAPES.find(sh) * 1000 + int(round(R * 10.0))) * 32 + di) * 8 + ph) * 2) + (1 if core else 0)   # 整数键（每帧每颗都要查，字符串格式化太慢）
 
 
 func _cell(t: String, sh: String, R: float, di: int, ph: int, core: bool, now: bool) -> Rect2:
@@ -316,7 +320,7 @@ func _cell(t: String, sh: String, R: float, di: int, ph: int, core: bool, now: b
 	if A.is_empty():
 		A = {"img": Image.create(512, 512, false, Image.FORMAT_RGBA8), "tex": null, "x": 0, "y": 0, "row": 0, "cells": {}, "dirty": false}
 		_atlas[t] = A
-	var k := _key(sh, R, di, ph, core)
+	var k: int = _key(sh, R, di, ph, core)
 	if A.cells.has(k):
 		return A.cells[k]
 	if not now:
@@ -326,7 +330,7 @@ func _cell(t: String, sh: String, R: float, di: int, ph: int, core: bool, now: b
 	return A.cells.get(k, Rect2())
 
 
-func _has(t: String, k: String) -> bool:
+func _has(t: String, k: int) -> bool:
 	var A: Dictionary = _atlas.get(t, {})
 	return not A.is_empty() and A.cells.has(k)
 
@@ -390,7 +394,7 @@ func warm(t: String) -> void:
 		for RR in Rs:
 			for di in dirs:
 				for ph in phs:
-					var k := _key(sh, RR, di, ph, false)
+					var k: int = _key(sh, RR, di, ph, false)
 					if not seen.has(k):
 						seen[k] = true
 						_queue.append([t, sh, RR, di, ph])
@@ -448,7 +452,10 @@ func draw(w) -> void:
 	for t in by_t:
 		var items := []
 		for b in by_t[t]:
-			var kr: Array = _kind(t, b)
+			var kr = b.get("_bv2k")
+			if kr == null:
+				kr = _kind(t, b)
+				b["_bv2k"] = kr   # 弹形 / 半径只看 r、tier、kind，出生后不变：缓存在弹上（纯画面字段）
 			var sh: String = kr[0]
 			var R: float = kr[1]
 			var di := 0
@@ -463,29 +470,28 @@ func draw(w) -> void:
 				ph = int(g.t * 6.0 + bid) % 3
 			elif not _directional(sh) and (int(g.t * 10.0) + bid) % 4 < 2:
 				R += 0.4   # 芯脉动（两帧交替，pixelfx 逐格感）
-			items.append([b, sh, R, di, ph])
-		var tex := _tex(t)
-		# 缺格：当帧补生成（少见；预生成没赶上时）
-		var missing := false
-		for it in items:
-			if not _has(t, _key(it[1], it[2], it[3], it[4], false)):
-				missing = true
-				_cell(t, it[1], it[2], it[3], it[4], false, true)
-		if missing:
-			tex = _tex(t)
-		if tex == null:
-			continue
+			items.append([b, sh, R, di, ph, Rect2(), Rect2()])
+		# 先取格（缺格当帧补生成：预生成没赶上时，少见），再一次性取贴图提交
+		var A: Dictionary = _atlas.get(t, {})
 		var need_core := false
 		for it in items:
-			var rc: Rect2 = _cell(t, it[1], it[2], it[3], it[4], false, true)
-			_blit(tex, (it[0].pos as Vector2) + LIFT, rc)
+			var k: int = _key(it[1], it[2], it[3], it[4], false)
+			if A.is_empty() or not A.cells.has(k):
+				_cell(t, it[1], it[2], it[3], it[4], false, true)
+				A = _atlas[t]
+			it[5] = A.cells[k]
 			if it[1] != "shell" and it[1] != "crescent":
+				it[6] = A.cells[k + 1]
 				need_core = true
+		var tex := _tex(t)
+		if tex == null:
+			continue
+		for it in items:
+			_blit(tex, (it[0].pos as Vector2) + LIFT, it[5])
 		if need_core and items.size() > 1:
 			for it in items:
-				if it[1] == "shell" or it[1] == "crescent":
-					continue
-				_blit(tex, (it[0].pos as Vector2) + LIFT, _cell(t, it[1], it[2], it[3], it[4], true, true))
+				if it[6] != Rect2():
+					_blit(tex, (it[0].pos as Vector2) + LIFT, it[6])
 	# ③ 粒子 + 瞬间闪光帧（tb 合批）
 	_draw_parts(w, vr)
 	w.tb_flush()

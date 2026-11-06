@@ -488,7 +488,7 @@ func draw_trails() -> void:
 	var fr0: int = int(clock * 14.0)
 	for b in g.ebullets:
 		if not b.get("boss", false) or b.get("hidden", false) or str(b.get("kind", "")) == "boss_blade" or float(b.life) <= 0.0 or w.bbv2.mine(b):
-			continue   # 第二版画法的 Boss 弹有自己的掉光粒子，不画旧拖尾（docs/302 §8）
+			continue   # 第二版画法的 Boss 弹有自己的掉光粒子，不画旧拖尾（docs/305 §8）
 		var id: int = int(b.get("_bid", 0))
 		if thin and id % 2 == 1:
 			continue
