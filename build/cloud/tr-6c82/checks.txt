@@ -1,0 +1,6 @@
+trace rc=0
+core rc=0
+smoke rc=0
+ui_smoke rc=0
+public_gallery rc=0
+enemy_demo rc=0
