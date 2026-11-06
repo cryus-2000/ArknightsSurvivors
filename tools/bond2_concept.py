@@ -249,49 +249,83 @@ def ghost(img_cv, A, op, a, b, u, R):
     return B.Canvas(im)
 
 
+def chevron(cv, c, off, half, side, R, thick=7, brk=0.0):
+    """巨型尖括号（宿敌主形）：side = -1 左边一只「>」朝右合、+1 右边一只「<」朝左合；
+    尖端在 c.x + side × off，两臂张开 half；臂上芯白、两侧本人色、外缘中间色；brk > 0 时臂断成段往下掉"""
+    tip = (c[0] + side * off, c[1])
+    for arm in (-1, 1):
+        end = (tip[0] + side * half, c[1] + arm * half * SQ)
+        n = int(math.dist(tip, end))
+        for i in range(n + 1):
+            u = i / n
+            if brk > 0 and int(u * 8) % 2 == 1:
+                continue
+            drop = brk * brk * 60 * (0.5 + u) if brk > 0 else 0
+            x = tip[0] + (end[0] - tip[0]) * u
+            y = tip[1] + (end[1] - tip[1]) * u + drop
+            th = max(2, round(thick * (1 - 0.6 * u)))
+            for j in range(-th, th + 1):
+                q = abs(j) / th
+                col = (255, 255, 255) if q < 0.3 else (R[5] if q < 0.6 else (R[4] if q < 0.85 else R[3]))
+                cv.cell(x, y + j, col)
+            if i % 3 == 0 and brk == 0:
+                cv.glow(x, y, gl(R[5]), 0.8)
+
+
+def diamond_wave(cv, c, r, k, RA, RB):
+    """菱形冲击波（合拢那一下）：上半 A 色、下半 B 色，压扁菱形外扩、断开"""
+    for i in range(int(r * 4)):
+        u = i / (r * 4)
+        a = u * 4
+        seg = int(a)
+        f = a - seg
+        pts = [(r, 0), (0, r * SQ), (-r, 0), (0, -r * SQ), (r, 0)]
+        x = pts[seg][0] + (pts[seg + 1][0] - pts[seg][0]) * f
+        y = pts[seg][1] + (pts[seg + 1][1] - pts[seg][1]) * f
+        if k > 0.5 and (i * 7) % 10 < (k - 0.5) * 16:
+            continue
+        R = RA if y < 0 else RB
+        cv.cell(c[0] + x, c[1] + y, R[5] if k < 0.3 else R[4])
+        cv.cell(c[0] + x, c[1] + y + 1, R[2])
+
+
 def pair_rival(A):
     w = B.World(11, A)
     C = (430, 192)
-    L = 250
-    d1 = (math.cos(math.radians(28)), math.sin(math.radians(28)) * 0.75)
-    d2 = (math.cos(math.radians(-28)), math.sin(math.radians(-28)) * 0.75)
-    a1, c1 = (C[0] - d1[0] * L, C[1] - d1[1] * L), (C[0] + d1[0] * L, C[1] + d1[1] * L)
-    a2, c2 = (C[0] - d2[0] * L, C[1] - d2[1] * L), (C[0] + d2[0] * L, C[1] + d2[1] * L)
-    w.kill_seg(0.3, 0.1, a1, c1, 40)
-    w.kill_seg(0.5, 0.1, a2, c2, 40)
-    w.kill_circle(0.82, C, 95)
-    sp = B.Sparks()
-    rng = random.Random(4)
+    HALF = 120
+    w.kill_circle(0.72, C, 150, 0.62)
     PT, PL = pal(TX), pal(LP)
 
     def fx(cv, t):
-        if t >= 0.25:
-            B.slash(cv, a1, c1, t, 0.25, 0.12, 0.8, 0.4, PT, 3)
-        if t >= 0.47:
-            B.slash(cv, a2, c2, t, 0.47, 0.12, 0.6, 0.4, PL, 3)
-        if 0.95 <= t:
-            scorch_x(cv, (C[0], C[1] + 6), 110, min(1.0, (t - 0.95) / 0.6), TX, LP)
-        if 0.78 <= t < 0.95:   # 新帧条：交锋十字（两道弧形刀光在交点对撞 → 两色星芒）
-            k = (t - 0.78) / 0.17
-            crescent(cv, (C[0] - 8, C[1] - 4), 62, math.radians(200), math.radians(340), 6, TX, min(1, k * 1.6))
-            crescent(cv, (C[0] + 8, C[1] + 22), 62, math.radians(160), math.radians(20), 6, LP, min(1, k * 1.6))
-            if k > 0.45:
-                clash_star(cv, (C[0], C[1] - 14), 44, TX, LP)
-                cv.lamp(C[0], C[1], 110, (255, 220, 200), 55)
-        if 0.95 <= t < 1.4:
-            shards(cv, (C[0], C[1] - 14), (t - 0.95) / 0.45, TX, LP)
+        if t < 0.7:   # 两只尖括号从两侧合拢（新帧条）
+            k = min(1.0, max(0.0, (t - 0.2) / 0.5)) ** 1.6
+            off = 230 * (1 - k) + 6
+            chevron(cv, C, off, HALF, -1, TX)
+            chevron(cv, C, off, HALF, 1, LP)
+        elif t < 0.82:   # 咬合：两只尖端顶在一起 + 中缝两色星芒
+            chevron(cv, C, 6, HALF, -1, TX)
+            chevron(cv, C, 6, HALF, 1, LP)
+            clash_star(cv, (C[0], C[1]), 30, TX, LP)
+            cv.lamp(C[0], C[1], 150, (255, 220, 200), 60)
+        else:   # 菱形冲击波外扩 + 括号断成段掉落
+            k = min(1.0, (t - 0.82) / 0.5)
+            diamond_wave(cv, C, 40 + 150 * k, k, TX, LP)
+            chevron(cv, C, 6 + 30 * k, HALF, -1, TX, brk=k)
+            chevron(cv, C, 6 + 30 * k, HALF, 1, LP, brk=k)
 
-    keys = [(0.32, "起手：两人残影沿两道斩线交错冲过（代码画）"), (0.86, "主冲击：交点两道弧刃对撞（新帧条）"),
-            (1.08, "余韵：碎刃四散 + 地上交叉焦痕（新帧条）"), (1.45, "收尾：焦痕冷却断开，十字里的怪清空")]
+    keys = [(0.45, "起手：两人残影从两侧冲出，两只巨型尖括号张开（新帧条）"), (0.6, "合拢：琥珀「>」与淡紫「<」把怪群夹在中间往里收"),
+            (0.76, "咬合：尖端顶住，中缝两色星芒，夹住的一片全吃伤害"), (1.1, "余韵：菱形冲击波外扩、括号断成段掉落，中间清空")]
     out = []
     for t, lab in keys:
-        cv0 = B.Canvas(B.background().convert("RGBA"))
         img = frame(A, w, t, lambda cv, tt: None, [("lappland", (B.SQUAD[0] - 34, B.SQUAD[1] - 26), "run"), ("texas", B.SQUAD, "run")]).convert("RGBA")
         cv = B.Canvas(img)
-        if 0.22 <= t < 0.45:
-            cv = ghost(cv, A, "texas", a1, c1, (t - 0.22) / 0.18, TX)
+        if t < 0.7:
+            k = min(1.0, max(0.0, (t - 0.2) / 0.5)) ** 1.6
+            off = 230 * (1 - k) + 6
+            cv = ghost(cv, A, "texas", (C[0] - off - 40, C[1] + 10), (C[0] - off - 20, C[1] + 10), 1.0, TX)
+            cv = ghost(cv, A, "lappland", (C[0] + off + 40, C[1] + 10), (C[0] + off + 20, C[1] + 10), 1.0, LP)
         fx(cv, t)
-        out.append((cv.finish(), lab, (250, 70, 610, 320)))
+        out.append((cv.finish(), lab, (200, 50, 660, 330)))
     return out
 
 
@@ -337,8 +371,8 @@ def pair_penguin(A):
                     cv.cell(p[0] + j, p[1], (255, 255, 255))
                     cv.cell(p[0], p[1] + j, (255, 255, 255))
 
-    keys = [(0.6, "起手：能天使残影跃起，一路扫射标出航线（代码画）"), (1.05, "主冲击前：急件箱从高处坠向航线尽头（新帧条）"),
-            (1.2, "主冲击：箱子落地炸开，琥珀爆光 + 木板四散（新帧条）"), (1.4, "余韵：贴地冲击环 + 两团暗烟（新帧条），德克萨斯残影沿线斩过")]
+    keys = [(0.6, "起手：能天使残影跃起，一路扫射标出航线（代码画）"), (1.05, "主冲击前：急件箱从高处坠向航线尽头（新帧条），德克萨斯残影冲去接应"),
+            (1.2, "主冲击：箱子落地炸开，琥珀爆光 + 木板四散（新帧条）"), (1.4, "余韵：贴地冲击环 + 两团暗烟（新帧条），木板落地")]
     out = []
     for t, lab in keys:
         img = frame(A, w, t, lambda cv, tt: None, [("exusiai", (B.SQUAD[0] - 30, B.SQUAD[1] - 28), "atk" if t < 1.0 else "run"), ("texas", B.SQUAD, "run")]).convert("RGBA")
@@ -356,52 +390,84 @@ def pair_penguin(A):
                 crate(cv, drop, 1, 1)
             blast_ring(cv, drop, min(1, k * 1.6), TX)
             crate_burst(cv, drop, k)
-        if t >= 1.3:
-            cv = ghost(cv, A, "texas", P(L0), P(L1), (t - 1.3) / 0.2, TX)
-            B.slash(cv, P(L0), P(L1), t, 1.32, 0.08, 0.5, 0.3, pal(TX), 2)
+        if 0.85 <= t < 1.1:   # 德克萨斯残影冲去接应（不画斩线）
+            cv = ghost(cv, A, "texas", P(L0), (drop[0] - 30, drop[1]), (t - 0.85) / 0.2, TX)
         out.append((cv.finish(), lab, (150, 60, 620, 320)))
     return out
+
+
+def lattice(cv, c, r, k, t, sweep):
+    """灯格（灯下审决主形）：提灯的窗格投到地上，变成一张压扁的方格光网（只画格线和交点，不铺底色）；
+    格线流明钢蓝、交点艾丽妮紫亮点；sweep 0..1 = 审判时一行一行从远到近闪白；k > 0.75 后格线断开"""
+    cell = 18
+    al = min(1.0, k * 3)
+    brk = max(0.0, (k - 0.75) / 0.25)
+    for gy in range(-r, r + 1, cell):
+        for gx in range(-r, r + 1):
+            if gx * gx + (gy) * (gy) > r * r:
+                continue
+            if brk > 0 and (gx * 13 + gy) % 10 < brk * 9:
+                continue
+            hot = sweep > 0 and abs((gy + r) / (2 * r) - sweep) < 0.12
+            cv.cell(c[0] + gx, c[1] + gy * SQ, (255, 255, 255) if hot else LM[4], al)
+    for gx in range(-r, r + 1, cell):
+        for gy in range(-r, r + 1):
+            if gx * gx + gy * gy > r * r:
+                continue
+            if brk > 0 and (gy * 13 + gx) % 10 < brk * 9:
+                continue
+            hot = sweep > 0 and abs((gy + r) / (2 * r) - sweep) < 0.12
+            cv.cell(c[0] + gx, c[1] + gy * SQ, (255, 255, 255) if hot else LM[3], al)
+    for gy in range(-r, r + 1, cell):
+        for gx in range(-r, r + 1, cell):
+            if gx * gx + gy * gy > r * r:
+                continue
+            p = (c[0] + gx, c[1] + gy * SQ)
+            for d in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1)):
+                cv.cell(p[0] + d[0], p[1] + d[1], IR[5] if d == (0, 0) else IR[3], al)
+            if (gx + gy) % (cell * 2) == 0:
+                cv.glow(*p, gl(IR[4]), 0.5 * al)
+
+
+def big_lantern(cv, p, k):
+    """头顶提灯（灯下审决起手，帧条）：一盏 22×30 美术像素的提灯在圈心上空亮起，灯框流明钢蓝、灯芯白、四面窗格"""
+    w, h = 22, 30
+    x0, y0 = int(p[0] - w / 2), int(p[1] - h)
+    for y in range(h):
+        for x in range(w):
+            frame = x in (0, 1, w - 2, w - 1) or y in (0, 1, h - 2, h - 1) or x in (10, 11) or y in (14, 15)
+            if frame:
+                cv.cell(x0 + x, y0 + y, LM[3] if (x + y) % 5 else LM[4])
+            else:
+                d = math.hypot(x - w / 2, y - h / 2) / (w / 2)
+                cv.cell(x0 + x, y0 + y, (255, 255, 255) if d < 0.35 else (IR[5] if d < 0.6 else LM[5]), min(1.0, k * 2))
+    for x in range(-4, 5):
+        cv.cell(p[0] + x, y0 - 2, LM[3])
+    cv.cell(p[0], y0 - 4, LM[4])
+    cv.glow(p[0], y0 + h / 2, (0.85, 0.9, 1.0), 3.0 * k)
 
 
 def pair_inq(A):
     w = B.World(37, A)
     C = (420, 196)
-    R = 120
-    for i, a in enumerate((-12, 48, 108)):
-        d = (math.cos(math.radians(a)), math.sin(math.radians(a)) * SQ)
-        w.kill_seg(0.55 + 0.17 * i, 0.08, (C[0] - d[0] * (R + 30), C[1] - d[1] * (R + 30)), (C[0] + d[0] * (R + 30), C[1] + d[1] * (R + 30)), 22)
-    w.kill_circle(1.28, C, R, SQ)
-    PI = pal(IR)
+    R = 130
+    w.kill_circle(1.15, C, R, SQ)
 
-    def lamp_ring(cv, t, k):
-        n = int(R * 6.6)
-        for i in range(n):
-            a = i / n * math.tau + t * 0.2
-            seg = (a % (math.tau / 10)) / (math.tau / 10)
-            if seg < 0.72:
-                cv.cell(C[0] + math.cos(a) * R * k, C[1] + math.sin(a) * R * k * SQ, LM[5] if seg < 0.5 else LM[4])
-
-    keys = [(0.4, "起手：流明举灯，钢蓝光圈张开（代码画）"), (0.78, "三刺：艾丽妮残影沿刺线贯穿光圈（代码画）"),
-            (1.3, "主冲击：审判光柱从天砸进圈心，灯印亮起（新帧条）"), (1.6, "余韵：灯印放射刻度断开，光尘上飘，圈内清空")]
+    keys = [(0.35, "起手：圈心上空亮起一盏大提灯（新帧条），流明举灯"), (0.7, "投影：灯的窗格投到地上，变成一张方格光网（新帧条）"),
+            (1.05, "审判：光网从远到近一行行闪白，艾丽妮残影从灯下贯穿而过"), (1.45, "余韵：格线断开、交点紫光上飘，网里清空")]
     out = []
     for t, lab in keys:
         img = frame(A, w, t, lambda cv, tt: None, [("lumen", (B.SQUAD[0] - 34, B.SQUAD[1] - 26), "atk"), ("irene", B.SQUAD, "run")]).convert("RGBA")
         cv = B.Canvas(img)
         if t < 1.25:
-            cv.lamp(C[0], C[1], R, (90, 160, 220), 18, SQ)
-            lamp_ring(cv, t, min(1, (t - 0.05) / 0.3))
-        for i, a in enumerate((-12, 48, 108)):
-            d = (math.cos(math.radians(a)), math.sin(math.radians(a)) * SQ)
-            p0, p1 = (C[0] - d[0] * (R + 30), C[1] - d[1] * (R + 30)), (C[0] + d[0] * (R + 30), C[1] + d[1] * (R + 30))
-            ts = 0.55 + 0.17 * i
-            B.slash(cv, p0, p1, t, ts, 0.06, 0.3, 0.2, PI, 3)
-            if 0 <= t - ts < 0.15:
-                cv = ghost(cv, A, "irene", p0, p1, (t - ts) / 0.1, IR)
-        if t >= 1.2:
-            k = min(1, (t - 1.2) / 0.5)
-            seal(cv, C, R * 0.85, k, t)
-            pillar(cv, (C[0], C[1]), k, top=0)
-        out.append((cv.finish(), lab, (230, 40, 620, 300)))
+            big_lantern(cv, (C[0], C[1] - 90), min(1.0, (t - 0.15) / 0.2))
+        if t >= 0.5:
+            k = min(1.0, (t - 0.5) / 1.0)
+            sweep = (t - 0.95) / 0.25 if 0.95 <= t < 1.2 else 0
+            lattice(cv, C, R, k, t, sweep)
+        if 0.95 <= t < 1.2:
+            cv = ghost(cv, A, "irene", (C[0] - R, C[1] + 20), (C[0] + R, C[1] - 10), (t - 0.95) / 0.15, IR)
+        out.append((cv.finish(), lab, (230, 30, 620, 300)))
     return out
 
 
