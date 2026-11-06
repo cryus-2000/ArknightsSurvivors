@@ -18,7 +18,7 @@ import build_cover_g_a2 as A2  # noqa: E402
 import build_cover_g_color as CO  # noqa: E402
 
 OUT_DIR = HERE
-NOTICE = "明日方舟同人"   # 11-07 用户：「非官方去掉」
+NOTICE = "明日方舟同人 · Arknights fan work"   # 11-07 用户：「非官方去掉」「明日方舟同人也要用双语」；英文沿用 promo_keyart 的 fan work
 SCHEME = dict(CO.SCHEMES["C2"])
 SCHEME.update({"name": "C2L 整体压冷，暖点只留灯",
                "keep": {"mizuki": 0.3, "doctor": 0.25, "kaltsit": 0.3}, "hue_keep": 0.12})
@@ -105,6 +105,31 @@ def grade(a, figs, lamp):
 BAYER = (np.array([[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]], np.float32) + 0.5) / 16 - 0.5
 
 
+def despeckle(q, protect, rounds=3, thr=24):
+    """去麻点（11-07 用户嫌脏，实测孤立像素 7%，游戏内像素画 0.2%）：
+    与上下左右都明显不同的单个像素，改成 3×3 邻域里最多的颜色；protect 处（人物亮点 / 眼睛 / 灯）不动"""
+    a = q.astype(np.int32)
+    H, W = a.shape[:2]
+    key = (a[..., 0] << 16) | (a[..., 1] << 8) | a[..., 2]
+    for _ in range(rounds):
+        p = np.pad(a, ((1, 1), (1, 1), (0, 0)), mode="edge")
+        kp = np.pad(key, 1, mode="edge")
+        c = p[1:-1, 1:-1]
+        nb = [p[:-2, 1:-1], p[2:, 1:-1], p[1:-1, :-2], p[1:-1, 2:]]
+        iso = np.logical_and.reduce([np.abs(c - b).sum(-1) > thr for b in nb]) & ~protect
+        if not iso.any():
+            break
+        ys, xs = np.nonzero(iso)
+        for y, x in zip(ys, xs):
+            win = kp[y:y + 3, x:x + 3].ravel()
+            win = np.delete(win, 4)
+            v, n = np.unique(win, return_counts=True)
+            k = v[np.argmax(n)]
+            key[y, x] = k
+            a[y, x] = ((k >> 16) & 255, (k >> 8) & 255, k & 255)
+    return a.astype(np.uint8)
+
+
 def pixelize2(img, figm, cell):
     """11-07 修色彩断层：背景加 4×4 有序抖动再收 96 色；人物（figm）不抖动、单独收 96 色、先轻锐化保细节"""
     W, H = img.size
@@ -120,6 +145,12 @@ def pixelize2(img, figm, cell):
     fq = q(fa, 96)
     out = bgq.copy()
     out[fm] = fq[fm]
+    # 保护：人物区里的亮点 / 高饱和点（眼睛、高光）、全图最亮的灯芯
+    lum = (out.astype(np.float32) * [0.299, 0.587, 0.114]).sum(-1)
+    mxc, mnc = out.max(-1).astype(np.float32), out.min(-1).astype(np.float32)
+    satc = (mxc - mnc) / (mxc + 1)
+    protect = (fm & ((lum > 200) | (satc > 0.45))) | (lum > 235)
+    out = despeckle(out, protect)
     return Image.fromarray(out).resize((W, H), Image.NEAREST)
 
 
