@@ -338,21 +338,22 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 ## 直到把剩余高度用完。排不完的末行加「…」，鼠标移到这一行上看完整说明（stats_cells 的 skill 项）
 ## mono：属性栏 v3（docs/222 §19）画法——说明一律白 / 灰（不再用干员色），正在攒技力的技能左边一道青竖条
 ## 一行技能按说明全文排时的高度（同 draw_generic_skill_rows 的行高公式）：Tab 面板技能栏滚动用（docs/290）
-func skill_row_full_h(b1: Rect2, row: Array, dfs := 11) -> float:
-	var x0 := b1.position.x + 62.0
+func skill_row_full_h(b1: Rect2, row: Array, dfs := 11, pad := 0.0) -> float:
+	var x0 := b1.position.x + 62.0 + pad
 	var dw := b1.end.x - 14.0 - x0
 	var lh: float = g.font.get_height(UI.fs(dfs)) + 1.0
 	var n: int = UI.wrap_lines(g.font, row[2], dfs, dw).size()
-	return maxf(42.0, 30.0 + n * lh)
+	return maxf(42.0 + pad, 30.0 + n * lh) + pad * 2.5
 
 
-func draw_generic_skill_rows(b1: Rect2, y: float, rows: Array, dfs := 11, nfs := 14, mono := false) -> float:
+## pad（手机 docs/290）：技能名与说明之间多空 pad、行与行之间多空 pad、图标放大 pad
+func draw_generic_skill_rows(b1: Rect2, y: float, rows: Array, dfs := 11, nfs := 14, mono := false, pad := 0.0) -> float:
 	var c: Color = g.ch.col() if not mono else Color(0.85, 0.87, 0.89)
-	var x0 := b1.position.x + 62.0
+	var x0 := b1.position.x + 62.0 + pad
 	var dw := b1.end.x - 14.0 - x0
 	var lh: float = g.font.get_height(UI.fs(dfs)) + 1.0
 	var avail: float = b1.end.y - 6.0 - y
-	var rh := func(n: int) -> float: return maxf(42.0, 30.0 + n * lh)
+	var rh := func(n: int) -> float: return maxf(42.0 + pad, 30.0 + n * lh) + pad * 2.5
 	var wrapped: Array = []
 	var give: Array = []
 	var used := 0.0
@@ -375,15 +376,16 @@ func draw_generic_skill_rows(b1: Rect2, y: float, rows: Array, dfs := 11, nfs :=
 		var row: Array = rows[k]
 		var on: bool = row[3]
 		var col: Color = (Color(0.85, 0.55, 1.0) if row[4] else c) if on else Color(0.35, 0.42, 0.46)
-		var sc := Vector2(b1.position.x + 34, y + 20)
+		var sc := Vector2(b1.position.x + 34 + pad * 0.5, y + 20 + pad * 0.5)
+		var ih: float = 16.0 + pad * 0.5
 		var itx: Texture2D = g.tex.get(row[5]) if row.size() > 5 and row[5] != "" else null
 		if itx != null:
 			# 技能图标（32px 原尺寸），未解锁压暗；左下角小牌标技能序号
-			g.hud.draw_texture_rect(itx, Rect2(sc - Vector2(16, 16), Vector2(32, 32)), false, Color.WHITE if on else Color(0.34, 0.37, 0.41))
-			g.hud.draw_rect(Rect2(sc + Vector2(-17, 5), Vector2(11, 12)), Color(0.03, 0.035, 0.045, 0.92))
-			UI.ctext(g.hud, g.font, sc + Vector2(-16, 15), row[0], 10, col, HORIZONTAL_ALIGNMENT_CENTER, 9)
+			g.hud.draw_texture_rect(itx, Rect2(sc - Vector2(ih, ih), Vector2(ih, ih) * 2.0), false, Color.WHITE if on else Color(0.34, 0.37, 0.41))
+			g.hud.draw_rect(Rect2(sc + Vector2(-ih - 1.0, ih - 11.0), Vector2(11, 12)), Color(0.03, 0.035, 0.045, 0.92))
+			UI.ctext(g.hud, g.font, sc + Vector2(-ih, ih - 1.0), row[0], 10, col, HORIZONTAL_ALIGNMENT_CENTER, 9)
 		else:
-			UI.ring(g.hud, sc, 17.0, 1.0 if on else 0.0, col, false, not on)
+			UI.ring(g.hud, sc, ih + 1.0, 1.0 if on else 0.0, col, false, not on)
 			UI.text(g.hud, g.font, sc + Vector2(-12, 7), row[0], 15, col, HORIZONTAL_ALIGNMENT_CENTER, 24)
 		UI.text_fit(g.hud, g.font, Vector2(x0, y + 16), row[1] + ("  ·排异" if row[4] else ""), nfs, UI.TEXT if on else UI.SUB, dw, 11)
 		var lines: PackedStringArray = wrapped[k]
@@ -396,7 +398,7 @@ func draw_generic_skill_rows(b1: Rect2, y: float, rows: Array, dfs := 11, nfs :=
 				while ln.length() > 0 and g.font.get_string_size(ln + "…", HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(dfs)).x > dw:
 					ln = ln.substr(0, ln.length() - 1)
 				ln += "…"
-			UI.text(g.hud, g.font, Vector2(x0, y + 33 + j * lh), ln, dfs, dcol)
+			UI.text(g.hud, g.font, Vector2(x0, y + 33 + pad * 1.5 + j * lh), ln, dfs, dcol)
 		var row_h: float = rh.call(give[k])
 		g.stats_cells.append([Rect2(Vector2(b1.position.x + 14, y), Vector2(b1.size.x - 28, row_h)), "skill", row])
 		y += row_h

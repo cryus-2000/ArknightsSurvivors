@@ -959,9 +959,9 @@ func _v3_squad(x: float, top: float, w: float, bottom: float) -> void:
 
 
 ## 技能列表（桌面技能栏 / 手机技能页共用）：每行按说明全文算高、不截断，从偏移那行往下放得下几行画几行
-func _skill_list(key: String, sr: Rect2, dfs: int, nfs: int, mono: bool) -> void:
+func _skill_list(key: String, sr: Rect2, dfs: int, nfs: int, mono: bool, pad := 0.0) -> void:
 	var rows: Array = skill_rows_data()
-	var hs: Array = rows.map(func(rw): return g.result_screen.skill_row_full_h(sr, rw, dfs))
+	var hs: Array = rows.map(func(rw): return g.result_screen.skill_row_full_h(sr, rw, dfs, pad))
 	var off: int = _scroll(key, Rect2(sr.position, sr.size - Vector2(14, 6)), hs)
 	var take: Array = []
 	var used := 0.0
@@ -970,7 +970,7 @@ func _skill_list(key: String, sr: Rect2, dfs: int, nfs: int, mono: bool) -> void
 			break
 		take.append(rows[k])
 		used += float(hs[k])
-	g.result_screen.draw_generic_skill_rows(sr, sr.position.y, take, dfs, nfs, mono)
+	g.result_screen.draw_generic_skill_rows(sr, sr.position.y, take, dfs, nfs, mono, pad)
 
 
 # ================================================================ 放不下就滚轮（docs/290，用户 11-06）
@@ -1098,7 +1098,7 @@ func draw_phone_v3(vs: Vector2) -> void:
 		var tr := Rect2(L + 8.0 + i * tw, ty, tw, 42)
 		var on: bool = i == page
 		_hv.v2.txt(Vector2(tr.position.x + 10, tr.position.y + 26), tabs[i], 18, V3_WHITE if on else V3_GREY)
-		_hv.v2.cap(Vector2(tr.position.x + 18 + _hv.v2.twidth(tabs[i], 18), tr.position.y + 25), tabs_en[i], 6.0, UI.CYAN if on else Color(V3_GREY.r, V3_GREY.g, V3_GREY.b, 0.6), 1.6)
+		_hv.v2.cap(Vector2(tr.position.x + 18 + _hv.v2.twidth(tabs[i], 18), tr.position.y + 25), tabs_en[i], 7.5, UI.CYAN if on else Color(V3_GREY.r, V3_GREY.g, V3_GREY.b, 0.6), 1.6)
 		if on:
 			g.hud.draw_rect(Rect2(tr.position.x, ty + 39.0, tr.size.x - 12.0, 3), UI.CYAN)
 		g.stats_cells.append([tr, "tab", i])
@@ -1111,7 +1111,7 @@ func draw_phone_v3(vs: Vector2) -> void:
 		1:
 			_phone_v3_offense(b)
 		2:
-			_skill_list("p_skills", b, 17, 20, true)
+			_skill_list("p_skills", b, 17, 20, true, 8.0)   # 手机：名字与说明、行与行之间各多空 8，图标 40
 		3:
 			_phone_v3_squad(b)
 		4:
@@ -1149,9 +1149,8 @@ func _phone_header(L: float, T: float, R: float) -> void:
 	var nx: float = L + 66.0
 	var ln: String = ld.display_name()
 	_hv.v2.txt(Vector2(nx, T + 36), ln, 24, V3_WHITE)
-	_hv.v2.cap(Vector2(nx + _hv.v2.twidth(ln, 24) + 12, T + 34), str(ld.def.get("en", str(ld.id).to_upper())).to_upper() + "  ·  LEADER", 6.0, V3_GREY, 1.8)
-	var meta: String = "%s  /  编队 %d/%d  /  %s  /  %s" % [str(ld.cls), g.squad.size(), g.squad.cap(), D.tier_name(g.tier), g.endg.cur_name()]
-	_hv.v2.txt(Vector2(nx, T + 60), meta, 14, V3_GREY)
+	_hv.v2.cap(Vector2(nx + _hv.v2.twidth(ln, 24) + 12, T + 34), str(ld.def.get("en", str(ld.id).to_upper())).to_upper() + "  ·  LEADER", 7.5, V3_GREY, 1.8)
+	_hv.v2.txt(Vector2(nx, T + 60), "%s  /  编队 %d/%d" % [str(ld.cls), g.squad.size(), g.squad.cap()], 14, V3_GREY)   # 难度与结局在属性页
 	var dt: float = maxf(0.0, g.t - g.trial.started_at) if g.trial.active else g.t
 	var rx: float = R
 	for it in [["源石锭", str(g.ingots)], ["藏品", str(g.relics.size())], ["击杀", str(g.kills)], ["时间", "%02d:%02d" % [int(dt) / 60, int(dt) % 60]]]:
@@ -1161,13 +1160,15 @@ func _phone_header(L: float, T: float, R: float) -> void:
 
 
 ## 手机两栏细线行（左右各一半）；行距按剩余高度 30–40
-func _phone_v3_rows(b: Rect2, y: float, rows: Array) -> void:
+func _phone_v3_rows(b: Rect2, y: float, rows: Array, wide: Array = []) -> void:
 	var per: int = maxi(1, int(ceil(rows.size() / 2.0)))
-	var half: float = (b.size.x - 40.0) / 2.0
-	var row_h: float = clampf((b.end.y - 4.0 - y) / float(per), 30.0, 40.0)
+	var half: float = (b.size.x - 48.0) / 2.0
+	var row_h: float = clampf((b.end.y - 4.0 - y) / float(per + wide.size()), 30.0, 44.0)
 	for i in rows.size():
-		var x: float = b.position.x + (i / per) * (half + 40.0)
-		_v3_row(x, y + 18.0 + (i % per) * row_h, half, rows[i][0], rows[i][1], 17)
+		var x: float = b.position.x + (i / per) * (half + 48.0)
+		_v3_row(x, y + 20.0 + (i % per) * row_h, half, rows[i][0], rows[i][1], 17)
+	for i in wide.size():   # 值很长的行（本局构成）占整行，不挤在半栏里
+		_v3_row(b.position.x, y + 20.0 + (per + i) * row_h, b.size.x, wide[i][0], wide[i][1], 17)
 
 
 func _phone_v3_survival(b: Rect2) -> void:
@@ -1197,17 +1198,16 @@ func _phone_v3_survival(b: Rect2) -> void:
 		["照亮范围", "%d" % int(g.lamp_r())],
 		["护盾", ("%d / %d · 每 %.1f 秒" % [g.shield, g.shield_max, g.shield_every]) if g.shield_max > 0 else "无"],
 	]
-	_phone_v3_rows(b, y + 76.0, rows0)
+	_phone_v3_rows(b, y + 76.0, rows0, [["难度 / 结局", "%s  ·  %s" % [D.tier_name(g.tier), g.endg.cur_name()]]])   # 顶上灰字只留职业 / 编队，这两项挪到这里
 
 
 func _phone_v3_offense(b: Rect2) -> void:
 	var rows1: Array = g.ch.stats_rows()
 	rows1.append_array([
 		["近战 / 远程", "×%.2f / ×%.2f" % [g.melee_mult, g.ranged_mult]], ["物理 / 法术", "×%.2f / ×%.2f" % [g.phys_mult, g.arts_mult]],
-		["本局构成", dmg_mix_text()],
 	])
 	rows1.append_array(rush_rows())
-	_phone_v3_rows(b, b.position.y, rows1)
+	_phone_v3_rows(b, b.position.y, rows1, [["本局构成", dmg_mix_text()]])
 
 
 ## 手机编队页：每人一行（方头像 + 技能细格 · 名字 / LEADER · 职业 · 精英化 · 成长点 · 下一步），下面小队指令牌、支援、羁绊
@@ -1216,8 +1216,8 @@ func _phone_v3_squad(b: Rect2) -> void:
 	var w: float = b.size.x
 	var y: float = b.position.y + 4.0
 	var n: int = maxi(1, g.squad.ops.size())
-	var sq := 40.0
-	var rh: float = clampf((b.size.y - 110.0) / float(n), 50.0, 62.0)
+	var rh: float = clampf((b.size.y - 84.0) / float(n), 52.0, 70.0)
+	var sq: float = minf(52.0, rh - 14.0)   # 头像 + 下方 5 像素技能细格
 	var mouse2 := g.hud.get_local_mouse_position()
 	for o in g.squad.ops:
 		var hd: Array = _hv.ult.v._hi_head(o) if _hv.ult != null and _hv.ult.v != null else []
@@ -1226,18 +1226,20 @@ func _phone_v3_squad(b: Rect2) -> void:
 			g.hud.draw_texture_rect_region(hd[0], Rect2(x, y, sq, sq), hd[1])
 		g.hud.draw_rect(Rect2(x, y, sq, sq), Color(1, 1, 1, 0.2), false, 1.0)
 		if _hv.v3.skills_mode() > 0:
-			_hv.v3._skill_segs(o, x, y + sq + 3.0, sq, 3.0, 1.0)
-			if Rect2(x, y, sq, sq + 8.0).has_point(mouse2):
+			_hv.v3._skill_segs(o, x, y + sq + 4.0, sq, 5.0, 1.0)
+			if Rect2(x, y, sq, sq + 10.0).has_point(mouse2):
 				_tips.append([o, x + sq / 2.0, y - 4.0])
 		var nm: String = o.display_name()
-		_hv.v2.txt(Vector2(x + 54, y + 18), nm, 19, V3_WHITE)
+		var tx: float = x + sq + 16.0
+		_hv.v2.txt(Vector2(tx, y + sq * 0.42), nm, 20, V3_WHITE)
 		if o.is_leader:
-			_hv.v2.cap(Vector2(x + 62 + _hv.v2.twidth(nm, 19), y + 16), "LEADER", 6.0, UI.CYAN, 1.4)
-		_hv.v2.txt(Vector2(x + 54, y + 40), "%s · %s" % [o.cls, ["精零", "精一", "精二"][clampi(o.elite, 0, 2)]], 15, V3_GREY)
+			_hv.v2.cap(Vector2(tx + 8 + _hv.v2.twidth(nm, 20), y + sq * 0.42 - 2), "LEADER", 7.5, UI.CYAN, 1.4)
+		_hv.v2.txt(Vector2(tx, y + sq * 0.42 + 26), "%s · %s" % [o.cls, ["精零", "精一", "精二"][clampi(o.elite, 0, 2)]], 15, V3_GREY)
+		# 成长点与下一步靠右（整行宽度用上，左右不再一边挤一边空）
 		var pg: Array = o.prog_view()
-		var dx0: float = x + w * 0.5
+		var dx0: float = x + w - pg.size() * 16.0 + 4.0
 		for kk in pg.size():
-			var dc := Vector2(dx0 + kk * 15.0, y + 13)
+			var dc := Vector2(dx0 + kk * 16.0, y + sq * 0.42 - 6)
 			var done: bool = kk < o.prog
 			var cc: Color = V3_WHITE if done else Color(1, 1, 1, 0.25)
 			if str(pg[kk].get("type", "")) == "elite":
@@ -1248,9 +1250,11 @@ func _phone_v3_squad(b: Rect2) -> void:
 		if not nn.is_empty():
 			var rq: String = o.node_requires_text(nn)
 			var ok_rq: bool = o.node_available(nn)
-			UI.text_fit(g.hud, g.font, Vector2(dx0, y + 40), ("下一步 %s" % nn.get("name", "")) + (("（需%s）" % rq) if rq != "" and not ok_rq else ""), 15, Color(V3_WHITE.r, V3_WHITE.g, V3_WHITE.b, 0.7) if ok_rq else V3_GREY, x + w - dx0, 12)
+			var nt: String = ("下一步 %s" % nn.get("name", "")) + (("（需%s）" % rq) if rq != "" and not ok_rq else "")
+			var ntw: float = minf(_hv.v2.twidth(nt, 15), w * 0.45)
+			UI.text_fit(g.hud, g.font, Vector2(x + w - ntw, y + sq * 0.42 + 26), nt, 15, Color(V3_WHITE.r, V3_WHITE.g, V3_WHITE.b, 0.7) if ok_rq else V3_GREY, w * 0.45, 12)
 		else:
-			_hv.v2.txt(Vector2(dx0, y + 40), "已满", 15, UI.GOLD)
+			_hv.v2.txt(Vector2(x + w - _hv.v2.twidth("已满", 15), y + sq * 0.42 + 26), "已满", 15, UI.GOLD)
 		y += rh
 	g.hud.draw_rect(Rect2(x, y - 4, w, 1), Color(1, 1, 1, 0.1))
 	y += 6
@@ -1280,7 +1284,7 @@ func _phone_v3_relics(b2: Rect2) -> void:
 	var room: float = b2.size.y - 70.0
 	var pitch := 62.0
 	var per := 1
-	for pc in [62.0, 54.0, 46.0]:
+	for pc in [62.0, 54.0]:   # 最小 54（11-06 用户嫌挤）；再放不下按排拖动滚
 		pitch = pc
 		per = maxi(1, int(b2.size.x / pitch))
 		if (maxi(1, int(ceil(ng / float(per)))) + maxi(1, int(ceil(nr / float(per))))) * pitch <= room:
