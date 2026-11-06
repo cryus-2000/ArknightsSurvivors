@@ -99,9 +99,12 @@ static func tick(u, dt: float) -> void:
 		var cpos: Vector2 = (pr[0].pos + pr[1].pos) * 0.5
 		if u.in_view(ld.pos if ld != null and ld.pos != Vector2.INF else cpos).size() < Bal.vi("bond2/min_foes", 6):
 			continue
-		var c: Vector2 = u._densest(cpos, Bal.v("bond2/reach", 560.0), 160.0)
+		var lp: Vector2 = ld.pos if ld != null and ld.pos != Vector2.INF else cpos   # 镜头跟队长：释放点挑队长附近、限在屏内（11-06 录像：挑到屏外只看到一根线）
+		var c: Vector2 = u._densest(lp, Bal.v("bond2/reach", 380.0), 160.0)
 		if c == Vector2.INF:
 			continue
+		var vw: Vector2 = Vector2(1524.0, 857.0) * Bal.v("bond2/view_k", 0.28)
+		c = Vector2(clampf(c.x, lp.x - vw.x, lp.x + vw.x), clampf(c.y, lp.y - vw.y, lp.y + vw.y))
 		_cast(u, bid, pr, c, s.e2.has(bid))
 		s.last_any = g.t
 		s.next[bid] = g.t + (Bal.v("bond2/cd_e2", 20.0) if s.e2.has(bid) else Bal.v("bond2/cd", 22.0))

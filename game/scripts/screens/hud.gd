@@ -335,7 +335,7 @@ func _draw_body() -> void:
 	if g.elite_moment != null and g.elite_moment.on(g):
 		g.elite_moment.draw_hud(vs)   # 精英化时刻横幅（docs/249 §2）
 	if g.has_meta("fx_bond2"):
-		load("res://scripts/render/fx_bond2.gd").draw_hud(g, vs)   # 羁绊技解锁 / 强化演出卡（docs/294）
+		load("res://scripts/render/fx_bond2.gd").draw_hud(g, vs, ult)   # 羁绊技解锁 / 强化演出卡（docs/294）
 	g.pick.draw(vs)   # 指点（示意原型）：已下达指令的标记 + 选点阶段的准星
 	if g.ult != null:
 		g.ult.draw_aim(vs)   # 终结技慢动作瞄准 v2（ult/aim，docs/209 §3）：PRTS 范围格 + 信息板，同指点一套画法

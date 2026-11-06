@@ -20,8 +20,8 @@ const SDP = preload("res://scripts/run/ult_px_sd.gd")   # 斯卡蒂「斩浪」�
 const HOP = preload("res://scripts/run/ult_px_ho.gd")   # 星熊终结技配色对齐 + 崩解（docs/254 §9）
 const GLP = preload("res://scripts/run/ult_px_gl.gd")   # 歌蕾蒂娅终结技转平面叠加层（docs/263 §9，ult/px_plane_gladiia；只画）
 const MZP = preload("res://scripts/run/ult_px_mz.gd")   # 水月「水母群」转平面画面（docs/261 §8，ult/px_plane_mizuki；只画）
-const Bond = preload("res://scripts/run/link_bond.gd")
-const Bond2 = preload("res://scripts/run/bond2.gd")   # 羁绊技 v2（docs/294，link/bond_v2）   # 羁绊连携（link/bond，docs/217）
+const Bond = preload("res://scripts/run/link_bond.gd")   # 羁绊连携（link/bond，docs/217）
+const Bond2 = preload("res://scripts/run/bond2.gd")   # 羁绊技 v2（docs/294，link/bond_v2）
 const LinkV2 = preload("res://scripts/run/link_v2.gd")   # 连携 v2（link/v2，docs/209 §2）：全自动、只由队长触发、按姿态挑人   # 慢动作瞄准 v2（ult/aim，docs/209 §3）
 
 var CELLS := 7                # 协同格数（balance ult/cells，_init 读；HUD 读 u.CELLS）
