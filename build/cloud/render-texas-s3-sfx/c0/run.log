@@ -1,0 +1,9 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4815 项）
+render_prep 完成，用时 3 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+texas 0 420 帧 []
+texas 0 声音：音效 169 次（斩肉 11 次）
+texas 1 420 帧 []
+texas 1 声音：音效 179 次（斩肉 11 次）
+录像 /work/repo/build/cloud/render-texas-s3-sfx-c0/media/texas_s3_sfx.mp4 6.5 MB 420 帧
+media：3 个文件，6.8M
