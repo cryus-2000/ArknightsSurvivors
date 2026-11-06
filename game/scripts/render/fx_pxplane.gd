@@ -2983,14 +2983,18 @@ func _ey_sort_items(o, out: Array) -> void:
 		var lv: Array = _ey_lift(bl)
 		out.append({"ert": "ball", "st": st, "pos": lv[0], "dir": lv[1], "gy": (bl.pos as Vector2).y + 40.0, "ph": int(absf(bl.pos.x)) % 7})
 	if not o.hw.is_empty():
+		var rot_all: bool = Bal.v("fx/eyja_ball_rot_all", 1.0) > 0.0
 		for l in o.hw.get("lobs", []):   # 火星迸溅 / 星火燎原 / 熔岩天降的熔岩块
 			if float(l.t) >= float(l.dur):
 				continue
 			var lp: Vector2 = S._hw_lob_pos(l)
 			var lp0: Vector2 = S._hw_lob_pos_at(l, maxf(0.0, float(l.t) - 0.03))
+			var ld: Vector2 = lp - lp0
+			if ld.length_squared() <= 0.01 and rot_all:   # 刚抛出那一帧往回取不到：改往前取（原来退成朝下，火块竖着闪一帧）
+				ld = S._hw_lob_pos_at(l, float(l.t) + 0.03) - lp
 			var k: float = clampf(float(l.t) / maxf(0.01, float(l.dur)), 0.0, 1.0)
 			var big: bool = float(l.sz) >= 1.1 or str(l.src) == "熔岩天降"
-			out.append({"ert": "ball", "st": "rock" if big else "chip", "pos": lp, "dir": lp - lp0 if lp.distance_squared_to(lp0) > 0.01 else Vector2.DOWN, "gy": (l.from as Vector2).lerp(l.to, k).y + 2.0, "ph": int(absf(l.to.x)) % 7})
+			out.append({"ert": "ball", "st": "rock" if big else "chip", "pos": lp, "dir": ld if ld.length_squared() > 0.01 else Vector2.DOWN, "gy": (l.from as Vector2).lerp(l.to, k).y + 2.0, "ph": int(absf(l.to.x)) % 7})
 		for v in o.hw.get("lobvol", []):   # 三重咏唱低抛弹
 			var apex: float = float(v.vol.b.lob.get("apex", 20.0))
 			for s in v.shots:
@@ -2999,7 +3003,10 @@ func _ey_sort_items(o, out: Array) -> void:
 				var k2: float = clampf(float(s.t) / float(s.dur), 0.0, 1.0)
 				var sp: Vector2 = _ey_arc(s.from, s.to, k2, apex) + Vector2(0, -8)
 				var sp0: Vector2 = _ey_arc(s.from, s.to, maxf(0.0, k2 - 0.05), apex) + Vector2(0, -8)
-				out.append({"ert": "ball", "st": "lava", "pos": sp, "dir": sp - sp0 if sp.distance_squared_to(sp0) > 0.01 else Vector2.RIGHT, "gy": (s.from as Vector2).lerp(s.to, k2).y + 30.0, "ph": int(absf(s.to.x)) % 7,
+				var sd: Vector2 = sp - sp0
+				if sd.length_squared() <= 0.01 and rot_all:   # 出手那一帧：往前取切线（原来退成朝右）
+					sd = _ey_arc(s.from, s.to, minf(1.0, k2 + 0.05), apex) + Vector2(0, -8) - sp
+				out.append({"ert": "ball", "st": "lava", "pos": sp, "dir": sd if sd.length_squared() > 0.01 else Vector2.RIGHT, "gy": (s.from as Vector2).lerp(s.to, k2).y + 30.0, "ph": int(absf(s.to.x)) % 7,
 					"len": Bal.v("fx/eyja_lob_len", 0.45)})
 		for ev in o.hw.get("erupts", []):   # 火山弹
 			if not ev.has("shot") or float(ev.t) <= 0.0:
@@ -3009,7 +3016,10 @@ func _ey_sort_items(o, out: Array) -> void:
 			var ap: float = float(shot.get("apex", 24.0))
 			var ep: Vector2 = _ey_arc(shot.from, ev.pos, k3, ap)
 			var ep0: Vector2 = _ey_arc(shot.from, ev.pos, maxf(0.0, k3 - 0.05), ap)
-			out.append({"ert": "ball", "st": "rock", "pos": ep, "dir": ep - ep0 if ep.distance_squared_to(ep0) > 0.01 else Vector2.DOWN, "gy": (shot.from as Vector2).lerp(ev.pos, k3).y + 54.0 * (1.0 - k3), "ph": int(absf(ev.pos.x)) % 7})
+			var ed: Vector2 = ep - ep0
+			if ed.length_squared() <= 0.01 and rot_all:   # 刚射出那一帧：往前取切线（原来退成朝下）
+				ed = _ey_arc(shot.from, ev.pos, minf(1.0, k3 + 0.05), ap) - ep
+			out.append({"ert": "ball", "st": "rock", "pos": ep, "dir": ed if ed.length_squared() > 0.01 else Vector2.DOWN, "gy": (shot.from as Vector2).lerp(ev.pos, k3).y + 54.0 * (1.0 - k3), "ph": int(absf(ev.pos.x)) % 7})
 		for l in o.hw.get("pools", []):   # 熔岩泡（循环，立起）
 			var key: String = _ey_pool_key(l, "up")
 			if key != "":
@@ -3044,7 +3054,13 @@ func _ey_lift(bl: Dictionary) -> Array:
 	var L2: float = seg.length_squared()
 	if L2 < 1.0:
 		return [p, v]
-	var k: float = clampf((p - f).dot(seg) / L2, 0.0, 1.0)
+	var kr: float = (p - f).dot(seg) / L2
+	var k: float = clampf(kr, 0.0, 1.0)
+	if Bal.v("fx/eyja_ball_rot_all", 1.0) > 0.0:
+		# 朝向 = 画面上这一帧实际的移动方向（11-07 用户「不能任意方向吗」）：画面位置 p - (0, lift·k)，k 在 0–1 之间随 p 线性变，
+		# 对时间求导 = v - (0, lift)·(v·seg)/|seg|²；飞过瞄准点后 k 停在 1，画面速度就是 v
+		var sv: Vector2 = v - Vector2(0, lift) * (v.dot(seg) / L2) if kr > 0.0 and kr < 1.0 else v
+		return [p + Vector2(0, -lift * k), sv]
 	var vd: Vector2 = (t - Vector2(0, lift)) - f   # 画面路径：出手点 → 敌人身子
 	return [p + Vector2(0, -lift * k), vd.normalized() * v.length() if vd.length_squared() > 0.01 else v]
 
@@ -3136,16 +3152,21 @@ func _ey_lrock_pos(it: Dictionary, u: float) -> Vector2:
 ## 一颗弹体：帧条 ey_ball_<样式>_d<方向>（按飞行方向挑最近的平面角 + 水平翻转），循环；原点 = 弹头，位置每帧走、取整到美术像素格
 ## ln < 1：沿飞行方向把弹身压短（弹头不动）、不加尾焰——精二三重咏唱 3 发低抛弹间隔 0.12 秒、走几乎同一条弧，
 ## 帧条弹身约 45 美术像素长，三发首尾相接连成一条「火绳」（11-06 用户「精二像条火绳」）；开关 fx/eyja_lob_len（1 = 原样）
+## 朝向统一（11-07 用户「艾雅法拉这个火焰还是歪着过去的，不能任意方向吗」）：所有弹体样式（含火星迸溅 / 火山弹的 chip / rock / boulder，
+## 原来不转、直接贴 5 个角里最近的一张，抛物线刚升起时就落到 45° 那张）一律「最近角 + 转掉剩余偏差」，朝向 = 调用方给的画面移动方向
+## （直线弹 _ey_lift 的画面速度、抛射弹轨迹切线）。开关 fx/eyja_ball_rot_all（缺省 1；0 = 只有带尾焰的四种转）。帧条像素按最近邻转，不另烤方向
 func _ey_ball(ci, st: String, pos: Vector2, dir: Vector2, ph: int, ln := 1.0) -> void:
-	var dk: Array = pick_dir(dir.angle() if dir.length_squared() > 0.0001 else 0.0)
-	if EY_TAIL.has(st) and dir.length_squared() > 0.0001 and Bal.v("fx/eyja_ball_tail", 1.0) > 0.0:
-		if ln >= 1.0:
+	var has_dir: bool = dir.length_squared() > 0.0001
+	var dk: Array = pick_dir(dir.angle() if has_dir else 0.0)
+	var tail: bool = EY_TAIL.has(st) and has_dir and Bal.v("fx/eyja_ball_tail", 1.0) > 0.0
+	if has_dir and (tail or Bal.v("fx/eyja_ball_rot_all", 1.0) > 0.0):
+		if tail and ln >= 1.0:
 			_ey_tail(ci, pos, dir.normalized(), float(EY_TAIL[st]), ph)
 		_ey_strip_rot(ci, "ey_ball_%s_d%d" % [st, dk[0]], frame_of(0.0) + ph, _snap(pos), dk[1], dir.angle(), float(dk[0]), ln)
-		if _ball_dbg():
-			_ey_ball_dbg(ci, pos, dir)
-		return
-	_draw_strip(ci, "ey_ball_%s_d%d" % [st, dk[0]], frame_of(0.0) + ph, _snap(pos), dk[1], false)
+	else:
+		_draw_strip(ci, "ey_ball_%s_d%d" % [st, dk[0]], frame_of(0.0) + ph, _snap(pos), dk[1], false)
+	if has_dir and _ball_dbg():
+		_ey_ball_dbg(ci, pos, dir)
 
 
 ## 帧条只有 5 个 45° 角：挑最近的一张后再转掉剩下的偏差（≤ 22.5°），火球朝向和真实飞行方向一致——
