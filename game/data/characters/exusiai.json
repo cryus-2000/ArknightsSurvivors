@@ -50,6 +50,8 @@
   "mag_pierce": 1,
   "_growth": "docs/202 成长节点去数值化（10-29，待试验参数）：节点 1「对空优先」prefer_pin；节点 2「护航射击」escort_*；节点 4A「曳光弹」tracer_*；节点 5A「曳光弹·收网」reap_*",
   "prefer_pin": 0.3,
+  "prefer_stun_every": 6,
+  "prefer_stun": 0.6,
   "escort_r": 150,
   "escort_n": 3,
   "escort_kb": 20,
@@ -370,7 +372,7 @@
    "id": "twin",
    "name": "对空优先",
    "icon": "growth_b_count",
-   "desc": "子弹优先瞄准受控目标（眩晕、浮空、失重中的敌人）；打中这类目标时命中即停，并使其定身 {$prefer_pin} 秒（精英减半，Boss 除外；同一敌人 1 秒内至多一次）；伤害 ×{$grow_dmg_twin}"
+   "desc": "每 {$prefer_stun_every} 发子弹中有 1 发眩晕弹，使目标眩晕 {$prefer_stun} 秒；子弹优先瞄准受控目标（眩晕、浮空、失重中的敌人），没有时优先瞄准精英与 Boss；打中受控目标时命中即停，并使其定身 {$prefer_pin} 秒（精英减半，Boss 除外；同一敌人 1 秒内至多一次）；伤害 ×{$grow_dmg_twin}"
   },
   {
    "type": "custom",
@@ -596,6 +598,8 @@
    {
     "verb": "aim_prefer",
     "pin": "$prefer_pin",
+    "stun_every": "$prefer_stun_every",
+    "stun": "$prefer_stun",
     "_doc": "对空优先（docs/202 节点 1，原作特性「优先攻击空中单位」）：受控目标排最前，命中即停 + 定身 pin 秒"
    },
    {"verb": "buff_self", "stat": "dmg", "op": "mult", "value": "$grow_dmg_twin"}

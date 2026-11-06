@@ -148,7 +148,7 @@ static func _exu_targets(o, n: int, rr: float, prio: float) -> Array:
 		o.ext["pfs"] = pf
 	var pmode: int = _pf_mode() if prefer else 0   # docs/298 改版开关：0 = 原样
 	var pf_fb := false   # A 版：射程内没有受控目标时改为精英 / Boss 优先
-	if pmode == 1:
+	if pmode == 1 or pmode == 2:   # B 版同样带精英兜底
 		pf_fb = true
 		for e1 in pool:
 			if not e1.dead and _exu_controlled(o.g, e1) and o.hittable(e1):
@@ -328,10 +328,11 @@ static func _exu_volley(o, p: Dictionary, main: bool, last: bool) -> void:
 				tr_b = trb
 				btex = "proj_exusiai_bullet_t3"   # 曳光弹：金色弹体
 		var stn := 0.0
-		if main and _pf_mode() == 2 and o.tags_all.has("verb.aim_prefer") and not _exu_active(o, "verb.aim_prefer").is_empty():
+		var pfb: Dictionary = _exu_active(o, "verb.aim_prefer") if main and _pf_mode() == 2 and o.tags_all.has("verb.aim_prefer") else {}
+		if not pfb.is_empty():
 			st["pf_n"] = int(st.get("pf_n", 0)) + 1
-			if int(st.pf_n) % maxi(1, int(MfBal.v("growth_nodes/exu_stun_every", 6.0))) == 0:
-				stn = MfBal.v("growth_nodes/exu_stun", 0.6)   # B 版：每第 N 发主弹是一发眩晕弹（金色大弹）
+			if int(st.pf_n) % maxi(1, int(pfb.get("stun_every", MfBal.v("growth_nodes/exu_stun_every", 6.0)))) == 0:
+				stn = float(pfb.get("stun", MfBal.v("growth_nodes/exu_stun", 0.6)))   # B 版：每第 N 发主弹是一发眩晕弹（金色大弹）；数值在干员参数 prefer_stun_every / prefer_stun
 				btex = "proj_exusiai_bullet_t3"
 		if k == 0 and hv != null:
 			stn = MfBal.v("growth_nodes/exu_hv_stun", 1.0)
@@ -842,6 +843,8 @@ static func _exu_gm_validate(b: Dictionary, p: String, ctx: Dictionary, tag: Str
 	match tag:
 		"verb.aim_prefer":
 			_num(b, "pin", p, ctx, true, 0.0, 2.0)
+			_num(b, "stun_every", p, ctx, false, 2.0, 60.0)
+			_num(b, "stun", p, ctx, false, 0.0, 3.0)
 		"verb.escort":
 			_num(b, "r", p, ctx, true, 30.0, 600.0)
 			_num(b, "n", p, ctx, true, 1.0, 30.0)
