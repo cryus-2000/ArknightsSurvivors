@@ -1,0 +1,13 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4815 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+new pc_move frames 1 errors [] 
+new pc_lamp frames 1 errors [] 
+new pc_command frames 1 errors [] 
+new pc_ask frames 24 errors [] 
+new ph_move frames 1 errors [] 
+new ph_lamp frames 1 errors [] 
+new ph_command frames 1 errors [] 
+new ph_ask frames 24 errors [] 
+fatal: invalid object name 'ee6edcaf2'.
+media：16 个文件，4.2M
