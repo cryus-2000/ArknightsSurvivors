@@ -111,6 +111,7 @@ var autotest_sys = load("res://scripts/run/autotest.gd").new(self) if OS.is_debu
 var demo_sys = DemoRun.new(self)   # 图鉴攻击演示 / 精英化演出（gallery.gd 把 game.tscn 以 demo_op 模式放进 SubViewport）
 var spawner = Spawner.new(self)   # 刷怪
 var shop_sys = ShopSys.new(self)   # 商人与商店（逻辑）
+var web_fs = preload("res://scripts/web_fs.gd").new()   # 网页版全屏与 Esc（docs/297）：退出全屏当暂停、P 键暂停、暂停菜单「返回全屏」；只在网页版桌面生效
 var beacon_sys = Beacon.new(self)  # 引航灯标：站桩点燃、驱散溟痕（run/beacon.gd，docs/49d §13.5 C）
 var weapons_sys = WeaponsSys.new(self)   # 子弹与支援装置
 var pickups = Pickups.new(self)   # 掉落与拾取
@@ -874,6 +875,7 @@ func tex_deferred_miss(n: String) -> void:
 
 func _ready() -> void:
 	A.mark("ready_begin")
+	web_fs.setup(self)
 	trial.consume()
 	# 随机数最先定：招募开局干员时就会用 rng（战斗台词计时等）。以前 --seed 在 _ready 后段才生效，
 	# 开局干员的台词计时是随机的，第一句台词一出同 seed 的两局就分叉（2026-09-26 查明，docs/36）
@@ -1501,6 +1503,7 @@ func _process(delta: float) -> void:
 	if not is_inside_tree():
 		return   # 演示局结束等处当帧换场景：已离树就不再跑这一帧（11-04 教程结束闪退）
 	tour.update(delta)   # 聚光框引导 / 到点小提示：真实帧间隔（screens/tour.gd）
+	web_fs.poll(delta)   # 网页版：局内退出全屏（多半是按了 Esc）→ 打开暂停菜单（docs/297）
 	pick.update(delta)
 	wheel.update(delta)   # 指挥圆盘：真实帧间隔（悬停 / 松开判定 / 测试计划）
 	var dt: float = min(delta, 0.05)
@@ -1781,6 +1784,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var mp0: Vector2 = event.position / Cfg.ui_k   # 界面层放大：视口坐标 → UI 坐标（桌面 ui_k = 1）
+		if state == S.PAUSE and web_fs.btn.has_point(mp0):
+			Sfx.play("ui_ok")
+			web_fs.request()   # 网页版暂停菜单「返回全屏」：点击是用户手势，可以重新请求全屏（docs/297）
+			return
 		if state == S.PAUSE or state == S.DEAD or state == S.WIN:
 			for b in result_btns:
 				if b[0].has_point(mp0):
@@ -1863,11 +1870,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		if k == KEY_ESCAPE:
 			state = S.PLAY
 		return
-	if k == KEY_ESCAPE and state != S.SHOP:
+	if (k == KEY_ESCAPE or web_fs.pause_key(k)) and state != S.SHOP:   # 网页版 P 同 Esc（全屏时 Esc 被浏览器拿去退出全屏，docs/297）
 		if state == S.PLAY:
 			state = S.PAUSE
 		elif state == S.PAUSE:
 			state = S.PLAY
+	elif k == KEY_F and state == S.PAUSE and web_fs.btn.has_area():
+		web_fs.request()   # 网页版暂停菜单「返回全屏」
 	elif k == KEY_O and state == S.PAUSE:
 		settings.open()
 	elif k == KEY_G and state == S.PAUSE:
