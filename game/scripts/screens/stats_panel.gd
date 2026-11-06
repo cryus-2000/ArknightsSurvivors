@@ -820,7 +820,20 @@ func _v3_offense(x: float, top: float, w: float, bottom: float) -> void:
 		y += 26
 	_v3_head(x, y + 4, w, "技能", "SKILLS")
 	y += 20
-	g.result_screen.draw_generic_skill_rows(Rect2(x - 14, y, w + 28, bottom - y), y, skill_rows_data(), 11, 14, true)
+	# 放不下就滚轮（docs/290，用户 11-06「技能那一栏放不下，可以改成滚轮」）：每行按说明全文算高、不截断，
+	# 从偏移那行往下放得下几行画几行；原来是把说明压成一行「…」，天赋行还是会掉出面板
+	var rows: Array = skill_rows_data()
+	var sr := Rect2(x - 14, y, w + 28, bottom - y)
+	var hs: Array = rows.map(func(rw): return g.result_screen.skill_row_full_h(sr, rw, 11))
+	var off: int = _scroll("skills", Rect2(sr.position, sr.size - Vector2(14, 6)), hs)
+	var take: Array = []
+	var used := 0.0
+	for k in range(off, rows.size()):
+		if not take.is_empty() and used + float(hs[k]) > sr.size.y - 6.0 + 0.5:
+			break
+		take.append(rows[k])
+		used += float(hs[k])
+	g.result_screen.draw_generic_skill_rows(sr, y, take, 11, 14, true)
 
 
 func _v3_squad(x: float, top: float, w: float, bottom: float) -> void:
@@ -888,58 +901,116 @@ func _v3_squad(x: float, top: float, w: float, bottom: float) -> void:
 			UI.text_fit(g.hud, g.font, Vector2(x + 60, y), LinkBond.row_text(b), 12, Color(V3_WHITE.r, V3_WHITE.g, V3_WHITE.b, 0.85), w - 60, 10)
 			y += 20
 		y += 6
-	# 成长 + 藏品：图标格（悬停看效果）
+	# 成长 + 藏品：图标格（悬停看效果）。放不下就滚轮（docs/290，用户 11-06「放不下的全部加上滚轮」）：
+	# 两块按「行」排成一列（小标题一行、每排图标一行），鼠标在这块上滚动；不再把前面的藏品收成「+N」
 	var cs := 30.0
 	var pitch := 35.0
 	var per: int = maxi(1, int(w / pitch))
+	var lines: Array = []   # [种类, 数据, 行高]
 	if not g.growth.is_empty():
-		_hv.v2.txt(Vector2(x, y + 4), "成长", 13, V3_GREY)
-		y += 12
-		var gi := 0
-		for gid in g.growth:
-			var gc := Vector2(x + (gi % per) * pitch, y + (gi / per) * pitch)
-			if gc.y + cs > bottom:
-				break
-			g.hud.draw_rect(Rect2(gc, Vector2(cs, cs)), Color(0, 0, 0, 0.4))
-			g.hud.draw_rect(Rect2(gc, Vector2(cs, cs)), Color(1, 1, 1, 0.16), false, 1.0)
-			var gt: Texture2D = g.tex.get("growth_" + gid)
-			if gt != null:
-				g.hud.draw_texture_rect(gt, Rect2(gc + Vector2(3, 3), Vector2(cs - 6, cs - 6)), false)
-			UI.text(g.hud, g.font, gc + Vector2(cs - 18, cs - 1), "×%d" % g.growth[gid], 10, V3_WHITE, HORIZONTAL_ALIGNMENT_RIGHT, 18, 2)
-			g.stats_cells.append([Rect2(gc, Vector2(cs, cs)), "growth", gid])
-			gi += 1
-		y += maxi(1, int(ceil(g.growth.size() / float(per)))) * pitch + 4
-	_hv.v2.txt(Vector2(x, y + 4), "藏品", 13, V3_GREY)
-	_hv.v2.big(Vector2(x + 34, y + 5), str(g.relics.size()), 13, V3_WHITE)
-	var hint: String = "点图标查看效果" if Pad.touch_ui() else "悬停看效果"
-	_hv.v2.txt(Vector2(x + w - _hv.v2.twidth(hint, 11), y + 4), hint, 11, V3_GREY)
-	y += 12
-	var nr: int = g.relics.size()
-	var skip: int = _relic_skip(nr, per, pitch, cs, y, bottom)
-	var slot := 0
-	if skip > 0:
-		_draw_more_cell(Vector2(x, y), cs, skip, 12)
-		slot = 1
-	for i in range(skip, nr):
-		var rc := Vector2(x + (slot % per) * pitch, y + (slot / per) * pitch)
-		slot += 1
-		if rc.y + cs > bottom:
+		lines.append(["ghead", null, 18.0])
+		var gids: Array = g.growth.keys()
+		for k in range(0, gids.size(), per):
+			lines.append(["grow", gids.slice(k, k + per), pitch])
+	lines.append(["rhead", null, 18.0])
+	for k in range(0, g.relics.size(), per):
+		lines.append(["rel", range(k, mini(k + per, g.relics.size())), pitch])
+	var area := Rect2(x, y, w, bottom - y)
+	var off: int = _scroll("squad_items", area, lines.map(func(l): return float(l[2])))
+	var ly: float = y
+	for li in range(off, lines.size()):
+		var ln: Array = lines[li]
+		if ly + float(ln[2]) > bottom + 0.5:
 			break
-		var rd: Dictionary = g.RL[g.relics[i]]
-		var cr := Rect2(rc, Vector2(cs, cs))
-		var hov: bool = cr.has_point(mouse2)
-		g.hud.draw_rect(cr, Color(0, 0, 0, 0.4) if not hov else Color(1, 1, 1, 0.12))
-		g.hud.draw_rect(cr, Color(1, 1, 1, 0.16) if not hov else V3_WHITE, false, 1.0)
-		var rt: Texture2D = g.tex.get("relic_" + g.relics[i])
-		if rt != null:
-			g.hud.draw_texture_rect(rt, Rect2(rc + Vector2(3, 3), Vector2(cs - 6, cs - 6)), false)
-		else:
-			UI.text(g.hud, g.font, rc + Vector2(0, cs * 0.68), rd.name.substr(0, 1), int(cs * 0.42), V3_WHITE, HORIZONTAL_ALIGNMENT_CENTER, cs)
-		var rl: int = g.rfx.lv.get(g.relics[i], 1)
-		if rl > 1:
-			UI.text(g.hud, g.font, rc + Vector2(cs - 18, cs - 1), "L%d" % rl, 10, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 18, 2)
-		g.stats_cells.append([cr, "relic", g.relics[i]])
+		match str(ln[0]):
+			"ghead":
+				_hv.v2.txt(Vector2(x, ly + 12), "成长", 13, V3_GREY)
+			"rhead":
+				_hv.v2.txt(Vector2(x, ly + 12), "藏品", 13, V3_GREY)
+				_hv.v2.big(Vector2(x + 34, ly + 13), str(g.relics.size()), 13, V3_WHITE)
+				var hint: String = "点图标查看效果" if Pad.touch_ui() else ("悬停看效果 · 滚轮翻看" if lines.size() > 0 and _sc_more.get("squad_items", false) else "悬停看效果")
+				_hv.v2.txt(Vector2(x + w - _hv.v2.twidth(hint, 11), ly + 12), hint, 11, V3_GREY)
+			"grow":
+				var gc := Vector2(x, ly)
+				for gid in ln[1]:
+					g.hud.draw_rect(Rect2(gc, Vector2(cs, cs)), Color(0, 0, 0, 0.4))
+					g.hud.draw_rect(Rect2(gc, Vector2(cs, cs)), Color(1, 1, 1, 0.16), false, 1.0)
+					var gt: Texture2D = g.tex.get("growth_" + gid)
+					if gt != null:
+						g.hud.draw_texture_rect(gt, Rect2(gc + Vector2(3, 3), Vector2(cs - 6, cs - 6)), false)
+					UI.text(g.hud, g.font, gc + Vector2(cs - 18, cs - 1), "×%d" % g.growth[gid], 10, V3_WHITE, HORIZONTAL_ALIGNMENT_RIGHT, 18, 2)
+					g.stats_cells.append([Rect2(gc, Vector2(cs, cs)), "growth", gid])
+					gc.x += pitch
+			_:
+				var rc := Vector2(x, ly)
+				for ri in ln[1]:
+					var rd: Dictionary = g.RL[g.relics[ri]]
+					var cr := Rect2(rc, Vector2(cs, cs))
+					var hov: bool = cr.has_point(mouse2)
+					g.hud.draw_rect(cr, Color(0, 0, 0, 0.4) if not hov else Color(1, 1, 1, 0.12))
+					g.hud.draw_rect(cr, Color(1, 1, 1, 0.16) if not hov else V3_WHITE, false, 1.0)
+					var rt: Texture2D = g.tex.get("relic_" + g.relics[ri])
+					if rt != null:
+						g.hud.draw_texture_rect(rt, Rect2(rc + Vector2(3, 3), Vector2(cs - 6, cs - 6)), false)
+					else:
+						UI.text(g.hud, g.font, rc + Vector2(0, cs * 0.68), rd.name.substr(0, 1), int(cs * 0.42), V3_WHITE, HORIZONTAL_ALIGNMENT_CENTER, cs)
+					var rl: int = g.rfx.lv.get(g.relics[ri], 1)
+					if rl > 1:
+						UI.text(g.hud, g.font, rc + Vector2(cs - 18, cs - 1), "L%d" % rl, 10, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 18, 2)
+					g.stats_cells.append([cr, "relic", g.relics[ri]])
+					rc.x += pitch
+		ly += float(ln[2])
 
+
+# ================================================================ 放不下就滚轮（docs/290，用户 11-06）
+## 面板里一块列表放不下时：按「行」滚动（行高可以不一样），鼠标在哪块上就滚哪块；右沿一道细滚动条。
+## 每帧画的时候登记区域并把偏移夹进范围，所以滚过头也没事。打开面板时回到顶上（game.gd 进 STATS 时调 reset_scroll）
+var _sc := {}        # 区域名 → 行偏移
+var _sc_rect := {}   # 区域名 → 本帧可滚区域
+var _sc_more := {}   # 区域名 → 本帧是否放不下（要滚）
+
+
+## 返回这块区域本帧的起始行。hs = 每行高度；最后一屏刚好把最后一行放进来
+func _scroll(key: String, r: Rect2, hs: Array) -> int:
+	var max_off := 0
+	var acc := 0.0
+	for k in range(hs.size() - 1, -1, -1):
+		acc += float(hs[k])
+		if acc > r.size.y + 0.5:
+			max_off = k + 1
+			break
+	var off: int = clampi(int(_sc.get(key, 0)), 0, max_off)
+	_sc[key] = off
+	_sc_rect[key] = r
+	_sc_more[key] = max_off > 0
+	if max_off > 0:
+		var tr := Rect2(r.end.x + 8.0, r.position.y + 2.0, 2.0, r.size.y - 4.0)
+		g.hud.draw_rect(tr, Color(1, 1, 1, 0.1))
+		var tot := 0.0
+		var before := 0.0
+		for k in hs.size():
+			tot += float(hs[k])
+			if k < off:
+				before += float(hs[k])
+		var th: float = maxf(14.0, tr.size.y * minf(1.0, r.size.y / maxf(1.0, tot)))
+		var ty: float = tr.position.y + (tr.size.y - th) * (float(off) / float(max_off))
+		g.hud.draw_rect(Rect2(tr.position.x, ty, tr.size.x, th), V3_WHITE)
+	return off
+
+
+## 滚轮（game.gd 在 STATS 里转来）：鼠标所在那块滚一行；没落在可滚区域上返回 false
+func wheel(dy: int) -> bool:
+	var mp: Vector2 = g.hud.get_local_mouse_position()
+	for key in _sc_rect:
+		if (_sc_rect[key] as Rect2).has_point(mp) and _sc_more.get(key, false):
+			_sc[key] = maxi(0, int(_sc.get(key, 0)) + dy)
+			Sfx.play("ui_move", -10.0)
+			return true
+	return false
+
+
+func reset_scroll() -> void:
+	_sc.clear()
 
 ## 悬停提示：藏品 / 成长 / 技能沿用原来的提示框；成长进度点弹出节点表
 func _v3_tips(vs: Vector2) -> void:

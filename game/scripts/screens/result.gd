@@ -337,6 +337,15 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 ## Tab 面板攻击栏下半：开局干员的三个技能 + 天赋。说明按栏宽折行；先每条给 1 行，再轮流给还没排完的加行，
 ## 直到把剩余高度用完。排不完的末行加「…」，鼠标移到这一行上看完整说明（stats_cells 的 skill 项）
 ## mono：属性栏 v3（docs/222 §19）画法——说明一律白 / 灰（不再用干员色），正在攒技力的技能左边一道青竖条
+## 一行技能按说明全文排时的高度（同 draw_generic_skill_rows 的行高公式）：Tab 面板技能栏滚动用（docs/290）
+func skill_row_full_h(b1: Rect2, row: Array, dfs := 11) -> float:
+	var x0 := b1.position.x + 62.0
+	var dw := b1.end.x - 14.0 - x0
+	var lh: float = g.font.get_height(UI.fs(dfs)) + 1.0
+	var n: int = UI.wrap_lines(g.font, row[2], dfs, dw).size()
+	return maxf(42.0, 30.0 + n * lh)
+
+
 func draw_generic_skill_rows(b1: Rect2, y: float, rows: Array, dfs := 11, nfs := 14, mono := false) -> float:
 	var c: Color = g.ch.col() if not mono else Color(0.85, 0.87, 0.89)
 	var x0 := b1.position.x + 62.0
