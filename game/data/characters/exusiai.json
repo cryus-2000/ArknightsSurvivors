@@ -372,7 +372,7 @@
    "id": "twin",
    "name": "对空优先",
    "icon": "growth_b_count",
-   "desc": "每 {$prefer_stun_every} 发子弹中有 1 发眩晕弹，使目标眩晕 {$prefer_stun} 秒；子弹优先瞄准受控目标（眩晕、浮空、失重中的敌人），没有时优先瞄准精英与 Boss；打中受控目标时命中即停，并使其定身 {$prefer_pin} 秒（精英减半，Boss 除外；同一敌人 1 秒内至多一次）；伤害 ×{$grow_dmg_twin}"
+   "desc": "每 {$prefer_stun_every} 发子弹中有 1 发眩晕弹，使目标眩晕 {$prefer_stun} 秒（精英减半，Boss 除外）；子弹优先瞄准受控目标（眩晕、浮空、失重中的敌人）；打中受控目标时命中即停，并使其定身 {$prefer_pin} 秒（精英减半，Boss 除外；同一敌人 1 秒内至多一次）；伤害 ×{$grow_dmg_twin}"
   },
   {
    "type": "custom",
