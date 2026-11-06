@@ -896,9 +896,10 @@ func _draw_chrome(ci: CanvasItem) -> void:
 	# 生机细胞 + 已塑造
 	var rx := vs.x - 470.0
 	ci.draw_texture_rect(Icons.tex("cell"), Rect2(rx, 17, 22, 22), false, C_SAP)
-	UI.text_at(ci, font, Vector2(rx + 30, 10), "生机细胞", 11, T_SUB)
-	var nw := UI.text_at(ci, font, Vector2(rx + 30, 24), str(Meta.available()), 24, UI.TEXT, "la", true)
-	UI.text_at(ci, font, Vector2(rx + 38 + nw, 34), "/ 累计 %d" % Meta.earned_total(), 12, T_SUB)
+	# 大数字只写当前持有；累计获得挪到标签行（11-07 用户看到「50 / 累计 50」问「为什么这个还有上限」：斜杠读起来像满了，肉鸽不设数量上限）
+	var lw := UI.text_at(ci, font, Vector2(rx + 30, 10), "生机细胞", 11, T_SUB)
+	UI.text_at(ci, font, Vector2(rx + 38 + lw, 10), "累计获得 %d" % Meta.earned_total(), 11, UI.fa(T_SUB, 0.8))
+	UI.text_at(ci, font, Vector2(rx + 30, 24), str(Meta.available()), 24, UI.TEXT, "la", true)
 	UI.text_at(ci, font, Vector2(rx + 186, 10), "已塑造", 11, T_SUB)
 	UI.text_at(ci, font, Vector2(rx + 186, 26), "%d / %d" % [done, Meta.nodes().size()], 20, UI.TEXT, "la", true)
 	# 返回
