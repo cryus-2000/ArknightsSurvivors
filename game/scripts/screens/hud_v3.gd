@@ -42,10 +42,50 @@ var _top := 0.0   # 本帧整台上沿（界面坐标），开局提示等底部
 func _init(hud) -> void:
 	h = hud
 	g = hud.g
+	_force_peek = Cfg.dev_args().has("--consolepeek")   # 截图：编队卡一直展开（docs/290 方案 B）
 
 
 static func on() -> bool:
 	return Bal.vi("ui/hud_v3", 1) > 0
+
+
+## 技能细格（docs/290，11-06 示意中，缺省 0 = 不画）：头像下一个技能一段。1 = 队长细格在终结技环下方（环整体上抬一行）；
+## 2 = 队长细格在等级牌右边（不抬高）。队友两种都画在头像血量线下方
+static func skills_mode() -> int:
+	return Bal.vi("ui/console_skills", 0)
+
+
+## 按住临时展开旧编队卡（docs/290 方案 B，缺省 0）：键盘按住 Alt、手柄按住 Ⓨ，松开收回；触屏点队友头像区展开 PEEK_SECS 秒
+static func peek_on() -> bool:
+	return Bal.vi("ui/console_peek", 0) > 0
+
+
+const PEEK_SECS := 5.0
+var _peek_until := -1.0
+var _force_peek := false
+var _mates_rect := Rect2()   # 本帧队友头像区（触屏点击判定）
+var _right_end := 0.0   # 本帧整台右端 x（展开的编队卡跟它重叠时抬到整台上方）
+
+
+## 展开编队卡时卡组的右下角：跟整台横向重叠就抬到整台上沿之上
+func peek_br(vs: Vector2, w: float) -> Vector2:
+	var br := Vector2(vs.x - 16.0, vs.y - 16.0)
+	if br.x - w < _right_end + 8.0 and _top > 0.0:
+		br.y = _top - 10.0
+	return br
+
+
+func peeking() -> bool:
+	return peek_on() and (_force_peek or Input.is_key_pressed(KEY_ALT) or g.t < _peek_until)   # 手柄 Ⓨ 由 pad.gd 注入成按住 Alt
+
+
+## 触屏点在队友头像区：展开 / 再点收回（touch.gd 调，p 为界面坐标）
+func peek_tap(p: Vector2) -> bool:
+	if not (on() and peek_on()) or not _mates_rect.grow(8.0).has_point(p):
+		return false
+	_peek_until = g.t + PEEK_SECS if g.t >= _peek_until else -1.0
+	Sfx.play("ui_move", -8.0)
+	return true
 
 
 func k() -> float:
@@ -119,7 +159,7 @@ func _console(vs: Vector2) -> void:
 	var base: float = vs.y - 14.0 * s
 	var r: float = 25.0 * s
 	var RR: float = r + 5.0 * s
-	var by: float = base - r - 7.0 * s
+	var by: float = base - r - 7.0 * s - (6.0 * s if skills_mode() == 1 else 0.0)   # 布局一：环上抬一行，给环下的技能细格让位
 	var md: int = _mode()
 	# 右翼宽度先算（左翼按它对称）
 	var sq: float = 34.0 * s
@@ -189,6 +229,10 @@ func _leader(c: Vector2, r: float, RR: float, base: float, s: float) -> void:
 			UI.text(g.hud, g.font, Vector2(kr.position.x, ly - 1.0 * s), key, int(round(6.5 * s)), Color(0.04, 0.06, 0.07) if full else WHITE, HORIZONTAL_ALIGNMENT_CENTER, kw)
 			x0 += kw + 4.0
 		h.v2.txt(Vector2(x0, ly), lab, fs, UI.CYAN if full else Color(WHITE.r, WHITE.g, WHITE.b, 0.88))
+	if skills_mode() == 1 and ld != null:   # 布局一：环与「终结技 64%」之间一行
+		var w1: float = 2.0 * r * 0.9
+		var act1: Array = _skill_segs(ld, c.x - w1 / 2.0, base - 1.6 * s, w1, maxf(2.0, 2.4 * s), s)
+		_skill_secs(act1, Vector2(c.x + w1 / 2.0 + 4.0 * s, base + 1.4 * s), s)
 	# 等级：头像顶上一枚小牌（同 B′ 徽记的等级牌，缩小）
 	var lf: float = g.hud_lv_flash
 	var lvs: String = "LV %d" % g.level
@@ -198,6 +242,47 @@ func _leader(c: Vector2, r: float, RR: float, base: float, s: float) -> void:
 	g.hud.draw_rect(lr, Color(0.02, 0.03, 0.05, 0.9))
 	g.hud.draw_rect(lr, Color(1, 1, 1, 0.35).lerp(UI.GOLD, lf), false, 1.0)
 	UI.ctext(g.hud, g.font, Vector2(lr.position.x, lr.end.y - 3.0), lvs, lfs, WHITE.lerp(UI.GOLD, lf), HORIZONTAL_ALIGNMENT_CENTER, lw)
+	if skills_mode() == 2 and ld != null:   # 布局二：等级牌右边一行，不抬高
+		var w2: float = 30.0 * s
+		var hh2: float = maxf(2.0, 2.4 * s)
+		var act2: Array = _skill_segs(ld, lr.end.x + 4.0 * s, lr.get_center().y - hh2 / 2.0, w2, hh2, s)
+		_skill_secs(act2, Vector2(lr.end.x + 4.0 * s + w2 + 4.0 * s, lr.get_center().y + 3.0 * s), s)
+
+
+## 一名干员的三段技能细格（x, y 左上，w 三段总宽）：没解锁 = 空框；充能中 = 灰色随技力填满；生效中 = 白色，剩余时长从满往下退；
+## 永久型生效后整段白；充满待放（自动技能等敌人进范围时会停在这里）= 亮青。返回生效中各段 [矩形, 剩余秒]
+func _skill_segs(o, x: float, y: float, w: float, hh: float, s: float) -> Array:
+	var items: Array = o.skill_hud()
+	var gp: float = maxf(2.0, 2.0 * s)
+	var sw: float = (w - gp * 2.0) / 3.0
+	var act: Array = []
+	for k in 3:
+		var it: Array = items[k]
+		var r := Rect2(x + k * (sw + gp), y, sw, hh)
+		var left: float = it[3]
+		var frac: float = clampf(it[5], 0.0, 1.0)
+		g.hud.draw_rect(r.grow(1.0), Color(0, 0, 0, 0.45))
+		if not it[2]:
+			g.hud.draw_rect(Rect2(r.position + Vector2(0.5, 0.5), r.size - Vector2(1, 1)), Color(1, 1, 1, 0.3), false, 1.0)
+		elif o.perm[k] or left > 0.0:
+			var f: float = 1.0 if o.perm[k] else clampf(left / maxf(0.01, float(it[4])), 0.0, 1.0)
+			g.hud.draw_rect(r, Color(1, 1, 1, 0.16))
+			g.hud.draw_rect(Rect2(r.position, Vector2(sw * f, hh)), WHITE)
+			if left > 0.0 and not o.perm[k]:
+				act.append([r, left])
+		elif frac >= 1.0:
+			g.hud.draw_rect(r, UI.CYAN)
+		else:
+			g.hud.draw_rect(r, Color(1, 1, 1, 0.12))
+			g.hud.draw_rect(Rect2(r.position, Vector2(sw * frac, hh)), GREY)
+	return act
+
+
+## 队长细格的剩余秒数：写在细格行右边，几段同时生效就按顺序排（一般只有一段）
+func _skill_secs(act: Array, p: Vector2, s: float) -> void:
+	var x: float = p.x
+	for a in act:
+		x += h.v2.big(Vector2(x, p.y), "%d" % int(ceil(a[1])), maxf(7.0, 7.0 * s), WHITE) + 4.0 * s
 
 
 ## 左：马灯 + 状态行 + 生命（大数字、细线）+ 灯火一行（「灯火」标签 · 带深色底槽的粗条 · 金色数字，30 / 70 刻度）+ 冲刺行。gx = 左翼右端
@@ -339,6 +424,10 @@ func _right(qx: float, base: float, sq: float, gap: float, tile: float, rush: St
 		g.hud.draw_rect(Rect2(x, y, sq, sq), Color(1, 1, 1, 0.2), false, 1.0)
 		var hp: float = clampf(o.cmd_hp, 0.0, 1.0)
 		var low: bool = hp < 0.35 and not down
+		if skills_mode() > 0:   # 技能细格：血量线下方一行；生效中的段下面写剩余秒数
+			for a in _skill_segs(o, x, base + 2.0 * s, sq, maxf(2.0, 2.4 * s), s):
+				var ar: Rect2 = a[0]
+				h.v2.big(Vector2(ar.get_center().x, ar.end.y + maxf(8.0, 7.5 * s)), "%d" % int(ceil(a[1])), maxf(7.0, 6.5 * s), WHITE, 1)
 		g.hud.draw_rect(Rect2(x, base - 1.5 * s, sq, 1.6), DIM)
 		if not down:
 			g.hud.draw_rect(Rect2(x, base - 1.5 * s - 0.8, sq * hp, 3.2), UI.RED if low else WHITE)
@@ -355,6 +444,8 @@ func _right(qx: float, base: float, sq: float, gap: float, tile: float, rush: St
 		g.hud.draw_rect(Rect2(x, y, sq, sq), Color(1, 1, 1, 0.1), false, 1.0)
 		g.hud.draw_line(Vector2(x + sq * 0.4, y + sq * 0.5), Vector2(x + sq * 0.6, y + sq * 0.5), Color(1, 1, 1, 0.18), 1.0)
 	var mx: float = qx + maxi(slots, ms.size()) * (sq + gap) + 2.0 * s
+	_mates_rect = Rect2(qx, base - sq - 5.0 * s, mx - qx, sq + 14.0 * s)
+	_right_end = mx + tile + 8.0 * s + h.v2.twidth(rush, int(round(7.2 * s)))
 	_cmd_block(mx, base, tile, rush, md, s)
 
 
