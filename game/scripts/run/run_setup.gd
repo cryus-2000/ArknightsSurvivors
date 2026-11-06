@@ -6,7 +6,6 @@ extends RefCounted
 const D = preload("res://scripts/data.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const VisNodesR = preload("res://scripts/characters/blocks/vis_nodes.gd")
-const Bot = preload("res://scripts/core/bot.gd")
 const Squad = preload("res://scripts/characters/squad.gd")
 
 
@@ -52,7 +51,7 @@ static func apply_test_args(g) -> void:
 				bot_p = a.substr(6)
 			elif a.begins_with("--seed="):
 				bot_seed = int(a.substr(7))
-		g.bot = Bot.new(g, bot_p, bot_seed)
+		g.bot = load("res://scripts/core/bot.gd").new(g, bot_p, bot_seed)   # 运行时加载：BALANCE 只由开发参数进，发行包不带 bot.gd（tools/release_slim.py DEV_SCRIPTS）
 		if Bal.v("command/bot_roam", 0.0) > 0.0 and Squad.cmd_on():
 			g.squad.set_stance(g.squad.ROAM)   # 之后耐力耗尽归队、回到 min_start 再突击（squad._tick_stamina）   # 指挥模式对照（docs/114）：机器人局常开突击；缺省 0 = 随行，同 seed 不变
 	for arg in Cfg.dev_args():
