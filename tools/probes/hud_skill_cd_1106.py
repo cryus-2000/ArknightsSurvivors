@@ -22,6 +22,8 @@ SCENES = {
     "pc_hover": (PC, ["--hoverop=2"]),    # 悬停提示：当作鼠标停在第 2 名队友（能天使）上
     "pc_tab": (PC, ["--tabat=91"]),       # Tab 属性面板编队栏的技能细格（存 shot_tab.png）
     "ph": (PH, []),
+    "pc_tab_all": (PC, ["--tabat=91", "--relics=all"]),                    # 全部藏品：藏品列表放不下 → 滚动条
+    "pc_tab_scroll": (PC, ["--tabat=91", "--relics=all", "--tabscroll=3"]),  # 同上，技能栏与藏品栏各滚 3 行
 }
 
 ap = argparse.ArgumentParser()

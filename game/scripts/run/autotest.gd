@@ -1083,6 +1083,11 @@ func step() -> void:
 		_tab_f = 0
 	elif _tab_f >= 0:
 		_tab_f += 1
+		if _tab_f == 5:
+			for a in Cfg.dev_args():
+				if a.begins_with("--tabscroll="):   # 截图：属性面板各块滚 N 行（docs/290 放不下就滚轮）
+					for key in ["skills", "squad_items"]:
+						g.stats_screen._sc[key] = int(a.substr(12))
 		if _tab_f == 20 and DisplayServer.get_name() != "headless":
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_tab.png")
 			g.get_tree().quit()

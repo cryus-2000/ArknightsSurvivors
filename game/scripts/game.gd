@@ -1774,6 +1774,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		if is_inside_tree():
 			get_viewport().set_input_as_handled()
 		return
+	if state == S.STATS and event is InputEventMouseButton and event.pressed and (event.button_index == MOUSE_BUTTON_WHEEL_UP or event.button_index == MOUSE_BUTTON_WHEEL_DOWN):
+		if stats_screen.wheel(-1 if event.button_index == MOUSE_BUTTON_WHEEL_UP else 1):   # 属性面板放不下的列表按滚轮翻（docs/290）
+			get_viewport().set_input_as_handled()
+		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var mp0: Vector2 = event.position / Cfg.ui_k   # 界面层放大：视口坐标 → UI 坐标（桌面 ui_k = 1）
 		if state == S.PAUSE or state == S.DEAD or state == S.WIN:
@@ -1844,6 +1848,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if k == KEY_TAB or k == KEY_C:
 		if state == S.PLAY:
 			state = S.STATS
+			stats_screen.reset_scroll()
 			tab_used = true
 			tab_hint = 0.0
 			Sfx.play("ui_ok", -6.0)
