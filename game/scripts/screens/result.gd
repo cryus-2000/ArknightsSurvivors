@@ -343,7 +343,7 @@ func skill_row_full_h(b1: Rect2, row: Array, dfs := 11, pad := 0.0) -> float:
 	var dw := b1.end.x - 14.0 - x0
 	var lh: float = g.font.get_height(UI.fs(dfs)) + 1.0
 	var n: int = UI.wrap_lines(g.font, row[2], dfs, dw).size()
-	return maxf(42.0 + pad, 30.0 + n * lh) + pad * 2.0
+	return maxf(42.0 + pad, 30.0 + n * lh) + pad * 2.5
 
 
 ## pad（手机 docs/290）：技能名与说明之间多空 pad、行与行之间多空 pad、图标放大 pad
@@ -353,7 +353,7 @@ func draw_generic_skill_rows(b1: Rect2, y: float, rows: Array, dfs := 11, nfs :=
 	var dw := b1.end.x - 14.0 - x0
 	var lh: float = g.font.get_height(UI.fs(dfs)) + 1.0
 	var avail: float = b1.end.y - 6.0 - y
-	var rh := func(n: int) -> float: return maxf(42.0 + pad, 30.0 + n * lh) + pad * 2.0
+	var rh := func(n: int) -> float: return maxf(42.0 + pad, 30.0 + n * lh) + pad * 2.5
 	var wrapped: Array = []
 	var give: Array = []
 	var used := 0.0
@@ -398,7 +398,7 @@ func draw_generic_skill_rows(b1: Rect2, y: float, rows: Array, dfs := 11, nfs :=
 				while ln.length() > 0 and g.font.get_string_size(ln + "…", HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(dfs)).x > dw:
 					ln = ln.substr(0, ln.length() - 1)
 				ln += "…"
-			UI.text(g.hud, g.font, Vector2(x0, y + 33 + pad + j * lh), ln, dfs, dcol)
+			UI.text(g.hud, g.font, Vector2(x0, y + 33 + pad * 1.5 + j * lh), ln, dfs, dcol)
 		var row_h: float = rh.call(give[k])
 		g.stats_cells.append([Rect2(Vector2(b1.position.x + 14, y), Vector2(b1.size.x - 28, row_h)), "skill", row])
 		y += row_h
