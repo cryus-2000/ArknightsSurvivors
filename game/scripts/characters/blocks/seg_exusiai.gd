@@ -437,8 +437,8 @@ static func _pf_hit(o, e: Dictionary, d: float) -> void:
 	var m: int = int(o.g.t / 60.0)
 	if m > int(pf.get("m", 0)):
 		pf["m"] = m
-		print("EXUPF t=%d on=%d tc=%d tcc=%d h=%d hc=%d he=%d d=%d dc=%d pins=%d" % [int(o.g.t), 0 if _exu_active(o, "verb.aim_prefer").is_empty() else 1,
-			int(pf.get("tc", 0)), int(pf.get("tcc", 0)), int(pf.h), int(pf.get("hc", 0)), int(pf.get("he", 0)), int(pf.d), int(pf.get("dc", 0.0)), int(pf.get("pins", 0))])
+		print("EXUPF t=%d on=%d tc=%d tcc=%d h=%d hc=%d he=%d d=%d dc=%d pins=%d stn=%d mode=%d" % [int(o.g.t), 0 if _exu_active(o, "verb.aim_prefer").is_empty() else 1,
+			int(pf.get("tc", 0)), int(pf.get("tcc", 0)), int(pf.h), int(pf.get("hc", 0)), int(pf.get("he", 0)), int(pf.d), int(pf.get("dc", 0.0)), int(pf.get("pins", 0)), int(pf.get("stn", 0)), _pf_mode()])
 
 
 static func _exu_bullets(o, dt: float) -> void:
@@ -488,6 +488,8 @@ static func _exu_bullets(o, dt: float) -> void:
 			if stn > 0.0 and not e.dead and not e.boss:   # docs/297 B 版眩晕弹：精英减半、Boss 不受；走成长节点控制递减
 				o.add_cc_growth(e, stn * (0.5 if e.elite else 1.0))
 				_pf_burst(o, e.pos, 1)
+				if _pf_on(o):
+					o.ext.pfs["stn"] = int(o.ext.pfs.get("stn", 0)) + 1
 				bu.pierce = 0
 			elif stn > 0.0 and e.boss:
 				_pf_burst(o, e.pos, 1)
