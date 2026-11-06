@@ -37,19 +37,44 @@ def sprite(key):
     return fr.crop(fr.getbbox())
 
 
-def bg_pixels(W, H, cell):
+OVER = 1.15   # 背景多做 15% 的余量，按青光圈中心再裁（11-07：光圈要和人物对齐居中）
+
+
+def bg_pixels(W, H, cell, over=OVER):
     raw = K.fill_band(Image.open(BG).convert("RGB"))
-    gw, gh = W // cell, H // cell
-    x, y, cw, ch = X.crop_box(raw, gw, gh, FLOOR[0], 0.5)   # 11-07：裁切以青光空地为中心，人物居中后仍踩在光圈中央
+    gw, gh = int(W // cell * over), int(H // cell * over)
+    x, y, cw, ch = X.crop_box(raw, gw, gh, 0.5, 0.5)
     c = raw.crop((x, y, x + cw, y + ch))
-    # 怪潮发闷：中间调对比 ×1.25（以 0.3 为中点），让深色海嗣剪影读得出
     ca = np.asarray(c, np.float32) / 255
     ca = np.clip(0.3 + (ca - 0.3) * 1.25, 0, 1)
     c = Image.fromarray((ca * 255).astype(np.uint8))
     big = c.resize((gw * 4, gh * 4), Image.LANCZOS)
     q = big.quantize(colors=K.COLORS, method=Image.Quantize.MAXCOVERAGE, dither=Image.Dither.NONE, kmeans=4)
     pal = np.array(q.getpalette()[:K.COLORS * 3], np.uint8).reshape(-1, 3)
-    return pal[K.mode_down(np.asarray(q), 4)]          # gh×gw×3，1 像素 = 1 格
+    return pal[K.mode_down(np.asarray(q), 4)]
+
+
+def ring_center(g):
+    """在格子图里找地面青光圈：亮青像素（G、B 高，R 低）在中下部的分布，取 5% / 95% 分位的中点"""
+    gh, gw = g.shape[:2]
+    r, gg, b = [g[..., i].astype(int) for i in range(3)]
+    m = (gg > 170) & (b > 170) & (r < 160)
+    m[: int(gh * 0.5)] = False
+    m[:, : int(gw * 0.15)] = False
+    m[:, int(gw * 0.85):] = False
+    ys, xs = np.nonzero(m)
+    cx = (np.percentile(xs, 5) + np.percentile(xs, 95)) / 2
+    cy = (np.percentile(ys, 5) + np.percentile(ys, 95)) / 2
+    return int(round(cx)), int(round(cy)), m
+
+
+def crop_on_ring(big, gw, gh, floor_y):
+    """把带余量的格子图裁到 gw×gh：光圈中心落在水平正中、竖直 floor_y 处"""
+    cx, cy, m = ring_center(big)
+    Hb, Wb = big.shape[:2]
+    x0 = int(np.clip(cx - gw // 2, 0, Wb - gw))
+    y0 = int(np.clip(cy - int(gh * floor_y), 0, Hb - gh))
+    return big[y0:y0 + gh, x0:x0 + gw], m[y0:y0 + gh, x0:x0 + gw], (cx - x0, cy - y0)
 
 
 def shift_down(grid, n):
@@ -58,30 +83,49 @@ def shift_down(grid, n):
     return np.concatenate([top, grid[:-n]], 0)
 
 
-def compose_grid(grid, spr, n_shift=0):
-    """在格子分辨率上贴水月：脚踩护盾地面中心；外圈 1 格青色描边光 + 脚下一小块暗影"""
+def compose_grid(grid, spr, ringmask, center, n_shift=0):
+    """贴水月（11-07 改：不再整圈描边〔像贴纸〕）：
+    - 环境色：整体乘一点深海青，越往脚越受地面青光照亮；
+    - 反光：只在下半身、朝外的边缘加青色反光（光从地面光圈来）；
+    - 前后关系：光圈前半圈（脚下以下的亮青像素）重新画在脚前面；身前撒几颗飞溅光点。"""
     g = grid.copy()
     gh, gw = g.shape[:2]
-    a = np.asarray(spr)
+    a = np.asarray(spr).astype(np.float32)
     sh, sw = a.shape[:2]
     m = a[..., 3] > 127
-    # 11-07 用户「人物居中一点」：以头部（精灵最上面 30% 的不透明像素）水平中心对准画面中线，伞伸出去多长都不影响
     top = m[: max(1, int(sh * 0.3))]
     hx = int(np.nonzero(top.any(0))[0].mean())
-    fx, fy = gw // 2, int(gh * FLOOR[1]) + n_shift
-    x0, y0 = fx - hx, fy - sh
-    # 描边光：alpha 外扩 1 格的一圈，按 60% 混青色
+    fx, fy = center[0], center[1] + n_shift
+    x0, y0 = fx - hx, fy - sh + 1
+    # 环境色 + 地面上光
+    yy = np.linspace(0, 1, sh)[:, None]
+    amb = np.array([0.86, 0.94, 1.0])
+    up = np.clip((yy - 0.55) / 0.45, 0, 1)[..., None] * np.array([0.10, 0.30, 0.34]) * 255 * 0.35
+    rgb = np.clip(a[..., :3] * amb + up, 0, 255)
+    # 下半身朝外边缘的反光
     p = np.pad(m, 1)
-    ring = (p[:-2, 1:-1] | p[2:, 1:-1] | p[1:-1, :-2] | p[1:-1, 2:]) & ~m
-    # 脚下暗影：一条 2 格高的椭圆
-    yy, xx = np.mgrid[0:gh, 0:gw]
-    shadow = ((xx - fx) / (sw * 0.22)) ** 2 + ((yy - fy) / 1.6) ** 2 < 1
-    g[shadow] = (g[shadow] * 0.7).astype(np.uint8)   # 11-07：原来的硬黑条太突兀，改浅、窄
+    edge = m & ~(p[:-2, 1:-1] & p[2:, 1:-1] & p[1:-1, :-2] & p[1:-1, 2:])
+    lower = (np.arange(sh)[:, None] > sh * 0.45)
+    rim = edge & lower
+    rgb[rim] = rgb[rim] * 0.45 + np.array([120, 235, 245]) * 0.55
+    # 脚下暗影（浅、窄）
+    gy, gx = np.mgrid[0:gh, 0:gw]
+    shadow = ((gx - fx) / (sw * 0.2)) ** 2 + ((gy - fy) / 1.4) ** 2 < 1
+    g[shadow] = (g[shadow] * 0.75).astype(np.uint8)
     reg = g[y0:y0 + sh, x0:x0 + sw]
-    rr = ring[:reg.shape[0], :reg.shape[1]]
-    reg[rr] = (reg[rr] * 0.4 + CYAN * 0.6).astype(np.uint8)
     mm = m[:reg.shape[0], :reg.shape[1]]
-    reg[mm] = a[..., :3][:reg.shape[0], :reg.shape[1]][mm]
+    reg[mm] = rgb[:reg.shape[0], :reg.shape[1]][mm].astype(np.uint8)
+    # 光圈前半圈画回脚前（脚底所在行以下 1 格起）
+    front = ringmask.copy()
+    front[: fy] = False
+    g[front] = grid[front]
+    # 身前飞溅光点
+    rng = np.random.default_rng(11)
+    for _ in range(14):
+        x = int(fx + rng.normal(0, sw * 0.35))
+        y = int(fy - rng.uniform(0, sh * 0.45))
+        if 0 <= x < gw and 0 <= y < gh:
+            g[y, x] = (235, 255, 255) if rng.random() < 0.4 else (120, 235, 245)
     if THRUST:
         thrust_lines(g, m, x0, y0)
     return g
@@ -120,8 +164,15 @@ def thrust_lines(g, m, x0, y0):
 
 def build(key, kind):
     (W, H), cell, up, logo_y = SIZES[kind]
+    gw, gh = W // cell, H // cell
+    big = bg_pixels(W, H, cell)
+    grid, rmask, center = crop_on_ring(big, gw, gh, FLOOR[1])
     n = SHIFT[kind]
-    grid = compose_grid(shift_down(bg_pixels(W, H, cell), n), sprite(key), n)
+    grid, rmask = shift_down(grid, n), shift_down(rmask, n)
+    grid = compose_grid(grid, sprite(key), rmask, center, n)
+    # 顶部平滑压暗到统一深色（盖掉生图黑带补过渡留下的台阶，也给标题干净底）
+    t = np.clip(1 - np.arange(gh) / (gh * 0.34), 0, 1)[:, None, None] ** 1.3 * 0.9
+    grid = (grid * (1 - t) + np.array([6, 10, 16]) * t).astype(np.uint8)
     img = Image.fromarray(grid).resize((grid.shape[1] * cell, grid.shape[0] * cell), Image.NEAREST)
     canvas = Image.new("RGB", (W, H), (6, 10, 16))
     canvas.paste(img, ((W - img.width) // 2, (H - img.height) // 2))
