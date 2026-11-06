@@ -245,8 +245,9 @@ function breakerCols(o) {
     const rj = R * (0.86 + 0.28 * nz(a * 2.3, o.seed + 707));           // 浪线前后错落
     const peak = 0.35 + 0.55 * nz(a * 2.1, o.seed + 709) + 0.15 * nz(a * 6.3, o.seed + 711);   // 宽缓起伏的浪峰
     const edge = Math.min(1, (a - a0) / 0.35, (a1 - a) / 0.35);          // 两头收低
-    const h = +o.H * (0.25 + peak) * Math.max(0.15, edge);
     const pa = a + th;
+    // 11-07 用户「S3 头顶尖柱」：往画面上方（背离镜头）推的那段浪，看到的是背坡，原高度立起来是一排白色尖片、像冰晶——按背离程度压矮（away 缺省 0.55）
+    const h = +o.H * (0.25 + peak) * Math.max(0.15, edge) * (1 - (o.away === undefined ? 0.55 : +o.away) * Math.max(0, -Math.sin(pa)));
     cols.push({ a, pa, gx: Math.cos(pa) * rj, gy: Math.sin(pa) * rj * SY, h, ox: Math.cos(pa), oy: Math.sin(pa) * SY, near: Math.sin(pa), i: cols.length });
   }
   return cols;
@@ -277,7 +278,8 @@ function breaker(p, t, o, C, ACC) {
         p.px(Math.round(x), Math.round(y) + 1, col);
       }
       // ② 前脸：浪顶往前倾、脸是凹弧（上面伸出去，下面收回来）；朝镜头的一侧亮一阶
-      for (let z = 0; z <= hb; z += 0.5) {
+      // 11-07：背离镜头的浪柱（near < -0.3）前脸本来看不到——原来照画只压暗，叠成一道道斜的深色折线、像折纸 / 冰晶，不画
+      if (c.near > -0.3) for (let z = 0; z <= hb; z += 0.5) {
         const k = z / hb, off = curl * hb * 0.45 * k * k;
         const x = c.gx + c.ox * off, y = c.gy + c.oy * off - z;
         const kj = k + 0.22 * (nz(c.a * 9.3, o.seed + 741) - 0.5) + 0.1 * (nz(z * 0.7 + c.a * 3, o.seed + 743) - 0.5);   // 色带随浪柱起伏错开（不成一块平板）
