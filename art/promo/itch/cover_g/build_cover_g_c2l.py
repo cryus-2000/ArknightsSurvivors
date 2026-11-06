@@ -135,7 +135,7 @@ def pixelize2(img, figm, cell):
     W, H = img.size
     w, h = W // cell, H // cell
     small = img.resize((w, h), Image.BOX)
-    sharp = img.filter(ImageFilter.UnsharpMask(radius=1.2, percent=60, threshold=2)).resize((w, h), Image.BOX)
+    sharp = small   # 11-07：锐化会把人物边缘反差拉高、显脏，去掉
     fm = np.asarray(Image.fromarray((figm * 255).astype(np.uint8)).resize((w, h), Image.BOX), np.float32) / 255 > 0.5
     # 11-07 用户嫌脏：不再抖动（点阵本身就是颗粒），改为背景先 3×3 中值去噪、多收颜色（160）来消色带
     ad = np.asarray(small.filter(ImageFilter.MedianFilter(3)))
@@ -149,7 +149,7 @@ def pixelize2(img, figm, cell):
     lum = (out.astype(np.float32) * [0.299, 0.587, 0.114]).sum(-1)
     mxc, mnc = out.max(-1).astype(np.float32), out.min(-1).astype(np.float32)
     satc = (mxc - mnc) / (mxc + 1)
-    protect = (fm & ((lum > 200) | (satc > 0.45))) | (lum > 235)
+    protect = fm | (lum > 235)   # 11-07：人物也去麻点会碎成高反差色块（用户「更脏了」），只清背景
     out = despeckle(out, protect)
     return Image.fromarray(out).resize((W, H), Image.NEAREST)
 
