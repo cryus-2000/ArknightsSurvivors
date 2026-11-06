@@ -1,0 +1,5 @@
+old rc=0 180 张 0 处脚本错误
+new rc=0 180 张 0 处脚本错误
+total 8
+drwxr-xr-x 2 root root 4096 Nov  6 12:49 .
+drwxr-xr-x 5 root root 4096 Nov  6 12:52 ..

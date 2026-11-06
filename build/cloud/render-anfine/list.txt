@@ -1,0 +1,4 @@
+file 'build/cloud/render-anfine/old.mp4'
+file 'build/cloud/render-anfine/new.mp4'
+file 'build/cloud/render-anfine/old.mp4'
+file 'build/cloud/render-anfine/new.mp4'
