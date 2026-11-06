@@ -96,6 +96,14 @@ static func dbg_any() -> bool:
 	return not _dbg.is_empty()
 
 
+## --clutterdbg=nolead / nomates / noop_<干员 id>（后期特效分账量测）：只把队长 / 队友 / 某一名干员的特效画成全透明
+## （干员特效阶段的合批画布 + fx_dim + 该干员出手生成的 g.fx 帧条；GPU 光学颗粒不分人，量不到）
+static func mute_op(oid: String, leader: bool) -> bool:
+	if not dbg_any():
+		return false
+	return dbg("noop_" + oid) or dbg("nolead" if leader else "nomates")
+
+
 ## --clutterab=N：每 N 帧轮换（autotest 每帧调）
 static func ab_step(frame: int) -> void:
 	dbg("")

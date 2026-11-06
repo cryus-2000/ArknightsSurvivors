@@ -88,6 +88,7 @@ var _dbg_amb: bool = Dc.dbg("noamb")
 var _dbg_ground: bool = Dc.dbg("noground")
 var _dbg_gem: bool = Dc.dbg("nogem")
 var _dbg_mire: bool = Dc.dbg("nomire")
+var _dbg_opmask: bool = Dc.dbg("nolead") or Dc.dbg("nomates") or Cfg.dev_args().any(func(a): return a.begins_with("--clutterdbg=") and a.contains("noop_"))   # 后期特效分账（Dc.mute_op）
 # docs/139 §8 怪物攻击圈环盘点（量测，只隐藏不改逻辑）：nowarn 地面预警（填充 + 轮廓）、notell 敌人自带危险提示、nofoefx 敌方一次性特效、
 # noshock 冲击环、noaura 光环（巢涌者 / 伪人负担圈）
 var _dbg_warn: bool = Dc.dbg("nowarn")
@@ -1649,6 +1650,8 @@ func _draw_fx() -> void:
 		var foe: bool = f.get("enemy", false) or FOE_KINDS.has(f.kind)
 		if ((_dbg_foe or _dbg_foefx) and foe) or (_dbg_friend and not foe and not AMB_KINDS.has(f.kind)) or (_dbg_amb and AMB_KINDS.has(f.kind)):
 			continue   # --clutterdbg 量测：这一层不画
+		if _dbg_opmask and not foe and f.has("sop") and Dc.mute_op(str(f.sop), f.get("lead", false)):
+			continue   # 后期特效分账：该干员出手生成的帧条不画
 		if bfx_grains != null and f.has("bfx") and BFX_KINDS.has(f.kind):
 			# Boss 结算特效（telegraph.warn_resolve 打的 bfx = 专属色）：第一帧迸出颗粒，矢量形压成半透明的底（起手 = 预警、爆发 = 颗粒、消散 = 颗粒飘散）
 			if not f.has("bg"):

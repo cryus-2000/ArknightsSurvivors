@@ -984,6 +984,8 @@ func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip :=
 		f["lt"] = 3 if (g.ult != null and g.ult.playing()) else spawn_tier   # docs/251 V4 照地光的伤害档：终结技 3 / 技能期间 2 / 普攻 1
 	if spawn_lead:
 		f["lead"] = true
+	if spawn_op != null:
+		f["sop"] = spawn_op.id   # 谁放的（后期特效分账量测、--clutterlog 按人计数；纯画面标记）
 	if spawn_op != null and not ground and LateRead.on("v5") and not _v5_skip(name):
 		var gk: float = LateRead.grow_of(spawn_op)
 		if gk > 1.001:

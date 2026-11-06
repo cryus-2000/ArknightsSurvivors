@@ -1473,3 +1473,6 @@ func _op_dim(o, d0: float) -> void:
 	else:
 		cv.set_mod(g.world.mate_dim, g.world.mate_desat)
 	cv.mute = g.world._dbg_friend   # --clutterdbg=nofriend（量测）：这些阶段只有特效，整段不显示
+	if g.world._dbg_opmask and preload("res://scripts/render/declutter.gd").mute_op(str(o.id), o.is_leader):
+		cv.mute = true   # --clutterdbg=nolead / nomates / noop_<id>（后期特效分账）
+		g.world.fx_dim = 0.0

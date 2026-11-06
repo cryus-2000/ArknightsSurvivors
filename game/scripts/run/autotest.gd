@@ -2197,10 +2197,16 @@ func _clutter_log() -> void:
 	var kinds := {}
 	var fx_friend := 0
 	var fx_foe := 0
+	var by_op := {}   # 后期特效分账：干员 → {帧条名: 条数}（g.fx 里该干员出手生成的帧条，vfx 记的 sop）
 	for f in g.fx:
 		var foe: bool = f.get("enemy", false) or g.world.FOE_KINDS.has(f.kind)
 		var key: String = ("foe:" if foe else "") + str(f.kind)
 		kinds[key] = int(kinds.get(key, 0)) + 1
+		if f.has("sop") and f.life > 0.0:
+			var bo: Dictionary = by_op.get(str(f.sop), {})
+			var nm: String = str(f.get("name", f.kind))
+			bo[nm] = int(bo.get(nm, 0)) + 1
+			by_op[str(f.sop)] = bo
 		if foe:
 			fx_foe += 1
 		else:
@@ -2229,7 +2235,7 @@ func _clutter_log() -> void:
 	var lp: Vector2 = ct * g.ppos
 	var d := {"frame": g.at_frames, "t": snappedf(g.t, 0.01), "enemies": en, "enemies_on": en_on, "elite_boss_on": el_on,
 		"bosses": g.bosses.filter(func(b): return not b.dead).map(func(b): return str(b.type)),
-		"fx": g.fx.size(), "fx_friend": fx_friend, "fx_foe": fx_foe, "fx_kinds": kinds, "ops": ops,
+		"fx": g.fx.size(), "fx_friend": fx_friend, "fx_foe": fx_foe, "fx_kinds": kinds, "ops": ops, "fx_by_op": by_op,
 		"bullets": g.bullets.size(), "ebullets": g.ebullets.size(), "ebullets_on": eb_on, "lobs": g.lobs.size(), "shocks": g.shocks.size(),
 		"warns_full": wfull, "warns_dim": wdim, "dash_full": dash_full, "dash_dim": dash_dim, "texts": g.texts.size(),
 		"texts_drawn": g.hud_view.clarity_text_drawn,
