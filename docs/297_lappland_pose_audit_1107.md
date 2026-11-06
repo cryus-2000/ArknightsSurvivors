@@ -39,3 +39,10 @@
 | 图鉴 | 另核（本次未看）| 图鉴「攻击」应取 combat f4（出手帧）而不是 skill f4–f6 |
 
 帧条缺什么：无；Combat 原作只有游戏帧条里的 8 帧，PRTS 渲染缺 Combat 段采样，若要逐帧复核需补渲 Combat（`tools/prts_spine.py`）。
+
+## 4. 实施（11-07，用户确认「是在放一技能的时候」）
+
+- 根因：S1「日晷」的施放动作 `sprites.skills.s1.anim = skill`，而 `skill` 条是原作 Skill 段，其 f4–f6（0.5–0.8s）是蹲身双手前推的释放姿；S1 站定放时整段播出。原作 Attack 段（S2 的 `throw`）才是单臂前刺的攻击动作。
+- 改法（只画）：`lappland.json` 新增 `s1cast` 帧条槽——同 `op_lappland_attack` 贴图（原作 Attack 段），逐帧时长重排成总长 1.3333s、出手帧起点 0.5677s，与原 `skill` 条完全相同，所以 S1 施放窗口与出手时刻不变；`skills.s1.anim` 改 `s1cast`，`extra_sprites` 加 `s1cast`。`skill` 条只剩 S3 起手。
+- 冲刺：`sprites.dash_run: true` + `character.gd` 的 `want` 判断：队长冲刺中放技能时身体播 run 相位（只改 anim_kind，`attack_t` / `fire_t` 不动）。
+- 验证：同种子 TRACE（拉普兰德 seed 3，120 秒，`--dashat=20,40,60,80`）旧 / 新各 121 行逐行相同。

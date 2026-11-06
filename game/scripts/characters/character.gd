@@ -1304,6 +1304,8 @@ func follow(dt: float, target: Vector2) -> void:
 	var sqk := _sq_kind()   # 多条技能帧条当前阶段的帧条（"" = 不在序列里）
 	if vis_anim != "" and anim_tex(vis_anim) != null:
 		want = vis_anim   # 纯画面动作（play_vis_anim）：播完前压过普攻 / 跑步，不占出手窗口
+	elif is_leader and g.dash_t > 0.0 and attack_t > 0.0 and act_kind == "skill" and def.get("sprites", {}).get("dash_run", false) == true and anim_tex("run") != null:
+		want = "run"   # 冲刺中放技能：身体播跑步相位，不把蹲身前推等技能姿势拖在冲刺里（11-07 拉普兰德，docs/297）；只画，attack_t / fire_t 不动
 	elif sq_atk != "" and anim_tex(sq_atk) != null:
 		want = sqk if _sq_atk_yield() else sq_atk   # 循环期间的普攻变体（sprites.skills.sN.attack）：按其 fire 帧对齐出手，播完回循环（_tick_sq_atk）
 	elif attack_t > 0.0 and not sq_own and anim_tex(act_anim) != null and not act_anim_yield():

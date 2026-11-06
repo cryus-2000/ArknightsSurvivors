@@ -123,6 +123,7 @@
   },
   "_doc": "Codex 交付 199d7b73（原生像素 @2x、整数 foot；192 画布槽 foot = 顶层 + (16,16)）。跑步条未交，暂借斯卡蒂 run。attack 走 attack_timing（B 步改出手时刻），skill / throw 为 S1 / S3 与 S2 的起手条",
   "size": 64,
+  "dash_run": true,
   "foot": [
    32,
    60
@@ -282,10 +283,32 @@
     ]
    }
   },
+   "s1cast": {
+    "tex": "op_lappland_attack",
+    "frames": 8,
+    "fps": 5.999999821186071,
+    "foot": [
+     48,
+     76
+    ],
+    "frame_durations": [
+     0.1865569523898084,
+     0.2331961668761505,
+     0.14691354342706475,
+     0.1471380893650021,
+     0.1548821100187901,
+     0.15488221456424842,
+     0.1548821100187901,
+     0.1548821864099088
+    ],
+    "fire": 3,
+    "fire_time": 0.567667,
+    "_doc": "11-07 S1 日晷改播原作 Attack 段（单臂前刺；docs/297：用户「放一技能时出现双手平举前推」，那是原作 Skill 段 0.5–0.95s 的蹲身前推，属 S3）。同 op_lappland_attack 贴图，逐帧时长按 skill 条重排：总长与出手时刻（fire_time）同 skill 条，S1 施放窗口不变，同种子对局不变，只换画面"
+   },
   "skills": {
    "_doc": "S1 单条 skill；S2 单条 throw（原作 Attack 掷刃）；S3 起手 skill → 持续期由实际剑气事件驱动 throw（与 S2 同一掷刃动作，用户 10-22），等待事件时保持准备姿势、普攻也播 throw、移动 run；10-25 S3 改「噤声」：只播 skill 起手，技能期间普攻照常按远近切换",
    "s1": {
-    "anim": "skill"
+    "anim": "s1cast"
    },
    "s2": {
     "anim": "throw"
@@ -297,7 +320,8 @@
  },
  "extra_sprites": [
   "entry",
-  "throw"
+  "throw",
+  "s1cast"
  ],
  "attack": {
   "mode": "auto",
