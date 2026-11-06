@@ -395,7 +395,7 @@ func _ready() -> void:
 			_ui_font.data = (pf as FontFile).data
 			_ui_font.clear_cache()
 	if _ui_font != null and not touch_device() and load("res://scripts/core/balance.gd").vi("ui/font_ark", 0) > 0:
-		var rf = load("res://fonts/ui_regular.ttf")   # 原作式字重对照（docs/291）：桌面正文 Regular，名字 / 标题走 UI.name_font（Heavy）
+		var rf = load("res://fonts/ui_regular.ttf")   # 原作式字重对照（docs/292）：桌面正文 Regular，名字 / 标题走 UI.name_font（Heavy）
 		if rf is FontFile and not (rf as FontFile).data.is_empty():
 			_ui_font.data = (rf as FontFile).data
 			_ui_font.clear_cache()

@@ -1,5 +1,5 @@
 """界面字重对照用字体（11-06 用户「这个字体有点丑，查一下明日方舟用的什么字体」→「做对照」）：
-明日方舟正文是思源黑体，干员名用 Heavy、说明用 Normal（UI 分析文章，见 docs/291）。我们 ui.ttf 是思源黑体 Bold 一档到底。
+明日方舟正文是思源黑体，干员名用 Heavy、说明用 Normal（UI 分析文章，见 docs/292）。我们 ui.ttf 是思源黑体 Bold 一档到底。
 这里从 Noto Sans SC 可变字重版（= 思源黑体）切出 Heavy（900）与 Regular（400）两份，码位与 ui.ttf 完全相同（同一批 4096 个），
 纵向度量（hhea / OS/2 ascent、descent、lineGap）抄 ui.ttf，换字体后行高、基线不变。
 用法：python tools/make_ui_weight_fonts.py [NotoSansSC-VF.ttf 路径]  → game/fonts/ui_heavy.ttf、game/fonts/ui_regular.ttf"""
