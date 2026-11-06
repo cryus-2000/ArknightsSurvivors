@@ -27,6 +27,11 @@ SCENES = {
     "ph_tab_skills": (PH, ["--tabat=91", "--tabpage=2"]),                   # 手机技能页（放不下 → 滚动条）
     "ph_tab_skills_drag": (PH, ["--tabat=91", "--tabpage=2", "--tabdrag=600,420,100"]),  # 同上，真的拖动往下翻约 2 行
     "ph_tab_relics": (PH, ["--tabat=91", "--tabpage=4", "--relics=all"]),
+    "ph_p0": (PH, ["--tabat=91", "--tabpage=0"]),   # 手机 v3 五页（docs/290 手机属性面板按指挥台统一）
+    "ph_p1": (PH, ["--tabat=91", "--tabpage=1"]),
+    "ph_p2": (PH, ["--tabat=91", "--tabpage=2"]),
+    "ph_p3": (PH, ["--tabat=91", "--tabpage=3"]),
+    "ph_p4": (PH, ["--tabat=91", "--tabpage=4", "--relics=all"]),
     "ph_tab_relics_drag": (PH, ["--tabat=91", "--tabpage=4", "--relics=all", "--tabdrag=500,380,140"]),
 }
 
