@@ -1,4 +1,4 @@
-# 能天使「对空优先」改版对照（docs/297）：图鉴演示精零普攻 + 成长节点 1，exu_prefer 0 / 1 / 2 × 有控制（演示每 2 秒眩晕最近 3 只）/ 无控制，
+# 能天使「对空优先」改版对照（docs/298）：图鉴演示精零普攻 + 成长节点 1，exu_prefer 0 / 1 / 2 × 有控制（演示每 2 秒眩晕最近 3 只）/ 无控制，
 # 30 帧连拍（--fixed-fps 30，原速），每段 7 秒；本机再拼成三栏 mp4
 # 用法：python tools/gcp/batch.py run <tag> --commit <提交> --cmd 'bash tools/gcp/render_jobs/exu_pf_rec.sh'
 set +e

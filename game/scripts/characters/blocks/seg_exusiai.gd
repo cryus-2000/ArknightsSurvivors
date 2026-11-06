@@ -146,7 +146,7 @@ static func _exu_targets(o, n: int, rr: float, prio: float) -> Array:
 				pf["tcc"] = int(pf.get("tcc", 0)) + 1
 				break
 		o.ext["pfs"] = pf
-	var pmode: int = _pf_mode() if prefer else 0   # docs/297 改版开关：0 = 原样
+	var pmode: int = _pf_mode() if prefer else 0   # docs/298 改版开关：0 = 原样
 	var pf_fb := false   # A 版：射程内没有受控目标时改为精英 / Boss 优先
 	if pmode == 1:
 		pf_fb = true
@@ -291,7 +291,7 @@ static func _exu_volley(o, p: Dictionary, main: bool, last: bool) -> void:
 		var trs: Array = _exu_active(o, "verb.tracer")
 		if not trs.is_empty():
 			trb = trs.back()   # 收网（5A）排在曳光弹（4A）之后，取它的 max
-	var hv = null   # docs/297 C 版：每 exu_hv_cd 秒一发重弹，射程内最近的精英 / Boss（没有就最近的敌人）
+	var hv = null   # docs/298 C 版：每 exu_hv_cd 秒一发重弹，射程内最近的精英 / Boss（没有就最近的敌人）
 	if main and not fan and _pf_mode() == 3 and o.tags_all.has("verb.aim_prefer") and not _exu_active(o, "verb.aim_prefer").is_empty() 			and g.t - float(st.get("pf_hv_t", -99.0)) >= MfBal.v("growth_nodes/exu_hv_cd", 4.0):
 		hv = _pf_threat(o, _exu_range(o, p))
 		if hv != null:
@@ -381,7 +381,7 @@ static func exu_tick(o, dt: float) -> void:
 	_exu_bullets(o, dt)
 
 
-## docs/297 对空优先改版开关 growth_nodes/exu_prefer：0 = 原样；1 = A（锁定框 + 定身星 + 无受控目标时精英优先）；2 = B（A 的画面 + 每第 N 发眩晕弹）
+## docs/298 对空优先改版开关 growth_nodes/exu_prefer：0 = 原样；1 = A（锁定框 + 定身星 + 无受控目标时精英优先）；2 = B（A 的画面 + 每第 N 发眩晕弹）
 static func _pf_mode() -> int:
 	return int(MfBal.v("growth_nodes/exu_prefer", 0.0))
 
@@ -414,7 +414,7 @@ static func _pf_threat(o, rr: float):
 	return best
 
 
-## --exupf 量测（docs/297）：受控目标出现频率、主弹命中受控目标的次数与伤害占比；每 60 秒打一行 EXUPF，不取随机数、不改状态以外的东西
+## --exupf 量测（docs/298）：受控目标出现频率、主弹命中受控目标的次数与伤害占比；每 60 秒打一行 EXUPF，不取随机数、不改状态以外的东西
 static var _pf_flag := -1
 static func _pf_on(o) -> bool:
 	if _pf_flag < 0:
@@ -485,7 +485,7 @@ static func _exu_bullets(o, dt: float) -> void:
 			for s in bu.on_hit:
 				apply_status(o, e, s)
 			var stn: float = float(bu.get("stn", 0.0))
-			if stn > 0.0 and not e.dead and not e.boss:   # docs/297 B 版眩晕弹：精英减半、Boss 不受；走成长节点控制递减
+			if stn > 0.0 and not e.dead and not e.boss:   # docs/298 B 版眩晕弹：精英减半、Boss 不受；走成长节点控制递减
 				o.add_cc_growth(e, stn * (0.5 if e.elite else 1.0))
 				_pf_burst(o, e.pos, 1)
 				if _pf_on(o):
@@ -925,7 +925,7 @@ static func exu_gm_draw(o) -> void:
 				break
 
 
-## docs/297 改版画面（能天使转平面配色 g 阶：#5c3e0a 描边、#e8b030 / #ffd86a 主色、#fff2c0 高光；按美术像素格对齐）：
+## docs/298 改版画面（能天使转平面配色 g 阶：#5c3e0a 描边、#e8b030 / #ffd86a 主色、#fff2c0 高光；按美术像素格对齐）：
 ## 锁定框 = 头号目标四角金色折角，锁上瞬间从外 10 像素收紧（0.12 秒）、之后按拍轻闪；受控但没锁的照旧画小括号；
 ## 定身 / 眩晕弹 = 一圈金色四角小星往外飞 0.35 秒
 const PF_GOLD := [Color(0.36, 0.24, 0.04), Color(0.91, 0.69, 0.19), Color(1.0, 0.85, 0.42), Color(1.0, 0.95, 0.75)]
