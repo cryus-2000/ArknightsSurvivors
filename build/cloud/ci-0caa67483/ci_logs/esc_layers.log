@@ -1,0 +1,63 @@
+# esc_layers
+# 参数：--headless --path /work/repo/game res://tests/esc_layers_test.tscn -- --regression --seed=1
+# 用时 23 秒；结束时全机 Godot 14 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ESC LAYERS: 0 failures
+ERROR: 85 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 4 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+
+## stderr
+ERROR: Not supported by this display server.
+   at: keyboard_get_keycode_from_physical (servers/display/display_server.cpp:1224)
+   GDScript backtrace (most recent call first):
+       [0] kc (res://scripts/pad.gd:269)
+       [1] _input (res://scripts/settings_panel.gd:245)
+ERROR: Not supported by this display server.
+   at: keyboard_get_keycode_from_physical (servers/display/display_server.cpp:1224)
+   GDScript backtrace (most recent call first):
+       [0] kc (res://scripts/pad.gd:269)
+       [1] _input (res://scripts/settings_panel.gd:245)
+ERROR: Not supported by this display server.
+   at: keyboard_get_keycode_from_physical (servers/display/display_server.cpp:1224)
+   GDScript backtrace (most recent call first):
+       [0] kc (res://scripts/pad.gd:269)
+       [1] _input (res://scripts/settings_panel.gd:245)
+ERROR: Not supported by this display server.
+   at: keyboard_get_keycode_from_physical (servers/display/display_server.cpp:1224)
+   GDScript backtrace (most recent call first):
+       [0] kc (res://scripts/pad.gd:269)
+       [1] _input (res://scripts/settings_panel.gd:245)
+ERROR: Not supported by this display server.
+   at: keyboard_get_keycode_from_physical (servers/display/display_server.cpp:1224)
+   GDScript backtrace (most recent call first):
+       [0] kc (res://scripts/pad.gd:269)
+       [1] _input (res://scripts/settings_panel.gd:245)
+ERROR: Not supported by this display server.
+   at: keyboard_get_keycode_from_physical (servers/display/display_server.cpp:1224)
+   GDScript backtrace (most recent call first):
+       [0] kc (res://scripts/pad.gd:269)
+       [1] _input (res://scripts/settings_panel.gd:245)
+ERROR: Not supported by this display server.
+   at: keyboard_get_keycode_from_physical (servers/display/display_server.cpp:1224)
+   GDScript backtrace (most recent call first):
+       [0] kc (res://scripts/pad.gd:269)
+       [1] _unhandled_input (res://scripts/game.gd:1822)
+ERROR: Not supported by this display server.
+   at: keyboard_get_keycode_from_physical (servers/display/display_server.cpp:1224)
+   GDScript backtrace (most recent call first):
+       [0] kc (res://scripts/pad.gd:269)
+       [1] _unhandled_input (res://scripts/game.gd:1818)
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+WARNING: 473 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 31 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+
