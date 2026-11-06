@@ -8,12 +8,12 @@ extends RefCounted
 const Bal = preload("res://scripts/core/balance.gd")
 const D = preload("res://scripts/data.gd")   # 怪物代表色 ecol（崩解喷散取怪物自身颜色）
 
-const LT := [Color("#1a0c28"), Color("#3a1a58"), Color("#6a32a0"), Color("#9d58e0"), Color("#cf98ff"), Color("#f0e2ff"), Color("#ffffff")]
-const TIDE := [Color("#050b1a"), Color("#0b1a38"), Color("#143062"), Color("#21508c"), Color("#3f80bc"), Color("#90c4ea"), Color("#e6f6ff")]
+const LT := [Color("#1e0c16"), Color("#4a1c32"), Color("#8a3a5a"), Color("#c8668a"), Color("#eaa0b8"), Color("#fbe0ea"), Color("#ffffff")]   # 白 + 粉（11-07 用户「主色调应该是白+粉为主，一技能的蓝色去掉」；粉取 PRTS 立绘 #d090a0 色相约 345°，docs/272 §8）
+const TIDE := [Color("#140a10"), Color("#2a1620"), Color("#46283a"), Color("#6e4458"), Color("#a8788c"), Color("#e0bfca"), Color("#fff2f5")]   # 原深海蓝潮水，11-07 改粉雾（去蓝，docs/272 §8）
 const COOL := [Color("#16121c"), Color("#2a2430"), Color("#423a4a")]
 const DUST := [Color("#2a2a30"), Color("#3e3c44"), Color("#56545c"), Color("#6e6c74")]
-const NAVY := Color("#0c1430")
-const VIOLET_L := Color(0.8, 0.6, 1.0)
+const NAVY := Color("#1c0c16")
+const VIOLET_L := Color(1.0, 0.62, 0.78)
 const SQ := 0.72
 const EMIT_CAP := 240
 
@@ -299,7 +299,7 @@ func _seal_mod(age: float, fade) -> Color:
 		if u >= 1.0:
 			return Color(1, 1, 1, 0)
 		var k: float = 1.0 - 0.45 * u
-		return Color(k * 0.9, k * 0.85, k, 0.42 * (1.0 - u))
+		return Color(k, k * 0.85, k * 0.9, 0.42 * (1.0 - u))
 	if age < 2.0 / 15.0:
 		return Color(1.35, 1.3, 1.35, 0.95)
 	if age < 4.0 / 15.0:
@@ -691,7 +691,7 @@ func _draw_blast(u, w, c: Vector2, R: float, fa: float) -> void:
 	# ② 起爆那一刻：照地灯打满 + 轻震 + 3 帧顿帧（一次）
 	if not st.get("blasted", false):
 		st["blasted"] = true
-		u.light(c, 240.0, Color(1.0, 0.85, 1.25), 0.15)   # docs/270 爆发档上限附近（半径 240）
+		u.light(c, 240.0, Color(1.25, 0.88, 1.0), 0.15)   # docs/270 爆发档上限附近（半径 240）
 		u.shake(3.0, 0.12)   # 用户同意过的量级；ult.shake 取正在震的较大者，打击感包同时在震时不叠加
 		g.vfx.stop(0.05, "ult_blast", true)
 		for pn in st.pins:   # 崩解第二波：和大爆同一拍，所有被宣判的怪沿斩线往外再炸一次（更大）

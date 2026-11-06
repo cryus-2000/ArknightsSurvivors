@@ -10,9 +10,9 @@ const PxU = preload("res://scripts/render/px_util.gd")   # 共用小工具（doc
 const Pxp = preload("res://scripts/render/fx_pxplane.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 
-const LT := [Color("#1a0c28"), Color("#3a1a58"), Color("#6a32a0"), Color("#9d58e0"), Color("#cf98ff"), Color("#f0e2ff"), Color("#ffffff")]   # 白 + 亮紫（11-05 用户改定主基调，docs/272 §1）
+const LT := [Color("#1e0c16"), Color("#4a1c32"), Color("#8a3a5a"), Color("#c8668a"), Color("#eaa0b8"), Color("#fbe0ea"), Color("#ffffff")]   # 白 + 粉（11-07 用户「主色调应该是白+粉为主，一技能的蓝色去掉」；粉取 PRTS 立绘 #d090a0 色相约 345°，docs/272 §8）
 const LAMP := [Color("#1c1408"), Color("#4a3612"), Color("#8c6a26"), Color("#cfa24a"), Color("#efd08a"), Color("#fff0c6"), Color("#ffffff")]   # 金：只留给手提灯
-const TIDE := [Color("#050b1a"), Color("#0b1a38"), Color("#143062"), Color("#21508c"), Color("#3f80bc"), Color("#90c4ea"), Color("#e6f6ff")]
+const TIDE := [Color("#140a10"), Color("#2a1620"), Color("#46283a"), Color("#6e4458"), Color("#a8788c"), Color("#e0bfca"), Color("#fff2f5")]   # 原深海蓝潮水，11-07 改粉雾（去蓝，docs/272 §8）
 const SHADOW := Color("#0e1218")
 const SQ := 0.72
 const LANCE_H := 11.0
@@ -20,7 +20,7 @@ const S2_R := [100, 116, 132]
 const FIN_R := [75, 87, 99]
 const S3_R := [80, 93, 106]
 const GALE_R := [35, 45]
-const TIDE_LIGHT := Color(0.5, 0.75, 1.0)
+const TIDE_LIGHT := Color(1.0, 0.72, 0.84)
 const PIERCE_N := 3        # 一刺至多画 3 只身上的贯穿
 const RT_MAX := 48         # 运行时件上限（整队）
 
@@ -112,9 +112,10 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 		"ir_thrust":   # 一段刺击：光刃（跟她）+ 投影 / 潮痕（贴地，跟她）+ 贯穿（跟被刺的那只）+ 首中处水珠 + 照地光
 			var dv: Vector2 = d.d
 			var es: Array = d.get("es", [])
-			_push_rt(o, {"k": "lance", "d": dv, "L": float(d.L) * 0.5, "gust": d.get("gust", false), "life": 7.0 / 15.0 + (1.0 / 15.0 if d.get("gust", false) else 0.0) + 0.02})
+			var star: bool = not d.get("gust", false) and Bal.v("fx/ir_atk_star", 0.0) > 0.0   # 11-07 用户「更喜欢旧版带星光的，现在太像激光」：普攻换星光画法（S1 起风不变）
+			_push_rt(o, {"k": "lance", "d": dv, "L": float(d.L) * 0.5, "gust": d.get("gust", false), "star": star, "sd": int(fposmod(g.t * 997.0, 4096.0)), "life": 7.0 / 15.0 + (1.0 / 15.0 if star else 0.0) + 0.02})
 			for i in mini(PIERCE_N, es.size()):
-				_push_rt(o, {"k": "pierce", "e": es[i], "d": dv, "life": 3.0 / 15.0 + 0.02})
+				_push_rt(o, {"k": "pierce", "e": es[i], "d": dv, "st": star, "life": (4.0 if star else 3.0) / 15.0 + 0.02})
 			if not es.is_empty():
 				var e0: Dictionary = es[0]
 				var hp: Vector2 = e0.pos + Vector2(0, -float(e0.r) * 0.55 - float(e0.get("air", 0.0)))
@@ -242,7 +243,7 @@ func draw_floor(o) -> void:
 	for it in rt:
 		match str(it.k):
 			"lance":
-				if it.op == o and not it.has("fix"):
+				if it.op == o and not it.has("fix") and not it.get("star", false):   # 星光画法没有长条，不投长影
 					_pts(cv, o.pos, _lance_gd(float(it.L), it.d, _fr(float(it.t0)), t, it.gust))
 			"estrip":
 				if str(it.ly) == "gd" and it.op == o:
@@ -293,11 +294,17 @@ func draw_rt(ci, item: Dictionary) -> void:
 		"lance":
 			var a: Vector2 = it.fix if it.has("fix") else it.op.pos
 			var t: int = 2 if it.get("link", false) else r.tier(it.op)
-			_pts(ci, a, _lance(float(it.L), it.d, _fr(float(it.t0)), t, it.gust, it.get("link", false)))
+			if it.get("star", false):
+				_pts(ci, a, _lance_star(float(it.L), it.d, _fr(float(it.t0)), t, int(it.get("sd", 0))))
+			else:
+				_pts(ci, a, _lance(float(it.L), it.d, _fr(float(it.t0)), t, it.gust, it.get("link", false)))
 		"pierce":
 			var e: Dictionary = it.e
 			var hp: Vector2 = e.pos + Vector2(0, -float(e.r) * 0.55 - float(e.get("air", 0.0)))
-			_pts(ci, hp, _pierce(it.d, _fr(float(it.t0)) - 1, 1))   # 光锥第 1 拍到才闪
+			if it.get("st", false):
+				_pts(ci, hp, _star_burst(_fr(float(it.t0)) - 1, int(e.get("id", 0))))   # 星光画法：刺尖到的那一拍炸开星芒
+			else:
+				_pts(ci, hp, _pierce(it.d, _fr(float(it.t0)) - 1, 1))   # 光锥第 1 拍到才闪
 		"charge":
 			_pts(ci, it.op.pos, _charge(it.d, _fr(float(it.t0))))
 		"tracer":
@@ -448,6 +455,101 @@ func _lance(L: float, d: Vector2, f: int, tier: int, gust: bool, link := false) 
 	var out: Array = []
 	for kk in cells:
 		out.append([float(kk.x), float(kk.y), cells[kk][0], cells[kk][1]])
+	return out
+
+
+## 普攻星光画法（fx/ir_atk_star，11-07 用户「更喜欢旧版带星光的，现在太像激光了」）：不画贯穿全长的实心光锥，
+## 三种元素：①刺尖十字星芒顺着刺击方向两拍推到判定末端（身后只拖一截断开的短光，不连成长线）；
+## ②刺尖经过的地方留下几颗小星点，闪一下、往上飘一格、熄掉；③被刺中的那只身上炸开星芒（_star_burst）。
+## 第 0 拍出手星芒沿用 _lance；精一星点更多、刺尖星芒多四个斜角；精二出手星芒八芒（同 _lance）。
+func _lance_star(L: float, d: Vector2, f: int, tier: int, sd: int) -> Array:
+	if f < 0 or f > 6:
+		return []
+	var cells := {}
+	var s0 := 4.0
+	var n2 := Vector2(-d.y, d.x)
+	if f == 0:   # 出手星芒（同 _lance 第 0 拍）
+		for q in _lance(L, d, 0, tier, false):
+			cells[Vector2i(roundi(float(q[0])), roundi(float(q[1])))] = [q[2], q[3]]
+	var heads := [0.0, s0 + (L - s0) * 0.55, L, L, L, L, L]
+	var sh: float = heads[f]
+	if f >= 1 and f <= 2:   # 刺尖身后一截断开的短光：长 = 判定 0.28，4 格亮 2 格空，越往后越暗越细
+		var tl: float = maxf(8.0, (L - s0) * 0.28)
+		var i := 0
+		var s: float = sh - 2.0
+		while s > maxf(s0, sh - tl):
+			var u: float = (sh - s) / tl
+			if (i / 4) % 3 != 2 or i < 4:
+				var c: Color = LT[6] if u < 0.25 else (LT[5] if u < 0.6 else LT[4])
+				cells[Vector2i(roundi(d.x * s), roundi(d.y * s - LANCE_H))] = [c, u < 0.25 and i % 2 == 0]
+				if u < 0.3:
+					for sg in [-1.0, 1.0]:
+						var k := Vector2i(roundi(d.x * s + n2.x * sg), roundi(d.y * s - LANCE_H + n2.y * sg))
+						if not cells.has(k):
+							cells[k] = [LT[4], false]
+			i += 1
+			s -= 1.0
+	# 刺尖十字星芒：第 1 拍臂长 3、第 2 拍 4（精一多斜角）、第 3 拍 2、第 4 拍只剩一点
+	var arm: int = [0, 3, 4, 2, 1, 0, 0][f]
+	if arm > 0:
+		var hx: float = d.x * sh
+		var hy: float = d.y * sh - LANCE_H
+		var st: Array = []
+		_star(st, hx, hy, arm, LT[6] if f <= 3 else LT[5], LT[5] if f <= 2 else LT[4], LT[4] if f <= 2 else LT[3])
+		if tier >= 1 and f >= 1 and f <= 2:
+			for sg in [Vector2(1, 1), Vector2(1, -1), Vector2(-1, 1), Vector2(-1, -1)]:
+				st.append([hx + sg.x, hy + sg.y, LT[5], false])
+				if f == 2:
+					st.append([hx + sg.x * 2.0, hy + sg.y * 2.0, LT[4], false])
+		for q in st:
+			cells[Vector2i(roundi(float(q[0])), roundi(float(q[1])))] = [q[2], q[2] == LT[6]]
+	# 路上散落的小星点：刺尖经过后出现，三拍：小十字 → 亮点上飘一格 → 暗点上飘两格
+	var nd: int = [4, 6, 7][clampi(tier, 0, 2)]
+	for k2 in nd:
+		var u2: float = 0.12 + 0.8 * (float(k2) + _hf(k2, sd, 7)) / float(nd)
+		var sk: float = s0 + (L - s0) * u2
+		var born: int = 1 if sk <= heads[1] else 2
+		var age: int = f - born - (_hsh(k2, sd, 11) % 2)
+		if age < 0 or age > 2:
+			continue
+		var off: float = (_hf(k2, sd, 13) - 0.5) * 7.0
+		var x: float = roundf(d.x * sk + n2.x * off)
+		var y: float = roundf(d.y * sk - LANCE_H + n2.y * off) - age
+		var big: bool = _hsh(k2, sd, 17) % 3 == 0
+		if age == 0:
+			cells[Vector2i(int(x), int(y))] = [LT[6], true]
+			if big:
+				for dd in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+					var kq := Vector2i(int(x) + dd.x, int(y) + dd.y)
+					if not cells.has(kq):
+						cells[kq] = [LT[4], false]
+		elif age == 1:
+			cells[Vector2i(int(x), int(y))] = [LT[5] if big else LT[4], false]
+		else:
+			if (k2 + f) % 2 == 0:
+				cells[Vector2i(int(x), int(y))] = [LT[3], false]
+	var out: Array = []
+	for kk in cells:
+		out.append([float(kk.x), float(kk.y), cells[kk][0], cells[kk][1]])
+	return out
+
+
+## 星光画法的命中星爆（4 拍，同旧版 fx_star_hit_rose 的节奏：大四芒星 → 收小 + 斜向四颗星屑往外 → 星屑再外飘变暗 → 熄）
+func _star_burst(f: int, eid: int) -> Array:
+	var out: Array = []
+	if f < 0 or f > 3:
+		return out
+	if f <= 1:
+		_star(out, 0.0, 0.0, 4 if f == 0 else 2, LT[6], LT[5], LT[4] if f == 0 else LT[3])
+	if f >= 1:
+		var rr: float = [0.0, 3.0, 5.0, 6.0][f]
+		var tw: int = eid % 4
+		for q in 4:
+			if f == 3 and (q + tw) % 2 == 0:
+				continue
+			var sg := Vector2(1 if q % 2 == 0 else -1, 1 if q < 2 else -1)
+			var c: Color = LT[5] if f == 1 else (LT[4] if f == 2 else LT[3])
+			out.append([sg.x * rr, sg.y * rr - (f - 1), c, f == 1])
 	return out
 
 
