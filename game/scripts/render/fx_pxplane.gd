@@ -185,7 +185,27 @@ func _meta(k: String) -> Dictionary:
 	return meta.get(k, {})
 
 
+## 帧条按用到才读、60 秒（TEX_KEEP，局内时间）没画过就放掉（docs/287 §3 ⑥：原来读了整局不放，三人编队最重约 150 MB）；
+## 再用到时重读（一张几 MB，几毫秒）。OPT_PXEVICT（--optold=536870912）置位不放
+const TEX_KEEP := 60.0
+var _tex_t := {}
+var _tex_sweep := 0.0
+
+func _tex_evict() -> void:
+	if g.opt_old & g.OPT_PXEVICT or g.t - _tex_sweep < 10.0:
+		return
+	_tex_sweep = g.t
+	var drop: Array = []
+	for k in _tex_t:
+		if g.t - float(_tex_t[k]) > TEX_KEEP:
+			drop.append(k)
+	for k in drop:
+		_tex_t.erase(k)
+		tex.erase(k)
+
+
 func _tex(k: String) -> Texture2D:
+	_tex_t[k] = g.t
 	if not tex.has(k):
 		var p: String = ART % k.replace("_d-", "_dm").to_lower()   # 负方向键（d-45）的文件名写成 dm45：素材命名不许连字符 / 大写（asset_lint N1；塞雷娅 pilB / pilS 的文件名一律小写）
 		tex[k] = load(p) if ResourceLoader.exists(p) else null
@@ -537,6 +557,7 @@ func _step() -> void:
 	if fr == _step_fr and not (g.opt_old & g.OPT_PXSTEP):   # 一帧只清一次（docs/287 §3 ⑤）：原来每名干员每个绘制层进来都整表 filter 一遍；同一帧 g.t 不变，结果相同
 		return
 	_step_fr = fr
+	_tex_evict()
 	var now: float = g.t
 	items = items.filter(func(it): return now - float(it.t0) < (float(it.life) if it.has("life") else _life(str(it.k))) + 0.02 and not (it.has("ef") and it.ef.get("dead", false)))
 	for it in items:   # 卡肉（melee_impact.meat）：命中那一拍（第 1 帧）多停 stk 秒再接着扫
