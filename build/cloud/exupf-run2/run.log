@@ -1,0 +1,12 @@
+noctrl m1：240 张；0 处脚本错误
+noctrl m0：240 张；0 处脚本错误
+noctrl m2：240 张；0 处脚本错误
+noctrl m3：240 张；0 处脚本错误
+ERROR: (gcloud.storage.cp) The following URLs matched no objects or files:
+/work/shots_1358.tar.gz
+ERROR: (gcloud.storage.cp) The following URLs matched no objects or files:
+/work/shots_1357.tar.gz
+ERROR: (gcloud.storage.cp) The following URLs matched no objects or files:
+/work/shots_1359.tar.gz
+ERROR: (gcloud.storage.cp) The following URLs matched no objects or files:
+/work/shots_1361.tar.gz
