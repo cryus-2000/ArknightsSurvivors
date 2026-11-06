@@ -1,5 +1,6 @@
 # 00 · 文档索引
 
+- [296_bond2_art_concept](296_bond2_art_concept.md)：构思稿，待用户挑；羁绊技新画面：每对一件招牌物件烤帧条（宿敌两刃对撞 / 企鹅物流急件箱 / 灯下审决审判光柱 + 灯印），关键帧草图 `tools/bond2_concept.py`。
 - [294_bond_collab_v2](294_bond_collab_v2.md)：设计稿，待审；羁绊改 HoloCure 式羁绊技（两人都精一解锁、22 秒自动、一片大图形），取代合击 + 小数值；8 条招式 + 3 对示意 GIF（`tools/bond_v2_gif.py`）。
 - [291_hit_feel_evo](291_hit_feel_evo.md)：试点待审；用户 11-07 给的像素近战文章对照（过冲 / 扇形拉丝 / 收招慢于爆发 / 巅峰帧 / 残影）+ §6 刀光以外的手法，德克萨斯 + 星熊挂 `fx/melee_evo` 缺省 0。
 - [288_standard_up_1106](288_standard_up_1106.md)：已实施；普通难度略微调高，`difficulty/standard/enemy_hp` 1.08 → 1.14，GCP 对照 m18 76 → 70、m0 54.5 → 53。
