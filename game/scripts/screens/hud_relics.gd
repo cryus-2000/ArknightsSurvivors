@@ -8,7 +8,13 @@ const Tris = preload("res://scripts/screens/hud_tris.gd")
 const HudV2 = preload("res://scripts/screens/hud_v2.gd")   # 编辑式 HUD（docs/222，ui/hud_v2）
 const TriBatch = preload("res://scripts/render/tri_batch.gd")
 var g: Game
-var h   # screens/hud.gd：合批段（batch_begin / _hb）、共用助手（edge_glow / corrode_seg / draw_tooltip）与兄弟模块都从这里取
+## The HUD owns its sections; the return link must not retain it after a run.
+var _owner_ref: WeakRef
+var h:
+	get:
+		return _owner_ref.get_ref() if _owner_ref != null else null
+	set(value):
+		_owner_ref = weakref(value) if value != null else null
 
 
 func _init(hud) -> void:

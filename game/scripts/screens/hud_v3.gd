@@ -18,7 +18,13 @@ const LANT_FPS := 15.0
 const LANT_PIVOT := Vector2(28, 66)
 
 var g: Game
-var h   # screens/hud.gd
+## The HUD owns its sections; the return link must not retain it after a run.
+var _owner_ref: WeakRef
+var h:
+	get:
+		return _owner_ref.get_ref() if _owner_ref != null else null
+	set(value):
+		_owner_ref = weakref(value) if value != null else null
 
 const WHITE := Color(0.925, 0.933, 0.941)
 const GREY := Color(0.588, 0.612, 0.643)

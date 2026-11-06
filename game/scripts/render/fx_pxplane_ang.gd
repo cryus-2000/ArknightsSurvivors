@@ -20,7 +20,10 @@ const LAND_CAP := 3                # 每拍至多几处落点画面
 const LINK_T := 0.45               # 同 skill_link l_angelina 的 T2
 const CORE_Y := -112.0             # 重力核心在她脚底上方（头顶）
 
-var r      # fx_pxplane 实例
+var _parent: WeakRef
+var r:   # Owner holds this helper; the backreference must not retain its cache.
+	get:
+		return _parent.get_ref()
 var g
 var _beat := {}
 var _air := {}          # e.id → 安洁莉娜的悬浮表项（每帧重建）
@@ -31,7 +34,7 @@ var _links: Array = []  # 连携引力环：{c, r, t0, oid}
 
 
 func _init(px) -> void:
-	r = px
+	_parent = weakref(px)
 	g = px.g
 
 
@@ -171,6 +174,7 @@ func _field_state(o, look: String) -> Dictionary:
 # ================================================================ 绘制
 
 func draw_floor(o) -> void:
+	var renderer = r
 	var cv = o.cv
 	var id: String = str(o.id)
 	# 常驻场：微粒模式环带（很暗的短划慢慢转）、反重力模式场边
@@ -181,26 +185,26 @@ func draw_floor(o) -> void:
 			if not (st is Dictionary) or not st.has("c") or st.c == Vector2.INF:
 				continue
 			if str(st.get("look", "")) == "ring":
-				r._draw_strip(cv, "an_band2_z%d_gd" % _zi(float(st.get("ring", 110.0)) / 110.0), r.frame_of(0.0), Pxp._snap(st.c), false, false)
+				renderer._draw_strip(cv, "an_band2_z%d_gd" % _zi(float(st.get("ring", 110.0)) / 110.0), renderer.frame_of(0.0), Pxp._snap(st.c), false, false)
 			elif str(st.get("look", "")) == "lift":
-				r._draw_strip(cv, "an_ripple_z%d_gd" % _zi(float(st.get("r", 220.0)) / 220.0), r.frame_of(0.0), Pxp._snap(st.c), false, false)
+				renderer._draw_strip(cv, "an_ripple_z%d_gd" % _zi(float(st.get("r", 220.0)) / 220.0), renderer.frame_of(0.0), Pxp._snap(st.c), false, false)
 				for rk in _rock_list(st):   # 大碎石的地面影子（随高度变小）
-					r._draw_strip(cv, "an_rocksh_w%d_gd" % int(rk[4]), 0, Pxp._snap(rk[1]), false, false)
-	for it in r.items:
+					renderer._draw_strip(cv, "an_rocksh_w%d_gd" % int(rk[4]), 0, Pxp._snap(rk[1]), false, false)
+	for it in renderer.items:
 		if str(it.ly) == "gd" and str(it.oid) == id:
-			r._draw_strip(cv, str(it.k), r.frame_of(float(it.t0)), r._gp(it), it.flip, true)
+			renderer._draw_strip(cv, str(it.k), renderer.frame_of(float(it.t0)), renderer._gp(it), it.flip, true)
 	# 失重井（精二）：按井的年龄选帧
 	var fl = o.get("fields")
 	if fl is Array:
 		for f in fl:
 			if not (f is Dictionary) or not f.has("r"):
 				continue
-			r._draw_strip(cv, "an_well_z%d_gd" % _zi(float(f.r) / 60.0), r.frame_of(g.t - float(f.t)), Pxp._snap(f.pos), false, true)
+			renderer._draw_strip(cv, "an_well_z%d_gd" % _zi(float(f.r) / 60.0), renderer.frame_of(g.t - float(f.t)), Pxp._snap(f.pos), false, true)
 	# 重力弹的地面投影
 	var sh = o.get("shots")
 	if sh is Array:
 		for s in sh:
-			r._draw_strip(cv, "an_orb_sh_gd", 0, Pxp._snap(_shot_ground(s)), false, false)
+			renderer._draw_strip(cv, "an_orb_sh_gd", 0, Pxp._snap(_shot_ground(s)), false, false)
 
 
 func _shot_k(s: Dictionary) -> float:
@@ -297,21 +301,22 @@ func _link_pos(L: Dictionary, age: float, j: int) -> Vector2:
 
 
 func draw_rt(ci, it: Dictionary) -> void:
+	var renderer = r
 	var px: float = g.PX
 	match str(it.an):
 		"loop":
-			r._draw_strip(ci, str(it.k), r.frame_of(0.0), it.gp, false, false)
+			renderer._draw_strip(ci, str(it.k), renderer.frame_of(0.0), it.gp, false, false)
 		"orb":   # 重力弹 + 弹尾 3 点（同 pxplane_ang_art.trail_px）
 			var s: Dictionary = it.s
 			var o = it.o
-			var t: int = r.tier(o)
+			var t: int = renderer.tier(o)
 			var k: float = _shot_k(s)
 			for q in [[1, 4], [2, 3], [3, 2]]:
 				var kk: float = k - 0.05 * float(q[0])
 				if kk > 0.0:
-					r._px(ci, _shot_pos_k(s, kk), V[int(q[1])])
+					renderer._px(ci, _shot_pos_k(s, kk), V[int(q[1])])
 			var big: bool = not (s.get("patch", {}) as Dictionary).is_empty()
-			r._draw_strip(ci, ("an_orb_s1_e%d" if big else "an_orb_e%d") % t, r.frame_of(0.0), Pxp._snap(_shot_pos(s)), false, false)
+			renderer._draw_strip(ci, ("an_orb_s1_e%d" if big else "an_orb_e%d") % t, renderer.frame_of(0.0), Pxp._snap(_shot_pos(s)), false, false)
 		"pips":   # 速充模式剩余弹数（同 pxplane_ang_art.pips_px）：头顶 3×3 小珠绕圈
 			var o2 = it.o
 			var head: Vector2 = Pxp._snap(o2.pos + Vector2(0, -92))
@@ -320,11 +325,11 @@ func draw_rt(ci, it: Dictionary) -> void:
 				var a: float = float(bt) * 0.42 + float(j) * TAU / 3.0
 				var c0 := Vector2(round(cos(a) * 7.0), round(sin(a) * 2.0))
 				var front: bool = sin(a) > 0.0
-				r._px(ci, head + c0 * px, V[7] if front else V[6])
+				renderer._px(ci, head + c0 * px, V[7] if front else V[6])
 				if front:
-					r._glow(head + c0 * px, V[7])
+					renderer._glow(head + c0 * px, V[7])
 				for dd in [Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]:
-					r._px(ci, head + (c0 + dd) * px, V[5] if front else V[4])
+					renderer._px(ci, head + (c0 + dd) * px, V[5] if front else V[4])
 		"lks":   # 连携碎片 + 尾迹（同 pxplane_ang_art.link_trail）
 			var L: Dictionary = it.L
 			var age: float = g.t - float(L.t0)
@@ -337,8 +342,8 @@ func draw_rt(ci, it: Dictionary) -> void:
 				var pb: Vector2 = _link_pos(L, a2, j2)
 				var ns: int = maxi(1, int(pa.distance_to(pb) / px))
 				for s in ns + 1:
-					r._px(ci, pa.lerp(pb, float(s) / float(ns)), V[int(q2[1])])
-			r._draw_strip(ci, "an_lk_shard_up", r.frame_of(float(j2) / 15.0), Pxp._snap(_link_pos(L, age, j2)), false, false)
+					renderer._px(ci, pa.lerp(pb, float(s) / float(ns)), V[int(q2[1])])
+			renderer._draw_strip(ci, "an_lk_shard_up", renderer.frame_of(float(j2) / 15.0), Pxp._snap(_link_pos(L, age, j2)), false, false)
 		"lens":   # 致密的重力透镜：弹道两侧往弹头收拢的 1 像素点线（只在选了节点时）
 			var s2: Dictionary = it.s
 			var g0: Vector2 = s2.get("g0", s2.p0)
@@ -350,10 +355,10 @@ func draw_rt(ci, it: Dictionary) -> void:
 			var n: int = int(dv.length() / (px * 3.0))
 			for i in n + 1:
 				var u: float = float(i) / float(maxi(1, n))
-				r._px(ci, g0.lerp(gp, u), V[3] if i % 2 == 0 else V[2])
+				renderer._px(ci, g0.lerp(gp, u), V[3] if i % 2 == 0 else V[2])
 				if i % 2 == 0:
-					r._px(ci, (g0 + nv).lerp(gp, u), V[2])
-					r._px(ci, (g0 - nv).lerp(gp, u), V[2])
+					renderer._px(ci, (g0 + nv).lerp(gp, u), V[2])
+					renderer._px(ci, (g0 - nv).lerp(gp, u), V[2])
 
 
 ## world.gd 画悬浮敌人时读（只画）：x = 影子缩放（越高越小越淡），y = 悬停时的上下浮动（世界像素，按 15 fps 节拍、1 美术像素）

@@ -137,6 +137,12 @@ const LAYER_ORDER := ["under", "top_left", "minimap", "relics", "squad",
 var _layers := {}
 static var _nocache: int = -1
 
+## Layer callbacks capture this HUD. Keep them on the canvas (freed with the
+## scene), not in _layers, which would form HUD -> Callable -> HUD cycles.
+class LayerCanvas:
+	extends Control
+	var paint := Callable()
+
 
 static func nocache() -> bool:
 	if _nocache < 0:
@@ -159,20 +165,20 @@ func _layer_node(key: String) -> Dictionary:
 
 
 func _new_layer(key: String) -> Dictionary:
-	var node := Control.new()
+	var node := LayerCanvas.new()
 	node.set_anchors_preset(Control.PRESET_FULL_RECT)
 	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	node.show_behind_parent = true
 	node.visible = false
 	g.hud.add_child(node)
 	node.draw.connect(func(): _layer_draw(key))
-	return {"node": node, "sig": null, "fn": Callable(), "used": false}
+	return {"node": node, "sig": null, "used": false}
 
 
 func _layer(key: String, sig, fn: Callable) -> void:
 	var L: Dictionary = _layer_node(key)
 	L.used = true
-	L.fn = fn
+	L.node.paint = fn
 	if sig == null or nocache() or (g.opt_old & Game.OPT_HUDNC) or L.sig != sig:
 		L.sig = sig
 		L.node.queue_redraw()
@@ -180,12 +186,12 @@ func _layer(key: String, sig, fn: Callable) -> void:
 
 func _layer_draw(key: String) -> void:
 	var L: Dictionary = _layers[key]
-	if not L.fn.is_valid():
+	if not L.node.paint.is_valid():
 		return
 	var keep: Control = g.hud
 	g.hud = L.node
 	var t0 := Time.get_ticks_usec() if g.prof_on else 0
-	g._timed("draw_hud", L.fn)   # --prof：各块的绘制也计进 draw_hud（与拆块前口径相同：整个局内 HUD 的脚本时间）
+	g._timed("draw_hud", L.node.paint)   # --prof：各块的绘制也计进 draw_hud（与拆块前口径相同：整个局内 HUD 的脚本时间）
 	if g.prof_on:
 		g.prof_add("hud_" + key, t0)   # 每块分开计（docs/50 §37）
 	g.hud = keep

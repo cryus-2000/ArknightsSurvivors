@@ -16,7 +16,13 @@ const Bal = preload("res://scripts/core/balance.gd")
 const UM = preload("res://scripts/ui_motion.gd")
 const HudUltV = preload("res://scripts/screens/hud_ult_v.gd")   # 并进左上生命块的三个原型（ui/hud_ult_v 1–3，10-30）
 var g: Game
-var h   # screens/hud.gd
+## The HUD owns its sections; the return link must not retain it after a run.
+var _owner_ref: WeakRef
+var h:
+	get:
+		return _owner_ref.get_ref() if _owner_ref != null else null
+	set(value):
+		_owner_ref = weakref(value) if value != null else null
 var v: HudUltV
 
 const DARK := Color(0.03, 0.035, 0.045, 0.82)

@@ -9,7 +9,13 @@ extends RefCounted
 const UI = preload("res://scripts/ui.gd")
 const D = preload("res://scripts/data.gd")
 var g
-var h
+## The HUD owns its sections; the return link must not retain it after a run.
+var _owner_ref: WeakRef
+var h:
+	get:
+		return _owner_ref.get_ref() if _owner_ref != null else null
+	set(value):
+		_owner_ref = weakref(value) if value != null else null
 
 const MOTIF := {"knight_boss": "ice", "paranoia": "bubble", "ishar": "wave", "izumik": "root", "iberia": "flame", "carmen": "cross",
 	"path": "frac", "bishop": "wave", "archon": "wave", "immortal": "wave"}

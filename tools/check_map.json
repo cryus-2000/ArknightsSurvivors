@@ -110,6 +110,10 @@
   "render": {
    "scenes": [
     "render_perf",
+    "render_lifetime",
+    "hud_lifetime",
+    "memory_pressure",
+    "solid_triangle",
     "look",
     "gem_v2_tiers",
     "warn_v2_contract",

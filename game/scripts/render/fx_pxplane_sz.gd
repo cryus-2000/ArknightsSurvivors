@@ -21,7 +21,10 @@ const HIT_BEAT := 4        # 每拍至多画几处狐火命中
 const LINK_T1 := 0.35      # 同 skill_link l_suzuran：绕身一圈
 const LINK_T2 := 0.25      # 追向敌人
 
-var r      # fx_pxplane 实例
+var _parent: WeakRef
+var r:   # Owner holds this helper; the backreference must not retain its cache.
+	get:
+		return _parent.get_ref()
 var g
 var _beat := {}
 var _last := {}      # 限频：上一次挂命中灯的时刻
@@ -33,7 +36,7 @@ var _pend: Array = []      # 延后的画面（狐火落点：落下 3 拍后才
 
 
 func _init(px) -> void:
-	r = px
+	_parent = weakref(px)
 	g = px.g
 
 

@@ -1383,6 +1383,10 @@ const MG_BUDGET_MB := 520.0   # 10-27 真机 iPhone：453 / 471–533 MB 都没�
 const MG_RSCALE_MB := 600.0   # 分辨率缩放（会糊）只在超过这个数时才开
 var _mg_t := 0.0
 var _mg_stage := 0   # 本局连续超线的次数：1 只清缓存、2 降画质、3 分辨率缩放；回到线下清零
+const MG_TRIM_COOLDOWN := 60.0
+const MG_RECOVER_MB := 32.0
+var _mg_trim_cd := 0.0
+var _mg_trim_armed := true
 
 func _mem_guard(delta: float) -> void:
 	if not (Cfg.mobile_web() or Cfg.dev_args().has("--memguard")):
@@ -1390,6 +1394,7 @@ func _mem_guard(delta: float) -> void:
 	_mg_t += delta
 	if _mg_t < MG_EVERY:
 		return
+	var elapsed := _mg_t
 	_mg_t = 0.0
 	var vid: float = Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0
 	var aud: float = Sfx.sample_mem_mb()
@@ -1397,13 +1402,26 @@ func _mem_guard(delta: float) -> void:
 	for a in Cfg.dev_args():
 		if a.begins_with("--memguard="):
 			budget = float(a.substr(11))
-	if vid + aud <= budget:
+	_mem_guard_apply(vid + aud, budget, elapsed)
+
+
+## 清字体会使下一帧重建字形：持续超线只清一次；恢复留 32 MB 余量，且两次清理至少隔一分钟。
+## 降档仍按连续超线次数执行，不被清理冷却挡住。
+func _mem_guard_apply(used: float, budget: float, elapsed := MG_EVERY) -> void:
+	_mg_trim_cd = maxf(0.0, _mg_trim_cd - elapsed)
+	if used <= budget:
 		_mg_stage = 0
+		if used <= budget - MG_RECOVER_MB:
+			_mg_trim_armed = true
 		return
-	_mg_stage += 1
-	var step := "清缓存"
-	Cfg.slim_fonts(true)   # 字形缓存清掉重建（按需栅格化，卡一下；docs/50 §30 字体缓存能到 60 MB）
-	_white_release(0.0, true)   # 不在场的白剪影 / 敌人帧条立刻释放（平时要等 20 / 60 秒）
+	_mg_stage = mini(_mg_stage + 1, 3)
+	_white_release(0.0, true)   # Newly idle textures must still be reclaimed at every pressure sample.
+	var step := ""
+	if _mg_trim_armed and _mg_trim_cd <= 0.0:
+		_mg_trim_armed = false
+		_mg_trim_cd = MG_TRIM_COOLDOWN
+		_mem_guard_trim_fonts()
+		step = "清缓存"
 	if _mg_stage >= 2 and Cfg.quality != "low":
 		Cfg.guard_prev = Cfg.quality
 		Cfg.set_quality("low")
@@ -1411,15 +1429,21 @@ func _mem_guard(delta: float) -> void:
 		quality_note = "内存紧张，本局已临时降低画质"
 		quality_note_t = 5.0
 		step = "低画质"
-	elif _mg_stage >= 3 and not Cfg.render_scaled and vid + aud > MG_RSCALE_MB + (budget - MG_BUDGET_MB):
+	elif _mg_stage >= 3 and not Cfg.render_scaled and used > MG_RSCALE_MB + (budget - MG_BUDGET_MB):
 		Cfg.set_render_scale(true)
 		Cfg.guard_lowered = true
 		step = "分辨率缩放"
+	if step == "":
+		return
 	perf_rep.guard_hit = true   # 性能报告：任一阶段触发都记（core/perf_report.gd）
 	perf_rep.guard_stage = maxi(perf_rep.guard_stage, 3 if step == "分辨率缩放" else (2 if step == "低画质" else 1))
 	perf_rep.tag("护栏" + step)
 	if step != "" and not Cfg.dev_args().is_empty():
-		print("PF MEMGUARD vid=%.0fMB audio=%.0fMB -> %s t=%.0f" % [vid, aud, step, t])
+		print("PF MEMGUARD total=%.0fMB -> %s t=%.0f" % [used, step, t])
+
+
+func _mem_guard_trim_fonts() -> void:
+	Cfg.slim_fonts(true)
 
 
 const AQ_CAP := 65   # 手机网页开局就开的同屏上限（mobile_cap；帧率会话 10-26 定的低配档参数）

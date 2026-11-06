@@ -3945,6 +3945,11 @@ func _sk_arc(cv, c: Vector2, R: float, a0: float, a1: float, w: float, col: Colo
 class _SkRec:
 	var calls: Array = []
 	func add_tris(pts: PackedVector2Array, cols: PackedColorArray, idx: PackedInt32Array) -> void:
+		if cols.size() == 1:
+			var col := cols[0]
+			cols = PackedColorArray()
+			cols.resize(pts.size())
+			cols.fill(col)
 		calls.append([pts, cols, idx])
 	func same(o) -> bool:
 		if calls.size() != o.calls.size():
@@ -4057,9 +4062,7 @@ func _sk_band_pts(cv, pts: PackedVector2Array, m: int, col: Color) -> void:
 			var k: int = i * 2
 			idx.append_array([k, k + 1, k + 2, k + 1, k + 3, k + 2])
 		_sk_idx[m] = idx
-	var cols := PackedColorArray()
-	cols.resize(pts.size())
-	cols.fill(col)
+	var cols := PackedColorArray([col])
 	cv.add_tris(pts, cols, idx)
 
 

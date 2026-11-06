@@ -32,7 +32,10 @@ const BOOM_CAP := 4        # 每拍至多几处主爆团（同屏不碎）
 const TIP := Vector2(14, -34)   # 同 wisadel.json blocks.attack.tip（脚底为原点、朝右）
 const XSHOT_Y := -18.0          # 同 vis_growth.SHOT_Y（额外弹画在脚底上方）
 
-var r      # fx_pxplane 实例
+var _parent: WeakRef
+var r:   # Owner holds this helper; the backreference must not retain its cache.
+	get:
+		return _parent.get_ref()
 var g
 var _beat := {}
 var _lines: Array = []   # 续燃引线 / 连锁：{a, b, t0, oid}
@@ -47,7 +50,7 @@ const DROP_H := 240.0
 
 
 func _init(px) -> void:
-	r = px
+	_parent = weakref(px)
 	g = px.g
 
 
@@ -423,6 +426,7 @@ static func _shell_kind(s: Dictionary) -> String:
 
 
 func draw_floor(o) -> void:
+	var renderer = r
 	var cv = o.cv
 	var id: String = str(o.id)
 	var px: float = g.PX
@@ -436,13 +440,13 @@ func draw_floor(o) -> void:
 			if str(s.get("kind", "")) != "soul":
 				var ra: float = float(s.r) * 0.5
 				for q in _reticle(ra, k, bt):
-					r._px(cv, c0 + q[0] * px, q[1])
+					renderer._px(cv, c0 + q[0] * px, q[1])
 				if _shell_kind(s) == "s1":
 					for q2 in _bracket(ra * 0.5, bt):
-						r._px(cv, c0 + q2[0] * px, q2[1])
+						renderer._px(cv, c0 + q2[0] * px, q2[1])
 			var sg: Vector2 = Pxp._snap(_shell_ground(s))
 			for dx in [-1, 0, 1]:
-				r._px(cv, sg + Vector2(dx * px, 0), Color(SMOKE[0].r, SMOKE[0].g, SMOKE[0].b, 0.55))
+				renderer._px(cv, sg + Vector2(dx * px, 0), Color(SMOKE[0].r, SMOKE[0].g, SMOKE[0].b, 0.55))
 		for q3 in wd.quakes:   # 余震前兆：落点地缝一圈细暗点，越近越亮
 			if float(q3.t) > 0.3:
 				continue
@@ -453,7 +457,7 @@ func draw_floor(o) -> void:
 				if (i + bt) % 3 == 0:
 					continue
 				var an: float = TAU * i / n
-				r._px(cv, Pxp._snap(q3.pos) + Vector2(round(rq * cos(an)), round(rq * sin(an) * SQ)) * px, Color(FIRE[5].r, FIRE[5].g, FIRE[5].b, 0.35 + 0.5 * a))
+				renderer._px(cv, Pxp._snap(q3.pos) + Vector2(round(rq * cos(an)), round(rq * sin(an) * SQ)) * px, Color(FIRE[5].r, FIRE[5].g, FIRE[5].b, 0.35 + 0.5 * a))
 	var now0: float = g.t
 	_drops = _drops.filter(func(D): return now0 - float(D.t0) < DROP_T + 0.05)
 	for D in _drops:   # 连携落点准星（半径 30 美术像素 = 爆点 60）+ 弹影
@@ -461,25 +465,25 @@ func draw_floor(o) -> void:
 			continue
 		var kd: float = clampf((now0 - float(D.t0)) / DROP_T, 0.0, 1.0)
 		for q in _reticle(30.0, kd, bt):
-			r._px(cv, D.c + q[0] * px, q[1])
+			renderer._px(cv, D.c + q[0] * px, q[1])
 		var sw: int = 1 if kd < 0.5 else 2
 		for dx in range(-sw, sw + 1):
-			r._px(cv, D.c + Vector2(dx * px, 0), Color(SMOKE[0].r, SMOKE[0].g, SMOKE[0].b, 0.4 + 0.3 * kd))
-	for it in r.items:
+			renderer._px(cv, D.c + Vector2(dx * px, 0), Color(SMOKE[0].r, SMOKE[0].g, SMOKE[0].b, 0.4 + 0.3 * kd))
+	for it in renderer.items:
 		if str(it.ly) != "gd" or str(it.oid) != id:
 			continue
 		if it.get("hold", false):
-			var m: Dictionary = r._meta(str(it.k))
+			var m: Dictionary = renderer._meta(str(it.k))
 			if m.is_empty():
 				continue
-			var fi: int = r.frame_of(float(it.t0))
+			var fi: int = renderer.frame_of(float(it.t0))
 			if fi < 0:
 				continue
 			var age: float = g.t - float(it.t0) - float(m.n) / 15.0
 			var al: float = clampf(1.0 - age / HOLD, 0.0, 1.0) if age > 0.0 else 1.0
-			r._draw_strip(cv, str(it.k), mini(fi, int(m.n) - 1), r._gp(it), it.flip, true, Color(1, 1, 1, al))
+			renderer._draw_strip(cv, str(it.k), mini(fi, int(m.n) - 1), renderer._gp(it), it.flip, true, Color(1, 1, 1, al))
 		else:
-			r._draw_strip(cv, str(it.k), r.frame_of(float(it.t0)), r._gp(it), it.flip, true)
+			renderer._draw_strip(cv, str(it.k), renderer.frame_of(float(it.t0)), renderer._gp(it), it.flip, true)
 
 
 ## 上层：残影标记（悬在敌人头上，跟着那只）、续燃引线 / 连锁
