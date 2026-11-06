@@ -67,9 +67,11 @@ var deco_dim := 1.0               # 装饰层（火花 / 碎片 / 光点 / 拖�
 var lr_v3 := false                # 本帧 late_read V3 生效（降噪只压装饰层）
 var dcrowd := 0.0                 # 降噪用的拥挤度：max(crowd, ecrowd × declutter crowd_mix)
 var mate_dim := 1.0               # 队友（非主控）特效再乘的系数（declutter mate_k；squad 绘制时按干员临时乘进 fx_dim）
-## 后期特效控制（docs/289 方案，render/late_fx，缺省 0）：late_k = 0（前期）→ 1（late_fx_t0 秒起 late_fx_ramp 秒内爬满）；
-## 队友整体透明度再乘 lerp(1, late_fx_mate, late_k)，队友转平面立起层也走这个系数，队友装饰颗粒按 late_fx_grains 减量。队长、敌弹、预警不动
+## 后期特效控制（docs/293 方案，render/late_fx，缺省 0）：late_k = 0（前期）→ 1（late_fx_t0 秒起 late_fx_ramp 秒内爬满）；
+## 队友整体透明度再乘 lerp(1, late_fx_mate, late_k)，队友转平面立起层也走这个系数，队友装饰颗粒按 late_fx_grains 减量；
+## 队长不再被拥挤降噪压暗（late_fx_lead）；大面积填充变薄（late_fill_k，late_fx_fill）；队友发光点进辉光减量（lf_emit_k，late_fx_emit）。敌弹、预警不动
 var late_k := 0.0
+var lf_emit_k := 1.0              # 当前正在画的干员的发光点系数（squad._op_dim / _pxp_sorted 设；队长恒 1，_fx_order 队长最后画，阶段结束自然回 1）
 var _lf_cv = null
 var lead_dim := 1.0               # 主控自己的特效再乘的系数（declutter lead_k）
 var mate_desat := 0.0             # 队友特效去饱和（docs/139 §10，render/mate_desat）
@@ -281,8 +283,11 @@ func update_visuals(dt: float) -> void:
 	mate_dim = Dc.at("mate_k", dcrowd)
 	lead_dim = Dc.at("lead_k", dcrowd)
 	late_k = _late_fx_k()
+	lf_emit_k = 1.0
 	if late_k > 0.0:
 		mate_dim *= lerpf(1.0, late_fx_v("mate", 0.55), late_k)
+		if late_fx_v("lead", 1.0) > 0.0:   # 队长优先清楚：后期拥挤降噪不再压队长（declutter 3 档 lead_k 0.8）
+			lead_dim = lerpf(lead_dim, 1.0, late_k)
 	# 主次分层试验（docs/139 §10）：render/mate_layer 1 = 队友特效恒定压到 render/mate_fx（0.55）并去饱和 render/mate_desat；
 	# 用户 10-25「队友特效不要降，想其它办法」→ 缺省 0（只剩原来的拥挤降噪），改走 §11「突出队长」
 	mate_desat = 0.0
@@ -1397,8 +1402,22 @@ func late_fx_v(key: String, dflt: float) -> float:
 	return v
 
 
+## 大面积填充（咒域扇面这类整片半透明底）后期的透明度系数：队长、队友都乘（填充盖怪；边框照画）
+func late_fill_k() -> float:
+	return lerpf(1.0, late_fx_v("fill", 0.5), late_k) if late_k > 0.0 else 1.0
+
+
+## 某名干员的发光点系数（转平面 emit 进辉光层）：队友后期 × late_fx_emit，队长 1
+func late_emit_k(leader: bool) -> float:
+	return 1.0 if leader or late_k <= 0.0 else lerpf(1.0, late_fx_v("emit", 0.4), late_k)
+
+
 ## 转平面立起层（排序项）：队友的件在后期走带队友系数的画布（原来直接画在世界画布上，拥挤降噪 / 队友系数都不生效）
 func _pxp_sorted(ob) -> void:
+	if (_dbg_friend or _dbg_opmask) and ob is Dictionary and str(ob.get("oid", "")) != "":   # 量测（--clutterdbg）：立起层也按人静音（原来漏了，诊断量轻了转平面）
+		var ld0 = g.squad.leader() if g.squad != null else null
+		if _dbg_friend or Dc.mute_op(str(ob.oid), ld0 != null and str(ob.oid) == str(ld0.id)):
+			return
 	if late_k > 0.0 and Bal.v("render/late_fx_up", 1.0) > 0.0 and ob is Dictionary:
 		var ld = g.squad.leader() if g.squad != null else null
 		if ld != null and str(ob.get("oid", "")) != "" and str(ob.get("oid", "")) != str(ld.id):
@@ -1406,7 +1425,9 @@ func _pxp_sorted(ob) -> void:
 				_lf_cv = preload("res://scripts/characters/batch_canvas.gd").new(g)
 			_lf_cv.g = g.wcv
 			_lf_cv.set_mod(mate_dim, 0.0)
+			lf_emit_k = late_emit_k(false)
 			Pxp.draw_sorted(g, _lf_cv, ob)
+			lf_emit_k = 1.0
 			return
 	Pxp.draw_sorted(g, g.wcv, ob)
 

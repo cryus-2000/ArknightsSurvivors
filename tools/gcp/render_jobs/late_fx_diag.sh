@@ -1,4 +1,4 @@
-# 后期特效控制诊断（docs/289）：四人精二满节点局，8:00 / 10:00 前后各几帧截图，同一局按层 / 按人隐藏各跑一遍
+# 后期特效控制诊断（docs/293）：四人精二满节点局，8:00 / 10:00 前后各几帧截图，同一局按层 / 按人隐藏各跑一遍
 # （--clutterdbg=nofriend / nofoe / noenemy / nolead / nomates / noop_<id>，代码照跑、随机数照抽），本机逐像素差出各层掩码。
 # 用法：python tools/gcp/batch.py run <tag> --commit <提交> --machine e2-standard-16 --cmd 'bash tools/gcp/render_jobs/late_fx_diag.sh'
 # 结果：$OUT/<阵容>_<层>/run.log + shot_*.json（--clutterlog：同屏条目数、按人帧条数）；PNG 打包传 $GS/shots.tar.gz
