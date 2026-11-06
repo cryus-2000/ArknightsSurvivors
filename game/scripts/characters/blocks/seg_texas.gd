@@ -1141,7 +1141,7 @@ static func _tx_rift_draw_trails(o) -> void:
 		for i in RIFT_TRAIL_N:
 			var u: float = float(i + 1) / float(RIFT_TRAIL_N + 1)
 			var al: float = fade * (0.18 + 0.32 * u)
-			o.draw_body_at(a.lerp(b, u).round(), flip, Color(0.55, 0.72, 1.0, al))
+			o.draw_body_at(a.lerp(b, u).round(), flip, Color(0.55, 0.72, 1.0, al), o.ghost_pose(i, flip))   # 开 fx/ghost_dash_pose 时用冲刺段帧（起点 → 终点 = 冲刺第 0 → 3 帧），否则当前帧
 	o.tx["rtrail"] = keep
 
 
