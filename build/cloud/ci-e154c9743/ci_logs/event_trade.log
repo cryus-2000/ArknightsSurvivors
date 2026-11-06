@@ -1,0 +1,45 @@
+# event_trade
+# 参数：--headless --path /work/repo/game res://tests/event_trade_test.tscn -- --regression --seed=1
+# 用时 19 秒；结束时全机 Godot 15 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ET step 1
+ET step 2
+ET step 3
+ET step 4
+ET step 5
+ET step 6
+ET step 7
+ET step 8
+ET step 9
+ET options run: 40
+ET step 10
+ET step 12
+ET step 13
+ET step13 bad: []
+ET step 14
+ET step 15
+EVENT TRADE: 0 failures
+ERROR: 76 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 4 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+
+## stderr
+WARNING: event panel had no options, rebuilt with leave only: madness
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] recover_panel (res://scripts/endings.gd:641)
+         [1] check_event_panel (res://scripts/screens/choice_panel.gd:486)
+         [2] _process (res://tests/event_trade_test.gd:341)
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+WARNING: 437 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 31 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+
