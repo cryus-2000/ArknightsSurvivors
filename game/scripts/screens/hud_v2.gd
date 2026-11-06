@@ -276,22 +276,29 @@ func top_center(vs: Vector2) -> void:
 # ================================================================ 右上：源石锭 / 藏品 / 暂停 / 倍速（手机多一块属性）
 
 const RT_Y := 14.0
+const PLATE := Vector2(40.0, 24.0)
+const PLATE_T := Vector2(54.0, 32.0)   # 触屏：11-06 用户「右上角的大小都有点小」，小牌放大约 1.35 倍（也是点击区）
+
+
+func plate_size() -> Vector2:
+	return PLATE_T if g.touch.active else PLATE
 
 ## 右上小牌的矩形（从右往左：倍速、暂停、手机再加属性）；点击区由 hud_relics.update_buttons / touch 用同一份
 func plates(vs: Vector2) -> Dictionary:
 	var out := {}
 	var x: float = vs.x - 16.0
 	var L: Dictionary = g.touch.layout(vs) if g.touch.active else {}
+	var ps: Vector2 = plate_size()
 	for k in (["speed", "pause", "stats"] if g.touch.active else ["speed", "pause"]):
 		var e = L.get(k)
 		if e != null and e.custom:
 			# 玩家在「触屏按键布局」里挪过这个键：照他的位置（同一种小牌，大小跟缩放）
-			var sz := Vector2(40.0, 24.0) * float(e.s)
+			var sz: Vector2 = ps * float(e.s)
 			out[k] = Rect2(e.c - sz / 2.0, sz)
 			continue
-		x -= 40.0
-		out[k] = Rect2(x, RT_Y + 12.0, 40.0, 24.0)
-		x -= 4.0
+		x -= ps.x
+		out[k] = Rect2(x, RT_Y + 12.0, ps.x, ps.y)
+		x -= 4.0 if ps.x <= PLATE.x else 6.0
 	out["left"] = x
 	return out
 
@@ -314,16 +321,24 @@ func right_top(vs: Vector2) -> void:
 		if r.has_point(mouse):
 			g.hud.draw_rect(r.grow(1.0), UI.CYAN, false, 1.0)
 		g.tray_cells.append([r, id])
-	var nw: float = UI.latin().get_string_size(str(n), HORIZONTAL_ALIGNMENT_LEFT, -1, 22).x
-	var rx: float = x - 8.0 - nw
-	shade(Rect2(rx - 70, 4, vs.x - rx + 66, 44), 0.26)
-	cap(Vector2(rx, RT_Y + 9), "RELICS", 6.5)
-	big(Vector2(rx, RT_Y + 34), str(n), 22)
+	var tch: bool = g.touch.active   # 触屏（11-06 用户「右上角的属性没标出来，大小都有点小」）：数字 22 → 28，标签换中文 11 号
+	var bf: int = 28 if tch else 22
+	var nw: float = UI.latin().get_string_size(str(n), HORIZONTAL_ALIGNMENT_LEFT, -1, bf).x
+	var rx: float = x - 8.0 - maxf(nw, 26.0 if tch else 0.0)
+	shade(Rect2(rx - 70, 4, vs.x - rx + 66, 58 if tch else 44), 0.26)
+	if tch:
+		txt(Vector2(rx, RT_Y + 8), "藏品", 11, UI.SUB)
+	else:
+		cap(Vector2(rx, RT_Y + 9), "RELICS", 6.5)
+	big(Vector2(rx, RT_Y + (40 if tch else 34)), str(n), bf)
 	# 源石锭
-	var iw: float = UI.latin().get_string_size(str(g.ingots), HORIZONTAL_ALIGNMENT_LEFT, -1, 22).x
+	var iw: float = UI.latin().get_string_size(str(g.ingots), HORIZONTAL_ALIGNMENT_LEFT, -1, bf).x
 	var ix: float = rx - 20.0 - maxf(iw, 40.0)
-	cap(Vector2(ix, RT_Y + 9), "INGOT", 6.5, UI.GREEN)
-	big(Vector2(ix, RT_Y + 34), str(g.ingots), 22)
+	if tch:
+		txt(Vector2(ix, RT_Y + 8), "源石锭", 11, UI.GREEN)
+	else:
+		cap(Vector2(ix, RT_Y + 9), "INGOT", 6.5, UI.GREEN)
+	big(Vector2(ix, RT_Y + (40 if tch else 34)), str(g.ingots), bf)
 	# 小牌：深底细边；倍速 ≠ 1 时反白（纸白）提醒「现在是快进」
 	var lab: String = PlayClock.current_label()
 	var fast: bool = PlayClock.current_speed() != 1.0
@@ -335,16 +350,24 @@ func right_top(vs: Vector2) -> void:
 		var lit: bool = (k == "pause" and g.state == Game.S.PAUSE) or (k == "stats" and g.state == Game.S.STATS)
 		g.hud.draw_rect(r, UI.PAPER if paper else Color(0.047, 0.055, 0.063, 0.9))
 		g.hud.draw_rect(r, UI.CYAN if lit else Color(1, 1, 1, 0.24), false, 1.0)
+		var inkc: Color = Color(0.06, 0.07, 0.08) if paper else UI.TEXT
+		if tch:   # 触屏：牌里直接写中文（属性键原来只有一个「≡」+ 5.5 号 INFO，看不出是什么）
+			var cn: String = {"speed": lab, "pause": "暂停", "stats": "属性"}[k]
+			var cf: Font = UI.latin() if k == "speed" else g.font
+			var cs: int = int(round(15.0 * r.size.y / PLATE_T.y)) if k == "speed" else UI._ks(g.hud, int(round(13.0 * r.size.y / PLATE_T.y)))
+			var cw: float = cf.get_string_size(cn, HORIZONTAL_ALIGNMENT_LEFT, -1, cs).x
+			g.hud.draw_string(cf, Vector2(r.get_center().x - cw / 2.0, r.get_center().y + cs * 0.36), cn, HORIZONTAL_ALIGNMENT_LEFT, -1, cs, inkc)
+			continue
 		cap(Vector2(r.position.x, r.position.y - 5), {"speed": "SPEED", "pause": "PAUSE", "stats": "INFO"}[k], 5.5)
 		var s: String = {"speed": lab, "pause": "II", "stats": "≡"}[k]
 		var f: Font = UI.latin() if k != "stats" else g.font
 		var fs: int = 12 if k == "speed" else 13
 		var sw: float = f.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-		g.hud.draw_string(f, Vector2(r.get_center().x - sw / 2.0, r.position.y + 17), s, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(0.06, 0.07, 0.08) if paper else UI.TEXT)
+		g.hud.draw_string(f, Vector2(r.get_center().x - sw / 2.0, r.position.y + 17), s, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, inkc)
 	if not g.touch.active:
 		cap(Vector2(vs.x - 16, RT_Y + 46), "ESC  ·  V", 5.5, UI.SUB, 1.4, 2)
 	if not g.trial.active and (g.ending != "standard" or Cfg.endings_cleared.size() > 0):
-		txt(Vector2(vs.x - 236, RT_Y + 62), g.endg.cur_name(), 11, g.endg.cur_col(), HORIZONTAL_ALIGNMENT_RIGHT, 220)
+		txt(Vector2(vs.x - 236, RT_Y + (72 if g.touch.active else 62)), g.endg.cur_name(), 11, g.endg.cur_col(), HORIZONTAL_ALIGNMENT_RIGHT, 220)
 
 
 # ================================================================ 右下：编队（四格指挥 + 全身立绘卡）
