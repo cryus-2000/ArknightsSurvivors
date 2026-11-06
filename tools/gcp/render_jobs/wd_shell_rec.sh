@@ -2,7 +2,7 @@
 # --fixed-fps 30 连拍 = 30 帧原速，ffmpeg 左旧右新拼 mp4 放 $MEDIA。
 # 用法：python tools/gcp_render.py --branch <提交> --job custom --split --name wdshell \
 #         --cmd 'bash tools/gcp/render_jobs/wd_shell_rec.sh 3' --cmd 'bash tools/gcp/render_jobs/wd_shell_rec.sh 0' --cmd 'bash tools/gcp/render_jobs/wd_shell_rec.sh 1 2'
-# 参数：招式号（3 普攻 / 0 S1 / 1 S2 / 2 S3），可多个
+# 环境变量 KNOB：对照哪个开关（缺省 fx/wd_shell_v；S3 命中用 KNOB=fx/wd_dawn_v）。参数：招式号（3 普攻 / 0 S1 / 1 S2 / 2 S3），可多个
 set +e
 pgrep Xvfb >/dev/null || { Xvfb :99 -screen 0 1280x720x24 -nolisten tcp >/tmp/xvfb.log 2>&1 & sleep 2; }
 export DISPLAY=:99
@@ -22,7 +22,7 @@ declare -A NF=([3]=120 [0]=150 [1]=180 [2]=180)
 run() {   # $1 档 $2 招 $3 变体 $4 开关值
     d="$FR/e$1_${NAME[$2]}_$3"; rm -rf "$d"; mkdir -p "$d"
     timeout -k 30 480 "$GODOT" --rendering-driver opengl3 --audio-driver Dummy --resolution 1280x720 --position 0,0 --fixed-fps 30 --path game res://tests/elite_demo_shot.tscn -- \
-        --shot_op=wisadel --shot_stage=$1 --shot_mode=$2 --shot_dir="$d" --shot_start=0.6 --shot_every=1 --shot_n=${NF[$2]} --shot_w=1280 --shot_h=720 --quality=high --bal=fx/wd_shell_v=$4 > "$d.log" 2>&1
+        --shot_op=wisadel --shot_stage=$1 --shot_mode=$2 --shot_dir="$d" --shot_start=0.6 --shot_every=1 --shot_n=${NF[$2]} --shot_w=1280 --shot_h=720 --quality=high --bal=${KNOB:-fx/wd_shell_v}=$4 > "$d.log" 2>&1
     echo "e$1 ${NAME[$2]} $3 rc=$? $(ls $d/f_*.png 2>/dev/null | wc -l) 张 $(grep -c 'SCRIPT ERROR' $d.log) 处脚本错误" | tee -a "$OUT/runs.txt"
     grep -m5 'SCRIPT ERROR' -A3 "$d.log" >> "$OUT/runs.txt"
 }
