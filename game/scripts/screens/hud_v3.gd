@@ -230,8 +230,8 @@ func _leader(c: Vector2, r: float, RR: float, base: float, s: float) -> void:
 		var hh2: float = maxf(2.0, 2.4 * s)
 		var act2: Array = _skill_segs(ld, lr.end.x + 4.0 * s, lr.get_center().y - hh2 / 2.0, w2, hh2, s)
 		_skill_secs(act2, Vector2(lr.end.x + 4.0 * s + w2 + 4.0 * s, lr.get_center().y + 3.0 * s), s)
-	if ld != null:   # 凯尔希当队长：Mon3tr 小牌挂在环的左下（150°，环外），不压「终结技」一行和左翼
-		_m3_badge(ld, c + Vector2.from_angle(PI * 5.0 / 6.0) * (RR + 9.0 * s), 13.0 * s, s)
+	if ld != null:   # 凯尔希当队长：Mon3tr 小牌挂在环外——桌面左下（150°，环下「终结技 64%」一行较宽）；触屏右下（30°，环下只写「64%」，左边紧挨灯火数字）
+		_m3_badge(ld, c + Vector2.from_angle(PI / 6.0 if g.touch.active else PI * 5.0 / 6.0) * (RR + 9.0 * s), 13.0 * s, s)
 
 
 ## 头像下「终结技 64%」一行的字顶 y
@@ -625,7 +625,7 @@ func _icon(c: Vector2, i: int, r: float, col: Color, w: float) -> void:
 
 ## 点击判定（hud.blocks_click）：整台的外框
 ## Mon3tr 小牌（11-06 用户「凯尔希的 m3 死掉之后我觉得可以加一个复活的倒计时标志」，docs/298）：
-## 活着 = 小头像 + 牌内底边血量细条（白，低于 35% 洋红）；倒下 = 头像变灰、洋红顶线 + 呼吸框、牌上红字复活秒数、底条走复活进度；
+## 活着 = 「M3」字牌 + 牌内底边血量细条（白，低于 35% 洋红）；倒下 = 头像变灰、洋红顶线 + 呼吸框、牌上红字复活秒数、底条走复活进度；
 ## 起身那一下青色闪 0.45 秒。只读召唤物状态（m3_hp.gd），不改玩法
 var _m3_was := {}   # 召唤物 id → 上一帧是否倒下
 var _m3_up := {}    # 召唤物 id → 起身时刻（g.t）
@@ -649,21 +649,9 @@ func _m3_badge(o, c: Vector2, sz: float, s: float) -> void:
 	_m3_was[sid] = down
 	var r := Rect2((c - Vector2(sz, sz) / 2.0).round(), Vector2(sz, sz).round())
 	g.hud.draw_rect(r.grow(1.0), Color(0.016, 0.024, 0.031, 0.92))
-	var dt = st.get("draw_top")
-	if dt is Array and dt[0] is Texture2D:
-		var tx: Texture2D = dt[0]
-		var hf: int = maxi(1, int(dt[1]))
-		var fw: float = float(tx.get_width()) / hf
-		var fh: float = float(tx.get_height())
-		var k: float = minf(r.size.x / fw, r.size.y / fh) * 1.15   # 帧四周有透明边：略放大，裁进牌内
-		var dst := Rect2(r.get_center() - Vector2(fw, fh) * k / 2.0, Vector2(fw, fh) * k)
-		var src := Rect2(0, 0, fw, fh)
-		var cl: Rect2 = dst.intersection(r)
-		if cl.has_area():
-			var u0: float = (cl.position.x - dst.position.x) / dst.size.x
-			var v0: float = (cl.position.y - dst.position.y) / dst.size.y
-			src = Rect2(fw * u0, fh * v0, fw * cl.size.x / dst.size.x, fh * cl.size.y / dst.size.y)
-			g.hud.draw_texture_rect_region(tx, cl, src, Color(0.45, 0.46, 0.5, 0.8) if down else Color.WHITE)
+	if not down:   # 字牌「M3」（11-06：召唤物帧条四周透明边大、本体偏黑，13 像素里缩成一团看不清，改写字）
+		var mfs: int = maxi(7, int(round(6.5 * s)))
+		UI.ctext(g.hud, g.font, Vector2(r.position.x, r.get_center().y + 0.32 * mfs), "M3", mfs, WHITE, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 	var f: float = clampf(float(st.hp) / maxf(1.0, float(st.max_hp)), 0.0, 1.0)
 	var bh: float = maxf(1.6, 1.8 * s)
 	var bar := Rect2(r.position.x, r.end.y - bh, r.size.x, bh)
@@ -674,7 +662,7 @@ func _m3_badge(o, c: Vector2, sz: float, s: float) -> void:
 		g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x, 1.4)), UI.RED)
 		var pk: float = 0.5 if Cfg.reduce_motion else 0.5 + 0.5 * sin(g.t * 6.0)
 		g.hud.draw_rect(r.grow(1.0), Color(UI.RED.r, UI.RED.g, UI.RED.b, 0.35 + 0.35 * pk), false, 1.0)
-		h.v2.big(r.get_center() + Vector2(0, 3.0 * s), "%d" % int(ceil(float(st.down))), maxf(7.0, 7.5 * s), UI.RED, 1)
+		h.v2.big(r.get_center() + Vector2(0, 3.0 * s), "%d" % int(ceil(float(st.down))), maxf(9.0, 7.5 * s), UI.RED, 1)
 	else:
 		g.hud.draw_rect(Rect2(bar.position, Vector2(bar.size.x * f, bh)), UI.RED if f < 0.35 else WHITE)
 		g.hud.draw_rect(r.grow(1.0), Color(1, 1, 1, 0.3), false, 1.0)
