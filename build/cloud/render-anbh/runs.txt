@@ -1,0 +1,10 @@
+old rc=0 180 张 0 处脚本错误
+thin rc=0 180 张 0 处脚本错误
+bh rc=0 180 张 0 处脚本错误
+total 9328
+drwxr-xr-x 5 root root    4096 Nov  6 13:33 .
+drwxr-xr-x 9 root root    4096 Nov  6 13:33 ..
+-rw-r--r-- 1 root root 9531160 Nov  6 13:33 angelina_ult_versions.mp4
+drwxr-xr-x 2 root root    4096 Nov  6 13:33 bh
+drwxr-xr-x 2 root root    4096 Nov  6 13:29 old
+drwxr-xr-x 2 root root    4096 Nov  6 13:31 thin
