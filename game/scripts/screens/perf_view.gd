@@ -17,6 +17,7 @@ var note := ""            # 复制结果提示
 var note_t := 0.0
 var _copy_wait := -1.0    # 网页：等浏览器剪贴板回话（秒，< 0 = 没在等）
 var box: TextEdit = null  # 复制失败时的文本框（桌面）
+var _taps: Array = []     # 连点标题 5 次（3 秒内）切换性能自检浮层（core/perf_hud.gd）
 
 
 func _ready() -> void:
@@ -141,6 +142,21 @@ func _input(event: InputEvent) -> void:
 
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		var pr := _panel_rect()
+		if Rect2(pr.position, Vector2(320, 72)).has_point(event.position):
+			var now := Time.get_ticks_msec()
+			_taps.append(now)
+			while not _taps.is_empty() and now - int(_taps[0]) > 3000:
+				_taps.remove_at(0)
+			if _taps.size() >= 5:
+				_taps.clear()
+				var on: bool = load("res://scripts/core/perf_hud.gd").toggle(get_tree())
+				note = "性能自检浮层已开启（左上角），再连点 5 次关闭" if on else "性能自检浮层已关闭"
+				note_t = 5.0
+				Sfx.play("ui_ok")
+				queue_redraw()
+			accept_event()
+			return
 		for k in btn_rects:
 			if (btn_rects[k] as Rect2).grow(6.0).has_point(event.position):
 				if k == "copy":

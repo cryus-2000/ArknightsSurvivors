@@ -875,6 +875,7 @@ func tex_deferred_miss(n: String) -> void:
 
 func _ready() -> void:
 	A.mark("ready_begin")
+	load("res://scripts/core/perf_hud.gd").ensure(get_tree())   # 性能自检浮层（缺省关；?perf=1 或性能报告页连点标题 5 次）
 	web_fs.setup(self)
 	trial.consume()
 	# 随机数最先定：招募开局干员时就会用 rng（战斗台词计时等）。以前 --seed 在 _ready 后段才生效，
