@@ -28,7 +28,7 @@ REVIEW_ART_GLOBS = (
 )
 # 只在开发 / 测试时用的目录（相对 game/）
 DEV_EXCLUDES = ("tests/*", "tools/*")
-SUBSET_FONTS = ("ui.ttf", "serif.ttf", "ui_phone.ttf")   # ui_phone.ttf（11-05 手机字体）字表同 ui.ttf；11-06 起也子集化（docs/285 §2.2：840 KB → 约 300 KB）
+SUBSET_FONTS = ("ui.ttf", "serif.ttf", "ui_phone.ttf", "ui_heavy.ttf", "ui_regular.ttf")   # ui_phone.ttf（11-05 手机字体）字表同 ui.ttf；11-06 起也子集化（docs/285 §2.2：840 KB → 约 300 KB）；ui_heavy / ui_regular（11-06 原作式字重，docs/292）字表同 ui.ttf，也子集化
 # FreeType 自动微调（serif.ttf 是没有微调指令的 TrueType，Godot 用 FreeType 自动微调）按「标准字」量全字体的笔画宽度：
 # 汉字用「田」（缺了退「囗」）。子集里少了它，所有字的微调结果都会变（实测 serif 子集全体像素有差），所以一律保留
 AUTOHINT_CHARS = "田囗"
