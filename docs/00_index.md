@@ -1,9 +1,10 @@
 # 00 · 文档索引
 
+- [294_bond_collab_v2](294_bond_collab_v2.md)：设计稿，待审；羁绊改 HoloCure 式羁绊技（两人都精一解锁、22 秒自动、一片大图形），取代合击 + 小数值；8 条招式 + 3 对示意 GIF（`tools/bond_v2_gif.py`）。
 - [291_hit_feel_evo](291_hit_feel_evo.md)：试点待审；用户 11-07 给的像素近战文章对照（过冲 / 扇形拉丝 / 收招慢于爆发 / 巅峰帧 / 残影）+ §6 刀光以外的手法，德克萨斯 + 星熊挂 `fx/melee_evo` 缺省 0。
 - [288_standard_up_1106](288_standard_up_1106.md)：已实施；普通难度略微调高，`difficulty/standard/enemy_hp` 1.08 → 1.14，GCP 对照 m18 76 → 70、m0 54.5 → 53。
 - [285_web_shrink_1106](285_web_shrink_1106.md)：方案，待审；319b5de4b 网页包 51.07 MiB 拆账（涨在 pxp 转平面帧条 +8.5）与压缩方案，含无损 2.0 MiB + 有损选项。
-- [282_bond_non_numeric](282_bond_non_numeric.md)：设计稿，待审；8 条羁绊的数值盘点 + 每条 2–3 个玩法差异方案与推荐。
+- [282_bond_non_numeric](282_bond_non_numeric.md)：设计稿，被 294 取代；8 条羁绊的数值盘点 + 每条 2–3 个玩法差异方案与推荐。
 - [283_mid_boss_visibility](283_mid_boss_visibility.md)：设计稿，待审；中期 Boss 不显眼的诊断（体型与精英相同）与改法，不加弹幕提示。
 - [284_magnet_visibility_and_guide_copy](284_magnet_visibility_and_guide_copy.md)：设计稿，待审；磁铁地图可见性两种画法 + 开局指南（指挥台 / 集火 / 冲刺）文案草稿。
 - [281_asset_inventory_1106](281_asset_inventory_1106.md)：现行；11-06 素材引用扫描、已删 3 张无引用贴图、保留项与被否决终结技的分支清单。
