@@ -1,0 +1,4 @@
+370	new/meta_desktop/log.txt
+534780	new/meta_desktop/shot_meta.png
+370	new/meta_phone/log.txt
+349080	new/meta_phone/shot_meta.png
