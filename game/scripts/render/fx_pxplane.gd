@@ -2957,7 +2957,8 @@ func _ey_sort_items(o, out: Array) -> void:
 			continue
 		var lk: Dictionary = bl.hw_b.get("look", {})
 		var st: String = "ign" if lk.has("big_tex") else ("pow" if bl.get("pxs", false) else ("fire" if bl.get("hw_fireball", false) else "lava"))
-		out.append({"ert": "ball", "st": st, "pos": bl.pos, "dir": bl.vel, "gy": (bl.pos as Vector2).y + 40.0, "ph": int(absf(bl.pos.x)) % 7})
+		var lv: Array = _ey_lift(bl)
+		out.append({"ert": "ball", "st": st, "pos": lv[0], "dir": lv[1], "gy": (bl.pos as Vector2).y + 40.0, "ph": int(absf(bl.pos.x)) % 7})
 	if not o.hw.is_empty():
 		for l in o.hw.get("lobs", []):   # 火星迸溅 / 星火燎原 / 熔岩天降的熔岩块
 			if float(l.t) >= float(l.dur):
@@ -3002,6 +3003,26 @@ func _ey_sort_items(o, out: Array) -> void:
 		for i in range(maxi(0, xs.size() - 6), xs.size()):
 			var xb: Dictionary = xs[i]
 			out.append({"ert": "ball", "st": "chip", "pos": (xb.p as Vector2) + Vector2(0, -18.0), "dir": xb.v, "gy": (xb.p as Vector2).y + 1.0, "ph": i % 7})
+
+
+## 直线弹的画面抬升（11-06 用户「感觉是不是还是斜着飞过去的」）：弹从法杖尖（脚下往上 40）出手、瞄的是敌人脚下，
+## 判定点一路往下斜着走；眼睛看的是敌人身子（脚下往上一截），于是火球总像斜着往地上扎。画面上把弹按飞行进度逐渐抬到敌人身子的高度
+## （fx/eyja_ball_lift 像素，0 = 不抬），朝向 / 尾焰顺着抬升后的画面路径；判定、爆点位置不动。
+func _ey_lift(bl: Dictionary) -> Array:
+	var p: Vector2 = bl.pos
+	var v: Vector2 = bl.vel
+	var lift: float = Bal.v("fx/eyja_ball_lift", 20.0)
+	if lift <= 0.0 or not bl.has("vt") or not bl.has("vf"):
+		return [p, v]
+	var f: Vector2 = bl.vf
+	var t: Vector2 = bl.vt
+	var seg: Vector2 = t - f
+	var L2: float = seg.length_squared()
+	if L2 < 1.0:
+		return [p, v]
+	var k: float = clampf((p - f).dot(seg) / L2, 0.0, 1.0)
+	var vd: Vector2 = (t - Vector2(0, lift)) - f   # 画面路径：出手点 → 敌人身子
+	return [p + Vector2(0, -lift * k), vd.normalized() * v.length() if vd.length_squared() > 0.01 else v]
 
 
 ## MagmaProjectile.position_at 的同一条弧（纯函数抄一份，只读）
@@ -3094,12 +3115,16 @@ func _ey_ball(ci, st: String, pos: Vector2, dir: Vector2, ph: int) -> void:
 	if EY_TAIL.has(st) and dir.length_squared() > 0.0001 and Bal.v("fx/eyja_ball_tail", 1.0) > 0.0:
 		_ey_tail(ci, pos, dir.normalized(), float(EY_TAIL[st]), ph)
 		_ey_strip_rot(ci, "ey_ball_%s_d%d" % [st, dk[0]], frame_of(0.0) + ph, _snap(pos), dk[1], dir.angle(), float(dk[0]))
+		if _ball_dbg():
+			_ey_ball_dbg(ci, pos, dir)
 		return
 	_draw_strip(ci, "ey_ball_%s_d%d" % [st, dk[0]], frame_of(0.0) + ph, _snap(pos), dk[1], false)
 
 
 ## 帧条只有 5 个 45° 角：挑最近的一张后再转掉剩下的偏差（≤ 22.5°），火球朝向和真实飞行方向一致——
 ## 原来 25° 飞的火球画成 45°，看着像斜着「平移」（11-06）。热芯发光点按同一变换放
+const EY_BALL_VIS := {-90: -85.6, -45: -40.7, 0: 4.4, 45: 49.3, 90: 94.4}   # 标称角 → 帧条里火体（亮像素，不含烟）实测主轴（度；烤图整体顺时针偏约 4.5°，lava / pow / ign 同）
+
 func _ey_strip_rot(ci, k: String, fi: int, gp: Vector2, flip: bool, ang: float, bucket: float) -> void:
 	var m: Dictionary = _meta(k)
 	var tx: Texture2D = _tex(k)
@@ -3109,7 +3134,9 @@ func _ey_strip_rot(ci, k: String, fi: int, gp: Vector2, flip: bool, ang: float, 
 	var w: float = float(m.w)
 	var h: float = float(m.h)
 	var px: float = g.PX
-	var shown: float = deg_to_rad(180.0 - bucket if flip else bucket)
+	# 帧条里火体主轴比标称角顺时针偏约 4.5°（烤图带的；亮像素主成分，18 帧中位数，tools/eyja_ball_dir_sheet.py 核对图）
+	var vis: float = float(EY_BALL_VIS.get(int(bucket), bucket))
+	var shown: float = deg_to_rad(180.0 - vis if flip else vis)
 	var res: float = wrapf(ang - shown, -PI, PI)
 	# 局部坐标：锚点（ox, oy）在原点；翻转时镜像
 	var xf := Transform2D(res, gp)
@@ -3133,6 +3160,25 @@ func _ey_strip_rot(ci, k: String, fi: int, gp: Vector2, flip: bool, ang: float, 
 		_emit_n += 1
 		var c: Color = _hexc(str(q[2]))
 		g.glow_next.append([_snap(xf * (tl + Vector2(float(q[0]), float(q[1])) * px)), px, Color(c.r, c.g, c.b, ke)])
+
+
+## --balldbg（调试，只开发版）：青线 = 该弹此刻的速度方向（真实飞行方向），白点 = 所有火球最近 10 帧的真实位置（看弹道是否拐弯、火球主轴是否顺着点列）
+var _bdbg := -1
+var _bdbg_pts: Array = []   # [帧号, 位置]
+func _ball_dbg() -> bool:
+	if _bdbg < 0:
+		_bdbg = 1 if (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--balldbg") else 0
+	return _bdbg == 1
+
+func _ey_ball_dbg(ci, pos: Vector2, dir: Vector2) -> void:
+	var d: Vector2 = dir.normalized()
+	ci.draw_line(pos - d * 80.0, pos + d * 40.0, Color(0.2, 0.95, 1.0, 0.95), 1.0)
+	var fr: int = Engine.get_process_frames()
+	_bdbg_pts.append([fr, pos])
+	while not _bdbg_pts.is_empty() and fr - int(_bdbg_pts[0][0]) > 10:
+		_bdbg_pts.pop_front()
+	for q in _bdbg_pts:
+		ci.draw_rect(Rect2((q[1] as Vector2) - Vector2(1, 1), Vector2(2, 2)), Color.WHITE)
 
 
 ## 直线弹（普攻火球 / 熔岩弹 / 二重咏唱强化 / 点燃弹）的尾焰（11-06 用户「现在的普通攻击像是平移出去的火球，没有了之前的方向感」）：
