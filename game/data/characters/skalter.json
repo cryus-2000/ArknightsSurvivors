@@ -654,6 +654,7 @@
   },
   "summons": {
    "ishar": {
+    "ult_hide": true,
     "name": "海嗣",
     "invuln": true,
     "life": "permanent",
