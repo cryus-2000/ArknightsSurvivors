@@ -40,7 +40,10 @@ DEV_SCRIPTS = (
     "scripts/run/ult_bench.gd",
     "scripts/screens/ak_mock.gd",
 )
-SUBSET_FONTS = ("ui.ttf", "serif.ttf", "ui_phone.ttf", "ui_heavy.ttf", "ui_regular.ttf")   # ui_phone.ttf（11-05 手机字体）字表同 ui.ttf；11-06 起也子集化（docs/285 §2.2：840 KB → 约 300 KB）；ui_heavy / ui_regular（11-06 原作式字重，docs/292）字表同 ui.ttf，也子集化
+SUBSET_FONTS = ("ui.ttf", "serif.ttf", "ui_phone.ttf")   # ui_phone.ttf（11-05 手机字体）字表同 ui.ttf；11-06 起也子集化（docs/285 §2.2：840 KB → 约 300 KB）
+# 只在开关打开时才加载、不进发行包的字体（相对 game/）：ui_heavy / ui_regular 是原作式字重（docs/292，ui/font_ark）。
+# 11-06 用户定退回旧的全粗体，给羁绊技腾网页包空间；仓库文件先留着，开关缺省 0 时运行时不 load 它们（ui.gd name_font / settings.gd）
+OPTIONAL_FONTS = ("fonts/ui_heavy.ttf", "fonts/ui_regular.ttf")
 # FreeType 自动微调（serif.ttf 是没有微调指令的 TrueType，Godot 用 FreeType 自动微调）按「标准字」量全字体的笔画宽度：
 # 汉字用「田」（缺了退「囗」）。子集里少了它，所有字的微调结果都会变（实测 serif 子集全体像素有差），所以一律保留
 AUTOHINT_CHARS = "田囗"
@@ -63,7 +66,8 @@ def is_fallback_2x(name, siblings):
 
 def preset_excludes():
     """两个导出预设 exclude_filter 里应有的项（art/incoming 前缀 + 开发目录）"""
-    return ["art/incoming/" + g for g in REVIEW_ART_GLOBS] + list(DEV_EXCLUDES) + [s + "*" for s in DEV_SCRIPTS]   # * 连 .gd.uid 一起
+    return (["art/incoming/" + g for g in REVIEW_ART_GLOBS] + list(DEV_EXCLUDES) + [s + "*" for s in DEV_SCRIPTS]   # * 连 .gd.uid 一起
+            + [f + "*" for f in OPTIONAL_FONTS])   # * 连 .import 一起
 
 
 def check_dev_scripts(game=GAME):
