@@ -15,6 +15,12 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 import godot_runner as GR
 
+try:
+    import imageio_ffmpeg as _iff
+    FF = _iff.get_ffmpeg_exe()   # 虚拟机镜像上没有系统 ffmpeg（render_prep 装的是 imageio-ffmpeg）
+except Exception:
+    FF = "ffmpeg"
+
 GAME = os.path.join(ROOT, "game")
 BUILD = os.path.join(ROOT, "build", "gl_s3_pop")
 COLS = [("现在（细水柱收尾）", ["--bal=fx/gl_s3_pop=0"]), ("新版（压缩 → 小水爆）", ["--bal=fx/gl_s3_pop=1"])]
@@ -51,7 +57,7 @@ def label(im, text, f):
 
 
 def enc(fdir, mp4, fps):
-    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", str(fps), "-i", os.path.join(fdir, "f_%04d.png"),
+    subprocess.run([FF, "-y", "-loglevel", "error", "-framerate", str(fps), "-i", os.path.join(fdir, "f_%04d.png"),
                     "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "20", mp4], check=True)
     print("mp4", mp4, os.path.getsize(mp4) // 1024, "KB", flush=True)
 
