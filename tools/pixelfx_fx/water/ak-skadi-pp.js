@@ -245,8 +245,12 @@ function breakerCols(o) {
     const rj = R * (0.86 + 0.28 * nz(a * 2.3, o.seed + 707));           // 浪线前后错落
     const peak = 0.35 + 0.55 * nz(a * 2.1, o.seed + 709) + 0.15 * nz(a * 6.3, o.seed + 711);   // 宽缓起伏的浪峰
     const edge = Math.min(1, (a - a0) / 0.35, (a1 - a) / 0.35);          // 两头收低
-    const h = +o.H * (0.25 + peak) * Math.max(0.15, edge);
     const pa = a + th;
+    // 11-07 用户「S2 那个要改」（冰砖感）：朝镜头的浪柱压矮 0.2、背离镜头的压矮 0.5（只看得到背坡）；浪顶逐柱再抖一层碎起伏，不成直边
+    const view = 1 - 0.2 * Math.max(0, Math.sin(pa)) - 0.5 * Math.max(0, -Math.sin(pa));
+    const chop = 0.86 + 0.18 * nz(a * 6.1, o.seed + 751);
+    const taper = Math.min(1, (gap - 0.2) / 0.14);                     // 11-07：缺口两侧渐矮（原来直上直下断开，一块块像方砖）
+    const h = +o.H * (0.25 + peak) * Math.max(0.15, edge) * view * chop * Math.max(0.2, Math.sqrt(taper));
     cols.push({ a, pa, gx: Math.cos(pa) * rj, gy: Math.sin(pa) * rj * SY, h, ox: Math.cos(pa), oy: Math.sin(pa) * SY, near: Math.sin(pa), i: cols.length });
   }
   return cols;
@@ -277,13 +281,13 @@ function breaker(p, t, o, C, ACC) {
         p.px(Math.round(x), Math.round(y) + 1, col);
       }
       // ② 前脸：浪顶往前倾、脸是凹弧（上面伸出去，下面收回来）；朝镜头的一侧亮一阶
-      for (let z = 0; z <= hb; z += 0.5) {
+      if (c.near > -0.3) for (let z = 0; z <= hb; z += 0.5) {   // 11-07：背离镜头的前脸看不到，不画
         const k = z / hb, off = curl * hb * 0.45 * k * k;
         const x = c.gx + c.ox * off, y = c.gy + c.oy * off - z;
         const kj = k + 0.22 * (nz(c.a * 9.3, o.seed + 741) - 0.5) + 0.1 * (nz(z * 0.7 + c.a * 3, o.seed + 743) - 0.5);   // 色带随浪柱起伏错开（不成一块平板）
         if (k < 0.18 && nz(z * 2 + c.a * 50, o.seed + 745) < 0.5) continue;
-        let ci = kj > 0.86 ? n - 1 : kj > 0.6 ? n - 3 : kj > 0.3 ? n - 4 : n - 5;
-        if (c.near > 0.3 && k <= 0.86) ci += 1;
+        let ci = kj > 0.9 ? n - 1 : kj > 0.72 ? n - 3 : kj > 0.45 ? n - 4 : kj > 0.2 ? n - 5 : n - 6;   // 11-07：白只留浪顶一圈
+        if (c.near > 0.3 && k > 0.45 && k <= 0.9) ci += 1;
         if (c.near < -0.2 && k <= 0.86) ci -= 2;                          // 背向镜头的前脸看不太到：压暗
         p.px(Math.round(x), Math.round(y), C[clamp(ci - Math.round(brk * 2), 1, n - 1)]);
       }
