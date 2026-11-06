@@ -1,0 +1,3 @@
+onoff rc=0
+core rc=0
+public_gallery rc=0
