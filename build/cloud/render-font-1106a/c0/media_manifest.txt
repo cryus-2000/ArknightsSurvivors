@@ -1,0 +1,9 @@
+20438	now/levelup_desktop/log.txt
+725849	now/levelup_desktop/shot_motion_levelup_full_1217.png
+20436	now/relic_desktop/log.txt
+752564	now/relic_desktop/shot_motion_relic_full_1217.png
+20755	now/shop_desktop/log.txt
+748146	now/shop_desktop/shot_motion_shop_full_1217.png
+20737	now/tab_desktop/log.txt
+713333	now/tab_desktop/shot_choice.png
+215328	now/tab_desktop/shot_tab.png

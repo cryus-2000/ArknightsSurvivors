@@ -1,0 +1,9 @@
+20323	ark/levelup_desktop/log.txt
+724052	ark/levelup_desktop/shot_motion_levelup_full_1217.png
+20321	ark/relic_desktop/log.txt
+744772	ark/relic_desktop/shot_motion_relic_full_1217.png
+20649	ark/shop_desktop/log.txt
+733456	ark/shop_desktop/shot_motion_shop_full_1217.png
+20510	ark/tab_desktop/log.txt
+730826	ark/tab_desktop/shot_choice.png
+211131	ark/tab_desktop/shot_tab.png
