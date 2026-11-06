@@ -1293,7 +1293,7 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 		nsz -= 1
 	if g.font.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(nsz)).x > nmax:
 		nm = UI.fit_line(g.font, nm, nsz, nmax, nsz)[0]
-	UI.text(card, g.font, r.position + Vector2(nx, ny), nm, nsz, Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, ta), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 2.0 * nx, 3)
+	UI.text(card, UI.name_font(g.font), r.position + Vector2(nx, ny), nm, nsz, Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, ta), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 2.0 * nx, 3)
 	var fd: Dictionary = card.get_meta("fit", {})
 	if not fd.is_empty():
 		var dy: float = DESC_Y_PHONE if roomy else ((176.0 if ph else 198.0) if compact else 244.0)

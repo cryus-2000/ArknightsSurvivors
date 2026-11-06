@@ -394,6 +394,11 @@ func _ready() -> void:
 		if pf is FontFile and not (pf as FontFile).data.is_empty():
 			_ui_font.data = (pf as FontFile).data
 			_ui_font.clear_cache()
+	if _ui_font != null and not touch_device() and load("res://scripts/core/balance.gd").vi("ui/font_ark", 0) > 0:
+		var rf = load("res://fonts/ui_regular.ttf")   # 原作式字重对照（docs/291）：桌面正文 Regular，名字 / 标题走 UI.name_font（Heavy）
+		if rf is FontFile and not (rf as FontFile).data.is_empty():
+			_ui_font.data = (rf as FontFile).data
+			_ui_font.clear_cache()
 	if _ui_font != null and _ui_font.fallbacks.is_empty():
 		_ui_font.fallbacks = [load("res://fonts/ui_fallback.otf")]
 	# 触屏设备：整体放大 1.15（逻辑分辨率 1113×626），字和按钮在手机上更好点；各面板按 vs.y < 680 做紧凑排版
