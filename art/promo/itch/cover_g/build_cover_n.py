@@ -38,8 +38,8 @@ LAYOUT = [
     # 中景右组
     ("slider", 0.64, 1.02, 0.12, 0.95), ("offspring", 0.52, 1.36, -0.14, 0.85),
     # 后排剪影墙
-    ("runner", 0.46, -1.62, -0.40, 0.55), ("nest", 0.48, -1.18, -0.48, 0.52), ("tracer", 0.44, -0.74, -0.56, 0.5),
-    ("tracer", 0.44, 0.76, -0.56, 0.5), ("skimmer", 0.48, 1.20, -0.48, 0.52), ("runner", 0.46, 1.64, -0.40, 0.55),
+    ("runner", 0.46, -1.62, -0.40, 0.55), ("nest", 0.48, -1.18, -0.48, 0.52), ("tracer", 0.44, -1.00, -0.62, 0.5),
+    ("tracer", 0.44, 1.02, -0.62, 0.5), ("skimmer", 0.48, 1.20, -0.48, 0.52), ("runner", 0.46, 1.64, -0.40, 0.55),
     # 浮在上方的白水母（剪影）
     ("floater", 0.38, -0.95, -1.05, 0.5), ("floater", 0.34, 1.05, -1.15, 0.48),
 ]
@@ -89,7 +89,38 @@ def to_cells(img, h_cells):
     return Image.fromarray(out, "RGBA")
 
 
-def paste(g, spr, fx, fy, light, bright, hm, face_left):
+DARK_MOD = np.array([0.2, 0.22, 0.3], np.float32)   # 与游戏 world.gd 灯火暗淡（docs/222）同值
+EYE_CACHE = {}
+
+
+def eye_points(name):
+    """游戏 _emit 层（e_<名>_emit@2x.png 第 0 帧）里发光像素的位置，按本体外框归一到 0–1"""
+    if name in EYE_CACHE:
+        return EYE_CACHE[name]
+    base = Image.open(M.ENEMY / name / f"e_{name}@2x.png").convert("RGBA")
+    h = base.height
+    fr = base.crop((0, 0, h, h)) if base.width > h else base
+    bb = fr.getbbox()
+    pts = []
+    ep = M.ENEMY / name / f"e_{name}_emit@2x.png"
+    if ep.exists():
+        em = Image.open(ep).convert("RGBA")
+        em = em.crop((0, 0, h, h)) if em.width > h else em
+        a = np.asarray(em)
+        ys, xs = np.nonzero(a[..., 3] > 100)
+        if len(xs):
+            # 每个发光小团取中心（一只怪通常 1–2 个眼点）
+            lab, n = label(a[..., 3] > 100)
+            for i in range(1, n + 1):
+                yy, xx = np.nonzero(lab == i)
+                pts.append(((xx.mean() - bb[0]) / (bb[2] - bb[0]), (yy.mean() - bb[1]) / (bb[3] - bb[1])))
+    EYE_CACHE[name] = pts
+    return pts
+
+
+def paste(g, spr, fx, fy, light, bright, hm, face_left, name="", ring_r=0.62):
+    """11-07 用户「怪物太亮，用游戏里灯火暗的表示」：本体按到光圈的距离压向 DARK_MOD（圈缘往外 30% 半径内渐变，同游戏），
+    近处还留一点原色 + 朝光边光，远处只剩暗轮廓；眼点按游戏 _emit 层的位置画青色十字星，照常亮"""
     if face_left:
         spr = spr.transpose(Image.FLIP_LEFT_RIGHT)
     a = np.asarray(spr).astype(np.float32)
@@ -97,16 +128,11 @@ def paste(g, spr, fx, fy, light, bright, hm, face_left):
     m = a[..., 3] > 127
     gh, gw = g.shape[:2]
     x0, y0 = int(fx - sw / 2), int(fy - sh)
-    d = math.hypot(fx - light[0], (fy - sh / 2) - light[1]) / hm
-    k = float(np.clip(1.1 - 0.28 * d, 0.35, 1.0)) * bright
-    rgb = a[..., :3] * np.array([0.78, 0.90, 1.0]) * k
-    sil = bright < 0.66          # 后排 / 背景巨物：平涂深色剪影（只留一点明暗 + 青色眼光），做成怪墙
-    if sil:
-        lum = (a[..., :3] * [0.299, 0.587, 0.114]).sum(-1, keepdims=True) / 255
-        rgb = np.array([8, 16, 26], np.float32) + lum * np.array([16, 30, 42]) * (bright / 0.66)
-        r_, g_, b_ = a[..., 0], a[..., 1], a[..., 2]
-        eye = m & (g_ > 150) & (b_ > 170) & (r_ < 150)
-        rgb = np.where(eye[..., None], M.CYAN * 0.9, rgb)
+    R = ring_r * hm
+    dist = math.hypot(fx - light[0], (fy - sh * 0.4) - light[1])
+    f = float(np.clip((dist - R * 0.9) / (R * 0.3), 0.0, 1.0))
+    mod = (1 - f) * np.ones(3, np.float32) + f * DARK_MOD
+    rgb = a[..., :3] * mod * np.array([0.85, 0.93, 1.0]) * bright
     vx, vy = light[0] - fx, light[1] - (fy - sh / 2)
     nv = math.hypot(vx, vy) or 1
     sx, sy = int(round(vx / nv)), int(round(vy / nv))
@@ -114,8 +140,18 @@ def paste(g, spr, fx, fy, light, bright, hm, face_left):
     p = np.pad(mf, 1)
     nb = p[1 + sy:1 + sy + sh, 1 + sx:1 + sx + sw]
     rim = m & ~nb
-    rk = float(np.clip(0.95 - 0.22 * d, 0.25, 0.8)) * (0.45 if sil else 1.0)
+    rk = 0.6 * (1 - f) + 0.12          # 暗处只留很淡的一丝轮廓光
     rgb[rim] = rgb[rim] * (1 - rk) + M.CYAN * rk
+    # 眼点：游戏 _emit 位置的青色十字星
+    star = 2 if sh > 90 else 1
+    for u, v in eye_points(name):
+        ex = int(round((1 - u if face_left else u) * (sw - 1)))
+        ey = int(round(v * (sh - 1)))
+        for dx, dy in [(0, 0)] + [(k * s1, k * s2) for k in range(1, star + 1) for s1, s2 in ((1, 0), (-1, 0), (0, 1), (0, -1))]:
+            xx, yy = ex + dx, ey + dy
+            if 0 <= xx < sw and 0 <= yy < sh:
+                rgb[yy, xx] = (225, 255, 255) if (dx, dy) == (0, 0) else M.CYAN
+                m[yy, xx] = True
     ys0, xs0 = max(0, y0), max(0, x0)
     ys1, xs1 = min(gh, y0 + sh), min(gw, x0 + sw)
     if ys1 <= ys0 or xs1 <= xs0:
@@ -163,12 +199,12 @@ def build(kind):
     for fy, name, hr, fx, br in items:
         if fy > cy:
             continue
-        paste(g, to_cells(load_src(name), max(6, int(hr * hm))), fx, fy, light, br, hm, fx > cx)
+        paste(g, to_cells(load_src(name), max(6, int(hr * hm))), fx, fy, light, 1.0, hm, fx > cx, name)
     g = Hh.compose_grid(g, miz, rmask, (cx, cy), 0)
     for fy, name, hr, fx, br in items:
         if fy <= cy:
             continue
-        paste(g, to_cells(load_src(name), max(6, int(hr * hm))), fx, fy, light, br, hm, fx > cx)
+        paste(g, to_cells(load_src(name), max(6, int(hr * hm))), fx, fy, light, 1.0, hm, fx > cx, name)
     t = np.clip(1 - np.arange(gh) / (gh * 0.48), 0, 1)[:, None, None] ** 1.8 * 0.92
     g = (g * (1 - t) + np.array([6, 10, 16]) * t).astype(np.uint8)
     if kind == "itch_banner":
