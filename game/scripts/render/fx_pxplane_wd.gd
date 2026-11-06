@@ -48,6 +48,22 @@ const FOG_C := Color(0.3, 0.04, 0.04)
 const DROP_T := 0.35     # 同 skill_link l_wisadel 残影 → 炸开的延时
 const DROP_H := 240.0
 
+## 原作弹体（11-07 用户「维什戴尔原本的子弹被改成了普通的子弹，按照原作的子弹去做」，fx/wd_shell_v，缺省 1；0 = 转平面第四版的 3×3 黑铁小丸）：
+## 照原作 wisdel_attack_01_trail / skill_01_trail（同一套）/ skill_03_trail（弹头、尾迹 ×2）：
+## 胶囊弹头（贴图 wisdel_03：粉红弹尖 → 藏蓝弹身 → 白热尾口）+ 红色辉光；主尾迹 Trail_anhong 血红 #ff001a → 藏蓝 #002963 渐隐，
+## 外缘 Trail_an 暗红 → 深蓝 → 黑；红（trail_hong #ff7979 → #ff0000）蓝（trail_lan #263679）两股细带绕着尾迹拧；沿途按距离撒红色碎星（lizi #ff2e2e，白 → 红）。
+## 原作尾迹 1–1.5 秒，本作炮弹 1500 px/s 只飞 0.08–0.3 秒：尾迹按 0.12 秒飞行长度截、落地后 0.3 秒收尾淡掉（不铺满弹道）。魂炮（魂灵之影）不变。
+## 只画：出膛事件记一条画面记录（同 seg_wisadel._h4_fire 的 dur 算法），不读写玩法状态。
+const TRC := [Color("#fff4f0"), Color("#ff4a60"), Color("#e8102a"), Color("#a80c26"), Color("#5e0c22"), Color("#2c0e26"), Color("#15224e"), Color("#0b1330")]
+const TR_HEADN := [Color("#1c2a5c"), Color("#34488a")]   # 弹身藏蓝（暗 / 受光）
+const TR_RIB := [Color("#ff7979"), Color("#263679")]     # 红 / 蓝两股细带（原作 trail_hong / trail_lan 原色；蓝带压暗，免得在暗地面上发紫）
+const TR_SPK := [Color("#ffe4e4"), Color("#ff2e2e"), Color("#a80c26")]
+const TR_TT := 0.12      # 尾迹长度 = 多少秒的飞行
+const TR_FADE := 0.3     # 落地后尾迹收尾
+const TR_MAX := 24
+var _tr: Array = []      # {fr, to, t0, dur, big, oid}
+var _tr_lo := -1
+
 
 func _init(px) -> void:
 	_parent = weakref(px)
@@ -254,6 +270,10 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 				return
 			var dp: Array = Pxp.pick_dir((to - fr).angle())
 			var big: bool = k == "giant"
+			if _shell_v():
+				_tr.append({"fr": fr, "to": to, "t0": g.t, "dur": clampf(fr.distance_to(to) / 1500.0, 0.08, 0.3), "big": big, "oid": str(o.id)})
+				if _tr.size() > TR_MAX:
+					_tr.pop_front()
 			var ex := {"flip": bool(dp[1]), "gy": o.pos.y + 1.0}
 			if o.pos != Vector2.INF and fr.distance_to(o.pos) < 80.0:
 				ex["fo"] = Pxp._snap(fr) - Pxp._snap(o.pos)
@@ -351,9 +371,9 @@ func _boom(o, d: Dictionary, t: int, R, p: Dictionary) -> void:
 			if k == "shade" or _beat_n(o, "sbl") == 0:
 				R._light(o, c + Vector2(0, -16), clampf(rr * 1.4, 90.0, 140.0), 0.55, 0.12, SOUL_L)
 			R._grains(o, c + Vector2(0, -12), c.y + 2.0, "streak", 2 if k == "soul" else 3, {"tier": t})
-		"giant":   # 爆裂黎明：地平线白光 + 光穹 + 烟环；地面冲击环 + 放射裂缝 + 焦痕
+		"giant":   # 爆裂黎明：照原作 skill_03_hit（fx/wd_dawn_v 1）= 贴地白热芯 + 十字白闪 + 一圈红刺 + 电弧 → 火星；0 = 11-05 自创的地平线 + 光穹；地面冲击环 + 放射裂缝 + 焦痕
 			var s3: int = _pick(S3_R, rr)
-			_up_sp(o, "dawn_r%d" % s3, c, {"gy": c.y + 2.0})
+			_up_sp(o, ("dawn2_r%d" if Bal.v("fx/wd_dawn_v", 1.0) > 0.5 else "dawn_r%d") % s3, c, {"gy": c.y + 2.0})
 			_fog(o, c, rr, 0.8)
 			_gd(o, "dawng_r%d" % s3, c, {"hold": true, "life": 7.0 / 15.0 + HOLD})
 			R._light(o, c + Vector2(0, -30), minf(230.0, rr * 1.15), 0.85, 0.15, p.light)
@@ -536,15 +556,28 @@ func sort_items(o, out: Array) -> void:
 	for D in _drops:
 		if str(D.oid) == str(o.id) and g.t - float(D.t0) < DROP_T:
 			out.append({"wd": "drop", "D": D, "gy": (D.c as Vector2).y + 1.0})
+	var sv: bool = _shell_v()
+	if sv:
+		var now: float = g.t
+		_tr = _tr.filter(func(T): return now - float(T.t0) < float(T.dur) + TR_TT + TR_FADE)
+		var id: String = str(o.id)
+		for T in _tr:
+			if str(T.oid) == id:
+				var kg: float = clampf((now - float(T.t0)) / float(T.dur), 0.0, 1.0)
+				out.append({"wd": "trail", "T": T, "gy": ((T.fr as Vector2) + Vector2(0, 34.0)).lerp(T.to, kg).y + 1.0})
 	var wd: Dictionary = _wd(o)
 	if wd.is_empty():
 		return
 	for s in wd.shells:
+		if sv and str(s.get("kind", "")) != "soul":
+			continue
 		out.append({"wd": "shell", "s": s, "gy": _shell_ground(s).y + 1.0})
 
 
 func draw_rt(ci, it: Dictionary) -> void:
 	match str(it.wd):
+		"trail":
+			_draw_trail(ci, it.T)
 		"drop":   # 连携下坠炮弹：越落越快（h = H × (1 − u²)），竖直黑红尾迹（同 pxplane_wisadel_art.drop_px）
 			var D: Dictionary = it.D
 			var u: float = clampf((g.t - float(D.t0)) / DROP_T, 0.0, 1.0)
@@ -580,6 +613,141 @@ func draw_rt(ci, it: Dictionary) -> void:
 				r._px(ci, p, q[2])
 				if int(q[0]) <= -1 and absi(int(q[1])) <= 1:
 					r._glow(p, q[2])
+
+
+func _shell_v() -> bool:
+	return Bal.v("fx/wd_shell_v", 1.0) > 0.5
+
+
+## 手机网页：碎星减半、细带隔格画（仍画）
+func _trail_lo() -> bool:
+	if _tr_lo < 0:
+		var cfg = g.get_node_or_null("/root/Cfg")
+		_tr_lo = 1 if cfg != null and cfg.has_method("mobile_web") and cfg.mobile_web() else 0
+	return _tr_lo == 1
+
+
+static func _tr_at(T: Dictionary, k: float) -> Vector2:
+	var a: Vector2 = T.fr
+	var b: Vector2 = T.to
+	return a.lerp(b, k) + Vector2(0, -sin(k * PI) * minf(18.0, a.distance_to(b) * 0.05))
+
+
+static func _tr_col(u: float) -> Color:
+	if u < 0.06:
+		return TRC[0]
+	if u < 0.12:
+		return TRC[1]
+	if u < 0.3:
+		return TRC[2]
+	if u < 0.46:
+		return TRC[3]
+	if u < 0.6:
+		return TRC[4]
+	if u < 0.72:
+		return TRC[5]
+	if u < 0.86:
+		return TRC[6]
+	return TRC[7]
+
+
+## 原作弹体（见 TRC 上的说明）：尾迹按主轴逐格走（每格一个竖 / 横条，宽度随离弹头远近收窄）→ 红蓝细带 → 碎星 → 弹头
+func _draw_trail(ci, T: Dictionary) -> void:
+	var px: float = g.PX
+	var now: float = g.t
+	var age: float = now - float(T.t0)
+	var dur: float = float(T.dur)
+	var big: bool = bool(T.big)
+	var lo: bool = _trail_lo()
+	var kh: float = clampf(age / dur, 0.0, 1.0)
+	var kt: float = clampf((age - TR_TT) / dur, 0.0, 1.0)
+	var fade: float = 1.0 if age <= dur else clampf(1.0 - (age - dur) / TR_FADE, 0.0, 1.0)
+	var bt: int = int(floor(now * 15.0))
+	var dv: Vector2 = ((T.to as Vector2) - (T.fr as Vector2)).normalized()
+	if dv == Vector2.ZERO:
+		dv = Vector2.RIGHT
+	var nv := Vector2(-dv.y, dv.x)
+	var horiz: bool = absf(dv.x) >= absf(dv.y)
+	var total: float = (T.fr as Vector2).distance_to(T.to) / px   # 弹道全长（美术像素）
+	var wmax: float = 5.0 if big else 3.0
+	if kh > kt and fade > 0.0:
+		var ph: Vector2 = _tr_at(T, kh)
+		var pt: Vector2 = _tr_at(T, kt)
+		var n: int = maxi(1, int(ceil(ph.distance_to(pt) / px)))
+		var lam: float = 20.0 if big else 14.0
+		var amp: float = 4.0 if big else 2.0
+		for i in n + 1:
+			var u: float = float(i) / float(n)
+			var kk: float = lerpf(kh, kt, u)
+			var p: Vector2 = Pxp._snap(_tr_at(T, kk))
+			var w: int = maxi(1, int(round(lerpf(wmax, 1.0, u))))
+			var al: float = fade * (1.0 if u < 0.35 else lerpf(1.0, 0.0, (u - 0.35) / 0.65))
+			var c: Color = _tr_col(u)
+			if u < 0.4 and w >= 2:   # 外缘 Trail_an：暗一阶的深蓝边（只在靠弹头的一段）
+				_span(ci, p, w + 2, horiz, Color(TRC[7].r, TRC[7].g, TRC[7].b, 0.7 * al))
+			_span(ci, p, w, horiz, Color(c.r, c.g, c.b, al))
+			if u > 0.04 and u < 0.55 and not (lo and i % 2 == 1):   # 红蓝两股细带绕着拧（相位跟着弹道走、按拍转）
+				var dist: float = kk * total
+				var phs: float = dist / lam * TAU - float(bt) * 1.3
+				var off: float = amp * (1.0 - u * 0.5) * sin(phs)
+				var front: bool = cos(phs) > 0.0
+				var hw: float = float(w) * 0.5
+				if front or absf(off) > hw:
+					r._px(ci, p + nv * round(off) * px, Color(TR_RIB[0].r, TR_RIB[0].g, TR_RIB[0].b, al))
+				if (not front) or absf(off) > hw:
+					r._px(ci, p - nv * round(off) * px, Color(TR_RIB[1].r, TR_RIB[1].g, TR_RIB[1].b, al))
+	# 碎星（lizi）：弹道上每隔 sp 格生一颗，按飞到那里的时刻起算寿命；位置 / 漂移按序号哈希定
+	var sp: float = (6.0 if big else 9.0) * (2.0 if lo else 1.0)
+	var life: float = 0.35 if big else 0.25
+	var nj: int = int(total / sp)
+	for j in nj:
+		var kj: float = (float(j) + 0.5) * sp / maxf(1.0, total)
+		if kj > kh:
+			break
+		var aj: float = age - kj * dur
+		if aj < 0.0 or aj > life:
+			continue
+		var h1: float = _fh(float(j) * 1.37 + float(T.t0) * 3.1)
+		var h2: float = _fh(float(j) * 2.71 + float(T.t0) * 1.7)
+		var uj: float = aj / life
+		var sc: Color = TR_SPK[0] if uj < 0.3 else (TR_SPK[1] if uj < 0.75 else TR_SPK[2])
+		var q: Vector2 = _tr_at(T, kj) + nv * ((h1 * 2.0 - 1.0) * (5.0 if big else 3.0) + (h1 - 0.5) * aj * 40.0) * px * 0.5 + Vector2((h2 - 0.5) * aj * 30.0, aj * 20.0) * px * 0.5
+		var qs: Vector2 = Pxp._snap(q)
+		r._px(ci, qs, sc)
+		if big and h2 > 0.6 and uj < 0.5:   # 巨炮大颗：十字星
+			for dd in [Vector2.LEFT, Vector2.RIGHT, Vector2.UP, Vector2.DOWN]:
+				r._px(ci, qs + dd * px, Color(TR_SPK[1].r, TR_SPK[1].g, TR_SPK[1].b, 0.8))
+	# 弹头：胶囊（前圆后平），粉红弹尖 → 藏蓝弹身（上沿受光）→ 白热尾口；红色辉光
+	if age < dur:
+		var hd: Vector2 = Pxp._snap(_tr_at(T, kh))
+		var hl: int = 5 if big else 3
+		var hw2: int = 2 if big else 1
+		for qq in range(-hl, hl + 1):
+			for ww in range(-hw2, hw2 + 1):
+				var e: float = pow(float(qq) / (float(hl) + 0.5), 2.0) + pow(float(ww) / (float(hw2) + 0.5), 2.0)
+				if qq < 0 and e > 1.0:
+					continue   # 前端圆头；后端平
+				var hc: Color
+				if qq <= -hl + 1:
+					hc = TRC[0] if (qq == -hl + 1 and ww == -hw2 + (1 if big else 0)) else TRC[1]
+				elif qq >= hl - (1 if big else 0):
+					hc = TRC[0]
+				else:
+					hc = TR_HEADN[1] if ww == -hw2 else TR_HEADN[0]
+				r._px(ci, hd - dv * float(qq) * px + nv * float(ww) * px, hc)
+		r._glow(hd + dv * float(hl) * px, Color(1.0, 0.16, 0.22))
+		r._glow(hd - dv * float(hl) * px, Color(1.0, 0.5, 0.5))
+
+
+## 一格宽的横 / 竖条（沿弹道主轴的法向铺 w 格），一次 draw_rect
+func _span(ci, p: Vector2, w: int, horiz: bool, c: Color) -> void:
+	var px: float = g.PX
+	var h: float = float(w) * px
+	var o0: float = float(w / 2) * px
+	if horiz:
+		ci.draw_rect(Rect2(p + Vector2(0, -o0), Vector2(px, h)), c)
+	else:
+		ci.draw_rect(Rect2(p + Vector2(-o0, 0), Vector2(h, px)), c)
 
 
 # ---------------------------------------------------------------- 运行时件的像素（同 pxplane_wisadel_art.py）

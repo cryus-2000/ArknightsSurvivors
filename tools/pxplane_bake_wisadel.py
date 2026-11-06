@@ -76,6 +76,7 @@ def strips():
         out["st_r%d_e2" % R] = (A.star_gd(R, flames=True), False)
     for R in A.S3_R:
         sp("dawn_r%d" % R, lambda kk, R=R: A.dawn_up(R, kk), A.n_dawn(R))
+        sp("dawn2_r%d" % R, lambda kk, R=R: A.dawn2_up(R, kk), A.n_dawn(R))   # 11-07 照原作（fx/wd_dawn_v 1）
         out["dawng_r%d" % R] = (A.dawn_gd(R), False)
     for R in A.Q_R:
         out["q_r%d" % R] = (A.quake_gd(R), False)
