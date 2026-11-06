@@ -9,17 +9,21 @@ python3 tools/asset_index.py >/dev/null 2>&1
 run() {   # $1 档 $2 变体名 $3.. 参数
     t=$1; v=$2; shift 2
     d="$(realpath -m "$OUT/e${t}_$v")"; mkdir -p "$d"
-    timeout -k 30 900 "$GODOT" --rendering-driver opengl3 --audio-driver Dummy --resolution 1280x720 --position 0,0 --fixed-fps 30 --path game res://tests/elite_demo_shot.tscn -- \
+    timeout -k 30 420 "$GODOT" --rendering-driver opengl3 --audio-driver Dummy --resolution 1280x720 --position 0,0 --fixed-fps 30 --path game res://tests/elite_demo_shot.tscn -- \
         --shot_op=eyjafjalla --shot_stage=$t --shot_mode=3 --shot_dir="$d" --shot_start=1.0 --shot_every=1 --shot_n=105 --shot_w=1280 --shot_h=720 --quality=high "$@" > "$d.log" 2>&1
     echo "e$t $v rc=$? $(ls $d/f_*.png 2>/dev/null | wc -l) 张 $(grep -c 'SCRIPT ERROR' $d.log) 处脚本错误" | tee -a "$OUT/runs.txt"
 }
-for t in 0 1 2; do
-    run $t old --bal=fx/eyja_ball_lift=0 &
-    run $t new &
-    run $t old_dbg --bal=fx/eyja_ball_lift=0 --balldbg &
-    run $t new_dbg --balldbg &
-    wait
-done
 GS="$(curl -s -H 'Metadata-Flavor: Google' http://metadata.google.internal/computeMetadata/v1/instance/attributes/batch-gs)"
-( cd "$OUT" && find . -name '*.png' | tar -czf /work/shots.tar.gz -T - ) && gcloud storage cp /work/shots.tar.gz "$GS/shots.tar.gz" -q && echo "截图已传 $GS/shots.tar.gz" | tee "$OUT/shots.txt"
+up() { ( cd "$OUT" && find . -name '*.png' | tar -czf /work/shots.tar.gz -T - ) && gcloud storage cp /work/shots.tar.gz "$GS/shots.tar.gz" -q && echo "截图已传 $GS/shots.tar.gz（$1）" | tee "$OUT/shots.txt"; }
+# 11-06 第一次 4 路并行在精一卡死超时、一张没传上：改串行，每档录完就传一次
+for t in 0 1 2; do
+    run $t new
+    run $t old --bal=fx/eyja_ball_lift=0
+    up "e$t"
+done
+for t in 0 2; do
+    run $t new_dbg --balldbg
+    run $t old_dbg --bal=fx/eyja_ball_lift=0 --balldbg
+    up "e${t}_dbg"
+done
 exit 0
