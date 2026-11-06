@@ -1032,9 +1032,14 @@ func _toggle_row(i: int) -> void:
 	Sfx.play("ui_move")
 
 
-## 技能页在显示（干员详情 · 技能页签）
+## 可展开列表在显示（干员详情 · 技能 / 成长页签）
 func _skill_page() -> bool:
-	return _is_op() and info_tab == 2 and not entries.is_empty() and entries[sel].has("op") and not entries[sel].get("locked", false)
+	return _is_op() and info_tab in [2, 3] and not entries.is_empty() and entries[sel].has("op") and not entries[sel].get("locked", false)
+
+
+func _exp_rows_n() -> int:
+	var cd: Dictionary = entries[sel].op
+	return _skill_rows(cd).size() if info_tab == 2 else cd.get("progression", []).size()
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -1081,7 +1086,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 				_step(-cols())
 		KEY_DOWN, KEY_S:
 			if _skill_page():
-				_toggle_row(mini(row_sel + 1, _skill_rows(entries[sel].op).size() - 1))
+				_toggle_row(mini(row_sel + 1, _exp_rows_n() - 1))
 			else:
 				_step(cols())
 		KEY_Z:
@@ -2171,20 +2176,31 @@ func _c_skills(e: Dictionary, box: Rect2, ph: bool, am: float, odx: float, motio
 	for ri in rows.size():
 		if str(rows[ri][0]).begins_with("ULTIMATE") or str(rows[ri][0]).begins_with("LINK"):
 			big3.append(ri)
-	# 11-07 用户「点击可以看到完整的文字描述」：点一行（键盘 / 手柄 ↑↓）在这一行下方展开全文 + 数值 / 精英化差别，
-	# 同时只展开一行；展开后放不下就整列按像素滚动（docs/290：滚轮 / 手机拖动，不截断）。
-	# 动效「卷宗抽屉」：行高 160 ms 抽开（out_cubic）、标题下一道黄线从左划开、正文逐行 20 ms 错开浮现；收起 120 ms
+	var head := func(i: int, full: Rect2, a2: float) -> void: _sk_head(rows[i], full, ph, tight, a2)
+	_exp_list(rows.map(func(r): return [r[7], r[8]]), rows.map(func(r): return bool(r[6])), Rect2(x0, y, w, box.end.y - y), hh, gap, ph, big3, am, odx, motion, 1, head)
+
+
+# ---------------------------------------------------------------- 可展开列表（技能页 / 成长页共用，11-07 用户「点击可以看到完整的文字描述」「成长那里也同理」）
+## 点一行（键盘 / 手柄 ↑↓）在这一行下方展开全文 + 数值 / 精英化差别 / 分支，同时只展开一行；
+## 没展开时各行按 _row_heights 铺满面板，放不下时每行留标题 + 一行说明、整列滚动；展开后放不下也整列按像素滚动（docs/290：滚轮 / 手机拖动，不截断）。
+## 动效「卷宗抽屉」：行高 160 ms 抽开（out_cubic）、标题下一道黄线从左划开、正文逐行 20 ms 错开浮现；收起 120 ms（docs/62：图鉴其余处没有用过）
+## items = [[说明, 附加数值行], …]；hl = 各行是否高亮（终结技 / 精英化）；head = 画标题的回调 (行号, 整行矩形, 透明度)
+func _exp_list(items: Array, hl: Array, area: Rect2, hh: float, gap: float, ph: bool, big3: Array, am: float, odx: float, motion: bool, row0: int, head: Callable) -> void:
+	var x0 := area.position.x
+	var y := area.position.y
+	var w := area.size.x
 	var dw := w - (16.0 if ph else 24.0)
-	var avail := box.end.y - y
+	var avail := area.size.y
 	sk_list_r = Rect2(x0, y, w + 8.0, avail)
-	var cur := row_sel if row_sel < rows.size() else -1
+	var n := items.size()
+	var cur := row_sel if row_sel < n else -1
 	var e_t := 1.0 if _still() else UI.ease_out(clampf((_now() - row_t0) / (0.16 if cur >= 0 else 0.12), 0.0, 1.0))
-	var h_to := _sk_heights(rows, cur, avail, hh, gap, dw, ph, big3)
+	var h_to := _exp_heights(items, cur, avail, hh, gap, dw, ph, big3)
 	var hs: Array = h_to
 	if e_t < 1.0:
-		var h_from := _sk_heights(rows, row_from if row_from < rows.size() else -1, avail, hh, gap, dw, ph, big3)
+		var h_from := _exp_heights(items, row_from if row_from < n else -1, avail, hh, gap, dw, ph, big3)
 		hs = []
-		for i in rows.size():
+		for i in n:
 			hs.append(lerpf(h_from[i], h_to[i], e_t))
 	var tot_to := -gap
 	var top_to: Array = []
@@ -2199,28 +2215,28 @@ func _c_skills(e: Dictionary, box: Rect2, ph: bool, am: float, odx: float, motio
 			sk_scroll = t0r
 		elif b0r > sk_scroll + avail:
 			sk_scroll = minf(t0r, b0r - avail)
-		sk_follow = false
+	sk_follow = false
 	sk_scroll = clampf(sk_scroll, 0.0, sk_scroll_max)
 	var list_r := Rect2(x0 - 1.0, y - 1.0, w + 2.0, avail + 2.0)
 	var yy := y - sk_scroll
-	for i in rows.size():
-		a = _rowm(i + 1, am, odx, motion)
-		var r: Array = rows[i]
+	var a := 1.0
+	for i in n:
+		a = _rowm(i + row0, am, odx, motion)
 		var full := Rect2(x0, yy, w, hs[i])
 		yy += hs[i] + gap
 		var rr := full.intersection(list_r)
 		if rr.size.y < 3.0:
 			continue
 		var opened: bool = i == cur
-		UI.cpanel(self, rr, r[6] or opened, a)
+		UI.cpanel(self, rr, bool(hl[i]) or opened, a)
 		hits.append([rr, "row", i])   # 点一行展开 / 再点收起（桌面 + 手机）
 		_sk_chevron(rr, opened, a)
 		if full.position.y >= list_r.position.y and full.position.y + hh <= list_r.end.y:
-			_sk_head(r, full, ph, tight, a)
+			head.call(i, full, a)
 		if opened:
-			_sk_detail(r, full, list_r, hh, ph, a)
-		elif cur < 0 and e_t >= 1.0 and rr.size.y >= full.size.y - 0.5:
-			_row_desc(r[7], full, hh, ph, a)
+			_sk_detail(items[i], full, list_r, hh, ph, a)
+		elif e_t >= 1.0 and rr.size.y >= full.size.y - 0.5:
+			_row_desc(str(items[i][0]), full, hh, ph, a)
 	if sk_scroll_max > 0.0:   # 2 像素细滚动条（暗轨 + 墨色滑块，docs/290）
 		var a2 := _rowm(0, am, odx, motion)
 		var track := Rect2(x0 + w + 4.0, y, 2.0, avail)
@@ -2229,7 +2245,7 @@ func _c_skills(e: Dictionary, box: Rect2, ph: bool, am: float, odx: float, motio
 		draw_rect(Rect2(track.position.x - 1.0, y + (track.size.y - th) * sk_scroll / sk_scroll_max, 4.0, th), UI.fa(UI.C_L_INK, 0.6 * a2))
 
 
-## 技能行标题：图标 / 编号块、英文小标签、名字、SP、标签片、终结技键牌（原 _c_skills 行内画法，搬出来以便滚动时整块判断）
+## 技能行标题：图标 / 编号块、英文小标签、名字、SP、标签片、终结技键牌
 func _sk_head(r: Array, rr: Rect2, ph: bool, tight: bool, a: float) -> void:
 	var x0 := rr.position.x
 	var y := rr.position.y
@@ -2272,8 +2288,8 @@ func _sk_chevron(rr: Rect2, opened: bool, a: float) -> void:
 	draw_colored_polygon(pts, UI.fa(UI.C_L_INK if opened else UI.C_L_SUB, a))
 
 
-## 展开行：全文说明 + 数值 / 精英化差别；按行画，只画落在列表区里的行（滚动时整行出入），逐行错开浮现
-func _sk_detail(r: Array, full: Rect2, list_r: Rect2, hh: float, ph: bool, a: float) -> void:
+## 展开行：全文说明 + 附加数值行；按行画，只画落在列表区里的行（滚动时整行出入），逐行错开浮现
+func _sk_detail(it: Array, full: Rect2, list_r: Rect2, hh: float, ph: bool, a: float) -> void:
 	var x := full.position.x + (8.0 if ph else 12.0)
 	var dw := full.size.x - (16.0 if ph else 24.0)
 	var ly := full.position.y + hh
@@ -2281,7 +2297,7 @@ func _sk_detail(r: Array, full: Rect2, list_r: Rect2, hh: float, ph: bool, a: fl
 	if ly - 3.0 >= list_r.position.y and ly - 3.0 <= list_r.end.y:
 		draw_line(Vector2(full.position.x + 6.0, ly - 3.0), Vector2(full.position.x + 6.0 + (full.size.x - 12.0) * wipe, ly - 3.0), UI.fa(UI.C_ACC, a), 2.0)
 	var k := 0
-	for part in _sk_parts(r, dw, ph):
+	for part in _sk_parts(it, dw, ph):
 		var f: Dictionary = part[0]
 		var asc := font.get_ascent(f.size)
 		for ln in f.lines:
@@ -2293,35 +2309,37 @@ func _sk_detail(r: Array, full: Rect2, list_r: Rect2, hh: float, ph: bool, a: fl
 		ly += part[2]
 
 
-## 展开内容分段：[排好的文字, 颜色, 段后空]；说明用墨色、数值 / 精英化差别用次要色
-func _sk_parts(r: Array, dw: float, ph: bool) -> Array:
-	var out: Array = [[UI.fit(font, str(r[7]), dw, 99999.0, [11] if ph else [12]), UI.C_L_INK, 4.0]]
-	if str(r[8]) != "":
-		out.append([UI.fit(font, str(r[8]), dw, 99999.0, [10] if ph else [11]), UI.C_L_SUB, 0.0])
+## 展开内容分段：[排好的文字, 颜色, 段后空]；说明用墨色、附加数值行用次要色
+func _sk_parts(it: Array, dw: float, ph: bool) -> Array:
+	var out: Array = [[UI.fit(font, str(it[0]), dw, 99999.0, [11] if ph else [12]), UI.C_L_INK, 4.0]]
+	if str(it[1]) != "":
+		out.append([UI.fit(font, str(it[1]), dw, 99999.0, [10] if ph else [11]), UI.C_L_SUB, 0.0])
 	return out
 
 
-## 各行目标高度：没有展开时沿用 _row_heights（铺满面板）；展开一行时其余只留标题，这一行 = 标题 + 全文 + 数值
-func _sk_heights(rows: Array, cur: int, avail: float, hh: float, gap: float, dw: float, ph: bool, big3: Array) -> Array:
+## 各行目标高度：没有展开时沿用 _row_heights（铺满面板；放不下时每行留标题 + 一行、整列滚动）；
+## 展开一行时其余只留标题，这一行 = 标题 + 全文 + 附加行
+func _exp_heights(items: Array, cur: int, avail: float, hh: float, gap: float, dw: float, ph: bool, big3: Array) -> Array:
 	if cur < 0:
 		var keep := row_sel
 		row_sel = -1
-		var hs := _row_heights(rows.map(func(r): return r[7]), avail, hh, gap, dw, ph, big3)
+		var hs := _row_heights(items.map(func(it): return str(it[0])), avail, hh, gap, dw, ph, big3, true)
 		row_sel = keep
 		return hs
 	var out: Array = []
-	for i in rows.size():
+	for i in items.size():
 		if i != cur:
 			out.append(hh)
 			continue
 		var h := hh + 8.0
-		for part in _sk_parts(rows[i], dw, ph):
+		for part in _sk_parts(items[i], dw, ph):
 			h += float(part[0].h) + float(part[2])
 		out.append(h)
 	return out
 
 
-## 成长页：progression 节点按出现顺序竖排（成长节点用 growth_* 图标，精英化用本人二 / 三技能图标 + 黄底）；局内升级时成长卡按此顺序出现
+## 成长页：progression 节点按出现顺序竖排（成长节点用 growth_* 图标，精英化用本人二 / 三技能图标 + 黄底）；局内升级时成长卡按此顺序出现。
+## 每行点开看全文（同技能页 _exp_list），分支节点附上另一条分支 / 后续路线的说明
 func _c_growth(e: Dictionary, box: Rect2, ph: bool, am: float, odx: float, motion: bool) -> void:
 	var cd: Dictionary = e.op
 	var nodes: Array = cd.get("progression", [])
@@ -2334,60 +2352,77 @@ func _c_growth(e: Dictionary, box: Rect2, ph: bool, am: float, odx: float, motio
 	var hh := 28.0 if ph else 40.0
 	var gap := 4.0 if ph else 8.0
 	var bottom := box.end.y - (0.0 if ph else 18.0)
-	var descs: Array = nodes.map(func(nd): return str(nd.get("desc", "")) if nd is Dictionary else "")
-	var hs := _row_heights(descs, bottom - y, hh, gap, w - (16.0 if ph else 24.0), ph)
-	if not ph and nodes.size() > 1:
-		var a0 := _rowm(0, am, odx, motion)
-		var yl := y + 18.0
-		var yz := y
-		for i in nodes.size() - 1:
-			yz += hs[i] + gap
-		draw_line(Vector2(lx, yl), Vector2(lx, yz + 18), UI.fa(UI.C_L_INK, a0), 2.0)
-	var ei := 0
-	for i in nodes.size():
-		var nd: Dictionary = nodes[i] if nodes[i] is Dictionary else {}
-		var a := _rowm(i, am, odx, motion)
+	var items: Array = []
+	var hl: Array = []
+	var icons: Array = []
+	for nd0 in nodes:
+		var nd: Dictionary = nd0 if nd0 is Dictionary else {}
 		var el: bool = nd.get("type", "") == "elite"
+		items.append([str(nd.get("desc", "")), _growth_meta(nd, nodes)])
+		hl.append(el)
 		var icon: String = str(nd.get("icon", ""))
 		if el:
 			var si: int = 1 if int(nd.get("level", 1)) == 1 else 2
 			if icon == "" and si < sks.size():
 				icon = str(sks[si].get("icon", ""))
-			ei += 1
 		if icon == "" or A.tex(icon) == null:
 			icon = "growth_hp"
+		icons.append(icon)
+	if not ph and nodes.size() > 1:   # 左侧时间线：贯穿整列（滚动时也在）
+		var a0 := _rowm(0, am, odx, motion)
+		draw_line(Vector2(lx, y + 4.0), Vector2(lx, bottom - 4.0), UI.fa(UI.C_L_INK, a0), 2.0)
+	var head := func(i: int, rr: Rect2, a: float) -> void:
+		var nd: Dictionary = nodes[i] if nodes[i] is Dictionary else {}
+		var el: bool = hl[i]
+		var yy := rr.position.y
 		if not ph:
-			var mk := Rect2(lx - 7, y + 11, 14, 14)
+			var mk := Rect2(lx - 7, yy + 11, 14, 14)
 			draw_rect(mk, UI.fa(UI.C_ACC if el else UI.C_L_INK, a))
 			draw_rect(mk, UI.fa(UI.C_L_INK, a), false, 2.0)
-		var rr := Rect2(cx0, y, w, hs[i])
-		UI.cpanel(self, rr, el, a)
-		if ph:
-			hits.append([rr, "row", i])
 		var isz := 24.0 if ph else 32.0
-		var ib := Rect2(cx0 + (6 if ph else 8), y + (3 if ph else 4), isz, isz)
+		var ib := Rect2(rr.position.x + (6 if ph else 8), yy + (3 if ph else 4), isz, isz)
 		draw_rect(ib, UI.fa(UI.C_L_INK, a))
-		var itx: Texture2D = A.tex(icon)
+		var itx: Texture2D = A.tex(icons[i])
 		if itx != null:
 			draw_texture_rect(itx, ib.grow(-2.0), false, Color(1, 1, 1, a))
 		var tx0 := ib.end.x + 8.0
 		var lbl := ("精英化" if el else "成长")
-		var lw := UI.text_at(self, font, Vector2(rr.end.x - 8, y + (9 if ph else 12)), lbl, 10, UI.fa(UI.C_L_SUB, a), "ra")
+		var lw := UI.text_at(self, font, Vector2(rr.end.x - 8, yy + (9 if ph else 12)), lbl, 10, UI.fa(UI.C_L_SUB, a), "ra")
 		if not ph:
-			UI.code(self, font, Vector2(tx0, y + 3), "NODE %02d" % (i + 1), 7, UI.fa(UI.C_L_SUB, a))
+			UI.code(self, font, Vector2(tx0, yy + 3), "NODE %02d" % (i + 1), 7, UI.fa(UI.C_L_SUB, a))
 		var nf := UI.fit_line(font, str(nd.get("name", "")), 12 if ph else 13, rr.end.x - 16.0 - lw - tx0, 9)
-		UI.text_at(self, font, Vector2(tx0, y + (8 if ph else 14)), nf[0], nf[1], UI.fa(UI.C_L_INK, a))
-		_row_desc(descs[i], rr, hh, ph, a)
-		y += hs[i] + gap
+		UI.text_at(self, font, Vector2(tx0, yy + (8 if ph else 14)), nf[0], nf[1], UI.fa(UI.C_L_INK, a))
+	_exp_list(items, hl, Rect2(cx0, y, w, bottom - y), hh, gap, ph, [], am, odx, motion, 0, head)
 	if not ph:
 		var a2 := _rowm(nodes.size(), am, odx, motion)
 		var foot := UI.fit_line(font, "成长卡按此顺序出现；成长节点各带攻击 +%d%%，精英化强化普攻" % int(round(Character.NODE_ATK * 100.0)), 10, box.end.x - x0, 8)
 		UI.text_at(self, font, Vector2(x0, box.end.y - 12), foot[0], foot[1], UI.fa(UI.C_L_SUB, a2))
 
 
+## 成长节点展开后的附加行：分支节点列出另一条分支（branch），后续节点列出按前一分支变成的版本（routes）；文字都取局内同一套（data progression）
+func _growth_meta(nd: Dictionary, nodes: Array) -> String:
+	var lines: Array = []
+	var br = nd.get("branch", null)
+	if br is Dictionary:
+		for k in br:
+			var b: Dictionary = br[k] if br[k] is Dictionary else {}
+			if str(b.get("name", "")) != str(nd.get("name", "")):
+				lines.append("另一条分支「%s」：%s" % [str(b.get("name", "")), str(b.get("desc", ""))])
+	var rt = nd.get("routes", null)
+	if rt is Dictionary:
+		for k in rt:
+			var r: Dictionary = rt[k] if rt[k] is Dictionary else {}
+			var from_name := str(k)
+			for n0 in nodes:
+				if n0 is Dictionary and n0.get("branch", null) is Dictionary and n0.branch.has(k):
+					from_name = str(n0.branch[k].get("name", k))
+			lines.append("选了「%s」后：「%s」%s" % [from_name, str(r.get("name", "")), str(r.get("desc", ""))])
+	return "\n".join(lines)
+
+
 ## 各行高度：桌面每行 = 标题 + 说明（字号 12 → 10，仍放不下就平分剩余高度并截断）；
 ## 手机 = 未展开时每行标题 + 一行说明，点开一行后其余只留标题、这一行拿剩下的高度
-func _row_heights(descs: Array, avail: float, hh: float, gap: float, dw: float, ph: bool, big3: Array = []) -> Array:
+func _row_heights(descs: Array, avail: float, hh: float, gap: float, dw: float, ph: bool, big3: Array = [], overflow := false) -> Array:
 	var n := descs.size()
 	var out: Array = []
 	if n == 0:
@@ -2396,6 +2431,8 @@ func _row_heights(descs: Array, avail: float, hh: float, gap: float, dw: float, 
 	if ph:
 		if row_sel < 0 or row_sel >= n:
 			var h := minf(46.0, room / n)
+			if overflow:
+				h = maxf(h, 44.0)   # 可滚动列表（_exp_list）：每行至少留标题 + 一行说明，放不下就滚（docs/290）
 			for i in n:
 				out.append(h)
 			return out
@@ -2424,6 +2461,8 @@ func _row_heights(descs: Array, avail: float, hh: float, gap: float, dw: float, 
 		mins.append(mn)
 		tmin += mn
 	if tmin > room:
+		if overflow:
+			return mins   # 可滚动列表：每行标题 + 一行（终结技 / 连携两行）说明，整列滚动，不再平分到看不见说明
 		for i in n:
 			out.append(room / n)
 		return out
@@ -2533,7 +2572,7 @@ func _draw_hint(ph: bool) -> void:
 		return
 	# 职业轨只在干员页（11-01 巡检二轮：敌人 / 道具等页也写着「最左再 ← 进职业轨」）
 	var s := Pad.hint("Q / E 分类 · 方向键选择%s· Z / X 动作 · ENTER 页签 · ESC 返回" % ("（最左再 ← 进职业轨）" if tab == 0 else " "), "LB / RB 分类 · 十字键选择 · Ⓧ / Ⓨ 动作 · Ⓐ 页签 · Ⓑ 返回")
-	if _skill_page():   # 技能页：↑↓ 逐行展开说明（点行也可以）
+	if _skill_page():   # 技能 / 成长页：↑↓ 逐行展开说明（点行也可以）
 		s = Pad.hint("Q / E 分类 · ←→ 选择 · ↑↓ 展开说明 · Z / X 动作 · ENTER 页签 · ESC 返回", "LB / RB 分类 · 十字键 ←→ 选择 · ↑↓ 展开说明 · Ⓐ 页签 · Ⓑ 返回")
 	var fl := UI.fit_line(font, s, 11, 404.0, 9)
 	UI.text_at(self, font, Vector2(24, 694), fl[0], fl[1], UI.C_D_SUB)
