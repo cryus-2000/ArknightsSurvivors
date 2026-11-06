@@ -1,0 +1,6 @@
+846183	A_A/shot_7132.png
+817921	A_A/shot_7587.png
+787632	A_A/shot_8953.png
+846820	A_off/shot_7132.png
+820310	A_off/shot_7587.png
+794393	A_off/shot_8953.png

@@ -1,0 +1,6 @@
+886570	B_B/shot_7132.png
+795366	B_B/shot_7587.png
+754937	B_B/shot_8953.png
+886060	B_M/shot_7132.png
+795051	B_M/shot_7587.png
+753722	B_M/shot_8953.png
