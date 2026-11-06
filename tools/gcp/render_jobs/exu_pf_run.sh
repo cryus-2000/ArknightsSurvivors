@@ -18,7 +18,7 @@ run() {   # $1 场景 ctrl|noctrl  $2 模式
     echo "$1 m$2：$(ls $d/fr_*.png 2>/dev/null | wc -l) 张；$(grep -c 'SCRIPT ERROR\|Parse Error' $d.log) 处脚本错误" | tee -a "$OUT/runs.txt"
 }
 GS="$(curl -s -H 'Metadata-Flavor: Google' http://metadata.google.internal/computeMetadata/v1/instance/attributes/batch-gs)"
-up() { ( cd "$OUT" && find . -name '*.png' | tar -czf /work/shots.tar.gz -T - ) && gcloud storage cp /work/shots.tar.gz "$GS/shots.tar.gz" -q && echo "截图已传（$1）" | tee "$OUT/shots.txt"; }
+up() { ( cd "$OUT" && find . -name '*.png' | tar -czf /work/shots_$BASHPID.tar.gz -T - ) && gcloud storage cp /work/shots_$BASHPID.tar.gz "$GS/shots.tar.gz" -q && echo "截图已传（$1）" | tee "$OUT/shots.txt"; }
 # 一场一传：先录无控四档，再录有控四档（每档单独上传，超时也留得下已录的）
 for s in noctrl ctrl; do
     for m in 0 1 2 3; do ( run $s $m; up "$s m$m" ) & done; wait
