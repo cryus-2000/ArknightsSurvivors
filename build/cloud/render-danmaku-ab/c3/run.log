@@ -1,0 +1,12 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4815 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+iberia old：210 帧；0 处脚本错误
+iberia new：210 帧；0 处脚本错误
+tools/gcp/render_jobs/danmaku_ab.sh: line 20: ffmpeg: command not found
+total 1532
+drwxr-xr-x 2 root root   4096 Nov  6 16:08 .
+drwxr-xr-x 3 root root   4096 Nov  6 16:07 ..
+-rw-r--r-- 1 root root 779538 Nov  6 16:08 iberia_new_still.png
+-rw-r--r-- 1 root root 775579 Nov  6 16:07 iberia_old_still.png
+media：2 个文件，1.5M

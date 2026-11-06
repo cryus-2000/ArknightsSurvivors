@@ -1,0 +1,2 @@
+804562	bishop_new_still.png
+855563	bishop_old_still.png

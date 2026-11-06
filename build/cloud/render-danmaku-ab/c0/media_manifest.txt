@@ -1,0 +1,2 @@
+635201	path_new_still.png
+634970	path_old_still.png
