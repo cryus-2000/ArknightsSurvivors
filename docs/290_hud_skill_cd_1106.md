@@ -98,6 +98,13 @@ Tab 属性面板（桌面三栏版）编队栏的每个头像下，也画同一�
 
 **原来就能滚的：** 事件选项（`choice_panel`）、寻访指定干员列表（`headhunt`）、作战记录（`run_stats`）、对局记录（`run_log`）。
 
-**还没做：** 手机五页版属性面板，要靠拖动来滚。
+**手机五页版属性面板（用户 11-06「加上」）：**
+
+- 操作：手指按在能滚的区域上，上下拖动就翻。每拖 44 界面像素翻一行，手指往上推就往下翻。按在可滚区域的空当上不会关面板；点在格子上照常看效果。
+- 技能页：同桌面，按说明全文算行高，不截断。
+- 藏品页：格子最小 46（原来会一路缩到 30，手指点不准），再放不下就按排滚动，不再收「+N」。
+- 实现：`touch.gd` 的 `scroll_id` / `SCROLL_STEP`，加上 `stats_panel.scroll_hit(p)` 和 `wheel(dy, at)`。
+- 截图参数：`--tabpage=N` 翻到第 N 页；`--tabdrag=x,y,d` 在 (x, y) 按下，往上拖 d 像素后松开，走的是真的触屏输入。
+- 截图：GCP `render-hudcd-1106h`、`render-hudcd-1106i`。ui_smoke / touch_layout / touch_move / card_desc / core 都通过（`render-hudcd-1106h`、`render-hudcd-1106j`）。
 
 截图：GCP `render-hudcd-1106g`，提交 755e949c5。ui_smoke / touch_layout / card_desc / core 都通过。

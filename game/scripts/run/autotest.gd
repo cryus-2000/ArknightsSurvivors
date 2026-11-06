@@ -1086,8 +1086,30 @@ func step() -> void:
 		if _tab_f == 5:
 			for a in Cfg.dev_args():
 				if a.begins_with("--tabscroll="):   # 截图：属性面板各块滚 N 行（docs/290 放不下就滚轮）
-					for key in ["skills", "squad_items"]:
+					for key in ["skills", "squad_items", "p_skills", "p_relics"]:
 						g.stats_screen._sc[key] = int(a.substr(12))
+				if a.begins_with("--tabpage="):
+					g.stats_page = int(a.substr(10))   # 手机五页版翻到第 N 页（0 起）
+				if a.begins_with("--tabdrag="):   # 手机：在 (x, y) 按下、往上拖 d 界面像素再松开，走真的触屏输入（touch.gd 拖动滚）
+					var v: PackedStringArray = a.substr(10).split(",")
+					var at := Vector2(float(v[0]), float(v[1])) * Cfg.ui_k
+					var t0 := InputEventScreenTouch.new()
+					t0.index = 0
+					t0.position = at
+					t0.pressed = true
+					Input.parse_input_event(t0)
+					for k in 6:
+						var dr := InputEventScreenDrag.new()
+						dr.index = 0
+						dr.relative = Vector2(0, -float(v[2]) / 6.0 * Cfg.ui_k)
+						at += dr.relative
+						dr.position = at
+						Input.parse_input_event(dr)
+					var t1 := InputEventScreenTouch.new()
+					t1.index = 0
+					t1.position = at
+					t1.pressed = false
+					Input.parse_input_event(t1)
 		if _tab_f == 20 and DisplayServer.get_name() != "headless":
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_tab.png")
 			g.get_tree().quit()
