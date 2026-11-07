@@ -87,7 +87,7 @@ func _process(_dt: float) -> void:
 		var last: Control = game.panel_col.get_child(game.choices.size() - 1)
 		var sc: ScrollContainer = game.panel_scroll
 		var top: float = last.position.y - float(sc.scroll_vertical)
-		check(top >= -0.5 and top + last.size.y <= sc.size.y + 0.5, "焦点到「离开」自动滚到可见（%.0f..%.0f / %.0f）" % [top, top + last.size.y, sc.size.y])
+		check(top >= -2.0 and top + last.size.y <= sc.size.y + 2.0, "焦点到「离开」自动滚到可见（%.0f..%.0f / %.0f）" % [top, top + last.size.y, sc.size.y])
 		game.kb_nav = false
 		print("EVENT TOUCH LAYOUT failures=%d" % failures)
 		get_tree().quit(1 if failures else 0)

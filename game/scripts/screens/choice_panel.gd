@@ -388,7 +388,7 @@ func ev_frame() -> Dictionary:
 	var ins: Array = Cfg.safe_insets()
 	var sr := Rect2(float(ins[0]), float(ins[1]), vs.x - float(ins[0]) - float(ins[2]), vs.y - float(ins[1]) - float(ins[3]))
 	var k: float = minf(1.0, minf(sr.size.x / EV_DW, sr.size.y / EV_DH))
-	var o: Vector2 = (sr.get_center() - k * Vector2(EV_CX, EV_DY0 + EV_DH / 2.0)).round()
+	var o: Vector2 = (sr.get_center() - k * Vector2(EV_DW / 2.0, EV_DY0 + EV_DH / 2.0)).round()   # 设计框 x 0..EV_DW（中线 EV_CX 偏左 12：右侧选项列宽 596 + 12）
 	return {"k": k, "o": o, "cx": EV_CX}
 
 
