@@ -13,6 +13,7 @@ extends RefCounted
 ##   帧数、最长一帧、那一秒里发生了什么：Boss 登场 / 大群 / 精英 / 读贴图 N 张 / 升级 / 刷怪 N 只 / 护栏…）
 ## 存档：user://perf_reports.json（网页落在浏览器本地存储里）。测试运行（带命令行参数）只有加 --perfreport 才记，且写到 _test 文件，不碰玩家的
 const Game = preload("res://scripts/game.gd")
+const CrashBox = preload("res://scripts/core/crash_box.gd")
 
 const KEEP := 5
 const BUCKET_MS := 0.5
@@ -101,6 +102,7 @@ func tick(delta: float) -> void:
 
 ## 事件标签（Boss 登场、护栏动作等调用方主动打的）：记进这一秒
 func tag(name: String) -> void:
+	CrashBox.tag(name)
 	if on and not done:
 		_sec_tags[name] = int(_sec_tags.get(name, 0)) + 1
 

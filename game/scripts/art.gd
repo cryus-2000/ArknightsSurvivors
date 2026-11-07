@@ -7,6 +7,9 @@ static var _cache := {}
 ## 第二局起没开图鉴 343 MB）。标题页打开时 outrun_track = true，期间 tex / tex_hi 新缓存的名字记进 _outrun；
 ## 手机网页进局（game._ready → drop_outrun）把不在本局固定名单里的拿掉，贴图在没人引用后释放，局内再要时 tex() 重新读
 static var outrun_track := false
+## 崩溃前快照（core/crash_box.gd）：进缓存的贴图累计张数与最近几张名字
+static var load_n := 0
+static var recent_loads := PackedStringArray()
 static var _outrun := {}
 static var enemy_pixels: Dictionary = {}
 static var _enemy_pixels_loaded := false
@@ -419,6 +422,10 @@ static func tex(name: String, keep_cached := true) -> Texture2D:
 			_hires_rid[t.get_rid()] = density
 			_name_rid[t.get_rid()] = name
 		_cache[name] = t
+		load_n += 1
+		recent_loads.append(name)
+		if recent_loads.size() > 8:
+			recent_loads.remove_at(0)
 		if outrun_track:
 			_outrun[name] = true
 	elif t != null:

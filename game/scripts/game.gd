@@ -31,6 +31,7 @@ const RunSetup = preload("res://scripts/run/run_setup.gd")   # 开局：难度�
 const RunEnd = preload("res://scripts/run/run_end.gd")   # 局终：局外结算
 const Telemetry = preload("res://scripts/run/telemetry.gd")
 const PerfReport = preload("res://scripts/core/perf_report.gd")
+const CrashBox = preload("res://scripts/core/crash_box.gd")
 const WorldView = preload("res://scripts/render/world.gd")
 const HudView = preload("res://scripts/screens/hud.gd")
 const ShopScreen = preload("res://scripts/screens/shop_screen.gd")
@@ -929,6 +930,7 @@ func _ready() -> void:
 	web_fs.setup(self)
 	web_focus.setup(self)
 	trial.consume()
+	CrashBox.begin(self)   # 崩溃前快照：局内每 15 秒把内存构成写进本地存储（core/crash_box.gd）
 	# 随机数最先定：招募开局干员时就会用 rng（战斗台词计时等）。以前 --seed 在 _ready 后段才生效，
 	# 开局干员的台词计时是随机的，第一句台词一出同 seed 的两局就分叉（2026-09-26 查明，docs/36）
 	var seeded := false
@@ -1609,6 +1611,7 @@ func _process(delta: float) -> void:
 			if state == S.WIN or state == S.DEAD:
 				RunEnd.settle(self)   # 局外结算：寻访凭证、生机细胞、最佳成绩、云存档（run/run_end.gd）
 				perf_rep.finish("win" if state == S.WIN else "dead")
+				CrashBox.end("win" if state == S.WIN else "dead")
 		state_age = 0.0
 		ui_skip = false
 		res_sel = 0
@@ -1636,6 +1639,7 @@ func _process(delta: float) -> void:
 		if absf(cam.zoom.x - bz) > 0.0001:
 			cam.zoom = Vector2(bz, bz)   # 低档也每帧对齐（中 / 高由光学 _lo_step 每帧算）：漏掉尺寸变化通知时不会停在旧镜头（10-27 用户「低中镜头还是不一样」）
 	_mem_guard(delta)
+	CrashBox.tick(self, delta)
 	perf_rep.tick(delta)   # 性能报告：帧时分桶 / 最低 1 秒帧率 / 内存与敌人峰值（只加计数）
 	_white_release(delta)
 	if EliteMoment.on(self):
@@ -2452,6 +2456,7 @@ func _exit_tree() -> void:
 		telemetry.on_exit()
 		if demo_op == "":
 			perf_rep.finish("quit")
+			CrashBox.end("quit")
 	if demo_op == "":
 		_release_run()
 
