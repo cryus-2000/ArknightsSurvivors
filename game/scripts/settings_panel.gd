@@ -131,7 +131,7 @@ func _refit() -> void:
 
 
 func open() -> void:
-	v2 = preload("res://scripts/core/balance.gd").vi("ui/settings_v2", 0) > 0
+	v2 = preload("res://scripts/core/balance.gd").vi("ui/settings_v2", 1) > 0
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	position = Vector2.ZERO
 	size = get_viewport_rect().size
