@@ -1,7 +1,7 @@
 extends Control
 ## 意见反馈浮层（docs/311，core/feedback.gd）：结算底栏与标题页底部一行的「意见反馈」共用。
-## 打开时（玩家点按里）就把反馈码复制进剪贴板，浮层上写出反馈码、一句说明和「打开问卷」/「前往视频评论区」（Toy）主按钮；
-## 主按钮在点按处理里直接跳转（浏览器 / Toy 都要用户手势）。网页剪贴板 1 秒内没成功：DOM 里盖一个只读输入框，长按 / 全选复制。
+## 打开时（玩家点按里）就把反馈码复制进剪贴板，浮层上写出反馈码、一句说明和「打开问卷」主按钮（点按处理里直接跳转，浏览器要用户手势）；
+## B站 Toy 不跳转（11-07 用户）：浮层写「请在评论区留言」，只有「再复制一次」和「关闭」。网页剪贴板 1 秒内没成功：DOM 里盖一个只读输入框，长按 / 全选复制。
 ## 键盘由自己的 _input 收；结算里 game.gd 让开（feedback_view 开着时不转给结算），标题页由 title._overlays 让开
 
 signal closed
@@ -111,7 +111,10 @@ func key(kc: int) -> bool:
 		KEY_ESCAPE, KEY_BACKSPACE:
 			close()
 		KEY_ENTER, KEY_KP_ENTER, KEY_SPACE:
-			_go()
+			if FB.is_toy():
+				close()
+			else:
+				_go()
 		KEY_C:
 			_copy()
 			queue_redraw()
@@ -156,7 +159,7 @@ func _hit(p: Vector2) -> String:
 func _go() -> void:
 	if FB.go():
 		Sfx.play("ui_ok")
-		note = "已在新页面打开问卷，填写时把反馈码粘贴进去" if not FB.is_toy() else "正在前往视频，留言时可以附上反馈码"
+		note = "已在新页面打开问卷，填写时把反馈码粘贴进去"
 		note_ok = true
 	else:
 		note = "暂时无法打开，请稍后再试"
@@ -192,12 +195,15 @@ func _draw() -> void:
 	draw_rect(cr, Color(UI.CYAN, 0.45), false, 1.0)
 	var cs := 26 if ph else 22
 	UI.text(self, font, Vector2(cr.position.x, cr.position.y + cr.size.y * 0.5 + cs * 0.36), fb_code, cs, UI.CYAN, HORIZONTAL_ALIGNMENT_CENTER, cr.size.x)
-	# 复制结果 + 说明
-	var ny := cr.end.y + (28.0 if ph else 24.0)
-	UI.text(self, font, Vector2(x, ny), note, 16 if tl else 14, UI.CYAN if note_ok else UI.GOLD)
+	# 复制结果 + 说明（Toy：先写一句「请在评论区留言」）
 	var toy: bool = FB.is_toy()
+	var ny := cr.end.y + (28.0 if ph else 24.0)
+	if toy:
+		UI.text(self, font, Vector2(x, ny + 2.0), "请在评论区留言，并附上这串反馈码", 20 if tl else 18, UI.TEXT)
+		ny += 30.0 if ph else 28.0
+	UI.text(self, font, Vector2(x, ny), note, 16 if tl else 14, UI.CYAN if note_ok else UI.GOLD)
 	var info := "反馈码只含版本号%s，不含任何个人信息。" % ("与本局的干员、难度、结果和用时" if run else "")
-	info += "留言时可以附上它，方便定位问题。" if toy else "填写问卷时把它粘贴进去，方便定位问题。"
+	info += "附上它方便定位问题。" if toy else "填写问卷时把它粘贴进去，方便定位问题。"
 	var fs := 16 if tl else 14
 	var fi := UI.fit(font, info, iw, 60.0, [fs, fs - 1, fs - 2])
 	UI.draw_fit(self, font, Vector2(x, ny + 14), fi, UI.SUB)
@@ -208,10 +214,14 @@ func _draw() -> void:
 	var gk := "" if (tl or Pad.using) else "ENTER"
 	var gw: float = 240.0 if ph else 210.0
 	var ow: float = 150.0 if ph else 130.0
-	btns = {"go": Rect2(pr.end.x - 28.0 - gw, by, gw, bh), "close": Rect2(pr.end.x - 28.0 - gw - 14.0 - ow, by, ow, bh),
-		"copy": Rect2(x, by, ow, bh)}
-	_btn("go", "前往视频评论区" if toy else "打开问卷", gk, true)
-	_btn("close", "关闭", ck, false)
+	if toy:   # Toy 不跳转：只有「再复制一次」和「关闭」（关闭当主按钮，Enter / Esc 都关）
+		btns = {"close": Rect2(pr.end.x - 28.0 - ow, by, ow, bh), "copy": Rect2(x, by, ow, bh)}
+		_btn("close", "关闭", "" if (tl or Pad.using) else "ESC", true)
+	else:
+		btns = {"go": Rect2(pr.end.x - 28.0 - gw, by, gw, bh), "close": Rect2(pr.end.x - 28.0 - gw - 14.0 - ow, by, ow, bh),
+			"copy": Rect2(x, by, ow, bh)}
+		_btn("go", "打开问卷", gk, true)
+		_btn("close", "关闭", ck, false)
 	_btn("copy", "再复制一次", "" if (tl or Pad.using) else "C", false)
 
 

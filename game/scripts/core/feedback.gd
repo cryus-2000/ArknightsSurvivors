@@ -2,7 +2,7 @@ extends RefCounted
 ## 玩家反馈入口（11-07 用户批，docs/311）：结算底栏 + 标题页底部一行「意见反馈」（11-07 用户：从设置页挪到标题页、改叫「意见反馈」）。
 ## 去向按平台分流，两个目标都在 balance.json feedback 段，留空 = 不显示入口（不给坏链接）：
 ##   itch / 桌面 / itch 网页：form_url（问卷链接，OS.shell_open；网页上就是 window.open，在点按处理里调，浏览器认作用户手势）
-##   B站 Toy（window.toy 在）：不跳站外（docs/99 外链条），toy.navigate({type:'video', id: toy_bv}) 去作者自己的视频评论区；
+##   B站 Toy（window.toy 在）：不跳站外、也不跳视频（11-07 用户），浮层直接写「请在评论区留言」+ 反馈码；不用配置，总是显示。
 ##     Toy 环境下即使配了 form_url 也不用它
 ## 反馈码：版本 / 提交号 + 本局摘要（队长、小队、难度、结果、倒下时刻、倒下原因类型、局时），不含任何个人信息；
 ## 玩家点按钮时复制到剪贴板、自己贴进问卷 / 评论，不上传。标题页入口只带版本。解码：tools/feedback_decode.py（同一张位表）
@@ -28,7 +28,7 @@ static func _bal(key: String) -> String:
 	return str(sec.get(key, "")).strip_edges() if sec is Dictionary else ""
 
 
-## 测试：--fburl=<链接> / --fbbv=<BV号> / --fbtoy（按 Toy 环境走）覆盖配置（只在调试版读命令行）
+## 测试：--fburl=<链接> / --fbtoy（按 Toy 环境走）覆盖配置（只在调试版读命令行）
 static func _arg(prefix: String) -> String:
 	for a in Cfg.dev_args():
 		if a.begins_with(prefix):
@@ -41,11 +41,6 @@ static func form_url() -> String:
 	return v if v != "" else _bal("form_url")
 
 
-static func toy_bv() -> String:
-	var v := _arg("--fbbv=")
-	return v if v != "" else _bal("toy_bv")
-
-
 ## B站 Toy 环境：页面里有 Toy SDK（Toy 包一律加载 SDK，itch 网页包没有）
 static func is_toy() -> bool:
 	if "--fbtoy" in Cfg.dev_args():
@@ -55,20 +50,15 @@ static func is_toy() -> bool:
 	return bool(JavaScriptBridge.eval("!!(window.toy && typeof window.toy.navigate === 'function')", true))
 
 
-## 入口要不要显示：当前平台对应的目标配了才显示
+## 入口要不要显示：Toy 总是显示（评论区留言，不用配置）；其他平台配了问卷链接才显示
 static func enabled() -> bool:
-	return toy_bv() != "" if is_toy() else form_url() != ""
+	return is_toy() or form_url() != ""
 
 
 ## 去反馈目标（必须在点按处理里调）。返回是否发出
 static func go() -> bool:
 	if is_toy():
-		var bv := toy_bv()
-		if bv == "":
-			return false
-		if not OS.has_feature("web"):
-			return true   # 测试（--fbtoy）：桌面上没有 Toy，当作已发出
-		return bool(JavaScriptBridge.eval("(function(bv){try{var t=window.toy;if(t&&typeof t.navigate==='function'){Promise.resolve(t.navigate({type:'video',id:bv})).catch(function(){});return true}}catch(e){}return false})(%s)" % JSON.stringify(bv), true))
+		return false   # Toy 不跳转（评论区留言）
 	var url := form_url()
 	if url == "" or not (url.begins_with("https://") or url.begins_with("http://")):
 		return false
