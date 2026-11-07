@@ -1,0 +1,9 @@
+1781492	real_tx7.png
+73733	real_tx7_gladiia_倒钩_0.png
+110187	real_tx7_gladiia_倒钩_1.png
+118523	real_tx7_lumen_净化_0.png
+104125	real_tx7_lumen_折光_0.png
+86962	real_tx7_lumen_折光_1.png
+73459	real_tx7_texas_技力_0.png
+68058	real_tx7_texas_技力_1.png
+108369	real_tx7_texas_金影_0.png

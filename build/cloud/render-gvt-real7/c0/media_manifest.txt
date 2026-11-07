@@ -1,0 +1,8 @@
+1730885	real_tx6.png
+97929	real_tx6_gladiia_倒钩_0.png
+99289	real_tx6_gladiia_倒钩_1.png
+88201	real_tx6_lumen_折光_0.png
+77027	real_tx6_skalter_共鸣_0.png
+68966	real_tx6_skalter_共鸣_1.png
+73275	real_tx6_texas_技力_0.png
+71415	real_tx6_texas_技力_1.png
