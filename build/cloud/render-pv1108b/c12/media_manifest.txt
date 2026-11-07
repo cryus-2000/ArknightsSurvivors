@@ -1,0 +1,6 @@
+863075	S2_godot.log
+49575	S2_pv.log
+303586915	S2_seg_01_beacon_t162.0.mp4
+79733	S2_seg_01_beacon_t162.0.sfx.json
+10693600	S2_seg_02_beacon_t298.4.mp4
+3042	S2_seg_02_beacon_t298.4.sfx.json

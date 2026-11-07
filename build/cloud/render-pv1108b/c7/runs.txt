@@ -1,0 +1,9 @@
+T rc=0 1014s
+  seg_01_win_t240.0 2221 帧 rc=0
+total 217608
+drwxr-xr-x 2 root root      4096 Nov  7 15:54 .
+drwxr-xr-x 4 root root      4096 Nov  7 15:36 ..
+-rw-r--r-- 1 root root     26373 Nov  7 15:53 T_godot.log
+-rw-r--r-- 1 root root     46048 Nov  7 15:53 T_pv.log
+-rw-r--r-- 1 root root 222676804 Nov  7 15:54 T_seg_01_win_t240.0.mp4
+-rw-r--r-- 1 root root     57551 Nov  7 15:54 T_seg_01_win_t240.0.sfx.json

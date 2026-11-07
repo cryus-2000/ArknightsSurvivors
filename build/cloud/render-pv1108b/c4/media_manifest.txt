@@ -1,0 +1,4 @@
+29015	UA_godot.log
+87575	UA_pv.log
+421082155	UA_seg_01_win_t470.0.mp4
+102740	UA_seg_01_win_t470.0.sfx.json

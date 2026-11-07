@@ -1,0 +1,36 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4857 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+S2 rc=0 2213s
+  seg_01_beacon_t162.0 3439 帧 rc=0
+  seg_02_beacon_t298.4 99 帧 rc=0
+SCRIPT ERROR: Invalid operands 'String' and 'bool' in operator '=='.
+          at: _process (/work/repo/tools/promo/pv_rec.gd:233)
+          GDScript backtrace (most recent call first):
+              [0] _process (/work/repo/tools/promo/pv_rec.gd:233)
+SCRIPT ERROR: Invalid operands 'String' and 'bool' in operator '=='.
+          at: _process (/work/repo/tools/promo/pv_rec.gd:233)
+          GDScript backtrace (most recent call first):
+              [0] _process (/work/repo/tools/promo/pv_rec.gd:233)
+SCRIPT ERROR: Invalid operands 'String' and 'bool' in operator '=='.
+          at: _process (/work/repo/tools/promo/pv_rec.gd:233)
+          GDScript backtrace (most recent call first):
+              [0] _process (/work/repo/tools/promo/pv_rec.gd:233)
+SCRIPT ERROR: Invalid operands 'String' and 'bool' in operator '=='.
+          at: _process (/work/repo/tools/promo/pv_rec.gd:233)
+          GDScript backtrace (most recent call first):
+              [0] _process (/work/repo/tools/promo/pv_rec.gd:233)
+SCRIPT ERROR: Invalid operands 'String' and 'bool' in operator '=='.
+          at: _process (/work/repo/tools/promo/pv_rec.gd:233)
+          GDScript backtrace (most recent call first):
+              [0] _process (/work/repo/tools/promo/pv_rec.gd:233)
+total 307904
+drwxr-xr-x 2 root root      4096 Nov  7 17:11 .
+drwxr-xr-x 4 root root      4096 Nov  7 16:32 ..
+-rw-r--r-- 1 root root    863075 Nov  7 17:09 S2_godot.log
+-rw-r--r-- 1 root root     49575 Nov  7 17:09 S2_pv.log
+-rw-r--r-- 1 root root 303586915 Nov  7 17:11 S2_seg_01_beacon_t162.0.mp4
+-rw-r--r-- 1 root root     79733 Nov  7 17:11 S2_seg_01_beacon_t162.0.sfx.json
+-rw-r--r-- 1 root root  10693600 Nov  7 17:11 S2_seg_02_beacon_t298.4.mp4
+-rw-r--r-- 1 root root      3042 Nov  7 17:11 S2_seg_02_beacon_t298.4.sfx.json
+media：6 个文件，301M

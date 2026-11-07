@@ -1,0 +1,9 @@
+UW2 rc=0 1996s
+  seg_01_win_t470.0 3786 帧 rc=0
+total 439940
+drwxr-xr-x 2 root root      4096 Nov  7 16:31 .
+drwxr-xr-x 4 root root      4096 Nov  7 15:56 ..
+-rw-r--r-- 1 root root     28567 Nov  7 16:29 UW2_godot.log
+-rw-r--r-- 1 root root     86649 Nov  7 16:29 UW2_pv.log
+-rw-r--r-- 1 root root 450243317 Nov  7 16:31 UW2_seg_01_win_t470.0.mp4
+-rw-r--r-- 1 root root    119576 Nov  7 16:31 UW2_seg_01_win_t470.0.sfx.json

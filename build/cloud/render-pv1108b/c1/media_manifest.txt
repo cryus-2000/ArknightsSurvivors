@@ -1,0 +1,6 @@
+948631	S_godot.log
+49827	S_pv.log
+445962783	S_seg_01_beacon_t167.8.mp4
+96115	S_seg_01_beacon_t167.8.sfx.json
+16204496	S_seg_02_beacon_t295.9.mp4
+4386	S_seg_02_beacon_t295.9.sfx.json

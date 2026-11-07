@@ -1,0 +1,9 @@
+F rc=0 2270s
+  seg_01_win_t585.0 2251 帧 rc=0
+total 290232
+drwxr-xr-x 2 root root      4096 Nov  7 16:51 .
+drwxr-xr-x 4 root root      4096 Nov  7 16:12 ..
+-rw-r--r-- 1 root root     28385 Nov  7 16:50 F_godot.log
+-rw-r--r-- 1 root root     99809 Nov  7 16:50 F_pv.log
+-rw-r--r-- 1 root root 296989875 Nov  7 16:51 F_seg_01_win_t585.0.mp4
+-rw-r--r-- 1 root root     62111 Nov  7 16:51 F_seg_01_win_t585.0.sfx.json

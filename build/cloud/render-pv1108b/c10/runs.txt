@@ -1,0 +1,18 @@
+demo texas m3 rc=0 300 张 enc=0
+demo mizuki m4 rc=0 300 张 enc=0
+demo angelina m4 rc=0 300 张 enc=0
+demo wisadel m4 rc=0 300 张 enc=0
+demo skalter m4 rc=0 300 张 enc=0
+total 27244
+drwxr-xr-x 2 root root    4096 Nov  7 16:53 .
+drwxr-xr-x 4 root root    4096 Nov  7 16:30 ..
+-rw-r--r-- 1 root root     924 Nov  7 16:44 D_angelina_m4.log
+-rw-r--r-- 1 root root 4788523 Nov  7 16:44 D_angelina_m4.mp4
+-rw-r--r-- 1 root root     924 Nov  7 16:39 D_mizuki_m4.log
+-rw-r--r-- 1 root root 5875376 Nov  7 16:39 D_mizuki_m4.mp4
+-rw-r--r-- 1 root root     924 Nov  7 16:53 D_skalter_m4.log
+-rw-r--r-- 1 root root 6167576 Nov  7 16:53 D_skalter_m4.mp4
+-rw-r--r-- 1 root root    2609 Nov  7 16:35 D_texas_m3.log
+-rw-r--r-- 1 root root 5063749 Nov  7 16:35 D_texas_m3.mp4
+-rw-r--r-- 1 root root     924 Nov  7 16:48 D_wisadel_m4.log
+-rw-r--r-- 1 root root 5960267 Nov  7 16:48 D_wisadel_m4.mp4

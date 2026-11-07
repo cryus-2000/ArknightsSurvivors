@@ -1,0 +1,4 @@
+28509	UA2_godot.log
+86733	UA2_pv.log
+438921794	UA2_seg_01_win_t470.0.mp4
+96993	UA2_seg_01_win_t470.0.sfx.json

@@ -1,0 +1,4 @@
+21737	E2_godot.log
+27455	E2_pv.log
+505938722	E2_seg_01_win_t000.3.mp4
+76474	E2_seg_01_win_t000.3.sfx.json

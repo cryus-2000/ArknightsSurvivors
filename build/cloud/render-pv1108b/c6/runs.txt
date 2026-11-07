@@ -1,0 +1,9 @@
+UK rc=0 2003s
+  seg_01_win_t470.0 3953 帧 rc=0
+total 444368
+drwxr-xr-x 2 root root      4096 Nov  7 16:12 .
+drwxr-xr-x 4 root root      4096 Nov  7 15:36 ..
+-rw-r--r-- 1 root root     29008 Nov  7 16:10 UK_godot.log
+-rw-r--r-- 1 root root     85296 Nov  7 16:10 UK_pv.log
+-rw-r--r-- 1 root root 454798742 Nov  7 16:12 UK_seg_01_win_t470.0.mp4
+-rw-r--r-- 1 root root     98756 Nov  7 16:12 UK_seg_01_win_t470.0.sfx.json

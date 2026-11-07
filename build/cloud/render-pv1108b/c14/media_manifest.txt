@@ -1,0 +1,4 @@
+32606	L2_godot.log
+82651	L2_pv.log
+345182081	L2_seg_01_win_t474.0.mp4
+80678	L2_seg_01_win_t474.0.sfx.json

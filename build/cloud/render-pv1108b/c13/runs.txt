@@ -1,0 +1,9 @@
+E2 rc=0 1197s
+  seg_01_win_t000.3 6045 帧 rc=0
+total 494220
+drwxr-xr-x 2 root root      4096 Nov  7 17:06 .
+drwxr-xr-x 4 root root      4096 Nov  7 16:43 ..
+-rw-r--r-- 1 root root     21737 Nov  7 17:03 E2_godot.log
+-rw-r--r-- 1 root root     27455 Nov  7 17:03 E2_pv.log
+-rw-r--r-- 1 root root 505938722 Nov  7 17:06 E2_seg_01_win_t000.3.mp4
+-rw-r--r-- 1 root root     76474 Nov  7 17:06 E2_seg_01_win_t000.3.sfx.json

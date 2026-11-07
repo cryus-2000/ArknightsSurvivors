@@ -1,0 +1,4 @@
+29066	F2_godot.log
+99469	F2_pv.log
+275673316	F2_seg_01_win_t585.0.mp4
+66841	F2_seg_01_win_t585.0.sfx.json

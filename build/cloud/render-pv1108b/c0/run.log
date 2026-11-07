@@ -1,0 +1,19 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4857 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+H rc=0 938s
+  seg_01_win_t058.0 1018 帧 rc=0
+  seg_02_win_t078.0 841 帧 rc=0
+  seg_03_win_t098.0 1076 帧 rc=0
+total 180060
+drwxr-xr-x 2 root root     4096 Nov  7 15:52 .
+drwxr-xr-x 4 root root     4096 Nov  7 15:35 ..
+-rw-r--r-- 1 root root    22543 Nov  7 15:51 H_godot.log
+-rw-r--r-- 1 root root    25700 Nov  7 15:51 H_pv.log
+-rw-r--r-- 1 root root 56546461 Nov  7 15:51 H_seg_01_win_t058.0.mp4
+-rw-r--r-- 1 root root    20475 Nov  7 15:51 H_seg_01_win_t058.0.sfx.json
+-rw-r--r-- 1 root root 52876294 Nov  7 15:52 H_seg_02_win_t078.0.mp4
+-rw-r--r-- 1 root root    22100 Nov  7 15:52 H_seg_02_win_t078.0.sfx.json
+-rw-r--r-- 1 root root 74822562 Nov  7 15:52 H_seg_03_win_t098.0.mp4
+-rw-r--r-- 1 root root    17544 Nov  7 15:52 H_seg_03_win_t098.0.sfx.json
+media：8 个文件，176M

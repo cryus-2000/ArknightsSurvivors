@@ -1,0 +1,8 @@
+22543	H_godot.log
+25700	H_pv.log
+56546461	H_seg_01_win_t058.0.mp4
+20475	H_seg_01_win_t058.0.sfx.json
+52876294	H_seg_02_win_t078.0.mp4
+22100	H_seg_02_win_t078.0.sfx.json
+74822562	H_seg_03_win_t098.0.mp4
+17544	H_seg_03_win_t098.0.sfx.json
