@@ -514,6 +514,7 @@ const OPT_SDPF := 268435456   # 斯卡蒂终结技方向图集预读（run/ult_p
 const OPT_PXEVICT := 536870912   # 转平面帧条 60 秒没画就放（fx_pxplane._tex_evict，docs/287 §3 ⑥）；置位不放（旧写法）
 const OPT_LATEFX := 1073741824   # 后期特效控制（render/late_fx，docs/293）帧时对照（docs/305）：置位时本帧 late_k = 0（同 8:00 前的画法）。只供 --optab 量净差
 const OPT_LOWFX := 2147483648   # 低档颗粒（docs/312，11-07）：置位走旧低档（low_grains 0.4、子弹颗粒整层关），只供 --optab 量净差
+const OPT_HITREACT := 4294967296   # 受击反应第 1 档（fx/hit_react，render/vfx.gd）帧时对照：置位时本帧按关处理（原小后坐 + 原火星）。只供 --optab 量净差（合入时与 OPT_LOWFX 撞位，改 2^32）
 const OPT_TOUCHB := 1048576  # 触屏按钮（touch.gd draw_hud）：圆 / 弧 / 线进 TriBatch、图标与字随后成组画；置位走旧写法（逐个 draw_*）。画面相同（按钮互不重叠时）
 var bal_dt := 0.066             # --dt=<秒>（仅 --balance）：批跑每帧步长，缺省 0.066（9/30 起所有难度校准 / 云端基线的口径）；按位移判定的改动可用 --dt=0.016667 抽查（docs/36 §8.2）
 var placebo_n := 0              # --placebo=N（仅测试）：开局多抽 N 次主 rng——机制不变、换一份随机实现，判「改动」还是「这组 seed 的运气」（docs/36 §8.2）
