@@ -23,12 +23,12 @@ esac
 d="$OUT/q_$K"; mkdir -p "$d"
 timeout -k 30 1500 "$GODOT" --rendering-driver opengl3 --audio-driver Dummy --resolution 1280x720 --position 0,0 --fixed-fps 30 --path game -- \
   --balance --nodeath --seed=3 --bot=expert --op=$OP --squad=$MATE --prog=8 --bal=link/bond_v2=1 --bal=bond2/log=1 \
-  --realtime --rtfrom=21 --recframes=22.4,270 --shotdir="$d" --maxt=32 --bal=bond2/unlock_at=22 > "$d.log" 2>&1
+  --realtime --rtfrom=${RTF:-59} --recframes=${REC0:-60.4},270 --shotdir="$d" --maxt=${MAXT:-72} --bal=bond2/unlock_at=${UNL:-60} > "$d.log" 2>&1
 CT=$(grep -m1 -o "BOND2 cast [a-z_]* t=[0-9.]*" "$d.log" | sed 's/.*t=//')
 echo "$K rc=$? cast=$CT $(ls $d/rec_*.png 2>/dev/null | wc -l) 帧 $(grep -c 'SCRIPT ERROR' $d.log) 处脚本错误" | tee -a "$OUT/runs.txt"
 grep -m3 -A3 "SCRIPT ERROR" "$d.log" | tee -a "$OUT/runs.txt"
 if [ -n "$CT" ]; then
-  I0=$(python3 -c "print(max(0, int(round(($CT - 22.4) * 30)) - 24))")
+  I0=$(python3 -c "print(max(0, int(round(($CT - ${REC0:-60.4}) * 30)) - 24))")
   "$FF" -v error -y -framerate 30 -start_number $I0 -i "$d/rec_%05d.png" -frames:v 105 -c:v libx264 -crf 22 -pix_fmt yuv420p "$MEDIA/bond2_$K.mp4"
 fi
 ls -la "$MEDIA" | tee -a "$OUT/runs.txt"

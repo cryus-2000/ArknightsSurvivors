@@ -115,7 +115,7 @@ static func _crescent(r, ci, c: Vector2, R: float, a0: float, a1: float, w: floa
 static func _sword(r, ci, h: Vector2, an: float, L: float, al := 1.0) -> void:
 	var d := Vector2.from_angle(an)
 	var tip: Vector2 = h + d * L
-	_bar(r, ci, h + d * 10.0, tip - d * 8.0, 6.0, [TX[6], TX[4], TX[2]], al)
+	_bar(r, ci, h + d * 10.0, tip - d * 8.0, 8.0, [TX[6], TX[4], TX[2]], al)
 	_bar(r, ci, tip - d * 10.0, tip, 2.0, [TX[6], TX[5], TX[3]], al)
 	_bar(r, ci, h - d.orthogonal() * 12.0 + d * 8.0, h + d.orthogonal() * 12.0 + d * 8.0, 2.0, [TX[3], TX[2], TX[1]], al)   # 护手
 	_bar(r, ci, h - d * 6.0, h + d * 6.0, 2.0, [TX[1], TX[0], TX[0]], al)   # 柄
@@ -125,10 +125,10 @@ static func _sword(r, ci, h: Vector2, an: float, L: float, al := 1.0) -> void:
 
 ## 长槊：槊尖 p、朝向 d、杆长 L；歌蕾蒂娅钢蓝 + 倒刺
 static func _spear(r, ci, p: Vector2, d: Vector2, L: float, al := 1.0) -> void:
-	_bar(r, ci, p - d * L, p - d * 12.0, 2.0, [GL[5], GL[3], GL[1]], al)
+	_bar(r, ci, p - d * L, p - d * 12.0, 3.0, [GL[5], GL[3], GL[1]], al)
 	var nv: Vector2 = d.orthogonal()
 	for k in 7:
-		var w: float = 8.0 * (1.0 - float(k) / 7.0)
+		var w: float = 11.0 * (1.0 - float(k) / 7.0)
 		_ln(r, ci, p - d * (14.0 - float(k) * 2.0) + nv * w, p - d * (14.0 - float(k) * 2.0) - nv * w, Color(GL[6] if k > 4 else GL[5], al))
 	_ln(r, ci, p - d * 20.0 + nv * 10.0, p - d * 12.0 + nv * 4.0, Color(GL[4], al))
 	_ln(r, ci, p - d * 20.0 - nv * 10.0, p - d * 12.0 - nv * 4.0, Color(GL[4], al))
@@ -190,7 +190,7 @@ static func _chain(r, ci, p0: Vector2, p1: Vector2, sag := 0.0, al := 1.0) -> vo
 
 ## 狼影：脚点 p（胸前叼剑处）、朝向 fs（±1）、帧 fr、透明度 al
 static func _wolf(r, ci, p: Vector2, fs: float, fr: int, al: float) -> void:
-	var px: float = r.g.PX * 2.0
+	var px: float = r.g.PX * 2.5
 	var rows: Array = WOLF[fr]
 	var cols := {"#": LP[2], "+": LP[5], "o": Color("#ff5ad0"), "-": LP[4]}
 	for y in rows.size():
@@ -262,7 +262,7 @@ static func _rival(r, ci, a: Dictionary, t: float, gd: bool) -> void:
 		else:
 			h = E + Vector2(0, -150.0)
 			an = PI * 0.5
-		_sword(r, ci, h, an, 150.0, al)
+		_sword(r, ci, h, an, 180.0, al)
 	# 狼影：拉普兰德身边聚形 → 叼剑犁过去 → 到头散开
 	if t > 0.15 and t < B2.RV_RUN + 0.08:
 		var aw: float = clampf((t - 0.15) / 0.3, 0.0, 1.0) * (1.0 - clampf((t - B2.RV_RUN + 0.04) / 0.1, 0.0, 1.0))
@@ -294,7 +294,7 @@ static func _tide(r, ci, a: Dictionary, t: float, gd: bool) -> void:
 		return
 	if t >= 0.08 and t < B2.TD_BACK + 0.05:
 		var hp2: Vector2 = B2.td_head(a, t) + Vector2(0, -14)
-		var L: float = 150.0
+		var L: float = 210.0
 		if t < B2.TD_THROW:   # 举槊（在她手边往后拉）
 			hp2 = G + Vector2(0, -24) + d * (20.0 - 30.0 * (t - 0.08) / (B2.TD_THROW - 0.08))
 		var shake: Vector2 = Vector2.ZERO
@@ -343,19 +343,19 @@ static func _fins(r, ci, a: Dictionary, t: float, gd: bool) -> void:
 	var A: Vector2 = H + Vector2(0, -70)   # 击球点（斯卡蒂面前、头顶高度）
 	var spin: float = r.g.t * (40.0 if t > B2.FN_BAT else 16.0)
 	if t < B2.FN_TOSS:
-		_saw(r, ci, P0, 18.0, spin, false)
+		_saw(r, ci, P0, 26.0, spin, false)
 	elif t < B2.FN_BAT:
 		var k: float = (t - B2.FN_TOSS) / (B2.FN_BAT - B2.FN_TOSS)
-		_saw(r, ci, P0.lerp(A, k) + Vector2(0, -90.0 * sin(PI * k)), 18.0, spin, false)
+		_saw(r, ci, P0.lerp(A, k) + Vector2(0, -90.0 * sin(PI * k)), 26.0, spin, false)
 	elif t < B2.FN_GO:
-		_saw(r, ci, A, 18.0, spin, true)
+		_saw(r, ci, A, 26.0, spin, true)
 	elif t < B2.FN_END + 0.02:
 		var p: Vector2 = B2.fn_saw(a, t)
 		var k3: float = clampf((t - B2.FN_GO) / (B2.FN_END - B2.FN_GO), 0.0, 1.0)
 		var air: Vector2 = Vector2(0, -70.0 * maxf(0.0, 1.0 - k3 * 2.2) - 14.0)
 		for j in range(1, 4):   # 拖影
-			_saw(r, ci, B2.fn_saw(a, t - 0.025 * float(j)) + Vector2(0, -70.0 * maxf(0.0, 1.0 - clampf((t - 0.025 * float(j) - B2.FN_GO) / (B2.FN_END - B2.FN_GO), 0.0, 1.0) * 2.2) - 14.0), 18.0 - 2.0 * float(j), spin, false, 0.3 - 0.07 * float(j))
-		_saw(r, ci, p + air, 18.0, spin, true)
+			_saw(r, ci, B2.fn_saw(a, t - 0.025 * float(j)) + Vector2(0, -70.0 * maxf(0.0, 1.0 - clampf((t - 0.025 * float(j) - B2.FN_GO) / (B2.FN_END - B2.FN_GO), 0.0, 1.0) * 2.2) - 14.0), 26.0 - 3.0 * float(j), spin, false, 0.3 - 0.07 * float(j))
+		_saw(r, ci, p + air, 26.0, spin, true)
 	# 斯卡蒂挥棒：举剑一拍 → 一拍抡出的大月牙
 	var K: Vector2 = _pos(sk, H) + Vector2(0, -30)
 	var sw: float = t - (B2.FN_BAT - 0.05)
@@ -398,24 +398,24 @@ static func _vortex(r, ci, a: Dictionary, t: float, gd: bool) -> void:
 	var hand: Vector2 = _pos(ul, c + Vector2(-300, 0)) + Vector2(10, -40)
 	var top: Vector2 = c + Vector2(0, -90)
 	if t < B2.VX_SPIN:
-		_anchor(r, ci, hand + Vector2(10, 40), 0.0, 0.45)
+		_anchor(r, ci, hand + Vector2(10, 40), 0.0, 0.65)
 	elif t < B2.VX_THROW:
 		var q: Vector2 = _spin(hand, (t - B2.VX_SPIN) / (B2.VX_THROW - B2.VX_SPIN))
 		_chain(r, ci, hand, q)
-		_anchor(r, ci, q + Vector2(0, 30), (q - hand).angle() - PI * 0.5, 0.45)
+		_anchor(r, ci, q + Vector2(0, 30), (q - hand).angle() - PI * 0.5, 0.65)
 	elif t < B2.VX_WRAP:
 		var k: float = (t - B2.VX_THROW) / (B2.VX_WRAP - B2.VX_THROW)
 		var s0: Vector2 = _spin(hand, 1.0)
 		var dst: Vector2 = B2.vx_anchor(a, B2.VX_WRAP)
 		var q2: Vector2 = s0.lerp(dst, 1.0 - (1.0 - k) * (1.0 - k)) + Vector2(0, -80.0 * sin(PI * k))
 		_chain(r, ci, hand, q2 + Vector2(0, -20), 30.0 * (1.0 - k))
-		_anchor(r, ci, q2 + Vector2(0, 30), k * 9.0, 0.5)
+		_anchor(r, ci, q2 + Vector2(0, 30), k * 9.0, 0.7)
 	elif t < B2.VX_SLAM:
 		var q3: Vector2 = B2.vx_anchor(a, t)
 		_chain(r, ci, top, q3 + Vector2(0, -30))
-		_anchor(r, ci, q3 + Vector2(0, 10), B2.vx_ang(t) + PI * 0.5, 0.5)
+		_anchor(r, ci, q3 + Vector2(0, 10), B2.vx_ang(t) + PI * 0.5, 0.7)
 	elif t < B2.VX_SLAM + 0.7:
-		_anchor(r, ci, c + Vector2(30, 14), 0.0, 0.55, fade2)
+		_anchor(r, ci, c + Vector2(30, 14), 0.0, 0.75, fade2)
 	if t > B2.VX_SLAM and t < B2.VX_SLAM + 0.07:
 		for i in 28:
 			var dv := Vector2.from_angle(TAU * float(i) / 28.0)
@@ -443,25 +443,25 @@ static func _lesson(r, ci, a: Dictionary, t: float, gd: bool) -> void:
 	var sk = a.who.skadi
 	var hand: Vector2 = _pos(ul, a.A) + Vector2(10, -40)
 	if t < B2.LS_SPIN:
-		_anchor(r, ci, hand + Vector2(10, 40), 0.0, 0.45)
+		_anchor(r, ci, hand + Vector2(10, 40), 0.0, 0.65)
 	elif t < B2.LS_THROW:
 		var q: Vector2 = _spin(hand, (t - B2.LS_SPIN) / (B2.LS_THROW - B2.LS_SPIN))
 		_chain(r, ci, hand, q)
-		_anchor(r, ci, q + Vector2(0, 30), (q - hand).angle() - PI * 0.5, 0.45)
+		_anchor(r, ci, q + Vector2(0, 30), (q - hand).angle() - PI * 0.5, 0.65)
 	elif t < B2.LS_BITE:
 		var k: float = (t - B2.LS_THROW) / (B2.LS_BITE - B2.LS_THROW)
 		var q2: Vector2 = _spin(hand, 1.0).lerp(F, 1.0 - (1.0 - k) * (1.0 - k)) + Vector2(0, -90.0 * sin(PI * k))
 		_chain(r, ci, hand, q2 + Vector2(0, -20), 30.0 * (1.0 - k))
-		_anchor(r, ci, q2 + Vector2(0, 20), k * 9.0, 0.5)
+		_anchor(r, ci, q2 + Vector2(0, 20), k * 9.0, 0.7)
 	elif t < B2.LS_CUT + 0.3:
 		var q3: Vector2 = B2.ls_anchor(a, t)
 		_chain(r, ci, hand, q3 + Vector2(0, -24), 10.0 if t < B2.LS_PULL else 0.0)
-		_anchor(r, ci, q3 + Vector2(0, 10), -PI * 0.5 + 0.3 if t < B2.LS_PILE else 0.0, 0.5)
+		_anchor(r, ci, q3 + Vector2(0, 10), -PI * 0.5 + 0.3 if t < B2.LS_PILE else 0.0, 0.7)
 	elif t < B2.LS_CUT + 0.6:
 		var k2: float = (t - B2.LS_CUT - 0.3) / 0.3
 		var q4: Vector2 = B2.ls_anchor(a, B2.LS_PILE).lerp(hand + Vector2(10, 40), k2 * k2) + Vector2(0, -40.0 * sin(PI * k2))
 		_chain(r, ci, hand, q4 + Vector2(0, -24))
-		_anchor(r, ci, q4 + Vector2(0, 10), k2 * 6.0, 0.45)
+		_anchor(r, ci, q4 + Vector2(0, 10), k2 * 6.0, 0.65)
 	# 斯卡蒂一剑：举剑 → 从头顶劈到那一堆上的大月牙（只到堆边）
 	var K: Vector2 = _pos(sk, Pp) + Vector2(0, -30)
 	var sw: float = t - B2.LS_CUT + 0.05
