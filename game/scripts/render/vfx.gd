@@ -221,7 +221,7 @@ var _hr_sp_t := -1.0
 ## 无档命中火星限频（同原 GPU 迸溅 hit_spark 的 SPARK_GAP 口径）：每 hit_react_gap 秒（真实时间）至多一把，颗数不比原来多
 func _hr_spark_ok() -> bool:
 	var now: float = Time.get_ticks_msec() / 1000.0
-	if now - _hr_sp_t < Bal.v("fx/hit_react_gap", 0.05):
+	if now - _hr_sp_t < _hk("gap", 0.05):
 		return false
 	_hr_sp_t = now
 	return true
@@ -351,7 +351,7 @@ func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}, dmg :
 			if not is_lead_hit(h) and g.world.mate_on:
 				c0 = g.world.mate_col(c0)
 				c0.a = g.world.mate_dim
-			g.optical.grains.spark(e.pos + Vector2(0, -float(e.get("r", 12.0)) * 0.6), (e.pos as Vector2).y + float(e.get("r", 12.0)) * 0.8, c0, Bal.vi("fx/hit_react_n0", 3), hit_dir(e, h))
+			g.optical.grains.spark(e.pos + Vector2(0, -float(e.get("r", 12.0)) * 0.6), (e.pos as Vector2).y + float(e.get("r", 12.0)) * 0.8, c0, int(_hk("n0", 3)), hit_dir(e, h))
 	elif g.optical_on and g.optical.particles != null and not dot:
 		g.optical.particles.hit_spark(e.pos + Vector2(0, -e.r * 0.6), Color(1.0, 0.95, 0.85) if not (crit or weak) else Color(1.0, 0.8, 0.35))   # 光学观感原型：命中迸溅（限频，纯画面）
 	# 受击后坐（docs/53，纯画面）：本体沿「远离主控」的方向顶开 fx/recoil_px，fx/recoil_t 秒内回位；技能 / 暴击 / 弱点 ×fx/recoil_skill_k。
@@ -389,11 +389,11 @@ func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}, dmg :
 				var fd: Vector2 = (e.pos as Vector2) - hit_src_pos(h)
 				if fd.length_squared() > 1.0:
 					e.rc_dir = fd.normalized()
-				var px: float = Bal.v("fx/hit_react_px", 4.0) * (Bal.v("fx/hit_react_skill_k", 1.35) if (skill or crit or weak) else 1.0)
+				var px: float = _hk("px", 4.0) * (_hk("skill_k", 1.35) if (skill or crit or weak) else 1.0)
 				if not lead_h:
-					px *= Bal.v("fx/hit_react_mate", 0.8)
+					px *= _hk("mate", 0.8)
 				e.rc_k = maxf(px, tpx) * Game.PX / g.world.rc_px
-				e.rc_t = Bal.v("fx/hit_react_t", 0.1)
+				e.rc_t = _hk("t", 0.1)
 				e.rc_e = true
 		# 重击真实击退（开关 fx/heavy_knockback，缺省 0 = 关；开了会改玩法）：重档普攻沿远离队长方向加击退速度
 		if tier == 3 and Bal.v("fx/heavy_knockback", 0.0) > 0.0 and not e.get("elite", false):
@@ -418,7 +418,22 @@ func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}, dmg :
 
 ## 三档命中的画面 / 声音（hit_tier 定档后调；远处 / 特效过多时只留白闪）
 func _hr_on() -> bool:
-	return Bal.v("fx/hit_react", 0.0) > 0.0 and not (g.opt_old & Game.OPT_HITREACT)
+	return _hk("", 0.0) > 0.0 and not (g.opt_old & Game.OPT_HITREACT)
+
+
+## 受击反应旋钮每帧读一次（一帧几百次命中，不每次按路径查 balance）；k = "" 是总开关 fx/hit_react
+var _hk_f := -1
+var _hk_v := {}
+func _hk(k: String, d: float) -> float:
+	var fr: int = Engine.get_process_frames()
+	if fr != _hk_f:
+		_hk_f = fr
+		_hk_v.clear()
+	var v = _hk_v.get(k)
+	if v == null:
+		v = Bal.v("fx/hit_react" + ("_" + k if k != "" else ""), d)
+		_hk_v[k] = v
+	return float(v)
 
 
 ## 出手位置：伤害描述符里的干员（h.op）当前所在；找不到（召唤物 / 环境 / 藏品）退回队长位置
@@ -443,13 +458,13 @@ func hit_dir(e: Dictionary, h: Dictionary) -> Vector2:
 ## 同屏受击反应名额：已在反应里的续期；有空位直接进；满了挤掉优先级最低的（优先级 = 队长命中 + 离队长近）
 func _hr_admit(e: Dictionary, prio: float) -> bool:
 	var now: float = g.t
-	var t: float = Bal.v("fx/hit_react_t", 0.1)
+	var t: float = _hk("t", 0.1)
 	if float(e.get("hr_until", -1.0)) > now:
 		e.hr_until = now + t
 		return true
-	var cap: float = Bal.v("fx/hit_react_cap_mobile", 12.0) if Cfg.mobile_web() else Bal.v("fx/hit_react_cap", 32.0)
+	var cap: float = _hk("cap_mobile", 12.0) if Cfg.mobile_web() else _hk("cap", 32.0)
 	if g.world != null and g.world.late_k > 0.0:
-		cap *= lerpf(1.0, Bal.v("fx/hit_react_late", 0.5), g.world.late_k)
+		cap *= lerpf(1.0, _hk("late", 0.5), g.world.late_k)
 	var capi: int = maxi(1, int(cap))
 	if _hr_list.size() >= capi and _hr_prune_f != Engine.get_process_frames():   # 满了每帧至多清一次过期（原地压缩，不建新数组）
 		_hr_prune_f = Engine.get_process_frames()
