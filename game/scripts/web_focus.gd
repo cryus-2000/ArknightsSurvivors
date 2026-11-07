@@ -108,4 +108,5 @@ func draw_pause(vs: Vector2) -> void:
 	if not paused and not Cfg.dev_args().has("--focusshow"):
 		return
 	var s := "离开过页面，已自动暂停 · 点击「继续」回到作战" if Pad.touch_ui() else "离开过页面，已自动暂停 · 点击「继续」或按 Esc 回到作战"
-	UI.text(g.hud, g.font, Vector2(0, vs.y / 2 + 196), s, 16 if Pad.touch_ui() else 14, UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
+	var y: float = vs.y * 0.315 if Pad.touch_ui() else vs.y / 2 + 196   # 触屏：暂停标题下面（下方按钮两排、放下面会压住）
+	UI.text(g.hud, g.font, Vector2(0, y), s, 16 if Pad.touch_ui() else 14, UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
