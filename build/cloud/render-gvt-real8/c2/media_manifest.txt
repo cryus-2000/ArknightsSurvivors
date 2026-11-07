@@ -1,0 +1,9 @@
+1738255	real_wd3.png
+100721	real_wd3_lumen_净化_0.png
+100606	real_wd3_lumen_净化_1.png
+106395	real_wd3_skalter_共鸣_0.png
+102027	real_wd3_skalter_共鸣_1.png
+97780	real_wd3_texas_技力_0.png
+96794	real_wd3_texas_技力_1.png
+96602	real_wd3_wisadel_技力_0.png
+87337	real_wd3_wisadel_技力_1.png

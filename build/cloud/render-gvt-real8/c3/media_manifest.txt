@@ -1,0 +1,8 @@
+1731878	real_tx8.png
+90537	real_tx8_gladiia_倒钩_0.png
+86048	real_tx8_gladiia_倒钩_1.png
+85435	real_tx8_lumen_折光_0.png
+77230	real_tx8_skalter_共鸣_0.png
+69193	real_tx8_skalter_共鸣_1.png
+73726	real_tx8_texas_技力_0.png
+77363	real_tx8_texas_技力_1.png
