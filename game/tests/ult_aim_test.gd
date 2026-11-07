@@ -124,9 +124,16 @@ func _ready() -> void:
 		ok(u.aim_src == "touch", "输入源 = 触屏（%s）" % u.aim_src)
 		var want: Vector2 = ld.pos + drag.normalized() * minf(520.0, drag.length() / 90.0 * 520.0)
 		ok(u.aim.distance_to(want) < 30.0, "落点 = 队长 + 拖动方向 × 距离（离预期 %.0f）" % u.aim.distance_to(want))
+		# 左手还按着移动摇杆（11-08 iPhone 实测：松手那一帧摇杆的移动方向盖掉了拖出来的方向，放出去的方向不对）
+		var a0: Vector2 = u.aim
+		tc.stick_id = 7
+		tc.vec = Vector2(-1.0, 0.6)
 		_touch(false, c0 + drag)
 		step.call(2)
+		tc.stick_id = -1
+		tc.vec = Vector2.ZERO
 		ok(u.phase == "windup" or u.phase == "cast" or u.phase == "", "松手释放（%s）" % u.phase)
+		ok(u.aim.distance_to(a0) < 1.0, "松手时按着移动摇杆，落点不被摇杆挪走（挪了 %.1f）" % u.aim.distance_to(a0))
 		step.call(12)   # 走完起手慢放（0.15 游戏秒）才正式出招、定作用中心
 		ok(u._ult_at.distance_to(want) < 40.0, "按拖到的落点放（离预期 %.0f）" % u._ult_at.distance_to(want))
 		step.call(600)

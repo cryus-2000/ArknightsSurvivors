@@ -68,6 +68,8 @@ static func tick(u, dt: float) -> void:
 	if tc != null and tc.active and tc.skill_id >= 0:
 		u.aim_src = "touch"   # touch._ult_aim 每帧写拖动的落点 / 方向
 		return
+	if u.aim_src == "touch" and u.aim_moved and not u.aim_latched:
+		return   # 触屏拖动瞄准、刚松手（下一帧才放出）：别让左摇杆的移动方向盖掉拖出来的方向（11-08 iPhone 实测「选的方向和放出去的不一致」）；轻点保持瞄准时仍可用摇杆挪
 	var pv := Vector2.ZERO
 	if Pad.device >= 0:
 		pv = Vector2(Input.get_joy_axis(Pad.device, JOY_AXIS_RIGHT_X), Input.get_joy_axis(Pad.device, JOY_AXIS_RIGHT_Y))

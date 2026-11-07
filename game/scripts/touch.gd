@@ -528,10 +528,10 @@ func _v2_dash(hud: CanvasItem, c: Vector2, r: float, ready: bool) -> void:
 		_arc(hud, c, r + 3.0, -PI / 2.0, -PI / 2.0 + TAU * g.dash_frac(), 40, Color(1, 1, 1, 0.5), 1.5)
 
 
-## 指挥：圈里写当前模式（青）+「CMD」；突击耐力是外圈一道细弧
+## 指挥：圈里写「指挥」+「CMD」（11-08 用户：原来写当前模式「随行」，看不出是指挥键）；随行以外的模式字变金色；突击耐力是外圈一道细弧
 func _v2_cmd(hud: CanvasItem, c: Vector2, r: float, st: int) -> void:
 	var v2 = g.hud_view.v2
-	_v2_btn(hud, c, r, flash.get("cmd", 0.0) > 0.0, v2.SEG_NAMES[v2.seg_index()], "CMD", UI.CYAN)
+	_v2_btn(hud, c, r, flash.get("cmd", 0.0) > 0.0, "指挥", "CMD", UI.CYAN if v2.seg_index() == 0 else UI.GOLD)
 	var sq = g.squad
 	if sq.stamina_on() and sq.stamina > 0.0:
 		var fc: Color = UI.GOLD if st == sq.ROAM else (Color(0.5, 0.52, 0.55) if sq.exhausted else UI.CYAN)
