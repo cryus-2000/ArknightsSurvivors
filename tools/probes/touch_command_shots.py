@@ -7,7 +7,7 @@
     old：command/touch_confirm=0（旧的按住拖），对照用
 每种存 6 张关键帧 <mode>_<res>_<步>.png（wheel / pick / pre / switch / done / order）
 """
-import os, sys, glob, shutil, tempfile
+import os, sys, glob, shutil
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 import godot_runner as gr
@@ -24,14 +24,7 @@ def run(d, mode, res, old):
     size, extra = RES[res]
     shutil.rmtree(d, ignore_errors=True)
     os.makedirs(d)
-    app = tempfile.mkdtemp(prefix="touchcmd_app_")
-    os.makedirs(os.path.join(app, "ArknightsSurvivors"))
-    open(os.path.join(app, "ArknightsSurvivors", "settings.cfg"), "w").write(
-        '[video]\nfullscreen=false\nres_index=0\nquality="high"\n\n[audio]\nmaster=0.0\nmusic=0.0\nsfx=0.0\nvoice=0.0\n\n'
-        '[game]\nreduce_motion=false\n\n[progress]\ndifficulty=0\n')
-    os.environ["APPDATA"] = app
-    os.environ["ARK_REAL_USERDIR"] = "1"
-    args = [gr.find_godot(), "--path", os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--fixed-fps", "60",
+    args = [gr.find_godot(), "--path", os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--position", "-4000,0", "--fixed-fps", "60",
             "--resolution", size, "--",
             "--balance", "--realtime", "--nodeath", "--bot=afk", "--seed=1", "--op=mizuki", "--squad=hoshiguma,exusiai",
             "--spawnat=3:knight@300:-70;mimic@-330:60" if mode == "focus" else "--spawnat=-1:",
@@ -40,7 +33,6 @@ def run(d, mode, res, old):
     if old:
         args.append("--bal=command/touch_confirm=0")
     o, e, to = gr.run_godot(args, 400)
-    shutil.rmtree(app, ignore_errors=True)
     errs = gr.script_errors(o, e)
     frames = sorted(glob.glob(os.path.join(d, "rec_*.png")))
     print(mode, res, "帧", len(frames), "超时" if to else "", errs[:3])
