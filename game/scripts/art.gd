@@ -187,7 +187,7 @@ static var _op1x := -1
 static var _name_rid := {}
 static func tex_hi(name: String, keep_cached := true) -> Texture2D:
 	var key := "#hi:" + name
-	if _cache.has(key):
+	if _cache.has(key) and (keep_cached or _cache[key] != null):
 		return _cache[key]
 	var t: Texture2D = null
 	if op_1x_on() and _packed_path(name + "@1x") != "":
@@ -198,7 +198,9 @@ static func tex_hi(name: String, keep_cached := true) -> Texture2D:
 			# 临时立绘随界面释放，倍率跟着贴图，免得反复进出留下旧 RID。
 			t.set_meta(&"_ui_density", 2.0)
 	if t == null:
-		t = tex(name)
+		t = tex(name, keep_cached)
+		if t == null and not keep_cached and not op_1x_on() and _packed_path(name + "@1x") != "":
+			t = tex(name + "@1x", keep_cached)   # 仅有一倍条的界面图也能显示
 	if keep_cached:
 		_cache[key] = t
 	return t
@@ -348,13 +350,13 @@ static func _halve(img: Image) -> Image:
 
 
 ## 取贴图；找不到返回 null
-static func tex(name: String) -> Texture2D:
+static func tex(name: String, keep_cached := true) -> Texture2D:
 	if _cache.has(name):
 		return _cache[name]
 	if late_log:
 		var lt0 := Time.get_ticks_usec()
 		late_log = false
-		var lt: Texture2D = tex(name)
+		var lt: Texture2D = tex(name, keep_cached)
 		late_log = true
 		print("TEXLATE %s %.1fms" % [name, (Time.get_ticks_usec() - lt0) / 1000.0])
 		return lt
@@ -398,17 +400,20 @@ static func tex(name: String) -> Texture2D:
 		if t != null and pop:
 			t = _pop_tex(t)
 	if t == null:
-		var ph := _placeholder(name)
+		var ph := _placeholder(name, keep_cached)
 		if not ph.is_empty():
 			t = ph[0]
 			density = ph[1]
 	if t != null and normal_maps and _wants_normal(name) and src_path != "":
 		t = _with_normal(t, name, src_path)
-	if t != null:
-		_hires[name] = density
-		_hires_rid[t.get_rid()] = density
-		_name_rid[t.get_rid()] = name
-	_cache[name] = t
+	if keep_cached:
+		if t != null:
+			_hires[name] = density
+			_hires_rid[t.get_rid()] = density
+			_name_rid[t.get_rid()] = name
+		_cache[name] = t
+	elif t != null:
+		t.set_meta(&"_ui_density", density)
 	return t
 
 
@@ -419,13 +424,13 @@ static func tex(name: String) -> Texture2D:
 const PLACEHOLDER := {}
 
 
-static func _placeholder(name: String) -> Array:
+static func _placeholder(name: String, keep_cached: bool) -> Array:
 	for pre in PLACEHOLDER:
 		if not name.begins_with(pre):
 			continue
 		var spec: Dictionary = PLACEHOLDER[pre]
 		var src: String = spec.from + name.substr(pre.length())
-		var st: Texture2D = tex(src)
+		var st: Texture2D = tex(src, keep_cached)
 		if st == null:
 			return []
 		var img: Image = st.get_image()
@@ -456,7 +461,7 @@ static func _placeholder(name: String) -> Array:
 			data[i + 1] = lut[li * 3 + 1]
 			data[i + 2] = lut[li * 3 + 2]
 		var out := Image.create_from_data(img.get_width(), img.get_height(), false, Image.FORMAT_RGBA8, data)
-		return [ImageTexture.create_from_image(out), hires(src)]
+		return [ImageTexture.create_from_image(out), hires(src) if keep_cached else hires_of(st)]
 	return []
 
 

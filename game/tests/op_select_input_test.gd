@@ -2,6 +2,7 @@ extends Node
 ## 选人页 B+（docs/58 §11）输入回归：键盘 / 手柄（经 Pad 翻译）/ 鼠标 / 触屏（模拟触点 → 鼠标）都能换人、换页签、职业筛选、出击、返回；
 ## 名册按 data/characters 自动生成；「减少动态效果」直接到终态；整页动效不碰 g.rng（标题页没有 g，这里只查全局 RNG 状态不被读）。
 const Character = preload("res://scripts/characters/character.gd")
+const Art = preload("res://scripts/art.gd")
 var failures := 0
 var title: Control
 
@@ -85,7 +86,32 @@ func cur_id() -> String:
 	return title.op_defs[title.op_sel].id
 
 
+func scoped_portrait_fallbacks() -> void:
+	# 同一对导入源，三个临时索引组合：关 op_1x、仅一倍、仅二倍。
+	var sources := {1: Art._indexed("op_lumen_idle@1x"), 2: Art._indexed("op_lumen_idle@2x")}
+	var previous: int = Art._op1x
+	var fixture_name := "op_test_scoped_idle"
+	for densities in [[1, 2], [1], [2]]:
+		Art._op1x = 0 if densities.has(1) else 1
+		for scale_factor in densities:
+			Art._index[fixture_name + "@%dx" % scale_factor] = sources[scale_factor]
+		var tx: Texture2D = Art.tex_hi(fixture_name, false)
+		check(tx != null and Art.hires_of(tx) == float(densities.back()), "scoped fallback density %s" % str(densities))
+		for key in [fixture_name, fixture_name + "@1x", fixture_name + "@2x", "#hi:" + fixture_name]:
+			check(not Art._cache.has(key), "scoped fallback keeps global cache cold: " + key)
+		if densities == [1]:
+			check(Art.tex_hi(fixture_name) == null, "shared lookup keeps the configured density")
+			check(Art.tex_hi(fixture_name, false) != null, "scoped fallback survives a shared miss")
+			check(Art._cache["#hi:" + fixture_name] == null, "scoped fallback preserves shared miss")
+			Art._cache.erase(fixture_name)
+			Art._cache.erase("#hi:" + fixture_name)
+		for scale_factor in densities:
+			Art._index.erase(fixture_name + "@%dx" % scale_factor)
+	Art._op1x = previous
+
+
 func run() -> void:
+	scoped_portrait_fallbacks()
 	Cfg.character_id = "mizuki"
 	Cfg.cover_character_id = "mizuki"
 	Cfg.reduce_motion = false
