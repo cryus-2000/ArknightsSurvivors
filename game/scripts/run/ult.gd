@@ -701,6 +701,8 @@ func _auto_cast() -> void:
 	var ld = g.squad.leader()
 	if ld == null or ld.pos == Vector2.INF or ld.cmd_down > 0.0:
 		return
+	if g.bot != null and g.bot.ult_hold(self):
+		return   # human 档机器人：充满后晚放（core/bot.gd ult_hold，docs/308）；其余档恒 false
 	var fb_live: bool = g.final_boss != null and not g.final_boss.dead
 	if g.t >= Bal.v("ult/bot_hold_from", 570.0) and not fb_live and g.t < 600.0:
 		return   # 9:30 之后留给最终 Boss 进场

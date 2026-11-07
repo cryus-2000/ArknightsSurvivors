@@ -479,6 +479,15 @@
   "_swap": "满员后的招募卡（更换队友）：0 = 机器人一律不替换（满员招募卡不进候选）；1 = 按评分换（progression.auto_swap_target：档位 + 缺医疗 / 重装）",
   "swap": 0,
   "manual_hp": 0.3,
+  "human": {
+   "_doc": "human 档机器人（--bot=human，core/bot.gd，docs/308）：像用户本人，用来判难度。在 master 上叠：blind_p 每 blind_win 秒有这么大概率进入分心窗口（窗口内不看预警 / 弹幕）；warn_lag 新预警出现多少秒后才反应；bullet_w 弹幕躲避权重倍数；dash_wait 冲刺好了以后平均再等几秒就朝走的方向冲（当走路用，-1 = 关）；ult_hold_lo / hi 终结技充满后再等的秒数（均匀抽）；point_every 每隔几秒才考虑一次指点；mob_pick 冲刺 / 移速卡加分；keep / keep_melee 与敌人的距离（远程 / 近战编队）；boss_lo / hi 远程主控 Boss 站位、boss_hp 低于此血量不贴 Boss；still_p 每秒停步概率、停 still_lo–hi 秒；autopilot 1 = 分心窗口里不重新规划、沿原方向直走（0 = 照常打分只是不看预警 / 弹幕）；gap 1 = 保留 master 的被围找缺口突围（0 = 关）。--ht_<名>=<值> 覆盖",
+   "_calib": "缺省值 = docs/308 第四轮 h4c（main 12be8a496、humanstarts × 12 seed × diff 0）：胜率 26%、失败局 4:39–6:56，真人 10-29 起 20 局 30%、4:40–6:57。数值改动（如 docs/307 引痕者 / 护甲）合入后要按 docs/308 §5 重测",
+   "blind_p": 0.6, "blind_win": 0.8, "warn_lag": 0.4, "bullet_w": 0.5, "dash_wait": 1.4,
+   "ult_hold_lo": 5, "ult_hold_hi": 25, "point_every": 90, "mob_pick": 3.0,
+   "keep": 70, "keep_melee": 40, "boss_lo": 120, "boss_hi": 200, "boss_hp": 0.25,
+   "still_p": 0.04, "still_lo": 0.3, "still_hi": 0.8,
+   "autopilot": 1, "gap": 0
+  },
   "weights": {
    "prog": 6.0,
    "skill": 5.0,
