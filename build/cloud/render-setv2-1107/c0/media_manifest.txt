@@ -1,0 +1,6 @@
+1499751	v1/set0_desktop/log.txt
+1805672	v1/set0_phone/log.txt
+1500070	v1/set1_desktop/log.txt
+1890207	v1/set1_phone/log.txt
+1544411	v1/set2_desktop/log.txt
+1868834	v1/set2_phone/log.txt
