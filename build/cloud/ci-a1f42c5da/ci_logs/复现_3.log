@@ -1,0 +1,109 @@
+# 复现_3
+# 参数：--headless --path /work/repo/game -- --balance --seed=7 --op=wisadel --squad=suzuran,logos --bot=expert --maxt=240 --rngshift
+# 用时 31 秒；结束时全机 Godot 15 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+BEACON mires t=60.1 mires=0
+ENDEV deal m1 ["wish/", "shop/"] t=115.0 cur=standard relics=[]
+ENDEV flip 1 shop  t=115.0 cur=standard relics=[]
+SHOP ["穿甲弹", "显圣吊坠", "支援地雷组", "急救包", "灯油"]
+BEACON mires t=120.1 mires=12
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+BEACON spawn t=168.6 mires=14
+BEACON lit cleared=6 in_s=1.8 min_d=46 hold_s=2.4 via=ring t=171.4 mires=11
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+SHOP ["人偶之家", "赤金的远征", "洁白的舞鞋", "急救包", "灯油"]
+BEACON mires t=180.0 mires=5
+DUCK spawn t=216.15 d=448
+DUCK kill t=221.23 after=5.1
+BEACON spawn t=238.6 mires=11
+BEACON mires t=240.0 mires=12
+BALANCE {"allies":2,"armor_cf":{"m0":{"a2":17.8408,"a4":15.8408,"a8":11.8408,"all":19.8408,"armor":1.5,"n":1,"phys":19.8408,"phys_n":1,"phys_pre":21.3408}},"boss_hp":-0.000519765126713837,"bosses":["carmen:dead"],"bot":{"bosses":[{"en_alive":19,"en_alive_pk":24,"en_near":2,"en_near_pk":4,"gates":1,"on_boss":0.68,"shield":0.0,"t0":210,"t1":238,"tv":210,"type":"carmen","windows":[{"en":24,"hits":0,"hp":1.0,"moves":0,"out":0,"t":0},{"en":19,"hits":1,"hp":0.5,"moves":2,"out":14452,"t":15}]}],"curve":[{"boss":0,"dsrc":{},"ebul":0,"elites":0,"enemies":0,"hp":100,"hpm":1.23,"hpmin":100,"hsrc":{},"kills":0,"lamp":100,"lampmin":100,"lv":1,"mhp":128,"mire_s":0.0,"mires":0,"outc":0,"rg":1.1,"squad":3,"t":0,"taken":0,"zone":0},{"boss":0,"dsrc":{},"ebul":0,"elites":0,"enemies":11,"hp":100,"hpm":1.57,"hpmin":100,"hsrc":{},"kills":21,"lamp":100,"lampmin":100,"lv":2,"mhp":128,"mire_s":0.0,"mires":0,"outc":614,"rg":1.1,"squad":3,"t":30,"taken":0,"zone":0},{"boss":0,"dsrc":{},"ebul":0,"elites":1,"enemies":10,"hp":100,"hpm":1.9,"hpmin":100,"hsrc":{},"kills":64,"lamp":100,"lampmin":100,"lv":4,"mhp":128,"mire_s":0.0,"mires":0,"outc":1986,"rg":1.1,"squad":3,"t":60,"taken":0,"zone":0},{"boss":0,"dsrc":{},"ebul":0,"elites":0,"enemies":17,"hp":100,"hpm":2.24,"hpmin":100,"hsrc":{},"kills":126,"lamp":100,"lampmin":100,"lv":6,"mhp":128,"mire_s":0.0,"mires":6,"outc":8281,"rg":1.1,"squad":3,"t":90,"taken":0,"zone":0},{"boss":0,"dsrc":{},"ebul":0,"elites":0,"enemies":14,"hp":100,"hpm":2.57,"hpmin":100,"hsrc":{},"kills":188,"lamp":100,"lampmin":100,"lv":8,"mhp":128,"mire_s":0.0,"mires":12,"outc":14369,"rg":1.1,"squad":3,"t":120,"taken":0,"zone":0},{"boss":0,"dsrc":{},"ebul":0,"elites":0,"enemies":15,"hp":100,"hpm":2.91,"hpmin":100,"hsrc":{},"kills":255,"lamp":100,"lampmin":100,"lv":8,"mhp":128,"mire_s":0.0,"mires":17,"outc":23044,"rg":1.1,"squad":3,"t":150,"taken":0,"zone":1},{"boss":0,"dsrc":{},"ebul":0,"elites":0,"enemies":11,"hp":100,"hpm":3.25,"hpmin":100,"hsrc":{},"kills":360,"lamp":100,"lampmin":100,"lv":9,"mhp":128,"mire_s":0.0,"mires":5,"outc":37335,"rg":3.03,"squad":3,"t":180,"taken":0,"zone":2},{"boss":1,"dsrc":{},"ebul":3,"elites":0,"enemies":24,"hp":100,"hpm":3.58,"hpmin":100,"hsrc":{},"kills":432,"lamp":100,"lampmin":100,"lv":13,"mhp":128,"mire_s":0.0,"mires":6,"outc":49051,"rg":1.1,"squad":3,"t":210,"taken":0,"zone":3},{"boss":0,"dsrc":{"boss_carmen":19},"ebul":30,"elites":0,"enemies":13,"hp":100,"hpm":3.92,"hpmin":84,"hsrc":{"自身回复":19},"kills":492,"lamp":93,"lampmin":93,"lv":13,"mhp":128,"mire_s":0.0,"mires":12,"outc":80595,"rg":1.1,"squad":3,"t":240,"taken":19,"zone":3}],"curve_tail":{"dsrc":{},"hsrc":{},"mhp":128,"t":240,"t0":240,"taken":0},"dark_dmg":0,"dark_s":0,"death_src":"boss_carmen","elite_t":{"logos:1":190,"wisadel:1":45,"wisadel:2":104},"end":{"boss":false,"hp":128,"killer":{"cause":"","key":"e:carmen"},"last15":{"corrode_out":0.0,"corrode_peak":0.0,"dark_s":0.0,"ebullets_peak":60,"enemies_peak":20,"hits":[],"mire_s":0.0,"nerve_bursts":0,"t":240.0},"src":"boss_carmen","t":240,"zone_out":false,"zone_phase":0,"zone_state":3},"floors":[],"hits":1,"hits_pm":0.2,"king_low_s":0,"lamp_end":93,"lamp_gain":{},"lamp_loss":{"受击":5,"尖叫":0},"lamp_s":[239,0,0,0],"lamp_taken":[19,0,0,0],"low20_s":0,"low_hp_s":0,"moved_pm":9835,"peak":[34,60,7,134,28],"peak_min":[[14,1,7,62,5],[33,2,7,88,17],[34,0,7,134,28],[28,60,7,128,20],[13,30,2,58,20]],"profile":"expert","reaper_drain_deaths":0,"recruit_t":[],"still_pct":1,"taken":19,"taken_pm":4},"cmd":{"aggro":3,"downs":0,"roam":24.9,"sortie_downs":0,"sorties":1,"switch":4},"crates":3,"ctrl":{"aslow_slow":0,"aslow_t":0.0,"boss_t":28.25,"floor":0.7,"move_min":0.8,"slow_min":0.8,"stun_slow":0,"stun_t":0.0},"ctrl_src":{"boss":{"dash_break_n":0,"freeze_n":0,"freeze_t":0.0,"slow_t":1.06},"founder":{"dash_break_n":0,"freeze_n":0,"freeze_t":0.0,"slow_t":0.0},"other":{"dash_break_n":0,"freeze_n":0,"freeze_t":0.0,"slow_t":0.0},"skimmer":{"dash_break_n":0,"freeze_n":0,"freeze_t":0.0,"slow_t":0.0},"slow_any_t":1.06},"dashes":4,"dmg":{"boss_carmen":19.8408},"drone":0,"duck":{"fled":0,"kill_t":[5.1],"killed":1,"spawned":1},"elite_stage":2,"elites":6,"ending":"standard","final_out":{"余震":14541.7477166321,"技能连携·狐火·suzuran":60.1805213490158,"提喻":7948.79739240561,"散射":5371.29010996212,"殁亡":1346.85099675946,"殉爆":2094.90504673182,"炮击":5049.76592280908,"爆裂黎明":4621.48474134132,"狐火":14156.8747233315,"狐火点点":1491.28883763095,"真实":5204.90658894565,"终结技·wisadel·余震":268.809292858004,"终结技·wisadel·炮击":3972.51005308781,"言":5825.05966630464,"语汇演化":296.182855584,"铭文":1759.19629781332,"饱和复仇":6348.09426489774,"魂灵之影":538.054868451381},"floor_hits":0,"floor_times":[],"fuse":{"left":0,"pct":0.0,"pool":0,"t":-1},"growth":{},"heal":{"拾取":0.0,"自身回复":19.8408000000016},"heal_offer":0,"heal_offer_low":0,"heal_pick":0,"hordes":[{"comp":{"bone":9,"slider":3,"stone":3},"hp":1574,"hp0":128,"minhp":128,"mix":"凿石阵","n":15,"t":75,"t80":9},{"comp":{"bone":12,"slider":8},"hp":2379,"hp0":128,"minhp":128,"mix":"滑行群","n":20,"t":165,"t80":6}],"ingots":23,"items":{"crate_shield":0,"heal_elite":3,"heal_low":0,"heal_mob":5,"heal_pick":8,"magnet_elite":4,"magnet_mob":3,"magnet_pick":4,"mob_capped":93,"mob_rolled":392,"pack_drop":3,"pack_pick":0},"kill_hits":{"0:bone":[48,52,1.05],"0:slider":[8,11,0.07],"0:stone":[7,22,5.56],"1:bone":[75,121,23.12],"1:floater":[9,36,8.93],"1:slider":[24,55,14.01],"1:stone":[9,58,22.25],"1:tracer":[3,72,29.89],"2:bone":[79,185,89.74],"2:brood":[1,2,0.33],"2:floater":[18,126,40.42],"2:runner":[5,13,5.68],"2:slider":[51,196,53.33],"2:stone":[10,68,21.2],"2:tracer":[8,245,51.82],"3:bone":[52,133,47.48],"3:brood":[2,7,1.38],"3:duck":[1,20,4.95],"3:floater":[11,66,12.95],"3:runner":[13,32,6.41],"3:slider":[26,83,23.77],"3:spitter":[7,96,39.01],"3:stone":[12,115,48.83],"3:tracer":[4,143,21.78],"4:bone":[2,5,4.09]},"kills":492,"lamp":93,"levelup_t":[14,31,45,65,75,93,104,154,186,190,194,210],"low_levelups":0,"lv":13,"lv_times":[14,30,45,65,75,92,104,154,185,189,194,210],"marks":{"120":8},"maxhp":128.7,"meta":0,"ops":[{"elite":2,"id":"wisadel","prog":6},{"elite":0,"id":"suzuran","prog":1},{"elite":1,"id":"logos","prog":5}],"out":{"余震":14541.7477166321,"技能连携·狐火·suzuran":60.1805213490158,"提喻":7948.79739240561,"散射":5371.29010996212,"殁亡":1346.85099675946,"殉爆":2094.90504673182,"炮击":5049.76592280908,"爆裂黎明":4621.48474134132,"狐火":14156.8747233315,"狐火点点":1491.28883763095,"真实":5204.90658894565,"终结技·wisadel·余震":268.809292858004,"终结技·wisadel·炮击":3972.51005308781,"言":5825.05966630464,"语汇演化":296.182855584,"铭文":1759.19629781332,"饱和复仇":6348.09426489774,"魂灵之影":538.054868451381},"out_tag":{"aftershock":14541.7477166321,"area":50601.4124196389,"basic":5825.05966630464,"control":14156.8747233315,"detonation":2094.90504673182,"dot":9846.76120217891,"entity":3250.48513544427,"execute":6551.75758570511,"growth":10742.5802199242,"projectile":41456.8547407554,"single":5825.05966630464,"skill":23358.6437778995,"talent":296.182855584,"trim":5204.90658894565,"终结技":8482.63869189162,"连携":120.361042698032},"out_type":{"法术":32661.7068402244,"物理":37441.2161250203,"真实":10793.0769316509},"prof":{},"prog_log":[[14,"wisadel",1],[31,"wisadel",2],[45,"wisadel",3],[65,"wisadel",4],[75,"wisadel",5],[93,"logos",1],[104,"wisadel",6],[154,"suzuran",1],[186,"logos",2],[190,"logos",3],[194,"logos",4],[210,"logos",5]],"prog_offer":{"logos":6,"suzuran":6,"wisadel":6},"prog_pick":{"logos":5,"suzuran":1,"wisadel":6},"recall_backstop":0,"recall_n":41,"recruit_offers":[],"rej":{},"relic_offer":[[115,"shop",["265","57","210"]],[120,"shop",["76","14","82"]],[227,"choice",["25","45","64"],"duck"]],"relic_out":5204.90658894565,"relic_take":[[115,"265",["狙击","辅助","术师"],"shop"],[115,"57",["狙击","辅助","术师"],"shop"],[227,"45",["狙击","辅助","术师"],"choice:duck"]],"relics":3,"shield":{"abs":0.0,"blocks":0,"every":15.0,"max":0,"peak":0,"src_int":[],"src_max":[],"t0":-1.0},"squad":["wisadel","suzuran","logos"],"sus":{"m0":{"clean":{},"dr":{},"heal":{"拾取":[0.0,193.05]},"lit":0.0},"m3":{"clean":{},"dr":{},"heal":{"拾取":[0.0,115.83]},"lit":0.0}},"swaps":[],"t":240,"terrain":{"bul":0,"dash":0,"ebul":0},"ult":{"combo":3,"combo_auto":3,"combo_up":0,"cult":0,"cult_times":[],"e_combo":2.0,"e_hurt":0.9,"e_kill":34.0,"e_out":68.7,"first_full":152.1,"full_times":[152.1],"hit_n":15,"idle_full_s":13.3,"link_by":{"logos":2,"suzuran":1},"lit":3,"lit_by":{},"miss":0,"ult":1,"ult_times":[165.4]},"win":false,"xp_backstop":0.0,"xp_dropped":2014.3,"xp_ground":382.5,"xp_magnet":279.1,"xp_magnet_min":[7.5,63.3,0.0,208.3],"xp_recall":381.3,"xp_recall_min":[2.5,17.5,25.8,335.5],"xp_total":1631.8,"xp_total_min":[152.5,432.5,64.8,982.0],"xp_walk":971.4,"xp_walk_min":[142.5,351.7,39.0,438.3]}
+SPAWNQ {"alive_420_max":0,"alive_420_med":0,"alive_420_p95":0,"alive_710_max":0,"alive_710_med":0,"alive_710_p95":0,"cap":0,"deferred":0,"density":0.4,"drop_final":0,"drop_room":0,"forced":0,"hard":0,"hist":{"1-3s":0,"10-30s":0,"3-10s":0,"<1s":0,">=30s":0},"merge_spawns":0,"merged":0,"owed_end":0,"pending_end":0,"q_peak":0,"queued":0,"spawned":464,"wait_cap":10.0,"wait_max":0.0,"wait_mean":0.0,"wait_p50":0.0,"wait_p90":0.0,"wait_p99":0.0}
+ERROR: 86 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+ERROR: 69 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 5 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+
+## stderr
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+WARNING: 430 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 8 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+
