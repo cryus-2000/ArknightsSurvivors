@@ -75,6 +75,9 @@ func run() -> void:
 	check(not Input.is_key_pressed(KEY_D), "失焦后 D 键松开")
 	check(game.state == game.S.PAUSE, "对局中失焦自动暂停（state=%d）" % game.state)
 	check(game.web_focus.lost_n == 1, "失焦处理一次")
+	check(game.web_focus.paused, "失焦暂停：暂停菜单写「点击继续」")
+	await play(3)
+	check(not game.web_focus.paused, "回到对局后收起提示")
 	# 2. 按住 F 打开圆盘、悬停一项 → 失焦：圆盘取消，不下指令
 	await play(4)
 	var stance0 = game.squad.stance
