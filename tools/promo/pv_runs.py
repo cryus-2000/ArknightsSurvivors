@@ -82,7 +82,9 @@ def run_game(name, out):
     print("%s rc=%d %.0fs" % (name, p.returncode, time.time() - t0), flush=True)
     media = os.environ.get("MEDIA", os.path.join(out, "media"))
     os.makedirs(media, exist_ok=True)
-    shutil.copy(os.path.join(raw, "pv.log"), os.path.join(media, "%s_pv.log" % name))
+    if os.path.exists(os.path.join(raw, "pv.log")):
+        shutil.copy(os.path.join(raw, "pv.log"), os.path.join(media, "%s_pv.log" % name))
+    shutil.copy(os.path.join(out, "godot.log"), os.path.join(media, "%s_godot.log" % name))
     for d in sorted(glob.glob(os.path.join(raw, "seg_*"))):
         seg = os.path.basename(d)
         n = len(glob.glob(os.path.join(d, "f*.jpg")))

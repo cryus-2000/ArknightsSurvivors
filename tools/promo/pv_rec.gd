@@ -144,7 +144,7 @@ func _spawn_elite() -> void:
 	e.age = 5.0
 	if not e.elite:
 		e.elite = true
-		e.hp *= Bal.v("enemy/elite_hp_mult", 7.0)
+		e.hp *= 7.0
 		e.maxhp = e.hp
 	_ev("elite %s" % str(elite_spec[1]))
 
