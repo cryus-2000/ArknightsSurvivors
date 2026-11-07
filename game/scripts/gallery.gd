@@ -126,7 +126,7 @@ func _ready() -> void:
 	glow_tex = gt
 
 
-## 手机网页：图鉴打开期间新读进贴图缓存的（各干员动作帧条、演示局读的特效、敌人图鉴）关图鉴时拿掉（docs/314 §2）。--bal=web/mobile_gallery_trim=0 退回
+## 手机网页：图鉴打开期间新读进贴图缓存的（各干员动作帧条、演示局读的特效、敌人图鉴）关图鉴时拿掉（docs/319 §2）。--bal=web/mobile_gallery_trim=0 退回
 var _pre_cache := {}
 
 static func _mobile_trim() -> bool:
@@ -155,7 +155,7 @@ func _warm_demo() -> void:
 	_warmed = true
 	ResourceLoader.load_threaded_request("res://scripts/characters/data_operator.gd")
 	if _mobile_trim():
-		return   # 手机网页不预读整局贴图（docs/314 §2：全员 V6 特效 + 全部敌人 + 白剪影约 260 MB，真机开局 600 MB 的大头）；演示首点现读，慢一点
+		return   # 手机网页不预读整局贴图（docs/319 §2：全员 V6 特效 + 全部敌人 + 白剪影约 260 MB，真机开局 600 MB 的大头）；演示首点现读，慢一点
 	var G = load("res://scripts/game.gd")
 	var enemies: Array = []   # 敌人帧条：一局开局要算白色剪影（受击闪白）
 	for k in D.ENEMIES:
