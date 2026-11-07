@@ -1,0 +1,24 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+OpenGL API 4.5 (Core Profile) Mesa 22.3.6 - Compatibility - Using Device: Mesa/X.org - llvmpipe (LLVM 15.0.6, 256 bits)
+
+PROMO levelup f=920 t=15.3 score=0.0
+PROMO levelup f=1824 t=30.3 score=0.0
+PROMO levelup f=2824 t=46.9 score=0.0
+ERROR: Can't save PNG at path: '/tmp/claude-0/shot_3400.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] step (res://scripts/run/autotest.gd:1226)
+       [1] _process (res://scripts/game.gd:1557)
+BEACON mires t=60.0 mires=0
+PROMO levelup f=3943 t=65.5 score=0.0
+ENDEV deal m1 ["incident/meeting", "rest/"] t=115.0 cur=standard relics=[]
+ENDEV flip 0 incident meeting t=115.0 cur=standard relics=[]
+ENDEV open meeting t=115.0 cur=standard relics=[]
+PROMO relic f=6919 t=115.0 score=0.0
+ENDEV pick meeting:1 t=115.0 cur=standard relics=[]
+BEACON mires t=120.0 mires=8
+SHOP ["解约协议", "舞者手链", "显圣吊坠", "急救包", "灯油"]
+PROMO relic f=7661 t=127.3 score=0.0
+PROMO relic f=9128 t=151.7 score=0.0
