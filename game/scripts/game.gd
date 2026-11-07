@@ -784,6 +784,31 @@ func _enemy_evict(n: String) -> void:
 			A.uncache(nm)
 	tex_deferred[n] = true
 
+## 手机网页进局（docs/314 §2）：标题页 / 图鉴 / 寻访 / 选人读进缓存、本局固定名单里没有的贴图拿掉（art.gd _outrun）。
+## 首次进游戏的新手引导会开图鉴，全员动作帧条、敌人帧条、名册立绘原来整局留在缓存里（iPhone 真机开局贴图 442 vs 343 MB）。
+## --bal=web/mobile_drop_outrun=0 退回；桌面不做（显存够，回标题再进图鉴少读一次）
+func _drop_outrun_tex() -> void:
+	if not (Cfg.mobile_web() and Cfg.mobile_knob("mobile_drop_outrun", 1.0)) and not Cfg.dev_args().has("--dropoutrun"):
+		A.outrun_track = false
+		return
+	var keep := {}
+	var ids := {Cfg.character_id: true}   # 开局编队（同 title._op_ids）：手机按需读特效时只留这些人的 V6 帧条
+	for a in Cfg.dev_args():
+		if a.begins_with("--op="):
+			ids = {a.substr(5): true}
+	for a in Cfg.dev_args():
+		if a.begins_with("--squad="):
+			for c in a.substr(8).split(","):
+				ids[c] = true
+	for n in preload_tex_names():
+		var ow: String = A.fx_owner(str(n)) if lazy_fx and V6_FRAMES.has(n) else ""
+		if ow == "" or ids.has(ow):
+			keep[str(n)] = true
+	var nd := A.drop_outrun(keep)
+	if not Cfg.dev_args().is_empty():
+		print("PF OUTRUN dropped=%d" % nd)
+
+
 ## 中途入队的干员：补读开局跳过的专属特效帧条；光学压阶（optical._fxq_step）名单已建好时把它们接到名单末尾，照常换压阶版
 func load_op_fx(cid: String) -> void:
 	var ns: Array = tex_lazy_fx.get(cid, [])
@@ -881,6 +906,8 @@ func tex_deferred_miss(n: String) -> void:
 
 func _ready() -> void:
 	A.mark("ready_begin")
+	if demo_op == "" and A.outrun_track:
+		_drop_outrun_tex()
 	load("res://scripts/core/perf_hud.gd").ensure(get_tree())   # 性能自检浮层（缺省关；?perf=1 或性能报告页连点标题 5 次）
 	web_fs.setup(self)
 	web_focus.setup(self)
