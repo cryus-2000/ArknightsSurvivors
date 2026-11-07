@@ -1,0 +1,10 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4857 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+skalter_n2 80 帧，差最大 [18, 27, 47]（162 像素） 
+skalter_n3 80 帧，差最大 [7, 15, 39]（2195 像素） 
+suzuran_n3 80 帧，差最大 [62, 71, 78]（84 像素） 
+wisadel_n3 80 帧，差最大 [3, 50, 61]（130 像素） 
+wisadel_n5_ash 80 帧，差最大 [31, 61, 75]（130 像素） 
+wisadel_n5_mark 80 帧，差最大 [69, 70, 71]（782 像素） 
+media：966 个文件，280M
