@@ -1,0 +1,16 @@
+698115	abyss/levelup_00986_s000_t0015.png
+712042	abyss/levelup_01957_s000_t0030.png
+674881	abyss/levelup_03024_s000_t0046.png
+656248	abyss/levelup_04210_s000_t0065.png
+789635	deep/levelup_00959_s000_t0014.png
+781567	deep/levelup_02089_s000_t0032.png
+753515	deep/levelup_03136_s000_t0048.png
+791919	deep/levelup_04145_s000_t0064.png
+704661	lungmen/levelup_00686_s000_t0010.png
+761905	lungmen/levelup_02312_s000_t0036.png
+749481	lungmen/levelup_03156_s000_t0049.png
+761917	lungmen/levelup_04162_s000_t0064.png
+772378	rhodes/levelup_00688_s000_t0010.png
+746062	rhodes/levelup_01565_s000_t0023.png
+801230	rhodes/levelup_02516_s000_t0038.png
+735881	rhodes/levelup_03731_s000_t0057.png
