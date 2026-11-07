@@ -1,0 +1,4 @@
+370	a/title_desktop/log.txt
+205059	a/title_desktop/shot_title.png
+370	a/title_phone/log.txt
+172602	a/title_phone/shot_title.png

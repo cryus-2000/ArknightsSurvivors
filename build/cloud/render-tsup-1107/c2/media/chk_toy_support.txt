@@ -1,0 +1,7 @@
+快检：本次最多 8 个 Godot 并行（全机上限 8，开始时全机已有 0 个）；日志 /work/repo/build/check/quick_1107_122209
+通过 数据 JSON 解析  game/data 全部可解析
+通过 B站 Toy「支持作者」（docs/313）：模拟 SDK 关注 / 三连 / unsupported / 未登录，每项只发一次 5 张凭证、三连解锁分享卡边框、云存档并集、浮层提示  TOY SUPPORT failures=0  [2 秒]
+
+耗时前 10（秒，不含排队）：B站 Toy「支持作者」（docs/313）：模 2
+
+快检通过：2 项，失败 0 项（已知红 0 项另计），耗时 3 秒（开始时全机 0 个 Godot，结束时 0 个）；Godot 结果缓存命中 0 / 1（不用缓存加 --nocache）

@@ -1,0 +1,8 @@
+649	chk_cloud_save.txt
+638	chk_feedback_code.txt
+657	chk_save_migrate.txt
+118	chk_summary.txt
+634	chk_title_menu.txt
+703	chk_touch_layout.txt
+709	chk_toy_support.txt
+691	chk_ui_smoke.txt

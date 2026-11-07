@@ -1,0 +1,7 @@
+toy_support rc=0
+ui_smoke rc=0
+title_menu rc=0
+touch_layout rc=0
+feedback_code rc=0
+cloud_save rc=0
+save_migrate rc=0
