@@ -126,11 +126,19 @@
      "type": "on_gain",
      "do": "ingots",
      "args": {
-      "amount": 12
+      "amount": 4
+     }
+    },
+    {
+     "type": "trigger",
+     "event": "Recruited",
+     "do": "ingots",
+     "args": {
+      "amount": 4
      }
     }
    ],
-   "desc": "源石锭 +12",
+   "desc": "源石锭 +4；此后每招募一名干员再 +4",
    "rarity": "基础",
    "late_weight": 0.3,
    "new": true
@@ -204,29 +212,34 @@
      "type": "on_gain",
      "do": "ingots",
      "args": {
-      "amount": 12
+      "amount": 4
      }
+    },
+    {
+     "type": "rule",
+     "rule": "ingot_merchant",
+     "value": 6
     }
    ],
-   "desc": "源石锭 +12",
+   "desc": "源石锭 +4；此后每位商人到来时再 +6",
    "rarity": "基础",
    "late_weight": 0.3,
-   "new": true
+   "new": true,
+   "late_fuse": 8
   },
   "13": {
    "effects": [
     {
-     "type": "on_gain",
-     "do": "ingots",
-     "args": {
-      "amount": 12
-     }
+     "type": "rule",
+     "rule": "ingot_kills",
+     "value": 50
     }
    ],
-   "desc": "源石锭 +12",
+   "desc": "每击败 50 名敌人，源石锭 +1",
    "rarity": "基础",
    "late_weight": 0.3,
-   "new": true
+   "new": true,
+   "late_fuse": 6
   },
   "14": {
    "effects": [
@@ -380,17 +393,16 @@
   "22": {
    "effects": [
     {
-     "type": "on_gain",
-     "do": "ingots",
-     "args": {
-      "amount": 12
-     }
+     "type": "rule",
+     "rule": "ingot_crate",
+     "value": 2
     }
    ],
-   "desc": "源石锭 +12",
+   "desc": "每打碎一个补给箱，源石锭 +2",
    "rarity": "基础",
    "late_weight": 0.3,
-   "new": true
+   "new": true,
+   "late_fuse": 6
   },
   "23": {
    "effects": [
@@ -398,11 +410,16 @@
      "type": "on_gain",
      "do": "ingots",
      "args": {
-      "amount": 12
+      "amount": 4
      }
+    },
+    {
+     "type": "rule",
+     "rule": "ingot_level",
+     "value": 1
     }
    ],
-   "desc": "源石锭 +12",
+   "desc": "源石锭 +4；此后每升一级再 +1",
    "rarity": "基础",
    "late_weight": 0.3,
    "new": true
@@ -413,14 +430,20 @@
      "type": "on_gain",
      "do": "ingots",
      "args": {
-      "amount": 12
+      "amount": 4
      }
+    },
+    {
+     "type": "rule",
+     "rule": "ingot_rebate",
+     "value": 3
     }
    ],
-   "desc": "源石锭 +12",
+   "desc": "源石锭 +4；此后在商人处每花费 10 枚源石锭，返还 3 枚",
    "rarity": "基础",
    "late_weight": 0.3,
-   "new": true
+   "new": true,
+   "late_fuse": 8
   },
   "25": {
    "effects": [
@@ -448,11 +471,17 @@
      "type": "on_gain",
      "do": "ingots",
      "args": {
-      "amount": 24
+      "amount": 30
      }
+    },
+    {
+     "type": "stat",
+     "stat": "shop_price",
+     "op": "mult",
+     "value": 1.15
     }
    ],
-   "desc": "源石锭 +24",
+   "desc": "源石锭 +30；商人处所有商品价格 +15%",
    "rarity": "稀有",
    "late_weight": 0.3,
    "new": true

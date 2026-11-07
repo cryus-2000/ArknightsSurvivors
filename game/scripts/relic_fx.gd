@@ -90,6 +90,8 @@ var steal_used := 0.0      # 吸血：本秒已回复（未乘受治疗加成）
 var kh_cnt := 0            # 击杀回复：累计击杀权重（精英 / Boss 按权重计）
 var kh_frac := 0.0         # 击杀回复：怪物密度缩放过的普通怪的小数击杀权重（docs/50 §16）
 var fuse_on := false       # 源石锭熔铸：最后一位商人离开后为 true
+var econ_kills := 0        # 经济藏品（docs/324）：ingot_kills 的击杀计数
+var econ_spent := 0        # 经济藏品（docs/324）：ingot_rebate 的累计花费（满 10 枚折一次）
 var fuse_pool := 0         # 已熔铸的源石锭（剩余 + 之后获得）
 var fuse_t := -1           # 熔铸开始时刻（秒，遥测）
 var fuse_left := 0         # 熔铸那一刻剩余的源石锭（遥测）
@@ -339,6 +341,32 @@ func ingot_value_of(id: String) -> int:
 		elif a.has("ingots"):
 			n += int(a.ingots)
 	return n
+
+
+## ---------- 经济藏品的不同获得方式（docs/324，11-08 用户「货架上名字不同、效果一样」）----------
+## rule 值：ingot_merchant 每位商人到来 +N；ingot_rebate 在商人处每花 10 枚返 N；ingot_level 每升一级 +N；
+## ingot_crate 每打碎一个补给箱 +N；ingot_kills 每击败 N 名敌人 +1。熔铸后照常进熔铸池（gain_ingots）
+func _econ_name(rule_name: String) -> String:
+	for id in g.relics:
+		for ef in db.get_relic(id).get("effects", []):
+			if ef.get("type", "") == "rule" and str(ef.get("rule", "")) == rule_name:
+				return str(db.get_relic(id).name) + " · "
+	return ""
+
+
+func econ_merchant() -> void:
+	if rule("ingot_merchant") > 0:
+		gain_ingots(rule("ingot_merchant"), _econ_name("ingot_merchant"))
+
+
+func econ_spend(paid: int) -> void:
+	if rule("ingot_rebate") <= 0 or paid <= 0:
+		return
+	econ_spent += paid
+	var k: int = int(econ_spent / 10.0)
+	if k > 0:
+		econ_spent -= k * 10
+		gain_ingots(k * rule("ingot_rebate"), _econ_name("ingot_rebate"))
 
 
 ## 获得时「立即获得源石锭」的数额（on_gain ingots；招募 / 击败 Boss 时的不算）。商店按售价保底用（docs/218）
@@ -1356,6 +1384,8 @@ func on_skill_start(o = null, i := -1) -> void:
 
 ## 升级（pickups.gain_xp）：疗养体验卡 / 疗养特供卡（docs/57 P9）
 func on_levelup(_n: int) -> void:
+	if rule("ingot_level") > 0 and _n > 0:   # 经济藏品（docs/324）：每升一级源石锭 +N
+		gain_ingots(rule("ingot_level") * _n, _econ_name("ingot_level"))
 	for t in _triggers("LevelUp"):
 		var a: Dictionary = t[1].get("args", {})
 		if str(t[1].get("do", "")) == "temp_stat":
@@ -1456,6 +1486,15 @@ func on_death() -> bool:
 
 func on_kill(e: Dictionary, h: Dictionary = {}) -> void:
 	_trim_on_kill(e, h)   # 改打法件（docs/203）
+	if not e.get("dead", false):   # 经济藏品（docs/324）：补给箱 / 击杀计数（只数一次）
+		if e.get("chest", false):
+			if rule("ingot_crate") > 0:
+				gain_ingots(rule("ingot_crate"), _econ_name("ingot_crate"))
+		elif rule("ingot_kills") > 0:
+			econ_kills += 1
+			if econ_kills >= rule("ingot_kills"):
+				econ_kills = 0
+				gain_ingots(1, "-")
 	var dk: float = float(e.get("dk", 1.0))   # 怪物密度缩放过的普通怪：击杀权重 1/density（docs/50 §16），其余 1
 	if has_relic("medal_hand"):
 		perm_dmg = minf(0.3, perm_dmg + 0.001 * dk)

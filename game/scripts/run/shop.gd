@@ -78,7 +78,10 @@ func ingot_floor(id: String, paid: int) -> int:
 	var base: int = g.rfx.instant_ingots(id)
 	if base <= 0:
 		return 0
-	return maxi(base, int(ceil(float(paid) * Bal.v("shop/ingot_relic_floor", 1.2) - 0.001)))
+	var k: float = Bal.v("shop/ingot_relic_floor", 1.2)
+	# docs/324（11-08 用户「名字不同效果一样」）：涨价部分按 k 倍加在原数额上，数额不同的藏品在货架上仍不同；至少 ceil(实付 × k)
+	var over: int = maxi(0, paid - g.rfx.db.price(id, 1.0))
+	return maxi(base + int(ceil(float(over) * k - 0.001)), int(ceil(float(paid) * k - 0.001)))
 
 
 ## 货架上的立即得锭藏品：卡面写实际能拿的数额（成交涨价后跟着改）
@@ -126,12 +129,20 @@ func roll(first := false) -> void:
 		# 诡意行商卡（docs/184 §3）：前两格换成主流派里排最前的两件（只重排，不多取随机数）
 		pool = g.guide.lane_front(pool, g.guide.main_lane())
 	var slots: int = 3
-	for i in min(slots, pool.size()):
-		var r: Dictionary = g.RL[pool[i]]
-		g.shop_items.append({"kind": "relic", "id": pool[i], "name": ("【遭诅】" if r.rarity == "遭诅古物" else "") + g.rfx.display_name(pool[i]), "desc": g.rfx.display_desc(pool[i]), "full": g.rfx.display_desc(pool[i], true), "price": g.rfx.db.price(pool[i], relic_mult()), "sold": false})
+	var seen := {}   # docs/324：同一货架不放效果相同的两件（按卡面说明去重，只跳过、不多抽随机数）
+	for id in pool:
+		if g.shop_items.size() >= slots:
+			break
+		var dk: String = g.rfx.display_desc(id)
+		if seen.has(dk):
+			continue
+		seen[dk] = true
+		var r: Dictionary = g.RL[id]
+		g.shop_items.append({"kind": "relic", "id": id, "name": ("【遭诅】" if r.rarity == "遭诅古物" else "") + g.rfx.display_name(id), "desc": dk, "full": g.rfx.display_desc(id, true), "price": g.rfx.db.price(id, relic_mult()), "sold": false})
 	if first:
 		var link: String = g.guide.merchant_link_pick(pool)
-		if link != "" and not g.shop_items.any(func(it): return it.id == link) and not g.shop_items.is_empty():
+		var ld: String = g.rfx.display_desc(link) if link != "" else ""
+		if link != "" and not g.shop_items.any(func(it): return it.id == link) and not g.shop_items.is_empty() and not g.shop_items.slice(0, g.shop_items.size() - 1).any(func(it): return it.desc == ld):
 			g.shop_items[g.shop_items.size() - 1] = {"kind": "relic", "id": link, "name": g.rfx.display_name(link), "desc": g.rfx.display_desc(link), "full": g.rfx.display_desc(link, true), "price": g.rfx.db.price(link, relic_mult()), "sold": false}
 	# 深蓝线：商店多一栏必为遭诅古物（深海的馈赠）
 	if g.rfx.rule("deep_sea") > 0:
@@ -225,6 +236,7 @@ func buy(i: int) -> void:
 		return
 	g.ingots -= it.price
 	g.telemetry.ingots_spent += it.price   # 作战记录（docs/77）
+	g.rfx.econ_spend(int(it.price))   # 经济藏品（docs/324）：在商人处花费返还
 	it.sold = true
 	if trader:
 		trader_buys += 1
