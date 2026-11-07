@@ -103,6 +103,7 @@
     "suno_layers",
     "play_clock",
     "feedback",
+    "feedback_code",
     "time_scale_combo",
     "ui_smoke"
    ]
