@@ -11,6 +11,7 @@ func _ready() -> void:
 	if FR.enabled():
 		FR.mark("title_ready")
 		RenderingServer.frame_post_draw.connect(func(): FR.mark("title"), CONNECT_ONE_SHOT)
+	A.mark_boot()   # 启动期贴图键（只记第一次）：手机网页每局离场时拿掉这之后进缓存的（game._release_run）
 	A.outrun_track = true   # 局外读的贴图记下来，手机网页进局时拿掉（art.gd _outrun，game._drop_outrun_tex）
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_idle_fps = preload("res://scripts/core/idle_fps.gd").new()   # 手机网页闲置降帧（docs/50 §33）：boot_reveal 后才开

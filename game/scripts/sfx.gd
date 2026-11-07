@@ -228,6 +228,8 @@ func _ready() -> void:
 		group_vol[tname] = 0.0
 		group_rate[tname] = [0.8, 0.6]
 	_suno_init()
+	for k in streams:
+		_base_streams[k] = true   # 启动时的固定音效表（局中 ensure 补进来的在 release_run 里退）
 	stinger = AudioStreamPlayer.new()
 	stinger.bus = "Music"
 	add_child(stinger)
@@ -682,6 +684,36 @@ var voice_op_last := {}                # cid -> 该干员上次开口时间
 var voice_prio := 0
 var voice_end := 0.0
 var voice_queue: Array = []            # [cid, key]
+
+
+## 离开一局（game._release_run，手机网页）：局中 ensure() 补进来的音效（终结技等）从表里拿掉，连同全部历史语音一起退网页样本
+## （引擎按双声道注册语音，237 条全播过约 99 MB）；正在播放的样本 __syAudioFree 返回 false，留着不动。返回退掉的条数
+var _base_streams := {}
+
+func release_run() -> int:
+	var n := 0
+	var ok := OS.has_feature("web") and str(JavaScriptBridge.eval("typeof window.__syAudioFree", true)) == "function"
+	var drop: Array = []
+	for k in streams:
+		if not _base_streams.is_empty() and not _base_streams.has(k):
+			drop.append(k)
+	for k in drop:
+		var st = streams[k]
+		if ok and st is AudioStream and AudioServer.is_stream_registered_as_sample(st):
+			var r0 = JavaScriptBridge.eval("window.__syAudioFree('%d')" % st.get_instance_id(), true)
+			if r0 != null and not bool(r0):
+				continue
+			n += 1
+		streams.erase(k)
+	for path in voice_streams.keys():
+		var st = voice_streams[path]
+		if ok and st is AudioStream and AudioServer.is_stream_registered_as_sample(st):
+			var r = JavaScriptBridge.eval("window.__syAudioFree('%d')" % st.get_instance_id(), true)
+			if r != null and not bool(r):
+				continue   # 还在播（结算语音）：留着
+			n += 1
+		voice_streams.erase(path)
+	return n
 
 
 func _voice_stream(cid: String, key: String) -> AudioStream:

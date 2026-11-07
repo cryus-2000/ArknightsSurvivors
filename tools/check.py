@@ -1158,7 +1158,7 @@ SCENE_REGRESSIONS = {
     "render_perf": ("遮罩显存回收与圆环几何一致性", "render_perf_test", r"RENDER PERF failures=0", []),
     "render_lifetime": ("绘制辅助对象退出释放", "render_lifetime_test", r"RENDER LIFETIME failures=0", ["--lifetime-test"]),
     "hud_lifetime": ("HUD 子模块与绘制回调退出释放", "hud_lifetime_test", r"HUD LIFETIME failures=0", ["--hud-lifetime-test"]),
-    "memory_pressure": ("持续内存压力清理限频与降档", "memory_pressure_test", r"MEMORY PRESSURE failures=0", ["--memguard", "--memguard=-1", "--quality=mid"]),
+    "memory_pressure": ("持续内存压力与按编队预热", "memory_pressure_test", r"MEMORY PRESSURE failures=0", ["--memguard", "--memguard=-1", "--quality=mid", "--lazyfx", "--dropoutrun", "--squad=angelina"]),
     "solid_triangle": ("同色三角形与矩形批的几何颜色一致性", "solid_triangle_test", r"SOLID TRIANGLE failures=0", ["--solid-triangle-test"]),
     "boss_support": ("Boss 保留杂兵、友方保色与枪声混音", "boss_support_test", r"BOSS SUPPORT failures=0", []),
     "boss_boundary": ("Boss 黑潮边界", "boss_boundary_test", r"BOSS BOUNDARY failures=0", []),

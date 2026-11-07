@@ -8,6 +8,7 @@ const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类
 const D = preload("res://scripts/data.gd")
 const UM = preload("res://scripts/ui_motion.gd")
 const MotionShot = preload("res://scripts/run/motion_shot.gd")   # --motionshot / --motionrec / --motionperf / --motionpress（docs/62）
+static var _tworun_n := 0   # --tworuns：已结束的局数（静态，跨场景）
 var g: Game
 var mshot: MotionShot
 var winshot := false
@@ -1348,6 +1349,16 @@ func step() -> void:
 		# 10:00 最终 Boss 登场后给 3 分钟打完（之前 620 秒截断只留 20 秒，胜负基本看不出来）
 		if (g.state == g.S.DEAD or g.state == g.S.WIN or g.t > g.bal_maxt) and not bal_done:
 			bal_done = true
+			if Cfg.dev_args().has("--tworuns") and _tworun_n == 0:
+				# 连开两局的内存（docs/319 §7）：第一局到点按倒下进结算，停 4 秒 → 回标题 → 标题页照 --balance 自动再进一局；第二局正常收尾
+				_tworun_n = 1
+				g.hp = 0.0
+				g.state = g.S.DEAD
+				print("PF TWORUN end1 t=%.0f" % g.t)
+				g.get_tree().create_timer(4.0).timeout.connect(func(): g._do_action("title"))
+				return
+			if Cfg.dev_args().has("--tworuns"):
+				print("PF TWORUN end2 t=%.1f state=%d hp=%.1f maxt=%.0f" % [g.t, g.state, g.hp, g.bal_maxt])
 			if perf_on:
 				print("PERF ", JSON.stringify(_perf_summary()))
 			if outwin != null:
