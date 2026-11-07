@@ -4,7 +4,15 @@ const World = preload("res://scripts/render/world.gd")
 const Pxp = preload("res://scripts/render/fx_pxplane.gd")
 const Crack = preload("res://scripts/render/ground_crack.gd")
 const Character = preload("res://scripts/characters/character.gd")
+const Optical = preload("res://scripts/render/optical.gd")
+const Bal = preload("res://scripts/core/balance.gd")
 var failures := 0
+
+class OpticalRun extends Node2D:
+	var optical_lo := false
+	var optical_ops_hi := false
+	var prof_on := false
+	var squad = null
 
 func check(ok: bool, label: String) -> void:
 	if not ok:
@@ -105,7 +113,56 @@ func check_sorted_fx_pass() -> void:
 	check(world._sorted_leader == "", "empty squad clears previous leader")
 	game.free()
 
+func check_optical_lifetime() -> void:
+	var tree := get_tree()
+	await tree.process_frame
+	var render := Bal.sec("render")
+	var previous = render.get("optical_ops_hi")
+	var cull_mask := tree.root.canvas_cull_mask
+	for mode in [0, 1, 1]:  # Same root survives consecutive runs.
+		render["optical_ops_hi"] = mode
+		var run := OpticalRun.new()
+		run.process_mode = Node.PROCESS_MODE_DISABLED
+		run.material = CanvasItemMaterial.new()
+		var material_ref: WeakRef = weakref(run.material)
+		tree.root.add_child(run)
+		var optics := Optical.new()
+		optics.g = run
+		run.add_child(optics)
+		await tree.process_frame  # _attach_glow is deferred in production.
+		optics._set_lo(true)
+		var canvas_ref: WeakRef
+		if mode == 0:
+			check(optics.op_node == null, "default optical layer allocates no external canvas")
+		else:
+			var canvas := optics.op_node
+			check(is_instance_valid(canvas), "HD optical canvas created")
+			if is_instance_valid(canvas):
+				canvas_ref = weakref(canvas)
+				check(canvas.get_parent() == tree.root and canvas.visible and canvas.material == run.material, "HD canvas draws outside the culled world with its material")
+		tree.root.remove_child(run)
+		run.queue_free()
+		await tree.process_frame
+		check(canvas_ref == null or canvas_ref.get_ref() == null, "HD optical canvas released with the run")
+		check(material_ref.get_ref() == null, "run material released after scene change")
+	if previous == null:
+		render.erase("optical_ops_hi")
+	else:
+		render["optical_ops_hi"] = previous
+	tree.root.canvas_cull_mask = cull_mask
+
+	var short_run := OpticalRun.new()
+	tree.root.add_child(short_run)
+	var optics := Optical.new()
+	optics.g = short_run
+	short_run.add_child(optics)
+	var glow_ref: WeakRef = weakref(optics.glow_layer) if optics.glow_layer != null else null
+	short_run.free()  # Exit before the deferred attachment can run.
+	await tree.process_frame
+	check(glow_ref == null or glow_ref.get_ref() == null, "early scene exit releases pending glow layer")
+
 func _ready() -> void:
+	await check_optical_lifetime()
 	check_sorted_fx_pass()
 	check_px_iteration()
 	check_px_metadata()
