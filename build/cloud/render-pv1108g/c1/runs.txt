@@ -1,0 +1,8 @@
+K2 rc=0 230s
+  seg_01_fwin_t150.0 960 帧 rc=0
+total 101884
+drwxr-xr-x 2 root root      4096 Nov  7 17:45 .
+drwxr-xr-x 4 root root      4096 Nov  7 17:41 ..
+-rw-r--r-- 1 root root     23094 Nov  7 17:45 K2_godot.log
+-rw-r--r-- 1 root root      5766 Nov  7 17:45 K2_pv.log
+-rw-r--r-- 1 root root 104285850 Nov  7 17:45 K2_seg_01_fwin_t150.0.mp4

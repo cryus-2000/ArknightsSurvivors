@@ -1,0 +1,3 @@
+23824	K3_godot.log
+5835	K3_pv.log
+99210442	K3_seg_01_fwin_t150.0.mp4

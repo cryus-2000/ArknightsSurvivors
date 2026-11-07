@@ -1,0 +1,8 @@
+K3 rc=0 238s
+  seg_01_fwin_t150.0 980 帧 rc=0
+total 96928
+drwxr-xr-x 2 root root     4096 Nov  7 17:53 .
+drwxr-xr-x 4 root root     4096 Nov  7 17:49 ..
+-rw-r--r-- 1 root root    23824 Nov  7 17:53 K3_godot.log
+-rw-r--r-- 1 root root     5835 Nov  7 17:53 K3_pv.log
+-rw-r--r-- 1 root root 99210442 Nov  7 17:53 K3_seg_01_fwin_t150.0.mp4
