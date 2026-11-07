@@ -4,7 +4,9 @@ extends RefCounted
 ##    （生命值与灯火 / 移动与冲刺 / 指挥），每步一两句；点击 / 任意键下一步，右键 / ← 上一步，Esc / 「跳过引导」结束。
 ##    框的位置：桌面按 hud_bars / hud_banners 的固定坐标，触屏取 touch.layout()（摇杆 / 冲刺键 / 指挥键）。
 ## 2. 到点小提示：第一次遇到精英、第一次 Boss、灯火第一次低于 30、第一次升级选卡，各在左上角弹一个不暂停的小框（8 秒），每样只弹一次，
-##    已弹过的 id 记在存档 Cfg.seen_tips；老存档（已看过旧指南）升级后不再弹。文案按 docs/76，样式按 docs/37（斜切、黄条）。
+##    已弹过的 id 记在存档 Cfg.seen_tips；老存档（已看过旧指南）升级后不再弹。文案按 docs/76。
+##    11-07 起对局里不再自己画框：转给 onboard.toast_tip，按正式局小字提示画（左上角一行、几秒淡出）；演示局 / 教程卡在时不查、不弹，
+##    演示局教过的（精英 / 灯火 / 升级）由 onboard 记成看过，不再弹（Toy 预览实测：集火教程卡与「TIP · ELITE」叠在一起）。
 ## 测试 / 录片：--tourdemo（跳过开场，直接走一遍引导，每步 2.2 秒自动下一步，存帧 rec_%05d.png 到 --shotdir，配 --fixed-fps 30）、
 ## --tipdemo=<id>（进局 25 帧后弹该提示并存帧）；tests/tour_test.gd 测触发与存档。
 
@@ -17,10 +19,10 @@ const TIP_LIFE := 8.0
 const DEMO_STEP_SECS := 2.2
 ## 小提示：id → [标题, 英文小标, 正文]
 const TIPS := {
-	"elite": ["精英海嗣", "ELITE", "带金色光环与血条。击败掉落源石锭，有概率掉落宝箱。"],
-	"boss": ["Boss 登场", "BOSS", "Boss 在场时暂停缩圈。看清地面的预警圈再走位，冲刺中无敌。"],
-	"lamp": ["灯火不足", "LAMP", "灯火低于 30：受到的伤害更多，海嗣更强。拾取灯油或点燃引航灯标补充。"],
-	"levelup": ["升级", "LEVEL UP", "屏幕最上沿的青绿色细条是经验，满条即升级。三选一：属性、技能或招募干员。按数字键或点击选择。"],
+	"elite": ["精英", "ELITE", "带金色光环与血条，击败掉落源石锭，有概率掉落宝箱。"],
+	"boss": ["Boss", "BOSS", "Boss 在场时暂停缩圈；看清地面的预警圈，冲刺躲开，冲刺中无敌。"],
+	"lamp": ["灯火", "LAMP", "灯火低于 30 时受到的伤害更多，海嗣更强；拾取灯油或点燃引航灯标补充。"],
+	"levelup": ["升级", "LEVEL UP", "经验条满了就升级，三张卡里选一张。"],
 }
 
 var g: Game
@@ -180,6 +182,8 @@ func update(dt: float) -> void:
 		tip_t = 0.0
 	if not _eligible():
 		return
+	if g.get("onboard") != null and g.onboard.busy():
+		return   # 演示局 / 教程卡 / 模态框：不查（11-07 集火教程卡与精英提示叠在一起）
 	_poll += dt
 	if _poll < 0.5:
 		return
@@ -215,6 +219,10 @@ func show_tip(id: String, force := false) -> void:
 			return
 		Cfg.seen_tips.append(id)
 		Cfg.save()
+	if g != null and g.get("onboard") != null:
+		var info: Array = TIPS[id]
+		g.onboard.toast_tip(id, info[0], info[2], force)   # 对局里：按小字提示画（演示局教过的不弹）
+		return
 	if tip_id == "":
 		tip_id = id
 		tip_t = 0.0
@@ -282,5 +290,5 @@ func _demo_update(_dt: float) -> void:
 			_rec_tail -= 1
 			if _rec_tail == 0:
 				g.get_tree().quit()
-	elif _demo_n > 25 and tip_id == "":
+	elif _demo_n > 25 and tip_id == "" and not g.onboard.toast_active():
 		g.get_tree().quit()
