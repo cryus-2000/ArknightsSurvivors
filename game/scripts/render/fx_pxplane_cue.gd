@@ -205,8 +205,8 @@ static func draw_up(r, ci, it: Dictionary) -> void:
 			var who = r._op(str(it.get("to", "")))
 			if who == null or (it.get("st", {}) as Dictionary).is_empty():
 				return
-			var gc: Color = col.lightened(0.35)
-			gc.a = a * 0.75
+			var gc: Color = col.lightened(0.5)
+			gc.a = a * 0.9
 			who.draw_body_at((c + Vector2(0, -px * floor(u * 4.0))).round(), bool(it.flip), gc, it.st)
 			if u < 0.5:
 				r._glow(c + Vector2(0, -20), col)

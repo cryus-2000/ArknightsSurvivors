@@ -263,9 +263,11 @@ static func tx_update(o, dt: float) -> bool:
 	if ld > 0.0 and tx.get("iai_gold", false):   # 居合金影（docs/310 §5 A 版，只画）：这一次冲刺全程每 0.05 秒在队长身后留一份金色残影
 		if float(tx.get("prev_ld", 0.0)) <= 0.0:
 			tx["iai_gold_t"] = -1.0
-		if g.t - float(tx.get("iai_gold_t", -1.0)) >= 0.05 and g.ppos != Vector2.INF:
+			if g.ppos != Vector2.INF:   # 起冲那一下：脚下一圈金色火星
+				ncue(o, {"p": g.ppos, "shape": "burst", "r": 40.0, "r0": 10.0, "c": Color(1.0, 0.85, 0.35), "n": 10, "life": 0.35})
+		if g.t - float(tx.get("iai_gold_t", -1.0)) >= 0.04 and g.ppos != Vector2.INF:
 			tx["iai_gold_t"] = g.t
-			ncue(o, {"p": g.ppos, "shape": "ghost", "to": "@", "c": Color(1.0, 0.85, 0.35), "life": 0.4, "tag": "金影"})
+			ncue(o, {"p": g.ppos, "shape": "ghost", "to": "@", "c": Color(1.0, 0.85, 0.35), "life": 0.5, "tag": "金影"})
 	elif ld <= 0.0 and float(tx.get("prev_ld", 0.0)) > 0.0 and tx.get("iai_gold", false):
 		tx.erase("iai_gold")   # 冲完这一次就用掉
 	tx["prev_ld"] = ld
