@@ -167,8 +167,11 @@ func _ready() -> void:
 	var elite: Dictionary = g.spawner.new_enemy("mother", g.ppos + Vector2(120, 0))
 	g.enemies.append(elite)
 	Cfg.seen_tips.erase("elite")
+	var gm0 = g.mode
+	g.mode = g.Mode.PLAY   # tour 只在真人局查
 	g.tour._poll = 1.0
 	g.tour.update(0.6)
+	g.mode = gm0
 	check(Cfg.seen_tips.find("elite") < 0 and not ob.toast_active(), "教程卡在时 tour 不弹精英提示（11-07 集火卡与 TIP · ELITE 叠在一起）")
 	ob.toast_q.append({"id": "x", "title": "测试", "text": "测试"})
 	ob._toast_tick(1.0)

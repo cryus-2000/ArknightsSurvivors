@@ -38,7 +38,7 @@ const END_AUTO := 2.4       # 测试 / 录片：「演示结束」框出现这�
 const TOAST_SECS := 6.0      # 正式局小字提示停留秒数
 const LAMP_SET := 55.0       # 演示局「灯火」：先把灯火压到这么多（看得见降下来，再捡灯油补回去）
 const LAMP_OIL := 15.0       # 演示局「灯火」：身边放的每份灯油
-const LAMP_DIST := 150.0     # 灯油放在队长身边多远
+const LAMP_DIST := 180.0     # 灯油放在队长身边多远（拾取半径之外，要走过去）
 const LAMP_WAIT := 16.0      # 等这么久还没捡到灯油就往下走
 const FOCUS_KILL_WAIT := 20.0   # 集火下令后最多等精英倒下这么久，再不倒就往下走
 ## 演示局步骤 → 它教过的正式局提示（步骤真出过才算；id 相同的如 lamp / ult / link 本来就共用「看过」记录）
@@ -359,7 +359,7 @@ func _trigger(id: String) -> bool:
 			return g.lamp < 75.0 and g.t > 5.0
 		"merchant":
 			return not g.merchant.is_empty()
-			"boss":
+		"boss":
 			return g.spawner.boss_alive() and not _final_alive()
 		"final":
 			return _final_alive()
@@ -522,8 +522,8 @@ func _focus_tick() -> void:
 		return
 	if _focus_given:
 		if focus_tgt != null and bool(focus_tgt.dead) and dev != "" and not focus_tgt.get("_ob_logged", false):
-		focus_tgt["_ob_logged"] = true
-		print("ONBOARD focus_kill after=%.1f" % (cur_t - _focus_t))
+			focus_tgt["_ob_logged"] = true
+			print("ONBOARD focus_kill after=%.1f" % (cur_t - _focus_t))
 		return
 	if g.squad.order_kind == "focus":
 		_focus_given = true
@@ -547,6 +547,11 @@ func _focus_tick() -> void:
 ## 指挥圆盘打开时各扇区依次亮起（command_wheel.draw 读）：演示局「部署」这一步
 func wheel_tour() -> bool:
 	return drill and cur == "deploy"
+
+
+## 最终 Boss 在场（正式局「最终 Boss」提示；中 Boss 提示让给它）
+func _final_alive() -> bool:
+	return g.final_boss != null and not bool(g.final_boss.get("dead", false))
 
 
 func _links() -> int:
