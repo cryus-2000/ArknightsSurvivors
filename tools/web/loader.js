@@ -15,6 +15,15 @@
 (function () {
   var M = /*SHUIYUE_MANIFEST*/null;
   if (!M) return;
+  // 11-08 iPhone B站 App 内存崩溃自动刷新后：页面整体被挪开约 2 px，WebView 原生的粉色底从左 / 上边缘露出来，整页还带一层粉罩（docs/318 #5）。
+  // 刷新时 iOS 会恢复上次的滚动 / 缩放偏移，所以这里不恢复滚动、始终贴回 0,0；html / body 的底色与锁滚动见 loader.css
+  try {
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    var pin = function () { if (window.scrollX || window.scrollY) window.scrollTo(0, 0); };
+    window.addEventListener('scroll', pin, { passive: true });
+    window.addEventListener('resize', pin);
+    window.addEventListener('pageshow', pin);
+  } catch (e) {}
   var total = 0, got = 0, done = false;
   Object.keys(M).forEach(function (k) { M[k].parts.forEach(function (p) { total += p[1]; }); });
 

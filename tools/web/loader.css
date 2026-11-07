@@ -1,6 +1,9 @@
 /* 网页启动加载页「声呐测绘」（用户 10-25 定：对照图方向 C 第一张；视觉按 docs/37，接指挥圆盘 / 小地图的声呐样式）。
    声呐圈 = 进度环 + 扫描扇面；左下终端日志逐行 [OK]；右下提示；左上标志（loader_logo.png = art/ui/title_deep/logo_mark.png）。
    扫描扇面用 transform 动画（合成线程跑，引擎启动占住主线程时也在转）；系统「减少动态效果」时不转。 */
+/* 11-08：崩溃自动刷新后 WebView 原生粉底从边缘露出（docs/318 #5）：根元素不透明、锁住滚动和回弹，页面不会被挪开 */
+html { background: #000; }
+html, body { margin: 0; height: 100%; overflow: hidden; overscroll-behavior: none; }
 #sy-load {
   position: fixed; inset: 0; z-index: 9000; overflow: hidden;
   -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
