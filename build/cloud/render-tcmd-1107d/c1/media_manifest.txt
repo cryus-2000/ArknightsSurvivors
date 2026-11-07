@@ -1,0 +1,3 @@
+33	chk_summary.txt
+725	chk_touch_command.txt
+691	chk_ui_smoke.txt

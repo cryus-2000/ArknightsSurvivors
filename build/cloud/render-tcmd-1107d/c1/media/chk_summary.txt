@@ -1,0 +1,2 @@
+touch_command rc=0
+ui_smoke rc=0
