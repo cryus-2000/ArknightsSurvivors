@@ -1,0 +1,8 @@
+668	check_card_desc.txt
+633	check_card_desc_fit.txt
+638	check_feedback_code.txt
+594	check_op_text.txt
+118	check_rc.txt
+493	check_text_reconcile.txt
+703	check_touch_layout.txt
+691	check_ui_smoke.txt

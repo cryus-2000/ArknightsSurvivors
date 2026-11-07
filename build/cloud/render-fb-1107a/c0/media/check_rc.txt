@@ -1,0 +1,7 @@
+feedback_code rc=0
+card_desc rc=0
+card_desc_fit rc=0
+touch_layout rc=0
+ui_smoke rc=0
+text_reconcile rc=0
+op_text rc=0
