@@ -1211,6 +1211,7 @@ SCENE_REGRESSIONS = {
     "warn_v2_contract": ("普通怪预警收细契约（render/warn_v2，缺省关；精英 / Boss / 必须冲刺不变）", "warn_v2_contract.gd", r"WARN_V2_CONTRACT PASS", []),
     "elite_mark_v2_review": ("精英 / 小队标记 v2 规则 + 画法缓存自检（render/elite_mark_v2，缺省关）", "elite_mark_v2_review", r"ELITE_MARK_REVIEW dc_checked=[1-9]", ["--dccheck"]),
     "build_affinity": ("构筑匹配（docs/119 §4.3 / §4.4 → docs/197）：藏品流派 × 干员流派匹配、卡面说明行、强制招募保底与开关", "build_affinity_test", r"BUILD AFFINITY failures=0", ["--balance", "--op=angelina", "--squad=skadi,kaltsit"]),
+    "feedback_code": ("反馈码（docs/311）：没配目标不显示入口、字母表 + 校验位、同摘要同码、改一项就变", "feedback_code_test", r"FEEDBACK failures=0", []),
     "card_desc": ("卡片描述不串台：公共成长 / 填充 / 支援卡不含队长手动技能提示（10-22 截图），干员卡只提自己的技能", "card_desc_test", r"CARD DESC failures=0", ["--balance", "--op=ulpianus", "--squad=skadi,angelina"]),
     "recruit_offer": ("入队邀请二选一（docs/252，用户 11-05）：铜印 / 银印 / 立即招募事件机器人同一帧接受、玩家局弹「接受入队 / 婉拒」并暂停，数字键 / 方向键回车 / 点卡都能选，婉拒给成长三选一（银印另加全队推进），满员不弹", "recruit_offer_test", r"RECRUIT OFFER failures=0", ["--bal=ult/rework=0", "--bal=growth/late_shape=0", "--bal=growth/visible_nodes=0", "--bal=growth/elite_show=0", "--balance", "--seed=1", "--op=eyjafjalla"]),
     "recruit_offer_touch": ("入队邀请二选一 · 触屏排版（同上，--touch）", "recruit_offer_test", r"RECRUIT OFFER failures=0", ["--bal=ult/rework=0", "--bal=growth/late_shape=0", "--bal=growth/visible_nodes=0", "--bal=growth/elite_show=0", "--balance", "--seed=1", "--op=eyjafjalla", "--touch"]),

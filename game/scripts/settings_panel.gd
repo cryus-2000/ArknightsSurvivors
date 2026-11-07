@@ -50,6 +50,9 @@ const ROWS := [
 	{"cn": "以本地覆盖云端", "en": "", "key": "cloud_push", "type": "cloud_push"},
 	# 性能报告（10-27 用户：真机采集用）：点「查看」打开最近一局的性能摘要与「复制报告」（screens/perf_view.gd；数据 core/perf_report.gd，只存本机）
 	{"cn": "性能报告", "en": "PERF REPORT", "key": "perf", "type": "perf"},
+	# 反馈（docs/311，11-07 用户批）：只在标题页（game_ref == null）且当前平台的反馈目标配了（core/feedback.gd enabled）时列出；
+	# 点「反馈」打开浮层（screens/feedback_view.gd）：复制只带版本号的反馈码，再去问卷 / B站视频评论区
+	{"cn": "反馈", "en": "FEEDBACK", "key": "feedback", "type": "feedback"},
 	{"cn": "返回", "en": "BACK", "key": "", "type": "back"},
 ]
 const RUNS_HINT := "测试版：本地记录对局摘要（不上传）"
@@ -59,7 +62,7 @@ const RUNS_HINT := "测试版：本地记录对局摘要（不上传）"
 const TABS := [
 	["声音", "SOUND", ["master", "music", "sfx", "voice"]],
 	["画面", "DISPLAY", ["quality", "max_fps", "fullscreen", "res_index", "brightness", "ui_size_pct", "dmg_numbers", "reduce_motion", "perf"]],
-	["操作", "CONTROLS", ["auto_combo", "auto_ult", "onboard", "pad_rumble", "touch_layout"]],
+	["操作", "CONTROLS", ["auto_combo", "auto_ult", "onboard", "pad_rumble", "touch_layout", "feedback"]],
 ]
 
 ## 「存档」页：只在 B站 Toy 环境列出（_tabs）；面板高度仍按 TABS 定（这一页行数少），其他环境排版不变。
@@ -80,6 +83,7 @@ const TOUCH_ONLY := ["touch_layout"]
 var game_ref: Node = null
 var editor: Control = null   # 触屏按键布局编辑页（第一次打开时建）
 var perf_view: Control = null   # 性能报告页（第一次打开时建）
+var fb_view: Control = null     # 反馈浮层（第一次打开时建）
 var eat_release := false     # 编辑页在按下时关掉：同一次点击的松手不能落到设置面板上（触屏版松手才算点选，会误点下面的行）
 
 var font: Font
@@ -136,6 +140,8 @@ func open() -> void:
 	sel = 0
 	_set_tab(1)
 	pending_res = Cfg.res_index
+	if "--fbopen" in Cfg.dev_args() and game_ref == null:   # 截图：标题页设置一打开就盖上反馈浮层
+		open_feedback.call_deferred()
 	if list == null:
 		list = Control.new()
 		list.clip_contents = true
@@ -205,6 +211,8 @@ func _set_tab(t: int) -> void:
 			continue
 		if key == "runs" and not Cfg.runs_log_enabled():
 			continue   # 对外包不记录，也不显示这一行
+		if key == "feedback" and (game_ref != null or not preload("res://scripts/core/feedback.gd").enabled()):
+			continue   # 反馈只在标题页设置里；没配反馈目标（balance feedback 段留空）不显示
 		if (key == "auto_combo" or key == "auto_ult") and preload("res://scripts/core/balance.gd").vi("ult/on", 1) <= 0:
 			continue   # 终结技总开关关着（balance ult/on = 0）：没有终结技 / 连携技，这两行不列出
 		if key == "auto_combo" and preload("res://scripts/core/balance.gd").vi("link/v2", 1) > 0:
@@ -229,8 +237,8 @@ func close() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if not visible or (editor != null and editor.visible) or (perf_view != null and perf_view.visible):
-		return   # 触屏按键布局编辑页 / 性能报告页开着：输入归它
+	if not visible or (editor != null and editor.visible) or (perf_view != null and perf_view.visible) or (fb_view != null and fb_view.visible):
+		return   # 触屏按键布局编辑页 / 性能报告页 / 反馈浮层开着：输入归它
 	if eat_release and event is InputEventMouseButton:
 		if not event.pressed:
 			eat_release = false
@@ -413,6 +421,9 @@ func _adjust(i: int, dir: int) -> void:
 		"perf":
 			open_perf()
 			return
+		"feedback":
+			open_feedback()
+			return
 		"cloud":
 			Cloud.flush("manual")
 			Sfx.play("ui_ok")
@@ -449,6 +460,17 @@ func open_perf() -> void:
 			eat_release = true
 			drag_on = false)
 	perf_view.open()
+
+
+## 打开反馈浮层（盖在设置面板上，关掉回到设置）：标题页只带版本号
+func open_feedback() -> void:
+	if fb_view == null:
+		fb_view = preload("res://scripts/screens/feedback_view.gd").new()
+		add_child(fb_view)
+		fb_view.closed.connect(func():
+			eat_release = true
+			drag_on = false)
+	fb_view.open()
 
 
 ## 打开触屏按键布局编辑页（盖在设置面板上，关掉回到设置）
@@ -592,6 +614,14 @@ func _draw_row(ci: CanvasItem, rr: Rect2, si: int, touch: bool, ty0: float) -> v
 			ci.draw_rect(br, Color(0.05, 0.2, 0.24, 0.9) if on else Color(0.04, 0.09, 0.12, 0.8))
 			ci.draw_rect(br, UI.CYAN if on else UI.CYAN_DIM, false, 1.0)
 			UI.text(ci, font, br.position + Vector2(0, 18 if not touch else 22), "打开记录文件夹", 14 if not touch else 16, UI.CYAN if on else UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
+		"feedback":
+			# 右侧「反馈」按钮；左边一行说明
+			UI.text(ci, font, Vector2(vx - 14 - 300.0, rr.position.y + ty0), "复制反馈码，前往视频评论区" if preload("res://scripts/core/feedback.gd").is_toy() else "复制反馈码，打开反馈问卷", 13 if touch else 12, UI.SUB, HORIZONTAL_ALIGNMENT_RIGHT, 300)
+			var bh5: float = 32.0 if touch else 26.0
+			var br5 := Rect2(vx + 10, rr.position.y + (ty0 - 15.0 - (3.0 if touch else 0.0)), 180, bh5)
+			ci.draw_rect(br5, Color(0.05, 0.2, 0.24, 0.9) if on else Color(0.04, 0.09, 0.12, 0.8))
+			ci.draw_rect(br5, UI.CYAN if on else UI.CYAN_DIM, false, 1.0)
+			UI.text(ci, font, br5.position + Vector2(0, 18 if not touch else 22), "反馈", 14 if not touch else 16, UI.CYAN if on else UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, br5.size.x)
 		"perf":
 			# 右侧「查看」按钮；左边一行最近一局摘要（没有记录写「暂无记录」）
 			var pr: Array = preload("res://scripts/core/perf_report.gd").load_all()
