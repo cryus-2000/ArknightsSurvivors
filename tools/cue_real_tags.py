@@ -6,7 +6,7 @@
 用法：python3 tools/cue_real_tags.py <选后日志> <选前目录> <选后目录> <out_dir> <名> [--spf 0.0659] [--n 2] [--gap 3] [--lag 2]
 """
 import argparse, glob, os, re
-from PIL import Image, ImageDraw
+from PIL import Image, ImageChops, ImageDraw
 
 
 def main():
@@ -18,6 +18,7 @@ def main():
     ap.add_argument("--gap", type=float, default=3.0)
     ap.add_argument("--lag", type=int, default=2)
     ap.add_argument("--cw", type=int, default=360)
+    ap.add_argument("--search", type=int, default=40)
     ap.add_argument("--ch", type=int, default=240)
     a = ap.parse_args()
     fr = lambda p: int(re.findall(r"(\d+)", os.path.basename(p))[-1])
@@ -45,10 +46,19 @@ def main():
             if sx >= 0 and a.cw > 0:   # 有屏幕坐标：按触发点裁 1 倍小块，选前 / 选后左右并排
                 x0 = max(0, min(im0.width - a.cw, sx - a.cw // 2))
                 y0 = max(0, min(im0.height - a.ch, sy - a.ch // 2))
+                box = (x0, y0, x0 + a.cw, y0 + a.ch)
+                best = (-1, k)   # 局内时间与截图帧号有固定偏差（开场等）：在 ±search 帧里找小块内选前 / 选后差得最多的那帧
+                for k2 in ks:
+                    if abs(k2 - want) <= a.search:
+                        n2 = ImageChops.difference(Image.open(f0[k2]).convert("RGB").crop(box), Image.open(f1[k2]).convert("RGB").crop(box)).convert("L").point(lambda v: 255 if v > 40 else 0).histogram()[255]
+                        if n2 > best[0]:
+                            best = (n2, k2)
+                k = best[1]
+                im0, im1 = Image.open(f0[k]).convert("RGB"), Image.open(f1[k]).convert("RGB")
                 im0, im1 = im0.crop((x0, y0, x0 + a.cw, y0 + a.ch)), im1.crop((x0, y0, x0 + a.cw, y0 + a.ch))
                 sh = Image.new("RGB", (a.cw * 2 + 4, a.ch))
                 for col, im in enumerate((im0, im1)):
-                    ImageDraw.Draw(im).text((4, 4), "%s %s t=%.1f" % ("before" if col == 0 else "after", tag, t), fill=(255, 255, 0))
+                    ImageDraw.Draw(im).text((4, 4), "%s t=%.1f f%d" % ("before" if col == 0 else "after", t, k), fill=(255, 255, 0))
                     sh.paste(im, (col * (a.cw + 4), 0))
             else:
                 sh = Image.new("RGB", (im0.width, im0.height * 2 + 4))
