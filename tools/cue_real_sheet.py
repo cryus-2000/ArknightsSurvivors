@@ -28,7 +28,7 @@ def main():
         bb = x.getbbox()
         if not bb:
             continue
-        n = sum(1 for v in x.tobytes() if v)
+        n = x.histogram()[255]
         sc.append((n, k, bb))
     sc.sort(reverse=True)
     pick = []
