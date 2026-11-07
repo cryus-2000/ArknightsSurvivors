@@ -76,8 +76,9 @@ def card_operator(t, cid, dur):
         if t > 0.52:
             pi = Image.open(ART + "/ui/professions/%s.png" % icon).convert("RGBA").resize((84, 84), Image.NEAREST)
             im.alpha_composite(pi, (int(nx - lw / 2 - 50), 700))
-    if dur - t < 6 / FPS:
-        slash_bars(im, (6 / FPS) - (dur - t), 6 / FPS, [WHITE + (255,), col + (255,), INK + (255,)])
+    so = 12 / FPS   # 斜切条扫走：三条依次（间隔 0.05 秒）盖满，最上面是墨色，切到下一镜不留整帧纯色
+    if dur - t < so:
+        slash_bars(im, so - (dur - t), so, [col + (255,), WHITE + (255,), INK + (255,)])
     return im
 
 
@@ -142,8 +143,8 @@ def card_title(t, short=False, vw=W, vh=H):
     d = ImageDraw.Draw(im)
     cy = int(vh * 0.30)
     d.polygon([(0, cy - 150), (vw, cy - 230), (vw, cy - 214), (0, cy - 134)], fill=CYAN + (255,))
-    dy = 80 * vw / 1920
-    d.polygon([(0, cy + 250 + dy), (vw, cy + 250 - dy), (vw, cy + 258 - dy), (0, cy + 258 + dy)], fill=PURPLE + (200,))
+    dy = 50 * vw / 1920
+    d.polygon([(0, cy + 300 + dy), (vw, cy + 300 - dy), (vw, cy + 308 - dy), (0, cy + 308 + dy)], fill=PURPLE + (200,))
     tk = min(1.0, (vw - 120) / t1.width)
     s = tk * (1.0 + 0.9 * (1 - ease_out(t / 0.12)))
     paste_scaled(im, t1, vw / 2, cy, s, min(1, t / 0.06 + 0.2))
