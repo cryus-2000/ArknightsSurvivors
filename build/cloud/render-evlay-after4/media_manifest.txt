@@ -1,0 +1,16 @@
+4627	after_pc.log
+849566	after_pc_ev_heart.png
+689608	after_pc_ev_opening.png
+4627	after_ph844.log
+990991	after_ph844_ev_heart.png
+813858	after_ph844_ev_opening.png
+4635	after_ph956.log
+1047676	after_ph956_ev_heart.png
+867740	after_ph956_ev_opening.png
+584	chk_card_desc_fit.txt
+651	chk_event_fit.txt
+689	chk_event_touch_layout.txt
+90	chk_summary.txt
+654	chk_touch_layout.txt
+642	chk_ui_smoke.txt
+518	shots.txt

@@ -1,0 +1,5 @@
+event_touch_layout rc=0
+event_fit rc=0
+touch_layout rc=0
+ui_smoke rc=0
+card_desc_fit rc=0
