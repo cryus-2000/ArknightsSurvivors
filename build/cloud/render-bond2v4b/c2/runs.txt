@@ -1,0 +1,5 @@
+fins rc=0 cast=63.3 270 帧 0 处脚本错误
+total 1336
+drwxr-xr-x 2 root root    4096 Nov  7 11:06 .
+drwxr-xr-x 4 root root    4096 Nov  7 11:06 ..
+-rw-r--r-- 1 root root 1356958 Nov  7 11:06 bond2_fins.mp4
