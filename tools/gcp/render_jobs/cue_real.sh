@@ -2,7 +2,7 @@
 # T0–T1 秒每 STEP 帧截一张，tools/cue_real_sheet.py 挑差最大的帧裁 1 倍小块拼图。
 # 用法（每条一台）：python tools/gcp_render.py --branch <提交> --job custom --split --name <名> \
 #   --cmd 'NAME=gl SQ="--op=gladiia --squad=skalter,lumen,texas" bash tools/gcp/render_jobs/cue_real.sh'
-# 可选：SEED（缺省 11）T0 / T1（秒，缺省 40 / 160）STEP（帧，缺省 2）EXTRA（追加参数，如 --route=wisadel:mark）
+# 可选：LAG（触发后再往后几张截图，缺省 0）SEED（缺省 11）T0 / T1（秒，缺省 40 / 160）STEP（帧，缺省 2）EXTRA（追加参数，如 --route=wisadel:mark）
 set +e
 Xvfb :99 -screen 0 1280x720x24 -nolisten tcp >/tmp/xvfb.log 2>&1 &
 export DISPLAY=:99
@@ -20,5 +20,5 @@ run 0 &
 run 1 &
 wait
 python3 tools/cue_real_sheet.py "/tmp/cr/${NAME}_c0" "/tmp/cr/${NAME}_c1" "$MEDIA/real_${NAME}.png" --top ${TOP:-8} | tee -a "$OUT/runs.txt"
-python3 tools/cue_real_tags.py "$OUT/${NAME}_c1.log" "/tmp/cr/${NAME}_c0" "/tmp/cr/${NAME}_c1" "$MEDIA" "$NAME" | tee -a "$OUT/runs.txt"
+python3 tools/cue_real_tags.py "$OUT/${NAME}_c1.log" "/tmp/cr/${NAME}_c0" "/tmp/cr/${NAME}_c1" "$MEDIA" "$NAME" --lag ${LAG:-0} | tee -a "$OUT/runs.txt"
 exit 0
