@@ -64,6 +64,8 @@ var _on := true
 var _was_on := false
 var _silent := false
 var _grains_ok := false
+var _low_bk := 1.0           # 低档子弹颗粒份额（1 = 不缩）
+var _low_bacc := 0.0
 var stat_spawn := 0          # 计数（--perf 之外的自测用）
 var stat_die := 0
 var stat_why := {}           # 消失原因 → 次数（只计画面里出了效果的）
@@ -91,7 +93,11 @@ func frame() -> void:
 	clock += dt
 	_on = not off and Bal.v("render/bullet_fx", 1.0) > 0.0
 	var gr = _grains()
-	_grains_ok = gr != null and Cfg.quality != "low" and Bal.v("fx/bullet_grains", 1.0) > 0.0
+	# 低档（11-07，docs/310）：子弹颗粒按 render/low_bullet_grains 的份额打开（颗粒层再乘 low_grains）；OPT_LOWFX 置位 = 旧的低档整层关
+	_low_bk = 1.0
+	if Cfg.quality == "low":
+		_low_bk = 0.0 if (g.opt_old & 2147483648) else clampf(Bal.v("render/low_bullet_grains", 0.6), 0.0, 1.0)
+	_grains_ok = gr != null and _low_bk > 0.0 and Bal.v("fx/bullet_grains", 1.0) > 0.0
 	var k := 0
 	for gh in ghosts:
 		gh[4] = float(gh[4]) + dt
@@ -449,6 +455,12 @@ func _take(n: int) -> int:
 	else:
 		_tok = cap
 	_tok_us = now
+	if _low_bk < 1.0:   # 低档按份额均匀抽（累加器，不抽随机数）
+		_low_bacc += float(n) * _low_bk
+		n = int(_low_bacc)
+		_low_bacc -= float(n)
+		if n <= 0:
+			return 0
 	var give: int = mini(n, int(_tok))
 	_tok -= float(give)
 	stat_grains += give
