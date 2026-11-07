@@ -975,6 +975,20 @@ static func _pf_draw(o) -> void:
 		if a < 0.0 or a >= 1.0:
 			continue
 		var big: bool = int(f.k) == 1
+		if big and a < 0.45:   # 眩晕弹命中：中心一颗大四角金星闪一下（臂长 7 → 3 格，深金描边 + 白芯），与定身金星呼应
+			var cp: Vector2 = f.p + Vector2(0, EXU_AIM_Y)
+			var L: int = 7 - int(a / 0.45 * 4.0)
+			for dv in [Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]:
+				var sv := Vector2(-dv.y, dv.x)
+				for t in L + 1:
+					var wd: int = 1 if t < L / 2 else 0
+					for o2 in range(-wd - 1, wd + 2):
+						_pf_px(cv, cp + (dv * t + sv * o2) * px, px, PF_GOLD[0])
+					for o3 in range(-wd, wd + 1):
+						_pf_px(cv, cp + (dv * t + sv * o3) * px, px, PF_GOLD[2] if t > 1 else PF_GOLD[3])
+			for dg in [Vector2(1, 1), Vector2(-1, 1), Vector2(1, -1), Vector2(-1, -1)]:
+				_pf_px(cv, cp + dg * px, px, PF_GOLD[2])
+			_pf_px(cv, cp, px, Color(1, 1, 1))
 		var m: int = 8 if big else 6
 		var rr: float = (14.0 if big else 10.0) + (26.0 if big else 18.0) * a
 		for i in m:

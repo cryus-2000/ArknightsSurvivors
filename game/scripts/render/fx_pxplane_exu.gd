@@ -272,10 +272,8 @@ func draw_rt(ci, it: Dictionary) -> void:
 			var kind: String = str(BKIND.get(str(bu.get("tex", "")), "n"))
 			var tr: bool = not (bu.get("tr", {}) as Dictionary).is_empty()
 			var back: float = float(int(it.n) % 4) * 3.0 if kind == "g" else 0.0   # 倾泻 8 发同一帧出膛：画面上按序号前后错开（只画），不成一排梳子
-			if float(bu.get("stn", 0.0)) > 0.0:   # docs/298 B 版眩晕弹：金色曳光弹体画两遍（错开 1 格 = 6 宽）+ 弹头一圈亮光
-				_bullet(ci, bu.p, bu.v, kind, 2, false, true, 0.0)
-				_bullet(ci, (bu.p as Vector2) + Vector2((bu.v as Vector2).normalized().y, -(bu.v as Vector2).normalized().x) * g.PX * 2.0, bu.v, kind, 2, false, true, 0.0)
-				renderer._glow(Pxp._snap(bu.p), _c("g", 6))
+			if float(bu.get("stn", 0.0)) > 0.0:   # docs/298 B′ 眩晕弹（11-07 用户「颜色可以更加有对比感」）：单颗粗圆头大弹，深红芯 + 亮金边 + 一段暗红残光
+				_stun_bullet(ci, bu.p, bu.v)
 				return
 			_bullet(ci, bu.p, bu.v, kind, renderer.tier(it.o), not bu.get("ric", true), tr, back)
 		"xbul":
@@ -391,6 +389,50 @@ func _bullet(ci, pos: Vector2, vel: Vector2, kind: String, t: int, small: bool, 
 		var nv := Vector2(-d.y, d.x)
 		r._px(ci, head - d * px - nv * px * 4.0, _c("g", 6))
 		r._px(ci, head - d * px * 2.0 + nv * px * 5.0, _c("g", 5))
+
+## 眩晕弹（docs/298 B′，只画）：按美术像素格逐格判形——弹头半径 4 格的圆 + 身长 9 格、半宽 3.3 格（总宽约普通弹 2 倍），
+## 最外 1 格亮金边、往里深红、芯部亮红、弹头前缘一点暖白；身后 12 格红残光逐渐收窄变暗、远端隔格抖动；弹头一圈红光 + 金光
+const STN_RIM := Color("#ffd040")
+const STN_RIM_D := Color("#6a1a08")
+const STN_BODY := Color("#c8102a")
+const STN_CORE := Color("#ff4a30")
+const STN_HOT := Color("#fff0c0")
+const STN_TR := [Color("#ff3a2a"), Color("#c8142a"), Color("#7a0c1c")]
+
+func _stun_bullet(ci, pos: Vector2, vel: Vector2) -> void:
+	var px: float = g.PX
+	var ai: int = posmod(int(round(vel.angle() / TAU * 32.0)), 32)
+	var d: Vector2 = Vector2.from_angle(float(ai) * TAU / 32.0)
+	var nv := Vector2(-d.y, d.x)
+	var head: Vector2 = Pxp._snap(pos)
+	var fl: int = int(floor(g.t * 15.0)) % 2
+	for ix in range(-22, 23):
+		for iy in range(-22, 23):
+			var q := Vector2(float(ix), float(iy))
+			var u: float = q.dot(d)
+			var w: float = absf(q.dot(nv))
+			var dep: float = -1.0
+			if u >= -1.0:
+				dep = 4.0 - q.length() if u > 0.0 else maxf(4.0 - q.length(), 3.3 - w)
+			elif u >= -9.0:
+				dep = 3.3 - w
+			var at: Vector2 = head + q * px
+			if dep >= 0.0:
+				var c: Color = STN_RIM if dep < 1.0 else (STN_BODY if dep < 1.9 else STN_CORE)
+				if u > 1.0 and dep >= 1.0 and w < 1.6:
+					c = STN_HOT
+				ci.draw_rect(Rect2(at, Vector2(px, px)), c)
+			elif dep >= -1.0 and u < -1.0 and u >= -9.0:
+				ci.draw_rect(Rect2(at, Vector2(px, px)), STN_RIM_D)
+			elif u < -9.0 and u >= -21.0:
+				var k: float = (-9.0 - u) / 12.0
+				if w <= 2.8 * (1.0 - k) + 0.4:
+					if k > 0.5 and (ix + iy + fl) % 2 == 0:
+						continue
+					ci.draw_rect(Rect2(at, Vector2(px, px)), STN_TR[mini(2, int(k * 3.0))])
+	r._glow(head, STN_CORE)
+	r._glow(head + d * px * 2.0, STN_RIM)
+
 
 ## 后坐（只改画面，character.draw_body 读）：开火那一拍本体往枪口反方向挪 1 美术像素
 func kick(o) -> Vector2:
