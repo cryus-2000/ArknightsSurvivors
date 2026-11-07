@@ -155,6 +155,16 @@ func _ready() -> void:
 			get_tree().create_timer(i).timeout.connect(func():
 				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_intro_%d.png" % int(i * 10)))
 		get_tree().create_timer(5.0).timeout.connect(func(): get_tree().quit())
+	if Cfg.dev_args().has("--transrec"):
+		# 页面切换录像（11-05 快门切换，配 --fixed-fps 30）：开场放完后（3.2 秒）进认知塑造，逐帧存 rec_<n>.png 共 45 帧
+		var fr2 := [0]
+		get_tree().create_timer(3.2).timeout.connect(func():
+			_activate(6)
+			get_tree().process_frame.connect(func():
+				fr2[0] += 1
+				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/rec_%04d.png" % fr2[0])
+				if fr2[0] >= 45:
+					get_tree().quit()))
 	if Cfg.dev_args().has("--metashot"):
 		# 认知塑造页截图（docs/109 §4）：配 --metacells=<累计生机细胞>；--metabuy=<n> 先按推荐点法点 n 个
 		meta_ui.open()
@@ -168,11 +178,28 @@ func _ready() -> void:
 				meta_ui.card_hide = false   # 11-02：选中节点即展开详情卡（同点选）；要收起的截图加 --metahide
 		if Cfg.dev_args().has("--metahide"):   # 详情卡收起时的截图（10-27）
 			meta_ui.card_hide = true
+		if not Cfg.dev_args().has("--metarec"):
+			meta_ui.open_t0 = meta_ui.t - 10.0   # 截图：开场（银河 → 星座）直接终态（11-05）
 		if Cfg.dev_args().has("--metalit"):   # 解锁演出截图：0.6 秒时塑造选中节点，演出进行到 0.35 秒时截
 			get_tree().create_timer(0.6).timeout.connect(func(): meta_ui._buy(meta_ui._sel_id()))
-		get_tree().create_timer(0.95 if Cfg.dev_args().has("--metalit") else 1.0).timeout.connect(func():
-			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_meta.png")
-			get_tree().quit())
+		if Cfg.dev_args().has("--metarec"):
+			# 开场 + 点星录像（11-05，配 --fixed-fps 30）：逐帧存 rec_<n>.png 共 110 帧；第 48 帧点选另一条线的第一颗、第 62 帧按「塑造」（待确认）、第 80 帧再按（塑造）
+			var fr := [0]
+			get_tree().process_frame.connect(func():
+				fr[0] += 1
+				if fr[0] == 48:
+					meta_ui._select(meta_ui.chains[mini(2, meta_ui.chains.size() - 1)][0])
+				if fr[0] == 62:
+					meta_ui._act("buy")   # 第一次按「塑造」：只进待确认
+				if fr[0] == 80:
+					meta_ui._act("buy")   # 第二次：塑造
+				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/rec_%04d.png" % fr[0])
+				if fr[0] >= 110:
+					get_tree().quit())
+		else:
+			get_tree().create_timer(0.95 if Cfg.dev_args().has("--metalit") else 1.0).timeout.connect(func():
+				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_meta.png")
+				get_tree().quit())
 	if Cfg.dev_args().has("--trialshot"):
 		# Boss 演练入口截图（11-01 UI 巡检二轮，docs/213）
 		boss_trial.open()

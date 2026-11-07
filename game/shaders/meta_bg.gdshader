@@ -9,6 +9,7 @@ uniform vec2 world = vec2(640.0, 360.0);   // 世界尺寸（像素格）
 uniform vec2 crown = vec2(278.0, 85.0);    // 顶部中心（像素格，世界坐标）：海面光最亮处
 uniform float time = 0.0;
 uniform float still = 0.0;
+uniform float reveal = 1.0;   // 开场银河先亮（11-05）：0 → 1，星云带从左下往右上铺开、背景微粒随后浮现
 
 const float BAYER[16] = float[](0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 11.0, 1.0, 9.0, 15.0, 7.0, 13.0, 5.0);
 
@@ -75,10 +76,17 @@ void fragment() {
 	c += vec3(0.05, 0.14, 0.17) * sf * (0.6 + 0.8 * smoothstep(0.5, 0.75, ca));
 	// 星云带
 	float bd = band(w);
+	vec2 qr = w / world;
+	float along = clamp((qr.x + (1.0 - qr.y)) * 0.5, 0.0, 1.0);   // 星云带沿线位置（左下 0 → 右上 1）
+	float rv_band = smoothstep(along - 0.15, along + 0.05, reveal * 1.25);
+	float rv_bg = smoothstep(0.0, 0.35, reveal);
+	bd *= rv_band;
 	c += vec3(0.03, 0.05, 0.09) * bd + vec3(0.03, 0.02, 0.06) * bd * fbm(w * 0.035 + 9.0);
 	// 星（发光微粒）：星云带里更密
-	float s = stars(w, tm, 0.22 + 0.45 * bd);
+	float s = stars(w, tm, 0.22 + 0.45 * bd) * smoothstep(0.3, 1.0, reveal);
 	c += vec3(0.62, 0.78, 0.95) * s;
+	c *= mix(0.25, 1.0, rv_bg);
+	c += vec3(0.05, 0.08, 0.14) * bd * (1.0 - smoothstep(0.85, 1.0, reveal)) * step(0.01, reveal);   // 铺开时带上多一层亮光，铺满后退回
 	// 四周压暗
 	vec2 q = (w - world * 0.5) / world;
 	c *= 1.0 - 0.45 * smoothstep(0.35, 0.8, length(q * vec2(1.0, 1.25)));

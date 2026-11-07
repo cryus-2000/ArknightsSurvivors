@@ -65,9 +65,19 @@ var sel := Vector2i(0, 0)     # 选中（链，节）
 var hover := ""
 var buttons: Array = []       # [Rect2, 动作]（设计坐标）
 var reset_armed := false
+## 塑造要确认（11-05 用户「点击的时候最好加个确认键，否则两次点击容易误触」）：第一次按「塑造」/ Enter 只是待确认（按钮变「确认塑造 · 消耗」、
+## 黄框闪），3 秒内再按一次才塑造；换节点 / 收起 / 超时取消。卡刚展开 0.3 秒内的按下不算（防选星那一下连点穿到按钮上）
+var buy_armed := ""
+var buy_armed_t := -10.0
 var lit_id := ""              # 塑造演出中的节点
 var lit_t0 := -10.0
 var open_t0 := -10.0
+## 11-05 用户「认知那里点击出来的时候的动效可以加一下」「先展示银河，然后星星上去」：
+## 开场先亮银河（meta_bg.gdshader reveal：底色 → 星云带从左下往右上铺开 → 背景微粒浮现，GAL_T 秒），星座再一颗颗亮；
+## 点星：星上一圈外扩 + 四角黄角标从外收拢锁定（sel_t0）；详情卡展开 / 换节点：卡从左滑入 + 自上而下扫开、黄条先亮、正文淡入（card_t0）
+const GAL_T := 0.8
+var sel_t0 := -10.0
+var card_t0 := -10.0
 var t := 0.0
 var kd := 1.0                 # 界面单位 / 设计单位
 var vs := Vector2(1280, 720)  # 视口（设计单位）
@@ -329,6 +339,7 @@ func _process(delta: float) -> void:
 	bgmat.set_shader_parameter("crown", _v(lay.get("crown", [556, 170])) / pxu)
 	bgmat.set_shader_parameter("time", t)
 	bgmat.set_shader_parameter("still", 1.0 if Cfg.reduce_motion else 0.0)
+	bgmat.set_shader_parameter("reveal", 1.0 if Cfg.reduce_motion else clampf((t - open_t0) / GAL_T, 0.0, 1.0))
 	wn.queue_redraw()
 	view.queue_redraw()
 
@@ -347,6 +358,10 @@ func _select(id: String) -> void:
 			if Vector2i(i, k) != sel:
 				sel = Vector2i(i, k)
 				Sfx.play("ui_move", -6.0)
+				sel_t0 = t
+				card_t0 = t
+			elif card_hide:
+				card_t0 = t
 			card_hide = false   # 选中即展开详情（11-02）
 			reset_armed = false
 			follow = true
@@ -379,7 +394,18 @@ func _buy(id: String) -> void:
 func _act(a: String) -> void:
 	match a:
 		"buy":
-			_buy(_sel_id())
+			var bid := _sel_id()
+			if t - card_t0 < 0.3:
+				return
+			if _state(bid) != "ok":
+				_buy(bid)   # 买不了：照旧只出提示音
+			elif buy_armed == bid and t - buy_armed_t < 3.0:
+				buy_armed = ""
+				_buy(bid)
+			else:
+				buy_armed = bid
+				buy_armed_t = t
+				Sfx.play("ui_move", -4.0)
 		"rec":
 			reset_armed = false
 			Meta.buy_recommended()
@@ -398,6 +424,8 @@ func _act(a: String) -> void:
 			close()
 		"card":
 			card_hide = not card_hide
+			if not card_hide:
+				card_t0 = t
 			follow = true
 			Sfx.play("ui_move", -6.0)
 
@@ -545,7 +573,7 @@ func _appear(id: String) -> float:
 	if Cfg.reduce_motion:
 		return 1.0
 	var o: Vector2i = ord.get(id, Vector2i.ZERO)
-	return UI.ease_out(clampf((t - open_t0 - 0.1 - 0.04 * o.x - 0.07 * o.y) / 0.25, 0.0, 1.0))
+	return UI.ease_out(clampf((t - open_t0 - GAL_T - 0.04 * o.x - 0.07 * o.y) / 0.25, 0.0, 1.0))   # 银河先亮（GAL_T），星再上
 
 
 func _draw_world() -> void:
@@ -779,7 +807,12 @@ func _draw_star(ci: CanvasItem, id: String, selected: bool) -> void:
 		ci.draw_arc(p, r + 2 + 16.0 * e, 0.0, TAU, 40, Color(C_SAP, 1.0 - e), 1.0)
 	# 选中：四角黄角标（轻微呼吸）
 	if selected:
-		var q := r + 5 + (0.0 if rm else roundf(sin(t * TAU / 1.2) * 0.6 + 0.4))
+		var sk: float = 1.0 if rm else clampf((t - sel_t0) / 0.22, 0.0, 1.0)
+		var pe: float = 1.0 if rm else clampf((t - sel_t0) / 0.45, 0.0, 1.0)
+		if pe < 1.0:   # 点中：一圈外扩（像素层，青白）
+			ci.draw_arc(p, r + 3 + 14.0 * UI.ease_out(pe), 0.0, TAU, 40, Color(C_WHITE, 0.9 * (1.0 - pe)), 1.0)
+			ci.draw_arc(p, r + 2 + 8.0 * UI.ease_out(pe), 0.0, TAU, 40, Color(C_SAP, 0.6 * (1.0 - pe)), 1.0)
+		var q := r + 5 + roundf((1.0 - UI.ease_out(sk)) * 8.0) + (0.0 if rm else roundf(sin(t * TAU / 1.2) * 0.6 + 0.4))   # 角标从外 8 格收拢锁定
 		for s in [Vector2(-1, -1), Vector2(1, -1), Vector2(1, 1), Vector2(-1, 1)]:
 			var c: Vector2 = p + s * q
 			ci.draw_line(c, c - Vector2(s.x * 4.0, 0), C_YEL, 1.0)
@@ -936,7 +969,8 @@ func _draw_card(ci: CanvasItem) -> void:
 	var id := _sel_id()
 	if id == "" or fit_all:
 		return
-	var slide := 1.0 if Cfg.reduce_motion else UI.ease_out(clampf((t - open_t0 - 0.15) / 0.3, 0.0, 1.0))
+	var slide := 1.0 if Cfg.reduce_motion else UI.ease_out(clampf((t - maxf(open_t0 + 0.15, card_t0)) / 0.26, 0.0, 1.0))
+	var ck: float = 1.0 if Cfg.reduce_motion else clampf((t - card_t0) / 0.3, 0.0, 1.0)   # 卡展开 / 换节点
 	card_rect = Rect2()
 	if card_hide:
 		_draw_card_tab(ci, id)
@@ -947,8 +981,9 @@ func _draw_card(ci: CanvasItem) -> void:
 	var w := 326.0
 	var bh := _card_body(ci, Vector2(0, 0), w, id, false)
 	var h := bh + 62.0
-	var r := Rect2(24.0 - (1.0 - slide) * 60.0, vs.y - 20.0 - h, w, h)
+	var r := Rect2(24.0 - (1.0 - slide) * 40.0, vs.y - 20.0 - h, w, h)
 	card_rect = r
+	var scan: float = UI.ease_out(clampf(ck / 0.6, 0.0, 1.0))   # 自上而下扫开（前 0.18 秒）
 	var cut := 22.0
 	HS.fill(ci, PackedVector2Array([r.position + Vector2(6, 6), Vector2(r.end.x - cut + 6, r.position.y + 6), Vector2(r.end.x + 6, r.position.y + cut + 6),
 		r.end + Vector2(6, 6), Vector2(r.position.x + 6, r.end.y + 6)]), Color(0, 0, 0, 0.35))
@@ -957,6 +992,13 @@ func _draw_card(ci: CanvasItem) -> void:
 	_card_body(ci, r.position, w, id, true)
 	var br := Rect2(r.position.x + 18.0, r.end.y - 50.0, w - 40.0, 36.0)
 	_card_button(ci, br, id)
+	if ck < 1.0:   # 展开动效：正文上盖一层随扫描线退去的底色 + 扫描线 + 黄条闪一下
+		var sy: float = r.position.y + r.size.y * scan
+		ci.draw_rect(Rect2(r.position.x + 5.0, sy, r.size.x - 5.0, r.end.y - sy), HS.LIGHT)
+		ci.draw_rect(Rect2(r.position.x + 5.0, r.position.y, r.size.x - 5.0, sy - r.position.y), UI.fa(HS.LIGHT, 1.0 - UI.ease_out(clampf((ck - 0.3) / 0.7, 0.0, 1.0))))
+		if scan < 1.0:
+			ci.draw_rect(Rect2(r.position.x + 5.0, sy - 1.0, r.size.x - 5.0, 2.0), HS.YEL)
+		ci.draw_rect(Rect2(r.position.x, r.position.y, 5.0, r.size.y), UI.fa(Color.WHITE, 0.7 * (1.0 - ck)))
 	_card_fold_btn(ci, Rect2(r.end.x - 96.0, r.position.y - 40.0, 96.0, 30.0))
 
 
@@ -1069,7 +1111,15 @@ func _state_line(id: String) -> String:
 
 func _card_button(ci: CanvasItem, br: Rect2, id: String) -> void:
 	var st := _state(id)
-	if st == "ok":
+	var armed: bool = buy_armed == id and t - buy_armed_t < 3.0
+	if st == "ok" and armed:
+		var nd: Dictionary = Meta.nodes()[id]
+		HS.main_btn(ci, font, br, "确认塑造 · %d" % int(nd.cost), "" if Pad.touch else "Enter", 0.86)
+		var bl: float = 0.5 + 0.5 * sin((t - buy_armed_t) * TAU / 0.6)
+		ci.draw_rect(br.grow(3.0), UI.fa(HS.YEL, 0.5 + 0.5 * bl), false, 2.0)
+		var left: float = 1.0 - (t - buy_armed_t) / 3.0   # 剩余时间细条
+		ci.draw_rect(Rect2(br.position.x, br.end.y + 3.0, br.size.x * left, 2.0), HS.YEL)
+	elif st == "ok":
 		HS.main_btn(ci, font, br, "塑造", "" if Pad.touch else "Enter", 0.86)
 	else:
 		HS.para(ci, br, HS.LIGHT2, HS.MUTE)
