@@ -123,12 +123,10 @@
     // 安全区（11-08 用户 iPhone B站 App 横屏：灵动岛挡左侧日志、右上胶囊压住标题，docs/318）：container.js 拿到容器状态后把 innerWidth / innerHeight 改成安全区尺寸、
     // 安全边距写进 __sySafe；原来本页画布铺满整屏、却按安全区尺寸画，结果被拉伸，标志 / 按钮和画布错位。现在整页底色仍铺满，
     // 画布 / 动效层 / 页脚 / 「开始游戏」都放进贴在安全区里的 .p4box，坐标系与 Godot 画布一致。
-    // 胶囊（分享 / 关闭）：SDK 给了矩形就用（__sySafe.capsule，画布坐标）；没给时（SDK 文档目前没有该字段）B站 App 沉浸模式下按 iPhone 实测估：
-    // 安全区右上，约宽 82、高 32、离安全区右沿 12、离顶 11（CSS px），外扩成右上 108 × (50 - 顶部安全边距) 的禁区
+    // 胶囊（分享 / 关闭）：用 __sySafe.capsule（画布坐标；SDK 没给矩形时 container.js 按 iPhone 实测估，Godot 侧 Cfg.safe_insets 用同一个）
     function safe() {
-      var s = window.__sySafe, w = innerWidth, h = innerHeight, e = window.__syToyEnv || {};
+      var s = window.__sySafe, w = innerWidth, h = innerHeight;
       var r = s ? { l: s.left, t: s.top, w: w, h: h, cap: s.capsule } : { l: 0, t: 0, w: w, h: h, cap: null };
-      if (!r.cap && e.container && e.immersive && e.deviceType !== 'desktop') r.cap = { x: w - 108, y: 0, w: 108, h: Math.max(20, 50 - r.t) };
       return r;
     }
     img.onload = function () {
