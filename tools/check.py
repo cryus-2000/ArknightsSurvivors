@@ -1165,6 +1165,7 @@ SCENE_REGRESSIONS = {
     "route_knight": ("结局线事件链（骑士 / 深蓝之心 / 升华）与骑士路线", "route_knight_regression", r"ROUTE KNIGHT REGRESSION: 0 failures", []),
     "forced_decline": ("强制招募可婉拒：真人局 Lv.5 单人强制招募末尾有「婉拒」，选了改为普通三选一、这一档不再弹", "forced_decline_test", r"FORCED DECLINE failures=0", []),
     "event_fit": ("事件选项放不下时可滚动：深蓝之心 7 个选项（源石锭 0）能滚、卡高不压、焦点到「离开」自动滚到底；选项少的事件不滚", "event_fit_test", r"EVENT FIT failures=0", []),
+    "event_touch_layout": ("触屏事件页与桌面同一版式（11-08）：手机横屏 + 安全区下左插画右选项列、设计框在安全区内只缩不放、选项条 596×100 起、7 个选项能滚到「离开」", "event_touch_layout_test", r"EVENT TOUCH LAYOUT failures=0", ["--touch"]),
     "event_maxhp": ("事件最大生命 -10%（狂徒妄念）：面板暂停、非满血换算、骑士入队不改生命", "event_maxhp_test", r"EVENT MAXHP TEST: 0 failures", []),
     "enemy_prepare": ("敌人攻击前摇", "enemy_prepare_test", r"ENEMY PREPARE TEST: 0 failures", []),
     "feedback": ("攻击反馈", "feedback_test", r"FEEDBACK TESTS PASSED", []),
