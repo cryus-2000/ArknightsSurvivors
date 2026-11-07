@@ -56,7 +56,15 @@ var guard_lowered := false   # 内存护栏本局临时降过画质（手动档�
 const QUALITY_NAME := {"low": "低", "mid": "中", "high": "高"}
 const QUALITY_MODES := ["auto", "low", "mid", "high"]
 ## 界面大小（设置 → 画面，用户 10-13「手机横屏太拥挤」）：在设备缺省的界面放大倍数（ui_scale）上再乘 ui_size_pct / 100，80–120，步长 5
-var ui_size_pct := 100
+var ui_size_pct := 110 if OS.has_feature("web") else 100
+## 网页版（含 B站 Toy，桌面浏览器与手机）缺省放大一档（11-07 用户「toy 的字可以稍微大一点」）；桌面下载版仍 100。
+## ui_size_set = 玩家在设置里调过：调过就按存档值，没调过（旧存档写着 100 的也算没调过）就跟设备缺省
+var ui_size_set := false
+const UI_PCT_WEB := 110
+
+
+func ui_pct_default() -> int:
+	return UI_PCT_WEB if OS.has_feature("web") else 100
 const UI_PCT_MIN := 80
 const UI_PCT_MAX := 120
 ## 战斗画面缩放（设置 → 画面，用户 10-13「手机横屏战斗画面放大一点」；同日「只能放大不能缩小」→ 下限 100 改 80）：
@@ -542,7 +550,9 @@ func _read_cfg(c: ConfigFile) -> void:
 	auto_combo = bool(c.get_value("input", "auto_combo", auto_combo))
 	auto_ult = bool(c.get_value("input", "auto_ult", auto_ult))
 	touch_layout = TouchLayout.load_from(c)
-	ui_size_pct = clampi(int(c.get_value("video", "ui_size", 100)) / 5 * 5, UI_PCT_MIN, UI_PCT_MAX)
+	ui_size_set = bool(c.get_value("video", "ui_size_set", false))
+	var usz := int(c.get_value("video", "ui_size", 100))
+	ui_size_pct = clampi(usz / 5 * 5, UI_PCT_MIN, UI_PCT_MAX) if (ui_size_set or usz != 100) else ui_pct_default()
 	cam_zoom_pct = int(c.get_value("video", "cam_zoom", -1))
 	if cam_zoom_pct > 0:
 		cam_zoom_pct = clampi(cam_zoom_pct / 5 * 5, ZOOM_PCT_MIN, ZOOM_PCT_MAX)
@@ -865,6 +875,8 @@ func save() -> void:
 	c.set_value("input", "auto_ult", auto_ult)
 	TouchLayout.save_to(c, touch_layout)
 	c.set_value("video", "ui_size", ui_size_pct)
+	if ui_size_set:
+		c.set_value("video", "ui_size_set", true)
 	c.set_value("video", "cam_zoom", cam_zoom_pct)
 	c.set_value("video", "quality", quality)
 	c.set_value("video", "quality_mode", quality_mode)
@@ -982,7 +994,9 @@ func cloud_apply(body: Dictionary) -> void:
 	if d.get("brightness") is float or d.get("brightness") is int:
 		brightness = clampf(float(d.brightness), 0.8, 1.4)
 	if d.get("ui_size_pct") is float or d.get("ui_size_pct") is int:
-		ui_size_pct = clampi(int(d.ui_size_pct) / 5 * 5, UI_PCT_MIN, UI_PCT_MAX)
+		var cu := clampi(int(d.ui_size_pct) / 5 * 5, UI_PCT_MIN, UI_PCT_MAX)
+		if cu != 100 or ui_size_set:   # 云端的 100 多半是旧版本的缺省值：本机没手调过就留在设备缺省（网页 110）
+			ui_size_pct = cu
 	if d.get("cam_zoom_pct") is float or d.get("cam_zoom_pct") is int:
 		var z := int(d.cam_zoom_pct)
 		cam_zoom_pct = -1 if z <= 0 else clampi(z / 5 * 5, ZOOM_PCT_MIN, ZOOM_PCT_MAX)

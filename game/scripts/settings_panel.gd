@@ -421,7 +421,7 @@ func _v2_sub(row: Dictionary) -> Array:
 			elif Cfg.onboard != "off" and not Cfg.onboard_seen.has("drill"):
 				return ["下局重看演示局", true]
 		"uisize":
-			if Cfg.ui_size_pct == 100:
+			if Cfg.ui_size_pct == Cfg.ui_pct_default():
 				return ["默认", false]
 		"zoom":
 			if Cfg.cam_zoom_pct < 0:
@@ -609,6 +609,7 @@ func _adjust(i: int, dir: int) -> void:
 			Cfg.brightness = clampf(snappedf(Cfg.brightness + dir * 0.05, 0.05), 0.8, 1.4)
 		"uisize":
 			Cfg.ui_size_pct = clampi(Cfg.ui_size_pct + dir * 5, Cfg.UI_PCT_MIN, Cfg.UI_PCT_MAX)
+			Cfg.ui_size_set = true   # 手调过：之后按存档值，不再跟设备缺省（网页 110）
 		"zoom":
 			# 调回设备缺省（手机横屏 ZOOM_PHONE_DEF / 桌面 ZOOM_DESK_DEF）时存 -1：换设备仍按那台的缺省
 			var def: int = Cfg.zoom_default_pct()
@@ -883,7 +884,7 @@ func _draw_row(ci: CanvasItem, rr: Rect2, si: int, touch: bool, ty0: float) -> v
 				UI.text(ci, font, Vector2(vx - 236, rr.position.y + ty0 - 1.0), onb_note, 12 if not touch else 13, UI.CYAN_DIM, HORIZONTAL_ALIGNMENT_RIGHT, 246)
 		"uisize", "zoom":
 			var pv: int = Cfg.ui_size_pct if row.type == "uisize" else int(round(Cfg.cam_zoom() * 100.0))
-			var dflt: bool = (Cfg.ui_size_pct == 100) if row.type == "uisize" else (Cfg.cam_zoom_pct < 0)
+			var dflt: bool = (Cfg.ui_size_pct == Cfg.ui_pct_default()) if row.type == "uisize" else (Cfg.cam_zoom_pct < 0)
 			var lo: float = Cfg.UI_PCT_MIN if row.type == "uisize" else Cfg.ZOOM_PCT_MIN
 			var hi: float = Cfg.UI_PCT_MAX if row.type == "uisize" else Cfg.ZOOM_PCT_MAX
 			var fill: float = clampf((pv - lo) / (hi - lo), 0, 1)

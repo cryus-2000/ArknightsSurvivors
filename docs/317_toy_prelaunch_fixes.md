@@ -1,4 +1,4 @@
-# 314 Toy 首发前两项修复（11-07）
+# 317 Toy 首发前两项修复（11-07）
 
 用户在 Toy 预览（main ed28cd083）上实测发现两个问题，协调人派活。两项都修完 Toy 才提交审核。
 
@@ -55,3 +55,26 @@
 - 选卡中失焦：状态不变，回到对局时补一次暂停。
 
 **还没验证**：没有出网页包在浏览器里实机点出页面再回来。上 Toy 预览后要实测一次：点到页面外、切标签、在 App 里切出再回来，三种情况都要看。
+
+## 3. 从别的 App 切回来没声音（用户 iPhone B站 App 实测）
+
+**原因**：iOS / WebKit 会把网页音频的 AudioContext 挂起（suspended）或中断（interrupted，来电、切 App），回到前台不会自己恢复；不在用户手势里调用的 `resume()` 也常常不生效。原来 `tools/web/power.js` 的手势监听在第一次全部 running 后就撤掉了，回来后再也没有手势去唤醒。
+
+**修法**（`tools/web/power.js`）：
+
+1. 回到前台（`visibilitychange` 变可见、`pageshow`、`focus`）时，对每个上下文先调一次 `resume()`，同时重新挂上手势监听。
+2. 手势监听覆盖 `touchstart`、`pointerdown`、`pointerup`、`touchend`、`click`、`mousedown`、`keydown`。下一下手势里唤醒全部上下文；全部 running 后再撤掉监听。
+3. 每个上下文监听 `statechange`：页面在前台时状态掉回非 running（包括 interrupted），就重新挂上手势监听。
+4. `resume()` 不改各总线音量。Godot 的总线增益在音频图里，挂起只是停了时钟，所以不会爆音。
+
+**暂停菜单**：失焦自动暂停时，暂停菜单多一句金色提示：「离开过页面，已自动暂停 · 点击「继续」回到作战」，桌面版加「或按 Esc」。点「继续」这一下同时唤醒声音。
+
+**测试**：`node tools/web/power_selftest.js` 用假的 AudioContext 模拟 iOS 行为：手势外调 `resume()` 无效，系统可以把它打成 interrupted。依次覆盖：
+- 第一次点按解锁；
+- 切到后台挂起；
+- 回到前台时非手势 resume 无效，重新挂上监听；
+- 第一下 touchstart 恢复；
+- 前台被中断（interrupted）后，下一下 pointerdown 恢复；
+- 恢复后监听撤掉。
+
+**还没验证**：iPhone 真机要由用户实测。

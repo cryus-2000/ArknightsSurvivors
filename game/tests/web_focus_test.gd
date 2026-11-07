@@ -1,5 +1,5 @@
 extends Node
-## 失焦保护回归（docs/314，web_focus.gd；11-07 Toy 实测「点出网页之后不太好操作」）：
+## 失焦保护回归（docs/317，web_focus.gd；11-07 Toy 实测「点出网页之后不太好操作」）：
 ##   godot --headless --path game res://tests/web_focus_test.tscn -- --regression --touch --focustest --focuspause --op=mizuki --squad=hoshiguma,exusiai
 ## 失焦（NOTIFICATION_APPLICATION_FOCUS_OUT，网页上由 JS blur / visibilitychange 计数触发同一个 lost()）之后：
 ##   摇杆手指、按着的移动键、鼠标左键都松开；按住 F 打开的圆盘被取消（不是松开确认，不下指令）；选点被取消；
@@ -75,6 +75,9 @@ func run() -> void:
 	check(not Input.is_key_pressed(KEY_D), "失焦后 D 键松开")
 	check(game.state == game.S.PAUSE, "对局中失焦自动暂停（state=%d）" % game.state)
 	check(game.web_focus.lost_n == 1, "失焦处理一次")
+	check(game.web_focus.paused, "失焦暂停：暂停菜单写「点击继续」")
+	await play(3)
+	check(not game.web_focus.paused, "回到对局后收起提示")
 	# 2. 按住 F 打开圆盘、悬停一项 → 失焦：圆盘取消，不下指令
 	await play(4)
 	var stance0 = game.squad.stance

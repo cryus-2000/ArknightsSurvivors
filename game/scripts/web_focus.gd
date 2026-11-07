@@ -1,5 +1,5 @@
 extends RefCounted
-## 失焦保护（11-07 用户在 Toy 预览实测「点出网页之后会出现不太好操作的情况」，docs/314）：
+## 失焦保护（11-07 用户在 Toy 预览实测「点出网页之后会出现不太好操作的情况」，docs/317）：
 ## 网页失焦（点到页面外、切标签、B站 App 里切出再回来）时浏览器不再发按键 / 触点抬起，Godot 里的「按住」状态就卡住了——
 ## 移动键（Pad.key_down 轮询 Input.is_key_pressed）继续走、摇杆手指（touch.stick_id）继续推、圆盘按住 F 的那一下回来后被当成松开确认、
 ## 普攻 / 技能键一直算按着。回来以后按键还送不到画布（焦点停在页面别处），要先点一下画布。
@@ -10,6 +10,7 @@ extends RefCounted
 ##   3. 网页回到前台（focus / visibilitychange visible）→ 把焦点还给画布（canvas.focus()），按键不用先点画布。
 ## 桌面版只做 1（不自动暂停）；带调试参数运行（测试 / 录像 / 批跑）时桌面上整段不动，--focustest 例外（tests/web_focus_test）。
 
+const UI = preload("res://scripts/ui.gd")
 const POLL := 0.2
 ## 补「松开」的键：移动（WASD / 方向键）、冲刺、技能、终结技、圆盘、普攻等局内按住会生效的键
 const KEYS := [KEY_W, KEY_A, KEY_S, KEY_D, KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_SHIFT, KEY_SPACE, KEY_F, KEY_Q, KEY_E, KEY_R, KEY_J, KEY_K, KEY_L, KEY_CTRL, KEY_ALT]
@@ -20,6 +21,7 @@ var _seen := 0
 var _t := 0.0
 var _pend := false          # 失焦时不在对局里：回到对局补一次暂停
 var lost_n := 0             # 失焦处理过几次（测试读）
+var paused := false         # 这次暂停是失焦引起的：暂停菜单写「点击继续」（那一下点按同时唤醒声音，tools/web/power.js）
 
 const JS_SETUP := """(function(){if(window.__syFocus)return;var F=window.__syFocus={lost:0};
 function lost(){F.lost++;}
@@ -55,6 +57,9 @@ func poll(delta: float) -> void:
 	if _pend and g.state == g.S.PLAY:
 		_pend = false
 		g.state = g.S.PAUSE
+		paused = true
+	elif paused and g.state != g.S.PAUSE:
+		paused = false
 
 
 ## 失焦：清掉所有按住状态；网页版对局中自动暂停
@@ -67,6 +72,7 @@ func lost() -> void:
 	if web or Cfg.dev_args().has("--focuspause"):   # 先暂停再补「松开」：补的松开事件不会落到对局里（比如松开 Q 放出终结技）
 		if g.state == g.S.PLAY:
 			g.state = g.S.PAUSE
+			paused = true
 		elif g.state != g.S.PAUSE and g.state != g.S.DEAD and g.state != g.S.WIN:
 			_pend = true
 	release()
@@ -95,3 +101,12 @@ func release() -> void:
 			m.position = g.get_viewport().get_mouse_position() if g.is_inside_tree() else Vector2.ZERO
 			Input.parse_input_event(m)
 	Input.flush_buffered_events()
+
+
+## 暂停菜单上的一句（hud.gd 暂停页调）：失焦自动暂停时写「点击继续」；触屏放在标题下，桌面放在 web_fs 的 P 键说明上面
+func draw_pause(vs: Vector2) -> void:
+	if not paused and not Cfg.dev_args().has("--focusshow"):
+		return
+	var s := "离开过页面，已自动暂停 · 点击「继续」回到作战" if Pad.touch_ui() else "离开过页面，已自动暂停 · 点击「继续」或按 Esc 回到作战"
+	var y: float = vs.y * 0.315 if Pad.touch_ui() else vs.y / 2 + 196   # 触屏：暂停标题下面（下方按钮两排、放下面会压住）
+	UI.text(g.hud, g.font, Vector2(0, y), s, 16 if Pad.touch_ui() else 14, UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, vs.x)

@@ -278,7 +278,7 @@ static func _hit(r: Rect2) -> Rect2:
 	return Rect2(r.get_center() - s / 2.0, s)
 
 
-## 失焦（web_focus.gd，docs/314）：浏览器不会再发这些手指的抬起事件，按住状态全部清掉；终结技瞄准按松手处理（同切后台的保险）
+## 失焦（web_focus.gd，docs/317）：浏览器不会再发这些手指的抬起事件，按住状态全部清掉；终结技瞄准按松手处理（同切后台的保险）
 func release_all() -> void:
 	if stick_id >= 0:
 		stick_id = -1
