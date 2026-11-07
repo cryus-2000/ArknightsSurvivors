@@ -791,8 +791,18 @@ func _drop_outrun_tex() -> void:
 		A.outrun_track = false
 		return
 	var keep := {}
+	var ids := {Cfg.character_id: true}   # 开局编队（同 title._op_ids）：手机按需读特效时只留这些人的 V6 帧条
+	for a in Cfg.dev_args():
+		if a.begins_with("--op="):
+			ids = {a.substr(5): true}
+	for a in Cfg.dev_args():
+		if a.begins_with("--squad="):
+			for c in a.substr(8).split(","):
+				ids[c] = true
 	for n in preload_tex_names():
-		keep[str(n)] = true
+		var ow: String = A.fx_owner(str(n)) if lazy_fx and V6_FRAMES.has(n) else ""
+		if ow == "" or ids.has(ow):
+			keep[str(n)] = true
 	var nd := A.drop_outrun(keep)
 	if not Cfg.dev_args().is_empty():
 		print("PF OUTRUN dropped=%d" % nd)

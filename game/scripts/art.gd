@@ -878,6 +878,25 @@ static func drop_outrun(keep: Dictionary) -> int:
 	return n
 
 
+## 当前缓存的键（图鉴打开时记一份，关时 drop_new 拿掉新增的）
+static func cache_keys() -> Dictionary:
+	var d := {}
+	for k in _cache:
+		d[k] = true
+	return d
+
+
+## 拿掉 pre 之后新进缓存的贴图；返回张数
+static func drop_new(pre: Dictionary) -> int:
+	var ks: Array = []
+	for k in _cache:
+		if not pre.has(k):
+			ks.append(k)
+	for k in ks:
+		uncache(k)
+	return ks.size()
+
+
 ## 白剪影释放（game._white_release）：从缓存里拿掉，贴图在没人引用后释放
 static func white_drop(src: Texture2D) -> void:
 	if src != null:
