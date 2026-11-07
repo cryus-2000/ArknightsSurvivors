@@ -67,17 +67,6 @@ static func bomb_hit(u, a: Dictionary, p: Vector2, i: int) -> void:
 		PF.dust(u, p + Vector2(0, 6), R * 1.3, 0.04, vs, Vector2(0, -20), Color(0.5, 0.46, 0.44))
 
 
-## 灯下审决：灯塔拔地而起——塔脚一圈地块顶起落回 + 尘团往外推（砸地类，可以有碎石）
-static func inq_rise(u, a: Dictionary) -> void:
-	var c: Vector2 = a.O
-	var vs: float = PF.vseed(u, c)
-	var late: bool = _late(u)
-	PF.heave(u, c, 70.0, vs, 0.04, Color(0.85, 0.82, 0.78), 70.0)
-	for q in (2 if late else 4):
-		var dv := Vector2.from_angle(TAU * (float(q) + PF.h(vs + q)) / 4.0)
-		PF.dust(u, c + Vector2(dv.x * 70.0, dv.y * 30.0), 90.0, 0.03 * float(q), vs + q, dv * 80.0, Color(0.6, 0.58, 0.56))
-
-
 ## 灯下审决：光矛落地——暖金 + 紫白一下爆亮、光圈里上升的光点；不裂地、不出碎石（审判是光，不是砸地；11-07 实机裂纹像枯树，去掉）
 static func inq_hit(u, a: Dictionary) -> void:
 	var c: Vector2 = a.c
@@ -88,3 +77,79 @@ static func inq_hit(u, a: Dictionary) -> void:
 	PF.particles(u, c + Vector2(0, -20), 260, "ult_burst_s", [IR_C, LAMP_C], 0.0, vs, R * 0.5)
 	PF.dust(u, c + Vector2(0, 8), 120.0, 0.02, vs + 2.0, Vector2.ZERO, Color(0.66, 0.6, 0.72))
 	PF.particles(u, c, 140, "ult_ember", [LAMP_C, IR_C], 0.25, vs + 5.0, R * 0.7)
+
+
+# ---------------------------------------------------------------- 深海猎人五条（11-07）：颜色取各人定稿（data/fx_pxplane/*.json palette）
+const SK_C := Color("#598cf2")   # 斯卡蒂 main
+const SK_H := Color("#cddcfb")
+const GL_C := Color("#4c80c7")   # 歌蕾蒂娅 main
+const GL_A := Color("#b3a8ee")   # 歌蕾蒂娅 accent（淡紫）
+const SP_C := Color("#3a77c2")   # 归溟幽灵鲨 main
+const SP_H := Color("#c4e2fa")
+const SP_A := Color("#ffa04a")   # 归溟幽灵鲨 accent（橙）
+const UL_C := Color("#4463c8")   # 乌尔比安 main
+const UL_H := Color("#c0cbf6")
+const FOAM := Color(0.86, 0.93, 1.0)
+
+
+## 链上疾驰：巨锚落地——一圈地块顶起 + 尘团 + 冷蓝粒子；砸地类有碎石
+static func lesson_land(u, a: Dictionary) -> void:
+	var c: Vector2 = a.F
+	var R: float = float(a.r)
+	var vs: float = PF.vseed(u, c)
+	var late: bool = _late(u)
+	u.light(c, R * 0.6, UL_H, 0.12)
+	PF.particles(u, c + Vector2(0, -16), 240, "ult_burst_s", [UL_C, UL_H], 0.0, vs, R * 0.8)
+	PF.heave(u, c, R * 0.7, vs, 0.02, Color(0.8, 0.82, 0.88), 80.0)
+	for q in (2 if late else 4):
+		var dv := Vector2.from_angle(TAU * (float(q) + PF.h(vs + q)) / 4.0)
+		PF.dust(u, c + Vector2(dv.x, dv.y * 0.7) * R * 0.6, 90.0, 0.03 * float(q), vs + q, dv * 90.0, Color(0.56, 0.6, 0.66))
+
+
+## 引潮断线：海沟裂开——沿海沟两侧冒水雾尘团、冷蓝粒子
+static func tide_open(u, a: Dictionary) -> void:
+	var c: Vector2 = a.c
+	var d: Vector2 = a.d
+	var L: float = a.L
+	var vs: float = PF.vseed(u, c)
+	var nd: int = 3 if _late(u) else 6
+	for q in nd:
+		var along: float = ((float(q) + 0.5) / float(nd) - 0.5) * L * 0.9
+		var sd: float = 1.0 if q % 2 == 0 else -1.0
+		PF.dust(u, c + d * along + d.orthogonal() * sd * 18.0, 80.0, 0.02 * float(q), vs + q, d.orthogonal() * sd * 70.0, Color(0.55, 0.62, 0.72))
+	PF.particles(u, c, 200, "ult_burst_s", [GL_C, GL_A], 0.0, vs, L * 0.25)
+
+
+## 涡心落锚：一只锚砸在箭头尖上——冷蓝爆亮、粒子、尘团；第 3 只起才带碎石（免得五只都一样）
+static func vortex_anchor(u, a: Dictionary, p: Vector2, i: int) -> void:
+	var R: float = float(a.ar)
+	var vs: float = PF.vseed(u, p) + float(i)
+	u.light(p, R * 0.8, UL_H, 0.1)
+	PF.particles(u, p + Vector2(0, -12), 160, "ult_burst_s", [UL_C, GL_A], 0.0, vs, R * 0.9)
+	if not _late(u):
+		PF.dust(u, p + Vector2(0, 6), R * 1.2, 0.03, vs, Vector2.ZERO, Color(0.56, 0.6, 0.66))
+		if i >= 2:
+			PF.heave(u, p, R * 0.5, vs, 0.0, Color(0.8, 0.82, 0.88), 70.0)
+
+
+## 双鳍破浪：两片背鳍在圈心扎进水里——白浪粒子 + 两色粒子 + 尘团
+static func fins_dive(u, a: Dictionary) -> void:
+	var c: Vector2 = a.c
+	var R: float = float(a.R)
+	var vs: float = PF.vseed(u, c)
+	u.light(c, R * 0.5, SK_H, 0.12)
+	PF.particles(u, c + Vector2(-8, -14), 240, "ult_burst_s", [SK_C, FOAM], 0.0, vs, R * 0.5)
+	PF.particles(u, c + Vector2(8, -14), 240, "ult_burst_s", [SP_C, SP_H], 0.02, vs + 3.0, R * 0.5)
+	PF.dust(u, c + Vector2(0, 8), 120.0, 0.03, vs + 5.0, Vector2.ZERO, Color(0.62, 0.7, 0.8))
+
+
+## 群猎合围：潮水在圈心合拢——大一团白浪粒子 + 各人色粒子 + 尘团
+static func hunt_hit(u, a: Dictionary) -> void:
+	var c: Vector2 = a.c
+	var R: float = float(a.r)
+	var vs: float = PF.vseed(u, c)
+	u.light(c, R * 0.5, FOAM, 0.12)
+	PF.particles(u, c + Vector2(0, -16), 300, "ult_burst_s", [FOAM, SK_C, GL_A], 0.0, vs, R * 0.6)
+	if not _late(u):
+		PF.dust(u, c + Vector2(0, 8), 140.0, 0.03, vs + 5.0, Vector2.ZERO, Color(0.6, 0.68, 0.78))
+		PF.heave(u, c, R * 0.4, vs, 0.04, Color(0.8, 0.85, 0.92), 80.0)

@@ -136,6 +136,8 @@ static func tags_for(oid: String, ids: Array) -> Array:
 		var ok: bool = n >= int(b.get("min", 2)) - 1
 		var tag: String = str(b.tag)
 		var bt: String = buff_text(str(b.id)) if buff_on() else ""
+		if Bond2.handles(str(b.id)):   # 羁绊技 v2 接管的几对：招募卡写招式名（docs/294 §9 用户批准「羁绊：X」；不写数值）
+			bt = str(Bond2.MOVES[str(b.id)].name)
 		if seen.has(tag):   # 同名羁绊（深海猎人）合并：任一条成立就点亮，加成文案并列
 			var row: Array = out[int(seen[tag])]
 			if ok:
