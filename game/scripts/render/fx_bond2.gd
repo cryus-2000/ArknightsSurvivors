@@ -91,12 +91,30 @@ func cast(a: Dictionary) -> void:
 			_push({"k": "xcut", "c": c, "d": a.d1, "L": L, "w": float(a.hw), "pal": TX, "t0": t + B2.RV_T1, "life": 1.6})
 			_push({"k": "xcut", "c": c, "d": a.d2, "L": L, "w": float(a.hw), "pal": LP, "t0": t + B2.RV_T2, "life": 1.6})
 			_push({"k": "clash", "c": c + Vector2(0, -20), "t0": t + B2.RV_HIT, "life": 0.2})
+			for q in 2:   # Noita 式颗粒：每刀沿斩痕 4 处各迸一把火星（会弹地、落地暗掉），交点一把余烬
+				var d: Vector2 = a.d1 if q == 0 else a.d2
+				var pal: Array = TX if q == 0 else LP
+				var o = a.who.texas if q == 0 else a.who.lappland
+				for j in 4:
+					var pj: Vector2 = c + d * (float(j) / 3.0 - 0.5) * L * 0.8
+					due.append([t + (B2.RV_T1 if q == 0 else B2.RV_T2) + 0.02 * float(j), "grains", {"o": o, "p": pj + Vector2(0, LIFT * 0.5), "n": 7, "c0": pal[5], "c1": pal[3], "mat": "streak"}])
+			due.append([t + B2.RV_HIT, "grains", {"o": a.who.texas, "p": c + Vector2(0, LIFT * 0.5), "n": 14, "c0": Color(1.0, 0.9, 0.7), "c1": TX[3], "mat": "ember"}])
+			due.append([t + B2.RV_HIT + 0.02, "grains", {"o": a.who.lappland, "p": c + Vector2(0, LIFT * 0.5), "n": 10, "c0": LP[5], "c1": LP[3], "mat": "ember"}])
 		"b_penguin":   # 碾过去：车从画面外横向冲进来、穿过最密处再开出去（车上不画人）；能天使原地齐射的曳光由 shots() 逐发加
 			_push({"k": "car", "c": c, "dl": a.dl, "run": float(a.run), "out": float(a.out), "t0": t, "T0": B2.PG_T0, "T1": B2.PG_T1, "life": 1.0})
 			_push({"k": "skid", "c": c, "dl": a.dl, "run": float(a.run), "out": float(a.out), "t0": t, "T0": B2.PG_T0, "T1": B2.PG_T1, "life": 2.2})
-		"b_inq":   # 合击：灯塔在流明身后升起 → 聚光落到最密处（描边光圈 + 紫印）→ 艾丽妮的审判光矛从高处落进光圈
+			var S: Vector2 = c - Vector2(a.dl) * float(a.run)
+			var LL: float = float(a.run) + float(a.out)
+			for bm in a.bombs:   # 炸弹：从车顶抛出、0.3 秒落到车道两侧
+				var tb: float = t + B2.PG_T0 + float(bm[0]) * (B2.PG_T1 - B2.PG_T0)
+				_push({"k": "bomb", "a": S + Vector2(a.dl) * LL * float(bm[0]) + Vector2(0, -70), "b": bm[2], "t0": tb, "dur": B2.PG_BOMB, "life": B2.PG_BOMB + 0.05})
+				due.append([tb + B2.PG_BOMB, "grains", {"o": a.who.texas, "p": bm[2] + Vector2(0, LIFT * 0.5), "n": 12, "c0": Color(1.0, 0.85, 0.5), "c1": EX[3], "mat": "ember"}])
+				due.append([tb + B2.PG_BOMB, "grains", {"o": a.who.texas, "p": bm[2] + Vector2(0, LIFT * 0.5), "n": 6, "c0": Color(0.3, 0.3, 0.32), "c1": Color(0.16, 0.16, 0.18), "mat": "rock"}])
+		"b_inq":   # 合击：灯塔从最密处拔地而起 → 灯室点亮、暖光圈从塔脚扫开（描边 + 紫印）→ 艾丽妮的审判光矛落到塔前
 			_push({"k": "lh", "O": a.O, "c": c, "r": float(a.r), "t0": t, "life": 1.4})
-			_push({"k": "lance", "p": c, "t0": t + B2.IQ_HIT - 0.12, "t1": t + B2.IQ_HIT, "life": 0.45})
+			_push({"k": "lance", "p": c + Vector2(0, 60), "t0": t + B2.IQ_HIT - 0.12, "t1": t + B2.IQ_HIT, "life": 0.45})
+			due.append([t + B2.IQ_HIT, "grains", {"o": a.who.irene, "p": c + Vector2(0, LIFT * 0.5), "n": 16, "c0": IR[5], "c1": IR[3], "mat": "streak"}])
+			due.append([t + B2.IQ_HIT + 0.05, "grains", {"o": a.who.irene, "p": c + Vector2(0, LIFT * 0.5), "n": 12, "c0": LAMPG[5], "c1": LAMPG[3], "mat": "rise"}])
 			due.append([t + 0.35, "light", {"o": a.who.lumen, "p": a.O + Vector2(0, -float(LH_LAMP_Y)), "r": 160.0, "i": 0.6, "c": LAMPG[4], "life": 0.15}])
 
 
@@ -185,7 +203,7 @@ static func sort_items(game) -> Array:
 			"xcut":
 				sk = GROUND_KEY
 				out.append({"bd2": it, "skey": 1.0e9, "blade": true})   # 亮的两拍画在单位上面，冷下来的斩痕留在地面层
-			"ln", "tracer", "ghost", "qi":
+			"ln", "tracer", "ghost", "qi", "bomb":
 				sk = maxf((it.a as Vector2).y, (it.b as Vector2).y) + 2.0
 			_:
 				sk = float((it.p as Vector2).y) + 2.0
@@ -237,6 +255,8 @@ static func draw_sorted(game, ci, item: Dictionary) -> void:
 			r._draw_qi(ci, it)
 		"lance":
 			r._draw_lance(ci, it)
+		"bomb":
+			r._draw_bomb(ci, it)
 
 
 # ================================================================ 画法
@@ -543,9 +563,9 @@ func _draw_bolt(ci, it: Dictionary) -> void:
 const LAMPG := [Color("#1c1408"), Color("#4a3612"), Color("#8c6a26"), Color("#cfa24a"), Color("#efd08a"), Color("#fff0c6"), Color("#ffffff")]   # 艾丽妮手提灯暖金（docs/272 LAMP）
 ## pixgen 出图（11-07，tools/imagegen：bd2_car_2 / bd2_lh_2，像素化 --cell 2）：1 纹素 = 1 世界像素（= 半个美术像素，同 @2x 干员帧）
 const CAR_TEX := "res://art/fx/fx_bd2_car@2x.png"     # 240 × 152，埃尔法式 MPV + 企鹅物流涂鸦（bd2_van_3，用户 11-07 给参考图），车头朝右，(120, 136) 为着地点
-const LH_TEX := "res://art/fx/fx_bd2_lh@2x.png"       # 170 × 380，底边中心为着地点，灯室中心离底 288
+const LH_TEX := "res://art/fx/fx_bd2_lh@2x.png"       # 108 × 240（bd2_lh_2 按 54 格重新像素化：塔要整根放进画面），底边中心为着地点，灯室中心离底 200
 const CAR_FOOT := Vector2(120, 136)
-const LH_LAMP_Y := 288.0
+const LH_LAMP_Y := 200.0
 
 
 func _tex(path: String) -> Texture2D:
@@ -679,66 +699,51 @@ func _draw_lh(ci, it: Dictionary) -> void:
 func _draw_beam(ci, it: Dictionary) -> void:
 	var age: float = g.t - float(it.t0)
 	var hit: float = B2.IQ_HIT
-	if age < 0.35 or age > hit + 0.3:
+	if age < 0.3 or age > hit + 0.3:
 		return
 	var px: float = g.PX
 	var O: Vector2 = _snap(it.O)
 	var lp: Vector2 = O + Vector2(0, -LH_LAMP_Y)
 	var c: Vector2 = _snap(it.c)
 	var r: float = it.r
-	var k: float = clampf(floor((age - 0.35) * 15.0 + 1.0) / 3.0, 0.0, 1.0)   # 3 拍从灯室伸到落点
 	var fa: float = 1.0 - clampf((age - hit) / 0.3, 0.0, 1.0)
-	var end: Vector2 = lp.lerp(c, k)
-	var d: Vector2 = (c - lp).normalized()
-	var nv: Vector2 = d.orthogonal()
-	var L: float = lp.distance_to(end)
-	var n: int = int(L / px)
-	for sd in [-1.0, 1.0]:
-		for i in n:
-			var u: float = float(i) / float(maxi(1, n))
-			var w: float = lerpf(8.0, r * 0.6, u * k)
-			var q: Vector2 = lp + d * float(i) * px + nv * w * sd
-			_cell(ci, q, Color(LAMPG[5] if u < 0.4 else LAMPG[4], fa))
-			_cell(ci, q - nv * px * sd, Color(LAMPG[4], fa * 0.7))
-			if i % 14 == 0:
-				_glow(q, LAMPG[4])
-	var bt0: int = int(floor(g.t * 15.0))
-	for i in range(0, n, 3):   # 光里的隔格点阵（越往下越稀，不整片填充）
-		var u2: float = float(i) / float(maxi(1, n))
-		var w3: float = lerpf(8.0, r * 0.6, u2 * k)
-		var m: int = int(w3 / (px * 3.0))
-		for j in range(-m, m + 1):
-			if (i / 3 + j + bt0) % 2 == 0 and fposmod(float(i * 7 + j * 13) * 0.618, 1.0) > u2 * 0.7:
-				_cell(ci, lp + d * float(i) * px + nv * float(j) * px * 3.0, Color(LAMPG[4], fa * (0.55 - 0.35 * u2)))
 	var bt: int = int(floor(g.t * 15.0))
-	for i in 46:
-		var h1: float = fposmod(float(i) * 0.618034 + float(bt) * 0.137, 1.0)
-		var h2: float = fposmod(float(i) * 0.414214 + float(bt) * 0.071, 1.0)
-		var w2: float = lerpf(6.0, r * 0.55, h2 * k)
-		_cell(ci, lp + d * L * h2 + nv * w2 * (h1 * 2.0 - 1.0), Color(LAMPG[5], fa * 0.8))
-	_glow(lp + d * 10.0, LAMPG[5])
-	if k < 1.0:
+	# 灯室点亮：十字星芒（两拍大、之后呼吸）+ 发光点
+	var f: int = int(floor((age - 0.3) * 15.0))
+	_star(ci, lp, [16, 12, 9, 10][mini(f, 3)] if f < 4 else (9 + bt % 2), [LAMPG[0], LAMPG[1], LAMPG[2], LAMPG[3], LAMPG[4], LAMPG[5], Color.WHITE])
+	for i in 4:
+		_glow(lp + Vector2(float(i % 2) * 6.0 - 3.0, float(i / 2) * 6.0 - 3.0), LAMPG[5])
+	# 暖光圈从塔脚扫开（3 拍到 r，断续描边 2–3 格厚、前沿亮），到位后断开收掉；圈里地面闪光点
+	var k: float = clampf(floor((age - 0.35) * 15.0 + 1.0) / 3.0, 0.0, 1.0)
+	if age < 0.35:
 		return
-	var segs := 90
-	for i in segs:   # 落点光圈：断续描边（每 5 段缺一段，按节拍错位）
-		if (i + bt) % 5 == 0:
+	var rr: float = lerpf(40.0, r, k)
+	var segs: int = maxi(24, int(TAU * rr / (px * 2.0)))
+	for i in segs:
+		if (i / 6 + bt) % 5 == 0:   # 每 30 格断一小段
 			continue
 		var a0: float = TAU * float(i) / float(segs)
-		var q3: Vector2 = c + Vector2(cos(a0) * r, sin(a0) * r * SQ)
-		for w4 in 3:
-			_cell(ci, q3 + Vector2(cos(a0), sin(a0) * SQ) * px * float(w4), Color(LAMPG[5] if w4 < 2 else LAMPG[3], fa))
-		if i % 5 == 2:
-			_glow(q3, LAMPG[4])
+		var dv: Vector2 = Vector2(cos(a0), sin(a0) * SQ)
+		var th: int = 2 + int(fposmod(float(i) * 0.618, 1.0) * 2.0)
+		for w in th:
+			_cell(ci, c + dv * (rr - float(w) * px * 1.5), Color(Color(1.25, 1.2, 1.05) if (w == 0 and k < 1.0) else (LAMPG[5] if w < 2 else LAMPG[3]), fa))
+		if i % 12 == 0:
+			_glow(c + dv * rr, LAMPG[4])
+	for i in 50:
+		var h3: float = fposmod(float(i) * 0.754877 + float(bt) * 0.093, 1.0)
+		var h4: float = fposmod(float(i) * 0.569840 + float(bt) * 0.131, 1.0)
+		var r2: float = sqrt(h4) * rr * 0.95
+		_cell(ci, c + Vector2(cos(h3 * TAU), sin(h3 * TAU) * SQ) * r2, Color(LAMPG[5], fa * 0.75))
 	if age < hit:
 		for e in g.enemies:
 			if e.dead or e.get("friendly", false):
 				continue
 			var dd: Vector2 = e.pos - c
-			if dd.x * dd.x + dd.y * dd.y / (SQ * SQ) > r * r:
+			if dd.x * dd.x + dd.y * dd.y / (SQ * SQ) > rr * rr:
 				continue
 			var hp: Vector2 = _snap(e.pos + Vector2(0, -float(e.get("r", 10.0)) * 1.6 - 10.0))
-			for dv in [Vector2.ZERO, Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]:
-				_cell(ci, hp + dv * px, IR[5] if dv == Vector2.ZERO else IR[3])
+			for dv2 in [Vector2.ZERO, Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]:
+				_cell(ci, hp + dv2 * px, IR[5] if dv2 == Vector2.ZERO else IR[3])
 
 
 ## 审判光矛：从落点正上方 420 处 2 拍扎下（不补间），矛身白芯 + 紫边、后面一条拖影；落地一拍竖直光柱，再两拍缩成落点星芒
@@ -916,3 +921,29 @@ func _draw_clash(ci, it: Dictionary) -> void:
 		for dy in range(-1, 2):
 			_cell(ci, c + Vector2(dx, dy) * px, Color(1.35, 1.3, 1.25))
 	_glow(c, Color.WHITE)
+
+
+## 炸弹：一颗圆滚滚的黑炸弹（5 × 5 格，高光一格、引信火星两拍一闪）沿抛物线从车顶飞到落点，后面拖一串火星
+func _draw_bomb(ci, it: Dictionary) -> void:
+	var age: float = g.t - float(it.t0)
+	var dur: float = it.dur
+	if age < 0.0 or age > dur:
+		return
+	var a: Vector2 = it.a
+	var b: Vector2 = it.b
+	var px: float = g.PX
+	var bt: int = int(floor(g.t * 15.0))
+	for j in 4:   # 火星拖尾
+		var uj: float = clampf((age - 0.03 * float(j + 1)) / dur, 0.0, 1.0)
+		var qj: Vector2 = a.lerp(b, uj) + Vector2(0, -120.0 * 4.0 * uj * (1.0 - uj))
+		_cell(ci, qj, Color(EX[5] if j < 2 else EX[3], 0.9 - 0.2 * float(j)))
+	var u: float = clampf(age / dur, 0.0, 1.0)
+	var p: Vector2 = _snap(a.lerp(b, u) + Vector2(0, -120.0 * 4.0 * u * (1.0 - u)))
+	for y in range(-2, 3):
+		for x in range(-2, 3):
+			if absi(x) + absi(y) > 3:
+				continue
+			_cell(ci, p + Vector2(x, y) * px, Color("#3a3f4a") if (x == -1 and y == -1) else Color("#14161b"))
+	if bt % 2 == 0:
+		_cell(ci, p + Vector2(1, -3) * px, EX[5])
+		_glow(p + Vector2(1, -3) * px, EX[4])

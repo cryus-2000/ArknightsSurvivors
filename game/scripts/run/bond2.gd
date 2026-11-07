@@ -11,8 +11,8 @@ const BPF = preload("res://scripts/run/bond2_pf.gd")
 ## 3 对：成员、标签、招式名、一句话（docs/294 §4，玩家可见文字按 docs/76）
 const MOVES := {
 	"b_rival": {"ops": ["texas", "lappland"], "tag": "宿敌", "name": "十字旧怨", "desc": "两人同时挥剑，两道剑气在怪群中心相撞炸开；拉普兰德一侧附带沉默"},
-	"b_penguin": {"ops": ["exusiai", "texas"], "tag": "企鹅物流", "name": "急件航线", "desc": "能天使朝怪群齐射，德克萨斯开车从怪群里碾过去"},
-	"b_inq": {"ops": ["lumen", "irene"], "tag": "灯下审决", "name": "提灯宣判", "desc": "流明身后的灯塔照亮怪群，艾丽妮的审判光矛随即落下"},
+	"b_penguin": {"ops": ["exusiai", "texas"], "tag": "企鹅物流", "name": "急件航线", "desc": "德克萨斯开车从怪群里碾过去，一路往两边丢炸弹；能天使朝怪群齐射"},
+	"b_inq": {"ops": ["lumen", "irene"], "tag": "灯下审决", "name": "提灯宣判", "desc": "灯塔从怪群中拔地而起照亮四周，艾丽妮的审判光矛随即落下"},
 }
 const ORDER := ["b_rival", "b_penguin", "b_inq"]
 const SRC_TAGS := ["skill", "羁绊技"]
@@ -144,9 +144,20 @@ static func _cast(u, bid: String, pr: Array, c: Vector2, e2: bool) -> void:
 			a["run"] = Bal.v("bond2/car_run", 560.0)
 			a["out"] = Bal.v("bond2/car_out", 340.0) * k
 			a["hw"] = Bal.v("bond2/car_hw", 58.0) * k
+			var bombs: Array = []   # 11-07 用户：车子往两边丢炸弹。[车开到车道第几成时丢, 左右, 落点]；落点在车道两侧 bomb_off 处
+			var S: Vector2 = a.c - a.dl * float(a.run)
+			var LL: float = float(a.run) + float(a.out)
+			var nb: int = Bal.vi("bond2/bombs", 6)
+			for i in nb:
+				var kb: float = 0.3 + 0.55 * float(i) / float(maxi(1, nb - 1))
+				var sd: float = 1.0 if i % 2 == 0 else -1.0
+				var lnd: Vector2 = S + a.dl * (LL * kb + 50.0) + a.dl.orthogonal() * sd * Bal.v("bond2/bomb_off", 130.0) * k
+				bombs.append([kb, sd, lnd])
+			a["bombs"] = bombs
+			a["br"] = Bal.v("bond2/bomb_r", 80.0) * k
 		"b_inq":   # 合击：灯塔立在流明身后，聚光落在最密处，光圈半径 r
 			var lm = who.lumen
-			a["O"] = lm.pos + Vector2(-signf(d0.x if d0.x != 0.0 else 1.0) * 96.0, -36.0)   # 立在流明侧后方（y 更小 = 排在他和小队后面，不挡人）
+			a["O"] = c + Vector2(0, 24)   # 11-07：灯塔从怪群中间拔地而起（物件砸到怪群上）
 			a["r"] = Bal.v("bond2/inq_r", 240.0) * k
 	st(u).acts.append(a)
 	var s: Dictionary = st(u)
@@ -259,6 +270,7 @@ static func _rival(u, a: Dictionary, t: float) -> bool:
 ## 德克萨斯的车（不画人）从画面外横向冲进来、穿过最密处再开出去（0.10–0.75 秒），车身扫过的带状区域打一下、往两侧撞开；车后一路扬尘
 const PG_T0 := 0.10
 const PG_T1 := 0.75
+const PG_BOMB := 0.3   # 炸弹出手到落地
 static func _penguin(u, a: Dictionary, t: float) -> bool:
 	var ex = a.who.exusiai
 	var tx = a.who.texas
@@ -303,15 +315,27 @@ static func _penguin(u, a: Dictionary, t: float) -> bool:
 				var side: float = 1.0 if (e.pos - p).dot(dl.orthogonal()) >= 0.0 else -1.0
 				driver.apply_kb(e, (dl.orthogonal() * side + dl * 0.5).normalized() * 190.0)
 		a["hitset"] = hit
+		for bi in a.bombs.size():
+			var bm: Array = a.bombs[bi]
+			if t >= PG_T0 + float(bm[0]) * (PG_T1 - PG_T0) + PG_BOMB and _once(a, "b%d" % bi):
+				for e in u.in_circle(bm[2], float(a.br)):
+					var eid2: int = int(e.get("id", -1))
+					if hit.has(eid2):
+						continue
+					hit[eid2] = true
+					_hit(u, driver, e, Bal.v("bond2/pg_frac", 1.2), "急件航线", a)
+				_sfx(u.g, "op_exusiai_atk", -8.0, 0.6)
+				BPF.bomb_hit(u, a, bm[2], bi)
+		a["hitset"] = hit
 		var nd: int = int(k * 8.0)
 		while int(a.done.get("dust", 0)) < nd:
 			a.done["dust"] = int(a.done.get("dust", 0)) + 1
 			BPF.penguin_trail(u, a, p, int(a.done.dust))
-	return t >= 1.0
+	return t >= 1.3
 
 
-## 灯下审决「提灯宣判」· 合击：流明原地举灯，身后升起灯塔（0–0.35 秒），灯室点亮后一束聚光斜落到最密处（0.35–0.55 秒），
-## 光圈里的敌人亮紫印；艾丽妮原地出手（0.55），一道审判光矛从高处落进光圈中心（0.78）：光圈里的一齐受审
+## 灯下审决「提灯宣判」· 合击：流明原地举灯，灯塔从最密处拔地而起（0–0.3 秒），灯室点亮、一圈暖光从塔脚扫开（0.35–0.55 秒），
+## 光圈里的敌人亮紫印；艾丽妮原地出手（0.55），一道审判光矛从高处落到塔前（0.78）：光圈里的一齐受审
 const IQ_HIT := 0.78
 static func _inq(u, a: Dictionary, t: float) -> bool:
 	var lm = a.who.lumen
@@ -321,6 +345,7 @@ static func _inq(u, a: Dictionary, t: float) -> bool:
 		if _ok(lm):
 			lm.play_vis_anim("skill")
 		_sfx(u.g, "op_lumen_s2", -5.0, 0.9)
+		BPF.inq_rise(u, a)
 	if t >= 0.55 and _once(a, "ir"):
 		if _ok(ir):
 			ir.play_vis_anim("attack")

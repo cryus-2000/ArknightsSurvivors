@@ -27,8 +27,8 @@ static func rival_hit(u, a: Dictionary) -> void:
 	var vs: float = PF.vseed(u, c)
 	var late: bool = _late(u)
 	u.light(c, 110.0, Color(1.0, 0.92, 0.85), 0.1)
-	PF.particles(u, c + Vector2(-6, -18), 220, "ult_burst_s", [TX_C], 0.0, vs, L * 0.12)
-	PF.particles(u, c + Vector2(6, -18), 220, "ult_burst_s", [LP_C], 0.02, vs + 3.0, L * 0.12)
+	PF.particles(u, c + Vector2(-6, -18), 220, "ult_burst_s", [TX_C], 0.0, vs, L * 0.08)
+	PF.particles(u, c + Vector2(6, -18), 220, "ult_burst_s", [LP_C], 0.02, vs + 3.0, L * 0.08)
 	for half in 2:
 		var d: Vector2 = a.d1 if half == 0 else a.d2
 		var col: Color = TX_C if half == 0 else LP_C
@@ -45,7 +45,6 @@ static func rival_hit(u, a: Dictionary) -> void:
 			var along: float = ((float(q) + 0.5) / float(nd) - 0.5) * L * 0.85
 			var nv: Vector2 = d.orthogonal() * (1.0 if q % 2 == 0 else -1.0)
 			PF.dust(u, c + d * along + nv * 14.0 + Vector2(0, 6), 70.0 + 40.0 * hq, 0.03 + absf(along) / L * 0.25, vs + q + half * 7.0, nv * 90.0, Color(0.62, 0.6, 0.58))
-	PF.particles(u, c, 120, "ult_ember", [Color(0.9, 0.7, 0.55)], 0.3, vs + 9.0, L * 0.3)
 
 
 ## 企鹅物流：车开过去一路扬尘（i = 第几团，沿车道每 1/8 一团，往车后和两侧漂；不裂地、无碎石，用户 11-07「直接碾过去」）
@@ -58,13 +57,34 @@ static func penguin_trail(u, a: Dictionary, p: Vector2, i: int) -> void:
 	PF.dust(u, p - dl * 90.0 + dl.orthogonal() * side * 20.0 + Vector2(0, 8), 80.0 + 40.0 * PF.h(vs), 0.0, vs, -dl * 60.0 + dl.orthogonal() * side * 40.0, Color(0.6, 0.58, 0.55))
 
 
+## 企鹅物流：车丢出的炸弹落地——红橙一下爆亮、粒子一团、烟尘一团；后期只留爆亮和粒子
+static func bomb_hit(u, a: Dictionary, p: Vector2, i: int) -> void:
+	var vs: float = PF.vseed(u, p) + float(i)
+	var R: float = float(a.br)
+	u.light(p, R * 1.4, Color(1.0, 0.6, 0.35), 0.12)
+	PF.particles(u, p + Vector2(0, -10), 200, "ult_burst_s", [EX_C, Color(1.0, 0.8, 0.4)], 0.0, vs, R * 0.9)
+	if not _late(u):
+		PF.dust(u, p + Vector2(0, 6), R * 1.3, 0.04, vs, Vector2(0, -20), Color(0.5, 0.46, 0.44))
+
+
+## 灯下审决：灯塔拔地而起——塔脚一圈地块顶起落回 + 尘团往外推（砸地类，可以有碎石）
+static func inq_rise(u, a: Dictionary) -> void:
+	var c: Vector2 = a.O
+	var vs: float = PF.vseed(u, c)
+	var late: bool = _late(u)
+	PF.heave(u, c, 70.0, vs, 0.04, Color(0.85, 0.82, 0.78), 70.0)
+	for q in (2 if late else 4):
+		var dv := Vector2.from_angle(TAU * (float(q) + PF.h(vs + q)) / 4.0)
+		PF.dust(u, c + Vector2(dv.x * 70.0, dv.y * 30.0), 90.0, 0.03 * float(q), vs + q, dv * 80.0, Color(0.6, 0.58, 0.56))
+
+
 ## 灯下审决：光矛落地——暖金 + 紫白一下爆亮、光圈里上升的光点；不裂地、不出碎石（审判是光，不是砸地；11-07 实机裂纹像枯树，去掉）
 static func inq_hit(u, a: Dictionary) -> void:
 	var c: Vector2 = a.c
 	var R: float = float(a.r)
 	var vs: float = PF.vseed(u, c)
 	var late: bool = _late(u)
-	u.light(c, R * 1.0, Color(0.95, 0.85, 1.0), 0.16)
+	u.light(c, R * 0.5, Color(0.95, 0.85, 1.0), 0.12)
 	PF.particles(u, c + Vector2(0, -20), 260, "ult_burst_s", [IR_C, LAMP_C], 0.0, vs, R * 0.5)
 	PF.dust(u, c + Vector2(0, 8), 120.0, 0.02, vs + 2.0, Vector2.ZERO, Color(0.66, 0.6, 0.72))
 	PF.particles(u, c, 140, "ult_ember", [LAMP_C, IR_C], 0.25, vs + 5.0, R * 0.7)
