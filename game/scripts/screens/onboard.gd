@@ -5,8 +5,12 @@ extends RefCounted
 ## 2. 没玩过（new）：先走演示局（drill）——移动与自动攻击 → 捡经验升级三选一（身边放经验结晶）→ 招募一名队友（直接弹招募画面）
 ##    → 放一次终结技（直接充满）→「演示结束」，2.5 秒后重开进正式局（同一套开局配置）。演示局怪少（onboard/density）、敌伤低（onboard/enemy_dmg），
 ##    最晚 onboard/drill_max 秒强制结束；每张卡的「跳过演示」直接进正式局。
-## 3. 正式局（两条线共用）：灯火 / 商人 / Boss / 小队与队长 / 指挥圆盘 / 终结技 / 连携 / 溟痕与引航灯标 / 节点卡，第一次碰到时弹提示卡。
-## 每张卡只出一次（Cfg.onboard_seen）。卡片不暂停、不拦输入（只拦「跳过」按钮），只在 PLAY 状态显示。演示图鉴：暂停菜单「演示」，←/→ 翻全部卡。
+## 3. 正式局（两条线共用，11-07 用户 Toy 预览实测后改）：不再弹大卡片。演示局教过的（灯火 / 溟痕与引航灯标 / 精英 / 小队 / 指挥 / 终结技 / 连携 / 升级，
+##    见 TAUGHT_BY）走完演示局就记成看过；没教过的（商人 / Boss / 最终 Boss / 鸭爵 / 节点卡 …）第一次碰到时在左上角弹一行小字（toast），
+##    TOAST_SECS 秒后自己淡出，无演示框、无「跳过」、不拦输入。tour.gd 的到点小提示（精英 / Boss / 灯火 / 升级）也转到这里画，同一时刻只有一条。
+##    演示局里、教程卡显示期间、模态框打开时都不弹。每样只出一次（Cfg.onboard_seen）。演示图鉴：暂停菜单「演示」，←/→ 翻全部卡。
+## 4. 演示局结尾（11-07）：集火下令后等精英倒下（超时 / 被别的打死 / 刷不出都算），然后弹「演示结束」框（暂停，state INTRO），
+##    点「开始作战」才进正式局，不自动倒计时；总上限、卡住兜底也都走这张框。
 ## 只在真人对局生效（机器人 / 自动测试 / 演练 / 练习 / 图鉴演示不进，同 seed 不变）。
 ## 强制（docs/219 §6，11-02 用户「第一把开局的指南设置成不能跳过」）：本机和云存档都没有完成记录（Cfg.onboard_done）时，两条线都走演示局
 ##   （没玩过 drill / 玩过 drill_vet：小队、连携、终结技、指挥圆盘），问题框不给「跳过引导」、Esc 不选、卡上没有「跳过」；
@@ -30,7 +34,15 @@ const G3 := Color(0.588, 0.612, 0.643)
 const INFO_SECS := 9.0       # 看完自动收起的卡（hint 为空）停留秒数
 const MOVE_NEED := 450.0     # 「移动」做完：累计移动像素
 const XP_DIST := 170.0       # 演示局「经验与升级」：经验结晶放在队长身边多远（拾取半径之外，要走过去）
-const END_SECS := 2.5        # 演示局「演示结束」卡停留几秒后进正式局
+const END_AUTO := 2.4       # 测试 / 录片：「演示结束」框出现这么久后代按「开始作战」（真人局只认点击 / 确认键）
+const TOAST_SECS := 6.0      # 正式局小字提示停留秒数
+const LAMP_SET := 55.0       # 演示局「灯火」：先把灯火压到这么多（看得见降下来，再捡灯油补回去）
+const LAMP_OIL := 15.0       # 演示局「灯火」：身边放的每份灯油
+const LAMP_DIST := 180.0     # 灯油放在队长身边多远（拾取半径之外，要走过去）
+const LAMP_WAIT := 16.0      # 等这么久还没捡到灯油就往下走
+const FOCUS_KILL_WAIT := 20.0   # 集火下令后最多等精英倒下这么久，再不倒就往下走
+## 演示局步骤 → 它教过的正式局提示（步骤真出过才算；id 相同的如 lamp / ult / link 本来就共用「看过」记录）
+const TAUGHT_BY := {"beacon": ["mire"], "focus": ["elite"], "recruit": ["squad"], "deploy": ["command"], "regroup": ["command"], "xp": ["levelup"], "move": []}
 const ACT_SECS := 40.0       # 特有系统的动作卡（指挥 / 终结技）等这么久没做也收起，不挡后面的卡
 const MIN_SHOW := 4.0        # 每张卡至少显示几秒（动作做得快也让人看完一句话；期间做完的动作照算）
 const GAP := 1.6             # 两张卡之间至少隔几秒
@@ -58,7 +70,18 @@ var dev := ""                # --onboard=…：测试用，不读不写存档
 var demo_id := ""            # --onboarddemo=<id>
 var seen_mem: Array = []     # 测试模式下的「已出过」（不进存档）
 var drill := false           # 演示局进行中
-var drill_left := -1.0       # 「演示结束」卡出现后的倒计时（≥ 0 时到 0 进正式局）
+var end_on := false          # 「演示结束」框（模态）
+var end_t := 0.0
+var end_auto := true         # 测试 / 录片（dev）里到点代按；单元测试关掉
+var end_rect := Rect2()
+var _shown: Array = []       # 本次演示局真出过的步骤（TAUGHT_BY）
+var _focus_t := -1.0         # 集火下令时的 cur_t
+var _oil_pos := Vector2.INF  # 演示局「灯火」：放灯油的位置（录片代走）
+var lamp0 := 0.0
+var toast_q: Array = []      # 小字提示队列：{id, title, text}
+var toast: Dictionary = {}   # 正在显示的一条
+var toast_t := 0.0
+var toast_pin := false       # --onboardtoast=<id>：常驻不收起（截图）
 var forced := false          # 第一次进游戏：引导不可跳过（docs/219 §6）
 var _nudged := false
 var demo_beacon = null        # 演示局「引航灯标」：放出来的那座灯标（字典，g.beacons 里同一个）
@@ -139,6 +162,15 @@ func begin() -> bool:
 		return false
 	if demo_id != "":
 		mode = "vet"
+		if demo_id.begins_with("toast:"):   # --onboarddemo=toast:<id>：正式局小字提示（截图用，常驻）
+			toast_pin = true
+			mode = ""   # 不走正式局提示轮询（只看这一条）
+			var tid: String = demo_id.substr(6)
+			_toast_card(tid, true)
+			return true
+		if demo_id == "drill_end":
+			drill = true
+			end_auto = false
 		_show(demo_id)
 		return true
 	var m: String = dev if dev != "" else str(Cfg.onboard)
@@ -146,7 +178,7 @@ func begin() -> bool:
 	if forced:
 		if dev == "":
 			m = ""   # 没走完过：不管设置里选了什么，从问题框重新开始
-			for id in all_ids() + ["drill", "drill_end"]:   # 上次中途退出：演示局从头走
+			for id in all_ids() + ["drill", "drill_end", "elite", "levelup"]:   # 上次中途退出：演示局从头走
 				Cfg.onboard_seen.erase(id)
 		elif m not in ["new", "vet"]:
 			m = "ask"
@@ -210,7 +242,11 @@ func force_recruit() -> bool:
 
 ## 演示局结束：记下看过，重开进正式局（测试里直接退出）
 func _drill_end() -> void:
+	end_on = false
+	if g.state == Game.S.INTRO:
+		g.state = Game.S.PLAY
 	_mark("drill")
+	_mark_taught()
 	if forced:
 		print("ONBOARD forced_done route=%s t=%.1f real=%.1f" % [mode, g.t - drill_t0, now])
 		forced = false
@@ -219,7 +255,6 @@ func _drill_end() -> void:
 			Cfg.save()
 	_drill_off()
 	cur = ""
-	drill_left = -1.0
 	if dev != "":
 		if not Cfg.dev_args().has("--onboardreload"):
 			g.get_tree().quit()
@@ -228,6 +263,16 @@ func _drill_end() -> void:
 	# 延到帧末再重开：当场重开时旧场景立即离树，这一帧剩下的 squad / world / 音乐更新拿不到视口（get_viewport 为空），
 	# 对内包里就是「教程结束以后闪退」（11-04 用户实测 a055a6bd6）
 	g.get_tree().reload_current_scene.call_deferred()
+
+
+## 演示局教过的（真出过的步骤 + TAUGHT_BY）：记成看过，正式局不再提示
+func _mark_taught() -> void:
+	for st in _shown:
+		_mark(str(st))
+		for tid in TAUGHT_BY.get(st, []):
+			_mark(str(tid))
+	if mode == "vet":
+		_mark("levelup")   # 玩过这类游戏：升级三选一不用提示
 
 
 func _seen(id: String) -> bool:
@@ -261,6 +306,13 @@ func text_of(id: String, touch: bool) -> String:
 	return tx.replace("{cmd}", key_of("command"))
 
 
+## 卡上的做完条件（集火下过令后改成「击败精英」）
+func _hint_of(id: String) -> String:
+	if id == "focus" and _focus_given and drill:
+		return str(card(id).get("hint_after", card(id).get("hint", "")))
+	return str(card(id).get("hint", ""))
+
+
 ## 局内按键提示（键名按 play_keys 取，手柄时给手柄键；演示卡 / 文案共用）
 func key_of(action: String) -> String:
 	return Pad.hint(PlayKeys.hint(action, true, false), PlayKeys.hint(action, true, true))
@@ -280,7 +332,7 @@ func drill_ids() -> Array:
 func all_ids() -> Array:
 	var out: Array = (data.get("drill", []) as Array).filter(func(x): return x != "drill_end")
 	for id in data.get("tips", []):
-		if not out.has(id):
+		if not out.has(id) and not bool(card(id).get("toast_only", false)):
 			out.append(id)
 	return out
 
@@ -308,7 +360,14 @@ func _trigger(id: String) -> bool:
 		"merchant":
 			return not g.merchant.is_empty()
 		"boss":
-			return g.spawner.boss_alive()
+			return g.spawner.boss_alive() and not _final_alive()
+		"final":
+			return _final_alive()
+		"duck":
+			for e in g.enemies:
+				if str(e.get("type", "")) == "duck" and not e.dead and e.pos.distance_to(g.ppos) < 700.0:
+					return true
+			return false
 		"squad":
 			return sq >= 2
 		"command":
@@ -379,7 +438,10 @@ func _done(id: String) -> bool:
 		"beacon":
 			return _skip_beacon or (demo_beacon != null and bool(demo_beacon.lit))
 		"focus":
-			return _skip_focus or _focus_given
+			# 集火下令后等精英倒下（被别的打死也算）；等太久 / 刷不出 / 不能下令都往下走
+			return _skip_focus or (_focus_given and (focus_tgt == null or bool(focus_tgt.dead) or cur_t - _focus_t >= FOCUS_KILL_WAIT))
+		"lamp":
+			return not drill or g.lamp > lamp0 + 1.0 or cur_t >= LAMP_WAIT
 	return cur_t >= INFO_SECS
 
 
@@ -456,10 +518,16 @@ func _beacon_tick() -> void:
 
 ## 「集火」一步每帧：下了集火指令就算做完；精英被打掉就重放（最多 STEP_TRIES 次）；等太久没下就代下一次
 func _focus_tick() -> void:
-	if _skip_focus or _focus_given:
+	if _skip_focus:
+		return
+	if _focus_given:
+		if focus_tgt != null and bool(focus_tgt.dead) and dev != "" and not focus_tgt.get("_ob_logged", false):
+			focus_tgt["_ob_logged"] = true
+			print("ONBOARD focus_kill after=%.1f" % (cur_t - _focus_t))
 		return
 	if g.squad.order_kind == "focus":
 		_focus_given = true
+		_focus_t = cur_t
 		return
 	if focus_tgt == null or bool(focus_tgt.dead):
 		focus_tries += 1
@@ -471,6 +539,7 @@ func _focus_tick() -> void:
 	if cur_t >= FOCUS_WAIT:
 		g.squad.apply_order("focus", focus_tgt.pos, focus_tgt)
 		_focus_given = g.squad.order_kind == "focus"
+		_focus_t = cur_t
 		if not _focus_given:
 			_skip_focus = true   # 编队不能下令（作战时限没恢复之类）：不卡在这一步
 
@@ -478,6 +547,11 @@ func _focus_tick() -> void:
 ## 指挥圆盘打开时各扇区依次亮起（command_wheel.draw 读）：演示局「部署」这一步
 func wheel_tour() -> bool:
 	return drill and cur == "deploy"
+
+
+## 最终 Boss 在场（正式局「最终 Boss」提示；中 Boss 提示让给它）
+func _final_alive() -> bool:
+	return g.final_boss != null and not bool(g.final_boss.get("dead", false))
 
 
 func _links() -> int:
@@ -499,6 +573,11 @@ func _show(id: String) -> void:
 	ev0 = ev.duplicate()
 	ev0["links"] = _links()
 	beacons0 = _lit_count()
+	lamp0 = g.lamp
+	if drill and id != "drill_end" and not _shown.has(id):
+		_shown.append(id)
+	if id == "drill_end":
+		_end_open()
 	if drill and demo_id == "":
 		match id:
 			"xp":
@@ -534,9 +613,19 @@ func _show(id: String) -> void:
 				focus_tries = 0
 				_skip_focus = false
 				_focus_given = false
+				_focus_t = -1.0
 				_place_focus()
-			"drill_end":
-				drill_left = END_SECS
+			"lamp":
+				# 灯火先降一截（看得见），身边两份灯油走过去捡
+				if g.lamp > LAMP_SET:
+					g.lamp = LAMP_SET
+				lamp0 = g.lamp
+				_oil_pos = Vector2.INF
+				for k in 2:
+					var op: Vector2 = g.map.push_out(g.ppos + Vector2.from_angle(pack_dir.angle() + PI * (0.5 + k)) * LAMP_DIST, 12.0)
+					g.pickups.drop(op, "oil", LAMP_OIL, "onboard")
+					if k == 0:
+						_oil_pos = op
 	Sfx.play("ui_move", -6.0)
 	if dev != "":
 		print("ONBOARD card=%s t=%.1f real=%.1f" % [id, g.t - maxf(drill_t0, 0.0), now])   # 录片 / 测试：每张卡出现的局内时刻
@@ -589,11 +678,20 @@ func update(dt: float) -> void:
 			else:
 				_view_step(1)
 		return
+	if end_on:
+		end_t += dt
+		if dev != "" and end_auto and end_t >= END_AUTO:
+			if DisplayServer.get_name() != "headless":
+				g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/onb_end.png")   # 录片：结束框截图
+			print("ONBOARD end_go auto")
+			_end_go()
+		return
 	if out_t >= 0.0:
 		out_t += dt
 		if out_t > 1.0:
 			out_t = -1.0
 			out_id = ""
+	_toast_tick(dt)
 	if mode == "" and cur == "":
 		return
 	if g.state != Game.S.PLAY:
@@ -605,12 +703,6 @@ func update(dt: float) -> void:
 	_last_p = g.ppos
 	if recruit_t < 0.0 and g.squad.size() >= 2:
 		recruit_t = g.t
-	if drill_left >= 0.0:
-		cur_t += dt   # 「演示结束」卡照常淡入
-		drill_left -= dt
-		if drill_left <= 0.0:
-			_drill_end()
-		return
 	# 11-07 用户「灯塔之类还没点完就直接结束了」：到上限也先让当前这张卡做完（各步自己有代做兜底），只在卡与卡之间收尾；
 	# 当前卡卡住超过 DRILL_STUCK 秒仍强制结束，防卡死
 	if drill and g.t - drill_t0 >= Bal.v("onboard/drill_max", 90.0) and cur != "drill_end" and (cur == "" or cur_t > DRILL_STUCK):
@@ -621,6 +713,10 @@ func update(dt: float) -> void:
 		cur_t += dt
 		if forced and dev != "":
 			_dev_act()
+		if drill and cur == "lamp" and forced and dev != "" and _oil_pos != Vector2.INF and cur_t >= 1.6 and g.lamp <= lamp0 + 1.0:
+			g.ppos = _oil_pos   # 录片 / 测试：机器人不会去捡，挪到灯油上
+			if g.ch != null:
+				g.ch.pos = _oil_pos
 		if drill and cur == "beacon":
 			_beacon_tick()
 		elif drill and cur == "focus":
@@ -643,8 +739,11 @@ func update(dt: float) -> void:
 			_mark(id)
 			continue
 		if _trigger(id):
-			_show(id)
-			return
+			if drill:
+				_show(id)
+				return
+			_mark(id)   # 正式局：不弹大卡片，只在角落给一行小字
+			_toast_card(id)
 
 
 ## 录片 / 自动测试的强制版：机器人不会用圆盘、按 Q，到点代按（真人局不走这里）
@@ -706,7 +805,180 @@ func _ask_opts() -> Array:
 
 
 func modal() -> bool:
-	return ask_on or view_on
+	return ask_on or view_on or end_on
+
+
+## 引导占着屏幕（演示局、教程卡、模态框）：这期间不弹小字提示（tour.gd 也读）
+func busy() -> bool:
+	return card_busy()
+
+
+# ---------------------------------------------------------------- 演示结束框（模态，点「开始作战」才进正式局）
+
+func _end_open() -> void:
+	end_on = true
+	end_t = 0.0
+	cur = ""
+	out_id = ""
+	out_t = -1.0
+	if g.wheel.is_open:
+		g.wheel.close()
+	if g.pick.active:
+		g.pick.cancel()
+	g.intro_back = Game.S.PLAY
+	g.state = Game.S.INTRO
+
+
+func _end_go() -> void:
+	if not end_on:
+		return
+	Sfx.play("ui_ok")
+	if demo_id == "drill_end":   # 截图演示：只关框
+		end_on = false
+		g.state = Game.S.PLAY
+		return
+	_drill_end()
+
+
+func _draw_end(vs: Vector2) -> void:
+	var hud: CanvasItem = g.hud
+	var font: Font = g.font
+	var c := card("drill_end")
+	var touch: bool = g.touch != null and g.touch.active
+	var e: float = Demos._e(clampf(end_t / 0.3, 0.0, 1.0))
+	var v3on: bool = g.hud_view.v3 != null and g.hud_view.v3.on()
+	hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.008, 0.012, 0.018, 0.6 * e))
+	var w: float = minf(vs.x - 32.0, 480.0)
+	var fsz: int = 16
+	var lines: PackedStringArray = UI.wrap_lines(font, text_of("drill_end", touch), fsz, w - 64.0)
+	var lh: float = font.get_height(UI.fs(fsz)) + 4.0
+	var bh: float = 48.0 if touch else 40.0
+	var h: float = 92.0 + lines.size() * lh + 30.0 + bh + 28.0
+	var pr := Rect2(Vector2((vs.x - w) / 2.0, (vs.y - h) / 2.0 + (1.0 - e) * 24.0), Vector2(w, h))
+	if v3on:
+		hud.draw_rect(pr, Color(0.008, 0.012, 0.018, 0.96 * e))
+		_brackets(pr, e)
+		_head_v3(pr.position + Vector2(32, 52), w - 64.0, str(c.get("title", "")), "TUTORIAL  ·  " + str(c.get("en", "")), 24 if touch else 22, 7.5 if touch else 6.5, e)
+	else:
+		UI.panel(hud, pr, Color(UI.BG2.r, UI.BG2.g, UI.BG2.b, 0.97 * e), Color(1, 1, 1, 0.16 * e), 14.0, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, e))
+		UI.en(hud, font, pr.position + Vector2(32, 30), "TUTORIAL  ·  " + str(c.get("en", "")), 11, _ca(UI.CYAN, e), 3.0)
+		UI.text(hud, font, pr.position + Vector2(32, 62), str(c.get("title", "")), 24, _ca(UI.TEXT, e))
+	var asc: float = font.get_ascent(UI.fs(fsz))
+	var y: float = pr.position.y + 84.0
+	for i in lines.size():
+		hud.draw_string(font, Vector2(pr.position.x + 32.0, y + asc + i * lh), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fsz), _ca(W3, 0.9 * e))
+	y += lines.size() * lh + 8.0
+	UI.text(hud, font, Vector2(pr.position.x + 32.0, y + 14.0), str(c.get("sub", "")), 13, _ca(G3, e))
+	var bw: float = minf(w - 64.0, 220.0)
+	end_rect = Rect2(Vector2(pr.position.x + (w - bw) / 2.0, pr.end.y - 24.0 - bh), Vector2(bw, bh))
+	var pulse: float = 0.75 + 0.25 * sin(end_t * 4.0)
+	hud.draw_rect(end_rect, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.16 * e))
+	hud.draw_rect(end_rect, _ca(UI.CYAN, pulse * e), false, 1.5)
+	var label: String = str(c.get("button", "开始作战"))
+	var lfs: int = 18
+	var lw: float = font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(lfs)).x
+	hud.draw_string(font, end_rect.get_center() + Vector2(-lw / 2.0, UI.fs(lfs) * 0.36), label, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(lfs), _ca(W3, e))
+	if not touch:
+		var kh: String = Pad.hint("Enter", "Ⓐ")
+		var kw: float = font.get_string_size(kh, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(12)).x
+		hud.draw_string(font, Vector2(end_rect.end.x - kw - 10.0, end_rect.get_center().y + UI.fs(12) * 0.36), kh, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(12), _ca(G3, e))
+
+
+# ---------------------------------------------------------------- 正式局小字提示（左上角一行，几秒后淡出）
+
+## 卡片 id → 小字提示（标题 + toast 字段，没有就用正文）
+func _toast_card(id: String, force := false) -> void:
+	var c := card(id)
+	if c.is_empty():
+		return
+	var touch: bool = g.touch != null and g.touch.active
+	var tx: String = str(c.get("toast_touch", c.get("toast", ""))) if touch else str(c.get("toast", ""))
+	if tx == "":
+		tx = text_of(id, touch)
+	_toast_push(id, str(c.get("title", "")), tx.replace("{cmd}", key_of("command")))
+	if force:
+		toast_t = 0.0
+
+
+## 外部（tour.gd 到点小提示）弹一行：教过 / 弹过就不弹。force = 演示用，不查不记。返回是否排上
+func toast_tip(id: String, title: String, text: String, force := false) -> bool:
+	if not force:
+		if _seen(id):
+			return false
+		_mark(id)
+	_toast_push(id, title, text)
+	return true
+
+
+func _toast_push(id: String, title: String, text: String) -> void:
+	if str(toast.get("id", "")) == id or toast_q.any(func(x): return str(x.id) == id):
+		return
+	toast_q.append({"id": id, "title": title, "text": text})
+	if dev != "" or demo_id != "":
+		print("ONBOARD toast=%s" % id)
+
+
+func toast_active() -> bool:
+	return not toast.is_empty() or not toast_q.is_empty()
+
+
+func _toast_tick(dt: float) -> void:
+	if busy() or g.state != Game.S.PLAY:
+		return   # 演示局 / 教程卡 / 模态框 / 面板打开时不计时、不换下一条
+	if not toast.is_empty():
+		toast_t += dt
+		if toast_t >= TOAST_SECS and not toast_pin:
+			toast = {}
+	if toast.is_empty() and not toast_q.is_empty():
+		toast = toast_q.pop_front()
+		toast_t = 0.0
+		Sfx.play("ui_move", -10.0)
+
+
+## 小字提示矩形（测试读）：左上角，与教程卡同一角（教程卡在时不弹，同一时刻只有一个）
+func toast_rect(vs: Vector2) -> Rect2:
+	if toast.is_empty():
+		return Rect2()
+	var touch: bool = g.touch != null and g.touch.active
+	var font: Font = g.font
+	var tfs: int = 14 if touch else 13
+	var w_max: float = minf(vs.x - 32.0, 460.0 if touch else 440.0)
+	var tw: float = font.get_string_size(str(toast.title), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(tfs)).x + 14.0
+	var lines: PackedStringArray = UI.wrap_lines(font, str(toast.text), tfs, w_max - 24.0 - tw)
+	var lh: float = font.get_height(UI.fs(tfs)) + 3.0
+	var tx_w := 0.0
+	for ln in lines:
+		tx_w = maxf(tx_w, font.get_string_size(ln, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(tfs)).x)
+	return Rect2(_corner(touch), Vector2(minf(w_max, 24.0 + tw + tx_w), 12.0 + lines.size() * lh))
+
+
+func _corner(touch: bool) -> Vector2:
+	return Vector2(16.0, 72.0) if touch else Vector2(16.0, 112.0)
+
+
+func _draw_toast(vs: Vector2) -> void:
+	var r: Rect2 = toast_rect(vs)
+	if not r.has_area():
+		return
+	var a: float = clampf(toast_t / 0.25, 0.0, 1.0) * (1.0 if toast_pin else clampf((TOAST_SECS - toast_t) / 0.5, 0.0, 1.0))
+	if a <= 0.01:
+		return
+	var hud: CanvasItem = g.hud
+	var font: Font = g.font
+	var touch: bool = g.touch != null and g.touch.active
+	var tfs: int = 14 if touch else 13
+	r.position.x -= (1.0 - Demos._e(clampf(toast_t / 0.25, 0.0, 1.0))) * 30.0
+	hud.draw_rect(r, Color(0.008, 0.012, 0.018, 0.72 * a))
+	hud.draw_rect(Rect2(r.position, Vector2(2.0, r.size.y)), _ca(UI.GOLD, a))
+	var tw: float = font.get_string_size(str(toast.title), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(tfs)).x + 14.0
+	var lines: PackedStringArray = UI.wrap_lines(font, str(toast.text), tfs, r.size.x - 24.0 - tw)
+	var lh: float = font.get_height(UI.fs(tfs)) + 3.0
+	var asc: float = font.get_ascent(UI.fs(tfs))
+	var x0: float = r.position.x + 12.0
+	var y0: float = r.position.y + 6.0 + asc
+	hud.draw_string(UI.name_font(font), Vector2(x0, y0), str(toast.title), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(tfs), _ca(UI.GOLD, a))
+	for i in lines.size():
+		hud.draw_string(font, Vector2(x0 + tw, y0 + i * lh), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(tfs), _ca(W3, 0.92 * a))
 
 
 func _open_ask() -> void:
@@ -759,7 +1031,7 @@ func _view_close() -> void:
 # ---------------------------------------------------------------- 输入（game._input 最前面转进来）；返回 true = 已处理
 
 func input(event: InputEvent) -> bool:
-	if not ask_on and not view_on and (cur == "" or g.state != Game.S.PLAY):
+	if not ask_on and not view_on and not end_on and (cur == "" or g.state != Game.S.PLAY):
 		return false
 	var touch: bool = g.touch != null and g.touch.active
 	var press := false
@@ -775,6 +1047,14 @@ func input(event: InputEvent) -> bool:
 		for i in ask_rects.size():
 			if (ask_rects[i] as Rect2).has_point(lp):
 				ask_sel = i
+	if end_on:
+		if end_t < 0.4:
+			return true   # 刚弹出：别把正在按的键当成确认
+		if event is InputEventKey and event.pressed and not event.echo and Pad.kc(event) in [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]:
+			_end_go()
+		elif press and end_rect.has_point(mp):
+			_end_go()
+		return true
 	if ask_on:
 		if event is InputEventKey and event.pressed and not event.echo:
 			match Pad.kc(event):
@@ -848,12 +1128,20 @@ func _ctx() -> Dictionary:
 
 
 ## 局内提示卡（hud 每帧调）：桌面左上（生命 / 灯火条下方），触屏顶部居中；做完打勾后滑出
+## 引导占着左上角（演示局进行中 / 有卡在显示或收起 / 问题框 / 演示图鉴）：tour.gd 的到点小提示要让开，排队到这里空了再弹
+## （11-07 Toy 实测：演示局第 7/7 张「指挥 · 集火」卡和正式局提示「精英海嗣」叠在同一位置）
+func card_busy() -> bool:
+	return drill or cur != "" or out_id != "" or ask_on or view_on or end_on
+
+
 func draw(vs: Vector2) -> void:
 	skip_rect = Rect2()
-	if ask_on or view_on or g.state != Game.S.PLAY:
+	if ask_on or view_on or end_on or g.state != Game.S.PLAY:
 		return
 	var id: String = cur if cur != "" else out_id
 	if id == "":
+		if not toast.is_empty():
+			_draw_toast(vs)
 		return
 	var a := 1.0
 	var slide := 0.0
@@ -920,7 +1208,7 @@ func _card(vs: Vector2, id: String, frame: Rect2, t: float, a: float, done_k: fl
 		hud.draw_string(font, Vector2(tp.x, tp.y + 52.0 + asc + i * lh), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fsz), Color(0.85, 0.93, 0.95, a))
 	# 做完条件 / 进度
 	var hy: float = tp.y + 52.0 + lines.size() * lh + 10.0
-	var hint: String = str(c.get("hint", ""))
+	var hint: String = _hint_of(id)
 	if live and not big:
 		if hint != "":
 			var pulse: float = 0.6 + 0.4 * sin(t * 5.0)
@@ -932,7 +1220,7 @@ func _card(vs: Vector2, id: String, frame: Rect2, t: float, a: float, done_k: fl
 				hud.draw_rect(br, Color(1, 1, 1, 0.12 * a))
 				hud.draw_rect(Rect2(br.position, Vector2(br.size.x * clampf(moved / MOVE_NEED, 0.0, 1.0), br.size.y)), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, a))
 		else:
-			var left: float = clampf(drill_left / END_SECS, 0.0, 1.0) if id == "drill_end" else clampf(1.0 - cur_t / INFO_SECS, 0.0, 1.0)
+			var left: float = clampf(1.0 - cur_t / INFO_SECS, 0.0, 1.0)
 			hud.draw_rect(Rect2(Vector2(tp.x, hy + 6.0), Vector2(tx_w * left, 2.0)), Color(1, 1, 1, 0.3 * a))
 		# 跳过（只跳这一张）；第一次进游戏的演示局不给
 		if forced and drill:
@@ -1031,7 +1319,7 @@ func _card_v3(id: String, frame: Rect2, t: float, a: float, done_k: float, live:
 		hud.draw_string(font, Vector2(tp.x, tp.y + head_h + asc + i * lh), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fsz), _ca(W3, 0.9 * a))
 	# 做完条件 / 进度
 	var hy: float = tp.y + head_h + lines.size() * lh + 10.0
-	var hint: String = str(c.get("hint", ""))
+	var hint: String = _hint_of(id)
 	if live and not big:
 		if hint != "":
 			var pulse: float = 0.6 + 0.4 * sin(t * 5.0)
@@ -1041,7 +1329,7 @@ func _card_v3(id: String, frame: Rect2, t: float, a: float, done_k: float, live:
 				var bw: float = minf(120.0, tx_w - 110.0)
 				_hair_v3(tp.x + tx_w - bw, hy + 7.0, bw, moved / MOVE_NEED, UI.CYAN, a)
 		else:
-			var left: float = clampf(drill_left / END_SECS, 0.0, 1.0) if id == "drill_end" else clampf(1.0 - cur_t / INFO_SECS, 0.0, 1.0)
+			var left: float = clampf(1.0 - cur_t / INFO_SECS, 0.0, 1.0)
 			_hair_v3(tp.x, hy + 7.0, tx_w, left, W3, 0.55 * a)
 		# 跳过（只跳这一张）；第一次进游戏的演示局不给
 		if forced and drill:
@@ -1103,7 +1391,9 @@ func _draw_ask_v3(vs: Vector2) -> void:
 
 ## 模态（state INTRO，intro.draw 转进来）：问题框 / 演示图鉴
 func draw_modal(vs: Vector2) -> void:
-	if ask_on:
+	if end_on:
+		_draw_end(vs)
+	elif ask_on:
 		_draw_ask(vs)
 	elif view_on:
 		_draw_view(vs)
