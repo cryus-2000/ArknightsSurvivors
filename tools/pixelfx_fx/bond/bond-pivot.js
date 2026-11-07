@@ -11,7 +11,8 @@ export const meta = {
 
 const GL = ["#0d1a2e", "#1f3658", "#35598f", "#4c80c7", "#7fa6e0", "#c9d9ee", "#ffffff"].map(hex);
 const CX = 50, CY = 2, R0 = 100, SQ = 0.5, UX = -170, UY = 12, GX = -150, GY = -40;
-const T_STAKE = 0.32, T_THROW = 0.45, T_WRAP = 0.7, T_SLAM = 1.45;
+const T_STAKE = 0.32, T_SPIN = 0.12, T_THROW = 0.6, T_WRAP = 0.85, T_SLAM = 1.6;
+const HAND = [UX + 4, UY - 11], SPIN = (a) => [UX + 2 + Math.cos(a) * 17, UY - 26 + Math.sin(a) * 7];   // 抡锚：在头顶绕圈
 
 export function create(o) {
   const R = new Rng(o.seed);
@@ -22,8 +23,10 @@ export function create(o) {
   const ang = () => { const k = clamp((t - T_WRAP) / (T_SLAM - T_WRAP)); return -0.2 + ease.inQuad(k) * Math.PI * 2.4; };
   const rad = () => R0 * (1 - 0.82 * ease.inQuad(clamp((t - T_WRAP) / (T_SLAM - T_WRAP))));
   const anc = () => {
-    if (t < T_THROW) return [UX + 10, UY - 14];
-    if (t < T_WRAP) { const k = (t - T_THROW) / (T_WRAP - T_THROW); return [lerp(UX + 10, CX + Math.cos(-0.2) * R0, k), lerp(UY - 14, CY + Math.sin(-0.2) * R0 * SQ, k) - 40 * Math.sin(Math.PI * k)]; }
+    if (t < T_SPIN) return [UX + 9, UY - 2];   // 锚垂在手边
+    const aEnd = Math.PI * 0.5 + Math.PI * 2.5;
+    if (t < T_THROW) return SPIN(Math.PI * 0.5 + ease.inQuad((t - T_SPIN) / (T_THROW - T_SPIN)) * Math.PI * 2.5);
+    if (t < T_WRAP) { const k = ease.outQuad((t - T_THROW) / (T_WRAP - T_THROW)), [sx, sy] = SPIN(aEnd); return [lerp(sx, CX + Math.cos(-0.2) * R0, k), lerp(sy, CY + Math.sin(-0.2) * R0 * SQ, k) - 36 * Math.sin(Math.PI * k)]; }
     if (t < T_SLAM) return [CX + Math.cos(ang()) * rad(), CY + Math.sin(ang()) * rad() * SQ];
     return [CX + 14, CY + 4];
   };
@@ -57,7 +60,8 @@ export function create(o) {
       }
     },
     draw(p) {
-      op(p, UX, UY, UL[2], hex("#e9edf5"), t > T_THROW - 0.12 && t < T_THROW + 0.2 ? 1 : 0, 1);
+      op(p, UX, UY, UL[2], hex("#e9edf5"), t > T_THROW - 0.06 && t < T_THROW + 0.3 ? 1 : 0, 1);
+      if (t >= T_SPIN && t < T_THROW) p.line(HAND[0], HAND[1], HAND[0] + 2, HAND[1] - 6, hex("#e9edf5"));   // 抬起的手
       op(p, GX, GY, GL[2], hex("#e8e4f0"), t < T_STAKE ? 1 : 0, 1);
       foes.draw(p, t);
       // 长槊：从天上竖直落下钉住
@@ -67,12 +71,13 @@ export function create(o) {
       // 锚 + 锚链（链：桩顶 → 锚）
       if (t < T_SLAM + 0.5) {
         const [ax, ay] = anc(), al = t > T_SLAM ? 1 - smooth(T_SLAM + 0.2, T_SLAM + 0.5, t) : 1;
-        if (t > T_THROW && t < T_WRAP) chain(p, UX + 4, UY - 10, ax, ay - 10, 1, 8);
+        if (t >= T_SPIN && t < T_THROW) chain(p, HAND[0], HAND[1], ax, ay, 1, 0);   // 抡的时候锚链从手里连到锚
+        if (t >= T_THROW && t < T_WRAP) chain(p, HAND[0], HAND[1], ax, ay - 10, 1, 8 * (1 - (t - T_THROW) / (T_WRAP - T_THROW)));
         if (t >= T_WRAP && t < T_SLAM) chain(p, CX, CY - 30, ax, ay - 12, 1, 0);
-        anchor(p, ax, ay - 10, t < T_WRAP ? (t - T_THROW) * 14 : t < T_SLAM ? ang() + Math.PI / 2 : 0, 1, al);
+        anchor(p, ax, t < T_THROW ? ay + 6 : ay - 10, t < T_SPIN ? 0 : t < T_THROW ? Math.atan2(ay - (UY - 26), ax - UX - 2) - Math.PI / 2 : t < T_WRAP ? (t - T_THROW) * 14 : t < T_SLAM ? ang() + Math.PI / 2 : 0, t < T_THROW ? 0.8 : 1, al);
       }
       water.draw(p); lights.draw(p);
-      if (t > T_SLAM && t < T_SLAM + 0.07) p.ellipse(CX, CY - 4, 40, 18, WHITE, 0.8);
+      if (t > T_SLAM && t < T_SLAM + 0.07) p.ellipse(CX, CY - 4, 26, 10, WHITE, 0.6);
     },
   };
 }
