@@ -892,7 +892,8 @@
        "center": "target",
        "r": "$aoe",
        "mult": "$pull3_mult",
-       "src": "双重引力"
+       "src": "双重引力",
+       "cue": {"shape": "in", "c": "#9a5cff", "rk": 1.25, "n": 8, "life": 0.4}
       },
       {
        "verb": "displace",
@@ -921,6 +922,7 @@
        "verb": "affect",
        "center": "target",
        "r": "$pull_r",
+       "cue": {"shape": "in", "c": "#c080ff", "rk": 1.0, "n": 6, "life": 0.4},
        "on_hit": [
         {
          "st": "stun",

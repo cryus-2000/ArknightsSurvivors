@@ -205,6 +205,7 @@ static func h3_saw_echo(o, _b: Dictionary) -> void:
 	_h3_spin(o, a, _g202_sd(o, a), 0)
 	_FXR.ev(o, "su_echo", {})   # 转平面（docs/268）：只画
 	o.fx({"kind": "ring", "pos": o.pos + Vector2(0, 4), "r": h3_saw_r(o, a), "r0": 20.0, "life": 0.3, "col": Color(1.7, 0.4, 0.5), "floor": true, "w": 3.0, "alpha": 0.9})
+	ncue(o, {"p": o.pos, "shape": "ring", "r": h3_saw_r(o, a), "r0": 20.0, "c": Color(0.95, 0.22, 0.3), "n": 10, "life": 0.35})   # 困兽：受击追加的那一圈是红色锯环（转平面下上面的环不画，docs/310 §4.3）
 
 
 ## 锯鸣：这一圈变旋锯（第一段立刻打出）

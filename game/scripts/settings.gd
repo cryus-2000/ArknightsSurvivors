@@ -56,7 +56,15 @@ var guard_lowered := false   # 内存护栏本局临时降过画质（手动档�
 const QUALITY_NAME := {"low": "低", "mid": "中", "high": "高"}
 const QUALITY_MODES := ["auto", "low", "mid", "high"]
 ## 界面大小（设置 → 画面，用户 10-13「手机横屏太拥挤」）：在设备缺省的界面放大倍数（ui_scale）上再乘 ui_size_pct / 100，80–120，步长 5
-var ui_size_pct := 100
+var ui_size_pct := 110 if OS.has_feature("web") else 100
+## 网页版（含 B站 Toy，桌面浏览器与手机）缺省放大一档（11-07 用户「toy 的字可以稍微大一点」）；桌面下载版仍 100。
+## ui_size_set = 玩家在设置里调过：调过就按存档值，没调过（旧存档写着 100 的也算没调过）就跟设备缺省
+var ui_size_set := false
+const UI_PCT_WEB := 110
+
+
+func ui_pct_default() -> int:
+	return UI_PCT_WEB if OS.has_feature("web") else 100
 const UI_PCT_MIN := 80
 const UI_PCT_MAX := 120
 ## 战斗画面缩放（设置 → 画面，用户 10-13「手机横屏战斗画面放大一点」；同日「只能放大不能缩小」→ 下限 100 改 80）：
@@ -100,6 +108,7 @@ var endings_cleared: Array = []   # 已达成的结局 id（通关结局一后�
 # 干员解锁（局外成长 P1，docs/109 §12，core/roster.gd）：存档 [roster] 段。10-26 起新玩家开局为空（新手十连），名册全部存在这里
 var roster_unlocked: Array = []   # 解锁过的干员 id（roster_v ≥ 2：全部；旧版存档不含开局 5 人，读档时补上）
 var roster_v := 0                 # 名册存档版本：2 = 开局 5 人已写进 roster_unlocked（10-26 新手十连起）
+var toy_support: Array = []       # B站 Toy「支持作者」已领取的奖励 id（"follow" 关注 / "triple" 三连，docs/313）；每项只领一次，云存档取并集
 var roster_tickets := {}          # 待用的券 {"hunt": 寻访凭证, "cls": 招募券, "pick": 人事调度函}
 var roster_spare := {}            # 名册已满后多出来的券（P2 换生机细胞）
 var roster_tiers: Array = []      # 已首通的难度档（发过人事调度函的）
@@ -166,12 +175,21 @@ func mobile_knob(key: String, dflt: float) -> bool:
 const FONT_PATHS := ["res://fonts/ui.ttf", "res://fonts/ui_fallback.otf", "res://fonts/serif.ttf"]
 
 func slim_fonts(clear_only := false) -> void:
+	# 清缓存时不发 changed：引擎在 clear_cache 里先释放字形句柄、再发 changed，正挂着的 Label（性能浮层等）在信号里同步重排，
+	# 拿到的还是刚释放的句柄（text_server「Parameter "fd" is null」，那一帧字画不出来）。清完再重设 fallbacks：先作废句柄缓存再通知，
+	# 回退字体（ui_fallback）的上级（ui.ttf）也跟着重取
 	for fp in FONT_PATHS:
 		var ff = load(fp)
 		if ff is FontFile:
 			if not clear_only:
 				ff.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_DISABLED
+			ff.set_block_signals(true)
 			ff.clear_cache()
+			ff.set_block_signals(false)
+	for fp in FONT_PATHS:
+		var ff = load(fp)
+		if ff is FontFile:
+			ff.fallbacks = ff.fallbacks.duplicate()
 
 
 func mobile_fonts_slim() -> bool:
@@ -532,7 +550,9 @@ func _read_cfg(c: ConfigFile) -> void:
 	auto_combo = bool(c.get_value("input", "auto_combo", auto_combo))
 	auto_ult = bool(c.get_value("input", "auto_ult", auto_ult))
 	touch_layout = TouchLayout.load_from(c)
-	ui_size_pct = clampi(int(c.get_value("video", "ui_size", 100)) / 5 * 5, UI_PCT_MIN, UI_PCT_MAX)
+	ui_size_set = bool(c.get_value("video", "ui_size_set", false))
+	var usz := int(c.get_value("video", "ui_size", 100))
+	ui_size_pct = clampi(usz / 5 * 5, UI_PCT_MIN, UI_PCT_MAX) if (ui_size_set or usz != 100) else ui_pct_default()
 	cam_zoom_pct = int(c.get_value("video", "cam_zoom", -1))
 	if cam_zoom_pct > 0:
 		cam_zoom_pct = clampi(cam_zoom_pct / 5 * 5, ZOOM_PCT_MIN, ZOOM_PCT_MAX)
@@ -569,6 +589,7 @@ func _read_cfg(c: ConfigFile) -> void:
 	roster_fresh = c.get_value("roster", "fresh", roster_fresh)
 	roster_int_grant = bool(c.get_value("roster", "int_grant", roster_int_grant))
 	roster_v = int(c.get_value("roster", "v", 0))
+	toy_support = (c.get_value("toy", "support", []) as Array).map(func(x): return str(x)) if c.get_value("toy", "support", []) is Array else []
 	load("res://scripts/core/roster.gd").migrate_tickets()   # 三种券 → 单一寻访凭证（1:1 / 1:1 / 1:2）
 	meta_shape = c.get_value("meta", "shape", meta_shape)
 	meta_shape_t = int(c.get_value("meta", "shape_t", meta_shape_t))
@@ -854,6 +875,8 @@ func save() -> void:
 	c.set_value("input", "auto_ult", auto_ult)
 	TouchLayout.save_to(c, touch_layout)
 	c.set_value("video", "ui_size", ui_size_pct)
+	if ui_size_set:
+		c.set_value("video", "ui_size_set", true)
 	c.set_value("video", "cam_zoom", cam_zoom_pct)
 	c.set_value("video", "quality", quality)
 	c.set_value("video", "quality_mode", quality_mode)
@@ -884,6 +907,8 @@ func save() -> void:
 	c.set_value("roster", "fresh", roster_fresh)
 	c.set_value("roster", "int_grant", roster_int_grant)
 	c.set_value("roster", "v", roster_v)
+	if not toy_support.is_empty():
+		c.set_value("toy", "support", toy_support)
 	c.set_value("meta", "shape", meta_shape)
 	c.set_value("meta", "shape_t", meta_shape_t)
 	c.set_value("meta", "earned", meta_earned)
@@ -945,6 +970,8 @@ func cloud_body() -> Dictionary:
 		"med": {"got": medals.duplicate(), "best": medal_best.duplicate()},
 		"opst": {"tk": roster_tickets.duplicate(), "sp": roster_spare.duplicate(), "wish": roster_wish, "pity": roster_pity, "draws": roster_draws, "seed": roster_seed},
 		"rv": roster_v}, true)
+	if not toy_support.is_empty():
+		pr["tsup"] = toy_support.duplicate()   # Toy「支持作者」已领取（docs/313）：只在领过时写，没领过的存档往返与旧版本逐字相同
 	var out: Dictionary = (cloud_extra.get("top", {}) as Dictionary).duplicate(true)
 	out["set"] = st
 	out["prog"] = pr
@@ -967,7 +994,9 @@ func cloud_apply(body: Dictionary) -> void:
 	if d.get("brightness") is float or d.get("brightness") is int:
 		brightness = clampf(float(d.brightness), 0.8, 1.4)
 	if d.get("ui_size_pct") is float or d.get("ui_size_pct") is int:
-		ui_size_pct = clampi(int(d.ui_size_pct) / 5 * 5, UI_PCT_MIN, UI_PCT_MAX)
+		var cu := clampi(int(d.ui_size_pct) / 5 * 5, UI_PCT_MIN, UI_PCT_MAX)
+		if cu != 100 or ui_size_set:   # 云端的 100 多半是旧版本的缺省值：本机没手调过就留在设备缺省（网页 110）
+			ui_size_pct = cu
 	if d.get("cam_zoom_pct") is float or d.get("cam_zoom_pct") is int:
 		var z := int(d.cam_zoom_pct)
 		cam_zoom_pct = -1 if z <= 0 else clampi(z / 5 * 5, ZOOM_PCT_MIN, ZOOM_PCT_MAX)
@@ -977,7 +1006,7 @@ func cloud_apply(body: Dictionary) -> void:
 		cover_character_id = d.cover_character_id
 	if d.get("touch_layout") is Dictionary:
 		touch_layout = TouchLayout.sanitize(d.touch_layout)
-	var lists := {"gal": "gallery_seen", "rel": "seen_relics", "end": "endings_cleared", "shows": "seen_shows", "ops": "roster_unlocked"}
+	var lists := {"gal": "gallery_seen", "rel": "seen_relics", "end": "endings_cleared", "shows": "seen_shows", "ops": "roster_unlocked", "tsup": "toy_support"}
 	if p.get("meta") is Dictionary:
 		var mt: Dictionary = p.meta
 		if mt.get("earned") is Dictionary:

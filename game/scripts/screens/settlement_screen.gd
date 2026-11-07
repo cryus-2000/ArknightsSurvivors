@@ -12,6 +12,8 @@ var topography: Texture2D = preload("res://art/ui/settlement/topography.png")
 var navigation: Texture2D = preload("res://art/ui/settlement/navigation.png")
 var _signature: Array = []
 var model: Dictionary = {}
+var wall_s := 0.0   # 本局真实时长（秒，反馈码用）
+var _fb_auto := false
 var rows: Array = []
 var art: Dictionary = {}
 var elapsed := 0.0
@@ -100,8 +102,13 @@ func tick(dt: float) -> void:
 	if model.is_empty():
 		preload("res://scripts/core/frame_rec.gd").mark("settle")
 		set_model(RS.model(RS.snapshot(g)))
+		wall_s = float(Time.get_ticks_msec() - int(g.run_wall_ms)) / 1000.0   # 反馈码的局时：开局到结算出现的真实时间
+		_fb_auto = "--fbopen" in Cfg.dev_args() or "--shareopen" in Cfg.dev_args()   # 截图：结算入场演完就打开反馈浮层
 		cells = int(g.meta_result.get("cells", 0))
 		vouchers = int(g.roster_new.get("hunt", 0))
+	if _fb_auto and done():
+		_fb_auto = false
+		_run("share" if "--shareopen" in Cfg.dev_args() else "feedback")   # --shareopen：截图分享卡（docs/313 专属边框，配 --supframe）
 	var safe: Rect2 = Cfg.touch_safe_rect(g.get_viewport_rect().size / Cfg.ui_k)
 	scale = minf(safe.size.x / 1280.0, safe.size.y / 720.0)
 	origin = safe.position + (safe.size - Vector2(1280, 720) * scale) * 0.5
@@ -264,6 +271,8 @@ func _buttons() -> Array:
 		["records", 28, 160, "作战数据  SELECT" if Pad.using else ("作战数据" if tch else "作战数据  Tab"), false]]
 	if Cfg.runs_log_enabled():   # 对局记录（测试版 / 对内包）：游戏内面板列最近几局（10-29 用户，原来是打开记录文件夹）
 		out.append(["runs", 206, 150, "对局记录", false])
+	if preload("res://scripts/core/feedback.gd").enabled():
+		out.append(["feedback", 1024, 116, "意见反馈", false, Rect2(1024, 202, 116, 34)])
 	out.append(["title", 374, 250, "返回主界面  B" if Pad.using else ("返回主界面" if tch else "返回主界面  Esc"), false])
 	out.append(["meta", 642, 250, "认知塑造  Y" if Pad.using else ("认知塑造" if tch else "认知塑造  X"), false])
 	out.append(["hunt", 910, 342, ("寻访（持有 %d）  A" if Pad.using else ("寻访（持有 %d）" if tch else "寻访（持有 %d）  Enter")) % Roster.tickets(), Roster.tickets() > 0])   # D14：写明是持有数，免得和「本局获得 ×0」并排时误读
@@ -301,6 +310,7 @@ func _run(id: String) -> void:
 		"runs": g.run_log.open_log()
 		"title", "meta", "hunt": _action(id)
 		"share": _open_share()
+		"feedback": g.open_feedback(preload("res://scripts/core/feedback.gd").summary(model, wall_s))
 
 
 func _open_share() -> void:

@@ -250,6 +250,7 @@ static func hw_ignite_blast(o, at: Vector2, r: float) -> void:
 		o.log_hit("熔岩天降", s.get("tags", []))
 		o.deal_damage(e, left)
 		o.fx({"kind": "ring", "pos": e.pos, "r": spread_r, "r0": float(e.r), "life": 0.3, "col": HW_ORANGE, "floor": true, "keep": true, "w": 2.5})
+		ncue(o, {"p": e.pos, "fe": e, "shape": "ring", "r": spread_r, "r0": float(e.r), "c": HW_ORANGE, "n": 10})   # 引燃：灼烧引爆的橙环 + 火星（转平面下上面的环 / 光 / 火星不画，docs/310 §2）
 		o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -float(e.r) * 0.4), "r": 18.0, "life": 0.22, "col": Color(2.4, 1.3, 0.5), "alpha": 0.85})
 		for k in 6:
 			o.fx({"kind": "spark", "pos": e.pos + Vector2(0, -float(e.r) * 0.4), "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(70.0, 150.0), "life": 0.3, "col": HW_ORANGE if k % 2 == 0 else HW_LAVA, "sz": 2.5})
@@ -293,6 +294,8 @@ static func hw_affect(o, b: Dictionary, at: Vector2) -> void:
 		return
 	var rv = b.get("r", "hit")
 	var r: float = float(_hw2(o).hit_r) if str(rv) == "hit" else float(rv) * o.stat(&"op_range")
+	if b.get("cue") is Dictionary:   # 成长节点专属提示（docs/310 §4.2，只画）
+		cue_shape(o, b.cue, c, r)
 	for e in o.arc_targets(c, 0.0, PI, r):
 		if e.dead:
 			continue
@@ -451,6 +454,8 @@ static func _hw2_tick(o, dt: float) -> bool:
 					o.fx({"kind": "spark", "pos": _hw_lob_pos(l), "vel": Vector2(g.vrng.randf_range(-20, 20), g.vrng.randf_range(-20, 10)), "life": 0.25, "col": HW_ORANGE, "sz": 2.0 * l.sz})
 			if l.t >= l.dur:
 				_FXR.ev(o, "ey_splash", {"at": l.to, "r": float(l.r), "src": str(l.src)})   # 转平面（docs/259）：抛射熔岩落地，只画
+				if lk is Dictionary and lk.get("cue") is Dictionary:   # 成长节点专属提示（docs/310 §4.3，只画）
+					cue_shape(o, lk.cue, l.to, float(l.r))
 				o.area_hit(l.src, l.to, l.r, l.dmg)
 				if "meteor2" in o.taken and l.src == "熔岩天降":
 					hw_ignite_blast(o, l.to, float(l.r))

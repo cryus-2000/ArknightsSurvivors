@@ -298,6 +298,7 @@ static func gm_force_block(o, b: Dictionary) -> void:
 	o.fx({"kind": "ring", "pos": o.g.ppos, "r": 44.0, "r0": 12.0, "life": 0.35, "col": Color(1.0, 0.85, 0.4), "floor": true, "w": 3.0, "alpha": 0.9})
 	o.fx({"kind": "ring", "pos": o.pos, "r": float(b.get("ring_r", 90.0)), "r0": 20.0, "life": 0.45, "col": Color(1.0, 0.8, 0.3), "floor": true, "w": 6.0, "alpha": 0.95})   # 盾面压地的冲击环
 	o.ground_dust(o.pos, float(b.get("ring_r", 90.0)) * 0.6, 10)
+	ncue(o, {"p": o.g.ppos, "shape": "ring", "r": 44.0, "r0": 12.0, "c": Color(1.0, 0.85, 0.4), "n": 6})   # 转平面下上面两道环不画（docs/310 §2）：队长身上「下一次必格挡」的金环
 	o.float_text(o.g.ppos + Vector2(0, -100), "般若之重", Color(1.0, 0.85, 0.4), 14)
 
 
@@ -336,6 +337,7 @@ static func gm_boil_sand(o, b: Dictionary) -> void:
 		if float(b.get("spark_mult", 0.0)) > 0.0:
 			o._exec_list([{"_tag": "shape.circle", "shape": "circle", "center": "target", "r": float(b.spark_r), "mult": float(b.spark_mult), "src": "热砂沸腾", "tags": ["skill"], "power": true}], f.pos)
 		o.fx({"kind": "ring", "pos": f.pos, "r": float(b.spark_r), "r0": 8.0, "life": 0.35, "col": Color(1.0, 0.45, 0.2), "floor": true, "w": 4.0, "alpha": 0.95})
+		ncue(o, {"p": f.pos, "shape": "ring", "r": float(b.spark_r), "r0": 8.0, "c": Color(1.0, 0.45, 0.2), "n": 10, "life": 0.4})   # 沸腾：橙红扩散环 + 火星（docs/310 §2）
 		for k in 8:
 			var a: float = TAU * float(k) / 8.0 + 0.2
 			o.sparks(f.pos, Vector2.from_angle(a), Color(1.0, 0.6, 0.25), 2, 120.0)

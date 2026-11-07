@@ -1,8 +1,12 @@
 /* 网页启动加载页「声呐测绘」（用户 10-25 定：对照图方向 C 第一张；视觉按 docs/37，接指挥圆盘 / 小地图的声呐样式）。
    声呐圈 = 进度环 + 扫描扇面；左下终端日志逐行 [OK]；右下提示；左上标志（loader_logo.png = art/ui/title_deep/logo_mark.png）。
    扫描扇面用 transform 动画（合成线程跑，引擎启动占住主线程时也在转）；系统「减少动态效果」时不转。 */
+/* 11-08：崩溃自动刷新后 WebView 原生粉底从边缘露出（docs/318 #5）：根元素不透明、锁住滚动和回弹，页面不会被挪开 */
+html { background: #000; }
+html, body { margin: 0; height: 100%; overflow: hidden; overscroll-behavior: none; }
 #sy-load {
   position: fixed; inset: 0; z-index: 9000; overflow: hidden;
+  -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   background: radial-gradient(ellipse at 50% 50%, #0d1820 0%, #070c11 70%, #04070a 100%);
   font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif; color: #e6eef2;
   transition: opacity .4s;
@@ -21,6 +25,7 @@
   font: inherit; font-size: 20px; letter-spacing: 2px; padding: 0;
 }
 #sy-load .sy-go > * { pointer-events: none; }
+#sy-load * { -webkit-tap-highlight-color: transparent; }   /* 11-08 iPhone B站 App：整页收 pointerdown，按住时 WebView 点按高亮罩住整页（粉色调 + 边缘亮边） */
 #sy-load .sy-go .fl, #sy-load .sy-go .gw { position: absolute; inset: 0; transition: inset .12s ease-out, opacity .12s; }
 #sy-load .sy-go .fl { background: rgba(5, 13, 18, .86); animation: sy-scan-fill .3s linear .3s backwards; }
 #sy-load .sy-go .sc { position: absolute; top: -7px; bottom: -7px; left: 0; width: 1.5px; background: #5ee6e6; box-shadow: -8px 0 14px rgba(94, 230, 230, .35); opacity: 0;
@@ -319,6 +324,7 @@
 /* ---------------- 方向 4：PRTS 认证终端（11-05，loader.js p4Init；同桌面 boot_views.draw_v4）----------------
    一直在动的都在 .p4fx 里，只动 opacity / transform（合成线程），引擎占住主线程时照样流畅；呼吸 2.6 秒一次（同桌面） */
 #sy-load.sv4 { background: #0f1013; }
+#sy-load.sv4 .p4box { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }   /* 安全区框（loader.js p4Init 按 __sySafe 定位）：动效层 / 页脚 / 「开始游戏」在里面；画布 .p4c 铺满整屏，刘海 / 圆角处无缝 */
 #sy-load.sv4 .p4c { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
 #sy-load.sv4 .p4fx { position: absolute; width: 0; height: 0; opacity: 0; transition: opacity .4s ease-out; pointer-events: none; }
 #sy-load.sv4 .p4fx.on { opacity: 1; }

@@ -17,6 +17,7 @@
 		}
 		var c = opts === undefined ? new A() : new A(opts);
 		list.push(c);
+		watch(c);
 		if (window.__syGesture) kick(c);   // 加载中已经点过屏幕：引擎晚建的上下文也立刻试着唤醒（Chrome 认粘性激活；Safari 不认就等下一下点按）
 		return c;
 	}
@@ -40,7 +41,22 @@
 			c.__syKicked = 1;
 		} catch (e) {}
 	}
-	var GEST = ["pointerup", "touchend", "click", "mousedown", "keydown"];
+	// 11-07 用户 iPhone B站 App 实测：从别的 App 切回来以后没声音。iOS / WebKit 会把上下文挂起（suspended）或中断（interrupted，来电 / 切 App），
+	// 回到前台不会自己恢复，非手势里的 resume() 也常常不生效。所以：回到前台（visibilitychange 可见、pageshow、focus）先试一次 resume；
+	// 仍不是 running（或之后 statechange 掉回非 running）就重新挂上手势监听，下一次 touchstart / pointerdown / 点按 / 按键里再 resume。
+	// resume 不改各总线音量（Godot 的总线增益在音频图里，挂起只是停时钟），不会爆音
+	var GEST = ["pointerup", "touchend", "click", "mousedown", "keydown", "touchstart", "pointerdown"];
+	var armed = false;
+	function arm() {
+		if (armed) return;
+		armed = true;
+		GEST.forEach(function (t) { document.addEventListener(t, gesture, true); });
+	}
+	function disarm() {
+		if (!armed) return;
+		armed = false;
+		GEST.forEach(function (t) { document.removeEventListener(t, gesture, true); });
+	}
 	function gesture() {
 		window.__syGesture = 1;
 		var all = list.length > 0;
@@ -48,16 +64,30 @@
 			kick(list[i]);
 			if (list[i].state !== "running") all = false;
 		}
-		if (all) GEST.forEach(function (t) { document.removeEventListener(t, gesture, true); });
+		if (all) disarm();
 	}
-	GEST.forEach(function (t) { document.addEventListener(t, gesture, true); });
-	window.__syAudioKick = gesture;
-	document.addEventListener("visibilitychange", function () {
+	function watch(c) {
+		if (c.__syWatch || !c.addEventListener) return;
+		c.__syWatch = 1;
+		c.addEventListener("statechange", function () {
+			if (c.state !== "running" && !document.hidden) arm();   // 被系统挂起 / 中断（interrupted）：等下一下手势
+		});
+	}
+	function back() {   // 回到前台
 		for (var i = 0; i < list.length; i++) {
-			try {
-				if (document.hidden) list[i].suspend();
-				else list[i].resume();
-			} catch (e) {}
+			watch(list[i]);
+			try { if (list[i].state !== "running") list[i].resume(); } catch (e) {}
 		}
+		arm();   // 先挂上：resume 是异步的，没恢复的话下一下手势接着唤醒；都 running 了下一下手势自己撤掉
+	}
+	arm();
+	window.__syAudioKick = gesture;
+	window.__syAudioState = function () { return list.map(function (c) { return c.state; }).join(","); };   // 自测 / 日志用
+	document.addEventListener("visibilitychange", function () {
+		if (document.hidden) {
+			for (var i = 0; i < list.length; i++) { try { list[i].suspend(); } catch (e) {} }
+		} else back();
 	});
+	window.addEventListener("pageshow", function () { if (!document.hidden) back(); });
+	window.addEventListener("focus", function () { if (!document.hidden) back(); });
 })();

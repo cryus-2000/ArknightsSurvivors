@@ -57,7 +57,8 @@ func _init(game) -> void:
 
 func begin() -> void:
 	if _off < 0:
-		_off = 1 if Cfg.dev_args().has("--nobatch") else 0   # 对照测量：--nobatch 关掉合批，逐条画（与改动前相同）
+		var cfg = g.get_node_or_null("/root/Cfg") if g is Node and g.is_inside_tree() else null   # 不直接写自动加载：-s 契约测试编译链会带进本脚本（11-07 Codex 后期优化合入后 core 编译失败）
+		_off = 1 if cfg != null and cfg.dev_args().has("--nobatch") else 0   # 对照测量：--nobatch 关掉合批，逐条画（与改动前相同）
 	active = _off == 0
 	xf = Transform2D.IDENTITY
 	_gxf = Transform2D.IDENTITY

@@ -11,6 +11,7 @@ func _ready() -> void:
 	if FR.enabled():
 		FR.mark("title_ready")
 		RenderingServer.frame_post_draw.connect(func(): FR.mark("title"), CONNECT_ONE_SHOT)
+	A.outrun_track = true   # 局外读的贴图记下来，手机网页进局时拿掉（art.gd _outrun，game._drop_outrun_tex）
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_idle_fps = preload("res://scripts/core/idle_fps.gd").new()   # 手机网页闲置降帧（docs/50 §33）：boot_reveal 后才开
 	add_child(_idle_fps)
@@ -155,6 +156,16 @@ func _ready() -> void:
 			get_tree().create_timer(i).timeout.connect(func():
 				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_intro_%d.png" % int(i * 10)))
 		get_tree().create_timer(5.0).timeout.connect(func(): get_tree().quit())
+	if Cfg.dev_args().has("--transrec"):
+		# 页面切换录像（11-05 快门切换，配 --fixed-fps 30）：开场放完后（3.2 秒）进认知塑造，逐帧存 rec_<n>.png 共 45 帧
+		var fr2 := [0]
+		get_tree().create_timer(3.2).timeout.connect(func():
+			_activate(6)
+			get_tree().process_frame.connect(func():
+				fr2[0] += 1
+				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/rec_%04d.png" % fr2[0])
+				if fr2[0] >= 45:
+					get_tree().quit()))
 	if Cfg.dev_args().has("--metashot"):
 		# 认知塑造页截图（docs/109 §4）：配 --metacells=<累计生机细胞>；--metabuy=<n> 先按推荐点法点 n 个
 		meta_ui.open()
@@ -168,11 +179,28 @@ func _ready() -> void:
 				meta_ui.card_hide = false   # 11-02：选中节点即展开详情卡（同点选）；要收起的截图加 --metahide
 		if Cfg.dev_args().has("--metahide"):   # 详情卡收起时的截图（10-27）
 			meta_ui.card_hide = true
+		if not Cfg.dev_args().has("--metarec"):
+			meta_ui.open_t0 = meta_ui.t - 10.0   # 截图：开场（银河 → 星座）直接终态（11-05）
 		if Cfg.dev_args().has("--metalit"):   # 解锁演出截图：0.6 秒时塑造选中节点，演出进行到 0.35 秒时截
 			get_tree().create_timer(0.6).timeout.connect(func(): meta_ui._buy(meta_ui._sel_id()))
-		get_tree().create_timer(0.95 if Cfg.dev_args().has("--metalit") else 1.0).timeout.connect(func():
-			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_meta.png")
-			get_tree().quit())
+		if Cfg.dev_args().has("--metarec"):
+			# 开场 + 点星录像（11-05，配 --fixed-fps 30）：逐帧存 rec_<n>.png 共 110 帧；第 48 帧点选另一条线的第一颗、第 62 帧按「塑造」（待确认）、第 80 帧再按（塑造）
+			var fr := [0]
+			get_tree().process_frame.connect(func():
+				fr[0] += 1
+				if fr[0] == 48:
+					meta_ui._select(meta_ui.chains[mini(2, meta_ui.chains.size() - 1)][0])
+				if fr[0] == 62:
+					meta_ui._act("buy")   # 第一次按「塑造」：只进待确认
+				if fr[0] == 80:
+					meta_ui._act("buy")   # 第二次：塑造
+				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/rec_%04d.png" % fr[0])
+				if fr[0] >= 110:
+					get_tree().quit())
+		else:
+			get_tree().create_timer(0.95 if Cfg.dev_args().has("--metalit") else 1.0).timeout.connect(func():
+				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_meta.png")
+				get_tree().quit())
 	if Cfg.dev_args().has("--trialshot"):
 		# Boss 演练入口截图（11-01 UI 巡检二轮，docs/213）
 		boss_trial.open()
@@ -380,6 +408,13 @@ func _ready() -> void:
 					sel = 0
 			if a == "--reducemotion":
 				Cfg.reduce_motion = true
+		if Cfg.dev_args().has("--supopen"):
+			get_tree().create_timer(0.6 if Cfg.dev_args().has("--supcheck") else 1.4).timeout.connect(func():
+				open_support()
+				if Cfg.dev_args().has("--supcheck"):
+					sup_view.check())   # 截图：标题页盖上「支持作者」浮层（--supcheck 顺手点一次检查并领取）
+		if Cfg.dev_args().has("--fbopen"):
+			get_tree().create_timer(1.4).timeout.connect(open_feedback)   # 截图：标题页盖上意见反馈浮层
 		get_tree().create_timer(2.0).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_title.png")
 			get_tree().quit())
@@ -464,6 +499,10 @@ func _ft_action(what: String) -> void:
 		"gal_tab":
 			FR.mark("gal_tab")
 			gallery._set_tab((gallery.tab + 1) % 3)
+		"go":
+			FR.mark("go")   # 直接出发（同难度页「出发」：预热 → 载入页 → 进局）；量「开过图鉴再进局」的内存（docs/314）
+			_prewarm()
+			leaving = 0.0
 		"close":
 			FR.mark("close")
 			if gallery.visible:
@@ -699,7 +738,26 @@ func _close_info() -> void:
 
 ## 盖在标题上的界面（各自处理 Esc、关掉时 visible = false）：开着时标题不收输入，关掉那一帧 reveal_page。新的局外界面登记在这里
 func _overlays() -> Array:
-	return [settings, gallery, boss_trial, meta_ui, hunt_ui, medals_ui]
+	return [settings, gallery, boss_trial, meta_ui, hunt_ui, medals_ui, fb_view, sup_view]
+
+
+## 意见反馈浮层（docs/311）：标题页的反馈码只带版本号；第一次点时建
+var fb_view: Control = null
+var sup_view: Control = null
+func open_support() -> void:
+	if sup_view == null:
+		sup_view = preload("res://scripts/screens/support_view.gd").new()
+		add_child(sup_view)
+	move_child(sup_view, -1)
+	sup_view.open()
+
+
+func open_feedback() -> void:
+	if fb_view == null:
+		fb_view = preload("res://scripts/screens/feedback_view.gd").new()
+		add_child(fb_view)
+	move_child(fb_view, -1)
+	fb_view.open()
 
 
 func _overlay_open() -> bool:
@@ -716,6 +774,10 @@ func _menu_ids() -> Array:
 	# 网页版没有「退出」：quit() 只会把引擎停在最后一帧，玩家只能刷新页面（架构 10-01 实测）
 	if not menu_exit:
 		ids.erase(5)
+	if not preload("res://scripts/core/feedback.gd").enabled():
+		ids.erase(9)   # 意见反馈（docs/311）：当前平台没配反馈目标（balance feedback 留空）不显示
+	if not preload("res://scripts/core/toy_support.gd").enabled():
+		ids.erase(10)   # 支持作者（docs/313）：只在 B站 Toy 版出现
 	return ids
 
 
@@ -773,6 +835,10 @@ func _activate(i: int) -> void:
 			transition.switch_page(settings.open)
 		5:
 			get_tree().quit()
+		10:
+			open_support()   # 支持作者（docs/313）：浮层，不走转场
+		9:
+			open_feedback()   # 不走转场：复制反馈码要紧跟玩家点按（浏览器剪贴板 / 跳转都认用户手势）
 		6:
 			transition.switch_page(meta_ui.open)
 		8:

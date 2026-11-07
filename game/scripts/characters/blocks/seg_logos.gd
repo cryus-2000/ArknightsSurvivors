@@ -367,6 +367,8 @@ static func _hw_lock_jump(o, lk: Dictionary) -> void:
 	o.fx({"kind": "line", "pos": from + Vector2(0, -8), "to": mid, "life": 0.3, "col": HW_PALE, "w": 2.5})
 	o.fx({"kind": "line", "pos": mid, "to": to, "life": 0.3, "col": HW_PALE, "w": 2.5})
 	o.fx({"kind": "ring", "pos": best.pos, "r": best.r + 18.0, "r0": 4.0, "life": 0.35, "col": HW_INK, "floor": true})
+	ncue(o, {"p": from, "shape": "burst", "r": 26.0, "r0": 6.0, "c": Color(0.66, 0.55, 1.0), "n": 6})   # 转喻：锁定从死者处迸开，跳到新目标身上一枚紫色准星（docs/310 §4.3）
+	ncue(o, {"p": best.pos, "fe": best, "shape": "mark", "c": Color(0.75, 0.62, 1.0), "life": 0.5})
 	var b: Dictionary = lk.b
 	if b.has("jump_fx"):
 		fx_play(o, b.jump_fx, best.pos, float(best.r), [best])

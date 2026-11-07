@@ -171,8 +171,7 @@ func _cells(acc: Color) -> void:
 		fa = e
 		rect(Rect2(x + dx, y + dy, 3, 56), acc if i < 3 else HH.DARK3)
 		txt(x + 14 + dx, y + dy, str(c[0]), 13, HH.MUTE)
-		var cnt := ek(1.0 + 0.07 * i, 0.8)
-		txt(x + 14 + dx, y + 16 + dy, num(float(c[1]) * cnt), 28, HH.LIGHT)
+		odo(x + 14 + dx, y + 16 + dy, float(c[1]), k(1.0 + 0.07 * i, 1.0), 28, HH.LIGHT, "", "", 2.0 + 0.07 * i)   # 逐位滚动（11-05）
 		txt(x + 14 + dx, y + 52 + dy, str(c[2]), 11, HH.MUTE, 0, 220)
 	fa = 1.0
 
@@ -204,8 +203,11 @@ func _squad(acc: Color) -> void:
 			txt(512, y + h * 0.5 - 10, str(r.name), fz, HH.LIGHT if r.leader else HH.LIGHT2, 0, 100)
 		rect(Rect2(620, y + h * 0.5 - 3, 560, 6), HH.DARK3)
 		rect(Rect2(620, y + h * 0.5 - 3, 560 * float(r.share) * p, 6), r.col)
-		var pl: String = RunStats.pct_label(r) if p >= 1.0 or int(r.pct) <= 0 else "%d%%" % int(round(float(r.pct) * p))   # 滚数只对 ≥1% 的；<1% / 「—」直接写终值
-		txt(1240, y + h * 0.5 - 10, pl, fz, HH.LIGHT if float(r.dmg) > 0.0 else HH.MUTE, 2)
+		var plab: String = RunStats.pct_label(r)
+		if int(r.pct) >= 1 and not plab.begins_with("<") and float(r.dmg) > 0.0:   # ≥1% 用逐位滚动（11-05 odo）；<1% / 「—」直接写终值（d4e8a1b77 说法）
+			odo(1240, y + h * 0.5 - 10, float(r.pct), k(1.5 + 0.08 * i, 0.7), mini(15, int(h * 0.6)), HH.LIGHT, "", "%", 2.2 + 0.08 * i, 2)
+		else:
+			txt(1240, y + h * 0.5 - 10, plab, fz, HH.LIGHT if float(r.dmg) > 0.0 else HH.MUTE, 2)
 	fa = 1.0
 
 
@@ -214,7 +216,7 @@ func _gains(acc: Color) -> void:
 	fa = p0
 	rect(Rect2(470, 574, 790, 66), Color(HH.DARK2, 0.9))
 	txt(486, 580, "本局获得", 12, HH.MUTE)
-	var items: Array = [["生机细胞", "+%d" % s.cells, HH.LIGHT], ["寻访凭证", "×%d" % s.vouchers, HH.CYB]]
+	var items: Array = [["生机细胞", "+", float(s.cells), HH.LIGHT], ["寻访凭证", "×", float(s.vouchers), HH.CYB]]
 	for i in items.size():
 		var q := k(2.3 + 0.08 * i, 0.4)
 		if q <= 0.0:
@@ -222,7 +224,7 @@ func _gains(acc: Color) -> void:
 		fa = minf(1.0, q * 2.0)
 		var dy := -26.0 * (1.0 - UM.out_back(q, 1.6)) if won else -12.0 * (1.0 - UM.out_cubic(q))
 		txt(596 + i * 130, 580 + dy, str(items[i][0]), 12, HH.MUTE)
-		txt(596 + i * 130, 598 + dy, str(items[i][1]), 26, items[i][2])
+		odo(596 + i * 130, 598 + dy, float(items[i][2]), k(2.35 + 0.08 * i, 0.7), 26, items[i][3], str(items[i][1]), "", 3.05 + 0.08 * i)
 	if bool(s.g.roster_new.get("short", false)):
 		fa = p0
 		txt(486, 624, "探索不足 %d 分钟，不发放凭证" % int(Roster.RUN_MIN_T / 60.0), 11, HH.MUTE)

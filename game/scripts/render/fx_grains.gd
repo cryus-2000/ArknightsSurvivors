@@ -188,7 +188,9 @@ func _knobs() -> void:
 	level = lv0
 	# 低档的「少量」（10-27 用户「最低的特效保留一点点粒子效果，一点点不保留有点太干枯了」，docs/50 §36）：所有颗粒（命中火星、技能、Boss 特效）
 	# 按中档的 render/low_grains（0.4）保留——push 按累加器均匀抽（不抽随机数），火星按颗数缩；后期与光学层照旧关
-	low_k = clampf(Bal.v("render/low_grains", 0.4), 0.0, 1.0) if Cfg.quality == "low" else 1.0
+	# 11-07 用户「最低的特效版本加一点点粒子」：0.4 → 0.55（docs/312）；OPT_LOWFX 置位（仅 --optab 对照）走旧 0.4
+	var lk: float = 0.4 if (g != null and (g.opt_old & 2147483648)) else Bal.v("render/low_grains", 0.55)
+	low_k = clampf(lk, 0.0, 1.0) if Cfg.quality == "low" else 1.0
 	_k_frame = fr
 	_k_grains = Bal.v("fx/grains", 1.0) > 0.0
 
@@ -241,7 +243,7 @@ func light(p: Vector2, r: float, c: Color, life: float) -> void:
 
 
 ## CPU 火星：从 p 带重力迸出，落到 ground_y 停住、冷却变暗后熄灭（同屏上限 SPARK_MAX）
-func spark(p: Vector2, ground_y: float, c: Color, n: int) -> void:
+func spark(p: Vector2, ground_y: float, c: Color, n: int, dir := Vector2.ZERO) -> void:
 	if not on() or not view.has_point(p):
 		return
 	var smax: int = int(float(SPARK_MAX[level]) * adapt_k)
@@ -252,6 +254,9 @@ func spark(p: Vector2, ground_y: float, c: Color, n: int) -> void:
 			return
 		var a: float = -PI * 0.5 + (float(i) / maxf(1.0, float(n - 1)) - 0.5) * 2.4 + g.vrng.randf_range(-0.2, 0.2)
 		var v: Vector2 = Vector2.from_angle(a) * g.vrng.randf_range(70.0, 170.0)
+		if dir != Vector2.ZERO:   # 受击反应第 1 档（fx/hit_react）：沿出手方向的扇面，每颗角度 / 速度各自抖，不成规整放射；略往上抛，落地照旧冷却
+			a = dir.angle() + (g.vrng.randf() - 0.5) * Bal.v("fx/hit_react_fan", 1.3) + g.vrng.randf_range(-0.15, 0.15)
+			v = Vector2.from_angle(a) * g.vrng.randf_range(80.0, 190.0) + Vector2(0, -g.vrng.randf_range(20.0, 70.0))
 		var l: float = g.vrng.randf_range(0.45, 0.8)
 		sparks.append([p, v, maxf(ground_y, p.y + 2.0), l, l, c])
 

@@ -44,6 +44,7 @@ static func ll_wave_post(o, w: Dictionary, b: Dictionary, tl: Dictionary) -> voi
 		w["hm"] = float(b.homing)
 		w["tg"] = tl
 		o.fx({"kind": "ring", "pos": tl.pos, "r": float(tl.r) + 14.0, "r0": float(tl.r) + 30.0, "life": 0.4, "col": LL_COL, "floor": true, "w": 2.0, "alpha": 0.8})
+		ncue(o, {"p": tl.pos, "fe": tl, "shape": "mark", "c": Color(1.0, 0.35, 0.4), "life": 0.5})   # 追猎：被盯上的残血敌人身上一枚红色准星（转平面下上面的环不画，docs/310 §2）
 	if b.get("big", false):
 		w["big"] = true
 	elif b.get("sword", false) and h.get("ll_dial", false):

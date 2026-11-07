@@ -103,6 +103,10 @@
     "suno_layers",
     "play_clock",
     "feedback",
+    "feedback_code",
+    "touch_command",
+    "toy_support",
+    "web_focus",
     "time_scale_combo",
     "ui_smoke"
    ]
@@ -242,12 +246,12 @@
   {
    "glob": "**/*.uid",
    "groups": [],
-   "why": "uid"
+   "why": "uid：静态项 asset_lint 的 U1 撞号 / U2 写法不规范（Godot 34 进制）每次快检都跑"
   },
   {
    "glob": "**/*.import",
    "groups": [],
-   "why": "导入缓存"
+   "why": "导入缓存；uid 由静态项 asset_lint U1 / U2 / U3 查（撞号、写法不规范、缺 uid 行）"
   },
   {
    "glob": "tools/check.py",

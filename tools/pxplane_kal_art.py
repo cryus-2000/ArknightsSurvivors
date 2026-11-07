@@ -983,7 +983,7 @@ def write_imports():
             continue
         res = "res://art/fx/pxp/" + fn
         t = IMPORT_TPL
-        t = re.sub(r'uid="uid://[a-z0-9]+"', 'uid="%s"' % _uid(), t)
+        t = re.sub(r'^uid=.*\n', '', t, flags=re.M)   # （11-07：不写 uid 行，Godot --import 时按规范生成；脚本自己拼的 36 进制 uid 会带 z / 9，被 Godot 改写或撞号，见 asset_lint U1 / U2）
         t = re.sub(r"pxp_backwash_gd\.png-[0-9a-f]{32}", fn + "-" + hashlib.md5(res.encode()).hexdigest(), t)
         t = t.replace("pxp_backwash_gd.png", fn)
         with open(ip, "w", encoding="utf-8", newline="\n") as f:

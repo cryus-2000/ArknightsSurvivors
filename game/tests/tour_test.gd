@@ -38,6 +38,26 @@ func _ready() -> void:
 	check(tour.tip_id == "lamp", "队列里的提示轮到：" + tour.tip_id)
 	tour.update(Tour.TIP_LIFE + 0.1)
 	check(tour.tip_id == "", "全部弹完后为空")
+	# 2b. 新手引导卡占着左上角时小提示让开（11-07 Toy 实测两张卡叠在一起）：正在显示的放回队首，卡收起后再弹
+	Cfg.seen_tips = []
+	tour.tip_id = ""
+	tour._queue = []
+	tour.show_tip("elite")
+	tour.hold_test = 1
+	tour.update(0.1)
+	check(tour.tip_id == "" and tour._queue == ["elite"], "引导卡出现：正在显示的提示放回队列")
+	tour.show_tip("lamp")
+	check(tour.tip_id == "" and tour._queue == ["elite", "lamp"], "引导卡显示期间新提示只排队")
+	tour.update(Tour.TIP_LIFE + 1.0)
+	check(tour.tip_id == "", "引导卡显示期间不弹")
+	tour.hold_test = 0
+	tour.update(0.1)
+	check(tour.tip_id == "elite" and tour.tip_t < 0.5, "引导卡收起后从头再弹：" + tour.tip_id)
+	tour.update(Tour.TIP_LIFE + 0.1)
+	tour.update(0.1)
+	check(tour.tip_id == "lamp", "队列按顺序：" + tour.tip_id)
+	tour.update(Tour.TIP_LIFE + 0.1)
+	tour.hold_test = -1
 	# 3. force 不记
 	var before: Array = Cfg.seen_tips.duplicate()
 	tour.show_tip("boss", true)

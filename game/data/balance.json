@@ -49,6 +49,9 @@
   "order_break": 1400,
   "pick_cost": 0.03,
   "pick_cap": 3.0,
+  "_doc_touch_confirm": "触屏选点（docs/315，11-07 用户「手机端指挥圆盘一点不明确」）：1 = 点目标预选（金框 +「再点一次确认」）→ 再点同一目标下令，点别处换预选，点空白 / 取消退出；0 = 旧的按住拖、松手确认",
+  "touch_confirm": 1,
+  "pick_cap_touch": 6.0,
   "recall_inv": 1.0,
   "voice_gap": 6.0,
   "voice_stagger": 0.4,
@@ -394,7 +397,7 @@
   "_doc": "新手引导演示局（docs/219）：Cfg.onboard = new 且没走过演示局时，第一局是 1–2 分钟的演示局（移动 → 升级 → 招募 → 终结技），结束后重开进正式局；演示局里怪物密度 × density、敌人伤害 × enemy_dmg，最晚 drill_max 秒强制结束（11-02 起两条线都走演示局：玩过 = 快速版；第一次进游戏强制走完、总长 ≤ 90 秒，150 → 90，docs/219 §6）。只在真人局生效，机器人 / 批跑不受影响",
   "density": 0.5,
   "enemy_dmg": 0.5,
-  "drill_max": 160
+  "drill_max": 240
  },
  "levelup": {
   "_doc": "升级卡池（game.gd _open_levelup）",
@@ -479,6 +482,15 @@
   "_swap": "满员后的招募卡（更换队友）：0 = 机器人一律不替换（满员招募卡不进候选）；1 = 按评分换（progression.auto_swap_target：档位 + 缺医疗 / 重装）",
   "swap": 0,
   "manual_hp": 0.3,
+  "human": {
+   "_doc": "human 档机器人（--bot=human，core/bot.gd，docs/308）：像用户本人，用来判难度。在 master 上叠：blind_p 每 blind_win 秒有这么大概率进入分心窗口（窗口内不看预警 / 弹幕）；warn_lag 新预警出现多少秒后才反应；bullet_w 弹幕躲避权重倍数；dash_wait 冲刺好了以后平均再等几秒就朝走的方向冲（当走路用，-1 = 关）；ult_hold_lo / hi 终结技充满后再等的秒数（均匀抽）；point_every 每隔几秒才考虑一次指点；mob_pick 冲刺 / 移速卡加分；keep / keep_melee 与敌人的距离（远程 / 近战编队）；boss_lo / hi 远程主控 Boss 站位、boss_hp 低于此血量不贴 Boss；still_p 每秒停步概率、停 still_lo–hi 秒；autopilot 1 = 分心窗口里不重新规划、沿原方向直走（0 = 照常打分只是不看预警 / 弹幕）；gap 1 = 保留 master 的被围找缺口突围（0 = 关）。--ht_<名>=<值> 覆盖",
+   "_calib": "缺省值 = docs/308 第四轮 h4c（main 12be8a496、humanstarts × 12 seed × diff 0）：胜率 26%、失败局 4:39–6:56，真人 10-29 起 20 局 30%、4:40–6:57。数值改动（如 docs/307 引痕者 / 护甲）合入后要按 docs/308 §5 重测",
+   "blind_p": 0.6, "blind_win": 0.8, "warn_lag": 0.4, "bullet_w": 0.5, "dash_wait": 1.4,
+   "ult_hold_lo": 5, "ult_hold_hi": 25, "point_every": 90, "mob_pick": 3.0,
+   "keep": 70, "keep_melee": 40, "boss_lo": 120, "boss_hi": 200, "boss_hp": 0.25,
+   "still_p": 0.04, "still_lo": 0.3, "still_hi": 0.8,
+   "autopilot": 1, "gap": 0
+  },
   "weights": {
    "prog": 6.0,
    "skill": 5.0,
@@ -793,6 +805,8 @@
   "_doc_mate": "队友点灯（10-30 用户「移动可以帮忙点亮灯塔」）：任一名队友（没倒地）在光圈 r 内也读条，速率 × mate_mult，队长同在圈里时按队长速率不叠加，遥测 via = mate；圆盘「移动」落点离未点燃灯标 order_snap 内时吸附到灯标中心，队友守在光圈里直到点燃 / 熄灭后回随行；机器人在队长没去点（离灯标 > bot/beacon_seek_r）时派队友去点（command/bot_point）。",
   "_doc_sweep": "10-26 用户「灯塔范围内的溟痕全部消失」+「提供一些回血加速和攻速加速」：点燃时清除圈内溟痕全部驱散（压在圈边的削掉），sweep_t 秒自中心扫到圈边、每片 sweep_fade 秒碎散；生效期间（block_t）圈内不留非 Boss 溟痕。灯标庇护：队长在生效中的清除圈里每秒回复 zone_regen_pct × 最大生命、全队攻速 +zone_aspd（0 = 关）",
   "sweep_t": 0.3,
+  "_doc_sweep_px": "驱散环画法（render/world.gd _sweep_px，11-08 用户 iPhone 截图「很粗的白 / 淡紫椭圆圈、锯齿明显」）：1 = 按美术像素格逐格画（外沿灯火暖黄 + 里一格溟痕淡紫，0–1 本色、断口约两成）；0 = 旧的 HDR 淡紫 5 像素平滑线（网页没有 HDR 截成白色）。只改画面",
+  "sweep_px": 1,
   "sweep_fade": 0.25,
   "zone_regen_pct": 0.015,
   "zone_aspd": 0.25,
@@ -923,8 +937,9 @@
   "on": 1,
   "ref_taken": 0.9,
   "ref_armor": 1.9,
-  "mid_cut": 0.22,
-  "scale": 0.76,
+  "mid_cut": 0.10,
+  "scale": 1.0,
+  "_scale_1107": "11-07 docs/307 §9：引痕者改可躲后机器人 m0 64.9 / m18 81.5 超窗口，用户定数值补偿回窗口：scale 0.76 → 1.0、mid_cut 0.22 → 0.10（加上引痕者前刺倍率 0.8 → 0.9），两个种子段合计 m0 55.1 / m18 69.3",
   "mid_from": 180,
   "mid_to": 420,
   "knots": [[0, 12.0], [180, 19.0], [300, 23.0], [420, 27.0], [600, 30.0]]
@@ -1000,6 +1015,7 @@
   "_gl_s3_pop_doc": "歌蕾蒂娅 S3 碎漩狂舞收尾小水爆（11-07 用户「格雷迪娅的 S3 我觉得最后缺一个漩涡压缩之后小型爆炸的特效」，docs/263 §10，render/fx_pxplane_gl.gd _draw_pop，只画）：1 = 收拢水墙后三股螺旋往芯里卷 → 压成亮点 → 内爆一拍 → 近白小圆芯 + 深海蓝 / 深渊紫水珠外溅（原细白水柱那几拍换掉）；0 = 原收尾", "gl_s3_pop": 1,
   "_wd_shell_v_doc": "维什戴尔炮弹按原作还原（render/fx_pxplane_wd.gd，11-07 用户「原本的子弹被改成了普通的子弹，按照原作的子弹去做」）：1 = 原作胶囊弹头（粉红弹尖 / 藏蓝弹身 / 白热尾口）+ 血红→藏蓝尾迹 + 红蓝两股细带 + 红色碎星，0 = 转平面第四版 3×3 黑铁小丸。只改画面", "wd_shell_v": 1,
   "_wd_dawn_v_doc": "维什戴尔 S3 爆裂黎明命中（render/fx_pxplane_wd.gd + tools/pxplane_wisadel_art.py dawn2_up，11-07 用户「S3 的半圆有点奇怪」→ 照原作改）：1 = 原作 skill_03_hit 式（贴地白热芯 + 十字白闪 + 一圈不规整红刺 + 电弧 → 火星），0 = 11-05 自创的地平线 + 平底光穹。只改画面", "wd_dawn_v": 1,
+  "_wd_echo_v_doc": "维什戴尔余响（第二次余震）的节点提示收缩环（seg_wisadel → fx_pxplane_cue「in」，11-08 用户 iPhone「很粗的白 / 淡紫椭圆圈、锯齿明显」）：1 = 她的配色（外藏蓝 #15224e、里炮击血红 #c41e18（偏橙，和敌方预警粉红 #ff2667 拉开），2 美术格宽，断口约 1/4，火星 6 颗）；0 = 旧的淡紫三格环（内格提亮成近白，进辉光发白）。只改画面", "wd_echo_v": 1,
   "_eyja_ball_tail_doc": "艾雅法拉直线弹（普攻火球 / 熔岩弹 / 强化 / 点燃弹）转平面后的尾焰（11-06 用户「现在的普通攻击像是平移出去的火球，没有了之前的方向感」，fx_pxplane._ey_tail）：1 = 沿飞行反方向画白热→暗红的渐细尾焰 + 头部热芯（缺省），0 = 只有 5 角帧条；只画",
   "eyja_ball_tail": 1,
   "_eyja_ball_lift_doc": "艾雅法拉直线弹画面抬升（11-06 用户「感觉是不是还是斜着飞过去的」，fx_pxplane._ey_lift）：弹从法杖尖出手、瞄敌人脚下，判定点一路往下斜；画面按飞行进度把弹抬到敌人身子高度（像素），朝向 / 尾焰顺着画面路径；0 = 不抬。判定、爆点不动；debug 加 --balldbg 叠青线 = 飞行方向、白点 = 最近 10 帧画面位置",
@@ -1045,6 +1061,8 @@
   "tell_full_max": 4,
   "tell_dim_alpha": 0.2,
   "_doc_hit_feel": "打击感一轮（docs/53，2026-10-10，纯画面 / 音效，不碰模拟与随机数）：受击后坐 recoil_px（世界单位，PX=2 即 1 像素=2）、recoil_t 秒回位、技能 / 暴击 / 弱点 ×recoil_skill_k，0 = 关；击杀爆点火花 = kill_sparks + r × kill_sparks_per_r，r ≥ kill_big_r 算大体型（外环 + 尘土 + 材质层音 kill_big_sfx / 甲壳 kill_shell_sfx，空串 = 不叠），击杀音音高 = 1.15 − r ÷ kill_pitch_r（0.75–1.15），大体型或暴击击杀顿帧 kill_pause 秒（共享 impact_pause 预算、受命中顿帧设置）；主控重击：单发 ≥ 最大生命 12% × hurt_heavy_sev 时叠 hurt_heavy（hurt_heavy_db）+ 配乐低通压到 hurt_duck_hz 保持 hurt_duck_t 秒",
+  "_hit_react_doc": "受击反应第 1 档（11-07 用户批，B站打击感教程口径：先做实受击方反应、再让火花指出受力方向；render/vfx.gd hit_react / _hr_admit、data.enemy_offset、fx_grains.spark；只改画面）：hit_react 1 = 所有干员（含远程、队友）命中的怪沿受力方向（出手干员 → 怪）后退 hit_react_px 美术像素（技能 / 暴击 / 弱点 ×hit_react_skill_k，队友 ×hit_react_mate，三档普攻取较大）、hit_react_t 秒先猛退再缓回；同屏同时反应至多 hit_react_cap 只（手机网页 hit_react_cap_mobile，后期按 late_k 乘到 hit_react_late），满了优先队长命中、离队长近的，超出的照旧原小后坐；命中火星沿出手方向扇面（hit_react_fan 弧度，无档命中 hit_react_n0 颗、干员本人色，同原 GPU 迸溅每 hit_react_gap 秒至多一把）；位移每帧在 world._eoff 算，不进敌人画法缓存签名；0 = 原样",
+  "hit_react": 1, "hit_react_px": 4.0, "hit_react_skill_k": 1.35, "hit_react_mate": 0.8, "hit_react_t": 0.1, "hit_react_cap": 32, "hit_react_cap_mobile": 12, "hit_react_late": 0.5, "hit_react_fan": 1.3, "hit_react_n0": 3, "hit_react_gap": 0.05,
   "recoil_px": 3.0,
   "recoil_t": 0.1,
   "_grains_adapt_doc": "（10-27 起不再读，docs/50 §36）颗粒帧时自适应已删：局中不按掉帧自动收颗粒；手机按 render/grains_mobile_k 固定系数",
@@ -1149,6 +1167,9 @@
   "op_unlit": 1,
   "_doc_mid_full_fx": "中档颗粒量（docs/50 §26，10-25 用户「以现在高档的画质作为中档的画质来保障」）：1 = 中档的 CPU 颗粒（fx_grains 上限 900 / 火星 240 / 材质 48）与 GPU 粒子池（optical_particles k_amount 1）同高档；0 = 旧的中档减半。满帧时由 fx/grains_adapt 帧时自适应往下收",
   "mid_full_fx": 1,
+  "_doc_low_grains": "低档颗粒（docs/50 §36、docs/312）：low_grains = 低档所有 CPU 颗粒按中档的这个比例保留（11-07 用户「最低的特效版本加一点点粒子」0.4 → 0.55）；low_bullet_grains = 低档子弹颗粒（命中 / 消失迸散）在此基础上再乘的份额（原来低档整层关）。光学 GPU 粒子低档仍关",
+  "low_grains": 0.55,
+  "low_bullet_grains": 0.6,
   "_doc_fx_int_scale": "特效缩放取整到低分辨率层整数格（docs/138 §10，用户 10-24 定）：1 = 每个美术像素 ≥ 0.75 格的帧条特效取整到最近整数格（像素宽度均匀），< 0.75 格的不动；0 = 原样。只在光学低分辨率层开着时生效；按半径拟合的区域 / 扩散件不取整",
   "fx_int_scale": 1,
   "_doc_kill_style": "光学观感下的击杀（docs/130 C5，用户 10-24 定）：1 = 死亡动作加快后最后一帧碎成像素碎屑、不画溶解与老火花；0 = 旧样子（帧条 / 溶解 + 碎屑 + 火花）",
@@ -1237,6 +1258,8 @@
   "phone_font_mult": 1.18,
   "_doc_font_ark": "原作式字重（docs/292）：1 = 名字 / 标题用思源黑体 Heavy（字距收 1 像素），桌面正文换 Regular（手机正文仍 Medium）；0 = 旧版全 Bold（缺省：11-06 用户定退回旧粗体，给羁绊技腾网页包空间；ui_heavy / ui_regular 不进发行包，开 1 只在开发版有效）",
   "font_ark": 0,
+  "_doc_settings_v2": "设置行样式 v2（11-07 对照，settings_panel._draw_row_v2）：1 = 名称 + 英文标签同行、说明在下一行，右侧固定宽控件列（开关也改成「关闭 / 开启」两格、◀ 数值 ▶ 带细条、按钮同宽描边）；0 = 旧样式（保留可切回）。11-07 用户「设置页 v2 没问题」定为缺省 1",
+  "settings_v2": 1,
   "_doc_hud_v2": "局内 HUD 编辑式（docs/222，11-02 用户定）：1 = 编辑式（Montserrat 读数 + 细线条、队友生命左上突击 / 受伤才显示、右上源石锭 / 藏品 / 暂停 / 倍速小牌（触屏加属性）、右下四格指挥 + 全身立绘卡、触屏按键编辑式）；0 = 旧 HUD 原样",
   "hud_v2": 1,
   "_doc_hud_v3": "局内指挥台（docs/222 §18，11-05 用户定稿）：1 = 正下方一台（左：马灯 + 状态行 + 生命 / 灯火细线 + 冲刺；中：队长头像 + 终结技刻度环 + 等级；右：队友头像 + 血量 + 小队指令牌），左上生命块、右下编队卡、状态行、底部冲刺 / 瞄准提示不画；0 = HUD v2（编辑式四角）。console_idle 闲时整台不透明度（掉血、终结技满、队友倒地、冲刺、换指令、低血 / 低灯火时提亮）；console_hold 有变化后保持全亮的秒数",
@@ -1392,5 +1415,14 @@
   "exu_hv_cd": 4.0,
   "exu_hv_stun": 1.0,
   "exu_hv_mult": 2.0
+ },
+ "feedback": {
+  "_doc": "玩家反馈入口（docs/311，11-07 用户批）：form_url = itch / 桌面 / itch 网页的问卷链接（https://…），留空 = 不显示「意见反馈」。B站 Toy 不用配置（11-07 用户：不跳视频，浮层直接写「请在评论区留言」+ 反馈码），总是显示",
+  "form_url": ""
+ },
+ "toy": {
+  "_doc": "B站 Toy「支持作者」奖励（docs/313，用户 11-07 定，只在 Toy 版出现）：support_follow = 1 显示「关注作者」一项（送 5 张寻访凭证）；support_bvid = 三连检测的视频 BV 号（送 5 张凭证 + 专属分享卡边框），留空 = 不显示三连那一项（PV 还没发）",
+  "support_follow": 1,
+  "support_bvid": ""
  }
 }

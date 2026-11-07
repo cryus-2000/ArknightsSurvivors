@@ -126,7 +126,16 @@ func _ready() -> void:
 	glow_tex = gt
 
 
+## 手机网页：图鉴打开期间新读进贴图缓存的（各干员动作帧条、演示局读的特效、敌人图鉴）关图鉴时拿掉（docs/314 §2）。--bal=web/mobile_gallery_trim=0 退回
+var _pre_cache := {}
+
+static func _mobile_trim() -> bool:
+	return Cfg.mobile_web() and Cfg.mobile_knob("mobile_gallery_trim", 1.0)
+
+
 func open() -> void:
+	if _mobile_trim() and not visible:
+		_pre_cache = A.cache_keys()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	visible = true
 	_build()
@@ -145,6 +154,8 @@ func _warm_demo() -> void:
 		return
 	_warmed = true
 	ResourceLoader.load_threaded_request("res://scripts/characters/data_operator.gd")
+	if _mobile_trim():
+		return   # 手机网页不预读整局贴图（docs/314 §2：全员 V6 特效 + 全部敌人 + 白剪影约 260 MB，真机开局 600 MB 的大头）；演示首点现读，慢一点
 	var G = load("res://scripts/game.gd")
 	var enemies: Array = []   # 敌人帧条：一局开局要算白色剪影（受击闪白）
 	for k in D.ENEMIES:
@@ -171,6 +182,11 @@ func close() -> void:
 	_demo_stop()
 	ev_cg.clear()
 	Sfx.play("ui_ok")
+	if _mobile_trim() and not _pre_cache.is_empty():
+		var nd: int = A.drop_new(_pre_cache)
+		_pre_cache = {}
+		if not Cfg.dev_args().is_empty():
+			print("PF GALTRIM dropped=%d" % nd)
 
 
 ## 启动 / 切换演示：同一干员不重建
@@ -1350,7 +1366,7 @@ func _draw() -> void:
 		_draw_panel(e, ph)
 	_draw_hint(ph)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	_draw_logo_intro()   # 「档案解密」入场（盖在最上面，0.8 秒）
+	_draw_logo_intro()   # 「档案解密」入场（盖在最上面，1.2 秒）
 
 
 ## 职业色斜带 + 延伸到右侧面板底下的回声带（同一扫入：换干员时新颜色从左扫过、透过磨砂玻璃也看得见）
@@ -2714,6 +2730,7 @@ func _logo_start() -> void:
 		if not e.get("locked", false):
 			nc += 1
 	intro.info = {"count": nc, "total": entries.size()}
+	intro.slow = 1.5   # 用户 11-05「可以稍微慢一点」：0.8 → 1.2 秒
 	intro.start("decrypt", test)
 	if frost_ci == null and glass_mat != null and glass_fx:
 		frost_bbc = BackBufferCopy.new()

@@ -8,10 +8,12 @@ extends RefCounted
 ##   expert  高手：每帧对 16 个方向打分找空地、持续绕圈风筝、提前躲预警；选卡按编队缺口与局势打分。
 ##   master  熟练真人（2026-09-29，校准新难度用）：在 expert 上加敌人 / 弹幕外推预判、冲刺无敌躲招（含必须冲刺的解读冲击）、
 ##           防包围（找最大缺口）、按编队射程拉开输出、Boss 环形弹幕钻缺口；选卡认流派凑套、按藏品强度档、受伤优先回复，商店同规则。
+##   human   像用户本人（2026-11-07，docs/308，判难度用）：master 走位 + 分心窗口（这段时间不看预警 / 弹幕）、新预警反应延迟、
+##           冲刺当走路用、终结技满了晚放、少用指点、Boss 贴得更近、偶尔停步；选卡同 master 再偏机动卡。旋钮在 balance.json bot/human，--ht_<名>=<值> 覆盖。
 ##
 ## 所有随机都走自己的 RandomNumberGenerator（按 --seed 派生），不碰全局随机流，同 seed 可复现性不变差。
 
-const PROFILES := ["afk", "bad", "normal", "expert", "master", "circle"]
+const PROFILES := ["afk", "bad", "normal", "expert", "master", "circle", "human"]
 
 var g                           # game.gd
 var profile := "normal"
@@ -56,15 +58,22 @@ func _init(game, p: String, seed_v: int) -> void:
 			var kv: PackedStringArray = a.substr(5).split("=")
 			if m_tune.has(kv[0]):
 				m_tune[kv[0]] = float(kv[1])
+	if profile == "human":
+		_human_init()
 
 
 # =====================================================================
 # 移动
 # =====================================================================
 func move(dt: float) -> Vector2:
-	if profile != "afk" and g.get("squad") != null:
+	if profile == "human" and g.get("squad") != null:
+		h_point_t -= dt
+		if h_point_t <= 0.0:
+			h_point_t = h_tune.point_every   # 真人很少用指点（11-07 真人 sorties 均 1.6 次 / 局，master 17 次）：每 point_every 秒才看一次
+			g.squad.bot_point(999.0)
+	elif profile != "afk" and g.get("squad") != null:
 		g.squad.bot_point(dt)   # 指点：Boss 在场集火、被包围时肃清最密的一块（10-30，command/bot_point）
-	if profile in ["normal", "expert", "master"]:
+	if profile in ["normal", "expert", "master", "human"]:
 		var dd: Vector2 = g.duck.bot_dash(g.ppos)
 		if dd != Vector2.ZERO:
 			g.autotest_sys.want_dash = true   # 鸭爵跑得比走路快：冲刺好了就朝它冲（docs/216 §11.3）
@@ -80,6 +89,8 @@ func move(dt: float) -> Vector2:
 			return _move_master(dt)
 		"circle":
 			return _move_circle(dt)
+		"human":
+			return _move_human(dt)
 	return g.autotest_sys.bot_move()
 
 
@@ -239,7 +250,7 @@ func _score_point(q: Vector2, _near: Array) -> float:
 		elif dd < 220.0:
 			s -= (220.0 - dd) / 220.0 * 0.35 * w
 	for wv in g.warns:
-		if wv.done:
+		if wv.done or (h_on and not _h_sees(wv)):
 			continue
 		if _in_warn(wv, q, 36.0):
 			s -= 25.0
@@ -372,7 +383,7 @@ func pick(choices: Array) -> int:
 			return rng.randi() % choices.size()
 		"expert":
 			return _pick_expert(choices)
-		"master":
+		"master", "human":
 			return _pick_expert(choices, true)
 	return -1
 
@@ -399,7 +410,7 @@ func _lane_best(items: Array, ingots := -1) -> int:
 
 ## 商店：流派专精时先买买得起的该流派藏品；返回 -1 交给原有买法（从上往下买第一件买得起的）
 func shop_pick() -> int:
-	if lane == "" and profile == "master":
+	if lane == "" and profile in ["master", "human"]:
 		return _shop_master()
 	if lane == "":
 		return -1
@@ -449,6 +460,8 @@ func _pick_expert(choices: Array, master := false) -> int:
 					s += 3.0   # 熟练玩家：残血先拿回复
 				if g.lamp < 40.0 and id == "wick":
 					s += 2.0
+				if h_on and (id.begins_with("dash_") or id == "speed"):
+					s += h_tune.mob_pick   # 真人偏机动卡（10-29 起 20 局：冲刺 / 移速卡 1.25 张 / 局，expert 0.09）
 			"weapon":
 				s = 2.0 if has_sustain else 5.0
 			"filler":
@@ -515,7 +528,7 @@ func _move_master(_dt: float) -> Vector2:
 	if bg != Vector2.INF:
 		goal = bg
 		beacon_hold = Vector2.INF   # 目标换成 Boss 站位，灯标不再加权
-	var gap_dir := _master_gap(p, near)
+	var gap_dir := Vector2.ZERO if (h_on and h_tune.gap <= 0.0) else _master_gap(p, near)   # human：真人不会找最大缺口突围
 	if gap_dir != Vector2.ZERO:
 		goal = gap_dir if goal == Vector2.ZERO else (goal * 0.4 + gap_dir).normalized()
 		beacon_hold = Vector2.INF
@@ -584,6 +597,8 @@ func _move_master(_dt: float) -> Vector2:
 
 ## 弹幕：沿 d 走 0.1–0.6 秒后会不会和弹幕重叠；越早撞上扣得越多
 func _master_bullets(p: Vector2, d: Vector2, spd: float, bullets: Array) -> float:
+	if h_on and h_blind > 0.0:
+		return 0.0   # human 分心窗口：不看弹幕
 	var s := 0.0
 	for bl in bullets:
 		var r: float = float(bl.get("r", 6.0)) + 18.0
@@ -591,13 +606,15 @@ func _master_bullets(p: Vector2, d: Vector2, spd: float, bullets: Array) -> floa
 			if (p + d * spd * tau).distance_to(bl.pos + bl.vel * tau) < r:
 				s -= 11.0 - tau * 8.0
 				break
-	return s
+	return s * (h_tune.bullet_w if h_on else 1.0)
 
 
 ## Boss 环形弹幕：站到留缺口的方向；扇形弹幕：离开扇面（子弹飞得比预警画出的 140 像素远）
 func _master_pattern(q: Vector2, rings: Array) -> float:
 	var s := 0.0
 	for w in rings:
+		if h_on and not _h_sees(w):
+			continue
 		var dv: Vector2 = q - w.pos
 		if dv.length() < 40.0:
 			continue
@@ -657,7 +674,7 @@ func _master_dash_dir(p: Vector2, best_dir: Vector2, spd: float, bullets: Array,
 	var need := false
 	# ① 预警 0.2 秒内结算且走不出去（必须冲刺的解读冲击也在这里）
 	for w in g.warns:
-		if w.done:
+		if w.done or (h_on and not _h_sees(w)):
 			continue
 		var rem: float = float(w.dur) - float(w.t)
 		if rem > 0.2 or not _in_warn(w, p, 12.0):
@@ -666,7 +683,7 @@ func _master_dash_dir(p: Vector2, best_dir: Vector2, spd: float, bullets: Array,
 			need = true
 			break
 	# ② 弹幕 0.12 秒内命中，沿选定方向走也躲不开
-	if not need:
+	if not need and not (h_on and h_blind > 0.0):
 		for bl in bullets:
 			var r: float = float(bl.get("r", 6.0)) + 14.0
 			for tau in [0.04, 0.08, 0.12]:
@@ -759,7 +776,7 @@ func _stand_ok(p: Vector2, bullets: Array) -> bool:
 	if g.hp < g.max_hp * 0.4:
 		return false
 	for wv in g.warns:
-		if not wv.done and _in_warn(wv, p, 12.0):
+		if not wv.done and not (h_on and not _h_sees(wv)) and _in_warn(wv, p, 12.0):
 			return false
 	for m in g.mires:
 		if g.combat.ground_d(p, m.pos) < float(m.r) + 10.0:
@@ -846,3 +863,93 @@ func _bdbg(p: Vector2, here: float) -> void:
 				unlit += 1
 		print("BDBG t=%d hp=%d frames=%d hold=%d in55=%d stand=%d danger=%d unlit=%d" % [g.t, int(100.0 * g.hp / g.max_hp), b_stat.frames, b_stat.hold, b_stat.in55, b_stat.stand, b_stat.danger, unlit])
 		b_stat.frames = 0; b_stat.hold = 0; b_stat.in55 = 0; b_stat.stand = 0; b_stat.danger = 0
+
+
+# =====================================================================
+# human：像用户本人（2026-11-07，docs/308；用户 11-07「按照我的操作习惯迭代一下机器人」）
+# =====================================================================
+## 在 master 走位 / 选卡上叠真人的毛病，参数来自用户真人局（runs.jsonl，bot.profile == "player"）。
+## 旋钮缺省在 balance.json bot/human（带 _doc），--ht_<名>=<值> 覆盖。随机只走本机器人的 rng，不碰玩法随机流。
+var h_on := false
+var h_tune := {"blind_p": 0.6, "blind_win": 0.8, "warn_lag": 0.4, "bullet_w": 0.5, "dash_wait": 1.4,
+	"ult_hold_lo": 5.0, "ult_hold_hi": 25.0, "point_every": 90.0, "mob_pick": 3.0,
+	"keep": 70.0, "keep_melee": 40.0, "boss_lo": 120.0, "boss_hi": 200.0, "boss_hp": 0.25, "still_p": 0.04, "still_lo": 0.3, "still_hi": 0.8,
+	"autopilot": 1.0, "gap": 0.0}
+var h_blind := 0.0        # >0：分心窗口剩余秒数（不看预警 / 弹幕）
+var h_win_t := 0.0        # 下一次判定「这一段看不看屏幕」的倒计时
+var h_still_t := 0.0      # >0：停步剩余秒数
+var h_still_chk := 1.0
+var h_dash_at := -1.0     # 冲刺好了以后，打算在这一刻冲（-1 = 还没定）
+var h_point_t := 0.0
+var h_full_t := -1.0      # 终结技充满的时刻（本机器人自己记）
+var h_hold := 0.0
+var h_ult_n := 0
+
+
+func _human_init() -> void:
+	h_on = true
+	var sec: Dictionary = g.Bal.sec("bot").get("human", {})
+	for k in h_tune.keys():
+		if sec.has(k):
+			h_tune[k] = float(sec[k])
+	for a in Cfg.dev_args():
+		if a.begins_with("--ht_") and a.contains("="):
+			var kv: PackedStringArray = a.substr(5).split("=")
+			if h_tune.has(kv[0]):
+				h_tune[kv[0]] = float(kv[1])
+	for k in ["keep", "keep_melee", "boss_lo", "boss_hi", "boss_hp"]:
+		m_tune[k] = h_tune[k]   # 走位距离 / Boss 站位沿用 master 的实现，只换取值
+	h_point_t = h_tune.point_every
+
+
+## 这条预警现在「看见」了没有：分心窗口里看不见；新出现的预警要 warn_lag 秒后才反应过来
+func _h_sees(w: Dictionary) -> bool:
+	return h_blind <= 0.0 and float(w.get("t", 9.0)) >= h_tune.warn_lag
+
+
+func _move_human(dt: float) -> Vector2:
+	h_win_t -= dt
+	if h_blind > 0.0:
+		h_blind -= dt
+	if h_win_t <= 0.0:
+		h_win_t = h_tune.blind_win
+		if rng.randf() < h_tune.blind_p:
+			h_blind = h_tune.blind_win   # 这一段在看别处（选卡后回神、看招募 / 血条、手忙脚乱）
+	h_still_chk -= dt
+	if h_still_chk <= 0.0:
+		h_still_chk = 1.0
+		if h_still_t <= 0.0 and rng.randf() < h_tune.still_p:
+			h_still_t = rng.randf_range(h_tune.still_lo, h_tune.still_hi)
+	if h_still_t > 0.0:
+		h_still_t -= dt
+		return Vector2.ZERO
+	var d := Vector2.ZERO
+	var zone_edge: bool = g.zone_state != 0 and g.ppos.distance_to(g.zone_c) > g.zone_r - 90.0   # 缩圈边上真人会看圈（真人 0 局出圈死，h2c 7 / 84）
+	if h_blind > 0.0 and h_tune.autopilot > 0.0 and not zone_edge:
+		d = last_dir   # 分心窗口：不重新规划，沿原方向直走（真人接触伤害占比 35%，master 打分走位只有 15–19%）
+	else:
+		d = _move_master(dt)
+	# 冲刺当走路用（真人 23 次 / 分，cd 1.2 秒）：冲刺好了以后等 0–2×dash_wait 秒，朝当前走的方向冲；master 的躲招冲刺照常
+	if h_tune.dash_wait >= 0.0 and d != Vector2.ZERO and g.dash_ready() and g.dash_t <= 0.0:
+		if h_dash_at < 0.0:
+			h_dash_at = g.t + rng.randf() * 2.0 * h_tune.dash_wait
+		elif g.t >= h_dash_at:
+			g.autotest_sys.want_dash = true
+			h_dash_at = -1.0
+	elif not g.dash_ready():
+		h_dash_at = -1.0
+	return d
+
+
+## 终结技（run/ult.gd _auto_cast 每帧问）：true = 先不放。human 充满后再等 ult_hold_lo–hi 秒（真人满了不放 均 69 秒 / 局，expert 25）
+func ult_hold(u) -> bool:
+	if not h_on:
+		return false
+	var n: int = int(u.stats.get("ult", 0))
+	if n != h_ult_n:
+		h_ult_n = n
+		h_full_t = -1.0
+	if h_full_t < 0.0:
+		h_full_t = g.t
+		h_hold = rng.randf_range(h_tune.ult_hold_lo, h_tune.ult_hold_hi)
+	return g.t - h_full_t < h_hold

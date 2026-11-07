@@ -301,6 +301,13 @@ def check_cc_lint():
     return {"name": "敌人控制直写 cc_lint", "ok": not errs, "detail": detail, "errors": errs[:8]}
 
 
+def check_node_cue_lint():
+    """不开 Godot（<0.1 秒）：成长节点画面出口棘轮（docs/310 §2）——seg_*.gd 里新写的 o.fx / o.sparks 函数必须同时发 _FXR.ev / ncue"""
+    import node_cue_lint
+    errs, detail = node_cue_lint.check()
+    return {"name": "节点画面出口 node_cue_lint", "ok": not errs, "detail": detail, "errors": errs[:8]}
+
+
 def check_enemy_art():
     import enemy_art_check
     errs, detail = enemy_art_check.check()
@@ -308,7 +315,7 @@ def check_enemy_art():
 
 
 def check_asset_lint():
-    """不开 Godot（约 3 秒）：素材命名与目录（tools/asset_lint.py，docs/189 §5）。ERROR 算失败（运行时贴图留在收货区 L1、重名 L2、非法文件名 N1），WARN 只报告"""
+    """不开 Godot（约 3 秒）：素材命名与目录（tools/asset_lint.py，docs/189 §5）。ERROR 算失败（运行时贴图留在收货区 L1、重名 L2、非法文件名 N1、uid 撞号 U1 / 写法不规范 U2），WARN 只报告"""
     import asset_lint
     errs, detail = asset_lint.check()
     return {"name": "素材命名与目录 asset_lint", "ok": not errs, "detail": detail + "（明细 python tools/asset_lint.py）", "errors": errs[:8]}
@@ -1095,6 +1102,7 @@ SCENE_REGRESSIONS = {
     "credits": ("致谢与声明滚动：键鼠 / 手柄 / 触屏输入", "credits_input_test", r"CREDITS INPUT: 0 failures", []),
     "esc_layers": ("各层 Esc 关闭当前层级 / 设置页键盘与输入法物理键码 / 设置 70% 面板与 × 关闭", "esc_layers_test", r"ESC LAYERS: 0 failures", []),
     "title_menu": ("标题磁贴群 / 难度页：四种菜单组、二维导航、键鼠 / 手柄 / 触屏", "title_menu_input_test", r"TITLE MENU INPUT: 0 failures", []),
+    "touch_command": ("触屏指挥点选确认：点「指挥」→ 圆盘选集火 / 部署 → 点目标预选 → 换预选 → 再点下令；点空白 / 取消键退出、圈外不预选（docs/312）", "touch_command_test", r"TOUCH COMMAND: 0 failures", ["--touch", "--op=mizuki", "--squad=hoshiguma,exusiai"]),
     "touch_move": ("触屏摇杆移动：桌面 --touch / 手机比例、大 / 负触点编号（iOS Safari）、两指", "touch_move_test", r"TOUCH MOVE: 0 failures", ["--touch"]),
     "cam_resize": ("换分辨率 / 拖窗口 / 全屏 / 换档后战斗镜头可见高与进局时一致（桌面五种分辨率，docs/50 §38）", "cam_resize_test", r"CAM RESIZE failures=0", []),
     "cam_resize_touch": ("同上，手机横屏比例 + iPhone 1 美术像素 = 4 物理像素", "cam_resize_test", r"CAM RESIZE failures=0", ["--touch"]),
@@ -1211,6 +1219,9 @@ SCENE_REGRESSIONS = {
     "warn_v2_contract": ("普通怪预警收细契约（render/warn_v2，缺省关；精英 / Boss / 必须冲刺不变）", "warn_v2_contract.gd", r"WARN_V2_CONTRACT PASS", []),
     "elite_mark_v2_review": ("精英 / 小队标记 v2 规则 + 画法缓存自检（render/elite_mark_v2，缺省关）", "elite_mark_v2_review", r"ELITE_MARK_REVIEW dc_checked=[1-9]", ["--dccheck"]),
     "build_affinity": ("构筑匹配（docs/119 §4.3 / §4.4 → docs/197）：藏品流派 × 干员流派匹配、卡面说明行、强制招募保底与开关", "build_affinity_test", r"BUILD AFFINITY failures=0", ["--balance", "--op=angelina", "--squad=skadi,kaltsit"]),
+    "web_focus": ("失焦保护（docs/317）：失焦后摇杆 / 按键 / 鼠标松开、圆盘取消不下令、选点取消、对局自动暂停、非对局状态回来补暂停", "web_focus_test", r"WEB FOCUS failures=0", ["--touch", "--focustest", "--focuspause", "--op=mizuki", "--squad=hoshiguma,exusiai"]),
+    "toy_support": ("B站 Toy「支持作者」（docs/313）：模拟 SDK 关注 / 三连 / unsupported / 未登录，每项只发一次 5 张凭证、三连解锁分享卡边框、云存档并集、浮层提示", "toy_support_test", r"TOY SUPPORT failures=0", ["--fbtoy", "--toybv=BV1xx411c7mD"]),
+    "feedback_code": ("反馈码（docs/311）：没配目标不显示入口、字母表 + 校验位、同摘要同码、改一项就变", "feedback_code_test", r"FEEDBACK failures=0", []),
     "card_desc": ("卡片描述不串台：公共成长 / 填充 / 支援卡不含队长手动技能提示（10-22 截图），干员卡只提自己的技能", "card_desc_test", r"CARD DESC failures=0", ["--balance", "--op=ulpianus", "--squad=skadi,angelina"]),
     "recruit_offer": ("入队邀请二选一（docs/252，用户 11-05）：铜印 / 银印 / 立即招募事件机器人同一帧接受、玩家局弹「接受入队 / 婉拒」并暂停，数字键 / 方向键回车 / 点卡都能选，婉拒给成长三选一（银印另加全队推进），满员不弹", "recruit_offer_test", r"RECRUIT OFFER failures=0", ["--bal=ult/rework=0", "--bal=growth/late_shape=0", "--bal=growth/visible_nodes=0", "--bal=growth/elite_show=0", "--balance", "--seed=1", "--op=eyjafjalla"]),
     "recruit_offer_touch": ("入队邀请二选一 · 触屏排版（同上，--touch）", "recruit_offer_test", r"RECRUIT OFFER failures=0", ["--bal=ult/rework=0", "--bal=growth/late_shape=0", "--bal=growth/visible_nodes=0", "--bal=growth/elite_show=0", "--balance", "--seed=1", "--op=eyjafjalla", "--touch"]),
@@ -1230,7 +1241,7 @@ def check_onboard_reload(godot):
     name = "新手引导结束重开场景（docs/219 §6）：强制教程（玩过线）走完后重开场景进正式局，再跑 30 秒无报错"
     out, err, to, log = _run([godot, "--headless", "--audio-driver", "Dummy", "--fixed-fps", "30", "--path", GAME, "--",
                               "--balance", "--realtime", "--seed=3", "--op=mizuki", "--bot=master", "--nodeath",
-                              "--onboard=ask", "--onboardpick=0", "--onboardreload", "--maxt=30"], 300, "onboard_reload")
+                              "--onboard=ask", "--onboardpick=0", "--onboardreload", "--maxt=60"], 300, "onboard_reload")
     errs = GR.script_errors(out, err)
     i_done = out.find("ONBOARD forced_done")
     i_rel = out.find("ONBOARD reloaded")
@@ -1358,7 +1369,7 @@ def main():
     ap.add_argument("--ab", metavar="REF", help="与某个提交做 A/B 对比（机器人标准矩阵）")
     ap.add_argument("--seeds", type=int, default=4)
     ap.add_argument("--keep", action="store_true", help="A/B 结束后保留临时工作树")
-    ap.add_argument("--only", choices=["core", "smoke", "nodes", "hold_aim", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "data_lint", "graph_lint", "check_map", "text_reconcile", "shader_lint", "px_lint", "enemy_art", "asset_lint", "asset_index", "onboard_reload"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
+    ap.add_argument("--only", choices=["core", "smoke", "nodes", "hold_aim", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "node_cue_lint", "data_lint", "graph_lint", "check_map", "text_reconcile", "shader_lint", "px_lint", "enemy_art", "asset_lint", "asset_index", "onboard_reload"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
     ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS,
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
     ap.add_argument("--bal", action="append", default=[], metavar="段/键=值",
@@ -1430,6 +1441,8 @@ def main():
         jobs.append(check_text_reconcile)
     if a.only in (None, "check_map"):
         jobs.append(check_map)
+    if a.only in (None, "node_cue_lint"):
+        jobs.append(check_node_cue_lint)   # 不开 Godot；--auto 也跑（docs/310 §2：新节点提示别只写 o.fx）
     if a.only in (None, "cc_lint"):
         jobs.append(check_cc_lint)   # 不开 Godot，约 1 秒；--auto 也跑（击退累加漏乘失重、干员绕过 add_cc / set_air）
     branch_full, ops = False, set()

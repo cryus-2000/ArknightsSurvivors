@@ -111,6 +111,7 @@ var autotest_sys = load("res://scripts/run/autotest.gd").new(self) if OS.is_debu
 var demo_sys = DemoRun.new(self)   # 图鉴攻击演示 / 精英化演出（gallery.gd 把 game.tscn 以 demo_op 模式放进 SubViewport）
 var spawner = Spawner.new(self)   # 刷怪
 var shop_sys = ShopSys.new(self)   # 商人与商店（逻辑）
+var web_focus = preload("res://scripts/web_focus.gd").new()   # 失焦保护（docs/317）：清按住状态、网页版自动暂停、回来把焦点还给画布
 var web_fs = preload("res://scripts/web_fs.gd").new()   # 网页版全屏与 Esc（docs/299）：退出全屏当暂停、P 键暂停、暂停菜单「返回全屏」；只在网页版桌面生效
 var beacon_sys = Beacon.new(self)  # 引航灯标：站桩点燃、驱散溟痕（run/beacon.gd，docs/49d §13.5 C）
 var weapons_sys = WeaponsSys.new(self)   # 子弹与支援装置
@@ -423,6 +424,8 @@ var foe_top: Node2D   # 敌方顶层（docs/226 §1，render/foe_top）：敌弹
 var wcv: CanvasItem = self   # 世界绘制当前提交到的画布：平时是 game 自己，敌方顶层那一遍是 foe_top（render/*.gd 一律画到 g.wcv）
 var settings: Control
 var ui_layer: CanvasLayer   # 界面层（HUD / 面板 / 设置）：触屏时整体放大 Cfg.ui_k
+var feedback_view: Control = null   # 结算「反馈」浮层（screens/feedback_view.gd，第一次点时建）；开着时局内 _input 让开
+var run_wall_ms := Time.get_ticks_msec()   # 本局开始的真实时刻（反馈码的局时）
 var result_btns: Array = []   # [Rect2, action]
 var pause_btn := Rect2()      # 右上角暂停按钮（仅游戏中可点）
 # ---- 手柄 / 键盘焦点（docs/28）：选卡 / 商店的卡片焦点、暂停与结算按钮焦点
@@ -511,6 +514,8 @@ const OPT_SKPAT := 134217728   # 浊心斯卡蒂小图案（fx_pxplane._sk_pat�
 const OPT_SDPF := 268435456   # 斯卡蒂终结技方向图集预读（run/ult_px_sd._prefetch，docs/287 §3 ⑦）：方向档稳定 3 帧才读、先放旧的；置位走旧写法（每跨一档就读）
 const OPT_PXEVICT := 536870912   # 转平面帧条 60 秒没画就放（fx_pxplane._tex_evict，docs/287 §3 ⑥）；置位不放（旧写法）
 const OPT_LATEFX := 1073741824   # 后期特效控制（render/late_fx，docs/293）帧时对照（docs/305）：置位时本帧 late_k = 0（同 8:00 前的画法）。只供 --optab 量净差
+const OPT_LOWFX := 2147483648   # 低档颗粒（docs/312，11-07）：置位走旧低档（low_grains 0.4、子弹颗粒整层关），只供 --optab 量净差
+const OPT_HITREACT := 4294967296   # 受击反应第 1 档（fx/hit_react，render/vfx.gd）帧时对照：置位时本帧按关处理（原小后坐 + 原火星）。只供 --optab 量净差（合入时与 OPT_LOWFX 撞位，改 2^32）
 const OPT_TOUCHB := 1048576  # 触屏按钮（touch.gd draw_hud）：圆 / 弧 / 线进 TriBatch、图标与字随后成组画；置位走旧写法（逐个 draw_*）。画面相同（按钮互不重叠时）
 var bal_dt := 0.066             # --dt=<秒>（仅 --balance）：批跑每帧步长，缺省 0.066（9/30 起所有难度校准 / 云端基线的口径）；按位移判定的改动可用 --dt=0.016667 抽查（docs/36 §8.2）
 var placebo_n := 0              # --placebo=N（仅测试）：开局多抽 N 次主 rng——机制不变、换一份随机实现，判「改动」还是「这组 seed 的运气」（docs/36 §8.2）
@@ -779,6 +784,31 @@ func _enemy_evict(n: String) -> void:
 			A.uncache(nm)
 	tex_deferred[n] = true
 
+## 手机网页进局（docs/314 §2）：标题页 / 图鉴 / 寻访 / 选人读进缓存、本局固定名单里没有的贴图拿掉（art.gd _outrun）。
+## 首次进游戏的新手引导会开图鉴，全员动作帧条、敌人帧条、名册立绘原来整局留在缓存里（iPhone 真机开局贴图 442 vs 343 MB）。
+## --bal=web/mobile_drop_outrun=0 退回；桌面不做（显存够，回标题再进图鉴少读一次）
+func _drop_outrun_tex() -> void:
+	if not (Cfg.mobile_web() and Cfg.mobile_knob("mobile_drop_outrun", 1.0)) and not Cfg.dev_args().has("--dropoutrun"):
+		A.outrun_track = false
+		return
+	var keep := {}
+	var ids := {Cfg.character_id: true}   # 开局编队（同 title._op_ids）：手机按需读特效时只留这些人的 V6 帧条
+	for a in Cfg.dev_args():
+		if a.begins_with("--op="):
+			ids = {a.substr(5): true}
+	for a in Cfg.dev_args():
+		if a.begins_with("--squad="):
+			for c in a.substr(8).split(","):
+				ids[c] = true
+	for n in preload_tex_names():
+		var ow: String = A.fx_owner(str(n)) if lazy_fx and V6_FRAMES.has(n) else ""
+		if ow == "" or ids.has(ow):
+			keep[str(n)] = true
+	var nd := A.drop_outrun(keep)
+	if not Cfg.dev_args().is_empty():
+		print("PF OUTRUN dropped=%d" % nd)
+
+
 ## 中途入队的干员：补读开局跳过的专属特效帧条；光学压阶（optical._fxq_step）名单已建好时把它们接到名单末尾，照常换压阶版
 func load_op_fx(cid: String) -> void:
 	var ns: Array = tex_lazy_fx.get(cid, [])
@@ -876,8 +906,11 @@ func tex_deferred_miss(n: String) -> void:
 
 func _ready() -> void:
 	A.mark("ready_begin")
+	if demo_op == "" and A.outrun_track:
+		_drop_outrun_tex()
 	load("res://scripts/core/perf_hud.gd").ensure(get_tree())   # 性能自检浮层（缺省关；?perf=1 或性能报告页连点标题 5 次）
 	web_fs.setup(self)
+	web_focus.setup(self)
 	trial.consume()
 	# 随机数最先定：招募开局干员时就会用 rng（战斗台词计时等）。以前 --seed 在 _ready 后段才生效，
 	# 开局干员的台词计时是随机的，第一句台词一出同 seed 的两局就分叉（2026-09-26 查明，docs/36）
@@ -1267,6 +1300,16 @@ func _ui_fit() -> void:
 		Cfg.ui_fill(c)
 
 
+## 结算「反馈」（docs/311）：盖在界面层最上面，复制带本局摘要的反馈码，再去问卷 / B站视频评论区
+func open_feedback(summary: Dictionary) -> void:
+	if feedback_view == null:
+		feedback_view = preload("res://scripts/screens/feedback_view.gd").new()
+		ui_layer.add_child(feedback_view)
+	Cfg.ui_fill(feedback_view)
+	ui_layer.move_child(feedback_view, -1)
+	feedback_view.open(summary)
+
+
 ## 手机横屏正文字号放大（用户 10-13，UI.fk / UI.fs）：局内界面层在 Cfg.phone_ui() 时乘 balance.json ui/phone_font_mult；
 ## 离开局内（_exit_tree）恢复 1，标题页不受影响。演示局（demo_op：图鉴、精英化演出的实机小窗）不改它（UI.fk 是全局静态量）
 func _font_k() -> void:
@@ -1522,6 +1565,11 @@ func mobile_cap() -> bool:
 	return Cfg.mobile_web() and Cfg.mobile_knob("mobile_cap", 1.0) and (mode == Mode.PLAY or Cfg.dev_args().has("--mobilecap"))
 
 
+func _notification(what: int) -> void:
+	if web_focus != null and web_focus.g != null:
+		web_focus.notify(what)   # 失焦通知（所有平台）→ 清按住状态（docs/317）
+
+
 func _process(delta: float) -> void:
 	UM.advance(delta)   # 界面动效时钟（真实帧间隔，不乘对局倍速；scripts/ui_motion.gd）
 	_pm("engine")   # 上一帧结束到这一帧开始：引擎自身、_draw 回调、其他节点（只在 --prof 下记）
@@ -1529,6 +1577,7 @@ func _process(delta: float) -> void:
 	if not is_inside_tree():
 		return   # 演示局结束等处当帧换场景：已离树就不再跑这一帧（11-04 教程结束闪退）
 	tour.update(delta)   # 聚光框引导 / 到点小提示：真实帧间隔（screens/tour.gd）
+	web_focus.poll(delta)   # 失焦保护（docs/317）
 	web_fs.poll(delta)   # 网页版：局内退出全屏（多半是按了 Esc）→ 打开暂停菜单（docs/299）
 	pick.update(delta)
 	wheel.update(delta)   # 指挥圆盘：真实帧间隔（悬停 / 松开判定 / 测试计划）
@@ -1659,7 +1708,7 @@ func _input(event: InputEvent) -> void:
 		return
 	if event is InputEventMouseMotion and event.relative.length() > 6.0:
 		kb_nav = false
-	if settings.visible:
+	if settings.visible or (feedback_view != null and feedback_view.visible):
 		return
 	# Result owns terminal input before stale combat touch regions can consume it.
 	if settlement.active() and not run_stats.open and not run_log.open and not headhunt.open and (state == S.WIN or state_age >= HudView.DEATH_T + 0.35):

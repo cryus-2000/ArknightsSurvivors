@@ -80,6 +80,8 @@ static func sm_exec(o, b: Dictionary, at: Vector2) -> void:
 			sm_spawn(o, b, at)
 		"verb.shield":
 			shield_add(o, b)
+			if b.get("cue") is Dictionary and o.g.ppos != Vector2.INF:   # 成长节点专属提示（docs/310 §4.2，只画）：护盾加到队长身上
+				cue_shape(o, b.cue, o.g.ppos, 30.0)
 
 
 # ---------------------------------------------------------------- 召唤物
@@ -1309,6 +1311,9 @@ static func mf_exec(o, b: Dictionary, _at: Vector2) -> void:
 			for w in b.get("what", _EA):
 				if str(w) == "nerve":
 					o.g.afflict.clear_nerve()
+			if b.get("cue", false) and o.g.ppos != Vector2.INF:   # 成长节点的驱散（docs/310 §2，流明光雨·澄明）：队长身上一圈金白光落下 + 紫色碎屑散开
+				ncue(o, {"p": o.g.ppos, "shape": "in", "r": 46.0, "c": Color(1.0, 0.93, 0.7), "n": 0, "life": 0.4})
+				ncue(o, {"p": o.g.ppos, "shape": "burst", "r": 30.0, "r0": 6.0, "c": Color(0.75, 0.5, 1.0), "n": 8, "life": 0.4})
 
 
 ## 常驻（data_operator._sustain 转来）：verb.summon_mod 按本帧生效顺序整理成每种召唤物的倍率表

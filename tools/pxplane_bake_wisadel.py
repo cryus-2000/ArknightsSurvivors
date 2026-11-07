@@ -18,7 +18,6 @@ IMPORT_TMPL = """[remap]
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://{uid}"
 path="res://.godot/imported/{name}-{md5}.ctex"
 metadata={{
 "vram_texture": false

@@ -55,6 +55,7 @@ def write_import(png):
     old_path = tmpl.split('source_file="')[1].split('"')[0]
     old_dest = tmpl.split('path="')[1].split('"')[0]
     s = tmpl.replace(old_uid, uid).replace(old_dest, "res://.godot/imported/%s-%s.ctex" % (name, h)).replace(old_path, rp)
+    s = "".join(l for l in s.splitlines(True) if not l.startswith("uid="))   # （11-07：不写 uid 行，Godot --import 时按规范生成；脚本自己拼的 36 进制 uid 会带 z / 9，被 Godot 改写或撞号，见 asset_lint U1 / U2）
     open(dst, "w", encoding="utf-8", newline="\n").write(s)
 
 
