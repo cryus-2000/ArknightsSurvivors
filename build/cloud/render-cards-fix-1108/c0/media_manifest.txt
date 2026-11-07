@@ -1,0 +1,16 @@
+17438	levelup_p844/log.txt
+526129	levelup_p844/shot_motion_levelup_full_1217.png
+17451	levelup_p956/log.txt
+602742	levelup_p956/shot_motion_levelup_full_1217.png
+17437	recruit_p844/log.txt
+579934	recruit_p844/shot_motion_recruit_full_1217.png
+17449	recruit_p956/log.txt
+658773	recruit_p956/shot_motion_recruit_full_1217.png
+17090	relic_p844/log.txt
+536332	relic_p844/shot_motion_relic_full_1217.png
+17102	relic_p956/log.txt
+612370	relic_p956/shot_motion_relic_full_1217.png
+17409	shop_p844/log.txt
+576166	shop_p844/shot_motion_shop_full_1217.png
+17408	shop_p956/log.txt
+651610	shop_p956/shot_motion_shop_full_1217.png
