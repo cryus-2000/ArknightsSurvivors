@@ -52,6 +52,12 @@ for _k, _seed, _extra in [("E", 31, []), ("H", 32, []), ("S", 33, ["--forceboss=
     _r = _cp.deepcopy(RUNS[_k])
     _r["args"] = [a for a in _r["args"] if not a.startswith("--seed=") and not (a.startswith(("--forceboss=", "--forceending=")) and _extra)] + ["--seed=%d" % _seed] + _extra
     RUNS[_k + "2"] = _r
+# 满屏怪潮（11-08 L 局满节点小队清得太快、屏内只有 20–50 只）：录像局把怪物密度调高（缺省 0.4，用户 10-14 定；只在录像局里改）
+RUNS["L3"] = dict(args=MID + ["--seed=41", "--bal=enemy/density=1.6"], rtfrom=455, maxt=512, pv=["--pv_win=460-511"])
+RUNS["L4"] = dict(args=MID + ["--seed=42", "--bal=enemy/density=1.2", "--tide=10"], rtfrom=455, maxt=512, pv=["--pv_win=460-511"])
+for _k, _op, _seed in [("UA3", "angelina", 45), ("UW3", "wisadel", 46), ("UK3", "skalter", 47)]:
+    RUNS[_k] = dict(args=["--op=" + _op, "--squad=skadi,texas", "--seed=%d" % _seed, "--bal=enemy/density=1.6"], rtfrom=468, maxt=522,
+                    pv=["--pv_win=470-521", "--pv_ult=476,491,506"])
 # 图鉴演示（无 HUD、空场）：德克萨斯 S3 + 四人终结技备选
 DEMOS = [("texas", 2, 3, 300), ("mizuki", 2, 4, 300), ("angelina", 2, 4, 300), ("wisadel", 2, 4, 300), ("skalter", 2, 4, 300)]
 
