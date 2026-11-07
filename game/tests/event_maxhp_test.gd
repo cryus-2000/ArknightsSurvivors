@@ -131,7 +131,7 @@ func _process(_dt: float) -> void:
 			check(cg <= 0.0, "no contact damage during panel grace (%.1f)" % cg)
 			check(game.panel_grace_until > game.t, "grace ring still showing")
 		step = 3
-	elif step == 3 and game.t >= tpick + 2.0:
+	elif step == 3 and (game.t >= tpick + 2.0 or game.state != game.S.PLAY):   # 11-07 数值补偿（docs/307）后普通怪伤害上调，8 只贴身滑动者 2 秒内可能打死队长，局停在结算、计时不再走
 		var c2 := _contact() - c0
 		print("PANEL GRACE grace=%.2f contact_2s=%.1f hp_left=%.1f/%.1f" % [_grace(), c2, game.hp, game.max_hp])
 		check(c2 > 0.0, "contact damage resumes after grace")
