@@ -68,7 +68,7 @@ RUNS["S5"] = dict(args=MID + ["--seed=52", "--forceboss=4"], rtfrom=200, maxt=30
 RUNS["S6"] = dict(args=MID + ["--seed=53", "--forceboss=3"], rtfrom=200, maxt=300, pv=["--pv_win=205-300", "--pv_bossult=0.12"])
 # 弹幕段后备：Boss 测试台依次放演示招式（--bossmoves；局内时间冻结在约 150 秒）
 for _k, _b in [("K1", "bishop"), ("K2", "iberia"), ("K3", "carmen")]:
-    RUNS[_k] = dict(args=MID + ["--seed=61", "--bossmoves=" + _b], rtfrom=0, maxt=62, pv=["--pv_win=1-61"])
+    RUNS[_k] = dict(args=MID + ["--seed=61", "--bossmoves=" + _b], rtfrom=0, maxt=9999, pv=["--pv_fwin=60-3660"])
 # 图鉴演示（无 HUD、空场）：德克萨斯 S3 + 四人终结技备选
 DEMOS = [("texas", 2, 3, 300), ("mizuki", 2, 4, 300), ("angelina", 2, 4, 300), ("wisadel", 2, 4, 300), ("skalter", 2, 4, 300)]
 

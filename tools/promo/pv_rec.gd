@@ -41,6 +41,8 @@ var choice_end := -1.0
 var beacon_rec := {}          # 已录过的灯标（按 pos 字符串）
 var beacon_until := -1.0
 var trim_at := 0
+var fwin: Array = []           # --pv_fwin=起帧-止帧：按渲染帧录（Boss 测试台把局内时间冻结在约 150 秒）
+var f0_run := -1
 var wheel_spec: Array = []    # --pv_wheel=秒:项:打开后几秒悬停:几秒确认（真实秒）
 var wheel_t := -1.0
 var wheel_step := 0
@@ -71,6 +73,9 @@ func _initialize() -> void:
 			boss_ult = float(a.substr(13))
 		elif a.begins_with("--pv_ring="):
 			ring_spec = Array(a.substr(10).split(":"))
+		elif a.begins_with("--pv_fwin="):
+			var fp: PackedStringArray = a.substr(10).split("-")
+			fwin = [int(fp[0]), int(fp[1])]
 		elif a.begins_with("--pv_wheel="):
 			wheel_spec = Array(a.substr(11).split(":"))
 		elif a.begins_with("--pv_elite="):
@@ -171,7 +176,19 @@ func _process(_dt: float) -> bool:
 		sfx = root.get_node_or_null("Sfx")
 		if sfx != null:
 			sfx.trace_on = true
-	if g.t > maxt:
+	if f0_run < 0:
+		f0_run = Engine.get_process_frames()
+	var fr_run: int = Engine.get_process_frames() - f0_run
+	if not fwin.is_empty():
+		if fr_run == int(fwin[0]):
+			_start("fwin", 9999.0, 0)
+		if fr_run >= int(fwin[1]):
+			if not cur.is_empty():
+				_end_seg()
+			_log("PVDONE frame=%d segs=%d" % [fr_run, seg_i])
+			quit()
+			return false
+	elif g.t > maxt:
 		if not cur.is_empty():
 			_end_seg()
 		_log("PVDONE t=%.1f segs=%d" % [g.t, seg_i])
