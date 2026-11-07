@@ -17,9 +17,16 @@ const CAP := 32
 const SY := 0.62   # 贴地环纵向压扁（同地面椭圆）
 
 
+static var _log := -1   # --cuelog（调试构建）：每次推入带 tag 的提示打一行 CUE（实机局对照挑帧用，tools/gcp/render_jobs/cue_real.sh）
+
+
 static func push(r, o, d: Dictionary) -> void:
 	if Bal.v("fx/node_cue", 1.0) <= 0.0:   # 0 = 关（选前 / 选后同帧对照用，docs/310）
 		return
+	if _log < 0:
+		_log = 1 if OS.is_debug_build() and OS.get_cmdline_user_args().has("--cuelog") else 0
+	if _log == 1 and d.has("tag"):
+		print("CUE %.3f %s %s %s" % [float(r.g.t), str(o.id), str(d.tag), str(d.get("p", o.pos))])
 	var c: Color = d.get("c", Color(-1, 0, 0))
 	if c.r < 0.0:
 		var p: Dictionary = load("res://scripts/render/fx_recipe.gd").of(r.g).pal(o)

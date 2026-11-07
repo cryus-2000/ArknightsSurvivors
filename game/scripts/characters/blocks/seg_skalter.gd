@@ -558,7 +558,7 @@ static func gn_resonate(o, b: Dictionary, hits: Array) -> void:
 			o.log_hit(src, ["skill"])
 			o.deal_damage(q, dmg * (o.vs_elite() if q.elite or q.boss else 1.0))
 		o.fx({"kind": "ring", "pos": p, "r": r, "r0": 10.0, "life": 0.3, "col": GN_RES, "floor": true, "w": 2.5})
-		ncue(o, {"p": p, "shape": "ring", "r": r, "r0": 10.0, "c": GN_RES, "n": 7})   # 共鸣：击杀处一圈专属色小声浪 + 火星
+		ncue(o, {"p": p, "shape": "ring", "r": r, "r0": 10.0, "c": GN_RES, "n": 7, "tag": "共鸣"})   # 共鸣：击杀处一圈专属色小声浪 + 火星
 		_FXR.ev(o, "sk_burst", {"at": p, "r": r})   # 转平面（docs/260）：只画
 		o.fx({"kind": "glow", "pos": p + Vector2(0, -10), "r": 16.0, "life": 0.22, "col": Color(1.8, 0.8, 1.0), "alpha": 0.8})
 		for k in 6:

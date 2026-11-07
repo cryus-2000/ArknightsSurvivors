@@ -58,7 +58,7 @@ static func gl_arrive(o, hk: Dictionary) -> void:
 			o.deal_damage(e, float(hk.dmg) * float(barb.get("pct", 0.08)) * layers * (ve if e.elite or e.boss else 1.0))
 			if not e.dead:
 				o.float_text(e.pos + Vector2(0, -float(e.r) * 2.0 - 8.0), "倒钩 ×%d" % layers, GL_COL, 12)
-				ncue(o, {"p": e.pos, "fe": e, "shape": "ring", "r": float(e.r) + 10.0 + 4.0 * layers, "r0": float(e.r), "c": GL_COL, "n": 2 + 2 * layers})   # 到位结算：层数越多环越大、火星越多
+				ncue(o, {"p": e.pos, "fe": e, "shape": "ring", "r": float(e.r) + 10.0 + 4.0 * layers, "r0": float(e.r), "c": GL_COL, "n": 2 + 2 * layers, "tag": "倒钩"})   # 到位结算：层数越多环越大、火星越多
 	var sl := _gl_on(o, "slash")
 	if not sl.is_empty() and o.pos != Vector2.INF:
 		var ang: float = (hk.front - o.pos).angle()

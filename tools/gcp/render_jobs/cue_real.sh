@@ -13,11 +13,12 @@ run() {
     d="$(realpath -m "/tmp/cr/${NAME}_c$1")"; mkdir -p "$d"
     ud=$(mktemp -d); mkdir -p "$ud/ArknightsSurvivors"
     XDG_DATA_HOME=$ud timeout -k 30 5000 "$GODOT" --rendering-driver opengl3 --audio-driver Dummy --resolution 1280x720 --position 0,0 --fixed-fps 60 --path game -- \
-        --balance --nodeath --seed=${SEED:-11} --slot4 $SQ --quality=high --prog=6 --sptest --maxt=$(( ${T1:-160} + 5 )) --shots=$FR --shotdir="$d" --bal=fx/px_plane=1 --bal=fx/node_cue=$1 $EXTRA > "$OUT/${NAME}_c$1.log" 2>&1
+        --balance --nodeath --seed=${SEED:-11} --slot4 $SQ --quality=high --prog=6 --sptest --maxt=$(( ${T1:-160} + 5 )) --shots=$FR --shotdir="$d" --bal=fx/px_plane=1 --bal=fx/node_cue=$1 --cuelog $EXTRA > "$OUT/${NAME}_c$1.log" 2>&1
     echo "${NAME} cue=$1 rc=$? $(ls $d/*.png 2>/dev/null | wc -l) 张 $(grep -c 'SCRIPT ERROR' $OUT/${NAME}_c$1.log) 处脚本错误" | tee -a "$OUT/runs.txt"
 }
 run 0 &
 run 1 &
 wait
 python3 tools/cue_real_sheet.py "/tmp/cr/${NAME}_c0" "/tmp/cr/${NAME}_c1" "$MEDIA/real_${NAME}.png" --top ${TOP:-8} | tee -a "$OUT/runs.txt"
+python3 tools/cue_real_tags.py "$OUT/${NAME}_c1.log" "/tmp/cr/${NAME}_c0" "/tmp/cr/${NAME}_c1" "$MEDIA" "$NAME" | tee -a "$OUT/runs.txt"
 exit 0

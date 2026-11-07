@@ -265,7 +265,7 @@ static func tx_update(o, dt: float) -> bool:
 			tx["iai_gold_t"] = -1.0
 		if g.t - float(tx.get("iai_gold_t", -1.0)) >= 0.05 and g.ppos != Vector2.INF:
 			tx["iai_gold_t"] = g.t
-			ncue(o, {"p": g.ppos, "shape": "ghost", "to": "@", "c": Color(1.0, 0.85, 0.35), "life": 0.4})
+			ncue(o, {"p": g.ppos, "shape": "ghost", "to": "@", "c": Color(1.0, 0.85, 0.35), "life": 0.4, "tag": "金影"})
 	elif ld <= 0.0 and float(tx.get("prev_ld", 0.0)) > 0.0 and tx.get("iai_gold", false):
 		tx.erase("iai_gold")   # 冲完这一次就用掉
 	tx["prev_ld"] = ld
@@ -424,7 +424,7 @@ static func tx_exec(o, b: Dictionary, at: Vector2) -> void:
 			exec_shape(o, b, at)
 		"verb.sp_secs":
 			var sec: float = float(b.seconds)
-			ncue(o, {"p": at if at != Vector2.INF else o.pos, "shape": "mote", "to": "*", "c": Color(1.0, 0.85, 0.35)})   # 给全队技力：金色光点飞向各队友（回马剑·回技、战术快递；docs/310 §2）
+			ncue(o, {"p": at if at != Vector2.INF else o.pos, "shape": "mote", "to": "*", "c": Color(1.0, 0.85, 0.35), "tag": "技力"})   # 给全队技力：金色光点飞向各队友（回马剑·回技、战术快递；docs/310 §2）
 			for m in o.g.squad.ops:
 				if m == o and b.get("exclude_self", true):
 					continue
