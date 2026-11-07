@@ -94,8 +94,52 @@ func check_pixel_fx_culling() -> void:
 	ok(px._tex_t["pool_gd"] == 65.0, "same-frame low viewport resize invalidates bounds")
 	vp.free()
 
+func check_shield_and_marks() -> void:
+	var world = preload("res://scripts/render/world.gd").new(null)
+	var reference := preload("res://scripts/render/tri_batch.gd").new()
+	for radius in [34.0, 34.0, 37.5, 34.0]:
+		for center in [Vector2(-91.625, 0.0), Vector2(850.75, -412.5)]:
+			var col := Color(1.3, 0.85, 0.5, 0.38)
+			world._shield_edge(center, radius, col)
+			reference.arc_q(center, radius, 0.0, TAU, 2.0, col, 48)
+	ok(world._tbb.pts == reference.pts and world._tbb.cols == reference.cols,
+		"translated shield preserves every original vertex and color in order")
+	var px = preload("res://scripts/render/fx_pxplane.gd").new()
+	px.g = {"PX": 2.0}
+	var wd := preload("res://scripts/render/fx_pxplane_wd.gd").new(px)
+	for beat in range(-12, 24):
+		for gift in [false, true]:
+			var expanded := []
+			var rows := wd._mark_rows(beat, gift)
+			for row in rows:
+				var rect: Rect2 = row[0]
+				for x in int(rect.size.x / 2.0):
+					expanded.append([rect.position / 2.0 + Vector2(x, 0), row[1]])
+			ok(expanded == wd._mark(beat, gift) and rows.size() < expanded.size(),
+				"mark rows retain ordered overdraw at beat %d gift %s" % [beat, gift])
+	ok(wd._mark_runs.size() == 12, "mark geometry bounded across repeated beats")
+
+func check_particle_cap() -> void:
+	var sq := preload("res://scripts/characters/squad.gd").new(null)
+	sq._pcap = 3
+	var spark := {"kind": "spark"}
+	var a := {"pfx": [spark], "pfx_skip": 0}
+	var b := {"pfx": [spark, spark], "pfx_skip": 0}
+	sq.ops = [a, b]
+	sq._pfx_cap_plan()
+	ok(a.pfx_skip == 0 and b.pfx_skip == 0, "particle count exactly at cap")
+	a.pfx.append({"kind": "spark", "floor": true})
+	b.pfx.append({"kind": "strip", "keep": true})
+	sq._pfx_cap_plan()
+	ok(a.pfx_skip == 0 and b.pfx_skip == 0, "protected and floor particles excluded from cap")
+	a.pfx.append_array([spark, spark])
+	sq._pfx_cap_plan()
+	ok(a.pfx_skip == 2 and b.pfx_skip == 0, "over-cap skips stay proportional in roster order")
+
 func _ready():
 	check_pixel_fx_culling()
+	check_shield_and_marks()
+	check_particle_cap()
 	var rec = Recorder.new()
 	var fake = {"world":rec, "combat":{"GROUND_Y":0.62}}
 	var w = {"shape":"circle", "pos":Vector2(123.25,-82.5),"r":360.0,"inner_r":240.0,"col":Color.CYAN}

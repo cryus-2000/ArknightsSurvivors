@@ -189,6 +189,12 @@ func tris(p: PackedVector2Array, c: PackedColorArray) -> void:
 	cols.append_array(c)
 
 
+## 已展开的单色模板：只平移顶点，颜色仍随本帧的呼吸 / 闪光变化。
+func translated_solid(p: PackedVector2Array, center: Vector2, col: Color) -> void:
+	pts.append_array(Transform2D(0.0, center) * p)
+	_fill(p.size(), col)
+
+
 ## 模板缓存（docs/50 §24，10-30）：circle_n / ring_n 每个顶点一次 GDScript 循环（圆 10–14 段约 10–14 µs、环 16 段约 20 µs），
 ## 敌弹 / 光环这类「同一尺寸每帧画几十上百个」的调用占了弹幕战的大头。按 (段数, 半径, 纵压 / 线宽) 缓存以原点为圆心的三角形列表，
 ## 用时 Transform2D(0, c) * 模板（引擎原生，一次调用）整段平移后追加。模板里每个顶点的算式与原循环逐项相同（先算相对偏移、再加圆心，

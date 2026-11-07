@@ -38,6 +38,7 @@ var r:   # Owner holds this helper; the backreference must not retain its cache.
 		return _parent.get_ref()
 var g
 var _beat := {}
+var _mark_runs := {}   # 6 拍 × 有无好礼；只缓存局部像素行，不留敌人引用
 var _lines: Array = []   # 续燃引线 / 连锁：{a, b, t0, oid}
 var _drops: Array = []   # 连携下坠炮弹：{c, t0, oid}（0.35 秒从 DROP_H 高砸到 c）
 var _fogs: Array = []    # 贴地薄雾：{c, r, t0, life, oid}
@@ -522,8 +523,11 @@ func draw_over(o) -> void:
 			if float(mk.t) < 0.6 and (bt / 2) % 2 == 1:   # 快到期：隔两拍闪
 				continue
 			var c0: Vector2 = Pxp._snap(e.pos + Vector2(0, -float(e.r) - 18.0))
-			for q in _mark(bt + int(e.id), mk.get("gift", false)):
-				r._px(cv, c0 + q[0] * px, q[1])
+			# 最上一颗火星在 y=-5，带好礼时最右/最下的格子在 (4,4)。
+			if r._strip_in_view(cv, Rect2(c0 + Vector2(-3, -5) * px, Vector2(8, 10) * px), true):
+				for row in _mark_rows(bt + int(e.id), mk.get("gift", false)):
+					var rect: Rect2 = row[0]
+					cv.draw_rect(Rect2(c0 + rect.position, rect.size), row[1])
 	var now: float = g.t
 	_lines = _lines.filter(func(L): return now - float(L.t0) < 0.2)
 	for L in _lines:
@@ -627,10 +631,8 @@ func _trail_lo() -> bool:
 	return _tr_lo == 1
 
 
-static func _tr_at(T: Dictionary, k: float) -> Vector2:
-	var a: Vector2 = T.fr
-	var b: Vector2 = T.to
-	return a.lerp(b, k) + Vector2(0, -sin(k * PI) * minf(18.0, a.distance_to(b) * 0.05))
+static func _tr_at(a: Vector2, b: Vector2, arc: float, k: float) -> Vector2:
+	return a.lerp(b, k) + Vector2(0, -sin(k * PI) * arc)
 
 
 static func _tr_col(u: float) -> Color:
@@ -658,28 +660,36 @@ func _draw_trail(ci, T: Dictionary) -> void:
 	var age: float = now - float(T.t0)
 	var dur: float = float(T.dur)
 	var big: bool = bool(T.big)
+	var life: float = 0.35 if big else 0.25
+	if age > dur + life:   # 弹头已落地、尾带已收完，最晚生成的碎星也已到期。
+		return
+	var renderer = r
 	var lo: bool = _trail_lo()
 	var kh: float = clampf(age / dur, 0.0, 1.0)
 	var kt: float = clampf((age - TR_TT) / dur, 0.0, 1.0)
 	var fade: float = 1.0 if age <= dur else clampf(1.0 - (age - dur) / TR_FADE, 0.0, 1.0)
 	var bt: int = int(floor(now * 15.0))
-	var dv: Vector2 = ((T.to as Vector2) - (T.fr as Vector2)).normalized()
+	var start: Vector2 = T.fr
+	var end: Vector2 = T.to
+	var length := start.distance_to(end)
+	var arc := minf(18.0, length * 0.05)
+	var dv: Vector2 = (end - start).normalized()
 	if dv == Vector2.ZERO:
 		dv = Vector2.RIGHT
 	var nv := Vector2(-dv.y, dv.x)
 	var horiz: bool = absf(dv.x) >= absf(dv.y)
-	var total: float = (T.fr as Vector2).distance_to(T.to) / px   # 弹道全长（美术像素）
+	var total: float = length / px   # 弹道全长（美术像素）
 	var wmax: float = 5.0 if big else 3.0
 	if kh > kt and fade > 0.0:
-		var ph: Vector2 = _tr_at(T, kh)
-		var pt: Vector2 = _tr_at(T, kt)
+		var ph: Vector2 = _tr_at(start, end, arc, kh)
+		var pt: Vector2 = _tr_at(start, end, arc, kt)
 		var n: int = maxi(1, int(ceil(ph.distance_to(pt) / px)))
 		var lam: float = 20.0 if big else 14.0
 		var amp: float = 4.0 if big else 2.0
 		for i in n + 1:
 			var u: float = float(i) / float(n)
 			var kk: float = lerpf(kh, kt, u)
-			var p: Vector2 = Pxp._snap(_tr_at(T, kk))
+			var p: Vector2 = Pxp._snap(_tr_at(start, end, arc, kk))
 			var w: int = maxi(1, int(round(lerpf(wmax, 1.0, u))))
 			var al: float = fade * (1.0 if u < 0.35 else lerpf(1.0, 0.0, (u - 0.35) / 0.65))
 			var c: Color = _tr_col(u)
@@ -693,12 +703,11 @@ func _draw_trail(ci, T: Dictionary) -> void:
 				var front: bool = cos(phs) > 0.0
 				var hw: float = float(w) * 0.5
 				if front or absf(off) > hw:
-					r._px(ci, p + nv * round(off) * px, Color(TR_RIB[0].r, TR_RIB[0].g, TR_RIB[0].b, al))
+					renderer._px(ci, p + nv * round(off) * px, Color(TR_RIB[0].r, TR_RIB[0].g, TR_RIB[0].b, al))
 				if (not front) or absf(off) > hw:
-					r._px(ci, p - nv * round(off) * px, Color(TR_RIB[1].r, TR_RIB[1].g, TR_RIB[1].b, al))
+					renderer._px(ci, p - nv * round(off) * px, Color(TR_RIB[1].r, TR_RIB[1].g, TR_RIB[1].b, al))
 	# 碎星（lizi）：弹道上每隔 sp 格生一颗，按飞到那里的时刻起算寿命；位置 / 漂移按序号哈希定
 	var sp: float = (6.0 if big else 9.0) * (2.0 if lo else 1.0)
-	var life: float = 0.35 if big else 0.25
 	var nj: int = int(total / sp)
 	for j in nj:
 		var kj: float = (float(j) + 0.5) * sp / maxf(1.0, total)
@@ -711,15 +720,15 @@ func _draw_trail(ci, T: Dictionary) -> void:
 		var h2: float = _fh(float(j) * 2.71 + float(T.t0) * 1.7)
 		var uj: float = aj / life
 		var sc: Color = TR_SPK[0] if uj < 0.3 else (TR_SPK[1] if uj < 0.75 else TR_SPK[2])
-		var q: Vector2 = _tr_at(T, kj) + nv * ((h1 * 2.0 - 1.0) * (5.0 if big else 3.0) + (h1 - 0.5) * aj * 40.0) * px * 0.5 + Vector2((h2 - 0.5) * aj * 30.0, aj * 20.0) * px * 0.5
+		var q: Vector2 = _tr_at(start, end, arc, kj) + nv * ((h1 * 2.0 - 1.0) * (5.0 if big else 3.0) + (h1 - 0.5) * aj * 40.0) * px * 0.5 + Vector2((h2 - 0.5) * aj * 30.0, aj * 20.0) * px * 0.5
 		var qs: Vector2 = Pxp._snap(q)
-		r._px(ci, qs, sc)
+		renderer._px(ci, qs, sc)
 		if big and h2 > 0.6 and uj < 0.5:   # 巨炮大颗：十字星
 			for dd in [Vector2.LEFT, Vector2.RIGHT, Vector2.UP, Vector2.DOWN]:
-				r._px(ci, qs + dd * px, Color(TR_SPK[1].r, TR_SPK[1].g, TR_SPK[1].b, 0.8))
+				renderer._px(ci, qs + dd * px, Color(TR_SPK[1].r, TR_SPK[1].g, TR_SPK[1].b, 0.8))
 	# 弹头：胶囊（前圆后平），粉红弹尖 → 藏蓝弹身（上沿受光）→ 白热尾口；红色辉光
 	if age < dur:
-		var hd: Vector2 = Pxp._snap(_tr_at(T, kh))
+		var hd: Vector2 = Pxp._snap(_tr_at(start, end, arc, kh))
 		var hl: int = 5 if big else 3
 		var hw2: int = 2 if big else 1
 		for qq in range(-hl, hl + 1):
@@ -734,9 +743,9 @@ func _draw_trail(ci, T: Dictionary) -> void:
 					hc = TRC[0]
 				else:
 					hc = TR_HEADN[1] if ww == -hw2 else TR_HEADN[0]
-				r._px(ci, hd - dv * float(qq) * px + nv * float(ww) * px, hc)
-		r._glow(hd + dv * float(hl) * px, Color(1.0, 0.16, 0.22))
-		r._glow(hd - dv * float(hl) * px, Color(1.0, 0.5, 0.5))
+				renderer._px(ci, hd - dv * float(qq) * px + nv * float(ww) * px, hc)
+		renderer._glow(hd + dv * float(hl) * px, Color(1.0, 0.16, 0.22))
+		renderer._glow(hd - dv * float(hl) * px, Color(1.0, 0.5, 0.5))
 
 
 ## 一格宽的横 / 竖条（沿弹道主轴的法向铺 w 格），一次 draw_rect
@@ -834,6 +843,26 @@ func _bracket(ra: float, beat: int) -> Array:
 
 
 ## 残影标记：暗红小魂火（5 宽 7 高）+ 两点亮红眼；好礼 = 脚边一粒橙红
+func _mark_rows(beat: int, gift: bool) -> Array:
+	var key := beat % 6 + (6 if gift else 0)
+	if beat >= 0 and _mark_runs.has(key):
+		return _mark_runs[key]
+	var rows := []
+	var px: float = g.PX
+	for cell in _mark(beat, gift):
+		var pos: Vector2 = cell[0] * px
+		if not rows.is_empty():
+			var last: Array = rows.back()
+			var rect: Rect2 = last[0]
+			if last[1] == cell[1] and rect.position.y == pos.y and rect.end.x == pos.x:
+				last[0] = Rect2(rect.position, rect.size + Vector2(px, 0))
+				continue
+		rows.append([Rect2(pos, Vector2(px, px)), cell[1]])
+	if beat >= 0:
+		_mark_runs[key] = rows
+	return rows
+
+
 func _mark(beat: int, gift: bool) -> Array:
 	var out: Array = []
 	var bob: int = 1 if (beat / 3) % 2 == 1 else 0

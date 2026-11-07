@@ -12,6 +12,8 @@ var g                              # Game (Node2D)
 var id := ""
 var theme := {}
 var tex := {}                      # 主题用到的贴图
+var _props_by_name := {}           # 同名条目取主题里第一条，与生成时的遍历顺序一致
+const _NO_PROP: Dictionary = {}    # 只在 big_props 里的大景物使用单帧缺省值
 var sort_props: Array = []         # 2.5D：需要与人物前后遮挡的道具 [tex_name, pos, hash]
 var big_cache := {}
 var fg_tex: Array = []             # 前景虚化剪影
@@ -69,7 +71,10 @@ func load_theme(theme_id: String) -> void:
 	_load(theme.tiles.tex)
 	if theme.has("patches"):
 		_load(theme.patches.tex)
+	_props_by_name.clear()
 	for pr in theme.get("props", []):
+		if not _props_by_name.has(pr.tex):
+			_props_by_name[pr.tex] = pr
 		_load(pr.tex)
 	for n in theme.get("big_props", {}).get("list", []):
 		_load(n)
@@ -98,17 +103,11 @@ func _load(n: String) -> void:
 
 
 func _frames_of(n: String) -> int:
-	for pr in theme.get("props", []):
-		if pr.tex == n:
-			return int(pr.get("frames", 1))
-	return 1
+	return int(_prop_def(n).get("frames", 1))
 
 
 func _prop_def(n: String) -> Dictionary:
-	for pr in theme.get("props", []):
-		if pr.tex == n:
-			return pr
-	return {}
+	return _props_by_name.get(n, _NO_PROP)
 
 
 # ------------------------------------------------------------------ 地面
@@ -146,7 +145,7 @@ func draw_ground(vs: Vector2) -> void:
 		if d.get("sort", false):
 			sort_props.append([pr[0], pr[1], pr[2]])
 		else:
-			_spr(pr[0], 1, 0, pr[1], pr[2] % 2 == 0, Color.WHITE)
+			_spr(pr[0], 1, 0, pr[1], pr[2] % 2 == 0)
 
 
 ## 光学观感原型 ⑨ 地面程序噪点材质：可平铺的值噪声（两层八度）按 4×4 Bayer 抖动量化到 4 档深海色（围绕地面原平均色），
@@ -355,27 +354,26 @@ func _draw_patches(vs: Vector2) -> void:
 ## 2.5D 排序后绘制一个道具（由 game.gd 的深度排序循环调用）
 func draw_sort_prop(pr: Array) -> void:
 	var d := _prop_def(pr[0])
-	var ptx: Texture2D = tex[pr[0]]
 	var frames: int = int(d.get("frames", 1))
-	var fade := 1.0
-	var ppos: Vector2 = g.ppos
-	var pw: float = ptx.get_width() / float(frames) * px * 0.5
-	var ph: float = ptx.get_height() * px
-	# 挡在人物身前的道具半透明
-	if pr[1].y > ppos.y and absf(pr[1].x - ppos.x) < pw + 10.0 and pr[1].y - ppos.y < ph:
-		fade = 0.4
 	if frames > 1:
-		_spr(pr[0], frames, int(g.t * float(d.get("fps", 2)) + pr[2]) % frames, pr[1], false, Color(1, 1, 1, fade))
+		_spr(pr[0], frames, int(g.t * float(d.get("fps", 2)) + pr[2]) % frames, pr[1], false, true)
 	else:
-		_spr(pr[0], 1, 0, pr[1], pr[2] % 2 == 0, Color(1, 1, 1, fade))
+		_spr(pr[0], 1, 0, pr[1], pr[2] % 2 == 0, true)
 
 
-func _spr(name: String, frames: int, frame: int, pos: Vector2, flip: bool, col: Color) -> void:
+func _spr(name: String, frames: int, frame: int, pos: Vector2, flip: bool, fade_in_front := false) -> void:
 	var tx: Texture2D = tex.get(name)
 	if tx == null:
 		return
-	var fw: int = tx.get_width() / frames
+	var width := tx.get_width()
 	var fh: int = tx.get_height()
+	var fw: int = width / frames
+	var col := Color.WHITE
+	if fade_in_front:
+		var ppos: Vector2 = g.ppos
+		var pw := width / float(frames) * px * 0.5
+		if pos.y > ppos.y and absf(pos.x - ppos.x) < pw + 10.0 and pos.y - ppos.y < fh * px:
+			col.a = 0.4
 	FD.blit(g, tx, FD.src(fw, fh, frames, frame), pos + g.draw_off, Vector2(fw, fh) * px, Vector2(0.5, 1.0), flip, col)   # 脚底锚点
 
 

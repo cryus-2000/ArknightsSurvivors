@@ -136,14 +136,23 @@ func hittable(e: Dictionary) -> bool:
 	return true
 
 
-## max_dist 内有没有打得动的敌人（技能暂缓用，10-28）：先看 nearest_enemies 的第一个（打得动的排在前），不是再放宽到最近 24 个
-func has_hittable(max_dist: float, origin: Vector2 = Vector2.INF) -> bool:
+enum SkillTargets { EMPTY, HITTABLE, INVULN_ONLY }
+
+## 自动技能与手动技能锁标使用相同的候选：先看第一个优先目标，打不动时再看最近 24 个。
+func skill_targets(max_dist: float, origin: Vector2) -> SkillTargets:
 	var ne: Array = nearest_enemies(1, max_dist, origin)
 	if ne.is_empty():
-		return false
+		return SkillTargets.EMPTY
 	if hittable(ne[0]):
-		return true
-	return g.enemies_sys.nearest(24, max_dist, origin).any(func(e): return hittable(e))
+		return SkillTargets.HITTABLE
+	for e in g.enemies_sys.nearest(24, max_dist, origin):
+		if hittable(e):
+			return SkillTargets.HITTABLE
+	return SkillTargets.INVULN_ONLY
+
+
+func has_hittable(max_dist: float, origin: Vector2 = Vector2.INF) -> bool:
+	return skill_targets(max_dist, origin) == SkillTargets.HITTABLE
 
 
 ## 稳定重排：能受击的在前、打不动的垫底；能受击的里「喂食」中的子代（伊祖米克学习期游向本体的水母，docs/142b 主轴目标）提到最前

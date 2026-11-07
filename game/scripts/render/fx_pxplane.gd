@@ -673,9 +673,10 @@ func _step() -> void:
 	var follow := tk != _fol_tick
 	_fol_tick = tk
 	var live = null   # 首次到期才复制此前的存活项；旧列表留给尚在遍历它的调用方。
+	var fps_cap := _life_fps() if not items.is_empty() else 0.0
 	for i in items.size():
 		var it: Dictionary = items[i]
-		var life: float = float(it.life) if it.has("life") else _life(str(it.k))
+		var life: float = float(it.life) if it.has("life") else _life(str(it.k), fps_cap)
 		var alive: bool = now - float(it.t0) < life + 0.02 and not (it.has("ef") and it.ef.get("dead", false))
 		if not alive:
 			if live == null:
@@ -713,13 +714,17 @@ func _step() -> void:
 		items = live
 
 
-func _life(k: String) -> float:
+func _life_fps() -> float:
+	return minf(Bal.v("fx/px_plane_raw_fps", 12.8), clock())
+
+
+func _life(k: String, fps_cap: float) -> float:
 	if k == "":
 		return 3.0 / 15.0   # 斩痕 3 拍
 	var m: Dictionary = _meta(k)
 	if m.is_empty():
 		return 0.0
-	return float(m.n) / minf(minf(float(m.fps), Bal.v("fx/px_plane_raw_fps", 12.8)), clock()) + 0.07
+	return float(m.n) / minf(float(m.fps), fps_cap) + 0.07
 
 
 # ================================================================ 绘制
@@ -1218,7 +1223,11 @@ func _emit(m: Dictionary, fi: int, tl: Vector2, w: float, flip: bool) -> void:
 	if fr != _emit_frame:
 		_emit_frame = fr
 		_emit_n = 0
-	var pts: Array = m.emit[fi] if fi < m.emit.size() else []
+	if _emit_n >= EMIT_CAP or fi >= m.emit.size():
+		return
+	var pts: Array = m.emit[fi]
+	if pts.is_empty():
+		return
 	var px: float = g.PX
 	var k: float = Bal.v("fx/px_plane_emit", 0.8)
 	for q in pts:
@@ -5295,7 +5304,7 @@ func _tx_cuts(o, es: Array, t: int, n: int) -> void:
 func _tx_rain(o, bl: Array, key: String, raw: bool, t: int) -> void:
 	if bl.is_empty():
 		return
-	var lf: float = _life(key + "_l0_up")
+	var lf: float = _life(key + "_l0_up", _life_fps())
 	var tm := 0.0
 	for b in bl:
 		tm = maxf(tm, float(b.d))
@@ -5461,7 +5470,7 @@ func _tx_rain_items(it: Dictionary, ground: bool) -> Array:
 	var out: Array = []
 	var key: String = it.key
 	var t0: float = float(it.t0)
-	var lf: float = _life(key + "_l0_up")
+	var lf: float = _life(key + "_l0_up", _life_fps())
 	for b in it.rain:
 		var ts: float = t0 + float(b.d)
 		if g.t < ts or g.t > ts + lf:

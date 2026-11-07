@@ -84,7 +84,29 @@ func check_px_iteration() -> void:
 	check(px.items.size() == Pxp.ITEM_MAX and px.items_for("wisadel") == px.items, "pxplane capped owner order")
 	check(px.items_for("kaltsit").is_empty() and px._upright_items.is_empty(), "pxplane evicted oldest upright item")
 
+func check_sorted_fx_pass() -> void:
+	var game = preload("res://scripts/game.gd").new()
+	game.squad = preload("res://scripts/characters/squad.gd").new(game)
+	game.squad.ops = [{"id": "a", "is_leader": true}, {"id": "b", "is_leader": false}]
+	var world = World.new(game)
+	world.late_k = 0.5
+	world.mate_dim = 0.75
+	world._prepare_sorted_fx()
+	check(world._sorted_leader == "a" and world._sorted_dim_mates, "late upright FX uses current leader")
+	check(world._lf_cv.amul == 0.75 and world._sorted_mate_emit == world.late_emit_k(false), "upright FX teammate modulation")
+	game.squad.ops[0].is_leader = false
+	game.squad.ops[1].is_leader = true
+	world.late_k = 0.0
+	world._dbg_opmask = true
+	world._prepare_sorted_fx()
+	check(world._sorted_leader == "b" and not world._sorted_dim_mates, "debug mask follows leadership on next pass")
+	game.squad.ops.clear()
+	world._prepare_sorted_fx()
+	check(world._sorted_leader == "", "empty squad clears previous leader")
+	game.free()
+
 func _ready() -> void:
+	check_sorted_fx_pass()
 	check_px_iteration()
 	check_px_metadata()
 	# Never entering the tree must also be safe (previews and unit fixtures).

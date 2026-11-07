@@ -102,11 +102,15 @@ static func airborne_tick(o, dt: float) -> void:
 		dense_tick(o, dt)
 	if o.air_list.is_empty():
 		return
+	var expired := false
 	for a in o.air_list:
 		a.t += dt
 		var e: Dictionary = a.e
-		o.set_air(e, 0.0 if e.dead or a.t >= a.dur else air_height(a))   # 托举不清击退（原样）
-	o.air_list = o.air_list.filter(func(a): return a.t < a.dur and not a.e.dead)
+		var landed: bool = e.dead or a.t >= a.dur
+		expired = expired or landed
+		o.set_air(e, 0.0 if landed else air_height(a))   # 托举不清击退（原样）
+	if expired:
+		o.air_list = o.air_list.filter(func(a): return a.t < a.dur and not a.e.dead)
 
 
 ## docs/202 沉落用的悬浮：同 lift，但控制走 add_cc_growth（同一敌人 3 秒内第二次受控时长减半）；画面悬浮时长同步减半
@@ -273,8 +277,9 @@ static func field_tick(o, b: Dictionary, st: Dictionary, dt: float) -> void:
 	var every: float = float(b.get("every", 0.5))
 	st.acc = float(st.get("acc", every)) + dt
 	st.c = force_center(o, b)
-	st.r = float(b.get("r", 0.0)) * o.stat(&"op_range")
-	st.ring = float(b.get("ring", -1.0)) * o.stat(&"op_range") if b.has("ring") else -1.0
+	var reach: float = o.stat(&"op_range")
+	st.r = float(b.get("r", 0.0)) * reach
+	st.ring = float(b.get("ring", -1.0)) * reach if b.has("ring") else -1.0
 	st.look = str(b.get("look", "none"))
 	st.t = float(st.get("t", 0.0)) + dt
 	if st.acc < every or st.c == Vector2.INF:
