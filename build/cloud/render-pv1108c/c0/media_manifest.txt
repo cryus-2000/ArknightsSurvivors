@@ -1,0 +1,4 @@
+29150	L3_godot.log
+85942	L3_pv.log
+573188490	L3_seg_01_win_t460.0.mp4
+124736	L3_seg_01_win_t460.0.sfx.json

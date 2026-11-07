@@ -1,0 +1,4 @@
+29807	UW3_godot.log
+86524	UW3_pv.log
+541218636	UW3_seg_01_win_t470.0.mp4
+130051	UW3_seg_01_win_t470.0.sfx.json

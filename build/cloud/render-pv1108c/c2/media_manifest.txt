@@ -1,0 +1,4 @@
+28970	UA3_godot.log
+87847	UA3_pv.log
+474648890	UA3_seg_01_win_t470.0.mp4
+131553	UA3_seg_01_win_t470.0.sfx.json

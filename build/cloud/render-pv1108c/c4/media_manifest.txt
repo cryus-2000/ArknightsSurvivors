@@ -1,0 +1,4 @@
+28869	UK3_godot.log
+85868	UK3_pv.log
+532353599	UK3_seg_01_win_t470.0.mp4
+114735	UK3_seg_01_win_t470.0.sfx.json

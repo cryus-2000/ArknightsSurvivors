@@ -1,0 +1,9 @@
+L4 rc=0 2156s
+  seg_01_win_t460.0 3716 帧 rc=0
+total 491644
+drwxr-xr-x 2 root root      4096 Nov  7 16:52 .
+drwxr-xr-x 4 root root      4096 Nov  7 16:15 ..
+-rw-r--r-- 1 root root     29131 Nov  7 16:50 L4_godot.log
+-rw-r--r-- 1 root root     87504 Nov  7 16:50 L4_pv.log
+-rw-r--r-- 1 root root 503174107 Nov  7 16:52 L4_seg_01_win_t460.0.mp4
+-rw-r--r-- 1 root root    127779 Nov  7 16:52 L4_seg_01_win_t460.0.sfx.json
