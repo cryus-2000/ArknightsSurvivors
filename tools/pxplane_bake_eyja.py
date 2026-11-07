@@ -116,6 +116,7 @@ def write_import(name):
     old_uid = s.split('uid="')[1].split('"')[0]
     uid = "uid://" + "".join(random.choice("abcdefghijklmnopqrstuvwxy0123456789") for _ in range(13))
     s = s.replace("pxp_lm_burst_gd.png-e01c49fe74ab656f2185741f162156ce", name + "-" + h).replace("res://art/fx/pxp/pxp_lm_burst_gd.png", rp).replace(old_uid, uid)
+    s = "".join(l for l in s.splitlines(True) if not l.startswith("uid="))   # （11-07：不写 uid 行，Godot --import 时按规范生成；脚本自己拼的 36 进制 uid 会带 z / 9，被 Godot 改写或撞号，见 asset_lint U1 / U2）
     open(dst, "w", encoding="utf-8", newline="\n").write(s)
 
 

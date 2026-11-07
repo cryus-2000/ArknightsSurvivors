@@ -1076,6 +1076,7 @@ def write_import(name):
     new_dest = "res://.godot/imported/%s-%s.ctex" % (name, h)
     uid = "uid://" + "".join(random.Random(name).choice("abcdefghijklmnopqrstuvwxy0123456789") for _ in range(13))
     s = s.replace(old_dest, new_dest).replace(old_src, rp).replace(old_uid, uid)
+    s = "".join(l for l in s.splitlines(True) if not l.startswith("uid="))   # （11-07：不写 uid 行，Godot --import 时按规范生成；脚本自己拼的 36 进制 uid 会带 z / 9，被 Godot 改写或撞号，见 asset_lint U1 / U2）
     open(dst, "w", encoding="utf-8", newline="\n").write(s)
 
 
