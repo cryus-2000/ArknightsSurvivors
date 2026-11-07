@@ -137,7 +137,10 @@ static func _ghost_blade(r, ci, h: Vector2, an: float, L: float, al: float) -> v
 ## 长槊：槊尖 p、朝向 d、杆长 L；歌蕾蒂娅钢蓝 + 倒刺
 static func _spear(r, ci, p: Vector2, d: Vector2, L: float, al := 1.0) -> void:   # 水凝的长槊（虚影）
 	al *= 0.85
-	_bar(r, ci, p - d * L, p - d * 12.0, 3.0, [WATER, GL[4], GL[2]], al)
+	_bar(r, ci, p - d * L, p - d * 12.0, 7.0, [GL[1], GL[1], GL[0]], al * 0.9)   # 外沿暗边（亮芯在暗地面上才不会读成一根细线）
+	_bar(r, ci, p - d * L, p - d * 12.0, 5.0, [WATER, GL[4], GL[3]], al)
+	for i in 6:
+		r._glow(p - d * L * (float(i) / 6.0), GL[5])
 	var px: float = r.g.PX
 	var bt: int = int(floor(r.g.t * 15.0))
 	for i in 10:   # 杆上往下滴的水珠（按拍换位置）
@@ -145,7 +148,7 @@ static func _spear(r, ci, p: Vector2, d: Vector2, L: float, al := 1.0) -> void: 
 		r._cell(ci, p - d * L * hz + Vector2(0, px * (2.0 + float((i + bt) % 4))), Color(WATER, al * 0.7))
 	var nv: Vector2 = d.orthogonal()
 	for k in 7:
-		var w: float = 11.0 * (1.0 - float(k) / 7.0)
+		var w: float = 16.0 * (1.0 - float(k) / 7.0)
 		_ln(r, ci, p - d * (14.0 - float(k) * 2.0) + nv * w, p - d * (14.0 - float(k) * 2.0) - nv * w, Color(GL[6] if k > 4 else WATER, al))
 	_ln(r, ci, p - d * 20.0 + nv * 10.0, p - d * 12.0 + nv * 4.0, Color(GL[4], al))
 	_ln(r, ci, p - d * 20.0 - nv * 10.0, p - d * 12.0 - nv * 4.0, Color(GL[4], al))
@@ -412,7 +415,7 @@ static func _vortex(r, ci, a: Dictionary, t: float, gd: bool) -> void:
 	var fade2: float = 1.0 - clampf((t - B2.VX_SLAM - 0.3) / 0.4, 0.0, 1.0)
 	# 长槊：从天上竖直落下钉住
 	var sy: float = -420.0 * (1.0 - clampf(t / B2.VX_STAKE, 0.0, 1.0) * clampf(t / B2.VX_STAKE, 0.0, 1.0))
-	_spear(r, ci, c + Vector2(0, sy + 4.0), Vector2.DOWN, 110.0, fade2)
+	_spear(r, ci, c + Vector2(0, sy + 4.0), Vector2.DOWN, 170.0, fade2)
 	# 锚：抡 → 掷出 → 缠槊绕圈 → 砸下
 	var ul = a.who.ulpianus
 	var hand: Vector2 = _pos(ul, c + Vector2(-300, 0)) + Vector2(10, -40)
