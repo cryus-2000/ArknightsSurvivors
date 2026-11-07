@@ -1,0 +1,4 @@
+63582	trace_exusiai_0.log
+63582	trace_exusiai_1.log
+62266	trace_texas_0.log
+62266	trace_texas_1.log
