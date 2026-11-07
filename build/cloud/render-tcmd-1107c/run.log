@@ -1,0 +1,18 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4857 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+tcmd_focus phone 290 ['rec_00000.png', 'rec_00001.png', 'rec_00002.png', 'rec_00003.png']  []
+tcmd_point phone 290 ['rec_00000.png', 'rec_00001.png', 'rec_00002.png', 'rec_00003.png']  []
+log.txt
+rec_00000.png
+rec_00001.png
+291
+log.txt
+rec_00000.png
+rec_00001.png
+291
+/work/cmds.sh: line 97: build/cloud/render-tcmd-1107c/media_manifest.txt: No such file or directory
+find: ‘build/cloud/render-tcmd-1107c/media’: No such file or directory
+/work/cmds.sh: line 98: build/cloud/render-tcmd-1107c/media_manifest.txt: No such file or directory
+du: cannot access 'build/cloud/render-tcmd-1107c/media': No such file or directory
+media： 个文件，
