@@ -327,9 +327,11 @@ def main():
         if a.banner_bg:
             BANNER["bg"] = a.banner_bg
             bn = build(key, "itch_banner")
-            bn.save(HERE / f"cover_{name}_itch_banner_960x400.png", optimize=True)
-        it.save(HERE / f"cover_{name}_itch_cover_630x500.png", optimize=True)
-        ty.save(HERE / f"cover_{name}_toy_poster_1200x900.png", optimize=True)
+            if not a.final:
+                bn.save(HERE / f"cover_{name}_itch_banner_960x400.png", optimize=True)
+        if not a.final:   # 过程稿才写回本目录；定稿只写发布位置（11-07 清理后本目录不留图）
+            it.save(HERE / f"cover_{name}_itch_cover_630x500.png", optimize=True)
+            ty.save(HERE / f"cover_{name}_toy_poster_1200x900.png", optimize=True)
         outs.append((name, it, ty))
         if a.final:
             final(key, Path(a.final), it, ty, bn if a.banner_bg else None)
