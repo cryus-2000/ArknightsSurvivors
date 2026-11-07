@@ -1190,7 +1190,7 @@ static func gm_exec(o, b: Dictionary) -> void:
 					n += 1
 			var cut: float = minf(float(b.per) * float(n), float(b.max))
 			var gn: int = int(b.get("gold_n", 0))
-			var gold_on: bool = gn > 0 and n >= gn   # 11-07 用户定 A（docs/310 §5，只画）：一次拔刀命中 ≥ gold_n 名 → 队长下一次冲刺带金色残影
+			var gold_on: bool = gn > 0 and o.gm_hits.size() >= gn   # 11-07 用户定 A（docs/310 §5，只画）：一次拔刀命中 ≥ gold_n 名（含被这一刀砍死的）→ 队长下一次冲刺带金色残影
 			if gold_on and g.ppos != Vector2.INF:
 				o.tx["iai_gold"] = true   # 画面专用键（tx_update 冲刺上升沿读），玩法不读
 			var real: float = minf(cut, float(g.dash_cd))
