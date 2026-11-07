@@ -722,8 +722,9 @@ static func loading_warm_lists() -> Array:
 			if base.ends_with(suffix):
 				base = base.trim_suffix(suffix)
 				break
-		if not skip.has(base):
+		if not skip.has(base) and not _lazy_skip(n):
 			names.append(n)
+	_start_ids_c = {}   # 选人可能还会变：下次重算
 	return [names, whites]
 
 
@@ -784,7 +785,29 @@ func _enemy_evict(n: String) -> void:
 			A.uncache(nm)
 	tex_deferred[n] = true
 
-## 手机网页进局（docs/314 §2）：标题页 / 图鉴 / 寻访 / 选人读进缓存、本局固定名单里没有的贴图拿掉（art.gd _outrun）。
+## 手机网页按需读特效（lazy_fx）时，不在开局编队（同 title._op_ids：队长 / --op、--squad）的干员的 V6 特效帧条：
+## 载入页不预读、进局保留名单不留（docs/319 §2：原来载入页照读全员约 150 MB，进局才不用）
+static var _start_ids_c := {}
+
+static func _lazy_skip(n) -> bool:
+	if not V6_FRAMES.has(n) or not (Cfg.mobile_web() and Cfg.mobile_knob("mobile_lazy_fx", 1.0)) and not Cfg.dev_args().has("--lazyfx"):
+		return false
+	var ow: String = A.fx_owner(str(n))
+	if ow == "":
+		return false
+	if _start_ids_c.is_empty():
+		_start_ids_c = {Cfg.character_id: true}
+		for a in Cfg.dev_args():
+			if a.begins_with("--op="):
+				_start_ids_c = {a.substr(5): true}
+		for a in Cfg.dev_args():
+			if a.begins_with("--squad="):
+				for c in a.substr(8).split(","):
+					_start_ids_c[c] = true
+	return not _start_ids_c.has(ow)
+
+
+## 手机网页进局（docs/319 §2）：标题页 / 图鉴 / 寻访 / 选人读进缓存、本局固定名单里没有的贴图拿掉（art.gd _outrun）。
 ## 首次进游戏的新手引导会开图鉴，全员动作帧条、敌人帧条、名册立绘原来整局留在缓存里（iPhone 真机开局贴图 442 vs 343 MB）。
 ## --bal=web/mobile_drop_outrun=0 退回；桌面不做（显存够，回标题再进图鉴少读一次）
 func _drop_outrun_tex() -> void:
@@ -792,17 +815,8 @@ func _drop_outrun_tex() -> void:
 		A.outrun_track = false
 		return
 	var keep := {}
-	var ids := {Cfg.character_id: true}   # 开局编队（同 title._op_ids）：手机按需读特效时只留这些人的 V6 帧条
-	for a in Cfg.dev_args():
-		if a.begins_with("--op="):
-			ids = {a.substr(5): true}
-	for a in Cfg.dev_args():
-		if a.begins_with("--squad="):
-			for c in a.substr(8).split(","):
-				ids[c] = true
 	for n in preload_tex_names():
-		var ow: String = A.fx_owner(str(n)) if lazy_fx and V6_FRAMES.has(n) else ""
-		if ow == "" or ids.has(ow):
+		if not _lazy_skip(n):
 			keep[str(n)] = true
 	var nd := A.drop_outrun(keep)
 	if not Cfg.dev_args().is_empty():
