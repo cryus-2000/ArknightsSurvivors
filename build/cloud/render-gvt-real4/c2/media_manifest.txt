@@ -1,0 +1,15 @@
+1809091	real_tx3.png
+1377253	real_tx3_gladiia_倒钩_0.png
+1305890	real_tx3_gladiia_倒钩_1.png
+1361508	real_tx3_gladiia_怒海_0.png
+1372770	real_tx3_gladiia_怒海_1.png
+1361508	real_tx3_gladiia_锚定_0.png
+1377253	real_tx3_gladiia_锚定_1.png
+1324749	real_tx3_lumen_净化_0.png
+1324790	real_tx3_lumen_净化_1.png
+1368676	real_tx3_lumen_折光_0.png
+1367489	real_tx3_lumen_折光_1.png
+1325122	real_tx3_skalter_共鸣_0.png
+1324989	real_tx3_skalter_共鸣_1.png
+1324955	real_tx3_texas_技力_0.png
+1325062	real_tx3_texas_技力_1.png

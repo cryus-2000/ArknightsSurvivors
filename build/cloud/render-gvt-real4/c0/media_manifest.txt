@@ -1,0 +1,13 @@
+1774754	real_sk2.png
+1332480	real_sk2_gladiia_倒钩_0.png
+1375950	real_sk2_gladiia_倒钩_1.png
+1332480	real_sk2_gladiia_怒海_0.png
+1375950	real_sk2_gladiia_怒海_1.png
+1332480	real_sk2_gladiia_锚定_0.png
+1375950	real_sk2_gladiia_锚定_1.png
+1252102	real_sk2_lumen_净化_0.png
+1252141	real_sk2_lumen_净化_1.png
+1252262	real_sk2_skalter_共鸣_0.png
+1252365	real_sk2_skalter_共鸣_1.png
+1252210	real_sk2_texas_技力_0.png
+1252133	real_sk2_texas_技力_1.png

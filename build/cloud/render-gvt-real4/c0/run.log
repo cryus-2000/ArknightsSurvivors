@@ -1,0 +1,13 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4857 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+sk2 cue=0 rc=0 607 张 0 处脚本错误
+sk2 cue=1 rc=0 607 张 0 处脚本错误
+帧数 607，有差 506，挑 [(1149, 7504), (1221, 6738), (1302, 7849), (1464, 8756), (1818, 6649), (1968, 6691), (2064, 7544), (2370, 9035)]
+sk2 gladiia 倒钩：触发 5 次，出图 2
+sk2 gladiia 怒海：触发 3 次，出图 2
+sk2 gladiia 锚定：触发 6 次，出图 2
+sk2 lumen 净化：触发 55 次，出图 2
+sk2 skalter 共鸣：触发 207 次，出图 2
+sk2 texas 技力：触发 144 次，出图 2
+media：13 个文件，17M

@@ -1,0 +1,10 @@
+1809470	real_tx2.png
+1299203	real_tx2_gladiia_锚定_0.png
+1339608	real_tx2_gladiia_锚定_1.png
+1333503	real_tx2_lumen_净化_0.png
+1333555	real_tx2_lumen_净化_1.png
+1413803	real_tx2_lumen_折光_0.png
+1333755	real_tx2_skalter_共鸣_0.png
+1333798	real_tx2_skalter_共鸣_1.png
+1333612	real_tx2_texas_技力_0.png
+1333794	real_tx2_texas_技力_1.png
