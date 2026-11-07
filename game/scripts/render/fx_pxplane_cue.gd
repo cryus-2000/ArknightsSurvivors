@@ -26,7 +26,8 @@ static func push(r, o, d: Dictionary) -> void:
 	if _log < 0:
 		_log = 1 if OS.is_debug_build() and OS.get_cmdline_user_args().has("--cuelog") else 0
 	if _log == 1 and d.has("tag"):
-		print("CUE %.3f %s %s %s" % [float(r.g.t), str(o.id), str(d.tag), str(d.get("p", o.pos))])
+		var sp: Vector2 = r.g.get_viewport().get_canvas_transform() * Vector2(d.get("p", o.pos)) if r.g.is_inside_tree() else Vector2.ZERO
+		print("CUE %.3f %s %s %d %d" % [float(r.g.t), str(o.id), str(d.tag), int(sp.x), int(sp.y)])   # 屏幕坐标（挑帧后按这里裁小块）
 	if str(d.get("shape", "")) == "none":   # 只记日志的标记点（直接改绘制、没有提示事件的项）
 		return
 	var c: Color = d.get("c", Color(-1, 0, 0))
