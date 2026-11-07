@@ -1,0 +1,99 @@
+{
+  "_doc": "新干员骨架（new-operator skill）。键序同 lappland.json；以 _ 开头的键是注释。数值全放 base，文字与积木只用 {$key} / \"$key\"。照抄前把 <…> 全部替换，删掉用不到的段。",
+  "id": "<id>",
+  "trail_col": {"main": [1.0, 1.0, 1.0], "alt": [0.6, 0.6, 0.6]},
+  "name": "<中文名>",
+  "en": "<ENGLISH NAME>",
+  "class": "<先锋|近卫|重装|狙击|术师|医疗|辅助|特种>",
+  "lanes": ["<melee|multi|summon|control|heal|weak>"],
+  "branch": "<分支>",
+  "col": [1.0, 1.0, 1.0],
+  "script": "res://scripts/characters/data_operator.gd",
+  "base": {
+    "_doc": "全部数值（docs/27 §9.2）；预算见设计稿 docs/NNN §4",
+    "atk": 30,
+    "cd": 0.8,
+    "reach": 110,
+    "half": 1.0,
+    "kb": 40,
+    "aim_pad": 20,
+    "first_cd": 0.3,
+    "idle_cd": 0.3,
+    "s1_atk": 1.25,
+    "s2_dur": 12,
+    "s2_atk": 1.4,
+    "s3_dur": 8,
+    "s3_atk": 1.1
+  },
+  "leader": {
+    "_doc": "当队长时的受击属性（docs/23）：原作精二满级 生命 / 防御 / 法抗 依据",
+    "max_hp": 110,
+    "armor": 2.0,
+    "arts_res": 0.1,
+    "regen": 1.0
+  },
+  "sprites": {
+    "_doc": "帧条槽（docs/87 / 108）；占位期可借别人帧条，注明借谁",
+    "size": 64,
+    "foot": [32, 60],
+    "idle": {"tex": "op_<id>_idle", "frames": 8, "fps": 4.0, "foot": [32, 60]},
+    "run": {"tex": "op_<id>_run", "frames": 8, "fps": 13.3, "foot": [32, 60]},
+    "attack": {"tex": "op_<id>_attack", "frames": 8, "fps": 14.0, "foot": [48, 76]},
+    "skill": {"tex": "op_<id>_skill", "frames": 8, "fps": 8.0, "foot": [48, 76]},
+    "death": {"tex": "op_<id>_die", "frames": 8, "fps": 8.0, "foot": [32, 60]},
+    "skills": {"s1": {"anim": "skill"}, "s2": {"anim": "skill"}, "s3": {"anim": "skill"}}
+  },
+  "extra_sprites": [],
+  "attack": {
+    "mode": "auto",
+    "name": "<普攻名>",
+    "desc": "每 {$cd} 秒……（docs/76；数字一律占位）"
+  },
+  "skills": [
+    {"name": "<S1 原作名>", "en": "<EN>", "sp": 10, "permanent": true, "desc": "充能一次后永久生效：攻击 +{$s1_atk*100-100}%", "icon": "skill_<id>_s1"},
+    {"name": "<S2 原作名>", "en": "<EN>", "sp": 14, "dur": "$s2_dur", "desc": "{$s2_dur} 秒内攻击 ×{$s2_atk}；……", "icon": "skill_<id>_s2"},
+    {"name": "<S3 名>", "en": "<EN>", "sp": 24, "dur": "$s3_dur", "desc": "{$s3_dur} 秒内……", "icon": "skill_<id>_s3"}
+  ],
+  "talent": {"name": "<天赋原作名>", "desc": "<精一生效的被动>"},
+  "hit_sources": {
+    "<普攻名>": {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["basic", "area"]},
+    "<S3 名>": {"emitter": "operator", "origin": "skill", "range": "近战", "kind": "物理", "tags": ["skill", "area"]}
+  },
+  "progression": [
+    {"type": "custom", "id": "<n1>", "name": "<节点 1>", "icon": "growth_u_spd", "desc": "<新机制，不是纯数值（docs/202 §0）>"},
+    {"type": "custom", "id": "<n2>", "name": "<节点 2>", "icon": "growth_u_spd", "desc": ""},
+    {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「<S2>」；解锁天赋「<天赋>」：……；普攻「<精一名>」：……", "attack": {"name": "<精一名>", "desc": ""}},
+    {"type": "custom", "id": "<a>", "name": "<分支 A>", "icon": "growth_t_field", "desc": "",
+     "branch": {"<a>": {"id": "<a>", "name": "<分支 A>", "icon": "growth_t_field", "desc": ""}, "<b>": {"id": "<b>", "name": "<分支 B>", "icon": "skill_<id>_s1", "desc": ""}},
+     "branch_desc": "「<分支 A>」……；「<分支 B>」……", "bot": "<a>"},
+    {"type": "custom", "id": "<b>", "name": "<分支 B>", "icon": "skill_<id>_s1", "desc": "",
+     "routes": {"<a>": {"id": "<a>2", "name": "<A 路线>", "icon": "growth_t_field", "desc": ""}, "<b>": {"id": "<b>2", "name": "<B 路线>", "icon": "skill_<id>_s1", "desc": ""}}},
+    {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能「<S3>」：……；普通攻击强化「<精二名>」：……", "attack": {"name": "<精二名>", "desc": ""}}
+  ],
+  "gallery": {
+    "tags": ["<近战>", "<范围>"],
+    "desc": "<图鉴机制说明（docs/76）>",
+    "intro": "<招募卡简介：PRTS 客观履历转述草稿，标「草稿，待用户改」交协调人（用户亲写）>"
+  },
+  "blocks": {
+    "_doc": "积木（docs/61 唯一规格；名字与 docs/60 不一致时以 60 为准）",
+    "attack": {"shape": "cone", "src": "<普攻名>", "r": "$reach", "half": "$half", "kb": "$kb", "every": "$cd", "first": "$first_cd", "idle": "$idle_cd", "aim_pad": "$aim_pad", "face": true},
+    "skills": [
+      {"dur": "permanent", "do": [{"verb": "buff_self", "stat": "atk", "op": "mult", "value": "$s1_atk", "power": true}]},
+      {"dur": "$s2_dur", "do": [{"verb": "buff_self", "stat": "atk", "op": "mult", "value": "$s2_atk", "power": true}], "need_enemy": 150},
+      {"dur": "$s3_dur", "do": [{"verb": "buff_self", "stat": "atk", "op": "mult", "value": "$s3_atk", "power": true}], "need_enemy": 150}
+    ],
+    "trait": [],
+    "talent": [],
+    "progression": {
+      "<n1>": {"trig": "passive", "do": []},
+      "<n2>": {"trig": "passive", "do": []},
+      "<a>": {"trig": "passive", "do": []},
+      "<b>": {"trig": "passive", "do": []},
+      "<a>2": {"trig": "passive", "do": []},
+      "<b>2": {"trig": "passive", "do": []},
+      "elite1": {"trig": "passive", "do": []},
+      "elite2": {"trig": "passive", "do": []}
+    }
+  }
+}
