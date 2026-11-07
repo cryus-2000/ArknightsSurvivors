@@ -1,0 +1,23 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4857 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+Z rc=1 1s
+Traceback (most recent call last):
+  File "/work/repo/tools/promo/pv_runs.py", line 130, in <module>
+    run_game(name, out)
+  File "/work/repo/tools/promo/pv_runs.py", line 85, in run_game
+    shutil.copy(os.path.join(raw, "pv.log"), os.path.join(media, "%s_pv.log" % name))
+  File "/usr/lib/python3.11/shutil.py", line 419, in copy
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+  File "/usr/lib/python3.11/shutil.py", line 256, in copyfile
+    with open(src, 'rb') as fsrc:
+         ^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/work/repo/build/cloud/render-pvsmoke1108/run_Z/raw/pv.log'
+SCRIPT ERROR: Parse Error: Identifier "Bal" not declared in the current scope.
+          at: GDScript::reload (/work/repo/tools/promo/pv_rec.gd:147)
+ERROR: Failed to load script "/work/repo/tools/promo/pv_rec.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+total 8
+drwxr-xr-x 2 root root 4096 Nov  7 15:10 .
+drwxr-xr-x 4 root root 4096 Nov  7 15:10 ..
+media：0 个文件，4.0K

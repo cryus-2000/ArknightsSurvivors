@@ -1,0 +1,11 @@
+/usr/local/bin/godot-gl --path /work/repo/game --audio-driver Dummy --fixed-fps 60 --resolution 1920x1080 --position 0,0 -s /work/repo/tools/promo/pv_rec.gd -- --balance --realtime --nodeath --bot=master --diff=4 --quality=high --pickframes=90 --op=mizuki --squad=skadi,texas --seed=12 --lamphold=1:3 --pv_out=/work/repo/build/cloud/render-pvsmoke1108/run_Z/raw --pv_maxt=12 --pv_rtfrom=0 --pv_win=2-4 --pv_ult=5 --pv_autoult --pv_ring=3:40:300 --pv_elite=3.5:skimmer:200:0 --pv_choice --pv_bossult=0.99
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+OpenGL API 4.5 (Core Profile) Mesa 22.3.6 - Compatibility - Using Device: Mesa/X.org - llvmpipe (LLVM 15.0.6, 256 bits)
+
+SCRIPT ERROR: Parse Error: Identifier "Bal" not declared in the current scope.
+          at: GDScript::reload (/work/repo/tools/promo/pv_rec.gd:147)
+ERROR: Failed to load script "/work/repo/tools/promo/pv_rec.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
