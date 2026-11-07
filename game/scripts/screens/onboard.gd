@@ -34,8 +34,8 @@ const END_SECS := 2.5        # 演示局「演示结束」卡停留几秒后进�
 const ACT_SECS := 40.0       # 特有系统的动作卡（指挥 / 终结技）等这么久没做也收起，不挡后面的卡
 const MIN_SHOW := 4.0        # 每张卡至少显示几秒（动作做得快也让人看完一句话；期间做完的动作照算）
 const GAP := 1.6             # 两张卡之间至少隔几秒
-const DRILL_MIN := 2.5       # 演示局里每张卡至少显示几秒（强制部分 ≤ 90 秒，节奏紧凑）
-const DRILL_GAP := 0.6       # 演示局里两张卡之间隔几秒
+const DRILL_MIN := 4.0       # 演示局里每张卡至少显示几秒（11-07 用户「新手指南太急」2.5 → 4.0）
+const DRILL_GAP := 1.2       # 演示局里两张卡之间隔几秒（11-07 0.6 → 1.2）
 const PACK_N := 10          # 演示局「部署」：从一侧涌来的怪
 const PACK_D := 400.0        # 这群怪离队长多远出现（屏内靠边：看得见涌来、看得见队友过去挡）
 const LINK_PACK := 8         # 演示局「连携」：在队长身边放几只怪
@@ -47,6 +47,7 @@ const BEACON_MIRES := 3      # 灯标周围放几片溟痕（点燃后退散，�
 const FOCUS_DIST := 380.0    # 演示局「集火」：精英放在队长身边多远（圆盘选点范围内，屏内）
 const FOCUS_WAIT := 24.0     # 等这么久还没下集火就由引导代下一次
 const FOCUS_HP_K := 8.0      # 精英生命 ×：别被自动攻击提前打死
+const DRILL_STUCK := 45.0    # 演示局到总上限后，当前卡最多再等几秒（灯标 / 集火各自 24 秒代做，留足余量）
 const STEP_TRIES := 2        # 灯标 / 精英刷不出来或被打掉：最多重放几次，再不行就跳过这一步
 const MATE_FALLBACK := ["saria", "exusiai", "texas", "silverash", "ptilopsis"]
 
@@ -610,7 +611,9 @@ func update(dt: float) -> void:
 		if drill_left <= 0.0:
 			_drill_end()
 		return
-	if drill and g.t - drill_t0 >= Bal.v("onboard/drill_max", 90.0) and cur != "drill_end":
+	# 11-07 用户「灯塔之类还没点完就直接结束了」：到上限也先让当前这张卡做完（各步自己有代做兜底），只在卡与卡之间收尾；
+	# 当前卡卡住超过 DRILL_STUCK 秒仍强制结束，防卡死
+	if drill and g.t - drill_t0 >= Bal.v("onboard/drill_max", 90.0) and cur != "drill_end" and (cur == "" or cur_t > DRILL_STUCK):
 		cur = ""
 		_show("drill_end")   # 演示局拖太久：直接结束
 		return
@@ -868,7 +871,7 @@ func draw(vs: Vector2) -> void:
 		return
 	var touch: bool = g.touch != null and g.touch.active
 	var v3on: bool = g.hud_view.v3 != null and g.hud_view.v3.on()
-	var w: float = minf(vs.x - 24.0, (470.0 if touch else 440.0) if v3on else (540.0 if touch else 500.0))   # v3 卡收小一号（11-07 用户「新手引导的格子能不能小一点」）
+	var w: float = minf(vs.x - 24.0, (400.0 if touch else 380.0) if v3on else (540.0 if touch else 500.0))   # v3 卡收小（11-07 用户「新手引导的格子能不能小一点」440 / 470；再次「不要挡视野」→ 380 / 400）
 	var pos := Vector2(16.0, 72.0) if touch else Vector2(16.0, 112.0)   # 触屏也放左上（生命 / 灯火条下方）：顶部居中会盖住屏幕中央的队长
 	pos.x -= slide * 50.0
 	_card(vs, id, Rect2(pos, Vector2(w, 0.0)), now, a, done_k, cur != "", touch, false)

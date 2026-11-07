@@ -1230,7 +1230,7 @@ def check_onboard_reload(godot):
     name = "新手引导结束重开场景（docs/219 §6）：强制教程（玩过线）走完后重开场景进正式局，再跑 30 秒无报错"
     out, err, to, log = _run([godot, "--headless", "--audio-driver", "Dummy", "--fixed-fps", "30", "--path", GAME, "--",
                               "--balance", "--realtime", "--seed=3", "--op=mizuki", "--bot=master", "--nodeath",
-                              "--onboard=ask", "--onboardpick=0", "--onboardreload", "--maxt=30"], 300, "onboard_reload")
+                              "--onboard=ask", "--onboardpick=0", "--onboardreload", "--maxt=60"], 300, "onboard_reload")
     errs = GR.script_errors(out, err)
     i_done = out.find("ONBOARD forced_done")
     i_rel = out.find("ONBOARD reloaded")
