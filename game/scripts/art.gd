@@ -3,6 +3,11 @@ extends RefCounted
 ## 这样新图放进文件夹后，重新打开游戏就能看到，不需要重新导出。
 
 static var _cache := {}
+## 局外读进缓存的贴图（11-08 iPhone 真机：首次进游戏走新手引导开了图鉴，全员动作帧条 / 敌人 / 名册立绘留在缓存里带进对局，开局贴图 442 MB，
+## 第二局起没开图鉴 343 MB）。标题页打开时 outrun_track = true，期间 tex / tex_hi 新缓存的名字记进 _outrun；
+## 手机网页进局（game._ready → drop_outrun）把不在本局固定名单里的拿掉，贴图在没人引用后释放，局内再要时 tex() 重新读
+static var outrun_track := false
+static var _outrun := {}
 static var enemy_pixels: Dictionary = {}
 static var _enemy_pixels_loaded := false
 static var _enemy_pixel_tops: Dictionary = {}
@@ -203,6 +208,8 @@ static func tex_hi(name: String, keep_cached := true) -> Texture2D:
 			t = tex(name + "@1x", keep_cached)   # 仅有一倍条的界面图也能显示
 	if keep_cached:
 		_cache[key] = t
+		if outrun_track:
+			_outrun[key] = true
 	return t
 
 
@@ -412,6 +419,8 @@ static func tex(name: String, keep_cached := true) -> Texture2D:
 			_hires_rid[t.get_rid()] = density
 			_name_rid[t.get_rid()] = name
 		_cache[name] = t
+		if outrun_track:
+			_outrun[name] = true
 	elif t != null:
 		t.set_meta(&"_ui_density", density)
 	return t
@@ -855,6 +864,18 @@ static func uncache(name: String) -> void:
 	if t is Texture2D:
 		_white_cache.erase(t.get_instance_id())
 	_cache.erase(name)
+
+
+## 进局：拿掉局外读进来、本局固定名单 keep 里没有的贴图（见 _outrun）；返回拿掉的张数
+static func drop_outrun(keep: Dictionary) -> int:
+	outrun_track = false
+	var n := 0
+	for k in _outrun:
+		if _cache.has(k) and not keep.has(k):
+			uncache(k)   # _hires_rid / _name_rid 不动：还有人拿着这张图时倍率照旧查得到
+			n += 1
+	_outrun.clear()
+	return n
 
 
 ## 白剪影释放（game._white_release）：从缓存里拿掉，贴图在没人引用后释放

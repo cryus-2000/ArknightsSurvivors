@@ -253,6 +253,17 @@ func _mobile_audio() -> void:
 			var pl := n as AudioStreamPlayer
 			if pl.bus == "Music":
 				pl.playback_type = AudioServer.PLAYBACK_TYPE_STREAM
+	if OS.has_feature("web") and cfg != null and cfg.mobile_web() and cfg.mobile_knob("mobile_music_lite", 1.0):
+		# 手机网页战斗曲只放底层（docs/314 §3，恢复 b53b835bf 的手机口径，6b3275b74 删旧乐句时丢了）：三层整首在网页上整段解码驻留，
+		# 战斗一约 110 MB（24 kHz），只留底层约 37 MB；加层 / 全奏层的播放器连同流一起释放，从没注册成样本。--bal=web/mobile_music_lite=0 退回
+		for tname in lay:
+			if not str(tname).begins_with("battle"):
+				continue
+			var pls: Array = lay[tname].players
+			while pls.size() > 1:
+				(pls.pop_back() as AudioStreamPlayer).queue_free()
+			stem_on[tname].resize(1)
+			stem_vol[tname].resize(1)
 	play_music("title")
 
 

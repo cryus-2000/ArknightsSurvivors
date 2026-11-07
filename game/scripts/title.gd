@@ -11,6 +11,7 @@ func _ready() -> void:
 	if FR.enabled():
 		FR.mark("title_ready")
 		RenderingServer.frame_post_draw.connect(func(): FR.mark("title"), CONNECT_ONE_SHOT)
+	A.outrun_track = true   # 局外读的贴图记下来，手机网页进局时拿掉（art.gd _outrun，game._drop_outrun_tex）
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_idle_fps = preload("res://scripts/core/idle_fps.gd").new()   # 手机网页闲置降帧（docs/50 §33）：boot_reveal 后才开
 	add_child(_idle_fps)
@@ -493,6 +494,10 @@ func _ft_action(what: String) -> void:
 		"gal_tab":
 			FR.mark("gal_tab")
 			gallery._set_tab((gallery.tab + 1) % 3)
+		"go":
+			FR.mark("go")   # 直接出发（同难度页「出发」：预热 → 载入页 → 进局）；量「开过图鉴再进局」的内存（docs/314）
+			_prewarm()
+			leaving = 0.0
 		"close":
 			FR.mark("close")
 			if gallery.visible:
