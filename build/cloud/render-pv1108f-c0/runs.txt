@@ -1,0 +1,6 @@
+K1 rc=0 22s
+total 32
+drwxr-xr-x 2 root root  4096 Nov  7 17:33 .
+drwxr-xr-x 4 root root  4096 Nov  7 17:33 ..
+-rw-r--r-- 1 root root 20159 Nov  7 17:33 K1_godot.log
+-rw-r--r-- 1 root root   425 Nov  7 17:33 K1_pv.log

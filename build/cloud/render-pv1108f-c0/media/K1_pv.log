@@ -1,0 +1,4 @@
+PVINIT args=--balance --realtime --nodeath --bot=master --diff=4 --quality=high --pickframes=90 --op=mizuki --squad=skadi,texas --seed=61 --bossmoves=bishop --pv_out=/work/repo/build/cloud/render-pv1108f-c0/run_K1/raw --pv_maxt=62 --pv_rtfrom=0 --pv_win=1-61
+PVLOG t=0.00 seg=-1 n=-1 lamp=100 ne=0 eb=0 boss= st=0 ult= wheel=false
+PVLOG t=0.27 seg=-1 n=-1 lamp=100 ne=0 eb=0 boss= st=0 ult= wheel=false
+PVDONE t=150.0 segs=0
