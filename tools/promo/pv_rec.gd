@@ -41,6 +41,9 @@ var choice_end := -1.0
 var beacon_rec := {}          # 已录过的灯标（按 pos 字符串）
 var beacon_until := -1.0
 var trim_at := 0
+var wheel_spec: Array = []    # --pv_wheel=秒:项:打开后几秒悬停:几秒确认（真实秒）
+var wheel_t := -1.0
+var wheel_step := 0
 
 
 func _initialize() -> void:
@@ -68,6 +71,8 @@ func _initialize() -> void:
 			boss_ult = float(a.substr(13))
 		elif a.begins_with("--pv_ring="):
 			ring_spec = Array(a.substr(10).split(":"))
+		elif a.begins_with("--pv_wheel="):
+			wheel_spec = Array(a.substr(11).split(":"))
 		elif a.begins_with("--pv_elite="):
 			elite_spec = Array(a.substr(11).split(":"))
 	ring_max = 90 if auto_ult else (60 if (rec_beacon or rec_choice) else 0)
@@ -190,6 +195,30 @@ func _process(_dt: float) -> bool:
 					boss_ult_done = true
 					_fill_ult("boss %s hp=%.0f/%.0f" % [str(b.type), float(b.hp), float(b.maxhp)])
 					break
+	# ---- 指挥圆盘（直接调 g.wheel：--wheelplan 在 11-08 的 S 局里没打开）
+	if not wheel_spec.is_empty():
+		if wheel_step == 0 and playing and g.t >= float(wheel_spec[0]):
+			g.wheel.open(null, true)
+			_ev("WHEEL open is_open=%s cmd_on=%s ult=%s st=%d" % [str(g.wheel.is_open), str(g.squad.cmd_on()), str(g.ult.phase) if g.ult != null else "-", int(g.state)])
+			if g.wheel.is_open:
+				wheel_step = 1
+				wheel_t = 0.0
+			else:
+				wheel_spec[0] = str(g.t + 0.5)
+		elif wheel_step >= 1:
+			wheel_t += 1.0 / 60.0
+			if wheel_step == 1 and wheel_t >= float(wheel_spec[2]):
+				g.wheel.forced = int(wheel_spec[1])
+				g.wheel.hover = int(wheel_spec[1])
+				wheel_step = 2
+				_ev("WHEEL hover %s" % str(wheel_spec[1]))
+			elif wheel_step == 2 and wheel_t >= float(wheel_spec[3]):
+				g.wheel.confirm(int(wheel_spec[1]))
+				wheel_step = 3
+				_ev("WHEEL confirm open=%s pick=%s" % [str(g.wheel.is_open), str(g.pick.active) if g.get("pick") != null else "-"])
+			elif wheel_step == 3 and wheel_t > float(wheel_spec[3]) + 4.0:
+				wheel_step = 4
+				_ev("WHEEL done pick=%s" % (str(g.pick.active) if g.get("pick") != null else "-"))
 	# ---- 固定窗口
 	for i in wins.size():
 		var w: Array = wins[i]
@@ -221,7 +250,7 @@ func _process(_dt: float) -> bool:
 		choice_on = false
 		_ev("CHOICE close")
 		if rec_choice and not cur.is_empty():
-			cur.until = g.t + 2.5
+			cur.until = maxf(float(cur.until), g.t + 2.5)
 	# ---- 灯标
 	if rec_beacon and playing:
 		for b in g.beacons:

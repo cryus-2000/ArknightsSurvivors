@@ -58,6 +58,11 @@ RUNS["L4"] = dict(args=MID + ["--seed=42", "--bal=enemy/density=1.2", "--tide=10
 for _k, _op, _seed in [("UA3", "angelina", 45), ("UW3", "wisadel", 46), ("UK3", "skalter", 47)]:
     RUNS[_k] = dict(args=["--op=" + _op, "--squad=skadi,texas", "--seed=%d" % _seed, "--bal=enemy/density=1.6"], rtfrom=468, maxt=522,
                     pv=["--pv_win=470-521", "--pv_ult=476,491,506"])
+# S 补录：圆盘由 pv_rec.gd 直接开（--pv_wheel），点选交给 --pickplan
+RUNS["S3"] = dict(args=MID + ["--seed=13", "--forceboss=1", "--pickplan=snap@0.4,ok@1.8"], rtfrom=172, maxt=300,
+                  pv=["--pv_win=175-300", "--pv_elite=189:skimmer:330:-60", "--pv_wheel=193:3:0.5:1.2", "--pv_bossult=0.15"])
+RUNS["S4"] = dict(args=MID + ["--seed=51", "--forceboss=1", "--pickplan=snap@0.4,ok@1.8"], rtfrom=172, maxt=300,
+                  pv=["--pv_win=175-300", "--pv_elite=189:skimmer:330:-60", "--pv_wheel=193:3:0.5:1.2", "--pv_bossult=0.15"])
 # 图鉴演示（无 HUD、空场）：德克萨斯 S3 + 四人终结技备选
 DEMOS = [("texas", 2, 3, 300), ("mizuki", 2, 4, 300), ("angelina", 2, 4, 300), ("wisadel", 2, 4, 300), ("skalter", 2, 4, 300)]
 
