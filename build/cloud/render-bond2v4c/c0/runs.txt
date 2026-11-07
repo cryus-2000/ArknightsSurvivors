@@ -1,0 +1,5 @@
+rival rc=0 cast=61.3 270 帧 0 处脚本错误
+total 1320
+drwxr-xr-x 2 root root    4096 Nov  7 11:16 .
+drwxr-xr-x 4 root root    4096 Nov  7 11:16 ..
+-rw-r--r-- 1 root root 1342538 Nov  7 11:16 bond2_rival.mp4
