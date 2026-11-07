@@ -1,0 +1,12 @@
+1638963	real_tx9.png
+94205	real_tx9_gladiia_倒钩_0.png
+86112	real_tx9_gladiia_倒钩_1.png
+85742	real_tx9_gladiia_怒海_0.png
+90548	real_tx9_gladiia_怒海_1.png
+94205	real_tx9_gladiia_锚定_0.png
+88568	real_tx9_gladiia_锚定_1.png
+61441	real_tx9_skalter_共鸣_0.png
+70952	real_tx9_skalter_共鸣_1.png
+73749	real_tx9_texas_技力_0.png
+76582	real_tx9_texas_技力_1.png
+108859	real_tx9_texas_金影_0.png

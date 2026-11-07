@@ -1,0 +1,15 @@
+1602538	real_e1b.png
+72255	real_e1b_eyjafjalla_熔蚀_0.png
+78864	real_e1b_eyjafjalla_熔蚀_1.png
+70581	real_e1b_gladiia_倒钩_0.png
+93863	real_e1b_gladiia_倒钩_1.png
+83758	real_e1b_gladiia_怒海_0.png
+86889	real_e1b_gladiia_怒海_1.png
+86223	real_e1b_gladiia_锚定_0.png
+70581	real_e1b_gladiia_锚定_1.png
+98462	real_e1b_lumen_净化_0.png
+104830	real_e1b_lumen_净化_1.png
+99253	real_e1b_lumen_折光_0.png
+97377	real_e1b_lumen_折光_1.png
+102692	real_e1b_suzuran_灼印_0.png
+71768	real_e1b_suzuran_灼印_1.png
