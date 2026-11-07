@@ -25,7 +25,8 @@ KNOB = "fx/melee_impact"   # --knob：开 / 关对照的旋钮（缺省打击感
 
 def kb(on):
     return ["--bal=%s=%d" % (k, on) for k in KNOB.split(",") if k]
-EXTRA = []                 # --extra：两局都带的启动参数（如 --elite2 --sptest）
+EXTRA = []
+ONEX = False                 # --extra：两局都带的启动参数（如 --elite2 --sptest）
 KLABEL = "打击感包"   # --playclock_trace：TRACE 也走玩家时钟（局部卡肉不停世界，开关两局应逐行一致；全局顿帧会在这里分岔）
 
 
@@ -177,7 +178,7 @@ def rec(out, t0, secs, seed):
     fl = []
     for i, lb in enumerate(labs):
         dt = ",drawtext=fontfile=%s:text='%s':x=16:y=16:fontsize=30:fontcolor=white:box=1:boxcolor=black@0.6" % (fnt, lb) if os.path.exists(fnt) else ""
-        fl.append("[%d:v]scale=960:540%s[v%d]" % (i, dt, i))
+        fl.append("[%d:v]scale=%s%s[v%d]" % (i, "1280:720" if ONEX else "960:540", dt, i))   # --onex：每格 1 倍（1280×720），单干员两格并排
     fl.append("[v0][v1]hstack=inputs=2[t];[v2][v3]hstack=inputs=2[b];[t][b]vstack=inputs=2[v]" if len(tiles) == 4 else "[v0][v1]hstack=inputs=2[v]")
     for crf in (23, 27, 31):
         am = ["-map", "%d:a" % len(tiles), "-c:a", "aac", "-b:a", "128k"] if aud else []
@@ -244,8 +245,9 @@ def main():
     ap.add_argument("--knob", default="fx/melee_impact")
     ap.add_argument("--klabel", default="打击感包")
     ap.add_argument("--extra", default="")
+    ap.add_argument("--onex", action="store_true", help="每格 1 倍（1280×720）不缩；配单个 --ops")
     a = ap.parse_args()
-    global OPS, NAME, PLAYCLOCK_TRACE, KNOB, EXTRA, KLABEL
+    global OPS, NAME, PLAYCLOCK_TRACE, KNOB, EXTRA, KLABEL, ONEX
     if a.ops:
         OPS = [(x, ["--bal=fx/px_plane=1"]) for x in a.ops.split(",") if x]
     NAME = a.name
@@ -253,6 +255,7 @@ def main():
     KNOB = a.knob
     KLABEL = a.klabel
     EXTRA = a.extra.split()
+    ONEX = a.onex
     a.out = os.path.abspath(a.out)   # Godot 带 --path game 启动：相对路径会落到 game/ 下存不进去
     os.makedirs(a.out, exist_ok=True)
     ok = True

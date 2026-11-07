@@ -377,7 +377,7 @@ func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}, dmg :
 				var fd: Vector2 = (e.pos as Vector2) - hit_src_pos(h)
 				if fd.length_squared() > 1.0:
 					e.rc_dir = fd.normalized()
-				var px: float = Bal.v("fx/hit_react_px", 3.0) * (Bal.v("fx/hit_react_skill_k", 1.35) if (skill or crit or weak) else 1.0)
+				var px: float = Bal.v("fx/hit_react_px", 4.0) * (Bal.v("fx/hit_react_skill_k", 1.35) if (skill or crit or weak) else 1.0)
 				if not lead_h:
 					px *= Bal.v("fx/hit_react_mate", 0.8)
 				e.rc_k = maxf(px, tpx) * Game.PX / g.world.rc_px
