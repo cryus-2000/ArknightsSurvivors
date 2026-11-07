@@ -1,0 +1,2 @@
+16860	pause_phone/log.txt
+410938	pause_phone/shot_motion_pause_full_1217.png
