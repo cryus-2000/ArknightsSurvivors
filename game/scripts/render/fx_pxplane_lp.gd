@@ -23,7 +23,10 @@ const HIT_N := 3           # 一记横扫至多画 3 只身上的斩痕
 const WHIT_BEAT := 3       # 剑气命中星每拍至多 3 个
 const LIGHT := Color(0.78, 0.74, 1.0)
 
-var r      # fx_pxplane 实例
+var _parent: WeakRef
+var r:   # Owner holds this helper; the backreference must not retain its cache.
+	get:
+		return _parent.get_ref()
 var g
 var _beat := {}
 var _last_atk := {}        # 干员 id → 上一记双刃的时刻（双刃连斩补刀 0.12 秒后到，画反向月牙）
@@ -34,7 +37,7 @@ var _seal_st := {}         # 敌人 id → [封印止时刻, 起拍时刻]（不
 
 
 func _init(px) -> void:
-	r = px
+	_parent = weakref(px)
 	g = px.g
 
 
@@ -53,7 +56,7 @@ func _px(ci, p: Vector2, c: Color) -> void:
 func _glow(p: Vector2, c: Color) -> void:
 	if g.optical_on and r._emit_n < Pxp.EMIT_CAP:
 		r._emit_n += 1
-		g.glow_next.append([Pxp._snap(p), g.PX, Color(c, Bal.v("fx/px_plane_emit", 0.8))])
+		g.glow_next.append([Pxp._snap(p), g.PX, Color(c, (Bal.v("fx/px_plane_emit", 0.8) * float(g.world.lf_emit_k)))])
 
 
 ## 一对挂在她身上的方向件（立起 + 贴地）；斩击类只留最近两刀（11-05 用户「碎斩击」口径，同 fx_pxplane._add）

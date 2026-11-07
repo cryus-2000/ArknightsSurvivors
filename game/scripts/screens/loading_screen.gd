@@ -202,41 +202,119 @@ func _draw() -> void:
 		draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.01, 0.03, OUT_DIM * clampf(out_t / OUT_LEN, 0.0, 1.0)))
 
 
-## 潮线：灰色底线 + 已涨到的青色水线 + 浪头（弧 + 白沫）
+## 潮线（11-07 用户「进入游戏加载页的海洋可以改一下」：原来一条平直青线 + 一小段鼓包，简陋）：改成像素海面，同标题页深海水母的 3 像素格——
+## 三层起伏的波线（后浅前深：后层淡青细浪、中层、前层深青实水面），每层波峰一格亮像素、下面填水体；进度 = 一盏航标灯随前层浪浮沉、
+## 从左往右走，走过的海面点亮（波峰转青、偶有白沫，水下透青光走 glow 层），没走到的灰蓝暗着；百分比 / 阶段照旧在下面一行。
+## 只用 draw_rect（不加图）；「减少动态效果」：浪不动、灯不晃
+const TIDE_LAYERS := [
+	# [层顶偏移（格）, 振幅（格）, 每格相位, 速度, 亮色, 暗色, 水体色, 水体透明度]
+	[-8, 2.5, 0.2, 0.9, Color(0.62, 0.9, 0.94), Color(0.32, 0.43, 0.52), Color(0.1, 0.3, 0.4), 0.16],
+	[-4, 3.0, 0.13, -1.3, Color(0.36, 0.88, 0.9), Color(0.25, 0.35, 0.44), Color(0.05, 0.2, 0.28), 0.4],
+	[0, 2.0, 0.09, 1.7, Color(0.18, 0.72, 0.78), Color(0.18, 0.27, 0.35), Color(0.02, 0.09, 0.14), 0.92],
+]
+const TIDE_DEPTH := 8   # 水面以下画几格（前层水体到这儿）
+var tide_m := 1.0      # 矮屏缩放（_tide_geom 设）
+
+func _tide_geom(vs: Vector2, k: float) -> Array:
+	var c: float = maxf(3.0, roundf(3.0 * k))   # 一格的屏幕像素（同标题页 3 像素格；大屏按版式放大，手机竖屏也不小于 3）
+	var x0: float = floorf(vs.x * 0.125 / c) * c
+	var x1: float = floorf(vs.x * 0.875 / c) * c
+	var y: float = floorf(vs.y * 0.8 / c) * c
+	tide_m = clampf(vs.y / 720.0, 0.5, 1.0)   # 矮屏（手机横屏 390 高）层距 / 振幅 / 水深按比例收，不顶到标志、不压提示
+	return [c, x0, x1, y]
+
+
+func _depth() -> int:
+	return int(roundf(float(TIDE_DEPTH) * tide_m))
+
+
+## 第 L 层第 i 列的波峰高度（格，向上为负）
+func _crest(L: int, i: int, rm: bool) -> int:
+	var ly: Array = TIDE_LAYERS[L]
+	var ph: float = float(i) * float(ly[2]) + (0.0 if rm else t * float(ly[3])) + float(L) * 1.7
+	return int(roundf(float(ly[0]) * tide_m)) - int(roundf(float(ly[1]) * tide_m * (sin(ph) * 0.7 + sin(ph * 0.43 + 1.1) * 0.3)))
+
+
 func _draw_tide(vs: Vector2, k: float, a: float) -> void:
-	var x0 := vs.x * 0.125
-	var x1 := vs.x * 0.875
-	var y := vs.y * 0.82
-	draw_line(Vector2(x0, y), Vector2(x1, y), Color(0.49, 0.67, 0.75, 0.25 * a), 2.0)
-	var fx := lerpf(x0, x1, clampf(shown, 0.0, 1.0))
+	var gm := _tide_geom(vs, k)
+	var c: float = gm[0]
+	var x0: float = gm[1]
+	var x1: float = gm[2]
+	var y: float = gm[3]
+	var rm: bool = Cfg.reduce_motion
+	var n: int = int((x1 - x0) / c)
+	var lit_n: int = int(roundf(clampf(shown, 0.0, 1.0) * float(n)))
+	var fade_n := 10   # 两头淡出的列数
+	for L in TIDE_LAYERS.size():
+		var ly: Array = TIDE_LAYERS[L]
+		for i in n:
+			var e: float = clampf(minf(float(i + 1), float(n - i)) / float(fade_n), 0.0, 1.0)
+			var cr: int = _crest(L, i, rm)
+			var x: float = x0 + float(i) * c
+			var lit: bool = i < lit_n
+			var wc: Color = ly[6]
+			wc.a = float(ly[7]) * e * a * (1.0 if L == 2 else (1.0 if lit else 0.7))
+			draw_rect(Rect2(x, y + float(cr + 1) * c, c, float(_depth() - cr - 1) * c), wc)
+			var cc: Color = ly[4] if lit else ly[5]
+			cc.a = e * a * (0.55 + 0.15 * float(L) if lit else 0.35 + 0.1 * float(L))
+			draw_rect(Rect2(x, y + float(cr) * c, c, c), cc)
+			# 白沫：点亮的浪头，波峰最高处偶尔一格白（按列号与时间节拍，不取随机数）
+			if lit and L > 0 and not rm and cr <= int(roundf(float(ly[0]) * tide_m)) - 1 and (i * 7 + int(t * 6.0) + L * 3) % 11 == 0:
+				draw_rect(Rect2(x, y + float(cr - 1) * c, c, c), Color(0.9, 1.0, 1.0, 0.85 * e * a))
+	# 航标灯：随前层浪浮沉，灯在顶上；进度 0 时停在起点
+	var bi: int = clampi(lit_n, 0, n - 1)
+	var bx: float = x0 + float(bi) * c
+	var by: float = y + float(_crest(2, bi, rm) - 1) * c
+	var post := Color(0.05, 0.09, 0.13, a)
+	draw_rect(Rect2(bx - c * 2.0, by - c * 6.0, c * 5.0, c * 7.0), Color(0.02, 0.05, 0.08, 0.8 * a))   # 灯塔身（深色描边）
+	draw_rect(Rect2(bx - c, by - c * 5.0, c * 3.0, c * 6.0), post.lightened(0.18))
+	draw_rect(Rect2(bx, by - c * 5.0, c, c * 6.0), post.lightened(0.32))   # 迎光面
+	draw_rect(Rect2(bx - c * 2.0, by, c * 5.0, c), post.lightened(0.15))   # 浮台
+	draw_rect(Rect2(bx - c, by - c * 3.0, c * 3.0, c), Color(0.36, 0.88, 0.9, 0.5 * a))   # 腰带
+	var blink: float = 1.0 if rm else 0.75 + 0.25 * sin(t * 5.0)
+	draw_rect(Rect2(bx - c, by - c * 7.0, c * 3.0, c * 2.0), Color(0.03, 0.07, 0.1, a))   # 灯室
+	draw_rect(Rect2(bx, by - c * 7.0, c, c * 2.0), Color(0.92, 1.0, 1.0, a * blink))   # 灯
 	var cy := UI.CYAN
 	cy.a = a
-	if fx > x0 + 1.0:
-		draw_line(Vector2(x0, y), Vector2(fx, y), cy, 3.0)
-	var rm: bool = Cfg.reduce_motion
-	if not rm and shown > 0.002:
-		# 浪头：前沿一道起伏的弧，推进中更高
-		var push := 1.0 if wave_t >= 0.0 else 0.0
-		var h := (6.0 + 5.0 * push + sin(t * 4.0) * 1.5) * k
-		var pts := PackedVector2Array()
-		var cl := maxf(fx - 44.0 * k, x0)   # 浪头左端不越过潮线起点
-		var cw := fx + 18.0 * k - cl
-		for i in 13:
-			var u := i / 12.0
-			pts.append(Vector2(cl + u * cw, y - sin(u * PI) * h * (1.0 - u * 0.35)))
-		draw_polyline(pts, cy, 3.0)
-		var foam := Color(0.91, 1.0, 1.0, 0.8 * a)
-		draw_polyline(PackedVector2Array([pts[2] + Vector2(0, -3), pts[5] + Vector2(0, -4), pts[8] + Vector2(0, -3)]), foam, 2.0)
-		for j in 3:
-			var ph := fmod(t * 1.7 + j * 0.37, 1.0)
-			draw_rect(Rect2(Vector2(fx - 8.0 * k + j * 9.0 * k, y - h - 4.0 - ph * 6.0 * k), Vector2(2, 2)), Color(0.91, 1.0, 1.0, (1.0 - ph) * 0.9 * a))
-	var ly := y + 22.0 * k
-	UI.en(self, font, Vector2(x0, ly), "LOADING", 11, cy, 4.0)
-	UI.text(self, font, Vector2(x0 + 84.0, ly), stage, 13, Color(0.62, 0.72, 0.75, a))
+	var ly2 := y + float(_depth()) * c + 14.0 * k
+	UI.en(self, font, Vector2(x0, ly2), "LOADING", 11, cy, 4.0)
+	UI.text(self, font, Vector2(x0 + 84.0, ly2), stage, 13, Color(0.62, 0.72, 0.75, a))
 	var rt := "%d%%" % int(round(clampf(target, 0.0, 1.0) * 100.0))
 	if count.y > 0:
 		rt += "　%d / %d" % [count.x, count.y]
-	UI.text(self, font, Vector2(x1 - 300.0, ly), rt, 13, Color(0.62, 0.72, 0.75, a), HORIZONTAL_ALIGNMENT_RIGHT, 300.0)
+	UI.text(self, font, Vector2(x1 - 300.0, ly2), rt, 13, Color(0.62, 0.72, 0.75, a), HORIZONTAL_ALIGNMENT_RIGHT, 300.0)
+
+
+## 叠加层：点亮的海面下透青光（三层渐淡的格带）+ 航标灯的光晕（十字 + 方块，像素格）
+func _draw_tide_glow(a: float) -> void:
+	var vs := size
+	var k := _k(vs)
+	var gm := _tide_geom(vs, k)
+	var c: float = gm[0]
+	var x0: float = gm[1]
+	var x1: float = gm[2]
+	var y: float = gm[3]
+	var rm: bool = Cfg.reduce_motion
+	var n: int = int((x1 - x0) / c)
+	var lit_n: int = int(roundf(clampf(shown, 0.0, 1.0) * float(n)))
+	if lit_n > 0:
+		var w: float = float(lit_n) * c
+		for r in 3:
+			draw_glow_rect(Rect2(x0, y + float(1 + r) * c, w, c), Color(0.1, 0.42, 0.48) * (a * (0.55 - 0.17 * float(r))))
+	var bi: int = clampi(lit_n, 0, n - 1)
+	var bx: float = x0 + float(bi) * c
+	var by: float = y + float(_crest(2, bi, rm) - 8) * c
+	var blink: float = 1.0 if rm else 0.75 + 0.25 * sin(t * 5.0)
+	var gc := Color(0.25, 0.75, 0.8) * (a * blink)
+	draw_glow_rect(Rect2(bx - c, by - c, c * 3.0, c * 3.0), gc * 0.8)
+	draw_glow_rect(Rect2(bx - c * 3.0, by, c * 7.0, c), gc * 0.45)
+	draw_glow_rect(Rect2(bx, by - c * 3.0, c, c * 7.0), gc * 0.45)
+	draw_glow_rect(Rect2(bx - c * 2.0, by - c * 2.0, c * 5.0, c * 5.0), gc * 0.18)
+
+
+func draw_glow_rect(r: Rect2, col: Color) -> void:
+	col.a = 1.0
+	glow_ci.draw_rect(r, col)
 
 
 func _draw_glow() -> void:
@@ -254,3 +332,4 @@ func _draw_glow() -> void:
 		var c: Color = cols[i] * (a * breathe)
 		c.a = 1.0
 		glow_ci.draw_texture_rect(g, Rect2(r.get_center() - gs / 2.0, gs), false, c)
+	_draw_tide_glow(a)

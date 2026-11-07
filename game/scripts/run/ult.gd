@@ -19,6 +19,7 @@ const IRP = preload("res://scripts/run/ult_px_ir.gd")   # 艾丽妮「宣判」�
 const SDP = preload("res://scripts/run/ult_px_sd.gd")   # 斯卡蒂「斩浪」转平面画面（docs/246 §16，同开关；只画）
 const HOP = preload("res://scripts/run/ult_px_ho.gd")   # 星熊终结技配色对齐 + 崩解（docs/254 §9）
 const GLP = preload("res://scripts/run/ult_px_gl.gd")   # 歌蕾蒂娅终结技转平面叠加层（docs/263 §9，ult/px_plane_gladiia；只画）
+const ANF = preload("res://scripts/run/ult_an_fine.gd")   # 安洁莉娜终结技精细版旋臂 / 奇点（ult/an_fine，11-06；kind = "an_fine"）
 const MZP = preload("res://scripts/run/ult_px_mz.gd")   # 水月「水母群」转平面画面（docs/261 §8，ult/px_plane_mizuki；只画）
 const Bond = preload("res://scripts/run/link_bond.gd")   # 羁绊连携（link/bond，docs/217）
 const Bond2 = preload("res://scripts/run/bond2.gd")   # 羁绊技 v2（docs/294，link/bond_v2）
@@ -136,7 +137,7 @@ var cutins: Array = []      # 立绘切入条带（HUD 画）：{"id", "name", "
 # ---- 统计（批跑汇总 / ult_bench）
 var stats := {"ult": 0, "cult": 0, "combo": 0, "combo_auto": 0, "combo_e": 0, "combo_up": 0, "lit": 0, "miss": 0,
 	"first_full": -1.0, "ult_times": [], "cult_times": [], "lit_by": {}, "link_by": {}, "e_out": 0.0, "e_kill": 0.0, "e_hurt": 0.0, "e_combo": 0.0, "full_times": [], "idle_full_s": 0.0,
-	"v2_links": 0, "link_t": []}
+	"v2_links": 0, "link_t": [], "casts": []}
 
 
 func _init(game) -> void:
@@ -459,6 +460,11 @@ func _begin(ld, k: String) -> void:
 	kills_now = 0
 	energy = 0.0
 	full_since = -1.0
+	# 每次终结技的战果（只统计，不影响玩法；docs/302「终结技伤害是不是低」）：t 按下时刻、k 档、op 队长、
+	# d 实际掉血合计、mk / ek / bk 小怪 / 精英 / Boss 击杀、md 小怪掉血、en / emh / ed 精英只数 / 最大生命合计 / 掉血、
+	# b Boss 类型 → 这次打掉的最大生命比例（f 前缀 = 最终 Boss）、mv 出招那一刻屏内小怪只数
+	stats.casts.append({"t": snappedf(g.t, 0.1), "k": k, "op": str(ld.id), "d": 0.0, "mk": 0, "ek": 0, "bk": 0, "md": 0.0,
+		"en": 0, "emh": 0.0, "ed": 0.0, "b": {}, "mv": -1})
 	if k == "cult":
 		cells = 0
 		_cell_t = g.t   # 清零后重新计 40 秒
@@ -600,6 +606,12 @@ func _cast_go() -> void:
 	_ult_at = aim if aim_kind == "point" else (caster.pos + aim_dir * 300.0 if aim_kind == "dir" else caster.pos)
 	_cast_t = g.t
 	ev.ult_t = g.t
+	if not stats.casts.is_empty():
+		var nv := 0
+		for e in in_view(caster.pos):
+			if not e.boss and not e.elite and not e.get("part", false) and not e.get("chest", false):
+				nv += 1
+		stats.casts[-1]["mv"] = nv
 	_ua("cast")
 	if kind == "cult":
 		ev.cult_t = g.t
@@ -691,6 +703,8 @@ func _auto_cast() -> void:
 	var ld = g.squad.leader()
 	if ld == null or ld.pos == Vector2.INF or ld.cmd_down > 0.0:
 		return
+	if g.bot != null and g.bot.ult_hold(self):
+		return   # human 档机器人：充满后晚放（core/bot.gd ult_hold，docs/308）；其余档恒 false
 	var fb_live: bool = g.final_boss != null and not g.final_boss.dead
 	if g.t >= Bal.v("ult/bot_hold_from", 570.0) and not fb_live and g.t < 600.0:
 		return   # 9:30 之后留给最终 Boss 进场
@@ -874,7 +888,8 @@ func build_mult(o) -> float:
 func hit(o, e: Dictionary, frac: float, opt: Dictionary = {}) -> float:
 	if e.dead or e.get("friendly", false) or frac <= 0.0:
 		return 0.0
-	if int(e.get("ult_s", -1)) != serial:
+	var first: bool = int(e.get("ult_s", -1)) != serial
+	if first:
 		e["ult_s"] = serial
 		e["ult_d"] = 0.0
 	var full_b: float = budget(e, bool(opt.get("edge", false))) * build_mult(o)
@@ -917,6 +932,8 @@ func hit(o, e: Dictionary, frac: float, opt: Dictionary = {}) -> float:
 	e.ult_d = float(e.ult_d) + got
 	if got > 0.0:
 		stats["hit_n"] = int(stats.get("hit_n", 0)) + 1   # 终结技掉血次数（批跑统计用，10-31 塞雷娅朝前打对照）
+	if not stats.casts.is_empty():
+		_cast_rec(stats.casts[-1], e, got, first)
 	if got > 0.0:
 		last_hit_t = g.t
 		if not opt.get("pre", false):
@@ -930,6 +947,26 @@ func hit(o, e: Dictionary, frac: float, opt: Dictionary = {}) -> float:
 		if kb != Vector2.ZERO and not e.boss:
 			g.enemies_sys.apply_kb(e, kb * (0.5 if e.elite else 1.0))
 	return got
+
+
+func _cast_rec(c: Dictionary, e: Dictionary, got: float, first: bool) -> void:
+	c.d = float(c.d) + got
+	if e.boss:
+		var key: String = ("f:" if e == g.final_boss else "") + str(e.get("type", "boss"))
+		c.b[key] = snappedf(float(e.ult_d) / maxf(1.0, e.maxhp), 0.001)
+		if e.dead:
+			c.bk = int(c.bk) + 1
+	elif e.elite or e.get("part", false):
+		if first:
+			c.en = int(c.en) + 1
+			c.emh = float(c.emh) + e.maxhp
+		c.ed = float(c.ed) + got
+		if e.dead:
+			c.ek = int(c.ek) + 1
+	else:
+		c.md = float(c.md) + got
+		if e.dead:
+			c.mk = int(c.mk) + 1
 
 
 func _src(o, sub: String) -> String:
@@ -1274,6 +1311,9 @@ func draw_world_back(w) -> void:
 			if str(s.kind) == "pxfn":   # 转平面终结技画面（docs/262 §11）：贴地件
 				w.tb_flush()
 				UPX.draw(g, s, dim)
+			elif str(s.kind) == "an_fine":
+				w.tb_flush()
+				ANF.draw(self, s, dim)
 			elif str(s.kind) == "strip":
 				_draw_strip(w, s, dim)
 			else:
@@ -2175,6 +2215,8 @@ func report() -> Dictionary:
 	var r := _report()
 	if not bd.is_empty():
 		r["bond"] = bd
+	if Cfg.dev_args().has("--ultcasts"):
+		r["casts"] = _casts_out()   # 每次终结技战果（批跑加 --ultcasts 才写，BALANCE / 金样不变）
 	return r
 
 
@@ -2183,6 +2225,16 @@ func _report() -> Dictionary:
 		"lit": stats.lit, "lit_by": stats.lit_by, "link_by": stats.link_by, "miss": stats.miss, "first_full": snappedf(float(stats.first_full), 0.1), "ult_times": stats.ult_times, "cult_times": stats.cult_times,
 		"e_out": snappedf(float(stats.e_out), 0.1), "e_kill": snappedf(float(stats.e_kill), 0.1), "e_hurt": snappedf(float(stats.e_hurt), 0.1), "e_combo": snappedf(float(stats.e_combo), 0.1), "hit_n": int(stats.get("hit_n", 0)),
 		"full_times": stats.get("full_times", []), "idle_full_s": snappedf(float(stats.get("idle_full_s", 0.0)), 0.1)}
+
+
+func _casts_out() -> Array:
+	var out: Array = []
+	for c in stats.casts:
+		var r: Dictionary = c.duplicate()
+		for k in ["d", "md", "emh", "ed"]:
+			r[k] = int(r[k])
+		out.append(r)
+	return out
 
 # ================================================================ 超必杀暂停（用户 10-30「终结技还不够明显，借鉴 MUGEN / 格斗游戏超必杀，先试试看」）
 ## 开关 ult/superflash（缺省 1，0 = 现行起手）。按下 Q 的瞬间：

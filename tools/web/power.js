@@ -17,12 +17,41 @@
 		}
 		var c = opts === undefined ? new A() : new A(opts);
 		list.push(c);
+		if (window.__syGesture) kick(c);   // 加载中已经点过屏幕：引擎晚建的上下文也立刻试着唤醒（Chrome 认粘性激活；Safari 不认就等下一下点按）
 		return c;
 	}
 	Wrapped.prototype = A.prototype;
 	window.AudioContext = Wrapped;
 	if (window.webkitAudioContext) window.webkitAudioContext = Wrapped;
 	window.__syAudioCtx = list;   // 自测用（tools/probes/power_web.py --hidecheck）
+	// 手机要点一下才有声音（11-07 用户「点击了之后才会有声音，就算在加载页也没有声音」）：浏览器只认「激活手势」里唤醒的音频上下文，
+	// 而触屏的 pointerdown 不算激活（HTML 规范：触屏只有 pointerup / touchend / click 算，鼠标是 mousedown / pointerdown，键盘 keydown），
+	// 加载页「开始游戏」原来只在 pointerdown 里 resume，手机上白调——要等进标题页后点某个按钮（touchend）才出声。
+	// 这里从页面一开始就在捕获阶段听这几种手势：每一下都唤醒全部上下文，并在每个上下文里放一段 1 帧静音缓冲（老版 iOS WebKit 要真起一个音源才解锁）；
+	// 全部 running 后撤掉监听。加载中点过屏幕的话，加载完直接有声音
+	function kick(c) {
+		try { if (c.state !== "running" && !document.hidden) c.resume(); } catch (e) {}
+		if (c.__syKicked) return;
+		try {
+			var b = c.createBuffer(1, 1, c.sampleRate), s = c.createBufferSource();
+			s.buffer = b;
+			s.connect(c.destination);
+			s.start(0);
+			c.__syKicked = 1;
+		} catch (e) {}
+	}
+	var GEST = ["pointerup", "touchend", "click", "mousedown", "keydown"];
+	function gesture() {
+		window.__syGesture = 1;
+		var all = list.length > 0;
+		for (var i = 0; i < list.length; i++) {
+			kick(list[i]);
+			if (list[i].state !== "running") all = false;
+		}
+		if (all) GEST.forEach(function (t) { document.removeEventListener(t, gesture, true); });
+	}
+	GEST.forEach(function (t) { document.addEventListener(t, gesture, true); });
+	window.__syAudioKick = gesture;
 	document.addEventListener("visibilitychange", function () {
 		for (var i = 0; i < list.length; i++) {
 			try {

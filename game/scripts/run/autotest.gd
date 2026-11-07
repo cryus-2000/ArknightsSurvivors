@@ -16,6 +16,7 @@ const KILL_SHOTS := [-1, 3, 8, 14, 22]   # --killshot 截图帧（相对击杀�
 var _kill_row: Array = []
 var hunt_rec_end := 0  # --huntrec：进寻访结果后又录了几张
 var _dash_at: Array = []
+var _m3_at := 0.0
 var _tab_at := 0.0
 var _tab_f := -1
 var _elite_at := -1.0   # --eliteat=秒（docs/249 §5）：-1 = 还没读参数，0 = 不用 / 已触发
@@ -1073,6 +1074,11 @@ func step() -> void:
 		for a in Cfg.dev_args():
 			if a.begins_with("--dashat="):
 				_dash_at = Array(a.substr(9).split(",")).map(func(x): return float(x))   # 截图（docs/290 冲刺格充能）：到点让队长冲刺一次
+	if _m3_at == 0.0:
+		_m3_at = -1.0
+		for a in Cfg.dev_args():
+			if a.begins_with("--m3downat="):
+				_m3_at = float(a.substr(11))   # 截图（docs/298 指挥台 Mon3tr 小牌）：到点让场上的 Mon3tr 倒下（走正常复活倒计时）
 	if _tab_at == 0.0:
 		_tab_at = -1.0
 		for a in Cfg.dev_args():
@@ -1113,6 +1119,12 @@ func step() -> void:
 		if _tab_f == 20 and DisplayServer.get_name() != "headless":
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_tab.png")
 			g.get_tree().quit()
+	if _m3_at > 0.0 and g.state == g.S.PLAY and g.t >= _m3_at:
+		_m3_at = -1.0
+		var M3h = load("res://scripts/characters/blocks/m3_hp.gd")
+		for e in M3h.entries(g):
+			if not M3h.is_down(e[1]):
+				M3h.down(e[0], e[1], {}, M3h.k(e[0], "m3_revive_secs", 18.0), false)
 	if _dash_at[0] > 0.0 and g.state == g.S.PLAY and g.t >= _dash_at[0]:
 		g._try_dash()
 		_dash_at.pop_front()
@@ -2017,6 +2029,8 @@ func _perf_sample() -> void:
 				perf_min = true
 			elif a.begins_with("--perfab="):
 				perf_ab = int(a.substr(9))
+			elif a.begins_with("--danmakuab="):
+				g.set_meta("danmaku_ab", maxi(1, int(a.substr(12))))   # Boss 弹幕第二版同局轮换（render/boss_bullet_draw.gd，docs/306 §8）
 			elif a == "--perfline":
 				perf_line = true
 			elif a.begins_with("--perfdump="):
@@ -2250,10 +2264,16 @@ func _clutter_log() -> void:
 	var kinds := {}
 	var fx_friend := 0
 	var fx_foe := 0
+	var by_op := {}   # 后期特效分账：干员 → {帧条名: 条数}（g.fx 里该干员出手生成的帧条，vfx 记的 sop）
 	for f in g.fx:
 		var foe: bool = f.get("enemy", false) or g.world.FOE_KINDS.has(f.kind)
 		var key: String = ("foe:" if foe else "") + str(f.kind)
 		kinds[key] = int(kinds.get(key, 0)) + 1
+		if f.has("sop") and f.life > 0.0:
+			var bo: Dictionary = by_op.get(str(f.sop), {})
+			var nm: String = str(f.get("name", f.kind))
+			bo[nm] = int(bo.get(nm, 0)) + 1
+			by_op[str(f.sop)] = bo
 		if foe:
 			fx_foe += 1
 		else:
@@ -2282,7 +2302,7 @@ func _clutter_log() -> void:
 	var lp: Vector2 = ct * g.ppos
 	var d := {"frame": g.at_frames, "t": snappedf(g.t, 0.01), "enemies": en, "enemies_on": en_on, "elite_boss_on": el_on,
 		"bosses": g.bosses.filter(func(b): return not b.dead).map(func(b): return str(b.type)),
-		"fx": g.fx.size(), "fx_friend": fx_friend, "fx_foe": fx_foe, "fx_kinds": kinds, "ops": ops,
+		"fx": g.fx.size(), "fx_friend": fx_friend, "fx_foe": fx_foe, "fx_kinds": kinds, "ops": ops, "fx_by_op": by_op,
 		"bullets": g.bullets.size(), "ebullets": g.ebullets.size(), "ebullets_on": eb_on, "lobs": g.lobs.size(), "shocks": g.shocks.size(),
 		"warns_full": wfull, "warns_dim": wdim, "dash_full": dash_full, "dash_dim": dash_dim, "texts": g.texts.size(),
 		"texts_drawn": g.hud_view.clarity_text_drawn,

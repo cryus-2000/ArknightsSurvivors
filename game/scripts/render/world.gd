@@ -67,6 +67,12 @@ var deco_dim := 1.0               # 装饰层（火花 / 碎片 / 光点 / 拖�
 var lr_v3 := false                # 本帧 late_read V3 生效（降噪只压装饰层）
 var dcrowd := 0.0                 # 降噪用的拥挤度：max(crowd, ecrowd × declutter crowd_mix)
 var mate_dim := 1.0               # 队友（非主控）特效再乘的系数（declutter mate_k；squad 绘制时按干员临时乘进 fx_dim）
+## 后期特效控制（docs/293 方案，render/late_fx，缺省 0）：late_k = 0（前期）→ 1（late_fx_t0 秒起 late_fx_ramp 秒内爬满）；
+## 队友整体透明度再乘 lerp(1, late_fx_mate, late_k)，队友转平面立起层也走这个系数，队友装饰颗粒按 late_fx_grains 减量；
+## 队长不再被拥挤降噪压暗（late_fx_lead）；大面积填充变薄（late_fill_k，late_fx_fill）；队友发光点进辉光减量（lf_emit_k，late_fx_emit）。敌弹、预警不动
+var late_k := 0.0
+var lf_emit_k := 1.0              # 当前正在画的干员的发光点系数（squad._op_dim / _pxp_sorted 设；队长恒 1，_fx_order 队长最后画，阶段结束自然回 1）
+var _lf_cv = null
 var lead_dim := 1.0               # 主控自己的特效再乘的系数（declutter lead_k）
 var mate_desat := 0.0             # 队友特效去饱和（docs/139 §10，render/mate_desat）
 var lead_boost := 1.0             # 队长特效提亮（docs/139 §11，render/lead_emph 档位或 render/lead_boost）
@@ -88,6 +94,7 @@ var _dbg_amb: bool = Dc.dbg("noamb")
 var _dbg_ground: bool = Dc.dbg("noground")
 var _dbg_gem: bool = Dc.dbg("nogem")
 var _dbg_mire: bool = Dc.dbg("nomire")
+var _dbg_opmask: bool = Dc.opmask_any()   # 后期特效分账（--clutterdbg=nolead / nomates / noop_<id>，Dc.mute_op）
 # docs/139 §8 怪物攻击圈环盘点（量测，只隐藏不改逻辑）：nowarn 地面预警（填充 + 轮廓）、notell 敌人自带危险提示、nofoefx 敌方一次性特效、
 # noshock 冲击环、noaura 光环（巢涌者 / 伪人负担圈）
 var _dbg_warn: bool = Dc.dbg("nowarn")
@@ -141,6 +148,7 @@ const P48 := {"idle": [4.0, true], "run": [10.0, true], "hurt": [10.0, false], "
 func _init(game: Game) -> void:
 	g = game
 	bulfx = preload("res://scripts/render/bullet_fx.gd").new(game, self)
+	bbv2 = preload("res://scripts/render/boss_bullet_draw.gd").new(game)   # Boss 弹幕东方化第二版（docs/306 §8，render/danmaku_v2）
 	_gc_sink = GroundCrack.TbSink.new(self)
 	dc_check = Cfg.dev_args().has("--dccheck")
 	dc_on = Bal.v("fx/enemy_draw_cache", 1.0) > 0.0   # 开局读一次（--bal=fx/enemy_draw_cache=0 对照旧路径；测量脚本可直接改 world.dc_on 轮换）
@@ -275,6 +283,12 @@ func update_visuals(dt: float) -> void:
 	fx_dim = lerpf(1.0, Dc.p("dim_floor"), dcrowd)
 	mate_dim = Dc.at("mate_k", dcrowd)
 	lead_dim = Dc.at("lead_k", dcrowd)
+	late_k = _late_fx_k()
+	lf_emit_k = 1.0
+	if late_k > 0.0:
+		mate_dim *= lerpf(1.0, late_fx_v("mate", 0.55), late_k)
+		if late_fx_v("lead", 1.0) > 0.0:   # 队长优先清楚：后期拥挤降噪不再压队长（declutter 3 档 lead_k 0.8）
+			lead_dim = lerpf(lead_dim, 1.0, late_k)
 	# 主次分层试验（docs/139 §10）：render/mate_layer 1 = 队友特效恒定压到 render/mate_fx（0.55）并去饱和 render/mate_desat；
 	# 用户 10-25「队友特效不要降，想其它办法」→ 缺省 0（只剩原来的拥挤降噪），改走 §11「突出队长」
 	mate_desat = 0.0
@@ -445,6 +459,7 @@ func draw_world() -> void:
 	if _lr_ab > 0 and Engine.get_process_frames() % _lr_ab == 0:
 		_ft_force_off = not _ft_force_off   # --lrab=N：每 N 帧轮换敌方顶层 + 队长剪影开 / 关（同局量帧时净差，docs/226 §4）
 	_ft_on = Bal.v("render/foe_top", 1.0) > 0.0 and g.foe_top != null and not _ft_force_off
+	bbv2.frame(bulfx)   # 先注册出现 / 消失钩子、推进粒子时钟（render/boss_bullet_draw.gd）
 	bulfx.frame()   # 子弹出现 / 消失（render/bullet_fx.gd）：先认出本帧新弹 / 消失的弹，下面各遍画弹时乘出现缩放
 	scr_flash = maxf(0.0, scr_flash - g.get_process_delta_time())
 	if _dbg_ground:
@@ -1345,7 +1360,7 @@ func _sorted_fast(evr: Rect2) -> bool:
 					if not _dbg_ground:
 						g.map.draw_sort_prop(ob)
 				7:
-					Pxp.draw_sorted(g, g.wcv, ob)
+					_pxp_sorted(ob)
 		else:
 			for i in v:
 				_se_draw(objs[i], kind[i])
@@ -1372,7 +1387,51 @@ func _se_draw(ob, kd: int) -> void:
 			if not _dbg_ground:
 				g.map.draw_sort_prop(ob)
 		7:
-			Pxp.draw_sorted(g, g.wcv, ob)
+			_pxp_sorted(ob)
+
+
+func _late_fx_k() -> float:
+	if Bal.v("render/late_fx", 0.0) <= 0.0 or g.demo_op != "" or (g.opt_old & 1073741824):   # OPT_LATEFX（仅 --optab 对照）
+		return 0.0
+	return clampf((g.t - Bal.v("render/late_fx_t0", 480.0)) / maxf(Bal.v("render/late_fx_ramp", 60.0), 0.001), 0.0, 1.0)
+
+
+## 后期特效控制的参数：手机网页取 late_fx_<键>_mobile（没写就同桌面）
+func late_fx_v(key: String, dflt: float) -> float:
+	var v: float = Bal.v("render/late_fx_" + key, dflt)
+	if Cfg.mobile_web():
+		v = Bal.v("render/late_fx_" + key + "_mobile", v)
+	return v
+
+
+## 大面积填充（咒域扇面这类整片半透明底）后期的透明度系数：队长、队友都乘（填充盖怪；边框照画）
+func late_fill_k() -> float:
+	return lerpf(1.0, late_fx_v("fill", 0.5), late_k) if late_k > 0.0 else 1.0
+
+
+## 某名干员的发光点系数（转平面 emit 进辉光层）：队友后期 × late_fx_emit，队长 1
+func late_emit_k(leader: bool) -> float:
+	return 1.0 if leader or late_k <= 0.0 else lerpf(1.0, late_fx_v("emit", 0.4), late_k)
+
+
+## 转平面立起层（排序项）：队友的件在后期走带队友系数的画布（原来直接画在世界画布上，拥挤降噪 / 队友系数都不生效）
+func _pxp_sorted(ob) -> void:
+	if (_dbg_friend or _dbg_opmask) and ob is Dictionary and str(ob.get("oid", "")) != "":   # 量测（--clutterdbg）：立起层也按人静音（原来漏了，诊断量轻了转平面）
+		var ld0 = g.squad.leader() if g.squad != null else null
+		if _dbg_friend or Dc.mute_op(str(ob.oid), ld0 != null and str(ob.oid) == str(ld0.id)):
+			return
+	if late_k > 0.0 and Bal.v("render/late_fx_up", 1.0) > 0.0 and ob is Dictionary:
+		var ld = g.squad.leader() if g.squad != null else null
+		if ld != null and str(ob.get("oid", "")) != "" and str(ob.get("oid", "")) != str(ld.id):
+			if _lf_cv == null:
+				_lf_cv = preload("res://scripts/characters/batch_canvas.gd").new(g)
+			_lf_cv.g = g.wcv
+			_lf_cv.set_mod(mate_dim, 0.0)
+			lf_emit_k = late_emit_k(false)
+			Pxp.draw_sorted(g, _lf_cv, ob)
+			lf_emit_k = 1.0
+			return
+	Pxp.draw_sorted(g, g.wcv, ob)
 
 
 ## 敌人身上层（词条特效批、弱点菱形）→ 干员技能上层 → 护盾 → 无人机三遍（影子光晕 / 机体 / 核心）
@@ -1570,6 +1629,7 @@ class _BfxCap:
 			return
 		left -= 1
 		gr.push(name, p, dir, c, delay)
+var bbv2   # render/boss_bullet_draw.gd：Boss 弹幕第二版（弹体图集 + Noita 粒子，docs/306 §8）
 var bulfx   # render/bullet_fx.gd： 子弹出现 / 消失画面（用户 10-27；Boss 覆盖钩子 bulfx.set_hook / set_spawn_hook）
 var bfx_grains = null   # 本帧可用的颗粒层（光学观感颗粒开着且 boss_fx_grains 开时），_draw_fx 开头取
 
@@ -1649,6 +1709,8 @@ func _draw_fx() -> void:
 		var foe: bool = f.get("enemy", false) or FOE_KINDS.has(f.kind)
 		if ((_dbg_foe or _dbg_foefx) and foe) or (_dbg_friend and not foe and not AMB_KINDS.has(f.kind)) or (_dbg_amb and AMB_KINDS.has(f.kind)):
 			continue   # --clutterdbg 量测：这一层不画
+		if _dbg_opmask and not foe and f.has("sop") and Dc.mute_op(str(f.sop), f.get("lead", false)):
+			continue   # 后期特效分账：该干员出手生成的帧条不画
 		if bfx_grains != null and f.has("bfx") and BFX_KINDS.has(f.kind):
 			# Boss 结算特效（telegraph.warn_resolve 打的 bfx = 专属色）：第一帧迸出颗粒，矢量形压成半透明的底（起手 = 预警、爆发 = 颗粒、消散 = 颗粒飘散）
 			if not f.has("bg"):
@@ -2271,8 +2333,9 @@ func _draw_ebullets_lobs_shocks() -> void:
 	# 分遍后同类连续提交能合批）：① 无贴图：影子椭圆、深色底圈、光晕；② 贴图：弹体；③ 无贴图：弹芯、亮描边
 	var blades: Array = []
 	var mcs: Array = []   # 中期 Boss 分级弹（docs/170，render/mid_card_draw 单独画）
+	bbv2.draw(self)   # 第二版画法的 Boss 弹（影子 / 地面光 / 弹体 / 粒子）先画，下面各遍跳过这些弹
 	for b in g.ebullets:
-		if b.life <= 0.0 or b.get("own_draw", false):
+		if b.life <= 0.0 or b.get("own_draw", false) or bbv2.mine(b):
 			continue   # 命中 / 到期、还没被回收的敌弹不画（同我方子弹；正式局 _cleanup 每帧回收，图鉴演示由 enemy_demo 回收）；own_draw = 弹体由 Boss 自己画（偏执泡影二阶段，docs/170）
 		if b.get("kind", "") == "boss_blade":
 			blades.append(b)
@@ -2303,7 +2366,7 @@ func _draw_ebullets_lobs_shocks() -> void:
 				tb_circle(bp, (b.r + 4.0) * vk, Color(1.0, 0.3, 0.6, 0.25))
 	tb_flush()
 	for b in g.ebullets:
-		if b.life <= 0.0 or b.get("mc", false) or b.get("own_draw", false):
+		if b.life <= 0.0 or b.get("mc", false) or b.get("own_draw", false) or bbv2.mine(b):
 			continue
 		var kd: String = b.get("kind", "orb")
 		var bp: Vector2 = _ebp(b)
@@ -2325,7 +2388,7 @@ func _draw_ebullets_lobs_shocks() -> void:
 	var eb_ow: float = Bal.v("render/ebullet_outline", 0.0) if g.optical_on else 0.0
 	for b in g.ebullets:
 		var kd: String = b.get("kind", "orb")
-		if kd == "boss_blade" or kd == "mc" or b.life <= 0.0 or b.get("own_draw", false):
+		if kd == "boss_blade" or kd == "mc" or b.life <= 0.0 or b.get("own_draw", false) or bbv2.mine(b):
 			continue
 		var bp: Vector2 = _ebp(b)
 		var vk: float = bulfx.k(b)
@@ -5641,10 +5704,13 @@ func update_player_feel(dt: float) -> void:
 		var ph: float = absf(sin(g.walk_t))
 		target_sq = Vector2(1.0 + 0.05 * ph, 1.0 - 0.06 * ph)
 		target_lean = 0.09 * g.facing
-		p_dust_t -= dt
-		if p_dust_t <= 0.0:
-			p_dust_t = 0.2
-			feet_dust(2, 60.0)
+		# 扬尘只在对局里出（docs/305）：这里按真实时间走，暂停 / 三选一 / 属性面板时 g.moving 还停在 true，
+		# 原来每秒照出 10 颗、而 fx 寿命只在模拟里扣 —— 面板开多久就堆多久（实测 15 分钟 7600 个、网页帧时 25 → 90 ms）
+		if g.state == Game.S.PLAY:
+			p_dust_t -= dt
+			if p_dust_t <= 0.0:
+				p_dust_t = 0.2
+				feet_dust(2, 60.0)
 	elif alive:
 		target_sq = Vector2(1.0 - 0.012 * sin(g.t * 2.2), 1.0 + 0.022 * sin(g.t * 2.2))
 	# 挥伞：出手瞬间前倾 + 拉伸，随后回弹

@@ -54,6 +54,8 @@ PRESETS = {
     "pairs": [list(p) for p in itertools.combinations(OPS, 2)],
     # 单人开局、自然招募（真实流程）：每个职业一名代表
     "starts": [["wisadel"], ["eyjafjalla"], ["skadi"], ["mizuki"], ["saria"], ["kaltsit"], ["suzuran"]],
+    # 用户真人常用开局（docs/308，10-29 起 20 局里出现最多的 7 名；human 档校准用）
+    "humanstarts": [["exusiai"], ["skadi"], ["logos"], ["ulpianus"], ["mizuki"], ["kaltsit"], ["irene"]],
     # 流派矩阵（--lanes）用的缩小开局：远程 / 法术 / 近战 / 重装各一，覆盖 A（近战）、E（远程）、B（追击：维什戴尔、塞雷娅）的对口编队
     "lanes4": [["wisadel"], ["eyjafjalla"], ["skadi"], ["saria"]],
     # 干员横向对比（docs/29 §5）：被测干员 + 两名低输出的固定队友（推进之王 + 流明；测他们自己时换成塞雷娅 / 凯尔希），
@@ -93,7 +95,7 @@ def src_to_op():
                 m[k] = f[:-5]
     return m
 
-BOTS = ["afk", "bad", "normal", "expert", "master"]
+BOTS = ["afk", "bad", "normal", "expert", "master", "human"]
 ## 各档机器人的难度目标（docs/29 §3）：win 胜率区间、t 平均存活秒数区间、s330 3:30 存活率下限
 # 难度目标（docs/38 §8.12，用户 10-01 定，取代 9/25 的按机器人分档口径）：每档难度只看它的参考机器人，
 # 通关率（含超时：打到 maxt 没打死最终 Boss 算失败）50–70%。标准 = 高手，Ⅳ / Ⅷ = 熟练；其他机器人不设目标，只作参考

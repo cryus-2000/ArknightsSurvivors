@@ -20,7 +20,7 @@
 解压拼回（见该文件注释）。托管平台单文件上限 25 MB（EdgeOne / Cloudflare Pages），导出后逐个检查。
 不发布、不上传：部署命令见 docs/22。
 """
-import argparse, datetime, glob, gzip, io, json, lzma, os, shutil, subprocess, sys, tarfile
+import argparse, datetime, glob, gzip, io, json, lzma, os, re, shutil, subprocess, sys, tarfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import release_slim
@@ -86,6 +86,7 @@ def main():
     ap.add_argument("--part-mib", type=float, default=10)
     ap.add_argument("--worktree-presets", action="store_true", help="用工作区的 export_presets.cfg（改预设时本地试导出用）")
     ap.add_argument("--audio-tier", default="C", choices=["off", "A", "B", "C", "D", "E"], help="网页包音频再压缩档位（tools/web_audio.py：A 近无损 / B 平衡 / C 缺省（10-28 用户定，B 可回退） / D、E 试听档（docs/187 §7）；off = 不压）")
+    ap.add_argument("--final-tier", default="D", choices=["C", "D", "E"], help="最终 Boss 8 首配乐的单独档位（tools/web_audio.py FINAL_TIERS；11-06 用户批 D，docs/285 §3）；只在 --audio-tier C 时生效")
     ap.add_argument("--wasm-gzip", action="store_true", help="index.wasm 分片退回 gzip（缺省 LZMA，docs/187 §5）")
     ap.add_argument("--no-web-lossy", action="store_true", help="关掉网页专用的近无损压缩（事件插画有损 WebP 0.85、音效 32 kHz 上限，docs/187 §8），对照用")
     ap.add_argument("--no-lossless", action="store_true", help="关掉无损瘦身（字体 WOFF2 + WebP 无损最高档，docs/187），对照用")
@@ -134,6 +135,7 @@ def main():
     if not a.no_lossless:
         woff2_fonts(gpath, [r[0] for r in font_rows])
         webp_max(gpath)
+        script_text_export(gpath)
     if not a.no_web_lossy:
         web_lossy_assets(gpath)
     # 网页包专用音频再压缩（tools/web_audio.py，docs/121 §4）：只改打包副本，桌面包与仓库不动；--audio-tier off 关闭
@@ -142,7 +144,7 @@ def main():
     if freed:
         print("[瘦身] 旧程序合成配乐（Suno 分层已取代）不进网页包：%.2f MiB" % (freed / 1048576), flush=True)
     if a.audio_tier != "off":
-        print("[瘦身] " + web_audio.report(web_audio.shrink(gpath, a.audio_tier)) + "（档位 %s）" % a.audio_tier, flush=True)
+        print("[瘦身] " + web_audio.report(web_audio.shrink(gpath, a.audio_tier, a.final_tier)) + "（档位 %s，最终 Boss %s）" % (a.audio_tier, a.final_tier), flush=True)
     tmp = os.path.join(WORK, "out")
     os.makedirs(tmp)
     run([GODOT, "--headless", "--path", gpath, "--import"], check=False)  # 无头导入退出时偶发崩溃，结果以导出为准
@@ -172,6 +174,9 @@ def main():
         js += fh.read() + "\n"
     # 帧时浮层（tools/web/fps_meter.js，docs/50 §21.7）：只在网址带 ?fps=1 时显示，给真机量帧率
     with open(os.path.join(WEB, "fps_meter.js"), encoding="utf-8") as fh:
+        js += fh.read() + "\n"
+    # 性能自检浮层的 WASM 内存读数（tools/web/perf_probe.js，core/perf_hud.gd）：引擎实例化之前装好
+    with open(os.path.join(WEB, "perf_probe.js"), encoding="utf-8") as fh:
         js += fh.read() + "\n"
     # LZMA 解码器（tools/web/lzma_dec.js，本作自写）：加载器解 wasm 分片用，要在 loader.js 之前
     with open(os.path.join(WEB, "lzma_dec.js"), encoding="utf-8") as fh:
@@ -254,9 +259,79 @@ def webp_max(gpath):
     print("[瘦身] 贴图 WebP 无损压缩力度：方法 6 / 系数 100", flush=True)
 
 
-CG_LOSSY_Q = 0.85    # 事件插画网页版（art/event_cg/web）有损 WebP 质量：源图本来就是有损 WebP，按无损导入反而翻倍（docs/187 §8）
+def strip_line_comments(src):
+    """去掉 GDScript 的整行注释（首个非空白字符是 #，且不在三引号字符串里），换成空行——行号不变，报错行号对得上。
+    行尾注释、字符串内容一律不动"""
+    out, q = [], None
+    for ln in src.split("\n"):
+        if q is None and ln.lstrip().startswith("#"):
+            out.append("")
+            continue
+        out.append(ln.rstrip() if q is None else ln)
+        i = 0
+        while i < len(ln):
+            if q is None and ln[i] == "#":
+                break   # 行尾注释（之后的三引号不算）
+            if q is None and ln[i] in "\"'" and ln[i:i + 3] not in ('"""', "'''"):
+                c = ln[i]; i += 1   # 单行字符串：跳到配对引号
+                while i < len(ln) and ln[i] != c:
+                    i += 2 if ln[i] == "\\" else 1
+                i += 1
+                continue
+            t = ln[i:i + 3]
+            if t in ('"""', "'''") and (q is None or q == t):
+                q = t if q is None else None
+                i += 3
+                continue
+            if q is not None and ln[i] == "\\":
+                i += 2
+                continue
+            i += 1
+    return "\n".join(out)
+
+
+def script_text_export(gpath):
+    """网页包脚本按源码导出（Web 预设 script_export_mode 2 → 0），并去掉整行注释（docs/309）。
+    11-07 实测 Toy 包：压缩二进制令牌逐个脚本各压一遍，合计 4.87 MiB，整包 gzip 压不动；不压缩令牌 17.6 MiB、整包 gzip 后 5.03 MiB 更大；
+    源码去整行注释后整包 gzip 约 2 MiB。令牌模式加载时同样要解析 + 编译，只省了分词，运行行为与加载开销基本一样"""
+    p = os.path.join(gpath, "export_presets.cfg")
+    with open(p, encoding="utf-8") as fh:
+        txt = fh.read()
+    # 各段以「[preset.N]」/「[preset.N.options]」开头；script_export_mode 在 [preset.N] 段里，同段有 name="Web"
+    parts = re.split(r"(?m)^(?=\[preset\.)", txt)
+    k = next((n for n, sec in enumerate(parts) if re.match(r"\[preset\.\d+\]\n", sec) and '\nname="Web"\n' in sec), -1)
+    if k < 0:
+        sys.exit("export_presets.cfg 里找不到 Web 预设")
+    if "script_export_mode=2\n" not in parts[k]:
+        sys.exit("Web 预设里没有 script_export_mode=2（预设改过？）")
+    parts[k] = parts[k].replace("script_export_mode=2\n", "script_export_mode=0\n", 1)
+    with open(p, "w", encoding="utf-8", newline="\n") as fh:
+        fh.write("".join(parts))
+    before = after = 0
+    for f in glob.glob(os.path.join(gpath, "**", "*.gd"), recursive=True):
+        with open(f, encoding="utf-8") as fh:
+            src = fh.read()
+        dst = strip_line_comments(src)
+        before += len(src.encode("utf-8")); after += len(dst.encode("utf-8"))
+        with open(f, "w", encoding="utf-8", newline="\n") as fh:
+            fh.write(dst)
+    print("[瘦身] 网页包脚本按源码导出、去整行注释：%.2f → %.2f MiB（未压缩）" % (before / 1048576, after / 1048576), flush=True)
+
+
+CG_LOSSY_Q = 0.85   # 事件插画网页版（art/event_cg/web）有损 WebP 质量：源图本来就是有损 WebP，按无损导入反而翻倍（docs/187 §8）
 SFX_MAX_HZ = 32000   # 音效采样率上限：只对 16 kHz 以上能量 < 3% 的文件设，QOA 体积按采样数线性下降（docs/187 §8）
 SFX_HF_MAX = 0.03
+# 按类别的音效采样率上限（11-06 用户「先去做语音和音效降采样」，Toy 50 MB 线）：细碎音效 22.05 kHz，
+# 终结技与低频重击要保厚度单列 24 kHz。现状 2.84 MiB（QOA）→ 约 2.44（−0.40）；全部是单声道，不用转
+SFX_CAP_HZ = 22050
+SFX_HEAVY_HZ = 24000
+SFX_HEAVY = ("ult_", "boom", "hurt_heavy", "break_", "ishar_land_break")
+
+
+def sfx_cap(name):
+    return SFX_HEAVY_HZ if name.startswith(SFX_HEAVY) else SFX_CAP_HZ
+
+
 SFX_LOW_HZ = 22050   # 11 kHz 以上能量 < 0.3% 的音效再降到 22.05 kHz（11-02，docs/187 §10）
 SFX_LOW_HF_MAX = 0.003
 
@@ -279,7 +354,7 @@ def _set_import(path, kv):
 def web_lossy_assets(gpath):
     """网页包专用的近无损压缩（10-31 第八批超预算，docs/187 §8）。只改打包副本的 .import，桌面包与仓库不动：
     - 事件插画 art/event_cg/web/*.webp：源图本身是有损 WebP（合计 1.24 MiB），缺省按无损重编后 2.48 MiB；改有损导入 0.85（相对源图 PSNR 中位 40.4 dB、最低 37.8）。
-    - 音效 audio/sfx/*.wav：16 kHz 以上能量不到 3% 的设 force/max_rate 32 kHz（听不出的高频本来就几乎没有；其余照旧 44.1 kHz），QOA 按采样数缩小"""
+    - 音效 audio/sfx/*.wav：几乎没有 11 kHz 以上内容的降到 22.05 kHz；其余按类别设上限（11-06：细碎 22.05 kHz，终结技 / 重击 24 kHz，sfx_cap），QOA 按采样数缩小"""
     import numpy as np
     import soundfile as sf
     n_cg = 0
@@ -299,10 +374,12 @@ def web_lossy_assets(gpath):
         if X[fr > SFX_LOW_HZ / 2].sum() < SFX_LOW_HF_MAX * tot:
             _set_import(f + ".import", {"force/max_rate": "true", "force/max_rate_hz": str(SFX_LOW_HZ)})
             n_sfx += 1
-        elif sr > SFX_MAX_HZ and X[fr > SFX_MAX_HZ / 2].sum() < SFX_HF_MAX * tot:
-            _set_import(f + ".import", {"force/max_rate": "true", "force/max_rate_hz": str(SFX_MAX_HZ)})
-            n_sfx += 1
-    print("[瘦身] 网页近无损：事件插画 %d 张改有损 WebP %.2f；音效 %d 个设采样率上限（%d / %d Hz）" % (n_cg, CG_LOSSY_Q, n_sfx, SFX_LOW_HZ, SFX_MAX_HZ), flush=True)
+        else:
+            cap = sfx_cap(os.path.basename(f)[:-4])
+            if sr > cap:
+                _set_import(f + ".import", {"force/max_rate": "true", "force/max_rate_hz": str(cap)})
+                n_sfx += 1
+    print("[瘦身] 网页近无损：事件插画 %d 张改有损 WebP %.2f；音效 %d 个设采样率上限（%d / 重击与终结技 %d Hz）" % (n_cg, CG_LOSSY_Q, n_sfx, SFX_CAP_HZ, SFX_HEAVY_HZ), flush=True)
 
 
 TOY_LIMIT = 50 * 1000 * 1000   # Toy 新内测作者 50 MB（docs/99 §0），按十进制算更保守

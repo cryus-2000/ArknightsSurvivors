@@ -42,7 +42,10 @@ const GROUND_T := 0.9
 const GROUND_MAX := 24
 
 var g
-var w   # render/world.gd
+var _world: WeakRef
+var w:   # world owns this helper; do not retain the previous run.
+	get:
+		return _world.get_ref()
 var clock := 0.0             # 画面时钟：按渲染帧间隔走（受 Engine.time_scale 影响；bosstest 的 g.t 冻结也照走）
 var off := false             # --bulfxab 同局轮换：true = 这一段整层关（旧画面）
 var _id := 0
@@ -69,7 +72,7 @@ var stat_grains := 0         # 实际发出的颗粒数
 
 func _init(game, world) -> void:
 	g = game
-	w = world
+	_world = weakref(world)
 
 
 ## Boss 覆盖消失画面：f(b, reason, pos) -> bool（true = 已自己画）
@@ -484,8 +487,8 @@ func draw_trails() -> void:
 	var thin: bool = n > int(Bal.v("render/btrail_thin", 100.0))
 	var fr0: int = int(clock * 14.0)
 	for b in g.ebullets:
-		if not b.get("boss", false) or b.get("hidden", false) or str(b.get("kind", "")) == "boss_blade" or float(b.life) <= 0.0:
-			continue
+		if not b.get("boss", false) or b.get("hidden", false) or str(b.get("kind", "")) == "boss_blade" or float(b.life) <= 0.0 or w.bbv2.mine(b):
+			continue   # 第二版画法的 Boss 弹有自己的掉光粒子，不画旧拖尾（docs/306 §8）
 		var id: int = int(b.get("_bid", 0))
 		if thin and id % 2 == 1:
 			continue
@@ -508,8 +511,9 @@ func draw_trails() -> void:
 
 ## 弹体上层（world 画完敌弹之后）：Boss 弹迸散帧条 + 新弹亮芯闪 + 消失残影（后两者进 world 的无贴图批）
 func draw_top() -> void:
+	var world = w
 	if not pops.is_empty():
-		var t: Texture2D = w._lazy_tex(POP)
+		var t: Texture2D = world._lazy_tex(POP)
 		if t != null:
 			var fw: float = t.get_width() / 8.0
 			var fh: float = t.get_height() / 3.0
@@ -536,8 +540,8 @@ func draw_top() -> void:
 		var r: float = float(y[2])
 		var c: Color = y[3]
 		var a: float = 1.0 - u
-		w.tb_circle(p, r * (1.5 - 0.6 * u), Color(c.r, c.g, c.b, 0.35 * a))   # 本色晕
-		w.tb_circle(p, maxf(1.5, r * 0.75 * a), Color(2.2, 2.2, 2.2, a))      # 亮芯闪
+		world.tb_circle(p, r * (1.5 - 0.6 * u), Color(c.r, c.g, c.b, 0.35 * a))   # 本色晕
+		world.tb_circle(p, maxf(1.5, r * 0.75 * a), Color(2.2, 2.2, 2.2, a))      # 亮芯闪
 	_young.resize(k)
 	for gh in ghosts:
 		var el: float = float(gh[4]) - float(gh[6])
@@ -546,22 +550,22 @@ func draw_top() -> void:
 		var c: Color = gh[3]
 		if el < 0.0:
 			if int(gh[0]) == 2:   # 溶解等待扫到：原样留着（弹已移出弹表，由残影替它多停一会儿）
-				w.tb_circle(p, r, Color(c.r, c.g, c.b, 0.9))
+				world.tb_circle(p, r, Color(c.r, c.g, c.b, 0.9))
 			continue
 		var u: float = clampf(el / float(gh[5]), 0.0, 1.0)
 		match int(gh[0]):
 			0:   # 命中：白芯一闪外扩 + 本色细环
-				w.tb_circle(p, r * (0.9 + 0.6 * u), Color(2.0, 2.0, 2.0, 1.0 - u))
-				w.tb_ring(p, r * (1.2 + 1.4 * u), 1.5, Color(c.r * 1.3, c.g * 1.3, c.b * 1.3, 1.0 - u))
+				world.tb_circle(p, r * (0.9 + 0.6 * u), Color(2.0, 2.0, 2.0, 1.0 - u))
+				world.tb_ring(p, r * (1.2 + 1.4 * u), 1.5, Color(c.r * 1.3, c.g * 1.3, c.b * 1.3, 1.0 - u))
 			1:   # 到期：缩小淡出
-				w.tb_circle(p, r * (1.0 - u), Color(c.r, c.g, c.b, 1.0 - 0.6 * u))
-				w.tb_circle(p, r * 0.4 * (1.0 - u), Color(1.6, 1.6, 1.6, 1.0 - u))
+				world.tb_circle(p, r * (1.0 - u), Color(c.r, c.g, c.b, 1.0 - 0.6 * u))
+				world.tb_circle(p, r * 0.4 * (1.0 - u), Color(1.6, 1.6, 1.6, 1.0 - u))
 			2:   # 溶解：缩小并褪成冷白
 				var cc: Color = c.lerp(Color(0.85, 0.95, 1.1), u)
-				w.tb_circle(p, r * (1.0 - 0.8 * u), Color(cc.r, cc.g, cc.b, 0.9 * (1.0 - u)))
-				w.tb_ring(p, r * (1.0 + 0.5 * u), 1.0, Color(cc.r, cc.g, cc.b, 0.6 * (1.0 - u)))
+				world.tb_circle(p, r * (1.0 - 0.8 * u), Color(cc.r, cc.g, cc.b, 0.9 * (1.0 - u)))
+				world.tb_ring(p, r * (1.0 + 0.5 * u), 1.0, Color(cc.r, cc.g, cc.b, 0.6 * (1.0 - u)))
 			3:   # 出膛环：由小到大、淡出
-				w.tb_ring(p, 4.0 + r * u, 2.0 - u, Color(c.r * 1.5, c.g * 1.5, c.b * 1.5, 0.9 * (1.0 - u)))
+				world.tb_ring(p, 4.0 + r * u, 2.0 - u, Color(c.r * 1.5, c.g * 1.5, c.b * 1.5, 0.9 * (1.0 - u)))
 				if u < 0.5:
-					w.tb_circle(p, 6.0 * (1.0 - u * 2.0), Color(2.0, 2.0, 2.0, 1.0 - u * 2.0))
-	w.tb_flush()
+					world.tb_circle(p, 6.0 * (1.0 - u * 2.0), Color(2.0, 2.0, 2.0, 1.0 - u * 2.0))
+	world.tb_flush()

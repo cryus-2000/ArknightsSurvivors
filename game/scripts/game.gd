@@ -29,7 +29,6 @@ const StatDefs = preload("res://scripts/core/stat_defs.gd")
 const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数值旋钮（docs/27）
 const RunSetup = preload("res://scripts/run/run_setup.gd")   # 开局：难度、批跑 / 测试参数（docs/126 C1）
 const RunEnd = preload("res://scripts/run/run_end.gd")   # 局终：局外结算
-const Bot = preload("res://scripts/core/bot.gd")       # --balance 四档机器人 + 指标采集（docs/29）
 const Telemetry = preload("res://scripts/run/telemetry.gd")
 const PerfReport = preload("res://scripts/core/perf_report.gd")
 const WorldView = preload("res://scripts/render/world.gd")
@@ -112,6 +111,7 @@ var autotest_sys = load("res://scripts/run/autotest.gd").new(self) if OS.is_debu
 var demo_sys = DemoRun.new(self)   # 图鉴攻击演示 / 精英化演出（gallery.gd 把 game.tscn 以 demo_op 模式放进 SubViewport）
 var spawner = Spawner.new(self)   # 刷怪
 var shop_sys = ShopSys.new(self)   # 商人与商店（逻辑）
+var web_fs = preload("res://scripts/web_fs.gd").new()   # 网页版全屏与 Esc（docs/299）：退出全屏当暂停、P 键暂停、暂停菜单「返回全屏」；只在网页版桌面生效
 var beacon_sys = Beacon.new(self)  # 引航灯标：站桩点燃、驱散溟痕（run/beacon.gd，docs/49d §13.5 C）
 var weapons_sys = WeaponsSys.new(self)   # 子弹与支援装置
 var pickups = Pickups.new(self)   # 掉落与拾取
@@ -510,6 +510,7 @@ const OPT_WDFOG := 67108864   # 维什戴尔红色体积雾（fx_pxplane_wd，fx
 const OPT_SKPAT := 134217728   # 浊心斯卡蒂小图案（fx_pxplane._sk_pat：鱼 / 音符 / 上浮箭头，docs/287 §3 ⑧）：逐像素矩形展开成三角形缓存、一次提交；置位走旧写法（逐个 draw_rect）。画面相同
 const OPT_SDPF := 268435456   # 斯卡蒂终结技方向图集预读（run/ult_px_sd._prefetch，docs/287 §3 ⑦）：方向档稳定 3 帧才读、先放旧的；置位走旧写法（每跨一档就读）
 const OPT_PXEVICT := 536870912   # 转平面帧条 60 秒没画就放（fx_pxplane._tex_evict，docs/287 §3 ⑥）；置位不放（旧写法）
+const OPT_LATEFX := 1073741824   # 后期特效控制（render/late_fx，docs/293）帧时对照（docs/305）：置位时本帧 late_k = 0（同 8:00 前的画法）。只供 --optab 量净差
 const OPT_TOUCHB := 1048576  # 触屏按钮（touch.gd draw_hud）：圆 / 弧 / 线进 TriBatch、图标与字随后成组画；置位走旧写法（逐个 draw_*）。画面相同（按钮互不重叠时）
 var bal_dt := 0.066             # --dt=<秒>（仅 --balance）：批跑每帧步长，缺省 0.066（9/30 起所有难度校准 / 云端基线的口径）；按位移判定的改动可用 --dt=0.016667 抽查（docs/36 §8.2）
 var placebo_n := 0              # --placebo=N（仅测试）：开局多抽 N 次主 rng——机制不变、换一份随机实现，判「改动」还是「这组 seed 的运气」（docs/36 §8.2）
@@ -875,6 +876,8 @@ func tex_deferred_miss(n: String) -> void:
 
 func _ready() -> void:
 	A.mark("ready_begin")
+	load("res://scripts/core/perf_hud.gd").ensure(get_tree())   # 性能自检浮层（缺省关；?perf=1 或性能报告页连点标题 5 次）
+	web_fs.setup(self)
 	trial.consume()
 	# 随机数最先定：招募开局干员时就会用 rng（战斗台词计时等）。以前 --seed 在 _ready 后段才生效，
 	# 开局干员的台词计时是随机的，第一句台词一出同 seed 的两局就分叉（2026-09-26 查明，docs/36）
@@ -1384,6 +1387,10 @@ const MG_BUDGET_MB := 520.0   # 10-27 真机 iPhone：453 / 471–533 MB 都没�
 const MG_RSCALE_MB := 600.0   # 分辨率缩放（会糊）只在超过这个数时才开
 var _mg_t := 0.0
 var _mg_stage := 0   # 本局连续超线的次数：1 只清缓存、2 降画质、3 分辨率缩放；回到线下清零
+const MG_TRIM_COOLDOWN := 60.0
+const MG_RECOVER_MB := 32.0
+var _mg_trim_cd := 0.0
+var _mg_trim_armed := true
 
 func _mem_guard(delta: float) -> void:
 	if not (Cfg.mobile_web() or Cfg.dev_args().has("--memguard")):
@@ -1391,6 +1398,7 @@ func _mem_guard(delta: float) -> void:
 	_mg_t += delta
 	if _mg_t < MG_EVERY:
 		return
+	var elapsed := _mg_t
 	_mg_t = 0.0
 	var vid: float = Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0
 	var aud: float = Sfx.sample_mem_mb()
@@ -1398,29 +1406,48 @@ func _mem_guard(delta: float) -> void:
 	for a in Cfg.dev_args():
 		if a.begins_with("--memguard="):
 			budget = float(a.substr(11))
-	if vid + aud <= budget:
+	_mem_guard_apply(vid + aud, budget, elapsed)
+
+
+## 清字体会使下一帧重建字形：持续超线只清一次；恢复留 32 MB 余量，且两次清理至少隔一分钟。
+## 降档仍按连续超线次数执行，不被清理冷却挡住。
+func _mem_guard_apply(used: float, budget: float, elapsed := MG_EVERY) -> void:
+	_mg_trim_cd = maxf(0.0, _mg_trim_cd - elapsed)
+	if used <= budget:
 		_mg_stage = 0
+		if used <= budget - MG_RECOVER_MB:
+			_mg_trim_armed = true
 		return
-	_mg_stage += 1
-	var step := "清缓存"
-	Cfg.slim_fonts(true)   # 字形缓存清掉重建（按需栅格化，卡一下；docs/50 §30 字体缓存能到 60 MB）
-	_white_release(0.0, true)   # 不在场的白剪影 / 敌人帧条立刻释放（平时要等 20 / 60 秒）
-	if _mg_stage >= 2 and Cfg.quality != "low":
+	_mg_stage = mini(_mg_stage + 1, 3)
+	_white_release(0.0, true)   # Newly idle textures must still be reclaimed at every pressure sample.
+	var step := ""
+	if _mg_trim_armed and _mg_trim_cd <= 0.0:
+		_mg_trim_armed = false
+		_mg_trim_cd = MG_TRIM_COOLDOWN
+		_mem_guard_trim_fonts()
+		step = "清缓存"
+	if _mg_stage >= 2 and Cfg.quality != "low" and Bal.v("render/mem_guard_lowq", 0.0) > 0.0:   # 11-07 用户：缺省不再自动降画质（balance render/mem_guard_lowq）
 		Cfg.guard_prev = Cfg.quality
 		Cfg.set_quality("low")
 		Cfg.guard_lowered = true
 		quality_note = "内存紧张，本局已临时降低画质"
 		quality_note_t = 5.0
 		step = "低画质"
-	elif _mg_stage >= 3 and not Cfg.render_scaled and vid + aud > MG_RSCALE_MB + (budget - MG_BUDGET_MB):
+	elif _mg_stage >= 3 and not Cfg.render_scaled and used > MG_RSCALE_MB + (budget - MG_BUDGET_MB):
 		Cfg.set_render_scale(true)
 		Cfg.guard_lowered = true
 		step = "分辨率缩放"
+	if step == "":
+		return
 	perf_rep.guard_hit = true   # 性能报告：任一阶段触发都记（core/perf_report.gd）
 	perf_rep.guard_stage = maxi(perf_rep.guard_stage, 3 if step == "分辨率缩放" else (2 if step == "低画质" else 1))
 	perf_rep.tag("护栏" + step)
 	if step != "" and not Cfg.dev_args().is_empty():
-		print("PF MEMGUARD vid=%.0fMB audio=%.0fMB -> %s t=%.0f" % [vid, aud, step, t])
+		print("PF MEMGUARD total=%.0fMB -> %s t=%.0f" % [used, step, t])
+
+
+func _mem_guard_trim_fonts() -> void:
+	Cfg.slim_fonts(true)
 
 
 const AQ_CAP := 65   # 手机网页开局就开的同屏上限（mobile_cap；帧率会话 10-26 定的低配档参数）
@@ -1502,6 +1529,7 @@ func _process(delta: float) -> void:
 	if not is_inside_tree():
 		return   # 演示局结束等处当帧换场景：已离树就不再跑这一帧（11-04 教程结束闪退）
 	tour.update(delta)   # 聚光框引导 / 到点小提示：真实帧间隔（screens/tour.gd）
+	web_fs.poll(delta)   # 网页版：局内退出全屏（多半是按了 Esc）→ 打开暂停菜单（docs/299）
 	pick.update(delta)
 	wheel.update(delta)   # 指挥圆盘：真实帧间隔（悬停 / 松开判定 / 测试计划）
 	var dt: float = min(delta, 0.05)
@@ -1782,6 +1810,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var mp0: Vector2 = event.position / Cfg.ui_k   # 界面层放大：视口坐标 → UI 坐标（桌面 ui_k = 1）
+		if state == S.PAUSE and web_fs.btn.has_point(mp0):
+			Sfx.play("ui_ok")
+			web_fs.request()   # 网页版暂停菜单「返回全屏」：点击是用户手势，可以重新请求全屏（docs/299）
+			return
 		if state == S.PAUSE or state == S.DEAD or state == S.WIN:
 			for b in result_btns:
 				if b[0].has_point(mp0):
@@ -1864,11 +1896,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		if k == KEY_ESCAPE:
 			state = S.PLAY
 		return
-	if k == KEY_ESCAPE and state != S.SHOP:
+	if (k == KEY_ESCAPE or web_fs.pause_key(k)) and state != S.SHOP:   # 网页版 P 同 Esc（全屏时 Esc 被浏览器拿去退出全屏，docs/299）
 		if state == S.PLAY:
 			state = S.PAUSE
 		elif state == S.PAUSE:
 			state = S.PLAY
+	elif k == KEY_F and state == S.PAUSE and web_fs.btn.has_area():
+		web_fs.request()   # 网页版暂停菜单「返回全屏」
 	elif k == KEY_O and state == S.PAUSE:
 		settings.open()
 	elif k == KEY_G and state == S.PAUSE:

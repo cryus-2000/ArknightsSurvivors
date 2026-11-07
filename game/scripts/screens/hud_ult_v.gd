@@ -21,7 +21,13 @@ const Tris = preload("res://scripts/screens/hud_tris.gd")
 const PlayKeys = preload("res://scripts/core/play_keys.gd")
 const UM = preload("res://scripts/ui_motion.gd")
 var g
-var u   # screens/hud_ult.gd
+## The HUD owns its sections; the return link must not retain it after a run.
+var _owner_ref: WeakRef
+var u:
+	get:
+		return _owner_ref.get_ref() if _owner_ref != null else null
+	set(value):
+		_owner_ref = weakref(value) if value != null else null
 
 const DARK := Color(0.03, 0.035, 0.045, 0.85)
 const HX := 80.0

@@ -38,3 +38,54 @@
 - C 的光圈是生图自带的同心色带，偏平；如选 C 可再手修。
 - 横幅里 logo 居中偏上，会压到 A 的 Mon3tr 尾部、C 的光圈顶。
 - 干员是生图里的像素造型，非逐像素对本作帧条；如选定后要求严格一致，需对照 `art/incoming/op_*_idle@2x.png` 手修。
+
+## A2（A′，11-06 待选）
+底图与补光同 A（第 150 行以下逐像素一致），只把 logo 区改成标题页 `title_jelly_menu.gd _draw_logo` 的排法：徽记平涂原色、右上「ARKNIGHTS」、细线 + 左端青色加粗、线下「RHODES ISLAND · SURVIVORS」；英文字体 / 字距 / 颜色照 `_en` 与 `UI.cond`。保留深蓝描边 + 下投影，去掉外发光。线宽按 2 像素格取整（1→2、2→4）。脚本 `build_cover_g_a2.py`，并排图 `cover_G_A_vs_A2.png`。
+
+## A2 配色方向 C1 / C2 / C3（11-06 待选，只改配色）
+构图、人物、logo 排法全同 A2。脚本 `build_cover_g_color.py`：按亮度做色阶映射（柔和提中间调，背景最亮处封顶，灯火仍是最亮点）；人物用羽化椭圆保留原色，高饱和的非蓝色像素（灯、绿裙、肤色、Mon3tr 刃光）也保原色；海嗣眼点（只认小块）改成各方向的点缀亮色；人物外圈加冷色轮廓光；灯芯按各方向的暖色重新提亮。
+- C1 深海青 × 灯火金：#03101a #1f6f80 #7fe3ee #ffc061 #f3efe6
+- C2 整体压冷，暖点只给灯和水月（同伴降饱和）：#06080f #3a4b5e #9fb0c0 #ffb347 #c6b8ff
+- C3 青绿生物荧光：#02100e #147a68 #5ff2c4 #ffd36a #e6fff4
+对照图：`cover_G_A2_color_compare.png`（A2 参照 + 三个方向 + 缩略 + 色板）。横幅等选定后再出。
+
+## C2b（11-06，C2 改版：整体压暗、去掉降饱和造成的色散）
+脚本 `build_cover_g_c2b.py`。背景不再做「色阶映射 + 混原色」，改成单色相冷灰蓝的 12 阶明度阶梯（#020307→#6f8296），先做中值去噪，背景最亮只到 72%，不进量化，中间灰不会出现灰紫、灰绿杂斑。人物和 Mon3tr 用 Gemini 出的黑白剪影遮罩（build/imagegen/itchg_mask2，不进 git）分出来，保持原色相，只乘明度（水月 1.0、博士 / 凯尔希 0.8、Mon3tr 0.78），单独收 80 色。遮罩漏掉的博士黑外套按颜色补回，凯尔希外缘的青色反光边划回背景。灯的暖光在背景上按 4 档量化。对照图：`cover_G_C2_vs_C2b.png`。
+
+## C2m（11-06，回到 C2，只调水月）
+脚本 `build_cover_g_c2m.py`。水月椭圆以外与 C2 逐像素一致。水月：保色范围从椭圆收紧到「椭圆 ∩ 人物剪影」，去掉 C2 里她身后那团跳出来的原蓝晕（背景照 C2 的冷灰蓝走）；她本人只转 180°–300° 的冷色段（淡紫发、深蓝外套、伞），色相往 214° 靠 45%，饱和、明度都不降；黄领边、粉瞳等暖色不动；亮部加一点 #c8d4e0 冷白分离色调。对照图：`cover_G_C2_vs_C2m.png`（含 315 缩略和水月局部放大）。
+
+## 全局调色 G1 / G2 / G3（11-06，用户：在 A′ 原版上全局调色）
+脚本 `build_cover_g_grade.py`，参数在 GRADES。在 A′ 像素化后的背景层上逐颜色做 LUT（96 色各自映射，不产生新色带），不用遮罩，人物和背景同一套调色；logo 不参与调色，保持与游戏一致。步骤：冷色段（180°–280°，羽化 20°）饱和度乘 sat、色相往 214° 拉 pull；暖色段不动；分离色调（暗部冷灰蓝、亮部冷白，强度 split）；最后按原亮度缩放回去，整体不压暗（三档平均亮度与 A′ 相同）。
+- G1 弱：sat 0.75 / pull 30% / split 0.10
+- G2 中：sat 0.58 / pull 50% / split 0.16
+- G3 强：sat 0.42 / pull 70% / split 0.22
+对照图：`cover_G_A2_grade_compare.png`（A′ 原色 + 三档，各带 315 缩略和人物局部）。
+
+## C2L（11-07，用户：「C2，但是暖点只保留灯」+「修复一下色彩断层和人物细节」）
+脚本 `build_cover_g_c2l.py`（参数同 C2，水月 keep 0.95→0.3、高饱和暖色保留 0.4→0.12，暖色只剩提灯）。
+- 人物：不走压缩色阶，按原亮度做冷灰（只降饱和）再混回原色，明暗层次保留；像素化前轻锐化，单独收 96 色、不抖动。
+- 背景：3×3 中值去噪后收 160 色、不抖动（11-07 用户嫌抖动版脏），去掉灯光晕 / 渐变的色带；人物外圈轮廓光 0.35→0.15。
+- 三张成品：`cover_G_A2C2L_itch_cover_630x500.png`、`cover_G_A2C2L_itch_banner_960x400.png`、`cover_G_A2C2L_toy_poster_1200x900.png`（Toy 直接 1200×900 做，像素格 2，logo / 标注 ×2）。
+- 右下角加「明日方舟同人 · Arknights fan work」（11-07 用户：「非官方去掉」「也要用双语」；英文沿用 promo_keyart）。横幅生图是封面生图外扩：模板匹配测得 = 封面生图 × 0.75 + (684, 0)，人物椭圆按此换算。
+- 生图原图在 build/imagegen/itchg_A、itchg_Aw（不进 git，从 sharp-kare 工作树拷来）。
+- 去麻点（11-07 用户嫌脏）：脏的主因是像素化把生图碎纹理缩成零散单像素——孤立像素（与上下左右都不同）实测 A′ 9.4%、C2 8.1%，游戏内标题页像素画 0.2%。
+  收色后把孤立像素改成 3×3 邻域最多的颜色（3 轮），人物亮点 / 高饱和点（眼睛、高光）与灯芯保护不动；itch 封面降到 2.1%、横幅 1.3%、Toy 0.75%。
+- 11-07 再改（用户「是不是更脏了」）：人物也去麻点 + 像素化前锐化，会把脸 / 头发 / 大衣碎成高反差黑白块；改为去麻点只清背景、人物不锐化。
+
+## 11-07 重做：K 版与三个设计方向（待用户挑）
+用户嫌 C2L「恶心」「没有设计感」。调研（presskit.gg / GDevelop / bugnet 等）结论：一个焦点、主体比背景亮且饱和、按最小缩略图设计、标题放干净高反差区、不要把一张画缩小冒充像素画。
+- 脚本 `build_cover_k.py`：生图（gemini-3-pro-image，参照 = PRTS 水月模型渲染 build/prts_ref/mizuki + 标题页 bg / 水母）→ 顶部黑带换渐暗 → 收 48 色 → 每 4×4 取众数缩到 2 像素格 → A′ 标题页 logo + 双语标注。
+- K0–K3（`K_review.png` 有 K0 / K2）：水月单人站立 + 青光水母。用户：不好看、没设计感。
+- 三方向草稿（`concepts_scale_dyn_halo.png`，生图 build/imagegen/cover1107_{scale,dyn,halo}）：尺度对比 / 动势斜冲 / 图形光环。各只出 1 张（Vertex 限流 RESOURCE_EXHAUSTED）。
+- 待办：用户挑方向 → 该方向多出几张、提示词加大顶部留白（现三张都让标题压到画面）→ 出 itch 封面 / 横幅（21:9 外扩）/ Toy 1200×900 → 交协调人合入。Claude 倾向「动势斜冲」。
+
+## 定稿（11-07 用户「定稿合入」）：重绘版 H_t1_regen
+- itch 封面：`art/promo/itch/cover_g/cover_H_t1_regen_itch_cover_630x500.png`
+- itch 横幅：`art/promo/itch/cover_g/cover_H_t1_regen_itch_banner_960x400.png`
+- B站 Toy 海报：`art/promo/itch/cover_g/cover_H_t1_regen_toy_poster_1200x900.png`（4:3）
+- 副本：`Claude outputs/cover_1107/final/`。上传 itch / Toy 由用户本人做（发布脚本里没有封面路径，不用改代码）。
+- 做法：背景 = relit0 去怪 → 游戏海嗣高清原稿按「灯火暗淡」（docs/222 DARK_MOD）手工摆位 → 场景交 Gemini 整体重绘（cover1107_regen / regenw）；
+  水月 = 游戏内精灵 mizuki_runtime_s1_attack 第 1 帧（不经 AI），1 精灵像素 = 1 格，站光池亮度重心；标题 = 标题页 A′ 排法；右下「明日方舟同人 · Arknights fan work」。
+- 重出：`python art/promo/itch/cover_g/build_cover_h.py --frames t:1 --bg build/imagegen/cover1107_regen/raw_*_1.png --banner_bg build/imagegen/cover1107_regenw/raw_*.png --placed --suffix _regen`（生图在 build/，不进 git）。
+- 本目录其余 cover_*.png 是过程稿，可留档或另行清理。

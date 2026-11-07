@@ -31,7 +31,7 @@ const SM_TARGETS := ["nearest", "densest", "elite", "low_hp"]
 
 const SM_AT := ["self", "leader", "target", "zone", "rest"]   # rest：escort 召唤物的闲时站位（§15.9）
 
-const SM_KIND_KEYS := ["name", "hp", "hp_k", "on_down", "invuln", "life", "cap", "r", "col", "move", "attack", "on_spawn", "on_expire", "body", "enemy_target", "decoy_r", "hurt_mult", "_doc"]
+const SM_KIND_KEYS := ["name", "hp", "hp_k", "on_down", "invuln", "life", "cap", "r", "col", "move", "attack", "on_spawn", "on_expire", "body", "enemy_target", "decoy_r", "hurt_mult", "ult_hide", "_doc"]
 
 const SM_MOVE_KEYS := ["mode", "speed", "anchor", "leash", "orbit_r", "orbit_speed", "target"]
 
@@ -287,10 +287,15 @@ static func sm_tick(o, dt: float) -> void:
 		st.ang[k] = fposmod(float(st.ang.get(k, 0.0)) + float(mv.get("orbit_speed", 1.6)) * dt, TAU)
 	var idx := {}
 	var ends: Array = []
+	var uh_k := 0
 	for s in st.list.duplicate():   # 出手可能击杀 → on_kill → 再召唤，遍历副本
 		if s.gone:
 			continue
 		var kd := sm_kind(o, s.kind)
+		if s.has("uh") or (kd.get("ult_hide", false) and _uh_active(o)):
+			uh_k += 1
+			if _uh_tick(o, s, kd, uh_k - 1):
+				continue   # 终结技期间藏起来：不走、不出手、不计时（寿命 / 层数原样留着），区域关掉
 		s.t += dt
 		s.flash = maxf(0.0, float(s.flash) - dt)
 		if float(s.life) > 0.0 and s.t >= float(s.life):
@@ -314,6 +319,82 @@ static func sm_tick(o, dt: float) -> void:
 			_sm_step(o, s, kd, i, int(cnt.get(s.kind, 1)), dt)
 	for en in ends:
 		_sm_end(o, en[0], en[1])
+
+
+# ---------------------------------------------------------------- 终结技期间收起召唤物（11-07 用户「浊心斯卡蒂必杀技的时候我觉得可以让召唤物海嗣暂时消失，
+# 等必杀技结束后继续从浊心斯卡蒂身边重新出现然后出去」）。召唤物定义写 ult_hide: true 才参与；总开关 ult/skalter_hide_summons（缺省 0：
+# 收起期间召唤物区域与出手都没了，会改数值，用户点头再开）。本干员的终结技演出期间（ult.playing()，同 mute_atk 的口径）：
+#   沉下去（UH_SINK 秒画面）→ 不走、不出手、s.t 不涨（寿命 / 计时原样）、区域半径记下后置 0（in_zone 不成立、区域不画）；
+#   演出结束：第 k 个隔 UH_STAGGER·k 秒依次在她身边冒出来（重播浮现帧条，同首次召唤），区域照旧，之后照常索敌。
+# 纯画面部分不取随机数；藏起来与冒出来都是确定性的（同种子批跑可比）
+const UH_SINK := 0.28
+const UH_STAGGER := 0.12
+const UH_RING := 34.0
+
+static func _uh_active(o) -> bool:
+	var u = o.g.ult
+	return u != null and u.playing() and is_same(u.caster, o) and MfBal.v("ult/skalter_hide_summons", 0.0) > 0.0
+
+
+## 返回 true = 这一帧仍藏着（调用方跳过移动 / 出手 / 计时）
+static func _uh_tick(o, s: Dictionary, kd: Dictionary, k: int) -> bool:
+	var g = o.g
+	if _uh_active(o):
+		if not s.has("uh"):
+			if float(s.get("fire", -1.0)) >= 0.0 and s.has("e5"):
+				_F().e5_cast_fire(o, s)   # 正在施放、还没到出手帧的那一下先结算（不丢也不白送）
+			SummonVisual.cancel(s)
+			s["uh"] = {"t0": float(g.t), "p": s.pos, "zr": float(s.get("zr", 0.0)), "face": float(s.face), "fr": _mf_frame(o, s, kd, str(s.get("ak", "idle")), float(s.get("at", 0.0))) if kd.has("anim") else []}
+			s.act = 0.0
+			s.fire = -1.0
+			if s.has("zr"):
+				s.zr = 0.0
+			o.fx({"kind": "ring", "pos": s.pos, "r": float(kd.get("r", 10.0)) * 2.2, "r0": float(kd.get("r", 10.0)) * 0.6, "life": 0.3, "col": _sm_col(o, kd), "floor": true, "w": 2.0, "alpha": 0.7, "keep": true})
+		elif s.uh.has("end"):
+			s.uh.erase("end")   # 连着又放了一次：继续藏
+		return true
+	var uh: Dictionary = s.uh
+	if not uh.has("end"):
+		uh["end"] = float(g.t)
+	if float(g.t) < float(uh.end) + UH_STAGGER * float(k):
+		return true
+	s.erase("uh")
+	var a: float = float(k) * SM_GOLD + 0.6
+	s.pos = o.pos + Vector2(cos(a) * UH_RING, sin(a) * UH_RING * 0.55)
+	s.face = float(o.face)
+	if s.has("zr"):
+		s.zr = float(uh.zr)
+	if s.has("e5"):
+		var an: Dictionary = kd.get("anim", {})
+		if an.has("spawn") and o.anim_tex(str(an.spawn)) != null:
+			s.ak = "spawn"
+			s.at = 0.0
+			SummonVisual.start(s, o.sprite_spec(str(an.spawn)).get("visual", {}), g.t)
+	o.fx({"kind": "ring", "pos": s.pos, "r": float(kd.get("r", 10.0)) * 2.4, "r0": 4.0, "life": 0.35, "col": _sm_col(o, kd), "floor": true, "w": 2.0, "alpha": 0.8, "keep": true})
+	return false
+
+
+## 藏起来那一下的画面：最后一帧原地往下沉、渐隐，脚下一圈水花（2 px 格、按下标摆位，不取随机数）
+static func _uh_draw(o, s: Dictionary, kd: Dictionary) -> void:
+	var g = o.g
+	var uh: Dictionary = s.uh
+	var age: float = float(g.t) - float(uh.t0)
+	if age < 0.0 or age >= UH_SINK:
+		return
+	var u: float = age / UH_SINK
+	var p: Vector2 = uh.p
+	var fr: Array = uh.get("fr", [])
+	if not fr.is_empty():
+		var mir: bool = (float(uh.face) < 0.0) != o.sprite_mirror(str(fr[3]))
+		o.draw_sprite_at(p + Vector2(0, snappedf(u * u * 14.0, 2.0)), mir, Color(1.0, 1.0, 1.0, 1.0 - u), fr[1], fr[0], fr[2], o.foot_off(fr[0], fr[3]), VisGrowth.summon_scale(g))
+	var c: Color = _sm_col(o, kd)
+	for i in 8:
+		var ang: float = TAU * float(i) / 8.0 + float(s.id) * 0.7
+		var rr: float = 6.0 + u * 22.0
+		var q := Vector2(cos(ang) * rr, sin(ang) * rr * 0.45 - sin(u * PI) * (6.0 + float(i % 3) * 3.0))
+		q = Vector2(snappedf(p.x + q.x, 2.0), snappedf(p.y + q.y, 2.0))
+		var sz: float = 4.0 if u < 0.4 and i % 2 == 0 else 2.0
+		o.cv.draw_rect(Rect2(q, Vector2(sz, sz)), Color(minf(c.r * 1.4, 1.6), minf(c.g * 1.4, 1.6), minf(c.b * 1.4, 1.6), 0.9 * (1.0 - u)))
 
 
 static func _sm_step(o, s: Dictionary, kd: Dictionary, i: int, n: int, dt: float) -> void:
@@ -524,6 +605,8 @@ static func sm_shadows(o) -> void:
 	if o.sm.is_empty():
 		return
 	for s in o.sm.list:
+		if s.has("uh"):
+			continue
 		if mf_shadow(o, s, sm_kind(o, str(s.kind))):   # 召唤物扩展段：影子贴图
 			continue
 		var r: float = float(sm_kind(o, str(s.kind)).get("r", 10.0))
@@ -538,6 +621,9 @@ static func sm_draw(o, s: Dictionary) -> void:
 	if g.perf_alt and s.has("e5"):   # 精英化第 5 批段：--perfab 的 /b 桶不画（量净成本用）
 		return
 	var kd := sm_kind(o, str(s.kind))
+	if s.has("uh"):
+		_uh_draw(o, s, kd)   # 终结技期间收起：只画沉下去那一下
+		return
 	if kd.has("anim") and mf_draw(o, s, kd):   # 召唤物扩展段：按状态的帧条（缺图时往下画程序体）
 		return
 	var body: Dictionary = kd.get("body", {})

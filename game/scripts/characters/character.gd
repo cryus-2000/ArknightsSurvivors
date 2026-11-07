@@ -935,6 +935,69 @@ func route_choices(n: Dictionary = next_node()) -> Dictionary:
 	return out
 
 
+## 分支节点卡面的路线行（docs/302）：每条路线一行「「路线名」：一句效果」。优先按 branch_desc 的「；」分段（段首就是「路线名」时对上），
+## 对不上或没写 branch_desc 时，取该路线 desc 的第一句兜底。tools/branch_card_audit.py 清点 20 人
+const BRANCH_SHORT := 16   # 卡面一句话里每条路线效果超过这么多字就压到第一个逗号前
+const BRANCH_CAP := 18     # 压完仍超过这么多字就截断加「…」
+
+
+## 显示长度：数值占位 {$key} 按 2 个字算（求值后一般是一两位数）
+static func _vis_len(t: String) -> int:
+	var n := 0
+	var i := 0
+	while i < t.length():
+		if t.substr(i, 2) == "{$" and t.find("}", i) > i:
+			i = t.find("}", i) + 1
+			n += 2
+		else:
+			i += 1
+			n += 1
+	return n
+
+
+## 按显示长度截前 k 个字，不切断数值占位
+static func _vis_cut(t: String, k: int) -> String:
+	var n := 0
+	var i := 0
+	while i < t.length() and n < k:
+		if t.substr(i, 2) == "{$" and t.find("}", i) > i:
+			i = t.find("}", i) + 1
+			n += 2
+		else:
+			i += 1
+			n += 1
+	return t.substr(0, i)
+
+
+func branch_lines(n: Dictionary = next_node(), short := false) -> Array:
+	var rc := route_choices(n)
+	var parts: Array = []
+	for p in str(n.get("branch_desc", "")).split("；", false):
+		parts.append(str(p).strip_edges().trim_suffix("。"))
+	var out: Array = []
+	for k in rc:
+		var nm: String = str(rc[k].get("name", k))
+		var tag := "「%s」" % nm
+		var eff := ""
+		for p in parts:
+			if str(p).begins_with(tag):
+				eff = str(p).substr(tag.length()).strip_edges()
+				break
+		if eff == "":   # 兜底：路线自己的说明第一句
+			var rd: String = str(rc[k].get("desc", ""))
+			eff = rd.split("。", false)[0] if rd != "" else ""
+			eff = eff.get_slice("；", 0).strip_edges()
+			if eff.begins_with(tag):
+				eff = eff.substr(tag.length())
+		eff = eff.trim_prefix("：").trim_prefix("使").strip_edges()
+		if short and _vis_len(eff) > BRANCH_SHORT and eff.find("，") >= 6:
+			eff = eff.substr(0, eff.find("，"))   # 卡面一句话：长的压到第一个逗号前（完整的在详情 / 二选一里）
+		if short and _vis_len(eff) > BRANCH_CAP:
+			eff = _vis_cut(eff, BRANCH_CAP - 1) + "…"   # 还长就各自截断：两条路线各占一半版面，不让第二条被整段挤掉（手机）
+		out.append(tag + "：" + eff if eff != "" else tag)
+	return out
+
+
 ## 机器人 / 赠送推进（典训、博士银印）/ 测试直接 advance("") 时的固定路线（docs/119 §4.1：可记录、不凭界面外随机）：
 ## --route=<op>:<路线>（可逗号分几人，调试构建）→ 节点 "bot" 字段 → 第一条路线
 func bot_route(n: Dictionary) -> String:
@@ -1018,13 +1081,13 @@ func deep_cards() -> Array:
 		var chs: Dictionary = elite_choices(n) if n.type == "elite" else {}
 		if needs_route():
 			# 分支节点（docs/119 §4.1）：外层只出一张培养卡，选中后进二选一（progression.open_branch）；卡面列出两条路线
-			var rc := route_choices(n)
-			var names: Array = []
-			for k in rc:
-				names.append("「%s」" % str(rc[k].get("name", k)))
-			var bdesc: String = str(n.get("branch_desc", "选定一条培养路线：%s。之后的节点沿同一路线强化。" % " / ".join(names)))
-			out.append({"kind": "prog", "op": id, "choice": "", "branch": true, "name": "%s · %s" % [display_name(), n.get("name", "培养路线")],
-				"desc": bdesc + (VisNodesC.node_text(self) if VisNodesC.on(g) else ("；攻击 +%d%%" % int(round(NODE_ATK * 100.0)))) + (("\n条件：%s（已满足）" % node_requires_text(n)) if node_requires_text(n) != "" and avail else ""),
+			# 卡面两条路线各一行「「路线」：一句效果」+ 一行「选定后…」（11-07 用户「卡面上的文字只描述了第一个效果，但是点进去是两个分支」：
+			# 以前标题用节点名 = 第一条路线名、手机一句话只取到 branch_desc 的第一段）。完整说明在点开后的二选一里
+			var bl: Array = branch_lines(n)
+			var tail: String = "选定后，之后的节点沿该路线强化" + (VisNodesC.node_text(self) if VisNodesC.on(g) else ("；攻击 +%d%%" % int(round(NODE_ATK * 100.0))))
+			out.append({"kind": "prog", "op": id, "choice": "", "branch": true, "name": "%s · 选择成长路线" % display_name(),
+				"desc": "\n".join(bl) + "\n" + tail + (("\n条件：%s（已满足）" % node_requires_text(n)) if node_requires_text(n) != "" and avail else ""),
+				"brief": "\n".join(branch_lines(n, true)),
 				"icon": n.get("icon", ""), "avail": avail, "req": node_requires_text(n), "elite": 0})
 		elif not chs.is_empty():
 			for c in chs:
@@ -1304,6 +1367,8 @@ func follow(dt: float, target: Vector2) -> void:
 	var sqk := _sq_kind()   # 多条技能帧条当前阶段的帧条（"" = 不在序列里）
 	if vis_anim != "" and anim_tex(vis_anim) != null:
 		want = vis_anim   # 纯画面动作（play_vis_anim）：播完前压过普攻 / 跑步，不占出手窗口
+	elif is_leader and g.dash_t > 0.0 and attack_t > 0.0 and act_kind == "skill" and def.get("sprites", {}).get("dash_run", false) == true and anim_tex("run") != null:
+		want = "run"   # 冲刺中放技能：身体播跑步相位，不把蹲身前推等技能姿势拖在冲刺里（11-07 拉普兰德，docs/297）；只画，attack_t / fire_t 不动
 	elif sq_atk != "" and anim_tex(sq_atk) != null:
 		want = sqk if _sq_atk_yield() else sq_atk   # 循环期间的普攻变体（sprites.skills.sN.attack）：按其 fire 帧对齐出手，播完回循环（_tick_sq_atk）
 	elif attack_t > 0.0 and not sq_own and anim_tex(act_anim) != null and not act_anim_yield():
@@ -3048,7 +3113,28 @@ func _sample_motion(vel: Vector2, dt: float) -> void:
 		ghost_t = GHOST_EVERY
 		var st := anim_state()
 		if not st.is_empty():
-			ghosts.push_front({"p": pos, "st": st, "age": 0.0})
+			# 一串残影里的第几个（上一个残影刚留下就接着数，隔开了从 0 起）：ghost_pose 按它取冲刺段的帧
+			var seq: int = 0 if ghosts.is_empty() or float(ghosts[0].age) > GHOST_EVERY * 2.5 else int(ghosts[0].get("seq", 0)) + 1
+			var gp := ghost_pose(seq, vel.x < -1.0 or (absf(vel.x) <= 1.0 and face < 0.0))
+			ghosts.push_front({"p": pos, "st": gp if not gp.is_empty() else st, "age": 0.0, "seq": seq})
+
+
+## 冲刺残影的姿势（11-07 用户「德克萨斯冲锋的时候残影的动作我觉得得是冲刺的动作」）：干员定义顶层 ghost_pose = {slot, frames}
+## 声明了就把残影换成该帧条的冲刺段——一串残影里第 i 个取 frames[i]（超出取末帧），朝向 left = 位移方向朝左；
+## 没声明 / 开关关 / 缺图返回 {}（照旧用残影那一刻的本体帧）。开关 fx/ghost_dash_pose（缺省 0，用户点头再开）。只画
+func ghost_pose(i: int, left: bool) -> Dictionary:
+	var gp = def.get("ghost_pose")
+	if not (gp is Dictionary) or CmdBal.v("fx/ghost_dash_pose", 0.0) <= 0.0:
+		return {}
+	var slot := str(gp.get("slot", ""))
+	var tx: Texture2D = anim_tex(slot) if slot != "" else null
+	if tx == null:
+		return {}
+	var fs: Array = gp.get("frames", [0])
+	var f: int = int(fs[clampi(i, 0, fs.size() - 1)]) if not fs.is_empty() else 0
+	if i < 0:
+		f = int(gp.get("strike", f))   # i < 0：出刀定格（德克萨斯次元斩每刀落点的定格，11-07 用户「S3 的时候攻击的残影是待机动作」）
+	return {"tex": tx, "frame": f, "hf": anim_hframes(tx, slot), "flip": left != sprite_mirror(slot), "kind": slot}
 
 
 ## 在别处画一份当前帧（分身 / 残影）：flip = 朝左；帧条带 mirror 标记时在这里取反

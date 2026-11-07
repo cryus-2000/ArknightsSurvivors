@@ -17,6 +17,9 @@ var zone_amt := 0.0    # 失色区强度 0..1（拉普兰德 S3「噤声」，ob
 var zone_c := Vector2(0.5, 0.5)   # 屏幕 uv
 var zone_r := 0.0      # uv（按屏幕高）
 var zone_hole := Vector3(0.5, 0.5, 0.0)
+var lens := Vector4(0.5, 0.5, 0.0, 0.0)   # 引力透镜（安洁莉娜终结技黑洞版，ult_an_fine.lens_tick 每帧写）：xy 屏幕 uv、z 视界半径（屏高为单位）、w 强度
+var lens2 := Vector2(6.0, 0.9)
+var lens_ttl := 0.0    # 写入方每帧续 0.15 秒；没人续（招式中断 / 演示切走）就自动关，不会卡在画面上
 var zone_mask: SubViewport
 var mask_canvas: Node2D
 var mask_game
@@ -155,9 +158,14 @@ func _process(delta: float) -> void:
 	mat.set_shader_parameter("zone_c", zone_c)
 	mat.set_shader_parameter("zone_r", zone_r)
 	mat.set_shader_parameter("zone_hole", zone_hole)
+	lens_ttl -= delta
+	if lens_ttl <= 0.0:
+		lens.w = 0.0
+	mat.set_shader_parameter("lens", lens)
+	mat.set_shader_parameter("lens2", lens2)
 	apply_zone_guards(mat)
 	# 全关时整层隐藏，省一次全屏采样
-	rect.visible = ((Cfg.bloom or Cfg.water_filter) and not crisp) or absf(br - 1.0) > 0.01 or hurt > 0.001 or desat > 0.001 or wave.z > 0.0 or zone_amt > 0.001 or _curve
+	rect.visible = ((Cfg.bloom or Cfg.water_filter) and not crisp) or absf(br - 1.0) > 0.01 or hurt > 0.001 or desat > 0.001 or wave.z > 0.0 or zone_amt > 0.001 or lens.w > 0.001 or _curve
 	# 图鉴开着时，手机网页 / 苹果 WebKit 不叠后期（不读屏，亮度不乘）：iOS 上这一层会把整屏盖成图鉴中途拷屏时的画面（Cfg.screen_copy_ok）
 	if crisp and not Cfg.screen_copy_ok():
 		rect.visible = false

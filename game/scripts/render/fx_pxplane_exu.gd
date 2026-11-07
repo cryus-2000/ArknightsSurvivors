@@ -36,7 +36,10 @@ const HIT_LIVE := 8
 const MZ_Y := 35.0        # 枪口在脚底上方约 35（seg_exusiai muzzle [30, -35]）：挂在人身上的件排序时往下补回脚底
 const HALO_Y := -72.0     # 队友头顶光环（原数据 off [0, -66] 压在头发上，抬到头顶）
 
-var r      # fx_pxplane 实例
+var _parent: WeakRef
+var r:   # Owner holds this helper; the backreference must not retain its cache.
+	get:
+		return _parent.get_ref()
 var g
 var _cols := {}
 var _beat := {}
@@ -45,7 +48,7 @@ var _kick := {}    # 每人最近一次开火的时刻（后坐 1 美术像素�
 
 
 func _init(px) -> void:
-	r = px
+	_parent = weakref(px)
 	g = px.g
 
 
@@ -258,29 +261,33 @@ func _halos(o, out: Array) -> void:
 
 
 func draw_rt(ci, it: Dictionary) -> void:
+	var renderer = r
 	match str(it.ex):
 		"loop":
-			r._draw_strip(ci, str(it.k), r.frame_of(0.0), it.gp, false, false)
+			renderer._draw_strip(ci, str(it.k), renderer.frame_of(0.0), it.gp, false, false)
 		"once":
-			r._draw_strip(ci, str(it.k), r.frame_of(float(it.t0)), it.gp, false, true)
+			renderer._draw_strip(ci, str(it.k), renderer.frame_of(float(it.t0)), it.gp, false, true)
 		"bul":
 			var bu: Dictionary = it.b
 			var kind: String = str(BKIND.get(str(bu.get("tex", "")), "n"))
 			var tr: bool = not (bu.get("tr", {}) as Dictionary).is_empty()
 			var back: float = float(int(it.n) % 4) * 3.0 if kind == "g" else 0.0   # 倾泻 8 发同一帧出膛：画面上按序号前后错开（只画），不成一排梳子
-			_bullet(ci, bu.p, bu.v, kind, r.tier(it.o), not bu.get("ric", true), tr, back)
+			if float(bu.get("stn", 0.0)) > 0.0:   # docs/298 B′ 眩晕弹（11-07 用户「颜色可以更加有对比感」）：单颗粗圆头大弹，深红芯 + 亮金边 + 一段暗红残光
+				_stun_bullet(ci, bu.p, bu.v)
+				return
+			_bullet(ci, bu.p, bu.v, kind, renderer.tier(it.o), not bu.get("ric", true), tr, back)
 		"xbul":
 			var xb: Dictionary = it.b
-			_bullet(ci, (xb.p as Vector2) + Vector2(0, -18.0), xb.v, "n", r.tier(it.o), true, false)
+			_bullet(ci, (xb.p as Vector2) + Vector2(0, -18.0), xb.v, "n", renderer.tier(it.o), true, false)
 		"barrel":   # 扫射期间枪口发红：2×2 美术像素琥珀，按拍明暗
 			var o = it.o
 			var mz: Vector2 = o.pos + Vector2(30.0 * float(o.face), -MZ_Y)
 			var hot: bool = int(floor(g.t * 15.0)) % 2 == 0
 			for q in [Vector2.ZERO, Vector2(2, 0), Vector2(0, 2), Vector2(2, 2)]:
-				r._px(ci, mz + q, _c("s2", 4 if hot else 3))
-			r._glow(mz, _c("s2", 5))
+				renderer._px(ci, mz + q, _c("s2", 4 if hot else 3))
+			renderer._glow(mz, _c("s2", 5))
 		"line":
-			var f: int = r.frame_of(float(it.t0))
+			var f: int = renderer.frame_of(float(it.t0))
 			if f < 0 or f > 2:
 				return
 			var a: Vector2 = it.a
@@ -290,11 +297,11 @@ func draw_rt(ci, it: Dictionary) -> void:
 				var u: float = float(i) / float(n)
 				if f == 2 and u < 0.5:
 					continue
-				r._px(ci, a.lerp(b, u), _c("n", 5 if f == 0 else 4) if i % 2 == 0 else _c("g", 5 if f == 0 else 4))
+				renderer._px(ci, a.lerp(b, u), _c("n", 5 if f == 0 else 4) if i % 2 == 0 else _c("g", 5 if f == 0 else 4))
 				if f == 0 and i % 4 == 0:
-					r._glow(a.lerp(b, u), _c("g", 6))
+					renderer._glow(a.lerp(b, u), _c("g", 6))
 		"ltr":   # 连携曳光（同 pxplane_exu_art.tracer_line）
-			var f2: int = r.frame_of(float(it.t0))
+			var f2: int = renderer.frame_of(float(it.t0))
 			if f2 < 0 or f2 > 2:
 				return
 			var a2: Vector2 = it.a
@@ -309,13 +316,13 @@ func draw_rt(ci, it: Dictionary) -> void:
 				var q: Vector2 = a2 + dv * float(s) * g.PX
 				if float(s) > head - 18.0:
 					var u2: float = (head - float(s)) / 18.0
-					r._px(ci, q, _c(rp, 6 if u2 < 0.12 else (5 if u2 < 0.4 else 4)))
+					renderer._px(ci, q, _c(rp, 6 if u2 < 0.12 else (5 if u2 < 0.4 else 4)))
 					if u2 < 0.4:
-						r._px(ci, q - nv * g.PX, _c(rp, 4))
+						renderer._px(ci, q - nv * g.PX, _c(rp, 4))
 					if u2 < 0.12:
-						r._glow(q, _c(rp, 6))
+						renderer._glow(q, _c(rp, 6))
 				elif f2 < 2 and _hsh(s, i2, 1) % 3 != 0:
-					r._px(ci, q, _c(rp, 2))
+					renderer._px(ci, q, _c(rp, 2))
 
 
 static func _hsh(x: int, y: int, k: int) -> int:
@@ -382,6 +389,50 @@ func _bullet(ci, pos: Vector2, vel: Vector2, kind: String, t: int, small: bool, 
 		var nv := Vector2(-d.y, d.x)
 		r._px(ci, head - d * px - nv * px * 4.0, _c("g", 6))
 		r._px(ci, head - d * px * 2.0 + nv * px * 5.0, _c("g", 5))
+
+## 眩晕弹（docs/298 B′，只画）：按美术像素格逐格判形——弹头半径 4 格的圆 + 身长 9 格、半宽 3.3 格（总宽约普通弹 2 倍），
+## 最外 1 格亮金边、往里深红、芯部亮红、弹头前缘一点暖白；身后 12 格红残光逐渐收窄变暗、远端隔格抖动；弹头一圈红光 + 金光
+const STN_RIM := Color("#ffd040")
+const STN_RIM_D := Color("#6a1a08")
+const STN_BODY := Color("#c8102a")
+const STN_CORE := Color("#ff4a30")
+const STN_HOT := Color("#fff0c0")
+const STN_TR := [Color("#ff3a2a"), Color("#c8142a"), Color("#7a0c1c")]
+
+func _stun_bullet(ci, pos: Vector2, vel: Vector2) -> void:
+	var px: float = g.PX
+	var ai: int = posmod(int(round(vel.angle() / TAU * 32.0)), 32)
+	var d: Vector2 = Vector2.from_angle(float(ai) * TAU / 32.0)
+	var nv := Vector2(-d.y, d.x)
+	var head: Vector2 = Pxp._snap(pos)
+	var fl: int = int(floor(g.t * 15.0)) % 2
+	for ix in range(-22, 23):
+		for iy in range(-22, 23):
+			var q := Vector2(float(ix), float(iy))
+			var u: float = q.dot(d)
+			var w: float = absf(q.dot(nv))
+			var dep: float = -1.0
+			if u >= -1.0:
+				dep = 4.0 - q.length() if u > 0.0 else maxf(4.0 - q.length(), 3.3 - w)
+			elif u >= -9.0:
+				dep = 3.3 - w
+			var at: Vector2 = head + q * px
+			if dep >= 0.0:
+				var c: Color = STN_RIM if dep < 1.0 else (STN_BODY if dep < 1.9 else STN_CORE)
+				if u > 1.0 and dep >= 1.0 and w < 1.6:
+					c = STN_HOT
+				ci.draw_rect(Rect2(at, Vector2(px, px)), c)
+			elif dep >= -1.0 and u < -1.0 and u >= -9.0:
+				ci.draw_rect(Rect2(at, Vector2(px, px)), STN_RIM_D)
+			elif u < -9.0 and u >= -21.0:
+				var k: float = (-9.0 - u) / 12.0
+				if w <= 2.8 * (1.0 - k) + 0.4:
+					if k > 0.5 and (ix + iy + fl) % 2 == 0:
+						continue
+					ci.draw_rect(Rect2(at, Vector2(px, px)), STN_TR[mini(2, int(k * 3.0))])
+	r._glow(head, STN_CORE)
+	r._glow(head + d * px * 2.0, STN_RIM)
+
 
 ## 后坐（只改画面，character.draw_body 读）：开火那一拍本体往枪口反方向挪 1 美术像素
 func kick(o) -> Vector2:

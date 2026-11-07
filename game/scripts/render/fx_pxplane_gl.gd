@@ -20,6 +20,7 @@ const SY := 0.72
 const HIT_R := [38, 52, 66]
 const S1_R := [35, 48, 61]
 const S3_R := 65.0   # 美术像素（s3_r 130）
+const POP_LIFE := 10.0 / 15.0 + 0.02   # S3 收尾小水爆（fx/gl_s3_pop）：压缩 4 拍 + 亮点 1 + 内爆 1 + 外爆 4
 const WAKE_TAIL := 0.45   # 到位后拖痕散掉的时长
 const SPLASH_BEAT := 2    # 扩散（late_shape）每拍至多几团
 ## S1 爆发档的照地灯（docs/270 §3：爆发 半径 140–240 / 强度 0.6–0.9，取中段；11-05 体检照地峰值 +55 卡在边上后补）
@@ -189,9 +190,15 @@ static func ev(r, o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dicti
 				R._grains(o, f.pos + Vector2(0, -40), float(f.pos.y), "ink", 8, {"tier": 2})
 		"gl_s3end":
 			var f2: Dictionary = d.f
+			var pop: bool = not raw and Bal.v("fx/gl_s3_pop", 0.0) > 0.0   # 11-07 用户「S3 最后缺一个漩涡压缩之后小型爆炸」
+			if Bal.v("fx/recipe_log", 0.0) > 0.0:
+				print("PXPLOG gl_s3end pop=%s raw=%s n=%d" % [str(pop), str(raw), r.items.size()])
 			if not raw:
 				_strip(r, o, "s3close_bk", f2.pos, "up", false, -S3_R * 2.0 * SY)
 				_strip(r, o, "s3close_up", f2.pos, "up", false, S3_R * 2.0 * SY)
+				if pop:   # 收拢的水墙只放前 4 拍（细白水柱那几拍换成压缩亮点 + 小水爆）
+					r.items[-1]["life"] = 3.0 / 15.0 - 0.025   # 存活判断带 0.02 余量、帧号按全局拍：这样第 4 拍（细白水柱）一定不画
+					r._push({"glrt": "pop", "c": r._snap(f2.pos), "t0": g.t, "life": POP_LIFE, "ly": "up", "oid": str(o.id), "k": "", "gp": f2.pos, "gy": float(f2.pos.y) + 2.0, "sd": fposmod(f2.pos.x * 0.37 + f2.pos.y * 0.11, 97.0)})
 				_strip(r, o, "s3close_gd", f2.pos, "gd")
 				R._grains(o, f2.pos + Vector2(0, -50), float(f2.pos.y) + 2.0, "ink", 12, {"tier": 2})
 			R._light(o, f2.pos + Vector2(0, -30), 240.0, 0.7, 0.15, p.light)
@@ -382,6 +389,93 @@ static func sort_items(r, o, out: Array) -> void:
 static func draw_rt(r, ci, it: Dictionary) -> void:
 	if str(it.glrt) == "part":
 		_draw_part(r, ci, it)
+	elif str(it.glrt) == "pop":
+		_draw_pop(r, ci, it)
+
+
+## S3 收尾小水爆（fx/gl_s3_pop，11-07 用户「S3 最后缺一个漩涡压缩之后小型爆炸的特效」；只画）。
+## 拍 0–3：收拢的水墙（原帧条前 4 拍）上叠三股螺旋水线往芯里卷，越卷越短越亮（压缩）；
+## 拍 4：压成一个亮点（3 格白芯 + 短十字）；拍 5：内爆一拍，只剩 1 格白芯 + 四角四颗点（往里吸）；
+## 拍 6 起：外爆，近白小圆芯一拍 → 深海蓝 / 精二深渊紫水珠往外溅、带重力往下落，4 拍内散掉；地面一圈短促水痕沿用原 s3close_gd 外推环。
+## 元素：螺旋水线 / 亮芯 / 水珠，三种；体量比终结技小得多（水珠最远约 26 美术像素）。和斯卡蒂水爆（高水冠立柱）分开：这里是先往里吸再球形外溅。
+static func _draw_pop(r, ci, it: Dictionary) -> void:
+	var g = r.g
+	var f: int = r.frame_of(float(it.t0))
+	var cy := -20.0   # 漩涡中段高度（美术像素，地面往上）
+	var sd: float = float(it.sd)
+	var pts: Array = []   # [x, y, 颜色, 发光]
+	if f <= 3:   # 压缩：三股螺旋往芯里卷
+		for arm in 3:
+			var a0: float = float(arm) * TAU / 3.0 + float(f) * 1.1 + sd
+			var r0: float = [44.0, 32.0, 20.0, 10.0][f]
+			var r1: float = [26.0, 16.0, 8.0, 3.0][f]
+			var n: int = 10 - f * 2
+			for k in n:
+				var u: float = float(k) / float(maxi(1, n - 1))
+				var rr: float = lerpf(r0, r1, u)
+				var a: float = a0 + u * 1.6
+				var c: Color = C[7] if (u > 0.7 and f >= 2) else (C[6] if u > 0.4 else C[5])
+				pts.append([cos(a) * rr, cy + sin(a) * rr * SY * 0.6, c, u > 0.7 and f >= 2])
+	elif f == 4:   # 压成亮点：3×3 白芯 + 十字芒
+		for dy0 in range(-1, 2):
+			for dx0 in range(-1, 2):
+				pts.append([float(dx0), cy + float(dy0), C[7], true])
+		for i4 in range(2, 6):
+			var c4: Color = C[7] if i4 <= 3 else C[6]
+			for q2 in [Vector2(i4, 0), Vector2(-i4, 0), Vector2(0, i4), Vector2(0, -i4)]:
+				pts.append([q2.x, cy + q2.y, c4, i4 <= 3])
+	elif f == 5:   # 内爆一拍：缩成 1 格，四角四颗点往里吸
+		pts.append([0.0, cy, C[7], true])
+		for sg in [Vector2(1, 1), Vector2(1, -1), Vector2(-1, 1), Vector2(-1, -1)]:
+			pts.append([sg.x * 4.0, cy + sg.y * 3.0, C[6], false])
+			pts.append([sg.x * 6.0, cy + sg.y * 4.0, C[5], false])
+	else:   # 外爆
+		var age: int = f - 6
+		if age == 0:   # 近白小圆芯一拍
+			for dy in range(-5, 6):
+				for dx in range(-7, 8):
+					var k2: float = float(dx * dx) / 49.0 + float(dy * dy) / 25.0
+					if k2 <= 1.0:
+						pts.append([float(dx), cy + float(dy), C[7] if k2 < 0.45 else C[6], k2 < 0.45 and (dx + dy) % 2 == 0])
+		if age == 1:   # 小圆芯散成一圈薄水环（压扁）
+			for q5 in 28:
+				var a5: float = float(q5) / 28.0 * TAU
+				if _h(sd + float(q5) * 0.7) < 0.25:
+					continue
+				pts.append([roundf(cos(a5) * 10.0), cy + roundf(sin(a5) * 10.0 * SY), C[6] if q5 % 2 == 0 else C[5], q5 % 4 == 0])
+		var N := 24
+		for q3 in N:
+			var a3: float = float(q3) / float(N) * TAU + _h(sd + float(q3)) * 0.3
+			var sp: float = 7.0 + 6.0 * _h(sd * 1.7 + float(q3) * 3.1)   # 每拍外飞格数
+			var t3: float = float(age) + 1.0
+			var x3: float = cos(a3) * sp * t3
+			var y3: float = cy + sin(a3) * sp * t3 * SY - 2.0 * sp * 0.25 * t3 + 1.6 * t3 * t3   # 先略往上抛，再按重力落
+			if age >= 3 and q3 % 2 == 0:
+				continue
+			var purple: bool = q3 % 3 == 0
+			var c3: Color
+			if age == 0:
+				c3 = C[6]
+			elif age == 1:
+				c3 = ACC if purple else C[5]
+			elif age == 2:
+				c3 = ACC2 if purple else C[4]
+			else:
+				c3 = C[3]
+			pts.append([x3, y3, c3, age == 0])
+			if age <= 2 and q3 % 4 == 0:   # 大一点的水珠：2×2
+				pts.append([x3 + 1.0, y3, c3, false])
+				pts.append([x3, y3 + 1.0, c3, false])
+				pts.append([x3 + 1.0, y3 + 1.0, c3, false])
+			if age <= 1 and q3 % 3 != 2:   # 拖一格尾巴
+				pts.append([x3 - cos(a3) * 1.0, y3 - sin(a3) * SY, C[4] if age == 0 else C[3], false])
+	var px: float = g.PX
+	var base: Vector2 = r._snap(it.c)
+	for q in pts:
+		var p: Vector2 = base + Vector2(roundf(float(q[0])), roundf(float(q[1]))) * px
+		ci.draw_rect(Rect2(p, Vector2(px, px)), q[2])
+		if q[3]:
+			r._glow(p, q[2])
 
 
 # ---------------------------------------------------------------- 运行时线状件

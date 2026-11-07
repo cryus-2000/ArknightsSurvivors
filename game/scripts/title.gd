@@ -3,6 +3,7 @@ extends "res://scripts/screens/title_diff_pick.gd"
 const HS = preload("res://scripts/screens/hh_style.gd")
 const FR = preload("res://scripts/core/frame_rec.gd")
 func _ready() -> void:
+	load("res://scripts/core/perf_hud.gd").ensure(get_tree())   # 性能自检浮层（缺省关，core/perf_hud.gd）
 	if Cfg.dev_args().has("--loadprof"):
 		# 启动计时（docs/36 §5）：引擎启动 → 标题页 _ready → 标题页首帧画完（毫秒，从引擎启动算）
 		print("BOOTPROF title_ready=%d" % Time.get_ticks_msec())
@@ -115,7 +116,8 @@ func _ready() -> void:
 				if a2 == "--gallerygroup":
 					gallery._set_group(true)   # 截图自测：干员页按职业分组（10-26）
 				if a2.begins_with("--galleryrow="):
-					gallery.row_sel = int(a2.substr(13))   # 手机：技能 / 成长页展开第几行
+					gallery.row_sel = int(a2.substr(13))   # 技能页（桌面 + 手机）/ 成长页（手机）展开第几行
+					gallery.sk_follow = true
 				if a2 == "--reducemotion":
 					Cfg.reduce_motion = true
 				if a2.begins_with("--codexglass="):

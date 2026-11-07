@@ -1,0 +1,78 @@
+diff --git a/game/scripts/game.gd b/game/scripts/game.gd
+index 20a4114a5..91873fc59 100644
+--- a/game/scripts/game.gd
++++ b/game/scripts/game.gd
+@@ -315,6 +315,7 @@ var knight_alive := false          # 猎潮的骑士在队中（结局二）
+ var force_boss := -1
+ var atk_slow := 0.0
+ var ebullets: Array = []
++var _eb_stash = null   # 临时探针 --ebhide
+ var shocks: Array = []
+ var warns: Array = []
+ var shots: RefCounted = null    # 敌方投射物池：抛物 / 敌弹 / 冲击环的推进（scripts/enemies/shot_pool.gd，docs/101 B7 ④）
+@@ -1521,6 +1522,9 @@ func mobile_cap() -> bool:
+ 
+ 
+ func _process(delta: float) -> void:
++	if _eb_stash != null:
++		ebullets = _eb_stash
++		_eb_stash = null
+ 	UM.advance(delta)   # 界面动效时钟（真实帧间隔，不乘对局倍速；scripts/ui_motion.gd）
+ 	_pm("engine")   # 上一帧结束到这一帧开始：引擎自身、_draw 回调、其他节点（只在 --prof 下记）
+ 	onboard.update(delta)   # 新手引导（screens/onboard.gd）：真实帧间隔
+@@ -1623,6 +1627,9 @@ func _process(delta: float) -> void:
+ 		dof_layer.visible = Cfg.dof and not optical_on   # 光学开时景深由光学 pass 取代（原来这里开、optical.gd 再关，一帧翻两次）
+ 		fg.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST if optical_on else CanvasItem.TEXTURE_FILTER_LINEAR   # 前景剪影：光学下像素风（map.draw_foreground）
+ 		hud.queue_redraw()
++	if Cfg.dev_args().has("--ebhide"):
++		_eb_stash = ebullets
++		ebullets = ebullets.filter(func(b): return not b.get("boss", false))
+ 	world.present_step()   # 表现事件步骤（Boss 换幕 / 倒下演出；docs/101 B3）：每帧一次，在本帧绘制之前，无头也走
+ 	_pm("tail")
+ 
+diff --git a/game/scripts/run/autotest.gd b/game/scripts/run/autotest.gd
+index 1ca053f0d..2acbd3051 100644
+--- a/game/scripts/run/autotest.gd
++++ b/game/scripts/run/autotest.gd
+@@ -565,6 +565,19 @@ func _flashrec_step() -> void:
+ 				near.append("%s/%s#%d@%d,%d%s" % [e.type, e.tex, e.id, e.pos.x, e.pos.y, " B" if e.boss else ""])
+ 		print("ENEMYDUMP i=%d %s" % [_fr_i, " ".join(near)])
+ 	var img: Image = g.get_viewport().get_texture().get_image()
++	if Cfg.dev_args().has("--ebdump"):
++		var vp0: Viewport = g.get_viewport()
++		var xf0: Transform2D = vp0.get_final_transform() * vp0.get_canvas_transform()
++		var bl: Array = []
++		for b in g.ebullets:
++			if b.life > 0.0 and b.get("boss", false):
++				bl.append([snappedf(b.pos.x, 0.1), snappedf(b.pos.y, 0.1), snappedf(b.vel.x, 0.1), snappedf(b.vel.y, 0.1), b.r, str(b.get("kind", "")), str(b.get("pc_tier", "")), snappedf(b.life, 0.01), str(b.get("src_type", "")), int(b.get("tier", -1))])
++		var bbp: Vector2 = bb.pos if bb != null else Vector2.ZERO
++		var fd := FileAccess.open(g.shot_dir + "/eb_%05d.json" % _fr_i, FileAccess.WRITE)
++		fd.store_string(JSON.stringify({"t": g.t, "img": [img.get_width(), img.get_height()], "vs": [vp0.get_visible_rect().size.x, vp0.get_visible_rect().size.y],
++			"xf": [xf0.x.x, xf0.x.y, xf0.y.x, xf0.y.y, xf0.origin.x, xf0.origin.y], "ct": [g.get_canvas_transform().x.x, g.get_canvas_transform().origin.x, g.get_canvas_transform().origin.y],
++			"boss": [bbp.x, bbp.y], "pp": [g.ppos.x, g.ppos.y], "b": bl}))
++		fd.close()
+ 	img.resize(_fr_w, int(_fr_w * img.get_height() / float(img.get_width())), Image.INTERPOLATE_BILINEAR)
+ 	img.save_png(g.shot_dir + "/fr_%05d.png" % _fr_i)
+ 	var hs := 0
+@@ -1795,6 +1808,12 @@ func _bossmoves_step(spec: String) -> void:
+ 		for a in Cfg.dev_args():
+ 			if a.begins_with("--bossonly="):   # 只放这几招，按给出的顺序、可重复（逗号分隔；录修后短片 / 改前改后对照用，docs/215、docs/212 §5）
+ 				bm_list = Array(a.substr(11).split(","))
++		for xa in Cfg.dev_args():
++			if xa.begins_with("--extraspawn="):   # 临时探针：普通远程怪围一圈（弹幕对比图里要有小怪弹）
++				var xl: PackedStringArray = xa.substr(13).split(",")
++				for xi in xl.size():
++					var xe: Dictionary = g.spawner.spawn_enemy(xl[xi], g.ppos + Vector2.from_angle(TAU * xi / xl.size() + 2.2) * 330.0)
++					xe.age = 5.0
+ 		bm_next_t = g.t + 1.0
+ 		print("BOSSMOVES %s moves=%s" % [spec, str(bm_list)])
+ 		return
+@@ -1811,6 +1830,8 @@ func _bossmoves_step(spec: String) -> void:
+ 	match bm_state:
+ 		"idle":
+ 			if bm_i >= bm_list.size():
++				if _fr_left > 0 and _fr_t0 > 0.0:
++					return   # 临时探针：录帧没录完先不退
+ 				if g.at_frames % 10 == 0:
+ 					print("BOSSMOVES END %s shots=%d" % [bm_tag, bm_i])
+ 					g.get_tree().quit()

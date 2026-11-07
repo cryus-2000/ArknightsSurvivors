@@ -1,5 +1,9 @@
 # 00 · 文档索引
 
+- [308_bot_human_1107](308_bot_human_1107.md)：已实施，待合入；机器人新档 `--bot=human` 按用户真人操作习惯校准（分心直走、预警反应慢、冲刺当走路、终结技晚放、少指点），用户常用开局 × 难度 0：human 27%、失败局中位 5:08，真人 30%、5:36（expert 70%、master 86%）；docs/307 合入后要重测。
+- [306_boss_danmaku_touhou_1107](306_boss_danmaku_touhou_1107.md)：已做进游戏（render/danmaku_v2 缺省 1，骑士不改）；Boss 弹体东方化（圆弹三档 + 米弹 + 针弹、每 Boss 专属色），中期 Boss 为重点，GCP 同帧实机对比 + 运行时生成、包体 0。
+- [303_ult_dmg_1107](303_ult_dmg_1107.md)：已实施，待合入；终结技伤害偏低是 11-05 三项伤害侧减负叠加（P3 队长圈 + 留余烬 + 精英上限）造成，三项关掉、中期 Boss 份额 0.28 → 0.36；清屏 29% → 87%、精英 47% → 68%，配对胜率 m0 −1.8 / m18 +6.0。
+- [301_onboard_card_v3_1107](301_onboard_card_v3_1107.md)：已实施，待合入；开局指南卡与问题框在指挥台开着时按属性面板画（深底 + 两角刻度、Heavy 标题 + 灰英文小签、细线进度条），卡收小一号（桌面 440 / 手机 470），几何与行为不变。
 - [296_bond2_art_concept](296_bond2_art_concept.md)：构思稿，待用户挑；羁绊技新画面第二版（避开已有刀痕 / 光柱）：宿敌尖括号合拢 / 企鹅物流急件箱空投 / 灯下审决提灯方格光网，关键帧草图 `tools/bond2_concept.py`。
 - [294_bond_collab_v2](294_bond_collab_v2.md)：设计稿，待审；羁绊改 HoloCure 式羁绊技（两人都精一解锁、22 秒自动、一片大图形），取代合击 + 小数值；8 条招式 + 3 对示意 GIF（`tools/bond_v2_gif.py`）。
 - [291_hit_feel_evo](291_hit_feel_evo.md)：试点待审；用户 11-07 给的像素近战文章对照（过冲 / 扇形拉丝 / 收招慢于爆发 / 巅峰帧 / 残影）+ §6 刀光以外的手法，德克萨斯 + 星熊挂 `fx/melee_evo` 缺省 0。
@@ -194,6 +198,9 @@
 | [253_late_game_research](253_late_game_research.md) | 同类游戏后期画面可读性调研 11-04 | 调研 + 方案，待用户挑 | 11 款同类 + Riot / GDC：角色可见、敌我分色、特效设置、掉落物、成长加码、出处（只核到搜索摘要）；8 个全局方案：红色只留给威胁、结晶退出暖金、地面区域只画边、拥挤时压暗怪群、小队光池、出手短命光源、威胁高亮开关、特效强度设置；推荐三批顺序 | 221、226、139、242 §11–12 |
 | [280_ult_art_gap_1105](280_ult_art_gap_1105.md) | 终结技 × 新美术差异盘点（20 人）11-05 | 待用户定重做名单 | GCP 录 integ 现行终结技 8 帧联系表 + 新美术 S3 / 普攻招牌帧，按配色 / 画法 / 意象 / 体量光感四项打分：差异大 9 人（星熊、塞雷娅、铃兰、流明、推进之王、浊心斯卡蒂、归溟幽灵鲨、乌尔比安、艾丽妮）、中 6 人、小 5 人；音源 20 人都非纯原作；建议处理顺序 | 270、275、198、205；tools/ult_inventory.py、tools/ult_inventory_sheet.py |
 | [287_perf_mem_1106](287_perf_mem_1106.md) | 内存峰值与帧率：基线 + 前 10 热点 11-06 | 进行中 | 基线 main 319b5de4b：手机网页峰值约 635–715 MB（护栏 5:06 降画质），桌面高档 846 MB；全员特效帧条开局全读 206 MB、浊心斯卡蒂歌域每帧重算约 3 ms、铃兰逐像素光环、转平面整表扫描、音频 158 MB；阶段二逐项同局轮换 | 50；render/fx_pxplane*.gd、game.gd、run/ult_px_sd.gd |
+| [305_perf_night_1107](305_perf_night_1107.md) | 性能与帧率夜检 11-07 | 已实施，待合入 | 桌面今天的合入不变差（新旧交替 + 后期减负同局轮换 ±0.5 ms）；修暂停 / 选卡时扬尘只增不减（15 分钟 7600 个、帧时 25 → 90 ms）、手机网页最终 Boss 换曲两首同驻（527 MB 触发护栏）；网页测量脚本修复；手机峰值约 450 MB | 287、50；render/world.gd、sfx.gd、tools/perf_web.py |
+| [309_font_fd_toy_size_1107](309_font_fd_toy_size_1107.md) | 字体「fd is null」报错 + Toy 包余量 11-07 | 已实施，待合入 | 清字形缓存时常驻 Label（性能浮层）用到刚释放的句柄，156 → 0；网页包脚本按源码导出 + 去整行注释，Toy zip 49.21 → 45.92 MB | 305、285、187；settings.gd、tools/export_web.py |
+| [mobile_performance_1106](mobile_performance_1106.md) | 手机性能与生命周期修复 11-06 | 分支实施记录，未合入 | RefCounted 循环、字体护栏限频、同色网格；181 项快检、七人冒烟、TRACE 与局部像素/释放验证通过，手机 30 FPS 待实机验收 | 36、50、287；[实施计划](superpowers/plans/2026-11-06-mobile-performance.md)、check.py |
 | [270_fx_light_particle_standard](270_fx_light_particle_standard.md) | 特效光感 + 粒子感统一标准（px_plane 14 人体检）11-05 | 待用户确认标准与补做名单（第二版数据，量法已修） | GCP 同局三跑（正常 / 关照地光 / 关 emit）差分量照地光与核心辉光，探针记颗粒数 / 寿命 / 边长 / 灯；技能灯取技能后 1 秒最亮一盏；四类招式（普攻命中 / 爆发 / 持续区域 / 治疗）上下限，判定在 fx_audit_sheet.py；低于标准 7 人（浊心斯卡蒂、安洁莉娜、艾雅法拉 S1、能天使、德克萨斯、凯尔希普攻、塞雷娅普攻）+ 边缘 7 人，每人一句补法 | 246、256；tools/fx_audit.py、tools/fx_audit_sheet.py、tests/fx_audit_shot.gd |
 | [271_pxplane_suzuran_1105](271_pxplane_suzuran_1105.md) | pixelfx「转平面」· 铃兰 11-05 | 用户已点头；GCP 出图完成，SCRIPT ERROR 0、TRACE 逐行一致、docs/270 体检核心项过，待合入 | 照 246 做法：普攻追踪火团（精一狐火灼印、精二九尾 + 狐形大狐火 + 拖尾火苗）；S1 金色符阵 + 命中金印（精一火柱、精二九尾张开）；S2 落地火环 + 暖光边 + 铃兰小铃铛祝福；S3 尾焰扫过 + 薄雾边 + 狐火落点；连携四团狐火绕身追迹；狐火点点 / 画地为牢 / 围炉 / 祈愿 / 扩散；纯 Python 烤帧条；开关 fx/px_plane | 246、256、270；render/fx_pxplane_sz.gd、tools/pxplane_suzuran_art.py、tools/pxplane_bake_suzuran.py、tools/pxplane_gif_suzuran.py |
 | [272_pxplane_irene_1105](272_pxplane_irene_1105.md) | pixelfx「转平面」· 艾丽妮 11-05 | 用户已同意第三版送测；已推 claude/pxplane-irene，GCP 出图中 | 照 246 做法 + 270 光感标准，主基调白 + 亮紫、潮水作辅色：普攻星芒 + 实心光锥 + 十字（精一刃尖碎芒、精二八芒 + 裂潮余波细新月 + 手炮追击）；S1 蓄光 + 大光刺 + 水旋；S2 金色大月牙劈潮水花；S3 审判光环 + 光矛 + 提灯；手炮弹道 + 小爆；剑气 = 光刺；连携「提灯一照」光圈 + 长光刃；浮空怪影子缩小 + 浮动；纯 Python 烤帧条；开关 fx/px_plane | 246、256、270；render/fx_pxplane_ir.gd、tools/pxplane_irene_art.py、tools/pxplane_bake_irene.py、tools/pxplane_gif_irene.py |
@@ -361,3 +368,6 @@
 | [干员特效审查 10-29](195_op_fx_audit_1029.md) | 全员干员特效排查：整片填充圆盘去除、白灰色、待确认项 | 已落地一批 | 浊心 / 逻各斯另会话处理；拉普兰德失色圈待用户定 | data_operator、seg_lumen 等、tools/op_fx_audit_rec.py |
 | [测试体系方案 10-30](204_test_system_plan.md) | 快检耗时盘点、`--changed` 路径映射、说明对账、节点可达性、红项登记、分期 | 方案待审 | 未实装；附只读原型 text_reconcile_scan / graph_lint | check.py、known_red、check_map、tools/graph_lint.py |
 | [279_audio_source_inventory](279_audio_source_inventory.md) | 音频来源清单 11-05 | 备查（用户确认原作音源可用） | game/audio 620 个：原作客户端 336（音效 99 + 语音 237）、授权录音 83、程序合成 178、Suno 配乐 22、待查 1（music/shop.ogg）；credits.json 音乐与音效一栏未写原作音效与 Suno | 113、21 |
+| [295_toy_package_audit](295_toy_trim_audit_1107.md) | Toy 包白占地方盘点 11-07 | 备查 | 几乎无死文件，可不进包约 0.3–0.4 MiB | tools/export 预设 |
+| [297_lappland_pose_audit](297_lappland_pose_audit_1107.md) | 拉普兰德双手前推姿势帧核对 + S1 改播原作 Attack 段 | 已落地 | 只改画面，同种子 TRACE 相同；蹲身前推只留 S3 | lappland.json、character.gd（dash_run） |
+| [304_doctor_sprite_audit](304_doctor_sprite_audit_1107.md) | 博士帧条核查：现行为 1 倍放大版、无更新版；补画方案 + Codex 派单 | 待用户 / 制作人定是否派 Codex | 先重画 idle + run | game/art/operators/doctor/、doctor.json |

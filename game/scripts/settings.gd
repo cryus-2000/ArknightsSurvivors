@@ -166,12 +166,21 @@ func mobile_knob(key: String, dflt: float) -> bool:
 const FONT_PATHS := ["res://fonts/ui.ttf", "res://fonts/ui_fallback.otf", "res://fonts/serif.ttf"]
 
 func slim_fonts(clear_only := false) -> void:
+	# 清缓存时不发 changed：引擎在 clear_cache 里先释放字形句柄、再发 changed，正挂着的 Label（性能浮层等）在信号里同步重排，
+	# 拿到的还是刚释放的句柄（text_server「Parameter "fd" is null」，那一帧字画不出来）。清完再重设 fallbacks：先作废句柄缓存再通知，
+	# 回退字体（ui_fallback）的上级（ui.ttf）也跟着重取
 	for fp in FONT_PATHS:
 		var ff = load(fp)
 		if ff is FontFile:
 			if not clear_only:
 				ff.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_DISABLED
+			ff.set_block_signals(true)
 			ff.clear_cache()
+			ff.set_block_signals(false)
+	for fp in FONT_PATHS:
+		var ff = load(fp)
+		if ff is FontFile:
+			ff.fallbacks = ff.fallbacks.duplicate()
 
 
 func mobile_fonts_slim() -> bool:
@@ -394,7 +403,7 @@ func _ready() -> void:
 		if pf is FontFile and not (pf as FontFile).data.is_empty():
 			_ui_font.data = (pf as FontFile).data
 			_ui_font.clear_cache()
-	if _ui_font != null and not touch_device() and load("res://scripts/core/balance.gd").vi("ui/font_ark", 1) > 0:
+	if _ui_font != null and not touch_device() and load("res://scripts/core/balance.gd").vi("ui/font_ark", 0) > 0:
 		var rf = load("res://fonts/ui_regular.ttf")   # 原作式字重对照（docs/292）：桌面正文 Regular，名字 / 标题走 UI.name_font（Heavy）
 		if rf is FontFile and not (rf as FontFile).data.is_empty():
 			_ui_font.data = (rf as FontFile).data

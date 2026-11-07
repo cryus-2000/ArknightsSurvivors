@@ -29,6 +29,28 @@ uniform vec3 zone_hole = vec3(0.5, 0.5, 0.0);
 uniform bool zone_mask_on = false;
 uniform sampler2D zone_mask : filter_nearest, repeat_disable;
 
+// 引力透镜（11-07 安洁莉娜终结技黑洞版，ult/an_fine = 2；ult_an_fine.gd lens_tick 写）：lens.xy 屏幕 uv 中心、z 视界半径（屏高为单位）、w 强度 0..1；
+// lens2.x 透镜外缘（视界半径的倍数）、lens2.y 旋转（弧度，越靠近视界越大）。视界以内不扭（黑影与盘前沿是世界层画的）
+uniform vec4 lens = vec4(0.5, 0.5, 0.0, 0.0);
+uniform vec2 lens2 = vec2(6.0, 0.9);
+
+vec2 lens_uv(vec2 uv, vec2 px) {
+	float asp = px.y / px.x;
+	vec2 d = vec2((uv.x - lens.x) * asp, uv.y - lens.y);
+	float r = length(d);
+	float rh = lens.z;
+	float ro = rh * lens2.x;
+	if (r <= rh || r >= ro) {
+		return uv;
+	}
+	float f = smoothstep(rh, rh * 1.25, r) * (1.0 - smoothstep(ro * 0.55, ro, r)) * lens.w;
+	float q = rh / r;
+	float rs = r + rh * 1.6 * q * f;                 // 往外取样：外面的地面被挤进视界周围一圈（爱因斯坦环的观感）
+	float th = atan(d.y, d.x) + lens2.y * q * q * f;   // 靠近视界被拖着转
+	vec2 s = vec2(cos(th), sin(th)) * rs;
+	return vec2(lens.x + s.x / asp, lens.y + s.y);
+}
+
 vec3 sample_rgb(vec2 uv) {
 	return texture(screen_tex, uv).rgb;
 }
@@ -45,6 +67,9 @@ vec3 wave_fx(vec3 c, vec2 uv, vec2 px) {
 
 void fragment() {
 	vec2 uv = SCREEN_UV;
+	if (lens.w > 0.001 && lens.z > 0.0) {
+		uv = lens_uv(uv, SCREEN_PIXEL_SIZE);
+	}
 	vec2 c = uv - 0.5;
 	float r2 = dot(c, c);
 	vec3 col;

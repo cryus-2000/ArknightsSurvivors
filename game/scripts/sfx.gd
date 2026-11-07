@@ -1122,11 +1122,26 @@ func _track_streams(tname: String) -> Array:
 			sts.append(pl.stream)
 	return sts
 
+## 旧曲淡完到释放的等待（docs/305）：缺省 FREE_AFTER；手机网页换进 Boss / 最终 Boss 曲时不等——
+## 旧曲 1.5 / 秒淡出约 0.67 秒到 0，Boss 曲 BOSS_HIT（0.75 秒）后才开：原来旧战斗曲要再挂 3 秒，最终 Boss 曲（406 秒 × 双声道）注册进来那几秒两首同驻，
+## 网页实测音频 123 → 198 MB、护栏读数 452 → 527 MB（超 520 线触发清缓存）。web/mobile_music_swap = 0 退回旧写法
+var _swap_fast := -1
+
+func _free_after() -> float:
+	var nt := str(pending.get("track", ""))
+	if nt != "boss" and not nt.begins_with("final"):
+		return FREE_AFTER
+	if _swap_fast < 0:
+		var cfg = get_node_or_null("/root/Cfg")
+		_swap_fast = 1 if OS.has_feature("web") and cfg != null and cfg.mobile_web() and cfg.mobile_knob("mobile_music_swap", 1.0) else 0
+	return 0.0 if _swap_fast == 1 else FREE_AFTER
+
+
 func _maybe_free(tname: String) -> void:
 	if tname == cur_track or tname == str(pending.get("track", "")):
 		_last_on[tname] = _now()
 		return
-	if _freed.has(tname) or _next.has(tname) or tname == after_stinger or cur_track == "" or _now() - float(_last_on.get(tname, -99.0)) < FREE_AFTER:
+	if _freed.has(tname) or _next.has(tname) or tname == after_stinger or cur_track == "" or _now() - float(_last_on.get(tname, -99.0)) < _free_after():
 		return
 	if _free_ok < 0:
 		_free_ok = 1 if OS.has_feature("web") and str(JavaScriptBridge.eval("typeof window.__syAudioFree", true)) == "function" else 0

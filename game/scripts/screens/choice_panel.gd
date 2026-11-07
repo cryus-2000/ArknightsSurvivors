@@ -84,10 +84,10 @@ func lay() -> Dictionary:
 ##   名字 24（唯一的最大字）> 选择 19 > 说明 17 > 标签 / 流派 14；说明固定行高（字体自身约 1.5 倍），不再为塞下或撑满改行距。
 ##   名字 / 说明各上移 2–4、说明区多 8（标签行与选择条不动）：17 号四行放得下
 const PAD_X_PHONE := 26.0
-const NAME_Y_PHONE := 160.0
-const DESC_Y_PHONE := 182.0
+const NAME_Y_PHONE := 174.0   # 11-06 用户「名字贴着图标，和下面的空行不太协调」：原 160，图标外圈刻度画到 138，名字字顶正好贴上
+const DESC_Y_PHONE := 194.0   # 11-06：随名字下移（原 182）
 const CHIP_UP_PHONE := 66.0
-const DESC_PAD_PHONE := 275.0
+const DESC_PAD_PHONE := 287.0   # 11-06：说明起点下移 12，说明区底边不变（原 275）
 const BTN_FS_PHONE := 16      # 选择（× phone_font_mult 1.18 ≈ 19）
 const CHIP_FS_PHONE := 12     # 流派 / 影响标签（≈ 14）
 const DESC_SIZES_PHONE := [15, 14, 13]   # 同上（11-06：原 20 起，放大后同名字一样大）
@@ -1332,7 +1332,7 @@ func card_tag(o: Dictionary) -> Array:
 	elif o.kind == "recruit":
 		cat = "招募 · " + o.get("cls", "") + "  RECRUIT"
 	elif o.kind == "prog":
-		cat = ("精英化  ELITE" if o.get("elite", 0) > 0 else "干员培养  OPERATOR")
+		cat = ("精英化  ELITE" if o.get("elite", 0) > 0 else "成长节点  NODE")   # 11-07 用户「干员培养…明明是成长节点」：同图鉴「成长」页、docs/76 叫法
 	elif o.kind == "weapon":
 		cat = "支援  " + D.WEAPONS[o.id].en
 	# 「中文  ENGLISH」拆成两段；没有英文的整段当中文
