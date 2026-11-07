@@ -19,6 +19,7 @@ var _dash_at: Array = []
 var _m3_at := 0.0
 var _tab_at := 0.0
 var _tab_f := -1
+var _spawn_at: Array = []
 var _elite_at := -1.0   # --eliteat=秒（docs/249 §5）：-1 = 还没读参数，0 = 不用 / 已触发
 var touchtest_p0 := Vector2.ZERO
 var bal_done := false
@@ -1067,6 +1068,22 @@ func step() -> void:
 					bi._test_shots.pop_front()
 				if g.state == g.S.WIN and g.state_age > 1.5:
 					g.get_tree().quit()
+	if _spawn_at.is_empty():
+		_spawn_at = [-1.0]
+		for a in Cfg.dev_args():
+			if a.begins_with("--spawnat="):   # 截图（docs/312 触屏集火）：--spawnat=<秒>:<敌人>@<dx>:<dy>;…  到点在队长旁刷出（跳过登场保护）
+				var ps: PackedStringArray = a.substr(10).split(":", true, 1)
+				_spawn_at = [float(ps[0]), ps[1] if ps.size() > 1 else ""]
+	if float(_spawn_at[0]) >= 0.0 and g.state == g.S.PLAY and g.t >= float(_spawn_at[0]):
+		for tok in str(_spawn_at[1]).split(";", false):
+			var ip: PackedStringArray = tok.split("@")
+			var off := Vector2(220, -40)
+			if ip.size() > 1:
+				var xy: PackedStringArray = ip[1].split(":")
+				off = Vector2(float(xy[0]), float(xy[1]) if xy.size() > 1 else 0.0)
+			var se: Dictionary = g.spawner.spawn_enemy(ip[0], g.ppos + off)
+			se.age = 5.0
+		_spawn_at = [-1.0]
 	if _elite_at < 0.0:
 		_elite_at = 0.0
 		for a in Cfg.dev_args():
