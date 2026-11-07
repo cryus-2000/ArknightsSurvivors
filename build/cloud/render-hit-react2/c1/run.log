@@ -1,0 +1,9 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4827 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+texas 0 360 帧 []
+texas 0 声音：音效 168 次（斩肉 9 次）
+texas 1 360 帧 []
+texas 1 声音：音效 168 次（斩肉 9 次）
+录像 /work/repo/build/cloud/render-hit-react2-c1/media/hit_react_melee_texas.mp4 9.4 MB 360 帧
+media：3 个文件，9.6M
