@@ -53,6 +53,6 @@
   - 集火时点空白取消；
   - 部署：预选 → 换落点 → 再点下令；
   - 圈外的地面不预选，「取消」键能退出。
-- **示意截图** `tools/probes/touch_command_shots.py [mode=focus,point] [res=phone] [old]`：每种模式出 6 张关键帧（圆盘 / 选点 / 预选 / 换预选 / 下令 / 生效）。
+- **示意截图**：`UIA_DEVS=phone:1170x540:t python tools/probes/ui_audit_shots.py <目录> tcmd_focus,tcmd_point`，录 rec_*.png，取关键帧：圆盘约第 24 帧、选点约第 72 帧、预选约第 120 帧、换预选约第 180 帧、下令约第 214 帧、生效约第 280 帧。能上 GCP 就上 GCP。
   - 截图要刷精英：autotest 的 `--spawnat=<秒>:<敌人>@<dx>:<dy>;…`；
   - 选点计划 `--pickplan` 新增 `tap / tapf / tapsnap / tappre / tapdeploy`。
