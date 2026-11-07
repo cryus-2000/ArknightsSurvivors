@@ -5,7 +5,7 @@ extends RefCounted
 ## 松手 / 点击确认，右键 / Esc / 回到圆盘区取消。选点期间每个真实秒从作战时限里扣一点（command/pick_cost），上限 command/pick_cap 秒。
 ## 不抽随机数；不改镜头（缩放留给正式实现，见 docs/196 §6.4）。
 ## 触屏「点选 → 预选 → 再点确认」（11-07 用户「手机端指挥圆盘一点不明确」，docs/312；command/touch_confirm = 1 缺省，0 = 旧的按住拖、松手确认）：
-##   选完指令后手指抬起也不下令。集火：场上可选的精英 / Boss 框常亮 → 点一只 = 预选（框变金色 +「再点一次确认」）→ 再点同一只 = 下令；
+##   选完指令后手指抬起也不下令。集火：场上可选的精英 / Boss 框常亮（白）→ 点一只 = 预选（框变金色）→ 再点同一只 = 下令；
 ##   点别的目标 = 换预选，点空白 = 取消（落在摇杆区时这一下同时起摇杆）。部署：点虚线圈内的地面 = 预选落点（金色标记）→ 再点标记 = 下令，
 ##   点别处 = 换落点。两种都可点信息板上的「取消」或「指挥」键退出。没有准星偏移（点哪儿就是哪儿）。时限 command/pick_cap_touch 秒，
 ##   到时有预选就按预选下令，没有就取消
@@ -44,7 +44,8 @@ var _miss_t := -1.0         # 部署点到圈外：警示字留 1 秒
 var _cancel_r := Rect2()    # 信息板「取消」键（UI 坐标，绘制时更新）
 var _near_r := Rect2()      # 集火「最近的 Boss / 精英」键
 var _begin_frame := -1
-const PRE_COL := Color(1.0, 0.82, 0.26)   # 预选色（金）：和可选目标的青 / 红区分开
+const PRE_COL := Color(1.0, 0.82, 0.26)   # 预选色（金）
+const CAND_COL := Color(0.93, 0.95, 0.96)  # 可选目标（PRTS 白，11-07 用户：可选都用白、选上用金）
 const TAP_SAME := 64.0      # 再点确认的容差（屏幕像素）
 
 
@@ -436,7 +437,7 @@ func draw(vs: Vector2) -> void:
 		UI.text(hud, font, b.position + Vector2(30, 22), "最近的 Boss / 精英", 14, W.C_WARN, HORIZONTAL_ALIGNMENT_LEFT, 200)
 
 
-## 触屏点选确认的画面（docs/312）：可选目标常亮（深色衬底 + 亮角标，1 倍下也读得出）→ 预选变金色、弹一下、头顶「再点一次确认」；
+## 触屏点选确认的画面（docs/312）：可选目标常亮 PRTS 白（深色衬底 + 亮角标，1 倍下也读得出）→ 预选变金色、弹一下（11-07 用户：不要「再点一次确认」浮字）；
 ## 部署落点预选同色；信息板写当前一步该做什么，右侧「最近目标」（集火）/「取消」两个键，底边细条是剩余选点时间
 func _draw_tap(hud: CanvasItem, font: Font, ct: Transform2D, vs: Vector2, e: float) -> void:
 	var W = g.wheel
@@ -444,7 +445,7 @@ func _draw_tap(hud: CanvasItem, font: Font, ct: Transform2D, vs: Vector2, e: flo
 	var pop: float = 1.0 + 0.22 * (1.0 - clampf(_pre_t / 0.18, 0.0, 1.0)) if not Cfg.reduce_motion else 1.0
 	var pu: float = 0.0 if Cfg.reduce_motion else 0.5 + 0.5 * sin(t * 7.0)
 	for en in cs:
-		var col: Color = W.C_WARN if en.boss else W.C_ACC
+		var col: Color = CAND_COL   # 可选目标一律 PRTS 白，选中才变金（11-07 用户）
 		var pre: bool = pre_set and is_same(en, pre_target)
 		var spw: Vector2 = ct * en.pos
 		if Rect2(Vector2(20, 20), vs - Vector2(40, 40)).has_point(spw):
@@ -456,7 +457,6 @@ func _draw_tap(hud: CanvasItem, font: Font, ct: Transform2D, vs: Vector2, e: flo
 				hud.draw_rect(Rect2(sp - Vector2(r, r), Vector2(r, r) * 2.0), Color(PRE_COL.r, PRE_COL.g, PRE_COL.b, 0.55 * e), false, 1.0)
 				_corners(hud, sp, r, Color(0, 0, 0, 0.7 * e), 6.5)
 				_corners(hud, sp, r, Color(PRE_COL.r, PRE_COL.g, PRE_COL.b, e), 3.5)
-				_confirm_tag(hud, font, sp + Vector2(-r, -r - 30.0), "再点一次确认", e, pu)
 			else:
 				_corners(hud, sp, r, Color(0, 0, 0, 0.6 * e), 5.0)
 				_corners(hud, sp, r, Color(col.r, col.g, col.b, (0.75 + 0.25 * pu) * e), 2.6)
@@ -473,8 +473,6 @@ func _draw_tap(hud: CanvasItem, font: Font, ct: Transform2D, vs: Vector2, e: flo
 			UI.ctext(hud, font, cp + Vector2(-28, 5), "BOSS" if en.boss else "ELITE", 11, cc, HORIZONTAL_ALIGNMENT_CENTER, 56)
 			var dv: Vector2 = (spw - cp).normalized()
 			hud.draw_colored_polygon(PackedVector2Array([cp + dv * 28.0, cp + dv * 17.0 + dv.orthogonal() * 7.0, cp + dv * 17.0 - dv.orthogonal() * 7.0]), cc)
-			if pre:
-				_confirm_tag(hud, font, cp + Vector2(-60, -48) if cp.y > 80 else cp + Vector2(-60, 20), "再点一次确认", e, pu)
 	if mode != "focus" and pre_set:
 		var cp2: Vector2 = ct * pre_pt
 		var pc := Color(PRE_COL.r, PRE_COL.g, PRE_COL.b, e)
@@ -487,7 +485,6 @@ func _draw_tap(hud: CanvasItem, font: Font, ct: Transform2D, vs: Vector2, e: flo
 		hud.draw_arc(cp2, rr, 0.0, TAU, 40, Color(0, 0, 0, 0.6 * e), 4.0)
 		hud.draw_arc(cp2, rr, 0.0, TAU, 40, Color(PRE_COL.r, PRE_COL.g, PRE_COL.b, (0.7 + 0.3 * pu) * e), 2.0)
 		_station_mark(hud, cp2, pc)
-		_confirm_tag(hud, font, cp2 + Vector2(-60, -rr - 34.0), "再点一次确认", e, pu)
 	# 信息板
 	var ph: bool = Cfg.phone_ui()
 	var v2: bool = Tactics.on()
@@ -533,15 +530,6 @@ func _draw_tap(hud: CanvasItem, font: Font, ct: Transform2D, vs: Vector2, e: flo
 	# 剩余选点时间（底边细条）
 	var left: float = clampf(1.0 - t / maxf(0.1, Bal.v("command/pick_cap_touch", 6.0)), 0.0, 1.0)
 	hud.draw_rect(Rect2(Vector2(r.position.x + 16.0, r.end.y - 3.0), Vector2((w - 16.0) * left, 3.0)), Color(PRE_COL.r, PRE_COL.g, PRE_COL.b, 0.8 * e) if pre_set else Color(W.C_ACC.r, W.C_ACC.g, W.C_ACC.b, 0.7 * e))
-
-
-func _confirm_tag(hud: CanvasItem, font: Font, p: Vector2, s: String, e: float, pu: float) -> void:
-	var W = g.wheel
-	var rc := Rect2(p.round(), Vector2(120, 24))
-	hud.draw_rect(rc, Color(W.C_PLATE.r, W.C_PLATE.g, W.C_PLATE.b, 0.94 * e))
-	hud.draw_rect(Rect2(rc.position, Vector2(4, 24)), Color(PRE_COL.r, PRE_COL.g, PRE_COL.b, e))
-	hud.draw_rect(rc, Color(PRE_COL.r, PRE_COL.g, PRE_COL.b, (0.45 + 0.4 * pu) * e), false, 1.0)
-	UI.text(hud, font, rc.position + Vector2(10, 17), s, 14, Color(PRE_COL.r, PRE_COL.g, PRE_COL.b, e), HORIZONTAL_ALIGNMENT_LEFT, 108)
 
 
 func _small_btn(hud: CanvasItem, font: Font, r: Rect2, s: String, col: Color, e: float) -> void:
