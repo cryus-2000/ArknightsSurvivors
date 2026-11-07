@@ -1,0 +1,5 @@
+tide rc=0 cast=60.6 270 帧 0 处脚本错误
+total 1596
+drwxr-xr-x 2 root root    4096 Nov  7 11:31 .
+drwxr-xr-x 4 root root    4096 Nov  7 11:31 ..
+-rw-r--r-- 1 root root 1624338 Nov  7 11:31 bond2_tide.mp4

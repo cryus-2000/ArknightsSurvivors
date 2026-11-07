@@ -1,0 +1,9 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4834 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+tide rc=0 cast=60.6 270 帧 0 处脚本错误
+total 1596
+drwxr-xr-x 2 root root    4096 Nov  7 11:31 .
+drwxr-xr-x 4 root root    4096 Nov  7 11:31 ..
+-rw-r--r-- 1 root root 1624338 Nov  7 11:31 bond2_tide.mp4
+media：1 个文件，1.6M
