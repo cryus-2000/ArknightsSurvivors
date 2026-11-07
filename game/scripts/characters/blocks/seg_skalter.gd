@@ -558,7 +558,7 @@ static func gn_resonate(o, b: Dictionary, hits: Array) -> void:
 			o.log_hit(src, ["skill"])
 			o.deal_damage(q, dmg * (o.vs_elite() if q.elite or q.boss else 1.0))
 		o.fx({"kind": "ring", "pos": p, "r": r, "r0": 10.0, "life": 0.3, "col": GN_RES, "floor": true, "w": 2.5})
-		ncue(o, {"p": p, "shape": "ring", "r": r, "r0": 10.0, "c": GN_RES, "n": 7})   # 共鸣：击杀处一圈专属色小声浪 + 火星
+		ncue(o, {"p": p, "shape": "ring", "r": r, "r0": 10.0, "c": GN_RES, "n": 7, "tag": "resonance"})   # 共鸣：击杀处一圈专属色小声浪 + 火星
 		_FXR.ev(o, "sk_burst", {"at": p, "r": r})   # 转平面（docs/260）：只画
 		o.fx({"kind": "glow", "pos": p + Vector2(0, -10), "r": 16.0, "life": 0.22, "col": Color(1.8, 0.8, 1.0), "alpha": 0.8})
 		for k in 6:
@@ -575,13 +575,18 @@ static func sk_gn_draw(o) -> void:
 	if o.taken.has("dmg_up"):
 		var mx: int = int(o.base("tide_max", 4.0))
 		var n: int = int(gn.get("tide", 0))
-		var p0: Vector2 = g.ppos + Vector2(-float(mx - 1) * 6.0, -84.0)
-		for k in mx:
+		var p0: Vector2 = g.ppos + Vector2(-float(mx - 1) * 9.0, -88.0)
+		var dk := Color(0.03, 0.12, 0.14, 0.85)
+		for k in mx:   # docs/310 §4.2：音符放大到美术像素格（符头 4×3、符干 1×7、符尾），亮着的带暗边
 			var on: bool = k < n
-			var q: Vector2 = (p0 + Vector2(k * 12.0, sin(g.t * 3.0 + k) * (1.5 if on else 0.0))).round()
+			var q: Vector2 = ((p0 + Vector2(k * 18.0, -2.0 * float(int(sin(g.t * 3.0 + k) * 1.5)) if on else 0.0)) / 2.0).floor() * 2.0
 			var c: Color = Color(GN_TIDE.r, GN_TIDE.g, GN_TIDE.b, 0.95) if on else Color(0.5, 0.55, 0.6, 0.35)
-			cv.draw_rect(Rect2(q, Vector2(5, 4)), c)
-			cv.draw_rect(Rect2(q + Vector2(4, -8), Vector2(1, 9)), c)
+			if on:
+				cv.draw_rect(Rect2(q + Vector2(-2, -2), Vector2(12, 10)), dk)
+				cv.draw_rect(Rect2(q + Vector2(4, -16), Vector2(6, 16)), dk)
+			cv.draw_rect(Rect2(q, Vector2(8, 6)), c)
+			cv.draw_rect(Rect2(q + Vector2(6, -14), Vector2(2, 16)), c)
+			cv.draw_rect(Rect2(q + Vector2(8, -14), Vector2(2, 4)), c)
 	var cap: int = 3
 	for e in gn.get("res", []):
 		if e.dead:

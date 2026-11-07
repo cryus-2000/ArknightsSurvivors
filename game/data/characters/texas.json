@@ -41,6 +41,7 @@
   "_growth": "docs/202 成长节点去数值化（10-29，待试验参数）：节点 1「居合」iai_*（拔刀命中缩短队长冲刺冷却）；节点 2「破绽」flaw_*（拔刀路径上正在前摇的普通敌人被打断 + 小击退，协调人定：无眩晕）",
   "iai_cut": 0.3,
   "iai_max": 1.2,
+  "iai_gold_n": 3,
   "flaw_kb": 60,
   "back_delay": 0.3,
   "back_mult": 0.5,
@@ -513,7 +514,7 @@
    "id": "wide",
    "name": "居合",
    "icon": "growth_b_range",
-   "desc": "拔刀每命中一名敌人，队长的冲刺冷却缩短 {$iai_cut} 秒（每次拔刀至多 {$iai_max} 秒）；伤害 ×{$grow_dmg_wide}"
+   "desc": "拔刀每命中一名敌人，队长的冲刺冷却缩短 {$iai_cut} 秒（每次拔刀至多 {$iai_max} 秒）；一次拔刀命中 {$iai_gold_n} 名及以上时，队长下一次冲刺带金色残影；伤害 ×{$grow_dmg_wide}"
   },
   {
    "type": "custom",
@@ -1003,7 +1004,8 @@
      {
       "verb": "dash_cd_cut",
       "per": "$iai_cut",
-      "max": "$iai_max"
+      "max": "$iai_max",
+      "gold_n": "$iai_gold_n"
      }
     ]
    },

@@ -704,6 +704,7 @@ static func _e3_refract(o, bt: Dictionary, e: Dictionary, dmg: float) -> void:
 	var b: Vector2 = best.pos + Vector2(0, -best.r * 0.5)
 	o.fx({"kind": "line", "pos": a, "to": b, "life": 0.12, "col": Color(1.6, 1.45, 1.0), "w": 1.0, "laser": true})
 	_FXR.ev(o, "lm_refract", {"a": a, "b": b, "gy": float(best.pos.y) + 1.0})   # 转平面试验（docs/255）：只画
+	ncue(o, {"p": b, "shape": "none", "tag": "折光"})   # 只记日志（--cuelog），不画
 	if not o.spawn_fx_sprite(str(rf.get("hit", "fx_lumen_refract_hit")), b, g.PX):
 		o.spawn_fx_sprite("fx_holy_impact_lantern", b, g.PX * 0.5)
 

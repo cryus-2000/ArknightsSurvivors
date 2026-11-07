@@ -6,6 +6,7 @@
 用法（仓库根目录）：
     python tools/node_cue_pairs.py --out "Claude outputs/growth_vis/pairs" --jobs 2 texas:1 hoshiguma:5:ember angelina:4:pull3
     每项 = 干员:节点数[:路线]（路线 = 节点 4 的分支 id，同 elite_demo_shots --route）
+    --before-game <另一份 game/>：选前改用那份代码（如基线提交的临时工作树）跑、node_cue 都开——直接改了绘制的项（不走 node_cue 开关）用这个对照
 """
 import argparse, glob, os, sys
 from concurrent.futures import ThreadPoolExecutor
@@ -17,11 +18,11 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GAME = os.path.join(ROOT, "game")
 
 
-def shoot(godot, op, nodes, route, cue, d, a):
+def shoot(godot, op, nodes, route, cue, d, a, game=GAME):
     os.makedirs(d, exist_ok=True)
     for f in glob.glob(os.path.join(d, "*.png")):
         os.remove(f)
-    args = [godot, "--audio-driver", "Dummy", "--fixed-fps", "30", "--path", GAME, "res://tests/elite_demo_shot.tscn", "--",
+    args = [godot, "--audio-driver", "Dummy", "--fixed-fps", "30", "--path", game, "res://tests/elite_demo_shot.tscn", "--",
             "--shot_op=" + op, "--shot_stage=2", "--shot_mode=%d" % a.mode, "--shot_dir=" + d.replace("\\", "/"),
             "--shot_start=%g" % a.start, "--shot_every=%d" % a.every, "--shot_n=%d" % a.n, "--shot_nodes=%d" % nodes,
             "--bal=fx/node_cue=%d" % cue, "--seed=7"]
@@ -38,7 +39,10 @@ def one(godot, item, a):
     base = os.path.join(a.out, "_frames", name)
     errs = []
     for cue in (0, 1):
-        errs += shoot(godot, op, nodes, route, cue, os.path.join(base, "cue%d" % cue), a)
+        if a.before_game:
+            errs += shoot(godot, op, nodes, route, 1, os.path.join(base, "cue%d" % cue), a, a.before_game if cue == 0 else GAME)
+        else:
+            errs += shoot(godot, op, nodes, route, cue, os.path.join(base, "cue%d" % cue), a)
     from PIL import Image, ImageChops, ImageDraw
     f0 = sorted(glob.glob(os.path.join(base, "cue0", "f_*.png")))
     f1 = sorted(glob.glob(os.path.join(base, "cue1", "f_*.png")))
@@ -48,7 +52,7 @@ def one(godot, item, a):
     sc = []
     for i in range(n):
         x = ImageChops.difference(Image.open(f0[i]).convert("RGB"), Image.open(f1[i]).convert("RGB")).convert("L")
-        sc.append((sum(1 for v in x.getdata() if v > 40), i))
+        sc.append((sum(1 for v in x.tobytes() if v > 40), i))
     sc.sort(reverse=True)
     pick = sorted(i for s, i in sc[:3] if s > 0)
     if not pick:
@@ -73,6 +77,7 @@ def main():
     ap.add_argument("--every", type=int, default=3)
     ap.add_argument("--n", type=int, default=80)
     ap.add_argument("--jobs", type=int, default=2)
+    ap.add_argument("--before-game", default="")
     a = ap.parse_args()
     a.out = os.path.abspath(a.out)
     os.makedirs(a.out, exist_ok=True)

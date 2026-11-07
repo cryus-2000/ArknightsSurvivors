@@ -58,7 +58,7 @@ static func gl_arrive(o, hk: Dictionary) -> void:
 			o.deal_damage(e, float(hk.dmg) * float(barb.get("pct", 0.08)) * layers * (ve if e.elite or e.boss else 1.0))
 			if not e.dead:
 				o.float_text(e.pos + Vector2(0, -float(e.r) * 2.0 - 8.0), "倒钩 ×%d" % layers, GL_COL, 12)
-				ncue(o, {"p": e.pos, "fe": e, "shape": "ring", "r": float(e.r) + 10.0 + 4.0 * layers, "r0": float(e.r), "c": GL_COL, "n": 2 + 2 * layers})   # 到位结算：层数越多环越大、火星越多
+				ncue(o, {"p": e.pos, "fe": e, "shape": "ring", "r": float(e.r) + 10.0 + 4.0 * layers, "r0": float(e.r), "c": GL_COL, "n": 2 + 2 * layers, "tag": "倒钩"})   # 到位结算：层数越多环越大、火星越多
 	var sl := _gl_on(o, "slash")
 	if not sl.is_empty() and o.pos != Vector2.INF:
 		var ang: float = (hk.front - o.pos).angle()
@@ -84,6 +84,7 @@ static func gl_arrive(o, hk: Dictionary) -> void:
 			lst.append({"a": o.pos, "c": hk.to, "t": 0.0, "life": float(ch.get("dur", 2.0)), "acc": 0.0, "dmg": float(hk.dmg) * float(ch.get("mult", 0.2)),
 				"src": str(ch.get("src", "怒海")), "w": float(ch.get("w", 28.0)), "slow": float(ch.get("slow", 0.4)), "every": float(ch.get("every", 0.5)),
 				"phase": "live", "gt": 0.0, "gi": 0})
+			ncue(o, {"p": hk.to, "shape": "none", "tag": "怒海"})   # 只记日志（--cuelog，实机对照挑帧），不画
 
 
 # ---------------------------------------------------------------- 沉没的锁链（怒海）/ 暗涌（怒海·暗涌）

@@ -192,6 +192,13 @@ static func _exu_targets(o, n: int, rr: float, prio: float) -> Array:
 			if not all.has(kv[2]):
 				all.append(kv[2])
 		out = o.los_sort(all, n)
+	if escorting != bool(o.ext.get("esc_was", false)) or escorting:   # 护航射击提示（docs/310 §4.2，只画）：生效瞬间队长身边一圈青环，护航改打的目标套青色准星
+		if escorting and not bool(o.ext.get("esc_was", false)) and o.g.ppos != Vector2.INF:
+			ncue(o, {"p": o.g.ppos, "shape": "in", "r": 70.0, "c": Color(0.5, 0.88, 1.0), "n": 8, "life": 0.4})
+		o.ext["esc_was"] = escorting
+		if escorting and not out.is_empty() and not is_same(out[0], o.ext.get("esc_tg")):
+			o.ext["esc_tg"] = out[0]
+			ncue(o, {"p": out[0].pos, "fe": out[0], "shape": "mark", "c": Color(0.5, 0.88, 1.0), "life": 0.45})
 	return out
 
 
@@ -918,7 +925,7 @@ static func exu_gm_draw(o) -> void:
 		for esc in _exu_active(o, "verb.escort"):
 			rr = float(esc.r)
 		cv.draw_set_transform(g.ppos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
-		cv.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 40, Color(0.5, 0.85, 1.0, 0.4 + 0.15 * sin(g.t * 6.0)), 2.0)
+		cv.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 48, Color(0.5, 0.85, 1.0, 0.72 + 0.12 * sin(g.t * 6.0)), 4.0)   # 2 美术像素（docs/310 §4.2：原 1 像素 α 0.4–0.55 看不出）
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if not _exu_active(o, "verb.aim_prefer").is_empty() and _pf_mode() > 0:
 		_pf_draw(o)

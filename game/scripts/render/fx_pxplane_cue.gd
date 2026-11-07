@@ -1,12 +1,13 @@
 ## 成长节点通用提示（docs/310 §2，11-07 用户「成长节点开始修」）：转平面接管后 o.fx / o.sparks 不画，
 ## 节点触发时的提示改走这个事件：`_FXR.ev(o, "node_cue", {...})`。只画，不碰玩法与玩法随机数（形状散布按 t0 / 位置哈希）。
 ##
-## 字段：p 位置（世界）· c 主色（Color，缺省干员配方 main）· shape · r 半径 · r0 起始半径 · life 秒 · n 火花数 · fe 跟随的敌人（只读位置）· to 目标干员 id（mote）
+## 字段：p 位置（世界）· top 立起件压最上层 · c 主色（Color，缺省干员配方 main）· shape · r 半径 · r0 起始半径 · life 秒 · n 火花数 · fe 跟随的敌人（只读位置）· to 目标干员 id（mote）
 ##   ring   贴地扩散环：3 美术像素宽（外暗 / 中主色 / 内亮），r0 → r，外加 n 颗像素火花向外飞
 ##   in     贴地收缩环：r → r × 0.3（拉拢、聚拢）
 ##   burst  只有火花（不画环）：碎片 / 火星四散
 ##   mark   跟随敌人的四角准星（目标被选中 / 被标记），轻微收紧
 ##   mote   一颗带尾光点从 p 飞向干员 to（技力 / 回复「交给谁」）；to 为 "*" 时飞向全部其他干员、"@" 飞向队长
+##   ghost  队长（to 缺省 "@"，或干员 id）在 p 处留一份当前帧的着色残影，向上飘散（德克萨斯居合刷新冲刺）
 ## 节拍按 15 fps 跳格（同其余转平面件），同屏至多 CAP 个，超出顶掉最旧的。
 extends RefCounted
 
@@ -16,8 +17,18 @@ const CAP := 32
 const SY := 0.62   # 贴地环纵向压扁（同地面椭圆）
 
 
+static var _log := -1   # --cuelog（调试构建）：每次推入带 tag 的提示打一行 CUE（实机局对照挑帧用，tools/gcp/render_jobs/cue_real.sh）
+
+
 static func push(r, o, d: Dictionary) -> void:
 	if Bal.v("fx/node_cue", 1.0) <= 0.0:   # 0 = 关（选前 / 选后同帧对照用，docs/310）
+		return
+	if _log < 0:
+		_log = 1 if OS.is_debug_build() and OS.get_cmdline_user_args().has("--cuelog") else 0
+	if _log == 1 and d.has("tag"):
+		var sp: Vector2 = r.g.get_viewport().get_canvas_transform() * Vector2(d.get("p", o.pos)) if r.g.is_inside_tree() else Vector2.ZERO
+		print("CUE %.3f %s %s %d %d" % [float(r.g.t), str(o.id), str(d.tag), int(sp.x), int(sp.y)])   # 屏幕坐标（挑帧后按这里裁小块）
+	if str(d.get("shape", "")) == "none":   # 只记日志的标记点（直接改绘制、没有提示事件的项）
 		return
 	var c: Color = d.get("c", Color(-1, 0, 0))
 	if c.r < 0.0:
@@ -36,6 +47,15 @@ static func push(r, o, d: Dictionary) -> void:
 		base["gap"] = float(d.gap)
 	if d.has("glow"):   # 可选：进光学发光层的颜色（缺省主色）；a = 0 不进
 		base["glow"] = d.glow
+	if d.get("top", false):
+		base["top"] = true   # 立起件压最上层（头顶处的火花，不被敌人本体盖住）
+	if sh == "ghost":
+		var who = _who(r, str(d.get("to", "@")))
+		if who == null:
+			return
+		base["to"] = str(who.id)
+		base["st"] = who.anim_state()   # 推入时的那一帧（残影定格，不跟着本体换帧）
+		base["flip"] = float(who.face) < 0.0
 	if sh == "mote":
 		var to: String = str(d.get("to", "@"))
 		var tos: Array = []
@@ -55,6 +75,12 @@ static func push(r, o, d: Dictionary) -> void:
 			k += 1
 		return
 	_add(r, base)
+
+
+static func _who(r, to: String):
+	if to == "@":
+		return r.g.squad.leader()
+	return r._op(to)
 
 
 static func _add(r, it: Dictionary) -> void:
@@ -136,7 +162,7 @@ static func sort_items(r, out: Array) -> void:
 		if float(r.g.t) < float(it.t0):
 			continue
 		var y: float = _pos(it).y + 1.0
-		if str(it.shape) == "mote" or str(it.shape) == "mark":
+		if str(it.shape) == "mote" or str(it.shape) == "mark" or it.get("top", false):
 			y = 1e6   # 飞向队友的光点（跨越整屏）与准星（套在敌人身上，不能被敌人本体盖住）压在最上面
 		out.append({"cue": it, "skey": y})
 
@@ -187,6 +213,15 @@ static func draw_up(r, ci, it: Dictionary) -> void:
 							r._px(ci, pv, lt if j == 0 else mc)
 			if u < 0.5:
 				r._glow(cc, col)
+		"ghost":
+			var who = r._op(str(it.get("to", "")))
+			if who == null or (it.get("st", {}) as Dictionary).is_empty():
+				return
+			var gc: Color = col.lightened(0.5)
+			gc.a = a * 0.9
+			who.draw_body_at((c + Vector2(0, -px * floor(u * 4.0))).round(), bool(it.flip), gc, it.st)
+			if u < 0.5:
+				r._glow(c + Vector2(0, -20), col)
 		"mote":
 			var to = r._op(str(it.get("to", "")))
 			var dst: Vector2 = r.g.ppos if str(it.get("to", "")) == "@" or to == null else to.pos
