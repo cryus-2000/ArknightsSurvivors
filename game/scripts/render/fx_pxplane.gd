@@ -1193,6 +1193,16 @@ func _ev_hsg(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictionary
 			var r2: float = float(d.get("r", 94.0))
 			var dv2 := Vector2.from_angle(ang2)
 			_add(o, "hsg_sweep_r%d_e%d" % [_bucket(r2 * 0.5, [47, 56, 66]), t], o.pos, ang2, r2, raw, "hsg_raw_sweep_e%d" % t, 47.0)
+			var el_st = o.get("el")
+			var stance_on: bool = el_st is Dictionary and el_st.get("timed", {}).has("stance") and float(el_st.timed.stance.get("until", 0.0)) > float(g.t)   # 只读状态（同 ob_elite.el_buff_on）
+			if not raw and t >= 1 and stance_on:   # 反击架势（docs/310 §4.2，卡面「刀光转为暗红」）：立起层换暗红色阶的帧条（tools/hsg_stance_recolor.py）
+				for k in range(items.size() - 1, maxi(-1, items.size() - 3), -1):
+					var it2: Dictionary = items[k]
+					if str(it2.ly) == "up" and str(it2.oid) == str(o.id) and it2.get("slash", false):
+						var sk2: String = str(it2.k).replace("_up_d", "_stance_up_d")
+						if not _meta(sk2).is_empty():
+							it2.k = sk2
+						break
 			if not raw:
 				_follow_last(o, 2)   # 刀痕（立起 + 投影）跟着星熊走
 			_cuts(o, es, t, 2)
