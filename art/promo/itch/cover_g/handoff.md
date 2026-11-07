@@ -88,4 +88,5 @@
 - 做法：背景 = relit0 去怪 → 游戏海嗣高清原稿按「灯火暗淡」（docs/222 DARK_MOD）手工摆位 → 场景交 Gemini 整体重绘（cover1107_regen / regenw）；
   水月 = 游戏内精灵 mizuki_runtime_s1_attack 第 1 帧（不经 AI），1 精灵像素 = 1 格，站光池亮度重心；标题 = 标题页 A′ 排法；右下「明日方舟同人 · Arknights fan work」。
 - 重出：`python art/promo/itch/cover_g/build_cover_h.py --frames t:1 --bg build/imagegen/cover1107_regen/raw_*_1.png --banner_bg build/imagegen/cover1107_regenw/raw_*.png --placed --suffix _regen`（生图在 build/，不进 git）。
+- 11-07「封面定稿」：发布约定位置的全部尺寸（Toy 有字 / 无字海报、512 图标、预览；itch 封面 / 横幅）见 docs/90 §6，重出命令加 `--final art/promo`。
 - 本目录其余 cover_*.png 是过程稿，可留档或另行清理。
