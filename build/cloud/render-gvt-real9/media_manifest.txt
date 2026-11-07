@@ -1,0 +1,9 @@
+1779977	real_tx9.png
+85006	real_tx9_gladiia_倒钩_0.png
+99285	real_tx9_gladiia_倒钩_1.png
+103104	real_tx9_lumen_净化_0.png
+76178	real_tx9_lumen_折光_0.png
+74422	real_tx9_lumen_折光_1.png
+62539	real_tx9_texas_技力_0.png
+66108	real_tx9_texas_技力_1.png
+93993	real_tx9_texas_金影_0.png
