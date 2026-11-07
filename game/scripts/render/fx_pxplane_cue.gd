@@ -30,6 +30,12 @@ static func push(r, o, d: Dictionary) -> void:
 		"n": int(d.get("n", 6)), "seed": int(absf(pos.x) * 7.0 + absf(pos.y) * 13.0) % 997}
 	if d.has("fe") and d.fe is Dictionary:
 		base["fe"] = d.fe
+	if d.has("cols"):   # 可选：环身三色 [外暗, 中, 内]（缺省按主色 darkened / lightened 推）；内色 a = 0 时只画两格
+		base["cols"] = d.cols
+	if d.has("gap"):    # 可选：断口比例（每 5 格一段按哈希跳过），缺省 0 = 整环
+		base["gap"] = float(d.gap)
+	if d.has("glow"):   # 可选：进光学发光层的颜色（缺省主色）；a = 0 不进
+		base["glow"] = d.glow
 	if sh == "mote":
 		var to: String = str(d.get("to", "@"))
 		var tos: Array = []
@@ -94,27 +100,33 @@ static func floor_layer(r, o) -> void:
 		var e: float = 1.0 - (1.0 - u) * (1.0 - u)
 		var rr: float = lerpf(float(it.r0), float(it.r), e) if sh == "ring" else lerpf(float(it.r), float(it.r) * 0.3, e)
 		var a: float = 1.0 if u < 0.55 else clampf(1.0 - (u - 0.55) / 0.45, 0.0, 1.0)
-		_ring(r, cv, _pos(it), rr, it.c, a, int(it.seed))
+		_ring(r, cv, _pos(it), rr, it.c, a, int(it.seed), it.get("cols", []), float(it.get("gap", 0.0)), it.get("glow", it.c))
 
 
-static func _ring(r, ci, c: Vector2, rr: float, col: Color, a: float, seed: int) -> void:
+static func _ring(r, ci, c: Vector2, rr: float, col: Color, a: float, seed: int, cols: Array = [], gap := 0.0, gcol: Color = Color(-1, 0, 0)) -> void:
 	var px: float = r.g.PX
 	var n: int = maxi(12, int(TAU * rr / px))
-	var dk: Color = col.darkened(0.55)
-	var lt: Color = col.lightened(0.55)
-	dk.a = a * 0.9
-	var mc: Color = col
-	mc.a = a
-	lt.a = a
+	var dk: Color = col.darkened(0.55) if cols.size() < 3 else cols[0]
+	var mc: Color = col if cols.size() < 3 else cols[1]
+	var lt: Color = col.lightened(0.55) if cols.size() < 3 else cols[2]
+	var lt_on: bool = lt.a > 0.0
+	dk.a = a * 0.9 * (1.0 if cols.size() < 3 else dk.a)
+	mc.a = a * (1.0 if cols.size() < 3 else mc.a)
+	lt.a = a * (1.0 if cols.size() < 3 else lt.a)
+	if gcol.r < 0.0:
+		gcol = col
 	var gl := 0
 	for i in n:
+		if gap > 0.0 and _h(seed + i / 5) < gap:
+			continue
 		var ang: float = TAU * float(i) / float(n)
 		var dv := Vector2(cos(ang), sin(ang) * SY)
 		r._px(ci, c + dv * (rr + px), dk)
 		r._px(ci, c + dv * rr, mc)
-		r._px(ci, c + dv * (rr - px), lt)
-		if a > 0.5 and i % 9 == seed % 9 and gl < 8:
-			r._glow(c + dv * rr, col)
+		if lt_on:
+			r._px(ci, c + dv * (rr - px), lt)
+		if a > 0.5 and gcol.a > 0.0 and i % 9 == seed % 9 and gl < 8:
+			r._glow(c + dv * rr, gcol)
 			gl += 1
 
 
