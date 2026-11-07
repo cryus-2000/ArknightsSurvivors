@@ -1,0 +1,7 @@
+web_focus rc=0
+tour rc=0
+ui_smoke rc=0
+touch_layout rc=0
+onboard_forced rc=0
+onboard_reload rc=0
+touch_command rc=0

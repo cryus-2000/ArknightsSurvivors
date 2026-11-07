@@ -1,0 +1,8 @@
+762	chk_onboard_forced.txt
+686	chk_onboard_reload.txt
+116	chk_summary.txt
+725	chk_touch_command.txt
+703	chk_touch_layout.txt
+677	chk_tour.txt
+691	chk_ui_smoke.txt
+682	chk_web_focus.txt
