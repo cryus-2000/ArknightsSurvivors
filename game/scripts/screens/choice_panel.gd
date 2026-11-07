@@ -48,8 +48,9 @@ const EV_DH := 540.0
 const EV_CX := 600.0
 const EV_DY0 := 110.0
 const EV_COL_TOP := 196.0
-const EV_DESC_TOUCH := [15, 14, 13]
-const EV_SUB_TOUCH := [15, 14, 13]
+## 手机界面逻辑尺寸约 1071×495（ui_k 1.265），设计框缩到 0.75–0.87：说明 17 起（× 1.18 × k ≈ 15 界面像素，docs/37 手机正文下限）
+const EV_DESC_TOUCH := [17, 16, 15]
+const EV_SUB_TOUCH := [17, 16, 15]
 
 
 ## 手机横屏（Cfg.phone_ui）三选一整排卡片的缩放：卡片按原排版画，整排（panel_box）等比缩到 CARD_SCALE_PHONE；
@@ -75,8 +76,8 @@ const HEADER_H := 80.0         # 标题块（英文小标 + 大标题 + 说明�
 ## cards_top：卡片顶边；title_up：标题块在卡片顶边上方多少；ev_col_top：事件选项列顶边；ev_title_dy / ev_hint_fs：事件右侧标题下移、提示字号
 const LAY := [
 	{"touch": false, "phone": false, "card_scale": 1.0, "cards_top": CARDS_TOP, "title_up": 92.0, "ev_col_top": 196.0, "ev_title_dy": 0.0, "ev_hint_fs": 12},
-	{"touch": true, "phone": false, "card_scale": 1.0, "cards_top": CARDS_TOP_PHONE, "title_up": 76.0, "ev_col_top": 196.0, "ev_title_dy": 0.0, "ev_hint_fs": 13},
-	{"touch": true, "phone": true, "card_scale": CARD_SCALE_PHONE, "cards_top": CARDS_TOP_PHONE, "title_up": 76.0, "ev_col_top": 196.0, "ev_title_dy": 0.0, "ev_hint_fs": 13},
+	{"touch": true, "phone": false, "card_scale": 1.0, "cards_top": CARDS_TOP_PHONE, "title_up": 76.0, "ev_col_top": 196.0, "ev_title_dy": 0.0, "ev_hint_fs": 14},
+	{"touch": true, "phone": true, "card_scale": CARD_SCALE_PHONE, "cards_top": CARDS_TOP_PHONE, "title_up": 76.0, "ev_col_top": 196.0, "ev_title_dy": 0.0, "ev_hint_fs": 14},
 ]
 
 
@@ -693,7 +694,7 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 	var ev_sizes: Array = EV_DESC_TOUCH if L.touch else [13, 12]
 	var ph := false
 	var ev_w := 596.0
-	var ev_dw := 420.0
+	var ev_dw := 460.0 if L.touch else 420.0   # 触屏不画右侧序号，说明多 40 宽
 	var ev_h0 := 100.0
 	var ev_base_lines := 2
 	for i in opts.size():
