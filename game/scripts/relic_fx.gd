@@ -316,6 +316,14 @@ func squad_desc(id: String) -> String:
 		if g.squad.has(cid):
 			parts.append(str(ops[cid]))
 	if parts.is_empty():
+		# 只吃伤害、不增殖的干员（dmg_ops：凯尔希 Mon3tr / 幽灵鲨替身，11-08 用户嫌「Mon3tr 不增加数量」读不懂）：卡面写她能拿到的那部分
+		var dops: Dictionary = ds.get("dmg_ops", {})
+		var dparts: Array = []
+		for cid in dops:
+			if g.squad.has(cid):
+				dparts.append(str(dops[cid]))
+		if not dparts.is_empty():
+			return RelicDb.fill_desc("；".join(PackedStringArray(dparts)) + str(ds.get("dmg_tail", "")))
 		return RelicDb.fill_desc(str(ds.get("none", r.desc)))
 	return RelicDb.fill_desc(str(ds.get("head", "")) + "；".join(PackedStringArray(parts)) + str(ds.get("tail", "")))
 
