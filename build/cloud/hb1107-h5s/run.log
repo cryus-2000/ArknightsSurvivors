@@ -1,0 +1,140 @@
+跑 56 局（1 份实现 × 1 流派 × 1 机器人 × 7 编队 × 8 seed），并行 16（全机上限 16），不用缓存
+### 最终 Boss（按类型；上面的「终局」列是四种混算）
+
+| 机器人 | 最终 Boss | 结局 | 出场 | 击杀 | 用时 均 / 中 / P90 / 最短–最长（出现起算） | 中 / P90（可受伤起算） | 阶段护盾秒 / 过卡点数 均 | 未击杀时剩余血量 |
+|---|---|---|---|---|---|---|---|---|
+| human | 偏执泡影 | standard 13 | 13 | 13 | 120s / 104s / 157s / 90–175s | 104s / 157s | 14.7 / 3.0 | - |
+| human | 伊祖米克 | resolve 3 | 3 | 3 | 92s / 68s / 144s / 64–144s | 48s / 124s | 0.0 / 2.0 | - |
+| human | 最后的骑士 | knight 2 | 2 | 1 | 138s / 138s / 138s / 138–138s | 138s / 138s | 1.4 / 1.0 | 68% |
+
+### 中期 Boss（按类型）
+
+| 机器人 | 中期 Boss | 出场 | 击杀 | 用时中位 | on_boss 中位 | 周围敌人 均 | 慌乱次数 均 | 慌乱期间掉血 均 |
+|---|---|---|---|---|---|---|---|---|
+| human | 塑路者 | 30 | 26 | 59s | 0.55 | 7 | - | - |
+| human | 圣徒卡门 | 27 | 19 | 67s | 0.40 | 7 | - | - |
+| human | 接潮主教 | 15 | 13 | 73s | 0.13 | 9 | 1.2 | 20% |
+| human | 接潮蔑死体 | 9 | 7 | 54s | 0.14 | 8 | - | - |
+| human | 接潮斥亡体 | 6 | 6 | 88s | 0.13 | 8 | - | - |
+| human | 圣徒伊比利亚 | 1 | 0 | - | 0.09 | 9 | - | - |
+
+### 控制（按来源，每局平均）
+
+| 机器人 | 难度 | 局数 | 奠基者 冻结次 / 秒 / 挣脱 / 减速秒 | 漂移体 冻结次 / 秒 / 挣脱 / 减速秒 | Boss 冻结次 / 秒 / 挣脱 / 减速秒 | 其他 冻结次 / 秒 / 挣脱 / 减速秒 | 任何减速秒 |
+|---|---|---|---|---|---|---|---|
+| human | 0 | 56 | 0.0 / 0.0 / 0.0 / 3 | 0.0 / 0.0 / 0.0 / 0 | 0.0 / 0.0 / 0.0 / 4 | 0.0 / 0.0 / 0.0 / 0 | 7 |
+
+### 胜负构成（超时 = 满血 Boss 未打完，照算失败，死因统计不含）
+
+| 机器人 | 难度 | 局数 | 胜 | 死亡 | 超时（满血 Boss 未打完） | 超时时 Boss 剩余血 均 |
+|---|---|---|---|---|---|---|
+| human | 0 | 56 | 30% | 69% | 0% (0) | - |
+
+### 难度 / 缩圈 / 同屏峰值
+
+#### 前 3 分钟
+
+| 机器人 | 难度 | 局数 | 3:00 前死亡 | 前 3 分钟承伤 均 / 中 | 3:00 时生命 |
+|---|---|---|---|---|---|
+| human | 0 | 56 | 7% | 203 / 202 | 92% |
+
+#### 死因 × 缩圈阶段 × Boss 在场（失败的局）
+
+| 机器人 | 难度 | 死因 | 缩圈（第几轮 · 阶段） | 圈外 | Boss 在场 | 局数 | 平均死亡时间 |
+|---|---|---|---|---|---|---|---|
+| human | 0 | boss_carmen | 第 1 轮 · 稳定 | 否 | 是 | 6 | 4:19 |
+| human | 0 | bullet | 第 1 轮 · 稳定 | 否 | 否 | 2 | 4:05 |
+| human | 0 | mire | 第 1 轮 · 稳定 | 否 | 是 | 2 | 4:07 |
+| human | 0 | wound | 第 3 轮 · 收缩 | 否 | 否 | 2 | 6:58 |
+| human | 0 | atk_founder | 第 2 轮 · 预告 | 否 | 否 | 1 | 5:18 |
+| human | 0 | wound | 第 3 轮 · 收缩 | 否 | 是 | 1 | 7:30 |
+| human | 0 | contact_slider | 第 2 轮 · 收缩 | 否 | 否 | 1 | 5:57 |
+| human | 0 | blast_runner | 第 1 轮 · 稳定 | 否 | 是 | 1 | 3:55 |
+| human | 0 | contact_slider | 第 1 轮 · 稳定 | 否 | 否 | 1 | 4:37 |
+| human | 0 | corrode | 第 3 轮 · 预告 | 否 | 否 | 1 | 6:41 |
+| human | 0 | wound | 第 3 轮 · 稳定 | 否 | 否 | 1 | 8:21 |
+| human | 0 | corrode | 第 2 轮 · 稳定 | 否 | 否 | 1 | 6:43 |
+| human | 0 | contact_tracer | 第 2 轮 · 预告 | 否 | 否 | 1 | 6:05 |
+| human | 0 | bullet | 未缩圈 | 否 | 否 | 1 | 2:14 |
+| human | 0 | contact_tracer | 第 1 轮 · 稳定 | 否 | 是 | 1 | 4:21 |
+| human | 0 | atk_tracer | 第 1 轮 · 预告 | 否 | 否 | 1 | 2:46 |
+| human | 0 | corrode | 未缩圈 | 否 | 否 | 1 | 2:21 |
+| human | 0 | mire | 第 2 轮 · 稳定 | 否 | 否 | 1 | 5:38 |
+| human | 0 | atk_tracer | 未缩圈 | 否 | 否 | 1 | 1:58 |
+| human | 0 | shock_founder | 第 3 轮 · 收缩 | 否 | 否 | 1 | 6:39 |
+| human | 0 | boss_knight_boss | 第 4 轮 · 稳定 | 否 | 是 | 1 | 10:17 |
+| human | 0 | corrode | 第 3 轮 · 预告 | 否 | 是 | 1 | 7:08 |
+| human | 0 | contact_founder | 第 2 轮 · 预告 | 否 | 否 | 1 | 5:25 |
+| human | 0 | contact_nest | 第 2 轮 · 预告 | 否 | 否 | 1 | 5:18 |
+| human | 0 | wound | 第 2 轮 · 稳定 | 否 | 否 | 1 | 6:58 |
+| human | 0 | nest | 第 3 轮 · 稳定 | 否 | 是 | 1 | 7:36 |
+| human | 0 | atk_nest | 第 2 轮 · 收缩 | 否 | 否 | 1 | 5:18 |
+| human | 0 | corrode | 第 1 轮 · 稳定 | 否 | 是 | 1 | 3:43 |
+| human | 0 | shock_founder | 第 2 轮 · 稳定 | 否 | 否 | 1 | 5:59 |
+| human | 0 | corrode | 第 1 轮 · 稳定 | 否 | 否 | 1 | 4:56 |
+| human | 0 | blast_runner | 第 2 轮 · 预告 | 否 | 否 | 1 | 5:05 |
+
+#### 同屏数量峰值（每局峰值的 平均 / 最大）
+
+| 机器人 | 难度 | 局数 | 范围 | 敌人 | 敌方弹幕（含抛射） | 我方子弹 | 特效 | 飘字 |
+|---|---|---|---|---|---|---|---|---|
+| human | 0 | 56 | 全程 | 97 / 218 | 91 / 250 | 2 / 9 | 344 / 466 | 40 / 48 |
+| human | 0 | 19 | 8:00–10:00 | 77 / 99 | 42 / 119 | 0 / 1 | 398 / 446 | 38 / 48 |
+
+### 2 秒上限 / Boss 保护 / 单次上限触发（--telemetry=full）
+
+| 机器人 | 难度 | 结果 | 局数 | 受击笔数 均 | 全免(截到0)笔数 均 | 任意2秒上限 触发笔数 / 截掉量占比 | Boss保护 触发笔数 / 占比 | 单次上限 触发笔数 / 占比 | 截掉一半以上笔数 均 |
+|---|---|---|---|---|---|---|---|---|---|
+| human | 0 | 失败 | 39 | 517 | 0.0 | 1.4 / 0.4% | 0.3 / 0.4% | 0.0 / 0.0% | 0.1 |
+| human | 0 | 胜 | 17 | 2661 | 0.5 | 7.1 / 0.3% | 2.1 / 1.8% | 0.0 / 0.0% | 0.4 |
+
+### 大群（按第几次）
+
+| 机器人 | 第几次 | 出现 | 时间 | 数量 | 清 80% 用时 均 / 中（清完/出现） | 20 秒内掉血 均 / 最大 | 30 秒内死亡 | 编成 |
+|---|---|---|---|---|---|---|---|---|
+| human | 1 | 56 | 1:15 | 15 | 19s / 16s（56/56） | 12 / 52 | 0 | bone/slider/stone ×31；bone/slider ×25 |
+| human | 2 | 53 | 2:45 | 20 | 14s / 13s（51/53） | 23 / 120 | 1 | bone/slider ×29；bone/slider/stone ×24 |
+| human | 3 | 39 | 4:46 | 24 | 19s / 12s（36/39） | 16 / 64 | 7 | bone/floater/reaper/runner/slider/tracer ×10；bone/offspring/slider/stone ×8；bone/reaper/runner/slider/tracer ×6 |
+| human | 4 | 37 | 5:07 | 35 | 26s / 21s（35/37） | 46 / 137 | 6 | bone/offspring/reaper/runner/slider/spitter/tracer ×18；bone/reaper/runner/slider/tracer ×13；bone/floater/reaper/runner/slider/tracer ×6 |
+| human | 5 | 28 | 6:15 | 40 | 16s / 15s（25/28） | 41 / 92 | 3 | bone/floater/reaper/runner/slider/tracer ×16；bone/reaper/runner/slider/tracer ×7；bone/offspring/reaper/runner/slider/spitter/tracer ×5 |
+| human | 6 | 17 | 8:18 | 25 | 17s / 15s（17/17） | 32 / 93 | 1 | bone/founder/nest/runner/slider/spitter/stone/tracer ×6；bone/floater/offspring/reaper/runner/slider/spitter/stone ×4；bone/floater/founder/nest/runner/slider/stone/tracer ×3 |
+| human | 7 | 9 | 9:04 | 21 | 13s / 10s（9/9） | 11 / 38 | 0 | bone/floater/founder/nest/reaper/runner/slider/stone/tracer ×5；bone/floater/offspring/reaper/runner/slider/spitter/stone ×3；bone/floater/founder/nest/reaper/runner/slider/spitter/stone ×1 |
+
+| 编队 | n | 胜率 | 存活(均/最短) | 托底(次/首次) | Lv 2:00/5:00/8:00/末 | 终Boss剩余 | 精二占比 | 灯火 | 击杀 | 主要伤害来源 | 治疗来源(总量/无人机Lv) | 主要死因 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| [human] wisadel | 8 | 12% | 6:06 / 3:55 | 0.0 / - | 8 / 16 / 22 / 17 | 70% | 45% | 31 | 862 | 余震 24% 真实 13% 饱和复仇 11% 散射 6% | 自身回复 36% 塞雷娅 22% 流明 9% (698 / 0.0) | atk_tracer |
+| [human] eyjafjalla | 8 | 0% | 4:56 / 2:14 | 0.0 / - | 7 / 15 / 22 / 14 | 28% | 47% | 24 | 677 | 熔岩弹 25% 散射 7% 火星 6% Mon3tr 6% | 自身回复 55% 塞雷娅 12% 凯尔希 10% (523 / 0.0) | atk_tracer |
+| [human] skadi | 8 | 50% | 7:40 / 1:58 | 0.0 / - | 7 / 16 / 23 / 20 | 79% | 54% | 59 | 1252 | 大剑 33% 真实 10% 剑气 5% 迅捷打击·γ型 5% | 自身回复 38% 拾取 11% 补给 11% (1061 / 0.0) | atk_tracer |
+| [human] mizuki | 8 | 75% | 11:19 / 6:39 | 0.0 / - | 6 / 16 / 22 / 26 | 68% | 95% | 68 | 1705 | 伞击 22% 触手 21% 终结技·mizuki·横扫 7% 真实 4% | 水月 51% 自身回复 20% 塞雷娅 8% (1496 / 0.0) | atk_tracer |
+| [human] saria | 8 | 62% | 9:52 / 5:25 | 0.0 / - | 6 / 15 / 21 / 24 | 97% | 83% | 55 | 1456 | Mon3tr 12% 终结技·saria·拳风 11% 拳击 10% 剑气 7% | 塞雷娅 39% 自身回复 22% 水月 7% (1888 / 0.0) | bullet |
+| [human] kaltsit | 8 | 12% | 6:38 / 3:23 | 0.0 / - | 8 / 15 / 22 / 18 | 37% | 54% | 35 | 1002 | Mon3tr 33% 狐火 6% Mon3tr · 真伤 5% 终结技·kaltsit·熔毁 5% | 凯尔希 39% 自身回复 27% 结构加固 17% (1041 / 0.0) | atk_tracer |
+| [human] suzuran | 8 | 0% | 4:27 / 3:36 | 0.0 / - | 8 / 15 / 0 / 14 | 71% | 37% | 50 | 544 | 狐火 35% 狐火点点 9% 炮击 6% 余震 5% | 自身回复 36% 铃兰 19% 流明 12% (397 / 0.0) | atk_tracer |
+
+### 机器人指标（docs/29）
+
+| 机器人 · 开局 | n | 胜率 | 存活 均/最短 | 3:30 存活 | 5:00 存活 | 首次招募 | 首次精一 / 精二 | 中期 Boss 击杀数 / 平均用时 | 受击/分 | 承伤/分 | 低血(<35%)秒 | 熄灯秒 | 静止% | 开局干员 伤害占比 / 每分钟 | 主要死因 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| [human] wisadel | 8 | 12% | 6:06 / 3:55 | 100% | 50% | 1:12 | 0:55 / 2:26 | 1.0 / 60s | 50.3 | 119 | 18 | 11 | 4 | 53% / 18713 | contact_slider |
+| [human] eyjafjalla | 8 | 0% | 4:56 / 2:14 | 62% | 50% | 1:12 | 1:03 / 3:19 | 0.6 / 78s | 67.4 | 122 | 13 | 0 | 3 | 44% / 11731 | corrode |
+| [human] skadi | 8 | 50% | 7:40 / 1:58 | 87% | 62% | 1:16 | 0:53 / 2:22 | 1.4 / 34s | 90.5 | 141 | 6 | 0 | 4 | 52% / 32830 | boss_carmen |
+| [human] mizuki | 8 | 75% | 11:19 / 6:39 | 100% | 100% | 1:13 | 1:10 / 3:24 | 2.5 / 78s | 144.6 | 134 | 1 | 0 | 4 | 47% / 42107 | shock_founder |
+| [human] saria | 8 | 62% | 9:52 / 5:25 | 100% | 100% | 1:27 | 1:04 / 3:38 | 2.1 / 86s | 170.8 | 176 | 9 | 56 | 5 | 12% / 9045 | corrode |
+| [human] kaltsit | 8 | 12% | 6:38 / 3:23 | 87% | 87% | 1:20 | 1:02 / 2:55 | 0.9 / 61s | 97.3 | 155 | 16 | 25 | 4 | 42% / 18589 | wound |
+| [human] suzuran | 8 | 0% | 4:27 / 3:36 | 100% | 25% | 1:07 | 0:55 / 2:54 | 0.4 / 62s | 32.6 | 113 | 13 | 0 | 3 | 45% / 7829 | boss_carmen |
+
+### 藏品（docs/35）
+
+| 机器人 | 开局 | 局数 | 平均藏品数 | 藏品直接伤害 | 各流派 出现 / 拿取 | 无效拿取 |
+|---|---|---|---|---|---|---|
+| human | eyjafjalla | 8 | 3.6 | 4.0% | class 7/1 control 4/3 economy 10/3 general 20/8 heal 2/1 melee 6/0 multi 18/7 shield 3/2 summon 6/0 survival 6/3 weak 3/1 | 0 |
+| human | kaltsit | 8 | 5.2 | 1.0% | class 14/2 control 3/2 economy 13/5 general 29/13 heal 22/13 melee 6/1 multi 4/0 shield 7/2 summon 5/0 survival 10/4 weak 1/0 | 0 |
+| human | mizuki | 8 | 11.2 | 6.4% | class 28/4 control 8/5 economy 43/12 general 68/29 heal 7/3 melee 6/1 multi 8/1 shield 9/2 summon 32/18 survival 28/13 weak 7/2 | 0 |
+| human | saria | 8 | 10.5 | 7.4% | class 16/1 control 8/6 economy 23/1 general 76/24 heal 44/23 melee 12/2 multi 8/1 shield 20/3 summon 10/4 survival 34/14 weak 8/5 | 0 |
+| human | skadi | 8 | 9.1 | 10.3% | class 19/3 control 2/2 economy 26/7 general 59/29 heal 6/3 melee 36/20 multi 5/0 shield 15/2 summon 8/2 survival 22/4 weak 4/1 | 0 |
+| human | suzuran | 8 | 3.0 | 3.2% | class 4/1 control 18/8 economy 12/4 general 18/7 heal 5/1 melee 4/1 multi 7/1 shield 1/0 survival 3/1 weak 1/0 | 0 |
+| human | wisadel | 8 | 6.2 | 14.0% | class 5/1 control 3/3 economy 15/4 general 38/12 heal 7/5 melee 5/0 multi 23/14 shield 6/3 summon 6/1 survival 18/6 weak 2/1 | 0 |
+| 合计 | | | | | class 93/13 control 46/29 economy 142/36 general 308/122 heal 93/49 melee 75/25 multi 73/24 shield 61/14 summon 67/25 survival 121/45 weak 26/10 | |
+
+拿取最多（出现 / 拿取）：安洁莉娜的创想 18/11，食腐者手杖 15/11，猎人的口粮 28/9，显圣吊坠 21/7，银餐叉 18/7，投币玩具 11/7，古旧钱币 13/7，血魔的银杯 20/7，演出用香水 10/7，涌动之餐 7/7，贵族刺剑 9/7，锈蚀刀片 20/6
+耗时 226s
+写入 build/cloud/hb1107-h5s/hb1107-h5s_1107_0134.{json,md}
