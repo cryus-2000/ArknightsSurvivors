@@ -1,0 +1,6 @@
+{"main": [
+ {"t0": 0.0, "t1": 1.644, "kind": "card", "card": "op:mizuki"},
+ {"t0": 1.644, "t1": 2.466, "kind": "card", "card": "op:skadi"},
+ {"t0": 2.466, "t1": 3.288, "kind": "black"},
+ {"t0": 3.288, "t1": 5.0, "kind": "title"}
+]}
