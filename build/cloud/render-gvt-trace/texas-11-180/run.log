@@ -1,0 +1,12 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4857 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+B 组用提交 0445709d0cab5a026b547b66709008f8acce89b9（/work/base）
+# 同种子 TRACE 对比
+
+A：`--bal=fx/px_plane=1`　B：`--bal=fx/px_plane=1`　共用：`--prog=6 --sptest`
+
+| 局 | A 行数 | B 行数 | 结果 | 第一处差异 |
+|---|---|---|---|---|
+| texas 种子 11 180 秒 | 181 | 181 | 逐行一致 |  |
+media：0 个文件，4.0K
