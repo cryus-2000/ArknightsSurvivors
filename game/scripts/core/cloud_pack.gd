@@ -26,9 +26,9 @@ const MAX_CHUNKS := 48       # 正文上限 48 KB（49 个 key）；其余 key �
 const KEY_LIMIT := 128
 const VALUE_LIMIT := 1024
 ## ops = 解锁过的干员、optier = 已首通的难度档（发过人事调度函），都取并集；opst = 名册的券与抽取状态（merge_opst）
-const LIST_KEYS := ["gal", "rel", "end", "shows", "ops", "optier"]
+const LIST_KEYS := ["gal", "rel", "end", "shows", "ops", "optier", "tsup"]   # tsup：Toy「支持作者」已领取的奖励（docs/313）
 ## med = 蚀刻章 {"got": {key: 获得时刻}, "best": {key: 最好进度}}（merge_med）
-const OPTIONAL_KEYS := ["ops", "optier", "opst", "meta", "dbest", "med"]   # 只在正文里有时才规范化 / 合并
+const OPTIONAL_KEYS := ["ops", "optier", "opst", "meta", "dbest", "med", "tsup"]   # 只在正文里有时才规范化 / 合并
 const PROG_KEYS := ["diff", "gal", "rel", "end", "shows", "intro", "open", "ops", "optier", "opst", "meta", "dbest", "med"]
 ## 格式迁移：{旧版本 v: 把 v 版正文改成 v+1 版的静态函数名}。目前只有 v1，没有迁移；以后改格式时在这里登记（单测覆盖）
 const MIGRATIONS := {}

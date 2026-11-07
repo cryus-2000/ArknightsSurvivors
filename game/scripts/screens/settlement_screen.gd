@@ -103,12 +103,12 @@ func tick(dt: float) -> void:
 		preload("res://scripts/core/frame_rec.gd").mark("settle")
 		set_model(RS.model(RS.snapshot(g)))
 		wall_s = float(Time.get_ticks_msec() - int(g.run_wall_ms)) / 1000.0   # 反馈码的局时：开局到结算出现的真实时间
-		_fb_auto = "--fbopen" in Cfg.dev_args()   # 截图：结算入场演完就打开反馈浮层
+		_fb_auto = "--fbopen" in Cfg.dev_args() or "--shareopen" in Cfg.dev_args()   # 截图：结算入场演完就打开反馈浮层
 		cells = int(g.meta_result.get("cells", 0))
 		vouchers = int(g.roster_new.get("hunt", 0))
 	if _fb_auto and done():
 		_fb_auto = false
-		_run("feedback")
+		_run("share" if "--shareopen" in Cfg.dev_args() else "feedback")   # --shareopen：截图分享卡（docs/313 专属边框，配 --supframe）
 	var safe: Rect2 = Cfg.touch_safe_rect(g.get_viewport_rect().size / Cfg.ui_k)
 	scale = minf(safe.size.x / 1280.0, safe.size.y / 720.0)
 	origin = safe.position + (safe.size - Vector2(1280, 720) * scale) * 0.5

@@ -105,6 +105,8 @@
     "feedback",
     "feedback_code",
     "touch_command",
+    "toy_support",
+    "web_focus",
     "time_scale_combo",
     "ui_smoke"
    ]
