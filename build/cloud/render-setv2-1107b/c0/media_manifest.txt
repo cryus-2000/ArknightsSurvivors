@@ -1,0 +1,12 @@
+747	v1/set0_desktop/log.txt
+48036	v1/set0_desktop/shot_settings.png
+747	v1/set0_phone/log.txt
+33547	v1/set0_phone/shot_settings.png
+747	v1/set1_desktop/log.txt
+64944	v1/set1_desktop/shot_settings.png
+747	v1/set1_phone/log.txt
+38441	v1/set1_phone/shot_settings.png
+992	v1/set2_desktop/log.txt
+61130	v1/set2_desktop/shot_settings.png
+747	v1/set2_phone/log.txt
+52152	v1/set2_phone/shot_settings.png

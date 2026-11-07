@@ -1,0 +1,3 @@
+32	check_rc.txt
+703	check_touch_layout.txt
+691	check_ui_smoke.txt
