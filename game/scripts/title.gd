@@ -407,6 +407,11 @@ func _ready() -> void:
 					sel = 0
 			if a == "--reducemotion":
 				Cfg.reduce_motion = true
+		if Cfg.dev_args().has("--supopen"):
+			get_tree().create_timer(0.6 if Cfg.dev_args().has("--supcheck") else 1.4).timeout.connect(func():
+				open_support()
+				if Cfg.dev_args().has("--supcheck"):
+					sup_view.check())   # 截图：标题页盖上「支持作者」浮层（--supcheck 顺手点一次检查并领取）
 		if Cfg.dev_args().has("--fbopen"):
 			get_tree().create_timer(1.4).timeout.connect(open_feedback)   # 截图：标题页盖上意见反馈浮层
 		get_tree().create_timer(2.0).timeout.connect(func():
@@ -728,11 +733,20 @@ func _close_info() -> void:
 
 ## 盖在标题上的界面（各自处理 Esc、关掉时 visible = false）：开着时标题不收输入，关掉那一帧 reveal_page。新的局外界面登记在这里
 func _overlays() -> Array:
-	return [settings, gallery, boss_trial, meta_ui, hunt_ui, medals_ui, fb_view]
+	return [settings, gallery, boss_trial, meta_ui, hunt_ui, medals_ui, fb_view, sup_view]
 
 
 ## 意见反馈浮层（docs/311）：标题页的反馈码只带版本号；第一次点时建
 var fb_view: Control = null
+var sup_view: Control = null
+func open_support() -> void:
+	if sup_view == null:
+		sup_view = preload("res://scripts/screens/support_view.gd").new()
+		add_child(sup_view)
+	move_child(sup_view, -1)
+	sup_view.open()
+
+
 func open_feedback() -> void:
 	if fb_view == null:
 		fb_view = preload("res://scripts/screens/feedback_view.gd").new()
@@ -757,6 +771,8 @@ func _menu_ids() -> Array:
 		ids.erase(5)
 	if not preload("res://scripts/core/feedback.gd").enabled():
 		ids.erase(9)   # 意见反馈（docs/311）：当前平台没配反馈目标（balance feedback 留空）不显示
+	if not preload("res://scripts/core/toy_support.gd").enabled():
+		ids.erase(10)   # 支持作者（docs/313）：只在 B站 Toy 版出现
 	return ids
 
 
@@ -814,6 +830,8 @@ func _activate(i: int) -> void:
 			transition.switch_page(settings.open)
 		5:
 			get_tree().quit()
+		10:
+			open_support()   # 支持作者（docs/313）：浮层，不走转场
 		9:
 			open_feedback()   # 不走转场：复制反馈码要紧跟玩家点按（浏览器剪贴板 / 跳转都认用户手势）
 		6:

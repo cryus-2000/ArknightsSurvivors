@@ -100,6 +100,7 @@ var endings_cleared: Array = []   # 已达成的结局 id（通关结局一后�
 # 干员解锁（局外成长 P1，docs/109 §12，core/roster.gd）：存档 [roster] 段。10-26 起新玩家开局为空（新手十连），名册全部存在这里
 var roster_unlocked: Array = []   # 解锁过的干员 id（roster_v ≥ 2：全部；旧版存档不含开局 5 人，读档时补上）
 var roster_v := 0                 # 名册存档版本：2 = 开局 5 人已写进 roster_unlocked（10-26 新手十连起）
+var toy_support: Array = []       # B站 Toy「支持作者」已领取的奖励 id（"follow" 关注 / "triple" 三连，docs/313）；每项只领一次，云存档取并集
 var roster_tickets := {}          # 待用的券 {"hunt": 寻访凭证, "cls": 招募券, "pick": 人事调度函}
 var roster_spare := {}            # 名册已满后多出来的券（P2 换生机细胞）
 var roster_tiers: Array = []      # 已首通的难度档（发过人事调度函的）
@@ -578,6 +579,7 @@ func _read_cfg(c: ConfigFile) -> void:
 	roster_fresh = c.get_value("roster", "fresh", roster_fresh)
 	roster_int_grant = bool(c.get_value("roster", "int_grant", roster_int_grant))
 	roster_v = int(c.get_value("roster", "v", 0))
+	toy_support = (c.get_value("toy", "support", []) as Array).map(func(x): return str(x)) if c.get_value("toy", "support", []) is Array else []
 	load("res://scripts/core/roster.gd").migrate_tickets()   # 三种券 → 单一寻访凭证（1:1 / 1:1 / 1:2）
 	meta_shape = c.get_value("meta", "shape", meta_shape)
 	meta_shape_t = int(c.get_value("meta", "shape_t", meta_shape_t))
@@ -893,6 +895,8 @@ func save() -> void:
 	c.set_value("roster", "fresh", roster_fresh)
 	c.set_value("roster", "int_grant", roster_int_grant)
 	c.set_value("roster", "v", roster_v)
+	if not toy_support.is_empty():
+		c.set_value("toy", "support", toy_support)
 	c.set_value("meta", "shape", meta_shape)
 	c.set_value("meta", "shape_t", meta_shape_t)
 	c.set_value("meta", "earned", meta_earned)
@@ -954,6 +958,8 @@ func cloud_body() -> Dictionary:
 		"med": {"got": medals.duplicate(), "best": medal_best.duplicate()},
 		"opst": {"tk": roster_tickets.duplicate(), "sp": roster_spare.duplicate(), "wish": roster_wish, "pity": roster_pity, "draws": roster_draws, "seed": roster_seed},
 		"rv": roster_v}, true)
+	if not toy_support.is_empty():
+		pr["tsup"] = toy_support.duplicate()   # Toy「支持作者」已领取（docs/313）：只在领过时写，没领过的存档往返与旧版本逐字相同
 	var out: Dictionary = (cloud_extra.get("top", {}) as Dictionary).duplicate(true)
 	out["set"] = st
 	out["prog"] = pr
@@ -986,7 +992,7 @@ func cloud_apply(body: Dictionary) -> void:
 		cover_character_id = d.cover_character_id
 	if d.get("touch_layout") is Dictionary:
 		touch_layout = TouchLayout.sanitize(d.touch_layout)
-	var lists := {"gal": "gallery_seen", "rel": "seen_relics", "end": "endings_cleared", "shows": "seen_shows", "ops": "roster_unlocked"}
+	var lists := {"gal": "gallery_seen", "rel": "seen_relics", "end": "endings_cleared", "shows": "seen_shows", "ops": "roster_unlocked", "tsup": "toy_support"}
 	if p.get("meta") is Dictionary:
 		var mt: Dictionary = p.meta
 		if mt.get("earned") is Dictionary:

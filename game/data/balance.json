@@ -1416,5 +1416,10 @@
  "feedback": {
   "_doc": "玩家反馈入口（docs/311，11-07 用户批）：form_url = itch / 桌面 / itch 网页的问卷链接（https://…），留空 = 不显示「意见反馈」。B站 Toy 不用配置（11-07 用户：不跳视频，浮层直接写「请在评论区留言」+ 反馈码），总是显示",
   "form_url": ""
+ },
+ "toy": {
+  "_doc": "B站 Toy「支持作者」奖励（docs/313，用户 11-07 定，只在 Toy 版出现）：support_follow = 1 显示「关注作者」一项（送 5 张寻访凭证）；support_bvid = 三连检测的视频 BV 号（送 5 张凭证 + 专属分享卡边框），留空 = 不显示三连那一项（PV 还没发）",
+  "support_follow": 1,
+  "support_bvid": ""
  }
 }
