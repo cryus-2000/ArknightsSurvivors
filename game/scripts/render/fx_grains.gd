@@ -241,7 +241,7 @@ func light(p: Vector2, r: float, c: Color, life: float) -> void:
 
 
 ## CPU 火星：从 p 带重力迸出，落到 ground_y 停住、冷却变暗后熄灭（同屏上限 SPARK_MAX）
-func spark(p: Vector2, ground_y: float, c: Color, n: int) -> void:
+func spark(p: Vector2, ground_y: float, c: Color, n: int, dir := Vector2.ZERO) -> void:
 	if not on() or not view.has_point(p):
 		return
 	var smax: int = int(float(SPARK_MAX[level]) * adapt_k)
@@ -252,6 +252,9 @@ func spark(p: Vector2, ground_y: float, c: Color, n: int) -> void:
 			return
 		var a: float = -PI * 0.5 + (float(i) / maxf(1.0, float(n - 1)) - 0.5) * 2.4 + g.vrng.randf_range(-0.2, 0.2)
 		var v: Vector2 = Vector2.from_angle(a) * g.vrng.randf_range(70.0, 170.0)
+		if dir != Vector2.ZERO:   # 受击反应第 1 档（fx/hit_react）：沿出手方向的扇面，每颗角度 / 速度各自抖，不成规整放射；略往上抛，落地照旧冷却
+			a = dir.angle() + (g.vrng.randf() - 0.5) * Bal.v("fx/hit_react_fan", 1.3) + g.vrng.randf_range(-0.15, 0.15)
+			v = Vector2.from_angle(a) * g.vrng.randf_range(80.0, 190.0) + Vector2(0, -g.vrng.randf_range(20.0, 70.0))
 		var l: float = g.vrng.randf_range(0.45, 0.8)
 		sparks.append([p, v, maxf(ground_y, p.y + 2.0), l, l, c])
 

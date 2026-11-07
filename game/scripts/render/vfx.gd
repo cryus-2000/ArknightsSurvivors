@@ -207,6 +207,13 @@ func _leader_kick(h: Dictionary, e: Dictionary, tier: int) -> void:
 ## ── 突出队长（docs/139 §11，用户 10-25「队友特效不要降，想其它办法」）──
 ## render/lead_hitmark 1：队长打中的敌人身上出四个像素角标（暖白，0.3 秒，同一只敌人重复命中只刷新寿命，不叠、不闪）；队友 / 召唤物命中没有
 ## lead_hit_dir / lead_hit_t：队长最近一次命中方向（squad.draw_leader_mark 的朝向弧用，render/lead_dir）
+## 受击反应第 1 档（11-07 用户批，fx/hit_react，只改画面）：所有干员（含远程、队友）的命中，被打的怪沿受力方向（出手的干员 → 怪）
+## 明显后退 hit_react_px 美术像素、hit_react_t 秒「先猛退、再缓回」（data.enemy_offset 的 rc_e 曲线），白闪 / 挤压 / 受击帧照旧；
+## 同屏同时在反应里的怪至多 hit_react_cap 只（手机网页 hit_react_cap_mobile；后期按 late_k 乘到 hit_react_late），满了优先队长命中、离队长近的；
+## 超出上限的命中照旧走原来的小后坐（远离队长 1.5 美术像素）。只写 rc_* 画面字段，位移在 world._eoff 每帧算，不进敌人画法缓存签名。
+var _hr_list: Array = []   # [敌人, 优先级]
+var _hr_ops := {}
+var _hr_ops_f := -1
 var lead_hit_dir := Vector2.ZERO
 var lead_hit_t := -10.0
 func lead_mark(e: Dictionary) -> void:
@@ -326,6 +333,13 @@ func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}, dmg :
 			if float(arc.half) * 2.0 > deg_to_rad(Bal.v("fx/melee_arc_span", 105.0)) and not arc.get("aimed", false):
 				arc.ang = ((e.pos as Vector2) - (arc.org as Vector2)).angle()   # 宽扇形 / 360°：月牙只画在第一个被打中的敌人那一侧
 				arc.aimed = true
+	elif not dot and _hr_on() and g.optical_on and g.optical.grains != null and g.optical.grains.on() and not g.optical.grains.off and (e.pos as Vector2).distance_to(g.ppos) < 700.0:
+		# 受击反应第 1 档：普通（无档）命中的火星也沿出手方向一小把扇面、干员本人色（原来是限频的白色放射 GPU 迸溅，颗数同量级）
+		var c0: Color = _op_col(h)
+		if not is_lead_hit(h) and g.world.mate_on:
+			c0 = g.world.mate_col(c0)
+			c0.a = g.world.mate_dim
+		g.optical.grains.spark(e.pos + Vector2(0, -float(e.get("r", 12.0)) * 0.6), (e.pos as Vector2).y + float(e.get("r", 12.0)) * 0.8, c0, Bal.vi("fx/hit_react_n0", 3), hit_dir(e, h))
 	elif g.optical_on and g.optical.particles != null and not dot:
 		g.optical.particles.hit_spark(e.pos + Vector2(0, -e.r * 0.6), Color(1.0, 0.95, 0.85) if not (crit or weak) else Color(1.0, 0.8, 0.35))   # 光学观感原型：命中迸溅（限频，纯画面）
 	# 受击后坐（docs/53，纯画面）：本体沿「远离主控」的方向顶开 fx/recoil_px，fx/recoil_t 秒内回位；技能 / 暴击 / 弱点 ×fx/recoil_skill_k。
@@ -347,13 +361,28 @@ func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}, dmg :
 		e.rc_dir = d.normalized() if d.length_squared() > 1.0 else Vector2(1.0, 0.0)
 		e.rc_at = g.t
 		e.rc_k = Bal.v("fx/recoil_skill_k", 1.6) if (skill or crit or weak) else 1.0
+		e.erase("rc_e")
 		# ③ 分档后坐（用户 10-24）：三档普攻按 轻 fx/recoil_px1 / 中 fx/recoil_px2 / 重 fx/recoil_px3 美术像素顶开、fx/recoil_tier_t 秒回弹（只挪画面）
+		var tpx: float = 0.0
 		if tier > 0:
-			var tpx: float = [0.0, Bal.v("fx/recoil_px1", 2.0), Bal.v("fx/recoil_px2", 3.0), Bal.v("fx/recoil_px3", 5.0)][tier]
+			tpx = [0.0, Bal.v("fx/recoil_px1", 2.0), Bal.v("fx/recoil_px2", 3.0), Bal.v("fx/recoil_px3", 5.0)][tier]
 			e.rc_k = tpx * Game.PX / maxf(0.01, g.world.rc_px)
 			e.rc_t = Bal.v("fx/recoil_tier_t", 0.08)
 		else:
 			e.erase("rc_t")
+		if _hr_on() and g.world.rc_px > 0.0:   # 受击反应第 1 档：沿受力方向、全员、限同屏数
+			var lead_h: bool = is_lead_hit(h)
+			var dl: float = (e.pos as Vector2).distance_to(g.ppos)
+			if _hr_admit(e, (1.0e6 if lead_h else 0.0) - dl):
+				var fd: Vector2 = (e.pos as Vector2) - hit_src_pos(h)
+				if fd.length_squared() > 1.0:
+					e.rc_dir = fd.normalized()
+				var px: float = Bal.v("fx/hit_react_px", 3.0) * (Bal.v("fx/hit_react_skill_k", 1.35) if (skill or crit or weak) else 1.0)
+				if not lead_h:
+					px *= Bal.v("fx/hit_react_mate", 0.8)
+				e.rc_k = maxf(px, tpx) * Game.PX / g.world.rc_px
+				e.rc_t = Bal.v("fx/hit_react_t", 0.1)
+				e.rc_e = true
 		# 重击真实击退（开关 fx/heavy_knockback，缺省 0 = 关；开了会改玩法）：重档普攻沿远离队长方向加击退速度
 		if tier == 3 and Bal.v("fx/heavy_knockback", 0.0) > 0.0 and not e.get("elite", false):
 			g.enemies_sys.apply_kb(e, e.rc_dir * Bal.v("fx/heavy_knockback", 0.0))   # 统一入口（cc_lint）：含失重倍率
@@ -376,6 +405,58 @@ func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}, dmg :
 
 
 ## 三档命中的画面 / 声音（hit_tier 定档后调；远处 / 特效过多时只留白闪）
+func _hr_on() -> bool:
+	return Bal.v("fx/hit_react", 0.0) > 0.0 and not (g.opt_old & Game.OPT_HITREACT)
+
+
+## 出手位置：伤害描述符里的干员（h.op）当前所在；找不到（召唤物 / 环境 / 藏品）退回队长位置
+func hit_src_pos(h: Dictionary) -> Vector2:
+	var fr: int = Engine.get_process_frames()
+	if fr != _hr_ops_f:
+		_hr_ops_f = fr
+		_hr_ops.clear()
+		if g.squad != null:
+			for o in g.squad.ops:
+				if o.pos != Vector2.INF:
+					_hr_ops[str(o.id)] = o.pos
+	return _hr_ops.get(str(h.get("op", "")), g.ppos)
+
+
+## 受击方向（出手方 → 怪）：火花扇面用
+func hit_dir(e: Dictionary, h: Dictionary) -> Vector2:
+	var d: Vector2 = (e.pos as Vector2) - hit_src_pos(h)
+	return d.normalized() if d.length_squared() > 1.0 else Vector2.ZERO
+
+
+## 同屏受击反应名额：已在反应里的续期；有空位直接进；满了挤掉优先级最低的（优先级 = 队长命中 + 离队长近）
+func _hr_admit(e: Dictionary, prio: float) -> bool:
+	var now: float = g.t
+	var t: float = Bal.v("fx/hit_react_t", 0.1)
+	if float(e.get("hr_until", -1.0)) > now:
+		e.hr_until = now + t
+		return true
+	var cap: float = Bal.v("fx/hit_react_cap_mobile", 12.0) if Cfg.mobile_web() else Bal.v("fx/hit_react_cap", 32.0)
+	if g.world != null and g.world.late_k > 0.0:
+		cap *= lerpf(1.0, Bal.v("fx/hit_react_late", 0.5), g.world.late_k)
+	var capi: int = maxi(1, int(cap))
+	if _hr_list.size() >= capi:
+		_hr_list = _hr_list.filter(func(x): return float(x[0].get("hr_until", -1.0)) > now and not x[0].get("dead", false))
+	if _hr_list.size() < capi:
+		_hr_list.append([e, prio])
+		e.hr_until = now + t
+		return true
+	var mi := 0
+	for i in _hr_list.size():
+		if float(_hr_list[i][1]) < float(_hr_list[mi][1]):
+			mi = i
+	if prio <= float(_hr_list[mi][1]):
+		return false
+	_hr_list[mi][0].hr_until = -1.0
+	_hr_list[mi] = [e, prio]
+	e.hr_until = now + t
+	return true
+
+
 func _tier_fx(e: Dictionary, h: Dictionary, tier: int) -> void:
 	if tier >= 2:
 		impact_pause(Bal.v("fx/hit_pause_h", 0.03) if tier == 3 else Bal.v("fx/hit_pause_m", 0.014))
@@ -395,11 +476,11 @@ func _tier_fx(e: Dictionary, h: Dictionary, tier: int) -> void:
 		col.a = g.world.mate_dim
 
 	if (g.optical_on or Cfg.quality == "low") and g.optical.grains != null and g.optical.grains.on() and not g.optical.grains.off:   # 低档也走颗粒火星（按 low_grains 少量，docs/50 §36）
-		g.optical.grains.spark(head, (e.pos as Vector2).y + float(e.get("r", 12.0)) * 0.8, col, n)   # 刀光第四版：带重力、落到脚底高度停住冷却的火星（docs/136）
+		g.optical.grains.spark(head, (e.pos as Vector2).y + float(e.get("r", 12.0)) * 0.8, col, n, hit_dir(e, h) if _hr_on() else Vector2.ZERO)   # 刀光第四版：带重力、落到脚底高度停住冷却的火星（docs/136）
 	elif g.optical_on and g.optical.particles != null:
 		g.optical.particles.tier_burst(head, col, tier)   # GPU 颗粒（池化、局部预算、中画质减半）
 	else:
-		sparks(head, Vector2.ZERO, col, n, [0.0, 90.0, 140.0, 200.0][tier])
+		sparks(head, hit_dir(e, h) if _hr_on() else Vector2.ZERO, col, n, [0.0, 90.0, 140.0, 200.0][tier])
 	if tier >= 2:
 		var k: float = 1.3 if tier == 2 else 1.7
 		glow(head, [0.0, 6.0, 10.0, 16.0][tier], Color(col.r * k, col.g * k, col.b * k, 0.8 * col.a), [0.0, 0.06, 0.09, 0.14][tier])
