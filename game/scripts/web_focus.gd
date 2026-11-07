@@ -67,7 +67,9 @@ func lost() -> void:
 	if g == null:
 		return
 	if not web and not Cfg.dev_args().is_empty() and not Cfg.dev_args().has("--focustest"):
-		return   # 桌面上带调试参数（测试 / 录像 / 批跑，窗口常在后台、焦点来回切）不动：免得把计划里打开的圆盘、合成的按键清掉
+		return
+	if g.mode == g.Mode.BALANCE and not Cfg.dev_args().has("--focustest"):
+		return   # 机器人测量局（网页测量副本的 Edge 窗口在屏幕外、常年失焦）：不自动暂停，否则卡在开局（docs/319 §7）   # 桌面上带调试参数（测试 / 录像 / 批跑，窗口常在后台、焦点来回切）不动：免得把计划里打开的圆盘、合成的按键清掉
 	lost_n += 1
 	if web or Cfg.dev_args().has("--focuspause"):   # 先暂停再补「松开」：补的松开事件不会落到对局里（比如松开 Q 放出终结技）
 		if g.state == g.S.PLAY:
