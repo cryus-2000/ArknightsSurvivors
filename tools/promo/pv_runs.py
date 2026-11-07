@@ -63,6 +63,9 @@ RUNS["S3"] = dict(args=MID + ["--seed=13", "--forceboss=1", "--pickplan=snap@0.4
                   pv=["--pv_win=175-300", "--pv_elite=189:skimmer:330:-60", "--pv_wheel=193:3:0.5:1.2", "--pv_bossult=0.15"])
 RUNS["S4"] = dict(args=MID + ["--seed=51", "--forceboss=1", "--pickplan=snap@0.4,ok@1.8"], rtfrom=172, maxt=300,
                   pv=["--pv_win=175-300", "--pv_elite=189:skimmer:330:-60", "--pv_wheel=193:3:0.5:1.2", "--pv_bossult=0.15"])
+# 弹幕段：中期 Boss 换接潮主教 + 斥亡体（MID_POOL 4，潮环 / 旋刃弹）、主教 + 蔑死体（3）
+RUNS["S5"] = dict(args=MID + ["--seed=52", "--forceboss=4"], rtfrom=200, maxt=300, pv=["--pv_win=205-300", "--pv_bossult=0.12"])
+RUNS["S6"] = dict(args=MID + ["--seed=53", "--forceboss=3"], rtfrom=200, maxt=300, pv=["--pv_win=205-300", "--pv_bossult=0.12"])
 # 图鉴演示（无 HUD、空场）：德克萨斯 S3 + 四人终结技备选
 DEMOS = [("texas", 2, 3, 300), ("mizuki", 2, 4, 300), ("angelina", 2, 4, 300), ("wisadel", 2, 4, 300), ("skalter", 2, 4, 300)]
 
