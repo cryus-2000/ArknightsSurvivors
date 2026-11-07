@@ -209,7 +209,7 @@ func _process(_dt: float) -> bool:
 	for o in g.squad.ops:
 		if g.lamp < 40.0:
 			break   # 灯火快灭时画面整片压暗，不截
-		if o.id == "skadi" and float(o.get("tide")) > 0.0 and not (o.get("waves") as Array).is_empty():
+		if o.id == "skadi" and float(o.get("tide", 0.0)) > 0.0 and not (o.get("waves", []) as Array).is_empty():
 			_shot("ult", 100 + _enemies_on_screen())
 	for f in g.fx:
 		if f.get("name", "") == "fx_mizuki_tentacle_mass" and float(f.max) - float(f.life) > 0.1 and float(f.max) - float(f.life) < 0.35:
