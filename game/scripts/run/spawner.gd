@@ -757,6 +757,7 @@ func _horde_tail_rest() -> void:
 		g.shop_refreshed = false
 		# 第一位商人（docs/119 §4.5）：生成时定货架。出现横幅 10-22b 用户取消（只留屏边头像圈 + 箭头与音效）
 		g.shop_sys.prepare_first()
+		g.rfx.econ_merchant()   # 经济藏品（docs/324）：商人到来时给源石锭
 		Sfx.play("relic", -4.0)
 
 
