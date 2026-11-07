@@ -296,7 +296,7 @@ static func _h4_brand_apply(o, br: Dictionary, e: Dictionary) -> void:
 	if sz.brands.size() >= int(br.get("max", 24)):
 		sz.brands.pop_front()
 	sz.brands.append({"e": e, "t": dur, "max": dur})
-	ncue(o, {"p": e.pos, "shape": "burst", "r": float(e.r) + 12.0, "r0": float(e.r) * 0.4, "c": Color(1.0, 0.78, 0.3), "n": 6, "life": 0.3})   # 新挂灼印：金色火星迸一下（docs/310 §4.2，只画）
+	ncue(o, {"p": e.pos, "shape": "burst", "r": float(e.r) + 12.0, "r0": float(e.r) * 0.4, "c": Color(1.0, 0.78, 0.3), "n": 6, "life": 0.3, "tag": "灼印"})   # 新挂灼印：金色火星迸一下（docs/310 §4.2，只画）
 
 
 ## 三火归一：大狐火（伤害 = 攻击 × merge.mult，贯穿，每名敌人只伤一次）

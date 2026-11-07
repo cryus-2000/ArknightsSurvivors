@@ -27,6 +27,8 @@ static func push(r, o, d: Dictionary) -> void:
 		_log = 1 if OS.is_debug_build() and OS.get_cmdline_user_args().has("--cuelog") else 0
 	if _log == 1 and d.has("tag"):
 		print("CUE %.3f %s %s %s" % [float(r.g.t), str(o.id), str(d.tag), str(d.get("p", o.pos))])
+	if str(d.get("shape", "")) == "none":   # 只记日志的标记点（直接改绘制、没有提示事件的项）
+		return
 	var c: Color = d.get("c", Color(-1, 0, 0))
 	if c.r < 0.0:
 		var p: Dictionary = load("res://scripts/render/fx_recipe.gd").of(r.g).pal(o)

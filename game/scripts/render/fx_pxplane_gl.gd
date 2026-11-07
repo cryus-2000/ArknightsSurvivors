@@ -134,7 +134,7 @@ static func ev(r, o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dicti
 				n += 1
 				_strip_pair(r, o, ("s1arr_e%d" if heavy2 else "arr_e%d") % t, e.pos)
 				if t >= 1:   # 精一「锚定」（眩晕延长）：被拖到位的敌人套一个青色锁定角标，停满眩晕时长（docs/310 §4.2，只画）
-					CUE.push(r, o, {"p": e.pos, "fe": e, "shape": "mark", "c": CYAN, "life": 1.2})
+					CUE.push(r, o, {"p": e.pos, "fe": e, "shape": "mark", "c": CYAN, "life": 1.2, "tag": "锚定"})
 			if n > 0:
 				var e0: Dictionary = d.es[0]
 				R._grains(o, e0.pos + Vector2(0, -6), float(e0.pos.y) + 2.0, "ink", 2 + n + (3 if heavy2 else 0), {"tier": t, "grain_spd": 1.0})

@@ -84,6 +84,7 @@ static func gl_arrive(o, hk: Dictionary) -> void:
 			lst.append({"a": o.pos, "c": hk.to, "t": 0.0, "life": float(ch.get("dur", 2.0)), "acc": 0.0, "dmg": float(hk.dmg) * float(ch.get("mult", 0.2)),
 				"src": str(ch.get("src", "怒海")), "w": float(ch.get("w", 28.0)), "slow": float(ch.get("slow", 0.4)), "every": float(ch.get("every", 0.5)),
 				"phase": "live", "gt": 0.0, "gi": 0})
+			ncue(o, {"p": hk.to, "shape": "none", "tag": "怒海"})   # 只记日志（--cuelog，实机对照挑帧），不画
 
 
 # ---------------------------------------------------------------- 沉没的锁链（怒海）/ 暗涌（怒海·暗涌）
