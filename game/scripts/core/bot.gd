@@ -871,9 +871,9 @@ func _bdbg(p: Vector2, here: float) -> void:
 ## 在 master 走位 / 选卡上叠真人的毛病，参数来自用户真人局（runs.jsonl，bot.profile == "player"）。
 ## 旋钮缺省在 balance.json bot/human（带 _doc），--ht_<名>=<值> 覆盖。随机只走本机器人的 rng，不碰玩法随机流。
 var h_on := false
-var h_tune := {"blind_p": 0.3, "blind_win": 0.6, "warn_lag": 0.25, "bullet_w": 0.6, "dash_wait": 1.4,
-	"ult_hold_lo": 5.0, "ult_hold_hi": 35.0, "point_every": 45.0, "mob_pick": 3.0,
-	"keep": 85.0, "keep_melee": 45.0, "boss_lo": 120.0, "boss_hi": 200.0, "boss_hp": 0.25, "still_p": 0.04, "still_lo": 0.3, "still_hi": 0.8,
+var h_tune := {"blind_p": 0.6, "blind_win": 0.8, "warn_lag": 0.4, "bullet_w": 0.5, "dash_wait": 1.4,
+	"ult_hold_lo": 5.0, "ult_hold_hi": 25.0, "point_every": 90.0, "mob_pick": 3.0,
+	"keep": 70.0, "keep_melee": 40.0, "boss_lo": 120.0, "boss_hi": 200.0, "boss_hp": 0.25, "still_p": 0.04, "still_lo": 0.3, "still_hi": 0.8,
 	"autopilot": 1.0, "gap": 0.0}
 var h_blind := 0.0        # >0：分心窗口剩余秒数（不看预警 / 弹幕）
 var h_win_t := 0.0        # 下一次判定「这一段看不看屏幕」的倒计时
