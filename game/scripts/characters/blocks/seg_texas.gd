@@ -260,6 +260,14 @@ static func tx_update(o, dt: float) -> bool:
 				continue
 			tx[k] = g.t + float(t.get("cd", 0.0))
 			o._exec_list(t.get("do", []))
+	if ld > 0.0 and tx.get("iai_gold", false):   # 居合金影（docs/310 §5 A 版，只画）：这一次冲刺全程每 0.05 秒在队长身后留一份金色残影
+		if float(tx.get("prev_ld", 0.0)) <= 0.0:
+			tx["iai_gold_t"] = -1.0
+		if g.t - float(tx.get("iai_gold_t", -1.0)) >= 0.05 and g.ppos != Vector2.INF:
+			tx["iai_gold_t"] = g.t
+			ncue(o, {"p": g.ppos, "shape": "ghost", "to": "@", "c": Color(1.0, 0.85, 0.35), "life": 0.4})
+	elif ld <= 0.0 and float(tx.get("prev_ld", 0.0)) > 0.0 and tx.get("iai_gold", false):
+		tx.erase("iai_gold")   # 冲完这一次就用掉
 	tx["prev_ld"] = ld
 	# 技能持续结束
 	var prev: Array = tx.get("prev_s", [0.0, 0.0, 0.0])
@@ -1155,7 +1163,7 @@ static func _tx_gm_validate(b: Dictionary, p: String, ctx: Dictionary, tag: Stri
 		"verb.dash_cd_cut":
 			_num(b, "per", p, ctx, true, 0.0, 5.0)
 			_num(b, "max", p, ctx, true, 0.0, 10.0)
-			_num(b, "refresh_n", p, ctx, false, 0.0, 20.0)
+			_num(b, "gold_n", p, ctx, false, 0.0, 20.0)
 		"verb.break_windup":
 			_num(b, "kb", p, ctx, false, 0.0, 300.0)
 
@@ -1181,27 +1189,24 @@ static func gm_exec(o, b: Dictionary) -> void:
 				if not e.dead:
 					n += 1
 			var cut: float = minf(float(b.per) * float(n), float(b.max))
-			var rn: int = int(b.get("refresh_n", 0))
-			var refresh: bool = rn > 0 and n >= rn   # 11-07 用户批（docs/310 §5）：命中 ≥ refresh_n 名立即刷新一次冲刺（补满一格冷却）
-			if refresh:
-				cut = maxf(cut, float(g.dash_cd_full()))
+			var gn: int = int(b.get("gold_n", 0))
+			var gold_on: bool = gn > 0 and n >= gn   # 11-07 用户定 A（docs/310 §5，只画）：一次拔刀命中 ≥ gold_n 名 → 队长下一次冲刺带金色残影
+			if gold_on and g.ppos != Vector2.INF:
+				o.tx["iai_gold"] = true   # 画面专用键（tx_update 冲刺上升沿读），玩法不读
 			var real: float = minf(cut, float(g.dash_cd))
 			if real <= 0.0 or g.ppos == Vector2.INF:
 				return
 			g.dash_cd = maxf(0.0, float(g.dash_cd) - real)
 			var gold := Color(1.0, 0.85, 0.35)
-			if refresh:   # 刷新提示：队长原地留一道金色残影 + 大金环（只画）
-				ncue(o, {"p": g.ppos, "shape": "ghost", "to": "@", "c": gold, "life": 0.5})
+			if gold_on:   # 金影蓄上：队长身边一圈大金环
 				ncue(o, {"p": g.ppos, "shape": "ring", "r": 52.0, "r0": 14.0, "c": gold, "n": 10, "life": 0.45})
-				o.float_text(g.ppos + Vector2(0, -104), "居合 冲刺就绪", gold, 13)
 			o.fx({"kind": "ring", "pos": g.ppos + Vector2(0, 4), "r": 34.0, "r0": 10.0, "life": 0.3, "col": gold, "floor": true, "w": 3.0, "alpha": 0.95})
 			ncue(o, {"p": o.pos, "shape": "mote", "to": "@", "c": gold})   # 居合：金色光点从她飞到队长，到手一圈金环（转平面下上面的环 / 光点不画，docs/310 §2）
 			ncue(o, {"p": g.ppos, "shape": "ring", "r": 34.0, "r0": 10.0, "c": gold, "n": 6, "life": 0.4})
 			for k in 4:   # 冲刺条刻度：四粒金色光点从她的位置飞向队长
 				var from: Vector2 = o.pos + Vector2(0, -20)
 				o.fx({"kind": "mote", "pos": from, "vel": (g.ppos + Vector2(0, -20) - from) * 3.0 + Vector2(0, -20), "life": 0.33, "col": gold, "sz": 2.4})
-			if not refresh:
-				o.float_text(g.ppos + Vector2(0, -104), "居合 -%.1f 秒" % real, gold, 13)
+			o.float_text(g.ppos + Vector2(0, -104), "居合 -%.1f 秒" % real, gold, 13)
 		"verb.break_windup":
 			# 破绽：命中的普通敌人（非精英 / Boss）正在前摇 → 打断（作废预警、清蓄力 / 冲刺 / 环弹 / 引信）+ 小击退，不眩晕
 			var kb: float = float(b.get("kb", 60.0))
