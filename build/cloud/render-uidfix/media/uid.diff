@@ -1,0 +1,874 @@
+diff --git a/game/art/fx/pxp/pxp_su_blade_up_d90.png.import b/game/art/fx/pxp/pxp_su_blade_up_d90.png.import
+index 4d75bab7..052887a6 100644
+--- a/game/art/fx/pxp/pxp_su_blade_up_d90.png.import
++++ b/game/art/fx/pxp/pxp_su_blade_up_d90.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://u10thwat2fmv"
+ path="res://.godot/imported/pxp_su_blade_up_d90.png-a78edf119b011310faa1909474ebf790.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_dollout_up.png.import b/game/art/fx/pxp/pxp_su_dollout_up.png.import
+index 0a76e90d..553f3bf4 100644
+--- a/game/art/fx/pxp/pxp_su_dollout_up.png.import
++++ b/game/art/fx/pxp/pxp_su_dollout_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://dcx6f6b84hjww"
+ path="res://.godot/imported/pxp_su_dollout_up.png-28c7547ee7c2b6a6071a480f5fc3bb82.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_echo_gd.png.import b/game/art/fx/pxp/pxp_su_echo_gd.png.import
+index 55153c41..f652d011 100644
+--- a/game/art/fx/pxp/pxp_su_echo_gd.png.import
++++ b/game/art/fx/pxp/pxp_su_echo_gd.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://dv6mp4vt8tgds"
+ path="res://.godot/imported/pxp_su_echo_gd.png-bd47272644a3688ce4d130bb845437ac.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_flin_up.png.import b/game/art/fx/pxp/pxp_su_flin_up.png.import
+index 72f01807..b1bd1674 100644
+--- a/game/art/fx/pxp/pxp_su_flin_up.png.import
++++ b/game/art/fx/pxp/pxp_su_flin_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://cgubothqtuq2g"
+ path="res://.godot/imported/pxp_su_flin_up.png-02b2f9c45b6d695b01546179f725876e.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_flpulse_gd.png.import b/game/art/fx/pxp/pxp_su_flpulse_gd.png.import
+index f06ade54..2b923442 100644
+--- a/game/art/fx/pxp/pxp_su_flpulse_gd.png.import
++++ b/game/art/fx/pxp/pxp_su_flpulse_gd.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://dmcco3ab313di"
+ path="res://.godot/imported/pxp_su_flpulse_gd.png-d2bf949534857120e513d87519c47a56.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_s1aura_up.png.import b/game/art/fx/pxp/pxp_su_s1aura_up.png.import
+index 775cecaf..92e4e13b 100644
+--- a/game/art/fx/pxp/pxp_su_s1aura_up.png.import
++++ b/game/art/fx/pxp/pxp_su_s1aura_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://bankwduo66gnm"
+ path="res://.godot/imported/pxp_su_s1aura_up.png-24f6e1d3fb29372ffb4f4c0568cc8304.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_s1col_up.png.import b/game/art/fx/pxp/pxp_su_s1col_up.png.import
+index 399779f7..c49537e6 100644
+--- a/game/art/fx/pxp/pxp_su_s1col_up.png.import
++++ b/game/art/fx/pxp/pxp_su_s1col_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://52t72cw42adt"
+ path="res://.godot/imported/pxp_su_s1col_up.png-5a982d90690b5a0fa32d6f502a106f1d.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_s1fin_bk_up.png.import b/game/art/fx/pxp/pxp_su_s1fin_bk_up.png.import
+index 6a6cf9e9..75002d04 100644
+--- a/game/art/fx/pxp/pxp_su_s1fin_bk_up.png.import
++++ b/game/art/fx/pxp/pxp_su_s1fin_bk_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://dpfmwwto3pibi"
+ path="res://.godot/imported/pxp_su_s1fin_bk_up.png-be10fc690331c5e4f9791dc761d3b5c7.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_s1splash_gd.png.import b/game/art/fx/pxp/pxp_su_s1splash_gd.png.import
+index 183d871a..ea4c9ba7 100644
+--- a/game/art/fx/pxp/pxp_su_s1splash_gd.png.import
++++ b/game/art/fx/pxp/pxp_su_s1splash_gd.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://44qd3xmbf0l6"
+ path="res://.godot/imported/pxp_su_s1splash_gd.png-3e223fe91561e578626000d2d71c46e2.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_s1splash_up.png.import b/game/art/fx/pxp/pxp_su_s1splash_up.png.import
+index 574f01fa..040e6833 100644
+--- a/game/art/fx/pxp/pxp_su_s1splash_up.png.import
++++ b/game/art/fx/pxp/pxp_su_s1splash_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://t7yi0ddk8rh"
+ path="res://.godot/imported/pxp_su_s1splash_up.png-554b6cb2833c3b675f07877753312335.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_s2bite_up_d45.png.import b/game/art/fx/pxp/pxp_su_s2bite_up_d45.png.import
+index 0bad2e51..89bb85d6 100644
+--- a/game/art/fx/pxp/pxp_su_s2bite_up_d45.png.import
++++ b/game/art/fx/pxp/pxp_su_s2bite_up_d45.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://1k7763kqgyiw"
+ path="res://.godot/imported/pxp_su_s2bite_up_d45.png-8f0abc0452c12288ecbbeb808907ed52.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_s2bite_up_d90.png.import b/game/art/fx/pxp/pxp_su_s2bite_up_d90.png.import
+index 43d504db..9f10e528 100644
+--- a/game/art/fx/pxp/pxp_su_s2bite_up_d90.png.import
++++ b/game/art/fx/pxp/pxp_su_s2bite_up_d90.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://1eypta317qtp"
+ path="res://.godot/imported/pxp_su_s2bite_up_d90.png-1856b68eb7aa2b14b45bb80e4279e922.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_s2bite_up_dm45.png.import b/game/art/fx/pxp/pxp_su_s2bite_up_dm45.png.import
+index 53698b32..592b5678 100644
+--- a/game/art/fx/pxp/pxp_su_s2bite_up_dm45.png.import
++++ b/game/art/fx/pxp/pxp_su_s2bite_up_dm45.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://dqcopgj3nlah3"
+ path="res://.godot/imported/pxp_su_s2bite_up_dm45.png-af69126f258c825b814767719ec20f27.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_s2cast_gd.png.import b/game/art/fx/pxp/pxp_su_s2cast_gd.png.import
+index 827dcaac..c7abd58c 100644
+--- a/game/art/fx/pxp/pxp_su_s2cast_gd.png.import
++++ b/game/art/fx/pxp/pxp_su_s2cast_gd.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://1nwbss0sfj4p"
+ path="res://.godot/imported/pxp_su_s2cast_gd.png-9666499f55300128632d807be9083803.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_s3wave_bk_up.png.import b/game/art/fx/pxp/pxp_su_s3wave_bk_up.png.import
+index aea2b3ca..ab89ca47 100644
+--- a/game/art/fx/pxp/pxp_su_s3wave_bk_up.png.import
++++ b/game/art/fx/pxp/pxp_su_s3wave_bk_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://cp4l23whg1bql"
+ path="res://.godot/imported/pxp_su_s3wave_bk_up.png-39b790ac54b6d8fd9ef87be8a061a65e.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_s3wave_fr_up.png.import b/game/art/fx/pxp/pxp_su_s3wave_fr_up.png.import
+index 5db71b91..6fe51edb 100644
+--- a/game/art/fx/pxp/pxp_su_s3wave_fr_up.png.import
++++ b/game/art/fx/pxp/pxp_su_s3wave_fr_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://r1k5eakpxok2"
+ path="res://.godot/imported/pxp_su_s3wave_fr_up.png-4b6fd44c6a93108b6204abbcbc4820fc.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_d_r36_fr_up.png.import b/game/art/fx/pxp/pxp_su_saw_d_r36_fr_up.png.import
+index 66b0ee78..2ef82554 100644
+--- a/game/art/fx/pxp/pxp_su_saw_d_r36_fr_up.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_d_r36_fr_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://drspdes1ppib0"
+ path="res://.godot/imported/pxp_su_saw_d_r36_fr_up.png-1b6141b35223ccb5aeec952049cc86a3.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_d_r36_gd.png.import b/game/art/fx/pxp/pxp_su_saw_d_r36_gd.png.import
+index 69f208fb..7825f10f 100644
+--- a/game/art/fx/pxp/pxp_su_saw_d_r36_gd.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_d_r36_gd.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://rj5nafkp6kwx"
+ path="res://.godot/imported/pxp_su_saw_d_r36_gd.png-7b0af2f378d1f12af01e060cc91c1c1a.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_d_r41_bk_up.png.import b/game/art/fx/pxp/pxp_su_saw_d_r41_bk_up.png.import
+index ed06b946..477af955 100644
+--- a/game/art/fx/pxp/pxp_su_saw_d_r41_bk_up.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_d_r41_bk_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://cyrs5xy1pt5sd"
+ path="res://.godot/imported/pxp_su_saw_d_r41_bk_up.png-a396201662ae58dda8223e06dabedc38.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_d_r41_gd.png.import b/game/art/fx/pxp/pxp_su_saw_d_r41_gd.png.import
+index bccc3d0f..784bf0fc 100644
+--- a/game/art/fx/pxp/pxp_su_saw_d_r41_gd.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_d_r41_gd.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://h77hd3m8jwj5"
+ path="res://.godot/imported/pxp_su_saw_d_r41_gd.png-5664bd82f52b8c0049e5a1576afc8501.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_d_r46_bk_up.png.import b/game/art/fx/pxp/pxp_su_saw_d_r46_bk_up.png.import
+index 45d715c4..aa9ea5a8 100644
+--- a/game/art/fx/pxp/pxp_su_saw_d_r46_bk_up.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_d_r46_bk_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://ccikognwn4ri3"
+ path="res://.godot/imported/pxp_su_saw_d_r46_bk_up.png-e5c4065278606bd872416c8d8fd4355d.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_d_r46_fr_up.png.import b/game/art/fx/pxp/pxp_su_saw_d_r46_fr_up.png.import
+index 25738046..9a8feaa1 100644
+--- a/game/art/fx/pxp/pxp_su_saw_d_r46_fr_up.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_d_r46_fr_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://twlmgbfsu4ec"
+ path="res://.godot/imported/pxp_su_saw_d_r46_fr_up.png-9363e10651381821d543218c432af0f0.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_d_r46_gd.png.import b/game/art/fx/pxp/pxp_su_saw_d_r46_gd.png.import
+index 3eb079e2..2050aa73 100644
+--- a/game/art/fx/pxp/pxp_su_saw_d_r46_gd.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_d_r46_gd.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://csb4r5tjpdvm8"
+ path="res://.godot/imported/pxp_su_saw_d_r46_gd.png-a0e8f45b8942a283203f31cdb516de88.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_d_r53_bk_up.png.import b/game/art/fx/pxp/pxp_su_saw_d_r53_bk_up.png.import
+index 89322019..2568b36b 100644
+--- a/game/art/fx/pxp/pxp_su_saw_d_r53_bk_up.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_d_r53_bk_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://dcfll4n5icslf"
+ path="res://.godot/imported/pxp_su_saw_d_r53_bk_up.png-4c656193cfe672f47ad913ae6c8ea6b8.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_h_r100_bk_up.png.import b/game/art/fx/pxp/pxp_su_saw_h_r100_bk_up.png.import
+index 0fda647c..2be1329e 100644
+--- a/game/art/fx/pxp/pxp_su_saw_h_r100_bk_up.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_h_r100_bk_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://5s3uqcouhx8y"
+ path="res://.godot/imported/pxp_su_saw_h_r100_bk_up.png-f76572a39278ce6102950dbfe27de4fd.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_h_r100_fr_up.png.import b/game/art/fx/pxp/pxp_su_saw_h_r100_fr_up.png.import
+index 9e8c1e6d..ceafe803 100644
+--- a/game/art/fx/pxp/pxp_su_saw_h_r100_fr_up.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_h_r100_fr_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://ypw7dusddh6o"
+ path="res://.godot/imported/pxp_su_saw_h_r100_fr_up.png-e79ee637e9ab3c086de245c20aca2ee9.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_h_r100_gd.png.import b/game/art/fx/pxp/pxp_su_saw_h_r100_gd.png.import
+index 11d1c71e..0b4bd6ba 100644
+--- a/game/art/fx/pxp/pxp_su_saw_h_r100_gd.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_h_r100_gd.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://ch2n0w3k5vy6a"
+ path="res://.godot/imported/pxp_su_saw_h_r100_gd.png-576aedd023e80fd63fe8b8c1866fc9d3.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_h_r76_bk_up.png.import b/game/art/fx/pxp/pxp_su_saw_h_r76_bk_up.png.import
+index 8c546fcd..f9a4b482 100644
+--- a/game/art/fx/pxp/pxp_su_saw_h_r76_bk_up.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_h_r76_bk_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://cy4y72qb5yss0"
+ path="res://.godot/imported/pxp_su_saw_h_r76_bk_up.png-54ac38feeef760a8a132034de3cb67a2.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_h_r76_fr_up.png.import b/game/art/fx/pxp/pxp_su_saw_h_r76_fr_up.png.import
+index 9d326cf6..d54cf802 100644
+--- a/game/art/fx/pxp/pxp_su_saw_h_r76_fr_up.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_h_r76_fr_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://seqvca3vsx4k"
+ path="res://.godot/imported/pxp_su_saw_h_r76_fr_up.png-477c0f6d0841d1e438223deff03ef98d.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_h_r76_gd.png.import b/game/art/fx/pxp/pxp_su_saw_h_r76_gd.png.import
+index 4314af92..3675d94c 100644
+--- a/game/art/fx/pxp/pxp_su_saw_h_r76_gd.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_h_r76_gd.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://c1aw2220cu644"
+ path="res://.godot/imported/pxp_su_saw_h_r76_gd.png-cb45ce9af96fb9e3451528f24a5b08fc.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_h_r88_bk_up.png.import b/game/art/fx/pxp/pxp_su_saw_h_r88_bk_up.png.import
+index 025c0164..52c1f5f9 100644
+--- a/game/art/fx/pxp/pxp_su_saw_h_r88_bk_up.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_h_r88_bk_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://dqx7ynqaxvh83"
+ path="res://.godot/imported/pxp_su_saw_h_r88_bk_up.png-655cb4bdb2c347124c1dfce5fc5dcb96.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_h_r88_fr_up.png.import b/game/art/fx/pxp/pxp_su_saw_h_r88_fr_up.png.import
+index 8e8b6896..bafb091c 100644
+--- a/game/art/fx/pxp/pxp_su_saw_h_r88_fr_up.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_h_r88_fr_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://bl0vnys3sefvr"
+ path="res://.godot/imported/pxp_su_saw_h_r88_fr_up.png-21919ff59375fa212282c8206b31eaf0.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_n_r51_bk_up.png.import b/game/art/fx/pxp/pxp_su_saw_n_r51_bk_up.png.import
+index 82064fd8..d6a511b4 100644
+--- a/game/art/fx/pxp/pxp_su_saw_n_r51_bk_up.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_n_r51_bk_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://dt2p7uwvtv2b"
+ path="res://.godot/imported/pxp_su_saw_n_r51_bk_up.png-5aedacd5d65395cb433ae972aa2566da.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_n_r51_fr_up.png.import b/game/art/fx/pxp/pxp_su_saw_n_r51_fr_up.png.import
+index 84b4052c..8b3ae5b5 100644
+--- a/game/art/fx/pxp/pxp_su_saw_n_r51_fr_up.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_n_r51_fr_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://dmyyq2441hc5c"
+ path="res://.godot/imported/pxp_su_saw_n_r51_fr_up.png-0a3735532dc23a68bb9ed6d3ee7d94b0.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_n_r58_fr_up.png.import b/game/art/fx/pxp/pxp_su_saw_n_r58_fr_up.png.import
+index 3eb418fb..827a66fc 100644
+--- a/game/art/fx/pxp/pxp_su_saw_n_r58_fr_up.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_n_r58_fr_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://bex5jdef0104o"
+ path="res://.godot/imported/pxp_su_saw_n_r58_fr_up.png-c077f50c6ff5791b05d3c9b37086d265.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_n_r66_fr_up.png.import b/game/art/fx/pxp/pxp_su_saw_n_r66_fr_up.png.import
+index 8a450e83..2adfe84c 100644
+--- a/game/art/fx/pxp/pxp_su_saw_n_r66_fr_up.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_n_r66_fr_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://cusfbeavrihtl"
+ path="res://.godot/imported/pxp_su_saw_n_r66_fr_up.png-744792315e90968bef596c2f6b6e1a6f.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_n_r66_gd.png.import b/game/art/fx/pxp/pxp_su_saw_n_r66_gd.png.import
+index ac804644..9adb1b9b 100644
+--- a/game/art/fx/pxp/pxp_su_saw_n_r66_gd.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_n_r66_gd.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://bbbnql7tynitc"
+ path="res://.godot/imported/pxp_su_saw_n_r66_gd.png-dd0aeae4c52aaf3e5eb693dadc0d29bf.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_s_r66_bk_up.png.import b/game/art/fx/pxp/pxp_su_saw_s_r66_bk_up.png.import
+index 67c20b2c..f0a9faa3 100644
+--- a/game/art/fx/pxp/pxp_su_saw_s_r66_bk_up.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_s_r66_bk_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://b1nvdw3tkoa8y"
+ path="res://.godot/imported/pxp_su_saw_s_r66_bk_up.png-53a0f53fe94ea1cb56e19a87f2b04b57.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_s_r66_fr_up.png.import b/game/art/fx/pxp/pxp_su_saw_s_r66_fr_up.png.import
+index f63706c1..a01a0276 100644
+--- a/game/art/fx/pxp/pxp_su_saw_s_r66_fr_up.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_s_r66_fr_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://p38wyqkh8xv2"
+ path="res://.godot/imported/pxp_su_saw_s_r66_fr_up.png-7e5053924d5012e6a94902f51bd00d88.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_s_r66_gd.png.import b/game/art/fx/pxp/pxp_su_saw_s_r66_gd.png.import
+index e9fee492..9b71063c 100644
+--- a/game/art/fx/pxp/pxp_su_saw_s_r66_gd.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_s_r66_gd.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://7dxkw3ttglr0"
+ path="res://.godot/imported/pxp_su_saw_s_r66_gd.png-63bc5244644d699406fc6d1f9465d0ab.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_s_r76_bk_up.png.import b/game/art/fx/pxp/pxp_su_saw_s_r76_bk_up.png.import
+index d4dfd6bb..e44540c0 100644
+--- a/game/art/fx/pxp/pxp_su_saw_s_r76_bk_up.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_s_r76_bk_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://blml172frahgd"
+ path="res://.godot/imported/pxp_su_saw_s_r76_bk_up.png-72d55450ac30aa8e050395fd4d3fc4a2.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_s_r76_fr_up.png.import b/game/art/fx/pxp/pxp_su_saw_s_r76_fr_up.png.import
+index d4bb1882..4ff7f306 100644
+--- a/game/art/fx/pxp/pxp_su_saw_s_r76_fr_up.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_s_r76_fr_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://cgf4jql0v0w87"
+ path="res://.godot/imported/pxp_su_saw_s_r76_fr_up.png-8f1dbc1341da17427909f397a8a3e67f.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_s_r76_gd.png.import b/game/art/fx/pxp/pxp_su_saw_s_r76_gd.png.import
+index d377a6e8..fc7e35f4 100644
+--- a/game/art/fx/pxp/pxp_su_saw_s_r76_gd.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_s_r76_gd.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://oyviohgtxi77"
+ path="res://.godot/imported/pxp_su_saw_s_r76_gd.png-f1721d6968c37e8de03bbe90e22c19c6.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_s_r88_bk_up.png.import b/game/art/fx/pxp/pxp_su_saw_s_r88_bk_up.png.import
+index 39bf67cb..074151b3 100644
+--- a/game/art/fx/pxp/pxp_su_saw_s_r88_bk_up.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_s_r88_bk_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://cmn6dhy48wrwt"
+ path="res://.godot/imported/pxp_su_saw_s_r88_bk_up.png-172833923163a0a71bd1196fff1aa3ea.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_s_r88_fr_up.png.import b/game/art/fx/pxp/pxp_su_saw_s_r88_fr_up.png.import
+index ca12ab3b..5f2a65f4 100644
+--- a/game/art/fx/pxp/pxp_su_saw_s_r88_fr_up.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_s_r88_fr_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://ppx7vcfnhox5"
+ path="res://.godot/imported/pxp_su_saw_s_r88_fr_up.png-7b8a18ac4f0256f68d83c2d84130e328.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_s_r88_gd.png.import b/game/art/fx/pxp/pxp_su_saw_s_r88_gd.png.import
+index a4325e26..61d971f4 100644
+--- a/game/art/fx/pxp/pxp_su_saw_s_r88_gd.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_s_r88_gd.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://b088x5v556uby"
+ path="res://.godot/imported/pxp_su_saw_s_r88_gd.png-32dfb92595bd4631d030c12a1027a6db.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_w_r51_bk_up.png.import b/game/art/fx/pxp/pxp_su_saw_w_r51_bk_up.png.import
+index 6a4680ed..80d040c0 100644
+--- a/game/art/fx/pxp/pxp_su_saw_w_r51_bk_up.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_w_r51_bk_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://2nkqho2iic24"
+ path="res://.godot/imported/pxp_su_saw_w_r51_bk_up.png-4137b0d0a2362d595ac8aa6674a32a50.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_w_r51_fr_up.png.import b/game/art/fx/pxp/pxp_su_saw_w_r51_fr_up.png.import
+index 62d91f09..22c790f0 100644
+--- a/game/art/fx/pxp/pxp_su_saw_w_r51_fr_up.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_w_r51_fr_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://keprbhs85l1w"
+ path="res://.godot/imported/pxp_su_saw_w_r51_fr_up.png-a6719b5b0f23e4020ae10f0647531a60.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_w_r51_gd.png.import b/game/art/fx/pxp/pxp_su_saw_w_r51_gd.png.import
+index bc9c40ba..b0e95a6c 100644
+--- a/game/art/fx/pxp/pxp_su_saw_w_r51_gd.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_w_r51_gd.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://osgbohsbkj0m"
+ path="res://.godot/imported/pxp_su_saw_w_r51_gd.png-f4e8ac1ace6cdb848bcecb91c57d0c12.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_w_r58_bk_up.png.import b/game/art/fx/pxp/pxp_su_saw_w_r58_bk_up.png.import
+index 0e51b78e..0f78d356 100644
+--- a/game/art/fx/pxp/pxp_su_saw_w_r58_bk_up.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_w_r58_bk_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://iqsk864pwjtw"
+ path="res://.godot/imported/pxp_su_saw_w_r58_bk_up.png-a968be25bf0218a043fecb8872e45d7a.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_w_r58_fr_up.png.import b/game/art/fx/pxp/pxp_su_saw_w_r58_fr_up.png.import
+index 96a85a16..b1c83dd6 100644
+--- a/game/art/fx/pxp/pxp_su_saw_w_r58_fr_up.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_w_r58_fr_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://dj8uvkxxs0jjq"
+ path="res://.godot/imported/pxp_su_saw_w_r58_fr_up.png-7fdbc3601b1a0f3a917db7d3ba38ec5c.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_w_r66_bk_up.png.import b/game/art/fx/pxp/pxp_su_saw_w_r66_bk_up.png.import
+index d0504653..8922e8cd 100644
+--- a/game/art/fx/pxp/pxp_su_saw_w_r66_bk_up.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_w_r66_bk_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://cujw4ak6a1w7m"
+ path="res://.godot/imported/pxp_su_saw_w_r66_bk_up.png-ed76d2378192e232e0dd8b26b4e8bef1.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_w_r66_fr_up.png.import b/game/art/fx/pxp/pxp_su_saw_w_r66_fr_up.png.import
+index d0a466c1..fa3e8817 100644
+--- a/game/art/fx/pxp/pxp_su_saw_w_r66_fr_up.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_w_r66_fr_up.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://cc5avvjikt2ke"
+ path="res://.godot/imported/pxp_su_saw_w_r66_fr_up.png-cb2fc06d41350332e8590998b7030738.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_saw_w_r66_gd.png.import b/game/art/fx/pxp/pxp_su_saw_w_r66_gd.png.import
+index f86fef31..42cbb286 100644
+--- a/game/art/fx/pxp/pxp_su_saw_w_r66_gd.png.import
++++ b/game/art/fx/pxp/pxp_su_saw_w_r66_gd.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://i3hy6eyxisf4"
+ path="res://.godot/imported/pxp_su_saw_w_r66_gd.png-3a25ac87257d7ff8bdfd5040d31b068c.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_tide_r100_gd.png.import b/game/art/fx/pxp/pxp_su_tide_r100_gd.png.import
+index 6275c40c..bc428670 100644
+--- a/game/art/fx/pxp/pxp_su_tide_r100_gd.png.import
++++ b/game/art/fx/pxp/pxp_su_tide_r100_gd.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://4mcsjuenr0vf"
+ path="res://.godot/imported/pxp_su_tide_r100_gd.png-cdff3612107fb770bf753df5288d3041.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_tide_r51_gd.png.import b/game/art/fx/pxp/pxp_su_tide_r51_gd.png.import
+index 2c5de633..3f310740 100644
+--- a/game/art/fx/pxp/pxp_su_tide_r51_gd.png.import
++++ b/game/art/fx/pxp/pxp_su_tide_r51_gd.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://dwca6q13ysgtf"
+ path="res://.godot/imported/pxp_su_tide_r51_gd.png-a868746da61ac5905f95b9d27d96c5cd.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_tide_r58_gd.png.import b/game/art/fx/pxp/pxp_su_tide_r58_gd.png.import
+index ee4fa338..13f35ea8 100644
+--- a/game/art/fx/pxp/pxp_su_tide_r58_gd.png.import
++++ b/game/art/fx/pxp/pxp_su_tide_r58_gd.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://ckssb05b1527e"
+ path="res://.godot/imported/pxp_su_tide_r58_gd.png-fb8c9618039e8bd14918279d6c785c3c.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_tide_r66_gd.png.import b/game/art/fx/pxp/pxp_su_tide_r66_gd.png.import
+index b3ba6a54..ed478ba6 100644
+--- a/game/art/fx/pxp/pxp_su_tide_r66_gd.png.import
++++ b/game/art/fx/pxp/pxp_su_tide_r66_gd.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://lyehcdllxh2u"
+ path="res://.godot/imported/pxp_su_tide_r66_gd.png-4780b943345c5a305877f889f55ede00.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_tide_r76_gd.png.import b/game/art/fx/pxp/pxp_su_tide_r76_gd.png.import
+index a1f3e3f6..13d213a0 100644
+--- a/game/art/fx/pxp/pxp_su_tide_r76_gd.png.import
++++ b/game/art/fx/pxp/pxp_su_tide_r76_gd.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://1mcpgkklyedq"
+ path="res://.godot/imported/pxp_su_tide_r76_gd.png-237ccc594f1097d54040e82667767dea.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_su_tide_r88_gd.png.import b/game/art/fx/pxp/pxp_su_tide_r88_gd.png.import
+index df13e847..4eccbf73 100644
+--- a/game/art/fx/pxp/pxp_su_tide_r88_gd.png.import
++++ b/game/art/fx/pxp/pxp_su_tide_r88_gd.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://dhhrfwjn6t43w"
+ path="res://.godot/imported/pxp_su_tide_r88_gd.png-4f8cd8efa78ab4e572c1dc873976c575.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_wd_dawn2_r106_q.png.import b/game/art/fx/pxp/pxp_wd_dawn2_r106_q.png.import
+index 507620f6..a6b4a57f 100644
+--- a/game/art/fx/pxp/pxp_wd_dawn2_r106_q.png.import
++++ b/game/art/fx/pxp/pxp_wd_dawn2_r106_q.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://ndayy3bom3cb"
+ path="res://.godot/imported/pxp_wd_dawn2_r106_q.png-d16f065cb101f0501993f9824bc929a7.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_wd_dawn2_r84.png.import b/game/art/fx/pxp/pxp_wd_dawn2_r84.png.import
+index c97bfb00..3b128142 100644
+--- a/game/art/fx/pxp/pxp_wd_dawn2_r84.png.import
++++ b/game/art/fx/pxp/pxp_wd_dawn2_r84.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://c8y5gyjjaacvl"
+ path="res://.godot/imported/pxp_wd_dawn2_r84.png-bd8c965541da38ae841921b18dc67f78.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_wd_dawn2_r84_h.png.import b/game/art/fx/pxp/pxp_wd_dawn2_r84_h.png.import
+index d65e3223..e4a0e916 100644
+--- a/game/art/fx/pxp/pxp_wd_dawn2_r84_h.png.import
++++ b/game/art/fx/pxp/pxp_wd_dawn2_r84_h.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://b2c6ryqcd1vui"
+ path="res://.godot/imported/pxp_wd_dawn2_r84_h.png-fe7e1bdb14429c8da8bf705f1cc6a281.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_wd_dawn2_r84_q.png.import b/game/art/fx/pxp/pxp_wd_dawn2_r84_q.png.import
+index 8e987f9e..51d60135 100644
+--- a/game/art/fx/pxp/pxp_wd_dawn2_r84_q.png.import
++++ b/game/art/fx/pxp/pxp_wd_dawn2_r84_q.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://1bwtvcftryf3"
+ path="res://.godot/imported/pxp_wd_dawn2_r84_q.png-fcebcc7c59069c083df435c3c6cd5608.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_wd_dawn2_r95.png.import b/game/art/fx/pxp/pxp_wd_dawn2_r95.png.import
+index 61056095..5179d16e 100644
+--- a/game/art/fx/pxp/pxp_wd_dawn2_r95.png.import
++++ b/game/art/fx/pxp/pxp_wd_dawn2_r95.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://c4myl13p0wcrv"
+ path="res://.godot/imported/pxp_wd_dawn2_r95.png-edc624410d4b0b1b01317d84fb2e65ec.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_wd_dawn2_r95_h.png.import b/game/art/fx/pxp/pxp_wd_dawn2_r95_h.png.import
+index 839cec5e..e75c6cef 100644
+--- a/game/art/fx/pxp/pxp_wd_dawn2_r95_h.png.import
++++ b/game/art/fx/pxp/pxp_wd_dawn2_r95_h.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://bj0ju4nvbubly"
+ path="res://.godot/imported/pxp_wd_dawn2_r95_h.png-a1861ed16d0c0133a04c6ffbb9f43972.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/art/fx/pxp/pxp_wd_dawn2_r95_q.png.import b/game/art/fx/pxp/pxp_wd_dawn2_r95_q.png.import
+index 55b7abc7..47358e49 100644
+--- a/game/art/fx/pxp/pxp_wd_dawn2_r95_q.png.import
++++ b/game/art/fx/pxp/pxp_wd_dawn2_r95_q.png.import
+@@ -2,6 +2,7 @@
+ 
+ importer="texture"
+ type="CompressedTexture2D"
++uid="uid://blgx8vnvkluqd"
+ path="res://.godot/imported/pxp_wd_dawn2_r95_q.png-143fb38a9256462162daf00ec8ea512d.ctex"
+ metadata={
+ "vram_texture": false
+diff --git a/game/scripts/characters/blocks/skill_lifecycle.gd.uid b/game/scripts/characters/blocks/skill_lifecycle.gd.uid
+new file mode 100644
+index 00000000..05945e2a
+--- /dev/null
++++ b/game/scripts/characters/blocks/skill_lifecycle.gd.uid
+@@ -0,0 +1 @@
++uid://d2vor41f4ei2k
+diff --git a/game/scripts/render/fx_pxplane_gl.gd.uid b/game/scripts/render/fx_pxplane_gl.gd.uid
+new file mode 100644
+index 00000000..c20cac65
+--- /dev/null
++++ b/game/scripts/render/fx_pxplane_gl.gd.uid
+@@ -0,0 +1 @@
++uid://f34bme8khjix
+diff --git a/game/scripts/render/fx_pxplane_su.gd.uid b/game/scripts/render/fx_pxplane_su.gd.uid
+new file mode 100644
+index 00000000..14edb1a0
+--- /dev/null
++++ b/game/scripts/render/fx_pxplane_su.gd.uid
+@@ -0,0 +1 @@
++uid://csciut1wn0x6
+diff --git a/game/scripts/render/fx_pxplane_ul.gd.uid b/game/scripts/render/fx_pxplane_ul.gd.uid
+new file mode 100644
+index 00000000..f84788b9
+--- /dev/null
++++ b/game/scripts/render/fx_pxplane_ul.gd.uid
+@@ -0,0 +1 @@
++uid://byoy0q751ygfe
+diff --git a/game/scripts/render/px_util.gd.uid b/game/scripts/render/px_util.gd.uid
+new file mode 100644
+index 00000000..48fb79f3
+--- /dev/null
++++ b/game/scripts/render/px_util.gd.uid
+@@ -0,0 +1 @@
++uid://ba4ddq3j8lfid
+diff --git a/game/scripts/run/build_guide.gd.uid b/game/scripts/run/build_guide.gd.uid
+new file mode 100644
+index 00000000..d9c41f12
+--- /dev/null
++++ b/game/scripts/run/build_guide.gd.uid
+@@ -0,0 +1 @@
++uid://dbjuyxo6wv46y
+diff --git a/game/tests/attack_timing_capture.gd.uid b/game/tests/attack_timing_capture.gd.uid
+new file mode 100644
+index 00000000..733a5b88
+--- /dev/null
++++ b/game/tests/attack_timing_capture.gd.uid
+@@ -0,0 +1 @@
++uid://jgoxqdqi1kj4
+diff --git a/game/tests/final_boss_fx_preview.gd.uid b/game/tests/final_boss_fx_preview.gd.uid
+new file mode 100644
+index 00000000..9172f770
+--- /dev/null
++++ b/game/tests/final_boss_fx_preview.gd.uid
+@@ -0,0 +1 @@
++uid://bj34oxuekoc6c
+diff --git a/game/tests/loading_shot.gd.uid b/game/tests/loading_shot.gd.uid
+new file mode 100644
+index 00000000..f391f3d3
+--- /dev/null
++++ b/game/tests/loading_shot.gd.uid
+@@ -0,0 +1 @@
++uid://bjd0p6eyrj4v
+diff --git a/game/tests/skill_lifecycle_test.gd.uid b/game/tests/skill_lifecycle_test.gd.uid
+new file mode 100644
+index 00000000..2256cc28
+--- /dev/null
++++ b/game/tests/skill_lifecycle_test.gd.uid
+@@ -0,0 +1 @@
++uid://car1kn0pf1cvi
