@@ -1451,7 +1451,7 @@ func invuln_only(i: int) -> bool:
 	if pos == Vector2.INF or CmdBal.v("combat/hold_skill_on_invuln", 1.0) <= 0.0:
 		return false
 	var d: float = _gate_dist(i)
-	return d > 0.0 and not nearest_enemies(1, d, pos).is_empty() and not has_hittable(d, pos)
+	return d > 0.0 and skill_targets(d, pos) == SkillTargets.INVULN_ONLY
 
 
 ## 自动技能门槛半径（已乘 op_range；≤ 0 = 不设门槛）

@@ -73,6 +73,9 @@ var mate_dim := 1.0               # 队友（非主控）特效再乘的系数�
 var late_k := 0.0
 var lf_emit_k := 1.0              # 当前正在画的干员的发光点系数（squad._op_dim / _pxp_sorted 设；队长恒 1，_fx_order 队长最后画，阶段结束自然回 1）
 var _lf_cv = null
+var _sorted_leader := ""
+var _sorted_dim_mates := false
+var _sorted_mate_emit := 1.0
 var lead_dim := 1.0               # 主控自己的特效再乘的系数（declutter lead_k）
 var mate_desat := 0.0             # 队友特效去饱和（docs/139 §10，render/mate_desat）
 var lead_boost := 1.0             # 队长特效提亮（docs/139 §11，render/lead_emph 档位或 render/lead_boost）
@@ -479,12 +482,16 @@ func draw_world() -> void:
 	g.squad.draw_ground_fx()   # 干员紧贴地砖的大片地面特效（docs/61 §5.6 layer = ground）：压在溟痕 / 地面预警之下
 	_pk("ground")
 	_draw_mires()
+	var ground_count := g.fx.size()
+	_draw_ground_sprites()
 	_pk("mire")
 	tell_fill = Dc.p("tell_fill_k")
 	tell_edge = Dc.p("tell_edge_k")
 	_draw_warns_auras()
 	if not _dbg_foe:
-		_draw_ground_foe_fx()
+		# 预警绘制若追加了新特效，本帧仍能看到它。
+		_draw_ground_foe_fx(_ground_foe if g.fx.size() == ground_count else g.fx)
+	_ground_foe.clear()
 	_pk("warns_auras")
 	if not _dbg_gem:   # --clutterdbg=nogem（量测）
 		_draw_pickups()
@@ -533,15 +540,19 @@ func _draw_mires() -> void:
 	tb_flush()
 	if not _dbg_mire:
 		_draw_mire_bubbles(bubbles)
-	_draw_ground_sprites()
 
+
+var _ground_foe: Array = []   # 同一次世界绘制内，预警之后要画的冰面和地裂，保留源顺序
 
 ## 地面层帧条特效（vfx.fx_sprite ground=true，kind "gsprite"）：溟痕之上、预警 / 实体之下——喷吐者酸团落点溅射、囊海爬行者爆后残留（docs/96 第 1 批）。
 ## 敌方特效不降噪（docs/48 ③），按已播时间取帧，同 _draw_fx 的 "sprite"
 func _draw_ground_sprites() -> void:
 	g.draw_off = Vector2.ZERO
 	for f in g.fx:
-		if f.kind != "gsprite":
+		var kind: String = f.kind
+		if kind != "gsprite":
+			if kind == "ice_sheet" or (kind == "gcrack" and f.get("ground", false)):
+				_ground_foe.append(f)
 			continue
 		var spec: Array = Game.V6_FRAMES[f.name]
 		var fr := mini(int((f.max - f.life) * spec[1]), spec[0] - 1)
@@ -550,11 +561,11 @@ func _draw_ground_sprites() -> void:
 
 ## 地面层敌方特效（ground 标记，用户 10-24：奠基者踏地「浮在最上面」）：小怪踏地的地裂与冲击环画在地面预警之上、单位之下，
 ## 不盖住干员和其他单位。纯画面
-func _draw_ground_foe_fx() -> void:
-	for f in g.fx:
+func _draw_ground_foe_fx(candidates: Array) -> void:
+	for f in candidates:
 		if f.kind == "ice_sheet" and f.life > 0.0:
 			_draw_ice_sheet(f)
-	for f in g.fx:
+	for f in candidates:
 		if f.kind == "gcrack" and f.get("ground", false) and f.life > 0.0:
 			if not f.has("cd"):
 				f["cd"] = GroundCrack.build(f.pos, f.r, f.get("ang"), f.get("opts", {}))
@@ -1231,30 +1242,20 @@ func _draw_shadows(evr: Rect2) -> void:
 	g.vfx.spr("shadow", 1, 0, g.doc_pos + Vector2(0, 6), Game.PX * 1.3)
 	g.squad.draw_auras()
 	var stx: Texture2D = g.tex.get("shadow")
-	var ens: Array = _vis_ent if _vis_on else g.enemies
-	var nsh: bool = g.has_meta("boss_decoys")   # 泡影二幕幻影不画影子（docs/142b §3.5：只有真身在地上有影子）；平时不多查字段
-	if stx == null:
-		for e in ens:
-			if not evr.has_point(e.pos) or (nsh and e.has("no_shadow")):
-				continue
-			var sc: float = Game.PX * e.r / 10.0
-			var hop: float = minf(e.kb.length() * 0.03, 14.0)
-			g.vfx.spr("shadow", 1, 0, e.pos + Vector2(0, e.r * 0.8), sc * (1.0 - hop / 40.0), false, Color(1, 1, 1, 0.0 if _dbg_enemy else 1.0))
-	else:
-		# 同上，vfx.spr 内联（性能，docs/50 §11：每只敌人省一次函数调用和贴图查表；算式与 FrameDst.dst 相同）
-		var sw := float(stx.get_width())
-		var sh := float(stx.get_height())
-		var src := Rect2(0, 0, stx.get_width(), stx.get_height())
-		var scol := Color(1, 1, 1, 0.0 if _dbg_enemy else 1.0)
+	if stx != null and not _dbg_enemy:
+		var ens: Array = _vis_ent if _vis_on else g.enemies
+		var nsh: bool = g.has_meta("boss_decoys")   # 只有真身有影子
+		var dims := stx.get_size()
+		var src := Rect2(Vector2.ZERO, dims)
 		var doff: Vector2 = g.draw_off
 		for e in ens:
 			var ep: Vector2 = e.pos
-			if not evr.has_point(ep) or (nsh and e.has("no_shadow")):
+			if (not _vis_on and not evr.has_point(ep)) or (nsh and e.has("no_shadow")):
 				continue
 			var er: float = e.r
 			var sc2: float = Game.PX * er / 10.0 * (1.0 - minf(e.kb.length() * 0.03, 14.0) / 40.0)
-			var size := Vector2(sw, sh) * sc2
-			g.wcv.draw_texture_rect_region(stx, Rect2((ep + Vector2(0, er * 0.8) + doff - size * Vector2(0.5, 0.5)).round(), size), src, scol)
+			var size := dims * sc2
+			g.wcv.draw_texture_rect_region(stx, Rect2((ep + Vector2(0, er * 0.8) + doff - size * Vector2(0.5, 0.5)).round(), size), src)
 	g.squad.draw_shadows()
 	if g.knight.alive:
 		g.vfx.spr("shadow", 1, 0, g.knight.pos + Vector2(0, 18), Game.PX * 1.6)
@@ -1315,7 +1316,10 @@ func _sorted_fast(evr: Rect2) -> bool:
 		ka.append(g.knight.pos.y + 18.0)
 		objs.append(null)
 		kind.append(4)
-	for it in Pxp.sort_items(g):   # 转平面试验（docs/246，fx/px_plane = 1）：立起层特效按脚底 y 排进单位层
+	var fx_items := Pxp.sort_items(g)
+	if not fx_items.is_empty():
+		_prepare_sorted_fx()
+	for it in fx_items:   # 立起层特效按脚底 y 排进单位层
 		ka.append(Pxp.sort_key(it))
 		objs.append(it)
 		kind.append(7)
@@ -1414,23 +1418,31 @@ func late_emit_k(leader: bool) -> float:
 	return 1.0 if leader or late_k <= 0.0 else lerpf(1.0, late_fx_v("emit", 0.4), late_k)
 
 
-## 转平面立起层（排序项）：队友的件在后期走带队友系数的画布（原来直接画在世界画布上，拥挤降噪 / 队友系数都不生效）
-func _pxp_sorted(ob) -> void:
-	if (_dbg_friend or _dbg_opmask) and ob is Dictionary and str(ob.get("oid", "")) != "":   # 量测（--clutterdbg）：立起层也按人静音（原来漏了，诊断量轻了转平面）
-		var ld0 = g.squad.leader() if g.squad != null else null
-		if _dbg_friend or Dc.mute_op(str(ob.oid), ld0 != null and str(ob.oid) == str(ld0.id)):
-			return
-	if late_k > 0.0 and Bal.v("render/late_fx_up", 1.0) > 0.0 and ob is Dictionary:
-		var ld = g.squad.leader() if g.squad != null else null
-		if ld != null and str(ob.get("oid", "")) != "" and str(ob.get("oid", "")) != str(ld.id):
-			if _lf_cv == null:
-				_lf_cv = preload("res://scripts/characters/batch_canvas.gd").new(g)
-			_lf_cv.g = g.wcv
-			_lf_cv.set_mod(mate_dim, 0.0)
-			lf_emit_k = late_emit_k(false)
-			Pxp.draw_sorted(g, _lf_cv, ob)
-			lf_emit_k = 1.0
-			return
+## 同一遍实体绘制共用队长与队友的调色、发光设置。下一次绘制重新读取，换队长也会生效。
+func _prepare_sorted_fx() -> void:
+	_sorted_dim_mates = late_k > 0.0 and Bal.v("render/late_fx_up", 1.0) > 0.0
+	_sorted_leader = ""
+	if _sorted_dim_mates or _dbg_opmask:
+		var leader = g.squad.leader() if g.squad != null else null
+		if leader != null:
+			_sorted_leader = str(leader.id)
+	if _sorted_dim_mates and _sorted_leader != "":
+		if _lf_cv == null:
+			_lf_cv = preload("res://scripts/characters/batch_canvas.gd").new(g)
+		_lf_cv.set_mod(mate_dim, 0.0)
+		_sorted_mate_emit = late_emit_k(false)
+
+
+func _pxp_sorted(ob: Dictionary) -> void:
+	var oid: String = str(ob.get("oid", ""))
+	if oid != "" and (_dbg_friend or (_dbg_opmask and Dc.mute_op(oid, oid == _sorted_leader))):
+		return
+	if _sorted_dim_mates and _sorted_leader != "" and oid != "" and oid != _sorted_leader:
+		_lf_cv.g = g.wcv
+		lf_emit_k = _sorted_mate_emit
+		Pxp.draw_sorted(g, _lf_cv, ob)
+		lf_emit_k = 1.0
+		return
 	Pxp.draw_sorted(g, g.wcv, ob)
 
 
@@ -3158,11 +3170,13 @@ func _ol_col(e: Dictionary) -> Color:
 ## 按缓存发绘制：和 _draw_enemy_full 末段同序（描边 → 本体 → 白闪 → 词条 → 弱点）
 func _dc_emit(e: Dictionary, c: Array) -> void:
 	var frames: int = c[9]
-	var frame: int = int(Fxr.react_t(g, e) * float(c[10]) + e.id * 0.37) % frames   # 打击停顿期间冻结这一只的选帧（g.t 不动）
+	var frame: int
 	if c[22]:
 		frame = int((g.t - float(e.get("prepare_started", g.t))) * 3.0) % 2   # 举肢准备（_dc_prep）：和 _draw_enemy_full 同一选帧，再换算到帧条真实帧数
 		if c[23]:
 			frame = A.enemy_remap_frame(c[8], 4, frame)
+	else:
+		frame = int(Fxr.react_t(g, e) * float(c[10]) + e.id * 0.37) % frames
 	var ra = c[17]
 	var rw_all = c[18]
 	var body: String = c[8]
@@ -3190,10 +3204,13 @@ func _dc_emit(e: Dictionary, c: Array) -> void:
 		var size := Vector2(fw, ra[3]) * sc
 		var p: Vector2 = bpos + g.draw_off
 		var rw = rw_all if e.flash > 0.0 else null
-		var rc: Color = Fxr.react_col(g, e)   # a < 0 照旧白闪；a = 0 不闪；a > 0 闪这个颜色
-		var wcol: Color = Color(1, 1, 1, 0.9 if e.elite else flash_a) if rc.a < 0.0 else Color(rc.r, rc.g, rc.b, rc.a)
-		if rc.a == 0.0:
-			rw = null
+		var wcol: Color
+		if rw != null:
+			var rc: Color = Fxr.react_col(g, e)
+			if rc.a == 0.0:
+				rw = null
+			else:
+				wcol = Color(1, 1, 1, 0.9 if e.elite else flash_a) if rc.a < 0.0 else rc
 		if flip:
 			g.wcv.draw_set_transform(p.round(), 0.0, Vector2(-1, 1))
 			var rf := Rect2(-size * anc, size)
@@ -3208,9 +3225,10 @@ func _dc_emit(e: Dictionary, c: Array) -> void:
 				g.wcv.draw_texture_rect_region(rw[0], rn, src, wcol * _act_mod)
 	else:
 		_espr(body, frames, frame, bpos, sc, flip, c[11], anc, Vector2.ONE)
-		var rc2: Color = Fxr.react_col(g, e)
-		if e.flash > 0.0 and rc2.a != 0.0:
-			_espr(wht, frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.9 if e.elite else flash_a) if rc2.a < 0.0 else rc2, anc, Vector2.ONE)
+		if e.flash > 0.0:
+			var rc2: Color = Fxr.react_col(g, e)
+			if rc2.a != 0.0:
+				_espr(wht, frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.9 if e.elite else flash_a) if rc2.a < 0.0 else rc2, anc, Vector2.ONE)
 	if g.optical_on and _rec == null:
 		_glow_pts(body, frames, bpos + g.draw_off, sc, flip, anc, e, frame)
 	if _rec == null and e.affix != "":
@@ -3273,8 +3291,11 @@ func _glow_pts(name: String, frames: int, pos: Vector2, sc: float, flip: bool, a
 						var v: float = maxf(c.r, maxf(c.g, c.b))
 						var s: float = (v - minf(c.r, minf(c.g, c.b))) / maxf(v, 0.001)
 						if v > 0.7 and s > 0.3:
+							if cand.is_empty():
+								all_px.clear()   # 已有亮点，后面的像素不再需要深色帧的备用排名。
 							cand.append([v * (0.4 + s), x, y, c])
-						all_px.append([v + s * 0.3, x, y, c])
+						elif cand.is_empty():
+							all_px.append([v + s * 0.3, x, y, c])
 				if cand.is_empty() and not all_px.is_empty():
 					all_px.sort_custom(func(a, b): return a[0] > b[0])
 					for k in mini(12, all_px.size()):
@@ -3296,8 +3317,11 @@ func _glow_pts(name: String, frames: int, pos: Vector2, sc: float, flip: bool, a
 		_glow_cache[name] = pts
 	var marked: bool = elite_mark_v2 and not e.get("boss", false) and (e.get("elite", false) or e.get("squad", false))
 	var big: bool = e.get("elite", false) or e.get("boss", false) or marked
-	var cc: Color = g.optical.enemy_glow(e)
 	var npt: int = mini(pts.size(), 4 if big else 3)
+	if npt == 0:
+		return
+	var cc: Color = Color.WHITE if marked else g.optical.enemy_glow(e)
+	var sz: float = maxf(2.0, sc) * (1.5 if big else 1.0)
 	for ip in npt:
 		var pt: Array = pts[ip]
 		var q: Vector2 = pt[0]
@@ -3305,7 +3329,6 @@ func _glow_pts(name: String, frames: int, pos: Vector2, sc: float, flip: bool, a
 		var d: Vector2 = (q - anc * fs) * sc / pt[3]   # sc 是 1x 美术像素的倍率，@2x 帧条要除以密度
 		if flip:
 			d.x = -d.x
-		var sz: float = maxf(2.0, sc) * (1.5 if big else 1.0)
 		var point_col: Color = cc
 		if marked:
 			point_col = pt[1]   # Species colour from this frame's emit mask / native bright pixel.
@@ -5579,6 +5602,8 @@ const SH_COL := Color(1.0, 0.9, 0.68)   # 偏白淡金（10-28 用户嫌原琥�
 var _sh_prev := -1
 var _sh_brk_t := -9.0      # 上次碎裂（g.t）
 var _sh_chg_t := -9.0      # 上次充好一层（g.t）
+var _sh_edge_pts := PackedVector2Array()
+var _sh_edge_radius := -1.0
 
 func draw_shield() -> void:
 	var c := g.ppos + Vector2(0, -26)
@@ -5639,7 +5664,7 @@ func _shield_bubble(c: Vector2, r0: float, n: int, fresh: float) -> void:
 	var band: float = 6.0 + 4.0 * mini(n, 3)
 	var edge := Color(SH_COL.r, SH_COL.g, SH_COL.b, 0.16 + 0.04 * mini(n, 3) + 0.25 * fresh)
 	tb_ring2(c, r0 - band, r0, Color(SH_COL.r, SH_COL.g, SH_COL.b, 0.0), edge, 40)
-	tb_arc(c, r0, 0.0, TAU, 2.0, Color(SH_COL.r, SH_COL.g, SH_COL.b, 0.45 + 0.4 * fresh), 48)
+	_shield_edge(c, r0, Color(SH_COL.r, SH_COL.g, SH_COL.b, 0.45 + 0.4 * fresh))
 	# 左上一点高光（气泡感）
 	tb_arc(c, r0 - 4.0, -PI * 0.85, -PI * 0.65, 2.0, Color(1.4, 1.35, 1.2, 0.5), 6)
 	_shield_pips(c, r0, n)
@@ -5649,7 +5674,7 @@ func _shield_bubble(c: Vector2, r0: float, n: int, fresh: float) -> void:
 func _shield_motes(c: Vector2, r0: float, n: int, fresh: float) -> void:
 	if n <= 0:
 		return
-	tb_arc(c, r0, 0.0, TAU, 2.0, Color(SH_COL.r, SH_COL.g, SH_COL.b, 0.2 + 0.3 * fresh), 48)
+	_shield_edge(c, r0, Color(SH_COL.r, SH_COL.g, SH_COL.b, 0.2 + 0.3 * fresh))
 	var k: int = mini(n, 6)
 	for i in k:
 		var a0: float = g.t * 1.6 + TAU * i / k
@@ -5658,6 +5683,16 @@ func _shield_motes(c: Vector2, r0: float, n: int, fresh: float) -> void:
 			var h: float = 3.0 - q
 			var al: float = (0.95 - 0.3 * q)
 			tb_quad(p - Vector2(h, h), p + Vector2(h, -h), p + Vector2(h, h), p + Vector2(-h, h), Color(SH_COL.r * 1.3, SH_COL.g * 1.25, SH_COL.b * 1.1, al))
+
+
+## B / C 的 48 段细边只改位置和颜色。保留原来 arc_q 的顶点（含末端），只存一圈。
+func _shield_edge(c: Vector2, radius: float, col: Color) -> void:
+	if radius != _sh_edge_radius:
+		var template := TriBatch.new()
+		template.arc_q(Vector2.ZERO, radius, 0.0, TAU, 2.0, Color.WHITE, 48)
+		_sh_edge_pts = template.pts
+		_sh_edge_radius = radius
+	_tbb.translated_solid(_sh_edge_pts, c, col)
 
 
 ## 层数标记：边顶的小菱形（每层一个，最多 8 个）

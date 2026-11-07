@@ -18,8 +18,16 @@
 extends RefCounted
 
 const PxU = preload("res://scripts/render/px_util.gd")   # 共用小工具（docs/286 §2）
+const BatchCanvas = preload("res://scripts/characters/batch_canvas.gd")
 const Bal = preload("res://scripts/core/balance.gd")
-const METAS := {"res://data/pxp_logos.json": "lg_", "res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_eyjafjalla.json": "ey_", "res://data/pxp_siege.json": "", "res://data/pxp_exusiai.json": "ex_", "res://data/pxp_mizuki.json": "", "res://data/pxp_angelina.json": "an_", "res://data/pxp_saria.json": "sa_", "res://data/pxp_texas.json": "", "res://data/pxp_gladiia.json": "gl_", "res://data/pxp_ulpianus.json": "ul_", "res://data/pxp_suzuran.json": "sz_", "res://data/pxp_irene.json": "ir_", "res://data/pxp_kaltsit.json": "ka_", "res://data/pxp_wisadel.json": "wd_", "res://data/pxp_skalter.json": "sk_", "res://data/pxp_specter_unchained.json": "su_", "res://data/pxp_lappland.json": "lp_"}   # 帧条表 → 键前缀（星熊的键自带 hsg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
+# 大部分帧条在读取时补上干员前缀，另四张表在烘焙时已把前缀写进键名。斯卡蒂的通用键没有统一前缀。
+const META_PREFIXED := {
+	"an": "angelina", "ey": "eyjafjalla", "ex": "exusiai", "gl": "gladiia",
+	"ir": "irene", "ka": "kaltsit", "lg": "logos", "lm": "lumen", "lp": "lappland",
+	"sa": "saria", "sk": "skalter", "su": "specter_unchained", "sz": "suzuran",
+	"ul": "ulpianus", "wd": "wisadel",
+}
+const META_BAKED_PREFIX := {"hsg": "hoshiguma", "mz": "mizuki", "sg": "siege", "tx": "texas"}
 const MI = preload("res://scripts/render/melee_impact.gd")   # 近战打击感包（docs/246 §11）：斩痕 / 照地光提亮
 const ART := "res://art/fx/pxp/pxp_%s.png"
 const IDS := {"logos": true, "skadi": true, "hoshiguma": true, "lumen": true, "eyjafjalla": true, "siege": true, "exusiai": true, "mizuki": true, "angelina": true, "saria": true, "texas": true, "gladiia": true, "ulpianus": true, "suzuran": true, "irene": true, "kaltsit": true, "wisadel": true, "skalter": true, "specter_unchained": true, "lappland": true}
@@ -38,17 +46,25 @@ const ITEM_MAX := 120   # 逻各斯（docs/258）消弹墨点 / 跳转笔较多�
 
 var g
 var meta := {}
+var _meta_loaded := {}
 var tex := {}
 var cues: Array = []      # 成长节点通用提示件（fx_pxplane_cue.gd，docs/310 §2）
-var items: Array = []     # 一次性件：{k 帧条键, t0, gp 地面点, flip, ly up/gd, raw, rot, sc, oid}
+# 一次性件按入场顺序存放；干员与立起层的视图引用同一批字典，跟随位置、一次性发光等改动两边都可见。
+var _items_by_owner := {}
+var _upright_items: Array = []
+var items: Array = []:
+	set(value):
+		items = value
+		_items_by_owner = {}
+		_upright_items = []
+		for it in items:
+			_index_item(it)
 var _mode := 0
 var _mode_frame := -1
 var _emit_n := 0
 var _emit_frame := -1
 var _ecol := {}
 var _fol_tick := -1
-var _fopl_tick := -1
-var _fopo_tick := -1   # 艾雅法拉跟施放者的件（fopo = 干员对象、foff = 偏移，docs/259）
 
 
 static func of(game):
@@ -174,16 +190,23 @@ static func lp_marks(game):
 
 
 func _meta(k: String) -> Dictionary:
-	if meta.is_empty():
-		for path in METAS:
-			var f := FileAccess.open(path, FileAccess.READ)
-			if f == null:
-				continue
-			var v = JSON.parse_string(f.get_as_text())
-			if v is Dictionary:
-				for kk in v:
-					if str(kk) != "_doc":
-						meta[str(METAS[path]) + str(kk)] = v[kk]
+	var cached = meta.get(k)
+	if cached != null:
+		return cached
+	var prefix := k.get_slice("_", 0)
+	var owner: String = META_PREFIXED.get(prefix, META_BAKED_PREFIX.get(prefix, "skadi"))
+	if _meta_loaded.has(owner):
+		return {}
+	_meta_loaded[owner] = true
+	var f := FileAccess.open("res://data/pxp_%s.json" % owner, FileAccess.READ)
+	if f == null:
+		return {}
+	var entries = JSON.parse_string(f.get_as_text())
+	if entries is Dictionary:
+		var key_prefix := prefix + "_" if META_PREFIXED.has(prefix) else ""
+		for local_key in entries:
+			if local_key != "_doc":
+				meta[key_prefix + str(local_key)] = entries[local_key]
 	return meta.get(k, {})
 
 
@@ -192,6 +215,7 @@ func _meta(k: String) -> Dictionary:
 const TEX_KEEP := 60.0
 var _tex_t := {}
 var _tex_sweep := 0.0
+var _strip_files := {}   # 只记导入资源是否存在；不持有贴图，也不改烘焙元数据
 
 func _tex_evict() -> void:
 	if g.opt_old & g.OPT_PXEVICT or g.t - _tex_sweep < 10.0:
@@ -206,12 +230,80 @@ func _tex_evict() -> void:
 		tex.erase(k)
 
 
+func _tex_path(k: String) -> String:
+	return ART % k.replace("_d-", "_dm").to_lower()
+
+
 func _tex(k: String) -> Texture2D:
 	_tex_t[k] = g.t
 	if not tex.has(k):
-		var p: String = ART % k.replace("_d-", "_dm").to_lower()   # 负方向键（d-45）的文件名写成 dm45：素材命名不许连字符 / 大写（asset_lint N1；塞雷娅 pilB / pilS 的文件名一律小写）
+		var p := _tex_path(k)
 		tex[k] = load(p) if ResourceLoader.exists(p) else null
+		if _strip_files.has(k):
+			_strip_files[k] = tex[k] != null
 	return tex[k]
+
+
+## 屏外仍须排队原有发光点：下一帧才合成，而且先排的点会占用整队预算。只确认资源存在，不解码 / 续期。
+func _has_strip(k: String) -> bool:
+	if tex.has(k):
+		return tex[k] != null
+	if not _strip_files.has(k):
+		_strip_files[k] = ResourceLoader.exists(_tex_path(k))
+	return _strip_files[k]
+
+
+class ViewBounds:
+	var transform := Transform2D.IDENTITY
+	var viewport_rect := Rect2()
+	var local_rect := Rect2()
+	var valid := false
+
+	func intersects(xf: Transform2D, area: Rect2, bounds: Rect2) -> bool:
+		if xf != transform or area != viewport_rect:
+			transform = xf
+			viewport_rect = area
+			valid = area.has_area() and not is_zero_approx(xf.determinant())
+			if valid:
+				local_rect = xf.affine_inverse() * area
+		return not valid or local_rect.intersects(bounds, true)
+
+
+var _main_view := ViewBounds.new()
+var _low_view := ViewBounds.new()
+
+
+func _strip_in_view(ci, bounds: Rect2, inherit_transform := false) -> bool:
+	var target: CanvasItem
+	if ci is BatchCanvas:
+		target = ci.g
+		if inherit_transform:
+			if not ci.active:
+				return true
+			bounds = ci.xf * bounds
+	else:
+		# 裸画布和未合批画布的 draw_set_transform 可被调用方直写，Godot 没有查询接口。
+		if inherit_transform:
+			return true
+		target = ci as CanvasItem
+	if target == null or not target.is_inside_tree():
+		return true
+	if _main_view.intersects(target.get_global_transform_with_canvas(), target.get_viewport_rect(), bounds):
+		return true
+	if g.optical_lo:
+		# 低分辨率层共享 World2D，画布平移取整、有额外边格；推镜时还可能保留较大的画布。
+		var low: SubViewport = g.optical.lo_vp
+		if low != null:
+			return _low_view.intersects(low.canvas_transform * target.get_global_transform(), low.get_visible_rect(), bounds)
+	return false
+
+
+## 镜像 / 旋转画完会重置 draw transform。跳过颜色提交也保留该副作用；原图缺失时原来就不会重置。
+func _reset_skipped_transform(ci, k: String) -> void:
+	if ci is BatchCanvas and ci.active and ci.xf == Transform2D.IDENTITY:
+		return
+	if _has_strip(k):
+		ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 ## 动画时钟（fps）：15 = 统一节拍
@@ -463,10 +555,28 @@ func _cuts(o, es: Array, t: int, n: int) -> void:
 		_push({"cut": true, "e": e, "t0": g.t, "gp": e.pos + Vector2(0, -float(e.r) * 0.55), "gy": float(e.pos.y) + 1.0, "d": tg, "x": t >= 2, "L": 9.0 + 2.0 * t + minf(6.0, float(e.r) * 0.25), "ly": "up", "oid": str(o.id), "k": ""})
 
 
+func items_for(owner: String) -> Array:
+	var owned = _items_by_owner.get(owner)
+	if owned == null:
+		owned = []
+		_items_by_owner[owner] = owned
+	return owned
+
+
+func _index_item(it: Dictionary) -> void:
+	items_for(str(it.oid)).append(it)
+	if str(it.ly) == "up":
+		_upright_items.append(it)
+
+
 func _push(it: Dictionary) -> void:
 	if items.size() >= ITEM_MAX:
-		items.pop_front()
+		var oldest: Dictionary = items.pop_front()
+		_items_by_owner[str(oldest.oid)].pop_front()
+		if str(oldest.ly) == "up":
+			_upright_items.pop_front()
 	items.append(it)
+	_index_item(it)
 
 
 ## 横扫 / 旋斩：立起层（刀光幕）+ 贴地层（接触阴影 + 水痕），同一个原点（脚底）
@@ -566,51 +676,62 @@ func _step() -> void:
 	_tex_evict()
 	var now: float = g.t
 	CUE.step(self)
-	items = items.filter(func(it): return now - float(it.t0) < (float(it.life) if it.has("life") else _life(str(it.k))) + 0.02 and not (it.has("ef") and it.ef.get("dead", false)))
-	for it in items:   # 卡肉（melee_impact.meat）：命中那一拍（第 1 帧）多停 stk 秒再接着扫
-		if it.has("stk") and frame_of(float(it.t0)) >= 2:
+	var tk := int(floor(now * 15.0))
+	var follow := tk != _fol_tick
+	_fol_tick = tk
+	var live = null   # 首次到期才复制此前的存活项；旧列表留给尚在遍历它的调用方。
+	var fps_cap := _life_fps() if not items.is_empty() else 0.0
+	for i in items.size():
+		var it: Dictionary = items[i]
+		var life: float = float(it.life) if it.has("life") else _life(str(it.k), fps_cap)
+		var alive: bool = now - float(it.t0) < life + 0.02 and not (it.has("ef") and it.ef.get("dead", false))
+		if not alive:
+			if live == null:
+				live = items.slice(0, i)
+			continue
+		if live != null:
+			live.append(it)
+		if it.has("stk") and frame_of(float(it.t0)) >= 2:   # 卡肉：先判寿命，再将首帧停顿计入时间。
 			it.t0 = float(it.t0) + float(it.stk)
 			it.erase("stk")
-	var tk: int = int(floor(g.t * 15.0))
-	if tk != _fol_tick:   # 跟人走的件：位置每拍（15 fps）跳一格，对齐美术像素格
-		_fol_tick = tk
-		for it in items:
-			if it.has("fol") and g.ppos != Vector2.INF:   # 举盾：跟着队长
-				it.gp = _snap(g.ppos + (it.fol as Vector2))
-			elif it.get("fop", false):   # 星熊挂在身上的件（月牙刀痕、下劈弧、力之锯起手弧）：存续期间跟着出手的干员（11-05 用户实机「斩击不跟着人走」）
-				var op = _op_by_id(str(it.oid))
-				if op != null and op.pos != Vector2.INF:
-					it.gp = _snap(op.pos)
-			elif it.has("fe") and not it.fe.dead:   # 德克萨斯钉剑：跟着被钉的敌人（只读位置）
-				it.gp = _snap(it.fe.pos)
-	if tk != _fopo_tick:   # 跟着施放者本人走的件（艾雅法拉咏唱火缕 / 火山喷柱 / 出手火光，docs/259）：位置每拍跳一格
-		_fopo_tick = tk
-		for it in items:
-			if it.has("fopo") and is_instance_valid(it.fopo) and it.fopo.pos != Vector2.INF:
-				var np: Vector2 = _snap(it.fopo.pos + (it.foff as Vector2))
-				if it.has("at"):
-					it.at = np
-				else:
-					it.gp = np
-	if tk != _fopl_tick:   # 挂在施放者身上的件（逻各斯笔光 / 字环，docs/258）：每拍（15 fps）跟到施放者当前脚底与朝向
-		_fopl_tick = tk
-		for it in items:
-			if it.has("fopl"):
-				var fo = it.fopl
-				if is_instance_valid(fo) and fo.pos != Vector2.INF:
-					it.gp = _snap(fo.pos)
-					it.flip = float(fo.face) < 0.0
-					if it.has("gy"):
-						it.gy = float(fo.pos.y) + 2.0
+		if not follow:
+			continue
+		if it.has("fol") and g.ppos != Vector2.INF:   # 举盾：跟着队长
+			it.gp = _snap(g.ppos + (it.fol as Vector2))
+		elif it.get("fop", false):   # 星熊挂在身上的件（月牙刀痕、下劈弧、力之锯起手弧）：存续期间跟着出手的干员（11-05 用户实机「斩击不跟着人走」）
+			var op = _op_by_id(str(it.oid))
+			if op != null and op.pos != Vector2.INF:
+				it.gp = _snap(op.pos)
+		elif it.has("fe") and not it.fe.dead:   # 德克萨斯钉剑：跟着被钉的敌人（只读位置）
+			it.gp = _snap(it.fe.pos)
+		if it.has("fopo") and is_instance_valid(it.fopo) and it.fopo.pos != Vector2.INF:
+			var np: Vector2 = _snap(it.fopo.pos + (it.foff as Vector2))
+			if it.has("at"):
+				it.at = np
+			else:
+				it.gp = np
+		if it.has("fopl"):
+			var fo = it.fopl
+			if is_instance_valid(fo) and fo.pos != Vector2.INF:
+				it.gp = _snap(fo.pos)
+				it.flip = float(fo.face) < 0.0
+				if it.has("gy"):
+					it.gy = float(fo.pos.y) + 2.0
+	if live != null:
+		items = live
 
 
-func _life(k: String) -> float:
+func _life_fps() -> float:
+	return minf(Bal.v("fx/px_plane_raw_fps", 12.8), clock())
+
+
+func _life(k: String, fps_cap: float) -> float:
 	if k == "":
 		return 3.0 / 15.0   # 斩痕 3 拍
 	var m: Dictionary = _meta(k)
 	if m.is_empty():
 		return 0.0
-	return float(m.n) / minf(minf(float(m.fps), Bal.v("fx/px_plane_raw_fps", 12.8)), clock()) + 0.07
+	return float(m.n) / minf(float(m.fps), fps_cap) + 0.07
 
 
 # ================================================================ 绘制
@@ -684,8 +805,8 @@ func draw_floor(o) -> void:
 		return
 	if o.skill_active_left(2) > 0.0:   # 涌潮悲歌持续期间：脚下一滩积水（循环，跟着人走）
 		_draw_strip(cv, "pool_gd", frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
-	for it in items:
-		if str(it.ly) == "gd" and str(it.oid) == id:
+	for it in items_for(id):
+		if str(it.ly) == "gd":
 			_draw_strip(cv, str(it.k), frame_of(float(it.t0)), _gp(it), it.flip, true)
 	_wall_spawn(o)
 	_draw_qi_wakes(o, cv)
@@ -741,8 +862,8 @@ func draw_over(o) -> void:
 		_smz()._h3mz_draw_jellies(o)   # 旧做法对照：深蓝之籽照原画法
 	if id == "logos":
 		_lg_draw_raw(o)
-	for it in items:
-		if str(it.ly) != "raw" or str(it.oid) != id:
+	for it in items_for(id):
+		if str(it.ly) != "raw":
 			continue
 		_draw_raw(cv, str(it.k), int((g.t - float(it.t0)) * Bal.v("fx/px_plane_raw_fps", 12.8)), it.gp, float(it.rot), float(it.sc))
 	if id == "logos":
@@ -770,10 +891,9 @@ static func sort_items(game) -> Array:
 	if r.mode() != 1:
 		return []
 	var out: Array = []
-	for it in r.items:
-		if str(it.ly) == "up":
-			it["skey"] = r._skey(it)   # 跟人 / 跟怪的件按当前位置排序（另存 skey，不动星熊地刺的 sk 偏移）
-			out.append(it)
+	for it in r._upright_items:
+		it["skey"] = r._skey(it)   # 跟人 / 跟怪的件按当前位置排序（另存 skey，不动星熊地刺的 sk 偏移）
+		out.append(it)
 	CUE.sort_items(r, out)
 	for o in game.squad.ops:
 		if IDS.has(str(o.id)) and o.pos != Vector2.INF:
@@ -1075,8 +1195,7 @@ func _wpos(w: Dictionary, store = null) -> Vector2:
 ## 一张帧条的一帧：1 帧条像素 = g.PX 世界像素（整数倍），原点对齐 2 像素格；不旋转（方向靠预生成 + 水平翻转）
 func _draw_strip(ci, k: String, fi: int, gp: Vector2, flip: bool, once: bool, mod := Color.WHITE, emit := true) -> void:
 	var m: Dictionary = _meta(k)
-	var tx: Texture2D = _tex(k)
-	if m.is_empty() or tx == null:
+	if m.is_empty():
 		return
 	var n: int = int(m.n)
 	if once and (fi < 0 or fi >= n):
@@ -1087,13 +1206,23 @@ func _draw_strip(ci, k: String, fi: int, gp: Vector2, flip: bool, once: bool, mo
 	var px: float = g.PX
 	var top: float = gp.y - float(m.oy) * px
 	var left: float = gp.x - (w - float(m.ox)) * px if flip else gp.x - float(m.ox) * px
+	var dst := Rect2(left, top, w * px, h * px)
+	if not _strip_in_view(ci, dst, not flip):
+		if flip:
+			_reset_skipped_transform(ci, k)
+		if emit and g.optical_on and _has_strip(k):
+			_emit(m, fi, dst.position, w, flip)
+		return
+	var tx: Texture2D = _tex(k)
+	if tx == null:
+		return
 	var src := Rect2(fi * w, 0.0, w, h)
 	if flip:   # 水平翻转用镜像变换，不用负宽矩形：负宽矩形在 GL 兼容渲染下整张往右错开一个帧宽（11-05 德克萨斯旋斩实测，发光点却在原位）
 		ci.draw_set_transform(Vector2(left + w * px, top), 0.0, Vector2(-1.0, 1.0))
 		ci.draw_texture_rect_region(tx, Rect2(Vector2.ZERO, Vector2(w * px, h * px)), src, mod)
 		ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	else:
-		ci.draw_texture_rect_region(tx, Rect2(Vector2(left, top), Vector2(w * px, h * px)), src, mod)
+		ci.draw_texture_rect_region(tx, dst, src, mod)
 	if emit:   # 残影 / 半透明副本可以不发光（docs/273 拉普兰德剑气残光，体检 emit 顶上限）
 		_emit(m, fi, Vector2(left, top), w, flip)
 
@@ -1106,7 +1235,11 @@ func _emit(m: Dictionary, fi: int, tl: Vector2, w: float, flip: bool) -> void:
 	if fr != _emit_frame:
 		_emit_frame = fr
 		_emit_n = 0
-	var pts: Array = m.emit[fi] if fi < m.emit.size() else []
+	if _emit_n >= EMIT_CAP or fi >= m.emit.size():
+		return
+	var pts: Array = m.emit[fi]
+	if pts.is_empty():
+		return
 	var px: float = g.PX
 	var k: float = Bal.v("fx/px_plane_emit", 0.8)
 	for q in pts:
@@ -1129,15 +1262,19 @@ func _hexc(s: String) -> Color:
 ## 旧做法：光晕烤进颜色的帧条，按判定半径小数缩放、旋转，中心对原点
 func _draw_raw(cv, k: String, fi: int, at: Vector2, rot: float, sc: float) -> void:
 	var m: Dictionary = _meta(k)
-	var tx: Texture2D = _tex(k)
-	if m.is_empty() or tx == null:
-		return
-	if fi < 0 or fi >= int(m.n):
+	if m.is_empty() or fi < 0 or fi >= int(m.n):
 		return
 	var w: float = float(m.w)
 	var h: float = float(m.h)
+	var rect := Rect2(-float(m.ox), -float(m.oy), w, h)
+	if not _strip_in_view(cv, Transform2D(rot, Vector2(sc, sc), 0.0, at) * rect):
+		_reset_skipped_transform(cv, k)
+		return
+	var tx: Texture2D = _tex(k)
+	if tx == null:
+		return
 	cv.draw_set_transform(at, rot, Vector2(sc, sc))
-	cv.draw_texture_rect_region(tx, Rect2(Vector2(-float(m.ox), -float(m.oy)), Vector2(w, h)), Rect2(fi * w, 0.0, w, h))
+	cv.draw_texture_rect_region(tx, rect, Rect2(fi * w, 0.0, w, h))
 	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
@@ -1289,8 +1426,8 @@ func _floor_hsg(o) -> void:
 		_draw_strip(cv, "hsg_sand%d_e%d_gd" % [rk, t], frame_of(0.0), _snap(f.pos), false, false, Color(1, 1, 1, fa))
 	if o.skill_active_left(2) > 0.0:
 		_draw_strip(cv, "hsg_s3aura_gd", frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
-	for it in items:
-		if str(it.ly) == "gd" and str(it.oid) == id:
+	for it in items_for(id):
+		if str(it.ly) == "gd":
 			_draw_strip(cv, str(it.k), frame_of(float(it.t0)), _gp(it), it.flip, true)
 	for bm in _booms(o):
 		_draw_strip(cv, "hsg_saw_gd", frame_of(0.0), _boom_gp(o, bm), false, false)
@@ -1598,8 +1735,8 @@ func _lm_beat_n(o, k: String) -> int:
 func _lm_draw_floor(o) -> void:
 	var cv = o.cv
 	var id: String = str(o.id)
-	for it in items:
-		if str(it.ly) != "gd" or str(it.oid) != id:
+	for it in items_for(id):
+		if str(it.ly) != "gd":
 			continue
 		if it.has("rt"):
 			_lm_draw_rt(cv, it)
@@ -1885,8 +2022,8 @@ func _lm_draw_raw(o) -> void:
 	var cv = o.cv
 	var id: String = str(o.id)
 	var rf: float = Bal.v("fx/px_plane_raw_fps", 12.8)
-	for it in items:
-		if str(it.ly) != "raw" or str(it.oid) != id:
+	for it in items_for(id):
+		if str(it.ly) != "raw":
 			continue
 		if str(it.get("rt", "")) == "rawcbolt":
 			var cu: float = clampf((g.t - float(it.t0)) / maxf(0.01, float(it.life)), 0.0, 1.0)
@@ -2121,8 +2258,8 @@ func _ev_logos(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictiona
 ## 贴地层：一次性件 + 运行时贴地件 + 状态件（咒域、提喻目标脚下墨环、铭文 / 墓志铭）
 func _lg_draw_floor(o) -> void:
 	var cv = o.cv
-	for it in items:
-		if str(it.ly) != "gd" or str(it.oid) != "logos":
+	for it in items_for("logos"):
+		if str(it.ly) != "gd":
 			continue
 		if it.has("lrt"):
 			_lg_draw_rt(cv, it)
@@ -2713,8 +2850,8 @@ func _lg_draw_raw(o) -> void:
 			for j in range(1, mm.size()):
 				if not mm[0].dead and not mm[j].dead:
 					cv.draw_line(mm[0].pos + Vector2(0, -10), mm[j].pos + Vector2(0, -10), Color(0.65, 0.53, 1.0, 0.8), 2.0)
-	for it in items:
-		if str(it.oid) == "logos" and str(it.ly) == "raw" and str(it.get("lrt", "")) == "rawline":
+	for it in items_for("logos"):
+		if str(it.ly) == "raw" and str(it.get("lrt", "")) == "rawline":
 			var u: float = (g.t - float(it.t0)) / maxf(0.01, float(it.life))
 			if u >= 0.0 and u <= 1.0:
 				cv.draw_line(it.a, (it.a as Vector2).lerp(it.b, u), Color(0.55, 0.6, 1.0, 0.9), 4.0)
@@ -2928,8 +3065,8 @@ func _ey_floor(o) -> void:
 		if key == "":
 			continue
 		_draw_strip(cv, key, frame_of(0.0) + int(l.get("pat", 0)) % 7, _snap(l.pos), false, false, Color(1, 1, 1, _ey_pool_a(l)))
-	for it in items:
-		if str(it.ly) != "gd" or str(it.oid) != id:
+	for it in items_for(id):
+		if str(it.ly) != "gd":
 			continue
 		if it.has("ert"):
 			_ey_draw_rt(cv, it)
@@ -3208,8 +3345,7 @@ static func _ey_squash(a: float, ln: float) -> Transform2D:
 
 func _ey_strip_rot(ci, k: String, fi: int, gp: Vector2, flip: bool, ang: float, bucket: float, ln := 1.0) -> void:
 	var m: Dictionary = _meta(k)
-	var tx: Texture2D = _tex(k)
-	if m.is_empty() or tx == null:
+	if m.is_empty():
 		return
 	fi = posmod(fi, int(m.n))
 	var w: float = float(m.w)
@@ -3226,9 +3362,18 @@ func _ey_strip_rot(ci, k: String, fi: int, gp: Vector2, flip: bool, ang: float, 
 	if ln < 1.0:   # 帧条局部坐标里沿火体主轴（vis 角）压短，锚点（弹头）不动
 		xf = xf * _ey_squash(deg_to_rad(vis), ln)
 	var tl := Vector2(-float(m.ox) * px, -float(m.oy) * px)
-	ci.draw_set_transform_matrix(xf)
-	ci.draw_texture_rect_region(tx, Rect2(tl, Vector2(w * px, h * px)), Rect2(fi * w, 0.0, w, h))
-	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	var rect := Rect2(tl, Vector2(w * px, h * px))
+	if _strip_in_view(ci, xf * rect):
+		var tx: Texture2D = _tex(k)
+		if tx == null:
+			return
+		ci.draw_set_transform_matrix(xf)
+		ci.draw_texture_rect_region(tx, rect, Rect2(fi * w, 0.0, w, h))
+		ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	else:
+		_reset_skipped_transform(ci, k)
+		if not g.optical_on or not _has_strip(k):
+			return
 	if not g.optical_on:
 		return
 	var fr: int = Engine.get_process_frames()
@@ -3307,8 +3452,8 @@ func _ey_draw_raw(o) -> void:
 	var id: String = str(o.id)
 	var rf: float = Bal.v("fx/px_plane_raw_fps", 12.8)
 	var lf: int = int(g.t * rf)
-	for it in items:
-		if str(it.ly) != "raw" or str(it.oid) != id:
+	for it in items_for(id):
+		if str(it.ly) != "raw":
 			continue
 		_draw_raw(cv, str(it.k), int((g.t - float(it.t0)) * rf), it.gp, float(it.rot), float(it.sc))
 	for l in o.hw.get("pools", []):
@@ -3321,8 +3466,8 @@ func _ey_draw_raw(o) -> void:
 			_draw_raw(cv, "ey_ball_%s_d0" % str(it.st), posmod(lf, 18), it.pos, (it.dir as Vector2).angle(), g.PX * 1.3)
 		elif str(it.get("ert", "")) == "burn":
 			_ey_draw_rt(cv, it)
-	for it in items:
-		if str(it.oid) == id and str(it.get("ert", "")) == "lrock" and it.get("raw", false):
+	for it in items_for(id):
+		if str(it.get("ert", "")) == "lrock" and it.get("raw", false):
 			_ey_draw_rt(cv, it)
 
 
@@ -3540,8 +3685,8 @@ func _floor_sg(o) -> void:
 	if o.hw.has("sg"):
 		for w in o.hw.sg.get("waves", []):   # 万兽之王号令波：帧号按波自己的年龄（0.4 秒扩满 + 0.25 秒淡掉）
 			_draw_strip(cv, "sg_cmd_gd", int(floor(float(w.t) * 15.0)), _snap(w.pos), false, true)
-	for it in items:
-		if str(it.ly) == "gd" and str(it.oid) == id:
+	for it in items_for(id):
+		if str(it.ly) == "gd":
 			_draw_strip(cv, str(it.k), frame_of(float(it.t0)), _gp(it), it.flip, true)
 	_sg_qi_track(o)
 
@@ -3833,8 +3978,8 @@ func _mz_draw_floor(o) -> void:
 		if rr <= 0.0:
 			rr = 162.0
 		_draw_strip(cv, "mz_pool_r%d_gd" % _mz_pick(rr * 0.5, [81, 104]), frame_of(0.0), _snap(o.pos + Vector2(0, 2)), false, false)
-	for it in items:
-		if str(it.ly) == "gd" and str(it.oid) == id:
+	for it in items_for(id):
+		if str(it.ly) == "gd":
 			if it.has("mzhot"):
 				_mz_hot(it)
 				continue
@@ -4534,8 +4679,8 @@ func _sk_draw_floor(o) -> void:
 			continue
 		var fa: float = clampf(float(s.t) / 0.5, 0.0, 1.0)
 		_sk_domain(cv, s.pos, _sk_r(o, "sm", szr) * fa, t, false, false, bt, 3.7, true)
-	for it in items:
-		if str(it.ly) == "gd" and str(it.oid) == id and it.has("skr"):
+	for it in items_for(id):
+		if str(it.ly) == "gd" and it.has("skr"):
 			_sk_draw_gd(cv, o, it)
 
 
@@ -4962,8 +5107,8 @@ func _sk_draw_raw(o) -> void:
 	var cv = o.cv
 	var id: String = str(o.id)
 	var rf: float = Bal.v("fx/px_plane_raw_fps", 12.8)
-	for it in items:
-		if str(it.ly) != "raw" or str(it.oid) != id:
+	for it in items_for(id):
+		if str(it.ly) != "raw":
 			continue
 		_draw_raw(cv, str(it.k), int((g.t - float(it.t0)) * rf), it.gp, float(it.rot), float(it.sc))
 ## 锤击落点亮芯：白闪那三拍（0.2 秒）在落点排一块十字形发光点（中心 4×4 美术像素、四臂各 1 格；号令一锤 / 碎颅大一圈），之后每拍缩一格、变暗
@@ -5185,7 +5330,7 @@ func _tx_cuts(o, es: Array, t: int, n: int) -> void:
 func _tx_rain(o, bl: Array, key: String, raw: bool, t: int) -> void:
 	if bl.is_empty():
 		return
-	var lf: float = _life(key + "_l0_up")
+	var lf: float = _life(key + "_l0_up", _life_fps())
 	var tm := 0.0
 	for b in bl:
 		tm = maxf(tm, float(b.d))
@@ -5351,7 +5496,7 @@ func _tx_rain_items(it: Dictionary, ground: bool) -> Array:
 	var out: Array = []
 	var key: String = it.key
 	var t0: float = float(it.t0)
-	var lf: float = _life(key + "_l0_up")
+	var lf: float = _life(key + "_l0_up", _life_fps())
 	for b in it.rain:
 		var ts: float = t0 + float(b.d)
 		if g.t < ts or g.t > ts + lf:
@@ -5366,8 +5511,8 @@ func _tx_rain_items(it: Dictionary, ground: bool) -> Array:
 
 func _tx_sort_items(o, out: Array) -> void:
 	var id: String = str(o.id)
-	for it in items:
-		if str(it.ly) == "rain" and str(it.oid) == id:
+	for it in items_for(id):
+		if str(it.ly) == "rain":
 			out.append_array(_tx_rain_items(it, false))
 	for qv in _tx_qi(o):
 		out.append({"k": qv.k + "_up_d%d" % qv.d, "fi": qv.f, "gp": qv.gp, "flip": qv.flip})
@@ -5378,9 +5523,7 @@ func _floor_tx(o) -> void:
 	var cv = o.cv
 	var id: String = str(o.id)
 	_tx_due()
-	for it in items:
-		if str(it.oid) != id:
-			continue
+	for it in items_for(id):
 		match str(it.ly):
 			"gd":
 				_draw_strip(cv, str(it.k), frame_of(float(it.t0)), _gp(it), it.flip, true)   # 挂在人身上的件（fo）按施放者当前位置
@@ -5400,10 +5543,13 @@ func _floor_tx(o) -> void:
 func _tx_draw_raw_lines(o) -> void:
 	var cv = o.cv
 	var m: Dictionary = _meta("tx_raw_line")
-	var tx: Texture2D = _tex("tx_raw_line")
-	if m.is_empty() or tx == null:
+	if m.is_empty():
 		return
-	for it in items:
+	var tx: Texture2D
+	var w: float = float(m.w)
+	var h: float = float(m.h)
+	var rect := Rect2(-float(m.ox), -float(m.oy), w, h)
+	for it in items_for(str(o.id)):
 		if str(it.ly) != "rawln" or str(it.oid) != str(o.id):
 			continue
 		var fi: int = int((g.t - float(it.t0)) * Bal.v("fx/px_plane_raw_fps", 12.8))
@@ -5411,10 +5557,18 @@ func _tx_draw_raw_lines(o) -> void:
 			continue
 		var a: Vector2 = it.a
 		var b: Vector2 = it.b
-		var w: float = float(m.w)
-		var h: float = float(m.h)
-		cv.draw_set_transform((a + b) * 0.5 + Vector2(0, -TX_H), (b - a).angle(), Vector2(a.distance_to(b) / w, g.PX * 1.37))
-		cv.draw_texture_rect_region(tx, Rect2(Vector2(-float(m.ox), -float(m.oy)), Vector2(w, h)), Rect2(fi * w, 0.0, w, h))
+		var pos := (a + b) * 0.5 + Vector2(0, -TX_H)
+		var rot := (b - a).angle()
+		var sc := Vector2(a.distance_to(b) / w, g.PX * 1.37)
+		if not _strip_in_view(cv, Transform2D(rot, sc, 0.0, pos) * rect):
+			_reset_skipped_transform(cv, "tx_raw_line")
+			continue
+		if tx == null:
+			tx = _tex("tx_raw_line")
+			if tx == null:
+				return
+		cv.draw_set_transform(pos, rot, sc)
+		cv.draw_texture_rect_region(tx, rect, Rect2(fi * w, 0.0, w, h))
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 

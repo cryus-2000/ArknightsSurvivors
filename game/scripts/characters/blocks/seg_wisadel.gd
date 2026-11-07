@@ -202,10 +202,13 @@ static func _h4_wd_target(o, a: Dictionary, reach: float) -> Dictionary:
 	var best: Dictionary = cands[0]
 	var most := -1
 	var slack: float = float(a.get("slack", 40.0))
+	if cands.size() == 1 or cands[1].pos.distance_to(g.ppos) - d0 > slack:
+		return best   # 按原候选顺序，第二个已超出距离差时，密度无法改变结果
+	var radius := _h4_wd_aoe(o, a)
 	for e in cands:
 		if e.pos.distance_to(g.ppos) - d0 > slack:
 			break
-		var n := _h4_count_around(o, e.pos, _h4_wd_aoe(o, a))
+		var n := _h4_count_around(o, e.pos, radius)
 		if n > most:
 			most = n
 			best = e
@@ -448,6 +451,7 @@ static func _h4wd_tick(o, wd: Dictionary, dt: float) -> void:
 	var a: Dictionary = o.B.get("attack", {})
 	_wstat_tick(o, wd)
 	# 炮弹
+	var shell_expired := false
 	for s in wd.shells:
 		s.t += dt
 		s.trail -= dt
@@ -460,6 +464,7 @@ static func _h4wd_tick(o, wd: Dictionary, dt: float) -> void:
 			if s.hist.size() > 9:
 				s.hist.pop_front()
 		if s.t >= s.dur:
+			shell_expired = true
 			wd["pxk"] = str(s.get("pxk", ""))   # 转平面（docs/274）：画面专用（S1 强化炮），玩法不读
 			_h4_explode(o, a, s.to, s.dmg, s.r, s.src, 0, s.stun, s.light, false, str(s.kind), s.get("mark_c", null))
 			wd["pxk"] = ""
@@ -477,20 +482,27 @@ static func _h4wd_tick(o, wd: Dictionary, dt: float) -> void:
 				if not ec.is_empty():
 					wd.quakes.append({"pos": s.to, "t": qt + float(ec.get("delay", 0.3)), "dmg": qd * float(ec.get("mult", 1.0)),
 						"r": s.r * float(a.get("quake_r", 1.2)) * float(ec.get("size", 1.25)), "rings": s.rings, "stun": qs, "echo": true})
-	wd.shells = wd.shells.filter(func(s): return s.t < s.dur)
+	if shell_expired:
+		wd.shells = wd.shells.filter(func(s): return s.t < s.dur)
+	var quake_expired := false
 	for q in wd.quakes:
 		q.t -= dt
 		if q.t <= 0.0:
+			quake_expired = true
 			_h4_explode(o, a, q.pos, q.dmg, q.r, str(a.get("quake_src", "")), 0, q.stun, false, q.rings, "quake")
 			if q.get("echo", false):   # 余响：第二次余震是紫灰色、向内收（区别于第一次余震，docs/310 §4.3）
 				ncue(o, {"p": q.pos, "shape": "in", "r": float(q.r) * 1.1, "c": Color(0.68, 0.55, 0.85), "n": 8, "life": 0.4})
-	wd.quakes = wd.quakes.filter(func(q): return q.t > 0.0)
+	if quake_expired:
+		wd.quakes = wd.quakes.filter(func(q): return q.t > 0.0)
 	var sh: Dictionary = a.get("shade", {})
+	var shade_expired := false
 	for sd in wd.shades:
 		sd.t -= dt
 		if sd.t <= 0.0:
+			shade_expired = true
 			_h4_explode(o, a, sd.pos, sd.dmg, sd.r, str(sh.get("src", "")), sd.depth, float(sh.get("stun", 0.6)), false, false, "shade")
-	wd.shades = wd.shades.filter(func(sd): return sd.t > 0.0)
+	if shade_expired:
+		wd.shades = wd.shades.filter(func(sd): return sd.t > 0.0)
 	# 残影标记
 	if not wd.marks.is_empty():
 		for k in wd.marks.keys():
@@ -704,14 +716,16 @@ static func _h4_souls_sync(o, a: Dictionary, tgt: Dictionary) -> void:
 	if fc.is_empty():
 		return
 	var wd := _h4wd(o)
-	var spread: float = float(fc.get("spread", 120.0)) * o.stat(&"op_range")
-	var near: Array = o.nearest_enemies(8, spread, tgt.pos)
+	var near: Array = _EA
 	var taken: Array = [tgt.id]
 	var q := 0
 	for k in wd.souls.size():
 		var s: Dictionary = wd.souls[k]
 		if float(s.get("ft", -1.0)) >= 0.0 or float(s.get("fq", -1.0)) >= 0.0:
 			continue
+		if q == 0:
+			var spread: float = float(fc.get("spread", 120.0)) * o.stat(&"op_range")
+			near = o.nearest_enemies(8, spread, tgt.pos)
 		var pick: Dictionary = tgt
 		for e in near:
 			if not e.dead and not e.get("chest", false) and not wd.marks.has(e.id) and not taken.has(e.id):

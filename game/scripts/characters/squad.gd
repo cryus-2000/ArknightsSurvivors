@@ -1443,6 +1443,12 @@ func _pfx_cap_plan() -> void:
 		_pcap = int(Bal.v("render/pfx_cap", 30.0))
 	if _pcap <= 0:
 		return
+	# 全部粒子都不超过上限时，免逐粒读取 floor / kind 等字段。
+	var all_particles := 0
+	for o in ops:
+		all_particles += o.pfx.size()
+	if all_particles <= _pcap:
+		return
 	var ns: Array = []
 	var tot := 0
 	for o in ops:

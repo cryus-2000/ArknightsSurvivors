@@ -1344,9 +1344,9 @@ static func _mf_mod_empty() -> Dictionary:
 
 
 static func mf_mods(o, kind: String) -> Dictionary:
-	if o.mf.is_empty():
-		return _mf_mod_empty()
-	return o.mf.mods.get(kind, _mf_mod_empty())
+	if not o.mf.is_empty() and o.mf.mods.has(kind):
+		return o.mf.mods[kind]
+	return _mf_mod_empty()
 
 
 ## 每帧开头（data_operator.update）：限时减伤计时、trig.on_deploy、带 at 的 trig.on_skill_end（prev = 上一帧的技能剩余秒数）

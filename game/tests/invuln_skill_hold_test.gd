@@ -13,6 +13,11 @@ class HoldOp extends "res://scripts/characters/data_operator.gd":
 	func _release_skill() -> void:
 		casts += 1
 		super()
+class IndicatorOp extends HoldOp:
+	var picks := 0
+	func nearest_enemies(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> Array:
+		picks += 1
+		return super(n, max_dist, origin)
 const OPS := ["exusiai", "texas", "lappland", "skadi", "mizuki", "eyjafjalla"]
 const DT := 1.0 / 60.0
 var g
@@ -34,6 +39,7 @@ func _ready() -> void:
 		run_one(id, false, 1.0)
 	run_one("exusiai", true, 1.0)    # 队长：非手动的自动技能同样暂缓
 	run_one("texas", false, 0.0)     # 开关关掉 = 旧行为（无敌期照放）
+	check_indicator()
 	print("INVULN SKILL HOLD checks=%d failures=%d" % [checks, failures])
 	g.queue_free()
 	get_tree().quit(1 if failures else 0)
@@ -88,3 +94,22 @@ func run_one(id: String, leader: bool, sw: float) -> void:
 	print("HOLD %s: attacks=%d casts=%d released_after=%.2fs" % [tag, o.attacks, o.casts, t_cast])
 	boss.dead = true
 	Bal._data.erase("combat")
+
+
+func check_indicator() -> void:
+	g.enemies.clear()
+	g.bosses.clear()
+	var o := IndicatorOp.new(g, Ch.load_def("exusiai").duplicate(true))
+	o.is_leader = true
+	o.elite = 2
+	o.pos = g.ppos
+	g.enemies_sys.build_grid()
+	o.picks = 0
+	ok(not o.invuln_only(0) and o.picks == 1, "empty range stays unlocked after one selection")
+	var boss: Dictionary = g.spawner.spawn_enemy("paranoia", g.ppos + Vector2(110, 0))
+	boss.invuln = true
+	g.enemies_sys.build_grid()
+	ok(o.invuln_only(0) and o.picks == 2, "invulnerable-only range locks after one selection")
+	g.spawner.spawn_enemy("bone", g.ppos + Vector2(40, 0))
+	g.enemies_sys.build_grid()
+	ok(not o.invuln_only(0) and o.picks == 3, "hittable enemy clears the lock after one selection")

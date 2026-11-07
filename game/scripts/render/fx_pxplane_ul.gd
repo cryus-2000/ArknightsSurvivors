@@ -235,8 +235,8 @@ static func floor_layer(r, o) -> void:
 		_telegraph(r, cv, o, an5)
 	if o.get("perm_on") is Array and o.perm_on[1]:   # S2 常驻：脚下一圈实心链环慢慢转
 		_ring(r, cv, r._snap(o.pos + Vector2(0, 2)), S2_RING, float(int(floor(g.t * 15.0))) * 0.02, 0, t)
-	for it in r.items:
-		if str(it.ly) != "gd" or str(it.oid) != id:
+	for it in r.items_for(id):
+		if str(it.ly) != "gd":
 			continue
 		if it.has("ulrt"):
 			match str(it.ulrt):
@@ -317,8 +317,8 @@ static func over(r, o) -> void:
 		var tight: bool = e.pos.distance_to(o.pos) >= float(l.r) * o.stat(&"op_range") - 3.0
 		chain(r, o.cv, hand, e.pos + Vector2(0, -float(e.r) * 0.5), 1 if tight else 0, t, not tight)
 	SU.hw_draw_mute(o, false)   # 沉默图标是状态提示，照画（拴链由上面画）
-	for it in r.items:
-		if str(it.get("ulrt", "")) == "link" and str(it.oid) == str(o.id):
+	for it in r.items_for(str(o.id)):
+		if str(it.get("ulrt", "")) == "link":
 			_draw_link(r, o, it)
 
 

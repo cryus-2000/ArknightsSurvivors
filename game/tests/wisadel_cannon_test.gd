@@ -47,6 +47,7 @@ func _process(_dt: float) -> void:
 		check(not op.pfx.is_empty(), "missing texture procedural fallback")
 		g.tex["fx_wisadel_cannon"] = saved
 		g.tex["fx_wd_cannon_nr"] = saved_nr
+		check_density_target(op, OB)
 	print("WISADEL CANNON failures=", failures)
 	op = null
 	g.queue_free()
@@ -60,3 +61,20 @@ func _process(_dt: float) -> void:
 			player.queue_free()
 	await get_tree().create_timer(0.2, true, false, true).timeout
 	get_tree().quit(0 if failures == 0 else 1)
+
+
+func check_density_target(op, blocks) -> void:
+	g.enemies.clear()
+	g.bosses.clear()
+	g.frame_n += 1
+	op.pos = g.ppos
+	var first: Dictionary = g.spawner.spawn_enemy("bone", g.ppos + Vector2(-100, 0))
+	var spec := {"aoe": 35.0, "slack": 5.0}
+	g.enemies_sys.build_grid()
+	check(is_same(blocks._h4_wd_target(op, spec, 200.0), first), "single cannon target")
+	var second: Dictionary = g.spawner.spawn_enemy("bone", g.ppos + Vector2(103, 0))
+	g.spawner.spawn_enemy("bone", g.ppos + Vector2(118, 0))
+	g.enemies_sys.build_grid()
+	check(is_same(blocks._h4_wd_target(op, spec, 200.0), second), "denser cannon target inside distance slack")
+	spec.slack = 2.0
+	check(is_same(blocks._h4_wd_target(op, spec, 200.0), first), "denser cannon target outside slack is ignored")

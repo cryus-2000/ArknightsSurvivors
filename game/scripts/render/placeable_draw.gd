@@ -351,6 +351,8 @@ func _sy() -> float:
 # ---------------- 敌人之下 ----------------
 
 func draw_ground(rfx) -> void:
+	if scorches.is_empty() and rfx.mines.is_empty() and rfx.bombs.is_empty() and rfx.stakes.is_empty():
+		return
 	var cv: CanvasItem = g.wcv
 	var off: Vector2 = g.draw_off
 	var sy := _sy()
@@ -394,6 +396,8 @@ func draw_ground(rfx) -> void:
 # ---------------- 敌人之上 ----------------
 
 func draw_upper(rfx) -> void:
+	if booms.is_empty() and rfx.mines.is_empty() and rfx.bombs.is_empty() and rfx.stakes.is_empty():
+		return
 	var cv: CanvasItem = g.wcv
 	var off: Vector2 = g.draw_off
 	var t: float = g.t
