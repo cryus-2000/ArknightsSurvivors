@@ -111,7 +111,7 @@ var autotest_sys = load("res://scripts/run/autotest.gd").new(self) if OS.is_debu
 var demo_sys = DemoRun.new(self)   # 图鉴攻击演示 / 精英化演出（gallery.gd 把 game.tscn 以 demo_op 模式放进 SubViewport）
 var spawner = Spawner.new(self)   # 刷怪
 var shop_sys = ShopSys.new(self)   # 商人与商店（逻辑）
-var web_focus = preload("res://scripts/web_focus.gd").new()   # 失焦保护（docs/314）：清按住状态、网页版自动暂停、回来把焦点还给画布
+var web_focus = preload("res://scripts/web_focus.gd").new()   # 失焦保护（docs/317）：清按住状态、网页版自动暂停、回来把焦点还给画布
 var web_fs = preload("res://scripts/web_fs.gd").new()   # 网页版全屏与 Esc（docs/299）：退出全屏当暂停、P 键暂停、暂停菜单「返回全屏」；只在网页版桌面生效
 var beacon_sys = Beacon.new(self)  # 引航灯标：站桩点燃、驱散溟痕（run/beacon.gd，docs/49d §13.5 C）
 var weapons_sys = WeaponsSys.new(self)   # 子弹与支援装置
@@ -1540,7 +1540,7 @@ func mobile_cap() -> bool:
 
 func _notification(what: int) -> void:
 	if web_focus != null and web_focus.g != null:
-		web_focus.notify(what)   # 失焦通知（所有平台）→ 清按住状态（docs/314）
+		web_focus.notify(what)   # 失焦通知（所有平台）→ 清按住状态（docs/317）
 
 
 func _process(delta: float) -> void:
@@ -1550,7 +1550,7 @@ func _process(delta: float) -> void:
 	if not is_inside_tree():
 		return   # 演示局结束等处当帧换场景：已离树就不再跑这一帧（11-04 教程结束闪退）
 	tour.update(delta)   # 聚光框引导 / 到点小提示：真实帧间隔（screens/tour.gd）
-	web_focus.poll(delta)   # 失焦保护（docs/314）
+	web_focus.poll(delta)   # 失焦保护（docs/317）
 	web_fs.poll(delta)   # 网页版：局内退出全屏（多半是按了 Esc）→ 打开暂停菜单（docs/299）
 	pick.update(delta)
 	wheel.update(delta)   # 指挥圆盘：真实帧间隔（悬停 / 松开判定 / 测试计划）
