@@ -214,6 +214,7 @@ func _leader_kick(h: Dictionary, e: Dictionary, tier: int) -> void:
 var _hr_list: Array = []   # [敌人, 优先级]
 var _hr_ops := {}
 var _hr_ops_f := -1
+var _hr_prune_f := -1
 var lead_hit_dir := Vector2.ZERO
 var lead_hit_t := -10.0
 func lead_mark(e: Dictionary) -> void:
@@ -439,8 +440,14 @@ func _hr_admit(e: Dictionary, prio: float) -> bool:
 	if g.world != null and g.world.late_k > 0.0:
 		cap *= lerpf(1.0, Bal.v("fx/hit_react_late", 0.5), g.world.late_k)
 	var capi: int = maxi(1, int(cap))
-	if _hr_list.size() >= capi:
-		_hr_list = _hr_list.filter(func(x): return float(x[0].get("hr_until", -1.0)) > now and not x[0].get("dead", false))
+	if _hr_list.size() >= capi and _hr_prune_f != Engine.get_process_frames():   # 满了每帧至多清一次过期（原地压缩，不建新数组）
+		_hr_prune_f = Engine.get_process_frames()
+		var w := 0
+		for x in _hr_list:
+			if float(x[0].get("hr_until", -1.0)) > now and not x[0].get("dead", false):
+				_hr_list[w] = x
+				w += 1
+		_hr_list.resize(w)
 	if _hr_list.size() < capi:
 		_hr_list.append([e, prio])
 		e.hr_until = now + t
