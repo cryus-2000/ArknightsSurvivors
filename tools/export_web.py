@@ -20,7 +20,7 @@
 解压拼回（见该文件注释）。托管平台单文件上限 25 MB（EdgeOne / Cloudflare Pages），导出后逐个检查。
 不发布、不上传：部署命令见 docs/22。
 """
-import argparse, datetime, glob, gzip, io, json, lzma, os, shutil, subprocess, sys, tarfile
+import argparse, datetime, glob, gzip, io, json, lzma, os, re, shutil, subprocess, sys, tarfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import release_slim
@@ -135,6 +135,7 @@ def main():
     if not a.no_lossless:
         woff2_fonts(gpath, [r[0] for r in font_rows])
         webp_max(gpath)
+        script_text_export(gpath)
     if not a.no_web_lossy:
         web_lossy_assets(gpath)
     # 网页包专用音频再压缩（tools/web_audio.py，docs/121 §4）：只改打包副本，桌面包与仓库不动；--audio-tier off 关闭
@@ -258,7 +259,66 @@ def webp_max(gpath):
     print("[瘦身] 贴图 WebP 无损压缩力度：方法 6 / 系数 100", flush=True)
 
 
-CG_LOSSY_Q = 0.85    # 事件插画网页版（art/event_cg/web）有损 WebP 质量：源图本来就是有损 WebP，按无损导入反而翻倍（docs/187 §8）
+def strip_line_comments(src):
+    """去掉 GDScript 的整行注释（首个非空白字符是 #，且不在三引号字符串里），换成空行——行号不变，报错行号对得上。
+    行尾注释、字符串内容一律不动"""
+    out, q = [], None
+    for ln in src.split("\n"):
+        if q is None and ln.lstrip().startswith("#"):
+            out.append("")
+            continue
+        out.append(ln.rstrip() if q is None else ln)
+        i = 0
+        while i < len(ln):
+            if q is None and ln[i] == "#":
+                break   # 行尾注释（之后的三引号不算）
+            if q is None and ln[i] in "\"'" and ln[i:i + 3] not in ('"""', "'''"):
+                c = ln[i]; i += 1   # 单行字符串：跳到配对引号
+                while i < len(ln) and ln[i] != c:
+                    i += 2 if ln[i] == "\\" else 1
+                i += 1
+                continue
+            t = ln[i:i + 3]
+            if t in ('"""', "'''") and (q is None or q == t):
+                q = t if q is None else None
+                i += 3
+                continue
+            if q is not None and ln[i] == "\\":
+                i += 2
+                continue
+            i += 1
+    return "\n".join(out)
+
+
+def script_text_export(gpath):
+    """网页包脚本按源码导出（Web 预设 script_export_mode 2 → 0），并去掉整行注释（docs/309）。
+    11-07 实测 Toy 包：压缩二进制令牌逐个脚本各压一遍，合计 4.87 MiB，整包 gzip 压不动；不压缩令牌 17.6 MiB、整包 gzip 后 5.03 MiB 更大；
+    源码去整行注释后整包 gzip 约 2 MiB。令牌模式加载时同样要解析 + 编译，只省了分词，运行行为与加载开销基本一样"""
+    p = os.path.join(gpath, "export_presets.cfg")
+    with open(p, encoding="utf-8") as fh:
+        txt = fh.read()
+    # 各段以「[preset.N]」/「[preset.N.options]」开头；script_export_mode 在 [preset.N] 段里，同段有 name="Web"
+    parts = re.split(r"(?m)^(?=\[preset\.)", txt)
+    k = next((n for n, sec in enumerate(parts) if re.match(r"\[preset\.\d+\]\n", sec) and '\nname="Web"\n' in sec), -1)
+    if k < 0:
+        sys.exit("export_presets.cfg 里找不到 Web 预设")
+    if "script_export_mode=2\n" not in parts[k]:
+        sys.exit("Web 预设里没有 script_export_mode=2（预设改过？）")
+    parts[k] = parts[k].replace("script_export_mode=2\n", "script_export_mode=0\n", 1)
+    with open(p, "w", encoding="utf-8", newline="\n") as fh:
+        fh.write("".join(parts))
+    before = after = 0
+    for f in glob.glob(os.path.join(gpath, "**", "*.gd"), recursive=True):
+        with open(f, encoding="utf-8") as fh:
+            src = fh.read()
+        dst = strip_line_comments(src)
+        before += len(src.encode("utf-8")); after += len(dst.encode("utf-8"))
+        with open(f, "w", encoding="utf-8", newline="\n") as fh:
+            fh.write(dst)
+    print("[瘦身] 网页包脚本按源码导出、去整行注释：%.2f → %.2f MiB（未压缩）" % (before / 1048576, after / 1048576), flush=True)
+
+
+CG_LOSSY_Q = 0.85   # 事件插画网页版（art/event_cg/web）有损 WebP 质量：源图本来就是有损 WebP，按无损导入反而翻倍（docs/187 §8）
 SFX_MAX_HZ = 32000   # 音效采样率上限：只对 16 kHz 以上能量 < 3% 的文件设，QOA 体积按采样数线性下降（docs/187 §8）
 SFX_HF_MAX = 0.03
 # 按类别的音效采样率上限（11-06 用户「先去做语音和音效降采样」，Toy 50 MB 线）：细碎音效 22.05 kHz，
