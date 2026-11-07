@@ -215,6 +215,16 @@ var _hr_list: Array = []   # [敌人, 优先级]
 var _hr_ops := {}
 var _hr_ops_f := -1
 var _hr_prune_f := -1
+var _hr_sp_t := -1.0
+
+
+## 无档命中火星限频（同原 GPU 迸溅 hit_spark 的 SPARK_GAP 口径）：每 hit_react_gap 秒（真实时间）至多一把，颗数不比原来多
+func _hr_spark_ok() -> bool:
+	var now: float = Time.get_ticks_msec() / 1000.0
+	if now - _hr_sp_t < Bal.v("fx/hit_react_gap", 0.05):
+		return false
+	_hr_sp_t = now
+	return true
 var lead_hit_dir := Vector2.ZERO
 var lead_hit_t := -10.0
 func lead_mark(e: Dictionary) -> void:
@@ -335,12 +345,13 @@ func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}, dmg :
 				arc.ang = ((e.pos as Vector2) - (arc.org as Vector2)).angle()   # 宽扇形 / 360°：月牙只画在第一个被打中的敌人那一侧
 				arc.aimed = true
 	elif not dot and _hr_on() and g.optical_on and g.optical.grains != null and g.optical.grains.on() and not g.optical.grains.off and (e.pos as Vector2).distance_to(g.ppos) < 700.0:
-		# 受击反应第 1 档：普通（无档）命中的火星也沿出手方向一小把扇面、干员本人色（原来是限频的白色放射 GPU 迸溅，颗数同量级）
-		var c0: Color = _op_col(h)
-		if not is_lead_hit(h) and g.world.mate_on:
-			c0 = g.world.mate_col(c0)
-			c0.a = g.world.mate_dim
-		g.optical.grains.spark(e.pos + Vector2(0, -float(e.get("r", 12.0)) * 0.6), (e.pos as Vector2).y + float(e.get("r", 12.0)) * 0.8, c0, Bal.vi("fx/hit_react_n0", 3), hit_dir(e, h))
+		# 受击反应第 1 档：普通（无档）命中的火星也沿出手方向一小把扇面、干员本人色（原来是限频的白色放射 GPU 迸溅，同样限频、颗数同量级）
+		if _hr_spark_ok():
+			var c0: Color = _op_col(h)
+			if not is_lead_hit(h) and g.world.mate_on:
+				c0 = g.world.mate_col(c0)
+				c0.a = g.world.mate_dim
+			g.optical.grains.spark(e.pos + Vector2(0, -float(e.get("r", 12.0)) * 0.6), (e.pos as Vector2).y + float(e.get("r", 12.0)) * 0.8, c0, Bal.vi("fx/hit_react_n0", 3), hit_dir(e, h))
 	elif g.optical_on and g.optical.particles != null and not dot:
 		g.optical.particles.hit_spark(e.pos + Vector2(0, -e.r * 0.6), Color(1.0, 0.95, 0.85) if not (crit or weak) else Color(1.0, 0.8, 0.35))   # 光学观感原型：命中迸溅（限频，纯画面）
 	# 受击后坐（docs/53，纯画面）：本体沿「远离主控」的方向顶开 fx/recoil_px，fx/recoil_t 秒内回位；技能 / 暴击 / 弱点 ×fx/recoil_skill_k。
