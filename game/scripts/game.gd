@@ -423,6 +423,8 @@ var foe_top: Node2D   # 敌方顶层（docs/226 §1，render/foe_top）：敌弹
 var wcv: CanvasItem = self   # 世界绘制当前提交到的画布：平时是 game 自己，敌方顶层那一遍是 foe_top（render/*.gd 一律画到 g.wcv）
 var settings: Control
 var ui_layer: CanvasLayer   # 界面层（HUD / 面板 / 设置）：触屏时整体放大 Cfg.ui_k
+var feedback_view: Control = null   # 结算「反馈」浮层（screens/feedback_view.gd，第一次点时建）；开着时局内 _input 让开
+var run_wall_ms := Time.get_ticks_msec()   # 本局开始的真实时刻（反馈码的局时）
 var result_btns: Array = []   # [Rect2, action]
 var pause_btn := Rect2()      # 右上角暂停按钮（仅游戏中可点）
 # ---- 手柄 / 键盘焦点（docs/28）：选卡 / 商店的卡片焦点、暂停与结算按钮焦点
@@ -1267,6 +1269,16 @@ func _ui_fit() -> void:
 		Cfg.ui_fill(c)
 
 
+## 结算「反馈」（docs/311）：盖在界面层最上面，复制带本局摘要的反馈码，再去问卷 / B站视频评论区
+func open_feedback(summary: Dictionary) -> void:
+	if feedback_view == null:
+		feedback_view = preload("res://scripts/screens/feedback_view.gd").new()
+		ui_layer.add_child(feedback_view)
+	Cfg.ui_fill(feedback_view)
+	ui_layer.move_child(feedback_view, -1)
+	feedback_view.open(summary)
+
+
 ## 手机横屏正文字号放大（用户 10-13，UI.fk / UI.fs）：局内界面层在 Cfg.phone_ui() 时乘 balance.json ui/phone_font_mult；
 ## 离开局内（_exit_tree）恢复 1，标题页不受影响。演示局（demo_op：图鉴、精英化演出的实机小窗）不改它（UI.fk 是全局静态量）
 func _font_k() -> void:
@@ -1659,7 +1671,7 @@ func _input(event: InputEvent) -> void:
 		return
 	if event is InputEventMouseMotion and event.relative.length() > 6.0:
 		kb_nav = false
-	if settings.visible:
+	if settings.visible or (feedback_view != null and feedback_view.visible):
 		return
 	# Result owns terminal input before stale combat touch regions can consume it.
 	if settlement.active() and not run_stats.open and not run_log.open and not headhunt.open and (state == S.WIN or state_age >= HudView.DEATH_T + 0.35):

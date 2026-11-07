@@ -1402,5 +1402,10 @@
   "exu_hv_cd": 4.0,
   "exu_hv_stun": 1.0,
   "exu_hv_mult": 2.0
+ },
+ "feedback": {
+  "_doc": "玩家反馈入口（docs/311，11-07 用户批）：form_url = itch / 桌面 / itch 网页的问卷链接（https://…）；toy_bv = B站 Toy 里跳转的作者视频 BV 号（toy.navigate 去评论区，Toy 不跳站外）。留空 = 该平台不显示「反馈」按钮",
+  "form_url": "",
+  "toy_bv": ""
  }
 }
