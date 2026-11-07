@@ -114,6 +114,7 @@ func _process(_dt: float) -> bool:
 		return false
 	# 升级面板：打开后暂停、等卡片入场排好再截，然后恢复（机器人随后照常选卡）
 	if lv_wait >= 0:
+		load("res://scripts/ui_motion.gd").advance(1.0 / 60.0)   # 暂停时界面时钟也停：不推的话卡片透明度一直是 0（11-07 两轮只截到标题）
 		g.panel_ui.animate_cards(1.0 / 60.0)   # 卡片淡入 / 入场在 game._process 里推进，暂停时手动推；错开入场按真实时间算，等 0.9 秒
 		lv_wait += 1
 		if Time.get_ticks_msec() - lv_ms > 900 and lv_wait > 70:   # 云端软件渲染约 3 帧 / 秒：只按真实时间等会在卡片还没入场时就截
@@ -210,7 +211,7 @@ func _process(_dt: float) -> bool:
 	for o in g.squad.ops:
 		if g.lamp < 40.0:
 			break   # 灯火快灭时画面整片压暗，不截
-		if o.id == "skadi" and float(o.get("tide", 0.0)) > 0.0 and not (o.get("waves", []) as Array).is_empty():
+		if o.id == "skadi" and o.get("tide") != null and float(o.get("tide")) > 0.0 and o.get("waves") != null and not (o.get("waves") as Array).is_empty():
 			_shot("ult", 100 + _enemies_on_screen())
 	for f in g.fx:
 		if f.get("name", "") == "fx_mizuki_tentacle_mass" and float(f.max) - float(f.life) > 0.1 and float(f.max) - float(f.life) < 0.35:
