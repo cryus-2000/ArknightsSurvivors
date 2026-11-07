@@ -1,0 +1,29 @@
+B rc=0 2146s
+  seg_01_beacon_t164.2 222 帧 rc=0
+SCRIPT ERROR: Invalid operands 'String' and 'bool' in operator '=='.
+          at: _process (/work/repo/tools/promo/pv_rec.gd:279)
+          GDScript backtrace (most recent call first):
+              [0] _process (/work/repo/tools/promo/pv_rec.gd:279)
+SCRIPT ERROR: Invalid operands 'String' and 'bool' in operator '=='.
+          at: _process (/work/repo/tools/promo/pv_rec.gd:279)
+          GDScript backtrace (most recent call first):
+              [0] _process (/work/repo/tools/promo/pv_rec.gd:279)
+SCRIPT ERROR: Invalid operands 'String' and 'bool' in operator '=='.
+          at: _process (/work/repo/tools/promo/pv_rec.gd:279)
+          GDScript backtrace (most recent call first):
+              [0] _process (/work/repo/tools/promo/pv_rec.gd:279)
+SCRIPT ERROR: Invalid operands 'String' and 'bool' in operator '=='.
+          at: _process (/work/repo/tools/promo/pv_rec.gd:279)
+          GDScript backtrace (most recent call first):
+              [0] _process (/work/repo/tools/promo/pv_rec.gd:279)
+SCRIPT ERROR: Invalid operands 'String' and 'bool' in operator '=='.
+          at: _process (/work/repo/tools/promo/pv_rec.gd:279)
+          GDScript backtrace (most recent call first):
+              [0] _process (/work/repo/tools/promo/pv_rec.gd:279)
+total 15236
+drwxr-xr-x 2 root root     4096 Nov  7 18:52 .
+drwxr-xr-x 4 root root     4096 Nov  7 18:17 ..
+-rw-r--r-- 1 root root   487175 Nov  7 18:52 B_godot.log
+-rw-r--r-- 1 root root    47139 Nov  7 18:52 B_pv.log
+-rw-r--r-- 1 root root 15048688 Nov  7 18:52 B_seg_01_beacon_t164.2.mp4
+-rw-r--r-- 1 root root     4347 Nov  7 18:52 B_seg_01_beacon_t164.2.sfx.json
