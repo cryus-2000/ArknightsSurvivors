@@ -46,6 +46,12 @@ RUNS = {
                     "--bal=ult/test_skill_at=244", "--bal=ult/test_skill_idx=2", "--bal=ult/test_skill_every=6"],
               rtfrom=238, maxt=272, pv=["--pv_win=240-271"]),
 }
+# 备选：同样的镜头换种子 / 换阵容多录一份
+import copy as _cp
+for _k, _seed, _extra in [("E", 31, []), ("H", 32, []), ("S", 33, ["--forceboss=2"]), ("L", 34, []), ("UA", 35, []), ("UW", 36, []), ("UK", 37, []), ("F", 38, ["--forceending=deep"])]:
+    _r = _cp.deepcopy(RUNS[_k])
+    _r["args"] = [a for a in _r["args"] if not a.startswith("--seed=") and not (a.startswith(("--forceboss=", "--forceending=")) and _extra)] + ["--seed=%d" % _seed] + _extra
+    RUNS[_k + "2"] = _r
 # 图鉴演示（无 HUD、空场）：德克萨斯 S3 + 四人终结技备选
 DEMOS = [("texas", 2, 3, 300), ("mizuki", 2, 4, 300), ("angelina", 2, 4, 300), ("wisadel", 2, 4, 300), ("skalter", 2, 4, 300)]
 
