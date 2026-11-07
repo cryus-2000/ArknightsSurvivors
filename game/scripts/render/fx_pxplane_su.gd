@@ -293,8 +293,8 @@ static func floor_layer(r, o) -> void:
 	var g = r.g
 	var cv = o.cv
 	var id: String = str(o.id)
-	for it in r.items:
-		if str(it.ly) == "gd" and str(it.oid) == id:
+	for it in r.items_for(id):
+		if str(it.ly) == "gd":
 			r._draw_strip(cv, str(it.k), r.frame_of(float(it.t0)), r._gp(it), it.flip, true)
 	if not o.hw.has("sp"):
 		return
@@ -330,8 +330,8 @@ static func over(r, o) -> void:
 	_spark_step(r)
 	if r.mode() == 2:
 		var id: String = str(o.id)
-		for it in r.items:
-			if str(it.ly) == "raw" and str(it.oid) == id:
+		for it in r.items_for(id):
+			if str(it.ly) == "raw":
 				r._draw_raw(cv, str(it.k), int((g.t - float(it.t0)) * Bal.v("fx/px_plane_raw_fps", 12.8)), it.gp, float(it.rot), float(it.sc))
 		return
 	if r.mode() != 1:

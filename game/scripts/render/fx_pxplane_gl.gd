@@ -341,8 +341,8 @@ static func floor_layer(r, o) -> void:
 	if o.hw.has("glc"):
 		for ch in o.hw.glc:
 			_draw_sunk(r, cv, ch)
-	for it in r.items:
-		if str(it.ly) != "gd" or str(it.oid) != id:
+	for it in r.items_for(id):
+		if str(it.ly) != "gd":
 			continue
 		if it.has("glrt"):
 			if str(it.glrt) == "wake":
@@ -358,15 +358,15 @@ static func over(r, o) -> void:
 	var cv = o.cv
 	var g = r.g
 	if r.mode() == 2:
-		for it in r.items:
-			if str(it.ly) == "raw" and str(it.oid) == str(o.id):
+		for it in r.items_for(str(o.id)):
+			if str(it.ly) == "raw":
 				r._draw_raw(cv, str(it.k), int((g.t - float(it.t0)) * Bal.v("fx/px_plane_raw_fps", 12.8)), it.gp, float(it.rot), float(it.sc))
 		for f in o.fields:
 			if f.get("pxp", false):
 				r._draw_raw(cv, "gl_raw_s3loop", posmod(int(g.t * Bal.v("fx/px_plane_raw_fps", 12.8)), int(r._meta("gl_raw_s3loop").get("n", 1))), f.pos + Vector2(0, -40), 0.0, g.PX * 1.0)
 	_draw_hooks(r, o, cv)
-	for it in r.items:
-		if str(it.ly) == "ov" and str(it.oid) == str(o.id) and str(it.get("glrt", "")) == "lchain":
+	for it in r.items_for(str(o.id)):
+		if str(it.ly) == "ov" and str(it.get("glrt", "")) == "lchain":
 			_draw_lchain(r, o, cv, it)
 
 

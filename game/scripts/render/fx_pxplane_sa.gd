@@ -229,8 +229,8 @@ func draw_floor(o) -> void:
 
 func _floor_items(o) -> void:
 	var id: String = str(o.id)
-	for it in r.items:
-		if str(it.ly) == "gd" and str(it.oid) == id:
+	for it in r.items_for(id):
+		if str(it.ly) == "gd":
 			r._draw_strip(o.cv, str(it.k), r.frame_of(float(it.t0)), r._gp(it), it.flip, true)
 
 

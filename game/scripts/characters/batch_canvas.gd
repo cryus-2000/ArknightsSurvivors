@@ -148,6 +148,13 @@ func draw_set_transform(p: Vector2, rot := 0.0, sc := Vector2.ONE) -> void:
 	xf = Transform2D(rot, sc, 0.0, p)
 
 
+func draw_set_transform_matrix(matrix: Transform2D) -> void:
+	if not active:
+		g.draw_set_transform_matrix(matrix)
+		return
+	xf = matrix
+
+
 func draw_texture_rect_region(tex: Texture2D, rect: Rect2, src: Rect2, mod := Color.WHITE, transpose := false, clip := true) -> void:
 	if mute:
 		return

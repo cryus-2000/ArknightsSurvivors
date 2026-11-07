@@ -249,8 +249,8 @@ func draw_floor(o) -> void:
 	var id: String = str(o.id)
 	if o.pos != Vector2.INF and o.skill_active_left(1) > 0.0:
 		r._draw_strip(cv, "lp_s2_aura", r.frame_of(0.0), Pxp._snap(o.pos), false, false)
-	for it in r.items:
-		if str(it.ly) == "gd" and str(it.oid) == id:
+	for it in r.items_for(id):
+		if str(it.ly) == "gd":
 			r._draw_strip(cv, str(it.k), r.frame_of(float(it.t0)), r._gp(it), it.flip, true)
 	_links_step()
 	_rt = _rt.filter(func(q): return g.t - float(q.t0) < 0.62)

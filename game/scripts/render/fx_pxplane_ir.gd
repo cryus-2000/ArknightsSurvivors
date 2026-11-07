@@ -239,8 +239,8 @@ func draw_floor(o) -> void:
 	rt = rt.filter(_alive)
 	var cv = o.cv
 	var id: String = str(o.id)
-	for it in r.items:
-		if str(it.ly) == "gd" and str(it.oid) == id:
+	for it in r.items_for(id):
+		if str(it.ly) == "gd":
 			r._draw_strip(cv, str(it.k), r.frame_of(float(it.t0)), r._gp(it), it.flip, true)
 	var t: int = r.tier(o)
 	for it in rt:

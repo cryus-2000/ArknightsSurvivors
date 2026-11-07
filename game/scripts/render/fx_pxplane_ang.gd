@@ -190,8 +190,8 @@ func draw_floor(o) -> void:
 				renderer._draw_strip(cv, "an_ripple_z%d_gd" % _zi(float(st.get("r", 220.0)) / 220.0), renderer.frame_of(0.0), Pxp._snap(st.c), false, false)
 				for rk in _rock_list(st):   # 大碎石的地面影子（随高度变小）
 					renderer._draw_strip(cv, "an_rocksh_w%d_gd" % int(rk[4]), 0, Pxp._snap(rk[1]), false, false)
-	for it in renderer.items:
-		if str(it.ly) == "gd" and str(it.oid) == id:
+	for it in renderer.items_for(id):
+		if str(it.ly) == "gd":
 			renderer._draw_strip(cv, str(it.k), renderer.frame_of(float(it.t0)), renderer._gp(it), it.flip, true)
 	# 失重井（精二）：按井的年龄选帧
 	var fl = o.get("fields")

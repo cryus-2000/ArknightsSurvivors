@@ -251,9 +251,7 @@ static func _follow(r, o) -> void:
 		return
 	o.set_meta("ka_fol_tk", tk)
 	var s = _m3(o)
-	for it in r.items:
-		if str(it.oid) != ID:
-			continue
+	for it in r.items_for(ID):
 		if it.has("kfm") and s != null:
 			it.gp = r._snap((s.pos as Vector2) + (it.kfm as Vector2))
 		elif it.has("kfl") and r.g.ppos != Vector2.INF:
@@ -277,12 +275,12 @@ static func floor_layer(r, o) -> void:
 			if bt % 2 == 1 and r.mode() == 1:   # 火星从本体轮廓往上飘
 				var ep: Vector2 = (s.pos as Vector2) + Vector2(r.g.vrng.randf_range(-36.0, 36.0), -r.g.vrng.randf_range(30.0, 96.0))
 				_pp(r, o, ep, float(s.pos.y), "rise", 1, MELT_HOT, MELT_DK)
-	for it in r.items:
+	for it in r.items_for(ID):
 		if it.get("klit", false) and r.frame_of(float(it.t0)) >= 11:   # 不毁重构合拢那一拍：一盏照地光
 			it["klit"] = false
 			var R = load("res://scripts/render/fx_recipe.gd").of(r.g)
 			R._light(o, (it.gp as Vector2) + Vector2(0, -22), 150.0, 0.7, 0.15, R.pal(o).get("melt", Color(1.0, 0.42, 0.18)))
-		if str(it.ly) == "gd" and str(it.oid) == ID:
+		if str(it.ly) == "gd":
 			r._draw_strip(cv, str(it.k), r.frame_of(float(it.t0)), it.gp, it.flip, true)
 
 

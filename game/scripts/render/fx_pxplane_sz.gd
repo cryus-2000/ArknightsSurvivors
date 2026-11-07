@@ -263,8 +263,8 @@ func draw_floor(o) -> void:
 
 func _floor_items(o) -> void:
 	var id: String = str(o.id)
-	for it in r.items:
-		if str(it.ly) == "gd" and str(it.oid) == id:
+	for it in r.items_for(id):
+		if str(it.ly) == "gd":
 			r._draw_strip(o.cv, str(it.k), r.frame_of(float(it.t0)), r._gp(it), it.flip, true)
 
 
@@ -316,8 +316,8 @@ func sort_items(o, out: Array) -> void:
 	var a: Dictionary = o.B.get("attack", {})
 	var bt: int = int(floor(g.t * 15.0))
 	var flare := false
-	for it in r.items:
-		if str(it.oid) == str(o.id) and str(it.k) == "sz_tails_flare":
+	for it in r.items_for(str(o.id)):
+		if str(it.k) == "sz_tails_flare":
 			flare = true
 	if not flare and not S._h4_sub(o, a.get("tails", null)).is_empty():   # 精二九尾：排在她身后
 		out.append({"sz": "strip", "k": "sz_tails", "gp": Pxp._snap(o.pos), "flip": o.face < 0.0, "skey": o.pos.y - 2.0, "loop": true})

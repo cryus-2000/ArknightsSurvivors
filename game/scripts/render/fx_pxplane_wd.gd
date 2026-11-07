@@ -489,8 +489,8 @@ func draw_floor(o) -> void:
 		var sw: int = 1 if kd < 0.5 else 2
 		for dx in range(-sw, sw + 1):
 			renderer._px(cv, D.c + Vector2(dx * px, 0), Color(SMOKE[0].r, SMOKE[0].g, SMOKE[0].b, 0.4 + 0.3 * kd))
-	for it in renderer.items:
-		if str(it.ly) != "gd" or str(it.oid) != id:
+	for it in renderer.items_for(id):
+		if str(it.ly) != "gd":
 			continue
 		if it.get("hold", false):
 			var m: Dictionary = renderer._meta(str(it.k))

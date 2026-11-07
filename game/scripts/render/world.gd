@@ -479,12 +479,16 @@ func draw_world() -> void:
 	g.squad.draw_ground_fx()   # 干员紧贴地砖的大片地面特效（docs/61 §5.6 layer = ground）：压在溟痕 / 地面预警之下
 	_pk("ground")
 	_draw_mires()
+	var ground_count := g.fx.size()
+	_draw_ground_sprites()
 	_pk("mire")
 	tell_fill = Dc.p("tell_fill_k")
 	tell_edge = Dc.p("tell_edge_k")
 	_draw_warns_auras()
 	if not _dbg_foe:
-		_draw_ground_foe_fx()
+		# 预警绘制若追加了新特效，本帧仍能看到它。
+		_draw_ground_foe_fx(_ground_foe if g.fx.size() == ground_count else g.fx)
+	_ground_foe.clear()
 	_pk("warns_auras")
 	if not _dbg_gem:   # --clutterdbg=nogem（量测）
 		_draw_pickups()
@@ -533,15 +537,19 @@ func _draw_mires() -> void:
 	tb_flush()
 	if not _dbg_mire:
 		_draw_mire_bubbles(bubbles)
-	_draw_ground_sprites()
 
+
+var _ground_foe: Array = []   # 同一次世界绘制内，预警之后要画的冰面和地裂，保留源顺序
 
 ## 地面层帧条特效（vfx.fx_sprite ground=true，kind "gsprite"）：溟痕之上、预警 / 实体之下——喷吐者酸团落点溅射、囊海爬行者爆后残留（docs/96 第 1 批）。
 ## 敌方特效不降噪（docs/48 ③），按已播时间取帧，同 _draw_fx 的 "sprite"
 func _draw_ground_sprites() -> void:
 	g.draw_off = Vector2.ZERO
 	for f in g.fx:
-		if f.kind != "gsprite":
+		var kind: String = f.kind
+		if kind != "gsprite":
+			if kind == "ice_sheet" or (kind == "gcrack" and f.get("ground", false)):
+				_ground_foe.append(f)
 			continue
 		var spec: Array = Game.V6_FRAMES[f.name]
 		var fr := mini(int((f.max - f.life) * spec[1]), spec[0] - 1)
@@ -550,11 +558,11 @@ func _draw_ground_sprites() -> void:
 
 ## 地面层敌方特效（ground 标记，用户 10-24：奠基者踏地「浮在最上面」）：小怪踏地的地裂与冲击环画在地面预警之上、单位之下，
 ## 不盖住干员和其他单位。纯画面
-func _draw_ground_foe_fx() -> void:
-	for f in g.fx:
+func _draw_ground_foe_fx(candidates: Array) -> void:
+	for f in candidates:
 		if f.kind == "ice_sheet" and f.life > 0.0:
 			_draw_ice_sheet(f)
-	for f in g.fx:
+	for f in candidates:
 		if f.kind == "gcrack" and f.get("ground", false) and f.life > 0.0:
 			if not f.has("cd"):
 				f["cd"] = GroundCrack.build(f.pos, f.r, f.get("ang"), f.get("opts", {}))
