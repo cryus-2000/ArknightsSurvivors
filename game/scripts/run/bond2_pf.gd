@@ -19,32 +19,35 @@ static func _late(u) -> bool:
 	return float(u.g.t) >= Bal.v("render/late_fx_t0", 480.0)
 
 
-## 宿敌：十字斩落地——交点一下爆亮（两色粒子）→ 沿两道斩痕四个方向的分叉裂缝往外长（琥珀 / 淡紫，冷成暗灰）→
-## 斩痕两侧翻起烟尘墙（每道 4 团、往斩痕两侧推开）；斩击类不出碎石（pixfx §6.6 第 5 条）
+## 狼衔剑：巨剑钉进终点——琥珀 / 淡紫两色爆亮、从剑脚往外长一圈分叉裂缝、几团烟尘往外推（斩击类不出碎石）
 static func rival_hit(u, a: Dictionary) -> void:
-	var c: Vector2 = a.c
-	var L: float = float(a.L)
+	var c: Vector2 = a.E
+	var R: float = float(a.r)
 	var vs: float = PF.vseed(u, c)
-	var late: bool = _late(u)
-	u.light(c, 110.0, Color(1.0, 0.92, 0.85), 0.1)
-	PF.particles(u, c + Vector2(-6, -18), 220, "ult_burst_s", [TX_C], 0.0, vs, L * 0.08)
-	PF.particles(u, c + Vector2(6, -18), 220, "ult_burst_s", [LP_C], 0.02, vs + 3.0, L * 0.08)
-	for half in 2:
-		var d: Vector2 = a.d1 if half == 0 else a.d2
-		var col: Color = TX_C if half == 0 else LP_C
-		var angs: Array = []
-		var lens: Array = []
-		for sd in [1.0, -1.0]:
-			angs.append((d * sd).angle() + (PF.h(vs + sd + half * 5.0) - 0.5) * 0.12)
-			lens.append(L * (0.36 + 0.12 * PF.h(vs + sd * 3.0 + half)))
-		PF.cracks(u, SG_FORKS, c, angs, lens, {"seed": vs + half * 17.0, "r0": 10.0, "rev": 0.12, "rev0": 0.25, "delay": 0.03, "life": 1.5, "fade": 0.6,
-			"col": Color(minf(1.5, col.r * 1.4), minf(1.5, col.g * 1.4), minf(1.5, col.b * 1.4)), "col1": Color(0.16, 0.15, 0.16), "cold": 0.5, "small": 0.3, "big": 0.42})
-		var nd: int = 2 if late else 4
-		for q in nd:
-			var hq: float = PF.h(vs + q * 5.1 + half * 11.0)
-			var along: float = ((float(q) + 0.5) / float(nd) - 0.5) * L * 0.85
-			var nv: Vector2 = d.orthogonal() * (1.0 if q % 2 == 0 else -1.0)
-			PF.dust(u, c + d * along + nv * 14.0 + Vector2(0, 6), 70.0 + 40.0 * hq, 0.03 + absf(along) / L * 0.25, vs + q + half * 7.0, nv * 90.0, Color(0.62, 0.6, 0.58))
+	u.light(c, R, Color(1.0, 0.85, 0.6), 0.12)
+	PF.particles(u, c + Vector2(0, -18), 240, "ult_burst_s", [TX_C], 0.0, vs, R * 0.7)
+	PF.particles(u, c + Vector2(0, -18), 200, "ult_burst_s", [LP_C], 0.03, vs + 3.0, R * 0.6)
+	var angs: Array = []
+	var lens: Array = []
+	for q in 5:
+		angs.append(TAU * (float(q) + PF.h(vs + q)) / 5.0)
+		lens.append(R * (0.6 + 0.35 * PF.h(vs + q * 2.3)))
+	PF.cracks(u, SG_FORKS, c, angs, lens, {"seed": vs, "r0": 8.0, "rev": 0.1, "rev0": 0.2, "delay": 0.02, "life": 1.4, "fade": 0.6,
+		"col": Color(1.4, 0.9, 0.45), "col1": Color(0.16, 0.15, 0.16), "cold": 0.5, "small": 0.3, "big": 0.4})
+	if not _late(u):
+		for q in 3:
+			var dv := Vector2.from_angle(TAU * (float(q) + PF.h(vs + q * 1.7)) / 3.0)
+			PF.dust(u, c + Vector2(dv.x, dv.y * 0.7) * R * 0.4, 90.0, 0.04 * float(q), vs + q, dv * 90.0, Color(0.6, 0.56, 0.62))
+
+
+## 狼衔剑：剑尖犁地一路扬起的土（每 2 拍一团，往车道两侧漂）+ 一小把淡紫碎光
+static func wolf_trail(u, a: Dictionary, p: Vector2) -> void:
+	var dl: Vector2 = a.dl
+	var vs: float = PF.vseed(u, p)
+	if not _late(u):
+		var sd: float = 1.0 if PF.h(vs) > 0.5 else -1.0
+		PF.dust(u, p - dl * 70.0 + Vector2(0, 8), 60.0 + 30.0 * PF.h(vs + 1.0), 0.0, vs, -dl * 40.0 + dl.orthogonal() * sd * 50.0, Color(0.58, 0.52, 0.5))
+	PF.particles(u, p + Vector2(0, -14), 60, "ult_burst_s", [LP_C], 0.0, vs + 2.0, 30.0)
 
 
 ## 企鹅物流：车开过去一路扬尘（i = 第几团，沿车道每 1/8 一团，往车后和两侧漂；不裂地、无碎石，用户 11-07「直接碾过去」）
@@ -106,18 +109,26 @@ static func lesson_land(u, a: Dictionary) -> void:
 		PF.dust(u, c + Vector2(dv.x, dv.y * 0.7) * R * 0.6, 90.0, 0.03 * float(q), vs + q, dv * 90.0, Color(0.56, 0.6, 0.66))
 
 
-## 引潮断线：海沟裂开——沿海沟两侧冒水雾尘团、冷蓝粒子
+## 串刺：槊尾钉住那一下——槊尖处一团水花 + 冷蓝粒子
 static func tide_open(u, a: Dictionary) -> void:
-	var c: Vector2 = a.c
-	var d: Vector2 = a.d
-	var L: float = a.L
+	var c: Vector2 = a.E
 	var vs: float = PF.vseed(u, c)
-	var nd: int = 3 if _late(u) else 6
-	for q in nd:
-		var along: float = ((float(q) + 0.5) / float(nd) - 0.5) * L * 0.9
-		var sd: float = 1.0 if q % 2 == 0 else -1.0
-		PF.dust(u, c + d * along + d.orthogonal() * sd * 18.0, 80.0, 0.02 * float(q), vs + q, d.orthogonal() * sd * 70.0, Color(0.55, 0.62, 0.72))
-	PF.particles(u, c, 200, "ult_burst_s", [GL_C, GL_A], 0.0, vs, L * 0.25)
+	u.light(c, 70.0, GL_A, 0.1)
+	PF.particles(u, c + Vector2(0, -10), 160, "ult_burst_s", [GL_C, FOAM], 0.0, vs, 60.0)
+	if not _late(u):
+		PF.dust(u, c + Vector2(0, 6), 70.0, 0.02, vs + 1.0, Vector2.ZERO, Color(0.55, 0.62, 0.72))
+
+
+## 串刺：幽灵鲨一刀锯开——橙色火星 + 幽灵鲨蓝粒子 + 一团水雾
+static func tide_saw(u, a: Dictionary) -> void:
+	var c: Vector2 = a.P
+	var R: float = float(a.r)
+	var vs: float = PF.vseed(u, c)
+	u.light(c, R, SP_A, 0.12)
+	PF.particles(u, c + Vector2(0, -14), 220, "ult_burst_s", [SP_A, SP_H], 0.0, vs, R * 0.8)
+	PF.particles(u, c + Vector2(0, -14), 160, "ult_burst_s", [SP_C], 0.03, vs + 2.0, R * 0.6)
+	if not _late(u):
+		PF.dust(u, c + Vector2(0, 8), R * 1.1, 0.03, vs + 4.0, Vector2.ZERO, Color(0.55, 0.62, 0.72))
 
 
 ## 涡心落锚：一只锚砸在箭头尖上——冷蓝爆亮、粒子、尘团；第 3 只起才带碎石（免得五只都一样）
@@ -132,15 +143,17 @@ static func vortex_anchor(u, a: Dictionary, p: Vector2, i: int) -> void:
 			PF.heave(u, p, R * 0.5, vs, 0.0, Color(0.8, 0.82, 0.88), 70.0)
 
 
-## 双鳍破浪：两片背鳍在圈心扎进水里——白浪粒子 + 两色粒子 + 尘团
+## 击锯：锯刃嵌进地里炸开——橙色火星 + 斯卡蒂蓝粒子 + 碎石（撞地类）+ 尘团
 static func fins_dive(u, a: Dictionary) -> void:
-	var c: Vector2 = a.c
-	var R: float = float(a.R)
+	var c: Vector2 = a.E
+	var R: float = float(a.r)
 	var vs: float = PF.vseed(u, c)
-	u.light(c, R * 0.5, SK_H, 0.12)
-	PF.particles(u, c + Vector2(-8, -14), 240, "ult_burst_s", [SK_C, FOAM], 0.0, vs, R * 0.5)
-	PF.particles(u, c + Vector2(8, -14), 240, "ult_burst_s", [SP_C, SP_H], 0.02, vs + 3.0, R * 0.5)
-	PF.dust(u, c + Vector2(0, 8), 120.0, 0.03, vs + 5.0, Vector2.ZERO, Color(0.62, 0.7, 0.8))
+	u.light(c, R, SP_A, 0.12)
+	PF.particles(u, c + Vector2(0, -12), 260, "ult_burst_s", [SP_A, Color(1.0, 0.9, 0.7)], 0.0, vs, R * 0.8)
+	PF.particles(u, c + Vector2(0, -12), 180, "ult_burst_s", [SK_C, FOAM], 0.03, vs + 3.0, R * 0.6)
+	if not _late(u):
+		PF.dust(u, c + Vector2(0, 8), R * 1.1, 0.03, vs + 5.0, Vector2.ZERO, Color(0.6, 0.6, 0.62))
+		PF.heave(u, c, R * 0.45, vs, 0.02, Color(0.8, 0.8, 0.84), 70.0)
 
 
 ## 群猎合围：潮水在圈心合拢——大一团白浪粒子 + 各人色粒子 + 尘团
@@ -153,3 +166,16 @@ static func hunt_hit(u, a: Dictionary) -> void:
 	if not _late(u):
 		PF.dust(u, c + Vector2(0, 8), 140.0, 0.03, vs + 5.0, Vector2.ZERO, Color(0.6, 0.68, 0.78))
 		PF.heave(u, c, R * 0.4, vs, 0.04, Color(0.8, 0.85, 0.92), 80.0)
+
+
+## 收力一剑：斯卡蒂一剑劈在那一堆上——只在小圈里爆亮、粒子不外飞（收着力），一道短裂口 + 一团水雾
+static func lesson_cut(u, a: Dictionary) -> void:
+	var c: Vector2 = a.Pp
+	var R: float = float(a.r)
+	var vs: float = PF.vseed(u, c)
+	u.light(c, R * 0.8, SK_H, 0.12)
+	PF.particles(u, c + Vector2(0, -14), 220, "ult_burst_s", [SK_C, FOAM], 0.0, vs, R * 0.45)
+	PF.cracks(u, SG_FORKS, c, [-0.9, 2.24], [R * 0.5, R * 0.45], {"seed": vs, "r0": 6.0, "rev": 0.08, "rev0": 0.2, "delay": 0.0, "life": 1.2, "fade": 0.5,
+		"col": Color(0.9, 1.1, 1.5), "col1": Color(0.15, 0.16, 0.2), "cold": 0.4, "small": 0.25, "big": 0.35})
+	if not _late(u):
+		PF.dust(u, c + Vector2(0, 8), R * 0.9, 0.03, vs + 4.0, Vector2.ZERO, Color(0.58, 0.64, 0.74))

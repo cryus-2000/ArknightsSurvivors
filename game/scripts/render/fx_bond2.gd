@@ -11,6 +11,7 @@ extends RefCounted
 const Bal = preload("res://scripts/core/balance.gd")
 const UI = preload("res://scripts/ui.gd")
 const B2 = preload("res://scripts/run/bond2.gd")
+const B3 = preload("res://scripts/render/fx_bond3.gd")
 
 ## 7 阶（暗 → 白）
 const TX := [Color("#2c1406"), Color("#5a2808"), Color("#9c4610"), Color("#e2781c"), Color("#ffac3c"), Color("#ffdc9c"), Color("#ffffff")]
@@ -111,30 +112,13 @@ func _cell(ci, p: Vector2, c: Color) -> void:
 func cast(a: Dictionary) -> void:
 	var t: float = g.t
 	var c: Vector2 = a.c
-	if str(a.id) in ["b_lesson", "b_tide", "b_vortex", "b_fins", "b_hunt"]:
+	if str(a.id) in ["b_rival", "b_lesson", "b_tide", "b_vortex", "b_fins"]:   # 第四轮（docs/314）：画面在 fx_bond3.gd
+		B3.cast(self, a)
+		return
+	if str(a.id) == "b_hunt":
 		cast5(a)
 		return
 	match str(a.id):
-		"b_rival":   # 合击（11-07 用户「当作干员的技能来做」）：德克萨斯剑雨落进怪群 → 两人各挥一刀（德克萨斯居合弧 / 拉普兰德双刃弧）→ 巨剑砸在交点 + 剑阵 + 狼嚎冲击；裂地 / 烟尘在 run/bond2_pf.gd
-			var tp: Vector2 = a.who.texas.pos if a.who.texas != null else c - Vector2(a.d1) * 200.0
-			var lpp: Vector2 = a.who.lappland.pos if a.who.lappland != null else c - Vector2(a.d2) * 200.0
-			for j in 7:   # 德克萨斯剑雨（S1 落剑）：0–RV_T1 之间一柄柄插进落点周围
-				var hj: float = fposmod(sin(float(j) * 12.9898 + t) * 43758.5453, 1.0)
-				var aj: float = TAU * float(j) / 7.0 + hj
-				var pj: Vector2 = c + Vector2(cos(aj), sin(aj) * SQ) * (60.0 + 90.0 * hj)
-				_pxs("tx_sw_s22_e2_l%d_up" % (j % 2), pj, t + 0.08 * float(j), "up", j % 3 == 0)
-				_pxs("tx_sw_s22_e2_gd", pj, t + 0.08 * float(j), "gd")
-			_pxd("tx_slash_r70_e2_up_d%d", c + (tp - c).normalized() * 50.0, (c - tp).angle(), t + B2.RV_T1)
-			_pxd("tx_slash_r70_e2_gd_d%d", c + (tp - c).normalized() * 50.0, (c - tp).angle(), t + B2.RV_T1, "gd")
-			_pxd("lp_atk_r68_e2_up_d%d", c + (lpp - c).normalized() * 50.0, (c - lpp).angle(), t + B2.RV_T2)
-			_pxd("lp_atk_r68_gd_d%d", c + (lpp - c).normalized() * 50.0, (c - lpp).angle(), t + B2.RV_T2, "gd")
-			_pxs("lp_dance_r84_up", c, t + B2.RV_T2)
-			_pxs("tx_sw_s40_e2_l0_up", c, t + B2.RV_HIT - 0.1)   # 剑阵中心巨剑：0.1 秒落下插在交点
-			_pxs("tx_sw_s40_e2_gd", c, t + B2.RV_HIT - 0.1, "gd")
-			_pxs("tx_array_r65_gd", c, t + B2.RV_HIT, "gd")
-			_pxs("lp_bark_r90_gd", c, t + B2.RV_HIT + 0.07, "gd")
-			due.append([t + B2.RV_HIT, "grains", {"o": a.who.texas, "p": c + Vector2(0, LIFT * 0.5), "n": 14, "c0": Color(1.0, 0.9, 0.7), "c1": TX[3], "mat": "ember"}])
-			due.append([t + B2.RV_HIT + 0.02, "grains", {"o": a.who.lappland, "p": c + Vector2(0, LIFT * 0.5), "n": 10, "c0": LP[5], "c1": LP[3], "mat": "ember"}])
 		"b_penguin":   # 碾过去：车从画面外横向冲进来、穿过最密处再开出去（车上不画人）；炸弹落地 = pixelfx 爆炸（bd_bomb_v*）；能天使齐射由 shots() 逐发加
 			_push({"k": "car", "c": c, "dl": a.dl, "run": float(a.run), "out": float(a.out), "t0": t, "T0": B2.PG_T0, "T1": B2.PG_T1, "life": B2.PG_T1 + 0.3, "tx": a.who.texas})
 			_push({"k": "skid", "c": c, "dl": a.dl, "run": float(a.run), "out": float(a.out), "t0": t, "T0": B2.PG_T0, "T1": B2.PG_T1, "life": B2.PG_T1 + 1.6})
@@ -230,26 +214,14 @@ static func sort_items(game) -> Array:
 			"pxs":
 				var ly: String = str(it.ly)
 				sk = GROUND_KEY if ly == "gd" else float((it.gp as Vector2).y) + (-60.0 if ly == "bk" else 1.0)
-			"skid", "chain", "trench", "plan", "tidering":
+			"b3":
+				sk = B3.sort_key(it)
+			"skid":
 				sk = GROUND_KEY
 			"car":
 				sk = r._car_pos(it).y + 1.0
-			"clash":
-				sk = float((it.c as Vector2).y) + 40.0
-			"anchor":
-				sk = float((it.b as Vector2).y) + 1.0
-			"surge":
-				sk = maxf((it.A as Vector2).y, (it.F as Vector2).y) + 2.0
-			"tslash", "fin", "spear":
-				sk = float((it.c as Vector2).y) + 2.0
 			"lantern":
 				sk = 1.0e9 - 1.0
-			"rain":
-				sk = GROUND_KEY
-				out.append({"bd2": it, "skey": 1.0e9 - 2.0, "rain": true})   # 光雨画在单位上面，地面闪光在地面层
-			"xcut":
-				sk = GROUND_KEY
-				out.append({"bd2": it, "skey": 1.0e9, "blade": true})   # 亮的两拍画在单位上面，冷下来的斩痕留在地面层
 			"tracer", "bomb":
 				sk = maxf((it.a as Vector2).y, (it.b as Vector2).y) + 2.0
 			_:
@@ -261,51 +233,21 @@ static func sort_items(game) -> Array:
 static func draw_sorted(game, ci, item: Dictionary) -> void:
 	var r = game.get_meta("fx_bond2")
 	var it: Dictionary = item.bd2
-	if item.get("rain", false):
-		r._draw_rain(ci, it, true)
-		return
-	if item.get("blade", false):
-		r._draw_xcut(ci, it, true)
-		return
 	match str(it.k):
 		"pxs":
 			r._draw_pxs(ci, it)
-		"clash":
-			r._draw_clash(ci, it)
-		"xcut":
-			r._draw_xcut(ci, it, false)
+		"b3":
+			B3.draw(r, ci, it)
 		"car":
 			r._draw_car(ci, it)
 		"skid":
 			r._draw_skid(ci, it)
 		"tracer":
 			r._draw_tracer(ci, it)
-		"lance":
-			r._draw_lance(ci, it)
 		"bomb":
 			r._draw_bomb(ci, it)
-		"anchor":
-			r._draw_anchor(ci, it)
 		"lantern":
 			r._draw_lantern(ci, it)
-		"rain":
-			r._draw_rain(ci, it, false)
-		"chain":
-			r._draw_chain(ci, it)
-		"surge":
-			r._draw_surge(ci, it)
-		"trench":
-			r._draw_trench(ci, it)
-		"tslash":
-			r._draw_tslash(ci, it)
-		"plan":
-			r._draw_plan(ci, it)
-		"fin":
-			r._draw_fin(ci, it)
-		"tidering":
-			r._draw_tidering(ci, it)
-		"spear":
-			r._draw_spear(ci, it)
 
 
 # ================================================================ 画法
@@ -437,38 +379,6 @@ func _draw_skid(ci, it: Dictionary) -> void:
 				_cell(ci, base + nl * sd * px * 3.0, Color(0.34, 0.3, 0.26, 0.8))
 
 
-## 审判光矛：从落点正上方 420 处 2 拍扎下（不补间），矛身白芯 + 紫边、后面一条拖影；落地一拍竖直光柱，再两拍缩成落点星芒
-func _draw_lance(ci, it: Dictionary) -> void:
-	var t: float = g.t
-	var t0: float = it.t0
-	var t1: float = it.t1
-	if t < t0 or t > t1 + 0.3:
-		return
-	var p: Vector2 = _snap(it.p)
-	var px: float = g.PX
-	if t < t1:
-		var k: float = clampf(floor((t - t0) * 15.0 + 1.0) / 2.0, 0.0, 1.0)
-		var tip: Vector2 = p + Vector2(0, -float(it.get("top", 420.0)) * (1.0 - k))
-		for i in 70:   # 矛身（矛尖在下）
-			var q: Vector2 = tip + Vector2(0, -float(i) * px)
-			var w: int = 3 if i < 50 else 2
-			for s in range(-w, w + 1):
-				_cell(ci, q + Vector2(float(s) * px, 0), Color(1.3, 1.25, 1.4) if absi(s) == 0 else (IR[5] if absi(s) == 1 else IR[3]))
-		for i in range(70, 150, 2):   # 拖影
-			_cell(ci, tip + Vector2(0, -float(i) * px), Color(IR[4], 0.6 * (1.0 - float(i - 70) / 80.0)))
-		_glow(tip, IR[5])
-		return
-	var f: int = int(floor((t - t1) * 15.0))
-	if f == 0:   # 落地一拍：竖直光柱
-		for i in 110:
-			for s in range(-3, 4):
-				_cell(ci, p + Vector2(float(s) * px, -float(i) * px), Color(1.3, 1.25, 1.4) if absi(s) < 2 else IR[4])
-			if i % 10 == 0:
-				_glow(p + Vector2(0, -float(i) * px), IR[5])
-	else:
-		_star(ci, p + Vector2(0, -6), [14, 9, 5, 3][mini(f - 1, 3)], IR)
-
-
 # ================================================================ 演出卡（HUD）
 
 ## hud.gd 调（指点 / 终结技瞄准之前；hu = hud_ult 实例，借它的圆形头像）。解锁 1.4 秒、精二强化 0.9 秒。
@@ -536,67 +446,6 @@ static func draw_hud(game, vs: Vector2, hu = null) -> void:
 		UI.text(hud, game.font, Vector2(0, y + 78), str(mv.get("desc", "")), 14, Color(0.84, 0.88, 0.92, kt), HORIZONTAL_ALIGNMENT_CENTER, vs.x)
 
 
-## 十字斩一刀：第一拍整条直接出现（不长出来）——两头尖、中间宽 w，芯近白、两侧本人色；亮两拍（blade = 画在单位上面）；
-## 之后地面层留一道暗斩痕（中间一格暗芯 + 两侧暗本人色），1 秒内逐格碎掉
-func _draw_xcut(ci, it: Dictionary, blade: bool) -> void:
-	var age: float = g.t - float(it.t0)
-	if age < 0.0 or age > float(it.life):
-		return
-	var f: int = int(floor(age * 15.0))
-	if blade != (f < 4):
-		return
-	var c: Vector2 = it.c
-	var d: Vector2 = it.d
-	var nv: Vector2 = d.orthogonal()
-	var L: float = it.L
-	var pal: Array = it.pal
-	var px: float = g.PX
-	var n: int = int(L / px)
-	var wmax: float = minf(float(it.w) * 0.5, 26.0) / px
-	var melt: float = clampf((age - 1.0) / 1.1, 0.0, 1.0)
-	for i in n:
-		var u: float = float(i) / float(n)
-		var q: Vector2 = c + d * (u - 0.5) * L
-		var w: int = int(round(wmax * pow(sin(u * PI), 0.7)))
-		if blade:
-			for s in range(-w, w + 1):
-				var e: float = absf(float(s)) / maxf(1.0, float(w))
-				var col: Color = Color(1.35, 1.32, 1.28) if (e < 0.35 and f == 0) else (pal[6] if e < 0.35 else (pal[5] if e < 0.7 else pal[3]))
-				_cell(ci, q + nv * float(s) * px + Vector2(0, -LIFT * 0.3), col)
-			if i % 10 == 0:
-				_glow(q + Vector2(0, -LIFT * 0.3), pal[5])
-		else:
-			if melt > 0.0 and fposmod(float(i) * 0.618034, 1.0) < melt:
-				continue
-			var w2: int = maxi(0, w / 2)
-			for s in range(-w2, w2 + 1):
-				_cell(ci, q + nv * float(s) * px, Color(0.06, 0.05, 0.06, 0.85) if s == 0 else Color(pal[1], 0.8))
-
-
-## 交点爆闪：两色四芒（横向左琥珀 / 右淡紫，竖向白 → 本人色），3 拍收
-func _draw_clash(ci, it: Dictionary) -> void:
-	var f: int = _beat(float(it.t0))
-	if f < 0 or f > 2:
-		return
-	var c: Vector2 = _snap(it.c)
-	var px: float = g.PX
-	var arm: int = [22, 16, 9][f]
-	for i in range(1, arm + 1):
-		var k: float = float(i) / float(arm)
-		_cell(ci, c + Vector2(-i, 0) * px, Color.WHITE if k < 0.25 else (TX[5] if k < 0.6 else TX[4]))
-		_cell(ci, c + Vector2(i, 0) * px, Color.WHITE if k < 0.25 else (LP[5] if k < 0.6 else LP[4]))
-		if i < arm * 0.6:
-			_cell(ci, c + Vector2(0, -i) * px, Color.WHITE if k < 0.3 else TX[5])
-			_cell(ci, c + Vector2(0, i) * px, Color.WHITE if k < 0.3 else LP[5])
-		if i % 3 == 0:
-			_glow(c + Vector2(-i, 0) * px, TX[5])
-			_glow(c + Vector2(i, 0) * px, LP[5])
-	for dx in range(-1, 2):
-		for dy in range(-1, 2):
-			_cell(ci, c + Vector2(dx, dy) * px, Color(1.35, 1.3, 1.25))
-	_glow(c, Color.WHITE)
-
-
 ## 炸弹：一颗圆滚滚的黑炸弹（5 × 5 格，高光一格、引信火星两拍一闪）沿抛物线从车顶飞到落点，后面拖一串火星
 func _draw_bomb(ci, it: Dictionary) -> void:
 	var age: float = g.t - float(it.t0)
@@ -642,51 +491,6 @@ func cast5(a: Dictionary) -> void:
 	var t: float = g.t
 	var c: Vector2 = a.c
 	match str(a.id):
-		"b_lesson":   # 乌尔比安掷锚（锚 + 锚链）→ 锚砸地：他 S3 的浪冠 + 震环 → 斯卡蒂 S2 浪斩沿锚链连砍三段 → 落点一记怒涛
-			var A: Vector2 = a.A
-			var F: Vector2 = a.F
-			_push({"k": "chain", "A": A, "F": F, "t0": t, "life": B2.LS_S1 + 0.6})
-			_push({"k": "anchor", "a": A + Vector2(0, -30), "b": F, "t0": t + 0.05, "t1": t + B2.LS_LAND, "h": 220.0, "pal": ULP, "life": B2.LS_S1 + 0.55, "sc": 1.4})
-			_pair("ul_s3_r85", F, t + B2.LS_LAND)
-			_pxs("ul_quake_r105_gd", F, t + B2.LS_LAND + 0.05, "gd")
-			for j in 3:
-				var q: Vector2 = A.lerp(F, 0.3 + 0.3 * float(j))
-				_pxd("s2_e2_up_d%d", q, (F - A).angle(), t + lerpf(B2.LS_S0, B2.LS_S1, float(j) / 3.0))
-				_pxd("s2_e2_gd_d%d", q, (F - A).angle(), t + lerpf(B2.LS_S0, B2.LS_S1, float(j) / 3.0), "gd")
-			_pair("nutao", F, t + B2.LS_S1 - 0.1)
-		"b_tide":   # 歌蕾蒂娅 S2 收潮把两侧拖进来（+ 连携潮圈）→ 归溟幽灵鲨锯潮沿海沟连斩三段 → 圈心一道剜痕
-			var d: Vector2 = a.d
-			var L: float = a.L
-			_pair("gl_s2pull_e2", c, t)
-			_pxs("gl_link_gd", c, t + B2.TD_OPEN, "gd")
-			for j in 3:
-				var q: Vector2 = c + d * (float(j) / 2.0 - 0.5) * L * 0.7
-				var tj: float = t + lerpf(B2.TD_S0, B2.TD_S1, float(j) / 2.0)
-				_pxs("su_saw_h_r100_bk_up", q, tj, "bk", j == 1)
-				_pxs("su_saw_h_r100_fr_up", q, tj, "up", j == 1)
-				_pxs("su_saw_h_r100_gd", q, tj, "gd", j == 1)
-			_pxs("su_gouge_r100_gd", c, t + B2.TD_S1, "gd")
-		"b_vortex":   # 歌蕾蒂娅 S3 漩涡（开 → 转 → 收）把怪往中心卷 → 乌尔比安的锚一柄柄砸在涡边 + 钉地环 → 圈心一记锚震
-			_pxs("gl_s3open_bk", c, t, "bk")
-			_pair("gl_s3open", c, t)
-			var to: float = t + 5.0 / 15.0
-			_pxs("gl_s3loop_bk", c, to, "bk", false, B2.VX_PUSH - 5.0 / 15.0)
-			_pair("gl_s3loop", c, to, B2.VX_PUSH - 5.0 / 15.0)
-			_pxs("gl_s3close_bk", c, t + B2.VX_PUSH, "bk")
-			_pair("gl_s3close", c, t + B2.VX_PUSH)
-			for i in a.tips.size():
-				var ta: float = t + B2.VX_A0 + B2.VX_DA * float(i)
-				_push({"k": "anchor", "a": Vector2(a.tips[i]) + Vector2(0, -520), "b": a.tips[i], "t0": ta - 0.2, "t1": ta, "h": 0.0, "pal": ULP, "life": 0.2 + 0.9, "sc": 0.9})
-				_pxs("ul_s1_r68_e2_up", a.tips[i], ta)
-				due.append([ta, "grains", {"o": a.who.ulpianus, "p": Vector2(a.tips[i]) + Vector2(0, LIFT * 0.5), "n": 6, "c0": ULP[5], "c1": ULP[3], "mat": "shard"}])
-			_pxs("ul_quake_r125_gd", c, t + B2.VX_A0 + B2.VX_DA * float(a.tips.size()), "gd")
-		"b_fins":   # 斯卡蒂 S3 回旋斩 + 归溟幽灵鲨 S3 浪刃绕圈 → 收拢潮环 → 圈心一记怒涛
-			_pair("spin_s3", c, t + B2.FN_T0)
-			_pxs("su_s3wave_bk_up", c, t + B2.FN_T0 + 0.35, "bk")
-			_pxs("su_s3wave_fr_up", c, t + B2.FN_T0 + 0.35)
-			_pxs("su_s3wave_gd", c, t + B2.FN_T0 + 0.35, "gd")
-			_pxs("su_curl_r90_gd", c, t + B2.FN_HIT - 0.4, "gd")
-			_pair("nutao", c, t + B2.FN_HIT - 0.1)
 		"b_hunt":   # 群猎：在场猎人按序各放自己的大招形体，在 HT_HIT 一齐落到圈心（斯卡蒂怒涛 / 歌蕾蒂娅收潮 / 幽灵鲨锯潮 / 乌尔比安浪冠 + 锚震 / 斯卡蒂（浊心）回潮）
 			var ids: Array = a.ps.map(func(p): return str(p.id))
 			for i in ids.size():
@@ -707,313 +511,6 @@ func cast5(a: Dictionary) -> void:
 					_:
 						_pair("backwash", c, ti)
 			due.append([t + B2.HT_HIT, "grains", {"o": a.ps[0], "p": c + Vector2(0, LIFT * 0.5), "n": 18, "c0": WATER, "c1": SK[4], "mat": "drop"}])
-
-
-## 锚：从 a 抛到 b（h > 0 抛物线；h = 0 竖直砸下），2–4 拍不补间；落地后插在地上，最后 0.3 秒淡出。缺贴图时画一个像素锚
-func _draw_anchor(ci, it: Dictionary) -> void:
-	var t: float = g.t
-	var t0: float = it.t0
-	var t1: float = it.t1
-	var life: float = it.life
-	if t < t0 or t > t0 + life:
-		return
-	var a: Vector2 = it.a
-	var b: Vector2 = it.b
-	var nb: float = maxf(1.0, floor((t1 - t0) * 15.0))
-	var k: float = clampf(floor((t - t0) * 15.0 + 1.0) / nb, 0.0, 1.0)
-	var p: Vector2 = a.lerp(b, k) + Vector2(0, -float(it.h) * 4.0 * k * (1.0 - k))
-	var al: float = 1.0 - clampf((t - (t0 + life - 0.3)) / 0.3, 0.0, 1.0)
-	var sc: float = float(it.get("sc", 1.0))
-	var tex: Texture2D = _tex(ANCHOR_TEX)
-	var sink: float = 14.0 * sc if k >= 1.0 else 0.0   # 落地后插进地里一截
-	if tex != null:
-		var sz: Vector2 = tex.get_size() * sc
-		ci.draw_texture_rect(tex, Rect2(_snap(p) + Vector2(-sz.x * 0.5, -sz.y + sink), sz), false, Color(1, 1, 1, al))
-	else:
-		var pal: Array = it.pal
-		for y in range(0, int(60.0 * sc / g.PX)):
-			_cell(ci, p + Vector2(0, -float(y) * g.PX + sink), pal[3] if y % 5 else pal[5])
-	if k < 1.0:   # 下落拖影
-		for j in range(1, 4):
-			var q: Vector2 = a.lerp(b, maxf(0.0, k - 0.12 * float(j)))
-			_cell(ci, q + Vector2(0, -20.0 * sc), Color(ULP[4], 0.6 - 0.15 * float(j)))
-
-
-## 锚链：乌尔比安手边 A → 锚落点 F，大方环（3 × 4 格，比他普攻的锁链粗一档）一环横一环竖；锚落地前跟着锚伸长，落地后绷直；浪锋扫过的那段染深海蓝，0.9 秒起往回收
-func _draw_chain(ci, it: Dictionary) -> void:
-	var age: float = g.t - float(it.t0)
-	if age < 0.05 or age > float(it.life):
-		return
-	var A: Vector2 = Vector2(it.A) + Vector2(0, -26)
-	var F: Vector2 = Vector2(it.F) + Vector2(0, -40)
-	var kf: float = clampf(floor((age - 0.05) * 15.0 + 1.0) / floor((B2.LS_LAND - 0.05) * 15.0), 0.0, 1.0)
-	var back: float = clampf((age - B2.LS_S1 - 0.3) / 0.25, 0.0, 1.0)
-	var tip: Vector2 = A.lerp(F, kf * (1.0 - back))
-	var sk: float = clampf((age - B2.LS_S0) / (B2.LS_S1 - B2.LS_S0), 0.0, 1.0)
-	var L: float = A.distance_to(tip)
-	var d: Vector2 = (F - A).normalized()
-	var nv: Vector2 = d.orthogonal()
-	var px: float = g.PX
-	var sag: float = 18.0 * (1.0 - kf)   # 没绷直前稍微下垂
-	var n: int = int(L / (px * 6.0))
-	for i in n:
-		var u: float = float(i) / float(maxi(1, n))
-		var q: Vector2 = A.lerp(tip, u) + Vector2(0, sag * sin(u * PI))
-		var dyed: bool = u * L / maxf(1.0, A.distance_to(F)) < sk
-		var pal: Array = SK if dyed else ULP
-		var vert: bool = i % 2 == 0
-		for x in range(-2, 3):
-			for y in range(-4, 4):
-				var edge: bool = absi(x) == 2 or y == -4 or y == 3
-				if not edge:
-					continue
-				var off: Vector2 = (d * float(x) + nv * float(y)) if vert else (d * float(y) + nv * float(x))
-				_cell(ci, q + off * px, pal[5] if (y <= -3 and dyed) else (pal[4] if y <= -3 else (pal[3] if absi(x) == 2 and y < 0 else pal[1])))
-		if dyed and i % 3 == 0:
-			_glow(q, SK[5])
-
-
-## 浪锋：斯卡蒂的深海蓝浪头沿锚链从 A 冲到 F（每拍跳一段）——卷起的浪唇（白芯 + 深海蓝）+ 后面一道染色拖尾
-func _draw_surge(ci, it: Dictionary) -> void:
-	var t: float = g.t
-	var t0: float = it.t0
-	var t1: float = it.t1
-	if t < t0 or t > t1 + 0.1:
-		return
-	var A: Vector2 = Vector2(it.A) + Vector2(0, -26)
-	var F: Vector2 = Vector2(it.F) + Vector2(0, -40)
-	var nb: float = maxf(1.0, floor((t1 - t0) * 15.0))
-	var k: float = clampf(floor((t - t0) * 15.0 + 1.0) / nb, 0.0, 1.0)
-	var p: Vector2 = A.lerp(F, k)
-	var d: Vector2 = (F - A).normalized()
-	var nv: Vector2 = d.orthogonal()
-	var px: float = g.PX
-	for j in range(-24, 25):   # 浪唇：往前凸的大弧（高 100、厚 6 格），白芯 + 深海蓝
-		var ang: float = float(j) / 24.0 * 1.25
-		var off: Vector2 = d * cos(ang) * 40.0 + nv * sin(ang) * 54.0 - d * 30.0
-		var th: int = 6 - absi(j) / 5
-		for s in th:
-			_cell(ci, p + off - d * float(s) * px, Color(1.3, 1.32, 1.4) if s == 0 and absi(j) < 10 else (SK[5] if s < 2 else SK[3]))
-		if j % 4 == 0:
-			_glow(p + off, SK[5])
-	var p0: Vector2 = A.lerp(F, maxf(0.0, k - 0.35))
-	var n: int = int(p0.distance_to(p) / px)
-	for i in range(0, n, 2):
-		var u: float = float(i) / float(maxi(1, n))
-		for s in range(-3, 4):
-			if (i / 2 + s) % 2 == 0:
-				_cell(ci, p0.lerp(p, u) + nv * float(s) * px * 2.0, Color(SK[4], 0.3 + 0.5 * u))
-
-
-## 海沟：沿 d 的一道锯齿裂口（宽度按哈希起伏，两头收尖），里面深黑 + 一格冷青边光；TD_OPEN 前只有一道淡紫钩线伸过去；0.9 秒起两拍内合拢成一道湿痕
-func _draw_trench(ci, it: Dictionary) -> void:
-	var age: float = g.t - float(it.t0)
-	if age < 0.05 or age > float(it.life):
-		return
-	var c: Vector2 = it.c
-	var d: Vector2 = it.d
-	var nv: Vector2 = d.orthogonal()
-	var L: float = it.L
-	var px: float = g.PX
-	var n: int = int(L / px)
-	if age < B2.TD_OPEN:   # 钩线：从一头 3 拍伸过去
-		var kk: float = clampf(floor((age - 0.05) * 15.0 + 1.0) / 3.0, 0.0, 1.0)
-		for i in range(0, int(float(n) * kk), 3):   # 钩过去的一串水雾（上下抖、疏密不匀，不成直线）
-			var hz: float = fposmod(sin(float(i) * 12.9898) * 43758.5453, 1.0)
-			if hz < 0.3:
-				continue
-			_cell(ci, c + d * ((float(i) / float(n)) - 0.5) * L + nv * (hz - 0.6) * 18.0 + Vector2(0, -LIFT * 0.4), WATER if hz > 0.85 else (GLA if hz > 0.6 else GL[4]))
-		return
-	var op: float = clampf(floor((age - B2.TD_OPEN) * 15.0 + 1.0) / 2.0, 0.0, 1.0)
-	var cl: float = clampf((age - B2.TD_S1 - 0.15) / 0.25, 0.0, 1.0)
-	var wk: float = op * (1.0 - cl)
-	for i in n:
-		var u: float = float(i) / float(n)
-		var q: Vector2 = c + d * (u - 0.5) * L
-		var hz: float = fposmod(sin(float(i / 3) * 12.9898) * 43758.5453, 1.0)
-		var w: int = int(round((6.0 + 9.0 * hz) * pow(sin(u * PI), 0.6) * wk))
-		var jig: int = int(round((fposmod(sin(float(i / 5) * 7.13) * 9831.7, 1.0) - 0.5) * 4.0 * wk))
-		for s in range(-w, w + 1):
-			var e: int = absi(s)
-			var col: Color = (Color(0.02, 0.03, 0.06) if e < w - 3 else (SPP[2] if e < w - 2 else (SPP[5] if s < 0 else SPP[4])))
-			if e < w - 4 and (i + s * 3 + int(floor(g.t * 15.0))) % 11 == 0:
-				col = SPP[3]   # 沟底水光
-			_cell(ci, q + nv * float(s + jig) * px, col)
-		if w <= 0 and cl > 0.0 and hz > 0.7:   # 合拢后只剩零星湿点（不留一条直线）
-			_cell(ci, q + nv * float(jig) * px, Color(0.12, 0.18, 0.26, 0.8 * (1.0 - clampf((age - 1.1) / 0.15, 0.0, 1.0))))
-		if w > 2 and i % 20 == 0:
-			_glow(q + nv * float(-w + jig) * px, SPP[5])
-
-
-## 斩浪：幽灵鲨一道竖起的斩浪沿海沟冲过去——竖向月牙（幽灵青 + 白芯，前沿一格橙），后面海沟里亮一段
-func _draw_tslash(ci, it: Dictionary) -> void:
-	var t: float = g.t
-	var t0: float = it.t0
-	var t1: float = it.t1
-	if t < t0 or t > t1 + 0.1:
-		return
-	var c: Vector2 = it.c
-	var d: Vector2 = it.d
-	var L: float = it.L
-	var nb: float = maxf(1.0, floor((t1 - t0) * 15.0))
-	var k: float = clampf(floor((t - t0) * 15.0 + 1.0) / nb, 0.0, 1.0)
-	var p: Vector2 = c + d * (k - 0.5) * L
-	var px: float = g.PX
-	for j in range(-34, 4):   # 竖起的月牙：底在海沟、往上 76 格，向前弯，厚 5 格
-		var y: float = float(j) * px * 2.0
-		var bow: float = 22.0 * (1.0 - pow(float(j + 15) / 19.0, 2.0))
-		var th: int = 5 if j > -24 else 3
-		for s in th:
-			var q: Vector2 = p + Vector2(0, y) + d * (bow - float(s) * px)
-			_cell(ci, q, SPA if s == 0 and j < -14 else (Color(1.25, 1.3, 1.4) if s == 0 else (SPP[5] if s == 1 else SPP[3])))
-		if j % 6 == 0:
-			_glow(p + Vector2(0, y) + d * bow, SPP[5])
-	var p0: Vector2 = c + d * (maxf(0.0, k - 0.3) - 0.5) * L
-	for i in range(0, int(p0.distance_to(p) / px), 2):
-		_cell(ci, p0 + d * float(i) * px, Color(SPP[4], 0.8))
-
-
-## 作战推演（11-07 用户「不要明显的简约几何线条」：箭头 / 虚线圈删掉）：外圈的水往中心卷——几股水流粒子沿螺线从外往里流（每股 5 支「推演」方向之一），
-## 箭头尖（锚的落点）上一团打旋的水花；锚落下后那团水花散掉
-func _draw_plan(ci, it: Dictionary) -> void:
-	var age: float = g.t - float(it.t0)
-	if age < 0.0 or age > float(it.life):
-		return
-	var c: Vector2 = it.c
-	var R: float = it.R
-	var px: float = g.PX
-	var fa: float = 1.0 - clampf((age - B2.VX_A0 - B2.VX_DA * 5.0) / 0.4, 0.0, 1.0)
-	var tips: Array = it.tips
-	var flow: float = clampf(age / 0.7, 0.0, 1.0)
-	for i in 150:
-		var h1: float = fposmod(float(i) * 0.618034, 1.0)
-		var h2: float = fposmod(float(i) * 0.754877 + age * 1.8, 1.0)   # 沿流线的位置（随时间往里走）
-		var arm: int = i % tips.size()
-		var a0: float = (Vector2(tips[arm]) - c).angle() + (h1 - 0.5) * 0.5
-		var rr: float = R * (1.0 - h2) * flow + R * (1.0 - flow)
-		var ang: float = a0 + (1.0 - rr / R) * 1.6   # 越往里转得越多（螺线）
-		var q: Vector2 = c + Vector2(cos(ang) * rr, sin(ang) * rr * SQ)
-		var col: Color = WATER if i % 5 == 0 else (GL[5] if i % 3 else GLA)
-		_cell(ci, q, Color(col, fa * (0.4 + 0.6 * h2)))
-		if i % 9 == 0:
-			_cell(ci, q + Vector2(px, 0), Color(GL[4], fa * 0.6))
-	for i in tips.size():
-		if age < 0.15 * float(i) + 0.15 or age > B2.VX_A0 + B2.VX_DA * float(i) + 0.04:
-			continue
-		var tp: Vector2 = tips[i]
-		for j in 14:   # 打旋的水花
-			var aj: float = TAU * float(j) / 14.0 + age * 9.0
-			var rj: float = 18.0 + 6.0 * sin(float(j) * 2.3 + age * 12.0)
-			_cell(ci, tp + Vector2(cos(aj) * rj, sin(aj) * rj * SQ), Color(WATER if j % 3 == 0 else GL[5], fa))
-		_glow(tp, GL[5])
-
-
-## 背鳍：从圈上 a0 处冒出（2 拍从水下升起），绕圈心游一圈（每拍一段），身后白色破浪；到 hit 时一拍扎进水里不见
-func _draw_fin(ci, it: Dictionary) -> void:
-	var t: float = g.t
-	var t0: float = it.t0
-	var t1: float = it.t1
-	if t < t0 or t > float(it.hit) + 0.05:
-		return
-	var c: Vector2 = it.c
-	var R: float = it.R
-	var nb: float = maxf(1.0, floor((t1 - t0) * 15.0))
-	var k: float = clampf(floor((t - t0) * 15.0 + 1.0) / nb, 0.0, 1.0)
-	var ang: float = float(it.a0) + TAU * k
-	var rr: float = R * (1.0 - 0.75 * clampf((t - t1) / (float(it.hit) - t1), 0.0, 1.0))   # 游完一圈往圈心收
-	var p: Vector2 = _snap(c + Vector2(cos(ang), sin(ang) * SQ) * rr)
-	var rise: float = clampf((t - t0) / 0.13, 0.0, 1.0) * (1.0 - clampf((t - float(it.hit) + 0.07) / 0.07, 0.0, 1.0))
-	var pal: Array = it.pal
-	var px: float = g.PX
-	for j in range(1, 10):   # 破浪：身后弧上几段白沫
-		var aj: float = ang - 0.12 * float(j)
-		var q: Vector2 = c + Vector2(cos(aj), sin(aj) * SQ) * rr
-		for s in range(-2, 3):
-			if (j + s) % 2 == 0:
-				_cell(ci, q + Vector2(0, float(s) * px), Color(WATER, 0.9 - 0.08 * float(j)))
-	var tex: Texture2D = _tex(FIN_TEX)
-	var flip: bool = sin(ang) > 0.0   # 往右游（上半圈）朝右、下半圈朝左
-	if tex != null and rise > 0.0:
-		var sz: Vector2 = tex.get_size() * 1.5   # 11-07 用户「不够明显」：放大
-		var vis: float = sz.y * rise
-		ci.draw_set_transform(p, 0.0, Vector2(-1.0 if flip else 1.0, 1.0))
-		ci.draw_texture_rect_region(tex, Rect2(Vector2(-sz.x * 0.5, -vis), Vector2(sz.x, vis)), Rect2(0, 0, sz.x / 1.5, vis / 1.5), Color(lerpf(1.0, pal[4].r * 1.2, 0.35), lerpf(1.0, pal[4].g * 1.2, 0.35), lerpf(1.0, pal[4].b * 1.2, 0.35)))
-		ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	elif rise > 0.0:
-		for y in int(40.0 * rise / px):
-			for x in range(-(10 - y / 3), 1):
-				_cell(ci, p + Vector2(float(x) * px, -float(y) * px), pal[3] if x > -2 else pal[2])
-	_glow(p + Vector2(0, -10), pal[5])
-
-
-## 暗潮（11-07 用户「不要明显的简约几何线条」）：一圈往里涌的浪花团——每团几颗深海蓝水珠 + 一两格白沫，按哈希错开远近和大小，
-## 整体从 R0 往里合拢（缓入），不画连续环带；到位后 2 拍溅散
-func _draw_tidering(ci, it: Dictionary) -> void:
-	var t: float = g.t
-	var t0: float = it.t0
-	var t1: float = it.t1
-	if t < t0 or t > t0 + float(it.life):
-		return
-	var c: Vector2 = it.c
-	var px: float = g.PX
-	var k: float = clampf((t - t0) / (t1 - t0), 0.0, 1.0)
-	var rr: float = lerpf(float(it.R0), 60.0, k * k)
-	var burst: float = clampf((t - t1) / 0.15, 0.0, 1.0)
-	var bt: int = int(floor(g.t * 15.0))
-	var n: int = 90
-	for i in n:
-		var h1: float = fposmod(float(i) * 0.618034, 1.0)
-		var h2: float = fposmod(float(i) * 0.754877, 1.0)
-		var a0: float = TAU * (float(i) + h1 * 0.8) / float(n)
-		var r2: float = rr * (0.82 + 0.36 * h2) + burst * 90.0 * h2
-		var p: Vector2 = c + Vector2(cos(a0), sin(a0) * SQ) * r2
-		var m: int = 4 + int(h1 * 6.0)
-		for j in m:
-			var hj: float = fposmod(float(i * 7 + j * 3 + bt) * 0.4142, 1.0)
-			var q: Vector2 = p + Vector2((hj - 0.5) * 10.0, (fposmod(hj * 7.1, 1.0) - 0.5) * 8.0)
-			var col: Color = WATER if j == 0 and (i + bt) % 3 != 0 else (SK[4] if j < 2 else SK[2])
-			_cell(ci, q, Color(col, 1.0 - burst))
-		if i % 8 == 0:
-			_glow(p, SK[5])
-
-
-## 猎人扑向圈心（11-07 不画直线矛）：各人色的一股粒子流从潮里冲向圈心（2 拍：头部一团亮粒子 + 后面散开的拖尾颗粒），
-## 浊心斯卡蒂不冲：圈心一圈往外扩的歌声音符点（断续、按节拍闪）
-func _draw_spear(ci, it: Dictionary) -> void:
-	var t: float = g.t
-	var t0: float = it.t0
-	var t1: float = it.t1
-	if t < t0 or t > t1 + 0.2:
-		return
-	var c: Vector2 = it.c
-	var pal: Array = it.pal
-	var px: float = g.PX
-	var f: int = int(floor((t - t0) * 15.0))
-	var bt: int = int(floor(g.t * 15.0))
-	if bool(it.sing):
-		var r: float = [40.0, 80.0, 120.0, 150.0][mini(f, 3)]
-		for i in 30:
-			var hi: float = fposmod(float(i) * 0.618 + float(bt) * 0.21, 1.0)
-			if hi < 0.35:
-				continue
-			var a0: float = TAU * (float(i) + hi) / 30.0
-			_cell(ci, c + Vector2(cos(a0) * r, sin(a0) * r * SQ) * (0.9 + 0.2 * hi), pal[5] if i % 2 else pal[4])
-		return
-	var dv: Vector2 = Vector2.from_angle(float(it.ang))
-	var tail: Vector2 = c + Vector2(dv.x, dv.y * SQ) * 170.0
-	var k: float = [0.5, 1.0, 1.0, 1.0][mini(f, 3)]
-	var head: Vector2 = tail.lerp(c, k) + Vector2(0, -LIFT * 0.6)
-	var dd: Vector2 = (c - tail).normalized()
-	var nn: Vector2 = dd.orthogonal()
-	for j in 26:
-		var hj: float = fposmod(float(j) * 0.618034 + float(bt) * 0.13, 1.0)
-		var back: float = pow(hj, 1.6) * 120.0 * k
-		var spread: float = (fposmod(float(j) * 0.7548, 1.0) - 0.5) * (6.0 + back * 0.25)
-		var q: Vector2 = head - dd * back + nn * spread
-		_cell(ci, q, Color(1.3, 1.3, 1.4) if back < 10.0 else (pal[5] if back < 50.0 else pal[3]))
-	for d2 in [Vector2.ZERO, Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]:
-		_cell(ci, head + d2 * px, Color(1.3, 1.3, 1.4))
-	_glow(head, pal[5])
 
 
 ## 提灯（pixgen bd2_lamp，11-07）：从艾丽妮身边 2 拍飞到落点上空 L，悬停时两拍一晃；0.35 秒灯罩打开（灯光星芒 + 发光点），最后 0.3 秒淡出。缺贴图时画像素小灯
@@ -1050,60 +547,3 @@ func _draw_lantern(ci, it: Dictionary) -> void:
 		_glow(p + Vector2(float(i - 1) * 6.0, 0), LAMPG[5])
 
 
-## 光雨：灯罩打开后（0.35 秒起）暖金光点从提灯往下洒、散到落点光圈里（每颗按哈希挑落点、加速往下落，落地变成一格地面闪光，Noita 式）；
-## top = true 画空中的光点，false 画地面层的断续描边光圈 + 地面闪光 + 紫印
-func _draw_rain(ci, it: Dictionary, top: bool) -> void:
-	var age: float = g.t - float(it.t0)
-	var hit: float = B2.IQ_HIT
-	if age < 0.6 or age > hit + 0.3:
-		return
-	var px: float = g.PX
-	var lp: Vector2 = it.L
-	var c: Vector2 = it.c
-	var r: float = it.r
-	var fa: float = 1.0 - clampf((age - hit) / 0.3, 0.0, 1.0)
-	var bt: int = int(floor(g.t * 15.0))
-	var span: float = age - 0.6
-	var sp: float = hit - 0.6 - 0.3   # 光点出发时刻散布在这段里（最后一颗在光矛前落地）
-	if top:
-		for i in 180:
-			var h1: float = fposmod(float(i) * 0.618034, 1.0)
-			var h2: float = fposmod(float(i) * 0.754877, 1.0)
-			var h3: float = fposmod(float(i) * 0.414214, 1.0)
-			var tt: float = span - h3 * sp
-			if tt < 0.0:
-				continue
-			var u: float = tt / 0.28
-			if u >= 1.0:
-				continue
-			var land: Vector2 = c + Vector2(cos(h1 * TAU), sin(h1 * TAU) * SQ) * sqrt(h2) * r
-			var q: Vector2 = lp.lerp(land, u * u)
-			var big: bool = i % 6 == 0
-			_cell(ci, q, Color(Color.WHITE if big else LAMPG[5], fa))
-			_cell(ci, q + Vector2(px, 0), Color(LAMPG[5], fa))
-			for tr in range(1, 5):   # 拖尾 4 格
-				_cell(ci, q + Vector2(0, -px * float(tr)), Color(LAMPG[4] if tr < 3 else LAMPG[3], fa * (0.85 - 0.18 * float(tr))))
-			if big:
-				_glow(q, LAMPG[4])
-		return
-	var rr: float = r * clampf(span / 0.4, 0.0, 1.0)   # 11-07 用户「不要明显的简约几何线条」：光圈不描边，范围只靠落地闪光
-	for i in 120:   # 光点落地后的地面闪光（落地后 0.2 秒内）
-		var h1: float = fposmod(float(i) * 0.618034, 1.0)
-		var h2: float = fposmod(float(i) * 0.754877, 1.0)
-		var h3: float = fposmod(float(i) * 0.414214, 1.0)
-		var tl: float = span - h3 * sp - 0.28
-		if tl < 0.0 or tl > 0.2:
-			continue
-		var land: Vector2 = c + Vector2(cos(h1 * TAU), sin(h1 * TAU) * SQ) * sqrt(h2) * r
-		_cell(ci, land, Color(LAMPG[5], fa * (1.0 - tl / 0.2)))
-		_cell(ci, land + Vector2(px, 0), Color(LAMPG[4], fa * 0.6 * (1.0 - tl / 0.2)))
-	if age < hit:
-		for e in g.enemies:
-			if e.dead or e.get("friendly", false):
-				continue
-			var dd: Vector2 = e.pos - c
-			if dd.x * dd.x + dd.y * dd.y / (SQ * SQ) > rr * rr:
-				continue
-			var hp: Vector2 = _snap(e.pos + Vector2(0, -float(e.get("r", 10.0)) * 1.6 - 10.0))
-			for dv2 in [Vector2.ZERO, Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]:
-				_cell(ci, hp + dv2 * px, IR[5] if dv2 == Vector2.ZERO else IR[3])

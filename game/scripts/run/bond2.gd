@@ -10,13 +10,13 @@ const BPF = preload("res://scripts/run/bond2_pf.gd")
 
 ## 3 对：成员、标签、招式名、一句话（docs/294 §4，玩家可见文字按 docs/76）
 const MOVES := {
-	"b_rival": {"ops": ["texas", "lappland"], "tag": "宿敌", "name": "十字旧怨", "desc": "两人同时挥剑，两道剑气在怪群中心相撞炸开；拉普兰德一侧附带沉默"},
+	"b_rival": {"ops": ["texas", "lappland"], "tag": "宿敌", "name": "狼衔剑", "desc": "拉普兰德唤出狼影，叼起德克萨斯的巨剑从怪群里一路犁过去，再把剑甩上天钉进终点；狼影掠过的敌人被沉默"},
 	"b_penguin": {"ops": ["exusiai", "texas"], "tag": "企鹅物流", "name": "急件航线", "desc": "德克萨斯开车从怪群里碾过去，一路往两边丢炸弹；能天使朝怪群齐射"},
 	"b_inq": {"ops": ["lumen", "irene"], "tag": "灯下审决", "name": "提灯宣判", "desc": "艾丽妮的提灯悬在怪群上空洒下金光，审判光矛随即从灯下劈落"},
-	"b_lesson": {"ops": ["ulpianus", "skadi"], "tag": "潮下授课", "name": "链上疾驰", "desc": "乌尔比安把锚掷过怪群、锚链绷直，斯卡蒂的浪锋沿锚链一路冲过去"},
-	"b_tide": {"ops": ["gladiia", "specter_unchained"], "tag": "引潮夺命", "name": "引潮断线", "desc": "歌蕾蒂娅一钩拉开海沟、把两侧的敌人拖进去，归溟幽灵鲨沿海沟斩过"},
-	"b_vortex": {"ops": ["gladiia", "ulpianus"], "tag": "漩涡钉锚", "name": "涡心落锚", "desc": "歌蕾蒂娅画出推演箭头把敌人往中心推，乌尔比安的锚依次砸在箭头尖上"},
-	"b_fins": {"ops": ["skadi", "specter_unchained"], "tag": "双鳍", "name": "双鳍破浪", "desc": "两片背鳍绕着怪群交错游一圈，最后在圈心扎进水里"},
+	"b_lesson": {"ops": ["ulpianus", "skadi"], "tag": "手术刀", "name": "收力一剑", "desc": "乌尔比安掷锚咬住怪群往回拽，把一路的敌人拖到斯卡蒂面前，斯卡蒂收着力一剑劈下"},
+	"b_tide": {"ops": ["gladiia", "specter_unchained"], "tag": "引潮夺命", "name": "串刺", "desc": "歌蕾蒂娅掷出长槊贯穿一排敌人再拽回，归溟幽灵鲨趁槊经过一刀锯开"},
+	"b_vortex": {"ops": ["gladiia", "ulpianus"], "tag": "漩涡钉锚", "name": "钉桩回旋", "desc": "歌蕾蒂娅的长槊钉进怪群当桩，乌尔比安的锚链缠上长槊绕圈收紧，最后砸在槊旁"},
+	"b_fins": {"ops": ["skadi", "specter_unchained"], "tag": "双鳍", "name": "击锯", "desc": "归溟幽灵鲨抛出锯刃，斯卡蒂抡剑把它击飞，锯刃一路锯过怪群后嵌地炸开"},
 	"b_hunt": {"ops": [], "group": ["skadi", "gladiia", "specter_unchained", "ulpianus", "skalter"], "min": 3, "tag": "群猎", "name": "群猎合围", "desc": "一圈暗潮从四面合拢，猎人们的武器从潮里一齐刺向中心"},
 }
 const ORDER := ["b_hunt", "b_rival", "b_penguin", "b_inq", "b_lesson", "b_tide", "b_vortex", "b_fins"]
@@ -151,12 +151,17 @@ static func _cast(u, bid: String, pr: Array, c: Vector2, e2: bool) -> void:
 	var k: float = Bal.v("bond2/size_e2", 1.0) if e2 else Bal.v("bond2/size", 1.0)
 	var a := {"id": bid, "who": who, "c": c, "d0": d0, "k": k, "e2": e2, "age": 0.0, "done": {}, "fr": {}, "from": from}
 	match bid:
-		"b_rival":   # 十字斩：交点 = 最密处；两刀各长 L、半宽 hw（画面上压扁成地面角度）
-			var ang: float = Bal.v("bond2/rival_ang", 0.55)
-			a["d1"] = Vector2(cos(ang), sin(ang))
-			a["d2"] = Vector2(-cos(ang), sin(ang))
-			a["L"] = Bal.v("bond2/rival_len", 560.0) * k
-			a["hw"] = Bal.v("bond2/rival_hw", 46.0) * k
+		"b_rival":   # 狼衔剑：横向车道（同企鹅物流的车：狼影是侧面像，斜着走像在滑），从最密处后方 rv_run 拖到前方 rv_out；车道半宽 hw、终点钉剑半径 r
+			var sx0: float = 1.0 if d0.x >= 0.0 else -1.0
+			a["dl"] = Vector2(sx0, 0.0)
+			var ld0 = g.squad.leader()
+			var ly0: float = ld0.pos.y if ld0 != null and ld0.pos != Vector2.INF else from.y
+			var cc: Vector2 = Vector2(c.x, clampf(c.y, ly0 - 60.0, ly0 + 160.0))
+			a["c"] = cc
+			a["S"] = cc - a.dl * Bal.v("bond2/rv_run", 260.0) * k
+			a["E"] = cc + a.dl * Bal.v("bond2/rv_out", 260.0) * k
+			a["hw"] = Bal.v("bond2/rival_hw", 50.0) * k
+			a["r"] = Bal.v("bond2/rv_r", 110.0) * k
 		"b_penguin":   # 碾过去：车只走横向（斜率封顶 0.12），从最密处后方 car_run 处冲进来、开过去 car_out；车道半宽 hw
 			var sx: float = 1.0 if d0.x >= 0.0 else -1.0
 			a["dl"] = Vector2(sx, 0.0).normalized()
@@ -182,32 +187,44 @@ static func _cast(u, bid: String, pr: Array, c: Vector2, e2: bool) -> void:
 			var lm = who.lumen
 			a["O"] = c + Vector2(0, -Bal.v("bond2/lamp_h", 170.0))   # 提灯悬停点：落点正上方
 			a["r"] = Bal.v("bond2/inq_r", 240.0) * k
-		"b_lesson":   # 链上疾驰：锚落在最密处再往外 ls_over（远端），锚链从乌尔比安到锚；落地圈 r、锚链带半宽 hw
+		"b_lesson":   # 收力一剑：锚落在最密处再往外 ls_over（F，留在画面里）；拖回到斯卡蒂面前 Pp；钩住半径 hw、一剑半径 r
 			var ul = who.ulpianus
-			var A0: Vector2 = ul.pos + Vector2(0, -6)
+			var skd = who.skadi
+			var A0: Vector2 = (ul.pos if ul != null else from) + Vector2(0, -6)
 			var dv: Vector2 = (c - A0).normalized() if c != A0 else d0
 			a["A"] = A0
-			var Fr: Vector2 = c + dv * Bal.v("bond2/ls_over", 160.0) * k
+			var Fr: Vector2 = c + dv * Bal.v("bond2/ls_over", 120.0) * k
 			var ldq = g.squad.leader()
 			var lq: Vector2 = ldq.pos if ldq != null and ldq.pos != Vector2.INF else from
-			a["F"] = Vector2(clampf(Fr.x, lq.x - 620.0, lq.x + 620.0), clampf(Fr.y, lq.y - 150.0, lq.y + 300.0))   # 锚落点留在画面里（锚高 150，顶上有演出卡）
-			a["r"] = Bal.v("bond2/ls_r", 110.0) * k
-			a["hw"] = Bal.v("bond2/ls_hw", 52.0) * k
-		"b_tide":   # 引潮断线：海沟过最密处、垂直于小队 → 落点方向；长 L、拖拽范围 pull、斩浪带半宽 hw
-			a["d"] = d0.orthogonal()
-			a["L"] = Bal.v("bond2/td_len", 520.0) * k
-			a["pull"] = Bal.v("bond2/td_pull", 150.0) * k
-			a["hw"] = Bal.v("bond2/td_hw", 60.0) * k
-		"b_vortex":   # 涡心落锚：外圈 R 上五支箭头，箭头尖在 0.45 R 处；每只锚落点半径 ar
-			a["R"] = Bal.v("bond2/vx_r", 260.0) * k
-			a["ar"] = Bal.v("bond2/vx_ar", 80.0) * k
-			var tips: Array = []
-			var a0: float = fposmod(g.t * 1.3, TAU)   # 只取转角，不抽随机数
-			for i in 5:
-				tips.append(c + Vector2.from_angle(a0 + TAU * float(i) / 5.0) * float(a.R) * 0.45 * Vector2(1.0, 0.72))
-			a["tips"] = tips
-		"b_fins":   # 双鳍破浪：绕最密处游一圈的半径 R（扎水时圈里打一下）
-			a["R"] = Bal.v("bond2/fn_r", 200.0) * k
+			a["F"] = Vector2(clampf(Fr.x, lq.x - 620.0, lq.x + 620.0), clampf(Fr.y, lq.y - 150.0, lq.y + 300.0))
+			var kp: Vector2 = skd.pos if skd != null else A0
+			a["Pp"] = kp + ((c - kp).normalized() if c != kp else d0) * Bal.v("bond2/ls_pile", 90.0)
+			a["r"] = Bal.v("bond2/ls_r", 100.0) * k
+			a["hw"] = Bal.v("bond2/ls_hw", 50.0) * k
+		"b_tide":   # 串刺：槊从歌蕾蒂娅手里沿 G → E 飞（穿过最密处再往外 td_over，总长封顶 720）；幽灵鲨在 G–E 上的投影 P 处锯开（半径 r）；贯穿带半宽 hw
+			var glw = who.gladiia
+			var spw = who.specter_unchained
+			var G: Vector2 = (glw.pos if glw != null else from) + Vector2(0, -6)
+			var dd: Vector2 = (c - G).normalized() if c != G else d0
+			var Ln: float = minf(G.distance_to(c) + Bal.v("bond2/td_over", 180.0) * k, 720.0)
+			a["G"] = G
+			a["E"] = G + dd * Ln
+			var sp0: Vector2 = spw.pos if spw != null else G
+			a["P"] = G + dd * clampf((sp0 - G).dot(dd), Ln * 0.15, Ln * 0.6)
+			a["r"] = Bal.v("bond2/td_r", 90.0) * k
+			a["hw"] = Bal.v("bond2/td_hw", 36.0) * k
+		"b_vortex":   # 钉桩回旋：桩 = 最密处；锚绕桩起始半径 R、扫到半径 ar、最后砸地半径 r
+			a["R"] = Bal.v("bond2/vx_r", 170.0) * k
+			a["ar"] = Bal.v("bond2/vx_ar", 46.0) * k
+			a["r"] = Bal.v("bond2/vx_slam", 130.0) * k
+		"b_fins":   # 击锯：斯卡蒂面前 H 击飞，锯刃沿 H → E（穿过最密处再往外 fn_over）；锯道半宽 hw、嵌地半径 r
+			var skf = who.skadi
+			var K: Vector2 = skf.pos if skf != null else from
+			var df: Vector2 = (c - K).normalized() if c != K else d0
+			a["H"] = K + df * 40.0
+			a["E"] = c + df * Bal.v("bond2/fn_over", 160.0) * k
+			a["hw"] = Bal.v("bond2/fn_hw", 44.0) * k
+			a["r"] = Bal.v("bond2/fn_r", 100.0) * k
 		"b_hunt":   # 群猎合围：暗潮从 R0 合拢，圈心交汇半径 r
 			a["ps"] = pr
 			a["R0"] = Bal.v("bond2/ht_r0", 260.0) * k
@@ -292,41 +309,61 @@ static func _step(u, a: Dictionary, dt: float) -> bool:
 	return true
 
 
-## 宿敌「十字旧怨」· 十字斩（11-07 用户：改成斩击，选「十字斩裂地」）：两人原地出手（0 秒），落点先闪一下 X 形预兆细线，
-## 德克萨斯一刀（左上 → 右下，0.24 秒）、拉普兰德一刀（右上 → 左下，0.32 秒）在最密处交成大 X，斩痕带上的各打一下；
-## 拉普兰德那一刀附带沉默；交点 0.34 秒炸开（只画）
-const RV_T1 := 0.6
-const RV_T2 := 0.82
-const RV_HIT := 0.88
+## 宿敌「狼衔剑」（docs/314，11-07 用户选）：拉普兰德唤出狼影、德克萨斯一柄巨剑插在车道起点（RV_DROP）；狼叼剑沿横向车道从 S 拖到 E
+## （RV_GRAB–RV_RUN，剑尖犁地，带上的打一下、往两侧掀开，拉普兰德一侧沉默）；到头把剑甩上天、剑转一圈钉进 E（RV_STAB，一圈打一下往外推）
+const RV_DROP := 0.3
+const RV_GRAB := 0.5
+const RV_RUN := 1.1
+const RV_STAB := 1.45
+static func rv_wolf(a: Dictionary, t: float) -> Vector2:   # 狼（剑柄）位置；画面同用
+	var S: Vector2 = a.S
+	var E: Vector2 = a.E
+	if t < RV_GRAB:
+		return S - Vector2(a.dl) * 60.0 * (1.0 - clampf(t / RV_GRAB, 0.0, 1.0))
+	var k: float = clampf((t - RV_GRAB) / (RV_RUN - RV_GRAB), 0.0, 1.0)
+	return S.lerp(E, k * k * (3.0 - 2.0 * k))
 static func _rival(u, a: Dictionary, t: float) -> bool:
 	var tx = a.who.texas
 	var lp = a.who.lappland
-	var c: Vector2 = a.c
 	if _once(a, "go"):
+		if _ok(lp):
+			lp.play_vis_anim("skill")
 		if _ok(tx):
 			tx.play_vis_anim("attack")
-		if _ok(lp):
-			lp.play_vis_anim("attack")
-		_sfx(u.g, "op_texas_s3", -6.0, 1.05)
-	var hit: Dictionary = a.get("hitset", {})
-	for cut in [[RV_T1, "c1", tx, a.d1, false], [RV_T2, "c2", lp, a.d2, true]]:
-		if t >= float(cut[0]) and _once(a, str(cut[1])):
-			var who = cut[2] if _ok(cut[2]) else (tx if _ok(tx) else lp)
-			var d: Vector2 = cut[3]
-			var L: float = float(a.L)
-			_sfx(u.g, "op_texas_s3_cut_1" if not bool(cut[4]) else "ult_lappland_impact", -4.0, 0.9)
-			for e in u.in_band(c - d * L * 0.5, c + d * L * 0.5, float(a.hw)):
-				var eid: int = int(e.get("id", -1))
-				if hit.has(eid):
-					continue
-				hit[eid] = true
-				_hit(u, who, e, Bal.v("bond2/rival_frac", 1.2), "十字旧怨", a)
-				if bool(cut[4]) and Bal.v("bond2/rival_silence", 1.0) > 0.0 and not e.dead and not e.boss:
+		_sfx(u.g, "ult_lappland_impact", -6.0, 0.8)
+	var drv = lp if _ok(lp) else tx
+	if t >= RV_DROP and _once(a, "drop"):
+		_sfx(u.g, "op_texas_s3_cut_1", -5.0, 0.8)
+		for e in u.in_circle(a.S, 60.0):
+			_hit(u, tx if _ok(tx) else lp, e, Bal.v("bond2/rv_drop", 0.3), "狼衔剑", a)
+	if t >= RV_GRAB and t < RV_RUN + 0.05:
+		var p: Vector2 = rv_wolf(a, t)
+		var p0: Vector2 = a.get("wp", a.S)
+		a["wp"] = p
+		var hit: Dictionary = a.get("hitset", {})
+		var nv: Vector2 = Vector2(a.dl).orthogonal()
+		for e in u.in_band(p0, p, float(a.hw)):
+			var eid: int = int(e.get("id", -1))
+			if hit.has(eid):
+				continue
+			hit[eid] = true
+			_hit(u, drv, e, Bal.v("bond2/rival_frac", 1.0), "狼衔剑", a)
+			if not e.dead and not e.boss:
+				var sd: float = 1.0 if (e.pos - p).dot(nv) >= 0.0 else -1.0
+				drv.apply_kb(e, (nv * sd + Vector2(a.dl) * 0.3).normalized() * 200.0)
+				if Bal.v("bond2/rival_silence", 1.0) > 0.0:
 					u.g.enemies_sys.silence(e, u.g.t + (0.5 if e.elite else 1.0))
-	a["hitset"] = hit
-	if t >= RV_HIT and _once(a, "x"):
+		a["hitset"] = hit
+		if int(t * 15.0) % 2 == 0 and _once(a, "dust%d" % int(t * 15.0)):
+			BPF.wolf_trail(u, a, p)
+	if t >= RV_STAB and _once(a, "stab"):
+		_sfx(u.g, "ult_texas_impact", -4.0, 0.75)
+		for e in u.in_circle(a.E, float(a.r)):
+			_hit(u, tx if _ok(tx) else lp, e, Bal.v("bond2/rv_stab", 0.8), "狼衔剑", a)
+			if not e.dead and not e.boss:
+				(tx if _ok(tx) else lp).apply_kb(e, (e.pos - Vector2(a.E)).normalized() * 180.0)
 		BPF.rival_hit(u, a)
-	return t >= 1.9
+	return t >= 2.1
 
 
 ## 企鹅物流「急件航线」· 碾过去（11-07 用户：「一辆车直接碾过去」，不裂地）：能天使原地朝最密处齐射（0–0.6 秒，每 0.09 秒最近 3 只各一枪）；
@@ -423,160 +460,233 @@ static func _inq(u, a: Dictionary, t: float) -> bool:
 	return t >= 2.1
 
 
-## 潮下授课「链上疾驰」· 合击（docs/296 第七轮用户选定，11-07 改合击：人物原地出手）：乌尔比安原地掷锚，巨锚越过最密处砸在远端（0.05–0.28 秒，落地打一圈），
-## 锚链从他手里绷直横跨怪群；斯卡蒂原地出手，一道深海蓝浪锋沿锚链从近到远冲过去（0.38–0.62 秒，锚链两侧的带状区域打一下），锚链随后收回
-const LS_LAND := 0.6
-const LS_S0 := 0.95
-const LS_S1 := 1.45
+## 手术刀「收力一剑」（docs/314，原作：乌尔比安把锚叫「手术刀」、教斯卡蒂节制用力）：乌尔比安头顶抡锚（LS_SPIN–LS_THROW）掷进怪群远端 F，
+## 锚爪咬地（LS_BITE，一圈打一下）；往回一拽（LS_PULL–LS_PILE），锚经过的怪被钩住拖到斯卡蒂面前 Pp 堆成一堆；斯卡蒂一剑劈下（LS_CUT），只炸这一堆
+const LS_SPIN := 0.08
+const LS_THROW := 0.42
+const LS_BITE := 0.62
+const LS_PULL := 0.8
+const LS_PILE := 1.12
+const LS_CUT := 1.24
+static func ls_anchor(a: Dictionary, t: float) -> Vector2:   # 锚落点（地面）；抡锚 / 飞行阶段由画面另算
+	var F: Vector2 = a.F
+	var Pp: Vector2 = a.Pp
+	if t < LS_PULL:
+		return F
+	var k: float = clampf((t - LS_PULL) / (LS_PILE - LS_PULL), 0.0, 1.0)
+	return F.lerp(Pp + (F - Pp).normalized() * 28.0, k * k)
 static func _lesson(u, a: Dictionary, t: float) -> bool:
 	var ul = a.who.ulpianus
 	var sk = a.who.skadi
+	var hu = ul if _ok(ul) else sk
 	if _once(a, "go"):
 		if _ok(ul):
 			ul.play_vis_anim("attack")
 		_sfx(u.g, "op_ulpianus_flesh_1", -5.0, 0.8)
-	var hit: Dictionary = a.get("hitset", {})
-	if t >= LS_LAND and _once(a, "land"):
-		_sfx(u.g, "ult_texas_impact", -5.0, 0.6)
-		for e in u.in_circle(a.F, float(a.r)):
-			hit[int(e.get("id", -1))] = true
-			_hit(u, ul if _ok(ul) else sk, e, Bal.v("bond2/ls_frac", 1.2), "链上疾驰", a)
+	if t >= LS_BITE and _once(a, "bite"):
+		_sfx(u.g, "ult_texas_impact", -6.0, 0.6)
+		for e in u.in_circle(a.F, 70.0):
+			_hit(u, hu, e, Bal.v("bond2/ls_bite", 0.3), "收力一剑", a)
 		BPF.lesson_land(u, a)
-	if t >= LS_S0 - 0.1 and _once(a, "sk"):
+	if t >= LS_PULL and t < LS_PILE + 0.03:
+		var p: Vector2 = ls_anchor(a, t)
+		var hook: Dictionary = a.get("hook", {})
+		for e in u.in_circle(p, float(a.hw)):
+			var eid: int = int(e.get("id", -1))
+			if hook.has(eid) or e.boss:
+				continue
+			hook[eid] = true
+			_hit(u, hu, e, Bal.v("bond2/ls_hook", 0.3), "收力一剑", a)
+			var dv: Vector2 = Vector2(a.Pp) - e.pos
+			hu.apply_kb(e, dv.normalized() * minf(dv.length() * 2.4, 420.0))
+		a["hook"] = hook
+	if t >= LS_CUT - 0.18 and _once(a, "sk"):
 		if _ok(sk):
 			sk.play_vis_anim("attack")
-		_sfx(u.g, "op_skadi_flesh_1", -5.0, 1.0)
-	if t >= LS_S0:
-		var k: float = clampf((t - LS_S0) / (LS_S1 - LS_S0), 0.0, 1.0)
-		var A: Vector2 = a.A
-		var F: Vector2 = a.F
-		var p: Vector2 = A.lerp(F, k)
-		var p0: Vector2 = a.get("sp", A)
-		a["sp"] = p
-		for e in u.in_band(p0, p, float(a.hw)):
-			var eid: int = int(e.get("id", -1))
-			if hit.has(eid):
-				continue
-			hit[eid] = true
-			_hit(u, sk if _ok(sk) else ul, e, Bal.v("bond2/ls_frac", 1.2), "链上疾驰", a)
-	a["hitset"] = hit
-	return t >= 2.1
+	if t >= LS_CUT and _once(a, "cut"):
+		_sfx(u.g, "op_skadi_flesh_1", -3.0, 0.85)
+		for e in u.in_circle(a.Pp, float(a.r)):
+			_hit(u, sk if _ok(sk) else ul, e, Bal.v("bond2/ls_frac", 1.2), "收力一剑", a)
+		BPF.lesson_cut(u, a)
+	return t >= 1.95
 
 
-## 引潮夺命「引潮断线」· 合击（docs/296 第八轮「海沟」）：歌蕾蒂娅原地甩钩，钩线横过最密处（0.05–0.2），地面沿钩线裂开一道锯齿海沟（0.25），
-## 两侧 pull 内的怪被拖向海沟；幽灵鲨原地出手，一道斩浪沿海沟从一头冲到另一头（0.5–0.72 秒，海沟两侧带状区域打一下），海沟 1.0 秒合拢
-const TD_OPEN := 0.55
-const TD_S0 := 1.05
-const TD_S1 := 1.5
+## 引潮夺命「串刺」（docs/314，11-07 用户选）：歌蕾蒂娅掷长槊（原作长槊贯穿首言者），槊从她手里沿 G → E 飞出（TD_THROW–TD_STICK），
+## 一路贯穿的怪打一下、离槊最近的几只串在槊上；槊尾一顿后被拽回（TD_PULL，串着的往她那边拖）；幽灵鲨在槊经过她面前时一刀锯开（TD_SAW）
+const TD_THROW := 0.22
+const TD_STICK := 0.42
+const TD_PULL := 0.62
+const TD_BACK := 1.05
+const TD_SAW := 0.86
+static func td_head(a: Dictionary, t: float) -> Vector2:   # 槊尖位置；画面同用
+	var G: Vector2 = a.G
+	var E: Vector2 = a.E
+	if t < TD_THROW:
+		return G
+	if t < TD_STICK:
+		var k: float = (t - TD_THROW) / (TD_STICK - TD_THROW)
+		return G.lerp(E, 1.0 - pow(1.0 - k, 4.0))
+	if t < TD_PULL:
+		return E
+	var k2: float = clampf((t - TD_PULL) / (TD_BACK - TD_PULL), 0.0, 1.0)
+	return E.lerp(G + (E - G).normalized() * 40.0, k2 * k2 * (3.0 - 2.0 * k2))
 static func _tide(u, a: Dictionary, t: float) -> bool:
 	var gl = a.who.gladiia
 	var sp = a.who.specter_unchained
-	var c: Vector2 = a.c
-	var d: Vector2 = a.d
-	var L: float = a.L
+	var gw = gl if _ok(gl) else sp
 	if _once(a, "go"):
 		if _ok(gl):
 			gl.play_vis_anim("attack")
 		_sfx(u.g, "op_gladiia_flesh_1", -5.0, 0.9)
-	if t >= TD_OPEN and _once(a, "open"):
-		_sfx(u.g, "ult_texas_impact", -6.0, 0.55)
-		var nv: Vector2 = d.orthogonal()
-		for e in u.in_band(c - d * L * 0.5, c + d * L * 0.5, float(a.pull)):
-			if e.dead or e.boss:
-				continue
-			var off: float = (e.pos - c).dot(nv)
-			if absf(off) > 20.0:
-				(gl if _ok(gl) else sp).apply_kb(e, -nv * signf(off) * minf(absf(off) * 2.2, 260.0))
-		BPF.tide_open(u, a)
-	if t >= TD_S0 - 0.08 and _once(a, "sp"):
-		if _ok(sp):
-			sp.play_vis_anim("attack")
-		_sfx(u.g, "op_specter_unchained_flesh_1", -4.0, 1.0)
-	if t >= TD_S0:
-		var k: float = clampf((t - TD_S0) / (TD_S1 - TD_S0), 0.0, 1.0)
-		var A: Vector2 = c - d * L * 0.5
-		var p: Vector2 = A + d * L * k
-		var p0: Vector2 = a.get("sp", A)
-		a["sp"] = p
+	var d: Vector2 = (Vector2(a.E) - Vector2(a.G)).normalized()
+	if t >= TD_THROW and t < TD_STICK + 0.03:
+		var p: Vector2 = td_head(a, t)
+		var p0: Vector2 = a.get("hp", a.G)
+		a["hp"] = p
 		var hit: Dictionary = a.get("hitset", {})
+		var sk: Array = a.get("skew", [])
 		for e in u.in_band(p0, p, float(a.hw)):
 			var eid: int = int(e.get("id", -1))
 			if hit.has(eid):
 				continue
 			hit[eid] = true
-			_hit(u, sp if _ok(sp) else gl, e, Bal.v("bond2/td_frac", 1.2), "引潮断线", a)
+			_hit(u, gw, e, Bal.v("bond2/td_frac", 0.6), "串刺", a)
+			var off: float = (e.pos - p).dot(d.orthogonal())
+			if not e.dead and not e.boss and absf(off) < float(a.hw) * 0.6 and sk.size() < Bal.vi("bond2/td_skew", 9):
+				sk.append(e)
+			elif not e.dead and not e.boss:
+				gw.apply_kb(e, d.orthogonal() * signf(off) * 160.0)
 		a["hitset"] = hit
-	return t >= 2.2
+		a["skew"] = sk
+	if t >= TD_STICK and _once(a, "stick"):
+		_sfx(u.g, "ult_texas_impact", -7.0, 0.7)
+		BPF.tide_open(u, a)
+	if t >= TD_PULL and _once(a, "pull"):
+		for e in a.get("skew", []):
+			if not e.dead:
+				var dv: Vector2 = Vector2(a.P) - e.pos
+				gw.apply_kb(e, dv.normalized() * minf(dv.length() * 2.2, 420.0))
+	if t >= TD_SAW - 0.1 and _once(a, "sp"):
+		if _ok(sp):
+			sp.play_vis_anim("attack")
+	if t >= TD_SAW and _once(a, "saw"):
+		_sfx(u.g, "op_specter_unchained_flesh_1", -3.0, 0.9)
+		var hs: Dictionary = {}
+		for e in a.get("skew", []):
+			if not e.dead:
+				hs[int(e.get("id", -1))] = true
+				_hit(u, sp if _ok(sp) else gl, e, Bal.v("bond2/td_saw", 0.8), "串刺", a)
+		for e in u.in_circle(a.P, float(a.r)):
+			if not hs.has(int(e.get("id", -1))):
+				_hit(u, sp if _ok(sp) else gl, e, Bal.v("bond2/td_saw", 0.8), "串刺", a)
+		BPF.tide_saw(u, a)
+	return t >= 1.8
 
 
-## 漩涡钉锚「涡心落锚」· 合击（docs/296 第八轮「作战推演」）：歌蕾蒂娅原地出手，地上一支支画出五支推演箭头从外圈指向中心（0.05–0.4），
-## 圈里的怪被往中心推（0.4）；乌尔比安原地出手，五只锚从高处依次砸在箭头尖上（0.6–0.84，每只落点一圈打一下）
-const VX_PUSH := 0.85
-const VX_A0 := 1.15
-const VX_DA := 0.12
+## 漩涡钉锚「钉桩回旋」（docs/314）：歌蕾蒂娅的长槊从天上钉进最密处当桩（VX_STAKE，原作乌尔比安「向歌蕾蒂娅核实坐标」）；
+## 乌尔比安头顶抡锚（VX_SPIN–VX_THROW）掷出，锚链缠上长槊（VX_WRAP），锚绕槊甩一圈、越绕越紧（VX_WRAP–VX_SLAM：扫到的打一下、往桩拖），最后砸在槊旁（VX_SLAM，一圈打一下）
+const VX_STAKE := 0.32
+const VX_SPIN := 0.12
+const VX_THROW := 0.6
+const VX_WRAP := 0.85
+const VX_SLAM := 1.6
+const VX_SQ := 0.55
+static func vx_ang(t: float) -> float:
+	var k: float = clampf((t - VX_WRAP) / (VX_SLAM - VX_WRAP), 0.0, 1.0)
+	return -0.2 + k * k * TAU * 1.2
+static func vx_rad(a: Dictionary, t: float) -> float:
+	var k: float = clampf((t - VX_WRAP) / (VX_SLAM - VX_WRAP), 0.0, 1.0)
+	return float(a.R) * (1.0 - 0.82 * k * k)
+static func vx_anchor(a: Dictionary, t: float) -> Vector2:   # 绕桩阶段的锚（地面）
+	var c: Vector2 = a.c
+	var an: float = vx_ang(t)
+	return c + Vector2(cos(an), sin(an) * VX_SQ) * vx_rad(a, t)
 static func _vortex(u, a: Dictionary, t: float) -> bool:
 	var gl = a.who.gladiia
 	var ul = a.who.ulpianus
 	var c: Vector2 = a.c
+	var hu = ul if _ok(ul) else gl
 	if _once(a, "go"):
 		if _ok(gl):
 			gl.play_vis_anim("attack")
-		_sfx(u.g, "op_gladiia_flesh_2", -5.0, 1.0)
-	if t >= VX_PUSH and _once(a, "push"):
-		for e in u.in_circle(c, float(a.R)):
-			if e.dead or e.boss:
-				continue
-			var dv: Vector2 = c - e.pos
-			if dv.length() > 30.0:
-				(gl if _ok(gl) else ul).apply_kb(e, dv.normalized() * minf(dv.length() * 1.4, 220.0))
-	if t >= VX_A0 - 0.12 and _once(a, "ul"):
+		_sfx(u.g, "op_gladiia_flesh_1", -5.0, 0.8)
+	if t >= VX_STAKE and _once(a, "stake"):
+		_sfx(u.g, "ult_texas_impact", -7.0, 0.8)
+		for e in u.in_circle(c, 50.0):
+			_hit(u, gl if _ok(gl) else ul, e, Bal.v("bond2/vx_stake", 0.3), "钉桩回旋", a)
+	if t >= VX_THROW - 0.06 and _once(a, "ul"):
 		if _ok(ul):
 			ul.play_vis_anim("attack")
-	var hit: Dictionary = a.get("hitset", {})
-	for i in a.tips.size():
-		if t >= VX_A0 + VX_DA * float(i) and _once(a, "a%d" % i):
-			var tp: Vector2 = a.tips[i]
-			_sfx(u.g, "op_ulpianus_flesh_2", -6.0, 0.9 + 0.05 * float(i))
-			for e in u.in_circle(tp, float(a.ar)):
-				var eid: int = int(e.get("id", -1))
-				if hit.has(eid):
-					continue
-				hit[eid] = true
-				_hit(u, ul if _ok(ul) else gl, e, Bal.v("bond2/vx_frac", 1.2), "涡心落锚", a)
-			BPF.vortex_anchor(u, a, tp, i)
-	a["hitset"] = hit
+		_sfx(u.g, "op_ulpianus_flesh_1", -5.0, 0.7)
+	if t >= VX_WRAP and t < VX_SLAM:
+		var p: Vector2 = vx_anchor(a, t)
+		var sw: Dictionary = a.get("hitset", {})
+		for e in u.in_circle(p, float(a.ar)):
+			var eid: int = int(e.get("id", -1))
+			if sw.has(eid):
+				continue
+			sw[eid] = true
+			_hit(u, hu, e, Bal.v("bond2/vx_sweep", 0.4), "钉桩回旋", a)
+			if not e.dead and not e.boss:
+				var dv: Vector2 = c - e.pos
+				hu.apply_kb(e, dv.normalized() * minf(dv.length() * 2.0, 300.0))
+		a["hitset"] = sw
+	if t >= VX_SLAM and _once(a, "slam"):
+		_sfx(u.g, "ult_texas_impact", -3.0, 0.6)
+		for e in u.in_circle(c, float(a.r)):
+			_hit(u, hu, e, Bal.v("bond2/vx_frac", 1.0), "钉桩回旋", a)
+		BPF.vortex_anchor(u, a, c, 0)
 	return t >= 2.2
 
 
-## 双鳍「双鳍破浪」· 合击（docs/296 第八轮「背鳍」）：两人原地出手，两片巨大背鳍（斯卡蒂深海蓝、幽灵鲨幽灵青）从圈两端冒出，
-## 绕最密处交错游一圈（0.15–0.8 秒，半径 R，拖白色破浪；每过半圈把圈里的怪往里卷一次），最后在圈心交错扎进水里（0.85 秒，圈里打一下）
-const FN_T0 := 0.3
-const FN_T1 := 1.55
-const FN_HIT := 1.7
+## 双鳍「击锯」（docs/314，11-07 用户「锯子 + 剑」）：幽灵鲨把锯刃转着抛高（FN_TOSS–FN_BAT），斯卡蒂抡巨剑像挥棒一样把它击飞（FN_BAT），
+## 锯刃从 H 沿一条直道锯到 E（FN_GO–FN_END：带上的打一下、往两侧掀开），嵌进地里炸开（FN_END，一圈打一下）
+const FN_TOSS := 0.12
+const FN_BAT := 0.55
+const FN_GO := 0.63
+const FN_END := 1.0
+static func fn_saw(a: Dictionary, t: float) -> Vector2:   # 锯刃地面投影（击飞后）
+	var H: Vector2 = a.H
+	var E: Vector2 = a.E
+	var k: float = clampf((t - FN_GO) / (FN_END - FN_GO), 0.0, 1.0)
+	return H.lerp(E, 1.0 - (1.0 - k) * (1.0 - k))
 static func _fins(u, a: Dictionary, t: float) -> bool:
 	var sk = a.who.skadi
 	var sp = a.who.specter_unchained
-	var c: Vector2 = a.c
+	var bw = sk if _ok(sk) else sp
 	if _once(a, "go"):
-		if _ok(sk):
-			sk.play_vis_anim("attack")
 		if _ok(sp):
 			sp.play_vis_anim("attack")
-		_sfx(u.g, "op_skadi_flesh_2", -6.0, 0.8)
-	for q in 2:
-		if t >= FN_T0 + (FN_T1 - FN_T0) * (0.5 * float(q) + 0.35) and _once(a, "pull%d" % q):
-			for e in u.in_circle(c, float(a.R) * 1.15):
-				if e.dead or e.boss:
-					continue
-				var dv: Vector2 = c - e.pos
-				if dv.length() > 40.0:
-					(sk if _ok(sk) else sp).apply_kb(e, (dv.normalized() + dv.normalized().orthogonal() * 0.6).normalized() * 150.0)
-	if t >= FN_HIT and _once(a, "dive"):
-		_sfx(u.g, "ult_texas_impact", -5.0, 0.7)
-		for e in u.in_circle(c, float(a.R)):
-			_hit(u, sk if (_ok(sk) and e.pos.x < c.x) or not _ok(sp) else sp, e, Bal.v("bond2/fn_frac", 1.2), "双鳍破浪", a)
+		_sfx(u.g, "op_specter_unchained_flesh_1", -6.0, 1.1)
+	if t >= FN_BAT - 0.15 and _once(a, "sk"):
+		if _ok(sk):
+			sk.play_vis_anim("attack")
+	if t >= FN_BAT and _once(a, "bat"):
+		_sfx(u.g, "op_skadi_flesh_1", -3.0, 0.8)
+	if t >= FN_GO and t < FN_END + 0.03:
+		var p: Vector2 = fn_saw(a, t)
+		var p0: Vector2 = a.get("spp", a.H)
+		a["spp"] = p
+		var hit: Dictionary = a.get("hitset", {})
+		var d: Vector2 = (Vector2(a.E) - Vector2(a.H)).normalized()
+		for e in u.in_band(p0, p, float(a.hw)):
+			var eid: int = int(e.get("id", -1))
+			if hit.has(eid):
+				continue
+			hit[eid] = true
+			_hit(u, sp if _ok(sp) else sk, e, Bal.v("bond2/fn_frac", 1.0), "击锯", a)
+			if not e.dead and not e.boss:
+				var off: float = (e.pos - p).dot(d.orthogonal())
+				bw.apply_kb(e, (d.orthogonal() * (1.0 if off >= 0.0 else -1.0) + d * 0.3).normalized() * 190.0)
+		a["hitset"] = hit
+	if t >= FN_END and _once(a, "end"):
+		_sfx(u.g, "ult_texas_impact", -4.0, 0.9)
+		for e in u.in_circle(a.E, float(a.r)):
+			_hit(u, bw, e, Bal.v("bond2/fn_end", 0.6), "击锯", a)
+			if not e.dead and not e.boss:
+				bw.apply_kb(e, (e.pos - Vector2(a.E)).normalized() * 170.0)
 		BPF.fins_dive(u, a)
-	return t >= 2.2
+	return t >= 1.7
 
 
 ## 群猎「群猎合围」· 合击（docs/294 §5 + docs/296 第八轮「暗潮合围」）：在场猎人原地出手，一圈暗潮从外圈 R0 往里合拢到 60（0–0.6 秒，
