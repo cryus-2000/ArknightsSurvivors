@@ -188,7 +188,7 @@ func _knobs() -> void:
 	level = lv0
 	# 低档的「少量」（10-27 用户「最低的特效保留一点点粒子效果，一点点不保留有点太干枯了」，docs/50 §36）：所有颗粒（命中火星、技能、Boss 特效）
 	# 按中档的 render/low_grains（0.4）保留——push 按累加器均匀抽（不抽随机数），火星按颗数缩；后期与光学层照旧关
-	# 11-07 用户「最低的特效版本加一点点粒子」：0.4 → 0.55（docs/310）；OPT_LOWFX 置位（仅 --optab 对照）走旧 0.4
+	# 11-07 用户「最低的特效版本加一点点粒子」：0.4 → 0.55（docs/312）；OPT_LOWFX 置位（仅 --optab 对照）走旧 0.4
 	var lk: float = 0.4 if (g != null and (g.opt_old & 2147483648)) else Bal.v("render/low_grains", 0.55)
 	low_k = clampf(lk, 0.0, 1.0) if Cfg.quality == "low" else 1.0
 	_k_frame = fr

@@ -93,7 +93,7 @@ func frame() -> void:
 	clock += dt
 	_on = not off and Bal.v("render/bullet_fx", 1.0) > 0.0
 	var gr = _grains()
-	# 低档（11-07，docs/310）：子弹颗粒按 render/low_bullet_grains 的份额打开（颗粒层再乘 low_grains）；OPT_LOWFX 置位 = 旧的低档整层关
+	# 低档（11-07，docs/312）：子弹颗粒按 render/low_bullet_grains 的份额打开（颗粒层再乘 low_grains）；OPT_LOWFX 置位 = 旧的低档整层关
 	_low_bk = 1.0
 	if Cfg.quality == "low":
 		_low_bk = 0.0 if (g.opt_old & 2147483648) else clampf(Bal.v("render/low_bullet_grains", 0.6), 0.0, 1.0)
