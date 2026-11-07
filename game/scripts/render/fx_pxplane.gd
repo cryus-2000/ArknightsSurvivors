@@ -19,7 +19,14 @@ extends RefCounted
 
 const PxU = preload("res://scripts/render/px_util.gd")   # 共用小工具（docs/286 §2）
 const Bal = preload("res://scripts/core/balance.gd")
-const METAS := {"res://data/pxp_logos.json": "lg_", "res://data/pxp_skadi.json": "", "res://data/pxp_hoshiguma.json": "", "res://data/pxp_lumen.json": "lm_", "res://data/pxp_eyjafjalla.json": "ey_", "res://data/pxp_siege.json": "", "res://data/pxp_exusiai.json": "ex_", "res://data/pxp_mizuki.json": "", "res://data/pxp_angelina.json": "an_", "res://data/pxp_saria.json": "sa_", "res://data/pxp_texas.json": "", "res://data/pxp_gladiia.json": "gl_", "res://data/pxp_ulpianus.json": "ul_", "res://data/pxp_suzuran.json": "sz_", "res://data/pxp_irene.json": "ir_", "res://data/pxp_kaltsit.json": "ka_", "res://data/pxp_wisadel.json": "wd_", "res://data/pxp_skalter.json": "sk_", "res://data/pxp_specter_unchained.json": "su_", "res://data/pxp_lappland.json": "lp_"}   # 帧条表 → 键前缀（星熊的键自带 hsg_，流明帧条 art/fx/pxp/pxp_lm_<键>.png）
+# 大部分帧条在读取时补上干员前缀，另四张表在烘焙时已把前缀写进键名。斯卡蒂的通用键没有统一前缀。
+const META_PREFIXED := {
+	"an": "angelina", "ey": "eyjafjalla", "ex": "exusiai", "gl": "gladiia",
+	"ir": "irene", "ka": "kaltsit", "lg": "logos", "lm": "lumen", "lp": "lappland",
+	"sa": "saria", "sk": "skalter", "su": "specter_unchained", "sz": "suzuran",
+	"ul": "ulpianus", "wd": "wisadel",
+}
+const META_BAKED_PREFIX := {"hsg": "hoshiguma", "mz": "mizuki", "sg": "siege", "tx": "texas"}
 const MI = preload("res://scripts/render/melee_impact.gd")   # 近战打击感包（docs/246 §11）：斩痕 / 照地光提亮
 const ART := "res://art/fx/pxp/pxp_%s.png"
 const IDS := {"logos": true, "skadi": true, "hoshiguma": true, "lumen": true, "eyjafjalla": true, "siege": true, "exusiai": true, "mizuki": true, "angelina": true, "saria": true, "texas": true, "gladiia": true, "ulpianus": true, "suzuran": true, "irene": true, "kaltsit": true, "wisadel": true, "skalter": true, "specter_unchained": true, "lappland": true}
@@ -37,6 +44,7 @@ const ITEM_MAX := 120   # 逻各斯（docs/258）消弹墨点 / 跳转笔较多�
 
 var g
 var meta := {}
+var _meta_loaded := {}
 var tex := {}
 var items: Array = []     # 一次性件：{k 帧条键, t0, gp 地面点, flip, ly up/gd, raw, rot, sc, oid}
 var _mode := 0
@@ -172,16 +180,23 @@ static func lp_marks(game):
 
 
 func _meta(k: String) -> Dictionary:
-	if meta.is_empty():
-		for path in METAS:
-			var f := FileAccess.open(path, FileAccess.READ)
-			if f == null:
-				continue
-			var v = JSON.parse_string(f.get_as_text())
-			if v is Dictionary:
-				for kk in v:
-					if str(kk) != "_doc":
-						meta[str(METAS[path]) + str(kk)] = v[kk]
+	var cached = meta.get(k)
+	if cached != null:
+		return cached
+	var prefix := k.get_slice("_", 0)
+	var owner: String = META_PREFIXED.get(prefix, META_BAKED_PREFIX.get(prefix, "skadi"))
+	if _meta_loaded.has(owner):
+		return {}
+	_meta_loaded[owner] = true
+	var f := FileAccess.open("res://data/pxp_%s.json" % owner, FileAccess.READ)
+	if f == null:
+		return {}
+	var entries = JSON.parse_string(f.get_as_text())
+	if entries is Dictionary:
+		var key_prefix := prefix + "_" if META_PREFIXED.has(prefix) else ""
+		for local_key in entries:
+			if local_key != "_doc":
+				meta[key_prefix + str(local_key)] = entries[local_key]
 	return meta.get(k, {})
 
 

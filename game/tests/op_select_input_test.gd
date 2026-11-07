@@ -93,7 +93,9 @@ func run() -> void:
 	add_child(title)
 	await get_tree().process_frame
 	title.intro = title.INTRO_LEN
-	title._open_op_pick(false)
+	title._open_op_pick(true)   # 封面名册包含全部干员，逐人检查不受存档解锁影响
+	for od in title.op_defs:
+		check(not od.has("tex"), "roster metadata loads without idle textures")
 	await settle()
 	# 名册：data/characters 里所有 recruitable 的干员（新干员自动出现）
 	var n := 0
@@ -106,14 +108,26 @@ func run() -> void:
 	for ph in [false, true]:
 		Cfg._touch = 1 if ph else 0
 		var sr: Rect2 = title._op_stage_rect()
-		for od in title.op_defs:
+		for i in title.op_defs.size():
+			title._op_select(i)
+			title._op_follow(true)
+			await settle()
+			var od: Dictionary = title.op_defs[i]
+			check(od.get("tex") is Texture2D, "selected idle loads for %s" % od.id)
 			var fit: Array = title._op_fit(od, ph)
 			var bb: Rect2 = od.bb
 			var sz: Vector2 = bb.size * 2.0 / float(od.hires) * float(fit[0])
 			var box := Rect2(fit[1].x - sz.x / 2.0, fit[1].y - sz.y, sz.x, sz.y)
 			check(float(fit[0]) == floorf(float(fit[0])) and float(fit[0]) >= 1.0, "integer art scale for %s" % od.id)
 			check(sr.grow(-2.0).encloses(box), "%s art fits stage (%s) on %s: %s" % [od.id, str(sr), "phone" if ph else "desktop", str(box)])
+		check(title.op_loaded.size() < n, "browsing full roster keeps only the visible page and selection")
+		check(not title.op_defs[0].has("tex") and not title.op_defs[0].has("sil"), "offscreen strip and silhouette released")
+	title._close_op_pick()
+	for od in title.op_defs:
+		check(not od.has("tex") and not od.has("sil"), "closed page releases portrait and silhouette")
 	Cfg._touch = -1
+	title._open_op_pick(false)
+	await settle()
 	# 键盘：→ 换人、↓ 换页签、E 职业筛选、Q 回到全部、Tab 换技能行
 	var s0: int = title.op_sel
 	await key(KEY_RIGHT)
@@ -196,10 +210,13 @@ func run() -> void:
 	check(title.transition.busy, "deploy locks input during wave wipe")
 	await wait_for(func(): return title.diff_pick and not title.transition.busy)
 	check(title.diff_pick and not title.op_pick, "enter deploys into difficulty select")
+	check(title.op_loaded.is_empty(), "deploy releases roster art")
 	check(Cfg.character_id == go_id, "deploy stores operator")
 	title._diff_back()
 	await wait_for(func(): return title.op_pick and not title.transition.busy)
 	check(title.op_pick, "difficulty back returns to operator select")
+	await settle()
+	check(title.op_defs[title.op_sel].get("tex") is Texture2D, "difficulty back restores selected artwork")
 	# 触屏（手机版式）：触点选卡、点页签、点出击
 	Cfg._touch = 1
 	await settle()

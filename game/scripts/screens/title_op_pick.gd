@@ -29,6 +29,8 @@ var op_prects := {}              # 信息面板里的命中区："tab0".. / "sk0
 var op_k := 1.0                  # 界面坐标 = op_off + 设计坐标 × op_k
 var op_off := Vector2.ZERO
 var op_vis := 10                 # 桌面名册一屏几张
+var op_loaded: Array[int] = []   # 舞台和当前可见卡片持有高清帧条；滚出或关闭时连同剪影释放
+var op_draw_serial := 0
 var op_scroll := 0.0             # 名册滚动（设计像素，目标）
 var op_scroll_f := 0.0           # 显示用，逐帧逼近（拖动时相等）
 var op_drag_on := false          # 触屏：在名册里按下（松手时没拖动才算点选）
@@ -98,17 +100,6 @@ func _open_op_pick(for_cover := false) -> void:
 			var d: Dictionary = Character.load_def(cid)
 			if not d.get("recruitable", true):
 				continue
-			var sp: Dictionary = d.get("sprites", {})
-			var idle = sp.get("idle", "")
-			var tn: String = idle if idle is String else idle.get("tex", "")
-			var tx: Texture2D = A.tex_hi(tn) if tn != "" else null   # 立绘 / 名册用 @2x 精细版（10-23 用户，art.gd tex_hi）
-			var frames: int = 1
-			if idle is Dictionary and idle.has("frames"):
-				frames = int(idle.frames)
-			elif tx != null:
-				frames = max(1, tx.get_width() / tx.get_height())
-			if Character.strip_mirror(d, "idle"):
-				tx = A.mirror_strip(tx, frames)   # 待机条画反了（docs/84）：立绘 / 编队小像用镜像副本
 			var cls: String = d.get("class", "")
 			var col: Color = Character.CLASS_COL.get(cls, UI.CYAN)
 			var cc = d.get("col", null)
@@ -119,7 +110,7 @@ func _open_op_pick(for_cover := false) -> void:
 			for n in d.get("progression", []):
 				if n is Dictionary and n.get("type", "") == "elite":
 					elite += 1
-			op_defs.append({"id": cid, "def": d, "tex": tx, "frames": frames, "hires": A.hires_of(tx), "ds": UI.op_scale(d), "lore": op_lore.get(cid, {}).get("lore", ""),
+			op_defs.append({"id": cid, "def": d, "ds": UI.op_scale(d), "lore": op_lore.get(cid, {}).get("lore", ""),
 				"sheet": sh, "name": d.get("name", cid), "en": str(d.get("en", cid.to_upper())), "cls": cls, "col": col,
 				"elite": elite if elite > 0 else 2, "melee": _op_is_melee(d),
 				"vals": {"hp": InitialStats.row(sh, "hp").val, "atk": InitialStats.row(sh, "atk").val, "cd": InitialStats.row(sh, "cd").val,
@@ -411,7 +402,7 @@ func _op_page(d: int) -> void:
 func _op_back() -> void:
 	if transition.busy:
 		return
-	transition.switch_page(func(): op_pick = false)
+	transition.switch_page(_close_op_pick)
 	Sfx.play("ui_move")
 
 
@@ -424,7 +415,7 @@ func _op_go() -> void:
 		transition.switch_page(func():
 			Cfg.cover_character_id = cid
 			Cfg.save()
-			op_pick = false)
+			_close_op_pick())
 	else:
 		# 出击：按钮下沉 + 闪白 160 ms，140 ms 起深海浪幕 700 ms，过半换到难度页（浪幕期间锁输入，同页面切换）
 		op_go_id = cid
@@ -478,7 +469,7 @@ func _op_tick(delta: float) -> void:
 			op_wipe_swapped = true
 			Cfg.character_id = op_go_id
 			Cfg.save()
-			op_pick = false
+			_close_op_pick()
 			diff_pick = true
 			diff_sel = clampi(Cfg.difficulty, 0, Cfg.diff_unlocked)
 		if e >= 1.0:
@@ -536,6 +527,45 @@ func _op_lift(i: int) -> float:
 	return 0.0
 
 
+func _op_visible_entry(i: int) -> Dictionary:
+	var od: Dictionary = op_defs[i]
+	od.draw_serial = op_draw_serial
+	if od.has("tex"):
+		return od
+	var idle = od.def.get("sprites", {}).get("idle", "")
+	var tn: String = idle if idle is String else idle.get("tex", "")
+	var tx: Texture2D = A.tex_hi(tn, false) if tn != "" else null
+	var frames := 1
+	if idle is Dictionary and idle.has("frames"):
+		frames = int(idle.frames)
+	elif tx != null:
+		frames = maxi(1, tx.get_width() / tx.get_height())
+	if Character.strip_mirror(od.def, "idle"):
+		tx = A.mirror_strip(tx, frames, false)
+	od.tex = tx
+	od.frames = frames
+	od.hires = A.hires_of(tx)
+	op_loaded.append(i)
+	return od
+
+
+func _op_release_unseen() -> void:
+	for j in range(op_loaded.size() - 1, -1, -1):
+		var od: Dictionary = op_defs[op_loaded[j]]
+		if od.draw_serial == op_draw_serial:
+			continue
+		od.erase("tex")
+		od.erase("sil")
+		od.erase("bb")   # 下次上舞台时重建同尺寸剪影
+		op_loaded.remove_at(j)
+
+
+func _close_op_pick() -> void:
+	op_pick = false
+	op_draw_serial += 1
+	_op_release_unseen()
+
+
 ## 帧内非透明区（各待机帧的并集，立绘按它对齐、不抖）+ 白色剪影（立绘外晕用）；第一次画到时算，读不到图（无头）就用整帧
 func _op_art(od: Dictionary) -> void:
 	if od.has("bb"):
@@ -575,12 +605,14 @@ func _draw_op_pick(vs: Vector2) -> void:
 	_op_backdrop(vs)
 	draw_set_transform(op_off, 0.0, Vector2(op_k, op_k))
 	op_rects.clear()
-	var od: Dictionary = op_defs[op_sel]
+	op_draw_serial += 1
+	var od := _op_visible_entry(op_sel)
 	_op_art(od)
 	if _touch_mode():
 		_op_draw_phone(od)
 	else:
 		_op_draw_desk(od)
+	_op_release_unseen()
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
@@ -833,7 +865,7 @@ func _op_draw_desk(od: Dictionary) -> void:
 		var a := clampf(1.0 - over / 60.0, 0.0, 1.0)
 		if a <= 0.01:
 			continue
-		var o: Dictionary = op_defs[i]
+		var o := _op_visible_entry(i)
 		var r := Rect2(x, rb + 22, 82, 112)
 		if a > 0.6:
 			op_rects[i] = r
@@ -901,7 +933,7 @@ func _op_draw_phone(od: Dictionary) -> void:
 			more += 1
 		if a <= 0.01:
 			continue
-		var o: Dictionary = op_defs[i]
+		var o := _op_visible_entry(i)
 		var r := Rect2(x, y, 62, 88)
 		if a > 0.6:
 			op_rects[i] = r

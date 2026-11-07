@@ -25,9 +25,11 @@ var max_r := 0.0   # 本帧网格里最大的敌人半径（build_grid 记；我
 
 
 var _gcell := PackedInt32Array()   # 每个下标 3 个 int：所在格 gx、gy、在不在格里（原生核心照这张表重建同一张网格，docs/101 §4.7）
+var _occupied_cells: Array = []   # 本步第一次宽范围查询时才按 x、y 排，和逐列扫格的选敌顺序相同。
 
 
 func build_grid() -> void:
+	_occupied_cells.clear()
 	g.grid.clear()
 	var mr := 0.0
 	var ne: int = g.enemies.size()
@@ -57,6 +59,20 @@ func query(pos: Vector2, radius: float) -> Array:
 	var y0 := floori((pos.y - radius) / CELL)
 	var y1 := floori((pos.y + radius) / CELL)
 	var n: int = g.enemies.size()
+	var area := (x1 - x0 + 1) * (y1 - y0 + 1)
+	if area >= 64 and area > 4 * g.grid.size():
+		if _occupied_cells.size() != g.grid.size():
+			_occupied_cells = g.grid.keys()
+			_occupied_cells.sort()
+		for key: Vector2i in _occupied_cells:
+			if key.x > x1:
+				break
+			if key.x < x0 or key.y < y0 or key.y > y1:
+				continue
+			for j in g.grid[key]:
+				if j >= 0 and j < n and not g.enemies[j].get("friendly", false):
+					out.append(j)
+		return out
 	for cx in range(x0, x1 + 1):
 		for cy in range(y0, y1 + 1):
 			var cell = g.grid.get(Vector2i(cx, cy))
@@ -910,10 +926,19 @@ func by_id(id: int):
 	return _by_id.get(id)
 
 
-## 去掉已死的敌人并回收槽位，返回新数组（顺序不变，与原来的 arr.filter(not dead) 等价；每次都返回新数组，种类登记照旧据此重建）
+## 全员存活时复用数组；有死亡时按原顺序回收槽位并返回幸存者的新数组。
 func sweep_dead(arr: Array) -> Array:
-	var keep: Array = []
+	_ti_arr = null   # 伊莎玛拉可将泪滴原位改为歌眼，即使无人死亡，种类索引也须在清理后重建。
+	var first_dead := 0
 	for e in arr:
+		if e.dead:
+			break
+		first_dead += 1
+	if first_dead == arr.size():
+		return arr
+	var keep := arr.slice(0, first_dead)
+	for j in range(first_dead, arr.size()):
+		var e: Dictionary = arr[j]
 		if not e.dead:
 			keep.append(e)
 		elif e.has("slot") and is_same(_by_id.get(e.id), e):
@@ -925,7 +950,7 @@ func sweep_dead(arr: Array) -> Array:
 # ---- 部件与种类登记（docs/101 S7）：消掉每次击杀 / 刷怪对 g.enemies 的全表扫描。只是索引，读的时候照样看敌人身上的实时字段（dead / part），
 # 所以不管谁在哪里把 dead 设成 true 都不会算错；结果和全表扫描逐个相同（同种子 TRACE 不变）
 var _parts: Array = []        # 设过 part 的敌人（偏执泡影茧、塑路者核心分形；只有这两处设 part）
-var _ti_arr = null            # 种类登记对应的 g.enemies 数组对象（_cleanup 每帧换新数组 → 重建）
+var _ti_arr = null            # 种类登记对应的 g.enemies 数组对象；sweep_dead 使登记失效
 var _ti_n := 0                # 已登记到 g.enemies 的第几个
 var _ti_last = null           # 最后登记的那一只（数组被 clear 后又塞满时用它认出来）
 var _by_type: Dictionary = {} # type -> 这一类的敌人（含已死，计数时跳过）
@@ -957,7 +982,7 @@ func parts() -> Array:
 	return _parts
 
 
-## 场上某一类的存活数（spawner.type_n 用）：按 g.enemies 增量登记，只数这一类；g.enemies 换了数组 / 被清空重填时重建
+## 场上某一类的存活数（spawner.type_n 用）：按 g.enemies 增量登记，只数这一类；清理、替换或清空重填后重建
 func type_alive(kind: String) -> int:
 	var arr: Array = g.enemies
 	if not is_same(_ti_arr, arr) or arr.size() < _ti_n or (_ti_n > 0 and not is_same(arr[_ti_n - 1], _ti_last)):

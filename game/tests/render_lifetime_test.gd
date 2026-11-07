@@ -1,5 +1,5 @@
 extends Node
-## Rendering helpers must not retain their owners after a run or gallery closes.
+## Rendering helpers load only the requested packs and release their owners after a run or gallery closes.
 const World = preload("res://scripts/render/world.gd")
 const Pxp = preload("res://scripts/render/fx_pxplane.gd")
 const Crack = preload("res://scripts/render/ground_crack.gd")
@@ -11,7 +11,37 @@ func check(ok: bool, label: String) -> void:
 		failures += 1
 		printerr("FAIL: ", label)
 
+func check_px_metadata() -> void:
+	var owners: Array = Pxp.META_PREFIXED.values() + Pxp.META_BAKED_PREFIX.values() + ["skadi"]
+	for file in DirAccess.get_files_at("res://data"):
+		if not file.begins_with("pxp_") or not file.ends_with(".json"):
+			continue
+		var owner: String = file.trim_prefix("pxp_").trim_suffix(".json")
+		check(owner in owners, "unregistered pxplane pack " + file)
+		owners.erase(owner)
+		var entries = JSON.parse_string(FileAccess.get_file_as_string("res://data/" + file))
+		if not entries is Dictionary or entries.is_empty():
+			check(false, "invalid pxplane pack " + file)
+			continue
+		var prefix = Pxp.META_PREFIXED.find_key(owner)
+		var key_prefix := str(prefix) + "_" if prefix != null else ""
+		var seen_families := {}
+		var px: Pxp
+		for local_key in entries:
+			if local_key == "_doc":
+				continue
+			var key := key_prefix + str(local_key)
+			var family := key.get_slice("_", 0)
+			# Exercise each namespace from cold, even when another key would have warmed the pack.
+			if not seen_families.has(family):
+				seen_families[family] = true
+				px = Pxp.new()
+			check(px._meta(key) == entries[local_key], "pxplane metadata " + key)
+			check(px._meta_loaded.size() == 1 and px._meta_loaded.has(owner), "pxplane pack for " + key)
+	check(owners.is_empty(), "missing pxplane packs " + str(owners))
+
 func _ready() -> void:
+	check_px_metadata()
 	# Never entering the tree must also be safe (previews and unit fixtures).
 	for cycle in 3:
 		var world = World.new(null)

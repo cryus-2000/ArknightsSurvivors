@@ -85,11 +85,48 @@ func _process(_dt: float) -> void:
  ok(stone.weak == D.ENEMIES.stone.get("weak", ""), "expiry restores base weakness")
  test_aura()
  test_pocket()
+ test_sweep()
+ test_grid_query_order()
  print("ENEMY IDENTITY checks=%d failures=%d" % [checks, fails])
  g.enemies = []
  g.final_boss = null
  g.free()
  get_tree().quit(1 if fails else 0)
+
+func test_sweep() -> void:
+ g.enemies = []
+ var first := spawn("bone")
+ var doomed := spawn("stone")
+ var last := spawn("tear")
+ var before: Array = g.enemies
+ ok(g.spawner.type_n("bone") == 1, "type index initially counts bone")
+ last.type = "bone" # 伊莎玛拉将眼泪原位转为歌眼
+ g.enemies = g.enemies_sys.sweep_dead(g.enemies)
+ ok(is_same(g.enemies, before), "sweep reuses the live array")
+ ok(g.spawner.type_n("bone") == 2 and g.spawner.type_n("tear") == 0, "sweep refreshes converted enemy types")
+ doomed.dead = true
+ g.enemies = g.enemies_sys.sweep_dead(g.enemies)
+ ok(not is_same(g.enemies, before) and before.size() == 3, "death leaves the old array intact")
+ ok(g.enemies.size() == 2 and is_same(g.enemies[0], first) and is_same(g.enemies[1], last), "survivors keep their order")
+ ok(g.enemies_sys.by_id(doomed.id) == null, "sweep releases dead id")
+ var next := spawn("stone")
+ ok(next.slot == doomed.slot and g.spawner.type_n("stone") == 1, "spawn reuses the slot and updates the type index")
+
+func test_grid_query_order() -> void:
+ g.enemies = []
+ for p in [Vector2(101, 1), Vector2(-96, 49), Vector2(-50, -50), Vector2(-81, 58), Vector2.ZERO, Vector2(550, 0), Vector2(-35, 120)]:
+  g.enemies.append({"pos": p, "r": 1.0, "dead": false})
+ g.enemies_sys.build_grid()
+ ok(g.enemies_sys.query(Vector2.ZERO, 420.0) == [2, 1, 3, 6, 4, 0], "wide query preserves column, row and bucket order")
+ ok(g.enemies_sys.query(Vector2(-72, 55), 8.0) == [1, 3], "narrow query preserves bucket order")
+ g.enemies[1]["friendly"] = true
+ g.enemies.pop_back()
+ ok(g.enemies_sys.query(Vector2.ZERO, 420.0) == [2, 3, 4, 0], "cached cells respect changed allegiance and removed indices")
+ for e in g.enemies:
+  e.pos += Vector2(1536, 0)
+ g.enemies_sys.build_grid()
+ ok(g.enemies_sys.query(Vector2.ZERO, 420.0).is_empty(), "wide query drops previous grid cells after rebuild")
+ ok(g.enemies_sys.query(Vector2(1536, 0), 420.0) == [2, 3, 4, 0], "wide query sees rebuilt cells")
 
 func aura_hit() -> float:
  g.hp = g.max_hp

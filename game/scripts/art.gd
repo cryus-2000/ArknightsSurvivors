@@ -185,7 +185,7 @@ static var _op1x := -1
 ## 界面立绘读 @2x 精细版（10-23 用户「选人和图鉴放之前的精细版，演示用粗糙版」）：选人 / 图鉴立绘 / 招募卡等界面位
 ## 用 tex_hi / hi_of 取同名 @2x（op_1x 关或没有 @2x 时同 tex）；局内战斗与图鉴动作演示照旧走 tex（1 倍）
 static var _name_rid := {}
-static func tex_hi(name: String) -> Texture2D:
+static func tex_hi(name: String, keep_cached := true) -> Texture2D:
 	var key := "#hi:" + name
 	if _cache.has(key):
 		return _cache[key]
@@ -195,10 +195,12 @@ static func tex_hi(name: String) -> Texture2D:
 		if q2 != "":
 			t = load(q2)
 		if t != null:
-			_hires_rid[t.get_rid()] = 2.0
+			# 临时立绘随界面释放，倍率跟着贴图，免得反复进出留下旧 RID。
+			t.set_meta(&"_ui_density", 2.0)
 	if t == null:
 		t = tex(name)
-	_cache[key] = t
+	if keep_cached:
+		_cache[key] = t
 	return t
 
 
@@ -466,7 +468,8 @@ static func hires(name: String) -> float:
 static func hires_of(t: Texture2D) -> float:
 	if t == null:
 		return 1.0
-	return float(_hires_rid.get(t.get_rid(), 1.0))
+	var density: float = _hires_rid.get(t.get_rid(), 0.0)
+	return density if density > 0.0 else float(t.get_meta(&"_ui_density", 1.0))
 
 
 static func _wants_normal(name: String) -> bool:
@@ -933,7 +936,7 @@ static func warm_step(budget_usec: int) -> bool:
 ## 每帧在自己的格子里翻（帧序不变）；按源贴图缓存；读不到像素（无头空驱动）就返回原图
 static var _mirror_cache := {}
 
-static func mirror_strip(src: Texture2D, frames: int) -> Texture2D:
+static func mirror_strip(src: Texture2D, frames: int, keep_cached := true) -> Texture2D:
 	if src == null:
 		return null
 	var key := "%d:%d" % [src.get_rid().get_id(), frames]
@@ -955,8 +958,9 @@ static func mirror_strip(src: Texture2D, frames: int) -> Texture2D:
 		fr.flip_x()
 		out.blit_rect(fr, Rect2i(Vector2i.ZERO, fr.get_size()), Vector2i(f * fw, 0))
 	var t := ImageTexture.create_from_image(out)
-	_hires_rid[t.get_rid()] = hires_of(src)
-	_mirror_cache[key] = t
+	t.set_meta(&"_ui_density", hires_of(src))
+	if keep_cached:
+		_mirror_cache[key] = t
 	return t
 
 
