@@ -6,12 +6,13 @@
 extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
+const BPF = preload("res://scripts/run/bond2_pf.gd")
 
 ## 3 对：成员、标签、招式名、一句话（docs/294 §4，玩家可见文字按 docs/76）
 const MOVES := {
-	"b_rival": {"ops": ["texas", "lappland"], "tag": "宿敌", "name": "十字旧怨", "desc": "两人对砍，刀锋相撞的余波向四周散开；拉普兰德一侧附带沉默"},
-	"b_penguin": {"ops": ["exusiai", "texas"], "tag": "企鹅物流", "name": "急件航线", "desc": "德克萨斯开车冲过怪群，能天使站在车顶朝四周扫射"},
-	"b_inq": {"ops": ["lumen", "irene"], "tag": "灯下审决", "name": "提灯宣判", "desc": "流明身后升起灯塔，光锥扫过的敌人由艾丽妮逐个审判"},
+	"b_rival": {"ops": ["texas", "lappland"], "tag": "宿敌", "name": "十字旧怨", "desc": "两人同时挥剑，两道剑气在怪群中心相撞炸开；拉普兰德一侧附带沉默"},
+	"b_penguin": {"ops": ["exusiai", "texas"], "tag": "企鹅物流", "name": "急件航线", "desc": "能天使朝怪群齐射，德克萨斯开车从怪群里碾过去"},
+	"b_inq": {"ops": ["lumen", "irene"], "tag": "灯下审决", "name": "提灯宣判", "desc": "流明身后的灯塔照亮怪群，艾丽妮的审判光矛随即落下"},
 }
 const ORDER := ["b_rival", "b_penguin", "b_inq"]
 const SRC_TAGS := ["skill", "羁绊技"]
@@ -104,7 +105,7 @@ static func tick(u, dt: float) -> void:
 		if c == Vector2.INF:
 			continue
 		var vw: Vector2 = Vector2(1524.0, 857.0) * Bal.v("bond2/view_k", 0.28)
-		c = Vector2(clampf(c.x, lp.x - vw.x, lp.x + vw.x), clampf(c.y, lp.y - vw.y, lp.y + vw.y))
+		c = Vector2(clampf(c.x, lp.x - vw.x, lp.x + vw.x), clampf(c.y, lp.y - minf(vw.y, Bal.v("bond2/c_dy", 170.0)), lp.y + minf(vw.y, Bal.v("bond2/c_dy", 170.0))))   # 11-07：落点贴屏幕顶边会被演出卡 / HUD 盖住，上下限 c_dy
 		_cast(u, bid, pr, c, s.e2.has(bid))
 		s.last_any = g.t
 		s.next[bid] = g.t + (Bal.v("bond2/cd_e2", 20.0) if s.e2.has(bid) else Bal.v("bond2/cd", 22.0))
@@ -128,27 +129,25 @@ static func _cast(u, bid: String, pr: Array, c: Vector2, e2: bool) -> void:
 	var k: float = Bal.v("bond2/size_e2", 1.3) if e2 else Bal.v("bond2/size", 1.0)
 	var a := {"id": bid, "who": who, "c": c, "d0": d0, "k": k, "e2": e2, "age": 0.0, "done": {}, "fr": {}, "from": from}
 	match bid:
-		"b_rival":   # 对砍：交锋点 = 最密处；冲击波最大半径
-			a["rmax"] = Bal.v("bond2/rival_r", 440.0) * k
-		"b_penguin":   # 开车：车是侧面贴图，只走横向（斜率封顶 0.25）；从最密处后方 car_back 处开进画面，穿过最密处再开出去
+		"b_rival":   # 十字斩：交点 = 最密处；两刀各长 L、半宽 hw（画面上压扁成地面角度）
+			var ang: float = Bal.v("bond2/rival_ang", 0.55)
+			a["d1"] = Vector2(cos(ang), sin(ang))
+			a["d2"] = Vector2(-cos(ang), sin(ang))
+			a["L"] = Bal.v("bond2/rival_len", 560.0) * k
+			a["hw"] = Bal.v("bond2/rival_hw", 46.0) * k
+		"b_penguin":   # 碾过去：车只走横向（斜率封顶 0.12），从最密处后方 car_run 处冲进来、开过去 car_out；车道半宽 hw
 			var sx: float = 1.0 if d0.x >= 0.0 else -1.0
-			var dl: Vector2 = Vector2(sx, clampf(d0.y / maxf(absf(d0.x), 0.001), -0.12, 0.12)).normalized()
+			a["dl"] = Vector2(sx, clampf(d0.y / maxf(absf(d0.x), 0.001), -0.12, 0.12)).normalized()
 			var ld = g.squad.leader()
 			var ly: float = ld.pos.y if ld != null and ld.pos != Vector2.INF else from.y
-			var cy: float = clampf(c.y, ly - Bal.v("bond2/car_dy", 170.0), ly + Bal.v("bond2/car_dy", 170.0))   # 11-07 录像：车道贴屏幕顶边被 HUD 压住；车道限在队长上下 car_dy 内
-			a["s"] = Vector2(c.x, cy) - dl * Bal.v("bond2/car_back", 450.0) * k
-			a["dl"] = dl
-			a["len"] = Bal.v("bond2/car_len", 1000.0) * k
-			a["hw"] = Bal.v("bond2/car_hw", 56.0) * k
-		"b_inq":   # 灯塔：立在流明身后，光锥以朝最密处为中线左右各扫 sweep 弧度
+			a["c"] = Vector2(c.x, clampf(c.y, ly - Bal.v("bond2/car_up", 40.0), ly + Bal.v("bond2/car_dn", 140.0)))   # 车身往上占 140：车道贴队长上方会被演出卡 / HUD 盖住
+			a["run"] = Bal.v("bond2/car_run", 560.0)
+			a["out"] = Bal.v("bond2/car_out", 340.0) * k
+			a["hw"] = Bal.v("bond2/car_hw", 58.0) * k
+		"b_inq":   # 合击：灯塔立在流明身后，聚光落在最密处，光圈半径 r
 			var lm = who.lumen
-			var O: Vector2 = lm.pos - d0 * 90.0 + Vector2(0, -4)
-			var dc: Vector2 = (c - O).normalized() if c != O else d0
-			var sw: float = Bal.v("bond2/inq_sweep", 0.95)
-			a["O"] = O
-			a["R"] = Bal.v("bond2/inq_r", 700.0) * k
-			a["ang0"] = dc.angle() - sw
-			a["ang1"] = dc.angle() + sw
+			a["O"] = lm.pos + Vector2(-signf(d0.x if d0.x != 0.0 else 1.0) * 96.0, -36.0)   # 立在流明侧后方（y 更小 = 排在他和小队后面，不挡人）
+			a["r"] = Bal.v("bond2/inq_r", 240.0) * k
 	st(u).acts.append(a)
 	var s: Dictionary = st(u)
 	s.log.append({"id": bid, "ev": "cast", "t": snappedf(g.t, 0.1)})
@@ -219,8 +218,12 @@ static func _step(u, a: Dictionary, dt: float) -> bool:
 	return true
 
 
-## 宿敌「十字旧怨」· 对砍（docs/296 第五轮，用户 11-06 定）：两人残影相向冲上（0–0.45 秒），刀锋相交停一拍（0.45–0.6），
-## 冲击波从交锋点向四周散开（0.6–1.1 秒，半径 40 → rmax），冲到哪只打哪只；拉普兰德一侧（交点右半边）附带沉默
+## 宿敌「十字旧怨」· 十字斩（11-07 用户：改成斩击，选「十字斩裂地」）：两人原地出手（0 秒），落点先闪一下 X 形预兆细线，
+## 德克萨斯一刀（左上 → 右下，0.24 秒）、拉普兰德一刀（右上 → 左下，0.32 秒）在最密处交成大 X，斩痕带上的各打一下；
+## 拉普兰德那一刀附带沉默；交点 0.34 秒炸开（只画）
+const RV_T1 := 0.24
+const RV_T2 := 0.32
+const RV_HIT := 0.34
 static func _rival(u, a: Dictionary, t: float) -> bool:
 	var tx = a.who.texas
 	var lp = a.who.lappland
@@ -231,120 +234,103 @@ static func _rival(u, a: Dictionary, t: float) -> bool:
 		if _ok(lp):
 			lp.play_vis_anim("attack")
 		_sfx(u.g, "op_texas_s3", -6.0, 1.05)
-	if t >= 0.45 and _once(a, "clash"):
-		_sfx(u.g, "ult_lappland_impact", -3.0, 1.0)
-		_sfx(u.g, "op_texas_s3_cut_1", -4.0, 0.9)
-	if t >= 0.6:
-		var rmax: float = a.rmax
-		var r: float = lerpf(40.0, rmax, clampf((t - 0.6) / 0.5, 0.0, 1.0))
+	var hit: Dictionary = a.get("hitset", {})
+	for cut in [[RV_T1, "c1", tx, a.d1, false], [RV_T2, "c2", lp, a.d2, true]]:
+		if t >= float(cut[0]) and _once(a, str(cut[1])):
+			var who = cut[2] if _ok(cut[2]) else (tx if _ok(tx) else lp)
+			var d: Vector2 = cut[3]
+			var L: float = float(a.L)
+			_sfx(u.g, "op_texas_s3_cut_1" if not bool(cut[4]) else "ult_lappland_impact", -4.0, 0.9)
+			for e in u.in_band(c - d * L * 0.5, c + d * L * 0.5, float(a.hw)):
+				var eid: int = int(e.get("id", -1))
+				if hit.has(eid):
+					continue
+				hit[eid] = true
+				_hit(u, who, e, Bal.v("bond2/rival_frac", 1.2), "十字旧怨", a)
+				if bool(cut[4]) and Bal.v("bond2/rival_silence", 1.0) > 0.0 and not e.dead and not e.boss:
+					u.g.enemies_sys.silence(e, u.g.t + (0.5 if e.elite else 1.0))
+	a["hitset"] = hit
+	if t >= RV_HIT and _once(a, "x"):
+		BPF.rival_hit(u, a)
+	return t >= 1.0
+
+
+## 企鹅物流「急件航线」· 碾过去（11-07 用户：「一辆车直接碾过去」，不裂地）：能天使原地朝最密处齐射（0–0.6 秒，每 0.09 秒最近 3 只各一枪）；
+## 德克萨斯的车（不画人）从画面外横向冲进来、穿过最密处再开出去（0.10–0.75 秒），车身扫过的带状区域打一下、往两侧撞开；车后一路扬尘
+const PG_T0 := 0.10
+const PG_T1 := 0.75
+static func _penguin(u, a: Dictionary, t: float) -> bool:
+	var ex = a.who.exusiai
+	var tx = a.who.texas
+	var c: Vector2 = a.c
+	var dl: Vector2 = a.dl
+	var driver = tx if _ok(tx) else ex
+	var shooter = ex if _ok(ex) else tx
+	if _once(a, "go"):
+		if _ok(ex):
+			ex.play_vis_anim("attack")
+		if _ok(tx):
+			tx.play_vis_anim("skill")
+		_sfx(u.g, "op_exusiai_s3", -6.0, 1.0)
+	var nshot: int = int(minf(t, 0.6) / 0.09)
+	while int(a.done.get("shots", 0)) < nshot:
+		a.done["shots"] = int(a.done.get("shots", 0)) + 1
+		var near: Array = u.in_circle(c, 220.0)
+		near.sort_custom(func(x, y): return x.pos.distance_squared_to(c) < y.pos.distance_squared_to(c))
+		var tg: Array = near.slice(0, 3)
+		for e in tg:
+			_hit(u, shooter, e, Bal.v("bond2/pg_shot", 0.3), "急件航线", a)
+		var fx = _fx(u.g)
+		if fx != null and _ok(shooter):
+			fx.shots(a, shooter.pos, tg.map(func(e): return e.pos))
+		if int(a.done.shots) % 2 == 0:
+			_sfx(u.g, "op_exusiai_atk", -10.0, 1.0)
+	if t >= PG_T0:
+		if _once(a, "vroom"):
+			_sfx(u.g, "ult_texas_impact", -6.0, 0.7)
+		var k: float = clampf((t - PG_T0) / (PG_T1 - PG_T0), 0.0, 1.0)
+		var p: Vector2 = c - dl * float(a.run) + dl * (float(a.run) + float(a.out)) * k
+		var p0: Vector2 = a.get("cp", c - dl * float(a.run))
+		a["cp"] = p
 		var hit: Dictionary = a.get("hitset", {})
-		var sil: bool = Bal.v("bond2/rival_silence", 1.0) > 0.0
-		for e in u.in_circle(c, r):
+		for e in u.in_band(p0, p, float(a.hw)):
 			var eid: int = int(e.get("id", -1))
 			if hit.has(eid):
 				continue
 			hit[eid] = true
-			var right: bool = e.pos.x >= c.x
-			_hit(u, (lp if right else tx) if (_ok(lp) and _ok(tx)) else (tx if _ok(tx) else lp), e, 1.2, "十字旧怨", a)
-			if right and sil and not e.dead and not e.boss:
-				u.g.enemies_sys.silence(e, u.g.t + (0.5 if e.elite else 1.0))
+			_hit(u, driver, e, Bal.v("bond2/pg_frac", 1.2), "急件航线", a)
+			if not e.dead and not e.boss:
+				var side: float = 1.0 if (e.pos - p).dot(dl.orthogonal()) >= 0.0 else -1.0
+				driver.apply_kb(e, (dl.orthogonal() * side + dl * 0.5).normalized() * 190.0)
 		a["hitset"] = hit
-	return t >= 1.4
+		var nd: int = int(k * 8.0)
+		while int(a.done.get("dust", 0)) < nd:
+			a.done["dust"] = int(a.done.get("dust", 0)) + 1
+			BPF.penguin_trail(u, a, p, int(a.done.dust))
+	return t >= 1.0
 
 
-## 企鹅物流「急件航线」· 开车（docs/296 第五轮）：德克萨斯开车从小队旁冲过怪群（0.15–1.25 秒），车身碾过的带状区域打一下；
-## 能天使站在车顶，每 0.08 秒朝车周围 260 内最近的 3 只各开一枪（不抽随机数，按 g.enemies 顺序取最近）
-static func _penguin(u, a: Dictionary, t: float) -> bool:
-	var ex = a.who.exusiai
-	var tx = a.who.texas
-	var s0: Vector2 = a.s
-	var dl: Vector2 = a.dl
-	var ln: float = a.len
-	var T0 := 0.15
-	var T1 := 1.25
-	var driver = tx if _ok(tx) else ex
-	var shooter = ex if _ok(ex) else tx
-	if _once(a, "go"):
-		_sfx(u.g, "op_exusiai_s3", -6.0, 1.0)
-	if t < T0:
-		return false
-	var uu: float = clampf((t - T0) / (T1 - T0), 0.0, 1.0)
-	var p: Vector2 = s0 + dl * ln * uu
-	var p0: Vector2 = a.get("cp", s0)
-	a["cp"] = p
-	var hit: Dictionary = a.get("hitset", {})
-	for e in u.in_band(p0, p, float(a.hw)):
-		var eid: int = int(e.get("id", -1))
-		if hit.has(eid):
-			continue
-		hit[eid] = true
-		_hit(u, driver, e, 1.0, "急件航线", a)
-		if not e.dead and not e.boss:
-			driver.apply_kb(e, dl.orthogonal() * (140.0 if (e.pos - p).dot(dl.orthogonal()) >= 0.0 else -140.0))
-	a["hitset"] = hit
-	var nshot: int = int((minf(t, T1) - T0) / 0.08)
-	while int(a.done.get("shots", 0)) < nshot:
-		a.done["shots"] = int(a.done.get("shots", 0)) + 1
-		var near: Array = u.in_circle(p, 260.0)
-		near.sort_custom(func(x, y): return x.pos.distance_squared_to(p) < y.pos.distance_squared_to(p))
-		var tg: Array = near.slice(0, 3)
-		for e in tg:
-			_hit(u, shooter, e, 0.5, "急件航线", a)
-		var fx = _fx(u.g)
-		if fx != null:
-			fx.shots(a, p, tg.map(func(e): return e.pos))
-		if int(a.done.shots) % 3 == 0:
-			_sfx(u.g, "op_exusiai_atk", -10.0, 1.0)
-	if t >= T1 and _once(a, "end"):
-		_sfx(u.g, "ult_texas_impact", -8.0, 1.2)
-	return t >= 1.6
-
-
-## 灯下审决「提灯宣判」· 灯塔照海、审判守岸（docs/296 第七轮，用户给参考图）：流明身后升起灯塔虚像（0–0.4 秒），
-## 光锥从 ang0 扫到 ang1（0.4–1.15 秒，半径 R），扫到的敌人亮紫印、0.15 秒后受审（艾丽妮出手）
+## 灯下审决「提灯宣判」· 合击：流明原地举灯，身后升起灯塔（0–0.35 秒），灯室点亮后一束聚光斜落到最密处（0.35–0.55 秒），
+## 光圈里的敌人亮紫印；艾丽妮原地出手（0.55），一道审判光矛从高处落进光圈中心（0.78）：光圈里的一齐受审
+const IQ_HIT := 0.78
 static func _inq(u, a: Dictionary, t: float) -> bool:
 	var lm = a.who.lumen
 	var ir = a.who.irene
-	var O: Vector2 = a.O
-	var R: float = a.R
+	var c: Vector2 = a.c
 	if _once(a, "go"):
 		if _ok(lm):
 			lm.play_vis_anim("skill")
 		_sfx(u.g, "op_lumen_s2", -5.0, 0.9)
-	if t >= 0.4 and t < 1.2:
-		var k: float = clampf((t - 0.4) / 0.75, 0.0, 1.0)
-		var ang: float = lerpf(float(a.ang0), float(a.ang1), k)
-		var pa: float = float(a.get("pang", a.ang0))
-		a["pang"] = ang
-		var marks: Array = a.get("marks", [])
-		var seen: Dictionary = a.get("seen", {})
-		for e in u.in_circle(O, R):
-			var eid: int = int(e.get("id", -1))
-			if seen.has(eid):
-				continue
-			var ea: float = (e.pos - O).angle()
-			var rel: float = wrapf(ea - float(a.ang0), -PI, PI)
-			var lo: float = wrapf(pa - float(a.ang0), -PI, PI)
-			var hi: float = wrapf(ang - float(a.ang0), -PI, PI)
-			if rel >= minf(lo, hi) - 0.02 and rel <= maxf(lo, hi) + 0.02:
-				seen[eid] = true
-				marks.append([e, t + 0.15])
-		a["seen"] = seen
-		a["marks"] = marks
-		if int(t * 15) % 3 == 0 and _ok(ir) and _once(a, "ia%d" % int(t * 5)):
+	if t >= 0.55 and _once(a, "ir"):
+		if _ok(ir):
 			ir.play_vis_anim("attack")
-	var keep: Array = []
-	for m in a.get("marks", []):
-		if t >= float(m[1]):
-			_hit(u, ir if _ok(ir) else lm, m[0], 1.2, "提灯宣判", a)
-			if _once(a, "js%d" % int(t * 10)):
-				_sfx(u.g, "op_irene_atk", -7.0, 1.0)
-		else:
-			keep.append(m)
-	a["marks"] = keep
-	if t >= 1.2 and _once(a, "end"):
-		_sfx(u.g, "op_irene_big", -5.0, 1.0)
-	return t >= 1.6 and keep.is_empty()
+		_sfx(u.g, "op_irene_atk", -6.0, 0.9)
+	if t >= IQ_HIT and _once(a, "judge"):
+		_sfx(u.g, "op_irene_big", -4.0, 1.0)
+		for e in u.in_circle(c, float(a.r)):
+			_hit(u, ir if _ok(ir) else lm, e, Bal.v("bond2/inq_frac", 1.2), "提灯宣判", a)
+		BPF.inq_hit(u, a)
+	return t >= 1.4
 
 
 ## 作战记录 / 测试用：本局解锁与释放
