@@ -491,7 +491,11 @@ static func _h4wd_tick(o, wd: Dictionary, dt: float) -> void:
 			quake_expired = true
 			_h4_explode(o, a, q.pos, q.dmg, q.r, str(a.get("quake_src", "")), 0, q.stun, false, q.rings, "quake")
 			if q.get("echo", false):   # 余响：第二次余震是紫灰色、向内收（区别于第一次余震，docs/310 §4.3）
-				ncue(o, {"p": q.pos, "shape": "in", "r": float(q.r) * 1.1, "c": Color(0.68, 0.55, 0.85), "n": 8, "life": 0.4})
+				if BalW.v("fx/wd_echo_v", 1.0) > 0.0:   # 11-08 用户 iPhone「很粗的白 / 淡紫椭圆圈」：改她的配色（外一格藏蓝、里一格炮击血红（偏橙，和敌方预警粉红拉开），不再提亮成近白），2 格宽、断口约四分之一
+					ncue(o, {"p": q.pos, "shape": "in", "r": float(q.r) * 1.1, "c": Color("#f04a24"), "n": 6, "life": 0.4,
+						"cols": [Color("#15224e"), Color("#c41e18"), Color(0, 0, 0, 0)], "gap": 0.25, "glow": Color("#f04a24")})
+				else:
+					ncue(o, {"p": q.pos, "shape": "in", "r": float(q.r) * 1.1, "c": Color(0.68, 0.55, 0.85), "n": 8, "life": 0.4})
 	if quake_expired:
 		wd.quakes = wd.quakes.filter(func(q): return q.t > 0.0)
 	var sh: Dictionary = a.get("shade", {})
