@@ -142,7 +142,8 @@ def card_title(t, short=False, vw=W, vh=H):
     d = ImageDraw.Draw(im)
     cy = int(vh * 0.30)
     d.polygon([(0, cy - 150), (vw, cy - 230), (vw, cy - 214), (0, cy - 134)], fill=CYAN + (255,))
-    d.polygon([(0, cy + 250), (vw, cy + 170), (vw, cy + 178), (0, cy + 258)], fill=PURPLE + (200,))
+    dy = 80 * vw / 1920
+    d.polygon([(0, cy + 250 + dy), (vw, cy + 250 - dy), (vw, cy + 258 - dy), (0, cy + 258 + dy)], fill=PURPLE + (200,))
     tk = min(1.0, (vw - 120) / t1.width)
     s = tk * (1.0 + 0.9 * (1 - ease_out(t / 0.12)))
     paste_scaled(im, t1, vw / 2, cy, s, min(1, t / 0.06 + 0.2))

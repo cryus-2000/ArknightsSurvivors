@@ -28,7 +28,7 @@ import music
 FPS = 60
 MAIN = cards.MAIN
 PVD = os.path.join(MAIN, "Claude outputs", "pv_1108")
-CLIPS = os.path.join(PVD, "clips")
+CLIPS = os.environ.get("PV_CLIPS") or os.path.join(PVD, "clips")   # 11-08 E 盘满：素材可放别的盘
 WORK = os.path.join(PVD, "work")
 SFXD = os.path.join(fx.WT, "game", "audio", "sfx")
 SR = 48000
