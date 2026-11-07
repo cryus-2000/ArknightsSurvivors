@@ -13,6 +13,7 @@ var navigation: Texture2D = preload("res://art/ui/settlement/navigation.png")
 var _signature: Array = []
 var model: Dictionary = {}
 var wall_s := 0.0   # 本局真实时长（秒，反馈码用）
+var _fb_auto := false
 var rows: Array = []
 var art: Dictionary = {}
 var elapsed := 0.0
@@ -102,10 +103,12 @@ func tick(dt: float) -> void:
 		preload("res://scripts/core/frame_rec.gd").mark("settle")
 		set_model(RS.model(RS.snapshot(g)))
 		wall_s = float(Time.get_ticks_msec() - int(g.run_wall_ms)) / 1000.0   # 反馈码的局时：开局到结算出现的真实时间
-		if "--fbopen" in Cfg.dev_args():   # 截图：结算一出现就打开反馈浮层
-			_run.call_deferred("feedback")
+		_fb_auto = "--fbopen" in Cfg.dev_args()   # 截图：结算入场演完就打开反馈浮层
 		cells = int(g.meta_result.get("cells", 0))
 		vouchers = int(g.roster_new.get("hunt", 0))
+	if _fb_auto and done():
+		_fb_auto = false
+		_run("feedback")
 	var safe: Rect2 = Cfg.touch_safe_rect(g.get_viewport_rect().size / Cfg.ui_k)
 	scale = minf(safe.size.x / 1280.0, safe.size.y / 720.0)
 	origin = safe.position + (safe.size - Vector2(1280, 720) * scale) * 0.5
