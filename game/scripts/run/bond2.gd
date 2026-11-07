@@ -159,7 +159,7 @@ static func _cast(u, bid: String, pr: Array, c: Vector2, e2: bool) -> void:
 			a["hw"] = Bal.v("bond2/rival_hw", 46.0) * k
 		"b_penguin":   # 碾过去：车只走横向（斜率封顶 0.12），从最密处后方 car_run 处冲进来、开过去 car_out；车道半宽 hw
 			var sx: float = 1.0 if d0.x >= 0.0 else -1.0
-			a["dl"] = Vector2(sx, clampf(d0.y / maxf(absf(d0.x), 0.001), -0.12, 0.12)).normalized()
+			a["dl"] = Vector2(sx, 0.0).normalized()
 			var ld = g.squad.leader()
 			var ly: float = ld.pos.y if ld != null and ld.pos != Vector2.INF else from.y
 			a["c"] = Vector2(c.x, clampf(c.y, ly - Bal.v("bond2/car_up", 40.0), ly + Bal.v("bond2/car_dn", 140.0)))   # 车身往上占 140：车道贴队长上方会被演出卡 / HUD 盖住
@@ -173,7 +173,8 @@ static func _cast(u, bid: String, pr: Array, c: Vector2, e2: bool) -> void:
 			for i in nb:
 				var kb: float = 0.3 + 0.55 * float(i) / float(maxi(1, nb - 1))
 				var sd: float = 1.0 if i % 2 == 0 else -1.0
-				var lnd: Vector2 = S + a.dl * (LL * kb + 50.0) + a.dl.orthogonal() * sd * Bal.v("bond2/bomb_off", 130.0) * k
+				var fk: float = kb * kb * 1.6 if kb < 0.25 else 0.1 + (kb - 0.25) * 1.2
+				var lnd: Vector2 = S + a.dl * (LL * fk + 50.0) + a.dl.orthogonal() * sd * Bal.v("bond2/bomb_off", 130.0) * k
 				bombs.append([kb, sd, lnd])
 			a["bombs"] = bombs
 			a["br"] = Bal.v("bond2/bomb_r", 80.0) * k
@@ -294,9 +295,9 @@ static func _step(u, a: Dictionary, dt: float) -> bool:
 ## 宿敌「十字旧怨」· 十字斩（11-07 用户：改成斩击，选「十字斩裂地」）：两人原地出手（0 秒），落点先闪一下 X 形预兆细线，
 ## 德克萨斯一刀（左上 → 右下，0.24 秒）、拉普兰德一刀（右上 → 左下，0.32 秒）在最密处交成大 X，斩痕带上的各打一下；
 ## 拉普兰德那一刀附带沉默；交点 0.34 秒炸开（只画）
-const RV_T1 := 0.24
-const RV_T2 := 0.32
-const RV_HIT := 0.34
+const RV_T1 := 0.6
+const RV_T2 := 0.82
+const RV_HIT := 0.88
 static func _rival(u, a: Dictionary, t: float) -> bool:
 	var tx = a.who.texas
 	var lp = a.who.lappland
@@ -325,14 +326,14 @@ static func _rival(u, a: Dictionary, t: float) -> bool:
 	a["hitset"] = hit
 	if t >= RV_HIT and _once(a, "x"):
 		BPF.rival_hit(u, a)
-	return t >= 1.0
+	return t >= 1.9
 
 
 ## 企鹅物流「急件航线」· 碾过去（11-07 用户：「一辆车直接碾过去」，不裂地）：能天使原地朝最密处齐射（0–0.6 秒，每 0.09 秒最近 3 只各一枪）；
 ## 德克萨斯的车（不画人）从画面外横向冲进来、穿过最密处再开出去（0.10–0.75 秒），车身扫过的带状区域打一下、往两侧撞开；车后一路扬尘
-const PG_T0 := 0.10
-const PG_T1 := 0.75
-const PG_BOMB := 0.3   # 炸弹出手到落地
+const PG_T0 := 0.4
+const PG_T1 := 1.7
+const PG_BOMB := 0.4   # 炸弹出手到落地
 static func _penguin(u, a: Dictionary, t: float) -> bool:
 	var ex = a.who.exusiai
 	var tx = a.who.texas
@@ -346,7 +347,7 @@ static func _penguin(u, a: Dictionary, t: float) -> bool:
 		if _ok(tx):
 			tx.play_vis_anim("skill")
 		_sfx(u.g, "op_exusiai_s3", -6.0, 1.0)
-	var nshot: int = int(minf(t, 0.6) / 0.09)
+	var nshot: int = int(clampf(t - 0.2, 0.0, 1.2) / 0.12)
 	while int(a.done.get("shots", 0)) < nshot:
 		a.done["shots"] = int(a.done.get("shots", 0)) + 1
 		var near: Array = u.in_circle(c, 220.0)
@@ -362,7 +363,8 @@ static func _penguin(u, a: Dictionary, t: float) -> bool:
 	if t >= PG_T0:
 		if _once(a, "vroom"):
 			_sfx(u.g, "ult_texas_impact", -6.0, 0.7)
-		var k: float = clampf((t - PG_T0) / (PG_T1 - PG_T0), 0.0, 1.0)
+		var uu: float = clampf((t - PG_T0) / (PG_T1 - PG_T0), 0.0, 1.0)
+		var k: float = uu * uu * 1.6 if uu < 0.25 else 0.1 + (uu - 0.25) * 1.2   # 同画面 _car_pos：先加速后匀速
 		var p: Vector2 = c - dl * float(a.run) + dl * (float(a.run) + float(a.out)) * k
 		var p0: Vector2 = a.get("cp", c - dl * float(a.run))
 		a["cp"] = p
@@ -389,16 +391,16 @@ static func _penguin(u, a: Dictionary, t: float) -> bool:
 				_sfx(u.g, "op_exusiai_atk", -8.0, 0.6)
 				BPF.bomb_hit(u, a, bm[2], bi)
 		a["hitset"] = hit
-		var nd: int = int(k * 8.0)
+		var nd: int = int(k * 10.0)
 		while int(a.done.get("dust", 0)) < nd:
 			a.done["dust"] = int(a.done.get("dust", 0)) + 1
 			BPF.penguin_trail(u, a, p, int(a.done.dust))
-	return t >= 1.3
+	return t >= 2.4
 
 
 ## 灯下审决「提灯宣判」· 合击（11-07 用户：灯塔和流明自己的技能重复，改「提灯悬空洒金光」）：两人原地出手，艾丽妮的手提灯飞到最密处上空停住（0–0.3 秒），
 ## 灯罩打开、暖金光点像雨一样洒下（0.35–0.75 秒），光里的敌人亮紫印；艾丽妮再出手（0.55），一道审判光矛从灯下直劈下来（0.78）：光圈里的一齐受审
-const IQ_HIT := 0.78
+const IQ_HIT := 1.5
 static func _inq(u, a: Dictionary, t: float) -> bool:
 	var lm = a.who.lumen
 	var ir = a.who.irene
@@ -418,14 +420,14 @@ static func _inq(u, a: Dictionary, t: float) -> bool:
 		for e in u.in_circle(c, float(a.r)):
 			_hit(u, ir if _ok(ir) else lm, e, Bal.v("bond2/inq_frac", 1.2), "提灯宣判", a)
 		BPF.inq_hit(u, a)
-	return t >= 1.4
+	return t >= 2.1
 
 
 ## 潮下授课「链上疾驰」· 合击（docs/296 第七轮用户选定，11-07 改合击：人物原地出手）：乌尔比安原地掷锚，巨锚越过最密处砸在远端（0.05–0.28 秒，落地打一圈），
 ## 锚链从他手里绷直横跨怪群；斯卡蒂原地出手，一道深海蓝浪锋沿锚链从近到远冲过去（0.38–0.62 秒，锚链两侧的带状区域打一下），锚链随后收回
-const LS_LAND := 0.28
-const LS_S0 := 0.38
-const LS_S1 := 0.62
+const LS_LAND := 0.6
+const LS_S0 := 0.95
+const LS_S1 := 1.45
 static func _lesson(u, a: Dictionary, t: float) -> bool:
 	var ul = a.who.ulpianus
 	var sk = a.who.skadi
@@ -458,14 +460,14 @@ static func _lesson(u, a: Dictionary, t: float) -> bool:
 			hit[eid] = true
 			_hit(u, sk if _ok(sk) else ul, e, Bal.v("bond2/ls_frac", 1.2), "链上疾驰", a)
 	a["hitset"] = hit
-	return t >= 1.1
+	return t >= 2.1
 
 
 ## 引潮夺命「引潮断线」· 合击（docs/296 第八轮「海沟」）：歌蕾蒂娅原地甩钩，钩线横过最密处（0.05–0.2），地面沿钩线裂开一道锯齿海沟（0.25），
 ## 两侧 pull 内的怪被拖向海沟；幽灵鲨原地出手，一道斩浪沿海沟从一头冲到另一头（0.5–0.72 秒，海沟两侧带状区域打一下），海沟 1.0 秒合拢
-const TD_OPEN := 0.25
-const TD_S0 := 0.5
-const TD_S1 := 0.72
+const TD_OPEN := 0.55
+const TD_S0 := 1.05
+const TD_S1 := 1.5
 static func _tide(u, a: Dictionary, t: float) -> bool:
 	var gl = a.who.gladiia
 	var sp = a.who.specter_unchained
@@ -504,14 +506,14 @@ static func _tide(u, a: Dictionary, t: float) -> bool:
 			hit[eid] = true
 			_hit(u, sp if _ok(sp) else gl, e, Bal.v("bond2/td_frac", 1.2), "引潮断线", a)
 		a["hitset"] = hit
-	return t >= 1.2
+	return t >= 2.2
 
 
 ## 漩涡钉锚「涡心落锚」· 合击（docs/296 第八轮「作战推演」）：歌蕾蒂娅原地出手，地上一支支画出五支推演箭头从外圈指向中心（0.05–0.4），
 ## 圈里的怪被往中心推（0.4）；乌尔比安原地出手，五只锚从高处依次砸在箭头尖上（0.6–0.84，每只落点一圈打一下）
-const VX_PUSH := 0.4
-const VX_A0 := 0.6
-const VX_DA := 0.06
+const VX_PUSH := 0.85
+const VX_A0 := 1.15
+const VX_DA := 0.12
 static func _vortex(u, a: Dictionary, t: float) -> bool:
 	var gl = a.who.gladiia
 	var ul = a.who.ulpianus
@@ -543,14 +545,14 @@ static func _vortex(u, a: Dictionary, t: float) -> bool:
 				_hit(u, ul if _ok(ul) else gl, e, Bal.v("bond2/vx_frac", 1.2), "涡心落锚", a)
 			BPF.vortex_anchor(u, a, tp, i)
 	a["hitset"] = hit
-	return t >= 1.2
+	return t >= 2.2
 
 
 ## 双鳍「双鳍破浪」· 合击（docs/296 第八轮「背鳍」）：两人原地出手，两片巨大背鳍（斯卡蒂深海蓝、幽灵鲨幽灵青）从圈两端冒出，
 ## 绕最密处交错游一圈（0.15–0.8 秒，半径 R，拖白色破浪；每过半圈把圈里的怪往里卷一次），最后在圈心交错扎进水里（0.85 秒，圈里打一下）
-const FN_T0 := 0.15
-const FN_T1 := 0.8
-const FN_HIT := 0.85
+const FN_T0 := 0.3
+const FN_T1 := 1.55
+const FN_HIT := 1.7
 static func _fins(u, a: Dictionary, t: float) -> bool:
 	var sk = a.who.skadi
 	var sp = a.who.specter_unchained
@@ -574,13 +576,13 @@ static func _fins(u, a: Dictionary, t: float) -> bool:
 		for e in u.in_circle(c, float(a.R)):
 			_hit(u, sk if (_ok(sk) and e.pos.x < c.x) or not _ok(sp) else sp, e, Bal.v("bond2/fn_frac", 1.2), "双鳍破浪", a)
 		BPF.fins_dive(u, a)
-	return t >= 1.3
+	return t >= 2.2
 
 
 ## 群猎「群猎合围」· 合击（docs/294 §5 + docs/296 第八轮「暗潮合围」）：在场猎人原地出手，一圈暗潮从外圈 R0 往里合拢到 60（0–0.6 秒，
 ## 浪唇翻白沫，潮头扫过的怪往里卷）；各人的武器从潮里朝圈心刺出（0.6–0.72），在圈心交汇（0.74：半径 r 打一下）。浊心斯卡蒂不刺：在圈心起一圈歌声环
-const HT_T1 := 0.6
-const HT_HIT := 0.74
+const HT_T1 := 1.15
+const HT_HIT := 1.4
 static func _hunt(u, a: Dictionary, t: float) -> bool:
 	var c: Vector2 = a.c
 	var ps: Array = a.ps
@@ -613,7 +615,7 @@ static func _hunt(u, a: Dictionary, t: float) -> bool:
 			i += 1
 			_hit(u, p if _ok(p) else ps[0], e, Bal.v("bond2/ht_frac", 1.2), "群猎合围", a)
 		BPF.hunt_hit(u, a)
-	return t >= 1.2
+	return t >= 2.0
 
 
 ## 作战记录 / 测试用：本局解锁与释放

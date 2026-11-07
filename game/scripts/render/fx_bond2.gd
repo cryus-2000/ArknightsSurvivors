@@ -90,8 +90,8 @@ func cast(a: Dictionary) -> void:
 	match str(a.id):
 		"b_rival":   # 十字斩（11-07）：X 形预兆细线 → 两刀各一帧劈出（亮两拍后冷成地上的暗斩痕）；裂缝 / 烟尘在 run/bond2_pf.gd
 			var L: float = a.L
-			_push({"k": "xcut", "c": c, "d": a.d1, "L": L, "w": float(a.hw), "pal": TX, "t0": t + B2.RV_T1, "life": 1.6})
-			_push({"k": "xcut", "c": c, "d": a.d2, "L": L, "w": float(a.hw), "pal": LP, "t0": t + B2.RV_T2, "life": 1.6})
+			_push({"k": "xcut", "c": c, "d": a.d1, "L": L, "w": float(a.hw), "pal": TX, "t0": t + B2.RV_T1, "life": 2.2})
+			_push({"k": "xcut", "c": c, "d": a.d2, "L": L, "w": float(a.hw), "pal": LP, "t0": t + B2.RV_T2, "life": 2.2})
 			_push({"k": "clash", "c": c + Vector2(0, -20), "t0": t + B2.RV_HIT, "life": 0.2})
 			for q in 2:   # Noita 式颗粒：每刀沿斩痕 4 处各迸一把火星（会弹地、落地暗掉），交点一把余烬
 				var d: Vector2 = a.d1 if q == 0 else a.d2
@@ -103,22 +103,24 @@ func cast(a: Dictionary) -> void:
 			due.append([t + B2.RV_HIT, "grains", {"o": a.who.texas, "p": c + Vector2(0, LIFT * 0.5), "n": 14, "c0": Color(1.0, 0.9, 0.7), "c1": TX[3], "mat": "ember"}])
 			due.append([t + B2.RV_HIT + 0.02, "grains", {"o": a.who.lappland, "p": c + Vector2(0, LIFT * 0.5), "n": 10, "c0": LP[5], "c1": LP[3], "mat": "ember"}])
 		"b_penguin":   # 碾过去：车从画面外横向冲进来、穿过最密处再开出去（车上不画人）；能天使原地齐射的曳光由 shots() 逐发加
-			_push({"k": "car", "c": c, "dl": a.dl, "run": float(a.run), "out": float(a.out), "t0": t, "T0": B2.PG_T0, "T1": B2.PG_T1, "life": 1.0})
-			_push({"k": "skid", "c": c, "dl": a.dl, "run": float(a.run), "out": float(a.out), "t0": t, "T0": B2.PG_T0, "T1": B2.PG_T1, "life": 2.2})
+			_push({"k": "car", "c": c, "dl": a.dl, "run": float(a.run), "out": float(a.out), "t0": t, "T0": B2.PG_T0, "T1": B2.PG_T1, "life": B2.PG_T1 + 0.3, "tx": a.who.texas})
+			_push({"k": "skid", "c": c, "dl": a.dl, "run": float(a.run), "out": float(a.out), "t0": t, "T0": B2.PG_T0, "T1": B2.PG_T1, "life": B2.PG_T1 + 1.6})
 			var S: Vector2 = c - Vector2(a.dl) * float(a.run)
 			var LL: float = float(a.run) + float(a.out)
 			for bm in a.bombs:   # 炸弹：从车顶抛出、0.3 秒落到车道两侧
 				var tb: float = t + B2.PG_T0 + float(bm[0]) * (B2.PG_T1 - B2.PG_T0)
-				_push({"k": "bomb", "a": S + Vector2(a.dl) * LL * float(bm[0]) + Vector2(0, -70), "b": bm[2], "t0": tb, "dur": B2.PG_BOMB, "life": B2.PG_BOMB + 0.05})
+				var kb: float = float(bm[0])
+				var fk: float = kb * kb * 1.6 if kb < 0.25 else 0.1 + (kb - 0.25) * 1.2
+				_push({"k": "bomb", "a": S + Vector2(a.dl) * LL * fk + Vector2(0, -90), "b": bm[2], "t0": tb, "dur": B2.PG_BOMB, "life": B2.PG_BOMB + 0.05})
 				due.append([tb + B2.PG_BOMB, "grains", {"o": a.who.texas, "p": bm[2] + Vector2(0, LIFT * 0.5), "n": 12, "c0": Color(1.0, 0.85, 0.5), "c1": EX[3], "mat": "ember"}])
 				due.append([tb + B2.PG_BOMB, "grains", {"o": a.who.texas, "p": bm[2] + Vector2(0, LIFT * 0.5), "n": 6, "c0": Color(0.3, 0.3, 0.32), "c1": Color(0.16, 0.16, 0.18), "mat": "rock"}])
 		"b_inq":   # 合击（11-07 改）：艾丽妮的提灯飞到落点上空悬停 → 灯罩打开洒下暖金光雨（光圈描边 + 紫印）→ 审判光矛从灯下劈落
 			var ir = a.who.irene
 			var from: Vector2 = (ir.pos if ir != null else c) + Vector2(0, -40)
-			_push({"k": "lantern", "a": from, "L": a.O, "c": c, "t0": t, "t1": t + 0.3, "life": 1.3})
+			_push({"k": "lantern", "a": from, "L": a.O, "c": c, "t0": t, "t1": t + 0.5, "life": B2.IQ_HIT + 0.55})
 			_push({"k": "rain", "L": a.O, "c": c, "r": float(a.r), "t0": t, "life": B2.IQ_HIT + 0.3})
-			_push({"k": "lance", "p": c, "top": c.y - float(a.O.y), "t0": t + B2.IQ_HIT - 0.12, "t1": t + B2.IQ_HIT, "life": 0.45})
-			due.append([t + 0.35, "light", {"o": ir, "p": a.O, "r": 160.0, "i": 0.7, "c": LAMPG[4], "life": 0.15}])
+			_push({"k": "lance", "p": c, "top": c.y - float(a.O.y), "t0": t + B2.IQ_HIT - 0.2, "t1": t + B2.IQ_HIT, "life": 0.6})
+			due.append([t + 0.6, "light", {"o": ir, "p": a.O, "r": 160.0, "i": 0.7, "c": LAMPG[4], "life": 0.15}])
 			due.append([t + B2.IQ_HIT, "grains", {"o": ir, "p": c + Vector2(0, LIFT * 0.5), "n": 16, "c0": IR[5], "c1": IR[3], "mat": "streak"}])
 			due.append([t + B2.IQ_HIT + 0.05, "grains", {"o": ir, "p": c + Vector2(0, LIFT * 0.5), "n": 12, "c0": LAMPG[5], "c1": LAMPG[3], "mat": "rise"}])
 
@@ -308,15 +310,16 @@ func _tex(path: String) -> Texture2D:
 
 ## 车（企鹅物流，11-07 用户：埃尔法式 MPV + 企鹅物流涂鸦，「直接碾过去」）：从 c - dl·run 一路开到 c + dl·out（T0 → T1，15 fps 每拍跳一段 + 两份拖影 + 速度线），
 ## 开过去后再往前开 0.15 秒淡出；车身两拍一颠
-func _car_pos(it: Dictionary) -> Vector2:
+func _car_pos(it: Dictionary) -> Vector2:   # 11-07 用户「车子像是漂移」：逐帧平滑移动（不按 15 fps 跳格），先加速后匀速
 	var age: float = g.t - float(it.t0)
-	var T0: float = it.T0
-	var T1: float = it.T1
-	var k: float = (floor((age - T0) * 15.0 + 1.0) / 15.0) / (T1 - T0)
+	var u: float = clampf((age - float(it.T0)) / (float(it.T1) - float(it.T0)), 0.0, 1.0)
+	var k: float = u * u * 1.6 if u < 0.25 else 0.1 + (u - 0.25) * 1.2   # 前 1/4 加速，之后匀速（两段在 0.25 处接上）
 	var dl: Vector2 = it.dl
-	return Vector2(it.c) - dl * float(it.run) + dl * (float(it.run) + float(it.out)) * maxf(0.0, k)
+	return Vector2(it.c) - dl * float(it.run) + dl * (float(it.run) + float(it.out)) * k
 
 
+## 车（企鹅物流）：车道恒为水平（侧面贴图，斜着走就像漂移）；起步时车头一翘（2 拍），之后每两拍车身一颠、后轮扬土；
+## 车后速度线（不画半透明重影：重影会被看成车在滑）；车头灯发光
 func _draw_car(ci, it: Dictionary) -> void:
 	var age: float = g.t - float(it.t0)
 	var T0: float = it.T0
@@ -327,26 +330,31 @@ func _draw_car(ci, it: Dictionary) -> void:
 	if tex == null:
 		return
 	var dl: Vector2 = it.dl
-	var flip: bool = dl.x < 0.0
-	var fs: float = -1.0 if flip else 1.0
+	var fs: float = -1.0 if dl.x < 0.0 else 1.0
 	var p: Vector2 = _snap(_car_pos(it))
 	var al: float = 1.0 - clampf((age - T1) / 0.2, 0.0, 1.0)
 	var sz: Vector2 = tex.get_size()
-	var bounce: float = g.PX if (int(floor(g.t * 15.0)) / 2) % 2 == 0 else 0.0
-	for j in [2, 1]:   # 拖影：沿车道往后 80 / 160，越后越淡、偏琥珀
-		var q: Vector2 = p - dl * 80.0 * float(j)
-		ci.draw_set_transform(q, 0.0, Vector2(fs, 1.0))
-		ci.draw_texture_rect(tex, Rect2(-CAR_FOOT, sz), false, Color(1.0, 0.82, 0.6, 0.26 * al / float(j)))
-	for s5 in 6:   # 速度线
-		var y0: float = -14.0 - 16.0 * float(s5)
-		var ln: float = 70.0 + 40.0 * float((s5 * 7) % 3)
-		var st: Vector2 = p - dl * (CAR_FOOT.x + 8.0) + Vector2(0, y0)
-		for i in range(0, int(ln / g.PX), 2):
-			_cell(ci, st - dl * float(i) * g.PX, Color(1.0, 0.88, 0.65, 0.5 * al * (1.0 - float(i) * g.PX / ln)))
-	ci.draw_set_transform(p + Vector2(0, -bounce), 0.0, Vector2(fs, 1.0))
+	var bt: int = int(floor((age - T0) * 15.0))
+	var tilt: float = [-0.06, -0.03][bt] if bt < 2 else 0.0   # 起步车头上翘
+	var bounce: float = 2.0 * g.PX if (bt / 2) % 2 == 0 and bt >= 2 else 0.0
+	for s5 in 7:   # 速度线（长短不一、隔格）
+		var y0: float = -10.0 - 15.0 * float(s5)
+		var ln: float = 90.0 + 50.0 * float((s5 * 7) % 3)
+		var st: Vector2 = p - dl * (CAR_FOOT.x + 10.0 + 12.0 * float(s5 % 2)) + Vector2(0, y0)
+		for i in range(0, int(ln / g.PX), 3):
+			_cell(ci, st - dl * float(i) * g.PX, Color(1.0, 0.9, 0.7, 0.55 * al * (1.0 - float(i) * g.PX / ln)))
+	ci.draw_set_transform(p + Vector2(0, -bounce), tilt * fs, Vector2(fs, 1.0))
 	ci.draw_texture_rect(tex, Rect2(-CAR_FOOT, sz), false, Color(1, 1, 1, al))
 	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	_glow(p + dl * (sz.x * 0.45) + Vector2(0, -40.0), Color(1.0, 0.95, 0.8))   # 车头灯
+	for d in [Vector2.ZERO, Vector2(0, -6)]:
+		_glow(p + dl * (sz.x * 0.46) + Vector2(0, -34.0) + d, Color(1.0, 0.95, 0.8))   # 车头灯
+	if bt % 2 == 0 and age < T1:   # 后轮扬土（Noita 颗粒，往车后上方喷）
+		var key: String = "w%d" % bt
+		if not it.has(key):
+			it[key] = true
+			var o = it.get("tx")
+			if o != null and is_instance_valid(o):
+				_R()._grains(o, p - dl * (sz.x * 0.32) + Vector2(0, -6), p.y + 2.0, "dust", 6, {"tier": 1, "c0": Color(0.62, 0.58, 0.52), "c1": Color(0.36, 0.33, 0.3)}, -dl + Vector2(0, -0.6))
 
 
 ## 胎痕（11-07 用户：保留胎痕、换表现形式，不要几何线条）：两道轮胎压痕 = 一块块斜胎面花纹（3 × 2 格、左右交错成人字），
@@ -393,7 +401,7 @@ func _draw_lance(ci, it: Dictionary) -> void:
 		var tip: Vector2 = p + Vector2(0, -float(it.get("top", 420.0)) * (1.0 - k))
 		for i in 70:   # 矛身（矛尖在下）
 			var q: Vector2 = tip + Vector2(0, -float(i) * px)
-			var w: int = 2 if i < 50 else 1
+			var w: int = 3 if i < 50 else 2
 			for s in range(-w, w + 1):
 				_cell(ci, q + Vector2(float(s) * px, 0), Color(1.3, 1.25, 1.4) if absi(s) == 0 else (IR[5] if absi(s) == 1 else IR[3]))
 		for i in range(70, 150, 2):   # 拖影
@@ -485,7 +493,7 @@ func _draw_xcut(ci, it: Dictionary, blade: bool) -> void:
 	if age < 0.0 or age > float(it.life):
 		return
 	var f: int = int(floor(age * 15.0))
-	if blade != (f < 2):
+	if blade != (f < 4):
 		return
 	var c: Vector2 = it.c
 	var d: Vector2 = it.d
@@ -494,8 +502,8 @@ func _draw_xcut(ci, it: Dictionary, blade: bool) -> void:
 	var pal: Array = it.pal
 	var px: float = g.PX
 	var n: int = int(L / px)
-	var wmax: float = minf(float(it.w) * 0.32, 18.0) / px
-	var melt: float = clampf((age - 0.6) / 0.9, 0.0, 1.0)
+	var wmax: float = minf(float(it.w) * 0.5, 26.0) / px
+	var melt: float = clampf((age - 1.0) / 1.1, 0.0, 1.0)
 	for i in n:
 		var u: float = float(i) / float(n)
 		var q: Vector2 = c + d * (u - 0.5) * L
@@ -585,22 +593,22 @@ func cast5(a: Dictionary) -> void:
 	var c: Vector2 = a.c
 	match str(a.id):
 		"b_lesson":
-			_push({"k": "chain", "A": a.A, "F": a.F, "t0": t, "life": 1.1})
-			_push({"k": "anchor", "a": Vector2(a.A) + Vector2(0, -30), "b": a.F, "t0": t + 0.05, "t1": t + B2.LS_LAND, "h": 170.0, "pal": ULP, "life": 1.05})
+			_push({"k": "chain", "A": a.A, "F": a.F, "t0": t, "life": B2.LS_S1 + 0.6})
+			_push({"k": "anchor", "a": Vector2(a.A) + Vector2(0, -30), "b": a.F, "t0": t + 0.05, "t1": t + B2.LS_LAND, "h": 220.0, "pal": ULP, "life": B2.LS_S1 + 0.55, "sc": 1.4})
 			_push({"k": "surge", "A": a.A, "F": a.F, "t0": t + B2.LS_S0, "t1": t + B2.LS_S1, "life": B2.LS_S1 - B2.LS_S0 + 0.35})
 			due.append([t + B2.LS_LAND, "grains", {"o": a.who.ulpianus, "p": Vector2(a.F) + Vector2(0, LIFT * 0.5), "n": 10, "c0": Color(0.42, 0.44, 0.5), "c1": Color(0.2, 0.22, 0.26), "mat": "rock"}])
 			for j in 5:
 				due.append([t + lerpf(B2.LS_S0, B2.LS_S1, float(j) / 4.0), "grains", {"o": a.who.skadi, "p": Vector2(a.A).lerp(a.F, float(j) / 4.0) + Vector2(0, LIFT * 0.5), "n": 8, "c0": WATER, "c1": SK[4], "mat": "drop"}])
 		"b_tide":
-			_push({"k": "trench", "c": c, "d": a.d, "L": float(a.L), "t0": t, "life": 1.25})
+			_push({"k": "trench", "c": c, "d": a.d, "L": float(a.L), "t0": t, "life": B2.TD_S1 + 0.6})
 			_push({"k": "tslash", "c": c, "d": a.d, "L": float(a.L), "t0": t + B2.TD_S0, "t1": t + B2.TD_S1, "life": B2.TD_S1 - B2.TD_S0 + 0.3})
 			for j in 5:
 				due.append([t + lerpf(B2.TD_S0, B2.TD_S1, float(j) / 4.0), "grains", {"o": a.who.specter_unchained, "p": c + Vector2(a.d) * (float(j) / 4.0 - 0.5) * float(a.L) + Vector2(0, LIFT * 0.5), "n": 7, "c0": SPP[5], "c1": SPA, "mat": "streak"}])
 		"b_vortex":
-			_push({"k": "plan", "c": c, "R": float(a.R), "tips": a.tips, "t0": t, "life": 1.2})
+			_push({"k": "plan", "c": c, "R": float(a.R), "tips": a.tips, "t0": t, "life": B2.VX_A0 + B2.VX_DA * 5.0 + 0.5})
 			for i in a.tips.size():
 				var ta: float = t + B2.VX_A0 + B2.VX_DA * float(i)
-				_push({"k": "anchor", "a": Vector2(a.tips[i]) + Vector2(0, -520), "b": a.tips[i], "t0": ta - 0.13, "t1": ta, "h": 0.0, "pal": ULP, "life": 0.13 + 0.5, "sc": 0.75})
+				_push({"k": "anchor", "a": Vector2(a.tips[i]) + Vector2(0, -520), "b": a.tips[i], "t0": ta - 0.2, "t1": ta, "h": 0.0, "pal": ULP, "life": 0.2 + 0.9, "sc": 0.9})
 				due.append([ta, "grains", {"o": a.who.ulpianus, "p": Vector2(a.tips[i]) + Vector2(0, LIFT * 0.5), "n": 6, "c0": ULP[5], "c1": ULP[3], "mat": "shard"}])
 		"b_fins":
 			for q in 2:
@@ -657,7 +665,7 @@ func _draw_chain(ci, it: Dictionary) -> void:
 	var A: Vector2 = Vector2(it.A) + Vector2(0, -26)
 	var F: Vector2 = Vector2(it.F) + Vector2(0, -40)
 	var kf: float = clampf(floor((age - 0.05) * 15.0 + 1.0) / floor((B2.LS_LAND - 0.05) * 15.0), 0.0, 1.0)
-	var back: float = clampf((age - 0.9) / 0.2, 0.0, 1.0)
+	var back: float = clampf((age - B2.LS_S1 - 0.3) / 0.25, 0.0, 1.0)
 	var tip: Vector2 = A.lerp(F, kf * (1.0 - back))
 	var sk: float = clampf((age - B2.LS_S0) / (B2.LS_S1 - B2.LS_S0), 0.0, 1.0)
 	var L: float = A.distance_to(tip)
@@ -735,7 +743,7 @@ func _draw_trench(ci, it: Dictionary) -> void:
 			_cell(ci, c + d * ((float(i) / float(n)) - 0.5) * L + nv * (hz - 0.6) * 18.0 + Vector2(0, -LIFT * 0.4), WATER if hz > 0.85 else (GLA if hz > 0.6 else GL[4]))
 		return
 	var op: float = clampf(floor((age - B2.TD_OPEN) * 15.0 + 1.0) / 2.0, 0.0, 1.0)
-	var cl: float = clampf((age - 0.9) / 0.2, 0.0, 1.0)
+	var cl: float = clampf((age - B2.TD_S1 - 0.15) / 0.25, 0.0, 1.0)
 	var wk: float = op * (1.0 - cl)
 	for i in n:
 		var u: float = float(i) / float(n)
@@ -792,9 +800,9 @@ func _draw_plan(ci, it: Dictionary) -> void:
 	var c: Vector2 = it.c
 	var R: float = it.R
 	var px: float = g.PX
-	var fa: float = 1.0 - clampf((age - 0.9) / 0.3, 0.0, 1.0)
+	var fa: float = 1.0 - clampf((age - B2.VX_A0 - B2.VX_DA * 5.0) / 0.4, 0.0, 1.0)
 	var tips: Array = it.tips
-	var flow: float = clampf(age / 0.35, 0.0, 1.0)
+	var flow: float = clampf(age / 0.7, 0.0, 1.0)
 	for i in 150:
 		var h1: float = fposmod(float(i) * 0.618034, 1.0)
 		var h2: float = fposmod(float(i) * 0.754877 + age * 1.8, 1.0)   # 沿流线的位置（随时间往里走）
@@ -808,7 +816,7 @@ func _draw_plan(ci, it: Dictionary) -> void:
 		if i % 9 == 0:
 			_cell(ci, q + Vector2(px, 0), Color(GL[4], fa * 0.6))
 	for i in tips.size():
-		if age < 0.08 * float(i) + 0.1 or age > B2.VX_A0 + B2.VX_DA * float(i) + 0.04:
+		if age < 0.15 * float(i) + 0.15 or age > B2.VX_A0 + B2.VX_DA * float(i) + 0.04:
 			continue
 		var tp: Vector2 = tips[i]
 		for j in 14:   # 打旋的水花
@@ -844,10 +852,10 @@ func _draw_fin(ci, it: Dictionary) -> void:
 	var tex: Texture2D = _tex(FIN_TEX)
 	var flip: bool = sin(ang) > 0.0   # 往右游（上半圈）朝右、下半圈朝左
 	if tex != null and rise > 0.0:
-		var sz: Vector2 = tex.get_size()
+		var sz: Vector2 = tex.get_size() * 1.5   # 11-07 用户「不够明显」：放大
 		var vis: float = sz.y * rise
 		ci.draw_set_transform(p, 0.0, Vector2(-1.0 if flip else 1.0, 1.0))
-		ci.draw_texture_rect_region(tex, Rect2(Vector2(-sz.x * 0.5, -vis), Vector2(sz.x, vis)), Rect2(0, 0, sz.x, vis), Color(lerpf(1.0, pal[4].r * 1.2, 0.35), lerpf(1.0, pal[4].g * 1.2, 0.35), lerpf(1.0, pal[4].b * 1.2, 0.35)))
+		ci.draw_texture_rect_region(tex, Rect2(Vector2(-sz.x * 0.5, -vis), Vector2(sz.x, vis)), Rect2(0, 0, sz.x / 1.5, vis / 1.5), Color(lerpf(1.0, pal[4].r * 1.2, 0.35), lerpf(1.0, pal[4].g * 1.2, 0.35), lerpf(1.0, pal[4].b * 1.2, 0.35)))
 		ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	elif rise > 0.0:
 		for y in int(40.0 * rise / px):
@@ -870,14 +878,14 @@ func _draw_tidering(ci, it: Dictionary) -> void:
 	var rr: float = lerpf(float(it.R0), 60.0, k * k)
 	var burst: float = clampf((t - t1) / 0.15, 0.0, 1.0)
 	var bt: int = int(floor(g.t * 15.0))
-	var n: int = 64
+	var n: int = 90
 	for i in n:
 		var h1: float = fposmod(float(i) * 0.618034, 1.0)
 		var h2: float = fposmod(float(i) * 0.754877, 1.0)
 		var a0: float = TAU * (float(i) + h1 * 0.8) / float(n)
 		var r2: float = rr * (0.82 + 0.36 * h2) + burst * 90.0 * h2
 		var p: Vector2 = c + Vector2(cos(a0), sin(a0) * SQ) * r2
-		var m: int = 2 + int(h1 * 4.0)
+		var m: int = 4 + int(h1 * 6.0)
 		for j in m:
 			var hj: float = fposmod(float(i * 7 + j * 3 + bt) * 0.4142, 1.0)
 			var q: Vector2 = p + Vector2((hj - 0.5) * 10.0, (fposmod(hj * 7.1, 1.0) - 0.5) * 8.0)
@@ -946,15 +954,15 @@ func _draw_lantern(ci, it: Dictionary) -> void:
 	var al: float = 1.0 - clampf((t - (t0 + life - 0.3)) / 0.3, 0.0, 1.0)
 	var tex: Texture2D = _tex(LAMP_TEX)
 	if tex != null:
-		var sz: Vector2 = tex.get_size()
+		var sz: Vector2 = tex.get_size() * 1.6   # 11-07 用户「不够明显」：放大
 		ci.draw_texture_rect(tex, Rect2(p - sz * 0.5, sz), false, Color(1, 1, 1, al))
 	else:
 		for y in range(-8, 9):
 			for x in range(-5, 6):
 				_cell(ci, p + Vector2(x, y) * g.PX, LAMPG[5] if absi(x) < 3 and absi(y) < 5 else BLK[1])
 	var age: float = t - t0
-	if age >= 0.35 and age < B2.IQ_HIT + 0.1:
-		var f: int = int(floor((age - 0.35) * 15.0))
+	if age >= 0.6 and age < B2.IQ_HIT + 0.1:
+		var f: int = int(floor((age - 0.6) * 15.0))
 		_star(ci, p, [14, 10, 7][mini(f, 2)] if f < 3 else (6 + bt % 2), [LAMPG[0], LAMPG[1], LAMPG[2], LAMPG[3], LAMPG[4], LAMPG[5], Color.WHITE])
 	for i in 3:
 		_glow(p + Vector2(float(i - 1) * 6.0, 0), LAMPG[5])
@@ -965,7 +973,7 @@ func _draw_lantern(ci, it: Dictionary) -> void:
 func _draw_rain(ci, it: Dictionary, top: bool) -> void:
 	var age: float = g.t - float(it.t0)
 	var hit: float = B2.IQ_HIT
-	if age < 0.35 or age > hit + 0.3:
+	if age < 0.6 or age > hit + 0.3:
 		return
 	var px: float = g.PX
 	var lp: Vector2 = it.L
@@ -973,13 +981,14 @@ func _draw_rain(ci, it: Dictionary, top: bool) -> void:
 	var r: float = it.r
 	var fa: float = 1.0 - clampf((age - hit) / 0.3, 0.0, 1.0)
 	var bt: int = int(floor(g.t * 15.0))
-	var span: float = age - 0.35
+	var span: float = age - 0.6
+	var sp: float = hit - 0.6 - 0.3   # 光点出发时刻散布在这段里（最后一颗在光矛前落地）
 	if top:
-		for i in 120:
+		for i in 180:
 			var h1: float = fposmod(float(i) * 0.618034, 1.0)
 			var h2: float = fposmod(float(i) * 0.754877, 1.0)
 			var h3: float = fposmod(float(i) * 0.414214, 1.0)
-			var tt: float = span - h3 * 0.35
+			var tt: float = span - h3 * sp
 			if tt < 0.0:
 				continue
 			var u: float = tt / 0.28
@@ -989,17 +998,18 @@ func _draw_rain(ci, it: Dictionary, top: bool) -> void:
 			var q: Vector2 = lp.lerp(land, u * u)
 			var big: bool = i % 6 == 0
 			_cell(ci, q, Color(Color.WHITE if big else LAMPG[5], fa))
-			_cell(ci, q + Vector2(0, -px), Color(LAMPG[4], fa * 0.7))
-			_cell(ci, q + Vector2(0, -px * 2.0), Color(LAMPG[3], fa * 0.4))
+			_cell(ci, q + Vector2(px, 0), Color(LAMPG[5], fa))
+			for tr in range(1, 5):   # 拖尾 4 格
+				_cell(ci, q + Vector2(0, -px * float(tr)), Color(LAMPG[4] if tr < 3 else LAMPG[3], fa * (0.85 - 0.18 * float(tr))))
 			if big:
 				_glow(q, LAMPG[4])
 		return
-	var rr: float = r * clampf(span / 0.2, 0.0, 1.0)   # 11-07 用户「不要明显的简约几何线条」：光圈不描边，范围只靠落地闪光
+	var rr: float = r * clampf(span / 0.4, 0.0, 1.0)   # 11-07 用户「不要明显的简约几何线条」：光圈不描边，范围只靠落地闪光
 	for i in 120:   # 光点落地后的地面闪光（落地后 0.2 秒内）
 		var h1: float = fposmod(float(i) * 0.618034, 1.0)
 		var h2: float = fposmod(float(i) * 0.754877, 1.0)
 		var h3: float = fposmod(float(i) * 0.414214, 1.0)
-		var tl: float = span - h3 * 0.35 - 0.28
+		var tl: float = span - h3 * sp - 0.28
 		if tl < 0.0 or tl > 0.2:
 			continue
 		var land: Vector2 = c + Vector2(cos(h1 * TAU), sin(h1 * TAU) * SQ) * sqrt(h2) * r
