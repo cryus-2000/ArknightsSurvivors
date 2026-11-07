@@ -2,7 +2,7 @@
 """生成 game/fonts/ui_fallback.otf（界面与美术 2026-10-01）：ui.ttf（Noto Sans CJK SC 子集）缺的字的回退字体。
 扫 game/scripts 与 game/data 里所有 ui.ttf 没有的字，从 Noto Sans SC Bold（OFL，与 ui.ttf 同族同字重）只取这些字形；
 另补全套 A–Z 圈字（手柄提示 Ⓐ Ⓑ Ⓧ Ⓨ）。settings.gd 启动时挂到 ui.ttf 的 fallbacks 上——网页版没有系统字体可回退。
-新文案用到生僻字后重跑一次：python tools/make_ui_fallback.py [Noto Sans SC Bold 路径]
+新文案用到生僻字后重跑一次（check.py release_slim 会报「ui.ttf 与 ui_fallback.otf 都没有的字」）：python tools/make_ui_fallback.py [Noto Sans SC Bold 路径]
 """
 import glob, os, sys
 from fontTools.ttLib import TTFont
@@ -17,6 +17,11 @@ src_cmap = TTFont(SRC).getBestCmap()
 chars = set()
 for f in glob.glob(os.path.join(ROOT, "game", "scripts", "**", "*.gd"), recursive=True) + glob.glob(os.path.join(ROOT, "game", "data", "**", "*.json"), recursive=True):
     chars |= {c for c in open(f, encoding="utf-8").read() if ord(c) > 0x7F and ord(c) not in have and ord(c) in src_cmap}
+# 11-08 起再并上发行包瘦身同一套运行时文本（tools/release_slim.runtime_text：全部 .gd / JSON / 场景 / 工程文件），与 check.py release_slim 的缺字检查同口径
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import release_slim
+_lits, _margin = release_slim.runtime_text()
+chars |= {c for c in "".join(_lits) + "".join(_margin) if ord(c) > 0x7F and ord(c) not in have and ord(c) in src_cmap}
 chars |= {chr(c) for c in range(0x24B6, 0x24D0) if c in src_cmap}
 text = "".join(sorted(chars))
 opt = subset.Options()

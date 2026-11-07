@@ -14,7 +14,7 @@
     python tools/release_slim.py            # 快检项：审阅图规则不误伤运行时引用的贴图、预设与规则一致、扫描到的字全在子集字体里
     python tools/release_slim.py --report   # 另列出：被排除的审阅图、未被引用但保留的 PNG、字体子集前后大小
 """
-import argparse, fnmatch, glob, io, json, os, re, sys
+import argparse, fnmatch, glob, io, json, os, re, sys, unicodedata
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GAME = os.path.join(ROOT, "game")
@@ -48,6 +48,8 @@ OPTIONAL_FONTS = ("fonts/ui_heavy.ttf", "fonts/ui_regular.ttf")
 # 汉字用「田」（缺了退「囗」）。子集里少了它，所有字的微调结果都会变（实测 serif 子集全体像素有差），所以一律保留
 AUTOHINT_CHARS = "田囗"
 FALLBACK_FONT = "ui_fallback.otf"
+# 缺字检查放过的字：Noto Sans SC 也没有、补不进 ui_fallback 的。ə 在 credits.json 的 Freesound 用户名里（原样保留署名）；📝 只在开发校验报错里
+FONT_GAP_OK = "ə📝"
 
 
 def is_review_art(name):
@@ -353,9 +355,12 @@ def check_fonts(game=GAME, report=False):
             errs.append("%s 子集丢了非汉字字符 %d 个（标点 / 数字 / 符号要全留）" % (fn, len(lost_nonhan)))
         info.append("%s %.2f → %.2f MB" % (fn, os.path.getsize(p) / 1e6, len(data) / 1e6))
         if fn == "ui.ttf":
-            nowhere = sorted(c for c in used if ord(c) not in orig and ord(c) not in fb and not c.isspace())
-            if nowhere and report:
-                print("提示：ui.ttf 与 ui_fallback.otf 都没有的字 %d 个（与子集无关，桌面版靠系统字体）：%s" % (len(nowhere), "".join(nowhere)))
+            # 11-08 Toy 实测「噤声」「羁绊」首字成方框：网页版没有系统字体，ui.ttf 与 ui_fallback.otf 都没有的字就是方框。
+            # 原来只提示，现在报错——新文案用到生僻字后重跑 python tools/make_ui_fallback.py（ui_phone.ttf 字表同 ui.ttf，一并覆盖）
+            nowhere = sorted(c for c in used if ord(c) not in orig and ord(c) not in fb and not c.isspace()
+                             and unicodedata.category(c) != "Cf" and c not in FONT_GAP_OK)
+            if nowhere:
+                errs.append("ui.ttf 与 ui_fallback.otf 都没有的字 %d 个（网页版显示方框；重跑 tools/make_ui_fallback.py）：%s" % (len(nowhere), "".join(nowhere)))
     return errs, info
 
 
