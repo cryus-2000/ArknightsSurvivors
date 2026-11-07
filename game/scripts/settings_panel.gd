@@ -110,6 +110,9 @@ var drag_moved := false      # 本次按下已经拖过 TAP_SLOP
 var drag_vel := 0.0          # 松手惯性（像素 / 秒）
 var press_pos := Vector2.ZERO
 var follow_pending := false  # 排版前就要求滚到选中行（--settingssel）
+## 设置行样式 v2（11-07 用户「设置页要和 PRTS 风格对齐吗」→ 出对照）：balance ui/settings_v2 = 1 时各行统一成
+## 「左：名称 + 英文标签 / 下一行说明」「右：固定宽控件列（选项格 / ◀ 数值 ▶ + 细条 / 描边按钮）」；0 = 现行样式
+var v2 := false
 
 
 func _ready() -> void:
@@ -128,6 +131,7 @@ func _refit() -> void:
 
 
 func open() -> void:
+	v2 = preload("res://scripts/core/balance.gd").vi("ui/settings_v2", 0) > 0
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	position = Vector2.ZERO
 	size = get_viewport_rect().size
@@ -326,6 +330,10 @@ func _tap(mp: Vector2, button: int) -> void:
 	for si in row_rects.size():
 		var r: Rect2 = row_rects[si]
 		var i: int = cur[si]
+		if r.has_point(mp) and view.has_point(mp) and v2:
+			if button == MOUSE_BUTTON_LEFT:
+				_tap_v2(i, r, mp)
+			continue
 		if r.has_point(mp) and view.has_point(mp):
 			var arrows: bool = ROWS[i].type in ["vol", "bright", "res", "uisize", "zoom"]
 			var control_x: float = r.position.x + r.size.x - 8.0 - (252.0 if _tl() else 230.0)
@@ -357,6 +365,214 @@ func _tap(mp: Vector2, button: int) -> void:
 				else:
 					_adjust(i, dir)
 	get_viewport().set_input_as_handled()
+
+
+## ── 样式 v2（ui/settings_v2）──────────────────────────────────────────
+## 控件列：行右侧固定宽 V2_W（触屏 V2_WT），高 V2_H（触屏 V2_HT），垂直居中；行矩形 rr 的右缘留 16
+const V2_W := 264.0
+const V2_WT := 304.0
+const V2_H := 34.0
+const V2_HT := 44.0
+const V2_INK := Color("131820")
+const V2_PAPER := Color("dfe3e7")   # 选中格：同左栏白
+const V2_CHIP := Color("1b252e")
+
+
+func _v2_col(rr: Rect2, touch: bool) -> Rect2:
+	var w: float = V2_WT if touch else V2_W
+	var h: float = V2_HT if touch else V2_H
+	return Rect2(rr.end.x - 16.0 - w, rr.position.y + (rr.size.y - h) * 0.5, w, h)
+
+
+## 各类型的选项格：[[显示文字, 值], …]，当前值；不是选项格的类型返回 {}
+func _v2_chips(row: Dictionary) -> Dictionary:
+	match row.type:
+		"bool":
+			return {"opts": [[str(row.get("off", "关闭")), false], [str(row.get("on", "开启")), true]], "cur": bool(Cfg.get(row.key))}
+		"quality":
+			var q: Array = []
+			for m in Cfg.QUALITY_MODES:
+				q.append(["推荐" if m == "auto" else Cfg.QUALITY_NAME[m], m])
+			return {"opts": q, "cur": Cfg.quality_mode}
+		"fps":
+			var f: Array = []
+			for fv in Cfg.MAX_FPS_OPTS:
+				f.append(["自动" if fv == 0 else str(fv), fv])
+			return {"opts": f, "cur": Cfg.max_fps}
+		"onboard":
+			return {"opts": ONBOARD_OPTS.map(func(o): return [o[1], o[0]]), "cur": Cfg.onboard}
+	return {}
+
+
+## 行的说明 / 状态小字（v2 一律写在名称下一行，不再挤在控件左边）：[文字, 是否强调]
+func _v2_sub(row: Dictionary) -> Array:
+	match row.type:
+		"quality":
+			if Cfg.quality_mode == "auto":
+				return ["按设备推荐：%s" % Cfg.QUALITY_NAME.get(Cfg.quality, "高"), true]
+		"fps":
+			if Cfg.max_fps == 0 and Cfg.fps_lock30:
+				return ["已按本机锁 30", true]
+		"onboard":
+			if not Cfg.onboard_done:
+				return ["第一局必须走完", true]
+			elif Cfg.onboard == "":
+				return ["下局开局时询问", true]
+			elif Cfg.onboard != "off" and not Cfg.onboard_seen.has("drill"):
+				return ["下局重看演示局", true]
+		"uisize":
+			if Cfg.ui_size_pct == 100:
+				return ["默认", false]
+		"zoom":
+			if Cfg.cam_zoom_pct < 0:
+				return ["默认", false]
+		"res":
+			if Cfg.fullscreen:
+				return ["全屏时按屏幕分辨率", false]
+			if pending_res != Cfg.res_index:
+				return ["点数值或按 Enter 应用", true]
+		"touchpad":
+			return ["已自定义" if not Cfg.touch_layout.is_empty() else "默认布局", not Cfg.touch_layout.is_empty()]
+		"perf":
+			var pr: Array = preload("res://scripts/core/perf_report.gd").load_all()
+			if pr.is_empty():
+				return ["暂无记录", false]
+			return ["最近一局 P95 %.1f 毫秒 · 最低 %s 帧" % [float(pr[0].get("p95", 0)), ("%.0f" % float(pr[0].get("min1s", 0))) if float(pr[0].get("min1s", 0)) > 0.0 else "—"], true]
+		"runs":
+			return [RUNS_HINT, false]
+		"cloud_pull", "cloud_push":
+			var can: bool = Cloud.can_push() if row.type == "cloud_push" else Cloud.can_manual()
+			if confirm_key == row.type and st < confirm_until:
+				return ["再点一次确认", true]
+			return [CLOUD_HINT[row.type] if can else ("请更新游戏" if Cloud.st == Cloud.St.NEWER else "登录后可用"), false]
+	if row.has("note"):
+		return [str(row.note), false]
+	return ["", false]
+
+
+func _draw_row_v2(ci: CanvasItem, rr: Rect2, si: int, touch: bool) -> void:
+	var i: int = cur[si]
+	var row: Dictionary = ROWS[i]
+	var on := si == sel
+	var fs_cn := 21 if touch else 17
+	var fs_c := 19 if touch else 15    # 控件里的字
+	ci.draw_line(Vector2(rr.position.x + 18, rr.end.y - 1), Vector2(rr.end.x - 10, rr.end.y - 1), Color("303a44"), 1.0)
+	if on:
+		ci.draw_rect(rr, Color(0.05, 0.2, 0.24, 0.7))
+		ci.draw_rect(Rect2(rr.position, Vector2(3, rr.size.y)), UI.CYAN)
+	# 左：名称 + 英文标签同一行，说明在下一行
+	var sub: Array = _v2_sub(row)
+	var has_sub: bool = str(sub[0]) != ""
+	var ny: float = rr.position.y + rr.size.y * 0.5 + (fs_cn * 0.36) - (10.0 if has_sub else 0.0)
+	UI.text(ci, font, Vector2(rr.position.x + 18, ny), row.cn, fs_cn, UI.TEXT if on else Color("c9d0d6"))
+	var nw: float = font.get_string_size(row.cn, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fs_cn)).x
+	UI.en(ci, font, Vector2(rr.position.x + 18 + nw + 10, ny - 1), row.en, 9, UI.CYAN_DIM, 1.0)
+	var col := _v2_col(rr, touch)
+	if has_sub:
+		UI.text(ci, font, Vector2(rr.position.x + 18, ny + (20.0 if touch else 17.0)), str(sub[0]), 13 if touch else 11, UI.CYAN_DIM if bool(sub[1]) else UI.SUB, HORIZONTAL_ALIGNMENT_LEFT, col.position.x - rr.position.x - 30.0)
+	var by: float = col.position.y + col.size.y * 0.5 + fs_c * 0.36
+	var ch := _v2_chips(row)
+	if not ch.is_empty():
+		var n: int = (ch.opts as Array).size()
+		var gap := 4.0
+		var cw: float = (col.size.x - gap * (n - 1)) / n
+		for k in n:
+			var cr := Rect2(col.position.x + k * (cw + gap), col.position.y, cw, col.size.y)
+			var act: bool = ch.opts[k][1] == ch.cur
+			ci.draw_rect(cr, V2_PAPER if act else V2_CHIP)
+			if act:
+				ci.draw_rect(Rect2(cr.position.x, cr.end.y - 3.0, cr.size.x, 3.0), UI.CYAN)
+			UI.text(ci, font, Vector2(cr.position.x, by), str(ch.opts[k][0]), fs_c, V2_INK if act else (UI.TEXT if on else UI.SUB), HORIZONTAL_ALIGNMENT_CENTER, cr.size.x)
+		return
+	match row.type:
+		"vol", "uisize", "zoom", "bright", "res":
+			# ◀ 数值 ▶：两头方格 + 中间数值，下沿细条表示位置（分辨率没有细条）
+			var aw: float = col.size.y
+			var la := Rect2(col.position, Vector2(aw, col.size.y))
+			var ra := Rect2(col.end.x - aw, col.position.y, aw, col.size.y)
+			var mid := Rect2(la.end.x + 4.0, col.position.y, col.size.x - aw * 2.0 - 8.0, col.size.y)
+			for a in [la, ra]:
+				ci.draw_rect(a, V2_CHIP)
+				ci.draw_rect(a, UI.CYAN if on else Color("3b4652"), false, 1.0)
+			UI.text(ci, font, Vector2(la.position.x, by), "◀", fs_c - 2, UI.CYAN if on else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, aw)
+			UI.text(ci, font, Vector2(ra.position.x, by), "▶", fs_c - 2, UI.CYAN if on else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, aw)
+			ci.draw_rect(mid, Color(0.02, 0.03, 0.04, 0.9))
+			var label := ""
+			var fill := -1.0
+			var vcol: Color = UI.TEXT
+			match row.type:
+				"vol":
+					var v: float = Cfg.get(row.key)
+					label = "%d%%" % int(round(v * 100.0))
+					fill = v
+				"uisize", "zoom":
+					var pv: int = Cfg.ui_size_pct if row.type == "uisize" else int(round(Cfg.cam_zoom() * 100.0))
+					var lo: float = Cfg.UI_PCT_MIN if row.type == "uisize" else Cfg.ZOOM_PCT_MIN
+					var hi: float = Cfg.UI_PCT_MAX if row.type == "uisize" else Cfg.ZOOM_PCT_MAX
+					label = "%d%%" % pv
+					fill = clampf((pv - lo) / (hi - lo), 0, 1)
+				"bright":
+					label = "%d%%" % int(round(Cfg.brightness * 100.0))
+					fill = clampf((Cfg.brightness - 0.8) / 0.6, 0, 1)
+				"res":
+					var pi: int = clampi(pending_res, 0, Cfg.RESOLUTIONS.size() - 1)
+					var sz: Vector2i = Cfg.RESOLUTIONS[pi]
+					label = "%d × %d" % [sz.x, sz.y]
+					vcol = UI.SUB if Cfg.fullscreen else (UI.GOLD if pi != Cfg.res_index else UI.TEXT)
+			UI.text(ci, font, Vector2(mid.position.x, by), label, fs_c + 1, vcol, HORIZONTAL_ALIGNMENT_CENTER, mid.size.x)
+			if fill >= 0.0:
+				ci.draw_rect(Rect2(mid.position.x, mid.end.y - 3.0, mid.size.x, 3.0), Color("303a44"))
+				ci.draw_rect(Rect2(mid.position.x, mid.end.y - 3.0, mid.size.x * fill, 3.0), UI.CYAN)
+		"touchpad", "perf", "runs", "cloud_pull", "cloud_push":
+			var lbl := {"touchpad": "调整", "perf": "查看", "runs": "打开记录文件夹"}.get(row.type, "")
+			var conf := false
+			var can := true
+			if row.type in ["cloud_pull", "cloud_push"]:
+				can = Cloud.can_push() if row.type == "cloud_push" else Cloud.can_manual()
+				conf = confirm_key == row.type and st < confirm_until
+				lbl = CLOUD_BTN[row.type][1 if conf else 0]
+			var acc: Color = UI.GOLD if conf else UI.CYAN
+			ci.draw_rect(col, Color(acc, 0.16) if on else Color(0.04, 0.09, 0.12, 0.85))
+			ci.draw_rect(col, acc if (on or conf) else Color("3b4652"), false, 1.0)
+			UI.text(ci, font, Vector2(col.position.x, by), str(lbl), fs_c, (acc if on or conf else UI.TEXT) if can else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, col.size.x)
+		"cloud":
+			var stt: String = Cloud.msg if Cloud.msg != "" else Cloud.status_text()
+			var good: bool = Cloud.msg == "" and stt == "已同步"
+			UI.text(ci, font, Vector2(col.end.x - 380.0, by), stt, fs_c, UI.CYAN if good else (UI.GOLD if Cloud.msg != "" else UI.TEXT), HORIZONTAL_ALIGNMENT_RIGHT, 380)
+
+
+## v2 的点按：选项格点哪格选哪个；◀ 数值 ▶ 以控件列中点分左右（分辨率点中间 = 应用）；按钮 / 其余 = 原来的调整
+func _tap_v2(i: int, r: Rect2, mp: Vector2) -> void:
+	var row: Dictionary = ROWS[i]
+	var rr := Rect2(r.position, Vector2(r.size.x - 8.0, r.size.y))
+	var col := _v2_col(rr, _tl())
+	var ch := _v2_chips(row)
+	if not ch.is_empty() and col.grow_individual(0, 6, 0, 6).has_point(mp):
+		var n: int = (ch.opts as Array).size()
+		var k := clampi(int((mp.x - col.position.x) / (col.size.x / n)), 0, n - 1)
+		var val = ch.opts[k][1]
+		if val == ch.cur:
+			if row.type == "onboard":
+				_set_onboard(val)
+			return
+		match row.type:
+			"bool":
+				_adjust(i, 1)
+			"quality":
+				Cfg.set_quality_mode(val)
+				Cfg.apply()
+				Sfx.play("ui_move")
+			"fps":
+				Cfg.max_fps = val
+				Cfg.apply()
+				Sfx.play("ui_move")
+			"onboard":
+				_set_onboard(val)
+		return
+	if row.type == "res" and col.has_point(mp) and absf(mp.x - col.get_center().x) < col.size.x * 0.5 - col.size.y:
+		_apply_res()
+		return
+	_adjust(i, -1 if (row.type in ["vol", "bright", "res", "uisize", "zoom"] and mp.x < col.get_center().x) else 1)
 
 
 ## 新手引导三档（docs/219）：[存档值, 格内文字]
@@ -551,6 +767,9 @@ func _draw_list() -> void:
 
 ## 画一行选项：rr 是 ci 坐标里的行矩形，ty0 是行内文字基线
 func _draw_row(ci: CanvasItem, rr: Rect2, si: int, touch: bool, ty0: float) -> void:
+	if v2:
+		_draw_row_v2(ci, rr, si, touch)
+		return
 	var i: int = cur[si]
 	var row: Dictionary = ROWS[i]
 	var fs_cn := 21 if touch else 17   # 选项名
