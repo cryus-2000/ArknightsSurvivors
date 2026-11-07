@@ -548,6 +548,7 @@
        "ring": false,
        "src": "大剑",
        "cond": "!skill_active:2",
+       "dir": "back",
        "r": "$reach",
        "half": "$half",
        "basis": "attack",
@@ -556,7 +557,6 @@
        "tags": [
         "follow_up"
        ],
-       "face": true,
        "fx": []
       },
       {
@@ -1563,7 +1563,7 @@
    "combo2": {
     "trig": "passive",
     "do": [],
-    "_doc": "狂舞：连斩第 2 段写在 attack.combo[0]（cond node:combo2）"
+    "_doc": "狂舞：连斩第 2 段写在 attack.combo[0]（cond node:combo2）；11-07 起第二刀 dir: back 打身后（卡面「反向回挥」），S3 期间整圈不变"
    },
    "combo3": {
     "trig": "passive",
