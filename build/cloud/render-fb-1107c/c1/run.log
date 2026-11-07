@@ -1,0 +1,10 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4827 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+title desktop 1 ['shot_title.png']  ["SCRIPT ERROR: Out of bounds get index '9' (on base: 'Array')", "SCRIPT ERROR: Out of bounds get index '9' (on base: 'Array')", "SCRIPT ERROR: Out of bounds get index '9' (on base: 'Array')"]
+title phone 1 ['shot_title.png']  ["SCRIPT ERROR: Out of bounds get index '9' (on base: 'Array')", "SCRIPT ERROR: Out of bounds get index '9' (on base: 'Array')", "SCRIPT ERROR: Out of bounds get index '9' (on base: 'Array')"]
+win desktop 5 ['shot_stats_detail0.png', 'shot_stats_detail1.png', 'shot_stats_motion.png', 'shot_stats_overview.png']  ["SCRIPT ERROR: Out of bounds get index '9' (on base: 'Array')"]
+win phone 9 ['shot_choice.png', 'shot_stats_detail0.png', 'shot_stats_detail1.png', 'shot_stats_motion.png']  ["SCRIPT ERROR: Out of bounds get index '9' (on base: 'Array')"]
+fail desktop 7 ['shot_choice.png', 'shot_stats_detail0.png', 'shot_stats_detail1.png', 'shot_stats_motion.png']  ["SCRIPT ERROR: Out of bounds get index '9' (on base: 'Array')"]
+fail phone 8 ['shot_stats_detail0.png', 'shot_stats_detail1.png', 'shot_stats_motion.png', 'shot_stats_overview.png']  ["SCRIPT ERROR: Out of bounds get index '9' (on base: 'Array')"]
+media：37 个文件，3.2M
