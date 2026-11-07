@@ -1,0 +1,16 @@
+19787	a/levelup_desktop/log.txt
+521532	a/levelup_desktop/shot_motion_levelup_full_1217.png
+17438	a/levelup_phone/log.txt
+506558	a/levelup_phone/shot_motion_levelup_full_1217.png
+370	a/oppick_desktop/log.txt
+460302	a/oppick_desktop/shot_oppick.png
+370	a/oppick_phone/log.txt
+877953	a/oppick_phone/shot_oppick.png
+20016	a/recruit_desktop/log.txt
+557135	a/recruit_desktop/shot_motion_recruit_full_1217.png
+17437	a/recruit_phone/log.txt
+560428	a/recruit_phone/shot_motion_recruit_full_1217.png
+370	a/title_desktop/log.txt
+308097	a/title_desktop/shot_title.png
+615	a/title_phone/log.txt
+536923	a/title_phone/shot_title.png

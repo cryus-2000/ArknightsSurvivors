@@ -1,0 +1,5 @@
+card_desc_fit rc=0
+touch_layout rc=0
+ui_smoke rc=0
+title_menu rc=0
+esc_layers rc=0

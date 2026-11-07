@@ -1,0 +1,6 @@
+633	chk_card_desc_fit.txt
+635	chk_esc_layers.txt
+83	chk_summary.txt
+634	chk_title_menu.txt
+703	chk_touch_layout.txt
+691	chk_ui_smoke.txt
