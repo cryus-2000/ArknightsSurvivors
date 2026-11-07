@@ -1,0 +1,9 @@
+1783157	real_br.png
+1341162	real_br_gladiia_倒钩_0.png
+1341162	real_br_gladiia_怒海_0.png
+1294384	real_br_gladiia_锚定_0.png
+1341162	real_br_gladiia_锚定_1.png
+1293955	real_br_lumen_净化_0.png
+1293976	real_br_lumen_净化_1.png
+1293778	real_br_texas_技力_0.png
+1294106	real_br_texas_技力_1.png
