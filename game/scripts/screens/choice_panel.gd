@@ -49,6 +49,7 @@ const EV_CX := 600.0
 const EV_DY0 := 110.0
 const EV_COL_TOP := 196.0
 ## 手机界面逻辑尺寸约 1071×495（ui_k 1.265），设计框缩到 0.75–0.87：说明 17 起（× 1.18 × k ≈ 15 界面像素，docs/37 手机正文下限）
+const EV_HUD_TOP := 56.0   # 触屏设计框顶边至少让出顶栏这一条（界面坐标）
 const EV_DESC_TOUCH := [17, 16, 15]
 const EV_SUB_TOUCH := [17, 16, 15]
 
@@ -386,7 +387,8 @@ func ev_frame() -> Dictionary:
 	if not lay().touch:
 		return {"k": 1.0, "o": Vector2.ZERO, "cx": vs.x / 2.0}
 	var ins: Array = Cfg.safe_insets()
-	var sr := Rect2(float(ins[0]), float(ins[1]), vs.x - float(ins[0]) - float(ins[2]), vs.y - float(ins[1]) - float(ins[3]))
+	var top: float = maxf(float(ins[1]), EV_HUD_TOP)   # 顶栏（源石锭 / 藏品 / 暂停）不压标题
+	var sr := Rect2(float(ins[0]), top, vs.x - float(ins[0]) - float(ins[2]), vs.y - top - float(ins[3]))
 	var k: float = minf(1.0, minf(sr.size.x / EV_DW, sr.size.y / EV_DH))
 	var o: Vector2 = (sr.get_center() - k * Vector2(EV_DW / 2.0, EV_DY0 + EV_DH / 2.0)).round()   # 设计框 x 0..EV_DW（中线 EV_CX 偏左 12：右侧选项列宽 596 + 12）
 	return {"k": k, "o": o, "cx": EV_CX}
@@ -603,7 +605,8 @@ func _event_caption(art: Dictionary, p0: Vector2, cx: float) -> void:
 	UI.en(g.panel_fg, g.font, Vector2(cx + 20, col_top - 54.0 + tt), "EVENT  ·  CHOOSE ONE", 12, Color(0.6, 0.59, 0.56), 4.0)
 	g.panel_fg.draw_string(serif, Vector2(cx + 20, col_top - 18.0 + tt), "选择一项", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(0.925, 0.91, 0.882))
 	var hint := "←→ 选择 · Ⓐ 确认" if Pad.using else ("点击选项" if Pad.touch else "点击选项，或按 1–%d" % g.choices.size())
-	UI.text(g.panel_fg, g.font, Vector2(cx + 20, col_top + minf(ev_bars_h, g.panel_scroll.size.y) + 6), hint, int(L.ev_hint_fs), Color(0.55, 0.54, 0.52))
+	var hy: float = col_top + minf(ev_bars_h, g.panel_scroll.size.y) + (20.0 if touch else 6.0)   # 触屏：基线落在选项列下方，不压最后一条
+	UI.text(g.panel_fg, g.font, Vector2(cx + 20, hy), hint, int(L.ev_hint_fs), Color(0.55, 0.54, 0.52))
 
 
 ## 当前事件的插画（没有对应图返回 null，退回墨色底 + 节点图标）

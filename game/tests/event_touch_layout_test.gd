@@ -44,7 +44,8 @@ func _scroll_rect() -> Rect2:
 func _check_layout(tag: String, ins: Array) -> void:
 	var cp = game.panel_ui
 	var vs: Vector2 = game.panel.size
-	var safe := Rect2(ins[0], ins[1], vs.x - ins[0] - ins[2], vs.y - ins[1] - ins[3])
+	var t0: float = maxf(ins[1], cp.EV_HUD_TOP)   # 顶栏让出
+	var safe := Rect2(ins[0], t0, vs.x - ins[0] - ins[2], vs.y - t0 - ins[3])
 	var F: Dictionary = cp.ev_frame()
 	var k: float = F.k
 	check(Cfg.ui_form() > 0, tag + "：触屏版式（ui_form %d）" % Cfg.ui_form())
