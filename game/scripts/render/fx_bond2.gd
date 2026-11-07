@@ -51,6 +51,33 @@ static func _snap(v: Vector2) -> Vector2:
 	return (v / 2.0).round() * 2.0
 
 
+## 借干员技能帧条（11-07 用户「当作干员的技能来做」）：k = fx_pxplane 的帧条键（带前缀，如 tx_ / lp_ / ex_ / bd_）；
+## ly：up 立起层（按 gp.y 排进单位层）/ gd 贴地层 / bk 立起层后半（画在圈心单位后面）；hold > 0 = 循环帧条循环播 hold 秒
+func _pxs(k: String, gp: Vector2, t0: float, ly := "up", flip := false, hold := 0.0) -> void:
+	var m: Dictionary = _px()._meta(k)
+	if m.is_empty():
+		return
+	_push({"k": "pxs", "s": k, "gp": _snap(gp), "t0": t0, "ly": ly, "flip": flip, "hold": hold, "life": (hold if hold > 0.0 else float(m.n) / 15.0) + 0.07})
+
+
+## 方向件：键里 %d 换成最近的预生成平面角，另一半水平翻转
+func _pxd(fmt: String, gp: Vector2, ang: float, t0: float, ly := "up") -> void:
+	var dk: Array = _px().pick_dir(ang)
+	_pxs(fmt % int(dk[0]), gp, t0, ly, bool(dk[1]))
+
+
+## 立起 + 贴地一对（同原点）
+func _pair(k: String, gp: Vector2, t0: float, hold := 0.0) -> void:
+	_pxs(k + "_up", gp, t0, "up", false, hold)
+	_pxs(k + "_gd", gp, t0, "gd", false, hold)
+
+
+func _draw_pxs(ci, it: Dictionary) -> void:
+	var P = _px()
+	var fi: int = P.frame_of(float(it.t0))
+	P._draw_strip(ci, str(it.s), fi, it.gp, bool(it.flip), float(it.hold) <= 0.0)
+
+
 func _push(it: Dictionary) -> void:
 	if items.size() >= ITEM_MAX:
 		items.pop_front()
@@ -88,41 +115,56 @@ func cast(a: Dictionary) -> void:
 		cast5(a)
 		return
 	match str(a.id):
-		"b_rival":   # 十字斩（11-07）：X 形预兆细线 → 两刀各一帧劈出（亮两拍后冷成地上的暗斩痕）；裂缝 / 烟尘在 run/bond2_pf.gd
-			var L: float = a.L
-			_push({"k": "xcut", "c": c, "d": a.d1, "L": L, "w": float(a.hw), "pal": TX, "t0": t + B2.RV_T1, "life": 2.2})
-			_push({"k": "xcut", "c": c, "d": a.d2, "L": L, "w": float(a.hw), "pal": LP, "t0": t + B2.RV_T2, "life": 2.2})
-			_push({"k": "clash", "c": c + Vector2(0, -20), "t0": t + B2.RV_HIT, "life": 0.2})
-			for q in 2:   # Noita 式颗粒：每刀沿斩痕 4 处各迸一把火星（会弹地、落地暗掉），交点一把余烬
-				var d: Vector2 = a.d1 if q == 0 else a.d2
-				var pal: Array = TX if q == 0 else LP
-				var o = a.who.texas if q == 0 else a.who.lappland
-				for j in 4:
-					var pj: Vector2 = c + d * (float(j) / 3.0 - 0.5) * L * 0.8
-					due.append([t + (B2.RV_T1 if q == 0 else B2.RV_T2) + 0.02 * float(j), "grains", {"o": o, "p": pj + Vector2(0, LIFT * 0.5), "n": 7, "c0": pal[5], "c1": pal[3], "mat": "streak"}])
+		"b_rival":   # 合击（11-07 用户「当作干员的技能来做」）：德克萨斯剑雨落进怪群 → 两人各挥一刀（德克萨斯居合弧 / 拉普兰德双刃弧）→ 巨剑砸在交点 + 剑阵 + 狼嚎冲击；裂地 / 烟尘在 run/bond2_pf.gd
+			var tp: Vector2 = a.who.texas.pos if a.who.texas != null else c - Vector2(a.d1) * 200.0
+			var lpp: Vector2 = a.who.lappland.pos if a.who.lappland != null else c - Vector2(a.d2) * 200.0
+			for j in 7:   # 德克萨斯剑雨（S1 落剑）：0–RV_T1 之间一柄柄插进落点周围
+				var hj: float = fposmod(sin(float(j) * 12.9898 + t) * 43758.5453, 1.0)
+				var aj: float = TAU * float(j) / 7.0 + hj
+				var pj: Vector2 = c + Vector2(cos(aj), sin(aj) * SQ) * (60.0 + 90.0 * hj)
+				_pxs("tx_sw_s22_e2_l%d_up" % (j % 2), pj, t + 0.08 * float(j), "up", j % 3 == 0)
+				_pxs("tx_sw_s22_e2_gd", pj, t + 0.08 * float(j), "gd")
+			_pxd("tx_slash_r70_e2_up_d%d", c + (tp - c).normalized() * 50.0, (c - tp).angle(), t + B2.RV_T1)
+			_pxd("tx_slash_r70_e2_gd_d%d", c + (tp - c).normalized() * 50.0, (c - tp).angle(), t + B2.RV_T1, "gd")
+			_pxd("lp_atk_r68_e2_up_d%d", c + (lpp - c).normalized() * 50.0, (c - lpp).angle(), t + B2.RV_T2)
+			_pxd("lp_atk_r68_gd_d%d", c + (lpp - c).normalized() * 50.0, (c - lpp).angle(), t + B2.RV_T2, "gd")
+			_pxs("lp_dance_r84_up", c, t + B2.RV_T2)
+			_pxs("tx_sw_s40_e2_l0_up", c, t + B2.RV_HIT - 0.1)   # 剑阵中心巨剑：0.1 秒落下插在交点
+			_pxs("tx_sw_s40_e2_gd", c, t + B2.RV_HIT - 0.1, "gd")
+			_pxs("tx_array_r65_gd", c, t + B2.RV_HIT, "gd")
+			_pxs("lp_bark_r90_gd", c, t + B2.RV_HIT + 0.07, "gd")
 			due.append([t + B2.RV_HIT, "grains", {"o": a.who.texas, "p": c + Vector2(0, LIFT * 0.5), "n": 14, "c0": Color(1.0, 0.9, 0.7), "c1": TX[3], "mat": "ember"}])
 			due.append([t + B2.RV_HIT + 0.02, "grains", {"o": a.who.lappland, "p": c + Vector2(0, LIFT * 0.5), "n": 10, "c0": LP[5], "c1": LP[3], "mat": "ember"}])
-		"b_penguin":   # 碾过去：车从画面外横向冲进来、穿过最密处再开出去（车上不画人）；能天使原地齐射的曳光由 shots() 逐发加
+		"b_penguin":   # 碾过去：车从画面外横向冲进来、穿过最密处再开出去（车上不画人）；炸弹落地 = pixelfx 爆炸（bd_bomb_v*）；能天使齐射由 shots() 逐发加
 			_push({"k": "car", "c": c, "dl": a.dl, "run": float(a.run), "out": float(a.out), "t0": t, "T0": B2.PG_T0, "T1": B2.PG_T1, "life": B2.PG_T1 + 0.3, "tx": a.who.texas})
 			_push({"k": "skid", "c": c, "dl": a.dl, "run": float(a.run), "out": float(a.out), "t0": t, "T0": B2.PG_T0, "T1": B2.PG_T1, "life": B2.PG_T1 + 1.6})
 			var S: Vector2 = c - Vector2(a.dl) * float(a.run)
 			var LL: float = float(a.run) + float(a.out)
-			for bm in a.bombs:   # 炸弹：从车顶抛出、0.3 秒落到车道两侧
+			var bi: int = 0
+			for bm in a.bombs:   # 炸弹：从车顶抛出、PG_BOMB 秒落到车道两侧 → 炸开
 				var tb: float = t + B2.PG_T0 + float(bm[0]) * (B2.PG_T1 - B2.PG_T0)
 				var kb: float = float(bm[0])
 				var fk: float = kb * kb * 1.6 if kb < 0.25 else 0.1 + (kb - 0.25) * 1.2
 				_push({"k": "bomb", "a": S + Vector2(a.dl) * LL * fk + Vector2(0, -90), "b": bm[2], "t0": tb, "dur": B2.PG_BOMB, "life": B2.PG_BOMB + 0.05})
-				due.append([tb + B2.PG_BOMB, "grains", {"o": a.who.texas, "p": bm[2] + Vector2(0, LIFT * 0.5), "n": 12, "c0": Color(1.0, 0.85, 0.5), "c1": EX[3], "mat": "ember"}])
-				due.append([tb + B2.PG_BOMB, "grains", {"o": a.who.texas, "p": bm[2] + Vector2(0, LIFT * 0.5), "n": 6, "c0": Color(0.3, 0.3, 0.32), "c1": Color(0.16, 0.16, 0.18), "mat": "rock"}])
-		"b_inq":   # 合击（11-07 改）：艾丽妮的提灯飞到落点上空悬停 → 灯罩打开洒下暖金光雨（光圈描边 + 紫印）→ 审判光矛从灯下劈落
+				_pxs("bd_bomb_v%d" % (bi % 3), bm[2], tb + B2.PG_BOMB, "up", bi % 2 == 1)
+				due.append([tb + B2.PG_BOMB, "light", {"o": a.who.texas, "p": bm[2], "r": 150.0, "i": 0.8, "c": Color(1.0, 0.6, 0.3), "life": 0.15}])
+				bi += 1
+		"b_inq":   # 合击：艾丽妮的提灯飞到落点上空 → 灯罩打开 = 流明灯火星芒 + 一道道水光柱落进光圈 → 艾丽妮 S3 审判（光矛劈下 + 一圈光柱）+ 星爆
 			var ir = a.who.irene
 			var from: Vector2 = (ir.pos if ir != null else c) + Vector2(0, -40)
 			_push({"k": "lantern", "a": from, "L": a.O, "c": c, "t0": t, "t1": t + 0.5, "life": B2.IQ_HIT + 0.55})
-			_push({"k": "rain", "L": a.O, "c": c, "r": float(a.r), "t0": t, "life": B2.IQ_HIT + 0.3})
-			_push({"k": "lance", "p": c, "top": c.y - float(a.O.y), "t0": t + B2.IQ_HIT - 0.2, "t1": t + B2.IQ_HIT, "life": 0.6})
+			_pxs("lm_burst_up", Vector2(a.O) + Vector2(0, 80), t + 0.6)
+			var r: float = float(a.r)
+			for j in 8:   # 流明骤雨：灯下一道道水光柱砸进光圈
+				var hj: float = fposmod(sin(float(j) * 7.233 + t) * 43758.5453, 1.0)
+				var aj: float = TAU * float(j) / 8.0 + hj * 0.7
+				var pj: Vector2 = c + Vector2(cos(aj), sin(aj) * SQ) * r * (0.3 + 0.55 * hj)
+				_pxs("lm_downpour_e2_up", pj, t + 0.65 + 0.08 * float(j))
+			_pxs("lm_burst_gd", c, t + 0.7, "gd")
+			_pair("ir_s3_r106", c, t + B2.IQ_HIT - 3.0 / 15.0)   # 前三帧是劈下来的光矛，第 4 帧（= IQ_HIT）一圈光柱
+			_pxs("ir_nova_up", c, t + B2.IQ_HIT)
 			due.append([t + 0.6, "light", {"o": ir, "p": a.O, "r": 160.0, "i": 0.7, "c": LAMPG[4], "life": 0.15}])
 			due.append([t + B2.IQ_HIT, "grains", {"o": ir, "p": c + Vector2(0, LIFT * 0.5), "n": 16, "c0": IR[5], "c1": IR[3], "mat": "streak"}])
-			due.append([t + B2.IQ_HIT + 0.05, "grains", {"o": ir, "p": c + Vector2(0, LIFT * 0.5), "n": 12, "c0": LAMPG[5], "c1": LAMPG[3], "mat": "rise"}])
 
 
 ## 能天使原地齐射（bond2._penguin 每 0.09 秒调一次）：从她枪口到每个目标一道曳光
@@ -130,6 +172,9 @@ func shots(a: Dictionary, from: Vector2, targets: Array) -> void:
 	var mz: Vector2 = from + Vector2(0, -30)
 	for p in targets:
 		_push({"k": "tracer", "a": mz, "b": p, "t0": g.t, "life": 0.3})
+		_pxd("ex_hit_s3_e2_d%d", p, (p - from).angle(), g.t + 0.05)
+	if not targets.is_empty():
+		_pxd("ex_mz_s3_e2_v%d" % (int(g.t * 15.0) % 2) + "_d%d", from, (Vector2(targets[0]) - from).angle(), g.t)
 	if not targets.is_empty() and a.who.exusiai != null:
 		due.append([g.t + 0.067, "light", {"o": a.who.exusiai, "p": targets[0], "r": 90.0, "i": 0.4, "c": EX[4]}])
 
@@ -182,6 +227,9 @@ static func sort_items(game) -> Array:
 		var k: String = str(it.k)
 		var sk: float
 		match k:
+			"pxs":
+				var ly: String = str(it.ly)
+				sk = GROUND_KEY if ly == "gd" else float((it.gp as Vector2).y) + (-60.0 if ly == "bk" else 1.0)
 			"skid", "chain", "trench", "plan", "tidering":
 				sk = GROUND_KEY
 			"car":
@@ -220,6 +268,8 @@ static func draw_sorted(game, ci, item: Dictionary) -> void:
 		r._draw_xcut(ci, it, true)
 		return
 	match str(it.k):
+		"pxs":
+			r._draw_pxs(ci, it)
 		"clash":
 			r._draw_clash(ci, it)
 		"xcut":
@@ -592,38 +642,70 @@ func cast5(a: Dictionary) -> void:
 	var t: float = g.t
 	var c: Vector2 = a.c
 	match str(a.id):
-		"b_lesson":
-			_push({"k": "chain", "A": a.A, "F": a.F, "t0": t, "life": B2.LS_S1 + 0.6})
-			_push({"k": "anchor", "a": Vector2(a.A) + Vector2(0, -30), "b": a.F, "t0": t + 0.05, "t1": t + B2.LS_LAND, "h": 220.0, "pal": ULP, "life": B2.LS_S1 + 0.55, "sc": 1.4})
-			_push({"k": "surge", "A": a.A, "F": a.F, "t0": t + B2.LS_S0, "t1": t + B2.LS_S1, "life": B2.LS_S1 - B2.LS_S0 + 0.35})
-			due.append([t + B2.LS_LAND, "grains", {"o": a.who.ulpianus, "p": Vector2(a.F) + Vector2(0, LIFT * 0.5), "n": 10, "c0": Color(0.42, 0.44, 0.5), "c1": Color(0.2, 0.22, 0.26), "mat": "rock"}])
-			for j in 5:
-				due.append([t + lerpf(B2.LS_S0, B2.LS_S1, float(j) / 4.0), "grains", {"o": a.who.skadi, "p": Vector2(a.A).lerp(a.F, float(j) / 4.0) + Vector2(0, LIFT * 0.5), "n": 8, "c0": WATER, "c1": SK[4], "mat": "drop"}])
-		"b_tide":
-			_push({"k": "trench", "c": c, "d": a.d, "L": float(a.L), "t0": t, "life": B2.TD_S1 + 0.6})
-			_push({"k": "tslash", "c": c, "d": a.d, "L": float(a.L), "t0": t + B2.TD_S0, "t1": t + B2.TD_S1, "life": B2.TD_S1 - B2.TD_S0 + 0.3})
-			for j in 5:
-				due.append([t + lerpf(B2.TD_S0, B2.TD_S1, float(j) / 4.0), "grains", {"o": a.who.specter_unchained, "p": c + Vector2(a.d) * (float(j) / 4.0 - 0.5) * float(a.L) + Vector2(0, LIFT * 0.5), "n": 7, "c0": SPP[5], "c1": SPA, "mat": "streak"}])
-		"b_vortex":
-			_push({"k": "plan", "c": c, "R": float(a.R), "tips": a.tips, "t0": t, "life": B2.VX_A0 + B2.VX_DA * 5.0 + 0.5})
+		"b_lesson":   # 乌尔比安掷锚（锚 + 锚链）→ 锚砸地：他 S3 的浪冠 + 震环 → 斯卡蒂 S2 浪斩沿锚链连砍三段 → 落点一记怒涛
+			var A: Vector2 = a.A
+			var F: Vector2 = a.F
+			_push({"k": "chain", "A": A, "F": F, "t0": t, "life": B2.LS_S1 + 0.6})
+			_push({"k": "anchor", "a": A + Vector2(0, -30), "b": F, "t0": t + 0.05, "t1": t + B2.LS_LAND, "h": 220.0, "pal": ULP, "life": B2.LS_S1 + 0.55, "sc": 1.4})
+			_pair("ul_s3_r85", F, t + B2.LS_LAND)
+			_pxs("ul_quake_r105_gd", F, t + B2.LS_LAND + 0.05, "gd")
+			for j in 3:
+				var q: Vector2 = A.lerp(F, 0.3 + 0.3 * float(j))
+				_pxd("s2_e2_up_d%d", q, (F - A).angle(), t + lerpf(B2.LS_S0, B2.LS_S1, float(j) / 3.0))
+				_pxd("s2_e2_gd_d%d", q, (F - A).angle(), t + lerpf(B2.LS_S0, B2.LS_S1, float(j) / 3.0), "gd")
+			_pair("nutao", F, t + B2.LS_S1 - 0.1)
+		"b_tide":   # 歌蕾蒂娅 S2 收潮把两侧拖进来（+ 连携潮圈）→ 归溟幽灵鲨锯潮沿海沟连斩三段 → 圈心一道剜痕
+			var d: Vector2 = a.d
+			var L: float = a.L
+			_pair("gl_s2pull_e2", c, t)
+			_pxs("gl_link_gd", c, t + B2.TD_OPEN, "gd")
+			for j in 3:
+				var q: Vector2 = c + d * (float(j) / 2.0 - 0.5) * L * 0.7
+				var tj: float = t + lerpf(B2.TD_S0, B2.TD_S1, float(j) / 2.0)
+				_pxs("su_saw_h_r100_bk_up", q, tj, "bk", j == 1)
+				_pxs("su_saw_h_r100_fr_up", q, tj, "up", j == 1)
+				_pxs("su_saw_h_r100_gd", q, tj, "gd", j == 1)
+			_pxs("su_gouge_r100_gd", c, t + B2.TD_S1, "gd")
+		"b_vortex":   # 歌蕾蒂娅 S3 漩涡（开 → 转 → 收）把怪往中心卷 → 乌尔比安的锚一柄柄砸在涡边 + 钉地环 → 圈心一记锚震
+			_pxs("gl_s3open_bk", c, t, "bk")
+			_pair("gl_s3open", c, t)
+			var to: float = t + 5.0 / 15.0
+			_pxs("gl_s3loop_bk", c, to, "bk", false, B2.VX_PUSH - 5.0 / 15.0)
+			_pair("gl_s3loop", c, to, B2.VX_PUSH - 5.0 / 15.0)
+			_pxs("gl_s3close_bk", c, t + B2.VX_PUSH, "bk")
+			_pair("gl_s3close", c, t + B2.VX_PUSH)
 			for i in a.tips.size():
 				var ta: float = t + B2.VX_A0 + B2.VX_DA * float(i)
 				_push({"k": "anchor", "a": Vector2(a.tips[i]) + Vector2(0, -520), "b": a.tips[i], "t0": ta - 0.2, "t1": ta, "h": 0.0, "pal": ULP, "life": 0.2 + 0.9, "sc": 0.9})
+				_pxs("ul_s1_r68_e2_up", a.tips[i], ta)
 				due.append([ta, "grains", {"o": a.who.ulpianus, "p": Vector2(a.tips[i]) + Vector2(0, LIFT * 0.5), "n": 6, "c0": ULP[5], "c1": ULP[3], "mat": "shard"}])
-		"b_fins":
-			for q in 2:
-				_push({"k": "fin", "c": c, "R": float(a.R), "a0": PI * float(q), "t0": t + B2.FN_T0, "t1": t + B2.FN_T1, "hit": t + B2.FN_HIT, "pal": SK if q == 0 else SPP, "life": B2.FN_HIT - B2.FN_T0 + 0.15})
-				for j in 6:
-					var tj: float = t + lerpf(B2.FN_T0, B2.FN_T1, float(j) / 6.0)
-					var aj: float = PI * float(q) + TAU * float(j) / 6.0
-					due.append([tj, "grains", {"o": a.who.skadi if q == 0 else a.who.specter_unchained, "p": c + Vector2(cos(aj), sin(aj) * SQ) * float(a.R) + Vector2(0, LIFT * 0.5), "n": 5, "c0": WATER, "c1": (SK if q == 0 else SPP)[4], "mat": "drop"}])
-			due.append([t + B2.FN_HIT, "grains", {"o": a.who.skadi, "p": c + Vector2(0, LIFT * 0.5), "n": 16, "c0": WATER, "c1": SK[4], "mat": "drop"}])
-		"b_hunt":
+			_pxs("ul_quake_r125_gd", c, t + B2.VX_A0 + B2.VX_DA * float(a.tips.size()), "gd")
+		"b_fins":   # 斯卡蒂 S3 回旋斩 + 归溟幽灵鲨 S3 浪刃绕圈 → 收拢潮环 → 圈心一记怒涛
+			_pair("spin_s3", c, t + B2.FN_T0)
+			_pxs("su_s3wave_bk_up", c, t + B2.FN_T0 + 0.35, "bk")
+			_pxs("su_s3wave_fr_up", c, t + B2.FN_T0 + 0.35)
+			_pxs("su_s3wave_gd", c, t + B2.FN_T0 + 0.35, "gd")
+			_pxs("su_curl_r90_gd", c, t + B2.FN_HIT - 0.4, "gd")
+			_pair("nutao", c, t + B2.FN_HIT - 0.1)
+		"b_hunt":   # 群猎：在场猎人按序各放自己的大招形体，在 HT_HIT 一齐落到圈心（斯卡蒂怒涛 / 歌蕾蒂娅收潮 / 幽灵鲨锯潮 / 乌尔比安浪冠 + 锚震 / 斯卡蒂（浊心）回潮）
 			var ids: Array = a.ps.map(func(p): return str(p.id))
-			_push({"k": "tidering", "c": c, "R0": float(a.R0), "t0": t, "t1": t + B2.HT_T1, "life": B2.HT_HIT + 0.3})
 			for i in ids.size():
-				var ang: float = fposmod(t * 0.7, TAU) + TAU * float(i) / float(ids.size())
-				_push({"k": "spear", "c": c, "ang": ang, "pal": HUNT_PAL.get(ids[i], SK), "t0": t + B2.HT_T1, "t1": t + B2.HT_HIT, "sing": ids[i] == "skalter", "life": B2.HT_HIT - B2.HT_T1 + 0.25})
+				var ti: float = t + B2.HT_T1 - 0.45 + 0.15 * float(i)
+				match ids[i]:
+					"skadi":
+						_pair("nutao", c, ti)
+					"gladiia":
+						_pxs("gl_s3close_bk", c, ti, "bk")
+						_pair("gl_s3close", c, ti)
+					"specter_unchained":
+						_pxs("su_saw_h_r100_bk_up", c, ti, "bk")
+						_pxs("su_saw_h_r100_fr_up", c, ti)
+						_pxs("su_saw_h_r100_gd", c, ti, "gd")
+					"ulpianus":
+						_pair("ul_s3_r85", c, ti)
+						_pxs("ul_quake_r125_gd", c, ti + 0.1, "gd")
+					_:
+						_pair("backwash", c, ti)
 			due.append([t + B2.HT_HIT, "grains", {"o": a.ps[0], "p": c + Vector2(0, LIFT * 0.5), "n": 18, "c0": WATER, "c1": SK[4], "mat": "drop"}])
 
 
