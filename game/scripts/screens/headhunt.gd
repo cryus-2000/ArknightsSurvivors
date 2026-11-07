@@ -934,6 +934,8 @@ func _draw_exchange(ci: CanvasItem, f: Font, y := -1.0) -> void:
 	UI.text_at(ci, f, Vector2(r.position.x + 22, r.position.y + 18), "用生机细胞兑换 1 张（%d）" % Roster.TICKET_PRICE, 17, ink, "lm", true)
 	var sub := "持有生机细胞  %d" % Meta.available() if can else "还差 %d 生机细胞  ·  持有 %d" % [Roster.exchange_short(), Meta.available()]
 	UI.text_at(ci, f, Vector2(r.position.x + 22, r.position.y + 38), sub, 13, UI.fa(ink, 0.8), "lm")
+	if _vouchers() < Roster.COST_RANDOM and preload("res://scripts/core/toy_support.gd").pending():   # B站 Toy：凭证不足时提一句（docs/313）
+		UI.text_at(ci, f, Vector2(r.position.x + 4, r.end.y + 16), "凭证不足？标题页底部「支持作者」可以领取寻访凭证", 13, HS.MUTE, "lm")
 	var bt := _now() - _buy_t0
 	if bt >= 0.0 and bt < 0.9:   # 兑换成功：凭证数旁「+1」上浮淡出
 		var vy := _p(400.0, 320.0)

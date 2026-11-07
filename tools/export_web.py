@@ -194,6 +194,9 @@ def main():
     # 战绩分享卡（tools/web/share.js）：头像昵称 / 二维码 / 存相册；非 B站环境 probe 全 false，保存退回 <a download>
     with open(os.path.join(WEB, "share.js"), encoding="utf-8") as fh:
         js += "\n" + fh.read()
+    # Toy「支持作者」奖励（tools/web/support.js，docs/313）：关注 / 三连状态只读查询；非 B站环境 check 回 unsupported
+    with open(os.path.join(WEB, "support.js"), encoding="utf-8") as fh:
+        js += "\n" + fh.read()
     with open(os.path.join(WEB, "loader.css"), encoding="utf-8") as fh:
         css = fh.read()
     html = html.replace(MARK, "<style>\n%s</style>\n<script>\n%s</script>" % (css, js))

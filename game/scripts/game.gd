@@ -111,6 +111,7 @@ var autotest_sys = load("res://scripts/run/autotest.gd").new(self) if OS.is_debu
 var demo_sys = DemoRun.new(self)   # 图鉴攻击演示 / 精英化演出（gallery.gd 把 game.tscn 以 demo_op 模式放进 SubViewport）
 var spawner = Spawner.new(self)   # 刷怪
 var shop_sys = ShopSys.new(self)   # 商人与商店（逻辑）
+var web_focus = preload("res://scripts/web_focus.gd").new()   # 失焦保护（docs/317）：清按住状态、网页版自动暂停、回来把焦点还给画布
 var web_fs = preload("res://scripts/web_fs.gd").new()   # 网页版全屏与 Esc（docs/299）：退出全屏当暂停、P 键暂停、暂停菜单「返回全屏」；只在网页版桌面生效
 var beacon_sys = Beacon.new(self)  # 引航灯标：站桩点燃、驱散溟痕（run/beacon.gd，docs/49d §13.5 C）
 var weapons_sys = WeaponsSys.new(self)   # 子弹与支援装置
@@ -721,8 +722,9 @@ static func loading_warm_lists() -> Array:
 			if base.ends_with(suffix):
 				base = base.trim_suffix(suffix)
 				break
-		if not skip.has(base):
+		if not skip.has(base) and not _lazy_skip(n):
 			names.append(n)
+	_start_ids_c = {}   # 选人可能还会变：下次重算
 	return [names, whites]
 
 
@@ -782,6 +784,44 @@ func _enemy_evict(n: String) -> void:
 			tex.erase(nm)
 			A.uncache(nm)
 	tex_deferred[n] = true
+
+## 手机网页按需读特效（lazy_fx）时，不在开局编队（同 title._op_ids：队长 / --op、--squad）的干员的 V6 特效帧条：
+## 载入页不预读、进局保留名单不留（docs/319 §2：原来载入页照读全员约 150 MB，进局才不用）
+static var _start_ids_c := {}
+
+static func _lazy_skip(n) -> bool:
+	if not V6_FRAMES.has(n) or not (Cfg.mobile_web() and Cfg.mobile_knob("mobile_lazy_fx", 1.0)) and not Cfg.dev_args().has("--lazyfx"):
+		return false
+	var ow: String = A.fx_owner(str(n))
+	if ow == "":
+		return false
+	if _start_ids_c.is_empty():
+		_start_ids_c = {Cfg.character_id: true}
+		for a in Cfg.dev_args():
+			if a.begins_with("--op="):
+				_start_ids_c = {a.substr(5): true}
+		for a in Cfg.dev_args():
+			if a.begins_with("--squad="):
+				for c in a.substr(8).split(","):
+					_start_ids_c[c] = true
+	return not _start_ids_c.has(ow)
+
+
+## 手机网页进局（docs/319 §2）：标题页 / 图鉴 / 寻访 / 选人读进缓存、本局固定名单里没有的贴图拿掉（art.gd _outrun）。
+## 首次进游戏的新手引导会开图鉴，全员动作帧条、敌人帧条、名册立绘原来整局留在缓存里（iPhone 真机开局贴图 442 vs 343 MB）。
+## --bal=web/mobile_drop_outrun=0 退回；桌面不做（显存够，回标题再进图鉴少读一次）
+func _drop_outrun_tex() -> void:
+	if not (Cfg.mobile_web() and Cfg.mobile_knob("mobile_drop_outrun", 1.0)) and not Cfg.dev_args().has("--dropoutrun"):
+		A.outrun_track = false
+		return
+	var keep := {}
+	for n in preload_tex_names():
+		if not _lazy_skip(n):
+			keep[str(n)] = true
+	var nd := A.drop_outrun(keep)
+	if not Cfg.dev_args().is_empty():
+		print("PF OUTRUN dropped=%d" % nd)
+
 
 ## 中途入队的干员：补读开局跳过的专属特效帧条；光学压阶（optical._fxq_step）名单已建好时把它们接到名单末尾，照常换压阶版
 func load_op_fx(cid: String) -> void:
@@ -880,8 +920,11 @@ func tex_deferred_miss(n: String) -> void:
 
 func _ready() -> void:
 	A.mark("ready_begin")
+	if demo_op == "" and A.outrun_track:
+		_drop_outrun_tex()
 	load("res://scripts/core/perf_hud.gd").ensure(get_tree())   # 性能自检浮层（缺省关；?perf=1 或性能报告页连点标题 5 次）
 	web_fs.setup(self)
+	web_focus.setup(self)
 	trial.consume()
 	# 随机数最先定：招募开局干员时就会用 rng（战斗台词计时等）。以前 --seed 在 _ready 后段才生效，
 	# 开局干员的台词计时是随机的，第一句台词一出同 seed 的两局就分叉（2026-09-26 查明，docs/36）
@@ -1536,6 +1579,11 @@ func mobile_cap() -> bool:
 	return Cfg.mobile_web() and Cfg.mobile_knob("mobile_cap", 1.0) and (mode == Mode.PLAY or Cfg.dev_args().has("--mobilecap"))
 
 
+func _notification(what: int) -> void:
+	if web_focus != null and web_focus.g != null:
+		web_focus.notify(what)   # 失焦通知（所有平台）→ 清按住状态（docs/317）
+
+
 func _process(delta: float) -> void:
 	UM.advance(delta)   # 界面动效时钟（真实帧间隔，不乘对局倍速；scripts/ui_motion.gd）
 	_pm("engine")   # 上一帧结束到这一帧开始：引擎自身、_draw 回调、其他节点（只在 --prof 下记）
@@ -1543,6 +1591,7 @@ func _process(delta: float) -> void:
 	if not is_inside_tree():
 		return   # 演示局结束等处当帧换场景：已离树就不再跑这一帧（11-04 教程结束闪退）
 	tour.update(delta)   # 聚光框引导 / 到点小提示：真实帧间隔（screens/tour.gd）
+	web_focus.poll(delta)   # 失焦保护（docs/317）
 	web_fs.poll(delta)   # 网页版：局内退出全屏（多半是按了 Esc）→ 打开暂停菜单（docs/299）
 	pick.update(delta)
 	wheel.update(delta)   # 指挥圆盘：真实帧间隔（悬停 / 松开判定 / 测试计划）

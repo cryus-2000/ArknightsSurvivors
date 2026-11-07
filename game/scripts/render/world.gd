@@ -1917,10 +1917,13 @@ func _draw_fx() -> void:
 					if sk < 1.0 or el < float(f.sweep_t) + 0.12:
 						var sa: float = 1.0 - clampf((el - float(f.sweep_t)) / 0.12, 0.0, 1.0)
 						var srr: float = float(f.sweep_r) * (1.0 - pow(1.0 - sk, 3.0))
-						g.wcv.draw_set_transform(f.from, 0.0, Vector2(1.0, ground_y()))   # 与清除圈同一个地面椭圆
-						g.wcv.draw_arc(Vector2.ZERO, srr, 0.0, TAU, 64, Color(1.7, 1.25, 2.1, 0.75 * sa), 5.0)
-						g.wcv.draw_arc(Vector2.ZERO, srr * 0.94, 0.0, TAU, 64, Color(2.0, 1.9, 1.6, 0.5 * sa), 2.0)
-						g.wcv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+						if Bal.v("beacon/sweep_px", 1.0) > 0.0:
+							_sweep_px(f.from, srr, sa)
+						else:   # 0 = 11-08 前：HDR 淡紫 5 像素平滑线（网页没有 HDR，截成白色粗圈）
+							g.wcv.draw_set_transform(f.from, 0.0, Vector2(1.0, ground_y()))   # 与清除圈同一个地面椭圆
+							g.wcv.draw_arc(Vector2.ZERO, srr, 0.0, TAU, 64, Color(1.7, 1.25, 2.1, 0.75 * sa), 5.0)
+							g.wcv.draw_arc(Vector2.ZERO, srr * 0.94, 0.0, TAU, 64, Color(2.0, 1.9, 1.6, 0.5 * sa), 2.0)
+							g.wcv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 				if g.vfx.p2 and f.get("tex", false):
 					# 溟痕退散帧条 fx_mire_dissolve（64×64 × 6 原生 1x，world_spec_1024）：按 PX 1:1，不按半径拉伸；
 					# 一块 64 美术像素 = 128 世界单位，大溟痕在圆内按 96 世界单位间距多点铺（块与块叠一圈、格心离圆心 ≤ 半径）；_emit 层进光学发光层
@@ -4882,6 +4885,42 @@ func _boss_state(e: Dictionary) -> void:
 
 ## 地面形状的纵向压缩：和判定一致（combat.gd 的 GROUND_Y，Boss与怪物「画即判」；还没有这个常量时按正圆 1.0）
 var _gy := -1.0
+## 灯标驱散环（11-08 用户 iPhone「很粗的白 / 淡紫椭圆圈、锯齿明显」，beacon/sweep_px = 1）：按美术像素格逐格画的贴地椭圆，
+## 外沿一格灯火暖黄、往里一格溟痕淡紫（都在 0–1 内，网页没有 HDR 也不会截成白色），每 7 格按哈希断开约两成，不是整齐几何圆；
+## 暖黄每 3 格一格进光学发光层。颜色取灯标点燃暖光（vfx beacon glow 1.0 / 0.86 / 0.6）与溟痕紫
+const SWEEP_FRONT := Color("#ffd98a")
+const SWEEP_BACK := Color("#8f62c8")
+func _sweep_px(c: Vector2, rr: float, sa: float) -> void:
+	if rr < 4.0 or sa <= 0.0:
+		return
+	var px: float = Game.PX
+	var gy: float = ground_y()
+	var n: int = clampi(int(TAU * rr / px), 24, 2400)
+	var cf := Color(SWEEP_FRONT.r, SWEEP_FRONT.g, SWEEP_FRONT.b, 0.9 * sa)
+	var cb := Color(SWEEP_BACK.r, SWEEP_BACK.g, SWEEP_BACK.b, 0.6 * sa)
+	var glow: bool = g.optical_on
+	var gc := Color(SWEEP_FRONT.r, SWEEP_FRONT.g, SWEEP_FRONT.b, 0.5 * sa)
+	var seed: int = int(c.x * 0.37 + c.y * 1.91)
+	var last := Vector2.INF
+	var last_b := Vector2.INF
+	var d := Vector2(px, px)
+	for i in n:
+		if (hash(Vector2i(i / 7, seed)) & 1023) < 205:   # 断口：约两成
+			continue
+		var a: float = i * TAU / n
+		var u := Vector2(cos(a), sin(a) * gy)
+		var p: Vector2 = ((c + u * rr) / px).floor() * px
+		if p != last:
+			last = p
+			tb_quad(p, p + Vector2(px, 0), p + d, p + Vector2(0, px), cf)
+			if glow and i % 3 == 0:
+				g.glow_next.append([p, px, gc])
+		var q: Vector2 = ((c + u * (rr - px * 1.5)) / px).floor() * px
+		if q != last_b and q != last:
+			last_b = q
+			tb_quad(q, q + Vector2(px, 0), q + d, q + Vector2(0, px), cb)
+
+
 func ground_y() -> float:
 	if _gy < 0.0:
 		_gy = float(load("res://scripts/run/combat.gd").get_script_constant_map().get("GROUND_Y", 1.0))

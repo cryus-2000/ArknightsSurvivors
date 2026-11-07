@@ -7,6 +7,8 @@
  *   phone 时另带 capsule（右上角 88×32 的顶栏胶囊，相对 viewport），用来验证 Godot 侧把胶囊下沿当额外顶部边距；
  *   setContainerMode 收下方向 / 沉浸后异步回一次 onContainerChange（changedFields 标出变化字段）；窗口 resize 也回一次（viewport 变化）。
  *   ?toyc=old：有 SDK、isSupport 都为真、但永不回调（旧客户端），验证 1.5 秒 env() 回退。
+ * 支持作者（docs/313）：网址带 ?toysup=follow,triple（已关注 / 已三连，逗号分隔，空 = 都没做）时才支持 getAuthorRelation / getVideoUserActions；
+ *   不带 = isSupport 为假，等于外部浏览器（unsupported）。
  */
 (function () {
   function post(path, body) {
@@ -24,6 +26,9 @@
   var dev = m ? m[1] : "";
   var old = dev === "old";
   var cont = !!dev;
+  var sm = /[?&]toysup=([a-z,]*)/.exec(location.search);
+  var supOn = !!sm;
+  var supDone = sm ? sm[1].split(",") : [];
   // 容器可用尺寸用文档根元素的尺寸：container.js 会改写 innerWidth / innerHeight（画布尺寸），不能拿它们当容器尺寸
   function vw() { return document.documentElement.clientWidth; }
   function vh() { return document.documentElement.clientHeight; }
@@ -47,12 +52,23 @@
     __mock: true,
     isSupport: function (a) {
       var ok = ["getCloudStorage", "setCloudStorage", "removeCloudStorage"].indexOf(a) >= 0 ||
-        (cont && ["onContainerChange", "getContainerState", "setContainerMode"].indexOf(a) >= 0);
+        (cont && ["onContainerChange", "getContainerState", "setContainerMode"].indexOf(a) >= 0) ||
+        (supOn && ["getAuthorRelation", "getVideoUserActions"].indexOf(a) >= 0);
       return Promise.resolve(ok);
     },
     getCloudStorage: function (keys) { return post("get", { keys: keys || null }); },
     setCloudStorage: function (items) { return post("set", { items: items }); },
     removeCloudStorage: function (keys) { return post("remove", { keys: keys }); },
+    getAuthorRelation: function () {
+      if (!supOn) return Promise.reject(Object.assign(new Error("[ToySDK] unsupported"), { type: "unsupported" }));
+      return Promise.resolve({ status: "ok", data: { isFollow: supDone.indexOf("follow") >= 0 } });
+    },
+    getVideoUserActions: function (req) {
+      if (!supOn) return Promise.reject(Object.assign(new Error("[ToySDK] unsupported"), { type: "unsupported" }));
+      var t = supDone.indexOf("triple") >= 0;
+      var v = (req && req.videos) || [];
+      return Promise.resolve({ status: "ok", items: v.map(function (x) { return { ref: x, bvid: x.bvid, status: "ok", liked: t, coinCount: t ? 1 : 0, favorited: t }; }) });
+    },
     getUserProfile: function () { return Promise.reject(new Error("[ToySDK] mock: getUserProfile 不应被调用")); },
     onContainerChange: function (f) {
       if (!cont) throw new Error("[ToySDK] unsupported");
