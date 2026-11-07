@@ -1,8 +1,8 @@
 extends Control
-## 反馈浮层（docs/311，core/feedback.gd）：结算底栏「反馈」与标题页设置「反馈」共用。
+## 意见反馈浮层（docs/311，core/feedback.gd）：结算底栏与标题页底部一行的「意见反馈」共用。
 ## 打开时（玩家点按里）就把反馈码复制进剪贴板，浮层上写出反馈码、一句说明和「打开问卷」/「前往视频评论区」（Toy）主按钮；
 ## 主按钮在点按处理里直接跳转（浏览器 / Toy 都要用户手势）。网页剪贴板 1 秒内没成功：DOM 里盖一个只读输入框，长按 / 全选复制。
-## own_input：设置面板里自己收键盘（同 perf_view）；结算里由 game.gd 让开输入（见 game.gd 的 feedback_view 判断）
+## 键盘由自己的 _input 收；结算里 game.gd 让开（feedback_view 开着时不转给结算），标题页由 title._overlays 让开
 
 signal closed
 
@@ -182,8 +182,8 @@ func _draw() -> void:
 	var x := pr.position.x + 28.0
 	var iw := pr.size.x - 56.0
 	var y := pr.position.y
-	UI.text(self, font, Vector2(x, y + 44), "反馈", 26 if tl else 24, UI.TEXT)
-	UI.en(self, font, Vector2(x + (62 if tl else 58), y + 42), "FEEDBACK", 10, UI.CYAN_DIM, 2.0)
+	UI.text(self, font, Vector2(x, y + 44), "意见反馈", 26 if tl else 24, UI.TEXT)
+	UI.en(self, font, Vector2(x + (114 if tl else 106), y + 42), "FEEDBACK", 10, UI.CYAN_DIM, 2.0)
 	# 反馈码
 	var cy := y + (78.0 if ph else 72.0)
 	UI.text(self, font, Vector2(x, cy + 14), "反馈码" + ("（版本与本局摘要）" if run else "（版本）"), 15 if tl else 13, UI.SUB)

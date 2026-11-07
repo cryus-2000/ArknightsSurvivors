@@ -219,7 +219,7 @@ func btn_text(id: String) -> String:
 	var pad: bool = Pad.using
 	match id:
 		"share": return "分享战绩" if (pad or tch) else "分享  V"
-		"feedback": return "反馈"
+		"feedback": return "意见反馈"
 		"records": return "作战数据  SELECT" if pad else ("作战数据" if tch else "作战数据  Tab")
 		"runs": return "对局记录"
 		"title": return "返回主界面  B" if pad else ("返回主界面" if tch else "返回主界面  Esc")
@@ -242,7 +242,7 @@ func footer(y: float, h: float, x0 := 28.0, x1 := 1252.0, with_share := true) ->
 	if preload("res://scripts/core/feedback.gd").enabled():
 		ids.append("feedback")   # 反馈（docs/311）：没配当前平台的反馈目标就不显示
 	ids.append_array(["title", "meta", "hunt"])
-	var ws := {"records": 150.0, "runs": 120.0, "share": 130.0, "feedback": 96.0, "title": 200.0, "meta": 180.0, "hunt": 260.0}
+	var ws := {"records": 150.0, "runs": 120.0, "share": 130.0, "feedback": 120.0, "title": 200.0, "meta": 180.0, "hunt": 260.0}
 	var total := 0.0
 	for id in ids:
 		total += float(ws[id])

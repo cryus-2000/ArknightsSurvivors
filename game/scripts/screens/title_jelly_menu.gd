@@ -19,6 +19,7 @@ const MENU := [
 	{"id": 2, "cn": "Boss 演练", "en": "TRIAL", "slot": "list", "icon": "trial", "tier": 2, "tag": "测试版"},
 	{"id": 4, "cn": "设置", "en": "SETTINGS", "slot": "foot"},
 	{"id": 3, "cn": "操作说明", "en": "GUIDE", "slot": "foot"},
+	{"id": 9, "cn": "意见反馈", "en": "FEEDBACK", "slot": "foot"},   # 11-07 用户：标题页底部一行（docs/311）；没配反馈目标时 title._menu_ids 去掉
 	{"id": 5, "cn": "退出", "en": "EXIT", "slot": "foot"},
 ]
 

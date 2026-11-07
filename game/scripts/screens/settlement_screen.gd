@@ -272,7 +272,7 @@ func _buttons() -> Array:
 	if Cfg.runs_log_enabled():   # 对局记录（测试版 / 对内包）：游戏内面板列最近几局（10-29 用户，原来是打开记录文件夹）
 		out.append(["runs", 206, 150, "对局记录", false])
 	if preload("res://scripts/core/feedback.gd").enabled():
-		out.append(["feedback", 1040, 100, "反馈", false, Rect2(1040, 202, 100, 34)])
+		out.append(["feedback", 1024, 116, "意见反馈", false, Rect2(1024, 202, 116, 34)])
 	out.append(["title", 374, 250, "返回主界面  B" if Pad.using else ("返回主界面" if tch else "返回主界面  Esc"), false])
 	out.append(["meta", 642, 250, "认知塑造  Y" if Pad.using else ("认知塑造" if tch else "认知塑造  X"), false])
 	out.append(["hunt", 910, 342, ("寻访（持有 %d）  A" if Pad.using else ("寻访（持有 %d）" if tch else "寻访（持有 %d）  Enter")) % Roster.tickets(), Roster.tickets() > 0])   # D14：写明是持有数，免得和「本局获得 ×0」并排时误读

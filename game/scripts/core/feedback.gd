@@ -1,5 +1,5 @@
 extends RefCounted
-## 玩家反馈入口（11-07 用户批，docs/311）：结算底栏「反馈」+ 标题页设置「操作」页一行「反馈」。
+## 玩家反馈入口（11-07 用户批，docs/311）：结算底栏 + 标题页底部一行「意见反馈」（11-07 用户：从设置页挪到标题页、改叫「意见反馈」）。
 ## 去向按平台分流，两个目标都在 balance.json feedback 段，留空 = 不显示入口（不给坏链接）：
 ##   itch / 桌面 / itch 网页：form_url（问卷链接，OS.shell_open；网页上就是 window.open，在点按处理里调，浏览器认作用户手势）
 ##   B站 Toy（window.toy 在）：不跳站外（docs/99 外链条），toy.navigate({type:'video', id: toy_bv}) 去作者自己的视频评论区；
