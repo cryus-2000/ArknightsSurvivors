@@ -262,6 +262,10 @@ func input(event: InputEvent) -> bool:
 			else:
 				cancel()
 		return true
+	if event is InputEventMouseButton and event.device == InputEvent.DEVICE_ID_EMULATION and g.touch != null and g.touch.active:
+		# 触点模拟出来的鼠标键（Godot 缺省 emulate_mouse_from_touch，比触点本身先到）：以前这一下就把扇区确认了，
+		# 紧跟着的真实触点又落进选点阶段（docs/315 §1 b）。触屏一律只认下面的 ScreenTouch
+		return true
 	if event is InputEventMouseButton:
 		if event.pressed:
 			if event.button_index == MOUSE_BUTTON_RIGHT:
@@ -286,7 +290,7 @@ func input(event: InputEvent) -> bool:
 		var i: int = _hit(p)
 		if i >= 0:
 			confirm(i)
-			if g.pick.active:   # 指点原型：手指还按着，接着拖到目标点、松手确认（docs/196 §6.3）
+			if g.pick.active and not g.pick.tap:   # 指点原型（旧的按住拖；点选确认 docs/315 不接这根手指）：手指还按着，接着拖到目标点、松手确认（docs/196 §6.3）
 				g.pick.finger_id = event.index
 				g.pick.pointer = p
 			return true

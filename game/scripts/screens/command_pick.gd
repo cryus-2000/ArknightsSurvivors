@@ -4,6 +4,11 @@ extends RefCounted
 ## 「点位」= 点地面：全队去那里、在半径 R 内作战；「集火」= 点精英 / Boss：全队集火该目标（屏外的精英 / Boss 在屏幕边缘有小标签，指到标签上也算）。
 ## 松手 / 点击确认，右键 / Esc / 回到圆盘区取消。选点期间每个真实秒从作战时限里扣一点（command/pick_cost），上限 command/pick_cap 秒。
 ## 不抽随机数；不改镜头（缩放留给正式实现，见 docs/196 §6.4）。
+## 触屏「点选 → 预选 → 再点确认」（11-07 用户「手机端指挥圆盘一点不明确」，docs/315；command/touch_confirm = 1 缺省，0 = 旧的按住拖、松手确认）：
+##   选完指令后手指抬起也不下令。集火：场上可选的精英 / Boss 框常亮（白）→ 点一只 = 预选（框变金色）→ 再点同一只 = 下令；
+##   点别的目标 = 换预选，点空白 = 取消（落在摇杆区时这一下同时起摇杆）。部署：点虚线圈内的地面 = 预选落点（金色标记）→ 再点标记 = 下令，
+##   点别处 = 换落点。两种都可点信息板上的「取消」或「指挥」键退出。没有准星偏移（点哪儿就是哪儿）。时限 command/pick_cap_touch 秒，
+##   到时有预选就按预选下令，没有就取消
 
 const UI = preload("res://scripts/ui.gd")
 const Bal = preload("res://scripts/core/balance.gd")
@@ -29,6 +34,19 @@ var _done_pt := Vector2.ZERO
 var _done_target = null
 var _clear_at := Vector2.INF   # 肃清目标格最近一次「亮起」的位置与时刻（毫秒）：下令 / 目标区挪动超过 2 格时整片亮 1.5 秒
 var _clear_ms := 0
+# 触屏点选确认（docs/315）
+var tap := false            # 本次选点走「点选 → 预选 → 再点确认」
+var pre_set := false        # 已有预选
+var pre_target = null       # 集火的预选目标（敌人字典）
+var pre_pt := Vector2.ZERO  # 部署的预选落点（世界坐标）
+var _pre_t := 0.0           # 预选换了之后的真实秒（金框弹一下）
+var _miss_t := -1.0         # 部署点到圈外：警示字留 1 秒
+var _cancel_r := Rect2()    # 信息板「取消」键（UI 坐标，绘制时更新）
+var _near_r := Rect2()      # 集火「最近的 Boss / 精英」键
+var _begin_frame := -1
+const PRE_COL := Color(1.0, 0.82, 0.26)   # 预选色（金）
+const CAND_COL := Color(0.93, 0.95, 0.96)  # 可选目标（PRTS 白，11-07 用户：可选都用白、选上用金）
+const TAP_SAME := 64.0      # 再点确认的容差（屏幕像素）
 
 
 func _init(game) -> void:
@@ -54,11 +72,18 @@ func begin(m: String, touch_finger := -1, finger_pos := Vector2.INF) -> void:
 	finger_id = touch_finger
 	pointer = finger_pos if finger_pos != Vector2.INF else (g.hud.get_local_mouse_position() if (kind == "mouse" and _plan.is_empty() and _plan_read) else vs / 2.0)
 	_goal = Vector2.INF
+	tap = kind == "touch" and Bal.v("command/touch_confirm", 1.0) > 0.0
+	_begin_frame = Engine.get_process_frames()
+	pre_set = false
+	pre_target = null
+	_miss_t = -1.0
+	_cancel_r = Rect2()
+	_near_r = Rect2()
 	_refresh()
 
 
 func _offset() -> Vector2:
-	return Vector2(0.0, -96.0) if kind == "touch" else Vector2.ZERO
+	return Vector2(0.0, -96.0) if kind == "touch" and not tap else Vector2.ZERO
 
 
 func cancel() -> void:
@@ -106,6 +131,15 @@ func _cands() -> Array:
 func _refresh() -> void:
 	var ct: Transform2D = g.hud_ct()
 	var vs: Vector2 = g.hud.size
+	if tap:   # 点选确认：没有准星，状态全由预选决定
+		if pre_target != null and pre_target.dead:
+			pre_set = false
+			pre_target = null
+		snapped = pre_target if mode == "focus" else null
+		valid = pre_set
+		world_pt = (pre_target.pos if pre_target != null else pre_pt) if pre_set else g.ppos
+		reticle = ct * world_pt
+		return
 	reticle = pointer + _offset()
 	world_pt = ct.affine_inverse() * reticle
 	var R: float = Bal.v("command/order_r", 560.0)
@@ -153,6 +187,20 @@ func update(rd: float) -> void:
 		_finish(false)
 		return
 	t += rd
+	_pre_t += rd
+	if _miss_t >= 0.0:
+		_miss_t += rd
+		if _miss_t > 1.0:
+			_miss_t = -1.0
+	if tap:
+		_refresh()
+		g.squad.stamina = maxf(0.0, g.squad.stamina - Bal.v("command/pick_cost", 0.03) * rd)
+		if t >= Bal.v("command/pick_cap_touch", 6.0):
+			if pre_set:
+				confirm()
+			else:
+				cancel()
+		return
 	if _goal != Vector2.INF:
 		pointer += (_goal - pointer) * (1.0 - exp(-rd * 9.0))   # 计划里的「鼠标 / 手指」缓动过去（像人手挪）
 	_refresh()
@@ -172,6 +220,14 @@ func input(event: InputEvent) -> bool:
 		if kind == "mouse":
 			pointer = event.position / Cfg.ui_k
 		return false
+	if event is InputEventMouseButton and kind == "touch" and event.device == InputEvent.DEVICE_ID_EMULATION:
+		return true   # 触点模拟出来的鼠标键（Godot 缺省 emulate_mouse_from_touch）：触点本身已经处理过，这一下不能再当「左键确认」
+	if event is InputEventMouseButton and tap:
+		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			tap_at(event.position / Cfg.ui_k)   # 桌面 --touch 调试：鼠标当手指点
+		elif event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
+			cancel()
+		return true
 	if event is InputEventMouseButton:
 		if event.pressed:
 			if event.button_index == MOUSE_BUTTON_RIGHT:
@@ -181,6 +237,11 @@ func input(event: InputEvent) -> bool:
 				_refresh()
 				confirm()
 		return true
+	if tap and (event is InputEventScreenTouch or event is InputEventScreenDrag):
+		# 点选确认只认「按下」；抬起 / 拖动放行给 touch.gd（摇杆的手指照常松开 / 拖动）
+		if event is InputEventScreenTouch and event.pressed:
+			return tap_at(event.position / Cfg.ui_k)
+		return false
 	if event is InputEventScreenDrag:
 		if kind == "touch" and (finger_id < 0 or event.index == finger_id):
 			pointer = event.position / Cfg.ui_k
@@ -192,6 +253,84 @@ func input(event: InputEvent) -> bool:
 			confirm()
 		return true
 	return false
+
+
+## 触屏点选确认（docs/315）：p = UI 坐标的一次按下。返回 true = 吃掉这一下（false = 交给 touch.gd，例如起摇杆 / 按冲刺）
+func tap_at(p: Vector2) -> bool:
+	if not active or not tap:
+		return false
+	if Engine.get_process_frames() == _begin_frame:
+		return true   # 选指令的那一下（同一帧的模拟鼠标键 / 触点）不算点目标
+	if _cancel_r.has_area() and _cancel_r.grow(6.0).has_point(p):
+		cancel()
+		return true
+	if mode == "focus" and _near_r.has_area() and _near_r.grow(6.0).has_point(p):
+		var cs: Array = _cands()
+		if not cs.is_empty():
+			_tap_focus(cs[0])
+		return true
+	if g.touch != null:
+		for b in g.touch.btn_rects:
+			if (b[0] as Rect2).has_point(p):
+				if str(b[1]) == "cmd":   # 再点「指挥」键 = 退出选点
+					cancel()
+					return true
+				return false   # 冲刺 / 技能 / 暂停等照常
+	var ct: Transform2D = g.hud_ct()
+	if mode == "focus":
+		var e = _cand_at(p)
+		if e == null:
+			cancel()   # 点空白 = 取消；正好在摇杆区时这一下同时起摇杆
+			return not g.touch.wants_stick(p) if g.touch != null else true
+		_tap_focus(e)
+		return true
+	var w: Vector2 = ct.affine_inverse() * p
+	if w.distance_to(g.ppos) > Bal.v("command/order_r", 560.0):
+		_miss_t = 0.0
+		Sfx.play("ui_move", -10.0)
+		return true
+	if pre_set and (ct * pre_pt).distance_to(p) <= TAP_SAME:
+		_refresh()
+		confirm()
+		return true
+	pre_set = true
+	pre_pt = w
+	_pre_t = 0.0
+	_miss_t = -1.0
+	Sfx.play("ui_move", -6.0)
+	_refresh()
+	return true
+
+
+func _tap_focus(e) -> void:
+	if pre_set and is_same(e, pre_target):
+		_refresh()
+		confirm()
+		return
+	pre_set = true
+	pre_target = e
+	_pre_t = 0.0
+	Sfx.play("ui_move", -6.0)
+	_refresh()
+
+
+## 点在哪只可选目标上：框内，或离框心 72 像素内（屏外的看边缘标签）；多只取最近
+func _cand_at(p: Vector2) -> Variant:
+	var ct: Transform2D = g.hud_ct()
+	var vs: Vector2 = g.hud.size
+	var best = null
+	var bd := INF
+	for e in _cands():
+		var sp: Vector2 = ct * e.pos + Vector2(0, -float(e.r) * 0.5)
+		var rr: float = (float(e.r) * 1.25 + 8.0) * ct.get_scale().x
+		if not Rect2(Vector2(20, 20), vs - Vector2(40, 40)).has_point(ct * e.pos):
+			sp = _edge(ct * e.pos, vs)
+			rr = 26.0
+		var d: float = sp.distance_to(p)
+		if d <= maxf(rr + 12.0, 72.0) and d < bd:
+			bd = d
+			best = e
+	return best
 
 
 # ---------------------------------------------------------------- 绘制（PRTS 风：作战终端的范围格 / 取景角标 / 警戒斜纹，配色跟圆盘 command/wheel_style）
@@ -224,6 +363,9 @@ func draw(vs: Vector2) -> void:
 	var R: float = Bal.v("command/order_r", 560.0)
 	var Rs: float = ct.basis_xform(Vector2(R, 0)).length()
 	_range_ring(hud, font, lp, Rs, e, int(R))
+	if tap:
+		_draw_tap(hud, font, ct, vs, e)
+		return
 	# 屏外的精英 / Boss：边缘小标签（方框 + 方向箭头，PRTS 的目标条）
 	for en in _cands():
 		var sp2: Vector2 = ct * en.pos
@@ -293,6 +435,107 @@ func draw(vs: Vector2) -> void:
 		var b := Rect2(Vector2(vs.x / 2.0 - 120, r.end.y + 8), Vector2(240, 34))
 		_plate(hud, b, e)
 		UI.text(hud, font, b.position + Vector2(30, 22), "最近的 Boss / 精英", 14, W.C_WARN, HORIZONTAL_ALIGNMENT_LEFT, 200)
+
+
+## 触屏点选确认的画面（docs/315）：可选目标常亮 PRTS 白（深色衬底 + 亮角标，1 倍下也读得出）→ 预选变金色、弹一下（11-07 用户：不要「再点一次确认」浮字）；
+## 部署落点预选同色；信息板写当前一步该做什么，右侧「最近目标」（集火）/「取消」两个键，底边细条是剩余选点时间
+func _draw_tap(hud: CanvasItem, font: Font, ct: Transform2D, vs: Vector2, e: float) -> void:
+	var W = g.wheel
+	var cs: Array = _cands() if mode == "focus" else []
+	var pop: float = 1.0 + 0.22 * (1.0 - clampf(_pre_t / 0.18, 0.0, 1.0)) if not Cfg.reduce_motion else 1.0
+	var pu: float = 0.0 if Cfg.reduce_motion else 0.5 + 0.5 * sin(t * 7.0)
+	for en in cs:
+		var col: Color = CAND_COL   # 可选目标一律 PRTS 白，选中才变金（11-07 用户）
+		var pre: bool = pre_set and is_same(en, pre_target)
+		var spw: Vector2 = ct * en.pos
+		if Rect2(Vector2(20, 20), vs - Vector2(40, 40)).has_point(spw):
+			var sp: Vector2 = spw + Vector2(0, -float(en.r) * 0.5)
+			var r: float = (float(en.r) * 1.25 + 8.0) * ct.get_scale().x
+			if pre:
+				r *= pop
+				hud.draw_rect(Rect2(sp - Vector2(r, r), Vector2(r, r) * 2.0), Color(PRE_COL.r, PRE_COL.g, PRE_COL.b, 0.14 * e))
+				hud.draw_rect(Rect2(sp - Vector2(r, r), Vector2(r, r) * 2.0), Color(PRE_COL.r, PRE_COL.g, PRE_COL.b, 0.55 * e), false, 1.0)
+				_corners(hud, sp, r, Color(0, 0, 0, 0.7 * e), 6.5)
+				_corners(hud, sp, r, Color(PRE_COL.r, PRE_COL.g, PRE_COL.b, e), 3.5)
+			else:
+				_corners(hud, sp, r, Color(0, 0, 0, 0.6 * e), 5.0)
+				_corners(hud, sp, r, Color(col.r, col.g, col.b, (0.75 + 0.25 * pu) * e), 2.6)
+				UI.ctext(hud, font, sp + Vector2(-r, -r - 7.0), "BOSS" if en.boss else "ELITE", 11, Color(col.r, col.g, col.b, 0.9 * e), HORIZONTAL_ALIGNMENT_LEFT, 80)
+			var hp: float = clampf(float(en.hp) / maxf(1.0, float(en.maxhp)), 0.0, 1.0)
+			hud.draw_rect(Rect2(sp + Vector2(-r, r + 6.0), Vector2(r * 2.0, 4)), Color(0, 0, 0, 0.7 * e))
+			hud.draw_rect(Rect2(sp + Vector2(-r, r + 6.0), Vector2(r * 2.0 * hp, 4)), Color(PRE_COL if pre else col, 0.95 * e))
+		else:
+			var cp: Vector2 = _edge(spw, vs)
+			var cc: Color = PRE_COL if pre else col
+			var rc := Rect2(cp - Vector2(28, 14), Vector2(56, 28))
+			hud.draw_rect(rc, Color(0.03, 0.03, 0.035, 0.92))
+			hud.draw_rect(rc, cc, false, 3.0 if pre else 1.8)
+			UI.ctext(hud, font, cp + Vector2(-28, 5), "BOSS" if en.boss else "ELITE", 11, cc, HORIZONTAL_ALIGNMENT_CENTER, 56)
+			var dv: Vector2 = (spw - cp).normalized()
+			hud.draw_colored_polygon(PackedVector2Array([cp + dv * 28.0, cp + dv * 17.0 + dv.orthogonal() * 7.0, cp + dv * 17.0 - dv.orthogonal() * 7.0]), cc)
+	if mode != "focus" and pre_set:
+		var cp2: Vector2 = ct * pre_pt
+		var pc := Color(PRE_COL.r, PRE_COL.g, PRE_COL.b, e)
+		for o in g.squad.ops:
+			if o.is_leader or not o.cmd_roam() or o.pos == Vector2.INF:
+				continue
+			_dash(hud, ct * o.pos, cp2, Color(PRE_COL.r, PRE_COL.g, PRE_COL.b, 0.45 * e), true)
+		var rr: float = TAP_SAME * 0.55 * pop
+		hud.draw_circle(cp2, rr, Color(PRE_COL.r, PRE_COL.g, PRE_COL.b, 0.12 * e))
+		hud.draw_arc(cp2, rr, 0.0, TAU, 40, Color(0, 0, 0, 0.6 * e), 4.0)
+		hud.draw_arc(cp2, rr, 0.0, TAU, 40, Color(PRE_COL.r, PRE_COL.g, PRE_COL.b, (0.7 + 0.3 * pu) * e), 2.0)
+		_station_mark(hud, cp2, pc)
+	# 信息板
+	var ph: bool = Cfg.phone_ui()
+	var v2: bool = Tactics.on()
+	var title: String = {"point": "指挥 · 部署" if v2 else "指点 · 移动", "clear": "指点 · 肃清"}.get(mode, "指挥 · 集火")
+	var code: String = {"point": "ORDER // DEPLOY" if v2 else "ORDER // POINT", "clear": "ORDER // CLEAR"}.get(mode, "ORDER // FOCUS FIRE")
+	var stt: String
+	var warn := false
+	if mode == "focus":
+		if pre_set:
+			stt = "已选中%s · 再点一次下令，点其他目标可改选" % ("Boss" if pre_target.boss else "精英")
+		elif cs.is_empty():
+			stt = "附近没有精英或 Boss"
+			warn = true
+		else:
+			stt = "点场上的精英或 Boss 选中目标"
+	elif _miss_t >= 0.0:
+		stt = "超出指挥范围，请点虚线圈内"
+		warn = true
+	elif pre_set:
+		stt = "落点已选 · 再点一次标记下令，点别处可改"
+	else:
+		stt = "点虚线圈内的地面选落点"
+	var tip: String = ("点空白处或「取消」退出" if mode == "focus" else "点「取消」或「指挥」键退出") + " · 选点每秒 −3% 作战时限"
+	var w: float = minf(vs.x - 40.0, 600.0 if ph else 560.0)
+	var h: float = 96.0 if ph else 88.0
+	var r := Rect2(Vector2(round((vs.x - w) / 2.0), round(vs.y * (0.72 if ph else 0.75))), Vector2(w, h))
+	_plate(hud, r, e)
+	var bw: float = 84.0
+	var bh: float = 44.0 if ph else 40.0
+	_cancel_r = Rect2(Vector2(r.end.x - bw - 14.0, r.position.y + (h - bh) / 2.0), Vector2(bw, bh))
+	_near_r = Rect2(Vector2(_cancel_r.position.x - 112.0 - 10.0, _cancel_r.position.y), Vector2(112.0, bh)) if (mode == "focus" and not cs.is_empty()) else Rect2()
+	var tw: float = (_near_r.position.x if _near_r.has_area() else _cancel_r.position.x) - r.position.x - 44.0
+	UI.ctext(hud, font, r.position + Vector2(34, 16), "PRTS // " + code, 9, Color(W.C_DIAL.r, W.C_DIAL.g, W.C_DIAL.b, 0.6 * e), HORIZONTAL_ALIGNMENT_LEFT, tw)
+	UI.text(hud, font, r.position + Vector2(34, 39), title, 19 if ph else 17, Color(W.C_ACC.r, W.C_ACC.g, W.C_ACC.b, e), HORIZONTAL_ALIGNMENT_LEFT, tw)
+	var sc: Color = Color(W.C_WARN.r, W.C_WARN.g, W.C_WARN.b, e) if warn else (Color(PRE_COL.r, PRE_COL.g, PRE_COL.b, e) if pre_set else Color(1, 1, 1, e))
+	var sf: Dictionary = UI.fit(font, stt, tw, 20.0, [16 if ph else 14, 15 if ph else 13, 13 if ph else 12])
+	UI.draw_fit(hud, font, r.position + Vector2(34, 46), sf, sc)
+	var tf: Dictionary = UI.fit(font, tip, tw, 16.0, [13 if ph else 11, 12 if ph else 10, 11 if ph else 10])
+	UI.draw_fit(hud, font, r.position + Vector2(34, h - 24.0), tf, Color(UI.SUB.r, UI.SUB.g, UI.SUB.b, e))
+	_small_btn(hud, font, _cancel_r, "取消", W.C_DIAL, e)
+	if _near_r.has_area():
+		_small_btn(hud, font, _near_r, "最近目标", W.C_WARN, e)
+	# 剩余选点时间（底边细条）
+	var left: float = clampf(1.0 - t / maxf(0.1, Bal.v("command/pick_cap_touch", 6.0)), 0.0, 1.0)
+	hud.draw_rect(Rect2(Vector2(r.position.x + 16.0, r.end.y - 3.0), Vector2((w - 16.0) * left, 3.0)), Color(PRE_COL.r, PRE_COL.g, PRE_COL.b, 0.8 * e) if pre_set else Color(W.C_ACC.r, W.C_ACC.g, W.C_ACC.b, 0.7 * e))
+
+
+func _small_btn(hud: CanvasItem, font: Font, r: Rect2, s: String, col: Color, e: float) -> void:
+	hud.draw_rect(r, Color(0.04, 0.06, 0.08, 0.9 * e))
+	hud.draw_rect(r, Color(col.r, col.g, col.b, 0.85 * e), false, 1.5)
+	UI.text(hud, font, Vector2(r.position.x, r.position.y + r.size.y * 0.5 + 5.5), s, 16 if Cfg.phone_ui() else 15, Color(1, 1, 1, e), HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 
 
 ## 信息板：碳黑底 + 左端警戒斜纹 + 切角（右上）+ 细白底线
@@ -412,7 +655,9 @@ func _caption(hud: CanvasItem, font: Font, vs: Vector2) -> void:
 	if g.wheel.is_open:
 		line = "① 点「指挥」键弹出圆盘，局内放慢 → 选「移动」（去那里）、「肃清」（清一块区域）或「集火」（打这个）"
 	elif active:
-		if touch:
+		if touch and tap:
+			line = "② 点精英 / Boss 选中（框变金色），再点一次下令；点别的目标改选，点空白取消" if mode == "focus" else "② 点地面选落点（标记变金色），再点一次标记下令；点别处改选，点「取消」退出"
+		elif touch:
 			line = "② 手指不抬起，拖到目标：准星在手指上方；松手确认，拖回圆盘处取消" if mode != "focus" else "② 拖向精英 / Boss（屏外的看边缘标签），或点下方「最近的 Boss / 精英」；松手确认"
 		else:
 			line = "② 准星跟着鼠标：点地面（超出虚线圈算太远）· 左键确认 · 右键 / Esc 取消" if mode != "focus" else "② 把准星移到精英 / Boss 上（屏外的看边缘标签），左键确认 · 右键 / Esc 取消"
@@ -581,6 +826,34 @@ func _run_plan() -> void:
 					if not Rect2(Vector2(20, 20), vs2 - Vector2(40, 40)).has_point(sp2):
 						sp2 = _edge(sp2, vs2)
 					_goal = sp2 - _offset()
+			"tap":   # 触屏点选确认：在 UI 坐标 x:y 点一下（docs/315）
+				tap_at(Vector2(float(s[2]), float(s[3])))
+			"tapf":
+				var vs4: Vector2 = g.hud.size
+				tap_at(Vector2(float(s[2]) / 1000.0 * vs4.x, float(s[3]) / 1000.0 * vs4.y))
+			"tapsnap":   # 点离队长第 i 近的精英 / Boss（屏外的点边缘标签）
+				var cs4: Array = _cands()
+				if not cs4.is_empty():
+					var en4 = cs4[mini(int(s[2]) if s.size() > 2 else 0, cs4.size() - 1)]
+					var ct4: Transform2D = g.hud_ct()
+					var vs5: Vector2 = g.hud.size
+					var sp4: Vector2 = ct4 * en4.pos + Vector2(0, -float(en4.r) * 0.5)
+					if not Rect2(Vector2(20, 20), vs5 - Vector2(40, 40)).has_point(ct4 * en4.pos):
+						sp4 = _edge(ct4 * en4.pos, vs5)
+					tap_at(sp4)
+			"tappre":   # 再点一次当前预选（集火 = 预选目标，部署 = 预选落点）→ 下令
+				if pre_set:
+					var ct6: Transform2D = g.hud_ct()
+					var vs6: Vector2 = g.hud.size
+					var sp6: Vector2 = ct6 * pre_pt
+					if pre_target != null:
+						sp6 = ct6 * pre_target.pos + Vector2(0, -float(pre_target.r) * 0.5)
+						if not Rect2(Vector2(20, 20), vs6 - Vector2(40, 40)).has_point(ct6 * pre_target.pos):
+							sp6 = _edge(ct6 * pre_target.pos, vs6)
+					tap_at(sp6)
+			"tapdeploy":   # 点队长前方 fx 世界像素处的地面（部署预选 / 再点确认，录片用）
+				var ct5: Transform2D = g.hud_ct()
+				tap_at(ct5 * (g.ppos + Vector2(float(s[2]) if s.size() > 2 else 220.0, float(s[3]) if s.size() > 3 else -60.0)))
 			"ok":
 				_refresh()
 				confirm()

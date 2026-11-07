@@ -53,6 +53,9 @@ JOBS = {
     # 指挥 v2 / 终结技瞄准（docs/209）：四人小队，录帧（rec_*.png）取需要的那张
     'hud_sq': SQ + ['--recframes=20,1'],
     'wheel': SQ + ['--wheelplan=open@6,sel@0.4:2', '--recframes=6,45'],
+    # 触屏指挥点选确认（docs/312）：集火 = 刷两只精英 → 预选第二只 → 换第一只 → 再点下令；部署 = 点地面 → 换落点 → 再点下令（rec_*.png 取关键帧）
+    'tcmd_focus': SQ + ['--spawnat=3:knight@300:-70;mimic@-330:60', '--wheelplan=open@4,sel@0.3:3,ok@0.6', '--pickplan=tapsnap@0.8:1,tapsnap@1.8:0,tappre@2.8', '--recframes=4,290'],
+    'tcmd_point': SQ + ['--wheelplan=open@4,sel@0.3:2,ok@0.6', '--pickplan=tapdeploy@0.8:260:-90,tapdeploy@1.8:-230:110,tappre@2.8', '--recframes=4,290'],
     'ultaim': SQ + ['--bal=ult/start_energy=100', '--bal=ult/bot_n=0', '--ultaimplan=rel@0.15:320:-140,ok@2.0', '--recframes=0,150'],
 }
 ONLY = sys.argv[2].split(',') if len(sys.argv) > 2 else None
