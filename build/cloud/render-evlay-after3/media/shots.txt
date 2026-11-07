@@ -1,0 +1,3 @@
+pc ['EVENT SHOT opening panel=(1163.636, 654.5454) ins=[0.0, 0.0, 0.0, 0.0] form=0', 'EVENT SHOT heart panel=(1163.636, 654.5454) ins=[0.0, 0.0, 0.0, 0.0] form=0'] [] 
+ph844 ['EVENT SHOT opening panel=(1070.974, 494.9304) ins=[0.0, 0.0, 0.0, 0.0] form=2', 'EVENT SHOT heart panel=(1070.974, 494.9304) ins=[0.0, 0.0, 0.0, 0.0] form=2'] [] 
+ph956 ['EVENT SHOT opening panel=(1075.099, 494.9304) ins=[76.0, 56.0, 76.0, 27.0] form=2', 'EVENT SHOT heart panel=(1075.099, 494.9304) ins=[76.0, 56.0, 76.0, 27.0] form=2'] [] 
