@@ -1155,6 +1155,7 @@ static func _tx_gm_validate(b: Dictionary, p: String, ctx: Dictionary, tag: Stri
 		"verb.dash_cd_cut":
 			_num(b, "per", p, ctx, true, 0.0, 5.0)
 			_num(b, "max", p, ctx, true, 0.0, 10.0)
+			_num(b, "refresh_n", p, ctx, false, 0.0, 20.0)
 		"verb.break_windup":
 			_num(b, "kb", p, ctx, false, 0.0, 300.0)
 
@@ -1180,18 +1181,27 @@ static func gm_exec(o, b: Dictionary) -> void:
 				if not e.dead:
 					n += 1
 			var cut: float = minf(float(b.per) * float(n), float(b.max))
+			var rn: int = int(b.get("refresh_n", 0))
+			var refresh: bool = rn > 0 and n >= rn   # 11-07 用户批（docs/310 §5）：命中 ≥ refresh_n 名立即刷新一次冲刺（补满一格冷却）
+			if refresh:
+				cut = maxf(cut, float(g.dash_cd_full()))
 			var real: float = minf(cut, float(g.dash_cd))
 			if real <= 0.0 or g.ppos == Vector2.INF:
 				return
 			g.dash_cd = maxf(0.0, float(g.dash_cd) - real)
 			var gold := Color(1.0, 0.85, 0.35)
+			if refresh:   # 刷新提示：队长原地留一道金色残影 + 大金环（只画）
+				ncue(o, {"p": g.ppos, "shape": "ghost", "to": "@", "c": gold, "life": 0.5})
+				ncue(o, {"p": g.ppos, "shape": "ring", "r": 52.0, "r0": 14.0, "c": gold, "n": 10, "life": 0.45})
+				o.float_text(g.ppos + Vector2(0, -104), "居合 冲刺就绪", gold, 13)
 			o.fx({"kind": "ring", "pos": g.ppos + Vector2(0, 4), "r": 34.0, "r0": 10.0, "life": 0.3, "col": gold, "floor": true, "w": 3.0, "alpha": 0.95})
 			ncue(o, {"p": o.pos, "shape": "mote", "to": "@", "c": gold})   # 居合：金色光点从她飞到队长，到手一圈金环（转平面下上面的环 / 光点不画，docs/310 §2）
 			ncue(o, {"p": g.ppos, "shape": "ring", "r": 34.0, "r0": 10.0, "c": gold, "n": 6, "life": 0.4})
 			for k in 4:   # 冲刺条刻度：四粒金色光点从她的位置飞向队长
 				var from: Vector2 = o.pos + Vector2(0, -20)
 				o.fx({"kind": "mote", "pos": from, "vel": (g.ppos + Vector2(0, -20) - from) * 3.0 + Vector2(0, -20), "life": 0.33, "col": gold, "sz": 2.4})
-			o.float_text(g.ppos + Vector2(0, -104), "居合 -%.1f 秒" % real, gold, 13)
+			if not refresh:
+				o.float_text(g.ppos + Vector2(0, -104), "居合 -%.1f 秒" % real, gold, 13)
 		"verb.break_windup":
 			# 破绽：命中的普通敌人（非精英 / Boss）正在前摇 → 打断（作废预警、清蓄力 / 冲刺 / 环弹 / 引信）+ 小击退，不眩晕
 			var kb: float = float(b.get("kb", 60.0))

@@ -191,11 +191,17 @@ func check_growth(game, op, at: Vector2) -> void:
 		var raw: float = op.base("atk", 0.0) * op._dmg_bonus()
 		op.follow(1.0 / 60.0, op.pos)
 		if op.elite == 0:
-			check(game.bullets.size() == 1 and op.hw.shells.is_empty(), "E0 stays one main fireball after every E0 growth node")
-			var expected: float = 1.0 if node_index == 0 else 1.6
-			check(game.bullets.size() == 1 and is_equal_approx(float(game.bullets[0].dmg), raw * expected), "E0 twin-cast damage node=%d actual=%s raw=%f atk=%s" % [node_index, str(game.bullets.map(func(b): return b.dmg)), raw, str(op.loc.atk)])
+			# 复咏精零（11-07 用户批，docs/310 §5）：拿到节点后精零也投 2 发，第二发 ×0.6 打同一目标（原来单发 ×1.6）
+			var twin: bool = node_index > 0   # 节点 1 = 复咏
+			check(game.bullets.size() == 1 and op.hw.shells.size() == (1 if twin else 0), "E0 main fireball + twin-cast second shell node=%d shells=%d" % [node_index, op.hw.shells.size()])
+			check(game.bullets.size() == 1 and is_equal_approx(float(game.bullets[0].dmg), raw), "E0 first shot keeps base damage node=%d actual=%s raw=%f atk=%s" % [node_index, str(game.bullets.map(func(b): return b.dmg)), raw, str(op.loc.atk)])
 			check(game.bullets.size() == 1 and game.bullets[0].get("hw_fireball", false), "E0 snapshots its fireball presentation when launched")
 			if node_index == 0 and game.bullets.size() == 1: initial = game.bullets[0].duplicate()
+			if twin and game.bullets.size() == 1:
+				var vt0: Vector2 = game.bullets[0].vt
+				Blocks._hw2_tick(op, 0.13)
+				check(game.bullets.size() == 2 and is_equal_approx(float(game.bullets[-1].dmg), raw * 0.6), "E0 twin-cast second shot is 0.6 damage")
+				check(game.bullets.size() == 2 and Vector2(game.bullets[-1].vt).distance_to(vt0) < 1.0, "E0 twin-cast second shot aims at the same target")
 		elif op.elite == 1:
 			check(is_equal_approx(float(op.loc.atk), 1.0), "E1 removes E0-only single-shot multiplier")
 			check(game.bullets.size() == 1 and op.hw.shells.size() == 1, "E1 retains the second magma projectile")

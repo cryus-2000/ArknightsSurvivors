@@ -7,6 +7,7 @@
 ##   burst  只有火花（不画环）：碎片 / 火星四散
 ##   mark   跟随敌人的四角准星（目标被选中 / 被标记），轻微收紧
 ##   mote   一颗带尾光点从 p 飞向干员 to（技力 / 回复「交给谁」）；to 为 "*" 时飞向全部其他干员、"@" 飞向队长
+##   ghost  队长（to 缺省 "@"，或干员 id）在 p 处留一份当前帧的着色残影，向上飘散（德克萨斯居合刷新冲刺）
 ## 节拍按 15 fps 跳格（同其余转平面件），同屏至多 CAP 个，超出顶掉最旧的。
 extends RefCounted
 
@@ -30,6 +31,13 @@ static func push(r, o, d: Dictionary) -> void:
 		"n": int(d.get("n", 6)), "seed": int(absf(pos.x) * 7.0 + absf(pos.y) * 13.0) % 997}
 	if d.has("fe") and d.fe is Dictionary:
 		base["fe"] = d.fe
+	if sh == "ghost":
+		var who = _who(r, str(d.get("to", "@")))
+		if who == null:
+			return
+		base["to"] = str(who.id)
+		base["st"] = who.anim_state()   # 推入时的那一帧（残影定格，不跟着本体换帧）
+		base["flip"] = float(who.face) < 0.0
 	if sh == "mote":
 		var to: String = str(d.get("to", "@"))
 		var tos: Array = []
@@ -49,6 +57,12 @@ static func push(r, o, d: Dictionary) -> void:
 			k += 1
 		return
 	_add(r, base)
+
+
+static func _who(r, to: String):
+	if to == "@":
+		return r.g.squad.leader()
+	return r._op(to)
 
 
 static func _add(r, it: Dictionary) -> void:
@@ -175,6 +189,15 @@ static func draw_up(r, ci, it: Dictionary) -> void:
 							r._px(ci, pv, lt if j == 0 else mc)
 			if u < 0.5:
 				r._glow(cc, col)
+		"ghost":
+			var who = r._op(str(it.get("to", "")))
+			if who == null or (it.get("st", {}) as Dictionary).is_empty():
+				return
+			var gc: Color = col.lightened(0.35)
+			gc.a = a * 0.75
+			who.draw_body_at((c + Vector2(0, -px * floor(u * 4.0))).round(), bool(it.flip), gc, it.st)
+			if u < 0.5:
+				r._glow(c + Vector2(0, -20), col)
 		"mote":
 			var to = r._op(str(it.get("to", "")))
 			var dst: Vector2 = r.g.ppos if str(it.get("to", "")) == "@" or to == null else to.pos

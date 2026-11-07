@@ -92,7 +92,9 @@ static func hw_shell_fire(o, b: Dictionary, is_atk: bool) -> void:
 		if not cond_true(o, f.get("cond", _ED)):
 			continue
 		var n: int = int(f.get("n", 1))
-		var tos: Array = _hw_extra_targets(o, b, ts[0], n)
+		var tos: Array = _hw_extra_targets(o, b, ts[0], n) if not f.get("same", false) else []
+		while tos.size() < n:   # same：后续弹都打首发目标（艾雅法拉复咏精零，docs/310 §5）
+			tos.append(ts[0].pos)
 		for k in n:
 			h.shells.append({"t": float(f.get("gap", 0.12)) * (k + 1), "to": tos[k], "pre": pre * float(f.get("mult", 1.0)), "aoe": aoe * float(f.get("aoe_mult", 1.0)),
 				"sz": float(f.get("sz", 1.0)), "oe": oe, "b": b, "tip": tip - o.pos})
