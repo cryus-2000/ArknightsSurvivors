@@ -528,7 +528,7 @@ func _move_master(_dt: float) -> Vector2:
 	if bg != Vector2.INF:
 		goal = bg
 		beacon_hold = Vector2.INF   # 目标换成 Boss 站位，灯标不再加权
-	var gap_dir := _master_gap(p, near)
+	var gap_dir := Vector2.ZERO if (h_on and h_tune.gap <= 0.0) else _master_gap(p, near)   # human：真人不会找最大缺口突围
 	if gap_dir != Vector2.ZERO:
 		goal = gap_dir if goal == Vector2.ZERO else (goal * 0.4 + gap_dir).normalized()
 		beacon_hold = Vector2.INF
@@ -873,7 +873,8 @@ func _bdbg(p: Vector2, here: float) -> void:
 var h_on := false
 var h_tune := {"blind_p": 0.3, "blind_win": 0.6, "warn_lag": 0.25, "bullet_w": 0.6, "dash_wait": 1.4,
 	"ult_hold_lo": 5.0, "ult_hold_hi": 35.0, "point_every": 45.0, "mob_pick": 3.0,
-	"keep": 85.0, "keep_melee": 45.0, "boss_lo": 120.0, "boss_hi": 200.0, "boss_hp": 0.25, "still_p": 0.04, "still_lo": 0.3, "still_hi": 0.8}
+	"keep": 85.0, "keep_melee": 45.0, "boss_lo": 120.0, "boss_hi": 200.0, "boss_hp": 0.25, "still_p": 0.04, "still_lo": 0.3, "still_hi": 0.8,
+	"autopilot": 1.0, "gap": 0.0}
 var h_blind := 0.0        # >0：分心窗口剩余秒数（不看预警 / 弹幕）
 var h_win_t := 0.0        # 下一次判定「这一段看不看屏幕」的倒计时
 var h_still_t := 0.0      # >0：停步剩余秒数
@@ -922,7 +923,11 @@ func _move_human(dt: float) -> Vector2:
 	if h_still_t > 0.0:
 		h_still_t -= dt
 		return Vector2.ZERO
-	var d := _move_master(dt)
+	var d := Vector2.ZERO
+	if h_blind > 0.0 and h_tune.autopilot > 0.0:
+		d = last_dir   # 分心窗口：不重新规划，沿原方向直走（真人接触伤害占比 35%，master 打分走位只有 15–19%）
+	else:
+		d = _move_master(dt)
 	# 冲刺当走路用（真人 23 次 / 分，cd 1.2 秒）：冲刺好了以后等 0–2×dash_wait 秒，朝当前走的方向冲；master 的躲招冲刺照常
 	if h_tune.dash_wait >= 0.0 and d != Vector2.ZERO and g.dash_ready() and g.dash_t <= 0.0:
 		if h_dash_at < 0.0:
