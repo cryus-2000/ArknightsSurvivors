@@ -1,6 +1,8 @@
 ## 羁绊技第四轮画面（docs/314，11-07 用户选定的五条：狼衔剑 / 串刺 / 击锯 / 钉桩回旋 / 收力一剑）。
 ## 概念动画在 tools/pixelfx_fx/bond/*.js（用户看过的 GIF）；这里按同一套时序在运行时逐格画（2 px 格，硬边，不旋转贴图像素），
 ## 时刻与位置函数全取 run/bond2.gd（B2.rv_wolf / td_head / fn_saw / vx_anchor / ls_anchor），玩法与画面不会对不上。
+## 11-07 用户「不要用本身的武器」：飞出去的长槊 / 锚 / 锯刃 / 巨剑都是凝出来的虚影（半透明、亮边、滴水 / 碎光），本人只做一下出手手势、普攻照打；
+## 德克萨斯的剑本是源石技艺凝出的剑（剑雨同源）、狼影是拉普兰德唤出的，照旧实心。
 ## 只画：读 fx_bond2 的 items（k = "b3"），不碰玩法、不抽玩法随机数。颗粒 / 照地光走 fx_bond2 的 due（fx_recipe 颗粒池）。
 extends RefCounted
 
@@ -123,13 +125,28 @@ static func _sword(r, ci, h: Vector2, an: float, L: float, al := 1.0) -> void:
 		r._glow(h.lerp(tip, 0.25 + 0.2 * float(i)), TX[4])
 
 
+## 巨剑虚影（斯卡蒂）：剑柄 h、角 an、长 L；半透明深海蓝 + 白芯
+static func _ghost_blade(r, ci, h: Vector2, an: float, L: float, al: float) -> void:
+	var d := Vector2.from_angle(an)
+	_bar(r, ci, h + d * 16.0, h + d * L, 9.0, [SK[6], SK[4], SK[2]], al * 0.8)
+	_bar(r, ci, h - d.orthogonal() * 16.0 + d * 14.0, h + d.orthogonal() * 16.0 + d * 14.0, 2.0, [SK[5], SK[3], SK[1]], al * 0.8)
+	for i in 4:
+		r._glow(h + d * L * (0.3 + 0.2 * float(i)), SK[5])
+
+
 ## 长槊：槊尖 p、朝向 d、杆长 L；歌蕾蒂娅钢蓝 + 倒刺
-static func _spear(r, ci, p: Vector2, d: Vector2, L: float, al := 1.0) -> void:
-	_bar(r, ci, p - d * L, p - d * 12.0, 3.0, [GL[5], GL[3], GL[1]], al)
+static func _spear(r, ci, p: Vector2, d: Vector2, L: float, al := 1.0) -> void:   # 水凝的长槊（虚影）
+	al *= 0.85
+	_bar(r, ci, p - d * L, p - d * 12.0, 3.0, [WATER, GL[4], GL[2]], al)
+	var px: float = r.g.PX
+	var bt: int = int(floor(r.g.t * 15.0))
+	for i in 10:   # 杆上往下滴的水珠（按拍换位置）
+		var hz: float = fposmod(sin(float(i * 7 + bt) * 12.9898) * 43758.5453, 1.0)
+		r._cell(ci, p - d * L * hz + Vector2(0, px * (2.0 + float((i + bt) % 4))), Color(WATER, al * 0.7))
 	var nv: Vector2 = d.orthogonal()
 	for k in 7:
 		var w: float = 11.0 * (1.0 - float(k) / 7.0)
-		_ln(r, ci, p - d * (14.0 - float(k) * 2.0) + nv * w, p - d * (14.0 - float(k) * 2.0) - nv * w, Color(GL[6] if k > 4 else GL[5], al))
+		_ln(r, ci, p - d * (14.0 - float(k) * 2.0) + nv * w, p - d * (14.0 - float(k) * 2.0) - nv * w, Color(GL[6] if k > 4 else WATER, al))
 	_ln(r, ci, p - d * 20.0 + nv * 10.0, p - d * 12.0 + nv * 4.0, Color(GL[4], al))
 	_ln(r, ci, p - d * 20.0 - nv * 10.0, p - d * 12.0 - nv * 4.0, Color(GL[4], al))
 	r._glow(p, GL[5])
@@ -145,14 +162,14 @@ static func _saw(r, ci, p: Vector2, R: float, sp: float, hot: bool, al := 1.0) -
 			var dd: float = Vector2(x, y).length()
 			if dd > float(n):
 				continue
-			var c: Color = STEEL[1] if dd > float(n) - 2.5 else (STEEL[2] if x + y < -n / 2 and dd < float(n) * 0.5 else STEEL[0])
-			r._cell(ci, p + Vector2(x, y) * px, Color(c, al))
+			var c: Color = SPP[5] if dd > float(n) - 2.5 else (WATER if x + y < -n / 2 and dd < float(n) * 0.5 else SPP[2])   # 凝出的锯刃（虚影）：幽灵鲨蓝半透明身 + 亮边
+			r._cell(ci, p + Vector2(x, y) * px, Color(c, al * (0.95 if dd > float(n) - 2.5 else 0.6)))
 	for i in 12:
 		var an: float = sp + TAU * float(i) / 12.0
 		var dv := Vector2.from_angle(an)
 		var tg := Vector2.from_angle(an + PI * 0.5)
 		for k in 3:
-			r._cell(ci, p + dv * (R + float(k) * px) + tg * float(k) * px, Color(SPA if i % 2 == 0 else STEEL[2], al))
+			r._cell(ci, p + dv * (R + float(k) * px) + tg * float(k) * px, Color(SPA if i % 2 == 0 else SPP[5], al * 0.9))
 	if hot:
 		for i in 4:
 			r._glow(p + Vector2.from_angle(sp + float(i) * 1.57) * R, SPA)
@@ -165,8 +182,9 @@ static func _anchor(r, ci, p: Vector2, an: float, sc: float, al := 1.0) -> void:
 		return
 	var sz: Vector2 = tex.get_size() * sc
 	ci.draw_set_transform(r._snap(p), an, Vector2.ONE)
-	ci.draw_texture_rect(tex, Rect2(Vector2(-sz.x * 0.5, -sz.y), sz), false, Color(1, 1, 1, al))
+	ci.draw_texture_rect(tex, Rect2(Vector2(-sz.x * 0.5, -sz.y), sz), false, Color(0.55, 0.8, 1.45, 0.82 * al))   # 凝出的锚（虚影）：深海蓝提亮、半透明
 	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	r._glow(p + Vector2.from_angle(an - PI * 0.5) * sz.y * 0.5, ULP[5])
 
 
 ## 锚链：一环横一环竖（3 × 4 格），sag = 中段下垂
@@ -310,11 +328,11 @@ static func _tide(r, ci, a: Dictionary, t: float, gd: bool) -> void:
 	var sa: float = t - B2.TD_SAW + 0.06
 	if sa > 0.0 and sa < 0.34:   # 幽灵鲨一刀锯开：从头顶往下劈过槊线的带齿月牙
 		var sp = a.who.specter_unchained
-		var c0: Vector2 = _pos(sp, a.P) + Vector2(0, -40)
+		var c0: Vector2 = Vector2(a.P) + Vector2(-30, -90)   # 锯刃虚影直接在槊经过处劈下（她本人不挥）
 		var k: float = 1.0 - pow(1.0 - clampf(sa / 0.08, 0.0, 1.0), 4.0)
 		var fade2: float = 1.0 - clampf((sa - 0.1) / 0.24, 0.0, 1.0)
 		var base: float = (Vector2(a.P) - c0).angle()
-		_crescent(r, ci, c0, maxf(80.0, c0.distance_to(a.P) + 20.0), base - 1.3, base - 1.3 + 2.6 * k, 16.0, [SPP[6], SPP[5], SPP[3]], fade2, true)
+		_crescent(r, ci, c0, 100.0, base - 1.3, base - 1.3 + 2.6 * k, 18.0, [SPP[6], SPP[5], SPP[3]], fade2 * 0.85, true)
 
 
 # ================================================================ 双鳍「击锯」
@@ -359,11 +377,13 @@ static func _fins(r, ci, a: Dictionary, t: float, gd: bool) -> void:
 	# 斯卡蒂挥棒：举剑一拍 → 一拍抡出的大月牙
 	var K: Vector2 = _pos(sk, H) + Vector2(0, -30)
 	var sw: float = t - (B2.FN_BAT - 0.05)
+	var base: float = (A - K).angle()
+	var Kg: Vector2 = K + Vector2(-26.0 * signf(d.x + 0.001), -20.0)   # 虚影剑柄浮在她身侧
 	if sw > -0.22 and sw < 0.0:
-		_bar(r, ci, K, K + Vector2(-50.0 * signf(d.x + 0.001), -60.0), 3.0, [SK[6], SK[4], SK[2]], 1.0)
+		_ghost_blade(r, ci, Kg, base - 1.6, 170.0, clampf((sw + 0.22) / 0.12, 0.0, 1.0))
 	if sw >= 0.0 and sw < 0.3:
 		var k4: float = 1.0 - pow(2.0, -10.0 * clampf(sw / 0.06, 0.0, 1.0))
-		var base: float = (A - K).angle()
+		_ghost_blade(r, ci, Kg, base - 1.6 + 2.4 * k4, 170.0, 1.0 - clampf((sw - 0.06) / 0.24, 0.0, 1.0))
 		_crescent(r, ci, K, maxf(70.0, K.distance_to(A) + 10.0), base - 1.6, base - 1.6 + 2.4 * k4, 22.0, [SK[6], SK[5], SK[3]], 1.0 - clampf((sw - 0.06) / 0.24, 0.0, 1.0))
 	if t > B2.FN_BAT and t < B2.FN_BAT + 0.07:
 		for i in 20:
@@ -465,11 +485,13 @@ static func _lesson(r, ci, a: Dictionary, t: float, gd: bool) -> void:
 	# 斯卡蒂一剑：举剑 → 从头顶劈到那一堆上的大月牙（只到堆边）
 	var K: Vector2 = _pos(sk, Pp) + Vector2(0, -30)
 	var sw: float = t - B2.LS_CUT + 0.05
+	var base: float = (Pp - K).angle()
+	var Kg: Vector2 = K + Vector2(0, -24.0)
 	if sw > -0.2 and sw < 0.0:
-		_bar(r, ci, K, K + Vector2(-20.0, -70.0), 3.0, [SK[6], SK[4], SK[2]], 1.0)
+		_ghost_blade(r, ci, Kg, base - 2.0, 170.0, clampf((sw + 0.2) / 0.1, 0.0, 1.0))
 	if sw >= 0.0 and sw < 0.28:
 		var k5: float = 1.0 - pow(2.0, -10.0 * clampf(sw / 0.05, 0.0, 1.0))
-		var base: float = (Pp - K).angle()
+		_ghost_blade(r, ci, Kg, base - 2.0 + 2.1 * k5, 170.0, 1.0 - clampf((sw - 0.06) / 0.22, 0.0, 1.0))
 		_crescent(r, ci, K, maxf(70.0, K.distance_to(Pp) + 10.0), base - 2.0, base - 2.0 + 2.1 * k5, 24.0, [SK[6], SK[5], SK[3]], 1.0 - clampf((sw - 0.06) / 0.22, 0.0, 1.0))
 	if t > B2.LS_CUT and t < B2.LS_CUT + 0.07:
 		for i in 20:

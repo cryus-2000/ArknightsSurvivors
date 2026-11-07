@@ -329,7 +329,7 @@ static func _rival(u, a: Dictionary, t: float) -> bool:
 		if _ok(lp):
 			lp.play_vis_anim("skill")
 		if _ok(tx):
-			tx.play_vis_anim("attack")
+			tx.play_vis_anim("skill")
 		_sfx(u.g, "ult_lappland_impact", -6.0, 0.8)
 	var drv = lp if _ok(lp) else tx
 	if t >= RV_DROP and _once(a, "drop"):
@@ -481,7 +481,7 @@ static func _lesson(u, a: Dictionary, t: float) -> bool:
 	var hu = ul if _ok(ul) else sk
 	if _once(a, "go"):
 		if _ok(ul):
-			ul.play_vis_anim("attack")
+			ul.play_vis_anim("skill")
 		_sfx(u.g, "op_ulpianus_flesh_1", -5.0, 0.8)
 	if t >= LS_BITE and _once(a, "bite"):
 		_sfx(u.g, "ult_texas_impact", -6.0, 0.6)
@@ -502,7 +502,7 @@ static func _lesson(u, a: Dictionary, t: float) -> bool:
 		a["hook"] = hook
 	if t >= LS_CUT - 0.18 and _once(a, "sk"):
 		if _ok(sk):
-			sk.play_vis_anim("attack")
+			sk.play_vis_anim("skill")
 	if t >= LS_CUT and _once(a, "cut"):
 		_sfx(u.g, "op_skadi_flesh_1", -3.0, 0.85)
 		for e in u.in_circle(a.Pp, float(a.r)):
@@ -536,7 +536,7 @@ static func _tide(u, a: Dictionary, t: float) -> bool:
 	var gw = gl if _ok(gl) else sp
 	if _once(a, "go"):
 		if _ok(gl):
-			gl.play_vis_anim("attack")
+			gl.play_vis_anim("skill")
 		_sfx(u.g, "op_gladiia_flesh_1", -5.0, 0.9)
 	var d: Vector2 = (Vector2(a.E) - Vector2(a.G)).normalized()
 	if t >= TD_THROW and t < TD_STICK + 0.03:
@@ -568,7 +568,7 @@ static func _tide(u, a: Dictionary, t: float) -> bool:
 				gw.apply_kb(e, dv.normalized() * minf(dv.length() * 2.2, 420.0))
 	if t >= TD_SAW - 0.1 and _once(a, "sp"):
 		if _ok(sp):
-			sp.play_vis_anim("attack")
+			sp.play_vis_anim("skill")
 	if t >= TD_SAW and _once(a, "saw"):
 		_sfx(u.g, "op_specter_unchained_flesh_1", -3.0, 0.9)
 		var hs: Dictionary = {}
@@ -608,7 +608,7 @@ static func _vortex(u, a: Dictionary, t: float) -> bool:
 	var hu = ul if _ok(ul) else gl
 	if _once(a, "go"):
 		if _ok(gl):
-			gl.play_vis_anim("attack")
+			gl.play_vis_anim("skill")
 		_sfx(u.g, "op_gladiia_flesh_1", -5.0, 0.8)
 	if t >= VX_STAKE and _once(a, "stake"):
 		_sfx(u.g, "ult_texas_impact", -7.0, 0.8)
@@ -616,7 +616,7 @@ static func _vortex(u, a: Dictionary, t: float) -> bool:
 			_hit(u, gl if _ok(gl) else ul, e, Bal.v("bond2/vx_stake", 0.3), "钉桩回旋", a)
 	if t >= VX_THROW - 0.06 and _once(a, "ul"):
 		if _ok(ul):
-			ul.play_vis_anim("attack")
+			ul.play_vis_anim("skill")
 		_sfx(u.g, "op_ulpianus_flesh_1", -5.0, 0.7)
 	if t >= VX_WRAP and t < VX_SLAM:
 		var p: Vector2 = vx_anchor(a, t)
@@ -656,11 +656,11 @@ static func _fins(u, a: Dictionary, t: float) -> bool:
 	var bw = sk if _ok(sk) else sp
 	if _once(a, "go"):
 		if _ok(sp):
-			sp.play_vis_anim("attack")
+			sp.play_vis_anim("skill")
 		_sfx(u.g, "op_specter_unchained_flesh_1", -6.0, 1.1)
 	if t >= FN_BAT - 0.15 and _once(a, "sk"):
 		if _ok(sk):
-			sk.play_vis_anim("attack")
+			sk.play_vis_anim("skill")
 	if t >= FN_BAT and _once(a, "bat"):
 		_sfx(u.g, "op_skadi_flesh_1", -3.0, 0.8)
 	if t >= FN_GO and t < FN_END + 0.03:
