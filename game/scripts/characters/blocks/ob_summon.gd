@@ -80,6 +80,8 @@ static func sm_exec(o, b: Dictionary, at: Vector2) -> void:
 			sm_spawn(o, b, at)
 		"verb.shield":
 			shield_add(o, b)
+			if b.get("cue") is Dictionary and o.g.ppos != Vector2.INF:   # 成长节点专属提示（docs/310 §4.2，只画）：护盾加到队长身上
+				cue_shape(o, b.cue, o.g.ppos, 30.0)
 
 
 # ---------------------------------------------------------------- 召唤物

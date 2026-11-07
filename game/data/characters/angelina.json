@@ -922,6 +922,7 @@
        "verb": "affect",
        "center": "target",
        "r": "$pull_r",
+       "cue": {"shape": "in", "c": "#c080ff", "rk": 1.0, "n": 6, "life": 0.4},
        "on_hit": [
         {
          "st": "stun",

@@ -2995,6 +2995,7 @@
         "mult": "$melt4_mult",
         "power": true,
         "src": "Mon3tr · 熔毁",
+        "cue": {"shape": "ring", "c": "#ff6a2a", "rk": 1.0, "r0k": 0.55, "n": 5, "life": 0.35},
         "tags": [
          "skill",
          "dot"
@@ -3026,6 +3027,7 @@
         "mult": "$melt4_mult",
         "power": true,
         "src": "Mon3tr · 熔毁",
+        "cue": {"shape": "ring", "c": "#ff6a2a", "rk": 1.0, "r0k": 0.55, "n": 5, "life": 0.35},
         "tags": [
          "skill",
          "dot"

@@ -294,6 +294,8 @@ static func hw_affect(o, b: Dictionary, at: Vector2) -> void:
 		return
 	var rv = b.get("r", "hit")
 	var r: float = float(_hw2(o).hit_r) if str(rv) == "hit" else float(rv) * o.stat(&"op_range")
+	if b.get("cue") is Dictionary:   # 成长节点专属提示（docs/310 §4.2，只画）
+		cue_shape(o, b.cue, c, r)
 	for e in o.arc_targets(c, 0.0, PI, r):
 		if e.dead:
 			continue

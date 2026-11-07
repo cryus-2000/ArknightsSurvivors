@@ -1315,6 +1315,7 @@
     "do": [
      {
       "verb": "shield",
+      "cue": {"shape": "ring", "c": "#7fd8ff", "rk": 1.3, "r0k": 0.5, "n": 4, "life": 0.35},
       "pct": "$shield_pct",
       "cap": "$shield_cap",
       "dur": "$shield_dur"
@@ -1328,6 +1329,7 @@
     "do": [
      {
       "verb": "shield",
+      "cue": {"shape": "ring", "c": "#7fd8ff", "rk": 1.3, "r0k": 0.5, "n": 4, "life": 0.35},
       "pct": "$shield_pct",
       "cap": "$shield_cap",
       "dur": "$shield_dur",

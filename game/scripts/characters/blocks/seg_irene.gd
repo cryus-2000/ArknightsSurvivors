@@ -291,6 +291,9 @@ static func h3_launch(o, e: Dictionary, dur: float, h: float) -> void:
 	ir.air.append({"e": e, "t": 0.0, "dur": dur, "h": h})
 	o.add_cc(e, dur, -INF, "airborne")
 	_FXR.ev(o, "ir_launch", {"en": e, "h": h})   # 转平面（docs/272）：挑刺细弧，只画
+	if h <= 12.0:   # 精一挑刺（高 10）：被挑起的那只身上一枚金白准星 + 一簇向上的火星（docs/310 §4.2，原来只有细弧）
+		ncue(o, {"p": e.pos, "fe": e, "shape": "mark", "c": Color(1.0, 0.9, 0.6), "life": maxf(0.35, dur)})
+		ncue(o, {"p": e.pos, "fe": e, "shape": "burst", "r": float(e.r) + 8.0, "r0": 4.0, "c": Color(1.0, 0.85, 0.5), "n": 5, "life": 0.3})
 
 
 static func _h3_is_air(o, e: Dictionary) -> bool:

@@ -1257,6 +1257,7 @@
       "center": "leader",
       "r": "$block_kb_r",
       "kb": 0,
+      "cue": {"shape": "ring", "c": "#ffe08a", "rk": 1.0, "r0k": 0.35, "n": 8, "life": 0.35},
       "on_hit": [
        {
         "st": "stun",

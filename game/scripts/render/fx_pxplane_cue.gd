@@ -10,11 +10,15 @@
 ## 节拍按 15 fps 跳格（同其余转平面件），同屏至多 CAP 个，超出顶掉最旧的。
 extends RefCounted
 
+const Bal = preload("res://scripts/core/balance.gd")
+
 const CAP := 32
 const SY := 0.62   # 贴地环纵向压扁（同地面椭圆）
 
 
 static func push(r, o, d: Dictionary) -> void:
+	if Bal.v("fx/node_cue", 1.0) <= 0.0:   # 0 = 关（选前 / 选后同帧对照用，docs/310）
+		return
 	var c: Color = d.get("c", Color(-1, 0, 0))
 	if c.r < 0.0:
 		var p: Dictionary = load("res://scripts/render/fx_recipe.gd").of(r.g).pal(o)
@@ -120,8 +124,8 @@ static func sort_items(r, out: Array) -> void:
 		if float(r.g.t) < float(it.t0):
 			continue
 		var y: float = _pos(it).y + 1.0
-		if str(it.shape) == "mote":
-			y = 1e6   # 飞向队友的光点压在最上面（跨越整屏）
+		if str(it.shape) == "mote" or str(it.shape) == "mark":
+			y = 1e6   # 飞向队友的光点（跨越整屏）与准星（套在敌人身上，不能被敌人本体盖住）压在最上面
 		out.append({"cue": it, "skey": y})
 
 
@@ -154,15 +158,22 @@ static func draw_up(r, ci, it: Dictionary) -> void:
 		"mark":
 			var e: Dictionary = it.get("fe", {})
 			var er: float = float(e.get("r", 14.0)) if not e.is_empty() else 14.0
-			var h: float = er * (1.25 - 0.35 * minf(1.0, u * 3.0))
+			var h: float = er * (1.6 - 0.45 * minf(1.0, u * 3.0)) + px * 3.0
 			var cc: Vector2 = c + Vector2(0, -er * 0.55)
+			var dk: Color = col.darkened(0.6)
+			dk.a = a
 			for sx in [-1.0, 1.0]:
-				for sy2 in [-1.0, 1.0]:
+				for sy2 in [-1.0, 1.0]:   # 四角 L 形：每条臂 3 美术像素、2 像素粗，外圈暗边
 					var k0: Vector2 = cc + Vector2(sx * h, sy2 * h * 0.85)
-					r._px(ci, k0, lt)
-					r._px(ci, k0 - Vector2(sx * px, 0), mc)
-					r._px(ci, k0 - Vector2(0, sy2 * px), mc)
-			if u < 0.4:
+					for j in 5:
+						for w in 2:
+							var ph: Vector2 = k0 - Vector2(sx * px * j, sy2 * px * w)
+							var pv: Vector2 = k0 - Vector2(sx * px * w, sy2 * px * j)
+							r._px(ci, ph + Vector2(0, sy2 * px), dk)
+							r._px(ci, pv + Vector2(sx * px, 0), dk)
+							r._px(ci, ph, lt if j == 0 else mc)
+							r._px(ci, pv, lt if j == 0 else mc)
+			if u < 0.5:
 				r._glow(cc, col)
 		"mote":
 			var to = r._op(str(it.get("to", "")))

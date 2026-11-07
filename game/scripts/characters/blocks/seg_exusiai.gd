@@ -521,6 +521,7 @@ static func _exu_bullets(o, dt: float) -> void:
 					spawn.append({"p": from, "v": (nx.pos + Vector2(0, EXU_AIM_Y) - from).normalized() * spd, "life": float(ric.get("r", 120.0)) * 1.4 / spd,
 						"dmg": bu.dmg * float(ric.get("mult", 0.5)), "src": str(ric.get("src", "")), "tags": [], "pierce": 0, "hit": {e.id: true},
 						"tex": bu.tex, "hfx": bu.get("hfx", "fx_exusiai_hit"), "on_hit": [], "ric": false})
+					ncue(o, {"p": e.pos, "fe": e, "shape": "burst", "r": float(e.r) + 10.0, "r0": 4.0, "c": Color(1.0, 0.82, 0.3), "n": 5, "life": 0.3})   # 跳弹：弹开那一下迸一簇金色火花（docs/310 §4.2）
 			if bu.pierce > 0:
 				bu.pierce -= 1
 			else:
@@ -581,7 +582,7 @@ static func exu_exec(o, b: Dictionary, at: Vector2) -> void:
 				o.fx({"kind": "ring", "pos": o.pos + Vector2(0, -30), "r": 26.0, "r0": 8.0, "life": 0.3, "col": gold, "w": 3.0, "alpha": 0.95})
 				if at != Vector2.INF:   # 转平面下上面的环不画（docs/310 §2）：金色光点从倒下处飞回她的弹匣，到手一圈金环
 					ncue(o, {"p": at, "shape": "mote", "to": str(o.id), "c": gold})
-				ncue(o, {"p": o.pos, "shape": "ring", "r": 30.0, "r0": 8.0, "c": gold, "n": 6})
+				ncue(o, {"p": o.pos, "shape": "ring", "r": 44.0, "r0": 10.0, "c": gold, "n": 10, "life": 0.45})
 		"verb.attack_lock":
 			var st2 := exu_st(o)
 			st2.lock = maxf(float(st2.lock), float(b.get("dur", 0.0)))

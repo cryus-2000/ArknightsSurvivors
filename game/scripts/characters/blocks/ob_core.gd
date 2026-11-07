@@ -734,7 +734,9 @@ static func displace_at(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 		_F().fx_play(o, b.fx, c, r, hits)
 	elif not b.get("quiet", false):   # quiet：搭在别的爆点上时不再画默认圈（艾雅法拉熔岩弹击退，10-29）
 		o.fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.3, "life": 0.3, "col": o.col(), "floor": true, "w": 3.0, "alpha": 0.7})
-	if b.get("cue", false):   # 成长节点的拉拽 / 推开（docs/310 §2）：转平面下上面的默认圈不画，改发通用提示（拉 = 收缩环，推 = 扩散环）
+	if b.get("cue") is Dictionary:   # 数据给了颜色 / 形状（docs/310 §4.2）
+		cue_shape(o, b.cue, c, r)
+	elif b.get("cue", false):   # 成长节点的拉拽 / 推开（docs/310 §2）：转平面下上面的默认圈不画，改发通用提示（拉 = 收缩环，推 = 扩散环）
 		ncue(o, {"p": c, "shape": "in" if str(b.get("dir", "")) == "pull" else "ring", "r": r, "r0": r * 0.3, "n": 6, "life": 0.35})
 	return hits
 
