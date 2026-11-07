@@ -1,0 +1,6 @@
+634	chk_command_wheel.txt
+86	chk_summary.txt
+852	chk_touch_command.txt
+703	chk_touch_layout.txt
+624	chk_touch_move.txt
+691	chk_ui_smoke.txt

@@ -1,0 +1,5 @@
+touch_command rc=0
+ui_smoke rc=0
+touch_layout rc=0
+command_wheel rc=0
+touch_move rc=0
