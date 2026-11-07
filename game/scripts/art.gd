@@ -878,6 +878,23 @@ static func drop_outrun(keep: Dictionary) -> int:
 	return n
 
 
+## 连开两局（docs/319 §7，11-08 iPhone：第一局死 → 回标题 → 开第二局页面被系统杀）：第一次进标题时记下启动期的缓存键（boot_keys），
+## 手机网页离开一局（game._exit_tree）时把之后进缓存的全部拿掉——上一局的干员 / 招募 / 光学派生图 / 敌人帧条不带进下一局，
+## 下一局在载入页按新编队重读（载入慢几秒）
+static var boot_keys := {}
+
+static func mark_boot() -> void:
+	if boot_keys.is_empty():
+		boot_keys = cache_keys()
+		boot_keys["__marked"] = true
+
+
+static func drop_run() -> int:
+	if boot_keys.is_empty():
+		return 0
+	return drop_new(boot_keys)
+
+
 ## 当前缓存的键（图鉴打开时记一份，关时 drop_new 拿掉新增的）
 static func cache_keys() -> Dictionary:
 	var d := {}

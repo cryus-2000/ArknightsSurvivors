@@ -38,7 +38,11 @@ func _print_mem(tag: String) -> void:
 		Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0,
 		Sfx.sample_mem_mb(), get_tree().root.size, Cfg.render_scaled, Cfg.quality])
 	if OS.has_feature("web"):
-		print("PF MEMAUD %s %s" % [tag, Sfx.sample_report()])   # 网页样本按来源分组（docs/287 §3 ③）
+		print("PF MEMAUD %s %s" % [tag, Sfx.sample_report()])
+		var r = JavaScriptBridge.eval("(function(){var w=window.__syWasm,r={w:w&&w.buffer?w.buffer.byteLength:0};if(performance.memory){r.j=performance.memory.usedJSHeapSize}return JSON.stringify(r)})()", true)
+		var d = JSON.parse_string(str(r)) if r != null else null
+		if d is Dictionary:
+			print("PF MEMJS %s wasm=%.0fMB js=%.0fMB" % [tag, float(d.get("w", 0)) / 1048576.0, float(d.get("j", 0)) / 1048576.0])   # WASM 容量（只涨不缩）与 JS 堆：引擎显存统计看不到的那部分（docs/319 §7）   # 网页样本按来源分组（docs/287 §3 ③）
 	var sc = get_tree().current_scene
 	if sc != null and sc.has_method("view_size") and "cam" in sc and sc.cam != null:
 		var vp := get_viewport()

@@ -1708,6 +1708,7 @@ func _do_action(act: String) -> void:
 		"restart":
 			if trial.active:
 				trial.retry()
+			_restarting = true   # 直接重开不过载入页：离场释放保留同编队的固定名单（_release_run）
 			get_tree().reload_current_scene()
 		"title":
 			get_tree().change_scene_to_file("res://main.tscn")
@@ -2451,6 +2452,30 @@ func _exit_tree() -> void:
 		telemetry.on_exit()
 		if demo_op == "":
 			perf_rep.finish("quit")
+	if demo_op == "":
+		_release_run()
+
+
+## 手机网页离开一局（回标题 / 重开）：上一局读进静态缓存的贴图、局中补注册的音效与历史语音样本全部退掉（docs/319 §7）。
+## 同页连开第二局时原来叠在上一局残留上（iPhone 第二局开局被系统杀页）。--bal=web/mobile_run_release=0 退回
+var _restarting := false
+
+func _release_run() -> void:
+	if not (Cfg.mobile_web() and Cfg.mobile_knob("mobile_run_release", 1.0)) and not Cfg.dev_args().has("--runrelease"):
+		return
+	var nt := 0
+	if _restarting:
+		var keep := A.boot_keys.duplicate()
+		var skip_fx := _deferred_start_fx(lazy_fx)
+		for n in preload_tex_names():
+			if not skip_fx.has(n):
+				keep[str(n)] = true
+		nt = A.drop_new(keep)
+	else:
+		nt = A.drop_run()
+	var na: int = Sfx.release_run()
+	if not Cfg.dev_args().is_empty():
+		print("PF RUNRELEASE tex=%d audio=%d" % [nt, na])
 
 
 ## --prof：给某个绘制回调计时（HUD / 加色层 / 前景），不开 --prof 时直接调用
