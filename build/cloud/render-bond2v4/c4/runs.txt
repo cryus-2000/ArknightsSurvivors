@@ -1,0 +1,5 @@
+lesson rc=0 cast=23.1 270 帧 0 处脚本错误
+total 1496
+drwxr-xr-x 2 root root    4096 Nov  7 10:55 .
+drwxr-xr-x 4 root root    4096 Nov  7 10:55 ..
+-rw-r--r-- 1 root root 1520375 Nov  7 10:55 bond2_lesson.mp4
