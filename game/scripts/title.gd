@@ -495,7 +495,7 @@ func _ft_action(what: String) -> void:
 			FR.mark("gal_tab")
 			gallery._set_tab((gallery.tab + 1) % 3)
 		"go":
-			FR.mark("go")   # 直接出发（同难度页「出发」：预热 → 载入页 → 进局）；量「开过图鉴再进局」的内存（docs/314）
+			FR.mark("go")   # 直接出发（同难度页「出发」：预热 → 载入页 → 进局）；量「开过图鉴再进局」的内存（docs/319）
 			_prewarm()
 			leaving = 0.0
 		"close":
