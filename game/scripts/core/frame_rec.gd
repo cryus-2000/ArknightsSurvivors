@@ -53,6 +53,7 @@ func _print_mem(tag: String) -> void:
 		_print_tex_breakdown()
 
 
+var _memnew_prev := {}
 ## 贴图缓存（art.gd A._cache）按前缀分组的估算（宽 × 高 × 4 字节）与最大的 12 张
 func _print_tex_breakdown() -> void:
 	var A = load("res://scripts/art.gd")
@@ -143,6 +144,26 @@ func _print_tex_breakdown() -> void:
 	print("PF MEMHALF on=%s halved=%d kept2x=%d" % [A.half_enemy_on(), A.half_n, A.half_keep])
 	print("PF MEMTEX groups " + "  ".join(gs.slice(0, 12).map(func(k): return "%s=%.0fMB" % [k, groups[k]])))
 	print("PF MEMTEX top " + "  ".join(tops.slice(0, 12).map(func(x): return "%s(%s)=%.1f" % [x[1], x[2], x[0]])))
+	# 局内增长定位（11-08，docs/319 §9）：贴图缓存去重合计、与上一行比新进缓存的贴图（按大小）
+	var seen_a := {}
+	var sum_a := 0.0
+	var now_keys := {}
+	for n in A._cache:
+		var ta = A._cache[n]
+		if ta is Texture2D:
+			now_keys[n] = ta.get_width() * ta.get_height() * 4.0 / 1048576.0
+			if not seen_a.has(ta.get_instance_id()):
+				seen_a[ta.get_instance_id()] = true
+				sum_a += now_keys[n]
+	var news: Array = []
+	var new_mb := 0.0
+	for n in now_keys:
+		if not _memnew_prev.has(n):
+			news.append([now_keys[n], str(n)])
+			new_mb += now_keys[n]
+	news.sort_custom(func(x, y): return x[0] > y[0])
+	print("PF MEMSUM A=%.1fMB n=%d  new=%d (%.1fMB): %s" % [sum_a, now_keys.size(), news.size(), new_mb, "  ".join(news.slice(0, 24).map(func(x): return "%s=%.1f" % [x[1], x[0]]))])
+	_memnew_prev = now_keys
 
 
 static func mark(name: String) -> void:
