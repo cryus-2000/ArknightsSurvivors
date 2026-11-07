@@ -924,7 +924,8 @@ func _move_human(dt: float) -> Vector2:
 		h_still_t -= dt
 		return Vector2.ZERO
 	var d := Vector2.ZERO
-	if h_blind > 0.0 and h_tune.autopilot > 0.0:
+	var zone_edge: bool = g.zone_state != 0 and g.ppos.distance_to(g.zone_c) > g.zone_r - 90.0   # 缩圈边上真人会看圈（真人 0 局出圈死，h2c 7 / 84）
+	if h_blind > 0.0 and h_tune.autopilot > 0.0 and not zone_edge:
 		d = last_dir   # 分心窗口：不重新规划，沿原方向直走（真人接触伤害占比 35%，master 打分走位只有 15–19%）
 	else:
 		d = _move_master(dt)
