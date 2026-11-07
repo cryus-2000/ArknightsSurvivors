@@ -1,0 +1,10 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4857 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+lm cue=0 rc=0 911 张 0 处脚本错误
+lm cue=1 rc=0 911 张 0 处脚本错误
+帧数 911，有差 717，挑 [(2711, 6029), (2750, 6765), (2780, 7395), (2828, 8063), (3815, 5378), (3941, 5713), (4253, 5961), (4781, 7689)]
+lm gladiia 倒钩：触发 31 次，出图 2
+lm lumen 净化：触发 142 次，出图 2
+lm texas 技力：触发 309 次，出图 2
+media：7 个文件，9.4M

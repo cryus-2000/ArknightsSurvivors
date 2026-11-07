@@ -1,0 +1,6 @@
+1780427	real_gl.png
+1341071	real_gl_gladiia_倒钩_0.png
+1293561	real_gl_lumen_净化_0.png
+1293561	real_gl_lumen_净化_1.png
+1293408	real_gl_texas_技力_0.png
+1293727	real_gl_texas_技力_1.png
