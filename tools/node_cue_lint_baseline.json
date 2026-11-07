@@ -1,0 +1,81 @@
+{
+ "seg_angelina.gd": [
+  "lens_tick"
+ ],
+ "seg_exusiai.gd": [
+  "_exu_mark"
+ ],
+ "seg_eyjafjalla.gd": [
+  "_hw_lob_burst"
+ ],
+ "seg_gladiia.gd": [],
+ "seg_hoshiguma.gd": [
+  "gm_block_mark"
+ ],
+ "seg_irene.gd": [
+  "_h3_thrust_fx",
+  "_h3_vsparks"
+ ],
+ "seg_lappland.gd": [
+  "ll_wave_tick"
+ ],
+ "seg_logos.gd": [
+  "_hw3_bolts",
+  "_hw3_fan",
+  "_hw3_lock",
+  "_hw_draw_shots",
+  "_hw_lock_jump",
+  "hw_execute"
+ ],
+ "seg_lumen.gd": [
+  "_e3_beam_shot",
+  "_h3_rain_tick",
+  "_h3_tower_tick",
+  "_h3_units_tick"
+ ],
+ "seg_mizuki.gd": [
+  "h3_cast_push"
+ ],
+ "seg_saria.gd": [
+  "_h4_calcite",
+  "_h4_flow_tick",
+  "_h4_heal_fx",
+  "_h4_pillars_tick"
+ ],
+ "seg_siege.gd": [
+  "_h4_breach",
+  "_h4_crash_fx",
+  "_h4_hammer_after",
+  "_h4_hammer_release",
+  "_h4_quake",
+  "_h4_slam",
+  "_h4_sp_motes",
+  "_h4_spikes_tick",
+  "_h4_start_leap"
+ ],
+ "seg_skadi.gd": [
+  "_hw_blade",
+  "hw_fx_spawn"
+ ],
+ "seg_skalter.gd": [],
+ "seg_specter.gd": [
+  "_g202_blades_tick",
+  "_h3sp_tick"
+ ],
+ "seg_suzuran.gd": [
+  "_h4_attach",
+  "h4_fox_cast"
+ ],
+ "seg_texas.gd": [
+  "_tx_sweep"
+ ],
+ "seg_ulpianus.gd": [
+  "_hw_charge_sweep",
+  "_hw_drag_in",
+  "_hw_reel_arrive",
+  "_hw_sparks"
+ ],
+ "seg_wisadel.gd": [
+  "_wfx"
+ ]
+}

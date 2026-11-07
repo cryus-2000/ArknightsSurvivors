@@ -250,6 +250,7 @@ static func hw_ignite_blast(o, at: Vector2, r: float) -> void:
 		o.log_hit("熔岩天降", s.get("tags", []))
 		o.deal_damage(e, left)
 		o.fx({"kind": "ring", "pos": e.pos, "r": spread_r, "r0": float(e.r), "life": 0.3, "col": HW_ORANGE, "floor": true, "keep": true, "w": 2.5})
+		ncue(o, {"p": e.pos, "fe": e, "shape": "ring", "r": spread_r, "r0": float(e.r), "c": HW_ORANGE, "n": 10})   # 引燃：灼烧引爆的橙环 + 火星（转平面下上面的环 / 光 / 火星不画，docs/310 §2）
 		o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -float(e.r) * 0.4), "r": 18.0, "life": 0.22, "col": Color(2.4, 1.3, 0.5), "alpha": 0.85})
 		for k in 6:
 			o.fx({"kind": "spark", "pos": e.pos + Vector2(0, -float(e.r) * 0.4), "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(70.0, 150.0), "life": 0.3, "col": HW_ORANGE if k % 2 == 0 else HW_LAVA, "sz": 2.5})

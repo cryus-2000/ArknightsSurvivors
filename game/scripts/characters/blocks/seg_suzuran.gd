@@ -547,6 +547,7 @@ static func _h4_hearth_tick(o, sz: Dictionary, fl: Dictionary, hr: Dictionary) -
 			o.log_hit(str(hr.get("src", "")))
 			o.deal_damage(e, dmg)
 			o.fx({"kind": "flame", "pos": e.pos + Vector2(0, 4), "vel": Vector2(0, -30), "life": 0.3, "col": H4_FOX, "sz": 10.0})
+			ncue(o, {"p": e.pos, "fe": e, "shape": "burst", "r": float(e.r) + 8.0, "r0": float(e.r) * 0.4, "c": Color(1.0, 0.72, 0.35), "n": 5, "life": 0.3})   # 围炉灼伤：碰到的敌人身上窜一簇火星（转平面下上面的火苗不画，docs/310 §2）
 	if hh.size() > 200:
 		for key in hh.keys():
 			if hh[key] < g.t:

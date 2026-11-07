@@ -1189,7 +1189,8 @@
       "center": "self",
       "r": "$reach_skill*$beast2_r_k",
       "dist": "$beast2_dist",
-      "elite_mult": 0.5
+      "elite_mult": 0.5,
+      "cue": true
      }
     ]
    },

@@ -579,6 +579,9 @@ static func exu_exec(o, b: Dictionary, at: Vector2) -> void:
 				var gold := Color(1.0, 0.85, 0.35)
 				o.float_text(o.pos + Vector2(0, -78), "%s +%d" % [str(b.text), int(round(add))], gold, 14)
 				o.fx({"kind": "ring", "pos": o.pos + Vector2(0, -30), "r": 26.0, "r0": 8.0, "life": 0.3, "col": gold, "w": 3.0, "alpha": 0.95})
+				if at != Vector2.INF:   # 转平面下上面的环不画（docs/310 §2）：金色光点从倒下处飞回她的弹匣，到手一圈金环
+					ncue(o, {"p": at, "shape": "mote", "to": str(o.id), "c": gold})
+				ncue(o, {"p": o.pos, "shape": "ring", "r": 30.0, "r0": 8.0, "c": gold, "n": 6})
 		"verb.attack_lock":
 			var st2 := exu_st(o)
 			st2.lock = maxf(float(st2.lock), float(b.get("dur", 0.0)))

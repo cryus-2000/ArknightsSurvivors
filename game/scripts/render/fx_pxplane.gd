@@ -26,7 +26,8 @@ const IDS := {"logos": true, "skadi": true, "hoshiguma": true, "lumen": true, "e
 const GL = preload("res://scripts/render/fx_pxplane_gl.gd")   # 歌蕾蒂娅一节（docs/263）单独成文件
 const UL = preload("res://scripts/render/fx_pxplane_ul.gd")   # 乌尔比安一节（docs/266）单独成文件
 const KA = preload("res://scripts/render/fx_pxplane_kal.gd")   # 凯尔希一节（docs/265）单独成文件
-const SU = preload("res://scripts/render/fx_pxplane_su.gd")   # 归溟幽灵鲨一节（docs/268）单独成文件
+const SU = preload("res://scripts/render/fx_pxplane_su.gd")
+const CUE = preload("res://scripts/render/fx_pxplane_cue.gd")   # 成长节点通用提示（docs/310 §2）   # 归溟幽灵鲨一节（docs/268）单独成文件
 ## 接管时仍照画的原 pfx 帧条（状态提示，不属于攻击特效）：星熊格挡闪光、反击架势盾沿光
 const KEEP_PFX := {"hoshiguma": {"fx_hoshiguma_block": true, "fx_hoshiguma_guard_glow": true}, "gladiia": {"fx_gladiia_water_glide": true}}   # 歌蕾蒂娅水滑行是跑动拖尾，不属攻击特效
 const LM_C := [Color("#121a2a"), Color("#1d3150"), Color("#2a5282"), Color("#4285ad"), Color("#7fb2d6"), Color("#c4e0f2"), Color("#ffffff")]   # house.js OP.lumen 钢蓝 7 阶
@@ -38,6 +39,7 @@ const ITEM_MAX := 120   # 逻各斯（docs/258）消弹墨点 / 跳转笔较多�
 var g
 var meta := {}
 var tex := {}
+var cues: Array = []      # 成长节点通用提示件（fx_pxplane_cue.gd，docs/310 §2）
 var items: Array = []     # 一次性件：{k 帧条键, t0, gp 地面点, flip, ly up/gd, raw, rot, sc, oid}
 var _mode := 0
 var _mode_frame := -1
@@ -253,6 +255,10 @@ static func _snap(v: Vector2) -> Vector2:
 # ================================================================ 事件（fx_recipe._ev 转来；只记画面）
 
 func ev(o, kind: String, d: Dictionary) -> void:
+	if kind == "node_cue":   # 成长节点通用提示（docs/310 §2）：所有干员共用，不进各人分发
+		if mode() == 1:
+			CUE.push(self, o, d)
+		return
 	var raw: bool = mode() == 2
 	var t: int = tier(o)
 	var R = load("res://scripts/render/fx_recipe.gd").of(g)
@@ -559,6 +565,7 @@ func _step() -> void:
 	_step_fr = fr
 	_tex_evict()
 	var now: float = g.t
+	CUE.step(self)
 	items = items.filter(func(it): return now - float(it.t0) < (float(it.life) if it.has("life") else _life(str(it.k))) + 0.02 and not (it.has("ef") and it.ef.get("dead", false)))
 	for it in items:   # 卡肉（melee_impact.meat）：命中那一拍（第 1 帧）多停 stk 秒再接着扫
 		if it.has("stk") and frame_of(float(it.t0)) >= 2:
@@ -617,6 +624,7 @@ func draw_floor(o) -> void:
 		return
 	var cv = o.cv
 	var id: String = str(o.id)
+	CUE.floor_layer(self, o)
 	if id == "hoshiguma":
 		_floor_hsg(o)
 		return
@@ -766,6 +774,7 @@ static func sort_items(game) -> Array:
 		if str(it.ly) == "up":
 			it["skey"] = r._skey(it)   # 跟人 / 跟怪的件按当前位置排序（另存 skey，不动星熊地刺的 sk 偏移）
 			out.append(it)
+	CUE.sort_items(r, out)
 	for o in game.squad.ops:
 		if IDS.has(str(o.id)) and o.pos != Vector2.INF:
 			if str(o.id) == "lumen":
@@ -834,6 +843,9 @@ static func sort_items(game) -> Array:
 
 static func draw_sorted(game, ci, it: Dictionary) -> void:
 	var r = game.get_meta("fx_pxplane")
+	if it.has("cue"):   # 成长节点通用提示（docs/310 §2）
+		CUE.draw_up(r, ci, it.cue)
+		return
 	if it.has("skr"):   # 浊心斯卡蒂（docs/260）：运行时立起件
 		r._sk_draw_up(ci, it)
 		return
@@ -1960,6 +1972,10 @@ func _ev_logos(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictiona
 	var px: float = g.PX
 	if Bal.v("fx/recipe_log", 0.0) > 0.0:   # 看图对齐用（tools/pxplane_shots.py）：事件的游戏时间
 		print("PXPLOG lg %s %s %.3f" % [kind, str(d.get("i", "")), g.t])
+	if kind == "shape" and d.get("circle", false) and str(d.get("src", "")) in ["提喻", "墓志铭"]:   # 转喻·共振 / 墓志铭爆开（docs/310 §2）：原来没有画面，补一圈咒文紫环 + 墨点
+		var big: bool = float(d.get("r", 60.0)) >= 100.0
+		CUE.push(self, o, {"p": d.get("c", o.pos), "shape": "ring", "r": float(d.get("r", 60.0)), "r0": float(d.get("r", 60.0)) * 0.25, "c": LG_C[4] if not big else LG_AC, "n": 10 if not big else 6, "life": 0.4})
+		return
 	match kind:
 		"fire":   # 出手：身前笔光 → 身周细字字环 + 笔尖星芒（原点 = 脚底；朝左水平翻转）。连发（复指 / 天赋）0.25 秒内只画一次
 			if g.t - _lg_fire_t < 0.25 and g.t >= _lg_fire_t:

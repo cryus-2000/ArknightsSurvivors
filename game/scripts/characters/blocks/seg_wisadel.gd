@@ -340,6 +340,9 @@ static func _g202_feedback(o, a: Dictionary, c: Vector2, n_kill: int) -> void:
 		for q in 3:
 			_wfx(o, {"kind": "h4_spmote", "pos": c + Vector2(0, -16), "start": c + Vector2(0, -16), "tgt": m, "life": 0.45 + 0.08 * q, "col": col, "bend": g.vrng.randf_range(-40, 40)}, false)
 	_wfx(o, {"kind": "ring", "pos": c, "r": 46.0, "r0": 10.0, "life": 0.35, "col": Color(2.0, 1.6, 0.6), "floor": true, "w": 3.0, "alpha": 0.9})
+	ncue(o, {"p": c, "shape": "mote", "to": "*", "c": Color(1.0, 0.8, 0.4)})   # 回馈：技力光点从残影爆处飞向队友 + 自己，爆处一圈金环（转平面下上面的不画，docs/310 §2）
+	ncue(o, {"p": c, "shape": "mote", "to": str(o.id), "c": Color(1.0, 0.8, 0.4)})
+	ncue(o, {"p": c, "shape": "ring", "r": 46.0, "r0": 10.0, "c": Color(1.0, 0.8, 0.4), "n": 8})
 
 
 ## 礼尚往来：第二发炮弹打次优目标（候选里第一个离首发落点超过爆炸半径的；没有就取下一个候选），伤害 × twin.mult

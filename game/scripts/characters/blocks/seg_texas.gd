@@ -416,6 +416,7 @@ static func tx_exec(o, b: Dictionary, at: Vector2) -> void:
 			exec_shape(o, b, at)
 		"verb.sp_secs":
 			var sec: float = float(b.seconds)
+			ncue(o, {"p": at if at != Vector2.INF else o.pos, "shape": "mote", "to": "*", "c": Color(1.0, 0.85, 0.35)})   # 给全队技力：金色光点飞向各队友（回马剑·回技、战术快递；docs/310 §2）
 			for m in o.g.squad.ops:
 				if m == o and b.get("exclude_self", true):
 					continue
@@ -1185,6 +1186,8 @@ static func gm_exec(o, b: Dictionary) -> void:
 			g.dash_cd = maxf(0.0, float(g.dash_cd) - real)
 			var gold := Color(1.0, 0.85, 0.35)
 			o.fx({"kind": "ring", "pos": g.ppos + Vector2(0, 4), "r": 34.0, "r0": 10.0, "life": 0.3, "col": gold, "floor": true, "w": 3.0, "alpha": 0.95})
+			ncue(o, {"p": o.pos, "shape": "mote", "to": "@", "c": gold})   # 居合：金色光点从她飞到队长，到手一圈金环（转平面下上面的环 / 光点不画，docs/310 §2）
+			ncue(o, {"p": g.ppos, "shape": "ring", "r": 34.0, "r0": 10.0, "c": gold, "n": 6, "life": 0.4})
 			for k in 4:   # 冲刺条刻度：四粒金色光点从她的位置飞向队长
 				var from: Vector2 = o.pos + Vector2(0, -20)
 				o.fx({"kind": "mote", "pos": from, "vel": (g.ppos + Vector2(0, -20) - from) * 3.0 + Vector2(0, -20), "life": 0.33, "col": gold, "sz": 2.4})
@@ -1201,6 +1204,8 @@ static func gm_exec(o, b: Dictionary) -> void:
 				var red := Color(1.0, 0.35, 0.3)
 				var hp0: Vector2 = e.pos + Vector2(0, -float(e.r) - 14.0)
 				o.fx({"kind": "ring", "pos": hp0, "r": 20.0, "r0": 8.0, "life": 0.3, "col": red, "w": 3.0, "alpha": 0.95})   # 头顶红圈碎开
+				ncue(o, {"p": e.pos, "fe": e, "shape": "mark", "c": red, "life": 0.4})   # 破绽：红色四角准星收紧 + 红色碎片四散（docs/310 §2）
+				ncue(o, {"p": hp0, "shape": "burst", "r": 22.0, "r0": 6.0, "c": red, "n": 8, "life": 0.35})
 				for k in 6:
 					o.sparks(hp0, Vector2.from_angle(TAU * float(k) / 6.0), red, 1, 90.0)
 				o.float_text(hp0 + Vector2(0, -14), "破绽", red, 13)

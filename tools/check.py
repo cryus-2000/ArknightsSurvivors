@@ -301,6 +301,13 @@ def check_cc_lint():
     return {"name": "敌人控制直写 cc_lint", "ok": not errs, "detail": detail, "errors": errs[:8]}
 
 
+def check_node_cue_lint():
+    """不开 Godot（<0.1 秒）：成长节点画面出口棘轮（docs/310 §2）——seg_*.gd 里新写的 o.fx / o.sparks 函数必须同时发 _FXR.ev / ncue"""
+    import node_cue_lint
+    errs, detail = node_cue_lint.check()
+    return {"name": "节点画面出口 node_cue_lint", "ok": not errs, "detail": detail, "errors": errs[:8]}
+
+
 def check_enemy_art():
     import enemy_art_check
     errs, detail = enemy_art_check.check()
@@ -1358,7 +1365,7 @@ def main():
     ap.add_argument("--ab", metavar="REF", help="与某个提交做 A/B 对比（机器人标准矩阵）")
     ap.add_argument("--seeds", type=int, default=4)
     ap.add_argument("--keep", action="store_true", help="A/B 结束后保留临时工作树")
-    ap.add_argument("--only", choices=["core", "smoke", "nodes", "hold_aim", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "data_lint", "graph_lint", "check_map", "text_reconcile", "shader_lint", "px_lint", "enemy_art", "asset_lint", "asset_index", "onboard_reload"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
+    ap.add_argument("--only", choices=["core", "smoke", "nodes", "hold_aim", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "node_cue_lint", "data_lint", "graph_lint", "check_map", "text_reconcile", "shader_lint", "px_lint", "enemy_art", "asset_lint", "asset_index", "onboard_reload"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
     ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS,
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
     ap.add_argument("--bal", action="append", default=[], metavar="段/键=值",
@@ -1430,6 +1437,8 @@ def main():
         jobs.append(check_text_reconcile)
     if a.only in (None, "check_map"):
         jobs.append(check_map)
+    if a.only in (None, "node_cue_lint"):
+        jobs.append(check_node_cue_lint)   # 不开 Godot；--auto 也跑（docs/310 §2：新节点提示别只写 o.fx）
     if a.only in (None, "cc_lint"):
         jobs.append(check_cc_lint)   # 不开 Godot，约 1 秒；--auto 也跑（击退累加漏乘失重、干员绕过 add_cc / set_air）
     branch_full, ops = False, set()

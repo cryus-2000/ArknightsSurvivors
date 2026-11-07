@@ -31,6 +31,9 @@ static func gl_drag_tick(o, hk: Dictionary, dg: Dictionary, dt: float) -> void:
 	var g = o.g
 	var e: Dictionary = dg.e
 	_FXR.ev(o, "gl_barb", {"e": e})   # 转平面（docs/263）：只画
+	dg["spn"] = int(dg.get("spn", 0)) + 1
+	if int(dg.spn) % 3 == 1:   # 倒钩：拖拽途中每 0.135 秒一簇青色火星（转平面下下面的火星不画，docs/310 §2）
+		ncue(o, {"p": e.pos, "fe": e, "shape": "burst", "r": float(e.r) + 4.0, "r0": float(e.r) * 0.5, "c": GL_COL, "n": 4, "life": 0.3})
 	for k in 2:
 		o.fx({"kind": "spark", "pos": e.pos + Vector2(g.vrng.randf_range(-6, 6), -float(e.r) * 0.4 + g.vrng.randf_range(-4, 4)),
 			"vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(30.0, 90.0), "life": 0.35, "col": GL_COL, "sz": 3.0, "drag": 2.0})
@@ -55,6 +58,7 @@ static func gl_arrive(o, hk: Dictionary) -> void:
 			o.deal_damage(e, float(hk.dmg) * float(barb.get("pct", 0.08)) * layers * (ve if e.elite or e.boss else 1.0))
 			if not e.dead:
 				o.float_text(e.pos + Vector2(0, -float(e.r) * 2.0 - 8.0), "倒钩 ×%d" % layers, GL_COL, 12)
+				ncue(o, {"p": e.pos, "fe": e, "shape": "ring", "r": float(e.r) + 10.0 + 4.0 * layers, "r0": float(e.r), "c": GL_COL, "n": 2 + 2 * layers})   # 到位结算：层数越多环越大、火星越多
 	var sl := _gl_on(o, "slash")
 	if not sl.is_empty() and o.pos != Vector2.INF:
 		var ang: float = (hk.front - o.pos).angle()
