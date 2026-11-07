@@ -1,0 +1,13 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4857 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+导入资源（/work/repo/game 缺 4802 个导入文件，例如 fx_lumen_beam_flare_lm@2x.png-8b1fed8c66883e3adcc1888660ee1c8a.ctex）
+levelup p844 1 ['shot_motion_levelup_full_1217.png']  []
+levelup p956 1 ['shot_motion_levelup_full_1217.png']  []
+relic p844 1 ['shot_motion_relic_full_1217.png']  []
+relic p956 1 ['shot_motion_relic_full_1217.png']  []
+recruit p844 1 ['shot_motion_recruit_full_1217.png']  []
+recruit p956 1 ['shot_motion_recruit_full_1217.png']  []
+shop p844 1 ['shot_motion_shop_full_1217.png']  []
+shop p956 1 ['shot_motion_shop_full_1217.png']  []
+media：16 个文件，4.6M
