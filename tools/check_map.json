@@ -104,6 +104,7 @@
     "play_clock",
     "feedback",
     "feedback_code",
+    "touch_command",
     "time_scale_combo",
     "ui_smoke"
    ]
