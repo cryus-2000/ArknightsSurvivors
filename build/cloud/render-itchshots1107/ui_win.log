@@ -1,0 +1,458 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+OpenGL API 4.5 (Core Profile) Mesa 22.3.6 - Compatibility - Using Device: Mesa/X.org - llvmpipe (LLVM 15.0.6, 256 bits)
+
+BEACON mires t=60.1 mires=0
+ENDEV deal m1 ["shop/", "wish/"] t=115.0 cur=standard relics=[]
+ENDEV flip 1 wish  t=115.0 cur=standard relics=[]
+ENDEV open wish_v2 t=115.0 cur=standard relics=[]
+ENDEV pick wish_v2:0 t=115.0 cur=standard relics=[]
+BEACON mires t=120.1 mires=17
+SHOP ["夜阳草  (可升级)", "“绽放”", "血魔的银杯", "急救包", "灯油"]
+BEACON spawn t=167.8 mires=22
+BEACON lit cleared=10 in_s=2.4 min_d=255 hold_s=0.0 via=mate t=172.1 mires=22
+BEACON mires t=180.0 mires=9
+DUCK spawn t=211.46 d=648
+DUCK kill t=220.31 after=8.8
+BEACON spawn t=233.5 mires=20
+BEACON mires t=240.0 mires=30
+BEACON lit cleared=0 in_s=1.8 min_d=27 hold_s=2.8 via=ring t=274.2 mires=14
+ENDEV deal c1 ["elite/", "incident/opening", "incident/madness"] t=278.1 cur=standard relics=[]
+ENDEV flip 1 incident opening t=278.1 cur=standard relics=[]
+ENDEV open opening t=278.1 cur=standard relics=[]
+ENDEV pick opening:1 t=278.1 cur=standard relics=[]
+BEACON spawn t=296.5 mires=32
+BEACON mires t=300.0 mires=29
+BEACON lit cleared=6 in_s=2.6 min_d=181 hold_s=0.2 via=mate t=321.6 mires=22
+SHOP ["永流之手", "支援补给站", "摩根队长佳酿", "急救包", "灯油"]
+ENDEV deal m2 ["wish/", "shop/"] t=360.0 cur=standard relics=["242"]
+BEACON mires t=360.0 mires=19
+ENDEV flip 0 wish  t=360.0 cur=standard relics=["242"]
+ENDEV open wish_v2 t=360.0 cur=standard relics=["242"]
+ENDEV pick wish_v2:1 t=360.0 cur=standard relics=["242"]
+BEACON spawn t=370.0 mires=32
+BEACON lit cleared=11 in_s=2.0 min_d=52 hold_s=2.0 via=ring t=372.0 mires=31
+BALANCE {"allies":2,"armor_cf":{"m0":{"a2":171.126395576466,"a4":155.634735022197,"a8":127.634735022197,"all":215.461117094964,"armor":30.0,"n":15,"phys":192.09983201301,"phys_n":12,"phys_pre":222.09983201301},"m4":{"a2":459.882976675102,"a4":405.882976675102,"a8":301.951757424068,"all":568.610633153027,"armor":70.0,"n":32,"phys":513.882976675102,"phys_n":28,"phys_pre":583.817750900976}},"boss_hp":-0.00258714395225644,"bosses":["path:dead"],"bot":{"bosses":[{"en_alive":31,"en_alive_pk":37,"en_near":8,"en_near_pk":16,"gates":1,"on_boss":0.52,"shield":0.0,"t0":210,"t1":276,"tv":210,"type":"path","windows":[{"en":25,"hits":0,"hp":1.0,"moves":0,"out":0,"t":0},{"en":36,"hits":1,"hp":0.84,"moves":6,"out":5858,"t":15},{"en":31,"hits":47,"hp":0.58,"moves":2,"out":12634,"t":30},{"en":29,"hits":4,"hp":0.36,"moves":6,"out":10855,"t":45},{"en":32,"hits":2,"hp":0.09,"moves":11,"out":10108,"t":60},{"en":56,"hits":1,"hp":0.0,"moves":2,"out":13245,"t":76},{"en":79,"hits":4,"hp":0.0,"moves":0,"out":23246,"t":91},{"en":50,"hits":1,"hp":0.0,"moves":0,"out":29074,"t":106},{"en":58,"hits":1,"hp":0.0,"moves":0,"out":27542,"t":121},{"en":40,"hits":2,"hp":0.0,"moves":0,"out":26415,"t":136},{"en":48,"hits":59,"hp":0.0,"moves":0,"out":20644,"t":151},{"en":84,"hits":3,"hp":0.0,"moves":0,"out":26259,"t":166},{"en":68,"hits":0,"hp":0.0,"moves":0,"out":41171,"t":181},{"en":48,"hits":3,"hp":0.0,"moves":0,"out":52180,"t":196}]}],"curve":[{"boss":0,"dsrc":{},"ebul":0,"elites":0,"enemies":0,"hp":100,"hpm":1.23,"hpmin":100,"hsrc":{},"kills":0,"lamp":100,"lampmin":100,"lv":1,"mhp":146,"mire_s":0.0,"mires":0,"outc":0,"rg":1.3,"squad":3,"t":0,"taken":0,"zone":0},{"boss":0,"dsrc":{},"ebul":0,"elites":0,"enemies":13,"hp":100,"hpm":1.57,"hpmin":100,"hsrc":{},"kills":19,"lamp":100,"lampmin":100,"lv":2,"mhp":146,"mire_s":0.0,"mires":0,"outc":493,"rg":1.3,"squad":3,"t":30,"taken":0,"zone":0},{"boss":0,"dsrc":{},"ebul":0,"elites":1,"enemies":16,"hp":100,"hpm":1.9,"hpmin":100,"hsrc":{},"kills":58,"lamp":100,"lampmin":100,"lv":4,"mhp":146,"mire_s":0.0,"mires":0,"outc":1707,"rg":1.3,"squad":3,"t":60,"taken":0,"zone":0},{"boss":0,"dsrc":{"contact_slider":15},"ebul":1,"elites":1,"enemies":22,"hp":100,"hpm":2.24,"hpmin":89,"hsrc":{"塞雷娅":10,"水月":2,"自身回复":2},"kills":121,"lamp":100,"lampmin":78,"lv":6,"mhp":146,"mire_s":0.0,"mires":2,"outc":7019,"rg":1.3,"squad":3,"t":90,"taken":15,"zone":0},{"boss":0,"dsrc":{"atk_tracer":1},"ebul":3,"elites":0,"enemies":28,"hp":100,"hpm":2.57,"hpmin":98,"hsrc":{"自身回复":1},"kills":174,"lamp":97,"lampmin":97,"lv":8,"mhp":146,"mire_s":0.0,"mires":17,"outc":12173,"rg":1.3,"squad":3,"t":120,"taken":1,"zone":0},{"boss":0,"dsrc":{"atk_tracer":7,"bullet":3},"ebul":1,"elites":0,"enemies":27,"hp":100,"hpm":2.91,"hpmin":96,"hsrc":{"塞雷娅":4,"水月":5,"自身回复":1},"kills":243,"lamp":97,"lampmin":91,"lv":9,"mhp":146,"mire_s":0.0,"mires":17,"outc":20828,"rg":1.3,"squad":3,"t":150,"taken":10,"zone":1},{"boss":0,"dsrc":{"atk_tracer":2},"ebul":0,"elites":0,"enemies":30,"hp":100,"hpm":3.25,"hpmin":98,"hsrc":{"水月":2},"kills":341,"lamp":100,"lampmin":94,"lv":10,"mhp":146,"mire_s":0.0,"mires":9,"outc":33674,"rg":3.49,"squad":3,"t":180,"taken":2,"zone":2},{"boss":1,"dsrc":{"bullet":10,"contact_tracer":21,"corrode":7},"ebul":9,"elites":0,"enemies":27,"hp":87,"hpm":3.58,"hpmin":85,"hsrc":{"塞雷娅":10,"水月":7,"自身回复":4},"kills":428,"lamp":90,"lampmin":90,"lv":12,"mhp":146,"mire_s":0.0,"mires":23,"outc":44266,"rg":1.3,"squad":3,"t":210,"taken":40,"zone":3},{"boss":1,"dsrc":{"atk_stone":1,"atk_tracer":39,"bullet":8,"contact_path":79,"contact_tracer":22,"corrode":6},"ebul":19,"elites":0,"enemies":30,"hp":60,"hpm":3.92,"hpmin":49,"hsrc":{"塞雷娅":32,"水月":69,"自身回复":15},"kills":486,"lamp":62,"lampmin":62,"lv":13,"mhp":146,"mire_s":0.0,"mires":30,"outc":63250,"rg":1.3,"squad":3,"t":240,"taken":158,"zone":3},{"boss":1,"dsrc":{"atk_tracer":39,"contact_path":79,"contact_tracer":9},"ebul":20,"elites":0,"enemies":31,"hp":100,"hpm":4.25,"hpmin":40,"hsrc":{"塞雷娅":50,"水月":109,"自身回复":26},"kills":540,"lamp":96,"lampmin":38,"lv":14,"mhp":146,"mire_s":0.0,"mires":14,"outc":84565,"rg":1.3,"squad":3,"t":270,"taken":127,"zone":3},{"boss":0,"dsrc":{"bullet":7,"contact_founder":28,"contact_tracer":41},"ebul":3,"elites":2,"enemies":78,"hp":93,"hpm":4.59,"hpmin":78,"hsrc":{"塞雷娅":22,"水月":35,"自身回复":10},"kills":646,"lamp":80,"lampmin":80,"lv":15,"mhp":136,"mire_s":0.0,"mires":29,"outc":117625,"rg":1.3,"squad":3,"t":300,"taken":77,"zone":3},{"boss":0,"dsrc":{"atk_tracer":6,"contact_tracer":12},"ebul":0,"elites":0,"enemies":53,"hp":100,"hpm":4.93,"hpmin":90,"hsrc":{"水月":23,"自身回复":5},"kills":769,"lamp":96,"lampmin":72,"lv":17,"mhp":136,"mire_s":0.0,"mires":19,"outc":176754,"rg":1.3,"squad":3,"t":330,"taken":19,"zone":2},{"boss":0,"dsrc":{"atk_tracer":19,"bullet":17,"contact_tracer":29,"corrode":11},"ebul":12,"elites":0,"enemies":50,"hp":99,"hpm":5.26,"hpmin":78,"hsrc":{"塞雷娅":29,"水月":34,"自身回复":8},"kills":877,"lamp":79,"lampmin":79,"lv":17,"mhp":121,"mire_s":0.0,"mires":19,"outc":220686,"rg":1.3,"squad":3,"t":360,"taken":76,"zone":3},{"boss":0,"dsrc":{"atk_founder":13,"atk_stone":9,"atk_tracer":12,"contact_tracer":12,"corrode":1},"ebul":10,"elites":1,"enemies":67,"hp":100,"hpm":5.6,"hpmin":88,"hsrc":{"塞雷娅":14,"水月":25,"自身回复":7},"kills":1017,"lamp":100,"lampmin":66,"lv":19,"mhp":121,"mire_s":0.0,"mires":19,"outc":289301,"rg":1.3,"squad":3,"t":390,"taken":48,"zone":3}],"curve_tail":{"dsrc":{"atk_founder":12,"atk_reaper":16,"atk_tracer":75,"bullet":29,"contact_reaper":15,"contact_tracer":56,"corrode":12,"mire":2,"wound":4},"hsrc":{"塞雷娅":61,"拾取":15,"水月":40,"自身回复":11},"mhp":121,"t":415,"t0":390,"taken":224},"dark_dmg":0,"dark_s":0,"death_src":"corrode","elite_t":{"mizuki:1":81,"mizuki:2":277,"saria:1":367,"skadi:1":221},"end":{"boss":false,"hp":0,"killer":{"cause":"","key":"e:tracer"},"last15":{"corrode_out":12.7,"corrode_peak":15.3,"dark_s":0.0,"ebullets_peak":23,"enemies_peak":52,"hits":[{"amt":12.1,"boss":false,"hp_after":109,"src":"atk_founder","t":408.6,"zone_out":false},{"amt":16.0,"boss":false,"hp_after":95,"src":"contact_reaper","t":409.1,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":95,"src":"wound","t":409.1,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":97,"src":"wound","t":409.1,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":98,"src":"wound","t":409.2,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":98,"src":"wound","t":409.3,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":98,"src":"wound","t":409.3,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":99,"src":"wound","t":409.4,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":99,"src":"wound","t":409.5,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":99,"src":"wound","t":409.5,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":99,"src":"wound","t":409.6,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":99,"src":"wound","t":409.7,"zone_out":false},{"amt":25.1,"boss":false,"hp_after":74,"src":"atk_tracer","t":409.7,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":74,"src":"wound","t":409.7,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":76,"src":"wound","t":409.8,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":76,"src":"wound","t":409.9,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":77,"src":"wound","t":409.9,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":77,"src":"wound","t":410.0,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":77,"src":"wound","t":410.1,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":77,"src":"wound","t":410.1,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":89,"src":"wound","t":410.2,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":89,"src":"wound","t":410.3,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":89,"src":"wound","t":410.3,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":91,"src":"wound","t":410.4,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":91,"src":"wound","t":410.5,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":91,"src":"wound","t":410.5,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":91,"src":"wound","t":410.6,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":92,"src":"wound","t":410.7,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":75,"src":"wound","t":410.7,"zone_out":false},{"amt":16.0,"boss":false,"hp_after":75,"src":"atk_reaper","t":410.7,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":75,"src":"wound","t":410.8,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":75,"src":"wound","t":410.8,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":75,"src":"wound","t":410.9,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":75,"src":"wound","t":411.0,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":75,"src":"wound","t":411.0,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":75,"src":"wound","t":411.1,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":76,"src":"wound","t":411.2,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":76,"src":"wound","t":411.2,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":76,"src":"wound","t":411.3,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":76,"src":"wound","t":411.4,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":78,"src":"wound","t":411.4,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":78,"src":"wound","t":411.5,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":78,"src":"wound","t":411.6,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":81,"src":"wound","t":411.6,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":81,"src":"wound","t":411.7,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":81,"src":"wound","t":411.8,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":81,"src":"wound","t":411.8,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":82,"src":"wound","t":411.9,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":82,"src":"wound","t":412.0,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":82,"src":"wound","t":412.0,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":84,"src":"wound","t":412.1,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":84,"src":"wound","t":412.2,"zone_out":false},{"amt":22.3,"boss":false,"hp_after":61,"src":"bullet","t":412.2,"zone_out":false},{"amt":0.6,"boss":false,"hp_after":61,"src":"corrode","t":412.2,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":61,"src":"wound","t":412.2,"zone_out":false},{"amt":0.6,"boss":false,"hp_after":61,"src":"corrode","t":412.3,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":61,"src":"wound","t":412.3,"zone_out":false},{"amt":0.6,"boss":false,"hp_after":68,"src":"corrode","t":412.4,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":68,"src":"wound","t":412.4,"zone_out":false},{"amt":0.5,"boss":false,"hp_after":68,"src":"corrode","t":412.4,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":68,"src":"wound","t":412.4,"zone_out":false},{"amt":0.5,"boss":false,"hp_after":67,"src":"corrode","t":412.5,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":67,"src":"wound","t":412.5,"zone_out":false},{"amt":0.5,"boss":false,"hp_after":67,"src":"corrode","t":412.6,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":67,"src":"wound","t":412.6,"zone_out":false},{"amt":0.5,"boss":false,"hp_after":66,"src":"corrode","t":412.6,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":66,"src":"wound","t":412.6,"zone_out":false},{"amt":0.5,"boss":false,"hp_after":66,"src":"corrode","t":412.7,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":66,"src":"wound","t":412.7,"zone_out":false},{"amt":0.5,"boss":false,"hp_after":68,"src":"corrode","t":412.8,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":68,"src":"wound","t":412.8,"zone_out":false},{"amt":0.4,"boss":false,"hp_after":67,"src":"corrode","t":412.8,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":67,"src":"wound","t":412.8,"zone_out":false},{"amt":0.4,"boss":false,"hp_after":67,"src":"corrode","t":412.9,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":67,"src":"wound","t":412.9,"zone_out":false},{"amt":25.1,"boss":false,"hp_after":41,"src":"atk_tracer","t":413.0,"zone_out":false},{"amt":0.4,"boss":false,"hp_after":41,"src":"corrode","t":413.0,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":41,"src":"wound","t":413.0,"zone_out":false},{"amt":0.4,"boss":false,"hp_after":41,"src":"corrode","t":413.0,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":41,"src":"wound","t":413.0,"zone_out":false},{"amt":0.4,"boss":false,"hp_after":40,"src":"corrode","t":413.1,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":40,"src":"wound","t":413.1,"zone_out":false},{"amt":0.4,"boss":false,"hp_after":41,"src":"corrode","t":413.2,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":41,"src":"wound","t":413.2,"zone_out":false},{"amt":0.4,"boss":false,"hp_after":40,"src":"corrode","t":413.2,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":40,"src":"wound","t":413.2,"zone_out":false},{"amt":0.3,"boss":false,"hp_after":40,"src":"corrode","t":413.3,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":40,"src":"wound","t":413.3,"zone_out":false},{"amt":0.3,"boss":false,"hp_after":40,"src":"corrode","t":413.4,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":40,"src":"wound","t":413.4,"zone_out":false},{"amt":0.2,"boss":false,"hp_after":12,"src":"corrode","t":413.4,"zone_out":false},{"amt":28.0,"boss":false,"hp_after":12,"src":"contact_tracer","t":413.4,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":12,"src":"wound","t":413.4,"zone_out":false},{"amt":0.2,"boss":false,"hp_after":11,"src":"corrode","t":413.5,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":11,"src":"wound","t":413.5,"zone_out":false},{"amt":0.2,"boss":false,"hp_after":9,"src":"corrode","t":413.6,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":9,"src":"wound","t":413.6,"zone_out":false},{"amt":2.3,"boss":false,"hp_after":9,"src":"mire","t":413.6,"zone_out":false},{"amt":0.2,"boss":false,"hp_after":9,"src":"corrode","t":413.6,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":9,"src":"wound","t":413.6,"zone_out":false},{"amt":0.2,"boss":false,"hp_after":13,"src":"corrode","t":413.7,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":13,"src":"wound","t":413.7,"zone_out":false},{"amt":0.2,"boss":false,"hp_after":13,"src":"corrode","t":413.8,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":13,"src":"wound","t":413.8,"zone_out":false},{"amt":0.2,"boss":false,"hp_after":13,"src":"corrode","t":413.8,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":13,"src":"wound","t":413.8,"zone_out":false},{"amt":0.2,"boss":false,"hp_after":13,"src":"corrode","t":413.9,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":13,"src":"wound","t":413.9,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":13,"src":"corrode","t":414.0,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":13,"src":"wound","t":414.0,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":13,"src":"corrode","t":414.0,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":13,"src":"wound","t":414.0,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":13,"src":"corrode","t":414.1,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":13,"src":"wound","t":414.1,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":15,"src":"corrode","t":414.1,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":15,"src":"wound","t":414.1,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":15,"src":"corrode","t":414.2,"zone_out":false},{"amt":0.0,"boss":false,"hp_after":15,"src":"wound","t":414.2,"zone_out":false},{"amt":0.2,"boss":false,"hp_after":15,"src":"corrode","t":414.3,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":15,"src":"wound","t":414.3,"zone_out":false},{"amt":0.2,"boss":false,"hp_after":15,"src":"corrode","t":414.3,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":15,"src":"wound","t":414.3,"zone_out":false},{"amt":0.2,"boss":false,"hp_after":15,"src":"corrode","t":414.4,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":15,"src":"wound","t":414.4,"zone_out":false},{"amt":0.2,"boss":false,"hp_after":15,"src":"corrode","t":414.5,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":15,"src":"wound","t":414.5,"zone_out":false},{"amt":0.2,"boss":false,"hp_after":15,"src":"corrode","t":414.5,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":15,"src":"wound","t":414.5,"zone_out":false},{"amt":0.2,"boss":false,"hp_after":15,"src":"corrode","t":414.6,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":15,"src":"wound","t":414.6,"zone_out":false},{"amt":0.2,"boss":false,"hp_after":15,"src":"corrode","t":414.7,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":15,"src":"wound","t":414.7,"zone_out":false},{"amt":0.2,"boss":false,"hp_after":15,"src":"corrode","t":414.7,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":15,"src":"wound","t":414.7,"zone_out":false},{"amt":0.2,"boss":false,"hp_after":15,"src":"corrode","t":414.8,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":15,"src":"wound","t":414.8,"zone_out":false},{"amt":0.2,"boss":false,"hp_after":15,"src":"corrode","t":414.9,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":15,"src":"wound","t":414.9,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":15,"src":"corrode","t":414.9,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":15,"src":"wound","t":414.9,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":25,"src":"corrode","t":415.0,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":25,"src":"wound","t":415.0,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":25,"src":"corrode","t":415.1,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":25,"src":"wound","t":415.1,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":25,"src":"corrode","t":415.1,"zone_out":false},{"amt":0.1,"boss":false,"hp_after":25,"src":"wound","t":415.1,"zone_out":false}],"mire_s":0.3,"nerve_bursts":0,"t":415.2},"src":"corrode","t":415,"zone_out":false,"zone_phase":2,"zone_state":1},"floors":[],"hits":276,"hits_pm":39.9,"king_low_s":0,"lamp_end":34,"lamp_gain":{"其他":3,"商人":8,"灯标":28,"灯油":36,"精英灯油":117},"lamp_loss":{"冲撞吸灯":8,"受击":230,"尖叫":21},"lamp_s":[382,31,0,0],"lamp_taken":[526,278,0,0],"low20_s":1,"low_hp_s":2,"moved_pm":8112,"peak":[86,45,0,360,48],"peak_min":[[20,1,0,34,8],[36,9,0,78,10],[55,8,0,109,34],[51,36,0,59,20],[62,45,0,200,29],[85,21,0,360,41],[86,23,0,354,48]],"profile":"normal","reaper_drain_deaths":0,"recruit_t":[],"still_pct":0,"taken":804,"taken_pm":116},"cmd":{"aggro":165,"downs":0,"roam":118.8,"sortie_downs":0,"sorties":16,"switch":52},"crates":7,"ctrl":{"aslow_slow":0,"aslow_t":0.0,"boss_t":66.0,"floor":0.7,"move_min":1.0,"slow_min":1.0,"stun_slow":0,"stun_t":0.0},"ctrl_src":{"boss":{"dash_break_n":0,"freeze_n":0,"freeze_t":0.0,"slow_t":0.0},"founder":{"dash_break_n":0,"freeze_n":0,"freeze_t":0.0,"slow_t":3.63},"other":{"dash_break_n":0,"freeze_n":0,"freeze_t":0.0,"slow_t":0.0},"skimmer":{"dash_break_n":0,"freeze_n":0,"freeze_t":0.0,"slow_t":0.0},"slow_any_t":3.63},"dashes":5,"dmg":{"atk_founder":25.5475574023957,"atk_reaper":41.3483274267846,"atk_stone":11.2666546648343,"atk_tracer":204.273848829278,"bullet":78.0889415598787,"contact_founder":28.9309948400079,"contact_path":158.48,"contact_reaper":15.9828900716566,"contact_slider":15.6189641101768,"contact_tracer":204.346659244485,"corrode":38.9679059437059,"mire":2.27033987613022,"wound":4.64376412500001},"drone":0,"duck":{"fled":0,"kill_t":[8.8],"killed":1,"spawned":1},"elite_stage":2,"elites":8,"ending":"standard","final_out":{"伞击":82154.4439102665,"剑气":10983.1702811025,"反手斩":2558.14737096419,"大剑":63771.1883561934,"扩散":5003.34898686458,"技能·法术":14329.9642181718,"技能连携·拖刃·skadi":1580.48554235056,"技能连携·水痕·skadi":495.238709685894,"拳击":17773.2343343536,"晶簇":758.514500823231,"深蓝之籽":1339.34116662682,"真实":7273.66979935116,"破浪下劈":4947.65768807815,"终结技·mizuki·小触手":2934.99095287201,"终结技·mizuki·横扫":21734.4210662683,"触手":72220.7641906748,"跃浪":5335.60598557538,"跃浪击":24924.4270333975,"迅捷打击·γ型":24613.5761372946,"钙晶":1308.30870058757},"floor_hits":0,"floor_times":[],"fuse":{"left":0,"pct":0.0,"pool":0,"t":-1},"growth":{"dash_charge":1,"lane_melee":1,"sp":2,"splash":1},"heal":{"商店":0.0,"塞雷娅":236.275466718179,"拾取":15.2322301346758,"水月":357.331618296648,"终结技":0.0,"自身回复":94.6704759084814},"heal_offer":0,"heal_offer_low":0,"heal_pick":0,"hordes":[{"comp":{"bone":8,"slider":7},"hp":1245,"hp0":146,"minhp":130,"mix":"滑行群","n":15,"t":75,"t80":8},{"comp":{"bone":13,"slider":4,"stone":3},"hp":2868,"hp0":146,"minhp":146,"mix":"凿石阵","n":20,"t":165,"t80":9},{"comp":{"bone":4,"floater":2,"reaper":1,"runner":6,"slider":7,"tracer":2},"hp":10444,"hp0":136,"minhp":107,"mix":"引痕突击","n":22,"t":282,"t80":11},{"comp":{"bone":8,"reaper":2,"runner":7,"slider":15,"tracer":3},"hp":17730,"hp0":124,"minhp":123,"mix":"潜袭","n":35,"t":300,"t80":16},{"comp":{"bone":7,"offspring":2,"reaper":2,"runner":7,"slider":15,"spitter":4,"tracer":3},"hp":31235,"hp0":121,"minhp":114,"mix":"酸雨围城","n":40,"t":375,"t80":19}],"ingots":21,"items":{"crate_shield":0,"heal_elite":6,"heal_low":0,"heal_mob":2,"heal_pick":6,"magnet_elite":3,"magnet_mob":2,"magnet_pick":5,"mob_capped":789,"mob_rolled":333,"pack_drop":7,"pack_pick":0},"kill_hits":{"0:bone":[46,52,0.99],"0:slider":[10,17,0.53],"0:stone":[2,5,3.24],"1:bone":[75,93,10.75],"1:floater":[7,20,28.38],"1:slider":[27,71,17.73],"1:stone":[2,7,6.27],"1:tracer":[2,48,14.25],"2:bone":[101,137,21.51],"2:floater":[13,28,27.57],"2:runner":[2,3,0.59],"2:slider":[38,82,18.9],"2:stone":[5,16,73.12],"2:tracer":[7,181,50.62],"3:bone":[82,171,41.15],"3:duck":[1,17,5.54],"3:floater":[8,44,29.5],"3:fractal":[6,18,0.6],"3:runner":[14,38,18.36],"3:slider":[25,79,16.37],"3:spitter":[3,30,16.04],"3:stone":[4,53,52.6],"3:tracer":[1,30,2.38],"4:bone":[55,171,41.56],"4:floater":[16,84,63.82],"4:fractal":[11,32,6.73],"4:nest":[1,23,10.03],"4:reaper":[3,37,9.05],"4:runner":[19,65,11.44],"4:slider":[38,128,27.79],"4:spitter":[3,35,24.88],"4:stone":[6,54,32.99],"4:tracer":[6,313,128.11],"5:bone":[81,300,92.71],"5:floater":[15,79,34.66],"5:founder":[4,370,118.54],"5:fractal":[1,1,0.0],"5:nest":[2,86,58.15],"5:offspring":[3,54,26.14],"5:reaper":[7,111,23.83],"5:runner":[41,163,36.44],"5:slider":[55,220,68.93],"5:spitter":[5,71,33.8],"5:stone":[7,76,32.61],"5:tracer":[9,387,96.22],"6:bone":[86,392,102.27],"6:floater":[18,111,33.39],"6:founder":[5,331,80.72],"6:fractal":[2,2,0.0],"6:nest":[3,126,46.26],"6:offspring":[3,78,53.26],"6:reaper":[19,261,49.94],"6:runner":[37,210,28.2],"6:slider":[57,268,45.26],"6:spitter":[6,44,19.27],"6:stone":[10,66,55.7],"6:tracer":[7,303,82.97]},"kills":1131,"lamp":34,"levelup_t":[14,33,58,71,81,100,118,133,153,181,201,221,261,277,310,319,367,386,401],"low_levelups":0,"lv":20,"lv_times":[13,32,57,71,81,100,118,133,153,180,201,220,261,276,309,318,367,385,400],"marks":{"120":8,"300":15},"maxhp":121.625,"meta":0,"ops":[{"elite":2,"id":"mizuki","prog":6},{"elite":1,"id":"skadi","prog":5},{"elite":1,"id":"saria","prog":3}],"out":{"伞击":82154.4439102665,"剑气":10983.1702811025,"反手斩":2558.14737096419,"大剑":63771.1883561934,"扩散":5003.34898686458,"技能·法术":14329.9642181718,"技能连携·拖刃·skadi":1580.48554235056,"技能连携·水痕·skadi":495.238709685894,"拳击":17773.2343343536,"晶簇":758.514500823231,"深蓝之籽":1339.34116662682,"真实":7273.66979935116,"破浪下劈":4947.65768807815,"终结技·mizuki·小触手":2934.99095287201,"终结技·mizuki·横扫":21734.4210662683,"触手":72220.7641906748,"跃浪":5335.60598557538,"跃浪击":24924.4270333975,"迅捷打击·γ型":24613.5761372946,"钙晶":1308.30870058757},"out_tag":{"aftershock":14329.9642181718,"area":141239.081290498,"basic":168646.524288891,"control":19112.5755009804,"empowered":42003.614690953,"entity":7983.25585278977,"execute":7273.66979935116,"follow_up":111863.896304461,"growth":26969.6895490695,"lshape":10006.6979737292,"projectile":21966.340562205,"skill":98209.2446210744,"终结技":49338.8240382807,"连携":4151.4485040729},"out_type":{"法术":87890.069575474,"物理":246207.347537537,"真实":31943.0818184915},"prof":{},"prog_log":[[14,"mizuki",1],[58,"mizuki",2],[81,"mizuki",3],[100,"mizuki",4],[118,"mizuki",5],[153,"skadi",1],[181,"skadi",2],[221,"skadi",3],[261,"saria",1],[277,"mizuki",6],[310,"saria",2],[367,"saria",3],[386,"skadi",4],[401,"skadi",5]],"prog_offer":{"mizuki":8,"saria":10,"skadi":9},"prog_pick":{"mizuki":6,"saria":3,"skadi":5},"recall_backstop":0,"recall_n":97,"recruit_offers":[],"rej":{"0":true},"relic_offer":[[115,"choice",["130","129","194"],"event"],[120,"shop",["205","94","263"]],[276,"choice",["23","196","61","92"],"boss"],[322,"choice",["252","247","56"],"elite"],[326,"shop",["176","209","91"]],[360,"choice",["170","234","213"],"event"],[360,"choice",["101","107","85"],"event"]],"relic_out":7273.66979935116,"relic_take":[[115,"129",["特种","近卫","重装"],"choice:event"],[138,"205",["特种","近卫","重装"],"shop"],[276,"196",["特种","近卫","重装"],"choice:boss"],[278,"242",["特种","近卫","重装"],"event"],[322,"247",["特种","近卫","重装"],"choice:elite"],[326,"176",["特种","近卫","重装"],"shop"],[326,"209",["特种","近卫","重装"],"shop"],[360,"170",["特种","近卫","重装"],"choice:event"],[360,"107",["特种","近卫","重装"],"choice:event"]],"relics":9,"shield":{"abs":0.0,"blocks":0,"every":15.0,"max":0,"peak":0,"src_int":[],"src_max":[],"t0":-1.0},"squad":["mizuki","skadi","saria"],"sus":{"m0":{"clean":{},"dr":{},"heal":{"商店":[0.0,58.5],"塞雷娅":[14.2065605542686,385.4682],"拾取":[0.0,87.75],"水月":[11.4648601412358,501.8715],"终结技·mizuki":[0.0,7.3125]},"lit":0.0},"m3":{"clean":{},"dr":{},"heal":{"塞雷娅":[145.876953674085,493.4233],"拾取":[0.0,81.75],"水月":[279.373245276269,950.330375]},"lit":0.0},"m6":{"clean":{},"dr":{"saria":42.55791891535},"heal":{"塞雷娅":[76.1919524898251,335.67064825],"拾取":[15.2322301346758,72.975],"水月":[66.4935128791433,275.37724375],"终结技·mizuki":[0.0,6.08125]},"lit":0.0}},"swaps":[],"t":415,"terrain":{"bul":0,"dash":0,"ebul":10},"ult":{"combo":7,"combo_auto":7,"combo_up":0,"cult":0,"cult_times":[],"e_combo":4.4,"e_hurt":9.0,"e_kill":49.8,"e_out":122.8,"first_full":159.1,"full_times":[159.1,342.3],"hit_n":80,"idle_full_s":45.9,"link_by":{"saria":3,"skadi":4},"lit":7,"lit_by":{},"miss":0,"ult":2,"ult_times":[168.5,378.7]},"win":false,"xp_backstop":0.0,"xp_dropped":4913.2,"xp_ground":273.8,"xp_magnet":1197.0,"xp_magnet_min":[0.0,35.0,80.0,0.0,102.5,390.1,589.4],"xp_recall":992.0,"xp_recall_min":[5.0,194.2,69.1,296.0,166.8,203.9,57.0],"xp_total":4639.4,"xp_total_min":[122.5,397.5,418.0,570.1,787.4,966.3,1377.6],"xp_walk":2450.5,"xp_walk_min":[117.5,168.3,268.9,274.1,518.1,372.3,731.3]}
+SPAWNQ {"alive_420_max":0,"alive_420_med":0,"alive_420_p95":0,"alive_710_max":0,"alive_710_med":0,"alive_710_p95":0,"cap":0,"deferred":0,"density":0.4,"drop_final":0,"drop_room":0,"forced":0,"hard":0,"hist":{"1-3s":0,"10-30s":0,"3-10s":0,"<1s":0,">=30s":0},"merge_spawns":0,"merged":0,"owed_end":0,"pending_end":0,"q_peak":0,"queued":0,"spawned":1036,"wait_cap":10.0,"wait_max":0.0,"wait_mean":0.0,"wait_p50":0.0,"wait_p90":0.0,"wait_p99":0.0}
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+ERROR: Texture with GL ID of 97: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 98: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 99: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 100: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 101: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 102: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 103: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 104: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 106: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 107: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 108: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1703: leaked 4586748 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1704: leaked 4586748 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1736: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1737: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1738: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1739: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1740: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1741: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1742: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1743: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1744: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1745: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1746: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1747: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1748: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1749: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1750: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1751: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1752: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1753: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1754: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1755: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1756: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1757: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1758: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1759: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1760: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1761: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1762: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1763: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1764: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1765: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1766: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1767: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1768: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1769: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1770: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1771: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1772: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1773: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1774: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1775: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1776: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1777: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1778: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1779: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1780: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1781: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1782: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1783: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1784: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1785: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1786: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1787: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1788: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1789: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1790: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1791: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1792: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1793: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1794: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1795: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1796: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1797: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1798: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1799: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1800: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1801: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1802: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1803: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1804: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1805: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1806: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1807: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1808: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1809: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1810: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1811: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1812: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1813: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1814: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1815: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1816: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1817: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1818: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1819: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1820: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1821: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1822: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1823: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1824: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1825: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1826: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1827: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1828: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1829: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1830: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1831: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1832: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1833: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1834: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1835: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1836: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1837: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1838: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1839: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1840: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1841: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1842: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1843: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1844: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1845: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1846: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1847: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1848: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1849: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1850: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1851: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1852: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1853: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1854: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1855: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1856: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1857: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1858: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1859: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1860: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1861: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1862: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1863: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1864: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1865: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1866: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1867: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1868: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1869: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1870: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1871: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1872: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1873: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1874: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1875: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1876: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1877: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1878: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1879: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1880: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1893: leaked 7077872 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1897: leaked 699068 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1898: leaked 699068 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1904: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1905: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2035: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2221: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2248: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2346: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2347: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2348: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2349: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2350: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2351: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2353: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2354: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2368: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2369: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2370: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2371: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2372: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2373: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2382: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2383: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2392: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2414: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2470: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2474: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2475: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2525: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2555: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2562: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2563: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2564: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2565: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2566: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2567: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2568: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2597: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2690: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2705: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2706: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2730: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2731: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2736: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2737: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2738: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2775: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+WARNING: 589 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 13 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: 206 RID allocations of type 'N5GLES37TextureE' were leaked at exit.
+ERROR: 83 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 5 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.

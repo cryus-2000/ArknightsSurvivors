@@ -1,0 +1,17 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4827 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+run_rhodes：17 张；0 处脚本错误
+run_deep：17 张；0 处脚本错误
+run_lungmen：17 张；0 处脚本错误
+run_abyss：17 张；1 处脚本错误
+ui_title：1 张；0 处脚本错误
+choice：1 张；0 处脚本错误
+ui_op：2 张；0 处脚本错误
+ui_gallery：3 张；0 处脚本错误
+ui_win：4 张；0 处脚本错误
+shot_3400.png
+shot_gallery_ui.png
+shot_oppick.png
+shot_title.png
+media：73 个文件，64M
