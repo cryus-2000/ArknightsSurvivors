@@ -690,6 +690,46 @@ var voice_queue: Array = []            # [cid, key]
 ## （引擎按双声道注册语音，237 条全播过约 99 MB）；正在播放的样本 __syAudioFree 返回 false，留着不动。返回退掉的条数
 var _base_streams := {}
 
+## 局内语音样本预算（11-08 iPhone 局中白屏：每句语音第一次播时被整段解码成双声道 float 注册进网页样本，一局里说过的每一句都留到离局，
+## 三人局几分钟就是几十 MB）。手机网页每读一句新的之前：已注册语音合计超过 VOICE_KEEP_MB 就按最久没播先退（正在播的不动），
+## 退掉的下次再说时重新解码（一句约 10–30 ms）。--bal=web/mobile_voice_trim=0 退回
+const VOICE_KEEP_MB := 10.0
+var voice_used := {}                   # 路径 -> 最近一次取用（毫秒）
+var voice_trimmed := 0
+
+
+func _voice_trim(keep_path: String) -> void:
+	if not (OS.has_feature("web") and Cfg.mobile_web() and Cfg.mobile_knob("mobile_voice_trim", 1.0)):
+		return
+	var sr: float = float(JavaScriptBridge.eval("window.__sySampleRate||0", true))   # 手机网页音频上下文 24 kHz（tools/web/power.js）
+	if sr <= 0.0:
+		sr = AudioServer.get_mix_rate()
+	var reg: Array = []
+	var total := 0.0
+	for path in voice_streams:
+		var st = voice_streams[path]
+		if path != keep_path and st is AudioStream and AudioServer.is_stream_registered_as_sample(st):
+			var mb: float = st.get_length() * sr * 2.0 * 4.0 / 1048576.0
+			reg.append([int(voice_used.get(path, 0)), path, mb])
+			total += mb
+	if total <= VOICE_KEEP_MB:
+		return
+	if _free_ok == -1:
+		_free_ok = 1 if str(JavaScriptBridge.eval("typeof window.__syAudioFree", true)) == "function" else 0
+	if _free_ok != 1:
+		return
+	reg.sort()
+	for r in reg:
+		if total <= VOICE_KEEP_MB:
+			break
+		var st2: AudioStream = voice_streams[r[1]]
+		var ok = JavaScriptBridge.eval("window.__syAudioFree('%d')" % st2.get_instance_id(), true)
+		if ok != null and not bool(ok):
+			continue   # 还在播
+		voice_streams.erase(r[1])
+		total -= float(r[2])
+		voice_trimmed += 1
+
 func release_run() -> int:
 	var n := 0
 	var ok := OS.has_feature("web") and str(JavaScriptBridge.eval("typeof window.__syAudioFree", true)) == "function"
@@ -722,7 +762,9 @@ func _voice_stream(cid: String, key: String) -> AudioStream:
 
 func _voice_file(stem: String) -> AudioStream:
 	var path := "res://audio/voice/%s.ogg" % stem   # WAV 母带在仓库 art/source/voice（不进包），见 tools/voice_ogg.py
+	voice_used[path] = Time.get_ticks_msec()
 	if not voice_streams.has(path):
+		_voice_trim(path)
 		var st: AudioStreamOggVorbis = _load_ogg(path)
 		if st != null:
 			st.loop = false
