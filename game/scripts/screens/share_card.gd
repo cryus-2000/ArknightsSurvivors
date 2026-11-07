@@ -73,13 +73,12 @@ func draw(ci: CanvasItem, d: Dictionary, pos: Vector2, k: float, rot := 0.0) -> 
 	ci.draw_set_transform(Vector2.ZERO)
 
 
-## 专属分享卡边框（B站 Toy 三连奖励，docs/313）：内缩金色细框 + 四角加粗折角 + 底边居中「SUPPORTER」小牌（卡面坐标 W × H）
+## 专属分享卡边框（B站 Toy 三连奖励，docs/313）：金色细框 + 四角加粗折角（内圈细线压到卡面文字，去掉） + 底边居中「SUPPORTER」小牌（卡面坐标 W × H）
 const FRAME_GOLD := Color(0.93, 0.76, 0.33)
 
 func _supporter_frame(ci: CanvasItem) -> void:
 	var r := Rect2(Vector2(9, 9), Vector2(W - 18, H - 18))
 	ci.draw_rect(r, Color(FRAME_GOLD, 0.85), false, 2.0)
-	ci.draw_rect(r.grow(-6.0), Color(FRAME_GOLD, 0.3), false, 1.0)
 	var l := 46.0
 	var t := 6.0
 	for c in [[r.position, 1, 1], [Vector2(r.end.x, r.position.y), -1, 1], [Vector2(r.position.x, r.end.y), 1, -1], [r.end, -1, -1]]:
