@@ -1,0 +1,13 @@
+1773499	real_tx5.png
+117948	real_tx5_gladiia_倒钩_0.png
+125248	real_tx5_gladiia_倒钩_1.png
+107574	real_tx5_gladiia_怒海_0.png
+95876	real_tx5_gladiia_怒海_1.png
+90238	real_tx5_gladiia_锚定_0.png
+117948	real_tx5_gladiia_锚定_1.png
+103646	real_tx5_lumen_净化_0.png
+103337	real_tx5_lumen_净化_1.png
+105143	real_tx5_skalter_共鸣_0.png
+92825	real_tx5_skalter_共鸣_1.png
+103035	real_tx5_texas_技力_0.png
+103365	real_tx5_texas_技力_1.png
