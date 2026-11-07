@@ -243,12 +243,14 @@ static func sink_tick(o, e: Dictionary, s: Dictionary, c: Vector2, ring: float, 
 	var need: float = float(s.get("sink", 2.0))
 	if dw < need:
 		o.fx({"kind": "ring", "pos": e.pos, "r": float(e.r) + 3.0, "r0": float(e.r) + 3.0 + 14.0 * (1.0 - dw / need), "life": every, "col": GRAV_C, "floor": true, "w": 1.5, "keep": true, "alpha": 0.6})   # 停留进度：脚下的锁环逐渐收紧
+		ncue(o, {"p": e.pos, "fe": e, "shape": "in", "r": float(e.r) + 4.0 + 16.0 * (1.0 - dw / need), "c": GRAV_C.lightened(0.2), "n": 0, "life": minf(0.45, every)})   # 停留进度：一圈紫环向脚下收紧（docs/310 §2）
 		return
 	e["ang_dw"] = 0.0
 	e["ang_sk"] = g.t
 	lift_growth(o, e, float(s.dur), float(s.get("h", 22.0)))
 	_FXR.ev(o, "ang_sink", {"e": e})   # 转平面（docs/267）：只画
 	o.fx({"kind": "ring", "pos": e.pos, "r": float(e.r) + 14.0, "r0": float(e.r), "life": 0.3, "col": GRAV_C * 1.6, "floor": true, "keep": true, "w": 2.5})
+	ncue(o, {"p": e.pos, "fe": e, "shape": "ring", "r": float(e.r) + 18.0, "r0": float(e.r), "c": GRAV_C.lightened(0.35), "n": 6})
 	for k in 3:
 		o.fx({"kind": "mote", "pos": e.pos + Vector2((k - 1) * float(e.r) * 0.5, -float(e.r) * 0.3), "vel": Vector2(0, -50), "life": 0.5, "col": GRAV_C * 1.5, "sz": 2.0})
 

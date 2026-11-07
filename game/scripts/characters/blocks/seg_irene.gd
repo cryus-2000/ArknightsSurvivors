@@ -100,6 +100,7 @@ static func _h3_thrust_release(o, a: Dictionary) -> void:
 		ir["strict_e"] = first
 		var hp: Vector2 = first.pos + Vector2(0, -float(first.r) * 2.4 - 12.0)   # 头顶一圈白色刺印
 		o.fx({"kind": "ring", "pos": hp, "r": 13.0, "r0": 13.0, "life": halt + 0.15, "col": Color(2.0, 1.7, 2.0), "keep": true, "w": 3.0})
+		ncue(o, {"p": first.pos, "fe": first, "shape": "mark", "c": Color(1.0, 0.86, 1.0), "life": halt + 0.2})   # 严律：被定住的那名敌人身上一枚白色准星（转平面下上面的刺印不画，docs/310 §2）
 		for q in 4:
 			var d4 := Vector2.from_angle(q * PI * 0.5 + PI * 0.25)
 			o.fx({"kind": "line", "pos": hp + d4 * 13.0, "to": hp + d4 * 21.0, "life": halt + 0.15, "col": Color(1.1, 0.8, 1.1), "w": 2.5})
@@ -290,6 +291,9 @@ static func h3_launch(o, e: Dictionary, dur: float, h: float) -> void:
 	ir.air.append({"e": e, "t": 0.0, "dur": dur, "h": h})
 	o.add_cc(e, dur, -INF, "airborne")
 	_FXR.ev(o, "ir_launch", {"en": e, "h": h})   # 转平面（docs/272）：挑刺细弧，只画
+	if h <= 12.0:   # 精一挑刺（高 10）：被挑起的那只身上一枚金白准星 + 一簇向上的火星（docs/310 §4.2，原来只有细弧）
+		ncue(o, {"p": e.pos, "fe": e, "shape": "mark", "c": Color(1.0, 0.9, 0.6), "life": maxf(0.35, dur)})
+		ncue(o, {"p": e.pos, "fe": e, "shape": "burst", "r": float(e.r) + 8.0, "r0": 4.0, "c": Color(1.0, 0.85, 0.5), "n": 5, "life": 0.3})
 
 
 static func _h3_is_air(o, e: Dictionary) -> bool:

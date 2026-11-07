@@ -502,6 +502,7 @@ static func sk_gn_tick(o, dt: float) -> void:
 		if hp < float(gn.get("hp", hp)) - 0.001:
 			if int(gn.get("tide", 0)) > 0:
 				o.fx({"kind": "ring", "pos": g.ppos, "r": 30.0, "r0": 10.0, "life": 0.3, "col": Color(0.6, 0.6, 0.7), "floor": true, "w": 2.0, "alpha": 0.6})
+				ncue(o, {"p": g.ppos, "shape": "in", "r": 34.0, "c": Color(0.6, 0.62, 0.72), "n": 4})   # 潮声清零：灰环收回（转平面下上面的环不画，docs/310 §2）
 			gn["tide"] = 0
 			gn["tide_t"] = 0.0
 		gn["hp"] = hp
@@ -512,6 +513,7 @@ static func sk_gn_tick(o, dt: float) -> void:
 			if int(gn.get("tide", 0)) < int(o.base("tide_max", 4.0)):
 				gn["tide"] = int(gn.get("tide", 0)) + 1
 				o.fx({"kind": "ring", "pos": g.ppos, "r": 28.0, "r0": 8.0, "life": 0.35, "col": GN_TIDE, "floor": true, "w": 2.0})
+				ncue(o, {"p": g.ppos, "shape": "ring", "r": 26.0 + 6.0 * float(gn.tide), "r0": 8.0, "c": GN_TIDE, "n": 2 + int(gn.tide)})   # 叠一层：层数越多环越大
 	elif gn.has("tide"):
 		gn["tide"] = 0
 	var res: Array = gn.get("res", [])
@@ -556,6 +558,7 @@ static func gn_resonate(o, b: Dictionary, hits: Array) -> void:
 			o.log_hit(src, ["skill"])
 			o.deal_damage(q, dmg * (o.vs_elite() if q.elite or q.boss else 1.0))
 		o.fx({"kind": "ring", "pos": p, "r": r, "r0": 10.0, "life": 0.3, "col": GN_RES, "floor": true, "w": 2.5})
+		ncue(o, {"p": p, "shape": "ring", "r": r, "r0": 10.0, "c": GN_RES, "n": 7})   # 共鸣：击杀处一圈专属色小声浪 + 火星
 		_FXR.ev(o, "sk_burst", {"at": p, "r": r})   # 转平面（docs/260）：只画
 		o.fx({"kind": "glow", "pos": p + Vector2(0, -10), "r": 16.0, "life": 0.22, "col": Color(1.8, 0.8, 1.0), "alpha": 0.8})
 		for k in 6:

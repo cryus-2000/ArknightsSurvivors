@@ -231,6 +231,7 @@ static func _h3_umbrella(o, a: Dictionary, at: Vector2) -> void:
 		for i in mini(hn, order.size()):
 			_h3_tentacle(o, a, order[i], tdmg, tstun)
 		o.fx({"kind": "ring", "pos": o.pos + Vector2(0, 4), "r": radius, "r0": radius * 0.4, "life": 0.35, "col": Color(0.85, 0.55, 1.5), "floor": true, "w": 2.5, "alpha": 0.8})
+		ncue(o, {"p": o.pos, "shape": "ring", "r": radius, "r0": radius * 0.4, "c": Color(0.72, 0.45, 1.0), "n": 8})   # 群体性癔症：紫色扩散环（转平面下上面的环不画，docs/310 §2）
 	else:
 		for i in min(n, alive.size()):
 			_h3_tentacle(o, a, alive[i], tdmg, tstun)
@@ -244,6 +245,7 @@ static func _h3_umbrella(o, a: Dictionary, at: Vector2) -> void:
 		for ne in near:
 			if not ne.dead:
 				_h3_tentacle(o, a, ne, tdmg, float(sw.get("stun", 0.4)))
+				ncue(o, {"p": ne.pos, "fe": ne, "shape": "burst", "r": float(ne.r) + 10.0, "r0": 4.0, "c": Color(0.62, 0.4, 1.0), "n": 6})   # 惊跳反射：额外两根触手抽中的敌人身上迸紫色碎屑（docs/310 §4.3）
 	# 唤醒：命中处范围冲击（创伤扩散）
 	var bu = emp.get("burst", null)
 	if empowered and hit.size() > 0 and bu is Dictionary:
@@ -612,6 +614,7 @@ static func _g202_repeat(o, tb: Dictionary, target: Dictionary, dmg: float) -> v
 			o.deal_damage(target, dmg * float(rp.mult))
 		_g202_add_cling(mz, target, dur, dur, false, false)
 		o.fx({"kind": "ring", "pos": target.pos + Vector2(0, 4), "r": target.r + 18.0, "r0": target.r + 4.0, "life": 0.35, "col": h3_deep_col(o, 1.8), "floor": true, "w": 3.0, "alpha": 0.9})
+		ncue(o, {"p": target.pos, "fe": target, "shape": "in", "r": float(target.r) + 20.0, "c": Color(0.62, 0.4, 1.0), "n": 5, "life": 0.4})   # 强迫性重复：缠紧的紫环向身上收（docs/310 §2）
 	else:
 		mz.rep[id] = g.t
 		if mz.rep.size() > 48:
@@ -662,6 +665,7 @@ static func _g202_smash_take(o, e: Dictionary, sm: Dictionary) -> float:
 			var p: Vector2 = e.pos
 			if _MZFX.owns(o):   # 转平面（docs/261）：脚下钻出触手，只画
 				_MZFX.ev(o, "mz_tent", {"e": e, "at": p, "stun": 0.0, "s3": false})
+				ncue(o, {"p": p, "fe": e, "shape": "ring", "r": float(e.r) + 26.0, "r0": float(e.r), "c": Color(0.78, 0.35, 1.0), "n": 8, "life": 0.4})   # 重斩：被缠住的敌人脚下一圈紫色裂环（docs/310 §4.3）
 				return float(sm.get("mult", 1.5))
 			g.fx.append({"kind": "rift", "pos": p, "r": 30.0, "life": 0.3, "max": 0.3})
 			if not o.spawn_fx_sprite("fx_mizuki_tentacle", p + Vector2(0, 10), g.PX * 0.9, 0.0, g.vrng.randf() < 0.5, true, Color(1, 1, 1, 0.9)):

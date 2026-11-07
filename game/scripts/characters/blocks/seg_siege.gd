@@ -406,6 +406,7 @@ static func _h4_wave_purge(o, w: Dictionary, b: Dictionary) -> void:
 		pd["leader"] = true
 		var nm: String = _h4_purge_one(o)
 		o.fx({"kind": "ring", "pos": g.ppos, "r": 34.0, "r0": 8.0, "life": 0.4, "col": H4_GOLD, "floor": true, "w": 3.0})
+		ncue(o, {"p": g.ppos, "shape": "ring", "r": 36.0, "r0": 8.0, "c": H4_GOLD, "n": 8, "life": 0.4})   # 威令扫过队长：金环 + 金星（转平面下上面的环 / 光不画，docs/310 §2）
 		o.fx({"kind": "glow", "pos": g.ppos + Vector2(0, -30), "r": 18.0, "life": 0.3, "col": Color(2.0, 1.7, 0.9), "alpha": 0.7})
 		if nm != "":
 			o.float_text(g.ppos + Vector2(0, -96), "净化 · " + nm, H4_GOLD, 14)
@@ -415,6 +416,7 @@ static func _h4_wave_purge(o, w: Dictionary, b: Dictionary) -> void:
 		if m.pos.distance_to(w.pos) <= R:
 			pd[m.id] = true
 			o.fx({"kind": "ring", "pos": m.pos, "r": 30.0, "r0": 8.0, "life": 0.4, "col": H4_GOLD, "floor": true, "w": 2.5})
+			ncue(o, {"p": m.pos, "shape": "ring", "r": 30.0, "r0": 8.0, "c": H4_GOLD, "n": 5, "life": 0.4})
 			o.fx({"kind": "glow", "pos": m.pos + Vector2(0, -26), "r": 14.0, "life": 0.3, "col": Color(2.0, 1.7, 0.9), "alpha": 0.6})
 
 

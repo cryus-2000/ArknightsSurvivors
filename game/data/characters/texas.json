@@ -633,6 +633,7 @@
        "mult": "$back_mult",
        "ring": false,
        "src": "回马剑",
+       "cue": {"shape": "ring", "c": "#8fd0ff", "rk": 1.0, "r0k": 0.4, "n": 10, "life": 0.4},
        "tags": [
         "follow_up",
         "area"
@@ -1039,6 +1040,7 @@
       "mult": "$rain2_mult",
       "power": true,
       "src": "剑雨",
+      "cue": {"shape": "ring", "c": "#ffd060", "rk": 1.0, "r0k": 0.15, "n": 12, "life": 0.45},
       "tags": [
        "skill"
       ]
@@ -1194,6 +1196,7 @@
        "mult": "$rain3_echo",
        "power": true,
        "src": "剑雨",
+       "cue": {"shape": "in", "c": "#ff9a40", "rk": 1.1, "n": 12, "life": 0.45},
        "tags": [
         "skill"
        ]

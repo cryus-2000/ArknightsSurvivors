@@ -1164,6 +1164,7 @@
       "mult": "$echo_mult",
       "max_n": "$wave_n",
       "src": "潮汐和声",
+      "cue": {"shape": "in", "c": "#2fd8c4", "rk": 1.0, "n": 10, "life": 0.45},
       "tags": [
        "follow_up"
       ],
@@ -1325,6 +1326,7 @@
       "mult": "$echo2_mult",
       "max_n": "$wave_n",
       "src": "潮汐和声",
+      "cue": {"shape": "in", "c": "#8ff0e2", "rk": 0.8, "n": 6, "life": 0.4},
       "tags": [
        "follow_up"
       ]

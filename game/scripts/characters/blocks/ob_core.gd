@@ -24,6 +24,12 @@ const _MI = preload("res://scripts/render/melee_impact.gd")   # 近战打击感�
 const Dc = preload("res://scripts/render/declutter.gd")   # render/hit_rings：攻击 / 技能命中的装饰圆圈开关（剑雨终结亮环）
 
 
+## 成长节点触发提示（docs/310 §2）：转平面接管时 o.fx / o.sparks 不画，节点提示统一走这个事件（fx_pxplane_cue.gd）。
+## d：p 位置 · shape ring / in / burst / mark / mote · r · r0 · c 颜色 · n 火花数 · fe 跟随敌人 · to 目标干员（mote）。只画，不碰玩法
+static func ncue(o, d: Dictionary) -> void:
+	_FXR.ev(o, "node_cue", d)
+
+
 ## 已实现的积木（族 → 名）。docs/61 里标 📝 的写在 PLANNED：写了校验会报「已登记未实现」
 const IMPL := {
 	"shape": ["circle", "cone", "orbit"],
@@ -403,7 +409,20 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 			apply_status(o, hs[i], s, Vector2.INF, -1.0, 0.0, i)
 	if b.has("fx") and fx_c != Vector2.INF:
 		_F().fx_play(o, b.fx, fx_c, fx_r, hits, fx_a)
+	if b.get("cue") is Dictionary and fx_c != Vector2.INF:   # 成长节点专属提示（docs/310 §4.3，只画）：和基础特效同款的节点招，叠一层本节点的颜色 / 形状
+		cue_shape(o, b.cue, fx_c, fx_r)
 	return hits
+
+
+## 数据里的 cue（docs/310 §4.3）：{shape, c "#rrggbb", rk 半径倍数（缺省 1）, r0k 起始半径倍数（缺省 0.3）, n, life}；位置 = 形状中心
+static func cue_shape(o, cu: Dictionary, c: Vector2, r: float) -> void:
+	var d: Dictionary = cu.duplicate()
+	d["p"] = c
+	d["r"] = r * float(cu.get("rk", 1.0))
+	d["r0"] = r * float(cu.get("r0k", 0.3))
+	if cu.get("c") is String:
+		d["c"] = Color.html(str(cu.c))
+	ncue(o, d)
 
 
 ## 命中 / 力场里的状态（st.*，第三批合并时与安洁莉娜段的 status_one 统一）：stun / slow 精英时长减半、Boss 缺省不受（与原 apply_status 逐字节相同）。
@@ -715,6 +734,10 @@ static func displace_at(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 		_F().fx_play(o, b.fx, c, r, hits)
 	elif not b.get("quiet", false):   # quiet：搭在别的爆点上时不再画默认圈（艾雅法拉熔岩弹击退，10-29）
 		o.fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.3, "life": 0.3, "col": o.col(), "floor": true, "w": 3.0, "alpha": 0.7})
+	if b.get("cue") is Dictionary:   # 数据给了颜色 / 形状（docs/310 §4.2）
+		cue_shape(o, b.cue, c, r)
+	elif b.get("cue", false):   # 成长节点的拉拽 / 推开（docs/310 §2）：转平面下上面的默认圈不画，改发通用提示（拉 = 收缩环，推 = 扩散环）
+		ncue(o, {"p": c, "shape": "in" if str(b.get("dir", "")) == "pull" else "ring", "r": r, "r0": r * 0.3, "n": 6, "life": 0.35})
 	return hits
 
 

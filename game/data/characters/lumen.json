@@ -888,7 +888,8 @@
       "verb": "cleanse",
       "what": [
        "nerve"
-      ]
+      ],
+      "cue": true
      },
      {
       "verb": "lamp",
