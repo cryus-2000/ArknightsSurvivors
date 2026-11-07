@@ -25,7 +25,6 @@ IMPORT = """[remap]
 
 importer="wav"
 type="AudioStreamWAV"
-uid="uid://{uid}"
 path="res://.godot/imported/{name}-{md5}.sample"
 
 [deps]

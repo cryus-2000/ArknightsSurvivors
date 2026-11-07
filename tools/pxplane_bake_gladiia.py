@@ -207,8 +207,12 @@ def write_import(name):
     if uid is None:
         rnd = random.Random(name)
         uid = "".join(rnd.choice("abcdefghijklmnopqrstuvwxy0123456789") for _ in range(13))
+    if os.path.exists(p):   # 已有的（Godot 导入过）不重写，保留 Godot 生成的 uid
+        return
     md5 = hashlib.md5(("res://art/fx/pxp/" + name).encode()).hexdigest()
-    open(p, "w", encoding="utf-8", newline="\n").write(IMPORT % (uid, name, md5, name, name, md5))
+    s = IMPORT % (uid, name, md5, name, name, md5)
+    s = "".join(l for l in s.splitlines(True) if not l.startswith("uid="))   # 11-07：不写 uid 行，Godot --import 时按规范生成（脚本拼的 uid 会撞号 / 被改写，见 asset_lint U1 / U2）
+    open(p, "w", encoding="utf-8", newline="\n").write(s)
 
 
 def main():

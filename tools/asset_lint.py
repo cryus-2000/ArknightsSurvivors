@@ -18,6 +18,9 @@
     H1 INFO   同内容不同名（sha256 相同）
     L1 ERROR  运行时贴图还在收货区（art/incoming 根目录或 portraits/ / optical_fx/）：游戏不读这里，要搬进 game/art（tools/asset_paths.py 给新路径）
     L2 ERROR  同名贴图出现在 game/art 两个目录（索引名必须全局唯一，docs/189 §2）
+    U1 ERROR  uid 撞号：两个文件（.import / .uid / .tscn / .tres）按 Godot 解码是同一个 id —— Godot 导入时会给其中一个改发新 uid，工作区一跑就脏
+    U2 ERROR  uid 写法不规范：Godot 的 uid 是 34 进制（字母 a–y、数字 0–8，不出现 z / 9，开头不是 a，≤ 63 位）；手写 / 脚本生成的 36 进制串导入时会被改写（11-07 维什戴尔 dawn2 7 张）
+    U3 WARN   .import 没有 uid 行（新烤的帧条，等 Godot --import 生成；生成后要提交）
 """
 import argparse, collections, hashlib, json, os, re, subprocess, sys
 
@@ -153,6 +156,77 @@ def check_dups(rep, files):
             rep.add("H1", "INFO", "同内容不同名", " = ".join(sorted(v)))
 
 
+UID_CHARS = 25   # Godot ResourceUID：char_count = 'z' - 'a'，base = char_count + ('9' - '0') = 34
+UID_BASE = 34
+UID_RX = re.compile(r'uid="(uid://[^"]*)"')
+
+
+def uid_id(t):
+    """同 Godot ResourceUID::text_to_id：不合法返回 None"""
+    if not t.startswith("uid://") or len(t) <= 6:
+        return None
+    v = 0
+    for c in t[6:]:
+        if "a" <= c <= "z":
+            o = ord(c) - 97
+        elif "0" <= c <= "9":
+            o = ord(c) - 48 + UID_CHARS
+        else:
+            return None
+        v = (v * UID_BASE + o) & 0xFFFFFFFFFFFFFFFF
+    return v & 0x7FFFFFFFFFFFFFFF
+
+
+def uid_text(v):
+    """同 Godot ResourceUID::id_to_text（规范写法）"""
+    s = ""
+    while v:
+        c = v % UID_BASE
+        s = (chr(97 + c) if c < UID_CHARS else chr(48 + c - UID_CHARS)) + s
+        v //= UID_BASE
+    return "uid://" + s
+
+
+def file_uid(f):
+    """文件自己的 uid：.import 的 uid= 行、.uid 文件内容、.tscn / .tres 首行 gd_scene / gd_resource 的 uid；没有返回 None"""
+    p = os.path.join(ROOT, f)
+    try:
+        if f.endswith(".uid"):
+            return open(p, encoding="utf-8").read().strip()
+        with open(p, encoding="utf-8", errors="replace") as fh:
+            if f.endswith(".import"):
+                for line in fh:
+                    if line.startswith("uid="):
+                        m = UID_RX.match(line)
+                        return m.group(1) if m else line.strip()
+                return None
+            head = fh.readline()
+        m = UID_RX.search(head) if head.startswith(("[gd_scene", "[gd_resource")) else None
+        return m.group(1) if m else None
+    except OSError:
+        return None
+
+
+def check_uids(rep, files):
+    by = collections.defaultdict(list)
+    for f in files:
+        if not f.endswith((".import", ".uid", ".tscn", ".tres")):
+            continue
+        t = file_uid(f)
+        if t is None:
+            if f.endswith(".import"):
+                rep.add("U3", "WARN", ".import 没有 uid 行（等 Godot --import 生成后提交）", f)
+            continue
+        v = uid_id(t)
+        if v is None or uid_text(v) != t:
+            rep.add("U2", "ERROR", "uid 写法不规范（Godot 34 进制，导入时会被改写；删掉这一行让 Godot 重新生成）", "%s %s" % (f, t))
+        if v is not None:
+            by[v].append(f)
+    for v, fs in by.items():
+        if len(fs) > 1:
+            rep.add("U1", "ERROR", "uid 撞号（Godot 会给其中一个改发新 uid）", "%s：%s" % (uid_text(v), " = ".join(sorted(fs))))
+
+
 def run():
     """跑全部规则，返回 (Report, 运行时贴图数, game/ 文件数)"""
     ops, ens = load_ids()
@@ -168,6 +242,7 @@ def run():
     check_runtime_names(rep, runtime, ops, ens)
     check_game_dirs(rep, [f for f in game if f not in set(moved)], ops)
     check_intake(rep, inc)
+    check_uids(rep, game)
     check_dups(rep, sorted(set(runtime) | {f for f in game if f.lower().endswith((".png", ".webp", ".ogg", ".wav")) and "/masters/" not in f
                                            and not f.startswith(("game/tests/", "game/tools/", "game/addons/"))}))
     return rep, len(runtime), len(game)

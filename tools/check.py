@@ -308,7 +308,7 @@ def check_enemy_art():
 
 
 def check_asset_lint():
-    """不开 Godot（约 3 秒）：素材命名与目录（tools/asset_lint.py，docs/189 §5）。ERROR 算失败（运行时贴图留在收货区 L1、重名 L2、非法文件名 N1），WARN 只报告"""
+    """不开 Godot（约 3 秒）：素材命名与目录（tools/asset_lint.py，docs/189 §5）。ERROR 算失败（运行时贴图留在收货区 L1、重名 L2、非法文件名 N1、uid 撞号 U1 / 写法不规范 U2），WARN 只报告"""
     import asset_lint
     errs, detail = asset_lint.check()
     return {"name": "素材命名与目录 asset_lint", "ok": not errs, "detail": detail + "（明细 python tools/asset_lint.py）", "errors": errs[:8]}
