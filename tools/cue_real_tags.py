@@ -32,7 +32,10 @@ def main():
             ev.setdefault((m.group(2), m.group(3)), []).append((float(m.group(1)), int(m.group(4) or -1), int(m.group(5) or -1)))
     for (op, tag), ts in sorted(ev.items()):
         picked = []
+        lo = (ks[0] + a.search) if ks else 0
         for q in ts:
+            if int(q[0] / a.spf) < lo:
+                continue   # 截图窗口开始前的触发（没有对应帧）
             if not picked or q[0] - picked[-1][0] >= a.gap:
                 picked.append(q)
         done = 0
