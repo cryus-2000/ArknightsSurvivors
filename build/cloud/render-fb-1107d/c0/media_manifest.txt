@@ -1,0 +1,6 @@
+668	check_card_desc.txt
+638	check_feedback_code.txt
+82	check_rc.txt
+634	check_title_menu.txt
+703	check_touch_layout.txt
+691	check_ui_smoke.txt
