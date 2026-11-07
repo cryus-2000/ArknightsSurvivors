@@ -171,11 +171,16 @@ func update(dt: float) -> void:
 	_demo_update(dt)
 	if active:
 		return
-	if tip_id != "":
+	if _held():
+		if tip_id != "":   # 正在显示的提示被引导卡顶掉：放回队首，卡收起后从头再弹（不吞掉）
+			_queue.push_front(tip_id)
+			tip_id = ""
+			tip_t = 0.0
+	elif tip_id != "":
 		tip_t += dt
 		if tip_t >= TIP_LIFE:
 			tip_id = ""
-	if tip_id == "" and not _queue.is_empty():
+	if tip_id == "" and not _queue.is_empty() and not _held():
 		tip_id = _queue.pop_front()
 		tip_t = 0.0
 	if not _eligible():
@@ -206,6 +211,15 @@ func _eligible() -> bool:
 	return g != null and g.mode == g.Mode.PLAY and not g.trial.active and g.demo_op == "" and not Cfg.practice_active
 
 
+## 新手引导（onboard.gd）占着左上角时小提示让开：两张卡不同时占同一位置（docs/219）
+var hold_test := -1   # 测试：1 / 0 强制「引导占着 / 没占着」（tests/tour_test 没有对局）
+
+func _held() -> bool:
+	if hold_test >= 0:
+		return hold_test == 1
+	return g != null and g.get("onboard") != null and g.onboard.card_busy()
+
+
 ## 排队弹一个提示（每样只弹一次：弹的同时记进存档）。force = 演示用，不查不记
 func show_tip(id: String, force := false) -> void:
 	if not TIPS.has(id):
@@ -215,7 +229,7 @@ func show_tip(id: String, force := false) -> void:
 			return
 		Cfg.seen_tips.append(id)
 		Cfg.save()
-	if tip_id == "":
+	if tip_id == "" and not _held():
 		tip_id = id
 		tip_t = 0.0
 	else:
@@ -235,7 +249,7 @@ func draw(vs: Vector2) -> void:
 
 ## 到点小提示：左上角（生命 / 灯火条下方）斜切小框 + 黄条，滑入 / 淡出；不拦输入
 func draw_tip(vs: Vector2) -> void:
-	if tip_id == "" or active or not TIPS.has(tip_id):
+	if tip_id == "" or active or not TIPS.has(tip_id) or _held():
 		return
 	var hud: CanvasItem = g.hud
 	var font: Font = g.font

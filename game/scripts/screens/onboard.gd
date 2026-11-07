@@ -848,6 +848,12 @@ func _ctx() -> Dictionary:
 
 
 ## 局内提示卡（hud 每帧调）：桌面左上（生命 / 灯火条下方），触屏顶部居中；做完打勾后滑出
+## 引导占着左上角（演示局进行中 / 有卡在显示或收起 / 问题框 / 演示图鉴）：tour.gd 的到点小提示要让开，排队到这里空了再弹
+## （11-07 Toy 实测：演示局第 7/7 张「指挥 · 集火」卡和正式局提示「精英海嗣」叠在同一位置）
+func card_busy() -> bool:
+	return drill or cur != "" or out_id != "" or ask_on or view_on
+
+
 func draw(vs: Vector2) -> void:
 	skip_rect = Rect2()
 	if ask_on or view_on or g.state != Game.S.PLAY:
