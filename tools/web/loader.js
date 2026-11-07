@@ -118,10 +118,24 @@
     var v = { root: d, tip: { style: {}, textContent: '' }, f: 0, stage: { text: '' }, ind: false, lines: null };
     var rm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var img = new Image(), T0 = performance.now(), readyT = -1, lastSig = '', lay = '';
+    var LN = 240;   // 11-08：标志按原图 240 原分辨率做阈值（原来先最近邻降到 120，「RHODES ISLAND」小字笔画被采丢，iPhone 上显示成「RI ODES」）
+    var box4 = d.querySelector('.p4box');
+    // 安全区（11-08 用户 iPhone B站 App 横屏：灵动岛挡左侧日志、右上胶囊压住标题，docs/318）：container.js 拿到容器状态后把 innerWidth / innerHeight 改成安全区尺寸、
+    // 安全边距写进 __sySafe；原来本页画布铺满整屏、却按安全区尺寸画，结果被拉伸，标志 / 按钮和画布错位。现在整页底色仍铺满，
+    // 画布 / 动效层 / 页脚 / 「开始游戏」都放进贴在安全区里的 .p4box，坐标系与 Godot 画布一致。
+    // 胶囊（分享 / 关闭）：SDK 给了矩形就用（__sySafe.capsule，画布坐标）；没给时（SDK 文档目前没有该字段）B站 App 沉浸模式下按 iPhone 实测估：
+    // 安全区右上，约宽 82、高 32、离安全区右沿 12、离顶 11（CSS px），外扩成右上 108 × (50 - 顶部安全边距) 的禁区
+    function safe() {
+      var s = window.__sySafe, w = innerWidth, h = innerHeight, e = window.__syToyEnv || {};
+      var r = s ? { l: s.left, t: s.top, w: w, h: h, cap: s.capsule } : { l: 0, t: 0, w: w, h: h, cap: null };
+      if (!r.cap && e.container && e.immersive && e.deviceType !== 'desktop') r.cap = { x: w - 108, y: 0, w: 108, h: Math.max(20, 50 - r.t) };
+      return r;
+    }
     img.onload = function () {
       var a = fx.querySelector('.p4logo'), ax = a.getContext('2d');
-      ax.imageSmoothingEnabled = false; ax.drawImage(img, 0, 0, 120, 120);
-      var id = ax.getImageData(0, 0, 120, 120), px = id.data;
+      a.width = a.height = LN;
+      ax.imageSmoothingEnabled = false; ax.drawImage(img, 0, 0, LN, LN);
+      var id = ax.getImageData(0, 0, LN, LN), px = id.data;
       for (var i = 0; i < px.length; i += 4) {
         var lv = (px[i] + px[i + 1] + px[i + 2]) / 3;
         if (lv > 112 && px[i + 3] > 127) { var hi = lv > 168; px[i] = hi ? 236 : 146; px[i + 1] = hi ? 238 : 151; px[i + 2] = hi ? 240 : 160; px[i + 3] = 255; }
@@ -137,13 +151,15 @@
     function lab(s, x, y, sz, c, al) { ctx.fillStyle = c; ctx.font = Math.round(sz) + 'px Consolas,"Microsoft YaHei","PingFang SC",monospace'; ctx.textAlign = al || 'left'; ctx.fillText(s, Math.round(x), Math.round(y)); }
     function head(x, y, s, k, rw) { box(x, y - 6 * k, 18 * k, 2, TX); lab(s, x + 26 * k, y, 13 * k, TX); box(x, y + 12 * k, rw, 1, RULE); }
     // 动效层的位置（CSS 像素），只在窗口尺寸变时重排
-    function layout(W, H, dpr, k, cx, cy, span, R, R2, hl, hx1) {
-      var key = W + 'x' + H;
+    function layout(W, H, dpr, k, cx, cy, span, R, R2, hl, hx1, sf) {
+      var key = W + 'x' + H + '|' + sf.l + ',' + sf.t;
       if (lay === key) return;
       lay = key;
+      box4.style.cssText = 'left:' + sf.l + 'px;top:' + sf.t + 'px;width:' + sf.w + 'px;height:' + sf.h + 'px';
       var q = function (sel) { return fx.querySelector(sel); }, px = function (x) { return (x / dpr).toFixed(1) + 'px'; };
       fx.style.cssText = 'left:' + px(cx) + ';top:' + px(cy);
       var lg = q('.p4logo'); lg.style.width = lg.style.height = px(span); lg.style.left = lg.style.top = px(-span / 2);
+      lg.style.imageRendering = span / dpr * (window.devicePixelRatio || 1) >= LN ? 'pixelated' : 'auto';   // 屏上够 240 物理像素才最近邻放大；不够就平滑缩小（缩小时最近邻会丢笔画）
       var ha = q('.p4halo'); ha.style.width = ha.style.height = px(R * 2.5); ha.style.left = ha.style.top = px(-R * 1.25);
       var gw = q('.p4glow'); gw.style.width = gw.style.height = px(span * 1.3); gw.style.left = gw.style.top = px(-span * 0.65);
       var T = R * 0.66 / 0.66 * 1.5, tri = q('.p4tri');   // 外接圆 1.5 倍环
@@ -163,31 +179,40 @@
     function frame() {
       if (!d.isConnected) return;
       requestAnimationFrame(frame);
-      var dpr = Math.min(2, window.devicePixelRatio || 1), W = Math.round(innerWidth * dpr), H = Math.round(innerHeight * dpr);
+      var sf = safe(), dpr = Math.min(2, window.devicePixelRatio || 1), W = Math.round(sf.w * dpr), H = Math.round(sf.h * dpr);
       var t = (performance.now() - T0) / 1000, p = v.f, rd = d.classList.contains('sy-ready') || p >= 1;
       if (rd && readyT < 0) readyT = performance.now();
       var u = readyT < 0 ? -1 : (performance.now() - readyT) / 1000;
       // 画布只在内容变时重画（进度格 / 日志 / 阶段 / 不定进度的转格 / 读完脉冲 / 计时到 0.1 秒）
       var spin = Math.floor((t * 14) % 60);
-      var sig = [W, H, Math.floor(p * 1000), v.stage.text, logs.length, logs.filter(function (l) { return l.ok; }).length, v.ind ? spin : -1, rd, rd && u < 0.6 ? Math.floor(u * 30) : -1, Math.floor(t * 30), got, done, bootProgress].join('|');   // 30 次 / 秒：刻度环 / 当前格 / 日志小方块随呼吸
+      var cap = sf.cap, gb = d.querySelector('.sy-go'), sig = [W, H, document.documentElement.clientWidth, document.documentElement.clientHeight, sf.l, sf.t, cap ? cap.x + ',' + cap.y + ',' + cap.w + ',' + cap.h : '', gb ? 1 : 0, Math.floor(p * 1000), v.stage.text, logs.length, logs.filter(function (l) { return l.ok; }).length, v.ind ? spin : -1, rd, rd && u < 0.6 ? Math.floor(u * 30) : -1, Math.floor(t * 30), got, done, bootProgress].join('|');   // 30 次 / 秒：刻度环 / 当前格 / 日志小方块随呼吸
       if (sig === lastSig) return;
       lastSig = sig;
-      if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+      // 画布铺满整屏（底色 / 点阵 / 扫描纹一直画到刘海和圆角下面，安全区边上无接缝），其余内容平移进安全区
+      var de = document.documentElement, FW = Math.max(W, Math.round(de.clientWidth * dpr)), FH = Math.max(H, Math.round(de.clientHeight * dpr));
+      if (cv.width !== FW || cv.height !== FH) { cv.width = FW; cv.height = FH; }
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
       var k = Math.max(0.8, Math.min(2.4, H / 540)), cx = W / 2, cy = H * 0.42, m = 22 * k;
       var br = rm ? 1 : 0.5 + 0.5 * Math.cos(t * 2 * Math.PI / 2.6), rb = rd ? 1 : 0.8 + 0.2 * br;   // 呼吸相位（同 CSS p4br：0 秒最亮）
       var span = 120 * Math.max(1, Math.floor(H * 0.34 / 120)), R = span * 0.66, R2 = R + 22 * k;
       var hx0 = cx - R - 46 * k, hx1 = cx + R + 46 * k, hl = W > 760 * dpr ? W / 2 - 200 * k : W / 2 - 10;
-      layout(W, H, dpr, k, cx, cy, span, R, R2, hl, hx1);
-      box(0, 0, W, H, BG);
+      layout(W, H, dpr, k, cx, cy, span, R, R2, hl, hx1, sf);
+      box(0, 0, FW, FH, BG);
       ctx.fillStyle = SUB; ctx.globalAlpha = 0.12;
-      for (var gx = 0; gx < W; gx += 24 * k) for (var gy = 0; gy < H; gy += 24 * k) ctx.fillRect(Math.round(gx), Math.round(gy), 1, 1);
+      for (var gx = 0; gx < FW; gx += 24 * k) for (var gy = 0; gy < FH; gy += 24 * k) ctx.fillRect(Math.round(gx), Math.round(gy), 1, 1);
       ctx.fillStyle = '#000';
-      for (var sy = 0; sy < H; sy += 3) ctx.fillRect(0, sy, W, 1);
+      for (var sy = 0; sy < FH; sy += 3) ctx.fillRect(0, sy, FW, 1);
       ctx.globalAlpha = 1;
+      ctx.setTransform(1, 0, 0, 1, Math.round(sf.l * dpr), Math.round(sf.t * dpr));
       lab('SYS 1105 · T+' + ('00' + (rm ? 0 : t).toFixed(1)).slice(-5), cx, 28 * k, 10 * k, SUB, 'center');
       lab('PRTS', m, 28 * k, 12 * k, TX); lab('/ 启动校验', m + 44 * k, 28 * k, 12 * k, SUB);
-      if (W > 600 * dpr) lab('ARKNIGHTS FAN GAME', W - m, 28 * k, 11 * k, SUB, 'right');
-      box(m, 40 * k, W - 2 * m, 1, RULE);
+      // 胶囊压在标题行上：右侧字与分隔线都停在胶囊左边 12 px；放不下（会碰到中间 SYS 读数）就不写。胶囊伸到右侧面板标题：面板下移
+      var hr = W - m, cl = cap ? cap.x * dpr : W, py = 104 * k;
+      if (cap && cl < W - m && cap.y * dpr < 48 * k) hr = cl - 12 * dpr;
+      if (cap && cl < W - m && (cap.y + cap.h) * dpr + 24 * k > py - 12 * k) py = (cap.y + cap.h) * dpr + 36 * k;
+      ctx.font = Math.round(11 * k) + 'px Consolas,"Microsoft YaHei","PingFang SC",monospace';
+      if (W > 600 * dpr && hr - ctx.measureText('ARKNIGHTS FAN GAME').width > cx + 90 * k) lab('ARKNIGHTS FAN GAME', hr, 28 * k, 11 * k, SUB, 'right');
+      box(m, 40 * k, hr - m, 1, RULE);
       box(cx - hl, cy, hx0 - (cx - hl), 1, RULE); box(hx1, cy, cx + hl - hx1, 1, RULE);
       box(cx - hl - 1.5, cy - 1, 3, 3, SUB); box(cx + hl - 1.5, cy - 1, 3, 3, SUB);
       var lit = Math.floor(p * 60);
@@ -214,12 +239,17 @@
       ctx.globalAlpha = 1;
       lab('000', cx, cy - R2 - 10 * k, 9 * k, SUB, 'center'); lab('090', cx + R2 + 10 * k, cy - 6 * k, 9 * k, SUB); lab('270', cx - R2 - 10 * k, cy - 6 * k, 9 * k, SUB, 'right');
       var ly = cy + R + 48 * k;
+      if (gb) {   // 「开始游戏」（CSS px，相对 .p4box）：上沿在「认证通过」基线下 14 px（11-08 原来两处各算各的，iPhone 上按钮盖住字的下半）；底下给 RHODES ISLAND / 页脚让出 24 px，放不下时字跟着按钮往上让
+        var bh = sf.h < 520 ? 42 : 50, gt = Math.round(Math.min(ly / dpr + 14, sf.h - 24 - bh));
+        if (gb.style.top !== gt + 'px') gb.style.top = gt + 'px';
+        ly = Math.min(ly, (gt - 12) * dpr);
+      }
       if (!rd) {
         lab(v.stage.text || '', cx, ly, 16 * k, TX, 'center');
         lab('ARCHIVE INDEX  ' + (v.ind ? '---' : ('00' + Math.floor(p * 100)).slice(-3)) + '%', cx, ly + 20 * k, 10 * k, SUB, 'center');
-      } else lab('认证通过', cx, Math.min(ly, (Math.min(innerHeight * 0.8, innerHeight - 60 - 25) - 25 - 18) * dpr), 16 * k, ACC, 'center');   // 让开「开始游戏」按钮上沿
+      } else lab('认证通过', cx, ly, 16 * k, ACC, 'center');
       if (W > 760 * dpr) {
-        var lx = m, rx = W - m - 150 * k, py = 104 * k;
+        var lx = m, rx = W - m - 150 * k;
         head(lx, py, '启动校验', k, 170 * k);
         logs.slice(Math.max(0, logs.length - 4)).forEach(function (ln, i) {
           var yy = py + 35 * k + i * 24 * k;
@@ -249,8 +279,8 @@
     for (var i = 0; i < 50; i++) segs += '<i></i>';
     var h = '';
     if (BV === 4) {   // PRTS 认证终端（11-05，Codex docs/reference/prts-entry-1105；同桌面 boot_views.draw_v4）：画布逐帧画，扫描线 / 不定进度是 CSS 动画
-      h = '<canvas class="p4c"></canvas><div class="p4fx"><b class="p4halo"></b><b class="p4glow"></b><svg class="p4tri"></svg><canvas class="p4logo" width="120" height="120"></canvas>' +
-        '<div class="p4rot a"></div><div class="p4rot b"></div><div class="p4run r"><b></b></div><div class="p4run l"><b></b></div></div>';
+      h = '<canvas class="p4c"></canvas><div class="p4box"><div class="p4fx"><b class="p4halo"></b><b class="p4glow"></b><svg class="p4tri"></svg><canvas class="p4logo" width="240" height="240"></canvas>' +
+        '<div class="p4rot a"></div><div class="p4rot b"></div><div class="p4run r"><b></b></div><div class="p4run l"><b></b></div></div>' + FOOT + '</div>';
     } else if (BV === 1) {
       h = '<div class="sv-scan"></div>' + snowLayer(46) + head('罗德岛作战终端 · 启动程序', 1) +
         '<div class="sv-body1">' + logBox('sv-frame') + tipBox() + '</div>' +
@@ -307,7 +337,7 @@
       d.__sweepT0 = sweepT0;
     }
     d.className = 'sv sv' + BV;
-    d.innerHTML = h + FOOT;
+    d.innerHTML = BV === 4 ? h : h + FOOT;   // 方向 4 的页脚在安全区框 .p4box 里
     var q = function (s) { return d.querySelector(s); };
     if (BV === 4) return p4Init(d);
     return { root: d, lines: q('.sv-lines'), tip: q('.sv-tip .bd'), code: q('.sv-code'), segs: d.querySelectorAll('.sv-segs i'), pct: q('.sv-pct'),
@@ -467,9 +497,9 @@
         b.style.top = Math.round(y - bh / 2) + 'px';
         frame();
       };
-      d.appendChild(b);
-      place();
-      window.addEventListener('resize', place);
+      (d.querySelector('.p4box') || d).appendChild(b);   // 方向 4：放进安全区框（left:50% 按安全区居中，top 由 p4Init 每帧对齐「认证通过」）
+      if (BV !== 4) place(); else frame();
+      window.addEventListener('resize', BV !== 4 ? place : frame);
       d.classList.add('sy-ready');
       // 引线：从「接入完成」接触点（方向 3 钉在 180 方位）竖直落到按钮上沿，接触点上一个收拢的锁定框（横屏才拉，竖屏盘下是日志）
       var ct = d.querySelector('.sv-contacts');
@@ -512,14 +542,14 @@
         var px = r.left + r.width / 2 - dr2.left, py = r.top + r.height / 2 - dr2.top;
         var dim = document.createElement('div');
         dim.className = 'sy-dim';
-        d.insertBefore(dim, b);
+        d.appendChild(dim);   // 层级靠 z-index（压暗 19 < 按钮 20）；方向 4 的按钮不是 d 的直接子节点
         if (!rm) {
           var R = Math.hypot(Math.max(px, dr2.width - px), Math.max(py, dr2.height - py));
           for (var j = 0; j < 3; j++) {
             var pu = document.createElement('div');
             pu.className = 'sy-pulse p' + j;
             pu.style.cssText = 'left:' + (px - R) + 'px;top:' + (py - R) + 'px;width:' + 2 * R + 'px;height:' + 2 * R + 'px;--s0:' + (r.height / 2 / R).toFixed(4) + ';animation-delay:' + (j * 0.1) + 's';
-            d.insertBefore(pu, b);
+            d.appendChild(pu);
           }
         }
         d.removeEventListener('pointerdown', go, true);
