@@ -452,6 +452,8 @@ static func _hw2_tick(o, dt: float) -> bool:
 					o.fx({"kind": "spark", "pos": _hw_lob_pos(l), "vel": Vector2(g.vrng.randf_range(-20, 20), g.vrng.randf_range(-20, 10)), "life": 0.25, "col": HW_ORANGE, "sz": 2.0 * l.sz})
 			if l.t >= l.dur:
 				_FXR.ev(o, "ey_splash", {"at": l.to, "r": float(l.r), "src": str(l.src)})   # 转平面（docs/259）：抛射熔岩落地，只画
+				if lk is Dictionary and lk.get("cue") is Dictionary:   # 成长节点专属提示（docs/310 §4.3，只画）
+					cue_shape(o, lk.cue, l.to, float(l.r))
 				o.area_hit(l.src, l.to, l.r, l.dmg)
 				if "meteor2" in o.taken and l.src == "熔岩天降":
 					hw_ignite_blast(o, l.to, float(l.r))

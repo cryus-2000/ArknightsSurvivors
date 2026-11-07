@@ -1436,6 +1436,7 @@
       "mult": "$wall2_mult",
       "kb": "$block_kb",
       "src": "盾墙反震",
+      "cue": {"shape": "ring", "c": "#ffd86a", "rk": 1.0, "r0k": 0.2, "n": 10, "life": 0.4},
       "tags": [
        "basic"
       ]

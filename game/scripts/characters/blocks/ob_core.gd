@@ -409,7 +409,20 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 			apply_status(o, hs[i], s, Vector2.INF, -1.0, 0.0, i)
 	if b.has("fx") and fx_c != Vector2.INF:
 		_F().fx_play(o, b.fx, fx_c, fx_r, hits, fx_a)
+	if b.get("cue") is Dictionary and fx_c != Vector2.INF:   # 成长节点专属提示（docs/310 §4.3，只画）：和基础特效同款的节点招，叠一层本节点的颜色 / 形状
+		cue_shape(o, b.cue, fx_c, fx_r)
 	return hits
+
+
+## 数据里的 cue（docs/310 §4.3）：{shape, c "#rrggbb", rk 半径倍数（缺省 1）, r0k 起始半径倍数（缺省 0.3）, n, life}；位置 = 形状中心
+static func cue_shape(o, cu: Dictionary, c: Vector2, r: float) -> void:
+	var d: Dictionary = cu.duplicate()
+	d["p"] = c
+	d["r"] = r * float(cu.get("rk", 1.0))
+	d["r0"] = r * float(cu.get("r0k", 0.3))
+	if cu.get("c") is String:
+		d["c"] = Color.html(str(cu.c))
+	ncue(o, d)
 
 
 ## 命中 / 力场里的状态（st.*，第三批合并时与安洁莉娜段的 status_one 统一）：stun / slow 精英时长减半、Boss 缺省不受（与原 apply_status 逐字节相同）。

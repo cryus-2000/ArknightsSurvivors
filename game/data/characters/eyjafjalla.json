@@ -1147,6 +1147,7 @@
         "sz": 1.0,
         "src": "熔岩团",
         "look": {
+         "cue": {"shape": "ring", "c": "#ffe060", "rk": 1.4, "r0k": 0.3, "n": 8, "life": 0.4},
          "tex": "proj_eyja_lava_lob",
          "scale": 1.6,
          "spin": 8,

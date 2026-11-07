@@ -1418,6 +1418,7 @@
       "mult": "$drag2_mult",
       "kb": "$slam_kb",
       "src": "锚击",
+      "cue": {"shape": "ring", "c": "#e0403a", "rk": 1.15, "r0k": 0.2, "n": 12, "life": 0.4},
       "tags": [
        "skill"
       ],

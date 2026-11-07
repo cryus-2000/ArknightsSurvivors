@@ -476,12 +476,14 @@ static func _h4wd_tick(o, wd: Dictionary, dt: float) -> void:
 				var ec: Dictionary = _h4_sub(o, a.get("echo", null))
 				if not ec.is_empty():
 					wd.quakes.append({"pos": s.to, "t": qt + float(ec.get("delay", 0.3)), "dmg": qd * float(ec.get("mult", 1.0)),
-						"r": s.r * float(a.get("quake_r", 1.2)) * float(ec.get("size", 1.25)), "rings": s.rings, "stun": qs})
+						"r": s.r * float(a.get("quake_r", 1.2)) * float(ec.get("size", 1.25)), "rings": s.rings, "stun": qs, "echo": true})
 	wd.shells = wd.shells.filter(func(s): return s.t < s.dur)
 	for q in wd.quakes:
 		q.t -= dt
 		if q.t <= 0.0:
 			_h4_explode(o, a, q.pos, q.dmg, q.r, str(a.get("quake_src", "")), 0, q.stun, false, q.rings, "quake")
+			if q.get("echo", false):   # 余响：第二次余震是紫灰色、向内收（区别于第一次余震，docs/310 §4.3）
+				ncue(o, {"p": q.pos, "shape": "in", "r": float(q.r) * 1.1, "c": Color(0.68, 0.55, 0.85), "n": 8, "life": 0.4})
 	wd.quakes = wd.quakes.filter(func(q): return q.t > 0.0)
 	var sh: Dictionary = a.get("shade", {})
 	for sd in wd.shades:

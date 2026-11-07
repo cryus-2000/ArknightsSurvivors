@@ -514,6 +514,7 @@ static func _h4_seals_tick(o, sz: Dictionary, a: Dictionary, dt: float) -> void:
 			continue
 		var st: float = float(sl.get("stun_elite", 0.25)) if best.elite else float(sl.get("stun", 0.5))
 		o.add_cc(best, st)
+		ncue(o, {"p": best.pos, "fe": best, "shape": "mark", "c": Color(1.0, 0.32, 0.22), "life": maxf(0.4, st)})   # 画地为牢：朱红四角准星锁住定身的敌人，和基础一技能的金印区分（docs/310 §4.3）
 		var found := false
 		for s2 in sz.seals:
 			if s2.e == best:

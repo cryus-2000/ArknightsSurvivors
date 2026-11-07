@@ -9,6 +9,7 @@
 ## 旧做法对照（fx/px_plane = 2）凯尔希不接管（fx_pxplane.owns_id 返回 false），画面 = 当前游戏。
 extends RefCounted
 
+const CUE = preload("res://scripts/render/fx_pxplane_cue.gd")   # 成长节点通用提示（docs/310）
 const MI = preload("res://scripts/render/melee_impact.gd")
 
 const ID := "kaltsit"
@@ -102,6 +103,7 @@ static func ev(r, o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> v
 			var sw: int = 0 if float(s.get("swing", 1.0)) >= 0.0 else 1
 			if d.get("second", false):
 				sw = 1 - sw
+				CUE.push(r, o, {"p": at + Vector2.from_angle(ang) * 30.0, "shape": "burst", "r": 34.0, "r0": 6.0, "c": Color(0.75, 1.0, 0.45), "n": 7, "life": 0.3})   # 骨爪增生：第二爪交叉处迸一簇黄绿骨屑（docs/310 §4.3）
 			var es: Array = d.get("es", [])
 			if o.skill_active_left(2) > 0.0:   # S3 熔毁期间：墨绿实心重月牙 + 熔滴
 				_put(r, o, "mclaw_r%d_s%d_up" % [Rb, sw], at, "up", "m3", flip)

@@ -24,7 +24,6 @@
   "_hw3_fan",
   "_hw3_lock",
   "_hw_draw_shots",
-  "_hw_lock_jump",
   "hw_execute"
  ],
  "seg_lumen.gd": [

@@ -245,6 +245,7 @@ static func _h3_umbrella(o, a: Dictionary, at: Vector2) -> void:
 		for ne in near:
 			if not ne.dead:
 				_h3_tentacle(o, a, ne, tdmg, float(sw.get("stun", 0.4)))
+				ncue(o, {"p": ne.pos, "fe": ne, "shape": "burst", "r": float(ne.r) + 10.0, "r0": 4.0, "c": Color(0.62, 0.4, 1.0), "n": 6})   # 惊跳反射：额外两根触手抽中的敌人身上迸紫色碎屑（docs/310 §4.3）
 	# 唤醒：命中处范围冲击（创伤扩散）
 	var bu = emp.get("burst", null)
 	if empowered and hit.size() > 0 and bu is Dictionary:
@@ -664,6 +665,7 @@ static func _g202_smash_take(o, e: Dictionary, sm: Dictionary) -> float:
 			var p: Vector2 = e.pos
 			if _MZFX.owns(o):   # 转平面（docs/261）：脚下钻出触手，只画
 				_MZFX.ev(o, "mz_tent", {"e": e, "at": p, "stun": 0.0, "s3": false})
+				ncue(o, {"p": p, "fe": e, "shape": "ring", "r": float(e.r) + 26.0, "r0": float(e.r), "c": Color(0.78, 0.35, 1.0), "n": 8, "life": 0.4})   # 重斩：被缠住的敌人脚下一圈紫色裂环（docs/310 §4.3）
 				return float(sm.get("mult", 1.5))
 			g.fx.append({"kind": "rift", "pos": p, "r": 30.0, "life": 0.3, "max": 0.3})
 			if not o.spawn_fx_sprite("fx_mizuki_tentacle", p + Vector2(0, 10), g.PX * 0.9, 0.0, g.vrng.randf() < 0.5, true, Color(1, 1, 1, 0.9)):

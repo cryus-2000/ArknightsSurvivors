@@ -2967,7 +2967,8 @@
       "verb": "cleanse",
       "what": [
        "nerve"
-      ]
+      ],
+      "cue": true
      }
     ]
    },
