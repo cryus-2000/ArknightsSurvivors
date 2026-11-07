@@ -524,7 +524,7 @@ func _draw_row_v2(ci: CanvasItem, rr: Rect2, si: int, touch: bool) -> void:
 				ci.draw_rect(Rect2(mid.position.x, mid.end.y - 3.0, mid.size.x, 3.0), Color("303a44"))
 				ci.draw_rect(Rect2(mid.position.x, mid.end.y - 3.0, mid.size.x * fill, 3.0), UI.CYAN)
 		"touchpad", "perf", "runs", "cloud_pull", "cloud_push":
-			var lbl := {"touchpad": "调整", "perf": "查看", "runs": "打开记录文件夹"}.get(row.type, "")
+			var lbl: String = {"touchpad": "调整", "perf": "查看", "runs": "打开记录文件夹"}.get(row.type, "") as String
 			var conf := false
 			var can := true
 			if row.type in ["cloud_pull", "cloud_push"]:
