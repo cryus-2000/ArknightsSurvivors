@@ -1,0 +1,14 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4857 项）
+render_prep 完成，用时 3 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+e1b cue=0 rc=0 607 张 0 处脚本错误
+e1b cue=1 rc=0 607 张 0 处脚本错误
+帧数 607，有差 280，挑 [(1677, 478), (1737, 509), (1785, 475), (1824, 609), (1953, 537), (2001, 728), (2202, 480), (2376, 522)]
+e1b eyjafjalla 熔蚀：触发 12 次，出图 2
+e1b gladiia 倒钩：触发 6 次，出图 2
+e1b gladiia 怒海：触发 7 次，出图 2
+e1b gladiia 锚定：触发 14 次，出图 2
+e1b lumen 净化：触发 30 次，出图 2
+e1b lumen 折光：触发 5 次，出图 2
+e1b suzuran 灼印：触发 84 次，出图 2
+media：15 个文件，4.0M

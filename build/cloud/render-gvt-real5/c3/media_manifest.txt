@@ -1,0 +1,10 @@
+1819842	real_tx4.png
+115033	real_tx4_gladiia_倒钩_0.png
+102569	real_tx4_gladiia_锚定_0.png
+116713	real_tx4_gladiia_锚定_1.png
+88703	real_tx4_lumen_净化_0.png
+89164	real_tx4_lumen_净化_1.png
+92893	real_tx4_skalter_共鸣_0.png
+79233	real_tx4_skalter_共鸣_1.png
+88083	real_tx4_texas_技力_0.png
+87523	real_tx4_texas_技力_1.png

@@ -1,0 +1,742 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+OpenGL API 4.5 (Core Profile) Mesa 22.3.6 - Compatibility - Using Device: Mesa/X.org - llvmpipe (LLVM 15.0.6, 256 bits)
+
+CUE 3.300 lumen 净化 658 359
+CUE 5.478 skalter 共鸣 623 680
+CUE 5.874 skalter 共鸣 525 854
+CUE 6.600 lumen 净化 639 396
+CUE 7.722 skalter 共鸣 217 494
+CUE 9.240 lumen 净化 626 384
+CUE 11.550 texas 技力 617 391
+CUE 11.550 texas 技力 617 391
+CUE 11.748 skalter 共鸣 546 690
+CUE 12.210 lumen 净化 608 425
+CUE 14.652 texas 技力 566 391
+CUE 14.652 texas 技力 566 391
+CUE 14.850 skalter 共鸣 335 222
+CUE 15.444 lumen 净化 631 356
+CUE 17.292 skalter 共鸣 776 105
+CUE 17.688 skalter 共鸣 796 -37
+CUE 17.886 skalter 共鸣 600 -28
+CUE 18.150 lumen 净化 647 343
+CUE 20.526 skalter 共鸣 338 273
+CUE 21.252 skalter 共鸣 251 204
+CUE 21.450 skalter 共鸣 113 167
+CUE 22.044 lumen 净化 595 352
+CUE 23.958 texas 技力 593 409
+CUE 23.958 texas 技力 593 409
+CUE 24.090 skalter 共鸣 370 243
+CUE 24.420 lumen 净化 631 360
+CUE 26.994 texas 技力 554 384
+CUE 26.994 texas 技力 554 384
+CUE 27.192 skalter 共鸣 338 347
+CUE 27.456 lumen 净化 575 360
+CUE 28.842 skalter 共鸣 528 74
+CUE 30.492 lumen 净化 636 314
+CUE 33.264 lumen 净化 615 301
+CUE 36.432 lumen 净化 602 313
+CUE 36.762 skalter 共鸣 384 210
+CUE 37.092 texas 技力 641 434
+CUE 37.092 texas 技力 641 434
+CUE 37.158 skalter 共鸣 435 449
+CUE 37.488 skalter 共鸣 549 -13
+CUE 37.686 skalter 共鸣 781 -197
+CUE 38.016 texas 技力 597 447
+CUE 38.016 texas 技力 597 447
+CUE 38.016 skalter 共鸣 419 666
+CUE 38.940 lumen 净化 615 311
+CUE 40.260 skalter 共鸣 781 98
+CUE 40.524 texas 技力 604 353
+CUE 40.524 texas 技力 604 353
+CUE 40.656 skalter 共鸣 729 -102
+CUE 40.986 skalter 共鸣 985 89
+CUE 41.184 skalter 共鸣 1158 28
+CUE 41.976 lumen 净化 666 333
+CUE 44.088 texas 技力 650 250
+CUE 44.088 texas 技力 650 250
+CUE 44.220 skalter 共鸣 920 459
+CUE 44.616 skalter 共鸣 759 673
+CUE 44.814 skalter 共鸣 745 856
+CUE 44.814 wisadel 技力 792 738
+CUE 44.880 lumen 净化 697 304
+CUE 47.916 lumen 净化 660 410
+CUE 48.180 skalter 共鸣 532 698
+CUE 48.906 skalter 共鸣 416 672
+CUE 49.104 texas 技力 610 404
+CUE 49.104 texas 技力 610 404
+CUE 49.104 skalter 共鸣 221 587
+CUE 49.104 wisadel 技力 416 672
+CUE 50.292 texas 技力 629 379
+CUE 50.292 texas 技力 629 379
+CUE 50.490 skalter 共鸣 311 199
+CUE 50.952 lumen 净化 612 383
+CUE 50.952 skalter 共鸣 299 16
+CUE 51.150 skalter 共鸣 415 -166
+CUE 51.282 texas 技力 637 398
+CUE 51.282 texas 技力 637 398
+CUE 51.480 skalter 共鸣 347 505
+CUE 53.856 lumen 净化 603 359
+CUE 54.120 texas 技力 584 377
+CUE 54.120 texas 技力 584 377
+CUE 54.318 skalter 共鸣 250 358
+CUE 54.582 skalter 共鸣 445 98
+CUE 55.374 texas 技力 594 326
+CUE 55.374 texas 技力 594 326
+CUE 55.506 skalter 共鸣 664 84
+CUE 55.638 skalter 共鸣 649 -33
+CUE 56.892 lumen 净化 640 323
+CUE 58.542 skalter 共鸣 943 438
+CUE 58.740 skalter 共鸣 1145 331
+CUE 59.004 skalter 共鸣 860 212
+CUE 59.928 lumen 净化 657 353
+BEACON mires t=60.1 mires=0
+CUE 60.984 texas 技力 667 301
+CUE 60.984 texas 技力 667 301
+CUE 61.182 skalter 共鸣 958 371
+CUE 61.644 texas 技力 698 312
+CUE 61.644 texas 技力 698 312
+CUE 61.974 skalter 共鸣 851 448
+CUE 62.898 texas 技力 695 309
+CUE 62.898 texas 技力 695 309
+CUE 62.964 lumen 净化 708 384
+CUE 63.096 skalter 共鸣 954 208
+CUE 63.888 texas 技力 660 392
+CUE 63.888 texas 技力 660 392
+CUE 63.888 skalter 共鸣 378 686
+CUE 64.086 skalter 共鸣 287 783
+CUE 65.868 texas 技力 556 404
+CUE 65.868 texas 技力 556 404
+CUE 65.868 lumen 净化 580 346
+CUE 66.066 skalter 共鸣 458 724
+CUE 66.330 skalter 共鸣 252 338
+CUE 66.594 skalter 共鸣 254 470
+CUE 66.858 skalter 共鸣 247 539
+CUE 66.990 skalter 共鸣 290 253
+CUE 67.188 skalter 共鸣 470 107
+CUE 67.716 skalter 共鸣 265 20
+CUE 67.914 skalter 共鸣 336 -53
+CUE 68.244 skalter 共鸣 442 723
+CUE 68.904 lumen 净化 607 392
+CUE 71.610 texas 技力 559 404
+CUE 71.610 texas 技力 559 404
+CUE 71.676 skalter 共鸣 216 109
+CUE 71.940 lumen 净化 640 387
+CUE 72.270 texas 技力 618 473
+CUE 72.270 texas 技力 618 473
+CUE 72.402 skalter 共鸣 544 672
+CUE 74.844 lumen 净化 663 325
+CUE 74.910 skalter 共鸣 778 -80
+CUE 75.702 texas 技力 598 384
+CUE 75.702 texas 技力 598 384
+CUE 76.164 skalter 共鸣 595 109
+CUE 76.296 skalter 共鸣 408 1
+CUE 76.494 skalter 共鸣 986 350
+CUE 77.220 skalter 共鸣 943 232
+CUE 77.880 lumen 净化 632 324
+CUE 78.342 texas 技力 592 411
+CUE 78.342 texas 技力 592 411
+CUE 78.474 skalter 共鸣 190 341
+CUE 78.606 skalter 共鸣 395 281
+CUE 78.804 skalter 共鸣 172 502
+CUE 80.124 texas 技力 587 453
+CUE 80.124 texas 技力 587 453
+CUE 80.322 skalter 共鸣 432 580
+CUE 80.520 skalter 共鸣 355 750
+CUE 80.916 lumen 净化 632 343
+CUE 82.038 skalter 共鸣 487 78
+CUE 82.764 skalter 共鸣 250 43
+CUE 83.754 texas 技力 607 447
+CUE 83.754 texas 技力 607 447
+CUE 83.952 lumen 净化 647 430
+CUE 83.952 skalter 共鸣 733 733
+CUE 84.216 skalter 共鸣 775 648
+CUE 84.414 skalter 共鸣 1042 472
+CUE 84.414 wisadel 技力 1010 614
+CUE 84.942 skalter 共鸣 852 737
+CUE 85.140 skalter 共鸣 1052 736
+CUE 86.856 lumen 净化 615 370
+CUE 87.120 skalter 共鸣 256 438
+CUE 88.176 skalter 共鸣 960 463
+CUE 88.572 skalter 共鸣 940 705
+CUE 88.902 skalter 共鸣 1131 528
+CUE 89.100 texas 技力 609 333
+CUE 89.100 texas 技力 609 333
+CUE 89.232 skalter 共鸣 874 211
+CUE 89.628 skalter 共鸣 933 27
+CUE 89.760 texas 技力 610 270
+CUE 89.760 texas 技力 610 270
+CUE 89.826 skalter 共鸣 726 -31
+CUE 89.826 wisadel 技力 881 -24
+CUE 89.892 lumen 净化 659 379
+CUE 90.420 texas 技力 634 309
+CUE 90.420 texas 技力 634 309
+CUE 90.816 skalter 共鸣 723 571
+CUE 92.268 lumen 净化 672 315
+CUE 92.730 texas 技力 623 282
+CUE 92.730 texas 技力 623 282
+CUE 92.796 lumen 净化 594 315
+CUE 92.928 skalter 共鸣 533 31
+CUE 93.456 skalter 共鸣 410 116
+CUE 93.720 skalter 共鸣 555 -48
+CUE 93.918 skalter 共鸣 584 70
+CUE 94.314 skalter 共鸣 336 181
+CUE 95.700 lumen 净化 650 334
+CUE 96.294 skalter 共鸣 699 42
+CUE 96.558 texas 技力 584 321
+CUE 96.558 texas 技力 584 321
+CUE 96.756 skalter 共鸣 409 138
+CUE 97.350 skalter 共鸣 269 504
+CUE 97.548 skalter 共鸣 290 316
+CUE 97.746 skalter 共鸣 460 544
+CUE 98.736 lumen 净化 636 368
+CUE 98.934 texas 技力 602 431
+CUE 98.934 texas 技力 602 431
+CUE 99.132 skalter 共鸣 745 722
+CUE 99.396 skalter 共鸣 297 333
+CUE 99.924 texas 技力 589 417
+CUE 99.924 texas 技力 589 417
+CUE 101.772 lumen 净化 660 309
+CUE 103.488 texas 技力 649 338
+CUE 103.488 texas 技力 649 338
+CUE 103.686 skalter 共鸣 916 289
+CUE 104.148 texas 技力 590 350
+CUE 104.148 texas 技力 590 350
+CUE 104.214 skalter 共鸣 423 124
+CUE 104.280 lumen 净化 653 326
+CUE 104.412 skalter 共鸣 1098 298
+CUE 105.666 skalter 共鸣 648 690
+CUE 105.864 skalter 共鸣 591 761
+CUE 105.864 wisadel 技力 648 690
+CUE 106.062 skalter 共鸣 748 826
+CUE 106.260 skalter 共鸣 795 562
+CUE 106.326 texas 技力 653 318
+CUE 106.326 texas 技力 653 318
+CUE 106.590 skalter 共鸣 877 478
+CUE 106.656 lumen 净化 706 387
+CUE 107.052 texas 技力 700 303
+CUE 107.052 texas 技力 700 303
+CUE 107.250 skalter 共鸣 661 -15
+CUE 107.712 lumen 净化 705 329
+CUE 109.890 texas 技力 673 296
+CUE 109.890 texas 技力 673 296
+CUE 110.088 skalter 共鸣 971 411
+CUE 110.220 lumen 净化 672 402
+CUE 110.220 skalter 共鸣 901 599
+CUE 110.616 skalter 共鸣 1108 196
+CUE 111.210 texas 技力 699 333
+CUE 111.210 texas 技力 699 333
+CUE 111.276 skalter 共鸣 286 461
+CUE 111.672 skalter 共鸣 194 662
+CUE 113.256 lumen 净化 669 354
+CUE 114.180 skalter 共鸣 790 114
+CUE 114.972 texas 技力 329 356
+CUE 114.972 texas 技力 329 356
+ENDEV deal m1 ["wish/", "elite/"] t=115.0 cur=standard relics=[]
+ENDEV flip 0 wish  t=115.0 cur=standard relics=[]
+ENDEV open wish_v2 t=115.0 cur=standard relics=[]
+ENDEV pick wish_v2:0 t=115.0 cur=standard relics=[]
+CUE 115.764 skalter 共鸣 551 154
+CUE 116.028 texas 技力 392 402
+CUE 116.028 texas 技力 392 402
+CUE 116.226 skalter 共鸣 173 162
+CUE 116.292 lumen 净化 629 334
+CUE 117.282 texas 技力 568 469
+CUE 117.282 texas 技力 568 469
+CUE 117.744 skalter 共鸣 186 485
+CUE 117.876 skalter 共鸣 367 277
+CUE 118.074 skalter 共鸣 49 304
+CUE 118.272 skalter 共鸣 187 727
+CUE 119.328 texas 技力 607 419
+CUE 119.328 texas 技力 607 419
+CUE 119.328 lumen 净化 631 359
+CUE 119.526 skalter 共鸣 346 633
+CUE 119.790 skalter 共鸣 136 680
+CUE 119.988 skalter 共鸣 435 927
+CUE 120.054 texas 技力 585 430
+CUE 120.054 texas 技力 585 430
+BEACON mires t=120.1 mires=5
+CUE 120.186 skalter 共鸣 607 788
+CUE 120.384 skalter 共鸣 530 941
+CUE 120.516 skalter 共鸣 582 870
+CUE 120.714 skalter 共鸣 557 1077
+CUE 120.714 wisadel 技力 582 870
+SHOP ["判官经文布", "难闻的止血剂  (可升级)", "皇帝的恩宠", "急救包", "灯油"]
+CUE 121.572 skalter 共鸣 817 30
+CUE 121.770 texas 技力 597 345
+CUE 121.770 texas 技力 597 345
+CUE 121.770 lumen 净化 629 394
+CUE 121.770 skalter 共鸣 801 -119
+CUE 121.968 skalter 共鸣 255 299
+CUE 122.298 lumen 净化 619 390
+CUE 122.298 skalter 共鸣 1213 200
+CUE 122.892 skalter 共鸣 141 417
+CUE 123.090 skalter 共鸣 3 242
+CUE 124.014 skalter 共鸣 799 681
+CUE 124.212 skalter 共鸣 1172 675
+CUE 124.740 skalter 共鸣 1166 415
+CUE 124.806 lumen 净化 622 363
+CUE 124.938 skalter 共鸣 1196 525
+CUE 126.324 skalter 共鸣 485 -169
+CUE 127.710 skalter 共鸣 677 695
+CUE 128.238 lumen 净化 657 411
+CUE 129.030 texas 技力 697 321
+CUE 129.030 texas 技力 697 321
+CUE 129.228 skalter 共鸣 944 542
+CUE 130.020 skalter 共鸣 1039 344
+CUE 130.746 lumen 净化 626 393
+CUE 131.208 skalter 共鸣 257 403
+CUE 131.934 skalter 共鸣 -34 141
+CUE 132.132 skalter 共鸣 -66 -89
+CUE 132.660 texas 技力 660 313
+CUE 132.660 texas 技力 660 313
+CUE 132.858 skalter 共鸣 791 27
+CUE 133.056 skalter 共鸣 618 -61
+CUE 133.782 lumen 净化 656 353
+CUE 134.706 texas 技力 736 292
+CUE 134.706 texas 技力 736 292
+CUE 134.706 skalter 共鸣 1005 476
+CUE 135.630 texas 技力 705 294
+CUE 135.630 texas 技力 705 294
+CUE 135.894 texas 技力 681 302
+CUE 136.224 lumen 净化 691 395
+CUE 136.290 skalter 共鸣 1017 285
+CUE 136.686 skalter 共鸣 1170 84
+CUE 136.752 texas 技力 673 305
+CUE 136.752 texas 技力 673 305
+CUE 136.752 lumen 净化 672 411
+CUE 136.818 skalter 共鸣 465 815
+CUE 137.016 skalter 共鸣 744 -46
+CUE 139.062 texas 技力 616 351
+CUE 139.062 texas 技力 616 351
+CUE 139.194 skalter 共鸣 101 211
+CUE 139.590 skalter 共鸣 362 -27
+CUE 139.656 lumen 净化 646 385
+CUE 139.722 texas 技力 582 374
+CUE 139.722 texas 技力 582 374
+CUE 139.788 skalter 共鸣 280 -202
+CUE 139.788 wisadel 技力 362 -27
+CUE 139.920 skalter 共鸣 287 -100
+CUE 140.118 skalter 共鸣 421 531
+CUE 142.758 lumen 净化 577 367
+CUE 143.682 skalter 共鸣 436 69
+CUE 144.078 skalter 共鸣 623 -110
+CUE 144.408 skalter 共鸣 240 -36
+CUE 145.530 skalter 共鸣 821 112
+CUE 145.794 lumen 净化 627 323
+CUE 145.794 skalter 共鸣 533 34
+CUE 147.708 skalter 共鸣 999 336
+CUE 147.906 skalter 共鸣 1076 589
+CUE 147.906 wisadel 技力 1032 571
+CUE 148.434 skalter 共鸣 1031 61
+CUE 148.632 lumen 净化 613 304
+CUE 149.556 skalter 共鸣 493 -5
+CUE 149.952 skalter 共鸣 290 -105
+CUE 150.612 skalter 共鸣 237 515
+CUE 151.140 texas 技力 574 448
+CUE 151.140 texas 技力 574 448
+CUE 151.338 skalter 共鸣 222 188
+CUE 151.668 lumen 净化 589 380
+CUE 153.120 texas 技力 577 410
+CUE 153.120 texas 技力 577 410
+CUE 153.120 skalter 共鸣 297 239
+CUE 154.308 texas 技力 601 453
+CUE 154.308 texas 技力 601 453
+CUE 154.506 skalter 共鸣 499 693
+CUE 154.770 lumen 净化 657 402
+CUE 155.166 skalter 共鸣 947 480
+CUE 155.628 skalter 共鸣 1197 263
+CUE 155.826 skalter 共鸣 1279 189
+CUE 157.806 lumen 净化 620 379
+CUE 158.466 texas 技力 602 407
+CUE 158.466 texas 技力 602 407
+CUE 158.664 skalter 共鸣 260 444
+CUE 159.126 skalter 共鸣 763 714
+CUE 159.522 skalter 共鸣 1074 460
+CUE 159.852 skalter 共鸣 1071 683
+CUE 160.644 texas 技力 690 311
+CUE 160.644 texas 技力 690 311
+CUE 160.710 lumen 净化 699 384
+CUE 160.776 skalter 共鸣 922 -79
+CUE 160.974 skalter 共鸣 751 -228
+CUE 161.502 skalter 共鸣 840 -293
+CUE 161.700 skalter 共鸣 733 -485
+CUE 163.746 lumen 净化 597 342
+CUE 163.944 skalter 共鸣 133 553
+CUE 164.208 texas 技力 615 370
+CUE 164.208 texas 技力 615 370
+CUE 164.406 skalter 共鸣 273 273
+CUE 164.670 skalter 共鸣 744 -346
+CUE 164.868 skalter 共鸣 310 -65
+BALANCE {"allies":3,"armor_cf":{},"boss_hp":-1.0,"bosses":[],"bot":{"bosses":[],"curve":[{"boss":0,"dsrc":{},"ebul":0,"elites":0,"enemies":0,"hp":100,"hpm":1.23,"hpmin":100,"hsrc":{},"kills":0,"lamp":100,"lampmin":100,"lv":1,"mhp":143,"mire_s":0.0,"mires":0,"outc":0,"rg":1.44,"squad":4,"t":0,"taken":0,"zone":0},{"boss":0,"dsrc":{},"ebul":0,"elites":0,"enemies":15,"hp":100,"hpm":1.57,"hpmin":100,"hsrc":{},"kills":17,"lamp":96,"lampmin":94,"lv":2,"mhp":143,"mire_s":0.0,"mires":0,"outc":581,"rg":1.44,"squad":4,"t":30,"taken":0,"zone":0},{"boss":0,"dsrc":{},"ebul":0,"elites":1,"enemies":11,"hp":100,"hpm":1.9,"hpmin":100,"hsrc":{},"kills":63,"lamp":99,"lampmin":94,"lv":4,"mhp":143,"mire_s":0.0,"mires":0,"outc":2000,"rg":1.44,"squad":4,"t":60,"taken":0,"zone":0},{"boss":0,"dsrc":{},"ebul":0,"elites":0,"enemies":10,"hp":100,"hpm":2.24,"hpmin":100,"hsrc":{},"kills":132,"lamp":100,"lampmin":95,"lv":7,"mhp":143,"mire_s":0.0,"mires":1,"outc":8055,"rg":1.44,"squad":4,"t":90,"taken":0,"zone":0},{"boss":0,"dsrc":{},"ebul":0,"elites":0,"enemies":12,"hp":100,"hpm":2.57,"hpmin":100,"hsrc":{},"kills":189,"lamp":99,"lampmin":95,"lv":8,"mhp":143,"mire_s":0.0,"mires":5,"outc":18073,"rg":1.44,"squad":4,"t":120,"taken":0,"zone":0},{"boss":0,"dsrc":{},"ebul":0,"elites":0,"enemies":14,"hp":100,"hpm":2.91,"hpmin":100,"hsrc":{},"kills":255,"lamp":98,"lampmin":94,"lv":10,"mhp":165,"mire_s":0.0,"mires":7,"outc":26337,"rg":1.44,"squad":4,"t":150,"taken":0,"zone":1}],"curve_tail":{"dsrc":{},"hsrc":{},"mhp":165,"t":165,"t0":150,"taken":0},"dark_dmg":0,"dark_s":0,"death_src":"","elite_t":{"lumen:2":0,"skalter:2":0,"texas:2":0,"wisadel:2":0},"end":{"boss":false,"hp":165,"killer":{"cause":"","key":""},"last15":{"corrode_out":0.0,"corrode_peak":0.0,"dark_s":0.0,"ebullets_peak":0,"enemies_peak":31,"hits":[],"mire_s":0.0,"nerve_bursts":0,"t":165.0},"src":"","t":165,"zone_out":false,"zone_phase":0,"zone_state":1},"floors":[],"hits":0,"hits_pm":0.0,"king_low_s":0,"lamp_end":98,"lamp_gain":{"其他":289,"灯油":0,"精英灯油":1},"lamp_loss":{"其他":292},"lamp_s":[164,0,0,0],"lamp_taken":[0,0,0,0],"low20_s":0,"low_hp_s":0,"moved_pm":9863,"peak":[31,0,0,122,5],"peak_min":[[23,0,0,32,3],[30,0,0,122,4],[31,0,0,38,5]],"profile":"expert","reaper_drain_deaths":0,"recruit_t":[],"still_pct":0,"taken":0,"taken_pm":0},"crates":3,"ctrl":{"aslow_slow":0,"aslow_t":0.0,"boss_t":0.0,"floor":0.7,"move_min":1.0,"slow_min":1.0,"stun_slow":0,"stun_t":0.0},"ctrl_src":{"boss":{"dash_break_n":0,"freeze_n":0,"freeze_t":0.0,"slow_t":0.0},"founder":{"dash_break_n":0,"freeze_n":0,"freeze_t":0.0,"slow_t":0.0},"other":{"dash_break_n":0,"freeze_n":0,"freeze_t":0.0,"slow_t":0.0},"skimmer":{"dash_break_n":0,"freeze_n":0,"freeze_t":0.0,"slow_t":0.0},"slow_any_t":0.0},"dashes":0,"dmg":{},"drone":0,"duck":{"fled":0,"kill_t":[],"killed":0,"spawned":0},"elite_stage":2,"elites":2,"ending":"standard","final_out":{"余震":8555.41003772137,"共鸣":236.062843832772,"剑气":469.152316972267,"声浪":119.93383584,"散射":795.66355680546,"次元斩":3153.10552345311,"殉爆":4875.23178164309,"海嗣":19.93082112,"潮汐和声":9.79122816,"灯塔光柱":22.0,"爆裂黎明":12059.9117954473,"魂灵之影":254.085956449578},"floor_hits":0,"floor_times":[],"fuse":{"left":0,"pct":0.0,"pool":0,"t":-1},"growth":{"lane_control":1,"lane_melee":1,"lane_multi":1,"sp":2,"squad_atk":2,"squad_crit":1,"squad_range":1},"heal":{"商店":0.0,"拾取":0.0,"流明":0.0,"自身回复":0.0},"heal_offer":0,"heal_offer_low":0,"heal_pick":0,"hordes":[{"comp":{"bone":9,"slider":3,"stone":3},"hp":1574,"hp0":143,"minhp":143,"mix":"凿石阵","n":15,"t":75,"t80":9},{"comp":{"bone":12,"slider":8},"hp":2379,"hp0":165,"minhp":165,"mix":"滑行群","n":20,"t":165,"t80":-1}],"ingots":3,"items":{"crate_shield":0,"heal_elite":2,"heal_low":0,"heal_mob":3,"heal_pick":5,"magnet_elite":0,"magnet_mob":2,"magnet_pick":1,"mob_capped":50,"mob_rolled":245,"pack_drop":3,"pack_pick":0},"kill_hits":{"0:bone":[50,66,26.54],"0:slider":[8,15,3.37],"0:stone":[5,9,0.46],"1:bone":[70,94,15.84],"1:floater":[9,17,13.34],"1:slider":[25,37,6.08],"1:stone":[12,28,28.25],"1:tracer":[8,79,16.57],"2:bone":[60,70,0.94],"2:floater":[13,28,18.88],"2:slider":[22,34,8.38],"2:stone":[10,17,16.96],"2:tracer":[3,29,17.68]},"kills":297,"lamp":98,"levelup_t":[10,38,56,63,74,89,101,124,141],"low_levelups":0,"lv":10,"lv_times":[10,38,56,63,74,88,100,124,141],"marks":{"120":8},"maxhp":165.0825,"meta":0,"ops":[{"elite":2,"id":"wisadel","prog":6},{"elite":2,"id":"texas","prog":6},{"elite":2,"id":"skalter","prog":6},{"elite":2,"id":"lumen","prog":6}],"out":{"余震":8555.41003772137,"共鸣":236.062843832772,"剑气":469.152316972267,"声浪":119.93383584,"散射":795.66355680546,"次元斩":3153.10552345311,"殉爆":4875.23178164309,"海嗣":19.93082112,"潮汐和声":9.79122816,"灯塔光柱":22.0,"爆裂黎明":12059.9117954473,"魂灵之影":254.085956449578},"out_tag":{"aftershock":8555.41003772137,"area":26130.3583002142,"basic":261.86767168,"detonation":4875.23178164309,"entity":19.93082112,"follow_up":491.708143985543,"growth":2529.63174755545,"pierce":6328.21104690621,"projectile":14843.6294994523,"skill":18366.1228423535,"stun":3153.10552345311,"summon":19.93082112},"out_type":{"法术":407.718728952772,"物理":30162.5609684922},"prof":{},"prog_log":[],"prog_offer":{},"prog_pick":{},"recall_backstop":0,"recall_n":42,"recruit_offers":[[74,"swap",4],[101,"swap",4],[141,"swap",4]],"rej":{},"relic_offer":[[115,"choice",["82","57","130"],"event"],[120,"shop",["196","60","54"]]],"relic_out":0.0,"relic_take":[[115,"82",["狙击","先锋","辅助","医疗"],"choice:event"],[121,"196",["狙击","先锋","辅助","医疗"],"shop"],[121,"60",["狙击","先锋","辅助","医疗"],"shop"]],"relics":3,"shield":{"abs":0.0,"blocks":0,"every":15.0,"max":0,"peak":0,"src_int":[],"src_max":[],"t0":-1.0},"squad":["wisadel","texas","skalter","lumen"],"sus":{"m0":{"clean":{},"dr":{},"heal":{"商店":[0.0,75.93795],"拾取":[0.0,255.0524625],"流明·沐雨":[0.0,900.562409701762]},"lit":0.0}},"swaps":[],"t":165,"terrain":{"bul":3,"dash":0,"ebul":0},"ult":{"combo":0,"combo_auto":0,"combo_up":0,"cult":0,"cult_times":[],"e_combo":0.0,"e_hurt":0.0,"e_kill":21.6,"e_out":34.4,"first_full":-1.0,"full_times":[],"hit_n":0,"idle_full_s":0.0,"link_by":{},"lit":0,"lit_by":{},"miss":0,"ult":0,"ult_times":[]},"win":false,"xp_backstop":0.0,"xp_dropped":1025.0,"xp_ground":85.0,"xp_magnet":25.0,"xp_magnet_min":[0.0,25.0],"xp_recall":264.2,"xp_recall_min":[5.0,106.7,152.5],"xp_total":940.0,"xp_total_min":[127.5,472.5,340.0],"xp_walk":650.8,"xp_walk_min":[122.5,340.8,187.5]}
+SPAWNQ {"alive_420_max":0,"alive_420_med":0,"alive_420_p95":0,"alive_710_max":0,"alive_710_med":0,"alive_710_p95":0,"cap":0,"deferred":0,"density":0.4,"drop_final":0,"drop_room":0,"forced":0,"hard":0,"hist":{"1-3s":0,"10-30s":0,"3-10s":0,"<1s":0,">=30s":0},"merge_spawns":0,"merged":0,"owed_end":0,"pending_end":0,"q_peak":0,"queued":0,"spawned":287,"wait_cap":10.0,"wait_max":0.0,"wait_mean":0.0,"wait_p50":0.0,"wait_p90":0.0,"wait_p99":0.0}
+CUE 165.066 skalter 共鸣 1040 412
+CUE 165.198 skalter 共鸣 844 -260
+CUE 165.396 skalter 共鸣 745 -134
+CUE 165.396 wisadel 技力 844 -260
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+ERROR: Texture with GL ID of 97: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 98: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 99: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 100: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 101: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 102: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 103: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 104: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 106: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 107: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 108: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1703: leaked 4586748 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1704: leaked 4586748 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1737: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1738: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1739: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1740: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1741: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1742: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1743: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1744: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1745: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1746: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1747: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1748: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1749: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1750: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1751: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1752: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1753: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1754: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1755: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1756: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1757: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1758: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1759: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1760: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1761: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1762: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1763: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1764: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1765: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1766: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1767: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1768: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1769: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1770: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1771: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1772: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1773: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1774: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1775: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1776: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1777: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1778: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1779: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1780: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1781: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1782: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1783: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1784: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1785: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1786: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1787: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1788: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1789: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1790: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1791: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1792: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1793: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1794: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1795: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1796: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1797: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1798: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1799: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1800: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1801: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1802: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1803: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1804: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1805: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1806: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1807: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1808: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1809: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1810: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1811: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1812: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1813: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1814: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1815: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1816: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1817: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1818: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1819: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1820: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1821: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1822: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1823: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1824: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1825: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1826: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1827: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1828: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1829: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1830: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1831: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1832: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1833: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1834: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1835: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1836: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1837: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1838: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1839: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1840: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1841: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1842: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1843: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1844: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1845: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1846: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1847: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1848: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1849: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1850: leaked 699050 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1851: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1852: leaked 2796202 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1853: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1854: leaked 2796202 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1855: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1856: leaked 2796202 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1857: leaked 2097152 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1858: leaked 2796202 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1859: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1860: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1861: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1862: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1863: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1864: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1865: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1866: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1867: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1868: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1869: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1870: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1871: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1872: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1873: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1874: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1875: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1876: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1877: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1878: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1879: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1880: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1881: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1906: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1907: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1908: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2071: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2231: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2268: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2269: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2270: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2271: leaked 699068 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2274: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2275: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2277: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2278: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2287: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2288: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2289: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2290: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2291: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2299: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+WARNING: 452 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 10 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: 177 RID allocations of type 'N5GLES37TextureE' were leaked at exit.
+ERROR: 74 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 5 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
