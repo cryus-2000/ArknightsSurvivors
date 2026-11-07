@@ -575,13 +575,18 @@ static func sk_gn_draw(o) -> void:
 	if o.taken.has("dmg_up"):
 		var mx: int = int(o.base("tide_max", 4.0))
 		var n: int = int(gn.get("tide", 0))
-		var p0: Vector2 = g.ppos + Vector2(-float(mx - 1) * 6.0, -84.0)
-		for k in mx:
+		var p0: Vector2 = g.ppos + Vector2(-float(mx - 1) * 9.0, -88.0)
+		var dk := Color(0.03, 0.12, 0.14, 0.85)
+		for k in mx:   # docs/310 §4.2：音符放大到美术像素格（符头 4×3、符干 1×7、符尾），亮着的带暗边
 			var on: bool = k < n
-			var q: Vector2 = (p0 + Vector2(k * 12.0, sin(g.t * 3.0 + k) * (1.5 if on else 0.0))).round()
+			var q: Vector2 = ((p0 + Vector2(k * 18.0, -2.0 * float(int(sin(g.t * 3.0 + k) * 1.5)) if on else 0.0)) / 2.0).floor() * 2.0
 			var c: Color = Color(GN_TIDE.r, GN_TIDE.g, GN_TIDE.b, 0.95) if on else Color(0.5, 0.55, 0.6, 0.35)
-			cv.draw_rect(Rect2(q, Vector2(5, 4)), c)
-			cv.draw_rect(Rect2(q + Vector2(4, -8), Vector2(1, 9)), c)
+			if on:
+				cv.draw_rect(Rect2(q + Vector2(-2, -2), Vector2(12, 10)), dk)
+				cv.draw_rect(Rect2(q + Vector2(4, -16), Vector2(6, 16)), dk)
+			cv.draw_rect(Rect2(q, Vector2(8, 6)), c)
+			cv.draw_rect(Rect2(q + Vector2(6, -14), Vector2(2, 16)), c)
+			cv.draw_rect(Rect2(q + Vector2(8, -14), Vector2(2, 4)), c)
 	var cap: int = 3
 	for e in gn.get("res", []):
 		if e.dead:

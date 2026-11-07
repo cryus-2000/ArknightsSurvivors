@@ -10,6 +10,7 @@ extends RefCounted
 
 const PxU = preload("res://scripts/render/px_util.gd")   # 共用小工具（docs/286 §2）
 const Pxp = preload("res://scripts/render/fx_pxplane.gd")
+const CUE = preload("res://scripts/render/fx_pxplane_cue.gd")   # 成长节点提示（docs/310）
 
 const V := [Color("#140c24"), Color("#312f5c"), Color("#5c4a8e"), Color("#8765c0"), Color("#b280f2"), Color("#cdacf7"), Color("#e8d9fb"), Color("#ffffff")]
 const Z := [1.0, 1.15, 1.3]
@@ -89,6 +90,8 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 			var m: String = "s1" if s1 else "n"
 			_up(o, "land_%s_e%d_z%d_up" % [m, t, z], c, {"sk": 24.0})   # 星芒在身体高度，排序往前补，压在落点附近的敌人上
 			_gd(o, "land_%s_e%d_z%d_gd" % [m, t, z], c)
+			if t >= 1 and not s1:   # 精一「重力停顿」：落点一圈亮紫环往里收（docs/310 §4.2：原来只是落点帧条换变体，只画）
+				CUE.push(r, o, {"p": c, "shape": "in", "r": float(d.get("r", 75.0)) * 0.85, "c": V[5], "n": 6, "life": 0.35})
 			# docs/270 补齐（11-05）：落点一盏照地灯（普攻 130–150 / 0.6–0.68，S1 爆发 160–180 / 0.8–0.88，0.15 秒）；
 			# 颗粒改成黑紫三角碎块 tri（6–10 px，有重量、落地会弹）：普攻 4 颗、S1 12 颗
 			R._light(o, c + Vector2(0, -10), (160.0 if s1 else 130.0) + 10.0 * t, (0.8 if s1 else 0.6) + 0.04 * t, 0.15, p.light)
@@ -352,13 +355,18 @@ func draw_rt(ci, it: Dictionary) -> void:
 			if dv.length() < 8.0:
 				return
 			var nv: Vector2 = dv.normalized().orthogonal() * float(it.o.base("lens_r", 60.0)) * 0.8
-			var n: int = int(dv.length() / (px * 3.0))
-			for i in n + 1:
+			var n: int = int(dv.length() / (px * 2.0))
+			var nn: Vector2 = nv.normalized() * px
+			for i in n + 1:   # docs/310 §4.2：两侧收拢线由 1 像素隔点提到 2 像素连线、亮一阶
 				var u: float = float(i) / float(maxi(1, n))
 				renderer._px(ci, g0.lerp(gp, u), V[3] if i % 2 == 0 else V[2])
-				if i % 2 == 0:
-					renderer._px(ci, (g0 + nv).lerp(gp, u), V[2])
-					renderer._px(ci, (g0 - nv).lerp(gp, u), V[2])
+				if i % 3 != 2:
+					var qa: Vector2 = (g0 + nv).lerp(gp, u)
+					var qb: Vector2 = (g0 - nv).lerp(gp, u)
+					renderer._px(ci, qa, V[4] if i % 2 == 0 else V[3])
+					renderer._px(ci, qb, V[4] if i % 2 == 0 else V[3])
+					renderer._px(ci, qa - nn, V[2])
+					renderer._px(ci, qb + nn, V[2])
 
 
 ## world.gd 画悬浮敌人时读（只画）：x = 影子缩放（越高越小越淡），y = 悬停时的上下浮动（世界像素，按 15 fps 节拍、1 美术像素）

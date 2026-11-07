@@ -10,6 +10,7 @@ extends RefCounted
 
 const PxU = preload("res://scripts/render/px_util.gd")   # 共用小工具（docs/286 §2）
 const Bal = preload("res://scripts/core/balance.gd")
+const CUE = preload("res://scripts/render/fx_pxplane_cue.gd")   # 成长节点提示（docs/310）
 const MI = preload("res://scripts/render/melee_impact.gd")
 const C := [Color("#0d1a2e"), Color("#182f51"), Color("#294a78"), Color("#3a65a0"), Color("#4c80c7"), Color("#8bacdb"), Color("#c9d9ee"), Color("#ffffff")]   # OP.gladiia 7 阶 + 压底
 const CH := [Color("#243246"), Color("#5c7090"), Color("#8798b3"), Color("#dbe2ec"), Color("#f6f8fb")]   # 链：OP.gladiia_tide 冷灰蓝
@@ -132,6 +133,8 @@ static func ev(r, o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dicti
 					break
 				n += 1
 				_strip_pair(r, o, ("s1arr_e%d" if heavy2 else "arr_e%d") % t, e.pos)
+				if t >= 1:   # 精一「锚定」（眩晕延长）：被拖到位的敌人套一个青色锁定角标，停满眩晕时长（docs/310 §4.2，只画）
+					CUE.push(r, o, {"p": e.pos, "fe": e, "shape": "mark", "c": CYAN, "life": 1.2})
 			if n > 0:
 				var e0: Dictionary = d.es[0]
 				R._grains(o, e0.pos + Vector2(0, -6), float(e0.pos.y) + 2.0, "ink", 2 + n + (3 if heavy2 else 0), {"tier": t, "grain_spd": 1.0})
@@ -622,9 +625,14 @@ static func _draw_sunk(r, cv, ch: Dictionary) -> void:
 		var hq: float = _h(float(i) * 0.53 + a.x * 0.01)
 		if hq < gone:
 			continue
-		r._px(cv, pts[i], CH[1] if i % 3 == 0 else CH[0])
+		# docs/310 §4.2：原来只有 #243246 / #5c7090 一像素暗链，地面上几乎看不见 → 链身提亮 + 上下亮青描边 + 每隔几节一个亮环扣
+		var cy: Color = CYAN
+		cy.a = 0.85 * (1.0 - gone)
+		r._px(cv, pts[i] + Vector2(0, -2), cy)
+		r._px(cv, pts[i] + Vector2(0, 2), cy)
+		r._px(cv, pts[i], CH[3] if i % 4 == 0 else (CH[2] if i % 2 == 0 else CH[1]))
 		if hq > 0.86:
-			r._px(cv, pts[i] + Vector2(0, -2), C[6])
+			r._px(cv, pts[i] + Vector2(0, -4), C[6])
 
 
 ## 连携「聚拢」：甩钩 0.14 秒（链头从她手里飞向每只）→ 拖 0.36 秒（链连着怪）→ 落地后链残留 0.5 秒按噪声散

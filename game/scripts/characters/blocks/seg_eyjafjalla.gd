@@ -328,6 +328,8 @@ static func hw_status(o, e: Dictionary, s: Dictionary) -> bool:
 					fx_play(o, s.fx, e.pos, float(e.r), [e])
 				if s.has("look"):   # 精英化第 2 批段：脚下裂纹（熔蚀）
 					_F().hw_melt_mark(o, e, s)
+					if mv <= 0.0:   # 新挂上熔蚀：暗红火星迸一下（docs/310 §4.2，只画）
+						ncue(o, {"p": e.pos, "shape": "burst", "r": float(e.r) + 14.0, "r0": float(e.r) * 0.5, "c": Color("#d2330f"), "n": 7, "life": 0.35})
 			else:
 				e["aura_weak"] = maxf(float(e.get("aura_weak", 0.0)), float(s.dur))
 			return true

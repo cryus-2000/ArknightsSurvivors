@@ -522,28 +522,34 @@ func draw_over(o) -> void:
 				continue
 			if float(mk.t) < 0.6 and (bt / 2) % 2 == 1:   # 快到期：隔两拍闪
 				continue
-			var c0: Vector2 = Pxp._snap(e.pos + Vector2(0, -float(e.r) - 18.0))
-			# 最上一颗火星在 y=-5，带好礼时最右/最下的格子在 (4,4)。
-			if r._strip_in_view(cv, Rect2(c0 + Vector2(-3, -5) * px, Vector2(8, 10) * px), true):
+			var c0: Vector2 = Pxp._snap(e.pos + Vector2(0, -float(e.r) - 28.0))
+			# 最上一颗火星在 y=-5，带好礼时最右/最下的格子在 (4,4)。docs/310 §4.2：小人放大一倍（每格 2×2 美术像素）+ 红光
+			if r._strip_in_view(cv, Rect2(c0 + Vector2(-3, -5) * px * 2.0, Vector2(8, 10) * px * 2.0), true):
 				for row in _mark_rows(bt + int(e.id), mk.get("gift", false)):
 					var rect: Rect2 = row[0]
-					cv.draw_rect(Rect2(c0 + rect.position, rect.size), row[1])
+					cv.draw_rect(Rect2(c0 + rect.position * 2.0, rect.size * 2.0), row[1])
+				if (bt + int(e.id)) % 4 == 0:
+					r._glow(c0, SOUL[5])
 	var now: float = g.t
-	_lines = _lines.filter(func(L): return now - float(L.t0) < 0.2)
+	_lines = _lines.filter(func(L): return now - float(L.t0) < (0.4 if L.br else 0.2))
 	for L in _lines:
 		if str(L.oid) != str(o.id):
 			continue
 		var f: int = r.frame_of(float(L.t0))
-		if f < 0 or f > 2:
+		var nf: int = 5 if L.br else 2   # 续燃引线（br）docs/310 §4.2：0.2 → 0.4 秒、2 像素宽
+		if f < 0 or f > nf:
 			continue
 		var a: Vector2 = L.a
 		var b: Vector2 = L.b
 		var n: int = maxi(1, int(a.distance_to(b) / px))
-		var col: Color = [FIRE[1], FIRE[3], FIRE[5]][f]
+		var col: Color = [FIRE[1], FIRE[3], FIRE[5]][mini(2, f * 3 / maxi(1, nf))] if L.br else [FIRE[1], FIRE[3], FIRE[5]][f]
+		var nrm: Vector2 = (b - a).normalized().orthogonal() * px
 		for i in n + 1:
-			if f == 2 and i % 2 == 1:
+			if f == nf and i % 2 == 1:
 				continue
 			r._px(cv, a.lerp(b, float(i) / float(n)), col)
+			if L.br and f < nf:
+				r._px(cv, a.lerp(b, float(i) / float(n)) + nrm, FIRE[0] if f == 0 else col)
 		if f == 0:
 			r._glow(b, FIRE[1])
 		if L.br:

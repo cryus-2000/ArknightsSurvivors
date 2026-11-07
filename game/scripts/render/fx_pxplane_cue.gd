@@ -1,7 +1,7 @@
 ## 成长节点通用提示（docs/310 §2，11-07 用户「成长节点开始修」）：转平面接管后 o.fx / o.sparks 不画，
 ## 节点触发时的提示改走这个事件：`_FXR.ev(o, "node_cue", {...})`。只画，不碰玩法与玩法随机数（形状散布按 t0 / 位置哈希）。
 ##
-## 字段：p 位置（世界）· c 主色（Color，缺省干员配方 main）· shape · r 半径 · r0 起始半径 · life 秒 · n 火花数 · fe 跟随的敌人（只读位置）· to 目标干员 id（mote）
+## 字段：p 位置（世界）· top 立起件压最上层 · c 主色（Color，缺省干员配方 main）· shape · r 半径 · r0 起始半径 · life 秒 · n 火花数 · fe 跟随的敌人（只读位置）· to 目标干员 id（mote）
 ##   ring   贴地扩散环：3 美术像素宽（外暗 / 中主色 / 内亮），r0 → r，外加 n 颗像素火花向外飞
 ##   in     贴地收缩环：r → r × 0.3（拉拢、聚拢）
 ##   burst  只有火花（不画环）：碎片 / 火星四散
@@ -31,6 +31,8 @@ static func push(r, o, d: Dictionary) -> void:
 		"n": int(d.get("n", 6)), "seed": int(absf(pos.x) * 7.0 + absf(pos.y) * 13.0) % 997}
 	if d.has("fe") and d.fe is Dictionary:
 		base["fe"] = d.fe
+	if d.get("top", false):
+		base["top"] = true   # 立起件压最上层（头顶处的火花，不被敌人本体盖住）
 	if sh == "ghost":
 		var who = _who(r, str(d.get("to", "@")))
 		if who == null:
@@ -138,7 +140,7 @@ static func sort_items(r, out: Array) -> void:
 		if float(r.g.t) < float(it.t0):
 			continue
 		var y: float = _pos(it).y + 1.0
-		if str(it.shape) == "mote" or str(it.shape) == "mark":
+		if str(it.shape) == "mote" or str(it.shape) == "mark" or it.get("top", false):
 			y = 1e6   # 飞向队友的光点（跨越整屏）与准星（套在敌人身上，不能被敌人本体盖住）压在最上面
 		out.append({"cue": it, "skey": y})
 

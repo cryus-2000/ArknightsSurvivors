@@ -113,6 +113,7 @@ static func _h4_bash_after(o, a: Dictionary, hits: Array) -> void:
 			if sa.slowed.size() >= int(cf.get("max", 48)):
 				sa.slowed.pop_front()
 			sa.slowed.append({"e": e, "until": g.t + dur, "last": e.pos, "t0": g.t, "seed": float(e.id) * 1.37})
+			ncue(o, {"p": e.pos, "shape": "burst", "r": float(e.r) + 12.0, "r0": float(e.r) * 0.4, "c": Color("#f5b860"), "n": 6, "life": 0.3})   # 钙化拳：新挂上减速时琥珀碎晶迸一下（docs/310 §4.2，只画）
 
 
 ## 莱茵充能护服：以自身为中心的全方位冲击；六道琥珀冲击向外撞出 + 两道贴地冲击环
@@ -523,6 +524,7 @@ static func _h4_shots_tick(o, sa: Dictionary, dt: float) -> void:
 					o.add_cc(e, -INF, float(s.slow))
 					if not s.flow.is_empty():
 						_h4_flow_tag(o, s.flow, e, int(s.cast))
+				ncue(o, {"p": s.pos, "shape": "ring", "r": 26.0, "r0": 6.0, "c": Color("#78e89a"), "n": 6, "life": 0.35})   # 急救针剂命中：一圈绿环（docs/310 §4.2，只画）
 				o.fx({"kind": "glow", "pos": s.pos, "r": 7.0, "life": 0.18, "col": Color(0.7, 1.2, 0.9), "alpha": 0.6})
 			else:
 				o.fx({"kind": "glow", "pos": s.pos, "r": 8.0, "life": 0.16, "col": H4_AMBER, "alpha": 0.6})
@@ -618,6 +620,9 @@ static func _h4_flow_tick(o, sa: Dictionary) -> void:
 		var from: Vector2 = e.pos + Vector2(0, -float(e.r) * 0.6)
 		var to: Vector2 = g.ppos + Vector2(0, -30)
 		o.fx({"kind": "mote", "pos": from, "vel": (to - from) / 0.4, "life": 0.4, "col": Color(0.7, 1.4, 0.9), "sz": 2.5})
+		if g.t - float(f.get("mt", -9.0)) >= 0.3:   # 回流：转平面下上面的光点不画 → 绿光点飞向队长，每只至多 0.3 秒一颗（docs/310 §4.2，只画；mt 画面专用键）
+			f["mt"] = g.t
+			ncue(o, {"p": e.pos, "shape": "mote", "to": "@", "c": Color("#78e89a")})
 	sa.flow = sa.flow.filter(func(f): return not f.e.dead and g.t < float(f.until))
 	if sa.flow_pool.size() > 6:
 		var ks: Array = sa.flow_pool.keys()
@@ -976,10 +981,15 @@ static func _h4sa_draw_nodes(o, sa: Dictionary) -> void:
 		var e2: Dictionary = f.e
 		var c: Vector2 = e2.pos + Vector2(0, 3)
 		var gc := Color(0.55, 1.5, 0.85, 0.85)
-		cv.draw_arc(c, float(e2.r) + 5.0, 0.0, TAU, 16, gc, 1.8)
-		var tp: Vector2 = e2.pos + Vector2(0, -float(e2.r) * 1.9 - 4.0)
-		cv.draw_line(tp + Vector2(-4, 0), tp + Vector2(4, 0), gc, 2.0)
-		cv.draw_line(tp + Vector2(0, -4), tp + Vector2(0, 4), gc, 2.0)
+		cv.draw_set_transform(c, 0.0, Vector2(1.0, 0.62))   # docs/310 §4.2：回流标记加粗（环 2 像素、贴地压扁；十字 8 → 12 像素、2 像素粗 + 暗边）
+		cv.draw_arc(Vector2.ZERO, float(e2.r) + 6.0, 0.0, TAU, 20, gc, 4.0)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		var tp: Vector2 = (e2.pos + Vector2(0, -float(e2.r) * 1.9 - 6.0)).round()
+		var dk := Color(0.04, 0.2, 0.08, 0.9)
+		cv.draw_rect(Rect2(tp + Vector2(-7, -3), Vector2(14, 6)), dk)
+		cv.draw_rect(Rect2(tp + Vector2(-3, -7), Vector2(6, 14)), dk)
+		cv.draw_rect(Rect2(tp + Vector2(-6, -2), Vector2(12, 4)), gc)
+		cv.draw_rect(Rect2(tp + Vector2(-2, -6), Vector2(4, 12)), gc)
 
 
 static func _h4sa_draw_pfx(o, f: Dictionary, a: float) -> bool:

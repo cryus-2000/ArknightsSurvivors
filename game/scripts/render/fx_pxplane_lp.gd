@@ -9,6 +9,7 @@ extends RefCounted
 const PxU = preload("res://scripts/render/px_util.gd")   # 共用小工具（docs/286 §2）
 const Pxp = preload("res://scripts/render/fx_pxplane.gd")
 const Bal = preload("res://scripts/core/balance.gd")
+const CUE = preload("res://scripts/render/fx_pxplane_cue.gd")   # 成长节点提示（docs/310）
 
 const LP := [Color("#15121f"), Color("#2b2542"), Color("#4a4274"), Color("#7b70b4"), Color("#b3aae4"), Color("#e4e0ff"), Color("#ffffff")]
 const WOLF := [Color("#0a090f"), Color("#1b1828"), Color("#2e2a40"), Color("#4d4862"), Color("#8a8698"), Color("#cfcdd8"), Color("#ffffff")]
@@ -223,6 +224,8 @@ func ev(o, kind: String, d: Dictionary, t: int, R, p: Dictionary) -> void:
 			_stay(o, "spread_up", at, "up", {"gy": at.y + 1.0})
 			for q in d.get("to", []):
 				_rt.append({"k": "chain", "a": at + Vector2(0, -12), "b": (q as Vector2) + Vector2(0, -12), "t0": g.t})
+				CUE.push(r, o, {"p": q, "shape": "ring", "r": 26.0, "r0": 6.0, "c": LP[5], "n": 5, "life": 0.35})   # 传染：新被封印的先亮一圈（docs/310 §4.2，只画）
+			CUE.push(r, o, {"p": at, "shape": "ring", "r": 110.0, "r0": 20.0, "c": LP[4], "n": 10, "life": 0.4})
 			R._light(o, at + Vector2(0, -10), 130.0, 0.6, 0.12, p.light)
 		"ll_whit":   # 剑气 / 狼首弹命中：一枚四角星（跟被打的那只）
 			var e: Dictionary = d.e
@@ -283,7 +286,7 @@ func draw_over(o) -> void:
 		if str(q.k) != "chain":
 			continue
 		var age: int = r.frame_of(float(q.t0))
-		if age > 3:
+		if age > 5:   # docs/310 §4.2：0.27 → 0.4 秒、加粗一格
 			continue
 		var a: Vector2 = q.a
 		var b: Vector2 = q.b
@@ -293,6 +296,7 @@ func draw_over(o) -> void:
 				continue
 			var p: Vector2 = a.lerp(b, float(i) / float(maxi(1, n)))
 			_px(o.cv, p, LP[6] if age < 2 else LP[4])
+			_px(o.cv, p + Vector2(0, g.PX), LP[4] if age < 2 else LP[3])
 			if age == 0 and i % 4 == 0:
 				_glow(p, LP[6])
 
