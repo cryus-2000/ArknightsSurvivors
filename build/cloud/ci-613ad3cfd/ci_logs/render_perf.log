@@ -1,0 +1,20 @@
+# render_perf
+# 参数：--headless --path /work/repo/game res://tests/render_perf_test.tscn -- --regression --seed=1
+# 用时 11 秒；结束时全机 Godot 15 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+CIRCLE_US_10000=373331
+CIRCLE_US_10000=374084
+CIRCLE_US_10000=376986
+CIRCLE_US_10000=355666
+GPU_BEFORE=0
+GPU_ACTIVE=0 SIZE=(1280, 1280)
+GPU_IDLE=0
+GPU_RESTORE=0
+RENDER PERF failures=0
+
+
+## stderr
+
