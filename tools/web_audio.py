@@ -24,7 +24,7 @@ import soundfile as sf
 TIERS = {
     "A": {"music_rate": 32000, "music": {"default": 0.85}, "voice": (24000, 0.85)},
     "B": {"music_rate": 24000, "music": {"default": 0.85, "battle_pulse": 1.0, "battle_drive": 1.0, "danger": 1.0}, "voice": (24000, 0.85)},
-    "C": {"music_rate": 22050, "music": {"default": 1.1, "battle_pulse": 1.0, "final_p2": 1.0}, "voice": (16000, 1.1)},   # 语音 0.9 → 1.0：11-02 第十批网页 44.6 超 44.5 预算，省 0.13 MiB（docs/187 §9）
+    "C": {"music_rate": 22050, "music": {"default": 1.1, "battle_pulse": 1.0, "final_p2": 1.0}, "voice": (22050, 1.0)},   # 语音 0.9 → 1.0：11-02 第十批网页 44.6 超 44.5 预算，省 0.13 MiB（docs/187 §9）；11-07 用户「语音发闷」从 16 kHz / 1.1 提回 22.05 kHz / 1.0（约 +0.8 MiB，Toy 仍 < 50 MB）
     # 语音 22.05 kHz / 1.0 → 16 kHz / 1.1（11-06 用户「先去做语音和音效降采样」，Toy 50 MB 线）：237 条单声道 2.67 → 1.88 MiB（−0.79）
     "D": {"music_rate": 22050, "music": {"default": 1.1}, "voice": (24000, 0.85)},
     "E": {"music_rate": 16000, "music": {"default": 1.1}, "voice": (24000, 0.85)},

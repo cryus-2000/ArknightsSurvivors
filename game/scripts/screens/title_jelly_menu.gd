@@ -20,6 +20,7 @@ const MENU := [
 	{"id": 4, "cn": "设置", "en": "SETTINGS", "slot": "foot"},
 	{"id": 3, "cn": "操作说明", "en": "GUIDE", "slot": "foot"},
 	{"id": 9, "cn": "意见反馈", "en": "FEEDBACK", "slot": "foot"},   # 11-07 用户：标题页底部一行（docs/311）；没配反馈目标时 title._menu_ids 去掉
+	{"id": 10, "cn": "支持作者", "en": "SUPPORT", "slot": "foot"},   # B站 Toy「支持作者」奖励（docs/313）：只在 Toy 版、有奖励项时出现（title._menu_ids）
 	{"id": 5, "cn": "退出", "en": "EXIT", "slot": "foot"},
 ]
 

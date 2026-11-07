@@ -71,7 +71,7 @@
 | Toy 包但 SDK 加载失败 / 8 秒超时 | 同上 |
 | B站网页端（SDK 在、容器接口 `unsupported`） | 不改布局；云存档照常 |
 | B站 App 旧客户端（接口在、1.5 秒不回调） | 先试一次 `getContainerState`，再不行按 CSS `env(safe-area-inset-*)` 留边（`source=env`）；横竖屏交给预设 `head_include` 里原有的「请将手机横过来」提示 + 首次触摸尝试全屏 / `screen.orientation.lock('landscape')`（旋转自适应） |
-| 容器状态里没有胶囊字段 | `capsule=null`，顶部边距 0（画布本来已在安全区内） |
+| 容器状态里没有胶囊字段 | 11-08 起：沉浸且非桌面时 `container.js guessCapsule` 按 iPhone 实测估安全区右上 108 × 46 CSS px 的禁区（docs/318），顶部边距 = 46；非沉浸 / 桌面仍为 `capsule=null`、顶部边距 0 |
 
 **验证**（内置浏览器，桌面 Chrome 模拟手机：宽 < 768、派 TouchEvent，docs 的 `web-mobile-emulation-testing`）：
 

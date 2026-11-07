@@ -57,6 +57,7 @@ func data(screen) -> Dictionary:
 		"tier": str(D.DIFF_PRESETS[clampi(g.preset, 0, D.DIFF_PRESETS.size() - 1)].name), "t": float(m.get("t", 0.0)),
 		"hi_label": "总伤害", "hi": g.run_stats.fmt_n(float(m.get("total", 0.0))), "kills": int(m.get("kills", 0)), "level": int(m.get("level", 1)), "relic_n": int(m.get("relics", relics.size())),
 		"grade": screen.grade(m, g.preset), "ops": ops, "relics": relics.slice(0, 6),
+		"frame": preload("res://scripts/core/toy_support.gd").frame_unlocked() or Cfg.dev_args().has("--supframe"),   # Toy 三连奖励：专属边框（docs/313）
 		"name": "博士", "avatar": null, "qr": null}   # 头像 / 昵称 / 二维码：share_toy.gd 拿到后由结算屏填
 
 
@@ -67,7 +68,27 @@ func draw(ci: CanvasItem, d: Dictionary, pos: Vector2, k: float, rot := 0.0) -> 
 	var x: Transform2D = TUI.ctx(ci).xf * _xf
 	_pc = {"xf": x, "inv": x.affine_inverse(), "k": maxf(0.01, x.get_scale().x)}
 	_report(ci, d)
+	if bool(d.get("frame", false)):
+		_supporter_frame(ci)
 	ci.draw_set_transform(Vector2.ZERO)
+
+
+## 专属分享卡边框（B站 Toy 三连奖励，docs/313）：金色细框 + 四角加粗折角（内圈细线压到卡面文字，去掉） + 底边居中「SUPPORTER」小牌（卡面坐标 W × H）
+const FRAME_GOLD := Color(0.93, 0.76, 0.33)
+
+func _supporter_frame(ci: CanvasItem) -> void:
+	var r := Rect2(Vector2(9, 9), Vector2(W - 18, H - 18))
+	ci.draw_rect(r, Color(FRAME_GOLD, 0.85), false, 2.0)
+	var l := 46.0
+	var t := 6.0
+	for c in [[r.position, 1, 1], [Vector2(r.end.x, r.position.y), -1, 1], [Vector2(r.position.x, r.end.y), 1, -1], [r.end, -1, -1]]:
+		var p: Vector2 = c[0]
+		ci.draw_rect(Rect2(p + Vector2(0 if c[1] > 0 else -l, 0 if c[2] > 0 else -t), Vector2(l, t)), FRAME_GOLD)
+		ci.draw_rect(Rect2(p + Vector2(0 if c[1] > 0 else -t, 0 if c[2] > 0 else -l), Vector2(t, l)), FRAME_GOLD)
+	var tag := Rect2(Vector2(W * 0.5 - 62, r.end.y - 11), Vector2(124, 22))
+	ci.draw_rect(tag, Color(0.05, 0.05, 0.06, 1.0))
+	ci.draw_rect(tag, FRAME_GOLD, false, 1.5)
+	_px(ci, Vector2(W * 0.5, tag.position.y + 11.0), "SUPPORTER", 1.5, FRAME_GOLD, 1, 2)
 
 
 func _px(ci: CanvasItem, p: Vector2, s: String, kk: float, col: Color, align := 0, track := 1) -> float:

@@ -111,6 +111,7 @@ var autotest_sys = load("res://scripts/run/autotest.gd").new(self) if OS.is_debu
 var demo_sys = DemoRun.new(self)   # 图鉴攻击演示 / 精英化演出（gallery.gd 把 game.tscn 以 demo_op 模式放进 SubViewport）
 var spawner = Spawner.new(self)   # 刷怪
 var shop_sys = ShopSys.new(self)   # 商人与商店（逻辑）
+var web_focus = preload("res://scripts/web_focus.gd").new()   # 失焦保护（docs/317）：清按住状态、网页版自动暂停、回来把焦点还给画布
 var web_fs = preload("res://scripts/web_fs.gd").new()   # 网页版全屏与 Esc（docs/299）：退出全屏当暂停、P 键暂停、暂停菜单「返回全屏」；只在网页版桌面生效
 var beacon_sys = Beacon.new(self)  # 引航灯标：站桩点燃、驱散溟痕（run/beacon.gd，docs/49d §13.5 C）
 var weapons_sys = WeaponsSys.new(self)   # 子弹与支援装置
@@ -400,7 +401,7 @@ var tex := {}
 var tex_deferred := {}
 ## 手机网页：开局没读的干员专属特效帧条（干员 id → [帧条名]），入队时 load_op_fx 补读（docs/287 §3 ①）。--lazyfx：桌面上试
 var tex_lazy_fx := {}
-var lazy_fx: bool = (Cfg.mobile_web() and Cfg.mobile_knob("mobile_lazy_fx", 1.0)) or Cfg.dev_args().has("--lazyfx")
+var lazy_fx: bool = _lazy_fx_enabled()
 const WEB_EARLY_T := 180.0
 var panel_title_text := ""
 # ---------- 打击感 ----------
@@ -713,6 +714,7 @@ static func loading_warm_lists() -> Array:
 		if str(n).begins_with("e_") and not skip.has(str(n)):
 			whites.append(n)   # V6 敌人附加帧条（休眠 / 唤醒 / 狂暴）的白色剪影，_ready 的 tex_v6 段也要
 	var names: Array = []
+	var skip_fx := _deferred_start_fx(_lazy_fx_enabled())
 	if Cfg.mobile_web() and Cfg.mobile_knob("mobile_lazy_white", 1.0):
 		whites = []   # 手机网页白剪影按需建（ensure_white），载入页不预建
 	for n in preload_tex_names() + ([] if Cfg.mobile_web() else demo_warm_names()):   # 手机网页不预读图鉴演示的补充名单（docs/50 §30）
@@ -721,9 +723,8 @@ static func loading_warm_lists() -> Array:
 			if base.ends_with(suffix):
 				base = base.trim_suffix(suffix)
 				break
-		if not skip.has(base) and not _lazy_skip(n):
+		if not skip.has(base) and not skip_fx.has(n):
 			names.append(n)
-	_start_ids_c = {}   # 选人可能还会变：下次重算
 	return [names, whites]
 
 
@@ -784,26 +785,28 @@ func _enemy_evict(n: String) -> void:
 			A.uncache(nm)
 	tex_deferred[n] = true
 
-## 手机网页按需读特效（lazy_fx）时，不在开局编队（同 title._op_ids：队长 / --op、--squad）的干员的 V6 特效帧条：
-## 载入页不预读、进局保留名单不留（docs/319 §2：原来载入页照读全员约 150 MB，进局才不用）
-static var _start_ids_c := {}
+static func _lazy_fx_enabled() -> bool:
+	return (Cfg.mobile_web() and Cfg.mobile_knob("mobile_lazy_fx", 1.0)) or Cfg.dev_args().has("--lazyfx")
 
-static func _lazy_skip(n) -> bool:
-	if not V6_FRAMES.has(n) or not (Cfg.mobile_web() and Cfg.mobile_knob("mobile_lazy_fx", 1.0)) and not Cfg.dev_args().has("--lazyfx"):
-		return false
-	var ow: String = A.fx_owner(str(n))
-	if ow == "":
-		return false
-	if _start_ids_c.is_empty():
-		_start_ids_c = {Cfg.character_id: true}
-		for a in Cfg.dev_args():
-			if a.begins_with("--op="):
-				_start_ids_c = {a.substr(5): true}
-		for a in Cfg.dev_args():
-			if a.begins_with("--squad="):
-				for c in a.substr(8).split(","):
-					_start_ids_c[c] = true
-	return not _start_ids_c.has(ow)
+## 载入页和进局清理各自读取当时的编队。回标题改选队长后，上局的名单应立即失效。
+static func _deferred_start_fx(lazy: bool) -> Dictionary:
+	var deferred := {}
+	if not lazy:
+		return deferred
+	var leader: String = Cfg.character_id
+	var ids := {}
+	for a in Cfg.dev_args():
+		if a.begins_with("--op="):
+			leader = a.substr(5)
+		elif a.begins_with("--squad="):
+			for cid in a.substr(8).split(",", false):
+				ids[cid] = true
+	ids[leader if Character.exists(leader) else "mizuki"] = true
+	for n in V6_FRAMES:
+		var owner := A.fx_owner(n)
+		if owner != "" and not ids.has(owner):
+			deferred[n] = true
+	return deferred
 
 
 ## 手机网页进局（docs/319 §2）：标题页 / 图鉴 / 寻访 / 选人读进缓存、本局固定名单里没有的贴图拿掉（art.gd _outrun）。
@@ -814,8 +817,9 @@ func _drop_outrun_tex() -> void:
 		A.outrun_track = false
 		return
 	var keep := {}
+	var skip_fx := _deferred_start_fx(lazy_fx)
 	for n in preload_tex_names():
-		if not _lazy_skip(n):
+		if not skip_fx.has(n):
 			keep[str(n)] = true
 	var nd := A.drop_outrun(keep)
 	if not Cfg.dev_args().is_empty():
@@ -923,6 +927,7 @@ func _ready() -> void:
 		_drop_outrun_tex()
 	load("res://scripts/core/perf_hud.gd").ensure(get_tree())   # 性能自检浮层（缺省关；?perf=1 或性能报告页连点标题 5 次）
 	web_fs.setup(self)
+	web_focus.setup(self)
 	trial.consume()
 	# 随机数最先定：招募开局干员时就会用 rng（战斗台词计时等）。以前 --seed 在 _ready 后段才生效，
 	# 开局干员的台词计时是随机的，第一句台词一出同 seed 的两局就分叉（2026-09-26 查明，docs/36）
@@ -1577,6 +1582,11 @@ func mobile_cap() -> bool:
 	return Cfg.mobile_web() and Cfg.mobile_knob("mobile_cap", 1.0) and (mode == Mode.PLAY or Cfg.dev_args().has("--mobilecap"))
 
 
+func _notification(what: int) -> void:
+	if web_focus != null and web_focus.g != null:
+		web_focus.notify(what)   # 失焦通知（所有平台）→ 清按住状态（docs/317）
+
+
 func _process(delta: float) -> void:
 	UM.advance(delta)   # 界面动效时钟（真实帧间隔，不乘对局倍速；scripts/ui_motion.gd）
 	_pm("engine")   # 上一帧结束到这一帧开始：引擎自身、_draw 回调、其他节点（只在 --prof 下记）
@@ -1584,6 +1594,7 @@ func _process(delta: float) -> void:
 	if not is_inside_tree():
 		return   # 演示局结束等处当帧换场景：已离树就不再跑这一帧（11-04 教程结束闪退）
 	tour.update(delta)   # 聚光框引导 / 到点小提示：真实帧间隔（screens/tour.gd）
+	web_focus.poll(delta)   # 失焦保护（docs/317）
 	web_fs.poll(delta)   # 网页版：局内退出全屏（多半是按了 Esc）→ 打开暂停菜单（docs/299）
 	pick.update(delta)
 	wheel.update(delta)   # 指挥圆盘：真实帧间隔（悬停 / 松开判定 / 测试计划）

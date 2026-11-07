@@ -403,18 +403,18 @@ func _ready() -> void:
 	rect.material = mat
 	add_child(rect)
 	visible = false
-	glow_layer = CanvasLayer.new()
-	glow_layer.layer = 1
-	glow_layer.follow_viewport_enabled = true
-	glow_layer.visible = false
-	glow_node = Node2D.new()
-	glow_node.draw.connect(_draw_glow)
-	glow_layer.add_child(glow_node)
 	call_deferred("_attach_glow")
 
 
 func _attach_glow() -> void:
-	if g != null:
+	if g != null and is_inside_tree():
+		glow_layer = CanvasLayer.new()
+		glow_layer.layer = 1
+		glow_layer.follow_viewport_enabled = true
+		glow_layer.visible = false
+		glow_node = Node2D.new()
+		glow_node.draw.connect(_draw_glow)
+		glow_layer.add_child(glow_node)
 		g.add_child(glow_layer)
 		lo_layer = CanvasLayer.new()
 		lo_layer.layer = -1
@@ -433,17 +433,20 @@ func _attach_glow() -> void:
 		lo_rect.stretch_mode = TextureRect.STRETCH_SCALE
 		lo_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		lo_layer.add_child(lo_rect)
-		op_node = Node2D.new()
-		op_node.z_index = 1
-		op_node.visible = false
-		op_node.draw.connect(_draw_ops)
-		g.get_parent().add_child.call_deferred(op_node)   # 挂在 game 节点外面：game 在主视口里被剔除时，子节点会一起被剔除
 		particles = preload("res://scripts/render/optical_particles.gd").new()
 		add_child(particles)
 		particles.setup(g, g, glow_node)
 		grains = preload("res://scripts/render/fx_grains.gd").new()
 		g.add_child(grains)   # 挂在世界节点下：进低分辨率层，颗粒落在 2 px 世界格上
 		grains.setup(g)
+
+
+func _exit_tree() -> void:
+	# 高清干员画布是对局的兄弟节点，换场时需要单独释放。
+	if is_instance_valid(op_node):
+		op_node.hide()
+		op_node.queue_free()
+		op_node = null
 
 
 ## 世界子树（game 节点下、不跨进 CanvasLayer——发光层 / 低分辨率层 / 界面各有自己的画布）的可见层：灯光与环境色 1 | 2，其余 lay
@@ -476,7 +479,14 @@ func _set_lo(on: bool) -> void:
 	# 10-23 干员 1 倍帧条合入（claude/op-1x）后缺省 0：干员进低分辨率层，与怪物同一像素格、同一次脚底 y 排序（恢复前后遮挡）；1 = 旧的高清干员层
 	g.optical_ops_hi = on and Bal.v("render/optical_ops_hi", 0.0) > 0.0
 	lo_layer.visible = on
-	op_node.visible = g.optical_ops_hi
+	if g.optical_ops_hi and op_node == null:
+		op_node = Node2D.new()
+		op_node.z_index = 1
+		op_node.draw.connect(_draw_ops)
+		g.get_parent().add_child(op_node)   # game 在主视口被剔除时，高清干员仍可绘制。
+	if op_node != null:
+		op_node.visible = g.optical_ops_hi
+		op_node.material = g.material
 	lo_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS if on else SubViewport.UPDATE_DISABLED
 	g.get_viewport().set_canvas_cull_mask_bit(VIS_LO - 1, not on)
 	var lay: int = VIS_LO if on else 1
@@ -487,8 +497,6 @@ func _set_lo(on: bool) -> void:
 	_lay_tree(g, lay)
 	if on and not g.get_tree().node_added.is_connected(_on_node_added):
 		g.get_tree().node_added.connect(_on_node_added)
-	if g.material != null:
-		op_node.material = g.material   # 白色保护 / 朝灯亮线的角色材质（render/look.make_actor_mat）
 
 
 ## 每帧：整数像素镜头（10-23 用户：「走动时屏幕有点抖」「镜头能不能拉远一点，从像素整数的角度想」）。
@@ -528,7 +536,8 @@ func _lo_step() -> void:
 	var rp: Vector2 = xf.origin - lo_off * cellw
 	lo_rect.position = (rp * sx).round() / sx
 	lo_rect.size = Vector2(lo_vp.size) * cellw   # 按画布实际尺寸贴（推镜期间画布比需要的大：原来按 lsz 贴会把大画布压进小矩形，推镜被抵消、右边露黑，11-01 终结技起手推镜查出）
-	op_node.queue_redraw()
+	if g.optical_ops_hi:
+		op_node.queue_redraw()
 
 
 ## 高清干员层：按脚底 y 排序画干员本体与额外身体；合批画布临时改指到 op_node
@@ -670,7 +679,7 @@ func wanted() -> bool:
 
 
 func _process(_dt: float) -> void:
-	if g == null:
+	if g == null or glow_layer == null:
 		return
 	_update_cols(_dt)
 	var pt: int = Time.get_ticks_usec() if g.prof_on else 0

@@ -88,6 +88,15 @@
     return null;
   }
 
+  // 状态里没有胶囊字段时（11-08 实测：SDK 文档与真机回调都没给矩形）按 B站 App iPhone 沉浸横屏截图估（docs/318）：
+  // 胶囊（分享 | 关闭）约宽 82、高 31，右沿离安全区右沿约 12，上沿离顶约 11（CSS px）；外扩成安全区右上 108 × 46 的禁区（viewport 坐标）。
+  // 只在手机 / 平板沉浸模式下估；桌面 / 非沉浸（App 自己的顶栏不压网页）不估
+  function guessCapsule(st) {
+    if (!st.immersive || st.deviceType === "desktop") return null;
+    var vw = n((st.viewport || {}).width) || realW(), r = n((st.safeArea || {}).right);
+    return { x: vw - r - 108, y: 0, w: 108, h: 46, guess: true };
+  }
+
   // 画布框：vw / vh 为容器可用尺寸（缺省按浏览器真实尺寸），l t r b 为安全边距；cap 为胶囊矩形（viewport 坐标）
   function applyFrame(vw, vh, ins, source, cap) {
     var l = n(ins.left), t = n(ins.top), r = n(ins.right), b = n(ins.bottom);
@@ -141,7 +150,7 @@
     if (st.orientation) env.orientation = String(st.orientation);
     if (typeof st.immersive === "boolean") env.immersive = st.immersive;
     var vp = st.viewport || {};
-    applyFrame(vp.width, vp.height, st.safeArea || {}, "toy", findCapsule(st));
+    applyFrame(vp.width, vp.height, st.safeArea || {}, "toy", findCapsule(st) || guessCapsule(st));
   }
 
   function boot() {
