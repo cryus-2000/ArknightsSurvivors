@@ -103,6 +103,8 @@ static var late_log := false   # --perf：开局后才读的贴图逐张打印 T
 ## 这里不能用 Cfg：核心契约测试与 --script 工具不带自动加载
 static var marks: Array = []
 static func mark(n: String) -> void:
+	if OS.has_feature("web"):
+		JavaScriptBridge.eval("window.__syPhase='建局·%s'" % n, true)   # WASM 堆增长记录的阶段（core/crash_box.gd phase，docs/319 §13）
 	if OS.is_debug_build() and OS.get_cmdline_user_args().has("--loadprof"):
 		marks.append([n, Time.get_ticks_msec()])
 	if OS.is_debug_build() and OS.get_cmdline_user_args().has("--memlog"):

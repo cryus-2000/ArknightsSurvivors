@@ -4,6 +4,10 @@ const HS = preload("res://scripts/screens/hh_style.gd")
 const FR = preload("res://scripts/core/frame_rec.gd")
 func _ready() -> void:
 	load("res://scripts/core/perf_hud.gd").ensure(get_tree())   # 性能自检浮层（缺省关，core/perf_hud.gd）
+	load("res://scripts/core/crash_box.gd").phase("标题")   # WASM 堆增长记录的阶段（docs/319 §13）
+	var rl: Dictionary = load("res://scripts/core/run_reload.gd").resume()   # 手机网页局间整页重载回来：「再来一局」直接出发（core/run_reload.gd）
+	if not rl.is_empty():
+		_reload_go.call_deferred(rl)
 	load("res://scripts/core/crash_note.gd").ensure(get_tree())   # 上次对局异常退出：左下角提示，点开看崩溃前内存曲线（core/crash_box.gd）
 	if Cfg.dev_args().has("--loadprof"):
 		# 启动计时（docs/36 §5）：引擎启动 → 标题页 _ready → 标题页首帧画完（毫秒，从引擎启动算）
@@ -484,6 +488,17 @@ func _bg_game() -> void:
 	_bg_game_started = true
 	if not ResourceLoader.has_cached("res://game.tscn"):
 		ResourceLoader.load_threaded_request("res://game.tscn")
+
+
+## 整页重载回来的「再来一局」：同一名队长、同一难度，走标题页同一个载入页出发（同难度页「出发」，_diff_go）
+func _reload_go(rl: Dictionary) -> void:
+	var op := str(rl.get("op", ""))
+	if Character.exists(op):
+		Cfg.character_id = op
+	diff_sel = clampi(int(rl.get("diff", Cfg.difficulty)), 0, Cfg.diff_unlocked)
+	Cfg.difficulty = diff_sel
+	_prewarm()
+	leaving = 0.0
 
 
 ## 帧时记录的脚本动作（--ftdo=<标记>:<秒>:<动作>，core/frame_rec.gd）：打开寻访 / 图鉴、图鉴换条目 / 换页签、关掉
