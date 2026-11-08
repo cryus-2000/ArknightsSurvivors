@@ -1659,7 +1659,7 @@ func step() -> void:
 			if g.at_frames == 200:
 				g.state_age = 99.0
 				g.settlement.skip()
-			if g.at_frames == 215 and DisplayServer.get_name() != "headless":
+			if g.at_frames == (215 if not Cfg.dev_args().has("--shareopen") else 420) and DisplayServer.get_name() != "headless":   # 配 --shareopen：等分享卡拍照出场演完再截
 				g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_settle_%s.png" % ("win" if sw else "lose"))
 				g.get_tree().quit()
 		# --winshot=deep：第 60 帧直接进入胜利结算并截图
