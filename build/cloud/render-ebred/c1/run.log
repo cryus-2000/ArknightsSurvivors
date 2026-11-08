@@ -1,0 +1,7 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4857 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+r00 boss rc=0 8 张 0 处脚本错误
+r00 late rc=0 5 张 0 处脚本错误
+8.9M	build/cloud/render-ebred-c1/media
+media：14 个文件，8.9M

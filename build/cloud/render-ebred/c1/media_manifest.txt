@@ -1,0 +1,14 @@
+11396	r00_boss/flashrec.csv
+692712	r00_boss/fr_00000.png
+686885	r00_boss/fr_00015.png
+683205	r00_boss/fr_00030.png
+681148	r00_boss/fr_00045.png
+675404	r00_boss/fr_00060.png
+685606	r00_boss/fr_00075.png
+712528	r00_boss/fr_00090.png
+701529	r00_boss/fr_00105.png
+705002	r00_late/shot_3642.png
+717768	r00_late/shot_5008.png
+696850	r00_late/shot_6373.png
+752487	r00_late/shot_7284.png
+804651	r00_late/shot_8194.png

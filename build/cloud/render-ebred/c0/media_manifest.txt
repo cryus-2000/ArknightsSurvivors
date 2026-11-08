@@ -1,0 +1,14 @@
+11396	cur_boss/flashrec.csv
+692989	cur_boss/fr_00000.png
+687285	cur_boss/fr_00015.png
+682920	cur_boss/fr_00030.png
+681143	cur_boss/fr_00045.png
+675803	cur_boss/fr_00060.png
+685651	cur_boss/fr_00075.png
+712155	cur_boss/fr_00090.png
+701610	cur_boss/fr_00105.png
+705301	cur_late/shot_3642.png
+717938	cur_late/shot_5008.png
+697929	cur_late/shot_6373.png
+754180	cur_late/shot_7284.png
+804522	cur_late/shot_8194.png
