@@ -180,3 +180,51 @@ def card_title(t, short=False, vw=W, vh=H):
                                  fill=(206, 214, 222, int(255 * a)), stroke_width=3, stroke_fill=(3, 6, 12, int(230 * a)))
         im.alpha_composite(lay)
     return im
+
+
+_NOISE = None
+
+
+def _paper(vw, vh):
+    """大字卡底：近黑墨色 + 纸纹噪点 + 细网格（参考官方水月 PV 的灰纸 / 水墨底，压暗成本作 UI 的墨色）"""
+    global _NOISE
+    if _NOISE is None or _NOISE.size != (vw, vh):
+        import numpy as np
+        rng = np.random.default_rng(7)
+        n = rng.normal(0, 1, (vh // 4 + 1, vw // 4 + 1))
+        n = np.kron(n, np.ones((4, 4)))[:vh, :vw]
+        base = np.array(INK, np.float32)[None, None, :] + n[..., None] * 3.2
+        yy = np.linspace(-1, 1, vh)[:, None]
+        xx = np.linspace(-1, 1, vw)[None, :]
+        vig = 1.0 + 0.9 * np.exp(-(xx ** 2 * 1.4 + yy ** 2 * 2.2))
+        base = base * vig[..., None]
+        _NOISE = Image.fromarray(np.clip(base, 0, 255).astype("uint8")).convert("RGBA")
+        grid(_NOISE, (40, 60, 72), step=96, a=26)
+    return _NOISE.copy()
+
+
+def card_word(t, text, sub="", dur=1.6, col=CYAN, vw=W, vh=H, step=None):
+    """全屏大字卡（术曲 PV 排版）：墨色纸纹底，大字逐字砸在八分音符上；「，」处分两行；下方空心英文 + 一道主色条从左扫入"""
+    im = _paper(vw, vh)
+    lines = [s for s in text.replace("，", "，\n").split("\n") if s]
+    sz = int((240 if len(lines) == 1 and len(text) <= 6 else 190) * min(1.0, vw / W))
+    n = len(text.replace("，", ""))
+    step = step or min(BEAT / 2, 0.45 * dur / max(1, n))
+    gap = 0.06
+    lh = sz * 1.25
+    y0 = vh / 2 - (len(lines) - 1) * lh / 2 - (40 if sub else 0)
+    k0 = 0
+    for i, ln in enumerate(lines):
+        slam_text(im, ln, t - k0 * step, vw / 2, y0 + i * lh, sz, WHITE, step=step, ghost=col, gap=gap)
+        k0 += len(ln)
+    d = ImageDraw.Draw(im)
+    u = ease_out(t / 0.22)
+    yb = int(y0 + (len(lines) - 1) * lh + sz * 0.75)
+    bw = int(min(vw * 0.62, max(text_w(ln, sz, gap) for ln in lines) + 120) * u)
+    d.rectangle((vw // 2 - bw // 2, yb, vw // 2 + bw // 2, yb + 8), fill=col + (255,))
+    if sub and t > 0.12:
+        f = font(int(52 * min(1.0, vw / W)))
+        tw = f.getlength(sub)
+        a = int(255 * ease_out((t - 0.12) / 0.2))
+        d.text((vw / 2 - tw / 2, yb + 30), sub, font=f, fill=SUB + (a,))
+    return im

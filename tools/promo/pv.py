@@ -151,6 +151,8 @@ def render_shot(sh, T, ow, oh, vert):
         return Image.new("RGB", (ow, oh), (0, 0, 0))
     if k == "title":
         return cards.card_title(lt, short=vert, vw=ow, vh=oh).convert("RGB")
+    if k == "word":
+        return cards.card_word(lt, sh["text"], sh.get("sub", ""), dur, tuple(sh.get("col", CYAN)), ow, oh, sh.get("step")).convert("RGB")
     if k == "card":
         im = cards.card_operator(lt, sh["card"][3:], dur)
         if vert:
@@ -169,9 +171,38 @@ def render_shot(sh, T, ow, oh, vert):
     return im
 
 
+def glitch(im, i, n):
+    """故障转场（参考官方水月 PV 的雪花 / 扫描线闪切）：横向错位条带 + RGB 分离 + 扫描线 + 雪花行，强度随 i/n 递减"""
+    a = 1.0 - i / max(1, n)
+    arr = np.asarray(im.convert("RGB")).astype(np.int16)
+    h, w = arr.shape[:2]
+    rng = np.random.default_rng(1000 + i * 7 + int(a * 50))
+    out = arr.copy()
+    y = 0
+    while y < h:
+        bh = int(rng.integers(8, 90))
+        if rng.random() < 0.55 * a + 0.15:
+            dx = int(rng.integers(-1, 2) * rng.integers(20, 220) * a)
+            out[y:y + bh] = np.roll(arr[y:y + bh], dx, axis=1)
+        y += bh
+    sh = int(18 * a) + 2
+    out[..., 0] = np.roll(out[..., 0], sh, axis=1)
+    out[..., 2] = np.roll(out[..., 2], -sh, axis=1)
+    out[::3] = (out[::3] * (1 - 0.45 * a)).astype(np.int16)
+    for _ in range(int(14 * a)):
+        y0 = int(rng.integers(0, h - 6))
+        hh = int(rng.integers(2, 10))
+        nz = rng.integers(0, 255, (hh, w // 4 + 1, 1))
+        out[y0:y0 + hh] = np.repeat(nz, 4, axis=1)[:, :w].astype(np.int16)
+    return Image.fromarray(np.clip(out, 0, 255).astype(np.uint8))
+
+
 def apply_fx(im, sh, T, ow, oh, vert):
     lt = T - sh["t0"]
     dur = sh["t1"] - sh["t0"]
+    gl = sh.get("glitch", 0)
+    if gl and lt * FPS < gl:
+        im = glitch(im, int(lt * FPS), gl)
     fl = sh.get("flash", 0)
     if fl and lt * FPS < fl:
         a = 1.0 - lt * FPS / fl
@@ -270,10 +301,14 @@ def sfx_track(shots, total):
     return out
 
 
-def mix(shots, total, out_wav, vert=False):
+def mix(shots, total, out_wav, vert=False, mcfg=None):
     lp = [(s["t0"], s["t1"]) for s in shots if s.get("lp")]
-    m = music.build(os.path.join(WORK, "music_%s.wav" % ("vert" if vert else "main")), lp=lp,
-                    segs=music.SEGS_VERT if vert else None, tail_fade=1.2 if vert else music.TAIL_FADE)[: int(total * SR)]
+    if mcfg:   # 整曲连续一段：{"segs": [[起始小节, 小节数]], "tail_fade": 秒}
+        m = music.build(out_wav[:-4] + "_music.wav", lp=lp, segs=[tuple(x) for x in mcfg["segs"]], tail_fade=mcfg.get("tail_fade", 1.5))
+    else:
+        m = music.build(os.path.join(WORK, "music_%s.wav" % ("vert" if vert else "main")), lp=lp,
+                        segs=music.SEGS_VERT if vert else None, tail_fade=1.2 if vert else music.TAIL_FADE)
+    m = m[: int(total * SR)]
     s = sfx_track(shots, total)[: len(m)]
     pk = np.percentile(np.abs(s), 99.9) if np.any(s) else 1.0
     s = s / max(pk, 1e-6) * 0.42
@@ -293,7 +328,7 @@ def load_edit():
 def render(which, out, t_from=None, t_to=None, preview=None):
     ed = load_edit()
     shots = ed[which]
-    vert = which == "vert"
+    vert = which.startswith("vert")
     ow, oh = (1080, 1920) if vert else (W, H)
     total = shots[-1]["t1"]
     os.makedirs(WORK, exist_ok=True)
@@ -311,7 +346,7 @@ def render(which, out, t_from=None, t_to=None, preview=None):
         sheet.save(out, quality=88)
         print(out)
         return
-    wav = mix(shots, total, os.path.join(WORK, which + ".wav"), vert)
+    wav = mix(shots, total, os.path.join(WORK, which + ".wav"), vert, ed.get("music", {}).get(which))
     f0 = int((t_from or 0) * FPS)
     f1 = int(round((t_to or total) * FPS))
     enc = subprocess.Popen([ffmpeg(), "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "%dx%d" % (ow, oh), "-r", str(FPS), "-i", "-",
