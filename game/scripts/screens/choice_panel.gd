@@ -957,6 +957,10 @@ static func brief_cond_only(t: String) -> bool:
 			return false
 	# 计数类（「每第 3 次刺击」「编队每有 1 名…干员」）只认不带逗号 / 冒号的短句：「每次格挡时，周围敌人眩晕」本身有效果
 	var short: bool = t.length() <= 18 and not t.contains("，") and not t.contains("：")
+	for v in ["追加", "攻击", "造成", "回复", "眩晕", "获得", "失去", "射出", "爆炸", "伤害"]:
+		if t.contains(v):
+			short = false   # 「每第 3 次声浪后追加一次回声」「每次「言」同时攻击 2 个目标」本身有效果
+			break
 	return _re_cond_tail.search(t) != null or (short and _re_cond_each.search(t) != null) or _re_cond_dur.search(t) != null
 
 
