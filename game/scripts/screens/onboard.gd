@@ -40,7 +40,7 @@ const LAMP_SET := 55.0       # 演示局「灯火」：先把灯火压到这么�
 const LAMP_OIL := 15.0       # 演示局「灯火」：身边放的每份灯油
 const LAMP_DIST := 180.0     # 灯油放在队长身边多远（拾取半径之外，要走过去）
 const LAMP_WAIT := 16.0      # 等这么久还没捡到灯油就往下走
-const FOCUS_KILL_WAIT := 20.0   # 集火下令后最多等精英倒下这么久，再不倒就往下走
+const FOCUS_SHOW := 1.5   # 集火下令后再停这么久就算做完（11-08 用户：下令即满足，不等精英倒下）
 ## 演示局步骤 → 它教过的正式局提示（步骤真出过才算；id 相同的如 lamp / ult / link 本来就共用「看过」记录）
 const TAUGHT_BY := {"beacon": ["mire"], "focus": ["elite"], "recruit": ["squad"], "deploy": ["command"], "regroup": ["command"], "xp": ["levelup"], "move": []}
 const ACT_SECS := 40.0       # 特有系统的动作卡（指挥 / 终结技）等这么久没做也收起，不挡后面的卡
@@ -438,22 +438,17 @@ func _done(id: String) -> bool:
 		"beacon":
 			return _skip_beacon or (demo_beacon != null and bool(demo_beacon.lit))
 		"focus":
-			# 集火下令后等精英倒下（被别的打死也算）；等太久 / 刷不出 / 不能下令都往下走
-			return _skip_focus or (_focus_given and (focus_tgt == null or bool(focus_tgt.dead) or cur_t - _focus_t >= FOCUS_KILL_WAIT))
+			# 11-08 用户：下了集火就算做完，不用等精英打完（容易卡住）；留 FOCUS_SHOW 秒让玩家看到队友转火
+			return _skip_focus or (_focus_given and (focus_tgt == null or bool(focus_tgt.dead) or cur_t - _focus_t >= FOCUS_SHOW))
 		"lamp":
 			return not drill or g.lamp > lamp0 + 1.0 or cur_t >= LAMP_WAIT
 	return cur_t >= INFO_SECS
 
 
-## 「部署」做完：部署指令在生效（落点在怪群那一侧），且至少一名队友已经走到驻扎位上（以指令实际生效为准，点了扇区不算）
+## 「部署」做完：部署指令已下达就算（11-08 用户：点了部署出去就行，不用等队友走到位、不限落点方向，否则容易卡住）
 func _deployed() -> bool:
 	var sq = g.squad
-	if sq.order_kind != "point" or sq.order_pos == Vector2.INF or (sq.order_pos - g.ppos).dot(pack_dir) <= 40.0:
-		return false
-	for o in sq.ops:
-		if not o.is_leader and o.pos != Vector2.INF and o.cmd_down <= 0.0 and o.pos.distance_to(sq.station_of(o)) <= 48.0:
-			return true
-	return false
+	return sq.order_kind == "point" and sq.order_pos != Vector2.INF
 
 
 ## 演示局放东西用的空地：队长身边 dist 处，朝部署怪群的侧面起转一圈 8 个方向，挑第一个放得下（没被地形挡、在缩圈里）的；都不行返回 INF
