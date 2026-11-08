@@ -1691,11 +1691,13 @@ func step() -> void:
 			g.headhunt.maybe_open()   # 同结算「寻访」按钮（settlement_screen._action）；11-01 巡检：以前没打开，7 张都截成结算页
 		# 新流程（10-22，单一寻访凭证）：入口 → 定向寻访 → 选职业 → 指定干员 → 拉包 → 揭示 → 本次寻访；[帧, 动作]，动作在截图之后执行
 		var acts := {120: "directed", 170: "ok", 220: "ok"}
+		if Cfg.dev_args().has("--huntten"):   # 十连录屏（11-08 寻访光效回归对照）：配 --rostertickets=10
+			acts = {120: "ten"}
 		if Cfg.dev_args().has("--huntrec"):
 			if g.at_frames >= 56 and (g.at_frames - 56) % 2 == 0:
 				if shoot:
 					g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/rec_%04d.png" % ((g.at_frames - 56) / 2))
-				if g.headhunt.mode == "summary":
+				if g.headhunt.mode == "summary" or g.at_frames > 2000:   # 2000 帧兜底（十连停在逐个揭示时不录满 14000 帧）
 					hunt_rec_end += 1
 					if hunt_rec_end > 40:
 						print("HUNTREC frames=%d" % ((g.at_frames - 56) / 2))
