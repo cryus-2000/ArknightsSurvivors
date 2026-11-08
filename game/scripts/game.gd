@@ -829,6 +829,22 @@ func _drop_outrun_tex() -> void:
 		print("PF OUTRUN dropped=%d" % nd)
 
 
+## 一名干员的帧条（待机 / 跑 / 攻击 / 技能 / 受击 / 倒下 / 移动攻击 + extra_sprites + 无盾帧条）读进 g.tex。
+## 开局（tex_chars）与中途入队（choice_panel.load_op_tex）共用这一份槽表：原来入队那份少了受击 / 倒下 / 无盾条（11-09 回归 siege_ulpianus_art 抓到）
+func load_op_sprites(cid: String) -> void:
+	var cdef: Dictionary = Character.load_def(cid)
+	var csp: Dictionary = cdef.get("sprites", {})
+	for kind in ["idle", "run", "attack", "skill", "hurt", "death", "move_attack"] + cdef.get("extra_sprites", []):   # move_attack：移动攻击（docs/128，character._move_swap）
+		if csp.has(kind):
+			var tn: String = csp[kind] if csp[kind] is String else csp[kind].tex
+			if tex.get(tn) == null:
+				tex[tn] = A.tex(tn)
+	var nsa = csp.get("noshield", {}).get("art", {}) if csp.get("noshield", {}) is Dictionary else {}
+	for kind in nsa:   # 无盾帧条（星熊，docs/97 H 批）：缺图时为 null，走程序回退
+		if tex.get(nsa[kind]) == null:
+			tex[nsa[kind]] = A.tex(str(nsa[kind]))
+
+
 ## 招募卡出现时（choice_panel）：把候选干员的帧条 / 专属特效分帧读进贴图缓存（选卡时游戏暂停，每帧 OP_PF_BUDGET 微秒），
 ## 选中入队时 load_op_fx / load_op_tex 直接命中缓存，不在入队那一帧同步读一串（桌面 / 电脑网页；手机网页不预读，省内存，入队时再读）
 const OP_PF_BUDGET := 4000
@@ -1091,18 +1107,12 @@ func _ready() -> void:
 			if sd.get("icon", "") != "" and tex.get(sd.icon) == null:
 				tex[sd.icon] = A.tex(sd.icon)
 	# 所有可招募干员的贴图集（待机 / 跑步 / 攻击）：招募卡与入队后绘制都用得到（手机网页只读队长的，入队时 squad.add 补读，docs/50 §30）
-	for cid in _op_tex_ids():
-		var cdef: Dictionary = Character.load_def(cid)
-		var csp: Dictionary = cdef.get("sprites", {})
-		for kind in ["idle", "run", "attack", "skill", "hurt", "death", "move_attack"] + cdef.get("extra_sprites", []):   # move_attack：移动攻击（docs/128，character._move_swap）
-			if csp.has(kind):
-				var tn: String = csp[kind] if csp[kind] is String else csp[kind].tex
-				if not tex.has(tn):
-					tex[tn] = A.tex(tn)
-		var nsa = csp.get("noshield", {}).get("art", {}) if csp.get("noshield", {}) is Dictionary else {}
-		for kind in nsa:   # 无盾帧条（星熊，docs/97 H 批）：缺图时为 null，走程序回退
-			if not tex.has(nsa[kind]):
-				tex[nsa[kind]] = A.tex(str(nsa[kind]))
+	var tids: Array = _op_tex_ids()
+	for o in squad.ops:   # 实际编队（图鉴演示 / Boss 演练的干员、--op / --squad）一定读；其余入队时 load_op_sprites 补
+		if not tids.has(str(o.id)):
+			tids.append(str(o.id))
+	for cid in tids:
+		load_op_sprites(cid)
 	A.mark("tex_chars")
 	# 美术 V6：投射物 / 命中 / 爆炸 / 激光三段（docs/10_art_v6_spec.md）
 	var fx_ids := {}
