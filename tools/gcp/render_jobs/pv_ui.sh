@@ -5,13 +5,15 @@ set +e
 OUT="$(realpath -m "$OUT")"; MEDIA="$(realpath -m "$MEDIA")"
 mkdir -p "$MEDIA" "$OUT/ui"
 G="${GODOT:-godot}"
+FF=$(python3 -c "import sys; sys.path.insert(0, 'tools/promo'); import pv_runs; print(pv_runs.ffmpeg())")   # 云端没有系统 ffmpeg，用 imageio_ffmpeg 自带的
 rec() {   # rec <名> <秒上限> <帧文件模式> <游戏参数…>
   name="$1"; secs="$2"; pat="$3"; shift 3
   d="$OUT/ui/$name"; mkdir -p "$d"
   timeout "$secs" "$G" --path game --audio-driver Dummy --fixed-fps 60 --resolution 1920x1080 --position 0,0 -- --shotdir="$d" "$@" > "$OUT/ui/$name.log" 2>&1
   n=$(ls "$d" | wc -l)
-  ffmpeg -v error -y -framerate 60 -i "$d/$pat" -c:v libx264 -crf 15 -preset slow -pix_fmt yuv420p "$MEDIA/UI_$name.mp4"
-  echo "$name: $n 帧" | tee -a "$OUT/runs.txt"
+  "$FF" -v error -y -framerate 60 -i "$d/$pat" -c:v libx264 -crf 15 -preset slow -pix_fmt yuv420p "$MEDIA/UI_$name.mp4"
+  echo "$name: $n 帧 $(python3 -c "from PIL import Image; import glob; f=sorted(glob.glob('$d/*.png')); print(Image.open(f[0]).size if f else '-')")" | tee -a "$OUT/runs.txt"
+  cp "$OUT/runs.txt" "$MEDIA/UI_runs.txt"
   cp "$OUT/ui/$name.log" "$MEDIA/UI_$name.log"
   rm -rf "$d"
 }
