@@ -516,6 +516,15 @@ func _ft_action(what: String) -> void:
 		"gal_tab":
 			FR.mark("gal_tab")
 			gallery._set_tab((gallery.tab + 1) % 3)
+		"oppick":
+			FR.mark("oppick")   # 选人页（量「先翻选人页再出发」的 WASM 高水位，docs/319 §15）
+			_open_op_pick()
+		"op_next":
+			FR.mark("op_next")
+			_op_step(1)
+		"op_close":
+			FR.mark("op_close")
+			_close_op_pick()
 		"go":
 			FR.mark("go")   # 直接出发（同难度页「出发」：预热 → 载入页 → 进局）；量「开过图鉴再进局」的内存（docs/319）
 			_prewarm()
