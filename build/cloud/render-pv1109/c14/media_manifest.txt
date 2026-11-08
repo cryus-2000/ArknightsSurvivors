@@ -1,0 +1,4 @@
+25865	S5_godot.log
+67508	S5_pv.log
+660012412	S5_seg_01_win_t205.0.mp4
+169616	S5_seg_01_win_t205.0.sfx.json

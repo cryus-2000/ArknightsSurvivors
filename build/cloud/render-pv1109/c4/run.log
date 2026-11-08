@@ -1,0 +1,33 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4880 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+B rc=0 2102s
+  seg_01_beacon_t162.4 195 帧 rc=0
+SCRIPT ERROR: Invalid operands 'String' and 'bool' in operator '=='.
+          at: _process (/work/repo/tools/promo/pv_rec.gd:279)
+          GDScript backtrace (most recent call first):
+              [0] _process (/work/repo/tools/promo/pv_rec.gd:279)
+SCRIPT ERROR: Invalid operands 'String' and 'bool' in operator '=='.
+          at: _process (/work/repo/tools/promo/pv_rec.gd:279)
+          GDScript backtrace (most recent call first):
+              [0] _process (/work/repo/tools/promo/pv_rec.gd:279)
+SCRIPT ERROR: Invalid operands 'String' and 'bool' in operator '=='.
+          at: _process (/work/repo/tools/promo/pv_rec.gd:279)
+          GDScript backtrace (most recent call first):
+              [0] _process (/work/repo/tools/promo/pv_rec.gd:279)
+SCRIPT ERROR: Invalid operands 'String' and 'bool' in operator '=='.
+          at: _process (/work/repo/tools/promo/pv_rec.gd:279)
+          GDScript backtrace (most recent call first):
+              [0] _process (/work/repo/tools/promo/pv_rec.gd:279)
+SCRIPT ERROR: Invalid operands 'String' and 'bool' in operator '=='.
+          at: _process (/work/repo/tools/promo/pv_rec.gd:279)
+          GDScript backtrace (most recent call first):
+              [0] _process (/work/repo/tools/promo/pv_rec.gd:279)
+total 20448
+drwxr-xr-x 2 root root     4096 Nov  8 16:35 .
+drwxr-xr-x 4 root root     4096 Nov  8 16:00 ..
+-rw-r--r-- 1 root root   501411 Nov  8 16:35 B_godot.log
+-rw-r--r-- 1 root root    47083 Nov  8 16:35 B_pv.log
+-rw-r--r-- 1 root root 20365998 Nov  8 16:35 B_seg_01_beacon_t162.4.mp4
+-rw-r--r-- 1 root root     5252 Nov  8 16:35 B_seg_01_beacon_t162.4.sfx.json
+media：4 个文件，20M

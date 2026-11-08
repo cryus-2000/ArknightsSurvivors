@@ -1,0 +1,4 @@
+21693	E_godot.log
+27449	E_pv.log
+487209221	E_seg_01_win_t000.3.mp4
+76967	E_seg_01_win_t000.3.sfx.json

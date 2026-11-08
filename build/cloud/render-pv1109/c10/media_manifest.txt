@@ -1,0 +1,4 @@
+301482	Q1_godot.log
+14675	Q1_pv.log
+196243622	Q1_seg_01_fwin_t150.4.mp4
+41528	Q1_seg_01_fwin_t150.4.sfx.json

@@ -1,0 +1,9 @@
+Q3 rc=0 664s
+  seg_01_fwin_t150.4 2400 帧 rc=0
+total 198168
+drwxr-xr-x 2 root root      4096 Nov  8 16:50 .
+drwxr-xr-x 4 root root      4096 Nov  8 16:38 ..
+-rw-r--r-- 1 root root    299341 Nov  8 16:49 Q3_godot.log
+-rw-r--r-- 1 root root     14155 Nov  8 16:49 Q3_pv.log
+-rw-r--r-- 1 root root 202548912 Nov  8 16:50 Q3_seg_01_fwin_t150.4.mp4
+-rw-r--r-- 1 root root     43736 Nov  8 16:50 Q3_seg_01_fwin_t150.4.sfx.json
