@@ -121,7 +121,7 @@ func build(restart := false) -> void:
 		else:
 			card.pressed.connect(g.shop_sys.buy.bind(i))
 		# 触屏说明字先试大 2 号（手机上 12 号只有约 6.5 pt），放不下再退回原字号；手机一句话 20 起、最小 17
-		var szs: Array = ([18, 17, 16, 15, 14] if touch else [14, 13, 12, 11]) if Pad.touch_ui() else [13]   # 电脑：说明一律 13（docs/37 最小字号；D9 同排同字号）
+		var szs: Array = ([18, 17, 16, 15, 14] if touch else [14, 13, 12, 11]) if (Pad.touch_ui() and not sc_on) else [13]   # 电脑 / 触屏同版式：说明一律 13（docs/37 最小字号；D9 同排同字号），放不下写一句 +「详情」
 		if ph:
 			szs = [15, 14, 13]   # 11-06：原 20 起，放大后比名字（18 ≈ 21）还大；改成比名字小一级（≈ 18 / 17 / 15）
 		var chips := Affects.chips(g, it)
@@ -309,7 +309,8 @@ func _draw_bg(vs: Vector2, top: float) -> void:
 	g.panel_ui.header(vs, "SHOP  ·  WANDERING TRADER", "流浪商人", note, top - 130.0)
 	# 藏品额度一行：原来在标题说明行下面 8 像素（top − 52），两行字压在一起（10-11）；挪到「货架 GOODS」同一行、GOODS 之后
 	var gw: float = UI.en_width(g.font, "GOODS  ·  %d" % g.shop_items.size(), 12, 3.0)
-	UI.text(g.panel_fg, g.font, Vector2(cx - 232 + gw + 18.0, top - 20.0), g.progression.relic_count_text() + ("" if g.progression.relic_cap() < 0 else "；满后仍可升级已有藏品"), 12, UI.SUB)
+	var hw: float = maxf(48.0, g.font.get_string_size("货架", HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(20)).x + 8.0)   # 手机字号放大后「货架」变宽，GOODS 跟在它后面
+	UI.text(g.panel_fg, g.font, Vector2(cx - 280 + hw + gw + 18.0, top - 20.0), g.progression.relic_count_text() + ("" if g.progression.relic_cap() < 0 else "；满后仍可升级已有藏品"), 12, UI.SUB)
 	var mr := Rect2(Vector2(cx - 580, top - 42.0), Vector2(280, CARD_H + 96.0))
 	var mt := Color(0.125, 0.11, 0.094, 0.95)
 	var mb := Color(0.055, 0.051, 0.047, 0.95)
@@ -340,7 +341,7 @@ func _draw_bg(vs: Vector2, top: float) -> void:
 	UI.text_fit(g.panel_fg, g.font, mr.position + Vector2(16, 378 + my), "「%s」" % MERCHANT_LINES[maxi(0, g.merchant_idx - 1) % MERCHANT_LINES.size()], 13, Color(0.85, 0.87, 0.89), mr.size.x - 28.0, 10)
 	# 右上：货架 + 持有源石锭（明日方舟费用框）
 	UI.text(g.panel_fg, g.font, Vector2(cx - 280, top - 18.0), "货架", 20, UI.TEXT)
-	UI.en(g.panel_fg, g.font, Vector2(cx - 232, top - 20.0), "GOODS  ·  %d" % g.shop_items.size(), 12, UI.SUB, 3.0)
+	UI.en(g.panel_fg, g.font, Vector2(cx - 280 + hw, top - 20.0), "GOODS  ·  %d" % g.shop_items.size(), 12, UI.SUB, 3.0)
 	var dp := Rect2(Vector2(cx + 460, top - 46.0), Vector2(128, 34))
 	g.panel_fg.draw_rect(dp, Color(0.03, 0.035, 0.045, 0.86))
 	g.panel_fg.draw_rect(Rect2(dp.position, Vector2(3, dp.size.y)), UI.GREEN)
