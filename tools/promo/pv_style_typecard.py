@@ -2,7 +2,7 @@
 
 出两张 1920×1080：
   typecard_end.png   结尾卡 / 标题卡：主标题 + 副标题 + 英文标签 + 结尾行动语 + 同人声明
-  typecard_word.png  大字卡 + 干员名字条 + 角落终结技标名 + 旁白字幕（同一画面里按真实字号排）
+  typecard_word.png  画面标注 + 干员名字条 + 角落终结技标名 + 旁白字幕（同一画面里按真实字号排）
 
 字体全部是 SIL OFL 1.1（可免费商用、可嵌入成片）：
   Noto Serif SC（思源宋体同源）可变字重 200–900
@@ -200,18 +200,19 @@ def end_card(out):
     img.save(out)
 
 
-# ————————————————————— 大字卡 + 名字条 + 字幕 —————————————————————
+# ————————————————————— 画面标注 + 名字条 + 字幕 —————————————————————
 def word_card(out):
     img = deep_bg(seed=23, light=(0.25, 0.22))
     d = ImageDraw.Draw(img)
 
-    # ① 大字卡主字：Noto Serif SC 400（细衬线），180 px，竖排，放左三分线
-    vertical(d, (560, 170), "灯火", serif(180, 400), INK, gap=0.04)
-    # 注释小字：Noto Serif SC 400，38 px，竖排在主字右下，70% 亮度
-    vertical(d, (700, 372), "将熄未熄", serif(38, 400), INK_DIM, gap=0.1)
-    # 英文微标签：Montserrat SemiBold 14 px，字距 0.4 em，贴细线
-    d.line((470, 160, 470, 600), fill=(70, 90, 100), width=1)
-    tracked(d, (480, 616), "LAMPLIGHT  //  01", latin(14), (120, 138, 150), 0.4)
+    # ① 画面标注（压在实机画面上，指着一个对象）：圆环标记 + 折线 + 中文 28 px + 英文 13 px + 说明 22 px
+    tx, ty = 520, 470                                   # 被标注对象（样张里是占位圆）
+    d.ellipse((tx - 46, ty - 46, tx + 46, ty + 46), outline=(60, 84, 96), width=1)
+    d.ellipse((tx - 30, ty - 30, tx + 30, ty + 30), outline=CYAN, width=2)
+    d.line((tx + 22, ty - 22, tx + 90, ty - 90, tx + 300, ty - 90), fill=CYAN, width=1)
+    tracked(d, (tx + 100, ty - 132), "集火目标", sans(28, 500), INK, 0.1)
+    tracked(d, (tx + 100, ty - 80), "FOCUS TARGET  //  ELITE", latin(13), (120, 138, 150), 0.4)
+    tracked(d, (tx + 100, ty - 56), "指挥圆盘选中后，全队优先攻击", sans(22, 400), INK_DIM, 0.06)
 
     # ② 干员名字条（右侧）：英文代号做底纹大字，中文名压上去
     nx = 1180
@@ -230,8 +231,8 @@ def word_card(out):
     # ④ 旁白字幕：中文 Noto Sans SC 500 36 px，英文 Noto Sans 400 24 px，居中，y≈90%
     f_sub = sans(36, 500)
     f_sub_en = sans(24, 400)
-    zh = "灯火还亮着，就还有人在走。"
-    en = "As long as the lamp is lit, someone is still walking."
+    zh = "招募干员，组成小队一起作战。"
+    en = "Recruit operators and fight as a squad."
     for (txt, f, col, y) in ((en, f_sub_en, INK_DIM, 924), (zh, f_sub, INK, 958)):
         # 柔阴影代替描边
         sh = Image.new("L", (W, H), 0)
