@@ -6,7 +6,8 @@ extends Node
 ##   3) 存档落盘：Cfg.save() 后等云存档同步完（最多 CLOUD_WAIT 秒；本地已存好，没传完下次启动照常比对上传），
 ##      再等 IDBFS 写回 IndexedDB（engine_patch §6 __syFsSync）；
 ##   4) location.reload()。sessionStorage 里留一条 sy_reload：加载页读完直接开始（不再要一次「开始游戏」，loader.js），
-##      标题页 resume() 读到「再来一局」就用同一名队长、同一难度直接出发（标题页的载入页），读到「回标题」就停在标题页。
+##      标题页 resume() 读到「再来一局」就用同一名队长、同一难度直接出发（标题页的载入页），读到「认知塑造」/「寻访」就打开那一页
+##      （11-09 用户：局后直接进认知塑造 iPhone 内存崩溃，结算页的这两个出口也走整页重载），读到「回标题」就停在标题页。
 ## 电脑网页 / 桌面包不变；测试局（带命令行参数）不重载，--runreload 强制开；--bal=web/mobile_run_reload=0 退回旧路径。
 const KEY := "sy_reload"
 const CLOUD_WAIT := 10.0
@@ -125,6 +126,6 @@ static func resume() -> Dictionary:
 		return {}
 	if not Cfg.dev_args().is_empty():
 		print("PF RUNRELOAD resume act=%s" % str(d.get("act", "")))
-	if str(d.get("act", "")) != "restart":
-		return {}
+	if not ["restart", "meta", "hunt"].has(str(d.get("act", ""))):
+		return {}   # 回标题：停在标题页
 	return d

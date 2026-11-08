@@ -492,6 +492,13 @@ func _bg_game() -> void:
 
 ## 整页重载回来的「再来一局」：同一名队长、同一难度，走标题页同一个载入页出发（同难度页「出发」，_diff_go）
 func _reload_go(rl: Dictionary) -> void:
+	match str(rl.get("act", "")):
+		"meta":
+			meta_ui.open()   # 局后「认知塑造」：重载回来直接打开
+			return
+		"hunt":
+			hunt_ui.open()   # 局后「寻访」
+			return
 	var op := str(rl.get("op", ""))
 	if Character.exists(op):
 		Cfg.character_id = op

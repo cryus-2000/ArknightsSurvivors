@@ -1,4 +1,5 @@
 extends RefCounted
+const RunReload = preload("res://scripts/core/run_reload.gd")
 ## Read-only run-end presentation. No combat work, RNG or input registration in draw.
 const RS = preload("res://scripts/run/run_stats.gd")
 const OpFig = preload("res://scripts/screens/op_figure.gd")
@@ -616,6 +617,9 @@ func _records() -> void:
 	g.run_stats.back_label = "返回结算"
 
 func _action(action: String) -> void:
+	if (action == "hunt" or action == "meta") and RunReload.wanted(g):
+		RunReload.go(g, action)   # 手机网页：局后进寻访 / 认知塑造也先整页重载（叠在一局撑大的内存上会被杀页，11-09 iPhone），回来直接打开那一页
+		return
 	if action == "hunt":
 		g.headhunt.maybe_open()
 		if g.headhunt.open and is_instance_valid(squad_canvas):

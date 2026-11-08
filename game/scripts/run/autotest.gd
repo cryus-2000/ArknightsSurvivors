@@ -1387,7 +1387,14 @@ func step() -> void:
 				g.hp = 0.0
 				g.state = g.S.DEAD
 				print("PF TWORUN end1 t=%.0f" % g.t)
-				g.get_tree().create_timer(4.0).timeout.connect(func(): g._do_action("title"))
+				var ex := ""
+				for a2 in Cfg.dev_args():
+					if a2.begins_with("--rlexit="):
+						ex = a2.substr(9)   # 测试：从结算页的「认知塑造」/「寻访」出口离开（core/run_reload.gd，docs/319 §14）
+				if ex != "":
+					g.get_tree().create_timer(4.0).timeout.connect(func(): g.settlement._action(ex))
+				else:
+					g.get_tree().create_timer(4.0).timeout.connect(func(): g._do_action("title"))
 				return
 			if Cfg.dev_args().has("--tworuns"):
 				print("PF TWORUN end2 t=%.1f state=%d hp=%.1f maxt=%.0f" % [g.t, g.state, g.hp, g.bal_maxt])
