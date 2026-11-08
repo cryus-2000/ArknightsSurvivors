@@ -21,7 +21,7 @@ sys.path.insert(0, HERE)
 import music
 
 BAR = music.BAR
-B0 = 77
+B0 = 70   # 11-08 加 3D 开头：配乐从第 70 小节起
 
 
 def T(b, base=B0):
@@ -43,6 +43,7 @@ def shot(b0, b1, base=B0, **kw):
 
 GL = 4   # 故障转场帧数
 main = [
+    shot(70, 77, src="P3D.mp4", f=0, _="3D 开头（tools/promo/pv3d.gd）：金边实体招募卡 / 升级卡漂浮下落 → 贴海床一排立起 → 74 重拍一张砸到镜头前推进"),
     shot(77, 79, src="H_seg_01_win_t058.0.mp4", ramp=[400, 610, "bar:78"], _="终结技立绘切入，冲击帧落 78 重拍"),
     shot(79, 80, src="L4_seg_01_win_t460.0.mp4", f=140, push=0.06, glitch=GL),
     shot(80, 81, src="UW_seg_01_win_t470.0.mp4", ramp=[508, 544, "+0.6"], flash=3),
@@ -81,6 +82,6 @@ vert = [
 p = os.path.join(HERE, "edit.json")
 ed = json.load(open(p, encoding="utf-8"))
 ed["main2"], ed["vert2"] = main, vert
-ed["music"] = {"main2": {"segs": [[77, 38.5]], "tail_fade": 1.6}, "vert2": {"segs": [[VB, 9.125]], "tail_fade": 1.2}}
+ed["music"] = {"main2": {"segs": [[70, 45.5]], "tail_fade": 1.6}, "vert2": {"segs": [[VB, 9.125]], "tail_fade": 1.2}}
 json.dump(ed, open(p, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 print("main2 %.3f 秒 %d 镜；vert2 %.3f 秒" % (main[-1]["t1"], len(main), vert[-1]["t1"]))
