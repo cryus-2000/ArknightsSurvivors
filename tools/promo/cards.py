@@ -207,7 +207,7 @@ def card_word(t, text, sub="", dur=1.6, col=CYAN, vw=W, vh=H, step=None):
     """全屏大字卡（术曲 PV 排版）：墨色纸纹底，大字逐字砸在八分音符上；「，」处分两行；下方空心英文 + 一道主色条从左扫入"""
     im = _paper(vw, vh)
     lines = [s for s in text.replace("，", "，\n").split("\n") if s]
-    sz = int((240 if len(lines) == 1 and len(text) <= 6 else 190) * min(1.0, vw / W))
+    sz = int((300 if len(text) <= 3 else 240 if len(lines) == 1 and len(text) <= 6 else 190) * min(1.0, vw / W))
     n = len(text.replace("，", ""))
     step = step or min(BEAT / 2, 0.45 * dur / max(1, n))
     gap = 0.06
