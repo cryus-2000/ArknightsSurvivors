@@ -170,6 +170,22 @@ func _polaroid(ci: CanvasItem, d: Dictionary, fr: String) -> void:
 	_peeker(ci, d, band, photo)
 
 
+## 干员 Q 版像素小人（没有就 null，退回游戏内小人）
+static var _chibi_cache := {}
+
+static func chibi(key: String) -> Texture2D:
+	if _chibi_cache.has(key):
+		return _chibi_cache[key]
+	var path := "res://art/operators/%s/op_%s_chibi.png" % [key, key]
+	var tex: Texture2D = null
+	if key != "" and ResourceLoader.exists(path):
+		var src := load(path) as Texture2D   # 导入的压缩贴图在兼容渲染下直接画会成白块：取出图像转成 ImageTexture（同干员贴图的加载口径）
+		if src != null:
+			tex = ImageTexture.create_from_image(src.get_image())
+	_chibi_cache[key] = tex
+	return tex
+
+
 ## 左下角探头的队友（小队代入感，docs 设计支柱）：编队里第一名非队长，没有就用队长；站在相框外、压住左下角
 func _peeker(ci: CanvasItem, d: Dictionary, band: Rect2, photo: Rect2) -> void:
 	var pick: Dictionary = {}
@@ -179,10 +195,20 @@ func _peeker(ci: CanvasItem, d: Dictionary, band: Rect2, photo: Rect2) -> void:
 			break
 	if pick.is_empty():
 		pick = _leader(d)
-	if pick.is_empty() or not (pick.get("art") is Dictionary):
+	if pick.is_empty():
 		return
 	# 站在下边正中（底部白条中间是空的，左边昵称、右边二维码都不挡）
 	var os := outer_size("ri")
+	var tex := chibi(str(pick.get("key", "")))
+	if tex != null:   # Q 版像素小人（11-08 用户：照参考图的小人画法，每名干员一张；art/operators/<id>/op_<id>_chibi.png，1 格 = 1 纹素）
+		var k := floorf(232.0 / tex.get_height())
+		var sz := Vector2(tex.get_width(), tex.get_height()) * k
+		var r := Rect2(Vector2(photo.get_center().x - sz.x * 0.5, os.y - 8.0 - sz.y), sz)
+		ci.draw_texture_rect(tex, Rect2(r.position + Vector2(k, k), sz), false, Color(0, 0, 0, 0.35))   # 投影
+		ci.draw_texture_rect(tex, r, false)
+		return
+	if not (pick.get("art") is Dictionary):
+		return
 	var box := Rect2(photo.get_center().x - 90, os.y - 250, 180, 244)
 	ci.draw_set_transform_matrix(_xf * Transform2D(0.0, Vector2(2, 3)))
 	OpFig.draw(ci, pick.art, box, 0, Color(0, 0, 0, 0.35))   # 投影
