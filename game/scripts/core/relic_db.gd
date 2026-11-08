@@ -56,6 +56,7 @@ func load_files(meta_path: String = "res://data/relics.json", fx_path: String = 
 		items[id] = {
 			"id": id, "name": r.name, "desc": fill_desc(str(e.get("desc", r.adapt))), "rarity": rarity,
 			"desc_squad": e.get("desc_squad", {}),
+			"brief": str(e.get("brief", "")),   # 卡面一句话（手写，手机 / 放不下时用；11-09「国王的水晶」自动截句只剩代价）
 			"lane": str(r.get("lane", "general")), "lane_name": str(lane_names.get(str(r.get("lane", "general")), "通用")), "set": str(e.get("set", "")), "tier": r.tier,
 			"source": e.get("source", "boss" if r.get("boss_only", false) else "any"),
 			"shop_allowed": e.get("shop_allowed", r.shop_allowed),

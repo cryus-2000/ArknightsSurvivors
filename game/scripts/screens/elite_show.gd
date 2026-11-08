@@ -45,9 +45,9 @@ func open(sc: Dictionary) -> void:
 	g.state = Game.S.SHOW
 	# 精英化演出：左侧放一个实机演示（demo 模式的 game.tscn），干员已在新阶段并循环施放新解锁的技能
 	demo_stop()
-	if sc.has("op") and int(sc.get("elite", 0)) > 0 and g.mode != g.Mode.BALANCE and DisplayServer.get_name() != "headless" and not Cfg.phone_ui():   # 手机版式不放实机演示（见 _phone）
+	if sc.has("op") and int(sc.get("elite", 0)) > 0 and g.mode != g.Mode.BALANCE and DisplayServer.get_name() != "headless":   # 11-09 手机也放实机演示（左侧缩小，见 _phone）
 		show_vp = SubViewport.new()
-		show_vp.size = Vector2i(540, 300)
+		show_vp.size = Vector2i(432, 240) if _phone() else Vector2i(540, 300)   # 手机画面缩小，渲染开销也小
 		show_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 		show_vp.handle_input_locally = false
 		g.add_child(show_vp)
@@ -83,16 +83,26 @@ func close() -> void:
 const DESIGN_W := 1240.0
 const PH_GAP := 140.0   # 手机版式：卡距 / 卡高
 const PH_CH := 128.0
+const PH_DEMO := Rect2(40, 170, 360, 200)   # 手机演示框（设计坐标；比电脑 540×300 小，给说明卡留宽）
+const PH_CX := 430.0                         # 手机说明卡左边 / 宽（说明区宽约 600，同电脑版说明卡）
+const PH_CW := 770.0
 
 
-## 手机横屏（Cfg.phone_ui）：11-01 巡检——整页按 1240 设计宽缩到 0.6–0.7，说明字只剩 7–8 像素（docs/37 手机说明字 ≥ 14）。
-## 手机改成单列：不放左侧实机演示，说明卡占满宽、压矮，设计高约 610，缩放约 0.88，说明字 16–18 号
+## 手机横屏（Cfg.phone_ui）：11-01 巡检——整页按 1240 设计宽缩到 0.6–0.7，说明字只剩 7–8 像素（docs/37 手机说明字 ≥ 14）→ 改单列不放演示。
+## 11-09 用户要手机也像电脑一样有实机演示：左侧演示框（PH_DEMO）+ 右侧说明卡（压矮、窄一半），整页按安全区（灵动岛 / B站胶囊）等比缩小；
+## 说明字小一号、加粗（同商店手机版的处理）
 func _phone() -> bool:
 	return Cfg.phone_ui()
 
 
 func fit_xf(vs: Vector2, n: int) -> Array:
-	var dh: float = (150.0 + n * PH_GAP + 40.0) if _phone() else maxf(620.0, 190.0 + n * 190.0 + 20.0)
+	if _phone():
+		var ins: Array = Cfg.safe_insets()
+		var sr := Rect2(float(ins[0]), float(ins[1]), vs.x - float(ins[0]) - float(ins[2]), vs.y - float(ins[1]) - float(ins[3]))
+		var dp := Vector2(DESIGN_W, maxf(150.0 + n * PH_GAP, PH_DEMO.end.y) + 40.0)
+		var kp: float = minf(1.0, minf(sr.size.x / dp.x, sr.size.y / dp.y))
+		return [kp, (sr.position + (sr.size - dp * kp) / 2.0).round(), dp]
+	var dh: float = maxf(620.0, 190.0 + n * 190.0 + 20.0)
 	var k: float = minf(1.0, minf(vs.x / DESIGN_W, vs.y / dh))
 	if k >= 1.0:
 		return [1.0, Vector2.ZERO, vs]
@@ -115,7 +125,7 @@ func draw(vs: Vector2) -> void:
 	g.hud.draw_rect(Rect2(0, o.y + 70 * k, vs.x * sweep, 64 * k), Color(col.r, col.g, col.b, 0.14))
 	g.hud.draw_rect(Rect2(0, o.y + 70 * k, vs.x * sweep, 2), col)
 	g.hud.draw_rect(Rect2(0, o.y + 132 * k, vs.x * sweep, 2), Color(col.r, col.g, col.b, 0.5))
-	if k < 1.0:
+	if k < 1.0 or o != Vector2.ZERO:
 		g.hud.draw_set_transform(o, 0.0, Vector2(k, k))
 		vs = xf[2]
 	_draw_body(sc, st, col, vs)
@@ -131,6 +141,13 @@ func _draw_body(sc: Dictionary, st: float, col: Color, vs: Vector2) -> void:
 	var cx := Vector2(330, vs.y * 0.58)
 	var da := clampf((st - 0.35) / 0.35, 0.0, 1.0)
 	if _phone():
+		if show_vp != null:
+			g.hud.draw_texture_rect(show_vp.get_texture(), PH_DEMO, false, Color(1, 1, 1, da))
+			g.hud.draw_rect(PH_DEMO, Color(col.r, col.g, col.b, 0.6 * da), false, 2.0)
+			var sopp = sc.get("op", g.ch)
+			var skp: String = sopp.skill_def(int(sc.get("elite", 0))).get("name", "") if sopp.has_method("skill_def") else ""
+			if skp != "":
+				UI.chip(g.hud, g.font, PH_DEMO.position + Vector2(14, 14), "实机演示 · %s" % skp, Color(col.r, col.g, col.b, da), 14)
 		draw_cards(sc["items"], st)
 		if st > 1.0:
 			UI.text(g.hud, g.font, Vector2(0, vs.y - 22), "点击继续", 16, Color(0.75, 0.88, 0.92, 0.75 + 0.25 * sin(st * 4.0)), HORIZONTAL_ALIGNMENT_CENTER, vs.x)
@@ -188,13 +205,14 @@ func draw_cards(items: Array, st: float) -> void:
 	var y0: float = 150.0 if three or ph else 190.0
 	var gap: float = PH_GAP if ph else (162.0 if three else 190.0)
 	var ch: float = PH_CH if ph else (146.0 if three else 168.0)
-	var cx0: float = 40.0 if ph else 620.0
-	var cw: float = 1160.0 if ph else 580.0
+	var cx0: float = PH_CX if ph else 620.0
+	var cw: float = PH_CW if ph else 580.0
 	var dy: float = 66.0 if ph else 96.0    # 说明区顶部离卡顶（手机：名字与说明上移）
 	# 10-31 TA 审阅 docs/208 H8「同一组卡字号不一」：原来逐卡 UI.fit，放不下的那张单独缩小。改成整组取都放得下的最大字号
 	var dsz: int = 12
-	for sz in ([16, 15, 14, 13] if ph else [15, 14, 13, 12]):   # 手机 11-06：原 20 起，放大后同名字（24）一样大
-		if items.all(func(it2): return UI.fit(g.font, str(it2.desc), cw - 172.0, ch - dy, [sz]).fit):
+	var dfont: Font = UI.name_font(g.font) if ph else g.font   # 手机说明加粗（11-09，同商店手机版：小一号、实一点）
+	for sz in ([15, 14, 13, 12] if ph else [15, 14, 13, 12]):   # 手机 11-06：原 20 起，放大后同名字（24）一样大；11-09 卡窄一半，再小一号起
+		if items.all(func(it2): return UI.fit(dfont, str(it2.desc), cw - 172.0, ch - dy, [sz]).fit):
 			dsz = sz
 			break
 	for i in items.size():
@@ -220,4 +238,4 @@ func draw_cards(items: Array, st: float) -> void:
 		else:
 			UI.chip(g.hud, g.font, r.position + Vector2(140, 22), "新%s  ·  NEW %s" % [it.tag, it.tag_en], Color(ic.r, ic.g, ic.b, e), 11)
 			UI.text(g.hud, g.font, r.position + Vector2(150, 76), it.name, 26, Color(1, 1, 1, e))
-		UI.draw_fit(g.hud, g.font, r.position + Vector2(150, dy - 5.0), UI.fit(g.font, it.desc, r.size.x - 172, ch - dy, [dsz]), Color(0.78, 0.88, 0.9, e))
+		UI.draw_fit(g.hud, dfont, r.position + Vector2(150, dy - 5.0), UI.fit(dfont, it.desc, r.size.x - 172, ch - dy, [dsz]), Color(0.86, 0.92, 0.95, e) if ph else Color(0.78, 0.88, 0.9, e))

@@ -181,7 +181,7 @@ func open_relic_choice() -> void:
 		g.endg.lane_bias = ""
 	var pool: Array = []
 	for rid in ids:
-		pool.append({"kind": "relic", "id": rid, "name": "【%s】%s" % [g.rfx.db.lane_name(rid), g.rfx.display_name(rid)], "desc": g.rfx.display_desc(rid), "full": g.rfx.display_desc(rid, true)})
+		pool.append({"kind": "relic", "id": rid, "name": "【%s】%s" % [g.rfx.db.lane_name(rid), g.rfx.display_name(rid)], "desc": g.rfx.display_desc(rid), "full": g.rfx.display_desc(rid, true), "brief": g.rfx.display_brief(rid)})
 	if pool.is_empty():
 		# 每个待开的宝箱各补 12 源石锭
 		var n: int = maxi(1, g.pending_chests)

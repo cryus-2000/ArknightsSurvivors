@@ -290,6 +290,11 @@ func display_name(id: String) -> String:
 	return r.name + ("  Lv.%d → %d" % [cur, cur + 1] if cur > 0 else ("  (可升级)" if max_lv(id) > 1 else ""))
 
 
+## 卡面一句话（relic_effects.json 手写 brief）：自动截句（choice_panel.brief）会在第一个逗号处切，「编队每有 1 名…」「失去 20% 生命」这类只剩条件 / 代价的写在数据里；没写为空
+func display_brief(id: String) -> String:
+	return str(db.get_relic(id).get("brief", ""))
+
+
 func display_desc(id: String, full := false) -> String:
 	var r: Dictionary = db.get_relic(id)
 	var cur: int = lv.get(id, 0)
