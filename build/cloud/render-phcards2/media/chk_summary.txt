@@ -1,0 +1,2 @@
+card_desc rc=1
+card_desc_fit rc=0
