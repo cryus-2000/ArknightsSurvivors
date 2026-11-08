@@ -119,8 +119,11 @@ func _quad(ci: CanvasItem, pts: Array, cols: Array) -> void:
 
 
 func _polaroid(ci: CanvasItem, d: Dictionary, fr: String) -> void:
-	var s: float = (W - PM * 2.0) / W
-	var photo := Rect2(PM, PM, W - PM * 2.0, PHOTO_H * s)
+	# 罗德岛：左边让出一条黑色档案脊（RI_SPINE），照片缩窄、下巴更高
+	var x0: float = RI_SPINE + 18.0 if fr == "ri" else PM
+	var pw: float = W - x0 - PM
+	var s: float = pw / W
+	var photo := Rect2(x0, PM, pw, PHOTO_H * s)
 	var chin := Rect2(0, photo.end.y, W, H - photo.end.y)
 	var card := _xf
 	if fr == "ri":
@@ -131,62 +134,80 @@ func _polaroid(ci: CanvasItem, d: Dictionary, fr: String) -> void:
 	_report(ci, d)
 	_set_xf(ci, card)
 	if fr == "ri":
-		ci.draw_rect(chin, Color("e9e9e6"))   # 作战报告的底色会伸进下巴，重铺
 		_ri_front(ci, d, photo, chin)
 	else:
 		_deep_back(ci, photo, chin)
 		_deep_front(ci, d, photo, chin)
 
 
-# ---- 罗德岛：浅灰档案相纸、照片硬投影、顶边黑标签、左边刻度尺、下巴斜切黑名牌 + 巨型水印、右下角黑三角
+# ---- 罗德岛：白相纸 + 左侧黑色档案脊（竖排 RHODES ISLAND、徽记、黄条）+ 照片黑色硬投影 + 右上角警示胶带 + 下巴大号黑字抬头
+const RI_SPINE := 56.0
+const RI_PAPER := Color("f1f1ee")
+
 func _ri_back(ci: CanvasItem, photo: Rect2) -> void:
-	_quad(ci, [Vector2(0, 0), Vector2(W, 0), Vector2(W, H), Vector2(0, H)], [Color("f5f5f3"), Color("eeeeeb"), Color("e3e3df"), Color("ebebe8")])
-	ci.draw_rect(Rect2(photo.position + Vector2(5, 5), photo.size), Color("c8c8c3"))   # 硬投影（印刷错位感）
+	ci.draw_rect(Rect2(0, 0, W, H), RI_PAPER)
+	ci.draw_rect(Rect2(photo.position + Vector2(7, 7), photo.size), RI_INK)   # 黑色硬投影
 
 
 func _ri_front(ci: CanvasItem, d: Dictionary, photo: Rect2, chin: Rect2) -> void:
-	# 下巴底纹：浅灰巨型水印「RHODES」，被底边裁掉一截
-	_px(ci, Vector2(W - 64, H - 34), "RHODES", 9.0, Color("dfdfda"), 2, 1)
-	ci.draw_rect(Rect2(photo.position + Vector2(photo.size.x, 5), Vector2(5, photo.size.y)), Color("c8c8c3"))   # 投影右缘被下巴盖掉的那段补回
-	ci.draw_rect(Rect2(photo.position + Vector2(5, photo.size.y), Vector2(photo.size.x, 5)), Color("c8c8c3"))
-	ci.draw_rect(photo, RI_INK, false, 1.0)
-	# 顶边：黑标签 + 细线 + 右端小字
-	var tag := Rect2(PM, 5, TUI.ptext_w(_pc, "RHODES ISLAND", 1.5) / _pc.k + 34.0, 14)
-	ci.draw_rect(tag, RI_INK)
-	var em := Vector2(tag.position.x + 9, tag.get_center().y)
-	ci.draw_colored_polygon(PackedVector2Array([em + Vector2(0, -4.5), em + Vector2(4.5, 0), em + Vector2(0, 4.5), em + Vector2(-4.5, 0)]), RI_YEL)
-	_px(ci, Vector2(tag.position.x + 20, tag.get_center().y), "RHODES ISLAND", 1.5, Color("f5f5f3"), 0, 2)
-	ci.draw_line(Vector2(tag.end.x + 8, 12), Vector2(W - PM - 70, 12), Color(RI_INK, 0.5), 1.0)
-	_px(ci, Vector2(W - PM, 12), "PRTS / FIELD PHOTO", 1.5, RI_SUB, 2, 2)
-	# 左边刻度尺
-	var y := photo.position.y
-	var i := 0
-	while y <= photo.end.y:
-		var l := 10.0 if i % 5 == 0 else 5.0
-		ci.draw_line(Vector2(PM - 6 - l, y), Vector2(PM - 6, y), Color(RI_INK, 0.55 if i % 5 == 0 else 0.3), 1.0)
-		y += 16.0
-		i += 1
-	# 下巴：斜切黑名牌（左侧黄条）+ 日期 · 结果
-	var nm := Rect2(PM, chin.position.y + 22, 236, 42)
-	HH.para(ci, nm, RI_INK)
-	ci.draw_rect(Rect2(nm.position.x + 10, nm.position.y + 9, 4, nm.size.y - 18), RI_YEL)
-	var tx := nm.position.x + 26.0
+	# 下巴重铺（作战报告的底色会伸进来），补回投影
+	ci.draw_rect(Rect2(RI_SPINE, chin.position.y, W - RI_SPINE, chin.size.y), RI_PAPER)
+	ci.draw_rect(Rect2(photo.position.x + 7, photo.end.y, photo.size.x, 7), RI_INK)
+	ci.draw_rect(photo, RI_INK, false, 1.5)
+	# 档案脊
+	ci.draw_rect(Rect2(0, 0, RI_SPINE, H), RI_INK)
+	ci.draw_rect(Rect2(RI_SPINE - 7, 0, 7, H), RI_YEL)
+	var em := Vector2((RI_SPINE - 7) * 0.5, 40)
+	for q in [[17.0, Color("f1f1ee")], [11.0, RI_INK], [6.0, RI_YEL]]:
+		var qr: float = q[0]
+		ci.draw_colored_polygon(PackedVector2Array([em + Vector2(0, -qr), em + Vector2(qr, 0), em + Vector2(0, qr), em + Vector2(-qr, 0)]), q[1])
+	var card := _xf
+	ci.draw_set_transform_matrix(card * Transform2D(-PI * 0.5, Vector2(em.x + 9, H - 40)))
+	ci.draw_string(font, Vector2.ZERO, "R H O D E S    I S L A N D", HORIZONTAL_ALIGNMENT_LEFT, -1, 24, Color("f1f1ee"))
+	ci.draw_string(font, Vector2(430, 0), "OPERATOR FILE", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(1, 1, 1, 0.45))
+	ci.draw_set_transform_matrix(card)
+	# 右上角：斜贴的警示胶带（压住照片角）
+	ci.draw_set_transform_matrix(card * Transform2D(0.62, Vector2(W - 46, 30)))
+	_hazard(ci, Rect2(-86, -13, 172, 26), RI_YEL, RI_INK)
+	ci.draw_set_transform_matrix(card)
+	# 下巴：大号黑字抬头 + 细线 + 干员名 / 日期，右侧二维码或游戏名
+	var lx := photo.position.x
+	_px(ci, Vector2(lx, chin.position.y + 40), "RHODES ISLAND", 4.0, RI_INK, 0, 1)
+	ci.draw_rect(Rect2(lx, chin.position.y + 62, W - PM - lx, 2), RI_INK)
+	var tx := lx
+	var cy := chin.position.y + 74
 	if d.avatar is Texture2D:
-		_avatar(ci, d, Vector2(tx + 14, nm.get_center().y), 14.0, RI_YEL)
-		tx += 36.0
-	_t(ci, Vector2(tx, nm.position.y + 8), d.name, 22, Color("f5f5f3"), "l", nm.end.x - tx - 20)
-	_px(ci, Vector2(PM + 2, nm.end.y + 16), "OPERATOR", 1.5, RI_SUB, 0, 2)
-	_t(ci, Vector2(PM + 2 + TUI.ptext_w(_pc, "OPERATOR", 1.5) / _pc.k + 12, nm.end.y + 7), "%s  ·  %s" % [str(d.get("date", "")), d.result], 13, RI_SUB)
-	# 右：二维码 / 游戏名
+		_avatar(ci, d, Vector2(tx + 20, cy + 22), 20.0, RI_INK)
+		tx += 50.0
+	_px(ci, Vector2(tx, cy + 8), "DOCTOR", 1.5, RI_SUB, 0, 2)
+	_t(ci, Vector2(tx, cy + 16), d.name, 24, RI_INK, "l", 220)
+	_t(ci, Vector2(tx, cy + 50), "%s  ·  %s" % [str(d.get("date", "")), d.result], 13, RI_SUB)
 	if d.qr is Texture2D:
-		_qr(ci, d, Rect2(W - PM - 96, chin.position.y + 20, 86, 86), Color("f5f5f3"))
+		_qr(ci, d, Rect2(W - PM - 86, cy + 2, 76, 76), RI_PAPER)
 	else:
-		_t(ci, Vector2(W - PM - 12, chin.position.y + 26), GAME, 22, RI_INK, "r")
-		_t(ci, Vector2(W - PM - 12, chin.position.y + 58), "明日方舟同人作品", 12, RI_SUB, "r")
+		_t(ci, Vector2(W - PM - 46, cy + 12), GAME, 20, RI_INK, "r")
+		_t(ci, Vector2(W - PM - 46, cy + 40), "明日方舟同人作品", 12, RI_SUB, "r")
 	# 右下角：黑三角 + 黄斜条
 	var c := Vector2(W, H)
-	ci.draw_colored_polygon(PackedVector2Array([c, c - Vector2(56, 0), c - Vector2(0, 56)]), RI_INK)
-	ci.draw_colored_polygon(PackedVector2Array([c - Vector2(66, 0), c - Vector2(60, 0), c - Vector2(0, 60), c - Vector2(0, 66)]), RI_YEL)
+	ci.draw_colored_polygon(PackedVector2Array([c, c - Vector2(48, 0), c - Vector2(0, 48)]), RI_INK)
+	ci.draw_colored_polygon(PackedVector2Array([c - Vector2(58, 0), c - Vector2(52, 0), c - Vector2(0, 52), c - Vector2(0, 58)]), RI_YEL)
+
+
+## 警示斜纹：底色 a 上画 b 色 45° 斜条（逐条按矩形裁好再画）
+func _hazard(ci: CanvasItem, r: Rect2, a: Color, b: Color) -> void:
+	ci.draw_rect(r, a)
+	var step := 14.0
+	var band := 7.0
+	var box := PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)])
+	var o := -r.size.y
+	while o < r.size.x:
+		var pts := PackedVector2Array()
+		for q in [[o, 0.0], [o + band, 0.0], [o + band, 1.0], [o, 1.0]]:
+			var yy: float = r.position.y + q[1] * r.size.y
+			pts.append(Vector2(r.position.x + q[0] + (yy - r.position.y), yy))
+		for poly in Geometry2D.intersect_polygons(pts, box):
+			ci.draw_colored_polygon(poly, b)
+		o += step
 
 
 # ---- 深海：上浅下深的海水相纸、自上而下的光束、浮游微粒、照片青色微光、下巴大水母（伞盖压在照片角上）
