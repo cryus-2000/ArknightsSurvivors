@@ -523,6 +523,9 @@ func _ft_action(what: String) -> void:
 		"gal_tab":
 			FR.mark("gal_tab")
 			gallery._set_tab((gallery.tab + 1) % 3)
+		"meta":
+			FR.mark("meta")   # 认知塑造页（量标题直进的内存，docs/319 §19）
+			meta_ui.open()
 		"oppick":
 			FR.mark("oppick")   # 选人页（量「先翻选人页再出发」的 WASM 高水位，docs/319 §15）
 			_open_op_pick()
