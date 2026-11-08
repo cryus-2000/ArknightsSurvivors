@@ -1394,6 +1394,40 @@ var _cast_t := -99.0
 
 
 func cam_punch() -> float:
+	var tc = g.get("touch")
+	if tc != null and tc.active:
+		return _phone_pull()   # 触屏：只拉远到设计视野，不叠推近（网页版原来就不推近，cam_fx）
+	return _cam_punch0()
+
+
+## 手机放终结技时拉远到设计视野（11-08 用户「之前不是按照放得下来设计的吗」）：终结技范围按桌面视野 1524 × 857 定（docs/199），
+## 手机平时可见高 688（render/view_h_phone），从进瞄准到招式放完把可见高缓到 ult/phone_view_h（857），放完缓回；只在触屏局，纯画面（按真实时间缓动）
+var _pull := 1.0
+var _pull_rt := -1.0
+
+
+func _phone_pull() -> float:
+	var tc = g.get("touch")
+	if tc == null or not tc.active or g.cam == null:
+		_pull = 1.0
+		return 1.0
+	var want := 1.0
+	if phase != "":
+		var vh: float = g.get_viewport_rect().size.y / maxf(0.01, _base_zoom())
+		want = minf(1.0, vh / maxf(1.0, Bal.v("ult/phone_view_h", 857.0)))
+	var now: float = UM.now()
+	var dt: float = clampf(now - _pull_rt, 0.0, 0.1) if _pull_rt >= 0.0 else 0.0
+	_pull_rt = now
+	_pull = move_toward(_pull, want, dt / maxf(0.05, Bal.v("ult/phone_pull_t", 0.35)) * 0.25)   # 约 0.35 秒走完 0.8 ↔ 1 这一段
+	return _pull
+
+
+func _base_zoom() -> float:
+	var c: Node = g.get_node_or_null("/root/Cfg") if g.is_inside_tree() else null
+	return float(c.battle_zoom()) if c != null else 1.0
+
+
+func _cam_punch0() -> float:
 	var sk: float = stage_k()
 	if sk > 0.0:
 		return lerpf(1.0, Bal.v("ult/stage_cam", 1.1), sk)

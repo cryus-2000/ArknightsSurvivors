@@ -70,7 +70,7 @@ def main():
     elif mode == "pic":   # 单点出图：pic <标签> <zoom> <秒> [res]；原尺寸静态图（用户并排看镜头倍率）
         z, t = sys.argv[3], sys.argv[4]
         res = sys.argv[5] if len(sys.argv) > 5 else "1280x720"
-        cz = run(out, ["--cz=" + z, "--cz_shots=" + t, "--cz_maxt=" + str(int(t) + 2)], res, [], 1800)
+        cz = run(out, ["--cz=" + z, "--cz_shots=" + t, "--cz_maxt=" + str(int(t) + 2)], res, sys.argv[6:], 1800)   # 之后的参数照传给游戏（如 --touch）
     elif mode == "multi":   # 同帧多档：multi <标签> <pct,pct,…> <秒> [res]；冻结模拟后逐档改设置里的缩放存图，同一局同一帧
         pcts, t = sys.argv[3], sys.argv[4]
         res = sys.argv[5] if len(sys.argv) > 5 else "1280x720"
@@ -83,7 +83,7 @@ def main():
         zs = sys.argv[3]
         res = sys.argv[4] if len(sys.argv) > 4 else "1920x1080"
         maxt = sys.argv[5] if len(sys.argv) > 5 else "600"
-        cz = run(out, ["--cz_ab=" + zs, "--cz_ab_n=60", "--cz_maxt=" + maxt], res, [], 3600)
+        cz = run(out, ["--cz_ab=" + zs, "--cz_ab_n=60", "--cz_maxt=" + maxt], res, sys.argv[6:], 3600)
     if cz is not None:
         json.dump(cz, open(os.path.join(out, "cz.json"), "w"), ensure_ascii=False)
         print("CZ", {k: cz[k] for k in cz if k in ("vs", "win", "rec", "multi")})

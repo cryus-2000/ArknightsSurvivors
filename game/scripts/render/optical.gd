@@ -529,8 +529,13 @@ func _lo_step() -> void:
 	var z: float = xf.x.x   # 本帧实际生效的镜头缩放（改了缩放的那一帧还是旧值，下一帧对齐）
 	var cellw: float = 2.0 * z   # 1 个低分辨率像素 = 多少设计单位
 	var lsz := Vector2i(ceili(vs.x / cellw) + 3, ceili(vs.y / cellw) + 3)
-	if lo_vp.size != lsz and (pk <= 1.0 or lsz.x > lo_vp.size.x or lsz.y > lo_vp.size.y):
-		lo_vp.size = lsz   # 推镜期间画布只放大不缩小（拉近时需要的格子变少，沿用大的那块，不每帧重分配）
+	if absf(pk - 1.0) < 0.0001:
+		if lo_vp.size != lsz:
+			lo_vp.size = lsz
+	elif lsz.x > lo_vp.size.x or lsz.y > lo_vp.size.y:
+		# 推镜期间画布只放大不缩小（拉近时需要的格子变少，沿用大的那块，不每帧重分配）；
+		# 拉远（手机终结技 ult._phone_pull，11-08）时一次按拉到 0.78 倍要的大小分好，缓动途中不再逐帧重分配，回到 1 倍再缩回
+		lo_vp.size = Vector2i((Vector2(lsz) * maxf(1.0, pk / 0.78)).ceil()) if pk < 1.0 else lsz
 	var lo_off: Vector2 = (xf.origin / cellw).floor() + Vector2.ONE
 	lo_vp.canvas_transform = Transform2D(Vector2(0.5, 0), Vector2(0, 0.5), lo_off)
 	var rp: Vector2 = xf.origin - lo_off * cellw
