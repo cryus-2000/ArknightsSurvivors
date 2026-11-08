@@ -264,6 +264,17 @@ sc.camera = cam
 cam.location = (-0.6, -3.0, 1.1)
 cam.rotation_euler = (math.radians(88), 0, math.radians(-6))
 
+if os.environ.get("PV3D_SPOT") == "1":
+    # 塔露拉前瞻 PV 20 秒那种构图（11-08 用户：PV 里没有大块面板）：人物居中、小，一束顶光圈出一块亮区，四周大片暗留白
+    cam.location = (-1.15, -6.2, 1.6)
+    cam.rotation_euler = (math.radians(84), 0, 0)
+    cam_d.dof.focus_distance = 8.2
+    sp.location = (-1.15, 2.4, 9.0)
+    sp.data.energy = 9000; sp.data.spot_size = math.radians(14); sp.data.spot_blend = 0.85
+    sp.rotation_euler = (Vector((-1.15, 2.0, 0)) - Vector(sp.location)).to_track_quat("-Z", "Y").to_euler()
+    nl = bpy.data.objects.get("L_near")
+    if nl:   # 前景框跟着镜头后移，保持在画面角上
+        nl.location.x, nl.location.y = -1.15, -2.6
 sc.use_nodes = True
 cn_, cl2 = sc.node_tree.nodes, sc.node_tree.links
 cn_.clear()
