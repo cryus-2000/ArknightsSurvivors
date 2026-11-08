@@ -1,0 +1,6 @@
+move_attack 快检通过：2 项，失败 0 项
+wisadel_s2 快检通过：2 项，失败 0 项
+attack_phases 快检通过：2 项，失败 0 项
+gallery_demo 快检通过：2 项，失败 0 项
+wisadel_cannon 快检通过：2 项，失败 0 项
+three_operator_art 快检通过：2 项，失败 0 项
