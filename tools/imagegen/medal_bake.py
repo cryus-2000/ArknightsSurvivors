@@ -10,6 +10,12 @@ ROOT = Path(__file__).resolve().parents[2]
 MED = ROOT / "game/art/ui/medals"
 
 
+def is_bg(r, g, b):
+    """洋红底（模型有时给偏暗的洋红，放宽到 v > 0.25）"""
+    hh, s, v = colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)
+    return abs(hh - 300 / 360) < 0.10 and s > 0.35 and v > 0.25
+
+
 def keyed_bbox(im):
     """洋红底以外的像素外框"""
     px = im.load(); w, h = im.size
@@ -17,8 +23,7 @@ def keyed_bbox(im):
     for y in range(0, h, 2):
         for x in range(0, w, 2):
             r, g, b = px[x, y][:3]
-            hh, s, v = colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)
-            if not (abs(hh - 300 / 360) < 0.06 and s > 0.45 and v > 0.45):
+            if not is_bg(r, g, b):
                 xs.append(x); ys.append(y)
     return min(xs), min(ys), max(xs) + 2, max(ys) + 2
 
@@ -29,6 +34,11 @@ def bake(mid, src, dst=None, colors=24):
     sb = slot.getchannel("A").point(lambda a: 255 if a > 40 else 0).getbbox()
     im = Image.open(src).convert("RGB")
     x0, y0, x1, y1 = keyed_bbox(im)
+    pp = im.load()   # 底色先换成深色描边色，缩小时边缘混出来的是暗边而不是洋红 / 绿边
+    for y in range(im.height):
+        for x in range(im.width):
+            if is_bg(*pp[x, y]):
+                pp[x, y] = (8, 14, 24)
     face = im.crop((x0, y0, x1, y1)).resize((sb[2] - sb[0], sb[3] - sb[1]), Image.LANCZOS)
     face = face.filter(ImageFilter.UnsharpMask(radius=1, percent=120, threshold=2))
     face = ImageEnhance.Contrast(face).enhance(1.12)
