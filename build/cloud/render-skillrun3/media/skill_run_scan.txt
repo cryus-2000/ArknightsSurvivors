@@ -1,0 +1,22 @@
+干员 招式 走动帧 滑步帧 帧条明细（走动中播的非跑步帧条，未换移动版贴图） 脚本错误
+angelina S1 490 33 skill:33 0
+angelina S2 482 68 skill:68 0
+angelina S3 492 348 float_move:168 float_attack:121 skill:36 float_in:23 0
+exusiai S1 488 40 skill:32 attack:8 0
+exusiai S2 492 26 skill:18 attack:8 0
+exusiai S3 492 26 skill:18 attack:8 0
+eyjafjalla S1 490 0  0
+eyjafjalla S2 482 84 skill:84 0
+eyjafjalla S3 490 87 skill_s3:60 skill_s3_end:27 0
+gladiia S1 482 72 s1_begin:72 0
+gladiia S2 492 130 s2_attack:66 s2_start:32 s2_enter:30 s2_end:2 0
+gladiia S3 492 140 s3_attack:56 s3_enter:37 s3_start:32 s3_end:15 0
+hoshiguma S1 490 30 s1_counter:24 throw:6 0
+hoshiguma S2 492 67 catch:31 skill:18 throw:18 0
+hoshiguma S3 492 156 s3_loop:90 s3_start:36 throw:24 catch:6 0
+irene S1 484 170 attack_retrial:109 finisher:61 0
+irene S2 484 186 attack_retrial:105 skill_s2:66 finisher:15 0
+irene S3 490 377 skill_s3_loop:246 skill_s3_start:54 skill_s3_end:40 attack_retrial:28 finisher:9 0
+kaltsit S1 484 66 skill:66 0
+kaltsit S2 484 54 command:54 0
+kaltsit S3 492 18 command:18 0
