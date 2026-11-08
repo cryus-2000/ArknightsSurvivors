@@ -48,22 +48,22 @@ func run() -> void:
 	ok(int(r.granted) == 0 and str(r.msg) == "还没有关注作者", "没关注（%s）" % r.msg)
 	r = TS.apply("follow", "yes")
 	ok(int(r.granted) == TS.REWARD and Roster.tickets() == TS.REWARD and TS.claimed("follow"), "关注后发 5 张（凭证 %d）" % Roster.tickets())
-	ok(str(r.msg) == "已领取：寻访凭证 ×5和专属分享卡边框", "关注也送边框（%s）" % r.msg)
+	ok(str(r.msg) == "已领取：寻访凭证 ×5 和专属分享卡边框「罗德岛」", "关注送罗德岛边框（%s）" % r.msg)
 	ok(TS.entry_label() == "支持作者：三连 +5 张寻访凭证" and TS.pending_tickets() == TS.REWARD, "领过关注后入口只写三连（%s）" % TS.entry_label())
 	r = TS.apply("follow", "yes")
 	ok(int(r.granted) == 0 and Roster.tickets() == TS.REWARD, "关注奖励只发一次")
-	ok(TS.frame_unlocked(), "关注就解锁边框（11-08 用户：两项都送，领任意一项解锁）")
-	# 三连：缺投币 / 收藏 → 补齐后领 5 张（边框已经有了，提示不再写）
+	ok(TS.frames() == ["ri"], "关注解锁罗德岛边框（%s）" % [TS.frames()])
+	# 三连：缺投币 / 收藏 → 补齐后领 5 张 + 深海边框
 	r = TS.apply("triple", "no", "coin,fav")
 	ok(str(r.msg) == "三连还差：投币、收藏", "缺项写清楚（%s）" % r.msg)
 	r = TS.apply("triple", "yes")
 	ok(int(r.granted) == TS.REWARD and Roster.tickets() == TS.REWARD * 2, "三连发 5 张（凭证 %d）" % Roster.tickets())
-	ok(TS.frame_unlocked() and str(r.msg) == "已领取：寻访凭证 ×5", "三连领到凭证，边框已解锁不重复写（%s）" % r.msg)
+	ok(TS.frames() == ["ri", "deep"] and str(r.msg) == "已领取：寻访凭证 ×5 和专属分享卡边框「深海」", "三连送深海边框（%s / %s）" % [r.msg, TS.frames()])
 	var keep: Array = Cfg.toy_support.duplicate()
 	Cfg.toy_support = ["triple"]
-	ok(TS.frame_unlocked(), "只领三连也解锁边框")
+	ok(TS.frames() == ["deep"], "只领三连只有深海边框")
 	Cfg.toy_support = []
-	ok(not TS.frame_unlocked(), "都没领不解锁边框")
+	ok(TS.frames().is_empty() and not TS.frame_unlocked(), "都没领没有边框")
 	Cfg.toy_support = keep
 	ok(not TS.pending(), "都领完不再 pending")
 	# 云存档：正文带 tsup；两台设备各领一项，合并取并集
@@ -81,7 +81,7 @@ func run() -> void:
 	var m2: Dictionary = CloudPack.merge(e, a)
 	var keep2: Array = Cfg.toy_support.duplicate()
 	Cfg.toy_support = (m2.prog.get("tsup", []) as Array).duplicate()
-	ok(TS.frame_unlocked(), "云存档合并后领过任一项就解锁边框（%s）" % [m2.prog.get("tsup")])
+	ok(TS.frames() == ["ri"], "云存档合并后领过关注就有罗德岛边框（%s）" % [m2.prog.get("tsup")])
 	Cfg.toy_support = keep2
 	var c: Dictionary = body.duplicate(true)
 	c.prog.erase("tsup")

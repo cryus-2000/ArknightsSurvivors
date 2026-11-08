@@ -359,6 +359,7 @@ func _share_input(event: InputEvent) -> void:
 		match Pad.kc(event):
 			KEY_ESCAPE, KEY_T, KEY_V: _close_share()
 			KEY_ENTER, KEY_KP_ENTER, KEY_SPACE, KEY_S: _save_share()
+			KEY_F, KEY_LEFT, KEY_RIGHT: _cycle_frame(-1 if Pad.kc(event) == KEY_LEFT else 1)
 		g.hud.queue_redraw()
 		return
 	var p := Vector2.INF
@@ -370,6 +371,8 @@ func _share_input(event: InputEvent) -> void:
 		return
 	if _share_save().has_point(p):
 		_save_share()
+	elif _share_frames().size() > 1 and _share_frame_btn().has_point(p):
+		_cycle_frame(1)
 	elif _share_close().has_point(p) or not Rect2(SHARE_POS, Vector2(ShareCard.W, ShareCard.H) * SHARE_K).has_point(p):
 		_close_share()
 
@@ -379,6 +382,32 @@ func _save_share() -> void:
 		return
 	Sfx.play("ui_ok", -8.0)
 	share_toy.save(share, share_toy.fill(share_data.duplicate()))
+
+
+## 可选的相框：默认卡面 + 已解锁的专属相框（toy_support.frames：关注 = 罗德岛，三连 = 深海；11-08 用户）
+func _share_frames() -> Array:
+	var out: Array = [""]
+	for f in preload("res://scripts/core/toy_support.gd").frames():
+		out.append(f)
+	var cur := str(share_data.get("frame", ""))
+	if not out.has(cur):
+		out.append(cur)   # 截图参数 --shareframe 指定的
+	return out
+
+
+func _cycle_frame(step: int) -> void:
+	var fs := _share_frames()
+	if fs.size() < 2:
+		return
+	var i: int = fs.find(str(share_data.get("frame", "")))
+	share_data["frame"] = fs[posmod(i + step, fs.size())]
+	Sfx.play("ui_move", -8.0)
+	g.hud.queue_redraw()
+
+
+func _share_frame_btn() -> Rect2:
+	var sv := _share_save()
+	return Rect2(sv.position.x, sv.end.y + 40, sv.size.x, 42)
 
 
 func _share_save() -> Rect2:
@@ -452,6 +481,13 @@ func _share_side(ci: CanvasItem) -> void:
 	_text_key(ci, sv.position.x + 16, sv.position.y + 10, "保存图片" if Pad.touch_ui() else "保存图片  Enter", 16, HH.INK)
 	if share_toy.status != "":
 		_text(ci, sv.position.x, sv.end.y + 12, share_toy.status, 13, HH.MUTE, 200)
+	if _share_frames().size() > 1:   # 换相框（领过关注 / 三连才有）
+		var fb := _share_frame_btn()
+		ci.draw_rect(fb, Color(HH.DARK2, _fa))
+		ci.draw_rect(fb, Color(HH.CYB, 0.7 * _fa), false, 1.5)
+		var fid := str(share_data.get("frame", ""))
+		var fname: String = str(ShareCard.FRAMES[fid].name) if ShareCard.FRAMES.has(fid) else "默认"
+		_text_key(ci, fb.position.x + 16, fb.position.y + 10, ("相框：%s  ›" % fname) if Pad.touch_ui() else ("相框：%s  F" % fname), 16, HH.LIGHT)
 	var c := _share_close()
 	ci.draw_rect(c, Color(HH.DARK2, _fa))
 	_text_key(ci, c.position.x + 16, c.position.y + 10, "关闭" if Pad.touch_ui() else "关闭  Esc", 16, HH.LIGHT)

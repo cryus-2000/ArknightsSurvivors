@@ -235,8 +235,8 @@ func _draw() -> void:
 		UI.text(self, font, Vector2(tx, r.position.y + (34 if ph else 30)), "关注作者" if id == "follow" else "三连视频", 21 if tl else 19, Color(UI.TEXT, dim), HORIZONTAL_ALIGNMENT_LEFT, tw)
 		UI.text(self, font, Vector2(tx, r.position.y + (58 if ph else 52)), "在 B站关注作者" if id == "follow" else "点赞 + 投币 + 收藏 PV", 14 if tl else 13, Color(UI.SUB, dim), HORIZONTAL_ALIGNMENT_LEFT, tw)
 		UI.text(self, font, Vector2(tx, r.position.y + (92 if ph else 84)), "寻访凭证 ×%d" % TS.REWARD, 20 if tl else 18, Color(UI.CYAN, dim), HORIZONTAL_ALIGNMENT_LEFT, tw)
-		# 11-08 用户：两项都送边框（领任意一项解锁）
-		UI.text(self, font, Vector2(tx, r.position.y + (116 if ph else 106)), "专属结算分享卡边框", 14 if tl else 13, Color(UI.CYAN, dim * 0.8), HORIZONTAL_ALIGNMENT_LEFT, tw)
+		# 11-08 用户：两项各送一种边框（关注 = 罗德岛，三连 = 深海）
+		UI.text(self, font, Vector2(tx, r.position.y + (116 if ph else 106)), "专属分享卡边框「%s」" % TS.frame_name(id), 14 if tl else 13, Color(UI.CYAN, dim * 0.8), HORIZONTAL_ALIGNMENT_LEFT, tw)
 		var m: String = str(row_msg.get(id, ""))
 		var gb := Rect2(tx, r.end.y - bh - 14.0, tw, bh)
 		if m != "" and not got:
