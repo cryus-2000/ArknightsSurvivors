@@ -505,6 +505,8 @@ def face_right(op, rows):
     if op in MIRROR:
         rows = [r[::-1] for r in rows]
     ey = next(i for i, r in enumerate(rows) if "E" in r)
+    if op not in ONE_EYE:
+        return eyes_only(op, rows, ey)
     block = range(ey - 1, ey + 3)
     xs = [x for y in list(block) + [ey + 3] for x, ch in enumerate(rows[y]) if ch in "SBEI"]
     a, b = min(xs), max(xs)
@@ -547,6 +549,34 @@ def face_right(op, rows):
         for y in (ey - 1, ey + 2):
             if rows[y][b - 1] in face:
                 rows[y][b - 1] = SCAR[op]
+    return ["".join(r) for r in rows]
+
+
+def eyes_only(op, rows, ey):
+    """双眼的干员：刘海保留各自手绘的样子（11-08 用户：刘海不要全都化成齐刘海），只在原来的脸上
+    重放两只同样 2 × 2 的眼（偏右的 3/4 朝向，两眼间隔 2 格）和腮红；眼位被头发挡住的格子挖成皮肤。"""
+    for y in (ey, ey + 1):
+        rows[y] = ["S" if ch in "EI" else ch for ch in rows[y]]
+    b = max(x for x, ch in enumerate(rows[ey]) if ch in "SB")
+    near, far = [b - 2, b - 1], [b - 6, b - 5]
+    for y in (ey, ey + 1):
+        for x in range(b - 6, b):
+            rows[y][x] = "S"
+    if op in NARROW:   # 细长眼：上一行画眉，眼只留一行瞳色
+        for x in near + far:
+            rows[ey - 1][x] = "D"
+            rows[ey][x] = "I"
+    else:
+        for x in near + far:
+            rows[ey][x] = "E"
+            rows[ey + 1][x] = "I"
+    if op not in NARROW and ey + 2 < len(rows):
+        for x in (b - 7, b):
+            if rows[ey + 2][x] == "S":
+                rows[ey + 2][x] = "B"
+    if op in SCAR:
+        for y in (ey - 1, ey + 2):
+            rows[y][b - 1] = SCAR[op]
     return ["".join(r) for r in rows]
 
 
