@@ -343,3 +343,73 @@ def card_operator2(t, cid, dur, tag=""):
     if dur - t < so:
         slash_bars(im, so - (dur - t), so, [col + (255,), WHITE + (255,), INK + (255,)])
     return im
+
+
+_DEEP = {}
+
+
+def _deep_bg(vw, vh, t):
+    """深海底（对齐 3D 开头）：近黑海军蓝，上方一道斜光、少量悬浮颗粒，暗角"""
+    import numpy as np
+    if (vw, vh) not in _DEEP:
+        yy = np.linspace(0, 1, vh)[:, None]
+        xx = np.linspace(0, 1, vw)[None, :]
+        base = np.array([2, 6, 13], np.float32)[None, None, :] * np.ones((vh, vw, 1), np.float32)
+        d = np.abs((xx - 0.38) - (yy * 0.22))   # 斜光柱
+        shaft = np.exp(-(d / 0.09) ** 2) * np.clip(1.2 - yy * 1.3, 0, 1)
+        base = base + shaft[..., None] * np.array([18, 52, 70], np.float32)
+        r = np.sqrt(((xx - 0.5) * 1.4) ** 2 + (yy - 0.5) ** 2)
+        base = base * np.clip(1.15 - r * 0.9, 0.2, 1)[..., None]
+        _DEEP[(vw, vh)] = base
+    import numpy as np
+    a = _DEEP[(vw, vh)].copy()
+    rng = np.random.default_rng(3)
+    pts = rng.random((70, 3))
+    for x, y, s in pts:   # 颗粒缓慢上浮
+        px, py = int(x * vw), int(((y - t * 0.03 * (0.5 + s)) % 1.0) * vh)
+        rr = 1 + int(s * 2)
+        a[max(0, py - rr):py + rr, max(0, px - rr):px + rr] += 60 * (0.4 + s)
+    rng2 = np.random.default_rng(int(t * 30))
+    a += rng2.normal(0, 4.0, (vh // 2 + 1, vw // 2 + 1)).repeat(2, 0).repeat(2, 1)[:vh, :vw, None]
+    return Image.fromarray(np.clip(a, 0, 255).astype("uint8")).convert("RGBA")
+
+
+def card_word_deep(t, text, sub="", dur=1.6, vw=W, vh=H):
+    """大字卡 · 深海版：近黑底 + 斜光柱，白字带青色辉光逐字浮现（不砸、不放大），下方细青线 + 英文；同 3D 开头的调子"""
+    im = _deep_bg(vw, vh, t)
+    sz = int((300 if len(text) <= 3 else 220) * min(1.0, vw / W))
+    f = font(sz)
+    n = len(text)
+    step = min(BEAT / 2, 0.4 * dur / max(1, n))
+    gap = sz * 0.12
+    ws = [f.getlength(c) for c in text]
+    tw = sum(ws) + gap * (n - 1)
+    x = vw / 2 - tw / 2
+    cy = vh / 2 - sz * 0.15
+    lay = Image.new("RGBA", (vw, vh), (0, 0, 0, 0))
+    d = ImageDraw.Draw(lay)
+    for k, c in enumerate(text):
+        a = max(0.0, min(1.0, (t - k * step) / 0.18))
+        if a > 0:
+            dy = (1 - ease_out(a)) * 26
+            d.text((x, cy - sz * 0.6 + dy), c, font=f, fill=(236, 246, 250, int(255 * a)))
+        x += ws[k] + gap
+    glow = lay.filter(ImageFilter.GaussianBlur(18))
+    gl = Image.new("RGBA", (vw, vh), (90, 210, 255, 0))
+    gl.putalpha(glow.getchannel("A").point(lambda v: int(v * 0.9)))
+    im.alpha_composite(gl)
+    im.alpha_composite(lay)
+    u = ease_out((t - 0.1) / 0.4)
+    yb = int(cy + sz * 0.82)
+    bw = int(tw * 0.9 * u)
+    d2 = ImageDraw.Draw(im)
+    d2.rectangle((vw // 2 - bw // 2, yb, vw // 2 + bw // 2, yb + 3), fill=(110, 220, 255, 255))
+    if sub and t > 0.2:
+        fe = font(int(34 * min(1.0, vw / W)))
+        a = int(220 * ease_out((t - 0.2) / 0.3))
+        sw = fe.getlength(sub) + len(sub) * 10
+        xx = vw / 2 - sw / 2
+        for c in sub:
+            d2.text((xx, yb + 26), c, font=fe, fill=(120, 200, 230, a))
+            xx += fe.getlength(c) + 10
+    return im
