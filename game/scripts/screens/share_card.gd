@@ -257,7 +257,7 @@ func _peeker(ci: CanvasItem, d: Dictionary, band: Rect2, photo: Rect2, ink := Co
 
 
 # ---- 罗德岛（关注送）：浅灰蓝渐变背景；上方一排三枚菱形徽记；白相框黑描边，上边嵌「RHODES ISLAND」；
-#      左上斜贴一大条黄黑警示胶带、右侧挂一张罗德岛干员证、右下角原作罗德岛标志
+#      左上斜贴一大条黄黑警示胶带、右侧挂一张罗德岛干员证、右下红色档案章 + 原作罗德岛标志
 #      （11-08 用户：医疗十字气泡和源石结晶意义不明，换成一看就懂的干员证和档案章）
 const RI_EMBLEM := [".....K.....", "....KWK....", "...KWWWK...", "..KWWKWWK..", ".KWWKYKWWK.", "KWWKYYYKWWK", ".KWWKYKWWK.", "..KWWKWWK..", "...KWWWK...", "....KWK....", ".....K....."]
 const RI_BADGE := ["....KKK....", "....KYK....", "KKKKKKKKKKK", "KkkkkkkkkkK", "KWWWWKWWWWK", "KWWWKYKWWWK", "KWWWWKWWWWK", "KWWWWWWWWWK",
@@ -304,7 +304,15 @@ func _ri_deco(ci: CanvasItem, d: Dictionary, os: Vector2, band: Rect2, photo: Re
 	ci.draw_set_transform_matrix(outer * Transform2D(0.12, bc))
 	_pix(ci, Vector2(-11 * 9.0 * 0.5, 0), RI_BADGE, pal, 9.0)
 	ci.draw_set_transform_matrix(outer)
-	# 右下角：原作罗德岛标志（黑色主体 + 黄色描边），压在相框角上
+	# 右下：红色档案印章（罗德岛菱形 + RHODES；11-08 用户：章要留着，跟深海的珊瑚对应），右边是原作罗德岛标志（黑色主体 + 黄色描边）
+	var sc := band.end + Vector2(-200, 4)
+	var red := Color("d8443a", 0.88)
+	ci.draw_set_transform_matrix(outer * Transform2D(-0.22, sc))
+	ci.draw_arc(Vector2.ZERO, 52.0, 0.0, TAU, 56, red, 6.0)
+	ci.draw_arc(Vector2.ZERO, 41.0, 0.0, TAU, 48, red, 2.5)
+	_pix(ci, Vector2(-11 * 3.5 * 0.5, -30), RI_EMBLEM, {"K": red, "Y": red}, 3.5)
+	ci.draw_string(font, Vector2(-40, 30), "RHODES", HORIZONTAL_ALIGNMENT_CENTER, 80, 14, red)
+	ci.draw_set_transform_matrix(outer)
 	_logo(ci, LOGO_RHODES, band.end + Vector2(-14, 4), 4.0, RI_INK, RI_YEL)
 
 
