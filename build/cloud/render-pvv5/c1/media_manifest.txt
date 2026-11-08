@@ -1,0 +1,4 @@
+23857	P2_godot.log
+37401	P2_pv.log
+650714224	P2_seg_01_win_t030.0.mp4
+122136	P2_seg_01_win_t030.0.sfx.json

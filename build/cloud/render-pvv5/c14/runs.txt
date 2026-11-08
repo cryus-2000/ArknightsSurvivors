@@ -1,0 +1,9 @@
+S5 rc=0 1794s
+  seg_01_win_t205.0 6063 帧 rc=0
+total 626940
+drwxr-xr-x 2 root root      4096 Nov  8 05:48 .
+drwxr-xr-x 4 root root      4096 Nov  8 05:15 ..
+-rw-r--r-- 1 root root     25111 Nov  8 05:45 S5_godot.log
+-rw-r--r-- 1 root root     67654 Nov  8 05:45 S5_pv.log
+-rw-r--r-- 1 root root 641705345 Nov  8 05:48 S5_seg_01_win_t205.0.mp4
+-rw-r--r-- 1 root root    167241 Nov  8 05:48 S5_seg_01_win_t205.0.sfx.json

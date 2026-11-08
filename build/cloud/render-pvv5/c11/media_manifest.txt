@@ -1,0 +1,4 @@
+304602	Q2_godot.log
+15246	Q2_pv.log
+228582152	Q2_seg_01_fwin_t150.4.mp4
+35794	Q2_seg_01_fwin_t150.4.sfx.json

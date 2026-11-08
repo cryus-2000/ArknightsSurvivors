@@ -1,0 +1,4 @@
+26646	S3_godot.log
+66672	S3_pv.log
+947739611	S3_seg_01_win_t175.0.mp4
+201056	S3_seg_01_win_t175.0.sfx.json

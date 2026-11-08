@@ -1,0 +1,9 @@
+P2 rc=0 1573s
+  seg_01_win_t030.0 7507 帧 rc=0
+total 635660
+drwxr-xr-x 2 root root      4096 Nov  8 04:49 .
+drwxr-xr-x 4 root root      4096 Nov  8 04:20 ..
+-rw-r--r-- 1 root root     23857 Nov  8 04:46 P2_godot.log
+-rw-r--r-- 1 root root     37401 Nov  8 04:46 P2_pv.log
+-rw-r--r-- 1 root root 650714224 Nov  8 04:49 P2_seg_01_win_t030.0.mp4
+-rw-r--r-- 1 root root    122136 Nov  8 04:49 P2_seg_01_win_t030.0.sfx.json

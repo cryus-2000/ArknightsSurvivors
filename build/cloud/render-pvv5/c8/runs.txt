@@ -1,0 +1,9 @@
+UA4 rc=0 2700s
+  seg_01_win_t470.0 3863 帧 rc=0
+total 415944
+drwxr-xr-x 2 root root      4096 Nov  8 05:23 .
+drwxr-xr-x 4 root root      4096 Nov  8 04:36 ..
+-rw-r--r-- 1 root root     29684 Nov  8 05:21 UA4_godot.log
+-rw-r--r-- 1 root root     86698 Nov  8 05:21 UA4_pv.log
+-rw-r--r-- 1 root root 425687894 Nov  8 05:23 UA4_seg_01_win_t470.0.mp4
+-rw-r--r-- 1 root root    105022 Nov  8 05:23 UA4_seg_01_win_t470.0.sfx.json

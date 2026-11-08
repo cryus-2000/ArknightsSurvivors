@@ -1,0 +1,9 @@
+S3 rc=0 2433s
+  seg_01_win_t175.0 9110 帧 rc=0
+total 925836
+drwxr-xr-x 2 root root      4096 Nov  8 05:43 .
+drwxr-xr-x 4 root root      4096 Nov  8 04:59 ..
+-rw-r--r-- 1 root root     26646 Nov  8 05:39 S3_godot.log
+-rw-r--r-- 1 root root     66672 Nov  8 05:39 S3_pv.log
+-rw-r--r-- 1 root root 947739611 Nov  8 05:43 S3_seg_01_win_t175.0.mp4
+-rw-r--r-- 1 root root    201056 Nov  8 05:43 S3_seg_01_win_t175.0.sfx.json
