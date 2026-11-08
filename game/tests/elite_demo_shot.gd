@@ -68,7 +68,7 @@ func _process(_dt: float) -> void:
 	if log_anim and game.ch != null:
 		var c = game.ch
 		var st: Dictionary = c.anim_state()
-		print("ANIM t=%.2f mv=%.0f kind=%s fr=%d sq_ph=%d sq_atk=%s act=%s/%s at=%.2f vis=%s swap=%d" % [game.t, c.mv, str(st.get("kind", "")), int(st.get("frame", -1)), c.sq_ph, c.sq_atk, c.act_kind, c.act_anim, c.attack_t, c.vis_anim, int(st.get("tex") != c.anim_tex(str(st.get("kind", ""))))])
+		print("ANIM t=%.2f mv=%.0f kind=%s fr=%d sq_ph=%d sq_atk=%s act=%s/%s at=%.2f vis=%s swap=%d ak=%s rph=%.2f" % [game.t, c.mv, str(st.get("kind", "")), int(st.get("frame", -1)), c.sq_ph, c.sq_atk, c.act_kind, c.act_anim, c.attack_t, c.vis_anim, int(st.get("tex") != c.anim_tex(str(st.get("kind", "")))), c.anim_kind, c.run_ph])
 	if frames < int(start * 30.0):
 		return
 	if (frames - int(start * 30.0)) % every != 0:
