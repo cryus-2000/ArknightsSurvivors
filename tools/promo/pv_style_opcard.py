@@ -2,7 +2,7 @@
 
 出两张：
   opcard_name.png      名字卡：像素海底背景 + 像素干员 + 超大英文代号 + 中文名 / 职业 / 编号小字簇
-  opcard_sequence.jpg  一位干员出场：实机 → 镜头贴近、剪影亮起 → 拉开后代号故障出字 → 小字淡入定格
+  opcard_sequence.jpg  一位干员出场：镜头贴近、剪影亮起 → 拉开后代号故障出字 → 小字淡入定格 → 实机技能
 
 用法：python tools/promo/pv_style_opcard.py <输出目录> [实机截图路径]
 字体同 pv_style_typecard（Noto Serif/Sans SC VF + 仓库 Montserrat，OFL）。英文代号用窄粗体
@@ -194,14 +194,14 @@ def sequence(card, glitch_card, gameplay_path):
     cw, ch = int(W / 1.6), int(H / 1.6)
     close = sil.crop((1300 - cw // 2, H - ch - 40, 1300 + cw // 2, H - 40)).resize((W, H), Image.NEAREST)
     panels = [
-        (gp.resize(half, Image.LANCZOS), "① 实机：这名干员放技能", "0.5 小节，叠海雪 + 暗角"),
-        (close.resize(half, Image.LANCZOS), "② 镜头贴近，人物剪影在光里亮起", "无字；0.8 s 内拉开"),
-        (glitch_card.resize(half, Image.LANCZOS), "③ 拉开到位后代号故障出字", "第 30 帧起，4–6 帧故障"),
-        (card.resize(half, Image.LANCZOS), "④ 小字淡入，定格", "到 1 小节末，故障转场 → 下一位"),
+        (close.resize(half, Image.LANCZOS), "① 镜头贴近，人物剪影在光里亮起", "无字；0.8 s 内拉开"),
+        (glitch_card.resize(half, Image.LANCZOS), "② 拉开到位后代号故障出字", "第 30 帧起，4–6 帧故障"),
+        (card.resize(half, Image.LANCZOS), "③ 小字淡入，定格到 1 小节末", "故障转场 → 这名干员的实机"),
+        (gp.resize(half, Image.LANCZOS), "④ 实机：这名干员放技能", "0.5–1 小节，叠海雪 + 暗角；再转下一位"),
     ]
     out = Image.new("RGB", (1920, 1240), (14, 18, 24))
     d = ImageDraw.Draw(out)
-    tc.tracked(d, (40, 22), "干员出场（实机 0.5 小节 + 名字卡 1 小节；先镜头运动、人物亮起，再出字）", tc.sans(28, 600), tc.INK, 0.02)
+    tc.tracked(d, (40, 22), "干员出场（先出场后技能：名字卡 1 小节 → 实机技能 0.5–1 小节）", tc.sans(28, 600), tc.INK, 0.02)
     for i, (im, t1, t2) in enumerate(panels):
         x, y = (i % 2) * 960, 80 + (i // 2) * 580
         out.paste(im, (x, y))
