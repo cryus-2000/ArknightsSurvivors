@@ -1,4 +1,5 @@
 extends "res://scripts/screens/settle/settle_base.gd"
+const Meta = preload("res://scripts/core/meta.gd")
 ## 方向 A「作战报告」：海报式（docs/125 §4.4 S1 / S2 / S5）。巨型描边英文结果横贯上缘，左侧暗斜板放队长立绘，
 ## 右侧是数据格 + 编队输出条，下缘一条「本局获得」。层级：结果 + 评级 ≫ 队长 ≫ 数据。
 ## 动效：斜板扫入 → 巨型英文从右侧带速度线滑入 → 中文结果块展开 → 队长剪影显色 → 数据格右滑入 + 计数 → 输出条拉长 → 评级描边落定 → 奖励逐个落下。
@@ -18,6 +19,11 @@ func end_loss() -> float:
 
 func buttons() -> Array:
 	return footer(664.0, 42.0)
+
+
+## 结算页兑换寻访凭证的按钮位（settlement_screen._buttons 在细胞够时插到最前）：「本局获得」条右端
+func exchange_rect() -> Rect2:
+	return Rect2(1086, 607, 164, 30)
 
 
 func theme() -> Color:
@@ -182,7 +188,7 @@ func _squad(acc: Color) -> void:
 	txt(500, 412, "|  03 / 编队输出", 14, HH.MUTE)
 	txt(1240, 414, "%d 名" % rows.size(), 12, HH.MUTE, 2)
 	var n := maxi(1, rows.size())
-	var h := minf(28.0, 124.0 / n)
+	var h := minf(28.0, (112.0 if ex_row() else 124.0) / n)   # 「本局获得」分两行时只排到 550（4 人仍是 28 高）
 	for i in rows.size():
 		var r: Dictionary = rows[i]
 		var y := 438.0 + i * h
@@ -211,11 +217,22 @@ func _squad(acc: Color) -> void:
 	fa = 1.0
 
 
+## 「本局获得」条是否分两行（11-08）：生机细胞够兑换 1 张寻访凭证、或这次已经兑换过时，下面多一行兑换提示 + 按钮，
+## 整条上移 EX_LIFT、编队输出让出同样的高度（用户嫌一行挤）
+const EX_LIFT := 22.0
+
+
+func ex_row() -> bool:
+	return Roster.exchange_ready() or s.exchanged > 0
+
+
 func _gains(acc: Color) -> void:
 	var p0 := ek(2.2, 0.25)
 	fa = p0
-	rect(Rect2(470, 574, 790, 66), Color(HH.DARK2, 0.9))
-	txt(486, 580, "本局获得", 12, HH.MUTE)
+	var ex := ex_row()
+	var y0 := 574.0 - (EX_LIFT if ex else 0.0)
+	rect(Rect2(470, y0, 790, 640.0 - y0), Color(HH.DARK2, 0.9))
+	txt(486, y0 + 6, "本局获得", 12, HH.MUTE)
 	var items: Array = [["生机细胞", "+", float(s.cells), HH.LIGHT], ["寻访凭证", "×", float(s.vouchers), HH.CYB]]
 	for i in items.size():
 		var q := k(2.3 + 0.08 * i, 0.4)
@@ -223,11 +240,19 @@ func _gains(acc: Color) -> void:
 			continue
 		fa = minf(1.0, q * 2.0)
 		var dy := -26.0 * (1.0 - UM.out_back(q, 1.6)) if won else -12.0 * (1.0 - UM.out_cubic(q))
-		txt(596 + i * 130, 580 + dy, str(items[i][0]), 12, HH.MUTE)
-		odo(596 + i * 130, 598 + dy, float(items[i][2]), k(2.35 + 0.08 * i, 0.7), 26, items[i][3], str(items[i][1]), "", 3.05 + 0.08 * i)
-	if bool(s.g.roster_new.get("short", false)):
+		txt(580 + i * 120, y0 + 6 + dy, str(items[i][0]), 12, HH.MUTE)
+		odo(580 + i * 120, y0 + 24 + dy, float(items[i][2]), k(2.35 + 0.08 * i, 0.7), 26, items[i][3], str(items[i][1]), "", 3.05 + 0.08 * i)
+	if bool(s.g.roster_new.get("lost", false)):   # 11-08 用户：没通关不发凭证，只给生机细胞
 		fa = p0
-		txt(486, 624, "探索不足 %d 分钟，不发放凭证" % int(Roster.RUN_MIN_T / 60.0), 11, HH.MUTE)
+		txt(752, y0 + 32, "未通关不发放", 11, HH.MUTE)
+	# 第二行：细胞够 1 张时问一句要不要兑换（11-08 用户），右端是兑换按钮（exchange_rect）；写明和认知塑造共用细胞
+	if ex:
+		fa = p0
+		rect(Rect2(486, 603, 758, 1), Color(HH.MUTE, 0.35))
+		if Roster.exchange_ready():
+			txt(486, 611, "持有生机细胞 %d · 每 %d 个可兑换 1 张寻访凭证，与认知塑造共用" % [Meta.available(), Roster.TICKET_PRICE], 13, HH.LIGHT2, 0, 580)
+		else:
+			txt(486, 611, "已兑换 %d 张寻访凭证 · 现持有 %d 张 · 剩余生机细胞 %d" % [s.exchanged, Roster.tickets(), Meta.available()], 13, HH.LIGHT2, 0, 580)
 	var rel := key_relics(7)
 	for i in rel.size():
 		var q := k(2.45 + 0.06 * i, 0.4)
@@ -235,7 +260,7 @@ func _gains(acc: Color) -> void:
 			continue
 		fa = minf(1.0, q * 2.5)
 		var dy := -30.0 * (1.0 - UM.out_back(q, 1.6)) if won else -10.0 * (1.0 - UM.out_cubic(q))
-		var r := Rect2(870 + i * 50, 584 + dy, 46, 46)
+		var r := Rect2(880 + i * 50, y0 + 7 + dy, 44, 44)
 		rect(r, HH.DARK2)
 		rect(r.grow(-2), Color(1, 1, 1, 0.5), false, 1.0)
 		var tx: Texture2D = relic_tex(str(rel[i].id))

@@ -1,6 +1,6 @@
 extends RefCounted
 ## 界面 · 寻访（局外成长 P1，docs/109 §12；表现层 docs/124 第三版 + docs/125 §6 定稿：10-22 用户以 GPT 寻访概念图 27–33 为准）。
-## 规则（10-22 用户）：只有一种「寻访凭证」，每局结算 3 张、通关 4 张；寻访一次（随机 1 名）1 张，定向寻访（先选职业、再指定干员）2 张；没有意向与保底。
+## 规则（10-22 用户；11-08 改发放）：只有一种「寻访凭证」，通关结算 1 张、没通关不发（另可用生机细胞兑换）；寻访一次（随机 1 名）1 张，定向寻访（先选职业、再指定干员）2 张；没有意向与保底。
 ## 流程：结算面板出来后，有凭证就盖一层寻访入口 →（寻访一次 | 定向寻访 → 选职业 → 指定干员）→ 拉开作战包 → 光炸 → 揭示 → 本次寻访 → 回入口（凭证用完或名册满则关）。
 ## 视觉：hh_style.gd（左白右黑斜切、像素描边英文、职业色斜卡、青色主按钮）；版面按 1280×720 设计、等比缩放居中。不配语音，只用现有音效（10-22 用户）。
 ## 抽取在 core/roster.gd，用独立随机数，不碰局内 g.rng；演出里的碎光 / 噪点用固定表。
@@ -128,12 +128,8 @@ func _cost_pick() -> int:
 	return Roster.COST_PICK
 
 
-func _per_run() -> int:
-	return Roster.RUN_TICKETS
-
-
 func _per_clear() -> int:
-	return Roster.RUN_TICKETS + Roster.WIN_BONUS
+	return Roster.CLEAR_TICKETS
 
 
 func _redeem_random() -> Dictionary:
@@ -832,7 +828,7 @@ func _draw_entry() -> void:
 	HS.voucher(ci, vr.position + Vector2(52, 38), 1.0)
 	UI.text_at(ci, f, vr.position + Vector2(110, 38), "寻访凭证", 20, HS.INK, "lm", true)
 	UI.text_at(ci, f, Vector2(vr.end.x - 20, vr.position.y + 38), "× %d" % n, 30, HS.INK, "rm", true)
-	var rules := ["探索 %d 分钟以上结算获得 %d 张，通关获得 %d 张" % [int(Roster.RUN_MIN_T / 60.0), _per_run(), _per_clear()], "未解锁 %d 名 · 不会抽到重复干员" % locked.size()]
+	var rules := ["通关结算获得 %d 张，未通关不发放" % _per_clear(), "未解锁 %d 名 · 不会抽到重复干员" % locked.size()]
 	var first := Roster.needs_first()
 	if locked.is_empty():
 		rules = ["干员已全部入职", "此后获得的凭证每张折算为 %d 生机细胞" % Roster.CELLS_PER_TICKET]
