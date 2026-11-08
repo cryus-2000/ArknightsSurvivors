@@ -245,6 +245,29 @@ func draw_card(card: Button, it: Dictionary, i: int) -> void:
 	# 10-31 TA H7：价签不再写「[ n ]」（底部提示行已写「按 1–N 购买」）
 
 
+## 手机版商人半身像（11-08 用户「商人界面要不要也让商人露个脸」）：标题左边一小框，只画头肩（贴图上半），暖光 + 两帧待机
+func _draw_bust_phone(r: Rect2) -> void:
+	var mtx: Texture2D = g.tex.get("merchant")
+	if mtx == null:
+		return
+	var mt := Color(0.125, 0.11, 0.094, 0.92)
+	var mb := Color(0.055, 0.051, 0.047, 0.92)
+	g.panel_fg.draw_polygon(PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)]), PackedColorArray([mt, mt, mb, mb]))
+	var hr: float = A.hires_of(mtx)
+	var fw := mtx.get_width() / 2
+	var fr := int(g.t * 2.0) % 2
+	# 头肩：48 格里第 4–30 行（@2x 即 8–60），横向取有内容的 6–45 列
+	var src := Rect2(fw * fr + 6.0 * hr, 4.0 * hr, 39.0 * hr, minf(26.0 * hr, r.size.y * hr / 2.5))
+	var ks: float = 2.5 / hr
+	var sz := src.size * ks
+	var dst := Rect2((Vector2(r.get_center().x - sz.x / 2.0, r.end.y - sz.y)).round(), sz)
+	for k in 4:
+		g.panel_fg.draw_circle(dst.get_center() + Vector2(0, 6), 46.0 - k * 10.0, Color(1.0, 0.66, 0.31, 0.04))
+	g.panel_fg.draw_texture_rect_region(mtx, dst, src)
+	g.panel_fg.draw_rect(r, Color(1, 1, 1, 0.11), false, 1.0)
+	g.panel_fg.draw_rect(Rect2(r.position, Vector2(14, 2)), UI.GOLD)
+
+
 ## 手机版背景（手机端 UI 优化 r2）：标题压在顶栏上（压暗带遮住）、一行交易说明、「藏品 n · 商人还会停留」一行，
 ## 右上持有源石锭；商人立绘框放不下不画
 func _draw_bg_phone(vs: Vector2) -> void:
@@ -254,6 +277,7 @@ func _draw_bg_phone(vs: Vector2) -> void:
 	if not g.shop_sys.relic_buy_unlimited():
 		note += " · 藏品还可买 %d 件" % g.shop_sys.relic_buys_left()
 	g.panel_ui.header(vs, "SHOP  ·  WANDERING TRADER", "流浪商人", note, top - 92.0)
+	_draw_bust_phone(Rect2(Vector2(cx - 318.0, top - 94.0), Vector2(124, 68)))
 	var left: float = cx + g.panel_box.offset_left
 	var right: float = cx + g.panel_box.offset_right
 	# 底下垫一条暗底：手机上压暗带只压一半，左上 HUD 的状态小字会从这行后面透出来（10-11）
