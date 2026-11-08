@@ -1,0 +1,79 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 22.3.6 - Compatibility - Using Device: Mesa/X.org - llvmpipe (LLVM 15.0.6, 256 bits)
+
+SHOP SHOT panel=(1163.636, 654.5454) ins=[0.0, 0.0, 0.0, 0.0] form=0
+ERROR: 162 RID allocations of type 'N5GLES37TextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 5 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+----
+131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1799: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1800: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1801: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1802: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1803: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1804: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1805: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1806: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1807: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1808: leaked 524288 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1809: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1810: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1811: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1812: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1813: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1814: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1815: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1816: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1817: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1818: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1819: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1820: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1822: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1823: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1838: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1847: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1864: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2042: leaked 174762 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2043: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2044: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2045: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 2046: leaked 131072 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+WARNING: 413 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 5 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
