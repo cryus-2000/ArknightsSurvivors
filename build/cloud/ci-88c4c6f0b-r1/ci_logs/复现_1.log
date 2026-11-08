@@ -1,0 +1,110 @@
+# 复现_1
+# 参数：--headless --path /work/repo/game -- --balance --seed=7 --op=wisadel --squad=suzuran,logos --bot=expert --maxt=240
+# 用时 31 秒；结束时全机 Godot 15 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+BEACON mires t=60.1 mires=0
+ENDEV deal m1 ["wish/", "shop/"] t=115.0 cur=standard relics=[]
+ENDEV flip 1 shop  t=115.0 cur=standard relics=[]
+SHOP ["银餐叉  (可升级)", "显圣吊坠", "残弩-交叉火力  (可升级)", "急救包", "灯油"]
+BEACON mires t=120.1 mires=12
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+BEACON spawn t=168.6 mires=19
+BEACON lit cleared=11 in_s=1.8 min_d=55 hold_s=2.4 via=ring t=171.4 mires=16
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+SHOP ["热水壶", "赶车夫的长鞭  (可升级)", "散轶诗简  (可升级)", "急救包", "灯油"]
+BEACON mires t=180.0 mires=6
+DUCK spawn t=216.15 d=448
+DUCK kill t=223.74 after=7.6
+BEACON spawn t=230.3 mires=22
+BEACON lit cleared=9 in_s=1.8 min_d=46 hold_s=2.4 via=ring t=233.0 mires=17
+BEACON mires t=240.0 mires=6
+BALANCE {"allies":2,"armor_cf":{},"boss_hp":0.122156122186374,"bosses":["carmen:12%"],"bot":{"bosses":[{"en_alive":16,"en_alive_pk":22,"en_near":2,"en_near_pk":5,"gates":1,"on_boss":0.62,"shield":0.0,"t0":210,"t1":-1,"tv":210,"type":"carmen","windows":[{"en":22,"hits":0,"hp":1.0,"moves":0,"out":0,"t":0},{"en":19,"hits":0,"hp":0.61,"moves":2,"out":13192,"t":15}]}],"curve":[{"boss":0,"dsrc":{},"ebul":0,"elites":0,"enemies":0,"hp":100,"hpm":1.23,"hpmin":100,"hsrc":{},"kills":0,"lamp":100,"lampmin":100,"lv":1,"mhp":128,"mire_s":0.0,"mires":0,"outc":0,"rg":1.1,"squad":3,"t":0,"taken":0,"zone":0},{"boss":0,"dsrc":{},"ebul":0,"elites":0,"enemies":11,"hp":100,"hpm":1.57,"hpmin":100,"hsrc":{},"kills":21,"lamp":100,"lampmin":100,"lv":2,"mhp":128,"mire_s":0.0,"mires":0,"outc":614,"rg":1.1,"squad":3,"t":30,"taken":0,"zone":0},{"boss":0,"dsrc":{},"ebul":0,"elites":1,"enemies":10,"hp":100,"hpm":1.9,"hpmin":100,"hsrc":{},"kills":64,"lamp":100,"lampmin":100,"lv":4,"mhp":128,"mire_s":0.0,"mires":0,"outc":1986,"rg":1.1,"squad":3,"t":60,"taken":0,"zone":0},{"boss":0,"dsrc":{},"ebul":0,"elites":0,"enemies":17,"hp":100,"hpm":2.24,"hpmin":100,"hsrc":{},"kills":126,"lamp":100,"lampmin":100,"lv":6,"mhp":128,"mire_s":0.0,"mires":6,"outc":8281,"rg":1.1,"squad":3,"t":90,"taken":0,"zone":0},{"boss":0,"dsrc":{},"ebul":0,"elites":0,"enemies":14,"hp":100,"hpm":2.57,"hpmin":100,"hsrc":{},"kills":188,"lamp":100,"lampmin":100,"lv":8,"mhp":128,"mire_s":0.0,"mires":12,"outc":14404,"rg":1.1,"squad":3,"t":120,"taken":0,"zone":0},{"boss":0,"dsrc":{},"ebul":0,"elites":0,"enemies":11,"hp":100,"hpm":2.91,"hpmin":100,"hsrc":{},"kills":259,"lamp":100,"lampmin":100,"lv":8,"mhp":128,"mire_s":0.0,"mires":19,"outc":22548,"rg":1.1,"squad":3,"t":150,"taken":0,"zone":1},{"boss":0,"dsrc":{},"ebul":0,"elites":0,"enemies":18,"hp":100,"hpm":3.25,"hpmin":100,"hsrc":{},"kills":353,"lamp":100,"lampmin":100,"lv":9,"mhp":128,"mire_s":0.0,"mires":6,"outc":35993,"rg":3.03,"squad":3,"t":180,"taken":0,"zone":2},{"boss":1,"dsrc":{"mire":1},"ebul":3,"elites":0,"enemies":23,"hp":100,"hpm":3.58,"hpmin":99,"hsrc":{"自身回复":1},"kills":433,"lamp":100,"lampmin":100,"lv":13,"mhp":128,"mire_s":0.9,"mires":15,"outc":48944,"rg":1.1,"squad":3,"t":210,"taken":1,"zone":3},{"boss":1,"dsrc":{},"ebul":60,"elites":0,"enemies":17,"hp":100,"hpm":3.92,"hpmin":100,"hsrc":{},"kills":488,"lamp":100,"lampmin":100,"lv":13,"mhp":128,"mire_s":0.0,"mires":6,"outc":77816,"rg":1.1,"squad":3,"t":240,"taken":0,"zone":3}],"curve_tail":{"dsrc":{},"hsrc":{},"mhp":128,"t":240,"t0":240,"taken":0},"dark_dmg":0,"dark_s":0,"death_src":"mire","elite_t":{"suzuran:1":189,"wisadel:1":45,"wisadel:2":104},"end":{"boss":true,"hp":128,"killer":{"cause":"","key":"env:mire"},"last15":{"corrode_out":0.0,"corrode_peak":0.0,"dark_s":0.0,"ebullets_peak":60,"enemies_peak":20,"hits":[],"mire_s":0.0,"nerve_bursts":0,"t":240.0},"src":"mire","t":240,"zone_out":false,"zone_phase":0,"zone_state":3},"floors":[],"hits":2,"hits_pm":0.5,"king_low_s":0,"lamp_end":100,"lamp_gain":{},"lamp_loss":{},"lamp_s":[239,0,0,0],"lamp_taken":[1,0,0,0],"low20_s":0,"low_hp_s":0,"moved_pm":9791,"peak":[36,60,8,196,17],"peak_min":[[14,1,7,62,5],[33,2,7,89,15],[35,0,7,146,16],[36,60,8,196,17],[17,60,3,10,2]],"profile":"expert","reaper_drain_deaths":0,"recruit_t":[],"still_pct":2,"taken":1,"taken_pm":0},"cmd":{"aggro":6,"downs":0,"roam":24.9,"sortie_downs":0,"sorties":1,"switch":4},"crates":3,"ctrl":{"aslow_slow":0,"aslow_t":0.0,"boss_t":30.1,"floor":0.7,"move_min":1.0,"slow_min":1.0,"stun_slow":0,"stun_t":0.0},"ctrl_src":{"boss":{"dash_break_n":0,"freeze_n":0,"freeze_t":0.0,"slow_t":0.0},"founder":{"dash_break_n":0,"freeze_n":0,"freeze_t":0.0,"slow_t":0.0},"other":{"dash_break_n":0,"freeze_n":0,"freeze_t":0.0,"slow_t":0.0},"skimmer":{"dash_break_n":0,"freeze_n":0,"freeze_t":0.0,"slow_t":0.0},"slow_any_t":0.0},"dashes":7,"dmg":{"mire":1.9722},"drone":0,"duck":{"fled":0,"kill_t":[7.6],"killed":1,"spawned":1},"elite_stage":2,"elites":6,"ending":"standard","final_out":{"余震":15570.9766683748,"技能连携·狐火·suzuran":207.098803235101,"提喻":4614.63468683718,"散射":4086.26863462988,"殉爆":1949.05867788273,"炮击":5359.91067468703,"爆裂黎明":5584.12384053527,"狐火":14486.5498472181,"狐火点点":2096.86286914073,"真实":5789.00697123482,"终结技·wisadel·余震":382.047439873005,"终结技·wisadel·炮击":4533.24559564832,"言":3911.29348629682,"铭文":1340.14757231568,"饱和复仇":7528.68069158609,"魂灵之影":631.51996468741},"floor_hits":0,"floor_times":[],"fuse":{"left":0,"pct":0.0,"pool":0,"t":-1},"growth":{},"heal":{"拾取":0.0,"自身回复":1.26990000000002,"铃兰":0.702300000000057},"heal_offer":0,"heal_offer_low":0,"heal_pick":0,"hordes":[{"comp":{"bone":9,"slider":3,"stone":3},"hp":1574,"hp0":128,"minhp":128,"mix":"凿石阵","n":15,"t":75,"t80":9},{"comp":{"bone":12,"slider":8},"hp":2379,"hp0":128,"minhp":128,"mix":"滑行群","n":20,"t":165,"t80":6}],"ingots":30,"items":{"crate_shield":2,"heal_elite":4,"heal_low":0,"heal_mob":5,"heal_pick":9,"magnet_elite":2,"magnet_mob":4,"magnet_pick":4,"mob_capped":31,"mob_rolled":451,"pack_drop":2,"pack_pick":0},"kill_hits":{"0:bone":[48,52,1.05],"0:slider":[8,11,0.07],"0:stone":[7,22,5.56],"1:bone":[76,121,23.12],"1:floater":[9,36,8.93],"1:slider":[24,55,14.01],"1:stone":[9,58,22.25],"1:tracer":[3,72,29.89],"2:bone":[77,167,57.55],"2:floater":[15,74,18.83],"2:runner":[3,9,0.92],"2:slider":[53,177,62.32],"2:stone":[9,63,38.95],"2:tracer":[7,180,39.86],"3:bone":[61,150,37.51],"3:brood":[2,3,0.26],"3:duck":[1,21,7.19],"3:floater":[13,97,55.77],"3:runner":[12,30,13.33],"3:slider":[23,94,38.15],"3:spitter":[4,58,13.86],"3:stone":[12,107,20.73],"3:tracer":[6,263,56.76]},"kills":488,"lamp":100,"levelup_t":[14,31,45,65,75,93,104,170,185,189,189,210],"low_levelups":0,"lv":13,"lv_times":[14,30,45,65,75,92,104,169,184,188,189,209],"marks":{"120":8},"maxhp":128.7,"meta":0,"ops":[{"elite":2,"id":"wisadel","prog":6},{"elite":1,"id":"suzuran","prog":4},{"elite":0,"id":"logos","prog":2}],"out":{"余震":15570.9766683748,"技能连携·狐火·suzuran":207.098803235101,"提喻":4614.63468683718,"散射":4086.26863462988,"殉爆":1949.05867788273,"炮击":5359.91067468703,"爆裂黎明":5584.12384053527,"狐火":14486.5498472181,"狐火点点":2096.86286914073,"真实":5789.00697123482,"终结技·wisadel·余震":382.047439873005,"终结技·wisadel·炮击":4533.24559564832,"言":3911.29348629682,"铭文":1340.14757231568,"饱和复仇":7528.68069158609,"魂灵之影":631.51996468741},"out_tag":{"aftershock":15570.9766683748,"area":54547.830806428,"basic":3911.29348629682,"control":14486.5498472181,"detonation":1949.05867788273,"dot":5954.78225915286,"entity":3437.01044145641,"execute":5789.00697123482,"growth":8172.53726925975,"pierce":2100.07174297703,"projectile":41763.3222879736,"single":3911.29348629682,"skill":22849.831057715,"trim":5789.00697123482,"终结技":9830.58607104266,"连携":414.197606470201},"out_type":{"法术":26684.4829070657,"物理":40682.6435103613,"真实":10704.3000067562},"prof":{},"prog_log":[[14,"wisadel",1],[31,"wisadel",2],[45,"wisadel",3],[65,"wisadel",4],[75,"wisadel",5],[93,"logos",1],[104,"wisadel",6],[170,"suzuran",1],[185,"suzuran",2],[189,"suzuran",3],[189,"suzuran",4],[210,"logos",2]],"prog_offer":{"logos":4,"suzuran":7,"wisadel":6},"prog_pick":{"logos":2,"suzuran":4,"wisadel":6},"recall_backstop":0,"recall_n":42,"recruit_offers":[[170,"swap",3],[185,"swap",3]],"rej":{},"relic_offer":[[115,"shop",["58","57","149"]],[120,"shop",["17","64","129"]],[181,"choice",["195","180","56"],"elite"]],"relic_out":5789.00697123482,"relic_take":[[115,"58",["狙击","辅助","术师"],"shop"],[115,"57",["狙击","辅助","术师"],"shop"],[181,"56",["狙击","辅助","术师"],"choice:elite"]],"relics":3,"shield":{"abs":50.7,"blocks":2,"every":15.0,"max":0,"peak":0,"src_int":[],"src_max":[],"t0":-1.0},"squad":["wisadel","suzuran","logos"],"sus":{"m0":{"clean":{},"dr":{},"heal":{"拾取":[0.0,193.05]},"lit":0.0},"m3":{"clean":{},"dr":{},"heal":{"拾取":[0.0,154.44],"铃兰":[0.702300000000057,1.0296]},"lit":0.0}},"swaps":[],"t":240,"terrain":{"bul":0,"dash":0,"ebul":0},"ult":{"combo":3,"combo_auto":3,"combo_up":0,"cult":0,"cult_times":[],"e_combo":1.9,"e_hurt":0.3,"e_kill":33.9,"e_out":67.8,"first_full":153.5,"full_times":[153.5],"hit_n":18,"idle_full_s":11.3,"link_by":{"logos":1,"suzuran":2},"lit":3,"lit_by":{},"miss":0,"ult":1,"ult_times":[164.7]},"win":false,"xp_backstop":0.0,"xp_dropped":1723.0,"xp_ground":100.0,"xp_magnet":414.7,"xp_magnet_min":[7.5,63.3,0.0,343.9],"xp_recall":328.1,"xp_recall_min":[2.5,17.5,39.1,269.0],"xp_total":1623.0,"xp_total_min":[152.5,432.5,45.8,992.3],"xp_walk":880.2,"xp_walk_min":[142.5,351.7,6.6,379.4]}
+SPAWNQ {"alive_420_max":0,"alive_420_med":0,"alive_420_p95":0,"alive_710_max":0,"alive_710_med":0,"alive_710_p95":0,"cap":0,"deferred":0,"density":0.4,"drop_final":0,"drop_room":0,"forced":0,"hard":0,"hist":{"1-3s":0,"10-30s":0,"3-10s":0,"<1s":0,">=30s":0},"merge_spawns":0,"merged":0,"owed_end":0,"pending_end":0,"q_peak":0,"queued":0,"spawned":461,"wait_cap":10.0,"wait_max":0.0,"wait_mean":0.0,"wait_p50":0.0,"wait_p90":0.0,"wait_p99":0.0}
+ERROR: 87 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+ERROR: 69 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 5 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+
+## stderr
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+WARNING: 457 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 36 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+
