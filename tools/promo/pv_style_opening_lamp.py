@@ -37,7 +37,7 @@ def enemy(eid, n):
     return fr                                                                       # @2x 原样（低分辨率里显大一倍，看得清是什么）
 
 
-ENEMIES = [("runner", 8), ("skimmer", 8), ("offspring", 4), ("floater", 6)]
+ENEMIES = [("runner", 6), ("skimmer", 7), ("offspring", 4), ("floater", 5)]   # 帧数按贴图实测
 
 
 def light_disc(img, cx, cy, r, strength):
