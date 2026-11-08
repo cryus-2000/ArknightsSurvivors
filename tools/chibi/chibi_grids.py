@@ -489,9 +489,59 @@ CHIBI = {
 }
 
 
+MIRROR = {"exusiai", "mizuki"}            # 原来朝左的，先整体翻成朝右
+SCAR = {"lappland": "R"}                  # 眼上下各一格疤
+
+
+def face_right(op, rows):
+    """11-08 用户：全员跟德克萨斯一样朝右、眼睛要看得见——脸统一改成朝右的 3/4 侧脸：
+    刘海从左上斜盖下来，只露右边一只 2 × 2 的大眼（上瞳孔、下瞳色），右颊腮红；发型 / 头饰 / 面罩 / 嘴不动。"""
+    rows = [list(r) for r in rows]
+    w = max(len(r) for r in rows)
+    for r in rows:
+        r.extend("." * (w - len(r)))
+    if op in MIRROR:
+        rows = [r[::-1] for r in rows]
+    ey = next(i for i, r in enumerate(rows) if "E" in r)
+    block = range(ey - 1, ey + 3)
+    xs = [x for y in list(block) + [ey + 3] for x, ch in enumerate(rows[y]) if ch in "SBEI"]
+    a, b = min(xs), max(xs)
+    face = set("SBEIHDL")
+
+    def put(y, x, ch):
+        if a <= x <= b and rows[y][x] in face:
+            rows[y][x] = ch
+
+    plan = [  # 每行：刘海盖到哪一格（D 为刘海边），之后是皮肤
+        (ey - 1, b - 2),
+        (ey, b - 4),
+        (ey + 1, b - 5),
+        (ey + 2, b - 7),
+    ]
+    for y, edge in plan:
+        if not any(ch in "SBEI" for ch in rows[y]) and y != ey - 1:
+            continue   # 整行是面罩（乌尔比安）
+        for x in range(a, b + 1):
+            if x < edge:
+                put(y, x, "H")
+            elif x == edge:
+                put(y, x, "D")
+            else:
+                put(y, x, "S")
+    put(ey, b - 2, "E"); put(ey, b - 1, "E")
+    put(ey + 1, b - 2, "I"); put(ey + 1, b - 1, "I")
+    if any(ch == "S" for ch in rows[ey + 2]):
+        put(ey + 2, b - 5, "B"); put(ey + 2, b, "B")
+    if op in SCAR:
+        for y in (ey - 1, ey + 2):
+            if rows[y][b - 1] in face:
+                rows[y][b - 1] = SCAR[op]
+    return ["".join(r) for r in rows]
+
+
 def render(op):
     d = CHIBI[op]
-    rows = d["rows"]
+    rows = face_right(op, d["rows"])
     w = max(len(r) for r in rows)
     pal = dict(SKIN)
     pal.update(d["pal"])
