@@ -74,3 +74,12 @@
 7. 斯卡蒂的帽子怪。
 8. 乌尔比安像女生。
 9. 铃兰两只耳朵分得太开。
+
+## 6. 接收（11-09）
+
+- Codex 交付：`codex/art` 提交 `e69312c4f4394e1224e2734113a5e3ec378b1f58`，本机 ZIP `Claude outputs/codex_chibi_20_1109_e69312c4f.zip`。
+- 20 张都按 `roster_manifest.json` 核对过：SHA-256 和尺寸全部一致，原样拷进 `game/art/operators/<id>/op_<id>_chibi.png`，Godot 导入正常。
+- 画法：最终定成正面头像（manifest 写明 Front view，按 PRTS 默认待机）。用户最后一轮确认过流明、水月的眼型；星熊按用户更正露双眼。
+- 实卡：用 claude/support-unify-1108 上的新版相框截了罗德岛和深海两款，左下角三人小队清楚，不压文字。
+- Claude 版格子图 `tools/chibi/chibi_grids.py` 已删，免得误跑覆盖 Codex 的图。
+
