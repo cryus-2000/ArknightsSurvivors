@@ -1,0 +1,2 @@
+19293	rec_wisadel_1_anim.txt
+1403579	wisadel_s2_move_dbg.mp4
