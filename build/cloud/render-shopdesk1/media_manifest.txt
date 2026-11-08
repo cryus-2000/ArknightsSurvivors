@@ -1,0 +1,15 @@
+4559	after_pc.log
+523046	after_pc_shop.png
+523346	after_pc_shop_detail.png
+4559	after_ph844.log
+487903	after_ph844_shop.png
+488260	after_ph844_shop_detail.png
+4563	after_ph956.log
+532606	after_ph956_shop.png
+532933	after_ph956_shop_detail.png
+633	chk_card_desc_fit.txt
+532	chk_economy.txt
+734	chk_shop_touch_layout.txt
+87	chk_summary.txt
+704	chk_touch_layout.txt
+691	chk_ui_smoke.txt
