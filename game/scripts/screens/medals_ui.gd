@@ -336,6 +336,40 @@ func _draw() -> void:
 	_draw_detail(tc, a * _e(0.86, 0.22))
 
 
+## 扫光帧：沿 x + y 方向推进的 4 格宽光带（前 2 格实、后 2 格半透明），只落在章面不透明处，按章面亮度加权（亮的浮雕更亮）。
+## 每枚第一次扫到时才生成（每帧只遍历光带所在的对角线，章图 77 格也只是几毫秒）。
+const SHEEN_PERIOD := 5.4
+const SHEEN_DUR := 0.75
+
+
+func _sheen_of(it: Dictionary) -> Array:
+	if it.has("sheen"):
+		return it.sheen
+	var src: Image = (it.tex as Texture2D).get_image()
+	if src.is_compressed():
+		src.decompress()
+	src.convert(Image.FORMAT_RGBA8)
+	var w := src.get_width()
+	var h := src.get_height()
+	var frames: Array = []
+	var p := -4
+	while p < w + h:
+		var im := Image.create(w, h, false, Image.FORMAT_RGBA8)
+		for dd in 4:
+			var sd := p + dd
+			for xx in range(maxi(0, sd - h + 1), mini(w, sd + 1)):
+				var yy := sd - xx
+				var col := src.get_pixel(xx, yy)
+				if col.a < 0.5:
+					continue
+				var l := col.r * 0.3 + col.g * 0.59 + col.b * 0.11
+				im.set_pixel(xx, yy, Color(1, 1, 1, (1.0 if dd < 2 else 0.5) * (0.45 + 0.55 * l)))
+		frames.append(ImageTexture.create_from_image(im))
+		p += 2
+	it.sheen = frames
+	return frames
+
+
 func _draw_medals(a: float) -> void:
 	for i in items.size():
 		var it: Dictionary = items[i]
@@ -357,6 +391,13 @@ func _draw_medals(a: float) -> void:
 		var fx := (open_t - float(it.t0) - 0.22) / 0.2
 		if got and fx > 0.0 and fx < 1.0 and not Cfg.reduce_motion:
 			draw_texture_rect(tex, Rect2(c - Vector2(s, s) / 2.0, Vector2(s, s)), false, Color(2.2, 2.4, 2.6, 0.55 * (1.0 - fx)))
+		# 扫光（11-08 用户「光感」）：已获得的章轮流有一道斜光带扫过，按美术像素格步进
+		if got and x >= 1.0 and not Cfg.reduce_motion:
+			var ph := fmod(open_t - ENTER_END - 0.6 * i, SHEEN_PERIOD)
+			if ph >= 0.0 and ph < SHEEN_DUR:
+				var fr: Array = _sheen_of(it)
+				var f: int = mini(fr.size() - 1, int(ph / SHEEN_DUR * fr.size()))
+				draw_texture_rect(fr[f], Rect2(c - Vector2(s, s) / 2.0, Vector2(s, s)), false, Color(1, 1, 1, ia))
 		if (i == sel or i == hover) and x >= 1.0:
 			# 选中框：换选中时两档收紧（1.12 → 1.0，steps(2)，T1）
 			var rk := 1.0
