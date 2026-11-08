@@ -288,7 +288,8 @@ static func h4_leap(o, b: Dictionary) -> void:
 	sg.leap_second = false
 	sg.leap_b = b
 	# from: leader（响应动作 docs/118 §4.1）：找队长 aim_r 内离队长最近的敌人；她本人是队长时原地砸（不另位移，冲刺已由队长本体完成）
-	var ts: Array = [] if lead and o.is_leader else o.nearest_enemies(1, float(b.get("aim_r", 160.0)), o.g.ppos if lead else o.pos)
+	# 11-08 用户：她当队长时 S2 也取消强制位移（原地跃起砸下，不朝敌人跳），当队友时照旧跃过去
+	var ts: Array = [] if o.is_leader else o.nearest_enemies(1, float(b.get("aim_r", 160.0)), o.g.ppos if lead else o.pos)
 	_h4_start_leap(o, ts[0] if not ts.is_empty() else null, float(b.get("dist", 90.0)))
 
 
@@ -472,7 +473,8 @@ static func _h4sg_tick(o, sg: Dictionary, dt: float) -> bool:
 		var ld: float = float(b2.get("t", 0.42))
 		sg.leap_t = float(sg.leap_t) + dt
 		var lu: float = clampf(float(sg.leap_t) / ld, 0.0, 1.0)
-		o.pos = sg.leap_pos.lerp(sg.leap_to, lu)
+		if not o.is_leader:   # 11-08 用户：队长版不锁位置（空中翻转期间照常移动，落在当时的位置）
+			o.pos = sg.leap_pos.lerp(sg.leap_to, lu)
 		if float(sg.leap_t) >= ld:
 			sg.leap_t = -1.0
 			_h4_slam(o, b2, sg.leap_second)
