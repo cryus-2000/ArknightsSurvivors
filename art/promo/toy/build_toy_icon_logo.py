@@ -2,7 +2,8 @@
 L1 徽记单独放大 4 倍 + 下方细线（左端青色加粗，同封面标题）；深海青底；
 L2 徽记 2 倍 + 「方舟 / 幸存者」两行 2 倍；
 L3 同 L1，底换成标题页沉船背景；
-L23 = L2 的版式 + L3 的底（11-08 用户定稿「L2+L3」），字加深色描边压住底图。
+L23 = L2 的版式 + L3 的底（11-08 用户选「L2+L3」），字加深色描边压住底图；
+L4 定稿（11-08 用户同意改）：去掉悬空细线，只留两行字居中，徽记放大调暗作水印。
 用法：python art/promo/toy/build_toy_icon_logo.py   出到 build/toy_icon/
 """
 from pathlib import Path
@@ -139,13 +140,49 @@ def l2(bg=None):
     return underline(cv, 96, S - 96, y + m.height + 18, 4)
 
 
+def text_rows(cv, k, y0, row_gap):
+    rows = [CHARS[:2], CHARS[2:]]
+    gap = 2 * k
+    yy = y0
+    for r in rows:
+        ims = [up(c, k) for c in r]
+        w = sum(i.width for i in ims) + gap * (len(ims) - 1)
+        xx = (S - w) // 2
+        h = max(i.height for i in ims)
+        for i in ims:
+            cm = i.split()[3]
+            sh = Image.new("RGBA", i.size, (6, 12, 20, 255))
+            for dx, dy in ((-k, 0), (k, 0), (0, -k), (0, k), (k, k)):
+                cv.paste(sh, (xx + dx, yy + h - i.height + dy), cm)
+            cv.alpha_composite(i, (xx, yy + h - i.height))
+            xx += i.width + gap
+        yy += h + row_gap
+    return cv
+
+
+def l4(bg):
+    """11-08 改：只留一个视觉中心——「方舟 / 幸存者」两行字居中；徽记放大调暗做水印，去掉悬空的细线。"""
+    cv = bg
+    m = up(MARK, 5)
+    a = np.asarray(m).astype(np.float32)
+    a[..., :3] = np.array([90, 190, 215], np.float32)   # 青色剪影
+    a[..., 3] *= .34
+    wm = Image.fromarray(a.astype(np.uint8), "RGBA")
+    x, y = (S - wm.width) // 2, (S - wm.height) // 2 - 6
+    cv = glow(cv, m.split()[3], (x, y), CYAN, .18, 30)
+    cv.alpha_composite(wm, (x, y))
+    h = max(c.height for c in CHARS) * 2
+    total = 2 * h + 22
+    return text_rows(cv, 2, (S - total) // 2, 22)
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
-    vs = {"L1": l1(bg_plain()), "L2": l2(), "L3": l1(bg_title()), "L23": l2(bg_title())}
+    vs = {"L1": l1(bg_plain()), "L2": l2(), "L3": l1(bg_title()), "L23": l2(bg_title()), "L4": l4(bg_title())}
     for k, v in vs.items():
         v.convert("RGB").save(OUT / f"toy_icon_{k}.png", optimize=True)
     f = ImageFont.truetype("C:/Windows/Fonts/msyh.ttc", 24)
-    lab = {"L1": "L1 徽记", "L2": "L2 徽记 + 方舟幸存者", "L3": "L3 徽记 + 标题页背景", "L23": "L2+L3 字 + 标题页背景（定稿）"}
+    lab = {"L1": "L1 徽记", "L2": "L2 徽记 + 方舟幸存者", "L3": "L3 徽记 + 标题页背景", "L23": "L2+L3", "L4": "L4 字居中 + 徽记水印"}
     sheet = Image.new("RGB", (len(vs) * (S + 24) + 24, S + 210), (24, 26, 32))
     d = ImageDraw.Draw(sheet)
     for i, (k, v) in enumerate(vs.items()):

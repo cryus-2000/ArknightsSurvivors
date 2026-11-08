@@ -60,7 +60,7 @@
 |---|---|---|---|
 | B站 Toy 封面（`--poster`） | `art/promo/toy/toy_poster_4x3.png` | 1200×900（4:3） | 带标题 + 同人标注 |
 | B站 Toy 封面无字版 | `art/promo/toy/toy_poster_4x3_notext.png` | 1200×900 | 同图，不放标题和标注（卡片下方自带名称时用） |
-| B站 Toy 图标（`--icon`） | `art/promo/toy/toy_icon.png` | 512×512 | 11-08 定稿 logo 版：塔形徽记 + 「方舟 / 幸存者」两行像素字 + 标题页沉船背景（`build_toy_icon_logo.py` 的 L23）；CLI 上限 512 KB、边长 ≤ 1024 |
+| B站 Toy 图标（`--icon`） | `art/promo/toy/toy_icon.png` | 512×512 | 11-08 定稿 logo 版：「方舟 / 幸存者」两行像素字居中 + 塔形徽记放大调暗作水印 + 标题页沉船背景（`build_toy_icon_logo.py` 的 L4）；CLI 上限 512 KB、边长 ≤ 1024 |
 | 预览 | `art/promo/toy/toy_poster_preview.png` | 819×300 | Toy 卡片 400×300 · itch 卡片 315×250 · 图标 64 缩小效果 |
 | itch 封面 | `art/promo/itch/cover_630x500.png` | 630×500 | 带标题 + 同人标注 |
 | itch 横幅 | `art/promo/itch/banner_960x400.png` | 960×400 | 标题在左，水月在右 |

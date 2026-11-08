@@ -294,7 +294,7 @@ def final(key, out, it, ty, bn):
     ty.save(out / "toy/toy_poster_4x3.png", optimize=True)
     ic, nt = icon(key)
     nt.save(out / "toy/toy_poster_4x3_notext.png", optimize=True)
-    # 图标 11-08 起改用 logo 版（art/promo/toy/build_toy_icon_logo.py 的 L23），这里不再覆盖；预览里贴现行图标
+    # 图标 11-08 起改用 logo 版（art/promo/toy/build_toy_icon_logo.py 的 L4），这里不再覆盖；预览里贴现行图标
     ic = Image.open(out / "toy/toy_icon.png").convert("RGB")
     # 卡片预览：B站卡片约 400×300、itch 卡片 315×250、图标 64 —— 平滑缩小，看列表里的样子
     pv = Image.new("RGB", (400 + 20 + 315 + 20 + 64, 300), (24, 26, 32))
