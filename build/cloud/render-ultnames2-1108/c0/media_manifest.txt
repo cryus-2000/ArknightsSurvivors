@@ -1,0 +1,6 @@
+370	lappland/oppick_phone/log.txt
+903303	lappland/oppick_phone/shot_oppick.png
+5122	lappland_demo/codex_desktop/log.txt
+609567	lappland_demo/codex_desktop/shot_gallery_ui.png
+5361	lappland_demo/codex_phone/log.txt
+586472	lappland_demo/codex_phone/shot_gallery_ui.png

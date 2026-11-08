@@ -1,0 +1,6 @@
+615	wisadel/oppick_phone/log.txt
+970787	wisadel/oppick_phone/shot_oppick.png
+5699	wisadel_demo/codex_desktop/log.txt
+583840	wisadel_demo/codex_desktop/shot_gallery_ui.png
+5361	wisadel_demo/codex_phone/log.txt
+569286	wisadel_demo/codex_phone/shot_gallery_ui.png
