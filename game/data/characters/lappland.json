@@ -283,6 +283,17 @@
     ]
    }
   },
+  "move_throw": {
+   "tex": "op_lappland_move_throw",
+   "frames": 8,
+   "fps": 5.999999821186071,
+   "foot": [
+    48,
+    76
+   ],
+   "fire": 3,
+   "_doc": "11-08 S2 狼魂跑动掷刃（用户：边跑边放每掷一次就停一下脚）：throw 出手期间移动时 _move_swap 整条换成本条——上半身同 throw 逐帧（原作 Attack，取样 1.25,0.2,0.45,0.6,0.75,0.9,1,1.2 秒按原条上半身逐帧比对量出，第 3 帧 = OnAttack 0.6），腿是跑步步态；tools/op_1x/make_move_variant.py 出，帧数 / fire / 帧格 / 脚底同 throw"
+  },
    "s1cast": {
     "tex": "op_lappland_attack",
     "frames": 8,
@@ -321,6 +332,7 @@
  "extra_sprites": [
   "entry",
   "throw",
+  "move_throw",
   "s1cast"
  ],
  "attack": {
