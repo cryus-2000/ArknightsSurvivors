@@ -1611,6 +1611,27 @@ func step() -> void:
 				if df >= 300:
 					g.get_tree().quit()
 	for a in Cfg.dev_args():
+		# --settleshot=win|lose（docs/326 寻访凭证 / 结算兑换 / 关注作者按钮截图）：配 --roster=start5 --metacells=N [--fbtoy]；
+		# 第 60 帧进胜利 / 倒下（走正常局终结算：发凭证、记细胞），第 200 帧跳到结算终态，第 215 帧存 shot_settle_<win|lose>.png
+		if a.begins_with("--settleshot="):
+			var sw := a.substr(13) == "win"
+			if g.at_frames == 60:
+				winshot = true
+				if sw:
+					g.ending = "standard"
+					g.endg.cur = g.ending
+					g.state = g.S.WIN
+				else:
+					g.state = g.S.DEAD
+				# 测试局不走局终记账：按新规则直接写本局获得（通关 1 张 / 未通关 0 张，细胞随便给个数）
+				g.roster_new = {"hunt": 1} if sw else {"hunt": 0, "lost": true}
+				g.meta_result = {"cells": 38 if sw else 17}
+			if g.at_frames == 200:
+				g.state_age = 99.0
+				g.settlement.skip()
+			if g.at_frames == 215 and DisplayServer.get_name() != "headless":
+				g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_settle_%s.png" % ("win" if sw else "lose"))
+				g.get_tree().quit()
 		# --winshot=deep：第 60 帧直接进入胜利结算并截图
 		if a.begins_with("--winshot=") and g.at_frames == 60:
 			winshot = true

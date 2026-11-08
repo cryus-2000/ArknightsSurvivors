@@ -43,8 +43,19 @@ func _draw() -> void:
 		hh.draw(size)
 
 
+## 寻访页「关注作者，领寻访凭证」（11-08）：标题页的支持作者浮层
+func open_support() -> void:
+	if get_parent() != null and get_parent().has_method("open_support"):
+		get_parent().open_support()
+
+
+func _support_open() -> bool:
+	var p = get_parent()
+	return p != null and "sup_view" in p and p.sup_view != null and p.sup_view.visible
+
+
 func _input(event: InputEvent) -> void:
-	if not visible:
+	if not visible or _support_open():   # 支持作者浮层盖在上面时让开（它的点按走 _gui_input）
 		return
 	if event is InputEventMouseMotion:
 		kb_nav = false

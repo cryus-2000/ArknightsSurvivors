@@ -59,6 +59,17 @@ static func pending() -> bool:
 	return false
 
 
+## 还没领的凭证总数（标题页「支持作者」角标「领 N 张」）；不在 Toy 版 / 都领过 = 0
+static func pending_tickets() -> int:
+	if not enabled():
+		return 0
+	var n := 0
+	for id in items():
+		if not claimed(id):
+			n += REWARD
+	return n
+
+
 ## 分享卡专属边框（三连领过）
 static func frame_unlocked() -> bool:
 	return claimed("triple")

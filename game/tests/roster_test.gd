@@ -103,31 +103,24 @@ func run() -> void:
 	Roster.migrate_tickets()
 	check(Roster.tickets() == 9 and not Cfg.roster_tickets.has("cls") and Cfg.roster_wish == "" and Cfg.roster_pity == 0, "旧券折算 %s" % [Cfg.roster_tickets])
 
-	# 5. 局终发凭证：撤离 3 张、通关 4 张；演练 / 非 PLAY 不发；名册已满不发、剩下的折生机细胞
+	# 5. 局终发凭证（11-08 用户）：通关 1 张、没通关 0 张（roster_new.lost）；演练 / 非 PLAY 不发；名册已满不发、剩下的折生机细胞
 	reset()
 	var fg := FakeG.new()
 	Roster.on_run_end(fg, false)
-	check(Roster.tickets() == 3, "撤离：3 张，实为 %d" % Roster.tickets())
+	check(Roster.tickets() == 0 and int(fg.roster_new.get("hunt", -1)) == 0 and bool(fg.roster_new.get("lost", false)), "没通关：不发（%d 张，%s）" % [Roster.tickets(), fg.roster_new])
 	Roster.on_run_end(fg, true)
-	check(Roster.tickets() == 7, "通关：再 4 张，实为 %d" % Roster.tickets())
-	fg.trial.active = true
-	Roster.on_run_end(fg, true)
-	check(Roster.tickets() == 7, "演练不发")
-	fg.trial.active = false
-	fg.mode = 1
-	Roster.on_run_end(fg, false)
-	check(Roster.tickets() == 7, "非 PLAY 模式不发")
-	fg.mode = 0
-	# 倒下时探索不足 RUN_MIN_T 秒不发（10-26：开局即倒下 / 重开刷券）；通关不受限；刚好到线照发
-	fg.t = Roster.RUN_MIN_T - 1.0
-	Roster.on_run_end(fg, false)
-	check(Roster.tickets() == 7 and int(fg.roster_new.get("hunt", -1)) == 0 and bool(fg.roster_new.get("short", false)), "倒下时不足 %d 秒：不发（%d 张，%s）" % [int(Roster.RUN_MIN_T), Roster.tickets(), fg.roster_new])
+	check(Roster.tickets() == 1 and int(fg.roster_new.get("hunt", -1)) == 1 and not fg.roster_new.has("lost"), "通关：1 张，实为 %d" % Roster.tickets())
 	fg.t = 30.0
 	Roster.on_run_end(fg, true)
-	check(Roster.tickets() == 11, "通关不受时长限制：+4（%d）" % Roster.tickets())
-	fg.t = Roster.RUN_MIN_T
-	Roster.on_run_end(fg, false)
-	check(Roster.tickets() == 14 and not fg.roster_new.has("short"), "倒下时刚好 %d 秒：照发 3 张（%d）" % [int(Roster.RUN_MIN_T), Roster.tickets()])
+	check(Roster.tickets() == 2, "通关不受时长限制：+1（%d）" % Roster.tickets())
+	fg.trial.active = true
+	Roster.on_run_end(fg, true)
+	check(Roster.tickets() == 2, "演练不发")
+	fg.trial.active = false
+	fg.mode = 1
+	Roster.on_run_end(fg, true)
+	check(Roster.tickets() == 2, "非 PLAY 模式不发")
+	fg.mode = 0
 	Cfg.roster_tickets = {"hunt": 7}
 	fg.t = 600.0
 	Cfg.roster_unlocked = Roster.all_ids()
@@ -162,7 +155,9 @@ func run() -> void:
 	check(not Roster.exchange_ticket() and Roster.tickets() == 0 and Cfg.meta_bought.is_empty(), "细胞不够不兑换、不扣")
 	Cfg.meta_earned = {"dtest": 14}
 	check(Roster.exchange_short() == 1 and not Roster.exchange_ticket() and Meta.available() == 14, "14 个细胞还差 1，仍不兑换")
+	check(not Roster.exchange_ready(), "14 个细胞：结算页不出兑换提示")
 	Cfg.meta_earned = {"dtest": 100}
+	check(Roster.exchange_ready(), "细胞够 15：结算页出兑换提示")
 	check(Roster.exchange_ticket() and Roster.tickets() == 1 and Meta.available() == 85 and int(Cfg.meta_bought.dtest) == 15, "兑换 1 张：凭证 +1、细胞 −15（余额 %d）" % Meta.available())
 	for _i in 5:
 		Roster.exchange_ticket()

@@ -33,6 +33,7 @@ class SquadCanvas extends Control:
 var squad_canvas: Control
 var cells := 0
 var vouchers := 0
+var exchanged := 0   # 本次结算页上用生机细胞兑换的凭证张数（11-08）
 const STRIDE := 224.0
 ## 底栏按钮反馈（10-28 用户「结算画面最下面点击按钮没有交互反馈」）：悬停高亮 + 青边、按下缩小变亮、点击音（ui_ok，悬停换按钮 ui_move）、
 ## 键盘 / 手柄焦点框（↓ 进入底栏、← → 换按钮、↑ 回编队、Enter / Ⓐ 按下）、触屏按下态；动作在按下后 PRESS_T 秒执行，按下态看得见
@@ -106,6 +107,7 @@ func tick(dt: float) -> void:
 		_fb_auto = "--fbopen" in Cfg.dev_args() or "--shareopen" in Cfg.dev_args()   # 截图：结算入场演完就打开反馈浮层
 		cells = int(g.meta_result.get("cells", 0))
 		vouchers = int(g.roster_new.get("hunt", 0))
+		exchanged = 0
 	if _fb_auto and done():
 		_fb_auto = false
 		_run("share" if "--shareopen" in Cfg.dev_args() else "feedback")   # --shareopen：截图分享卡（docs/313 专属边框，配 --supframe）
@@ -265,7 +267,15 @@ static func grade(m: Dictionary, preset: int) -> String:
 ## 底栏按钮：[id, x, 宽, 文字, 主按钮]（与画法、点击区同一张表）
 func _buttons() -> Array:
 	if sty != null:
-		return sty.buttons()
+		var bo: Array = sty.buttons()
+		# 生机细胞够 1 张寻访凭证时多一枚「兑换凭证」（11-08 用户），排在最前：↓ 进底栏仍先落在寻访
+		if sup_button() and sty.has_method("support_rect"):
+			var sr: Rect2 = sty.support_rect()
+			bo.push_front(["support", sr.position.x, sr.size.x, sup_label(), false, sr])
+		if Roster.exchange_ready() and sty.has_method("exchange_rect"):
+			var er: Rect2 = sty.exchange_rect()
+			bo.push_front(["exchange", er.position.x, er.size.x, "兑换凭证", false, er])
+		return bo
 	var tch: bool = Pad.touch_ui()   # 触屏（手机 / 平板）不写键位
 	var out: Array = [["share", 1148, 100, "分享战绩" if (Pad.using or tch) else "分享  V", false, Rect2(1148, 202, 100, 34)],
 		["records", 28, 160, "作战数据  SELECT" if Pad.using else ("作战数据" if tch else "作战数据  Tab"), false]]
@@ -277,6 +287,16 @@ func _buttons() -> Array:
 	out.append(["meta", 642, 250, "认知塑造  Y" if Pad.using else ("认知塑造" if tch else "认知塑造  X"), false])
 	out.append(["hunt", 910, 342, ("寻访（持有 %d）  A" if Pad.using else ("寻访（持有 %d）" if tch else "寻访（持有 %d）  Enter")) % Roster.tickets(), Roster.tickets() > 0])   # D14：写明是持有数，免得和「本局获得 ×0」并排时误读
 	return out
+
+
+## B站 Toy「支持作者」（11-08 用户）：没通关、本局 0 张凭证、还有没领的奖励时，「本局获得」条里直接放一枚领取按钮（点了打开支持作者浮层）
+func sup_button() -> bool:
+	return bool(g.roster_new.get("lost", false)) and vouchers == 0 and preload("res://scripts/core/toy_support.gd").pending()
+
+
+func sup_label() -> String:
+	const TS = preload("res://scripts/core/toy_support.gd")
+	return ("关注作者，领 %d 张寻访凭证" if not TS.claimed("follow") and TS.follow_on() else "三连视频，领 %d 张寻访凭证") % TS.REWARD
 
 
 func _btn_rect(b: Array) -> Rect2:
@@ -309,6 +329,13 @@ func _run(id: String) -> void:
 		"records": _records()
 		"runs": g.run_log.open_log()
 		"title", "meta", "hunt": _action(id)
+		"support": g.open_support()
+		"exchange":
+			if Roster.exchange_ticket():
+				exchanged += 1
+				Sfx.play("levelup", -8.0)
+			else:
+				Sfx.play("ui_move", -4.0, 0.6)
 		"share": _open_share()
 		"feedback": g.open_feedback(preload("res://scripts/core/feedback.gd").summary(model, wall_s))
 
@@ -648,8 +675,8 @@ func draw(ci: CanvasItem, vs: Vector2) -> void:
 	_text(ci,754,140,"+%d" % int(cells*count),32)
 	_text(ci,944,116,"寻访凭证",13,HH.MUTE)
 	_text(ci,944,140,"×%d" % int(vouchers*count),32,HH.CYB)
-	if bool(g.roster_new.get("short", false)):
-		_text(ci,944,176,"探索不足 %d 分钟，不发放" % int(Roster.RUN_MIN_T / 60.0),11,HH.MUTE)
+	if bool(g.roster_new.get("lost", false)):
+		_text(ci,944,176,"未通关不发放",11,HH.MUTE)
 	_enter(1.0, 0.3)
 	var roll := UM.out_cubic(_k(1.05, 0.8))
 	_text(ci,32,232,"本局编队",20)
@@ -717,6 +744,8 @@ func _draw_buttons(ci: CanvasItem, fp := 1.0) -> void:
 			ci.draw_rect(r, bg)
 		if hov or prs:
 			ci.draw_rect(r, HH.CYB, false, 2.0)
+		elif id == "exchange" or id == "support":   # 兑换凭证 / 关注作者（11-08）：压在「本局获得」暗条上，加青色细边才看得出是按钮
+			ci.draw_rect(r, Color(HH.CYB, 0.7 * _fa), false, 1.5)
 		if foc:
 			var c := 10.0
 			for corner in [[r.position, Vector2(1, 0), Vector2(0, 1)], [Vector2(r.end.x, r.position.y), Vector2(-1, 0), Vector2(0, 1)], [Vector2(r.position.x, r.end.y), Vector2(1, 0), Vector2(0, -1)], [r.end, Vector2(-1, 0), Vector2(0, -1)]]:
