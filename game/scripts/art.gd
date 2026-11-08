@@ -10,6 +10,9 @@ static var outrun_track := false
 ## 崩溃前快照（core/crash_box.gd）：进缓存的贴图累计张数与最近几张名字
 static var load_n := 0
 static var recent_loads := PackedStringArray()
+static var _ml := -1          # --memlive（网页测量）：每读一张贴图量一次堆里在用的 MB 与容量，涨了就打印（docs/319 §15）
+static var _ml_live := 0
+static var _ml_cap := 0
 static var _outrun := {}
 static var enemy_pixels: Dictionary = {}
 static var _enemy_pixels_loaded := false
@@ -105,10 +108,30 @@ static var marks: Array = []
 static func mark(n: String) -> void:
 	if OS.has_feature("web"):
 		JavaScriptBridge.eval("window.__syPhase='建局·%s'" % n, true)   # WASM 堆增长记录的阶段（core/crash_box.gd phase，docs/319 §13）
+		memlive("mark:" + n, true)
 	if OS.is_debug_build() and OS.get_cmdline_user_args().has("--loadprof"):
 		marks.append([n, Time.get_ticks_msec()])
-	if OS.is_debug_build() and OS.get_cmdline_user_args().has("--memlog"):
+	if (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--memlog"):
 		print("PF MEMSTAGE %s tex=%.1fMB vid=%.1fMB" % [n, Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1048576.0, Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0])   # docs/50 §30：建局各段的贴图增量
+
+## --memlive（网页测量，docs/319 §15）：堆里实际在用的 MB（engine_patch §7 __syLiveMB）与容量；比上次涨了 ≥ 1 MB（或 always）就打印一行。
+## 读贴图之间的其他分配（JSON / 脚本 / 字形）会算在下一次量到的名字上，看「阶段」行分开
+static func memlive(what: String, always := false) -> void:
+	if _ml < 0:
+		_ml = 1 if OS.has_feature("web") and (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--memlive") else 0   # 这个三元写法测量副本会改成直接读（perf_web.py ARGS_RE）
+	if _ml == 0:
+		return
+	var r = JavaScriptBridge.eval("(function(){var l=window.__syLiveMB?window.__syLiveMB():-1;return l+','+(window.__syWasm?window.__syWasm.buffer.byteLength>>>20:0)})()", true)
+	var p := str(r).split(",")
+	if p.size() < 2:
+		return
+	var live := int(p[0])
+	var cap := int(p[1])
+	if always or live >= _ml_live + 1 or cap != _ml_cap:
+		print("PF MEMLIVE %s live=%d (%+d) cap=%d%s" % [what, live, live - _ml_live, cap, "  ← 容量涨" if cap != _ml_cap and _ml_cap > 0 else ""])
+		_ml_live = live   # 只在打印时换基准：一张一张的小涨累计到 1 MB 也会报
+	_ml_cap = cap
+
 
 ## 美术交付用旧文件名时的对应关系（新名 -> incoming 里的文件名）
 const ALIAS := {
@@ -425,6 +448,8 @@ static func tex(name: String, keep_cached := true) -> Texture2D:
 			_name_rid[t.get_rid()] = name
 		_cache[name] = t
 		load_n += 1
+		if _ml != 0:
+			memlive(name)
 		recent_loads.append(name)
 		if recent_loads.size() > 8:
 			recent_loads.remove_at(0)

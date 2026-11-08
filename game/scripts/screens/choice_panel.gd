@@ -1499,6 +1499,7 @@ func _op_idle(cid: String) -> Dictionary:
 ## 干员贴图集（运行中招募 / 测试编入时补加载）
 func load_op_tex(cid: String) -> void:
 	g.load_op_fx(cid)   # 手机网页开局没读的专属特效帧条（docs/287 §3 ①）
+	Sfx.warm_op(cid)   # 手机网页开局只注册了编队的专属音效（sfx.warm_begin，docs/319 §15）
 	var cdef: Dictionary = Character.load_def(cid)
 	var csp: Dictionary = cdef.get("sprites", {})
 	for kind in ["idle", "run", "attack", "skill", "move_attack"] + cdef.get("extra_sprites", []):

@@ -516,6 +516,15 @@ func _ft_action(what: String) -> void:
 		"gal_tab":
 			FR.mark("gal_tab")
 			gallery._set_tab((gallery.tab + 1) % 3)
+		"oppick":
+			FR.mark("oppick")   # 选人页（量「先翻选人页再出发」的 WASM 高水位，docs/319 §15）
+			_open_op_pick()
+		"op_next":
+			FR.mark("op_next")
+			_op_step(1)
+		"op_close":
+			FR.mark("op_close")
+			_close_op_pick()
 		"go":
 			FR.mark("go")   # 直接出发（同难度页「出发」：预热 → 载入页 → 进局）；量「开过图鉴再进局」的内存（docs/319）
 			_prewarm()
@@ -608,7 +617,7 @@ func _process_main(delta: float) -> void:
 	if leaving >= 0.0 or auto_go:
 		if not _op_warm_begun:
 			_op_warm_begun = true
-			Sfx.warm_begin()   # 选人 / 难度菜单切曲后，在实际载入页排队，避免菜单取消首段预热
+			Sfx.warm_begin(_op_ids())   # 选人 / 难度菜单切曲后，在实际载入页排队，避免菜单取消首段预热
 			A.warm_begin(_op_fx_names(), [])
 			_wl_pending = true   # 对局贴图名单要 game.gd：桌面后台还在编译就先等（载入页照常动），编完再取（下面）
 			for cid in _op_ids():
@@ -640,7 +649,9 @@ func _process_main(delta: float) -> void:
 			if v6.has(sn):
 				load("res://scripts/characters/blocks/ob_fx.gd").warm_frame_r(sn, A.tex(sn), maxi(1, int(v6[sn][0])))
 			_op_warm_more = not _grow_strips.is_empty()
-		Sfx.warm_step(maxi(1000, LOAD_BUDGET_USEC - (Time.get_ticks_usec() - wt0)))   # 出发后的等待里逐条注册音频样本（网页；桌面队列为空）：和读图共用一帧预算
+		A.memlive("载入页·读图后")
+		Sfx.warm_step(maxi(1000, LOAD_BUDGET_USEC - (Time.get_ticks_usec() - wt0)))
+		A.memlive("载入页·音频注册后")   # --memlive（docs/319 §15）；原注释：出发后的等待里逐条注册音频样本（网页；桌面队列为空）：和读图共用一帧预算
 		_loading_progress()
 	if leaving >= 0.0:
 		leaving += delta
