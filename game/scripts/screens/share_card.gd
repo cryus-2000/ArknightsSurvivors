@@ -101,6 +101,8 @@ static func frame_pick() -> String:
 	for a in Cfg.dev_args():
 		if a.begins_with("--shareframe="):
 			return a.substr(13)
+	if Cfg.dev_args().has("--supframe"):
+		return "deep"
 	var fs: Array = preload("res://scripts/core/toy_support.gd").frames()
 	return str(fs[-1]) if not fs.is_empty() else ""
 
