@@ -220,6 +220,7 @@ def make_card(idx):
     bv.width = 0.012
     bv.segments = 3
     body.data.materials.append(silver)
+    body.visible_shadow = False   # 卡在体积光里投的阴影是硬边几何楔，不好看
     root = bpy.data.objects.new("card", None)
     sc.collection.objects.link(root)
     body.parent = root
@@ -230,6 +231,7 @@ def make_card(idx):
         q.rotation_euler = (math.radians(90) * -side, 0, math.pi if side == 1 else 0)
         q.location = (0, side * (CT / 2 + 0.0015), 0)
         q.data.materials.append(mt)
+        q.visible_shadow = False
         q.parent = root
     return root
 
