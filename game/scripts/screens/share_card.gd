@@ -208,33 +208,29 @@ static func chibi(key: String, k := 12, ink := Color.BLACK) -> Texture2D:
 	return tex
 
 
-## 左下角探头的队友（小队代入感，docs 设计支柱）：编队里第一名非队长，没有就用队长；站在相框外、压住左下角
+## 左下角的小队成员（11-08 用户：每名干员一个 Q 版像素小人当小摆件，左下角放三个人的小队成员）：
+## 队长在最左、画在最前，队友依次往右排、往后叠；一格 5，骑在相框左下角，下沿略出画面，只压卡面左下角的空白。
+## 还没有 Q 版的干员跳过（全没有就不画）。
 func _peeker(ci: CanvasItem, d: Dictionary, band: Rect2, photo: Rect2, ink := Color.BLACK) -> void:
-	var pick: Dictionary = {}
+	var ld := _leader(d)
+	var team: Array = []
+	if not ld.is_empty():
+		team.append(ld)
 	for o in d.ops:
 		if not o.leader:
-			pick = o
+			team.append(o)
+	var shown: Array = []
+	for o in team:
+		var tex := chibi(str(o.get("key", "")), 5, ink)
+		if tex != null:
+			shown.append(tex)
+		if shown.size() >= 3:
 			break
-	if pick.is_empty():
-		pick = _leader(d)
-	if pick.is_empty():
-		return
-	# 站在下边正中（底部白条中间是空的，左边昵称、右边二维码都不挡）
 	var os := outer_size("ri")
-	# Q 版半身像素小人（art/operators/<id>/op_<id>_chibi.png，1 格 = 1 像素）：11-08 用户——当小摆件放在相框边上，不要正下方一大个；
-	# 一格 5，骑在相框左下角（一半在相框外），只压到卡面左下角的空白
-	var tex := chibi(str(pick.get("key", "")), 5, ink)
-	if tex != null:
+	for i in range(shown.size() - 1, -1, -1):   # 后面的先画，队长压在最前
+		var tex: Texture2D = shown[i]
 		var sz := Vector2(tex.get_width(), tex.get_height())
-		ci.draw_texture_rect(tex, Rect2(Vector2(band.position.x + 12.0 - sz.x * 0.5, os.y - 4.0 - sz.y), sz), false)
-		return
-	if not (pick.get("art") is Dictionary):
-		return
-	var box := Rect2(photo.get_center().x - 90, os.y - 250, 180, 244)
-	ci.draw_set_transform_matrix(_xf * Transform2D(0.0, Vector2(2, 3)))
-	OpFig.draw(ci, pick.art, box, 0, Color(0, 0, 0, 0.35))   # 投影
-	ci.draw_set_transform_matrix(_xf)
-	OpFig.draw(ci, pick.art, box, 0, Color.WHITE)
+		ci.draw_texture_rect(tex, Rect2(Vector2(band.position.x + 12.0 + i * 64.0 - sz.x * 0.5, os.y + 8.0 - sz.y), sz), false)
 
 
 # ---- 罗德岛：灰白渐变背景 + 散落的菱形碎片；白相框黑描边，上边嵌「RHODES ISLAND」；左上徽记、右侧医疗十字气泡、
