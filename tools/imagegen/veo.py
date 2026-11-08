@@ -27,13 +27,14 @@ def main():
     ap.add_argument("--model", default="veo-3.1-fast-generate-001")
     ap.add_argument("--secs", type=int, default=8)
     ap.add_argument("--last", default="", help="尾帧图（首尾帧插值）")
+    ap.add_argument("--audio", action="store_true", help="同时生成环境音")
     ap.add_argument("--neg", default="text, watermark, blurry, smooth 3d render, photorealistic")
     a = ap.parse_args()
     proj = pixgen._gcloud("config", "get-value", "project")
     img = base64.b64encode(Path(a.image).read_bytes()).decode()
     body = {"instances": [{"prompt": a.prompt, "image": {"bytesBase64Encoded": img, "mimeType": "image/png"}}],
             "parameters": {"aspectRatio": "16:9", "durationSeconds": a.secs, "sampleCount": 1, "negativePrompt": a.neg,
-                           "resolution": "1080p", "generateAudio": False, "personGeneration": "dont_allow"}}
+                           "resolution": "1080p", "generateAudio": a.audio, "personGeneration": "dont_allow"}}
     if a.last:
         body["instances"][0]["lastFrame"] = {"bytesBase64Encoded": base64.b64encode(Path(a.last).read_bytes()).decode(), "mimeType": "image/png"}
     r = _post(URL.format(p=proj, m=a.model, op="predictLongRunning"), body)
