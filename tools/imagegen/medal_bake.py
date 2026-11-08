@@ -47,9 +47,47 @@ def relight(face):
                 out.append(max(0, min(255, int(v * 255 * k))))
             p[x, y] = tuple(out)
             lum.append((out[0] * 0.3 + out[1] * 0.59 + out[2] * 0.11, x, y))
+    # ④ 柔光（11-08 用户「把扫光的光感柔和地融合进章里面，不要硬扫光」）：左上一团宽而软的受光，
+    #    沿斜向高斯衰减；按屏幕混合提亮，浮雕（亮的像素）吃得多、暗底吃得少，带一点冷青。静态，不做动画。
+    import math
+    gx, gy, sig = w * 0.28, h * 0.22, (w + h) * 0.36
+    for y in range(h):
+        for x in range(w):
+            r, g, b = p[x, y]
+            d2 = ((x - gx) * 0.8 + (y - gy) * 0.6) ** 2 + (((x - gx) * -0.6 + (y - gy) * 0.8) * 1.8) ** 2
+            L = math.exp(-d2 / (sig * sig))
+            lw = (r * 0.3 + g * 0.59 + b * 0.11) / 255
+            k2 = 0.38 * L * (0.2 + 0.8 * lw)
+            p[x, y] = (int(r + (170 - r) * k2), int(g + (225 - g) * k2), int(b + (255 - b) * k2))
+    lum = [((lambda c: c[0] * 0.3 + c[1] * 0.59 + c[2] * 0.11)(p[x, y]), x, y) for y in range(h) for x in range(w)]
     lum.sort(reverse=True)
     for _, x, y in lum[:max(1, len(lum) * 4 // 100)]:
         p[x, y] = (236, 250, 255)
+    return face
+
+
+def bg_ramp():
+    """陈列页背景色阶（art/ui/medals/bg_pal.png 24 色按亮度排）+ 往浅青白延伸三档给金属高光"""
+    pal = Image.open(MED / "bg_pal.png").convert("RGB")
+    cs = sorted({pal.getpixel((i, 0)) for i in range(pal.width)}, key=lambda c: c[0] * 0.3 + c[1] * 0.59 + c[2] * 0.11)
+    return cs + [(0x7f, 0xb8, 0xe0), (0xc4, 0xe2, 0xf5), (0xee, 0xf8, 0xff)]
+
+
+def tone_to_bg(face, mix=0.75):
+    """调色对齐背景（11-08 用户「调色再调一下，和背景颜色对齐」）：按亮度在背景色阶上取色，与原色按 mix 混合"""
+    ramp = bg_ramp()
+    lums = [c[0] * 0.3 + c[1] * 0.59 + c[2] * 0.11 for c in ramp]
+    p = face.load()
+    for y in range(face.height):
+        for x in range(face.width):
+            r, g, b = p[x, y]
+            l = r * 0.3 + g * 0.59 + b * 0.11
+            i = 0
+            while i < len(lums) - 2 and lums[i + 1] < l:
+                i += 1
+            t = 0.0 if lums[i + 1] == lums[i] else max(0.0, min(1.0, (l - lums[i]) / (lums[i + 1] - lums[i])))
+            c = [ramp[i][k] + (ramp[i + 1][k] - ramp[i][k]) * t for k in range(3)]
+            p[x, y] = tuple(int(o + (cc - o) * mix) for o, cc in zip((r, g, b), c))
     return face
 
 
@@ -89,6 +127,7 @@ def bake(mid, src, dst=None, colors=32, light=True):
     face = ImageEnhance.Contrast(face).enhance(1.12)
     if light:
         face = relight(face)
+        face = tone_to_bg(face)
     q = face.quantize(colors, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert("RGB")
     out = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     out.paste(q, (sb[0], sb[1]))
