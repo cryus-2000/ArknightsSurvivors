@@ -234,6 +234,13 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 
+## --memlive（网页测量）：只在带这个参数时才读 art.gd（平时启动页不提前编译它）
+var _mlv := (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--memlive")
+func _ml(what: String, always := false) -> void:
+	if _mlv:
+		load("res://scripts/art.gd").memlive(what, always)
+
+
 ## 网页（无线程）：主线程逐个 load，每帧最多 BUDGET_USEC（单个超过也只读这一个）
 func _step_sync() -> void:
 	var t0 := Time.get_ticks_usec()
@@ -246,6 +253,7 @@ func _step_sync() -> void:
 		if ResourceLoader.exists(cur_path):
 			var l0 := Time.get_ticks_usec()
 			load(cur_path)
+			_ml("boot:" + cur_path)   # --memlive：堆里在用的涨了 ≥ 1 MB 就记是读哪个文件时涨的（docs/319 §15）
 			if FR.enabled() and Time.get_ticks_usec() - l0 > 40000:
 				print("PF FTLOAD %s %.0f ms" % [cur_path, (Time.get_ticks_usec() - l0) / 1000.0])
 		idx += 1
@@ -312,8 +320,10 @@ func _open_title() -> void:
 	reparent(layer, false)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_opened = true
+	_ml("boot:main.tscn 读完", true)
 	title = main_scene.instantiate()
 	get_tree().root.add_child(title)
+	_ml("boot:标题页建好", true)
 	get_tree().current_scene = title
 	if title.has_method("boot_cover"):
 		title.boot_cover()

@@ -20,6 +20,7 @@ const PARTS_GAME := 1
 const PARTS_ALL := 2   # 桌面启动页：两批都画（桌面编译快，盖层下一并做完，载入页那批就是空的）
 static var game_done := false   # 粒子那批已画过（载入页不再重画）
 var parts := PARTS_UI
+var _mlv := (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--memlive")
 var steps: Array = []        # 待加的项（Callable）
 var total := 0
 var _hold := HOLD
@@ -56,7 +57,10 @@ func progress() -> float:
 func _process(_delta: float) -> void:
 	if not steps.is_empty():
 		var st0 := Time.get_ticks_usec()
-		(steps.pop_front() as Callable).call()
+		var cl: Callable = steps.pop_front()
+		cl.call()
+		if _mlv:
+			load("res://scripts/art.gd").memlive("shader_warm %d/%d %s" % [total - steps.size(), total, str(cl.get_bound_arguments())])   # --memlive（docs/319 §15）
 		if FR.enabled():
 			print("PF FTWARM %d/%d %.0f ms" % [total - steps.size(), total, (Time.get_ticks_usec() - st0) / 1000.0])
 		return

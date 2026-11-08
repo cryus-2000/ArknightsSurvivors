@@ -649,7 +649,9 @@ func _process_main(delta: float) -> void:
 			if v6.has(sn):
 				load("res://scripts/characters/blocks/ob_fx.gd").warm_frame_r(sn, A.tex(sn), maxi(1, int(v6[sn][0])))
 			_op_warm_more = not _grow_strips.is_empty()
-		Sfx.warm_step(maxi(1000, LOAD_BUDGET_USEC - (Time.get_ticks_usec() - wt0)))   # 出发后的等待里逐条注册音频样本（网页；桌面队列为空）：和读图共用一帧预算
+		A.memlive("载入页·读图后")
+		Sfx.warm_step(maxi(1000, LOAD_BUDGET_USEC - (Time.get_ticks_usec() - wt0)))
+		A.memlive("载入页·音频注册后")   # --memlive（docs/319 §15）；原注释：出发后的等待里逐条注册音频样本（网页；桌面队列为空）：和读图共用一帧预算
 		_loading_progress()
 	if leaving >= 0.0:
 		leaving += delta

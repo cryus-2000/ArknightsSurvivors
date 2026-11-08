@@ -129,7 +129,7 @@ static func memlive(what: String, always := false) -> void:
 	var cap := int(p[1])
 	if always or live >= _ml_live + 1 or cap != _ml_cap:
 		print("PF MEMLIVE %s live=%d (%+d) cap=%d%s" % [what, live, live - _ml_live, cap, "  ← 容量涨" if cap != _ml_cap and _ml_cap > 0 else ""])
-	_ml_live = live
+		_ml_live = live   # 只在打印时换基准：一张一张的小涨累计到 1 MB 也会报
 	_ml_cap = cap
 
 
