@@ -1229,7 +1229,8 @@ func _ready() -> void:
 	if demo_op == "":
 		Sfx.cut_target = 20000.0
 		Sfx.vol_target = -4.0
-		vfx.show_banner("深海的潮水正在涌来……")
+		if not Cfg.dev_args().has("--nohints"):   # 宣传片录像不出开局横幅
+			vfx.show_banner("深海的潮水正在涌来……")
 	RunSetup.apply_difficulty(self)   # 难度预设 / 批跑难度参数（run/run_setup.gd）
 	sync_stats()
 	hp = max_hp

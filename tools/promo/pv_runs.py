@@ -12,7 +12,7 @@
 import glob, json, os, shutil, subprocess, sys, time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-BASE = ["--balance", "--realtime", "--nodeath", "--bot=master", "--diff=4", "--quality=high", "--pickframes=90"]
+BASE = ["--balance", "--realtime", "--nodeath", "--nohints", "--bot=master", "--diff=4", "--quality=high", "--pickframes=90"]
 MID = ["--op=mizuki", "--squad=skadi,texas"]
 
 RUNS = {
