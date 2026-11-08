@@ -16,7 +16,9 @@ import json, os, subprocess, tempfile
 
 import soundfile as sf
 
+import re
 LONG_MIN = 30.0
+OVERLAY_LAYER = re.compile(r"^suno_battle\d_(pulse|drive)$")
 SKIP = {"opening", "boss_in", "boss_down"}
 
 
@@ -45,6 +47,9 @@ def externalize(gamedir, outdir):
         size = os.path.getsize(p)
         kbps = max(24, min(160, int(round(size * 8 / dur / 1000 * 1.15)) + 2))   # AAC-LC 低码率比 Vorbis 吃亏约一成半；Toy 包 50 MB 上限（11-09 实测 40 kbps 下限超到 52 MB）
         x, sr = sf.read(p, dtype="float32")
+        if OVERLAY_LAYER.match(name) and x.ndim == 2:
+            x = x.mean(1)   # 战斗加层（打击乐 / 驱动）：手机只放底层，加层只在桌面网页叠在立体声底层上；单声道 × 0.65 码率，省约 2.4 MiB（Toy 包 49.9 → 约 47.5 MB）
+            kbps = max(24, int(round(kbps * 0.65)))
         o = os.path.join(odir, "music_%s.m4a" % name)
         with tempfile.TemporaryDirectory() as td:
             w = os.path.join(td, "a.wav")
