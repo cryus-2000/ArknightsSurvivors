@@ -51,11 +51,10 @@ main = [
     shot(83, 84, src="D_angelina_m4.mp4", ramp=[200, 250, "+0.6"], zoom=2.2, cx=0.55, cy=0.47, glitch=GL),
     shot(84, 85, kind="word", text="队长", sub="CAPTAIN", glitch=GL),
     shot(85, 88, src="E_seg_01_win_t000.3.mp4", f=3720 - 99, glitch=GL, _="贝斯退出：水月独行"),
-    shot(88, 89, kind="card", card="op:mizuki"),
+    shot(88, 89, kind="card", card="op:mizuki", v2=True, tag="队长"),
     shot(89, 91, src="E_seg_01_win_t000.3.mp4", f=4290, flash=4, _="招募三选一 → 入队"),
-    shot(91, 91.5, kind="card", card="op:skadi"),
-    shot(91.5, 92, kind="card", card="op:texas"),
-    shot(92, 93, src="T_seg_01_win_t240.0.mp4", f=1290, flash=4),
+    shot(91, 92, kind="card", card="op:skadi", v2=True),
+    shot(92, 93, kind="card", card="op:texas", v2=True),
     shot(93, 94, kind="word", text="升级", sub="LEVEL UP", glitch=GL),
     shot(94, 96, src="T_seg_01_win_t240.0.mp4", f=925, glitch=GL, _="升级三选一 → 刀光变大"),
     shot(96, 97, kind="word", text="指挥", sub="COMMAND", col=[255, 61, 139], glitch=GL),
@@ -76,7 +75,8 @@ vert = [
     shot(107, 109.5, VB, src="S5_seg_01_win_t205.0.mp4", ramp=[2900, 3100, "bar:108"], after=0.4),
     shot(109.5, 110.5, VB, src="L4_seg_01_win_t460.0.mp4", f=200, glitch=GL),
     shot(110.5, 111.5, VB, src="UW_seg_01_win_t470.0.mp4", ramp=[500, 544, "+0.6"], flash=3),
-    shot(111.5, 115.5, VB, kind="title"),
+    shot(111.5, 113, VB, src="D_angelina_m4.mp4", ramp=[195, 250, "+0.6"], zoom=2.2, cx=0.55, cy=0.47, glitch=GL),
+    shot(113, 115.5, VB, kind="title"),
 ]
 p = os.path.join(HERE, "edit.json")
 ed = json.load(open(p, encoding="utf-8"))

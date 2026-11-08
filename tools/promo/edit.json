@@ -434,7 +434,9 @@
    "t0": 18.0834,
    "t1": 19.7274,
    "kind": "card",
-   "card": "op:mizuki"
+   "card": "op:mizuki",
+   "v2": true,
+   "tag": "队长"
   },
   {
    "t0": 19.7274,
@@ -447,23 +449,17 @@
   },
   {
    "t0": 23.0153,
-   "t1": 23.8372,
-   "kind": "card",
-   "card": "op:skadi"
-  },
-  {
-   "t0": 23.8372,
    "t1": 24.6592,
    "kind": "card",
-   "card": "op:texas"
+   "card": "op:skadi",
+   "v2": true
   },
   {
    "t0": 24.6592,
    "t1": 26.3032,
-   "src": "T_seg_01_win_t240.0.mp4",
-   "f": 1290,
-   "flash": 4,
-   "kind": "clip"
+   "kind": "card",
+   "card": "op:texas",
+   "v2": true
   },
   {
    "t0": 26.3032,
@@ -634,6 +630,21 @@
   },
   {
    "t0": 8.4252,
+   "t1": 10.8912,
+   "src": "D_angelina_m4.mp4",
+   "ramp": [
+    195,
+    250,
+    9.0252
+   ],
+   "zoom": 2.2,
+   "cx": 0.55,
+   "cy": 0.47,
+   "glitch": 4,
+   "kind": "clip"
+  },
+  {
+   "t0": 10.8912,
    "t1": 15.001,
    "kind": "title"
   }

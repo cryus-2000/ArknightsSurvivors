@@ -154,7 +154,10 @@ def render_shot(sh, T, ow, oh, vert):
     if k == "word":
         return cards.card_word(lt, sh["text"], sh.get("sub", ""), dur, tuple(sh.get("col", CYAN)), ow, oh, sh.get("step")).convert("RGB")
     if k == "card":
-        im = cards.card_operator(lt, sh["card"][3:], dur)
+        if sh.get("v2"):
+            im = cards.card_operator2(lt, sh["card"][3:], dur, sh.get("tag", ""))
+        else:
+            im = cards.card_operator(lt, sh["card"][3:], dur)
         if vert:
             im = im.crop(((W - int(H * ow / oh)) // 2 + 260, 0, (W - int(H * ow / oh)) // 2 + 260 + int(H * ow / oh), H)).resize((ow, oh), Image.LANCZOS)
         return im.convert("RGB")

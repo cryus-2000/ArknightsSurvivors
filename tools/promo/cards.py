@@ -228,3 +228,118 @@ def card_word(t, text, sub="", dur=1.6, col=CYAN, vw=W, vh=H, step=None):
         a = int(255 * ease_out((t - 0.12) / 0.2))
         d.text((vw / 2 - tw / 2, yb + 30), sub, font=f, fill=SUB + (a,))
     return im
+
+
+_ENTRY = {}
+
+
+def entry_frames(cid, k=10):
+    """原作「入场」动作帧（data/characters/<id>.json sprites.entry，64 画布 @2x），整数倍最近邻放大；返回 (帧, 每帧秒数, 脚底点)"""
+    if cid not in _ENTRY:
+        d = json.load(open(WT + "/game/data/characters/%s.json" % cid, encoding="utf-8"))
+        sp = d["sprites"]["entry"]
+        s = Image.open(ART + "/operators/%s/%s@2x.png" % (cid, sp["tex"])).convert("RGBA")
+        n = int(sp["frames"])
+        fw = s.width // n
+        frs = [s.crop((i * fw, 0, (i + 1) * fw, s.height)).resize((fw * k, s.height * k), Image.NEAREST) for i in range(n)]
+        durs = sp.get("frame_durations") or [1.0 / float(sp.get("fps", 10))] * n
+        foot = (sp["foot"][0] * 2 * k, sp["foot"][1] * 2 * k)
+        _ENTRY[cid] = (frs, durs, foot)
+    return _ENTRY[cid]
+
+
+def _tint(fr, col, a):
+    r = Image.new("RGBA", fr.size, col + (0,))
+    r.putalpha(fr.getchannel("A").point(lambda v: int(v * a)))
+    return r
+
+
+def card_operator2(t, cid, dur, tag=""):
+    """登场卡 v2（11-08 用户嫌旧卡简陋）：原作入场动作放大 10 倍 + 职业色残影 + 落地闪白 / 冲击环 / 震屏；
+    背后职业色斜条滚动、速度线、空心大英文跑马；右侧中文名砸出 + 英文 + 职业标签；末 12 帧斜切条扫走"""
+    import numpy as np
+    name, en, cls, icon, col = OPS[cid]
+    frs, durs, foot = entry_frames(cid)
+    t_in = 0.06
+    ends = np.cumsum(durs)
+    land = t_in + ends[-1]
+    lt = t - t_in
+    fi = int(np.searchsorted(ends, lt, side="right")) if lt >= 0 else 0
+    fi = min(fi, len(frs) - 1)
+    # 震屏
+    sh = 0
+    if 0 <= t - land < 4 / FPS:
+        sh = (8, -6, 5, -3)[int((t - land) * FPS)]
+    im = Image.new("RGBA", (W, H), INK + (255,))
+    d = ImageDraw.Draw(im)
+    # 斜条滚动（职业色暗调）
+    off = (t * 420) % 180
+    dk = _shade(col, 0.22)
+    for i in range(-2, 16):
+        x0 = i * 180 - off
+        d.polygon([(x0, 0), (x0 + 70, 0), (x0 + 70 - 420, H), (x0 - 420, H)], fill=dk + (255,))
+    # 角色背后的主色斜块从左切入
+    u = ease_out(t / 0.18)
+    xr = -300 + 1300 * u
+    d.polygon([(-10, 0), (xr + 260, 0), (xr - 160, H), (-10, H)], fill=_shade(col, 0.42) + (235,))
+    d.polygon([(xr + 260, 0), (xr + 300, 0), (xr - 120, H), (xr - 160, H)], fill=col + (255,))
+    # 空心大英文跑马（两行反向）
+    g = glyph(en, 300, col, hollow=True)
+    ga = _tint(g, col, 0.22)
+    for row, (yy, sp) in enumerate(((150, -260), (930, 200))):
+        x = (t * sp) % (g.width + 120)
+        for k in range(-1, 3):
+            im.alpha_composite(ga, (int(k * (g.width + 120) + (x if sp > 0 else -x)), int(yy - g.height / 2)))
+    # 速度线（入场前半）
+    if t < land + 0.1:
+        rng = np.random.default_rng(int(t * FPS))
+        for _ in range(26):
+            y = int(rng.integers(120, H - 120))
+            x = int(rng.integers(-200, W))
+            ln = int(rng.integers(160, 620))
+            d.rectangle((x, y, x + ln, y + int(rng.integers(2, 6))), fill=WHITE + (int(rng.integers(40, 150)),))
+    grid(im, col, 96, 18)
+    # 角色：入场动作 + 两层残影
+    fx_, fy = 640 + sh, 1010
+    for back, a in ((2, 0.18), (1, 0.38)):
+        j = fi - back
+        if j >= 0 and t < land + 0.15:
+            gh = _tint(frs[j], col, a)
+            im.alpha_composite(gh, (int(fx_ - foot[0] - 26 * back), int(fy - foot[1])))
+    fr = frs[fi]
+    bob = int(3 * math.sin((t - land) * 5.5)) if t > land else 0
+    im.alpha_composite(fr, (int(fx_ - foot[0]), int(fy - foot[1] + bob)))
+    # 落地：冲击环 + 闪白
+    if t >= land:
+        q = (t - land) / 0.35
+        if q < 1:
+            rx, ry = 120 + 520 * ease_out(q), 26 + 90 * ease_out(q)
+            lay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+            dl = ImageDraw.Draw(lay)
+            wv = max(2, int(14 * (1 - q)))
+            dl.ellipse((fx_ - rx, fy - ry, fx_ + rx, fy + ry), outline=WHITE + (int(255 * (1 - q)),), width=wv)
+            dl.ellipse((fx_ - rx * 0.7, fy - ry * 0.7, fx_ + rx * 0.7, fy + ry * 0.7), outline=col + (int(200 * (1 - q)),), width=max(2, wv // 2))
+            im.alpha_composite(lay)
+        if t - land < 3 / FPS:
+            im = Image.blend(im, Image.new("RGBA", (W, H), WHITE + (255,)), 0.55 * (1 - (t - land) * FPS / 3))
+    # 右侧文字（落地前 0.15 秒开始）
+    tt = t - (land - 0.15)
+    nx = 1380
+    if tt > 0:
+        slam_text(im, name, tt, nx + sh, 430, 190 if len(name) < 4 else 160, WHITE, step=BEAT / 4, ghost=col)
+    if tt > 0.25:
+        a = ease_out((tt - 0.25) / 0.16)
+        gE = glyph(en, 112, CYAN, hollow=True)
+        paste_scaled(im, gE, nx + (1 - a) * 80, 610, 1.0, a)
+    if tt > 0.36:
+        lw = text_w(cls, 46) + 44 + 12
+        label(im, cls, nx - lw / 2 + 50, 710, 46, slide=(tt - 0.36) / 0.14)
+        if tt > 0.42:
+            pi = Image.open(ART + "/ui/professions/%s.png" % icon).convert("RGBA").resize((84, 84), Image.NEAREST)
+            im.alpha_composite(pi, (int(nx - lw / 2 - 50), 710))
+        if tag and tt > 0.46:
+            label(im, tag, nx - lw / 2 + 80 + lw, 710, 46, bg=col, fg=WHITE, slide=(tt - 0.46) / 0.14)
+    so = 12 / FPS
+    if dur - t < so:
+        slash_bars(im, so - (dur - t), so, [col + (255,), WHITE + (255,), INK + (255,)])
+    return im
