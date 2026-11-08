@@ -27,10 +27,24 @@ static var _js_ok := false
 static var _checked := false
 static var prev := {}     # 上次异常退出那一份（标题页 / 性能报告页读）
 static var _wg := 0     # 已见过的 WASM 堆增长次数
+static var _rt := 0.0   # 开局后的真实秒数（选卡 / 暂停时局内时间不走，靠它分清同一局内时间的几条）
 
 
 static func _web() -> bool:
 	return OS.has_feature("web")
+
+
+## 网页：记下当前阶段（开机 / 标题 / 建局·各段 / 局内），engine_patch 的堆增长记录带上它，真机快照能看出 WASM 是在哪一段撑大的（docs/319 §13）
+static func phase(n: String) -> void:
+	if _web():
+		JavaScriptBridge.eval("window.__syPhase=%s" % JSON.stringify(n), true)
+
+
+## 配乐走哪条路：web = 浏览器解码（web_music.js）；engine = 引擎样本；后面带浏览器解码失败次数
+static func _music_mode() -> String:
+	if not _web():
+		return "engine"
+	return "web" if not Sfx._wm.is_empty() else "engine"
 
 
 ## 对局 _ready：开一份新的（上一份没 end 的话先挪到「上次」，免得重开 / 连开两局时盖掉崩溃记录——正常走不到，以防万一）
@@ -48,13 +62,14 @@ static func begin(g) -> void:
 	var A = load("res://scripts/art.gd")
 	var b: Dictionary = load("res://scripts/core/perf_report.gd")._build()
 	cur = {"v": 1, "start": Time.get_datetime_string_from_system(false, true), "ver": str(b.get("version", "dev")), "commit": str(b.get("commit", "dev")),
-		"q": Cfg.quality, "dev": _dev_short(), "squad": "", "end": "", "s": [], "ev": []}
+		"q": Cfg.quality, "dev": _dev_short(), "squad": "", "end": "", "s": [], "ev": [], "mus": _music_mode(), "wg": [], "sr": 0}
 	_t = _every - 3.0   # 开局 3 秒记第一条（建局读完的贴图）
 	_mem_t = 0.0
 	_last_mb = 0.0
 	_last_write = 0.0
 	_tags = {}
 	_load0 = int(A.load_n)
+	_rt = 0.0
 	_write(true)
 
 
@@ -78,6 +93,9 @@ static func tick(g, delta: float) -> void:
 	if cur.squad == "" and g.squad != null:
 		cur.squad = ",".join(PackedStringArray(g.squad.ids()))
 	var rd := delta / maxf(0.01, Engine.time_scale)   # 按真实时间（快进 / 慢动作不改间隔）
+	if _rt == 0.0:
+		phase("局内")
+	_rt += rd
 	_t += rd
 	_mem_t += rd
 	_last_write += rd
@@ -106,21 +124,36 @@ static func sample(g) -> void:
 	var aud: float = Sfx.sample_mem_mb() if _web() else 0.0
 	var wasm := 0.0
 	var js := 0.0
+	var pck := 0.0
+	var mw := 0.0
 	if _web():
-		var r = JavaScriptBridge.eval("(function(){var w=window.__syWasm,r={w:w&&w.buffer?w.buffer.byteLength:0,g:(window.__syWasmGrows||[]).length};if(performance.memory){r.j=performance.memory.usedJSHeapSize}return JSON.stringify(r)})()", true)
+		# g：堆增长记录（[页面秒, 原 MB, 请求 MB, 阶段]）；m：浏览器解码配乐状态；p：主包在 MEMFS 的字节（JS 堆估算，WebKit 没有 performance.memory）
+		var r = JavaScriptBridge.eval("(function(){var w=window.__syWasm,r={w:w&&w.buffer?w.buffer.byteLength:0,g:window.__syWasmGrows||[],p:window.__syPckBytes||0};if(performance.memory){r.j=performance.memory.usedJSHeapSize}if(window.__syMusOn&&window.__syMus){try{r.m=JSON.parse(window.__syMus.state())}catch(e){}}return JSON.stringify(r)})()", true)
 		var d = JSON.parse_string(str(r)) if r != null else null
 		if d is Dictionary:
 			wasm = float(d.get("w", 0)) / 1048576.0
 			js = float(d.get("j", 0)) / 1048576.0
-			if int(d.get("g", 0)) > _wg:
-				_wg = int(d.get("g", 0))
+			var gl: Array = d.get("g", []) if d.get("g", []) is Array else []
+			if gl.size() > _wg:
+				_wg = gl.size()
 				_tags["WASM 堆增长"] = 1   # 这一段里堆又涨过（engine_patch.py §3）
+			cur.wg = gl.slice(-30)
+			pck = float(d.get("p", 0)) / 1048576.0
+			var m = d.get("m", null)
+			if m is Dictionary:
+				mw = float(m.get("mb", 0))
+				cur.sr = int(m.get("sr", 0))
+				cur.mdl = float(m.get("dl", 0))
+				if int(m.get("fails", 0)) > 0:
+					cur.mus = "web·解码失败 %d（%s）" % [int(m.fails), str(m.get("lf", ""))]
 	else:
 		wasm = OS.get_static_memory_usage() / 1048576.0   # 桌面：引擎静态内存放在同一列
 	_last_mb = vid + aud
 	var nfx: int = g.fx.size() + (g.ult.shapes.size() if g.ult != null else 0)
 	var ln: int = int(A.load_n)
-	var s := {"t": int(g.t), "tex": int(tex), "buf": int(buf), "vid": int(vid), "aud": int(aud), "wasm": int(wasm), "js": int(js),
+	if g.squad != null:
+		cur.squad = ",".join(PackedStringArray(g.squad.ids()))   # 每条都更新：中途入队的干员也记上
+	var s := {"t": int(g.t), "rt": int(_rt), "tex": int(tex), "buf": int(buf), "vid": int(vid), "aud": int(aud), "mw": int(mw), "wasm": int(wasm), "js": int(js), "pk": int(pck),
 		"node": int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT)), "obj": int(Performance.get_monitor(Performance.OBJECT_COUNT)),
 		"e": g.enemies.size(), "fx": nfx, "b": g.bullets.size() + g.ebullets.size(), "lv": int(g.level),
 		"tc": A._cache.size(), "ld": ln - _load0, "rl": ",".join(A.recent_loads.slice(-6)), "tag": ",".join(PackedStringArray(_tags.keys())), "q": Cfg.quality}
@@ -128,6 +161,8 @@ static func sample(g) -> void:
 	_tags = {}
 	if Cfg.dev_args().has("--crashbox"):
 		print("PF CRASHBOX sample t=%d tex=%d buf=%d e=%d ld=%d tag=%s" % [s.t, s.tex, s.buf, s.e, s.ld, s.tag])
+		if cur.s.size() == 3:
+			print("PF CRASHBOX report\n" + report_text(cur))   # 测试：第 3 条时把整份文本打出来，对照真机快照格式
 	var a: Array = cur.s
 	a.append(s)
 	if a.size() > MAX_S:
@@ -194,8 +229,7 @@ return S.getItem('sy_bb_prev')||''})()""", true)
 	var d = JSON.parse_string(praw) if praw != "" else null
 	prev = d if d is Dictionary else {}
 	if Cfg.dev_args().has("--crashbox"):
-		print("PF CRASHBOX prev=%d
-%s" % [int(not prev.is_empty()), report_text(prev)])
+		print("PF CRASHBOX prev=%d\n%s" % [int(not prev.is_empty()), report_text(prev)])
 	return prev
 
 
@@ -234,13 +268,25 @@ static func report_text(p: Dictionary) -> String:
 	if p.is_empty():
 		return ""
 	var o := PackedStringArray()
-	o.append("【上次异常退出前的内存曲线】%s 开局  版本 %s（%s）  %s  编队 %s  画质 %s" % [str(p.get("start", "")), str(p.get("ver", "")), str(p.get("commit", "")),
-		str(p.get("dev", "")), str(p.get("squad", "")), str(p.get("q", ""))])
-	o.append("局内 贴图 缓冲 显存 音频 WASM JS | 节点 对象 怪 特效 弹 等级 | 缓存张 新读 | 事件")
+	o.append("【上次异常退出前的内存曲线】%s 开局  版本 %s（%s）  %s  编队 %s  画质 %s  配乐 %s%s" % [str(p.get("start", "")), str(p.get("ver", "")), str(p.get("commit", "")),
+		str(p.get("dev", "")), str(p.get("squad", "")), str(p.get("q", "")), str(p.get("mus", "?")),
+		("（%d Hz，已下 %.1f MB）" % [int(p.get("sr", 0)), float(p.get("mdl", 0))]) if int(p.get("sr", 0)) > 0 else ""])
+	# JS 一栏：有 performance.memory（Chromium）就是实测；没有（iOS / WebKit）就是估算 ≈ 主包在 MEMFS 的字节 + 浏览器解码的配乐缓冲 + 引擎音频样本，带「~」
+	o.append("局内 实时 | 贴图 缓冲 显存 音频(配乐) WASM JS | 节点 对象 怪 特效 弹 等级 | 缓存张 新读 | 事件")
 	for s in p.get("s", []):
-		o.append("%s %d %d %d %d %d %d | %d %d %d %d %d %d | %d %d | %s" % [_mmss(float(s.get("t", 0))), int(s.get("tex", 0)), int(s.get("buf", 0)), int(s.get("vid", 0)),
-			int(s.get("aud", 0)), int(s.get("wasm", 0)), int(s.get("js", 0)), int(s.get("node", 0)), int(s.get("obj", 0)), int(s.get("e", 0)), int(s.get("fx", 0)),
+		var js_s := str(int(s.get("js", 0)))
+		if int(s.get("js", 0)) == 0 and s.has("pk"):
+			js_s = "~%d" % (int(s.get("pk", 0)) + int(s.get("aud", 0)))
+		o.append("%s %s | %d %d %d %d(%d) %d %s | %d %d %d %d %d %d | %d %d | %s" % [_mmss(float(s.get("t", 0))), _mmss(float(s.get("rt", 0))), int(s.get("tex", 0)), int(s.get("buf", 0)), int(s.get("vid", 0)),
+			int(s.get("aud", 0)), int(s.get("mw", 0)), int(s.get("wasm", 0)), js_s, int(s.get("node", 0)), int(s.get("obj", 0)), int(s.get("e", 0)), int(s.get("fx", 0)),
 			int(s.get("b", 0)), int(s.get("lv", 0)), int(s.get("tc", 0)), int(s.get("ld", 0)), str(s.get("tag", ""))])
+	var wg: Array = p.get("wg", [])
+	if not wg.is_empty():
+		var ws := PackedStringArray()
+		for w in wg:
+			if w is Array and w.size() >= 3:
+				ws.append("%ds %d→%d%s" % [int(w[0]), int(w[1]), int(w[2]), (" " + str(w[3])) if w.size() > 3 and str(w[3]) != "" else " 开机"])
+		o.append("WASM 堆增长（页面秒 原→请求 MB 阶段）：" + "；".join(ws))
 	var a: Array = p.get("s", [])
 	if not a.is_empty():
 		o.append("最后一段新读的贴图：" + str(a[-1].get("rl", "")))

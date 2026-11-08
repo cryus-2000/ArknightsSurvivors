@@ -98,6 +98,7 @@ class Rec extends Node:
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	load("res://scripts/core/crash_box.gd").phase("开机画面")   # WASM 堆增长记录的阶段（docs/319 §13）
 	var args := Cfg.dev_args()
 	_shot_ready = args.has("--bootshot=ready")
 	shot = args.has("--bootshot") or _shot_ready

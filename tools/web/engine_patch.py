@@ -7,7 +7,7 @@
    再 FS.writeFile(new Uint8Array(buf)) 让 MEMFS slice 出第三份常驻。改成：分片加载器（loader.js）在 Response 上挂 __syBuf，
    引擎直接拿这块；MEMFS 用 canOwn 直接持有它，不再 slice。启动峰值从 3 份主包降到 1 份，常驻仍是 1 份（引擎要从 MEMFS 读资源）。
 4. 样本注册记录：每次注册网页样本记 [秒, 时长秒, 当时堆容量 MB] 到 window.__syAudioRegs（只读，测量用）。
-3. WASM 堆增长记录：每次 emscripten_resize_heap 记 [秒, 原容量 MB, 请求 MB] 到 window.__syWasmGrows（崩溃前快照 / --memlog 读）。
+3. WASM 堆增长记录：每次 emscripten_resize_heap 记 [秒, 原容量 MB, 请求 MB, 阶段] 到 window.__syWasmGrows（崩溃前快照 / --memlog 读；阶段 = window.__syPhase，游戏在开机 / 标题 / 建局各段写）。
 """
 
 ANCHOR = "GodotAudio.samples.set(params.id,sample);"
@@ -39,7 +39,7 @@ CH_B = ("if(typeof SharedArrayBuffer!=='undefined'&&HEAPF32.buffer instanceof Sh
         "else{audioBuffer.copyToChannel(subLeft,0,0);audioBuffer.copyToChannel(subRight,1,0);}")
 REG_A = "const audioBuffer=GodotAudio.ctx.createBuffer(numberOfChannels,framesTotal,sampleRate);"
 REG_B = ("(window.__syAudioRegs=window.__syAudioRegs||[]).push([Math.round(performance.now()/1000),Math.round(framesTotal/sampleRate),HEAPU8.length>>>20]);" + REG_A)
-GROW_B = GROW_A + "(window.__syWasmGrows=window.__syWasmGrows||[]).push([Math.round(performance.now()/1000),HEAPU8.length>>>20,(requestedSize>>>0)>>>20]);"
+GROW_B = GROW_A + "(window.__syWasmGrows=window.__syWasmGrows||[]).push([Math.round(performance.now()/1000),HEAPU8.length>>>20,(requestedSize>>>0)>>>20,String(window.__syPhase||'')]);"   # 第 4 项：当时的阶段（crash_box.phase 写）
 
 
 def patch_index_js(path: str) -> None:
