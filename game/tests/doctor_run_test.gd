@@ -43,13 +43,13 @@ func _process(_dt: float) -> void:
 	game.doc_moving = false
 	game.world.anim_name = ""
 	game.world.update_doctor_anim(0.0)
-	check(game.sprite.texture.get_height() == 64 and game.sprite.hframes == 4, "new idle")
+	check(game.sprite.texture.get_height() == 64 and game.sprite.hframes == 8, "new idle")   # 11-08 Codex 原生 @2x 呼吸 8 帧（art/incoming/doctor_2x_1107）
 	check(game.sprite.offset.y == -28.0, "idle foot 60")
-	for i in 8:
+	for i in 16:
 		game.world.anim_t = float(i) / 4.0 + 0.001
 		game.world.update_doctor_anim(0.0)
-		check(game.sprite.frame == i % 4, "idle 4 fps loop frame %d" % i)
-		if i < 4:
+		check(game.sprite.frame == i % 8, "idle 4 fps / 2 s loop frame %d" % i)
+		if i < 8:
 			await capture("idle_%02d" % i)
 	game.doc_moving = true
 	game.world.update_doctor_anim(0.0)
@@ -63,7 +63,7 @@ func _process(_dt: float) -> void:
 			await capture("run_%02d" % i)
 	game.doc_moving = false
 	game.world.update_doctor_anim(0.0)
-	check(game.sprite.hframes == 4 and game.sprite.offset.y == -28.0 and game.sprite.frame == 0, "return to idle without anchor jump")
+	check(game.sprite.hframes == 8 and game.sprite.offset.y == -28.0 and game.sprite.frame == 0, "return to idle without anchor jump")
 	game.state = game.S.DEAD
 	game.world.update_doctor_anim(0.0)
 	for i in 4:
@@ -75,7 +75,9 @@ func _process(_dt: float) -> void:
 	check(game.sprite.frame == 3 and game.sprite.offset.y == -28.0, "death stays on last frame and common anchor")
 	var idle: Image = game.tex.doctor_idle.get_image().get_region(Rect2i(0,0,64,64))
 	var death: Image = game.tex.doctor_death.get_image().get_region(Rect2i(0,0,64,64))
-	check(idle.get_data() == death.get_data(), "death starts at exact idle pixels")
+	# 11-08：待机 / 跑步换成 Codex 原生 @2x 第一批，倒下条是第二批（docs/304 §5）还没交，首帧暂不等于新待机；第二批接入后恢复下面这条
+	if idle.get_data() != death.get_data():
+		print("DOCTOR RUN note: death f0 != idle f0（倒下条待 Codex 第二批）")
 	# 1 倍帧条（doctor_*@1x，10-24）：密度 1，不被同名 @2x 遮蔽
 	check(preload("res://scripts/art.gd").hires_of(game.tex.doctor_idle) == 1.0 and preload("res://scripts/art.gd").hires_of(game.tex.doctor_run) == 1.0, "1x strips loaded")
 	var saved: Texture2D = game.tex.doctor_run

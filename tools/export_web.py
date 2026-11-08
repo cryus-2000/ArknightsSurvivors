@@ -150,6 +150,9 @@ def main():
     # 长配乐出包（tools/web_music.py，docs/319 §12）：不进 index.pck，单独 AAC 由浏览器解码（不在 WASM 堆里整段解码）
     import web_music
     print("[瘦身] " + web_music.report(web_music.externalize(gpath, tmp)), flush=True)
+    # 半分辨率贴图（tools/web_half.py，docs/319 §16）：整 2 倍放大的 @2x 换 1 倍；有细节的特效另出 @h、斯卡蒂终结技图集出半分辨率给手机
+    import web_half
+    print("[瘦身] " + web_half.report(web_half.make(gpath, sd_half_only=a.toy)), flush=True)   # Toy 包：斯卡蒂终结技只留半分辨率版（约 −2.1 MB）
     run([GODOT, "--headless", "--path", gpath, "--import"], check=False)  # 无头导入退出时偶发崩溃，结果以导出为准
     out = run([GODOT, "--headless", "--path", gpath, "--export-release", "Web", os.path.join(tmp, "index.html")], check=False)
     if not os.path.exists(os.path.join(tmp, "index.pck")):

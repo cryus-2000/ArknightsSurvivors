@@ -281,7 +281,7 @@ func _mobile_audio() -> void:
 var _warm_q: Array = []
 var _warm_total := 0
 
-func warm_begin() -> void:
+func warm_begin(ops: Array = []) -> void:
 	if not OS.has_feature("web"):
 		return
 	var list: Array = _track_streams("battle1")
@@ -292,7 +292,11 @@ func warm_begin() -> void:
 	if not list.is_empty():
 		_next["battle1"] = true   # 载入页预热后保留到第一首开播；不预解码后续整首分层曲
 		_freed.erase("battle1")
+	# 手机网页：干员专属音效（op_<id>_*）只预注册开局编队的，中途入队时 warm_op 补（docs/319 §15：17 名干员约 65 秒、常驻 12 MB）
+	var only_ops: bool = cfg != null and cfg.mobile_knob("mobile_op_sfx_lazy", 1.0) and not ops.is_empty()   # 全部网页（桌面不注册样本，没有这一步）
 	for n in streams:
+		if only_ops and str(n).begins_with("op_") and not ops.has(_op_of(str(n))):
+			continue
 		list.append(streams[n])
 	var seen := {}
 	for st in list:
@@ -300,6 +304,26 @@ func warm_begin() -> void:
 			seen[st] = true
 			_warm_q.append(st)
 	_warm_total = _warm_q.size()
+
+
+## op_<id>_<kind> → id（干员 id 本身可能带下划线：按 OP_SFX 的键匹配最长前缀）
+func _op_of(sn: String) -> String:
+	var best := ""
+	for oid in OP_SFX:
+		var o: String = str(oid)
+		if sn.begins_with("op_" + o + "_") and o.length() > best.length():
+			best = o
+	return best
+
+
+## 中途入队（choice_panel.load_op_tex）：补注册这名干员的专属音效（开局只注册了编队的，见 warm_begin）
+func warm_op(cid: String) -> void:
+	if not OS.has_feature("web") or not OP_SFX.has(cid):
+		return
+	for kind in OP_SFX[cid]:
+		var st = streams.get("op_%s_%s" % [cid, kind], null)
+		if st is AudioStream and not AudioServer.is_stream_registered_as_sample(st):
+			AudioServer.register_stream_as_sample(st)
 
 
 ## 每帧调一次：budget_usec 微秒内尽量多注册（至少一条）；返回是否还有剩

@@ -32,6 +32,7 @@ const RunEnd = preload("res://scripts/run/run_end.gd")   # 局终：局外结算
 const Telemetry = preload("res://scripts/run/telemetry.gd")
 const PerfReport = preload("res://scripts/core/perf_report.gd")
 const CrashBox = preload("res://scripts/core/crash_box.gd")
+const RunReload = preload("res://scripts/core/run_reload.gd")
 const WorldView = preload("res://scripts/render/world.gd")
 const HudView = preload("res://scripts/screens/hud.gd")
 const ShopScreen = preload("res://scripts/screens/shop_screen.gd")
@@ -614,7 +615,7 @@ static func demo_warm_names() -> Array:
 ## 不做法线的前缀（fx_ / proj_ / relic_ …）由 art.gd 过滤，这里不用管；漏掉的名字只是回到当场算（--loadprof 的 sync_names 能看到）
 ## 开局要读帧条的干员：缺省全部可招募干员；手机网页只读队长（10-26 iPhone 进局即崩，按内存止血；中途入队的由 squad.add → load_op_tex 补读）
 static func _op_tex_ids() -> Array:
-	if Cfg.mobile_web() and Cfg.mobile_knob("mobile_lazy_ops", 1.0):
+	if Cfg.mobile_knob("mobile_lazy_ops", 1.0):   # 11-09 全平台（不影响画面；电脑 Chrome 贴图 730 MB 的大头）：其余干员入队时补读，招募卡出现时先分帧预读（prefetch_ops）
 		return [Cfg.character_id]
 	return Character.list_ids()
 
@@ -788,7 +789,7 @@ func _enemy_evict(n: String) -> void:
 	tex_deferred[n] = true
 
 static func _lazy_fx_enabled() -> bool:
-	return (Cfg.mobile_web() and Cfg.mobile_knob("mobile_lazy_fx", 1.0)) or Cfg.dev_args().has("--lazyfx")
+	return Cfg.mobile_knob("mobile_lazy_fx", 1.0) or Cfg.dev_args().has("--lazyfx")   # 11-09 全平台（同 _op_tex_ids）
 
 ## 载入页和进局清理各自读取当时的编队。回标题改选队长后，上局的名单应立即失效。
 static func _deferred_start_fx(lazy: bool) -> Dictionary:
@@ -828,6 +829,51 @@ func _drop_outrun_tex() -> void:
 		print("PF OUTRUN dropped=%d" % nd)
 
 
+## 一名干员的帧条（待机 / 跑 / 攻击 / 技能 / 受击 / 倒下 / 移动攻击 + extra_sprites + 无盾帧条）读进 g.tex。
+## 开局（tex_chars）与中途入队（choice_panel.load_op_tex）共用这一份槽表：原来入队那份少了受击 / 倒下 / 无盾条（11-09 回归 siege_ulpianus_art 抓到）
+func load_op_sprites(cid: String) -> void:
+	var cdef: Dictionary = Character.load_def(cid)
+	var csp: Dictionary = cdef.get("sprites", {})
+	for kind in ["idle", "run", "attack", "skill", "hurt", "death", "move_attack"] + cdef.get("extra_sprites", []):   # move_attack：移动攻击（docs/128，character._move_swap）
+		if csp.has(kind):
+			var tn: String = csp[kind] if csp[kind] is String else csp[kind].tex
+			if tex.get(tn) == null:
+				tex[tn] = A.tex(tn)
+	var nsa = csp.get("noshield", {}).get("art", {}) if csp.get("noshield", {}) is Dictionary else {}
+	for kind in nsa:   # 无盾帧条（星熊，docs/97 H 批）：缺图时为 null，走程序回退
+		if tex.get(nsa[kind]) == null:
+			tex[nsa[kind]] = A.tex(str(nsa[kind]))
+
+
+## 招募卡出现时（choice_panel）：把候选干员的帧条 / 专属特效分帧读进贴图缓存（选卡时游戏暂停，每帧 OP_PF_BUDGET 微秒），
+## 选中入队时 load_op_fx / load_op_tex 直接命中缓存，不在入队那一帧同步读一串（桌面 / 电脑网页；手机网页不预读，省内存，入队时再读）
+const OP_PF_BUDGET := 4000
+var _op_pf: Array = []
+
+func prefetch_ops(ids: Array) -> void:
+	if Cfg.mobile_web():
+		return
+	for cid in ids:
+		var c := str(cid)
+		for n in tex_lazy_fx.get(c, []):
+			if not _op_pf.has(n):
+				_op_pf.append(n)
+		var csp: Dictionary = Character.load_def(c).get("sprites", {})
+		for kind in ["idle", "run", "attack", "skill", "hurt", "death", "move_attack"]:
+			if csp.has(kind):
+				var tn: String = csp[kind] if csp[kind] is String else str(csp[kind].get("tex", ""))
+				if tn != "" and not _op_pf.has(tn):
+					_op_pf.append(tn)
+
+
+func _op_pf_step() -> void:
+	if _op_pf.is_empty():
+		return
+	var t0 := Time.get_ticks_usec()
+	while not _op_pf.is_empty() and Time.get_ticks_usec() - t0 < OP_PF_BUDGET:
+		A.tex(str(_op_pf.pop_front()))
+
+
 ## 中途入队的干员：补读开局跳过的专属特效帧条；光学压阶（optical._fxq_step）名单已建好时把它们接到名单末尾，照常换压阶版
 func load_op_fx(cid: String) -> void:
 	var ns: Array = tex_lazy_fx.get(cid, [])
@@ -843,6 +889,70 @@ func load_op_fx(cid: String) -> void:
 	perf_rep.tag("读帧条")
 	if not Cfg.dev_args().is_empty():
 		print("PF FXLAZY t=%.1f %s n=%d ms=%d" % [t, cid, ns.size(), Time.get_ticks_msec() - t0])
+
+
+## 手机网页分帧预读（spawner.PF_LEAD：Boss 登场前 10 秒）：队列里一项一张贴图，每帧最多 PF_BUDGET 微秒（至少一项）。
+## 读帧条项读完才把这种怪从推迟名单拿掉；期间真的刷出来了，ensure_enemy_tex 照旧当场补读剩下的。白剪影先建变体、最后建本体
+## （ensure_white 只看本体有没有白剪影）
+const PF_BUDGET := 3000
+var _pf_q: Array = []
+
+func prefetch_enemy(n: String) -> void:
+	var ks: Array = []
+	for k in tex_deferred:
+		if k == n or (k as String).begins_with(n):
+			ks.append(k)
+	for k in ks:
+		for nm in [k] + Array(ENEMY_SUFFIXES).map(func(sf): return k + sf):
+			_pf_q.append(["tex", nm])
+		_pf_q.append(["done", k])
+	if lazy_white:
+		_pf_q.append(["white", n])
+	if not Cfg.dev_args().is_empty():
+		print("PF PREFETCH t=%.1f %s items=%d" % [t, n, _pf_q.size()])
+
+
+func _prefetch_step() -> void:
+	if _pf_q.is_empty():
+		return
+	var t0 := Time.get_ticks_usec()
+	while not _pf_q.is_empty():
+		var it: Array = _pf_q[0]
+		var nm: String = it[1]
+		match str(it[0]):
+			"tex":
+				_pf_q.pop_front()
+				if tex.get(nm) == null and (tex_deferred.has(nm) or _pf_deferred_of(nm)):
+					tex[nm] = A.tex(nm)
+			"done":
+				_pf_q.pop_front()
+				if tex_deferred.has(nm):
+					tex_deferred.erase(nm)
+					_load_enemy_tex(nm)   # 帧条都已在表里：只补记 _enemy_loaded / 脚底锚点
+			"white":
+				_white_alive[nm] = t
+				var todo: Array = []
+				for w in _white_names(nm):
+					if tex.get(w) != null and not tex.has(w + "_white"):
+						todo.append(w)
+				if todo.is_empty():
+					_pf_q.pop_front()
+				else:
+					var w2: String = nm   # 本体留到最后
+					for w in todo:
+						if w != nm:
+							w2 = w
+							break
+					tex[w2 + "_white"] = A.white_of(tex[w2])
+		if Time.get_ticks_usec() - t0 > PF_BUDGET:
+			break
+
+
+func _pf_deferred_of(nm: String) -> bool:
+	for k in tex_deferred:
+		if nm.begins_with(k):
+			return true
+	return false
 
 
 func ensure_white(n: String) -> void:
@@ -1061,18 +1171,12 @@ func _ready() -> void:
 			if sd.get("icon", "") != "" and tex.get(sd.icon) == null:
 				tex[sd.icon] = A.tex(sd.icon)
 	# 所有可招募干员的贴图集（待机 / 跑步 / 攻击）：招募卡与入队后绘制都用得到（手机网页只读队长的，入队时 squad.add 补读，docs/50 §30）
-	for cid in _op_tex_ids():
-		var cdef: Dictionary = Character.load_def(cid)
-		var csp: Dictionary = cdef.get("sprites", {})
-		for kind in ["idle", "run", "attack", "skill", "hurt", "death", "move_attack"] + cdef.get("extra_sprites", []):   # move_attack：移动攻击（docs/128，character._move_swap）
-			if csp.has(kind):
-				var tn: String = csp[kind] if csp[kind] is String else csp[kind].tex
-				if not tex.has(tn):
-					tex[tn] = A.tex(tn)
-		var nsa = csp.get("noshield", {}).get("art", {}) if csp.get("noshield", {}) is Dictionary else {}
-		for kind in nsa:   # 无盾帧条（星熊，docs/97 H 批）：缺图时为 null，走程序回退
-			if not tex.has(nsa[kind]):
-				tex[nsa[kind]] = A.tex(str(nsa[kind]))
+	var tids: Array = _op_tex_ids()
+	for o in squad.ops:   # 实际编队（图鉴演示 / Boss 演练的干员、--op / --squad）一定读；其余入队时 load_op_sprites 补
+		if not tids.has(str(o.id)):
+			tids.append(str(o.id))
+	for cid in tids:
+		load_op_sprites(cid)
 	A.mark("tex_chars")
 	# 美术 V6：投射物 / 命中 / 爆炸 / 激光三段（docs/10_art_v6_spec.md）
 	var fx_ids := {}
@@ -1100,7 +1204,7 @@ func _ready() -> void:
 		if not etex.has(tn):
 			etex.append(tn)
 	# 网页版：开局 WEB_EARLY_T 秒内刷不到的种类（中后期小怪、全部 Boss）先不加载，首次刷出时再读（ensure_enemy_tex）
-	var early := _web_early_enemy_tex() if OS.has_feature("web") and demo_op == "" else {}
+	var early := _web_early_enemy_tex() if (OS.has_feature("web") or Cfg.dev_args().has("--bossprefetch")) and demo_op == "" else {}   # --bossprefetch：桌面试推迟加载 + 预读
 	for n in etex:
 		if not early.is_empty() and not early.has(n):
 			tex_deferred[n] = true
@@ -1524,6 +1628,63 @@ func _mem_guard_trim_fonts() -> void:
 	Cfg.slim_fonts(true)
 
 
+## 手机网页后期掉帧（11-08 iPhone：5:12 后同屏 66 只、P50 44 ms，CPU 瓶颈；仿真里界面层每帧画 3 ms、世界层 14 ms、敌人逻辑只 1.9 ms）：
+## ① 掉帧时界面层隔帧重画（没重画的那帧引擎沿用上一帧的绘制命令，界面数字 / 血条按 15 次每秒更新），--bal=web/mobile_hud_half=0 退回；
+## ② 掉帧时同屏上限降到 AQ_CAP_LOW（超出的照旧排队推迟出场，总只数 / 经验不变，同 docs/50 §39 的大群推迟），帧时回落后升回，--bal=web/mobile_cap_adapt=0 退回。
+## 「掉帧」看真实帧间隔的滑动平均：> SLOW_MS 持续 SLOW_HOLD 秒算慢，< FAST_MS 持续 FAST_HOLD 秒算恢复
+const AQ_CAP_LOW := 50
+const SLOW_MS := 40.0   # 低于约 25 帧
+const FAST_MS := 34.5   # 锁 30 帧时稳定在 33.3 ms 也算恢复
+const SLOW_HOLD := 3.0
+const FAST_HOLD := 8.0
+var _ft_ema := 0.0
+var _slow_t := 0.0
+var _fast_t := 0.0
+var slow_mode := false
+var _hud_flip := false
+var _knob_hud := -1
+var _knob_cap := -1
+
+
+func _slow_track(rd: float) -> void:
+	if rd <= 0.0 or rd > 0.25:
+		return
+	_ft_ema = rd * 1000.0 if _ft_ema <= 0.0 else lerpf(_ft_ema, rd * 1000.0, 0.05)
+	if not slow_mode:
+		_slow_t = _slow_t + rd if _ft_ema > SLOW_MS else 0.0
+		if _slow_t >= SLOW_HOLD:
+			slow_mode = true
+			_fast_t = 0.0
+			_slow_apply()
+	else:
+		_fast_t = _fast_t + rd if _ft_ema < FAST_MS else 0.0
+		if _fast_t >= FAST_HOLD:
+			slow_mode = false
+			_slow_t = 0.0
+			_slow_apply()
+
+
+func _slow_apply() -> void:
+	if _knob_cap < 0:
+		_knob_cap = 1 if Cfg.mobile_knob("mobile_cap_adapt", 1.0) else 0
+	if mobile_cap() and _knob_cap == 1:
+		spawner.auto_cap = AQ_CAP_LOW if slow_mode else AQ_CAP
+	perf_rep.tag("掉帧档" if slow_mode else "恢复")
+	if not Cfg.dev_args().is_empty():
+		print("PF SLOWMODE %s t=%.0f ema=%.1f cap=%d" % [str(slow_mode), t, _ft_ema, spawner.auto_cap])
+
+
+func _hud_skip() -> bool:
+	if not slow_mode or state != S.PLAY or not (Cfg.mobile_web() or Cfg.dev_args().has("--slowmode")):
+		return false
+	if _knob_hud < 0:
+		_knob_hud = 1 if Cfg.mobile_knob("mobile_hud_half", 1.0) else 0
+	if _knob_hud == 0 or (optical != null and int(optical.ab_mask) & 256):   # --stackab 第 256 位：同局轮换量净差（置位 = 照常每帧画）
+		return false
+	_hud_flip = not _hud_flip
+	return _hud_flip
+
+
 const AQ_CAP := 65   # 手机网页开局就开的同屏上限（mobile_cap；帧率会话 10-26 定的低配档参数）
 
 func _auto_quality(delta: float) -> void:
@@ -1533,6 +1694,8 @@ func _auto_quality(delta: float) -> void:
 	_aq_us = now
 	if demo_op != "" or state != S.PLAY or t < 1.0 or (rt_from >= 0.0 and not realtime) or rd > 0.25 or rd <= 0.0:   # 切窗口 / 读盘那种单次长停顿不算
 		return
+	if Cfg.mobile_web() or Cfg.dev_args().has("--slowmode"):
+		_slow_track(rd)   # 手机网页掉帧档（AQ_CAP_LOW 一段）
 	if OS.has_feature("web") and Cfg.max_fps == 0 and not Cfg.fps_probed and ((mode == Mode.PLAY and Cfg.dev_args().is_empty()) or Cfg.dev_args().has("--autoq")):
 		_fps_probe(rd)   # 网页帧率自动：开局测一次定 60 还是 30（帧率上限，不改画质）
 
@@ -1652,8 +1815,10 @@ func _process(delta: float) -> void:
 			cam.zoom = Vector2(bz, bz)   # 低档也每帧对齐（中 / 高由光学 _lo_step 每帧算）：漏掉尺寸变化通知时不会停在旧镜头（10-27 用户「低中镜头还是不一样」）
 	_mem_guard(delta)
 	CrashBox.tick(self, delta)
+	_op_pf_step()   # 招募候选分帧预读（prefetch_ops）
 	perf_rep.tick(delta)   # 性能报告：帧时分桶 / 最低 1 秒帧率 / 内存与敌人峰值（只加计数）
 	_white_release(delta)
+	_prefetch_step()
 	if EliteMoment.on(self):
 		elite_moment.tick(delta)   # 精英化时刻：真实时间（docs/249 §2）
 	if victory.active and state == S.PLAY:
@@ -1706,7 +1871,8 @@ func _process(delta: float) -> void:
 		fg.queue_redraw()
 		dof_layer.visible = Cfg.dof and not optical_on   # 光学开时景深由光学 pass 取代（原来这里开、optical.gd 再关，一帧翻两次）
 		fg.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST if optical_on else CanvasItem.TEXTURE_FILTER_LINEAR   # 前景剪影：光学下像素风（map.draw_foreground）
-		hud.queue_redraw()
+		if not _hud_skip():
+			hud.queue_redraw()
 	world.present_step()   # 表现事件步骤（Boss 换幕 / 倒下演出；docs/101 B3）：每帧一次，在本帧绘制之前，无头也走
 	_pm("tail")
 
@@ -1722,11 +1888,17 @@ func _do_action(act: String) -> void:
 		"demos":
 			onboard.open_viewer()
 		"restart":
+			if RunReload.wanted(self):
+				RunReload.go(self, "restart")   # 手机网页：整页重载清掉 WASM 堆，回来直接同队长同难度出发（core/run_reload.gd，docs/319 §14）
+				return
 			if trial.active:
 				trial.retry()
 			_restarting = true   # 直接重开不过载入页：离场释放保留同编队的固定名单（_release_run）
 			get_tree().reload_current_scene()
 		"title":
+			if RunReload.wanted(self):
+				RunReload.go(self, "title")   # 手机网页：整页重载后回标题页（同上）
+				return
 			get_tree().change_scene_to_file("res://main.tscn")
 		"stats":
 			run_stats.open_for_run()
@@ -2478,7 +2650,7 @@ func _exit_tree() -> void:
 var _restarting := false
 
 func _release_run() -> void:
-	if not (Cfg.mobile_web() and Cfg.mobile_knob("mobile_run_release", 1.0)) and not Cfg.dev_args().has("--runrelease"):
+	if not Cfg.mobile_knob("mobile_run_release", 1.0) and not Cfg.dev_args().has("--runrelease"):   # 11-08 用户口径：不影响画面的全平台生效（原来只手机网页）
 		return
 	var nt := 0
 	if _restarting:

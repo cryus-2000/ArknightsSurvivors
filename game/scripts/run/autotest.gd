@@ -16,6 +16,8 @@ const KILL_TYPES := ["bone", "stone", "offspring", "runner", "floater", "reaper"
 const KILL_SHOTS := [-1, 3, 8, 14, 22]   # --killshot 截图帧（相对击杀那一帧；-1 = 击杀前一帧）
 var _kill_row: Array = []
 var hunt_rec_end := 0  # --huntrec：进寻访结果后又录了几张
+var hunt_mode := ""     # --huntrec：当前寻访段与已停留帧数（拉包段点一下自动拉开、揭示段停够再翻下一名）
+var hunt_age := 0
 var _dash_at: Array = []
 var _m3_at := 0.0
 var _tab_at := 0.0
@@ -1659,7 +1661,10 @@ func step() -> void:
 			if g.at_frames == 200:
 				g.state_age = 99.0
 				g.settlement.skip()
-			if g.at_frames == 215 and DisplayServer.get_name() != "headless":
+			if g.at_frames == 380 and Cfg.dev_args().has("--sharesave") and g.settlement.share_toy != null:   # 导出图（带相框时 outer_size 1:1）存进 shotdir
+				g.settlement.share_toy.out_dir = g.shot_dir
+				g.settlement._save_share()
+			if g.at_frames == (215 if not Cfg.dev_args().has("--shareopen") else 420) and DisplayServer.get_name() != "headless":   # 配 --shareopen：等分享卡拍照出场演完再截
 				g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_settle_%s.png" % ("win" if sw else "lose"))
 				g.get_tree().quit()
 		# --winshot=deep：第 60 帧直接进入胜利结算并截图
@@ -1691,13 +1696,24 @@ func step() -> void:
 			g.headhunt.maybe_open()   # 同结算「寻访」按钮（settlement_screen._action）；11-01 巡检：以前没打开，7 张都截成结算页
 		# 新流程（10-22，单一寻访凭证）：入口 → 定向寻访 → 选职业 → 指定干员 → 拉包 → 揭示 → 本次寻访；[帧, 动作]，动作在截图之后执行
 		var acts := {120: "directed", 170: "ok", 220: "ok"}
+		if Cfg.dev_args().has("--huntten"):   # 十连录屏（11-08 寻访光效回归对照）：配 --rostertickets=10
+			acts = {120: "ten"}
 		if Cfg.dev_args().has("--huntrec"):
+			var hh = g.headhunt
+			if hh.mode != hunt_mode or (hh.mode == "op" and hh.idx != hunt_age / 100000):
+				hunt_mode = hh.mode
+				hunt_age = hh.idx * 100000
+			hunt_age += 1
+			if hh.mode == "bag" and hunt_age % 100000 == 60:
+				hh._tap()   # 11-08 拉包要滑拉链：录屏停 1 秒后单点 = 自动拉开
+			elif hh.mode == "op" and hunt_age % 100000 == 150:
+				hh._advance()   # 十连逐个揭示：每名停 2.5 秒
 			if g.at_frames >= 56 and (g.at_frames - 56) % 2 == 0:
 				if shoot:
 					g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/rec_%04d.png" % ((g.at_frames - 56) / 2))
-				if g.headhunt.mode == "summary":
+				if g.headhunt.mode == "summary" or g.at_frames > 2000:   # 2000 帧兜底（十连停在逐个揭示时不录满 14000 帧）
 					hunt_rec_end += 1
-					if hunt_rec_end > 40:
+					if hunt_rec_end > 90:
 						print("HUNTREC frames=%d" % ((g.at_frames - 56) / 2))
 						g.get_tree().quit()
 			if acts.has(g.at_frames):

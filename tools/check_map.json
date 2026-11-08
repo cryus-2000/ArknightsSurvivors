@@ -106,6 +106,7 @@
     "feedback_code",
     "touch_command",
     "event_touch_layout",
+    "shop_touch_layout",
     "toy_support",
     "web_focus",
     "time_scale_combo",

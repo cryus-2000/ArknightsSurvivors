@@ -10,6 +10,9 @@ static var outrun_track := false
 ## 崩溃前快照（core/crash_box.gd）：进缓存的贴图累计张数与最近几张名字
 static var load_n := 0
 static var recent_loads := PackedStringArray()
+static var _ml := -1          # --memlive（网页测量）：每读一张贴图量一次堆里在用的 MB 与容量，涨了就打印（docs/319 §15）
+static var _ml_live := 0
+static var _ml_cap := 0
 static var _outrun := {}
 static var enemy_pixels: Dictionary = {}
 static var _enemy_pixels_loaded := false
@@ -103,10 +106,32 @@ static var late_log := false   # --perf：开局后才读的贴图逐张打印 T
 ## 这里不能用 Cfg：核心契约测试与 --script 工具不带自动加载
 static var marks: Array = []
 static func mark(n: String) -> void:
+	if OS.has_feature("web"):
+		JavaScriptBridge.eval("window.__syPhase='建局·%s'" % n, true)   # WASM 堆增长记录的阶段（core/crash_box.gd phase，docs/319 §13）
+		memlive("mark:" + n, true)
 	if OS.is_debug_build() and OS.get_cmdline_user_args().has("--loadprof"):
 		marks.append([n, Time.get_ticks_msec()])
-	if OS.is_debug_build() and OS.get_cmdline_user_args().has("--memlog"):
+	if (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--memlog"):
 		print("PF MEMSTAGE %s tex=%.1fMB vid=%.1fMB" % [n, Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1048576.0, Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0])   # docs/50 §30：建局各段的贴图增量
+
+## --memlive（网页测量，docs/319 §15）：堆里实际在用的 MB（engine_patch §7 __syLiveMB）与容量；比上次涨了 ≥ 1 MB（或 always）就打印一行。
+## 读贴图之间的其他分配（JSON / 脚本 / 字形）会算在下一次量到的名字上，看「阶段」行分开
+static func memlive(what: String, always := false) -> void:
+	if _ml < 0:
+		_ml = 1 if OS.has_feature("web") and (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--memlive") else 0   # 这个三元写法测量副本会改成直接读（perf_web.py ARGS_RE）
+	if _ml == 0:
+		return
+	var r = JavaScriptBridge.eval("(function(){var l=window.__syLiveMB?window.__syLiveMB():-1;return l+','+(window.__syWasm?window.__syWasm.buffer.byteLength>>>20:0)})()", true)
+	var p := str(r).split(",")
+	if p.size() < 2:
+		return
+	var live := int(p[0])
+	var cap := int(p[1])
+	if always or live >= _ml_live + 1 or cap != _ml_cap:
+		print("PF MEMLIVE %s live=%d (%+d) cap=%d%s" % [what, live, live - _ml_live, cap, "  ← 容量涨" if cap != _ml_cap and _ml_cap > 0 else ""])
+		_ml_live = live   # 只在打印时换基准：一张一张的小涨累计到 1 MB 也会报
+	_ml_cap = cap
+
 
 ## 美术交付用旧文件名时的对应关系（新名 -> incoming 里的文件名）
 const ALIAS := {
@@ -316,6 +341,21 @@ static var _half_e := -1
 static var half_n := 0      # 减半读了几条 / 对不上保留 @2x 几条（--memlog 打印）
 static var half_keep := 0
 
+## 手机网页读特效的半分辨率版（<名>@h，只在网页包里有；docs/319 §16）。--bal=web/mobile_fx_half=0 退回 @2x
+static var _half_fx := -1
+static func fx_half_on() -> bool:
+	if _half_fx < 0:
+		var ml = Engine.get_main_loop()
+		var cfg = ml.root.get_node_or_null("/root/Cfg") if ml is SceneTree else null
+		if cfg == null:
+			return false
+		var on: bool = OS.has_feature("web") and cfg.mobile_web() and cfg.mobile_knob("mobile_fx_half", 1.0)
+		if (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--fxhalf"):
+			on = true
+		_half_fx = 1 if on else 0
+	return _half_fx == 1
+
+
 static func half_enemy_on() -> bool:
 	if _half_e < 0:
 		var ml = Engine.get_main_loop()
@@ -381,6 +421,14 @@ static func tex(name: String, keep_cached := true) -> Texture2D:
 			if t != null:
 				src_path = q1
 	var halve := half_enemy_on() and name.begins_with("e_") and not normal_maps
+	if t == null and fx_half_on():
+		var qh := _packed_path(name + "@h")   # 网页包里有真 2 倍细节的特效另出的半分辨率版（tools/web_half.py，docs/319 §16）：手机网页读它
+		if qh != "":
+			t = load(qh)
+			if t != null:
+				src_path = qh
+				if pop:
+					t = _pop_tex(t)
 	if USE_HIRES and t == null:
 		var q2 := _packed_path(name + "@2x")
 		if q2 != "":
@@ -423,6 +471,8 @@ static func tex(name: String, keep_cached := true) -> Texture2D:
 			_name_rid[t.get_rid()] = name
 		_cache[name] = t
 		load_n += 1
+		if _ml != 0:
+			memlive(name)
 		recent_loads.append(name)
 		if recent_loads.size() > 8:
 			recent_loads.remove_at(0)

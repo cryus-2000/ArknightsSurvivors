@@ -10,7 +10,7 @@ class CardCanvas extends Control:
 	var card
 	var d: Dictionary
 	func _draw() -> void:
-		card.draw(self, d, Vector2.ZERO, 1.0)
+		card.draw(self, d, Vector2.ZERO, 1.0, 0.0, false)   # 带相框时按 outer_size 1:1
 
 var g
 var _js = null
@@ -107,14 +107,15 @@ func save(card, d: Dictionary) -> void:
 	status = "正在生成图片……"
 	_redraw()
 	var vp := SubViewport.new()
-	vp.size = Vector2i(int(ShareCard.W), int(ShareCard.H))
+	var osz: Vector2 = ShareCard.outer_size(str(d.get("frame", "")))   # 相框加在卡外，图随之变大（11-08）
+	vp.size = Vector2i(int(osz.x), int(osz.y))
 	vp.transparent_bg = false
 	vp.canvas_item_default_texture_filter = Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST   # 子视口缺省线性过滤，像素字 / 立绘会糊
 	vp.render_target_update_mode = SubViewport.UPDATE_ONCE
 	var c := CardCanvas.new()
 	c.card = card
 	c.d = d
-	c.size = Vector2(ShareCard.W, ShareCard.H)
+	c.size = osz
 	vp.add_child(c)
 	add_child(vp)
 	await get_tree().process_frame

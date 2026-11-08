@@ -2588,7 +2588,7 @@ func update_player_anim(dt: float) -> void:
 			g.sprite.frame = int(anim_t * (12.0 if anim_name == "player_run" else 6.0)) % n
 
 
-## 博士动画：data/doctor.json 的 sprites（idle 4 / run 8 / hurt 2 / death 4 帧，10-24 起 doctor_*@1x 1 倍帧条，64 画布脚底 (32,60)）；
+## 博士动画：data/doctor.json 的 sprites（idle 8 / run 8 / hurt 2 / death 4 帧，64 画布脚底 (32,60)；11-08 起待机 / 跑步为 Codex 原生 @2x（doctor_2x_1107）+ 2×2 合并导出的 @1x，hurt / death 仍是 10-24 的 1 倍放大版）；
 ## 某个动作没有贴图时退回待机条：跑步 = 加快切帧 + 颠簸，倒下 = 侧倒
 func update_doctor_anim(dt: float) -> void:
 	# 博士是挂件：不受击，只有待机 / 跑步；主控倒下时一起倒下

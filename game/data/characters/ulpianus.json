@@ -103,7 +103,7 @@
   "hook_stun_elite": 0.6,
   "hook_silence": 1.0,
   "hook_silence_elite": 1.5,
-  "_combo": "钩与锚（docs/123 §2.7）：歌蕾蒂娅钩索拖回到位时，他在 combo_range 内就朝落点补一次锚击（× combo_mult，combo_cd 秒一次，不占普攻冷却）",
+  "_combo": "二重奏（原名钩与锚；docs/123 §2.7）：歌蕾蒂娅钩索拖回到位时，他在 combo_range 内就朝落点补一次锚击（× combo_mult，combo_cd 秒一次，不占普攻冷却）",
   "combo_mult": 1.0,
   "combo_cd": 2.0,
   "combo_range": 260,
@@ -463,7 +463,7 @@
   "desc": "击杀精英 +1 层、Boss +{$stack_boss} 层，每层攻击 +{$stack_atk*100}%（上限 {$stack_cap} 层）；编队里其他深海猎人获得一半"
  },
  "hit_sources": {
-  "钩与锚": {
+  "二重奏": {
    "emitter": "operator",
    "origin": "core",
    "range": "近战",
@@ -1003,7 +1003,7 @@
     "cd": "$combo_cd",
     "range": "$combo_range",
     "knob": "combo/hook_anchor",
-    "_doc": "钩与锚（docs/123 §2.7）：歌蕾蒂娅把敌人拖回到位 → 以落点为中心补一次锚击（半径同锚击，× combo_mult，击退同锚击）；击杀照常算他的（血脉的哺养叠层）",
+    "_doc": "二重奏（原名钩与锚；docs/123 §2.7）：歌蕾蒂娅把敌人拖回到位 → 以落点为中心补一次锚击（半径同锚击，× combo_mult，击退同锚击）；击杀照常算他的（血脉的哺养叠层）",
     "do": [
      {
       "shape": "circle",
@@ -1011,7 +1011,7 @@
       "r": "$reach",
       "mult": "$combo_mult",
       "kb": "$slam_kb",
-      "src": "钩与锚",
+      "src": "二重奏",
       "ring": false,
       "fx": [
        {
@@ -1535,7 +1535,7 @@
  ],
  "combo": {
   "with": "gladiia",
-  "name": "钩与锚",
+  "name": "二重奏",
   "knob": "combo/hook_anchor",
   "desc": "歌蕾蒂娅的钩索把敌人拖回到位时，乌尔比安在 {$combo_range} 内就朝落点补一次锚击（{$combo_mult*100}% 伤害，每 {$combo_cd} 秒至多一次，不占普攻冷却）"
  },

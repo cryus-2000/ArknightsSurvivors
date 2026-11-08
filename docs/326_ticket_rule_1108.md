@@ -57,3 +57,18 @@
 浮层开着时，局内 `_input` 和标题页寻访宿主 `hunt_host._input` 都让开，点按交给浮层自己的 `_gui_input`。
 
 截图（`autotest --settleshot=win|lose`，配 `--roster=start5 --metacells=N --fbtoy`；标题 `--titleshot --fbtoy`；寻访 `--titlehunt --rostertickets=0 --fbtoy`），桌面 1280×720 与 iPhone 2178×1002 各一套。
+
+## 5. 关注 + 三连合成一个入口（11-08 用户再追加，取代 §4 的「关注作者」单项写法）
+
+- 三处入口统一文案 `TS.entry_label()`：「支持作者：关注 +5 · 三连 +5 张寻访凭证」，领过的那项不再写（例：「支持作者：三连 +5 张寻访凭证」）。
+  - 结算页：按钮放宽到 Rect2(932, y, 320, h)，字号固定 16，藏品格只留 1 个。
+  - 寻访页：用 15 号字，后面跟「›」。
+  - 标题页：仍写「支持作者」，角标「领 N 张」。
+- 三连一直列出（`TS.items()` 恒含 triple）。`support_bvid` 为空时 `TS.triple_open()` 为假，那一项置灰，按钮写「PV 发布后开放」，`apply` 不发凭证。
+- `pending()` / `pending_tickets()` 两项都算，三连没开放也算，所以角标最多是「领 10 张」。
+- 浮层两张卡并排，各一枚「领取」（`check(id)` 只查这一项）。Enter 把能领的项都查一遍，原来的「检查并领取」大按钮删掉了。
+- 测试：`toy_support_test` 新增统一文案、角标 10、没配视频不能领、两卡并排、单项领取。用 `TS.bv_test = ""` 模拟没配视频。
+
+## 6. 结算页入口去掉（11-08 用户）
+
+结算页不再放「支持作者」按钮，藏品格恢复原样（最多 7 个）。入口只留标题页和寻访页。`settlement_screen.sup_button / sup_label` 和 `settle_report.support_rect` 已删。§4、§5 里结算页那部分作废。

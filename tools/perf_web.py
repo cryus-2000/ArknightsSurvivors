@@ -91,6 +91,8 @@ def export(ref):
     os.makedirs(tmp)
     import web_music   # 长配乐出包（同发布包，docs/319 §12）
     print("[副本] " + web_music.report(web_music.externalize(gpath, tmp)))
+    import web_half   # 半分辨率贴图（同发布包，docs/319 §16）
+    print("[副本] " + web_half.report(web_half.make(gpath)))
     exe = gr.find_godot()
     subprocess.run([exe, "--headless", "--path", gpath, "--import"], capture_output=True)
     p = subprocess.run([exe, "--headless", "--path", gpath, "--export-release", "Web", os.path.join(tmp, "index.html")], capture_output=True, text=True, encoding="utf-8", errors="replace")

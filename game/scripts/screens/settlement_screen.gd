@@ -269,9 +269,6 @@ func _buttons() -> Array:
 	if sty != null:
 		var bo: Array = sty.buttons()
 		# 生机细胞够 1 张寻访凭证时多一枚「兑换凭证」（11-08 用户），排在最前：↓ 进底栏仍先落在寻访
-		if sup_button() and sty.has_method("support_rect"):
-			var sr: Rect2 = sty.support_rect()
-			bo.push_front(["support", sr.position.x, sr.size.x, sup_label(), false, sr])
 		if Roster.exchange_ready() and sty.has_method("exchange_rect"):
 			var er: Rect2 = sty.exchange_rect()
 			bo.push_front(["exchange", er.position.x, er.size.x, "兑换凭证", false, er])
@@ -289,14 +286,6 @@ func _buttons() -> Array:
 	return out
 
 
-## B站 Toy「支持作者」（11-08 用户）：没通关、本局 0 张凭证、还有没领的奖励时，「本局获得」条里直接放一枚领取按钮（点了打开支持作者浮层）
-func sup_button() -> bool:
-	return bool(g.roster_new.get("lost", false)) and vouchers == 0 and preload("res://scripts/core/toy_support.gd").pending()
-
-
-func sup_label() -> String:
-	const TS = preload("res://scripts/core/toy_support.gd")
-	return ("关注作者，领 %d 张寻访凭证" if not TS.claimed("follow") and TS.follow_on() else "三连视频，领 %d 张寻访凭证") % TS.REWARD
 
 
 func _btn_rect(b: Array) -> Rect2:
@@ -329,7 +318,6 @@ func _run(id: String) -> void:
 		"records": _records()
 		"runs": g.run_log.open_log()
 		"title", "meta", "hunt": _action(id)
-		"support": g.open_support()
 		"exchange":
 			if Roster.exchange_ticket():
 				exchanged += 1
@@ -371,6 +359,7 @@ func _share_input(event: InputEvent) -> void:
 		match Pad.kc(event):
 			KEY_ESCAPE, KEY_T, KEY_V: _close_share()
 			KEY_ENTER, KEY_KP_ENTER, KEY_SPACE, KEY_S: _save_share()
+			KEY_F, KEY_LEFT, KEY_RIGHT: _cycle_frame(-1 if Pad.kc(event) == KEY_LEFT else 1)
 		g.hud.queue_redraw()
 		return
 	var p := Vector2.INF
@@ -382,6 +371,8 @@ func _share_input(event: InputEvent) -> void:
 		return
 	if _share_save().has_point(p):
 		_save_share()
+	elif _share_frames().size() > 1 and _share_frame_btn().has_point(p):
+		_cycle_frame(1)
 	elif _share_close().has_point(p) or not Rect2(SHARE_POS, Vector2(ShareCard.W, ShareCard.H) * SHARE_K).has_point(p):
 		_close_share()
 
@@ -391,6 +382,32 @@ func _save_share() -> void:
 		return
 	Sfx.play("ui_ok", -8.0)
 	share_toy.save(share, share_toy.fill(share_data.duplicate()))
+
+
+## 可选的相框：默认卡面 + 已解锁的专属相框（toy_support.frames：关注 = 罗德岛，三连 = 深海；11-08 用户）
+func _share_frames() -> Array:
+	var out: Array = [""]
+	for f in preload("res://scripts/core/toy_support.gd").frames():
+		out.append(f)
+	var cur := str(share_data.get("frame", ""))
+	if not out.has(cur):
+		out.append(cur)   # 截图参数 --shareframe 指定的
+	return out
+
+
+func _cycle_frame(step: int) -> void:
+	var fs := _share_frames()
+	if fs.size() < 2:
+		return
+	var i: int = fs.find(str(share_data.get("frame", "")))
+	share_data["frame"] = fs[posmod(i + step, fs.size())]
+	Sfx.play("ui_move", -8.0)
+	g.hud.queue_redraw()
+
+
+func _share_frame_btn() -> Rect2:
+	var sv := _share_save()
+	return Rect2(sv.position.x, sv.end.y + 40, sv.size.x, 42)
 
 
 func _share_save() -> Rect2:
@@ -430,11 +447,12 @@ func _draw_share(ci: CanvasItem) -> void:
 		var c0 := pos + sz * 0.5
 		ci.draw_set_transform_matrix(Transform2D(0.0, Vector2.ONE * scale, 0.0, origin) * Transform2D(rot, c0))
 		ci.draw_rect(Rect2(-sz * 0.5 + Vector2(8, 12), sz).grow(7), Color(0, 0, 0, 0.45 * ca))
-		ci.draw_rect(Rect2(-sz * 0.5, sz).grow(7), Color(HH.LIGHT, ca))
+		if not ShareCard.FRAMES.has(str(share_data.get("frame", ""))):   # 拍立得相框自带相纸边，不再套白边
+			ci.draw_rect(Rect2(-sz * 0.5, sz).grow(7), Color(HH.LIGHT, ca))
 		share.draw(ci, share_toy.fill(share_data), origin + pos * scale, k * scale, rot)
 		if dev > 0.0 or ca < 1.0:
 			ci.draw_set_transform_matrix(share._xf)
-			ci.draw_rect(Rect2(0, 0, ShareCard.W, ShareCard.H), Color(1, 1, 1, 0.92 * dev) if ca >= 1.0 else Color(0.02, 0.03, 0.05, 1.0 - ca))
+			ci.draw_rect(Rect2(Vector2.ZERO, ShareCard.outer_size(str(share_data.get("frame", "")))), Color(1, 1, 1, 0.92 * dev) if ca >= 1.0 else Color(0.02, 0.03, 0.05, 1.0 - ca))
 	ci.draw_set_transform(origin, 0, Vector2.ONE * scale)
 	_fa = 1.0 if rm else clampf((t - 0.55) / 0.25, 0.0, 1.0)
 	if _fa > 0.0:
@@ -463,6 +481,13 @@ func _share_side(ci: CanvasItem) -> void:
 	_text_key(ci, sv.position.x + 16, sv.position.y + 10, "保存图片" if Pad.touch_ui() else "保存图片  Enter", 16, HH.INK)
 	if share_toy.status != "":
 		_text(ci, sv.position.x, sv.end.y + 12, share_toy.status, 13, HH.MUTE, 200)
+	if _share_frames().size() > 1:   # 换相框（领过关注 / 三连才有）
+		var fb := _share_frame_btn()
+		ci.draw_rect(fb, Color(HH.DARK2, _fa))
+		ci.draw_rect(fb, Color(HH.CYB, 0.7 * _fa), false, 1.5)
+		var fid := str(share_data.get("frame", ""))
+		var fname: String = str(ShareCard.FRAMES[fid].name) if ShareCard.FRAMES.has(fid) else "默认"
+		_text_key(ci, fb.position.x + 16, fb.position.y + 10, ("相框：%s  ›" % fname) if Pad.touch_ui() else ("相框：%s  F" % fname), 16, HH.LIGHT)
 	var c := _share_close()
 	ci.draw_rect(c, Color(HH.DARK2, _fa))
 	_text_key(ci, c.position.x + 16, c.position.y + 10, "关闭" if Pad.touch_ui() else "关闭  Esc", 16, HH.LIGHT)
@@ -744,7 +769,7 @@ func _draw_buttons(ci: CanvasItem, fp := 1.0) -> void:
 			ci.draw_rect(r, bg)
 		if hov or prs:
 			ci.draw_rect(r, HH.CYB, false, 2.0)
-		elif id == "exchange" or id == "support":   # 兑换凭证 / 关注作者（11-08）：压在「本局获得」暗条上，加青色细边才看得出是按钮
+		elif id == "exchange":   # 兑换凭证（11-08）：压在「本局获得」暗条上，加青色细边才看得出是按钮
 			ci.draw_rect(r, Color(HH.CYB, 0.7 * _fa), false, 1.5)
 		if foc:
 			var c := 10.0
