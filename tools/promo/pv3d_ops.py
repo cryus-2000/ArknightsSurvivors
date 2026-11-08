@@ -226,12 +226,16 @@ def text(body, font, size, loc, m, extrude=0.0):
 
 
 TX = 1.25
+# 环境变量 PV3D_NOTEXT=1：不渲 3D 字，名字 / 职业留到剪辑时按「鹰角 PV 风格规范」的字体与版式叠（规范改了不用重渲 3D）
+NOTEXT = os.environ.get("PV3D_NOTEXT") == "1"
 name = text(NAME, FONT, 0.62, (TX, -0.3, 1.55), txt_m)
 en = text(EN, FONT_EN, 0.26, (TX, -0.3, 1.12), en_m)
 cls = text(CLS, FONT, 0.2, (TX + 0.05, -0.3, 0.72), txt_m)
 bpy.ops.mesh.primitive_cube_add(size=1, location=(TX, -0.3, 1.0))
 line = bpy.context.object
 line.data.materials.append(line_m)
+for ob in (name, en, cls, line):
+    ob.hide_render = NOTEXT
 for f in range(NF + 1):
     t = f / FPS
     k = ease((t - (LAND - 0.1)) / 0.25)
