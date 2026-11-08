@@ -5,8 +5,8 @@
   opcard_sequence.jpg  一位干员的四拍：实机放技能 → 名字卡（故障出字）→ 技能特写 → 故障转场
 
 用法：python tools/promo/pv_style_opcard.py <输出目录> [实机截图路径]
-字体同 pv_style_typecard（Noto Serif/Sans SC VF + 仓库 Montserrat，OFL）。英文代号成片建议换窄体粗体
-（Oswald / Bebas Neue，OFL，需下载、先问用户）；样张里用 Montserrat Bold 横向压到 78% 代替。
+字体同 pv_style_typecard（Noto Serif/Sans SC VF + 仓库 Montserrat，OFL）。英文代号用窄粗体
+Oswald 700（缺省）或 Bebas Neue（环境变量 PV_NAME_FONT=bebas），字体在 tools/promo/fonts（SIL OFL 1.1，11-08 用户同意下载）。
 """
 import os
 import random
@@ -19,6 +19,8 @@ import pv_style_typecard as tc  # noqa: E402
 
 W, H = tc.W, tc.H
 ART = tc.ROOT + "/game/art"
+FACE = os.environ.get("PV_NAME_FONT", "oswald")
+NAME_PX = {"oswald": 236, "bebas": 250}   # 字号使字高 ≈ 175 px
 LB = 131  # 2.35:1 遮幅，上下各 131 px（实测官方新干员段 2.35:1）
 
 
@@ -30,6 +32,19 @@ def frame(path, idx, size):
 
 def px(im, k):
     return im.resize((im.width * k, im.height * k), Image.NEAREST)
+
+
+FONTS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fonts")
+
+
+def display(size, face="oswald"):
+    """大号英文代号用的窄粗体（tools/promo/fonts，SIL OFL 1.1）：oswald = Oswald 700，bebas = Bebas Neue。"""
+    from PIL import ImageFont
+    if face == "bebas":
+        return ImageFont.truetype(os.path.join(FONTS, "BebasNeue-Regular.ttf"), size)
+    f = ImageFont.truetype(os.path.join(FONTS, "Oswald-VF.ttf"), size)
+    f.set_variation_by_axes([700])
+    return f
 
 
 def condensed_text(text, font, fill, squeeze=0.78, tracking=0.02):
@@ -109,7 +124,7 @@ def name_card(glitch=False):
     checker(d, 160, 270, 8)
     tc.tracked(d, (124, 330), "‹  集成战略 · 水月与深蓝之树  ›", tc.sans(22, 500), tc.INK, 0.08)
     # 超大英文代号：窄粗体，字高 ≈ 180 px（官方实测 165–180），占画宽 ≈ 40%
-    nm = condensed_text("MIZUKI", tc.latin(230, True), tc.INK + (255,), 0.78, 0.04)
+    nm = condensed_text("MIZUKI", display(NAME_PX[FACE], FACE), tc.INK + (255,), 1.0, 0.04)
     nx, ny = 112, 372
     if glitch:
         tint = Image.new("RGBA", nm.size, (94, 230, 230, 255))

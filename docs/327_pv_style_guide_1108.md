@@ -103,6 +103,7 @@
 | 中文无衬线（字幕、行动语、信息、标名） | **Noto Sans SC**（= 思源黑体同源）可变字重 100–900 | SIL OFL 1.1 | 本机 `NotoSansSC-VF.ttf`；仓库 `ui*.ttf` 是子集 |
 | 英文标签 / 英文代号 | **Montserrat** SemiBold / Bold | SIL OFL 1.1 | 仓库 `game/fonts/montserrat_*.ttf`（100 字形子集，只够大写和数字） |
 | 英文标题副行（古典衬线） | Noto Serif SC 自带的拉丁大写 | 同上 | — |
+| 名字卡大号英文代号（§17） | **Oswald**（可变字重 200–700，用 700）；备选 **Bebas Neue** | SIL OFL 1.1，可商用、可嵌入成片 | 11-08 用户同意下载，已放 `tools/promo/fonts/`（含 OFL 文本），来源 github.com/google/fonts |
 | 可选，需下载 | Cinzel（Trajan 式古典大写，更像 C 的 MIZUKI）、Barlow Condensed / Oswald（窄体英文底纹，更像 E） | 均 SIL OFL 1.1 | Google Fonts；下载要先问用户 |
 
 ### 4.3 本作每一级字卡（1080p）
@@ -118,7 +119,7 @@
 | A1 | 画面标注：对象名（如「集火目标」） | Noto Sans SC 500 | 28 | 0.1 | 贴着被标注对象：青色圆环 + 1 px 折线引到空处，文字不压主体 | 对象出现后 4 帧画线、再 4 帧出字；对象离场或下一刀前 6 帧淡出 |
 | A2 | 画面标注：一句说明（如「指挥圆盘选中后，全队优先攻击」） | Noto Sans SC 400 | 22 | 0.06 | A1 下方，#96A6B2；只写这个镜头里发生的事，≤ 16 字 | 同 A1 |
 | L1 | 英文微标签（LAMPLIGHT // 01） | Montserrat SemiBold，全大写 | 13–15 | 0.32–0.4 | 贴细线或角落，#788A96 | 跟画面 |
-| N1 | 干员名字卡（出场主镜，§17） | 英文代号：窄粗体（Oswald / Bebas Neue 需下载；暂用 Montserrat Bold 横压 78%）；中文名 Noto Serif SC 700 | 代号字高 165–180（≈ 230 px 字号）；中文名 56 | 代号 0.04；中文 0.2 | 左侧，代号占画宽约 40%，下面中文名 + 职业图标 + 职业 · 分支；上面一行小标签 | 4–6 帧故障出字，定 1 小节，故障转出 |
+| N1 | 干员名字卡（出场主镜，§17） | 英文代号：**Oswald 700**（备选 Bebas Neue；`tools/promo/fonts/`）；中文名 Noto Serif SC 700 | 代号字高 165–180（≈ 230 px 字号）；中文名 56 | 代号 0.04；中文 0.2 | 左侧，代号占画宽约 40%，下面中文名 + 职业图标 + 职业 · 分支；上面一行小标签 | 4–6 帧故障出字，定 1 小节，故障转出 |
 | N2 | 名字卡右侧编号簇 | Montserrat Bold 22 + 13 | 22 / 13 | 0.12 / 0.3 | 右侧中部：`OPERATOR 01` + 2 px 下划线 + `SPECIALIST // AMBUSHER`；右下页码 `01 / 04` | 同 N1 |
 | N3 | 聚光 / 叙事镜的名字（非出场主镜） | Noto Serif SC 600 + Montserrat 14 | 44 / 14 | 0.2 / 0.4 | 底部居中（参照塔露拉前瞻 PV） | 8 帧淡入淡出 |
 | U1 | 角落终结技标名 | Noto Sans SC 700 + Montserrat 13 | 32 / 13 | 0.1 / 0.32 | 右下 5% 安全区内，青色细线 | 终结技起手那拍出现，停 1 小节 |
