@@ -519,6 +519,8 @@ var _fr_i := 0
 var _fr_csv: FileAccess = null
 var _fr_spawn := ""
 var _fr_spawned := false
+var _fr_ring_done := false
+var _fr_volley_t := 0.0
 func _flashrec_step() -> void:
 	if _fr_t0 < -1.0:
 		_fr_t0 = -1.0
@@ -538,6 +540,20 @@ func _flashrec_step() -> void:
 		_fr_spawned = true
 		g.pickups.drop(g.ppos + Vector2(260, 90), "magnet", 1.0)
 		g.pickups.drop(g.ppos + Vector2(-1100, -500), "magnet", 1.0)
+	# --flashring=<怪>:<数>,…：同一时刻在主控周围 420 处刷一圈远程杂兵（11-08 敌弹改红对照：画面里要有足够多的杂兵弹）
+	if fr_due and not _fr_ring_done:
+		for a in Cfg.dev_args():
+			if a.begins_with("--flashring="):
+				_fr_ring_done = true
+				_fr_spawned = true
+				var lst: Array = []
+				for it in a.substr(12).split(","):
+					var kv: PackedStringArray = it.split(":")
+					for _i in (int(kv[1]) if kv.size() > 1 else 1):
+						lst.append(kv[0])
+				for i in lst.size():
+					var re: Dictionary = g.spawner.spawn_enemy(lst[i], g.ppos + Vector2.from_angle(TAU * i / lst.size()) * Vector2(420.0, 300.0))
+					re.age = 5.0
 	if _fr_spawn != "" and fr_due:
 		_fr_spawned = true
 		var b: Dictionary = g.spawner.spawn_enemy(_fr_spawn.trim_suffix("2").trim_suffix("_cocoon"), g.ppos + Vector2(230, -40))
@@ -558,6 +574,20 @@ func _flashrec_step() -> void:
 			if (ks.begins_with("e_knight") or ks.begins_with("e_paranoia")) and not ks.ends_with("_white") and g.tex[k] != null:
 				var wt = g.tex.get(ks + "_white")
 				print("TEXDUMP %s %s white=%s same_src=%s" % [ks, g.tex[k].get_size(), wt.get_size() if wt != null else "none", str(wt == A_.white_of(g.tex[k])) if wt != null else "-"])
+	# --flashvolley：录像前 1.5 秒起每 0.4 秒从队长周围一圈朝队长打 16 发杂兵弹（普通 / 神经 / 新星 / 漂移体侵蚀弹轮换），
+	# 只为对照截图里一定有足够敌弹（11-08 敌弹改红；伤害 0，配 --nodeath）
+	if _fr_t0 > 0.0 and _fr_left > 0 and g.t >= _fr_t0 - 1.5 and g.t >= _fr_volley_t and Cfg.dev_args().has("--flashvolley"):
+		_fr_volley_t = g.t + 0.4
+		var kinds: Array = [["orb", "stone", ""], ["nerve", "floater", ""], ["nova", "stone", ""], ["orb", "skimmer", "proj_skimmer_corrode"]]
+		for i in 16:
+			var a0: float = TAU * i / 16.0 + g.t * 0.7
+			var p0: Vector2 = g.ppos + Vector2.from_angle(a0) * Vector2(520.0, 340.0)
+			var kd: Array = kinds[i % kinds.size()]
+			var vb := {"pos": p0, "vel": (g.ppos - p0).normalized().rotated(0.35) * 150.0, "dmg": 0.0, "slow": false, "r": 5.0, "life": 4.0,
+				"corrode": 0.0, "nerve": 0.0, "true": false, "kind": kd[0], "home": false, "src_type": kd[1], "atk": "法术"}
+			if kd[2] != "":
+				vb["tex"] = kd[2]
+			g.ebullets.append(vb)
 	if _fr_t0 < 0.0 or _fr_left <= 0 or g.t < _fr_t0 or DisplayServer.get_name() == "headless":
 		return
 	if _fr_csv == null:

@@ -379,7 +379,9 @@ func _eb_step(on: bool) -> void:
 		if t == null:
 			continue
 		_eb_orig[nm] = t
-		g.tex[nm] = A.hue_to(t, hue, 240.0, 345.0)
+		# 神经弹弹身是蓝（180–228°），敌弹色非青蓝时（11-08 改红）区间下限放到 render/ebullet_recolor_lo_nerve，整颗换色、不留蓝身
+		var lo: float = Bal.v("render/ebullet_recolor_lo_nerve", 240.0) if nm == "proj_floater_nerve" else 240.0
+		g.tex[nm] = A.hue_to(t, hue, lo, 345.0)
 		g.tex[nm + "@boss"] = t   # Boss 弹仍画原色（粉 / 紫）弹体
 
 
