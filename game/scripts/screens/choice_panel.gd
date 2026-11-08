@@ -653,6 +653,7 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 			break
 	if kind != "event":
 		release_event_cg()
+	g.prefetch_ops(opts.filter(func(o): return str(o.get("kind", "")) == "recruit").map(func(o): return str(o.get("id", ""))))   # 候选干员帧条分帧预读（game.prefetch_ops）
 	g.state = Game.S.CHOICE
 	g.panel_title_text = title
 	panel_sub_text = sub
