@@ -1,0 +1,9 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4859 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+fatal: invalid reference: 147c11f80
+base phone one：304 张；0 处脚本错误；165 行 ERROR
+base phone ten：180 张；0 处脚本错误；159 行 ERROR
+base desktop one：304 张；0 处脚本错误；188 行 ERROR
+base desktop ten：180 张；0 处脚本错误；179 行 ERROR
+media：4 个文件，5.6M

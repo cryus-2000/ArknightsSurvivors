@@ -1,0 +1,10 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4859 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+fatal: invalid reference: 147c11f80
+网页半分辨率贴图：整 2 倍放大的 614 张换成 1 倍（解码后共 298 MB → 74 MB）；有细节的特效 260 张另出 @h 给手机（163 → 41 MB）；斯卡蒂终结技图集 10 张出半分辨率（docs/319 §16）
+bug phone one：304 张；0 处脚本错误；165 行 ERROR
+bug phone ten：180 张；0 处脚本错误；159 行 ERROR
+bug desktop one：304 张；0 处脚本错误；188 行 ERROR
+bug desktop ten：180 张；0 处脚本错误；179 行 ERROR
+media：4 个文件，5.6M
