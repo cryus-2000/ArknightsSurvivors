@@ -373,6 +373,10 @@ for f in range(NF):
         tl = (0, CY, 0.0)
         fd = math.dist(cl, tl)
         fl = max(0.0, 1 - lt / 0.45)
+    if os.environ.get("PV3D_ENDCAM") == "1":   # 结尾卡机位：拉远，卡在左三分线，右侧留给标题（docs/327 T1 右三分线）
+        cl, tl = (2.2, CY - 7.5, 0.6), (2.0, CY, 0.2)
+        fd = math.dist(cl, (0, CY, 0))
+        fl = 0.0
     cam.location, tgt.location = cl, tl
     cam_d.dof.focus_distance = fd
     flash.data.energy = 5 + 600 * fl
@@ -380,7 +384,7 @@ for f in range(NF):
         ob.keyframe_insert(dp, frame=f)
     cam_d.dof.keyframe_insert("focus_distance", frame=f)
     flash.data.keyframe_insert("energy", frame=f)
-    sc.view_settings.exposure = 2.6 * ease((t - (DUR - 0.35)) / 0.35) if f >= S2 else 0.0
+    sc.view_settings.exposure = 2.6 * ease((t - (DUR - 0.35)) / 0.35) if f >= S2 and os.environ.get("PV3D_ENDCAM") != "1" else 0.0
     sc.view_settings.keyframe_insert("exposure", frame=f)
 for a in bpy.data.actions:
     for fc in a.fcurves:
