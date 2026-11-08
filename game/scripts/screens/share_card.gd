@@ -92,7 +92,7 @@ const FRAMES := {
 }
 const PX := 8.0                                   # 相框像素格
 const PD := 12.0                                  # 探出框外的装饰（徽记 / 气泡 / 结晶 / 水母…）的像素格，比相框粗一档
-const MARGIN := [72.0, 104.0, 72.0, 140.0]        # 卡面到整张图边缘：左 上 右 下
+const MARGIN := [72.0, 104.0, 72.0, 76.0]         # 卡面到整张图边缘：左 上 右 下
 const BAND := [3.0, 6.0, 3.0, 4.0]                # 相框带厚（格）：左 上 右 下
 const RI_INK := Color("17181b")
 const RI_YEL := Color("f2c230")
@@ -221,12 +221,12 @@ func _peeker(ci: CanvasItem, d: Dictionary, band: Rect2, photo: Rect2, ink := Co
 		return
 	# 站在下边正中（底部白条中间是空的，左边昵称、右边二维码都不挡）
 	var os := outer_size("ri")
-	# Q 版半身像素小人（11-08 用户：照参考图小人的格子标准，约 16 × 18 格、一格 12；art/operators/<id>/op_<id>_chibi.png，1 格 = 1 像素）
-	var tex := chibi(str(pick.get("key", "")), 12, ink)
+	# Q 版半身像素小人（art/operators/<id>/op_<id>_chibi.png，1 格 = 1 像素）：11-08 用户——当小摆件放在相框边上，不要正下方一大个；
+	# 一格 5，骑在相框左下角（一半在相框外），只压到卡面左下角的空白
+	var tex := chibi(str(pick.get("key", "")), 5, ink)
 	if tex != null:
 		var sz := Vector2(tex.get_width(), tex.get_height())
-		# 从相框下边往上探头：身子在下方背景里，头落在底部白条正中的空处（不压编队行 / 藏品 / 昵称 / 二维码）
-		ci.draw_texture_rect(tex, Rect2(Vector2(photo.get_center().x - sz.x * 0.5, os.y - 6.0 - sz.y), sz), false)
+		ci.draw_texture_rect(tex, Rect2(Vector2(band.position.x + 12.0 - sz.x * 0.5, os.y - 4.0 - sz.y), sz), false)
 		return
 	if not (pick.get("art") is Dictionary):
 		return
@@ -274,7 +274,7 @@ func _ri_deco(ci: CanvasItem, d: Dictionary, os: Vector2, band: Rect2, photo: Re
 	# 右侧医疗十字气泡（挂在右边框外）
 	_pix(ci, Vector2(band.end.x - 72, photo.position.y + 230), RI_BUBBLE, pal, PD)
 	# 右下源石结晶簇
-	_pix(ci, band.end - Vector2(60, 40), RI_ORIG, pal, PD)
+	_pix(ci, band.end - Vector2(60, 66), RI_ORIG, pal, PD)
 
 
 # ---- 深海：海水渐变背景 + 像素光束 + 像素气泡；浅水色相框深蓝描边，上边嵌「DEEP SEA」；右上大水母探出框外、
@@ -323,7 +323,7 @@ func _deep_deco(ci: CanvasItem, d: Dictionary, os: Vector2, band: Rect2, photo: 
 	# 右侧小鱼
 	_pix(ci, Vector2(band.end.x - 54, photo.position.y + 300), SEA_FISH, pal, 9.0)
 	# 右下珊瑚海草
-	_pix(ci, band.end - Vector2(60, 40), SEA_CORAL, pal, PD)
+	_pix(ci, band.end - Vector2(60, 66), SEA_CORAL, pal, PD)
 
 
 func _px(ci: CanvasItem, p: Vector2, s: String, kk: float, col: Color, align := 0, track := 1) -> float:
