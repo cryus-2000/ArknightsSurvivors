@@ -287,9 +287,17 @@ func draw_bg(vs: Vector2) -> void:
 	if not scaled():
 		_draw_bg(vs, g.panel_box.offset_top)
 		return
-	g.panel_fg.draw_set_transform(F.o, 0.0, Vector2(F.k, F.k))
+	_xo = F.o
+	_xk = F.k
+	g.panel_fg.draw_set_transform(_xo, 0.0, Vector2(_xk, _xk))
 	_draw_bg(F.vs, DTOP)
+	_xo = Vector2.ZERO
+	_xk = 1.0
 	g.panel_fg.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+var _xo := Vector2.ZERO   # 触屏整页缩放（draw_bg 里设）：中途要另设变换的地方（脚下影子）在它上面叠加，画完还原到它
+var _xk := 1.0
 
 
 func _draw_bg(vs: Vector2, top: float) -> void:
@@ -311,9 +319,9 @@ func _draw_bg(vs: Vector2, top: float) -> void:
 	var gc := mr.position + Vector2(mr.size.x / 2.0, 236 + my)
 	for k in 6:
 		g.panel_fg.draw_circle(gc, 150.0 - k * 22.0, Color(1.0, 0.66, 0.31, 0.035))
-	g.panel_fg.draw_set_transform(mr.position + Vector2(mr.size.x / 2.0, 330 + my), 0.0, Vector2(1.0, 0.16))
+	g.panel_fg.draw_set_transform(_xo + _xk * (mr.position + Vector2(mr.size.x / 2.0, 330 + my)), 0.0, Vector2(_xk, 0.16 * _xk))
 	g.panel_fg.draw_circle(Vector2.ZERO, 76.0, Color(0, 0, 0, 0.5))
-	g.panel_fg.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	g.panel_fg.draw_set_transform(_xo, 0.0, Vector2(_xk, _xk))
 	var mtx: Texture2D = g.tex.get("merchant")
 	if mtx != null:
 		var fw := mtx.get_width() / 2
