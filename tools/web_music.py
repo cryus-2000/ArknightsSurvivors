@@ -5,7 +5,7 @@
 iPhone B站 App 实测 WASM 一开局就 513 MB。浏览器 decodeAudioData 在 JS 侧解码（异步、不占主线程、不进 WASM 堆），
 解出来的 AudioBuffer 与引擎样本同样大小（按音频上下文采样率），但 WASM 不再被配乐撑高，主包也少了这些 OGG。
 为什么是 AAC：iOS Safari / WKWebView 的 decodeAudioData 不保证认 Ogg Vorbis，AAC（.m4a）各家浏览器都认。
-码率按原 OGG 的平均码率给（再 +4 kbps），包体基本不变（Toy 包上限 50 MB）。
+码率按原 OGG 平均码率 × 1.15 + 2 kbps（Toy 包上限 50 MB）。
 
 - 只处理长曲（≥ LONG_MIN 秒，开场引子 / Boss 登场与击破乐句等短句仍在主包里走引擎样本）；
 - 每首写 <out>/music_<名>.m4a，并在副本的 audio/music/web_music.json 记 {名: {len 秒, url}}，删掉副本里的 .ogg / .ogg.import；
@@ -43,7 +43,7 @@ def externalize(gamedir, outdir):
         if name in SKIP or dur < LONG_MIN:
             continue
         size = os.path.getsize(p)
-        kbps = max(40, min(160, int(size * 8 / dur / 1000) + 4))
+        kbps = max(24, min(160, int(round(size * 8 / dur / 1000 * 1.15)) + 2))   # AAC-LC 低码率比 Vorbis 吃亏约一成半；Toy 包 50 MB 上限（11-09 实测 40 kbps 下限超到 52 MB）
         x, sr = sf.read(p, dtype="float32")
         o = os.path.join(odir, "music_%s.m4a" % name)
         with tempfile.TemporaryDirectory() as td:
