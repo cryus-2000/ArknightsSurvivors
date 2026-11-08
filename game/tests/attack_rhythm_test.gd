@@ -24,6 +24,8 @@ func _ready() -> void:
 	add_child(g)
 	await get_tree().process_frame
 	g.set_process(false)
+	for cid in Ch.list_ids():
+		g.panel_ui.load_op_tex(cid)   # 全员按实机招募入队的补读路径读帧条（11-09 起开局只读编队，docs/319 §16）
 	var approved: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://tests/data_ops/approved_attack_rhythm.json"))
 	var gallery = load("res://scripts/gallery.gd").new()
 	for id in approved:

@@ -31,7 +31,8 @@ func _ready() -> void:
 			continue
 		n += 1
 		var mtn: String = sp.move_attack.tex
-		ok(g.tex.get(mtn) != null, "%s move_attack 帧条已随贴图集加载（%s）" % [cid, mtn])
+		g.panel_ui.load_op_tex(cid)   # 实机中途入队的补读路径（11-09 起开局只读编队，docs/319 §16）
+		ok(g.tex.get(mtn) != null, "%s move_attack 帧条入队补读后在贴图集里（%s）" % [cid, mtn])
 		var o = Op.new(g, d.duplicate(true))
 		o.pos = g.ppos
 		o.start_attack(o.pos + Vector2(80, 0))

@@ -1501,13 +1501,7 @@ func _op_idle(cid: String) -> Dictionary:
 func load_op_tex(cid: String) -> void:
 	g.load_op_fx(cid)   # 手机网页开局没读的专属特效帧条（docs/287 §3 ①）
 	Sfx.warm_op(cid)   # 手机网页开局只注册了编队的专属音效（sfx.warm_begin，docs/319 §15）
-	var cdef: Dictionary = Character.load_def(cid)
-	var csp: Dictionary = cdef.get("sprites", {})
-	for kind in ["idle", "run", "attack", "skill", "move_attack"] + cdef.get("extra_sprites", []):
-		if csp.has(kind):
-			var tn: String = csp[kind] if csp[kind] is String else csp[kind].tex
-			if g.tex.get(tn) == null:
-				g.tex[tn] = A.tex(tn)
+	g.load_op_sprites(cid)   # 与开局同一份槽表（含受击 / 倒下 / 无盾条）
 
 
 ## 选卡 / 商店 / 事件：焦点卡片的说明被截断（或作用对象标签收成了「+N」）时，在面板最上层画完整说明（卡片下方，放不下放上方）
