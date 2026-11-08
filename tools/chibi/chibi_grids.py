@@ -338,11 +338,11 @@ CHIBI = {
                 "C": "2a2a30", "W": "383538", "G": "262628", "A": "7a2a3a", "K": "1a1a1e"},
         "rows": [
             ".......TTTTT........",
-            ".....TTTwTwTTT......",
-            "...TTTTwTTwTTTTT....",
-            ".TTTTTTTTTTTTTTTTTT.",
-            "TUUUTTTTTTTTTTTTUUUT",
-            ".TUUDDDDDDDDDDDDUUT.",
+            ".....TTTTTTTTT......",
+            "....TTwTTwTTwTT.....",
+            "...TTTTTTTTTTTTT....",
+            "UUTTTTTTTTTTTTTTTTT.",
+            ".UUUUDDDDDDDDDDDTTTT",
             "...DHHHHHZHHHHHD....",
             "..DHHHHHZZZHHHHHD...",
             "..DHHHHDZZZDHHHHD...",
@@ -559,12 +559,16 @@ def eyes_only(op, rows, ey):
         rows[y] = ["S" if ch in "EI" else ch for ch in rows[y]]
     # 11-08 用户：眼挤在右边、左边空一块很怪——两眼按脸的实际宽度居中（脸 = 眼那一行与下一行的皮肤格）
     xs = [x for y in (ey, ey + 1) for x, ch in enumerate(rows[y]) if ch in "SB"]
-    c = (min(xs) + max(xs) + 1) // 2
+    # 11-08 用户：都要往右看、透视别乱——两眼整体偏右 1 格（3/4 朝右），近侧（左）鬓发在眼那两行往里垂下盖住空出的脸颊
+    lo = min(xs)
+    c = min((lo + max(xs) + 1) // 2 + 1, max(xs) - 2)   # 近眼不出脸的右边缘（德克萨斯 / 星熊脸窄）
     far, near = [c - 3, c - 2], [c + 1, c + 2]
     b = near[1] + 1
     for y in (ey, ey + 1):
         for x in range(c - 3, c + 3):
             rows[y][x] = "S"
+        for x in range(lo, far[0] - 2):
+            rows[y][x] = "H" if x < far[0] - 3 else "D"
     if op in NARROW:   # 细长眼：上一行画眉，眼只留一行瞳色
         for x in near + far:
             rows[ey - 1][x] = "D"
@@ -574,7 +578,7 @@ def eyes_only(op, rows, ey):
             rows[ey][x] = "E"
             rows[ey + 1][x] = "I"
     if op not in NARROW and ey + 2 < len(rows):
-        for x in (c - 4, c + 3):
+        for x in (far[0] - 1, near[1] + 1):
             if rows[ey + 2][x] == "S":
                 rows[ey + 2][x] = "B"
     if op in SCAR:
