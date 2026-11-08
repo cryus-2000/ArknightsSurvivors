@@ -42,14 +42,26 @@ rows = []
 for f in sorted(glob.glob(os.path.join(out, "scan_*.log"))):
     op, m = re.match(r'scan_(.+)_(\d)\.log', os.path.basename(f)).groups()
     moving = 0; bad = collections.Counter(); err = 0
+    last = None; same = 0   # 跑步类帧条连续同一帧（定格滑步，11-08 维什戴尔 s2_run 卡在第 5 帧）
     for ln in open(f, errors="replace"):
         if "SCRIPT ERROR" in ln: err += 1
         if not ln.startswith("ANIM"): continue
         kv = dict(x.split("=", 1) for x in ln.split()[1:] if "=" in x)
-        if float(kv["mv"]) <= 40: continue
+        if float(kv["mv"]) <= 40:
+            last = None; continue
         moving += 1
         k = kv["kind"]
-        if RUNLIKE.search(k) or kv.get("swap") == "1" or k in ("idle", "hurt", ""):
+        if kv.get("swap") == "1":
+            last = None; continue
+        if RUNLIKE.search(k):
+            key = (k, kv["fr"])
+            same = same + 1 if key == last else 0
+            last = key
+            if same >= 6:   # 走着 6 帧（0.2 秒）以上同一张跑步帧
+                bad[k + "(定格)"] += 1
+            continue
+        last = None
+        if k in ("idle", "hurt", ""):
             continue
         bad[k] += 1
     rows.append((op, int(m), moving, sum(bad.values()), bad, err))
