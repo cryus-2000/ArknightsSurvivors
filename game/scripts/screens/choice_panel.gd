@@ -955,7 +955,9 @@ static func brief_cond_only(t: String) -> bool:
 	for m in ["+", "-", "−", "×", "%"]:
 		if t.contains(m):
 			return false
-	return _re_cond_tail.search(t) != null or _re_cond_each.search(t) != null or _re_cond_dur.search(t) != null
+	# 计数类（「每第 3 次刺击」「编队每有 1 名…干员」）只认不带逗号 / 冒号的短句：「每次格挡时，周围敌人眩晕」本身有效果
+	var short: bool = t.length() <= 18 and not t.contains("，") and not t.contains("：")
+	return _re_cond_tail.search(t) != null or (short and _re_cond_each.search(t) != null) or _re_cond_dur.search(t) != null
 
 
 static func brief_whole(t: String) -> bool:
