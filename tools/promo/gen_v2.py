@@ -43,7 +43,7 @@ def shot(b0, b1, base=B0, **kw):
 
 GL = 4   # 故障转场帧数
 main = [
-    shot(70, 77, src="P3D.mp4", f=0, _="3D 开头（tools/promo/pv3d.gd）：金边实体招募卡 / 升级卡漂浮下落 → 贴海床一排立起 → 74 重拍一张砸到镜头前推进"),
+    shot(70, 77, src="P3D.mp4", f=0, grain=1.0, _="3D 开头（tools/promo/pv3d.gd）：金边实体招募卡 / 升级卡漂浮下落 → 贴海床一排立起 → 74 重拍一张砸到镜头前推进"),
     shot(77, 79, src="H_seg_01_win_t058.0.mp4", ramp=[400, 610, "bar:78"], _="终结技立绘切入，冲击帧落 78 重拍"),
     shot(79, 80, src="L4_seg_01_win_t460.0.mp4", f=140, push=0.06, glitch=GL),
     shot(80, 81, src="UW_seg_01_win_t470.0.mp4", ramp=[508, 544, "+0.6"], flash=3),

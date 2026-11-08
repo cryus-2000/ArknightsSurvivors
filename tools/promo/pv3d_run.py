@@ -13,14 +13,14 @@ fd = out[:-4] + "_frames"
 shutil.rmtree(fd, ignore_errors=True)
 os.makedirs(fd)
 args = [GR.find_godot(), "--path", os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--fixed-fps", "60", "--resolution", "1920x1080",
-        "--write-movie", fd.replace(os.sep, "/") + "/f.png", "-s", os.path.join(HERE, "pv3d.gd").replace(os.sep, "/"), "--",
-        "--pv3d_cards=" + cards.replace(os.sep, "/")]
+        "-s", os.path.join(HERE, "pv3d.gd").replace(os.sep, "/"), "--",
+        "--pv3d_cards=" + cards.replace(os.sep, "/"), "--pv3d_out=" + fd.replace(os.sep, "/")]
 o, e, to = GR.run_godot(args, 900)
 print("\n".join(l for l in (o + e).splitlines() if "PV3D" in l or "ERROR" in l or "SCRIPT" in l)[:3000])
 n = len(glob.glob(fd + "/f*.png"))
 print("frames", n)
 if n:
-    subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-v", "error", "-y", "-framerate", "60", "-i", fd + "/f%08d.png", "-c:v", "libx264", "-crf", "14",
+    subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-v", "error", "-y", "-framerate", "60", "-start_number", "0", "-i", fd + "/f%08d.png", "-c:v", "libx264", "-crf", "14",
                     "-preset", "slow", "-pix_fmt", "yuv420p", out], check=True)
     shutil.rmtree(fd)
     print(out)

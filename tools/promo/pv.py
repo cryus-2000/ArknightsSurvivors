@@ -53,7 +53,7 @@ class Reader:
         if self.p:
             self.p.kill()
         ss = max(0, start - 2) / FPS
-        self.p = subprocess.Popen([ffmpeg(), "-v", "error", "-ss", "%.4f" % ss, "-i", self.path, "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
+        self.p = subprocess.Popen([ffmpeg(), "-v", "error", "-ss", "%.4f" % ss, "-i", self.path, "-vf", "scale=%d:%d:flags=lanczos" % (W, H), "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
                                   stdout=subprocess.PIPE, bufsize=W * H * 3 * 4)
         self.i = int(round(ss * FPS)) - 1
         self.cur = None
@@ -200,9 +200,28 @@ def glitch(im, i, n):
     return Image.fromarray(np.clip(out, 0, 255).astype(np.uint8))
 
 
+_GRAIN = {}
+
+
+def paper_grain(im, i, k):
+    """纸纹颗粒 + 暗角（对齐官方水月 PV 的灰纸质感）：颗粒每 2 帧换一次"""
+    w, h = im.size
+    if (w, h) not in _GRAIN:
+        yy = np.linspace(-1, 1, h)[:, None]
+        xx = np.linspace(-1, 1, w)[None, :]
+        _GRAIN[(w, h)] = np.clip(1.0 - 0.38 * (xx ** 2 * 0.8 + yy ** 2) ** 1.2, 0, 1)[..., None]
+    rng = np.random.default_rng(i // 2)
+    n = rng.normal(0, 1, (h // 2 + 1, w // 2 + 1)).repeat(2, 0).repeat(2, 1)[:h, :w, None]
+    a = np.asarray(im.convert("RGB")).astype(np.float32)
+    a = a * _GRAIN[(w, h)] + n * 9.0 * k
+    return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
+
+
 def apply_fx(im, sh, T, ow, oh, vert):
     lt = T - sh["t0"]
     dur = sh["t1"] - sh["t0"]
+    if sh.get("grain"):
+        im = paper_grain(im, int(T * FPS), float(sh["grain"]))
     gl = sh.get("glitch", 0)
     if gl and lt * FPS < gl:
         im = glitch(im, int(lt * FPS), gl)
