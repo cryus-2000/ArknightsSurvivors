@@ -23,11 +23,26 @@
   // 手机（power.js 按 24 kHz 建上下文的那类设备，__sySampleRate > 0）：解码后左右声道混成单声道再留着，常驻的解码缓冲减半
   // （200 秒一首 37 → 18 MB，docs/319 §15）。网址带 ?musmono=0 关掉
   var MONO = (window.__sySampleRate || 0) > 0 && new URLSearchParams(location.search).get("musmono") !== "0";
+  // 混音放到 OfflineAudioContext 里渲染（音频线程，单声道目标按规范 0.5 × (L + R) 下混）：原来主线程逐样本循环，200 秒一首 480 万次，
+  // iPhone 上换曲那一帧卡几十到上百毫秒（11-09 真机 7:02 中期 Boss 登场换曲一帧 342 ms，docs/319 §20）。没有 OfflineAudioContext 才退回主线程循环
   function mono(c, b) {
-    if (!MONO || b.numberOfChannels < 2) return b;
+    if (!MONO || b.numberOfChannels < 2) return Promise.resolve(b);
+    var O = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    if (O) {
+      try {
+        var oc = new O(1, b.length, b.sampleRate), s = oc.createBufferSource();
+        s.buffer = b; s.connect(oc.destination); s.start(0);
+        return new Promise(function (res) {
+          var done = function (m) { res(m && m.numberOfChannels === 1 ? m : b); };
+          var p = oc.startRendering();
+          if (p && p.then) p.then(done, function () { res(b); });
+          else oc.oncomplete = function (e) { done(e.renderedBuffer); };
+        });
+      } catch (e) {}
+    }
     var n = b.length, m = c.createBuffer(1, n, b.sampleRate), o = m.getChannelData(0), l = b.getChannelData(0), r = b.getChannelData(1);
     for (var i = 0; i < n; i++) o[i] = 0.5 * (l[i] + r[i]);
-    return m;
+    return Promise.resolve(m);
   }
   function load(url) {
     if (bufs[url]) return Promise.resolve(bufs[url]);
@@ -41,7 +56,8 @@
       dl += a.byteLength;
       return new Promise(function (res, rej) { c.decodeAudioData(a, res, rej); });
     }).then(function (b) {
-      b = mono(c, b);
+      return mono(c, b);
+    }).then(function (b) {
       bufs[url] = b; delete loading[url]; return b;
     }, function (e) {
       delete loading[url]; fails++; lastFail = String(url).split("/").pop() + " " + String(e && e.message || e).slice(0, 40);

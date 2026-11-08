@@ -29,6 +29,8 @@ var h_late := PackedInt32Array()
 var min_all := 0.0       # 最低 1 秒帧率（0 = 还没满过 1 秒）
 var min_late := 0.0
 var enemy_peak := 0
+var slow_n := 0          # 掉帧档（game._slow_track，手机网页）这局进了几次
+var slow_s := 0.0        # 在档里一共多少秒（对局时间）
 var mem_peak := 0.0
 var guard_hit := false
 var guard_stage := 0     # 护栏这局走到第几步（game._mem_guard：1 清缓存 / 2 降画质 / 3 分辨率缩放）
@@ -88,6 +90,8 @@ func tick(delta: float) -> void:
 			min_late = fps if min_late <= 0.0 else minf(min_late, fps)
 		_sec_end(fps)
 		_sec_begin(now, late)
+	if bool(g.get("slow_mode")):
+		slow_s += delta
 	if g.enemies.size() > enemy_peak:
 		enemy_peak = g.enemies.size()
 		enemy_mix = _enemy_mix()
@@ -102,6 +106,8 @@ func tick(delta: float) -> void:
 
 ## 事件标签（Boss 登场、护栏动作等调用方主动打的）：记进这一秒
 func tag(name: String) -> void:
+	if name == "掉帧档":
+		slow_n += 1
 	CrashBox.tag(name)
 	if on and not done:
 		_sec_tags[name] = int(_sec_tags.get(name, 0)) + 1
@@ -230,7 +236,7 @@ func finish(result: String) -> void:
 		"frames": _count(h_all), "p50": pct(h_all, 0.5), "p95": pct(h_all, 0.95), "p99": pct(h_all, 0.99), "min1s": snappedf(min_all, 0.1),
 		"late": {} if _count(h_late) == 0 else {"frames": _count(h_late), "p50": pct(h_late, 0.5), "p95": pct(h_late, 0.95), "p99": pct(h_late, 0.99), "min1s": snappedf(min_late, 0.1)},
 		"mem_peak": snappedf(mem_peak, 1.0), "mem_src": "显存 + 音频估算" if OS.has_feature("web") else "引擎内存 + 显存",
-		"enemy_peak": enemy_peak, "guard": guard_hit or Cfg.guard_lowered,
+		"enemy_peak": enemy_peak, "guard": guard_hit or Cfg.guard_lowered, "slow_n": slow_n, "slow_s": snappedf(slow_s, 1.0),
 		"q0": q0, "guard_stage": guard_stage, "enemy_mix": enemy_mix, "mem_mix": mem_mix, "slow": slow,
 	}
 	if Cfg.dev_args().has("--perfreport"):
@@ -341,6 +347,8 @@ static func report_text(r: Dictionary) -> String:
 	var late: Dictionary = r.get("late", {})
 	lines.append(("7 分钟后 " + frame_line(late)) if not late.is_empty() else "7 分钟后 —（本局未到 7 分钟）")
 	lines.append("内存峰值 %d MB（%s）· 同屏敌人峰值 %d · 内存护栏 %s" % [int(r.get("mem_peak", 0)), str(r.get("mem_src", "")), int(r.get("enemy_peak", 0)), "已触发" if r.get("guard", false) else "未触发"])
+	if r.has("slow_n"):
+		lines.append("掉帧档（手机：界面隔帧 + 同屏上限 50）：进档 %d 次，共 %d 秒" % [int(r.slow_n), int(r.get("slow_s", 0))] if int(r.slow_n) > 0 else "掉帧档：未进档")
 	if r.has("q0"):   # 10-27 加的字段（旧记录没有）
 		var gs: int = int(r.get("guard_stage", 0))
 		lines.append("开局画质 %s · 护栏 %s" % [Cfg.QUALITY_NAME.get(str(r.q0), str(r.q0)), ["未触发", "只清缓存", "降画质", "分辨率缩放"][clampi(gs, 0, 3)]])
