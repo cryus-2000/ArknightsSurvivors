@@ -37,6 +37,14 @@ func edge_pos() -> Vector2:
 		var half: float = sh[1]
 		var u: float = fposmod(ang - (sh[0] + half), TAU)   # 从扇区末端起量的角度 [0, TAU)
 		ang = sh[0] + half + u * (TAU - 2.0 * half) / TAU
+	if Cfg.touch_device():
+		# 手机镜头 11-08 拉远到可见高 688（横屏可见半宽约 745–800，比 720–820 的刷怪圈还宽）：沿这个角度推到可见矩形外 60，免得左右边缘看到怪凭空出现。
+		# 只触屏局；不多用随机数；按名义镜头倍率（同 _view_half_diag），不读实时画布
+		var hv: Vector2 = g.get_viewport_rect().size / maxf(0.01, Cfg.battle_zoom()) * 0.5
+		var c := absf(cos(ang))
+		var sn := absf(sin(ang))
+		var need: float = minf(hv.x / c if c > 0.001 else 1.0e9, hv.y / sn if sn > 0.001 else 1.0e9) + 60.0
+		dist = maxf(dist, need)
 	return g.ppos + Vector2.from_angle(ang) * dist
 
 
