@@ -3352,7 +3352,8 @@ func _emit_pts(name: String, frames: int, frame: int):
 	var ent = _emit_cache.get(name)
 	if ent == null:
 		ent = []
-		var tx: Texture2D = A.tex(name + "_emit") if A.has_override(name + "_emit") else null
+		# 网页：发光层只在这里读一次像素算点表，不留在贴图缓存里（原来每种怪每个动作的 _emit 图整局占着显存，docs/319 §12）
+		var tx: Texture2D = A.tex(name + "_emit", not OS.has_feature("web")) if A.has_override(name + "_emit") else null
 		if tx != null:
 			var img: Image = tx.get_image()
 			if img != null and not img.is_empty():

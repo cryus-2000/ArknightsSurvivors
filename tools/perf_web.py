@@ -86,11 +86,13 @@ def export(ref):
             shutil.copy2(os.path.join(art_src, f), art_dst)
     gpath = os.path.join(work, "game")
     release_slim.prune_game_art(gpath, drop_fallback=True)   # 已搬进 game/art 的回退条同样不带（docs/189）
-    exe = gr.find_godot()
-    subprocess.run([exe, "--headless", "--path", gpath, "--import"], capture_output=True)
     tmp = os.path.join(BASE, "_out_" + c)
     shutil.rmtree(tmp, ignore_errors=True)
     os.makedirs(tmp)
+    import web_music   # 长配乐出包（同发布包，docs/319 §12）
+    print("[副本] " + web_music.report(web_music.externalize(gpath, tmp)))
+    exe = gr.find_godot()
+    subprocess.run([exe, "--headless", "--path", gpath, "--import"], capture_output=True)
     p = subprocess.run([exe, "--headless", "--path", gpath, "--export-release", "Web", os.path.join(tmp, "index.html")], capture_output=True, text=True, encoding="utf-8", errors="replace")
     if not os.path.exists(os.path.join(tmp, "index.pck")):
         print(p.stdout[-3000:], p.stderr[-3000:])
@@ -101,6 +103,7 @@ def export(ref):
     html = open(os.path.join(tmp, "index.html"), encoding="utf-8").read()
     gl = open(os.path.join(TOOLS, "web", "gl_state.js"), encoding="utf-8").read()
     gl += "\n" + open(os.path.join(TOOLS, "web", "power.js"), encoding="utf-8").read()   # 页面隐藏挂起音频（同发布版，docs/50 §33）
+    gl += "\n" + open(os.path.join(TOOLS, "web", "web_music.js"), encoding="utf-8").read()   # 出包配乐（同发布版，docs/319 §12）
     gl += "\n" + open(os.path.join(TOOLS, "web", "perf_probe.js"), encoding="utf-8").read()   # 性能自检浮层的 WASM 内存读数（同发布版）
     html = html.replace("<head>", "<head>\n" + RAF_JS + "\n<script>\n" + gl + "\n</script>", 1)
     html, k = re.subn(r'"args":\s*\[\]', '"args":new URLSearchParams(location.search).getAll("a")', html)
@@ -247,7 +250,8 @@ def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False, dp
     p = subprocess.Popen([EDGE, "--user-data-dir=" + ud, "--app=" + ("about:blank" if emu else url), "--window-position=%d,%d" % (px, py),
                           "--window-size=%s" % ("844,390" if mobile else "1280,720"),
                           "--no-first-run", "--no-default-browser-check", "--disable-background-timer-throttling", "--disable-renderer-backgrounding",
-                          "--disable-backgrounding-occluded-windows", "--disable-features=CalculateNativeWinOcclusion", "--mute-audio"]
+                          "--disable-backgrounding-occluded-windows", "--disable-features=CalculateNativeWinOcclusion", "--mute-audio",
+                          "--autoplay-policy=no-user-gesture-required"]   # 音频上下文直接 running（仍静音），配乐电平自测读得到（docs/319 §12）
                          + (["--remote-debugging-port=%d" % dbg] if emu else []) + (["--force_low_power_gpu"] if lowgpu else []))
     late = bool(throttle) and "--rtfrom" in " ".join(game_args)   # 后期场景：快进段不节流，看到 PF RTFROM 再开
     cdp = _cdp_setup(dbg, url, throttle, mobile, late, dpr) if emu else None
