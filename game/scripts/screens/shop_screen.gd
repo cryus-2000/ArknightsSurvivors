@@ -15,8 +15,8 @@ const TOP_PHONE := 96.0        # 手机（界面层放大后逻辑约 1044×481�
 ## touch：卡片横跨整屏、不画商人立绘框；card_max_w：卡宽上限；btn_h：按钮高；name_fs：名字放得下时的字号（0 = 按卡宽 15 / 12）
 const LAY := [
 	{"touch": false, "card_max_w": 160.0, "btn_h": 40.0, "name_fs": 0},
-	{"touch": true, "card_max_w": 190.0, "btn_h": 44.0, "name_fs": 18},
-	{"touch": true, "card_max_w": 190.0, "btn_h": 44.0, "name_fs": 18},
+	{"touch": true, "card_max_w": 176.0, "btn_h": 44.0, "name_fs": 18},
+	{"touch": true, "card_max_w": 176.0, "btn_h": 44.0, "name_fs": 18},
 ]
 
 
@@ -24,9 +24,11 @@ func lay() -> Dictionary:
 	return LAY[Cfg.ui_form()]
 
 
-## 货品卡高度：手机按剩余高度（顶 96、底下留按钮 72）
+## 货品卡高度：手机按剩余高度（顶 96、底下留按钮 72，再让出底栏 HUD 的 HUD_RES_PHONE）
+## 11-08 用户 iPhone Toy 实测：界面大小 110% 后卡片、按钮、提示字压在底栏（灯火条 / 编队头像）上，「所有卡片都小一点」
+const HUD_RES_PHONE := 0.13
 func card_h(vs: Vector2) -> float:
-	return clampf(vs.y - TOP_PHONE - 72.0, 240.0, CARD_H) if lay().touch else CARD_H
+	return clampf(vs.y * (1.0 - HUD_RES_PHONE) - TOP_PHONE - 72.0, 200.0, CARD_H) if lay().touch else CARD_H
 const MERCHANT_LINES := ["灯火暗下来之前，把源石锭花掉吧。", "深海里什么都能换，只要你出得起价。", "别盯着我看，看货。", "都是从沉船里捞上来的，保真。"]
 
 
@@ -267,10 +269,10 @@ func _draw_bg_phone(vs: Vector2) -> void:
 	UI.ctext(g.panel_fg, g.font, dp.position + Vector2(38, 27), str(g.ingots), 26, UI.TEXT)
 	UI.text(g.panel_fg, g.font, Vector2(dp.position.x + 84, dp.position.y + 22), "源石锭", 10, UI.SUB)
 	UI.text(g.panel_fg, g.font, Vector2(dp.position.x - 60, dp.position.y + 22), "持有", 13, Color(0.81, 0.84, 0.86), HORIZONTAL_ALIGNMENT_RIGHT, 50)
-	var hints: Array = ["←→ 选择 · Ⓐ 购买", "Ⓨ 刷新 · Ⓑ 离开"] if Pad.using else ["点卡片购买", "点「刷新货架」/「离开」"]
+	# 提示一行、和按钮行同高居中（原两行，第二行落到底栏 HUD 上，11-08）
+	var hint: String = "←→ 选择 · Ⓐ 购买 · Ⓨ 刷新 · Ⓑ 离开" if Pad.using else "点卡片购买 · 点「刷新货架」/「离开」"
 	var hy: float = top + card_h(vs) + 14.0
-	UI.text(g.panel_fg, g.font, Vector2(left + 400.0, hy + 18.0), hints[0], 14, UI.SUB)
-	UI.text(g.panel_fg, g.font, Vector2(left + 400.0, hy + 38.0), hints[1], 14, UI.SUB)
+	UI.text(g.panel_fg, g.font, Vector2(left + 396.0, hy + float(lay().btn_h) / 2.0 + 6.0), hint, 14, UI.SUB)
 
 
 func draw_bg(vs: Vector2) -> void:

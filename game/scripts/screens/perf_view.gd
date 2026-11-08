@@ -8,10 +8,12 @@ signal closed
 
 const UI = preload("res://scripts/ui.gd")
 const PerfReport = preload("res://scripts/core/perf_report.gd")
+const CrashBox = preload("res://scripts/core/crash_box.gd")
 
 var font: Font
 var recs: Array = []
 var text := ""
+var bb_text := ""         # 上次异常退出前的内存曲线（core/crash_box.gd）
 var btn_rects := {}       # 动作 -> Rect2
 var note := ""            # 复制结果提示
 var note_t := 0.0
@@ -29,6 +31,7 @@ func _ready() -> void:
 func open() -> void:
 	recs = PerfReport.load_all()
 	text = PerfReport.report_text(recs[0]) if not recs.is_empty() else ""
+	bb_text = CrashBox.report_text(CrashBox.check_prev())   # 上次异常退出前的内存曲线（崩掉的局没有局终报告），附在「复制报告」后面
 	note = ""
 	_copy_wait = -1.0
 	position = Vector2.ZERO
@@ -54,16 +57,26 @@ func _tl() -> bool:
 	return Pad.touch_ui()
 
 
+## 复制出去的全文：最近一局报告 + 上次异常退出前的曲线
+func _full() -> String:
+	if bb_text == "":
+		return text
+	return text + "
+
+" + bb_text if text != "" else bb_text
+
+
 func copy() -> void:
-	if text == "":
+	var t := _full()
+	if t == "":
 		return
 	if OS.has_feature("web"):
-		JavaScriptBridge.eval("(function(t){window.__syCopy=-1;try{navigator.clipboard.writeText(t).then(function(){window.__syCopy=1},function(){window.__syCopy=0})}catch(e){window.__syCopy=0}})(%s)" % JSON.stringify(text), true)
+		JavaScriptBridge.eval("(function(t){window.__syCopy=-1;try{navigator.clipboard.writeText(t).then(function(){window.__syCopy=1},function(){window.__syCopy=0})}catch(e){window.__syCopy=0}})(%s)" % JSON.stringify(t), true)
 		_copy_wait = 0.0
 		note = "正在复制……"
 	else:
-		DisplayServer.clipboard_set(text)
-		if DisplayServer.clipboard_get() == text:
+		DisplayServer.clipboard_set(t)
+		if DisplayServer.clipboard_get() == t:
 			_copied()
 		else:
 			_fallback()
@@ -89,7 +102,7 @@ a.style.cssText='flex:1;width:100%;font-size:15px;line-height:1.5;color:#e6eef2;
 var b=document.createElement('button');b.textContent='关闭';
 b.style.cssText='height:44px;font-size:17px;color:#0d1419;background:#3fd2e6;border:0';
 b.onclick=function(){o.remove()};o.appendChild(a);o.appendChild(b);document.body.appendChild(o);
-setTimeout(function(){a.focus();a.select();a.setSelectionRange(0,t.length)},50)})(%s)""" % JSON.stringify(text)
+setTimeout(function(){a.focus();a.select();a.setSelectionRange(0,t.length)},50)})(%s)""" % JSON.stringify(_full())
 		JavaScriptBridge.eval(js, true)
 		return
 	if box == null:
@@ -97,7 +110,7 @@ setTimeout(function(){a.focus();a.select();a.setSelectionRange(0,t.length)},50)}
 		box.editable = false
 		box.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
 		add_child(box)
-	box.text = text
+	box.text = _full()
 	box.add_theme_font_size_override("font_size", 17 if _tl() else 14)
 	var r := _body_rect()
 	box.position = r.position
@@ -193,6 +206,9 @@ func _draw() -> void:
 	var fs := 18 if tl else 15
 	var lh := fs + 10.0
 	var top := br.position.y   # 当前行顶边
+	if not bb_text.is_empty():   # 上次异常退出：提示一行（曲线本身在复制出来的文本里）
+		var fb := UI.fit(font, CrashBox.short_line(CrashBox.prev).replace("· 点此查看 / 复制", "· 内存曲线已附在「复制报告」里"), br.size.x, lh * 2.2, [fs, fs - 1, fs - 2])
+		top += UI.draw_fit(self, font, Vector2(br.position.x, top), fb, UI.GOLD) + 8.0
 	if recs.is_empty():
 		var fe := UI.fit(font, "还没有记录。打完或退出一局（30 秒以上）后，这里会显示那一局的帧率与内存。", br.size.x, br.size.y, [fs])
 		UI.draw_fit(self, font, Vector2(br.position.x, top), fe, UI.SUB)
@@ -219,7 +235,7 @@ func _draw() -> void:
 	var by := pr.end.y - bh - 18.0
 	var rc := Rect2(pr.position.x + 24, by, 220, bh)
 	var rb := Rect2(pr.end.x - 24 - 160, by, 160, bh)
-	if not recs.is_empty():
+	if not recs.is_empty() or bb_text != "":
 		btn_rects["copy"] = rc
 		draw_rect(rc, UI.CYAN)
 		UI.text(self, font, rc.position + Vector2(0, bh / 2.0 + 7.0), "复制报告" + ("" if tl else "  Enter"), 19 if tl else 16, Color(0.04, 0.07, 0.09), HORIZONTAL_ALIGNMENT_CENTER, rc.size.x)

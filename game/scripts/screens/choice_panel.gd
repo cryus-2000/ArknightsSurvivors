@@ -39,7 +39,19 @@ const CARDS_TOP := 190.0       # 卡片顶边；标题从它上方 92 处开始�
 ## 手机（触屏，界面层放大后逻辑约 1044×481，手机端 UI 优化 r2）：卡片顶边 80（标题压在顶栏上，压暗带遮住），
 ## 卡片高按剩余高度算（≤ 382），不画底部提示；事件选项列顶边 70、左右各留 24
 const CARDS_TOP_PHONE := 80.0
-const EV_COL_TOP_PHONE := 70.0
+## 事件页（11-08 用户 iPhone「事件页的排版不能跟电脑端一样吗？」）：触屏不再用另一套手机版式（顶部一行小图 + 整屏宽选项条），
+## 和桌面同一版式——左边插画 + 底部事件名 / 剧情，右边竖排选项条。桌面坐标里这块是 EV_DW × EV_DH 的设计框（中线 x = EV_CX，
+## 顶边 y = EV_DY0：插画 120–620、选项列 196 起、底边留一行提示），触屏把整框按安全区等比缩放后居中（ev_frame，只缩不放）；
+## 选项条按设计尺寸 596×100 起（触屏热区不另缩），说明字号触屏大一档（EV_DESC_TOUCH，再乘 ui/phone_font_mult）
+const EV_DW := 1224.0
+const EV_DH := 540.0
+const EV_CX := 600.0
+const EV_DY0 := 110.0
+const EV_COL_TOP := 196.0
+## 手机界面逻辑尺寸约 1071×495（ui_k 1.265），设计框缩到 0.75–0.87：说明 17 起（× 1.18 × k ≈ 15 界面像素，docs/37 手机正文下限）
+const EV_HUD_TOP := 56.0   # 触屏设计框顶边至少让出顶栏这一条（界面坐标）
+const EV_DESC_TOUCH := [17, 16, 15]
+const EV_SUB_TOUCH := [17, 16, 15]
 
 
 ## 手机横屏（Cfg.phone_ui）三选一整排卡片的缩放：卡片按原排版画，整排（panel_box）等比缩到 CARD_SCALE_PHONE；
@@ -47,7 +59,8 @@ const EV_COL_TOP_PHONE := 70.0
 ## 10-26 用户 iPhone 实机「挤得太满」（Safari 横屏可视区约 2.18:1，长说明把卡撑到快顶满）：手机上卡片只写一句核心效果（brief()，
 ## 不再按最长说明加高），字从 24 号起、最小 19（× 0.9 ≈ 17 界面像素），整排放大到 0.9；完整说明点卡片右上「详情」再看（detail_i）。
 ## 「界面大小」照常生效（整层再乘）；平板 / 16:9 触屏 / 电脑不缩、照旧写完整说明
-const CARD_SCALE_PHONE := 0.9
+## 11-08 用户 iPhone Toy 实测「所有卡片都小一点」（界面大小 110% 后卡片压到底栏）：0.9 → 0.82，三选一 / 藏品 / 招募同收一档
+const CARD_SCALE_PHONE := 0.82
 ## 11-06 用户「卡牌上的文字也重新排版一下大小」：原来 24 起，UI.fs 放大后封顶 24，和名字（24）一样大，10-30 定的
 ## 「名字 24 > 选择 19 > 说明 17 > 标签 14」被打破。改成 15 起（× 1.18 ≈ 18、最小 13 ≈ 15），同一排取都放得下的最大一档（_even_brief_phone）
 const BRIEF_SIZES_PHONE := [15, 14, 13]
@@ -65,8 +78,8 @@ const HEADER_H := 80.0         # 标题块（英文小标 + 大标题 + 说明�
 ## cards_top：卡片顶边；title_up：标题块在卡片顶边上方多少；ev_col_top：事件选项列顶边；ev_title_dy / ev_hint_fs：事件右侧标题下移、提示字号
 const LAY := [
 	{"touch": false, "phone": false, "card_scale": 1.0, "cards_top": CARDS_TOP, "title_up": 92.0, "ev_col_top": 196.0, "ev_title_dy": 0.0, "ev_hint_fs": 12},
-	{"touch": true, "phone": false, "card_scale": 1.0, "cards_top": CARDS_TOP_PHONE, "title_up": 76.0, "ev_col_top": EV_COL_TOP_PHONE, "ev_title_dy": 12.0, "ev_hint_fs": 14},
-	{"touch": true, "phone": true, "card_scale": CARD_SCALE_PHONE, "cards_top": CARDS_TOP_PHONE, "title_up": 76.0, "ev_col_top": EV_COL_TOP_PHONE, "ev_title_dy": 12.0, "ev_hint_fs": 14},
+	{"touch": true, "phone": false, "card_scale": 1.0, "cards_top": CARDS_TOP_PHONE, "title_up": 76.0, "ev_col_top": 196.0, "ev_title_dy": 0.0, "ev_hint_fs": 14},
+	{"touch": true, "phone": true, "card_scale": CARD_SCALE_PHONE, "cards_top": CARDS_TOP_PHONE, "title_up": 76.0, "ev_col_top": 196.0, "ev_title_dy": 0.0, "ev_hint_fs": 14},
 ]
 
 
@@ -258,18 +271,11 @@ func build(parent: Node) -> void:
 	g.panel_scroll.offset_left = 12
 	g.panel_scroll.offset_right = 608
 	var L: Dictionary = lay()
-	g.panel_scroll.offset_top = float(L.ev_col_top)   # 手机：选项列顶边 70（见 CARDS_TOP_PHONE 注释）
+	g.panel_scroll.offset_top = float(L.ev_col_top)   # 触屏的位置 / 缩放在 ev_place 里按 ev_frame 摆
 	g.panel_scroll.offset_bottom = -EV_HINT_ROOM   # 底下留一行给「点击选项…」提示
 	g.panel_col = VBoxContainer.new()
 	g.panel_col.add_theme_constant_override("separation", 14)
 	g.panel_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	if L.touch:
-		# 手机：选项条横跨整屏（左右各留 24），条间距 10
-		g.panel_scroll.anchor_left = 0.0
-		g.panel_scroll.anchor_right = 1.0
-		g.panel_scroll.offset_left = 24
-		g.panel_scroll.offset_right = -24
-		g.panel_col.add_theme_constant_override("separation", 10)
 	g.panel_col.visible = false
 	g.panel_scroll.visible = false
 	g.panel_scroll.add_child(g.panel_col)
@@ -371,6 +377,38 @@ func layout(kind: String) -> void:
 	g.panel_scroll.visible = kind == "event"
 	g.panel_scroll.scroll_vertical = 0   # 每次打开从顶上开始
 	_ev_nav_seen = -1
+	if kind == "event":
+		ev_place()
+
+
+## 事件设计框在面板里的位置：{k, o, cx}——设计坐标 d（桌面坐标，中线 cx）画到面板上是 o + k * d。
+## 桌面原样（k = 1、o = 0、cx = 视口中线）；触屏按安全区（灵动岛 / B站胶囊 / 底部横条）等比缩放后居中，k ≤ 1
+func ev_frame() -> Dictionary:
+	var vs: Vector2 = g.panel.size
+	if not lay().touch:
+		return {"k": 1.0, "o": Vector2.ZERO, "cx": vs.x / 2.0}
+	var ins: Array = Cfg.safe_insets()
+	var top: float = maxf(float(ins[1]), EV_HUD_TOP)   # 顶栏（源石锭 / 藏品 / 暂停）不压标题
+	var sr := Rect2(float(ins[0]), top, vs.x - float(ins[0]) - float(ins[2]), vs.y - top - float(ins[3]))
+	var k: float = minf(1.0, minf(sr.size.x / EV_DW, sr.size.y / EV_DH))
+	var o: Vector2 = (sr.get_center() - k * Vector2(EV_DW / 2.0, EV_DY0 + EV_DH / 2.0)).round()   # 设计框 x 0..EV_DW（中线 EV_CX 偏左 12：右侧选项列宽 596 + 12）
+	return {"k": k, "o": o, "cx": EV_CX}
+
+
+## 触屏：选项滚动区按设计框摆（设计尺寸 596 × 到框底留一行提示，整块 scale = k）；桌面用建面板时的锚点不动
+func ev_place() -> void:
+	if not lay().touch or g.panel_scroll == null:
+		return
+	var F := ev_frame()
+	var k: float = F.k
+	var pos: Vector2 = F.o + k * Vector2(F.cx + 12.0, EV_COL_TOP)
+	var sz := Vector2(596.0, EV_DY0 + EV_DH - EV_HINT_ROOM - EV_COL_TOP)
+	if g.panel_scroll.anchor_left != 0.0 or g.panel_scroll.anchor_bottom != 0.0:
+		g.panel_scroll.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	if g.panel_scroll.position != pos or g.panel_scroll.size != sz or g.panel_scroll.scale.x != k:
+		g.panel_scroll.position = pos
+		g.panel_scroll.size = sz
+		g.panel_scroll.scale = Vector2(k, k)
 
 
 func draw_bg() -> void:
@@ -493,11 +531,12 @@ func check_event_panel(now := false) -> bool:
 
 func draw_event_bg(vs: Vector2) -> void:
 	check_event_panel()
+	var F := ev_frame()
 	if lay().touch:
-		_draw_event_bg_phone(vs)
-		return
+		ev_place()   # 转屏 / 安全区变了跟着摆
+		g.panel_fg.draw_set_transform(F.o, 0.0, Vector2(F.k, F.k))
 	var art := event_art(g.panel_title_text)
-	var cx := vs.x / 2.0
+	var cx: float = F.cx
 	var p0 := Vector2(cx - 576.0, 120.0)
 	var pts: PackedVector2Array = art.panel
 	var tp := PackedVector2Array()
@@ -511,7 +550,8 @@ func draw_event_bg(vs: Vector2) -> void:
 	else:
 		_draw_ink_art(art, p0, tp)
 	# 底部压暗，放事件名与剧情
-	_event_caption(art, p0)
+	_event_caption(art, p0, cx)
+	g.panel_fg.draw_set_transform_matrix(Transform2D.IDENTITY)
 
 
 ## 没有插画时的墨色底：灰阶渐变 + 墨点笔触 + 彩色节点图标（C 版式）
@@ -535,15 +575,15 @@ func _draw_ink_art(art: Dictionary, p0: Vector2, tp: PackedVector2Array) -> void
 
 
 ## 插画框底部压暗带 + 事件名 / 剧情 + 右侧「选择一项」标题与提示
-func _event_caption(art: Dictionary, p0: Vector2) -> void:
-	var vs := g.panel_fg.size
-	var cx := vs.x / 2.0
+func _event_caption(art: Dictionary, p0: Vector2, cx: float) -> void:
+	var touch: bool = bool(lay().touch)
+	var dy := -22.0 if touch else 0.0   # 触屏剧情字大一档：事件名上移，给剧情多留一行
 	var g0 := Color(0.04, 0.04, 0.043, 0.0)
 	var g1 := Color(0.04, 0.04, 0.043, 0.95)
 	g.panel_fg.draw_polygon(PackedVector2Array([p0 + Vector2(6, 300), p0 + Vector2(554, 300), p0 + Vector2(554, 492), p0 + Vector2(6, 492)]), PackedColorArray([g0, g0, g1, g1]))
-	var ew0 := UI.en(g.panel_fg, g.font, p0 + Vector2(92, 366), "EVENT", 12, Color(0.6, 0.59, 0.56), 3.0)
-	UI.text(g.panel_fg, g.font, p0 + Vector2(92 + ew0 + 6, 366), "·  " + NodeIcons.NAMES[event_node_kind()], 12, Color(0.6, 0.59, 0.56))
-	var em := p0 + Vector2(54, 400)
+	var ew0 := UI.en(g.panel_fg, g.font, p0 + Vector2(92, 366 + dy), "EVENT", 12, Color(0.6, 0.59, 0.56), 3.0)
+	UI.text(g.panel_fg, g.font, p0 + Vector2(92 + ew0 + 6, 366 + dy), "·  " + NodeIcons.NAMES[event_node_kind()], 12, Color(0.6, 0.59, 0.56))
+	var em := p0 + Vector2(54, 400 + dy)
 	var emb: Array = []
 	for pl in art.emblem:
 		var o2 := PackedVector2Array()
@@ -551,46 +591,23 @@ func _event_caption(art: Dictionary, p0: Vector2) -> void:
 			o2.append(em + q)
 		emb.append(o2)
 	UI.curly_emblem(g.panel_fg, emb, em, 24.0, Color(0.18, 0.72, 1.0))
-	g.panel_fg.draw_string(serif, p0 + Vector2(92, 408), g.panel_title_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Color.WHITE)
+	g.panel_fg.draw_string(serif, p0 + Vector2(92, 408 + dy), g.panel_title_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Color.WHITE)
 	if panel_sub_text != "":
-		g.panel_fg.draw_multiline_string(g.font, p0 + Vector2(92, 440), UI.soft(panel_sub_text), HORIZONTAL_ALIGNMENT_LEFT, 430, 13, 3, Color(0.81, 0.79, 0.76), UI.BRK)
+		if touch:
+			# 触屏：剧情从事件名下到插画底边（约 4 行 13 号的高度），字号取放得下的最大一档
+			var fs := UI.fit(g.font, UI.soft(panel_sub_text), 440.0, 492.0 - (424.0 + dy), EV_SUB_TOUCH)
+			UI.draw_fit(g.panel_fg, g.font, p0 + Vector2(92, 424 + dy), fs, Color(0.81, 0.79, 0.76))
+		else:
+			g.panel_fg.draw_multiline_string(g.font, p0 + Vector2(92, 440), UI.soft(panel_sub_text), HORIZONTAL_ALIGNMENT_LEFT, 430, 13, 3, Color(0.81, 0.79, 0.76), UI.BRK)
 	# 右侧标题
-	var col_top: float = g.panel_scroll.offset_top   # 触屏 150 / 桌面 196，标题跟着上移
+	var col_top: float = EV_COL_TOP if touch else g.panel_scroll.offset_top   # 设计坐标：选项列顶边 196，标题在它上方
 	var L: Dictionary = lay()
 	var tt: float = float(L.ev_title_dy)   # 触屏标题再贴近选项列 12，不压到顶栏的威胁等级行
 	UI.en(g.panel_fg, g.font, Vector2(cx + 20, col_top - 54.0 + tt), "EVENT  ·  CHOOSE ONE", 12, Color(0.6, 0.59, 0.56), 4.0)
 	g.panel_fg.draw_string(serif, Vector2(cx + 20, col_top - 18.0 + tt), "选择一项", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(0.925, 0.91, 0.882))
 	var hint := "←→ 选择 · Ⓐ 确认" if Pad.using else ("点击选项" if Pad.touch else "点击选项，或按 1–%d" % g.choices.size())
-	UI.text(g.panel_fg, g.font, Vector2(cx + 20, col_top + minf(ev_bars_h, g.panel_scroll.size.y) + 6), hint, int(L.ev_hint_fs), Color(0.55, 0.54, 0.52))
-
-
-## 手机版事件背景（手机端 UI 优化 r2）：逻辑高只有约 481，左侧 560×500 的插画放不下——顶部一行放节点小图标 + 事件名（衬线）+
-## 剧情一句（限宽缩字），选项条横跨整屏（panel_col 见 build）；底部提示在选项列下方
-func _draw_event_bg_phone(vs: Vector2) -> void:
-	var x0 := 28.0
-	var nk := event_node_kind()
-	var cg := event_cg()
-	if cg != null:
-		# 有插画：压暗铺满整屏当底（选项条横跨整屏，插画放不下左栏），左上再放一张小图
-		var ts := Vector2(cg.get_size())
-		var sz: Vector2 = ts * maxf(vs.x / ts.x, vs.y / ts.y)
-		g.panel_fg.draw_texture_rect(cg, Rect2(((vs - sz) / 2.0).round(), sz.round()), false, Color(0.36, 0.36, 0.38))
-		g.panel_fg.draw_texture_rect(cg, Rect2(x0, 6.0, 62.0, 55.0), false)
-		g.panel_fg.draw_rect(Rect2(x0, 6.0, 62.0, 55.0), Color(0.6, 0.85, 1.0, 0.6), false, 1.0)
-		x0 += 76.0
-	else:
-		for k in 3:
-			g.panel_fg.draw_circle(Vector2(x0 + 24.0, 32.0), 40.0 - k * 10.0, Color(0.18, 0.72, 1.0, 0.05))
-		NodeIcons.draw(g.panel_fg, nk, Vector2(x0 + 24.0, 32.0), 3.0, NodeIcons.COLS[nk])
-		x0 += 62.0
-	var ew0 := UI.en(g.panel_fg, g.font, Vector2(x0, 22), "EVENT", 11, Color(0.6, 0.59, 0.56), 3.0)
-	UI.text(g.panel_fg, g.font, Vector2(x0 + ew0 + 6, 22), "·  %s  ·  选择一项" % NodeIcons.NAMES[nk], 11, Color(0.6, 0.59, 0.56))
-	g.panel_fg.draw_string(serif, Vector2(x0, 52), g.panel_title_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 24, Color.WHITE)
-	var tw := serif.get_string_size(g.panel_title_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 24).x
-	if panel_sub_text != "":
-		UI.text_fit(g.panel_fg, g.font, Vector2(x0 + tw + 18, 50), UI.soft(panel_sub_text), 15, Color(0.81, 0.79, 0.76), vs.x - x0 - tw - 46.0, 12)
-	var hint := "←→ 选择 · Ⓐ 确认" if Pad.using else ("点击选项" if Pad.touch else "点击选项，或按 1–%d" % g.choices.size())
-	UI.text(g.panel_fg, g.font, Vector2(24, g.panel_scroll.offset_top + minf(ev_bars_h, g.panel_scroll.size.y) + 6), hint, 14, Color(0.55, 0.54, 0.52))
+	var hy: float = col_top + minf(ev_bars_h, g.panel_scroll.size.y) + (20.0 if touch else 6.0)   # 触屏：基线落在选项列下方，不压最后一条
+	UI.text(g.panel_fg, g.font, Vector2(cx + 20, hy), hint, int(L.ev_hint_fs), Color(0.55, 0.54, 0.52))
 
 
 ## 当前事件的插画（没有对应图返回 null，退回墨色底 + 节点图标）
@@ -677,24 +694,13 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 	motion.start(kind, opts)
 	var ev := kind == "event"
 	ev_bars_h = 0.0
-	# 触屏事件条：说明字号在 17 → 13 里取「全部选项条加起来放得进屏幕」的最大一档（桌面 13 → 12 不变）
-	var ev_sizes: Array = [13, 12]
-	# 手机事件条：横跨整屏（宽 = 面板宽 − 48），本体 74 高、说明一行起；说明字号在 19 → 14 里取全部选项条放得下的最大档
-	var ph: bool = ev and L.touch
-	var ev_w: float = (g.panel.size.x - 48.0) if ph else 596.0
-	var ev_dw: float = (ev_w - 100.0 - 70.0) if ph else 420.0
-	var ev_h0: float = 74.0 if ph else 100.0
-	var ev_base_lines: int = 1 if ph else 2
-	if ph:
-		var avail: float = g.panel.size.y - float(g.panel_scroll.offset_top) - EV_HINT_ROOM
-		for s in [19, 18, 17, 16, 15, 14]:
-			var tot := -10.0
-			for o in opts:
-				var fe0 := UI.fit(g.font, option_description(o), ev_dw, 4.0 * g.font.get_height(UI.fs(s)), [s])
-				tot += ev_h0 + maxf(0.0, fe0.lines.size() - 1) * float(fe0.lh) + 10.0
-			ev_sizes = [s]
-			if tot <= avail:
-				break
+	# 事件选项条：桌面与触屏同一版式（596×100 起、说明两行起，多一行加高一行；放不下整列可滚动）。说明字号桌面 13 → 12、触屏 15 → 13
+	var ev_sizes: Array = EV_DESC_TOUCH if L.touch else [13, 12]
+	var ph := false
+	var ev_w := 596.0
+	var ev_dw := 460.0 if L.touch else 420.0   # 触屏不画右侧序号，说明多 40 宽
+	var ev_h0 := 100.0
+	var ev_base_lines := 2
 	for i in opts.size():
 		var o: Dictionary = opts[i]
 		var display_desc := option_description(o)
@@ -717,7 +723,7 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 			if hl.begins_with("解锁") and hl.contains(" · "):
 				display_desc = hl.replace(" · ", "\n")   # 精英化卡：技能名单独一行，不在名字中间折行（11-01 巡检：手机「囚 / 徒困境」「扫 / 射模式」）
 		card.custom_minimum_size = Vector2(ev_w, ev_h0) if ev else Vector2(card_w, row_h if row_h > 0.0 else card_h())
-		if L.touch:
+		if L.touch and not ev:
 			card.set_meta("phone", true)
 		card.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 		card.focus_mode = Control.FOCUS_NONE
@@ -742,7 +748,7 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 		# 说明文字：创建时按宽度排好版（放不下先缩字号）。选卡卡片三行还放不下就切紧凑布局——
 		# 图标缩小、名字上移，把位置让给说明；事件选项条则按行数加高
 		if ev:
-			var fe := UI.fit(g.font, display_desc, ev_dw, 4.0 * g.font.get_height(UI.fs(13 if not ph else int(ev_sizes[0]))), ev_sizes)
+			var fe := UI.fit(g.font, display_desc, ev_dw, 4.0 * g.font.get_height(UI.fs(int(ev_sizes[0]))), ev_sizes)
 			card.set_meta("fit", fe)
 			card.custom_minimum_size.y = ev_h0 + maxf(0.0, fe.lines.size() - ev_base_lines) * float(fe.lh)
 			ev_bars_h += card.custom_minimum_size.y + (10.0 if ph else 14.0)
@@ -1116,8 +1122,7 @@ func draw_ev_scroll_hint(ci: CanvasItem) -> void:
 	var room: float = float(bar.max_value) - float(bar.page)
 	if room <= 1.0:
 		return   # 放得下：和原来一样，不画
-	var r: Rect2 = g.panel_scroll.get_global_rect()
-	r.position -= ci.get_global_rect().position
+	var r := Rect2(g.panel_scroll.position, g.panel_scroll.size * g.panel_scroll.scale)   # 面板坐标（触屏滚动区整块缩放过）
 	var sv: float = float(g.panel_scroll.scroll_vertical)
 	var fade := 42.0
 	var dark := Color(0.03, 0.04, 0.06, 0.85)

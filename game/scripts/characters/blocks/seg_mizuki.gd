@@ -290,6 +290,8 @@ static func _h3_tentacle(o, a: Dictionary, target: Dictionary, dmg: float, stun:
 		if dr is Dictionary and cond_true(o, dr.get("cond", _ED)) and not target.boss:
 			o.apply_kb(target, (o.pos - target.pos).normalized() * (float(dr.get("kb_elite", 160.0)) if target.elite else float(dr.get("kb", 320.0))))
 		var pulled: bool = _e3_pull(o, a, target)   # 精英化第 3 批：拖拽
+		if pulled and not target.dead:   # 精一「拖拽」：被拖的那只脚下一圈往水月方向收的深蓝环（docs/310 §4.2：拖 20 距离只挪 10 像素看不出，只画）
+			ncue(o, {"p": target.pos, "fe": target, "shape": "in", "r": float(target.r) + 22.0, "c": Color("#5b6fe0"), "n": 5, "life": 0.35})
 		_e3_mark(o, target)   # 精英化第 3 批：深蓝之籽优先打被触手打过的
 		_g202_repeat(o, tb, target, dmg)   # docs/202 强迫性重复
 		_g202_cling(o, tb, target, pulled)   # docs/202 病理性依恋

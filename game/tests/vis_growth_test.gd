@@ -93,7 +93,7 @@ func test_curves(db) -> void:
 		var r: Dictionary = db.get_relic(id)
 		ok(int(r.get("max_lv", 0)) == 3, "#%s 仍可叠到 3 级" % id)
 		ok(str(r.desc).contains("每多一层，增益递减"), "#%s 卡面写「每多一层，增益递减」" % id)
-	ok(str(db.get_relic("129").desc).contains("Mon3tr、归溟幽灵鲨的替身不增加数量"), "#129 卡面写明 Mon3tr / 替身例外")
+	ok(str(db.get_relic("129").desc).contains("Mon3tr、归溟幽灵鲨的替身只加伤害，数量不变"), "#129 完整说明写明 Mon3tr / 替身例外")
 
 
 ## 旋钮 relic/visible_growth = 0：载入 legacy（旧数值、旧说明、旧等级上限）

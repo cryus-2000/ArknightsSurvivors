@@ -8,6 +8,7 @@ const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类
 const D = preload("res://scripts/data.gd")
 const UM = preload("res://scripts/ui_motion.gd")
 const MotionShot = preload("res://scripts/run/motion_shot.gd")   # --motionshot / --motionrec / --motionperf / --motionpress（docs/62）
+static var _tworun_n := 0   # --tworuns：已结束的局数（静态，跨场景）
 var g: Game
 var mshot: MotionShot
 var winshot := false
@@ -518,6 +519,8 @@ var _fr_i := 0
 var _fr_csv: FileAccess = null
 var _fr_spawn := ""
 var _fr_spawned := false
+var _fr_ring_done := false
+var _fr_volley_t := 0.0
 func _flashrec_step() -> void:
 	if _fr_t0 < -1.0:
 		_fr_t0 = -1.0
@@ -537,6 +540,20 @@ func _flashrec_step() -> void:
 		_fr_spawned = true
 		g.pickups.drop(g.ppos + Vector2(260, 90), "magnet", 1.0)
 		g.pickups.drop(g.ppos + Vector2(-1100, -500), "magnet", 1.0)
+	# --flashring=<怪>:<数>,…：同一时刻在主控周围 420 处刷一圈远程杂兵（11-08 敌弹改红对照：画面里要有足够多的杂兵弹）
+	if fr_due and not _fr_ring_done:
+		for a in Cfg.dev_args():
+			if a.begins_with("--flashring="):
+				_fr_ring_done = true
+				_fr_spawned = true
+				var lst: Array = []
+				for it in a.substr(12).split(","):
+					var kv: PackedStringArray = it.split(":")
+					for _i in (int(kv[1]) if kv.size() > 1 else 1):
+						lst.append(kv[0])
+				for i in lst.size():
+					var re: Dictionary = g.spawner.spawn_enemy(lst[i], g.ppos + Vector2.from_angle(TAU * i / lst.size()) * Vector2(420.0, 300.0))
+					re.age = 5.0
 	if _fr_spawn != "" and fr_due:
 		_fr_spawned = true
 		var b: Dictionary = g.spawner.spawn_enemy(_fr_spawn.trim_suffix("2").trim_suffix("_cocoon"), g.ppos + Vector2(230, -40))
@@ -557,6 +574,20 @@ func _flashrec_step() -> void:
 			if (ks.begins_with("e_knight") or ks.begins_with("e_paranoia")) and not ks.ends_with("_white") and g.tex[k] != null:
 				var wt = g.tex.get(ks + "_white")
 				print("TEXDUMP %s %s white=%s same_src=%s" % [ks, g.tex[k].get_size(), wt.get_size() if wt != null else "none", str(wt == A_.white_of(g.tex[k])) if wt != null else "-"])
+	# --flashvolley：录像前 1.5 秒起每 0.4 秒从队长周围一圈朝队长打 16 发杂兵弹（普通 / 神经 / 新星 / 漂移体侵蚀弹轮换），
+	# 只为对照截图里一定有足够敌弹（11-08 敌弹改红；伤害 0，配 --nodeath）
+	if _fr_t0 > 0.0 and _fr_left > 0 and g.t >= _fr_t0 - 1.5 and g.t >= _fr_volley_t and Cfg.dev_args().has("--flashvolley"):
+		_fr_volley_t = g.t + 0.4
+		var kinds: Array = [["orb", "stone", ""], ["nerve", "floater", ""], ["nova", "stone", ""], ["orb", "skimmer", "proj_skimmer_corrode"]]
+		for i in 16:
+			var a0: float = TAU * i / 16.0 + g.t * 0.7
+			var p0: Vector2 = g.ppos + Vector2.from_angle(a0) * Vector2(520.0, 340.0)
+			var kd: Array = kinds[i % kinds.size()]
+			var vb := {"pos": p0, "vel": (g.ppos - p0).normalized().rotated(0.35) * 150.0, "dmg": 0.0, "slow": false, "r": 5.0, "life": 4.0,
+				"corrode": 0.0, "nerve": 0.0, "true": false, "kind": kd[0], "home": false, "src_type": kd[1], "atk": "法术"}
+			if kd[2] != "":
+				vb["tex"] = kd[2]
+			g.ebullets.append(vb)
 	if _fr_t0 < 0.0 or _fr_left <= 0 or g.t < _fr_t0 or DisplayServer.get_name() == "headless":
 		return
 	if _fr_csv == null:
@@ -1348,6 +1379,16 @@ func step() -> void:
 		# 10:00 最终 Boss 登场后给 3 分钟打完（之前 620 秒截断只留 20 秒，胜负基本看不出来）
 		if (g.state == g.S.DEAD or g.state == g.S.WIN or g.t > g.bal_maxt) and not bal_done:
 			bal_done = true
+			if Cfg.dev_args().has("--tworuns") and _tworun_n == 0:
+				# 连开两局的内存（docs/319 §7）：第一局到点按倒下进结算，停 4 秒 → 回标题 → 标题页照 --balance 自动再进一局；第二局正常收尾
+				_tworun_n = 1
+				g.hp = 0.0
+				g.state = g.S.DEAD
+				print("PF TWORUN end1 t=%.0f" % g.t)
+				g.get_tree().create_timer(4.0).timeout.connect(func(): g._do_action("title"))
+				return
+			if Cfg.dev_args().has("--tworuns"):
+				print("PF TWORUN end2 t=%.1f state=%d hp=%.1f maxt=%.0f" % [g.t, g.state, g.hp, g.bal_maxt])
 			if perf_on:
 				print("PERF ", JSON.stringify(_perf_summary()))
 			if outwin != null:
@@ -1600,6 +1641,27 @@ func step() -> void:
 				if df >= 300:
 					g.get_tree().quit()
 	for a in Cfg.dev_args():
+		# --settleshot=win|lose（docs/326 寻访凭证 / 结算兑换 / 关注作者按钮截图）：配 --roster=start5 --metacells=N [--fbtoy]；
+		# 第 60 帧进胜利 / 倒下（走正常局终结算：发凭证、记细胞），第 200 帧跳到结算终态，第 215 帧存 shot_settle_<win|lose>.png
+		if a.begins_with("--settleshot="):
+			var sw := a.substr(13) == "win"
+			if g.at_frames == 60:
+				winshot = true
+				if sw:
+					g.ending = "standard"
+					g.endg.cur = g.ending
+					g.state = g.S.WIN
+				else:
+					g.state = g.S.DEAD
+				# 测试局不走局终记账：按新规则直接写本局获得（通关 1 张 / 未通关 0 张，细胞随便给个数）
+				g.roster_new = {"hunt": 1} if sw else {"hunt": 0, "lost": true}
+				g.meta_result = {"cells": 38 if sw else 17}
+			if g.at_frames == 200:
+				g.state_age = 99.0
+				g.settlement.skip()
+			if g.at_frames == 215 and DisplayServer.get_name() != "headless":
+				g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_settle_%s.png" % ("win" if sw else "lose"))
+				g.get_tree().quit()
 		# --winshot=deep：第 60 帧直接进入胜利结算并截图
 		if a.begins_with("--winshot=") and g.at_frames == 60:
 			winshot = true

@@ -7,6 +7,9 @@ static var _cache := {}
 ## 第二局起没开图鉴 343 MB）。标题页打开时 outrun_track = true，期间 tex / tex_hi 新缓存的名字记进 _outrun；
 ## 手机网页进局（game._ready → drop_outrun）把不在本局固定名单里的拿掉，贴图在没人引用后释放，局内再要时 tex() 重新读
 static var outrun_track := false
+## 崩溃前快照（core/crash_box.gd）：进缓存的贴图累计张数与最近几张名字
+static var load_n := 0
+static var recent_loads := PackedStringArray()
 static var _outrun := {}
 static var enemy_pixels: Dictionary = {}
 static var _enemy_pixels_loaded := false
@@ -419,6 +422,10 @@ static func tex(name: String, keep_cached := true) -> Texture2D:
 			_hires_rid[t.get_rid()] = density
 			_name_rid[t.get_rid()] = name
 		_cache[name] = t
+		load_n += 1
+		recent_loads.append(name)
+		if recent_loads.size() > 8:
+			recent_loads.remove_at(0)
 		if outrun_track:
 			_outrun[name] = true
 	elif t != null:
@@ -876,6 +883,23 @@ static func drop_outrun(keep: Dictionary) -> int:
 			n += 1
 	_outrun.clear()
 	return n
+
+
+## 连开两局（docs/319 §7，11-08 iPhone：第一局死 → 回标题 → 开第二局页面被系统杀）：第一次进标题时记下启动期的缓存键（boot_keys），
+## 手机网页离开一局（game._exit_tree）时把之后进缓存的全部拿掉——上一局的干员 / 招募 / 光学派生图 / 敌人帧条不带进下一局，
+## 下一局在载入页按新编队重读（载入慢几秒）
+static var boot_keys := {}
+
+static func mark_boot() -> void:
+	if boot_keys.is_empty():
+		boot_keys = cache_keys()
+		boot_keys["__marked"] = true
+
+
+static func drop_run() -> int:
+	if boot_keys.is_empty():
+		return 0
+	return drop_new(boot_keys)
 
 
 ## 当前缓存的键（图鉴打开时记一份，关时 drop_new 拿掉新增的）

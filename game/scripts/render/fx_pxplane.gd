@@ -1590,7 +1590,7 @@ func _ev_lumen(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictiona
 				_push({"rt": "rawline", "a": a, "b": b, "t0": g.t, "life": 0.12, "ly": "raw", "oid": str(o.id), "k": ""})
 				_lm_raw(o, "raw_hit_e1", b, 0.0, px * 0.6)
 				return
-			_push({"rt": "line", "a": a, "b": b, "t0": g.t, "life": 3.0 / 15.0, "ly": "up", "gy": float(d.get("gy", b.y + 10.0)), "oid": str(o.id), "k": ""})
+			_push({"rt": "line", "a": a, "b": b, "t0": g.t, "life": 5.0 / 15.0, "ly": "up", "gy": float(d.get("gy", b.y + 10.0)), "oid": str(o.id), "k": ""})
 			_lm_up(o, "hits_e%d_up" % t, b, float(d.get("gy", b.y + 10.0)))
 			R._light(o, b, 60.0, 0.35, 0.1, p.light)
 		"lm_pillar":   # 精二灯塔光柱：出光点一颗四芒星 + 一道实心光柱（任意方向逐格画）+ 地上一道光痕；命中的前 4 只各一团水花
@@ -1803,19 +1803,23 @@ func _lm_draw_rt(ci, it: Dictionary) -> void:
 		"line", "link":
 			var f: int = frame_of(float(it.t0))
 			var link: bool = str(it.rt) == "link"
-			var nb: int = 2 if link else 3
+			var nb: int = 2 if link else 5   # 折光 docs/310 §4.2：3 → 5 拍（0.33 秒）、2 像素宽、尾光往落点收
 			if f < 0 or f >= nb:
 				return
 			var a: Vector2 = it.a
 			var b: Vector2 = it.b
 			var n: int = maxi(1, int(a.distance_to(b) / px))
+			var nrm: Vector2 = (b - a).normalized().orthogonal() * px
+			var cut: float = [0.0, 0.0, 0.45, 0.7, 0.88][f] if not link else (0.5 if f == 2 else 0.0)
 			for i in n + 1:
 				var u: float = float(i) / float(n)
-				if f == 2 and u < 0.5:
-					continue   # 最后一拍只剩靠落点的一半
+				if u < cut:
+					continue   # 后几拍只剩靠落点的一段（尾光）
 				var q: Vector2 = a.lerp(b, u)
 				var core: Color = (C[6] if f == 0 else C[5]) if not link else (C[5] if f == 0 else C[4])
 				_px(ci, q, core)
+				if not link:
+					_px(ci, q + nrm, C[4] if f < 2 else C[3])
 				if f == 0 and not link and i % 3 == 0:
 					_glow(q, C[6])
 		"beam":   # 光柱：第 0 拍满宽白芯 → 往中线收 → 从出光端熄；最远端 15% 收尖
@@ -2315,8 +2319,8 @@ static func _lg_bow_ctrl(a: Vector2, b: Vector2, bow: float) -> Vector2:
 	return (a + b) * 0.5 + n * bow * 2.0
 
 
-func _lg_glyph(ci, p: Vector2, gi: int, col: Color) -> void:
-	var px: float = g.PX
+func _lg_glyph(ci, p: Vector2, gi: int, col: Color, sc := 1) -> void:
+	var px: float = g.PX * float(sc)   # sc 2 = 每笔 2×2 美术像素（铭文浮字，docs/310 §4.2）
 	var s: String = LG_GL[posmod(gi, LG_GL.size())]
 	var o0: Vector2 = _snap(p) - Vector2(px, 2.0 * px)
 	for k in 15:
@@ -2331,14 +2335,20 @@ func _lg_pool(ci, l: Dictionary) -> void:
 	var k: float = 1.0 - float(l.t) / maxf(0.01, float(l.dur)) if burst else 1.0
 	var r: float = float(l.r) / g.PX
 	_lg_ell(ci, l.pos, r * (0.6 + 0.4 * k), al, 1, int(l.pos.x))
+	_lg_ell(ci, l.pos, r * (0.6 + 0.4 * k) + 1.0, al, 1, int(l.pos.x) + 5)   # docs/310 §4.2：环加到 2 像素
 	var beat: int = int(floor(g.t * 15.0))
 	var n: int = 3 if not burst else 1 + int(k * 4.0)
 	for i in n:
-		var x: float = (float(i) - (n - 1) * 0.5) * 5.0
-		var bob: float = (2.0 if ((beat / 4 + i) % 2) == 0 else 0.0) - 0.12 * x * x   # 浮字排成一小段弧（第六轮：不留笔直的字行）
+		var x: float = (float(i) - (n - 1) * 0.5) * 8.0
+		var bob: float = (2.0 if ((beat / 4 + i) % 2) == 0 else 0.0) - 0.05 * x * x   # 浮字排成一小段弧（第六轮：不留笔直的字行）
 		var c: Color = LG_C[5] if (beat / 3 + i) % 4 != 0 else LG_C[6]
 		c.a = al
-		_lg_glyph(ci, l.pos + Vector2(x, -18.0 - bob) * g.PX, int(l.pos.x) + i * 3 + beat / 8, c)
+		var gp: Vector2 = l.pos + Vector2(x, -22.0 - bob) * g.PX
+		var gi: int = int(l.pos.x) + i * 3 + beat / 8
+		var dk: Color = LG_INK[1]
+		dk.a = al
+		_lg_glyph(ci, gp + Vector2(g.PX, g.PX), gi, dk, 2)   # 暗影衬底
+		_lg_glyph(ci, gp, gi, c, 2)   # 字放到 6×10（原 3×5 叠在命中墨环上看不出）
 
 
 ## 延异视阈咒域（原作 range_01；11-05 第三轮用户「改成渐变填充」「符文条太直」）：
@@ -3083,14 +3093,16 @@ func _ey_floor(o) -> void:
 			continue
 		nm += 1
 		var base: Vector2 = _snap(e.pos + Vector2(0, 2))
-		var rr: float = clampf(float(e.r) * 0.5, 5.0, 12.0)
+		var rr: float = clampf(float(e.r) * 0.5 + 4.0, 9.0, 16.0)   # docs/310 §4.2：裂纹放到身体外沿（原 5–12 被敌人本体挡住）、加粗一格
 		for q in 3:
 			var a0: float = q * TAU / 3.0 + float(e.id) * 0.7
-			for s in 5:
+			for s in 7:
 				if left < 0.3 and s >= 2:
 					continue
-				var an: float = a0 + s * 0.13
-				_px(cv, base + Vector2(cos(an) * rr, sin(an) * rr * 0.72) * px, EY_C[3] if (s + q) % 2 == 0 else EY_C[2])
+				var an: float = a0 + s * 0.1
+				var pq: Vector2 = base + Vector2(cos(an) * rr, sin(an) * rr * 0.72) * px
+				_px(cv, pq, EY_C[4] if (s + q) % 2 == 0 else EY_C[3])
+				_px(cv, base + Vector2(cos(an) * (rr + 1.0), sin(an) * (rr + 1.0) * 0.72) * px, EY_C[1])
 	# 抛射物（熔岩块 / 三重咏唱低抛弹）的地面影子：暗色小椭圆，越高越小
 	for l in o.hw.get("lobs", []):
 		var k: float = clampf(float(l.t) / maxf(0.01, float(l.dur)), 0.0, 1.0)
@@ -4058,6 +4070,7 @@ const SK_SY := 0.72
 const SK_B := [Color("#070d22"), Color("#0e1d4a"), Color("#183486"), Color("#2752c4"), Color("#4f80ec"), Color("#9dbcff"), Color("#ffffff")]   # 深海蓝 7 阶（原作歌域蓝，避开敌弹青 #33ceff）
 const SK_R := [Color("#3a0d1b"), Color("#5e1424"), Color("#86202d"), Color("#a8323c"), Color("#dc4048"), Color("#ffb4bc"), Color("#ffffff")]   # 酒红（house.js OP.skalter，亮段色相 357°，避开危险红 331–353°）
 const SK_T := [Color("#06141c"), Color("#0b2a35"), Color("#124552"), Color("#1b6466"), Color("#3b8e89"), Color("#86c6bd"), Color("#e8f5f0")]   # 海嗣青（house.js OP.skalter_sea，原作海嗣色，偏灰、避开敌弹青）：伊莎玛拉小歌域与同步声浪
+const SK_V := [Color("#24163f"), Color("#4a2f7a"), Color("#7a5ab8"), Color("#b49cf0"), Color("#ece4ff")]   # 余音专属淡紫（docs/310 §4.2）
 const SK_NOTE := ["....####", "....#..#", "....#..#", "....#...", "....#...", "....#...", ".####...", "#####...", "#####...", ".###...."]
 const SK_NOTE2 := ["...########", "...#......#", "...#......#", "...#......#", "...#......#", ".###....###", "####...####", "####...####", ".##.....##."]
 const SK_UP := ["..#..", ".###.", "#.#.#", "..#..", ".###.", "#.#.#"]   # 增益双箭头（往上）
@@ -4549,7 +4562,7 @@ func _ev_skalter(o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dictio
 								break
 					R._light(o, lp, 100.0, 0.5, 0.12, p.light)   # docs/270：每次命中一盏、半径 100、强度 0.5（原来半径 = 0.7 歌域，摊满半屏照不出命中点）
 				"余音":   # 精一：外圈回声
-					_sk_push(o, {"skr": "echo_ring", "c": c, "r": r, "tier": t, "ly": "gd", "life": 4.0 / 15.0, "o": o, "fz": true})
+					_sk_push(o, {"skr": "echo_ring", "c": c, "r": r, "tier": t, "ly": "gd", "life": 6.0 / 15.0, "o": o, "fz": true})
 				"潮汐和声":
 					_sk_push(o, {"skr": "wave", "c": c, "r": r, "tier": t, "rose": true, "thin": true, "ly": "gd", "life": 6.0 / 15.0, "o": o, "fz": true})
 				"海嗣":   # 精二伊莎玛拉同步声浪（酒红）
@@ -4771,12 +4784,14 @@ func _sk_draw_gd(cv, o, it: Dictionary) -> void:
 				var ne: int = clampi(int(R / (px * 3.0)), 16, 64)   # docs/270：浪头白热整圈进发光层（约每 16 世界像素一点）
 				for j in ne:
 					_glow(_sk_ep(c, R, seed + TAU * float(j) / float(ne)), C[6])
-		"echo_ring":   # 余音：歌域外圈一道酒红细环闪 3 拍
-			if f < 0 or f > 3:
+		"echo_ring":   # 余音：歌域外圈一道淡紫环闪 5 拍（docs/310 §4.2：原酒红细环 α 降到 0.25、与基础声浪分不开 → 专属淡紫、2 像素、带暗边）
+			if f < 0 or f > 4:
 				return
-			var col2: Color = SK_R[4] if f < 2 else SK_R[3]
-			col2.a = [0.9, 0.8, 0.5, 0.25][f]
-			_sk_ring(cv, c, float(it.r) * _sk_rk(it) * 0.95, 9, 2.0, col2, SK_R[5] if f == 0 else Color(0, 0, 0, 0), Color(0, 0, 0, 0), float(int(it.t0 * 5.0) % 31), 0.3)
+			var col2: Color = SK_V[3] if f < 2 else SK_V[2]
+			col2.a = [1.0, 0.95, 0.8, 0.55, 0.3][f]
+			var lo2: Color = SK_V[0]
+			lo2.a = col2.a * 0.8
+			_sk_ring(cv, c, float(it.r) * _sk_rk(it) * (0.92 + 0.02 * f), 9, 4.0, col2, SK_V[4] if f < 2 else Color(0, 0, 0, 0), lo2, float(int(it.t0 * 5.0) % 31), 0.3)
 		"mini", "splash":   # 小声浪 / 溅射环
 			var nb: int = 4 if str(it.skr) == "mini" else 3
 			if f < 0 or f >= nb:

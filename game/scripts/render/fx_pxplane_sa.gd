@@ -282,13 +282,14 @@ func draw_over(o) -> void:
 		var left: float = float(s.until) - g.t
 		var age: float = g.t - float(s.t0)
 		var al: float = clampf(left / 0.4, 0.0, 1.0)
-		for qi in 2:
+		for qi in 3:   # docs/310 §4.2：两粒 2×2 → 三粒 3×3 带暗边（原来淹没在敌人身上）
 			var sd: float = float(s.seed) + qi * 2.1
-			var c: Vector2 = Pxp._snap(e.pos + Vector2(sin(sd) * float(e.r) * 0.55, -float(e.r) * (0.35 + 0.4 * fmod(sd * 0.7, 1.0))))
+			var c: Vector2 = Pxp._snap(e.pos + Vector2(sin(sd) * float(e.r) * 0.65, -float(e.r) * (0.3 + 0.5 * fmod(sd * 0.7, 1.0))))
 			var hot: bool = age < 0.14
-			cv.draw_rect(Rect2(c, Vector2(px, px)), Color(AMB[6] if hot else AMB[5], al))
-			cv.draw_rect(Rect2(c + Vector2(px, 0), Vector2(px, px)), Color(AMB[4] if hot else AMB[3], al))
-			cv.draw_rect(Rect2(c + Vector2(0, px), Vector2(px, px)), Color(AMB[2], al))
+			cv.draw_rect(Rect2(c - Vector2(px, px), Vector2(px * 4, px * 4)), Color(AMB[0], al * 0.85))
+			cv.draw_rect(Rect2(c, Vector2(px * 2, px * 2)), Color(AMB[6] if hot else AMB[5], al))
+			cv.draw_rect(Rect2(c + Vector2(px, 0), Vector2(px, px * 2)), Color(AMB[4] if hot else AMB[3], al))
+			cv.draw_rect(Rect2(c + Vector2(0, px), Vector2(px, px)), Color(AMB[3], al))
 
 
 ## 排序项：环绕钙晶、弹体、药物配置光环（精二）

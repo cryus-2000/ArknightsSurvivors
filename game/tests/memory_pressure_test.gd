@@ -17,8 +17,35 @@ func check(value: bool, label: String) -> void:
 		failures += 1
 		printerr("FAIL: " + label)
 
+func check_warm_roster(g) -> void:
+	const Art = preload("res://scripts/art.gd")
+	const FIRST := "fx_wisadel_cannon"
+	const NEXT := "fx_skadi_surge"
+	const ALLY := "fx_an_core"  # --squad=angelina in both runs
+	const SHARED := "fx_dust_seq"
+	var previous: String = Cfg.character_id
+	Cfg.character_id = "wisadel"
+	var first: Array = Probe.loading_warm_lists()[0]
+	check(first.has(FIRST) and first.has(ALLY) and first.has(SHARED) and not first.has(NEXT), "departure only prewarms squad and shared FX")
+	for key in [FIRST, NEXT, ALLY, SHARED]:
+		Art.uncache(key)
+	Art.outrun_track = true
+	for key in [FIRST, NEXT, ALLY, SHARED]:
+		Art.tex(key)
+	g._drop_outrun_tex()
+	var kept := Art.cache_keys()
+	check(kept.has(FIRST) and kept.has(ALLY) and kept.has(SHARED) and not kept.has(NEXT), "battle entry keeps the same FX as departure")
+	Cfg.character_id = "skadi"
+	var second: Array = Probe.loading_warm_lists()[0]
+	check(second.has(NEXT) and second.has(ALLY) and second.has(SHARED) and not second.has(FIRST), "selecting a new leader rebuilds departure FX after battle entry")
+	g.tex_lazy_fx["wisadel"] = [FIRST]
+	g.panel_ui.load_op_tex("wisadel")
+	check(g.tex.get(FIRST) is Texture2D and not g.tex_lazy_fx.has("wisadel"), "recruitment loads an operator deferred at departure")
+	Cfg.character_id = previous
+
 func _ready() -> void:
 	var g = Probe.new()
+	check_warm_roster(g)
 	for i in 20:
 		g._mem_guard(5.0)
 	check(g.trims == 1, "sustained pressure trims once, got %d" % g.trims)

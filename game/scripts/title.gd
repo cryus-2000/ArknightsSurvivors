@@ -4,6 +4,7 @@ const HS = preload("res://scripts/screens/hh_style.gd")
 const FR = preload("res://scripts/core/frame_rec.gd")
 func _ready() -> void:
 	load("res://scripts/core/perf_hud.gd").ensure(get_tree())   # 性能自检浮层（缺省关，core/perf_hud.gd）
+	load("res://scripts/core/crash_note.gd").ensure(get_tree())   # 上次对局异常退出：左下角提示，点开看崩溃前内存曲线（core/crash_box.gd）
 	if Cfg.dev_args().has("--loadprof"):
 		# 启动计时（docs/36 §5）：引擎启动 → 标题页 _ready → 标题页首帧画完（毫秒，从引擎启动算）
 		print("BOOTPROF title_ready=%d" % Time.get_ticks_msec())
@@ -11,6 +12,7 @@ func _ready() -> void:
 	if FR.enabled():
 		FR.mark("title_ready")
 		RenderingServer.frame_post_draw.connect(func(): FR.mark("title"), CONNECT_ONE_SHOT)
+	A.mark_boot()   # 启动期贴图键（只记第一次）：手机网页每局离场时拿掉这之后进缓存的（game._release_run）
 	A.outrun_track = true   # 局外读的贴图记下来，手机网页进局时拿掉（art.gd _outrun，game._drop_outrun_tex）
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_idle_fps = preload("res://scripts/core/idle_fps.gd").new()   # 手机网页闲置降帧（docs/50 §33）：boot_reveal 后才开
@@ -928,7 +930,8 @@ func _draw_menu(vs: Vector2) -> void:
 	var first := R.needs_first()
 	Tiles.draw(self, menu_lay, {"font": font, "sel": sel, "water": menu_water, "now": t, "rm": Cfg.reduce_motion,
 		"a_logo": 0.0, "logo_tex": null, "a_list": a_list, "a_deploy": _item_a(0) * (0.35 if first else 1.0), "a_foot": _seg(2.0, 0.4),
-		"slide": 0.0 if Cfg.reduce_motion else 16.0, "dim": [] if R.active() else [7], "tickets": R.tickets() if R.active() else -1})   # 10-24 用户：没有凭证也能点进寻访看卡池
+		"slide": 0.0 if Cfg.reduce_motion else 16.0, "dim": [] if R.active() else [7], "tickets": R.tickets() if R.active() else -1,
+		"sup_badge": preload("res://scripts/core/toy_support.gd").pending_tickets()})   # 10-24 用户：没有凭证也能点进寻访看卡池
 	if first and not (guide or credits):
 		_draw_first_guide()
 	# 声明（同人 · 非商业 · 与鹰角网络无关 · 致谢与声明）+ 版本：桌面右下，手机跟在底部一行后面

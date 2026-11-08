@@ -57,14 +57,50 @@
 		armed = false;
 		GEST.forEach(function (t) { document.removeEventListener(t, gesture, true); });
 	}
+	// 11-08 协调人：iOS 26.6 上上面这套仍不够——切出 App 再切回，仍然没声音。WebKit 回前台后常见两种坏法：
+	// ① 非手势里的 resume() 让 state 变回 running，第一下手势看到全 running 就撤了监听，但音频输出其实没接回（state 说 running、时钟不走或没声）；
+	// ② 系统中断（interrupted）不一定发 statechange。所以回前台后记 stale：之后 STALE_N 下手势里每个上下文都在手势内同步「suspend() 再 resume()」
+	// 重启输出、重放一段静音缓冲，再播一个静音 <audio> 元素（让 WebKit 重新激活媒体音频会话）；另有 1 秒一次的看门狗：可见时状态不是 running、
+	// 或 running 但 currentTime 不走，就重新挂手势监听并记 stale
+	var STALE_N = 2, stale = 0, silentEl = null;
+	function silentAudio() {
+		try {
+			if (!silentEl) {
+				// 0.05 秒 8 kHz 单声道静音 WAV
+				var n = 400, b = new Uint8Array(44 + n), v = new DataView(b.buffer);
+				var w = function (o, t) { for (var k = 0; k < t.length; k++) b[o + k] = t.charCodeAt(k); };
+				w(0, "RIFF"); v.setUint32(4, 36 + n, true); w(8, "WAVEfmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+				v.setUint32(24, 8000, true); v.setUint32(28, 8000, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true); w(36, "data"); v.setUint32(40, n, true);
+				for (var k = 0; k < n; k++) b[44 + k] = 128;
+				silentEl = document.createElement("audio");
+				silentEl.setAttribute("playsinline", "");
+				silentEl.preload = "auto";
+				silentEl.src = URL.createObjectURL(new Blob([b], { type: "audio/wav" }));
+			}
+			silentEl.currentTime = 0;
+			var pr = silentEl.play();
+			if (pr && pr.catch) pr.catch(function () {});
+		} catch (e) {}
+	}
 	function gesture() {
 		window.__syGesture = 1;
 		var all = list.length > 0;
-		for (var i = 0; i < list.length; i++) {
-			kick(list[i]);
-			if (list[i].state !== "running") all = false;
+		var restart = stale > 0;
+		if (restart) {
+			stale--;
+			silentAudio();
 		}
-		if (all) disarm();
+		for (var i = 0; i < list.length; i++) {
+			var c = list[i];
+			if (restart) {
+				try { if (c.state === "running") c.suspend(); c.resume(); } catch (e) {}   // 同一手势里同步排队：先停再起，重新接上输出
+				c.__syKicked = 0;
+			}
+			kick(c);
+			if (c.state !== "running") all = false;
+		}
+		window.__syAudioRestarts = (window.__syAudioRestarts || 0) + (restart ? 1 : 0);
+		if (all && stale <= 0) disarm();
 	}
 	function watch(c) {
 		if (c.__syWatch || !c.addEventListener) return;
@@ -73,7 +109,8 @@
 			if (c.state !== "running" && !document.hidden) arm();   // 被系统挂起 / 中断（interrupted）：等下一下手势
 		});
 	}
-	function back() {   // 回到前台
+	function back(re) {   // 回到前台（re：真从后台回来——visibilitychange / pageshow；窗口 focus 只补 resume，不重启输出）
+		if (re) stale = STALE_N;
 		for (var i = 0; i < list.length; i++) {
 			watch(list[i]);
 			try { if (list[i].state !== "running") list[i].resume(); } catch (e) {}
@@ -81,13 +118,22 @@
 		arm();   // 先挂上：resume 是异步的，没恢复的话下一下手势接着唤醒；都 running 了下一下手势自己撤掉
 	}
 	arm();
+	setInterval(function () {   // 看门狗（见上）
+		if (document.hidden) return;
+		for (var i = 0; i < list.length; i++) {
+			var c = list[i], t = c.currentTime;
+			if (c.state !== "running") arm();
+			else if (c.__syLastT !== undefined && t === c.__syLastT && c.__syKicked) { if (stale <= 0) stale = 1; arm(); }
+			c.__syLastT = t;
+		}
+	}, 1000);
 	window.__syAudioKick = gesture;
 	window.__syAudioState = function () { return list.map(function (c) { return c.state; }).join(","); };   // 自测 / 日志用
 	document.addEventListener("visibilitychange", function () {
 		if (document.hidden) {
 			for (var i = 0; i < list.length; i++) { try { list[i].suspend(); } catch (e) {} }
-		} else back();
+		} else back(true);
 	});
-	window.addEventListener("pageshow", function () { if (!document.hidden) back(); });
+	window.addEventListener("pageshow", function () { if (!document.hidden) back(true); });
 	window.addEventListener("focus", function () { if (!document.hidden) back(); });
 })();

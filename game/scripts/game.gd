@@ -31,6 +31,7 @@ const RunSetup = preload("res://scripts/run/run_setup.gd")   # 开局：难度�
 const RunEnd = preload("res://scripts/run/run_end.gd")   # 局终：局外结算
 const Telemetry = preload("res://scripts/run/telemetry.gd")
 const PerfReport = preload("res://scripts/core/perf_report.gd")
+const CrashBox = preload("res://scripts/core/crash_box.gd")
 const WorldView = preload("res://scripts/render/world.gd")
 const HudView = preload("res://scripts/screens/hud.gd")
 const ShopScreen = preload("res://scripts/screens/shop_screen.gd")
@@ -401,7 +402,7 @@ var tex := {}
 var tex_deferred := {}
 ## 手机网页：开局没读的干员专属特效帧条（干员 id → [帧条名]），入队时 load_op_fx 补读（docs/287 §3 ①）。--lazyfx：桌面上试
 var tex_lazy_fx := {}
-var lazy_fx: bool = (Cfg.mobile_web() and Cfg.mobile_knob("mobile_lazy_fx", 1.0)) or Cfg.dev_args().has("--lazyfx")
+var lazy_fx: bool = _lazy_fx_enabled()
 const WEB_EARLY_T := 180.0
 var panel_title_text := ""
 # ---------- 打击感 ----------
@@ -424,6 +425,7 @@ var foe_top: Node2D   # 敌方顶层（docs/226 §1，render/foe_top）：敌弹
 var wcv: CanvasItem = self   # 世界绘制当前提交到的画布：平时是 game 自己，敌方顶层那一遍是 foe_top（render/*.gd 一律画到 g.wcv）
 var settings: Control
 var ui_layer: CanvasLayer   # 界面层（HUD / 面板 / 设置）：触屏时整体放大 Cfg.ui_k
+var support_view: Control = null   # B站 Toy「支持作者」浮层（screens/support_view.gd，结算 / 寻访页点了才建，docs/313）；开着时局内 _input 让开
 var feedback_view: Control = null   # 结算「反馈」浮层（screens/feedback_view.gd，第一次点时建）；开着时局内 _input 让开
 var run_wall_ms := Time.get_ticks_msec()   # 本局开始的真实时刻（反馈码的局时）
 var result_btns: Array = []   # [Rect2, action]
@@ -714,6 +716,7 @@ static func loading_warm_lists() -> Array:
 		if str(n).begins_with("e_") and not skip.has(str(n)):
 			whites.append(n)   # V6 敌人附加帧条（休眠 / 唤醒 / 狂暴）的白色剪影，_ready 的 tex_v6 段也要
 	var names: Array = []
+	var skip_fx := _deferred_start_fx(_lazy_fx_enabled())
 	if Cfg.mobile_web() and Cfg.mobile_knob("mobile_lazy_white", 1.0):
 		whites = []   # 手机网页白剪影按需建（ensure_white），载入页不预建
 	for n in preload_tex_names() + ([] if Cfg.mobile_web() else demo_warm_names()):   # 手机网页不预读图鉴演示的补充名单（docs/50 §30）
@@ -722,9 +725,8 @@ static func loading_warm_lists() -> Array:
 			if base.ends_with(suffix):
 				base = base.trim_suffix(suffix)
 				break
-		if not skip.has(base) and not _lazy_skip(n):
+		if not skip.has(base) and not skip_fx.has(n):
 			names.append(n)
-	_start_ids_c = {}   # 选人可能还会变：下次重算
 	return [names, whites]
 
 
@@ -785,26 +787,28 @@ func _enemy_evict(n: String) -> void:
 			A.uncache(nm)
 	tex_deferred[n] = true
 
-## 手机网页按需读特效（lazy_fx）时，不在开局编队（同 title._op_ids：队长 / --op、--squad）的干员的 V6 特效帧条：
-## 载入页不预读、进局保留名单不留（docs/319 §2：原来载入页照读全员约 150 MB，进局才不用）
-static var _start_ids_c := {}
+static func _lazy_fx_enabled() -> bool:
+	return (Cfg.mobile_web() and Cfg.mobile_knob("mobile_lazy_fx", 1.0)) or Cfg.dev_args().has("--lazyfx")
 
-static func _lazy_skip(n) -> bool:
-	if not V6_FRAMES.has(n) or not (Cfg.mobile_web() and Cfg.mobile_knob("mobile_lazy_fx", 1.0)) and not Cfg.dev_args().has("--lazyfx"):
-		return false
-	var ow: String = A.fx_owner(str(n))
-	if ow == "":
-		return false
-	if _start_ids_c.is_empty():
-		_start_ids_c = {Cfg.character_id: true}
-		for a in Cfg.dev_args():
-			if a.begins_with("--op="):
-				_start_ids_c = {a.substr(5): true}
-		for a in Cfg.dev_args():
-			if a.begins_with("--squad="):
-				for c in a.substr(8).split(","):
-					_start_ids_c[c] = true
-	return not _start_ids_c.has(ow)
+## 载入页和进局清理各自读取当时的编队。回标题改选队长后，上局的名单应立即失效。
+static func _deferred_start_fx(lazy: bool) -> Dictionary:
+	var deferred := {}
+	if not lazy:
+		return deferred
+	var leader: String = Cfg.character_id
+	var ids := {}
+	for a in Cfg.dev_args():
+		if a.begins_with("--op="):
+			leader = a.substr(5)
+		elif a.begins_with("--squad="):
+			for cid in a.substr(8).split(",", false):
+				ids[cid] = true
+	ids[leader if Character.exists(leader) else "mizuki"] = true
+	for n in V6_FRAMES:
+		var owner := A.fx_owner(n)
+		if owner != "" and not ids.has(owner):
+			deferred[n] = true
+	return deferred
 
 
 ## 手机网页进局（docs/319 §2）：标题页 / 图鉴 / 寻访 / 选人读进缓存、本局固定名单里没有的贴图拿掉（art.gd _outrun）。
@@ -815,8 +819,9 @@ func _drop_outrun_tex() -> void:
 		A.outrun_track = false
 		return
 	var keep := {}
+	var skip_fx := _deferred_start_fx(lazy_fx)
 	for n in preload_tex_names():
-		if not _lazy_skip(n):
+		if not skip_fx.has(n):
 			keep[str(n)] = true
 	var nd := A.drop_outrun(keep)
 	if not Cfg.dev_args().is_empty():
@@ -926,6 +931,7 @@ func _ready() -> void:
 	web_fs.setup(self)
 	web_focus.setup(self)
 	trial.consume()
+	CrashBox.begin(self)   # 崩溃前快照：局内每 15 秒把内存构成写进本地存储（core/crash_box.gd）
 	# 随机数最先定：招募开局干员时就会用 rng（战斗台词计时等）。以前 --seed 在 _ready 后段才生效，
 	# 开局干员的台词计时是随机的，第一句台词一出同 seed 的两局就分叉（2026-09-26 查明，docs/36）
 	var seeded := false
@@ -1324,6 +1330,16 @@ func open_feedback(summary: Dictionary) -> void:
 	feedback_view.open(summary)
 
 
+## 结算 / 寻访页的「关注作者，领寻访凭证」（11-08 用户）：和标题页同一个浮层
+func open_support() -> void:
+	if support_view == null:
+		support_view = preload("res://scripts/screens/support_view.gd").new()
+		ui_layer.add_child(support_view)
+	Cfg.ui_fill(support_view)
+	ui_layer.move_child(support_view, -1)
+	support_view.open()
+
+
 ## 手机横屏正文字号放大（用户 10-13，UI.fk / UI.fs）：局内界面层在 Cfg.phone_ui() 时乘 balance.json ui/phone_font_mult；
 ## 离开局内（_exit_tree）恢复 1，标题页不受影响。演示局（demo_op：图鉴、精英化演出的实机小窗）不改它（UI.fk 是全局静态量）
 func _font_k() -> void:
@@ -1606,6 +1622,7 @@ func _process(delta: float) -> void:
 			if state == S.WIN or state == S.DEAD:
 				RunEnd.settle(self)   # 局外结算：寻访凭证、生机细胞、最佳成绩、云存档（run/run_end.gd）
 				perf_rep.finish("win" if state == S.WIN else "dead")
+				CrashBox.end("win" if state == S.WIN else "dead")
 		state_age = 0.0
 		ui_skip = false
 		res_sel = 0
@@ -1633,6 +1650,7 @@ func _process(delta: float) -> void:
 		if absf(cam.zoom.x - bz) > 0.0001:
 			cam.zoom = Vector2(bz, bz)   # 低档也每帧对齐（中 / 高由光学 _lo_step 每帧算）：漏掉尺寸变化通知时不会停在旧镜头（10-27 用户「低中镜头还是不一样」）
 	_mem_guard(delta)
+	CrashBox.tick(self, delta)
 	perf_rep.tick(delta)   # 性能报告：帧时分桶 / 最低 1 秒帧率 / 内存与敌人峰值（只加计数）
 	_white_release(delta)
 	if EliteMoment.on(self):
@@ -1705,6 +1723,7 @@ func _do_action(act: String) -> void:
 		"restart":
 			if trial.active:
 				trial.retry()
+			_restarting = true   # 直接重开不过载入页：离场释放保留同编队的固定名单（_release_run）
 			get_tree().reload_current_scene()
 		"title":
 			get_tree().change_scene_to_file("res://main.tscn")
@@ -1722,7 +1741,7 @@ func _input(event: InputEvent) -> void:
 		return
 	if event is InputEventMouseMotion and event.relative.length() > 6.0:
 		kb_nav = false
-	if settings.visible or (feedback_view != null and feedback_view.visible):
+	if settings.visible or (feedback_view != null and feedback_view.visible) or (support_view != null and support_view.visible):
 		return
 	# Result owns terminal input before stale combat touch regions can consume it.
 	if settlement.active() and not run_stats.open and not run_log.open and not headhunt.open and (state == S.WIN or state_age >= HudView.DEATH_T + 0.35):
@@ -2448,6 +2467,31 @@ func _exit_tree() -> void:
 		telemetry.on_exit()
 		if demo_op == "":
 			perf_rep.finish("quit")
+			CrashBox.end("quit")
+	if demo_op == "":
+		_release_run()
+
+
+## 手机网页离开一局（回标题 / 重开）：上一局读进静态缓存的贴图、局中补注册的音效与历史语音样本全部退掉（docs/319 §7）。
+## 同页连开第二局时原来叠在上一局残留上（iPhone 第二局开局被系统杀页）。--bal=web/mobile_run_release=0 退回
+var _restarting := false
+
+func _release_run() -> void:
+	if not (Cfg.mobile_web() and Cfg.mobile_knob("mobile_run_release", 1.0)) and not Cfg.dev_args().has("--runrelease"):
+		return
+	var nt := 0
+	if _restarting:
+		var keep := A.boot_keys.duplicate()
+		var skip_fx := _deferred_start_fx(lazy_fx)
+		for n in preload_tex_names():
+			if not skip_fx.has(n):
+				keep[str(n)] = true
+		nt = A.drop_new(keep)
+	else:
+		nt = A.drop_run()
+	var na: int = Sfx.release_run()
+	if not Cfg.dev_args().is_empty():
+		print("PF RUNRELEASE tex=%d audio=%d" % [nt, na])
 
 
 ## --prof：给某个绘制回调计时（HUD / 加色层 / 前景），不开 --prof 时直接调用

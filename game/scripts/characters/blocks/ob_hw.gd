@@ -376,7 +376,12 @@ static func hw_requiem_stack(o, e: Dictionary, s: Dictionary) -> bool:
 	var rq: Dictionary = h.get("rq", {})
 	if rq.is_empty():
 		return false
+	var n0: int = int(e.get("requiem_n", 0)) if float(e.get("requiem", 0.0)) > 0.0 else 0
 	var n: int = mini(int(e.get("requiem_n", 0)) + 1, int(rq.get("max", 3))) if float(e.get("requiem", 0.0)) > 0.0 else 1
+	if n > n0:   # 剜魂叠层提示（docs/310 §4.2，只画）：每加一层头顶符文处亮一圈，层数越多越大，叠满再迸一簇
+		ncue(o, {"p": e.pos + Vector2(0, -float(e.r) * 2.0 - 8.0), "shape": "burst", "top": true, "r": 10.0 + 5.0 * n, "r0": 4.0, "c": Color("#b4bdff"), "n": 2 + 2 * n, "life": 0.3})
+		if n >= int(rq.get("max", 3)):
+			ncue(o, {"p": e.pos, "fe": e, "shape": "mark", "c": Color("#b4bdff"), "life": 0.45})
 	e["requiem_n"] = n
 	e["requiem_k"] = float(rq.get("per", 0.06)) * n
 	e["requiem"] = float(s.dur)

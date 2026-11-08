@@ -92,7 +92,9 @@ static func hw_shell_fire(o, b: Dictionary, is_atk: bool) -> void:
 		if not cond_true(o, f.get("cond", _ED)):
 			continue
 		var n: int = int(f.get("n", 1))
-		var tos: Array = _hw_extra_targets(o, b, ts[0], n)
+		var tos: Array = _hw_extra_targets(o, b, ts[0], n) if not f.get("same", false) else []
+		while tos.size() < n:   # same：后续弹都打首发目标（艾雅法拉复咏精零，docs/310 §5）
+			tos.append(ts[0].pos)
 		for k in n:
 			h.shells.append({"t": float(f.get("gap", 0.12)) * (k + 1), "to": tos[k], "pre": pre * float(f.get("mult", 1.0)), "aoe": aoe * float(f.get("aoe_mult", 1.0)),
 				"sz": float(f.get("sz", 1.0)), "oe": oe, "b": b, "tip": tip - o.pos})
@@ -326,6 +328,8 @@ static func hw_status(o, e: Dictionary, s: Dictionary) -> bool:
 					fx_play(o, s.fx, e.pos, float(e.r), [e])
 				if s.has("look"):   # 精英化第 2 批段：脚下裂纹（熔蚀）
 					_F().hw_melt_mark(o, e, s)
+					if mv <= 0.0:   # 新挂上熔蚀：暗红火星迸一下（docs/310 §4.2，只画）
+						ncue(o, {"p": e.pos, "shape": "burst", "r": float(e.r) + 14.0, "r0": float(e.r) * 0.5, "c": Color("#d2330f"), "n": 7, "life": 0.35, "tag": "熔蚀"})
 			else:
 				e["aura_weak"] = maxf(float(e.get("aura_weak", 0.0)), float(s.dur))
 			return true

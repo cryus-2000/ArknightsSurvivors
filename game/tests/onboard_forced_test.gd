@@ -81,13 +81,7 @@ func _ready() -> void:
 	check(not ob._deployed(), "只点了扇区（还在选点）不算部署")
 	g.pick.cancel()
 	g.squad.apply_order("point", g.ppos - ob.pack_dir * 260.0, null)
-	check(not ob._deployed(), "部署到怪群反方向不算")
-	g.squad.apply_order("point", g.ppos + ob.pack_dir * 260.0, null)
-	check(not ob._deployed(), "下了部署但队友还没走到不算")
-	for o in g.squad.ops:
-		if not o.is_leader:
-			o.pos = g.squad.station_of(o)
-	check(ob._deployed(), "队友走到驻扎位：部署生效")
+	check(ob._deployed(), "下了部署就算（11-08：不等队友走到、不限方向）")
 	ob._finish()
 	ob.cur = ""
 	ob._show("regroup")
@@ -143,13 +137,10 @@ func _ready() -> void:
 	ob._focus_tick()
 	check(ob._focus_given or ob._skip_focus, "等太久没下：引导代下一次集火")
 	if ob._focus_given:
-		check(not ob._done("focus"), "集火下令后精英还活着：不算做完（等它倒下）")
-		check(ob._hint_of("focus") == str(ob.card("focus").get("hint_after", "")), "下令后做完条件改成「击败这只精英」")
-		ob.focus_tgt.dead = true
-		check(ob._done("focus"), "精英倒下（谁打死的都算）：做完")
-		ob.focus_tgt.dead = false
-		ob.cur_t = ob._focus_t + ob.FOCUS_KILL_WAIT + 0.1
-		check(ob._done("focus"), "下令后等太久精英还没倒：也往下走")
+		ob.cur_t = ob._focus_t
+		check(not ob._done("focus"), "集火刚下令：先停 FOCUS_SHOW 秒看转火")
+		ob.cur_t = ob._focus_t + ob.FOCUS_SHOW + 0.1
+		check(ob._done("focus"), "下了集火就算做完（11-08：不等精英倒下）")
 	check(ob.text_of("focus", false).find("精英") >= 0 and ob.text_of("focus", false).find("宝箱") >= 0, "集火卡讲了精英（金色光环 / 掉落）")
 	check(ob.text_of("focus", false).find("{cmd}") < 0, "集火文案里的键名占位已替换：" + ob.text_of("focus", false))
 	ob._focus_t = -1.0

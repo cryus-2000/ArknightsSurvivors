@@ -10,6 +10,7 @@ const TouchLayout = preload("res://scripts/touch_layout.gd")   # 各按键位置
 const PlayClock = preload("res://scripts/run/play_clock.gd")
 const TriBatch = preload("res://scripts/render/tri_batch.gd")
 const Bal = preload("res://scripts/core/balance.gd")
+const UltAim = preload("res://scripts/run/ult_aim.gd")   # 终结技落点夹取（触屏夹进可见画面）
 
 const RADIUS := 64.0        # 摇杆最大行程
 const DEAD := 10.0          # 死区
@@ -312,6 +313,7 @@ func _ult_aim() -> void:
 	u.aim_moved = true   # 拖过死区：松手直接放（快速一甩不当轻点）
 	if u.aim_kind == "point":
 		u.aim = u.caster.pos + d * minf(ULT_AIM_MAX, skill_aim.length() / ULT_AIM_REACH * ULT_AIM_MAX)
+		UltAim._clamp(u)   # 夹进可见画面（手机上下看不到 520 那么远）
 	elif u.aim_kind == "dir":
 		u.aim_dir = d
 
@@ -528,10 +530,10 @@ func _v2_dash(hud: CanvasItem, c: Vector2, r: float, ready: bool) -> void:
 		_arc(hud, c, r + 3.0, -PI / 2.0, -PI / 2.0 + TAU * g.dash_frac(), 40, Color(1, 1, 1, 0.5), 1.5)
 
 
-## 指挥：圈里写当前模式（青）+「CMD」；突击耐力是外圈一道细弧
+## 指挥：圈里写「指挥」+「CMD」（11-08 用户：原来写当前模式「随行」，看不出是指挥键）；随行以外的模式字变金色；突击耐力是外圈一道细弧
 func _v2_cmd(hud: CanvasItem, c: Vector2, r: float, st: int) -> void:
 	var v2 = g.hud_view.v2
-	_v2_btn(hud, c, r, flash.get("cmd", 0.0) > 0.0, v2.SEG_NAMES[v2.seg_index()], "CMD", UI.CYAN)
+	_v2_btn(hud, c, r, flash.get("cmd", 0.0) > 0.0, "指挥", "CMD", UI.CYAN if v2.seg_index() == 0 else UI.GOLD)
 	var sq = g.squad
 	if sq.stamina_on() and sq.stamina > 0.0:
 		var fc: Color = UI.GOLD if st == sq.ROAM else (Color(0.5, 0.52, 0.55) if sq.exhausted else UI.CYAN)

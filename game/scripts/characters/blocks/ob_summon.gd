@@ -1312,7 +1312,7 @@ static func mf_exec(o, b: Dictionary, _at: Vector2) -> void:
 				if str(w) == "nerve":
 					o.g.afflict.clear_nerve()
 			if b.get("cue", false) and o.g.ppos != Vector2.INF:   # 成长节点的驱散（docs/310 §2，流明光雨·澄明）：队长身上一圈金白光落下 + 紫色碎屑散开
-				ncue(o, {"p": o.g.ppos, "shape": "in", "r": 46.0, "c": Color(1.0, 0.93, 0.7), "n": 0, "life": 0.4})
+				ncue(o, {"p": o.g.ppos, "shape": "in", "r": 46.0, "c": Color(1.0, 0.93, 0.7), "n": 0, "life": 0.4, "tag": "净化"})
 				ncue(o, {"p": o.g.ppos, "shape": "burst", "r": 30.0, "r0": 6.0, "c": Color(0.75, 0.5, 1.0), "n": 8, "life": 0.4})
 
 

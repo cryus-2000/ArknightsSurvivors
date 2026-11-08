@@ -16,11 +16,13 @@ const MENU := [
 	{"id": 6, "cn": "认知塑造", "en": "COGNITION", "slot": "list", "icon": "cognition", "tier": 0},
 	{"id": 1, "cn": "图鉴", "en": "ARCHIVE", "slot": "list", "icon": "gallery", "tier": 1},
 	{"id": 8, "cn": "蚀刻章", "en": "MEDALS", "slot": "list", "icon": "medals", "tier": 1},   # 10-25 蚀刻章「深蓝之下」（screens/medals_ui.gd）
+	# B站 Toy「支持作者」奖励（docs/313）：只在 Toy 版、有奖励项时出现（title._menu_ids）。11-08 用户嫌底部一行太隐蔽，提到左侧入口，
+	# 还有没领的奖励时带「领 N 张」角标（N = 没领的项 × 每项张数，st.sup_badge）
+	{"id": 10, "cn": "支持作者", "en": "SUPPORT", "slot": "list", "icon": "support", "tier": 1},
 	{"id": 2, "cn": "Boss 演练", "en": "TRIAL", "slot": "list", "icon": "trial", "tier": 2, "tag": "测试版"},
 	{"id": 4, "cn": "设置", "en": "SETTINGS", "slot": "foot"},
 	{"id": 3, "cn": "操作说明", "en": "GUIDE", "slot": "foot"},
 	{"id": 9, "cn": "意见反馈", "en": "FEEDBACK", "slot": "foot"},   # 11-07 用户：标题页底部一行（docs/311）；没配反馈目标时 title._menu_ids 去掉
-	{"id": 10, "cn": "支持作者", "en": "SUPPORT", "slot": "foot"},   # B站 Toy「支持作者」奖励（docs/313）：只在 Toy 版、有奖励项时出现（title._menu_ids）
 	{"id": 5, "cn": "退出", "en": "EXIT", "slot": "foot"},
 ]
 
@@ -209,7 +211,7 @@ static func _stack(list_ids: Array, k: float, touch: bool) -> Dictionary:
 
 
 # ---------------------------------------------------------------- 绘制
-## st：{font, sel, water[], now, rm, a_logo, a_list[], a_deploy, a_foot, slide, dim[], tickets(-1 = 不显示), logo_tex}
+## st：{font, sel, water[], now, rm, a_logo, a_list[], a_deploy, a_foot, slide, dim[], tickets(-1 = 不显示), sup_badge(0 = 不显示), logo_tex}
 
 static func _ease(x: float) -> float:
 	x = clampf(x, 0.0, 1.0)
@@ -256,7 +258,7 @@ static func draw(ci: CanvasItem, lay: Dictionary, st: Dictionary) -> void:
 		if a <= 0.0:
 			continue
 		var o: Vector2 = lst.o + Vector2(0, r.y + r.pad) * lst.k + Vector2(-st.slide * (1.0 - a), 0)
-		_draw_row(ci, o, lst.k, font, item(r.id), TIERS[r.tier], st.water[r.id], a, st.dim.has(r.id), st.tickets if r.id == 7 else -1)
+		_draw_row(ci, o, lst.k, font, item(r.id), TIERS[r.tier], st.water[r.id], a, st.dim.has(r.id), st.tickets if r.id == 7 else -1, int(st.get("sup_badge", 0)) if r.id == 10 else 0)
 	if lay.rects.has(0) and st.a_deploy > 0.0:
 		_draw_deploy(ci, lay.deploy.o, lay.deploy.k, font, st.water[0], st.a_deploy, st.now, st.rm)
 	if st.a_foot > 0.0:
@@ -291,7 +293,7 @@ static func _draw_label(ci: CanvasItem, o: Vector2, k: float, font: Font, cn: St
 
 
 ## 一行入口（tt = TIERS 里的一档；o = 行左上，内容按 tt.h 画）
-static func _draw_row(ci: CanvasItem, o: Vector2, k: float, font: Font, m: Dictionary, tt: Dictionary, water: float, a: float, dim: bool, tickets: int) -> void:
+static func _draw_row(ci: CanvasItem, o: Vector2, k: float, font: Font, m: Dictionary, tt: Dictionary, water: float, a: float, dim: bool, tickets: int, sup_badge := 0) -> void:
 	var w := _ease(water)
 	var P := func(x: float, y: float) -> Vector2: return o + Vector2(x, y) * k
 	var h: float = tt.h
@@ -333,6 +335,16 @@ static func _draw_row(ci: CanvasItem, o: Vector2, k: float, font: Font, m: Dicti
 		var q := bh * 0.2
 		ci.draw_colored_polygon(PackedVector2Array([Vector2(tx.x + q, by), Vector2(tx.x + bw, by), Vector2(tx.x + bw - q, by + bh), Vector2(tx.x, by + bh)]), _fa(col, a))
 		ci.draw_string(font, Vector2(tx.x, by + bh * 0.5 + (font.get_ascent(bfs) - font.get_descent(bfs)) * 0.5), s, HORIZONTAL_ALIGNMENT_CENTER, bw, bfs, Color(0.07, 0.07, 0.09, a))
+	if sup_badge > 0:
+		# 支持作者还有没领的凭证：青底斜块「领 N 张」（青色 = 可操作，和寻访的黄色凭证数分开）
+		var s2 := "领 %d 张" % sup_badge
+		var bfs2 := int(round(12 * k))
+		var bw2: float = font.get_string_size(s2, HORIZONTAL_ALIGNMENT_LEFT, -1, bfs2).x + 16.0 * k
+		var bh2 := 18.0 * k
+		var by2 := tx.y + (fs - bh2) * 0.5 + 2.0 * k
+		var q2 := bh2 * 0.2
+		ci.draw_colored_polygon(PackedVector2Array([Vector2(tx.x + q2, by2), Vector2(tx.x + bw2, by2), Vector2(tx.x + bw2 - q2, by2 + bh2), Vector2(tx.x, by2 + bh2)]), _fa(C, a))
+		ci.draw_string(font, Vector2(tx.x, by2 + bh2 * 0.5 + (font.get_ascent(bfs2) - font.get_descent(bfs2)) * 0.5), s2, HORIZONTAL_ALIGNMENT_CENTER, bw2, bfs2, _fa(INK, a))
 	if w > 0.0:
 		ci.draw_line(P.call(tt.tx, tt.ul), P.call(tt.tx + (tt.sw - tt.tx - 64.0) * w, tt.ul), _fa(C, a * w), maxf(1.0, 1.4 * k))
 		var cx: float = tt.sw - 22.0 - h * 0.15
@@ -342,7 +354,7 @@ static func _draw_row(ci: CanvasItem, o: Vector2, k: float, font: Font, m: Dicti
 
 ## 线框图标（同 Codex 41 版 icon()，尺寸统一到同一光学大小）
 static func _icon(ci: CanvasItem, c: Vector2, kind: String, col: Color, k: float) -> void:
-	var s: float = {"headhunt": 0.82, "gallery": 0.74, "cognition": 0.78, "trial": 0.78, "medals": 0.8}.get(kind, 0.8) * k
+	var s: float = {"support": 0.78, "headhunt": 0.82, "gallery": 0.74, "cognition": 0.78, "trial": 0.78, "medals": 0.8}.get(kind, 0.8) * k
 	var lw := maxf(1.0, 1.3 * k)
 	var ln := func(pts: Array) -> void:
 		var pv := PackedVector2Array()
@@ -369,6 +381,8 @@ static func _icon(ci: CanvasItem, c: Vector2, kind: String, col: Color, k: float
 			ln.call([[7, -13], [3, -4]])
 			ci.draw_arc(c + Vector2(0, 4) * s, 8.0 * s, 0.0, TAU, 28, col, lw, true)
 			ci.draw_arc(c + Vector2(0, 4) * s, 3.5 * s, 0.0, TAU, 16, col, lw, true)
+		"support":   # 心形（支持作者）
+			ln.call([[0, 11], [-11, 0], [-12, -6], [-9, -10], [-4, -11], [0, -6], [4, -11], [9, -10], [12, -6], [11, 0], [0, 11]])
 		"trial":
 			ln.call([[-11, -10], [11, 10]])
 			ln.call([[-11, 10], [11, -10]])

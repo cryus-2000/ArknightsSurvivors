@@ -247,12 +247,7 @@ func draw_floor(o) -> void:
 		else:
 			for q in ring:
 				cv.draw_rect(Rect2(c0 + Vector2(q[0], q[1]) * px, Vector2(px, px)), q[2])
-	for s2 in sz.brands:   # 精一狐火灼印：被打中的敌人脚下小金印
-		var e: Dictionary = s2.e
-		if e.get("dead", false):
-			continue
-		var al: float = clampf(float(s2.t) / 0.3, 0.0, 1.0)
-		r._draw_strip(cv, "sz_brand_gd", r.frame_of(0.0) + int(e.id), Pxp._snap(e.pos + Vector2(0, float(e.r) * 0.7)), false, false, Color(1, 1, 1, al))
+	# 精一狐火灼印：原来画在敌人脚下、被身体挡住 → 改到立起层印在身上（sort_items，docs/310 §4.2）
 	for s3 in sz.seals:   # 画地为牢：被定身的敌人脚下金色封印
 		var e2: Dictionary = s3.e
 		if e2.get("dead", false):
@@ -342,6 +337,12 @@ func sort_items(o, out: Array) -> void:
 		out.append({"sz": "strip", "k": "sz_fl_s", "gp": Pxp._snap(pp + Vector2(0, 4)), "flip": false, "skey": gy + 1.0, "loop": true, "ph": k})
 	if conv > (0.2 if n == 0 else 0.5):
 		out.append({"sz": "strip", "k": "sz_gather", "gp": Pxp._snap(tip), "flip": false, "skey": o.pos.y + 2.0, "loop": true})
+	for s2 in sz.brands:   # 精一狐火灼印：印在被打中的敌人身上（排在本体之后），出现那 0.3 秒外加一圈金色亮边
+		var e: Dictionary = s2.e
+		if e.get("dead", false):
+			continue
+		var al: float = clampf(float(s2.t) / 0.3, 0.0, 1.0)
+		out.append({"sz": "strip", "k": "sz_brand_gd", "gp": Pxp._snap(e.pos + Vector2(0, -float(e.r) * 0.75)), "flip": false, "skey": float(e.pos.y) + 3.0, "ph": int(e.id), "a": al})
 	for b in g.bullets:
 		if b.life <= 0.0 or b.get("op", "") != o.id or b.kind != "arcane":
 			continue

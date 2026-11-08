@@ -475,7 +475,7 @@
    "id": "twin_cast",
    "name": "复咏",
    "icon": "growth_b_count",
-   "desc": "精英化前，普攻伤害 ×{$twin_mult+1}；精英一时普攻投出 2 发熔岩弹：第二发打另一名敌人（没有则在旁边偏开），伤害 {$twin_mult*100}%；精英二起由「三重咏唱」取代"
+   "desc": "普攻投出 2 发熔岩弹，第二发伤害 {$twin_mult*100}%：精英化前打同一名敌人，精英一起打另一名敌人（没有则在旁边偏开）；精英二起由「三重咏唱」取代"
   },
   {
    "type": "custom",
@@ -687,12 +687,21 @@
    ],
    "follow": [
     {
+     "cond": "node:twin_cast && elite < 1",
+     "n": 1,
+     "gap": "$follow_gap",
+     "mult": "$twin_mult",
+     "sz": "$twin_size",
+     "same": true,
+     "_doc": "复咏精零（11-07 用户批，docs/310 §5）：第 2 发打同一名敌人（伤害 twin_mult，两发合计同原来单发 ×(1 + twin_mult)）"
+    },
+    {
      "cond": "node:twin_cast && elite >= 1 && elite < 2",
      "n": 1,
      "gap": "$follow_gap",
      "mult": "$twin_mult",
      "sz": "$twin_size",
-     "_doc": "复咏：精一启用第 2 发；精零由局部 atk 合并为一发 1+0.6，精二由低抛三重咏唱取代"
+     "_doc": "复咏：精一第 2 发打另一名敌人；精二由低抛三重咏唱取代"
     }
    ],
    "on_explode": [
@@ -1315,16 +1324,8 @@
   "progression": {
    "twin_cast": {
     "trig": "passive",
-    "do": [
-     {
-      "verb": "buff_self",
-      "stat": "atk",
-      "op": "mult",
-      "value": "$twin_mult+1",
-      "cond": "elite < 1"
-     }
-    ],
-    "_doc": "复咏：精零强化单发火球；精一在 attack.follow 启用双发；精二由低抛取代"
+    "do": [],
+    "_doc": "复咏：效果写在 attack.follow（精零第 2 发打同一目标、精一打另一名敌人）；精二由低抛取代"
    },
    "embers": {
     "trig": "passive",
