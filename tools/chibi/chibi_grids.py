@@ -415,11 +415,11 @@ CHIBI = {
         "pal": {"D": "b09858", "H": "e8d29a", "L": "fbf3d0", "X": "f4c8c8", "U": "4a9ad8", "I": "8ab83a",
                 "C": "ccc9b8", "W": "fbf7e4", "G": "dfccaf", "A": "4a9ad8", "K": "8e9186"},
         "rows": [
-            "D..................D",
-            "DD................DD",
-            "DXD..............DXD",
-            "DXXD............DXXD",
-            "DXXHDDDDDDDDDDDDHXXD",
+            "...D............D...",
+            "...DD..........DD...",
+            "...DXD........DXD...",
+            "...DXXD......DXXD...",
+            ".DDDXXHDDDDDDHXXDDD.",
             ".DHUUUUUUUUUUUUUUHD.",
             ".DHHHHLLLHHHHHHHHHD.",
             ".DHHLLHHHHHHHHHHHHD.",
@@ -455,10 +455,10 @@ CHIBI = {
             "..DHDSESSSSSSESDHD..",
             "..DHDSISSSSSSISDHD..",
             "..DHDMMMMMMMMMMDHD..",
-            "..DHHMMMMMMMMMMHHD..",
-            "..DHCCWWWWWWWWCCHD..",
-            "..DHCCWGWAAWGWCCHD..",
-            "..DHKKKKKKKKKKKKHD..",
+            "...DDMMMMMMMMMMDD...",
+            ".CCCCWWWWWWWWWWCCCC.",
+            ".CCCWWGWWAAWWGWWCCC.",
+            ".KKKKKKKKKKKKKKKKKK.",
         ],
     },
     # 维什戴尔：断开的暗红光环、一对黑色小角、银白乱发、橙红眼、咧嘴笑；红外套 + 黑内衣
@@ -491,7 +491,8 @@ CHIBI = {
 
 MIRROR = {"exusiai", "mizuki"}            # 原来朝左的，先整体翻成朝右
 SCAR = {"lappland": "R"}                  # 眼上下各一格疤
-ONE_EYE = {"exusiai", "mizuki"}           # 原作刘海就遮着一只眼的；其余双眼（11-08 用户：参考图是遮一只眼，但别每个人都只露一只）
+ONE_EYE = {"exusiai"}                     # 原作刘海就遮着一只眼的；其余双眼（11-08 用户：参考图是遮一只眼，但别每个人都只露一只；水月也是双眼）
+NARROW = {"ulpianus"}                     # 细长眼 + 眉（男性干员，11-08 用户：乌尔比安像女生）
 
 
 def face_right(op, rows):
@@ -535,7 +536,12 @@ def face_right(op, rows):
     if two:   # 远处那只眼：同样 2 × 2（11-08 用户：两只眼大小要一样），贴着刘海边，两眼间隔 2 格
         put(ey, b - 6, "E"); put(ey, b - 5, "E")
         put(ey + 1, b - 6, "I"); put(ey + 1, b - 5, "I")
-    if any(ch == "S" for ch in rows[ey + 2]):
+    if op in NARROW:   # 细长眼：眼位上一行画眉，眼只留一行瞳色
+        for x in ([b - 2, b - 1] + ([b - 6, b - 5] if two else [])):
+            rows[ey - 1][x] = "D" if rows[ey - 1][x] in face else rows[ey - 1][x]
+            rows[ey][x] = "I"
+            rows[ey + 1][x] = "S"
+    if any(ch == "S" for ch in rows[ey + 2]) and op not in NARROW:
         put(ey + 2, b - 6 if two else b - 5, "B"); put(ey + 2, b, "B")
     if op in SCAR:
         for y in (ey - 1, ey + 2):
