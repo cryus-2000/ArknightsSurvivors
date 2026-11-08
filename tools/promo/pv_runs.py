@@ -69,6 +69,11 @@ RUNS["S6"] = dict(args=MID + ["--seed=53", "--forceboss=3"], rtfrom=200, maxt=30
 # 弹幕段后备：Boss 测试台依次放演示招式（--bossmoves；局内时间冻结在约 150 秒）
 for _k, _b in [("K1", "bishop"), ("K2", "iberia"), ("K3", "carmen")]:
     RUNS[_k] = dict(args=MID + ["--seed=61", "--bossmoves=" + _b], rtfrom=0, maxt=9999, pv=["--pv_fwin=60-3660"])
+# 安洁莉娜黑洞实战重录（11-08 分镜 v5：原 UA 局黑洞落在屏幕上沿，改镜头拉远到 80%）
+RUNS["UA4"] = dict(args=["--op=angelina", "--squad=skadi,texas", "--seed=15", "--maxprog", "--camzoom=80", "--bal=ult/test_swarm_at=472",
+                         "--bal=ult/test_swarm_every=15", "--bal=ult/test_swarm_n=90"], rtfrom=468, maxt=522, pv=["--pv_win=470-521", "--pv_ult=476,491,506"])
+RUNS["UA5"] = dict(args=["--op=angelina", "--squad=skadi,texas", "--seed=45", "--camzoom=80", "--bal=enemy/density=1.6"], rtfrom=468, maxt=522,
+                   pv=["--pv_win=470-521", "--pv_ult=476,491,506"])
 # 四个最终 Boss（11-08 用户要每只剪一小段）：测试台 --bossacts 按自己的 AI 出招，登场 14 秒放到 45% 血进二阶段；按帧录 40 秒
 for _k, _b in [("Q1", "paranoia"), ("Q2", "knight_boss2"), ("Q3", "ishar"), ("Q4", "izumik")]:
     RUNS[_k] = dict(args=MID + ["--seed=61", "--bossacts=" + _b, "--bal=boss/acts_demo_len=60", "--actsp2=14"], rtfrom=0, maxt=9999,
@@ -91,7 +96,26 @@ def encode(src_glob_dir, pattern, dst, fps=60):
     return r.returncode
 
 
+def run_recruit_shots(out, seeds=range(1, 13)):
+    """RC：斯卡蒂当队长开快速升级局，--choiceshots 截下每个选卡画面（水月是队长时不会出现在招募卡上，要换队长才截得到）"""
+    godot = os.environ.get("GODOT", "godot")
+    media = os.environ.get("MEDIA", os.path.join(out, "media"))
+    os.makedirs(media, exist_ok=True)
+    for sd in seeds:
+        d = os.path.join(media, "RC_seed%02d" % sd)
+        os.makedirs(d, exist_ok=True)
+        args = [godot, "--path", os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--resolution", "1920x1080", "--position", "0,0", "--",
+                "--autotest", "--fastlevel", "--op=skadi", "--seed=%d" % sd, "--choiceshots", "--shotdir=" + d]
+        try:
+            subprocess.run(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=150)
+        except subprocess.TimeoutExpired:
+            pass
+        print("RC seed %d: %d 张" % (sd, len(glob.glob(os.path.join(d, "shot_choice_*.png")))), flush=True)
+
+
 def run_game(name, out):
+    if name == "RC":
+        return run_recruit_shots(out)
     r = RUNS[name]
     godot = os.environ.get("GODOT", "godot")
     raw = os.path.join(out, "raw")
