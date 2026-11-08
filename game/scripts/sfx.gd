@@ -699,7 +699,8 @@ var voice_trimmed := 0
 
 
 func _voice_trim(keep_path: String) -> void:
-	if not (OS.has_feature("web") and Cfg.mobile_web() and Cfg.mobile_knob("mobile_voice_trim", 1.0)):
+	var cfg = get_node_or_null("/root/Cfg")   # sfx 比 Cfg 先加载，不能直接写 Cfg（-s 契约测试编译失败）
+	if not (OS.has_feature("web") and cfg != null and cfg.mobile_web() and cfg.mobile_knob("mobile_voice_trim", 1.0)):
 		return
 	var sr: float = float(JavaScriptBridge.eval("window.__sySampleRate||0", true))   # 手机网页音频上下文 24 kHz（tools/web/power.js）
 	if sr <= 0.0:
