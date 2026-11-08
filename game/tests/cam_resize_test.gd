@@ -1,7 +1,7 @@
 extends Node
 ## 换分辨率后战斗镜头不变（10-27 用户「调整分辨率之后会出现缩放镜头视角的问题」，docs/50 §38）：
 ## 局内把窗口改成几种分辨率 / 比例，再在低 / 中档之间切换，每次镜头可见世界高（game.view_size().y）都要与进局时一致；
-## 带 --touch 时按手机横屏比例再测一遍（可见高 585，iPhone 横屏 1 美术像素 = 4 物理像素）。
+## 带 --touch 时按手机横屏比例再测一遍（可见高 688，11-08 起；原 585）。
 var failures := 0
 var game: Node
 
@@ -43,7 +43,7 @@ func run() -> void:
 	game.invuln = 999.0
 	await frames(4)
 	var h0: float = view_h()
-	var want: float = 585.0 if touch else 1080.0 / Cfg.cam_zoom()
+	var want: float = 688.0 if touch else 1080.0 / Cfg.cam_zoom()
 	check(absf(h0 - want) < 1.0, "进局可见高 %.1f，期望 %.1f" % [h0, want])
 	for q in ["mid", "low", "high"]:
 		Cfg.set_quality_mode(q)
