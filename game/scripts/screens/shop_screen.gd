@@ -156,7 +156,8 @@ func build(restart := false) -> void:
 				# 电脑 13 号紧凑版还放不下：卡面只写一句（同手机），完整说明悬停看（11-01 docs/211 D9：以前这张单独缩到 12，同排字号不一）
 				card.set_meta("full_desc", sfull)
 				card.set_meta("squad_cut", true)
-				fs0 = UI.fit(g.font, g.panel_ui.brief(sdesc), cw - 20.0, 80.0, szs)
+				var hb: String = str(it.get("brief", ""))   # 数据里手写的一句话优先（自动截句可能只剩条件 / 代价）
+				fs0 = UI.fit(g.font, hb if hb != "" else g.panel_ui.brief(sdesc), cw - 20.0, 80.0, szs)
 		card.set_meta("fit", fs0)
 		card.set_meta("compact", sc_compact)
 		card.set_meta("affects", chips)

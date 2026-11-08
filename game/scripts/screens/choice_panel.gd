@@ -920,6 +920,15 @@ static func brief(desc: String) -> String:
 			if head.length() > BRIEF_MAX + 8:
 				break
 			if brief_whole(head) and (not has_num or _re_digit.search(head) != null):
+				if brief_cond_only(head):
+					# 11-09：前半句只有条件（「拔刀后 0.4 秒」「每第 3 次刺击」「编队每有 1 名…」），效果全在后半句：再带上后面一段
+					var k2 := -1
+					for sep2 in ["，", "："]:
+						var q := sent.find(sep2, k + 1)
+						if q > 0 and (k2 < 0 or q < k2):
+							k2 = q
+					var ext: String = (sent.substr(0, k2) if k2 > 0 else sent).strip_edges()
+					return ext if brief_whole(ext) else sent
 				return head
 			k = sent.find(sep, k + 1)
 	return sent
@@ -929,6 +938,24 @@ static func brief(desc: String) -> String:
 const BRIEF_WEAK_TAIL := ["每秒", "期间", "的", "时", "中", "内", "与", "和", "并", "对", "在", "被", "将", "使", "及", "或", "把", "向", "从", "为", "让", "且"]
 static var _re_digit: RegEx
 static var _re_numparen: RegEx
+
+
+## 一句话只有条件、没有效果（没有 + − × % 数值变化，且以「后 / 时 / 结束 / 起步」收尾、或是「每第 N 次 / 每有 N 名 / 每次 / 每击杀 / 每被」这类计数）
+static var _re_cond_tail: RegEx
+static var _re_cond_each: RegEx
+static var _re_cond_dur: RegEx
+
+
+static func brief_cond_only(t: String) -> bool:
+	if _re_cond_tail == null:
+		_re_cond_tail = RegEx.create_from_string("(后|时|结束|起步|之后|距离|后 [0-9]+(\\.[0-9]+)? 秒)$")
+		_re_cond_each = RegEx.create_from_string("每(第 ?[0-9]+ ?次|有 ?[0-9]|次|一次|击杀|被)")
+		_re_cond_dur = RegEx.create_from_string("^(持续 )?[0-9]+(\\.[0-9]+)? 秒$")
+	t = t.strip_edges()
+	for m in ["+", "-", "−", "×", "%"]:
+		if t.contains(m):
+			return false
+	return _re_cond_tail.search(t) != null or _re_cond_each.search(t) != null or _re_cond_dur.search(t) != null
 
 
 static func brief_whole(t: String) -> bool:

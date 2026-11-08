@@ -87,15 +87,21 @@ func test_brief_all() -> void:
 		var d: Dictionary = Character.load_def(cid)
 		_collect(d.get("progression", []), cid, texts)
 	for rid in game.RL.keys():
-		texts.append(["藏品 %s %s" % [rid, game.RL[rid].name], game.rfx.display_desc(rid)])
+		texts.append(["藏品 %s %s" % [rid, game.RL[rid].name], game.rfx.display_desc(rid), game.rfx.display_brief(rid)])
 	for c in game.progression.recruit_cards():
 		texts.append(["招募 %s" % c.get("name", ""), CP.option_description(c)])
 	ok(texts.size() > 200, "一句话检查样本 %d 条" % texts.size())
+	ok(game.rfx.display_brief("251").contains("源石锭"), "「国王的水晶」一句话写出正面效果：「%s」" % game.rfx.display_brief("251"))
+	ok(CP.brief("拔刀后 0.4 秒，身后再斩一圈（50% 伤害）").contains("再斩"), "条件开头的一句话带上效果：「%s」" % CP.brief("拔刀后 0.4 秒，身后再斩一圈（50% 伤害）"))
 	for t in texts:
 		var full: String = str(t[1])
 		ok(not (full.contains("{") and full.contains("}")), "%s 全文含没替换的占位：%s" % [t[0], full])
-		var b: String = CP.brief(full)
+		var hb: String = str(t[2]) if t.size() > 2 else ""
+		var b: String = hb if hb != "" else CP.brief(full)
 		ok(CP.brief_whole(b), "%s 一句话是半截：「%s」（全文：%s）" % [t[0], b, full])
+		# 11-09「国王的水晶」手机卡只剩「失去 20% 当前生命」：一句话不能只剩条件（「拔刀后 0.4 秒」「编队每有 1 名…」），手写的不超过 32 字
+		ok(not CP.brief_cond_only(b), "%s 一句话只有条件没有效果：「%s」（全文：%s）" % [t[0], b, full])
+		ok(hb == "" or (hb.length() <= 32 and not (hb.contains("{") and hb.contains("}"))), "%s 手写 brief 不合规：「%s」" % [t[0], hb])
 		var first: String = full.split("\n")[0]
 		for sep in ["；", "。"]:
 			if first.find(sep) > 0:
