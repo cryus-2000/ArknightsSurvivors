@@ -1,0 +1,41 @@
+# operator_transitions
+# 参数：--headless --path /work/repo/game res://tests/operator_transition_test.tscn -- --regression --seed=1 --balance --op=mizuki
+# 用时 15 秒；结束时全机 Godot 15 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PF FXLAZY t=0.0 angelina n=11 ms=8
+PF FXLAZY t=0.0 exusiai n=23 ms=8
+PF FXLAZY t=0.0 eyjafjalla n=26 ms=21
+PF FXLAZY t=0.0 gladiia n=8 ms=8
+PF FXLAZY t=0.0 hoshiguma n=9 ms=7
+PF FXLAZY t=0.0 irene n=21 ms=22
+PF FXLAZY t=0.0 kaltsit n=6 ms=10
+PF FXLAZY t=0.0 lappland n=10 ms=16
+PF FXLAZY t=0.0 logos n=27 ms=26
+PF FXLAZY t=0.0 lumen n=6 ms=2
+PF FXLAZY t=0.0 saria n=9 ms=5
+PF FXLAZY t=0.0 siege n=10 ms=12
+PF FXLAZY t=0.0 skadi n=14 ms=10
+PF FXLAZY t=0.0 skalter n=15 ms=46
+PF FXLAZY t=0.0 specter_unchained n=5 ms=2
+PF FXLAZY t=0.0 suzuran n=3 ms=1
+PF FXLAZY t=0.0 texas n=9 ms=6
+PF FXLAZY t=0.0 ulpianus n=16 ms=11
+PF FXLAZY t=0.0 wisadel n=6 ms=8
+OPERATOR TRANSITIONS 60 casts, 168 checks, 0 failed
+PF RUNRELEASE tex=0 audio=0
+ERROR: 71 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 4 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+
+## stderr
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+WARNING: 372 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 5 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+
