@@ -1,0 +1,4 @@
+干员 招式 走动帧 滑步帧 帧条明细（走动中播的非跑步帧条，未换移动版贴图） 脚本错误
+wisadel S1 490 0  0
+wisadel S2 492 44 s2_start:22 s2_over_end:16 s2_over_start:6 0
+wisadel S3 492 16 skill_s3:16 0

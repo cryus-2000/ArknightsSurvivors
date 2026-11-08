@@ -1,0 +1,4 @@
+1009	op_wisadel_move_s2_attack@1x.png.import
+1025	op_wisadel_move_s2_over_attack@1x.png.import
+46838	rec_wisadel_1_anim.txt
+3676266	wisadel_s2_move_v2.mp4

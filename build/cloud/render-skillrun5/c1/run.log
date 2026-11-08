@@ -1,0 +1,9 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4859 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+干员 招式 走动帧 滑步帧 帧条明细（走动中播的非跑步帧条，未换移动版贴图） 脚本错误
+wisadel S1 490 0  0
+wisadel S2 492 44 s2_start:22 s2_over_end:16 s2_over_start:6 0
+wisadel S3 492 16 skill_s3:16 0
+
+media：1 个文件，8.0K

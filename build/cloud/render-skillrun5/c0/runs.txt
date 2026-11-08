@@ -1,0 +1,3 @@
+op_wisadel_move_s2_attack@1x.png.import
+op_wisadel_move_s2_over_attack@1x.png.import
+rec wisadel 1：360 张；0 处脚本错误
