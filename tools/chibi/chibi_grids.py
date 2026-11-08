@@ -532,9 +532,9 @@ def face_right(op, rows):
                 put(y, x, "S")
     put(ey, b - 2, "E"); put(ey, b - 1, "E")
     put(ey + 1, b - 2, "I"); put(ey + 1, b - 1, "I")
-    if two:   # 远处那只眼：1 格宽、2 格高，贴着刘海边
-        put(ey, b - 5, "E")
-        put(ey + 1, b - 5, "I")
+    if two:   # 远处那只眼：同样 2 × 2（11-08 用户：两只眼大小要一样），贴着刘海边，两眼间隔 2 格
+        put(ey, b - 6, "E"); put(ey, b - 5, "E")
+        put(ey + 1, b - 6, "I"); put(ey + 1, b - 5, "I")
     if any(ch == "S" for ch in rows[ey + 2]):
         put(ey + 2, b - 6 if two else b - 5, "B"); put(ey + 2, b, "B")
     if op in SCAR:
