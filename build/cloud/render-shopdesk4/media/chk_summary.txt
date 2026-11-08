@@ -1,0 +1,5 @@
+shop_touch_layout rc=0
+touch_layout rc=0
+ui_smoke rc=0
+economy rc=0
+card_desc_fit rc=0
