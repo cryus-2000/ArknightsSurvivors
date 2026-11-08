@@ -133,40 +133,62 @@ fb = fn.new("ShaderNodeBsdfPrincipled"); fb.inputs["Base Color"].default_value =
 fl_.new(fb.outputs[0], fo.inputs["Surface"])
 fl.data.materials.append(fm)
 
-# ---------------------------------------------------------------- 远景：标题页像素海底当大幕
-bg, bw, bh = frame_img(os.path.join(ART, "ui", "title_deep", "bg.png"))
-billboard(bg, bw, bh, 0.16, (0, 40, -4), emit=0.5, name="bgplate")
-
-# ---------------------------------------------------------------- 中景：灯塔（暖灯）、残骸、石柱
-lh, lw, lhh = frame_img(os.path.join(ART, "world", "props", "prop_lighthouse@2x.png"), 128, 0)
-billboard(lh, lw, lhh, 0.034, (1.6, 16, 0), emit=0.25, name="lighthouse")
-bpy.ops.object.light_add(type="POINT", location=(1.6, 15.9, 128 * 0.034 * 0.82))
-lamp = bpy.context.object
-lamp.data.color = WARM[:3]; lamp.data.energy = 160; lamp.data.shadow_soft_size = 0.3
-try:
-    lamp.data.volume_factor = 2.0
-except Exception:
-    pass
-wk, ww, wh = frame_img(os.path.join(ART, "world", "props", "prop_wreck.png"))
-billboard(wk, ww, wh, 0.06, (4.2, 10, 0), emit=0.15, name="wreck")
-pl, pw, ph = frame_img(os.path.join(ART, "world", "props", "prop_pillar.png"))
-for x, y in ((-6.5, 9), (6.8, 16), (1.8, 22)):
-    billboard(pl, pw, ph, 0.07, (x, y, 0), emit=0.12, name="pillar")
-
-# ---------------------------------------------------------------- 海嗣（雾里的剪影）与像素水母
 rng = random.Random(5)
-for eid, nf, x, y, z, pxs in (("floater", 4, 3.0, 12, 2.6, 0.03), ("skimmer", 6, -5.0, 18, 3.6, 0.03), ("runner", 4, 2.2, 7, 0, 0.022),
-                              ("reaper", 4, -4.2, 11, 0, 0.026), ("mother", 6, 6.5, 24, 0, 0.05), ("brood", 4, -1.0, 9, 0, 0.022)):
-    im, w, h = enemy(eid, nf)
-    billboard(im, w, h, pxs, (x, y, z), emit=0.18, name="e_" + eid)
-for k in range(5):
-    j = k % 3
-    im, w, h = frame_img(os.path.join(ART, "ui", "title_deep", "jelly_%d.png" % j))
-    gi, gw, gh = frame_img(os.path.join(ART, "ui", "title_deep", "jglow_%d.png" % j))
-    x, y, z = rng.uniform(-5, 5), rng.uniform(6, 20), rng.uniform(2.5, 6.0)
-    s = rng.uniform(0.006, 0.012)
-    billboard(gi, gw, gh, s, (x, y + 0.02, z - (gh - h) * s / 2), emit=1.6, name="jglow")
-    billboard(im, w, h, s, (x, y, z), emit=0.9, name="jelly")
+LAYERS = os.environ.get("PV3D_LAYERS", "")   # 11-08 用户嫌背景杂：改用 pixgen 出的三层海底像素背景（远 / 中 / 前），主体只留水月
+if LAYERS:
+    def layer(name, px, loc, emit):
+        im, w, h = frame_img(os.path.join(LAYERS, name + ".png"))
+        return billboard(im, w, h, px, loc, emit=emit, name="L_" + name)
+    layer("far", 0.16, (0, 34, -0.6), 0.06)       # 远景：融在雾里的大块礁石剪影
+    layer("mid", 0.045, (1.0, 13, -0.4), 0.05)    # 中景：带残柱的礁石台地，灯塔立在上面
+    lh, lw, lhh = frame_img(os.path.join(ART, "world", "props", "prop_lighthouse@2x.png"), 128, 0)
+    billboard(lh, lw, lhh, 0.028, (2.6, 12.4, -0.2), emit=0.22, name="lighthouse")
+    bpy.ops.object.light_add(type="POINT", location=(2.6, 12.3, -0.2 + 128 * 0.028 * 0.82))
+    lamp = bpy.context.object
+    lamp.data.color = WARM[:3]; lamp.data.energy = 160; lamp.data.shadow_soft_size = 0.3
+    try:
+        lamp.data.volume_factor = 2.0
+    except Exception:
+        pass
+    im, w, h = enemy("mother", 6)   # 远处唯一一只海嗣剪影
+    billboard(im, w, h, 0.05, (-5.5, 24, 0.2), emit=0.08, name="e_mother")
+    layer("near", 0.0095, (-0.6, 0.6, -0.12), 0.03)  # 前景：画面边缘的暗礁 + 海草当框（景深虚掉）
+else:
+    # ---------------------------------------------------------------- 远景：标题页像素海底当大幕
+
+    bg, bw, bh = frame_img(os.path.join(ART, "ui", "title_deep", "bg.png"))
+    billboard(bg, bw, bh, 0.16, (0, 40, -4), emit=0.5, name="bgplate")
+
+    # ---------------------------------------------------------------- 中景：灯塔（暖灯）、残骸、石柱
+    lh, lw, lhh = frame_img(os.path.join(ART, "world", "props", "prop_lighthouse@2x.png"), 128, 0)
+    billboard(lh, lw, lhh, 0.034, (1.6, 16, 0), emit=0.25, name="lighthouse")
+    bpy.ops.object.light_add(type="POINT", location=(1.6, 15.9, 128 * 0.034 * 0.82))
+    lamp = bpy.context.object
+    lamp.data.color = WARM[:3]; lamp.data.energy = 160; lamp.data.shadow_soft_size = 0.3
+    try:
+        lamp.data.volume_factor = 2.0
+    except Exception:
+        pass
+    wk, ww, wh = frame_img(os.path.join(ART, "world", "props", "prop_wreck.png"))
+    billboard(wk, ww, wh, 0.06, (4.2, 10, 0), emit=0.15, name="wreck")
+    pl, pw, ph = frame_img(os.path.join(ART, "world", "props", "prop_pillar.png"))
+    for x, y in ((-6.5, 9), (6.8, 16), (1.8, 22)):
+        billboard(pl, pw, ph, 0.07, (x, y, 0), emit=0.12, name="pillar")
+
+    # ---------------------------------------------------------------- 海嗣（雾里的剪影）与像素水母
+    rng = random.Random(5)
+    for eid, nf, x, y, z, pxs in (("floater", 4, 3.0, 12, 2.6, 0.03), ("skimmer", 6, -5.0, 18, 3.6, 0.03), ("runner", 4, 2.2, 7, 0, 0.022),
+                                  ("reaper", 4, -4.2, 11, 0, 0.026), ("mother", 6, 6.5, 24, 0, 0.05), ("brood", 4, -1.0, 9, 0, 0.022)):
+        im, w, h = enemy(eid, nf)
+        billboard(im, w, h, pxs, (x, y, z), emit=0.18, name="e_" + eid)
+    for k in range(5):
+        j = k % 3
+        im, w, h = frame_img(os.path.join(ART, "ui", "title_deep", "jelly_%d.png" % j))
+        gi, gw, gh = frame_img(os.path.join(ART, "ui", "title_deep", "jglow_%d.png" % j))
+        x, y, z = rng.uniform(-5, 5), rng.uniform(6, 20), rng.uniform(2.5, 6.0)
+        s = rng.uniform(0.006, 0.012)
+        billboard(gi, gw, gh, s, (x, y + 0.02, z - (gh - h) * s / 2), emit=1.6, name="jglow")
+        billboard(im, w, h, s, (x, y, z), emit=0.9, name="jelly")
 
 # ---------------------------------------------------------------- 前景：水月落地（入场最后一帧）+ 接触光
 import json
