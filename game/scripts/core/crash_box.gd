@@ -38,6 +38,7 @@ static func _web() -> bool:
 static func phase(n: String) -> void:
 	if _web():
 		JavaScriptBridge.eval("window.__syPhase=%s" % JSON.stringify(n), true)
+		load("res://scripts/art.gd").memlive("phase:" + n, true)
 
 
 ## 配乐走哪条路：web = 浏览器解码（web_music.js）；engine = 引擎样本；后面带浏览器解码失败次数

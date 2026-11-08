@@ -682,7 +682,7 @@
       if (--pending === 0) { done = true; upd(); }
       var resp = new Response(out, { status: 200, headers: { 'Content-Type': e.type, 'Content-Length': String(e.size) } });
       resp.__syBuf = out.buffer;
-      window.__syPckBytes = (window.__syPckBytes || 0) + e.size;   // 崩溃前快照估 JS 堆（WebKit 没有 performance.memory，docs/319 §13）   // 引擎补丁（engine_patch.py §2）直接拿这块，不再 arrayBuffer() 拼一份、MEMFS 也不再 slice 一份（docs/319 §10）
+      if (/\.pck$/.test(name)) window.__syPckBytes = (window.__syPckBytes || 0) + e.size;   // 只算主包：wasm 编译完不留   // 崩溃前快照估 JS 堆（WebKit 没有 performance.memory，docs/319 §13）   // 引擎补丁（engine_patch.py §2）直接拿这块，不再 arrayBuffer() 拼一份、MEMFS 也不再 slice 一份（docs/319 §10）
       return resp;
     });
   };
