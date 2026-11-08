@@ -352,7 +352,7 @@ func _boss_group(idx: int) -> Array:
 
 
 func _boss_prefetch_on() -> bool:
-	return (Cfg.mobile_web() and Cfg.mobile_knob("mobile_boss_prefetch", 1.0)) or Cfg.dev_args().has("--bossprefetch")
+	return Cfg.mobile_knob("mobile_boss_prefetch", 1.0) or Cfg.dev_args().has("--bossprefetch")   # 11-09 全平台（不影响画面；电脑 Chrome 中期 Boss 演出也卡 116 ms）
 
 
 func update(dt: float) -> void:
