@@ -63,7 +63,12 @@ static var clock_frames := false   # 测试录屏：按渲染帧计时（--fixed
 const TR_DUR := {"enter": 0.6, "slide": 0.3, "cut": 0.15, "wipe": 0.4}
 
 var g   # Game，或标题页的 screens/hunt_host.gd（只用 hud / font / kb_nav）
-var open := false
+var open := false:   # 关掉寻访时放掉拉包光层的合成缓存（_img 原图副本 + _glow 每帧 / 拉链档贴图，十连演完可到上百 MB；下次打开按需重做）
+	set(v):
+		open = v
+		if not v:
+			_img.clear()
+			_glow.clear()
 var browse := false     # 标题页进入（10-24 用户：没有凭证也能点进去看卡池；按钮灰显）
 var mode := "entry"       # entry 入口 / class 定向选职业 / pick 定向选干员 / bag 拉包 / op 揭示 / summary 本次寻访
 var results: Array = []   # Roster.redeem_* 的返回值（只留解出干员的）
@@ -1188,6 +1193,11 @@ func _light(f: int, s: int) -> Array:
 	return out
 
 
+## 光层按 @2x 像素切帧（FX_SZ / FX_CROP 都是 @2x 坐标），这里统一换回 @2x 尺寸再切：
+## 网页 / 桌面包里整 2 倍放大的 fx_hh_* 换成了 1 倍、手机网页的 light_clip 读半分辨率 @h（tools/web_half.py，docs/319 §16），
+## 原样切会切到别的帧或切空（11-08 用户 iPhone Toy：寻访光效变少）。只放大这份 CPU 副本（关掉寻访时清掉，见 open），GPU 上仍是小图
+const FX_H2 := {"fx_hh_beams": 400, "fx_hh_frags": 400, "fx_hh_reveal": 400, "fx_hh_light_clip": 320}
+
 func _image(name: String) -> Image:
 	if _img.has(name):
 		return _img[name]
@@ -1198,6 +1208,10 @@ func _image(name: String) -> Image:
 		if im.is_compressed():
 			im.decompress()
 		im.convert(Image.FORMAT_RGBA8)
+		var h2: int = int(FX_H2.get(name, 0))
+		if h2 > 0 and im.get_height() > 0 and im.get_height() < h2:
+			var k := float(h2) / im.get_height()
+			im.resize(roundi(im.get_width() * k), h2, Image.INTERPOLATE_NEAREST)
 	_img[name] = im
 	return im
 
