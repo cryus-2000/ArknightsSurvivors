@@ -1,0 +1,12 @@
+499	eyjafjalla/codex_skill_desktop/log.txt
+347000	eyjafjalla/codex_skill_desktop/shot_gallery_ui.png
+499	eyjafjalla/codex_skill_phone/log.txt
+379048	eyjafjalla/codex_skill_phone/shot_gallery_ui.png
+370	eyjafjalla/oppick_desktop/log.txt
+469169	eyjafjalla/oppick_desktop/shot_oppick.png
+370	eyjafjalla/oppick_phone/log.txt
+907945	eyjafjalla/oppick_phone/shot_oppick.png
+499	eyjafjalla_demo/codex_desktop/log.txt
+371512	eyjafjalla_demo/codex_desktop/shot_gallery_ui.png
+499	eyjafjalla_demo/codex_phone/log.txt
+476735	eyjafjalla_demo/codex_phone/shot_gallery_ui.png

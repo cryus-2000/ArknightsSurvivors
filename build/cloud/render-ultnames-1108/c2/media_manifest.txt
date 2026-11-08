@@ -1,0 +1,12 @@
+499	wisadel/codex_skill_desktop/log.txt
+350059	wisadel/codex_skill_desktop/shot_gallery_ui.png
+499	wisadel/codex_skill_phone/log.txt
+379240	wisadel/codex_skill_phone/shot_gallery_ui.png
+370	wisadel/oppick_desktop/log.txt
+487792	wisadel/oppick_desktop/shot_oppick.png
+615	wisadel/oppick_phone/log.txt
+940654	wisadel/oppick_phone/shot_oppick.png
+499	wisadel_demo/codex_desktop/log.txt
+376674	wisadel_demo/codex_desktop/shot_gallery_ui.png
+499	wisadel_demo/codex_phone/log.txt
+450768	wisadel_demo/codex_phone/shot_gallery_ui.png

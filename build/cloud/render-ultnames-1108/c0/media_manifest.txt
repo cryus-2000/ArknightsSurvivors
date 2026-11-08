@@ -1,0 +1,12 @@
+499	lappland/codex_skill_desktop/log.txt
+347126	lappland/codex_skill_desktop/shot_gallery_ui.png
+499	lappland/codex_skill_phone/log.txt
+372243	lappland/codex_skill_phone/shot_gallery_ui.png
+370	lappland/oppick_desktop/log.txt
+464136	lappland/oppick_desktop/shot_oppick.png
+615	lappland/oppick_phone/log.txt
+869923	lappland/oppick_phone/shot_oppick.png
+499	lappland_demo/codex_desktop/log.txt
+399609	lappland_demo/codex_desktop/shot_gallery_ui.png
+499	lappland_demo/codex_phone/log.txt
+478263	lappland_demo/codex_phone/shot_gallery_ui.png
