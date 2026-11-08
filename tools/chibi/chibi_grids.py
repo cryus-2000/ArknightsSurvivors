@@ -491,6 +491,7 @@ CHIBI = {
 
 MIRROR = {"exusiai", "mizuki"}            # 原来朝左的，先整体翻成朝右
 SCAR = {"lappland": "R"}                  # 眼上下各一格疤
+ONE_EYE = {"exusiai", "mizuki"}           # 原作刘海就遮着一只眼的；其余双眼（11-08 用户：参考图是遮一只眼，但别每个人都只露一只）
 
 
 def face_right(op, rows):
@@ -512,11 +513,12 @@ def face_right(op, rows):
         if a <= x <= b and rows[y][x] in face:
             rows[y][x] = ch
 
-    plan = [  # 每行：刘海盖到哪一格（D 为刘海边），之后是皮肤
-        (ey - 1, b - 2),
-        (ey, b - 4),
-        (ey + 1, b - 5),
-        (ey + 2, b - 7),
+    two = op not in ONE_EYE
+    plan = [  # 每行：刘海盖到哪一格（D 为刘海边），之后是皮肤；双眼的刘海只盖额头，露出远处那只眼
+        (ey - 1, b - 2 if not two else b - 7),
+        (ey, b - 4 if not two else b - 7),
+        (ey + 1, b - 5 if not two else b - 8),
+        (ey + 2, b - 7 if not two else b - 9),
     ]
     for y, edge in plan:
         if not any(ch in "SBEI" for ch in rows[y]) and y != ey - 1:
@@ -530,8 +532,11 @@ def face_right(op, rows):
                 put(y, x, "S")
     put(ey, b - 2, "E"); put(ey, b - 1, "E")
     put(ey + 1, b - 2, "I"); put(ey + 1, b - 1, "I")
+    if two:   # 远处那只眼：1 格宽、2 格高，贴着刘海边
+        put(ey, b - 5, "E")
+        put(ey + 1, b - 5, "I")
     if any(ch == "S" for ch in rows[ey + 2]):
-        put(ey + 2, b - 5, "B"); put(ey + 2, b, "B")
+        put(ey + 2, b - 6 if two else b - 5, "B"); put(ey + 2, b, "B")
     if op in SCAR:
         for y in (ey - 1, ey + 2):
             if rows[y][b - 1] in face:
