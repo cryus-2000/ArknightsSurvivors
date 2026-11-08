@@ -1,0 +1,8 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4859 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+base phone one：1014 张；0 处脚本错误；157 行 ERROR
+base phone ten：1014 张；0 处脚本错误；152 行 ERROR
+base desktop one：1014 张；0 处脚本错误；180 行 ERROR
+base desktop ten：1014 张；0 处脚本错误；173 行 ERROR
+media：4 个文件，3.1M
