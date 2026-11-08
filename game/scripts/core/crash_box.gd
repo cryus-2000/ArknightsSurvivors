@@ -161,7 +161,7 @@ static func sample(g) -> void:
 	_tags = {}
 	if Cfg.dev_args().has("--crashbox"):
 		print("PF CRASHBOX sample t=%d tex=%d buf=%d e=%d ld=%d tag=%s" % [s.t, s.tex, s.buf, s.e, s.ld, s.tag])
-		if cur.s.size() == 3:
+		if cur.s.size() == 2:   # 还没 append：这是第 3 条
 			print("PF CRASHBOX report\n" + report_text(cur))   # 测试：第 3 条时把整份文本打出来，对照真机快照格式
 	var a: Array = cur.s
 	a.append(s)

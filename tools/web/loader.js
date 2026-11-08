@@ -469,6 +469,13 @@
       bootProgress = 1;
       bootLabel = '接入完成 · 等待指令';
       upd();
+      // 手机网页局与局之间的整页重载（core/run_reload.gd，docs/319 §14）：玩家刚点过「再来一局 / 回标题」，读完直接开始，不再要一次「开始游戏」
+      var rl = null;
+      try { rl = JSON.parse(sessionStorage.getItem('sy_reload') || 'null'); } catch (e) {}
+      if (rl && Date.now() - Number(rl.t || 0) < 180000) {
+        window.__syStart = 1;
+        return;
+      }
       // 按钮挂在页面根上（盘 / 声呐圈有 transform，挂进去会被同在根上的收尾压暗层 .sv-dark 盖住），位置按圈的实际外框算：圈下留一段，
       // 不压页脚声明；方向 3 竖屏盘下是系统日志，放底部
       var dial = d.querySelector('.sv-dial') || d.querySelector('.sy-sonar');

@@ -32,6 +32,7 @@ const RunEnd = preload("res://scripts/run/run_end.gd")   # 局终：局外结算
 const Telemetry = preload("res://scripts/run/telemetry.gd")
 const PerfReport = preload("res://scripts/core/perf_report.gd")
 const CrashBox = preload("res://scripts/core/crash_box.gd")
+const RunReload = preload("res://scripts/core/run_reload.gd")
 const WorldView = preload("res://scripts/render/world.gd")
 const HudView = preload("res://scripts/screens/hud.gd")
 const ShopScreen = preload("res://scripts/screens/shop_screen.gd")
@@ -1710,11 +1711,17 @@ func _do_action(act: String) -> void:
 		"demos":
 			onboard.open_viewer()
 		"restart":
+			if RunReload.wanted(self):
+				RunReload.go(self, "restart")   # 手机网页：整页重载清掉 WASM 堆，回来直接同队长同难度出发（core/run_reload.gd，docs/319 §14）
+				return
 			if trial.active:
 				trial.retry()
 			_restarting = true   # 直接重开不过载入页：离场释放保留同编队的固定名单（_release_run）
 			get_tree().reload_current_scene()
 		"title":
+			if RunReload.wanted(self):
+				RunReload.go(self, "title")   # 手机网页：整页重载后回标题页（同上）
+				return
 			get_tree().change_scene_to_file("res://main.tscn")
 		"stats":
 			run_stats.open_for_run()
