@@ -134,12 +134,8 @@ def end_card(img, t, title="方舟幸存者", en="ARKNIGHTS SURVIVORS", cta="B�
     layer(lambda d: tracked(d, (cx, cy + 190), en, latin(30), INK_DIM + (255,), 0.42, "m"), k2, 4 * (1 - k2))
     k3 = _ease((t - 0.9) / 0.25)
 
-    def cta_fn(d):
-        f = sans(40, 700)
-        tw = tracked(ImageDraw.Draw(Image.new("RGBA", (10, 10))), (0, 0), cta, f, (0, 0, 0, 0), 0.08)
-        x0, y0 = cx - tw / 2 - 28, cy + 268
-        d.rectangle((x0, y0, x0 + tw + 56, y0 + 66), fill=CYAN + (255,))
-        tracked(d, (cx, y0 + 6), cta, f, DEEP + (255,), 0.08, "m")
+    def cta_fn(d):   # C1（docs/327 §4.3 11-08 改）：不要底条，青色字 Sans 600 36
+        tracked(d, (cx, cy + 272), cta, sans(36, 600), CYAN + (255,), 0.08, "m")
     layer(cta_fn, k3)
 
     def d1(d):
@@ -200,3 +196,26 @@ def gameplay_overlay(img, t, n_big=5, n_far=2, seed=0, vig=True):
         x0_, y0_ = int(x - spr.width / 2), int(y - spr.height / 2)
         im.paste((191, 239, 245), (x0_, y0_, x0_ + spr.width, y0_ + spr.height), a)
     return im
+
+
+def name_bottom(img, t, name, en, cls=""):
+    """N1–N3（docs/327 §4.3 11-08 改）：底部居中——中文名 Noto Serif SC 600 44 px 字距 0.2 em、英文 Montserrat 14 px 0.4 em、
+    可选职业 · 分支 Noto Sans SC 20 px；6 帧淡入 + 柔阴影（模糊 4 px）"""
+    if t < 0:
+        return img
+    a = _ease(t / 0.1)
+    im = img.convert("RGBA")
+    lay = Image.new("RGBA", im.size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(lay)
+    cx = im.size[0] / 2
+    tracked(d, (cx, 846), name, serif(44, 600), INK + (255,), 0.2, "m")
+    tracked(d, (cx, 910), en, latin(14, False), INK_DIM + (255,), 0.4, "m")
+    if cls:
+        tracked(d, (cx, 936), cls, sans(20, 400), LABEL + (255,), 0.1, "m")
+    sh = lay.getchannel("A").filter(ImageFilter.GaussianBlur(4)).point(lambda v: int(v * 0.7 * a))
+    shadow = Image.new("RGBA", im.size, (0, 0, 0, 0)); shadow.putalpha(sh)
+    im.alpha_composite(shadow)
+    if a < 1:
+        lay.putalpha(lay.getchannel("A").point(lambda v: int(v * a)))
+    im.alpha_composite(lay)
+    return im.convert("RGB")
