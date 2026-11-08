@@ -1,8 +1,9 @@
 """PV 字卡样张（docs/327 鹰角 PV 风格规范 §4 的落地示例）。
 
 出两张 1920×1080：
-  typecard_end.png   结尾卡 / 标题卡：主标题 + 副标题 + 英文标签 + 结尾行动语 + 同人声明
-  typecard_word.png  画面标注 + 干员名字条 + 角落终结技标名 + 旁白字幕（同一画面里按真实字号排）
+  typecard_end.png   结尾卡 / 标题卡：左侧一束光 + 主标题 + 副标题 + 英文标签 + 行动语 + 同人声明
+  typecard_word.png  画面标注 + 角落终结技标名 + 旁白字幕
+  typecard_intro.png 干员出场：暗场一束光 + 像素干员 + 底部居中名字（§16，不加面板 / 色块）（同一画面里按真实字号排）
 
 字体全部是 SIL OFL 1.1（可免费商用、可嵌入成片）：
   Noto Serif SC（思源宋体同源）可变字重 200–900
@@ -152,19 +153,54 @@ def guides(d, label=True):
         d.text((m_x + 6, m_y + 4), "5% SAFE", font=latin(12), fill=(70, 95, 105))
 
 
+SPRITE = ROOT + "/game/art/operators/mizuki/mizuki_runtime_idle@1x.png"
+
+
+def pixel_sprite(scale):
+    """取水月待机第 1 帧，裁到内容，整数倍最近邻放大（全片同一倍数，§16.2）。"""
+    sheet = Image.open(SPRITE).convert("RGBA")
+    fh = sheet.height
+    fr = sheet.crop((0, 0, fh, fh))
+    fr = fr.crop(fr.getbbox())
+    return fr.resize((fr.width * scale, fr.height * scale), Image.NEAREST)
+
+
+def spotlight(img, cx, top, floor_y, cone_w, scale=6):
+    """一束顶光：光锥（近乎纯色的梯形）+ 地面椭圆光圈 + 光里的像素干员。"""
+    cone = Image.new("L", (W, H), 0)
+    cd = ImageDraw.Draw(cone)
+    cd.polygon([(cx - 40, top - 400), (cx + 40, top - 400), (cx + cone_w / 2, floor_y), (cx - cone_w / 2, floor_y)], fill=34)
+    cd.ellipse((cx - cone_w / 2, floor_y - 46, cx + cone_w / 2, floor_y + 46), fill=70)
+    cone = cone.filter(ImageFilter.GaussianBlur(3))
+    img.paste((150, 225, 235), (0, 0), cone)
+    sp = pixel_sprite(scale)
+    img.paste(sp, (int(cx - sp.width / 2), int(floor_y - sp.height + 10)), sp)
+
+
+def intro_card(out):
+    """干员出场：整片暗 + 一束光 + 居中像素干员；名字底部居中小号（N1–N3）。"""
+    img = Image.new("RGB", (W, H), BG_DEEP)
+    spotlight(img, W // 2, 140, 820, 620, scale=8)
+    d = ImageDraw.Draw(img)
+    # 遮幅 2.39:1
+    d.rectangle((0, 0, W, 138), fill=(0, 0, 0))
+    d.rectangle((0, H - 138, W, H), fill=(0, 0, 0))
+    # N1 中文名 Noto Serif SC 600 44 px 字距 0.2；N2 英文 Montserrat 14 px 0.4；N3 职业 · 分支 Sans 20 px
+    tracked(d, (W / 2, 846), "水月", serif(44, 600), INK, 0.2, "m")
+    tracked(d, (W / 2, 908), "MIZUKI", latin(14), INK_DIM, 0.4, "m")
+    tracked(d, (W / 2, 932), "特种 · 伏击客", sans(20, 400), (120, 138, 150), 0.12, "m")
+    img = _add_noise(img, Image.effect_noise((W, H), 30).point(lambda v: 128 + (v - 128) * 0.22))
+    img.save(out)
+
+
 # ————————————————————— 结尾卡 / 标题卡 —————————————————————
 def end_card(out):
-    img = deep_bg(seed=11, light=(0.72, 0.30))
+    img = Image.new("RGB", (W, H), BG_DEEP)   # 只留一盏光（左侧光锥），背景不再另打柔光
     d = ImageDraw.Draw(img)
 
-    # 左侧留给主视觉 / 干员剪影（样张只画占位框，成片放 3D 水月或主视觉）
-    for i in range(0, 760, 24):
-        d.line((150, 200 + i, 150, 212 + i), fill=(40, 60, 72))
-        d.line((820, 200 + i, 820, 212 + i), fill=(40, 60, 72))
-    for i in range(0, 670, 24):
-        d.line((150 + i, 200, 162 + i, 200), fill=(40, 60, 72))
-        d.line((150 + i, 960, 162 + i, 960), fill=(40, 60, 72))
-    tracked(d, (485, 568), "KEY VISUAL", latin(14), (60, 84, 96), 0.4, "m")
+    # 左侧：画面本身的纯色几何（一束光锥 + 地面光圈 + 像素干员），不画框、不加面板
+    spotlight(img, 470, 300, 880, 760)
+    d = ImageDraw.Draw(img)
 
     cx = int(W * 0.62)          # 版式重心放在右侧三分线附近（左侧留给主视觉 / 干员剪影）
     # 主标题：Noto Serif SC 600，132 px，字距 0.12 em
@@ -181,13 +217,8 @@ def end_card(out):
     # 副标题英文：Noto Serif（拉丁大写）400，24 px，字距 0.5 em，INK_DIM
     tracked(d, (cx, 712), "MIZUKI & CAERULA ARBOR", serif(24, 400), INK_DIM, 0.5, "m")
 
-    # 行动语：Noto Sans SC 700，40 px，青色小底条
-    cta = "B站 Toy 点开即玩"
-    f_cta = sans(40, 700)
-    tw = d.textlength(cta, font=f_cta) + 40 * 0.08 * (len(cta) - 1)
-    bx0, by0 = cx - tw / 2 - 28, 812
-    d.rectangle((bx0, by0, bx0 + tw + 56, by0 + 68), fill=(94, 230, 230))
-    tracked(d, (cx, by0 + 6), cta, f_cta, BG_DEEP, 0.08, "m")
+    # 行动语：Noto Sans SC 600，36 px，青色字，不加底条（§16）
+    tracked(d, (cx, 790), "B站 Toy 点开即玩", sans(36, 600), CYAN, 0.12, "m")
 
     # 左下：同人声明（Noto Sans SC 400，20 px，字距 0.1 em，INK_DIM）
     tracked(d, (96, 990), "明日方舟同人作品 · 非官方", sans(20, 400), INK_DIM, 0.1)
@@ -200,7 +231,7 @@ def end_card(out):
     img.save(out)
 
 
-# ————————————————————— 画面标注 + 名字条 + 字幕 —————————————————————
+# ————————————————————— 画面标注 + 角落标名 + 字幕 —————————————————————
 def word_card(out):
     img = deep_bg(seed=23, light=(0.25, 0.22))
     d = ImageDraw.Draw(img)
@@ -213,14 +244,6 @@ def word_card(out):
     tracked(d, (tx + 100, ty - 132), "集火目标", sans(28, 500), INK, 0.1)
     tracked(d, (tx + 100, ty - 80), "FOCUS TARGET  //  ELITE", latin(13), (120, 138, 150), 0.4)
     tracked(d, (tx + 100, ty - 56), "指挥圆盘选中后，全队优先攻击", sans(22, 400), INK_DIM, 0.06)
-
-    # ② 干员名字条（右侧）：英文代号做底纹大字，中文名压上去
-    nx = 1180
-    tracked(d, (nx - 20, 250), "MIZUKI", latin(170, True), (24, 48, 60), 0.02)   # 底纹：同色系暗一档，不抢主体
-    d.rectangle((nx, 330, nx + 8, 470), fill=CYAN)                            # 竖色条
-    tracked(d, (nx + 36, 318), "水月", serif(96, 700), INK, 0.08)
-    tracked(d, (nx + 40, 448), "特种 · 伏击客", sans(26, 500), INK_DIM, 0.12)
-    tracked(d, (nx + 40, 494), "SPECIALIST  //  AMBUSHER", latin(15), (120, 138, 150), 0.4)
 
     # ③ 角落终结技标名（右下）：Noto Sans SC 700 32 px + 英文 13 px
     rx, ry = W - 96, 820
@@ -251,4 +274,5 @@ if __name__ == "__main__":
     os.makedirs(out, exist_ok=True)
     end_card(os.path.join(out, "typecard_end.png"))
     word_card(os.path.join(out, "typecard_word.png"))
+    intro_card(os.path.join(out, "typecard_intro.png"))
     print("ok", out)
