@@ -361,6 +361,11 @@ func _hum_set(v: float) -> void:
 func _act(a) -> void:
 	match mode:
 		"entry":
+			if a is String and a == "support":
+				Sfx.play("ui_ok")
+				if g.has_method("open_support"):
+					g.open_support()
+				return
 			if a is String and a == "buy":
 				if Roster.exchange_ticket():
 					_buy_t0 = _now()
@@ -850,7 +855,7 @@ func _draw_entry() -> void:
 	var ey: float = ry0 + rules.size() * rstep + 6.0
 	if Roster.exchange_visible() and not first:
 		_draw_exchange(ci, f, ey)
-		ey += 62.0
+		ey += 62.0 + (42.0 if _support_hint() else 0.0)
 	if not _phone:
 		HS.hr_mark(ci, f, Vector2(40, maxf(640.0, ey + 6.0)))
 	# 卡池：三个灰色剪影（未解锁的前 3 名；10-25 用户：「未解锁」下面的小剪影不要了），缓慢视差
@@ -918,6 +923,11 @@ func _draw_entry() -> void:
 	_btn(r2, 2)
 
 
+## 凭证不够寻访一次、且 Toy 还有没领的奖励：兑换框下面多一枚「关注作者」按钮
+func _support_hint() -> bool:
+	return _vouchers() < Roster.COST_RANDOM and preload("res://scripts/core/toy_support.gd").pending()
+
+
 ## 用生机细胞兑换寻访凭证（用户 10-25：1 张 = Roster.TICKET_PRICE 个细胞，不设上限）：凭证数下面一枚按钮，细胞不够就灰掉并写还差多少
 func _draw_exchange(ci: CanvasItem, f: Font, y := -1.0) -> void:
 	var r := Rect2(36, y if y >= 0.0 else _p(570.0, 500.0), 380, 50)
@@ -930,8 +940,12 @@ func _draw_exchange(ci: CanvasItem, f: Font, y := -1.0) -> void:
 	UI.text_at(ci, f, Vector2(r.position.x + 22, r.position.y + 18), "用生机细胞兑换 1 张（%d）" % Roster.TICKET_PRICE, 17, ink, "lm", true)
 	var sub := "持有生机细胞  %d" % Meta.available() if can else "还差 %d 生机细胞  ·  持有 %d" % [Roster.exchange_short(), Meta.available()]
 	UI.text_at(ci, f, Vector2(r.position.x + 22, r.position.y + 38), sub, 13, UI.fa(ink, 0.8), "lm")
-	if _vouchers() < Roster.COST_RANDOM and preload("res://scripts/core/toy_support.gd").pending():   # B站 Toy：凭证不足时提一句（docs/313）
-		UI.text_at(ci, f, Vector2(r.position.x + 4, r.end.y + 16), "凭证不足？标题页底部「支持作者」可以领取寻访凭证", 13, HS.MUTE, "lm")
+	if _support_hint():   # B站 Toy：凭证不足时给一枚按钮，点了打开「支持作者」浮层（docs/313；11-08 用户：原来是一行灰字，太隐蔽）
+		var sr := Rect2(r.position.x, r.end.y + 8, r.size.x, 34)
+		var shot: bool = not (Pad.using or g.kb_nav) and sr.has_point((ci.get_local_mouse_position() - _off) / _k)
+		HS.para(ci, sr, Color(0, 0, 0, 0), HS.CYB if shot else UI.fa(HS.INK, 0.6), 2.0 if shot else 1.5)
+		UI.text_at(ci, f, Vector2(sr.position.x + 22, sr.get_center().y), "凭证不足？关注作者可领 %d 张寻访凭证  ›" % preload("res://scripts/core/toy_support.gd").pending_tickets(), 14, HS.INK, "lm")
+		_btn(sr, "support")
 	var bt := _now() - _buy_t0
 	if bt >= 0.0 and bt < 0.9:   # 兑换成功：凭证数旁「+1」上浮淡出
 		var vy := _p(400.0, 320.0)

@@ -269,6 +269,9 @@ func _buttons() -> Array:
 	if sty != null:
 		var bo: Array = sty.buttons()
 		# 生机细胞够 1 张寻访凭证时多一枚「兑换凭证」（11-08 用户），排在最前：↓ 进底栏仍先落在寻访
+		if sup_button() and sty.has_method("support_rect"):
+			var sr: Rect2 = sty.support_rect()
+			bo.push_front(["support", sr.position.x, sr.size.x, sup_label(), false, sr])
 		if Roster.exchange_ready() and sty.has_method("exchange_rect"):
 			var er: Rect2 = sty.exchange_rect()
 			bo.push_front(["exchange", er.position.x, er.size.x, "兑换凭证", false, er])
@@ -284,6 +287,16 @@ func _buttons() -> Array:
 	out.append(["meta", 642, 250, "认知塑造  Y" if Pad.using else ("认知塑造" if tch else "认知塑造  X"), false])
 	out.append(["hunt", 910, 342, ("寻访（持有 %d）  A" if Pad.using else ("寻访（持有 %d）" if tch else "寻访（持有 %d）  Enter")) % Roster.tickets(), Roster.tickets() > 0])   # D14：写明是持有数，免得和「本局获得 ×0」并排时误读
 	return out
+
+
+## B站 Toy「支持作者」（11-08 用户）：没通关、本局 0 张凭证、还有没领的奖励时，「本局获得」条里直接放一枚领取按钮（点了打开支持作者浮层）
+func sup_button() -> bool:
+	return bool(g.roster_new.get("lost", false)) and vouchers == 0 and preload("res://scripts/core/toy_support.gd").pending()
+
+
+func sup_label() -> String:
+	const TS = preload("res://scripts/core/toy_support.gd")
+	return ("关注作者，领 %d 张寻访凭证" if not TS.claimed("follow") and TS.follow_on() else "三连视频，领 %d 张寻访凭证") % TS.REWARD
 
 
 func _btn_rect(b: Array) -> Rect2:
@@ -316,6 +329,7 @@ func _run(id: String) -> void:
 		"records": _records()
 		"runs": g.run_log.open_log()
 		"title", "meta", "hunt": _action(id)
+		"support": g.open_support()
 		"exchange":
 			if Roster.exchange_ticket():
 				exchanged += 1
@@ -730,7 +744,7 @@ func _draw_buttons(ci: CanvasItem, fp := 1.0) -> void:
 			ci.draw_rect(r, bg)
 		if hov or prs:
 			ci.draw_rect(r, HH.CYB, false, 2.0)
-		elif id == "exchange":   # 兑换凭证（11-08）：压在「本局获得」暗条上，加青色细边才看得出是按钮
+		elif id == "exchange" or id == "support":   # 兑换凭证 / 关注作者（11-08）：压在「本局获得」暗条上，加青色细边才看得出是按钮
 			ci.draw_rect(r, Color(HH.CYB, 0.7 * _fa), false, 1.5)
 		if foc:
 			var c := 10.0

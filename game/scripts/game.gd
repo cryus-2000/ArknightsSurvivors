@@ -425,6 +425,7 @@ var foe_top: Node2D   # 敌方顶层（docs/226 §1，render/foe_top）：敌弹
 var wcv: CanvasItem = self   # 世界绘制当前提交到的画布：平时是 game 自己，敌方顶层那一遍是 foe_top（render/*.gd 一律画到 g.wcv）
 var settings: Control
 var ui_layer: CanvasLayer   # 界面层（HUD / 面板 / 设置）：触屏时整体放大 Cfg.ui_k
+var support_view: Control = null   # B站 Toy「支持作者」浮层（screens/support_view.gd，结算 / 寻访页点了才建，docs/313）；开着时局内 _input 让开
 var feedback_view: Control = null   # 结算「反馈」浮层（screens/feedback_view.gd，第一次点时建）；开着时局内 _input 让开
 var run_wall_ms := Time.get_ticks_msec()   # 本局开始的真实时刻（反馈码的局时）
 var result_btns: Array = []   # [Rect2, action]
@@ -1329,6 +1330,16 @@ func open_feedback(summary: Dictionary) -> void:
 	feedback_view.open(summary)
 
 
+## 结算 / 寻访页的「关注作者，领寻访凭证」（11-08 用户）：和标题页同一个浮层
+func open_support() -> void:
+	if support_view == null:
+		support_view = preload("res://scripts/screens/support_view.gd").new()
+		ui_layer.add_child(support_view)
+	Cfg.ui_fill(support_view)
+	ui_layer.move_child(support_view, -1)
+	support_view.open()
+
+
 ## 手机横屏正文字号放大（用户 10-13，UI.fk / UI.fs）：局内界面层在 Cfg.phone_ui() 时乘 balance.json ui/phone_font_mult；
 ## 离开局内（_exit_tree）恢复 1，标题页不受影响。演示局（demo_op：图鉴、精英化演出的实机小窗）不改它（UI.fk 是全局静态量）
 func _font_k() -> void:
@@ -1730,7 +1741,7 @@ func _input(event: InputEvent) -> void:
 		return
 	if event is InputEventMouseMotion and event.relative.length() > 6.0:
 		kb_nav = false
-	if settings.visible or (feedback_view != null and feedback_view.visible):
+	if settings.visible or (feedback_view != null and feedback_view.visible) or (support_view != null and support_view.visible):
 		return
 	# Result owns terminal input before stale combat touch regions can consume it.
 	if settlement.active() and not run_stats.open and not run_log.open and not headhunt.open and (state == S.WIN or state_age >= HudView.DEATH_T + 0.35):

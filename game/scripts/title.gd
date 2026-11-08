@@ -930,7 +930,8 @@ func _draw_menu(vs: Vector2) -> void:
 	var first := R.needs_first()
 	Tiles.draw(self, menu_lay, {"font": font, "sel": sel, "water": menu_water, "now": t, "rm": Cfg.reduce_motion,
 		"a_logo": 0.0, "logo_tex": null, "a_list": a_list, "a_deploy": _item_a(0) * (0.35 if first else 1.0), "a_foot": _seg(2.0, 0.4),
-		"slide": 0.0 if Cfg.reduce_motion else 16.0, "dim": [] if R.active() else [7], "tickets": R.tickets() if R.active() else -1})   # 10-24 用户：没有凭证也能点进寻访看卡池
+		"slide": 0.0 if Cfg.reduce_motion else 16.0, "dim": [] if R.active() else [7], "tickets": R.tickets() if R.active() else -1,
+		"sup_badge": preload("res://scripts/core/toy_support.gd").pending_tickets()})   # 10-24 用户：没有凭证也能点进寻访看卡池
 	if first and not (guide or credits):
 		_draw_first_guide()
 	# 声明（同人 · 非商业 · 与鹰角网络无关 · 致谢与声明）+ 版本：桌面右下，手机跟在底部一行后面
