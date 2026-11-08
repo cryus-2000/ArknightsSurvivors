@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Veo 图生视频（Vertex AI，按 Cloud 项目计费；令牌每次调 gcloud 现取，同 pixgen.py）。
-  python tools/imagegen/veo.py <首帧.png> <输出.mp4> --prompt "<动作描述>" [--model veo-3.0-fast-generate-001] [--secs 8]
+  python tools/imagegen/veo.py <首帧.png> <输出.mp4> --prompt "<动作描述>" [--last <尾帧.png>] [--model veo-3.0-fast-generate-001] [--secs 8]
 产物不进 git。"""
 import argparse, base64, json, sys, time, urllib.request
 from pathlib import Path
@@ -26,6 +26,7 @@ def main():
     ap.add_argument("--prompt", required=True)
     ap.add_argument("--model", default="veo-3.1-fast-generate-001")
     ap.add_argument("--secs", type=int, default=8)
+    ap.add_argument("--last", default="", help="尾帧图（首尾帧插值）")
     ap.add_argument("--neg", default="text, watermark, blurry, smooth 3d render, photorealistic")
     a = ap.parse_args()
     proj = pixgen._gcloud("config", "get-value", "project")
@@ -33,6 +34,8 @@ def main():
     body = {"instances": [{"prompt": a.prompt, "image": {"bytesBase64Encoded": img, "mimeType": "image/png"}}],
             "parameters": {"aspectRatio": "16:9", "durationSeconds": a.secs, "sampleCount": 1, "negativePrompt": a.neg,
                            "resolution": "1080p", "generateAudio": False, "personGeneration": "dont_allow"}}
+    if a.last:
+        body["instances"][0]["lastFrame"] = {"bytesBase64Encoded": base64.b64encode(Path(a.last).read_bytes()).decode(), "mimeType": "image/png"}
     r = _post(URL.format(p=proj, m=a.model, op="predictLongRunning"), body)
     name = r["name"]
     print("operation", name.split("/")[-1], flush=True)
