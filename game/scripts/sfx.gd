@@ -206,24 +206,29 @@ func _ready() -> void:
 		p.bus = "SFX"
 		add_child(p)
 		players.append(p)
+	_wm_init()
 	for tname in MUSIC:
 		var arr: Array = []
 		var files: Array = MUSIC[tname]
 		if tname == "archive" and ResourceLoader.exists("res://audio/music/suno_archive_full.ogg"):
 			files = ["suno_archive_full"]   # 图鉴：Suno 分轨相加成整曲（docs/164）；文件缺失时回到 archive_v2
 		for f in files:
-			var st: AudioStreamOggVorbis = _load_ogg("res://audio/music/%s.ogg" % f)
+			var st: AudioStream = _wm_stream(f)   # 网页配乐出包（docs/319 §12）：静音占位，由 web_music.js 出声
 			if st == null:
-				continue
-			st.loop = not ONESHOT.has(tname)
-			if tname == "shop":
-				st.loop_offset = 972797.0 / 44100.0   # 用户提供的前奏只播一次，之后循环正文（docs/21）
+				var ov: AudioStreamOggVorbis = _load_ogg("res://audio/music/%s.ogg" % f)
+				if ov == null:
+					continue
+				ov.loop = not ONESHOT.has(tname)
+				if tname == "shop":
+					ov.loop_offset = SHOP_LOOP   # 用户提供的前奏只播一次，之后循环正文（docs/21）
+				st = ov
 			var pl := AudioStreamPlayer.new()
 			pl.stream = st
 			pl.bus = "Music"
 			pl.volume_db = -80.0
 			add_child(pl)
 			arr.append(pl)
+			_wm_reg(pl, tname, f)
 		groups[tname] = arr
 		group_vol[tname] = 0.0
 		group_rate[tname] = [0.8, 0.6]
@@ -280,6 +285,7 @@ func warm_begin() -> void:
 	if not OS.has_feature("web"):
 		return
 	var list: Array = _track_streams("battle1")
+	_wm_preload("battle1")   # 出包的配乐：载入页先让浏览器解码第一首战斗曲
 	var cfg = get_node_or_null("/root/Cfg")   # sfx 比 Cfg 先加载，不能直接写 Cfg
 	if cfg != null and cfg.mobile_web() and not cfg.mobile_knob("mobile_warm_music", 1.0):   # 10-27 起缺省开（docs/50 §40）：24 kHz + 切曲释放后内存够，局内首段解码改在载入页做
 		list.clear()
@@ -313,7 +319,7 @@ func warm_step(budget_usec: int) -> bool:
 func sample_mem_mb() -> float:
 	if not OS.has_feature("web"):
 		return 0.0
-	var js = JavaScriptBridge.eval("window.__syAudioMB?window.__syAudioMB():-1", true)
+	var js = JavaScriptBridge.eval("window.__syAudioMB?window.__syAudioMB()+(window.__syMus&&window.__syMusOn?window.__syMus.mb():0):-1", true)   # 出包配乐的浏览器解码缓冲也算进来（docs/319 §12）
 	if js != null and float(js) >= 0.0:
 		return float(js)
 	var seen := {}
@@ -434,17 +440,21 @@ func _suno_init() -> void:
 		var pls: Array = []
 		var ok := true
 		for i in m.files.size():
-			var st: AudioStreamOggVorbis = _load_ogg("res://audio/music/%s.ogg" % m.files[i])
+			var st: AudioStream = _wm_stream(str(m.files[i]))
 			if st == null:
-				ok = false
-				break
-			st.loop = true
+				var ov: AudioStreamOggVorbis = _load_ogg("res://audio/music/%s.ogg" % m.files[i])
+				if ov == null:
+					ok = false
+					break
+				ov.loop = true
+				st = ov
 			var pl := AudioStreamPlayer.new()
 			pl.stream = st
 			pl.bus = "Music"
 			pl.volume_db = -80.0
 			add_child(pl)
 			pls.append(pl)
+			_wm_reg(pl, tname, str(m.files[i]))
 		if not ok:
 			for pl in pls:
 				pl.queue_free()
@@ -575,7 +585,7 @@ func track_pos(tname: String) -> float:
 	if not pl.playing or not track_t0.has(tname):
 		return float(menu_pos.get(tname, 0.0))
 	var t := _now() - float(track_t0[tname])
-	var ln := pl.stream.get_length() if pl.stream != null else 0.0
+	var ln := _wm_len(pl) if _wm_pl.has(pl.get_instance_id()) else (pl.stream.get_length() if pl.stream != null else 0.0)
 	return fposmod(t, ln) if ln > 0.0 else t
 
 
@@ -1172,6 +1182,7 @@ func _process(delta: float) -> void:
 		var nxt := after_stinger
 		after_stinger = ""
 		play_music(nxt)
+	_wm_sync()
 
 
 ## 网页切曲释放（docs/50 §40）：引擎把每段配乐整段解码成样本、脚本没有注销接口，播过的曲子会一直占着（48 kHz 时 15 秒一句 5.5 MB）。
@@ -1230,6 +1241,9 @@ func _maybe_free(tname: String) -> void:
 		_last_on[tname] = _now()
 		return
 	if _freed.has(tname) or _next.has(tname) or tname == after_stinger or cur_track == "" or _now() - float(_last_on.get(tname, -99.0)) < _free_after():
+		return
+	if _wm_free(tname):
+		_freed[tname] = true
 		return
 	if _free_ok < 0:
 		_free_ok = 1 if OS.has_feature("web") and str(JavaScriptBridge.eval("typeof window.__syAudioFree", true)) == "function" else 0
@@ -1670,3 +1684,134 @@ func _music_tour() -> void:
 			await get_tree().create_timer(5.0).timeout
 			print("PF AUDIOMEM t=%.0f want=%s cur=%s mb=%.1f" % [_now() - t0, str(st[0]), cur_track, sample_mem_mb()])
 	print("PF FTDONE")
+
+
+# ---------------------------------------------------------------- 网页配乐出包（11-08 docs/319 §12，tools/web_music.py + tools/web/web_music.js）
+## 引擎把配乐注册成网页样本时先在 WASM 堆里整段解码（一首 200 秒约 +100 MB 堆高水位，只涨不缩；iPhone B站 App 开局 WASM 513 MB）。
+## 网页包里长配乐不进主包，改成单独的 AAC，由浏览器 decodeAudioData 解码、在引擎同一个音频上下文里播。这里的播放器换成 1/10 秒静音循环占位：
+## 淡入淡出、分层、换曲、Boss 进出、记位置续播等逻辑一律照旧作用在占位器上；每帧末尾 _wm_sync 把「谁在播 / 从第几秒 / 音量」同步给 JS，
+## 位置按 track_t0 墙钟算（同 _lay_pos），同一帧开播的各层一批交给 JS 同时 start。配乐总线音量 / 静音（Music × Master）与低通（music_lp）一并同步。
+## 只在网页、副本里有 audio/music/web_music.json 且页面装了 web_music.js 时启用；桌面与旧包照旧走 OGG
+const SHOP_LOOP := 972797.0 / 44100.0
+var _wm := {}           # 文件名 -> {len, url}
+var _wm_pl := {}        # 占位播放器 instance id -> {pl, track, name, on, g}
+var _wm_ph: AudioStreamWAV = null
+var _wm_busv := Vector2(-1.0, -1.0)
+
+
+func _wm_init() -> void:
+	if not OS.has_feature("web") or not FileAccess.file_exists("res://audio/music/web_music.json"):
+		return
+	if str(JavaScriptBridge.eval("typeof window.__syMus", true)) != "object":
+		return
+	var d = JSON.parse_string(FileAccess.get_file_as_string("res://audio/music/web_music.json"))
+	if not d is Dictionary or d.is_empty():
+		return
+	_wm = d
+	JavaScriptBridge.eval("window.__syMusOn=1", true)
+	_wm_ph = AudioStreamWAV.new()
+	_wm_ph.format = AudioStreamWAV.FORMAT_8_BITS
+	_wm_ph.mix_rate = 8000
+	_wm_ph.stereo = false
+	var z := PackedByteArray()
+	z.resize(800)
+	_wm_ph.data = z
+	_wm_ph.loop_mode = AudioStreamWAV.LOOP_FORWARD
+	_wm_ph.loop_begin = 0
+	_wm_ph.loop_end = 800
+
+
+func _wm_stream(fname: String) -> AudioStream:
+	return _wm_ph if _wm.has(fname) else null
+
+
+func _wm_reg(pl: AudioStreamPlayer, tname: String, fname: String) -> void:
+	if _wm.has(fname):
+		_wm_pl[pl.get_instance_id()] = {"pl": pl, "track": tname, "name": fname, "on": false, "g": -1.0}
+
+
+func _wm_len(pl: AudioStreamPlayer) -> float:
+	var w: Dictionary = _wm_pl.get(pl.get_instance_id(), {})
+	return float(_wm.get(str(w.get("name", "")), {}).get("len", 0.0))
+
+
+func _wm_url(fname: String) -> String:
+	return str(_wm.get(fname, {}).get("url", ""))
+
+
+func _wm_preload(tname: String) -> void:
+	if _wm.is_empty():
+		return
+	var urls: Array = []
+	for k in _wm_pl:
+		var w: Dictionary = _wm_pl[k]
+		if w.track == tname and is_instance_valid(w.pl):
+			urls.append(_wm_url(w.name))
+	if not urls.is_empty():
+		JavaScriptBridge.eval("window.__syMus.preload(%s)" % JSON.stringify(urls), true)
+
+
+## 曲目放完：丢掉浏览器解码缓冲；返回这首是不是出包的配乐（是就不用再走引擎样本释放）
+func _wm_free(tname: String) -> bool:
+	if _wm.is_empty():
+		return false
+	var urls: Array = []
+	for k in _wm_pl:
+		var w: Dictionary = _wm_pl[k]
+		if w.track == tname:
+			urls.append(_wm_url(w.name))
+	if urls.is_empty():
+		return false
+	JavaScriptBridge.eval("window.__syMus.free(%s)" % JSON.stringify(urls), true)
+	return true
+
+
+func _wm_sync() -> void:
+	if _wm.is_empty():
+		return
+	var plays: Array = []
+	var stops: Array = []
+	var gains: Array = []
+	var dead: Array = []
+	var now := _now()
+	for k in _wm_pl:
+		var w: Dictionary = _wm_pl[k]
+		var pl = w.pl
+		if not is_instance_valid(pl):
+			dead.append(k)
+			if w.on:
+				stops.append(k)
+			continue
+		var g: float = db_to_linear(pl.volume_db) if pl.volume_db > -79.0 else 0.0
+		if pl.playing and not w.on:
+			var ln: float = float(_wm.get(w.name, {}).get("len", 0.0))
+			var pos: float = now - float(track_t0.get(w.track, now))
+			var ls: float = SHOP_LOOP if w.track == "shop" else 0.0
+			if ln > 0.0 and pos >= ln:
+				pos = ls + fposmod(pos - ls, maxf(ln - ls, 0.1))
+			plays.append([k, _wm_url(w.name), maxf(pos, 0.0), ls, ln, g])
+			w.on = true
+			w.g = g
+		elif not pl.playing and w.on:
+			stops.append(k)
+			w.on = false
+		elif w.on and absf(g - float(w.g)) > 0.0005:
+			gains.append([k, g])
+			w.g = g
+	for k in dead:
+		_wm_pl.erase(k)
+	if not stops.is_empty():
+		JavaScriptBridge.eval("window.__syMus.stop(%s)" % JSON.stringify(stops), true)
+	if not plays.is_empty():
+		JavaScriptBridge.eval("window.__syMus.play(%s)" % JSON.stringify(plays), true)
+	if not gains.is_empty():
+		JavaScriptBridge.eval("window.__syMus.gain(%s)" % JSON.stringify(gains), true)
+	var mi := AudioServer.get_bus_index("Music")
+	var ma := AudioServer.get_bus_index("Master")
+	var bv := 0.0
+	if not AudioServer.is_bus_mute(mi) and not AudioServer.is_bus_mute(ma):
+		bv = db_to_linear(AudioServer.get_bus_volume_db(mi)) * db_to_linear(AudioServer.get_bus_volume_db(ma))
+	var hz: float = music_lp.cutoff_hz if music_lp != null else 20000.0
+	if absf(bv - _wm_busv.x) > 0.0005 or absf(hz - _wm_busv.y) > 1.0:
+		_wm_busv = Vector2(bv, hz)
+		JavaScriptBridge.eval("window.__syMus.bus(%f,%f)" % [bv, hz], true)

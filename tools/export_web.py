@@ -147,6 +147,9 @@ def main():
         print("[瘦身] " + web_audio.report(web_audio.shrink(gpath, a.audio_tier, a.final_tier)) + "（档位 %s，最终 Boss %s）" % (a.audio_tier, a.final_tier), flush=True)
     tmp = os.path.join(WORK, "out")
     os.makedirs(tmp)
+    # 长配乐出包（tools/web_music.py，docs/319 §12）：不进 index.pck，单独 AAC 由浏览器解码（不在 WASM 堆里整段解码）
+    import web_music
+    print("[瘦身] " + web_music.report(web_music.externalize(gpath, tmp)), flush=True)
     run([GODOT, "--headless", "--path", gpath, "--import"], check=False)  # 无头导入退出时偶发崩溃，结果以导出为准
     out = run([GODOT, "--headless", "--path", gpath, "--export-release", "Web", os.path.join(tmp, "index.html")], check=False)
     if not os.path.exists(os.path.join(tmp, "index.pck")):
@@ -171,6 +174,9 @@ def main():
         js = fh.read() + "\n"
     # 页面隐藏时挂起音频（tools/web/power.js，docs/50 §33）：也要在引擎建 AudioContext 之前
     with open(os.path.join(WEB, "power.js"), encoding="utf-8") as fh:
+        js += fh.read() + "\n"
+    # 出包配乐的浏览器解码播放（tools/web/web_music.js，docs/319 §12）
+    with open(os.path.join(WEB, "web_music.js"), encoding="utf-8") as fh:
         js += fh.read() + "\n"
     # 帧时浮层（tools/web/fps_meter.js，docs/50 §21.7）：只在网址带 ?fps=1 时显示，给真机量帧率
     with open(os.path.join(WEB, "fps_meter.js"), encoding="utf-8") as fh:

@@ -39,6 +39,7 @@ func _print_mem(tag: String) -> void:
 		Sfx.sample_mem_mb(), get_tree().root.size, Cfg.render_scaled, Cfg.quality])
 	if OS.has_feature("web"):
 		print("PF MEMAUD %s %s" % [tag, Sfx.sample_report()])
+		print("PF WEBMUSIC %s %s" % [tag, str(JavaScriptBridge.eval("window.__syMus?window.__syMus.state():'none'", true))])   # 出包配乐（docs/319 §12）
 		var r = JavaScriptBridge.eval("(function(){var w=window.__syWasm,r={w:w&&w.buffer?w.buffer.byteLength:0};if(performance.memory){r.j=performance.memory.usedJSHeapSize}return JSON.stringify(r)})()", true)
 		var d = JSON.parse_string(str(r)) if r != null else null
 		if d is Dictionary:
