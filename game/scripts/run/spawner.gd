@@ -18,6 +18,12 @@ var horde_warned := -1.0
 var fixed_i := 0        # 中段固定节拍大群已出到第几波（docs/150）
 var boss_idx := 0
 var mid_used: Array = []
+## 手机网页 Boss 预读（11-08 iPhone：3:31 中期 Boss 登场那一帧 172 ms——一次读 28 张帧条 + 建白剪影）：登场前 PF_LEAD 秒先定下是哪一组
+## （中期 Boss 的随机挑选提前到这时做，手机网页上 rng_spawn 的取用次序因此前移，各组概率不变），交给 g.prefetch_enemy 分帧在后台读。
+## 桌面不变（同种子 TRACE / 金样不受影响）。--bal=web/mobile_boss_prefetch=0 退回
+const PF_LEAD := 10.0
+var _pre_group: Array = []
+var _pre_idx := -1
 ## 同一人物的不同档（docs/38 §2.2，用户 10-01 按原作核对：圣徒卡门 / 圣徒伊比利亚是同一人两档）：中期 Boss 抽取按人物排除，同局只出一位
 const SAME_PERSON := {"carmen": "saint", "iberia": "saint"}
 var next_chest := 20.0
@@ -322,31 +328,45 @@ func boss_alive() -> bool:
 	return false
 
 
+## 第 idx 个 Boss（从 1 数）是哪一组；中期 Boss 在这里随机挑并记进 mid_used
+func _boss_group(idx: int) -> Array:
+	if idx == D.BOSS_TIMES.size():
+		# 测试开关（仅开发版，Cfg.dev_args；发布版屏蔽）：--forceending=<结局> 指定最终 Boss（standard 泡影 / deep 伊莎玛拉 / knight 骑士 / resolve 伊祖米克）
+		for a in Cfg.dev_args():
+			if a.begins_with("--forceending=") and D.ENDINGS.has(a.substr(14)):
+				g.ending = a.substr(14)
+		return [D.ENDINGS[g.ending].boss]
+	var pool: Array = []
+	for i in D.MID_POOL.size():
+		if not mid_used.has(i) and (idx != 1 or D.MID_FIRST.is_empty() or D.MID_FIRST.has(i)) and not person_used(i):
+			pool.append(i)
+	var pick: int = pool[g.rng_spawn.randi() % pool.size()]
+	if g.force_boss >= 0 and not mid_used.has(g.force_boss):
+		pick = g.force_boss
+	# 测试开关（仅开发版）：--forceboss2=<MID_POOL 下标> 指定第二个（7:00）中期 Boss，例如 3 = 主教 + 蔑视体、4 = 主教 + 斥亡者
+	for a in Cfg.dev_args():
+		if a.begins_with("--forceboss2=") and idx == 2 and not mid_used.has(int(a.substr(13))):
+			pick = int(a.substr(13))
+	mid_used.append(pick)
+	return D.MID_POOL[pick]
+
+
+func _boss_prefetch_on() -> bool:
+	return (Cfg.mobile_web() and Cfg.mobile_knob("mobile_boss_prefetch", 1.0)) or Cfg.dev_args().has("--bossprefetch")
+
+
 func update(dt: float) -> void:
+	# 手机网页：登场前 PF_LEAD 秒定下下一组 Boss，分帧预读它们的帧条与白剪影（见 PF_LEAD）
+	if boss_idx < D.BOSS_TIMES.size() and _pre_idx != boss_idx + 1 and g.t >= D.BOSS_TIMES[boss_idx] - PF_LEAD and _boss_prefetch_on():
+		_pre_idx = boss_idx + 1
+		_pre_group = _boss_group(_pre_idx)
+		for k in _pre_group:
+			if D.ENEMIES.has(k):
+				g.prefetch_enemy(str(D.ENEMIES[k].tex))
 	# Boss 按时间登场
 	if boss_idx < D.BOSS_TIMES.size() and g.t >= D.BOSS_TIMES[boss_idx]:
 		boss_idx += 1
-		var group: Array = []
-		if boss_idx == D.BOSS_TIMES.size():
-			# 测试开关（仅开发版，Cfg.dev_args；发布版屏蔽）：--forceending=<结局> 指定最终 Boss（standard 泡影 / deep 伊莎玛拉 / knight 骑士 / resolve 伊祖米克）
-			for a in Cfg.dev_args():
-				if a.begins_with("--forceending=") and D.ENDINGS.has(a.substr(14)):
-					g.ending = a.substr(14)
-			group = [D.ENDINGS[g.ending].boss]
-		else:
-			var pool: Array = []
-			for i in D.MID_POOL.size():
-				if not mid_used.has(i) and (boss_idx != 1 or D.MID_FIRST.is_empty() or D.MID_FIRST.has(i)) and not person_used(i):
-					pool.append(i)
-			var pick: int = pool[g.rng_spawn.randi() % pool.size()]
-			if g.force_boss >= 0 and not mid_used.has(g.force_boss):
-				pick = g.force_boss
-			# 测试开关（仅开发版）：--forceboss2=<MID_POOL 下标> 指定第二个（7:00）中期 Boss，例如 3 = 主教 + 蔑视体、4 = 主教 + 斥亡者
-			for a in Cfg.dev_args():
-				if a.begins_with("--forceboss2=") and boss_idx == 2 and not mid_used.has(int(a.substr(13))):
-					pick = int(a.substr(13))
-			mid_used.append(pick)
-			group = D.MID_POOL[pick]
+		var group: Array = _pre_group if _pre_idx == boss_idx else _boss_group(boss_idx)
 		group = g.bench.on_boss_group(boss_idx, group)   # Boss 单场测试台：录制快照 / 换成要测的 Boss（docs/170；不开时原样返回）
 		var base := edge_pos()
 		if g.zone_state != 0 and base.distance_to(g.zone_c) > g.zone_r - 90.0:

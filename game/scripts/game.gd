@@ -891,6 +891,70 @@ func load_op_fx(cid: String) -> void:
 		print("PF FXLAZY t=%.1f %s n=%d ms=%d" % [t, cid, ns.size(), Time.get_ticks_msec() - t0])
 
 
+## 手机网页分帧预读（spawner.PF_LEAD：Boss 登场前 10 秒）：队列里一项一张贴图，每帧最多 PF_BUDGET 微秒（至少一项）。
+## 读帧条项读完才把这种怪从推迟名单拿掉；期间真的刷出来了，ensure_enemy_tex 照旧当场补读剩下的。白剪影先建变体、最后建本体
+## （ensure_white 只看本体有没有白剪影）
+const PF_BUDGET := 3000
+var _pf_q: Array = []
+
+func prefetch_enemy(n: String) -> void:
+	var ks: Array = []
+	for k in tex_deferred:
+		if k == n or (k as String).begins_with(n):
+			ks.append(k)
+	for k in ks:
+		for nm in [k] + Array(ENEMY_SUFFIXES).map(func(sf): return k + sf):
+			_pf_q.append(["tex", nm])
+		_pf_q.append(["done", k])
+	if lazy_white:
+		_pf_q.append(["white", n])
+	if not Cfg.dev_args().is_empty():
+		print("PF PREFETCH t=%.1f %s items=%d" % [t, n, _pf_q.size()])
+
+
+func _prefetch_step() -> void:
+	if _pf_q.is_empty():
+		return
+	var t0 := Time.get_ticks_usec()
+	while not _pf_q.is_empty():
+		var it: Array = _pf_q[0]
+		var nm: String = it[1]
+		match str(it[0]):
+			"tex":
+				_pf_q.pop_front()
+				if tex.get(nm) == null and (tex_deferred.has(nm) or _pf_deferred_of(nm)):
+					tex[nm] = A.tex(nm)
+			"done":
+				_pf_q.pop_front()
+				if tex_deferred.has(nm):
+					tex_deferred.erase(nm)
+					_load_enemy_tex(nm)   # 帧条都已在表里：只补记 _enemy_loaded / 脚底锚点
+			"white":
+				_white_alive[nm] = t
+				var todo: Array = []
+				for w in _white_names(nm):
+					if tex.get(w) != null and not tex.has(w + "_white"):
+						todo.append(w)
+				if todo.is_empty():
+					_pf_q.pop_front()
+				else:
+					var w2: String = nm   # 本体留到最后
+					for w in todo:
+						if w != nm:
+							w2 = w
+							break
+					tex[w2 + "_white"] = A.white_of(tex[w2])
+		if Time.get_ticks_usec() - t0 > PF_BUDGET:
+			break
+
+
+func _pf_deferred_of(nm: String) -> bool:
+	for k in tex_deferred:
+		if nm.begins_with(k):
+			return true
+	return false
+
+
 func ensure_white(n: String) -> void:
 	if not lazy_white or n == "":
 		return
@@ -1140,7 +1204,7 @@ func _ready() -> void:
 		if not etex.has(tn):
 			etex.append(tn)
 	# 网页版：开局 WEB_EARLY_T 秒内刷不到的种类（中后期小怪、全部 Boss）先不加载，首次刷出时再读（ensure_enemy_tex）
-	var early := _web_early_enemy_tex() if OS.has_feature("web") and demo_op == "" else {}
+	var early := _web_early_enemy_tex() if (OS.has_feature("web") or Cfg.dev_args().has("--bossprefetch")) and demo_op == "" else {}   # --bossprefetch：桌面试推迟加载 + 预读
 	for n in etex:
 		if not early.is_empty() and not early.has(n):
 			tex_deferred[n] = true
@@ -1694,6 +1758,7 @@ func _process(delta: float) -> void:
 	_op_pf_step()   # 招募候选分帧预读（prefetch_ops）
 	perf_rep.tick(delta)   # 性能报告：帧时分桶 / 最低 1 秒帧率 / 内存与敌人峰值（只加计数）
 	_white_release(delta)
+	_prefetch_step()
 	if EliteMoment.on(self):
 		elite_moment.tick(delta)   # 精英化时刻：真实时间（docs/249 §2）
 	if victory.active and state == S.PLAY:
