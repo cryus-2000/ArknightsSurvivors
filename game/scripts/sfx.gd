@@ -422,6 +422,8 @@ const SUNO_META := "res://audio/music/suno_layers.json"
 func _suno_init() -> void:
 	if not FileAccess.file_exists(SUNO_META):
 		return
+	if (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--nomusic"):
+		return   # 测量：不建配乐（量配乐注册对 WASM 堆高水位的贡献，docs/319 §10）
 	var meta = JSON.parse_string(FileAccess.get_file_as_string(SUNO_META))
 	if not meta is Dictionary:
 		return
@@ -1215,8 +1217,8 @@ var _swap_fast := -1
 
 func _free_after() -> float:
 	var nt := str(pending.get("track", ""))
-	if nt != "boss" and not nt.begins_with("final"):
-		return FREE_AFTER
+	if nt != "boss" and not nt.begins_with("final") and not nt.begins_with("battle"):
+		return FREE_AFTER   # 11-08：换进战斗曲也不等（iPhone 两局恰好死在 3:00 / 7:00 的战斗曲换曲点，docs/319 §10）
 	if _swap_fast < 0:
 		var cfg = get_node_or_null("/root/Cfg")
 		_swap_fast = 1 if OS.has_feature("web") and cfg != null and cfg.mobile_web() and cfg.mobile_knob("mobile_music_swap", 1.0) else 0

@@ -673,7 +673,9 @@
     if (off !== e.size) return Promise.reject(new Error(name + ' 清单分片长度之和不符：' + off + ' ≠ ' + e.size));
     return Promise.all(jobs).then(function () {
       if (--pending === 0) { done = true; upd(); }
-      return new Response(out, { status: 200, headers: { 'Content-Type': e.type, 'Content-Length': String(e.size) } });
+      var resp = new Response(out, { status: 200, headers: { 'Content-Type': e.type, 'Content-Length': String(e.size) } });
+      resp.__syBuf = out.buffer;   // 引擎补丁（engine_patch.py §2）直接拿这块，不再 arrayBuffer() 拼一份、MEMFS 也不再 slice 一份（docs/319 §10）
+      return resp;
     });
   };
 
