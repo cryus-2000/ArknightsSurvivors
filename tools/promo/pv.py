@@ -220,6 +220,10 @@ def paper_grain(im, i, k):
 def apply_fx(im, sh, T, ow, oh, vert):
     lt = T - sh["t0"]
     dur = sh["t1"] - sh["t0"]
+    if sh.get("kind") == "clip" and sh.get("overlay", True) and not str(sh.get("src", "")).startswith(("P3D", "B3D")):
+        # 实机最外层叠前景虚化海雪 + 轻暗角（docs/327 §9.3，用户 11-08「可以叠」）；实机本身不调色。高潮段在镜头表里设 snow 0–2
+        import pv_type
+        im = pv_type.gameplay_overlay(im, T, n_big=int(sh.get("snow", 5)), n_far=2 if sh.get("snow", 5) > 2 else 0, seed=int(sh["t0"] * 10))
     if sh.get("grain"):
         im = paper_grain(im, int(T * FPS), float(sh["grain"]))
     gl = sh.get("glitch", 0)

@@ -8,7 +8,9 @@
                                     行动语 C1（Sans 700 40，青底深字）、同人声明 D1（左下，Sans 400 20 + Montserrat 13）
 字体：Noto Serif SC / Noto Sans SC 可变字重全字库（C:/Windows/Fonts，SIL OFL 1.1）、仓库 Montserrat（OFL）。
 """
+import math
 import os
+import random
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
@@ -151,3 +153,50 @@ def end_card(img, t, title="方舟幸存者", en="ARKNIGHTS SURVIVORS", cta="B�
 def mean_luma(img):
     a = np.asarray(img.convert("RGB")).astype(np.float32) / 255.0
     return float((a @ np.array([0.2126, 0.7152, 0.0722], np.float32)).mean())
+
+
+# ---------------------------------------------------------------- 实机最外层叠层（docs/327 §9.3，用户 11-08「可以叠」）：前景虚化海雪 + 轻暗角；实机本身不调色、不加颗粒
+_SNOW = {}
+_GVIG = {}
+
+
+def _snow_sprite(d, blur):
+    k = (d, blur)
+    if k not in _SNOW:
+        pad = int(blur * 3) + 2
+        sz = d + pad * 2
+        m = Image.new("L", (sz, sz), 0)
+        ImageDraw.Draw(m).ellipse((pad, pad, pad + d, pad + d), fill=255)
+        _SNOW[k] = m.filter(ImageFilter.GaussianBlur(blur))
+    return _SNOW[k]
+
+
+def gameplay_overlay(img, t, n_big=5, n_far=2, seed=0, vig=True):
+    """n_big：大颗海雪 3–8（高潮段 0–2）；直径 40–120 px、模糊到看不出边、不透明 15–35%、#BFEFF5、上漂 10–30 px/s、避开中央 40%；
+    n_far：远层 1–2 颗 8–16 px、10%、反向漂（视差）。暗角：中心 60% 半径内不动，四角 60–70%"""
+    im = img.convert("RGB")
+    w, h = im.size
+    if vig:
+        if (w, h) not in _GVIG:
+            yy = np.linspace(-1, 1, h)[:, None]
+            xx = np.linspace(-1, 1, w)[None, :]
+            r = np.sqrt(xx ** 2 + yy ** 2) / math.sqrt(2)
+            _GVIG[(w, h)] = (1.0 - 0.35 * np.clip((r - 0.6) / 0.4, 0, 1) ** 1.4)[..., None].astype(np.float32)
+        a = np.asarray(im).astype(np.float32) * _GVIG[(w, h)]
+        im = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
+    rng = random.Random(seed)
+    for k in range(n_big + n_far):
+        far = k >= n_big
+        d = rng.randint(8, 16) if far else rng.randint(40, 120)
+        alpha = 0.10 if far else rng.uniform(0.15, 0.35)
+        v = (-rng.uniform(6, 12) if far else rng.uniform(10, 30))   # px/s，正 = 上漂
+        # 避开中央 40%：x 落在左 30% 或右 30%
+        x0 = rng.uniform(0.02, 0.28) if rng.random() < 0.5 else rng.uniform(0.72, 0.98)
+        y0 = rng.uniform(0, 1)
+        x = x0 * w + 8 * math.sin(t * 0.6 + k)
+        y = ((y0 * (h + 300) - v * t) % (h + 300)) - 150
+        spr = _snow_sprite(d, max(2.0, d * 0.28))
+        a = spr.point(lambda p, al=alpha: int(p * al))
+        x0_, y0_ = int(x - spr.width / 2), int(y - spr.height / 2)
+        im.paste((191, 239, 245), (x0_, y0_, x0_ + spr.width, y0_ + spr.height), a)
+    return im
