@@ -1,0 +1,3 @@
+20887256	doctor_walk_render-docwalk1-c0.mp4
+17247476	doctor_walk_render-docwalk1-c0_x2.mp4
+792580	still_render-docwalk1-c0.png

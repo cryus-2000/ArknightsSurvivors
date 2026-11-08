@@ -1,0 +1,28 @@
+快检：本次最多 8 个 Godot 并行（全机上限 8，开始时全机已有 0 个）；日志 /work/repo/build/check/quick_1108_091041
+通过 数据 JSON 解析  game/data 全部可解析
+通过 冒烟 · angelina  t=90  · 28s  [28 秒]
+通过 冒烟 · exusiai  t=90  · 28s  [28 秒]
+通过 冒烟 · eyjafjalla  t=90  · 27s  [27 秒]
+通过 冒烟 · gladiia  t=90  · 29s  [29 秒]
+通过 冒烟 · hoshiguma  t=90  · 28s  [28 秒]
+通过 冒烟 · irene  t=90  · 26s  [26 秒]
+通过 冒烟 · kaltsit  t=90  · 27s  [27 秒]
+通过 冒烟 · lappland  t=90  · 27s  [27 秒]
+通过 冒烟 · logos  t=90  · 54s  [27 秒]
+通过 冒烟 · lumen  t=90  · 56s  [29 秒]
+通过 冒烟 · mizuki  t=90  · 54s  [26 秒]
+通过 冒烟 · saria  t=90  · 54s  [27 秒]
+通过 冒烟 · siege  t=90  · 54s  [26 秒]
+通过 冒烟 · skadi  t=90  · 56s  [28 秒]
+通过 冒烟 · skalter  t=90  · 57s  [29 秒]
+通过 冒烟 · specter_unchained  t=90  · 55s  [27 秒]
+通过 冒烟 · suzuran  t=90  · 77s  [23 秒]
+通过 冒烟 · texas  t=90  · 77s  [24 秒]
+通过 冒烟 · ulpianus  t=90  · 77s  [23 秒]
+通过 冒烟 · wisadel  t=90  · 78s  [23 秒]
+通过 自然流程 · 高手  t=150  · 72s  [16 秒]
+通过 自然流程 · 普通  t=150  · 71s  [15 秒]
+
+耗时前 10（秒，不含排队）：冒烟 · skalter 29；冒烟 · lumen 29；冒烟 · gladiia 29；冒烟 · skadi 28；冒烟 · angelina 28；冒烟 · exusiai 28；冒烟 · hoshiguma 28；冒烟 · eyjafjalla 27；冒烟 · lappland 27；冒烟 · logos 27
+
+快检通过：23 项，失败 0 项（已知红 0 项另计），耗时 78 秒（开始时全机 0 个 Godot，结束时 0 个）；Godot 结果缓存命中 0 / 22（不用缓存加 --nocache）
