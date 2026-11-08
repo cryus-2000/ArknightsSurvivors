@@ -617,6 +617,7 @@ func _read_cfg(c: ConfigFile) -> void:
 
 
 func apply() -> void:
+	apply_max_dpr()
 	view_changed.emit()
 	_bus("Master", master)
 	_bus("Music", music)
@@ -639,6 +640,23 @@ func apply() -> void:
 				DisplayServer.window_set_size(sz)
 				DisplayServer.window_set_position((scr - sz) / 2 + DisplayServer.screen_get_position())
 		Engine.max_fps = effective_max_fps()   # 无头 / 测试局不走到这里：批跑仍不限帧
+
+
+## 网页画布像素比上限（docs/319 §20 A，等用户挑，缺省关）：手机网页 web/mobile_max_dpr > 0 时画布最多按这个倍数出图
+## （iPhone 3 倍 → 2 倍，像素少 56%，GPU 填充 / 发热下降，浏览器把画布放大到满屏，界面字略软）。测试 --maxdpr=<倍数> 任何网页都生效。
+## 引擎补丁（tools/web/engine_patch.py §8）读 window.__syMaxDpr；改了派一次 resize 当场生效
+var _max_dpr := -1.0
+func apply_max_dpr() -> void:
+	if not OS.has_feature("web"):
+		return
+	var v: float = load("res://scripts/core/balance.gd").v("web/mobile_max_dpr", 0.0) if mobile_web() else 0.0
+	for a in dev_args():
+		if a.begins_with("--maxdpr="):
+			v = float(a.substr(9))
+	if is_equal_approx(v, _max_dpr):
+		return
+	_max_dpr = v
+	JavaScriptBridge.eval("window.__syMaxDpr=%s;window.dispatchEvent(new Event('resize'))" % str(v), true)
 
 
 const WEB_MASTER_TRIM := -7.0

@@ -265,8 +265,21 @@ def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False, dp
         root = psutil.Process(p.pid)
     except Exception:
         psutil = None
+    shots_done = set()
     while not done.is_set() and time.time() - t0 < timeout:
-        done.wait(2)
+        done.wait(0.5)
+        # 游戏打 PF CDPSHOT <名>（--cdpshot=<秒,…>，游戏随即停 3 秒）：用 DevTools 截整页（浏览器放大后的样子，docs/319 §20 A 对照）
+        if cdp is not None:
+            try:
+                for ln in open(log_p, encoding="utf-8").read().splitlines():
+                    if ln.startswith("PF CDPSHOT ") and ln not in shots_done:
+                        shots_done.add(ln)
+                        r = cdp.cmd("Page.captureScreenshot", {"format": "png"})
+                        import base64
+                        nm = ln.split()[2]
+                        open(os.path.join(os.path.dirname(log_p), "shot_%s_%s.png" % (tag, nm)), "wb").write(base64.b64decode(r["result"]["data"]))
+            except Exception as e:
+                print("[网页] 截图失败 %s" % e)
         if psutil is not None:
             try:
                 tot = 0
