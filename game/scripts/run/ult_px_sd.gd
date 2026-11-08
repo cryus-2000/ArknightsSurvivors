@@ -32,7 +32,8 @@ var _emit_frame := -1
 static func _pick_art() -> void:
 	if ART != "":
 		return
-	var half: bool = load("res://scripts/art.gd").fx_half_on() and ResourceLoader.exists(ART_HALF % "sd_d0")
+	var has_half: bool = ResourceLoader.exists(ART_HALF % "sd_d0")
+	var half: bool = has_half and (load("res://scripts/art.gd").fx_half_on() or not ResourceLoader.exists(ART_FULL % "sd_d0"))   # B站 Toy 包不带原图（tools/web_half.py sd_half_only）：电脑打开 Toy 也读半分辨率版
 	ART = ART_HALF if half else ART_FULL
 	TS = 0.5 if half else 1.0
 

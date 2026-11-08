@@ -73,7 +73,7 @@ def _rm(p):
             os.remove(q)
 
 
-def make(gamedir, lossy=True):
+def make(gamedir, lossy=True, sd_half_only=False):
     """lossy=False（Windows 桌面包）：只做第 1 步无损换 1 倍，不出 @h / 斯卡蒂半分辨率（那两样只给手机网页）"""
     ip = os.path.join(gamedir, "art", "index.json")
     idx = json.load(open(ip, encoding="utf-8"))
@@ -111,6 +111,11 @@ def make(gamedir, lossy=True):
             if f.endswith(".png"):
                 _write(_box_half(_rgba(os.path.join(sd, f))), os.path.join(out, f), os.path.join(sd, f + ".import"))
                 r["sd"] += 1
+        if sd_half_only:   # B站 Toy 包（50 MB 上限，11-09 用户定）：原图不进包，电脑打开 Toy 也读半分辨率版（run/ult_px_sd.gd 原图缺失时自动用它）
+            for f in os.listdir(sd):
+                if f.endswith(".png"):
+                    _rm(os.path.join(sd, f))
+            r["sd_drop"] = 1
     with open(ip, "w", encoding="utf-8", newline="\n") as fh:
         json.dump(idx, fh, ensure_ascii=False, separators=(",", ":"))
     return r
@@ -118,7 +123,7 @@ def make(gamedir, lossy=True):
 
 def report(r):
     return ("网页半分辨率贴图：整 2 倍放大的 %d 张换成 1 倍（解码后共 %.0f MB → %.0f MB）；有细节的特效 %d 张另出 @h 给手机（%.0f → %.0f MB）；"
-            "斯卡蒂终结技图集 %d 张出半分辨率（docs/319 §16）" % (r["exact"], r["exact_mb"], r["exact_mb"] / 4, r["half"], r["half_mb"], r["half_mb"] / 4, r["sd"]))
+            "斯卡蒂终结技图集 %d 张出半分辨率%s（docs/319 §16）" % (r["exact"], r["exact_mb"], r["exact_mb"] / 4, r["half"], r["half_mb"], r["half_mb"] / 4, r["sd"], "，原图不进包（Toy）" if r.get("sd_drop") else ""))
 
 
 if __name__ == "__main__":
