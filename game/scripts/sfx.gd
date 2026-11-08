@@ -293,7 +293,7 @@ func warm_begin(ops: Array = []) -> void:
 		_next["battle1"] = true   # 载入页预热后保留到第一首开播；不预解码后续整首分层曲
 		_freed.erase("battle1")
 	# 手机网页：干员专属音效（op_<id>_*）只预注册开局编队的，中途入队时 warm_op 补（docs/319 §15：17 名干员约 65 秒、常驻 12 MB）
-	var only_ops: bool = cfg != null and cfg.mobile_web() and cfg.mobile_knob("mobile_op_sfx_lazy", 1.0) and not ops.is_empty()
+	var only_ops: bool = cfg != null and cfg.mobile_knob("mobile_op_sfx_lazy", 1.0) and not ops.is_empty()   # 全部网页（桌面不注册样本，没有这一步）
 	for n in streams:
 		if only_ops and str(n).begins_with("op_") and not ops.has(_op_of(str(n))):
 			continue

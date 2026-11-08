@@ -615,7 +615,7 @@ static func demo_warm_names() -> Array:
 ## 不做法线的前缀（fx_ / proj_ / relic_ …）由 art.gd 过滤，这里不用管；漏掉的名字只是回到当场算（--loadprof 的 sync_names 能看到）
 ## 开局要读帧条的干员：缺省全部可招募干员；手机网页只读队长（10-26 iPhone 进局即崩，按内存止血；中途入队的由 squad.add → load_op_tex 补读）
 static func _op_tex_ids() -> Array:
-	if Cfg.mobile_web() and Cfg.mobile_knob("mobile_lazy_ops", 1.0):
+	if Cfg.mobile_knob("mobile_lazy_ops", 1.0):   # 11-09 全平台（不影响画面；电脑 Chrome 贴图 730 MB 的大头）：其余干员入队时补读，招募卡出现时先分帧预读（prefetch_ops）
 		return [Cfg.character_id]
 	return Character.list_ids()
 
@@ -789,7 +789,7 @@ func _enemy_evict(n: String) -> void:
 	tex_deferred[n] = true
 
 static func _lazy_fx_enabled() -> bool:
-	return (Cfg.mobile_web() and Cfg.mobile_knob("mobile_lazy_fx", 1.0)) or Cfg.dev_args().has("--lazyfx")
+	return Cfg.mobile_knob("mobile_lazy_fx", 1.0) or Cfg.dev_args().has("--lazyfx")   # 11-09 全平台（同 _op_tex_ids）
 
 ## 载入页和进局清理各自读取当时的编队。回标题改选队长后，上局的名单应立即失效。
 static func _deferred_start_fx(lazy: bool) -> Dictionary:
@@ -827,6 +827,35 @@ func _drop_outrun_tex() -> void:
 	var nd := A.drop_outrun(keep)
 	if not Cfg.dev_args().is_empty():
 		print("PF OUTRUN dropped=%d" % nd)
+
+
+## 招募卡出现时（choice_panel）：把候选干员的帧条 / 专属特效分帧读进贴图缓存（选卡时游戏暂停，每帧 OP_PF_BUDGET 微秒），
+## 选中入队时 load_op_fx / load_op_tex 直接命中缓存，不在入队那一帧同步读一串（桌面 / 电脑网页；手机网页不预读，省内存，入队时再读）
+const OP_PF_BUDGET := 4000
+var _op_pf: Array = []
+
+func prefetch_ops(ids: Array) -> void:
+	if Cfg.mobile_web():
+		return
+	for cid in ids:
+		var c := str(cid)
+		for n in tex_lazy_fx.get(c, []):
+			if not _op_pf.has(n):
+				_op_pf.append(n)
+		var csp: Dictionary = Character.load_def(c).get("sprites", {})
+		for kind in ["idle", "run", "attack", "skill", "hurt", "death", "move_attack"]:
+			if csp.has(kind):
+				var tn: String = csp[kind] if csp[kind] is String else str(csp[kind].get("tex", ""))
+				if tn != "" and not _op_pf.has(tn):
+					_op_pf.append(tn)
+
+
+func _op_pf_step() -> void:
+	if _op_pf.is_empty():
+		return
+	var t0 := Time.get_ticks_usec()
+	while not _op_pf.is_empty() and Time.get_ticks_usec() - t0 < OP_PF_BUDGET:
+		A.tex(str(_op_pf.pop_front()))
 
 
 ## 中途入队的干员：补读开局跳过的专属特效帧条；光学压阶（optical._fxq_step）名单已建好时把它们接到名单末尾，照常换压阶版
@@ -1652,6 +1681,7 @@ func _process(delta: float) -> void:
 			cam.zoom = Vector2(bz, bz)   # 低档也每帧对齐（中 / 高由光学 _lo_step 每帧算）：漏掉尺寸变化通知时不会停在旧镜头（10-27 用户「低中镜头还是不一样」）
 	_mem_guard(delta)
 	CrashBox.tick(self, delta)
+	_op_pf_step()   # 招募候选分帧预读（prefetch_ops）
 	perf_rep.tick(delta)   # 性能报告：帧时分桶 / 最低 1 秒帧率 / 内存与敌人峰值（只加计数）
 	_white_release(delta)
 	if EliteMoment.on(self):
@@ -2484,7 +2514,7 @@ func _exit_tree() -> void:
 var _restarting := false
 
 func _release_run() -> void:
-	if not (Cfg.mobile_web() and Cfg.mobile_knob("mobile_run_release", 1.0)) and not Cfg.dev_args().has("--runrelease"):
+	if not Cfg.mobile_knob("mobile_run_release", 1.0) and not Cfg.dev_args().has("--runrelease"):   # 11-08 用户口径：不影响画面的全平台生效（原来只手机网页）
 		return
 	var nt := 0
 	if _restarting:

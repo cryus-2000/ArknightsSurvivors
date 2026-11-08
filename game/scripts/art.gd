@@ -341,6 +341,21 @@ static var _half_e := -1
 static var half_n := 0      # 减半读了几条 / 对不上保留 @2x 几条（--memlog 打印）
 static var half_keep := 0
 
+## 手机网页读特效的半分辨率版（<名>@h，只在网页包里有；docs/319 §16）。--bal=web/mobile_fx_half=0 退回 @2x
+static var _half_fx := -1
+static func fx_half_on() -> bool:
+	if _half_fx < 0:
+		var ml = Engine.get_main_loop()
+		var cfg = ml.root.get_node_or_null("/root/Cfg") if ml is SceneTree else null
+		if cfg == null:
+			return false
+		var on: bool = OS.has_feature("web") and cfg.mobile_web() and cfg.mobile_knob("mobile_fx_half", 1.0)
+		if (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--fxhalf"):
+			on = true
+		_half_fx = 1 if on else 0
+	return _half_fx == 1
+
+
 static func half_enemy_on() -> bool:
 	if _half_e < 0:
 		var ml = Engine.get_main_loop()
@@ -406,6 +421,14 @@ static func tex(name: String, keep_cached := true) -> Texture2D:
 			if t != null:
 				src_path = q1
 	var halve := half_enemy_on() and name.begins_with("e_") and not normal_maps
+	if t == null and fx_half_on():
+		var qh := _packed_path(name + "@h")   # 网页包里有真 2 倍细节的特效另出的半分辨率版（tools/web_half.py，docs/319 §16）：手机网页读它
+		if qh != "":
+			t = load(qh)
+			if t != null:
+				src_path = qh
+				if pop:
+					t = _pop_tex(t)
 	if USE_HIRES and t == null:
 		var q2 := _packed_path(name + "@2x")
 		if q2 != "":
