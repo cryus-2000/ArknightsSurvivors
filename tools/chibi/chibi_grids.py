@@ -557,10 +557,13 @@ def eyes_only(op, rows, ey):
     重放两只同样 2 × 2 的眼（偏右的 3/4 朝向，两眼间隔 2 格）和腮红；眼位被头发挡住的格子挖成皮肤。"""
     for y in (ey, ey + 1):
         rows[y] = ["S" if ch in "EI" else ch for ch in rows[y]]
-    b = max(x for x, ch in enumerate(rows[ey]) if ch in "SB")
-    near, far = [b - 2, b - 1], [b - 6, b - 5]
+    # 11-08 用户：眼挤在右边、左边空一块很怪——两眼按脸的实际宽度居中（脸 = 眼那一行与下一行的皮肤格）
+    xs = [x for y in (ey, ey + 1) for x, ch in enumerate(rows[y]) if ch in "SB"]
+    c = (min(xs) + max(xs) + 1) // 2
+    far, near = [c - 3, c - 2], [c + 1, c + 2]
+    b = near[1] + 1
     for y in (ey, ey + 1):
-        for x in range(b - 6, b):
+        for x in range(c - 3, c + 3):
             rows[y][x] = "S"
     if op in NARROW:   # 细长眼：上一行画眉，眼只留一行瞳色
         for x in near + far:
@@ -571,7 +574,7 @@ def eyes_only(op, rows, ey):
             rows[ey][x] = "E"
             rows[ey + 1][x] = "I"
     if op not in NARROW and ey + 2 < len(rows):
-        for x in (b - 7, b):
+        for x in (c - 4, c + 3):
             if rows[ey + 2][x] == "S":
                 rows[ey + 2][x] = "B"
     if op in SCAR:
