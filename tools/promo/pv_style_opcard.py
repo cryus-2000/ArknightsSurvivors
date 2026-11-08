@@ -2,7 +2,7 @@
 
 出两张：
   opcard_name.png      名字卡：像素海底背景 + 像素干员 + 超大英文代号 + 中文名 / 职业 / 编号小字簇
-  opcard_sequence.jpg  一位干员的四拍：实机放技能 → 名字卡（故障出字）→ 技能特写 → 故障转场
+  opcard_sequence.jpg  一位干员出场：实机 → 镜头贴近、剪影亮起 → 拉开后代号故障出字 → 小字淡入定格
 
 用法：python tools/promo/pv_style_opcard.py <输出目录> [实机截图路径]
 字体同 pv_style_typecard（Noto Serif/Sans SC VF + 仓库 Montserrat，OFL）。英文代号用窄粗体
@@ -100,13 +100,23 @@ def letterbox(img):
     d.rectangle((0, H - LB, W, H), fill=(0, 0, 0, 255))
 
 
-def name_card(glitch=False):
+def name_card(glitch=False, text=True, lit=1.0):
+    """lit < 1：人物压成剪影（出场第一拍）；text=False：还没出字。"""
     img = background()
     # 像素干员：技能攻击帧，整数倍最近邻放大（全片统一一个倍数）
     raw = frame(ART + "/operators/mizuki/mizuki_runtime_skill_attack@2x.png", 3, 192)
     k = max(1, int((H - 2 * LB) * 0.88) // raw.height)          # 整数倍，人物约占画面高 88%（官方立绘几乎顶天立地）
     op = px(raw, k)
     ox, oy = 1300 - op.width // 2, H - LB - op.height - 16
+    # 人物对准光束：光束底边中心 = 人物脚下中心（1300），脚下一圈地面光
+    gl = Image.new("L", (W, H), 0)
+    ImageDraw.Draw(gl).ellipse((1300 - 300, H - LB - 70, 1300 + 300, H - LB + 10), fill=int(90 * max(lit, 0.3)))
+    img.paste((170, 235, 240, 255), (0, 0), gl.filter(ImageFilter.GaussianBlur(14)))
+    if lit < 1.0:
+        dark = Image.new("RGBA", op.size, (6, 14, 24, 255))
+        dark.putalpha(op.getchannel("A"))
+        op = Image.blend(dark, op, lit)
+        op.putalpha(dark.getchannel("A"))
     # 青色边光：剪影向左上偏 6 px 垫在后面
     rim = Image.new("RGBA", op.size, (94, 230, 230, 0))
     rim.putalpha(op.getchannel("A"))
@@ -120,6 +130,9 @@ def name_card(glitch=False):
     img.alpha_composite(fg.filter(ImageFilter.GaussianBlur(6)))
 
     d = ImageDraw.Draw(img)
+    if not text:
+        letterbox(img)
+        return tc._add_noise(img.convert("RGB"), Image.effect_noise((W, H), 30).point(lambda v: 128 + (v - 128) * 0.2))
     checker(d, 120, 236)
     checker(d, 160, 270, 8)
     tc.tracked(d, (124, 330), "‹  集成战略 · 水月与深蓝之树  ›", tc.sans(22, 500), tc.INK, 0.08)
@@ -153,44 +166,6 @@ def name_card(glitch=False):
     return img
 
 
-def skill_closeup():
-    """技能特写：像素放大只露上半身 + 像素风集中线（向主体收拢、中间留空）+ 方块碎片。
-
-    集中线在 1/4 分辨率画、最近邻放大，线是一格一格的阶梯，和像素人物同一个画风；
-    线只长在画面外圈，主体周围一圈（椭圆）是空的；颜色以深海蓝为主，少数几条青色。
-    """
-    import math
-    Q = 4                                   # 1 个「线像素」= 4 屏幕像素
-    w, h = W // Q, H // Q
-    cx, cy = w * 0.56, h * 0.47             # 收拢点：放在人物脸 / 出手处
-    low = Image.new("RGBA", (w, h), (8, 18, 30, 255))
-    d = ImageDraw.Draw(low)
-    rnd = random.Random(9)
-    for i in range(70):
-        a = rnd.uniform(0, math.tau)
-        r_out = math.hypot(w, h)            # 从画外开始
-        r_in = rnd.uniform(0.36, 0.62) * h  # 到离中心一段距离就停，中间留空
-        wid = rnd.uniform(0.010, 0.035)     # 楔形宽度（弧度），外粗内尖
-        p0 = (cx + math.cos(a - wid) * r_out, cy + math.sin(a - wid) * r_out)
-        p1 = (cx + math.cos(a + wid) * r_out, cy + math.sin(a + wid) * r_out)
-        p2 = (cx + math.cos(a) * r_in, cy + math.sin(a) * r_in)
-        col = (94, 230, 230, 200) if rnd.random() < 0.18 else (28, 58, 78, 255)
-        d.polygon([p0, p1, p2], fill=col)
-    # 方块碎片：顺着出手方向（向右上）飞散，近大远小
-    for _ in range(26):
-        x = cx + rnd.uniform(10, w * 0.45)
-        y = cy - rnd.uniform(-h * 0.15, h * 0.35)
-        sz = rnd.choice((1, 1, 2, 3))
-        d.rectangle((x, y, x + sz, y + sz), fill=(200, 240, 245, rnd.randint(120, 230)))
-    img = low.resize((W, H), Image.NEAREST)
-    op = px(frame(ART + "/operators/mizuki/mizuki_runtime_skill_attack@2x.png", 5, 192), 12)
-    img.alpha_composite(op, (int(cx * Q) - op.width // 2, 120))
-    d = ImageDraw.Draw(img)
-    tc.tracked(d, (W - 140, H - LB - 70), "水月", tc.serif(40, 700), tc.INK, 0.2, "r")
-    letterbox(img)
-    return img.convert("RGB")
-
-
 def glitch_frame(base):
     """故障转场一帧：横带错位 + RGB 分离 + 扫描线。"""
     im = base.copy()
@@ -214,15 +189,19 @@ def sequence(card, glitch_card, gameplay_path):
         gp = Image.open(gameplay_path).convert("RGB")
     else:
         gp = Image.new("RGB", (W, H), (20, 30, 40))
+    # ② 贴近：从拉开后的画面里裁人物附近（相当于镜头推近 1.6 倍），人物还是剪影
+    sil = name_card(text=False, lit=0.25)
+    cw, ch = int(W / 1.6), int(H / 1.6)
+    close = sil.crop((1300 - cw // 2, H - ch - 40, 1300 + cw // 2, H - 40)).resize((W, H), Image.NEAREST)
     panels = [
-        (gp.resize(half, Image.LANCZOS), "① 实机：这名干员放技能", "0.5 小节（0.8 s），叠海雪 + 暗角"),
-        (glitch_card.resize(half, Image.LANCZOS), "② 名字卡：代号故障式出字", "进场 4–6 帧故障，定格 1 小节"),
-        (skill_closeup().resize(half, Image.LANCZOS), "③ 技能特写：像素放大 + 像素集中线", "0.5 小节，对重拍；中间留空"),
-        (glitch_frame(card).resize(half, Image.LANCZOS), "④ 故障转场 → 下一位", "2–3 帧"),
+        (gp.resize(half, Image.LANCZOS), "① 实机：这名干员放技能", "0.5 小节，叠海雪 + 暗角"),
+        (close.resize(half, Image.LANCZOS), "② 镜头贴近，人物剪影在光里亮起", "无字；0.8 s 内拉开"),
+        (glitch_card.resize(half, Image.LANCZOS), "③ 拉开到位后代号故障出字", "第 30 帧起，4–6 帧故障"),
+        (card.resize(half, Image.LANCZOS), "④ 小字淡入，定格", "到 1 小节末，故障转场 → 下一位"),
     ]
     out = Image.new("RGB", (1920, 1240), (14, 18, 24))
     d = ImageDraw.Draw(out)
-    tc.tracked(d, (40, 22), "干员出场四拍（一位约 2 小节 ≈ 3.3 s；参照 2026 感谢庆典 PV 89.5–95.5 s）", tc.sans(28, 600), tc.INK, 0.02)
+    tc.tracked(d, (40, 22), "干员出场（实机 0.5 小节 + 名字卡 1 小节；先镜头运动、人物亮起，再出字）", tc.sans(28, 600), tc.INK, 0.02)
     for i, (im, t1, t2) in enumerate(panels):
         x, y = (i % 2) * 960, 80 + (i // 2) * 580
         out.paste(im, (x, y))
