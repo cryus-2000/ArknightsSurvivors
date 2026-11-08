@@ -363,6 +363,8 @@ func update(dt: float) -> void:
 		for k in _pre_group:
 			if D.ENEMIES.has(k):
 				g.prefetch_enemy(str(D.ENEMIES[k].tex))
+				if not Cfg.dev_args().has("--nobossprewarm"):
+					g.boss_intro.prewarm(str(k))   # 登场名片音效 / 头像（docs/319 §20）
 	# Boss 按时间登场
 	if boss_idx < D.BOSS_TIMES.size() and g.t >= D.BOSS_TIMES[boss_idx]:
 		boss_idx += 1

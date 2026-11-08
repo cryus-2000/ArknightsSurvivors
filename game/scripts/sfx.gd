@@ -316,6 +316,15 @@ func _op_of(sn: String) -> String:
 	return best
 
 
+## 按音名预注册一条网页样本（Boss 登场名片音效等，boss_intro.prewarm）；没有这个音名 / 已注册就不做事
+func warm_name(n: String) -> void:
+	if not OS.has_feature("web"):
+		return
+	var st = streams.get(n, null)
+	if st is AudioStream and not AudioServer.is_stream_registered_as_sample(st):
+		AudioServer.register_stream_as_sample(st)
+
+
 ## 中途入队（choice_panel.load_op_tex）：补注册这名干员的专属音效（开局只注册了编队的，见 warm_begin）
 func warm_op(cid: String) -> void:
 	if not OS.has_feature("web") or not OP_SFX.has(cid):
