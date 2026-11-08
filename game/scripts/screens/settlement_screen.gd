@@ -429,7 +429,8 @@ func _draw_share(ci: CanvasItem) -> void:
 		var c0 := pos + sz * 0.5
 		ci.draw_set_transform_matrix(Transform2D(0.0, Vector2.ONE * scale, 0.0, origin) * Transform2D(rot, c0))
 		ci.draw_rect(Rect2(-sz * 0.5 + Vector2(8, 12), sz).grow(7), Color(0, 0, 0, 0.45 * ca))
-		ci.draw_rect(Rect2(-sz * 0.5, sz).grow(7), Color(HH.LIGHT, ca))
+		if not ShareCard.FRAMES.has(str(share_data.get("frame", ""))):   # 拍立得相框自带相纸边，不再套白边
+			ci.draw_rect(Rect2(-sz * 0.5, sz).grow(7), Color(HH.LIGHT, ca))
 		share.draw(ci, share_toy.fill(share_data), origin + pos * scale, k * scale, rot)
 		if dev > 0.0 or ca < 1.0:
 			ci.draw_set_transform_matrix(share._xf)
