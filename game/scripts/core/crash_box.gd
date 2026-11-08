@@ -234,6 +234,22 @@ return S.getItem('sy_bb_prev')||''})()""", true)
 	return prev
 
 
+## 局间整页重载没完成（core/run_reload.gd 兜底）：把刚结束这一局的记录挂上原因，当作「上次」那份写下，标题页照常提示、能复制
+static func note_reload_fail(why: String) -> void:
+	var d: Dictionary = cur.duplicate(true) if not cur.is_empty() else {"start": Time.get_datetime_string_from_system(false, true), "s": [], "ev": []}
+	d["rlfail"] = why
+	d.erase("seen")
+	prev = d
+	_checked = true
+	var j := JSON.stringify(d)
+	if _web():
+		JavaScriptBridge.eval("try{localStorage.setItem('%s',%s)}catch(e){}" % [PREV, JSON.stringify(j)], true)
+	else:
+		var f := FileAccess.open(PREV_FILE, FileAccess.WRITE)
+		if f != null:
+			f.store_string(j)
+
+
 ## 「上次」那份看过、点了「关闭」：标题页不再提示（性能报告页仍带着，直到下一次异常退出覆盖）
 static func ack() -> void:
 	if prev.is_empty():
@@ -254,6 +270,8 @@ static func _mmss(s: float) -> String:
 
 ## 标题页一行提示
 static func short_line(p: Dictionary) -> String:
+	if p.has("rlfail"):
+		return "上次局间重载没完成，已改走普通回标题（%s）· 点此查看 / 复制" % str(p.rlfail)
 	var a: Array = p.get("s", [])
 	if a.is_empty():
 		return "上次对局异常退出（开局前就停了）· 点此查看"
@@ -269,6 +287,8 @@ static func report_text(p: Dictionary) -> String:
 	if p.is_empty():
 		return ""
 	var o := PackedStringArray()
+	if p.has("rlfail"):
+		o.append("【局间重载失败】%s（docs/319 §17：盖上底色后页面没有被替换，已撤掉底色改走普通回标题）" % str(p.rlfail))
 	o.append("【上次异常退出前的内存曲线】%s 开局  版本 %s（%s）  %s  编队 %s  画质 %s  配乐 %s%s" % [str(p.get("start", "")), str(p.get("ver", "")), str(p.get("commit", "")),
 		str(p.get("dev", "")), str(p.get("squad", "")), str(p.get("q", "")), str(p.get("mus", "?")),
 		("（%d Hz，已下 %.1f MB）" % [int(p.get("sr", 0)), float(p.get("mdl", 0))]) if int(p.get("sr", 0)) > 0 else ""])
