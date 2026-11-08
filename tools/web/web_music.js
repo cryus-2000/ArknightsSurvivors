@@ -4,7 +4,7 @@
 // fetch + decodeAudioData 是异步的：第一次播某首要等它解完，晚到的时间从曲中补上（与引擎「迟到的毫秒从曲中补」同口径），不卡主线程。
 (function () {
   var M = {}, bufs = {}, loading = {}, srcs = {}, gains = {};
-  var bus = null, lp = null, busGain = 1, cut = 20000, fails = 0;
+  var bus = null, lp = null, pre = null, busGain = 1, cut = 20000, fails = 0;
   window.__syMus = M;
   function ctx() {
     var l = window.__syAudioCtx || [];
@@ -16,6 +16,7 @@
       lp = c.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = cut; lp.Q.value = 0.707;
       bus = c.createGain(); bus.gain.value = busGain;
       bus.connect(lp); lp.connect(c.destination);
+      pre = c.createAnalyser(); pre.fftSize = 2048;   // 自测：总线音量之前的电平（测试局静音时也能确认在出声）
     }
     return bus;
   }
@@ -66,7 +67,7 @@
         var off = it[2] + late;
         if (off >= le) off = ls + ((off - ls) % (le - ls));
         g.gain.value = gains[it[0]];
-        src.connect(g); g.connect(out(c));
+        src.connect(g); g.connect(out(c)); g.connect(pre);
         src.start(when, Math.max(0, off));
         srcs[it[0]] = { src: src, g: g, url: it[1], tok: tok };
       });
@@ -101,8 +102,15 @@
     for (var u in bufs) { var x = bufs[u]; b += x.length * x.numberOfChannels * 4; }
     return b / 1048576;
   };
+  M.level = function () {   // 均方根电平（0–1）
+    if (!pre) return 0;
+    var d = new Float32Array(pre.fftSize), e = 0;
+    pre.getFloatTimeDomainData(d);
+    for (var i = 0; i < d.length; i++) e += d[i] * d[i];
+    return Math.sqrt(e / d.length);
+  };
   M.state = function () {   // 自测 / 日志
     var on = 0; for (var k in srcs) { if (srcs[k].src) on++; }
-    return JSON.stringify({ bufs: Object.keys(bufs).length, loading: Object.keys(loading).length, on: on, fails: fails, mb: Math.round(M.mb()) });
+    return JSON.stringify({ bufs: Object.keys(bufs).length, loading: Object.keys(loading).length, on: on, fails: fails, mb: Math.round(M.mb()), lv: Math.round(M.level() * 10000) / 10000 });
   };
 })();
