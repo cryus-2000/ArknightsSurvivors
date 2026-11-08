@@ -167,27 +167,49 @@ func _polaroid(ci: CanvasItem, d: Dictionary, fr: String) -> void:
 		_ri_deco(ci, d, os, band, photo)
 	else:
 		_deep_deco(ci, d, os, band, photo)
-	_peeker(ci, d, band, photo)
+	_peeker(ci, d, band, photo, ink)
 
 
 ## 干员 Q 版像素小人（没有就 null，退回游戏内小人）
 static var _chibi_cache := {}
 
-static func chibi(key: String) -> Texture2D:
-	if _chibi_cache.has(key):
-		return _chibi_cache[key]
+## Q 版小人贴图：按 k 倍最近邻放大成实像素（不靠画布过滤），外加一格 ink 色轮廓（压在卡面上也分得开）
+static func chibi(key: String, k := 12, ink := Color.BLACK) -> Texture2D:
+	var ck := "%s/%d/%s" % [key, k, ink.to_html()]
+	if _chibi_cache.has(ck):
+		return _chibi_cache[ck]
 	var path := "res://art/operators/%s/op_%s_chibi.png" % [key, key]
 	var tex: Texture2D = null
 	if key != "" and ResourceLoader.exists(path):
-		var src := load(path) as Texture2D   # 导入的压缩贴图在兼容渲染下直接画会成白块：取出图像转成 ImageTexture（同干员贴图的加载口径）
+		var src := load(path) as Texture2D   # 导入的压缩贴图在兼容渲染下直接画会成白块：取出图像自己做 ImageTexture
 		if src != null:
-			tex = ImageTexture.create_from_image(src.get_image())
-	_chibi_cache[key] = tex
+			var im: Image = src.get_image()
+			im.decompress()
+			im.convert(Image.FORMAT_RGBA8)
+			var w := im.get_width()
+			var h := im.get_height()
+			var ol := Image.create(w + 2, h + 2, false, Image.FORMAT_RGBA8)
+			for y in h + 2:
+				for x in w + 2:
+					var sx := x - 1
+					var sy := y - 1
+					if sx >= 0 and sy >= 0 and sx < w and sy < h and im.get_pixel(sx, sy).a > 0.5:
+						ol.set_pixel(x, y, im.get_pixel(sx, sy))
+						continue
+					for o in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+						var nx: int = sx + o.x
+						var ny: int = sy + o.y
+						if nx >= 0 and ny >= 0 and nx < w and ny < h and im.get_pixel(nx, ny).a > 0.5:
+							ol.set_pixel(x, y, ink)
+							break
+			ol.resize((w + 2) * k, (h + 2) * k, Image.INTERPOLATE_NEAREST)
+			tex = ImageTexture.create_from_image(ol)
+	_chibi_cache[ck] = tex
 	return tex
 
 
 ## 左下角探头的队友（小队代入感，docs 设计支柱）：编队里第一名非队长，没有就用队长；站在相框外、压住左下角
-func _peeker(ci: CanvasItem, d: Dictionary, band: Rect2, photo: Rect2) -> void:
+func _peeker(ci: CanvasItem, d: Dictionary, band: Rect2, photo: Rect2, ink := Color.BLACK) -> void:
 	var pick: Dictionary = {}
 	for o in d.ops:
 		if not o.leader:
@@ -199,13 +221,12 @@ func _peeker(ci: CanvasItem, d: Dictionary, band: Rect2, photo: Rect2) -> void:
 		return
 	# 站在下边正中（底部白条中间是空的，左边昵称、右边二维码都不挡）
 	var os := outer_size("ri")
-	var tex := chibi(str(pick.get("key", "")))
-	if tex != null:   # Q 版像素小人（11-08 用户：照参考图的小人画法，每名干员一张；art/operators/<id>/op_<id>_chibi.png，1 格 = 1 纹素）
-		var k := floorf(232.0 / tex.get_height())
-		var sz := Vector2(tex.get_width(), tex.get_height()) * k
-		var r := Rect2(Vector2(photo.get_center().x - sz.x * 0.5, os.y - 8.0 - sz.y), sz)
-		ci.draw_texture_rect(tex, Rect2(r.position + Vector2(k, k), sz), false, Color(0, 0, 0, 0.35))   # 投影
-		ci.draw_texture_rect(tex, r, false)
+	# Q 版半身像素小人（11-08 用户：照参考图小人的格子标准，约 16 × 18 格、一格 12；art/operators/<id>/op_<id>_chibi.png，1 格 = 1 像素）
+	var tex := chibi(str(pick.get("key", "")), 12, ink)
+	if tex != null:
+		var sz := Vector2(tex.get_width(), tex.get_height())
+		# 从相框下边往上探头：身子在下方背景里，头落在底部白条正中的空处（不压编队行 / 藏品 / 昵称 / 二维码）
+		ci.draw_texture_rect(tex, Rect2(Vector2(photo.get_center().x - sz.x * 0.5, os.y - 6.0 - sz.y), sz), false)
 		return
 	if not (pick.get("art") is Dictionary):
 		return
