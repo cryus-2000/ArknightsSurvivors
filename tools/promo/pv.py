@@ -169,11 +169,11 @@ def render_shot(sh, T, ow, oh, vert):
         im = Image.fromarray((np.asarray(im).astype(np.float32) * 0.55).astype(np.uint8))
         a = min(1.0, lt / 0.3)
         base = im.convert("RGBA")
-        lay = Image.new("RGBA", base.size, (0, 0, 0, 0)); lay.paste(lg, ((ow - lg.width) // 2, 250), lg)
+        lay = Image.new("RGBA", base.size, (0, 0, 0, 0)); lay.paste(lg, ((ow - lg.width) // 2, 400), lg)
         if a < 1:
             lay.putalpha(lay.getchannel("A").point(lambda v: int(v * a)))
         base.alpha_composite(lay)
-        return pv_type.end_card(base.convert("RGB"), lt - 0.4, cx=ow // 2, cy=470)
+        return pv_type.end_card(base.convert("RGB"), lt - 0.4, title="", cx=ow // 2, cy=440)   # 像素 logo 已有中文名，不再重复大标题
     if k == "word":
         return cards.card_word(lt, sh["text"], sh.get("sub", ""), dur, tuple(sh.get("col", CYAN)), ow, oh, sh.get("step")).convert("RGB")
     if k == "card":
