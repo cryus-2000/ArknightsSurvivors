@@ -452,7 +452,7 @@ func _draw_share(ci: CanvasItem) -> void:
 		share.draw(ci, share_toy.fill(share_data), origin + pos * scale, k * scale, rot)
 		if dev > 0.0 or ca < 1.0:
 			ci.draw_set_transform_matrix(share._xf)
-			ci.draw_rect(Rect2(0, 0, ShareCard.W, ShareCard.H), Color(1, 1, 1, 0.92 * dev) if ca >= 1.0 else Color(0.02, 0.03, 0.05, 1.0 - ca))
+			ci.draw_rect(Rect2(Vector2.ZERO, ShareCard.outer_size(str(share_data.get("frame", "")))), Color(1, 1, 1, 0.92 * dev) if ca >= 1.0 else Color(0.02, 0.03, 0.05, 1.0 - ca))
 	ci.draw_set_transform(origin, 0, Vector2.ONE * scale)
 	_fa = 1.0 if rm else clampf((t - 0.55) / 0.25, 0.0, 1.0)
 	if _fa > 0.0:

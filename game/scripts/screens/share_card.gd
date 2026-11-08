@@ -62,12 +62,13 @@ func data(screen) -> Dictionary:
 
 
 ## pos = 卡左上角、k = 缩放；rot = 绕卡中心旋转（结算浮层的拍照出场用，导出图不转）
-func draw(ci: CanvasItem, d: Dictionary, pos: Vector2, k: float, rot := 0.0) -> void:
-	_xf = Transform2D(rot, Vector2(k, k), 0.0, pos + Vector2(W, H) * k * 0.5) * Transform2D(0.0, -Vector2(W, H) * 0.5)
-	ci.draw_set_transform_matrix(_xf)
-	var x: Transform2D = TUI.ctx(ci).xf * _xf
-	_pc = {"xf": x, "inv": x.affine_inverse(), "k": maxf(0.01, x.get_scale().x)}
+## 带相框时整张图是 outer_size：fit = 缩进原来 W × H 的位置（结算浮层）；导出图 fit = false、按 outer_size 1:1 画
+func draw(ci: CanvasItem, d: Dictionary, pos: Vector2, k: float, rot := 0.0, fit := true) -> void:
 	var fr := str(d.get("frame", ""))
+	var os := outer_size(fr)
+	var kk := k * (minf(W / os.x, H / os.y) if fit else 1.0)
+	var c := pos + (Vector2(W, H) if fit else os) * k * 0.5
+	_set_xf(ci, Transform2D(rot, Vector2(kk, kk), 0.0, c) * Transform2D(0.0, -os * 0.5))
 	if FRAMES.has(fr):
 		_polaroid(ci, d, fr)
 	else:
@@ -81,22 +82,27 @@ func _acc(d: Dictionary) -> Color:
 	return SB.lead_theme(ld.get("col", HH.CYB) if not ld.is_empty() else HH.CYB, bool(d.won))
 
 
-# ---------------------------------------------------------------- 拍立得相框（11-08 用户：关注、三连各送一种专属边框；关注 = 罗德岛，三连 = 深海）
-## 卡面 = 相纸：四周边 PM、作战报告缩进去当照片，下巴（约 140 高）放昵称 / 日期 / 二维码。
+# ---------------------------------------------------------------- 像素相框（11-08 用户：关注、三连各送一种专属边框；关注 = 罗德岛，三连 = 深海）
+## 11-08 用户：报告卡面原样不动（1:1，含底部白条），只在卡外加一圈像素风相框：大像素格（PX）的粗描边相框带，
+## 上边框嵌标题字，徽记 / 气泡 / 结晶 / 水母这类装饰探出框外，左下角一名队友探头（有队友用队友，没有用队长）。
+## 导出图随之变大（outer_size）；结算浮层里整张缩进原来 W × H 的位置。
 const FRAMES := {
 	"ri": {"name": "罗德岛", "item": "follow"},
 	"deep": {"name": "深海", "item": "triple"},
 }
-const PM := 24.0          # 相纸边
-const PHOTO_H := 690.0    # 作战报告（不含底部白条）的高
+const PX := 8.0                                   # 相框像素格
+const PD := 12.0                                  # 探出框外的装饰（徽记 / 气泡 / 结晶 / 水母…）的像素格，比相框粗一档
+const MARGIN := [72.0, 104.0, 72.0, 140.0]        # 卡面到整张图边缘：左 上 右 下
+const BAND := [3.0, 6.0, 3.0, 4.0]                # 相框带厚（格）：左 上 右 下
 const RI_INK := Color("17181b")
-const RI_SUB := Color("6b6c70")
 const RI_YEL := Color("f2c230")
+const RI_PAPER := Color("f7f7f4")
+const SEA_INK := Color("0b2533")
 const SEA := Color("7ff0ee")
 const SEA_HI := Color("e9ffff")
 
 
-## 本局用哪种相框：--shareframe=<id> 截图用；否则取已解锁的（toy_support.frames），都没有 = 旧卡面（""）
+## 本局用哪种相框：--shareframe=<id> / --supframe 截图用；否则取最后解锁的（toy_support.frames），都没有 = 普通卡面（""）
 static func frame_pick() -> String:
 	for a in Cfg.dev_args():
 		if a.begins_with("--shareframe="):
@@ -105,6 +111,13 @@ static func frame_pick() -> String:
 		return "deep"
 	var fs: Array = preload("res://scripts/core/toy_support.gd").frames()
 	return str(fs[-1]) if not fs.is_empty() else ""
+
+
+## 整张图（含相框）的大小：普通卡面 = W × H
+static func outer_size(fr: String) -> Vector2:
+	if not FRAMES.has(fr):
+		return Vector2(W, H)
+	return Vector2(W + MARGIN[0] + MARGIN[2], H + MARGIN[1] + MARGIN[3])
 
 
 func _set_xf(ci: CanvasItem, xf: Transform2D) -> void:
@@ -118,212 +131,152 @@ func _quad(ci: CanvasItem, pts: Array, cols: Array) -> void:
 	ci.draw_polygon(PackedVector2Array(pts), PackedColorArray(cols))
 
 
+## 按字符图画像素块：rows 每行一个字符串，pal 字符 → 颜色（'.' 不画），o = 左上角，p = 格大小
+func _pix(ci: CanvasItem, o: Vector2, rows: Array, pal: Dictionary, p := PX) -> void:
+	for y in rows.size():
+		var row: String = rows[y]
+		for x in row.length():
+			var ch := row[x]
+			if pal.has(ch):
+				ci.draw_rect(Rect2(o + Vector2(x, y) * p, Vector2(p, p)), pal[ch])
+
+
+## 相框：outer 坐标系（0,0 = 整张图左上）。顺序：背景 → 卡面 1:1 → 相框带 → 探出框外的装饰 → 探头的队友
 func _polaroid(ci: CanvasItem, d: Dictionary, fr: String) -> void:
-	# 罗德岛：左边让出一条黑色档案脊（RI_SPINE），照片缩窄、下巴更高
-	var x0: float = RI_SPINE + 18.0 if fr == "ri" else PM
-	var pw: float = W - x0 - PM
-	var s: float = pw / W
-	var photo := Rect2(x0, PM, pw, PHOTO_H * s)
-	var chin := Rect2(0, photo.end.y, W, H - photo.end.y)
-	var card := _xf
+	var os := outer_size(fr)
+	var photo := Rect2(MARGIN[0], MARGIN[1], W, H)
+	var band := Rect2(photo.position - Vector2(BAND[0], BAND[1]) * PX, photo.size + Vector2(BAND[0] + BAND[2], BAND[1] + BAND[3]) * PX)
+	var outer := _xf
 	if fr == "ri":
-		_ri_back(ci, photo)
+		_ri_bg(ci, os)
 	else:
-		_deep_back(ci, photo, Rect2(0, 0, W, H))
-	_set_xf(ci, card * Transform2D(0.0, Vector2(s, s), 0.0, photo.position))
+		_deep_bg(ci, os)
+	_set_xf(ci, outer * Transform2D(0.0, photo.position))
 	_report(ci, d)
-	_set_xf(ci, card)
+	_footer(ci, d, _acc(d))
+	_set_xf(ci, outer)
+	var ink: Color = RI_INK if fr == "ri" else SEA_INK
+	var fill: Color = RI_PAPER if fr == "ri" else Color("d6f4f2")
+	# 相框带：填色 + 外缘一格粗描边 + 内缘细线（卡面一圈）
+	for r in [Rect2(band.position, Vector2(band.size.x, BAND[1] * PX)), Rect2(Vector2(band.position.x, photo.end.y), Vector2(band.size.x, BAND[3] * PX)),
+			Rect2(Vector2(band.position.x, photo.position.y), Vector2(BAND[0] * PX, H)), Rect2(Vector2(photo.end.x, photo.position.y), Vector2(BAND[2] * PX, H))]:
+		ci.draw_rect(r, fill)
+	ci.draw_rect(band.grow(-PX * 0.5), ink, false, PX)
+	ci.draw_rect(photo.grow(1.0), ink, false, 2.0)
 	if fr == "ri":
-		_ri_front(ci, d, photo, chin)
+		_ri_deco(ci, d, os, band, photo)
 	else:
-		_deep_back(ci, photo, chin)
-		_deep_front(ci, d, photo, chin)
+		_deep_deco(ci, d, os, band, photo)
+	_peeker(ci, d, band, photo)
 
 
-# ---- 罗德岛：白相纸 + 左侧黑色档案脊（竖排 RHODES ISLAND、徽记、黄条）+ 照片黑色硬投影 + 右上角警示胶带 + 下巴大号黑字抬头
-const RI_SPINE := 56.0
-const RI_PAPER := Color("f1f1ee")
-
-func _ri_back(ci: CanvasItem, photo: Rect2) -> void:
-	ci.draw_rect(Rect2(0, 0, W, H), RI_PAPER)
-	ci.draw_rect(Rect2(photo.position + Vector2(7, 7), photo.size), RI_INK)   # 黑色硬投影
-
-
-func _ri_front(ci: CanvasItem, d: Dictionary, photo: Rect2, chin: Rect2) -> void:
-	# 下巴重铺（作战报告的底色会伸进来），补回投影
-	ci.draw_rect(Rect2(RI_SPINE, chin.position.y, W - RI_SPINE, chin.size.y), RI_PAPER)
-	ci.draw_rect(Rect2(photo.position.x + 7, photo.end.y, photo.size.x, 7), RI_INK)
-	ci.draw_rect(photo, RI_INK, false, 1.5)
-	# 档案脊
-	ci.draw_rect(Rect2(0, 0, RI_SPINE, H), RI_INK)
-	ci.draw_rect(Rect2(RI_SPINE - 7, 0, 7, H), RI_YEL)
-	var em := Vector2((RI_SPINE - 7) * 0.5, 40)
-	for q in [[17.0, Color("f1f1ee")], [11.0, RI_INK], [6.0, RI_YEL]]:
-		var qr: float = q[0]
-		ci.draw_colored_polygon(PackedVector2Array([em + Vector2(0, -qr), em + Vector2(qr, 0), em + Vector2(0, qr), em + Vector2(-qr, 0)]), q[1])
-	var card := _xf
-	ci.draw_set_transform_matrix(card * Transform2D(-PI * 0.5, Vector2(em.x + 9, H - 40)))
-	ci.draw_string(font, Vector2.ZERO, "R H O D E S    I S L A N D", HORIZONTAL_ALIGNMENT_LEFT, -1, 24, Color("f1f1ee"))
-	ci.draw_string(font, Vector2(430, 0), "OPERATOR FILE", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(1, 1, 1, 0.45))
-	ci.draw_set_transform_matrix(card)
-	# 右上角：斜贴的警示胶带（压住照片角）
-	ci.draw_set_transform_matrix(card * Transform2D(0.62, Vector2(W - 46, 30)))
-	_hazard(ci, Rect2(-86, -13, 172, 26), RI_YEL, RI_INK)
-	ci.draw_set_transform_matrix(card)
-	# 下巴：大号黑字抬头 + 细线 + 干员名 / 日期，右侧二维码或游戏名
-	var lx := photo.position.x
-	_px(ci, Vector2(lx, chin.position.y + 40), "RHODES ISLAND", 4.0, RI_INK, 0, 1)
-	ci.draw_rect(Rect2(lx, chin.position.y + 62, W - PM - lx, 2), RI_INK)
-	var tx := lx
-	var cy := chin.position.y + 74
-	if d.avatar is Texture2D:
-		_avatar(ci, d, Vector2(tx + 20, cy + 22), 20.0, RI_INK)
-		tx += 50.0
-	_px(ci, Vector2(tx, cy + 8), "DOCTOR", 1.5, RI_SUB, 0, 2)
-	_t(ci, Vector2(tx, cy + 16), d.name, 24, RI_INK, "l", 220)
-	_t(ci, Vector2(tx, cy + 50), "%s  ·  %s" % [str(d.get("date", "")), d.result], 13, RI_SUB)
-	if d.qr is Texture2D:
-		_qr(ci, d, Rect2(W - PM - 86, cy + 2, 76, 76), RI_PAPER)
-	else:
-		_t(ci, Vector2(W - PM - 46, cy + 12), GAME, 20, RI_INK, "r")
-		_t(ci, Vector2(W - PM - 46, cy + 40), "明日方舟同人作品", 12, RI_SUB, "r")
-	# 右下角：黑三角 + 黄斜条
-	var c := Vector2(W, H)
-	ci.draw_colored_polygon(PackedVector2Array([c, c - Vector2(48, 0), c - Vector2(0, 48)]), RI_INK)
-	ci.draw_colored_polygon(PackedVector2Array([c - Vector2(58, 0), c - Vector2(52, 0), c - Vector2(0, 52), c - Vector2(0, 58)]), RI_YEL)
+## 左下角探头的队友（小队代入感，docs 设计支柱）：编队里第一名非队长，没有就用队长；站在相框外、压住左下角
+func _peeker(ci: CanvasItem, d: Dictionary, band: Rect2, photo: Rect2) -> void:
+	var pick: Dictionary = {}
+	for o in d.ops:
+		if not o.leader:
+			pick = o
+			break
+	if pick.is_empty():
+		pick = _leader(d)
+	if pick.is_empty() or not (pick.get("art") is Dictionary):
+		return
+	# 站在下边正中（底部白条中间是空的，左边昵称、右边二维码都不挡）
+	var os := outer_size("ri")
+	var box := Rect2(photo.get_center().x - 90, os.y - 250, 180, 244)
+	ci.draw_set_transform_matrix(_xf * Transform2D(0.0, Vector2(2, 3)))
+	OpFig.draw(ci, pick.art, box, 0, Color(0, 0, 0, 0.35))   # 投影
+	ci.draw_set_transform_matrix(_xf)
+	OpFig.draw(ci, pick.art, box, 0, Color.WHITE)
 
 
-## 警示斜纹：底色 a 上画 b 色 45° 斜条（逐条按矩形裁好再画）
-func _hazard(ci: CanvasItem, r: Rect2, a: Color, b: Color) -> void:
-	ci.draw_rect(r, a)
-	var step := 14.0
-	var band := 7.0
-	var box := PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)])
-	var o := -r.size.y
-	while o < r.size.x:
-		var pts := PackedVector2Array()
-		for q in [[o, 0.0], [o + band, 0.0], [o + band, 1.0], [o, 1.0]]:
-			var yy: float = r.position.y + q[1] * r.size.y
-			pts.append(Vector2(r.position.x + q[0] + (yy - r.position.y), yy))
-		for poly in Geometry2D.intersect_polygons(pts, box):
-			ci.draw_colored_polygon(poly, b)
-		o += step
+# ---- 罗德岛：灰白渐变背景 + 散落的菱形碎片；白相框黑描边，上边嵌「RHODES ISLAND」；左上徽记、右侧医疗十字气泡、
+#      下边黄黑警示格、右下源石结晶簇
+const RI_EMBLEM := [".....K.....", "....KWK....", "...KWWWK...", "..KWWKWWK..", ".KWWKYKWWK.", "KWWKYYYKWWK", ".KWWKYKWWK.", "..KWWKWWK..", "...KWWWK...", "....KWK....", ".....K....."]
+const RI_BUBBLE := [".KKKKKKK.", "KWWWWWWWK", "KWWWRWWWK", "KWWRRRWWK", "KWWWRWWWK", "KWWWWWWWK", ".KKKWKKK.", "...KWK...", "....K...."]
+const RI_ORIG := ["....K.....", "...KOK..K.", "...KOK.KOK", "..KODDKKOK", ".K.KDDKODK", "KOKKODDDDK", "KODKDDODK.", "KDDDODDDK.", ".KKKKKKK.."]
 
-
-# ---- 深海：上浅下深的海水相纸、自上而下的光束、浮游微粒、照片青色微光、下巴大水母（伞盖压在照片角上）
-func _deep_back(ci: CanvasItem, photo: Rect2, clip: Rect2) -> void:
-	var top := Color("15405a")
-	var bot := Color("03111a")
-	var t0: Color = top.lerp(bot, clip.position.y / H)
-	var t1: Color = top.lerp(bot, clip.end.y / H)
-	_quad(ci, [clip.position, Vector2(clip.end.x, clip.position.y), clip.end, Vector2(clip.position.x, clip.end.y)], [t0, t0, t1, t1])
-	# 光束：从上往下淡出
-	for b in [[40.0, 60.0, 0.2], [190.0, 30.0, 0.14], [300.0, 80.0, 0.16], [480.0, 40.0, 0.12]]:
-		var x0: float = b[0]
-		var w: float = b[1]
-		var a: float = b[2]
-		var y0 := clip.position.y
-		var y1 := clip.end.y
-		var dx := 0.28   # 斜率
-		var ca := Color(SEA_HI, a * (1.0 - y0 / H))
-		var cb := Color(SEA_HI, a * (1.0 - y1 / H))
-		_quad(ci, [Vector2(x0 + y0 * dx, y0), Vector2(x0 + w + y0 * dx, y0), Vector2(x0 + w * 1.8 + y1 * dx, y1), Vector2(x0 + y1 * dx, y1)], [ca, ca, cb, cb])
-	# 浮游微粒（固定种子）
+func _ri_bg(ci: CanvasItem, os: Vector2) -> void:
+	_quad(ci, [Vector2.ZERO, Vector2(os.x, 0), os, Vector2(0, os.y)], [Color("eef0f3"), Color("eef0f3"), Color("c3c9d2"), Color("c3c9d2")])
 	var rng := RandomNumberGenerator.new()
-	rng.seed = 1108
-	for i in 220:
-		var p := Vector2(rng.randf() * W, rng.randf() * H)
-		var sz := 2.0 if rng.randf() < 0.7 else 3.0
-		var a2 := 0.15 + 0.55 * rng.randf()
-		if not clip.has_point(p) or photo.grow(2.0).has_point(p):
+	rng.seed = 41
+	for i in 26:   # 散落的小菱形（黑 / 黄 / 灰），只在相框外
+		var p := Vector2(rng.randf() * os.x, rng.randf() * os.y).snapped(Vector2(PX * 0.5, PX * 0.5))
+		if Rect2(MARGIN[0] - 40, MARGIN[1] - 64, W + 80, H + 112).has_point(p):
 			continue
-		ci.draw_rect(Rect2(p.floor(), Vector2(sz, sz)), Color(SEA, a2))
-		if sz > 2.0:
-			ci.draw_circle(p + Vector2(1.5, 1.5), 6.0, Color(SEA, a2 * 0.12))
+		var col: Color = [RI_INK, RI_YEL, Color("9aa1ab")][i % 3]
+		var c := 3.0 + float(i % 2) * 2.0
+		ci.draw_colored_polygon(PackedVector2Array([p + Vector2(0, -c), p + Vector2(c, 0), p + Vector2(0, c), p + Vector2(-c, 0)]), col)
 
 
-func _deep_front(ci: CanvasItem, d: Dictionary, photo: Rect2, chin: Rect2) -> void:
-	# 照片青色微光
-	for gi in 4:
-		ci.draw_rect(photo.grow(1.0 + gi * 2.5), Color(SEA, 0.26 - gi * 0.06), false, 2.0)
-	ci.draw_rect(photo, Color(SEA_HI, 0.85), false, 1.0)
-	# 两侧气泡往上冒
+func _ri_deco(ci: CanvasItem, d: Dictionary, os: Vector2, band: Rect2, photo: Rect2) -> void:
+	var pal := {"K": RI_INK, "W": RI_PAPER, "Y": RI_YEL, "R": Color("e8483f"), "O": Color("ff8a3d"), "D": Color("3a3d46")}
+	# 下边框：黄黑警示格（两格一条斜纹）
+	var by := photo.end.y + 1.0
+	var nx := int((band.size.x - PX * 2.0) / PX)
+	var ny := int(BAND[3] - 1)
+	for j in ny:
+		for i in nx:
+			if int(floor((i + j) / 2.0)) % 2 == 0:
+				ci.draw_rect(Rect2(band.position.x + PX + i * PX, by + j * PX, PX, PX), RI_YEL)
+	# 上边框标题
+	_px(ci, Vector2(band.position.x + 13 * PX, band.position.y + BAND[1] * PX * 0.5 + 2), "RHODES ISLAND", 3.5, RI_INK, 0, 1)
+	_px(ci, Vector2(band.end.x - PX * 2, band.position.y + BAND[1] * PX * 0.5 + 2), str(d.get("date", "")), 1.5, Color("6b6c70"), 2, 2)
+	# 左上徽记（压在相框角上）
+	_pix(ci, band.position - Vector2(40, 44), RI_EMBLEM, pal, PD)
+	# 右侧医疗十字气泡（挂在右边框外）
+	_pix(ci, Vector2(band.end.x - 72, photo.position.y + 230), RI_BUBBLE, pal, PD)
+	# 右下源石结晶簇
+	_pix(ci, band.end - Vector2(60, 40), RI_ORIG, pal, PD)
+
+
+# ---- 深海：海水渐变背景 + 像素光束 + 像素气泡；浅水色相框深蓝描边，上边嵌「DEEP SEA」；右上大水母探出框外、
+#      右侧一条小鱼、下边波纹格、右下珊瑚海草
+const SEA_JELLY := ["...KKKKK...", "..KHHHHHK..", ".KHHCCCHHK.", "KHCCCCCCCHK", "KCCCCCCCCCK", "KKCKCKCKCKK", ".C.C.C.C.C.", ".C..C.C..C.", "C..C...C..C", ".C..C...C..", "..C..C.C...", ".C...C..C..", "..C...C...."]
+const SEA_FISH := ["..KKKK...K", ".KCCCCK.KC", "KCWKCCCCKC", ".KCCCCK.KC", "..KKKK...K"]
+const SEA_CORAL := [".P........", "PPP...G.P.", ".P.P..G.PP", ".PPP.GG.P.", "..P.P.G.PP", "..PPP.GPP.", "...P..GP..", "...P.GGP..", "..KKKKKKKK"]
+const SEA_BUBBLE := [".HH.", "H..H", "H..H", ".HH."]
+
+func _deep_bg(ci: CanvasItem, os: Vector2) -> void:
+	_quad(ci, [Vector2.ZERO, Vector2(os.x, 0), os, Vector2(0, os.y)], [Color("2a86a8"), Color("2a86a8"), Color("0a2a3d"), Color("0a2a3d")])
+	for b in [[40.0, 6], [200.0, 4], [420.0, 7], [620.0, 4]]:   # 像素光束：一格一格往下斜
+		var x0: float = b[0]
+		var w: int = b[1]
+		var y := 0.0
+		while y < os.y:
+			var a := 0.16 * (1.0 - y / os.y)
+			ci.draw_rect(Rect2(Vector2(x0 + y * 0.25, y).snapped(Vector2(PX, PX)), Vector2(w * PX, PX)), Color(SEA_HI, a))
+			y += PX
 	var rng := RandomNumberGenerator.new()
-	rng.seed = 7
-	for i in 18:
-		var left := i % 2 == 0
-		var p := Vector2((7.0 + rng.randf() * 10.0) if left else (W - 7.0 - rng.randf() * 10.0), 60.0 + rng.randf() * (H - 120.0))
-		ci.draw_arc(p, 1.5 + 2.5 * (p.y / H), 0.0, TAU, 10, Color(SEA_HI, 0.2 + 0.35 * (p.y / H)), 1.0)
-	# 大水母：伞盖压住照片右下角，触手垂出卡外
-	_big_jelly(ci, Vector2(W - PM - 86, photo.end.y - 62), 5.0)
-	_small_jelly(ci, Vector2(W - PM - 196, chin.position.y + 74), 3.0, 0.6)
-	_small_jelly(ci, Vector2(W - PM - 20, chin.position.y + 98), 2.0, 0.35)
-	# 下巴文字
-	var tx := PM + 6.0
-	var cy := chin.position.y + 30.0
-	if d.avatar is Texture2D:
-		_avatar(ci, d, Vector2(tx + 24, cy + 22), 24.0, SEA)
-		tx += 60.0
-	_t(ci, Vector2(tx, cy), d.name, 26, SEA_HI)
-	var pts := PackedVector2Array()
-	for i in 41:
-		pts.append(Vector2(tx + i * 4.0, cy + 34 + sin(i * 0.7) * 1.8))
-	ci.draw_polyline(pts, Color(SEA, 0.55), 1.2)
-	_t(ci, Vector2(tx, cy + 44), "%s  ·  %s" % [str(d.get("date", "")), d.result], 13, Color("79b9c1"))
-	if d.qr is Texture2D:
-		_qr(ci, d, Rect2(W * 0.5 - 50, chin.position.y + 24, 86, 86), Color("e9ffff"))
-	else:
-		_t(ci, Vector2(tx, cy + 66), GAME + "  ·  明日方舟同人作品", 11, Color("4f8d96"))
+	rng.seed = 9
+	var pal := {"H": Color(SEA_HI, 0.75)}
+	for i in 14:   # 像素气泡，只在相框外
+		var p := Vector2(rng.randf() * (os.x - 32), rng.randf() * (os.y - 32)).snapped(Vector2(PX * 0.5, PX * 0.5))
+		if Rect2(MARGIN[0] - 48, MARGIN[1] - 72, W + 96, H + 120).has_point(p):
+			continue
+		_pix(ci, p, SEA_BUBBLE, pal, 4.0 if i % 2 == 0 else 6.0)
 
 
-## 像素水母：伞盖上亮下暗 + 光晕 + 口腕 + 摆动的长触手（k = 像素格）
-const JELLY_CAP := [".....#####.....", "...#########...", "..###########..", ".#############.", ".#############.", "###############", "#.##.##.##.##.#"]
-
-func _big_jelly(ci: CanvasItem, c: Vector2, k: float) -> void:
-	var half := 7.5
-	var ctr := c + Vector2(0, 3.0 * k)
-	for gi in 6:
-		ci.draw_circle(ctr, (10.0 + gi * 6.0) * k * 0.5, Color(SEA, 0.07 - gi * 0.01))
-	# 触手：从伞缘 5 处垂下，正弦摆动、越往下越淡
-	for ti in 5:
-		var x0: float = (1.5 + ti * 3.0 - half) * k
-		for j in 26:
-			var y := (7.0 + j) * k
-			var x := x0 + sin(j * 0.45 + ti * 1.3) * (1.0 + j * 0.12) * k
-			ci.draw_rect(Rect2(c + Vector2(x, y).snapped(Vector2(k, k)), Vector2(k, k)), Color(SEA, 0.55 * (1.0 - j / 26.0)))
-	# 口腕：中间两条粗一点
-	for oi in 2:
-		var x1: float = (-1.0 + oi * 2.0) * k
-		for j in 16:
-			var y := (7.0 + j) * k
-			var x := x1 + sin(j * 0.35 + oi * 2.0) * 1.5 * k
-			ci.draw_rect(Rect2(c + Vector2(x - k * 0.5, y).snapped(Vector2(k, k)), Vector2(k * 2.0, k)), Color(SEA_HI, 0.6 * (1.0 - j / 16.0)))
-	# 伞盖
-	for y in JELLY_CAP.size():
-		var row: String = JELLY_CAP[y]
-		var col: Color = SEA_HI.lerp(SEA, float(y) / (JELLY_CAP.size() - 1))
-		for x in row.length():
-			if row[x] == "#":
-				ci.draw_rect(Rect2(c + Vector2((x - half) * k, y * k), Vector2(k, k)), Color(col, 0.92))
-	# 伞盖高光
-	ci.draw_rect(Rect2(c + Vector2(-4.5 * k, 1.0 * k), Vector2(3.0 * k, k)), Color(1, 1, 1, 0.9))
-	ci.draw_rect(Rect2(c + Vector2(-5.5 * k, 2.0 * k), Vector2(k, k)), Color(1, 1, 1, 0.7))
-
-
-func _small_jelly(ci: CanvasItem, c: Vector2, k: float, a: float) -> void:
-	for gi in 3:
-		ci.draw_circle(c + Vector2(0, 2.0 * k), (6.0 + gi * 4.0) * k * 0.5, Color(SEA, a * (0.1 - gi * 0.03)))
-	var pat := ["..###..", ".#####.", "#######", "#.#.#.#"]
-	for y in pat.size():
-		var row: String = pat[y]
-		for x in row.length():
-			if row[x] == "#":
-				ci.draw_rect(Rect2(c + Vector2((x - 3.5) * k, y * k), Vector2(k, k)), Color(SEA_HI.lerp(SEA, y / 3.0), a))
-	for ti in 3:
-		for j in 7:
-			ci.draw_rect(Rect2(c + Vector2((-2.5 + ti * 2.0) * k + sin(j * 0.6 + ti) * k, (4 + j) * k).snapped(Vector2(k, k)), Vector2(k, k)), Color(SEA, a * 0.6 * (1.0 - j / 7.0)))
-
-
+func _deep_deco(ci: CanvasItem, d: Dictionary, os: Vector2, band: Rect2, photo: Rect2) -> void:
+	var pal := {"K": SEA_INK, "H": SEA_HI, "C": SEA, "W": Color.WHITE, "P": Color("ff7fa8"), "G": Color("3fc59a")}
+	# 下边框：波纹格（深浅两色错开）
+	var by := photo.end.y + 1.0
+	var nx := int((band.size.x - PX * 2.0) / PX)
+	for i in nx:
+		var h := 1 + int(round((sin(i * 0.8) + 1.0) * 0.5))
+		for j in h:
+			ci.draw_rect(Rect2(band.position.x + PX + i * PX, by + (BAND[3] - 1 - 1 - j) * PX, PX, PX), Color("5cc8d6") if j == h - 1 else Color("2e8fa8"))
+	# 上边框标题 + 日期
+	_px(ci, Vector2(band.position.x + PX * 2, band.position.y + BAND[1] * PX * 0.5 + 2), "DEEP SEA", 3.5, SEA_INK, 0, 1)
+	_px(ci, Vector2(band.end.x - 15 * PX, band.position.y + BAND[1] * PX * 0.5 + 2), str(d.get("date", "")), 1.5, Color("2e6e7d"), 2, 2)
+	# 右上大水母（伞盖探出框外，触手垂在相框带上）
+	for gi in 4:
+		ci.draw_circle(Vector2(band.end.x - 15, 40), (5.0 + gi * 3.0) * 10.0 * 0.5, Color(SEA, 0.1 - gi * 0.02))
+	_pix(ci, Vector2(band.end.x - 70, 8), SEA_JELLY, pal, 10.0)
+	# 右侧小鱼
+	_pix(ci, Vector2(band.end.x - 54, photo.position.y + 300), SEA_FISH, pal, 9.0)
+	# 右下珊瑚海草
+	_pix(ci, band.end - Vector2(60, 40), SEA_CORAL, pal, PD)
 
 
 func _px(ci: CanvasItem, p: Vector2, s: String, kk: float, col: Color, align := 0, track := 1) -> float:
