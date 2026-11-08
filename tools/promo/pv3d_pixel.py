@@ -139,11 +139,11 @@ if LAYERS:
     def layer(name, px, loc, emit):
         im, w, h = frame_img(os.path.join(LAYERS, name + ".png"))
         return billboard(im, w, h, px, loc, emit=emit, name="L_" + name)
-    layer("far", 0.16, (0, 34, -0.6), 0.06)       # 远景：融在雾里的大块礁石剪影
+    layer("far", 0.092, (0, 34, -0.6), 0.06)   # 统一像素格（docs/327 §16.6）：屏幕上每像素 ≈ 0.0023 弧度       # 远景：融在雾里的大块礁石剪影
     layer("mid", 0.045, (1.0, 13, -0.4), 0.05)    # 中景：带残柱的礁石台地，灯塔立在上面
     lh, lw, lhh = frame_img(os.path.join(ART, "world", "props", "prop_lighthouse@2x.png"), 128, 0)
-    billboard(lh, lw, lhh, 0.028, (2.6, 12.4, -0.2), emit=0.22, name="lighthouse")
-    bpy.ops.object.light_add(type="POINT", location=(2.6, 12.3, -0.2 + 128 * 0.028 * 0.82))
+    billboard(lh, lw, lhh, 0.043, (3.4, 12.6, -1.7), emit=0.22, name="lighthouse")
+    bpy.ops.object.light_add(type="POINT", location=(3.4, 12.5, -1.7 + 128 * 0.043 * 0.82))
     lamp = bpy.context.object
     lamp.data.color = WARM[:3]; lamp.data.energy = 160; lamp.data.shadow_soft_size = 0.3
     try:
@@ -151,8 +151,8 @@ if LAYERS:
     except Exception:
         pass
     im, w, h = enemy("mother", 6)   # 远处唯一一只海嗣剪影
-    billboard(im, w, h, 0.05, (-5.5, 24, 0.2), emit=0.08, name="e_mother")
-    layer("near", 0.0095, (-0.6, 0.6, -0.12), 0.03)  # 前景：画面边缘的暗礁 + 海草当框（景深虚掉）
+    billboard(im, w, h, 0.0023 * 30.2, (-5.5, 24, 0.2), emit=0.08, name="e_mother")
+    layer("near", 0.0083, (-0.6, 0.6, -0.12), 0.03)  # 前景：画面边缘的暗礁 + 海草当框（景深虚掉）
 else:
     # ---------------------------------------------------------------- 远景：标题页像素海底当大幕
 
