@@ -31,6 +31,7 @@ PVD = os.path.join(MAIN, "Claude outputs", "pv_1108")
 CLIPS = os.environ.get("PV_CLIPS") or os.path.join(PVD, "clips")   # 11-08 E 盘满：素材可放别的盘
 WORK = os.path.join(PVD, "work")
 SFXD = os.path.join(fx.WT, "game", "audio", "sfx")
+ROOT = os.path.dirname(os.path.dirname(HERE))
 SR = 48000
 
 
@@ -151,6 +152,28 @@ def render_shot(sh, T, ow, oh, vert):
         return Image.new("RGB", (ow, oh), (0, 0, 0))
     if k == "title":
         return cards.card_title(lt, short=vert, vw=ow, vh=oh).convert("RGB")
+    if k == "end":   # docs/327 结尾卡：标题页深海底（压暗、极慢推）+ 像素 logo + T1/T2/C1/D1
+        import pv_type
+        if "_endbg" not in _readers:
+            bg = Image.open(os.path.join(ROOT, "game/art/ui/title_deep/bg.png")).convert("RGB")
+            k_ = max(ow / bg.width, oh / bg.height)
+            bg = bg.resize((int(bg.width * k_ * 1.08), int(bg.height * k_ * 1.08)), Image.NEAREST)
+            lg = Image.open(os.path.join(ROOT, "game/art/ui/title_deep/logo_mark.png")).convert("RGBA")
+            _readers["_endbg"] = (bg, lg.resize((lg.width * 2, lg.height * 2), Image.NEAREST))
+        bg, lg = _readers["_endbg"]
+        u = min(1.0, lt / max(0.01, dur))
+        z = 1.0 + 0.04 * u
+        cw, ch = ow / z * (bg.width / (ow * 1.08)), oh / z * (bg.height / (oh * 1.08))
+        x0, y0 = (bg.width - cw) / 2, (bg.height - ch) / 2
+        im = bg.crop((int(x0), int(y0), int(x0 + cw), int(y0 + ch))).resize((ow, oh), Image.LANCZOS)
+        im = Image.fromarray((np.asarray(im).astype(np.float32) * 0.55).astype(np.uint8))
+        a = min(1.0, lt / 0.3)
+        base = im.convert("RGBA")
+        lay = Image.new("RGBA", base.size, (0, 0, 0, 0)); lay.paste(lg, ((ow - lg.width) // 2, 250), lg)
+        if a < 1:
+            lay.putalpha(lay.getchannel("A").point(lambda v: int(v * a)))
+        base.alpha_composite(lay)
+        return pv_type.end_card(base.convert("RGB"), lt - 0.4, cx=ow // 2, cy=470)
     if k == "word":
         return cards.card_word(lt, sh["text"], sh.get("sub", ""), dur, tuple(sh.get("col", CYAN)), ow, oh, sh.get("step")).convert("RGB")
     if k == "card":
@@ -235,6 +258,26 @@ def apply_fx(im, sh, T, ow, oh, vert):
         im = Image.blend(im, Image.new("RGB", im.size, (255, 255, 255)), 0.85 * a)
     if sh.get("inv") and lt * FPS < sh["inv"]:
         im = Image.fromarray(255 - np.asarray(im))
+    nm = sh.get("name")   # 实机上压干员名字条（docs/327 §4.3 N1–N3 底部居中）：{"cn","en","cls","until"}
+    if nm and lt < nm.get("until", 1.6):
+        import pv_type
+        raw = im
+        im = pv_type.name_bottom(im, lt, nm["cn"], nm["en"], nm.get("cls", ""))
+        fo = nm.get("until", 1.6) - lt
+        if fo < 0.15:   # 末尾 0.15 秒淡出
+            im = Image.blend(raw, im, max(0.0, fo / 0.15))
+    cn = sh.get("corner")   # U1 角落终结技标名：右下青色细线 + 名字，停 1 小节
+    if cn and lt < cn.get("until", 1.6):
+        import pv_type
+        a = min(1.0, lt / 0.1) * min(1.0, (cn.get("until", 1.6) - lt) / 0.12)
+        lay = Image.new("RGBA", im.size, (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
+        x, y = ow - 96, oh - 150
+        pv_type.tracked(d, (x, y), cn["cn"], pv_type.sans(32, 700), pv_type.INK + (255,), 0.1, "r")
+        pv_type.tracked(d, (x, y + 46), cn["en"], pv_type.latin(13, False), pv_type.CYAN + (255,), 0.32, "r")
+        d.line((x - 300, y + 72, x, y + 72), fill=pv_type.CYAN + (255,), width=2)
+        if a < 1:
+            lay.putalpha(lay.getchannel("A").point(lambda v: int(v * a)))
+        base = im.convert("RGBA"); base.alpha_composite(lay); im = base.convert("RGB")
     cap = sh.get("cap")
     if cap:
         c0 = cap.get("at", 0.0)
