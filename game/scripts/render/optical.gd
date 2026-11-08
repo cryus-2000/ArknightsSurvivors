@@ -708,10 +708,11 @@ func _process(_dt: float) -> void:
 		_set_lo(lo_want)
 	if _lo_on:
 		_lo_step()
-	g.glow_cur = g.glow_next
-	g.glow_next = []
-	g.glow_tex_cur = g.glow_tex_next
-	g.glow_tex_next = []
+	if not g._world_frozen():   # 选卡 / 暂停冻结世界重画时（game._world_frozen）沿用上一份发光点，不然发光会在暂停里灭掉
+		g.glow_cur = g.glow_next
+		g.glow_next = []
+		g.glow_tex_cur = g.glow_tex_next
+		g.glow_tex_next = []
 	pt = _pt("op_lowres", pt)
 	if particles != null:
 		var pa: bool = on and ((ab_mask | auto_mask) & 2) == 0

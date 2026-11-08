@@ -103,6 +103,17 @@ func on_spawn(group: Array, force := false) -> void:
 		Sfx.play(sfx, float(Sfx.CUE_VOL.get(sfx, -22.0)) + 6.0, 1.0, 0.0)
 
 
+## 登场前预热（spawner 在登场前 PF_LEAD 秒调，docs/319 §20）：登场名片音效先注册成网页样本、头像贴图先读进 g.tex，
+## 登场那一帧不再同步解码整段音效 / 读图（11-09 真机 7:02 中期 Boss 登场一帧 342 ms，仿真 7:00「Boss 演出」370 ms）
+func prewarm(type: String) -> void:
+	var def: Dictionary = D.ENEMIES.get(type, {})
+	if def.get("role", "") != "boss":
+		return
+	var cd: Dictionary = _card(type)
+	Sfx.warm_name(str(cd.get("sfx", "boss_" + type)))
+	_portrait_source({"type": type, "tex": str(def.get("tex", type))})
+
+
 ## 真 Boss 倒下（world.watch_bosses 观察到；撤退 / 友方不算）：击破一拍
 func on_down(b: Dictionary) -> void:
 	if not enabled() or b.get("friendly", false) or b.get("retreated", false):

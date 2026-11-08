@@ -1863,17 +1863,29 @@ func _process(delta: float) -> void:
 	# 无界面批跑什么都不显示：不重绘世界 / 特效 / 前景 / HUD（一局省三成多耗时；docs/36 验证过结果逐字节不变）
 	if headless_batch and world.dc_check:
 		queue_redraw()   # --dccheck（快检冒烟）：无头也画世界层，敌人画法缓存自检才跑得到（docs/50 §9.9）
-	if not headless_batch:
+	if not headless_batch and not _world_frozen():
 		queue_redraw()
 		fx_add.queue_redraw()
 		foe_top.queue_redraw()   # 排在世界之后：顶层那一遍用本帧世界绘制排好的预警分类 / 视野表
 		fg.queue_redraw()
+	if not headless_batch:
 		dof_layer.visible = Cfg.dof and not optical_on   # 光学开时景深由光学 pass 取代（原来这里开、optical.gd 再关，一帧翻两次）
 		fg.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST if optical_on else CanvasItem.TEXTURE_FILTER_LINEAR   # 前景剪影：光学下像素风（map.draw_foreground）
 		if not _hud_skip():
 			hud.queue_redraw()
 	world.present_step()   # 表现事件步骤（Boss 换幕 / 倒下演出；docs/101 B3）：每帧一次，在本帧绘制之前，无头也走
 	_pm("tail")
+
+
+## 选卡 / 暂停时世界静止（update_visuals 走 0 秒、动画都按模拟时间）：停 0.25 秒后不再重发世界 / 特效 / 前景层的绘制，
+## 引擎沿用上一帧的绘制命令，画面一样，省掉每帧约 14 ms 的世界绘制（手机发热，docs/319 §20）。界面层照常重画。
+## 开关 render/freeze_paused（缺省 1，全平台；0 = 旧写法每帧重画）
+func _world_frozen() -> bool:
+	if state != S.CHOICE and state != S.PAUSE:
+		return false
+	if state_age < 0.25 or Bal.v("render/freeze_paused", 1.0) <= 0.0:
+		return false
+	return true
 
 
 func _do_action(act: String) -> void:
