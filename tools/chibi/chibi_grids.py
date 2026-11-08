@@ -17,7 +17,7 @@ CHIBI = {
                 "C": "1c1c22", "W": "f1efec", "G": "c9c6c3", "R": "b5303a", "K": "2a2a30"},
         "rows": [
             ".D............D.", ".DD..........DD.", ".DXD........DXD.", ".DXHDDDDDDDDHXD.", "DHHHHHHLLHHHHHHD", "DHHHLLLHHHHHHHHD",
-            "DHHHHHHHHHHDHHHD", "DHHHHHHHHHDSSHHD", "DHHHHHHHHDSSESHD", "DHHHHHHHDSSSISHD", "DHHDHHHSSBSSSBHD", "DHHDHDSSSSSSSSHD",
+            "DHHHHHHHHHHDHHHD", "DHHHHHHDSSSSSHHD", "DHHHHHDSESSSESHD", "DHHHHDSSISSSISHD", "DHHDHHSBSSSSSBHD", "DHHDHDSSSSSSSSHD",
             "DHHDDCCCCCCCCDHD", "DHHDWWCCCCCCWWHD", "DHHWWWRWCCWWWWHD", ".DHWGWWRWWWWWGHD", ".DHWGWWWRWWWWGD.", "..DKKKKKKRKKKKD.",
         ],
     },
@@ -94,10 +94,10 @@ CHIBI = {
             "TTTDDDDDDDDDDDDTTT..",
             "..DHHHHHHHHHHHHD....",
             ".DHHHLHHHHHHHDHHD...",
-            ".DHHHHHHHHHDSSHHD...",
-            ".DHHHHHHHHDSSEHHD...",
-            ".DHHHHHHHDSSSIHHD...",
-            ".DHHHHHSSSBSSSHHD...",
+            ".DHHHHHHDSSSSSHHD...",
+            ".DHHHHHDSESSSEHHD...",
+            ".DHHHHDSSISSSIHHD...",
+            ".DHHHHSSBSSSSBHHD...",
             ".DHHHHDSSSSSSSHHD...",
             ".DHHHWWCCCCCCWWHHD..",
             ".DHHWWWCCACCWWWHHD..",
@@ -118,9 +118,9 @@ CHIBI = {
             ".DHHHHLLHHHHHHHD....",
             "DHHHLLHHHHHHHHHHD...",
             "DHHHHHHHHHHHHHDHD...",
-            "DHHHHHHHHHHHDSSHD...",
-            "DHHHHHHHHHDSSESHD...",
-            "DHHHHHHHDSSSSISHD...",
+            "DHHHHHHHDSSSSSSHD...",
+            "DHHHHHHDSESSSESHD...",
+            "DHHHHHDSSISSSISHD...",
             "DHHHDHHSSBSSSSBHD...",
             "DHHHDHSSSSSMSSSHD...",
             "DHHHDDSSSSSSSSDHHD..",
@@ -244,9 +244,9 @@ CHIBI = {
             ".DHHHLLHHHHHHHHD....",
             "DHHLLHHHHHHHHHHHD...",
             "DHHHHHHHHHHHDHHHD...",
-            "DHHHHHHHHHDSSDHHD...",
-            "FDHHHHHHHDSSESHHDF..",
-            "FFDHHHHHDSSSISHHDFF.",
+            "DHHHHHHDSSSSSDHHD...",
+            "FDHHHHDSESSSESHHDF..",
+            "FFDHHHDSISSSISHHDFF.",
             "fUDHHHUSSBSSSBHUDUf.",
             ".UUDUHUSSSSSSSUHUU..",
             "..U.UCCCCCCCCUU.....",
@@ -270,9 +270,9 @@ CHIBI = {
             ".DHHHHLLLHHHHHHHD...",
             "DHHHLLHHHHHHHHHHHD..",
             "DHHDDHHHHHHHHHHHHD..",
-            "DHDSSDHHHHHHHHHHHD..",
-            "DHDSESSDHHHHHHHHHD..",
-            "DHDSISSSDHHHHHHHHD..",
+            "DHDSSSSSSSDHHHHHHD..",
+            "DHDSESSSESDHHHHHHD..",
+            "DHDSISSSISSDHHHHHD..",
             "DHHBSSSSSBHHHHDHHD..",
             ".DHHSSSSSSHHDHHD....",
             "..CCCWWWWWWCCC......",
@@ -319,11 +319,11 @@ CHIBI = {
             "DHHHHLLHHHHHHHHHHD..",
             "DHHHHHHHHHHHHHHHHHD.",
             "DHHDHHHDHHHHDHHHDHD.",
-            "DHDSSDSSSSSSSDSSHDHD",
-            "DHDSSESSSSSSESSSHDHD",
-            "DHDSSISSSSSSISSSHDHD",
-            "HHDSBSSSSSSSSBSSHDHH",
-            "HDHHSSSSSSSSSSSHHDHD",
+            "DHHHDSDSSSSSDSDHHHHD",
+            "DHHHDSESSSSESSDHHHHD",
+            "DHHHDSISSSSISSDHHHHD",
+            "HHHHDBSSSSSSBSDHHHHH",
+            "HDHHHDSSSSSSSDHHHDHD",
             "D.DHHHSSSCSSSHHHD.D.",
             ".FFFFFSSSSSSSFFFFF..",
             "JFFfFWWWWWWWWWFfFFJ.",
@@ -587,9 +587,32 @@ def eyes_only(op, rows, ey):
     return ["".join(r) for r in rows]
 
 
+def widen_eyes(op, rows):
+    """11-08 用户：脸型和发型都还原成逐人手绘的样子（不再统一改朝向）；为了看得清、两眼一样大，
+    每只眼只在原位横向加宽成 2 × 2（上瞳孔、下瞳色），往旁边的皮肤格加宽。乌尔比安细长眼 + 眉。"""
+    rows = [list(r) for r in rows]
+    w = max(len(r) for r in rows)
+    for r in rows:
+        r.extend("." * (w - len(r)))
+    ey = next(i for i, r in enumerate(rows) if "E" in r)
+    cols = [x for x, ch in enumerate(rows[ey]) if ch == "E"]
+    for x in cols:
+        dx = 1 if x + 1 < w and rows[ey][x + 1] == "S" and rows[ey + 1][x + 1] in "SI" else -1
+        for xx in (x, x + dx):
+            rows[ey][xx] = "E"
+            rows[ey + 1][xx] = "I"
+    if op in NARROW:
+        for x in range(w):
+            if rows[ey][x] == "E":
+                rows[ey - 1][x] = "D"
+                rows[ey][x] = "I"
+                rows[ey + 1][x] = "S"
+    return ["".join(r) for r in rows]
+
+
 def render(op):
     d = CHIBI[op]
-    rows = face_right(op, d["rows"])
+    rows = widen_eyes(op, d["rows"])
     w = max(len(r) for r in rows)
     pal = dict(SKIN)
     pal.update(d["pal"])
