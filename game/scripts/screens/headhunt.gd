@@ -923,7 +923,7 @@ func _draw_entry() -> void:
 	_btn(r2, 2)
 
 
-## 凭证不够寻访一次、且 Toy 还有没领的奖励：兑换框下面多一枚「关注作者」按钮
+## 凭证不够寻访一次、且 Toy 还有没领的奖励：兑换框下面多一枚「支持作者」按钮
 func _support_hint() -> bool:
 	return _vouchers() < Roster.COST_RANDOM and preload("res://scripts/core/toy_support.gd").pending()
 
@@ -944,7 +944,7 @@ func _draw_exchange(ci: CanvasItem, f: Font, y := -1.0) -> void:
 		var sr := Rect2(r.position.x, r.end.y + 8, r.size.x, 34)
 		var shot: bool = not (Pad.using or g.kb_nav) and sr.has_point((ci.get_local_mouse_position() - _off) / _k)
 		HS.para(ci, sr, Color(0, 0, 0, 0), HS.CYB if shot else UI.fa(HS.INK, 0.6), 2.0 if shot else 1.5)
-		UI.text_at(ci, f, Vector2(sr.position.x + 22, sr.get_center().y), "凭证不足？关注作者可领 %d 张寻访凭证  ›" % preload("res://scripts/core/toy_support.gd").pending_tickets(), 14, HS.INK, "lm")
+		UI.text_at(ci, f, Vector2(sr.position.x + 22, sr.get_center().y), preload("res://scripts/core/toy_support.gd").entry_label() + "  ›", 15, HS.INK, "lm")   # 11-08 用户：关注、三连合成一个入口
 		_btn(sr, "support")
 	var bt := _now() - _buy_t0
 	if bt >= 0.0 and bt < 0.9:   # 兑换成功：凭证数旁「+1」上浮淡出

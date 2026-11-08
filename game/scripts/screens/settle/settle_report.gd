@@ -26,9 +26,9 @@ func exchange_rect() -> Rect2:
 	return Rect2(1086, 607, 164, 30)
 
 
-## 「关注作者，领 5 张寻访凭证」按钮位（settlement_screen.sup_button）：「本局获得」条第一行右端
+## 「支持作者：关注 +5 · 三连 +5 张寻访凭证」按钮位（settlement_screen.sup_button）：「本局获得」条第一行右端，左边只留 1 格藏品
 func support_rect() -> Rect2:
-	return Rect2(980, 562.0, 272, 34) if ex_row() else Rect2(980, 582.0, 272, 40)
+	return Rect2(932, 562.0, 320, 34) if ex_row() else Rect2(932, 582.0, 320, 40)
 
 
 func theme() -> Color:
@@ -258,7 +258,7 @@ func _gains(acc: Color) -> void:
 			txt(486, 611, "持有生机细胞 %d · 每 %d 个可兑换 1 张寻访凭证，与认知塑造共用" % [Meta.available(), Roster.TICKET_PRICE], 13, HH.LIGHT2, 0, 580)
 		else:
 			txt(486, 611, "已兑换 %d 张寻访凭证 · 现持有 %d 张 · 剩余生机细胞 %d" % [s.exchanged, Roster.tickets(), Meta.available()], 13, HH.LIGHT2, 0, 580)
-	var rel := key_relics(2 if s.sup_button() else 7)   # 有「关注作者」按钮（support_rect）时藏品格只排 2 个
+	var rel := key_relics(1 if s.sup_button() else 7)   # 有「支持作者」按钮（support_rect）时藏品格只排 1 个
 	for i in rel.size():
 		var q := k(2.45 + 0.06 * i, 0.4)
 		if q <= 0.0:

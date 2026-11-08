@@ -1,7 +1,8 @@
 extends Control
-## B站 Toy「支持作者」浮层（docs/313，core/toy_support.gd）：标题页底部一行「支持作者」打开（只在 Toy 版）。
-## 列出奖励项（关注作者 / 三连视频）与领取状态，「检查并领取」逐项查 SDK（tools/web/support.js → window.__sySupport.check），满足就记账发奖。
-## 键盘：Esc 关闭、Enter 检查并领取。版式跟意见反馈浮层（feedback_view）一致。
+## B站 Toy「支持作者」浮层（docs/313，core/toy_support.gd）：标题页 / 结算页 / 寻访页的「支持作者」入口打开（只在 Toy 版）。
+## 11-08 用户：关注作者、三连视频两张卡并排，各自一枚「领取」按钮，点了查 SDK（tools/web/support.js → window.__sySupport.check），满足就记账发奖；
+## 三连没配视频（TS.triple_open() 为假）时照样画出来、置灰、按钮写「PV 发布后开放」。
+## 键盘：Esc 关闭、Enter 把能领的都查一遍。版式跟意见反馈浮层（feedback_view）一致。
 ## 桌面 / 测试（非网页）：--toysim=follow:yes,triple:no:coin 模拟 SDK 返回（结果：yes / no / unsupported / login / err，triple 的 no 可带缺项）
 
 signal closed
@@ -21,6 +22,7 @@ var _js = null
 var _cbs: Array = []         # JavaScriptBridge 回调要一直持有，不然被回收
 var _sim_t := -1.0           # 模拟 SDK 的延迟计时
 var _sim_id := ""
+var _cur := ""               # 正在查询的项（卡片按钮写「正在查询……」）
 var granted := 0             # 本次打开期间发的凭证（测试读）
 
 
@@ -58,14 +60,24 @@ func all_claimed() -> bool:
 	return true
 
 
-## 「检查并领取」：没领的项依次查询
-func check() -> void:
-	if busy or all_claimed():
+## 还有能去领的项（没领过且已开放）
+func any_claimable() -> bool:
+	for id in TS.items():
+		if TS.claimable(id):
+			return true
+	return false
+
+
+## 领取：id 为空 = 能领的项依次查询（Enter），否则只查这一项（卡片上的「领取」）
+func check(id := "") -> void:
+	if busy or not any_claimable():
+		return
+	if id != "" and not TS.claimable(id):
 		return
 	busy = true
 	note = "正在查询……"
 	note_ok = false
-	_queue = TS.items().filter(func(id): return not TS.claimed(id))
+	_queue = [id] if id != "" else TS.items().filter(func(x): return TS.claimable(x))
 	_next()
 	queue_redraw()
 
@@ -73,11 +85,13 @@ func check() -> void:
 func _next() -> void:
 	if _queue.is_empty():
 		busy = false
+		_cur = ""
 		if note == "正在查询……":
 			note = ""
 		queue_redraw()
 		return
 	var id: String = _queue.pop_front()
+	_cur = id
 	if OS.has_feature("web"):
 		if _js == null:
 			_js = JavaScriptBridge.get_interface("__sySupport")
@@ -159,8 +173,8 @@ func _gui_input(event: InputEvent) -> void:
 			queue_redraw()
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var h := _hit(event.position)
-		if h == "go":
-			check()
+		if h.begins_with("go_"):
+			check(h.substr(3))
 		elif h == "close" or not _panel().has_point(event.position):
 			close()
 		accept_event()
@@ -177,7 +191,7 @@ func _panel() -> Rect2:
 	var sr: Rect2 = Cfg.touch_safe_rect(size)
 	var ph: bool = Cfg.phone_ui()
 	var w: float = minf(sr.size.x - 32.0, 740.0 if ph else 640.0)
-	var h: float = minf(sr.size.y - 32.0, 450.0 if ph else 400.0)
+	var h: float = minf(sr.size.y - 32.0, 470.0 if ph else 420.0)
 	return Rect2((sr.get_center() - Vector2(w, h) / 2.0).round(), Vector2(w, h))
 
 
@@ -197,47 +211,59 @@ func _draw() -> void:
 	var fs := 15 if tl else 13
 	var fi := UI.fit(font, intro, iw, 44.0, [fs, fs - 1, fs - 2])
 	UI.draw_fit(self, font, Vector2(x, y + 58), fi, UI.SUB)
-	# 奖励项
-	var ry := y + (112.0 if ph else 104.0)
-	var rh: float = 78.0 if ph else 70.0
-	for id in TS.items():
-		var r := Rect2(x, ry, iw, rh)
-		var got: bool = TS.claimed(id)
-		draw_rect(r, Color(0.02, 0.03, 0.04, 1.0))
-		draw_rect(r, Color(UI.GOLD, 0.6) if got else Color(UI.CYAN, 0.35), false, 1.0)
-		draw_rect(Rect2(r.position, Vector2(3, r.size.y)), UI.GOLD if got else UI.CYAN_DIM)
-		var nm: String = "关注作者" if id == "follow" else "三连视频（点赞 + 投币 + 收藏）"
-		var rew: String = "寻访凭证 ×%d" % TS.REWARD + ("  ·  专属结算分享卡边框" if id == "triple" else "")
-		UI.text(self, font, Vector2(r.position.x + 18, r.position.y + (30 if ph else 27)), nm, 19 if tl else 17, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, iw - 170)
-		UI.text(self, font, Vector2(r.position.x + 18, r.position.y + (56 if ph else 51)), rew, 15 if tl else 13, UI.CYAN, HORIZONTAL_ALIGNMENT_LEFT, iw - 170)
-		var st: String = "已领取" if got else "未领取"
-		var chip := Rect2(r.end.x - 110, r.position.y + 12, 96, 26)
-		draw_rect(chip, Color(UI.GOLD, 0.16) if got else Color(0.05, 0.08, 0.1, 1.0))
-		draw_rect(chip, UI.GOLD if got else UI.CYAN_DIM, false, 1.0)
-		UI.text(self, font, Vector2(chip.position.x, chip.position.y + 18), st, 14 if tl else 13, UI.GOLD if got else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, chip.size.x)
-		var m: String = str(row_msg.get(id, ""))
-		if m != "" and not got:
-			UI.text(self, font, Vector2(r.end.x - 250, r.position.y + (60 if ph else 55)), m, 13 if tl else 12, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 236)
-		ry += rh + 12.0
-	# 总的一句（领取成功 / 环境提示）
-	if note != "":
-		UI.text(self, font, Vector2(x, ry + 18.0), note, 17 if tl else 15, UI.CYAN if note_ok else UI.GOLD)
-	# 按钮
+	# 奖励项：两张卡并排，各自领取（11-08 用户）
+	var ids: Array = TS.items()
+	var gap := 16.0
+	var cw: float = (iw - gap * (ids.size() - 1)) / maxf(1.0, ids.size())
+	var cy := y + (112.0 if ph else 104.0)
 	var bh: float = 52.0 if ph else 42.0
-	var by: float = pr.end.y - bh - 22.0
-	var gw: float = 220.0 if ph else 190.0
-	var ow: float = 150.0 if ph else 130.0
-	var done: bool = all_claimed()
-	btns = {"go": Rect2(pr.end.x - 28.0 - gw, by, gw, bh), "close": Rect2(pr.end.x - 28.0 - gw - 14.0 - ow, by, ow, bh)}
+	var ch: float = (pr.end.y - bh - 22.0 - 18.0) - cy
 	var kb: bool = not (tl or Pad.using)
-	_btn("go", "已全部领取" if done else ("正在查询……" if busy else "检查并领取"), "ENTER" if kb and not done else "", not done and not busy)
+	btns = {}
+	for i in ids.size():
+		var id: String = ids[i]
+		var r := Rect2(x + i * (cw + gap), cy, cw, ch)
+		var got: bool = TS.claimed(id)
+		var open_: bool = id != "triple" or TS.triple_open()
+		var line: Color = UI.GOLD if got else (UI.CYAN_DIM if open_ else Color(UI.SUB, 0.35))
+		draw_rect(r, Color(0.02, 0.03, 0.04, 1.0))
+		draw_rect(r, Color(line, 0.6), false, 1.0)
+		draw_rect(Rect2(r.position, Vector2(3, r.size.y)), line)
+		var tx := r.position.x + 18.0
+		var tw := r.size.x - 32.0
+		var dim: float = 1.0 if open_ or got else 0.45
+		UI.text(self, font, Vector2(tx, r.position.y + (34 if ph else 30)), "关注作者" if id == "follow" else "三连视频", 21 if tl else 19, Color(UI.TEXT, dim), HORIZONTAL_ALIGNMENT_LEFT, tw)
+		UI.text(self, font, Vector2(tx, r.position.y + (58 if ph else 52)), "在 B站关注作者" if id == "follow" else "点赞 + 投币 + 收藏 PV", 14 if tl else 13, Color(UI.SUB, dim), HORIZONTAL_ALIGNMENT_LEFT, tw)
+		UI.text(self, font, Vector2(tx, r.position.y + (92 if ph else 84)), "寻访凭证 ×%d" % TS.REWARD, 20 if tl else 18, Color(UI.CYAN, dim), HORIZONTAL_ALIGNMENT_LEFT, tw)
+		if id == "triple":
+			UI.text(self, font, Vector2(tx, r.position.y + (116 if ph else 106)), "专属结算分享卡边框", 14 if tl else 13, Color(UI.CYAN, dim * 0.8), HORIZONTAL_ALIGNMENT_LEFT, tw)
+		var m: String = str(row_msg.get(id, ""))
+		var gb := Rect2(tx, r.end.y - bh - 14.0, tw, bh)
+		if m != "" and not got:
+			UI.text(self, font, Vector2(tx, gb.position.y - 10.0), m, 14 if tl else 13, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, tw)
+		btns["go_" + id] = gb
+		var lab: String = "已领取" if got else ("PV 发布后开放" if not open_ else ("正在查询……" if busy and _cur == id else "领取"))
+		_btn("go_" + id, lab, "", TS.claimable(id) and not busy, not TS.claimable(id))
+	# 总的一句（领取成功 / 环境提示）
+	var by: float = pr.end.y - bh - 22.0
+	if note != "" and note != "正在查询……":
+		UI.text(self, font, Vector2(x, by + bh * 0.5 + 6.0), note, 17 if tl else 15, UI.CYAN if note_ok else UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, iw - 170.0)
+	# 关闭
+	var ow: float = 150.0 if ph else 130.0
+	btns["close"] = Rect2(pr.end.x - 28.0 - ow, by, ow, bh)
 	_btn("close", "关闭", "ESC" if kb else "", false)
 
 
-func _btn(id: String, label: String, k: String, primary: bool) -> void:
+func _btn(id: String, label: String, k: String, primary: bool, off := false) -> void:
 	var r: Rect2 = btns[id]
-	var hov := hover == id
+	var hov := hover == id and not off
 	var ink := Color("131820")
+	if off:   # 已领取 / 未开放：灰掉、不响应悬停
+		draw_rect(r, Color(0.04, 0.05, 0.06, 0.85))
+		draw_rect(r, Color(UI.SUB, 0.3), false, 1.0)
+		var f0 := 18 if Cfg.phone_ui() else 16
+		UI.text(self, font, Vector2(r.position.x, r.position.y + r.size.y * 0.5 + f0 * 0.36), label, f0, Color(UI.SUB, 0.75), HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+		return
 	if primary:
 		draw_rect(r, UI.CYAN.lightened(0.15) if hov else UI.CYAN)
 	else:
