@@ -17,7 +17,7 @@ case "$V" in
     r02) B="--bal=render/optical_col_ebullet_h=0.02 --bal=render/optical_col_ebullet_s=0.9 --bal=render/ebullet_recolor_lo_nerve=170" ;;
 esac
 SQ="--op=mizuki --squad=wisadel,eyjafjalla,exusiai"
-RING="--flashring=stone:6,floater:5,skimmer:3,spitter:2"
+RING="--flashring=stone:6,floater:5,skimmer:3,spitter:2 --flashvolley"
 ud() { u=$(mktemp -d); mkdir -p "$u/ArknightsSurvivors"; printf '[game]\ndmg_numbers=true\n' > "$u/ArknightsSurvivors/settings.cfg"; echo "$u"; }
 run() {   # $1 场景名 $2 快进到（秒） $3 其他参数
     d="$(realpath -m "$MEDIA/${V}_$1")"; mkdir -p "$d"

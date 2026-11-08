@@ -520,6 +520,7 @@ var _fr_csv: FileAccess = null
 var _fr_spawn := ""
 var _fr_spawned := false
 var _fr_ring_done := false
+var _fr_volley_t := 0.0
 func _flashrec_step() -> void:
 	if _fr_t0 < -1.0:
 		_fr_t0 = -1.0
@@ -573,6 +574,20 @@ func _flashrec_step() -> void:
 			if (ks.begins_with("e_knight") or ks.begins_with("e_paranoia")) and not ks.ends_with("_white") and g.tex[k] != null:
 				var wt = g.tex.get(ks + "_white")
 				print("TEXDUMP %s %s white=%s same_src=%s" % [ks, g.tex[k].get_size(), wt.get_size() if wt != null else "none", str(wt == A_.white_of(g.tex[k])) if wt != null else "-"])
+	# --flashvolley：录像前 1.5 秒起每 0.4 秒从队长周围一圈朝队长打 16 发杂兵弹（普通 / 神经 / 新星 / 漂移体侵蚀弹轮换），
+	# 只为对照截图里一定有足够敌弹（11-08 敌弹改红；伤害 0，配 --nodeath）
+	if _fr_t0 > 0.0 and _fr_left > 0 and g.t >= _fr_t0 - 1.5 and g.t >= _fr_volley_t and Cfg.dev_args().has("--flashvolley"):
+		_fr_volley_t = g.t + 0.4
+		var kinds: Array = [["orb", "stone", ""], ["nerve", "floater", ""], ["nova", "stone", ""], ["orb", "skimmer", "proj_skimmer_corrode"]]
+		for i in 16:
+			var a0: float = TAU * i / 16.0 + g.t * 0.7
+			var p0: Vector2 = g.ppos + Vector2.from_angle(a0) * Vector2(520.0, 340.0)
+			var kd: Array = kinds[i % kinds.size()]
+			var vb := {"pos": p0, "vel": (g.ppos - p0).normalized().rotated(0.35) * 150.0, "dmg": 0.0, "slow": false, "r": 5.0, "life": 4.0,
+				"corrode": 0.0, "nerve": 0.0, "true": false, "kind": kd[0], "home": false, "src_type": kd[1], "atk": "法术"}
+			if kd[2] != "":
+				vb["tex"] = kd[2]
+			g.ebullets.append(vb)
 	if _fr_t0 < 0.0 or _fr_left <= 0 or g.t < _fr_t0 or DisplayServer.get_name() == "headless":
 		return
 	if _fr_csv == null:
