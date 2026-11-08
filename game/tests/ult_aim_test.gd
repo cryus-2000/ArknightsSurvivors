@@ -123,12 +123,36 @@ func _ready() -> void:
 		ok(u.phase == "aim", "拖动中仍在瞄准（模拟鼠标左键没有提前释放）：%s" % u.phase)
 		ok(u.aim_src == "touch", "输入源 = 触屏（%s）" % u.aim_src)
 		var want: Vector2 = ld.pos + drag.normalized() * minf(520.0, drag.length() / 90.0 * 520.0)
+		var hv0: Vector2 = g.get_viewport_rect().size / g.cam.zoom.x * 0.5 - Vector2(Aim.VIEW_PAD_X, Aim.VIEW_PAD_Y)
+		var cc0: Vector2 = g.cam.get_screen_center_position()
+		want = want.clamp(cc0 - hv0, cc0 + hv0)   # 触屏落点夹进可见画面（11-08）
 		ok(u.aim.distance_to(want) < 30.0, "落点 = 队长 + 拖动方向 × 距离（离预期 %.0f）" % u.aim.distance_to(want))
+		# 左手还按着移动摇杆（11-08 iPhone 实测：松手那一帧摇杆的移动方向盖掉了拖出来的方向，放出去的方向不对）
+		var a0: Vector2 = u.aim
+		tc.stick_id = 7
+		tc.vec = Vector2(-1.0, 0.6)
 		_touch(false, c0 + drag)
 		step.call(2)
+		tc.stick_id = -1
+		tc.vec = Vector2.ZERO
 		ok(u.phase == "windup" or u.phase == "cast" or u.phase == "", "松手释放（%s）" % u.phase)
+		ok(u.aim.distance_to(a0) < 1.0, "松手时按着移动摇杆，落点不被摇杆挪走（挪了 %.1f）" % u.aim.distance_to(a0))
 		step.call(12)   # 走完起手慢放（0.15 游戏秒）才正式出招、定作用中心
 		ok(u._ult_at.distance_to(want) < 40.0, "按拖到的落点放（离预期 %.0f）" % u._ult_at.distance_to(want))
+		step.call(600)
+		# 往正上方拖到底：落点夹进可见画面（11-08 iPhone 实测「终结技看不全」：手机上下只看得到不到 300，原来能拖到 520 外）
+		u.energy = u.FULL
+		_touch(true, c0)
+		step.call(1)
+		u._sf_rt = -99.0
+		for k in 6:
+			_drag(c0 + Vector2(0.0, -90.0) * float(k + 1) / 6.0)
+			await _frames(1)
+			step.call(1)
+		var hv: Vector2 = g.get_viewport_rect().size / g.cam.zoom.x * 0.5
+		var cc: Vector2 = g.cam.get_screen_center_position()
+		ok(u.phase == "aim" and absf(u.aim.y - cc.y) <= hv.y - Aim.VIEW_PAD_Y + 1.0, "触屏往上拖到底：落点在可见画面内（离镜头中心 %.0f，可见半高 %.0f）" % [absf(u.aim.y - cc.y), hv.y])
+		_touch(false, c0 + Vector2(0.0, -90.0))
 		step.call(600)
 		# 轻点终结技键（不拖）：保持瞄准，再点一次放
 		u.energy = u.FULL

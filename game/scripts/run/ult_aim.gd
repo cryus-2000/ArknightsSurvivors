@@ -15,6 +15,8 @@ const Moves = preload("res://scripts/run/ult_moves.gd")
 const TAP := 0.2          # 轻点 / 按住的分界（真实秒）
 const REACH := 520.0      # 落点离队长最远（同旧口径）
 const CELL := 48.0        # 范围格边长（同 command_pick.CELL）
+const VIEW_PAD_X := 90.0  # 触屏落点夹进可见画面时左右 / 上下各留的世界像素（上下是顶栏 / 底栏）
+const VIEW_PAD_Y := 80.0
 const MOUSE_DEAD := 6.0   # 鼠标挪动多少像素算「在用鼠标瞄」
 
 static var _arg := -1     # --ultaim：autotest 录像也走 v2（缺省 autotest 不走）
@@ -65,9 +67,13 @@ static func tick(u, dt: float) -> void:
 	if u.aim_src == "plan":
 		return
 	var tc = g.get("touch")
+	if tc != null and tc.active and u.aim_kind == "point":
+		_clamp(u)   # 触屏：落点夹进可见画面（默认落点、拖动都算），每帧一次
 	if tc != null and tc.active and tc.skill_id >= 0:
 		u.aim_src = "touch"   # touch._ult_aim 每帧写拖动的落点 / 方向
 		return
+	if u.aim_src == "touch" and u.aim_moved and not u.aim_latched:
+		return   # 触屏拖动瞄准、刚松手（下一帧才放出）：别让左摇杆的移动方向盖掉拖出来的方向（11-08 iPhone 实测「选的方向和放出去的不一致」）；轻点保持瞄准时仍可用摇杆挪
 	var pv := Vector2.ZERO
 	if Pad.device >= 0:
 		pv = Vector2(Input.get_joy_axis(Pad.device, JOY_AXIS_RIGHT_X), Input.get_joy_axis(Pad.device, JOY_AXIS_RIGHT_Y))
@@ -109,6 +115,15 @@ static func _clamp(u) -> void:
 	var off: Vector2 = u.aim - u.caster.pos
 	if off.length() > REACH:
 		u.aim = u.caster.pos + off.normalized() * REACH
+	# 触屏（11-08 iPhone 实测「终结技看不全」）：手机可见世界高只有约 585，上下各不到 300，而落点最远 520——往上 / 下拖时
+	# 落点和整招都落在屏幕外。触屏时再把落点夹进当前可见画面（上下各让出顶栏 / 底栏 VIEW_PAD_Y，左右 VIEW_PAD_X）
+	var tc = u.g.get("touch")
+	var cam = u.g.get("cam")
+	if tc != null and tc.active and cam != null and cam.is_inside_tree():
+		var hv: Vector2 = u.g.get_viewport_rect().size / maxf(0.01, cam.zoom.x) * 0.5 - Vector2(VIEW_PAD_X, VIEW_PAD_Y)
+		if hv.x > 40.0 and hv.y > 40.0:
+			var c: Vector2 = cam.get_screen_center_position()
+			u.aim = u.aim.clamp(c - hv, c + hv)
 
 
 ## 松开 Q：按下不到 TAP 秒 = 轻点，保持瞄准（再按一次 Q / 点左键释放）
