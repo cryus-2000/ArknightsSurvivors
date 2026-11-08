@@ -1157,7 +1157,7 @@ func _op_skills(ci: CanvasItem, box: Rect2, od: Dictionary, m: Dictionary, ph: b
 		var room := (box.end.y - y - ures) if ph else maxf(52.0, box.end.y - y - (34.0 if d.has("talent") else 4.0) - ures)
 		var f := UI.fit(font, txt, box.size.x - 8.0, room, [11, 10] if not ph else [10, 9])
 		UI.draw_fit(ci, font, Vector2(box.position.x + 2, y - 2), f, UI.B_SUB)
-		y += maxf(54.0, f.h + 10.0)
+		y += (f.h + 6.0) if ph else maxf(54.0, f.h + 10.0)   # 手机：说明按实际行高收（room 已给终结技 / 连携两行留位；原来固定 54 把两行推出框，11-08 改名检查时发现）
 		if not ph and d.has("talent") and y + 20.0 <= box.end.y:
 			var w := UI.pill(ci, font, Vector2(box.position.x + 2, y), "天赋", col, 10)
 			var tf := UI.fit_line(font, str(d.talent.get("name", "")) + "  精英一解锁", 12, box.size.x - w - 8.0, 10)
