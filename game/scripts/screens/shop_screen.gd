@@ -121,7 +121,7 @@ func build(restart := false) -> void:
 		else:
 			card.pressed.connect(g.shop_sys.buy.bind(i))
 		# 触屏说明字先试大 2 号（手机上 12 号只有约 6.5 pt），放不下再退回原字号；手机一句话 20 起、最小 17
-		var szs: Array = ([18, 17, 16, 15, 14] if touch else [14, 13, 12, 11]) if (Pad.touch_ui() and not sc_on) else [13]   # 电脑 / 触屏同版式：说明一律 13（docs/37 最小字号；D9 同排同字号），放不下写一句 +「详情」
+		var szs: Array = ([18, 17, 16, 15, 14] if touch else [14, 13, 12, 11]) if (Pad.touch_ui() and not sc_on) else ([14] if sc_on else [13])   # 电脑说明一律 13（docs/37 最小字号；D9 同排同字号）；触屏同版式整页缩小，大一号 14（11-08 用户），放不下写一句 +「详情」
 		if ph:
 			szs = [15, 14, 13]   # 11-06：原 20 起，放大后比名字（18 ≈ 21）还大；改成比名字小一级（≈ 18 / 17 / 15）
 		var chips := Affects.chips(g, it)
@@ -247,7 +247,7 @@ func draw_card(card: Button, it: Dictionary, i: int) -> void:
 	UI.text(card, UI.name_font(g.font), r.position + Vector2(0, 144.0 if sc_compact else 156.0), it.name, fs, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 2)
 	var fd: Dictionary = card.get_meta("fit", {})
 	if not fd.is_empty():
-		var dc := Color(0.86, 0.9, 0.93, a) if card.has_meta("brief") else Color(0.655, 0.69, 0.725, a)
+		var dc := Color(0.86, 0.9, 0.93, a) if (card.has_meta("brief") or scaled()) else Color(0.655, 0.69, 0.725, a)   # 触屏整页缩小后灰字发虚：提亮（11-08 用户「说明的字实一点」）
 		UI.draw_fit(card, g.font, r.position + Vector2(10, 152.0 if sc_compact else 164.0), fd, dc, HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 20.0)
 	# 作用对象（run/affects.gd）：卡窄，不带「影响」小字，放不下折到第二行；贴着价格条（说明区最多到 232）
 	var chips: Array = card.get_meta("affects", [])
