@@ -10,9 +10,8 @@ const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类
 var g: Game
 ## 商人（A4）：左侧商人立绘框（暖色提灯光）+ 右上「货架」与持有源石锭 + 底部提示；五张货品卡在 panel_box
 const CARD_H := 330.0          # 货品卡高度（含两行作用对象标签）；卡片顶边见 choice_panel.layout("shop")
-const TOP_PHONE := 96.0        # 手机（界面层放大后逻辑约 1044×481，手机端 UI 优化 r2）：卡片顶边；不画商人立绘框，卡片横跨整屏
-## 三档布局参数（docs/126 C6）：下标 = Cfg.ui_form()（0 桌面 / 1 触屏 / 2 手机横屏，商店触屏与手机同一版式）。
-## touch：卡片横跨整屏、不画商人立绘框；card_max_w：卡宽上限；btn_h：按钮高；name_fs：名字放得下时的字号（0 = 按卡宽 15 / 12）
+## 布局参数（docs/126 C6）：11-08 起触屏也用桌面一档（lay() 恒取 LAY[0]，整页在 frame() 里等比缩放）；后两档留作旧手机版式参考
+## touch：卡片横跨整屏；card_max_w：卡宽上限；btn_h：按钮高；name_fs：名字放得下时的字号（0 = 按卡宽 15 / 12）
 const LAY := [
 	{"touch": false, "card_max_w": 160.0, "btn_h": 40.0, "name_fs": 0},
 	{"touch": true, "card_max_w": 176.0, "btn_h": 44.0, "name_fs": 18},
@@ -20,15 +19,39 @@ const LAY := [
 ]
 
 
+## 11-08 用户选「电脑版整页等比缩进手机」（同事件页）：触屏也用桌面版式（LAY[0]），整页在 frame() 里按安全区等比缩放
 func lay() -> Dictionary:
-	return LAY[Cfg.ui_form()]
+	return LAY[0]
 
 
-## 货品卡高度：手机按剩余高度（顶 96、底下留按钮 72，再让出底栏 HUD 的 HUD_RES_PHONE）
-## 11-08 用户 iPhone Toy 实测：界面大小 110% 后卡片、按钮、提示字压在底栏（灯火条 / 编队头像）上，「所有卡片都小一点」
+func card_h(_vs: Vector2) -> float:
+	return CARD_H
+
+
+## 设计坐标：桌面版式，中线 600（DVS 宽 1200）；DBOX = 标题小字到按钮行底（商人框左缘 20、卡片右缘 1188）
+const DVS := Vector2(1200, 655)
+const DBOX := Rect2(14, 88, 1180, 524)
+const DTOP := 222.0           # 货架卡片顶边（同 choice_panel.layout("shop")）
+const HUD_TOP := 56.0         # 触屏顶栏（击杀 / 时间 / 源石锭 / 暂停）让出
+## 11-08 用户 iPhone Toy 实测：界面大小 110% 后卡片、按钮、提示字压在底栏（灯火条 / 编队头像）上，底部让出 13%
 const HUD_RES_PHONE := 0.13
-func card_h(vs: Vector2) -> float:
-	return clampf(vs.y * (1.0 - HUD_RES_PHONE) - TOP_PHONE - 72.0, 200.0, CARD_H) if lay().touch else CARD_H
+
+
+func scaled() -> bool:
+	return Cfg.ui_form() > 0
+
+
+## 设计坐标 d 画到面板上是 o + k * d：桌面 k = 1、o = 0（原样）；触屏把 DBOX 等比缩进安全区（灵动岛 / B站胶囊 / 顶栏 / 底栏），k ≤ 1、居中
+func frame() -> Dictionary:
+	var vs: Vector2 = g.panel.size
+	if not scaled():
+		return {"k": 1.0, "o": Vector2.ZERO, "vs": vs}
+	var ins: Array = Cfg.safe_insets()
+	var t: float = maxf(float(ins[1]), HUD_TOP)
+	var b: float = maxf(float(ins[3]), vs.y * HUD_RES_PHONE)
+	var sr := Rect2(float(ins[0]), t, vs.x - float(ins[0]) - float(ins[2]), vs.y - t - b)
+	var k: float = minf(1.0, minf(sr.size.x / DBOX.size.x, sr.size.y / DBOX.size.y))
+	return {"k": k, "o": (sr.get_center() - k * DBOX.get_center()).round(), "vs": DVS}
 const MERCHANT_LINES := ["灯火暗下来之前，把源石锭花掉吧。", "深海里什么都能换，只要你出得起价。", "别盯着我看，看货。", "都是从沉船里捞上来的，保真。"]
 
 
@@ -54,25 +77,19 @@ func build(restart := false) -> void:
 	for a in Cfg.dev_args():   # --carddetail=<n>（截图验收）：直接展开第 n 张货品的详情
 		if a.begins_with("--carddetail="):
 			g.panel_ui.detail_i = int(a.substr(13))
-	var ph: bool = Cfg.phone_ui()   # 手机（10-26 实机挤满）：卡上一句核心效果、大字，完整说明点「详情」
+	var ph := false   # 11-08 起触屏同桌面版式：卡上写说明，放不下的给「详情」（下面 sc_on）
+	var sc_on: bool = scaled()
+	var F: Dictionary = frame()
 	for c in g.panel.get_children():
 		if c.has_meta("shopbtn"):
 			c.queue_free()
-	var vs0: Vector2 = g.panel.size   # 触屏界面层放大后 = UI 逻辑尺寸
+	var vs0: Vector2 = F.vs   # 触屏：设计坐标（桌面版式）
 	var cx := vs0.x / 2.0
 	var L: Dictionary = lay()
-	var touch: bool = L.touch
+	var touch: bool = L.touch   # LAY[0]：恒为 false（触屏也走桌面版式）
 	var ch: float = card_h(vs0)
 	var bl: float = cx - 280.0   # 按钮行左边
-	if touch:
-		# 手机：卡片加宽到 ≤ 190、横跨整屏居中（左右各留 20），顶边 96；按钮本体 44 高跟在卡片下
-		cw = minf(float(L.card_max_w), (vs0.x - 40.0 - sep * (n - 1)) / maxf(1.0, n))
-		var tot: float = cw * n + sep * (n - 1)
-		g.panel_box.offset_left = -tot / 2.0
-		g.panel_box.offset_right = tot / 2.0
-		g.panel_box.offset_top = TOP_PHONE
-		bl = cx - tot / 2.0
-	var by: float = g.panel_box.offset_top + ch + 14.0
+	var by: float = DTOP + ch + 14.0
 	var bh: float = float(L.btn_h)
 	var free: bool = g.shop_sys.refresh_free()
 	g.panel_ui.button("刷新货架", Rect2(bl, by, 214, bh), g.shop_sys.refresh, not g.shop_refreshed and (free or g.ingots >= g.shop_sys.price("refresh")), "refresh",
@@ -96,7 +113,7 @@ func build(restart := false) -> void:
 			g.panel_ui.motion.shop_card_post(card, i))
 		card.mouse_entered.connect(func(): card.queue_redraw())
 		card.mouse_exited.connect(card.queue_redraw)
-		if ph:
+		if sc_on:
 			card.pressed.connect(func():
 				if not g.panel_ui.detail_tap(card, i):
 					g.panel_ui.detail_i = -1
@@ -104,7 +121,7 @@ func build(restart := false) -> void:
 		else:
 			card.pressed.connect(g.shop_sys.buy.bind(i))
 		# 触屏说明字先试大 2 号（手机上 12 号只有约 6.5 pt），放不下再退回原字号；手机一句话 20 起、最小 17
-		var szs: Array = ([18, 17, 16, 15, 14] if touch else [14, 13, 12, 11]) if Pad.touch_ui() else [13]   # 电脑：说明一律 13（docs/37 最小字号；D9 同排同字号）
+		var szs: Array = ([18, 17, 16, 15, 14] if touch else [14, 13, 12, 11]) if (Pad.touch_ui() and not sc_on) else ([14] if sc_on else [13])   # 电脑说明一律 13（docs/37 最小字号；D9 同排同字号）；触屏同版式整页缩小，大一号 14（11-08 用户），放不下写一句 +「详情」
 		if ph:
 			szs = [15, 14, 13]   # 11-06：原 20 起，放大后比名字（18 ≈ 21）还大；改成比名字小一级（≈ 18 / 17 / 15）
 		var chips := Affects.chips(g, it)
@@ -135,7 +152,7 @@ func build(restart := false) -> void:
 		var sc_compact: bool = not fs0.fit
 		if sc_compact:
 			fs0 = UI.fit(g.font, sdesc, cw - 20.0, (ch - 152.0 - bot) if touch else 80.0, szs)
-			if not fs0.fit and not Pad.touch_ui():
+			if not fs0.fit and (sc_on or not Pad.touch_ui()):
 				# 电脑 13 号紧凑版还放不下：卡面只写一句（同手机），完整说明悬停看（11-01 docs/211 D9：以前这张单独缩到 12，同排字号不一）
 				card.set_meta("full_desc", sfull)
 				card.set_meta("squad_cut", true)
@@ -144,7 +161,25 @@ func build(restart := false) -> void:
 		card.set_meta("compact", sc_compact)
 		card.set_meta("affects", chips)
 		card.set_meta("chips_cut", not UI.chip_fits(g.font, chips, cw - 16.0, 2, 10))
+		if sc_on and (card.has_meta("squad_cut") or card.get_meta("chips_cut")):
+			# 触屏没有悬停：说明被截 / 只写本编队部分 / 影响对象收起的卡，右上给「详情」，完整说明盖在这张卡上
+			card.set_meta("brief", sdesc)
+			card.set_meta("phone", true)
+			card.set_meta("more", true)
 		g.panel_box.add_child(card)
+	if sc_on:
+		var k: float = F.k
+		for c in g.panel.get_children():
+			if c.has_meta("shopbtn") and not c.is_queued_for_deletion():
+				c.position = F.o + k * c.position
+				c.scale = Vector2(k, k)
+		g.panel_box.anchor_left = 0.0
+		g.panel_box.anchor_right = 0.0
+		g.panel_box.offset_left = F.o.x + k * (cx - 280.0)
+		g.panel_box.offset_right = g.panel_box.offset_left + 868.0
+		g.panel_box.offset_top = F.o.y + k * DTOP
+		g.panel_box.pivot_offset = Vector2.ZERO
+		g.panel_box.scale = Vector2(k, k)
 	g.panel.visible = true
 	g.panel_fg.queue_redraw()
 
@@ -212,7 +247,7 @@ func draw_card(card: Button, it: Dictionary, i: int) -> void:
 	UI.text(card, UI.name_font(g.font), r.position + Vector2(0, 144.0 if sc_compact else 156.0), it.name, fs, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 2)
 	var fd: Dictionary = card.get_meta("fit", {})
 	if not fd.is_empty():
-		var dc := Color(0.86, 0.9, 0.93, a) if card.has_meta("brief") else Color(0.655, 0.69, 0.725, a)
+		var dc := Color(0.86, 0.9, 0.93, a) if (card.has_meta("brief") or scaled()) else Color(0.655, 0.69, 0.725, a)   # 触屏整页缩小后灰字发虚：提亮（11-08 用户「说明的字实一点」）
 		UI.draw_fit(card, g.font, r.position + Vector2(10, 152.0 if sc_compact else 164.0), fd, dc, HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 20.0)
 	# 作用对象（run/affects.gd）：卡窄，不带「影响」小字，放不下折到第二行；贴着价格条（说明区最多到 232）
 	var chips: Array = card.get_meta("affects", [])
@@ -247,48 +282,35 @@ func draw_card(card: Button, it: Dictionary, i: int) -> void:
 	# 10-31 TA H7：价签不再写「[ n ]」（底部提示行已写「按 1–N 购买」）
 
 
-## 手机版背景（手机端 UI 优化 r2）：标题压在顶栏上（压暗带遮住）、一行交易说明、「藏品 n · 商人还会停留」一行，
-## 右上持有源石锭；商人立绘框放不下不画
-func _draw_bg_phone(vs: Vector2) -> void:
-	var cx := vs.x / 2.0
-	var top: float = g.panel_box.offset_top
-	var note: String = "第 %d 次交易 · 价格 ×%.2f · %s" % [maxi(1, g.merchant_idx), g.shop_sys.price_mult(), g.shop_sys.step_note()]
-	if not g.shop_sys.relic_buy_unlimited():
-		note += " · 藏品还可买 %d 件" % g.shop_sys.relic_buys_left()
-	g.panel_ui.header(vs, "SHOP  ·  WANDERING TRADER", "流浪商人", note, top - 92.0)
-	var left: float = cx + g.panel_box.offset_left
-	var right: float = cx + g.panel_box.offset_right
-	# 底下垫一条暗底：手机上压暗带只压一半，左上 HUD 的状态小字会从这行后面透出来（10-11）
-	var rl: String = "%s · 商人还会停留 %d 秒" % [g.progression.relic_count_text(), int(g.merchant.get("life", 0.0))]
-	g.panel_fg.draw_rect(Rect2(left - 6.0, top - 24.0, g.font.get_string_size(rl, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(14)).x + 12.0, 22.0), Color(0.03, 0.035, 0.045, 0.9))
-	UI.text(g.panel_fg, g.font, Vector2(left, top - 6.0), rl, 14, UI.SUB)
-	var dp := Rect2(Vector2(right - 128.0, top - 48.0), Vector2(128, 34))
-	g.panel_fg.draw_rect(dp, Color(0.03, 0.035, 0.045, 0.86))
-	g.panel_fg.draw_rect(Rect2(dp.position, Vector2(3, dp.size.y)), UI.GREEN)
-	g.panel_fg.draw_texture_rect(g.tex.ingot, Rect2(dp.position + Vector2(12, 10), Vector2(18, 14)), false)
-	UI.ctext(g.panel_fg, g.font, dp.position + Vector2(38, 27), str(g.ingots), 26, UI.TEXT)
-	UI.text(g.panel_fg, g.font, Vector2(dp.position.x + 84, dp.position.y + 22), "源石锭", 10, UI.SUB)
-	UI.text(g.panel_fg, g.font, Vector2(dp.position.x - 60, dp.position.y + 22), "持有", 13, Color(0.81, 0.84, 0.86), HORIZONTAL_ALIGNMENT_RIGHT, 50)
-	# 提示一行、和按钮行同高居中（原两行，第二行落到底栏 HUD 上，11-08）
-	var hint: String = "←→ 选择 · Ⓐ 购买 · Ⓨ 刷新 · Ⓑ 离开" if Pad.using else "点卡片购买 · 点「刷新货架」/「离开」"
-	var hy: float = top + card_h(vs) + 14.0
-	UI.text(g.panel_fg, g.font, Vector2(left + 396.0, hy + float(lay().btn_h) / 2.0 + 6.0), hint, 14, UI.SUB)
-
-
 func draw_bg(vs: Vector2) -> void:
-	if lay().touch:
-		_draw_bg_phone(vs)
+	var F: Dictionary = frame()
+	if not scaled():
+		_draw_bg(vs, g.panel_box.offset_top)
 		return
+	_xo = F.o
+	_xk = F.k
+	g.panel_fg.draw_set_transform(_xo, 0.0, Vector2(_xk, _xk))
+	_draw_bg(F.vs, DTOP)
+	_xo = Vector2.ZERO
+	_xk = 1.0
+	g.panel_fg.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+var _xo := Vector2.ZERO   # 触屏整页缩放（draw_bg 里设）：中途要另设变换的地方（脚下影子）在它上面叠加，画完还原到它
+var _xk := 1.0
+
+
+func _draw_bg(vs: Vector2, top: float) -> void:
 	var cx := vs.x / 2.0
-	# 纵向：标题 92 起；货架卡片顶边 = panel_box.offset_top（222），下面是按钮；商人框与卡片 + 按钮等高
-	var top: float = g.panel_box.offset_top
+	# 纵向：标题 92 起；货架卡片顶边 = top（222），下面是按钮；商人框与卡片 + 按钮等高
 	var note: String = "第 %d 次交易 · 当前价格 ×%.2f · %s" % [maxi(1, g.merchant_idx), g.shop_sys.price_mult(), g.shop_sys.step_note()]
 	if not g.shop_sys.relic_buy_unlimited():
 		note += " · 藏品还可买 %d 件（刷新不重置）" % g.shop_sys.relic_buys_left()
 	g.panel_ui.header(vs, "SHOP  ·  WANDERING TRADER", "流浪商人", note, top - 130.0)
 	# 藏品额度一行：原来在标题说明行下面 8 像素（top − 52），两行字压在一起（10-11）；挪到「货架 GOODS」同一行、GOODS 之后
 	var gw: float = UI.en_width(g.font, "GOODS  ·  %d" % g.shop_items.size(), 12, 3.0)
-	UI.text(g.panel_fg, g.font, Vector2(cx - 232 + gw + 18.0, top - 20.0), g.progression.relic_count_text() + ("" if g.progression.relic_cap() < 0 else "；满后仍可升级已有藏品"), 12, UI.SUB)
+	var hw: float = maxf(48.0, g.font.get_string_size("货架", HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(20)).x + 8.0)   # 手机字号放大后「货架」变宽，GOODS 跟在它后面
+	UI.text(g.panel_fg, g.font, Vector2(cx - 280 + hw + gw + 18.0, top - 20.0), g.progression.relic_count_text() + ("" if g.progression.relic_cap() < 0 else "；满后仍可升级已有藏品"), 12, UI.SUB)
 	var mr := Rect2(Vector2(cx - 580, top - 42.0), Vector2(280, CARD_H + 96.0))
 	var mt := Color(0.125, 0.11, 0.094, 0.95)
 	var mb := Color(0.055, 0.051, 0.047, 0.95)
@@ -298,9 +320,9 @@ func draw_bg(vs: Vector2) -> void:
 	var gc := mr.position + Vector2(mr.size.x / 2.0, 236 + my)
 	for k in 6:
 		g.panel_fg.draw_circle(gc, 150.0 - k * 22.0, Color(1.0, 0.66, 0.31, 0.035))
-	g.panel_fg.draw_set_transform(mr.position + Vector2(mr.size.x / 2.0, 330 + my), 0.0, Vector2(1.0, 0.16))
+	g.panel_fg.draw_set_transform(_xo + _xk * (mr.position + Vector2(mr.size.x / 2.0, 330 + my)), 0.0, Vector2(_xk, 0.16 * _xk))
 	g.panel_fg.draw_circle(Vector2.ZERO, 76.0, Color(0, 0, 0, 0.5))
-	g.panel_fg.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	g.panel_fg.draw_set_transform(_xo, 0.0, Vector2(_xk, _xk))
 	var mtx: Texture2D = g.tex.get("merchant")
 	if mtx != null:
 		var fw := mtx.get_width() / 2
@@ -316,10 +338,10 @@ func draw_bg(vs: Vector2) -> void:
 	UI.strip(g.panel_fg, g.font, mr.position + Vector2(12, 12), "STAY", "还会停留 %d 秒" % int(g.merchant.get("life", 0.0)), UI.GOLD, Color(0.95, 0.87, 0.68))
 	UI.tab(g.panel_fg, g.font, mr.position + Vector2(16, 340 + my), "流浪商人", UI.TAB_LAMP)
 	UI.en(g.panel_fg, g.font, mr.position + Vector2(90, 353 + my), "WANDERING TRADER", 10, UI.SUB, 2.0)
-	UI.text(g.panel_fg, g.font, mr.position + Vector2(16, 378 + my), "「%s」" % MERCHANT_LINES[maxi(0, g.merchant_idx - 1) % MERCHANT_LINES.size()], 13, Color(0.85, 0.87, 0.89))
+	UI.text_fit(g.panel_fg, g.font, mr.position + Vector2(16, 378 + my), "「%s」" % MERCHANT_LINES[maxi(0, g.merchant_idx - 1) % MERCHANT_LINES.size()], 13, Color(0.85, 0.87, 0.89), mr.size.x - 28.0, 10)
 	# 右上：货架 + 持有源石锭（明日方舟费用框）
 	UI.text(g.panel_fg, g.font, Vector2(cx - 280, top - 18.0), "货架", 20, UI.TEXT)
-	UI.en(g.panel_fg, g.font, Vector2(cx - 232, top - 20.0), "GOODS  ·  %d" % g.shop_items.size(), 12, UI.SUB, 3.0)
+	UI.en(g.panel_fg, g.font, Vector2(cx - 280 + hw, top - 20.0), "GOODS  ·  %d" % g.shop_items.size(), 12, UI.SUB, 3.0)
 	var dp := Rect2(Vector2(cx + 460, top - 46.0), Vector2(128, 34))
 	g.panel_fg.draw_rect(dp, Color(0.03, 0.035, 0.045, 0.86))
 	g.panel_fg.draw_rect(Rect2(dp.position, Vector2(3, dp.size.y)), UI.GREEN)
@@ -329,6 +351,6 @@ func draw_bg(vs: Vector2) -> void:
 	UI.text(g.panel_fg, g.font, Vector2(dp.position.x - 110, dp.position.y + 22), "持有", 12, Color(0.81, 0.84, 0.86), HORIZONTAL_ALIGNMENT_RIGHT, 100)
 	# 按键提示：分两行放在按钮右边（再往右是底栏的技能图标，一行长字会压上去）
 	var hints: Array = ["←→ 选择 · Ⓐ 购买", "Ⓨ 刷新 · Ⓑ 离开"] if Pad.using else (["点击卡片购买", "点「刷新货架」/「离开」"] if Pad.touch else ["点击或按 1–%d 购买" % g.shop_items.size(), "F 刷新  ·  ESC 离开"])
-	var hfs := 12   # 桌面版（触屏在 draw_bg 开头已转去 _draw_bg_phone）
+	var hfs := 12
 	UI.text(g.panel_fg, g.font, Vector2(cx + 116, top + CARD_H + 30.0), hints[0], hfs, UI.SUB)
 	UI.text(g.panel_fg, g.font, Vector2(cx + 116, top + CARD_H + 49.0 if hfs > 12 else top + CARD_H + 47.0), hints[1], hfs, UI.SUB)
