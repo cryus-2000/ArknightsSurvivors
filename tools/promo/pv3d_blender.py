@@ -1,31 +1,31 @@
 # -*- coding: utf-8 -*-
-"""PV 3D 开头 · Blender 版（11-08，用户嫌 Godot 版粗糙）：海底场景 + 游戏招募卡做成的银边实体卡，EEVEE 渲染。
+"""PV 3D 开头 · Blender 版（11-08）：海水中（不要海床），学官方水月 PV 的渲染感——深海军蓝压底、头顶水面光 + 光束、
+边缘发光的半透明水母、悬浮颗粒 + 浅景深光斑、bloom + 轻色散、逆光剪影。卡 = 游戏招募卡 / 升级卡做成的银边实体卡。EEVEE 渲染。
 
-  D:/blender/blender-4.5.15-windows-x64/blender.exe -b --python tools/promo/pv3d_blender.py -- <卡面目录> <素材目录> <输出帧目录> [起帧 止帧]
+  D:/blender/blender-4.5.15-windows-x64/blender.exe -b --python tools/promo/pv3d_blender.py -- <卡面目录> <输出帧目录> [起帧 止帧 | 帧,帧,…]
 
-卡面目录：c0.png … c8.png（从实机录像按原尺寸抠的招募卡 / 升级卡）+ _back.png；素材目录：Poly Haven CC0（礁石 / 岩壁 / 沙地）。
-时长 = battle2 第 70–77 小节（7 小节 = 11.507 秒，60 帧 = 691 帧），运镜同 pv3d.gd：
-  0–2 小节   卡片在海底上方翻转下落，镜头缓降前推
-  2–4 小节   低机位贴着海床横移，一排卡从卡背朝下平躺依次立起（八分音符一张）
-  4 小节     重拍：斯卡蒂的招募卡砸到镜头前，冷光一闪；之后镜头推进卡面，末 0.35 秒提亮到白切实机
-坐标：Blender Z 向上，镜头朝 +Y 看（Godot 的 (x, y, z) = 这里的 (x, -z, y)）。
+时长 = battle2 第 70–77 小节（7 小节 = 11.507 秒，60 帧 = 691 帧）：
+  0–2 小节   卡片在水中翻转下沉，镜头微仰（背后水面光与光束），缓缓下潜
+  2–4 小节   一排卡悬在水里，卡背朝镜头，依次翻面露出正面（八分音符一张），镜头横移
+  4 小节     重拍：斯卡蒂的招募卡转到镜头前、冷光一闪；镜头推进卡面，末 0.35 秒提亮到白切实机
+坐标：Z 向上，镜头大致朝 +Y。
 """
-import math, os, random, sys
+import math, os, random, sys, time
 import bpy
 from mathutils import Vector
 
 argv = sys.argv[sys.argv.index("--") + 1:]
-CARDS, ASSETS, OUT = argv[0], argv[1], argv[2]
-STILLS = [int(x) for x in argv[3].split(",")] if len(argv) > 3 and "," in argv[3] else None   # 试渲：只出这几帧
-F0 = int(argv[3]) if len(argv) > 3 and not STILLS else 0
-F1 = int(argv[4]) if len(argv) > 4 else None
+CARDS, OUT = argv[0], argv[1]
+STILLS = [int(x) for x in argv[2].split(",")] if len(argv) > 2 and "," in argv[2] else None
+F0 = int(argv[2]) if len(argv) > 2 and not STILLS else 0
+F1 = int(argv[3]) if len(argv) > 3 else None
 
 FPS = 60
 BAR = 4 * 60 / 145.99
 DUR = 7 * BAR
 NF = int(round(DUR * FPS)) + 1
 CW, CH, CT = 1.0, 1.405, 0.03
-FLOOR = -1.0
+S1, S2 = int(2 * BAR * FPS), int(4 * BAR * FPS)
 
 
 def ease(x):
@@ -33,13 +33,16 @@ def ease(x):
     return 1 - (1 - x) ** 3
 
 
-# ---------------------------------------------------------------- 场景
+def ease_io(x):
+    x = min(1.0, max(0.0, x))
+    return x * x * (3 - 2 * x)
+
+
 bpy.ops.wm.read_factory_settings(use_empty=True)
 sc = bpy.context.scene
 sc.render.fps = FPS
 sc.frame_start, sc.frame_end = 0, NF - 1
 sc.render.resolution_x, sc.render.resolution_y = 1920, 1080
-sc.render.resolution_percentage = 100
 for eng in ("BLENDER_EEVEE_NEXT", "BLENDER_EEVEE"):
     try:
         sc.render.engine = eng
@@ -47,25 +50,21 @@ for eng in ("BLENDER_EEVEE_NEXT", "BLENDER_EEVEE"):
     except TypeError:
         pass
 ee = sc.eevee
-ee.taa_render_samples = 48
-for k, v in (("use_raytracing", True), ("volumetric_tile_size", "4"), ("volumetric_samples", 64), ("use_volumetric_shadows", True),
-             ("volumetric_end", 160.0), ("use_shadows", True), ("shadow_ray_count", 2), ("volumetric_ray_depth", 8)):
+ee.taa_render_samples = 32
+for k, v in (("use_raytracing", True), ("volumetric_tile_size", "2"), ("volumetric_samples", 64), ("use_volumetric_shadows", True),
+             ("volumetric_end", 80.0), ("volumetric_start", 0.1), ("use_shadows", True), ("shadow_ray_count", 2)):
     try:
         setattr(ee, k, v)
     except Exception as e:
         print("eevee skip", k, e)
 sc.render.use_motion_blur = True
-try:
-    sc.render.motion_blur_shutter = 0.45
-except Exception:
-    pass
+sc.render.motion_blur_shutter = 0.45
 sc.view_settings.view_transform = "AgX"
 try:
-    sc.view_settings.look = "AgX - Medium High Contrast"
+    sc.view_settings.look = "AgX - Punchy"
 except Exception:
     pass
 sc.render.image_settings.file_format = "PNG"
-sc.render.film_transparent = False
 
 
 def mat(name):
@@ -75,13 +74,18 @@ def mat(name):
     if "Principled BSDF" not in n:
         n.clear()
         o = n.new("ShaderNodeOutputMaterial")
+        o.name = "out"
         b = n.new("ShaderNodeBsdfPrincipled")
         b.name = "Principled BSDF"
         l.new(b.outputs[0], o.inputs["Surface"])
     return m, n, l
 
 
-# 世界：灰蓝水体 + 体积散射（光束靠它）
+def img(path):
+    return bpy.data.images.load(path, check_existing=True)
+
+
+# ---------------------------------------------------------------- 水体：上亮下暗的渐变 + 体积散射
 world = bpy.data.worlds.new("sea")
 sc.world = world
 world.use_nodes = True
@@ -90,223 +94,89 @@ wn.clear()
 wout = wn.new("ShaderNodeOutputWorld")
 wbg = wn.new("ShaderNodeBackground")
 wl.new(wbg.outputs[0], wout.inputs["Surface"])
-wbg.inputs["Color"].default_value = (0.16, 0.22, 0.26, 1)
-wbg.inputs["Strength"].default_value = 2.5
+tco = wn.new("ShaderNodeTexCoord")
+sep = wn.new("ShaderNodeSeparateXYZ")
+wl.new(tco.outputs["Generated"], sep.inputs[0])
+ramp = wn.new("ShaderNodeValToRGB")
+cr = ramp.color_ramp
+cr.elements[0].position, cr.elements[0].color = 0.30, (0.002, 0.008, 0.018, 1)   # 深处近黑的海军蓝
+cr.elements[1].position, cr.elements[1].color = 0.62, (0.025, 0.12, 0.19, 1)      # 水面方向的青蓝
+e = cr.elements.new(0.80)
+e.color = (0.2, 0.45, 0.58, 1)
+wl.new(sep.outputs["Z"], ramp.inputs[0])
+wl.new(ramp.outputs[0], wbg.inputs["Color"])
+wbg.inputs["Strength"].default_value = 1.0
 vol = wn.new("ShaderNodeVolumePrincipled")
-vol.inputs["Color"].default_value = (0.55, 0.72, 0.82, 1)
+vol.inputs["Color"].default_value = (0.3, 0.65, 0.8, 1)
 vol.inputs["Density"].default_value = 0.04
-vol.inputs["Anisotropy"].default_value = 0.55
+vol.inputs["Anisotropy"].default_value = 0.72
+vol.inputs["Absorption Color"].default_value = (0.02, 0.15, 0.25, 1)
 wl.new(vol.outputs[0], wout.inputs["Volume"])
 
-
-def img(path):
-    return bpy.data.images.load(path, check_existing=True)
-
-
-# ---------------------------------------------------------------- 海床
-bpy.ops.mesh.primitive_plane_add(size=90, location=(0, 10, FLOOR))
-floor = bpy.context.object
-floor.name = "seabed"
-bpy.ops.object.mode_set(mode="EDIT")
-bpy.ops.mesh.subdivide(number_cuts=180)
-bpy.ops.object.mode_set(mode="OBJECT")
-tex = bpy.data.textures.new("dunes", "CLOUDS")
-tex.noise_scale = 6.0
-tex.noise_depth = 3
-dm = floor.modifiers.new("dunes", "DISPLACE")
-dm.texture = tex
-dm.strength = 1.6
-dm.mid_level = 0.55
-# 镜头附近压平：用顶点组按到镜头的距离加权
-vg = floor.vertex_groups.new(name="far")
-for v in floor.data.vertices:
-    w = floor.matrix_world @ v.co
-    d = math.hypot(w.x, w.y - 1.0)
-    vg.add([v.index], min(1.0, max(0.0, (d - 4.0) / 10.0)), "REPLACE")
-dm.vertex_group = "far"
-sd = os.path.join(ASSETS, "coast_sand_01")
-m, n, l = mat("sand")
-bsdf = n["Principled BSDF"]
-tc = n.new("ShaderNodeTexCoord")
-mp = n.new("ShaderNodeMapping")
-mp.inputs["Scale"].default_value = (14, 14, 14)
-l.new(tc.outputs["UV"], mp.inputs["Vector"])
-dif = n.new("ShaderNodeTexImage"); dif.image = img(os.path.join(sd, "coast_sand_01_diff_2k.png"))
-nor = n.new("ShaderNodeTexImage"); nor.image = img(os.path.join(sd, "coast_sand_01_nor_gl_2k.png")); nor.image.colorspace_settings.name = "Non-Color"
-rou = n.new("ShaderNodeTexImage"); rou.image = img(os.path.join(sd, "coast_sand_01_rough_2k.png")); rou.image.colorspace_settings.name = "Non-Color"
-for t in (dif, nor, rou):
-    l.new(mp.outputs[0], t.inputs["Vector"])
-hsv = n.new("ShaderNodeHueSaturation")
-hsv.inputs["Saturation"].default_value = 0.35
-hsv.inputs["Value"].default_value = 0.75
-l.new(dif.outputs[0], hsv.inputs["Color"])
-l.new(hsv.outputs[0], bsdf.inputs["Base Color"])
-l.new(rou.outputs[0], bsdf.inputs["Roughness"])
-nm = n.new("ShaderNodeNormalMap")
-l.new(nor.outputs[0], nm.inputs["Color"])
-l.new(nm.outputs[0], bsdf.inputs["Normal"])
-# 焦散：4D Voronoi（W 随帧走）的边距 → 细亮网纹，当自发光叠在沙上
-vor = n.new("ShaderNodeTexVoronoi")
-vor.voronoi_dimensions = "4D"
-vor.feature = "DISTANCE_TO_EDGE"
-vor.inputs["Scale"].default_value = 0.9
-dn = n.new("ShaderNodeTexNoise"); dn.inputs["Scale"].default_value = 0.35; dn.inputs["Detail"].default_value = 2
-dmx = n.new("ShaderNodeMix"); dmx.data_type = "VECTOR"; dmx.inputs["Factor"].default_value = 0.55
-l.new(tc.outputs["Object"], dmx.inputs[4]); l.new(dn.outputs["Color"], dmx.inputs[5])
-l.new(tc.outputs["Object"], dn.inputs["Vector"])
-l.new(dmx.outputs[1], vor.inputs["Vector"])
-vor.inputs["W"].default_value = 0.0
-vor.inputs["W"].keyframe_insert("default_value", frame=0)
-vor.inputs["W"].default_value = 2.2
-vor.inputs["W"].keyframe_insert("default_value", frame=NF)
-cr = n.new("ShaderNodeMapRange")
-cr.inputs["From Min"].default_value = 0.0
-cr.inputs["From Max"].default_value = 0.035
-cr.inputs["To Min"].default_value = 0.22
-cr.inputs["To Max"].default_value = 0.0
-l.new(vor.outputs["Distance"], cr.inputs["Value"])
-l.new(cr.outputs[0], bsdf.inputs["Emission Strength"])
-bsdf.inputs["Emission Color"].default_value = (0.55, 0.75, 0.85, 1)
-floor.data.materials.append(m)
-bpy.ops.object.shade_smooth()
-
-# ---------------------------------------------------------------- Poly Haven 礁石 / 岩壁
-rock_src = {}
-for a in ("boulder_01", "coast_rocks_01", "coast_rocks_05", "rock_face_01", "sand_rocks_small_01"):
-    d = os.path.join(ASSETS, a)
-    bl = [f for f in os.listdir(d) if f.endswith(".blend")][0]
-    with bpy.data.libraries.load(os.path.join(d, bl), link=False) as (src, dst):
-        dst.objects = [o for o in src.objects]
-    objs = [o for o in dst.objects if o is not None and o.type == "MESH" and ("LOD" not in o.name or "LOD0" in o.name)]   # 只要最精细一档
-    rock_src[a] = objs
-    for o in objs:
-        for slot in o.material_slots:
-            if slot.material and slot.material.use_nodes:
-                for nd in slot.material.node_tree.nodes:
-                    if nd.type == "TEX_IMAGE" and nd.image and nd.image.filepath.startswith("//"):
-                        nd.image.filepath = os.path.join(d, nd.image.filepath[2:])
-for imgb in bpy.data.images:
-    imgb.reload()
-
-
-def place(a, loc, rot_z, size):
-    """把一套礁石按包围盒归一：最长边 = size 米，底面中点落在 loc"""
-    objs = rock_src[a]
-    pts = [o.matrix_world @ Vector(c) for o in objs for c in o.bound_box]
-    lo = Vector([min(p[i] for p in pts) for i in range(3)])
-    hi = Vector([max(p[i] for p in pts) for i in range(3)])
-    k = size / max(hi - lo)
-    base = Vector(((lo.x + hi.x) / 2, (lo.y + hi.y) / 2, lo.z))
-    root = bpy.data.objects.new("rock_" + a, None)
-    sc.collection.objects.link(root)
-    for o in objs:
-        c = o.copy()
-        c.data = o.data
-        sc.collection.objects.link(c)
-        c.parent = root
-        c.matrix_parent_inverse.identity()
-        c.matrix_basis = o.matrix_world.copy()
-        c.location = c.location - base
-    root.location = Vector(loc)
-    root.rotation_euler = (0, 0, rot_z)
-    root.scale = (k, k, k)
-
-
-rng = random.Random(21)
-for i in range(14):   # 两侧散落的礁石（最长边 1–3.5 米）
-    side = -1 if i % 2 == 0 else 1
-    a = rng.choice(["boulder_01", "coast_rocks_01", "coast_rocks_05", "sand_rocks_small_01"])
-    place(a, (side * rng.uniform(3.4, 13), rng.uniform(3, 20), FLOOR - 0.2), rng.uniform(0, 6.28), rng.uniform(1.0, 3.5))
-for x, y, sz in ((-15, 30, 11), (13, 34, 13), (2, 44, 15), (-6, 52, 14)):   # 远处大礁石剪影
-    place(rng.choice(["boulder_01", "coast_rocks_05"]), (x, y, FLOOR - 0.8), rng.uniform(0, 6.28), sz)
-
-# ---------------------------------------------------------------- 海草
-km, kn, kl = mat("kelp")
-kb = kn["Principled BSDF"]
-kb.inputs["Base Color"].default_value = (0.05, 0.1, 0.09, 1)
-kb.inputs["Roughness"].default_value = 0.6
-kb.inputs["Transmission Weight"].default_value = 0.3
-km.use_backface_culling = False
-for i in range(54):
-    hgt = rng.uniform(1.8, 5.2)
-    w = rng.uniform(0.06, 0.14)
-    seg = 18
-    verts, faces = [], []
-    for j in range(seg + 1):
-        t = j / seg
-        ww = w * (1 - 0.8 * t)
-        verts += [(t * hgt, -ww / 2, 0), (t * hgt, ww / 2, 0)]
-        if j:
-            b = 2 * (j - 1)
-            faces.append((b, b + 1, b + 3, b + 2))
-    me = bpy.data.meshes.new("kelp")
-    me.from_pydata(verts, [], faces)
-    ob = bpy.data.objects.new("kelp", me)
-    sc.collection.objects.link(ob)
-    me.materials.append(km)
-    side = -1 if i % 2 == 0 else 1
-    ob.location = (side * rng.uniform(2.4, 12) + rng.uniform(-0.5, 0.5), rng.uniform(1.5, 18), FLOOR - 0.05)
-    ob.rotation_euler = (rng.uniform(-0.1, 0.1), -math.pi / 2 + rng.uniform(-0.12, 0.12), rng.uniform(0, 6.28))
-    bd = ob.modifiers.new("sway", "SIMPLE_DEFORM")
-    bd.deform_method = "BEND"
-    bd.deform_axis = "Z"
-    ph = rng.uniform(0, 6.28)
-    for fr in range(0, NF + 12, 12):
-        bd.angle = math.radians(26) * math.sin(fr / FPS * 1.1 + ph)
-        bd.keyframe_insert("angle", frame=fr)
-
-# ---------------------------------------------------------------- 水面 + 光束遮罩
-bpy.ops.mesh.primitive_plane_add(size=140, location=(0, 12, 9.5))
+# ---------------------------------------------------------------- 水面（头顶发亮的波纹）+ 光束遮罩
+bpy.ops.mesh.primitive_plane_add(size=400, location=(0, 10, 30))
 surf = bpy.context.object
 sm, sn, sl = mat("surface")
 sb = sn["Principled BSDF"]
-sv = sn.new("ShaderNodeTexVoronoi"); sv.voronoi_dimensions = "4D"; sv.feature = "DISTANCE_TO_EDGE"; sv.inputs["Scale"].default_value = 0.35
+sv = sn.new("ShaderNodeTexVoronoi"); sv.voronoi_dimensions = "4D"; sv.feature = "DISTANCE_TO_EDGE"; sv.inputs["Scale"].default_value = 0.6
+stc = sn.new("ShaderNodeTexCoord"); snz = sn.new("ShaderNodeTexNoise"); snz.inputs["Scale"].default_value = 0.08
+smx = sn.new("ShaderNodeMix"); smx.data_type = "VECTOR"; smx.inputs["Factor"].default_value = 0.6
+sl.new(stc.outputs["Object"], smx.inputs[4]); sl.new(snz.outputs["Color"], smx.inputs[5]); sl.new(stc.outputs["Object"], snz.inputs["Vector"])
+sl.new(smx.outputs[1], sv.inputs["Vector"])
 sv.inputs["W"].default_value = 0; sv.inputs["W"].keyframe_insert("default_value", frame=0)
-sv.inputs["W"].default_value = 1.5; sv.inputs["W"].keyframe_insert("default_value", frame=NF)
-sr = sn.new("ShaderNodeMapRange"); sr.inputs["From Max"].default_value = 0.08; sr.inputs["To Min"].default_value = 4.0; sr.inputs["To Max"].default_value = 0.6
-sl.new(sv.outputs["Distance"], sr.inputs["Value"])
-sl.new(sr.outputs[0], sb.inputs["Emission Strength"])
-sb.inputs["Emission Color"].default_value = (0.7, 0.85, 0.95, 1)
-sb.inputs["Base Color"].default_value = (0.1, 0.15, 0.18, 1)
+sv.inputs["W"].default_value = 1.3; sv.inputs["W"].keyframe_insert("default_value", frame=NF)
+srg = sn.new("ShaderNodeMapRange"); srg.inputs["From Max"].default_value = 0.14; srg.inputs["To Min"].default_value = 2.2; srg.inputs["To Max"].default_value = 0.35
+sl.new(sv.outputs["Distance"], srg.inputs["Value"])
+sl.new(srg.outputs[0], sb.inputs["Emission Strength"])
+sb.inputs["Emission Color"].default_value = (0.65, 0.9, 1.0, 1)
+sb.inputs["Base Color"].default_value = (0.0, 0.0, 0.0, 1)
 surf.data.materials.append(sm)
 surf.visible_shadow = False
-# 光束遮罩：水面下一层带孔的板，太阳从孔里漏下来在雾里成光束
-bpy.ops.mesh.primitive_plane_add(size=140, location=(0, 12, 8.5))
+surf.hide_render = True   # 11-08 用户：水面网纹太明显 → 不画水面，头顶亮光只靠水体渐变 + 光束
+bpy.ops.mesh.primitive_plane_add(size=220, location=(0, 10, 13))
 gobo = bpy.context.object
 gm, gn, gl = mat("gobo")
 gbs = gn["Principled BSDF"]
-gnz = gn.new("ShaderNodeTexNoise"); gnz.inputs["Scale"].default_value = 0.45; gnz.inputs["Detail"].default_value = 3
-gcr = gn.new("ShaderNodeMapRange"); gcr.inputs["From Min"].default_value = 0.5; gcr.inputs["From Max"].default_value = 0.56
+gnz = gn.new("ShaderNodeTexNoise"); gnz.inputs["Scale"].default_value = 0.9; gnz.inputs["Detail"].default_value = 4; gnz.inputs["Distortion"].default_value = 0.6
+gcr = gn.new("ShaderNodeMapRange"); gcr.inputs["From Min"].default_value = 0.52; gcr.inputs["From Max"].default_value = 0.6
 gl.new(gnz.outputs["Fac"], gcr.inputs["Value"])
 gl.new(gcr.outputs[0], gbs.inputs["Alpha"])
-gbs.inputs["Base Color"].default_value = (0, 0, 0, 1)
 try:
     gm.surface_render_method = "DITHERED"
 except Exception:
-    gm.blend_method = "CLIP"
+    pass
 gobo.data.materials.append(gm)
 gobo.visible_camera = False
+for f in (0, NF):   # 遮罩缓慢漂移 → 光束晃动
+    gobo.location.x = 0.0 if f == 0 else 1.6
+    gobo.keyframe_insert("location", frame=f)
 
 # ---------------------------------------------------------------- 灯
-bpy.ops.object.light_add(type="SUN", rotation=(math.radians(14), math.radians(-8), 0))
+bpy.ops.object.light_add(type="SUN", rotation=(math.radians(10), math.radians(-6), 0))
 sun = bpy.context.object
-sun.data.energy = 9.0
-sun.data.color = (0.9, 0.96, 1.0)
-sun.data.angle = math.radians(1.5)
+sun.data.energy = 7.0
+sun.data.color = (0.75, 0.95, 1.0)
+sun.data.angle = math.radians(0.8)
 try:
-    sun.data.volume_factor = 3.0
+    sun.data.volume_factor = 6.0
 except Exception:
     pass
-bpy.ops.object.light_add(type="POINT", location=(0, -0.2, 0.6))
-flash = bpy.context.object
-flash.data.color = (0.75, 0.9, 1.0)
-flash.data.shadow_soft_size = 0.4
-bpy.ops.object.light_add(type="AREA", location=(-3, -4, 2.5))   # 卡面补光
+bpy.ops.object.light_add(type="AREA", location=(0, 6, 3))       # 逆光：卡和水母的亮边
+rim = bpy.context.object
+rim.data.energy = 2500
+rim.data.size = 6
+rim.data.color = (0.5, 0.85, 1.0)
+rim.rotation_euler = (math.radians(-100), 0, 0)
+bpy.ops.object.light_add(type="AREA", location=(-3.5, -5, 1.5))  # 卡面柔光
 fill = bpy.context.object
-fill.data.energy = 1500
-fill.data.size = 4
-fill.data.color = (0.8, 0.9, 1.0)
-fill.rotation_euler = (math.radians(70), 0, math.radians(-35))
+fill.data.energy = 700
+fill.data.size = 5
+fill.data.color = (0.8, 0.92, 1.0)
+fill.rotation_euler = (math.radians(75), 0, math.radians(-35))
+bpy.ops.object.light_add(type="POINT", location=(0, -0.4, 0.8))  # 重拍闪光
+flash = bpy.context.object
+flash.data.color = (0.7, 0.92, 1.0)
+flash.data.shadow_soft_size = 0.5
 
 # ---------------------------------------------------------------- 卡
 faces_img = []
@@ -317,9 +187,9 @@ while os.path.exists(os.path.join(CARDS, "c%d.png" % i)):
 back_img = img(os.path.join(CARDS, "_back.png"))
 silver, sn2, sl2 = mat("silver")
 sb2 = sn2["Principled BSDF"]
-sb2.inputs["Base Color"].default_value = (0.8, 0.84, 0.88, 1)
+sb2.inputs["Base Color"].default_value = (0.82, 0.88, 0.92, 1)
 sb2.inputs["Metallic"].default_value = 1.0
-sb2.inputs["Roughness"].default_value = 0.22
+sb2.inputs["Roughness"].default_value = 0.18
 
 
 def face_mat(im, k):
@@ -330,25 +200,24 @@ def face_mat(im, k):
     l.new(t.outputs[0], b.inputs["Base Color"])
     l.new(t.outputs[0], b.inputs["Emission Color"])
     b.inputs["Emission Strength"].default_value = k
-    b.inputs["Roughness"].default_value = 0.35
-    b.inputs["Coat Weight"].default_value = 0.6   # 卡面覆膜的一层高光
-    b.inputs["Coat Roughness"].default_value = 0.08
+    b.inputs["Roughness"].default_value = 0.3
+    b.inputs["Coat Weight"].default_value = 0.7
+    b.inputs["Coat Roughness"].default_value = 0.06
     return m
 
 
-face_mats = [face_mat(im, 1.1) for im in faces_img]
-back_mat = face_mat(back_img, 0.15)
+face_mats = [face_mat(im, 1.4) for im in faces_img]
+back_mat = face_mat(back_img, 0.5)
 
 
 def make_card(idx):
-    """原点在卡底边中点，正面朝 -Y"""
+    """原点在卡中心，正面朝 -Y"""
     bpy.ops.mesh.primitive_cube_add(size=1)
     body = bpy.context.object
     body.scale = (CW, CT, CH)
     bpy.ops.object.transform_apply(scale=True)
-    body.location = (0, 0, CH / 2)
     bv = body.modifiers.new("bevel", "BEVEL")
-    bv.width = 0.01
+    bv.width = 0.012
     bv.segments = 3
     body.data.materials.append(silver)
     root = bpy.data.objects.new("card", None)
@@ -359,17 +228,16 @@ def make_card(idx):
         q = bpy.context.object
         q.scale = (CW * 0.955, CH * 0.97, 1)
         q.rotation_euler = (math.radians(90) * -side, 0, math.pi if side == 1 else 0)
-        q.location = (0, side * (CT / 2 + 0.0015), CH / 2)
+        q.location = (0, side * (CT / 2 + 0.0015), 0)
         q.data.materials.append(mt)
         q.parent = root
     return root
 
 
-def vis(root, frames_on):
-    """frames_on(f) → 是否可见；按每帧插 hide_render 关键帧（只在切换处插）"""
+def vis(root, on_fn):
     last = None
     for f in range(NF):
-        on = frames_on(f)
+        on = on_fn(f)
         if on != last:
             for o in [root] + list(root.children):
                 o.hide_render = not on
@@ -377,184 +245,215 @@ def vis(root, frames_on):
             last = on
 
 
-S1, S2 = int(2 * BAR * FPS), int(4 * BAR * FPS)
-fall = []
+def key(o, f):
+    o.keyframe_insert("location", frame=f)
+    o.keyframe_insert("rotation_euler", frame=f)
+
+
 r2 = random.Random(11)
-for k in range(22):
+for k in range(24):   # 镜头一：翻转下沉
     c = make_card(k)
-    p0 = Vector((r2.uniform(-4.5, 4.5), -r2.uniform(-7.0, 1.5), r2.uniform(-0.5, 5.5)))
+    p0 = Vector((r2.uniform(-5.0, 5.0), r2.uniform(-1.0, 9.0), r2.uniform(0.5, 7.5)))
     r0 = Vector([math.radians(r2.uniform(-180, 180)) for _ in range(3)])
-    w = Vector([math.radians(r2.uniform(-60, 60)) for _ in range(3)])
-    v = r2.uniform(0.35, 0.7)
-    fall.append(c)
+    w = Vector([math.radians(r2.uniform(-55, 55)) for _ in range(3)])
+    v = r2.uniform(0.3, 0.65)
     for f in range(0, S1 + 2, 2):
         t = f / FPS
-        c.location = p0 + Vector((0, 0, -v * t))
+        c.location = p0 + Vector((0.08 * math.sin(t + k), 0, -v * t))
         c.rotation_euler = r0 + w * t
-        c.keyframe_insert("location", frame=f)
-        c.keyframe_insert("rotation_euler", frame=f)
+        key(c, f)
     vis(c, lambda f: f < S1)
-row = []
-for k in range(9):
+for k in range(9):    # 镜头二：悬在水里一排，依次翻面（绕竖轴转 180°，卡背 → 正面）
     c = make_card(k)
-    x = (k - 4) * 1.22
-    t_up = BAR * 2 + 0.25 + k * (BAR / 8)
+    x = (k - 4) * 1.3
+    zb = 0.25 * math.sin(k * 1.7)
+    t_up = BAR * 2 + 0.2 + k * (BAR / 8)
     for f in range(S1 - 2, NF, 2):
-        kk = ease((f / FPS - t_up) / 0.28)
-        c.location = (x, 1.0, FLOOR + 0.01)
-        c.rotation_euler = (math.radians(90) * (1 - kk), 0, 0)   # 卡背朝上平躺 → 立起翻出正面
-        c.keyframe_insert("location", frame=f)
-        c.keyframe_insert("rotation_euler", frame=f)
+        t = f / FPS
+        kk = ease((t - t_up) / 0.32)
+        c.location = (x, 1.0 + 0.3 * math.cos(k * 2.1), zb + 0.05 * math.sin(t * 1.3 + k))
+        c.rotation_euler = (0, math.radians(4 * math.sin(k)), math.radians(180) * (1 - kk))
+        key(c, f)
     vis(c, lambda f: f >= S1)
-hero = make_card(5)   # 斯卡蒂
+hero = make_card(5)   # 斯卡蒂：从右侧翻转着转到镜头前
 for f in range(S2 - 2, NF):
     lt = f / FPS - 4 * BAR
-    dk = ease(lt / 0.16)
-    hero.location = (0, -0.9, FLOOR + 2.6 * (1 - dk))
-    hero.rotation_euler = (0, math.radians(8) * (1 - dk), 0)
-    hero.keyframe_insert("location", frame=f)
-    hero.keyframe_insert("rotation_euler", frame=f)
+    dk = ease(lt / 0.22)
+    hero.location = (1.6 * (1 - dk), -1.0, 0.05 + 0.6 * (1 - dk) + 0.03 * math.sin(lt * 1.4))
+    hero.rotation_euler = (math.radians(-10) * (1 - dk), math.radians(25) * (1 - dk), math.radians(-150) * (1 - dk))
+    key(hero, f)
 vis(hero, lambda f: f >= S2)
 
-# ---------------------------------------------------------------- 水母（发光半透明伞 + 触须）
+# ---------------------------------------------------------------- 水母：半透明伞，边缘按视角发青白光（菲涅尔），触须细而弯
 jm, jn, jl = mat("jelly")
-jb = jn["Principled BSDF"]
-jb.inputs["Base Color"].default_value = (0.5, 0.75, 1.0, 1)
-jb.inputs["Emission Color"].default_value = (0.35, 0.7, 1.0, 1)
-jb.inputs["Emission Strength"].default_value = 0.8
-jb.inputs["Alpha"].default_value = 0.3
-jb.inputs["Transmission Weight"].default_value = 0.6
+jout = jn["out"]
+jn.remove(jn["Principled BSDF"])
+lw = jn.new("ShaderNodeLayerWeight"); lw.inputs["Blend"].default_value = 0.35
+em = jn.new("ShaderNodeEmission"); em.inputs["Color"].default_value = (0.45, 0.85, 1.0, 1)
+pw = jn.new("ShaderNodeMath"); pw.operation = "MULTIPLY"; pw.inputs[1].default_value = 7.0
+jl.new(lw.outputs["Facing"], pw.inputs[0]); jl.new(pw.outputs[0], em.inputs["Strength"])
+tr = jn.new("ShaderNodeBsdfTransparent")
+add = jn.new("ShaderNodeAddShader")
+jl.new(tr.outputs[0], add.inputs[0]); jl.new(em.outputs[0], add.inputs[1])
+jl.new(add.outputs[0], jout.inputs["Surface"])
 try:
     jm.surface_render_method = "BLENDED"
 except Exception:
-    jm.blend_method = "BLEND"
+    pass
 r3 = random.Random(5)
-for k in range(8):
-    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.22, segments=24, ring_count=12)
+for k in range(10):
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.3, segments=32, ring_count=16)
     bell = bpy.context.object
-    bell.scale = (1, 1, 0.62)
+    bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.mesh.select_all(action="DESELECT")
+    bpy.ops.object.mode_set(mode="OBJECT")
+    for v in bell.data.vertices:   # 去掉下半球 → 伞
+        v.select = v.co.z < -0.02
+    bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.mesh.delete(type="VERT")
+    bpy.ops.object.mode_set(mode="OBJECT")
     bell.data.materials.append(jm)
     bpy.ops.object.shade_smooth()
-    p = Vector((r3.uniform(-6, 6), r3.uniform(3, 12), r3.uniform(-0.5, 4.0)))
-    for tk in range(7):
-        bpy.ops.mesh.primitive_cylinder_add(radius=0.0025, depth=0.8, vertices=5)
-        tn = bpy.context.object
-        a = tk / 7 * 6.28
-        tn.location = (math.cos(a) * 0.12, math.sin(a) * 0.12, -0.42)
-        tn.data.materials.append(jm)
-        tn.parent = bell
-    sp, ph = r3.uniform(0.08, 0.2), r3.uniform(0, 6.28)
-    for f in range(0, NF + 6, 6):
+    for tk in range(9):   # 触须：带粗细的曲线
+        cu = bpy.data.curves.new("tent", "CURVE")
+        cu.dimensions = "3D"
+        cu.bevel_depth = 0.004 if tk % 3 else 0.008
+        spl = cu.splines.new("BEZIER")
+        L = r3.uniform(0.6, 1.4)
+        spl.bezier_points.add(3)
+        a = tk / 9 * 6.28
+        for j, bp in enumerate(spl.bezier_points):
+            tt = j / 3
+            bp.co = (math.cos(a) * 0.2 * (1 - 0.4 * tt) + 0.08 * math.sin(j * 1.7 + tk), math.sin(a) * 0.2 * (1 - 0.4 * tt), -L * tt)
+            bp.handle_left_type = bp.handle_right_type = "AUTO"
+        to = bpy.data.objects.new("tent", cu)
+        sc.collection.objects.link(to)
+        cu.materials.append(jm)
+        to.parent = bell
+    p = Vector((r3.uniform(-7, 7), r3.uniform(2, 14), r3.uniform(-2.5, 5.5)))
+    if k < 2:
+        p = Vector(((-2.2, 2.4)[k], 2.2, (1.4, 0.2)[k]))   # 两只近景
+    sp_, ph = r3.uniform(0.06, 0.16), r3.uniform(0, 6.28)
+    for f in range(0, NF + 4, 4):
         t = f / FPS
-        bell.location = p + Vector((0.15 * math.sin(t * 0.7 + ph), 0, sp * t + 0.05 * math.sin(t * 2.4 + ph)))
-        s = 1 + 0.08 * math.sin(t * 2.4 + ph)
-        bell.scale = (s, s, 0.62 / s)
+        bell.location = p + Vector((0.12 * math.sin(t * 0.6 + ph), 0, sp_ * t + 0.06 * math.sin(t * 2.2 + ph)))
+        s = 1 + 0.1 * math.sin(t * 2.2 + ph)
+        bell.scale = (s, s, 0.7 / s)
+        bell.rotation_euler = (math.radians(8 * math.sin(t * 0.8 + ph)), math.radians(6 * math.cos(t * 0.7 + ph)), 0)
         bell.keyframe_insert("location", frame=f)
         bell.keyframe_insert("scale", frame=f)
+        bell.keyframe_insert("rotation_euler", frame=f)
 
-# ---------------------------------------------------------------- 气泡
-bm2, bn2, bl2 = mat("bubble")
-bb = bn2["Principled BSDF"]
-bb.inputs["Emission Color"].default_value = (0.9, 0.97, 1.0, 1)
-bb.inputs["Emission Strength"].default_value = 1.2
-bb.inputs["Base Color"].default_value = (0.9, 0.95, 1.0, 1)
-bpy.ops.mesh.primitive_ico_sphere_add(radius=0.012, subdivisions=1, location=(0, 0, -50))
-bub = bpy.context.object
-bub.data.materials.append(bm2)
-bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 4, 2.5))
-em = bpy.context.object
-em.scale = (18, 18, 7)
-em.visible_camera = False
-em.visible_shadow = False
-ps = em.modifiers.new("bubbles", "PARTICLE_SYSTEM").particle_system.settings
-ps.count = 2200
+# ---------------------------------------------------------------- 悬浮颗粒（浅景深下成光斑）
+pm_, pn, pl = mat("mote")
+pb = pn["Principled BSDF"]
+pb.inputs["Emission Color"].default_value = (0.75, 0.95, 1.0, 1)
+pb.inputs["Emission Strength"].default_value = 2.0
+pb.inputs["Base Color"].default_value = (0.8, 0.95, 1.0, 1)
+bpy.ops.mesh.primitive_ico_sphere_add(radius=0.01, subdivisions=1, location=(0, 0, -80))
+mote = bpy.context.object
+mote.data.materials.append(pm_)
+bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 5, 2))
+emi = bpy.context.object
+emi.scale = (22, 22, 14)
+ps = emi.modifiers.new("motes", "PARTICLE_SYSTEM").particle_system.settings
+ps.count = 3500
 ps.frame_start = -900
 ps.frame_end = NF
-ps.lifetime = 1600
+ps.lifetime = 1800
 ps.emit_from = "VOLUME"
 ps.normal_factor = 0
-ps.factor_random = 0.08
-ps.effector_weights.gravity = -0.015
+ps.factor_random = 0.05
+ps.effector_weights.gravity = -0.008
 ps.render_type = "OBJECT"
-ps.instance_object = bub
+ps.instance_object = mote
 ps.particle_size = 1.0
-ps.size_random = 0.7
-em.show_instancer_for_render = False
+ps.size_random = 0.8
+emi.show_instancer_for_render = False
+emi.visible_camera = False
+emi.visible_shadow = False   # 发射体立方体投影会在体积光里切出直边明暗块
 
 # ---------------------------------------------------------------- 镜头
 cam_d = bpy.data.cameras.new("cam")
 cam_d.sensor_fit = "VERTICAL"
-cam_d.angle_y = math.radians(38)
+cam_d.angle_y = math.radians(36)
 cam_d.dof.use_dof = True
-cam_d.dof.aperture_fstop = 1.6
+cam_d.dof.aperture_fstop = 1.4
 cam = bpy.data.objects.new("cam", cam_d)
 sc.collection.objects.link(cam)
 sc.camera = cam
 tgt = bpy.data.objects.new("tgt", None)
 sc.collection.objects.link(tgt)
-tr = cam.constraints.new("TRACK_TO")
-tr.target = tgt
-tr.track_axis = "TRACK_NEGATIVE_Z"
-tr.up_axis = "UP_Y"
+tc_ = cam.constraints.new("TRACK_TO")
+tc_.target = tgt
+tc_.track_axis = "TRACK_NEGATIVE_Z"
+tc_.up_axis = "UP_Y"
 for f in range(NF):
     t = f / FPS
-    if f < S1:
-        u = t / (2 * BAR)
-        cl, tl, fd = (0.2, -(6.0 - 1.4 * u), 2.6 - 0.8 * u), (0, 2.0, 1.6 - 0.8 * u), 6.2 - 1.2 * u
-        fl = 0.0
-    elif f < S2:
-        u = (t - 2 * BAR) / (2 * BAR)
-        cl, tl, fd = (-4.2 + 6.0 * u, -2.6, -0.72), (-2.4 + 6.0 * u, 1.0, -0.45), 3.7
-        fl = 0.0
+    fl = 0.0
+    if f < S1:   # 微仰，缓缓下潜前推
+        u = ease_io(t / (2 * BAR))
+        cl, tl, fd = (0.3 - 0.4 * u, -6.0 + 1.6 * u, 0.6 - 0.9 * u), (0, 4.0, 2.6 - 1.4 * u), 6.0 - 1.0 * u
+    elif f < S2:   # 横移看一排卡
+        u = ease_io((t - 2 * BAR) / (2 * BAR))
+        cl, tl, fd = (-4.6 + 7.0 * u, -3.2, 0.25), (-2.6 + 7.0 * u, 1.0, 0.05), 4.4
     else:
         lt = t - 4 * BAR
         pk = ease(max(0.0, lt - 0.3) / (3 * BAR - 0.3))
-        cl = (0, -(4.6 - 2.05 * pk), -0.3)
-        tl = (0, -0.9, FLOOR + CH / 2 + 0.08)
-        fd = math.dist(cl, tl)
-        fl = max(0.0, 1 - lt / 0.35)
-    cam.location = cl
-    tgt.location = tl
+        cl = (0.0, -(4.4 - 1.9 * pk), 0.15)
+        tl = (0.0, -1.0, 0.08)
+        fd = math.dist(cl, (0, -1.0, 0.08))
+        fl = max(0.0, 1 - lt / 0.4)
+    cam.location, tgt.location = cl, tl
     cam_d.dof.focus_distance = fd
-    flash.data.energy = 40 + 900 * fl
+    flash.data.energy = 30 + 1400 * fl
     cam.keyframe_insert("location", frame=f)
     tgt.keyframe_insert("location", frame=f)
     cam_d.dof.keyframe_insert("focus_distance", frame=f)
     flash.data.keyframe_insert("energy", frame=f)
-    ex = 0.0
-    if f >= S2:
-        ex = 2.2 * ease((t - (DUR - 0.35)) / 0.35)
-    sc.view_settings.exposure = ex
+    sc.view_settings.exposure = 2.4 * ease((t - (DUR - 0.35)) / 0.35) if f >= S2 else 0.0
     sc.view_settings.keyframe_insert("exposure", frame=f)
-
-# 切镜处的关键帧不插值：全部改成常量 → 用线性（跨镜头的那一帧由 hide_render 切）
 for a in bpy.data.actions:
     for fc in a.fcurves:
         for kp in fc.keyframe_points:
             kp.interpolation = "LINEAR"
 
+# ---------------------------------------------------------------- 合成：bloom + 轻色散
+sc.use_nodes = True
+cn, cl_ = sc.node_tree.nodes, sc.node_tree.links
+cn.clear()
+rl = cn.new("CompositorNodeRLayers")
+gl_ = cn.new("CompositorNodeGlare")
+try:
+    gl_.glare_type = "BLOOM"
+except Exception:
+    gl_.glare_type = "FOG_GLOW"
+for k, v in (("quality", "HIGH"), ("threshold", 0.8), ("size", 8), ("mix", -0.55)):
+    try:
+        setattr(gl_, k, v)
+    except Exception:
+        pass
+for nm, v in (("Threshold", 0.8), ("Strength", 0.5), ("Size", 0.6)):
+    try:
+        gl_.inputs[nm].default_value = v
+    except Exception:
+        pass
+ld = cn.new("CompositorNodeLensdist")
+try:
+    ld.inputs["Dispersion"].default_value = 0.012
+    ld.inputs["Distortion"].default_value = 0.0
+except Exception:
+    pass
+co = cn.new("CompositorNodeComposite")
+cl_.new(rl.outputs["Image"], gl_.inputs["Image"])
+cl_.new(gl_.outputs["Image"], ld.inputs["Image"])
+cl_.new(ld.outputs["Image"], co.inputs["Image"])
+
 os.makedirs(OUT, exist_ok=True)
-sc.render.filepath = OUT.replace("\\", "/") + "/f"
 sc.frame_start = F0
-sc.frame_end = (F1 if F1 is not None else NF - 1)
-print("PV3D-BLENDER frames", sc.frame_start, sc.frame_end, "engine", sc.render.engine, flush=True)
-if os.environ.get("PV3D_DBG"):
-    for f in (30, 230, 420):
-        sc.frame_set(f)
-        cl = cam.matrix_world.translation
-        hits = []
-        for o in sc.objects:
-            if o.type != "MESH" or o.hide_render:
-                continue
-            bb = [o.matrix_world @ Vector(c) for c in o.bound_box]
-            lo = Vector([min(v[i] for v in bb) for i in range(3)])
-            hi = Vector([max(v[i] for v in bb) for i in range(3)])
-            if all(lo[i] <= cl[i] <= hi[i] for i in range(3)):
-                hits.append(o.name)
-        print("PV3D dbg", f, tuple(round(x, 2) for x in cl), hits, flush=True)
-    sys.exit(0)
+sc.frame_end = F1 if F1 is not None else NF - 1
+print("PV3D-BLENDER", sc.render.engine, sc.frame_start, sc.frame_end, flush=True)
 if STILLS:
-    import time
     for f in STILLS:
         t0 = time.time()
         sc.frame_set(f)
@@ -562,4 +461,5 @@ if STILLS:
         bpy.ops.render.render(write_still=True)
         print("PV3D still", f, "%.1f s" % (time.time() - t0), flush=True)
 else:
+    sc.render.filepath = OUT.replace("\\", "/") + "/f"
     bpy.ops.render.render(animation=True)
