@@ -80,6 +80,9 @@ def condensed(text, font, squeeze=0.78):
 _BG = None
 
 
+OP_CX = 1300   # 干员脚底中心 x；光束与脚下光圈都对它
+
+
 def game_bg(i, n_frames=99):
     """游戏自己的像素海底（标题页 ui/title_deep/bg.png，428×240）×5 最近邻；整段缓慢右移 40 px（每像素格 5 px 的整数步）；
     一束顶光、远处标题页像素水母慢漂、方块海雪上浮（11-08 用户：背景用我们的像素背景）"""
@@ -94,7 +97,7 @@ def game_bg(i, n_frames=99):
     y0 = (_BG.height - H) // 2
     img = _BG.crop((x0, y0, x0 + W, y0 + H)).convert("RGBA")
     shaft = Image.new("L", (W, H), 0)
-    ImageDraw.Draw(shaft).polygon([(1240, LB), (1480, LB), (1680, H - LB), (1060, H - LB)], fill=46)
+    ImageDraw.Draw(shaft).polygon([(OP_CX - 110, LB), (OP_CX + 110, LB), (OP_CX + 300, H - LB), (OP_CX - 300, H - LB)], fill=52)
     img.paste((170, 235, 240, 255), (0, 0), shaft.filter(ImageFilter.GaussianBlur(30)))
     for j, (x, y, kk) in enumerate(((300, 210, 2), (760, 160, 1), (1760, 260, 2))):
         jf = Image.open(ART + "/ui/title_deep/jelly_%d.png" % (j % 3)).convert("RGBA")
@@ -132,35 +135,56 @@ def render(bg_dir, out_dir, op, n_frames=None):
     for i, fn in enumerate(bgs):
         t = i / FPS
         im = game_bg(i, len(bgs)) if fn == "game" else Image.open(os.path.join(bg_dir, fn)).convert("RGBA")
-        # 干员：右侧，脚底贴画面下缘
+        # 干员：脚底贴画面下缘，站在光束里；脚下一圈光
         fr = _frame_at(seq, t)
         opi = fr.resize((fr.width * k, fr.height * k), Image.NEAREST)
-        ox, oy = 1300 - opi.width // 2, H - LB - opi.height + 8   # 偏右，避开背景灯塔
+        ox, oy = OP_CX - opi.width // 2, H - LB - opi.height + 8
+        pool = Image.new("L", (W, H), 0)
+        ImageDraw.Draw(pool).ellipse((OP_CX - 330, H - LB - 60, OP_CX + 330, H - LB + 50), fill=90)
+        im.paste((170, 235, 240, 255), (0, 0), pool.filter(ImageFilter.GaussianBlur(24)))
+        lit = ease((i - 4) / 26)   # 从暗处亮起：先是剪影，约 0.5 秒亮到原色
+        if lit < 1:
+            from PIL import ImageEnhance
+            a_ = opi.getchannel("A")
+            opi = ImageEnhance.Brightness(opi.convert("RGB")).enhance(0.08 + 0.92 * lit).convert("RGBA")
+            opi.putalpha(a_)
         rim = Image.new("RGBA", opi.size, (94, 230, 230, 0))
-        rim.putalpha(opi.getchannel("A"))
+        rim.putalpha(opi.getchannel("A").point(lambda v: int(v * (0.3 + 0.7 * lit))))
         im.alpha_composite(rim, (ox - 6, oy - 6))
         im.alpha_composite(opi, (ox, oy))
+        # 镜头运动：开头贴近人物，0.8 秒缓缓拉开到全景，之后极慢微推
+        z = 1.0 + 0.14 * (1 - ease(i / 48)) + 0.015 * min(1.0, i / len(bgs))
+        if z > 1.0005:
+            fx, fy = OP_CX, H * 0.55
+            cw, ch = W / z, H / z
+            x0 = min(max(0, fx - cw * (fx / W)), W - cw); y0 = min(max(0, fy - ch * (fy / H)), H - ch)
+            im = im.crop((int(x0), int(y0), int(x0 + cw), int(y0 + ch))).resize((W, H), Image.NEAREST)
         d = ImageDraw.Draw(im)
+        TX0 = 30   # 文字在镜头拉开之后才出：代号第 30 帧起故障出字，小字随后淡入
         # 左上 2×2 小方格
-        for (x, y, s) in ((120, 236, 10), (160, 270, 8)):
+        for (x, y, s) in (((120, 236, 10), (160, 270, 8)) if i >= TX0 else ()):
             d.rectangle((x, y, x + s, y + s), fill=T.INK)
             d.rectangle((x + s, y + s, x + 2 * s, y + 2 * s), fill=T.INK)
-        T.tracked(d, (124, 330), "‹  方舟幸存者  ›", T.sans(22, 500), T.INK, 0.08)
+        if i >= TX0 + 4:
+            T.tracked(d, (124, 330), "‹  方舟幸存者  ›", T.sans(22, 500), T.INK, 0.08)
         # 超大代号：前 5 帧故障出字
         nx, ny = 112, 372
-        if i < 5:
+        gi = i - TX0
+        if gi < 0:
+            pass
+        elif gi < 5:
             tint = Image.new("RGBA", nm.size, (94, 230, 230, 255))
             tint.putalpha(nm.getchannel("A").point(lambda a: int(a * 0.8)))
             im.alpha_composite(tint, (nx + rnd.randint(8, 24), ny))
             hh = nm.height // 5
             for kk in range(5):
-                if rnd.random() < 0.3 + i * 0.15:
+                if rnd.random() < 0.3 + gi * 0.15:
                     sl = nm.crop((0, kk * hh, nm.width, (kk + 1) * hh))
-                    im.alpha_composite(sl, (nx + rnd.randint(-50, 50) * (5 - i) // 5, ny + kk * hh))
+                    im.alpha_composite(sl, (nx + rnd.randint(-50, 50) * (5 - gi) // 5, ny + kk * hh))
         else:
             im.alpha_composite(nm, (nx, ny))
         # 小字簇：第 6 帧起淡入
-        a = ease((i - 6) / 8)
+        a = ease((i - TX0 - 8) / 10)
         if a > 0:
             lay = Image.new("RGBA", im.size, (0, 0, 0, 0))
             ld = ImageDraw.Draw(lay)
