@@ -68,3 +68,7 @@
 - `pending()` / `pending_tickets()` 两项都算，三连没开放也算，所以角标最多是「领 10 张」。
 - 浮层两张卡并排，各一枚「领取」（`check(id)` 只查这一项）。Enter 把能领的项都查一遍，原来的「检查并领取」大按钮删掉了。
 - 测试：`toy_support_test` 新增统一文案、角标 10、没配视频不能领、两卡并排、单项领取。用 `TS.bv_test = ""` 模拟没配视频。
+
+## 6. 结算页入口去掉（11-08 用户）
+
+结算页不再放「支持作者」按钮，藏品格恢复原样（最多 7 个）。入口只留标题页和寻访页。`settlement_screen.sup_button / sup_label` 和 `settle_report.support_rect` 已删。§4、§5 里结算页那部分作废。

@@ -1,7 +1,8 @@
 extends RefCounted
 ## B站 Toy「支持作者」奖励（docs/313，用户 11-07 定）：只在 Toy 版出现，附加奖励、不设任何门槛（docs/99：免交互可玩、主线不强制关注）。
-##   关注作者 → 一次性送 REWARD 张寻访凭证；
+##   关注作者 → 一次性送 REWARD 张寻访凭证 + 专属结算分享卡边框；
 ##   三连指定视频（点赞 + 投币 + 收藏，balance toy/support_bvid）→ 一次性 REWARD 张凭证 + 专属结算分享卡边框。
+##   11-08 用户：边框两项都送，领了任意一项就解锁（frame_unlocked）；云存档 tsup 取并集，合并后任一项在就算解锁。
 ##   11-08 用户：两项合成一个入口（entry_label），浮层里并排各自领取；support_bvid 留空时三连照样列出、写「PV 发布后开放」并置灰（triple_open）。
 ## 不做称号；不解锁干员 / 数值 / 难度。领取状态 Cfg.toy_support（本地存档 + 云存档 prog.tsup 取并集，docs/89）；
 ## 前端校验可被破解，无所谓（奖励本就是附加的）。SDK 查询在 tools/web/support.js（window.__sySupport），这里只管规则与记账。
@@ -100,9 +101,12 @@ static func pending_tickets() -> int:
 	return n
 
 
-## 分享卡专属边框（三连领过）
+## 分享卡专属边框：关注、三连领过任意一项（11-08 用户）
 static func frame_unlocked() -> bool:
-	return claimed("triple")
+	for id in ITEMS:
+		if claimed(id):
+			return true
+	return false
 
 
 ## 一项的查询结果 → 记账。status：yes / no / unsupported / login / err（support.js 的约定）；detail：triple 缺的几项（like,coin,fav）。
@@ -115,11 +119,11 @@ static func apply(id: String, status: String, detail := "") -> Dictionary:
 		return {"granted": 0, "msg": "PV 发布后开放"}
 	match status:
 		"yes":
+			var frame_had := frame_unlocked()
 			Cfg.toy_support.append(id)
 			Cfg.roster_tickets[Roster.T_HUNT] = Roster.tickets() + REWARD
 			Cfg.save()
-			var extra := "和专属分享卡边框" if id == "triple" else ""
-			return {"granted": REWARD, "msg": "已领取：寻访凭证 ×%d%s" % [REWARD, extra]}
+			return {"granted": REWARD, "msg": "已领取：寻访凭证 ×%d%s" % [REWARD, "" if frame_had else "和专属分享卡边框"]}
 		"no":
 			if id == "follow":
 				return {"granted": 0, "msg": "还没有关注作者"}
