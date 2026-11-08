@@ -1,0 +1,7 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4857 项）
+render_prep 完成，用时 3 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+pc ['SHOP SHOT panel=(1163.636, 654.5454) ins=[0.0, 0.0, 0.0, 0.0] form=0', 'SHOP SHOT detail'] [] 
+ph844 ['SHOP SHOT panel=(1070.974, 494.9304) ins=[0.0, 0.0, 0.0, 0.0] form=2', 'SHOP SHOT detail'] [] 
+ph956 ['SHOP SHOT panel=(1075.099, 494.9304) ins=[76.0, 56.0, 76.0, 27.0] form=2', 'SHOP SHOT detail'] [] 
+media：15 个文件，3.1M
