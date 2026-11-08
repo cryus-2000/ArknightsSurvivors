@@ -59,15 +59,34 @@ tip_x = int(np.mean(np.where(left[tip_y + 3])[0]))
 tower_w = int(left[tip_y + 40].sum())
 LAMP_W = (tip_x - cliff.width / 2, tip_y + max(18, tower_w * 0.9) - cliff.height / 2)   # 塔尖往下约一个塔宽 = 灯室
 # 海嗣：游戏滑动者 5 帧
-sl = [Image.open(os.path.join(AS, "slider_%d.png" % i)).convert("RGBA") for i in range(4)]   # 帧条按透明缝切出 4 帧
-K = 6
+# 海嗣：用户 11-08 改为也用生成图（按参考图一的那只），只此一张；触手摆动靠逐行横向位移
+sb = cut("pl_seaborn")
+sb = sb.crop(sb.getbbox())
+sb = sb.resize((int(sb.width * 0.62), int(sb.height * 0.62)), Image.NEAREST)
+SBA = np.asarray(sb)
+
+
+def wobble(t):
+    """触手摆动：图下 65% 每行按正弦横移（越往下越大），头不动"""
+    h_, w_ = SBA.shape[:2]
+    out = np.zeros_like(SBA)
+    y0 = int(h_ * 0.35)
+    out[:y0] = SBA[:y0]
+    for y in range(y0, h_):
+        k = (y - y0) / (h_ - y0)
+        dx = int(round(10 * k * k * math.sin(t * 3.2 + y * 0.045)))
+        out[y] = np.roll(SBA[y], dx, axis=0)
+    return Image.fromarray(out, "RGBA")
+
+
+K = 1
 # 礁顶位置（礁石层坐标，层中心为原点）：在礁石 alpha 里找最高点
 ra = np.asarray(rock)[..., 3] > 128
 cols = np.where(ra.any(0))[0]
 top_y = np.argmax(ra.any(1))
 top_x = int(np.mean(np.where(ra[top_y + 6])[0]))
 TOP = (top_x - rock.width / 2, top_y - rock.height / 2)
-BOT = (TOP[0] - 130, TOP[1] + 340)   # 沿礁石左坡往上爬
+BOT = (TOP[0] - 160, TOP[1] + 380)   # 沿礁石左坡往上爬
 
 cam_x = [(0, -60), (NF, 40)]
 cam_s = [(0, 1.0), (NF, 1.07)]
@@ -82,7 +101,7 @@ for i in FR:
     lx, ly, ls = F._xf(LAMP_W[0] - 40, LAMP_W[1] - 10, 0.3)
     u = track([(0, 0.0), (B(1), 0.5), (B(2) - 20, 0.98), (B(2), 1.0)], i)
     prog = min(1.0, i / max(1, B(2)))
-    sx, sy, _ = F._xf(420 + BOT[0] + (TOP[0] - BOT[0]) * prog * 0.98, 400 + BOT[1] + (TOP[1] - BOT[1]) * prog * 0.98 - 120, 1.0)
+    sx, sy, _ = F._xf(420 + BOT[0] + (TOP[0] - BOT[0]) * prog * 0.98, 400 + BOT[1] + (TOP[1] - BOT[1]) * prog * 0.98 - 60, 1.0)
     ang_lock = math.atan2(sy - ly, sx - lx)
     ang = 0.02 + (ang_lock - 0.02) * u if i < B(2) else ang_lock   # 从贴着海平线开始扫
     sw = 0.045 + 0.01 * math.sin(t * 2)
@@ -95,18 +114,23 @@ for i in FR:
     F.sprite(sea, 0, -40 + 4 * math.sin(t * 1.3), 0.55)   # 海面上沿对齐天空图的海平线
     F.sprite(rock, 420, 400, 1.0)
     # 海嗣沿礁石往上爬（8 fps 换帧），照住后透出暖光
-    fr = sl[(i // 8) % 4]
+    fr = wobble(t)
     hit = 0.0 if i < B(2) else min(1.0, (i - B(2)) / 6)
     if hit > 0:
         lay = Image.new("RGBA", fr.size, WARM + (0,))
-        lay.putalpha(fr.getchannel("A").point(lambda v: int(v * 0.45 * hit)))
+        lay.putalpha(fr.getchannel("A").point(lambda v: int(v * 0.22 * hit)))
         fr = fr.copy(); fr.alpha_composite(lay)
-        fr = ImageEnhance.Brightness(fr).enhance(1.0 + 0.6 * hit)
+        fr = ImageEnhance.Brightness(fr).enhance(0.8 + 0.35 * hit)
     else:
-        fr = ImageEnhance.Brightness(fr).enhance(0.6)
+        fr = ImageEnhance.Brightness(fr).enhance(0.75)
     px = BOT[0] + (TOP[0] - BOT[0]) * prog * 0.98
-    py = BOT[1] + (TOP[1] - BOT[1]) * prog * 0.98
-    F.sprite(fr, 420 + px, 400 + py, 1.0, K, anchor=(0.5, 0.92))
+    py = BOT[1] + (TOP[1] - BOT[1]) * prog * 0.98 + 60
+    F.sprite(fr, 420 + px, 400 + py, 1.0, K, anchor=(0.42, 0.55))   # 身子趴在礁石上，触手垂下抓住岩面
     F.sprite(fore, 0, 520, 1.7)
+    # 整幅统一像素化：4×4 屏幕像素一格（用户 11-08：生图的也得像素化）
+    PX = 4
+    small = F.im.convert("RGB").resize((W // PX, H // PX), Image.BOX)
+    small = small.quantize(colors=64, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert("RGB")
+    F.im = small.resize((W, H), Image.NEAREST).convert("RGBA")
     finish(F.im, i).save(os.path.join(OUT, "a%04d.png" % i))
 print(NF, "LAMP", LAMP_W, "TOP", TOP)
