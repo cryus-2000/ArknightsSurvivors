@@ -92,12 +92,14 @@ wn, wl = world.node_tree.nodes, world.node_tree.links
 wn.clear()
 wout = wn.new("ShaderNodeOutputWorld")
 wbg = wn.new("ShaderNodeBackground")
-wbg.inputs["Color"].default_value = (0.0015, 0.005, 0.011, 1)
+wbg.inputs["Color"].default_value = (0.0022, 0.0055, 0.012, 1)
 wl.new(wbg.outputs[0], wout.inputs["Surface"])
 vol = wn.new("ShaderNodeVolumePrincipled")
 vol.inputs["Color"].default_value = (0.3, 0.7, 0.9, 1)
 vol.inputs["Density"].default_value = 0.04
 vol.inputs["Anisotropy"].default_value = 0.6
+vol.inputs["Emission Color"].default_value = (0.03, 0.09, 0.14, 1)   # 同 pv3d_deep：暗而不死黑（docs/327 §14）
+vol.inputs["Emission Strength"].default_value = 0.012
 wl.new(vol.outputs[0], wout.inputs["Volume"])
 
 # ---------------------------------------------------------------- 像素入场帧：拆成单帧图，按时间换贴图
@@ -204,6 +206,26 @@ for f in range(NF + 1):
     ring_em.inputs["Strength"].default_value = 12.0 * max(0.0, 1 - max(q, 0))
     ring_em.inputs["Strength"].keyframe_insert("default_value", frame=f)
 
+# ---------------------------------------------------------------- 脚下接触光（docs/327 §15：像素干员要有边光 / 接触光，别平贴在空中）
+bpy.ops.mesh.primitive_plane_add(size=1, location=(0, 0, 0.005))
+cg = bpy.context.object
+cg.scale = (1.6, 1.0, 1)
+cgm, cn_, cl2, co_ = mat("contact")
+gtc = cn_.new("ShaderNodeTexCoord"); grd = cn_.new("ShaderNodeTexGradient"); grd.gradient_type = "SPHERICAL"
+gmp = cn_.new("ShaderNodeMapping"); gmp.inputs["Scale"].default_value = (2.0, 2.0, 2.0)
+cl2.new(gtc.outputs["Object"], gmp.inputs["Vector"]); cl2.new(gmp.outputs[0], grd.inputs["Vector"])
+gpw = cn_.new("ShaderNodeMath"); gpw.operation = "POWER"; gpw.inputs[1].default_value = 2.2; cl2.new(grd.outputs["Fac"], gpw.inputs[0])
+gmu = cn_.new("ShaderNodeMath"); gmu.operation = "MULTIPLY"; gmu.inputs[1].default_value = 2.4; cl2.new(gpw.outputs[0], gmu.inputs[0])
+gem = cn_.new("ShaderNodeEmission"); gem.inputs["Color"].default_value = CYAN; cl2.new(gmu.outputs[0], gem.inputs["Strength"])
+gtr = cn_.new("ShaderNodeBsdfTransparent"); gad = cn_.new("ShaderNodeAddShader")
+cl2.new(gtr.outputs[0], gad.inputs[0]); cl2.new(gem.outputs[0], gad.inputs[1]); cl2.new(gad.outputs[0], co_.inputs["Surface"])
+try:
+    cgm.surface_render_method = "BLENDED"
+except Exception:
+    pass
+cg.data.materials.append(cgm)
+cg.visible_shadow = False
+
 # ---------------------------------------------------------------- 名字：3D 发光字
 txt_m = emissive("txt", (0.92, 0.97, 1.0, 1), 3.2)
 en_m = emissive("en", CYAN, 4.0)
@@ -283,12 +305,7 @@ for k in range(9):
     for f in (0, NF):
         ob.location.x = 0 if f == 0 else rf.uniform(-0.4, 0.4)
         ob.keyframe_insert("location", frame=f)
-jm = emissive("jb", CYAN, 0.8, blend=True)
-for k in range(6):
-    bpy.ops.mesh.primitive_uv_sphere_add(radius=rf.uniform(0.15, 0.3), segments=24, ring_count=12, location=(rf.uniform(-4, 4), rf.uniform(4, 9), rf.uniform(0, 3.5)))
-    b = bpy.context.object
-    b.scale = (1, 1, 0.6)
-    b.data.materials.append(jm)
+# （11-08 去掉：同大小硬边圆光斑最像屏保，docs/327 §15）
 mote_m = emissive("mote", (0.75, 0.95, 1.0, 1), 3.0)
 bpy.ops.mesh.primitive_ico_sphere_add(radius=0.006, subdivisions=1, location=(0, 0, -90))
 mote = bpy.context.object
@@ -301,6 +318,27 @@ ps.count = 1500; ps.frame_start = -900; ps.frame_end = NF; ps.lifetime = 2000
 ps.emit_from = "VOLUME"; ps.normal_factor = 0; ps.factor_random = 0.04; ps.effector_weights.gravity = -0.006
 ps.render_type = "OBJECT"; ps.instance_object = mote; ps.size_random = 0.8
 e.show_instancer_for_render = False; e.visible_camera = False; e.visible_shadow = False
+
+near_m, nn_, nl_, no_ = mat("near")
+nlw = nn_.new("ShaderNodeLayerWeight"); nlw.inputs["Blend"].default_value = 0.5
+nfc = nn_.new("ShaderNodeMath"); nfc.operation = "SUBTRACT"; nfc.inputs[0].default_value = 1.0; nl_.new(nlw.outputs["Facing"], nfc.inputs[1])
+npw = nn_.new("ShaderNodeMath"); npw.operation = "POWER"; npw.inputs[1].default_value = 3.0; nl_.new(nfc.outputs[0], npw.inputs[0])
+nmu = nn_.new("ShaderNodeMath"); nmu.operation = "MULTIPLY"; nmu.inputs[1].default_value = 0.9; nl_.new(npw.outputs[0], nmu.inputs[0])
+nem = nn_.new("ShaderNodeEmission"); nem.inputs["Color"].default_value = (0.7, 0.92, 1.0, 1); nl_.new(nmu.outputs[0], nem.inputs["Strength"])
+ntr = nn_.new("ShaderNodeBsdfTransparent"); nad = nn_.new("ShaderNodeAddShader")
+nl_.new(ntr.outputs[0], nad.inputs[0]); nl_.new(nem.outputs[0], nad.inputs[1]); nl_.new(nad.outputs[0], no_.inputs["Surface"])
+try:
+    near_m.surface_render_method = "BLENDED"
+except Exception:
+    pass
+NEAR = []
+rn = random.Random(23)
+for k in range(4):
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=rn.uniform(0.012, 0.028), segments=16, ring_count=8)
+    nb = bpy.context.object
+    nb.data.materials.append(near_m)
+    nb.visible_shadow = False
+    NEAR.append((nb, Vector((rn.uniform(-0.7, 0.7), rn.uniform(-0.35, 0.35), -rn.uniform(1.0, 1.8))), rn.uniform(0, 6.28)))
 
 # ---------------------------------------------------------------- 镜头：略仰、缓推，焦点在人身上
 cam_d = bpy.data.cameras.new("cam")
@@ -323,6 +361,13 @@ for f in range(NF + 1):
     cam.keyframe_insert("rotation_euler", frame=f)
     cam_d.dof.focus_distance = 6.4 - 0.5 * u
     cam_d.dof.keyframe_insert("focus_distance", frame=f)
+
+for nb, off, ph in NEAR:
+    nb.parent = cam
+    for f in range(0, NF + 6, 6):
+        t = f / FPS
+        nb.location = off + Vector((0.05 * math.sin(t * 0.5 + ph), 0.04 * math.sin(t * 0.7 + ph * 2), 0))
+        nb.keyframe_insert("location", frame=f)
 
 # 合成：bloom + 色散（同 pv3d_deep）
 sc.use_nodes = True

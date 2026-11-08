@@ -102,12 +102,14 @@ wn, wl = world.node_tree.nodes, world.node_tree.links
 wn.clear()
 wout = wn.new("ShaderNodeOutputWorld")
 wbg = wn.new("ShaderNodeBackground")
-wbg.inputs["Color"].default_value = (0.0015, 0.005, 0.011, 1)
+wbg.inputs["Color"].default_value = (0.0022, 0.0055, 0.012, 1)   # #06101C 附近
 wl.new(wbg.outputs[0], wout.inputs["Surface"])
 vol = wn.new("ShaderNodeVolumePrincipled")
 vol.inputs["Color"].default_value = (0.3, 0.7, 0.9, 1)
 vol.inputs["Density"].default_value = 0.06
 vol.inputs["Anisotropy"].default_value = 0.6
+vol.inputs["Emission Color"].default_value = (0.03, 0.09, 0.14, 1)   # docs/327 §14：暗而不死黑，远处融成雾色
+vol.inputs["Emission Strength"].default_value = float(os.environ.get("PV3D_FOG", "0.012"))   # 实测：p5 0.04–0.05、p50 0.087、纯黑 0%
 wl.new(vol.outputs[0], wout.inputs["Volume"])
 
 
@@ -168,9 +170,10 @@ def jelly(loc, r, seed, detail=True):
     tent_m = emissive("tent", (0.4, 0.85, 1.0, 1), 0.9, blend=True)
     arm_m = emissive("arm", (0.45, 0.8, 1.0, 1), 0.7, blend=True)
     if detail:   # 伞缘一圈发光点
-        for i in range(40):
-            a = i / 40 * 6.283
-            bpy.ops.mesh.primitive_ico_sphere_add(radius=r * 0.012, subdivisions=1, location=(math.cos(a) * r * 0.99, math.sin(a) * r * 0.99, -0.03 * r))
+        a = 0.0
+        while a < 6.2:   # 疏密不均、大小不一（docs/327 §15：等距一圈像图标）
+            a += rr.uniform(0.06, 0.38)
+            bpy.ops.mesh.primitive_ico_sphere_add(radius=r * rr.uniform(0.006, 0.016), subdivisions=1, location=(math.cos(a) * r * 0.99, math.sin(a) * r * 0.99, -0.03 * r))
             d = bpy.context.object
             d.data.materials.append(dot_m)
             d.parent = root
@@ -202,6 +205,12 @@ def jelly(loc, r, seed, detail=True):
 
 
 hero_j, hero_bell = jelly((0, 0, 0), 0.55, 1)
+warm_m = emissive("warm", (1.0, 0.45, 0.12, 1), 18.0)   # 灯火暖橙 #FFB45A 点缀
+for wx, wy, wz in ((0.22, 0.05, -1.55), (-0.15, -0.1, -2.1)):
+    bpy.ops.mesh.primitive_ico_sphere_add(radius=0.012, subdivisions=2, location=(wx, wy, wz))
+    w_ = bpy.context.object
+    w_.data.materials.append(warm_m)
+    w_.parent = hero_j
 bg_j = []
 rj = random.Random(9)
 for k in range(9):   # 远处的水母（光斑）
@@ -229,27 +238,29 @@ for j, b, ph in bg_j:
 
 # ================================================================= B 发光丝线（y=40）
 BY = 40.0
-fil_m = emissive("fil", (0.4, 0.88, 1.0, 1), 2.2)
+fil_m = emissive("fil", (0.4, 0.88, 1.0, 1), 3.0)
 spark_m = emissive("spark", (0.8, 1.0, 1.0, 1), 60.0)
 rf = random.Random(4)
 fils = []
-for i in range(30):
+fil_dim = emissive("fil_dim", (0.3, 0.7, 0.9, 1), 0.7)
+for i in range(26):
+    main = i < 3   # docs/327 §14：只 2–3 根主线在焦内，其余推远虚化变暗
     cu = bpy.data.curves.new("fil", "CURVE"); cu.dimensions = "3D"
-    cu.bevel_depth = rf.uniform(0.002, 0.007); cu.bevel_resolution = 1
+    cu.bevel_depth = rf.uniform(0.005, 0.008) if main else rf.uniform(0.0015, 0.004); cu.bevel_resolution = 1
     spl = cu.splines.new("BEZIER"); spl.bezier_points.add(7)
-    z0, y0 = rf.uniform(-2.2, 2.2), BY + rf.uniform(-2.5, 4.0)
+    z0, y0 = (rf.uniform(-0.6, 0.6), BY + 0.3 + rf.uniform(-0.15, 0.15)) if main else (rf.uniform(-2.5, 2.5), BY + rf.uniform(3.5, 12.0))
     x0 = rf.uniform(-9, 3)
     ph = rf.uniform(0, 6.28)
     for j, bp in enumerate(spl.bezier_points):
         t = j / 7
         bp.co = (x0 + t * rf.uniform(6, 10), y0 + 0.6 * math.sin(t * 4 + ph), z0 + 0.5 * math.sin(t * 3 + ph * 1.7))
         bp.handle_left_type = bp.handle_right_type = "AUTO"
-    ob = bpy.data.objects.new("fil", cu); sc.collection.objects.link(ob); cu.materials.append(fil_m)
+    ob = bpy.data.objects.new("fil", cu); sc.collection.objects.link(ob); cu.materials.append(fil_m if main else fil_dim)
     fils.append(ob)
     for f in (S1 - 2, NF):   # 慢漂
         ob.location = (0, 0, 0) if f == S1 - 2 else (rf.uniform(-0.5, 0.5), 0, rf.uniform(-0.3, 0.3))
         ob.keyframe_insert("location", frame=f)
-    if i % 3 == 0:   # 光点沿丝流动
+    if main or i % 6 == 0:   # 光点沿丝流动
         bpy.ops.mesh.primitive_ico_sphere_add(radius=0.018, subdivisions=2)
         sp = bpy.context.object
         sp.data.materials.append(spark_m)
@@ -299,6 +310,8 @@ for f in range(S2 - 2, NF):
     k = ease(lt / 0.5)
     card.location = (0.0, CY, 0.0 + 0.03 * math.sin(lt * 1.2))
     card.rotation_euler = (math.radians(6) * (1 - k), math.radians(-12) * (1 - k), math.radians(200) * (1 - k))   # 从背面转过来
+    if os.environ.get("PV3D_ENDCAM") == "1":
+        card.rotation_euler = (math.radians(4), math.radians(-6), math.radians(-38))   # 结尾卡：转个角度只露边和一点卡面（docs/327 §15）
     card.keyframe_insert("location", frame=f)
     card.keyframe_insert("rotation_euler", frame=f)
 bpy.ops.object.light_add(type="AREA", location=(0, CY + 2.2, 1.6))   # 卡后上方的青色逆光：勾银边
@@ -312,7 +325,7 @@ rim.rotation_euler = (Vector((0, CY, 0)) - Vector(rim.location)).to_track_quat("
 bpy.ops.object.light_add(type="POINT", location=(0.6, CY - 1.0, 0.5))
 flash = bpy.context.object
 flash.data.color = (0.7, 0.92, 1.0)
-for k in range(10):   # 卡后面虚掉的丝线
+for k in range(0 if os.environ.get("PV3D_ENDCAM") == "1" else 10):   # 卡后面虚掉的丝线（结尾卡不要：标题区后面只留雾和光）
     cu = bpy.data.curves.new("fc", "CURVE"); cu.dimensions = "3D"; cu.bevel_depth = 0.004
     spl = cu.splines.new("BEZIER"); spl.bezier_points.add(5)
     z0 = rf.uniform(-1.5, 1.5); y0 = CY + rf.uniform(2.5, 6)
@@ -338,6 +351,27 @@ for cy in (0.0, BY, CY):
     ps.render_type = "OBJECT"; ps.instance_object = mote; ps.size_random = 0.8
     e.show_instancer_for_render = False; e.visible_camera = False; e.visible_shadow = False
 
+NEAR = []
+# 软边：自发光按正对程度衰减（中心亮、边缘透明），叠半透明 → 景深下是柔光斑不是硬边圆（docs/327 §12）
+near_m, nn_, nl_, no_ = mat("near")
+nlw = nn_.new("ShaderNodeLayerWeight"); nlw.inputs["Blend"].default_value = 0.5
+nfc = nn_.new("ShaderNodeMath"); nfc.operation = "SUBTRACT"; nfc.inputs[0].default_value = 1.0; nl_.new(nlw.outputs["Facing"], nfc.inputs[1])
+npw = nn_.new("ShaderNodeMath"); npw.operation = "POWER"; npw.inputs[1].default_value = 3.0; nl_.new(nfc.outputs[0], npw.inputs[0])
+nmu = nn_.new("ShaderNodeMath"); nmu.operation = "MULTIPLY"; nmu.inputs[1].default_value = 0.9; nl_.new(npw.outputs[0], nmu.inputs[0])
+nem = nn_.new("ShaderNodeEmission"); nem.inputs["Color"].default_value = (0.7, 0.92, 1.0, 1); nl_.new(nmu.outputs[0], nem.inputs["Strength"])
+ntr = nn_.new("ShaderNodeBsdfTransparent"); nad = nn_.new("ShaderNodeAddShader")
+nl_.new(ntr.outputs[0], nad.inputs[0]); nl_.new(nem.outputs[0], nad.inputs[1]); nl_.new(nad.outputs[0], no_.inputs["Surface"])
+try:
+    near_m.surface_render_method = "BLENDED"
+except Exception:
+    pass
+rn = random.Random(17)
+for k in range(5):
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=rn.uniform(0.012, 0.03), segments=16, ring_count=8)
+    nb = bpy.context.object
+    nb.data.materials.append(near_m)
+    nb.visible_shadow = False
+    NEAR.append((nb, Vector((rn.uniform(-0.7, 0.7), rn.uniform(-0.38, 0.38), -rn.uniform(0.9, 1.7))), rn.uniform(0, 6.28)))
 # ---------------------------------------------------------------- 镜头
 cam_d = bpy.data.cameras.new("cam")
 cam_d.sensor_fit = "VERTICAL"
@@ -386,6 +420,12 @@ for f in range(NF):
     flash.data.keyframe_insert("energy", frame=f)
     sc.view_settings.exposure = 2.6 * ease((t - (DUR - 0.35)) / 0.35) if f >= S2 and os.environ.get("PV3D_ENDCAM") != "1" else 0.0
     sc.view_settings.keyframe_insert("exposure", frame=f)
+for nb, off, ph in NEAR:   # 前景海雪挂在镜头上，自己再慢漂 → 视差
+    nb.parent = cam
+    for f in range(0, NF + 6, 6):
+        t = f / FPS
+        nb.location = off + Vector((0.05 * math.sin(t * 0.5 + ph), 0.04 * math.sin(t * 0.7 + ph * 2), 0))
+        nb.keyframe_insert("location", frame=f)
 for a in bpy.data.actions:
     for fc in a.fcurves:
         for kp in fc.keyframe_points:
