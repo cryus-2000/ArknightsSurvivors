@@ -1,0 +1,19 @@
+干员 招式 走动帧 滑步帧 帧条明细（走动中播的非跑步帧条，未换移动版贴图） 脚本错误
+skalter S1 490 383 attack:347 skill:36 0
+skalter S2 484 375 attack:285 skill_s2:90 0
+skalter S3 492 340 attack:304 skill_s3:36 0
+specter_unchained S1 492 98 attack:72 skill:26 0
+specter_unchained S2 494 76 attack:48 fall:15 skill:13 0
+specter_unchained S3 492 241 attack_s3:215 skill_s3:26 0
+suzuran S1 484 0  0
+suzuran S2 485 50 skill_s2_hold:35 skill_s2_intro:15 0
+suzuran S3 492 370 skill_s3_loop:354 skill_s3:16 0
+texas S1 484 45 skill:45 0
+texas S2 492 9 skill:9 0
+texas S3 492 50 s3_start:36 skill:14 0
+ulpianus S1 482 198 tether_native:144 skill:54 0
+ulpianus S2 492 45 tether_native:25 attack_s2:19 skill:1 0
+ulpianus S3 492 67 zip_native:49 skill:18 0
+wisadel S1 490 0  0
+wisadel S2 492 165 s2_attack:77 s2_over_attack:44 s2_start:22 s2_over_end:16 s2_over_start:6 0
+wisadel S3 492 16 skill_s3:16 0

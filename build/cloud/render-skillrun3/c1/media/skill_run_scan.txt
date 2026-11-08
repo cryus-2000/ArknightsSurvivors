@@ -1,0 +1,22 @@
+干员 招式 走动帧 滑步帧 帧条明细（走动中播的非跑步帧条，未换移动版贴图） 脚本错误
+lappland S1 490 152 throw:108 s1cast:44 0
+lappland S2 492 166 throw:166 0
+lappland S3 492 126 throw:84 skill:42 0
+logos S1 490 308 skill_s1_loop:142 attack_b:108 skill:40 skill_s1_end:18 0
+logos S2 482 192 attack_s2:108 skill_s2:84 0
+logos S3 492 139 skill_s3_attack:90 skill_s3:40 skill_s3_end:9 0
+lumen S1 484 60 skill:60 0
+lumen S2 484 54 skill_s2:54 0
+lumen S3 492 90 attack_beam:54 skill_s3_start:32 skill_s3_end:4 0
+mizuki S1 490 22 skill_s1_attack:22 0
+mizuki S2 492 399 skill_s2_attack:318 skill_s2_loop:54 skill_s2:26 skill_s2_end:1 0
+mizuki S3 492 428 skill_s3_attack:336 skill_s3_loop:76 skill_s3:16 0
+saria S1 484 54 skill_heal:54 0
+saria S2 484 54 skill_heal:54 0
+saria S3 492 32 skill:32 0
+siege S1 492 0  0
+siege S2 484 140 leap_native:95 skill:45 0
+siege S3 492 45 heavy_attack:45 0
+skadi S1 484 0  0
+skadi S2 482 94 skill:84 backslash:10 0
+skadi S3 492 167 attack_spin:167 0

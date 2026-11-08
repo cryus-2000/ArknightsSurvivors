@@ -1,0 +1,8 @@
+attack_phases rc=0
+wisadel_s2 rc=0
+move_attack rc=0
+gallery_demo rc=0
+attack_rhythm rc=0
+operator_transitions rc=0
+gladiia_presentation rc=0
+saria_slots rc=0
