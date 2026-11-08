@@ -1,0 +1,4 @@
+move_attack 快检通过：2 项，失败 0 项
+art_lint 快检通过：2 项，失败 0 项
+attack_rhythm 快检通过：2 项，失败 0 项
+lappland_presentation 快检通过：2 项，失败 0 项
