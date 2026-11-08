@@ -28,6 +28,8 @@ const DEMO_HURT_EVERY := 3.0     # 每 3 秒把主控生命压到 70%：治疗�
 ## 走位（见 wander）：是否正在走向怪
 var charging := false
 var skill_hold := 0.0            # 放技能的动作期间及之后 1 秒站着不动：施放特效（铃兰金环、光柱）画在起手点，走开就偏到身后
+var walk_force := false         # 只供测试连拍（elite_demo_shot --shot_walk=1）：放技能期间也上下来回走，验收技能中的跑步动作；缺省关，图鉴不变
+var walk_t := 0.0
 var charge_t := 0.0              # 这次起步后走了多久：至少走 WALK_MIN_T 才允许停（不走一帧就停）
 const WALK_MIN_T := 0.3
 const WALK_MV := 0.7             # 摇杆量（匀速）
@@ -182,6 +184,9 @@ func _contact_cycle() -> void:
 func wander() -> Vector2:
 	if g.demo_origin == Vector2.INF or g.ch == null:
 		return Vector2.ZERO
+	if walk_force:
+		walk_t += g.get_process_delta_time()
+		return Vector2(0.0, 1.0 if fmod(walk_t, 2.4) < 1.2 else -1.0) * WALK_MV   # 竖直来回：面向不翻、不走出机位
 	if g.ch.acting() and g.ch.act_kind == "skill":
 		skill_hold = 1.0
 	if skill_hold > 0.0:
