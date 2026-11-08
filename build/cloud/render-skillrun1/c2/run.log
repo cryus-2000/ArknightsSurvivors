@@ -1,0 +1,24 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4857 项）
+render_prep 完成，用时 3 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+干员 招式 走动帧 滑步帧 帧条明细（走动中播的非跑步帧条，未换移动版贴图） 脚本错误
+skalter S1 490 383 attack:347 skill:36 0
+skalter S2 484 375 attack:285 skill_s2:90 0
+skalter S3 492 340 attack:304 skill_s3:36 0
+specter_unchained S1 492 74 attack:48 skill:26 0
+specter_unchained S2 494 65 attack:37 fall:15 skill:13 0
+specter_unchained S3 492 238 attack_s3:207 skill_s3:26 attack:5 0
+suzuran S1 484 0  0
+suzuran S2 485 50 skill_s2_hold:35 skill_s2_intro:15 0
+suzuran S3 492 370 skill_s3_loop:354 skill_s3:16 0
+texas S1 486 36 skill:36 0
+texas S2 490 18 skill:18 0
+texas S3 492 50 s3_start:36 skill:14 0
+ulpianus S1 482 207 tether_native:144 skill:63 0
+ulpianus S2 492 22 tether_native:22 0
+ulpianus S3 492 66 zip_native:48 skill:18 0
+wisadel S1 490 0  0
+wisadel S2 492 165 s2_attack:77 s2_over_attack:44 s2_start:22 s2_over_end:16 s2_over_start:6 0
+wisadel S3 492 16 skill_s3:16 0
+
+media：1 个文件，8.0K
