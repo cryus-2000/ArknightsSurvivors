@@ -1,0 +1,27 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4857 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+干员 招式 走动帧 滑步帧 帧条明细（走动中播的非跑步帧条，未换移动版贴图） 脚本错误
+angelina S1 490 33 skill:33 0
+angelina S2 482 68 skill:68 0
+angelina S3 492 348 float_move:168 float_attack:121 skill:36 float_in:23 0
+exusiai S1 488 37 skill:29 attack:8 0
+exusiai S2 492 26 skill:18 attack:8 0
+exusiai S3 492 26 skill:18 attack:8 0
+eyjafjalla S1 490 0  0
+eyjafjalla S2 482 84 skill:84 0
+eyjafjalla S3 490 87 skill_s3:60 skill_s3_end:27 0
+gladiia S1 482 72 s1_begin:72 0
+gladiia S2 492 140 s2_attack:56 s2_start:32 s2_enter:31 s2_end:21 0
+gladiia S3 492 159 s3_attack:55 s3_enter:37 s3_end:35 s3_start:32 0
+hoshiguma S1 490 24 s1_counter:24 0
+hoshiguma S2 492 42 skill:18 throw:12 catch:12 0
+hoshiguma S3 492 169 s3_loop:100 s3_start:36 throw:27 catch:6 0
+irene S1 486 180 attack_retrial:110 finisher:70 0
+irene S2 484 197 attack_retrial:112 skill_s2:60 finisher:25 0
+irene S3 490 383 skill_s3_loop:238 skill_s3_start:54 skill_s3_end:40 attack_retrial:32 finisher:19 0
+kaltsit S1 484 66 skill:66 0
+kaltsit S2 484 54 command:54 0
+kaltsit S3 492 18 command:18 0
+
+media：1 个文件，8.0K
