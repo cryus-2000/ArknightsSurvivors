@@ -5,9 +5,10 @@ WASM / 显存里最大的几类贴图都是 @2x（2 倍像素密度）：
 1. 整 2 倍放大的 @2x（每 2×2 一样的像素，特效 226 张、怪物 398 张）：减半是无损的 → 副本里直接换成 1 倍的基础名文件
    （删掉 @2x 与它的 .import，索引改指 1 倍文件）。所有平台的网页包都用它，画面完全一样，包更小，读图时也不用再解 2 倍的再缩
    （原来怪物在手机上是读 2 倍 → 读回像素 → 缩半，art.gd _halve）。
-2. 有真 2 倍细节的特效 @2x（260 张）：另写一份 <名>@h.png（按预乘 alpha 的 2×2 平均缩半），索引记 <名>@h；
+2. 有真 2 倍细节的特效 @2x（260 张）：另写一份 <名>@h.png（2×2 取最不透明 / 最亮的一个像素缩半，不混色），索引记 <名>@h；
    只有手机网页读它（art.gd，--bal=web/mobile_fx_half=0 退回 @2x），电脑网页仍读 @2x。
 3. 浊心斯卡蒂终结技的方向图集（ult_sd/*.png，每张解码 23–28 MB）：缩半写到 ult_sd_half/，手机网页读这份（run/ult_px_sd.gd）。
+桌面包（tools/export_build.py）只做第 1 步（画面不变的全平台生效，11-08 用户口径）。
 新 PNG 的 .import 照抄原图的 [params]（不写 uid / 路径，导入时 Godot 自己生成）。
 用法：make(副本 game 目录) → 统计字典；report(字典) → 一行说明
 """
@@ -35,16 +36,22 @@ def _exact2x(a):
 
 
 def _box_half(a):
-    """预乘 alpha 的 2×2 平均（奇数边先补一行 / 列透明）：细线不会像取点那样整条消失，半透明边不发黑"""
+    """2×2 取一：每格留最不透明、其次最亮的那个像素（奇数边先补一行 / 列透明）。像素画缩半不混色：
+    细线不会被平均成发灰的半透明点；孤立火星按四选一留，面积不变（11-09 对照图：平均法压暗、全留又发密）"""
     h, w = a.shape[:2]
     if w % 2 or h % 2:
         a = np.pad(a, ((0, h % 2), (0, w % 2), (0, 0)))
-    al = a[..., 3:4] / 255.0
-    pm = a[..., :3] * al
-    s = lambda x: (x[0::2, 0::2] + x[1::2, 0::2] + x[0::2, 1::2] + x[1::2, 1::2]) / 4.0
-    pa, aa = s(pm), s(al)
-    rgb = np.where(aa > 1e-6, pa / np.maximum(aa, 1e-6), 0.0)
-    out = np.concatenate([np.clip(rgb, 0, 255), np.clip(aa * 255.0, 0, 255)], axis=2)
+    blocks = [a[0::2, 0::2], a[1::2, 0::2], a[0::2, 1::2], a[1::2, 1::2]]
+    st = np.stack(blocks, 0)                                    # 4 × H/2 × W/2 × 4
+    score = st[..., 3] * 4096.0 + st[..., :3].sum(-1)           # 先比 alpha，再比亮度
+    k = score.argmax(0)
+    out = np.take_along_axis(st, k[None, ..., None].repeat(4, -1), 0)[0]
+    # 孤立单点（2×2 里只有 1 个不透明）：缩半后每个点占的面积是原来的 4 倍，全留下会发密（火星连成片）；
+    # 按均匀散布的四选一留下，总面积 / 亮度与原图一致
+    n = (st[..., 3] > 0).sum(0)
+    by, bx = np.indices(n.shape)
+    drop = (n == 1) & ((bx * 7 + by * 3) % 4 != 0)
+    out[drop] = 0
     return out.round().astype(np.uint8)
 
 
@@ -66,7 +73,8 @@ def _rm(p):
             os.remove(q)
 
 
-def make(gamedir):
+def make(gamedir, lossy=True):
+    """lossy=False（Windows 桌面包）：只做第 1 步无损换 1 倍，不出 @h / 斯卡蒂半分辨率（那两样只给手机网页）"""
     ip = os.path.join(gamedir, "art", "index.json")
     idx = json.load(open(ip, encoding="utf-8"))
     r = {"exact": 0, "exact_mb": 0.0, "half": 0, "half_mb": 0.0, "sd": 0}
@@ -89,14 +97,14 @@ def make(gamedir):
             idx[base] = "res://" + os.path.relpath(dst, gamedir).replace(os.sep, "/")
             r["exact"] += 1
             r["exact_mb"] += mb
-        elif cat == "fx":
+        elif cat == "fx" and lossy:
             dst = p[:-len("@2x.png")] + "@h.png"
             _write(_box_half(a), dst, p + ".import")
             idx[base + "@h"] = "res://" + os.path.relpath(dst, gamedir).replace(os.sep, "/")
             r["half"] += 1
             r["half_mb"] += mb
     sd = os.path.join(gamedir, "art", "fx", "pxp", "ult_sd")
-    if os.path.isdir(sd):
+    if lossy and os.path.isdir(sd):
         out = sd + "_half"
         os.makedirs(out, exist_ok=True)
         for f in sorted(os.listdir(sd)):

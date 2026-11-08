@@ -148,7 +148,7 @@ func _ready() -> void:
 	# 网页：干员脚本（data_operator.gd 连带全部积木，20 名干员共用）放在启动页最先编译（docs/319 §15）。原来在出发后的载入页编译，
 	# 编译时的临时内存叠在标题页 + 选人页之后约 255 MB 的在用堆上，把 WASM 容量从 286 撑到 343（只涨不缩）；这里叠在约 100 MB 上。
 	# 编完挂在场景树上留住（同 title.gd 的 op_script_ 键），载入页直接命中
-	if OS.has_feature("web") and Bal.vi("web/boot_op_script", 1) > 0:
+	if Bal.vi("web/boot_op_script", 1) > 0:   # 11-08 用户口径：全平台（桌面在后台线程编译，进局时同样直接命中）
 		items.insert(0, [OP_SCRIPT, "干员", "heavy"])
 	tip_i = randi() % Tips.TIPS.size()
 	_threads = OS.has_feature("threads") and not OS.has_feature("web")
@@ -292,7 +292,9 @@ func _step_threaded() -> void:
 			OS.delay_usec(200)
 			continue
 		if st == ResourceLoader.THREAD_LOAD_LOADED:
-			ResourceLoader.load_threaded_get(_req)
+			var lr = ResourceLoader.load_threaded_get(_req)
+			if _req == OP_SCRIPT and lr != null:
+				get_tree().set_meta("op_script_" + OP_SCRIPT.get_file().get_basename(), lr)
 		if FR.enabled() and Time.get_ticks_usec() - _req_t > 40000:
 			print("PF FTLOAD %s %.0f ms（后台）" % [_req, (Time.get_ticks_usec() - _req_t) / 1000.0])
 		_end_item()

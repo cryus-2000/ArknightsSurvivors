@@ -2484,7 +2484,7 @@ func _exit_tree() -> void:
 var _restarting := false
 
 func _release_run() -> void:
-	if not (Cfg.mobile_web() and Cfg.mobile_knob("mobile_run_release", 1.0)) and not Cfg.dev_args().has("--runrelease"):
+	if not Cfg.mobile_knob("mobile_run_release", 1.0) and not Cfg.dev_args().has("--runrelease"):   # 11-08 用户口径：不影响画面的全平台生效（原来只手机网页）
 		return
 	var nt := 0
 	if _restarting:
