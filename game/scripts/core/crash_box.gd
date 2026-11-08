@@ -26,6 +26,7 @@ static var _every := EVERY
 static var _js_ok := false
 static var _checked := false
 static var prev := {}     # 上次异常退出那一份（标题页 / 性能报告页读）
+static var _wg := 0     # 已见过的 WASM 堆增长次数
 
 
 static func _web() -> bool:
@@ -106,11 +107,14 @@ static func sample(g) -> void:
 	var wasm := 0.0
 	var js := 0.0
 	if _web():
-		var r = JavaScriptBridge.eval("(function(){var w=window.__syWasm,r={w:w&&w.buffer?w.buffer.byteLength:0};if(performance.memory){r.j=performance.memory.usedJSHeapSize}return JSON.stringify(r)})()", true)
+		var r = JavaScriptBridge.eval("(function(){var w=window.__syWasm,r={w:w&&w.buffer?w.buffer.byteLength:0,g:(window.__syWasmGrows||[]).length};if(performance.memory){r.j=performance.memory.usedJSHeapSize}return JSON.stringify(r)})()", true)
 		var d = JSON.parse_string(str(r)) if r != null else null
 		if d is Dictionary:
 			wasm = float(d.get("w", 0)) / 1048576.0
 			js = float(d.get("j", 0)) / 1048576.0
+			if int(d.get("g", 0)) > _wg:
+				_wg = int(d.get("g", 0))
+				_tags["WASM 堆增长"] = 1   # 这一段里堆又涨过（engine_patch.py §3）
 	else:
 		wasm = OS.get_static_memory_usage() / 1048576.0   # 桌面：引擎静态内存放在同一列
 	_last_mb = vid + aud
