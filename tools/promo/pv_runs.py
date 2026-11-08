@@ -69,6 +69,10 @@ RUNS["S6"] = dict(args=MID + ["--seed=53", "--forceboss=3"], rtfrom=200, maxt=30
 # 弹幕段后备：Boss 测试台依次放演示招式（--bossmoves；局内时间冻结在约 150 秒）
 for _k, _b in [("K1", "bishop"), ("K2", "iberia"), ("K3", "carmen")]:
     RUNS[_k] = dict(args=MID + ["--seed=61", "--bossmoves=" + _b], rtfrom=0, maxt=9999, pv=["--pv_fwin=60-3660"])
+# 四个最终 Boss（11-08 用户要每只剪一小段）：测试台 --bossacts 按自己的 AI 出招，登场 14 秒放到 45% 血进二阶段；按帧录 40 秒
+for _k, _b in [("Q1", "paranoia"), ("Q2", "knight_boss2"), ("Q3", "ishar"), ("Q4", "izumik")]:
+    RUNS[_k] = dict(args=MID + ["--seed=61", "--bossacts=" + _b, "--bal=boss/acts_demo_len=60", "--actsp2=14"], rtfrom=0, maxt=9999,
+                    pv=["--pv_fwin=40-2440"])
 # 图鉴演示（无 HUD、空场）：德克萨斯 S3 + 四人终结技备选
 DEMOS = [("texas", 2, 3, 300), ("mizuki", 2, 4, 300), ("angelina", 2, 4, 300), ("wisadel", 2, 4, 300), ("skalter", 2, 4, 300)]
 
