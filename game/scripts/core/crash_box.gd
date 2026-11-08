@@ -169,6 +169,8 @@ static func sample(g) -> void:
 	if a.size() > MAX_S:
 		a.remove_at(4)   # 留开头 4 条（开局基线），丢中间最早的
 	_write()
+	if Cfg.dev_args().has("--crashbox") and _web():   # 测试：写完从本地存储读回，确认真的写进去了（11-09 真机快照 0:41 后不再更新）
+		print("PF CRASHBOX stored rows=%s len=%s" % [str(JavaScriptBridge.eval("(function(){try{var o=JSON.parse(localStorage.getItem('sy_bb')||'{}');return (o.s||[]).length+'/'+(o.end||'-')}catch(e){return 'ERR '+e.message}})()", true)), str(JavaScriptBridge.eval("(localStorage.getItem('sy_bb')||'').length", true))])
 
 
 ## 正常离局（局终 / 回标题 / 重开）：记 end
