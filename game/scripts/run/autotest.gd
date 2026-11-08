@@ -519,6 +519,7 @@ var _fr_i := 0
 var _fr_csv: FileAccess = null
 var _fr_spawn := ""
 var _fr_spawned := false
+var _fr_ring_done := false
 func _flashrec_step() -> void:
 	if _fr_t0 < -1.0:
 		_fr_t0 = -1.0
@@ -538,6 +539,20 @@ func _flashrec_step() -> void:
 		_fr_spawned = true
 		g.pickups.drop(g.ppos + Vector2(260, 90), "magnet", 1.0)
 		g.pickups.drop(g.ppos + Vector2(-1100, -500), "magnet", 1.0)
+	# --flashring=<怪>:<数>,…：同一时刻在主控周围 420 处刷一圈远程杂兵（11-08 敌弹改红对照：画面里要有足够多的杂兵弹）
+	if fr_due and not _fr_ring_done:
+		for a in Cfg.dev_args():
+			if a.begins_with("--flashring="):
+				_fr_ring_done = true
+				_fr_spawned = true
+				var lst: Array = []
+				for it in a.substr(12).split(","):
+					var kv: PackedStringArray = it.split(":")
+					for _i in (int(kv[1]) if kv.size() > 1 else 1):
+						lst.append(kv[0])
+				for i in lst.size():
+					var re: Dictionary = g.spawner.spawn_enemy(lst[i], g.ppos + Vector2.from_angle(TAU * i / lst.size()) * Vector2(420.0, 300.0))
+					re.age = 5.0
 	if _fr_spawn != "" and fr_due:
 		_fr_spawned = true
 		var b: Dictionary = g.spawner.spawn_enemy(_fr_spawn.trim_suffix("2").trim_suffix("_cocoon"), g.ppos + Vector2(230, -40))
