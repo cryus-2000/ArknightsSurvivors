@@ -11,6 +11,7 @@ extends Node
 const KEY := "sy_reload"
 const CLOUD_WAIT := 10.0
 const FS_WAIT_MS := 4000
+const GIVE_UP := 22.0     # 盖上底色后这么久页面还在（reload 被拦 / 没生效）：撤掉底色、改走普通回标题，并记进崩溃快照（11-09 B站 App 真机卡在底色上）
 
 var act := ""
 var _t := 0.0
@@ -34,20 +35,37 @@ static func wanted(g) -> bool:
 static func go(g, what: String) -> void:
 	var it := {"act": what, "op": Cfg.character_id, "diff": Cfg.difficulty}
 	JavaScriptBridge.eval("""(function(it){try{it.t=Date.now();sessionStorage.setItem('%s',JSON.stringify(it))}catch(e){}
-var d=document.createElement('div');d.id='sy-rl';
+var gen=window.__syRLGen=(window.__syRLGen||0)+1;window.__syRLTry=0;window.__syRLFail='';var d=document.createElement('div');d.id='sy-rl';
 d.style.cssText='position:fixed;inset:0;z-index:2147483647;background:radial-gradient(ellipse at 50%% 50%%,#0d1820 0%%,#070c11 70%%,#04070a 100%%)';
-document.documentElement.style.background='#04070a';(document.body||document.documentElement).appendChild(d)})(%s)""" % [KEY, JSON.stringify(it)], true)
+document.documentElement.style.background='#04070a';(document.body||document.documentElement).appendChild(d);
+window.__syRLGo=function(why){if(window.__syRLTry)return;window.__syRLTry=why||'go';var h=location.href;
+try{location.reload()}catch(e){}
+setTimeout(function(){try{location.replace(h)}catch(e){}},2500);
+setTimeout(function(){try{location.href=h.split('#')[0]+(h.indexOf('?')<0?'?':'&')+'_rl='+Date.now()}catch(e){}},5500);
+setTimeout(function(){window.__syRLFail='reload 不生效';},9000)};
+setTimeout(function(){if(window.__syRLGen===gen&&!window.__syRLTry){window.__syRLGo('watchdog')}},%d);
+setTimeout(function(){if(window.__syRLGen!==gen)return;var c=document.getElementById('sy-rl');if(c)c.remove();window.__syRLFail=window.__syRLFail||'超时'},%d)})(%s)""" % [KEY, int((GIVE_UP + 4.0) * 1000), int((GIVE_UP + 16.0) * 1000), JSON.stringify(it)], true)
 	var n = load("res://scripts/core/run_reload.gd").new()
 	n.act = what
 	n.name = "RunReload"
+	n.process_mode = Node.PROCESS_MODE_ALWAYS   # 不受暂停影响
 	g.get_tree().root.add_child(n)
 	if not Cfg.dev_args().is_empty():
 		print("PF RUNRELOAD go act=%s op=%s" % [what, Cfg.character_id])
-	g.get_tree().unload_current_scene()
+	# 延后卸载：结算页按钮的回调还在对局场景里执行，当场 memdelete 对局场景 = 释放正在执行的对象（11-09 B站 App 真机：盖上底色后整页不动）
+	g.get_tree().unload_current_scene.call_deferred()
 
 
 func _process(delta: float) -> void:
 	_t += delta
+	if _step >= 2:
+		var f = JavaScriptBridge.eval("window.__syRLFail||''", true)
+		if (f != null and str(f) != "") or _t > GIVE_UP + 14.0:
+			_give_up(str(f) if f != null and str(f) != "" else "超时")
+		return
+	if _t > GIVE_UP:
+		_give_up("云存档 / 存档同步没在 %d 秒内结束" % int(GIVE_UP))
+		return
 	match _step:
 		0:
 			if _t < 0.05:
@@ -79,8 +97,22 @@ func _cloud_done() -> bool:
 func _reload() -> void:
 	if not Cfg.dev_args().is_empty():
 		print("PF RUNRELOAD reload t=%.2f cloud=%s" % [_t, str(_cloud_started)])
-	JavaScriptBridge.eval("""(function(){var done=false;function go(){if(done)return;done=true;location.reload()}
+	if Cfg.dev_args().has("--rlblock"):   # 测试：模拟 WebView 拦掉重载，走兜底
+		JavaScriptBridge.eval("window.__syRLGo=function(){window.__syRLTry=1;setTimeout(function(){window.__syRLFail='测试：reload 被拦'},1000)}", true)
+	# 依次试 reload → replace(当前网址) → 带随机参数的网址（某些 WebView 不认 reload），都不生效时 __syRLFail 置位，_process 走兜底
+	JavaScriptBridge.eval("""(function(){var done=false;function go(){if(done)return;done=true;window.__syRLGo('reload')}
 setTimeout(go,%d);Promise.resolve(window.__syFsSync?window.__syFsSync():null).catch(function(){}).then(go)})()""" % FS_WAIT_MS, true)
+
+
+## 兜底：页面没被替换。撤掉底色和 sessionStorage 标记，照旧路径回标题（不重载），记进崩溃快照
+func _give_up(why: String) -> void:
+	_step = 3
+	set_process(false)
+	print("PF RUNRELOAD giveup %s t=%.1f" % [why, _t])
+	JavaScriptBridge.eval("(function(){window.__syRLTry='giveup';var c=document.getElementById('sy-rl');if(c)c.remove();try{sessionStorage.removeItem('%s')}catch(e){}})()" % KEY, true)
+	load("res://scripts/core/crash_box.gd").note_reload_fail(why)
+	get_tree().change_scene_to_file("res://main.tscn")
+	queue_free()
 
 
 ## 标题页 _ready：重载回来时读掉 sy_reload。「再来一局」返回 {op, diff}（标题页照此直接出发），其余返回空

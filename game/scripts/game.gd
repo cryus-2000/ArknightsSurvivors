@@ -891,6 +891,70 @@ func load_op_fx(cid: String) -> void:
 		print("PF FXLAZY t=%.1f %s n=%d ms=%d" % [t, cid, ns.size(), Time.get_ticks_msec() - t0])
 
 
+## 手机网页分帧预读（spawner.PF_LEAD：Boss 登场前 10 秒）：队列里一项一张贴图，每帧最多 PF_BUDGET 微秒（至少一项）。
+## 读帧条项读完才把这种怪从推迟名单拿掉；期间真的刷出来了，ensure_enemy_tex 照旧当场补读剩下的。白剪影先建变体、最后建本体
+## （ensure_white 只看本体有没有白剪影）
+const PF_BUDGET := 3000
+var _pf_q: Array = []
+
+func prefetch_enemy(n: String) -> void:
+	var ks: Array = []
+	for k in tex_deferred:
+		if k == n or (k as String).begins_with(n):
+			ks.append(k)
+	for k in ks:
+		for nm in [k] + Array(ENEMY_SUFFIXES).map(func(sf): return k + sf):
+			_pf_q.append(["tex", nm])
+		_pf_q.append(["done", k])
+	if lazy_white:
+		_pf_q.append(["white", n])
+	if not Cfg.dev_args().is_empty():
+		print("PF PREFETCH t=%.1f %s items=%d" % [t, n, _pf_q.size()])
+
+
+func _prefetch_step() -> void:
+	if _pf_q.is_empty():
+		return
+	var t0 := Time.get_ticks_usec()
+	while not _pf_q.is_empty():
+		var it: Array = _pf_q[0]
+		var nm: String = it[1]
+		match str(it[0]):
+			"tex":
+				_pf_q.pop_front()
+				if tex.get(nm) == null and (tex_deferred.has(nm) or _pf_deferred_of(nm)):
+					tex[nm] = A.tex(nm)
+			"done":
+				_pf_q.pop_front()
+				if tex_deferred.has(nm):
+					tex_deferred.erase(nm)
+					_load_enemy_tex(nm)   # 帧条都已在表里：只补记 _enemy_loaded / 脚底锚点
+			"white":
+				_white_alive[nm] = t
+				var todo: Array = []
+				for w in _white_names(nm):
+					if tex.get(w) != null and not tex.has(w + "_white"):
+						todo.append(w)
+				if todo.is_empty():
+					_pf_q.pop_front()
+				else:
+					var w2: String = nm   # 本体留到最后
+					for w in todo:
+						if w != nm:
+							w2 = w
+							break
+					tex[w2 + "_white"] = A.white_of(tex[w2])
+		if Time.get_ticks_usec() - t0 > PF_BUDGET:
+			break
+
+
+func _pf_deferred_of(nm: String) -> bool:
+	for k in tex_deferred:
+		if nm.begins_with(k):
+			return true
+	return false
+
+
 func ensure_white(n: String) -> void:
 	if not lazy_white or n == "":
 		return
@@ -1140,7 +1204,7 @@ func _ready() -> void:
 		if not etex.has(tn):
 			etex.append(tn)
 	# 网页版：开局 WEB_EARLY_T 秒内刷不到的种类（中后期小怪、全部 Boss）先不加载，首次刷出时再读（ensure_enemy_tex）
-	var early := _web_early_enemy_tex() if OS.has_feature("web") and demo_op == "" else {}
+	var early := _web_early_enemy_tex() if (OS.has_feature("web") or Cfg.dev_args().has("--bossprefetch")) and demo_op == "" else {}   # --bossprefetch：桌面试推迟加载 + 预读
 	for n in etex:
 		if not early.is_empty() and not early.has(n):
 			tex_deferred[n] = true
@@ -1563,6 +1627,63 @@ func _mem_guard_trim_fonts() -> void:
 	Cfg.slim_fonts(true)
 
 
+## 手机网页后期掉帧（11-08 iPhone：5:12 后同屏 66 只、P50 44 ms，CPU 瓶颈；仿真里界面层每帧画 3 ms、世界层 14 ms、敌人逻辑只 1.9 ms）：
+## ① 掉帧时界面层隔帧重画（没重画的那帧引擎沿用上一帧的绘制命令，界面数字 / 血条按 15 次每秒更新），--bal=web/mobile_hud_half=0 退回；
+## ② 掉帧时同屏上限降到 AQ_CAP_LOW（超出的照旧排队推迟出场，总只数 / 经验不变，同 docs/50 §39 的大群推迟），帧时回落后升回，--bal=web/mobile_cap_adapt=0 退回。
+## 「掉帧」看真实帧间隔的滑动平均：> SLOW_MS 持续 SLOW_HOLD 秒算慢，< FAST_MS 持续 FAST_HOLD 秒算恢复
+const AQ_CAP_LOW := 50
+const SLOW_MS := 40.0   # 低于约 25 帧
+const FAST_MS := 34.5   # 锁 30 帧时稳定在 33.3 ms 也算恢复
+const SLOW_HOLD := 3.0
+const FAST_HOLD := 8.0
+var _ft_ema := 0.0
+var _slow_t := 0.0
+var _fast_t := 0.0
+var slow_mode := false
+var _hud_flip := false
+var _knob_hud := -1
+var _knob_cap := -1
+
+
+func _slow_track(rd: float) -> void:
+	if rd <= 0.0 or rd > 0.25:
+		return
+	_ft_ema = rd * 1000.0 if _ft_ema <= 0.0 else lerpf(_ft_ema, rd * 1000.0, 0.05)
+	if not slow_mode:
+		_slow_t = _slow_t + rd if _ft_ema > SLOW_MS else 0.0
+		if _slow_t >= SLOW_HOLD:
+			slow_mode = true
+			_fast_t = 0.0
+			_slow_apply()
+	else:
+		_fast_t = _fast_t + rd if _ft_ema < FAST_MS else 0.0
+		if _fast_t >= FAST_HOLD:
+			slow_mode = false
+			_slow_t = 0.0
+			_slow_apply()
+
+
+func _slow_apply() -> void:
+	if _knob_cap < 0:
+		_knob_cap = 1 if Cfg.mobile_knob("mobile_cap_adapt", 1.0) else 0
+	if mobile_cap() and _knob_cap == 1:
+		spawner.auto_cap = AQ_CAP_LOW if slow_mode else AQ_CAP
+	perf_rep.tag("掉帧档" if slow_mode else "恢复")
+	if not Cfg.dev_args().is_empty():
+		print("PF SLOWMODE %s t=%.0f ema=%.1f cap=%d" % [str(slow_mode), t, _ft_ema, spawner.auto_cap])
+
+
+func _hud_skip() -> bool:
+	if not slow_mode or state != S.PLAY or not (Cfg.mobile_web() or Cfg.dev_args().has("--slowmode")):
+		return false
+	if _knob_hud < 0:
+		_knob_hud = 1 if Cfg.mobile_knob("mobile_hud_half", 1.0) else 0
+	if _knob_hud == 0 or (optical != null and int(optical.ab_mask) & 256):   # --stackab 第 256 位：同局轮换量净差（置位 = 照常每帧画）
+		return false
+	_hud_flip = not _hud_flip
+	return _hud_flip
+
+
 const AQ_CAP := 65   # 手机网页开局就开的同屏上限（mobile_cap；帧率会话 10-26 定的低配档参数）
 
 func _auto_quality(delta: float) -> void:
@@ -1572,6 +1693,8 @@ func _auto_quality(delta: float) -> void:
 	_aq_us = now
 	if demo_op != "" or state != S.PLAY or t < 1.0 or (rt_from >= 0.0 and not realtime) or rd > 0.25 or rd <= 0.0:   # 切窗口 / 读盘那种单次长停顿不算
 		return
+	if Cfg.mobile_web() or Cfg.dev_args().has("--slowmode"):
+		_slow_track(rd)   # 手机网页掉帧档（AQ_CAP_LOW 一段）
 	if OS.has_feature("web") and Cfg.max_fps == 0 and not Cfg.fps_probed and ((mode == Mode.PLAY and Cfg.dev_args().is_empty()) or Cfg.dev_args().has("--autoq")):
 		_fps_probe(rd)   # 网页帧率自动：开局测一次定 60 还是 30（帧率上限，不改画质）
 
@@ -1694,6 +1817,7 @@ func _process(delta: float) -> void:
 	_op_pf_step()   # 招募候选分帧预读（prefetch_ops）
 	perf_rep.tick(delta)   # 性能报告：帧时分桶 / 最低 1 秒帧率 / 内存与敌人峰值（只加计数）
 	_white_release(delta)
+	_prefetch_step()
 	if EliteMoment.on(self):
 		elite_moment.tick(delta)   # 精英化时刻：真实时间（docs/249 §2）
 	if victory.active and state == S.PLAY:
@@ -1746,7 +1870,8 @@ func _process(delta: float) -> void:
 		fg.queue_redraw()
 		dof_layer.visible = Cfg.dof and not optical_on   # 光学开时景深由光学 pass 取代（原来这里开、optical.gd 再关，一帧翻两次）
 		fg.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST if optical_on else CanvasItem.TEXTURE_FILTER_LINEAR   # 前景剪影：光学下像素风（map.draw_foreground）
-		hud.queue_redraw()
+		if not _hud_skip():
+			hud.queue_redraw()
 	world.present_step()   # 表现事件步骤（Boss 换幕 / 倒下演出；docs/101 B3）：每帧一次，在本帧绘制之前，无头也走
 	_pm("tail")
 
