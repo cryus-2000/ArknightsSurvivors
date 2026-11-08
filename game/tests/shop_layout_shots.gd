@@ -31,6 +31,9 @@ func _ready() -> void:
 	g.ingots = 40
 	g.merchant = {"pos": g.ppos, "life": 60.0, "near": false, "purchases": 0}
 	g.merchant_idx = 1
+	for k in 5:
+		_fake_ins()   # 先模拟安全区再开店：货架排版（卡片顶边）在打开时算
+		await get_tree().process_frame
 	g.shop_sys.open()
 	for k in 50:
 		_fake_ins()
