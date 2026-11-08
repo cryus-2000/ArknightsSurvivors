@@ -250,7 +250,8 @@ def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False, dp
     p = subprocess.Popen([EDGE, "--user-data-dir=" + ud, "--app=" + ("about:blank" if emu else url), "--window-position=%d,%d" % (px, py),
                           "--window-size=%s" % ("844,390" if mobile else "1280,720"),
                           "--no-first-run", "--no-default-browser-check", "--disable-background-timer-throttling", "--disable-renderer-backgrounding",
-                          "--disable-backgrounding-occluded-windows", "--disable-features=CalculateNativeWinOcclusion", "--mute-audio"]
+                          "--disable-backgrounding-occluded-windows", "--disable-features=CalculateNativeWinOcclusion", "--mute-audio",
+                          "--autoplay-policy=no-user-gesture-required"]   # 音频上下文直接 running（仍静音），配乐电平自测读得到（docs/319 §12）
                          + (["--remote-debugging-port=%d" % dbg] if emu else []) + (["--force_low_power_gpu"] if lowgpu else []))
     late = bool(throttle) and "--rtfrom" in " ".join(game_args)   # 后期场景：快进段不节流，看到 PF RTFROM 再开
     cdp = _cdp_setup(dbg, url, throttle, mobile, late, dpr) if emu else None

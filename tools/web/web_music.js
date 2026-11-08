@@ -3,7 +3,7 @@
 // 用引擎同一个音频上下文（power.js 记在 __syAudioCtx 里：切后台挂起、回前台恢复照旧），各层同一时刻 start，样本级对齐。
 // fetch + decodeAudioData 是异步的：第一次播某首要等它解完，晚到的时间从曲中补上（与引擎「迟到的毫秒从曲中补」同口径），不卡主线程。
 (function () {
-  var M = {}, bufs = {}, loading = {}, srcs = {}, gains = {};
+  var M = {}, bufs = {}, loading = {}, srcs = {}, gains = {}, toFree = {};
   var bus = null, lp = null, pre = null, busGain = 1, cut = 20000, fails = 0;
   window.__syMus = M;
   function ctx() {
@@ -45,14 +45,20 @@
       try { s.src.stop(); } catch (e) {}
       try { s.src.disconnect(); s.g.disconnect(); } catch (e) {}
     }
+    var u = s && s.url;
     delete srcs[id];
+    if (u && toFree[u]) tryFree(u);
+  }
+  function tryFree(u) {   // 还有源在用就等它停（stopId 里再试）
+    for (var k in srcs) { if (srcs[k].url === u) return; }
+    delete bufs[u]; delete toFree[u];
   }
   // list: [[id, url, 从第几秒, 循环起点, 循环终点（曲长）, 线性音量], ...]：同一批一起开（分层同步）
   M.play = function (list) {
     var c = ctx();
     if (!c || !list.length) return;
     var t0 = performance.now(), tok = {};
-    list.forEach(function (it) { stopId(it[0]); gains[it[0]] = it[5]; srcs[it[0]] = { tok: tok, url: it[1] }; });
+    list.forEach(function (it) { stopId(it[0]); delete toFree[it[1]]; gains[it[0]] = it[5]; srcs[it[0]] = { tok: tok, url: it[1] }; });
     Promise.all(list.map(function (it) { return load(it[1]); })).then(function (bs) {
       var lead = 0.03, late = (performance.now() - t0) / 1000 + lead, when = c.currentTime + lead;
       list.forEach(function (it, i) {
@@ -92,10 +98,7 @@
   };
   M.preload = function (urls) { urls.forEach(function (u) { load(u).catch(function () {}); }); };
   M.free = function (urls) {   // 曲目放完：丢掉解码缓冲（正在播的不丢）
-    urls.forEach(function (u) {
-      for (var k in srcs) { if (srcs[k].url === u) return; }
-      delete bufs[u];
-    });
+    urls.forEach(function (u) { toFree[u] = 1; tryFree(u); });
   };
   M.mb = function () {
     var b = 0;
@@ -111,6 +114,6 @@
   };
   M.state = function () {   // 自测 / 日志
     var on = 0; for (var k in srcs) { if (srcs[k].src) on++; }
-    return JSON.stringify({ bufs: Object.keys(bufs).length, loading: Object.keys(loading).length, on: on, fails: fails, mb: Math.round(M.mb()), lv: Math.round(M.level() * 10000) / 10000 });
+    return JSON.stringify({ bufs: Object.keys(bufs).length, loading: Object.keys(loading).length, on: on, fails: fails, mb: Math.round(M.mb()), lv: Math.round(M.level() * 10000) / 10000, ctx: (ctx() || {}).state || "none" });
   };
 })();

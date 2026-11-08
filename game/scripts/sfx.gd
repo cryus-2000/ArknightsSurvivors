@@ -1227,13 +1227,19 @@ func _track_streams(tname: String) -> Array:
 var _swap_fast := -1
 
 func _free_after() -> float:
+	if not _wm.is_empty() and _fast_swap_on():
+		return 0.0   # 出包配乐（docs/319 §12）：浏览器异步解码，再回来重新解不卡主线程——手机网页任何换曲都立刻放掉旧曲（商人曲来回等不再两首同驻）
 	var nt := str(pending.get("track", ""))
 	if nt != "boss" and not nt.begins_with("final") and not nt.begins_with("battle"):
 		return FREE_AFTER   # 11-08：换进战斗曲也不等（iPhone 两局恰好死在 3:00 / 7:00 的战斗曲换曲点，docs/319 §10）
+	return 0.0 if _fast_swap_on() else FREE_AFTER
+
+
+func _fast_swap_on() -> bool:
 	if _swap_fast < 0:
 		var cfg = get_node_or_null("/root/Cfg")
 		_swap_fast = 1 if OS.has_feature("web") and cfg != null and cfg.mobile_web() and cfg.mobile_knob("mobile_music_swap", 1.0) else 0
-	return 0.0 if _swap_fast == 1 else FREE_AFTER
+	return _swap_fast == 1
 
 
 func _maybe_free(tname: String) -> void:
