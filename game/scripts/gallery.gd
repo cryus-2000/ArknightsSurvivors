@@ -2294,7 +2294,7 @@ func _sk_head(r: Array, rr: Rect2, ph: bool, tight: bool, a: float) -> void:
 		kcw = font.get_string_size("Q", HORIZONTAL_ALIGNMENT_LEFT, -1, 10).x + 18.0
 		UI.keycap(self, font, Vector2(tg.position.x - kcw, tg.position.y + 1.0), "Q", UI.fa(UI.C_L_INK, a), 10)
 	var nf := UI.fit_line(font, r[1], 12 if ph else 14, tg.position.x - tx0 - 6.0 - kcw, 9)
-	UI.text_at(self, font, Vector2(tx0, y + (8 if ph else 15)), nf[0], nf[1], UI.fa(UI.C_L_INK, a))
+	UI.text_at(self, font, Vector2(tx0, y + (8 if ph else (12 if tight else 15))), nf[0], nf[1], UI.fa(UI.C_L_INK, a))   # 紧凑行（>5 行）上提 3：展开时名字底不压黄线（11-08）
 	if not ph and not tight and r[2] != "":
 		UI.code(self, font, Vector2(tx0 + 1, y + 33), r[2], 7, UI.fa(UI.C_L_SUB, a))
 
@@ -2314,8 +2314,9 @@ func _sk_detail(it: Array, full: Rect2, list_r: Rect2, hh: float, ph: bool, a: f
 	var dw := full.size.x - (16.0 if ph else 24.0)
 	var ly := full.position.y + hh
 	var wipe := 1.0 if _still() else UI.ease_out(clampf((_now() - row_t0) / 0.16, 0.0, 1.0))
-	if ly - 3.0 >= list_r.position.y and ly - 3.0 <= list_r.end.y:
-		draw_line(Vector2(full.position.x + 6.0, ly - 3.0), Vector2(full.position.x + 6.0 + (full.size.x - 12.0) * wipe, ly - 3.0), UI.fa(UI.C_ACC, a), 2.0)
+	var sy := ly - (3.0 if ph else 1.0)   # 桌面黄线下移 2（11-08：原来压在名字底上）
+	if sy >= list_r.position.y and sy <= list_r.end.y:
+		draw_line(Vector2(full.position.x + 6.0, sy), Vector2(full.position.x + 6.0 + (full.size.x - 12.0) * wipe, sy), UI.fa(UI.C_ACC, a), 2.0)
 	var k := 0
 	for part in _sk_parts(it, dw, ph):
 		var f: Dictionary = part[0]
