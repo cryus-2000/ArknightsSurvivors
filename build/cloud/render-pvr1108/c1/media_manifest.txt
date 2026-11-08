@@ -1,0 +1,4 @@
+29229	UA5_godot.log
+88148	UA5_pv.log
+481665646	UA5_seg_01_win_t470.0.mp4
+121595	UA5_seg_01_win_t470.0.sfx.json

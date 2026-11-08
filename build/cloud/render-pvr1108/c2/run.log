@@ -1,0 +1,31 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4857 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+RC seed 1: 2 张
+RC seed 2: 2 张
+RC seed 3: 2 张
+RC seed 4: 2 张
+RC seed 5: 2 张
+RC seed 6: 2 张
+RC seed 7: 2 张
+RC seed 8: 2 张
+RC seed 9: 2 张
+RC seed 10: 2 张
+RC seed 11: 2 张
+RC seed 12: 2 张
+total 56
+drwxr-xr-x 14 root root 4096 Nov  8 04:10 .
+drwxr-xr-x  4 root root 4096 Nov  8 03:42 ..
+drwxr-xr-x  2 root root 4096 Nov  8 03:44 RC_seed01
+drwxr-xr-x  2 root root 4096 Nov  8 03:46 RC_seed02
+drwxr-xr-x  2 root root 4096 Nov  8 03:49 RC_seed03
+drwxr-xr-x  2 root root 4096 Nov  8 03:51 RC_seed04
+drwxr-xr-x  2 root root 4096 Nov  8 03:54 RC_seed05
+drwxr-xr-x  2 root root 4096 Nov  8 03:56 RC_seed06
+drwxr-xr-x  2 root root 4096 Nov  8 03:59 RC_seed07
+drwxr-xr-x  2 root root 4096 Nov  8 04:01 RC_seed08
+drwxr-xr-x  2 root root 4096 Nov  8 04:04 RC_seed09
+drwxr-xr-x  2 root root 4096 Nov  8 04:06 RC_seed10
+drwxr-xr-x  2 root root 4096 Nov  8 04:09 RC_seed11
+drwxr-xr-x  2 root root 4096 Nov  8 04:11 RC_seed12
+media：36 个文件，24M
