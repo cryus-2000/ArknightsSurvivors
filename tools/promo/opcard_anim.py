@@ -119,7 +119,13 @@ def render(bg_dir, out_dir, op, n_frames=None):
     h0 = seq[0][0][0].height
     k = max(1, round((H - 2 * LB) * 0.88 / h0))   # 整数倍，人物（含伞）占画面内高约 88%
     print("OPCARD", op, "frame h", h0, "k", k)
-    nm = condensed(code, T.latin(230, True))
+    from PIL import ImageFont
+    fo = ImageFont.truetype(HERE + "/fonts/Oswald-VF.ttf", 236)   # docs/327 §4.3 N1：Oswald 700、字高约 175 px
+    try:
+        fo.set_variation_by_axes([700])
+    except Exception:
+        pass
+    nm = condensed(code, fo, 1.0)
     bgs = sorted(f for f in os.listdir(bg_dir) if f.endswith(".png")) if bg_dir != "game" else ["game"] * (n_frames or 99)
     os.makedirs(out_dir, exist_ok=True)
     rnd = random.Random(3)
@@ -179,5 +185,51 @@ def render(bg_dir, out_dir, op, n_frames=None):
     return len(bgs)
 
 
+def closeup(out_dir, op, n=49, start=0):
+    """技能特写（docs/327 §17.2）：1/4 分辨率画楔形集中线向出手点收拢、人物周围留空，最近邻放大成阶梯；八成深海蓝两成青；
+    顺出手方向飞散的方块碎片；像素干员技能出手帧 ×12 只露上半身。集中线每 3 帧重抽一次（手绘动画那种抖）"""
+    import math
+    code, cn, *_ = OPS[op]
+    seq = _frames(op)
+    Q = 4
+    w, h = W // Q, H // Q
+    cx, cy = w * 0.56, h * 0.47
+    os.makedirs(out_dir, exist_ok=True)
+    for i in range(n):
+        low = Image.new("RGBA", (w, h), (8, 18, 30, 255))
+        d = ImageDraw.Draw(low)
+        rnd = random.Random(9 + i // 3)
+        for _ in range(70):
+            a = rnd.uniform(0, math.tau)
+            r_out = math.hypot(w, h)
+            r_in = rnd.uniform(0.36, 0.62) * h
+            wid = rnd.uniform(0.010, 0.035)
+            p0 = (cx + math.cos(a - wid) * r_out, cy + math.sin(a - wid) * r_out)
+            p1 = (cx + math.cos(a + wid) * r_out, cy + math.sin(a + wid) * r_out)
+            p2 = (cx + math.cos(a) * r_in, cy + math.sin(a) * r_in)
+            d.polygon([p0, p1, p2], fill=(94, 230, 230, 200) if rnd.random() < 0.2 else (28, 58, 78, 255))
+        rf = random.Random(21)
+        for _ in range(26):   # 方块碎片：顺出手方向（右上）飞散，随时间飞远
+            x0, y0 = cx + rf.uniform(10, w * 0.2), cy - rf.uniform(-h * 0.1, h * 0.2)
+            vx, vy = rf.uniform(0.6, 2.2), -rf.uniform(0.1, 1.0)
+            x, y = x0 + vx * i, y0 + vy * i
+            sz = rf.choice((1, 1, 2, 3))
+            d.rectangle((x, y, x + sz, y + sz), fill=(200, 240, 245, rf.randint(120, 230)))
+        img = low.resize((W, H), Image.NEAREST)
+        fr = _frame_at(seq, 0.25 + i / FPS)   # 从出手那几帧开始
+        opi = fr.resize((fr.width * 12, fr.height * 12), Image.NEAREST)
+        img.alpha_composite(opi, (int(cx * Q) - opi.width // 2 + int(4 * math.sin(i)), 120))
+        dd = ImageDraw.Draw(img)
+        T.tracked(dd, (W - 140, H - LB - 70), cn, T.serif(40, 700), T.INK + (255,), 0.2, "r")
+        out = img.convert("RGB")
+        d2 = ImageDraw.Draw(out)
+        d2.rectangle((0, 0, W, LB), fill=(0, 0, 0)); d2.rectangle((0, H - LB, W, H), fill=(0, 0, 0))
+        out.save(os.path.join(out_dir, "c%04d.png" % (start + i)))
+    return n
+
+
 if __name__ == "__main__":
+    if sys.argv[1] == "closeup":
+        print(closeup(sys.argv[2], sys.argv[3], int(sys.argv[4]), int(sys.argv[5])))
+        sys.exit(0)
     print(render(sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4]) if len(sys.argv) > 4 else None))
