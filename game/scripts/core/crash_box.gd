@@ -286,8 +286,9 @@ static func report_text(p: Dictionary) -> String:
 		var ws := PackedStringArray()
 		for w in wg:
 			if w is Array and w.size() >= 3:
-				ws.append("%ds %d→%d%s" % [int(w[0]), int(w[1]), int(w[2]), (" " + str(w[3])) if w.size() > 3 and str(w[3]) != "" else " 开机"])
-		o.append("WASM 堆增长（页面秒 原→请求 MB 阶段）：" + "；".join(ws))
+				# 引擎实际给到 max(请求, 原 × 1.2)（emscripten 的超额增长），记录里只有请求；这里写实得
+				ws.append("%ds %d→%d%s" % [int(w[0]), int(w[1]), maxi(int(w[2]), int(float(w[1]) * 1.2)), (" " + str(w[3])) if w.size() > 3 and str(w[3]) != "" else " 开机"])
+		o.append("WASM 堆增长（页面秒 原→实得 MB 阶段）：" + "；".join(ws))
 	var a: Array = p.get("s", [])
 	if not a.is_empty():
 		o.append("最后一段新读的贴图：" + str(a[-1].get("rl", "")))

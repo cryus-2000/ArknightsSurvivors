@@ -617,7 +617,7 @@ func _process_main(delta: float) -> void:
 	if leaving >= 0.0 or auto_go:
 		if not _op_warm_begun:
 			_op_warm_begun = true
-			Sfx.warm_begin()   # 选人 / 难度菜单切曲后，在实际载入页排队，避免菜单取消首段预热
+			Sfx.warm_begin(_op_ids())   # 选人 / 难度菜单切曲后，在实际载入页排队，避免菜单取消首段预热
 			A.warm_begin(_op_fx_names(), [])
 			_wl_pending = true   # 对局贴图名单要 game.gd：桌面后台还在编译就先等（载入页照常动），编完再取（下面）
 			for cid in _op_ids():

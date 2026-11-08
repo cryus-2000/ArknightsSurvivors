@@ -22,6 +22,7 @@ const Views = preload("res://scripts/screens/boot_views.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const FR = preload("res://scripts/core/frame_rec.gd")
 const ORDER := "res://data/boot_order.json"
+const OP_SCRIPT := "res://scripts/characters/data_operator.gd"
 const MAIN := "res://main.tscn"
 const BUDGET_USEC := 30000   # 每帧最多读多久（单个脚本超过也只读这一个）
 const CYAN := Color(0.369, 0.902, 0.902)
@@ -144,6 +145,11 @@ func _ready() -> void:
 		var d = JSON.parse_string(f.get_as_text())
 		if d is Dictionary:
 			items = d.get("items", [])
+	# 网页：干员脚本（data_operator.gd 连带全部积木，20 名干员共用）放在启动页最先编译（docs/319 §15）。原来在出发后的载入页编译，
+	# 编译时的临时内存叠在标题页 + 选人页之后约 255 MB 的在用堆上，把 WASM 容量从 286 撑到 343（只涨不缩）；这里叠在约 100 MB 上。
+	# 编完挂在场景树上留住（同 title.gd 的 op_script_ 键），载入页直接命中
+	if OS.has_feature("web") and Bal.vi("web/boot_op_script", 1) > 0:
+		items.insert(0, [OP_SCRIPT, "干员", "heavy"])
 	tip_i = randi() % Tips.TIPS.size()
 	_threads = OS.has_feature("threads") and not OS.has_feature("web")
 	_v = clampi(Bal.vi("ui/boot_v", 0), 0, 4)
@@ -252,7 +258,9 @@ func _step_sync() -> void:
 		_begin_item()
 		if ResourceLoader.exists(cur_path):
 			var l0 := Time.get_ticks_usec()
-			load(cur_path)
+			var lr = load(cur_path)
+			if cur_path == OP_SCRIPT and lr != null:
+				get_tree().set_meta("op_script_" + OP_SCRIPT.get_file().get_basename(), lr)
 			_ml("boot:" + cur_path)   # --memlive：堆里在用的涨了 ≥ 1 MB 就记是读哪个文件时涨的（docs/319 §15）
 			if FR.enabled() and Time.get_ticks_usec() - l0 > 40000:
 				print("PF FTLOAD %s %.0f ms" % [cur_path, (Time.get_ticks_usec() - l0) / 1000.0])
