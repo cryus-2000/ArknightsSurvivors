@@ -10,7 +10,7 @@ const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类
 var g: Game
 ## 商人（A4）：左侧商人立绘框（暖色提灯光）+ 右上「货架」与持有源石锭 + 底部提示；五张货品卡在 panel_box
 const CARD_H := 330.0          # 货品卡高度（含两行作用对象标签）；卡片顶边见 choice_panel.layout("shop")
-const TOP_PHONE := 96.0        # 手机（界面层放大后逻辑约 1044×481，手机端 UI 优化 r2）：卡片顶边；不画商人立绘框，卡片横跨整屏
+const TOP_PHONE := 100.0       # 手机：卡片顶边 = 安全区上沿（灵动岛 / B站胶囊）+ 100（标题、商人头肩、说明行、持有一行）；卡片横跨整屏
 ## 三档布局参数（docs/126 C6）：下标 = Cfg.ui_form()（0 桌面 / 1 触屏 / 2 手机横屏，商店触屏与手机同一版式）。
 ## touch：卡片横跨整屏、不画商人立绘框；card_max_w：卡宽上限；btn_h：按钮高；name_fs：名字放得下时的字号（0 = 按卡宽 15 / 12）
 const LAY := [
@@ -28,7 +28,13 @@ func lay() -> Dictionary:
 ## 11-08 用户 iPhone Toy 实测：界面大小 110% 后卡片、按钮、提示字压在底栏（灯火条 / 编队头像）上，「所有卡片都小一点」
 const HUD_RES_PHONE := 0.13
 func card_h(vs: Vector2) -> float:
-	return clampf(vs.y * (1.0 - HUD_RES_PHONE) - TOP_PHONE - 72.0, 200.0, CARD_H) if lay().touch else CARD_H
+	return clampf(vs.y * (1.0 - HUD_RES_PHONE) - top_phone() - 72.0, 180.0, 230.0) if lay().touch else CARD_H
+
+
+## 手机卡片顶边：让出安全区上沿（灵动岛 / B站分享关闭胶囊；11-08 用户截图胶囊贴着「属性 / 暂停」）。
+## 11-08 用户「货架太挤」：手机卡上只留类别、图标、名字、价格，说明与作用对象进「详情」，所以卡高上限 230
+func top_phone() -> float:
+	return TOP_PHONE + float(Cfg.safe_insets()[1])
 const MERCHANT_LINES := ["灯火暗下来之前，把源石锭花掉吧。", "深海里什么都能换，只要你出得起价。", "别盯着我看，看货。", "都是从沉船里捞上来的，保真。"]
 
 
@@ -70,7 +76,7 @@ func build(restart := false) -> void:
 		var tot: float = cw * n + sep * (n - 1)
 		g.panel_box.offset_left = -tot / 2.0
 		g.panel_box.offset_right = tot / 2.0
-		g.panel_box.offset_top = TOP_PHONE
+		g.panel_box.offset_top = top_phone()
 		bl = cx - tot / 2.0
 	var by: float = g.panel_box.offset_top + ch + 14.0
 	var bh: float = float(L.btn_h)
@@ -96,7 +102,7 @@ func build(restart := false) -> void:
 			g.panel_ui.motion.shop_card_post(card, i))
 		card.mouse_entered.connect(func(): card.queue_redraw())
 		card.mouse_exited.connect(card.queue_redraw)
-		if ph:
+		if touch:
 			card.pressed.connect(func():
 				if not g.panel_ui.detail_tap(card, i):
 					g.panel_ui.detail_i = -1
@@ -120,6 +126,19 @@ func build(restart := false) -> void:
 			if bline != "":
 				sdesc += "\n" + bline
 		var sfull := sdesc
+		if touch:
+			# 手机 / 平板（11-08）：卡上不写说明和作用对象；每张卡都有「详情」，完整说明 + 影响对象盖在这张卡上（choice_panel._draw_phone_detail）
+			if str(it.get("full", it.desc)) != str(it.desc):
+				sfull = str(it.full) + sdesc.substr(str(it.desc).length())
+			card.set_meta("full_desc", sfull)
+			card.set_meta("brief", "")
+			card.set_meta("phone", true)
+			card.set_meta("more", true)
+			card.set_meta("fit", {})
+			card.set_meta("affects", chips)
+			card.set_meta("chips_cut", not chips.is_empty())
+			g.panel_box.add_child(card)
+			continue
 		if str(it.get("full", it.desc)) != str(it.desc):
 			# 卡面只写本编队相关的部分（relic_fx.squad_desc，10-28）：完整规则进悬停 / 详情
 			sfull = str(it.full) + sdesc.substr(str(it.desc).length())
@@ -181,12 +200,13 @@ func draw_card(card: Button, it: Dictionary, i: int) -> void:
 	if card.get_meta("more", false):
 		cn_s = ""   # 手机：右上有「详情」键，标签条只留英文
 	UI.strip(card, g.font, r.position + Vector2(10, 10), en_s, cn_s, sc, UI.TEXT, 11)
-	if card.get_meta("more", false) and not it.sold:
+	var phone: bool = card.get_meta("phone", false)   # 手机：只画类别、图标、名字、价格（11-08）
+	if card.get_meta("more", false) and (phone or not it.sold):
 		g.panel_ui.draw_detail_chip(card, r, i, true)
 	if it.get("deep", false):
 		UI.chip(card, g.font, r.position + Vector2(10, 36), "深海馈赠", Color(UI.PURPLE.r, UI.PURPLE.g, UI.PURPLE.b, a), 10)
 	var sc_compact: bool = card.get_meta("compact", false)
-	var c := r.position + Vector2(r.size.x / 2.0, 76.0 if sc_compact else 88.0)
+	var c := r.position + Vector2(r.size.x / 2.0, 72.0 if phone else (76.0 if sc_compact else 88.0))
 	UI.halo(card, c, 32.0, UI.CYAN, hov, a)
 	var mod := Color(1, 1, 1, a) if not it.sold else Color(0.45, 0.45, 0.45, a)
 	var ic: Texture2D = g.tex.get("relic_" + it.id) if it.kind == "relic" else null
@@ -209,14 +229,21 @@ func draw_card(card: Button, it: Dictionary, i: int) -> void:
 	var nfs: int = int(lay().name_fs)
 	if nfs > 0 and fit_all.call(nfs):
 		fs = nfs   # 手机：名字 18（整排都放得下才用）
-	UI.text(card, UI.name_font(g.font), r.position + Vector2(0, 144.0 if sc_compact else 156.0), it.name, fs, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 2)
+	if phone:
+		# 名字在图标与价格条之间居中（一行或两行）
+		var nl: int = 1 if g.font.get_string_size(str(it.name), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fs)).x <= r.size.x - 14.0 else 2
+		var lh: float = UI.fs(fs) * 1.2
+		var ny: float = (112.0 + r.size.y - 44.0) / 2.0 - lh * nl / 2.0 + UI.fs(fs) * 0.95
+		UI.text(card, UI.name_font(g.font), r.position + Vector2(0, ny), it.name, fs, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 2)
+	else:
+		UI.text(card, UI.name_font(g.font), r.position + Vector2(0, 144.0 if sc_compact else 156.0), it.name, fs, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 2)
 	var fd: Dictionary = card.get_meta("fit", {})
 	if not fd.is_empty():
 		var dc := Color(0.86, 0.9, 0.93, a) if card.has_meta("brief") else Color(0.655, 0.69, 0.725, a)
 		UI.draw_fit(card, g.font, r.position + Vector2(10, 152.0 if sc_compact else 164.0), fd, dc, HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 20.0)
 	# 作用对象（run/affects.gd）：卡窄，不带「影响」小字，放不下折到第二行；贴着价格条（说明区最多到 232）
 	var chips: Array = card.get_meta("affects", [])
-	if not chips.is_empty():
+	if not chips.is_empty() and not phone:
 		UI.chip_row(card, g.font, r.position + Vector2(r.size.x / 2.0, r.size.y - 52.0), chips, r.size.x - 16.0, 2, "", 10, a)
 	var pb := Rect2(r.position + Vector2(10, r.size.y - 44), Vector2(r.size.x - 20, 32))
 	if blocked and not it.sold:
@@ -258,8 +285,8 @@ func _draw_bust_phone(r: Rect2) -> void:
 	var hr: float = A.hires_of(mtx)
 	var fw := mtx.get_width() / 2
 	var fr := int(g.t * 2.0) % 2
-	# 头肩：48 格里第 4–30 行（@2x 即 8–60），横向取有内容的 6–45 列
-	var src := Rect2(fw * fr + 6.0 * hr, 4.0 * hr, 39.0 * hr, minf(26.0 * hr, r.size.y * hr / 2.5))
+	# 头肩：48 格里第 3 行起（头盔顶）、以头盔为中心横取 8–40 列
+	var src := Rect2(fw * fr + 8.0 * hr, 3.0 * hr, 32.0 * hr, minf(26.0 * hr, (r.size.y - 2.0) * hr / 2.5))
 	var ks: float = 2.5 / hr
 	var sz := src.size * ks
 	var dst := Rect2((Vector2(r.get_center().x - sz.x / 2.0, r.end.y - sz.y)).round(), sz)
@@ -278,21 +305,25 @@ func _draw_bg_phone(vs: Vector2) -> void:
 	var note: String = "第 %d 次交易 · 价格 ×%.2f · %s" % [maxi(1, g.merchant_idx), g.shop_sys.price_mult(), g.shop_sys.step_note()]
 	if not g.shop_sys.relic_buy_unlimited():
 		note += " · 藏品还可买 %d 件" % g.shop_sys.relic_buys_left()
-	g.panel_ui.header(vs, "SHOP  ·  WANDERING TRADER", "流浪商人", note, top - 92.0)
-	_draw_bust_phone(Rect2(Vector2(cx - 318.0, top - 94.0), Vector2(124, 68)))
+	# 11-08：整页从安全区上沿（灵动岛 / B站胶囊）往下排；英文小字省掉，标题 + 说明两行，商人头肩在标题左边（不压说明行）
+	var t: float = top - TOP_PHONE
+	g.panel_ui.header(vs, "", "诡意行商" if g.shop_sys.trader else "流浪商人", note, t - 4.0)
+	var nw: float = g.font.get_string_size(note, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(13)).x
+	_draw_bust_phone(Rect2(Vector2(minf(cx - 170.0, cx - nw / 2.0 - 12.0) - 112.0, t + 2.0), Vector2(112, 64)))
 	var left: float = cx + g.panel_box.offset_left
 	var right: float = cx + g.panel_box.offset_right
 	# 底下垫一条暗底：手机上压暗带只压一半，左上 HUD 的状态小字会从这行后面透出来（10-11）
 	var rl: String = "%s · 商人还会停留 %d 秒" % [g.progression.relic_count_text(), int(g.merchant.get("life", 0.0))]
 	g.panel_fg.draw_rect(Rect2(left - 6.0, top - 24.0, g.font.get_string_size(rl, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(14)).x + 12.0, 22.0), Color(0.03, 0.035, 0.045, 0.9))
 	UI.text(g.panel_fg, g.font, Vector2(left, top - 6.0), rl, 14, UI.SUB)
-	var dp := Rect2(Vector2(right - 128.0, top - 48.0), Vector2(128, 34))
+	# 持有源石锭：和「藏品 · 停留」同一行、右对齐卡片（原在 top − 48，顶到右上「属性 / 暂停」键下沿，11-08）
+	var dp := Rect2(Vector2(right - 128.0, top - 32.0), Vector2(128, 28))
 	g.panel_fg.draw_rect(dp, Color(0.03, 0.035, 0.045, 0.86))
 	g.panel_fg.draw_rect(Rect2(dp.position, Vector2(3, dp.size.y)), UI.GREEN)
-	g.panel_fg.draw_texture_rect(g.tex.ingot, Rect2(dp.position + Vector2(12, 10), Vector2(18, 14)), false)
-	UI.ctext(g.panel_fg, g.font, dp.position + Vector2(38, 27), str(g.ingots), 26, UI.TEXT)
-	UI.text(g.panel_fg, g.font, Vector2(dp.position.x + 84, dp.position.y + 22), "源石锭", 10, UI.SUB)
-	UI.text(g.panel_fg, g.font, Vector2(dp.position.x - 60, dp.position.y + 22), "持有", 13, Color(0.81, 0.84, 0.86), HORIZONTAL_ALIGNMENT_RIGHT, 50)
+	g.panel_fg.draw_texture_rect(g.tex.ingot, Rect2(dp.position + Vector2(12, 7), Vector2(18, 14)), false)
+	UI.ctext(g.panel_fg, g.font, dp.position + Vector2(38, 23), str(g.ingots), 22, UI.TEXT)
+	UI.text(g.panel_fg, g.font, Vector2(dp.position.x + 84, dp.position.y + 19), "源石锭", 10, UI.SUB)
+	UI.text(g.panel_fg, g.font, Vector2(dp.position.x - 60, dp.position.y + 19), "持有", 13, Color(0.81, 0.84, 0.86), HORIZONTAL_ALIGNMENT_RIGHT, 50)
 	# 提示一行、和按钮行同高居中（原两行，第二行落到底栏 HUD 上，11-08）
 	var hint: String = "←→ 选择 · Ⓐ 购买 · Ⓨ 刷新 · Ⓑ 离开" if Pad.using else "点卡片购买 · 点「刷新货架」/「离开」"
 	var hy: float = top + card_h(vs) + 14.0

@@ -38,4 +38,15 @@ func _ready() -> void:
 	await RenderingServer.frame_post_draw
 	get_viewport().get_texture().get_image().save_png(out.path_join("shop.png"))
 	print("SHOP SHOT panel=", g.panel.size, " ins=", Cfg.safe_insets(), " form=", Cfg.ui_form())
+	# 第二张：第一张货品点开「详情」（手机）
+	g.panel_ui.detail_i = 0
+	for k in 10:
+		_fake_ins()
+		g.panel_tip.queue_redraw()
+		for c in g.panel_box.get_children():
+			c.queue_redraw()
+		await get_tree().process_frame
+	await RenderingServer.frame_post_draw
+	get_viewport().get_texture().get_image().save_png(out.path_join("shop_detail.png"))
+	print("SHOP SHOT detail")
 	get_tree().quit(0)
