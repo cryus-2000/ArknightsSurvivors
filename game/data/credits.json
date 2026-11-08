@@ -5,59 +5,44 @@
  "sections": [
   [
    "同人声明",
-   "《方舟幸存者》是《明日方舟》的非官方同人作品，免费、非商业。角色、世界观、名称与「水月与深蓝之树」的设定均属于鹰角网络（Hypergryph），本作与鹰角网络无关。",
+   "《明日方舟》非官方同人作品，免费、非商业，与鹰角网络（Hypergryph）无关。角色、世界观与设定版权归鹰角网络所有。",
    ""
   ],
   [
-   "明日方舟游戏数据",
-   "藏品名称、编号与敌人设定的核对参考自社区整理的游戏数据仓库。",
-   "https://github.com/Kengxxiao/ArknightsGameData"
+   "资料参考",
+   "PRTS Wiki；ArknightsGameData（Kengxxiao）。",
+   "https://prts.wiki  ·  https://github.com/Kengxxiao/ArknightsGameData"
   ],
   [
-   "PRTS Wiki",
-   "机制与文案参考。",
-   "https://prts.wiki"
-  ],
-  [
-   "像素美术",
-   "角色、敌人、场景与特效为根据《明日方舟》游戏美术二次创作的像素画，由 Claude（Anthropic）与 ChatGPT / Codex（OpenAI）程序化绘制。",
-   ""
-  ],
-  [
-   "职业图标",
-   "寻访界面的八个职业标志为《明日方舟》原作线稿图标，取自社区整理的 PRTS Design 预览资源，未改动。图标版权归鹰角网络（Hypergryph）所有，该仓库声明游戏素材版权属鹰角、不在其 MIT 代码许可之内；本作仅在同人、非商业范围内使用。",
-   "https://github.com/MooncellWiki/prts-design"
+   "原作素材",
+   "《明日方舟》职业图标（PRTS Design）、部分音效、配乐与干员语音（索引参考 Ark-Voice），版权归鹰角网络及配音演员所有。",
+   "https://github.com/MooncellWiki/prts-design  ·  https://github.com/isHarryh/Ark-Voice"
   ],
   [
    "引擎",
-   "Godot Engine 4.7（MIT 许可）。",
+   "Godot Engine 4.7（MIT）。",
    "https://godotengine.org"
   ],
   [
    "字体",
-   "界面字体 Noto Sans CJK SC / Noto Sans SC，事件标题字体 Noto Serif SC（© 2014–2023 Adobe，Google Noto 项目），按 SIL Open Font License 1.1 子集化后随游戏分发；局内数字与英文标签用 Montserrat（© 2024 The Montserrat.Git Project Authors，SIL Open Font License 1.1，子集化，许可全文见 fonts/OFL_Montserrat.txt）。",
+   "Noto Sans SC / Noto Serif SC、Montserrat（SIL OFL 1.1）。",
    "https://openfontlicense.org"
   ],
   [
-   "开发协作",
-   "代码、设计与美术由作者与 Claude（Anthropic）、ChatGPT / Codex（OpenAI）共同完成。",
-   "https://claude.ai  ·  https://chatgpt.com"
-  ],
-  [
-   "第三方特效素材",
-   "部分技能特效改自第三方像素素材（均按其许可使用并做了缩放 / 重调色）：CodeManu「Free Pixel Effects Pack」（CC-BY 4.0）、pixel-boy「Ninja Adventure」（CC0）、Pixel Art Spells（OpenGameArt，CC0）、Pimen「Holy Spell Effect」（已购买许可）、ansimuz「Gothicvania Magic / Warped Explosions / Warped VFX」系列（已购买许可）、CreativeKind「31 in One」特效合集（已购买许可）。",
-   "https://codemanu.itch.io/pixelart-effect-pack"
+   "特效",
+   "pixelfx（Hugo Duprez，MIT）；CodeManu「Free Pixel Effects Pack」（CC-BY 4.0）；pixel-boy「Ninja Adventure」（CC0）；Pixel Art Spells（CC0）；Pimen「Holy Spell Effect」；ansimuz「Gothicvania Magic / Warped」系列；CreativeKind「31 in One」。",
+   "https://www.spritefusion.com  ·  https://codemanu.itch.io/pixelart-effect-pack"
   ],
   [
    "音乐与音效",
-   "部分音效剪辑自《明日方舟》原作音效（多名干员的终结技、能天使与流明的普攻等），商人场景配乐取自《明日方舟》原作配乐；以上版权归鹰角网络（Hypergryph）所有，本作仅在同人、非商业范围内使用，感谢鹰角网络。局内战斗、Boss 与结算等配乐由 Suno（AI 音乐生成）制作。其余音效与部分短乐句由 Claude（Anthropic）编写脚本程序合成，寻访演出的音效（落包、拉链、开包的光、光炸、翻卡）也是程序合成。部分刀剑、撞击、爆炸声与灯火暗淡时的心跳剪辑自 Sonniss「GDC Game Audio Bundle 2026」（免版税）；部分枪声、锁链、刀划与金属撞击剪辑自 CC0 公有领域录音：Freesound 用户 DarkShroom、Invisible_inks、BaggoNotes、Keatonmcq、serøutōnin--deprivəd、Kp69606、16bitstudios、DaVoiceActor、IENBA，Kenney「Impact Sounds」「RPG Sounds」。",
-   "https://sonniss.com/gameaudiogdc  ·  https://suno.com  ·  https://freesound.org  ·  https://kenney.nl"
+   "Suno；Sonniss「GDC Game Audio Bundle 2026」；Freesound（CC0）；Kenney「Impact Sounds」「RPG Sounds」。",
+   "https://suno.com  ·  https://sonniss.com/gameaudiogdc  ·  https://freesound.org  ·  https://kenney.nl"
   ],
   [
-   "干员语音",
-   "部分干员语音剪辑自《明日方舟》中文语音，索引参考 Ark-Voice（isHarryh）。原始录音版权归鹰角网络（Hypergryph）及配音演员所有，本作仅使用少量短片段。",
-   "https://github.com/isHarryh/Ark-Voice"
+   "开发协作",
+   "Claude（Anthropic）、ChatGPT / Codex（OpenAI）。",
+   "https://claude.ai  ·  https://chatgpt.com"
   ]
  ],
- "footer": "如有侵权请发邮件至 1656198110@qq.com 联系作者，将立即处理。"
+ "footer": "如有侵权请发邮件至 1656198110@qq.com 联系作者。"
 }
