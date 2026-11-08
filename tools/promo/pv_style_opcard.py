@@ -139,19 +139,37 @@ def name_card(glitch=False):
 
 
 def skill_closeup():
-    """技能特写：像素放大到 12 倍只露上半身 + 斜向速度线。"""
-    img = Image.new("RGBA", (W, H), (6, 14, 24, 255))
-    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    d = ImageDraw.Draw(lay)
+    """技能特写：像素放大只露上半身 + 像素风集中线（向主体收拢、中间留空）+ 方块碎片。
+
+    集中线在 1/4 分辨率画、最近邻放大，线是一格一格的阶梯，和像素人物同一个画风；
+    线只长在画面外圈，主体周围一圈（椭圆）是空的；颜色以深海蓝为主，少数几条青色。
+    """
+    import math
+    Q = 4                                   # 1 个「线像素」= 4 屏幕像素
+    w, h = W // Q, H // Q
+    cx, cy = w * 0.56, h * 0.47             # 收拢点：放在人物脸 / 出手处
+    low = Image.new("RGBA", (w, h), (8, 18, 30, 255))
+    d = ImageDraw.Draw(low)
     rnd = random.Random(9)
-    for _ in range(46):
-        y = rnd.uniform(0, H)
-        L = rnd.uniform(300, 1100)
-        x = rnd.uniform(-200, W)
-        d.line((x, y, x + L, y - L * 0.35), fill=(94, 230, 230, rnd.randint(30, 110)), width=rnd.choice((2, 4, 8)))
-    img.alpha_composite(lay)
+    for i in range(70):
+        a = rnd.uniform(0, math.tau)
+        r_out = math.hypot(w, h)            # 从画外开始
+        r_in = rnd.uniform(0.36, 0.62) * h  # 到离中心一段距离就停，中间留空
+        wid = rnd.uniform(0.010, 0.035)     # 楔形宽度（弧度），外粗内尖
+        p0 = (cx + math.cos(a - wid) * r_out, cy + math.sin(a - wid) * r_out)
+        p1 = (cx + math.cos(a + wid) * r_out, cy + math.sin(a + wid) * r_out)
+        p2 = (cx + math.cos(a) * r_in, cy + math.sin(a) * r_in)
+        col = (94, 230, 230, 200) if rnd.random() < 0.18 else (28, 58, 78, 255)
+        d.polygon([p0, p1, p2], fill=col)
+    # 方块碎片：顺着出手方向（向右上）飞散，近大远小
+    for _ in range(26):
+        x = cx + rnd.uniform(10, w * 0.45)
+        y = cy - rnd.uniform(-h * 0.15, h * 0.35)
+        sz = rnd.choice((1, 1, 2, 3))
+        d.rectangle((x, y, x + sz, y + sz), fill=(200, 240, 245, rnd.randint(120, 230)))
+    img = low.resize((W, H), Image.NEAREST)
     op = px(frame(ART + "/operators/mizuki/mizuki_runtime_skill_attack@2x.png", 5, 192), 12)
-    img.alpha_composite(op, (W // 2 - op.width // 2 + 120, 120))
+    img.alpha_composite(op, (int(cx * Q) - op.width // 2, 120))
     d = ImageDraw.Draw(img)
     tc.tracked(d, (W - 140, H - LB - 70), "水月", tc.serif(40, 700), tc.INK, 0.2, "r")
     letterbox(img)
@@ -184,7 +202,7 @@ def sequence(card, glitch_card, gameplay_path):
     panels = [
         (gp.resize(half, Image.LANCZOS), "① 实机：这名干员放技能", "0.5 小节（0.8 s），叠海雪 + 暗角"),
         (glitch_card.resize(half, Image.LANCZOS), "② 名字卡：代号故障式出字", "进场 4–6 帧故障，定格 1 小节"),
-        (skill_closeup().resize(half, Image.LANCZOS), "③ 技能特写：像素放大 + 速度线", "0.5 小节，对重拍"),
+        (skill_closeup().resize(half, Image.LANCZOS), "③ 技能特写：像素放大 + 像素集中线", "0.5 小节，对重拍；中间留空"),
         (glitch_frame(card).resize(half, Image.LANCZOS), "④ 故障转场 → 下一位", "2–3 帧"),
     ]
     out = Image.new("RGB", (1920, 1240), (14, 18, 24))
