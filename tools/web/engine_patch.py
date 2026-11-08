@@ -6,6 +6,7 @@
 2. 主包少两份拷贝（11-08 docs/319 §10）：引擎把 index.pck 下载成 ArrayBuffer（Response.arrayBuffer() 又拼一份），
    再 FS.writeFile(new Uint8Array(buf)) 让 MEMFS slice 出第三份常驻。改成：分片加载器（loader.js）在 Response 上挂 __syBuf，
    引擎直接拿这块；MEMFS 用 canOwn 直接持有它，不再 slice。启动峰值从 3 份主包降到 1 份，常驻仍是 1 份（引擎要从 MEMFS 读资源）。
+4. 样本注册记录：每次注册网页样本记 [秒, 时长秒, 当时堆容量 MB] 到 window.__syAudioRegs（只读，测量用）。
 3. WASM 堆增长记录：每次 emscripten_resize_heap 记 [秒, 原容量 MB, 请求 MB] 到 window.__syWasmGrows（崩溃前快照 / --memlog 读）。
 """
 
@@ -31,6 +32,8 @@ FETCH_A = "const tr = getTrackedResponse(response, tracker[file]);"
 FETCH_B = ("if (!raw && response.__syBuf) { const n = response.__syBuf.byteLength; tracker[file].total = n; tracker[file].loaded = n; "
            "tracker[file].done = true; return Promise.resolve(response.__syBuf); } " + FETCH_A)
 GROW_A = "var _emscripten_resize_heap=requestedSize=>{"
+REG_A = "const audioBuffer=GodotAudio.ctx.createBuffer(numberOfChannels,framesTotal,sampleRate);"
+REG_B = ("(window.__syAudioRegs=window.__syAudioRegs||[]).push([Math.round(performance.now()/1000),Math.round(framesTotal/sampleRate),HEAPU8.length>>>20]);" + REG_A)
 GROW_B = GROW_A + "(window.__syWasmGrows=window.__syWasmGrows||[]).push([Math.round(performance.now()/1000),HEAPU8.length>>>20,(requestedSize>>>0)>>>20]);"
 
 
@@ -46,7 +49,7 @@ def patch_index_js(path: str) -> None:
             raise SystemExit("index.js 带有未知版本的音频补丁")
         s = s.replace(ANCHOR, ANCHOR + INJECT, 1)
     s = s.replace(COPY, SHARE, 1)
-    for a, b in ((FS_COPY, FS_OWN), (FETCH_A, FETCH_B), (GROW_A, GROW_B)):
+    for a, b in ((FS_COPY, FS_OWN), (FETCH_A, FETCH_B), (GROW_A, GROW_B), (REG_A, REG_B)):
         if b in s:
             continue
         if s.count(a) != 1:

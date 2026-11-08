@@ -422,6 +422,8 @@ const SUNO_META := "res://audio/music/suno_layers.json"
 func _suno_init() -> void:
 	if not FileAccess.file_exists(SUNO_META):
 		return
+	if (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--nomusic"):
+		return   # 测量：不建配乐（量配乐注册对 WASM 堆高水位的贡献，docs/319 §10）
 	var meta = JSON.parse_string(FileAccess.get_file_as_string(SUNO_META))
 	if not meta is Dictionary:
 		return

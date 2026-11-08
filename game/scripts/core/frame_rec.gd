@@ -46,7 +46,9 @@ func _print_mem(tag: String) -> void:
 		# WASM 摸过的页（真正驻留）与堆增长记录（tools/web/perf_probe.js、engine_patch.py §3；docs/319 §10）
 		var tw = JavaScriptBridge.eval("window.__syWasmTouched?window.__syWasmTouched():-1", true)
 		var gr = JavaScriptBridge.eval("JSON.stringify((window.__syWasmGrows||[]).splice(0))", true)
-		print("PF WASMTOUCH %s touched=%.0fMB grows=%s" % [tag, float(tw) if tw != null else -1.0, str(gr)])   # WASM 容量（只涨不缩）与 JS 堆：引擎显存统计看不到的那部分（docs/319 §7）   # 网页样本按来源分组（docs/287 §3 ③）
+		var rg = JavaScriptBridge.eval("JSON.stringify((window.__syAudioRegs||[]).filter(function(x){return x[1]>=10}).splice(0))", true)
+		JavaScriptBridge.eval("window.__syAudioRegs=[]", true)
+		print("PF WASMTOUCH %s touched=%.0fMB grows=%s longregs=%s" % [tag, float(tw) if tw != null else -1.0, str(gr), str(rg)])   # WASM 容量（只涨不缩）与 JS 堆：引擎显存统计看不到的那部分（docs/319 §7）   # 网页样本按来源分组（docs/287 §3 ③）
 	var sc = get_tree().current_scene
 	if sc != null and sc.has_method("view_size") and "cam" in sc and sc.cam != null:
 		var vp := get_viewport()
