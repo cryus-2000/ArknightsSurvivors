@@ -1,0 +1,3 @@
+708	chk_touch_layout.txt
+696	chk_ui_smoke.txt
+711	chk_ult_aim.txt

@@ -1,0 +1,2 @@
+hud_sq p844 1 ['rec_00000.png']  []
+ultaim p844 150 ['rec_00000.png', 'rec_00001.png', 'rec_00002.png', 'rec_00003.png']  []
