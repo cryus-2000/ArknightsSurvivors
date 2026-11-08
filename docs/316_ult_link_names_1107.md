@@ -1,6 +1,6 @@
 # 316 · 终结技 / 连携技改名方案（11-07）
 
-> 状态：方案，待用户挑。只出方案，不改游戏（`game/data/ult_text.json` 未动）。
+> 状态：**已定稿（用户 11-08 在勾选页选定），已改进游戏**（分支 claude/ult-names-1108）。定稿以 §3 为准；§1 是当时的候选方案，保留作出处查证。
 > 起因：用户 11-07 说 40 个名字「太 AI」，问题集中在三类：「X 之 Y」（熔岩之息、沉渊之锚、凡人之灯）、四字成语腔（一锤定局、寸步不让、潮落剑起）、动宾生拼（灵狐留步、摧心之刃、替身相拥、镜中附肢），读起来像在描述效果，不像名字。
 > 来源：ArknightsGameData `zh_CN/gamedata/excel/`（handbook_info_table / character_table / uniequip_table / skill_table）与本地 `build/arkvoice/charword_table.json`，文本和 PRTS 干员档案页、语音记录页一致；docs/76 §4 第 2 条允许用这个镜像。下面「出处」列写的是 PRTS 页面上的标签（档案资料 N / 语音标题 / 模组名），原文逐字摘录。
 > 撞名检查：所有候选都已和全游戏技能名、天赋名比对过，没有完全重名；本人技能、天赋、模组名也已逐条避开（docs/76 §4、canon-skill-names）。
@@ -63,3 +63,33 @@
 - **改名要动的地方**（用户挑定后另开活）：`ult_text.json` 各人 `ult.name` / `link_v2.name`（旧 `link.name` 一并改）；`gladiia.json`、`ulpianus.json` 里的「钩与锚」；`docs/198`、`docs/199` 里的旧名只作历史，不追改。
 - **原文没有出处的旧词**：刀痕、瞬身、锚链 / 锁链、巨浪、水痕、奇点、黑洞、熔岩块、火柱、残影、触手、忍冬、白光、灼烧（流明）。新名都没用这些词。
 - **两个风格提醒**：① 「熔岩蛋糕」「关灯」「多谢款待」是俏皮或黑色幽默的取法，好记，但和其他名字的分量不同，用户如果想全表一个调子，就都选次选。② 能天使、凯尔希、星熊、推进之王、塞雷娅、流明的连携取自作战语音原句，图鉴和 HUD 上出现时，可以直接配那一句原作语音。
+
+## 3. 定稿（11-08）
+
+用户在勾选页逐格选定，41 格中 32 格改名，9 格保留原名。用户自己写的名字（裂海、母爱、仅需一击、人性之光、小菜一碟、这招怎么样、试着抵抗我吧）照写，不按 §0 口径改，也不按 docs/76 改。英文名是本作新配的，用于图鉴技能页的英文小字。
+
+| 干员 | 连携（v2 / 旧 link 同名） | 终结技 |
+|---|---|---|
+| 德克萨斯 | 拔刀 DRAW | 暴风骤雨 TEMPEST |
+| 能天使 | 天意 PROVIDENCE | 全弹倾泻（保留） |
+| 浊心斯卡蒂 | 歌声 THE SONG | 吐息 BREATH |
+| 凯尔希 | 指令：守护（保留） | 歼灭 ANNIHILATE |
+| 乌尔比安 | 手术刀 SCALPEL | 处决 EXECUTION |
+| 斯卡蒂 | 起舞 DANCE | 裂海 SPLIT THE SEA |
+| 歌蕾蒂娅 | 猎物 PREY | 渊涡（保留） |
+| 安洁莉娜 | 引力信笺（保留） | 奇点坠落（保留） |
+| 艾雅法拉 | 小心火灾 MIND THE FIRE | 这招怎么样 HOW ABOUT THIS |
+| 维什戴尔 | 天降厚礼（保留） | 太空大扫除 SPACE CLEANUP |
+| 归溟幽灵鲨 | 一分为二 CLEAVE IN TWO | 巨锯回旋（保留） |
+| 水月 | 多谢款待 THANKS FOR THE MEAL | 小菜一碟 PIECE OF CAKE |
+| 塞雷娅 | 防壁 BULWARK | 仅需一击 ONE BLOW |
+| 铃兰 | 符文 RUNE | 母爱 MOTHER'S LOVE |
+| 逻各斯 | 面纱 VEIL | 丧钟 DEATH KNELL |
+| 星熊 | 寸步不让（保留） | 般若 HANNYA |
+| 推进之王 | 闪开 MAKE WAY | 裁定 MY RULING |
+| 艾丽妮 | 提灯 LANTERN | 剑与灯 SWORD AND LANTERN |
+| 拉普兰德 | 封锁 LOCKDOWN | 试着抵抗我吧 TRY AND RESIST |
+| 流明 | 凡人之灯（保留） | 人性之光 LIGHT OF HUMANITY |
+| 歌蕾蒂娅 × 乌尔比安 | 组合连携 二重奏（原「钩与锚」） | — |
+
+改动位置：`game/data/ult_text.json` 的 ult / link / link_v2 三处的 name 与 en；`gladiia.json`、`ulpianus.json` 的 combo.name；乌尔比安 hit_sources 键和 src「钩与锚」→「二重奏」，作战记录「最高单次伤害」的来源名会跟着变；`fx_pxplane_ul.gd` 的画面匹配同步改。艾丽妮终结技内部段名「宣判」（音效 / 伤害来源）是段名，不是招式名，没改。代码注释和 docs/198、docs/199 里的旧名只作历史，不追改。
