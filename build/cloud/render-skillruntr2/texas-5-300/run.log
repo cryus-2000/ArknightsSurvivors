@@ -1,0 +1,14 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4857 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+fatal: couldn't find remote ref a17885099
+/work/cmds.sh: line 108: cd: /work/base: No such file or directory
+B 组用提交 a17885099（/work/base）
+# 同种子 TRACE 对比
+
+A：`--quality=high`　B：`--quality=high`　共用：``
+
+| 局 | A 行数 | B 行数 | 结果 | 第一处差异 |
+|---|---|---|---|---|
+| texas 种子 5 300 秒 | 153 | 0 | **有差异** |  |
+media：0 个文件，4.0K
