@@ -14,7 +14,9 @@ from mathutils import Vector
 
 argv = sys.argv[sys.argv.index("--") + 1:]
 OUT = argv[0]
-STILLS = [int(x) for x in argv[1].split(",")] if len(argv) > 1 else [60]
+RANGE = tuple(int(x) for x in argv[1].split("-")) if len(argv) > 1 and "-" in argv[1] else None   # 动画：起帧-止帧
+STILLS = [int(x) for x in argv[1].split(",")] if len(argv) > 1 and not RANGE else [60]
+NOMZ = os.environ.get("PV3D_NOMZ") == "1"   # 名字卡背景板：不放水月，干员在剪辑时 2D 叠（docs/327 §17）
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 ART = os.path.join(ROOT, "game", "art")
@@ -199,9 +201,11 @@ fw = s_.size[0] // int(ent["frames"])
 mz, mw, mh = frame_img(ps, fw, int(ent["frames"]) - 1)
 foot_y = ent["foot"][1] * 2 / mh
 MZ_PX = 0.019
-billboard(mz, mw, mh, MZ_PX, (-1.15, 2.0, -(1 - foot_y) * mh * MZ_PX), emit=0.9, name="mizuki")
+mzo = billboard(mz, mw, mh, MZ_PX, (-1.15, 2.0, -(1 - foot_y) * mh * MZ_PX), emit=0.9, name="mizuki")
+mzo.hide_render = NOMZ
 bpy.ops.mesh.primitive_circle_add(vertices=48, radius=0.75, fill_type="NGON", location=(-1.15, 2.0, 0.01))
 cg = bpy.context.object
+cg.hide_render = NOMZ
 cg.scale = (1.0, 0.45, 1)
 cm, cn, cl, co = mat("contact")
 gtc = cn.new("ShaderNodeTexCoord"); grd = cn.new("ShaderNodeTexGradient"); grd.gradient_type = "SPHERICAL"
@@ -223,6 +227,8 @@ cg.visible_shadow = False
 pm, pn, pl_, po = mat("pix")
 pe = pn.new("ShaderNodeEmission"); pe.inputs["Color"].default_value = (0.75, 0.95, 1.0, 1); pe.inputs["Strength"].default_value = 0.8
 pl_.new(pe.outputs[0], po.inputs["Surface"])
+snow_root = bpy.data.objects.new("snow_root", None)
+sc.collection.objects.link(snow_root)
 for k in range(140):
     d = rng.random()
     y = 1.2 + d * 22
@@ -232,6 +238,7 @@ for k in range(140):
     q.rotation_euler = (math.radians(90), 0, 0)
     q.data.materials.append(pm)
     q.visible_shadow = False
+    q.parent = snow_root
 
 # ---------------------------------------------------------------- 光：一束顶光 + 水月身后青色逆光
 bpy.ops.object.light_add(type="SPOT", location=(-1.0, 8.0, 12.0))
@@ -293,6 +300,21 @@ co2 = cn_.new("CompositorNodeComposite")
 cl2.new(rl.outputs["Image"], g.inputs["Image"]); cl2.new(g.outputs["Image"], co2.inputs["Image"])
 
 os.makedirs(OUT, exist_ok=True)
+if RANGE:
+    # 缓慢漂移：镜头横移 0.35 m、轻推 0.25 m；海雪整体上浮 0.06 m/s
+    c0 = Vector(cam.location)
+    for f in range(RANGE[0], RANGE[1] + 1, 6):
+        u = (f - RANGE[0]) / max(1, RANGE[1] - RANGE[0])
+        cam.location = c0 + Vector((0.35 * u, 0.25 * u, 0))
+        cam.keyframe_insert("location", frame=f)
+        snow_root.location = (0, 0, 0.06 * f / FPS)
+        snow_root.keyframe_insert("location", frame=f)
+    sc.render.fps = FPS
+    sc.frame_start, sc.frame_end = RANGE
+    sc.render.image_settings.file_format = "PNG"
+    sc.render.filepath = OUT.replace("\\", "/") + "/f"
+    bpy.ops.render.render(animation=True)
+    STILLS = []
 for f in STILLS:
     t0 = time.time()
     sc.frame_set(f)
