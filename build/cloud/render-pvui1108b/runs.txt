@@ -1,0 +1,3 @@
+meta: 110 帧
+gallery: 150 帧
+medals: 120 帧
