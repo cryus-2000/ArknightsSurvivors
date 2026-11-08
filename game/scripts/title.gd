@@ -4,6 +4,10 @@ const HS = preload("res://scripts/screens/hh_style.gd")
 const FR = preload("res://scripts/core/frame_rec.gd")
 func _ready() -> void:
 	load("res://scripts/core/perf_hud.gd").ensure(get_tree())   # 性能自检浮层（缺省关，core/perf_hud.gd）
+	load("res://scripts/core/crash_box.gd").phase("标题")   # WASM 堆增长记录的阶段（docs/319 §13）
+	var rl: Dictionary = load("res://scripts/core/run_reload.gd").resume()   # 手机网页局间整页重载回来：「再来一局」直接出发（core/run_reload.gd）
+	if not rl.is_empty():
+		_reload_go.call_deferred(rl)
 	load("res://scripts/core/crash_note.gd").ensure(get_tree())   # 上次对局异常退出：左下角提示，点开看崩溃前内存曲线（core/crash_box.gd）
 	if Cfg.dev_args().has("--loadprof"):
 		# 启动计时（docs/36 §5）：引擎启动 → 标题页 _ready → 标题页首帧画完（毫秒，从引擎启动算）
@@ -486,6 +490,17 @@ func _bg_game() -> void:
 		ResourceLoader.load_threaded_request("res://game.tscn")
 
 
+## 整页重载回来的「再来一局」：同一名队长、同一难度，走标题页同一个载入页出发（同难度页「出发」，_diff_go）
+func _reload_go(rl: Dictionary) -> void:
+	var op := str(rl.get("op", ""))
+	if Character.exists(op):
+		Cfg.character_id = op
+	diff_sel = clampi(int(rl.get("diff", Cfg.difficulty)), 0, Cfg.diff_unlocked)
+	Cfg.difficulty = diff_sel
+	_prewarm()
+	leaving = 0.0
+
+
 ## 帧时记录的脚本动作（--ftdo=<标记>:<秒>:<动作>，core/frame_rec.gd）：打开寻访 / 图鉴、图鉴换条目 / 换页签、关掉
 func _ft_action(what: String) -> void:
 	match what:
@@ -501,6 +516,15 @@ func _ft_action(what: String) -> void:
 		"gal_tab":
 			FR.mark("gal_tab")
 			gallery._set_tab((gallery.tab + 1) % 3)
+		"oppick":
+			FR.mark("oppick")   # 选人页（量「先翻选人页再出发」的 WASM 高水位，docs/319 §15）
+			_open_op_pick()
+		"op_next":
+			FR.mark("op_next")
+			_op_step(1)
+		"op_close":
+			FR.mark("op_close")
+			_close_op_pick()
 		"go":
 			FR.mark("go")   # 直接出发（同难度页「出发」：预热 → 载入页 → 进局）；量「开过图鉴再进局」的内存（docs/319）
 			_prewarm()
@@ -593,7 +617,7 @@ func _process_main(delta: float) -> void:
 	if leaving >= 0.0 or auto_go:
 		if not _op_warm_begun:
 			_op_warm_begun = true
-			Sfx.warm_begin()   # 选人 / 难度菜单切曲后，在实际载入页排队，避免菜单取消首段预热
+			Sfx.warm_begin(_op_ids())   # 选人 / 难度菜单切曲后，在实际载入页排队，避免菜单取消首段预热
 			A.warm_begin(_op_fx_names(), [])
 			_wl_pending = true   # 对局贴图名单要 game.gd：桌面后台还在编译就先等（载入页照常动），编完再取（下面）
 			for cid in _op_ids():
@@ -625,7 +649,9 @@ func _process_main(delta: float) -> void:
 			if v6.has(sn):
 				load("res://scripts/characters/blocks/ob_fx.gd").warm_frame_r(sn, A.tex(sn), maxi(1, int(v6[sn][0])))
 			_op_warm_more = not _grow_strips.is_empty()
-		Sfx.warm_step(maxi(1000, LOAD_BUDGET_USEC - (Time.get_ticks_usec() - wt0)))   # 出发后的等待里逐条注册音频样本（网页；桌面队列为空）：和读图共用一帧预算
+		A.memlive("载入页·读图后")
+		Sfx.warm_step(maxi(1000, LOAD_BUDGET_USEC - (Time.get_ticks_usec() - wt0)))
+		A.memlive("载入页·音频注册后")   # --memlive（docs/319 §15）；原注释：出发后的等待里逐条注册音频样本（网页；桌面队列为空）：和读图共用一帧预算
 		_loading_progress()
 	if leaving >= 0.0:
 		leaving += delta

@@ -118,7 +118,7 @@ static func ev(r, o, kind: String, d: Dictionary, raw: bool, t: int, R, p: Dicti
 			var ra: float = float(d.get("r", 89.0)) * 0.5
 			var es: Array = d.get("es", [])
 			match src:
-				"锚击", "钩与锚":
+				"锚击", "二重奏":
 					if "skill" in d.get("tags", []):   # 不容挣脱·绞杀：钩回落地后身前再抡一锤（S1 一系的重砸）
 						_trim_slams(r, o)
 						_pair(r, o, "s1_r%d_e%d" % [_bucket(ra, S1_R), t], c, false, {"ulslam": true})

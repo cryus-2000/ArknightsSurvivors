@@ -4,7 +4,7 @@
 // fetch + decodeAudioData 是异步的：第一次播某首要等它解完，晚到的时间从曲中补上（与引擎「迟到的毫秒从曲中补」同口径），不卡主线程。
 (function () {
   var M = {}, bufs = {}, loading = {}, srcs = {}, gains = {}, toFree = {};
-  var bus = null, lp = null, pre = null, busGain = 1, cut = 20000, fails = 0;
+  var bus = null, lp = null, pre = null, busGain = 1, cut = 20000, fails = 0, dl = 0, lastFail = "";
   window.__syMus = M;
   function ctx() {
     var l = window.__syAudioCtx || [];
@@ -20,6 +20,15 @@
     }
     return bus;
   }
+  // 手机（power.js 按 24 kHz 建上下文的那类设备，__sySampleRate > 0）：解码后左右声道混成单声道再留着，常驻的解码缓冲减半
+  // （200 秒一首 37 → 18 MB，docs/319 §15）。网址带 ?musmono=0 关掉
+  var MONO = (window.__sySampleRate || 0) > 0 && new URLSearchParams(location.search).get("musmono") !== "0";
+  function mono(c, b) {
+    if (!MONO || b.numberOfChannels < 2) return b;
+    var n = b.length, m = c.createBuffer(1, n, b.sampleRate), o = m.getChannelData(0), l = b.getChannelData(0), r = b.getChannelData(1);
+    for (var i = 0; i < n; i++) o[i] = 0.5 * (l[i] + r[i]);
+    return m;
+  }
   function load(url) {
     if (bufs[url]) return Promise.resolve(bufs[url]);
     if (loading[url]) return loading[url];
@@ -29,11 +38,13 @@
       if (!r.ok) throw new Error(r.status);
       return r.arrayBuffer();
     }).then(function (a) {
+      dl += a.byteLength;
       return new Promise(function (res, rej) { c.decodeAudioData(a, res, rej); });
     }).then(function (b) {
+      b = mono(c, b);
       bufs[url] = b; delete loading[url]; return b;
     }, function (e) {
-      delete loading[url]; fails++;
+      delete loading[url]; fails++; lastFail = String(url).split("/").pop() + " " + String(e && e.message || e).slice(0, 40);
       console.error("PF WEBMUSIC load fail " + url + " " + e);
       throw e;
     });
@@ -114,6 +125,7 @@
   };
   M.state = function () {   // 自测 / 日志
     var on = 0; for (var k in srcs) { if (srcs[k].src) on++; }
-    return JSON.stringify({ bufs: Object.keys(bufs).length, loading: Object.keys(loading).length, on: on, fails: fails, mb: Math.round(M.mb()), lv: Math.round(M.level() * 10000) / 10000, ctx: (ctx() || {}).state || "none" });
+    return JSON.stringify({ bufs: Object.keys(bufs).length, loading: Object.keys(loading).length, on: on, fails: fails, mb: Math.round(M.mb()), lv: Math.round(M.level() * 10000) / 10000, ctx: (ctx() || {}).state || "none",
+      sr: (ctx() || {}).sampleRate || 0, mono: MONO ? 1 : 0, dl: Math.round(dl / 104857.6) / 10, lf: lastFail });   // sr：解码按上下文采样率重采样（iOS 常为 48 kHz，缓冲是 24 kHz 原曲的 2 倍）
   };
 })();

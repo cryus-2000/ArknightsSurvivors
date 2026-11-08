@@ -1249,9 +1249,9 @@ func _follow_paused(dt: float, d: float) -> bool:
 
 ## 跟随主控的编队位：近处慢慢挪、远处快步跟上；离得太远（开局 / 传送）直接归位
 func follow(dt: float, target: Vector2) -> void:
-	var sq = g.get("squad")
-	var st: int = sq.stance if sq != null and not is_leader else 0   # 指挥模式（docs/114）：0 随行 / 1 突击 / 2 归队
-	if st == 1 and not (sq.out_op(self) if sq.has_method("out_op") else cmd_roam()):
+	var sqd = g.get("squad")   # 别叫 sq：会遮住成员 sq（技能帧条序列），下面「技能跑动段推进 run_ph」读到的就成了编队（11-08 维什戴尔 S2 跑步帧定格滑步）
+	var st: int = sqd.stance if sqd != null and not is_leader else 0   # 指挥模式（docs/114）：0 随行 / 1 突击 / 2 归队
+	if st == 1 and not (sqd.out_op(self) if sqd.has_method("out_op") else cmd_roam()):
 		st = 0   # 不突击的干员（json command.roam: false）/ 残血撤回中的（v2）突击时照旧随行
 	if cmd_down > 0.0 and pos != Vector2.INF and not is_leader:
 		_sample_motion(Vector2.ZERO, dt)   # 倒地：留在倒地点，不跟随、不瞬移归位（10-23 用户实测：原来躺着跟编队漂）
@@ -1263,8 +1263,8 @@ func follow(dt: float, target: Vector2) -> void:
 	# 原来随行离编队位 700 以上也直接归位，10-28 改为限速跑回（follow_vmax），不再一下子出现在身边
 	if syn_mv.is_empty() and (pos == Vector2.INF or pos.distance_to(target) > CmdBal.v("command/leash", 1200.0) * 1.6):
 		mv_src = "snap_leash"
-		if pos != Vector2.INF and sq != null and not is_leader:
-			sq.blink_fx(self, target)
+		if pos != Vector2.INF and sqd != null and not is_leader:
+			sqd.blink_fx(self, target)
 		pos = target
 		mv = 0.0
 		return
@@ -1293,7 +1293,7 @@ func follow(dt: float, target: Vector2) -> void:
 			_cmd_failed = null
 			rush_t = 0.0   # 离开突击：冲锋作废
 			_roam_dash_t = -1.0
-		if st == 2 and sq.gather_t >= 0.0:
+		if st == 2 and sqd.gather_t >= 0.0:
 			target = pos   # 归队集合：到位后站定一下（squad._tick_recall）
 		var d: float = pos.distance_to(target)
 		var k: float = clampf(dt * (3.0 if d < 20.0 else (9.0 if st == 2 else 6.0)), 0.0, 1.0)
@@ -3193,6 +3193,8 @@ func set_attack_phase(stage: Dictionary, transition: bool) -> float:
 	sq = sq.duplicate(true)
 	for key in ["loop", "attack", "end"]:
 		sq[key] = stage[key]
+	if stage.has("run"):
+		sq["run"] = stage.run   # 阶段自己的跑动段（维什戴尔 S2 后半 s2_over_run；原来没换，后半一直跑前半的 s2_run，11-08）
 	if not transition:
 		return 0.0
 	sq_t = 0.0

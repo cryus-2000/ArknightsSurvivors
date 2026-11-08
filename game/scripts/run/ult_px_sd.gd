@@ -10,7 +10,10 @@ extends RefCounted
 const Bal = preload("res://scripts/core/balance.gd")
 const D = preload("res://scripts/data.gd")   # 怪物代表色 ecol（崩解喷散取怪物自身颜色）
 const META := "res://data/ult_px_skadi.json"
-const ART := "res://art/fx/pxp/ult_sd/%s.png"
+const ART_FULL := "res://art/fx/pxp/ult_sd/%s.png"
+const ART_HALF := "res://art/fx/pxp/ult_sd_half/%s.png"   # 网页包里的半分辨率版（tools/web_half.py）：手机网页读它，每张解码 23–28 → 6–7 MB（docs/319 §16）
+static var ART := ""
+static var TS := 1.0      # 图集坐标 → 贴图坐标（半分辨率版 0.5）
 const ICE := Color(0.77, 0.86, 1.0)
 const FPS := 15.0
 const UM = preload("res://scripts/ui_motion.gd")
@@ -25,6 +28,16 @@ var _emit_n := 0
 var _emit_frame := -1
 
 
+## 选图集：手机网页且网页包里有半分辨率版就用它（A.fx_half_on 同一开关）
+static func _pick_art() -> void:
+	if ART != "":
+		return
+	var has_half: bool = ResourceLoader.exists(ART_HALF % "sd_d0")
+	var half: bool = has_half and (load("res://scripts/art.gd").fx_half_on() or not ResourceLoader.exists(ART_FULL % "sd_d0"))   # B站 Toy 包不带原图（tools/web_half.py sd_half_only）：电脑打开 Toy 也读半分辨率版
+	ART = ART_HALF if half else ART_FULL
+	TS = 0.5 if half else 1.0
+
+
 static func on() -> bool:
 	return (Bal.v("ult/px_plane", 0.0) > 0.0 or Bal.v("ult/px_plane_skadi", 0.0) > 0.0) and ResourceLoader.exists(META)   # 总开关或斯卡蒂一人（11-05 拆成按干员开）
 
@@ -32,6 +45,7 @@ static func on() -> bool:
 static func of(game):
 	if game.has_meta("ult_px_sd"):
 		return game.get_meta("ult_px_sd")
+	_pick_art()
 	var r = new()
 	r.g = game
 	game.set_meta("ult_px_sd", r)
@@ -151,7 +165,7 @@ func _blit(tex: Texture2D, r: Array, o0: Vector2, flip: bool, mod := Color.WHITE
 	var base: Vector2 = (o0 / 2.0).round() * 2.0
 	var sz := Vector2(float(r[2]), float(r[3])) * px
 	var off := Vector2(-float(r[4]), -float(r[5])) * px
-	var src := Rect2(float(r[0]), float(r[1]), float(r[2]), float(r[3]))
+	var src := Rect2(float(r[0]) * TS, float(r[1]) * TS, float(r[2]) * TS, float(r[3]) * TS)
 	if flip:
 		g.draw_set_transform(base, 0.0, Vector2(-1, 1))
 		g.draw_texture_rect_region(tex, Rect2(off, sz), src, mod)

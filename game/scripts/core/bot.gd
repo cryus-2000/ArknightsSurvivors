@@ -10,10 +10,11 @@ extends RefCounted
 ##           防包围（找最大缺口）、按编队射程拉开输出、Boss 环形弹幕钻缺口；选卡认流派凑套、按藏品强度档、受伤优先回复，商店同规则。
 ##   human   像用户本人（2026-11-07，docs/308，判难度用）：master 走位 + 分心窗口（这段时间不看预警 / 弹幕）、新预警反应延迟、
 ##           冲刺当走路用、终结技满了晚放、少用指点、Boss 贴得更近、偶尔停步；选卡同 master 再偏机动卡。旋钮在 balance.json bot/human，--ht_<名>=<值> 覆盖。
+##   walk    录像用（11-08 博士帧条验收）：按局内时间走走停停——站 2 秒、跑 2.5 秒、站 1.5 秒、反向跑 2 秒，循环；选卡同 afk。
 ##
 ## 所有随机都走自己的 RandomNumberGenerator（按 --seed 派生），不碰全局随机流，同 seed 可复现性不变差。
 
-const PROFILES := ["afk", "bad", "normal", "expert", "master", "circle", "human"]
+const PROFILES := ["afk", "bad", "normal", "expert", "master", "circle", "human", "walk"]
 
 var g                           # game.gd
 var profile := "normal"
@@ -81,6 +82,11 @@ func move(dt: float) -> Vector2:
 	match profile:
 		"afk":
 			return Vector2.ZERO
+		"walk":
+			var ph: float = fmod(float(g.t), 8.0)
+			if ph < 2.0 or (ph >= 4.5 and ph < 6.0):
+				return Vector2.ZERO
+			return Vector2(1.0, 0.25) if ph < 4.5 else Vector2(-1.0, -0.25)
 		"bad":
 			return _move_bad(dt)
 		"expert":
@@ -379,7 +385,7 @@ func pick(choices: Array) -> int:
 		if li >= 0:
 			return li
 	match profile:
-		"afk", "bad":
+		"afk", "bad", "walk":
 			return rng.randi() % choices.size()
 		"expert":
 			return _pick_expert(choices)
