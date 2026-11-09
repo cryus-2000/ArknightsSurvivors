@@ -486,6 +486,8 @@ window.__syRL = {
     var img = function (s) { var i = new Image(); i.src = s; return i; };
     var bg = img('rl_bg.png'), lg = img('loader_logo.png'), js = [img('rl_j0.png'), img('rl_j1.png'), img('rl_j2.png')];
     var t0 = performance.now(), ti = Math.floor(Math.random() * TIPS.length), tt = 0, shown = 0;
+    var act = (window.__syRL.peek() || {}).act;
+    var GO = { meta: '正在返回认知塑造…', hunt: '正在前往寻访…', restart: '正在准备下一局…', title: '正在返回主界面…' }[act] || '正在返回…';
     var rm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var LAY = [[-8, 2.5, 0.2, 0.9, [158, 230, 240], [82, 110, 133], [26, 77, 102], 0.16], [-4, 3, 0.13, -1.3, [92, 224, 230], [64, 89, 112], [13, 51, 71], 0.4],
                [0, 2, 0.09, 1.7, [46, 184, 199], [46, 69, 89], [5, 23, 36], 0.92]];
@@ -527,8 +529,7 @@ window.__syRL = {
         }
       }
       x.font = Math.max(11, 14 * k) + 'px sans-serif'; x.textAlign = 'center'; x.fillStyle = 'rgba(168,194,201,1)';
-      var stg = f < 0.6 ? '下载资源' : (f < 0.8 ? '启动引擎' : '准备战场');
-      x.fillText(Math.floor(f * 100) + '%  ·  ' + stg, W / 2, y + Math.round(8 * tm) * c + 22 * k + 6);
+      x.fillText(GO + '  ' + Math.floor(f * 100) + '%', W / 2, y + Math.round(8 * tm) * c + 22 * k + 6);
       tt = t - Math.floor(t / 3.5) * 3.5; ti = (Math.floor(t / 3.5) + ti0) % TIPS.length;
       var ta = rm ? 1 : Math.min(1, tt / 0.25, (3.5 - tt) / 0.25);
       x.globalAlpha = Math.max(0, ta); x.fillText('TIPS   ' + TIPS[ti], W / 2, H * 0.935 + 6);
