@@ -1235,7 +1235,10 @@ static func hw_hook_start(o, b: Dictionary) -> void:
 		o._set_face(signf(to.x - o.pos.x), true)
 	var dur: float = clampf(hand.distance_to(to) / float(b.get("speed", 900.0)), 0.1, 0.24)
 	h.hooks.append({"b": b, "phase": "fly", "t": 0.0, "dur": dur, "from": hand, "to": to, "head": hand, "drag": [], "dmg": hw_basis(o, str(b.get("basis", "atk"))), "tgt": tgt_e,
-		"gl": o.B.get("attack", {}).has("hook_nodes")})   # gl：歌蕾蒂娅成长节点（docs/202，seg_gladiia）
+		"gl": o.B.get("attack", {}).has("hook_nodes"),   # gl：歌蕾蒂娅成长节点（docs/202，seg_gladiia）
+		# 11-09 攻速探针：lock（锚在外面时不普攻）的钩索就是普攻节奏本身，飞出 / 绷紧 / 拖回三段按攻速一起缩短，
+		# 否则攻速再高出手间隔也被这段固定时长卡住（歌蕾蒂娅 +60% 攻速实测只快了 28%）
+		"spd": maxf(0.2, o.stat(&"op_aspd")) if bool(b.get("lock", false)) else 1.0})
 	if h.hooks[-1].gl:
 		_FXR.ev(o, "gl_throw", {"hk": h.hooks[-1]})   # 歌蕾蒂娅转平面（docs/263）：只画
 	if b.has("fx"):
@@ -1247,7 +1250,7 @@ static func _hw5_hooks(o, dt: float) -> void:
 	var h: Dictionary = o.hw
 	for hk in h.hooks:
 		var b: Dictionary = hk.b
-		hk.t = float(hk.t) + dt
+		hk.t = float(hk.t) + dt * float(hk.get("spd", 1.0))
 		var k: float = clampf(float(hk.t) / float(hk.dur), 0.0, 1.0)
 		match str(hk.phase):
 			"fly":

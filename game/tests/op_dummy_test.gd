@@ -11,6 +11,8 @@ extends Node
 ##   被测干员的手动技能就绪即放（机器人缺省是保命型时机，这里取上限）。
 ## 先热身 dummy_warm 秒（技力从 0 开始充），再统计 dummy_secs 秒。结束打印一行 DUMMY {json}。
 ## --dummy_check：自检（快检用）：被测干员秒伤 > 0、没有异常，打印 OP DUMMY failures=N。
+## --dummy_aspd=x：攻速探针（11-09 用户「确保攻速真的有变快」）：被测干员额外 op_aspd +x（加法，同藏品 / 升级卡），
+##   统计期内另记普攻出手次数 atk_n（攻击动作开始次数）、平均动作时长 atk_dur、平均攻击间隔 cd（tools/aspd_probe.py 汇总）
 
 const HORDE_N := 30
 const HORDE_HP := 400.0
@@ -29,6 +31,12 @@ var stage := 0
 var secs := 60.0
 var warm := 20.0
 var check := false
+var aspd_add := 0.0
+var atk_n := 0
+var atk_dur_sum := 0.0
+var atk_prev_t := 0.0
+var rel_n := 0
+var fire_prev := -1.0
 
 var op = null          # 被测干员
 var others: Array = [] # 编队里其余干员（队友身份时 = 基准主控）
@@ -70,6 +78,8 @@ func _ready() -> void:
 			secs = float(a.substr(13))
 		elif a.begins_with("--dummy_warm="):
 			warm = float(a.substr(13))
+		elif a.begins_with("--dummy_aspd="):
+			aspd_add = float(a.get_slice("=", 1))
 		elif a == "--dummy_check":
 			check = true
 	hrng.seed = 20261012
@@ -131,6 +141,8 @@ func _setup() -> void:
 			if not o.perm[i]:
 				o.sp[i] = 0.0   # 精英化当下会把新技能充满：统一从 0 开始充
 	game.show_queue.clear()
+	if aspd_add != 0.0:
+		game.stats.add(&"op_aspd", "add", aspd_add, "probe_aspd", "op:" + op.id)
 	game.sync_stats()
 	game.hp = game.max_hp * HP_PIN
 	anchor = game.ppos
@@ -250,6 +262,16 @@ func _begin() -> void:
 
 
 func _sample() -> void:
+	# 攻速探针：攻击动作开始（attack_t 往上跳）记一次；出手（fire_t 由正变负）记一次
+	var at: float = float(op.get("attack_t") if op.get("attack_t") != null else 0.0)
+	if at > atk_prev_t + 0.0001:
+		atk_n += 1
+		atk_dur_sum += float(op.get("attack_dur") if op.get("attack_dur") != null else 0.0)
+	atk_prev_t = at
+	var ft: float = float(op.get("fire_t") if op.get("fire_t") != null else -1.0)
+	if fire_prev >= 0.0 and ft < 0.0:
+		rel_n += 1
+	fire_prev = ft
 	var c := _core_now()
 	if c > core_prev + 0.001:
 		core_frames += 1
@@ -307,6 +329,8 @@ func _finish() -> void:
 		"casts": int(game.telemetry.op_casts.get(op.id, 0)) - casts0, "manual_casts": manual_n,
 		"basic_hit_frames": core_frames, "horde_alive": snappedf(alive_sum / float(alive_n), 0.1) if alive_n > 0 else -1.0,
 		"basic_interval": snappedf(dur / float(core_frames), 0.001) if core_frames > 0 else -1.0,
+		"aspd_add": aspd_add, "atk_n": atk_n, "rel_n": rel_n, "atk_ps": snappedf(float(atk_n) / dur, 0.001), "rel_ps": snappedf(float(rel_n) / dur, 0.001),
+		"atk_dur": snappedf(atk_dur_sum / float(atk_n), 0.0001) if atk_n > 0 else -1.0,
 		# 运行时属性（被测干员作用域）
 		"op_atk": snappedf(op.stat(&"op_atk"), 0.0001), "op_aspd": snappedf(op.stat(&"op_aspd"), 0.0001),
 		"op_range": snappedf(op.stat(&"op_range"), 0.0001), "skill_power": snappedf(op.skill_power(), 0.0001),

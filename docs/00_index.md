@@ -344,6 +344,7 @@
 | [28_gamepad](archive/28_gamepad.md) | 手柄适配 | 已实施；键位表早于冲刺、手动普攻 | game/scripts/pad.gd 文件头 | — |
 | [32_art_review_0926_acceptance](archive/32_art_review_0926_acceptance.md) | 美术验收：Codex 返修稿 a9471c7 | 一次性验收，已合入接线；§3-3 提亮要求已被 87 §4.2 否定 | docs/87 | 归档63 |
 | [32_squad_art_review](archive/32_squad_art_review.md) | 编队人物美术审查（三批） | 一次性审查，§1 / §2.1 已交付，§3 代码已改；§2.2 次要项从未派出 | docs/87 | 归档32、归档63；art_review_0926_manifest.json |
+| [331_relic_softcap_aspd_1109](331_relic_softcap_aspd_1109.md) | 藏品去掉数量硬上限 + 攻速生效核验 11-09 | 已做，难度窗口待云端测 | relic_fx.soft 对数软上限（减伤 soft_dr），16 件藏品 + 熔铸；攻速探针 tools/aspd_probe.py 全员过，修歌蕾蒂娅钩索锁、Mon3tr 动作压缩预防 | no-hard-caps、57、74；relic_fx.gd、seg_ulpianus.gd、ob_summon.gd、op_dummy_test.gd |
 | [42_relic_enemy_curve](archive/42_relic_enemy_curve.md) | 藏品曲线 × 怪物曲线实测 | 09-26 一次性实测，Boss 血量定值已进 balance.json | game/data/balance.json boss 段；docs/38 §8.12、35 | 27、35、归档46；run/spawner.gd、data/balance.json |
 | [44_test_optimization](archive/44_test_optimization.md) | 测试优化方案 | 已实施（--auto、上云已写进 36）；§3 基线作废 | docs/36 §1、§7 | 36、71、归档68；tools/check.py |
 | [49g_灯标圈内安全方案](archive/49g_灯标圈内安全方案.md) | 引航灯标「圈内安全」方案 | 已实施（safe_bullet / safe_ranged 缺省开）；标题仍写「未改代码」 | docs/56 §1；balance.json beacon 段 | 38、41、56；run/enemies.gd、enemies/enemy_ai.gd、run/beacon.gd 等 6 个文件 |

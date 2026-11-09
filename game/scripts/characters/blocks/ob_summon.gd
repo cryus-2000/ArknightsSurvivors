@@ -1687,13 +1687,19 @@ static func mf_step(o, s: Dictionary, kd: Dictionary, dt: float) -> void:
 			_mf_face(o, s, signf(tg.pos.x - s.pos.x))
 		var spec: Dictionary = o.sprite_spec(str(kd.get("anim", _ED).get("attack", "")))
 		var fps: float = float(spec.get("fps", 14))
-		s.act = float(spec.get("frames", 4)) / fps
-		s.fire = (float(spec.get("fire", 2)) + 0.5) / fps
+		# 11-09 攻速探针：下一次撕咬要等这一下的动作播完（s.act），动作长度固定时攻速再高也被它卡住（凯尔希 +30% 攻速实测只快 2%）。
+		# 照干员普攻的节奏压缩：出手间隔短于动作时，动作 / 出手时刻按比例缩短（留 10% 空当），帧条播放同倍加快（s.arate）
+		var full: float = float(spec.get("frames", 4)) / fps
+		var act: float = minf(full, maxf(0.05, float(s.cd)) * 0.9)
+		var kk: float = act / maxf(0.001, full)
+		s.act = act
+		s.fire = (float(spec.get("fire", 2)) + 0.5) / fps * kk
+		s.arate = 1.0 / maxf(0.05, kk)
 		var visual_key: String = str(s.pcur.get("anim", {}).get("attack", kd.get("anim", _ED).get("attack", "")))
 		SummonVisual.start(s, o.sprite_spec(visual_key).get("visual", {}), g.t, float(s.fire))
 		_mf_set_anim(s, "attack")
 	_mf_set_anim(s, "attack" if float(s.act) > 0.0 else ("run" if float(s.mv) > 30.0 else "idle"))
-	s.at = float(s.at) + dt
+	s.at = float(s.at) + dt * (float(s.get("arate", 1.0)) if str(s.ak) == "attack" else 1.0)
 
 
 static func _mf_strike(o, s: Dictionary, kd: Dictionary) -> void:
