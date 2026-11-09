@@ -1,0 +1,4 @@
+30200	X_specter_unchained_godot.log
+80366	X_specter_unchained_pv.log
+239216285	X_specter_unchained_seg_01_win_t470.0.mp4
+61199	X_specter_unchained_seg_01_win_t470.0.sfx.json

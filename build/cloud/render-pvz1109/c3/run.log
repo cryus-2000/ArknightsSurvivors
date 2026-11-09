@@ -1,0 +1,13 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4880 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+X_saria rc=0 1515s
+  seg_01_win_t470.0 2246 帧 rc=0
+total 267244
+drwxr-xr-x 2 root root      4096 Nov  9 05:40 .
+drwxr-xr-x 4 root root      4096 Nov  9 05:14 ..
+-rw-r--r-- 1 root root     29007 Nov  9 05:39 X_saria_godot.log
+-rw-r--r-- 1 root root     80198 Nov  9 05:39 X_saria_pv.log
+-rw-r--r-- 1 root root 273474353 Nov  9 05:40 X_saria_seg_01_win_t470.0.mp4
+-rw-r--r-- 1 root root     54904 Nov  9 05:40 X_saria_seg_01_win_t470.0.sfx.json
+media：4 个文件，261M

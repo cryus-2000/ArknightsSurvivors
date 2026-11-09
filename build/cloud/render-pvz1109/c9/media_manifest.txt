@@ -1,0 +1,4 @@
+27742	X_texas_godot.log
+79912	X_texas_pv.log
+268818318	X_texas_seg_01_win_t470.0.mp4
+66189	X_texas_seg_01_win_t470.0.sfx.json

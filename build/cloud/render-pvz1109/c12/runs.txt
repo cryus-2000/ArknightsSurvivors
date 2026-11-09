@@ -1,0 +1,9 @@
+EC rc=0 625s
+  seg_01_win_t022.0 3092 帧 rc=0
+total 283332
+drwxr-xr-x 2 root root      4096 Nov  9 05:31 .
+drwxr-xr-x 4 root root      4096 Nov  9 05:19 ..
+-rw-r--r-- 1 root root     21278 Nov  9 05:30 EC_godot.log
+-rw-r--r-- 1 root root     17349 Nov  9 05:30 EC_pv.log
+-rw-r--r-- 1 root root 290034539 Nov  9 05:31 EC_seg_01_win_t022.0.mp4
+-rw-r--r-- 1 root root     39280 Nov  9 05:31 EC_seg_01_win_t022.0.sfx.json

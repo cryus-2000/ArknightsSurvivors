@@ -1,0 +1,4 @@
+21278	EC_godot.log
+17349	EC_pv.log
+290034539	EC_seg_01_win_t022.0.mp4
+39280	EC_seg_01_win_t022.0.sfx.json

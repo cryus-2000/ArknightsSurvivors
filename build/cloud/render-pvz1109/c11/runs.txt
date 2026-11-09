@@ -1,0 +1,9 @@
+X_wisadel rc=0 1541s
+  seg_01_win_t470.0 2225 帧 rc=0
+total 279492
+drwxr-xr-x 2 root root      4096 Nov  9 06:08 .
+drwxr-xr-x 4 root root      4096 Nov  9 05:42 ..
+-rw-r--r-- 1 root root     29257 Nov  9 06:07 X_wisadel_godot.log
+-rw-r--r-- 1 root root     80010 Nov  9 06:07 X_wisadel_pv.log
+-rw-r--r-- 1 root root 286000556 Nov  9 06:08 X_wisadel_seg_01_win_t470.0.mp4
+-rw-r--r-- 1 root root     68600 Nov  9 06:08 X_wisadel_seg_01_win_t470.0.sfx.json

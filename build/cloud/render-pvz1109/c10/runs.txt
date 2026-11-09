@@ -1,0 +1,9 @@
+X_ulpianus rc=0 1467s
+  seg_01_win_t470.0 2126 帧 rc=0
+total 282444
+drwxr-xr-x 2 root root      4096 Nov  9 06:08 .
+drwxr-xr-x 4 root root      4096 Nov  9 05:43 ..
+-rw-r--r-- 1 root root     28731 Nov  9 06:07 X_ulpianus_godot.log
+-rw-r--r-- 1 root root     79745 Nov  9 06:07 X_ulpianus_pv.log
+-rw-r--r-- 1 root root 289031998 Nov  9 06:08 X_ulpianus_seg_01_win_t470.0.mp4
+-rw-r--r-- 1 root root     64478 Nov  9 06:08 X_ulpianus_seg_01_win_t470.0.sfx.json

@@ -1,0 +1,4 @@
+28342	X_lumen_godot.log
+81289	X_lumen_pv.log
+292393251	X_lumen_seg_01_win_t470.0.mp4
+69390	X_lumen_seg_01_win_t470.0.sfx.json

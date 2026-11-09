@@ -1,0 +1,9 @@
+LW rc=0 2911s
+  seg_01_win_t460.0 3243 帧 rc=0
+total 453472
+drwxr-xr-x 2 root root      4096 Nov  9 06:32 .
+drwxr-xr-x 4 root root      4096 Nov  9 05:41 ..
+-rw-r--r-- 1 root root     29625 Nov  9 06:30 LW_godot.log
+-rw-r--r-- 1 root root     86066 Nov  9 06:30 LW_pv.log
+-rw-r--r-- 1 root root 464081951 Nov  9 06:32 LW_seg_01_win_t460.0.mp4
+-rw-r--r-- 1 root root    131498 Nov  9 06:32 LW_seg_01_win_t460.0.sfx.json

@@ -1,0 +1,9 @@
+X_skalter rc=0 1461s
+  seg_01_win_t470.0 2216 帧 rc=0
+total 300852
+drwxr-xr-x 2 root root      4096 Nov  9 05:39 .
+drwxr-xr-x 4 root root      4096 Nov  9 05:14 ..
+-rw-r--r-- 1 root root     28262 Nov  9 05:38 X_skalter_godot.log
+-rw-r--r-- 1 root root     79502 Nov  9 05:38 X_skalter_pv.log
+-rw-r--r-- 1 root root 307883172 Nov  9 05:39 X_skalter_seg_01_win_t470.0.mp4
+-rw-r--r-- 1 root root     65246 Nov  9 05:39 X_skalter_seg_01_win_t470.0.sfx.json

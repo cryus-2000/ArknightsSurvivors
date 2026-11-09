@@ -1,0 +1,9 @@
+X_logos rc=0 1580s
+  seg_01_win_t470.0 2302 帧 rc=0
+total 301668
+drwxr-xr-x 2 root root      4096 Nov  9 05:41 .
+drwxr-xr-x 4 root root      4096 Nov  9 05:14 ..
+-rw-r--r-- 1 root root     31085 Nov  9 05:40 X_logos_godot.log
+-rw-r--r-- 1 root root     80220 Nov  9 05:40 X_logos_pv.log
+-rw-r--r-- 1 root root 308723368 Nov  9 05:41 X_logos_seg_01_win_t470.0.mp4
+-rw-r--r-- 1 root root     55719 Nov  9 05:41 X_logos_seg_01_win_t470.0.sfx.json

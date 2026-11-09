@@ -1,0 +1,4 @@
+29625	LW_godot.log
+86066	LW_pv.log
+464081951	LW_seg_01_win_t460.0.mp4
+131498	LW_seg_01_win_t460.0.sfx.json

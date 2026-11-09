@@ -1,0 +1,4 @@
+28262	X_skalter_godot.log
+79502	X_skalter_pv.log
+307883172	X_skalter_seg_01_win_t470.0.mp4
+65246	X_skalter_seg_01_win_t470.0.sfx.json

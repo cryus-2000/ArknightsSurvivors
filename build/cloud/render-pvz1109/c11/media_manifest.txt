@@ -1,0 +1,4 @@
+29257	X_wisadel_godot.log
+80010	X_wisadel_pv.log
+286000556	X_wisadel_seg_01_win_t470.0.mp4
+68600	X_wisadel_seg_01_win_t470.0.sfx.json

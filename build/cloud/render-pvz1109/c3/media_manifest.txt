@@ -1,0 +1,4 @@
+29007	X_saria_godot.log
+80198	X_saria_pv.log
+273474353	X_saria_seg_01_win_t470.0.mp4
+54904	X_saria_seg_01_win_t470.0.sfx.json

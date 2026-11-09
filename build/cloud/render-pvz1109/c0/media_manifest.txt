@@ -1,0 +1,4 @@
+31085	X_logos_godot.log
+80220	X_logos_pv.log
+308723368	X_logos_seg_01_win_t470.0.mp4
+55719	X_logos_seg_01_win_t470.0.sfx.json

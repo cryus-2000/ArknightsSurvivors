@@ -1,0 +1,4 @@
+28731	X_ulpianus_godot.log
+79745	X_ulpianus_pv.log
+289031998	X_ulpianus_seg_01_win_t470.0.mp4
+64478	X_ulpianus_seg_01_win_t470.0.sfx.json

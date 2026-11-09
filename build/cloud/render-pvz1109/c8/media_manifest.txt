@@ -1,0 +1,4 @@
+28797	X_suzuran_godot.log
+81036	X_suzuran_pv.log
+263699820	X_suzuran_seg_01_win_t470.0.mp4
+59569	X_suzuran_seg_01_win_t470.0.sfx.json
