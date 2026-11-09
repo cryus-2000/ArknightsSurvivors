@@ -18,6 +18,8 @@ import os
 import numpy as np
 from PIL import Image
 
+import web_pxp_pack
+
 
 def _rgba(p):
     return np.asarray(Image.open(p).convert("RGBA")).astype(np.float32)
@@ -118,12 +120,15 @@ def make(gamedir, lossy=True, sd_half_only=False):
             r["sd_drop"] = 1
     with open(ip, "w", encoding="utf-8", newline="\n") as fh:
         json.dump(idx, fh, ensure_ascii=False, separators=(",", ":"))
+    if lossy:
+        r["packed"], r["packed_bytes"] = web_pxp_pack.make(gamedir)
     return r
 
 
 def report(r):
+    packed = "；转平面帧条 %d 张共用透明边，全库省 %.1f MiB" % (r["packed"], r["packed_bytes"] / 1048576) if "packed" in r else ""
     return ("网页半分辨率贴图：整 2 倍放大的 %d 张换成 1 倍（解码后共 %.0f MB → %.0f MB）；有细节的特效 %d 张另出 @h 给手机（%.0f → %.0f MB）；"
-            "斯卡蒂终结技图集 %d 张出半分辨率%s（docs/319 §16）" % (r["exact"], r["exact_mb"], r["exact_mb"] / 4, r["half"], r["half_mb"], r["half_mb"] / 4, r["sd"], "，原图不进包（Toy）" if r.get("sd_drop") else ""))
+            "斯卡蒂终结技图集 %d 张出半分辨率%s（docs/319 §16）" % (r["exact"], r["exact_mb"], r["exact_mb"] / 4, r["half"], r["half_mb"], r["half_mb"] / 4, r["sd"], "，原图不进包（Toy）" if r.get("sd_drop") else "")) + packed
 
 
 if __name__ == "__main__":

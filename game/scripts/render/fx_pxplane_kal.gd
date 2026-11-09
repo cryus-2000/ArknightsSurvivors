@@ -17,7 +17,6 @@ const CLAW_R := [109, 128, 161, 200]          # 爪痕帧条分档（判定外�
 const ECHO_R := [70, 87, 105, 130, 162, 195]
 
 
-static var _dye := {}
 const MELT_HOT := Color8(255, 108, 46)    # 亮橙红（RD f）
 const MELT_DK := Color8(92, 16, 13)       # 暗血红（RD d2）
 const MELT_FLOOR := Color8(148, 28, 18)   # 熔毁期间脚下常驻照地光（暗红）
@@ -44,15 +43,11 @@ static func _hp(e: Dictionary) -> Vector2:
 ## S3 熔毁期间 Mon3tr 的红轮廓叠层（用户 11-05「m3 的染红可以是那种粒子特效带来的轮廓和部分染色」）：
 ## tools/pxplane_kal_art.py rim_m3 按实装 native 帧条逐帧烘（外轮廓一圈熔毁红 + 外沿甲片局部染红 + 轮廓外零星火星），A / B 两版按 15 fps 节拍交替。
 ## 和本体同一帧、同一套画法参数叠画（ob_summon.mf_draw）；没有对应叠层（旧帧条）返回 null
-static func rim(tx: Texture2D, beat: int) -> Texture2D:
+static func rim(r, tx: Texture2D, beat: int) -> Texture2D:
 	if tx == null or tx.resource_path == "":
 		return null
-	var key: String = tx.resource_path + str(beat & 1)
-	if not _dye.has(key):
-		var b: String = tx.resource_path.get_file().get_basename()   # op_mon3tr_native_idle@2x
-		var p: String = "res://art/fx/pxp/pxp_ka_rim%s_%s.png" % ["ab"[beat & 1], b.replace("@", "_")]
-		_dye[key] = load(p) if ResourceLoader.exists(p) else null
-	return _dye[key]
+	var base: String = tx.resource_path.get_file().get_basename().replace("@", "_")
+	return r._tex("ka_rim%s_%s" % ["ab"[beat & 1], base])
 
 
 static func _m3(o):

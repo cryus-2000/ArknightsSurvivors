@@ -1888,7 +1888,7 @@ static func mf_draw(o, s: Dictionary, kd: Dictionary) -> bool:
 		col = _mf_col(s.pcur.tint)
 	var rim: Texture2D = null
 	if str(o.id) == "kaltsit" and o.skill_active_left(2) > 0.0 and Fxr.owns(o):   # 转平面（docs/265）：熔毁期间本体只带一点暖色，红由粒子轮廓叠层给（只画）
-		rim = Fxr.Pxp.KA.rim(fr[0], int(floor(g.t * 15.0)))
+		rim = Fxr.Pxp.KA.rim(Fxr.Pxp.of(g), fr[0], int(floor(g.t * 15.0)))
 		if rim != null:
 			col = Color(1.1, 0.92, 0.9)
 	var mir: bool = (float(s.face) < 0.0) != o.sprite_mirror(str(fr[3]))

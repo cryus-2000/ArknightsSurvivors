@@ -1199,6 +1199,17 @@ func _wpos(w: Dictionary, store = null) -> Vector2:
 	return q[1]
 
 
+## 网页版帧条可以共用相邻帧的透明边。绘制矩形与旧版相同，旋转和像素对齐照旧。
+func _frame_region(m: Dictionary, fi: int) -> Rect2:
+	var x := fi * int(m.w)
+	var y := 0
+	if m.has("frame_offsets"):
+		var offset := int(m.frame_offsets[fi])
+		x = maxi(0, offset)
+		y = maxi(0, -offset)
+	return Rect2(x, y, int(m.w), int(m.h))
+
+
 ## 一张帧条的一帧：1 帧条像素 = g.PX 世界像素（整数倍），原点对齐 2 像素格；不旋转（方向靠预生成 + 水平翻转）
 func _draw_strip(ci, k: String, fi: int, gp: Vector2, flip: bool, once: bool, mod := Color.WHITE, emit := true) -> void:
 	var m: Dictionary = _meta(k)
@@ -1223,7 +1234,7 @@ func _draw_strip(ci, k: String, fi: int, gp: Vector2, flip: bool, once: bool, mo
 	var tx: Texture2D = _tex(k)
 	if tx == null:
 		return
-	var src := Rect2(fi * w, 0.0, w, h)
+	var src := _frame_region(m, fi)
 	if flip:   # 水平翻转用镜像变换，不用负宽矩形：负宽矩形在 GL 兼容渲染下整张往右错开一个帧宽（11-05 德克萨斯旋斩实测，发光点却在原位）
 		ci.draw_set_transform(Vector2(left + w * px, top), 0.0, Vector2(-1.0, 1.0))
 		ci.draw_texture_rect_region(tx, Rect2(Vector2.ZERO, Vector2(w * px, h * px)), src, mod)
@@ -1281,7 +1292,7 @@ func _draw_raw(cv, k: String, fi: int, at: Vector2, rot: float, sc: float) -> vo
 	if tx == null:
 		return
 	cv.draw_set_transform(at, rot, Vector2(sc, sc))
-	cv.draw_texture_rect_region(tx, rect, Rect2(fi * w, 0.0, w, h))
+	cv.draw_texture_rect_region(tx, rect, _frame_region(m, fi))
 	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
@@ -3387,7 +3398,7 @@ func _ey_strip_rot(ci, k: String, fi: int, gp: Vector2, flip: bool, ang: float, 
 		if tx == null:
 			return
 		ci.draw_set_transform_matrix(xf)
-		ci.draw_texture_rect_region(tx, rect, Rect2(fi * w, 0.0, w, h))
+		ci.draw_texture_rect_region(tx, rect, _frame_region(m, fi))
 		ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	else:
 		_reset_skipped_transform(ci, k)
@@ -5590,7 +5601,7 @@ func _tx_draw_raw_lines(o) -> void:
 			if tx == null:
 				return
 		cv.draw_set_transform(pos, rot, sc)
-		cv.draw_texture_rect_region(tx, rect, Rect2(fi * w, 0.0, w, h))
+		cv.draw_texture_rect_region(tx, rect, _frame_region(m, fi))
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
