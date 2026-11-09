@@ -11,6 +11,7 @@ const A = preload("res://scripts/art.gd")
 const Look = preload("res://scripts/render/look.gd")
 const DUST_COL := Color(0.62, 0.58, 0.5, 0.85)
 const RUN_FRAMES := 6          # e_duck_run@2x 帧数（pixgen 出图 + tools/imagegen/duck_run_cut.py）
+const D = preload("res://scripts/data.gd")   # 鸭爵帧条名（出场前预读）
 const RUN_PER_PX := 0.075      # 跑步帧相位：每跑 1 像素前进的帧数（130 速度约 10 帧 / 秒）
 const RUN_FPS_MAX := 26.0      # 爆发冲刺时帧率封顶，免得腿糊成一片
 const SWEAT_COL := Color(0.55, 0.85, 1.0)
@@ -19,6 +20,7 @@ var g: Game
 var rng := RandomNumberGenerator.new()
 var plan: Array = []        # 本局两次出现的时刻（秒），第一次 update 时按对局种子定
 var idx := 0
+var _pf_idx := -1
 var log := {"spawned": 0, "killed": 0, "fled": 0, "kill_t": []}   # 遥测 / 测试用
 
 
@@ -47,6 +49,10 @@ func update(_dt: float) -> void:
 		return
 	if plan.is_empty():
 		_plan()
+	# 出场前 10 秒先分帧预读鸭爵帧条（同 Boss 预读；11-09 真机：鸭爵恰好和最终 Boss 一起在 10:00 出场，两批帧条挤在同一帧）
+	if idx < plan.size() and _pf_idx != idx and g.t >= float(plan[idx]) - 10.0 and D.ENEMIES.has("duck") and g.spawner._boss_prefetch_on():
+		_pf_idx = idx
+		g.prefetch_enemy(str(D.ENEMIES.duck.tex))
 	if idx < plan.size() and g.t >= float(plan[idx]):
 		idx += 1
 		spawn()

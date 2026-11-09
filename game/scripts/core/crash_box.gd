@@ -107,7 +107,7 @@ static func tick(g, delta: float) -> void:
 	_t += rd
 	_mem_t += rd
 	_last_write += rd
-	if _t >= _every:
+	if _t >= (minf(_every, 5.0) if g.spawner != null and g.spawner.mobs_stopped() else _every):   # 最终阶段每 5 秒一条（看得到被杀页前最后几秒）
 		if _web():   # 心跳：先写一条小记录，再采样（采样中途脚本出错时心跳还在，看得出是哪一步断的）
 			JavaScriptBridge.eval("try{localStorage.setItem('sy_bb_hb','%d / %d')}catch(e){}" % [int(_rt), int(g.t)], true)
 		sample(g)

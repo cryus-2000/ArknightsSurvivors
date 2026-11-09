@@ -988,6 +988,11 @@ func _white_release(delta: float, now := false) -> void:
 	_white_t = 0.0
 	var keep_w: float = 0.0 if now else WHITE_KEEP   # now：内存护栏要立刻腾（不在场就放，不等 20 / 60 秒）
 	var keep_e: float = 0.0 if now else ENEMY_KEEP
+	# 最终阶段（最终 Boss 在场、普通刷怪 / 精英 / 大群都停了）：不在场的怪 3 秒就放帧条和白剪影，给最终 Boss 腾地方
+	# （11-09 真机 10:02：前 10 分钟的普通怪帧条一张没放，叠上最终 Boss + 鸭爵帧条与最终曲被杀页，docs/319 §22）。机制召唤再刷出来时照常现读
+	if not now and spawner != null and spawner.mobs_stopped() and Bal.v("web/final_evict", 1.0) > 0.0:
+		keep_w = minf(keep_w, 3.0)
+		keep_e = minf(keep_e, 3.0)
 	for e in enemies:
 		_white_alive[str(e.get("tex", ""))] = t
 	for n in _white_alive.keys():
