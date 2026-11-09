@@ -15,8 +15,14 @@ async function probe(browser, mode) {
   try {
     await page.route('**/*', route => route.request().isNavigationRequest()
       ? route.fulfill({contentType:'text/html',body:html}) : route.abort());
-    const reload = mode === 'reload' ? '?syrl=' + encodeURIComponent(JSON.stringify({act:'restart',t:Date.now()})) : '';
+    const returning = ['title', 'restart'].includes(mode);
+    const reload = returning ? '?syrl=' + encodeURIComponent(JSON.stringify({act:mode,t:Date.now()})) : '';
     await page.goto('http://boot.test/' + reload);
+    if (returning) {
+      // Title._ready consumes the route before shader warmup calls __syBootReady.
+      assert.equal(await page.evaluate(() => window.__syRL.take().act), mode);
+      assert.equal(await page.evaluate(() => window.__syRL.peek()), null);
+    }
     await page.evaluate(mode => {
       if (mode !== 'bypass') {
         window.__syBootUp();
@@ -29,6 +35,7 @@ async function probe(browser, mode) {
     const before = await page.evaluate(() => Array.from(document.querySelectorAll('#sy-load canvas'))
       .reduce((sum, c) => sum + c.width * c.height * 4, 0));
     if (mode === 'normal') {
+      assert.equal(await page.evaluate(() => !!window.__syStart), false);
       await page.waitForTimeout(300);
       await page.keyboard.press('Enter');
     }
@@ -59,7 +66,7 @@ async function probe(browser, mode) {
   const browser = await chromium.launch({channel:'msedge', headless:true, args:['--mute-audio']});
   try {
     const results = [];
-    for (const mode of ['normal','reload','error','bypass']) results.push(await probe(browser, mode));
+    for (const mode of ['normal','title','restart','error','bypass']) results.push(await probe(browser, mode));
     assert(results.every(Boolean), 'detached boot overlay must be collectible in all exit paths');
   } finally {await browser.close();}
 })().catch(error => {console.error(error); process.exitCode = 1;});

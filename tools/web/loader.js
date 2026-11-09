@@ -482,7 +482,7 @@ window.__syRL = {
   // 局间整页重载回来（window.__syRL 有标记，core/run_reload.gd）：盖一层「潮汐航标」—— 同对局出发时的载入页（screens/loading_screen.gd）：
   // 深海底图压暗 + 暗角、三只水母浮沉、居中标志、左上同人声明、三层像素浪线（进度点亮）、百分比 / 阶段、提示轮换（11-09 用户：别出开机那套加载页）。
   // 只是画面：进度读 window.__syPct（本加载器 upd 写），撤页跟着加载器根节点一起撤
-  function rlPage(d) {
+  function rlPage(d, act) {
     var cv = document.createElement('canvas');
     cv.id = 'sy-rlpage';
     cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;z-index:30;image-rendering:pixelated;background:#000308';
@@ -490,7 +490,6 @@ window.__syRL = {
     var img = function (s) { var i = new Image(); i.src = s; return i; };
     var bg = img('rl_bg.png'), lg = img('loader_logo.png'), js = [img('rl_j0.png'), img('rl_j1.png'), img('rl_j2.png')];
     var t0 = performance.now(), ti = Math.floor(Math.random() * TIPS.length), tt = 0, shown = 0;
-    var act = (window.__syRL.peek() || {}).act;
     var GO = { meta: '正在返回认知塑造…', hunt: '正在前往寻访…', restart: '正在准备下一局…', title: '正在返回主界面…' }[act] || '正在返回…';
     var rm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var LAY = [[-8, 2.5, 0.2, 0.9, [158, 230, 240], [82, 110, 133], [26, 77, 102], 0.16], [-4, 3, 0.13, -1.3, [92, 224, 230], [64, 89, 112], [13, 51, 71], 0.4],
@@ -546,7 +545,9 @@ window.__syRL = {
   }
 
   function finish(d) {
-    var stopReload = window.__syRL && window.__syRL.peek() ? rlPage(d) : null;
+    // 标题页 _ready 会在稳帧前消费返回动作。盖层和开始握手共用建页时的判定。
+    var reload = window.__syRL.peek();
+    var stopReload = reload ? rlPage(d, reload.act) : null;
     var unbindReady = null;
     var ti = Math.floor(Math.random() * TIPS.length);
     el.tip.textContent = TIPS[ti];
@@ -589,8 +590,7 @@ window.__syRL = {
       bootLabel = '接入完成 · 等待指令';
       upd();
       // 手机网页局与局之间的整页重载（core/run_reload.gd，docs/319 §14）：玩家刚点过「再来一局 / 回标题」，读完直接开始，不再要一次「开始游戏」
-      var rl = window.__syRL.peek();
-      if (rl) {
+      if (reload) {
         window.__syStart = 1;
         return;
       }
