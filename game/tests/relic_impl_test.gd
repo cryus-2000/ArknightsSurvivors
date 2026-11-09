@@ -170,7 +170,8 @@ func test_batch_b_c() -> void:
 	near(game.stats.value(&"sp_gain") - sg0, 0.24, "永流之手：两次施放 +24% 技力回复")
 	for k in 5:
 		rfx.on_skill_start(van, 0)
-	near(game.stats.value(&"sp_gain") - sg0, 0.48, "永流之手：最多 4 层")
+	near(game.stats.value(&"sp_gain") - sg0, rfx.soft(0.12 * 7, 0.48), "永流之手：7 层超过 4 层后按软上限递减（11-09 去掉硬上限）")
+	ok(game.stats.value(&"sp_gain") - sg0 > 0.48, "永流之手：超过 4 层仍继续加（不封顶）")
 	# 荣耀套餐：受到 ≥10% 最大生命的伤害时周围晕眩
 	grant("233")
 	var e: Dictionary = spawn(game.ppos + Vector2(60, 0))
@@ -299,12 +300,12 @@ func test_batch_g() -> void:
 	near(game.hp, game.max_hp * 0.2, "支援急救包：3 个用完后不再回复")
 	ok(rfx.medkits.get("214", -1) == 0, "支援急救包：剩 0 个")
 	reset_hp()
-	# 断杖-学识：每件藏品术师 +2%，最多计 20 件（藏品不设上限后加的 cap，docs/74 §10）
+	# 断杖-学识：每件藏品术师 +2%，超过 20 件后按软上限递减（11-09 去掉硬上限；cap 作为拐点）
 	var n0: int = game.relics.size()
 	var d0: float = game.stats.value_for(&"dmg", ["class:术师"])
 	grant("256")
-	var nc: int = mini(n0 + 1, 20)
-	near(game.stats.value_for(&"dmg", ["class:术师"]) - d0, 0.02 * nc, "断杖-学识：%d 件藏品 → 术师 +%d%%（最多计 20 件）" % [n0 + 1, 2 * nc])
+	var want_x: float = rfx.soft(0.02 * (n0 + 1), 0.4)
+	near(game.stats.value_for(&"dmg", ["class:术师"]) - d0, want_x, "断杖-学识：%d 件藏品 → 术师 +%.1f%%（超过 20 件递减）" % [n0 + 1, want_x * 100.0])
 	near(game.stats.value_for(&"dmg", ["class:先锋"]) - d0, 0.0, "断杖-学识：只对术师")
 	var pl1: int = game.pending_levelups
 	grant("178")
@@ -561,10 +562,16 @@ func test_docs74() -> void:
 	ok(rfx.display_desc("29").contains("熔铸"), "熔铸后另一件源石锭藏品说明也写出折算值")
 	rfx.gain_ingots(5, "-")
 	ok(rfx.fuse_pool == 150 + ivx + 65 and game.ingots == 0, "熔铸后拾取的源石锭也进熔铸池")
-	near(rfx.fuse_pct(), minf(fcap, (150 + ivx + 65) * rate), "熔铸：连续折算")
+	near(rfx.fuse_pct(), rfx.soft((150 + ivx + 65) * rate, fcap), "熔铸：连续折算")
 	rfx.gain_ingots(1000, "-")
-	near(rfx.fuse_pct(), fcap, "熔铸：封顶 +20%")
-	near(game.stats.value_for(&"dmg", []) - dm0, fcap, "熔铸：全队伤害属性封顶 +20%")
+	near(rfx.fuse_pct(), rfx.soft(rfx.fuse_pool * rate, fcap), "熔铸：超过 +20% 后按软上限递减（11-09 去掉硬上限）")
+	ok(rfx.fuse_pct() > fcap, "熔铸：超过 +20% 仍继续加（不封顶）")
+	near(game.stats.value_for(&"dmg", []) - dm0, rfx.fuse_pct(), "熔铸：全队伤害属性跟熔铸值一致")
+	# 软上限函数本身：拐点以内线性、拐点处连续、之后单调递增；减伤版逼近但到不了 100%
+	near(rfx.soft(0.1, 0.3), 0.1, "soft：拐点以内线性")
+	near(rfx.soft(0.3, 0.3), 0.3, "soft：拐点处连续")
+	ok(rfx.soft(3.0, 0.3) > rfx.soft(1.0, 0.3) and rfx.soft(1.0, 0.3) > 0.3, "soft：超过拐点仍单调增")
+	ok(rfx.soft_dr(5.0, 0.4) < 1.0 and rfx.soft_dr(5.0, 0.4) > rfx.soft_dr(1.0, 0.4), "soft_dr：递增但到不了 100%")
 	ok(rfx.ingot_total() >= 1000, "投币玩具按源石锭总值算（熔铸不让它失效）")
 	var rec: Dictionary = game.telemetry.record()
 	ok(rec.has("fuse") and int(rec.fuse.t) >= 0 and int(rec.fuse.left) == 150, "遥测记录熔铸（%s）" % str(rec.get("fuse", {})))

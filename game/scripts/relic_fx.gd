@@ -38,7 +38,8 @@ var mines: Array = []      # 地雷 {pos, life}
 var dot_mult := 0.0        # 受控敌人每秒法术伤害（基础伤害倍数）
 var _haste_last := 1.0     # 上次写入的攻速藏品倍率
 var dot_tick := 0.0
-var perm_dmg := 0.0        # 刻勋之手：击杀永久累加（上限 0.3）
+var perm_dmg := 0.0        # 刻勋之手：击杀永久增伤（= soft(perm_raw, 0.3)，11-09 去掉硬上限）
+var perm_raw := 0.0        # 刻勋之手：击杀累加的原始值
 var tulip_t := 0.0         # 黑色郁金香：技能未生效的持续时间
 var no_hurt_t := 0.0       # 深蓝之树：连续未受伤时间
 var calm_t := 0.0          # 认知塑造「自我保护」末节：连续未受伤秒数（任何规则下都计，on_hurt 归零）
@@ -305,7 +306,7 @@ func display_desc(id: String, full := false) -> String:
 	if fuse_on:
 		var n := ingot_value_of(id)
 		if n > 0:
-			return "%s\n（商人已全部离开：源石锭改为熔铸，%d 枚 ≈ 全队伤害 +%s%%；当前熔铸 +%s%% / 上限 +%d%%）" % [
+			return "%s\n（商人已全部离开：源石锭改为熔铸，%d 枚 ≈ 全队伤害 +%s%%；当前熔铸 +%s%%，超过 +%d%% 后递减）" % [
 				d, n, _pct_s(n * fuse_rate()), _pct_s(fuse_pct()), int(round(Bal.v("relic/fuse_cap", 0.2) * 100.0))]
 	return d
 
@@ -394,7 +395,7 @@ func fuse_rate() -> float:
 
 
 func fuse_pct() -> float:
-	return minf(Bal.v("relic/fuse_cap", 0.2), fuse_pool * fuse_rate())
+	return soft(fuse_pool * fuse_rate(), Bal.v("relic/fuse_cap", 0.2))   # 11-09：超过 fuse_cap 后递减、不封顶
 
 
 ## 源石锭的唯一入口（藏品 / 拾取 / 事件 / 宝箱补偿）：熔铸前加进 g.ingots，熔铸后进熔铸池。
@@ -650,6 +651,21 @@ func _random_relics(n: int, rarity: String) -> void:
 		g.vfx.show_banner("获得藏品：%s" % db.get_relic(rid).name)
 
 
+## 软上限（11-09 用户：肉鸽不设数量硬上限，用递减代替封顶；记忆 no-hard-caps）：
+## 原上限 knee 以内照旧线性；超过后按对数递减继续涨、不封顶：knee × (1 + ln(raw / knee))。在 knee 处连续、斜率为 1
+static func soft(raw: float, knee: float) -> float:
+	if knee <= 0.0 or raw <= knee:
+		return raw
+	return knee * (1.0 + log(raw / knee))
+
+
+## 减伤类软上限：knee 以内线性，超过后按指数逼近 100%（永远到不了完全免伤）；在 knee 处连续、斜率为 1
+static func soft_dr(raw: float, knee: float) -> float:
+	if knee <= 0.0 or raw <= knee:
+		return raw
+	return 1.0 - (1.0 - knee) * exp(-(raw - knee) / maxf(0.01, 1.0 - knee))
+
+
 ## 按持有藏品数生效（docs/57 P11）：per_relic {stat, per, cap?, classes?, rarity?}；获得藏品时重算来源 relic_count
 func refresh_relic_count() -> void:
 	if g.stats == null:
@@ -665,10 +681,13 @@ func refresh_relic_count() -> void:
 			for rid in g.relics:
 				if want == "" or db.get_relic(rid).get("rarity", "") == want:
 					n += 1
-			n = mini(n, int(a.get("cap", 99)))
 			if n <= 0:
 				continue
-			var v: float = float(a.get("per", 0.0)) * n
+			var per: float = float(a.get("per", 0.0))
+			var v: float = per * n
+			if a.has("cap"):   # 11-09：cap 不再截断件数，作为软上限拐点（per × cap）；减伤（负值）用 soft_dr
+				var knee: float = absf(per) * float(a.cap)
+				v = soft(v, knee) if per >= 0.0 else -soft_dr(-v, knee)
 			var scs: Array = a.get("classes", [])
 			if scs.is_empty():
 				g.stats.add(StringName(a.stat), "add", v, "relic_count")
@@ -1270,7 +1289,7 @@ func followup_extra(op = null) -> float:
 func hit_mult(h: Dictionary, e: Dictionary = {}) -> float:
 	var m := 1.0
 	if shatter > 0 and h.get("class", "") == "术师" and has_relic("shatter_hand"):
-		m *= 1.0 + 0.05 * shatter
+		m *= 1.0 + soft(0.05 * shatter, 0.5)   # 11-09：层数不封顶，超过 +50% 递减
 	if has_relic("glory_ribbon") and not h.tags.has("area") and h.get("origin", "") != "relic":
 		m *= 1.5
 	if rule("far_dmg") > 0 and h.get("range", "") == "远程" and h.get("origin", "") != "relic" and not e.is_empty():
@@ -1288,11 +1307,11 @@ func umbrella_interval_mult() -> float:
 	var m := 1.0
 	if rule("king_gun") > 0:
 		m *= 0.667 if king_low() else 1.0 / 1.1
-	# 投币玩具（rule 3）/ 骑士戒律（5）：终局源石锭中位 144–214，实际一直顶格，上限 30% / 50% → 20% / 30%（2026-09-27）
+	# 投币玩具（rule 3）/ 骑士戒律（5）：每持有 5 源石锭 +3% / +5%；超过 +20% / +30% 后按对数递减、不封顶（11-09 用户：去掉硬上限）
 	var coin: int = rule("coin_toy")
 	if coin > 0:
-		var cap: float = 0.2 if coin == 3 else 0.3
-		m /= 1.0 + minf(cap, float(ingot_total() / 5) * coin * 0.01)   # 熔铸后按源石锭总值算（docs/74）
+		var knee: float = 0.2 if coin == 3 else 0.3
+		m /= 1.0 + soft(float(ingot_total() / 5) * coin * 0.01, knee)   # 熔铸后按源石锭总值算（docs/74）
 	# docs/57：限时攻速（疗养卡）、紧急活性剂（生命越低越快）、旗帜区域
 	for x in temps:
 		if x.stat == "op_aspd":
@@ -1325,7 +1344,7 @@ func taken_mult() -> float:
 	# 铁卫-高塔（docs/203）：每层护盾减伤
 	if rule("shield_dr") > 0 and g.shield > 0:
 		var sd: Dictionary = _rule_args("shield_dr")
-		m *= 1.0 - minf(float(sd.get("cap", 0.4)), float(sd.get("per", 0.08)) * float(g.shield))
+		m *= 1.0 - soft_dr(float(sd.get("per", 0.08)) * float(g.shield), float(sd.get("cap", 0.4)))   # 11-09：超过 40% 后递减逼近、不封顶
 	return m
 
 
@@ -1377,9 +1396,10 @@ func on_skill_start(o = null, i := -1) -> void:
 				if o != null and i >= 0 and not o.perm[i]:
 					o.sp[i] = maxf(o.sp[i], o.sp_need(i) * float(a.get("pct", 0.35)))
 			"stack_stat":
-				sp_stack[id] = mini(int(a.get("max", 4)), int(sp_stack.get(id, 0)) + 1)
+				sp_stack[id] = int(sp_stack.get(id, 0)) + 1   # 11-09：层数不封顶，max 层 × per 作为软上限拐点
 				g.stats.remove_source("relic_stack:" + id)
-				g.stats.add(StringName(a.stat), str(a.get("op", "add")), float(a.get("per", 0.0)) * sp_stack[id], "relic_stack:" + id)
+				var per_s: float = float(a.get("per", 0.0))
+				g.stats.add(StringName(a.stat), str(a.get("op", "add")), soft(per_s * sp_stack[id], per_s * float(a.get("max", 4))), "relic_stack:" + id)
 				g.sync_stats()
 			"temp_stat":
 				_temp(str(a.stat), float(a.value), float(a.get("dur", 3.0)), id)
@@ -1502,7 +1522,8 @@ func on_kill(e: Dictionary, h: Dictionary = {}) -> void:
 				gain_ingots(1, "-")
 	var dk: float = float(e.get("dk", 1.0))   # 怪物密度缩放过的普通怪：击杀权重 1/density（docs/50 §16），其余 1
 	if has_relic("medal_hand"):
-		perm_dmg = minf(0.3, perm_dmg + 0.001 * dk)
+		perm_raw += 0.001 * dk
+		perm_dmg = soft(perm_raw, 0.3)
 	# 生还者合约：每击败一个 Boss，被选中的干员再 +20%
 	if e.get("boss", false) and not e.get("dead", false) and contract_op != "" and has_relic("survivor_contract"):
 		g.stats.add(&"dmg", "add", 0.2, "relic:261", "op:" + contract_op)
@@ -1578,7 +1599,7 @@ func on_hit(e: Dictionary, h: Dictionary, amount := 0.0) -> void:
 	if cls == "近卫" and has_relic("broken_halberd"):
 		_budget_sp("139", h.get("op", ""), 0.0025, 0.02)
 	if cls == "术师" and has_relic("shatter_hand"):
-		shatter = mini(10, shatter + 1)
+		shatter += 1
 		shatter_t = g.t
 	# docs/57：数据驱动的「命中回技力」（衍生者终端 130 等）；229 / 139 / 171 仍走上面 / 下面的写法
 	for t in _triggers("Hit"):
@@ -1739,7 +1760,7 @@ func _trim_mult(h: Dictionary, e: Dictionary) -> float:
 	var rg: String = str(h.get("range", ""))
 	if rg == "近战" and rule("melee_crowd") > 0 and o.in_lane("melee"):
 		var a: Dictionary = _rule_args("melee_crowd")
-		m *= 1.0 + minf(float(a.get("cap", 0.3)), float(a.get("per", 0.03)) * float(_crowd(o, float(a.get("r", 140.0)))))
+		m *= 1.0 + soft(float(a.get("per", 0.03)) * float(_crowd(o, float(a.get("r", 140.0)))), float(a.get("cap", 0.3)))   # 11-09：超过 +30% 递减、不封顶
 	elif rg == "远程" and rule("multi_far") > 0 and o.in_lane("multi") and o.pos != Vector2.INF:
 		var a2: Dictionary = _rule_args("multi_far")
 		m *= 1.0 + float(a2.get("max", 0.3)) * clampf(o.pos.distance_to(e.pos) / float(a2.get("at", 300.0)), 0.0, 1.0)
