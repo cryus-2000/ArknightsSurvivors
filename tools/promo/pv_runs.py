@@ -84,6 +84,18 @@ for _k, _b in [("Q1", "paranoia"), ("Q2", "knight_boss2"), ("Q3", "ishar"), ("Q4
 DEMOS = [("texas", 2, 3, 300), ("mizuki", 2, 4, 300), ("angelina", 2, 4, 300), ("wisadel", 2, 4, 300), ("skalter", 2, 4, 300)]
 
 
+# 11-09 补录：20 位队长各一条近景终结技（镜头 140%、怪潮、两次终结技）+ 水月开局近景 + 怪潮远景
+OPS20 = ["angelina", "exusiai", "eyjafjalla", "gladiia", "hoshiguma", "irene", "kaltsit", "lappland", "logos", "lumen",
+         "mizuki", "saria", "siege", "skadi", "skalter", "specter_unchained", "suzuran", "texas", "ulpianus", "wisadel"]
+for _i, _op in enumerate(OPS20):
+    _sq = "mizuki,skadi" if _op not in ("mizuki", "skadi") else "texas,wisadel"
+    RUNS["X_" + _op] = dict(args=["--op=" + _op, "--squad=" + _sq, "--seed=%d" % (70 + _i), "--maxprog", "--camzoom=140",
+                                  "--bal=ult/test_swarm_at=472", "--bal=ult/test_swarm_every=12", "--bal=ult/test_swarm_n=80"],
+                            rtfrom=468, maxt=502, pv=["--pv_win=470-501", "--pv_ult=476,490"])
+RUNS["EC"] = dict(args=["--op=mizuki", "--seed=11", "--camzoom=140"], rtfrom=20, maxt=70, pv=["--pv_win=22-69"])
+RUNS["LW"] = dict(args=["--op=mizuki", "--squad=skadi,texas", "--seed=42", "--bal=enemy/density=1.4", "--tide=10", "--camzoom=80"],
+                  rtfrom=455, maxt=512, pv=["--pv_win=460-511"])
+
 def ffmpeg():
     try:
         import imageio_ffmpeg
