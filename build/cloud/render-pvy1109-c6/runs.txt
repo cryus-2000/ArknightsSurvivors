@@ -1,0 +1,9 @@
+X_kaltsit rc=0 1455s
+  seg_01_win_t470.0 2283 帧 rc=0
+total 282804
+drwxr-xr-x 2 root root      4096 Nov  9 01:14 .
+drwxr-xr-x 4 root root      4096 Nov  9 00:48 ..
+-rw-r--r-- 1 root root     27401 Nov  9 01:13 X_kaltsit_godot.log
+-rw-r--r-- 1 root root     79468 Nov  9 01:13 X_kaltsit_pv.log
+-rw-r--r-- 1 root root 289398679 Nov  9 01:14 X_kaltsit_seg_01_win_t470.0.mp4
+-rw-r--r-- 1 root root     66866 Nov  9 01:14 X_kaltsit_seg_01_win_t470.0.sfx.json

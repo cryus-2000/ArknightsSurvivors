@@ -1,0 +1,4 @@
+27401	X_kaltsit_godot.log
+79468	X_kaltsit_pv.log
+289398679	X_kaltsit_seg_01_win_t470.0.mp4
+66866	X_kaltsit_seg_01_win_t470.0.sfx.json
