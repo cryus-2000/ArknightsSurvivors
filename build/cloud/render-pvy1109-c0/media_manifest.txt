@@ -1,0 +1,4 @@
+27725	X_angelina_godot.log
+79930	X_angelina_pv.log
+258391034	X_angelina_seg_01_win_t470.0.mp4
+60427	X_angelina_seg_01_win_t470.0.sfx.json
