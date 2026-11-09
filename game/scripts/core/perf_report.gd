@@ -31,6 +31,7 @@ var min_late := 0.0
 var enemy_peak := 0
 var slow_n := 0          # 掉帧档（game._slow_track，手机网页）这局进了几次
 var slow_s := 0.0        # 在档里一共多少秒（对局时间）
+var web_at_peak: Dictionary = {}
 var mem_peak := 0.0
 var guard_hit := false
 var guard_stage := 0     # 护栏这局走到第几步（game._mem_guard：1 清缓存 / 2 降画质 / 3 分辨率缩放）
@@ -102,6 +103,10 @@ func tick(delta: float) -> void:
 		if m > mem_peak:
 			mem_peak = m
 			mem_mix = _mem_mix()
+			if OS.has_feature("web"):
+				var cap = JavaScriptBridge.eval("window.__syWasm && window.__syWasm.buffer.byteLength", true)
+				if cap != null:
+					web_at_peak = {"t": int(g.t), "wasm_mib": float(cap) / 1048576.0}
 
 
 ## 事件标签（Boss 登场、护栏动作等调用方主动打的）：记进这一秒
@@ -235,7 +240,7 @@ func finish(result: String) -> void:
 		"render_scaled": Cfg.render_scaled,
 		"frames": _count(h_all), "p50": pct(h_all, 0.5), "p95": pct(h_all, 0.95), "p99": pct(h_all, 0.99), "min1s": snappedf(min_all, 0.1),
 		"late": {} if _count(h_late) == 0 else {"frames": _count(h_late), "p50": pct(h_late, 0.5), "p95": pct(h_late, 0.95), "p99": pct(h_late, 0.99), "min1s": snappedf(min_late, 0.1)},
-		"mem_peak": snappedf(mem_peak, 1.0), "mem_src": "显存 + 音频估算" if OS.has_feature("web") else "引擎内存 + 显存",
+		"web_at_peak": web_at_peak, "mem_peak": snappedf(mem_peak, 1.0), "mem_src": "显存 + 音频估算" if OS.has_feature("web") else "引擎内存 + 显存",
 		"enemy_peak": enemy_peak, "guard": guard_hit or Cfg.guard_lowered, "slow_n": slow_n, "slow_s": snappedf(slow_s, 1.0),
 		"q0": q0, "guard_stage": guard_stage, "enemy_mix": enemy_mix, "mem_mix": mem_mix, "slow": slow,
 	}
@@ -251,7 +256,12 @@ func finish(result: String) -> void:
 static func device() -> Dictionary:
 	var vp: Vector2 = Engine.get_main_loop().root.get_visible_rect().size if Engine.get_main_loop() is SceneTree else Vector2.ZERO
 	if OS.has_feature("web"):
-		var js = JavaScriptBridge.eval("JSON.stringify({ua:navigator.userAgent,w:screen.width,h:screen.height,dpr:window.devicePixelRatio||1,mem:navigator.deviceMemory||0,cores:navigator.hardwareConcurrency||0,iw:window.innerWidth,ih:window.innerHeight})", true)
+		var js = JavaScriptBridge.eval("""(function(){
+			const c = document.getElementById('canvas'), gl = c && c.getContext('webgl2');
+			return JSON.stringify({ua:navigator.userAgent,w:screen.width,h:screen.height,dpr:window.devicePixelRatio||1,
+				mem:navigator.deviceMemory||0,cores:navigator.hardwareConcurrency||0,iw:window.innerWidth,ih:window.innerHeight,
+				glw:gl ? gl.drawingBufferWidth : 0,glh:gl ? gl.drawingBufferHeight : 0});
+		})()""", true)
 		var d = JSON.parse_string(str(js)) if js != null else null
 		if d is Dictionary:
 			d["view"] = "%dx%d" % [vp.x, vp.y]
@@ -321,7 +331,10 @@ static func device_line(d: Dictionary) -> String:
 				br = {"CriOS": "Chrome", "EdgiOS": "Edge", "FxiOS": "Firefox", "Edg/": "Edge", "Chrome/": "Chrome", "Firefox/": "Firefox", "Version/": "Safari"}[k]
 				break
 		var mem: String = "" if float(d.get("mem", 0)) <= 0.0 else " · 内存约 %s GB" % str(d.mem)
-		return "%s（%s）· 屏幕 %d×%d @%s · 画布 %s%s" % [br, plat, int(d.get("w", 0)), int(d.get("h", 0)), str(snappedf(float(d.get("dpr", 1)), 0.01)), str(d.get("view", "")), mem]
+		var draw_size := ""
+		if int(d.get("glw", 0)) > 0 and int(d.get("glh", 0)) > 0:
+			draw_size = " · WebGL %d×%d" % [int(d.glw), int(d.glh)]
+		return "%s（%s）· 屏幕 %d×%d @%s · 逻辑视口 %s%s%s" % [br, plat, int(d.get("w", 0)), int(d.get("h", 0)), str(snappedf(float(d.get("dpr", 1)), 0.01)), str(d.get("view", "")), draw_size, mem]
 	return "%s · %s · %s · 屏幕 %d×%d · 内存 %s GB" % [str(d.get("os", "")), str(d.get("cpu", "")), str(d.get("gpu", "")), int(d.get("w", 0)), int(d.get("h", 0)), str(d.get("ram_gb", "?"))]
 
 
@@ -347,6 +360,9 @@ static func report_text(r: Dictionary) -> String:
 	var late: Dictionary = r.get("late", {})
 	lines.append(("7 分钟后 " + frame_line(late)) if not late.is_empty() else "7 分钟后 —（本局未到 7 分钟）")
 	lines.append("内存峰值 %d MB（%s）· 同屏敌人峰值 %d · 内存护栏 %s" % [int(r.get("mem_peak", 0)), str(r.get("mem_src", "")), int(r.get("enemy_peak", 0)), "已触发" if r.get("guard", false) else "未触发"])
+	var wp: Dictionary = r.get("web_at_peak", {})
+	if wp.has("wasm_mib"):
+		lines.append("同次采样 %s · WASM 堆容量 %.1f MiB" % [_mmss(float(wp.t)), float(wp.wasm_mib)])
 	if r.has("slow_n"):
 		lines.append("掉帧档（手机：界面隔帧 + 同屏上限 50）：进档 %d 次，共 %d 秒" % [int(r.slow_n), int(r.get("slow_s", 0))] if int(r.slow_n) > 0 else "掉帧档：未进档")
 	if r.has("q0"):   # 10-27 加的字段（旧记录没有）

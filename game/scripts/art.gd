@@ -986,19 +986,19 @@ static func white_of(src: Texture2D) -> Texture2D:
 	var img := src.get_image()
 	if img.is_compressed():
 		img.decompress()
-	img.convert(Image.FORMAT_RGBA8)
-	# 按字节直接改（2026-10-11）：以前逐像素 get_pixel / set_pixel，网页版按需加载时一张 Boss 帧条要几十毫秒；
-	# 结果与原来逐字节相同（alpha > 0 的像素 RGB 置 255，alpha 不变）
+	# 剪影只需要亮度与原始 alpha；网页每个像素存两字节。桌面仍走原格式。
+	var compact := OS.has_feature("web")
+	var format := Image.FORMAT_LA8 if compact else Image.FORMAT_RGBA8
+	img.convert(format)
 	var data := img.get_data()
-	var n := data.size()
-	var i := 3
-	while i < n:
-		if data[i] != 0:
-			data[i - 3] = 255
-			data[i - 2] = 255
-			data[i - 1] = 255
-		i += 4
-	img = Image.create_from_data(img.get_width(), img.get_height(), false, Image.FORMAT_RGBA8, data)
+	var stride := 2 if compact else 4
+	for alpha in range(stride - 1, data.size(), stride):
+		if data[alpha] != 0:
+			data[alpha - 1] = 255
+			if not compact:
+				data[alpha - 2] = 255
+				data[alpha - 3] = 255
+	img = Image.create_from_data(img.get_width(), img.get_height(), false, format, data)
 	var w := ImageTexture.create_from_image(img)
 	_hires_rid[w.get_rid()] = hires_of(src)
 	_white_cache[wk] = w

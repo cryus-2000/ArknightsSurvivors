@@ -4744,6 +4744,8 @@ func _outline_tex(name: String, frames: int) -> Texture2D:
 			var o := Vector2i(f * (fw + 2) + 1, 1)
 			for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
 				out.blend_rect(reg, Rect2i(0, 0, fw, fh), o + d)
+		if OS.has_feature("web"):
+			out.convert(Image.FORMAT_LA8)
 		out_t = ImageTexture.create_from_image(out)
 	_ol_cache[key] = out_t
 	return out_t
