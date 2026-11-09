@@ -1,0 +1,15 @@
+4874	after_pc.log
+640690	after_pc_chest.png
+639089	after_pc_duck.png
+634287	after_pc_regroup.png
+4874	after_ph844.log
+653159	after_ph844_chest.png
+651727	after_ph844_duck.png
+639546	after_ph844_regroup.png
+4886	after_ph956.log
+709054	after_ph956_chest.png
+707061	after_ph956_duck.png
+690587	after_ph956_regroup.png
+32	chk_summary.txt
+703	chk_touch_layout.txt
+691	chk_ui_smoke.txt
