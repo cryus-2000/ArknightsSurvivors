@@ -1,0 +1,4 @@
+28345	X_hoshiguma_godot.log
+80781	X_hoshiguma_pv.log
+266669389	X_hoshiguma_seg_01_win_t470.0.mp4
+80850	X_hoshiguma_seg_01_win_t470.0.sfx.json
