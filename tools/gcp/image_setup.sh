@@ -24,7 +24,13 @@ grep " ${ZIP}\$" SHA512-SUMS.txt | sha512sum -c - || fail godot-sha
 unzip -q -o "$ZIP" && mv -f "Godot_v${V}-stable_linux.x86_64" godot && chmod +x godot && rm -f "$ZIP"
 ./godot --version || fail godot-run
 # 导入缓存预热
-git clone -q --depth 1 --branch "$REF" https://github.com/cryus-2000/ArknightsSurvivors.git /opt/arkr/repo || fail clone
+# 私有仓库（11-09）：有 Secret Manager 的 github-ro 只读令牌就带上，没有就匿名（公开仓库）；令牌只在这一条命令里用，不落盘
+GH_RO="$(gcloud secrets versions access latest --secret=github-ro 2>/dev/null || true)"
+GH_HDR=()
+if [ -n "$GH_RO" ]; then GH_HDR=(-c "http.https://github.com/.extraheader=AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_RO" | base64 -w0)"); fi
+unset GH_RO
+git "${GH_HDR[@]}" clone -q --depth 1 --branch "$REF" https://github.com/cryus-2000/ArknightsSurvivors.git /opt/arkr/repo || fail clone
+unset GH_HDR
 cd /opt/arkr/repo && python3 tools/asset_index.py >/dev/null 2>&1
 /opt/arkr/godot/godot --headless --path game --import >/dev/null 2>&1 || true
 test -d game/.godot/imported || fail import

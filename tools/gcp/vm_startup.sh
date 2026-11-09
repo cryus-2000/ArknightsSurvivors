@@ -1,7 +1,7 @@
 #!/bin/bash
 # GCP 批跑虚拟机的启动脚本（由 tools/gcp/batch.py 通过 metadata 下发，docs/41 §3.9）。以 root 运行。
 # 做的事：拉指定提交 → setup_linux.sh → 跑 batch-cmds → 把 build/cloud/<tag>/ 传到 Cloud Storage → 删除自己。
-# 虚拟机上没有 GitHub 令牌：只读拉公开仓库，结果只写 Cloud Storage，推 cloud-results/<tag> 由本机做。
+# 虚拟机只读拉仓库：公开时匿名，私有时用 Secret Manager 的 github-ro 只读令牌；结果只写 Cloud Storage，推 cloud-results/<tag> 由本机做。
 set -uo pipefail
 MDA=http://metadata.google.internal/computeMetadata/v1/instance
 md() { curl -sf -H Metadata-Flavor:Google "$MDA/$1"; }
@@ -42,6 +42,13 @@ fi
 status "fetch $SHA"
 mkdir -p "$WORK" && cd "$WORK" || exit 1
 git init -q && git remote add origin https://github.com/cryus-2000/ArknightsSurvivors.git
+# 私有仓库（11-09）：Secret Manager 里有 github-ro（只读细粒度令牌）就用它拉；没有就照旧匿名拉（公开仓库）。令牌不写日志、不落盘
+GH_RO="$(gcloud secrets versions access latest --secret=github-ro 2>/dev/null || true)"
+if [ -n "$GH_RO" ]; then
+    git config http.https://github.com/.extraheader "AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_RO" | base64 -w0)"
+    echo "github: 用只读令牌拉取"
+fi
+unset GH_RO
 if [ -n "$BASE" ]; then
     # 提交不在 origin 上：浅拉基准提交，再从桶里的 bundle 补上之后的提交
     # BASE = 空格隔开的全部前置提交（bundle 头里的 - 行，batch.py 读出）；逐个浅拉，缺一个 bundle 就取不出
