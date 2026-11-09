@@ -17,7 +17,8 @@ rec() {   # rec <名> <秒上限> <帧文件模式> <游戏参数…>
   cp "$OUT/ui/$name.log" "$MEDIA/UI_$name.log"
   rm -rf "$d"
 }
-rec meta 120 "rec_%04d.png" --metashot --metarec --metacells=99999 --metabuy=18
-rec gallery 120 "shot_gallery_%02d.png" --galleryshot=0,0,0,1.5,150,0.0166 --galleryid=mizuki --galleryintro
-rec medals 120 "shot_medals_%03d.png" --medalshot --medals=all --medalsel=cognition_complete --medalgif=120,0.0166
+[ -z "$PVUI_ONLY" ] && rec meta 120 "rec_%04d.png" --metashot --metarec --metacells=99999 --metabuy=18
+[ -z "$PVUI_ONLY" ] && rec gallery 120 "shot_gallery_%02d.png" --galleryshot=0,0,0,1.5,150,0.0166 --galleryid=mizuki --galleryintro
+[ -z "$PVUI_ONLY" ] && rec medals 120 "shot_medals_%03d.png" --medalshot --medals=all --medalsel=cognition_complete --medalgif=120,0.0166
+rec oppick 120 "oprec_%04d.png" --opshot --oprec --opstep=9 --unlockall
 exit 0

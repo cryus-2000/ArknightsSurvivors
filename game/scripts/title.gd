@@ -384,9 +384,31 @@ func _ready() -> void:
 			for bi in 8:
 				get_tree().create_timer(0.05 + bi * 0.05).timeout.connect(func():
 					get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_oppick_%d.png" % bi))
-		get_tree().create_timer(1.2).timeout.connect(func():
-			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_oppick.png")
-			get_tree().quit())
+		if Cfg.dev_args().has("--oprec"):
+			# 宣传片录像（11-09）：配 --fixed-fps 60，逐帧存 oprec_<n>.png；开页停 40 帧后每 --opstep 帧（缺省 9）换下一位队长，轮完全部再停 40 帧
+			var step := 9
+			for a in Cfg.dev_args():
+				if a.begins_with("--opstep="):
+					step = maxi(2, int(a.substr(9)))
+			var fr := [0]
+			op_sel = 0
+			op_skill = _op_default_skill()
+			_op_follow(true)
+			var n_ops: int = op_defs.size()
+			get_tree().process_frame.connect(func():
+				fr[0] += 1
+				var k := (fr[0] - 40) / step
+				if fr[0] > 40 and (fr[0] - 40) % step == 0 and k < n_ops:
+					op_sel = k
+					op_skill = _op_default_skill()
+					_op_follow(false)
+				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/oprec_%04d.png" % fr[0])
+				if fr[0] >= 40 + n_ops * step + 40:
+					get_tree().quit())
+		else:
+			get_tree().create_timer(1.2).timeout.connect(func():
+				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_oppick.png")
+				get_tree().quit())
 	for a in Cfg.dev_args():
 		if a.begins_with("--diffshot="):
 			# 选难度页截图：--diffshot=<选中档>,<已解锁到第几档>（只改内存，测试模式不写存档）
