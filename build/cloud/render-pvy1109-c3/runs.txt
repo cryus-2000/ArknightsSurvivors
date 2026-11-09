@@ -1,0 +1,9 @@
+X_gladiia rc=0 1507s
+  seg_01_win_t470.0 2422 帧 rc=0
+total 279048
+drwxr-xr-x 2 root root      4096 Nov  9 01:14 .
+drwxr-xr-x 4 root root      4096 Nov  9 00:48 ..
+-rw-r--r-- 1 root root     29816 Nov  9 01:13 X_gladiia_godot.log
+-rw-r--r-- 1 root root     80136 Nov  9 01:13 X_gladiia_pv.log
+-rw-r--r-- 1 root root 285538164 Nov  9 01:14 X_gladiia_seg_01_win_t470.0.mp4
+-rw-r--r-- 1 root root     79911 Nov  9 01:14 X_gladiia_seg_01_win_t470.0.sfx.json

@@ -1,0 +1,4 @@
+29816	X_gladiia_godot.log
+80136	X_gladiia_pv.log
+285538164	X_gladiia_seg_01_win_t470.0.mp4
+79911	X_gladiia_seg_01_win_t470.0.sfx.json
