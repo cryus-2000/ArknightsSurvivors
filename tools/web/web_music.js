@@ -44,18 +44,28 @@
     for (var i = 0; i < n; i++) o[i] = 0.5 * (l[i] + r[i]);
     return Promise.resolve(m);
   }
-  function load(url) {
-    if (bufs[url]) return Promise.resolve(bufs[url]);
-    if (loading[url]) return loading[url];
-    var c = ctx();
-    if (!c) return Promise.reject(new Error("no audio context"));
-    loading[url] = fetch(url).then(function (r) {
+  function decode(c, url) {
+    return fetch(url).then(function (r) {
       if (!r.ok) throw new Error(r.status);
       return r.arrayBuffer();
     }).then(function (a) {
       dl += a.byteLength;
       return new Promise(function (res, rej) { c.decodeAudioData(a, res, rej); });
-    }).then(function (b) {
+    });
+  }
+  var premix = MONO && new URLSearchParams(location.search).get("muspremix") !== "0";
+  function load(url) {
+    if (bufs[url]) return Promise.resolve(bufs[url]);
+    if (loading[url]) return loading[url];
+    var c = ctx();
+    if (!c) return Promise.reject(new Error("no audio context"));
+    var decoded;
+    if (premix && url === "music_suno_final_p1.m4a") {
+      decoded = decode(c, "music_suno_final_p1_mono.m4a").catch(function () { return decode(c, url); });
+    } else {
+      decoded = decode(c, url);
+    }
+    loading[url] = decoded.then(function (b) {
       return mono(c, b);
     }).then(function (b) {
       bufs[url] = b; delete loading[url]; return b;

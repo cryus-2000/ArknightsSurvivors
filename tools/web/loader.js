@@ -219,7 +219,7 @@ window.__syRL = {
     }
     function frame() {
       if (!d.isConnected) return;
-      requestAnimationFrame(frame);
+      frameId = requestAnimationFrame(frame);
       var sf = safe(), dpr = Math.min(2, window.devicePixelRatio || 1), W = Math.round(sf.w * dpr), H = Math.round(sf.h * dpr);
       var t = (performance.now() - T0) / 1000, p = v.f, rd = d.classList.contains('sy-ready') || p >= 1;
       if (rd && readyT < 0) readyT = performance.now();
@@ -311,7 +311,11 @@ window.__syRL = {
       lab(rd ? 'ACCESS / GRANTED' : 'ACCESS / PENDING', W - m, H - 20 * k, 11 * k, rd ? ACC : SUB, 'right');
       ctx.globalAlpha = 1;
     }
-    requestAnimationFrame(frame);
+    var frameId = requestAnimationFrame(frame);
+    v.stop = function () {
+      cancelAnimationFrame(frameId);
+      img.onload = null;
+    };
     return v;
   }
 
@@ -534,14 +538,16 @@ window.__syRL = {
       var ta = rm ? 1 : Math.min(1, tt / 0.25, (3.5 - tt) / 0.25);
       x.globalAlpha = Math.max(0, ta); x.fillText('TIPS   ' + TIPS[ti], W / 2, H * 0.935 + 6);
       x.globalAlpha = 1; x.textAlign = 'left';
-      requestAnimationFrame(frame);
+      frameId = requestAnimationFrame(frame);
     }
     var ti0 = ti;
-    requestAnimationFrame(frame);
+    var frameId = requestAnimationFrame(frame);
+    return function () { cancelAnimationFrame(frameId); };
   }
 
   function finish(d) {
-    if (window.__syRL && window.__syRL.peek()) rlPage(d);
+    var stopReload = window.__syRL && window.__syRL.peek() ? rlPage(d) : null;
+    var unbindReady = null;
     var ti = Math.floor(Math.random() * TIPS.length);
     el.tip.textContent = TIPS[ti];
     upd();
@@ -551,8 +557,21 @@ window.__syRL = {
       closing = true;
       clearInterval(t);
       clearTimeout(tipTimer);
+      if (unbindReady) unbindReady();
       d.classList.add('sy-out');
-      setTimeout(function () { d.remove(); }, 400);
+      setTimeout(function () {
+        if (stopReload) stopReload();
+        if (el.v && el.v.stop) el.v.stop();
+        d.remove();
+        d.querySelectorAll('canvas').forEach(function (canvas) {
+          canvas.width = canvas.height = 0;
+        });
+        el = {};   // 分片 fetch 在撤页之后仍可能调 upd()。
+        delete window.__syBootUp;
+        delete window.__syBootReady;
+        delete window.__syBootProgress;
+        delete window.__syBootDone;
+      }, 400);
     };
     // One visual owner: download, engine and Godot warm-up update this same page.
     window.__syBootUp = function () {
@@ -612,7 +631,8 @@ window.__syRL = {
       };
       (d.querySelector('.p4box') || d).appendChild(b);   // 方向 4：放进安全区框（left:50% 按安全区居中，top 由 p4Init 每帧对齐「认证通过」）
       if (BV !== 4) place(); else frame();
-      window.addEventListener('resize', BV !== 4 ? place : frame);
+      var onResize = BV !== 4 ? place : frame;
+      window.addEventListener('resize', onResize);
       d.classList.add('sy-ready');
       // 引线：从「接入完成」接触点（方向 3 钉在 180 方位）竖直落到按钮上沿，接触点上一个收拢的锁定框（横屏才拉，竖屏盘下是日志）
       var ct = d.querySelector('.sv-contacts');
@@ -625,7 +645,7 @@ window.__syRL = {
         ld.innerHTML = '<line pathLength="1" x1="' + cx + '" y1="' + cy + '" x2="' + (br0.left + br0.width / 2 - dr.left) + '" y2="' + (br0.top - dr.top) + '"/>' +
           '<rect x="' + (cx - 6) + '" y="' + (cy - 6) + '" width="12" height="12"/>';
         d.appendChild(ld);
-        setTimeout(function () { ld.remove(); }, 1500);
+        var leadTimer = setTimeout(function () { ld.remove(); }, 1500);
       }
       // 字：先乱码、再从左到右逐个解出（0.45 秒起，每字隔 0.08 秒）
       if (!rm) {
@@ -670,6 +690,13 @@ window.__syRL = {
       };
       d.addEventListener('pointerdown', go, true);
       window.addEventListener('keydown', go, true);
+      unbindReady = function () {
+        window.removeEventListener('resize', onResize);
+        window.removeEventListener('keydown', go, true);
+        d.removeEventListener('pointerdown', go, true);
+        clearTimeout(leadTimer);
+        clearInterval(dec);
+      };
     };
     window.__syBootProgress = function (value, label) {
       if (closing || ready || !Number.isFinite(value)) return;
@@ -695,7 +722,7 @@ window.__syRL = {
       if (nt && nt.style.display === 'block') out();
     }, 150);
   }
-  if (document.body) build(); else document.addEventListener('DOMContentLoaded', build);
+  if (document.body) build(); else document.addEventListener('DOMContentLoaded', build, {once: true});
 
   var hasDS = typeof DecompressionStream === 'function';
 
