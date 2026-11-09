@@ -1,0 +1,29 @@
+# recruit_offer_touch
+# 参数：--headless --path /work/repo/game res://tests/recruit_offer_test.tscn -- --regression --seed=1 --bal=ult/rework=0 --bal=growth/late_shape=0 --bal=growth/visible_nodes=0 --bal=growth/elite_show=0 --balance --seed=1 --op=eyjafjalla --touch
+# 用时 15 秒；结束时全机 Godot 16 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PF FXLAZY t=2.1 siege n=10 ms=12
+PF FXLAZY t=2.1 lappland n=10 ms=17
+PF FXLAZY t=2.1 specter_unchained n=5 ms=4
+PF FXLAZY t=2.1 angelina n=11 ms=8
+PF FXLAZY t=2.1 suzuran n=3 ms=1
+PF FXLAZY t=2.1 exusiai n=23 ms=7
+37 checks, 0 failed
+RECRUIT OFFER failures=0
+PF RUNRELEASE tex=0 audio=0
+ERROR: 77 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 5 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+
+## stderr
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+WARNING: 389 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 8 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+
