@@ -1785,7 +1785,8 @@ func _process(delta: float) -> void:
 			if state == S.WIN or state == S.DEAD:
 				RunEnd.settle(self)   # 局外结算：寻访凭证、生机细胞、最佳成绩、云存档（run/run_end.gd）
 				perf_rep.finish("win" if state == S.WIN else "dead")
-				CrashBox.end("win" if state == S.WIN else "dead")
+				if demo_op == "":
+					CrashBox.end("win" if state == S.WIN else "dead")
 		state_age = 0.0
 		ui_skip = false
 		res_sel = 0
