@@ -1,5 +1,7 @@
 // 局间整页重载的「去哪一页」标记（core/run_reload.gd，docs/319 §14 / §21）：sessionStorage、localStorage、网址参数 syrl 三处都写，
 // 读任意一处（取最新，3 分钟内有效）。B站 App 的 WebView 重载后 sessionStorage 不一定还在（11-09 真机：认知塑造重载后落在标题）
+// 测试：网址带 nosess=1 时 sessionStorage 不可用（模拟 B站 App 容器，docs/319 §21）
+try { if (/[?&]nosess=1/.test(location.search)) Object.defineProperty(window, 'sessionStorage', { get: function () { throw new Error('no sessionStorage'); } }); } catch (e) {}
 window.__syRL = {
   KEY: 'sy_reload',
   peek: function () {
