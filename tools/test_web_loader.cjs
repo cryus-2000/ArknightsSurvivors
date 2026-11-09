@@ -7,7 +7,7 @@ function fixture() {
   let seq = 0;
   const child = () => ({style:{},className:'',innerHTML:'',textContent:''});
   const root = child(); root.classes = new Set(); root.classList = {add:x=>root.classes.add(x)};
-  root.querySelectorAll = () => [root.l1,root.l2,root.l3];
+  root.querySelectorAll = selector => selector === 'canvas' ? [] : [root.l1,root.l2,root.l3];
   [root.l1,root.l2,root.l3] = [child(),child(),child()];
   const parts = new Map(['.sy-ring','.sy-num','.sy-tips .bd'].map(k=>[k,child()]));
   root.querySelector = k => parts.get(k);
