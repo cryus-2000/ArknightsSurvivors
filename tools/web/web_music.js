@@ -55,6 +55,7 @@
   }
   var premix = MONO && new URLSearchParams(location.search).get("muspremix") !== "0";
   function load(url) {
+    delete toFree[url];   // 新的播放或预热请求可接回正在解码的同一首
     if (bufs[url]) return Promise.resolve(bufs[url]);
     if (loading[url]) return loading[url];
     var c = ctx();
@@ -68,9 +69,14 @@
     loading[url] = decoded.then(function (b) {
       return mono(c, b);
     }).then(function (b) {
-      bufs[url] = b; delete loading[url]; return b;
+      delete loading[url];
+      bufs[url] = b;
+      if (toFree[url]) tryFree(url);
+      return b;
     }, function (e) {
-      delete loading[url]; fails++; lastFail = String(url).split("/").pop() + " " + String(e && e.message || e).slice(0, 40);
+      delete loading[url];
+      if (toFree[url]) tryFree(url);
+      fails++; lastFail = String(url).split("/").pop() + " " + String(e && e.message || e).slice(0, 40);
       console.error("PF WEBMUSIC load fail " + url + " " + e);
       throw e;
     });
@@ -87,6 +93,7 @@
     if (u && toFree[u]) tryFree(u);
   }
   function tryFree(u) {   // 还有源在用就等它停（stopId 里再试）
+    if (loading[u]) return;   // 保留释放请求，避免迟到的解码缓冲再次常驻
     for (var k in srcs) { if (srcs[k].url === u) return; }
     delete bufs[u]; delete toFree[u];
   }
@@ -95,7 +102,7 @@
     var c = ctx();
     if (!c || !list.length) return;
     var t0 = performance.now(), tok = {};
-    list.forEach(function (it) { stopId(it[0]); delete toFree[it[1]]; gains[it[0]] = it[5]; srcs[it[0]] = { tok: tok, url: it[1] }; });
+    list.forEach(function (it) { stopId(it[0]); gains[it[0]] = it[5]; srcs[it[0]] = { tok: tok, url: it[1] }; });
     Promise.all(list.map(function (it) { return load(it[1]); })).then(function (bs) {
       var lead = 0.03, late = (performance.now() - t0) / 1000 + lead, when = c.currentTime + lead;
       list.forEach(function (it, i) {
