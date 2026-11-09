@@ -390,6 +390,23 @@ func ui_fill(c: Control) -> void:
 	c.size = ui_size()
 
 
+func _configure_phone_glyphs() -> void:
+	var factor := 1.0
+	if OS.has_feature("web"):
+		var ratio = JavaScriptBridge.eval("window.__syGlyphScale || 1", true)
+		if ratio != null:
+			factor = float(ratio)
+	elif dev_args().has("--phone-glyph-test"):
+		factor = 1.5
+	if factor > 1.0:
+		var win := get_window()
+		var refresh := func() -> void:
+			# 仅提高根视口字形图集采样；世界、HUD 的最终画布大小仍跟随原 DPR 上限。
+			win.oversampling_override = win.get_stretch_transform().get_scale().y * factor
+		refresh.call()
+		win.size_changed.connect(refresh)
+
+
 func _ready() -> void:
 	if OS.get_environment("ARK_NO_FOCUS") == "1" and DisplayServer.get_name() != "headless":
 		# 测试局（godot_runner 设的环境变量 + game/override.cfg no_focus）：窗口不抢焦点；位置由 runner 用 Win32 挪到屏幕外
@@ -422,6 +439,7 @@ func _ready() -> void:
 	# 触屏设备：整体放大 1.15（逻辑分辨率 1113×626），字和按钮在手机上更好点；各面板按 vs.y < 680 做紧凑排版
 	if touch_device():
 		get_tree().root.content_scale_factor = 1.15
+		_configure_phone_glyphs()
 	# 网页版 / 移动端：默认关掉最吃性能的后期（玩家仍可在设置里打开）
 	if OS.has_feature("web"):
 		bloom = false

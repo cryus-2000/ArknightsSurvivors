@@ -12,6 +12,13 @@
 		if (v !== null && Number(v) > 0) window.__syMaxDpr = Number(v);
 	} catch (e) {}
 })();
+// 字形图集单独采样；没有额外的全屏渲染目标。glyphscale=1 可对照原字形。
+window.__syGlyphScale = (function () {
+	var cap = window.__syMaxDpr, dpr = window.devicePixelRatio || 1;
+	if (!window.__SY_TOY || cap !== 2 || dpr <= cap || Math.min(screen.width, screen.height) > 600
+			|| new URLSearchParams(location.search).get('glyphscale') === '1') return 1;
+	return Math.min(dpr / cap, 1.5);
+})();
 // 页面隐藏时挂起音频（docs/50 §33 手机发烫）：切到别的标签 / 回桌面后浏览器会停 requestAnimationFrame（引擎主循环跟着停），
 // 但 Web Audio 的 AudioContext 照转——网页版配乐 / 音效是解码好的样本，留在音频图里继续播放、音频线程一直醒着。
 // 引擎建 AudioContext 之前把构造函数包一层记下实例，visibilitychange 时 suspend / resume。放在 gl_state.js 后面、引擎脚本之前
