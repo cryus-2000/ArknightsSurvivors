@@ -116,6 +116,9 @@ def shift_down(grid, n):
     return np.concatenate([top, grid[:-n]], 0)
 
 
+LAST = {}
+
+
 def compose_grid(grid, spr, ringmask, center, n_shift=0):
     """贴水月（11-07 改：不再整圈描边〔像贴纸〕）：
     - 环境色：整体乘一点深海青，越往脚越受地面青光照亮；
@@ -130,6 +133,7 @@ def compose_grid(grid, spr, ringmask, center, n_shift=0):
     hx = int(np.nonzero(top.any(0))[0].mean())
     fx, fy = center[0], center[1] + n_shift
     x0, y0 = fx - hx, fy - sh + 1
+    LAST['spr'] = (x0, y0, sw, sh, hx)   # 定稿图标按水月位置裁
     # 环境色 + 地面上光
     yy = np.linspace(0, 1, sh)[:, None]
     amb = np.array([0.86, 0.94, 1.0])
@@ -216,7 +220,7 @@ def thrust_lines(g, m, x0, y0):
             g[y, x] = core if abs(dx) + abs(dy) <= 1 else mid
 
 
-def build(key, kind):
+def build(key, kind, text=True):
     (W, H), cell, up, logo_y = SIZES[kind]
     gw, gh = W // cell, H // cell
     if kind == "itch_banner":
@@ -241,6 +245,11 @@ def build(key, kind):
     canvas = Image.new("RGB", (W, H), (6, 10, 16))
     canvas.paste(img, ((W - img.width) // 2, (H - img.height) // 2))
     bg = np.asarray(canvas).copy()
+    sx, sy, sw, sh, shx = LAST['spr']
+    ox, oy = (W - img.width) // 2, (H - img.height) // 2
+    LAST['px'] = (ox + sx * cell, oy + sy * cell, shx * cell, sh * cell, cell)
+    if not text:   # 无字版（Toy 卡片下方自带名称）：不放标题、不放同人标注
+        return Image.fromarray(bg)
     rgb, cov, padt = A2.logo_block(482)
     if up > 1:
         rgb = np.kron(rgb, np.ones((up, up, 1), np.uint8))
@@ -259,6 +268,42 @@ def build(key, kind):
     return X.notice_layer(Image.fromarray(bg), up)
 
 
+def icon(key):
+    """Toy 图标 512×512：无字海报（5 像素格）上以水月为中心裁正方形，左上角对齐像素格；小尺寸靠人物 + 灯火认。"""
+    ty = build(key, "toy_poster", text=False)
+    x, y, w, h, cell = LAST['px']
+    side = 512
+    cx, cy = x + w, y + h // 2   # w = 头部中心相对精灵左边的距离（刀身伸出左侧，不按包围框取中）
+    x0 = cx - side // 2
+    x0 -= x0 % cell
+    y0 = cy - side // 2
+    y0 -= y0 % cell
+    x0 = min(max(x0, 0), ty.width - side)
+    y0 = min(max(y0, 0), ty.height - side)
+    return ty.crop((x0, y0, x0 + side, y0 + side)), ty
+
+
+def final(key, out, it, ty, bn):
+    """发布约定位置（art/promo/itch_page.md、docs/90 §3）：itch/cover_630x500.png、itch/banner_960x400.png、
+    toy/toy_poster_4x3.png、toy/toy_poster_4x3_notext.png、toy/toy_icon.png、toy/toy_poster_preview.png。"""
+    (out / "itch").mkdir(parents=True, exist_ok=True)
+    (out / "toy").mkdir(parents=True, exist_ok=True)
+    it.save(out / "itch/cover_630x500.png", optimize=True)
+    if bn is not None:
+        bn.save(out / "itch/banner_960x400.png", optimize=True)
+    ty.save(out / "toy/toy_poster_4x3.png", optimize=True)
+    ic, nt = icon(key)
+    nt.save(out / "toy/toy_poster_4x3_notext.png", optimize=True)
+    # 图标 11-08 起改用 art/promo/logo/build_logo_v2.py 的 icon_A，这里不再覆盖；预览里贴现行图标
+    ic = Image.open(out / "toy/toy_icon.png").convert("RGB")
+    # 卡片预览：B站卡片约 400×300、itch 卡片 315×250、图标 64 —— 平滑缩小，看列表里的样子
+    pv = Image.new("RGB", (400 + 20 + 315 + 20 + 64, 300), (24, 26, 32))
+    pv.paste(ty.resize((400, 300), Image.LANCZOS), (0, 0))
+    pv.paste(it.resize((315, 250), Image.LANCZOS), (420, 0))
+    pv.paste(ic.resize((64, 64), Image.LANCZOS), (755, 0))
+    pv.save(out / "toy/toy_poster_preview.png", optimize=True)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--frames", default="s:0,a:2")
@@ -266,6 +311,7 @@ def main():
     ap.add_argument("--bg", default="", help="背景生图路径（缺省 cover1107_bgopen；11-07 重打光版在 cover1107_relit）")
     ap.add_argument("--suffix", default="")
     ap.add_argument("--banner_bg", default="", help="横幅背景生图（21:9 外扩）")
+    ap.add_argument("--final", default="", help="定稿输出根目录（art/promo）：按发布约定文件名另出 Toy 无字海报 + 512 图标 + 卡片预览")
     ap.add_argument("--placed", action="store_true", help="背景已按封面排好（11-07 Gemini 重绘版）：不加余量裁切、不下移")
     a = ap.parse_args()
     global BG, OVER, OVER_BANNER, SHIFT_ON
@@ -282,10 +328,14 @@ def main():
         if a.banner_bg:
             BANNER["bg"] = a.banner_bg
             bn = build(key, "itch_banner")
-            bn.save(HERE / f"cover_{name}_itch_banner_960x400.png", optimize=True)
-        it.save(HERE / f"cover_{name}_itch_cover_630x500.png", optimize=True)
-        ty.save(HERE / f"cover_{name}_toy_poster_1200x900.png", optimize=True)
+            if not a.final:
+                bn.save(HERE / f"cover_{name}_itch_banner_960x400.png", optimize=True)
+        if not a.final:   # 过程稿才写回本目录；定稿只写发布位置（11-07 清理后本目录不留图）
+            it.save(HERE / f"cover_{name}_itch_cover_630x500.png", optimize=True)
+            ty.save(HERE / f"cover_{name}_toy_poster_1200x900.png", optimize=True)
         outs.append((name, it, ty))
+        if a.final:
+            final(key, Path(a.final), it, ty, bn if a.banner_bg else None)
         print(name)
     if a.sheet:
         K.sheet(outs, a.sheet)

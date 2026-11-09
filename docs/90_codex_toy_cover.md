@@ -45,3 +45,33 @@
 ## 5. 交付方式
 
 只动 `art/promo/toy/`；一个提交，附 `handoff.md`（每张图的构图说明、生图提示词摘要、后期处理步骤）。交回时告诉 Claude 提交号。
+
+## 6. 定稿（11-07 用户「封面定稿」）
+
+用的版本：**H_t1_regen**（11-07 用户「定稿合入」的重绘版，作法与重出命令见 `art/promo/itch/cover_g/handoff.md`「定稿」一节）。
+- 背景：Gemini 整体重绘。
+- 人物：游戏内水月精灵 s1_attack 第 1 帧，未经 AI。
+- 标题：标题页 A′ logo。
+- 右下标注：「明日方舟同人 · Arknights fan work」。
+
+上传就用下面这几张。文件名是发布约定的（itch 见 `art/promo/itch_page.md`，Toy 见本单 §3），旧文件已被覆盖：
+
+| 平台 | 文件 | 尺寸 | 说明 |
+|---|---|---|---|
+| B站 Toy 封面（`--poster`） | `art/promo/toy/toy_poster_4x3.png` | 1200×900（4:3） | 带标题 + 同人标注 |
+| B站 Toy 封面无字版 | `art/promo/toy/toy_poster_4x3_notext.png` | 1200×900 | 同图，不放标题和标注（卡片下方自带名称时用） |
+| B站 Toy 图标（`--icon`） | `art/promo/toy/toy_icon.png` | 512×512 | 11-08 定稿 A 灯塔航标方版：塔形徽记点橙灯 + 「方舟 / 幸存者」两行字，标题页背景（`art/promo/logo/build_logo_v2.py` 的 icon_A；logo 本身不改）；CLI 上限 512 KB、边长 ≤ 1024 |
+| 预览 | `art/promo/toy/toy_poster_preview.png` | 819×300 | Toy 卡片 400×300 · itch 卡片 315×250 · 图标 64 缩小效果 |
+| itch 封面 | `art/promo/itch/cover_630x500.png` | 630×500 | 带标题 + 同人标注 |
+| itch 横幅 | `art/promo/itch/banner_960x400.png` | 960×400 | 标题在左，水月在右 |
+| itch 截图位 | `art/promo/itch/screenshot_01–06.png` | 1920×1080 | 实机截图，与封面无关，这次没动 |
+
+- 重出：在 `handoff.md` 的重出命令后加 `--final art/promo`。脚本是 `build_cover_h.py`，会同时写出上表全部文件。
+- 定稿自查（11-07）：
+  - 四张图在 1 倍尺寸下，人物都在画框内。
+  - 水月就是游戏精灵（已按 PRTS 核对），这一帧是闭眼攻击帧，看不到瞳色。
+  - 有字版中接近纯白的像素只占约 0.2%，灰白像素约 5%，基本都是标题字本身；无字版灰白像素只有 0.4%。
+  - Toy 封面缩到手机卡片约 172×129、itch 缩到 158×125 时，「方舟幸存者」仍可读，英文副行看不清。
+- `art/promo/` 不在 Godot 工程（`game/`）里，宣传图不进游戏包。
+- 11-07 用户「把之前的一些封面都清理一下」：已删除 `art/promo/itch/cover_f/`、`cover_v2/`、`cover_v3/`、`cover_g/` 里的全部过程图，以及 `art/promo/toy/` 里 10 月的旧候选海报和对应的 handoff / qa 文件。现在只留上表这几张，要找旧图可以翻 git 历史。`cover_g/` 里的出图脚本保留，加 `--final` 时只写发布位置，不再往 `cover_g/` 写过程图。
+- 上传由用户本人做，不走 CLI 自动推送。
