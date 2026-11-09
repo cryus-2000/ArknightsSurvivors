@@ -397,7 +397,7 @@ func _ready() -> void:
 			var n_ops: int = op_defs.size()
 			get_tree().process_frame.connect(func():
 				fr[0] += 1
-				var k := (fr[0] - 40) / step
+				var k: int = (fr[0] - 40) / step
 				if fr[0] > 40 and (fr[0] - 40) % step == 0 and k < n_ops:
 					op_sel = k
 					op_skill = _op_default_skill()
