@@ -1,0 +1,22 @@
+# wisadel_fx_radius
+# 参数：--headless --path /work/repo/game res://tests/wisadel_fx_radius_test.tscn -- --regression --seed=1 --balance --seed=1 --op=wisadel
+# 用时 14 秒；结束时全机 Godot 15 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+WISADEL FX RADIUS checks=8 failures=0
+PF RUNRELEASE tex=0 audio=0
+ERROR: 71 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 4 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+
+## stderr
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+WARNING: 372 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 5 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+
