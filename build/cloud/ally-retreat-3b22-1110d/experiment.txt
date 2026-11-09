@@ -1,0 +1,90 @@
+diff --git a/game/scripts/characters/squad.gd b/game/scripts/characters/squad.gd
+index 4ed9cf18..237b57fd 100644
+--- a/game/scripts/characters/squad.gd
++++ b/game/scripts/characters/squad.gd
+@@ -50,6 +50,9 @@ var lead_dir := Vector2.ZERO    # 队长移动方向（平滑后的单位向量
+ var _lead_v := Vector2.ZERO
+ var _lead_p := Vector2.INF
+ var roam_secs := 0.0           # 统计（cmd_stats）：突击累计秒数 / 倒地次数 / 掷中仇恨的怪数
++var audit_rule_at := float(OS.get_environment("RETREAT_FROM"))
++var audit_hits := []
++var audit_exp := [0.0, 0.0, 0.0]
+ var downs_n := 0
+ var sorties_n := 0             # 进入突击的次数；sortie_downs_n = 其中至少有一人倒地的次数（调血目标 10–20%）
+ var sortie_downs_n := 0
+@@ -923,24 +926,27 @@ func _tick_hp(dt: float) -> void:
+ 			continue
+ 		if not roaming_op(o):
+ 			continue
++		audit_exp[0 if g.t < 420.0 else (1 if g.t < 600.0 else 2)] += dt
+ 		if Tactics.sub("expose"):
+ 			_bullet_hits(o)   # v2：突击 / 部署中吃敌弹（docs/209 §1.5）
+-			if o.cmd_down > 0.0:
++			if o.cmd_down > 0.0 or o.cmd_retreat:
+ 				continue
+ 		if o.cmd_inv > 0.0:
+ 			continue
+ 		for e in g.enemies_sys.nearest(4, 60.0, o.pos):
+ 			if e.dmg > 0.0 and e.ai == "melee" and not e.get("coma", false) and not e.get("dormant", false) and o.pos.distance_to(e.pos) < e.r + 12.0:
+-				op_hurt(o, e.dmg * Bal.v("command/op_dmg_k", 1.0))
++				op_hurt(o, e.dmg * Bal.v("command/op_dmg_k", 1.0), "contact_" + str(e.type))
+ 				o.cmd_inv = Bal.v("command/op_inv", 0.5)
+ 				break
+ 
+ 
+ ## 队友受伤（接触 / 敌弹 / 预警招式共用）：扣生命比例、受击闪、空血倒地
+-func op_hurt(o, amount: float) -> void:
++func op_hurt(o, amount: float, audit_src := "other") -> void:
+ 	if o.cmd_down > 0.0 or amount <= 0.0:
+ 		return
++	var audit_pre: float = o.cmd_hp
+ 	o.cmd_hp -= amount / op_maxhp(o)
++	audit_hits.append([g.t, str(o.id), audit_src, audit_pre, maxf(0.0,o.cmd_hp), stance, order_kind, amount])
+ 	o.cmd_show = 3.0
+ 	o.cmd_hit_t = g.t
+ 	if o.cmd_hp <= 0.0:
+@@ -968,6 +974,7 @@ func _tick_retreat(o) -> void:
+ 			o.cmd_retreat = false
+ 		return
+ 	if stance == ROAM and out_op(o) and o.cmd_hp < Bal.v("command/retreat_hp", 0.3):
++		audit_hits.append([g.t, str(o.id), "retreat", o.cmd_hp, o.cmd_hp, stance, order_kind, 0])
+ 		o.cmd_retreat = true
+ 		o.roam_tgt = null
+ 		o.cmd_blk.clear()
+@@ -990,9 +997,13 @@ func _bullet_hits(o) -> void:
+ 		if bl.pos.distance_squared_to(p) < pow(float(bl.get("r", 6.0)) + 16.0, 2.0):
+ 			bl.life = 0.0
+ 			bl["_die"] = "block"
+-			op_hurt(o, float(bl.get("dmg", 0.0)) * Bal.v("command/op_bullet_k", 1.0))
++			op_hurt(o, float(bl.get("dmg", 0.0)) * Bal.v("command/op_bullet_k", 1.0), "bullet")
+ 			if o.cmd_down > 0.0:
+ 				return
++			if g.t >= audit_rule_at and o.cmd_hp < Bal.v("command/retreat_hp", 0.3):
++				_tick_retreat(o)
++				if o.cmd_retreat:
++					return
+ 
+ 
+ ## 预警招式结算（telegraph.update_warns 调）：站在判定区里的突击 / 部署队友吃 w.dmg × command/op_warn_k（docs/209 §1.5）
+@@ -1004,7 +1015,7 @@ func warn_hit(w: Dictionary) -> void:
+ 		return
+ 	for o in ops:
+ 		if roaming_op(o) and o._warn_has(w, o.pos, 0.0):
+-			op_hurt(o, dmg * Bal.v("command/op_warn_k", 1.0))
++			op_hurt(o, dmg * Bal.v("command/op_warn_k", 1.0), "warn_" + str(w.get("kind", "unknown")))
+ 
+ 
+ ## 队友残血提醒（10-31 用户，docs/114 §21）：血量跌破 command/low_hp 进入提醒（头顶条 / 编队卡 / 屏外箭头红色慢闪，hud_allyhp），
+@@ -1118,10 +1129,11 @@ func _tick_lead(dt: float) -> void:
+ 
+ 
+ func cmd_stats() -> Dictionary:
+-	return {"roam": snappedf(roam_secs, 0.1), "downs": downs_n, "aggro": aggro_n, "switch": stance_log.size(), "sorties": sorties_n, "sortie_downs": sortie_downs_n}
++	return {"audit_hits": audit_hits, "audit_active_op_seconds": audit_exp, "roam": snappedf(roam_secs, 0.1), "downs": downs_n, "aggro": aggro_n, "switch": stance_log.size(), "sorties": sorties_n, "sortie_downs": sortie_downs_n}
+ 
+ 
+ func _revive(o, p: Vector2) -> void:
++	audit_hits.append([g.t, str(o.id), "revive", 0, 0, stance, order_kind, 0])
+ 	if g.get("trace_every") != null and g.trace_every > 0.0:
+ 		print("CMD t=%.2f revive %s at %.0f,%.0f" % [g.t, o.id, p.x, p.y])
+ 	_revive_fx(o, p)
