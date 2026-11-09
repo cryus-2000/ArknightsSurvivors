@@ -1805,6 +1805,14 @@ func _wm_free(tname: String) -> bool:
 	return true
 
 
+var _wm_ll := -1
+func _wm_lazy_layer() -> bool:
+	if _wm_ll < 0:
+		var cfg = get_node_or_null("/root/Cfg")
+		_wm_ll = 1 if cfg != null and cfg.mobile_web() and cfg.mobile_knob("mobile_music_lazy_layer", 1.0) else 0
+	return _wm_ll == 1
+
+
 func _wm_sync() -> void:
 	if _wm.is_empty():
 		return
@@ -1822,6 +1830,10 @@ func _wm_sync() -> void:
 				stops.append(k)
 			continue
 		var g: float = db_to_linear(pl.volume_db) if pl.volume_db > -79.0 else 0.0
+		# 手机网页：静音的分层（最终 Boss 二阶段加强层 p2、战斗加层）听得见了才解码开播（按墙钟对齐），原来跟着本层一起解码，
+		# 最终 Boss 登场时 p1 + p2 两首同驻（配乐一栏 18 → 37 MB，11-09 真机 10:02 被杀页，docs/319 §22）。--bal=web/mobile_music_lazy_layer=0 退回
+		if pl.playing and not w.on and g <= 0.001 and _wm_lazy_layer():
+			continue
 		if pl.playing and not w.on:
 			var ln: float = float(_wm.get(w.name, {}).get("len", 0.0))
 			var pos: float = now - float(track_t0.get(w.track, now))

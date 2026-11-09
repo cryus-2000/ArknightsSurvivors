@@ -787,7 +787,19 @@ func _enemy_evict(n: String) -> void:
 		if tex.has(nm):
 			tex.erase(nm)
 			A.uncache(nm)
+	_drop_outlines(n)
 	tex_deferred[n] = true
+
+
+## 这种怪的描边贴图（world._outline_tex 由白剪影合成、整份拷贝）跟着放：原来从不释放，整局只涨（docs/319 §22）
+func _drop_outlines(n: String) -> void:
+	if world == null:
+		return
+	var names: Array = _white_names(n)
+	for key in world._ol_cache.keys():
+		var base: String = str(key).split("#")[0]
+		if names.has(base):
+			world._ol_cache.erase(key)
 
 static func _lazy_fx_enabled() -> bool:
 	return Cfg.mobile_knob("mobile_lazy_fx", 1.0) or Cfg.dev_args().has("--lazyfx")   # 11-09 全平台（同 _op_tex_ids）
@@ -988,6 +1000,11 @@ func _white_release(delta: float, now := false) -> void:
 	_white_t = 0.0
 	var keep_w: float = 0.0 if now else WHITE_KEEP   # now：内存护栏要立刻腾（不在场就放，不等 20 / 60 秒）
 	var keep_e: float = 0.0 if now else ENEMY_KEEP
+	# 最终阶段（最终 Boss 在场、普通刷怪 / 精英 / 大群都停了）：不在场的怪 3 秒就放帧条和白剪影，给最终 Boss 腾地方
+	# （11-09 真机 10:02：前 10 分钟的普通怪帧条一张没放，叠上最终 Boss + 鸭爵帧条与最终曲被杀页，docs/319 §22）。机制召唤再刷出来时照常现读
+	if not now and spawner != null and spawner.mobs_stopped() and Bal.v("web/final_evict", 1.0) > 0.0:
+		keep_w = minf(keep_w, 3.0)
+		keep_e = minf(keep_e, 3.0)
 	for e in enemies:
 		_white_alive[str(e.get("tex", ""))] = t
 	for n in _white_alive.keys():
@@ -997,6 +1014,7 @@ func _white_release(delta: float, now := false) -> void:
 					tex.erase(nm + "_white")
 					if tex.get(nm) != null:
 						A.white_drop(tex[nm])
+			_drop_outlines(n)
 		if t - float(_white_alive[n]) > keep_e and _evict_on:
 			_enemy_evict(n)
 			_white_alive.erase(n)

@@ -22,6 +22,7 @@ var mid_used: Array = []
 ## （中期 Boss 的随机挑选提前到这时做，手机网页上 rng_spawn 的取用次序因此前移，各组概率不变），交给 g.prefetch_enemy 分帧在后台读。
 ## 桌面不变（同种子 TRACE / 金样不受影响）。--bal=web/mobile_boss_prefetch=0 退回
 const PF_LEAD := 10.0
+const PF_LEAD_FINAL := 30.0   # 最终 Boss（10:00）提前 30 秒（9:30 起）分帧预读：帧条多、登场同时还要换最终曲（11-09 真机 10:02 被杀页，docs/319 §22）
 var _pre_group: Array = []
 var _pre_idx := -1
 ## 同一人物的不同档（docs/38 §2.2，用户 10-01 按原作核对：圣徒卡门 / 圣徒伊比利亚是同一人两档）：中期 Boss 抽取按人物排除，同局只出一位
@@ -357,7 +358,7 @@ func _boss_prefetch_on() -> bool:
 
 func update(dt: float) -> void:
 	# 手机网页：登场前 PF_LEAD 秒定下下一组 Boss，分帧预读它们的帧条与白剪影（见 PF_LEAD）
-	if boss_idx < D.BOSS_TIMES.size() and _pre_idx != boss_idx + 1 and g.t >= D.BOSS_TIMES[boss_idx] - PF_LEAD and _boss_prefetch_on():
+	if boss_idx < D.BOSS_TIMES.size() and _pre_idx != boss_idx + 1 and g.t >= D.BOSS_TIMES[boss_idx] - (PF_LEAD_FINAL if boss_idx + 1 == D.BOSS_TIMES.size() else PF_LEAD) and _boss_prefetch_on():
 		_pre_idx = boss_idx + 1
 		_pre_group = _boss_group(_pre_idx)
 		for k in _pre_group:
