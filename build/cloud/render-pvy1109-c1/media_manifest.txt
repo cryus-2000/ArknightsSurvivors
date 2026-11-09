@@ -1,0 +1,4 @@
+28641	X_exusiai_godot.log
+81102	X_exusiai_pv.log
+280877530	X_exusiai_seg_01_win_t470.0.mp4
+82545	X_exusiai_seg_01_win_t470.0.sfx.json

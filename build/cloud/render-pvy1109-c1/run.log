@@ -1,0 +1,13 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4880 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+X_exusiai rc=0 1500s
+  seg_01_win_t470.0 2308 帧 rc=0
+total 274496
+drwxr-xr-x 2 root root      4096 Nov  9 01:14 .
+drwxr-xr-x 4 root root      4096 Nov  9 00:48 ..
+-rw-r--r-- 1 root root     28641 Nov  9 01:13 X_exusiai_godot.log
+-rw-r--r-- 1 root root     81102 Nov  9 01:13 X_exusiai_pv.log
+-rw-r--r-- 1 root root 280877530 Nov  9 01:14 X_exusiai_seg_01_win_t470.0.mp4
+-rw-r--r-- 1 root root     82545 Nov  9 01:14 X_exusiai_seg_01_win_t470.0.sfx.json
+media：4 个文件，269M
