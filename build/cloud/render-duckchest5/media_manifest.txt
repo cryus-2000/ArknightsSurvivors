@@ -1,0 +1,12 @@
+4957	after_pc.log
+641762	after_pc_chest.png
+639573	after_pc_duck.png
+646246	after_pc_regroup.png
+4957	after_ph844.log
+653889	after_ph844_chest.png
+651657	after_ph844_duck.png
+660330	after_ph844_regroup.png
+4969	after_ph956.log
+708434	after_ph956_chest.png
+707262	after_ph956_duck.png
+718580	after_ph956_regroup.png
