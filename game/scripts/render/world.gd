@@ -3090,10 +3090,12 @@ func _dc_ok(e: Dictionary) -> bool:
 		e["dcs"] = st
 	if st:
 		return false
-	if e.squash > 0.0 or e.wind > 0.0 or e.dash_w > 0.0 or e.dash_t > 0.0 or e.enraged or e.wake_t > 0.0:
+	if e.wind > 0.0 or e.dash_w > 0.0 or e.dash_t > 0.0 or e.enraged or e.wake_t > 0.0:
 		return false
-	if e.nova_w > 0.0 or e.blast_w > 0.0 or e.burst_w > 0.0 or e.air > 0.0 or e.pose > 0.0:
+	if e.nova_w > 0.0 or e.blast_w > 0.0 or e.burst_w > 0.0 or e.pose > 0.0:
 		return false
+	if (e.squash > 0.0 or e.air > 0.0) and (g.opt_old & 8589934592):
+		return false   # OPT_DCSQ（仅 --optab 对照）：受击形变 / 托起的敌人走原路径（11-07 前的写法）
 	if e.get("part", false) or e.get("under", false) or e.get("gate_hold", false) or e.get("sword_t", 0.0) > 0.0 or e.get("break_t", 0.0) > 0.0:
 		return false
 	if e.has("vis_act"):
@@ -3228,9 +3230,21 @@ func _dc_emit(e: Dictionary, c: Array) -> void:
 	var bpos: Vector2 = e.pos + c[14]
 	var sc: float = c[12]
 	var anc: Vector2 = c[13]
+	# 受击形变 / 托起（11-07 docs/313：原来这两种状态整只退出缓存、走 _draw_enemy_full；选图与颜色不受它们影响，这里逐帧补上）
+	var sq := Vector2.ONE
+	if e.squash > 0.0:
+		var k: float = clampf(e.squash / 0.14, 0.0, 1.0)
+		sq = Vector2(1.0 + 0.3 * k, 1.0 - 0.25 * k)
+	if e.air > 0.0:
+		var alk: Vector2 = Pxp.air_look(g, e)   # 影子与抬高：同 _draw_enemy_full（影子直接画，--dccheck 比对那次由原路径画一次）
+		if _rec == null:
+			g.wcv.draw_set_transform(e.pos + Vector2(0, e.r * 0.8), 0.0, Vector2(1.0, 0.45))
+			g.wcv.draw_circle(Vector2.ZERO, e.r * 0.9 * alk.x, Color(0, 0, 0, 0.35 * (0.4 + 0.6 * alk.x)))
+			g.wcv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		g.draw_off.y -= e.air + alk.y
 	if c[15]:
-		_espr_outline(body, frames, frame, bpos, sc, flip, _ol_col(e), anc, Vector2.ONE)
-	if ra != null and _afast and _rec == null:
+		_espr_outline(body, frames, frame, bpos, sc, flip, _ol_col(e), anc, sq)
+	if ra != null and _afast and _rec == null and sq == Vector2.ONE:
 		# 图集快速路径（docs/50 §12 B）：本体和白闪直接按缓存的图集区域画，几何与 vfx.spr 相同；翻转时两次绘制共用一对变换
 		var fw: int = ra[2] / frames
 		var o: Vector2i = ra[1]
@@ -3244,7 +3258,8 @@ func _dc_emit(e: Dictionary, c: Array) -> void:
 			if rc.a == 0.0:
 				rw = null
 			else:
-				wcol = Color(1, 1, 1, 0.9 if e.elite else flash_a) if rc.a < 0.0 else rc
+				var ha: float = 0.9 if e.elite else flash_a
+				wcol = Color(1, 1, 1, ha) if rc.a < 0.0 else Color(rc.r, rc.g, rc.b, minf(rc.a, ha + 0.1))   # 同 _draw_enemy_full（配方受击色透明度封顶 hit_a + 0.1）
 		if flip:
 			g.wcv.draw_set_transform(p.round(), 0.0, Vector2(-1, 1))
 			var rf := Rect2(-size * anc, size)
@@ -3258,13 +3273,14 @@ func _dc_emit(e: Dictionary, c: Array) -> void:
 			if rw != null:
 				g.wcv.draw_texture_rect_region(rw[0], rn, src, wcol * _act_mod)
 	else:
-		_espr(body, frames, frame, bpos, sc, flip, c[11], anc, Vector2.ONE)
+		_espr(body, frames, frame, bpos, sc, flip, c[11], anc, sq)
 		if e.flash > 0.0:
 			var rc2: Color = Fxr.react_col(g, e)
 			if rc2.a != 0.0:
-				_espr(wht, frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.9 if e.elite else flash_a) if rc2.a < 0.0 else rc2, anc, Vector2.ONE)
+				var ha2: float = 0.9 if e.elite else flash_a
+				_espr(wht, frames, frame, bpos, sc, flip, Color(1, 1, 1, ha2) if rc2.a < 0.0 else Color(rc2.r, rc2.g, rc2.b, minf(rc2.a, ha2 + 0.1)), anc, sq)
 	if g.optical_on and _rec == null:
-		_glow_pts(body, frames, bpos + g.draw_off, sc, flip, anc, e, frame)
+		_glow_pts(body, frames, bpos + g.draw_off, sc * sq.x, flip, anc, e, frame)
 	if _rec == null and e.affix != "":
 		var af: String = e.affix
 		if af == "armor" or (af == "shield" and e.shield_hp > 0.0):   # 快速写法：_affix_fx 对其他词条直接返回，先判再算头顶位置
