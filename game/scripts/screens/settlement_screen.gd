@@ -9,8 +9,9 @@ const UM = preload("res://scripts/ui_motion.gd")
 const Roster = preload("res://scripts/core/roster.gd")
 const D = preload("res://scripts/data.gd")
 var g
-var topography: Texture2D = preload("res://art/ui/settlement/topography.png")
-var navigation: Texture2D = preload("res://art/ui/settlement/navigation.png")
+# 只在实际绘制分支加载；--texwalk 会读取脚本字段。
+var topography: Texture2D
+var navigation: Texture2D
 var _signature: Array = []
 var model: Dictionary = {}
 var wall_s := 0.0   # 本局真实时长（秒，反馈码用）
@@ -669,6 +670,8 @@ func draw(ci: CanvasItem, vs: Vector2) -> void:
 			_draw_share(ci)
 		return
 	HH.backdrop(ci, Vector2(1280,720))
+	if topography == null:
+		topography = load("res://art/ui/settlement/topography.png")
 	ci.draw_texture(topography, Vector2.ZERO)
 	ci.draw_rect(Rect2(0,0,1280,44), HH.INK)
 	_text(ci,28,10,"作战结算",18)
@@ -679,6 +682,8 @@ func draw(ci: CanvasItem, vs: Vector2) -> void:
 	var w := UM.out_cubic(_k(0.0, 0.35))
 	if w > 0.0:
 		HH.fill(ci, PackedVector2Array([Vector2(0,46),Vector2(716*w,46),Vector2(716*w-36,207),Vector2(0,207)]),HH.LIGHT if won else LOSS_BAND)
+		if navigation == null:
+			navigation = load("res://art/ui/settlement/navigation.png")
 		ci.draw_texture_rect_region(navigation, Rect2(426,46,230,160), Rect2(0,140,230,160), Color(1,1,1,0.33*_k(0.2, 0.3)))
 	# ② 结果标题（胜利盖章 / 失败打捞）
 	_enter(0.35, 0.3)
