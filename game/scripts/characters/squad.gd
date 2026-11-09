@@ -925,7 +925,7 @@ func _tick_hp(dt: float) -> void:
 			continue
 		if Tactics.sub("expose"):
 			_bullet_hits(o)   # v2：突击 / 部署中吃敌弹（docs/209 §1.5）
-			if o.cmd_down > 0.0:
+			if o.cmd_down > 0.0 or o.cmd_retreat:
 				continue
 		if o.cmd_inv > 0.0:
 			continue
@@ -993,6 +993,10 @@ func _bullet_hits(o) -> void:
 			op_hurt(o, float(bl.get("dmg", 0.0)) * Bal.v("command/op_bullet_k", 1.0))
 			if o.cmd_down > 0.0:
 				return
+			if o.cmd_hp < Bal.v("command/retreat_hp", 0.3):
+				_tick_retreat(o)
+				if o.cmd_retreat:
+					return
 
 
 ## 预警招式结算（telegraph.update_warns 调）：站在判定区里的突击 / 部署队友吃 w.dmg × command/op_warn_k（docs/209 §1.5）
