@@ -162,8 +162,21 @@ func _ready() -> void:
 		_audio_free_test.call_deferred()
 	if OS.has_feature("web") and (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--musictour"):
 		_music_tour.call_deferred()
+	var master := AudioServer.get_bus_index("Master")
 	if is_automated():
-		AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), true)
+		AudioServer.set_bus_mute(master, true)
+	# HardLimiter 的 2 ms 预读必须至少有一个采样；无 WebAudio 时 Dummy 可报告 0 Hz。
+	if AudioServer.get_mix_rate() >= 500.0:
+		var has_limiter := false
+		for i in AudioServer.get_bus_effect_count(master):
+			if AudioServer.get_bus_effect(master, i) is AudioEffectHardLimiter:
+				has_limiter = true
+				break
+		if not has_limiter:
+			var limiter := AudioEffectHardLimiter.new()
+			limiter.resource_name = "HardLimiter"
+			limiter.ceiling_db = -0.5
+			AudioServer.add_bus_effect(master, limiter, 0)
 	var mbus := _ensure_bus("Music")
 	if AudioServer.get_bus_effect_count(mbus) == 0:
 		music_lp = AudioEffectLowPassFilter.new()
