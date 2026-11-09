@@ -580,7 +580,11 @@ func _draw_glow() -> void:
 	_draw_ground_glow()
 	for p in g.glow_cur:
 		glow_node.draw_rect(Rect2(p[0], Vector2(p[1], p[1])), p[2])
+	var gci: RID = glow_node.get_canvas_item()
 	for q in g.glow_tex_cur:
+		if q.size() == 5:   # 溟痕一整片的贴图三角形（map._mire_cells_tri，docs/319 §22 ③）
+			RenderingServer.canvas_item_add_triangle_array(gci, PackedInt32Array(), q[1], PackedColorArray([q[3]]), q[2], PackedInt32Array(), PackedFloat32Array(), (q[0] as Texture2D).get_rid())
+			continue
 		glow_node.draw_texture_rect_region(q[0], q[1], q[2], q[3])   # _emit 发光层（溟痕 / 结晶 / 退散，同位置 1:1）
 	if not g.world.gem_emit:
 		_draw_loot()   # 没有结晶 _emit 图（旧结晶）时退回每颗一个发光点
