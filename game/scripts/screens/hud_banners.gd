@@ -1,5 +1,6 @@
 extends RefCounted
 const D = preload("res://scripts/data.gd")
+const TouchLayoutC = preload("res://scripts/touch_layout.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const UI = preload("res://scripts/ui.gd")
 const UM = preload("res://scripts/ui_motion.gd")
@@ -56,6 +57,48 @@ func _edge(vs: Vector2, sp: Vector2, m: float) -> Vector2:
 	var c: Vector2 = r.get_center()
 	var d: Vector2 = (sp - c).normalized()
 	return c + d * minf(absf((r.size.x / 2.0) / maxf(absf(d.x), 0.01)), absf((r.size.y / 2.0) / maxf(absf(d.y), 0.01)))
+
+
+## 屏外指示让开的东西（11-09 截图：手机鸭爵指示的「鸭爵 29m」压在「指挥」键上、宝箱指示压在左下声呐上）：触屏按键（摇杆除外）与声呐小地图
+func _obstacles(vs: Vector2) -> Array:
+	var out: Array = []
+	var mrad: float = 58.0 if Cfg.phone_ui() else 78.0   # 同 hud_bars.draw_minimap
+	var mc := Vector2(16 + mrad + 8, vs.y - mrad - 24)
+	out.append(Rect2(mc - Vector2(mrad, mrad + 14), Vector2(mrad * 2.0, mrad * 2.0 + 14)))
+	if g.touch != null and g.touch.active:
+		var lay: Dictionary = g.touch.layout(vs)
+		for k in lay:
+			if k == "stick":
+				continue
+			var b: Rect2 = TouchLayoutC.bounds(k, float(lay[k].s))
+			out.append(Rect2(lay[k].c + b.position, b.size))
+	return out
+
+
+## 指示（含名字一行）的占位：圆半径 rad，名字在圆上方或下方
+func _ptr_box(vs: Vector2, edge: Vector2, rad: float) -> Rect2:
+	var up: bool = edge.y > vs.y / 2
+	return Rect2(edge.x - maxf(rad, 80.0), edge.y - rad - (30.0 if up else 0.0), maxf(rad, 80.0) * 2.0, rad * 2.0 + 30.0)
+
+
+## 压到按键 / 小地图时沿所在的屏幕边挪开（先往屏幕中段方向，最多挪 8 步）
+func _dodge(vs: Vector2, edge: Vector2, rad: float, m: float) -> Vector2:
+	var obs: Array = _obstacles(vs)
+	var hit := func(p: Vector2) -> bool:
+		var bx: Rect2 = _ptr_box(vs, p, rad)
+		return obs.any(func(o): return o.intersects(bx))
+	if not hit.call(edge):
+		return edge
+	var side_lr: bool = absf(edge.x - vs.x / 2.0) / vs.x > absf(edge.y - vs.y / 2.0) / vs.y
+	var tn: Vector2 = Vector2(0, 1) if side_lr else Vector2(1, 0)
+	var lo := Vector2(m, m)
+	var hi := vs - Vector2(m, m + _console_lift(vs))
+	for step in range(1, 9):
+		for sgn in ([1.0, -1.0] if (edge.dot(tn) < (vs / 2.0).dot(tn)) else [-1.0, 1.0]):
+			var p: Vector2 = (edge + tn * sgn * 40.0 * step).clamp(lo, hi)
+			if not hit.call(p):
+				return p
+	return edge
 
 
 func draw_merchant_pointer(vs: Vector2, ct: Transform2D) -> void:
@@ -133,6 +176,7 @@ func draw_duck_pointer(vs: Vector2, ct: Transform2D) -> void:
 		if bs.distance_to(edge) < 76.0:
 			var tn: Vector2 = Vector2(0, 1) if absf(edge.x - vs.x / 2.0) > absf(edge.y - vs.y / 2.0) * vs.x / vs.y else Vector2(1, 0)
 			edge = (edge + tn * 80.0).clamp(Vector2(72, 72), vs - Vector2(72, 72 + _console_lift(vs)))
+	edge = _dodge(vs, edge, 40.0, 72.0)
 	_big_pointer(vs, edge, (sp - edge).normalized(), str(e.get("tex", "e_duck")), "%s  %dm" % [D.ENEMIES.get("duck", {}).get("name", "鸭爵"), int((e.pos as Vector2).distance_to(g.ppos) / 32.0)], DUCK_PTR_COL)
 
 
@@ -156,7 +200,7 @@ func draw_chest_pointers(vs: Vector2, ct: Transform2D) -> void:
 		n += 1
 		if n > 3:
 			break
-		var edge: Vector2 = _edge(vs, sp, 52.0)
+		var edge: Vector2 = _dodge(vs, _edge(vs, sp, 52.0), 30.0, 52.0)
 		var d: Vector2 = (sp - edge).normalized()
 		g.hud.draw_circle(edge, 28.0 + 4.0 * pulse, Color(CHEST_PTR_COL.r, CHEST_PTR_COL.g, CHEST_PTR_COL.b, 0.16))
 		g.hud.draw_circle(edge, 22.0, Color(0.06, 0.05, 0.03, 0.88))
@@ -283,6 +327,8 @@ func draw_boss_pointers(vs: Vector2, ct: Transform2D) -> void:
 			var tn: Vector2 = Vector2(0, 1) if absf(edge.x - vs.x / 2.0) > absf(edge.y - vs.y / 2.0) * vs.x / vs.y else Vector2(1, 0)
 			edge = (edge + tn * 80.0).clamp(Vector2(72, 72), vs - Vector2(72, 72 + _console_lift(vs)))
 			tries += 1
+		edge = _dodge(vs, edge, 40.0, 72.0)
+		d = (sp - edge).normalized()
 		placed.append(edge)
 		_big_pointer(vs, edge, d, b.tex, "%s  %dm" % [D.ENEMIES.get(b.type, {}).get("name", "Boss"), int(b.pos.distance_to(g.ppos) / 32.0)], BOSS_PTR_COL)
 

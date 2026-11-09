@@ -58,5 +58,7 @@ func _ready() -> void:
 	await _wait(30)
 	sq.stamina = 0.001
 	await _wait(150)
+	var ob = g.onboard
+	print("REGROUP toast=", ob.toast, " q=", ob.toast_q.size(), " busy=", ob.busy(), " drill=", ob.drill, " cur=", ob.cur, " out=", ob.out_id, " ask=", ob.ask_on)
 	await _shot(out, "regroup.png")
 	get_tree().quit(0)
