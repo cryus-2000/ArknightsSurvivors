@@ -644,7 +644,7 @@ func apply() -> void:
 
 ## 网页画布像素比上限（docs/319 §20 A，等用户挑，缺省关）：手机网页 web/mobile_max_dpr > 0 时画布最多按这个倍数出图
 ## （iPhone 3 倍 → 2 倍，像素少 56%，GPU 填充 / 发热下降，浏览器把画布放大到满屏，界面字略软）。测试 --maxdpr=<倍数> 任何网页都生效。
-## 引擎补丁（tools/web/engine_patch.py §8）读 window.__syMaxDpr；改了派一次 resize 当场生效
+## 引擎补丁（tools/web/engine_patch.py §8）读 window.__syMaxDpr（power.js 启动时从本地存储 / 网址参数设）；改了下次启动生效
 var _max_dpr := -1.0
 func apply_max_dpr() -> void:
 	if not OS.has_feature("web"):
@@ -656,7 +656,8 @@ func apply_max_dpr() -> void:
 	if is_equal_approx(v, _max_dpr):
 		return
 	_max_dpr = v
-	JavaScriptBridge.eval("window.__syMaxDpr=%s;window.dispatchEvent(new Event('resize'))" % str(v), true)
+	# 只存下来，下次启动由 power.js 在引擎建画布前读（运行中改再派 resize，引擎的窗口尺寸不跟着变，画面会被裁）
+	JavaScriptBridge.eval("try{%s}catch(e){}" % ("localStorage.setItem('sy_maxdpr','%s')" % str(v) if v > 0.0 else "localStorage.removeItem('sy_maxdpr')"), true)
 
 
 const WEB_MASTER_TRIM := -7.0
