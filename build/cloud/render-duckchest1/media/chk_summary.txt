@@ -1,0 +1,6 @@
+ui_smoke rc=0
+touch_layout rc=0
+duck_lord rc=0
+enemy_status rc=0
+onboard_forced rc=0
+onboard_reload rc=0
