@@ -198,10 +198,17 @@ func _meta(k: String) -> Dictionary:
 	if _meta_loaded.has(owner):
 		return {}
 	_meta_loaded[owner] = true
-	var f := FileAccess.open("res://data/pxp_%s.json" % owner, FileAccess.READ)
-	if f == null:
+	var path := "res://data/pxp_%s.json" % owner
+	var text: String
+	if FileAccess.file_exists(path):
+		text = FileAccess.get_file_as_string(path)
+	elif FileAccess.file_exists(path + ".gz"):
+		# 网页主包常驻 MEMFS；只在首次用到这位干员时展开元数据。
+		var packed := FileAccess.get_file_as_bytes(path + ".gz")
+		text = packed.decompress_dynamic(-1, FileAccess.COMPRESSION_GZIP).get_string_from_utf8()
+	else:
 		return {}
-	var entries = JSON.parse_string(f.get_as_text())
+	var entries = JSON.parse_string(text)
 	if entries is Dictionary:
 		var key_prefix := prefix + "_" if META_PREFIXED.has(prefix) else ""
 		for local_key in entries:
