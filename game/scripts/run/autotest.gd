@@ -2457,6 +2457,7 @@ func _cdpshot_step() -> void:
 	if _cds.is_empty() or g.t < float(_cds[0]):
 		return
 	var sec: float = _cds.pop_front()
+	print("PF CANVAS %s" % str(JavaScriptBridge.eval("(function(){var c=document.querySelector('canvas');return c?c.width+'x'+c.height+' css '+c.clientWidth+'x'+c.clientHeight+' dpr '+window.devicePixelRatio:'none'})()", true)) if OS.has_feature("web") else "")
 	print("PF CDPSHOT t%d" % int(sec))
 	Engine.time_scale = 0.0
 	g.get_tree().create_timer(3.0, true, false, true).timeout.connect(func(): Engine.time_scale = 1.0)
