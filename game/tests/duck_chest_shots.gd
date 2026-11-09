@@ -1,5 +1,5 @@
 extends Node
-## 11-09 截图：①鸭爵在画面外（屏外大指示）；②精英宝箱掉落（地上一只 + 画面外一只）。存 build/<--shots-out>/duck.png、chest.png。
+## 11-09 截图：①鸭爵在画面外（屏外大指示）；②精英宝箱掉落（地上一只 + 画面外一只）；③队友自动归队的小字提示。存 build/<--shots-out>/duck.png、chest.png、regroup.png。
 ## 窗口尺寸用 --resolution；触屏加 --touch；--ins=l,t,r,b 模拟安全区
 var g
 var ins: Array = []
@@ -52,4 +52,11 @@ func _ready() -> void:
 	g.pickups.drop(g.ppos + Vector2(-1100, 400), "chest", 1.0, "elite")
 	await _wait(90)
 	await _shot(out, "chest.png")
+	# ③ 归队小字提示：两名队友突击中作战时限耗尽 → 自动归队（需 --squad=… 带两名队友）
+	var sq = g.squad
+	sq.set_stance(sq.ROAM)
+	await _wait(30)
+	sq.stamina = 0.001
+	await _wait(150)
+	await _shot(out, "regroup.png")
 	get_tree().quit(0)

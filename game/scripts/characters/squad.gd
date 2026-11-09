@@ -434,6 +434,7 @@ func update(dt: float) -> void:
 	_tick_lead(dt)
 	_tick_stamina(dt)
 	_tick_order(dt)
+	_tick_return(dt)
 	_tick_hp(dt)
 	if Tactics.on():
 		Tactics.tick_block(self)   # 部署：阻挡（docs/209 §1.4）
@@ -567,10 +568,12 @@ func apply_command(id: String) -> void:
 		return
 	match id:
 		"guard":
+			_by_player = true   # 玩家自己下令随行：不弹「回到队伍」
 			if Tactics.on() and stance != GUARD and _far_out():
 				set_stance(RECALL)   # v2 圆盘合并：随行 = 队友离得远时先闪回集合（原「归队」，docs/209 §1.6）
 			elif stance != GUARD:
 				set_stance(GUARD)
+			_by_player = false
 		"roam":
 			if stance != ROAM:
 				if can_roam():
@@ -579,7 +582,9 @@ func apply_command(id: String) -> void:
 					g.vfx.add_text(g.ppos + Vector2(0, -70), "作战时限未恢复", UI.SUB, 14)
 		"recall":
 			if stance != RECALL:
+				_by_player = true
 				set_stance(RECALL)
+				_by_player = false
 		"mob":
 			set_priority(1)
 		"boss":
@@ -761,8 +766,48 @@ func cycle_stance() -> bool:
 		return false
 	if stance != ROAM and not can_roam():
 		return false   # 耐力不足（game.toggle_command 提示）
+	_by_player = true
 	set_stance(ROAM if stance != ROAM else RECALL)
+	_by_player = false
 	return true
+
+
+## ---------------------------------------------------------------- 归队小字提示（11-09 用户）
+## 队友结束突击 / 部署 / 肃清后自动回到队长身边（作战时限耗尽、肃清完、灯标点燃、队长走远、残血撤回）：左上角小字提示「<名> 回到队伍」，
+## 用新手引导的小字提示（onboard.toast_tip，强制、不记看过）；RET_MERGE 秒内的归队合成一条（「德克萨斯、能天使 回到队伍」）。
+## 玩家自己在圆盘选「随行」/ 按键切回（_by_player）不提示；图鉴演示 / 机器人局不提示
+const RET_MERGE := 0.6
+var _by_player := false
+var _ret_names: Array = []
+var _ret_t := -1.0
+var _ret_n := 0
+
+
+func _note_return(list: Array) -> void:
+	if g.demo_op != "" or g.get("bot") != null or g.get("onboard") == null:
+		return
+	for o in list:
+		var nm: String = str(o.display_name())
+		if not _ret_names.has(nm):
+			_ret_names.append(nm)
+	if not _ret_names.is_empty() and _ret_t < 0.0:
+		_ret_t = RET_MERGE
+
+
+func _tick_return(dt: float) -> void:
+	if _ret_t < 0.0:
+		return
+	_ret_t -= dt
+	if _ret_t > 0.0:
+		return
+	_ret_t = -1.0
+	if _ret_names.is_empty():
+		return
+	_ret_n += 1
+	g.onboard.toast_tip("ret_%d" % _ret_n, "归队", "%s 回到队伍" % "、".join(PackedStringArray(_ret_names)), true)
+	if g.get("trace_every") != null and g.trace_every > 0.0 or not Cfg.dev_args().is_empty():
+		print("SQUAD return toast: %s" % "、".join(PackedStringArray(_ret_names)))
+	_ret_names.clear()
 
 
 func can_roam() -> bool:
@@ -928,6 +973,7 @@ func _tick_retreat(o) -> void:
 		o.cmd_blk.clear()
 		if g.get("vfx") != null and g.demo_op == "":
 			g.vfx.add_text(o.pos + Vector2(0, -78), "撤回", Color(0.55, 0.9, 1.0), 15)
+		_note_return([o])   # 残血撤回也算归队（11-09）
 		if g.get("trace_every") != null and g.trace_every > 0.0:
 			print("CMD t=%.2f retreat %s" % [g.t, o.id])
 
@@ -1167,6 +1213,9 @@ func _tick_stamina(dt: float) -> void:
 func set_stance(s: int) -> void:
 	if s == stance:
 		return
+	if stance == ROAM and s != ROAM and not _by_player:
+		# 突击 / 部署自动结束（作战时限耗尽、肃清完、灯标点燃、队长走远）：出去的队友「回到队伍」小字提示；玩家自己下令随行不提示
+		_note_return(ops.filter(func(o): return roaming_op(o)))
 	stance = s
 	if s != ROAM:
 		clear_order()   # 指点（原型，docs/196）：不在突击就没有指令

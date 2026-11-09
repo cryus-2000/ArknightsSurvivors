@@ -23,7 +23,7 @@ for dn, (pre, post) in DEV.items():
     d = os.path.join(ROOT, "build", "duck_chest", dn)
     shutil.rmtree(d, ignore_errors=True)
     args = [gr.find_godot(), "--path", os.path.join(ROOT, "game"), "--rendering-driver", "opengl3", "--audio-driver", "Dummy"] + pre + \
-        ["res://tests/duck_chest_shots.tscn", "--", "--uisize=110", "--shots-out=" + od] + post
+        ["res://tests/duck_chest_shots.tscn", "--", "--uisize=110", "--shots-out=" + od, "--squad=texas,exusiai"] + post
     o, e, to = gr.run_godot(args, 240)
     print(dn, [l for l in o.splitlines() if l.startswith("DUCK CHEST SHOT")], gr.script_errors(o, e)[:3], "timeout" if to else "")
     if os.path.isdir(d):
