@@ -1,0 +1,1866 @@
+# voice_command
+# 参数：--headless --path /work/repo/game res://tests/voice_command_test.tscn -- --regression --seed=1
+# 用时 7 秒；结束时全机 Godot 14 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+VOICE COMMAND checks=179 failures=0
+
+
+## stderr
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _voice_stream (res://scripts/sfx.gd:806)
+       [3] _channel_rules (res://tests/voice_command_cases.gd:203)
+       [4] run (res://tests/voice_command_cases.gd:126)
+       [5] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] voice (res://scripts/sfx.gd:950)
+       [3] _channel_rules (res://tests/voice_command_cases.gd:210)
+       [4] run (res://tests/voice_command_cases.gd:126)
+       [5] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] voice (res://scripts/sfx.gd:950)
+       [3] _channel_rules (res://tests/voice_command_cases.gd:212)
+       [4] run (res://tests/voice_command_cases.gd:126)
+       [5] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] voice (res://scripts/sfx.gd:950)
+       [3] _channel_rules (res://tests/voice_command_cases.gd:238)
+       [4] run (res://tests/voice_command_cases.gd:126)
+       [5] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _voice_stream (res://scripts/sfx.gd:806)
+       [3] _ult_mute (res://tests/voice_command_cases.gd:176)
+       [4] run (res://tests/voice_command_cases.gd:127)
+       [5] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _voice_stream (res://scripts/sfx.gd:806)
+       [3] _ult_mute (res://tests/voice_command_cases.gd:176)
+       [4] run (res://tests/voice_command_cases.gd:127)
+       [5] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1910)
+   GDScript backtrace (most recent call first):
+       [0] _voice_trim (res://scripts/sfx.gd:747)
+       [1] _voice_file (res://scripts/sfx.gd:813)
+       [2] _pool_rules (res://tests/voice_command_cases.gd:260)
+       [3] run (res://tests/voice_command_cases.gd:128)
+       [4] _ready (res://tests/voice_command_test.gd:7)
+

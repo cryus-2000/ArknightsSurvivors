@@ -1,0 +1,28 @@
+# duck_lord
+# 参数：--headless --path /work/repo/game res://tests/duck_lord_test.tscn -- --regression --seed=1
+# 用时 15 秒；结束时全机 Godot 14 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PF PREFETCH t=256.7 e_duck items=0
+DUCK spawn t=256.75 d=496
+DUCK fled t=286.76 d=623 hp=100%
+PF PREFETCH t=689.7 e_duck items=0
+DUCK spawn t=689.70 d=401
+DUCK kill t=689.70 after=0.0
+DUCK LORD checks=25 failures=0
+PF RUNRELEASE tex=0 audio=0
+ERROR: 73 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 4 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+
+## stderr
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+WARNING: 380 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 5 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+
