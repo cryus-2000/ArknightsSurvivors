@@ -2192,6 +2192,8 @@ func _perf_sample() -> void:
 			w += "/old" if g.opt_old != 0 else "/new"   # --optab：这一帧（上一帧的模拟与绘制）走的是旧 / 新实现
 		if perf_ab > 0:
 			w += "/b" if g.perf_alt else "/a"
+		if g.world.wd_ab > 0:
+			w += "/wd0" if g.world.wd_mask != 0 else "/wd1"   # --wdab：上一帧世界绘制走旧 / 新写法（docs/319 §22）
 		if g.world._lr_ab > 0:
 			w += "/ft0" if g.world._ft_force_off else "/ft1"   # --lrab：上一帧敌方顶层 + 队长剪影关 / 开（docs/226 §4）   # --perfab：上一帧是在哪个实现下跑的（轮换在采样之后）
 		if not perf.has(w):

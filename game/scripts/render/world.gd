@@ -462,6 +462,10 @@ func draw_world() -> void:
 	if _lr_ab > 0 and Engine.get_process_frames() % _lr_ab == 0:
 		_ft_force_off = not _ft_force_off   # --lrab=N：每 N 帧轮换敌方顶层 + 队长剪影开 / 关（同局量帧时净差，docs/226 §4）
 	_ft_on = Bal.v("render/foe_top", 1.0) > 0.0 and g.foe_top != null and not _ft_force_off
+	if not _wd_read:
+		_wd_args()
+	if wd_ab > 0 and Engine.get_process_frames() % wd_ab == 0:
+		wd_mask = 0 if wd_mask != 0 else wd_ab_bits   # --wdab=N[:掩码]：新旧写法同局轮换（docs/319 §22）
 	bbv2.frame(bulfx)   # 先注册出现 / 消失钩子、推进粒子时钟（render/boss_bullet_draw.gd）
 	bulfx.frame()   # 子弹出现 / 消失（render/bullet_fx.gd）：先认出本帧新弹 / 消失的弹，下面各遍画弹时乘出现缩放
 	scr_flash = maxf(0.0, scr_flash - g.get_process_delta_time())
@@ -650,6 +654,33 @@ func _draw_warn_fills() -> void:
 var _ft_on := false
 var _ft_force_off := false   # 量测 / 对照用
 var _lr_ab: int = _lrab_arg()
+## 世界绘制优化（docs/319 §22）的新旧对照：--wdab=N 每 N 帧把新写法轮换成旧写法（同局量净差，性能桶 /wd0 = 旧、/wd1 = 新），
+## --wdab=N:<掩码> 只轮换掩码里的项；--wdold=<掩码> 固定走旧写法（截图逐像素对照）。位：1 Boss 弹第二版粒子，4 溟痕格。正常游戏都是 0。
+## --noatlas：桌面也不拼敌人图集，走手机网页的原帧条路径（截图对照 / 量帧用）
+var wd_ab := 0
+var wd_ab_bits := 15
+var wd_mask := 0      # 本帧走旧写法的项（位同上）
+var wd_noatlas := false
+var _wd_read := false
+func _wd_args() -> void:
+	_wd_read = true
+	var cfg = g.get_node_or_null("/root/Cfg")
+	for a in (cfg.dev_args() if cfg != null else PackedStringArray()):
+		if a.begins_with("--wdab="):
+			var sp: PackedStringArray = a.substr(7).split(":")
+			wd_ab = int(sp[0])
+			wd_ab_bits = int(sp[1]) if sp.size() > 1 else 15
+		elif a.begins_with("--wdold="):
+			wd_mask = int(a.substr(8))
+		elif a == "--noatlas":
+			wd_noatlas = true
+
+
+## 某项本帧走新写法吗（位见 wd_ab）
+func wd_new(bit: int) -> bool:
+	return (wd_mask & bit) == 0
+
+
 static func _lrab_arg() -> int:
 	for a in (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()):
 		if a.begins_with("--lrab="):
@@ -3401,6 +3432,10 @@ func _rimc(c: Color) -> Color:
 func build_enemy_atlas() -> void:
 	if DisplayServer.get_name() == "headless":
 		return
+	if not _wd_read:
+		_wd_args()
+	if wd_noatlas:
+		return   # --noatlas（仅测试）：桌面也不拼图集，走手机网页的原帧条路径（docs/319 §22）
 	if Cfg.mobile_web() and Cfg.mobile_knob("mobile_no_atlas", 1.0):
 		return   # 手机网页不拼图集（docs/50 §30）：图集是普通怪 / 精英帧条与白剪影的整份拷贝，原帧条也还留着，显存多一倍；手机按内存优先，走原帧条（不合批）
 	var t0 := Time.get_ticks_usec()

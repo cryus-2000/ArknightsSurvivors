@@ -883,6 +883,9 @@ func draw_mire_cells(cells: Array, f: int, col: Color) -> void:
 	var cw: float = MIRE_CELL * g.PX
 	var glow: bool = g.optical_on and _mire_ab_e != null
 	var gc := Color(col.r, col.g, col.b, col.a * _mk_emit)   # 发光层强度（全亮会盖掉紫色底）
+	if g.world.wd_new(4):
+		_mire_cells_tri(cells, f, col, glow, gc)
+		return
 	for c in cells[0]:
 		var gx: int = c.x * MIRE_CELL
 		var gy: int = c.y * MIRE_CELL
@@ -900,6 +903,70 @@ func draw_mire_cells(cells: Array, f: int, col: Color) -> void:
 		g.draw_texture_rect_region(_mire_edge, dst, src, col)
 		if glow and _mire_edge_e != null:
 			g.glow_tex_next.append([_mire_edge_e, dst, src, gc])
+
+
+## 溟痕格的快速写法（docs/319 §22 ③）：一片溟痕的内区格 / 围边格各自拼成一个贴图三角形数组（每格两个三角形，
+## 顶点 = 原来的目标矩形四角，UV = 原来的源矩形按贴图尺寸归一，算法同引擎画贴图矩形），一片两次提交，取代逐格 draw_texture_rect_region。
+## 同贴图、同次序（内区 → 围边）、同颜色，格与格不重叠；几何按格表缓存在 cells[2]（格表本身已按溟痕位置 / 半径缓存），每帧只按帧号取 UV。
+## 光学发光层同样排一条三角形（g.glow_tex_next 里 5 项的条目，optical._draw_glow 认）。--wdold=4 走逐格旧写法对照
+func _mire_cells_tri(cells: Array, f: int, col: Color, glow: bool, gc: Color) -> void:
+	if cells.size() < 3:
+		cells.append(_mire_geo(cells))
+	var geo: Array = cells[2]
+	var ci: RID = g.get_canvas_item()
+	var cs := PackedColorArray([col])
+	var pb: PackedVector2Array = geo[0]
+	if not pb.is_empty():
+		RenderingServer.canvas_item_add_triangle_array(ci, PackedInt32Array(), pb, cs, geo[1 + f], PackedInt32Array(), PackedFloat32Array(), _mire_ab.get_rid())
+		if glow:
+			g.glow_tex_next.append([_mire_ab_e, pb, geo[1 + f], gc, true])
+	var pe: PackedVector2Array = geo[3]
+	if not pe.is_empty():
+		RenderingServer.canvas_item_add_triangle_array(ci, PackedInt32Array(), pe, cs, geo[4 + f], PackedInt32Array(), PackedFloat32Array(), _mire_edge.get_rid())
+		if glow and _mire_edge_e != null:
+			g.glow_tex_next.append([_mire_edge_e, pe, geo[4 + f], gc, true])
+
+
+## [内区顶点, 内区 UV（帧 0）, 内区 UV（帧 1）, 围边顶点, 围边 UV（帧 0）, 围边 UV（帧 1）]；源 / 目标矩形与 draw_mire_cells 逐格写法同一算式
+func _mire_geo(cells: Array) -> Array:
+	var cw: float = MIRE_CELL * g.PX
+	var pb := PackedVector2Array()
+	var ub0 := PackedVector2Array()
+	var ub1 := PackedVector2Array()
+	var tps := Vector2(1.0 / _mire_ab.get_width(), 1.0 / _mire_ab.get_height())
+	for c in cells[0]:
+		var gx: int = c.x * MIRE_CELL
+		var gy: int = c.y * MIRE_CELL
+		_quad_pts(pb, Rect2(Vector2(c) * cw, Vector2(cw, cw)))
+		for f in 2:
+			_quad_uv(ub0 if f == 0 else ub1, Rect2((_mire_var(gx, gy) * 2 + f) * 64 + posmod(gx, 64), posmod(gy, 64), MIRE_CELL, MIRE_CELL), tps)
+	var pe := PackedVector2Array()
+	var ue0 := PackedVector2Array()
+	var ue1 := PackedVector2Array()
+	var tpe := Vector2(1.0 / _mire_edge.get_width(), 1.0 / _mire_edge.get_height())
+	for b in cells[1]:
+		var gx: int = b.x * MIRE_CELL
+		var gy: int = b.y * MIRE_CELL
+		var ph: int = (posmod(gx, 64) / MIRE_CELL) * 4 + posmod(gy, 64) / MIRE_CELL
+		_quad_pts(pe, Rect2(Vector2(b.x, b.y) * cw, Vector2(cw, cw)))
+		for f in 2:
+			_quad_uv(ue0 if f == 0 else ue1, Rect2(ph * MIRE_CELL, ((_mire_var(gx, gy) * 12 + b.z) * 2 + f) * MIRE_CELL, MIRE_CELL, MIRE_CELL), tpe)
+	return [pb, ub0, ub1, pe, ue0, ue1]
+
+
+## 矩形 → 两个三角形（左上、右上、右下 / 左上、右下、左下）
+static func _quad_pts(out: PackedVector2Array, r: Rect2) -> void:
+	var a: Vector2 = r.position
+	var b: Vector2 = r.position + r.size
+	out.append_array([a, Vector2(b.x, a.y), b, a, b, Vector2(a.x, b.y)])
+
+
+## 源矩形（像素）→ 同顺序的六个 UV：引擎画贴图矩形时先把源矩形的位置、大小各乘 1 / 贴图尺寸，四角 = 位置 + 大小 × (0 / 1)
+static func _quad_uv(out: PackedVector2Array, src: Rect2, tps: Vector2) -> void:
+	var p: Vector2 = src.position * tps
+	var z: Vector2 = src.size * tps
+	var b: Vector2 = p + z
+	out.append_array([p, Vector2(b.x, p.y), b, p, b, Vector2(p.x, b.y)])
 
 
 ## docs/139 §6 试验旋钮 render/mire_tint_r / _g / _b（缺省 1, 1, 1）：溟痕本体与判定圈乘色，靛紫往深海青灰移（保留蓝调）
