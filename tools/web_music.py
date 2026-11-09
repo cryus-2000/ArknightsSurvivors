@@ -55,6 +55,13 @@ def externalize(gamedir, outdir):
             w = os.path.join(td, "a.wav")
             sf.write(w, x, sr, subtype="FLOAT")
             subprocess.run([ff, "-v", "error", "-y", "-i", w, "-c:a", "aac", "-b:a", "%dk" % kbps, "-movflags", "+faststart", o], check=True)
+            # 偏执泡影 P1：手机原本就在播放前取 (L + R) / 2。另存同码率副本，
+            # 避免登场时同时持有整首立体声解码缓冲和单声道渲染目标。
+            if name == "suno_final_p1" and x.ndim == 2 and x.shape[1] == 2:
+                mobile = os.path.join(odir, "music_suno_final_p1_mono.m4a")
+                subprocess.run([ff, "-v", "error", "-y", "-i", w, "-af", "pan=mono|c0=0.5*c0+0.5*c1",
+                                "-c:a", "aac", "-b:a", "%dk" % kbps, "-movflags", "+faststart", mobile], check=True)
+                after += os.path.getsize(mobile)
         meta[name] = {"len": round(dur, 6), "url": "music_%s.m4a" % name}
         n += 1
         before += size
