@@ -1,0 +1,4 @@
+28900	X_irene_godot.log
+80863	X_irene_pv.log
+278145255	X_irene_seg_01_win_t470.0.mp4
+69701	X_irene_seg_01_win_t470.0.sfx.json
