@@ -910,7 +910,7 @@ func load_op_fx(cid: String) -> void:
 const PF_BUDGET := 3000
 var _pf_q: Array = []
 
-func prefetch_enemy(n: String) -> void:
+func prefetch_enemy(n: String, white_from := 0.0) -> void:
 	var ks: Array = []
 	for k in tex_deferred:
 		if k == n or (k as String).begins_with(n):
@@ -920,7 +920,7 @@ func prefetch_enemy(n: String) -> void:
 			_pf_q.append(["tex", nm])
 		_pf_q.append(["done", k])
 	if lazy_white:
-		_pf_q.append(["white", n])
+		_pf_q.append(["white", n, white_from])
 	if not Cfg.dev_args().is_empty():
 		print("PF PREFETCH t=%.1f %s items=%d" % [t, n, _pf_q.size()])
 
@@ -943,6 +943,11 @@ func _prefetch_step() -> void:
 					tex_deferred.erase(nm)
 					_load_enemy_tex(nm)   # 帧条都已在表里：只补记 _enemy_loaded / 脚底锚点
 			"white":
+				if t < float(it[2]):
+					# 让后到的即时任务（例如鸭爵）先读；本帧不空转。
+					if _pf_q.size() > 1:
+						_pf_q.push_back(_pf_q.pop_front())
+					return
 				_white_alive[nm] = t
 				var todo: Array = []
 				for w in _white_names(nm):

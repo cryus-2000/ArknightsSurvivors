@@ -363,7 +363,8 @@ func update(dt: float) -> void:
 		_pre_group = _boss_group(_pre_idx)
 		for k in _pre_group:
 			if D.ENEMIES.has(k):
-				g.prefetch_enemy(str(D.ENEMIES[k].tex))
+				# 帧条可提前 30 秒读，白剪影只提前 10 秒建，避免离场满 20 秒被回收后在登场帧重建。
+				g.prefetch_enemy(str(D.ENEMIES[k].tex), float(D.BOSS_TIMES[boss_idx]) - PF_LEAD)
 				if not Cfg.dev_args().has("--nobossprewarm"):
 					g.boss_intro.prewarm(str(k))   # 登场名片音效 / 头像（docs/319 §20）
 	# Boss 按时间登场
