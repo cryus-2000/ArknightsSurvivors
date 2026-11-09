@@ -383,8 +383,6 @@ func _trigger(id: String) -> bool:
 				if not b.get("lit", false) and not b.get("dead", false) and b.pos.distance_to(g.ppos) < 520.0:
 					return true
 			return false
-		"nodes":
-			return int(g.telemetry.nodes) > 0
 	return false
 
 

@@ -1153,19 +1153,22 @@ func _pq_air_shadow(pos: Vector2, gz: float) -> void:
 
 
 ## 同 vfx.spr(name, 1, 0, pos)（单帧、锚点居中、取整，含 g.draw_off）
-func _pq_sprite(name: String, pos: Vector2) -> void:
+func _pq_sprite(name: String, pos: Vector2, sc := 1.0) -> void:
 	var tx: Texture2D = g.tex.get(name)
 	if tx == null:
 		return
 	pos += g.draw_off
 	var fw: int = tx.get_width()
 	var fh: int = tx.get_height()
-	var size := Vector2(fw, fh) * Game.PX
+	var size := Vector2(fw, fh) * Game.PX * sc
 	var dst := FD.dst(pos, size, Vector2(0.5, 0.5))
 	_pq_guard(dst)
 	_pq_spr.append([tx, dst, Rect2(0, 0, fw, fh)])
 	_pq_rects.append(dst)
 
+
+## 宝箱显示倍率（11-09 用户「宝箱本体画大一点」）：只改画面，拾取判定不读它
+const CHEST_VIS := 1.75
 
 ## 特殊掉落与空中的源石锭 / 灯油（_draw_pickups_fast 的「其他掉落」分支，画法同旧写法）
 func _pq_item(g_item: Dictionary, pos: Vector2, gz: float, kind: String, t: float) -> void:
@@ -1182,6 +1185,15 @@ func _pq_item(g_item: Dictionary, pos: Vector2, gz: float, kind: String, t: floa
 			_pq_guard(Rect2(pos + Vector2(-6, -141), Vector2(12, 142)))
 			_pb.rect(Rect2(pos + Vector2(-5, -140), Vector2(10, 140)), Color(ic.r * 2.0, ic.g * 2.0, ic.b * 2.0, ba * 0.5))
 			_pb.rect(Rect2(pos + Vector2(-2, -140), Vector2(4, 140)), Color(2.5, 2.5, 2.5, ba))
+		if kind == "chest" and gz <= 1.0:
+			# 11-09 用户「精英宝箱提示要更明显，手机上也要一眼看到」：落地后一直有金色地圈脉动 + 细光柱（原来只有落地 0.9 秒的光柱）
+			var cp := 0.5 + 0.5 * sin(t * 4.0)
+			var gr: float = 30.0 + 6.0 * cp
+			_pq_guard(Rect2(pos + Vector2(-gr - 4.0, -96), Vector2(gr * 2.0 + 8.0, 96.0 + gr * 0.5 + 4.0)))
+			_pb.rect(Rect2(pos + Vector2(-3, -92), Vector2(6, 92)), Color(ic.r * 1.6, ic.g * 1.6, ic.b * 1.6, 0.16 + 0.12 * cp))
+			_pb.rect(Rect2(pos + Vector2(-1, -92), Vector2(2, 92)), Color(2.0, 2.0, 1.8, 0.22 + 0.16 * cp))
+			_pb.circle(pos + Vector2(0, 2), gr, Color(ic.r * 2.0, ic.g * 2.0, ic.b * 2.0, 0.10 + 0.06 * cp))
+			_pb.arc(pos + Vector2(0, 2), gr, 0.0, TAU, 28, Color(ic.r * 2.0, ic.g * 2.0, ic.b * 2.0, 0.55 + 0.3 * cp), 2.0)
 		if kind != "chest":
 			var pr := 11.0 + 2.0 * sin(t * 5.0)
 			var cc: Vector2 = pos + Vector2(0, -gz - 2)
@@ -1194,7 +1206,7 @@ func _pq_item(g_item: Dictionary, pos: Vector2, gz: float, kind: String, t: floa
 		"oil":
 			_pq_sprite("oil", pos)
 		"chest":
-			_pq_sprite("chest", pos)
+			_pq_sprite("chest", pos + Vector2(0, -6.0 * (CHEST_VIS - 1.0)), CHEST_VIS)
 		"ingot":
 			_pq_sprite("ingot", pos + Vector2(0, sin(t * 3.0 + pos.y) * 1.5 if gz <= 1.0 else 0.0))
 		"magnet", "heal", "pack":

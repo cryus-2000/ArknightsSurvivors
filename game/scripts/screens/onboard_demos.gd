@@ -17,7 +17,7 @@ const C_DEPLOY := Color(0.36, 0.78, 1.0)
 
 ## 每张卡一轮的秒数
 const LOOP := {"move": 4.0, "xp": 4.8, "lamp": 5.2, "recruit": 5.0, "merchant": 5.0, "boss": 4.4, "squad": 4.0,
-	"command": 8.0, "deploy": 8.0, "regroup": 8.0, "drill_end": 4.0, "ult": 4.4, "link": 4.2, "mire": 5.2, "beacon": 5.6, "focus": 7.0, "nodes": 4.0}
+	"command": 8.0, "deploy": 8.0, "regroup": 8.0, "drill_end": 4.0, "ult": 4.4, "link": 4.2, "mire": 5.2, "beacon": 5.6, "focus": 7.0}
 
 
 static func draw(ci: CanvasItem, id: String, r: Rect2, t: float, ctx: Dictionary) -> void:
@@ -49,8 +49,6 @@ static func draw(ci: CanvasItem, id: String, r: Rect2, t: float, ctx: Dictionary
 			_mire(ci, r, tl, ctx, id)   # 演示局「引航灯标」沿用溟痕卡的画法，点燃后多一行灯火 / 庇护
 		"focus":
 			_focus(ci, r, tl, ctx)
-		"nodes":
-			_nodes(ci, r, tl, ctx)
 	ci.draw_rect(r, Color(1, 1, 1, 0.14), false, 1.0)
 
 
@@ -683,33 +681,3 @@ static func _focus(ci: CanvasItem, r: Rect2, t: float, ctx: Dictionary) -> void:
 	for lb in labels:
 		if t >= lb[1] and t < lb[2]:
 			tag(ci, font, P(r, 0.03, 0.05), lb[0], lb[3], _fsz(r), ph(t, lb[1], lb[1] + 0.15) * (1.0 - ph(t, lb[2] - 0.15, lb[2])))
-
-
-## 节点卡：三张卡背 → 选中一张抬起 → 翻开
-static func _nodes(ci: CanvasItem, r: Rect2, t: float, ctx: Dictionary) -> void:
-	ci.draw_rect(r, Color(0, 0, 0, 0.3))
-	var cw: float = r.size.x * 0.2
-	var chh: float = r.size.y * 0.62
-	var sel: float = ph(t, 1.0, 1.2)
-	var flip: float = ph(t, 1.5, 1.9)
-	for i in 3:
-		var deal: float = _e(ph(t, 0.05 + i * 0.1, 0.5 + i * 0.1))
-		var lift: float = (sel * r.size.y * 0.06) if i == 1 else 0.0
-		var sink: float = (ph(t, 2.0, 2.4) * r.size.y * 0.1) if i != 1 else 0.0
-		var a: float = deal * (1.0 - ((ph(t, 2.0, 2.4) * 0.7) if i != 1 else 0.0))
-		var cx: float = r.get_center().x + (i - 1) * cw * 1.25
-		var sx: float = absf(cos(flip * PI)) if i == 1 else 1.0
-		var cr := Rect2(Vector2(cx - cw * sx / 2.0, r.get_center().y - chh / 2.0 - lift + sink + (1.0 - deal) * r.size.y * 0.3), Vector2(cw * sx, chh))
-		var face: bool = i == 1 and flip > 0.5
-		ci.draw_rect(cr, (Color(0.1, 0.12, 0.14) if face else Color(0.2, 0.12, 0.3)) * Color(1, 1, 1, a))
-		ci.draw_rect(cr, _ca(UI.GOLD if face else UI.PURPLE, a), false, 1.5)
-		if face:
-			ci.draw_circle(cr.get_center() + Vector2(0, -chh * 0.15), cw * 0.2 * sx, _ca(UI.GOLD, a))
-			for k in 2:
-				ci.draw_rect(Rect2(cr.position + Vector2(cr.size.x * 0.18, chh * (0.62 + k * 0.12)), Vector2(cr.size.x * (0.64 - k * 0.2), 2.0)), Color(1, 1, 1, 0.35 * a))
-		else:
-			ci.draw_colored_polygon(PackedVector2Array([cr.get_center() + Vector2(0, -chh * 0.18), cr.get_center() + Vector2(cr.size.x * 0.22, 0), cr.get_center() + Vector2(0, chh * 0.18), cr.get_center() + Vector2(-cr.size.x * 0.22, 0)]), _ca(UI.PURPLE, 0.6 * a))
-	if ctx.touch:
-		finger(ci, r.get_center() + Vector2(0, chh * 0.2), r.size.y * 0.07, ph(t, 0.9, 1.15))
-	else:
-		cursor(ci, r.get_center() + Vector2(0, chh * 0.1) + Vector2(1, 1) * (1.0 - ph(t, 0.5, 0.9)) * r.size.y * 0.2, r.size.y * 0.12)
