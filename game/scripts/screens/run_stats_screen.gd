@@ -589,21 +589,6 @@ func _hovered(r: Rect2) -> bool:
 	return not g.kb_nav and not Pad.using and r.has_point(_mouse())
 
 
-func _join_text(row: Dictionary, long := false) -> String:
-	var jt: String
-	if row.key == RunStats.OTHER:
-		jt = "全程"
-	elif row.leader:
-		jt = "队长 · 开局"
-	elif float(row.join_t) < 1.0:
-		jt = "开局"
-	else:
-		return RunStats.join_label(row)   # 「m:ss 入队 · m:ss 离队」，结算编队输出同一说法
-	if float(row.left_t) >= 0.0:
-		jt += " · %s 离队" % fmt_t(float(row.left_t))
-	return jt
-
-
 # ================================================================== 绘制
 func draw(vs: Vector2) -> void:
 	if not open:
@@ -848,7 +833,7 @@ func _leader_card(r: Rect2) -> void:
 		_t(Vector2(x1, cy + (10.0 if two else 0.0)), str(kd.cause), 12, Color(0.85, 0.6, 1.0), 2)
 
 
-## 编队：竖排行（像框、名字、入队、全队占比条、百分比），行高撑满给定高度；Enter / 点击进干员详情
+## 编队：竖排行（像框、名字、全队占比条、百分比），行高撑满给定高度；Enter / 点击进干员详情
 func _squad_list(r: Rect2, t: float, title: bool) -> void:
 	var rws: Array = rows()
 	var y := r.position.y
@@ -883,10 +868,7 @@ func _squad_list(r: Rect2, t: float, title: bool) -> void:
 		_portrait(str(row.key), pb, kmax_l, true)   # 每人按自己的包围盒放到同一高度（10-12 制作人：共用倍数会被最宽的帧条拖小）
 		var nx := pb.end.x + 8.0
 		var cy := rr.get_center().y
-		var two: bool = rr.size.y >= 40.0
-		_t(Vector2(nx, cy - (9.0 if two else 0.0)), str(row.name), 14 if two else 13, ink, 0, 110.0)
-		if two:
-			_t(Vector2(nx, cy + 10.0), _join_text(row), 11, sub, 0, 110.0)
+		_t(Vector2(nx, cy), str(row.name), 14 if rr.size.y >= 40.0 else 13, ink, 0, 110.0)
 		var bx := nx + 120.0
 		var bw := rr.end.x - 72.0 - bx
 		var fill := _bar_k(t, i)
@@ -1091,11 +1073,11 @@ func _draw_detail(vs: Vector2) -> void:
 	var bot := vs.y - (72.0 if not _ph else 66.0)
 	var lw2 := 280.0 if not _ph else 210.0
 	# 身份卡按内容定高（10-12 版式反馈：不留大空面板）
-	var nl := 4 + (1 if int(row.casts) > 0 else 0) + (1 if float(row.heal) >= 1.0 else 0) + (1 if float(row.left_t) >= 0.0 else 0)
+	var nl := 4 + (1 if int(row.casts) > 0 else 0) + (1 if float(row.heal) >= 1.0 else 0)
 	if str(model.get("best", {}).get("op", "")) == str(row.name):
 		nl += 1
 	var big_id: bool = bot - top > 420.0
-	var id_h: float = (186.0 if big_id else 120.0) + (60.0 if not _ph else 46.0) + nl * (30.0 if not _ph else 22.0) + 10.0
+	var id_h: float = (186.0 if big_id else 120.0) + (36.0 if not _ph else 28.0) + nl * (30.0 if not _ph else 22.0) + 10.0
 	_id_big = big_id
 	var lr := _tile(Rect2(M, top, lw2, minf(bot - top, id_h)), 3, true)
 	_identity(lr, row)
@@ -1126,9 +1108,7 @@ func _identity(lr: Rect2, row: Dictionary) -> void:
 	else:
 		y += 40.0
 	_t(Vector2(x0, y), str(row.name), 24 if not _ph else 19, HH.LIGHT, 0, lr.size.x - 30.0)
-	y += 24.0 if not _ph else 20.0
-	_t(Vector2(x0, y), _join_text(row, true), 13 if not _ph else 11, HH.MUTE, 0, lr.size.x - 30.0)
-	y += 36.0 if not _ph else 26.0
+	y += 36.0 if not _ph else 28.0
 	var lines: Array = [["造成伤害", fmt_n(float(row.dmg))], ["全队占比", "%d%%" % int(row.pct)], ["每秒", fmt_n(float(row.dps))],
 		["击杀", fmt_n(float(row.kills))]]
 	if int(row.casts) > 0:

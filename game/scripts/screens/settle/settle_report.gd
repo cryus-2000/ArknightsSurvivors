@@ -198,15 +198,7 @@ func _squad(acc: Color) -> void:
 			rect(Rect2(496, y + 1, 748 * p, h - 2), Color(acc, 0.13))
 		rect(Rect2(500, y + h * 0.5 - 5, 4, 10), r.col)
 		var fz := mini(15, int(h * 0.6))
-		var jl: String = RunStats.join_label(r)
-		if jl != "" and h >= 20.0:   # 中途入队：名字上移，下面一行小一档的 MUTE 字；放不下离队时间就只写入队
-			var jz := maxi(8, fz - 4)
-			if tw(jl, jz) > 100.0:
-				jl = RunStats.join_label(r, false)
-			txt(512, y + h * 0.5 - fz + 1, str(r.name), fz - 1, HH.LIGHT if r.leader else HH.LIGHT2, 0, 100)
-			txt(512, y + h * 0.5 + 1, jl, jz, HH.MUTE, 0, 100)
-		else:
-			txt(512, y + h * 0.5 - 10, str(r.name), fz, HH.LIGHT if r.leader else HH.LIGHT2, 0, 100)
+		txt(512, y + h * 0.5 - 10, str(r.name), fz, HH.LIGHT if r.leader else HH.LIGHT2, 0, 100)
 		rect(Rect2(620, y + h * 0.5 - 3, 560, 6), HH.DARK3)
 		rect(Rect2(620, y + h * 0.5 - 3, 560 * float(r.share) * p, 6), r.col)
 		var plab: String = RunStats.pct_label(r)

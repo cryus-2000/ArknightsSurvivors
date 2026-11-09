@@ -6,7 +6,7 @@ const HH = preload("res://scripts/screens/hh_style.gd")
 const UM = preload("res://scripts/ui_motion.gd")
 const TUI = preload("res://scripts/screens/tide_ui.gd")
 const D = preload("res://scripts/data.gd")
-const RunStats = preload("res://scripts/run/run_stats.gd")   # 编队输出占比 / 入队文字（pct_label / join_label）
+const RunStats = preload("res://scripts/run/run_stats.gd")   # 编队输出占比（pct_label）
 const Roster = preload("res://scripts/core/roster.gd")
 const OpFig = preload("res://scripts/screens/op_figure.gd")
 
