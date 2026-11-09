@@ -1,0 +1,4 @@
+42586	X_lappland_godot.log
+79963	X_lappland_pv.log
+280615708	X_lappland_seg_01_win_t470.0.mp4
+65645	X_lappland_seg_01_win_t470.0.sfx.json

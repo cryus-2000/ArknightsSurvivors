@@ -1,0 +1,33 @@
+X_lappland rc=0 1525s
+  seg_01_win_t470.0 2217 帧 rc=0
+SCRIPT ERROR: Invalid access to property or key 'life' on a base object of type 'Dictionary'.
+          at: _mz_coil (res://scripts/render/fx_pxplane.gd:3855)
+          GDScript backtrace (most recent call first):
+              [0] _mz_coil (res://scripts/render/fx_pxplane.gd:3855)
+--
+SCRIPT ERROR: Invalid access to property or key 'life' on a base object of type 'Dictionary'.
+          at: _mz_coil (res://scripts/render/fx_pxplane.gd:3855)
+          GDScript backtrace (most recent call first):
+              [0] _mz_coil (res://scripts/render/fx_pxplane.gd:3855)
+--
+SCRIPT ERROR: Invalid access to property or key 'life' on a base object of type 'Dictionary'.
+          at: _mz_coil (res://scripts/render/fx_pxplane.gd:3855)
+          GDScript backtrace (most recent call first):
+              [0] _mz_coil (res://scripts/render/fx_pxplane.gd:3855)
+--
+SCRIPT ERROR: Invalid access to property or key 'life' on a base object of type 'Dictionary'.
+          at: _mz_coil (res://scripts/render/fx_pxplane.gd:3855)
+          GDScript backtrace (most recent call first):
+              [0] _mz_coil (res://scripts/render/fx_pxplane.gd:3855)
+--
+SCRIPT ERROR: Invalid access to property or key 'life' on a base object of type 'Dictionary'.
+          at: _mz_coil (res://scripts/render/fx_pxplane.gd:3855)
+          GDScript backtrace (most recent call first):
+              [0] _mz_coil (res://scripts/render/fx_pxplane.gd:3855)
+total 274240
+drwxr-xr-x 2 root root      4096 Nov  9 01:15 .
+drwxr-xr-x 4 root root      4096 Nov  9 00:49 ..
+-rw-r--r-- 1 root root     42586 Nov  9 01:14 X_lappland_godot.log
+-rw-r--r-- 1 root root     79963 Nov  9 01:14 X_lappland_pv.log
+-rw-r--r-- 1 root root 280615708 Nov  9 01:15 X_lappland_seg_01_win_t470.0.mp4
+-rw-r--r-- 1 root root     65645 Nov  9 01:15 X_lappland_seg_01_win_t470.0.sfx.json
