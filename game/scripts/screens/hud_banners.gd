@@ -1,6 +1,5 @@
 extends RefCounted
 const D = preload("res://scripts/data.gd")
-const TouchLayoutC = preload("res://scripts/touch_layout.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const UI = preload("res://scripts/ui.gd")
 const UM = preload("res://scripts/ui_motion.gd")
@@ -66,12 +65,9 @@ func _obstacles(vs: Vector2) -> Array:
 	var mc := Vector2(16 + mrad + 8, vs.y - mrad - 24)
 	out.append(Rect2(mc - Vector2(mrad, mrad + 14), Vector2(mrad * 2.0, mrad * 2.0 + 14)))
 	if g.touch != null and g.touch.active:
-		var lay: Dictionary = g.touch.layout(vs)
-		for k in lay:
-			if k == "stick":
-				continue
-			var b: Rect2 = TouchLayoutC.bounds(k, float(lay[k].s))
-			out.append(Rect2(lay[k].c + b.position, b.size))
+		for b in g.touch.btn_rects:   # 上一帧实际画出的按键矩形（touch.draw_hud 填；指示层先画、按键层后画，读到的是上一帧的）
+			if b[0] is Rect2:
+				out.append((b[0] as Rect2).grow(4.0))
 	return out
 
 
