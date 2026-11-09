@@ -9,8 +9,19 @@ const UM = preload("res://scripts/ui_motion.gd")
 const Roster = preload("res://scripts/core/roster.gd")
 const D = preload("res://scripts/data.gd")
 var g
-var topography: Texture2D = preload("res://art/ui/settlement/topography.png")
-var navigation: Texture2D = preload("res://art/ui/settlement/navigation.png")
+# 结算页底图在真正画结算页时才读（原来 preload：开局就常驻 4.1 MB 显存，最终 Boss 阶段也占着，docs/319 §23）
+var topography: Texture2D:
+	get:
+		if _topo == null:
+			_topo = load("res://art/ui/settlement/topography.png")
+		return _topo
+var navigation: Texture2D:
+	get:
+		if _navi == null:
+			_navi = load("res://art/ui/settlement/navigation.png")
+		return _navi
+var _topo: Texture2D = null
+var _navi: Texture2D = null
 var _signature: Array = []
 var model: Dictionary = {}
 var wall_s := 0.0   # 本局真实时长（秒，反馈码用）
