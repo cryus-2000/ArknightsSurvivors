@@ -722,15 +722,29 @@ window.__syRL = {
       if (nt && nt.style.display === 'block') out();
     }, 150);
   }
-  if (document.body) build(); else document.addEventListener('DOMContentLoaded', build, {once: true});
+  if (document.body) build();
+  else {
+    // Godot picks the first canvas in DOM order. Mount after its game canvas
+    // arrives, while the parser is still waiting for the blocking engine script.
+    var bodyObserver = new MutationObserver(function () {
+      if (document.getElementById('canvas')) { bodyObserver.disconnect(); build(); }
+    });
+    bodyObserver.observe(document.documentElement, { childList: true, subtree: true });
+  }
 
   var hasDS = typeof DecompressionStream === 'function';
 
   // 把一片写进 out 的 [off, off + raw) 区间。gz 片：第一块带 1f 8b 时经 DecompressionStream 解开；否则（服务器已解压）原样写入。
   // 返回写入的字节数；写越界 / 不足都按出错处理（part 会重试）。
   // enc === 'lzma'（index.wasm，docs/187 §5）：不是 gzip 头时收齐压缩字节，用 syLzmaDecode（lzma_dec.js）直接解进 out 的这一段。
+  var lastDownloadPaint = 0;
   async function once(url, bytes, out, off, raw, enc) {
-    var r = await of(url, { cache: 'no-cache' });
+    var request;
+    if (warmUrl && new URL(url, document.baseURI).href === warmUrl) {
+      request = warmRequest;
+      warmUrl = warmRequest = null;
+    }
+    var r = await (request || of(url, { cache: 'no-cache' }));
     if (!r.ok) throw new Error(url + ' ' + r.status);
     var rd = r.body.getReader(), counted = 0, wrote = 0, gz = null, chunks = null, ds = null, w = null, pump = null, pumpErr = null;
     function sink(v) {   // 解开后的字节 → out
@@ -743,7 +757,11 @@ window.__syRL = {
         if (x.done) break;
         var v = x.value;
         var add = Math.min(v.length, bytes - counted);
-        if (add > 0) { counted += add; got += add; upd(); }
+        if (add > 0) {
+          counted += add; got += add;
+          var now = performance.now();
+          if (now - lastDownloadPaint >= 50) { lastDownloadPaint = now; upd(); }
+        }
         if (gz === null) gz = (v.length > 1 && v[0] === 0x1f && v[1] === 0x8b);
         if (!gz && enc === 'lzma') { if (!chunks) chunks = []; chunks.push(v); continue; }
         if (!gz) { sink(v); continue; }
@@ -762,15 +780,16 @@ window.__syRL = {
         }
       }
       if (ds) { await w.close(); await pump; if (pumpErr) throw pumpErr; }
-      else if (chunks && !gz) { var lz = cat(chunks); chunks = null; wrote = syLzmaDecode(lz, out.subarray(off, off + raw)); }
+      else if (chunks && !gz) { var lz = cat(chunks); chunks = null; wrote = await syLzmaDecode(lz, out.subarray(off, off + raw)); }
       else if (chunks) { sink(inflate(cat(chunks))); chunks = null; }
+      if (wrote !== raw) throw new Error(url + ' 解开后大小不符：' + wrote + ' ≠ ' + raw);
     } catch (e) {
       got -= counted; upd();
-      if (w) { try { w.abort(); } catch (e2) {} }
+      if (w) { try { await w.abort(); } catch (e2) {} }
+      try { await rd.cancel(); } catch (e2) {}
       throw e;
     }
     got += bytes - counted; upd();
-    if (wrote !== raw) throw new Error(url + ' 解开后大小不符：' + wrote + ' ≠ ' + raw);
     return wrote;
   }
 
@@ -790,6 +809,14 @@ window.__syRL = {
 
   var pending = Object.keys(M).length;
   var of = window.fetch.bind(window);
+  // Start one small compressed WASM request alongside index.js. Its normal
+  // consumer takes the original Response stream, including on a cold cache.
+  var warmUrl = null, warmRequest = null;
+  if (M['index.wasm'] && document.baseURI && typeof WebAssembly !== 'undefined') {
+    warmUrl = new URL(M['index.wasm'].parts[0][0], document.baseURI).href;
+    warmRequest = of(warmUrl, { cache: 'no-cache' });
+    warmRequest.catch(function () {}); // part() handles the rejection and retries.
+  }
   window.fetch = function (input, init) {
     var url = (typeof input === 'string') ? input : ((input && input.url) || '');
     var path = url.split('?')[0].split('#')[0];

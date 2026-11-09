@@ -5,8 +5,8 @@ const assert = require('node:assert/strict');
 const {chromium} = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const read = file => fs.readFileSync(path.join(__dirname, 'web', file), 'utf8');
 const loader = read('loader.js').replace('/*SHUIYUE_MANIFEST*/null', '{}').replace('/*SHUIYUE_BOOT_V*/0', '4');
-const html = `<style>${read('loader.css')}</style><body><canvas id="game"></canvas>
-  <div id="status-notice"></div><script>${loader}</script></body>`;
+const html = `<head><style>${read('loader.css')}</style><script>${loader}</script></head><body>
+  <canvas id="canvas"></canvas><div id="status-notice"></div></body>`;
 
 async function probe(browser, mode) {
   const page = await browser.newPage({viewport:{width:844,height:390}, deviceScaleFactor:3});
@@ -23,6 +23,7 @@ async function probe(browser, mode) {
       assert.equal(await page.evaluate(() => window.__syRL.take().act), mode);
       assert.equal(await page.evaluate(() => window.__syRL.peek()), null);
     }
+    assert.equal(await page.locator('canvas').first().getAttribute('id'), 'canvas', 'Godot must bind the game canvas');
     await page.evaluate(mode => {
       if (mode !== 'bypass') {
         window.__syBootUp();
@@ -55,7 +56,7 @@ async function probe(browser, mode) {
       return {retained:!!root, canvasBytes:root ? Array.from(root.querySelectorAll('canvas'))
         .reduce((sum,c) => sum + c.width*c.height*4,0) : 0,
         hooks:['Up','Progress','Ready','Done'].filter(key => typeof window['__syBoot'+key] === 'function').length,
-        gameCanvas:document.querySelector('#game').width};
+        gameCanvas:document.querySelector('#canvas').width};
     });
     console.log(mode, {before, ...after, errors});
     return !after.retained && !after.canvasBytes && !after.hooks && after.gameCanvas === 300 && !errors.length;

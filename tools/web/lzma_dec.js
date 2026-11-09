@@ -2,7 +2,7 @@
 // 本作自写，按 LZMA SDK 公开规格（LzmaSpec）实现，无第三方代码。
 // 直接解进调用方给的 dst（Uint8Array，长度 = 原始字节数）：dst 本身就是滑动窗口，不另分配字典，峰值内存 = 压缩字节 + dst。
 // 压缩端写的是「未知长度 + 结束标记」；这里解满 dst.length 就停，提前遇到结束标记或越界都抛错（加载器会重试该片）。
-function syLzmaDecode(src, dst) {
+async function syLzmaDecode(src, dst) {
   var ip = 13, op = 0, end = dst.length;
   var d = src[0];
   if (d >= 225) throw new Error('lzma: 头部参数不对');
@@ -57,7 +57,17 @@ function syLzmaDecode(src, dst) {
   }
 
   var state = 0, rep0 = 0, rep1 = 0, rep2 = 0, rep3 = 0;
+  // Keep the output as the dictionary. Yield a browser task between short slices
+  // so WebKit can paint without allocating a second WASM buffer for a worker.
+  var probe = 0, deadline = performance.now() + 4;
   while (op < end) {
+    if (op >= probe) {
+      probe = op + 4096;
+      if (performance.now() >= deadline) {
+        await new Promise(function (resume) { setTimeout(resume, 0); });
+        deadline = performance.now() + 4;
+      }
+    }
     var ps = op & pbMask;
     if (bit(isMatch, (state << 4) + ps) === 0) {
       var prev = op > 0 ? dst[op - 1] : 0;

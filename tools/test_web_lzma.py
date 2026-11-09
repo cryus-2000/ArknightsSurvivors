@@ -11,14 +11,16 @@ from export_web import LZMA_FILTERS
 
 NODE = r"""
 const fs = require('fs'), dec = require(process.argv[2]);
-let bad = 0;
-for (const n of process.argv.slice(3)) {
-  const src = new Uint8Array(fs.readFileSync(n + '.lzma')), raw = fs.readFileSync(n + '.raw');
-  const dst = new Uint8Array(raw.length);
-  try { dec(src, dst); } catch (e) { console.log('FAIL', n, e.message); bad++; continue; }
-  if (Buffer.compare(Buffer.from(dst), raw) !== 0) { console.log('MISMATCH', n); bad++; }
-}
-process.exit(bad ? 1 : 0);
+(async () => {
+  let bad = 0;
+  for (const n of process.argv.slice(3)) {
+    const src = new Uint8Array(fs.readFileSync(n + '.lzma')), raw = fs.readFileSync(n + '.raw');
+    const dst = new Uint8Array(raw.length);
+    try { await dec(src, dst); } catch (e) { console.log('FAIL', n, e.message); bad++; continue; }
+    if (Buffer.compare(Buffer.from(dst), raw) !== 0) { console.log('MISMATCH', n); bad++; }
+  }
+  process.exitCode = bad ? 1 : 0;
+})().catch(e => { console.error(e); process.exitCode = 1; });
 """
 
 
