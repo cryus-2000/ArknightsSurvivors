@@ -1,3 +1,13 @@
+// 画布像素比上限（docs/319 §20 A）：要在引擎建画布之前定（运行中改 + resize 引擎窗口尺寸不跟着变，画面被裁），
+// 来源：本地存储 sy_maxdpr（游戏设置写，下次启动生效）或网址参数 maxdpr=N / a=--maxdpr=N（测试）
+(function () {
+	try {
+		var q = new URLSearchParams(location.search), v = q.get("maxdpr");
+		q.getAll("a").forEach(function (x) { if (x.indexOf("--maxdpr=") === 0) v = x.slice(9); });
+		if (v === null) v = localStorage.getItem("sy_maxdpr");
+		if (v !== null && Number(v) > 0) window.__syMaxDpr = Number(v);
+	} catch (e) {}
+})();
 // 页面隐藏时挂起音频（docs/50 §33 手机发烫）：切到别的标签 / 回桌面后浏览器会停 requestAnimationFrame（引擎主循环跟着停），
 // 但 Web Audio 的 AudioContext 照转——网页版配乐 / 音效是解码好的样本，留在音频图里继续播放、音频线程一直醒着。
 // 引擎建 AudioContext 之前把构造函数包一层记下实例，visibilitychange 时 suspend / resume。放在 gl_state.js 后面、引擎脚本之前
