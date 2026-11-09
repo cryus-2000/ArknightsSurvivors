@@ -488,7 +488,13 @@ window.__syRL = {
     cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;z-index:30;image-rendering:pixelated;background:#000308';
     d.appendChild(cv);
     var img = function (s) { var i = new Image(); i.src = s; return i; };
-    var bg = img('rl_bg.png'), lg = img('loader_logo.png'), js = [img('rl_j0.png'), img('rl_j1.png'), img('rl_j2.png')];
+    var bg = img('rl_bg.png'), lg = img('loader_logo.png');
+    [1, 2, 0].forEach(function (i) {
+      var jelly = img('rl_j' + i + '.png');
+      jelly.className = 'sy-rl-jelly j' + i;
+      jelly.alt = '';
+      d.appendChild(jelly);
+    });
     var t0 = performance.now(), ti = Math.floor(Math.random() * TIPS.length), tt = 0, shown = 0;
     var GO = { meta: '正在返回认知塑造…', hunt: '正在前往寻访…', restart: '正在准备下一局…', title: '正在返回主界面…' }[act] || '正在返回…';
     var rm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -498,7 +504,10 @@ window.__syRL = {
     function frame() {
       if (!cv.isConnected) return;
       var dpr = Math.min(window.devicePixelRatio || 1, 2), W = cv.clientWidth, H = cv.clientHeight;
-      if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+      if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) {
+        cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+        d.style.setProperty('--rl-unit', Math.min(W / 1280, H / 720) + 'px');
+      }
       var x = cv.getContext('2d'), t = (performance.now() - t0) / 1000;
       x.setTransform(dpr, 0, 0, dpr, 0, 0); x.imageSmoothingEnabled = false;
       x.fillStyle = '#000308'; x.fillRect(0, 0, W, H);
@@ -506,13 +515,6 @@ window.__syRL = {
       if (bg.complete && bg.naturalWidth) { x.globalAlpha = 1; x.drawImage(bg, (W - 428 * bk) / 2, (H - 240 * bk) / 2, 428 * bk, 240 * bk); x.fillStyle = 'rgba(0,3,8,0.45)'; x.fillRect(0, 0, W, H); }
       var vg = x.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.25, W / 2, H / 2, Math.max(W, H) * 0.75);
       vg.addColorStop(0, 'rgba(0,3,8,0)'); vg.addColorStop(1, 'rgba(0,3,8,0.75)'); x.fillStyle = vg; x.fillRect(0, 0, W, H);
-      var bob = rm ? 0 : Math.sin(t * 1.15) * 7 * k, pul = rm ? 0 : Math.sin(t * 1.15 + 0.6) * 0.025;
-      var s0w = 129 * 1.6 * k * (1 + pul), s0h = 139 * 1.6 * k * (1 - pul);
-      var jr = [[W * 0.5 - s0w / 2, H * 0.3 - s0h / 2 + bob, s0w, s0h, 0.95],
-                [W * 0.715, H * 0.305 + (rm ? 0 : Math.sin(t * 0.9 + 2) * 5 * k), 34 * 1.6 * k, 52 * 1.6 * k, 0.55],
-                [W * 0.267, H * 0.365 + (rm ? 0 : Math.sin(t * 1.3 + 4) * 4 * k), 24 * 2 * k, 36 * 2 * k, 0.6]];
-      [1, 2, 0].forEach(function (i) { var j = js[i]; if (j.complete && j.naturalWidth) { x.globalAlpha = jr[i][4]; x.drawImage(j, jr[i][0], jr[i][1], jr[i][2], jr[i][3]); } });
-      x.globalAlpha = 1;
       if (lg.complete && lg.naturalWidth) x.drawImage(lg, W / 2 - 241 * k, H * 0.628, 482 * k, 86 * k);
       x.font = Math.max(9, 11 * k) + 'px sans-serif'; x.fillStyle = 'rgba(128,163,176,1)'; x.textBaseline = 'alphabetic';
       x.fillText('ARKNIGHTS FAN GAME   明日方舟同人作品 · 非商业', 24 * k, 33 * k + 8);

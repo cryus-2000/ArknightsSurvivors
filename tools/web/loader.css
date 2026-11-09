@@ -326,6 +326,41 @@ html, body { margin: 0; height: 100%; overflow: hidden; overscroll-behavior: non
 #sy-load.sv4 { background: #0f1013; }
 #sy-load.sv4 .p4box { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }   /* 安全区框（loader.js p4Init 按 __sySafe 定位）：动效层 / 页脚 / 「开始游戏」在里面；画布 .p4c 铺满整屏，刘海 / 圆角处无缝 */
 #sy-load.sv4 .p4c { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+/* 「潮汐航标」仅将水母送到合成线程。1 个设计像素的缩放与 1280×720 画布的 k 相同。 */
+#sy-load .sy-rl-jelly {
+  --unit: var(--rl-unit, min(.078125vw, .13888889vh));
+  position: absolute; z-index: 31; pointer-events: none; image-rendering: pixelated;
+}
+#sy-load .sy-rl-jelly.j0 {
+  left: 50%; top: 30%; width: calc(206.4 * var(--unit)); height: calc(222.4 * var(--unit));
+  opacity: .95; transform: translate(-50%, -50%); animation: sy-rl-breathe 5.464s linear infinite;
+}
+#sy-load .sy-rl-jelly.j1 {
+  left: 71.5%; top: 30.5%; width: calc(54.4 * var(--unit)); height: calc(83.2 * var(--unit));
+  --bob: 6.01%; opacity: .55; animation: sy-rl-drift 3.491s ease-in-out -3.968s infinite alternate;
+}
+#sy-load .sy-rl-jelly.j2 {
+  left: 26.7%; top: 36.5%; width: calc(48 * var(--unit)); height: calc(72 * var(--unit));
+  --bob: 5.56%; opacity: .6; animation: sy-rl-drift 2.417s ease-in-out -4.285s infinite alternate;
+}
+@keyframes sy-rl-drift {
+  from { transform: translateY(calc(-1 * var(--bob))); }
+  to { transform: translateY(var(--bob)); }
+}
+/* 同原浮沉幅度 7k、呼吸幅度 ±2.5%、相差 0.6 弧度。 */
+@keyframes sy-rl-breathe {
+  0%, 100% { transform: translate(-50%, -50%) scale(1.014, .986); }
+  12.5% { transform: translate(-50%, -47.77%) scale(1.025, .975); }
+  25% { transform: translate(-50%, -46.85%) scale(1.021, .979); }
+  37.5% { transform: translate(-50%, -47.77%) scale(1.005, .995); }
+  50% { transform: translate(-50%, -50%) scale(.986, 1.014); }
+  62.5% { transform: translate(-50%, -52.23%) scale(.975, 1.025); }
+  75% { transform: translate(-50%, -53.15%) scale(.979, 1.021); }
+  87.5% { transform: translate(-50%, -52.23%) scale(.995, 1.005); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #sy-load .sy-rl-jelly.j0, #sy-load .sy-rl-jelly.j1, #sy-load .sy-rl-jelly.j2 { animation: none; }
+}
 #sy-load.sv4 .p4fx { position: absolute; width: 0; height: 0; opacity: 0; transition: opacity .4s ease-out; pointer-events: none; }
 #sy-load.sv4 .p4fx.on { opacity: 1; }
 #sy-load.sv4 .p4fx > * { position: absolute; display: block; }

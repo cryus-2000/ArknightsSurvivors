@@ -9,7 +9,8 @@ const html = `<head><style>${read('loader.css')}</style><script>${loader}</scrip
   <canvas id="canvas"></canvas><div id="status-notice"></div></body>`;
 
 async function probe(browser, mode) {
-  const page = await browser.newPage({viewport:{width:844,height:390}, deviceScaleFactor:3});
+  const reducedMotion = mode === 'title' ? 'reduce' : 'no-preference';
+  const page = await browser.newPage({viewport:{width:844,height:390}, deviceScaleFactor:3, reducedMotion});
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   try {
@@ -18,6 +19,10 @@ async function probe(browser, mode) {
     const returning = ['title', 'restart'].includes(mode);
     const reload = returning ? '?syrl=' + encodeURIComponent(JSON.stringify({act:mode,t:Date.now()})) : '';
     await page.goto('http://boot.test/' + reload);
+    const animations = await page.locator('.sy-rl-jelly').evaluateAll(images =>
+      images.map(image => getComputedStyle(image).animationName));
+    assert.equal(animations.length, returning ? 3 : 0);
+    if (returning) assert(animations.every(name => (name === 'none') === (reducedMotion === 'reduce')));
     if (returning) {
       // Title._ready consumes the route before shader warmup calls __syBootReady.
       assert.equal(await page.evaluate(() => window.__syRL.take().act), mode);
