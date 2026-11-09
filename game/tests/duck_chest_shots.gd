@@ -53,6 +53,7 @@ func _ready() -> void:
 	await _wait(90)
 	await _shot(out, "chest.png")
 	# ③ 归队小字提示：两名队友突击中作战时限耗尽 → 自动归队（需 --squad=… 带两名队友）
+	g.onboard.ask_on = false   # 截图局没走问题框：问题框挂着时小字提示不计时（正式局问完才进 PLAY）
 	var sq = g.squad
 	sq.set_stance(sq.ROAM)
 	await _wait(30)

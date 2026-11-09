@@ -81,6 +81,22 @@ func _ptr_box(vs: Vector2, edge: Vector2, rad: float) -> Rect2:
 	return Rect2(edge.x - maxf(rad, 80.0), edge.y - rad - (30.0 if up else 0.0), maxf(rad, 80.0) * 2.0, rad * 2.0 + 30.0)
 
 
+## 名字一行放哪：先按老规矩（圆在上半屏放下方、下半屏放上方），压到按键 / 小地图就换另一侧，再不行放在圆朝屏幕中间的那一侧。
+## 返回 UI.text 的位置（宽 w、居中对齐）
+func _label_at(vs: Vector2, edge: Vector2, rad: float, w: float) -> Vector2:
+	var obs: Array = _obstacles(vs)
+	var below := Vector2(edge.x - w / 2.0, edge.y + rad + 34.0)
+	var above := Vector2(edge.x - w / 2.0, edge.y - rad - 18.0)
+	var side := Vector2((edge.x - rad - 12.0 - w) if edge.x > vs.x / 2.0 else (edge.x + rad + 12.0), edge.y + 6.0)
+	var cands: Array = [above, below] if edge.y > vs.y / 2 else [below, above]
+	cands.append(side)
+	for p in cands:
+		var r := Rect2(p + Vector2(0, -16), Vector2(w, 22))
+		if Rect2(Vector2.ZERO, vs).encloses(r) and not obs.any(func(o): return o.intersects(r)):
+			return p
+	return cands[0]
+
+
 ## 压到按键 / 小地图时沿所在的屏幕边挪开（先往屏幕中段方向，最多挪 8 步）
 func _dodge(vs: Vector2, edge: Vector2, rad: float, m: float) -> Vector2:
 	var obs: Array = _obstacles(vs)
@@ -213,8 +229,7 @@ func draw_chest_pointers(vs: Vector2, ct: Transform2D) -> void:
 		var base: Vector2 = edge + d * 26.0
 		var sd := d.orthogonal() * 10.0
 		g.hud.draw_colored_polygon(PackedVector2Array([tip, base + sd, base - sd]), CHEST_PTR_COL)
-		var lab_y := -36.0 if edge.y > vs.y / 2 else 50.0
-		UI.text(g.hud, g.font, edge + Vector2(-60, lab_y), "宝箱  %dm" % int((it.pos as Vector2).distance_to(g.ppos) / 32.0), 13, CHEST_PTR_COL, HORIZONTAL_ALIGNMENT_CENTER, 120, 3)
+		UI.text(g.hud, g.font, _label_at(vs, edge, 22.0, 120.0), "宝箱  %dm" % int((it.pos as Vector2).distance_to(g.ppos) / 32.0), 13, CHEST_PTR_COL, HORIZONTAL_ALIGNMENT_CENTER, 120, 3)
 
 
 ## 磁铁屏外指示（docs/284 §2 A，11-06 用户「磁铁在地图上要能看见」）：磁铁在画面外时屏幕边缘一枚深色小圈，里面是磁铁贴图，
@@ -351,8 +366,7 @@ func _big_pointer(vs: Vector2, edge: Vector2, d: Vector2, tex_name: String, labe
 	var base: Vector2 = edge + d * 33.0
 	var sd := d.orthogonal() * 12.0
 	g.hud.draw_colored_polygon(PackedVector2Array([tip, base + sd, base - sd]), col)
-	var lab_y := -46.0 if edge.y > vs.y / 2 else 62.0
-	UI.text(g.hud, g.font, edge + Vector2(-80, lab_y), label, 13, col, HORIZONTAL_ALIGNMENT_CENTER, 160, 3)
+	UI.text(g.hud, g.font, _label_at(vs, edge, 28.0, 160.0), label, 13, col, HORIZONTAL_ALIGNMENT_CENTER, 160, 3)
 
 
 ## 伊祖米克全场地波（act izu_wave，r 2400 圈在屏幕外看不到）：屏幕边缘白 / 洋红光脉动收紧 + 中央提示和倒计时 + 冲刺图标
