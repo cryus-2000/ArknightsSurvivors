@@ -806,7 +806,7 @@ func _fire_head(auto: bool) -> void:
 			link_landed(o)   # v2：每次连携 +1 协同格（喂连携终结技）+ 能量
 			LinkV2.spread_start(self, o, q.info)
 		if lf_on():
-			link_flash(o, str(LINK_NAME.get(str(q.info.link), o.display_name())) if not q.info.has("bond") else Bond.bond_name(str(q.info.bond)))
+			link_flash(o, _link_label(o, str(q.info.link)) if not q.info.has("bond") else Bond.bond_name(str(q.info.bond)))
 			if q.info.has("bond"):
 				lf_op2 = q.info.from   # 羁绊：标识里并排出两个人的头像
 		var tc: Color = _col(o)
@@ -2467,6 +2467,16 @@ const LINK_NAME := {"pursue": "追击", "lava": "熔岩", "gather": "钩索", "c
 	"l_lappland": "月牙剑气", "l_specter": "替身斩", "l_irene": "提灯一照", "l_mizuki": "小触手", "l_skadi": "拖刃冲锋", "l_siege": "冲阵",
 	"l_exusiai": "穿透扫射", "l_wisadel": "好礼", "l_logos": "消弹", "l_suzuran": "狐火", "l_angelina": "引力环", "l_ulpianus": "掷锚",
 	"l_saria": "钙质护盾", "l_kaltsit": "Mon3tr 掩护", "l_lumen": "灯火", "l_skalter": "歌声"}
+## 连携演出标识的名字：干员连携（l_<id>）读 data/ult_text.json 的定稿名（11-09 用户：改名后 HUD 还显示旧名「拖刃冲锋」），读不到再回退 LINK_NAME
+func _link_label(o, key: String) -> String:
+	if key.begins_with("l_"):
+		var e: Dictionary = text_table().get("ops", {}).get(key.substr(2), {})
+		var n := str(e.get("link_v2", {}).get("name", e.get("link", {}).get("name", "")))
+		if n != "":
+			return n
+	return str(LINK_NAME.get(key, o.display_name()))
+
+
 var lf_rt := -99.0        # 本次演出起点（真实时间）
 var lf_full := false      # 完整演出（否则防疲劳：只打聚光）
 var lf_op = null
