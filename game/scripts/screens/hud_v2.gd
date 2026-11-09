@@ -67,6 +67,7 @@ func big(pos: Vector2, s: String, size: float, col: Color = UI.TEXT, align := 0)
 
 ## 中文正文（ui.ttf），带投影
 func txt(pos: Vector2, s: String, size: int, col: Color = UI.TEXT, align := HORIZONTAL_ALIGNMENT_LEFT, width := -1.0, font: Font = null) -> void:
+	col = UI.small_ink(col, size)
 	var ks: int = UI._ks(g.hud, size)
 	var f: Font = g.font if font == null else font
 	g.hud.draw_string(f, pos + Vector2(1, 1), s, align, width, ks, SHADOW)

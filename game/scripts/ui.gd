@@ -16,6 +16,7 @@ const VIOLET := Color(0.486, 0.42, 1.0)         # #7c6bff 当前（原作地图�
 const GREEN := Color(0.184, 0.827, 0.627)       # #2fd3a0 源石锭
 const TEXT := Color(0.949, 0.957, 0.961)
 const SUB := Color(0.604, 0.639, 0.678)         # #9aa3ad
+const PHONE_SUB := Color8(184, 193, 202)
 const STEEL := Color(0.494, 0.596, 0.722)       # #7e98b8 普通按钮底
 const TAB_HP := Color(0.09, 0.56, 0.65)         # 小标签头：生命值
 const TAB_LAMP := Color(0.72, 0.53, 0.04)       # 小标签头：灯火
@@ -60,6 +61,7 @@ const TextQ = preload("res://scripts/screens/hud_textq.gd")
 ## 世界层（Node2D 上的头顶字）不变；量字的助手（cwidth / wrap_lines / fit / fit_line / chip_fits / strip_width）按同一倍率量，
 ## 调用方自己用 font.get_string_size 量、再交给这些助手画的地方要改用 fs() 换算
 ## 10-26 用户 iPhone 实机（Safari 横屏，1 界面像素约 0.6 pt）：放大后仍不到 FS_MIN 的小字（9–10 号的标签）一律抬到 FS_MIN
+static var phone_ink := false
 static var fk := 1.0
 const FS_CAP := 24
 const FS_MIN := 13
@@ -176,7 +178,17 @@ static func en_width(font: Font, text: String, size: int, spacing := 2.0) -> flo
 	return w
 
 
+## 暗色面板与指挥台的小号次级文字色；保留淡入、失效态的透明度及语义色。
+static func small_ink(col: Color, size: int) -> Color:
+	if phone_ink and size <= 18:
+		var opaque := Color(col, 1.0)
+		if opaque.is_equal_approx(SUB) or opaque.is_equal_approx(Color8(150, 156, 166)) or opaque.is_equal_approx(Color(0.588, 0.612, 0.643)):
+			return Color(PHONE_SUB, col.a)
+	return col
+
+
 static func text(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: int, col: Color, align := HORIZONTAL_ALIGNMENT_LEFT, width := -1.0, outline := 0) -> void:
+	col = small_ink(col, size)
 	if tq != null:
 		if tq is Array:
 			tq.append(func(): text(ci, font, pos, s, size, col, align, width, outline))

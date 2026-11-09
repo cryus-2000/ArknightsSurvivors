@@ -89,6 +89,7 @@ func txt(x: float, y: float, text: String, size := 18, col := HH.LIGHT, align :=
 	if fa <= 0.0 or text == "":
 		return 0.0
 	var z := fs(size)
+	col = preload("res://scripts/ui.gd").small_ink(col, size)
 	var w: float = s.g.font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, z).x
 	if width > 0.0:
 		w = minf(w, width)

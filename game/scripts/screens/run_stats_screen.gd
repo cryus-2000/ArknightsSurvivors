@@ -385,6 +385,7 @@ func _ci() -> CanvasItem:
 
 ## 中文：pos.y 是字的竖直中线；align 0 左 / 1 中 / 2 右。返回宽度
 func _t(pos: Vector2, s: String, size: int, col: Color, align := 0, max_w := -1.0) -> float:
+	col = UI.small_ink(col, size)
 	size = UI.fs(size)   # 手机局内正文放大（UI.fk）；下面量字与画字都用放大后的字号
 	var w: float = g.font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
 	if max_w > 0.0 and w > max_w:

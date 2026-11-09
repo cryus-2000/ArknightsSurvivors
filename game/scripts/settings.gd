@@ -393,11 +393,14 @@ func ui_fill(c: Control) -> void:
 func _configure_phone_glyphs() -> void:
 	var factor := 1.0
 	if OS.has_feature("web"):
+		preload("res://scripts/ui.gd").phone_ink = bool(JavaScriptBridge.eval("!!window.__syPhoneInk", true))
 		var ratio = JavaScriptBridge.eval("window.__syGlyphScale || 1", true)
 		if ratio != null:
 			factor = float(ratio)
 	elif dev_args().has("--phone-glyph-test"):
 		factor = 1.5
+	elif dev_args().has("--phone-ink-test"):
+		preload("res://scripts/ui.gd").phone_ink = true
 	if factor > 1.0:
 		var win := get_window()
 		var refresh := func() -> void:
