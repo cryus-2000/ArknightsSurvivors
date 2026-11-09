@@ -1,0 +1,6 @@
+ui_smoke rc=0
+touch_layout rc=0
+duck_lord rc=0
+command_ai rc=0
+squad_v2 rc=0
+onboard_forced rc=0
