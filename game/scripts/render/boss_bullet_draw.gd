@@ -120,8 +120,9 @@ func _kind(t: String, b: Dictionary) -> Array:
 	return [sh[1], big.x if r < 10.0 else big.y]
 
 
+const _DIRECTIONAL := {"diamond": true, "drop": true, "shell": true, "crescent": true}
 static func _directional(sh: String) -> bool:
-	return sh in ["diamond", "drop", "shell", "crescent"]
+	return _DIRECTIONAL.has(sh)
 
 
 ## ---- 形状（解析 SDF，与 tools/danmaku_v2.py 一致）：返回 [sdf, e, spec, alpha]
@@ -546,6 +547,9 @@ func _step_parts(list: Array) -> void:
 					_emit(t, b.pos + jp * 1.2, 16.0, Vector2(rng.randfn(0, 8), rng.randfn(0, 8)), rng.randf_range(4, 12), L, kd)
 				_:
 					_emit(t, b.pos + jp * 1.4, 16.0, -vel * (0.05 if am[0] == "glint" else 0.25), 0.0, L, kd)
+	if g.world.wd_new(1):
+		_step_parts_fast(dt)
+		return
 	var keep := []
 	for q in parts:
 		q[4] = float(q[4]) + dt
@@ -587,6 +591,58 @@ func _step_parts(list: Array) -> void:
 	flashes = fk
 
 
+## 粒子推进的快速写法（docs/319 §22 ①）：同 _step_parts 后半段逐项同一算式、同一顺序（不抽随机数），
+## 只是按种类序号查表（阻力衰减每帧每种算一次 exp，同一表达式），不再每粒查字符串字典、建临时数组
+const _K_EMBER := 5
+const _K_BUBBLE := 6
+const _K_DRIP := 7
+const _K_SPARK := 8
+const _K_DEBRIS := 9
+func _step_parts_fast(dt: float) -> void:
+	var fk_kind := PackedFloat64Array()
+	fk_kind.resize(KINDS.size())
+	for i in KINDS.size():
+		fk_kind[i] = exp(-float(DRAG[KINDS[i]]) * dt)
+	var keep := []
+	for q in parts:
+		var age: float = float(q[4]) + dt
+		q[4] = age
+		if age >= float(q[5]):
+			continue
+		var ki: int = int(q[6])
+		var v: Vector2 = q[2] * fk_kind[ki]
+		var gr := 0.0
+		if ki == _K_SPARK or ki == _K_DEBRIS:
+			gr = GRAV
+		elif ki == _K_DRIP:
+			gr = GRAV * 0.9
+		elif ki == _K_EMBER:
+			gr = -20.0
+		elif ki == _K_BUBBLE:
+			gr = -8.0
+			v.x = 10.0 * sin(age * 9.0 + float(q[7]))
+		q[3] = float(q[3]) - gr * dt
+		q[0] = (q[0] as Vector2) + v * dt
+		q[1] = float(q[1]) + float(q[3]) * dt
+		q[2] = v
+		if float(q[1]) <= 0.0 and (ki == _K_SPARK or ki == _K_DEBRIS or ki == _K_DRIP):
+			q[1] = 0.0
+			q[3] = 0.0
+			q[2] = v * 0.2   # 落地停住，在地上熄灭
+			if ki == _K_DRIP and age < float(q[5]) - 0.15:
+				for s in [-1.0, 1.0]:
+					keep.append([(q[0] as Vector2) + Vector2(s * 2.0, 0), 0.5, Vector2(s * 25.0, 0), 30.0, 0.0, 0.18, _K_SPARK, 0.0, q[8]])
+				continue
+		keep.append(q)
+	parts = keep
+	var fk := []
+	for fl in flashes:
+		fl[3] = float(fl[3]) + dt
+		if float(fl[3]) < 0.25:
+			fk.append(fl)
+	flashes = fk
+
+
 func _rc(t: String, k: float) -> Color:
 	var ramp: Array = RAMP[t]
 	return ramp[mini(4, int(clampf(k, 0.0, 0.999) * 5.0))]
@@ -598,6 +654,71 @@ func _px(w, p: Vector2, c: Color) -> void:
 
 
 func _draw_parts(w, vr: Rect2) -> void:
+	if g.world.wd_new(1):
+		_draw_parts_fast(w, vr)
+	else:
+		_draw_parts_old(w, vr)
+	_draw_flashes(w, vr)
+
+
+## 粒子绘制的快速写法（docs/319 §22 ①）：同 _draw_parts_old 逐粒同一判定、同一颜色算式、同一闪烁抽样次序（只有 trail / spark / debris / mote 抽 rng），
+## 方块直接进 world 的三角形批（同 tb_quad 的顶点与次序），按种类序号分支，不再每粒建临时数组、查字符串
+const _FLICK := [true, false, true, false, false, false, false, false, true, true]   # KINDS 序号：trail / mote / spark / debris 闪烁
+const _K_GLINT := 3
+const _K_BIOLUM := 4
+func _draw_parts_fast(w, vr: Rect2) -> void:
+	var tb = w._tbb
+	var dx := Vector2(PX, 0)
+	var dy := Vector2(0, PX)
+	var dxy := Vector2(PX, PX)
+	for q in parts:
+		var p: Vector2 = (q[0] as Vector2) + Vector2(0, -float(q[1]))
+		if not vr.has_point(p):
+			continue
+		var ki: int = int(q[6])
+		var ka: float = float(q[4]) / float(q[5])
+		if _FLICK[ki] and rng.randf() < 0.18:
+			continue   # 闪烁
+		var ramp: Array = RAMP[q[8]]
+		var c: Color
+		var hdr := 1.0
+		if ki == _K_BIOLUM:
+			var a := 0.5 + 0.5 * sin(float(q[4]) * 7.0 + float(q[7]))
+			c = ramp[1] if a > 0.6 else ramp[2]
+			c.a = (0.4 + 0.6 * a) * (1.0 - ka)
+			hdr = 1.3
+		elif ki == _K_EMBER:
+			c = ramp[mini(4, int(clampf(0.25 + ka * 0.75, 0.0, 0.999) * 5.0))]
+			c.a = clampf(1.2 - ka, 0.0, 1.0)
+			hdr = 2.0
+		elif ki == _K_BUBBLE:
+			c = ramp[1]
+			c.a = 0.8 * (1.0 - ka)
+		elif ki == _K_GLINT:
+			c = ramp[0] if ka < 0.4 else ramp[2]
+			c.a = clampf(1.1 - ka, 0.0, 1.0)
+			hdr = 2.2
+		else:
+			c = ramp[mini(4, int(clampf(ka, 0.0, 0.999) * 5.0))]
+			c.a = clampf(1.15 - 0.6 * ka, 0.0, 1.0)
+			hdr = 2.0
+		c = Color(c.r * hdr, c.g * hdr, c.b * hdr, c.a)
+		if ki == _K_BUBBLE and ka < 0.7:
+			var cb := Color(c.r, c.g, c.b, c.a * 0.7)
+			for d in [dx, -dx, dy, -dy]:
+				var a2: Vector2 = ((p + d) / PX).floor() * PX
+				tb.quad(a2, a2 + dx, a2 + dxy, a2 + dy, cb)
+			continue
+		var a0: Vector2 = (p / PX).floor() * PX
+		tb.quad(a0, a0 + dx, a0 + dxy, a0 + dy, c)
+		if ki == _K_GLINT and ka < 0.35:
+			var cg := Color(c.r, c.g, c.b, c.a * 0.55)
+			for d in [dx, -dx, dy, -dy]:
+				var a3: Vector2 = ((p + d) / PX).floor() * PX
+				tb.quad(a3, a3 + dx, a3 + dxy, a3 + dy, cg)
+
+
+func _draw_parts_old(w, vr: Rect2) -> void:
 	for q in parts:
 		var p: Vector2 = (q[0] as Vector2) + Vector2(0, -float(q[1]))
 		if not vr.has_point(p):
@@ -640,7 +761,11 @@ func _draw_parts(w, vr: Rect2) -> void:
 		if kd == "glint" and ka < 0.35:
 			for d in [Vector2(PX, 0), Vector2(-PX, 0), Vector2(0, PX), Vector2(0, -PX)]:
 				_px(w, p + d, Color(c.r, c.g, c.b, c.a * 0.55))
-	# 瞬间闪光帧（逐格，5 帧 0.25 秒）：发射四芒星 / 消弹六片碎光 / 命中破环
+
+
+
+## 瞬间闪光帧（逐格，5 帧 0.25 秒）：发射四芒星 / 消弹六片碎光 / 命中破环
+func _draw_flashes(w, vr: Rect2) -> void:
 	for fl in flashes:
 		var t: String = fl[0]
 		var ramp: Array = RAMP[t]
