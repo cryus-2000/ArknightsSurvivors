@@ -1,0 +1,9 @@
+X_eyjafjalla rc=0 1474s
+  seg_01_win_t470.0 2396 帧 rc=0
+total 269028
+drwxr-xr-x 2 root root      4096 Nov  9 01:14 .
+drwxr-xr-x 4 root root      4096 Nov  9 00:48 ..
+-rw-r--r-- 1 root root     28553 Nov  9 01:13 X_eyjafjalla_godot.log
+-rw-r--r-- 1 root root     80054 Nov  9 01:13 X_eyjafjalla_pv.log
+-rw-r--r-- 1 root root 275292318 Nov  9 01:14 X_eyjafjalla_seg_01_win_t470.0.mp4
+-rw-r--r-- 1 root root     66721 Nov  9 01:14 X_eyjafjalla_seg_01_win_t470.0.sfx.json
