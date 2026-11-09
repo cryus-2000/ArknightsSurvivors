@@ -1,0 +1,4568 @@
+{
+ "args": {
+  "preset": null,
+  "op": "saria",
+  "squad": null,
+  "seeds": 1,
+  "seed0": 3,
+  "diff": 0,
+  "jobs": 1,
+  "timeout": 900,
+  "tag": "18-self-focal",
+  "extra": "--meta=18",
+  "bot": "expert",
+  "bots": null,
+  "lanes": null,
+  "game": null,
+  "keep": "",
+  "nocache": true,
+  "placebos": "2",
+  "dt": null,
+  "out": "build/cloud/founder-contact-3b22-1110c/18-self-focal"
+ },
+ "records": [
+  {
+   "squad": [
+    "saria"
+   ],
+   "seed": 3,
+   "diff": 0,
+   "bot": "expert",
+   "tier": 0,
+   "placebo": 2,
+   "wall": 59.7,
+   "data": {
+    "allies": 2,
+    "armor_cf": {
+     "m0": {
+      "a2": 8.93888689342425,
+      "a4": 6.93888689342425,
+      "a8": 2.93888689342425,
+      "all": 38.5566312847622,
+      "armor": 6.0,
+      "n": 5,
+      "phys": 11.9214269343425,
+      "phys_n": 2,
+      "phys_pre": 17.9214269343425
+     },
+     "m4": {
+      "a2": 489.919394501027,
+      "a4": 435.481878268699,
+      "a8": 340.345352057082,
+      "all": 729.570240799981,
+      "armor": 84.0,
+      "n": 40,
+      "phys": 545.919394501027,
+      "phys_n": 28,
+      "phys_pre": 629.919394501027
+     },
+     "m8": {
+      "a2": 113.201998477724,
+      "a4": 107.201998477724,
+      "a8": 95.2019984777242,
+      "all": 201.21270060011,
+      "armor": 9.0,
+      "n": 6,
+      "phys": 119.201998477724,
+      "phys_n": 3,
+      "phys_pre": 128.201998477724
+     }
+    },
+    "boss_hp": -0.0031239998875826,
+    "bosses": [
+     "carmen:dead",
+     "path:dead"
+    ],
+    "bot": {
+     "bosses": [
+      {
+       "en_alive": 26,
+       "en_alive_pk": 35,
+       "en_near": 10,
+       "en_near_pk": 16,
+       "gates": 1,
+       "on_boss": 0.55,
+       "shield": 0.0,
+       "t0": 210,
+       "t1": 268,
+       "tv": 210,
+       "type": "carmen",
+       "windows": [
+        {
+         "en": 34,
+         "hits": 0,
+         "hp": 0.99,
+         "moves": 0,
+         "out": 0,
+         "t": 0
+        },
+        {
+         "en": 29,
+         "hits": 0,
+         "hp": 0.81,
+         "moves": 3,
+         "out": 8091,
+         "t": 15
+        },
+        {
+         "en": 25,
+         "hits": 0,
+         "hp": 0.5,
+         "moves": 1,
+         "out": 10283,
+         "t": 30
+        },
+        {
+         "en": 23,
+         "hits": 3,
+         "hp": 0.24,
+         "moves": 3,
+         "out": 11117,
+         "t": 45
+        },
+        {
+         "en": 26,
+         "hits": 1,
+         "hp": 0.0,
+         "moves": 1,
+         "out": 8544,
+         "t": 60
+        },
+        {
+         "en": 41,
+         "hits": 6,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 15713,
+         "t": 76
+        },
+        {
+         "en": 77,
+         "hits": 1,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 16065,
+         "t": 91
+        },
+        {
+         "en": 58,
+         "hits": 2,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 21410,
+         "t": 106
+        },
+        {
+         "en": 46,
+         "hits": 53,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 29418,
+         "t": 121
+        },
+        {
+         "en": 45,
+         "hits": 60,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 21202,
+         "t": 136
+        },
+        {
+         "en": 62,
+         "hits": 2,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 16333,
+         "t": 151
+        },
+        {
+         "en": 84,
+         "hits": 1,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 52405,
+         "t": 166
+        },
+        {
+         "en": 79,
+         "hits": 58,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 34481,
+         "t": 181
+        },
+        {
+         "en": 60,
+         "hits": 76,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 35182,
+         "t": 196
+        },
+        {
+         "en": 55,
+         "hits": 0,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 31893,
+         "t": 211
+        },
+        {
+         "en": 45,
+         "hits": 190,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 31924,
+         "t": 226
+        },
+        {
+         "en": 49,
+         "hits": 112,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 32051,
+         "t": 241
+        },
+        {
+         "en": 43,
+         "hits": 156,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 44223,
+         "t": 256
+        },
+        {
+         "en": 95,
+         "hits": 162,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 33499,
+         "t": 271
+        }
+       ]
+      },
+      {
+       "en_alive": 50,
+       "en_alive_pk": 58,
+       "en_near": 14,
+       "en_near_pk": 29,
+       "gates": 1,
+       "on_boss": 0.34,
+       "shield": 0.0,
+       "t0": 420,
+       "t1": 460,
+       "tv": 420,
+       "type": "path",
+       "windows": [
+        {
+         "en": 55,
+         "hits": 0,
+         "hp": 0.97,
+         "moves": 0,
+         "out": 0,
+         "t": 1
+        },
+        {
+         "en": 45,
+         "hits": 190,
+         "hp": 0.66,
+         "moves": 7,
+         "out": 31924,
+         "t": 16
+        },
+        {
+         "en": 49,
+         "hits": 112,
+         "hp": 0.25,
+         "moves": 8,
+         "out": 32051,
+         "t": 31
+        },
+        {
+         "en": 43,
+         "hits": 156,
+         "hp": 0.0,
+         "moves": 7,
+         "out": 44223,
+         "t": 46
+        },
+        {
+         "en": 95,
+         "hits": 162,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 33499,
+         "t": 61
+        }
+       ]
+      }
+     ],
+     "cap_stats": {
+      "any_cut": 33.4,
+      "any_n": 14,
+      "big_n": 0,
+      "boss_cut": 0.0,
+      "boss_n": 0,
+      "hits": 1025,
+      "one_cut": 0.0,
+      "one_n": 0,
+      "post": 1035.6,
+      "pre": 1069.0,
+      "zero": 0
+     },
+     "curve": [
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 0,
+       "hp": 100,
+       "hpm": 1.08,
+       "hpmin": 100,
+       "hsrc": {},
+       "kills": 0,
+       "lamp": 100,
+       "lampmin": 100,
+       "lv": 1,
+       "mhp": 103,
+       "mire_s": 0.0,
+       "mires": 0,
+       "outc": 0,
+       "rg": 0.8,
+       "squad": 1,
+       "t": 0,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 16,
+       "hp": 100,
+       "hpm": 1.37,
+       "hpmin": 100,
+       "hsrc": {},
+       "kills": 16,
+       "lamp": 100,
+       "lampmin": 100,
+       "lv": 2,
+       "mhp": 103,
+       "mire_s": 0.0,
+       "mires": 0,
+       "outc": 405,
+       "rg": 0.8,
+       "squad": 1,
+       "t": 30,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 0,
+       "elites": 1,
+       "enemies": 16,
+       "hp": 100,
+       "hpm": 1.67,
+       "hpmin": 100,
+       "hsrc": {},
+       "kills": 58,
+       "lamp": 100,
+       "lampmin": 100,
+       "lv": 4,
+       "mhp": 103,
+       "mire_s": 0.0,
+       "mires": 0,
+       "outc": 1520,
+       "rg": 0.8,
+       "squad": 1,
+       "t": 60,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_tracer": 1,
+        "bullet": 7
+       },
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 18,
+       "hp": 100,
+       "hpm": 1.96,
+       "hpmin": 93,
+       "hsrc": {
+        "塞雷娅": 5,
+        "自身回复": 4
+       },
+       "kills": 124,
+       "lamp": 89,
+       "lampmin": 89,
+       "lv": 6,
+       "mhp": 119,
+       "mire_s": 0.0,
+       "mires": 17,
+       "outc": 6367,
+       "rg": 0.95,
+       "squad": 2,
+       "t": 90,
+       "taken": 9,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 1,
+       "elites": 0,
+       "enemies": 25,
+       "hp": 100,
+       "hpm": 2.26,
+       "hpmin": 99,
+       "hsrc": {},
+       "kills": 177,
+       "lamp": 100,
+       "lampmin": 75,
+       "lv": 8,
+       "mhp": 121,
+       "mire_s": 0.0,
+       "mires": 16,
+       "outc": 10887,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 120,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 22,
+       "hp": 100,
+       "hpm": 2.55,
+       "hpmin": 100,
+       "hsrc": {},
+       "kills": 248,
+       "lamp": 100,
+       "lampmin": 100,
+       "lv": 9,
+       "mhp": 121,
+       "mire_s": 0.0,
+       "mires": 8,
+       "outc": 18365,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 150,
+       "taken": 0,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_stone": 9,
+        "bullet": 11
+       },
+       "ebul": 3,
+       "elites": 1,
+       "enemies": 29,
+       "hp": 100,
+       "hpm": 2.85,
+       "hpmin": 90,
+       "hsrc": {
+        "击杀回复": 1,
+        "塞雷娅": 11,
+        "自身回复": 5,
+        "针剂回流": 3
+       },
+       "kills": 342,
+       "lamp": 91,
+       "lampmin": 91,
+       "lv": 11,
+       "mhp": 121,
+       "mire_s": 0.0,
+       "mires": 4,
+       "outc": 29696,
+       "rg": 3.28,
+       "squad": 3,
+       "t": 180,
+       "taken": 21,
+       "zone": 2
+      },
+      {
+       "boss": 1,
+       "dsrc": {},
+       "ebul": 9,
+       "elites": 0,
+       "enemies": 35,
+       "hp": 100,
+       "hpm": 3.14,
+       "hpmin": 100,
+       "hsrc": {},
+       "kills": 420,
+       "lamp": 100,
+       "lampmin": 91,
+       "lv": 12,
+       "mhp": 121,
+       "mire_s": 0.0,
+       "mires": 9,
+       "outc": 36938,
+       "rg": 1.46,
+       "squad": 3,
+       "t": 210,
+       "taken": 0,
+       "zone": 3
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "bullet": 7
+       },
+       "ebul": 24,
+       "elites": 0,
+       "enemies": 24,
+       "hp": 100,
+       "hpm": 3.44,
+       "hpmin": 93,
+       "hsrc": {
+        "塞雷娅": 4,
+        "自身回复": 2
+       },
+       "kills": 476,
+       "lamp": 100,
+       "lampmin": 96,
+       "lv": 13,
+       "mhp": 121,
+       "mire_s": 0.0,
+       "mires": 12,
+       "outc": 56266,
+       "rg": 1.46,
+       "squad": 3,
+       "t": 240,
+       "taken": 7,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "boss_carmen": 15,
+        "bullet": 18,
+        "contact_tracer": 10
+       },
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 28,
+       "hp": 100,
+       "hpm": 3.73,
+       "hpmin": 86,
+       "hsrc": {
+        "击杀回复": 1,
+        "塞雷娅": 18,
+        "自身回复": 12,
+        "针剂回流": 10
+       },
+       "kills": 523,
+       "lamp": 83,
+       "lampmin": 83,
+       "lv": 14,
+       "mhp": 121,
+       "mire_s": 0.0,
+       "mires": 20,
+       "outc": 74982,
+       "rg": 1.46,
+       "squad": 3,
+       "t": 270,
+       "taken": 43,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "bullet": 17,
+        "contact_tracer": 27,
+        "mire": 4
+       },
+       "ebul": 6,
+       "elites": 2,
+       "enemies": 74,
+       "hp": 100,
+       "hpm": 4.03,
+       "hpmin": 74,
+       "hsrc": {
+        "击杀回复": 2,
+        "塞雷娅": 33,
+        "自身回复": 8,
+        "针剂回流": 5
+       },
+       "kills": 643,
+       "lamp": 95,
+       "lampmin": 70,
+       "lv": 16,
+       "mhp": 108,
+       "mire_s": 1.3,
+       "mires": 26,
+       "outc": 104819,
+       "rg": 1.43,
+       "squad": 3,
+       "t": 300,
+       "taken": 50,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_reaper": 5,
+        "bullet": 17,
+        "contact_tracer": 22,
+        "corrode": 9
+       },
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 45,
+       "hp": 100,
+       "hpm": 4.32,
+       "hpmin": 80,
+       "hsrc": {
+        "击杀回复": 4,
+        "塞雷娅": 37,
+        "自身回复": 7,
+        "针剂回流": 6
+       },
+       "kills": 770,
+       "lamp": 100,
+       "lampmin": 84,
+       "lv": 16,
+       "mhp": 108,
+       "mire_s": 0.0,
+       "mires": 25,
+       "outc": 155913,
+       "rg": 1.43,
+       "squad": 3,
+       "t": 330,
+       "taken": 56,
+       "zone": 2
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_founder": 13,
+        "atk_reaper": 6,
+        "atk_tracer": 60,
+        "bullet": 18,
+        "contact_tracer": 35,
+        "corrode": 10,
+        "nest": 3
+       },
+       "ebul": 2,
+       "elites": 0,
+       "enemies": 65,
+       "hp": 100,
+       "hpm": 4.62,
+       "hpmin": 44,
+       "hsrc": {
+        "击杀回复": 8,
+        "塞雷娅": 97,
+        "自身回复": 26,
+        "针剂回流": 16
+       },
+       "kills": 867,
+       "lamp": 92,
+       "lampmin": 54,
+       "lv": 17,
+       "mhp": 108,
+       "mire_s": 0.0,
+       "mires": 37,
+       "outc": 193226,
+       "rg": 1.43,
+       "squad": 3,
+       "t": 360,
+       "taken": 149,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_reaper": 108,
+        "atk_tracer": 38,
+        "bullet": 28,
+        "corrode": 11
+       },
+       "ebul": 12,
+       "elites": 1,
+       "enemies": 82,
+       "hp": 70,
+       "hpm": 4.91,
+       "hpmin": 56,
+       "hsrc": {
+        "击杀回复": 6,
+        "塞雷娅": 50,
+        "自身回复": 23,
+        "补给": 65,
+        "针剂回流": 8
+       },
+       "kills": 1005,
+       "lamp": 52,
+       "lampmin": 52,
+       "lv": 19,
+       "mhp": 108,
+       "mire_s": 0.0,
+       "mires": 37,
+       "outc": 278831,
+       "rg": 1.43,
+       "squad": 3,
+       "t": 390,
+       "taken": 185,
+       "zone": 1
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "bullet": 28,
+        "corrode": 19
+       },
+       "ebul": 4,
+       "elites": 0,
+       "enemies": 55,
+       "hp": 100,
+       "hpm": 5.2,
+       "hpmin": 54,
+       "hsrc": {
+        "击杀回复": 6,
+        "塞雷娅": 44,
+        "自身回复": 17,
+        "针剂回流": 9
+       },
+       "kills": 1144,
+       "lamp": 45,
+       "lampmin": 45,
+       "lv": 20,
+       "mhp": 108,
+       "mire_s": 0.0,
+       "mires": 31,
+       "outc": 345638,
+       "rg": 1.43,
+       "squad": 3,
+       "t": 420,
+       "taken": 47,
+       "zone": 2
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "atk_tracer": 7,
+        "bullet": 18,
+        "contact_path": 25,
+        "contact_tracer": 40,
+        "corrode": 10,
+        "nest": 3,
+        "wound": 6
+       },
+       "ebul": 31,
+       "elites": 0,
+       "enemies": 50,
+       "hp": 99,
+       "hpm": 5.5,
+       "hpmin": 54,
+       "hsrc": {
+        "击杀回复": 4,
+        "塞雷娅": 63,
+        "自身回复": 26,
+        "针剂回流": 17
+       },
+       "kills": 1221,
+       "lamp": 50,
+       "lampmin": 17,
+       "lv": 20,
+       "mhp": 108,
+       "mire_s": 0.0,
+       "mires": 34,
+       "outc": 410841,
+       "rg": 1.43,
+       "squad": 3,
+       "t": 450,
+       "taken": 112,
+       "zone": 2
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_reaper": 14,
+        "atk_tracer": 13,
+        "bullet": 8,
+        "contact_founder": 36,
+        "contact_slider": 11,
+        "contact_tracer": 73,
+        "wound": 11
+       },
+       "ebul": 24,
+       "elites": 3,
+       "enemies": 95,
+       "hp": 38,
+       "hpm": 5.79,
+       "hpmin": 38,
+       "hsrc": {
+        "击杀回复": 4,
+        "塞雷娅": 48,
+        "自身回复": 21,
+        "补给": 11,
+        "针剂回流": 16
+       },
+       "kills": 1315,
+       "lamp": 41,
+       "lampmin": 41,
+       "lv": 21,
+       "mhp": 108,
+       "mire_s": 0.0,
+       "mires": 43,
+       "outc": 484599,
+       "rg": 1.86,
+       "squad": 3,
+       "t": 480,
+       "taken": 168,
+       "zone": 3
+      }
+     ],
+     "curve_tail": {
+      "dsrc": {
+       "atk_founder": 15,
+       "contact_founder": 98,
+       "mire": 9,
+       "nest": 6,
+       "wound": 3
+      },
+      "hsrc": {
+       "击杀回复": 7,
+       "塞雷娅": 50,
+       "自身回复": 17,
+       "补给": 32,
+       "针剂回流": 8
+      },
+      "mhp": 108,
+      "t": 491,
+      "t0": 480,
+      "taken": 133
+     },
+     "dark_dmg": 0,
+     "dark_s": 0,
+     "death_src": "contact_founder",
+     "elite_t": {
+      "eyjafjalla:1": 192,
+      "eyjafjalla:2": 455,
+      "irene:1": 341,
+      "irene:2": 415,
+      "saria:1": 51,
+      "saria:2": 173
+     },
+     "end": {
+      "boss": false,
+      "hits2": [
+       [
+        476.3,
+        "contact_tracer",
+        "e:tracer",
+        0,
+        23.9,
+        23.9,
+        85
+       ],
+       [
+        476.3,
+        "wound",
+        "e:tracer",
+        0,
+        0.0,
+        0.0,
+        86
+       ],
+       [
+        476.8,
+        "contact_tracer",
+        "e:tracer",
+        0,
+        23.9,
+        23.9,
+        62
+       ],
+       [
+        476.8,
+        "wound",
+        "e:tracer",
+        0,
+        0.8,
+        0.8,
+        62
+       ],
+       [
+        477.3,
+        "wound",
+        "e:tracer",
+        0,
+        0.7,
+        0.7,
+        63
+       ],
+       [
+        477.8,
+        "wound",
+        "e:tracer",
+        0,
+        0.8,
+        0.8,
+        63
+       ],
+       [
+        478.3,
+        "wound",
+        "e:tracer",
+        0,
+        0.7,
+        0.7,
+        66
+       ],
+       [
+        478.8,
+        "wound",
+        "e:tracer",
+        0,
+        0.5,
+        0.5,
+        66
+       ],
+       [
+        479.1,
+        "atk_tracer",
+        "e:tracer",
+        0,
+        13.2,
+        13.2,
+        53
+       ],
+       [
+        479.1,
+        "wound",
+        "e:tracer",
+        0,
+        0.7,
+        0.7,
+        68
+       ],
+       [
+        479.6,
+        "wound",
+        "e:tracer",
+        0,
+        0.5,
+        0.5,
+        78
+       ],
+       [
+        479.9,
+        "contact_founder",
+        "e:founder",
+        0,
+        36.9,
+        36.9,
+        42
+       ],
+       [
+        479.9,
+        "wound",
+        "e:tracer",
+        0,
+        0.7,
+        0.7,
+        42
+       ],
+       [
+        480.3,
+        "contact_founder",
+        "e:founder",
+        0,
+        36.9,
+        32.0,
+        10
+       ],
+       [
+        480.3,
+        "wound",
+        "e:tracer",
+        0,
+        0.7,
+        0.0,
+        11
+       ],
+       [
+        480.8,
+        "wound",
+        "e:tracer",
+        0,
+        0.6,
+        0.1,
+        11
+       ],
+       [
+        481.1,
+        "nest",
+        "env:nest",
+        0,
+        3.0,
+        3.0,
+        8
+       ],
+       [
+        481.2,
+        "wound",
+        "e:tracer",
+        0,
+        0.7,
+        0.7,
+        8
+       ],
+       [
+        481.7,
+        "wound",
+        "e:tracer",
+        0,
+        0.8,
+        0.8,
+        10
+       ],
+       [
+        482.2,
+        "wound",
+        "e:tracer",
+        0,
+        0.7,
+        0.7,
+        10
+       ],
+       [
+        482.7,
+        "wound",
+        "e:tracer",
+        0,
+        0.8,
+        0.8,
+        13
+       ],
+       [
+        483.2,
+        "wound",
+        "e:tracer",
+        0,
+        0.8,
+        0.8,
+        13
+       ],
+       [
+        483.7,
+        "wound",
+        "e:tracer",
+        0,
+        0.7,
+        0.7,
+        28
+       ],
+       [
+        484.2,
+        "wound",
+        "e:tracer",
+        0,
+        0.8,
+        0.8,
+        28
+       ],
+       [
+        484.7,
+        "wound",
+        "e:tracer",
+        0,
+        0.6,
+        0.6,
+        29
+       ],
+       [
+        486.4,
+        "nest",
+        "env:nest",
+        0,
+        3.3,
+        3.3,
+        65
+       ],
+       [
+        487.7,
+        "mire",
+        "env:mire",
+        0,
+        4.6,
+        4.6,
+        66
+       ],
+       [
+        488.5,
+        "atk_founder",
+        "e:founder",
+        0,
+        15.9,
+        15.9,
+        66
+       ],
+       [
+        490.5,
+        "contact_founder",
+        "e:founder",
+        0,
+        66.4,
+        66.4,
+        23
+       ],
+       [
+        490.5,
+        "mire",
+        "env:mire",
+        0,
+        4.6,
+        4.6,
+        18
+       ],
+       [
+        491.2,
+        "shock_founder",
+        "e:founder",
+        0,
+        75.7,
+        47.5,
+        -21
+       ]
+      ],
+      "hp": 0,
+      "killer": {
+       "cause": "",
+       "key": "e:founder"
+      },
+      "last15": {
+       "corrode_out": 0.0,
+       "corrode_peak": 0.0,
+       "dark_s": 0.0,
+       "ebullets_peak": 28,
+       "enemies_peak": 98,
+       "hits": [
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 108,
+         "src": "wound",
+         "t": 476.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 108,
+         "src": "wound",
+         "t": 476.3,
+         "zone_out": false
+        },
+        {
+         "amt": 23.9,
+         "boss": false,
+         "hp_after": 85,
+         "src": "contact_tracer",
+         "t": 476.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 85,
+         "src": "wound",
+         "t": 476.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 85,
+         "src": "wound",
+         "t": 476.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 85,
+         "src": "wound",
+         "t": 476.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 86,
+         "src": "wound",
+         "t": 476.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 86,
+         "src": "wound",
+         "t": 476.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 86,
+         "src": "wound",
+         "t": 476.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 86,
+         "src": "wound",
+         "t": 476.7,
+         "zone_out": false
+        },
+        {
+         "amt": 23.9,
+         "boss": false,
+         "hp_after": 62,
+         "src": "contact_tracer",
+         "t": 476.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 62,
+         "src": "wound",
+         "t": 476.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 62,
+         "src": "wound",
+         "t": 476.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 62,
+         "src": "wound",
+         "t": 476.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 62,
+         "src": "wound",
+         "t": 477.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 62,
+         "src": "wound",
+         "t": 477.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 62,
+         "src": "wound",
+         "t": 477.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 62,
+         "src": "wound",
+         "t": 477.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 62,
+         "src": "wound",
+         "t": 477.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 62,
+         "src": "wound",
+         "t": 477.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 62,
+         "src": "wound",
+         "t": 477.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 62,
+         "src": "wound",
+         "t": 477.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 63,
+         "src": "wound",
+         "t": 477.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 63,
+         "src": "wound",
+         "t": 477.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 63,
+         "src": "wound",
+         "t": 477.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 63,
+         "src": "wound",
+         "t": 477.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 63,
+         "src": "wound",
+         "t": 477.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 63,
+         "src": "wound",
+         "t": 477.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 63,
+         "src": "wound",
+         "t": 477.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 63,
+         "src": "wound",
+         "t": 478.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 63,
+         "src": "wound",
+         "t": 478.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 63,
+         "src": "wound",
+         "t": 478.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 63,
+         "src": "wound",
+         "t": 478.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 63,
+         "src": "wound",
+         "t": 478.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 64,
+         "src": "wound",
+         "t": 478.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 64,
+         "src": "wound",
+         "t": 478.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 64,
+         "src": "wound",
+         "t": 478.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 66,
+         "src": "wound",
+         "t": 478.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 66,
+         "src": "wound",
+         "t": 478.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 66,
+         "src": "wound",
+         "t": 478.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 66,
+         "src": "wound",
+         "t": 478.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 66,
+         "src": "wound",
+         "t": 478.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 66,
+         "src": "wound",
+         "t": 478.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 66,
+         "src": "wound",
+         "t": 478.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 66,
+         "src": "wound",
+         "t": 479.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 66,
+         "src": "wound",
+         "t": 479.0,
+         "zone_out": false
+        },
+        {
+         "amt": 13.2,
+         "boss": false,
+         "hp_after": 53,
+         "src": "atk_tracer",
+         "t": 479.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 53,
+         "src": "wound",
+         "t": 479.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 53,
+         "src": "wound",
+         "t": 479.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 67,
+         "src": "wound",
+         "t": 479.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 67,
+         "src": "wound",
+         "t": 479.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 67,
+         "src": "wound",
+         "t": 479.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 67,
+         "src": "wound",
+         "t": 479.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 68,
+         "src": "wound",
+         "t": 479.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 68,
+         "src": "wound",
+         "t": 479.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 68,
+         "src": "wound",
+         "t": 479.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 70,
+         "src": "wound",
+         "t": 479.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 78,
+         "src": "wound",
+         "t": 479.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 78,
+         "src": "wound",
+         "t": 479.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 41,
+         "src": "wound",
+         "t": 479.9,
+         "zone_out": false
+        },
+        {
+         "amt": 36.9,
+         "boss": false,
+         "hp_after": 41,
+         "src": "contact_founder",
+         "t": 479.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 42,
+         "src": "wound",
+         "t": 480.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 42,
+         "src": "wound",
+         "t": 480.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 42,
+         "src": "wound",
+         "t": 480.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 42,
+         "src": "wound",
+         "t": 480.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 42,
+         "src": "wound",
+         "t": 480.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 42,
+         "src": "wound",
+         "t": 480.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 10,
+         "src": "wound",
+         "t": 480.3,
+         "zone_out": false
+        },
+        {
+         "amt": 32.0,
+         "boss": false,
+         "hp_after": 10,
+         "src": "contact_founder",
+         "t": 480.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 10,
+         "src": "wound",
+         "t": 480.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 10,
+         "src": "wound",
+         "t": 480.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 10,
+         "src": "wound",
+         "t": 480.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 10,
+         "src": "wound",
+         "t": 480.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 10,
+         "src": "wound",
+         "t": 480.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 11,
+         "src": "wound",
+         "t": 480.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 11,
+         "src": "wound",
+         "t": 480.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 11,
+         "src": "wound",
+         "t": 480.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 11,
+         "src": "wound",
+         "t": 480.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 11,
+         "src": "wound",
+         "t": 481.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 11,
+         "src": "wound",
+         "t": 481.1,
+         "zone_out": false
+        },
+        {
+         "amt": 3.0,
+         "boss": false,
+         "hp_after": 8,
+         "src": "nest",
+         "t": 481.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 8,
+         "src": "wound",
+         "t": 481.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 8,
+         "src": "wound",
+         "t": 481.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 8,
+         "src": "wound",
+         "t": 481.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 8,
+         "src": "wound",
+         "t": 481.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 8,
+         "src": "wound",
+         "t": 481.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 8,
+         "src": "wound",
+         "t": 481.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 8,
+         "src": "wound",
+         "t": 481.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 8,
+         "src": "wound",
+         "t": 481.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 8,
+         "src": "wound",
+         "t": 481.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 9,
+         "src": "wound",
+         "t": 481.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 9,
+         "src": "wound",
+         "t": 481.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 9,
+         "src": "wound",
+         "t": 481.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 9,
+         "src": "wound",
+         "t": 481.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 9,
+         "src": "wound",
+         "t": 482.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 10,
+         "src": "wound",
+         "t": 482.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 10,
+         "src": "wound",
+         "t": 482.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 10,
+         "src": "wound",
+         "t": 482.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 10,
+         "src": "wound",
+         "t": 482.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 10,
+         "src": "wound",
+         "t": 482.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 10,
+         "src": "wound",
+         "t": 482.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 10,
+         "src": "wound",
+         "t": 482.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 10,
+         "src": "wound",
+         "t": 482.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 10,
+         "src": "wound",
+         "t": 482.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 10,
+         "src": "wound",
+         "t": 482.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 11,
+         "src": "wound",
+         "t": 482.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 13,
+         "src": "wound",
+         "t": 482.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 13,
+         "src": "wound",
+         "t": 482.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 13,
+         "src": "wound",
+         "t": 482.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 13,
+         "src": "wound",
+         "t": 483.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 13,
+         "src": "wound",
+         "t": 483.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 13,
+         "src": "wound",
+         "t": 483.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 13,
+         "src": "wound",
+         "t": 483.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 13,
+         "src": "wound",
+         "t": 483.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 13,
+         "src": "wound",
+         "t": 483.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 13,
+         "src": "wound",
+         "t": 483.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 13,
+         "src": "wound",
+         "t": 483.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 13,
+         "src": "wound",
+         "t": 483.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 13,
+         "src": "wound",
+         "t": 483.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 13,
+         "src": "wound",
+         "t": 483.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 14,
+         "src": "wound",
+         "t": 483.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 14,
+         "src": "wound",
+         "t": 483.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 14,
+         "src": "wound",
+         "t": 483.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 14,
+         "src": "wound",
+         "t": 483.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 28,
+         "src": "wound",
+         "t": 484.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 28,
+         "src": "wound",
+         "t": 484.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 28,
+         "src": "wound",
+         "t": 484.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 28,
+         "src": "wound",
+         "t": 484.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 28,
+         "src": "wound",
+         "t": 484.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 28,
+         "src": "wound",
+         "t": 484.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 28,
+         "src": "wound",
+         "t": 484.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 28,
+         "src": "wound",
+         "t": 484.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 28,
+         "src": "wound",
+         "t": 484.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 28,
+         "src": "wound",
+         "t": 484.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 28,
+         "src": "wound",
+         "t": 484.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 29,
+         "src": "wound",
+         "t": 484.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 29,
+         "src": "wound",
+         "t": 484.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 29,
+         "src": "wound",
+         "t": 484.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 29,
+         "src": "wound",
+         "t": 484.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 29,
+         "src": "wound",
+         "t": 485.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 29,
+         "src": "wound",
+         "t": 485.0,
+         "zone_out": false
+        },
+        {
+         "amt": 3.3,
+         "boss": false,
+         "hp_after": 65,
+         "src": "nest",
+         "t": 486.4,
+         "zone_out": false
+        },
+        {
+         "amt": 4.6,
+         "boss": false,
+         "hp_after": 66,
+         "src": "mire",
+         "t": 487.7,
+         "zone_out": false
+        },
+        {
+         "amt": 15.9,
+         "boss": false,
+         "hp_after": 66,
+         "src": "atk_founder",
+         "t": 488.5,
+         "zone_out": false
+        },
+        {
+         "amt": 4.6,
+         "boss": false,
+         "hp_after": 18,
+         "src": "mire",
+         "t": 490.5,
+         "zone_out": false
+        },
+        {
+         "amt": 66.4,
+         "boss": false,
+         "hp_after": 18,
+         "src": "contact_founder",
+         "t": 490.5,
+         "zone_out": false
+        }
+       ],
+       "mire_s": 0.6,
+       "nerve_bursts": 0,
+       "t": 491.2
+      },
+      "near": [
+       {
+        "hp": 10,
+        "mhp": 108,
+        "src": {
+         "atk_tracer": 13.2,
+         "contact_founder": 68.9,
+         "contact_tracer": 62.8,
+         "wound": 13.8
+        },
+        "t": 480.7,
+        "tl": [
+         [
+          465.9,
+          94,
+          75,
+          46,
+          2,
+          9,
+          0,
+          3,
+          0,
+          1,
+          3
+         ],
+         [
+          466.4,
+          104,
+          75,
+          46,
+          3,
+          10,
+          0,
+          4,
+          0,
+          1,
+          3
+         ],
+         [
+          466.9,
+          108,
+          75,
+          43,
+          3,
+          9,
+          1,
+          5,
+          0,
+          1,
+          3
+         ],
+         [
+          467.5,
+          108,
+          75,
+          44,
+          3,
+          11,
+          1,
+          4,
+          0,
+          1,
+          3
+         ],
+         [
+          468.0,
+          108,
+          75,
+          46,
+          3,
+          11,
+          12,
+          5,
+          0,
+          1,
+          3
+         ],
+         [
+          468.5,
+          108,
+          75,
+          47,
+          3,
+          10,
+          18,
+          5,
+          0,
+          1,
+          3
+         ],
+         [
+          469.1,
+          108,
+          75,
+          46,
+          0,
+          6,
+          17,
+          2,
+          0,
+          1,
+          3
+         ],
+         [
+          469.6,
+          108,
+          75,
+          48,
+          0,
+          7,
+          17,
+          2,
+          0,
+          1,
+          3
+         ],
+         [
+          470.1,
+          108,
+          75,
+          50,
+          1,
+          7,
+          20,
+          3,
+          0,
+          1,
+          3
+         ],
+         [
+          470.6,
+          108,
+          75,
+          52,
+          2,
+          9,
+          15,
+          4,
+          0,
+          1,
+          3
+         ],
+         [
+          471.2,
+          108,
+          75,
+          55,
+          2,
+          14,
+          11,
+          5,
+          0,
+          1,
+          3
+         ],
+         [
+          471.7,
+          108,
+          75,
+          57,
+          3,
+          15,
+          10,
+          5,
+          0,
+          1,
+          3
+         ],
+         [
+          472.2,
+          108,
+          75,
+          89,
+          2,
+          17,
+          10,
+          5,
+          0,
+          1,
+          3
+         ],
+         [
+          472.8,
+          108,
+          75,
+          88,
+          5,
+          13,
+          5,
+          6,
+          0,
+          1,
+          3
+         ],
+         [
+          473.3,
+          108,
+          75,
+          87,
+          2,
+          12,
+          1,
+          6,
+          0,
+          1,
+          3
+         ],
+         [
+          473.8,
+          108,
+          75,
+          88,
+          4,
+          13,
+          0,
+          5,
+          0,
+          1,
+          3
+         ],
+         [
+          474.3,
+          108,
+          75,
+          90,
+          2,
+          17,
+          1,
+          5,
+          0,
+          1,
+          3
+         ],
+         [
+          474.9,
+          108,
+          75,
+          94,
+          8,
+          22,
+          8,
+          6,
+          0,
+          1,
+          3
+         ],
+         [
+          475.4,
+          108,
+          75,
+          94,
+          4,
+          20,
+          15,
+          6,
+          0,
+          1,
+          3
+         ],
+         [
+          475.9,
+          108,
+          69,
+          94,
+          7,
+          27,
+          15,
+          7,
+          1,
+          1,
+          3
+         ],
+         [
+          476.5,
+          85,
+          62,
+          94,
+          5,
+          33,
+          15,
+          6,
+          1,
+          1,
+          3
+         ],
+         [
+          477.0,
+          62,
+          55,
+          94,
+          7,
+          34,
+          14,
+          8,
+          1,
+          1,
+          3
+         ],
+         [
+          477.5,
+          63,
+          55,
+          97,
+          8,
+          40,
+          8,
+          7,
+          0,
+          1,
+          3
+         ],
+         [
+          478.0,
+          63,
+          55,
+          96,
+          5,
+          38,
+          7,
+          7,
+          0,
+          1,
+          3
+         ],
+         [
+          478.6,
+          66,
+          55,
+          93,
+          3,
+          44,
+          6,
+          7,
+          0,
+          1,
+          3
+         ],
+         [
+          479.1,
+          53,
+          50,
+          96,
+          6,
+          50,
+          17,
+          6,
+          1,
+          1,
+          3
+         ],
+         [
+          479.6,
+          68,
+          50,
+          95,
+          22,
+          45,
+          26,
+          8,
+          0,
+          1,
+          3
+         ],
+         [
+          480.1,
+          42,
+          41,
+          95,
+          14,
+          42,
+          24,
+          8,
+          1,
+          1,
+          3
+         ],
+         [
+          480.7,
+          10,
+          32,
+          96,
+          13,
+          37,
+          23,
+          7,
+          1,
+          1,
+          3
+         ]
+        ]
+       }
+      ],
+      "src": "contact_founder",
+      "t": 491,
+      "tl": [
+       [
+        475.9,
+        108,
+        69,
+        94,
+        7,
+        27,
+        15,
+        7,
+        1,
+        1,
+        3
+       ],
+       [
+        476.5,
+        85,
+        62,
+        94,
+        5,
+        33,
+        15,
+        6,
+        1,
+        1,
+        3
+       ],
+       [
+        477.0,
+        62,
+        55,
+        94,
+        7,
+        34,
+        14,
+        8,
+        1,
+        1,
+        3
+       ],
+       [
+        477.5,
+        63,
+        55,
+        97,
+        8,
+        40,
+        8,
+        7,
+        0,
+        1,
+        3
+       ],
+       [
+        478.0,
+        63,
+        55,
+        96,
+        5,
+        38,
+        7,
+        7,
+        0,
+        1,
+        3
+       ],
+       [
+        478.6,
+        66,
+        55,
+        93,
+        3,
+        44,
+        6,
+        7,
+        0,
+        1,
+        3
+       ],
+       [
+        479.1,
+        53,
+        50,
+        96,
+        6,
+        50,
+        17,
+        6,
+        1,
+        1,
+        3
+       ],
+       [
+        479.6,
+        68,
+        50,
+        95,
+        22,
+        45,
+        26,
+        8,
+        0,
+        1,
+        3
+       ],
+       [
+        480.1,
+        42,
+        41,
+        95,
+        14,
+        42,
+        24,
+        8,
+        1,
+        1,
+        3
+       ],
+       [
+        480.7,
+        10,
+        32,
+        96,
+        13,
+        37,
+        23,
+        7,
+        1,
+        1,
+        3
+       ],
+       [
+        481.2,
+        8,
+        29,
+        97,
+        8,
+        36,
+        23,
+        6,
+        1,
+        1,
+        3
+       ],
+       [
+        481.7,
+        9,
+        29,
+        95,
+        5,
+        33,
+        12,
+        6,
+        0,
+        1,
+        3
+       ],
+       [
+        482.3,
+        10,
+        29,
+        93,
+        2,
+        25,
+        0,
+        3,
+        0,
+        1,
+        3
+       ],
+       [
+        482.8,
+        13,
+        29,
+        93,
+        1,
+        23,
+        4,
+        4,
+        0,
+        1,
+        3
+       ],
+       [
+        483.3,
+        13,
+        29,
+        93,
+        2,
+        28,
+        4,
+        4,
+        0,
+        1,
+        3
+       ],
+       [
+        483.8,
+        14,
+        29,
+        94,
+        4,
+        39,
+        4,
+        5,
+        0,
+        1,
+        3
+       ],
+       [
+        484.4,
+        28,
+        29,
+        95,
+        4,
+        30,
+        5,
+        4,
+        0,
+        1,
+        3
+       ],
+       [
+        484.9,
+        29,
+        29,
+        93,
+        2,
+        29,
+        17,
+        5,
+        0,
+        1,
+        3
+       ],
+       [
+        485.4,
+        34,
+        29,
+        94,
+        3,
+        27,
+        12,
+        5,
+        0,
+        1,
+        3
+       ],
+       [
+        486.0,
+        68,
+        29,
+        96,
+        4,
+        38,
+        12,
+        6,
+        0,
+        1,
+        3
+       ],
+       [
+        486.5,
+        66,
+        27,
+        93,
+        4,
+        32,
+        16,
+        7,
+        1,
+        1,
+        3
+       ],
+       [
+        487.0,
+        69,
+        27,
+        93,
+        1,
+        30,
+        17,
+        4,
+        1,
+        1,
+        3
+       ],
+       [
+        487.5,
+        70,
+        27,
+        91,
+        2,
+        26,
+        5,
+        4,
+        1,
+        1,
+        3
+       ],
+       [
+        488.1,
+        68,
+        27,
+        94,
+        7,
+        43,
+        6,
+        6,
+        0,
+        1,
+        3
+       ],
+       [
+        488.6,
+        66,
+        21,
+        96,
+        16,
+        49,
+        16,
+        7,
+        1,
+        1,
+        3
+       ],
+       [
+        489.1,
+        78,
+        21,
+        96,
+        13,
+        50,
+        17,
+        8,
+        0,
+        1,
+        3
+       ],
+       [
+        489.7,
+        85,
+        21,
+        95,
+        10,
+        54,
+        24,
+        7,
+        0,
+        1,
+        3
+       ],
+       [
+        490.2,
+        89,
+        21,
+        92,
+        10,
+        53,
+        25,
+        7,
+        0,
+        1,
+        3
+       ],
+       [
+        490.7,
+        22,
+        7,
+        90,
+        11,
+        51,
+        28,
+        7,
+        1,
+        1,
+        3
+       ]
+      ],
+      "zone_out": false,
+      "zone_phase": 2,
+      "zone_state": 3
+     },
+     "floors": [],
+     "hits": 944,
+     "hits_pm": 115.3,
+     "king_low_s": 0,
+     "lamp_end": 0,
+     "lamp_gain": {
+      "灯标": 16,
+      "灯油": 8,
+      "精英灯油": 193
+     },
+     "lamp_loss": {
+      "冲撞吸灯": 8,
+      "受击": 291,
+      "尖叫": 18
+     },
+     "lamp_s": [
+      385,
+      77,
+      26,
+      0
+     ],
+     "lamp_taken": [
+      425,
+      384,
+      178,
+      0
+     ],
+     "low20_s": 3,
+     "low_hp_s": 6,
+     "moved_pm": 9510,
+     "peak": [
+      98,
+      92,
+      4,
+      442,
+      47
+     ],
+     "peak_min": [
+      [
+       21,
+       1,
+       0,
+       70,
+       8
+      ],
+      [
+       36,
+       8,
+       1,
+       169,
+       11
+      ],
+      [
+       47,
+       9,
+       4,
+       159,
+       17
+      ],
+      [
+       49,
+       26,
+       4,
+       149,
+       21
+      ],
+      [
+       68,
+       92,
+       3,
+       235,
+       22
+      ],
+      [
+       79,
+       18,
+       3,
+       188,
+       26
+      ],
+      [
+       86,
+       22,
+       4,
+       442,
+       47
+      ],
+      [
+       98,
+       60,
+       3,
+       326,
+       20
+      ],
+      [
+       98,
+       28,
+       0,
+       321,
+       21
+      ]
+     ],
+     "profile": "expert",
+     "reaper_drain_deaths": 0,
+     "recruit_t": [
+      67,
+      95
+     ],
+     "still_pct": 4,
+     "taken": 988,
+     "taken_pm": 120
+    },
+    "cmd": {
+     "aggro": 231,
+     "downs": 1,
+     "roam": 166.2,
+     "sortie_downs": 1,
+     "sorties": 20,
+     "switch": 68
+    },
+    "crates": 8,
+    "ctrl": {
+     "aslow_slow": 0,
+     "aslow_t": 0.0,
+     "boss_t": 98.6,
+     "floor": 0.7,
+     "move_min": 0.8,
+     "slow_min": 0.8,
+     "stun_slow": 0,
+     "stun_t": 0.0
+    },
+    "ctrl_src": {
+     "boss": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 1.06
+     },
+     "founder": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 4.69
+     },
+     "other": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "skimmer": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "slow_any_t": 5.74
+    },
+    "dashes": 5,
+    "dmg": {
+     "atk_founder": 29.7341675719375,
+     "atk_reaper": 135.538524555151,
+     "atk_stone": 9.93888689342425,
+     "atk_tracer": 121.48254619718,
+     "boss_carmen": 15.779904,
+     "bullet": 181.801916398276,
+     "contact_founder": 135.323641666726,
+     "contact_path": 25.512,
+     "contact_slider": 11.3322434370205,
+     "contact_tracer": 209.415007452929,
+     "corrode": 61.7237030112299,
+     "mire": 15.794589,
+     "nest": 12.8264335256205,
+     "shock_founder": 47.5281627560021,
+     "wound": 21.8956228919998
+    },
+    "drone": 0,
+    "duck": {
+     "fled": 0,
+     "kill_t": [
+      8.0
+     ],
+     "killed": 1,
+     "spawned": 1
+    },
+    "elite_stage": 2,
+    "elites": 10,
+    "ending": "standard",
+    "final_out": {
+     "判决": 8957.29065728164,
+     "刺剑": 75326.7131696065,
+     "剑气": 57593.7870821082,
+     "急救针剂": 12740.9543846611,
+     "手炮轰击": 8918.86567175313,
+     "技能连携·点燃·eyjafjalla": 1097.72820947896,
+     "技能连携·熔岩·eyjafjalla": 3385.49908528698,
+     "技能连携·补刺·irene": 3635.49809189458,
+     "拳击": 61529.5877608097,
+     "散射": 16005.8544443962,
+     "晶柱": 597.027192102146,
+     "晶簇": 4327.66022694801,
+     "火山": 2087.77765254911,
+     "火星": 15930.9711071045,
+     "点燃": 21636.0900366199,
+     "点燃弹": 18499.2430389309,
+     "熔岩": 711.84074399909,
+     "熔岩团": 9096.0469082586,
+     "熔岩弹": 78285.6583898088,
+     "熔池": 201.946865140314,
+     "终结技·saria·拳风": 34942.3224269155,
+     "终结技·saria·裂地": 122.450531994857,
+     "裂潮": 14284.6797170251,
+     "裂潮余波": 7401.12622053189,
+     "认知塑造": 10159.0335151664,
+     "起风": 16545.4428409848,
+     "追诉": 8819.53763898747,
+     "钙晶": 3468.45678738568,
+     "骑士": 27141.8600801838
+    },
+    "floor_hits": 0,
+    "floor_times": [],
+    "fuse": {
+     "left": 0,
+     "pct": 0.0,
+     "pool": 0,
+     "t": -1
+    },
+    "growth": {
+     "sp": 1
+    },
+    "heal": {
+     "击杀回复": 47.3948573081789,
+     "塞雷娅": 468.627823821606,
+     "拾取": 0.0179826075000022,
+     "终结技": 0.0,
+     "自身回复": 175.841315317253,
+     "补给": 109.227409707265,
+     "针剂回流": 104.054549863351
+    },
+    "heal_offer": 0,
+    "heal_offer_low": 0,
+    "heal_pick": 0,
+    "hordes": [
+     {
+      "comp": {
+       "bone": 8,
+       "slider": 7
+      },
+      "hp": 1092,
+      "hp0": 113,
+      "minhp": 113,
+      "mix": "滑行群",
+      "n": 15,
+      "t": 75,
+      "t80": 12
+     },
+     {
+      "comp": {
+       "bone": 13,
+       "slider": 4,
+       "stone": 3
+      },
+      "hp": 2516,
+      "hp0": 121,
+      "minhp": 109,
+      "mix": "凿石阵",
+      "n": 20,
+      "t": 165,
+      "t80": 10
+     },
+     {
+      "comp": {
+       "bone": 14,
+       "offspring": 2,
+       "slider": 7,
+       "stone": 2
+      },
+      "hp": 6647,
+      "hp0": 108,
+      "minhp": 80,
+      "mix": "子代壁垒",
+      "n": 25,
+      "t": 274,
+      "t80": 11
+     },
+     {
+      "comp": {
+       "bone": 8,
+       "reaper": 2,
+       "runner": 7,
+       "slider": 15,
+       "tracer": 3
+      },
+      "hp": 15553,
+      "hp0": 108,
+      "minhp": 88,
+      "mix": "潜袭",
+      "n": 35,
+      "t": 300,
+      "t80": 18
+     },
+     {
+      "comp": {
+       "bone": 7,
+       "offspring": 2,
+       "reaper": 2,
+       "runner": 7,
+       "slider": 15,
+       "spitter": 4,
+       "tracer": 3
+      },
+      "hp": 27399,
+      "hp0": 85,
+      "minhp": 58,
+      "mix": "酸雨围城",
+      "n": 40,
+      "t": 375,
+      "t80": 28
+     },
+     {
+      "comp": {
+       "bone": 4,
+       "founder": 2,
+       "nest": 1,
+       "runner": 8,
+       "slider": 4,
+       "spitter": 2,
+       "stone": 4,
+       "tracer": 2
+      },
+      "hp": 24529,
+      "hp0": 108,
+      "minhp": -21,
+      "mix": "深海潮",
+      "n": 27,
+      "t": 472,
+      "t80": -1
+     }
+    ],
+    "ingots": 60,
+    "items": {
+     "crate_shield": 0,
+     "heal_elite": 6,
+     "heal_low": 1,
+     "heal_mob": 8,
+     "heal_pick": 11,
+     "magnet_elite": 6,
+     "magnet_mob": 12,
+     "magnet_pick": 15,
+     "mob_capped": 850,
+     "mob_rolled": 516,
+     "pack_drop": 5,
+     "pack_pick": 4
+    },
+    "kill_hits": {
+     "0:bone": [
+      46,
+      64,
+      14.42
+     ],
+     "0:slider": [
+      10,
+      20,
+      4.22
+     ],
+     "0:stone": [
+      2,
+      11,
+      39.73
+     ],
+     "1:bone": [
+      80,
+      97,
+      6.72
+     ],
+     "1:floater": [
+      5,
+      30,
+      12.53
+     ],
+     "1:slider": [
+      25,
+      53,
+      11.94
+     ],
+     "1:stone": [
+      4,
+      18,
+      14.92
+     ],
+     "1:tracer": [
+      3,
+      63,
+      23.17
+     ],
+     "2:bone": [
+      102,
+      134,
+      9.36
+     ],
+     "2:floater": [
+      14,
+      61,
+      23.91
+     ],
+     "2:runner": [
+      1,
+      3,
+      0.79
+     ],
+     "2:slider": [
+      34,
+      82,
+      18.1
+     ],
+     "2:stone": [
+      8,
+      46,
+      12.35
+     ],
+     "2:tracer": [
+      5,
+      197,
+      59.47
+     ],
+     "3:bone": [
+      77,
+      158,
+      63.81
+     ],
+     "3:brood": [
+      1,
+      1,
+      0.0
+     ],
+     "3:duck": [
+      1,
+      10,
+      3.76
+     ],
+     "3:floater": [
+      8,
+      38,
+      36.37
+     ],
+     "3:runner": [
+      8,
+      20,
+      6.93
+     ],
+     "3:slider": [
+      28,
+      86,
+      28.97
+     ],
+     "3:spitter": [
+      3,
+      149,
+      26.27
+     ],
+     "3:stone": [
+      5,
+      35,
+      18.95
+     ],
+     "3:tracer": [
+      3,
+      314,
+      67.12
+     ],
+     "4:bone": [
+      73,
+      235,
+      53.68
+     ],
+     "4:floater": [
+      13,
+      82,
+      32.41
+     ],
+     "4:offspring": [
+      1,
+      37,
+      15.71
+     ],
+     "4:reaper": [
+      6,
+      162,
+      24.55
+     ],
+     "4:runner": [
+      12,
+      39,
+      6.79
+     ],
+     "4:slider": [
+      41,
+      143,
+      43.05
+     ],
+     "4:spitter": [
+      2,
+      48,
+      7.99
+     ],
+     "4:stone": [
+      10,
+      110,
+      104.28
+     ],
+     "4:tracer": [
+      6,
+      238,
+      67.59
+     ],
+     "5:bone": [
+      85,
+      463,
+      121.33
+     ],
+     "5:floater": [
+      12,
+      88,
+      40.07
+     ],
+     "5:founder": [
+      2,
+      411,
+      71.28
+     ],
+     "5:nest": [
+      3,
+      253,
+      41.25
+     ],
+     "5:offspring": [
+      3,
+      220,
+      59.47
+     ],
+     "5:reaper": [
+      10,
+      241,
+      40.45
+     ],
+     "5:runner": [
+      37,
+      182,
+      37.74
+     ],
+     "5:slider": [
+      52,
+      307,
+      81.43
+     ],
+     "5:spitter": [
+      5,
+      107,
+      13.8
+     ],
+     "5:stone": [
+      5,
+      123,
+      99.52
+     ],
+     "5:tracer": [
+      8,
+      820,
+      148.44
+     ],
+     "6:bone": [
+      92,
+      758,
+      243.38
+     ],
+     "6:floater": [
+      19,
+      128,
+      30.63
+     ],
+     "6:founder": [
+      4,
+      390,
+      80.98
+     ],
+     "6:nest": [
+      7,
+      267,
+      66.73
+     ],
+     "6:offspring": [
+      3,
+      136,
+      51.81
+     ],
+     "6:reaper": [
+      18,
+      382,
+      64.01
+     ],
+     "6:runner": [
+      36,
+      243,
+      58.66
+     ],
+     "6:slider": [
+      71,
+      682,
+      177.37
+     ],
+     "6:spitter": [
+      7,
+      425,
+      86.6
+     ],
+     "6:stone": [
+      9,
+      143,
+      66.33
+     ],
+     "6:tracer": [
+      11,
+      407,
+      66.01
+     ],
+     "7:brood": [
+      1,
+      1,
+      0.0
+     ],
+     "7:floater": [
+      12,
+      82,
+      58.02
+     ],
+     "7:founder": [
+      5,
+      1125,
+      324.32
+     ],
+     "7:fractal": [
+      7,
+      21,
+      4.04
+     ],
+     "7:nest": [
+      4,
+      300,
+      175.76
+     ],
+     "7:offspring": [
+      4,
+      277,
+      149.15
+     ],
+     "7:reaper": [
+      18,
+      240,
+      76.17
+     ],
+     "7:runner": [
+      40,
+      170,
+      74.18
+     ],
+     "7:slider": [
+      54,
+      315,
+      124.62
+     ],
+     "7:spitter": [
+      4,
+      201,
+      93.65
+     ],
+     "7:stone": [
+      9,
+      160,
+      114.77
+     ],
+     "7:tracer": [
+      11,
+      830,
+      178.45
+     ],
+     "8:bone": [
+      4,
+      37,
+      25.02
+     ],
+     "8:brood": [
+      2,
+      3,
+      0.13
+     ],
+     "8:floater": [
+      1,
+      11,
+      11.48
+     ],
+     "8:reaper": [
+      7,
+      85,
+      37.69
+     ],
+     "8:runner": [
+      8,
+      46,
+      26.47
+     ],
+     "8:slider": [
+      32,
+      155,
+      128.96
+     ],
+     "8:spitter": [
+      1,
+      14,
+      7.13
+     ],
+     "8:stone": [
+      2,
+      27,
+      16.1
+     ],
+     "8:tracer": [
+      4,
+      87,
+      48.64
+     ]
+    },
+    "kills": 1378,
+    "lamp": 0,
+    "levelup_t": [
+     24,
+     35,
+     51,
+     67,
+     83,
+     95,
+     117,
+     130,
+     151,
+     173,
+     192,
+     228,
+     269,
+     273,
+     300,
+     341,
+     369,
+     370,
+     415,
+     455,
+     487
+    ],
+    "low_levelups": 0,
+    "lv": 22,
+    "lv_times": [
+     23,
+     35,
+     51,
+     66,
+     83,
+     94,
+     117,
+     130,
+     150,
+     172,
+     191,
+     228,
+     269,
+     272,
+     299,
+     341,
+     368,
+     369,
+     415,
+     454,
+     486
+    ],
+    "marks": {
+     "120": 8,
+     "300": 16,
+     "480": 21
+    },
+    "maxhp": 108.9855,
+    "meta": 18,
+    "ops": [
+     {
+      "elite": 2,
+      "id": "saria",
+      "prog": 6
+     },
+     {
+      "elite": 2,
+      "id": "irene",
+      "prog": 6
+     },
+     {
+      "elite": 2,
+      "id": "eyjafjalla",
+      "prog": 6
+     }
+    ],
+    "out": {
+     "判决": 8957.29065728164,
+     "刺剑": 75326.7131696065,
+     "剑气": 57593.7870821082,
+     "急救针剂": 12740.9543846611,
+     "手炮轰击": 8918.86567175313,
+     "技能连携·点燃·eyjafjalla": 1097.72820947896,
+     "技能连携·熔岩·eyjafjalla": 3385.49908528698,
+     "技能连携·补刺·irene": 3635.49809189458,
+     "拳击": 61529.5877608097,
+     "散射": 16005.8544443962,
+     "晶柱": 597.027192102146,
+     "晶簇": 4327.66022694801,
+     "火山": 2087.77765254911,
+     "火星": 15930.9711071045,
+     "点燃": 21636.0900366199,
+     "点燃弹": 18499.2430389309,
+     "熔岩": 711.84074399909,
+     "熔岩团": 9096.0469082586,
+     "熔岩弹": 78285.6583898088,
+     "熔池": 201.946865140314,
+     "终结技·saria·拳风": 34942.3224269155,
+     "终结技·saria·裂地": 122.450531994857,
+     "裂潮": 14284.6797170251,
+     "裂潮余波": 7401.12622053189,
+     "认知塑造": 10159.0335151664,
+     "起风": 16545.4428409848,
+     "追诉": 8819.53763898747,
+     "钙晶": 3468.45678738568,
+     "骑士": 27141.8600801838
+    },
+    "out_tag": {
+     "ally": 27141.8600801838,
+     "area": 178119.672030421,
+     "basic": 136856.300930416,
+     "charge": 16582.7840511081,
+     "control": 74270.5421454708,
+     "dot": 22549.8776457593,
+     "empowered": 7695.84379093214,
+     "entity": 4065.48397948783,
+     "follow_up": 16615.6546533212,
+     "growth": 147199.28305301,
+     "pierce": 91872.1560105914,
+     "projectile": 281752.156881772,
+     "skill": 134313.799217015,
+     "stab": 10559.0760290757,
+     "stun": 30643.0965948385,
+     "终结技": 70129.5459178208,
+     "连携": 16237.450773321
+    },
+    "out_type": {
+     "法术": 180193.832497552,
+     "物理": 308192.345021456,
+     "真实": 35064.7729589104
+    },
+    "prof": {},
+    "prog_log": [
+     [
+      24,
+      "saria",
+      1
+     ],
+     [
+      35,
+      "saria",
+      2
+     ],
+     [
+      51,
+      "saria",
+      3
+     ],
+     [
+      83,
+      "saria",
+      4
+     ],
+     [
+      117,
+      "saria",
+      5
+     ],
+     [
+      130,
+      "eyjafjalla",
+      1
+     ],
+     [
+      151,
+      "eyjafjalla",
+      2
+     ],
+     [
+      173,
+      "saria",
+      6
+     ],
+     [
+      192,
+      "eyjafjalla",
+      3
+     ],
+     [
+      228,
+      "eyjafjalla",
+      4
+     ],
+     [
+      269,
+      "eyjafjalla",
+      5
+     ],
+     [
+      273,
+      "irene",
+      1
+     ],
+     [
+      300,
+      "irene",
+      2
+     ],
+     [
+      341,
+      "irene",
+      3
+     ],
+     [
+      369,
+      "irene",
+      4
+     ],
+     [
+      370,
+      "irene",
+      5
+     ],
+     [
+      415,
+      "irene",
+      6
+     ],
+     [
+      455,
+      "eyjafjalla",
+      6
+     ]
+    ],
+    "prog_offer": {
+     "eyjafjalla": 8,
+     "irene": 10,
+     "saria": 7
+    },
+    "prog_pick": {
+     "eyjafjalla": 6,
+     "irene": 6,
+     "saria": 6
+    },
+    "recall_backstop": 0,
+    "recall_n": 73,
+    "recruit_offers": [
+     [
+      67,
+      "forced",
+      1
+     ],
+     [
+      95,
+      "recruit",
+      2
+     ],
+     [
+      300,
+      "swap",
+      3
+     ],
+     [
+      415,
+      "swap",
+      3
+     ],
+     [
+      455,
+      "swap",
+      3
+     ]
+    ],
+    "rej": {},
+    "relic_offer": [
+     [
+      115,
+      "choice",
+      [
+       "70",
+       "264",
+       "256"
+      ],
+      "event"
+     ],
+     [
+      115,
+      "choice",
+      [
+       "196",
+       "63",
+       "77"
+      ],
+      "event"
+     ],
+     [
+      120,
+      "shop",
+      [
+       "206",
+       "101",
+       "55"
+      ]
+     ],
+     [
+      270,
+      "choice",
+      [
+       "176",
+       "11",
+       "124",
+       "130",
+       "208"
+      ],
+      "boss"
+     ],
+     [
+      302,
+      "shop",
+      [
+       "22",
+       "188",
+       "258"
+      ]
+     ],
+     [
+      460,
+      "choice",
+      [
+       "190",
+       "9",
+       "145",
+       "112",
+       "62"
+      ],
+      "boss"
+     ]
+    ],
+    "relic_out": 0.0,
+    "relic_take": [
+     [
+      115,
+      "256",
+      [
+       "重装",
+       "近卫",
+       "术师"
+      ],
+      "choice:event"
+     ],
+     [
+      115,
+      "196",
+      [
+       "重装",
+       "近卫",
+       "术师"
+      ],
+      "choice:event"
+     ],
+     [
+      123,
+      "206",
+      [
+       "重装",
+       "近卫",
+       "术师"
+      ],
+      "shop"
+     ],
+     [
+      123,
+      "264",
+      [
+       "重装",
+       "近卫",
+       "术师"
+      ],
+      "relicfx"
+     ],
+     [
+      123,
+      "101",
+      [
+       "重装",
+       "近卫",
+       "术师"
+      ],
+      "shop"
+     ],
+     [
+      270,
+      "176",
+      [
+       "重装",
+       "近卫",
+       "术师"
+      ],
+      "choice:boss"
+     ],
+     [
+      270,
+      "222",
+      [
+       "重装",
+       "近卫",
+       "术师"
+      ],
+      "event"
+     ],
+     [
+      302,
+      "22",
+      [
+       "重装",
+       "近卫",
+       "术师"
+      ],
+      "shop"
+     ],
+     [
+      302,
+      "258",
+      [
+       "重装",
+       "近卫",
+       "术师"
+      ],
+      "shop"
+     ],
+     [
+      460,
+      "112",
+      [
+       "重装",
+       "近卫",
+       "术师"
+      ],
+      "choice:boss"
+     ],
+     [
+      462,
+      "71",
+      [
+       "重装",
+       "近卫",
+       "术师"
+      ],
+      "event"
+     ],
+     [
+      463,
+      "223",
+      [
+       "重装",
+       "近卫",
+       "术师"
+      ],
+      "knight"
+     ]
+    ],
+    "relics": 12,
+    "shield": {
+     "abs": 499.1,
+     "blocks": 22,
+     "every": 15.0,
+     "max": 1,
+     "peak": 1,
+     "src_int": [],
+     "src_max": [
+      {
+       "op": 0,
+       "scope": "",
+       "source": "meta",
+       "value": 1.0
+      }
+     ],
+     "t0": 0.0
+    },
+    "squad": [
+     "saria",
+     "irene",
+     "eyjafjalla"
+    ],
+    "study_events": [
+     [
+      "loss",
+      487.673999999917,
+      "mire",
+      71.0678197262028,
+      66.4330372262028,
+      4.6347825
+     ],
+     [
+      "loss",
+      488.465999999917,
+      "atk_founder",
+      81.9924220061028,
+      66.1247277557492,
+      15.8676942503536
+     ],
+     [
+      "loss",
+      490.511999999916,
+      "contact_founder",
+      90.0190345934492,
+      23.6163584091551,
+      66.4026761842941
+     ],
+     [
+      "contact",
+      490.511999999916,
+      1392,
+      false,
+      true,
+      -1,
+      false,
+      90.0190345934492,
+      23.6163584091551,
+      0.0,
+      0.0,
+      1,
+      0.0,
+      0,
+      false,
+      false,
+      181.499984741211,
+      44.8608779907227
+     ],
+     [
+      "loss",
+      490.511999999916,
+      "mire",
+      23.6163584091551,
+      18.9815759091551,
+      4.6347825
+     ],
+     [
+      "contact",
+      490.973999999916,
+      1392,
+      false,
+      true,
+      -1,
+      false,
+      22.672228983055,
+      22.672228983055,
+      0.0,
+      0.0,
+      0,
+      0.0,
+      0,
+      true,
+      false,
+      99.8249969482422,
+      54.4510726928711
+     ],
+     [
+      "loss",
+      491.171999999916,
+      "shock_founder",
+      26.050252023655,
+      -21.4779107323471,
+      47.5281627560021
+     ]
+    ],
+    "sus": {
+     "m0": {
+      "clean": {},
+      "dr": {
+       "saria": 5.90241104522475
+      },
+      "heal": {
+       "击杀回复": [
+        1.33824146157257,
+        14.5314
+       ],
+       "塞雷娅": [
+        16.845558498387,
+        401.8339062
+       ],
+       "拾取": [
+        0.0,
+        97.8075
+       ],
+       "终结技·saria": [
+        0.0,
+        7.2657
+       ],
+       "针剂回流": [
+        3.80038870210933,
+        3.80038870210933
+       ]
+      },
+      "lit": 0.0
+     },
+     "m3": {
+      "clean": {},
+      "dr": {
+       "saria": 49.2096120442789
+      },
+      "heal": {
+       "击杀回复": [
+        16.417812459901,
+        52.31304
+       ],
+       "塞雷娅": [
+        192.305529617029,
+        585.86536008
+       ],
+       "拾取": [
+        0.0,
+        170.74395
+       ],
+       "针剂回流": [
+        40.1154733398655,
+        42.9889140408015
+       ]
+      },
+      "lit": 0.0
+     },
+     "m6": {
+      "clean": {},
+      "dr": {
+       "saria": 108.847750034945
+      },
+      "heal": {
+       "击杀回复": [
+        29.6388033867053,
+        50.351301
+       ],
+       "塞雷娅": [
+        259.476735706191,
+        466.58799239715
+       ],
+       "拾取": [
+        0.0179826075000022,
+        94.817385
+       ],
+       "终结技·saria": [
+        0.0,
+        6.53913
+       ],
+       "针剂回流": [
+        60.1386878213765,
+        61.63723530144
+       ]
+      },
+      "lit": 0.0
+     }
+    },
+    "swaps": [],
+    "t": 491,
+    "tel": "full",
+    "terrain": {
+     "bul": 6,
+     "dash": 0,
+     "ebul": 27
+    },
+    "ult": {
+     "combo": 7,
+     "combo_auto": 7,
+     "combo_up": 0,
+     "cult": 0,
+     "cult_times": [],
+     "e_combo": 4.6,
+     "e_hurt": 12.5,
+     "e_kill": 59.2,
+     "e_out": 180.0,
+     "first_full": 153.8,
+     "full_times": [
+      153.8,
+      330.9
+     ],
+     "hit_n": 55,
+     "idle_full_s": 45.0,
+     "link_by": {
+      "eyjafjalla": 3,
+      "irene": 4
+     },
+     "lit": 7,
+     "lit_by": {},
+     "miss": 0,
+     "ult": 2,
+     "ult_times": [
+      167.9,
+      361.8
+     ]
+    },
+    "win": false,
+    "xp_backstop": 0.0,
+    "xp_dropped": 7158.9,
+    "xp_ground": 977.2,
+    "xp_magnet": 1787.9,
+    "xp_magnet_min": [
+     12.5,
+     0.0,
+     177.4,
+     172.1,
+     277.9,
+     20.0,
+     689.3,
+     438.8
+    ],
+    "xp_recall": 1519.5,
+    "xp_recall_min": [
+     0.0,
+     37.5,
+     2.5,
+     80.5,
+     154.4,
+     236.3,
+     408.8,
+     459.5,
+     140.0
+    ],
+    "xp_total": 6181.8,
+    "xp_total_min": [
+     152.5,
+     342.5,
+     483.8,
+     492.9,
+     1017.6,
+     640.7,
+     1413.1,
+     1418.3,
+     220.5
+    ],
+    "xp_walk": 2874.3,
+    "xp_walk_min": [
+     140.0,
+     305.0,
+     303.9,
+     240.3,
+     585.3,
+     384.4,
+     315.0,
+     520.0,
+     80.5
+    ]
+   }
+  }
+ ]
+}
