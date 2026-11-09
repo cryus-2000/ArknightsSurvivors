@@ -210,7 +210,7 @@ def _cdp_setup(port, url, throttle, mobile, throttle_late=False, dpr=3, vw=844, 
     return s   # 连接留着：断开后节流会失效
 
 
-def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False, dpr=3):
+def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False, dpr=3, win="1280x720", scale=0.0):
     d = export(ref)
     log_p = os.path.join(d, "out_%s.txt" % tag)
     open(log_p, "w").close()
@@ -250,11 +250,12 @@ def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False, dp
             s2.bind(("127.0.0.1", 0))
             dbg = s2.getsockname()[1]
     p = subprocess.Popen([EDGE, "--user-data-dir=" + ud, "--app=" + ("about:blank" if emu else url), "--window-position=%d,%d" % (px, py),
-                          "--window-size=%s" % ("844,390" if mobile else "1280,720"),
+                          "--window-size=%s" % ("844,390" if mobile else ("%d,%d" % (int(win.split("x")[0]), int(win.split("x")[1]) + 40))),   # 电脑：+40 是 app 窗口标题栏，画布约等于 --win
                           "--no-first-run", "--no-default-browser-check", "--disable-background-timer-throttling", "--disable-renderer-backgrounding",
                           "--disable-backgrounding-occluded-windows", "--disable-features=CalculateNativeWinOcclusion", "--mute-audio",
                           "--autoplay-policy=no-user-gesture-required"]   # 音频上下文直接 running（仍静音），配乐电平自测读得到（docs/319 §12）
-                         + (["--remote-debugging-port=%d" % dbg] if emu else []) + (["--force_low_power_gpu"] if lowgpu else []))
+                         + (["--remote-debugging-port=%d" % dbg] if emu else []) + (["--force_low_power_gpu"] if lowgpu else [])
+                         + (["--force-device-scale-factor=%g" % scale] if scale > 0 and not mobile else []))
     late = bool(throttle) and "--rtfrom" in " ".join(game_args)   # 后期场景：快进段不节流，看到 PF RTFROM 再开
     cdp = _cdp_setup(dbg, url, throttle, mobile, late, dpr) if emu else None
     t0 = time.time()
@@ -351,12 +352,14 @@ def main():
     ap.add_argument("--throttle", type=float, default=0, help="低配模拟：CPU 节流倍数（DevTools，4 / 6）")
     ap.add_argument("--mobile", action="store_true", help="低配模拟：手机横屏视口 844×390、3 倍像素、触屏、安卓 UA")
     ap.add_argument("--dpr", type=float, default=3, help="手机视口的设备像素比（iPhone 3、中低端安卓 2）")
+    ap.add_argument("--win", default="1280x720", help="电脑窗口（画布）大小 WxH，如 1514x720（docs/319 §18）")
+    ap.add_argument("--scale", type=float, default=0, help="电脑缩放（Windows 显示缩放，如 1.25）：--force-device-scale-factor")
     ap.add_argument("--lowgpu", action="store_true", help="低配模拟：Edge 用核显（--force_low_power_gpu）")
     a = ap.parse_args(argv)
     if a.cmd == "export":
         print(export(a.ref))
     else:
-        run(a.ref, a.tag, game_args, a.timeout, a.throttle, a.mobile, a.lowgpu, a.dpr)
+        run(a.ref, a.tag, game_args, a.timeout, a.throttle, a.mobile, a.lowgpu, a.dpr, a.win, a.scale)
 
 
 if __name__ == "__main__":

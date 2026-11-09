@@ -58,10 +58,65 @@ func _print_mem(tag: String) -> void:
 			2.0 * sc.cam.zoom.x * vp.get_final_transform().x.x, vp.get_visible_rect().size.y * vp.get_final_transform().x.x])
 	if tag == "game+5s" or tag.begins_with("t="):
 		_print_tex_breakdown()
+		if (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--texdump"):
+			_tex_dump(tag)
 
 
 var _memnew_prev := {}
 ## 贴图缓存（art.gd A._cache）按前缀分组的估算（宽 × 高 × 4 字节）与最大的 12 张
+## --texdump（测量用，docs/319 §18）：本时刻能找到的每张贴图一行 JSON（来源 / 名字 / 宽高 / MB），外加场景树里每个 SubViewport 的渲染目标；
+## 和 RENDER_TEXTURE_MEM_USED 的差额是没登记在这些缓存里的（直接 load() 的图、引擎内部缓冲等）
+func _tex_dump(tag: String) -> void:
+	var A = load("res://scripts/art.gd")
+	var rows: Array = []
+	var seen := {}
+	var add := func(src: String, name: String, t) -> void:
+		if not (t is Texture2D):
+			return
+		var id: int = t.get_instance_id()
+		if seen.has(id):
+			return
+		seen[id] = true
+		rows.append([src, name, t.get_width(), t.get_height()])
+	for n in A._cache:
+		add.call("A", str(n), A._cache[n])
+	for cname in ["_white_cache", "_mirror_cache"]:
+		var cd: Dictionary = A.get(cname)
+		for k in cd:
+			add.call(cname, str(k), cd[k])
+	var sc = get_tree().current_scene
+	if sc != null and "tex" in sc and sc.tex is Dictionary:
+		for n in sc.tex:
+			add.call("g.tex", str(n), sc.tex[n])
+		if "world" in sc and sc.world != null:
+			for k in sc.world._ol_cache:
+				add.call("outline", str(k), sc.world._ol_cache[k])
+			if sc.world.atlas != null:
+				add.call("atlas", "atlas_white", sc.world.atlas.tex_white)
+		if "map" in sc and sc.map != null:
+			for k in sc.map.ground_cache:
+				add.call("ground", str(k), sc.map.ground_cache[k][0])
+		for mname in ["ult_px_sd"]:
+			if sc.has_meta(mname):
+				var m = sc.get_meta(mname)
+				if m != null and "_cache" in m:
+					for k in m._cache:
+						add.call("ult", str(k), m._cache[k])
+	var vps: Array = []
+	var stack: Array = [get_tree().root]
+	while not stack.is_empty():
+		var nd: Node = stack.pop_back()
+		if nd is SubViewport:
+			var vp: SubViewport = nd
+			vps.append([str(nd.get_path()).substr(0, 80), vp.size.x, vp.size.y, int(vp.use_hdr_2d), int(vp.render_target_update_mode)])
+		for c in nd.get_children():
+			stack.append(c)
+	var tot: float = Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1048576.0
+	var buf: float = Performance.get_monitor(Performance.RENDER_BUFFER_MEM_USED) / 1048576.0
+	var rv: Vector2 = get_viewport().get_visible_rect().size
+	print("PF TEXDUMP " + JSON.stringify({"tag": tag, "tex": tot, "buf": buf, "root": [rv.x, rv.y], "win": DisplayServer.window_get_size(), "rows": rows, "vps": vps}))
+
+
 func _print_tex_breakdown() -> void:
 	var A = load("res://scripts/art.gd")
 	var groups := {}
