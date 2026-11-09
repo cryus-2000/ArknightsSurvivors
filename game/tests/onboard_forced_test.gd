@@ -200,8 +200,9 @@ func _ready() -> void:
 	click.button_index = MOUSE_BUTTON_LEFT
 	click.pressed = true
 	check(not ob.input(click), "小字提示不拦输入")
-	for tid in ["boss", "final", "duck", "merchant", "nodes"]:
+	for tid in ["boss", "final", "duck", "merchant"]:
 		check(ob.data.tips.has(tid) and ob.card(tid).has("title"), "没教过的提示有文案：" + tid)
+	check(not ob.data.tips.has("nodes") and not ob.data.cards.has("nodes"), "节点卡不再弹首次介绍（11-09 用户）")
 	# 4. 存档往返与旧档迁移
 	var saved: bool = Cfg.onboard_done
 	var cf := ConfigFile.new()

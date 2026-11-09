@@ -12,7 +12,7 @@
  },
  "drill": ["move", "xp", "recruit", "link", "ult", "deploy", "regroup", "lamp", "beacon", "focus", "drill_end"],
  "drill_vet": ["recruit", "link", "ult", "deploy", "regroup", "lamp", "beacon", "focus", "drill_end"],
- "tips": ["lamp", "merchant", "boss", "final", "duck", "squad", "command", "ult", "link", "mire", "nodes"],
+ "tips": ["lamp", "merchant", "boss", "final", "duck", "squad", "command", "ult", "link", "mire"],
  "cards": {
   "move": {"title": "移动", "en": "MOVE", "text": "WASD 移动，空格冲刺（冲刺中无敌），攻击会自动打出去。", "touch": "按住左半屏拖动移动，点冲刺键冲刺（冲刺中无敌），攻击会自动打出去。", "hint": "走动一下"},
   "xp": {"title": "经验与升级", "en": "LEVEL UP", "text": "拾取经验结晶，经验条满了就升级，三张卡里选一张。", "hint": "捡起附近的经验结晶"},
@@ -30,7 +30,6 @@
   "beacon": {"title": "引航灯标", "en": "BEACON", "text": "灯标亮起前是灰色的。走进它的光圈，停留约 3 秒点燃：圈内溟痕退散，灯火 +5，30 秒内在灯标附近回复和攻速提升。", "hint": "点燃引航灯标"},
   "focus": {"title": "精英 · 集火", "en": "ELITE", "text": "精英带金色光环与血条，击败掉落源石锭、有概率掉落宝箱；按 {cmd} 打开指挥圆盘选「集火」，点中它，全队集中攻击。", "touch": "精英带金色光环与血条，击败掉落源石锭、有概率掉落宝箱；点「指挥」键打开圆盘选「集火」，点中它，全队集中攻击。", "hint": "对精英下达集火", "hint_after": "已下达集火"},
   "mire": {"title": "溟痕与引航灯标", "en": "BEACON", "text": "溟痕会减速并持续造成伤害。站在引航灯标旁将其点燃，可以驱散溟痕。", "hint": "点燃一座引航灯标", "toast": "溟痕会减速并持续造成伤害，点燃附近的引航灯标可以驱散。"},
-  "nodes": {"title": "节点卡", "en": "NODES", "text": "中 Boss 倒下后翻节点卡：三张选一张，翻开即生效。", "hint": "", "toast": "中 Boss 倒下后翻节点卡：三张选一张，翻开即生效。"},
   "final": {"title": "最终 Boss", "en": "FINAL", "text": "最终 Boss 登场后不再刷新其他海嗣，击败它即完成探索。", "hint": "", "toast_only": true},
   "duck": {"title": "鸭爵", "en": "DUCK", "text": "鸭爵不攻击，受到攻击后越跑越快，30 秒内没被击倒就会溜走；击倒必得 1 件藏品。", "hint": "", "toast_only": true}
  }

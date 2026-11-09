@@ -58,6 +58,61 @@ func _edge(vs: Vector2, sp: Vector2, m: float) -> Vector2:
 	return c + d * minf(absf((r.size.x / 2.0) / maxf(absf(d.x), 0.01)), absf((r.size.y / 2.0) / maxf(absf(d.y), 0.01)))
 
 
+## 屏外指示让开的东西（11-09 截图：手机鸭爵指示的「鸭爵 29m」压在「指挥」键上、宝箱指示压在左下声呐上）：触屏按键（摇杆除外）与声呐小地图
+func _obstacles(vs: Vector2) -> Array:
+	var out: Array = []
+	var mrad: float = 58.0 if Cfg.phone_ui() else 78.0   # 同 hud_bars.draw_minimap
+	var mc := Vector2(16 + mrad + 8, vs.y - mrad - 24)
+	out.append(Rect2(mc - Vector2(mrad, mrad + 14), Vector2(mrad * 2.0, mrad * 2.0 + 14)))
+	if g.touch != null and g.touch.active:
+		for b in g.touch.btn_rects:   # 上一帧实际画出的按键矩形（touch.draw_hud 填；指示层先画、按键层后画，读到的是上一帧的）
+			if b[0] is Rect2:
+				out.append((b[0] as Rect2).grow(4.0))
+	return out
+
+
+## 指示（含名字一行）的占位：圆半径 rad，名字在圆上方或下方
+func _ptr_box(vs: Vector2, edge: Vector2, rad: float) -> Rect2:
+	var up: bool = edge.y > vs.y / 2
+	return Rect2(edge.x - maxf(rad, 80.0), edge.y - rad - (30.0 if up else 0.0), maxf(rad, 80.0) * 2.0, rad * 2.0 + 30.0)
+
+
+## 名字一行放哪：先按老规矩（圆在上半屏放下方、下半屏放上方），压到按键 / 小地图就换另一侧，再不行放在圆朝屏幕中间的那一侧。
+## 返回 UI.text 的位置（宽 w、居中对齐）
+func _label_at(vs: Vector2, edge: Vector2, rad: float, w: float) -> Vector2:
+	var obs: Array = _obstacles(vs)
+	var below := Vector2(edge.x - w / 2.0, edge.y + rad + 34.0)
+	var above := Vector2(edge.x - w / 2.0, edge.y - rad - 18.0)
+	var side := Vector2((edge.x - rad - 12.0 - w) if edge.x > vs.x / 2.0 else (edge.x + rad + 12.0), edge.y + 6.0)
+	var cands: Array = [above, below] if edge.y > vs.y / 2 else [below, above]
+	cands.append(side)
+	for p in cands:
+		var r := Rect2(p + Vector2(0, -16), Vector2(w, 22))
+		if Rect2(Vector2.ZERO, vs).encloses(r) and not obs.any(func(o): return o.intersects(r)):
+			return p
+	return cands[0]
+
+
+## 压到按键 / 小地图时沿所在的屏幕边挪开（先往屏幕中段方向，最多挪 8 步）
+func _dodge(vs: Vector2, edge: Vector2, rad: float, m: float) -> Vector2:
+	var obs: Array = _obstacles(vs)
+	var hit := func(p: Vector2) -> bool:
+		var bx: Rect2 = _ptr_box(vs, p, rad)
+		return obs.any(func(o): return o.intersects(bx))
+	if not hit.call(edge):
+		return edge
+	var side_lr: bool = absf(edge.x - vs.x / 2.0) / vs.x > absf(edge.y - vs.y / 2.0) / vs.y
+	var tn: Vector2 = Vector2(0, 1) if side_lr else Vector2(1, 0)
+	var lo := Vector2(m, m)
+	var hi := vs - Vector2(m, m + _console_lift(vs))
+	for step in range(1, 9):
+		for sgn in ([1.0, -1.0] if (edge.dot(tn) < (vs / 2.0).dot(tn)) else [-1.0, 1.0]):
+			var p: Vector2 = (edge + tn * sgn * 40.0 * step).clamp(lo, hi)
+			if not hit.call(p):
+				return p
+	return edge
+
+
 func draw_merchant_pointer(vs: Vector2, ct: Transform2D) -> void:
 	# 商人方向指示
 	if not g.merchant.is_empty():
@@ -113,8 +168,10 @@ func _preview_line(at: Vector2, vs: Vector2) -> void:
 	UI.text(g.hud, g.font, Vector2(x, y), pv, 13, Color(1.0, 0.9, 0.6), HORIZONTAL_ALIGNMENT_CENTER, w, 3)
 
 
-## 鸭爵屏外指示（docs/216 §11，用户 11-03：只要箭头，不弹横幅）：跑出画面时屏幕边缘一枚金色箭头指向它，脉动；画面内不画
+## 鸭爵屏外指示（docs/216 §11；11-09 用户「只有一个小箭头，太不显眼」）：同中期 Boss 屏外指示（_big_pointer）——边缘双圈脉动 + 鸭爵头像 + 外侧箭头 +「鸭爵 Nm」；
+## 颜色用金色和 Boss 的洋红区分。仍不弹横幅（11-03 口径），出现时有音效；画面内不画
 const DUCK_PTR_COL := Color(1.0, 0.86, 0.4)
+
 
 func draw_duck_pointer(vs: Vector2, ct: Transform2D) -> void:
 	if g.state != Game.S.PLAY:
@@ -123,19 +180,52 @@ func draw_duck_pointer(vs: Vector2, ct: Transform2D) -> void:
 	if e.is_empty():
 		return
 	var sp: Vector2 = ct * e.pos
-	if Rect2(Vector2(24, 24), vs - Vector2(48, 48)).has_point(sp):
+	if Rect2(Vector2(40, 40), vs - Vector2(80, 80)).has_point(sp):
 		return
-	var c := vs / 2.0
-	var d := (sp - c).normalized()
-	var edge: Vector2 = _edge(vs, sp, 40.0)
-	d = (sp - edge).normalized()
-	var pulse := 0.5 + 0.5 * sin(g.t * 8.0)
-	var tip: Vector2 = edge + d * (16.0 + 5.0 * pulse)
-	var base: Vector2 = edge - d * 10.0
-	var sd := d.orthogonal() * 14.0
-	var notch: Vector2 = edge - d * 2.0
-	g.hud.draw_colored_polygon(PackedVector2Array([tip + d * 3.0, base + sd * 1.25 - d * 2.0, notch - d * 2.0, base - sd * 1.25 - d * 2.0]), Color(0.05, 0.04, 0.02, 0.7))
-	g.hud.draw_colored_polygon(PackedVector2Array([tip, base + sd, notch, base - sd]), DUCK_PTR_COL.lerp(Color.WHITE, 0.35 * pulse))
+	var edge: Vector2 = _edge(vs, sp, 72.0)
+	for b in h.bars.hostile_boss_bars():   # 和 Boss 指示同一方向时沿屏幕边挪开
+		var bs: Vector2 = _edge(vs, ct * b.pos, 72.0)
+		if bs.distance_to(edge) < 76.0:
+			var tn: Vector2 = Vector2(0, 1) if absf(edge.x - vs.x / 2.0) > absf(edge.y - vs.y / 2.0) * vs.x / vs.y else Vector2(1, 0)
+			edge = (edge + tn * 80.0).clamp(Vector2(72, 72), vs - Vector2(72, 72 + _console_lift(vs)))
+	edge = _dodge(vs, edge, 40.0, 72.0)
+	_big_pointer(vs, edge, (sp - edge).normalized(), str(e.get("tex", "e_duck")), "%s  %dm" % [D.ENEMIES.get("duck", {}).get("name", "鸭爵"), int((e.pos as Vector2).distance_to(g.ppos) / 32.0)], DUCK_PTR_COL)
+
+
+## 宝箱屏外指示（11-09 用户「精英宝箱提示要更明显，手机上也要一眼看到」）：宝箱在画面外时屏幕边缘一枚金圈（脉动）+ 宝箱小图 + 外侧箭头 +「宝箱 Nm」；
+## 画面内不画（地上有金色地圈与光柱，render/world._pq_item）
+const CHEST_PTR_COL := Color(1.0, 0.8, 0.35)
+
+
+func draw_chest_pointers(vs: Vector2, ct: Transform2D) -> void:
+	if g.state != Game.S.PLAY:
+		return
+	var tx: Texture2D = g.tex.get("chest")
+	var pulse := 0.5 + 0.5 * sin(g.t * 6.0)
+	var n := 0
+	for it in g.gems:
+		if it.dead or it.kind != "chest":
+			continue
+		var sp: Vector2 = ct * (it.pos as Vector2)
+		if Rect2(Vector2(24, 24), vs - Vector2(48, 48)).has_point(sp):
+			continue
+		n += 1
+		if n > 3:
+			break
+		var edge: Vector2 = _dodge(vs, _edge(vs, sp, 52.0), 30.0, 52.0)
+		var d: Vector2 = (sp - edge).normalized()
+		g.hud.draw_circle(edge, 28.0 + 4.0 * pulse, Color(CHEST_PTR_COL.r, CHEST_PTR_COL.g, CHEST_PTR_COL.b, 0.16))
+		g.hud.draw_circle(edge, 22.0, Color(0.06, 0.05, 0.03, 0.88))
+		g.hud.draw_arc(edge, 22.0, 0.0, TAU, 28, CHEST_PTR_COL, 2.0)
+		if tx != null:
+			var k: float = floorf(30.0 / float(tx.get_width()))
+			var sz := Vector2(tx.get_width(), tx.get_height()) * maxf(1.0, k)
+			g.hud.draw_texture_rect(tx, Rect2((edge - sz * 0.5).round(), sz), false)
+		var tip: Vector2 = edge + d * (36.0 + 5.0 * pulse)
+		var base: Vector2 = edge + d * 26.0
+		var sd := d.orthogonal() * 10.0
+		g.hud.draw_colored_polygon(PackedVector2Array([tip, base + sd, base - sd]), CHEST_PTR_COL)
+		UI.text(g.hud, g.font, _label_at(vs, edge, 22.0, 120.0), "宝箱  %dm" % int((it.pos as Vector2).distance_to(g.ppos) / 32.0), 13, CHEST_PTR_COL, HORIZONTAL_ALIGNMENT_CENTER, 120, 3)
 
 
 ## 磁铁屏外指示（docs/284 §2 A，11-06 用户「磁铁在地图上要能看见」）：磁铁在画面外时屏幕边缘一枚深色小圈，里面是磁铁贴图，
@@ -248,26 +338,31 @@ func draw_boss_pointers(vs: Vector2, ct: Transform2D) -> void:
 			var tn: Vector2 = Vector2(0, 1) if absf(edge.x - vs.x / 2.0) > absf(edge.y - vs.y / 2.0) * vs.x / vs.y else Vector2(1, 0)
 			edge = (edge + tn * 80.0).clamp(Vector2(72, 72), vs - Vector2(72, 72 + _console_lift(vs)))
 			tries += 1
+		edge = _dodge(vs, edge, 40.0, 72.0)
+		d = (sp - edge).normalized()
 		placed.append(edge)
-		var pulse := 0.5 + 0.5 * sin(g.t * 7.0)
-		g.hud.draw_circle(edge, 36.0 + 5.0 * pulse, Color(BOSS_PTR_COL.r, BOSS_PTR_COL.g, BOSS_PTR_COL.b, 0.14))
-		g.hud.draw_circle(edge, 28.0, Color(0.07, 0.02, 0.04, 0.88))
-		g.hud.draw_arc(edge, 28.0, 0.0, TAU, 32, BOSS_PTR_COL, 2.0)
-		g.hud.draw_arc(edge, 32.0, 0.0, TAU, 32, Color(BOSS_PTR_COL.r, BOSS_PTR_COL.g, BOSS_PTR_COL.b, 0.35 + 0.4 * pulse), 1.0)
-		var bt: Texture2D = g.tex.get(b.tex)
-		if bt != null:
-			var fw: int = bt.get_width() / 2   # 敌人常态帧条固定 2 帧（同 world 画敌人）
-			var k: float = minf(44.0 / float(fw), 44.0 / float(bt.get_height()))
-			k = floorf(k) if k >= 1.0 else k
-			var sz := Vector2(fw, bt.get_height()) * k
-			g.hud.draw_texture_rect_region(bt, Rect2((edge - sz * 0.5).round(), sz), Rect2(0, 0, fw, bt.get_height()))
-		var tip: Vector2 = edge + d * (46.0 + 6.0 * pulse)
-		var base: Vector2 = edge + d * 33.0
-		var sd := d.orthogonal() * 12.0
-		g.hud.draw_colored_polygon(PackedVector2Array([tip, base + sd, base - sd]), BOSS_PTR_COL)
-		var nm: String = D.ENEMIES.get(b.type, {}).get("name", "Boss")
-		var lab_y := -46.0 if edge.y > vs.y / 2 else 62.0
-		UI.text(g.hud, g.font, edge + Vector2(-80, lab_y), "%s  %dm" % [nm, int(b.pos.distance_to(g.ppos) / 32.0)], 13, BOSS_PTR_COL, HORIZONTAL_ALIGNMENT_CENTER, 160, 3)
+		_big_pointer(vs, edge, d, b.tex, "%s  %dm" % [D.ENEMIES.get(b.type, {}).get("name", "Boss"), int(b.pos.distance_to(g.ppos) / 32.0)], BOSS_PTR_COL)
+
+
+## Boss / 鸭爵共用的屏外大指示：双圈脉动 + 常态帧头像（≤ 44）+ 外侧箭头 + 名字与距离
+func _big_pointer(vs: Vector2, edge: Vector2, d: Vector2, tex_name: String, label: String, col: Color) -> void:
+	var pulse := 0.5 + 0.5 * sin(g.t * 7.0)
+	g.hud.draw_circle(edge, 36.0 + 5.0 * pulse, Color(col.r, col.g, col.b, 0.14))
+	g.hud.draw_circle(edge, 28.0, Color(0.07, 0.02, 0.04, 0.88))
+	g.hud.draw_arc(edge, 28.0, 0.0, TAU, 32, col, 2.0)
+	g.hud.draw_arc(edge, 32.0, 0.0, TAU, 32, Color(col.r, col.g, col.b, 0.35 + 0.4 * pulse), 1.0)
+	var bt: Texture2D = g.tex.get(tex_name)
+	if bt != null:
+		var fw: int = bt.get_width() / 2 if bt.get_width() >= bt.get_height() * 2 else bt.get_width()   # 敌人常态帧条 2 帧（同 world 画敌人）；鸭爵 e_duck 单帧
+		var k: float = minf(44.0 / float(fw), 44.0 / float(bt.get_height()))
+		k = floorf(k) if k >= 1.0 else k
+		var sz := Vector2(fw, bt.get_height()) * k
+		g.hud.draw_texture_rect_region(bt, Rect2((edge - sz * 0.5).round(), sz), Rect2(0, 0, fw, bt.get_height()))
+	var tip: Vector2 = edge + d * (46.0 + 6.0 * pulse)
+	var base: Vector2 = edge + d * 33.0
+	var sd := d.orthogonal() * 12.0
+	g.hud.draw_colored_polygon(PackedVector2Array([tip, base + sd, base - sd]), col)
+	UI.text(g.hud, g.font, _label_at(vs, edge, 28.0, 160.0), label, 13, col, HORIZONTAL_ALIGNMENT_CENTER, 160, 3)
 
 
 ## 伊祖米克全场地波（act izu_wave，r 2400 圈在屏幕外看不到）：屏幕边缘白 / 洋红光脉动收紧 + 中央提示和倒计时 + 冲刺图标
