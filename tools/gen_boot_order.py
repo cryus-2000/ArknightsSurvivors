@@ -59,7 +59,7 @@ def deps(p):
     return EXT_RES.findall(src)
 
 
-def build():
+def ordered_dependencies(start):
     """叶子在前；互相 preload 的一圈脚本（强连通分量，game.gd 与它的各模块约 40 个）读其中任何一个都会整圈一起编译，
     所以按分量排：一个分量排在它依赖的所有分量之后（Tarjan 的输出顺序正是这样），圈外的依赖先一个个读完，
     整圈只占一项、标 heavy（启动页先把「正在读什么」画出来再读；网页没有线程，这一项会卡一下）。
@@ -75,7 +75,7 @@ def build():
             walk(d)
 
     sys.setrecursionlimit(10000)
-    walk(START)
+    walk(start)
     index, low, stack, on, comps, c = {}, {}, [], set(), [], [0]
 
     def strong(v):
@@ -99,32 +99,40 @@ def build():
                     break
             comps.append(comp)
 
-    strong(START)
+    strong(start)
     items = []
     for comp in comps:
-        if START in comp:
+        if start in comp:
             continue   # main.tscn 由启动页最后读，读完就建标题页
         if len(comp) == 1:
             items.append([comp[0], label(comp[0])])
             continue
         hub = "res://scripts/game.gd" if "res://scripts/game.gd" in comp else sorted(comp)[0]
         items.append([hub, label(hub), "heavy"])   # 读它就整圈编译；其余成员已在缓存，不再单列
+    return items
+
+
+def build():
+    items = ordered_dependencies(START)
     return {"_doc": "启动页预读顺序（tools/gen_boot_order.py 生成，叶子在前、互相引用的一圈合成一项；勿手改）", "items": items}
 
 
 def main():
-    data = build()
+    operator_only = "--operators" in sys.argv
+    path = os.path.join(GAME, "data", "boot_operator_order.json") if operator_only else OUT
+    data = ordered_dependencies("res://scripts/characters/data_operator.gd") if operator_only else build()
+    count = len(data if operator_only else data['items'])
     text = json.dumps(data, ensure_ascii=False, indent=0) + "\n"
     if "--check" in sys.argv:
-        cur = open(OUT, encoding="utf-8").read() if os.path.exists(OUT) else ""
+        cur = open(path, encoding="utf-8").read() if os.path.exists(path) else ""
         if cur != text:
-            print("boot_order.json 过期：python tools/gen_boot_order.py")
+            print(f"{path} 过期")
             sys.exit(1)
-        print("boot_order.json 最新（%d 项）" % len(data["items"]))
+        print(f"{path} 最新（{count} 项）")
         return
-    with open(OUT, "w", encoding="utf-8", newline="\n") as fh:
+    with open(path, "w", encoding="utf-8", newline="\n") as fh:
         fh.write(text)
-    print("写入 %s：%d 项" % (OUT, len(data["items"])))
+    print(f"写入 {path}：{count} 项")
 
 
 if __name__ == "__main__":

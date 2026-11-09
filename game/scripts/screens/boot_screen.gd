@@ -24,7 +24,9 @@ const FR = preload("res://scripts/core/frame_rec.gd")
 const ORDER := "res://data/boot_order.json"
 const OP_SCRIPT := "res://scripts/characters/data_operator.gd"
 const MAIN := "res://main.tscn"
-const BUDGET_USEC := 30000   # 每帧最多读多久（单个脚本超过也只读这一个）
+var _operator_deps: Array[Resource] = []
+var _operator_end := 0
+const BUDGET_USEC := 5000   # 每帧最多读多久（单个脚本超过也只读这一个）
 const CYAN := Color(0.369, 0.902, 0.902)
 const TEXT := Color(0.949, 0.957, 0.961)
 const DIM := Color(0.5, 0.6, 0.65)
@@ -150,6 +152,11 @@ func _ready() -> void:
 	# 编完挂在场景树上留住（同 title.gd 的 op_script_ 键），载入页直接命中
 	if Bal.vi("web/boot_op_script", 1) > 0:   # 11-08 用户口径：全平台（桌面在后台线程编译，进局时同样直接命中）
 		items.insert(0, [OP_SCRIPT, "干员", "heavy"])
+		if OS.has_feature("web"):
+			var operator_items = JSON.parse_string(FileAccess.get_file_as_string("res://data/boot_operator_order.json"))
+			if operator_items is Array:
+				_operator_end = operator_items.size()
+				items = operator_items + items
 	tip_i = randi() % Tips.TIPS.size()
 	_threads = OS.has_feature("threads") and not OS.has_feature("web")
 	_v = clampi(Bal.vi("ui/boot_v", 0), 0, 4)
@@ -259,8 +266,11 @@ func _step_sync() -> void:
 		if ResourceLoader.exists(cur_path):
 			var l0 := Time.get_ticks_usec()
 			var lr = load(cur_path)
+			if idx < _operator_end and lr != null:
+				_operator_deps.append(lr)
 			if cur_path == OP_SCRIPT and lr != null:
 				get_tree().set_meta("op_script_" + OP_SCRIPT.get_file().get_basename(), lr)
+				_operator_deps.clear()
 			_ml("boot:" + cur_path)   # --memlive：堆里在用的涨了 ≥ 1 MB 就记是读哪个文件时涨的（docs/319 §15）
 			if FR.enabled() and Time.get_ticks_usec() - l0 > 40000:
 				print("PF FTLOAD %s %.0f ms" % [cur_path, (Time.get_ticks_usec() - l0) / 1000.0])
