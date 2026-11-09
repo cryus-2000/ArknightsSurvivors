@@ -60,6 +60,8 @@ func _print_mem(tag: String) -> void:
 		_print_tex_breakdown()
 		if (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--texdump"):
 			_tex_dump(tag)
+		if (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--texwalk"):
+			_tex_walk(tag)
 
 
 var _memnew_prev := {}
@@ -115,6 +117,107 @@ func _tex_dump(tag: String) -> void:
 	var buf: float = Performance.get_monitor(Performance.RENDER_BUFFER_MEM_USED) / 1048576.0
 	var rv: Vector2 = get_viewport().get_visible_rect().size
 	print("PF TEXDUMP " + JSON.stringify({"tag": tag, "tex": tot, "buf": buf, "root": [rv.x, rv.y], "win": DisplayServer.window_get_size(), "rows": rows, "vps": vps}))
+
+
+## --texwalk（测量用，docs/319 §23）：从场景树每个节点出发，沿脚本变量（字典 / 数组 / 对象，最多 6 层）找所有还被引用的贴图，
+## 按「最先找到它的顶层模块」归类（同一张只算一次），另外单列 Art 静态缓存与节点自带贴图（TextureRect / Sprite 等）。
+## 打 PF TEXWALK 一行 JSON：各模块 MB / 张数 + 前 40 张最大的（路径、尺寸）；和引擎贴图总量的差就是找不到引用的（引擎内部 / 字体等）
+var _tw_seen := {}
+var _tw_mod := {}
+var _tw_top: Array = []
+
+func _tw_add(t: Texture2D, mod: String, path: String) -> void:
+	var id := t.get_instance_id()
+	if _tw_seen.has(id):
+		return
+	_tw_seen[id] = true
+	var mb: float = t.get_width() * t.get_height() * 4.0 / 1048576.0
+	var m: Array = _tw_mod.get(mod, [0.0, 0])
+	m[0] += mb
+	m[1] += 1
+	_tw_mod[mod] = m
+	_tw_top.append([mb, path.substr(0, 90), t.get_width(), t.get_height()])
+
+
+func _tw_val(v, mod: String, path: String, depth: int, budget: Array) -> void:
+	if budget[0] <= 0:
+		return
+	budget[0] -= 1
+	if v is Texture2D:
+		_tw_add(v, mod, path)
+	elif v is Dictionary:
+		if depth <= 0:
+			return
+		for k in v:
+			_tw_val(v[k], mod, path + "[" + str(k).substr(0, 40) + "]", depth - 1, budget)
+	elif v is Array:
+		if depth <= 0:
+			return
+		var i := 0
+		for x in v:
+			_tw_val(x, mod, path + "[" + str(i) + "]", depth - 1, budget)
+			i += 1
+			if i > 4000:
+				break
+	elif v is Object and is_instance_valid(v) and not (v is Node):
+		if depth <= 0 or _tw_seen.has(v.get_instance_id()):
+			return
+		_tw_seen[v.get_instance_id()] = true
+		_tw_obj(v, mod, path, depth - 1, budget)
+
+
+func _tw_obj(o: Object, mod: String, path: String, depth: int, budget: Array) -> void:
+	for p in o.get_property_list():
+		if int(p.usage) & PROPERTY_USAGE_SCRIPT_VARIABLE == 0:
+			continue
+		var v = o.get(p.name)
+		if v == null or v is Node:
+			continue
+		var sub: String = mod if mod != "" else str(p.name)
+		_tw_val(v, sub, path + "." + str(p.name), depth, budget)
+
+
+func _tex_walk(tag: String) -> void:
+	_tw_seen = {}
+	_tw_mod = {}
+	_tw_top = []
+	var budget := [3000000]
+	var A = load("res://scripts/art.gd")
+	for n in A._cache:
+		if A._cache[n] is Texture2D:
+			_tw_add(A._cache[n], "Art 缓存", "A._cache[" + str(n) + "]")
+	for cname in ["_white_cache", "_mirror_cache"]:
+		var cd: Dictionary = A.get(cname)
+		for k in cd:
+			if cd[k] is Texture2D:
+				_tw_add(cd[k], "Art " + cname, "A." + cname)
+	var sc = get_tree().current_scene
+	var stack: Array = [get_tree().root]
+	while not stack.is_empty():
+		var nd: Node = stack.pop_back()
+		for pn in ["texture", "texture_normal", "icon"]:
+			var tv = nd.get(pn) if pn in nd else null
+			if tv is Texture2D:
+				_tw_add(tv, "节点自带", str(nd.get_path()).substr(0, 70))
+		if nd.get_script() != null:
+			var base: String = "g" if nd == sc else str(nd.name)
+			if nd == sc:
+				_tw_obj(nd, "", "g", 6, budget)   # 对局：每个顶层变量算一个模块
+			else:
+				_tw_obj(nd, base, base, 6, budget)
+		for c in nd.get_children():
+			stack.append(c)
+	var tot := 0.0
+	var mods := {}
+	for k in _tw_mod:
+		tot += float(_tw_mod[k][0])
+		mods[k] = [snappedf(_tw_mod[k][0], 0.1), _tw_mod[k][1]]
+	_tw_top.sort_custom(func(a, b): return a[0] > b[0])
+	var top: Array = []
+	for r in _tw_top.slice(0, 40):
+		top.append([snappedf(r[0], 0.01), r[1], r[2], r[3]])
+	var eng: float = Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1048576.0
+	print("PF TEXWALK " + JSON.stringify({"tag": tag, "t": sc.t if sc != null and "t" in sc else 0, "engine_tex": snappedf(eng, 0.1), "found": snappedf(tot, 0.1), "budget_left": budget[0], "mods": mods, "top": top}))
 
 
 func _print_tex_breakdown() -> void:
