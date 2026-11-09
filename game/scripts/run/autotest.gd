@@ -786,6 +786,8 @@ func _webshot_step() -> bool:
 
 
 func step() -> void:
+	_cdpshot_step()
+	_prof_dump()
 	g.at_frames += 1
 	if g.ult_bench == null and g.ult != null and g.mode == g.Mode.BALANCE and g.at_frames == 1:
 		for a in Cfg.dev_args():
@@ -1600,7 +1602,6 @@ func step() -> void:
 		if g.at_frames == 440 and DisplayServer.get_name() != "headless":
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_shop.png")
 			g.get_tree().quit()
-	_cdpshot_step()
 	if g.state == g.S.CHOICE:
 		choice_wait += 1
 		var cshots: bool = Cfg.dev_args().has("--choiceshots")   # 等卡片全部翻面再截，选卡也相应推迟
@@ -2459,3 +2460,33 @@ func _cdpshot_step() -> void:
 	print("PF CDPSHOT t%d" % int(sec))
 	Engine.time_scale = 0.0
 	g.get_tree().create_timer(3.0, true, false, true).timeout.connect(func(): Engine.time_scale = 1.0)
+
+
+## --prof 的网页版输出（网页测量副本只回传 PF 行，BALANCE 行里的 prof 回不来；docs/319 §20）：局内实时段每 10 个真实秒打一行
+## PF PROF t=<局内秒> fr=<帧数> 各段每帧平均毫秒（_pm 分段：engine = 上一帧结束到这一帧开始，含引擎渲染与各 _draw）
+var _pd_last := {}
+var _pd_us := 0
+var _pd_fr := 0
+func _prof_dump() -> void:
+	if not g.prof_on or not (g.rt_from < 0.0 or g.realtime):
+		return
+	_pd_fr += 1
+	var now := Time.get_ticks_usec()
+	if _pd_us == 0:
+		_pd_us = now
+		_pd_last = g.prof.duplicate()
+		_pd_fr = 0
+		return
+	if now - _pd_us < 10000000:
+		return
+	var parts := PackedStringArray()
+	var ks: Array = g.prof.keys()
+	ks.sort_custom(func(a, b): return int(g.prof[a]) - int(_pd_last.get(a, 0)) > int(g.prof[b]) - int(_pd_last.get(b, 0)))
+	for k in ks:
+		var d: float = (int(g.prof[k]) - int(_pd_last.get(k, 0))) / 1000.0 / maxf(1.0, float(_pd_fr))
+		if d >= 0.05:
+			parts.append("%s=%.2f" % [k, d])
+	print("PF PROF t=%d fr=%d wall_ms=%.1f e=%d %s" % [int(g.t), _pd_fr, (now - _pd_us) / 1000.0 / maxf(1.0, float(_pd_fr)), g.enemies.size(), " ".join(parts)])
+	_pd_us = now
+	_pd_last = g.prof.duplicate()
+	_pd_fr = 0
