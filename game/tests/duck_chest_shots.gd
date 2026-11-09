@@ -58,7 +58,10 @@ func _ready() -> void:
 	sq.set_stance(sq.ROAM)
 	await _wait(30)
 	sq.stamina = 0.001
-	await _wait(150)
+	for k in 600:   # 等小字提示出来（GCP 渲染慢时帧间隔大，固定帧数会错过 6 秒的提示）
+		await _wait(1)
+		if not g.onboard.toast.is_empty() and g.onboard.toast_t > 0.4:
+			break
 	var ob = g.onboard
 	print("REGROUP toast=", ob.toast, " q=", ob.toast_q.size(), " busy=", ob.busy(), " drill=", ob.drill, " cur=", ob.cur, " out=", ob.out_id, " ask=", ob.ask_on)
 	await _shot(out, "regroup.png")
