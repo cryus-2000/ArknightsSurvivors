@@ -175,6 +175,8 @@ def main():
     # WebGL 状态缓存（tools/web/gl_state.js，docs/50 §21）：放在最前，引擎建上下文之前就得装好
     with open(os.path.join(WEB, "gl_state.js"), encoding="utf-8") as fh:
         js = fh.read() + "\n"
+    if a.toy:
+        js += "\nwindow.__SY_TOY = 1;\n"
     # 页面隐藏时挂起音频（tools/web/power.js，docs/50 §33）：也要在引擎建 AudioContext 之前
     with open(os.path.join(WEB, "power.js"), encoding="utf-8") as fh:
         js += fh.read() + "\n"
@@ -193,8 +195,6 @@ def main():
     with open(os.path.join(WEB, "loader.js"), encoding="utf-8") as fh:
         js += fh.read().replace("/*SHUIYUE_MANIFEST*/null", json.dumps(manifest, separators=(",", ":"))).replace("/*SHUIYUE_BOOT_V*/0", str(_boot_v(src)))   # 启动页方向（balance ui/boot_v）
     # 网页容器适配（B站 Toy 横屏 / 安全区，tools/web/container.js）：接在加载器后面，同一个 <script>
-    if a.toy:
-        js += "\nwindow.__SY_TOY = 1;   // Toy 包：一律加载 Toy JS SDK（docs/22「Toy 接入」）\n"
     with open(os.path.join(WEB, "container.js"), encoding="utf-8") as fh:
         js += "\n" + fh.read()
     # B站 Toy 云存档的 JS 薄封装（tools/web/cloud.js，docs/89）：非 B站环境 probe 回 unsupported，Godot 侧不启用

@@ -4,7 +4,11 @@
 	try {
 		var q = new URLSearchParams(location.search), v = q.get("maxdpr");
 		q.getAll("a").forEach(function (x) { if (x.indexOf("--maxdpr=") === 0) v = x.slice(9); });
-		if (v === null) v = localStorage.getItem("sy_maxdpr");
+		if (v === null) {
+			try { v = localStorage.getItem("sy_maxdpr"); } catch (e) {}
+		}
+		if (v === null && window.__SY_TOY && (navigator.maxTouchPoints > 1 || "ontouchstart" in window)
+				&& Math.min(screen.width, screen.height) <= 600) v = 2;
 		if (v !== null && Number(v) > 0) window.__syMaxDpr = Number(v);
 	} catch (e) {}
 })();
