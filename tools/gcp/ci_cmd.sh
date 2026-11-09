@@ -3,6 +3,8 @@
 # 1) 重录积木等价金样 → $OUT/golden/（本机取回提交）  2) 真全量快检 → run.log（vm_startup 收）+ $OUT/ci_logs/
 # 11-09 起放进仓库：原来放在协调人临时目录，清理临时文件时丢过一次。
 mkdir -p "$OUT/golden" "$OUT/ci_logs"
+# 贴图索引不进提交（本地生成），先按磁盘重建，否则 asset_index / graph_lint 会把新帧条报成缺失
+python3 tools/asset_index.py > "$OUT/asset_index.log" 2>&1 || true
 python3 -c "import numpy" 2>/dev/null || true
 python3 tools/check.py --rerecord-golden > "$OUT/rerecord.log" 2>&1 || true
 cp game/tests/golden_current/*.json "$OUT/golden/" 2>/dev/null || true
