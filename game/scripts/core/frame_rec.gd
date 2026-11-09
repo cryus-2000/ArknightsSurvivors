@@ -217,6 +217,43 @@ func _tex_walk(tag: String) -> void:
 	for r in _tw_top.slice(0, 40):
 		top.append([snappedf(r[0], 0.01), r[1], r[2], r[3]])
 	var eng: float = Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1048576.0
+	# 资源缓存：所有从文件读进来、现在还活着的图（不管谁拿着），按目录归类（docs/319 §23）
+	var files := {}
+	var ftop: Array = []
+	var fsum := 0.0
+	var dirs: Array = ["res://art", "res://fonts", "res://ui", "res://textures", "res://assets"]
+	var guard := 0
+	while not dirs.is_empty() and guard < 20000:
+		guard += 1
+		var d: String = dirs.pop_back()
+		if not DirAccess.dir_exists_absolute(d):
+			continue
+		for f in ResourceLoader.list_directory(d):
+			var p: String = d + "/" + str(f)
+			if str(f).ends_with("/"):
+				dirs.append(p.trim_suffix("/"))
+				continue
+			if not (p.ends_with(".png") or p.ends_with(".webp") or p.ends_with(".jpg")):
+				continue
+			if not ResourceLoader.has_cached(p):
+				continue
+			var r = ResourceLoader.get_cached_ref(p)
+			if not (r is Texture2D):
+				continue
+			var mb2: float = r.get_width() * r.get_height() * 4.0 / 1048576.0
+			fsum += mb2
+			var parts: PackedStringArray = p.trim_prefix("res://").split("/")
+			var key: String = "/".join(parts.slice(0, mini(3, parts.size() - 1)))
+			var fv: Array = files.get(key, [0.0, 0])
+			fv[0] += mb2
+			fv[1] += 1
+			files[key] = fv
+			ftop.append([snappedf(mb2, 0.01), p.trim_prefix("res://art/"), r.get_width(), r.get_height()])
+	ftop.sort_custom(func(a, b): return a[0] > b[0])
+	var fout := {}
+	for k in files:
+		fout[k] = [snappedf(files[k][0], 0.1), files[k][1]]
+	print("PF TEXFILES " + JSON.stringify({"tag": tag, "engine_tex": snappedf(eng, 0.1), "files_mb": snappedf(fsum, 0.1), "dirs": fout, "top": ftop.slice(0, 40)}))
 	print("PF TEXWALK " + JSON.stringify({"tag": tag, "t": sc.t if sc != null and "t" in sc else 0, "engine_tex": snappedf(eng, 0.1), "found": snappedf(tot, 0.1), "budget_left": budget[0], "mods": mods, "top": top}))
 
 
