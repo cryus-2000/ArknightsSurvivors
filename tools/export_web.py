@@ -212,6 +212,8 @@ def main():
     with open(html_p, "w", encoding="utf-8", newline="\n") as fh:
         fh.write(html)
     shutil.copy2(os.path.join(src, "game", "art", "ui", "title_deep", "logo_mark.png"), os.path.join(tmp, "loader_logo.png"))   # 启动加载页左上标志（loader.css）
+    for a2, b2 in (("bg.png", "rl_bg.png"), ("jelly_0.png", "rl_j0.png"), ("jelly_1.png", "rl_j1.png"), ("jelly_2.png", "rl_j2.png")):   # 局间重载的「潮汐航标」载入页（loader.js rlPage，docs/319 §21）
+        shutil.copy2(os.path.join(src, "game", "art", "ui", "title_deep", a2), os.path.join(tmp, b2))
     shutil.copy2(os.path.join(src, "game", "art", "ui", "rhodes_logo_src.png"), os.path.join(tmp, "loader_rhodes.png"))   # 方向 4 PRTS 认证终端的罗德岛标志（loader.js p4Init）
     with open(os.path.join(tmp, "build.txt"), "w", encoding="utf-8") as fh:
         fh.write(commit + "\n")

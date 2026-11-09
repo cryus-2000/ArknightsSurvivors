@@ -1,3 +1,37 @@
+// 局间整页重载的「去哪一页」标记（core/run_reload.gd，docs/319 §14 / §21）：sessionStorage、localStorage、网址参数 syrl 三处都写，
+// 读任意一处（取最新，3 分钟内有效）。B站 App 的 WebView 重载后 sessionStorage 不一定还在（11-09 真机：认知塑造重载后落在标题）
+// 测试：网址带 nosess=1 时 sessionStorage 不可用（模拟 B站 App 容器，docs/319 §21）
+try { if (/[?&]nosess=1/.test(location.search)) Object.defineProperty(window, 'sessionStorage', { get: function () { throw new Error('no sessionStorage'); } }); } catch (e) {}
+window.__syRL = {
+  KEY: 'sy_reload',
+  peek: function () {
+    var best = null, c = [];
+    try { c.push(sessionStorage.getItem(this.KEY)); } catch (e) {}
+    try { c.push(localStorage.getItem(this.KEY)); } catch (e) {}
+    try { var q = new URLSearchParams(location.search).get('syrl'); if (q) c.push(decodeURIComponent(q)); } catch (e) {}
+    for (var i = 0; i < c.length; i++) {
+      try { var o = JSON.parse(c[i] || 'null'); if (o && o.act && (!best || Number(o.t || 0) > Number(best.t || 0))) best = o; } catch (e) {}
+    }
+    return best && Date.now() - Number(best.t || 0) < 180000 ? best : null;
+  },
+  take: function () {
+    var o = this.peek();
+    try { sessionStorage.removeItem(this.KEY); } catch (e) {}
+    try { localStorage.removeItem(this.KEY); } catch (e) {}
+    try {
+      var u = new URL(location.href);
+      if (u.searchParams.has('syrl') || u.searchParams.has('_rl')) { u.searchParams.delete('syrl'); u.searchParams.delete('_rl'); history.replaceState(null, '', u.toString()); }
+    } catch (e) {}
+    return o;
+  },
+  put: function (o) {
+    o.t = Date.now();
+    var j = JSON.stringify(o);
+    try { sessionStorage.setItem(this.KEY, j); } catch (e) {}
+    try { localStorage.setItem(this.KEY, j); } catch (e) {}
+    return j;
+  }
+};
 // 网页版加载器（tools/export_web.py 把它内联进 index.html 的 <!--SHUIYUE_LOADER--> 处，见 docs/22）
 // 1. 分片：index.pck / index.wasm 在导出后被切成若干 gzip 分片（单文件 ≤20 MiB，避开托管平台 25 MB 上限）。
 //    拦截引擎对这两个文件的 fetch，并行下载全部分片 → 边下边解压、直接写进一块预先按原文件大小分配好的 Uint8Array 的对应位置
@@ -441,7 +475,73 @@
     finish(d);
   }
 
+  // 局间整页重载回来（window.__syRL 有标记，core/run_reload.gd）：盖一层「潮汐航标」—— 同对局出发时的载入页（screens/loading_screen.gd）：
+  // 深海底图压暗 + 暗角、三只水母浮沉、居中标志、左上同人声明、三层像素浪线（进度点亮）、百分比 / 阶段、提示轮换（11-09 用户：别出开机那套加载页）。
+  // 只是画面：进度读 window.__syPct（本加载器 upd 写），撤页跟着加载器根节点一起撤
+  function rlPage(d) {
+    var cv = document.createElement('canvas');
+    cv.id = 'sy-rlpage';
+    cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;z-index:30;image-rendering:pixelated;background:#000308';
+    d.appendChild(cv);
+    var img = function (s) { var i = new Image(); i.src = s; return i; };
+    var bg = img('rl_bg.png'), lg = img('loader_logo.png'), js = [img('rl_j0.png'), img('rl_j1.png'), img('rl_j2.png')];
+    var t0 = performance.now(), ti = Math.floor(Math.random() * TIPS.length), tt = 0, shown = 0;
+    var act = (window.__syRL.peek() || {}).act;
+    var GO = { meta: '正在返回认知塑造…', hunt: '正在前往寻访…', restart: '正在准备下一局…', title: '正在返回主界面…' }[act] || '正在返回…';
+    var rm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var LAY = [[-8, 2.5, 0.2, 0.9, [158, 230, 240], [82, 110, 133], [26, 77, 102], 0.16], [-4, 3, 0.13, -1.3, [92, 224, 230], [64, 89, 112], [13, 51, 71], 0.4],
+               [0, 2, 0.09, 1.7, [46, 184, 199], [46, 69, 89], [5, 23, 36], 0.92]];
+    var rgb = function (c, a) { return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + a + ')'; };
+    function frame() {
+      if (!cv.isConnected) return;
+      var dpr = Math.min(window.devicePixelRatio || 1, 2), W = cv.clientWidth, H = cv.clientHeight;
+      if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+      var x = cv.getContext('2d'), t = (performance.now() - t0) / 1000;
+      x.setTransform(dpr, 0, 0, dpr, 0, 0); x.imageSmoothingEnabled = false;
+      x.fillStyle = '#000308'; x.fillRect(0, 0, W, H);
+      var k = Math.min(W / 1280, H / 720), bk = Math.max(W / 428, H / 240);
+      if (bg.complete && bg.naturalWidth) { x.globalAlpha = 1; x.drawImage(bg, (W - 428 * bk) / 2, (H - 240 * bk) / 2, 428 * bk, 240 * bk); x.fillStyle = 'rgba(0,3,8,0.45)'; x.fillRect(0, 0, W, H); }
+      var vg = x.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.25, W / 2, H / 2, Math.max(W, H) * 0.75);
+      vg.addColorStop(0, 'rgba(0,3,8,0)'); vg.addColorStop(1, 'rgba(0,3,8,0.75)'); x.fillStyle = vg; x.fillRect(0, 0, W, H);
+      var bob = rm ? 0 : Math.sin(t * 1.15) * 7 * k, pul = rm ? 0 : Math.sin(t * 1.15 + 0.6) * 0.025;
+      var s0w = 129 * 1.6 * k * (1 + pul), s0h = 139 * 1.6 * k * (1 - pul);
+      var jr = [[W * 0.5 - s0w / 2, H * 0.3 - s0h / 2 + bob, s0w, s0h, 0.95],
+                [W * 0.715, H * 0.305 + (rm ? 0 : Math.sin(t * 0.9 + 2) * 5 * k), 34 * 1.6 * k, 52 * 1.6 * k, 0.55],
+                [W * 0.267, H * 0.365 + (rm ? 0 : Math.sin(t * 1.3 + 4) * 4 * k), 24 * 2 * k, 36 * 2 * k, 0.6]];
+      [1, 2, 0].forEach(function (i) { var j = js[i]; if (j.complete && j.naturalWidth) { x.globalAlpha = jr[i][4]; x.drawImage(j, jr[i][0], jr[i][1], jr[i][2], jr[i][3]); } });
+      x.globalAlpha = 1;
+      if (lg.complete && lg.naturalWidth) x.drawImage(lg, W / 2 - 241 * k, H * 0.628, 482 * k, 86 * k);
+      x.font = Math.max(9, 11 * k) + 'px sans-serif'; x.fillStyle = 'rgba(128,163,176,1)'; x.textBaseline = 'alphabetic';
+      x.fillText('ARKNIGHTS FAN GAME   明日方舟同人作品 · 非商业', 24 * k, 33 * k + 8);
+      // 进度：浪头追真实进度（带一点冲过头）
+      var f = Math.max(0, Math.min(1, Number(window.__syPct || 0)));
+      shown += (f - shown) * (rm ? 1 : 0.12);
+      var c = Math.max(3, Math.round(3 * k)), x0 = Math.floor(W * 0.125 / c) * c, x1 = Math.floor(W * 0.875 / c) * c, y = Math.floor(H * 0.8 / c) * c, tm = Math.max(0.5, Math.min(1, H / 720));
+      var n = Math.floor((x1 - x0) / c), lit = Math.floor(n * shown);
+      for (var L = 0; L < 3; L++) {
+        var ly = LAY[L];
+        for (var i = 0; i < n; i++) {
+          var ph = i * ly[2] + (rm ? 0 : t * ly[3]) + L * 1.7;
+          var cy = Math.round(ly[0] * tm) - Math.round(ly[1] * tm * (Math.sin(ph) * 0.7 + Math.sin(ph * 0.43 + 1.1) * 0.3));
+          var px = x0 + i * c, py = y + cy * c;
+          x.fillStyle = rgb(ly[6], ly[7]); x.fillRect(px, py + c, c, (L === 2 ? Math.round(8 * tm) : 3) * c);
+          x.fillStyle = rgb(i <= lit ? ly[4] : ly[5], 1); x.fillRect(px, py, c, c);
+        }
+      }
+      x.font = Math.max(11, 14 * k) + 'px sans-serif'; x.textAlign = 'center'; x.fillStyle = 'rgba(168,194,201,1)';
+      x.fillText(GO + '  ' + Math.floor(f * 100) + '%', W / 2, y + Math.round(8 * tm) * c + 22 * k + 6);
+      tt = t - Math.floor(t / 3.5) * 3.5; ti = (Math.floor(t / 3.5) + ti0) % TIPS.length;
+      var ta = rm ? 1 : Math.min(1, tt / 0.25, (3.5 - tt) / 0.25);
+      x.globalAlpha = Math.max(0, ta); x.fillText('TIPS   ' + TIPS[ti], W / 2, H * 0.935 + 6);
+      x.globalAlpha = 1; x.textAlign = 'left';
+      requestAnimationFrame(frame);
+    }
+    var ti0 = ti;
+    requestAnimationFrame(frame);
+  }
+
   function finish(d) {
+    if (window.__syRL && window.__syRL.peek()) rlPage(d);
     var ti = Math.floor(Math.random() * TIPS.length);
     el.tip.textContent = TIPS[ti];
     upd();
@@ -470,9 +570,8 @@
       bootLabel = '接入完成 · 等待指令';
       upd();
       // 手机网页局与局之间的整页重载（core/run_reload.gd，docs/319 §14）：玩家刚点过「再来一局 / 回标题」，读完直接开始，不再要一次「开始游戏」
-      var rl = null;
-      try { rl = JSON.parse(sessionStorage.getItem('sy_reload') || 'null'); } catch (e) {}
-      if (rl && Date.now() - Number(rl.t || 0) < 180000) {
+      var rl = window.__syRL.peek();
+      if (rl) {
         window.__syStart = 1;
         return;
       }

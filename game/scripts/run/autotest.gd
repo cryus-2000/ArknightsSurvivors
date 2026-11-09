@@ -1600,6 +1600,7 @@ func step() -> void:
 		if g.at_frames == 440 and DisplayServer.get_name() != "headless":
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_shop.png")
 			g.get_tree().quit()
+	_cdpshot_step()
 	if g.state == g.S.CHOICE:
 		choice_wait += 1
 		var cshots: bool = Cfg.dev_args().has("--choiceshots")   # 等卡片全部翻面再截，选卡也相应推迟
@@ -2440,3 +2441,21 @@ func _clutter_log() -> void:
 	var f := FileAccess.open(g.shot_dir + "/shot_%d.json" % g.at_frames, FileAccess.WRITE)
 	if f != null:
 		f.store_string(JSON.stringify(d))
+
+
+## --cdpshot=<秒,…>（网页测量，docs/319 §20 A）：局内时间到点打 PF CDPSHOT t<秒>，游戏停 3 个真实秒让 perf_web 用 DevTools 截整页
+var _cds: Array = []
+var _cds_init := false
+func _cdpshot_step() -> void:
+	if not _cds_init:
+		_cds_init = true
+		for a in Cfg.dev_args():
+			if a.begins_with("--cdpshot="):
+				for v in a.substr(10).split(",", false):
+					_cds.append(float(v))
+	if _cds.is_empty() or g.t < float(_cds[0]):
+		return
+	var sec: float = _cds.pop_front()
+	print("PF CDPSHOT t%d" % int(sec))
+	Engine.time_scale = 0.0
+	g.get_tree().create_timer(3.0, true, false, true).timeout.connect(func(): Engine.time_scale = 1.0)

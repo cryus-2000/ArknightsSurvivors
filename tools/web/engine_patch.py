@@ -7,6 +7,7 @@
    再 FS.writeFile(new Uint8Array(buf)) 让 MEMFS slice 出第三份常驻。改成：分片加载器（loader.js）在 Response 上挂 __syBuf，
    引擎直接拿这块；MEMFS 用 canOwn 直接持有它，不再 slice。启动峰值从 3 份主包降到 1 份，常驻仍是 1 份（引擎要从 MEMFS 读资源）。
 4. 样本注册记录：每次注册网页样本记 [秒, 时长秒, 当时堆容量 MB] 到 window.__syAudioRegs（只读，测量用）。
+8. window.__syMaxDpr：画布像素比上限（手机省电出图，§20）。
 7. window.__syLiveMB()：测量用，堆里实际在用的 MB（容量 − 1 MB 块能放下的空闲）；__syNoGrow 置位时堆增长直接失败。
 6. window.__syFsSync()：把 user://（IDBFS）立刻写回 IndexedDB，返回 Promise（引擎自己的同步在进行中就先等它）。
    手机网页局与局之间整页重载（core/run_reload.gd，docs/319 §14）重载前等它，存档一定落盘。
@@ -42,6 +43,11 @@ CH_B = ("if(typeof SharedArrayBuffer!=='undefined'&&HEAPF32.buffer instanceof Sh
         "else{audioBuffer.copyToChannel(subLeft,0,0);audioBuffer.copyToChannel(subRight,1,0);}")
 REG_A = "const audioBuffer=GodotAudio.ctx.createBuffer(numberOfChannels,framesTotal,sampleRate);"
 REG_B = ("(window.__syAudioRegs=window.__syAudioRegs||[]).push([Math.round(performance.now()/1000),Math.round(framesTotal/sampleRate),HEAPU8.length>>>20]);" + REG_A)
+# 8. 画布像素比上限（docs/319 §20 A，11-09）：window.__syMaxDpr > 0 时画布按 min(设备像素比, 上限) 出图（手机 3 倍 → 2 倍，像素少 56%），
+#    浏览器把画布放大到满屏；游戏里改了上限后派一次 resize 就生效（settings.gd apply_max_dpr）
+DPR_A = "getPixelRatio:function(){return GodotDisplayScreen.hidpi?window.devicePixelRatio||1:1}"
+DPR_B = ("getPixelRatio:function(){var r=GodotDisplayScreen.hidpi?window.devicePixelRatio||1:1;"
+         "return window.__syMaxDpr>0?Math.min(r,window.__syMaxDpr):r}")
 FSS_A = "_syncing:false,_mount_points:[],"
 FSS_B = ("_syncing:false,_syFs:(window.__syFsSync=function(){return Promise.resolve(GodotOS._fs_sync_promise).catch(function(){})"
          ".then(function(){return GodotFS._idbfs?GodotFS.sync():null})}),"
@@ -64,7 +70,7 @@ def patch_index_js(path: str) -> None:
             raise SystemExit("index.js 带有未知版本的音频补丁")
         s = s.replace(ANCHOR, ANCHOR + INJECT, 1)
     s = s.replace(COPY, SHARE, 1)
-    for a, b in ((FS_COPY, FS_OWN), (FETCH_A, FETCH_B), (GROW_A, GROW_B), (REG_A, REG_B), (CH_A, CH_B), (FSS_A, FSS_B)):
+    for a, b in ((FS_COPY, FS_OWN), (FETCH_A, FETCH_B), (GROW_A, GROW_B), (REG_A, REG_B), (CH_A, CH_B), (FSS_A, FSS_B), (DPR_A, DPR_B)):
         if b in s:
             continue
         if s.count(a) != 1:

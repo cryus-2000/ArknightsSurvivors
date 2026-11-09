@@ -35,17 +35,20 @@ static func wanted(g) -> bool:
 ## game._do_action("restart" / "title") 在手机网页上改走这里
 static func go(g, what: String) -> void:
 	var it := {"act": what, "op": Cfg.character_id, "diff": Cfg.difficulty}
-	JavaScriptBridge.eval("""(function(it){try{it.t=Date.now();sessionStorage.setItem('%s',JSON.stringify(it))}catch(e){}
+	JavaScriptBridge.eval("""(function(it){var j='';if(window.__syRL){j=window.__syRL.put(it)}else{try{it.t=Date.now();j=JSON.stringify(it);sessionStorage.setItem('%s',j);localStorage.setItem('%s',j)}catch(e){}}
+window.__syRLUrl=function(extra){var u=location.href.split('#')[0].replace(/([?&])(syrl|_rl)=[^&]*/g,'$1').replace(/[?&]+$/,'');return u+(u.indexOf('?')<0?'?':'&')+'syrl='+encodeURIComponent(j)+(extra||'')};
+try{var bb=JSON.parse(localStorage.getItem('sy_bb')||'null');if(bb&&!bb.end){bb.end='reload';try{localStorage.setItem('sy_bb',JSON.stringify(bb))}catch(e2){localStorage.removeItem('sy_bb')}}}catch(e){}
 var gen=window.__syRLGen=(window.__syRLGen||0)+1;window.__syRLTry=0;window.__syRLFail='';var d=document.createElement('div');d.id='sy-rl';
-d.style.cssText='position:fixed;inset:0;z-index:2147483647;background:radial-gradient(ellipse at 50%% 50%%,#0d1820 0%%,#070c11 70%%,#04070a 100%%)';
+d.style.cssText='position:fixed;inset:0;z-index:2147483647;background:#000308 url(rl_bg.png) center/cover no-repeat;image-rendering:pixelated';
+var sh=document.createElement('div');sh.style.cssText='position:absolute;inset:0;background:radial-gradient(ellipse at 50%% 50%%,rgba(0,3,8,.45) 25%%,rgba(0,3,8,.85) 100%%)';d.appendChild(sh);
 document.documentElement.style.background='#04070a';(document.body||document.documentElement).appendChild(d);
-window.__syRLGo=function(why){if(window.__syRLTry)return;window.__syRLTry=why||'go';var h=location.href;
-try{location.reload()}catch(e){}
-setTimeout(function(){try{location.replace(h)}catch(e){}},2500);
-setTimeout(function(){try{location.href=h.split('#')[0]+(h.indexOf('?')<0?'?':'&')+'_rl='+Date.now()}catch(e){}},5500);
+window.__syRLGo=function(why){if(window.__syRLTry)return;window.__syRLTry=why||'go';
+try{location.replace(window.__syRLUrl())}catch(e){try{location.reload()}catch(e2){}}
+setTimeout(function(){try{location.reload()}catch(e){}},2500);
+setTimeout(function(){try{location.href=window.__syRLUrl('&_rl='+Date.now())}catch(e){}},5500);
 setTimeout(function(){window.__syRLFail='reload 不生效';},9000)};
 setTimeout(function(){if(window.__syRLGen===gen&&!window.__syRLTry){window.__syRLGo('watchdog')}},%d);
-setTimeout(function(){if(window.__syRLGen!==gen)return;var c=document.getElementById('sy-rl');if(c)c.remove();window.__syRLFail=window.__syRLFail||'超时'},%d)})(%s)""" % [KEY, int((GIVE_UP + 4.0) * 1000), int((GIVE_UP + 16.0) * 1000), JSON.stringify(it)], true)
+setTimeout(function(){if(window.__syRLGen!==gen)return;var c=document.getElementById('sy-rl');if(c)c.remove();window.__syRLFail=window.__syRLFail||'超时'},%d)})(%s)""" % [KEY, KEY, int((GIVE_UP + 4.0) * 1000), int((GIVE_UP + 16.0) * 1000), JSON.stringify(it)], true)
 	var n = load("res://scripts/core/run_reload.gd").new()
 	n.act = what
 	n.name = "RunReload"
@@ -110,7 +113,7 @@ func _give_up(why: String) -> void:
 	_step = 3
 	set_process(false)
 	print("PF RUNRELOAD giveup %s t=%.1f" % [why, _t])
-	JavaScriptBridge.eval("(function(){window.__syRLTry='giveup';var c=document.getElementById('sy-rl');if(c)c.remove();try{sessionStorage.removeItem('%s')}catch(e){}})()" % KEY, true)
+	JavaScriptBridge.eval("(function(){window.__syRLTry='giveup';var c=document.getElementById('sy-rl');if(c)c.remove();if(window.__syRL){window.__syRL.take()}else{try{sessionStorage.removeItem('%s');localStorage.removeItem('%s')}catch(e){}}})()" % [KEY, KEY], true)
 	load("res://scripts/core/crash_box.gd").note_reload_fail(why)
 	get_tree().change_scene_to_file("res://main.tscn")
 	queue_free()
@@ -120,7 +123,8 @@ func _give_up(why: String) -> void:
 static func resume() -> Dictionary:
 	if not OS.has_feature("web"):
 		return {}
-	var r = JavaScriptBridge.eval("(function(){try{var s=sessionStorage.getItem('%s');sessionStorage.removeItem('%s');return s||''}catch(e){return ''}})()" % [KEY, KEY], true)
+	# 三处任读一处（loader.js window.__syRL：sessionStorage / localStorage / 网址参数 syrl，3 分钟内有效），读完三处都清、网址参数去掉
+	var r = JavaScriptBridge.eval("(function(){try{if(window.__syRL){var o=window.__syRL.take();return o?JSON.stringify(o):''}var s=sessionStorage.getItem('%s');sessionStorage.removeItem('%s');return s||''}catch(e){return ''}})()" % [KEY, KEY], true)
 	var d = JSON.parse_string(str(r)) if r != null and str(r) != "" else null
 	if not d is Dictionary:
 		return {}
