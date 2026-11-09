@@ -49,11 +49,18 @@ static func _music_mode() -> String:
 
 
 ## 对局 _ready：开一份新的（上一份没 end 的话先挪到「上次」，免得重开 / 连开两局时盖掉崩溃记录——正常走不到，以防万一）
+static var _owner := 0   # 正在记录的那一局（game 实例 id）
+
 static func begin(g) -> void:
 	var args := Cfg.dev_args()
-	on = (args.is_empty() or args.has("--crashbox")) and g.demo_op == "" and not g.trial.active
-	if not on:
+	# 演示实例（精英化演出 / 图鉴演示 / Boss 演练）不记，也不许碰正在记的那一局：原来这里把静态 on 直接改成 false，
+	# 局中精英化演出一开就把本局快照关了（11-09 真机：快照停在 0:41、局终 end 没写，被判成异常退出）
+	if not ((args.is_empty() or args.has("--crashbox")) and g.demo_op == "" and not g.trial.active):
 		return
+	on = true
+	_owner = g.get_instance_id()
+	if _web():
+		JavaScriptBridge.eval("try{localStorage.removeItem('sy_bb_hb');localStorage.removeItem('sy_bb_err')}catch(e){}", true)
 	check_prev()
 	_every = EVERY
 	for a in args:
@@ -89,7 +96,7 @@ static func tag(name: String) -> void:
 
 ## 每帧（game._process）：只累计时间；每秒取一次内存看尖峰，每 EVERY 秒写一条
 static func tick(g, delta: float) -> void:
-	if not on or cur.is_empty():
+	if not on or cur.is_empty() or g.get_instance_id() != _owner:
 		return
 	if cur.squad == "" and g.squad != null:
 		cur.squad = ",".join(PackedStringArray(g.squad.ids()))
@@ -101,6 +108,8 @@ static func tick(g, delta: float) -> void:
 	_mem_t += rd
 	_last_write += rd
 	if _t >= _every:
+		if _web():   # 心跳：先写一条小记录，再采样（采样中途脚本出错时心跳还在，看得出是哪一步断的）
+			JavaScriptBridge.eval("try{localStorage.setItem('sy_bb_hb','%d / %d')}catch(e){}" % [int(_rt), int(g.t)], true)
 		sample(g)
 		return
 	if _mem_t >= 1.0:
@@ -185,7 +194,8 @@ static func _write(fresh := false) -> void:
 	var j := JSON.stringify(cur)
 	if _web():   # ev 由 JS 侧追加：写引擎这份时把已存的 ev 并进来（新开一份时不并上一份的）
 		var src := "null" if fresh else "localStorage.getItem('%s')" % KEY
-		JavaScriptBridge.eval("try{var o=JSON.parse(%s),p=%s;if(p){try{o.ev=JSON.parse(p).ev||[]}catch(e){}}localStorage.setItem('%s',JSON.stringify(o))}catch(e){}" % [JSON.stringify(j), src, KEY], true)
+		# 写不进时把原因记进 sy_bb_err（11-09 真机：快照 0:41 后一行没写、局终 end 也没写进去；仿真复现不了，先把真机上的原因留下来，report_text 附上）
+		JavaScriptBridge.eval("(function(){var s=%s;try{var o=JSON.parse(s),p=%s;if(p){try{o.ev=JSON.parse(p).ev||[]}catch(e){}}localStorage.setItem('%s',JSON.stringify(o))}catch(e){try{localStorage.setItem('sy_bb_err',JSON.stringify({t:new Date().toTimeString().slice(0,8),m:String(e&&e.name||'')+' '+String(e&&e.message||e).slice(0,100),n:s.length,used:JSON.stringify(localStorage).length}))}catch(e2){}}})()" % [JSON.stringify(j), src, KEY], true)
 	else:
 		var f := FileAccess.open(FILE, FileAccess.WRITE)
 		if f != null:
@@ -314,6 +324,13 @@ static func report_text(p: Dictionary) -> String:
 	var a: Array = p.get("s", [])
 	if not a.is_empty():
 		o.append("最后一段新读的贴图：" + str(a[-1].get("rl", "")))
+	if _web():
+		var er = JavaScriptBridge.eval("localStorage.getItem('sy_bb_err')||''", true)
+		if er != null and str(er) != "":
+			o.append("快照写入失败（最近一次）：" + str(er))
+		var hb = JavaScriptBridge.eval("localStorage.getItem('sy_bb_hb')||''", true)
+		if hb != null and str(hb) != "":
+			o.append("最后一次心跳（实时秒 / 局内秒）：" + str(hb))
 	var ev: Array = p.get("ev", [])
 	if not ev.is_empty():
 		var es := PackedStringArray()
