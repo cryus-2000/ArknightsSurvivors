@@ -787,7 +787,19 @@ func _enemy_evict(n: String) -> void:
 		if tex.has(nm):
 			tex.erase(nm)
 			A.uncache(nm)
+	_drop_outlines(n)
 	tex_deferred[n] = true
+
+
+## 这种怪的描边贴图（world._outline_tex 由白剪影合成、整份拷贝）跟着放：原来从不释放，整局只涨（docs/319 §22）
+func _drop_outlines(n: String) -> void:
+	if world == null:
+		return
+	var names: Array = _white_names(n)
+	for key in world._ol_cache.keys():
+		var base: String = str(key).split("#")[0]
+		if names.has(base):
+			world._ol_cache.erase(key)
 
 static func _lazy_fx_enabled() -> bool:
 	return Cfg.mobile_knob("mobile_lazy_fx", 1.0) or Cfg.dev_args().has("--lazyfx")   # 11-09 全平台（同 _op_tex_ids）
@@ -1002,6 +1014,7 @@ func _white_release(delta: float, now := false) -> void:
 					tex.erase(nm + "_white")
 					if tex.get(nm) != null:
 						A.white_drop(tex[nm])
+			_drop_outlines(n)
 		if t - float(_white_alive[n]) > keep_e and _evict_on:
 			_enemy_evict(n)
 			_white_alive.erase(n)
