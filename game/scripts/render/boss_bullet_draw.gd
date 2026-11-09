@@ -46,6 +46,10 @@ var g
 var rng := RandomNumberGenerator.new()
 var _atlas := {}      # type -> {img: Image, tex: ImageTexture, x, y, row_h, cells: {key: Rect2}, dirty}
 var _queue := []      # 待生成 [type, key]
+# 两张画布各自上一次提交的图集，在该画布进入下一次绘制回调时清空。
+var world_atlases := {}
+var top_atlases := {}
+var _next_atlas_sweep := 0.0
 var parts := []       # [pos(地面) Vector2, z, vel Vector2, vz, age, life, kind(int), ph, type]
 var flashes := []     # [type, kind, pos(屏上，已含高度), frame 计时]
 var _last_t := -1.0
@@ -87,6 +91,26 @@ func frame(bulfx) -> void:
 			if not e.dead:
 				warm(str(e.type))
 		_pump(1 if _mobile else 3)
+	if _mobile and not _atlas.is_empty() and t >= _next_atlas_sweep:
+		_next_atlas_sweep = t + 5.0
+		_release_idle_atlases()
+
+
+func _release_idle_atlases() -> void:
+	var keep := world_atlases.duplicate()
+	keep.merge(top_atlases)
+	for boss in g.bosses:
+		if not boss.dead:
+			keep[boss.type] = true
+	for b in g.ebullets:
+		if b.life > 0.0:
+			keep[b.get("src_type", "")] = true   # 包括屏外、隐藏和仍在预警期的遗弹
+	for job in _queue:
+		keep[job[0]] = true
+	for t in _atlas.keys():
+		if not keep.has(t) and not g.spawner.is_final_boss_type(t):
+			_atlas.erase(t)
+			_warmed.erase(t)
 
 
 ## 这颗弹归本模块画吗（world 各遍据此跳过旧画法）
@@ -487,6 +511,8 @@ func draw(w) -> void:
 		var tex := _tex(t)
 		if tex == null:
 			continue
+		var submitted: Dictionary = world_atlases if g.wcv == g else top_atlases
+		submitted[t] = tex
 		for it in items:
 			_blit(tex, (it[0].pos as Vector2) + LIFT, it[5])
 		if need_core and items.size() > 1:

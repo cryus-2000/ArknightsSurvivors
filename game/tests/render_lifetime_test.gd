@@ -162,6 +162,7 @@ func check_optical_lifetime() -> void:
 	check(glow_ref == null or glow_ref.get_ref() == null, "early scene exit releases pending glow layer")
 
 func _ready() -> void:
+	preload("res://tests/boss_atlas_lifetime.gd").run(check)
 	await check_optical_lifetime()
 	check_sorted_fx_pass()
 	check_px_iteration()

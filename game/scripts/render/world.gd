@@ -456,6 +456,7 @@ func _pk(k: String) -> void:
 
 
 func draw_world() -> void:
+	bbv2.world_atlases.clear()
 	_pk("")
 	# 敌方顶层（docs/226 §1，render/foe_top 缺省 1）：敌弹、Boss 弹拖尾 / 落地、预警填充与轮廓、主控标记改由 g.foe_top 在友方加色层之上画；
 	# 0 = 照旧全画在世界画布上（同一套函数、同一顺序）
@@ -687,6 +688,7 @@ static func _lrab_arg() -> int:
 			return int(a.substr(7))
 	return 0
 func draw_top() -> void:
+	bbv2.top_atlases.clear()
 	if not _ft_on:
 		return
 	var sq = g.squad
