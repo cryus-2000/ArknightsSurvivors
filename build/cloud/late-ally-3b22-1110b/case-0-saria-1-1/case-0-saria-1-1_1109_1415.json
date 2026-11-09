@@ -1,0 +1,8550 @@
+{
+ "args": {
+  "preset": null,
+  "op": "saria",
+  "squad": null,
+  "seeds": 1,
+  "seed0": 1,
+  "diff": 0,
+  "jobs": 1,
+  "timeout": 900,
+  "tag": "case-0-saria-1-1",
+  "extra": "--meta=0",
+  "bot": "expert",
+  "bots": null,
+  "lanes": null,
+  "game": null,
+  "keep": "",
+  "nocache": true,
+  "placebos": "1",
+  "dt": null,
+  "out": "build/cloud/late-ally-3b22-1110b/case-0-saria-1-1"
+ },
+ "records": [
+  {
+   "squad": [
+    "saria"
+   ],
+   "seed": 1,
+   "diff": 0,
+   "bot": "expert",
+   "tier": 0,
+   "placebo": 1,
+   "wall": 48.4,
+   "data": {
+    "allies": 2,
+    "armor_cf": {
+     "m0": {
+      "a2": 63.1216875976566,
+      "a4": 53.1216875976566,
+      "a8": 33.1216875976566,
+      "all": 145.782084854132,
+      "armor": 18.0,
+      "n": 13,
+      "phys": 74.1042276385748,
+      "phys_n": 6,
+      "phys_pre": 92.1042276385748
+     },
+     "m4": {
+      "a2": 216.221206659835,
+      "a4": 192.476791395433,
+      "a8": 152.38535534666,
+      "all": 508.653269504439,
+      "armor": 39.0,
+      "n": 44,
+      "phys": 242.221206659835,
+      "phys_n": 13,
+      "phys_pre": 281.221206659835
+     },
+     "m8": {
+      "a2": 209.660918863429,
+      "a4": 183.108580738761,
+      "a8": 134.390496536829,
+      "all": 408.663618587435,
+      "armor": 42.0,
+      "n": 25,
+      "phys": 237.660918863429,
+      "phys_n": 14,
+      "phys_pre": 279.660918863429
+     }
+    },
+    "boss_hp": -0.000240421032858601,
+    "bosses": [
+     "path:dead",
+     "iberia:dead"
+    ],
+    "bot": {
+     "bosses": [
+      {
+       "en_alive": 38,
+       "en_alive_pk": 44,
+       "en_near": 10,
+       "en_near_pk": 24,
+       "gates": 1,
+       "on_boss": 0.53,
+       "shield": 0.0,
+       "t0": 210,
+       "t1": 288,
+       "tv": 210,
+       "type": "path",
+       "windows": [
+        {
+         "en": 29,
+         "hits": 0,
+         "hp": 1.0,
+         "moves": 0,
+         "out": 0,
+         "t": 0
+        },
+        {
+         "en": 31,
+         "hits": 2,
+         "hp": 0.81,
+         "moves": 8,
+         "out": 6246,
+         "t": 15
+        },
+        {
+         "en": 42,
+         "hits": 27,
+         "hp": 0.58,
+         "moves": 6,
+         "out": 7209,
+         "t": 30
+        },
+        {
+         "en": 40,
+         "hits": 29,
+         "hp": 0.4,
+         "moves": 10,
+         "out": 10654,
+         "t": 45
+        },
+        {
+         "en": 43,
+         "hits": 0,
+         "hp": 0.38,
+         "moves": 14,
+         "out": 3886,
+         "t": 60
+        },
+        {
+         "en": 40,
+         "hits": 37,
+         "hp": 0.06,
+         "moves": 9,
+         "out": 12546,
+         "t": 75
+        },
+        {
+         "en": 104,
+         "hits": 69,
+         "hp": 0.0,
+         "moves": 3,
+         "out": 12087,
+         "t": 90
+        },
+        {
+         "en": 82,
+         "hits": 27,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 29439,
+         "t": 106
+        },
+        {
+         "en": 17,
+         "hits": 123,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 62613,
+         "t": 121
+        },
+        {
+         "en": 46,
+         "hits": 65,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 13567,
+         "t": 136
+        },
+        {
+         "en": 58,
+         "hits": 2,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 15485,
+         "t": 151
+        },
+        {
+         "en": 103,
+         "hits": 2,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 23232,
+         "t": 166
+        },
+        {
+         "en": 89,
+         "hits": 1,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 35450,
+         "t": 181
+        },
+        {
+         "en": 72,
+         "hits": 12,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 35511,
+         "t": 196
+        },
+        {
+         "en": 40,
+         "hits": 221,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 38956,
+         "t": 211
+        },
+        {
+         "en": 35,
+         "hits": 6,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 30825,
+         "t": 226
+        },
+        {
+         "en": 37,
+         "hits": 8,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 38728,
+         "t": 241
+        },
+        {
+         "en": 35,
+         "hits": 73,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 36033,
+         "t": 256
+        },
+        {
+         "en": 30,
+         "hits": 42,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 33839,
+         "t": 271
+        },
+        {
+         "en": 78,
+         "hits": 171,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 48002,
+         "t": 286
+        },
+        {
+         "en": 58,
+         "hits": 208,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 66909,
+         "t": 301
+        },
+        {
+         "en": 46,
+         "hits": 109,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 51129,
+         "t": 316
+        },
+        {
+         "en": 58,
+         "hits": 227,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 26144,
+         "t": 331
+        }
+       ]
+      },
+      {
+       "en_alive": 33,
+       "en_alive_pk": 43,
+       "en_near": 11,
+       "en_near_pk": 19,
+       "gates": 1,
+       "on_boss": 0.28,
+       "shield": 0.0,
+       "t0": 420,
+       "t1": 482,
+       "tv": 420,
+       "type": "iberia",
+       "windows": [
+        {
+         "en": 40,
+         "hits": 0,
+         "hp": 1.0,
+         "moves": 0,
+         "out": 0,
+         "t": 1
+        },
+        {
+         "en": 35,
+         "hits": 6,
+         "hp": 0.79,
+         "moves": 1,
+         "out": 30825,
+         "t": 16
+        },
+        {
+         "en": 37,
+         "hits": 8,
+         "hp": 0.42,
+         "moves": 4,
+         "out": 38728,
+         "t": 31
+        },
+        {
+         "en": 35,
+         "hits": 73,
+         "hp": 0.17,
+         "moves": 13,
+         "out": 36033,
+         "t": 46
+        },
+        {
+         "en": 30,
+         "hits": 42,
+         "hp": 0.01,
+         "moves": 10,
+         "out": 33839,
+         "t": 61
+        },
+        {
+         "en": 78,
+         "hits": 171,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 48002,
+         "t": 76
+        },
+        {
+         "en": 58,
+         "hits": 208,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 66909,
+         "t": 91
+        },
+        {
+         "en": 46,
+         "hits": 109,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 51129,
+         "t": 106
+        },
+        {
+         "en": 58,
+         "hits": 227,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 26144,
+         "t": 121
+        }
+       ]
+      }
+     ],
+     "cap_stats": {
+      "any_cut": 0.0,
+      "any_n": 0,
+      "big_n": 0,
+      "boss_cut": 0.0,
+      "boss_n": 0,
+      "hits": 1801,
+      "one_cut": 0.0,
+      "one_n": 0,
+      "post": 1267.1,
+      "pre": 1267.1,
+      "zero": 0
+     },
+     "curve": [
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 0,
+       "hp": 100,
+       "hpm": 1.08,
+       "hpmin": 100,
+       "hsrc": {},
+       "kills": 0,
+       "lamp": 100,
+       "lampmin": 100,
+       "lv": 1,
+       "mhp": 103,
+       "mire_s": 0.0,
+       "mires": 0,
+       "outc": 0,
+       "rg": 0.8,
+       "squad": 1,
+       "t": 0,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "bullet": 7
+       },
+       "ebul": 1,
+       "elites": 0,
+       "enemies": 17,
+       "hp": 100,
+       "hpm": 1.37,
+       "hpmin": 93,
+       "hsrc": {
+        "塞雷娅": 6
+       },
+       "kills": 15,
+       "lamp": 96,
+       "lampmin": 96,
+       "lv": 2,
+       "mhp": 103,
+       "mire_s": 0.0,
+       "mires": 0,
+       "outc": 301,
+       "rg": 0.8,
+       "squad": 1,
+       "t": 30,
+       "taken": 7,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "bullet": 7
+       },
+       "ebul": 0,
+       "elites": 1,
+       "enemies": 18,
+       "hp": 100,
+       "hpm": 1.67,
+       "hpmin": 93,
+       "hsrc": {
+        "拾取": 3,
+        "自身回复": 3
+       },
+       "kills": 56,
+       "lamp": 92,
+       "lampmin": 92,
+       "lv": 4,
+       "mhp": 103,
+       "mire_s": 0.0,
+       "mires": 0,
+       "outc": 1513,
+       "rg": 0.8,
+       "squad": 1,
+       "t": 60,
+       "taken": 7,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "contact_tracer": 13
+       },
+       "ebul": 1,
+       "elites": 0,
+       "enemies": 24,
+       "hp": 100,
+       "hpm": 1.96,
+       "hpmin": 89,
+       "hsrc": {
+        "塞雷娅": 11,
+        "自身回复": 2
+       },
+       "kills": 118,
+       "lamp": 95,
+       "lampmin": 79,
+       "lv": 6,
+       "mhp": 119,
+       "mire_s": 0.0,
+       "mires": 2,
+       "outc": 5039,
+       "rg": 0.95,
+       "squad": 2,
+       "t": 90,
+       "taken": 13,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_tracer": 13
+       },
+       "ebul": 0,
+       "elites": 1,
+       "enemies": 28,
+       "hp": 100,
+       "hpm": 2.26,
+       "hpmin": 89,
+       "hsrc": {
+        "塞雷娅": 10,
+        "自身回复": 3
+       },
+       "kills": 174,
+       "lamp": 87,
+       "lampmin": 87,
+       "lv": 8,
+       "mhp": 109,
+       "mire_s": 0.0,
+       "mires": 12,
+       "outc": 9630,
+       "rg": 1.24,
+       "squad": 2,
+       "t": 120,
+       "taken": 13,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "contact_tracer": 15
+       },
+       "ebul": 1,
+       "elites": 0,
+       "enemies": 24,
+       "hp": 100,
+       "hpm": 2.55,
+       "hpmin": 85,
+       "hsrc": {
+        "塞雷娅": 13,
+        "自身回复": 2
+       },
+       "kills": 247,
+       "lamp": 92,
+       "lampmin": 67,
+       "lv": 9,
+       "mhp": 124,
+       "mire_s": 0.0,
+       "mires": 16,
+       "outc": 17193,
+       "rg": 1.43,
+       "squad": 3,
+       "t": 150,
+       "taken": 15,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "contact_tracer": 16
+       },
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 31,
+       "hp": 100,
+       "hpm": 2.85,
+       "hpmin": 86,
+       "hsrc": {
+        "塞雷娅": 3,
+        "终结技": 9,
+        "自身回复": 3
+       },
+       "kills": 341,
+       "lamp": 100,
+       "lampmin": 87,
+       "lv": 10,
+       "mhp": 124,
+       "mire_s": 0.0,
+       "mires": 5,
+       "outc": 28840,
+       "rg": 1.43,
+       "squad": 3,
+       "t": 180,
+       "taken": 16,
+       "zone": 2
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "atk_tracer": 14,
+        "bullet": 22,
+        "corrode": 5
+       },
+       "ebul": 7,
+       "elites": 0,
+       "enemies": 29,
+       "hp": 100,
+       "hpm": 3.14,
+       "hpmin": 88,
+       "hsrc": {
+        "塞雷娅": 18,
+        "拾取": 8,
+        "自身回复": 10,
+        "针剂回流": 4
+       },
+       "kills": 427,
+       "lamp": 87,
+       "lampmin": 87,
+       "lv": 12,
+       "mhp": 124,
+       "mire_s": 0.0,
+       "mires": 9,
+       "outc": 41122,
+       "rg": 1.43,
+       "squad": 3,
+       "t": 210,
+       "taken": 42,
+       "zone": 3
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "bullet": 35,
+        "corrode": 4
+       },
+       "ebul": 17,
+       "elites": 0,
+       "enemies": 43,
+       "hp": 86,
+       "hpm": 3.44,
+       "hpmin": 84,
+       "hsrc": {
+        "塞雷娅": 13,
+        "自身回复": 4,
+        "针剂回流": 6
+       },
+       "kills": 468,
+       "lamp": 74,
+       "lampmin": 74,
+       "lv": 13,
+       "mhp": 124,
+       "mire_s": 0.4,
+       "mires": 16,
+       "outc": 54050,
+       "rg": 1.43,
+       "squad": 3,
+       "t": 240,
+       "taken": 41,
+       "zone": 3
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "atk_tracer": 32,
+        "corrode": 5
+       },
+       "ebul": 23,
+       "elites": 0,
+       "enemies": 42,
+       "hp": 100,
+       "hpm": 3.73,
+       "hpmin": 78,
+       "hsrc": {
+        "塞雷娅": 35,
+        "自身回复": 9,
+        "针剂回流": 9
+       },
+       "kills": 524,
+       "lamp": 84,
+       "lampmin": 64,
+       "lv": 13,
+       "mhp": 124,
+       "mire_s": 0.0,
+       "mires": 21,
+       "outc": 69298,
+       "rg": 3.86,
+       "squad": 3,
+       "t": 270,
+       "taken": 37,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_reaper": 25,
+        "bullet": 49,
+        "contact_tracer": 29,
+        "corrode": 14
+       },
+       "ebul": 6,
+       "elites": 2,
+       "enemies": 102,
+       "hp": 88,
+       "hpm": 4.03,
+       "hpmin": 76,
+       "hsrc": {
+        "塞雷娅": 55,
+        "自身回复": 29,
+        "针剂回流": 18
+       },
+       "kills": 596,
+       "lamp": 60,
+       "lampmin": 49,
+       "lv": 14,
+       "mhp": 124,
+       "mire_s": 0.0,
+       "mires": 11,
+       "outc": 93493,
+       "rg": 1.43,
+       "squad": 3,
+       "t": 300,
+       "taken": 118,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "bullet": 72,
+        "contact_slider": 32,
+        "corrode": 35,
+        "mire": 4,
+        "nest": 2
+       },
+       "ebul": 8,
+       "elites": 0,
+       "enemies": 15,
+       "hp": 63,
+       "hpm": 4.32,
+       "hpmin": 53,
+       "hsrc": {
+        "塞雷娅": 61,
+        "终结技": 9,
+        "自身回复": 26,
+        "针剂回流": 19
+       },
+       "kills": 781,
+       "lamp": 22,
+       "lampmin": 22,
+       "lv": 16,
+       "mhp": 124,
+       "mire_s": 0.2,
+       "mires": 25,
+       "outc": 185595,
+       "rg": 1.92,
+       "squad": 3,
+       "t": 330,
+       "taken": 147,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "bullet": 19,
+        "contact_tracer": 20,
+        "corrode": 12,
+        "mire": 4
+       },
+       "ebul": 1,
+       "elites": 0,
+       "enemies": 59,
+       "hp": 100,
+       "hpm": 4.61,
+       "hpmin": 63,
+       "hsrc": {
+        "商店": 14,
+        "塞雷娅": 49,
+        "自身回复": 25,
+        "针剂回流": 13
+       },
+       "kills": 860,
+       "lamp": 11,
+       "lampmin": 11,
+       "lv": 18,
+       "mhp": 124,
+       "mire_s": 0.0,
+       "mires": 28,
+       "outc": 211437,
+       "rg": 1.92,
+       "squad": 3,
+       "t": 360,
+       "taken": 58,
+       "zone": 2
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_tracer": 3,
+        "mire": 9
+       },
+       "ebul": 4,
+       "elites": 1,
+       "enemies": 89,
+       "hp": 100,
+       "hpm": 4.91,
+       "hpmin": 96,
+       "hsrc": {
+        "塞雷娅": 2,
+        "自身回复": 5,
+        "针剂回流": 4
+       },
+       "kills": 990,
+       "lamp": 66,
+       "lampmin": 11,
+       "lv": 19,
+       "mhp": 124,
+       "mire_s": 0.6,
+       "mires": 27,
+       "outc": 270657,
+       "rg": 4.34,
+       "squad": 3,
+       "t": 390,
+       "taken": 13,
+       "zone": 3
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "atk_reaper": 64,
+        "atk_tracer": 12,
+        "wound": 8
+       },
+       "ebul": 19,
+       "elites": 0,
+       "enemies": 44,
+       "hp": 99,
+       "hpm": 5.2,
+       "hpmin": 74,
+       "hsrc": {
+        "塞雷娅": 55,
+        "自身回复": 22,
+        "针剂回流": 7
+       },
+       "kills": 1148,
+       "lamp": 77,
+       "lampmin": 66,
+       "lv": 20,
+       "mhp": 124,
+       "mire_s": 0.0,
+       "mires": 33,
+       "outc": 345277,
+       "rg": 1.92,
+       "squad": 3,
+       "t": 420,
+       "taken": 85,
+       "zone": 1
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "boss_iberia": 18,
+        "bullet": 26,
+        "contact_iberia": 17,
+        "mire": 1,
+        "nest": 3,
+        "shock_founder": 23
+       },
+       "ebul": 14,
+       "elites": 0,
+       "enemies": 35,
+       "hp": 100,
+       "hpm": 5.5,
+       "hpmin": 72,
+       "hsrc": {
+        "塞雷娅": 54,
+        "自身回复": 20,
+        "针剂回流": 16
+       },
+       "kills": 1213,
+       "lamp": 60,
+       "lampmin": 60,
+       "lv": 21,
+       "mhp": 124,
+       "mire_s": 0.7,
+       "mires": 35,
+       "outc": 412132,
+       "rg": 1.92,
+       "squad": 3,
+       "t": 450,
+       "taken": 91,
+       "zone": 1
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "boss_iberia": 10,
+        "bullet": 40,
+        "corrode": 6,
+        "nest": 4,
+        "wound": 1
+       },
+       "ebul": 11,
+       "elites": 0,
+       "enemies": 28,
+       "hp": 98,
+       "hpm": 5.79,
+       "hpmin": 84,
+       "hsrc": {
+        "塞雷娅": 22,
+        "自身回复": 24,
+        "针剂回流": 15
+       },
+       "kills": 1283,
+       "lamp": 47,
+       "lampmin": 47,
+       "lv": 22,
+       "mhp": 124,
+       "mire_s": 0.0,
+       "mires": 27,
+       "outc": 484911,
+       "rg": 1.92,
+       "squad": 3,
+       "t": 480,
+       "taken": 64,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_reaper": 38,
+        "boss_iberia": 5,
+        "bullet": 59,
+        "contact_tracer": 10,
+        "corrode": 25,
+        "mire": 2,
+        "wound": 15
+       },
+       "ebul": 13,
+       "elites": 1,
+       "enemies": 53,
+       "hp": 82,
+       "hpm": 6.06,
+       "hpmin": 76,
+       "hsrc": {
+        "塞雷娅": 79,
+        "自身回复": 35,
+        "针剂回流": 20
+       },
+       "kills": 1427,
+       "lamp": 38,
+       "lampmin": 38,
+       "lv": 23,
+       "mhp": 124,
+       "mire_s": 0.4,
+       "mires": 34,
+       "outc": 595775,
+       "rg": 1.92,
+       "squad": 3,
+       "t": 510,
+       "taken": 156,
+       "zone": 2
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_founder": 21,
+        "atk_reaper": 39,
+        "atk_tracer": 43,
+        "bullet": 51,
+        "contact_tracer": 51,
+        "corrode": 9,
+        "nest": 3,
+        "wound": 17
+       },
+       "ebul": 13,
+       "elites": 0,
+       "enemies": 56,
+       "hp": 37,
+       "hpm": 6.33,
+       "hpmin": 37,
+       "hsrc": {
+        "塞雷娅": 100,
+        "自身回复": 31,
+        "补给": 28,
+        "针剂回流": 21
+       },
+       "kills": 1544,
+       "lamp": 35,
+       "lampmin": 32,
+       "lv": 24,
+       "mhp": 124,
+       "mire_s": 0.0,
+       "mires": 37,
+       "outc": 676428,
+       "rg": 1.92,
+       "squad": 3,
+       "t": 540,
+       "taken": 237,
+       "zone": 3
+      }
+     ],
+     "curve_tail": {
+      "dsrc": {
+       "atk_nest": 21,
+       "bullet": 30,
+       "corrode": 11,
+       "wound": 2
+      },
+      "hsrc": {
+       "塞雷娅": 32,
+       "自身回复": 3,
+       "针剂回流": 3
+      },
+      "mhp": 124,
+      "t": 542,
+      "t0": 540,
+      "taken": 65
+     },
+     "dark_dmg": 0,
+     "dark_s": 0,
+     "death_src": "corrode",
+     "elite_t": {
+      "exusiai:1": 180,
+      "exusiai:2": 307,
+      "eyjafjalla:1": 335,
+      "eyjafjalla:2": 408,
+      "saria:1": 50,
+      "saria:2": 310
+     },
+     "end": {
+      "boss": false,
+      "hits2": [
+       [
+        528.2,
+        "wound",
+        "e:tracer",
+        0,
+        0.7,
+        0.7,
+        108
+       ],
+       [
+        528.7,
+        "wound",
+        "e:tracer",
+        0,
+        0.8,
+        0.8,
+        109
+       ],
+       [
+        529.2,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        110
+       ],
+       [
+        529.3,
+        "atk_founder",
+        "e:founder",
+        0,
+        6.3,
+        6.3,
+        103
+       ],
+       [
+        529.3,
+        "wound",
+        "e:tracer",
+        0,
+        0.8,
+        0.8,
+        104
+       ],
+       [
+        529.8,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        104
+       ],
+       [
+        529.8,
+        "nest",
+        "env:nest",
+        0,
+        1.6,
+        1.6,
+        102
+       ],
+       [
+        529.8,
+        "wound",
+        "e:tracer",
+        0,
+        0.7,
+        0.7,
+        103
+       ],
+       [
+        530.3,
+        "wound",
+        "e:tracer",
+        0,
+        0.7,
+        0.7,
+        103
+       ],
+       [
+        530.8,
+        "atk_tracer",
+        "e:tracer",
+        0,
+        22.0,
+        22.0,
+        90
+       ],
+       [
+        530.8,
+        "wound",
+        "e:tracer",
+        0,
+        0.8,
+        0.8,
+        95
+       ],
+       [
+        531.3,
+        "wound",
+        "e:tracer",
+        0,
+        0.7,
+        0.7,
+        95
+       ],
+       [
+        531.8,
+        "wound",
+        "e:tracer",
+        0,
+        0.8,
+        0.8,
+        96
+       ],
+       [
+        532.3,
+        "wound",
+        "e:tracer",
+        0,
+        0.7,
+        0.7,
+        96
+       ],
+       [
+        532.8,
+        "wound",
+        "e:tracer",
+        0,
+        0.8,
+        0.8,
+        96
+       ],
+       [
+        533.3,
+        "wound",
+        "e:reaper",
+        0,
+        0.8,
+        0.8,
+        96
+       ],
+       [
+        533.8,
+        "wound",
+        "e:reaper",
+        0,
+        0.2,
+        0.2,
+        97
+       ],
+       [
+        533.9,
+        "contact_tracer",
+        "e:tracer",
+        0,
+        15.6,
+        15.6,
+        81
+       ],
+       [
+        533.9,
+        "wound",
+        "e:tracer",
+        0,
+        0.7,
+        0.7,
+        92
+       ],
+       [
+        534.4,
+        "contact_tracer",
+        "e:tracer",
+        0,
+        11.0,
+        11.0,
+        81
+       ],
+       [
+        534.4,
+        "wound",
+        "e:tracer",
+        0,
+        0.7,
+        0.7,
+        81
+       ],
+       [
+        534.9,
+        "wound",
+        "e:tracer",
+        0,
+        0.7,
+        0.7,
+        81
+       ],
+       [
+        535.3,
+        "nest",
+        "env:nest",
+        0,
+        1.6,
+        1.6,
+        80
+       ],
+       [
+        535.3,
+        "wound",
+        "e:tracer",
+        0,
+        0.7,
+        0.7,
+        89
+       ],
+       [
+        535.8,
+        "wound",
+        "e:tracer",
+        0,
+        0.8,
+        0.8,
+        94
+       ],
+       [
+        536.3,
+        "atk_reaper",
+        "e:reaper",
+        0,
+        19.6,
+        19.6,
+        76
+       ],
+       [
+        536.3,
+        "wound",
+        "e:tracer",
+        0,
+        0.7,
+        0.7,
+        76
+       ],
+       [
+        536.8,
+        "wound",
+        "e:tracer",
+        0,
+        0.8,
+        0.8,
+        78
+       ],
+       [
+        537.3,
+        "wound",
+        "e:tracer",
+        0,
+        0.7,
+        0.7,
+        79
+       ],
+       [
+        537.8,
+        "wound",
+        "e:tracer",
+        0,
+        0.8,
+        0.8,
+        81
+       ],
+       [
+        538.3,
+        "wound",
+        "e:tracer",
+        0,
+        0.7,
+        0.7,
+        82
+       ],
+       [
+        538.8,
+        "bullet",
+        "e:spitter",
+        0,
+        30.2,
+        30.2,
+        52
+       ],
+       [
+        538.8,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        52
+       ],
+       [
+        538.8,
+        "corrode",
+        "e:spitter",
+        0,
+        0.6,
+        0.6,
+        51
+       ],
+       [
+        538.8,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        51
+       ],
+       [
+        538.8,
+        "corrode",
+        "e:spitter",
+        0,
+        0.6,
+        0.6,
+        50
+       ],
+       [
+        538.9,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        52
+       ],
+       [
+        538.9,
+        "corrode",
+        "e:spitter",
+        0,
+        0.6,
+        0.6,
+        51
+       ],
+       [
+        539.0,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        51
+       ],
+       [
+        539.0,
+        "corrode",
+        "e:spitter",
+        0,
+        0.6,
+        0.6,
+        51
+       ],
+       [
+        539.0,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        51
+       ],
+       [
+        539.0,
+        "corrode",
+        "e:spitter",
+        0,
+        0.5,
+        0.5,
+        50
+       ],
+       [
+        539.1,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        50
+       ],
+       [
+        539.1,
+        "corrode",
+        "e:spitter",
+        0,
+        0.5,
+        0.5,
+        50
+       ],
+       [
+        539.2,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        50
+       ],
+       [
+        539.2,
+        "corrode",
+        "e:spitter",
+        0,
+        0.5,
+        0.5,
+        49
+       ],
+       [
+        539.2,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        49
+       ],
+       [
+        539.2,
+        "corrode",
+        "e:spitter",
+        0,
+        0.5,
+        0.5,
+        49
+       ],
+       [
+        539.3,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        50
+       ],
+       [
+        539.3,
+        "corrode",
+        "e:spitter",
+        0,
+        0.5,
+        0.5,
+        49
+       ],
+       [
+        539.4,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        49
+       ],
+       [
+        539.4,
+        "corrode",
+        "e:spitter",
+        0,
+        0.5,
+        0.5,
+        49
+       ],
+       [
+        539.4,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        49
+       ],
+       [
+        539.4,
+        "corrode",
+        "e:spitter",
+        0,
+        0.4,
+        0.4,
+        48
+       ],
+       [
+        539.5,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        48
+       ],
+       [
+        539.5,
+        "corrode",
+        "e:spitter",
+        0,
+        0.4,
+        0.4,
+        48
+       ],
+       [
+        539.5,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        48
+       ],
+       [
+        539.5,
+        "corrode",
+        "e:spitter",
+        0,
+        0.4,
+        0.4,
+        48
+       ],
+       [
+        539.6,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        48
+       ],
+       [
+        539.6,
+        "corrode",
+        "e:spitter",
+        0,
+        0.4,
+        0.4,
+        47
+       ],
+       [
+        539.7,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        47
+       ],
+       [
+        539.7,
+        "corrode",
+        "e:spitter",
+        0,
+        0.4,
+        0.4,
+        47
+       ],
+       [
+        539.7,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        47
+       ],
+       [
+        539.7,
+        "corrode",
+        "e:spitter",
+        0,
+        0.4,
+        0.4,
+        47
+       ],
+       [
+        539.8,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        47
+       ],
+       [
+        539.8,
+        "corrode",
+        "e:spitter",
+        0,
+        0.4,
+        0.4,
+        46
+       ],
+       [
+        539.9,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        48
+       ],
+       [
+        539.9,
+        "corrode",
+        "e:spitter",
+        0,
+        0.4,
+        0.4,
+        47
+       ],
+       [
+        539.9,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        47
+       ],
+       [
+        539.9,
+        "corrode",
+        "e:spitter",
+        0,
+        0.3,
+        0.3,
+        47
+       ],
+       [
+        540.0,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        47
+       ],
+       [
+        540.0,
+        "corrode",
+        "e:spitter",
+        0,
+        0.3,
+        0.3,
+        47
+       ],
+       [
+        540.1,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        47
+       ],
+       [
+        540.1,
+        "corrode",
+        "e:spitter",
+        0,
+        0.3,
+        0.3,
+        46
+       ],
+       [
+        540.1,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        46
+       ],
+       [
+        540.1,
+        "corrode",
+        "e:spitter",
+        0,
+        0.3,
+        0.3,
+        46
+       ],
+       [
+        540.2,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        46
+       ],
+       [
+        540.2,
+        "corrode",
+        "e:spitter",
+        0,
+        0.3,
+        0.3,
+        46
+       ],
+       [
+        540.3,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        46
+       ],
+       [
+        540.3,
+        "corrode",
+        "e:spitter",
+        0,
+        0.3,
+        0.3,
+        46
+       ],
+       [
+        540.3,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        46
+       ],
+       [
+        540.3,
+        "corrode",
+        "e:spitter",
+        0,
+        0.3,
+        0.3,
+        45
+       ],
+       [
+        540.4,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        45
+       ],
+       [
+        540.4,
+        "corrode",
+        "e:spitter",
+        0,
+        0.3,
+        0.3,
+        45
+       ],
+       [
+        540.5,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        45
+       ],
+       [
+        540.5,
+        "corrode",
+        "e:spitter",
+        0,
+        0.3,
+        0.3,
+        45
+       ],
+       [
+        540.5,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        62
+       ],
+       [
+        540.5,
+        "corrode",
+        "e:spitter",
+        0,
+        0.3,
+        0.3,
+        62
+       ],
+       [
+        540.6,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        62
+       ],
+       [
+        540.6,
+        "corrode",
+        "e:spitter",
+        0,
+        0.2,
+        0.2,
+        62
+       ],
+       [
+        540.7,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        62
+       ],
+       [
+        540.7,
+        "corrode",
+        "e:spitter",
+        0,
+        0.2,
+        0.2,
+        62
+       ],
+       [
+        540.7,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        62
+       ],
+       [
+        540.7,
+        "corrode",
+        "e:spitter",
+        0,
+        0.2,
+        0.2,
+        61
+       ],
+       [
+        540.8,
+        "atk_nest",
+        "e:nest",
+        0,
+        21.4,
+        21.4,
+        40
+       ],
+       [
+        540.8,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        40
+       ],
+       [
+        540.8,
+        "corrode",
+        "e:spitter",
+        0,
+        0.2,
+        0.2,
+        40
+       ],
+       [
+        540.9,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        41
+       ],
+       [
+        540.9,
+        "corrode",
+        "e:spitter",
+        0,
+        0.2,
+        0.2,
+        41
+       ],
+       [
+        540.9,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        44
+       ],
+       [
+        540.9,
+        "corrode",
+        "e:spitter",
+        0,
+        0.2,
+        0.2,
+        44
+       ],
+       [
+        541.0,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        44
+       ],
+       [
+        541.0,
+        "corrode",
+        "e:spitter",
+        0,
+        0.2,
+        0.2,
+        44
+       ],
+       [
+        541.1,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        44
+       ],
+       [
+        541.1,
+        "corrode",
+        "e:spitter",
+        0,
+        0.2,
+        0.2,
+        44
+       ],
+       [
+        541.1,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        44
+       ],
+       [
+        541.1,
+        "corrode",
+        "e:spitter",
+        0,
+        0.2,
+        0.2,
+        44
+       ],
+       [
+        541.2,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        44
+       ],
+       [
+        541.2,
+        "corrode",
+        "e:spitter",
+        0,
+        0.2,
+        0.2,
+        44
+       ],
+       [
+        541.3,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        44
+       ],
+       [
+        541.3,
+        "corrode",
+        "e:spitter",
+        0,
+        0.2,
+        0.2,
+        43
+       ],
+       [
+        541.3,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        43
+       ],
+       [
+        541.3,
+        "corrode",
+        "e:spitter",
+        0,
+        0.2,
+        0.2,
+        43
+       ],
+       [
+        541.4,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        43
+       ],
+       [
+        541.4,
+        "corrode",
+        "e:spitter",
+        0,
+        0.2,
+        0.2,
+        43
+       ],
+       [
+        541.5,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        43
+       ],
+       [
+        541.5,
+        "corrode",
+        "e:spitter",
+        0,
+        0.2,
+        0.2,
+        43
+       ],
+       [
+        541.5,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        43
+       ],
+       [
+        541.5,
+        "corrode",
+        "e:spitter",
+        0,
+        0.2,
+        0.2,
+        43
+       ],
+       [
+        541.6,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        43
+       ],
+       [
+        541.6,
+        "corrode",
+        "e:spitter",
+        0,
+        0.1,
+        0.1,
+        43
+       ],
+       [
+        541.7,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        43
+       ],
+       [
+        541.7,
+        "corrode",
+        "e:spitter",
+        0,
+        0.1,
+        0.1,
+        43
+       ],
+       [
+        541.7,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        43
+       ],
+       [
+        541.7,
+        "corrode",
+        "e:spitter",
+        0,
+        0.1,
+        0.1,
+        43
+       ],
+       [
+        541.8,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        43
+       ],
+       [
+        541.8,
+        "corrode",
+        "e:spitter",
+        0,
+        0.1,
+        0.1,
+        42
+       ],
+       [
+        541.9,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        42
+       ],
+       [
+        541.9,
+        "corrode",
+        "e:spitter",
+        0,
+        0.1,
+        0.1,
+        42
+       ],
+       [
+        541.9,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        44
+       ],
+       [
+        541.9,
+        "corrode",
+        "e:spitter",
+        0,
+        0.1,
+        0.1,
+        44
+       ],
+       [
+        542.0,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        44
+       ],
+       [
+        542.0,
+        "corrode",
+        "e:spitter",
+        0,
+        0.1,
+        0.1,
+        44
+       ],
+       [
+        542.1,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        44
+       ],
+       [
+        542.1,
+        "corrode",
+        "e:spitter",
+        0,
+        0.1,
+        0.1,
+        43
+       ],
+       [
+        542.1,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        44
+       ],
+       [
+        542.1,
+        "corrode",
+        "e:spitter",
+        0,
+        0.1,
+        0.1,
+        43
+       ],
+       [
+        542.2,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        43
+       ],
+       [
+        542.2,
+        "corrode",
+        "e:spitter",
+        0,
+        0.1,
+        0.1,
+        43
+       ],
+       [
+        542.3,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        43
+       ],
+       [
+        542.3,
+        "corrode",
+        "e:spitter",
+        0,
+        0.1,
+        0.1,
+        43
+       ],
+       [
+        542.3,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        43
+       ],
+       [
+        542.3,
+        "corrode",
+        "e:spitter",
+        0,
+        0.1,
+        0.1,
+        43
+       ],
+       [
+        542.4,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        43
+       ],
+       [
+        542.4,
+        "corrode",
+        "e:spitter",
+        0,
+        0.1,
+        0.1,
+        43
+       ],
+       [
+        542.5,
+        "bullet",
+        "e:spitter",
+        0,
+        30.2,
+        30.2,
+        13
+       ],
+       [
+        542.5,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        13
+       ],
+       [
+        542.5,
+        "corrode",
+        "e:spitter",
+        0,
+        0.6,
+        0.6,
+        12
+       ],
+       [
+        542.5,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        23
+       ],
+       [
+        542.5,
+        "corrode",
+        "e:spitter",
+        0,
+        0.6,
+        0.6,
+        22
+       ],
+       [
+        542.6,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        23
+       ],
+       [
+        542.6,
+        "corrode",
+        "e:spitter",
+        0,
+        0.6,
+        0.6,
+        22
+       ],
+       [
+        542.7,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        22
+       ],
+       [
+        542.7,
+        "corrode",
+        "e:spitter",
+        0,
+        0.6,
+        0.6,
+        21
+       ],
+       [
+        542.7,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        21
+       ],
+       [
+        542.7,
+        "corrode",
+        "e:spitter",
+        0,
+        0.6,
+        0.6,
+        21
+       ],
+       [
+        542.8,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        21
+       ],
+       [
+        542.8,
+        "corrode",
+        "e:spitter",
+        0,
+        0.5,
+        0.5,
+        20
+       ],
+       [
+        542.8,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        20
+       ],
+       [
+        542.8,
+        "corrode",
+        "e:spitter",
+        0,
+        0.5,
+        0.5,
+        20
+       ],
+       [
+        542.9,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        21
+       ],
+       [
+        542.9,
+        "corrode",
+        "e:spitter",
+        0,
+        0.5,
+        0.5,
+        21
+       ],
+       [
+        543.0,
+        "atk_reaper",
+        "e:reaper",
+        0,
+        32.4,
+        32.4,
+        -11
+       ],
+       [
+        543.0,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        -11
+       ],
+       [
+        543.0,
+        "corrode",
+        "e:spitter",
+        0,
+        0.5,
+        0.5,
+        -11
+       ]
+      ],
+      "hp": 0,
+      "killer": {
+       "cause": "",
+       "key": "e:spitter"
+      },
+      "last15": {
+       "corrode_out": 20.4,
+       "corrode_peak": 17.0,
+       "dark_s": 0.0,
+       "ebullets_peak": 35,
+       "enemies_peak": 59,
+       "hits": [
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 107,
+         "src": "wound",
+         "t": 528.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 107,
+         "src": "wound",
+         "t": 528.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 107,
+         "src": "wound",
+         "t": 528.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 108,
+         "src": "wound",
+         "t": 528.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 108,
+         "src": "wound",
+         "t": 528.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 108,
+         "src": "wound",
+         "t": 528.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 108,
+         "src": "wound",
+         "t": 528.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 108,
+         "src": "wound",
+         "t": 528.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 108,
+         "src": "wound",
+         "t": 528.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 108,
+         "src": "wound",
+         "t": 528.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 109,
+         "src": "wound",
+         "t": 528.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 109,
+         "src": "wound",
+         "t": 528.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 109,
+         "src": "wound",
+         "t": 528.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 109,
+         "src": "wound",
+         "t": 528.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 109,
+         "src": "wound",
+         "t": 528.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 109,
+         "src": "wound",
+         "t": 529.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 109,
+         "src": "wound",
+         "t": 529.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 109,
+         "src": "wound",
+         "t": 529.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 110,
+         "src": "wound",
+         "t": 529.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 103,
+         "src": "wound",
+         "t": 529.3,
+         "zone_out": false
+        },
+        {
+         "amt": 6.3,
+         "boss": false,
+         "hp_after": 103,
+         "src": "atk_founder",
+         "t": 529.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 103,
+         "src": "wound",
+         "t": 529.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 103,
+         "src": "wound",
+         "t": 529.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 103,
+         "src": "wound",
+         "t": 529.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 103,
+         "src": "wound",
+         "t": 529.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 104,
+         "src": "wound",
+         "t": 529.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 104,
+         "src": "wound",
+         "t": 529.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 104,
+         "src": "wound",
+         "t": 529.7,
+         "zone_out": false
+        },
+        {
+         "amt": 1.6,
+         "boss": false,
+         "hp_after": 102,
+         "src": "nest",
+         "t": 529.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 102,
+         "src": "wound",
+         "t": 529.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 102,
+         "src": "wound",
+         "t": 529.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 102,
+         "src": "wound",
+         "t": 529.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 102,
+         "src": "wound",
+         "t": 530.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 102,
+         "src": "wound",
+         "t": 530.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 102,
+         "src": "wound",
+         "t": 530.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 103,
+         "src": "wound",
+         "t": 530.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 103,
+         "src": "wound",
+         "t": 530.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 103,
+         "src": "wound",
+         "t": 530.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 103,
+         "src": "wound",
+         "t": 530.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 103,
+         "src": "wound",
+         "t": 530.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 103,
+         "src": "wound",
+         "t": 530.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 103,
+         "src": "wound",
+         "t": 530.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 103,
+         "src": "wound",
+         "t": 530.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 103,
+         "src": "wound",
+         "t": 530.7,
+         "zone_out": false
+        },
+        {
+         "amt": 22.0,
+         "boss": false,
+         "hp_after": 90,
+         "src": "atk_tracer",
+         "t": 530.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 90,
+         "src": "wound",
+         "t": 530.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 90,
+         "src": "wound",
+         "t": 530.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 90,
+         "src": "wound",
+         "t": 530.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 90,
+         "src": "wound",
+         "t": 531.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 93,
+         "src": "wound",
+         "t": 531.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 93,
+         "src": "wound",
+         "t": 531.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 94,
+         "src": "wound",
+         "t": 531.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 95,
+         "src": "wound",
+         "t": 531.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 95,
+         "src": "wound",
+         "t": 531.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 95,
+         "src": "wound",
+         "t": 531.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 95,
+         "src": "wound",
+         "t": 531.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 95,
+         "src": "wound",
+         "t": 531.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 95,
+         "src": "wound",
+         "t": 531.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 95,
+         "src": "wound",
+         "t": 531.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 95,
+         "src": "wound",
+         "t": 531.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 95,
+         "src": "wound",
+         "t": 531.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 95,
+         "src": "wound",
+         "t": 531.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 95,
+         "src": "wound",
+         "t": 531.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 95,
+         "src": "wound",
+         "t": 532.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 95,
+         "src": "wound",
+         "t": 532.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 95,
+         "src": "wound",
+         "t": 532.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 96,
+         "src": "wound",
+         "t": 532.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 96,
+         "src": "wound",
+         "t": 532.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 96,
+         "src": "wound",
+         "t": 532.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 96,
+         "src": "wound",
+         "t": 532.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 96,
+         "src": "wound",
+         "t": 532.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 96,
+         "src": "wound",
+         "t": 532.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 96,
+         "src": "wound",
+         "t": 532.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 96,
+         "src": "wound",
+         "t": 532.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 96,
+         "src": "wound",
+         "t": 532.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 96,
+         "src": "wound",
+         "t": 532.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 96,
+         "src": "wound",
+         "t": 532.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 96,
+         "src": "wound",
+         "t": 532.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 96,
+         "src": "wound",
+         "t": 532.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 96,
+         "src": "wound",
+         "t": 533.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 96,
+         "src": "wound",
+         "t": 533.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 96,
+         "src": "wound",
+         "t": 533.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 96,
+         "src": "wound",
+         "t": 533.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 96,
+         "src": "wound",
+         "t": 533.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 96,
+         "src": "wound",
+         "t": 533.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 96,
+         "src": "wound",
+         "t": 533.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 96,
+         "src": "wound",
+         "t": 533.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 96,
+         "src": "wound",
+         "t": 533.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 96,
+         "src": "wound",
+         "t": 533.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 96,
+         "src": "wound",
+         "t": 533.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 96,
+         "src": "wound",
+         "t": 533.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 97,
+         "src": "wound",
+         "t": 533.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 97,
+         "src": "wound",
+         "t": 533.9,
+         "zone_out": false
+        },
+        {
+         "amt": 15.6,
+         "boss": false,
+         "hp_after": 81,
+         "src": "contact_tracer",
+         "t": 533.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 81,
+         "src": "wound",
+         "t": 533.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 81,
+         "src": "wound",
+         "t": 534.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 81,
+         "src": "wound",
+         "t": 534.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 81,
+         "src": "wound",
+         "t": 534.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 81,
+         "src": "wound",
+         "t": 534.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 81,
+         "src": "wound",
+         "t": 534.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 92,
+         "src": "wound",
+         "t": 534.3,
+         "zone_out": false
+        },
+        {
+         "amt": 11.0,
+         "boss": false,
+         "hp_after": 81,
+         "src": "contact_tracer",
+         "t": 534.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 81,
+         "src": "wound",
+         "t": 534.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 81,
+         "src": "wound",
+         "t": 534.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 81,
+         "src": "wound",
+         "t": 534.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 81,
+         "src": "wound",
+         "t": 534.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 81,
+         "src": "wound",
+         "t": 534.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 81,
+         "src": "wound",
+         "t": 534.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 81,
+         "src": "wound",
+         "t": 534.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 81,
+         "src": "wound",
+         "t": 534.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 81,
+         "src": "wound",
+         "t": 534.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 81,
+         "src": "wound",
+         "t": 535.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 81,
+         "src": "wound",
+         "t": 535.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 81,
+         "src": "wound",
+         "t": 535.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 81,
+         "src": "wound",
+         "t": 535.2,
+         "zone_out": false
+        },
+        {
+         "amt": 1.6,
+         "boss": false,
+         "hp_after": 80,
+         "src": "nest",
+         "t": 535.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 80,
+         "src": "wound",
+         "t": 535.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 81,
+         "src": "wound",
+         "t": 535.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 89,
+         "src": "wound",
+         "t": 535.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 89,
+         "src": "wound",
+         "t": 535.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 89,
+         "src": "wound",
+         "t": 535.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 89,
+         "src": "wound",
+         "t": 535.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 89,
+         "src": "wound",
+         "t": 535.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 89,
+         "src": "wound",
+         "t": 535.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 93,
+         "src": "wound",
+         "t": 535.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 93,
+         "src": "wound",
+         "t": 535.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 94,
+         "src": "wound",
+         "t": 535.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 94,
+         "src": "wound",
+         "t": 536.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 94,
+         "src": "wound",
+         "t": 536.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 94,
+         "src": "wound",
+         "t": 536.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 94,
+         "src": "wound",
+         "t": 536.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 94,
+         "src": "wound",
+         "t": 536.2,
+         "zone_out": false
+        },
+        {
+         "amt": 19.6,
+         "boss": false,
+         "hp_after": 76,
+         "src": "atk_reaper",
+         "t": 536.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 76,
+         "src": "wound",
+         "t": 536.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 76,
+         "src": "wound",
+         "t": 536.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 76,
+         "src": "wound",
+         "t": 536.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 76,
+         "src": "wound",
+         "t": 536.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 76,
+         "src": "wound",
+         "t": 536.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 76,
+         "src": "wound",
+         "t": 536.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 76,
+         "src": "wound",
+         "t": 536.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 76,
+         "src": "wound",
+         "t": 536.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 76,
+         "src": "wound",
+         "t": 536.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 78,
+         "src": "wound",
+         "t": 536.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 78,
+         "src": "wound",
+         "t": 537.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 78,
+         "src": "wound",
+         "t": 537.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 78,
+         "src": "wound",
+         "t": 537.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 78,
+         "src": "wound",
+         "t": 537.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 78,
+         "src": "wound",
+         "t": 537.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 79,
+         "src": "wound",
+         "t": 537.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 79,
+         "src": "wound",
+         "t": 537.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 79,
+         "src": "wound",
+         "t": 537.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 79,
+         "src": "wound",
+         "t": 537.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 79,
+         "src": "wound",
+         "t": 537.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 79,
+         "src": "wound",
+         "t": 537.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 79,
+         "src": "wound",
+         "t": 537.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 79,
+         "src": "wound",
+         "t": 537.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 79,
+         "src": "wound",
+         "t": 537.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 80,
+         "src": "wound",
+         "t": 537.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 80,
+         "src": "wound",
+         "t": 538.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 80,
+         "src": "wound",
+         "t": 538.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 80,
+         "src": "wound",
+         "t": 538.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 80,
+         "src": "wound",
+         "t": 538.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 81,
+         "src": "wound",
+         "t": 538.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 82,
+         "src": "wound",
+         "t": 538.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 82,
+         "src": "wound",
+         "t": 538.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 82,
+         "src": "wound",
+         "t": 538.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 82,
+         "src": "wound",
+         "t": 538.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 82,
+         "src": "wound",
+         "t": 538.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 82,
+         "src": "wound",
+         "t": 538.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 82,
+         "src": "wound",
+         "t": 538.7,
+         "zone_out": false
+        },
+        {
+         "amt": 30.2,
+         "boss": false,
+         "hp_after": 51,
+         "src": "bullet",
+         "t": 538.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.6,
+         "boss": false,
+         "hp_after": 51,
+         "src": "corrode",
+         "t": 538.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 51,
+         "src": "wound",
+         "t": 538.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.6,
+         "boss": false,
+         "hp_after": 50,
+         "src": "corrode",
+         "t": 538.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 50,
+         "src": "wound",
+         "t": 538.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.6,
+         "boss": false,
+         "hp_after": 51,
+         "src": "corrode",
+         "t": 538.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 51,
+         "src": "wound",
+         "t": 538.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.6,
+         "boss": false,
+         "hp_after": 51,
+         "src": "corrode",
+         "t": 539.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 51,
+         "src": "wound",
+         "t": 539.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 50,
+         "src": "corrode",
+         "t": 539.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 50,
+         "src": "wound",
+         "t": 539.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 50,
+         "src": "corrode",
+         "t": 539.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 50,
+         "src": "wound",
+         "t": 539.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 49,
+         "src": "corrode",
+         "t": 539.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 49,
+         "src": "wound",
+         "t": 539.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 49,
+         "src": "corrode",
+         "t": 539.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 49,
+         "src": "wound",
+         "t": 539.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 49,
+         "src": "corrode",
+         "t": 539.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 49,
+         "src": "wound",
+         "t": 539.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 49,
+         "src": "corrode",
+         "t": 539.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 49,
+         "src": "wound",
+         "t": 539.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 48,
+         "src": "corrode",
+         "t": 539.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 48,
+         "src": "wound",
+         "t": 539.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 48,
+         "src": "corrode",
+         "t": 539.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 48,
+         "src": "wound",
+         "t": 539.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 48,
+         "src": "corrode",
+         "t": 539.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 48,
+         "src": "wound",
+         "t": 539.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 47,
+         "src": "corrode",
+         "t": 539.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 47,
+         "src": "wound",
+         "t": 539.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 47,
+         "src": "corrode",
+         "t": 539.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 47,
+         "src": "wound",
+         "t": 539.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 47,
+         "src": "corrode",
+         "t": 539.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 47,
+         "src": "wound",
+         "t": 539.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 46,
+         "src": "corrode",
+         "t": 539.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 46,
+         "src": "wound",
+         "t": 539.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 47,
+         "src": "corrode",
+         "t": 539.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 47,
+         "src": "wound",
+         "t": 539.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 47,
+         "src": "corrode",
+         "t": 539.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 47,
+         "src": "wound",
+         "t": 539.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 47,
+         "src": "corrode",
+         "t": 540.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 47,
+         "src": "wound",
+         "t": 540.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 46,
+         "src": "corrode",
+         "t": 540.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 46,
+         "src": "wound",
+         "t": 540.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 46,
+         "src": "corrode",
+         "t": 540.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 46,
+         "src": "wound",
+         "t": 540.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 46,
+         "src": "corrode",
+         "t": 540.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 46,
+         "src": "wound",
+         "t": 540.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 46,
+         "src": "corrode",
+         "t": 540.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 46,
+         "src": "wound",
+         "t": 540.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 45,
+         "src": "corrode",
+         "t": 540.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 45,
+         "src": "wound",
+         "t": 540.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 45,
+         "src": "corrode",
+         "t": 540.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 45,
+         "src": "wound",
+         "t": 540.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 45,
+         "src": "corrode",
+         "t": 540.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 45,
+         "src": "wound",
+         "t": 540.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 62,
+         "src": "corrode",
+         "t": 540.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 62,
+         "src": "wound",
+         "t": 540.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 62,
+         "src": "corrode",
+         "t": 540.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 62,
+         "src": "wound",
+         "t": 540.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 62,
+         "src": "corrode",
+         "t": 540.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 62,
+         "src": "wound",
+         "t": 540.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 61,
+         "src": "corrode",
+         "t": 540.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 61,
+         "src": "wound",
+         "t": 540.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 40,
+         "src": "corrode",
+         "t": 540.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 40,
+         "src": "wound",
+         "t": 540.8,
+         "zone_out": false
+        },
+        {
+         "amt": 21.4,
+         "boss": false,
+         "hp_after": 40,
+         "src": "atk_nest",
+         "t": 540.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 41,
+         "src": "corrode",
+         "t": 540.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 41,
+         "src": "wound",
+         "t": 540.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 44,
+         "src": "corrode",
+         "t": 540.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 44,
+         "src": "wound",
+         "t": 540.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 44,
+         "src": "corrode",
+         "t": 541.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 44,
+         "src": "wound",
+         "t": 541.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 44,
+         "src": "corrode",
+         "t": 541.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 44,
+         "src": "wound",
+         "t": 541.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 44,
+         "src": "corrode",
+         "t": 541.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 44,
+         "src": "wound",
+         "t": 541.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 44,
+         "src": "corrode",
+         "t": 541.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 44,
+         "src": "wound",
+         "t": 541.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 43,
+         "src": "corrode",
+         "t": 541.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 43,
+         "src": "wound",
+         "t": 541.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 43,
+         "src": "corrode",
+         "t": 541.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 43,
+         "src": "wound",
+         "t": 541.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 43,
+         "src": "corrode",
+         "t": 541.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 43,
+         "src": "wound",
+         "t": 541.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 43,
+         "src": "corrode",
+         "t": 541.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 43,
+         "src": "wound",
+         "t": 541.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 43,
+         "src": "corrode",
+         "t": 541.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 43,
+         "src": "wound",
+         "t": 541.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 43,
+         "src": "corrode",
+         "t": 541.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 43,
+         "src": "wound",
+         "t": 541.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 43,
+         "src": "corrode",
+         "t": 541.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 43,
+         "src": "wound",
+         "t": 541.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 43,
+         "src": "corrode",
+         "t": 541.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 43,
+         "src": "wound",
+         "t": 541.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 42,
+         "src": "corrode",
+         "t": 541.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 42,
+         "src": "wound",
+         "t": 541.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 42,
+         "src": "corrode",
+         "t": 541.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 42,
+         "src": "wound",
+         "t": 541.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 44,
+         "src": "corrode",
+         "t": 541.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 44,
+         "src": "wound",
+         "t": 541.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 44,
+         "src": "corrode",
+         "t": 542.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 44,
+         "src": "wound",
+         "t": 542.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 43,
+         "src": "corrode",
+         "t": 542.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 43,
+         "src": "wound",
+         "t": 542.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 43,
+         "src": "corrode",
+         "t": 542.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 43,
+         "src": "wound",
+         "t": 542.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 43,
+         "src": "corrode",
+         "t": 542.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 43,
+         "src": "wound",
+         "t": 542.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 43,
+         "src": "corrode",
+         "t": 542.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 43,
+         "src": "wound",
+         "t": 542.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 43,
+         "src": "corrode",
+         "t": 542.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 43,
+         "src": "wound",
+         "t": 542.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 43,
+         "src": "corrode",
+         "t": 542.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 43,
+         "src": "wound",
+         "t": 542.4,
+         "zone_out": false
+        },
+        {
+         "amt": 30.2,
+         "boss": false,
+         "hp_after": 12,
+         "src": "bullet",
+         "t": 542.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.6,
+         "boss": false,
+         "hp_after": 12,
+         "src": "corrode",
+         "t": 542.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 12,
+         "src": "wound",
+         "t": 542.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.6,
+         "boss": false,
+         "hp_after": 22,
+         "src": "corrode",
+         "t": 542.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 22,
+         "src": "wound",
+         "t": 542.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.6,
+         "boss": false,
+         "hp_after": 22,
+         "src": "corrode",
+         "t": 542.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 22,
+         "src": "wound",
+         "t": 542.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.6,
+         "boss": false,
+         "hp_after": 21,
+         "src": "corrode",
+         "t": 542.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 21,
+         "src": "wound",
+         "t": 542.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.6,
+         "boss": false,
+         "hp_after": 21,
+         "src": "corrode",
+         "t": 542.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 21,
+         "src": "wound",
+         "t": 542.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 20,
+         "src": "corrode",
+         "t": 542.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 20,
+         "src": "wound",
+         "t": 542.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 20,
+         "src": "corrode",
+         "t": 542.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 20,
+         "src": "wound",
+         "t": 542.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 21,
+         "src": "corrode",
+         "t": 542.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 21,
+         "src": "wound",
+         "t": 542.9,
+         "zone_out": false
+        }
+       ],
+       "mire_s": 0.0,
+       "nerve_bursts": 0,
+       "t": 543.0
+      },
+      "near": [
+       {
+        "hp": 12,
+        "mhp": 124,
+        "src": {
+         "atk_founder": 6.3,
+         "atk_nest": 21.4,
+         "atk_reaper": 39.1,
+         "atk_tracer": 22.0,
+         "bullet": 60.4,
+         "contact_tracer": 26.6,
+         "corrode": 16.5,
+         "nest": 3.2,
+         "wound": 22.5
+        },
+        "t": 542.5,
+        "tl": [
+         [
+          527.7,
+          104,
+          72,
+          47,
+          2,
+          10,
+          6,
+          3,
+          1,
+          1,
+          3
+         ],
+         [
+          528.2,
+          108,
+          72,
+          45,
+          1,
+          5,
+          3,
+          3,
+          0,
+          1,
+          3
+         ],
+         [
+          528.7,
+          109,
+          72,
+          46,
+          0,
+          4,
+          3,
+          2,
+          0,
+          1,
+          3
+         ],
+         [
+          529.3,
+          103,
+          68,
+          47,
+          1,
+          7,
+          3,
+          2,
+          1,
+          1,
+          3
+         ],
+         [
+          529.8,
+          102,
+          66,
+          47,
+          1,
+          6,
+          0,
+          2,
+          1,
+          1,
+          3
+         ],
+         [
+          530.3,
+          103,
+          66,
+          48,
+          1,
+          6,
+          5,
+          3,
+          0,
+          1,
+          3
+         ],
+         [
+          530.8,
+          90,
+          60,
+          49,
+          1,
+          7,
+          5,
+          4,
+          1,
+          1,
+          3
+         ],
+         [
+          531.4,
+          95,
+          60,
+          48,
+          0,
+          5,
+          5,
+          1,
+          0,
+          1,
+          3
+         ],
+         [
+          531.9,
+          95,
+          60,
+          49,
+          0,
+          7,
+          5,
+          2,
+          0,
+          1,
+          3
+         ],
+         [
+          532.4,
+          96,
+          60,
+          46,
+          0,
+          4,
+          4,
+          0,
+          0,
+          1,
+          3
+         ],
+         [
+          532.9,
+          96,
+          60,
+          47,
+          0,
+          7,
+          0,
+          1,
+          0,
+          1,
+          3
+         ],
+         [
+          533.5,
+          96,
+          60,
+          49,
+          1,
+          7,
+          4,
+          3,
+          0,
+          1,
+          3
+         ],
+         [
+          534.0,
+          81,
+          55,
+          51,
+          4,
+          10,
+          4,
+          5,
+          1,
+          1,
+          3
+         ],
+         [
+          534.5,
+          81,
+          51,
+          52,
+          4,
+          10,
+          4,
+          5,
+          1,
+          1,
+          3
+         ],
+         [
+          535.1,
+          81,
+          51,
+          53,
+          2,
+          11,
+          5,
+          3,
+          0,
+          1,
+          3
+         ],
+         [
+          535.6,
+          89,
+          48,
+          54,
+          3,
+          13,
+          6,
+          3,
+          1,
+          1,
+          3
+         ],
+         [
+          536.1,
+          94,
+          48,
+          54,
+          1,
+          9,
+          8,
+          3,
+          0,
+          1,
+          3
+         ],
+         [
+          536.6,
+          76,
+          43,
+          53,
+          1,
+          8,
+          8,
+          2,
+          1,
+          1,
+          3
+         ],
+         [
+          537.2,
+          78,
+          43,
+          53,
+          0,
+          7,
+          10,
+          2,
+          0,
+          1,
+          3
+         ],
+         [
+          537.7,
+          79,
+          43,
+          54,
+          2,
+          14,
+          11,
+          2,
+          0,
+          1,
+          3
+         ],
+         [
+          538.2,
+          81,
+          43,
+          54,
+          3,
+          15,
+          12,
+          3,
+          0,
+          1,
+          3
+         ],
+         [
+          538.8,
+          51,
+          35,
+          56,
+          3,
+          20,
+          4,
+          4,
+          1,
+          1,
+          3
+         ],
+         [
+          539.3,
+          49,
+          35,
+          56,
+          3,
+          21,
+          5,
+          4,
+          0,
+          1,
+          3
+         ],
+         [
+          539.8,
+          46,
+          35,
+          57,
+          8,
+          23,
+          10,
+          6,
+          0,
+          1,
+          3
+         ],
+         [
+          540.3,
+          45,
+          35,
+          55,
+          4,
+          18,
+          13,
+          6,
+          0,
+          1,
+          3
+         ],
+         [
+          540.9,
+          41,
+          30,
+          55,
+          4,
+          17,
+          16,
+          5,
+          1,
+          1,
+          3
+         ],
+         [
+          541.4,
+          43,
+          30,
+          57,
+          1,
+          18,
+          23,
+          5,
+          0,
+          1,
+          3
+         ],
+         [
+          541.9,
+          44,
+          30,
+          57,
+          1,
+          19,
+          35,
+          6,
+          0,
+          1,
+          3
+         ],
+         [
+          542.5,
+          12,
+          22,
+          59,
+          1,
+          17,
+          31,
+          5,
+          1,
+          1,
+          3
+         ]
+        ]
+       }
+      ],
+      "src": "corrode",
+      "t": 542,
+      "tl": [
+       [
+        527.7,
+        104,
+        72,
+        47,
+        2,
+        10,
+        6,
+        3,
+        1,
+        1,
+        3
+       ],
+       [
+        528.2,
+        108,
+        72,
+        45,
+        1,
+        5,
+        3,
+        3,
+        0,
+        1,
+        3
+       ],
+       [
+        528.7,
+        109,
+        72,
+        46,
+        0,
+        4,
+        3,
+        2,
+        0,
+        1,
+        3
+       ],
+       [
+        529.3,
+        103,
+        68,
+        47,
+        1,
+        7,
+        3,
+        2,
+        1,
+        1,
+        3
+       ],
+       [
+        529.8,
+        102,
+        66,
+        47,
+        1,
+        6,
+        0,
+        2,
+        1,
+        1,
+        3
+       ],
+       [
+        530.3,
+        103,
+        66,
+        48,
+        1,
+        6,
+        5,
+        3,
+        0,
+        1,
+        3
+       ],
+       [
+        530.8,
+        90,
+        60,
+        49,
+        1,
+        7,
+        5,
+        4,
+        1,
+        1,
+        3
+       ],
+       [
+        531.4,
+        95,
+        60,
+        48,
+        0,
+        5,
+        5,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        531.9,
+        95,
+        60,
+        49,
+        0,
+        7,
+        5,
+        2,
+        0,
+        1,
+        3
+       ],
+       [
+        532.4,
+        96,
+        60,
+        46,
+        0,
+        4,
+        4,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        532.9,
+        96,
+        60,
+        47,
+        0,
+        7,
+        0,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        533.5,
+        96,
+        60,
+        49,
+        1,
+        7,
+        4,
+        3,
+        0,
+        1,
+        3
+       ],
+       [
+        534.0,
+        81,
+        55,
+        51,
+        4,
+        10,
+        4,
+        5,
+        1,
+        1,
+        3
+       ],
+       [
+        534.5,
+        81,
+        51,
+        52,
+        4,
+        10,
+        4,
+        5,
+        1,
+        1,
+        3
+       ],
+       [
+        535.1,
+        81,
+        51,
+        53,
+        2,
+        11,
+        5,
+        3,
+        0,
+        1,
+        3
+       ],
+       [
+        535.6,
+        89,
+        48,
+        54,
+        3,
+        13,
+        6,
+        3,
+        1,
+        1,
+        3
+       ],
+       [
+        536.1,
+        94,
+        48,
+        54,
+        1,
+        9,
+        8,
+        3,
+        0,
+        1,
+        3
+       ],
+       [
+        536.6,
+        76,
+        43,
+        53,
+        1,
+        8,
+        8,
+        2,
+        1,
+        1,
+        3
+       ],
+       [
+        537.2,
+        78,
+        43,
+        53,
+        0,
+        7,
+        10,
+        2,
+        0,
+        1,
+        3
+       ],
+       [
+        537.7,
+        79,
+        43,
+        54,
+        2,
+        14,
+        11,
+        2,
+        0,
+        1,
+        3
+       ],
+       [
+        538.2,
+        81,
+        43,
+        54,
+        3,
+        15,
+        12,
+        3,
+        0,
+        1,
+        3
+       ],
+       [
+        538.8,
+        51,
+        35,
+        56,
+        3,
+        20,
+        4,
+        4,
+        1,
+        1,
+        3
+       ],
+       [
+        539.3,
+        49,
+        35,
+        56,
+        3,
+        21,
+        5,
+        4,
+        0,
+        1,
+        3
+       ],
+       [
+        539.8,
+        46,
+        35,
+        57,
+        8,
+        23,
+        10,
+        6,
+        0,
+        1,
+        3
+       ],
+       [
+        540.3,
+        45,
+        35,
+        55,
+        4,
+        18,
+        13,
+        6,
+        0,
+        1,
+        3
+       ],
+       [
+        540.9,
+        41,
+        30,
+        55,
+        4,
+        17,
+        16,
+        5,
+        1,
+        1,
+        3
+       ],
+       [
+        541.4,
+        43,
+        30,
+        57,
+        1,
+        18,
+        23,
+        5,
+        0,
+        1,
+        3
+       ],
+       [
+        541.9,
+        44,
+        30,
+        57,
+        1,
+        19,
+        35,
+        6,
+        0,
+        1,
+        3
+       ],
+       [
+        542.5,
+        12,
+        22,
+        59,
+        1,
+        17,
+        31,
+        5,
+        1,
+        1,
+        3
+       ]
+      ],
+      "zone_out": false,
+      "zone_phase": 2,
+      "zone_state": 3
+     },
+     "floors": [],
+     "hits": 1529,
+     "hits_pm": 169.0,
+     "king_low_s": 0,
+     "lamp_end": 15,
+     "lamp_gain": {
+      "商人": 30,
+      "灯标": 92,
+      "精英灯油": 200
+     },
+     "lamp_loss": {
+      "冲撞吸灯": 8,
+      "受击": 359,
+      "尖叫": 40
+     },
+     "lamp_s": [
+      323,
+      174,
+      42,
+      0
+     ],
+     "lamp_taken": [
+      419,
+      653,
+      161,
+      0
+     ],
+     "low20_s": 0,
+     "low_hp_s": 1,
+     "moved_pm": 9365,
+     "peak": [
+      111,
+      61,
+      4,
+      476,
+      48
+     ],
+     "peak_min": [
+      [
+       19,
+       2,
+       0,
+       90,
+       4
+      ],
+      [
+       37,
+       10,
+       0,
+       117,
+       9
+      ],
+      [
+       42,
+       9,
+       1,
+       239,
+       26
+      ],
+      [
+       44,
+       39,
+       2,
+       126,
+       16
+      ],
+      [
+       67,
+       51,
+       4,
+       109,
+       24
+      ],
+      [
+       111,
+       20,
+       4,
+       476,
+       48
+      ],
+      [
+       110,
+       20,
+       3,
+       193,
+       28
+      ],
+      [
+       44,
+       61,
+       1,
+       246,
+       17
+      ],
+      [
+       87,
+       33,
+       1,
+       355,
+       24
+      ],
+      [
+       59,
+       35,
+       0,
+       141,
+       19
+      ]
+     ],
+     "profile": "expert",
+     "reaper_drain_deaths": 0,
+     "recruit_t": [
+      65,
+      140
+     ],
+     "still_pct": 5,
+     "taken": 1234,
+     "taken_pm": 136
+    },
+    "cmd": {
+     "aggro": 216,
+     "audit_active_op_seconds": [
+      168.960000000005,
+      45.6720000000003,
+      0.0
+     ],
+     "audit_hits": [
+      [
+       81.1140000000017,
+       "exusiai",
+       "bullet",
+       1.0,
+       0.967757198353725,
+       1,
+       "clear",
+       7.67539893189574
+      ],
+      [
+       81.3780000000017,
+       "exusiai",
+       "contact_slider",
+       0.967757198353725,
+       0.860281192866142,
+       1,
+       "clear",
+       25.5846631063191
+      ],
+      [
+       83.4900000000018,
+       "exusiai",
+       "contact_bone",
+       0.860281192866142,
+       0.770717854959823,
+       1,
+       "clear",
+       21.3205525885993
+      ],
+      [
+       84.0180000000018,
+       "exusiai",
+       "contact_bone",
+       0.770717854959823,
+       0.681154517053504,
+       1,
+       "clear",
+       21.3205525885993
+      ],
+      [
+       84.5460000000018,
+       "exusiai",
+       "contact_bone",
+       0.681154517053504,
+       0.591591179147185,
+       1,
+       "clear",
+       21.3205525885993
+      ],
+      [
+       85.0740000000018,
+       "exusiai",
+       "contact_slider",
+       0.591591179147185,
+       0.484115173659602,
+       1,
+       "clear",
+       25.5846631063191
+      ],
+      [
+       85.8660000000019,
+       "exusiai",
+       "contact_bone",
+       0.484115173659602,
+       0.394551835753283,
+       1,
+       "clear",
+       21.3205525885993
+      ],
+      [
+       86.3940000000019,
+       "exusiai",
+       "contact_bone",
+       0.394551835753283,
+       0.304988497846964,
+       1,
+       "clear",
+       21.3205525885993
+      ],
+      [
+       88.308000000002,
+       "exusiai",
+       "contact_tracer",
+       0.304988497846964,
+       0.21689655763482,
+       1,
+       "clear",
+       20.9702863675009
+      ],
+      [
+       88.374000000002,
+       "exusiai",
+       "retreat",
+       0.21689655763482,
+       0.21689655763482,
+       1,
+       "clear",
+       0
+      ],
+      [
+       99.3960000000024,
+       "exusiai",
+       "bullet",
+       0.582096557634817,
+       0.540163033559291,
+       1,
+       "clear",
+       9.98227540617901
+      ],
+      [
+       101.310000000002,
+       "exusiai",
+       "contact_tracer",
+       0.540163033559291,
+       0.452071093347147,
+       1,
+       "clear",
+       20.9702863675009
+      ],
+      [
+       101.838000000002,
+       "exusiai",
+       "contact_tracer",
+       0.452071093347147,
+       0.363979153135003,
+       1,
+       "clear",
+       20.9702863675009
+      ],
+      [
+       102.366000000002,
+       "exusiai",
+       "contact_tracer",
+       0.363979153135003,
+       0.275887212922859,
+       1,
+       "clear",
+       20.9702863675009
+      ],
+      [
+       102.432000000002,
+       "exusiai",
+       "retreat",
+       0.275887212922859,
+       0.275887212922859,
+       1,
+       "clear",
+       0
+      ],
+      [
+       125.070000000003,
+       "exusiai",
+       "contact_bone",
+       0.911687212922853,
+       0.836470182608152,
+       1,
+       "clear",
+       16.4010734601205
+      ],
+      [
+       126.852000000003,
+       "exusiai",
+       "bullet",
+       0.836470182608152,
+       0.798880387792446,
+       1,
+       "clear",
+       8.19645475956489
+      ],
+      [
+       128.964000000003,
+       "exusiai",
+       "contact_tracer",
+       0.798880387792446,
+       0.695850088623066,
+       1,
+       "clear",
+       22.4657567338832
+      ],
+      [
+       129.492000000004,
+       "exusiai",
+       "contact_tracer",
+       0.695850088623066,
+       0.592819789453687,
+       1,
+       "clear",
+       22.4657567338832
+      ],
+      [
+       130.020000000004,
+       "exusiai",
+       "contact_tracer",
+       0.592819789453687,
+       0.489789490284308,
+       1,
+       "clear",
+       22.4657567338832
+      ],
+      [
+       177.672000000005,
+       "eyjafjalla",
+       "bullet",
+       1.0,
+       0.953023662319512,
+       1,
+       "clear",
+       11.7018057162095
+      ],
+      [
+       179.124000000005,
+       "exusiai",
+       "contact_bone",
+       1.0,
+       0.92434158032415,
+       1,
+       "clear",
+       18.8465123412543
+      ],
+      [
+       179.586000000005,
+       "eyjafjalla",
+       "contact_bone",
+       0.953023662319512,
+       0.877365242643662,
+       1,
+       "clear",
+       18.8465123412543
+      ],
+      [
+       179.652000000005,
+       "exusiai",
+       "contact_bone",
+       0.92434158032415,
+       0.848683160648299,
+       1,
+       "clear",
+       18.8465123412543
+      ],
+      [
+       180.114000000005,
+       "eyjafjalla",
+       "contact_bone",
+       0.877365242643662,
+       0.801706822967811,
+       1,
+       "clear",
+       18.8465123412543
+      ],
+      [
+       181.764000000005,
+       "eyjafjalla",
+       "contact_slider",
+       0.801706822967811,
+       0.72239609880673,
+       1,
+       "clear",
+       19.7563013885254
+      ],
+      [
+       213.312000000007,
+       "exusiai",
+       "contact_runner",
+       1.0,
+       0.812381977070649,
+       1,
+       "focus",
+       46.7356495117013
+      ],
+      [
+       213.378000000007,
+       "eyjafjalla",
+       "contact_runner",
+       1.0,
+       0.812381977070649,
+       1,
+       "focus",
+       46.7356495117013
+      ],
+      [
+       222.684000000007,
+       "exusiai",
+       "bullet",
+       0.812381977070649,
+       0.757275682558597,
+       1,
+       "focus",
+       13.7269779629521
+      ],
+      [
+       222.816000000007,
+       "exusiai",
+       "bullet",
+       0.757275682558597,
+       0.693686762446193,
+       1,
+       "focus",
+       15.84
+      ],
+      [
+       223.344000000007,
+       "exusiai",
+       "contact_fractal",
+       0.693686762446193,
+       0.606558507926094,
+       1,
+       "focus",
+       21.7036482009566
+      ],
+      [
+       223.476000000007,
+       "eyjafjalla",
+       "bullet",
+       0.812381977070649,
+       0.748793056958244,
+       1,
+       "focus",
+       15.84
+      ],
+      [
+       225.192000000007,
+       "exusiai",
+       "bullet",
+       0.606558507926094,
+       0.568056426534168,
+       1,
+       "focus",
+       9.59086847472866
+      ],
+      [
+       225.456000000007,
+       "eyjafjalla",
+       "bullet",
+       0.748793056958244,
+       0.68520413684584,
+       1,
+       "focus",
+       15.84
+      ],
+      [
+       242.022000000008,
+       "eyjafjalla",
+       "bullet",
+       1.0,
+       0.924988232668511,
+       1,
+       "focus",
+       18.685431242274
+      ],
+      [
+       242.220000000008,
+       "eyjafjalla",
+       "bullet",
+       0.924988232668511,
+       0.849837690717487,
+       1,
+       "focus",
+       18.72
+      ],
+      [
+       246.642000000008,
+       "eyjafjalla",
+       "contact_floater",
+       0.849837690717487,
+       0.76117146201754,
+       1,
+       "focus",
+       22.0867575691567
+      ],
+      [
+       246.708000000008,
+       "exusiai",
+       "contact_floater",
+       1.0,
+       0.911333771300053,
+       1,
+       "focus",
+       22.0867575691567
+      ],
+      [
+       247.236000000008,
+       "exusiai",
+       "contact_tracer",
+       0.911333771300053,
+       0.827376521579257,
+       1,
+       "focus",
+       20.9137509054503
+      ],
+      [
+       248.754000000008,
+       "exusiai",
+       "contact_tracer",
+       0.827376521579257,
+       0.743419271858461,
+       1,
+       "focus",
+       20.9137509054503
+      ],
+      [
+       249.282000000008,
+       "exusiai",
+       "contact_tracer",
+       0.743419271858461,
+       0.659462022137665,
+       1,
+       "focus",
+       20.9137509054503
+      ],
+      [
+       266.046000000004,
+       "eyjafjalla",
+       "contact_bone",
+       1.0,
+       0.932533672205833,
+       1,
+       "focus",
+       16.8058622535271
+      ],
+      [
+       266.376000000004,
+       "exusiai",
+       "contact_bone",
+       1.0,
+       0.931328849821638,
+       1,
+       "focus",
+       17.1059835094299
+      ],
+      [
+       266.574000000004,
+       "eyjafjalla",
+       "contact_slider",
+       0.932533672205833,
+       0.848633852232972,
+       1,
+       "focus",
+       20.8994451552396
+      ],
+      [
+       267.960000000004,
+       "eyjafjalla",
+       "contact_bone",
+       0.848633852232972,
+       0.798116203495595,
+       1,
+       "focus",
+       12.5839463004807
+      ],
+      [
+       268.488000000003,
+       "eyjafjalla",
+       "contact_bone",
+       0.798116203495595,
+       0.747598554758217,
+       1,
+       "focus",
+       12.5839463004807
+      ],
+      [
+       268.554000000003,
+       "exusiai",
+       "contact_slider",
+       0.931328849821638,
+       0.868016937347431,
+       1,
+       "focus",
+       15.770997397325
+      ],
+      [
+       269.016000000003,
+       "eyjafjalla",
+       "contact_slider",
+       0.747598554758217,
+       0.663698734785357,
+       1,
+       "focus",
+       20.8994451552396
+      ],
+      [
+       269.082000000003,
+       "exusiai",
+       "contact_slider",
+       0.868016937347431,
+       0.804705024873224,
+       1,
+       "focus",
+       15.770997397325
+      ],
+      [
+       269.544000000003,
+       "eyjafjalla",
+       "contact_slider",
+       0.663698734785357,
+       0.600386822311149,
+       1,
+       "focus",
+       15.770997397325
+      ],
+      [
+       269.676000000003,
+       "exusiai",
+       "bullet",
+       0.804705024873224,
+       0.738948300666078,
+       1,
+       "focus",
+       16.38
+      ],
+      [
+       270.204000000003,
+       "eyjafjalla",
+       "bullet",
+       0.600386822311149,
+       0.534630098104004,
+       1,
+       "focus",
+       16.38
+      ],
+      [
+       270.204000000003,
+       "eyjafjalla",
+       "bullet",
+       0.534630098104004,
+       0.468873373896858,
+       1,
+       "focus",
+       16.38
+      ],
+      [
+       270.402000000003,
+       "exusiai",
+       "bullet",
+       0.738948300666078,
+       0.673191576458932,
+       1,
+       "focus",
+       16.38
+      ],
+      [
+       270.864000000002,
+       "exusiai",
+       "bullet",
+       0.673191576458932,
+       0.607434852251787,
+       1,
+       "focus",
+       16.38
+      ],
+      [
+       271.128000000002,
+       "exusiai",
+       "contact_bone",
+       0.607434852251787,
+       0.536528923556741,
+       1,
+       "focus",
+       17.6626668379359
+      ],
+      [
+       271.656000000002,
+       "exusiai",
+       "contact_bone",
+       0.536528923556741,
+       0.464410211588304,
+       1,
+       "focus",
+       17.9647711513377
+      ],
+      [
+       272.184000000002,
+       "exusiai",
+       "contact_bone",
+       0.464410211588304,
+       0.394013269372439,
+       1,
+       "focus",
+       17.5358783059719
+      ],
+      [
+       272.712000000002,
+       "exusiai",
+       "contact_slider",
+       0.394013269372439,
+       0.310400893165791,
+       1,
+       "focus",
+       20.827842913076
+      ],
+      [
+       290.003999999995,
+       "exusiai",
+       "contact_tracer",
+       0.827400893165786,
+       0.784449920136492,
+       1,
+       "",
+       10.6990873815974
+      ],
+      [
+       290.333999999995,
+       "eyjafjalla",
+       "contact_reaper",
+       0.985873373896853,
+       0.916755216183696,
+       1,
+       "",
+       17.2173330863475
+      ],
+      [
+       295.217999999993,
+       "eyjafjalla",
+       "contact_reaper",
+       0.916755216183696,
+       0.773486892936224,
+       1,
+       "",
+       35.6881393209454
+      ],
+      [
+       312.179999999986,
+       "exusiai",
+       "contact_tracer",
+       1.0,
+       0.870852683411801,
+       1,
+       "clear",
+       32.1705965621204
+      ],
+      [
+       312.179999999986,
+       "eyjafjalla",
+       "contact_tracer",
+       1.0,
+       0.870852683411801,
+       1,
+       "clear",
+       32.1705965621204
+      ],
+      [
+       312.707999999986,
+       "exusiai",
+       "contact_tracer",
+       0.870852683411801,
+       0.741705366823602,
+       1,
+       "clear",
+       32.1705965621204
+      ],
+      [
+       312.707999999986,
+       "eyjafjalla",
+       "contact_tracer",
+       0.870852683411801,
+       0.741705366823602,
+       1,
+       "clear",
+       32.1705965621204
+      ],
+      [
+       314.291999999985,
+       "eyjafjalla",
+       "contact_slider",
+       0.741705366823602,
+       0.610518910838954,
+       1,
+       "clear",
+       32.6785461857758
+      ],
+      [
+       343.859999999974,
+       "exusiai",
+       "contact_reaper",
+       1.0,
+       0.832825225024597,
+       1,
+       "clear",
+       41.643236446373
+      ],
+      [
+       344.387999999974,
+       "exusiai",
+       "contact_reaper",
+       0.832825225024597,
+       0.665650450049193,
+       1,
+       "clear",
+       41.643236446373
+      ],
+      [
+       344.387999999974,
+       "eyjafjalla",
+       "contact_bone",
+       1.0,
+       0.881099082970824,
+       1,
+       "clear",
+       29.6182184319678
+      ],
+      [
+       344.915999999973,
+       "exusiai",
+       "contact_reaper",
+       0.665650450049193,
+       0.49847567507379,
+       1,
+       "clear",
+       41.643236446373
+      ],
+      [
+       344.915999999973,
+       "eyjafjalla",
+       "contact_bone",
+       0.881099082970824,
+       0.762198165941648,
+       1,
+       "clear",
+       29.6182184319678
+      ],
+      [
+       345.443999999973,
+       "exusiai",
+       "contact_reaper",
+       0.49847567507379,
+       0.331300900098386,
+       1,
+       "clear",
+       41.643236446373
+      ],
+      [
+       345.443999999973,
+       "eyjafjalla",
+       "contact_bone",
+       0.762198165941648,
+       0.643297248912472,
+       1,
+       "clear",
+       29.6182184319678
+      ],
+      [
+       345.971999999973,
+       "exusiai",
+       "contact_reaper",
+       0.331300900098386,
+       0.164126125122983,
+       1,
+       "clear",
+       41.643236446373
+      ],
+      [
+       345.971999999973,
+       "eyjafjalla",
+       "contact_bone",
+       0.643297248912472,
+       0.524396331883295,
+       1,
+       "clear",
+       29.6182184319678
+      ],
+      [
+       346.037999999973,
+       "exusiai",
+       "retreat",
+       0.164126125122983,
+       0.164126125122983,
+       1,
+       "clear",
+       0
+      ],
+      [
+       346.499999999973,
+       "eyjafjalla",
+       "contact_bone",
+       0.524396331883295,
+       0.345017195089193,
+       1,
+       "clear",
+       44.6833429754109
+      ],
+      [
+       347.027999999973,
+       "eyjafjalla",
+       "contact_bone",
+       0.345017195089193,
+       0.16563805829509,
+       1,
+       "clear",
+       44.6833429754109
+      ],
+      [
+       347.093999999973,
+       "eyjafjalla",
+       "retreat",
+       0.16563805829509,
+       0.16563805829509,
+       1,
+       "clear",
+       0
+      ],
+      [
+       364.517999999966,
+       "exusiai",
+       "bullet",
+       0.775726125122978,
+       0.729748096217396,
+       1,
+       "point",
+       11.4531270003806
+      ],
+      [
+       365.177999999965,
+       "exusiai",
+       "contact_reaper",
+       0.729748096217396,
+       0.556888925926012,
+       1,
+       "point",
+       43.0592193195837
+      ],
+      [
+       365.309999999965,
+       "eyjafjalla",
+       "contact_bone",
+       0.742038058295086,
+       0.558122875585705,
+       1,
+       "point",
+       45.813272012907
+      ],
+      [
+       365.837999999965,
+       "eyjafjalla",
+       "contact_tracer",
+       0.558122875585705,
+       0.404839555726718,
+       1,
+       "point",
+       38.1828749768735
+      ],
+      [
+       366.167999999965,
+       "exusiai",
+       "contact_bone",
+       0.556888925926012,
+       0.434021818136534,
+       1,
+       "point",
+       30.6061965503589
+      ],
+      [
+       366.365999999965,
+       "eyjafjalla",
+       "contact_tracer",
+       0.404839555726718,
+       0.251556235867732,
+       1,
+       "point",
+       38.1828749768735
+      ],
+      [
+       366.431999999965,
+       "eyjafjalla",
+       "retreat",
+       0.251556235867732,
+       0.251556235867732,
+       1,
+       "point",
+       0
+      ],
+      [
+       380.02799999996,
+       "eyjafjalla",
+       "contact_runner",
+       0.676156235867728,
+       0.377181457035222,
+       1,
+       "clear",
+       74.4746174071772
+      ],
+      [
+       381.083999999959,
+       "eyjafjalla",
+       "contact_slider",
+       0.377181457035222,
+       0.152273065671606,
+       1,
+       "clear",
+       56.0246802886768
+      ],
+      [
+       381.149999999959,
+       "eyjafjalla",
+       "retreat",
+       0.152273065671606,
+       0.152273065671606,
+       1,
+       "clear",
+       0
+      ],
+      [
+       381.611999999959,
+       "exusiai",
+       "contact_slider",
+       0.768421818136531,
+       0.557862602452247,
+       1,
+       "clear",
+       52.4503006269551
+      ],
+      [
+       382.139999999959,
+       "exusiai",
+       "contact_slider",
+       0.557862602452247,
+       0.347303386767963,
+       1,
+       "clear",
+       52.4503006269551
+      ],
+      [
+       382.667999999959,
+       "exusiai",
+       "contact_tracer",
+       0.347303386767963,
+       0.239078314142844,
+       1,
+       "clear",
+       26.9588655909174
+      ],
+      [
+       382.733999999959,
+       "exusiai",
+       "retreat",
+       0.239078314142844,
+       0.239078314142844,
+       1,
+       "clear",
+       0
+      ],
+      [
+       403.65599999995,
+       "eyjafjalla",
+       "bullet",
+       0.8958730656716,
+       0.862744305743019,
+       1,
+       "clear",
+       8.25237409820966
+      ],
+      [
+       404.44799999995,
+       "exusiai",
+       "contact_tracer",
+       0.929878314142837,
+       0.701550532644996,
+       1,
+       "clear",
+       56.8764503711123
+      ],
+      [
+       404.51399999995,
+       "eyjafjalla",
+       "contact_slider",
+       0.862744305743019,
+       0.635711700079129,
+       1,
+       "clear",
+       56.553822070875
+      ],
+      [
+       405.04199999995,
+       "eyjafjalla",
+       "contact_slider",
+       0.635711700079129,
+       0.319872876552703,
+       1,
+       "clear",
+       78.6754509404327
+      ],
+      [
+       405.43799999995,
+       "exusiai",
+       "contact_tracer",
+       0.701550532644996,
+       0.473222751147155,
+       1,
+       "clear",
+       56.8764503711123
+      ],
+      [
+       405.56999999995,
+       "eyjafjalla",
+       "contact_slider",
+       0.319872876552703,
+       0.00403405302627702,
+       1,
+       "clear",
+       78.6754509404327
+      ],
+      [
+       405.63599999995,
+       "eyjafjalla",
+       "retreat",
+       0.00403405302627702,
+       0.00403405302627702,
+       1,
+       "clear",
+       0
+      ],
+      [
+       405.965999999949,
+       "exusiai",
+       "contact_tracer",
+       0.473222751147155,
+       0.244894969649313,
+       1,
+       "clear",
+       56.8764503711123
+      ],
+      [
+       406.031999999949,
+       "exusiai",
+       "retreat",
+       0.244894969649313,
+       0.244894969649313,
+       1,
+       "clear",
+       0
+      ],
+      [
+       427.679999999941,
+       "eyjafjalla",
+       "contact_tracer",
+       0.705834053026273,
+       0.575990168378528,
+       1,
+       "focus",
+       32.3441116657532
+      ],
+      [
+       428.273999999941,
+       "eyjafjalla",
+       "contact_reaper",
+       0.575990168378528,
+       0.469630709922544,
+       1,
+       "focus",
+       26.4941411013857
+      ],
+      [
+       428.80199999994,
+       "eyjafjalla",
+       "contact_reaper",
+       0.469630709922544,
+       0.363271251466559,
+       1,
+       "focus",
+       26.4941411013857
+      ],
+      [
+       428.86799999994,
+       "exusiai",
+       "contact_founder",
+       0.933494969649307,
+       0.595572846885803,
+       1,
+       "focus",
+       84.1764007803889
+      ],
+      [
+       429.32999999994,
+       "eyjafjalla",
+       "contact_reaper",
+       0.363271251466559,
+       0.256911793010575,
+       1,
+       "focus",
+       26.4941411013857
+      ],
+      [
+       429.39599999994,
+       "exusiai",
+       "contact_founder",
+       0.595572846885803,
+       0.257650724122298,
+       1,
+       "focus",
+       84.1764007803889
+      ],
+      [
+       429.39599999994,
+       "eyjafjalla",
+       "retreat",
+       0.256911793010575,
+       0.256911793010575,
+       1,
+       "focus",
+       0
+      ],
+      [
+       429.46199999994,
+       "exusiai",
+       "retreat",
+       0.257650724122298,
+       0.257650724122298,
+       1,
+       "focus",
+       0
+      ],
+      [
+       451.373999999932,
+       "eyjafjalla",
+       "bullet",
+       0.941111793010568,
+       0.792737646081624,
+       1,
+       "focus",
+       36.96
+      ],
+      [
+       452.099999999931,
+       "exusiai",
+       "bullet",
+       0.939650724122292,
+       0.901738779623877,
+       1,
+       "focus",
+       9.44386537455521
+      ],
+      [
+       452.363999999931,
+       "exusiai",
+       "contact_reaper",
+       0.901738779623877,
+       0.829570906807643,
+       1,
+       "focus",
+       17.977017118524
+      ],
+      [
+       452.891999999931,
+       "exusiai",
+       "contact_reaper",
+       0.829570906807643,
+       0.757403033991408,
+       1,
+       "focus",
+       17.977017118524
+      ],
+      [
+       453.419999999931,
+       "exusiai",
+       "contact_reaper",
+       0.757403033991408,
+       0.685235161175174,
+       1,
+       "focus",
+       17.977017118524
+      ],
+      [
+       453.947999999931,
+       "exusiai",
+       "contact_reaper",
+       0.685235161175174,
+       0.613067288358939,
+       1,
+       "focus",
+       17.977017118524
+      ],
+      [
+       454.40999999993,
+       "eyjafjalla",
+       "bullet",
+       0.792737646081624,
+       0.753682225366451,
+       1,
+       "focus",
+       9.72870530014952
+      ],
+      [
+       454.47599999993,
+       "exusiai",
+       "contact_reaper",
+       0.613067288358939,
+       0.540899415542705,
+       1,
+       "focus",
+       17.977017118524
+      ],
+      [
+       455.33399999993,
+       "eyjafjalla",
+       "contact_reaper",
+       0.753682225366451,
+       0.681514352550217,
+       1,
+       "focus",
+       17.977017118524
+      ],
+      [
+       455.86199999993,
+       "eyjafjalla",
+       "contact_reaper",
+       0.681514352550217,
+       0.609346479733982,
+       1,
+       "focus",
+       17.977017118524
+      ],
+      [
+       456.719999999929,
+       "eyjafjalla",
+       "contact_reaper",
+       0.609346479733982,
+       0.537178606917748,
+       1,
+       "focus",
+       17.977017118524
+      ],
+      [
+       456.983999999929,
+       "exusiai",
+       "contact_founder",
+       0.540899415542705,
+       0.393267949147083,
+       1,
+       "focus",
+       36.7749982791493
+      ],
+      [
+       457.247999999929,
+       "eyjafjalla",
+       "contact_reaper",
+       0.537178606917748,
+       0.465010734101514,
+       1,
+       "focus",
+       17.977017118524
+      ],
+      [
+       457.511999999929,
+       "exusiai",
+       "contact_founder",
+       0.393267949147083,
+       0.245636482751462,
+       1,
+       "focus",
+       36.7749982791493
+      ],
+      [
+       473.219999999923,
+       "eyjafjalla",
+       "warn_unknown",
+       0.984210734101509,
+       0.939429732595794,
+       1,
+       "focus",
+       11.1549474750736
+      ],
+      [
+       474.407999999923,
+       "exusiai",
+       "contact_reaper",
+       0.764836482751457,
+       0.691461564768352,
+       1,
+       "focus",
+       18.2776920695915
+      ],
+      [
+       475.067999999922,
+       "exusiai",
+       "warn_unknown",
+       0.691461564768352,
+       0.66944908937342,
+       1,
+       "focus",
+       5.48330762087744
+      ],
+      [
+       479.81999999992,
+       "eyjafjalla",
+       "warn_unknown",
+       0.939429732595794,
+       0.66387774544204,
+       1,
+       "focus",
+       68.64
+      ],
+      [
+       497.045999999914,
+       "eyjafjalla",
+       "contact_reaper",
+       1.0,
+       0.851115168830597,
+       1,
+       "clear",
+       37.0872114442983
+      ],
+      [
+       497.573999999913,
+       "eyjafjalla",
+       "contact_reaper",
+       0.851115168830597,
+       0.702230337661194,
+       1,
+       "clear",
+       37.0872114442983
+      ],
+      [
+       498.101999999913,
+       "eyjafjalla",
+       "contact_reaper",
+       0.702230337661194,
+       0.553345506491791,
+       1,
+       "clear",
+       37.0872114442983
+      ],
+      [
+       498.629999999913,
+       "eyjafjalla",
+       "contact_reaper",
+       0.553345506491791,
+       0.404460675322388,
+       1,
+       "clear",
+       37.0872114442983
+      ],
+      [
+       498.695999999913,
+       "exusiai",
+       "contact_runner",
+       1.0,
+       0.58063945922606,
+       1,
+       "clear",
+       104.462710706789
+      ],
+      [
+       499.157999999913,
+       "eyjafjalla",
+       "contact_reaper",
+       0.404460675322388,
+       0.255575844152985,
+       1,
+       "clear",
+       37.0872114442983
+      ],
+      [
+       499.223999999913,
+       "eyjafjalla",
+       "retreat",
+       0.255575844152985,
+       0.255575844152985,
+       1,
+       "clear",
+       0
+      ],
+      [
+       499.487999999913,
+       "exusiai",
+       "contact_slider",
+       0.58063945922606,
+       0.431039394270825,
+       1,
+       "clear",
+       37.2653761803489
+      ],
+      [
+       500.015999999912,
+       "exusiai",
+       "contact_slider",
+       0.431039394270825,
+       0.281439329315591,
+       1,
+       "clear",
+       37.2653761803489
+      ],
+      [
+       500.081999999912,
+       "exusiai",
+       "retreat",
+       0.281439329315591,
+       0.281439329315591,
+       1,
+       "clear",
+       0
+      ],
+      [
+       519.947999999912,
+       "exusiai",
+       "warn_unknown",
+       0.932639329315585,
+       0.45318940535222,
+       1,
+       "clear",
+       119.430976059274
+      ],
+      [
+       520.277999999912,
+       "exusiai",
+       "contact_founder",
+       0.45318940535222,
+       0.020094806867933,
+       1,
+       "clear",
+       107.883864482436
+      ],
+      [
+       520.343999999912,
+       "exusiai",
+       "retreat",
+       0.020094806867933,
+       0.020094806867933,
+       1,
+       "clear",
+       0
+      ],
+      [
+       520.805999999912,
+       "eyjafjalla",
+       "contact_founder",
+       0.935375844152979,
+       0.624771072648535,
+       1,
+       "clear",
+       77.371648581757
+      ],
+      [
+       521.333999999912,
+       "eyjafjalla",
+       "contact_founder",
+       0.624771072648535,
+       0.314166301144091,
+       1,
+       "clear",
+       77.371648581757
+      ],
+      [
+       521.531999999912,
+       "eyjafjalla",
+       "warn_unknown",
+       0.314166301144091,
+       0.0,
+       1,
+       "clear",
+       92.8459782981083
+      ],
+      [
+       542.849999999922,
+       "exusiai",
+       "bullet",
+       0.770294806867929,
+       0.656551088082822,
+       1,
+       "clear",
+       28.3335603493701
+      ]
+     ],
+     "downs": 1,
+     "roam": 184.3,
+     "sortie_downs": 1,
+     "sorties": 23,
+     "switch": 82
+    },
+    "crates": 9,
+    "ctrl": {
+     "aslow_slow": 0,
+     "aslow_t": 0.0,
+     "boss_t": 140.84,
+     "floor": 0.7,
+     "move_min": 0.7,
+     "slow_min": 0.55,
+     "stun_slow": 1,
+     "stun_t": 0.0
+    },
+    "ctrl_src": {
+     "boss": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 11.29
+     },
+     "founder": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 2.11
+     },
+     "other": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "skimmer": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "slow_any_t": 13.4
+    },
+    "dashes": 5,
+    "dmg": {
+     "atk_founder": 21.7158348539727,
+     "atk_nest": 21.4156720907925,
+     "atk_reaper": 199.498104057009,
+     "atk_tracer": 120.79574404686,
+     "boss_iberia": 34.2486144,
+     "bullet": 421.542325394941,
+     "contact_iberia": 17.9088,
+     "contact_slider": 32.2713200126279,
+     "contact_tracer": 157.457561391369,
+     "corrode": 131.95914681411,
+     "mire": 25.0303787237048,
+     "nest": 13.0781268753051,
+     "shock_founder": 23.1668698231292,
+     "wound": 47.0406667500009
+    },
+    "drone": 0,
+    "duck": {
+     "fled": 0,
+     "kill_t": [
+      6.7
+     ],
+     "killed": 1,
+     "spawned": 1
+    },
+    "elite_stage": 2,
+    "elites": 13,
+    "ending": "standard",
+    "final_out": {
+     "冲锋模式": 38652.1273899815,
+     "剑气": 32139.2043709834,
+     "弹匣倾泻": 54871.9148013883,
+     "急救针剂": 11698.6748390934,
+     "技能连携·点燃·eyjafjalla": 2510.22460148915,
+     "技能连携·熔岩·eyjafjalla": 8033.33848522337,
+     "技能连携·穿透扫射·exusiai": 3638.66555576028,
+     "拳击": 49366.7038421806,
+     "散射": 103030.673902611,
+     "晶柱": 325.71722904,
+     "晶簇": 2435.49291216487,
+     "火山": 25476.1340853948,
+     "火星": 14721.7035856301,
+     "点燃": 20572.6875248785,
+     "点燃弹": 9011.61331576771,
+     "熔岩": 12084.408819463,
+     "熔岩团": 5032.50669937766,
+     "熔岩弹": 81536.3357128969,
+     "熔池": 1372.08375494541,
+     "真实": 76732.2486509452,
+     "终结技·saria·拳风": 53388.4874387067,
+     "终结技·saria·裂地": 338.587579635428,
+     "过载模式": 40399.3079720331,
+     "连锁": 13534.1047386836,
+     "速射": 19761.8485404148,
+     "钙晶": 2088.55142819323
+    },
+    "floor_hits": 0,
+    "floor_times": [],
+    "fuse": {
+     "left": 1,
+     "pct": 0.036,
+     "pool": 54,
+     "t": 485
+    },
+    "growth": {
+     "chain": 1,
+     "sp": 1,
+     "squad_atk": 1,
+     "squad_crit": 1
+    },
+    "heal": {
+     "商店": 14.953771763427,
+     "塞雷娅": 626.594338367524,
+     "拾取": 12.4464975949825,
+     "终结技": 19.4298,
+     "自身回复": 265.394149696311,
+     "补给": 28.2382071542857,
+     "针剂回流": 163.853180525571
+    },
+    "heal_offer": 0,
+    "heal_offer_low": 0,
+    "heal_pick": 0,
+    "hordes": [
+     {
+      "comp": {
+       "bone": 8,
+       "slider": 7
+      },
+      "hp": 1092,
+      "hp0": 119,
+      "minhp": 106,
+      "mix": "滑行群",
+      "n": 15,
+      "t": 75,
+      "t80": 10
+     },
+     {
+      "comp": {
+       "bone": 13,
+       "slider": 4,
+       "stone": 3
+      },
+      "hp": 2516,
+      "hp0": 113,
+      "minhp": 113,
+      "mix": "凿石阵",
+      "n": 20,
+      "t": 165,
+      "t80": 11
+     },
+     {
+      "comp": {
+       "bone": 5,
+       "reaper": 1,
+       "runner": 5,
+       "slider": 10,
+       "tracer": 2
+      },
+      "hp": 9895,
+      "hp0": 110,
+      "minhp": 110,
+      "mix": "潜袭",
+      "n": 23,
+      "t": 299,
+      "t80": 13
+     },
+     {
+      "comp": {
+       "bone": 6,
+       "offspring": 2,
+       "reaper": 2,
+       "runner": 6,
+       "slider": 12,
+       "spitter": 3,
+       "tracer": 3
+      },
+      "hp": 19098,
+      "hp0": 110,
+      "minhp": 92,
+      "mix": "酸雨围城",
+      "n": 34,
+      "t": 300,
+      "t80": 27
+     },
+     {
+      "comp": {
+       "bone": 8,
+       "floater": 2,
+       "reaper": 2,
+       "runner": 10,
+       "slider": 16,
+       "tracer": 2
+      },
+      "hp": 20858,
+      "hp0": 124,
+      "minhp": 121,
+      "mix": "引痕突击",
+      "n": 40,
+      "t": 375,
+      "t80": 32
+     },
+     {
+      "comp": {
+       "bone": 4,
+       "founder": 2,
+       "nest": 1,
+       "runner": 8,
+       "slider": 5,
+       "spitter": 2,
+       "stone": 4,
+       "tracer": 2
+      },
+      "hp": 25510,
+      "hp0": 95,
+      "minhp": 81,
+      "mix": "深海潮",
+      "n": 28,
+      "t": 494,
+      "t80": 12
+     }
+    ],
+    "ingots": 0,
+    "items": {
+     "crate_shield": 1,
+     "heal_elite": 4,
+     "heal_low": 1,
+     "heal_mob": 7,
+     "heal_pick": 8,
+     "magnet_elite": 11,
+     "magnet_mob": 3,
+     "magnet_pick": 8,
+     "mob_capped": 1029,
+     "mob_rolled": 510,
+     "pack_drop": 6,
+     "pack_pick": 1
+    },
+    "kill_hits": {
+     "0:bone": [
+      48,
+      63,
+      17.63
+     ],
+     "0:slider": [
+      7,
+      10,
+      1.79
+     ],
+     "0:stone": [
+      1,
+      4,
+      7.06
+     ],
+     "1:bone": [
+      79,
+      117,
+      39.01
+     ],
+     "1:floater": [
+      5,
+      19,
+      25.48
+     ],
+     "1:slider": [
+      27,
+      64,
+      38.41
+     ],
+     "1:stone": [
+      3,
+      17,
+      75.43
+     ],
+     "1:tracer": [
+      3,
+      70,
+      50.89
+     ],
+     "2:bone": [
+      99,
+      179,
+      41.89
+     ],
+     "2:floater": [
+      11,
+      42,
+      38.01
+     ],
+     "2:runner": [
+      3,
+      9,
+      2.11
+     ],
+     "2:slider": [
+      40,
+      95,
+      27.46
+     ],
+     "2:stone": [
+      4,
+      22,
+      72.27
+     ],
+     "2:tracer": [
+      6,
+      122,
+      36.56
+     ],
+     "3:bone": [
+      65,
+      145,
+      47.44
+     ],
+     "3:floater": [
+      9,
+      51,
+      43.18
+     ],
+     "3:fractal": [
+      2,
+      7,
+      0.85
+     ],
+     "3:runner": [
+      15,
+      40,
+      14.65
+     ],
+     "3:slider": [
+      22,
+      84,
+      24.3
+     ],
+     "3:spitter": [
+      3,
+      24,
+      18.27
+     ],
+     "3:stone": [
+      7,
+      66,
+      28.91
+     ],
+     "3:tracer": [
+      4,
+      162,
+      28.11
+     ],
+     "4:bone": [
+      60,
+      334,
+      215.39
+     ],
+     "4:duck": [
+      1,
+      24,
+      5.08
+     ],
+     "4:floater": [
+      9,
+      132,
+      69.96
+     ],
+     "4:fractal": [
+      7,
+      53,
+      45.66
+     ],
+     "4:reaper": [
+      4,
+      103,
+      14.98
+     ],
+     "4:runner": [
+      11,
+      53,
+      20.39
+     ],
+     "4:slider": [
+      24,
+      171,
+      63.58
+     ],
+     "4:spitter": [
+      2,
+      99,
+      101.18
+     ],
+     "4:stone": [
+      5,
+      103,
+      96.09
+     ],
+     "4:tracer": [
+      3,
+      270,
+      91.4
+     ],
+     "5:bone": [
+      78,
+      587,
+      199.31
+     ],
+     "5:brood": [
+      3,
+      3,
+      0.0
+     ],
+     "5:floater": [
+      16,
+      158,
+      59.47
+     ],
+     "5:founder": [
+      4,
+      16,
+      50.89
+     ],
+     "5:fractal": [
+      7,
+      53,
+      97.74
+     ],
+     "5:nest": [
+      4,
+      208,
+      33.59
+     ],
+     "5:offspring": [
+      5,
+      290,
+      67.25
+     ],
+     "5:reaper": [
+      19,
+      538,
+      104.43
+     ],
+     "5:runner": [
+      34,
+      276,
+      73.73
+     ],
+     "5:slider": [
+      69,
+      604,
+      167.91
+     ],
+     "5:spitter": [
+      6,
+      151,
+      80.91
+     ],
+     "5:stone": [
+      7,
+      96,
+      135.17
+     ],
+     "5:tracer": [
+      10,
+      437,
+      166.33
+     ],
+     "6:bone": [
+      106,
+      1691,
+      590.86
+     ],
+     "6:floater": [
+      12,
+      212,
+      107.07
+     ],
+     "6:founder": [
+      2,
+      548,
+      118.61
+     ],
+     "6:nest": [
+      3,
+      298,
+      63.23
+     ],
+     "6:offspring": [
+      3,
+      169,
+      59.0
+     ],
+     "6:reaper": [
+      20,
+      614,
+      87.45
+     ],
+     "6:runner": [
+      47,
+      538,
+      105.39
+     ],
+     "6:slider": [
+      74,
+      1023,
+      283.97
+     ],
+     "6:spitter": [
+      4,
+      193,
+      55.44
+     ],
+     "6:stone": [
+      6,
+      192,
+      139.79
+     ],
+     "6:tracer": [
+      10,
+      924,
+      125.86
+     ],
+     "7:floater": [
+      14,
+      158,
+      58.66
+     ],
+     "7:founder": [
+      8,
+      1439,
+      182.22
+     ],
+     "7:nest": [
+      6,
+      470,
+      105.46
+     ],
+     "7:offspring": [
+      8,
+      367,
+      88.57
+     ],
+     "7:reaper": [
+      13,
+      256,
+      44.15
+     ],
+     "7:runner": [
+      16,
+      127,
+      26.2
+     ],
+     "7:slider": [
+      32,
+      253,
+      68.58
+     ],
+     "7:spitter": [
+      5,
+      186,
+      58.01
+     ],
+     "7:stone": [
+      14,
+      249,
+      109.05
+     ],
+     "7:tracer": [
+      19,
+      874,
+      118.2
+     ],
+     "8:bone": [
+      5,
+      189,
+      25.01
+     ],
+     "8:floater": [
+      18,
+      300,
+      81.6
+     ],
+     "8:founder": [
+      11,
+      3008,
+      151.15
+     ],
+     "8:nest": [
+      8,
+      1484,
+      104.68
+     ],
+     "8:offspring": [
+      7,
+      441,
+      54.84
+     ],
+     "8:reaper": [
+      37,
+      1161,
+      100.67
+     ],
+     "8:runner": [
+      47,
+      756,
+      82.05
+     ],
+     "8:slider": [
+      76,
+      1265,
+      205.4
+     ],
+     "8:spitter": [
+      6,
+      562,
+      36.5
+     ],
+     "8:stone": [
+      20,
+      534,
+      80.33
+     ],
+     "8:tracer": [
+      21,
+      1984,
+      150.61
+     ],
+     "9:reaper": [
+      2,
+      46,
+      10.23
+     ],
+     "9:runner": [
+      3,
+      50,
+      8.91
+     ],
+     "9:slider": [
+      3,
+      29,
+      5.54
+     ],
+     "9:tracer": [
+      2,
+      87,
+      6.93
+     ]
+    },
+    "kills": 1554,
+    "lamp": 15,
+    "levelup_t": [
+     16,
+     36,
+     50,
+     65,
+     81,
+     106,
+     114,
+     140,
+     162,
+     180,
+     186,
+     229,
+     278,
+     307,
+     310,
+     335,
+     348,
+     376,
+     408,
+     430,
+     473,
+     495,
+     514
+    ],
+    "low_levelups": 0,
+    "lv": 24,
+    "lv_times": [
+     15,
+     36,
+     49,
+     64,
+     81,
+     105,
+     114,
+     140,
+     161,
+     180,
+     186,
+     228,
+     277,
+     307,
+     310,
+     334,
+     348,
+     375,
+     407,
+     430,
+     473,
+     495,
+     513
+    ],
+    "marks": {
+     "120": 8,
+     "300": 14,
+     "480": 22
+    },
+    "maxhp": 124.55,
+    "meta": 0,
+    "ops": [
+     {
+      "elite": 2,
+      "id": "saria",
+      "prog": 6
+     },
+     {
+      "elite": 2,
+      "id": "exusiai",
+      "prog": 6
+     },
+     {
+      "elite": 2,
+      "id": "eyjafjalla",
+      "prog": 6
+     }
+    ],
+    "out": {
+     "冲锋模式": 38652.1273899815,
+     "剑气": 32139.2043709834,
+     "弹匣倾泻": 54871.9148013883,
+     "急救针剂": 11698.6748390934,
+     "技能连携·点燃·eyjafjalla": 2510.22460148915,
+     "技能连携·熔岩·eyjafjalla": 8033.33848522337,
+     "技能连携·穿透扫射·exusiai": 3638.66555576028,
+     "拳击": 49366.7038421806,
+     "散射": 103030.673902611,
+     "晶柱": 325.71722904,
+     "晶簇": 2435.49291216487,
+     "火山": 25476.1340853948,
+     "火星": 14721.7035856301,
+     "点燃": 20572.6875248785,
+     "点燃弹": 9011.61331576771,
+     "熔岩": 12084.408819463,
+     "熔岩团": 5032.50669937766,
+     "熔岩弹": 81536.3357128969,
+     "熔池": 1372.08375494541,
+     "真实": 76732.2486509452,
+     "终结技·saria·拳风": 53388.4874387067,
+     "终结技·saria·裂地": 338.587579635428,
+     "过载模式": 40399.3079720331,
+     "连锁": 13534.1047386836,
+     "速射": 19761.8485404148,
+     "钙晶": 2088.55142819323
+    },
+    "out_tag": {
+     "area": 206867.910916069,
+     "basic": 69128.5523825952,
+     "control": 61065.378681274,
+     "dot": 34029.1800992867,
+     "empowered": 4519.12351027638,
+     "entity": 2414.26865723323,
+     "execute": 76732.2486509452,
+     "follow_up": 4524.0443403581,
+     "growth": 283873.861285868,
+     "lshape": 27068.2094773671,
+     "pierce": 93524.0421913694,
+     "projectile": 546025.789403778,
+     "skill": 198179.667962463,
+     "trim": 76732.2486509452,
+     "终结技": 107454.150036684,
+     "连携": 28364.4572849456
+    },
+    "out_type": {
+     "法术": 195821.730864056,
+     "物理": 356472.293243533,
+     "真实": 130459.323669287
+    },
+    "prof": {},
+    "prog_log": [
+     [
+      16,
+      "saria",
+      1
+     ],
+     [
+      36,
+      "saria",
+      2
+     ],
+     [
+      50,
+      "saria",
+      3
+     ],
+     [
+      81,
+      "saria",
+      4
+     ],
+     [
+      106,
+      "saria",
+      5
+     ],
+     [
+      114,
+      "exusiai",
+      1
+     ],
+     [
+      162,
+      "exusiai",
+      2
+     ],
+     [
+      180,
+      "exusiai",
+      3
+     ],
+     [
+      186,
+      "exusiai",
+      4
+     ],
+     [
+      229,
+      "eyjafjalla",
+      1
+     ],
+     [
+      278,
+      "exusiai",
+      5
+     ],
+     [
+      307,
+      "exusiai",
+      6
+     ],
+     [
+      310,
+      "saria",
+      6
+     ],
+     [
+      335,
+      "eyjafjalla",
+      3
+     ],
+     [
+      348,
+      "eyjafjalla",
+      4
+     ],
+     [
+      376,
+      "eyjafjalla",
+      5
+     ],
+     [
+      408,
+      "eyjafjalla",
+      6
+     ]
+    ],
+    "prog_offer": {
+     "exusiai": 7,
+     "eyjafjalla": 7,
+     "saria": 6
+    },
+    "prog_pick": {
+     "exusiai": 6,
+     "eyjafjalla": 5,
+     "saria": 6
+    },
+    "recall_backstop": 0,
+    "recall_n": 138,
+    "recruit_offers": [
+     [
+      50,
+      "recruit",
+      1
+     ],
+     [
+      65,
+      "forced",
+      1
+     ],
+     [
+      140,
+      "forced",
+      2
+     ],
+     [
+      162,
+      "swap",
+      3
+     ],
+     [
+      307,
+      "swap",
+      3
+     ],
+     [
+      310,
+      "swap",
+      3
+     ],
+     [
+      348,
+      "swap",
+      3
+     ],
+     [
+      408,
+      "swap",
+      3
+     ]
+    ],
+    "rej": {
+     "0": true
+    },
+    "relic_offer": [
+     [
+      120,
+      "shop",
+      [
+       "90",
+       "193",
+       "57"
+      ]
+     ],
+     [
+      290,
+      "choice",
+      [
+       "264",
+       "263",
+       "37"
+      ],
+      "event"
+     ],
+     [
+      340,
+      "shop",
+      [
+       "191",
+       "181",
+       "91"
+      ]
+     ],
+     [
+      360,
+      "shop",
+      [
+       "264",
+       "116",
+       "17"
+      ]
+     ],
+     [
+      485,
+      "shop",
+      [
+       "196",
+       "57",
+       "107"
+      ]
+     ]
+    ],
+    "relic_out": 76732.2486509452,
+    "relic_take": [
+     [
+      115,
+      "70",
+      [
+       "重装",
+       "狙击"
+      ],
+      "event"
+     ],
+     [
+      115,
+      "217",
+      [
+       "重装",
+       "狙击"
+      ],
+      "event"
+     ],
+     [
+      121,
+      "90",
+      [
+       "重装",
+       "狙击"
+      ],
+      "shop"
+     ],
+     [
+      290,
+      "37",
+      [
+       "重装",
+       "狙击",
+       "术师"
+      ],
+      "choice:event"
+     ],
+     [
+      340,
+      "191",
+      [
+       "重装",
+       "狙击",
+       "术师"
+      ],
+      "shop"
+     ],
+     [
+      485,
+      "196",
+      [
+       "重装",
+       "狙击",
+       "术师"
+      ],
+      "shop"
+     ],
+     [
+      485,
+      "57",
+      [
+       "重装",
+       "狙击",
+       "术师"
+      ],
+      "shop"
+     ]
+    ],
+    "relics": 7,
+    "shield": {
+     "abs": 392.4,
+     "blocks": 17,
+     "every": 12.0,
+     "max": 1,
+     "peak": 1,
+     "src_int": [
+      {
+       "op": 1,
+       "scope": "",
+       "source": "relic:191",
+       "value": -0.2
+      }
+     ],
+     "src_max": [
+      {
+       "op": 0,
+       "scope": "",
+       "source": "relic",
+       "value": 1.0
+      }
+     ],
+     "t0": 340.559999999975
+    },
+    "squad": [
+     "saria",
+     "exusiai",
+     "eyjafjalla"
+    ],
+    "sus": {
+     "m0": {
+      "clean": {},
+      "dr": {
+       "saria": 11.2781444734867
+      },
+      "heal": {
+       "塞雷娅": [
+        45.0818467578845,
+        512.60308505
+       ],
+       "拾取": [
+        3.91562439654471,
+        186.747
+       ],
+       "终结技·saria": [
+        9.7149,
+        9.7149
+       ]
+      },
+      "lit": 0.0
+     },
+     "m3": {
+      "clean": {},
+      "dr": {
+       "saria": 60.1408812233961
+      },
+      "heal": {
+       "商店": [
+        14.953771763427,
+        64.766
+       ],
+       "塞雷娅": [
+        234.026642362243,
+        801.24123495
+       ],
+       "拾取": [
+        8.53087319843782,
+        145.7235
+       ],
+       "终结技·saria": [
+        9.7149,
+        9.7149
+       ],
+       "针剂回流": [
+        72.3846338413775,
+        73.72536474576
+       ]
+      },
+      "lit": 0.0
+     },
+     "m6": {
+      "clean": {},
+      "dr": {
+       "saria": 96.0297716328344
+      },
+      "heal": {
+       "塞雷娅": [
+        315.096534562397,
+        829.11360688
+       ],
+       "终结技·saria": [
+        0.0,
+        9.7149
+       ],
+       "针剂回流": [
+        88.0683316841935,
+        100.180001047104
+       ]
+      },
+      "lit": 0.0
+     },
+     "m9": {
+      "clean": {},
+      "dr": {
+       "saria": 13.8000523565699
+      },
+      "heal": {
+       "塞雷娅": [
+        32.389314685,
+        32.389314685
+       ],
+       "针剂回流": [
+        3.400215,
+        3.400215
+       ]
+      },
+      "lit": 0.0
+     }
+    },
+    "swaps": [],
+    "t": 542,
+    "tel": "full",
+    "terrain": {
+     "bul": 90,
+     "dash": 0,
+     "ebul": 17
+    },
+    "ult": {
+     "combo": 8,
+     "combo_auto": 8,
+     "combo_up": 0,
+     "cult": 0,
+     "cult_times": [],
+     "e_combo": 5.3,
+     "e_hurt": 23.6,
+     "e_kill": 70.7,
+     "e_out": 213.6,
+     "first_full": 152.6,
+     "full_times": [
+      152.6,
+      327.0,
+      468.4
+     ],
+     "hit_n": 99,
+     "idle_full_s": 11.9,
+     "link_by": {
+      "exusiai": 5,
+      "eyjafjalla": 3
+     },
+     "lit": 8,
+     "lit_by": {},
+     "miss": 0,
+     "ult": 3,
+     "ult_times": [
+      164.4,
+      327.1,
+      468.5
+     ]
+    },
+    "win": false,
+    "xp_backstop": 0.0,
+    "xp_dropped": 9033.7,
+    "xp_ground": 325.0,
+    "xp_magnet": 1573.2,
+    "xp_magnet_min": [
+     0.0,
+     75.8,
+     95.0,
+     257.8,
+     0.0,
+     0.0,
+     0.0,
+     322.5,
+     822.1
+    ],
+    "xp_recall": 5152.2,
+    "xp_recall_min": [
+     0.0,
+     10.0,
+     44.1,
+     136.0,
+     306.5,
+     1725.4,
+     815.0,
+     888.8,
+     1226.4
+    ],
+    "xp_total": 8708.7,
+    "xp_total_min": [
+     145.0,
+     362.5,
+     449.8,
+     556.1,
+     355.0,
+     1794.6,
+     1001.3,
+     1631.3,
+     2408.2,
+     5.0
+    ],
+    "xp_walk": 1983.2,
+    "xp_walk_min": [
+     145.0,
+     276.7,
+     310.6,
+     162.4,
+     48.5,
+     69.1,
+     186.3,
+     420.0,
+     359.6,
+     5.0
+    ]
+   }
+  }
+ ]
+}
