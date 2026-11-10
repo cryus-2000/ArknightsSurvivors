@@ -142,18 +142,53 @@ static func _ring(r, ci, c: Vector2, rr: float, col: Color, a: float, seed: int,
 	if gcol.r < 0.0:
 		gcol = col
 	var gl := 0
+	# 11-11 docs/332 §3：合批画布开着时，整环的像素格先拼进一个三角形数组、一次接到批尾（原来每格一次 _px → draw_rect，
+	# 一个半径 160 的环约 1500 次 GDScript 调用；水月后期成长节点提示常驻十几个环）。顶点 / 次序 / 颜色与逐格 draw_rect 相同（batch_canvas._quad 点序，
+	# 调色在 add_quads 里按同一 _dim 做），逐像素一致。--wdold=16 / --wdab=N:16 退回逐格
+	var bat: bool = ci is RefCounted and bool(ci.get("active")) and r.g.world != null and r.g.world.wd_new(16)
+	var pts := PackedVector2Array()
+	var cls := PackedColorArray()
+	var k := 0
+	if bat:
+		pts.resize(n * 18)
+		cls.resize(n * 18)
 	for i in n:
 		if gap > 0.0 and _h(seed + i / 5) < gap:
 			continue
 		var ang: float = TAU * float(i) / float(n)
 		var dv := Vector2(cos(ang), sin(ang) * SY)
-		r._px(ci, c + dv * (rr + px), dk)
-		r._px(ci, c + dv * rr, mc)
-		if lt_on:
-			r._px(ci, c + dv * (rr - px), lt)
+		if bat:
+			k = _qpx(pts, cls, k, c + dv * (rr + px), px, dk)
+			k = _qpx(pts, cls, k, c + dv * rr, px, mc)
+			if lt_on:
+				k = _qpx(pts, cls, k, c + dv * (rr - px), px, lt)
+		else:
+			r._px(ci, c + dv * (rr + px), dk)
+			r._px(ci, c + dv * rr, mc)
+			if lt_on:
+				r._px(ci, c + dv * (rr - px), lt)
 		if a > 0.5 and gcol.a > 0.0 and i % 9 == seed % 9 and gl < 8:
 			r._glow(c + dv * rr, gcol)
 			gl += 1
+	if bat and k > 0:
+		pts.resize(k)
+		cls.resize(k)
+		ci.add_quads(pts, cls)
+
+
+## 一格像素（同 fx_pxplane._px：位置吸附到 2 像素格、边长 PX）按 batch_canvas._quad 的点序写进数组，返回新的写入位置
+static func _qpx(pts: PackedVector2Array, cls: PackedColorArray, k: int, p: Vector2, px: float, col: Color) -> int:
+	var p0: Vector2 = (p / 2.0).round() * 2.0
+	var p2: Vector2 = p0 + Vector2(px, px)
+	pts[k] = p0
+	pts[k + 1] = p0 + Vector2(px, 0.0)
+	pts[k + 2] = p2
+	pts[k + 3] = p0
+	pts[k + 4] = p2
+	pts[k + 5] = p0 + Vector2(0.0, px)
+	for j in 6:
+		cls[k + j] = col
+	return k + 6
 
 
 ## 立起层：火花、准星、光点（fx_pxplane.sort_items 收进来，按脚底 y 排序）

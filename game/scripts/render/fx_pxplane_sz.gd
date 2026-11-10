@@ -295,11 +295,55 @@ func _aura_quads(ring: Array, px: float) -> Array:
 
 
 func _aura_px(R: int, bt: int, mode: int) -> Array:
-	var key: String = "%d:%d:%d" % [R, bt, mode]
+	# 11-11 docs/332 §3：常态（mode 0）的光域只随旋转格 (bt / 2) % 64 变，键按它取（原来按 bt，每拍都重算，其中一半算出来一模一样）；
+	# 重算走预计算的采样表（_aura_ring0），不再逐点 cos / sin、Vector2i 字典去重，结果与 aura_ring 逐项相同。--wdold=32 / --wdab=N:32 退回
+	var fast: bool = mode == 0 and g.world != null and g.world.wd_new(32)
+	var key: String = ("%d:r%d:0" % [R, (bt / 2) % 64]) if fast else ("%d:%d:%d" % [R, bt, mode])
 	if key != _ring_key:
 		_ring_key = key
-		_ring_px = aura_ring(R, bt, mode)
+		_ring_px = _aura_ring0(R, bt) if fast else aura_ring(R, bt, mode)
 	return _ring_px
+
+
+var _r0_R := -1
+var _r0_tt: Array = []              # 采样点角度 t，与 aura_ring 同式算出（GDScript float 是 64 位，PackedFloat32 会丢精度，所以用 Array）
+var _r0_id := PackedInt32Array()    # 采样点 → 去重后的像素格编号
+var _r0_xy: Array = []              # 像素格编号 → [x, y]
+
+
+## aura_ring(R, bt, 0) 的同结果快速版：同一 R 只建一次采样表；逐帧只做「是否在亮段」与按格去重（PackedByteArray），次序 / 取色与原式相同
+func _aura_ring0(R: int, bt: int) -> Array:
+	var n: int = maxi(24, int(R * 6.4))
+	if R != _r0_R:
+		_r0_R = R
+		_r0_tt = []
+		_r0_id = PackedInt32Array()
+		_r0_xy = []
+		var ids := {}
+		for q in n:
+			var t: float = float(q) / float(n) * TAU
+			var key := Vector2i(int(roundf(R * cos(t))), int(roundf(R * sin(t) * SQ)))
+			if not ids.has(key):
+				ids[key] = _r0_xy.size()
+				_r0_xy.append([key.x, key.y])
+			_r0_tt.append(t)
+			_r0_id.append(int(ids[key]))
+	var out: Array = []
+	var rot: float = float((bt / 2) % 64) / 64.0 * TAU / 12.0
+	var duty: float = 0.42
+	var seen := PackedByteArray()
+	seen.resize(_r0_xy.size())
+	for q in n:
+		var seg: float = fposmod(float(_r0_tt[q]) - rot, TAU / 12.0) / (TAU / 12.0)
+		if seg > duty:
+			continue
+		var id: int = _r0_id[q]
+		if seen[id] != 0:
+			continue
+		seen[id] = 1
+		var xy: Array = _r0_xy[id]
+		out.append([xy[0], xy[1], F[2] if seg < duty * 0.7 else F[1]])
+	return out
 
 
 ## 排序项：九尾、绕身狐火、狐火弹、大狐火、附着火、拖尾、光域边火、传火线、连携狐火
