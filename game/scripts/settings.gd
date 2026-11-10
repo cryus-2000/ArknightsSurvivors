@@ -1161,6 +1161,20 @@ func test_god() -> bool:
 	return _god == 1
 
 
+## 无敌测试包专用：网址参数 squad=队长,队友,队友 指定开局编队（iPhone 压力测试，用户没法自己选队友）。
+## 只在 test_god 包的网页上生效；正式包恒为空。第一个是队长，其余开局直接入队。
+var _tsq = null
+func test_squad() -> PackedStringArray:
+	if _tsq == null:
+		_tsq = PackedStringArray()
+		if test_god() and OS.has_feature("web"):
+			var s = JavaScriptBridge.eval("(function(){try{return new URLSearchParams(location.search).get('squad')||''}catch(e){return ''}})()", true)
+			if s is String and s != "":
+				for c in s.split(",", false):
+					_tsq.append(c.strip_edges())
+	return _tsq
+
+
 ## 打包时写进 build.json 的发布对象：public / internal / diagnostic；源码运行（没打包）为 ""
 func build_audience() -> String:
 	var info = JSON.parse_string(FileAccess.get_file_as_string("res://data/build.json"))

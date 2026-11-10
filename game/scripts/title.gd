@@ -1095,6 +1095,9 @@ func _op_ids() -> Array:
 	for a in Cfg.dev_args():
 		if a.begins_with("--squad="):
 			ids.append_array(a.substr(8).split(","))
+	var tsq := Cfg.test_squad()
+	if tsq.size() > 0:
+		ids = Array(tsq)   # 无敌测试包网址 squad=（只测试包）
 	return ids.filter(func(c): return Character.exists(str(c)))
 
 

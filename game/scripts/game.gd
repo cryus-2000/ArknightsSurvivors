@@ -828,6 +828,12 @@ static func _deferred_start_fx(lazy: bool) -> Dictionary:
 		elif a.begins_with("--squad="):
 			for cid in a.substr(8).split(",", false):
 				ids[cid] = true
+	var tsq := Cfg.test_squad()
+	for i in tsq.size():
+		if i == 0:
+			leader = tsq[0]
+		else:
+			ids[tsq[i]] = true
 	ids[leader if Character.exists(leader) else "mizuki"] = true
 	for n in V6_FRAMES:
 		var owner := A.fx_owner(n)
@@ -1160,6 +1166,9 @@ func _ready() -> void:
 	for a in Cfg.dev_args():
 		if a.begins_with("--op="):
 			Cfg.character_id = a.substr(5)
+	var tsq := Cfg.test_squad()
+	if tsq.size() > 0 and Character.exists(tsq[0]):
+		Cfg.character_id = tsq[0]   # 无敌测试包网址 squad=（只测试包）
 	if not Character.exists(Cfg.character_id):   # 正式名单 + 测试专用干员（docs/61 §测试，tests/data_ops）
 		Cfg.character_id = "mizuki"
 	A.mark("map+doctor")
