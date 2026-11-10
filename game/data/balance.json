@@ -525,7 +525,7 @@
   "mid_boss_rate": 0.5,
   "mid_boss_cap_mult": 0.6,
   "mid_release_delay": 6,
-  "mid_release_gap": 5,
+  "mid_release_gap": 10,
   "_mid_soften": "中期 Boss 在场时普通怪按 50% 收敛（用户 10-29 定刷怪速率 50%，协调人：之前试做「太难」的几处一并减半）：本级新种类（高阶）权重 × mid_fresh_w、进化体概率 × mid_evo_mult、伤害 × mid_mob_dmg（只作用于这段时间刷出的普通怪）、刷怪点离 Boss 不到 mid_boss_clear_r 换到队长另一侧。四项都设 1 / 0 = 只减速率",
   "mid_fresh_w": 0.5,
   "mid_evo_mult": 0.5,
@@ -945,7 +945,7 @@
   "_scale_1107": "11-07 docs/307 §9：引痕者改可躲后机器人 m0 64.9 / m18 81.5 超窗口，用户定数值补偿回窗口：scale 0.76 → 1.0、mid_cut 0.22 → 0.10（加上引痕者前刺倍率 0.8 → 0.9），两个种子段合计 m0 55.1 / m18 69.3",
   "mid_from": 180,
   "mid_to": 420,
-  "knots": [[0, 12.0], [180, 19.0], [300, 23.0], [420, 27.0], [600, 30.0]]
+  "knots": [[0, 12.0], [180, 19.0], [300, 23.0], [420, 27.0], [600, 33.0]]
  },
  "duck": {
   "_doc": "鸭爵（稀有敌人，用户 11-03 批，docs/216 §11，run/duck_lord.gd）：on 1 = 开；每局两次，t1_lo–t1_hi、t2_lo–t2_hi 秒内各出现一次（对局种子定），在画面半宽 / 半高 × spawn_edge 处；spd 基础移速（队长 150、普通怪 46–72），每次被攻击加 hit_spd、持续 hit_t 秒，最多叠 hit_stack 段、总速封顶 spd_max（11-04 第二轮：高于队长走路 150、低于冲刺追速约 217 = 走路 + 冷却一到就冲刺，要冲刺才追得上；spd 105 → 130、hit_spd 14 → 25、spd_max 140 → 190、burst_spd 150 → 260、burst_t 0.45 → 0.5）；draw_scale 画面放大倍数（判定不变）；hit_gap 秒内的多次命中只算一段；每次受击另有爆发冲刺：瞬间 +burst_spd，burst_t 秒内二次缓出回落到档位（不受 spd_max 限，约多跑 20 像素；11-04 用户「被攻击后快速逃跑看不出来」，hit_spd 10 → 14）；flee_t 秒没打倒就溜走（不掉落）。生命 = enemies.json duck.hp × 普通怪时间曲线 × hp_mult。打倒必掉 1 件藏品（chest，来源 duck，同精英宝箱：core_gate、稀有加权）+ ingots 个源石锭。补偿：relic/elite_drop_chance 0.25 → 0.15（11-04 第十四批配对 m18 低出窗口 2 点后回调到 0.2，docs/216 §11.4）。",

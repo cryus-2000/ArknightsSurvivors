@@ -498,8 +498,8 @@
    "rate_mult": 0.75,
    "horde_mult": 0.75,
    "cap_mult": 3.0,
-   "tier_hp": 0.45,
-   "tier_dmg": 0.54
+   "tier_hp": 0.5,
+   "tier_dmg": 0.62
   },
   {
    "name": "深蓝之树",
