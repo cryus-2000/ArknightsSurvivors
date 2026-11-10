@@ -234,7 +234,7 @@ func max_lv(id: String) -> int:
 ## 能否出现在三选一 / 商店：未拥有，或已拥有但还能升级；前置条件按拥有判断；职业门槛按当前编队判断
 ## 核心延后（用户 10-29，docs/191 §6）：relic/core_gate 1 时，升华 / 核心（实际稀有度，73 件）在第一只中期 Boss 被击败前不进任何来源
 ## （三选一、商店、事件、随机给）；兜底 relic/core_gate_late 秒后照常（第一只 Boss 没打死的局）
-func can_offer(r: Dictionary, for_shop: bool) -> bool:
+func can_offer(r: Dictionary, for_shop: bool, has_recruits: Variant = null) -> bool:
 	if not r.get("pool", true):
 		return false   # 精简停用件（docs/203）
 	if for_shop and not r.shop_allowed:
@@ -275,12 +275,15 @@ func can_offer(r: Dictionary, for_shop: bool) -> bool:
 					return false
 		# 罗德岛战术电台（docs/74 #189，用户 10-12 定最小修）：只作用于强制招募那一屏（编队不满 3 人），
 		# 常规编队满员（或没人可招）后就不出，和招募事件类一致
-		if ef.get("type", "") == "rule" and str(ef.get("rule", "")) == "recruit_extra":
-			if g.squad.size() >= g.squad.REGULAR_MAX or g.progression.recruit_cards().is_empty():
-				return false
-		# 招募事件类（docs/57 P10）：编队已满、没人可招就不出（避免废卡）
-		if ef.get("type", "") == "trigger" and str(ef.get("event", "")) == "Recruited" and g.progression.recruit_cards().is_empty():
+		var radio: bool = ef.get("type", "") == "rule" and ef.get("rule", "") == "recruit_extra"
+		if radio and g.squad.size() >= g.squad.REGULAR_MAX:
 			return false
+		# 招募事件和战术电台都需要可招人选；单件查询只在遇到这类效果时查。
+		if radio or (ef.get("type", "") == "trigger" and ef.get("event", "") == "Recruited"):
+			if has_recruits == null:
+				has_recruits = not g.progression.recruit_cards(true).is_empty()
+			if not has_recruits:
+				return false
 	return true
 
 
@@ -635,11 +638,12 @@ func _recruit_one() -> void:
 ## 随机获得 n 件藏品（大教堂拼图 / “绝唱”，docs/57 P19）：从当前可出现的候选里按 g.rng 抽，rarity 非空时只抽该档
 func _random_relics(n: int, rarity: String) -> void:
 	for k in n:
+		var has_recruits: bool = not g.progression.recruit_cards(true).is_empty()
 		var cands: Array = []
 		for r in db.implemented():
 			if g.relics.has(r.id) or (rarity != "" and r.rarity != rarity):
 				continue
-			if r.get("source", "any") != "any" or not can_offer(r, false) or not g.progression.can_gain_relic(r.id):
+			if r.get("source", "any") != "any" or not can_offer(r, false, has_recruits) or not g.progression.can_gain_relic(r.id):
 				continue
 			cands.append(r.id)
 		if cands.is_empty():
