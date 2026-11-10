@@ -677,7 +677,7 @@ func _wants_foot(n: String) -> bool:
 var _enemy_loaded := {}   # 经 _load_enemy_tex 读进来的敌人帧条本体名（手机网页释放只动这些）
 
 func _load_enemy_tex(n: String) -> void:
-	if not BASE_TEX.has(n):
+	if not BASE_TEX.has(n) or MID_BOSS_EXTRA_STRIPS.has(n):
 		_enemy_loaded[n] = true
 	if tex.get(n) == null:
 		tex[n] = A.tex(n)
@@ -776,15 +776,25 @@ var _evict_on: bool = (Cfg.mobile_web() and Cfg.mobile_knob("mobile_evict", 1.0)
 var _font_t := 0.0
 
 
+## 中期 Boss 还有不按主体名拼接的动作帧条；和该敌人的白剪影、描边一起回收。
+const MID_BOSS_EXTRA_STRIPS := {
+	"e_path": ["e_path_slam"],
+	"e_saint": ["e_carmen_spin", "e_carmen"],
+}
+
+
 ## 手机网页：场上没有这种怪满 ENEMY_KEEP 秒，把它的帧条（本体 + 移动 / 攻击 / 死亡等变体 + V6 附加帧条）从贴图表和 A 缓存里拿掉，
 ## 记回推迟名单——再刷出来时 spawner.new_enemy → ensure_enemy_tex 重新读（会卡一下，换内存不涨；docs/50 §30.7）。
-## 只动经 _load_enemy_tex 读进来的敌人帧条（固定表 BASE_TEX、骑士等不动）
+## 固定表中的中期 Boss 也可重新读入；其余固定帧条（如骑士）常驻。
 func _enemy_evict(n: String) -> void:
 	if not _enemy_loaded.has(n):
 		return
 	perf_rep.tag("释放帧条")
 	_enemy_loaded.erase(n)
-	for nm in _white_names(n) + [n + "_death"]:
+	if MID_BOSS_EXTRA_STRIPS.has(n):
+		tex.erase(n + "@1x_portrait")
+	for nm in _retired_strips(n) + [n + "_death"]:
+		tex.erase(nm + "_white")
 		if tex.has(nm):
 			tex.erase(nm)
 			A.uncache(nm)
@@ -796,7 +806,7 @@ func _enemy_evict(n: String) -> void:
 func _drop_outlines(n: String) -> void:
 	if world == null:
 		return
-	var names: Array = _white_names(n)
+	var names: Array = _retired_strips(n)
 	for key in world._ol_cache.keys():
 		var base: String = str(key).split("#")[0]
 		if names.has(base):
@@ -914,7 +924,7 @@ var _pf_q: Array = []
 func prefetch_enemy(n: String, white_from := 0.0) -> void:
 	var ks: Array = []
 	for k in tex_deferred:
-		if k == n or (k as String).begins_with(n):
+		if _enemy_strip_of(k, n):
 			ks.append(k)
 	for k in ks:
 		for nm in [k] + Array(ENEMY_SUFFIXES).map(func(sf): return k + sf):
@@ -967,9 +977,14 @@ func _prefetch_step() -> void:
 			break
 
 
+## e_saint_dark 是另一位 Boss。最终 Boss 的派生形态仍随主体一起预读。
+func _enemy_strip_of(strip: String, base: String) -> bool:
+	return strip.begins_with(base) and not (base == "e_saint" and strip.begins_with("e_saint_dark"))
+
+
 func _pf_deferred_of(nm: String) -> bool:
 	for k in tex_deferred:
-		if nm.begins_with(k):
+		if _enemy_strip_of(nm, k):
 			return true
 	return false
 
@@ -992,9 +1007,32 @@ func _white_names(n: String) -> Array:
 		if suffix != "_death":
 			out.append(n + suffix)
 	for v in V6_FRAMES:
-		if str(v).begins_with(n + "_") and not out.has(str(v)):
+		if str(v).begins_with(n + "_") and _enemy_strip_of(v, n) and not out.has(str(v)):
 			out.append(str(v))
 	return out
+
+
+func _retired_strips(n: String) -> Array:
+	var names := _white_names(n)
+	if MID_BOSS_EXTRA_STRIPS.has(n):
+		names.append_array(MID_BOSS_EXTRA_STRIPS[n])
+	return names
+
+
+## 压力护栏可跳过 20/60 秒宽限；登场预热、名片和死亡帧条仍按正在使用处理。
+func _mid_boss_tex_in_use(n: String) -> bool:
+	if spawner._pre_idx > spawner.boss_idx:
+		for kind in spawner._pre_group:
+			if D.ENEMIES[kind].tex == n:
+				return true
+	for b in boss_intro.cur.get("bosses", []):
+		if b.tex == n:
+			return true
+	var death := n + "_death"
+	for f in fx:
+		if f.get("name", "") == death:
+			return true
+	return false
 
 
 func _white_release(delta: float, now := false) -> void:
@@ -1014,14 +1052,17 @@ func _white_release(delta: float, now := false) -> void:
 	for e in enemies:
 		_white_alive[str(e.get("tex", ""))] = t
 	for n in _white_alive.keys():
-		if t - float(_white_alive[n]) > keep_w and tex.has(n + "_white"):
-			for nm in _white_names(n):
+		var idle := t - float(_white_alive[n])
+		if idle > keep_w and MID_BOSS_EXTRA_STRIPS.has(n) and _mid_boss_tex_in_use(n):
+			continue
+		if idle > keep_w and tex.has(n + "_white"):
+			for nm in _retired_strips(n):
 				if tex.has(nm + "_white"):
 					tex.erase(nm + "_white")
 					if tex.get(nm) != null:
 						A.white_drop(tex[nm])
 			_drop_outlines(n)
-		if t - float(_white_alive[n]) > keep_e and _evict_on:
+		if idle > keep_e and _evict_on:
 			_enemy_evict(n)
 			_white_alive.erase(n)
 	_font_t += 5.0
@@ -1038,7 +1079,7 @@ func ensure_enemy_tex(n: String) -> void:
 	var t0 := Time.get_ticks_msec()
 	var names: Array = []
 	for k in tex_deferred:
-		if k == n or (k as String).begins_with(n):
+		if _enemy_strip_of(k, n):
 			names.append(k)
 	for k in names:
 		tex_deferred.erase(k)
@@ -1052,7 +1093,7 @@ func ensure_enemy_tex(n: String) -> void:
 ## 网页版推迟加载漏网的贴图（画到了还没读的敌人）：记一次日志，顺手把它读进来。正常跑不该出现，网页版测试在控制台里 grep TEXMISS
 func tex_deferred_miss(n: String) -> void:
 	for k in tex_deferred:
-		if n == k or n.begins_with(k):
+		if _enemy_strip_of(n, k):
 			print("TEXMISS %s（推迟名单 %s）" % [n, k])
 			ensure_enemy_tex(k)
 			return

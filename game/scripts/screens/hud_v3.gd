@@ -649,16 +649,9 @@ func _m3_icon() -> Texture2D:
 	return _m3_tex
 
 
-func _m3_of(o) -> Dictionary:
-	for e in M3.entries(g):
-		if e[0] == o:
-			return e[1]
-	return {}
-
-
 func _m3_badge(o, c: Vector2, sz: float, s: float) -> void:
-	var st: Dictionary = _m3_of(o)
-	if st.is_empty() or not st.has("max_hp"):
+	var st = M3.present(o)
+	if st == null:
 		return
 	var sid: int = int(st.get("id", 0))
 	var down: bool = M3.is_down(st)

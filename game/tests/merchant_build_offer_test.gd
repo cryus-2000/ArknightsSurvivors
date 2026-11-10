@@ -7,6 +7,17 @@ extends Node
 const Bal = preload("res://scripts/core/balance.gd")
 const BA = preload("res://scripts/run/build_affinity.gd")
 
+class RecruitProbe extends "res://scripts/run/progression.gd":
+	var queries := 0
+	var full_lists := 0
+
+	func recruit_cards(first_only := false) -> Array:
+		queries += 1
+		if not first_only:
+			full_lists += 1
+		return super.recruit_cards(first_only)
+
+
 var game: Node
 var shop
 var frames := 0
@@ -28,6 +39,7 @@ func _process(_d: float) -> void:
 		Bal._data["build"] = {}
 	Bal._data["build"]["merchant_preview"] = 1
 	Bal._data["build"]["affinity_ui"] = 1
+	test_recruit_query()
 	test_first_merchant()
 	test_refresh_and_leave()
 	test_second_and_off()
@@ -63,6 +75,24 @@ func preview_index() -> int:
 		if str(game.shop_items[i].id) == str(game.merchant.preview):
 			return i
 	return -1
+
+
+func test_recruit_query() -> void:
+	var saved: Array = Cfg.roster_unlocked.duplicate()
+	for roster in [[], ["texas", "exusiai", "irene"]]:
+		Cfg.roster_unlocked.assign(roster)
+		var all_cards: Array = game.progression.recruit_cards()
+		var first: Array = game.progression.recruit_cards(true)
+		ok(first == all_cards.slice(0, 1), "只查首个可招募干员与完整招募卡同序、同内容")
+	Cfg.roster_unlocked.assign(saved)
+	var original = game.progression
+	var probe := RecruitProbe.new(game)
+	game.progression = probe
+	var before: int = game.rng.state
+	game.guide.relic_pool_ids(true)
+	ok(probe.queries == 1 and probe.full_lists == 0, "一轮商人货架只查一次招募资格，不生成完整招募列表")
+	game.rng.state = before
+	game.progression = original
 
 
 func test_first_merchant() -> void:

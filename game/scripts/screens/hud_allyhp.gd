@@ -13,7 +13,7 @@ const Bal = preload("res://scripts/core/balance.gd")
 const Game = preload("res://scripts/game.gd")
 const Character = preload("res://scripts/characters/character.gd")   # CLASS_COL
 const A = preload("res://scripts/art.gd")
-const M3 = preload("res://scripts/characters/blocks/m3_hp.gd")   # Mon3tr 血条（10-29 起；10-31 改头顶条 _draw_m3_overhead）：不依赖指挥模式
+const M3 = preload("res://scripts/characters/blocks/m3_hp.gd")   # Mon3tr 血条（10-29 起；10-31 改头顶条 draw_m3_overhead）：不依赖指挥模式
 const LinkBond = preload("res://scripts/run/link_bond.gd")   # 羁绊成立的队友名前一颗小菱形（docs/221 B1）
 const HudUltV = preload("res://scripts/screens/hud_ult_v.gd")
 const HudV2 = preload("res://scripts/screens/hud_v2.gd")   # 编辑式 HUD（docs/222，ui/hud_v2）   # 终结技并进左上的原型（A / C）在生命条下多一层，队友行下移 top_add
@@ -119,7 +119,6 @@ func draw(vs: Vector2) -> void:
 			_draw_under_leader()
 		if s != 1 and not h.phone_quiet() and not HudV2.on():   # 编辑式：残血框画在编辑式编队卡上
 			_draw_card_low(vs)
-	_draw_m3_overhead(vs)
 
 
 # ---------------------------------------------------------------- A：编队卡
@@ -305,21 +304,22 @@ func _draw_under_leader() -> void:
 
 
 ## Mon3tr 头顶血条（10-31 用户「Mon3tr 的血条移到它的头顶上方，样式和队友头顶血条一致」，docs/114 §21）：
-## 同 banners._draw_op_hp（32×4、绿 / 金 / 红，倒地灰条 = 复活进度）；受击后 3 秒、未满血、倒地或残血时显示。
+## 同 banners._draw_op_hp（32×4、绿 / 金 / 红，倒地灰条 = 复活进度）；在场常显，收起或离场时移除。
 ## 残血提醒同队友：跌破 command/low_hp 进、回到 command/low_hp_off 以上出，红框 + 整条提亮 1.2 秒一次慢闪（不说话）
-const M3_HEAD := 70.0     # 还没画过本体（没有 draw_top）时的退路
+const M3_HEAD := 70.0     # 还没画过本体时的退路
 var _m3_low := {}   # 召唤物 id → 残血提醒中
 var _top_rows := {}  # 贴图 → 第 0 帧第一行不透明像素（帧条像素）
 
 
-## Mon3tr 头顶在脚底上方多高（世界单位）：按本帧贴图第 0 帧的不透明上沿算（ob_summon 画本体时记下 draw_top），每张贴图只扫一次
+## Mon3tr 头顶在脚底上方多高（世界单位）：按本帧贴图第 0 帧的不透明上沿算（ob_summon 画本体时记下帧条和姿态），每张贴图只扫一次
 func _m3_head(s: Dictionary) -> float:
-	var dt = s.get("draw_top")
-	if not (dt is Array) or dt[0] == null:
+	var tx: Texture2D = s.get("draw_top_texture")
+	if tx == null:
 		return M3_HEAD
-	var tx: Texture2D = dt[0]
-	var hf: int = maxi(1, int(dt[1]))
-	if not _top_rows.has(tx):
+	var pose: Vector4 = s.draw_top_pose
+	var hf: int = maxi(1, int(pose.x))
+	var texture_id := tx.get_instance_id()
+	if not _top_rows.has(texture_id):
 		var top := 0
 		var im: Image = tx.get_image()
 		if im != null:
@@ -335,49 +335,49 @@ func _m3_head(s: Dictionary) -> float:
 				if found:
 					top = y
 					break
-		_top_rows[tx] = top
-	var pk: float = Game.PX / A.hires_of(tx) * float(dt[3])
-	return (float(tx.get_height()) - float(dt[2]) - float(_top_rows[tx])) * pk - float(dt[4])
+		_top_rows[texture_id] = top
+	var pk: float = Game.PX / A.hires_of(tx) * pose.z
+	return (float(tx.get_height()) - pose.y - float(_top_rows[texture_id])) * pk - pose.w
 
 
-func _draw_m3_overhead(vs: Vector2) -> void:
-	var es: Array = M3.entries(g)
-	if es.is_empty():
+func draw_m3_overhead(vs: Vector2, ct: Transform2D) -> void:
+	var o = g.squad.get_op("kaltsit")
+	var s = M3.present(o)
+	if s == null or s.has("uh"):
 		return
-	var ct: Transform2D = g.hud_ct()
 	var lo: float = Bal.v("command/low_hp", 0.3)
 	var hi: float = Bal.v("command/low_hp_off", 0.4)
-	for e in es:
-		var o = e[0]
-		var s: Dictionary = e[1]
-		var sid: int = int(s.id)
-		var down: bool = M3.is_down(s)
-		var f: float = clampf(float(s.hp) / maxf(1.0, float(s.max_hp)), 0.0, 1.0)
-		var lw: bool = bool(_m3_low.get(sid, false))
-		if down:
-			lw = false
-		elif lw:
-			lw = f < hi
-		else:
-			lw = f < lo
-		_m3_low[sid] = lw
-		if not (down or lw or f < 0.999 or float(s.m3.show) > 0.0):
-			continue
-		var c: Vector2 = ct * (s.pos + Vector2(0, -_m3_head(s) - 6.0))   # 头顶上方 6 世界单位（10-31 用户「m3 的血条不在头顶」）
-		if not Rect2(Vector2(-20, -20), vs + Vector2(40, 40)).has_point(c):
-			continue
-		var r := Rect2(c - Vector2(16, 0), Vector2(32, 4))
-		g.hud.draw_rect(r.grow(1.0), Color(0.02, 0.03, 0.04, 0.85))
-		if down:
-			var total: float = maxf(0.1, M3.k(o, "m3_revive_secs", 18.0))
-			g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x * clampf(1.0 - float(s.down) / total, 0.0, 1.0), r.size.y)), DOWN_COL)
-			continue
-		var hc: Color = UI.RED if lw else (UI.GREEN if f > 0.5 else (UI.GOLD if f > 0.25 else UI.RED))
-		g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x * f, r.size.y)), hc)
-		if lw:
-			var p := pulse()
-			g.hud.draw_rect(r.grow(2.5), Color(UI.RED.r, UI.RED.g, UI.RED.b, 0.35 + 0.6 * p), false, 1.5)
-			g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x * f, r.size.y)), Color(1, 0.6, 0.6, 0.45 * p))
+	var sid: int = int(s.id)
+	var down: bool = M3.is_down(s)
+	var f: float = clampf(float(s.hp) / maxf(1.0, float(s.max_hp)), 0.0, 1.0)
+	var lw: bool = bool(_m3_low.get(sid, false))
+	if down:
+		lw = false
+	elif lw:
+		lw = f < hi
+	else:
+		lw = f < lo
+	_m3_low[sid] = lw
+	var c: Vector2 = ct * (s.pos + Vector2(0, -_m3_head(s) - 6.0))   # 头顶上方 6 世界单位（10-31 用户「m3 的血条不在头顶」）
+	if not Rect2(Vector2(-20, -20), vs + Vector2(40, 40)).has_point(c):
+		return
+	var r := Rect2(c - Vector2(16, 0), Vector2(32, 4))
+	g.hud.draw_rect(r.grow(1.0), Color(0.02, 0.03, 0.04, 0.85))
+	if down:
+		var total: float = maxf(0.1, M3.k(o, "m3_revive_secs", 18.0))
+		g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x * clampf(1.0 - float(s.down) / total, 0.0, 1.0), r.size.y)), DOWN_COL)
+		return
+	draw_living_overhead(r, f, lw)
+
+
+## 队友和 Mon3tr 共用填充、低血色与脉冲。
+func draw_living_overhead(r: Rect2, f: float, lw: bool) -> void:
+	var hc: Color = UI.RED if lw else (UI.GREEN if f > 0.5 else (UI.GOLD if f > 0.25 else UI.RED))
+	g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x * f, r.size.y)), hc)
+	if lw:
+		var p := pulse()
+		g.hud.draw_rect(r.grow(2.5), Color(UI.RED.r, UI.RED.g, UI.RED.b, 0.35 + 0.6 * p), false, 1.5)
+		g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x * f, r.size.y)), Color(1, 0.6, 0.6, 0.45 * p))
 
 
 # ---------------------------------------------------------------- 屏外边缘头像（1–3 共用，banners.draw_command 调）

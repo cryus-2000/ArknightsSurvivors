@@ -1892,11 +1892,14 @@ static func mf_draw(o, s: Dictionary, kd: Dictionary) -> bool:
 		if rim != null:
 			col = Color(1.1, 0.92, 0.9)
 	var mir: bool = (float(s.face) < 0.0) != o.sprite_mirror(str(fr[3]))
-	o.draw_sprite_at(s.pos + Vector2(0, hov), mir, col, fr[1], fr[0], fr[2], o.foot_off(fr[0], fr[3]), VisGrowth.summon_scale(g))
+	var foot: float = o.foot_off(fr[0], fr[3])
+	var scale_k: float = VisGrowth.summon_scale(g)
+	o.draw_sprite_at(s.pos + Vector2(0, hov), mir, col, fr[1], fr[0], fr[2], foot, scale_k)
 	if rim != null:
-		o.draw_sprite_at(s.pos + Vector2(0, hov), mir, Color.WHITE, fr[1], rim, fr[2], o.foot_off(fr[0], fr[3]), VisGrowth.summon_scale(g))
+		o.draw_sprite_at(s.pos + Vector2(0, hov), mir, Color.WHITE, fr[1], rim, fr[2], foot, scale_k)
 	if s.has("m3"):
-		s["draw_top"] = [fr[0], fr[2], o.foot_off(fr[0], fr[3]), VisGrowth.summon_scale(g), hov]   # 头顶血条找头顶（hud_allyhp._m3_head，10-31）
+		s.draw_top_texture = fr[0]
+		s.draw_top_pose = Vector4(fr[2], foot, scale_k, hov)   # 头顶条与本体共用帧条、脚底、倍率、跃起高度
 	for f in fl:
 		if f is Dictionary and f.has("side") and fx_on(o, f):
 			_mf_side(o, s, f.side, hov)
