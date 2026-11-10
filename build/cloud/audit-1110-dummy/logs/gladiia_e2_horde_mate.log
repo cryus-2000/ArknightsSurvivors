@@ -1,0 +1,23 @@
+# gladiia_e2_horde_mate
+# --headless --path /work/repo/game res://tests/op_dummy_test.tscn -- --balance --bot=afk --nodeath --seed=1 --op=hoshiguma --squad=gladiia --dummy_op=gladiia --dummy_role=mate --dummy_scene=horde --dummy_stage=2 --dummy_secs=60 --dummy_warm=20
+# 18 秒
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PF FXLAZY t=0.0 gladiia n=8 ms=12
+DUMMY {"armor":4.0,"arts_res":0.1,"basic_hit_frames":87,"basic_interval":0.692,"by_src":{"倒钩":389.5,"冲撞":1293.1,"回收斩":6704.8,"大洋裂断":5617.1,"怒海":6495.5,"拖拽":2508.1,"碎漩狂舞":5452.3,"钩索":11962.3},"casts":16,"cls":"特种","dodge":0.0,"dps":671.56,"dps_basic":379.75,"dps_other":107.91,"dps_skill":183.9,"dps_summon":0.0,"elite":2,"heal_src":{"歌蕾蒂娅":44.7,"自身回复":57.2},"horde_alive":11.0,"hps":0.74,"kills":95,"leader":"hoshiguma","manual_casts":0,"max_hp":124.2,"name":"歌蕾蒂娅","op":"gladiia","op_aspd":1.06,"op_atk":1.008,"op_kills":89,"op_range":1.865,"prog":6,"regen":0.95,"role":"mate","scene":"horde","secs":60.19,"shield_layers":0,"shield_ps":0.0,"skill_power":1.0,"sp_mult":1.0,"sp_need":[7.0,16.0,26.0],"speed":165.0,"squad":["hoshiguma","gladiia"],"stage":2,"warm":20.0}
+PF RUNRELEASE tex=0 audio=0
+ERROR: 71 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 4 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+
+## stderr
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+WARNING: 372 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 5 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+

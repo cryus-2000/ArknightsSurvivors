@@ -1,0 +1,22 @@
+# lumen_e2_horde_leader
+# --headless --path /work/repo/game res://tests/op_dummy_test.tscn -- --balance --bot=afk --nodeath --seed=1 --op=lumen --dummy_op=lumen --dummy_role=leader --dummy_scene=horde --dummy_stage=2 --dummy_secs=60 --dummy_warm=20
+# 16 秒
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+DUMMY {"armor":1.5,"arts_res":0.1,"basic_hit_frames":85,"basic_interval":0.708,"by_src":{"光弹":10515.1,"光爆":3244.4,"光雨":4795.3,"发光单元":2095.8,"折光":77.6,"散射":4621.2,"灯塔光柱":10634.4},"casts":15,"cls":"医疗","dodge":0.0,"dps":597.82,"dps_basic":429.43,"dps_other":0.0,"dps_skill":133.57,"dps_summon":34.82,"elite":2,"heal_src":{"光雨":36.6,"流明":160.7,"自身回复":55.4},"horde_alive":11.5,"hps":3.28,"kills":58,"leader":"lumen","manual_casts":0,"max_hp":121.5,"name":"流明","op":"lumen","op_aspd":1.06,"op_atk":1.008,"op_kills":58,"op_range":1.2,"prog":6,"regen":0.8,"role":"leader","scene":"horde","secs":60.19,"shield_layers":0,"shield_ps":0.0,"skill_power":1.0,"sp_mult":1.0,"sp_need":[7.0,15.0,22.0],"speed":165.0,"squad":["lumen"],"stage":2,"warm":20.0}
+PF RUNRELEASE tex=0 audio=0
+ERROR: 71 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 4 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+
+## stderr
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+WARNING: 372 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 5 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+

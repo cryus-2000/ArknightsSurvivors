@@ -1,0 +1,22 @@
+# specter_unchained_e1_single_leader
+# --headless --path /work/repo/game res://tests/op_dummy_test.tscn -- --balance --bot=afk --nodeath --seed=1 --op=specter_unchained --dummy_op=specter_unchained --dummy_role=leader --dummy_scene=single --dummy_stage=1 --dummy_secs=60 --dummy_warm=20
+# 14 秒
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+DUMMY {"armor":2.0,"arts_res":0.0,"basic_hit_frames":28,"basic_interval":2.15,"by_src":{"替身":352.8,"血色潮痕":1491.6,"锯刃":6186.0},"casts":5,"cls":"特种","dodge":0.0,"dps":133.41,"dps_basic":102.77,"dps_other":24.78,"dps_skill":0.0,"dps_summon":5.86,"elite":1,"heal_src":{"自身回复":60.2},"horde_alive":-1.0,"hps":0.0,"kills":0,"leader":"specter_unchained","manual_casts":0,"max_hp":112.5,"name":"归溟幽灵鲨","op":"specter_unchained","op_aspd":1.0,"op_atk":0.9,"op_kills":0,"op_range":1.27,"prog":3,"regen":1.0,"role":"leader","scene":"single","secs":60.19,"shield_layers":0,"shield_ps":0.0,"skill_power":1.02,"sp_mult":1.0,"sp_need":[7.0,15.0,22.0],"speed":165.0,"squad":["specter_unchained"],"stage":1,"warm":20.0}
+PF RUNRELEASE tex=0 audio=0
+ERROR: 71 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 4 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+
+## stderr
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+WARNING: 372 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 5 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+

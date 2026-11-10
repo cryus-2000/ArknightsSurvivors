@@ -1,0 +1,22 @@
+# wisadel_e2_horde_leader
+# --headless --path /work/repo/game res://tests/op_dummy_test.tscn -- --balance --bot=afk --nodeath --seed=1 --op=wisadel --dummy_op=wisadel --dummy_role=leader --dummy_scene=horde --dummy_stage=2 --dummy_secs=60 --dummy_warm=20
+# 19 秒
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+DUMMY {"armor":1.5,"arts_res":0.15,"basic_hit_frames":113,"basic_interval":0.533,"by_src":{"余震":60823.1,"散射":4209.0,"殉爆":10036.7,"炮击":7408.4,"爆裂黎明":19021.3,"饱和复仇":14335.6,"魂灵之影":2094.3},"casts":10,"cls":"狙击","dodge":0.0,"dps":1959.2,"dps_basic":1203.49,"dps_other":166.74,"dps_skill":554.17,"dps_summon":34.79,"elite":2,"heal_src":{"自身回复":48.2},"horde_alive":10.6,"hps":0.0,"kills":139,"leader":"wisadel","manual_casts":0,"max_hp":99.0,"name":"维什戴尔","op":"wisadel","op_aspd":1.06,"op_atk":1.053,"op_kills":139,"op_range":1.2,"prog":6,"regen":0.8,"role":"leader","scene":"horde","secs":60.19,"shield_layers":0,"shield_ps":0.0,"skill_power":1.05,"sp_mult":1.0,"sp_need":[7.0,12.0,22.0],"speed":165.0,"squad":["wisadel"],"stage":2,"warm":20.0}
+PF RUNRELEASE tex=0 audio=0
+ERROR: 71 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 4 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+
+## stderr
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+WARNING: 372 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 5 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+

@@ -1,0 +1,23 @@
+# logos_e2_single_mate
+# --headless --path /work/repo/game res://tests/op_dummy_test.tscn -- --balance --bot=afk --nodeath --seed=1 --op=hoshiguma --squad=logos --dummy_op=logos --dummy_role=mate --dummy_scene=single --dummy_stage=2 --dummy_secs=60 --dummy_warm=20
+# 14 秒
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PF FXLAZY t=0.0 logos n=27 ms=28
+DUMMY {"armor":4.0,"arts_res":0.1,"basic_hit_frames":44,"basic_interval":1.368,"by_src":{"延异视阈":3152.6,"提喻":11598.4,"散射":307.4,"言":5472.2,"语汇演化":1441.4,"铭文":3015.0},"casts":8,"cls":"术师","dodge":0.0,"dps":415.12,"dps_basic":119.97,"dps_other":50.09,"dps_skill":245.07,"dps_summon":0.0,"elite":2,"heal_src":{"自身回复":57.2},"horde_alive":-1.0,"hps":0.0,"kills":0,"leader":"hoshiguma","manual_casts":0,"max_hp":124.2,"name":"逻各斯","op":"logos","op_aspd":1.06,"op_atk":1.053,"op_kills":0,"op_range":1.2,"prog":6,"regen":0.95,"role":"mate","scene":"single","secs":60.19,"shield_layers":0,"shield_ps":0.0,"skill_power":1.13,"sp_mult":1.0,"sp_need":[7.0,15.0,22.0],"speed":165.0,"squad":["hoshiguma","logos"],"stage":2,"warm":20.0}
+PF RUNRELEASE tex=0 audio=0
+ERROR: 71 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 4 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+
+## stderr
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+WARNING: 372 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 5 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+

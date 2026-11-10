@@ -1,0 +1,23 @@
+# irene_e0_horde_mate
+# --headless --path /work/repo/game res://tests/op_dummy_test.tscn -- --balance --bot=afk --nodeath --seed=1 --op=hoshiguma --squad=irene --dummy_op=irene --dummy_role=mate --dummy_scene=horde --dummy_stage=0 --dummy_secs=60 --dummy_warm=20
+# 15 秒
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PF FXLAZY t=0.0 irene n=21 ms=20
+DUMMY {"armor":4.0,"arts_res":0.1,"basic_hit_frames":85,"basic_interval":0.708,"by_src":{"刺剑":16438.0,"起风":2821.5},"casts":14,"cls":"近卫","dodge":0.0,"dps":319.97,"dps_basic":273.09,"dps_other":0.0,"dps_skill":46.87,"dps_summon":0.0,"elite":0,"heal_src":{"自身回复":57.2},"horde_alive":11.6,"hps":0.0,"kills":49,"leader":"hoshiguma","manual_casts":0,"max_hp":124.2,"name":"艾丽妮","op":"irene","op_aspd":1.0,"op_atk":0.927,"op_kills":41,"op_range":1.0,"prog":0,"regen":0.95,"role":"mate","scene":"horde","secs":60.19,"shield_layers":0,"shield_ps":0.0,"skill_power":1.03,"sp_mult":1.0,"sp_need":[5.0,11.0,22.0],"speed":165.0,"squad":["hoshiguma","irene"],"stage":0,"warm":20.0}
+PF RUNRELEASE tex=0 audio=0
+ERROR: 71 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 4 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+
+## stderr
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+WARNING: 372 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 5 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+

@@ -1,0 +1,23 @@
+# angelina_e2_horde_mate
+# --headless --path /work/repo/game res://tests/op_dummy_test.tscn -- --balance --bot=afk --nodeath --seed=1 --op=hoshiguma --squad=angelina --dummy_op=angelina --dummy_role=mate --dummy_scene=horde --dummy_stage=2 --dummy_secs=60 --dummy_warm=20
+# 16 秒
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PF FXLAZY t=0.0 angelina n=11 ms=11
+DUMMY {"armor":4.0,"arts_res":0.1,"basic_hit_frames":113,"basic_interval":0.533,"by_src":{"双重引力":7955.7,"失重井":2770.7,"秘杖·速充模式":4877.0,"重力弹":3565.0},"casts":13,"cls":"辅助","dodge":0.0,"dps":318.45,"dps_basic":237.43,"dps_other":0.0,"dps_skill":81.02,"dps_summon":0.0,"elite":2,"heal_src":{"安洁莉娜":26.6,"自身回复":57.2},"horde_alive":11.6,"hps":0.44,"kills":51,"leader":"hoshiguma","manual_casts":0,"max_hp":124.2,"name":"安洁莉娜","op":"angelina","op_aspd":1.264,"op_atk":1.008,"op_kills":49,"op_range":1.865,"prog":6,"regen":0.95,"role":"mate","scene":"horde","secs":60.19,"shield_layers":0,"shield_ps":0.0,"skill_power":1.02,"sp_mult":1.0,"sp_need":[7.0,15.0,24.0],"speed":204.9,"squad":["hoshiguma","angelina"],"stage":2,"warm":20.0}
+PF RUNRELEASE tex=0 audio=0
+ERROR: 71 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 4 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+
+## stderr
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+WARNING: 372 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 5 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+

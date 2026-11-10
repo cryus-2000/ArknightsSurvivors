@@ -1,0 +1,22 @@
+# eyjafjalla_e1_horde_leader
+# --headless --path /work/repo/game res://tests/op_dummy_test.tscn -- --balance --bot=afk --nodeath --seed=1 --op=eyjafjalla --dummy_op=eyjafjalla --dummy_role=leader --dummy_scene=horde --dummy_stage=1 --dummy_secs=60 --dummy_warm=20
+# 16 秒
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+DUMMY {"armor":1.5,"arts_res":0.2,"basic_hit_frames":76,"basic_interval":0.792,"by_src":{"散射":1365.9,"火星":3095.4,"点燃":9703.9,"点燃弹":6272.0,"熔岩弹":30123.8},"casts":17,"cls":"术师","dodge":0.0,"dps":840.0,"dps_basic":574.58,"dps_other":161.22,"dps_skill":104.2,"dps_summon":0.0,"elite":1,"heal_src":{"自身回复":48.2},"horde_alive":11.3,"hps":0.0,"kills":63,"leader":"eyjafjalla","manual_casts":0,"max_hp":106.2,"name":"艾雅法拉","op":"eyjafjalla","op_aspd":1.0,"op_atk":0.927,"op_kills":63,"op_range":1.08,"prog":3,"regen":0.8,"role":"leader","scene":"horde","secs":60.19,"shield_layers":0,"shield_ps":0.0,"skill_power":1.03,"sp_mult":1.0,"sp_need":[7.0,12.0,22.0],"speed":165.0,"squad":["eyjafjalla"],"stage":1,"warm":20.0}
+PF RUNRELEASE tex=0 audio=0
+ERROR: 71 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 4 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+
+## stderr
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+WARNING: 372 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 5 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+

@@ -1,0 +1,242 @@
+木桩表：240 局，并行 4（全机上限 8）；输出 build/cloud/audit-1110-dummy
+[  1/240] angelina_e0_single_leader          通过 dps=22.19 kills=0 hps=0.0
+[  2/240] angelina_e0_single_mate            通过 dps=22.19 kills=0 hps=0.0
+[  3/240] angelina_e0_horde_leader           通过 dps=257.01 kills=3 hps=0.0
+[  4/240] angelina_e0_horde_mate             通过 dps=219.82 kills=46 hps=0.0
+[  5/240] angelina_e1_single_leader          通过 dps=33.28 kills=0 hps=0.0
+[  6/240] angelina_e1_single_mate            通过 dps=30.77 kills=0 hps=0.0
+[  7/240] angelina_e1_horde_leader           通过 dps=196.24 kills=9 hps=0.0
+[  8/240] angelina_e1_horde_mate             通过 dps=164.82 kills=18 hps=0.0
+[  9/240] angelina_e2_single_leader          通过 dps=70.36 kills=0 hps=0.34
+[ 10/240] angelina_e2_single_mate            通过 dps=69.74 kills=0 hps=0.44
+[ 11/240] angelina_e2_horde_leader           通过 dps=499.12 kills=43 hps=0.34
+[ 12/240] angelina_e2_horde_mate             通过 dps=318.45 kills=49 hps=0.44
+[ 13/240] exusiai_e0_single_leader           通过 dps=61.16 kills=0 hps=0.0
+[ 14/240] exusiai_e0_single_mate             通过 dps=51.79 kills=0 hps=0.0
+[ 15/240] exusiai_e0_horde_leader            通过 dps=156.39 kills=6 hps=0.0
+[ 16/240] exusiai_e0_horde_mate              通过 dps=111.0 kills=20 hps=0.0
+[ 17/240] exusiai_e1_single_leader           通过 dps=184.04 kills=0 hps=0.0
+[ 18/240] exusiai_e1_single_mate             通过 dps=95.27 kills=0 hps=0.0
+[ 19/240] exusiai_e1_horde_leader            通过 dps=466.78 kills=60 hps=0.0
+[ 20/240] exusiai_e1_horde_mate              通过 dps=294.46 kills=46 hps=0.0
+[ 21/240] exusiai_e2_single_leader           通过 dps=363.31 kills=0 hps=0.0
+[ 22/240] exusiai_e2_single_mate             通过 dps=187.29 kills=0 hps=0.0
+[ 23/240] exusiai_e2_horde_leader            通过 dps=956.31 kills=108 hps=0.0
+[ 24/240] eyjafjalla_e0_single_leader        通过 dps=38.13 kills=0 hps=0.0
+[ 25/240] exusiai_e2_horde_mate              通过 dps=649.8 kills=78 hps=0.0
+[ 26/240] eyjafjalla_e0_single_mate          通过 dps=31.79 kills=0 hps=0.0
+[ 27/240] eyjafjalla_e0_horde_leader         通过 dps=376.33 kills=41 hps=0.0
+[ 28/240] eyjafjalla_e0_horde_mate           通过 dps=261.2 kills=36 hps=0.0
+[ 29/240] eyjafjalla_e1_single_leader        通过 dps=89.19 kills=0 hps=0.0
+[ 30/240] eyjafjalla_e1_single_mate          通过 dps=53.58 kills=0 hps=0.0
+[ 31/240] eyjafjalla_e1_horde_leader         通过 dps=840.0 kills=63 hps=0.0
+[ 32/240] eyjafjalla_e2_single_leader        通过 dps=357.4 kills=0 hps=0.0
+[ 33/240] eyjafjalla_e1_horde_mate           通过 dps=498.65 kills=60 hps=0.0
+[ 34/240] eyjafjalla_e2_single_mate          通过 dps=290.53 kills=0 hps=0.0
+[ 35/240] eyjafjalla_e2_horde_leader         通过 dps=1790.84 kills=120 hps=0.0
+[ 36/240] gladiia_e0_single_leader           通过 dps=73.27 kills=0 hps=0.67
+[ 37/240] eyjafjalla_e2_horde_mate           通过 dps=1132.92 kills=112 hps=0.0
+[ 38/240] gladiia_e0_single_mate             通过 dps=73.27 kills=0 hps=0.74
+[ 39/240] gladiia_e0_horde_leader            通过 dps=274.15 kills=13 hps=0.67
+[ 40/240] gladiia_e0_horde_mate              通过 dps=300.02 kills=34 hps=0.74
+[ 41/240] gladiia_e1_single_leader           通过 dps=69.08 kills=0 hps=0.67
+[ 42/240] gladiia_e1_single_mate             通过 dps=69.08 kills=0 hps=0.74
+[ 43/240] gladiia_e2_single_leader           通过 dps=96.71 kills=0 hps=0.67
+[ 44/240] gladiia_e1_horde_leader            通过 dps=362.62 kills=34 hps=0.67
+[ 45/240] gladiia_e2_single_mate             通过 dps=96.71 kills=0 hps=0.74
+[ 46/240] gladiia_e1_horde_mate              通过 dps=404.72 kills=63 hps=0.74
+[ 47/240] hoshiguma_e0_single_leader         通过 dps=56.64 kills=0 hps=0.0
+[ 48/240] gladiia_e2_horde_leader            通过 dps=715.06 kills=69 hps=0.67
+[ 49/240] hoshiguma_e0_single_mate           通过 dps=56.64 kills=0 hps=0.0
+[ 50/240] gladiia_e2_horde_mate              通过 dps=671.56 kills=89 hps=0.74
+[ 51/240] hoshiguma_e0_horde_leader          通过 dps=316.92 kills=22 hps=0.0
+[ 52/240] hoshiguma_e1_single_leader         通过 dps=91.97 kills=0 hps=0.0
+[ 53/240] hoshiguma_e0_horde_mate            通过 dps=247.44 kills=15 hps=0.0
+[ 54/240] hoshiguma_e1_single_mate           通过 dps=92.54 kills=0 hps=0.0
+[ 55/240] hoshiguma_e1_horde_leader          通过 dps=611.54 kills=44 hps=0.0
+[ 56/240] hoshiguma_e2_single_leader         通过 dps=144.71 kills=0 hps=0.0
+[ 57/240] hoshiguma_e1_horde_mate            通过 dps=549.95 kills=49 hps=0.0
+[ 58/240] hoshiguma_e2_single_mate           通过 dps=141.89 kills=0 hps=0.0
+[ 59/240] irene_e0_single_leader             通过 dps=81.83 kills=0 hps=0.0
+[ 60/240] hoshiguma_e2_horde_leader          通过 dps=622.14 kills=42 hps=0.0
+[ 61/240] irene_e0_single_mate               通过 dps=81.83 kills=0 hps=0.0
+[ 62/240] hoshiguma_e2_horde_mate            通过 dps=712.66 kills=71 hps=0.0
+[ 63/240] irene_e0_horde_leader              通过 dps=445.55 kills=51 hps=0.0
+[ 64/240] irene_e1_single_leader             通过 dps=134.62 kills=0 hps=0.0
+[ 65/240] irene_e1_single_mate               通过 dps=136.51 kills=0 hps=0.0
+[ 66/240] irene_e0_horde_mate                通过 dps=319.97 kills=41 hps=0.0
+[ 67/240] irene_e1_horde_leader              通过 dps=567.86 kills=56 hps=0.0
+[ 68/240] irene_e2_single_leader             通过 dps=257.46 kills=0 hps=0.0
+[ 69/240] irene_e2_single_mate               通过 dps=257.46 kills=0 hps=0.0
+[ 70/240] irene_e1_horde_mate                通过 dps=357.89 kills=55 hps=0.0
+[ 71/240] kaltsit_e0_single_leader           通过 dps=17.79 kills=0 hps=0.89
+[ 72/240] irene_e2_horde_leader              通过 dps=878.15 kills=76 hps=0.0
+[ 73/240] kaltsit_e0_single_mate             通过 dps=35.04 kills=0 hps=1.02
+[ 74/240] irene_e2_horde_mate                通过 dps=571.95 kills=72 hps=0.0
+[ 75/240] kaltsit_e0_horde_leader            通过 dps=65.76 kills=0 hps=0.84
+[ 76/240] kaltsit_e1_single_leader           通过 dps=0.0 kills=0 hps=1.14
+[ 77/240] kaltsit_e0_horde_mate              通过 dps=96.63 kills=10 hps=0.91
+[ 78/240] kaltsit_e1_single_mate             通过 dps=85.68 kills=0 hps=1.31
+[ 79/240] kaltsit_e1_horde_leader            通过 dps=390.44 kills=26 hps=1.01
+[ 80/240] kaltsit_e2_single_leader           通过 dps=6.2 kills=0 hps=3.01
+[ 81/240] kaltsit_e2_single_mate             通过 dps=196.88 kills=0 hps=3.46
+[ 82/240] kaltsit_e1_horde_mate              通过 dps=783.22 kills=71 hps=1.03
+[ 83/240] kaltsit_e2_horde_leader            通过 dps=1933.82 kills=125 hps=2.59
+[ 84/240] lappland_e0_single_leader          通过 dps=65.02 kills=0 hps=0.0
+[ 85/240] lappland_e0_single_mate            通过 dps=65.02 kills=0 hps=0.0
+[ 86/240] kaltsit_e2_horde_mate              通过 dps=1791.51 kills=145 hps=3.46
+[ 87/240] lappland_e1_single_leader          通过 dps=137.17 kills=0 hps=0.0
+[ 88/240] lappland_e0_horde_leader           通过 dps=351.76 kills=13 hps=0.0
+[ 89/240] lappland_e1_single_mate            通过 dps=137.17 kills=0 hps=0.0
+[ 90/240] lappland_e0_horde_mate             通过 dps=402.99 kills=43 hps=0.0
+[ 91/240] lappland_e1_horde_leader           通过 dps=833.93 kills=64 hps=0.0
+[ 92/240] lappland_e2_single_leader          通过 dps=282.26 kills=0 hps=0.0
+[ 93/240] lappland_e2_single_mate            通过 dps=279.69 kills=0 hps=0.0
+[ 94/240] lappland_e1_horde_mate             通过 dps=688.9 kills=78 hps=0.0
+[ 95/240] logos_e0_single_leader             通过 dps=153.73 kills=0 hps=0.0
+[ 96/240] logos_e0_single_mate               通过 dps=153.73 kills=0 hps=0.0
+[ 97/240] lappland_e2_horde_leader           通过 dps=1522.52 kills=119 hps=0.0
+[ 98/240] lappland_e2_horde_mate             通过 dps=1166.88 kills=116 hps=0.0
+[ 99/240] logos_e0_horde_leader              通过 dps=337.09 kills=38 hps=0.0
+[100/240] logos_e1_single_leader             通过 dps=346.74 kills=0 hps=0.0
+[101/240] logos_e0_horde_mate                通过 dps=192.82 kills=30 hps=0.0
+[102/240] logos_e1_single_mate               通过 dps=304.57 kills=0 hps=0.0
+[103/240] logos_e1_horde_leader              通过 dps=853.57 kills=90 hps=0.0
+[104/240] logos_e2_single_leader             通过 dps=515.23 kills=0 hps=0.0
+[105/240] logos_e1_horde_mate                通过 dps=440.9 kills=58 hps=0.0
+[106/240] logos_e2_single_mate               通过 dps=415.12 kills=0 hps=0.0
+[107/240] lumen_e0_single_leader             通过 dps=25.33 kills=0 hps=0.98
+[108/240] logos_e2_horde_leader              通过 dps=1266.53 kills=129 hps=0.0
+[109/240] lumen_e0_single_mate               通过 dps=23.95 kills=0 hps=1.0
+[110/240] logos_e2_horde_mate                通过 dps=928.24 kills=94 hps=0.0
+[111/240] lumen_e0_horde_leader              通过 dps=111.17 kills=0 hps=0.76
+[112/240] lumen_e1_single_leader             通过 dps=67.8 kills=0 hps=1.24
+[113/240] lumen_e0_horde_mate                通过 dps=61.84 kills=9 hps=0.71
+[114/240] lumen_e1_single_mate               通过 dps=53.37 kills=0 hps=1.27
+[115/240] lumen_e1_horde_leader              通过 dps=200.56 kills=5 hps=0.83
+[116/240] lumen_e2_single_leader             通过 dps=125.27 kills=0 hps=3.58
+[117/240] lumen_e2_single_mate               通过 dps=91.35 kills=0 hps=3.66
+[118/240] lumen_e1_horde_mate                通过 dps=106.04 kills=34 hps=0.89
+[119/240] mizuki_e0_single_leader            通过 dps=53.25 kills=0 hps=0.0
+[120/240] mizuki_e0_single_mate              通过 dps=53.25 kills=0 hps=0.0
+[121/240] lumen_e2_horde_leader              通过 dps=597.82 kills=58 hps=3.28
+[122/240] lumen_e2_horde_mate                通过 dps=291.71 kills=55 hps=3.53
+[123/240] mizuki_e1_single_leader            通过 dps=90.33 kills=0 hps=0.0
+[124/240] mizuki_e0_horde_leader             通过 dps=251.05 kills=13 hps=0.0
+[125/240] mizuki_e0_horde_mate               通过 dps=251.06 kills=23 hps=0.0
+[126/240] mizuki_e1_single_mate              通过 dps=90.33 kills=0 hps=0.0
+[127/240] mizuki_e1_horde_leader             通过 dps=480.64 kills=43 hps=1.68
+[128/240] mizuki_e2_single_leader            通过 dps=209.88 kills=0 hps=0.0
+[129/240] mizuki_e1_horde_mate               通过 dps=413.6 kills=43 hps=2.41
+[130/240] mizuki_e2_single_mate              通过 dps=206.14 kills=0 hps=0.0
+[131/240] saria_e0_single_leader             通过 dps=56.71 kills=0 hps=1.19
+[132/240] mizuki_e2_horde_leader             通过 dps=1120.4 kills=86 hps=2.91
+[133/240] saria_e0_single_mate               通过 dps=56.71 kills=0 hps=1.43
+[134/240] mizuki_e2_horde_mate               通过 dps=1047.27 kills=95 hps=3.68
+[135/240] saria_e0_horde_leader              通过 dps=250.33 kills=9 hps=1.19
+[136/240] saria_e1_single_leader             通过 dps=82.13 kills=0 hps=2.7
+[137/240] saria_e0_horde_mate                通过 dps=106.78 kills=11 hps=1.43
+[138/240] saria_e1_single_mate               通过 dps=69.8 kills=0 hps=3.24
+[139/240] saria_e1_horde_leader              通过 dps=341.71 kills=22 hps=2.69
+[140/240] saria_e2_single_leader             通过 dps=113.43 kills=0 hps=3.43
+[141/240] saria_e1_horde_mate                通过 dps=256.13 kills=33 hps=3.24
+[142/240] saria_e2_single_mate               通过 dps=100.35 kills=0 hps=3.99
+[143/240] siege_e0_single_leader             通过 dps=42.86 kills=0 hps=0.0
+[144/240] saria_e2_horde_leader              通过 dps=442.45 kills=32 hps=3.58
+[145/240] siege_e0_single_mate               通过 dps=42.86 kills=0 hps=0.0
+[146/240] saria_e2_horde_mate                通过 dps=423.81 kills=54 hps=4.3
+[147/240] siege_e0_horde_leader              通过 dps=223.46 kills=2 hps=0.0
+[148/240] siege_e1_single_leader             通过 dps=67.33 kills=0 hps=0.0
+[149/240] siege_e0_horde_mate                通过 dps=263.55 kills=33 hps=0.0
+[150/240] siege_e1_single_mate               通过 dps=65.57 kills=0 hps=0.0
+[151/240] siege_e1_horde_leader              通过 dps=449.83 kills=39 hps=0.0
+[152/240] siege_e2_single_leader             通过 dps=119.31 kills=0 hps=0.0
+[153/240] siege_e2_single_mate               通过 dps=103.98 kills=0 hps=0.0
+[154/240] siege_e1_horde_mate                通过 dps=313.79 kills=39 hps=0.0
+[155/240] siege_e2_horde_leader              通过 dps=753.02 kills=54 hps=0.0
+[156/240] skadi_e0_single_leader             通过 dps=91.81 kills=0 hps=0.0
+[157/240] skadi_e0_single_mate               通过 dps=91.81 kills=0 hps=0.0
+[158/240] siege_e2_horde_mate                通过 dps=525.75 kills=57 hps=0.0
+[159/240] skadi_e1_single_leader             通过 dps=152.91 kills=0 hps=0.0
+[160/240] skadi_e0_horde_leader              通过 dps=512.09 kills=48 hps=0.0
+[161/240] skadi_e1_single_mate               通过 dps=155.88 kills=0 hps=0.0
+[162/240] skadi_e0_horde_mate                通过 dps=628.93 kills=59 hps=0.0
+[163/240] skadi_e2_single_leader             通过 dps=297.14 kills=0 hps=0.0
+[164/240] skadi_e1_horde_leader              通过 dps=1280.15 kills=86 hps=0.0
+[165/240] skadi_e2_single_mate               通过 dps=296.35 kills=0 hps=0.0
+[166/240] skadi_e1_horde_mate                通过 dps=1121.53 kills=92 hps=0.0
+[167/240] skalter_e0_single_leader           通过 dps=6.77 kills=0 hps=0.43
+[168/240] skalter_e0_single_mate             通过 dps=5.21 kills=0 hps=0.57
+[169/240] skadi_e2_horde_leader              通过 dps=2352.58 kills=158 hps=0.0
+[170/240] skadi_e2_horde_mate                通过 dps=2118.39 kills=169 hps=0.0
+[171/240] skalter_e1_single_leader           通过 dps=10.58 kills=0 hps=0.86
+[172/240] skalter_e0_horde_leader            通过 dps=81.23 kills=0 hps=0.43
+[173/240] skalter_e0_horde_mate              通过 dps=61.67 kills=29 hps=0.57
+[174/240] skalter_e1_single_mate             通过 dps=8.14 kills=0 hps=1.13
+[175/240] skalter_e1_horde_leader            通过 dps=126.95 kills=0 hps=0.86
+[176/240] skalter_e2_single_leader           通过 dps=24.37 kills=0 hps=1.95
+[177/240] skalter_e1_horde_mate              通过 dps=100.81 kills=52 hps=1.13
+[178/240] skalter_e2_single_mate             通过 dps=21.0 kills=0 hps=2.56
+[179/240] specter_unchained_e0_single_leader 通过 dps=70.13 kills=0 hps=0.0
+[180/240] specter_unchained_e0_single_mate   通过 dps=70.14 kills=0 hps=0.0
+[181/240] skalter_e2_horde_leader            通过 dps=271.22 kills=0 hps=1.95
+[182/240] skalter_e2_horde_mate              通过 dps=233.79 kills=82 hps=2.56
+[183/240] specter_unchained_e0_horde_leader  通过 dps=712.11 kills=59 hps=0.0
+[184/240] specter_unchained_e1_single_leader 通过 dps=133.41 kills=0 hps=0.0
+[185/240] specter_unchained_e0_horde_mate    通过 dps=575.35 kills=61 hps=0.0
+[186/240] specter_unchained_e1_single_mate   通过 dps=133.43 kills=0 hps=0.0
+[187/240] specter_unchained_e1_horde_leader  通过 dps=1170.12 kills=76 hps=0.0
+[188/240] specter_unchained_e2_single_leader 通过 dps=399.48 kills=0 hps=0.0
+[189/240] specter_unchained_e1_horde_mate    通过 dps=1028.84 kills=94 hps=0.0
+[190/240] specter_unchained_e2_single_mate   通过 dps=399.54 kills=0 hps=0.0
+[191/240] specter_unchained_e2_horde_leader  通过 dps=3020.63 kills=222 hps=0.0
+[192/240] suzuran_e0_single_leader           通过 dps=96.72 kills=0 hps=0.0
+[193/240] suzuran_e0_single_mate             通过 dps=96.72 kills=0 hps=0.0
+[194/240] specter_unchained_e2_horde_mate    通过 dps=2559.45 kills=217 hps=0.0
+[195/240] suzuran_e0_horde_leader            通过 dps=310.96 kills=24 hps=0.0
+[196/240] suzuran_e1_single_leader           通过 dps=157.46 kills=0 hps=0.42
+[197/240] suzuran_e0_horde_mate              通过 dps=261.72 kills=30 hps=0.0
+[198/240] suzuran_e1_single_mate             通过 dps=153.24 kills=0 hps=0.5
+[199/240] suzuran_e2_single_leader           通过 dps=101.13 kills=0 hps=0.57
+[200/240] suzuran_e1_horde_leader            通过 dps=619.88 kills=57 hps=0.42
+[201/240] suzuran_e2_single_mate             通过 dps=95.65 kills=0 hps=0.69
+[202/240] suzuran_e1_horde_mate              通过 dps=341.85 kills=56 hps=0.5
+[203/240] suzuran_e2_horde_leader            通过 dps=469.19 kills=46 hps=0.57
+[204/240] texas_e0_single_leader             通过 dps=67.92 kills=0 hps=0.0
+[205/240] texas_e0_single_mate               通过 dps=67.92 kills=0 hps=0.0
+[206/240] suzuran_e2_horde_mate              通过 dps=217.98 kills=36 hps=0.69
+[207/240] texas_e1_single_leader             通过 dps=103.84 kills=0 hps=0.0
+[208/240] texas_e0_horde_leader              通过 dps=499.3 kills=39 hps=0.0
+[209/240] texas_e1_single_mate               通过 dps=103.84 kills=0 hps=0.0
+[210/240] texas_e0_horde_mate                通过 dps=502.58 kills=54 hps=0.0
+[211/240] texas_e2_single_leader             通过 dps=149.22 kills=0 hps=0.0
+[212/240] texas_e1_horde_leader              通过 dps=775.51 kills=65 hps=0.0
+[213/240] texas_e2_single_mate               通过 dps=150.37 kills=0 hps=0.0
+[214/240] texas_e1_horde_mate                通过 dps=698.34 kills=72 hps=0.0
+[215/240] ulpianus_e0_single_leader          通过 dps=90.35 kills=0 hps=0.0
+[216/240] texas_e2_horde_leader              通过 dps=1082.31 kills=82 hps=0.0
+[217/240] ulpianus_e0_single_mate            通过 dps=90.35 kills=0 hps=0.0
+[218/240] texas_e2_horde_mate                通过 dps=879.05 kills=86 hps=0.0
+[219/240] ulpianus_e0_horde_leader           通过 dps=764.88 kills=61 hps=0.0
+[220/240] ulpianus_e1_single_leader          通过 dps=166.89 kills=0 hps=0.0
+[221/240] ulpianus_e1_single_mate            通过 dps=166.89 kills=0 hps=0.0
+[222/240] ulpianus_e0_horde_mate             通过 dps=656.1 kills=57 hps=0.0
+[223/240] ulpianus_e1_horde_leader           通过 dps=1321.94 kills=89 hps=0.0
+[224/240] ulpianus_e2_single_leader          通过 dps=234.39 kills=0 hps=0.0
+[225/240] ulpianus_e2_single_mate            通过 dps=230.35 kills=0 hps=0.0
+[226/240] ulpianus_e1_horde_mate             通过 dps=1144.58 kills=97 hps=0.0
+[227/240] wisadel_e0_single_leader           通过 dps=54.72 kills=0 hps=0.0
+[228/240] wisadel_e0_single_mate             通过 dps=54.72 kills=0 hps=0.0
+[229/240] ulpianus_e2_horde_leader           通过 dps=1797.18 kills=121 hps=0.0
+[230/240] ulpianus_e2_horde_mate             通过 dps=1584.66 kills=132 hps=0.0
+[231/240] wisadel_e1_single_leader           通过 dps=158.41 kills=0 hps=0.0
+[232/240] wisadel_e0_horde_leader            通过 dps=539.3 kills=47 hps=0.0
+[233/240] wisadel_e0_horde_mate              通过 dps=487.21 kills=54 hps=0.0
+[234/240] wisadel_e1_single_mate             通过 dps=136.18 kills=0 hps=0.0
+[235/240] wisadel_e2_single_leader           通过 dps=277.59 kills=0 hps=0.0
+[236/240] wisadel_e1_horde_leader            通过 dps=1347.19 kills=96 hps=0.0
+[237/240] wisadel_e2_single_mate             通过 dps=208.65 kills=0 hps=0.0
+[238/240] wisadel_e1_horde_mate              通过 dps=997.69 kills=90 hps=0.0
+[239/240] wisadel_e2_horde_leader            通过 dps=1959.2 kills=139 hps=0.0
+[240/240] wisadel_e2_horde_mate              通过 dps=1497.4 kills=129 hps=0.0
+完成：240 局，失败 0；偏离 ±30% 的格子 248 个；build/cloud/audit-1110-dummy/table.md
