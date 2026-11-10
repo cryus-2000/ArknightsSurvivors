@@ -46,6 +46,7 @@ func check_warm_roster(g) -> void:
 func _ready() -> void:
 	var g = Probe.new()
 	check_warm_roster(g)
+	preload("res://tests/midboss_texture_lifetime.gd").run(check)
 	for i in 20:
 		g._mem_guard(5.0)
 	check(g.trims == 1, "sustained pressure trims once, got %d" % g.trims)
