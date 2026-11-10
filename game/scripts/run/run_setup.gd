@@ -101,6 +101,8 @@ static func apply_test_args(g) -> void:
 					g.panel_ui.load_op_tex(cid)
 	# 无敌测试包网址 squad=队长,队友…：队友开局直接入队（只测试包，Cfg.test_squad）
 	var tsq := Cfg.test_squad()
+	if g.demo_op == "" and not g.trial.active and Cfg.test_speed() > 1.0:
+		Engine.time_scale = Cfg.test_speed()   # 无敌测试包网址 speed=（只测试包）；game._exit_tree 复原
 	if g.demo_op == "" and not g.trial.active:
 		for i in range(1, tsq.size()):
 			if Character.exists(tsq[i]) and g.squad.add(tsq[i]) != null:

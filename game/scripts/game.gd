@@ -2723,6 +2723,8 @@ var doc_face := 1.0
 
 ## 离开对局（回标题 / 关游戏）：还没记过的这一局按「中途退出」写进本地记录
 func _exit_tree() -> void:
+	if Cfg.test_speed() > 1.0:
+		Engine.time_scale = 1.0   # 无敌测试包倍速只管局内
 	intro_screen.release_transport()
 	if RenderingServer.frame_post_draw.is_connected(_cover_tick):
 		RenderingServer.frame_post_draw.disconnect(_cover_tick)

@@ -1163,6 +1163,18 @@ func test_god() -> bool:
 
 ## 无敌测试包专用：网址参数 squad=队长,队友,队友 指定开局编队（iPhone 压力测试，用户没法自己选队友）。
 ## 只在 test_god 包的网页上生效；正式包恒为空。第一个是队长，其余开局直接入队。
+## 无敌测试包专用：网址参数 speed=N（1–4）局内倍速，压力测试少花真实时间。正式包恒为 1。
+var _tspd := -1.0
+func test_speed() -> float:
+	if _tspd < 0.0:
+		_tspd = 1.0
+		if test_god() and OS.has_feature("web"):
+			var s = JavaScriptBridge.eval("(function(){try{return new URLSearchParams(location.search).get('speed')||''}catch(e){return ''}})()", true)
+			if s is String and s.is_valid_float():
+				_tspd = clampf(float(s), 1.0, 4.0)
+	return _tspd
+
+
 var _tsq = null
 func test_squad() -> PackedStringArray:
 	if _tsq == null:
