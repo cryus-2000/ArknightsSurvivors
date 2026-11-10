@@ -404,7 +404,8 @@ static func _hf_tick(g, rd: float) -> void:
 		_hf_sample(g)
 
 
-## 高频一行：[实时秒, 局内秒, 贴图, 缓冲, 音频, 配乐, WASM, JS, 怪, 特效, 弹, 这一段上传 KiB, 驻留配乐首数, 配乐名]，写 sy_bb_hf（连同事件日志与上传峰值）
+## 高频一行：[实时秒, 局内秒, 贴图, 缓冲, 音频, 配乐, WASM, JS, 怪, 特效, 弹, 这一段上传 KiB, 驻留配乐首数, 配乐名, GL 编号计数器, GL 五张表总槽数]
+## （GL 两列：engine_patch §9 之前计数器一局涨到两百多万、表槽同步撑大 JS 堆；回收后应基本不涨），写 sy_bb_hf（连同事件日志与上传峰值）
 static func _hf_sample(g) -> void:
 	_hf_t = 0.0
 	var A = load("res://scripts/art.gd")
@@ -412,9 +413,12 @@ static func _hf_sample(g) -> void:
 	var js := 0
 	var mw := 0
 	var mn := ""
-	var r = JavaScriptBridge.eval("(function(){var w=window.__syWasm,r={w:w&&w.buffer?w.buffer.byteLength:0};if(performance.memory){r.j=performance.memory.usedJSHeapSize}if(window.__syMusOn&&window.__syMus){try{var m=JSON.parse(window.__syMus.state());r.m=m.mb;r.n=m.nm}catch(e){}}return JSON.stringify(r)})()", true)
+	var r = JavaScriptBridge.eval("(function(){var w=window.__syWasm,r={w:w&&w.buffer?w.buffer.byteLength:0};if(performance.memory){r.j=performance.memory.usedJSHeapSize}if(window.__syMusOn&&window.__syMus){try{var m=JSON.parse(window.__syMus.state());r.m=m.mb;r.n=m.nm}catch(e){}}if(window.__syGLN){r.gl=window.__syGLN()}return JSON.stringify(r)})()", true)
 	var d = JSON.parse_string(str(r)) if r != null else null
+	var gl := [0, 0]
 	if d is Dictionary:
+		if d.get("gl", null) is Array and (d.gl as Array).size() >= 2:
+			gl = [int(d.gl[0]), int(d.gl[1])]
 		wasm = int(float(d.get("w", 0)) / 1048576.0)
 		js = int(float(d.get("j", 0)) / 1048576.0)
 		mw = int(float(d.get("m", 0)))
@@ -423,7 +427,7 @@ static func _hf_sample(g) -> void:
 	var row := [int(_rt), int(g.t), int(Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1048576.0),
 		int(Performance.get_monitor(Performance.RENDER_BUFFER_MEM_USED) / 1048576.0), int(Sfx.sample_mem_mb()), mw, wasm, js,
 		g.enemies.size(), g.fx.size() + (g.ult.shapes.size() if g.ult != null else 0), g.bullets.size() + g.ebullets.size(),
-		int((ub - _up_last) / 1024), (mn.count("+") + 1) if mn != "" else 0, mn]
+		int((ub - _up_last) / 1024), (mn.count("+") + 1) if mn != "" else 0, mn, gl[0], gl[1]]
 	_up_last = ub
 	_hf.append(row)
 	if _hf.size() > HF_MAX:
@@ -635,11 +639,12 @@ static func _hf_lines(p: Dictionary) -> PackedStringArray:
 	var rows: Array = h.get("hf", [])
 	if not rows.is_empty():
 		o.append("【闪退前高频曲线】每 %d 秒一行 + 尖峰补采，最后 %d 行" % [int(HF_EVERY), rows.size()])
-		o.append("实时 局内 | 贴图 缓冲 音频(配乐) WASM JS | 怪 特效 弹 | 上传KiB | 驻留配乐首数 名")
+		o.append("实时 局内 | 贴图 缓冲 音频(配乐) WASM JS | 怪 特效 弹 | 上传KiB | 驻留配乐首数 名 | GL 编号 表槽（万）")
 		for r in rows:
 			if r is Array and r.size() >= 14:
-				o.append("%s %s | %d %d %d(%d) %d %d | %d %d %d | %d | %d %s" % [_mmss(float(r[0])), _mmss(float(r[1])), int(r[2]), int(r[3]), int(r[4]), int(r[5]), int(r[6]), int(r[7]),
-					int(r[8]), int(r[9]), int(r[10]), int(r[11]), int(r[12]), str(r[13])])
+				o.append("%s %s | %d %d %d(%d) %d %d | %d %d %d | %d | %d %s | %s" % [_mmss(float(r[0])), _mmss(float(r[1])), int(r[2]), int(r[3]), int(r[4]), int(r[5]), int(r[6]), int(r[7]),
+					int(r[8]), int(r[9]), int(r[10]), int(r[11]), int(r[12]), str(r[13]),
+					("%.1f %.1f" % [float(r[14]) / 10000.0, float(r[15]) / 10000.0]) if r.size() >= 16 else "—"])
 	var ev: Array = h.get("ev", [])
 	if not ev.is_empty():
 		o.append("【事件日志】最后 %d 条（实时 / 局内）" % mini(20, ev.size()))

@@ -206,11 +206,26 @@ def _cdp_setup(port, url, throttle, mobile, throttle_late=False, dpr=3, vw=844, 
         cmd("Emulation.setUserAgentOverride", {"userAgent": "Mozilla/5.0 (Linux; Android 13; Pixel 6a) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Mobile Safari/537.36",
                                                "platform": "Linux armv8l"})
     cmd("Page.navigate", {"url": url})
+
+    def snap(path):
+        """堆快照（--jssnap，docs/332 §4）：收 addHeapSnapshotChunk 事件拼成 .heapsnapshot"""
+        mid[0] += 1
+        my = mid[0]
+        send({"id": my, "method": "HeapProfiler.takeHeapSnapshot", "params": {"reportProgress": False}})
+        with open(path, "w", encoding="utf-8") as fh:
+            while True:
+                m = json.loads(recv())
+                if m.get("method") == "HeapProfiler.addHeapSnapshotChunk":
+                    fh.write(m["params"]["chunk"])
+                elif m.get("id") == my:
+                    return
     s.cmd = cmd
+    s.snap = snap
     return s   # 连接留着：断开后节流会失效
 
 
-def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False, dpr=3, win="1280x720", scale=0.0, jsgc=0):
+def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False, dpr=3, win="1280x720", scale=0.0, jsgc=0, jssnap=None):
+    jssnap = sorted(jssnap or [])
     d = export(ref)
     lastgc = time.time()
     log_p = os.path.join(d, "out_%s.txt" % tag)
@@ -315,6 +330,14 @@ def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False, dp
                 open(log_p, "a", encoding="utf-8").write("PF JSGC wall=%d used=%.1f total=%.1f\n" % (lastgc - t0, float(u.get("usedSize", 0)) / 1048576, float(u.get("totalSize", 0)) / 1048576))
             except Exception as e:
                 print("[网页] JSGC 失败 %s" % e)
+        if jssnap and cdp is not None and time.time() - t0 >= jssnap[0]:
+            ws = jssnap.pop(0)
+            sp = os.path.join(d, "heap_%s_%d.heapsnapshot" % (tag, int(ws)))
+            try:
+                cdp.snap(sp)
+                open(log_p, "a", encoding="utf-8").write("PF JSSNAP wall=%d %s\n" % (int(time.time() - t0), sp))
+            except Exception as e:
+                print("[网页] 堆快照失败 %s" % e)
         if late and cdp is not None and "PF RTFROM" in open(log_p, encoding="utf-8").read():
             cdp.cmd("Emulation.setCPUThrottlingRate", {"rate": throttle})
             print("[网页] 快进结束，开 CPU 节流 %gx" % throttle)
@@ -367,12 +390,13 @@ def main():
     ap.add_argument("--win", default="1280x720", help="电脑窗口（画布）大小 WxH，如 1514x720（docs/319 §18）")
     ap.add_argument("--scale", type=float, default=0, help="电脑缩放（Windows 显示缩放，如 1.25）：--force-device-scale-factor")
     ap.add_argument("--lowgpu", action="store_true", help="低配模拟：Edge 用核显（--force_low_power_gpu）")
+    ap.add_argument("--jssnap", default="", help="在这些墙钟秒数取 JS 堆快照（逗号分隔），存 heap_<tag>_<秒>.heapsnapshot（docs/332 §4）")
     ap.add_argument("--jsgc", type=float, default=0, help="每 N 秒强制 GC 后读 JS 堆真驻留（PF JSGC；要 --mobile 或 --throttle 才有 DevTools 连接）")
     a = ap.parse_args(argv)
     if a.cmd == "export":
         print(export(a.ref))
     else:
-        run(a.ref, a.tag, game_args, a.timeout, a.throttle, a.mobile, a.lowgpu, a.dpr, a.win, a.scale, a.jsgc)
+        run(a.ref, a.tag, game_args, a.timeout, a.throttle, a.mobile, a.lowgpu, a.dpr, a.win, a.scale, a.jsgc, [float(x) for x in a.jssnap.split(",") if x])
 
 
 if __name__ == "__main__":
