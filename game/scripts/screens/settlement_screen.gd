@@ -306,7 +306,7 @@ func _btn_at(p: Vector2) -> String:
 
 ## 按下：先播按下态 + 点击音，PRESS_T 秒后再执行（换场景的动作立刻执行就看不到反馈）
 func _press(id: String) -> void:
-	if id == "" or _pending != "":
+	if id == "" or _pending != "" or (id == "hunt" and not Roster.can_hunt_from_settlement()):
 		return
 	press_id = id
 	press_t = PRESS_T
@@ -618,6 +618,8 @@ func _records() -> void:
 	g.run_stats.back_label = "返回结算"
 
 func _action(action: String) -> void:
+	if action == "hunt" and not Roster.can_hunt_from_settlement():
+		return
 	if (action == "hunt" or action == "meta") and RunReload.wanted(g):
 		RunReload.go(g, action)   # 手机网页：局后进寻访 / 认知塑造也先整页重载（叠在一局撑大的内存上会被杀页，11-09 iPhone），回来直接打开那一页
 		return
@@ -759,6 +761,10 @@ func _draw_buttons(ci: CanvasItem, fp := 1.0) -> void:
 		_fa = fp if b.size() > 5 else 1.0
 		if b.size() <= 5:
 			r.position.y += 80.0 * (1.0 - fp)
+		if id == "hunt" and not Roster.can_hunt_from_settlement():
+			ci.draw_rect(r, Color(HH.DARK2, _fa))
+			_text_key(ci, r.position.x + 20.0, r.get_center().y - 12.0, "寻访（无可用凭证）", 20 if ph else 18, HH.MUTE)
+			continue
 		var primary: bool = b[4]
 		var text_btn: bool = (id == "records" or id == "runs") and not ph   # 11-01 docs/211 D14：手机上无底色的 16 号文字按钮太小，改成同款按钮、同字号
 		var hov: bool = hover == id

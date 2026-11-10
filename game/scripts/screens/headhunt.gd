@@ -166,11 +166,9 @@ func tick() -> void:
 
 
 func maybe_open() -> void:
-	if open or not Roster.active():
+	if open or not Roster.can_hunt_from_settlement():
 		return
 	browse = false
-	if not _can_random() and not _can_direct():
-		return
 	if Roster.locked_ids().is_empty():
 		_spill()
 		return

@@ -215,7 +215,7 @@ const EX_LIFT := 22.0
 
 
 func ex_row() -> bool:
-	return Roster.exchange_ready() or s.exchanged > 0
+	return Roster.exchange_visible() or s.exchanged > 0
 
 
 func _gains(acc: Color) -> void:
@@ -242,9 +242,11 @@ func _gains(acc: Color) -> void:
 		fa = p0
 		rect(Rect2(486, 603, 758, 1), Color(HH.MUTE, 0.35))
 		if Roster.exchange_ready():
-			txt(486, 611, "持有生机细胞 %d · 每 %d 个可兑换 1 张寻访凭证，与认知塑造共用" % [Meta.available(), Roster.TICKET_PRICE], 13, HH.LIGHT2, 0, 580)
-		else:
+			txt(486, 611, "可用生机细胞 %d · 兑换 1 张凭证消耗 %d 个，与认知塑造共用" % [Meta.available(), Roster.TICKET_PRICE], 13, HH.LIGHT2, 0, 580)
+		elif s.exchanged > 0:
 			txt(486, 611, "已兑换 %d 张寻访凭证 · 现持有 %d 张 · 剩余生机细胞 %d" % [s.exchanged, Roster.tickets(), Meta.available()], 13, HH.LIGHT2, 0, 580)
+		else:
+			txt(486, 611, "可用生机细胞 %d · 兑换 1 张凭证还需 %d 个" % [Meta.available(), Roster.exchange_short()], 13, HH.LIGHT2, 0, 580)
 	var rel := key_relics(7)
 	for i in rel.size():
 		var q := k(2.45 + 0.06 * i, 0.4)

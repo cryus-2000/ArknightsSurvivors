@@ -156,6 +156,11 @@ static func tickets() -> int:
 	return int(Cfg.roster_tickets.get(T_HUNT, 0))
 
 
+## 结算页直接寻访：使用已有凭证（含初始赠券）。细胞须先显式兑换。
+static func can_hunt_from_settlement() -> bool:
+	return active() and tickets() >= COST_RANDOM
+
+
 static func _rng() -> RandomNumberGenerator:
 	if Cfg.roster_seed == 0:
 		var r0 := RandomNumberGenerator.new()

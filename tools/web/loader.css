@@ -4,6 +4,13 @@
 /* 11-08：崩溃自动刷新后 WebView 原生粉底从边缘露出（docs/318 #5）：根元素不透明、锁住滚动和回弹，页面不会被挪开 */
 html { background: #000; }
 html, body { margin: 0; height: 100%; overflow: hidden; overscroll-behavior: none; }
+/* WebKit 可从画布外的空白开始选中整块游戏页面；保留输入法、报告文本框及引擎错误文字的原生选区。 */
+body { -webkit-user-select: none; user-select: none; }
+#canvas { -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+input, textarea, [contenteditable]:not([contenteditable="false"]), #status-notice {
+  -webkit-user-select: text; user-select: text;
+}
+
 #sy-load {
   position: fixed; inset: 0; z-index: 9000; overflow: hidden;
   -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
