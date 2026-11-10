@@ -121,6 +121,15 @@ func start_opening() -> void:
 		engine_player.play()
 	g.p_off = Vector2.ZERO
 	g.lamp_light.energy = 0.0
+	for a in Cfg.dev_args():
+		if a.begins_with("--openingmem"):   # 运输机释放验收（tests/opening_transport_probe.gd）
+			var pr = load("res://tests/opening_transport_probe.gd").new()
+			pr.g = g
+			pr.skip = a == "--openingmem=skip"
+			pr.tex_ref = weakref(transport)
+			pr.snd_ref = weakref(rumble) if rumble != null else null
+			pr.player_ref = weakref(engine_player) if engine_player != null else null
+			g.add_child(pr)
 	Sfx.play("start", -14.0)   # 音量巡检：开场引子开头近乎无声，-4 dB 时比音乐响 29 dB；现在只托住开头，和 1.7 秒后的引子齐平
 
 
