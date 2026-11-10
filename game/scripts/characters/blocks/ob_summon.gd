@@ -1713,6 +1713,12 @@ static func _mf_claw(o, s: Dictionary, kd: Dictionary, mult: float, second: bool
 	var fwd: float = 0.0 if float(s.face) >= 0.0 else PI
 	if str(a.get("dir", "face")) == "target" and s.tgt != null and not s.tgt.dead:
 		fwd = (s.tgt.pos - s.pos).angle()
+	elif s.tgt != null and not s.tgt.dead and not second:
+		# 朝面向（左右）挥：目标在正上 / 正下方、横向挥不到时改朝目标挥（docs/331 §8：木桩表凯尔希队长精一单体秒伤 0，
+		# Mon3tr 停在不动目标正下方 38 像素一直挥空）。横向挥得到的照旧朝面向
+		var to: Vector2 = s.tgt.pos - s.pos
+		if absf(to.y) > absf(to.x) + float(s.tgt.r):
+			fwd = to.angle()
 	var ov = a.get("origin", [])
 	var org: Vector2 = s.pos + (Vector2(float(ov[0]), float(ov[1])) if ov is Array and ov.size() == 2 else Vector2.ZERO)
 	var fv = a.get("fx_origin", ov)

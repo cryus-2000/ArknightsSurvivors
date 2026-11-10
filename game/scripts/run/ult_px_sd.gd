@@ -9,6 +9,7 @@ extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
 const D = preload("res://scripts/data.gd")   # 怪物代表色 ecol（崩解喷散取怪物自身颜色）
+const A_ = preload("res://scripts/art.gd")   # 上传记账（docs/332 §4）
 const META := "res://data/ult_px_skadi.json"
 const ART_FULL := "res://art/fx/pxp/ult_sd/%s.png"
 const ART_HALF := "res://art/fx/pxp/ult_sd_half/%s.png"   # 网页包里的半分辨率版（tools/web_half.py）：手机网页读它，每张解码 23–28 → 6–7 MB（docs/319 §16）
@@ -108,6 +109,7 @@ func _ev(u, kind: String, d: Dictionary) -> void:
 					if ResourceLoader.exists(p):
 						_load_log(p)
 					tex = load(p) if ResourceLoader.exists(p) else null
+					A_.note_up(p.get_file(), tex)
 			_cache = {}
 			_pf_key = ""
 			_pf_n = 0
@@ -226,6 +228,7 @@ func _prefetch(d: Vector2) -> void:
 		if not _cache.has(p) and ResourceLoader.exists(p):
 			_load_log(p)
 			_cache = {p: load(p)}
+			A_.note_up(p.get_file(), _cache[p])
 		return
 	if p != _pf_key:
 		_pf_key = p
@@ -236,6 +239,7 @@ func _prefetch(d: Vector2) -> void:
 	_cache = {}   # 先放旧的再读新的：峰值只有一张
 	_load_log(p)
 	_cache = {p: load(p)}
+	A_.note_up(p.get_file(), _cache[p])
 
 
 func _load_log(p: String) -> void:

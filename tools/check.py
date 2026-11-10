@@ -329,6 +329,21 @@ def check_asset_index():
     return {"name": "贴图索引 asset_index", "ok": not errs, "detail": "game/art/index.json %d 个名字" % len(asset_index.build()[0]), "errors": errs[:8]}
 
 
+def check_web_music():
+    """不开 Godot（<1 秒，要 node）：手机网页配乐驻留——终局 Boss 二阶段只留一份解码缓冲（p1 + p2 预混接替 p1，docs/332 §2）、
+    退回 / 曲终释放、预混缺失退回旧行为（tools/web/web_music_selftest.js：假 Web Audio 跑真实 web_music.js，按 __syMus.mb() 判）。
+    没有 node（GCP 镜像未装）时记为跳过、不算失败"""
+    import shutil, subprocess
+    name = "网页配乐驻留 web_music（终局二阶段一份缓冲）"
+    node = shutil.which("node")
+    if not node:
+        return {"name": name, "ok": True, "detail": "跳过：本机没有 node", "errors": []}
+    r = subprocess.run([node, os.path.join(ROOT, "tools", "web", "web_music_selftest.js")], capture_output=True, text=True, encoding="utf-8", timeout=60)
+    ok = r.returncode == 0 and "WEB MUSIC failures=0" in r.stdout
+    fails = [l for l in (r.stdout + r.stderr).splitlines() if l.startswith("FAIL") or "Error" in l]
+    return {"name": name, "ok": ok, "detail": "二阶段 1 份缓冲、退回 / 曲终释放、缺预混退回旧行为" if ok else "%d 项失败" % max(1, len(fails)), "errors": fails[:8]}
+
+
 def check_px_lint():
     """不开 Godot（约 5 秒）：像素稿验收工具 tools/px_lint.py 在登记样本上跑通、数字等于校准值（干员美术路 1）；只在 --only px_lint 时跑"""
     import px_lint
@@ -1387,7 +1402,7 @@ def main():
     ap.add_argument("--ab", metavar="REF", help="与某个提交做 A/B 对比（机器人标准矩阵）")
     ap.add_argument("--seeds", type=int, default=4)
     ap.add_argument("--keep", action="store_true", help="A/B 结束后保留临时工作树")
-    ap.add_argument("--only", choices=["core", "smoke", "nodes", "hold_aim", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "node_cue_lint", "data_lint", "graph_lint", "check_map", "text_reconcile", "shader_lint", "px_lint", "enemy_art", "asset_lint", "asset_index", "onboard_reload", "opening_transport"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
+    ap.add_argument("--only", choices=["core", "smoke", "nodes", "hold_aim", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "node_cue_lint", "data_lint", "graph_lint", "check_map", "text_reconcile", "shader_lint", "px_lint", "enemy_art", "asset_lint", "asset_index", "onboard_reload", "opening_transport", "web_music"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
     ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS,
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
     ap.add_argument("--bal", action="append", default=[], metavar="段/键=值",
@@ -1461,6 +1476,8 @@ def main():
         jobs.append(check_map)
     if a.only in (None, "node_cue_lint"):
         jobs.append(check_node_cue_lint)   # 不开 Godot；--auto 也跑（docs/310 §2：新节点提示别只写 o.fx）
+    if a.only in (None, "web_music"):
+        jobs.append(check_web_music)   # 不开 Godot，<1 秒；--auto 也跑（docs/332 §2）
     if a.only in (None, "cc_lint"):
         jobs.append(check_cc_lint)   # 不开 Godot，约 1 秒；--auto 也跑（击退累加漏乘失重、干员绕过 add_cc / set_air）
     branch_full, ops = False, set()

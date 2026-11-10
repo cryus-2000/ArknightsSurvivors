@@ -33,6 +33,65 @@ static var prev := {}     # 上次异常退出那一份（标题页 / 性能报�
 static var _wg := 0     # 已见过的 WASM 堆增长次数
 static var _rt := 0.0   # 开局后的真实秒数（选卡 / 暂停时局内时间不走，靠它分清同一局内时间的几条）
 
+## ---- 11-11 闪退报告补采样（docs/332 §4，协调人：重编队终局闪退时可见读数解释不了）
+## 高频环形缓冲：每 HF_EVERY 秒一行，留最后 HF_MAX 行（约 60 秒），单独写 sy_bb_hf（小记录，不重写整份曲线）；
+## 事件日志：终结技、Boss 登场、换曲 / 最终 Boss 二阶段、≥ 512 KiB 的贴图读入 / 释放（含白剪影）、读帧条、护栏、掉帧档，留最后 EVL_MAX 条，同写 sy_bb_hf；
+## 上传量：art.note_up 累计的新读入贴图字节，每行记这一段的量，另记整局「每秒上传」峰值与最大单张；
+## 尖峰补采：终结技、Boss 登场、读帧条当下补一行，1.5 秒后再补一行（看读完 / 放完之后）。
+## 只在手机网页的真玩家局开（或测试 --crashbox）；桌面不开高频
+const HF_EVERY := 2.0
+const HF_MAX := 30
+const EVL_MAX := 30
+const HF_KEY := "sy_bb_hf"
+static var _hf_on := false
+static var _hf: Array = []
+static var _hf_t := 0.0
+static var _hf_after := -1.0
+static var _hf_cd := 0.0
+static var _evl: Array = []
+static var _evn := {}
+static var _up_last := 0       # 上一行时 art.up_bytes
+static var _up_sec_b := -1     # 上一秒时 art.up_bytes
+static var _up_sec_t := 0.0
+static var up_peak := {}       # 整局每秒上传峰值 {b, t}
+static var _opened := {}       # 本页（整页重载后清零）开过的界面次数：寻访 / 图鉴
+static var _mus_last := ""
+
+
+## 界面打开计数（headhunt._intro_go / gallery._ready 调）
+static func opened(what: String) -> void:
+	_opened[what] = int(_opened.get(what, 0)) + 1
+
+
+## 事件日志一条（实时秒 + 局内秒）；spike = 当下补采一行，1.5 秒后再补一行
+static func event(text: String, spike := false) -> void:
+	if not on or not _hf_on:
+		return
+	_evl.append([int(_rt), _cur_t(), text])
+	if _evl.size() > EVL_MAX:
+		_evl.pop_front()
+	if spike and is_instance_id_valid(_owner):
+		if _hf_cd <= 0.0:
+			_hf_cd = 0.5
+			_hf_sample(instance_from_id(_owner))
+		_hf_after = _rt + 1.5
+
+
+## 终结技放出（ult._cast）：谁、本局第几次
+static func ult_cast(who: String) -> void:
+	if not on:
+		return
+	_evn[who] = int(_evn.get(who, 0)) + 1
+	event("终结技 %s 第 %d 次" % [who, int(_evn[who])], true)
+
+
+static func _cur_t() -> int:
+	if is_instance_id_valid(_owner):
+		var g = instance_from_id(_owner)
+		if g != null and "t" in g:
+			return int(g.t)
+	return 0
+
 
 static func _web() -> bool:
 	return OS.has_feature("web")
@@ -92,6 +151,22 @@ static func begin(g) -> void:
 	_tags = {}
 	_load0 = int(A.load_n)
 	_rt = 0.0
+	_hf_on = _web() and (Cfg.mobile_web() or args.has("--crashbox"))
+	_hf = []
+	_evl = []
+	_evn = {}
+	_hf_t = 0.0
+	_hf_after = -1.0
+	_up_last = int(A.up_bytes)
+	_up_sec_b = -1
+	_up_sec_t = 0.0
+	up_peak = {}
+	_mus_last = ""
+	cur["open"] = _opened.duplicate()
+	if _web():
+		var w0 = JavaScriptBridge.eval("(function(){var w=window.__syWasm;return w&&w.buffer?w.buffer.byteLength:0})()", true)
+		cur["wasm0"] = int(float(w0) / 1048576.0) if w0 != null else 0
+		JavaScriptBridge.eval("try{localStorage.removeItem('%s')}catch(e){}" % HF_KEY, true)
 	_write(true)
 
 
@@ -121,6 +196,8 @@ static func _refresh_context(g) -> bool:
 			_wave = wave
 			_mark_before(cur.memory_snapshots, wave)
 			store_now = true
+		var bl: Array = context.get("bosses", [])
+		event(("Boss 登场 " + str(bl[-1])) if not bl.is_empty() else "Boss 登场", true)
 	cur.context = context
 	return store_now
 
@@ -191,6 +268,10 @@ static func _dev_short() -> String:
 static func tag(name: String) -> void:
 	if on:
 		_tags[name] = int(_tags.get(name, 0)) + 1
+		if name == "读帧条":
+			event(name, true)
+		elif name.begins_with("护栏") or name == "掉帧档" or name == "恢复" or name == "清字形":
+			event(name)
 
 
 ## 每帧（game._process）：只累计时间；每秒取一次内存看尖峰，每 EVERY 秒写一条
@@ -206,6 +287,8 @@ static func tick(g, delta: float) -> void:
 	_t += rd
 	_mem_t += rd
 	_last_write += rd
+	if _hf_on:
+		_hf_tick(g, rd)
 	if _t >= (minf(_every, 5.0) if g.spawner != null and g.spawner.mobs_stopped() else _every):   # 最终阶段每 5 秒一条（看得到被杀页前最后几秒）
 		if _web():   # 心跳：先写一条小记录，再采样（采样中途脚本出错时心跳还在，看得出是哪一步断的）
 			JavaScriptBridge.eval("try{localStorage.setItem('sy_bb_hb','%d / %d')}catch(e){}" % [int(_rt), int(g.t)], true)
@@ -293,6 +376,84 @@ static func sample(g) -> void:
 		print("PF CRASHBOX stored rows=%s len=%s" % [str(JavaScriptBridge.eval("(function(){try{var o=JSON.parse(localStorage.getItem('sy_bb')||'{}');return (o.s||[]).length+'/'+(o.end||'-')}catch(e){return 'ERR '+e.message}})()", true)), str(JavaScriptBridge.eval("(localStorage.getItem('sy_bb')||'').length", true))])
 
 
+static func _hf_tick(g, rd: float) -> void:
+	var A = load("res://scripts/art.gd")
+	_hf_cd = maxf(0.0, _hf_cd - rd)
+	_up_sec_t += rd
+	if _up_sec_t >= 1.0:   # 每秒上传：art.up_bytes 这一秒的增量，记整局峰值
+		var ub: int = int(A.up_bytes)
+		var d: int = ub - _up_sec_b if _up_sec_b >= 0 else 0
+		_up_sec_b = ub
+		_up_sec_t = 0.0
+		if d > int(up_peak.get("b", 0)):
+			up_peak = {"b": d, "t": int(g.t)}
+	# 换曲 / 最终 Boss 二阶段
+	var mk: String = Sfx.cur_track + ("·二阶段" if Sfx.final_p2 and Sfx.cur_track.begins_with("final") else "")
+	if mk != _mus_last:
+		if _mus_last != "":
+			event("配乐 → " + (mk if mk != "" else "（淡出）"))
+		_mus_last = mk
+	if not A.big_ev.is_empty():
+		for be in A.big_ev:
+			event("%s %s %d×%d %.1f MiB" % ["读入" if be[4] else "释放", str(be[0]).get_file(), int(be[1]), int(be[2]), float(be[3]) / 1048576.0])
+		A.big_ev.clear()
+	_hf_t += rd
+	if _hf_t >= HF_EVERY or (_hf_after > 0.0 and _rt >= _hf_after):
+		if _hf_after > 0.0 and _rt >= _hf_after:
+			_hf_after = -1.0
+		_hf_sample(g)
+
+
+## 高频一行：[实时秒, 局内秒, 贴图, 缓冲, 音频, 配乐, WASM, JS, 怪, 特效, 弹, 这一段上传 KiB, 驻留配乐首数, 配乐名, GL 编号计数器, GL 五张表总槽数]
+## （GL 两列：engine_patch §9 之前计数器一局涨到两百多万、表槽同步撑大 JS 堆；回收后应基本不涨），写 sy_bb_hf（连同事件日志与上传峰值）
+static func _hf_sample(g) -> void:
+	_hf_t = 0.0
+	var A = load("res://scripts/art.gd")
+	var wasm := 0
+	var js := 0
+	var mw := 0
+	var mn := ""
+	var r = JavaScriptBridge.eval("(function(){var w=window.__syWasm,r={w:w&&w.buffer?w.buffer.byteLength:0};if(performance.memory){r.j=performance.memory.usedJSHeapSize}if(window.__syMusOn&&window.__syMus){try{var m=JSON.parse(window.__syMus.state());r.m=m.mb;r.n=m.nm}catch(e){}}if(window.__syGLN){r.gl=window.__syGLN()}return JSON.stringify(r)})()", true)
+	var d = JSON.parse_string(str(r)) if r != null else null
+	var gl := [0, 0]
+	if d is Dictionary:
+		if d.get("gl", null) is Array and (d.gl as Array).size() >= 2:
+			gl = [int(d.gl[0]), int(d.gl[1])]
+		wasm = int(float(d.get("w", 0)) / 1048576.0)
+		js = int(float(d.get("j", 0)) / 1048576.0)
+		mw = int(float(d.get("m", 0)))
+		mn = str(d.get("n", ""))
+	var ub: int = int(A.up_bytes)
+	var row := [int(_rt), int(g.t), int(Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1048576.0),
+		int(Performance.get_monitor(Performance.RENDER_BUFFER_MEM_USED) / 1048576.0), int(Sfx.sample_mem_mb()), mw, wasm, js,
+		g.enemies.size(), g.fx.size() + (g.ult.shapes.size() if g.ult != null else 0), g.bullets.size() + g.ebullets.size(),
+		int((ub - _up_last) / 1024), (mn.count("+") + 1) if mn != "" else 0, mn, gl[0], gl[1]]
+	_up_last = ub
+	_hf.append(row)
+	if _hf.size() > HF_MAX:
+		_hf.pop_front()
+	var j := JSON.stringify({"hf": _hf, "ev": _evl, "up": up_peak, "um": A.up_max})
+	JavaScriptBridge.eval("try{localStorage.setItem('%s',%s)}catch(e){}" % [HF_KEY, JSON.stringify(j)], true)
+	if Cfg.dev_args().has("--crashbox"):
+		print("PF CRASHHF " + JSON.stringify(row))
+
+
+## 正常结算报告也带的上传读数（perf_report.finish）
+static func up_summary() -> Dictionary:
+	var A = load("res://scripts/art.gd")
+	return {"up_peak": up_peak.duplicate(), "up_max": (A.up_max as Dictionary).duplicate()}
+
+
+static func up_lines(r: Dictionary) -> PackedStringArray:
+	var o := PackedStringArray()
+	var pk: Dictionary = r.get("up_peak", {})
+	var mx: Dictionary = r.get("up_max", {})
+	if not pk.is_empty() or not mx.is_empty():
+		o.append("贴图上传：每秒峰值 %.1f MiB（局内 %s）· 本页最大单张 %s %d×%d（%.1f MiB）" % [float(pk.get("b", 0)) / 1048576.0, _mmss(float(pk.get("t", 0))),
+			str(mx.get("n", "—")).get_file(), int(mx.get("w", 0)), int(mx.get("h", 0)), float(mx.get("b", 0)) / 1048576.0])
+	return o
+
+
 ## 正常离局（局终 / 回标题 / 重开）：记 end
 static func end(why: String) -> void:
 	if not on or cur.is_empty() or cur.end != "":
@@ -339,7 +500,7 @@ static func check_prev() -> Dictionary:
 	var raw := ""
 	var praw := ""
 	if _web():
-		var r = JavaScriptBridge.eval("""(function(){var S=localStorage,s=S.getItem('sy_bb');try{if(s){var o=JSON.parse(s);if(!o.end){S.setItem('sy_bb_prev',s);S.removeItem('sy_bb')}}}catch(e){}
+		var r = JavaScriptBridge.eval("""(function(){var S=localStorage,s=S.getItem('sy_bb');try{if(s){var o=JSON.parse(s);if(!o.end){var h=S.getItem('sy_bb_hf');if(h){try{o.hfx=JSON.parse(h)}catch(e){}}s=JSON.stringify(o);S.setItem('sy_bb_prev',s);S.removeItem('sy_bb')}}S.removeItem('sy_bb_hf')}catch(e){}
 return S.getItem('sy_bb_prev')||''})()""", true)
 		praw = str(r) if r != null else ""
 	else:
@@ -458,7 +619,39 @@ static func report_text(p: Dictionary) -> String:
 			if e is Array and e.size() >= 3:
 				es.append("%s %s" % [str(e[2]), str(e[1])])
 		o.append("页面事件：" + "；".join(es))
+	o.append_array(_hf_lines(p))
 	return "\n".join(o)
+
+
+## 闪退报告下半屏（docs/332 §4）：开局信息、上传、最后 60 秒高频曲线、最后 20 条事件
+static func _hf_lines(p: Dictionary) -> PackedStringArray:
+	var o := PackedStringArray()
+	var op: Dictionary = p.get("open", {})
+	if p.has("wasm0") or not op.is_empty():
+		var parts := PackedStringArray()
+		for k in op:
+			parts.append("%s %d 次" % [str(k), int(op[k])])
+		o.append("【开局信息】进局时 WASM %d MiB · 本页开局前打开过：%s" % [int(p.get("wasm0", 0)), "、".join(parts) if not parts.is_empty() else "无"])
+	var h: Dictionary = p.get("hfx", {})
+	if h.is_empty():
+		return o
+	o.append_array(up_lines({"up_peak": h.get("up", {}), "up_max": h.get("um", {})}))
+	var rows: Array = h.get("hf", [])
+	if not rows.is_empty():
+		o.append("【闪退前高频曲线】每 %d 秒一行 + 尖峰补采，最后 %d 行" % [int(HF_EVERY), rows.size()])
+		o.append("实时 局内 | 贴图 缓冲 音频(配乐) WASM JS | 怪 特效 弹 | 上传KiB | 驻留配乐首数 名 | GL 编号 表槽（万）")
+		for r in rows:
+			if r is Array and r.size() >= 14:
+				o.append("%s %s | %d %d %d(%d) %d %d | %d %d %d | %d | %d %s | %s" % [_mmss(float(r[0])), _mmss(float(r[1])), int(r[2]), int(r[3]), int(r[4]), int(r[5]), int(r[6]), int(r[7]),
+					int(r[8]), int(r[9]), int(r[10]), int(r[11]), int(r[12]), str(r[13]),
+					("%.1f %.1f" % [float(r[14]) / 10000.0, float(r[15]) / 10000.0]) if r.size() >= 16 else "—"])
+	var ev: Array = h.get("ev", [])
+	if not ev.is_empty():
+		o.append("【事件日志】最后 %d 条（实时 / 局内）" % mini(20, ev.size()))
+		for e in ev.slice(-20):
+			if e is Array and e.size() >= 3:
+				o.append("%s / %s %s" % [_mmss(float(e[0])), _mmss(float(e[1])), str(e[2])])
+	return o
 
 
 ## 打开查看面板：网页 DOM（复制 / 保存文件 / 关闭，按钮本身是用户手势，iOS 剪贴板才放行）；桌面进剪贴板。on_close 在点「关闭」后调

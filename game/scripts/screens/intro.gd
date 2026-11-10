@@ -428,7 +428,7 @@ func draw_icon(kind: String, c: Vector2) -> void:
 			for k in 3:
 				var et: Texture2D = g.tex.get(["e_bone", "e_slider", "e_stone"][k])
 				if et != null:
-					var fw := et.get_width() / 2
+					var fw: int = et.get_width() / maxi(1, A.enemy_frames(["e_bone", "e_slider", "e_stone"][k], 2))   # 第 0 帧（重画帧条 4 帧，原来按 2 帧切画出两只）
 					# 1 美术像素 = 2 屏幕像素：@2x 帧条（docs/94 重画）按 A.hires_of 换算，和 1x 同尺寸
 					g.hud.draw_texture_rect_region(et, Rect2(c + Vector2(-110 + k * 90, 70), Vector2(fw, et.get_height()) * 2.0 / A.hires_of(et)), Rect2(0, 0, fw, et.get_height()))
 		"bars":
@@ -506,7 +506,7 @@ func draw_icon(kind: String, c: Vector2) -> void:
 			if etx != null:
 				for k in 8:
 					var an: float = TAU * k / 8.0 + g.intro_t * 0.4
-					var fw2: int = etx.get_width() / 2
+					var fw2: int = etx.get_width() / maxi(1, A.enemy_frames("e_bone", 2))   # 第 0 帧（同上）
 					var pp: Vector2 = c + Vector2(0, 30) + Vector2.from_angle(an) * (78.0 - 30.0 * hk)
 					var esz: Vector2 = Vector2(fw2, etx.get_height()) * 2.0 / A.hires_of(etx)   # @2x 按高清倍率换算
 					g.hud.draw_texture_rect_region(etx, Rect2(pp - esz / 2.0, esz), Rect2(0, 0, fw2, etx.get_height()))

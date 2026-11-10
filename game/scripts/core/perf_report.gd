@@ -247,6 +247,7 @@ func finish(result: String) -> void:
 		"q0": q0, "guard_stage": guard_stage, "enemy_mix": enemy_mix, "mem_mix": mem_mix, "slow": slow,
 	}
 	rec.merge(CrashBox.report_context(g))
+	rec.merge(CrashBox.up_summary())   # 每秒上传峰值 + 最大单张（docs/332 §4，正常结算也留）
 	rec.context = g.perf_context.snapshot(g)
 	rec.run_id = RunReload.run_identity()
 	rec.journey_at_finish = RunReload.journey_snapshot(rec.run_id)
@@ -392,6 +393,7 @@ static func report_text(r: Dictionary) -> String:
 			lines.append("最慢 %d 秒 " % sl.size() + "；".join(PackedStringArray(parts)))
 	lines.append_array(PerfContext.lines(r.get("context", {})))
 	lines.append_array(CrashBox.snapshot_lines(r))
+	lines.append_array(CrashBox.up_lines(r))
 	lines.append_array(RunReload.journey_lines(r.get("run_id", {}), r.get("journey_at_finish", {})))
 	return "\n".join(PackedStringArray(lines))
 

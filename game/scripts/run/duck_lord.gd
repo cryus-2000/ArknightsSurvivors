@@ -21,7 +21,9 @@ var rng := RandomNumberGenerator.new()
 var plan: Array = []        # 本局两次出现的时刻（秒），第一次 update 时按对局种子定
 var idx := 0
 var _pf_idx := -1
-var log := {"spawned": 0, "killed": 0, "fled": 0, "kill_t": []}   # 遥测 / 测试用
+var log := {"spawned": 0, "killed": 0, "fled": 0, "kill_t": [], "spawn_t": [], "kill_hits": [], "boss_overlap": 0, "fled_hp": []}   # 遥测 / 测试用（spawn_t 出场时刻、kill_hits 打倒前受击次数、boss_overlap 在场期间有 Boss 的只数，docs/331 §9）
+var _boss_was := false
+var _boss_dead_t := -INF    # 最近一只 Boss 倒下的时刻（duck/avoid_* 用）
 
 
 func _init(game: Game) -> void:
@@ -53,9 +55,31 @@ func update(_dt: float) -> void:
 	if idx < plan.size() and _pf_idx != idx and g.t >= float(plan[idx]) - 10.0 and D.ENEMIES.has("duck") and g.spawner._boss_prefetch_on():
 		_pf_idx = idx
 		g.prefetch_enemy(str(D.ENEMIES.duck.tex))
+	var bu: bool = g.spawner.boss_alive()
+	if _boss_was and not bu:
+		_boss_dead_t = g.t
+	_boss_was = bu
 	if idx < plan.size() and g.t >= float(plan[idx]):
+		if _boss_blocked(bu):
+			return   # 顺延：等 Boss 倒下 / 等过了下一场 Boss（docs/331 §9）
 		idx += 1
 		spawn()
+		if idx < plan.size():
+			plan[idx] = maxf(float(plan[idx]), g.t + Bal.v("duck/flee_t", 30.0) + 10.0)   # 第一只被顺延时，两只不挨着出
+
+
+## 不和 Boss 重叠（docs/331 §9，11-11 用户「出场时间不要和 Boss 的重叠」）：有 Boss 在场、Boss 倒下不到 duck/avoid_after 秒、
+## 或下一场 Boss（waves.boss_times）会在这只的 flee_t + duck/avoid_before 秒内登场，就顺延到条件解除。duck/avoid_boss 0 = 改前
+func _boss_blocked(boss_up: bool) -> bool:
+	if Bal.v("duck/avoid_boss", 0.0) <= 0.0:
+		return false
+	if boss_up or g.t - _boss_dead_t < Bal.v("duck/avoid_after", 8.0):
+		return true
+	var life: float = Bal.v("duck/flee_t", 30.0) + Bal.v("duck/avoid_before", 5.0)
+	for bt in D.BOSS_TIMES:
+		if float(bt) > g.t and float(bt) - g.t < life:
+			return true
+	return false
 
 
 ## 位置：以队长为中心、画面半宽 / 半高 × duck/spawn_edge 的矩形边上（画面内靠边一圈），缩圈时收进圈内
@@ -83,6 +107,8 @@ func spawn() -> Dictionary:
 	g.enemies_sys.admit(e)
 	g.spawner.check_enemy(e, "duck")
 	log.spawned += 1
+	log.spawn_t.append(snappedf(g.t, 0.1))
+	e["duck_ov"] = false
 	if not Cfg.dev_args().is_empty():
 		print("DUCK spawn t=%.2f d=%.0f" % [g.t, e.pos.distance_to(g.ppos)])
 	Sfx.play("hh_reveal", -2.0, 1.35, 0.0)   # 出现音效（借现有录音，音高上调）
@@ -133,6 +159,9 @@ func on_hit(e: Dictionary) -> void:
 
 ## 敌人更新 A 段（enemies.update）：自己移动，不走敌对 AI / 接触伤害 / 远距回收
 func step(e: Dictionary, dt: float) -> void:
+	if not e.get("duck_ov", true) and g.spawner.boss_alive():
+		e.duck_ov = true
+		log.boss_overlap += 1
 	if g.t - float(e.duck_t0) >= Bal.v("duck/flee_t", 30.0):
 		flee(e)
 		return
@@ -195,6 +224,7 @@ func _burst_fx(e: Dictionary) -> void:
 func flee(e: Dictionary) -> void:
 	e.dead = true
 	log.fled += 1
+	log.fled_hp.append(snappedf(e.hp / maxf(1.0, e.maxhp), 0.01))
 	if not Cfg.dev_args().is_empty():
 		print("DUCK fled t=%.2f d=%.0f hp=%.0f%%" % [g.t, e.pos.distance_to(g.ppos), 100.0 * e.hp / e.maxhp])
 	g.vfx.sparks(e.pos, Vector2.ZERO, DUST_COL, 14, 160.0)
@@ -213,6 +243,7 @@ func on_screen(p: Vector2) -> bool:
 func on_kill(e: Dictionary) -> void:
 	log.killed += 1
 	log.kill_t.append(snappedf(g.t - float(e.duck_t0), 0.1))
+	log.kill_hits.append(int(e.get("hits", 0)))
 	if not Cfg.dev_args().is_empty():
 		print("DUCK kill t=%.2f after=%.1f" % [g.t, g.t - float(e.duck_t0)])
 	g.pickups.drop(e.pos, "chest", 1.0, "duck")

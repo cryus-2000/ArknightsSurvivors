@@ -11,6 +11,11 @@
 7. window.__syLiveMB()：测量用，堆里实际在用的 MB（容量 − 1 MB 块能放下的空闲）；__syNoGrow 置位时堆增长直接失败。
 6. window.__syFsSync()：把 user://（IDBFS）立刻写回 IndexedDB，返回 Promise（引擎自己的同步在进行中就先等它）。
    手机网页局与局之间整页重载（core/run_reload.gd，docs/319 §14）重载前等它，存档一定落盘。
+9. GL 编号回收（11-11 docs/332 §4，iPhone 重编队终局闪退）：emscripten 的 GL 对象表（buffers / textures / framebuffers / vaos / syncs …）
+   共用一个只增不减的编号计数器，每要一个新编号就把这张表补长到计数器那么大；Godot 每帧建 / 删画布顶点缓冲与同步对象，
+   一局下来计数器到两百多万，五六张表各 17 MB 的空槽常驻 JS 堆（网页仿真强制 GC 后 9.7 → 100 MB，台阶式上涨，iOS 报告看不到这一栏）。
+   改成删掉的编号按表回收（每张表一个空闲栈，glGen* 先从栈里取），新编号仍走共用计数器，跨表唯一不变；着色器 / 程序表不回收（GL 里两者同一命名空间）。
+   window.__syGLN() 返回 [计数器, 五张表总槽数]（crash_box 高频采样读）。
 3. WASM 堆增长记录：每次 emscripten_resize_heap 记 [秒, 原容量 MB, 请求 MB, 阶段] 到 window.__syWasmGrows（崩溃前快照 / --memlog 读；阶段 = window.__syPhase，游戏在开机 / 标题 / 建局各段写）。
 """
 
@@ -58,6 +63,20 @@ FSS_B = ("_syncing:false,_syFs:(window.__syFsSync=function(){return Promise.reso
 GROW_B = GROW_A + "if(window.__syNoGrow)return false;(window.__syWasmGrows=window.__syWasmGrows||[]).push([Math.round(performance.now()/1000),HEAPU8.length>>>20,(requestedSize>>>0)>>>20,String(window.__syPhase||'')]);"   # 第 4 项：当时的阶段（crash_box.phase 写）
 
 
+GLID_A = "getNewId:table=>{var ret=GL.counter++;for(var i=table.length;i<ret;i++){table[i]=null}return ret}"
+GLID_B = "getNewId:table=>{var f=table.__syFree;if(f&&f.length)return f.pop();var ret=GL.counter++;for(var i=table.length;i<ret;i++){table[i]=null}return ret}"
+GLN_A = "counter:1,"
+GLN_B = ("counter:1,_syN:(window.__syGLN=function(){var n=0;for(var k of ['buffers','textures','framebuffers','vaos','syncs']){n+=(GL[k]||[]).length}"
+         "return [GL.counter,n]}),")
+GL_FREE_TABLES = ("buffers", "framebuffers", "renderbuffers", "vaos", "queries", "syncs", "textures")
+
+
+def _glfree(t: str) -> tuple:
+    a = "GL.%s[id]=null" % t
+    b = "(GL.%s[id]&&(GL.%s.__syFree||(GL.%s.__syFree=[])).push(id)),GL.%s[id]=null" % (t, t, t, t)   # 只回收原来有对象的编号：重复删除 / 删 0 不会把同一个编号放进栈两次
+    return a, b
+
+
 def patch_index_js(path: str) -> None:
     with open(path, encoding="utf-8") as fh:
         s = fh.read()
@@ -70,7 +89,12 @@ def patch_index_js(path: str) -> None:
             raise SystemExit("index.js 带有未知版本的音频补丁")
         s = s.replace(ANCHOR, ANCHOR + INJECT, 1)
     s = s.replace(COPY, SHARE, 1)
-    for a, b in ((FS_COPY, FS_OWN), (FETCH_A, FETCH_B), (GROW_A, GROW_B), (REG_A, REG_B), (CH_A, CH_B), (FSS_A, FSS_B), (DPR_A, DPR_B)):
+    pairs = [(FS_COPY, FS_OWN), (FETCH_A, FETCH_B), (GROW_A, GROW_B), (REG_A, REG_B), (CH_A, CH_B), (FSS_A, FSS_B), (DPR_A, DPR_B), (GLID_A, GLID_B)]
+    if GLN_B not in s and s.count(GLN_A) != 1:
+        raise SystemExit("index.js GL 编号补丁锚点不匹配：counter:1（docs/332 §4）")
+    pairs.append((GLN_A, GLN_B))
+    pairs += [_glfree(t) for t in GL_FREE_TABLES]
+    for a, b in pairs:
         if b in s:
             continue
         if s.count(a) != 1:
