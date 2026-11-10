@@ -702,7 +702,7 @@
    "horde_mult": 0.55,
    "cap_mult": 5.0,
    "tier_hp": 0.42,
-   "tier_dmg": 0.62
+   "tier_dmg": 0.7
   }
  ],
  "boss_times": [
