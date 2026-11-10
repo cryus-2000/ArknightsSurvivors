@@ -1,0 +1,146 @@
+From https://github.com/cryus-2000/ArknightsSurvivors
+ * branch              61834b99dcb04209a8556709715377a03a4a7fb5 -> FETCH_HEAD
+game/art/index.json：4880 个名字
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PF FXLAZY t=0.0 kaltsit n=6 ms=12
+M3 HP failures=0
+PF RUNRELEASE tex=0 audio=0
+ERROR: 71 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 4 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+ WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+WARNING: 372 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 5 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PF FXLAZY t=0.0 kaltsit n=6 ms=12
+M3 HP failures=0
+PF RUNRELEASE tex=0 audio=0
+ERROR: 71 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+ERROR: 67 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 4 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+ WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+WARNING: 372 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 5 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+
+导入资源（/work/repo/.claude/worktrees/trace-3b22d05b-1278/game 缺 36 个导入文件，例如 op_irene_flesh_1.wav-324da957d207b13fbd102c71c4c8f70e.sample）
+基线：在 3b22d05b（/work/repo/.claude/worktrees/trace-3b22d05b-1278）上跑 seed 13 mizuki 90 秒……
+/work/repo/build/trace_cache/3b22d05b_13_mizuki_90_c861ce.txt
+导入资源（/work/repo/game 缺 36 个导入文件，例如 op_irene_flesh_1.wav-324da957d207b13fbd102c71c4c8f70e.sample）
+TRACE 91 行逐行相同
+快检：本次最多 3 个 Godot 并行（全机上限 8，开始时全机已有 0 个）；日志 /work/repo/build/check/quick_1110_035330
+按改动选项（--changed，基线 main @ 3b22d05b3）：13 个改动文件
+    game/art/index.json → game/art/** → 只跑静态项
+    game/scripts/characters/blocks/m3_hp.gd → game/scripts/characters/blocks/*.gd → core+op_shared+smoke-sample+repro
+    game/scripts/characters/blocks/ob_summon.gd → game/scripts/characters/blocks/*.gd → core+op_shared+smoke-sample+repro
+    game/scripts/screens/hud.gd → game/scripts/screens/** → core+ui
+    game/scripts/screens/hud_allyhp.gd → game/scripts/screens/** → core+ui
+    game/scripts/screens/hud_banners.gd → game/scripts/screens/** → core+ui
+    game/scripts/screens/hud_v3.gd → game/scripts/screens/** → core+ui
+    game/tests/duck_chest_shots.gd.uid → **/*.uid → 只跑静态项
+    game/tests/event_layout_shots.gd.uid → **/*.uid → 只跑静态项
+    game/tests/event_touch_layout_test.gd.uid → **/*.uid → 只跑静态项
+    game/tests/phone_cards_shots.gd.uid → **/*.uid → 只跑静态项
+    game/tests/shop_layout_shots.gd.uid → **/*.uid → 只跑静态项
+    game/tests/shop_touch_layout_test.gd.uid → **/*.uid → 只跑静态项
+    选中：组 core+op_shared+repro+smoke-sample+ui；干员 无；场景回归 64 项
+    对照旧 --auto 计划：full（13 个文件；旧口径基线 main）
+    注意：分级只用于改的过程中；合入 main 的全量在协调人 / 云端 CI 跑
+通过 数据 JSON 解析  game/data 全部可解析
+通过 美术帧条 art_lint  21 人：未豁免 FAIL 0、已豁免 66、WARN 77；豁免可删：拉普兰德 · 非正面、拉普兰德 · 待机呼吸、维什戴尔 · 朝向、维什戴尔 · 非正面（明细 python tools/art_lint.py）  [48 秒]
+通过 发行包瘦身 release_slim  审阅图 0 张（0.00 MB）不进包，未误伤运行时引用；开发脚本 6 个不进包；字体子集 ui.ttf 1.64 → 0.94 MB，serif.ttf 1.67 → 0.98 MB，ui_phone.ttf 1.16 → 0.61 MB（明细 python tools/release_slim.py --report）  [21 秒]
+通过 干员文字数值 op_text_check  20 名干员：占位 / 字面数字不一致 0 条，字面数字对得上 base / blocks（需人工看）34 条（明细 python tools/op_text_check.py --report）
+通过 积木单播表 ob_tag  9 个执行器、69 个 tag 无重叠，EXEC_SEG 一致（13 / 7 / 3 / 2 / 2 / 3 / 16 / 15 / 8）
+通过 Enemy art delivery  0 registered actions; 0 pending acceptance items (not integration approved)  [2 秒]
+通过 素材命名与目录 asset_lint  ERROR 0、WARN 3179、INFO 212（D1 114、N2 2832、N3 4、N4 27、N5 22、N6 180）（明细 python tools/asset_lint.py）  [19 秒]
+通过 贴图索引 asset_index  game/art/index.json 4880 个名字  [5 秒]
+通过 数据契约 data_lint  balance.json 无字面读点的键 459 个（提示）  [3 秒]
+通过 图引用 graph_lint  无硬命中  [2 秒]
+通过 着色器 shader_lint  内置贴图没有当函数参数传  [5 秒]
+通过 说明对账 text_reconcile  8 类、613 个数字，已解释 545（89%）；待核基线 68 条
+通过 检查映射 check_map  161 个场景回归全部归组
+通过 节点画面出口 node_cue_lint  41 个旧画面函数（基线 41），新增 0
+通过 敌人控制直写 cc_lint  292 个脚本：击退累加只在 apply_kb；干员代码不直写敌人 stun / slow / air  [2 秒]
+通过 核心契约测试  4218 checks, 0 failed  [6 秒]
+通过 冒烟 · exusiai  t=90  · 23s  [23 秒]
+通过 冒烟 · eyjafjalla  t=90  · 22s  [22 秒]
+通过 冒烟 · gladiia  t=90  · 27s  [21 秒]
+通过 冒烟 · hoshiguma  t=90  · 43s  [21 秒]
+通过 冒烟 · irene  t=90  · 44s  [21 秒]
+通过 同 seed 复现  4:00 游戏时间逐字段相同（含画面 / 全局随机流换种子）  [87 秒]
+通过 无敌暂缓技能（Boss 无敌时普攻照打、自动技能就绪不放，解除后 1 秒内放出；开关 combat/hold_skill_on_invuln）  INVULN SKILL HOLD checks=32 failures=0  [11 秒]
+通过 突击模式低频自冲刺（随行不冲、突击每 7 秒 / 德克萨斯 4.5 秒、归队后不冲）  ASSAULT DASH checks=9 failures=0  [14 秒]
+通过 干员连携技（德克萨斯 × 能天使「默契」/ 拉普兰德「恩怨」）：合击动作、冷却、总开关、队长不位移  SYNERGY checks=15 failures=0  [11 秒]
+通过 干员连携技（集群狩猎：猎人 ≥ 3 人一起扑向同一目标）  SYNERGY checks=8 failures=0  [11 秒]
+通过 干员连携技（乌尔比安 × 斯卡蒂「手段应当有效」）  SYNERGY checks=9 failures=0  [11 秒]
+通过 干员连携技（战争设计：歌蕾蒂娅 S3 控场 → 乌尔比安收割；技能就绪才放、队长不位移）  SYNERGY checks=9 failures=0  [11 秒]
+通过 干员连携技冲突检查（搭档忙 / 冲锋 / 倒地 / 归队 / 切队长 / 目标死亡 / 非 PLAY / 语音不叠）  SYNERGY CONFLICT checks=17 failures=0  [11 秒]
+通过 干员连携技冲突检查（同帧只走一条：战争设计取代集群狩猎）  SYNERGY CONFLICT checks=4 failures=0  [11 秒]
+通过 博士八帧跑步与混合画布切换  DOCTOR RUN failures=0  [11 秒]
+通过 对外图鉴初始与发现解锁  PUBLIC GALLERY failures=0  [10 秒]
+通过 EA 标题与 HUD  EA UI regression: 0 failures  [13 秒]
+通过 选人页 B+ 键鼠 / 手柄 / 触屏输入  OP SELECT INPUT: 0 failures  [12 秒]
+通过 图鉴 C4' 键鼠 / 手柄 / 触屏输入与立绘适配  CODEX INPUT: 0 failures  [15 秒]
+通过 Suno 整首分层配乐：载入 / 各层同长 / 小节线切层 / 战斗换段 / Boss / 最终 Boss 二阶段（docs/164）  SUNO LAYERS: 0 failures  [30 秒]
+通过 局外配乐：各界面选曲、回标题接着放、选人 ↔ 难度不重开、进局清记忆  MENU BGM: 0 failures  [15 秒]
+通过 致谢与声明滚动：键鼠 / 手柄 / 触屏输入  CREDITS INPUT: 0 failures  [15 秒]
+通过 各层 Esc 关闭当前层级 / 设置页键盘与输入法物理键码 / 设置 70% 面板与 × 关闭  ESC LAYERS: 0 failures  [22 秒]
+通过 标题磁贴群 / 难度页：四种菜单组、二维导航、键鼠 / 手柄 / 触屏  TITLE MENU INPUT: 0 failures  [13 秒]
+通过 触屏指挥点选确认：点「指挥」→ 圆盘选集火 / 部署 → 点目标预选 → 换预选 → 再点下令；点空白 / 取消键退出、圈外不预选（docs/312）  TOUCH COMMAND: 0 failures  [12 秒]
+通过 触屏摇杆移动：桌面 --touch / 手机比例、大 / 负触点编号（iOS Safari）、两指  TOUCH MOVE: 0 failures  [15 秒]
+通过 换分辨率 / 拖窗口 / 全屏 / 换档后战斗镜头可见高与进局时一致（桌面五种分辨率，docs/50 §38）  CAM RESIZE failures=0  [11 秒]
+通过 同上，手机横屏比例 + iPhone 1 美术像素 = 4 物理像素  CAM RESIZE failures=0  [11 秒]
+通过 触屏按键布局：存档往返 / 换比例锚点 / 越界夹进安全区 / 局内按新位置点击 / 编辑页拖动推开调大小 / 选卡让位 / 转屏重算 ui_k  TOUCH LAYOUT failures=0  [11 秒]
+通过 技能生命周期共享模块  SKILL LIFECYCLE checks=405 failures=0  [12 秒]
+通过 持续攻击阶段共享模块  ATTACK PHASES checks=66 failures=0  [10 秒]
+通过 凯尔希本体 / 流明 / 艾丽妮新条：出手时刻逐位同旧条、三段刺 / 光柱换条  KLC CONTRACT failures=0  [10 秒]
+通过 干员响应动作（冲刺 / 站定）  RESPONSE failures=0  [10 秒]
+通过 干员响应动作（开技能）  RESPONSE failures=0  [10 秒]
+通过 干员响应动作第二批一组（冲刺 / 站定）  RESPONSE failures=0  [10 秒]
+通过 干员响应动作第二批一组（站定 / 开技能）  RESPONSE failures=0  [10 秒]
+通过 推进之王无冲刺响应（用户 10-29 删跟进锤击）  RESPONSE failures=0  [10 秒]
+通过 干员响应动作第二批二组（塞雷娅 / 凯尔希）  RESPONSE failures=0  [10 秒]
+通过 干员响应动作第二批二组（水月 / 归溟幽灵鲨）  RESPONSE failures=0  [10 秒]
+通过 干员响应动作第二批二组（艾丽妮 / 安洁莉娜）  RESPONSE failures=0  [10 秒]
+通过 干员响应动作第二批（乌尔比安锚链）  RESPONSE failures=0  [11 秒]
+通过 能天使 / 艾雅法拉 / 逻各斯原生帧条接线  THREE OPERATOR ART failures=0  [10 秒]
+通过 三人完整攻击与攻速时序  ATTACK TIMING checks=186 failures=0  [11 秒]
+通过 图鉴敌人演示：近战主体贴身循环不定住 / 敌弹与特效命中后回收  GALLERY DEMO failures=0  [10 秒]
+通过 倍速模拟时钟  Play clock regression: 0 failures  [2 秒]
+通过 手机商人页与电脑版同一版式（11-08）：桌面版式按安全区等比缩小、让出顶栏 / 底栏、卡片保持桌面尺寸、放不下的有「详情」、点卡照常购买  SHOP TOUCH LAYOUT failures=0  [11 秒]
+通过 触屏事件页与桌面同一版式（11-08）：手机横屏 + 安全区下左插画右选项列、设计框在安全区内只缩不放、选项条 596×100 起、7 个选项能滚到「离开」  EVENT TOUCH LAYOUT failures=0  [11 秒]
+通过 攻击反馈  FEEDBACK TESTS PASSED  [10 秒]
+通过 全员技能起手、移动接续与强化重锤  OPERATOR TRANSITIONS 60 casts, 168 checks, 0 failed  [11 秒]
+通过 20 人确认节奏、攻速压缩、逐帧映射、移动让位与技能接管  ATTACK RHYTHM 2774 checks, 0 failed  [12 秒]
+通过 移动攻击：帧条加载、移动中出手换 move_attack 且出手帧对齐、站定不换、收势不被跑步截掉（docs/128）  MOVE ATTACK 457 checks, 0 failed  [11 秒]
+通过 结算：历史编队滚动、评级与视觉 RNG  SETTLEMENT failures=0  [10 秒]
+通过 作战记录：统计守恒（占比合计 100%、来源相加、按干员拆 = dmg_out）+ 界面打开 / 导航 / 桌面与手机排版  RUN STATS failures=0  [12 秒]
+通过 Summon visual clock and native source timeline  SUMMON VISUAL failures=0  [3 秒]
+通过 召唤 / 封印 / 护盾 / 治疗光环积木（docs/61 §15，测试专用干员 sstest）  SUMMON SEAL BLOCKS failures=0  [10 秒]
+通过 干员木桩表场景（docs/79）：队友身份 + 怪群 5 秒自检  OP DUMMY failures=0  [11 秒]
+通过 认知塑造（docs/109 §4）：节点数据完整（总量 625、前置、推荐顺序）、推荐点法按预算点、--meta=full 点满、测试局缺省不带  META failures=0  [2 秒]
+通过 认知塑造质变 / 非数值节点（docs/109 §14 v5）：护盾反震、低血回复翻倍、处决、濒死免死、静守、升级再升、开局四选一、免费刷新、首个藏品三选一、绝处逢生复活、未雨绸缪闪避 + 闪避补偿  META MECH checks=41 failures=0  [13 秒]
+通过 干员解锁（docs/109 §12）：开局 5 人、随机寻访先补齐职业、不重复、定向寻访 2 张、旧券折算、局终通关 1 张 / 未通关 0 张、满员折细胞、云存档并集  ROSTER failures=0  [2 秒]
+通过 新手引导强制部分（docs/219 §6）：第一次进游戏问题框无跳过、Esc 不选、两条线都走演示局（招募 / 连携 / 终结技 / 指挥）、连携一步到点直接触发、onboard_done 存档与云存档取或  ONBOARD FORCED failures=0  [10 秒]
+通过 首局聚光框引导 + 到点小提示（screens/tour.gd）：小提示每样只弹一次并记存档 / 排队、老存档不再弹、TIPS 与 Cfg.TIP_IDS 一致  TOUR failures=0  [7 秒]
+通过 存档迁移样本（docs/126 R1）：难度 diff_ver 1–5、旧倍速、旧亮度缺省、三种旧券、没有 [roster] 段的老存档  SAVE MIGRATE failures=0  [2 秒]
+通过 蚀刻章「深蓝之下」（core/medals.gd）：章表、藏品 49 / 50 边界与去重、结局 / 协同晋升 / 认知首次与全部、认知重置不收回、套组、读档补录、云存档合并与往返  MEDALS failures=0  [2 秒]
+通过 B站云存档：打包 / 分片 / 平台限制 / 校验 / 版本 / 合并规则 / Cfg 往返 / 非网页不启用（docs/89）  CLOUD SAVE failures=0  [2 秒]
+通过 失焦保护（docs/317）：失焦后摇杆 / 按键 / 鼠标松开、圆盘取消不下令、选点取消、对局自动暂停、非对局状态回来补暂停  WEB FOCUS failures=0  [11 秒]
+通过 B站 Toy「支持作者」（docs/313）：模拟 SDK 关注 / 三连 / unsupported / 未登录，每项只发一次 5 张凭证、关注解锁罗德岛边框 / 三连解锁深海边框、云存档并集、浮层提示  TOY SUPPORT failures=0  [3 秒]
+通过 反馈码（docs/311）：没配目标不显示入口、字母表 + 校验位、同摘要同码、改一项就变  FEEDBACK failures=0  [2 秒]
+通过 界面冒烟（docs/126 R6）：标题页十屏 + 局内 HUD / 暂停 / 设置 / 属性 / 结算 / 作战记录 / 对局记录各开关两遍，无缺图、无残留节点  UI SMOKE failures=0  [15 秒]
+通过 时间缩放组合（圆盘 × 倍速 / 顿帧 / 击破慢动作）：有效缩放等于现行组合规则，退出各模态后回到 1  TIME SCALE COMBO failures=0  [10 秒]
+通过 g.hit 空描述符沿用上次：特征测试（已知缺陷：空 h 会错记给上一个干员），显式 h 回归保护  HIT FALLBACK failures=0  [10 秒]
+
+耗时前 10（秒，不含排队）：同 seed 复现 87；美术帧条 art_lint 48；Suno 整首分层配乐：载入 / 各层同长 /  30；冒烟 · exusiai 23；冒烟 · eyjafjalla 22；各层 Esc 关闭当前层级 / 设置页键盘与输入 22；冒烟 · gladiia 21；发行包瘦身 release_slim 21；冒烟 · hoshiguma 21；冒烟 · irene 21
+
+快检通过：86 项，失败 0 项（已知红 0 项另计），耗时 291 秒（开始时全机 0 个 Godot，结束时 0 个）；Godot 结果缓存命中 0 / 73（不用缓存加 --nocache）
