@@ -252,6 +252,7 @@ static func sample(g) -> void:
 			pck = float(d.get("p", 0)) / 1048576.0
 			var m = d.get("m", null)
 			if m is Dictionary:
+				music_measured = m.has("mb")
 				mw = float(m.get("mb", 0))
 				cur.sr = int(m.get("sr", 0))
 				cur.mdl = float(m.get("dl", 0))
