@@ -724,12 +724,7 @@ func _draw_op_hp(o, ct: Transform2D, st: int) -> void:
 		var k: float = 1.0 - clampf(o.cmd_down / maxf(0.1, Bal.v("command/revive_secs", 25.0)), 0.0, 1.0)
 		g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x * k, r.size.y)), Color(0.55, 0.57, 0.6))
 		return
-	var hc: Color = UI.RED if lw else (UI.GREEN if o.cmd_hp > 0.5 else (UI.GOLD if o.cmd_hp > 0.25 else UI.RED))
-	g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x * clampf(o.cmd_hp, 0.0, 1.0), r.size.y)), hc)
-	if lw:   # 残血（docs/114 §21）：红框 + 整条提亮，1.2 秒一次慢闪
-		var p: float = h.allyhp.pulse()
-		g.hud.draw_rect(r.grow(2.5), Color(UI.RED.r, UI.RED.g, UI.RED.b, 0.35 + 0.6 * p), false, 1.5)
-		g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x * clampf(o.cmd_hp, 0.0, 1.0), r.size.y)), Color(1, 0.6, 0.6, 0.45 * p))
+	h.allyhp.draw_living_overhead(r, clampf(o.cmd_hp, 0.0, 1.0), lw)
 
 
 func draw_stamina_bar(r: Rect2) -> void:

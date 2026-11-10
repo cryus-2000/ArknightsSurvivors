@@ -422,6 +422,7 @@ func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 
 	if g.demo_op != "" or g.state == Game.S.SHOW:
 		return
+	allyhp.draw_m3_overhead(vs, ct)
 	# 升级字样：弹出放大 -> 轻微上浮 -> 淡出
 	if g.lvup_show > 0.0 and g.state == Game.S.PLAY and (g.ult == null or not g.ult.show_busy()):
 		var age := 1.3 - g.lvup_show

@@ -324,16 +324,11 @@ static func draw_down(o, s: Dictionary, kd: Dictionary, fr: Array, hov: float) -
 	o.cv.draw_arc(c, 9.0, -PI / 2.0, -PI / 2.0 + TAU * clampf(1.0 - float(s.down) / total, 0.0, 1.0), 20, Color(0.85, 0.87, 0.9), 2.0)
 
 
-## 头顶短血条：受击后 3 秒、或血量低于 60% 时画
-## 编队里所有在场的 Mon3tr 条目 [[干员, 召唤物], …]（HUD 血条行用）
-static func entries(g) -> Array:
-	var out: Array = []
-	if not on() or g.get("squad") == null:
-		return out
-	for o in g.squad.ops:
-		var st = o.get("sm")
-		if st is Dictionary and st.has("list"):
-			for s in st.list:
-				if has(s) and not s.gone:
-					out.append([o, s])
-	return out
+## HUD 查询凯尔希当前的真实召唤物（含倒地等待重构），不构造逐帧列表。
+static func present(o):
+	if o == null or o.id != "kaltsit" or not on() or o.sm.is_empty():
+		return null
+	for s in o.sm.list:
+		if has(s) and not s.gone:
+			return s
+	return null
