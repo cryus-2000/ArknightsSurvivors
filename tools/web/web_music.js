@@ -180,7 +180,7 @@
           else s.g.gain.setTargetAtTime(need, c.currentTime, 0.015);
         } catch (e) { s.g.gain.value = need; }
         if (need <= 0.001) {
-          if (c.currentTime >= (m.s.when || 0) + 0.1) {
+          if (c.state !== "running" || c.currentTime >= (m.s.when || 0) + 0.1) {   // 上下文挂起（静音自动播放 / 切后台 / iOS 打断）时时钟不走、也不出声：直接放（11-11 网页仿真里 p1 一直没放掉）
             stopId(bid); retired[bid] = pr.base; toFree[pr.base] = 1; tryFree(pr.base);   // 预混已出声：停掉底层、丢掉它的缓冲
           } else {
             setTimeout(pairSync, Math.ceil(((m.s.when || 0) + 0.12 - c.currentTime) * 1000));

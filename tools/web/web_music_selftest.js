@@ -41,8 +41,9 @@ function run(opts) {
     getChannelData() { return new Float32Array(1); }
   }
   const sources = [], gainNodes = [];
+  let wall = 0;
   const ctx = {
-    state: "running", sampleRate: SR, currentTime: 0, destination: {},
+    state: opts.suspended ? "suspended" : "running", sampleRate: SR, currentTime: 0, destination: {},
     createBiquadFilter: () => ({ type: "", frequency: new Param(20000), Q: new Param(1), connect() {} }),
     createGain() { const g = { gain: new Param(1), connect() {}, disconnect() {} }; gainNodes.push(g); return g; },
     createAnalyser: () => ({ fftSize: 2048, getFloatTimeDomainData() {} }),
@@ -66,8 +67,8 @@ function run(opts) {
   const window = { __syAudioCtx: [ctx], __sySampleRate: SR, OfflineAudioContext: Offline };
   const sandbox = {
     window, location: { search: opts.search || "" }, URLSearchParams, Promise, Math, Object, String, JSON, Float32Array, console,
-    performance: { now: () => ctx.currentTime * 1000 },
-    setTimeout: (f, ms) => { timers.push([ctx.currentTime + ms / 1000, f]); },
+    performance: { now: () => wall * 1000 },
+    setTimeout: (f, ms) => { timers.push([wall + ms / 1000, f]); },
     fetch: (url) => {
       fetched.push(url);
       return Promise.resolve(files[url] ? { ok: true, arrayBuffer: () => Promise.resolve({ byteLength: 1000, ch: files[url] }) }
@@ -78,9 +79,10 @@ function run(opts) {
   const M = window.__syMus;
   const flush = async () => { for (let i = 0; i < 20; i++) await new Promise((r) => setImmediate(r)); };
   const advance = async (sec) => {
-    ctx.currentTime += sec;
-    const due = timers.filter((t) => t[0] <= ctx.currentTime + 1e-9);
-    timers = timers.filter((t) => t[0] > ctx.currentTime + 1e-9);
+    wall += sec;
+    if (!opts.suspended) ctx.currentTime += sec;   // 挂起的上下文时钟不走（定时器照墙钟走）
+    const due = timers.filter((t) => t[0] <= wall + 1e-9);
+    timers = timers.filter((t) => t[0] > wall + 1e-9);
     due.forEach((t) => t[1]());
     await flush();
   };
@@ -174,6 +176,17 @@ async function main() {
     await flush();
     await advance(0.5);
     check(!fetched.includes("music_suno_final_p12_mono.m4a") && !sources[0].stopped, "muspremix=0 keeps old behaviour");
+  }
+  // ---- 5. 上下文挂起（静音自动播放 / 切后台 / iOS 打断）：时钟不走也要放掉 p1（11-11 网页仿真里一直两份同驻）
+  {
+    const { M, sources, flush, advance } = run({ suspended: true });
+    M.play([["1", P1, 0, 0, LEN, 1.0]]);
+    await flush();
+    await advance(5);
+    M.play([["2", P2, 5, 0, LEN, 1.0]]);
+    await flush();
+    await advance(0.5);
+    check(sources[0].stopped && near(M.mb(), ONE), "suspended context still releases base (" + M.mb().toFixed(1) + ")");
   }
   console.log("WEB MUSIC failures=" + failures);
   process.exit(failures ? 1 : 0);
