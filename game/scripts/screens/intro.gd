@@ -19,11 +19,11 @@ const DOCTOR_LAND := 2.15
 const CLEAR_SKY := 2.85
 const OBJECTIVE_IN := 2.18
 const TRANSPORT_PATH := "res://art/world/props/bad_guy_transport.png"
-const HULL := Rect2(0, 0, 224, 125)
-const SILL := Vector2(111, 115)
-const FAN_SIZE := Vector2(34, 28)
-const FAN_ORIGINS := [Vector2(56, 51), Vector2(155, 27)]
-const TRANSPORT_SCALE := 2.05
+const HULL := Rect2(0, 0, 244, 223)
+const SILL := Vector2(50, 178)   # 后舱坡道外端，从 Blender 的实机相机投影得到
+const ROTOR_SIZE := Vector2(106, 76)
+const ROTOR_ORIGINS := [Vector2(116, 124), Vector2(35, 11)]
+const TRANSPORT_SCALE := 1.58
 var transport: Texture2D   # 单次开场持有，不进入 Art 的整局贴图缓存
 
 func release_transport() -> void:
@@ -35,7 +35,7 @@ func hatch() -> Vector2:
 	var approach := 1.0 - smoothstep(0.0, 0.72, opening_t)
 	var depart := smoothstep(1.86, CLEAR_SKY, opening_t)
 	var travel := view.size.x * 0.65 + 315.0
-	return g.ppos + Vector2((depart - approach) * travel, -89.0 - 126.0 * approach + 76.0 * depart + 2.0 * sin(opening_t * 5.0))
+	return g.ppos + Vector2(26.0 + (depart - approach) * travel, -75.0 + 108.0 * approach - 78.0 * depart + 2.0 * sin(opening_t * 5.0))
 
 func drop_position(ground: Vector2, start := DROP_START, land := TOUCHDOWN) -> Vector2:
 	var u := clampf(inverse_lerp(start, land, opening_t), 0.0, 1.0)
@@ -50,13 +50,13 @@ func draw_transport() -> void:
 	g.wcv.draw_texture_rect_region(transport, shadow, HULL, Color(0.01, 0.02, 0.03, 0.33))
 	var light := Color(1.35, 1.39, 1.42)
 	g.wcv.draw_texture_rect_region(transport, Rect2(top_left, size), HULL, light)
-	# 两只升力风扇各占图集下方一行，只换叶片区域；整架飞机只持有这一张纹理。
+	# 两翼共用六帧外露三叶桨，反向取帧。图集下方每行三格，机身只存一次。
 	var phase := int(opening_t * 24.0) % 6
-	for i in FAN_ORIGINS.size():
-		var src := Rect2(Vector2(phase * FAN_SIZE.x, HULL.size.y + i * FAN_SIZE.y), FAN_SIZE)
-		var dst := Rect2(top_left + FAN_ORIGINS[i] * TRANSPORT_SCALE, FAN_SIZE * TRANSPORT_SCALE)
+	for i in ROTOR_ORIGINS.size():
+		var frame := phase if i == 0 else (6 - phase) % 6
+		var src := Rect2(Vector2((frame % 3) * ROTOR_SIZE.x, HULL.size.y + floori(frame / 3.0) * ROTOR_SIZE.y), ROTOR_SIZE)
+		var dst := Rect2(top_left + ROTOR_ORIGINS[i] * TRANSPORT_SCALE, ROTOR_SIZE * TRANSPORT_SCALE)
 		g.wcv.draw_texture_rect_region(transport, dst, src, light)
-
 
 
 func _init(game: Game) -> void:
