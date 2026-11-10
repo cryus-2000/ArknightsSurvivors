@@ -1,0 +1,22 @@
+# feedback_code
+# 参数：--headless --path /work/repo/game res://tests/feedback_code_test.tscn -- --regression --seed=1
+# 用时 4 秒；结束时全机 Godot 2 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+FBCODE AS-4800-06 {}
+FBCODE AS-6800-1DKG-X4M1-EC72-9G5 {"cause":"boss","death_t":742.6,"ops":["mizuki","skadi","kaltsit","texas"],"quit":false,"result":"dead","tier":10,"trial":false,"wall_s":905.0}
+FBCODE AS-6800-1404-002Z-00W {"cause":"","death_t":0.0,"ops":["logos"],"quit":false,"result":"win","tier":0,"trial":false,"wall_s":1520.0}
+FBCODE AS-6800-04ZS-D000-2002 {"cause":"","death_t":0.0,"ops":["angelina","newguy"],"quit":true,"result":"dead","tier":5,"trial":true,"wall_s":64.0}
+FBCODE AS-6800-2JKT-1645-2HZZ-ZZZG-C {"cause":"env:nerve","death_t":4100.0,"ops":["wisadel","skalter","specter_unchained","ulpianus","gladiia","lumen"],"quit":false,"result":"dead","tier":5,"trial":false,"wall_s":9000.0}
+87 checks, 0 failed
+FEEDBACK failures=0
+
+
+## stderr
+WARNING: 4 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 2 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+
