@@ -30,21 +30,23 @@ func _init(game: Game) -> void:
 
 
 ## 招募卡：data/characters 里未在队、且允许招募（JSON 无 "recruitable": false）的干员
-func recruit_cards() -> Array:
+func recruit_cards(first_only := false) -> Array:
 	var opts: Array = []
 	# --norecruit（仅 --balance）：单人打满全程，测单个干员的纯个人数值（docs/27 §6）
 	if g.squad.is_full() or (g.mode == g.Mode.BALANCE and Cfg.dev_args().has("--norecruit")):
 		return opts
 	for cid in Character.list_ids():
-		if g.squad.has(cid):
+		if g.squad.has(cid) or not Roster.is_unlocked(cid):
 			continue
 		var d: Dictionary = Character.load_def(cid)
-		if not d.get("recruitable", true) or not Roster.is_unlocked(cid):
+		if not d.get("recruitable", true):
 			continue
 		# 招募卡写干员简介 gallery.intro（用户 10-29），没有时退回机制说明；图鉴仍用 gallery.desc
 		var desc: String = d.get("gallery", {}).get("intro", d.get("gallery", {}).get("desc", d.get("attack", {}).get("desc", "")))
 		# 入队加成不再逐张写（用户 10-13）：统一写在三选一标题下的说明行（choice_panel.show_choices）
 		opts.append({"kind": "recruit", "id": cid, "name": d.get("name", cid), "desc": desc, "cls": d.get("class", "")})
+		if first_only:
+			break
 	return opts
 
 

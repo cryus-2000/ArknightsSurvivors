@@ -183,7 +183,9 @@ func core_locked() -> bool:
 func relic_pool_ids(for_shop := false) -> Array:
 	# docs/57：relic/new_pool = 0 时第二批实装的藏品不进池（同 seed 结果与之前一致，供云端 A/B）
 	var new_ok: bool = Bal.vi("relic/new_pool", 1) != 0
-	var cands: Array = g.rfx.db.implemented().filter(func(r): return (new_ok or not r.new_pool) and g.rfx.can_offer(r, for_shop) and g.progression.can_gain_relic(r.id))
+	# 这次抽取中编队、名册固定；招募类藏品共用一次资格查询。
+	var has_recruits: bool = not g.progression.recruit_cards(true).is_empty()
+	var cands: Array = g.rfx.db.implemented().filter(func(r): return (new_ok or not r.new_pool) and g.rfx.can_offer(r, for_shop, has_recruits) and g.progression.can_gain_relic(r.id))
 	var lane_n := {}
 	for rid in g.relics:
 		var ln: String = str(g.RL.get(rid, {}).get("lane", ""))
