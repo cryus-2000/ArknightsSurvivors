@@ -1,0 +1,64 @@
+快检：本次最多 3 个 Godot 并行（全机上限 8，开始时全机已有 0 个）；日志 /work/repo/build/check/quick_1110_011154
+按改动选项（--changed，基线 main @ ?）：6 个改动文件
+    game/scripts/core/roster.gd → game/scripts/core/roster.gd → core+ui
+    game/scripts/screens/headhunt.gd → game/scripts/screens/** → core+ui
+    game/scripts/screens/settle/settle_report.gd → game/scripts/screens/** → core+ui
+    game/scripts/screens/settlement_screen.gd → game/scripts/screens/** → core+ui
+    tools/test_web_canvas_selection.cjs → tools/** → 只跑静态项
+    tools/web/loader.css → tools/** → 只跑静态项
+    选中：组 core+ui；干员 无；场景回归 34 项
+    注意：分级只用于改的过程中；合入 main 的全量在协调人 / 云端 CI 跑
+通过 数据 JSON 解析  game/data 全部可解析
+通过 美术帧条 art_lint  21 人：未豁免 FAIL 0、已豁免 66、WARN 77；豁免可删：拉普兰德 · 非正面、拉普兰德 · 待机呼吸、维什戴尔 · 朝向、维什戴尔 · 非正面（明细 python tools/art_lint.py）  [47 秒]
+通过 发行包瘦身 release_slim  审阅图 0 张（0.00 MB）不进包，未误伤运行时引用；开发脚本 6 个不进包；字体子集 ui.ttf 1.64 → 0.94 MB，serif.ttf 1.67 → 0.98 MB，ui_phone.ttf 1.16 → 0.61 MB（明细 python tools/release_slim.py --report）  [21 秒]
+通过 干员文字数值 op_text_check  20 名干员：占位 / 字面数字不一致 0 条，字面数字对得上 base / blocks（需人工看）34 条（明细 python tools/op_text_check.py --report）
+通过 积木单播表 ob_tag  9 个执行器、69 个 tag 无重叠，EXEC_SEG 一致（13 / 7 / 3 / 2 / 2 / 3 / 16 / 15 / 8）
+通过 Enemy art delivery  0 registered actions; 0 pending acceptance items (not integration approved)
+通过 素材命名与目录 asset_lint  ERROR 0、WARN 3179、INFO 212（D1 114、N2 2832、N3 4、N4 27、N5 22、N6 180）（明细 python tools/asset_lint.py）  [19 秒]
+通过 贴图索引 asset_index  game/art/index.json 4880 个名字  [5 秒]
+通过 数据契约 data_lint  balance.json 无字面读点的键 459 个（提示）  [3 秒]
+通过 图引用 graph_lint  无硬命中  [2 秒]
+通过 着色器 shader_lint  内置贴图没有当函数参数传  [5 秒]
+通过 说明对账 text_reconcile  8 类、613 个数字，已解释 545（89%）；待核基线 68 条
+通过 检查映射 check_map  161 个场景回归全部归组
+通过 节点画面出口 node_cue_lint  41 个旧画面函数（基线 41），新增 0
+通过 敌人控制直写 cc_lint  292 个脚本：击退累加只在 apply_kb；干员代码不直写敌人 stun / slow / air  [2 秒]
+通过 核心契约测试  4218 checks, 0 failed  [6 秒]
+通过 对外图鉴初始与发现解锁  PUBLIC GALLERY failures=0  [12 秒]
+通过 EA 标题与 HUD  EA UI regression: 0 failures  [14 秒]
+通过 选人页 B+ 键鼠 / 手柄 / 触屏输入  OP SELECT INPUT: 0 failures  [13 秒]
+通过 图鉴 C4' 键鼠 / 手柄 / 触屏输入与立绘适配  CODEX INPUT: 0 failures  [15 秒]
+通过 Suno 整首分层配乐：载入 / 各层同长 / 小节线切层 / 战斗换段 / Boss / 最终 Boss 二阶段（docs/164）  SUNO LAYERS: 0 failures  [30 秒]
+通过 局外配乐：各界面选曲、回标题接着放、选人 ↔ 难度不重开、进局清记忆  MENU BGM: 0 failures  [15 秒]
+通过 致谢与声明滚动：键鼠 / 手柄 / 触屏输入  CREDITS INPUT: 0 failures  [15 秒]
+通过 各层 Esc 关闭当前层级 / 设置页键盘与输入法物理键码 / 设置 70% 面板与 × 关闭  ESC LAYERS: 0 failures  [22 秒]
+通过 标题磁贴群 / 难度页：四种菜单组、二维导航、键鼠 / 手柄 / 触屏  TITLE MENU INPUT: 0 failures  [13 秒]
+通过 触屏指挥点选确认：点「指挥」→ 圆盘选集火 / 部署 → 点目标预选 → 换预选 → 再点下令；点空白 / 取消键退出、圈外不预选（docs/312）  TOUCH COMMAND: 0 failures  [12 秒]
+通过 触屏摇杆移动：桌面 --touch / 手机比例、大 / 负触点编号（iOS Safari）、两指  TOUCH MOVE: 0 failures  [15 秒]
+通过 换分辨率 / 拖窗口 / 全屏 / 换档后战斗镜头可见高与进局时一致（桌面五种分辨率，docs/50 §38）  CAM RESIZE failures=0  [11 秒]
+通过 同上，手机横屏比例 + iPhone 1 美术像素 = 4 物理像素  CAM RESIZE failures=0  [11 秒]
+通过 触屏按键布局：存档往返 / 换比例锚点 / 越界夹进安全区 / 局内按新位置点击 / 编辑页拖动推开调大小 / 选卡让位 / 转屏重算 ui_k  TOUCH LAYOUT failures=0  [11 秒]
+通过 图鉴敌人演示：近战主体贴身循环不定住 / 敌弹与特效命中后回收  GALLERY DEMO failures=0  [10 秒]
+通过 倍速模拟时钟  Play clock regression: 0 failures  [2 秒]
+通过 手机商人页与电脑版同一版式（11-08）：桌面版式按安全区等比缩小、让出顶栏 / 底栏、卡片保持桌面尺寸、放不下的有「详情」、点卡照常购买  SHOP TOUCH LAYOUT failures=0  [11 秒]
+通过 触屏事件页与桌面同一版式（11-08）：手机横屏 + 安全区下左插画右选项列、设计框在安全区内只缩不放、选项条 596×100 起、7 个选项能滚到「离开」  EVENT TOUCH LAYOUT failures=0  [11 秒]
+通过 攻击反馈  FEEDBACK TESTS PASSED  [10 秒]
+通过 结算：历史编队滚动、评级与视觉 RNG  SETTLEMENT failures=0  [10 秒]
+通过 作战记录：统计守恒（占比合计 100%、来源相加、按干员拆 = dmg_out）+ 界面打开 / 导航 / 桌面与手机排版  RUN STATS failures=0  [12 秒]
+通过 认知塑造（docs/109 §4）：节点数据完整（总量 625、前置、推荐顺序）、推荐点法按预算点、--meta=full 点满、测试局缺省不带  META failures=0  [2 秒]
+通过 认知塑造质变 / 非数值节点（docs/109 §14 v5）：护盾反震、低血回复翻倍、处决、濒死免死、静守、升级再升、开局四选一、免费刷新、首个藏品三选一、绝处逢生复活、未雨绸缪闪避 + 闪避补偿  META MECH checks=41 failures=0  [13 秒]
+通过 干员解锁（docs/109 §12）：开局 5 人、随机寻访先补齐职业、不重复、定向寻访 2 张、旧券折算、局终通关 1 张 / 未通关 0 张、满员折细胞、云存档并集  ROSTER failures=0  [2 秒]
+通过 新手引导强制部分（docs/219 §6）：第一次进游戏问题框无跳过、Esc 不选、两条线都走演示局（招募 / 连携 / 终结技 / 指挥）、连携一步到点直接触发、onboard_done 存档与云存档取或  ONBOARD FORCED failures=0  [10 秒]
+通过 首局聚光框引导 + 到点小提示（screens/tour.gd）：小提示每样只弹一次并记存档 / 排队、老存档不再弹、TIPS 与 Cfg.TIP_IDS 一致  TOUR failures=0  [7 秒]
+通过 存档迁移样本（docs/126 R1）：难度 diff_ver 1–5、旧倍速、旧亮度缺省、三种旧券、没有 [roster] 段的老存档  SAVE MIGRATE failures=0  [2 秒]
+通过 蚀刻章「深蓝之下」（core/medals.gd）：章表、藏品 49 / 50 边界与去重、结局 / 协同晋升 / 认知首次与全部、认知重置不收回、套组、读档补录、云存档合并与往返  MEDALS failures=0  [2 秒]
+通过 B站云存档：打包 / 分片 / 平台限制 / 校验 / 版本 / 合并规则 / Cfg 往返 / 非网页不启用（docs/89）  CLOUD SAVE failures=0  [3 秒]
+通过 失焦保护（docs/317）：失焦后摇杆 / 按键 / 鼠标松开、圆盘取消不下令、选点取消、对局自动暂停、非对局状态回来补暂停  WEB FOCUS failures=0  [11 秒]
+通过 B站 Toy「支持作者」（docs/313）：模拟 SDK 关注 / 三连 / unsupported / 未登录，每项只发一次 5 张凭证、关注解锁罗德岛边框 / 三连解锁深海边框、云存档并集、浮层提示  TOY SUPPORT failures=0  [2 秒]
+通过 反馈码（docs/311）：没配目标不显示入口、字母表 + 校验位、同摘要同码、改一项就变  FEEDBACK failures=0  [2 秒]
+通过 界面冒烟（docs/126 R6）：标题页十屏 + 局内 HUD / 暂停 / 设置 / 属性 / 结算 / 作战记录 / 对局记录各开关两遍，无缺图、无残留节点  UI SMOKE failures=0  [15 秒]
+通过 时间缩放组合（圆盘 × 倍速 / 顿帧 / 击破慢动作）：有效缩放等于现行组合规则，退出各模态后回到 1  TIME SCALE COMBO failures=0  [10 秒]
+
+耗时前 10（秒，不含排队）：美术帧条 art_lint 47；Suno 整首分层配乐：载入 / 各层同长 /  30；各层 Esc 关闭当前层级 / 设置页键盘与输入 22；发行包瘦身 release_slim 21；素材命名与目录 asset_lint 19；局外配乐：各界面选曲、回标题接着放、选人 ↔ 难 15；致谢与声明滚动：键鼠 / 手柄 / 触屏输入 15；图鉴 C4' 键鼠 / 手柄 / 触屏输入与立绘 15；界面冒烟（docs/126 R6）：标题页十屏  15；触屏摇杆移动：桌面 --touch / 手机比例 15
+
+快检通过：50 项，失败 0 项（已知红 0 项另计），耗时 126 秒（开始时全机 0 个 Godot，结束时 0 个）；Godot 结果缓存命中 0 / 35（不用缓存加 --nocache）
