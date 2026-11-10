@@ -585,6 +585,7 @@ var _cut_pending := false
 
 func _cast() -> void:
 	_hf_tail = {}
+	load("res://scripts/core/crash_box.gd").ult_cast(str(caster.id) if caster != null else "?")   # 闪退报告事件日志 + 尖峰补采（docs/332 §4）
 	if _cut_pending:
 		_cut_pending = false
 		if caster != null:

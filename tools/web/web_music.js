@@ -54,15 +54,23 @@
     });
   }
   var premix = MONO && new URLSearchParams(location.search).get("muspremix") !== "0";
+  // 二阶段预混（11-11 docs/332 §2）：最终 Boss 二阶段 p1（一阶段底层）+ p2（加强层）两份缓冲同驻，手机配乐 19 → 37 MB（iPhone 11:21 峰值）。
+  // 出包另存 p1 + p2 的单声道预混（tools/web_music.py）：p2 的占位器在手机上解码的是预混；预混开播后底层 p1 的增益按 g1 − g2 交叉淡出，
+  // 降到 0 就停掉并丢掉 p1 的缓冲，同一时刻只留一首（交接只有预混解码到开播后约 0.15 秒）。二阶段退回时重新解 p1、按预混的进度对齐接上。
+  // 预混文件缺失时照旧解 p2 原文件（两份同驻，行为与旧版一样）。网址带 ?muspremix=0 一并关掉
+  var PAIRS = {"music_suno_final_p2.m4a": {base: "music_suno_final_p1.m4a", mix: "music_suno_final_p12_mono.m4a"}};
+  var isMix = {}, retired = {};   // isMix：这个 url 的缓冲是预混；retired：底层 id -> url（GD 那边还在播，这边已停掉放手）
   function load(url) {
     delete toFree[url];   // 新的播放或预热请求可接回正在解码的同一首
     if (bufs[url]) return Promise.resolve(bufs[url]);
     if (loading[url]) return loading[url];
     var c = ctx();
     if (!c) return Promise.reject(new Error("no audio context"));
-    var decoded;
+    var decoded, pr = premix && PAIRS[url];
     if (premix && url === "music_suno_final_p1.m4a") {
       decoded = decode(c, "music_suno_final_p1_mono.m4a").catch(function () { return decode(c, url); });
+    } else if (pr) {
+      decoded = decode(c, pr.mix).then(function (b) { b.__syMix = 1; return b; }, function () { return decode(c, url); });
     } else {
       decoded = decode(c, url);
     }
@@ -70,6 +78,7 @@
       return mono(c, b);
     }).then(function (b) {
       delete loading[url];
+      if (b.__syMix) isMix[url] = 1; else delete isMix[url];
       bufs[url] = b;
       if (toFree[url]) tryFree(url);
       return b;
@@ -83,6 +92,7 @@
     return loading[url];
   }
   function stopId(id) {
+    delete retired[id];
     var s = srcs[id];
     if (s && s.src) {
       try { s.src.stop(); } catch (e) {}
@@ -116,22 +126,89 @@
         src.loopStart = ls; src.loopEnd = le;
         var off = it[2] + late;
         if (off >= le) off = ls + ((off - ls) % (le - ls));
-        g.gain.value = gains[it[0]];
+        g.gain.value = eff(it[0]);
         src.connect(g); g.connect(out(c)); g.connect(pre);
         src.start(when, Math.max(0, off));
-        srcs[it[0]] = { src: src, g: g, url: it[1], tok: tok };
+        srcs[it[0]] = { src: src, g: g, url: it[1], tok: tok, when: when, t0: when - Math.max(0, off), ls: ls, le: le };
       });
+      pairSync(when);
     }, function () {});
   };
-  M.stop = function (ids) { ids.forEach(stopId); };
+  M.stop = function (ids) { ids.forEach(stopId); pairSync(); };
   M.gain = function (pairs) {   // [[id, 线性音量], ...]：短平滑，免得逐帧改音量出拉链声
     var c = ctx();
     pairs.forEach(function (p) {
       gains[p[0]] = p[1];
       var s = srcs[p[0]];
-      if (s && s.g) { try { s.g.gain.setTargetAtTime(p[1], c.currentTime, 0.015); } catch (e) { s.g.gain.value = p[1]; } }
+      if (s && s.g) { try { s.g.gain.setTargetAtTime(eff(p[0]), c.currentTime, 0.015); } catch (e) { s.g.gain.value = eff(p[0]); } }
     });
+    pairSync();
   };
+  // ---- 二阶段预混（PAIRS）
+  function mixOf(baseUrl) {   // 底层 url 对应的、正在出声（或已排好开播）的预混源
+    for (var u in PAIRS) {
+      if (PAIRS[u].base !== baseUrl || !isMix[u]) continue;
+      for (var k in srcs) { if (srcs[k].url === u && srcs[k].src) return { id: k, s: srcs[k] }; }
+    }
+    return null;
+  }
+  function baseIdOf(baseUrl) {
+    for (var k in srcs) { if (srcs[k].url === baseUrl) return k; }
+    for (var r in retired) { if (retired[r] === baseUrl) return r; }
+    return null;
+  }
+  function eff(id) {   // 实际给到 Web Audio 的增益：预混在播时底层只补 g1 − g2 那一部分（预混 = p1 + p2）
+    var g = gains[id] || 0, s = srcs[id];
+    if (!s) return g;
+    var m = mixOf(s.url);
+    return m ? Math.max(0, g - (gains[m.id] || 0)) : g;
+  }
+  function pairSync(at) {
+    if (!premix) return;
+    var c = ctx();
+    if (!c) return;
+    for (var u in PAIRS) {
+      var pr = PAIRS[u], m = mixOf(pr.base), bid = baseIdOf(pr.base);
+      if (bid === null) continue;
+      var s = srcs[bid];
+      var need = m ? Math.max(0, (gains[bid] || 0) - (gains[m.id] || 0)) : (gains[bid] || 0);
+      if (s && s.src && m) {
+        var t = Math.max(c.currentTime, at || 0, m.s.when || 0);
+        try {
+          s.g.gain.cancelScheduledValues(c.currentTime);
+          if (t > c.currentTime + 0.001) s.g.gain.setValueAtTime(need, t);   // 预混开播那一刻（样本级）把底层同时切到差值，不叠也不空
+          else s.g.gain.setTargetAtTime(need, c.currentTime, 0.015);
+        } catch (e) { s.g.gain.value = need; }
+        if (need <= 0.001) {
+          if (c.state !== "running" || c.currentTime >= (m.s.when || 0) + 0.1) {   // 上下文挂起（静音自动播放 / 切后台 / iOS 打断）时时钟不走、也不出声：直接放（11-11 网页仿真里 p1 一直没放掉）
+            stopId(bid); retired[bid] = pr.base; toFree[pr.base] = 1; tryFree(pr.base);   // 预混已出声：停掉底层、丢掉它的缓冲
+          } else {
+            setTimeout(pairSync, Math.ceil(((m.s.when || 0) + 0.12 - c.currentTime) * 1000));
+          }
+        }
+      } else if (retired[bid] && need > 0.01) {
+        // 二阶段退回（预混音量降下来了）：重新解底层，按预混的进度对齐接上
+        var ref = m ? m.s : null, tok = {};
+        delete retired[bid];
+        srcs[bid] = { tok: tok, url: pr.base };
+        (function (bid, base, tok, ref) {
+          load(base).then(function (b) {
+            var s2 = srcs[bid];
+            if (!s2 || s2.tok !== tok) return;
+            var lead = 0.03, when = c.currentTime + lead, src = c.createBufferSource(), g = c.createGain();
+            var ls = ref ? ref.ls : 0, le = ref ? ref.le : b.duration;
+            src.buffer = b; src.loop = true; src.loopStart = ls; src.loopEnd = Math.min(le, b.duration);
+            var off = ref ? when - ref.t0 : 0;
+            if (off >= le) off = ls + ((off - ls) % Math.max(le - ls, 0.1));
+            g.gain.value = eff(bid);
+            src.connect(g); g.connect(out(c)); g.connect(pre);
+            src.start(when, Math.max(0, off));
+            srcs[bid] = { src: src, g: g, url: base, tok: tok, when: when, t0: when - Math.max(0, off), ls: ls, le: le };
+          }, function () {});
+        })(bid, pr.base, tok, ref);
+      }
+    }
+  }
   M.bus = function (v, hz) {   // 配乐总线（Music × Master 音量与静音）与低通（music_lp）
     busGain = v; cut = hz;
     if (bus) {
@@ -159,6 +236,7 @@
   M.state = function () {   // 自测 / 日志
     var on = 0; for (var k in srcs) { if (srcs[k].src) on++; }
     return JSON.stringify({ bufs: Object.keys(bufs).length, loading: Object.keys(loading).length, on: on, fails: fails, mb: Math.round(M.mb()), lv: Math.round(M.level() * 10000) / 10000, ctx: (ctx() || {}).state || "none",
-      sr: (ctx() || {}).sampleRate || 0, mono: MONO ? 1 : 0, dl: Math.round(dl / 104857.6) / 10, lf: lastFail });   // sr：解码按上下文采样率重采样（iOS 常为 48 kHz，缓冲是 24 kHz 原曲的 2 倍）
+      sr: (ctx() || {}).sampleRate || 0, mono: MONO ? 1 : 0, mix: Object.keys(isMix).length, ret: Object.keys(retired).length,
+      nm: Object.keys(bufs).map(function (u) { return String(u).replace(/^music_(suno_)?/, "").replace(/\.m4a$/, "") + (bufs[u].__syMix ? "*" : ""); }).join("+"), dl: Math.round(dl / 104857.6) / 10, lf: lastFail });   // sr：解码按上下文采样率重采样（iOS 常为 48 kHz，缓冲是 24 kHz 原曲的 2 倍）
   };
 })();
