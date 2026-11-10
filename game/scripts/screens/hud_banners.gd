@@ -353,7 +353,8 @@ func _big_pointer(vs: Vector2, edge: Vector2, d: Vector2, tex_name: String, labe
 	g.hud.draw_arc(edge, 32.0, 0.0, TAU, 32, Color(col.r, col.g, col.b, 0.35 + 0.4 * pulse), 1.0)
 	var bt: Texture2D = g.tex.get(tex_name)
 	if bt != null:
-		var fw: int = bt.get_width() / 2 if bt.get_width() >= bt.get_height() * 2 else bt.get_width()   # 敌人常态帧条 2 帧（同 world 画敌人）；鸭爵 e_duck 单帧
+		# 第 0 帧：帧数按 enemy_redraw 登记（Boss 常态条多是 6 帧；原来写死 2 帧，卡门 / 伊比利亚 / 塑路者等一框里画出 3 个小人，11-11 用户报）；没登记的 2 帧，鸭爵 e_duck 单帧
+		var fw: int = bt.get_width() / maxi(1, A.enemy_frames(tex_name, 2 if bt.get_width() >= bt.get_height() * 2 else 1))
 		var k: float = minf(44.0 / float(fw), 44.0 / float(bt.get_height()))
 		k = floorf(k) if k >= 1.0 else k
 		var sz := Vector2(fw, bt.get_height()) * k
