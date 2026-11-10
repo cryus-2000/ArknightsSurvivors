@@ -26,6 +26,7 @@ const Demos = preload("res://scripts/screens/onboard_demos.gd")
 const Character = preload("res://scripts/characters/character.gd")
 const LinkV2 = preload("res://scripts/run/link_v2.gd")
 const PlayKeys = preload("res://scripts/core/play_keys.gd")
+const RunReload = preload("res://scripts/core/run_reload.gd")
 
 ## 指挥台开着时（v3）卡片 / 问题框按属性面板画（11-07 用户「开局指南卡要不要改成面板风格 要的」，docs/301）：
 ## 深底 + 白直角刻度、标题（Heavy）+ 灰英文小签 + 细分隔线与白短条、细线进度条、灰字小按钮；可操作的仍是青
@@ -260,6 +261,11 @@ func _drill_end() -> void:
 			g.get_tree().quit()
 			return
 		_reloaded = true   # 测试：像真人一样重开场景进正式局（11-04 教程结束闪退，之前测试一律直接退出、没走过这条路）
+	# 手机网页：演示局 → 正式局也走整页重载（11-10 iPhone 真机 055f8723e：演示局 52 秒后同页直接开正式局，
+	# WASM 堆 412 MiB，比重载后开局的 286 MiB 多 126 MiB；堆只涨不缩，core/run_reload.gd）。重载回来同队长同难度直接出发。
+	if RunReload.wanted(g):
+		RunReload.go(g, "restart")
+		return
 	# 延到帧末再重开：当场重开时旧场景立即离树，这一帧剩下的 squad / world / 音乐更新拿不到视口（get_viewport 为空），
 	# 对内包里就是「教程结束以后闪退」（11-04 用户实测 a055a6bd6）
 	g.get_tree().reload_current_scene.call_deferred()
