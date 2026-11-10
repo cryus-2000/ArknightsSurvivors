@@ -14,9 +14,16 @@ var opening_t := 0.0             # 开场动画时间
 const OPENING_DUR := 3.6
 const DROP_START := 0.83
 const TOUCHDOWN := 1.7
+const DOCTOR_DROP := 1.53
+const DOCTOR_LAND := 2.15
 const CLEAR_SKY := 2.85
 const OBJECTIVE_IN := 2.18
 const TRANSPORT_PATH := "res://art/world/props/bad_guy_transport.png"
+const HULL := Rect2(0, 0, 224, 125)
+const SILL := Vector2(111, 115)
+const FAN_SIZE := Vector2(34, 28)
+const FAN_ORIGINS := [Vector2(56, 51), Vector2(155, 27)]
+const TRANSPORT_SCALE := 2.05
 var transport: Texture2D   # 单次开场持有，不进入 Art 的整局贴图缓存
 
 func release_transport() -> void:
@@ -28,19 +35,27 @@ func hatch() -> Vector2:
 	var approach := 1.0 - smoothstep(0.0, 0.72, opening_t)
 	var depart := smoothstep(1.86, CLEAR_SKY, opening_t)
 	var travel := view.size.x * 0.65 + 315.0
-	return g.ppos + Vector2((depart - approach) * travel, -98.0 - 42.0 * approach - 88.0 * depart + 2.0 * sin(opening_t * 5.0))
+	return g.ppos + Vector2((depart - approach) * travel, -89.0 - 126.0 * approach + 76.0 * depart + 2.0 * sin(opening_t * 5.0))
 
-func drop_position(ground: Vector2) -> Vector2:
-	var u := clampf(inverse_lerp(DROP_START, TOUCHDOWN, opening_t), 0.0, 1.0)
+func drop_position(ground: Vector2, start := DROP_START, land := TOUCHDOWN) -> Vector2:
+	var u := clampf(inverse_lerp(start, land, opening_t), 0.0, 1.0)
 	return hatch().lerp(ground, u * u) + Vector2(0.0, -12.0 * sin(PI * u))
 
 func draw_transport() -> void:
 	if transport == null:
 		return
-	var size := transport.get_size() * 2.25
-	# 图内锚在侧舱门槛中央。
-	var top_left := (hatch() - size * Vector2(0.526, 0.91)).round()
-	g.wcv.draw_texture_rect(transport, Rect2(top_left, size), false, Color(1.35, 1.39, 1.42))
+	var size := HULL.size * TRANSPORT_SCALE
+	var top_left := (hatch() - SILL * TRANSPORT_SCALE).round()
+	var shadow := Rect2(top_left + Vector2(-14, 80), size * Vector2(0.94, 0.81))
+	g.wcv.draw_texture_rect_region(transport, shadow, HULL, Color(0.01, 0.02, 0.03, 0.33))
+	var light := Color(1.35, 1.39, 1.42)
+	g.wcv.draw_texture_rect_region(transport, Rect2(top_left, size), HULL, light)
+	# 两只升力风扇各占图集下方一行，只换叶片区域；整架飞机只持有这一张纹理。
+	var phase := int(opening_t * 24.0) % 6
+	for i in FAN_ORIGINS.size():
+		var src := Rect2(Vector2(phase * FAN_SIZE.x, HULL.size.y + i * FAN_SIZE.y), FAN_SIZE)
+		var dst := Rect2(top_left + FAN_ORIGINS[i] * TRANSPORT_SCALE, FAN_SIZE * TRANSPORT_SCALE)
+		g.wcv.draw_texture_rect_region(transport, dst, src, light)
 
 
 
@@ -69,8 +84,8 @@ func update_opening(dt: float) -> void:
 	opening_t += dt
 	if opening_t >= CLEAR_SKY:
 		release_transport()
-	if opening_t < TOUCHDOWN:
-		g.p_off = drop_position(g.sprite.position) - g.sprite.position
+	if opening_t < DOCTOR_LAND:
+		g.p_off = drop_position(g.sprite.position, DOCTOR_DROP, DOCTOR_LAND) - g.sprite.position
 	else:
 		g.p_off = Vector2.ZERO
 	# 落地

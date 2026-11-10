@@ -5887,7 +5887,7 @@ func feet_dust(n: int, spd: float) -> void:
 
 
 func draw_player() -> void:
-	if g.state == Game.S.OPENING and g.intro_screen.opening_t < g.intro_screen.DROP_START:
+	if g.state == Game.S.OPENING and g.intro_screen.opening_t < g.intro_screen.DOCTOR_DROP:
 		return
 	var tx: Texture2D = g.sprite.texture
 	if tx == null:
