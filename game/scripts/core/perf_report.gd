@@ -14,6 +14,8 @@ extends RefCounted
 ## 存档：user://perf_reports.json（网页落在浏览器本地存储里）。测试运行（带命令行参数）只有加 --perfreport 才记，且写到 _test 文件，不碰玩家的
 const Game = preload("res://scripts/game.gd")
 const CrashBox = preload("res://scripts/core/crash_box.gd")
+const PerfContext = preload("res://scripts/core/perf_context.gd")
+const RunReload = preload("res://scripts/core/run_reload.gd")
 
 const KEEP := 5
 const BUCKET_MS := 0.5
@@ -244,6 +246,10 @@ func finish(result: String) -> void:
 		"enemy_peak": enemy_peak, "guard": guard_hit or Cfg.guard_lowered, "slow_n": slow_n, "slow_s": snappedf(slow_s, 1.0),
 		"q0": q0, "guard_stage": guard_stage, "enemy_mix": enemy_mix, "mem_mix": mem_mix, "slow": slow,
 	}
+	rec.merge(CrashBox.report_context(g))
+	rec.context = g.perf_context.snapshot(g)
+	rec.run_id = RunReload.run_identity()
+	rec.journey_at_finish = RunReload.journey_snapshot(rec.run_id)
 	if Cfg.dev_args().has("--perfreport"):
 		print("PF PERFREPORT " + report_text(rec).replace("
 ", " | "))   # 测试：网页测量副本只回传 PF 开头的行
@@ -384,6 +390,9 @@ static func report_text(r: Dictionary) -> String:
 			for s in sl:
 				parts.append(slow_line(s))
 			lines.append("最慢 %d 秒 " % sl.size() + "；".join(PackedStringArray(parts)))
+	lines.append_array(PerfContext.lines(r.get("context", {})))
+	lines.append_array(CrashBox.snapshot_lines(r))
+	lines.append_array(RunReload.journey_lines(r.get("run_id", {}), r.get("journey_at_finish", {})))
 	return "\n".join(PackedStringArray(lines))
 
 

@@ -14,8 +14,7 @@ var scroll := ScrollContainer.new()
 var rows := VBoxContainer.new()
 var font: Font
 var recs: Array = []
-var text := ""
-var bb_text := ""         # 上次异常退出前的内存曲线（core/crash_box.gd）
+var previous_crash: Dictionary = {}
 var btn_rects := {}       # 动作 -> Rect2
 var note := ""            # 复制结果提示
 var note_t := 0.0
@@ -38,8 +37,7 @@ func _ready() -> void:
 
 func open() -> void:
 	recs = PerfReport.load_all()
-	text = PerfReport.report_text(recs[0]) if not recs.is_empty() else ""
-	bb_text = CrashBox.report_text(CrashBox.check_prev())   # 上次异常退出前的内存曲线（崩掉的局没有局终报告），附在「复制报告」后面
+	previous_crash = CrashBox.check_prev()
 	note = ""
 	_copy_wait = -1.0
 	position = Vector2.ZERO
@@ -59,6 +57,7 @@ func close() -> void:
 	visible = false
 	if box != null:
 		box.visible = false
+		box.text = ""
 	if OS.has_feature("web"):
 		JavaScriptBridge.eval("var e=document.getElementById('sy-perf-copy');if(e)e.remove();", true)
 	Sfx.play("ui_ok")
@@ -71,11 +70,12 @@ func _tl() -> bool:
 
 ## 复制出去的全文：最近一局报告 + 上次异常退出前的曲线
 func _full() -> String:
-	if bb_text == "":
-		return text
-	return text + "
-
-" + bb_text if text != "" else bb_text
+	var parts := PackedStringArray()
+	if not recs.is_empty():
+		parts.append(PerfReport.report_text(recs[0]))
+	if not previous_crash.is_empty():
+		parts.append(CrashBox.report_text(previous_crash))
+	return "\n\n".join(parts)
 
 
 func copy() -> void:
@@ -246,8 +246,8 @@ func _fill_rows() -> void:
 		child.queue_free()
 	var pts := 20 if _tl() else 16
 	rows.add_theme_constant_override("separation", 7 if _tl() else 5)
-	if bb_text != "":
-		_label(rows, CrashBox.short_line(CrashBox.prev).get_slice("· 点此查看", 0).strip_edges() + " · 详见复制报告", pts, UI.GOLD)
+	if not previous_crash.is_empty():
+		_label(rows, CrashBox.short_line(previous_crash).get_slice("· 点此查看", 0).strip_edges() + " · 详见复制报告", pts, UI.GOLD)
 	if recs.is_empty():
 		_label(rows, "暂无对局记录。完成一局，或在开局 30 秒后退出，即可查看帧率和内存。", pts, UI.SUB)
 		return
@@ -326,7 +326,7 @@ func _draw() -> void:
 	var rc := Rect2(pr.position.x + 24, by, minf(180, pr.size.x * 0.34), bh)
 	var bw := minf(130, pr.size.x * 0.24)
 	var rb := Rect2(pr.end.x - 24 - bw, by, bw, bh)
-	if not recs.is_empty() or bb_text != "":
+	if not recs.is_empty() or not previous_crash.is_empty():
 		btn_rects["copy"] = rc
 		draw_rect(rc, UI.CYAN)
 		UI.text(self, font, rc.position + Vector2(0, bh / 2.0 + 7.0), "复制报告" + ("" if tl else "  Enter"), 19 if tl else 16, Color(0.04, 0.07, 0.09), HORIZONTAL_ALIGNMENT_CENTER, rc.size.x)

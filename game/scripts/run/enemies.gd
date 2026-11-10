@@ -919,6 +919,8 @@ func admit(e: Dictionary) -> void:
 		_slot_n += 1
 	_by_id[e.id] = e
 	g.enemies.append(e)
+	if e.get("boss", false):
+		g.perf_context.admitted(e, D.ENEMIES.get(e.type, {}), g.t)
 
 
 ## id → 敌人字典；已被 sweep_dead 回收（或从没经 admit）的返回 null

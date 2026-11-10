@@ -148,6 +148,7 @@ var shop_ui = ShopScreen.new(self)   # 界面 · 商店（state SHOP）
 var hud_view = HudView.new(self)   # 界面 · 局内 HUD（hud 画布节点的 draw 信号）
 var world = WorldView.new(self)   # 世界绘制（2.5D）
 var telemetry = Telemetry.new(self)   # 局内数据记录（docs/40）
+var perf_context := preload("res://scripts/core/perf_context.gd").new()
 var perf_rep = PerfReport.new(self)   # 性能报告（core/perf_report.gd；设置 → 画面 → 性能报告）
 var rng := RandomNumberGenerator.new()
 var t := 0.0
@@ -1065,6 +1066,7 @@ func _ready() -> void:
 	web_fs.setup(self)
 	web_focus.setup(self)
 	trial.consume()
+	RunReload.begin_run(self)
 	CrashBox.begin(self)   # 崩溃前快照：局内每 15 秒把内存构成写进本地存储（core/crash_box.gd）
 	# 随机数最先定：招募开局干员时就会用 rng（战斗台词计时等）。以前 --seed 在 _ready 后段才生效，
 	# 开局干员的台词计时是随机的，第一句台词一出同 seed 的两局就分叉（2026-09-26 查明，docs/36）
@@ -1082,6 +1084,7 @@ func _ready() -> void:
 	if not seeded:
 		rng.randomize()
 		vrng.randomize()
+	perf_context.seeded(rng.seed)
 	rng_spawn.seed = hash([rng.seed, "spawn"])
 	rng_enemy.seed = hash([rng.seed, "enemy"])
 	rng_drop.seed = hash([rng.seed, "drop"])
@@ -1359,6 +1362,7 @@ func _ready() -> void:
 		Sfx.vol_target = -4.0
 		vfx.show_banner("深海的潮水正在涌来……")
 	RunSetup.apply_difficulty(self)   # 难度预设 / 批跑难度参数（run/run_setup.gd）
+	perf_context.configured(str(D.DIFF_PRESETS[preset].name) if preset >= 0 else "", tier, diff, meta_cells)
 	sync_stats()
 	hp = max_hp
 	hp_trail = hp

@@ -434,6 +434,7 @@ func _ready() -> void:
 		else:
 			A.mark("title_leave")
 			get_tree().change_scene_to_file.call_deferred("res://game.tscn")
+	load("res://scripts/core/run_reload.gd").mark_stage("title_ready")
 
 
 ## 法线图预热（art.gd）：标题页一打开就在后台线程把本局要用的法线图算好 / 读缓存；出发时再调一次（设置里刚打开法线光照的情况）

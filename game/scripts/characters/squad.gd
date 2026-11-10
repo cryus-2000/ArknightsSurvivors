@@ -110,6 +110,8 @@ func add(cid: String, recruit_event := true):
 	BossBench.rb("add", [cid, recruit_event])   # Boss 单场测试台录制（docs/170）：只记最外层
 	var op = _add(cid, recruit_event)
 	BossBench.re()
+	if op != null and not _hold_size and g.get("perf_context") != null:
+		g.perf_context.changed.emit()
 	return op
 
 
@@ -162,6 +164,7 @@ func _add(cid: String, recruit_event: bool):
 
 ## 移除（事件替换用）：被替换的干员成长清零
 func remove(cid: String) -> void:
+	var previous_size := ops.size()
 	for i in ops.size():
 		if ops[i].id == cid:
 			if g.get("telemetry") != null:
@@ -182,6 +185,8 @@ func remove(cid: String) -> void:
 	Bond.refresh(g)
 	if g.get("rfx") != null:
 		g.rfx.refresh_squad()
+	if ops.size() != previous_size and not _hold_size and g.get("perf_context") != null:
+		g.perf_context.changed.emit()
 
 
 ## 队友离队 / 换人、瞬回、掉队归位的退场（纯画面 g.fx，world._draw_fx 画）；LEAVE_JUMP = 旧的向上跳出屏幕时长（deploy_exit = 0）
@@ -218,8 +223,11 @@ var _hold_size := false   # replace 中途：人数先减后加，不重算入�
 ## route：分支培养（docs/119 §4.1）——换入会继承到节点 4 及以上时，在换人流程里选好的路线 id（progression.open_branch），继承按它一次性重建
 func replace(old_id: String, new_id: String, route := ""):
 	BossBench.rb("replace", [old_id, new_id, route])   # Boss 单场测试台录制（docs/170）
+	var previous_size := ops.size()
 	var op = _replace(old_id, new_id, route)
 	BossBench.re()
+	if (op != null or ops.size() != previous_size) and g.get("perf_context") != null:
+		g.perf_context.changed.emit()
 	return op
 
 

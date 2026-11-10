@@ -103,6 +103,7 @@ func tick(dt: float) -> void:
 		squad_canvas.clip_contents = true
 		g.hud.add_child(squad_canvas)
 	if model.is_empty():
+		RunReload.mark_stage("settled")
 		preload("res://scripts/core/frame_rec.gd").mark("settle")
 		set_model(RS.model(RS.snapshot(g)))
 		wall_s = float(Time.get_ticks_msec() - int(g.run_wall_ms)) / 1000.0   # 反馈码的局时：开局到结算出现的真实时间

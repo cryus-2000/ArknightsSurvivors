@@ -13,6 +13,10 @@ const PREV_FILE := "user://crash_box_prev.json"
 const EVERY := 15.0
 const SPIKE_MB := 24.0
 const MAX_S := 80
+const BOSS_WAVES := 3   # 三波登场前后各一份，另加估算峰值和最后一次采样，共八份
+static var _peak_mb := -1.0
+static var _context_dirty := false
+static var _wave := 0    # 已记录实际出生的 Boss 所在波次
 
 static var on := false
 static var cur := {}
@@ -71,6 +75,16 @@ static func begin(g) -> void:
 	var b: Dictionary = load("res://scripts/core/perf_report.gd")._build()
 	cur = {"v": 1, "start": Time.get_datetime_string_from_system(false, true), "ver": str(b.get("version", "dev")), "commit": str(b.get("commit", "dev")),
 		"q": Cfg.quality, "dev": _dev_short(), "squad": "", "end": "", "s": [], "ev": [], "mus": _music_mode(), "wg": [], "sr": 0}
+	cur["run_id"] = load("res://scripts/core/run_reload.gd").run_identity()
+	cur["journey"] = load("res://scripts/core/run_reload.gd").journey_snapshot(cur.run_id)
+	cur["context"] = g.perf_context.snapshot(g)
+	cur["memory_snapshots"] = {}
+	_peak_mb = -1.0
+	_wave = 0
+	_context_dirty = false
+	var changed := _context_changed.bind(_owner)
+	if not g.perf_context.changed.is_connected(changed):
+		g.perf_context.changed.connect(changed)
 	_t = _every - 3.0   # 开局 3 秒记第一条（建局读完的贴图）
 	_mem_t = 0.0
 	_last_mb = 0.0
@@ -79,6 +93,91 @@ static func begin(g) -> void:
 	_load0 = int(A.load_n)
 	_rt = 0.0
 	_write(true)
+
+
+static func _context_changed(owner: int) -> void:
+	if not on or owner != _owner or _context_dirty:
+		return
+	_context_dirty = true
+	_flush_context.call_deferred(owner)
+
+
+static func _flush_context(owner: int) -> void:
+	if on and owner == _owner and is_instance_id_valid(owner) and _refresh_context(instance_from_id(owner)):
+		_write()
+
+
+## 同帧种子、设置、编队和双 Boss 事件合并。首次取得种子、每波首次登场各最多额外写一次；
+## 若本帧本来就要采样 / 结束，由那次落盘捎带，已排队的延迟回调不再写。
+static func _refresh_context(g) -> bool:
+	if not _context_dirty:
+		return false
+	_context_dirty = false
+	var context: Dictionary = g.perf_context.snapshot(g)
+	var store_now: bool = not cur.context.has("seed") and context.has("seed")
+	if context.get("bosses", []).size() > cur.context.get("bosses", []).size() and g.spawner != null:
+		var wave := int(g.spawner.boss_idx)
+		if wave > _wave and wave <= BOSS_WAVES:
+			_wave = wave
+			_mark_before(cur.memory_snapshots, wave)
+			store_now = true
+	cur.context = context
+	return store_now
+
+
+static func _mark_before(points: Dictionary, wave: int) -> void:
+	if wave < 1 or wave > BOSS_WAVES or not points.has("last"):
+		return
+	var key := "before%d" % wave
+	if not points.has(key) and not points.has("after%d" % wave):
+		points[key] = points.last
+
+
+static func _keep_snapshot(points: Dictionary, row: Dictionary, wave: int, peak: bool) -> void:
+	_mark_before(points, wave)
+	if wave >= 1 and wave <= BOSS_WAVES and not points.has("after%d" % wave):
+		points["after%d" % wave] = row
+	if peak:
+		points.peak = row
+	points.last = row
+
+
+## perf_report.finish 在 CrashBox.end 之前调用；只给同一局，正常报告不持有滚动曲线或大对象。
+static func report_context(g) -> Dictionary:
+	if cur.is_empty() or g.get_instance_id() != _owner:
+		return {}
+	return {"memory_snapshots": cur.get("memory_snapshots", {}).duplicate(true)}
+
+
+static func snapshot_lines(record: Dictionary) -> PackedStringArray:
+	var lines := PackedStringArray()
+	var points: Dictionary = record.get("memory_snapshots", {})
+	if points.is_empty():
+		return lines
+	lines.append("关键内存快照 · 既有周期及尖峰采样，峰值取这些采样中的最高值；配乐计入音频")
+	for wave in range(1, BOSS_WAVES + 1):
+		for side in ["before", "after"]:
+			var key := "%s%d" % [side, wave]
+			if points.has(key):
+				lines.append(_snapshot_line("第 %d 波 Boss 登场%s" % [wave, "前" if side == "before" else "后"], points[key]))
+	if points.has("peak"):
+		lines.append(_snapshot_line("采样峰值", points.peak))
+	if points.has("last"):
+		lines.append(_snapshot_line("最后采样", points.last))
+	return lines
+
+
+static func _snapshot_line(label: String, row: Dictionary) -> String:
+	var sum_name := "显存＋音频" if row.has("aud") else "显存"
+	var line := "%s %s · %s %d MiB · 贴图 %d / 缓冲区 %d MiB" % [
+		label, _mmss(row.t), sum_name, row.total, row.tex, row.buf]
+	if row.has("aud"):
+		line += " · 音频 %d MiB" % int(row.aud)
+	if row.has("mw"):
+		line += "（配乐 %d MiB）" % int(row.mw)
+	if row.has("wasm"):
+		line += " · WASM 容量 %d MiB" % int(row.wasm)
+	return line
 
 
 static func _dev_short() -> String:
@@ -125,6 +224,7 @@ static func _mem_mb() -> float:
 
 
 static func sample(g) -> void:
+	_refresh_context(g)
 	_t = 0.0
 	_last_write = 0.0
 	var A = load("res://scripts/art.gd")
@@ -136,6 +236,7 @@ static func sample(g) -> void:
 	var js := 0.0
 	var pck := 0.0
 	var mw := 0.0
+	var music_measured := false
 	if _web():
 		# g：堆增长记录（[页面秒, 原 MB, 请求 MB, 阶段]）；m：浏览器解码配乐状态；p：主包在 MEMFS 的字节（JS 堆估算，WebKit 没有 performance.memory）
 		var r = JavaScriptBridge.eval("(function(){var w=window.__syWasm,r={w:w&&w.buffer?w.buffer.byteLength:0,g:window.__syWasmGrows||[],p:window.__syPckBytes||0};if(performance.memory){r.j=performance.memory.usedJSHeapSize}if(window.__syMusOn&&window.__syMus){try{r.m=JSON.parse(window.__syMus.state())}catch(e){}}return JSON.stringify(r)})()", true)
@@ -167,6 +268,15 @@ static func sample(g) -> void:
 		"node": int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT)), "obj": int(Performance.get_monitor(Performance.OBJECT_COUNT)),
 		"e": g.enemies.size(), "fx": nfx, "b": g.bullets.size() + g.ebullets.size(), "lv": int(g.level),
 		"tc": A._cache.size(), "ld": ln - _load0, "rl": ",".join(A.recent_loads.slice(-6)), "tag": ",".join(PackedStringArray(_tags.keys())), "q": Cfg.quality}
+	var point := {"t": s.t, "tex": s.tex, "buf": s.buf, "total": int(_last_mb)}
+	if _web():
+		point["aud"] = s.aud
+	if music_measured:
+		point["mw"] = s.mw
+	if _web() and wasm > 0:
+		point["wasm"] = s.wasm
+	_keep_snapshot(cur.memory_snapshots, point, _wave, _last_mb > _peak_mb)
+	_peak_mb = maxf(_peak_mb, _last_mb)
 	_load0 = ln
 	_tags = {}
 	if Cfg.dev_args().has("--crashbox"):
@@ -186,7 +296,10 @@ static func sample(g) -> void:
 static func end(why: String) -> void:
 	if not on or cur.is_empty() or cur.end != "":
 		return
+	if _context_dirty and is_instance_id_valid(_owner):
+		_refresh_context(instance_from_id(_owner))
 	cur.end = why
+	on = false
 	_write()
 
 
@@ -313,6 +426,12 @@ static func report_text(p: Dictionary) -> String:
 		o.append("%s %s | %d %d %d %d(%d) %d %s | %d %d %d %d %d %d | %d %d | %s" % [_mmss(float(s.get("t", 0))), _mmss(float(s.get("rt", 0))), int(s.get("tex", 0)), int(s.get("buf", 0)), int(s.get("vid", 0)),
 			int(s.get("aud", 0)), int(s.get("mw", 0)), int(s.get("wasm", 0)), js_s, int(s.get("node", 0)), int(s.get("obj", 0)), int(s.get("e", 0)), int(s.get("fx", 0)),
 			int(s.get("b", 0)), int(s.get("lv", 0)), int(s.get("tc", 0)), int(s.get("ld", 0)), str(s.get("tag", ""))])
+	var samples := snapshot_lines(p)
+	if not samples.is_empty():
+		o.append_array(samples)
+	o.append_array(load("res://scripts/core/perf_context.gd").lines(p.get("context", {})))
+	if not p.get("run_id", {}).is_empty():
+		o.append_array(load("res://scripts/core/run_reload.gd").journey_lines(p.run_id, p.get("journey", {})))
 	var wg: Array = p.get("wg", [])
 	if not wg.is_empty():
 		var ws := PackedStringArray()
