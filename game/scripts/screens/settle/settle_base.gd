@@ -11,6 +11,7 @@ const Roster = preload("res://scripts/core/roster.gd")
 const OpFig = preload("res://scripts/screens/op_figure.gd")
 
 const MAG := Color8(232, 64, 128)      # 失败 / 击倒（洋红，docs/37）
+const UI = preload("res://scripts/ui.gd")
 const PHONE_MIN_FS := 15
 
 # The screen owns its style; the backref must not retain run artwork.
@@ -81,7 +82,7 @@ func ek(t0: float, dur: float) -> float:
 
 
 func fs(size: int) -> int:
-	return maxi(size, PHONE_MIN_FS) if Cfg.phone_ui() else size
+	return UI.phone_body_step(maxi(size, PHONE_MIN_FS)) if Cfg.phone_ui() else size
 
 
 ## 中文字：pos 左上；align 0 左 1 中 2 右
@@ -89,7 +90,7 @@ func txt(x: float, y: float, text: String, size := 18, col := HH.LIGHT, align :=
 	if fa <= 0.0 or text == "":
 		return 0.0
 	var z := fs(size)
-	col = preload("res://scripts/ui.gd").small_ink(col, size)
+	col = UI.small_ink(col, size)
 	var w: float = s.g.font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, z).x
 	if width > 0.0:
 		w = minf(w, width)

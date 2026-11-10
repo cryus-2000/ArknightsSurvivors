@@ -552,6 +552,7 @@
   "path_dash_track": 0.4,
   "path_dash_lead": 0.3,
   "carmen_snipe_k": 0.75,
+  "carmen_lane_gap": 1.55,
   "carmen_snipe_lead": 0.3,
   "hp_final": 2.0,
   "hp_x_path": 2.9,

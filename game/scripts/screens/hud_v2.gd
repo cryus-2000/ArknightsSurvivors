@@ -58,6 +58,8 @@ func cap(pos: Vector2, s: String, size: float, col: Color = UI.SUB, sp := 1.6, a
 func big(pos: Vector2, s: String, size: float, col: Color = UI.TEXT, align := 0) -> float:
 	var f: Font = UI.latin()
 	var ks: int = int(round(size))
+	if UI.fk != 1.0:
+		ks = UI.phone_body_step(ks)
 	var w: float = f.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, ks).x
 	var x: float = pos.x - (w if align == 2 else (w / 2.0 if align == 1 else 0.0))
 	g.hud.draw_string(f, Vector2(x + 1, pos.y + 2), s, HORIZONTAL_ALIGNMENT_LEFT, -1, ks, SHADOW)

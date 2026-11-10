@@ -343,17 +343,26 @@ static func frame_line(r: Dictionary) -> String:
 		("%.0f" % float(r.get("min1s", 0))) if float(r.get("min1s", 0)) > 0.0 else "—"]
 
 
-## 复制用的精简纯文本（贴进聊天）
-static func report_text(r: Dictionary) -> String:
+static func quality_line(r: Dictionary) -> String:
 	var q: String = Cfg.QUALITY_NAME.get(str(r.get("quality", "")), str(r.get("quality", "")))
 	var qm: String = "自动" if str(r.get("quality_mode", "")) == "auto" else "手选"
 	var cap: int = int(r.get("fps_cap", 0))
 	var cap_s: String = ("自动（已锁 30）" if r.get("lock30", false) else "自动") if cap == 0 else str(cap)
+	return "画质 %s（%s）· 帧率上限 %s%s" % [q, qm, cap_s, " · 分辨率缩放" if r.get("render_scaled", false) else ""]
+
+
+static func slow_line(s: Array) -> String:
+	var tg: Array = s[3] if s.size() > 3 else []
+	return "%s %d 帧（最长 %d 毫秒%s）" % [_mmss(float(s[1])), int(round(float(s[0]))), int(s[2]), ("：" + "、".join(PackedStringArray(tg.map(func(x): return str(x))))) if not tg.is_empty() else ""]
+
+
+## 复制用的精简纯文本（贴进聊天）
+static func report_text(r: Dictionary) -> String:
 	var lines := [
 		"方舟幸存者 · 性能报告",
 		"版本 %s（%s）· %s" % [str(r.get("version", "")), str(r.get("commit", "")), str(r.get("time", "")).replace("T", " ")],
 		"设备 " + device_line(r.get("device", {})),
-		"画质 %s（%s）· 帧率上限 %s%s" % [q, qm, cap_s, " · 分辨率缩放" if r.get("render_scaled", false) else ""],
+		quality_line(r),
 		"本局 %s · %s" % [_mmss(float(r.get("len", 0))), RESULT_NAME.get(str(r.get("result", "")), str(r.get("result", "")))],
 		"帧时 " + frame_line(r),
 	]
@@ -373,8 +382,7 @@ static func report_text(r: Dictionary) -> String:
 		if not sl.is_empty():
 			var parts: Array = []
 			for s in sl:
-				var tg: Array = s[3] if s.size() > 3 else []
-				parts.append("%s %d 帧（最长 %d 毫秒%s）" % [_mmss(float(s[1])), int(round(float(s[0]))), int(s[2]), ("：" + "、".join(PackedStringArray(tg.map(func(x): return str(x))))) if not tg.is_empty() else ""])
+				parts.append(slow_line(s))
 			lines.append("最慢 %d 秒 " % sl.size() + "；".join(PackedStringArray(parts)))
 	return "\n".join(PackedStringArray(lines))
 

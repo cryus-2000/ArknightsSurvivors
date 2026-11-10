@@ -643,7 +643,7 @@ func _text_key(ci: CanvasItem, x: float, y: float, text: String, size := 18, col
 	_text(ci, x, y, sk[0], size, color)
 	if sk[1] == "" or _fa <= 0.0:
 		return
-	var fs := maxi(size, PHONE_MIN_FS) if Cfg.phone_ui() else size
+	var fs := UI.phone_body_step(maxi(size, PHONE_MIN_FS)) if Cfg.phone_ui() else size
 	var tw: float = g.font.get_string_size(sk[0], HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 	UI.keycap(ci, g.font, Vector2(x + _dx + tw + 10.0, y + size * 0.55 - 7.0), str(sk[1]).to_upper(), Color(color, color.a * 0.75 * _fa), 11)
 
@@ -651,7 +651,7 @@ func _text_key(ci: CanvasItem, x: float, y: float, text: String, size := 18, col
 func _text(ci: CanvasItem, x: float, y: float, text: String, size := 18, color := HH.LIGHT, width := -1.0) -> void:
 	if _fa <= 0.0:
 		return
-	var fs := maxi(size, PHONE_MIN_FS) if Cfg.phone_ui() else size
+	var fs := UI.phone_body_step(maxi(size, PHONE_MIN_FS)) if Cfg.phone_ui() else size
 	var c := Color(color, color.a * _fa)
 	if _blur > 0.0:   # 失焦虚影：右侧错开一道淡影
 		ci.draw_string(g.font, Vector2(x + _dx + 5.0 * _blur, y + size), text, HORIZONTAL_ALIGNMENT_LEFT, width, fs, Color(color, color.a * 0.35 * _blur))

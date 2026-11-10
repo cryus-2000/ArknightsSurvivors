@@ -170,11 +170,14 @@ static func layout(vs: Vector2, ids: Array, ins: Array, touch: bool, font: Font)
 	# 底部一行：各项文字宽度排开，中间「/」
 	var xs: Array = []
 	var x := 7.0
-	var fsz := 15
+	var phone := Cfg.phone_ui()
+	var fsz := UI.phone_body_step(int(round(15 * fk))) if phone else 15
 	for j in foot_ids.size():
 		if j > 0:
 			x += 30.0
 		var w: float = font.get_string_size(item(foot_ids[j]).cn, HORIZONTAL_ALIGNMENT_LEFT, -1, fsz).x
+		if phone:
+			w /= fk   # xs stores design units; the label is measured at its drawn size.
 		xs.append([x, w])
 		var h := (44.0 / fk) if touch else 34.0   # 触屏：缩放后命中区仍至少 44 高
 		lay.rects[foot_ids[j]] = Rect2(fo + Vector2(x - 8.0, 25.0 - h / 2.0) * fk, Vector2(w + 16.0, h) * fk)
@@ -223,6 +226,8 @@ static func _fa(c: Color, a: float) -> Color:
 
 
 static func _txt(ci: CanvasItem, font: Font, top_left: Vector2, s: String, size: int, col: Color) -> float:
+	if Cfg.phone_ui():
+		size = UI.phone_body_step(size)
 	ci.draw_string(font, top_left + Vector2(0, font.get_ascent(size)), s, HORIZONTAL_ALIGNMENT_LEFT, -1, size, col)
 	return font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
 

@@ -758,7 +758,9 @@ func _input(event: InputEvent) -> void:
 			return
 		for i in item_rects.size():
 			if item_rects[i].has_point(make_input_local(event).position):
+				get_viewport().set_input_as_handled()   # 新打开的浮层不再收到这次按下
 				_activate(i)
+				return
 
 
 ## 主界面引导（screens/title_tour.gd）：作为最后一个子节点，_input 先于图鉴 / 标题，盖在所有叠层之上

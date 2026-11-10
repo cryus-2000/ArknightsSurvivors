@@ -67,11 +67,16 @@ const FS_CAP := 24
 const FS_MIN := 13
 
 
-## 正文字号换算：手机局内放大（不小于 FS_MIN），其余原样
+## 手机正文在原实际字号上大一号。标题、像素字与画布分辨率各自沿用原规格。
+static func phone_body_step(size: int) -> int:
+	return size + 1 if size < FS_CAP else size
+
+
+## 手机局内先按原倍率和下限换算，再统一给正文加一号。
 static func fs(size: int) -> int:
 	if fk == 1.0 or size >= FS_CAP:
 		return size
-	return clampi(int(round(size * fk)), FS_MIN, FS_CAP)
+	return phone_body_step(clampi(int(round(size * fk)), FS_MIN, FS_CAP))
 
 
 static func _ks(ci: CanvasItem, size: int) -> int:
