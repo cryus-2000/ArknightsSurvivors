@@ -1,0 +1,12 @@
+# solid_triangle
+# 参数：--headless --path /work/repo/game res://tests/solid_triangle_test.tscn -- --regression --seed=1 --solid-triangle-test
+# 用时 2 秒；结束时全机 Godot 2 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+SOLID TRIANGLE failures=0
+
+
+## stderr
+
