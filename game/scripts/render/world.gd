@@ -506,7 +506,11 @@ func draw_world() -> void:
 	_draw_squad_pools()
 	_draw_shadows(evr)
 	_pk("shadows")
+	if g.state == Game.S.OPENING:
+		g.intro_screen.draw_transport_shadow()
 	_draw_sorted_entities(evr)
+	if g.state == Game.S.OPENING:
+		g.intro_screen.draw_transport()   # 岩柱、海草和舱口下方的人物都在飞行器之下
 	_pk("sorted_entities")
 	if not _dbg_friend:
 		g.rfx.draw_upper()   # 放置物第二版（render/placeable_v2，docs/246）：地雷 / 轰隆隆 / 防暴桩本体与爆炸画在敌人之上
@@ -5889,12 +5893,18 @@ func feet_dust(n: int, spd: float) -> void:
 
 
 func draw_player() -> void:
+	if g.state == Game.S.OPENING and g.intro_screen.opening_t < g.intro_screen.DOCTOR_DROP:
+		return
 	var tx: Texture2D = g.sprite.texture
 	if tx == null:
 		return
 	var hf := g.sprite.hframes
 	var fw := tx.get_width() / hf
 	var fh := tx.get_height()
+	if g.state == Game.S.OPENING and g.intro_screen.opening_t < g.intro_screen.DOCTOR_LAND:
+		var anchor := Vector2(fw / 2.0, fh / 2.0) - g.sprite.offset
+		g.intro_screen.draw_from_hatch(tx, g.sprite.frame, hf, g.sprite.position + g.p_off, anchor, g.sprite.flip_h, Look.plain_mod(g, g.sprite.position))
+		return
 	var src := Rect2(fw * (g.sprite.frame % hf), 0, fw, fh)
 	var pk: float = Game.PX / A.hires_of(tx)   # @2x 高清贴图按半倍画
 	var sx := -pk if g.sprite.flip_h else pk
