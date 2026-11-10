@@ -11,7 +11,87 @@ const NodeIcons = preload("res://scripts/screens/node_icons.gd")   # 节点卡�
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
 var opening_t := 0.0             # 开场动画时间
-const OPENING_DUR := 3.6
+const SETTLED := 2.65
+const DROP_START := 2.55
+const TOUCHDOWN := 3.38
+const DOCTOR_DROP := 3.18
+const DOCTOR_LAND := 3.94
+const LIFT_OFF := 4.08
+const CLEAR_SKY := 6.55
+const OPENING_DUR := 6.80
+const OBJECTIVE_IN := 4.55
+const TRANSPORT_PATH := "res://art/world/props/bad_guy_transport.png"
+const RUMBLE_PATH := "res://audio/sfx/transport_rumble.ogg"
+const HULL := Rect2(0, 0, 244, 223)
+const SILL := Vector2(50, 178)   # 后舱坡道外端，从 Blender 的实机相机投影得到
+const ROTOR_SIZE := Vector2(106, 76)
+const ROTOR_ORIGINS := [Vector2(116, 124), Vector2(35, 11)]
+const TRANSPORT_SCALE := 1.64
+var transport: Texture2D   # 单次开场持有，不进入 Art 的整局贴图缓存
+var engine_player: AudioStreamPlayer
+
+func release_transport() -> void:
+	transport = null
+	if is_instance_valid(engine_player):
+		engine_player.stop()
+		engine_player.stream = null
+		engine_player.queue_free()
+	engine_player = null
+
+## 进场时已在巡航，减速至舱门对准落点。起飞先抬高，再逐渐加速穿出画面。
+func flight_height() -> float:
+	return 1.0 - smoothstep(0.42, SETTLED, opening_t) + smoothstep(LIFT_OFF, LIFT_OFF + 1.60, opening_t)
+
+## 舱口与干员脚底统一使用世界坐标，判定位置始终在地面。
+func hatch() -> Vector2:
+	var view: Rect2 = g.world.view_rect(0.0)
+	var approach := pow(clampf(1.0 - opening_t / SETTLED, 0.0, 1.0), 2.0)
+	var u := clampf(inverse_lerp(LIFT_OFF, CLEAR_SKY, opening_t), 0.0, 1.0)
+	var depart := u * u * (2.0 - u)
+	var travel := view.size.x * 0.65 + 315.0
+	return g.ppos + Vector2(26.0 + (depart - approach) * travel, -75.0 + 108.0 * approach - 48.0 * depart - 28.0 * flight_height() + 1.2 * sin(opening_t * 2.1))
+
+func drop_position(ground: Vector2, start := DROP_START, land := TOUCHDOWN) -> Vector2:
+	var u := clampf(inverse_lerp(start, land, opening_t), 0.0, 1.0)
+	return hatch().lerp(ground, u * u) + Vector2(0.0, -12.0 * sin(PI * u))
+
+## 只露出越过后舱门下沿的像素，避免大帧条的头顶从尾翼间的透明区域透出来。
+func draw_from_hatch(tx: Texture2D, frame: int, hf: int, origin: Vector2, anchor: Vector2, flip: bool, tint: Color) -> void:
+	var pixel := Game.PX / A.hires_of(tx)
+	var fw := tx.get_width() / hf
+	var fh := tx.get_height()
+	var cut := clampi(ceili((hatch().y - 12.0 - origin.y) / pixel + anchor.y), 0, fh)
+	if cut == fh:
+		return
+	var src := Rect2(fw * (frame % hf), cut, fw, fh - cut)
+	var dst := Rect2(Vector2(0, cut) - anchor, src.size)
+	g.wcv.draw_set_transform(origin.round(), 0.0, Vector2(-pixel if flip else pixel, pixel))
+	g.wcv.draw_texture_rect_region(tx, dst, src, tint)
+	g.wcv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+func draw_transport_shadow() -> void:
+	if transport == null:
+		return
+	var height := flight_height()
+	var shadow_scale := TRANSPORT_SCALE * Vector2(0.97, 0.87)
+	var shadow_origin := (hatch() + Vector2(-10.0 - 18.0 * height, 33.0 + 53.0 * height) - SILL * shadow_scale).round()
+	var shade := Color(0.01, 0.02, 0.03, lerpf(0.38, 0.18, height))
+	g.wcv.draw_texture_rect_region(transport, Rect2(shadow_origin, HULL.size * shadow_scale), HULL, shade)
+
+func draw_transport() -> void:
+	if transport == null:
+		return
+	var scale_px := TRANSPORT_SCALE * (1.0 + 0.085 * flight_height())
+	var top_left := (hatch() - SILL * scale_px).round()
+	var light := Color(1.35, 1.39, 1.42)
+	g.wcv.draw_texture_rect_region(transport, Rect2(top_left, HULL.size * scale_px), HULL, light)
+	# 两翼共用六帧外露三叶桨，反向取帧。图集下方每行三格，机身只存一次。
+	var phase := int(opening_t * 24.0) % 6
+	for i in ROTOR_ORIGINS.size():
+		var frame := phase if i == 0 else (6 - phase) % 6
+		var src := Rect2(Vector2((frame % 3) * ROTOR_SIZE.x, HULL.size.y + floori(frame / 3.0) * ROTOR_SIZE.y), ROTOR_SIZE)
+		var dst := Rect2(top_left + ROTOR_ORIGINS[i] * scale_px, ROTOR_SIZE * scale_px)
+		g.wcv.draw_texture_rect_region(transport, dst, src, light)
 
 
 func _init(game: Game) -> void:
@@ -25,49 +105,64 @@ func prev_page() -> void:
 		Sfx.play("ui_move")
 
 
-## 开场动画：水月自海面沉降落地 → 灯火点亮 → 标题卡；任意键跳过，之后进入指南
+## 开场动画：坏家伙号悬停、编队离舱落地、点灯。任意键可跳过。
 func start_opening() -> void:
 	g.state = Game.S.OPENING
 	opening_t = 0.0
-	g.p_off = Vector2(0, -320)
+	release_transport()
+	transport = ResourceLoader.load(TRANSPORT_PATH, "Texture2D", ResourceLoader.CACHE_MODE_IGNORE) as Texture2D
+	var rumble := ResourceLoader.load(RUMBLE_PATH, "AudioStreamOggVorbis", ResourceLoader.CACHE_MODE_IGNORE) as AudioStream
+	if rumble != null:
+		engine_player = AudioStreamPlayer.new()
+		engine_player.bus = &"SFX"
+		engine_player.volume_db = -4.0
+		engine_player.stream = rumble
+		g.add_child(engine_player)
+		engine_player.play()
+	g.p_off = Vector2.ZERO
 	g.lamp_light.energy = 0.0
+	for a in Cfg.dev_args():
+		if a.begins_with("--openingmem"):   # 运输机释放验收（tests/opening_transport_probe.gd）
+			var pr = load("res://tests/opening_transport_probe.gd").new()
+			pr.g = g
+			pr.skip = a == "--openingmem=skip"
+			pr.tex_ref = weakref(transport)
+			pr.snd_ref = weakref(rumble) if rumble != null else null
+			pr.player_ref = weakref(engine_player) if engine_player != null else null
+			g.add_child(pr)
 	Sfx.play("start", -14.0)   # 音量巡检：开场引子开头近乎无声，-4 dB 时比音乐响 29 dB；现在只托住开头，和 1.7 秒后的引子齐平
 
 
 func update_opening(dt: float) -> void:
 	opening_t += dt
-	var k1 := clampf(opening_t / 1.7, 0.0, 1.0)
-	var ease_in := 1.0 - pow(1.0 - k1, 2.2)
-	g.p_off = Vector2(sin(opening_t * 3.0) * 6.0 * (1.0 - k1), -320.0 * (1.0 - ease_in))
-	g.p_lean = sin(opening_t * 2.0) * 0.08 * (1.0 - k1)
-	g.p_sq = Vector2(1.0 - 0.06 * (1.0 - k1), 1.0 + 0.1 * (1.0 - k1))
-	# 上升的气泡
-	if k1 < 1.0 and randf() < 0.6:
-		g.fx.append({"kind": "spark", "pos": g.ppos + g.p_off + Vector2(randf_range(-22, 22), randf_range(-40, 10)), "vel": Vector2(randf_range(-8, 8), -randf_range(40, 90)), "sz": randf_range(2.0, 3.5), "life": 1.1, "max": 1.1, "col": Color(0.8, 0.95, 1.0, 0.7)})
+	if transport != null and opening_t > LIFT_OFF:
+		# 最左端取机身与投影的保守外沿。出画后先退贴图，远去的尾音仍可自然衰减。
+		var left_edge := hatch().x - SILL.x * TRANSPORT_SCALE * 1.085 - 32.0
+		if left_edge > g.world.view_rect(0.0).end.x:
+			transport = null
+	if opening_t >= CLEAR_SKY and opening_t - dt < CLEAR_SKY:
+		release_transport()
+	if opening_t < DOCTOR_LAND:
+		g.p_off = drop_position(g.sprite.position, DOCTOR_DROP, DOCTOR_LAND) - g.sprite.position
+	else:
+		g.p_off = Vector2.ZERO
 	# 落地
-	if opening_t >= 1.7 and opening_t - dt < 1.7:
-		g.p_sq = Vector2(1.3, 0.72)
-		g.world.feet_dust(14, 150.0)
-		g.fx.append({"kind": "ring", "pos": g.ppos + Vector2(0, 6), "r": 60.0, "life": 0.45, "max": 0.45, "col": Color(0.6, 0.85, 1.0)})
-		g.vfx.shake_screen(0.7)
-		Sfx.play("boom", -14.0, 1.4, 0.0)
+	if opening_t >= TOUCHDOWN and opening_t - dt < TOUCHDOWN:
+		g.world.feet_dust(3, 36.0)
 		for o in g.squad.ops:
 			o.play_entry()   # 编队着地接入场条（10-22）
 		g.release_entry_voices()   # 登场语音在编队着地、黑场已褪时才播（以前在建局时就响，画面还没出来，用户 10-25）
-	if opening_t >= 1.7:
+	if opening_t >= TOUCHDOWN:
 		for o in g.squad.ops:
 			if o.vis_anim == "entry":
 				o.anim_t += dt   # 开场期间干员不走 update：入场条在这里推进（end_opening 后由 update 接着走）
 		g.p_sq = g.p_sq.lerp(Vector2.ONE, 1.0 - exp(-dt * 10.0))
 		g.p_lean = lerpf(g.p_lean, 0.0, 1.0 - exp(-dt * 10.0))
-	# 灯火点亮：2.1s 起，先闪两下再稳定
-	if opening_t >= 2.1:
-		var k2 := clampf((opening_t - 2.1) / 0.8, 0.0, 1.0)
-		var fl := 1.0 if k2 > 0.5 else (1.0 if fmod(k2, 0.2) < 0.1 else 0.25)
-		g.lamp_light.energy = 1.15 * k2 * fl
-		if opening_t - dt < 2.1:
+	# 博士站定后点灯。
+	if opening_t >= DOCTOR_LAND:
+		g.lamp_light.energy = 1.15 * smoothstep(DOCTOR_LAND, DOCTOR_LAND + 0.8, opening_t)
+		if opening_t - dt < DOCTOR_LAND:
 			Sfx.play("oil", -8.0, 1.2, 0.0)
-			g.fx.append({"kind": "rays", "pos": g.ppos + Vector2(0, -20), "life": 0.8, "max": 0.8, "col": Color(1.0, 0.85, 0.5)})
 	g.vfx.update(dt)
 	if opening_t >= OPENING_DUR:
 		end_opening()
@@ -76,6 +171,7 @@ func update_opening(dt: float) -> void:
 func end_opening() -> void:
 	if g.state != Game.S.OPENING:
 		return
+	release_transport()
 	g.p_off = Vector2.ZERO
 	g.p_sq = Vector2.ONE
 	g.p_lean = 0.0
@@ -90,15 +186,15 @@ func end_opening() -> void:
 
 func draw_opening_hud(vs: Vector2) -> void:
 	# 黑场渐亮 + 上下黑边 + 标题卡
-	var dark: float = clampf(1.0 - opening_t / 1.2, 0.0, 1.0) * 0.9 + 0.1
-	if opening_t > 2.9:
-		dark = lerpf(0.1, 0.0, clampf((opening_t - 2.9) / 0.7, 0.0, 1.0))
+	var dark: float = clampf(1.0 - opening_t / 0.52, 0.0, 1.0) * 0.9 + 0.1
+	var fade_out := smoothstep(OPENING_DUR - 0.72, OPENING_DUR, opening_t)
+	dark *= 1.0 - fade_out
 	g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.0, 0.01, 0.03, dark))
-	var bar: float = 70.0 * (1.0 - clampf((opening_t - 2.9) / 0.7, 0.0, 1.0))
+	var bar: float = 70.0 * (1.0 - fade_out)
 	g.hud.draw_rect(Rect2(0, 0, vs.x, bar), Color(0, 0, 0, 0.95))
 	g.hud.draw_rect(Rect2(0, vs.y - bar, vs.x, bar), Color(0, 0, 0, 0.95))
-	if opening_t > 0.4 and opening_t < 3.3:
-		var a: float = clampf((opening_t - 0.4) / 0.6, 0.0, 1.0) * clampf((3.3 - opening_t) / 0.5, 0.0, 1.0)
+	if opening_t > OBJECTIVE_IN:
+		var a: float = smoothstep(OBJECTIVE_IN, OBJECTIVE_IN + 0.28, opening_t) * (1.0 - fade_out)
 		# 11-07 用户：开场标题卡只留行动目标一行（原「干员 · 深海探索」与 OPERATION 英文行删去）
 		UI.text(g.hud, g.font, Vector2(0, vs.y * 0.22 + 40), "行动目标：维持作战至 10:00，击败它们", 26, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 4)
 	UI.text(g.hud, g.font, Vector2(0, vs.y - 26), "点击跳过" if Pad.touch_ui() else "任意键跳过", 12, Color(0.5, 0.6, 0.65, 0.7), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 2)

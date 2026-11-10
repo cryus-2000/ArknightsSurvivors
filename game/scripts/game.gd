@@ -2090,7 +2090,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if settings.visible:
 		return
 	if state == S.OPENING:
-		if (event is InputEventKey and event.pressed and not event.echo) or (event is InputEventMouseButton and event.pressed):
+		if (event is InputEventKey and event.pressed and not event.echo) or (event is InputEventMouseButton and event.pressed) or (event is InputEventScreenTouch and event.pressed):
 			intro_screen.end_opening()
 		return
 	# 倒下过渡中（hud.DEATH_T 秒）：任意键 / 点击直接跳到结算，这次输入不传给结算按钮
@@ -2714,6 +2714,7 @@ var doc_face := 1.0
 
 ## 离开对局（回标题 / 关游戏）：还没记过的这一局按「中途退出」写进本地记录
 func _exit_tree() -> void:
+	intro_screen.release_transport()
 	if RenderingServer.frame_post_draw.is_connected(_cover_tick):
 		RenderingServer.frame_post_draw.disconnect(_cover_tick)
 	if demo_op == "":

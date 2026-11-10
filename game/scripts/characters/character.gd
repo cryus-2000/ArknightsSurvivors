@@ -2989,6 +2989,17 @@ func foot_off(tx: Texture2D, kind: String = "") -> float:
 
 ## 画干员本体（世界坐标，脚底在 pos）
 func draw_body() -> void:
+	if g != null and g.state == g.S.OPENING and g.intro_screen.opening_t < g.intro_screen.TOUCHDOWN:
+		if g.intro_screen.opening_t >= g.intro_screen.DROP_START:
+			var airborne := anim_state()
+			if not airborne.is_empty():
+				var emerge := smoothstep(0.0, 0.12, g.intro_screen.opening_t - g.intro_screen.DROP_START)
+				var feet: Vector2 = g.intro_screen.drop_position(pos) + Vector2(foot_dx(airborne), 0)
+				var tx: Texture2D = airborne.tex
+				var anchor := Vector2(tx.get_width() / (2.0 * airborne.hf), tx.get_height() - foot_off(tx, airborne.get("kind", "")))
+				_cv_flush()
+				g.intro_screen.draw_from_hatch(tx, airborne.frame, airborne.hf, feet, anchor, airborne.flip, g.Look.op_mod(g, feet, Color(1, 1, 1, emerge)))
+		return
 	var st := anim_state()
 	if g != null and vis_hold_until > g.t:   # 卡肉：命中那一帧停住（只画，玩法读数照旧走 anim_state）
 		if vis_hold_st.is_empty():
