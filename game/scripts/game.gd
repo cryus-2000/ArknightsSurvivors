@@ -2539,6 +2539,10 @@ func _update(dt: float) -> void:
 			floor_hits += 1   # 本该死掉的次数：不死模式下的生存压力指标（docs/27 §6）
 			floor_times.append(int(t))
 		hp = maxf(hp, max_hp * 0.5)
+	if hp <= 0.0 and Cfg.test_god():
+		hp = max_hp   # 无敌测试包（Cfg.test_god）：生命归零直接回满，局照常进行到终局
+		invuln = maxf(invuln, 1.0)
+		vfx.show_banner("无敌测试 —— 生命已回满")
 	if not meta_once_heal.is_empty() and hp > 0.0 and hp < max_hp * float(meta_once_heal[0]):
 		# 认知塑造「为了生存」：每次探索一次，生命低于阈值时立即回复
 		combat.heal(max_hp * float(meta_once_heal[1]), "认知塑造")

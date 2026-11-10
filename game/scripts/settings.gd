@@ -1151,6 +1151,16 @@ func note_real(list_name: String, id: String) -> void:
 		save()
 
 
+## 无敌测试包（11-10 用户：iPhone 真机要打到 10 分钟终局验内存，普通打法到不了）：export_web.py --god 往 build.json 写 test_god=true；
+## 调试版另认 --god。队长生命归零时回满，不进结算。正式包（没有这个键）恒为 false。
+var _god := -1
+func test_god() -> bool:
+	if _god < 0:
+		var info = JSON.parse_string(FileAccess.get_file_as_string("res://data/build.json"))
+		_god = 1 if dev_args().has("--god") or (info is Dictionary and info.get("test_god", false) == true) else 0
+	return _god == 1
+
+
 ## 打包时写进 build.json 的发布对象：public / internal / diagnostic；源码运行（没打包）为 ""
 func build_audience() -> String:
 	var info = JSON.parse_string(FileAccess.get_file_as_string("res://data/build.json"))

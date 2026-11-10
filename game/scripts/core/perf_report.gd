@@ -366,7 +366,7 @@ static func slow_line(s: Array) -> String:
 static func report_text(r: Dictionary) -> String:
 	var lines := [
 		"方舟幸存者 · 性能报告",
-		"版本 %s（%s）· %s" % [str(r.get("version", "")), str(r.get("commit", "")), str(r.get("time", "")).replace("T", " ")],
+		"版本 %s（%s）%s· %s" % [str(r.get("version", "")), str(r.get("commit", "")), ("· 无敌测试包 " if _build().get("test_god", false) == true else ""), str(r.get("time", "")).replace("T", " ")],
 		"设备 " + device_line(r.get("device", {})),
 		quality_line(r),
 		"本局 %s · %s" % [_mmss(float(r.get("len", 0))), RESULT_NAME.get(str(r.get("result", "")), str(r.get("result", "")))],
