@@ -505,6 +505,8 @@ func draw_world() -> void:
 	_draw_squad_pools()
 	_draw_shadows(evr)
 	_pk("shadows")
+	if g.state == Game.S.OPENING:
+		g.intro_screen.draw_transport()
 	_draw_sorted_entities(evr)
 	_pk("sorted_entities")
 	if not _dbg_friend:
@@ -5885,6 +5887,8 @@ func feet_dust(n: int, spd: float) -> void:
 
 
 func draw_player() -> void:
+	if g.state == Game.S.OPENING and g.intro_screen.opening_t < g.intro_screen.DROP_START:
+		return
 	var tx: Texture2D = g.sprite.texture
 	if tx == null:
 		return

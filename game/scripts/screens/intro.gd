@@ -12,6 +12,36 @@ const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类
 var g: Game
 var opening_t := 0.0             # 开场动画时间
 const OPENING_DUR := 3.6
+const DROP_START := 0.83
+const TOUCHDOWN := 1.7
+const CLEAR_SKY := 2.85
+const OBJECTIVE_IN := 2.18
+const TRANSPORT_PATH := "res://art/world/props/bad_guy_transport.png"
+var transport: Texture2D   # 单次开场持有，不进入 Art 的整局贴图缓存
+
+func release_transport() -> void:
+	transport = null
+
+## 舱口与干员脚底统一使用世界坐标，判定位置始终在地面。
+func hatch() -> Vector2:
+	var view: Rect2 = g.world.view_rect(0.0)
+	var approach := 1.0 - smoothstep(0.0, 0.72, opening_t)
+	var depart := smoothstep(1.86, CLEAR_SKY, opening_t)
+	var travel := view.size.x * 0.65 + 315.0
+	return g.ppos + Vector2((depart - approach) * travel, -98.0 - 42.0 * approach - 88.0 * depart + 2.0 * sin(opening_t * 5.0))
+
+func drop_position(ground: Vector2) -> Vector2:
+	var u := clampf(inverse_lerp(DROP_START, TOUCHDOWN, opening_t), 0.0, 1.0)
+	return hatch().lerp(ground, u * u) + Vector2(0.0, -12.0 * sin(PI * u))
+
+func draw_transport() -> void:
+	if transport == null:
+		return
+	var size := transport.get_size() * 2.25
+	# 图内锚在侧舱门槛中央。
+	var top_left := (hatch() - size * Vector2(0.526, 0.91)).round()
+	g.wcv.draw_texture_rect(transport, Rect2(top_left, size), false, Color(1.35, 1.39, 1.42))
+
 
 
 func _init(game: Game) -> void:
@@ -25,27 +55,26 @@ func prev_page() -> void:
 		Sfx.play("ui_move")
 
 
-## 开场动画：水月自海面沉降落地 → 灯火点亮 → 标题卡；任意键跳过，之后进入指南
+## 开场动画：坏家伙号悬停、编队离舱落地、点灯。任意键可跳过。
 func start_opening() -> void:
 	g.state = Game.S.OPENING
 	opening_t = 0.0
-	g.p_off = Vector2(0, -320)
+	transport = ResourceLoader.load(TRANSPORT_PATH, "Texture2D", ResourceLoader.CACHE_MODE_IGNORE) as Texture2D
+	g.p_off = Vector2.ZERO
 	g.lamp_light.energy = 0.0
 	Sfx.play("start", -14.0)   # 音量巡检：开场引子开头近乎无声，-4 dB 时比音乐响 29 dB；现在只托住开头，和 1.7 秒后的引子齐平
 
 
 func update_opening(dt: float) -> void:
 	opening_t += dt
-	var k1 := clampf(opening_t / 1.7, 0.0, 1.0)
-	var ease_in := 1.0 - pow(1.0 - k1, 2.2)
-	g.p_off = Vector2(sin(opening_t * 3.0) * 6.0 * (1.0 - k1), -320.0 * (1.0 - ease_in))
-	g.p_lean = sin(opening_t * 2.0) * 0.08 * (1.0 - k1)
-	g.p_sq = Vector2(1.0 - 0.06 * (1.0 - k1), 1.0 + 0.1 * (1.0 - k1))
-	# 上升的气泡
-	if k1 < 1.0 and randf() < 0.6:
-		g.fx.append({"kind": "spark", "pos": g.ppos + g.p_off + Vector2(randf_range(-22, 22), randf_range(-40, 10)), "vel": Vector2(randf_range(-8, 8), -randf_range(40, 90)), "sz": randf_range(2.0, 3.5), "life": 1.1, "max": 1.1, "col": Color(0.8, 0.95, 1.0, 0.7)})
+	if opening_t >= CLEAR_SKY:
+		release_transport()
+	if opening_t < TOUCHDOWN:
+		g.p_off = drop_position(g.sprite.position) - g.sprite.position
+	else:
+		g.p_off = Vector2.ZERO
 	# 落地
-	if opening_t >= 1.7 and opening_t - dt < 1.7:
+	if opening_t >= TOUCHDOWN and opening_t - dt < TOUCHDOWN:
 		g.p_sq = Vector2(1.3, 0.72)
 		g.world.feet_dust(14, 150.0)
 		g.fx.append({"kind": "ring", "pos": g.ppos + Vector2(0, 6), "r": 60.0, "life": 0.45, "max": 0.45, "col": Color(0.6, 0.85, 1.0)})
@@ -54,7 +83,7 @@ func update_opening(dt: float) -> void:
 		for o in g.squad.ops:
 			o.play_entry()   # 编队着地接入场条（10-22）
 		g.release_entry_voices()   # 登场语音在编队着地、黑场已褪时才播（以前在建局时就响，画面还没出来，用户 10-25）
-	if opening_t >= 1.7:
+	if opening_t >= TOUCHDOWN:
 		for o in g.squad.ops:
 			if o.vis_anim == "entry":
 				o.anim_t += dt   # 开场期间干员不走 update：入场条在这里推进（end_opening 后由 update 接着走）
@@ -76,6 +105,7 @@ func update_opening(dt: float) -> void:
 func end_opening() -> void:
 	if g.state != Game.S.OPENING:
 		return
+	release_transport()
 	g.p_off = Vector2.ZERO
 	g.p_sq = Vector2.ONE
 	g.p_lean = 0.0
@@ -90,15 +120,15 @@ func end_opening() -> void:
 
 func draw_opening_hud(vs: Vector2) -> void:
 	# 黑场渐亮 + 上下黑边 + 标题卡
-	var dark: float = clampf(1.0 - opening_t / 1.2, 0.0, 1.0) * 0.9 + 0.1
+	var dark: float = clampf(1.0 - opening_t / 0.52, 0.0, 1.0) * 0.9 + 0.1
 	if opening_t > 2.9:
 		dark = lerpf(0.1, 0.0, clampf((opening_t - 2.9) / 0.7, 0.0, 1.0))
 	g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.0, 0.01, 0.03, dark))
 	var bar: float = 70.0 * (1.0 - clampf((opening_t - 2.9) / 0.7, 0.0, 1.0))
 	g.hud.draw_rect(Rect2(0, 0, vs.x, bar), Color(0, 0, 0, 0.95))
 	g.hud.draw_rect(Rect2(0, vs.y - bar, vs.x, bar), Color(0, 0, 0, 0.95))
-	if opening_t > 0.4 and opening_t < 3.3:
-		var a: float = clampf((opening_t - 0.4) / 0.6, 0.0, 1.0) * clampf((3.3 - opening_t) / 0.5, 0.0, 1.0)
+	if opening_t > OBJECTIVE_IN:
+		var a: float = smoothstep(OBJECTIVE_IN, OBJECTIVE_IN + 0.28, opening_t) * (1.0 - smoothstep(3.3, OPENING_DUR, opening_t))
 		# 11-07 用户：开场标题卡只留行动目标一行（原「干员 · 深海探索」与 OPERATION 英文行删去）
 		UI.text(g.hud, g.font, Vector2(0, vs.y * 0.22 + 40), "行动目标：维持作战至 10:00，击败它们", 26, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 4)
 	UI.text(g.hud, g.font, Vector2(0, vs.y - 26), "点击跳过" if Pad.touch_ui() else "任意键跳过", 12, Color(0.5, 0.6, 0.65, 0.7), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 2)
