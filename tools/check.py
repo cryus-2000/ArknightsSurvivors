@@ -1254,6 +1254,22 @@ def check_onboard_reload(godot):
     return {"name": name, "ok": ok, "detail": detail, "errors": errs[:5], "log": log}
 
 
+def check_opening_transport(godot):
+    """开场「坏家伙号」运输机飞走 / 跳过后贴图、引擎声、播放器都释放（11-10 用户：确保飞机飞走之后内存清理干净；tests/opening_transport_probe.gd）"""
+    name = "开场运输机释放（坏家伙号）：完整播完与中途跳过两条路线，贴图 / 引擎声 / 播放器释放、不进资源缓存"
+    res, errs_all, logs = [], [], []
+    for route in ("", "=skip"):
+        out, err, to, log = _run([godot, "--headless", "--audio-driver", "Dummy", "--fixed-fps", "30", "--path", GAME, "--",
+                                  "--autotest", "--openshot", "--seed=1", "--op=mizuki", "--openingmem" + route], 200, "opening_transport" + route.replace("=", "_"))
+        errs_all += GR.script_errors(out, err)
+        m = re.search(r"OPENING TRANSPORT route=(\w+) failures=(\d+)", out)
+        res.append(not to and m is not None and m.group(2) == "0")
+        logs.append(log)
+    ok = all(res) and not errs_all
+    detail = "两条路线都释放干净" if ok else ("有报错" if errs_all else "完整路线 %s / 跳过路线 %s" % tuple("过" if r else "没过" for r in res))
+    return {"name": name, "ok": ok, "detail": detail, "errors": errs_all[:5], "log": logs[0]}
+
+
 def check_scene(godot, key):
     name, scene, success, extra = SCENE_REGRESSIONS[key]
     if scene.endswith(".gd"):   # SceneTree 脚本式测试：godot --script res://tests/<名>.gd
@@ -1371,7 +1387,7 @@ def main():
     ap.add_argument("--ab", metavar="REF", help="与某个提交做 A/B 对比（机器人标准矩阵）")
     ap.add_argument("--seeds", type=int, default=4)
     ap.add_argument("--keep", action="store_true", help="A/B 结束后保留临时工作树")
-    ap.add_argument("--only", choices=["core", "smoke", "nodes", "hold_aim", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "node_cue_lint", "data_lint", "graph_lint", "check_map", "text_reconcile", "shader_lint", "px_lint", "enemy_art", "asset_lint", "asset_index", "onboard_reload"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
+    ap.add_argument("--only", choices=["core", "smoke", "nodes", "hold_aim", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "node_cue_lint", "data_lint", "graph_lint", "check_map", "text_reconcile", "shader_lint", "px_lint", "enemy_art", "asset_lint", "asset_index", "onboard_reload", "opening_transport"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
     ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS,
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
     ap.add_argument("--bal", action="append", default=[], metavar="段/键=值",
@@ -1509,6 +1525,8 @@ def main():
             jobs.append(lambda: check_blocks_eq(godot))
         if a.only in (None, "onboard_reload"):
             jobs.append(lambda: check_onboard_reload(godot))
+        if a.only in (None, "opening_transport"):
+            jobs.append(lambda: check_opening_transport(godot))
         for key in SCENE_REGRESSIONS:
             if a.only in (None, "regressions", key):
                 jobs.append(lambda key=key: check_scene(godot, key))

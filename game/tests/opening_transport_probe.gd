@@ -11,6 +11,7 @@ var t := 0.0
 var t_check := -1.0
 var done := false
 var failures := 0
+var ms_check := -1   # 放手后按真实时间再等：无头 --fixed-fps 跑得比真实时间快，音频线程要真实时间才处理 stop 释放回放（流引用在回放里）
 
 
 func _ready() -> void:
@@ -31,9 +32,11 @@ func _process(dt: float) -> void:
 	if skip and t_check < 0.0 and it.opening_t >= 1.5:
 		it.end_opening()   # 玩家点跳过
 		t_check = t + 0.5
+		ms_check = Time.get_ticks_msec() + 1500
 	if not skip and t_check < 0.0 and it.opening_t >= it.CLEAR_SKY:
 		t_check = t + 0.5
-	if t_check >= 0.0 and t >= t_check:
+		ms_check = Time.get_ticks_msec() + 1500
+	if t_check >= 0.0 and t >= t_check and Time.get_ticks_msec() >= ms_check:
 		done = true
 		_check(it.transport == null, "transport field cleared")
 		_check(it.engine_player == null, "engine player field cleared")
