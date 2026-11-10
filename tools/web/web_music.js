@@ -236,6 +236,7 @@
   M.state = function () {   // 自测 / 日志
     var on = 0; for (var k in srcs) { if (srcs[k].src) on++; }
     return JSON.stringify({ bufs: Object.keys(bufs).length, loading: Object.keys(loading).length, on: on, fails: fails, mb: Math.round(M.mb()), lv: Math.round(M.level() * 10000) / 10000, ctx: (ctx() || {}).state || "none",
-      sr: (ctx() || {}).sampleRate || 0, mono: MONO ? 1 : 0, mix: Object.keys(isMix).length, ret: Object.keys(retired).length, dl: Math.round(dl / 104857.6) / 10, lf: lastFail });   // sr：解码按上下文采样率重采样（iOS 常为 48 kHz，缓冲是 24 kHz 原曲的 2 倍）
+      sr: (ctx() || {}).sampleRate || 0, mono: MONO ? 1 : 0, mix: Object.keys(isMix).length, ret: Object.keys(retired).length,
+      nm: Object.keys(bufs).map(function (u) { return String(u).replace(/^music_(suno_)?/, "").replace(/\.m4a$/, "") + (bufs[u].__syMix ? "*" : ""); }).join("+"), dl: Math.round(dl / 104857.6) / 10, lf: lastFail });   // sr：解码按上下文采样率重采样（iOS 常为 48 kHz，缓冲是 24 kHz 原曲的 2 倍）
   };
 })();

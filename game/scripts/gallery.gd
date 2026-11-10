@@ -82,6 +82,7 @@ var demo_mode := -1
 var info_tab := 0
 const INFO_TABS := ["档案", "属性", "技能", "成长"]   # 属性：主控数值表（与选人「属性」页同源，InitialStats.sheet）
 func _ready() -> void:
+	load("res://scripts/core/crash_box.gd").opened("图鉴")   # 闪退报告开局信息（docs/332 §4）
 	var lf := FileAccess.open("res://data/lore.json", FileAccess.READ)
 	if lf != null:
 		var ld = JSON.parse_string(lf.get_as_text())
