@@ -42,7 +42,7 @@ func step(delta: float) -> void:
 	_log_t += rd
 	if _log_t >= 10.0:
 		_log_t = 0.0
-		print("PF AUTOPLAY st=%d kind=%s n=%d t=%.0f age=%.1f modal=%s" % [g.state, str(g.choice_kind), g.choices.size(), g.t, g.state_age, str(g.onboard.modal())])
+		print("PF AUTOPLAY st=%d kind=%s n=%d t=%.0f age=%.1f modal=%s sq=%d lv=%d" % [g.state, str(g.choice_kind), g.choices.size(), g.t, g.state_age, str(g.onboard.modal()), g.squad.size(), g.level])
 	match g.state:
 		S.CHOICE:
 			_wait += rd
@@ -64,7 +64,10 @@ func step(delta: float) -> void:
 					g.state = S.PLAY
 					_stuck = 0.0
 					return
-				g.progression.pick(_pick())
+				var pi: int = _pick()
+				if pi >= 0 and pi < g.choices.size():
+					print("PF AUTOPLAY pick kind=%s -> %s %s (of %s)" % [str(g.choice_kind), str(g.choices[pi].get("kind", "")), str(g.choices[pi].get("id", g.choices[pi].get("name", ""))), ",".join(g.choices.map(func(c): return str(c.get("kind", ""))))])
+				g.progression.pick(pi)
 		S.SHOP:
 			_wait += rd
 			if _wait >= PICK_WAIT:
@@ -119,6 +122,11 @@ func _pick() -> int:
 	var idx: Array = g.progression.auto_choices()
 	if idx.is_empty():
 		return 0
+	# 11-11 用户：自动模式要多招队友（压力测试要满编队的特效 / 内存）——没满员时有招募卡就先招
+	if not g.squad.is_full():
+		for i in idx:
+			if str(g.choices[i].get("kind", "")) == "recruit":
+				return int(i)
 	if bot != null:
 		var keep: Array = g.choices
 		g.choices = idx.map(func(i): return keep[i])
