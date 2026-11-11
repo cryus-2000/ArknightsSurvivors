@@ -58,7 +58,35 @@
   // 出包另存 p1 + p2 的单声道预混（tools/web_music.py）：p2 的占位器在手机上解码的是预混；预混开播后底层 p1 的增益按 g1 − g2 交叉淡出，
   // 降到 0 就停掉并丢掉 p1 的缓冲，同一时刻只留一首（交接只有预混解码到开播后约 0.15 秒）。二阶段退回时重新解 p1、按预混的进度对齐接上。
   // 预混文件缺失时照旧解 p2 原文件（两份同驻，行为与旧版一样）。网址带 ?muspremix=0 一并关掉
-  var PAIRS = {"music_suno_final_p2.m4a": {base: "music_suno_final_p1.m4a", mix: "music_suno_final_p12_mono.m4a"}};
+  // 其余三首最终 Boss（伊莎玛拉 / 最后的骑士 / 伊祖米克；11-12 iPhone 四 Boss 连测第 2 / 4 局二阶段配乐 39 / 43 MiB）没有预混文件
+  // （Toy 包 49.59 MB 离 50 MB 线只剩 0.4，三首各 +1.6 MB 放不下）：mix 为 null 时在这边运行时混——解 p2、和内存里正在播的 p1
+  // 一起送进单声道 OfflineAudioContext（同出包预混：p1 单声道 + p2 的 (L + R) / 2），结果当预混用，之后交接流程完全一样。
+  // 交接时的瞬时驻留（p1 + p2 原始解码 + 混音结果）与原来「p1 + p2 原始解码 + p2 单声道」一样大，稳态从两首降到一首
+  var PAIRS = {"music_suno_final_p2.m4a": {base: "music_suno_final_p1.m4a", mix: "music_suno_final_p12_mono.m4a"},
+    "music_suno_final_ishar_p2.m4a": {base: "music_suno_final_ishar_p1.m4a", mix: null},
+    "music_suno_final_knight_p2.m4a": {base: "music_suno_final_knight_p1.m4a", mix: null},
+    "music_suno_final_izumik_p2.m4a": {base: "music_suno_final_izumik_p1.m4a", mix: null}};
+  var rtmix = 0;   // 运行时混成功的次数（state 里的 rt）
+  function rtMix(c, url, base) {   // 运行时预混：没有 OfflineAudioContext / 底层没解出来 / 采样率不一致时退回 p2 原样（同旧行为）
+    var O = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    return decode(c, url).then(function (b2) {
+      if (!O) return b2;
+      var b1p = bufs[base] ? Promise.resolve(bufs[base]) : load(base);
+      return b1p.then(function (b1) {
+        if (!b1 || b1.sampleRate !== b2.sampleRate) return b2;
+        try {
+          var n = Math.min(b1.length, b2.length), oc = new O(1, n, b2.sampleRate);
+          [b1, b2].forEach(function (b) { var x = oc.createBufferSource(); x.buffer = b; x.connect(oc.destination); x.start(0); });
+          return new Promise(function (res) {
+            var done = function (m) { if (m && m.numberOfChannels === 1) { m.__syMix = 1; rtmix++; res(m); } else res(b2); };
+            var pr = oc.startRendering();
+            if (pr && pr.then) pr.then(done, function () { res(b2); });
+            else oc.oncomplete = function (e) { done(e.renderedBuffer); };
+          });
+        } catch (e) { return b2; }
+      }, function () { return b2; });
+    });
+  }
   var isMix = {}, retired = {};   // isMix：这个 url 的缓冲是预混；retired：底层 id -> url（GD 那边还在播，这边已停掉放手）
   function load(url) {
     delete toFree[url];   // 新的播放或预热请求可接回正在解码的同一首
@@ -70,6 +98,8 @@
     var decoded, pr = premix && PAIRS[url];
     if (premix && url === "music_suno_final_p1.m4a") {
       decoded = decode(c, "music_suno_final_p1_mono.m4a").catch(function () { return decode(c, url); });
+    } else if (pr && !pr.mix) {
+      decoded = rtMix(c, url, pr.base);
     } else if (pr) {
       decoded = decode(c, pr.mix).then(function (b) { b.__syMix = 1; return b; }, function () { return decode(c, url); });
     } else {
@@ -241,6 +271,6 @@
     var on = 0; for (var k in srcs) { if (srcs[k].src) on++; }
     return JSON.stringify({ bufs: Object.keys(bufs).length, loading: Object.keys(loading).length, on: on, fails: fails, mb: Math.round(M.mb()), lv: Math.round(M.level() * 10000) / 10000, ctx: (ctx() || {}).state || "none",
       sr: (ctx() || {}).sampleRate || 0, mono: MONO ? 1 : 0, mix: Object.keys(isMix).length, ret: Object.keys(retired).length,
-      nm: Object.keys(bufs).map(function (u) { return String(u).replace(/^music_(suno_)?/, "").replace(/\.m4a$/, "") + (bufs[u].__syMix ? "*" : ""); }).join("+"), dl: Math.round(dl / 104857.6) / 10, lf: lastFail, dec: dec, hit: hit });   // sr：解码按上下文采样率重采样（iOS 常为 48 kHz，缓冲是 24 kHz 原曲的 2 倍）
+      nm: Object.keys(bufs).map(function (u) { return String(u).replace(/^music_(suno_)?/, "").replace(/\.m4a$/, "") + (bufs[u].__syMix ? "*" : ""); }).join("+"), dl: Math.round(dl / 104857.6) / 10, lf: lastFail, dec: dec, hit: hit, rt: rtmix });   // sr：解码按上下文采样率重采样（iOS 常为 48 kHz，缓冲是 24 kHz 原曲的 2 倍）
   };
 })();

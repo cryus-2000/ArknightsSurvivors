@@ -20,7 +20,7 @@ import re
 LONG_MIN = 30.0
 OVERLAY_LAYER = re.compile(r"^suno_battle\d_(pulse|drive)$")
 SKIP = {"opening", "boss_in", "boss_down"}
-# 二阶段预混：p2 层名 -> 底层 p1 名 / 输出名（url 与 tools/web/web_music.js 的 PAIRS 一致）。只做结局一偏执泡影：其余三首结局 Boss 各 +1.6 MB，Toy 包 50 MB 线放不下
+# 二阶段预混：p2 层名 -> 底层 p1 名 / 输出名（url 与 tools/web/web_music.js 的 PAIRS 一致）。只做结局一偏执泡影：其余三首结局 Boss 各 +1.6 MB，Toy 包 50 MB 线放不下——那三首在 web_music.js 里运行时混（PAIRS mix: null，11-12 docs/319 §24）
 PREMIX_P2 = {"suno_final_p2": "suno_final_p1"}
 PREMIX_P2_OUT = {"suno_final_p2": "suno_final_p12_mono"}
 

@@ -1058,6 +1058,9 @@ func _white_release(delta: float, now := false) -> void:
 		keep_e = minf(keep_e, 3.0)
 	for e in enemies:
 		_white_alive[str(e.get("tex", ""))] = t
+	# 每轮（5 秒）最多放一种怪的帧条（内存护栏 now 照旧一次放完）：11-12 iPhone 骑士战 10:24 一帧 684 ms、10:48 一帧 140 ms，那一秒只有「释放帧条」——
+	# 最终阶段 3 秒就放，前十分钟的普通怪几十种在同一帧整批 uncache（贴图 + 白剪影 + 描边）。分摊到每 5 秒一种，内存照样腾出来，只是晚几十秒
+	var ev_left: int = 1000000 if now or Bal.v("web/evict_one_per_pass", 1.0) <= 0.0 else 1
 	for n in _white_alive.keys():
 		var idle := t - float(_white_alive[n])
 		if idle > keep_w and MID_BOSS_EXTRA_STRIPS.has(n) and _mid_boss_tex_in_use(n):
@@ -1069,9 +1072,12 @@ func _white_release(delta: float, now := false) -> void:
 					if tex.get(nm) != null:
 						A.white_drop(tex[nm])
 			_drop_outlines(n)
-		if idle > keep_e and _evict_on:
+		if idle > keep_e and _evict_on and ev_left > 0 and _enemy_loaded.has(n):
+			ev_left -= 1
 			_enemy_evict(n)
 			_white_alive.erase(n)
+		elif idle > keep_e and _evict_on and not _enemy_loaded.has(n):
+			_white_alive.erase(n)   # 本来就没读着（或已放过）：只清记录，不占这一轮的名额
 	_font_t += 5.0
 	if _font_t >= 60.0 and Bal.v("web/font_clear_minutely", 0.0) > 0.0:
 		_font_t = 0.0

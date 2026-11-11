@@ -1163,10 +1163,14 @@ const OP_FX := {
 	"texas": ["texas", "ult_texas"], "exusiai": ["exusiai", "ult_exusiai"], "kaltsit": ["mon3tr", "ult_kaltsit"],
 }
 static var _fx_tok := {}
+## 前缀是 ul_ 但多人共用的地裂 / 碎石 / 尘墙（星熊、斯卡蒂终结技、推进之王连携、升级特效 levelup_v2 等都在用）：算公共，开局照读。
+## 原来归到乌尔比安：手机网页编队里没有他时这几张延后、局中用到才补读，性能报告「本局干员特效读入」里就出现编队外的乌尔比安 0.2 MiB（11-12 四 Boss 连测第 2 / 4 局）
+const SHARED_FX := {"fx_ul_crack_line": true, "fx_ul_crack_fork": true, "fx_ul_crack_fork2": true, "fx_ul_crack_fork3": true, "fx_ul_crack_fork4": true,
+	"fx_ul_rock": true, "fx_ul_rock2": true, "fx_ul_dust_ring": true, "fx_ul_dust_wall": true}
 
 ## 帧条名 → 所属干员 id（不是干员专属特效时为 ""）
 static func fx_owner(n: String) -> String:
-	if not (n.begins_with("fx_") or n.begins_with("proj_")):
+	if not (n.begins_with("fx_") or n.begins_with("proj_")) or SHARED_FX.has(n):
 		return ""
 	if _fx_tok.is_empty():
 		for cid in OP_FX:

@@ -21,6 +21,7 @@ function run(opts) {
   const files = {   // url -> 声道数（出包：p1 / p2 立体声，p1_mono 与预混单声道）
     "music_suno_final_p1.m4a": 2, "music_suno_final_p2.m4a": 2,
     "music_suno_final_p1_mono.m4a": 1, "music_suno_final_p12_mono.m4a": 1,
+    "music_suno_final_knight_p1.m4a": 2, "music_suno_final_knight_p2.m4a": 2,   // 没有预混文件：运行时混（11-12）
   };
   if (opts.noMix) delete files["music_suno_final_p12_mono.m4a"];
   const fetched = [];
@@ -187,6 +188,39 @@ async function main() {
     await flush();
     await advance(0.5);
     check(sources[0].stopped && near(M.mb(), ONE), "suspended context still releases base (" + M.mb().toFixed(1) + ")");
+  }
+  // ---- 6. 没有预混文件的最终 Boss（最后的骑士）：p2 解出来和 p1 运行时混成单声道，交接后同样只留一首
+  {
+    const K1 = "music_suno_final_knight_p1.m4a", K2 = "music_suno_final_knight_p2.m4a";
+    const { M, sources, fetched, flush, advance } = run({});
+    M.play([["1", K1, 0, 0, LEN, 1.0]]);
+    await flush();
+    check(near(M.mb(), ONE), "knight p1 one mono buffer (" + M.mb().toFixed(1) + ")");
+    await advance(20);
+    M.play([["2", K2, 20, 0, LEN, 1.0]]);
+    await flush();
+    await advance(0.2);
+    const st = JSON.parse(M.state());
+    check(fetched.includes(K2) && st.rt === 1 && st.mix === 1, "knight p2 runtime-mixed with p1 " + M.state());
+    check(sources[0].stopped && near(M.mb(), ONE), "knight phase 2 holds one buffer (" + M.mb().toFixed(1) + ")");
+    M.gain([["2", 0.0]]);
+    await flush();
+    check(sources[2] && sources[2].started, "knight regress: base restarted");
+    M.stop(["1", "2"]);
+    M.free([K1, K2]);
+    await flush();
+    check(near(M.mb(), 0), "knight end: all freed (" + M.mb().toFixed(1) + ")");
+  }
+  // ---- 7. ?muspremix=0：骑士也退回旧行为（不混、两份同驻）
+  {
+    const K1 = "music_suno_final_knight_p1.m4a", K2 = "music_suno_final_knight_p2.m4a";
+    const { M, sources, flush, advance } = run({ search: "?muspremix=0" });
+    M.play([["1", K1, 0, 0, LEN, 1.0]]);
+    await flush();
+    M.play([["2", K2, 5, 0, LEN, 1.0]]);
+    await flush();
+    await advance(0.5);
+    check(!sources[0].stopped && near(M.mb(), 2 * ONE) && JSON.parse(M.state()).rt === 0, "knight muspremix=0 keeps old behaviour");
   }
   console.log("WEB MUSIC failures=" + failures);
   process.exit(failures ? 1 : 0);

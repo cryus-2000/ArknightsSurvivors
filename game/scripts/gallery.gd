@@ -82,7 +82,6 @@ var demo_mode := -1
 var info_tab := 0
 const INFO_TABS := ["档案", "属性", "技能", "成长"]   # 属性：主控数值表（与选人「属性」页同源，InitialStats.sheet）
 func _ready() -> void:
-	load("res://scripts/core/crash_box.gd").opened("图鉴")   # 闪退报告开局信息（docs/332 §4）
 	var lf := FileAccess.open("res://data/lore.json", FileAccess.READ)
 	if lf != null:
 		var ld = JSON.parse_string(lf.get_as_text())
@@ -135,6 +134,8 @@ static func _mobile_trim() -> bool:
 
 
 func open() -> void:
+	if not visible:
+		load("res://scripts/core/crash_box.gd").opened("图鉴")   # 闪退报告开局信息（docs/332 §4）；原来记在 _ready，标题页一建图鉴就算「打开 1 次」（11-12 四 Boss 连测每页都报 1 次）
 	if _mobile_trim() and not visible:
 		_pre_cache = A.cache_keys()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
