@@ -196,7 +196,7 @@ static func summary_text() -> String:
 		o.append("（还没有结算的局）")
 	for e in runs:
 		o.append("")
-		o.append("━━━━ 第 %d 局 · %s · 开局编队 %s ━━━━" % [int(e.get("idx", 0)) + 1, BOSS_NAME.get(str(e.get("boss", "")), str(e.get("boss", ""))), _names(e.get("squad0", e.get("squad", [])))])
+		o.append("———— 第 %d 局 · %s · 开局编队 %s ————" % [int(e.get("idx", 0)) + 1, BOSS_NAME.get(str(e.get("boss", "")), str(e.get("boss", ""))), _names(e.get("squad0", e.get("squad", [])))])
 		if e.has("boss_seg"):
 			o.append("Boss 战段 " + boss_seg_text(e.boss_seg))
 		o.append(str(e.get("text", "")))
