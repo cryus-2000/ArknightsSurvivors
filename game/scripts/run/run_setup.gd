@@ -105,7 +105,7 @@ static func apply_test_args(g) -> void:
 		Engine.time_scale = Cfg.test_speed()   # 无敌测试包网址 speed=（只测试包）；game._exit_tree 复原
 	if g.demo_op == "" and not g.trial.active:
 		for i in range(1, tsq.size()):
-			if Character.exists(tsq[i]) and g.squad.add(tsq[i]) != null:
+			if load("res://scripts/characters/character.gd").exists(tsq[i]) and g.squad.add(tsq[i]) != null:   # run_setup 没有 Character 常量（2a89cdf03 编译错误）
 				g.panel_ui.load_op_tex(tsq[i])
 	if VisNodesR.on(g):
 		VisNodesR.apply_run(g)   # 看得见的节点开着时怪物同步加强（docs/249 §4，用户 11-05「加成给多了就加强怪物」）

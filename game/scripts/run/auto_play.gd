@@ -23,7 +23,7 @@ func _init(game) -> void:
 	g = game
 	if ResourceLoader.exists("res://scripts/core/bot.gd"):
 		bot = load("res://scripts/core/bot.gd").new(g, "expert", 0)   # 发行包不带 bot.gd（release_slim DEV_SCRIPTS）；无敌包导出时保留（export_web.py --god）
-	print("AUTOPLAY on loop=%s bot=%s" % [str(Cfg.test_loop()), str(bot != null)])
+	print("PF AUTOPLAY on loop=%s bot=%s" % [str(Cfg.test_loop()), str(bot != null)])
 
 
 ## 移动方向（game.gd 移动输入链；state == PLAY 时调）
@@ -72,7 +72,7 @@ func step(delta: float) -> void:
 			_end_t += rd
 			if Cfg.test_loop() and not _looped and _end_t >= END_WAIT and not g.victory.active:
 				_looped = true
-				print("AUTOPLAY restart t=%.0f" % g.t)
+				print("PF AUTOPLAY restart t=%.0f" % g.t)
 				g._do_action("restart")   # 手机网页整页重载后直接同队出发（core/run_reload.gd）
 		_:
 			_wait = 0.0
