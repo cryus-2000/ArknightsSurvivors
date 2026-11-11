@@ -1358,7 +1358,12 @@ func _draw_credits(vs: Vector2) -> void:
 	var wt: float = clampf(vs.x * 0.3, 300.0, 420.0)
 	HS.left_panel(self, vs, wt, wt - 70.0, 0.0)
 	var title: String = credits_data.get("title", "致谢与声明")
-	HS.title_block(self, font, Vector2(48, vs.y * 0.2), "02", "致 谢", title, "CREDITS", 1.0, 56)
+	var tsz := 56
+	if UI.Loc.en():   # 英文「Credits and Disclaimer」比四个汉字长得多：缩到左栏宽以内（11-12 预审：压进右侧正文）
+		var tt := UI.Loc.s(title)
+		while tsz > 24 and font.get_string_size(tt, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(tsz)).x * 1.12 > wt - 100.0:
+			tsz -= 2
+	HS.title_block(self, font, Vector2(48, vs.y * 0.2), "02", "致 谢", title, "CREDITS", 1.0, tsz)
 	HS.hr_mark(self, font, Vector2(48, vs.y - 120), 1.0, HS.INK2, ["ARKNIGHTS", "FAN GAME", "NON-COMMERCIAL"])
 	var secs: Array = credits_data.get("sections", [])
 	var touch: bool = Pad.touch_ui()

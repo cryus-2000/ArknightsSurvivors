@@ -13,7 +13,7 @@ extends RefCounted
 const MODULES := ["ops", "enemies", "ui", "relics", "events", "meta", "run", "extra"]
 ## 「跟随系统」解析成英文的开关：英文翻译未覆盖全部模块前保持 false——系统语言是英文的玩家先看到完整中文，
 ## 不会看到中英夹杂的半成品；在设置里手动选 English 不受影响。全部模块翻完、第三步验收后改 true（docs/276 §10）
-const AUTO_EN_READY := false
+const AUTO_EN_READY := true   # 11-12 用户已授权合入（不过目，标 AI 翻译）：非中文系统的「自动」选英文
 
 static var lang := "zh"          # 当前生效语言："zh" / "en"
 static var _ready_tr := false
@@ -21,6 +21,7 @@ static var _cache := {}          # 原文 → 译文（含查不到的，存原�
 static var _tpl := {}            # 首个中文二字组 → [[RegEx, 英文模板, 占位记号表], …]
 static var _cjk: RegEx
 static var _ph: RegEx
+static var _re_fwp: RegEx   # 全角标点（英文模式下没有汉字的串也换成英文标点）
 
 
 static func en() -> bool:
@@ -51,6 +52,7 @@ static func _load() -> void:
 	_ready_tr = true
 	_cjk = RegEx.create_from_string("[\\x{4e00}-\\x{9fff}]")
 	_ph = RegEx.create_from_string("\\{\\$[^}]*\\}|%[-+0-9.]*[dsf]|%%")
+	_re_fwp = RegEx.create_from_string("[。、；（），：！？]")
 	for m in MODULES:
 		var p := "res://l10n/%s.en.translation" % m
 		if not ResourceLoader.exists(p):
@@ -143,6 +145,8 @@ static func s(text: String) -> String:
 			out = _match_tpl(text)
 			if out == text:
 				out = _split_fallback(text)
+	elif _re_fwp != null and _re_fwp.search(text) != null:   # 没有汉字但带全角标点（「PRTS Wiki；ArknightsGameData（Kengxxiao）。」）：换成英文标点
+		out = _ascii_punct(text)
 	if _cache.size() >= 4096:
 		_cache.clear()
 	_cache[text] = out
@@ -154,6 +158,13 @@ static func s(text: String) -> String:
 ## 截图 / 冒烟时打开：英文模式下查完仍是中文的原文记下来（tests/l10n_shots 跑完写 missing.txt，送去补翻）
 static var record_missing := false
 static var missing := {}
+
+
+## 全角标点 → 英文标点（只用在没有汉字的串上；括号前补空格）
+static func _ascii_punct(t: String) -> String:
+	for pr in [["（", " ("], ["）", ")"], ["；", "; "], ["，", ", "], ["：", ": "], ["！", "!"], ["？", "?"], ["、", ", "], ["。", "."]]:
+		t = t.replace(pr[0], pr[1])
+	return t.replace("  (", " (").replace(" .", ".").replace(" ,", ",")
 
 
 ## 整串、模板都查不到时：代码拼出来的文字按常见拼法拆开逐段查（docs/276 §12）。
@@ -173,6 +184,13 @@ static func _split_fallback(text: String) -> String:
 		if t2 != "  " + text and t2 != "":
 			return t2.strip_edges()
 	if text.contains("\n"):
+		# 排版折行折在名字中间（「S1「指令\n结构加固」」）：先去掉换行整串查，查到了就交给英文自己折行
+		if not text.contains("\n\n") and text.count("\n") <= 2:
+			for jc in ["", "：", "·"]:   # 折在冒号 / 中点处的（「指令：结构加固」排成两行、冒号被吃掉）把它补回来
+				var jn0 := text.replace("\n", jc)
+				var je0 := s(jn0)
+				if je0 != jn0 and _cjk.search(je0) == null:
+					return je0
 		var lines := text.split("\n")
 		for li in lines.size():
 			lines[li] = s(lines[li])

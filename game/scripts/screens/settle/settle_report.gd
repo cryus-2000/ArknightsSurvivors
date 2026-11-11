@@ -162,7 +162,7 @@ func _cells(acc: Color) -> void:
 	txt(500, 236, "|  02 / 作战数据", 14, HH.MUTE)
 	var best: Dictionary = m().get("best", {})
 	var cells: Array = [
-		["总伤害", float(m().total), "每秒 %s" % num(float(m().get("dps", 0.0)))],
+		["总伤害", float(m().total), ("DPS %s" if Loc.en() else "每秒 %s") % num(float(m().get("dps", 0.0)))],
 		["击败敌人", float(m().kills), "精英 %d" % int(m().get("elites", 0))],
 		["最高单次", float(best.get("v", 0.0)), str(best.get("src", ""))],
 		["Boss 击破", float(boss_kills()), ""],

@@ -6,6 +6,7 @@ extends RefCounted
 ## 只读计数，不碰 g.rng，不改对局状态。
 
 const D = preload("res://scripts/data.gd")
+const Loc = preload("res://scripts/core/loc.gd")   # 本地化（docs/276 §10）
 
 const OTHER := "_other"
 const ORIGIN_NAME := {"core": "普攻", "skill": "技能", "talent": "天赋", "route": "分支", "support": "支援", "relic": "藏品"}
@@ -322,7 +323,7 @@ static func model(raw: Dictionary) -> Dictionary:
 		{"label": "击杀", "v": float(raw.get("kills", 0)), "fmt": "n"},
 		{"label": "精英击杀", "v": float(raw.get("elites", 0)), "fmt": "n"},
 		{"label": "Boss 击破", "v": float(killed), "fmt": "n"},
-		{"label": "造成伤害", "v": total, "fmt": "n", "sub": "每秒 %d" % int(total / t_end)},
+		{"label": "造成伤害", "v": total, "fmt": "n", "sub": ("DPS %d" if Loc.en() else "每秒 %d") % int(total / t_end)},
 		{"label": "最高单次伤害", "v": float(best.get("v", 0.0)), "fmt": "n", "sub": str(best.get("src", "")) + ("（%s）" % best_op if best_op != "" else "")},
 		{"label": "受到的伤害", "v": _sum(taken), "fmt": "n"},
 		{"label": "生命回复", "v": _sum(heal), "fmt": "n"},
