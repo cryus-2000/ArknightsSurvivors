@@ -1,0 +1,52 @@
+# enemy_demo
+# 参数：--headless --path /work/repo/game res://tests/enemy_demo_test.tscn -- --regression --seed=1
+# 用时 23 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+FAIL gallery lists secondary attack bone
+FAIL gallery lists secondary attack slider
+FAIL gallery lists secondary attack stone
+FAIL gallery lists secondary attack offspring
+FAIL gallery lists secondary attack brood
+FAIL gallery lists secondary attack spitter
+FAIL gallery lists secondary attack runner
+FAIL gallery lists secondary attack floater
+FAIL gallery lists secondary attack reaper
+FAIL gallery lists secondary attack founder
+FAIL gallery explains freezing special founder
+FAIL gallery lists secondary attack tracer
+FAIL gallery lists secondary attack nest
+FAIL gallery lists secondary attack fractal
+FAIL gallery lists secondary attack pocket
+FAIL gallery explains short stagger pocket
+FAIL gallery lists secondary attack skimmer
+FAIL gallery explains freezing special skimmer
+FAIL gallery lists secondary attack mother
+FAIL gallery lists secondary attack mimic
+FAIL gallery lists boss pattern path:订正
+FAIL gallery lists boss pattern izumik:潮汐坠落
+FAIL gallery lists boss pattern izumik:解读旋涡
+FAIL gallery lists boss pattern iberia:散射
+FAIL gallery lists boss pattern iberia:清膛
+FAIL gallery lists boss pattern carmen:环射
+FAIL gallery lists boss pattern bishop:交错潮环
+FAIL gallery lists boss pattern bishop:接潮扇浪
+FAIL gallery lists boss pattern archon:裂潮
+FAIL gallery lists boss pattern immortal:斥亡旋刃
+FAIL gallery lists boss pattern immortal:掠海飞刃
+FAIL gallery lists boss pattern paranoia:叠影
+FAIL gallery lists boss pattern paranoia:泡影环
+FAIL gallery explains original-mechanic attack knight_boss
+FAIL gallery explains original-mechanic attack bishop
+FAIL gallery explains original-mechanic attack ishar
+ENEMY DEMO failures=36
+
+
+## stderr
+WARNING: 10 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 5 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+

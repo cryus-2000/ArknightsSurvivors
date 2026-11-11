@@ -1,0 +1,52 @@
+# link_text
+# 参数：--headless --path /work/repo/game res://tests/link_text_test.tscn -- --regression --seed=1 --regression
+# 用时 6 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+LINK TEXT checks=164 failures=40
+
+
+## stderr
+FAIL: texas 连携行写自动出手、没有 E 键
+FAIL: texas 终结技行写按住瞄准
+FAIL: eyjafjalla 连携行写自动出手、没有 E 键
+FAIL: eyjafjalla 终结技行写按住瞄准
+FAIL: gladiia 连携行写自动出手、没有 E 键
+FAIL: gladiia 终结技行写按住瞄准
+FAIL: hoshiguma 连携行写自动出手、没有 E 键
+FAIL: hoshiguma 终结技行写按住瞄准
+FAIL: lappland 连携行写自动出手、没有 E 键
+FAIL: lappland 终结技行写按住瞄准
+FAIL: specter_unchained 连携行写自动出手、没有 E 键
+FAIL: specter_unchained 终结技行写按住瞄准
+FAIL: irene 连携行写自动出手、没有 E 键
+FAIL: irene 终结技行写按住瞄准
+FAIL: mizuki 连携行写自动出手、没有 E 键
+FAIL: mizuki 终结技行写按住瞄准
+FAIL: skadi 连携行写自动出手、没有 E 键
+FAIL: skadi 终结技行写按住瞄准
+FAIL: siege 连携行写自动出手、没有 E 键
+FAIL: siege 终结技行写按住瞄准
+FAIL: exusiai 连携行写自动出手、没有 E 键
+FAIL: exusiai 终结技行写按住瞄准
+FAIL: wisadel 连携行写自动出手、没有 E 键
+FAIL: wisadel 终结技行写按住瞄准
+FAIL: logos 连携行写自动出手、没有 E 键
+FAIL: logos 终结技行写按住瞄准
+FAIL: suzuran 连携行写自动出手、没有 E 键
+FAIL: suzuran 终结技行写按住瞄准
+FAIL: angelina 连携行写自动出手、没有 E 键
+FAIL: angelina 终结技行写按住瞄准
+FAIL: ulpianus 连携行写自动出手、没有 E 键
+FAIL: ulpianus 终结技行写按住瞄准
+FAIL: saria 连携行写自动出手、没有 E 键
+FAIL: saria 终结技行写按住瞄准
+FAIL: kaltsit 连携行写自动出手、没有 E 键
+FAIL: kaltsit 终结技行写按住瞄准
+FAIL: lumen 连携行写自动出手、没有 E 键
+FAIL: lumen 终结技行写按住瞄准
+FAIL: skalter 连携行写自动出手、没有 E 键
+FAIL: skalter 终结技行写按住瞄准
+
