@@ -1,0 +1,59 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.5 (Core Profile) Mesa 22.3.6 - Compatibility - Using Device: Mesa/X.org - llvmpipe (LLVM 15.0.6, 256 bits)
+
+L10N lang=zh
+SHOT 01_title
+SHOT 01b_difficulty
+SHOT 01c_meta_tree
+SHOT 01d_medals
+SHOT 01e_guide
+SHOT 01f_credits
+SHOT 01h_boss_trial
+SHOT 02_op_pick
+SHOT 03_gallery_mizuki_lore
+SHOT 03_gallery_mizuki_skills
+SHOT 03_gallery_mizuki_growth
+SHOT 03_gallery_skadi_lore
+SHOT 03_gallery_skadi_skills
+SHOT 03_gallery_skadi_growth
+SHOT 03_gallery_kaltsit_lore
+SHOT 03_gallery_kaltsit_skills
+SHOT 03_gallery_kaltsit_growth
+SHOT 04_gallery_bone
+SHOT 04_gallery_reaper
+SHOT 04_gallery_mimic
+SHOT 04_gallery_izumik
+SHOT 04_gallery_bishop
+SHOT 04b_gallery_tab4
+SHOT 04b_gallery_tab5
+SHOT 04b_gallery_tab6
+SHOT 04b_gallery_tab7
+SHOT 05_settings
+SHOT 06_hud
+SHOT 07_recruit_cards
+SHOT 08_levelup_0
+SHOT 08_levelup_1
+SHOT 08_levelup_2
+SHOT 08b_relic_choice
+SHOT 09_stats
+SHOT 10_pause
+SHOT 10b_guide_00
+SHOT 10b_guide_01
+SHOT 10b_guide_02
+SHOT 10b_guide_03
+SHOT 10b_guide_04
+SHOT 10b_guide_05
+SHOT 10b_guide_06
+SHOT 10b_guide_07
+SHOT 11_settlement_win
+SHOT 12_run_stats
+SHOT 13_settlement_dead
+PF RUNRELEASE tex=1504 audio=0
+L10N MISSING 0
+L10N SHOTS done=46
+
+----
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+WARNING: 1 ObjectDB instance was leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
