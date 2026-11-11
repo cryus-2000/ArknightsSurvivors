@@ -1168,7 +1168,10 @@ var _tspd := -1.0
 func test_speed() -> float:
 	if _tspd < 0.0:
 		_tspd = 1.0
-		if test_god() and OS.has_feature("web"):
+		for a in dev_args():
+			if a.begins_with("--testspeed=") and test_god():
+				_tspd = clampf(float(a.substr(12)), 1.0, 4.0)   # 调试版 / 测量副本同网址 speed=
+		if _tspd == 1.0 and test_god() and OS.has_feature("web"):
 			var s = JavaScriptBridge.eval("(function(){try{return new URLSearchParams(location.search).get('speed')||''}catch(e){return ''}})()", true)
 			if s is String and s.is_valid_float():
 				_tspd = clampf(float(s), 1.0, 4.0)

@@ -11,6 +11,7 @@ var _wait := 0.0         # 当前这个界面已经停了多久（真实秒）�
 var _shop_n := 0
 var _end_t := 0.0        # 结算界面停了多久
 var _looped := false
+var _stuck := 0.0        # 同一选择界面已经尝试选了多久
 const PICK_WAIT := 1.2
 const END_WAIT := 8.0    # 结算停 8 秒（性能报告在局终已经写好）再自动开下一局
 
@@ -41,7 +42,7 @@ func step(delta: float) -> void:
 	_log_t += rd
 	if _log_t >= 10.0:
 		_log_t = 0.0
-		print("PF AUTOPLAY st=%d kind=%s t=%.0f age=%.1f modal=%s" % [g.state, str(g.choice_kind), g.t, g.state_age, str(g.onboard.modal())])
+		print("PF AUTOPLAY st=%d kind=%s n=%d t=%.0f age=%.1f modal=%s" % [g.state, str(g.choice_kind), g.choices.size(), g.t, g.state_age, str(g.onboard.modal())])
 	match g.state:
 		S.CHOICE:
 			_wait += rd
@@ -49,6 +50,20 @@ func step(delta: float) -> void:
 				if g.choice_kind == "cross" and g.endg.flipped >= 0:
 					return   # 翻面中，等计时器兑现
 				_wait = 0.0
+				_stuck += PICK_WAIT
+				if _stuck >= 15.0 and g.choices.is_empty():
+					# 兜底（只自动模式）：候选为空的选择界面（11-11 网页仿真 7:30 藏品宝箱卡住 300 秒）不会被 pick 关掉——按「这次宝箱 / 升级作废」关面板回战斗
+					print("PF AUTOPLAY stuck kind=%s t=%.0f -> close" % [str(g.choice_kind), g.t])
+					if g.choice_kind == "relic":
+						g.pending_chests = maxi(0, g.pending_chests - 1)
+						if not g.chest_src.is_empty():
+							g.chest_src.pop_front()
+					elif g.choice_kind != "event":
+						g.pending_levelups = maxi(0, g.pending_levelups - 1)
+					g.panel.visible = false
+					g.state = S.PLAY
+					_stuck = 0.0
+					return
 				g.progression.pick(_pick())
 		S.SHOP:
 			_wait += rd
@@ -81,6 +96,8 @@ func step(delta: float) -> void:
 				g._do_action("restart")   # 手机网页整页重载后直接同队出发（core/run_reload.gd）
 		_:
 			_wait = 0.0
+	if g.state != S.CHOICE:
+		_stuck = 0.0
 
 
 ## 选卡：同 autotest.bot_pick 的分流（事件 / 翻节点按路线、更换队友 / 培养路线固定选法、其余 expert 打分）
