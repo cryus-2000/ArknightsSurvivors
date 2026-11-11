@@ -1,0 +1,1622 @@
+[
+ {
+  "op": "angelina",
+  "mult": 1.0,
+  "rec": {
+   "act_dur": 0.5483,
+   "aspd": 1.0,
+   "by_anim": {
+    "attack": {
+     "cd": 23.958,
+     "dur": 14.805,
+     "n": 27,
+     "over": 0
+    }
+   },
+   "cd_avg": 0.869,
+   "cd_n": 28,
+   "fires": 27,
+   "gap_max": 1.584,
+   "mult": 1.0,
+   "nominal": 1.1,
+   "op": "angelina",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 27
+  },
+  "errors": []
+ },
+ {
+  "op": "angelina",
+  "mult": 2.0,
+  "rec": {
+   "act_dur": 0.495,
+   "aspd": 2.0,
+   "by_anim": {
+    "attack": {
+     "cd": 16.346,
+     "dur": 24.75,
+     "n": 50,
+     "over": 36
+    }
+   },
+   "cd_avg": 0.3269,
+   "cd_n": 50,
+   "fires": 51,
+   "gap_max": 1.056,
+   "mult": 2.0,
+   "nominal": 0.55,
+   "op": "angelina",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 50
+  },
+  "errors": []
+ },
+ {
+  "op": "angelina",
+  "mult": 4.0,
+  "rec": {
+   "act_dur": 0.2475,
+   "aspd": 4.0,
+   "by_anim": {
+    "attack": {
+     "cd": 8.151,
+     "dur": 14.1075,
+     "n": 57,
+     "over": 46
+    }
+   },
+   "cd_avg": 0.2052,
+   "cd_n": 35,
+   "fires": 91,
+   "gap_max": 0.528,
+   "mult": 4.0,
+   "nominal": 0.275,
+   "op": "angelina",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 91
+  },
+  "errors": []
+ },
+ {
+  "op": "exusiai",
+  "mult": 1.0,
+  "rec": {
+   "act_dur": 0.25,
+   "aspd": 1.0,
+   "by_anim": {
+    "attack": {
+     "cd": 12.426,
+     "dur": 14.25,
+     "n": 57,
+     "over": 19
+    }
+   },
+   "cd_avg": 0.3368,
+   "cd_n": 20,
+   "fires": 76,
+   "gap_max": 0.528,
+   "mult": 1.0,
+   "nominal": 0.35,
+   "op": "exusiai",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 76
+  },
+  "errors": []
+ },
+ {
+  "op": "exusiai",
+  "mult": 2.0,
+  "rec": {
+   "act_dur": 0.1575,
+   "aspd": 2.0,
+   "by_anim": {
+    "attack": {
+     "cd": 6.213,
+     "dur": 8.9775,
+     "n": 57,
+     "over": 38
+    }
+   },
+   "cd_avg": 0.142,
+   "cd_n": 38,
+   "fires": 152,
+   "gap_max": 0.528,
+   "mult": 2.0,
+   "nominal": 0.175,
+   "op": "exusiai",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 152
+  },
+  "errors": []
+ },
+ {
+  "op": "exusiai",
+  "mult": 4.0,
+  "rec": {
+   "act_dur": 0.0788,
+   "aspd": 4.0,
+   "by_anim": {
+    "attack": {
+     "cd": 4.9875,
+     "dur": 4.48875,
+     "n": 57,
+     "over": 0
+    }
+   },
+   "cd_avg": 0.0875,
+   "cd_n": 1,
+   "fires": 228,
+   "gap_max": 0.528,
+   "mult": 4.0,
+   "nominal": 0.0875,
+   "op": "exusiai",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 228
+  },
+  "errors": []
+ },
+ {
+  "op": "eyjafjalla",
+  "mult": 1.0,
+  "rec": {
+   "act_dur": 0.4986,
+   "aspd": 1.0,
+   "by_anim": {
+    "attack": {
+     "cd": 23.256,
+     "dur": 11.9657142857143,
+     "n": 24,
+     "over": 0
+    }
+   },
+   "cd_avg": 0.9492,
+   "cd_n": 25,
+   "fires": 24,
+   "gap_max": 1.584,
+   "mult": 1.0,
+   "nominal": 1.2,
+   "op": "eyjafjalla",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 24
+  },
+  "errors": []
+ },
+ {
+  "op": "eyjafjalla",
+  "mult": 2.0,
+  "rec": {
+   "act_dur": 0.4986,
+   "aspd": 2.0,
+   "by_anim": {
+    "attack": {
+     "cd": 18.288,
+     "dur": 22.4357142857143,
+     "n": 45,
+     "over": 22
+    }
+   },
+   "cd_avg": 0.4064,
+   "cd_n": 45,
+   "fires": 46,
+   "gap_max": 1.056,
+   "mult": 2.0,
+   "nominal": 0.6,
+   "op": "eyjafjalla",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 45
+  },
+  "errors": []
+ },
+ {
+  "op": "eyjafjalla",
+  "mult": 4.0,
+  "rec": {
+   "act_dur": 0.27,
+   "aspd": 4.0,
+   "by_anim": {
+    "attack": {
+     "cd": 9.642,
+     "dur": 15.39,
+     "n": 57,
+     "over": 45
+    }
+   },
+   "cd_avg": 0.2359,
+   "cd_n": 34,
+   "fires": 91,
+   "gap_max": 0.528,
+   "mult": 4.0,
+   "nominal": 0.3,
+   "op": "eyjafjalla",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 91
+  },
+  "errors": []
+ },
+ {
+  "op": "gladiia",
+  "mult": 1.0,
+  "rec": {
+   "act_dur": 0.6667,
+   "aspd": 1.0,
+   "by_anim": {
+    "attack": {
+     "cd": 23.76,
+     "dur": 18.0,
+     "n": 27,
+     "over": 0
+    }
+   },
+   "cd_avg": 0.8596,
+   "cd_n": 28,
+   "fires": 27,
+   "gap_max": 1.584,
+   "mult": 1.0,
+   "nominal": 1.1,
+   "op": "gladiia",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 27
+  },
+  "errors": []
+ },
+ {
+  "op": "gladiia",
+  "mult": 2.0,
+  "rec": {
+   "act_dur": 0.495,
+   "aspd": 2.0,
+   "by_anim": {
+    "attack": {
+     "cd": 13.134,
+     "dur": 20.79,
+     "n": 42,
+     "over": 32
+    }
+   },
+   "cd_avg": 0.3127,
+   "cd_n": 42,
+   "fires": 42,
+   "gap_max": 1.056,
+   "mult": 2.0,
+   "nominal": 0.55,
+   "op": "gladiia",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 42
+  },
+  "errors": []
+ },
+ {
+  "op": "gladiia",
+  "mult": 4.0,
+  "rec": {
+   "act_dur": 0.2475,
+   "aspd": 4.0,
+   "by_anim": {
+    "attack": {
+     "cd": 2.739,
+     "dur": 12.6225,
+     "n": 51,
+     "over": 44
+    }
+   },
+   "cd_avg": 0.0537,
+   "cd_n": 51,
+   "fires": 50,
+   "gap_max": 1.056,
+   "mult": 4.0,
+   "nominal": 0.275,
+   "op": "gladiia",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 51
+  },
+  "errors": []
+ },
+ {
+  "op": "hoshiguma",
+  "mult": 1.0,
+  "rec": {
+   "act_dur": 0.5,
+   "aspd": 1.0,
+   "by_anim": {
+    "attack": {
+     "cd": 23.364,
+     "dur": 16.5,
+     "n": 33,
+     "over": 0
+    }
+   },
+   "cd_avg": 0.708,
+   "cd_n": 33,
+   "fires": 32,
+   "gap_max": 1.056,
+   "mult": 1.0,
+   "nominal": 0.9,
+   "op": "hoshiguma",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 33
+  },
+  "errors": []
+ },
+ {
+  "op": "hoshiguma",
+  "mult": 2.0,
+  "rec": {
+   "act_dur": 0.405,
+   "aspd": 2.0,
+   "by_anim": {
+    "attack": {
+     "cd": 14.562,
+     "dur": 23.085,
+     "n": 57,
+     "over": 40
+    }
+   },
+   "cd_avg": 0.45,
+   "cd_n": 9,
+   "fires": 65,
+   "gap_max": 0.528,
+   "mult": 2.0,
+   "nominal": 0.45,
+   "op": "hoshiguma",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 66
+  },
+  "errors": []
+ },
+ {
+  "op": "hoshiguma",
+  "mult": 4.0,
+  "rec": {
+   "act_dur": 0.2025,
+   "aspd": 4.0,
+   "by_anim": {
+    "attack": {
+     "cd": 12.825,
+     "dur": 11.5425,
+     "n": 57,
+     "over": 0
+    }
+   },
+   "cd_avg": 0.225,
+   "cd_n": 1,
+   "fires": 114,
+   "gap_max": 0.528,
+   "mult": 4.0,
+   "nominal": 0.225,
+   "op": "hoshiguma",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 114
+  },
+  "errors": []
+ },
+ {
+  "op": "irene",
+  "mult": 1.0,
+  "rec": {
+   "act_dur": 0.4167,
+   "aspd": 1.0,
+   "by_anim": {
+    "attack": {
+     "cd": 20.08,
+     "dur": 14.5833333333333,
+     "n": 35,
+     "over": 4
+    }
+   },
+   "cd_avg": 0.5737,
+   "cd_n": 35,
+   "fires": 35,
+   "gap_max": 1.056,
+   "mult": 1.0,
+   "nominal": 0.8,
+   "op": "irene",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 35
+  },
+  "errors": []
+ },
+ {
+  "op": "irene",
+  "mult": 2.0,
+  "rec": {
+   "act_dur": 0.36,
+   "aspd": 2.0,
+   "by_anim": {
+    "attack": {
+     "cd": 11.514,
+     "dur": 20.52,
+     "n": 57,
+     "over": 41
+    }
+   },
+   "cd_avg": 0.378,
+   "cd_n": 9,
+   "fires": 65,
+   "gap_max": 0.528,
+   "mult": 2.0,
+   "nominal": 0.4,
+   "op": "irene",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 65
+  },
+  "errors": []
+ },
+ {
+  "op": "irene",
+  "mult": 4.0,
+  "rec": {
+   "act_dur": 0.18,
+   "aspd": 4.0,
+   "by_anim": {
+    "attack": {
+     "cd": 0.114,
+     "dur": 10.26,
+     "n": 57,
+     "over": 57
+    }
+   },
+   "cd_avg": 0.002,
+   "cd_n": 1,
+   "fires": 114,
+   "gap_max": 0.528,
+   "mult": 4.0,
+   "nominal": 0.2,
+   "op": "irene",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 114
+  },
+  "errors": []
+ },
+ {
+  "op": "kaltsit",
+  "mult": 1.0,
+  "rec": {
+   "act_dur": 0.4986,
+   "aspd": 1.0,
+   "by_anim": {
+    "attack": {
+     "cd": 26.416,
+     "dur": 3.98857142857143,
+     "n": 8,
+     "over": 0
+    }
+   },
+   "cd_avg": 3.148,
+   "cd_n": 9,
+   "fires": 0,
+   "gap_max": 0.0,
+   "mult": 1.0,
+   "nominal": 3.5,
+   "op": "kaltsit",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 8
+  },
+  "errors": []
+ },
+ {
+  "op": "kaltsit",
+  "mult": 2.0,
+  "rec": {
+   "act_dur": 0.4986,
+   "aspd": 2.0,
+   "by_anim": {
+    "attack": {
+     "cd": 25.724,
+     "dur": 8.47571428571428,
+     "n": 17,
+     "over": 0
+    }
+   },
+   "cd_avg": 1.4383,
+   "cd_n": 18,
+   "fires": 0,
+   "gap_max": 0.0,
+   "mult": 2.0,
+   "nominal": 1.75,
+   "op": "kaltsit",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 17
+  },
+  "errors": []
+ },
+ {
+  "op": "kaltsit",
+  "mult": 4.0,
+  "rec": {
+   "act_dur": 0.4986,
+   "aspd": 4.0,
+   "by_anim": {
+    "attack": {
+     "cd": 21.664,
+     "dur": 15.9542857142857,
+     "n": 32,
+     "over": 0
+    }
+   },
+   "cd_avg": 0.663,
+   "cd_n": 33,
+   "fires": 0,
+   "gap_max": 0.0,
+   "mult": 4.0,
+   "nominal": 0.875,
+   "op": "kaltsit",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 32
+  },
+  "errors": []
+ },
+ {
+  "op": "lappland",
+  "mult": 1.0,
+  "rec": {
+   "act_dur": 0.4386,
+   "aspd": 1.0,
+   "by_anim": {
+    "attack": {
+     "cd": 20.08,
+     "dur": 15.35,
+     "n": 35,
+     "over": 8
+    }
+   },
+   "cd_avg": 0.5737,
+   "cd_n": 35,
+   "fires": 35,
+   "gap_max": 1.056,
+   "mult": 1.0,
+   "nominal": 0.8,
+   "op": "lappland",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 35
+  },
+  "errors": []
+ },
+ {
+  "op": "lappland",
+  "mult": 2.0,
+  "rec": {
+   "act_dur": 0.36,
+   "aspd": 2.0,
+   "by_anim": {
+    "attack": {
+     "cd": 11.514,
+     "dur": 20.52,
+     "n": 57,
+     "over": 41
+    }
+   },
+   "cd_avg": 0.378,
+   "cd_n": 9,
+   "fires": 66,
+   "gap_max": 0.528,
+   "mult": 2.0,
+   "nominal": 0.4,
+   "op": "lappland",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 65
+  },
+  "errors": []
+ },
+ {
+  "op": "lappland",
+  "mult": 4.0,
+  "rec": {
+   "act_dur": 0.18,
+   "aspd": 4.0,
+   "by_anim": {
+    "attack": {
+     "cd": 0.114,
+     "dur": 10.26,
+     "n": 57,
+     "over": 57
+    }
+   },
+   "cd_avg": 0.002,
+   "cd_n": 1,
+   "fires": 114,
+   "gap_max": 0.528,
+   "mult": 4.0,
+   "nominal": 0.2,
+   "op": "lappland",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 114
+  },
+  "errors": []
+ },
+ {
+  "op": "logos",
+  "mult": 1.0,
+  "rec": {
+   "act_dur": 0.5683,
+   "aspd": 1.0,
+   "by_anim": {
+    "attack": {
+     "cd": 24.04,
+     "dur": 11.3666666666667,
+     "n": 20,
+     "over": 0
+    }
+   },
+   "cd_avg": 1.1863,
+   "cd_n": 21,
+   "fires": 21,
+   "gap_max": 1.584,
+   "mult": 1.0,
+   "nominal": 1.4,
+   "op": "logos",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 20
+  },
+  "errors": []
+ },
+ {
+  "op": "logos",
+  "mult": 2.0,
+  "rec": {
+   "act_dur": 0.5683,
+   "aspd": 2.0,
+   "by_anim": {
+    "attack": {
+     "cd": 19.13,
+     "dur": 23.3016666666667,
+     "n": 41,
+     "over": 26
+    }
+   },
+   "cd_avg": 0.4596,
+   "cd_n": 42,
+   "fires": 42,
+   "gap_max": 1.056,
+   "mult": 2.0,
+   "nominal": 0.7,
+   "op": "logos",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 41
+  },
+  "errors": []
+ },
+ {
+  "op": "logos",
+  "mult": 4.0,
+  "rec": {
+   "act_dur": 0.315,
+   "aspd": 4.0,
+   "by_anim": {
+    "attack": {
+     "cd": 12.426,
+     "dur": 17.955,
+     "n": 57,
+     "over": 38
+    }
+   },
+   "cd_avg": 0.35,
+   "cd_n": 19,
+   "fires": 76,
+   "gap_max": 0.528,
+   "mult": 4.0,
+   "nominal": 0.35,
+   "op": "logos",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 76
+  },
+  "errors": []
+ },
+ {
+  "op": "lumen",
+  "mult": 1.0,
+  "rec": {
+   "act_dur": 0.5083,
+   "aspd": 1.0,
+   "by_anim": {
+    "attack": {
+     "cd": 28.0,
+     "dur": 14.2333333333333,
+     "n": 28,
+     "over": 0
+    }
+   },
+   "cd_avg": 0.9818,
+   "cd_n": 29,
+   "fires": 29,
+   "gap_max": 1.056,
+   "mult": 1.0,
+   "nominal": 1.0,
+   "op": "lumen",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 28
+  },
+  "errors": []
+ },
+ {
+  "op": "lumen",
+  "mult": 2.0,
+  "rec": {
+   "act_dur": 0.45,
+   "aspd": 2.0,
+   "by_anim": {
+    "attack": {
+     "cd": 28.5,
+     "dur": 25.65,
+     "n": 57,
+     "over": 0
+    }
+   },
+   "cd_avg": 0.5,
+   "cd_n": 1,
+   "fires": 57,
+   "gap_max": 0.528,
+   "mult": 2.0,
+   "nominal": 0.5,
+   "op": "lumen",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 57
+  },
+  "errors": []
+ },
+ {
+  "op": "lumen",
+  "mult": 4.0,
+  "rec": {
+   "act_dur": 0.225,
+   "aspd": 4.0,
+   "by_anim": {
+    "attack": {
+     "cd": 14.25,
+     "dur": 12.825,
+     "n": 57,
+     "over": 0
+    }
+   },
+   "cd_avg": 0.25,
+   "cd_n": 1,
+   "fires": 114,
+   "gap_max": 0.528,
+   "mult": 4.0,
+   "nominal": 0.25,
+   "op": "lumen",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 114
+  },
+  "errors": []
+ },
+ {
+  "op": "mizuki",
+  "mult": 1.0,
+  "rec": {
+   "act_dur": 0.72,
+   "aspd": 1.0,
+   "by_anim": {
+    "attack": {
+     "cd": 21.054,
+     "dur": 23.76,
+     "n": 33,
+     "over": 16
+    }
+   },
+   "cd_avg": 0.638,
+   "cd_n": 33,
+   "fires": 32,
+   "gap_max": 1.056,
+   "mult": 1.0,
+   "nominal": 0.9,
+   "op": "mizuki",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 33
+  },
+  "errors": []
+ },
+ {
+  "op": "mizuki",
+  "mult": 2.0,
+  "rec": {
+   "act_dur": 0.36,
+   "aspd": 2.0,
+   "by_anim": {
+    "attack": {
+     "cd": 14.364,
+     "dur": 20.52,
+     "n": 57,
+     "over": 41
+    }
+   },
+   "cd_avg": 0.428,
+   "cd_n": 9,
+   "fires": 66,
+   "gap_max": 0.528,
+   "mult": 2.0,
+   "nominal": 0.45,
+   "op": "mizuki",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 65
+  },
+  "errors": []
+ },
+ {
+  "op": "mizuki",
+  "mult": 4.0,
+  "rec": {
+   "act_dur": 0.18,
+   "aspd": 4.0,
+   "by_anim": {
+    "attack": {
+     "cd": 1.539,
+     "dur": 10.26,
+     "n": 57,
+     "over": 57
+    }
+   },
+   "cd_avg": 0.027,
+   "cd_n": 1,
+   "fires": 114,
+   "gap_max": 0.528,
+   "mult": 4.0,
+   "nominal": 0.225,
+   "op": "mizuki",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 114
+  },
+  "errors": []
+ },
+ {
+  "op": "saria",
+  "mult": 1.0,
+  "rec": {
+   "act_dur": 0.65,
+   "aspd": 1.0,
+   "by_anim": {
+    "attack": {
+     "cd": 23.232,
+     "dur": 21.45,
+     "n": 33,
+     "over": 8
+    }
+   },
+   "cd_avg": 0.704,
+   "cd_n": 33,
+   "fires": 32,
+   "gap_max": 1.056,
+   "mult": 1.0,
+   "nominal": 0.9,
+   "op": "saria",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 33
+  },
+  "errors": []
+ },
+ {
+  "op": "saria",
+  "mult": 2.0,
+  "rec": {
+   "act_dur": 0.405,
+   "aspd": 2.0,
+   "by_anim": {
+    "attack": {
+     "cd": 12.432,
+     "dur": 17.01,
+     "n": 42,
+     "over": 14
+    }
+   },
+   "cd_avg": 0.4267,
+   "cd_n": 15,
+   "fires": 57,
+   "gap_max": 0.528,
+   "mult": 2.0,
+   "nominal": 0.45,
+   "op": "saria",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 56
+  },
+  "errors": []
+ },
+ {
+  "op": "saria",
+  "mult": 4.0,
+  "rec": {
+   "act_dur": 0.2025,
+   "aspd": 4.0,
+   "by_anim": {
+    "attack": {
+     "cd": 5.301,
+     "dur": 11.5425,
+     "n": 57,
+     "over": 57
+    }
+   },
+   "cd_avg": 0.093,
+   "cd_n": 1,
+   "fires": 114,
+   "gap_max": 0.528,
+   "mult": 4.0,
+   "nominal": 0.225,
+   "op": "saria",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 114
+  },
+  "errors": []
+ },
+ {
+  "op": "siege",
+  "mult": 1.0,
+  "rec": {
+   "act_dur": 0.6386,
+   "aspd": 1.0,
+   "by_anim": {
+    "attack": {
+     "cd": 15.064,
+     "dur": 17.88,
+     "n": 28,
+     "over": 28
+    }
+   },
+   "cd_avg": 0.5198,
+   "cd_n": 29,
+   "fires": 28,
+   "gap_max": 1.056,
+   "mult": 1.0,
+   "nominal": 1.0,
+   "op": "siege",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 28
+  },
+  "errors": []
+ },
+ {
+  "op": "siege",
+  "mult": 2.0,
+  "rec": {
+   "act_dur": 0.45,
+   "aspd": 2.0,
+   "by_anim": {
+    "attack": {
+     "cd": 2.166,
+     "dur": 25.65,
+     "n": 57,
+     "over": 57
+    }
+   },
+   "cd_avg": 0.038,
+   "cd_n": 1,
+   "fires": 57,
+   "gap_max": 0.528,
+   "mult": 2.0,
+   "nominal": 0.5,
+   "op": "siege",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 57
+  },
+  "errors": []
+ },
+ {
+  "op": "siege",
+  "mult": 4.0,
+  "rec": {
+   "act_dur": 0.225,
+   "aspd": 4.0,
+   "by_anim": {
+    "attack": {
+     "cd": 2.964,
+     "dur": 12.825,
+     "n": 57,
+     "over": 57
+    }
+   },
+   "cd_avg": 0.052,
+   "cd_n": 1,
+   "fires": 114,
+   "gap_max": 0.528,
+   "mult": 4.0,
+   "nominal": 0.25,
+   "op": "siege",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 114
+  },
+  "errors": []
+ },
+ {
+  "op": "skadi",
+  "mult": 1.0,
+  "rec": {
+   "act_dur": 0.6,
+   "aspd": 1.0,
+   "by_anim": {
+    "attack": {
+     "cd": 19.064,
+     "dur": 24.6,
+     "n": 41,
+     "over": 26
+    }
+   },
+   "cd_avg": 0.4564,
+   "cd_n": 42,
+   "fires": 42,
+   "gap_max": 1.056,
+   "mult": 1.0,
+   "nominal": 0.7,
+   "op": "skadi",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 41
+  },
+  "errors": []
+ },
+ {
+  "op": "skadi",
+  "mult": 2.0,
+  "rec": {
+   "act_dur": 0.315,
+   "aspd": 2.0,
+   "by_anim": {
+    "attack": {
+     "cd": 8.66399999999999,
+     "dur": 17.955,
+     "n": 57,
+     "over": 38
+    }
+   },
+   "cd_avg": 0.284,
+   "cd_n": 19,
+   "fires": 76,
+   "gap_max": 0.528,
+   "mult": 2.0,
+   "nominal": 0.35,
+   "op": "skadi",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 76
+  },
+  "errors": []
+ },
+ {
+  "op": "skadi",
+  "mult": 4.0,
+  "rec": {
+   "act_dur": 0.1575,
+   "aspd": 4.0,
+   "by_anim": {
+    "attack": {
+     "cd": 6.213,
+     "dur": 8.9775,
+     "n": 57,
+     "over": 38
+    }
+   },
+   "cd_avg": 0.142,
+   "cd_n": 38,
+   "fires": 152,
+   "gap_max": 0.528,
+   "mult": 4.0,
+   "nominal": 0.175,
+   "op": "skadi",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 152
+  },
+  "errors": []
+ },
+ {
+  "op": "skalter",
+  "mult": 1.0,
+  "rec": {
+   "act_dur": 0.6283,
+   "aspd": 1.0,
+   "by_anim": {
+    "attack": {
+     "cd": 20.608,
+     "dur": 17.5933333333333,
+     "n": 28,
+     "over": 0
+    }
+   },
+   "cd_avg": 0.7178,
+   "cd_n": 29,
+   "fires": 28,
+   "gap_max": 1.056,
+   "mult": 1.0,
+   "nominal": 1.0,
+   "op": "skalter",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 28
+  },
+  "errors": []
+ },
+ {
+  "op": "skalter",
+  "mult": 2.0,
+  "rec": {
+   "act_dur": 0.45,
+   "aspd": 2.0,
+   "by_anim": {
+    "attack": {
+     "cd": 13.452,
+     "dur": 25.65,
+     "n": 57,
+     "over": 57
+    }
+   },
+   "cd_avg": 0.236,
+   "cd_n": 1,
+   "fires": 57,
+   "gap_max": 0.528,
+   "mult": 2.0,
+   "nominal": 0.5,
+   "op": "skalter",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 57
+  },
+  "errors": []
+ },
+ {
+  "op": "skalter",
+  "mult": 4.0,
+  "rec": {
+   "act_dur": 0.225,
+   "aspd": 4.0,
+   "by_anim": {
+    "attack": {
+     "cd": 14.25,
+     "dur": 12.825,
+     "n": 57,
+     "over": 0
+    }
+   },
+   "cd_avg": 0.25,
+   "cd_n": 1,
+   "fires": 114,
+   "gap_max": 0.528,
+   "mult": 4.0,
+   "nominal": 0.25,
+   "op": "skalter",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 114
+  },
+  "errors": []
+ },
+ {
+  "op": "specter_unchained",
+  "mult": 1.0,
+  "rec": {
+   "act_dur": 0.9083,
+   "aspd": 1.0,
+   "by_anim": {
+    "attack": {
+     "cd": 23.256,
+     "dur": 21.8,
+     "n": 24,
+     "over": 9
+    }
+   },
+   "cd_avg": 0.9466,
+   "cd_n": 25,
+   "fires": 24,
+   "gap_max": 1.584,
+   "mult": 1.0,
+   "nominal": 1.2,
+   "op": "specter_unchained",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 24
+  },
+  "errors": []
+ },
+ {
+  "op": "specter_unchained",
+  "mult": 2.0,
+  "rec": {
+   "act_dur": 0.54,
+   "aspd": 2.0,
+   "by_anim": {
+    "attack": {
+     "cd": 15.318,
+     "dur": 24.3,
+     "n": 45,
+     "over": 33
+    }
+   },
+   "cd_avg": 0.3404,
+   "cd_n": 45,
+   "fires": 45,
+   "gap_max": 1.056,
+   "mult": 2.0,
+   "nominal": 0.6,
+   "op": "specter_unchained",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 45
+  },
+  "errors": []
+ },
+ {
+  "op": "specter_unchained",
+  "mult": 4.0,
+  "rec": {
+   "act_dur": 0.27,
+   "aspd": 4.0,
+   "by_anim": {
+    "attack": {
+     "cd": 9.51,
+     "dur": 15.39,
+     "n": 57,
+     "over": 46
+    }
+   },
+   "cd_avg": 0.234,
+   "cd_n": 34,
+   "fires": 91,
+   "gap_max": 0.528,
+   "mult": 4.0,
+   "nominal": 0.3,
+   "op": "specter_unchained",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 91
+  },
+  "errors": []
+ },
+ {
+  "op": "suzuran",
+  "mult": 1.0,
+  "rec": {
+   "act_dur": 0.72,
+   "aspd": 1.0,
+   "by_anim": {
+    "attack": {
+     "cd": 20.608,
+     "dur": 20.16,
+     "n": 28,
+     "over": 0
+    }
+   },
+   "cd_avg": 0.7178,
+   "cd_n": 29,
+   "fires": 28,
+   "gap_max": 1.056,
+   "mult": 1.0,
+   "nominal": 1.0,
+   "op": "suzuran",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 28
+  },
+  "errors": []
+ },
+ {
+  "op": "suzuran",
+  "mult": 2.0,
+  "rec": {
+   "act_dur": 0.45,
+   "aspd": 2.0,
+   "by_anim": {
+    "attack": {
+     "cd": 13.452,
+     "dur": 25.65,
+     "n": 57,
+     "over": 57
+    }
+   },
+   "cd_avg": 0.236,
+   "cd_n": 1,
+   "fires": 57,
+   "gap_max": 0.528,
+   "mult": 2.0,
+   "nominal": 0.5,
+   "op": "suzuran",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 57
+  },
+  "errors": []
+ },
+ {
+  "op": "suzuran",
+  "mult": 4.0,
+  "rec": {
+   "act_dur": 0.225,
+   "aspd": 4.0,
+   "by_anim": {
+    "attack": {
+     "cd": 14.25,
+     "dur": 12.825,
+     "n": 57,
+     "over": 0
+    }
+   },
+   "cd_avg": 0.25,
+   "cd_n": 1,
+   "fires": 114,
+   "gap_max": 0.528,
+   "mult": 4.0,
+   "nominal": 0.25,
+   "op": "suzuran",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 114
+  },
+  "errors": []
+ },
+ {
+  "op": "texas",
+  "mult": 1.0,
+  "rec": {
+   "act_dur": 0.5071,
+   "aspd": 1.0,
+   "by_anim": {
+    "attack": {
+     "cd": 22.008,
+     "dur": 14.2,
+     "n": 28,
+     "over": 0
+    }
+   },
+   "cd_avg": 0.7678,
+   "cd_n": 29,
+   "fires": 28,
+   "gap_max": 1.056,
+   "mult": 1.0,
+   "nominal": 1.05,
+   "op": "texas",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 28
+  },
+  "errors": []
+ },
+ {
+  "op": "texas",
+  "mult": 2.0,
+  "rec": {
+   "act_dur": 0.4725,
+   "aspd": 2.0,
+   "by_anim": {
+    "attack": {
+     "cd": 14.877,
+     "dur": 26.9325,
+     "n": 57,
+     "over": 57
+    }
+   },
+   "cd_avg": 0.261,
+   "cd_n": 1,
+   "fires": 57,
+   "gap_max": 0.528,
+   "mult": 2.0,
+   "nominal": 0.525,
+   "op": "texas",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 57
+  },
+  "errors": []
+ },
+ {
+  "op": "texas",
+  "mult": 4.0,
+  "rec": {
+   "act_dur": 0.2363,
+   "aspd": 4.0,
+   "by_anim": {
+    "attack": {
+     "cd": 14.9625,
+     "dur": 13.46625,
+     "n": 57,
+     "over": 0
+    }
+   },
+   "cd_avg": 0.2625,
+   "cd_n": 1,
+   "fires": 114,
+   "gap_max": 0.528,
+   "mult": 4.0,
+   "nominal": 0.2625,
+   "op": "texas",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 114
+  },
+  "errors": []
+ },
+ {
+  "op": "ulpianus",
+  "mult": 1.0,
+  "rec": {
+   "act_dur": 0.6317,
+   "aspd": 1.0,
+   "by_anim": {
+    "attack": {
+     "cd": 23.562,
+     "dur": 17.055,
+     "n": 27,
+     "over": 0
+    }
+   },
+   "cd_avg": 0.8501,
+   "cd_n": 28,
+   "fires": 26,
+   "gap_max": 1.584,
+   "mult": 1.0,
+   "nominal": 1.1,
+   "op": "ulpianus",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 27
+  },
+  "errors": []
+ },
+ {
+  "op": "ulpianus",
+  "mult": 2.0,
+  "rec": {
+   "act_dur": 0.495,
+   "aspd": 2.0,
+   "by_anim": {
+    "attack": {
+     "cd": 16.566,
+     "dur": 25.245,
+     "n": 51,
+     "over": 38
+    }
+   },
+   "cd_avg": 0.3248,
+   "cd_n": 51,
+   "fires": 50,
+   "gap_max": 1.056,
+   "mult": 2.0,
+   "nominal": 0.55,
+   "op": "ulpianus",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 51
+  },
+  "errors": []
+ },
+ {
+  "op": "ulpianus",
+  "mult": 4.0,
+  "rec": {
+   "act_dur": 0.2475,
+   "aspd": 4.0,
+   "by_anim": {
+    "attack": {
+     "cd": 8.217,
+     "dur": 14.1075,
+     "n": 57,
+     "over": 45
+    }
+   },
+   "cd_avg": 0.2109,
+   "cd_n": 34,
+   "fires": 91,
+   "gap_max": 0.528,
+   "mult": 4.0,
+   "nominal": 0.275,
+   "op": "ulpianus",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 91
+  },
+  "errors": []
+ },
+ {
+  "op": "wisadel",
+  "mult": 1.0,
+  "rec": {
+   "act_dur": 0.95,
+   "aspd": 1.0,
+   "by_anim": {
+    "attack": {
+     "cd": 24.04,
+     "dur": 19.0,
+     "n": 20,
+     "over": 0
+    }
+   },
+   "cd_avg": 1.1863,
+   "cd_n": 21,
+   "fires": 21,
+   "gap_max": 1.584,
+   "mult": 1.0,
+   "nominal": 1.4,
+   "op": "wisadel",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 20
+  },
+  "errors": []
+ },
+ {
+  "op": "wisadel",
+  "mult": 2.0,
+  "rec": {
+   "act_dur": 0.63,
+   "aspd": 2.0,
+   "by_anim": {
+    "attack": {
+     "cd": 19.13,
+     "dur": 25.83,
+     "n": 41,
+     "over": 31
+    }
+   },
+   "cd_avg": 0.4596,
+   "cd_n": 42,
+   "fires": 42,
+   "gap_max": 1.056,
+   "mult": 2.0,
+   "nominal": 0.7,
+   "op": "wisadel",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 41
+  },
+  "errors": []
+ },
+ {
+  "op": "wisadel",
+  "mult": 4.0,
+  "rec": {
+   "act_dur": 0.315,
+   "aspd": 4.0,
+   "by_anim": {
+    "attack": {
+     "cd": 12.426,
+     "dur": 17.955,
+     "n": 57,
+     "over": 38
+    }
+   },
+   "cd_avg": 0.35,
+   "cd_n": 19,
+   "fires": 76,
+   "gap_max": 0.528,
+   "mult": 4.0,
+   "nominal": 0.35,
+   "op": "wisadel",
+   "secs": 30.1,
+   "skills": false,
+   "starts": 76
+  },
+  "errors": []
+ }
+]
