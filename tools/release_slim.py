@@ -34,7 +34,9 @@ DEV_EXCLUDES = ("tests/*", "tools/*")
 # boss_bench.gd 不在内：Boss 演练的成品分队（boss_trial → bench.apply_build）正式包也用；perf_report / frame_rec 也被正式界面 / 启动页调用
 DEV_SCRIPTS = (
     "scripts/run/autotest.gd",       # game.gd：OS.is_debug_build() 才 load
-    "scripts/core/bot.gd",           # run_setup：Mode.BALANCE（只由 --balance 进）才 load
+    "scripts/core/bot.gd",           # run_setup：Mode.BALANCE（只由 --balance 进）才 load；无敌包 export_web --god 保留
+    "scripts/run/auto_play.gd",      # game.gd：Cfg.test_auto()（无敌包）才 load；无敌包保留（docs/335）
+    "scripts/core/god_suite.gd",     # 四 Boss 连测，只被 auto_play / title / settings / perf_report 在 Cfg.test_suite() 下 load；无敌包保留
     "scripts/run/motion_shot.gd",    # 以下四个只被 autotest.gd 引用
     "scripts/run/outwin_probe.gd",
     "scripts/run/ult_bench.gd",

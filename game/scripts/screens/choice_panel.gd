@@ -1180,6 +1180,13 @@ func _chevron(ci: CanvasItem, c: Vector2, dir: float, a: float) -> void:
 
 ## 强制招募画面加「婉拒」（用户 11-05「加上」）：选项末尾多一项（数字键 / 方向键 / 手柄都能走到），画成招募卡下方次一级的小按钮
 var decline_btn: Button
+## 对局离树时释放：「婉拒」按钮平时不挂在树上（只在强制招募时才加进面板），没人 free 就每开一局漏一个孤儿 Button（docs/335）
+func release() -> void:
+	if decline_btn != null and is_instance_valid(decline_btn) and decline_btn.get_parent() == null:
+		decline_btn.free()
+	decline_btn = null
+
+
 func add_recruit_decline() -> void:
 	g.choices.append({"kind": "recruit_decline", "name": "婉拒", "desc": "改为一次成长三选一"})
 	decline_btn.set_meta("i", g.choices.size() - 1)

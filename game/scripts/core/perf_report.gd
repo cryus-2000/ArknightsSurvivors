@@ -16,7 +16,9 @@ const Game = preload("res://scripts/game.gd")
 const CrashBox = preload("res://scripts/core/crash_box.gd")
 const PerfContext = preload("res://scripts/core/perf_context.gd")
 const RunReload = preload("res://scripts/core/run_reload.gd")
-const GodSuite = preload("res://scripts/core/god_suite.gd")
+## 四 Boss 连测脚本只在无敌包里（发行包 exclude_filter 不带 god_suite.gd），所以不能静态 preload；只在 suite 为真（Cfg.test_suite）时运行时加载
+static func _gs():
+	return load("res://scripts/core/god_suite.gd") if Cfg.test_suite() else null
 
 const KEEP := 5
 const BUCKET_MS := 0.5
@@ -257,16 +259,16 @@ func finish(result: String) -> void:
 		print("PERFREPORT finish result=%s on=%s done=%s frames=%d t=%.1f" % [result, str(on), str(done), _count(h_all), g.t])
 	if g.demo_op != "" or g.trial.active:
 		return
-	var suite: bool = g.auto_play != null and GodSuite.on()
+	var suite: bool = g.auto_play != null and Cfg.test_suite()
 	if not on or done:
 		if suite and not done:
 			done = true
-			GodSuite.run_done(g, {}, result)   # 连测：性能报告没开也要推进进度
+			_gs().run_done(g, {}, result)   # 连测：性能报告没开也要推进进度
 		return
 	done = true
 	if (result == "quit" and g.t < 30.0) or _count(h_all) == 0:
 		if suite:
-			GodSuite.run_done(g, {}, result)
+			_gs().run_done(g, {}, result)
 		return
 	var rec := {
 		"time": Time.get_datetime_string_from_system(false, true),
@@ -299,7 +301,7 @@ func finish(result: String) -> void:
 	all.push_front(rec)
 	save_all(all.slice(0, KEEP))
 	if suite:
-		GodSuite.run_done(g, rec, result)
+		_gs().run_done(g, rec, result)
 
 
 ## 设备信息：网页取 UA、屏幕、devicePixelRatio、deviceMemory、CPU 核数；桌面取系统、型号、处理器、显卡、屏幕、内存

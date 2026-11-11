@@ -1122,8 +1122,8 @@ func _ready() -> void:
 	trial.consume()
 	RunReload.begin_run(self)
 	CrashBox.begin(self)   # 崩溃前快照：局内每 15 秒把内存构成写进本地存储（core/crash_box.gd）
-	var AP = load("res://scripts/run/auto_play.gd")
-	if AP.wanted(self):
+	var AP = load("res://scripts/run/auto_play.gd") if Cfg.test_auto() else null   # 发行包不带 auto_play.gd / god_suite.gd（release_slim DEV_SCRIPTS）
+	if AP != null and AP.wanted(self):
 		auto_play = AP.new(self)
 	# 随机数最先定：招募开局干员时就会用 rng（战斗台词计时等）。以前 --seed 在 _ready 后段才生效，
 	# 开局干员的台词计时是随机的，第一句台词一出同 seed 的两局就分叉（2026-09-26 查明，docs/36）
@@ -2755,6 +2755,7 @@ func _exit_tree() -> void:
 		if demo_op == "":
 			perf_rep.finish("quit")
 			CrashBox.end("quit")
+	panel_ui.release()
 	if demo_op == "":
 		_release_run()
 
