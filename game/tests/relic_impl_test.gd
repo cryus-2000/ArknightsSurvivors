@@ -458,6 +458,9 @@ func test_docs74() -> void:
 	rfx.ingot_floor = 0
 	ok(game.ingots == ig + 22, "商店买古旧钱币：到手 22（%d）" % (game.ingots - ig))
 	ig = game.ingots
+	if game.relics.has("28"):   # 前面随机给藏品的件（按稀有度池抽）可能已经抽到它；11-12 #67 改稀有后池变了就抽中过一次
+		game.relics.erase("28")
+		rfx.lv.erase("28")
 	grant("28")
 	ok(game.ingots == ig + 18, "补给箱拿演员的首饰盒：照原数额 18")
 	# ---- 吸血 #263：伤害的 0.05%，每秒上限 0.5% 最大生命，低于 50% 翻倍；上限按受治疗加成之前算
