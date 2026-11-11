@@ -11,10 +11,12 @@ static var outrun_track := false
 static var load_n := 0
 static var recent_loads := PackedStringArray()
 ## 上传记账（11-11 docs/332 §4，闪退报告用）：新读入 / 新建贴图按「宽 × 高 × 4」累计字节（白剪影网页按 2 字节），crash_box 每次采样取差；
-## up_max 整局（本页）最大单张；big_ev 是 ≥ BIG_EV_B 的读入 / 释放，crash_box 采样时取走写进事件日志。只做整数累加，不读像素
+## up_max 本局最大单张（crash_box.begin 清零；原来整页累计，标题 / 图鉴 / 上一局读过的大图也算进来，11-11 iPhone 报告因此把浊心斯卡蒂、艾丽妮的图记到别的编队头上）；
+## up_owner 本局干员专属特效（fx_owner）按干员累计字节，报告里核对有没有读编队外的；big_ev 是 ≥ BIG_EV_B 的读入 / 释放，crash_box 采样时取走写进事件日志。只做整数累加，不读像素
 const BIG_EV_B := 524288
 static var up_bytes := 0
 static var up_max := {}
+static var up_owner := {}
 static var big_ev: Array = []
 
 
@@ -27,6 +29,9 @@ static func note_up(name: String, t: Texture2D, bpp := 4) -> void:
 	up_bytes += b
 	if b > int(up_max.get("b", 0)):
 		up_max = {"n": name, "w": w, "h": h, "b": b}
+	var ow := fx_owner(name)
+	if ow != "":
+		up_owner[ow] = int(up_owner.get(ow, 0)) + b
 	if b >= BIG_EV_B:
 		big_ev.append([name, w, h, b, true])
 		if big_ev.size() > 40:
