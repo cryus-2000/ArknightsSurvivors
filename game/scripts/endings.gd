@@ -681,7 +681,7 @@ func _v2_chips(op: Dictionary) -> Array:
 		if o.has("leave"):
 			out.append(["队友离队", C_COST])
 		if o.has("threat"):
-			out.append(["%d 秒强敌" % int(o.threat.get("t", 90)), C_COST])
+			out.append(["敌人强化 %d 秒" % int(o.threat.get("t", 90)), C_COST])   # docs/76 §5 不用「强敌」
 		if o.has("kills"):
 			out.append(["%d 秒内击败 %d" % [int(o.kills.get("t", 60)), int(o.kills.get("n", 150))], C_GAIN])
 		if o.has("relic_lane"):
@@ -1169,7 +1169,7 @@ func status_items() -> Array:
 	if not chal.is_empty():
 		if chal.kind == "threat":
 			var left: float = maxf(0.0, float(chal.end_t) - g.t)
-			out.append(["委托 · 强敌 %d 秒" % int(ceil(left)) if left > 0.0 else "委托 · 击败精英小队", Color(1.0, 0.5, 0.5), clampf(left / maxf(1.0, float(chal.t)), 0.0, 1.0)])
+			out.append(["委托 · 敌人强化 %d 秒" % int(ceil(left)) if left > 0.0 else "委托 · 击败精英小队", Color(1.0, 0.5, 0.5), clampf(left / maxf(1.0, float(chal.t)), 0.0, 1.0)])
 		else:
 			out.append(["委托 · 击败 %d/%d" % [mini(g.kills - int(chal.k0), int(chal.n)), int(chal.n)], Color(1.0, 0.82, 0.4), clampf((float(chal.end_t) - g.t) / 60.0, 0.0, 1.0)])
 	for a in away:

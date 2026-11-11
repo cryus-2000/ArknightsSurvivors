@@ -1058,9 +1058,9 @@ func test_enemy_knob() -> void:
 	m.frost_max = 2.0
 	m.affix_max = 0.5
 	var lines: Array = D.dmod_lines(m)
-	ok(lines.has("小怪控制提前到 7:00") and lines.has("寒霜 2 层即冻结") and lines.has("词条概率上限 50%"), "按档覆盖的说明行（%s）" % str(lines))
+	ok(lines.has("普通敌人的寒霜、束缚、创口提前到 7:00") and lines.has("寒霜 2 层即冻结") and lines.has("词条概率上限 50%"), "按档覆盖的说明行（%s）" % str(lines))
 	m.frost_max = Bal.v("enemy/frost_max", 3.0)
-	ok(not str(D.dmod_lines(m)).contains("寒霜"), "和全局相同时不显示")
+	ok(not str(D.dmod_lines(m)).contains("层即冻结"), "和全局相同时不显示")
 	game.dmod = keep
 	# 最终 Boss 在场时新刷杂兵的生命倍率（boss_fight_enemy_hp，-1 = 跟 enemy_hp）
 	var keep_f = game.final_boss
