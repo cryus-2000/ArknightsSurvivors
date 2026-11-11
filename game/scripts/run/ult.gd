@@ -23,6 +23,7 @@ const ANF = preload("res://scripts/run/ult_an_fine.gd")   # 安洁莉娜终结�
 const MZP = preload("res://scripts/run/ult_px_mz.gd")   # 水月「水母群」转平面画面（docs/261 §8，ult/px_plane_mizuki；只画）
 const Bond = preload("res://scripts/run/link_bond.gd")   # 羁绊连携（link/bond，docs/217）
 const LinkV2 = preload("res://scripts/run/link_v2.gd")   # 连携 v2（link/v2，docs/209 §2）：全自动、只由队长触发、按姿态挑人   # 慢动作瞄准 v2（ult/aim，docs/209 §3）
+const UltDraw = preload("res://scripts/run/ult_draw.gd")   # 终结技画面层的绘制细节（舞台 / 冲击帧 / 像素形 / 定格白 / 连携闪 / 吸气 / 起手，docs/286 §4 第三批拆出）
 
 var CELLS := 7                # 协同格数（balance ult/cells，_init 读；HUD 读 u.CELLS）
 const FULL := 100.0
@@ -1316,7 +1317,7 @@ func draw_world_back(w) -> void:
 			elif str(s.kind) == "strip":
 				_draw_strip(w, s, dim)
 			else:
-				_px_shape(w, s, 1.0 - s.age / maxf(0.001, s.max), s.get("col", Color.WHITE), dim)   # 灼地 / 影子等地面图形（一律像素画法）
+				UltDraw._px_shape(self, w, s, 1.0 - s.age / maxf(0.001, s.max), s.get("col", Color.WHITE), dim)   # 灼地 / 影子等地面图形（一律像素画法）
 	w.tb_flush()
 	if IRP.on():
 		IRP.of(g).draw_back(self, w)   # 艾丽妮「宣判」转平面：纹章 + 裂缝（docs/275）
@@ -1358,36 +1359,6 @@ func stage_k() -> float:
 	if t > T - 0.15:
 		return (T - t) / 0.15
 	return 1.0
-
-
-func _draw_stage(w) -> void:
-	var k: float = stage_k()
-	if k <= 0.0:
-		return
-	var c: Vector2 = g.ppos
-	var R := Vector2(2400.0, 1600.0)
-	w.tb_quad(c - R, c + Vector2(R.x, -R.y), c + R, c + Vector2(-R.x, R.y), Color(0.0, 0.0, 0.02, Bal.v("ult/stage_dim", 0.25) * k))
-	w.tb_flush()
-	if _stage_op == null or _stage_op.pos == Vector2.INF:
-		return
-	var pr: Dictionary = _stage_op.portrait()
-	var t: Texture2D = g.tex.get(str(pr.get("tex", "")))
-	if t == null:
-		return
-	var n: int = maxi(1, int(pr.get("frames", 1)))
-	var fw: float = t.get_width() / float(n)
-	var fh: float = float(t.get_height())
-	var hi: float = A.hires_of(t)
-	var s: float = g.PX / hi * lerpf(1.0, Bal.v("ult/stage_pop", 1.25), k)
-	var flip: float = -1.0 if float(_stage_op.face) < 0.0 else 1.0
-	var col: Color = _col(_stage_op)
-	for j in 2:   # 残影：往出手来的方向拖两层干员色
-		var off: Vector2 = (g.ppos - _stage_op.pos).normalized() * (26.0 * (j + 1)) * k
-		g.draw_set_transform(_stage_op.pos + off, 0.0, Vector2(s * flip, s))
-		g.draw_texture_rect_region(t, Rect2(-fw * 0.5, -fh * 0.92, fw, fh), Rect2(0, 0, fw, fh), Color(col.r, col.g, col.b, 0.35 * k / (j + 1)))
-	g.draw_set_transform(_stage_op.pos, 0.0, Vector2(s * flip, s))
-	g.draw_texture_rect_region(t, Rect2(-fw * 0.5, -fh * 0.92, fw, fh), Rect2(0, 0, fw, fh), Color(1, 1, 1, k))
-	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 ## 推镜（run/cam_fx.gd 读，§7.1）：瞄准 1.08 → 出招前 0.6 秒 1.12 → 0.4 秒拉回 1.0；按游戏时间算，纯画面
@@ -1485,10 +1456,10 @@ func _dim() -> float:
 func draw_world(w) -> void:
 	var dim: float = _dim()
 	var px: bool = Bal.vi("ult/px_style", 1) > 0   # 像素风光栅化（用户 10-30）
-	_draw_stage(w)   # 舞台：压暗 + 放大的出手队友（在本层图形之前画，特效亮在上面）
-	_draw_windup(w)   # 起手慢放：蓄力粒子往身上收 + 脚下光圈收紧
-	_draw_sf(w)   # 超必杀暂停：压暗到约 30% + 队长轮廓光 + 手部闪光 + 干员色放射速度线
-	_draw_lf(w)   # 连携轻量演出：压暗到约 60% + 接手队友原亮度（link/flash）
+	UltDraw._draw_stage(self, w)   # 舞台：压暗 + 放大的出手队友（在本层图形之前画，特效亮在上面）
+	UltDraw._draw_windup(self, w)   # 起手慢放：蓄力粒子往身上收 + 脚下光圈收紧
+	UltDraw._draw_sf(self, w)   # 超必杀暂停：压暗到约 30% + 队长轮廓光 + 手部闪光 + 干员色放射速度线
+	UltDraw._draw_lf(self, w)   # 连携轻量演出：压暗到约 60% + 接手队友原亮度（link/flash）
 	for s in shapes:
 		if s.age < 0.0:
 			continue
@@ -1505,7 +1476,7 @@ func draw_world(w) -> void:
 		var k: float = 1.0 - s.age / maxf(0.001, s.max)
 		var col: Color = s.get("col", Color.WHITE)
 		if px:
-			_px_shape(w, s, k, col, dim)
+			UltDraw._px_shape(self, w, s, k, col, dim)
 			continue
 		match str(s.kind):
 			"circle":
@@ -1546,13 +1517,13 @@ func draw_world(w) -> void:
 		var c: Color = _col(caster).lerp(Color.WHITE, 0.3)
 		if aim_kind == "point":
 			var r: float = Moves.aim_r(str(caster.id))
-			_px_disc(w, aim, r + 1.5, r - 1.5, _pc(c, 0.4))   # 落点提示：只在瞄准慢动作里、淡（用户 10-29）；像素画法（10-30）
-			_px_thick(w, caster.pos, aim, 1.5, _pc(c, 0.3))
+			UltDraw._px_disc(self, w, aim, r + 1.5, r - 1.5, _pc(c, 0.4))   # 落点提示：只在瞄准慢动作里、淡（用户 10-29）；像素画法（10-30）
+			UltDraw._px_thick(self, w, caster.pos, aim, 1.5, _pc(c, 0.3))
 		elif aim_kind == "dir":
-			_px_thick(w, caster.pos, caster.pos + aim_dir * 520.0, 4.0, _pc(c, 0.8))
+			UltDraw._px_thick(self, w, caster.pos, caster.pos + aim_dir * 520.0, 4.0, _pc(c, 0.8))
 		else:
 			var r2: float = Moves.aim_r(str(caster.id)) if kind != "cult" else VIEW.x * 0.5
-			_px_disc(w, caster.pos, r2 + 1.5, r2 - 1.5, _pc(c, 0.8))
+			UltDraw._px_disc(self, w, caster.pos, r2 + 1.5, r2 - 1.5, _pc(c, 0.8))
 	w.tb_flush()
 	if IRP.on():
 		IRP.of(g).draw_front(self, w)   # 艾丽妮「宣判」转平面：光链 / 斩线 / 爆 / 收尾斩击（docs/275）
@@ -1564,8 +1535,8 @@ func draw_world(w) -> void:
 		GLP.of(g).draw_front(self, w)   # 歌蕾蒂娅：亮核 / 水滴 / 崩解（docs/263 §9）
 	if MZP.on():
 		MZP.of(g).draw_front(self, w)   # 水月「水母群」转平面：海月水母 / 压缩环 / 炸开亮核与冲击环 / 崩解 / 缠绕（docs/261 §8）
-	_draw_inhale(w)
-	_draw_hit_frame(w)
+	UltDraw._draw_inhale(self, w)
+	UltDraw._draw_hit_frame(self, w)
 
 
 ## 冲击帧（中村丰式，用户 10-31；docs/199 §7.10，pixfx §6.6）：命中那一下（impact 起算、真实时间）第 1 拍白底 + 主体黑剪影，
@@ -1580,70 +1551,6 @@ var _hf_tail := {}   # 招式已收尾、冲击帧还没画完时代替 act（�
 var _hf_serial := -1
 var _hf_n := [0, 0]   # 本次冲击帧白 / 黑两拍已画的帧数
 var _hf_t0 := 0.0
-
-
-func _draw_hit_frame(w) -> void:
-	if not _hf_on():
-		return
-	if _hf_serial != serial and _imp_serial != serial and _fin_on():
-		impact(caster.pos if caster != null else g.ppos)   # 高潮伤害全标了 pre 的招式（水月水母齐爆）：冲击帧起算这一刻补上 impact，收尾加强 / 冲击慢放才落得到这一下
-	if _hf_serial != serial and _fin_wait():
-		return   # 收尾加强：吸气还没完，冲击帧两拍从「爆」那一刻起算
-	var ha: Dictionary = act if act.get("hf", false) else _hf_tail
-	# 每拍按真实时间 ult/hit_frame_t，且至少画满 2 帧（卡顿 / 录像时一帧超过一拍，按时间会把黑底那拍整个跳过）；
-	# 按这次终结技（serial）只起算一次：反震 / 炮击会连着 impact 好几次，按 impact 重置会再闪一轮
-	var ht: float = Bal.v("ult/hit_frame_t", 0.067)
-	if _hf_serial != serial:
-		_hf_serial = serial
-		_hf_n = [0, 0]
-		_hf_t0 = UM.now()
-		var sx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
-		if sx != null and sx.trace_on:   # 录屏对时间线：冲击帧第一拍（高潮音效要落在这一刻，docs/205 §4.2）
-			sx.trace.append([Engine.get_process_frames(), "ultev:HF", 0.0, 1.0])
-		if caster != null and str(_aud(str(caster.id)).get("hf_slot", "")) != "":   # 高潮音效直接挂冲击帧第一拍（ult_audio.json hf_slot）
-			_ua(str(_aud(str(caster.id)).hf_slot))
-	var t: float = UM.now() - _hf_t0
-	var inv: bool = t < ht or _hf_n[0] < 2   # 第 1 拍：白底黑剪影
-	if not inv and _hf_n[1] >= 2 and t >= ht * 2.0:
-		ha["hf"] = false   # 一次终结技只闪一次（维什戴尔后几排落地也会 impact）
-		ha["hf_done"] = true
-		return
-	_hf_n[0 if inv else 1] += 1
-	var bg := Color(0.92, 0.9, 0.86) if inv else Color(0.02, 0.02, 0.03)
-	var hc: Array = ha.get("hf_cols", [])   # 招式自定两拍配色 [底 1, 剪影 1, 底 2, 剪影 2]（流明：冷暖反差，用户 10-31 不要纯白）
-	if hc.size() == 4:
-		bg = hc[0] if inv else hc[2]
-	var c: Vector2 = g.ppos
-	var R := Vector2(2600.0, 1700.0)
-	w.tb_quad(c - R, c + Vector2(R.x, -R.y), c + R, c + Vector2(-R.x, R.y), bg)
-	w.tb_flush()
-	var fg := Color(0.0, 0.0, 0.0) if inv else Color(1.6, 1.6, 1.6)   # 黑底那拍：贴图保持本色提亮（乘 8 会把红压成粉）；程序斩线照样纯白
-	if hc.size() == 4:
-		fg = hc[1] if inv else hc[3]
-	for s in shapes:
-		if s.age < 0.0 or not s.get("hf", false):
-			continue
-		if str(s.kind) == "pxfn":   # 转平面终结技画面（docs/262 §11）：按剪影色画
-			w.tb_flush()
-			UPX.draw(g, s, 1.0, Color(fg, 1.0))
-			continue
-		if str(s.kind) == "strip":
-			var s2: Dictionary = s.duplicate()
-			s2["col"] = Color(fg, 1.0)
-			s2.erase("col1")
-			s2.erase("fade")
-			_draw_strip(w, s2, 1.0)
-		else:
-			var s3: Dictionary = s.duplicate()
-			s3["glow"] = Color(fg, 1.0)
-			_px_shape(w, s3, 1.0, Color(fg.r, fg.g, fg.b) if (inv or hc.size() == 4) else Color.WHITE, 1.0)
-	w.tb_flush()
-	if IRP.on():
-		IRP.of(g).draw_hf(self, w, Color(fg.r, fg.g, fg.b) if (inv or hc.size() == 4) else Color.WHITE)   # 转平面（docs/275）：收尾斩击 + 主裂缝的剪影
-	if SDP.on():
-		SDP.of(g).draw_hf(self, w, Color(fg.r, fg.g, fg.b) if (inv or hc.size() == 4) else Color.WHITE)   # 斯卡蒂：劈浪那一拍的立起层剪影
-	if MZP.on():
-		MZP.of(g).draw_hf(self, w, Color(fg.r, fg.g, fg.b) if (inv or hc.size() == 4) else Color.WHITE)   # 转平面（docs/261 §8）：9 只海月水母剪影
 
 
 # ================================================================ 像素风光栅化（用户 10-30「特效都要对齐我们的美术风格」）
@@ -1661,148 +1568,6 @@ func _pc(col: Color, a: float) -> Color:
 	if m > cap:
 		c = Color(col.r * cap / m, col.g * cap / m, col.b * cap / m)
 	return Color(c, clampf(a, 0.0, 1.0))
-
-
-func _span(w, y: float, x0: float, x1: float, G: float, col: Color) -> void:
-	var a: float = floorf(x0 / G) * G
-	var b: float = ceilf(x1 / G) * G
-	if b - a < G * 0.5:
-		return
-	w.tb_quad(Vector2(a, y), Vector2(b, y), Vector2(b, y + G), Vector2(a, y + G), col)
-
-
-## 任意多边形（奇偶填充）：逐行求与各边的交点，两两成段
-func _px_poly(w, pts: PackedVector2Array, col: Color) -> void:
-	if pts.size() < 3 or col.a <= 0.003:
-		return
-	var G: float = _pxg()
-	var y0: float = INF
-	var y1: float = -INF
-	for p in pts:
-		y0 = minf(y0, p.y)
-		y1 = maxf(y1, p.y)
-	var y: float = floorf(y0 / G) * G
-	var n: int = pts.size()
-	while y < y1:
-		var yc: float = y + G * 0.5
-		var xs: Array = []
-		for i in n:
-			var p: Vector2 = pts[i]
-			var q: Vector2 = pts[(i + 1) % n]
-			if (p.y <= yc and q.y > yc) or (q.y <= yc and p.y > yc):
-				xs.append(p.x + (yc - p.y) * (q.x - p.x) / (q.y - p.y))
-		xs.sort()
-		var j := 0
-		while j + 1 < xs.size():
-			_span(w, y, xs[j], xs[j + 1], G, col)
-			j += 2
-		y += G
-
-
-func _px_disc(w, c: Vector2, ro: float, ri: float, col: Color) -> void:
-	if ro <= 0.0 or col.a <= 0.003:
-		return
-	var G: float = _pxg()
-	var y: float = floorf((c.y - ro) / G) * G
-	while y < c.y + ro:
-		var dy: float = y + G * 0.5 - c.y
-		if absf(dy) < ro:
-			var ho: float = sqrt(ro * ro - dy * dy)
-			if ri > 0.0 and absf(dy) < ri:
-				var hi: float = sqrt(ri * ri - dy * dy)
-				_span(w, y, c.x - ho, c.x - hi, G, col)
-				_span(w, y, c.x + hi, c.x + ho, G, col)
-			else:
-				_span(w, y, c.x - ho, c.x + ho, G, col)
-		y += G
-
-
-## 碎裂冲击波（不画整圆环）：沿圆周撒像素块，块大小 / 半径按序号确定性抖动、约三成留空，越往后块越碎小
-func _px_frag(w, c: Vector2, r: float, wd: float, col: Color, k: float) -> void:
-	var G: float = _pxg()
-	var n: int = clampi(int(TAU * r / (G * 5.0)), 8, 220)
-	for i in n:
-		var h: float = fposmod(sin(float(i) * 12.9898) * 43758.5453, 1.0)
-		if h < 0.3:
-			continue
-		var p: Vector2 = c + Vector2.from_angle(TAU * (float(i) + h * 0.6) / n) * (r + (h - 0.65) * wd * 2.0)
-		var sz: float = maxf(G, roundf(wd * (0.4 + 0.6 * h) * (0.5 + 0.5 * k) / G) * G)
-		var q := Vector2(floorf(p.x / G) * G, floorf(p.y / G) * G)
-		w.tb_quad(q, q + Vector2(sz, 0), q + Vector2(sz, sz), q + Vector2(0, sz), col)
-
-
-func _px_thick(w, a: Vector2, b: Vector2, wd: float, col: Color) -> void:
-	var d: Vector2 = (b - a).normalized().orthogonal() * maxf(_pxg(), wd) * 0.5
-	_px_poly(w, PackedVector2Array([a + d, b + d, b - d, a - d]), col)
-
-
-func _px_shape(w, s: Dictionary, k: float, col: Color, dim: float) -> void:
-	var G: float = _pxg()
-	match str(s.kind):
-		"circle":
-			_px_disc(w, s.c, float(s.r), 0.0, _pc(col, float(s.get("fill", 0.3)) * k * dim))
-		"ring":
-			var r: float = lerpf(float(s.get("r1", s.r)), float(s.r), clampf(s.age / maxf(0.001, s.max * 0.5), 0.0, 1.0))
-			var wd: float = maxf(G, float(s.get("w", 3.0)))
-			if s.get("frag", Bal.vi("ult/px_ring_frag", 1) > 0 and not s.get("solid", false)):   # 缺省碎裂（10-30「不用纯几何圆环当主体」）；solid = true 保留整环
-				_px_frag(w, s.c, r, wd, _pc(col, 0.85 * k * dim), k)
-			else:
-				_px_disc(w, s.c, r + wd * 0.5, maxf(0.0, r - wd * 0.5), _pc(col, 0.85 * k * dim))
-		"sector":
-			var pts := PackedVector2Array([s.c])
-			var a0: float = float(s.a) - float(s.half)
-			for i in 21:
-				pts.append(s.c + Vector2.from_angle(a0 + float(s.half) * 2.0 * i / 20.0) * float(s.r))
-			_px_poly(w, pts, _pc(col, float(s.get("fill", 0.3)) * k * dim))
-		"band":
-			_px_thick(w, s.a, s.b, float(s.w), _pc(col, float(s.get("fill", 0.3)) * k * dim))
-		"line":
-			_px_thick(w, s.a, s.b, float(s.get("w", 3.0)), _pc(col, 0.9 * k * dim))
-		"blade":
-			var gr: float = float(s.get("grow", 0.0))
-			var gk: float = clampf(s.age / gr, 0.0, 1.0) if gr > 0.0 else 1.0
-			var m: Vector2 = (s.a + s.b) * 0.5
-			var ha: Vector2 = (s.a - m) * gk
-			var nrm: Vector2 = (s.b - s.a).normalized().orthogonal()
-			var fo: float = float(s.get("fo", 0.08))
-			var fa: float = 1.0 if s.age < s.max - fo else maxf(0.0, (s.max - s.age) / fo)
-			var bw: float = maxf(G, float(s.get("w", 8.0)))
-			var gc: Color = s.get("glow", Color(0.45, 0.85, 1.0))
-			_px_poly(w, PackedVector2Array([m + ha, m + nrm * bw * 1.5, m - ha, m - nrm * bw * 1.5]), _pc(gc, 0.45 * fa * dim))
-			_px_poly(w, PackedVector2Array([m + ha, m + nrm * bw * 0.5, m - ha, m - nrm * bw * 0.5]), _pc(col, fa * dim))
-		"rock":   # 熔岩块 / 碎岩：不规则多边形外壳 + 裂缝透光 + 芯（c、r、rot，col 外壳、glow 裂缝、core 芯；seed 定形状）
-			var sd: float = float(s.get("seed", 1.0))
-			var rot: float = float(s.get("rot", 0.0)) + float(s.get("spin", 0.0)) * s.age
-			var rr: float = float(s.r)
-			var fa: float = float(s.get("fill", 1.0)) * (1.0 if s.get("hold", true) else k) * dim
-			var pts := PackedVector2Array()
-			for i in 9:
-				var h: float = fposmod(sin(sd * 7.13 + float(i) * 12.9898) * 43758.5453, 1.0)
-				pts.append(s.c + Vector2.from_angle(rot + TAU * float(i) / 9.0) * rr * (0.72 + 0.28 * h))
-			_px_poly(w, pts, _pc(col, fa))
-			if s.has("glow"):
-				var gl: Color = _pc(s.glow, fa)
-				for i in 3:
-					var h2: float = fposmod(sin(sd * 3.7 + float(i) * 78.233) * 43758.5453, 1.0)
-					var dd: Vector2 = Vector2.from_angle(rot + TAU * (float(i) + h2 * 0.5) / 3.0)
-					_px_thick(w, s.c + dd * rr * 0.15, s.c + dd * rr * (0.55 + 0.25 * h2), G * (2.0 if rr >= 24.0 else 1.0), gl)
-				_px_disc(w, s.c, rr * 0.3, 0.0, gl)
-			if s.has("core"):
-				_px_disc(w, s.c, maxf(G, rr * 0.15), 0.0, _pc(s.core, fa))
-		"ellipse":   # 地面影子 / 灼地：c、rx、ry
-			var pe := PackedVector2Array()
-			for i in 16:
-				pe.append(s.c + Vector2(cos(TAU * i / 16.0) * float(s.rx), sin(TAU * i / 16.0) * float(s.ry)))
-			_px_poly(w, pe, _pc(col, float(s.get("fill", 0.3)) * (1.0 if s.get("hold", false) else k) * dim))
-		"dots":
-			var n: int = int(s.get("n", 12))
-			var cc: Color = _pc(col, 0.9 * k * dim)
-			for i in n:
-				var ang: float = i * 2.39996
-				var rr: float = float(s.r) * sqrt(float(i + 1) / n) * (0.6 + 0.4 * (1.0 - k))
-				var p: Vector2 = s.c + Vector2.from_angle(ang) * rr
-				var q: Vector2 = Vector2(floorf(p.x / G) * G, floorf(p.y / G) * G)
-				w.tb_quad(q, q + Vector2(G * 2.0, 0), q + Vector2(G * 2.0, G * 2.0), q + Vector2(0, G * 2.0), cc)
 
 
 ## 光学光照（本作光学观感：发光的特效照亮地面与怪，docs/130）：登记一盏短命动态灯；光学 / 颗粒关时无事
@@ -2364,96 +2129,6 @@ func _sf_tick() -> void:
 var _sf_wcache := {}
 
 
-func _sf_white(tx: Texture2D) -> Texture2D:
-	var key := tx.get_rid()
-	if not _sf_wcache.has(key):
-		var img: Image = tx.get_image()
-		if img == null or img.is_empty():
-			_sf_wcache[key] = tx
-		else:
-			if img.is_compressed():
-				img.decompress()
-			img.convert(Image.FORMAT_RGBA8)
-			for y in img.get_height():
-				for x in img.get_width():
-					var a: float = img.get_pixel(x, y).a
-					img.set_pixel(x, y, Color(1, 1, 1, 1.0 if a > 0.3 else 0.0))
-			_sf_wcache[key] = ImageTexture.create_from_image(img)
-	return _sf_wcache[key]
-
-
-func _draw_sf(w) -> void:
-	if _sf_rt <= 0.0 or _sf_ld == null or _sf_ld.pos == Vector2.INF:
-		return
-	var T: float = Bal.v("ult/sf_t", 0.35)
-	var out: float = Bal.v("ult/sf_out", 0.2)
-	var t: float = sf_age()
-	if t < 0.0 or t > T + out:
-		return
-	var rm: bool = Cfg.reduce_motion
-	var k: float = 1.0 if t < T else 1.0 - (t - T) / out
-	if rm:   # 减少动态效果：压暗淡入淡出
-		k = minf(k, clampf(t / 0.12, 0.0, 1.0))
-	var col: Color = _col(_sf_ld)
-	var c: Vector2 = _sf_ld.pos
-	var R := Vector2(2400.0, 1600.0)
-	var gc: Vector2 = g.ppos
-	w.tb_quad(gc - R, gc + Vector2(R.x, -R.y), gc + R, gc + Vector2(-R.x, R.y), Color(0.0, 0.0, 0.02, Bal.v("ult/sf_dim", 0.7) * k))
-	# 干员色放射速度线（往外流）：位置按序号哈希定，不抽随机数
-	if not rm:
-		var n: int = Bal.vi("ult/sf_lines", 28)
-		if Cfg.mobile_web():
-			n = maxi(4, n / 2)
-		var G: float = _pxg()
-		for i in n:   # 每条长短 / 粗细 / 速度 / 角度都打散（10-30 预审：等间距同长的线像重复矩形拼出来的）；尖头细尾
-			var h1: float = fposmod(sin(float(i) * 12.9898) * 43758.5453, 1.0)
-			var h2: float = fposmod(sin(float(i) * 78.233) * 12345.678, 1.0)
-			var h3: float = fposmod(sin(float(i) * 39.425) * 24634.633, 1.0)
-			var d: Vector2 = Vector2.from_angle(TAU * h3 + 0.35 * (h1 - 0.5))
-			var spd: float = 900.0 + 1400.0 * h2
-			var r0: float = 50.0 + fposmod(t * spd + h1 * 900.0, 860.0)
-			var ln: float = 50.0 + 320.0 * h1 * h1
-			var wd: float = G * (1.0 + floorf(h2 * 2.99))
-			var lc: Color = col.lerp(Color.WHITE, 0.4 * h3)
-			var a0: float = (0.25 + 0.5 * h2) * k
-			var p0: Vector2 = c + d * r0
-			_px_thick(w, p0, p0 + d * ln * 0.35, wd, _pc(lc, a0))                         # 亮头
-			_px_thick(w, p0 + d * ln * 0.35, p0 + d * ln, maxf(G, wd - G), _pc(col, a0 * 0.55))   # 细尾
-	w.tb_flush()
-	# 队长：原亮度 + 一圈干员色轮廓光（画在压暗层之上）
-	var pr: Dictionary = _sf_ld.portrait()
-	var tx: Texture2D = g.tex.get(str(pr.get("tex", "")))
-	if tx != null:
-		var nf: int = maxi(1, int(pr.get("frames", 1)))
-		var fw: float = tx.get_width() / float(nf)
-		var fh: float = float(tx.get_height())
-		var hi: float = A.hires_of(tx)
-		var sc: float = g.PX / hi
-		var flip: float = -1.0 if float(_sf_ld.face) < 0.0 else 1.0
-		var G2: float = _pxg()
-		var wt: Texture2D = _sf_white(tx)
-		for ring in [[2.0, _pc(col, 0.55 * k)], [1.0, _pc(col.lerp(Color.WHITE, 0.35), k)]]:   # 外圈 2 格淡、内圈 1 格亮（10-30 用户嫌读不出）
-			var d: float = G2 * float(ring[0])
-			for off in [Vector2(-d, 0), Vector2(d, 0), Vector2(0, -d), Vector2(0, d), Vector2(-d, -d), Vector2(d, -d), Vector2(-d, d), Vector2(d, d)]:
-				g.draw_set_transform(c + off, 0.0, Vector2(sc * flip, sc))
-				g.draw_texture_rect_region(wt, Rect2(-fw * 0.5, -fh * 0.92, fw, fh), Rect2(0, 0, fw, fh), ring[1])
-		g.draw_set_transform(c, 0.0, Vector2(sc * flip, sc))
-		g.draw_texture_rect_region(tx, Rect2(-fw * 0.5, -fh * 0.92, fw, fh), Rect2(0, 0, fw, fh), Color(1, 1, 1, k))
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	# 手 / 武器位置一道像素闪光：十字 + 斜十字，暂停前段长出、后段收回
-	if t < T:
-		var hp: Vector2 = c + Vector2(14.0 * (1.0 if float(_sf_ld.face) >= 0.0 else -1.0), -34.0)
-		var ph: float = t / T
-		var L: float = 46.0 * sin(PI * minf(1.0, ph * 1.4))
-		var fc: Color = _pc(col.lerp(Color.WHITE, 0.6), 1.0)
-		var G3: float = _pxg()
-		_px_thick(w, hp - Vector2(L, 0), hp + Vector2(L, 0), G3 * 2.0, fc)
-		_px_thick(w, hp - Vector2(0, L * 0.8), hp + Vector2(0, L * 0.8), G3 * 2.0, fc)
-		_px_thick(w, hp - Vector2(L, L) * 0.4, hp + Vector2(L, L) * 0.4, G3, _pc(col, 0.85))
-		_px_thick(w, hp - Vector2(L, -L) * 0.4, hp + Vector2(L, -L) * 0.4, G3, _pc(col, 0.85))
-		_px_disc(w, hp, maxf(G3, L * 0.18), 0.0, _pc(Color.WHITE, 0.9))
-		w.tb_flush()
-
 # ================================================================ 连携轻量演出（用户 10-31 批准；协调人：在超必杀那套上加、比终结技低一档）
 ## 开关 link/flash（缺省 1；0 = 原来的：技能连携舞台压暗 25% + 队友放大残影 + 出手瞬间 0.6 倍、普通连携小条带 + 0.5 倍）。
 ## 连携出手（技能连携 Link.fire / 普通连携 Combo.fire，E 或自动）那一刻：
@@ -2529,30 +2204,6 @@ func lf_slow_on() -> bool:
 	return lf_full and not LinkV2.on() and UM.now() - lf_rt < Bal.v("link/slow_t", 0.2)
 
 
-func _draw_lf(w) -> void:
-	var k: float = lf_dim_k()
-	if k <= 0.0:
-		return
-	var c: Vector2 = g.ppos
-	var R := Vector2(2400.0, 1600.0)
-	w.tb_quad(c - R, c + Vector2(R.x, -R.y), c + R, c + Vector2(-R.x, R.y), Color(0.0, 0.0, 0.02, Bal.v("link/dim", 0.4) * k))
-	w.tb_flush()
-	if lf_op == null or lf_op.pos == Vector2.INF:
-		return
-	var pr: Dictionary = lf_op.portrait()
-	var t: Texture2D = g.tex.get(str(pr.get("tex", "")))
-	if t == null:
-		return
-	var n: int = maxi(1, int(pr.get("frames", 1)))
-	var fw: float = t.get_width() / float(n)
-	var fh: float = float(t.get_height())
-	var s: float = g.PX / A.hires_of(t)
-	var flip: float = -1.0 if float(lf_op.face) < 0.0 else 1.0
-	g.draw_set_transform(lf_op.pos, 0.0, Vector2(s * flip, s))   # 接手队友原大小原亮度压在暗层之上
-	g.draw_texture_rect_region(t, Rect2(-fw * 0.5, -fh * 0.92, fw, fh), Rect2(0, 0, fw, fh), Color(1, 1, 1, k))
-	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-
-
 # ---------------------------------------------------------------- --ultdur（docs/216 §4）：量一次终结技的真实时长（界面时钟 UM.now，--fixed-fps 下按固定步长）。
 ## 从按下 Q 起：cast = 放出、done = 招式结束（phase 清空）、end = 最后一个图形 / 帧条消失（最长 20 秒）；
 ## frozen = 世界停住的时间（超必杀暂停 + 顿帧）、slow = 慢放（时间系数 < 0.5，瞄准 / 冲击慢放）。打印 ULTDUR {…}，纯测量
@@ -2620,16 +2271,6 @@ func _fin_in() -> float:
 
 func _fin_wait() -> bool:
 	return _fin_on() and _imp_serial == serial and _imp_age() < _fin_in()
-
-
-func _draw_inhale(w) -> void:
-	if not _fin_wait() or Cfg.reduce_motion:
-		return
-	var k: float = clampf(_imp_age() / maxf(0.01, _fin_in() * 0.5), 0.0, 1.0)
-	var c: Vector2 = g.ppos
-	var R := Vector2(2600.0, 1700.0)
-	w.tb_quad(c - R, c + Vector2(R.x, -R.y), c + R, c + Vector2(-R.x, R.y), Color(0.0, 0.0, 0.02, Bal.v("ult/finish_dim", 0.4) * k))
-	w.tb_flush()
 
 
 func _fin_release() -> void:
@@ -2718,7 +2359,6 @@ func _wu_s() -> float:
 	return clampf(Bal.v("ult/windup_s", 0.3), 0.05, 1.0)
 
 
-
 ## 起手进度 0..1（游戏时间）
 func _wu_k() -> float:
 	return clampf((g.t - _wu_t0) / (_wu_t() * _wu_s()), 0.0, 1.0)
@@ -2790,39 +2430,3 @@ func _wu_tick() -> void:
 		caster.anim_t = _wu_pre * 0.97 * wk
 
 
-func _draw_windup(w) -> void:
-	if phase != "windup" or caster == null or caster.pos == Vector2.INF:
-		return
-	var wk: float = _wu_k()
-	if IRP.on() and str(caster.id) == "irene":   # 转平面（docs/275）：光点螺旋收进举起的提灯 + 脚下细光圈收紧
-		IRP.of(g).draw_windup(self, w, caster, wk)
-		return
-	if SDP.on() and str(caster.id) == "skadi":   # 转平面（docs/246 §16）：头顶冰蓝细光长到星芒、水珠往里收
-		SDP.of(g).draw_windup(self, w, caster, wk)
-		return
-	var col: Color = _col(caster)
-	var c: Vector2 = caster.pos
-	var body: Vector2 = c + Vector2(0, -22.0)
-	# 脚下光圈：72 → 22 收紧，越收越亮（3 像素格的椭圆点环）
-	var r: float = lerpf(72.0, 22.0, 1.0 - pow(1.0 - wk, 2.0))
-	var a: float = 0.35 + 0.55 * wk
-	var n := 40
-	for i in n:
-		var t: float = TAU * float(i) / n
-		var p: Vector2 = (c + Vector2(cos(t) * r, sin(t) * r * 0.38)).snapped(Vector2(3, 3))
-		w.tb_quad(p, p + Vector2(3, 0), p + Vector2(3, 3), p + Vector2(0, 3), Color(col.r, col.g, col.b, a))
-	# 蓄力粒子：22 颗从 70–150 外往身上收（各自错开起点与速度，按 serial 定，不抽随机数），越近越亮越小
-	if not Cfg.reduce_motion:
-		var cw: Color = col.lerp(Color.WHITE, 0.45)
-		for i in 22:
-			var h1: float = fposmod(sin(float(i) * 12.9898 + float(serial) * 78.233) * 43758.5453, 1.0)
-			var h2: float = fposmod(sin(float(i) * 39.346 + float(serial) * 11.135) * 24634.6345, 1.0)
-			var k: float = clampf(wk * (1.2 + 0.6 * h2) - 0.25 * h1, 0.0, 1.0)
-			if k <= 0.0 or k >= 1.0:
-				continue
-			var ang: float = TAU * (float(i) + h1) / 22.0
-			var d: float = lerpf(70.0 + 80.0 * h2, 6.0, k * k)
-			var p: Vector2 = (body + Vector2.from_angle(ang) * Vector2(d, d * 0.7)).snapped(Vector2(3, 3))
-			var sz: float = 6.0 if k < 0.6 else 3.0
-			w.tb_quad(p, p + Vector2(sz, 0), p + Vector2(sz, sz), p + Vector2(0, sz), Color(cw.r, cw.g, cw.b, 0.4 + 0.5 * k))
-	w.tb_flush()
