@@ -120,7 +120,11 @@ def main():
     # build.json 写 lang_lock = zh（settings.gd lang_locked 读），翻译表整个不进 Toy 包
     if a.toy:
         binfo["lang_lock"] = "zh"
-        shutil.rmtree(os.path.join(src, "game", "l10n"), ignore_errors=True)
+        l10n_dir = os.path.join(src, "game", "l10n")
+        l10n_b = sum(os.path.getsize(os.path.join(dp, f)) for dp, _, fs in os.walk(l10n_dir) for f in fs) if os.path.isdir(l10n_dir) else 0
+        shutil.rmtree(l10n_dir, ignore_errors=True)
+        # 导入后 pck 里的翻译表与源 CSV 大小相近（compress=0）；网页包另有 gzip，实际下载少得更少
+        print("[瘦身] Toy 版不带英文：翻译表 %.2f MiB 不进包（itch 网页包会带）" % (l10n_b / 1048576), flush=True)
     else:
         binfo.pop("lang_lock", None)
     with open(bj, "w", encoding="utf-8") as fh:
@@ -171,6 +175,14 @@ def main():
         sys.exit("导出失败：缺少 Web 导出模板（web_nothreads_*.zip）？见 docs/22")
 
     print("[瘦身] pck：%.2f MB" % (os.path.getsize(os.path.join(tmp, "index.pck")) / 1e6), flush=True)
+    if a.toy:   # 导出断言（docs/276 §12）：Toy 包里没有英文资源（翻译表路径一个都不能出现）
+        with open(os.path.join(tmp, "index.pck"), "rb") as fh:
+            pk = fh.read()
+        # 查具体资源文件名（loc.gd 源码里有 "res://l10n/%s.en.translation" 格式串，不能只查 l10n/）
+        bad = [m for m in ("ops", "enemies", "ui", "relics", "events", "meta", "run")
+               if ("l10n/%s.en.translation" % m).encode() in pk or ("l10n/%s.csv" % m).encode() in pk]
+        assert not bad, "Toy 包里出现了英文翻译资源：%s" % bad
+        print("[检查] Toy 包不含英文翻译资源", flush=True)
     part = int(a.part_mib * 1048576)
     manifest = {"index.pck": split(tmp, "index.pck", part, a.toy)}
     # wasm：LZMA 分片（docs/187 §5，--wasm-gzip 退回 gzip）；20 MiB 一片，压缩后每片约 3 MiB

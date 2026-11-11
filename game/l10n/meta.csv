@@ -52,7 +52,7 @@ meta.meta_tree.nodes.reg3.name,Vitality III,生命感悟Ⅲ,模型,
 meta.meta_tree.nodes.reg3.desc,Leader recovers +0.2 HP per second. Recovery doubles when HP is below 35%,队长每秒回复 +0.2 生命。生命低于 35% 时回复翻倍,模型,
 meta.meta_tree.nodes.sh1.line,Objective Shield,护盾,官方,roguelike_topic_table.rogue_2.items.rogue_2_shield
 meta.meta_tree.nodes.sh1.name,Vigilance I,危机感Ⅰ,模型,
-meta.meta_tree.nodes.sh1.desc,"Leader Objective Shield limit +1 (generates 1 stack every 15s). When Objective Shield breaks, reflects: enemies within a 140 radius take Physical damage equal to 300% of Leader ATK and suffer knockback (Bosses immune to knockback)",队长护盾上限 +1（每 15 秒生成一层）。护盾破碎时反震：周围 140 范围敌人受队长攻击 ×3 物理伤害并击退（Boss 免疫击退）,模型,
+meta.meta_tree.nodes.sh1.desc,"Leader Shield limit +1 (generates 1 stack every 15s). When Shield breaks, reflects: enemies within a 140 radius take Physical damage equal to 300% of Leader ATK and suffer knockback (Bosses immune to knockback)",队长护盾上限 +1（每 15 秒生成一层）。护盾破碎时反震：周围 140 范围敌人受队长攻击 ×3 物理伤害并击退（Boss 免疫击退）,校对,校对：统一术语“护盾”为“Shield”，而非“Objective Shield”。
 meta.meta_tree.nodes.xp1.line,EXP,经验,模型,
 meta.meta_tree.nodes.xp1.name,Leadership I,领导欲Ⅰ,模型,
 meta.meta_tree.nodes.xp1.desc,EXP +5%,经验 +5%,模型,
@@ -156,7 +156,7 @@ meta.cards.passives.dash_dist.name,Long Leap,远跃,模型,
 meta.cards.passives.dash_dist.desc,Dash distance +12%,冲刺距离 +12%,模型,
 meta.cards.passives.dash_charge.name,Chain Dash,连冲,模型,
 meta.cards.passives.dash_charge.desc,Dash can store 2 charges; cooldown recovers sequentially,冲刺可储存 2 次，冷却逐次恢复,模型,
-meta.cards.passives.sp.name,Synergy: Skill,协同·技,模型,
+meta.cards.passives.sp.name,Synergy: SP,协同·技,校对,校对：“技”在此处指代“技力”（SP），且对应效果为技力回复，应统一为 SP
 meta.cards.passives.sp.desc,Squad SP Recovery +15%,全队技力回复 +15%,模型,
 meta.cards.passives.squad_atk.name,Synergy: ATK,协同·攻,模型,
 meta.cards.passives.squad_atk.desc,Squad Operator ATK +8%,全队干员攻击 +8%,模型,
@@ -169,9 +169,9 @@ meta.cards.passives.squad_crit.desc,Squad Operator skill power +10%,全队干员
 meta.cards.passives.pierce.name,Pierce,贯穿,模型,
 meta.cards.passives.pierce.desc,Ranged normal attacks pierce 2 additional enemies.,远程普攻可再穿透 2 名敌人。,模型,
 meta.cards.passives.splash.name,Splash,扩散,模型,
-meta.cards.passives.splash.desc,"When normal attacks from Melee Extended Range, Summon, and Crowd-Control Detonation Operators hit, other enemies within a 60 radius of the target take 25% of the damage.",近战扩域、召唤驻场、控场引爆干员的普攻命中时，目标周围 60 范围内的其他敌人受到该次伤害的 25%。,模型,
+meta.cards.passives.splash.desc,"When normal attacks from Melee Extended Range, Stationary Summon, and Crowd-Control Detonation Operators hit, other enemies within a 60 radius of the target take 25% of the damage.",近战扩域、召唤驻场、控场引爆干员的普攻命中时，目标周围 60 范围内的其他敌人受到该次伤害的 25%。,校对,校对：漏译“驻场”（Stationary），需与 p12 保持术语一致。
 meta.cards.passives.chain.name,Chain,连锁,模型,
-meta.cards.passives.chain.desc,"Normal attacks from Multi-target Firepower Operators bounce to 1 other enemy within a 170 radius upon hit, dealing 50% of the damage.",多弹火力干员的普攻命中后弹向 170 范围内的另 1 名敌人，造成该次伤害的 50%。,模型,
+meta.cards.passives.chain.desc,"Normal attacks from Multi-Projectile Firepower Operators bounce to 1 other enemy within a 170 radius upon hit, dealing 50% of the damage.",多弹火力干员的普攻命中后弹向 170 范围内的另 1 名敌人，造成该次伤害的 50%。,校对,校对：“多弹”翻译前后不一致，应与 p10 统一为 Multi-Projectile。
 meta.cards.passives.lane_melee.name,Melee · Expansion,近战·扩域,模型,
 meta.cards.passives.lane_melee.desc,Melee Extended Range Operators attack range +12%,近战扩域干员攻击范围 +12%,模型,
 meta.cards.passives.lane_multi.name,Multishot · Rapid Fire,多弹·连射,模型,
@@ -196,7 +196,7 @@ meta.medals.medals.0.desc,Obtain the other 8 medals in the 'Beneath the Deep Blu
 meta.medals.medals.1.name,Faded Illusions,泡影散尽,模型,
 meta.medals.medals.1.desc,Reach the ending 'Precious Days'.,达成结局「平凡即是喜乐」。,模型,
 meta.medals.medals.2.name,Knight's Return to the Tide,骑士归潮,模型,
-meta.medals.medals.2.desc,Reach the ending 'Age of the Silence'.,达成结局「静谧时代」。,模型,
+meta.medals.medals.2.desc,Reach the ending 'Age of Silence'.,达成结局「静谧时代」。,校对,校对：官方英文结局名为 Age of Silence，多了一个 the。；官方名未用上：Age of the Silence；「静谧时代」本表译 Age of the Silence，这里没对上
 meta.medals.medals.3.name,Silence of the Tides,潮声止息,模型,
 meta.medals.medals.3.desc,Reach the ending 'Price of Peace'.,达成结局「息潮的代价」。,模型,
 meta.medals.medals.4.name,Caerula Arbor,深蓝之树,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_10
@@ -250,7 +250,7 @@ meta.practice_squads.squads.wisadel_m18.slots.3.fp.mods.dmg.2,1|0.2|relic:148|cl
 meta.practice_squads.squads.wisadel_m18.slots.3.fp.mods.dmg.3,1|0.4|relic:149|class:Sniper,1|0.4|relic:149|class:狙击,模型,
 meta.practice_squads.squads.wisadel_m18.slots.3.fp.mods.op_aspd.0,1|-0.2|relic:149|class:Sniper,1|-0.2|relic:149|class:狙击,模型,
 meta.practice_squads.squads.wisadel_m18.slots.3.fp.mods.pickup.0,2|1.25|Level|,2|1.25|等级|,模型,
-meta.practice_squads.squads.skadi_m0.label,Skadi Starter Squad · No Cognition,斯卡蒂开局分队 · 无认知,模型,
+meta.practice_squads.squads.skadi_m0.label,Skadi Starting Squad · No Cognition,斯卡蒂开局分队 · 无认知,校对,校对：统一“开局分队”的翻译为 Starting Squad
 meta.practice_squads.squads.skadi_m0.slots.1.fp.mods.dmg.0,1|0.1|relic_count|class:Caster,1|0.1|relic_count|class:术师,模型,
 meta.practice_squads.squads.skadi_m0.slots.1.fp.mods.pickup.0,2|1.11|Level|,2|1.11|等级|,模型,
 meta.practice_squads.squads.skadi_m0.slots.2.fp.mods.dmg.0,1|0.15|relic:80|class:Caster,1|0.15|relic:80|class:术师,模型,
@@ -267,7 +267,7 @@ meta.practice_squads.squads.skadi_m18.slots.3.fp.mods.dmg.2,1|0.4|relic:165|clas
 meta.practice_squads.squads.skadi_m18.slots.3.fp.mods.op_aspd.2,1|0.3|relic:160|class:Medic,1|0.3|relic:160|class:医疗,模型,
 meta.practice_squads.squads.skadi_m18.slots.3.fp.mods.op_range.0,1|0.18|vgrowth|range:Melee,1|0.18|vgrowth|range:近战,模型,
 meta.practice_squads.squads.skadi_m18.slots.3.fp.mods.pickup.0,2|1.25|Level|,2|1.25|等级|,模型,
-meta.practice_squads.squads.kaltsit_m0.label,Kal'tsit Starter Squad · No Cognition,凯尔希开局分队 · 无认知,模型,
+meta.practice_squads.squads.kaltsit_m0.label,Kal'tsit Starting Squad · No Cognition,凯尔希开局分队 · 无认知,校对,校对：统一“开局分队”的翻译为 Starting Squad
 meta.practice_squads.squads.kaltsit_m0.slots.1.fp.mods.pickup.0,2|1.11|Level|,2|1.11|等级|,模型,
 meta.practice_squads.squads.kaltsit_m0.slots.2.fp.mods.dmg.0,1|0.15|relic:80|class:Caster,1|0.15|relic:80|class:术师,模型,
 meta.practice_squads.squads.kaltsit_m0.slots.2.fp.mods.pickup.0,2|1.18|Level|,2|1.18|等级|,模型,
@@ -314,7 +314,7 @@ meta.practice_squads.squads.kaltsit_m18.slots.3.fp.mods.pickup.0,2|1.24|Level|,2
 队长每秒回复 +0.2 生命。生命低于 35% 时回复翻倍,Leader recovers +0.2 HP per second. Recovery doubles when HP is below 35%,,原文键,模型
 护盾,Objective Shield,,原文键,官方
 危机感Ⅰ,Vigilance I,,原文键,模型
-队长护盾上限 +1（每 15 秒生成一层）。护盾破碎时反震：周围 140 范围敌人受队长攻击 ×3 物理伤害并击退（Boss 免疫击退）,"Leader Objective Shield limit +1 (generates 1 stack every 15s). When Objective Shield breaks, reflects: enemies within a 140 radius take Physical damage equal to 300% of Leader ATK and suffer knockback (Bosses immune to knockback)",,原文键,模型
+队长护盾上限 +1（每 15 秒生成一层）。护盾破碎时反震：周围 140 范围敌人受队长攻击 ×3 物理伤害并击退（Boss 免疫击退）,"Leader Shield limit +1 (generates 1 stack every 15s). When Shield breaks, reflects: enemies within a 140 radius take Physical damage equal to 300% of Leader ATK and suffer knockback (Bosses immune to knockback)",,原文键,校对
 经验,EXP,,原文键,模型
 领导欲Ⅰ,Leadership I,,原文键,模型
 经验 +5%,EXP +5%,,原文键,模型
@@ -390,7 +390,7 @@ meta.practice_squads.squads.kaltsit_m18.slots.3.fp.mods.pickup.0,2|1.24|Level|,2
 冲刺距离 +12%,Dash distance +12%,,原文键,模型
 连冲,Chain Dash,,原文键,模型
 冲刺可储存 2 次，冷却逐次恢复,Dash can store 2 charges; cooldown recovers sequentially,,原文键,模型
-协同·技,Synergy: Skill,,原文键,模型
+协同·技,Synergy: SP,,原文键,校对
 全队技力回复 +15%,Squad SP Recovery +15%,,原文键,模型
 协同·攻,Synergy: ATK,,原文键,模型
 全队干员攻击 +8%,Squad Operator ATK +8%,,原文键,模型
@@ -403,8 +403,8 @@ meta.practice_squads.squads.kaltsit_m18.slots.3.fp.mods.pickup.0,2|1.24|Level|,2
 贯穿,Pierce,,原文键,模型
 远程普攻可再穿透 2 名敌人。,Ranged normal attacks pierce 2 additional enemies.,,原文键,模型
 扩散,Splash,,原文键,模型
-近战扩域、召唤驻场、控场引爆干员的普攻命中时，目标周围 60 范围内的其他敌人受到该次伤害的 25%。,"When normal attacks from Melee Extended Range, Summon, and Crowd-Control Detonation Operators hit, other enemies within a 60 radius of the target take 25% of the damage.",,原文键,模型
-多弹火力干员的普攻命中后弹向 170 范围内的另 1 名敌人，造成该次伤害的 50%。,"Normal attacks from Multi-target Firepower Operators bounce to 1 other enemy within a 170 radius upon hit, dealing 50% of the damage.",,原文键,模型
+近战扩域、召唤驻场、控场引爆干员的普攻命中时，目标周围 60 范围内的其他敌人受到该次伤害的 25%。,"When normal attacks from Melee Extended Range, Stationary Summon, and Crowd-Control Detonation Operators hit, other enemies within a 60 radius of the target take 25% of the damage.",,原文键,校对
+多弹火力干员的普攻命中后弹向 170 范围内的另 1 名敌人，造成该次伤害的 50%。,"Normal attacks from Multi-Projectile Firepower Operators bounce to 1 other enemy within a 170 radius upon hit, dealing 50% of the damage.",,原文键,校对
 近战·扩域,Melee · Expansion,,原文键,模型
 近战扩域干员攻击范围 +12%,Melee Extended Range Operators attack range +12%,,原文键,模型
 多弹·连射,Multishot · Rapid Fire,,原文键,模型
@@ -428,7 +428,7 @@ meta.practice_squads.squads.kaltsit_m18.slots.3.fp.mods.pickup.0,2|1.24|Level|,2
 泡影散尽,Faded Illusions,,原文键,模型
 达成结局「平凡即是喜乐」。,Reach the ending 'Precious Days'.,,原文键,模型
 骑士归潮,Knight's Return to the Tide,,原文键,模型
-达成结局「静谧时代」。,Reach the ending 'Age of the Silence'.,,原文键,模型
+达成结局「静谧时代」。,Reach the ending 'Age of Silence'.,,原文键,校对
 潮声止息,Silence of the Tides,,原文键,模型
 达成结局「息潮的代价」。,Reach the ending 'Price of Peace'.,,原文键,模型
 深蓝之树,Caerula Arbor,,原文键,官方
@@ -455,7 +455,7 @@ meta.practice_squads.squads.kaltsit_m18.slots.3.fp.mods.pickup.0,2|1.24|Level|,2
 1|0.2|relic:148|class:狙击,1|0.2|relic:148|class:Sniper,,原文键,模型
 1|0.4|relic:149|class:狙击,1|0.4|relic:149|class:Sniper,,原文键,模型
 1|-0.2|relic:149|class:狙击,1|-0.2|relic:149|class:Sniper,,原文键,模型
-斯卡蒂开局分队 · 无认知,Skadi Starter Squad · No Cognition,,原文键,模型
+斯卡蒂开局分队 · 无认知,Skadi Starting Squad · No Cognition,,原文键,校对
 1|0.1|relic_count|class:术师,1|0.1|relic_count|class:Caster,,原文键,模型
 1|0.15|relic:80|class:术师,1|0.15|relic:80|class:Caster,,原文键,模型
 2|1.18|等级|,2|1.18|Level|,,原文键,模型
@@ -464,6 +464,6 @@ meta.practice_squads.squads.kaltsit_m18.slots.3.fp.mods.pickup.0,2|1.24|Level|,2
 1|0.4|relic:165|class:特种,1|0.4|relic:165|class:Specialist,,原文键,模型
 1|0.3|relic:160|class:医疗,1|0.3|relic:160|class:Medic,,原文键,模型
 1|0.18|vgrowth|range:近战,1|0.18|vgrowth|range:Melee,,原文键,模型
-凯尔希开局分队 · 无认知,Kal'tsit Starter Squad · No Cognition,,原文键,模型
+凯尔希开局分队 · 无认知,Kal'tsit Starting Squad · No Cognition,,原文键,校对
 凯尔希开局分队 · 18 细胞,Kal'tsit Starting Squad · 18 Cells,,原文键,模型
 2|1.24|等级|,2|1.24|Level|,,原文键,模型

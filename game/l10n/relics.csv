@@ -5,7 +5,7 @@ relics.relics.lane_names.multi,Multi-Shot Firepower,多弹火力,模型,
 relics.relics.lane_names.summon,Summon Presence,召唤驻场,模型,
 relics.relics.lane_names.control,Crowd Control Detonation,控场引爆,模型,
 relics.relics.lane_names.weak,Weakness Harvest,弱点收割,模型,可能偏长：16 字母 / 中文 4 字
-relics.relics.lane_names.shield,Objective Shield Counter,护盾反击,模型,
+relics.relics.lane_names.shield,Shield Counter,护盾反击,校对,校对：统一术语：护盾 -> Shield
 relics.relics.lane_names.heal,Heal to Damage,治疗转伤,模型,
 relics.relics.lane_names.class,Class,职业,模型,
 relics.relics.lane_names.general,General,通用,模型,
@@ -37,7 +37,7 @@ relics.relics.items.5.adapt,"Damage +4%, Max HP +4%, damage taken -1",伤害 +4%
 relics.relics.items.5.rarity,Normal,基础,模型,
 relics.relics.items.6.name,Extra-Pungent Coffee Beans,特级馥郁咖啡豆,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_11
 relics.relics.items.6.original,"+1 Squad Size Limit, +1 Deployment Limit, +1 Objective Shield",可携带干员+1，可同时部署人数+1，护盾值+1,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_11.usage
-relics.relics.items.6.adapt,"Support Operator limit +1, Objective Shield limit +1",援护干员上限 +1，护盾层数上限 +1,模型,
+relics.relics.items.6.adapt,"Support Operator limit +1, Shield limit +1",援护干员上限 +1，护盾层数上限 +1,校对,校对：统一术语：护盾 -> Shield
 relics.relics.items.6.rarity,Normal,基础,模型,
 relics.relics.items.7.name,Blue Silk Scarf,蓝色丝巾,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_12
 relics.relics.items.7.original,"+2 Hope, +1 Squad Size Limit",希望+2，可携带干员+1,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_12.usage
@@ -72,7 +72,7 @@ relics.relics.items.14.adapt,[Implemented in v0.8] Shield generation interval -3
 relics.relics.items.14.rarity,Normal,基础,模型,
 relics.relics.items.15.name,'Gaulish Toponym Origins',《旧高卢地名源流考》,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_20
 relics.relics.items.15.original,+6 Objective Shield,护盾值+6,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_20.usage
-relics.relics.items.15.adapt,Max Objective Shield +2,护盾层数上限 +2,模型,
+relics.relics.items.15.adapt,Shield limit +2,护盾层数上限 +2,校对,校对：统一术语：护盾 -> Shield
 relics.relics.items.15.rarity,Normal,基础,模型,
 relics.relics.items.16.name,Hot Water Kettle,热水壶,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_21
 relics.relics.items.16.original,"+1 Max Life Point, +1 Hope",目标生命上限+1，希望+1,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_21.usage
@@ -285,11 +285,11 @@ relics.relics.items.68.adapt,All healing effects +20%,所有回复效果 +20%,�
 relics.relics.items.68.rarity,Normal,基础,模型,
 relics.relics.items.69.name,White Flower Crown,苍白花冠,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_29
 relics.relics.items.69.original,All friendly units receive +30% healing effectiveness,所有我方单位受到的治疗和生命回复效果+30%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_29.usage
-relics.relics.items.69.adapt,All healing effects +30%,所有回复效果 +30%,模型,
+relics.relics.items.69.adapt,All recovery effects +30%,所有回复效果 +30%,校对,校对：“回复”应统一译为 recovery，与 p1 保持一致。
 relics.relics.items.69.rarity,Normal,基础,模型,
 relics.relics.items.70.name,Surging Feast,涌动之餐,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_30
 relics.relics.items.70.original,All friendly units receive +30% healing effectiveness and take -30% Elemental Injury,所有我方单位受到的治疗和生命回复效果+30%，且受到的元素损伤-30%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_30.usage
-relics.relics.items.70.adapt,All recovery effects +30%; Corrosion Damage and Nervous Impairment taken -30% (these two are Elemental Injury in the original game),所有回复效果 +30%，受到的侵蚀和神经损伤 -30%（这两种原作就是元素损伤）,模型,
+relics.relics.items.70.adapt,All recovery effects +30%; Corrosion and Nervous Impairment taken -30% (these two are Elemental Damage in the original game),所有回复效果 +30%，受到的侵蚀和神经损伤 -30%（这两种原作就是元素损伤）,校对,校对：“侵蚀”的固定译名为 Corrosion（不加 Damage）；“元素损伤”在明日方舟官方英文版中为 Elemental Damage。；官方名未用上：Elemental Injury
 relics.relics.items.70.rarity,Normal,基础,模型,
 relics.relics.items.71.name,Actor's Perfume,演出用香水,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_31
 relics.relics.items.71.original,All friendly units recover 1% of their Max HP per second,所有我方单位每秒回复1%的最大生命值,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_31.usage
@@ -383,7 +383,7 @@ relics.relics.items.94.adapt,Stunned or Bound enemies take Arts damage every sec
 relics.relics.items.94.rarity,Core,核心,模型,
 relics.relics.items.95.name,'Children's Puppet',“童趣玩偶”,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_98
 relics.relics.items.95.original,"Enemies receive 1000 Arts Damage per second when stunned, frozen, or bound",敌人被晕眩、冰冻、束缚时，每秒受到1000点法术伤害,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_98.usage
-relics.relics.items.95.adapt,Same as above (approx. 90% Normal damage),同上（约 90% 基础伤害）,模型,
+relics.relics.items.95.adapt,Same as above (approx. 90% of base damage),同上（约 90% 基础伤害）,校对,校对：“基础伤害”应译为 base damage，误译成了 Normal damage。
 relics.relics.items.95.rarity,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
 relics.relics.items.96.name,Victory Horn,凯旋号角,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_99
 relics.relics.items.96.original,"Increases the duration of single-instance status effects such as stun, cold, or freeze by 100%",敌人受到的一次性晕眩、寒冷、冰冻等异常效果影响时间提高100%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_99.usage
@@ -399,7 +399,7 @@ relics.relics.items.98.adapt,Same as above +150%,同上 +150%,模型,
 relics.relics.items.98.rarity,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
 relics.relics.items.99.name,Royal Brooch,皇族金胸针,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_102
 relics.relics.items.99.original,"All friendly units have +15 RES, and dodge one instance of damage after deployment",所有我方单位的法术抗性+15，且部署后抵挡一次伤害,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_102.usage
-relics.relics.items.99.adapt,"[Implemented in v0.8] When Objective Shield breaks, shocks and applies knockback to nearby enemies",【v0.8 已实装】护盾破裂时冲击并击退周围敌人,模型,
+relics.relics.items.99.adapt,"[Implemented in v0.8] When Shield breaks, shocks and applies knockback to nearby enemies",【v0.8 已实装】护盾破裂时冲击并击退周围敌人,校对,校对：“护盾”的固定译名为 Shield，多余的 Objective 属于无中生有。
 relics.relics.items.99.rarity,Core,核心,模型,
 relics.relics.items.100.name,Old Fan,老蒲扇,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_103
 relics.relics.items.100.original,All Operators gain +10% ATK for every different type of Operator class in the squad,战斗编队中每有一个职业不同的干员，所有干员的攻击力+10%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_103.usage
@@ -469,7 +469,7 @@ relics.relics.items.116.adapt,A 'Flag' randomly appears on the map; standing nea
 relics.relics.items.116.rarity,Core,核心,模型,
 relics.relics.items.117.name,Medicine Sticks,药枚,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_129
 relics.relics.items.117.original,All friendly units gain 2 layers of Shield when deployed,所有我方单位在部署时获得2层护盾,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_129.usage
-relics.relics.items.117.adapt,"[Implemented in v0.8] Generates 1 stack of Objective Shield every 15s, blocking 1 instance of damage",【v0.8 已实装】每 15 秒生成一层护盾，抵挡一次伤害,模型,
+relics.relics.items.117.adapt,"[Implemented in v0.8] Generates 1 stack of Shield every 15s, blocking 1 instance of damage",【v0.8 已实装】每 15 秒生成一层护盾，抵挡一次伤害,校对,校对：术语错误，原文为“护盾”，应统一为固定术语“Shield”，不应加“Objective”。
 relics.relics.items.117.rarity,Core,核心,模型,
 relics.relics.items.118.name,Fincatcher's Shawl,捕鳞蓑,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_132
 relics.relics.items.118.original,Ranged Operators gain Camouflage,远程干员获得【迷彩】,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_132.usage
@@ -631,7 +631,7 @@ relics.relics.items.160.adapt,Medic Support healing +50%,医疗援护治疗量 +
 relics.relics.items.160.rarity,Normal,基础,模型,
 relics.relics.items.161.name,Healer's Path - Restore Sanity,医者-固化序列,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_75
 relics.relics.items.161.original,Friendly units within the attack range of Medic Operators gain Status Resistance,所有【医疗】干员攻击范围内的我方单位获得抵抗,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_75.usage
-relics.relics.items.161.adapt,"When supported by a Medic, Nervous Impairment accumulation -50% (original game's 'Status Resistance')",有医疗援护时，神经损伤累积 -50%（原作的「抵抗」）,模型,
+relics.relics.items.161.adapt,"When supported by a Medic, Nervous Impairment accumulation -50% (original game's 'Resistance')",有医疗援护时，神经损伤累积 -50%（原作的「抵抗」）,校对,校对：「抵抗」的官方英文为 Resistance；「抵抗」本表译 Status Resistance，这里没对上
 relics.relics.items.161.rarity,Rare,稀有,模型,
 relics.relics.items.162.name,Rusted Blade - Advancement,锈刃-突破,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_76
 relics.relics.items.162.original,Specialist Operators have -2 DP Cost and +60% HP,所有【特种】干员的部署费用-2，生命+60%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_76.usage
@@ -657,7 +657,7 @@ relics.relics.items.167.name,Hand of Spikes,尖刺之手,官方,roguelike_topic_
 relics.relics.items.167.original,"Protector, Arts Protector, and Duelist Operators deal 100% DEF as Arts damage per second to all enemies they are blocking",【铁卫】、【驭法铁卫】和【决战者】对自身阻挡的敌人每秒造成自身防御力100%的法术伤害,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_81.usage
 relics.relics.items.167.adapt,Exclusive to Defender / Vanguard branches,重装 / 先锋分支专属,模型,
 relics.relics.items.168.name,Hand of Choker,扼喉之手,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_82
-relics.relics.items.168.original,"Attacks from [Heavyshooter], [Elite Marksman], and [Besieger] Operators instantly defeat enemies with less than 20% HP",【重射手】、【神射手】和【攻城手】的攻击会将生命值20%以下的敌人强制击杀,模型,
+relics.relics.items.168.original,"Attacks from [Heavyshooter], [Deadeye], and [Besieger] Operators instantly defeat enemies with less than 20% HP",【重射手】、【神射手】和【攻城手】的攻击会将生命值20%以下的敌人强制击杀,校对,校对：「神射手」的官方英文为 Deadeye；官方名未用上：Elite Marksman
 relics.relics.items.168.adapt,Sniper cover fire instantly defeats enemies with less than 20% HP (Bosses excepted),狙击援护会直接击杀生命低于 20% 的敌人（Boss 除外）,模型,
 relics.relics.items.168.rarity,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
 relics.relics.items.169.name,Hand of Buckler,扣挠之手,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_83
@@ -713,7 +713,7 @@ relics.relics.items.181.adapt,"Support Operator damage +15%, damage taken -2",�
 relics.relics.items.181.rarity,Normal,基础,模型,
 relics.relics.items.182.name,Church Alms Meal Voucher,教堂救济餐券,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_10
 relics.relics.items.182.original,"+2 Deployment Limit, all friendly units gain +6% HP",可同时部署人数+2，所有我方单位的生命值+6%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_10.usage
-relics.relics.items.182.adapt,"Supporting Operator damage +15%, Max HP +12%",援护干员伤害 +15%，最大生命 +12%,模型,
+relics.relics.items.182.adapt,"Support Operator damage +15%, Max HP +12%",援护干员伤害 +15%，最大生命 +12%,校对,校对：统一使用 Support Operator
 relics.relics.items.182.rarity,Normal,基础,模型,
 relics.relics.items.183.name,Regional Action Plan,地区行动方案,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_45
 relics.relics.items.183.original,4-star Operators cost -2 Hope to recruit,招募4星干员的希望消耗-2,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_45.usage
@@ -742,7 +742,7 @@ relics.relics.items.189.adapt,Level-up choices increased from 3 to 4,升级三�
 relics.relics.items.189.rarity,Core,核心,模型,
 relics.relics.items.190.name,Acahuallan Bowl,阿卡胡拉饭碗,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_53
 relics.relics.items.190.original,"Restore 4 Life Point, +2 Objective Shield",回复4目标生命，护盾值+2,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_53.usage
-relics.relics.items.190.adapt,Objective Shield generation interval -20% (grants Objective Shield if none is present); fully replenishes Objective Shield when obtained,护盾生成间隔 -20%（没有护盾时获得护盾），获得时补满护盾,模型,
+relics.relics.items.190.adapt,Shield generation interval -20% (grants Shield if none is present); fully replenishes Shield when obtained,护盾生成间隔 -20%（没有护盾时获得护盾），获得时补满护盾,校对,校对：根据固定术语表，「护盾」应译为 Shield
 relics.relics.items.190.rarity,Normal,基础,模型,
 relics.relics.items.191.name,Three-Dimensional Art Display,立体艺术装置,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_54
 relics.relics.items.191.original,"Restore 7 Life Point, restore an additional 1 Life Point after each battle",回复7目标生命，每次战斗结束后额外回复1目标生命,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_54.usage
@@ -769,11 +769,11 @@ relics.relics.items.197.original,"Upgrades your die, increasing its tier by 1 in
 relics.relics.items.197.adapt,No Key / Dice in this game,本作没有钥匙 / 骰子,模型,
 relics.relics.items.198.name,Defender-2,御2,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_64
 relics.relics.items.198.original,+5 Objective Shield,护盾值+5,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_64.usage
-relics.relics.items.198.adapt,[Implemented in v0.8] Objective Shield limit +1,【v0.8 已实装】护盾层数上限 +1,模型,
+relics.relics.items.198.adapt,[Implemented in v0.8] Shield limit +1,【v0.8 已实装】护盾层数上限 +1,校对,校对：根据固定术语表，「护盾」应译为 Shield
 relics.relics.items.198.rarity,Normal,基础,模型,
 relics.relics.items.199.name,Embedded Armor Plate,嵌体甲片,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_65
 relics.relics.items.199.original,"-2 Max Life Point, +8 Objective Shield",目标生命上限-2，护盾值+8,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_65.usage
-relics.relics.items.199.adapt,"Max HP -10, Max Objective Shield +2, Objective Shield generation interval -15%",最大生命 -10，护盾层数上限 +2，护盾生成间隔 -15%,模型,
+relics.relics.items.199.adapt,"Max HP -10, Shield limit +2, Shield generation interval -15%",最大生命 -10，护盾层数上限 +2，护盾生成间隔 -15%,校对,校对：根据固定术语表，「护盾」应译为 Shield，且统一使用 Shield limit
 relics.relics.items.199.rarity,Normal,基础,模型,
 relics.relics.items.200.name,Dario's Lantern,达里奥的提灯,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_76
 relics.relics.items.200.original,"When obtained, suppresses a designated Operator's Rejection",获得时抑制指定一名干员的排异反应,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_76.usage
@@ -781,7 +781,7 @@ relics.relics.items.200.adapt,Clears and grants immunity to 1 Rejection Reaction
 relics.relics.items.200.rarity,Normal,基础,模型,
 relics.relics.items.201.name,'King's Fellowship',“国王的护戒”,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_77
 relics.relics.items.201.original,"+2 Objective Shield, coverts all Life Point into an equivalent amount of Objective Shield (Cannot be reduced below 1 by this effect)",护盾值+2，将目标生命全部转化为等量护盾值（目标生命不会低于1）,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_77.usage
-relics.relics.items.201.adapt,"[Implemented in v0.8] When Objective Shield blocks damage, recovers 3% Max HP",【v0.8 已实装】护盾抵挡伤害时回复 3% 最大生命,模型,
+relics.relics.items.201.adapt,"[Implemented in v0.8] When Shield blocks damage, recovers 3% Max HP",【v0.8 已实装】护盾抵挡伤害时回复 3% 最大生命,校对,校对：根据固定术语表，「护盾」应译为 Shield
 relics.relics.items.201.rarity,Core,核心,模型,
 relics.relics.items.202.name,Tulip's Secret Formula,郁金香的秘方,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_79
 relics.relics.items.202.original,"When obtained, suppresses a designated Operator's Rejection",获得时抑制指定一名干员的排异反应,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_76.usage
@@ -797,7 +797,7 @@ relics.relics.items.204.adapt,Light recovered from Lamp Oil +25% (Lamp Oil picke
 relics.relics.items.204.rarity,Normal,基础,模型,
 relics.relics.items.205.name,Cathedral Puzzle,大教堂拼图,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_82
 relics.relics.items.205.original,"When obtained, randomly gain 1 Revelation",获得时随机获得1个启示,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_82.usage
-relics.relics.items.205.adapt,Obtain 1 random Foldartal (or a collectible that completes a set),随机获得 1 个启示（或一件能凑成组合的藏品）,模型,
+relics.relics.items.205.adapt,Obtain 1 random Revelation (or a collectible that completes a set),随机获得 1 个启示（或一件能凑成组合的藏品）,校对,校对：水月肉鸽中的「启示」官方英文为 Revelation（Foldartal 为萨米肉鸽的密文板）
 relics.relics.items.205.rarity,Normal,基础,模型,
 relics.relics.items.206.name,Coin-Operated Toy,投币玩具,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_113
 relics.relics.items.206.original,"For each 5 Originium Ingots in possession, all friendly units have +3 ASPD",每有5源石锭，所有我方单位的攻击速度+3,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_113.usage
@@ -829,7 +829,7 @@ relics.relics.items.212.adapt,Deploys 2 Roadblocks to block enemies every 30s,�
 relics.relics.items.212.rarity,Rare,稀有,模型,
 relics.relics.items.213.name,Support First-aid Kit,支援急救包,官方,roguelike_topic_table.rogue_2.items.rogue_2_active_tool_6
 relics.relics.items.213.original,Bring 3 First-aid Kits to each battle,每次战斗中携带3个急救包,官方,roguelike_topic_table.rogue_2.items.rogue_2_active_tool_6.usage
-relics.relics.items.213.adapt,"Carries 3 First Aid kits, automatically used when HP is below 40%",携带 3 个急救包，生命低于 40% 时自动使用,模型,
+relics.relics.items.213.adapt,"Carries 3 First Aid Kits, automatically used when HP is below 40%",携带 3 个急救包，生命低于 40% 时自动使用,校对,校对：统一大小写（First Aid Kit）
 relics.relics.items.213.rarity,Normal,基础,模型,
 relics.relics.items.214.name,Portrait of Breogan,布雷奥甘肖像,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_1
 relics.relics.items.214.original,All Operators lose 15 SP when deployed,所有干员部署时失去15点技力,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_1.usage
@@ -857,7 +857,7 @@ relics.relics.items.219.adapt,Merchant prices +15% (docs/154: Ending route no lo
 relics.relics.items.219.rarity,Cursed Curio,遭诅古物,模型,
 relics.relics.items.220.name,Caerula Animus,深蓝之心,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_8
 relics.relics.items.220.original,"-50 Light; when obtained, immediately afflicts a random Operator with a Rejection, and leads the exploration toward a different ending",灯火-50，获得时立即使随机一名干员产生排异反应，让探索走向不同的结局,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_8.usage
-relics.relics.items.220.adapt,"Light -50, gain a Rejection Reaction, Unlocks another Ending",灯火 -50，获得排异反应，开启另一个结局,模型,
+relics.relics.items.220.adapt,"Light -50, gain a Rejection, unlocks another Ending",灯火 -50，获得排异反应，开启另一个结局,校对,校对：排异反应的官方英文为 Rejection；修正大小写
 relics.relics.items.220.rarity,Ending,结局,模型,
 relics.relics.items.221.name,Breath of the Tide,海潮的气息,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_83
 relics.relics.items.221.original,"+1 Deployment Limit; when obtained, [Tide-Hunt Knight] will appear on the battlefield until defeated",可同时部署人数+1；获得后【猎潮的骑士】出现在战场，直至被击败,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_83.usage
@@ -869,7 +869,7 @@ relics.relics.items.222.adapt,'Tide-Hunt Knight' will no longer appear,「猎潮
 relics.relics.items.222.rarity,Ending,结局,模型,
 relics.relics.items.223.name,'Absurd Fate',“荒诞命运”,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_85
 relics.relics.items.223.original,"+10 Originium Ingots, +1 Key",源石锭+10，钥匙+1,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_85.usage
-relics.relics.items.223.adapt,Originium Ingot +10; the next supply box is guaranteed to drop a relic,源石锭 +10，下一个补给箱必定掉落藏品,模型,
+relics.relics.items.223.adapt,Originium Ingots +10; the next supply box is guaranteed to drop a relic,源石锭 +10，下一个补给箱必定掉落藏品,校对,校对：统一复数形式（Originium Ingots）
 relics.relics.items.223.rarity,Normal,基础,模型,
 relics.relics.items.224.name,The Knight's Corpus,骑士骨血,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_86
 relics.relics.items.224.original,[Tide-Hunt Knight] has -80% DEF,【猎潮的骑士】的防御力-80%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_86.usage
@@ -901,7 +901,7 @@ relics.relics.items.230.adapt,"When taking damage, Stun all enemies on screen fo
 relics.relics.items.230.rarity,Core,核心,模型,
 relics.relics.items.231.name,'Memories of The Shard',“碎片大厦的回忆”,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_126
 relics.relics.items.231.original,Deals 3000 True Damage on all enemy units every time an enemy unit enters the Protection Objective,每次敌人进入保护目标点时，立刻对全场所有敌人造成3000点真实伤害,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_126.usage
-relics.relics.items.231.adapt,"When taking damage, deals a large amount of True damage to all enemies (Cooldown: 30s)",受到伤害时，对全屏敌人造成大量真实伤害（冷却 30 秒）,模型,
+relics.relics.items.231.adapt,"When taking damage, deals a large amount of True damage to all enemies on screen (30s cooldown)",受到伤害时，对全屏敌人造成大量真实伤害（冷却 30 秒）,校对,校对：漏译“全屏”（on screen）；统一冷却时间的文本格式
 relics.relics.items.231.rarity,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
 relics.relics.items.232.name,'Glory Pack',“荣耀套餐”,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_147
 relics.relics.items.232.original,"When an Operator is defeated, it will Stun all enemies in the four adjacent tiles for 6 seconds",我方单位被击倒时，对周围四格的敌人造成6秒晕眩,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_147.usage
@@ -925,7 +925,7 @@ relics.relics.items.236.adapt,"ATK speed +10%, all enemies' ATK speed -10%",攻�
 relics.relics.items.236.rarity,Normal,基础,模型,
 relics.relics.items.237.name,'Determination',“决心”,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_88
 relics.relics.items.237.original,"All Operators gain Block +2, DEF and HP +120%, and RES +20; leads the exploration towards a different conclusion",所有我方干员阻挡数+2，防御力和生命+120%，法术抗性+20，让探索走向不同的结局,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_88.usage
-relics.relics.items.237.adapt,"Unlocks another Ending, and gain significant enhancement",开启另一个结局，并获得大幅强化,模型,
+relics.relics.items.237.adapt,"Unlocks another Ending, and gains significant enhancement",开启另一个结局，并获得大幅强化,校对,校对：修正语法，主语一致应使用单数第三人称 gains
 relics.relics.items.237.rarity,Ending,结局,模型,
 relics.relics.items.238.name,'Vigil',“观望”,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_89
 relics.relics.items.238.original,All Operators gain Block +1; leads the exploration towards a different conclusion,所有我方干员阻挡数+1，让探索走向不同的结局,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_89.usage
@@ -937,11 +937,11 @@ relics.relics.items.239.adapt,Unlocks another Ending,开启另一个结局,模�
 relics.relics.items.239.rarity,Ending,结局,模型,
 relics.relics.items.240.name,'Endless Life',“未尽的生命”,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_4
 relics.relics.items.240.original,Afflicts a random Operator with a Rejection at the start of each new floor,每进入新的一层时，使随机一名干员产生排异反应,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_4.usage
-relics.relics.items.240.adapt,Gains a random Rejection Reaction every 2 minutes,每过 2 分钟获得一个随机排异反应,模型,
+relics.relics.items.240.adapt,Gains a random Rejection every 2 minutes,每过 2 分钟获得一个随机排异反应,校对,校对：排异反应的官方英文为 Rejection
 relics.relics.items.240.rarity,Cursed Curio,遭诅古物,模型,
 relics.relics.items.241.name,Caerula Memory,深蓝回忆,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_9
 relics.relics.items.241.original,"Light -100, immediately afflicts a random Operator with a Rejection",灯火-100，获得时立即使随机一名干员产生排异反应,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_9.usage
-relics.relics.items.241.adapt,"Light -100, gain a Rejection Reaction",灯火 -100，获得排异反应,模型,
+relics.relics.items.241.adapt,"Light -100, gain a Rejection",灯火 -100，获得排异反应,校对,校对：排异反应的官方英文为 Rejection
 relics.relics.items.241.rarity,Ending,结局,模型,
 relics.relics.items.242.name,Caerula Arbor,深蓝之树,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_10
 relics.relics.items.242.original,"Enemy ASPD +15; at the end of operation, if no Life Point is lost, gain +15 Light",所有敌人攻击速度+15；每次作战若未损失目标生命，战斗结束后灯火+15,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_10.usage
@@ -1001,11 +1001,11 @@ relics.relics.items.255.adapt,Caster Support damage +2% for each relic held,每�
 relics.relics.items.255.rarity,Rare,稀有,模型,
 relics.relics.items.256.name,Broken Wand - Light of Wisdom,断杖-智慧之光,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_154
 relics.relics.items.256.original,"For every collectible owned, [Caster] ATK +3%, ASPD +2",每拥有一个收藏品，【术师】干员的攻击力+3%，攻击速度+2,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_154.usage
-relics.relics.items.256.adapt,"For each relic held, Caster support damage +3%, firing rate +2%",每持有一件藏品，术师援护伤害 +3%，射速 +2%,模型,
+relics.relics.items.256.adapt,"For each relic held, Caster Support damage +3%, firing rate +2%",每持有一件藏品，术师援护伤害 +3%，射速 +2%,校对,校对：统一大小写 Caster Support
 relics.relics.items.256.rarity,Rare,稀有,模型,
 relics.relics.items.257.name,Broken Wand - Solving,断杖-破解,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_155
 relics.relics.items.257.original,"For every [Caster] Operator on the field, enemy RES -12",场上每有1名【术师】干员，所有敌人的法术抗性-12,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_155.usage
-relics.relics.items.257.adapt,"When Caster support is present, Arts damage taken by all enemies +12%",有术师援护时，所有敌人受到的法术伤害 +12%,模型,
+relics.relics.items.257.adapt,"When Caster Support is present, Arts damage taken by all enemies +12%",有术师援护时，所有敌人受到的法术伤害 +12%,校对,校对：统一大小写 Caster Support
 relics.relics.items.257.rarity,Rare,稀有,模型,
 relics.relics.items.258.name,Iron Guard - Wall,铁卫-城墙,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_156
 relics.relics.items.258.original,"[Defender] Operators gain DEF +40%, RES +10",所有【重装】干员防御力+40%，法术抗性+10,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_156.usage
@@ -1063,7 +1063,7 @@ relics.relic_effects.relics.14.desc,Originium Ingot +12; +15 more for each Boss 
 relics.relic_effects.relics.14.rarity,Normal,基础,模型,
 relics.relic_effects.relics.15.desc,Leader's Shield generation interval -20%,队长的护盾生成间隔 -20%,模型,
 relics.relic_effects.relics.15.rarity,Normal,基础,模型,
-relics.relic_effects.relics.16.desc,"Leader Max Objective Shield +1 (when without an Objective Shield, gains 1 layer of Objective Shield every 15s); when Objective Shield is at max layers, squad ATK speed +15%",队长护盾层数上限 +1（没有护盾时获得每 15 秒一层的护盾）；护盾满层时全队攻击速度 +15%,模型,
+relics.relic_effects.relics.16.desc,"Leader Shield stack limit +1 (if without a Shield, gain 1 stack of Shield every 15s); when Shield is at max stacks, squad ATK speed +15%",队长护盾层数上限 +1（没有护盾时获得每 15 秒一层的护盾）；护盾满层时全队攻击速度 +15%,校对,校对：根据术语表，护盾应为 Shield，且统一层数的表达为 stack
 relics.relic_effects.relics.16.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.17.desc,Leader Max HP +10; Originium Ingot +3,队长最大生命 +10；源石锭 +3,模型,
 relics.relic_effects.relics.17.rarity,Normal,基础,模型,
@@ -1137,7 +1137,7 @@ relics.relic_effects.relics.44.rarity,Core,核心,模型,
 relics.relic_effects.relics.45.desc,"When Weakness Harvest Operators hit a weakness, inflicts 'Flaw' on the enemy for 3s: during this time, all damage it takes +20%",弱点收割干员命中弱点时给敌人挂「破绽」3 秒：期间它受到的所有伤害 +20%,模型,
 relics.relic_effects.relics.45.brief,Hitting a weakness inflicts 'Flaw': damage taken +20%,命中弱点挂「破绽」：受到的伤害 +20%,模型,
 relics.relic_effects.relics.45.rarity,Rare,稀有,模型,
-relics.relic_effects.relics.46.desc,"When Weakness Harvest Operators hit a weakness, 25% chance to deal double damage and knock back the enemy (Bosses only take damage, no knockback)",弱点收割干员命中弱点时有 25% 概率造成双倍伤害并把敌人震退（Boss 只加伤不震退）,模型,
+relics.relic_effects.relics.46.desc,"When Weakness Harvest Operators hit a weakness, 25% chance to deal double damage and knock back the enemy (Bosses only take the increased damage, no knockback)",弱点收割干员命中弱点时有 25% 概率造成双倍伤害并把敌人震退（Boss 只加伤不震退）,校对,校对：漏译“加伤”（指双倍伤害），原译“take damage”未能体现伤害增加的含义。
 relics.relic_effects.relics.46.rarity,Normal,基础,模型,
 relics.relic_effects.relics.47.desc,All enemies treat Physical and Arts damage as weaknesses,所有敌人对物理与法术伤害都视为弱点,模型,
 relics.relic_effects.relics.47.rarity,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
@@ -1196,7 +1196,7 @@ relics.relic_effects.relics.72.desc,Leader restores 0.5% Max HP per second,队�
 relics.relic_effects.relics.72.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.73.desc,"Leader Physical dodge +15% (contact, collision, bullets, and other Physical attacks)",队长物理闪避 +15%（接触、冲撞、子弹等物理攻击）,模型,
 relics.relic_effects.relics.73.rarity,Normal,基础,模型,
-relics.relic_effects.relics.74.desc,"Leader Arts Dodge +15% (against Seaborn projectiles, water columns, beams, and other Arts attacks)",队长法术闪避 +15%（海嗣弹幕、水柱、光束等法术攻击）,模型,
+relics.relic_effects.relics.74.desc,"Leader Arts dodge +15% (against Seaborn projectiles, water columns, beams, and other Arts attacks)",队长法术闪避 +15%（海嗣弹幕、水柱、光束等法术攻击）,校对,校对：统一大小写，dodge 小写以与 p9 的 Physical dodge 保持一致
 relics.relic_effects.relics.74.rarity,Normal,基础,模型,
 relics.relic_effects.relics.75.desc,Leader dodge rate +40% for 1.5s after sprinting; enemies on the sprint path take Leader ATK ×1 damage,冲刺后 1.5 秒内队长闪避率 +40%；冲刺路线上的敌人受到队长攻击 ×1 的伤害,模型,
 relics.relic_effects.relics.75.rarity,Normal,基础,模型,
@@ -1248,11 +1248,11 @@ relics.relic_effects.relics.98.desc,"When an enemy's Stun ends naturally, they e
 relics.relic_effects.relics.98.rarity,Core,核心,模型,
 relics.relic_effects.relics.99.desc,"Stun, Bind, and Slow duration +100%; when an enemy under Stun or Slow is defeated, enemies within a 120 radius are Frozen for 1.5s (Bosses excepted)",眩晕、束缚、减速的持续时间 +100%；处于眩晕或减速中的敌人被击败时，120 范围内的敌人冻结 1.5 秒（Boss 除外）,模型,
 relics.relic_effects.relics.99.rarity,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
-relics.relic_effects.relics.100.desc,"Leader RES +15%; releases a shockwave when Objective Shield breaks, dealing damage to and knocking back nearby enemies (140 radius) (Bosses are not knocked back)",队长法术抗性 +15%；护盾破裂时释放冲击，对周围（半径 140）敌人造成伤害并击退（Boss 不被击退）,模型,
+relics.relic_effects.relics.100.desc,"Leader RES +15%; releases a shockwave when Shield breaks, dealing damage to and knocking back nearby enemies (140 radius) (Bosses are not knocked back)",队长法术抗性 +15%；护盾破裂时释放冲击，对周围（半径 140）敌人造成伤害并击退（Boss 不被击退）,校对,校对：术语修正：“护盾”应译为 Shield，而非 Objective Shield
 relics.relic_effects.relics.100.rarity,Core,核心,模型,
-relics.relic_effects.relics.101.desc,All Operators' damage +6% for each different Class in the squad,编队每有一种不同职业，全队伤害 +6%,模型,
+relics.relic_effects.relics.101.desc,Squad damage +6% for each different Class in the squad,编队每有一种不同职业，全队伤害 +6%,校对,校对：统一翻译：“全队伤害”应译为 Squad damage（参考 p15）
 relics.relic_effects.relics.101.rarity,Rare,稀有,模型,
-relics.relic_effects.relics.102.desc,"Every 0.5s, converts excess healing into Arts damage to enemies around the Leader (radius 150): initially {$scavenge_mult} times the excess healing, +{$scavenge_mult*$pm:1} times per minute (approx. {$scavenge_mult*$m10:0} times at 10:00).",每 0.5 秒把溢出的治疗量转为对队长周围（半径 150）敌人的法术伤害：开局为溢出量的 {$scavenge_mult} 倍，每分钟 +{$scavenge_mult*$pm:1} 倍（10:00 约 {$scavenge_mult*$m10:0} 倍）,模型,
+relics.relic_effects.relics.102.desc,"Every 0.5s, converts excess healing into Arts damage to enemies around the Leader (radius 150): initially {$scavenge_mult} times the excess healing, +{$scavenge_mult*$pm:1} times per minute (approx. {$scavenge_mult*$m10:0} times at 10:00)",每 0.5 秒把溢出的治疗量转为对队长周围（半径 150）敌人的法术伤害：开局为溢出量的 {$scavenge_mult} 倍，每分钟 +{$scavenge_mult*$pm:1} 倍（10:00 约 {$scavenge_mult*$m10:0} 倍）,校对,校对：标点修正：去除了中文原文中没有的句号
 relics.relic_effects.relics.102.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.103.desc,"All enemies' movement speed -7.5%, knockback taken +20%; knocked back enemies are Stunned for 0.4s (Bosses excepted)",所有敌人移动速度 -7.5%，受到的击退 +20%；被击退的敌人眩晕 0.4 秒（Boss 除外）,模型,
 relics.relic_effects.relics.103.rarity,Rare,稀有,模型,
@@ -1316,7 +1316,7 @@ relics.relic_effects.relics.116.desc,"A 'Distant Homeland' appears on the map: w
 relics.relic_effects.relics.116.rarity,Core,核心,模型,
 relics.relic_effects.relics.117.desc,"A flag appears on the map: when the Leader stands near the flag, squad damage +50%, ATK speed +50%; changes position every 60s",地图上出现一面旗帜：队长站在旗帜附近时全队伤害 +50%、攻击速度 +50%；每 60 秒换一次位置,模型,
 relics.relic_effects.relics.117.rarity,Core,核心,模型,
-relics.relic_effects.relics.118.desc,"Leader generates 1 Objective Shield every 15s, blocking 1 instance of damage; Objective Shield generation interval -15%",队长每 15 秒生成一层护盾，抵挡一次伤害；护盾生成间隔 -15%,模型,
+relics.relic_effects.relics.118.desc,"Leader generates 1 Shield every 15s, blocking 1 instance of damage; Shield generation interval -15%",队长每 15 秒生成一层护盾，抵挡一次伤害；护盾生成间隔 -15%,校对,校对：术语统一：“护盾”应译为 Shield，不应添加 Objective。
 relics.relic_effects.relics.118.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.119.desc,Ranged mobs' attack interval +35% (Bosses excepted),远程杂兵的开火间隔 +35%（Boss 除外）,模型,
 relics.relic_effects.relics.119.rarity,Normal,基础,模型,
@@ -1339,20 +1339,20 @@ relics.relic_effects.relics.127.desc,Squad SP Recovery +10%; changes to +50% whe
 relics.relic_effects.relics.127.rarity,Core,核心,模型,
 relics.relic_effects.relics.128.desc,"Squad damage +10%; changes to +50% when Leader HP is below 40%, or +150% if 3 pieces of the King's set have been collected (including this one)",全队伤害 +10%；队长生命低于 40% 时改为 +50%，若已集齐 3 件国王套装（含本件）则为 +150%,模型,
 relics.relic_effects.relics.128.rarity,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
-relics.relic_effects.relics.129.desc,"Summon Presence Operators' follow-up attack and summon damage +15%; Proliferation: Wiš'adel's Revenant Shadow +1 (Sub-body: damage is 60% of the original, size 85%), Mizuki's tentacle pillar deployment limit +1 (Kal'tsit's Mon3tr and Specter the Unchained's substitute only gain damage, quantity remains unchanged). Summon quantity only increases once; buff diminishes with each additional stack",召唤驻场干员的追击与召唤物伤害 +15%；增殖：维什戴尔的魂灵之影 +1 个（副体：伤害为本体的 60%，体型 85%），水月的触手桩在场上限 +1（凯尔希的 Mon3tr、归溟幽灵鲨的替身只加伤害，数量不变）。召唤数量只加一次；每多一层，增益递减,模型,
+relics.relic_effects.relics.129.desc,"Summon Presence Operators' follow-up attacks and summon damage +15%; Proliferation: Wiš'adel's Revenant Shadow +1 (Sub-body: damage is 60% of the original, size 85%), Mizuki's tentacle pillar deployment limit +1 (Kal'tsit's Mon3tr and Specter the Unchained's substitute only gain damage, quantity remains unchanged). Summon quantity only increases once; buff diminishes with each additional stack",召唤驻场干员的追击与召唤物伤害 +15%；增殖：维什戴尔的魂灵之影 +1 个（副体：伤害为本体的 60%，体型 85%），水月的触手桩在场上限 +1（凯尔希的 Mon3tr、归溟幽灵鲨的替身只加伤害，数量不变）。召唤数量只加一次；每多一层，增益递减,校对,校对：统一“追击”为 follow-up attacks。
 relics.relic_effects.relics.129.rarity,Rare,稀有,模型,
-relics.relic_effects.relics.129.legacy_desc,Pursuit and summon damage +35%,追击与召唤物伤害 +35%,模型,
+relics.relic_effects.relics.129.legacy_desc,Follow-up attacks and summon damage +35%,追击与召唤物伤害 +35%,校对,校对：统一“追击”为 follow-up attacks。
 relics.relic_effects.relics.129.desc_squad.head,Proliferation:,增殖：,模型,
-relics.relic_effects.relics.129.desc_squad.ops.wisadel,"Wiš'adel's Revenant +1 (Sub-unit: damage is 60% of the original, size 85%)",维什戴尔的魂灵之影 +1 个（副体：伤害为本体的 60%，体型 85%）,模型,
-relics.relic_effects.relics.129.desc_squad.ops.mizuki,Max deployed Mizuki tentacles +1,水月的触手桩在场上限 +1,模型,
+relics.relic_effects.relics.129.desc_squad.ops.wisadel,"Wiš'adel's Revenant Shadow +1 (Sub-body: damage is 60% of the original, size 85%)",维什戴尔的魂灵之影 +1 个（副体：伤害为本体的 60%，体型 85%）,校对,校对：与 p26 统一：“魂灵之影”为 Revenant Shadow，“副体”为 Sub-body。
+relics.relic_effects.relics.129.desc_squad.ops.mizuki,Mizuki's tentacle pillar deployment limit +1,水月的触手桩在场上限 +1,校对,校对：与 p26 统一：“触手桩在场上限”为 tentacle pillar deployment limit。
 relics.relic_effects.relics.129.desc_squad.dmg_ops.kaltsit,For Kal'tsit: Mon3tr damage +15%,对凯尔希：Mon3tr 伤害 +15%,模型,
 relics.relic_effects.relics.129.desc_squad.dmg_ops.specter_unchained,For Specter the Unchained: Substitute damage +15%,对归溟幽灵鲨：替身伤害 +15%,模型,
 relics.relic_effects.relics.129.desc_squad.dmg_tail,. Buff diminishes with each additional stack,。每多一层，增益递减,模型,
 relics.relic_effects.relics.129.desc_squad.tail,; Summon Presence Operators' follow-up attacks and summon damage +15%. Summon count only increases once; buff diminishes with each additional stack,；召唤驻场干员的追击与召唤物伤害 +15%。召唤数量只加一次；每多一层，增益递减,模型,
-relics.relic_effects.relics.129.desc_squad.none,Summon Presence Operators' follow-up attack and summon damage +15%; Proliferation: No summons in the current squad (takes effect after Wiš'adel / Mizuki joins). Buff diminishes with each additional stack,召唤驻场干员的追击与召唤物伤害 +15%；增殖：本编队暂无召唤物（维什戴尔 / 水月入队后生效）。每多一层，增益递减,模型,
-relics.relic_effects.relics.130.desc,"Amplification: summon size and attack range +15%; Summon Presence Operators' follow-up attack and summon damage +25%, for each enemy hit by a follow-up attack, the Operator recovers 0.2% SP (max 1% per second)",增幅：召唤物体型与攻击范围 +15%；召唤驻场干员的追击与召唤物伤害 +25%，追击每命中一个敌人，该干员回复 0.2% 技力（每秒最多 1%）,模型,
+relics.relic_effects.relics.129.desc_squad.none,Summon Presence Operators' follow-up attacks and summon damage +15%; Proliferation: No summons in the current squad (takes effect after Wiš'adel / Mizuki joins). Buff diminishes with each additional stack,召唤驻场干员的追击与召唤物伤害 +15%；增殖：本编队暂无召唤物（维什戴尔 / 水月入队后生效）。每多一层，增益递减,校对,校对：统一“追击”为 follow-up attacks。
+relics.relic_effects.relics.130.desc,"Amplification: summon size and attack range +15%; Summon Presence Operators' follow-up attacks and summon damage +25%, for each enemy hit by a follow-up attack, the Operator recovers 0.2% SP (max 1% per second)",增幅：召唤物体型与攻击范围 +15%；召唤驻场干员的追击与召唤物伤害 +25%，追击每命中一个敌人，该干员回复 0.2% 技力（每秒最多 1%）,校对,校对：统一“追击”为 follow-up attacks。
 relics.relic_effects.relics.130.rarity,Normal,基础,模型,
-relics.relic_effects.relics.130.legacy_desc,"Follow-up attack and summon damage +25%; for every enemy hit by a follow-up attack, the Operator dealing this follow-up attack recovers 0.2% SP (up to 1% per second)",追击与召唤物伤害 +25%；追击每命中一个敌人，造成这次追击的干员回复 0.2% 技力（每秒最多 1%）,模型,
+relics.relic_effects.relics.130.legacy_desc,"Follow-up attacks and summon damage +25%; for every enemy hit by a follow-up attack, the Operator dealing this follow-up attack recovers 0.2% SP (up to 1% per second)",追击与召唤物伤害 +25%；追击每命中一个敌人，造成这次追击的干员回复 0.2% 技力（每秒最多 1%）,校对,校对：统一“追击”为 follow-up attacks。
 relics.relic_effects.relics.131.desc,Corrosion taken by Leader -40%,队长受到的侵蚀 -40%,模型,
 relics.relic_effects.relics.131.rarity,Normal,基础,模型,
 relics.relic_effects.relics.132.desc,Leader Nervous Impairment accumulation -40%,队长神经损伤累积 -40%,模型,
@@ -1444,7 +1444,7 @@ relics.relic_effects.relics.153.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.153.requires_class.0,Caster,术师,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.154.effects.0.scope,class:Caster,class:术师,模型,
 relics.relic_effects.relics.154.effects.1.scope,class:Caster,class:术师,模型,
-relics.relic_effects.relics.154.desc,"Caster Operator damage +50%, Attack Range -20%",术师干员伤害 +50%，攻击范围 -20%,模型,
+relics.relic_effects.relics.154.desc,"Caster Operator damage +50%, attack range -20%",术师干员伤害 +50%，攻击范围 -20%,校对,校对：统一大小写为 attack range
 relics.relic_effects.relics.154.rarity,Normal,基础,模型,
 relics.relic_effects.relics.154.requires_class.0,Caster,术师,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.155.effects.0.args.class,Supporter,辅助,官方,character_table profession（data.gd CLASS_EN）
@@ -1553,9 +1553,9 @@ relics.relic_effects.relics.191.desc,"Shield generation interval -20% (if withou
 relics.relic_effects.relics.191.rarity,Normal,基础,模型,
 relics.relic_effects.relics.192.desc,"Leader recovers 70% Max HP when obtained; thereafter, recovers 10% Max HP for each Boss defeated",获得时队长回复 70% 最大生命；此后每击败一个 Boss 回复 10% 最大生命,模型,
 relics.relic_effects.relics.192.rarity,Rare,稀有,模型,
-relics.relic_effects.relics.193.desc,Leader Objective Shield limit +1; Supply Box Key +1; next choice has 1 additional option,队长护盾层数上限 +1；补给箱钥匙 +1；下一次三选一多一个选项,模型,
+relics.relic_effects.relics.193.desc,Leader Shield limit +1; Supply Box Key +1; next choice has 1 additional option,队长护盾层数上限 +1；补给箱钥匙 +1；下一次三选一多一个选项,校对,校对：护盾统一为 Shield
 relics.relic_effects.relics.193.rarity,Rare,稀有,模型,
-relics.relic_effects.relics.194.desc,"Supply box Key +3 (adds one extra option to each 1-out-of-3 relic choice, consuming 1 Key; Chest Seaborn will not be encountered before Keys run out)",补给箱钥匙 +3（每次藏品三选一多一个选项，用掉一把；钥匙用完前不会遇到箱形恐鱼）,模型,
+relics.relic_effects.relics.194.desc,"Supply Box Key +3 (adds one extra option to each 1-out-of-3 relic choice, consuming 1 Key; Chest Seaborn will not be encountered before Keys run out)",补给箱钥匙 +3（每次藏品三选一多一个选项，用掉一把；钥匙用完前不会遇到箱形恐鱼）,校对,校对：统一大小写 Supply Box Key
 relics.relic_effects.relics.194.rarity,Normal,基础,模型,
 relics.relic_effects.relics.195.desc,The next 2 selections offer 1 extra option each,接下来 2 次三选一各多一个选项,模型,
 relics.relic_effects.relics.195.rarity,Normal,基础,模型,
@@ -1567,7 +1567,7 @@ relics.relic_effects.relics.198.desc,Level-up and relic choices have 1 additiona
 relics.relic_effects.relics.198.rarity,Core,核心,模型,
 relics.relic_effects.relics.199.desc,Max Leader Shield stacks +1,队长护盾层数上限 +1,模型,
 relics.relic_effects.relics.199.rarity,Normal,基础,模型,
-relics.relic_effects.relics.200.desc,"Leader Max Objective Shield +2, Objective Shield generation interval -15%; every time 1 layer of Objective Shield is generated, deals a shockwave equal to Leader ATK ×1.5 to enemies within 120 radius",队长护盾层数上限 +2，护盾生成间隔 -15%；每生成一层护盾，对 120 范围内的敌人造成队长攻击 ×1.5 的冲击,模型,
+relics.relic_effects.relics.200.desc,"Leader Max Shield +2, Shield generation interval -15%; every time 1 layer of Shield is generated, deals a shockwave equal to Leader ATK ×1.5 to enemies within 120 radius",队长护盾层数上限 +2，护盾生成间隔 -15%；每生成一层护盾，对 120 范围内的敌人造成队长攻击 ×1.5 的冲击,校对,校对：护盾统一为 Shield
 relics.relic_effects.relics.200.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.201.desc,Cures one Rejection and suppresses the next Rejection (Only appears if Rejection has occurred or on the Abyssal route),解除一个排异反应，并抑制下一次排异反应（只在发生过排异或走深蓝线时出现）,模型,
 relics.relic_effects.relics.201.rarity,Rare,稀有,模型,
@@ -1602,7 +1602,7 @@ relics.relic_effects.relics.214.rarity,Normal,基础,模型,
 relics.relic_effects.relics.215.desc,Squad SP Recovery -15%,全队技力回复 -15%,模型,
 relics.relic_effects.relics.215.rarity,Cursed Curio,遭诅古物,模型,
 relics.relic_effects.relics.216.rarity,Cursed Curio,遭诅古物,模型,
-relics.relic_effects.relics.217.desc,Immediately suffer 1 Rejection Reaction,立即一次排异反应,模型,
+relics.relic_effects.relics.217.desc,Immediately suffer 1 Rejection,立即一次排异反应,校对,校对：官方英文中“排异反应”为 Rejection，无需加 Reaction
 relics.relic_effects.relics.217.rarity,Cursed Curio,遭诅古物,模型,
 relics.relic_effects.relics.218.desc,Light loss when Leader is attacked +10%,队长受击时灯火损失 +10%,模型,
 relics.relic_effects.relics.218.rarity,Cursed Curio,遭诅古物,模型,
@@ -1610,7 +1610,7 @@ relics.relic_effects.relics.219.desc,Light loss when Leader is attacked +15%,队
 relics.relic_effects.relics.219.rarity,Cursed Curio,遭诅古物,模型,
 relics.relic_effects.relics.220.desc,Merchant prices +15%. The starting point of the Caerula Animus route (docs/154),商人售价 +15%。深蓝之心线的起点（docs/154）,模型,
 relics.relic_effects.relics.220.rarity,Cursed Curio,遭诅古物,模型,
-relics.relic_effects.relics.221.desc,1 Rejection Reaction; Seaborn evolve faster. Leads to Ending 3,一次排异反应；海嗣更快进化。走向结局三,模型,
+relics.relic_effects.relics.221.desc,1 Rejection; Seaborn evolve faster. Leads to Ending 3,一次排异反应；海嗣更快进化。走向结局三,校对,校对：官方英文中“排异反应”为 Rejection
 relics.relic_effects.relics.221.rarity,Ending,结局,模型,
 relics.relic_effects.relics.222.desc,Tide-Hunt Knight joins the squad until he falls. Leads to Ending 2,猎潮的骑士加入编队，直到他倒下。走向结局二,模型,
 relics.relic_effects.relics.222.rarity,Ending,结局,模型,
@@ -1652,9 +1652,9 @@ relics.relic_effects.relics.240.desc,"Rare / Core Relic appearance rate +30%, Le
 relics.relic_effects.relics.240.rarity,Ending,结局,模型,
 relics.relic_effects.relics.241.desc,1 Rejection every 2 minutes,每 2 分钟一次排异反应,模型,
 relics.relic_effects.relics.241.rarity,Cursed Curio,遭诅古物,模型,
-relics.relic_effects.relics.242.desc,1 Rejection Reaction. Starting point of the Ascension route (docs/154),一次排异反应。升华线的起点（docs/154）,模型,
+relics.relic_effects.relics.242.desc,1 Rejection. Starting point of the Ascension route (docs/154),一次排异反应。升华线的起点（docs/154）,校对,校对：官方英文中“排异反应”为 Rejection
 relics.relic_effects.relics.242.rarity,Ending,结局,模型,
-relics.relic_effects.relics.243.desc,"All enemies' ATK speed +15%; Light +6 for every 15s the Leader continuously takes no damage (dodges, blocks by Objective Shield or Operators, and continuous HP loss from Corrosion do not count as taking damage)",所有敌人攻击速度 +15%；队长每连续 15 秒未受伤，灯火 +6（闪避、护盾或干员格挡抵挡，以及侵蚀持续掉血，都不算受伤）,模型,
+relics.relic_effects.relics.243.desc,"All enemies' ATK speed +15%; Light +6 for every 15s the Leader continuously takes no damage (dodges, blocks by Shield or Operators, and continuous HP loss from Corrosion do not count as taking damage)",所有敌人攻击速度 +15%；队长每连续 15 秒未受伤，灯火 +6（闪避、护盾或干员格挡抵挡，以及侵蚀持续掉血，都不算受伤）,校对,校对：根据术语表，“护盾”应统一为 Shield，不应过度翻译为 Objective Shield
 relics.relic_effects.relics.243.rarity,Cursed Curio,遭诅古物,模型,
 relics.relic_effects.relics.244.desc,"Immediately recruits a random Operator (can be declined), this Operator immediately advances 1 growth node; if declined or squad is full, changes to a choose-one-from-three growth selection instead",立即招募一名随机干员（可婉拒），该干员立即推进 1 个成长节点；婉拒或编队已满时改为一次成长三选一,模型,
 relics.relic_effects.relics.244.rarity,Rare,稀有,模型,
@@ -1662,9 +1662,9 @@ relics.relic_effects.relics.245.desc,"Immediately recruit 1 random Operator (can
 relics.relic_effects.relics.245.rarity,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
 relics.relic_effects.relics.246.desc,"When Light is below 50, Summon Presence Operators' pursuits and summon damage +60%",灯火低于 50 时，召唤驻场干员的追击与召唤物伤害 +60%,模型,
 relics.relic_effects.relics.246.rarity,Core,核心,模型,
-relics.relic_effects.relics.247.desc,"Light +3 for every 15s the Leader continuously takes no damage (dodges, blocks by Objective Shield or Operators, and continuous HP loss from Corrosion do not count as taking damage)",队长每连续 15 秒未受伤，灯火 +3（闪避、护盾或干员格挡抵挡，以及侵蚀持续掉血，都不算受伤）,模型,
+relics.relic_effects.relics.247.desc,"Light +3 for every 15s the Leader continuously takes no damage (dodges, blocks by Shield or Operators, and continuous HP loss from Corrosion do not count as taking damage)",队长每连续 15 秒未受伤，灯火 +3（闪避、护盾或干员格挡抵挡，以及侵蚀持续掉血，都不算受伤）,校对,校对：根据术语表，“护盾”应统一为 Shield
 relics.relic_effects.relics.247.rarity,Normal,基础,模型,
-relics.relic_effects.relics.248.desc,"Light +4 for every 15s the Leader continuously takes no damage (dodges, blocks by Objective Shield or Operators, and continuous HP loss from Corrosion do not count as taking damage)",队长每连续 15 秒未受伤，灯火 +4（闪避、护盾或干员格挡抵挡，以及侵蚀持续掉血，都不算受伤）,模型,
+relics.relic_effects.relics.248.desc,"Light +4 for every 15s the Leader continuously takes no damage (dodges, blocks by Shield or Operators, and continuous HP loss from Corrosion do not count as taking damage)",队长每连续 15 秒未受伤，灯火 +4（闪避、护盾或干员格挡抵挡，以及侵蚀持续掉血，都不算受伤）,校对,校对：根据术语表，“护盾”应统一为 Shield
 relics.relic_effects.relics.248.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.249.desc,Light loss from taking damage and Black Tide -40%,受击与黑潮导致的灯火流失 -40%,模型,
 relics.relic_effects.relics.249.rarity,Normal,基础,模型,
@@ -1684,7 +1684,7 @@ relics.relic_effects.relics.254.rarity,Sublimation,升华,官方,roguelike_topic
 relics.relic_effects.relics.255.desc,Leader takes -10% damage; changes to -37% when Light is below 50 (True damage excepted),队长受到的伤害 -10%；灯火低于 50 时改为 -37%（真实伤害除外）,模型,
 relics.relic_effects.relics.255.rarity,Core,核心,模型,
 relics.relic_effects.relics.256.effects.0.args.classes.0,Caster,术师,官方,character_table profession（data.gd CLASS_EN）
-relics.relic_effects.relics.256.desc,Caster Operator damage +2% for each Relic held (up to +40%),每持有一件藏品，术师干员伤害 +2%（最多 +40%）,模型,
+relics.relic_effects.relics.256.desc,Caster Operator damage +2% for each Collectible held (up to +40%),每持有一件藏品，术师干员伤害 +2%（最多 +40%）,校对,校对：统一“藏品”的译名为 Collectible
 relics.relic_effects.relics.256.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.256.requires_class.0,Caster,术师,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.257.effects.0.args.classes.0,Caster,术师,官方,character_table profession（data.gd CLASS_EN）
@@ -1699,7 +1699,7 @@ relics.relic_effects.relics.258.requires_class.0,Caster,术师,官方,character_
 relics.relic_effects.relics.259.desc,"Leader damage taken -10%, RES +10%",队长受到的伤害 -10%，法术抗性 +10%,模型,
 relics.relic_effects.relics.259.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.259.requires_class.0,Defender,重装,官方,character_table profession（data.gd CLASS_EN）
-relics.relic_effects.relics.260.desc,"Leader Max Objective Shield +1 (when without an Objective Shield, gains 1 layer of Objective Shield every 15s); damage taken by Leader -8% for every 1 layer of Objective Shield (up to -40%)",队长护盾层数上限 +1（没有护盾时获得每 15 秒一层的护盾）；每有 1 层护盾，队长受到的伤害 -8%（最多 -40%）,模型,
+relics.relic_effects.relics.260.desc,"Leader Max Shield +1 (when without a Shield, gains 1 layer of Shield every 15s); damage taken by Leader -8% for every 1 layer of Shield (up to -40%)",队长护盾层数上限 +1（没有护盾时获得每 15 秒一层的护盾）；每有 1 层护盾，队长受到的伤害 -8%（最多 -40%）,校对,校对：根据术语表，将“护盾”统一为 Shield
 relics.relic_effects.relics.260.rarity,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
 relics.relic_effects.relics.260.requires_class.0,Defender,重装,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.261.desc,"A random Operator's damage +20%, and an additional +20% for each Boss defeated thereafter",随机一名干员伤害 +20%，此后每击败一个 Boss 再 +20%,模型,
@@ -1707,11 +1707,11 @@ relics.relic_effects.relics.261.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.262.desc,"Rejection 'Evolution': All existing Rejections are cured and immune to future Rejections; Leader takes -20% damage, squad attacks ignore 35% of enemy DEF (only appears if a Rejection has occurred or when on the Abyssal route)",排异反应「进化」：已有的排异反应全部解除并免疫此后的排异；队长受到的伤害 -20%，全队攻击无视敌人 35% 的防御（只在发生过排异或走深蓝线时出现）,模型,
 relics.relic_effects.relics.262.brief,"Removes and grants immunity to Rejection; damage taken -20%, ignores 35% DEF",解除并免疫排异；受到伤害 -20%、无视 35% 防御,模型,
 relics.relic_effects.relics.262.rarity,Core,核心,模型,
-relics.relic_effects.relics.263.desc,0.05% of damage dealt by Operators is converted to Leader HP (relic damage not counted; up to 0.5% Max HP per second; limit doubles when Leader HP is below 50%),干员造成伤害的 0.05% 转为队长生命（藏品伤害不计；每秒最多 0.5% 最大生命；队长生命低于 50% 时上限翻倍）,模型,
+relics.relic_effects.relics.263.desc,0.05% of damage dealt by Operators is converted to Leader HP (Collectible damage not counted; up to 0.5% Max HP per second; limit doubles when Leader HP is below 50%),干员造成伤害的 0.05% 转为队长生命（藏品伤害不计；每秒最多 0.5% 最大生命；队长生命低于 50% 时上限翻倍）,校对,校对：统一“藏品”的译名为 Collectible
 relics.relic_effects.relics.263.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.264.desc,"When accumulated kills reach 60 points, Leader recovers 2% Max HP (normal enemies are worth approx. 2.5 points each, adjusted by enemy density; Elite enemies count as 10 points, Bosses count as 60 points)",击杀累计 60 点时，队长回复 2% 最大生命（普通敌人每只约 2.5 点，按怪物密度折算；精英算 10 点，Boss 算 60 点）,模型,
 relics.relic_effects.relics.264.rarity,Normal,基础,模型,
-relics.relic_effects.relics.265.desc,"Multi-Shot Firepower Operators' normal attack projectiles pierce through all enemies. For each enemy pierced, subsequent damage is reduced by 15% of the initial damage, minimum 40% of the initial damage. When held with 'Pierce', this relic's piercing effect takes priority; invalid for skill projectiles",多弹火力干员的普攻弹道可穿透所有敌人。每穿过一名敌人，后续伤害减少初始伤害的 15%，最低为初始伤害的 40%。与「贯穿」同时持有时，采用本藏品的穿透效果；对技能弹幕无效,模型,
+relics.relic_effects.relics.265.desc,"Multi-Shot Firepower Operators' normal attack projectiles pierce through all enemies. For each enemy pierced, subsequent damage is reduced by 15% of the initial damage, minimum 40% of the initial damage. When held with 'Pierce', this Collectible's piercing effect takes priority; invalid for skill projectiles",多弹火力干员的普攻弹道可穿透所有敌人。每穿过一名敌人，后续伤害减少初始伤害的 15%，最低为初始伤害的 40%。与「贯穿」同时持有时，采用本藏品的穿透效果；对技能弹幕无效,校对,校对：统一“藏品”的译名为 Collectible
 relics.relic_effects.relics.265.rarity,Rare,稀有,模型,
 v1.0 框架对齐,v1.0 framework alignment,,原文键,模型
 近战扩域,Melee Range Expansion,,原文键,模型
@@ -1719,7 +1719,7 @@ v1.0 框架对齐,v1.0 framework alignment,,原文键,模型
 召唤驻场,Summon Presence,,原文键,模型
 控场引爆,Crowd Control Detonation,,原文键,模型
 弱点收割,Weakness Harvest,,原文键,模型
-护盾反击,Objective Shield Counter,,原文键,模型
+护盾反击,Shield Counter,,原文键,校对
 治疗转伤,Heal to Damage,,原文键,模型
 职业,Class,,原文键,模型
 通用,General,,原文键,模型
@@ -1747,7 +1747,7 @@ v1.0 框架对齐,v1.0 framework alignment,,原文键,模型
 伤害 +4%，最大生命 +4%，受到伤害 -1,"Damage +4%, Max HP +4%, damage taken -1",,原文键,模型
 特级馥郁咖啡豆,Extra-Pungent Coffee Beans,,原文键,官方
 可携带干员+1，可同时部署人数+1，护盾值+1,"+1 Squad Size Limit, +1 Deployment Limit, +1 Objective Shield",,原文键,官方
-援护干员上限 +1，护盾层数上限 +1,"Support Operator limit +1, Objective Shield limit +1",,原文键,模型
+援护干员上限 +1，护盾层数上限 +1,"Support Operator limit +1, Shield limit +1",,原文键,校对
 蓝色丝巾,Blue Silk Scarf,,原文键,官方
 希望+2，可携带干员+1,"+2 Hope, +1 Squad Size Limit",,原文键,官方
 源石锭 +4；此后每招募一名干员再 +4,Originium Ingot +4; +4 for each Operator recruited afterwards,,原文键,模型
@@ -1772,7 +1772,7 @@ v1.0 框架对齐,v1.0 framework alignment,,原文键,模型
 【v0.8 已实装】护盾生成间隔 -30%,[Implemented in v0.8] Shield generation interval -30%,,原文键,模型
 《旧高卢地名源流考》,'Gaulish Toponym Origins',,原文键,官方
 护盾值+6,+6 Objective Shield,,原文键,官方
-护盾层数上限 +2,Max Objective Shield +2,,原文键,模型
+护盾层数上限 +2,Shield limit +2,,原文键,校对
 热水壶,Hot Water Kettle,,原文键,官方
 目标生命上限+1，希望+1,"+1 Max Life Point, +1 Hope",,原文键,官方
 最大生命 +10，源石锭 +3,"Max HP +10, Originium Ingot +3",,原文键,模型
@@ -1931,10 +1931,10 @@ v1.0 框架对齐,v1.0 framework alignment,,原文键,模型
 所有回复效果 +20%,All healing effects +20%,,原文键,模型
 苍白花冠,White Flower Crown,,原文键,官方
 所有我方单位受到的治疗和生命回复效果+30%,All friendly units receive +30% healing effectiveness,,原文键,官方
-所有回复效果 +30%,All healing effects +30%,,原文键,模型
+所有回复效果 +30%,All recovery effects +30%,,原文键,校对
 涌动之餐,Surging Feast,,原文键,官方
 所有我方单位受到的治疗和生命回复效果+30%，且受到的元素损伤-30%,All friendly units receive +30% healing effectiveness and take -30% Elemental Injury,,原文键,官方
-所有回复效果 +30%，受到的侵蚀和神经损伤 -30%（这两种原作就是元素损伤）,All recovery effects +30%; Corrosion Damage and Nervous Impairment taken -30% (these two are Elemental Injury in the original game),,原文键,模型
+所有回复效果 +30%，受到的侵蚀和神经损伤 -30%（这两种原作就是元素损伤）,All recovery effects +30%; Corrosion and Nervous Impairment taken -30% (these two are Elemental Damage in the original game),,原文键,校对
 演出用香水,Actor's Perfume,,原文键,官方
 所有我方单位每秒回复1%的最大生命值,All friendly units recover 1% of their Max HP per second,,原文键,官方
 每秒回复 1% 最大生命,Restores 1% Max HP per second,,原文键,模型
@@ -2005,7 +2005,7 @@ v1.0 框架对齐,v1.0 framework alignment,,原文键,模型
 被眩晕、束缚的敌人每秒受到法术伤害（约 60% 基础伤害）,Stunned or Bound enemies take Arts damage every second (approx. 60% of base damage),,原文键,模型
 “童趣玩偶”,'Children's Puppet',,原文键,官方
 敌人被晕眩、冰冻、束缚时，每秒受到1000点法术伤害,"Enemies receive 1000 Arts Damage per second when stunned, frozen, or bound",,原文键,官方
-同上（约 90% 基础伤害）,Same as above (approx. 90% Normal damage),,原文键,模型
+同上（约 90% 基础伤害）,Same as above (approx. 90% of base damage),,原文键,校对
 凯旋号角,Victory Horn,,原文键,官方
 敌人受到的一次性晕眩、寒冷、冰冻等异常效果影响时间提高100%,"Increases the duration of single-instance status effects such as stun, cold, or freeze by 100%",,原文键,官方
 眩晕、束缚、减速的持续时间 +100%,"Stun, Bind, and Slow duration +100%",,原文键,模型
@@ -2017,7 +2017,7 @@ v1.0 框架对齐,v1.0 framework alignment,,原文键,模型
 同上 +150%,Same as above +150%,,原文键,模型
 皇族金胸针,Royal Brooch,,原文键,官方
 所有我方单位的法术抗性+15，且部署后抵挡一次伤害,"All friendly units have +15 RES, and dodge one instance of damage after deployment",,原文键,官方
-【v0.8 已实装】护盾破裂时冲击并击退周围敌人,"[Implemented in v0.8] When Objective Shield breaks, shocks and applies knockback to nearby enemies",,原文键,模型
+【v0.8 已实装】护盾破裂时冲击并击退周围敌人,"[Implemented in v0.8] When Shield breaks, shocks and applies knockback to nearby enemies",,原文键,校对
 老蒲扇,Old Fan,,原文键,官方
 战斗编队中每有一个职业不同的干员，所有干员的攻击力+10%,All Operators gain +10% ATK for every different type of Operator class in the squad,,原文键,官方
 编队里每有一种不同职业，伤害 +10%,Damage +10% for each different Class in squad,,原文键,模型
@@ -2071,7 +2071,7 @@ Scout的狙击镜,Scout's Scope,,原文键,官方
 地图上随机出现一面「旗帜」，站在附近伤害 +50%，攻击速度 +50%,A 'Flag' randomly appears on the map; standing nearby grants +50% damage and +50% ATK speed,,原文键,模型
 药枚,Medicine Sticks,,原文键,官方
 所有我方单位在部署时获得2层护盾,All friendly units gain 2 layers of Shield when deployed,,原文键,官方
-【v0.8 已实装】每 15 秒生成一层护盾，抵挡一次伤害,"[Implemented in v0.8] Generates 1 stack of Objective Shield every 15s, blocking 1 instance of damage",,原文键,模型
+【v0.8 已实装】每 15 秒生成一层护盾，抵挡一次伤害,"[Implemented in v0.8] Generates 1 stack of Shield every 15s, blocking 1 instance of damage",,原文键,校对
 捕鳞蓑,Fincatcher's Shawl,,原文键,官方
 远程干员获得【迷彩】,Ranged Operators gain Camouflage,,原文键,官方
 远程敌人瞄准博士的频率 -25%（原作的「迷彩」）,Ranged enemies target the Doctor 25% less frequently (original game's 'Camouflage'),,原文键,模型
@@ -2192,7 +2192,7 @@ Scout的狙击镜,Scout's Scope,,原文键,官方
 医疗援护治疗量 +50%,Medic Support healing +50%,,原文键,模型
 医者-固化序列,Healer's Path - Restore Sanity,,原文键,官方
 所有【医疗】干员攻击范围内的我方单位获得抵抗,Friendly units within the attack range of Medic Operators gain Status Resistance,,原文键,官方
-有医疗援护时，神经损伤累积 -50%（原作的「抵抗」）,"When supported by a Medic, Nervous Impairment accumulation -50% (original game's 'Status Resistance')",,原文键,模型
+有医疗援护时，神经损伤累积 -50%（原作的「抵抗」）,"When supported by a Medic, Nervous Impairment accumulation -50% (original game's 'Resistance')",,原文键,校对
 锈刃-突破,Rusted Blade - Advancement,,原文键,官方
 所有【特种】干员的部署费用-2，生命+60%,Specialist Operators have -2 DP Cost and +60% HP,,原文键,官方
 最大生命 +40%,Max HP +40%,,原文键,模型
@@ -2212,7 +2212,7 @@ Scout的狙击镜,Scout's Scope,,原文键,官方
 【铁卫】、【驭法铁卫】和【决战者】对自身阻挡的敌人每秒造成自身防御力100%的法术伤害,"Protector, Arts Protector, and Duelist Operators deal 100% DEF as Arts damage per second to all enemies they are blocking",,原文键,官方
 重装 / 先锋分支专属,Exclusive to Defender / Vanguard branches,,原文键,模型
 扼喉之手,Hand of Choker,,原文键,官方
-【重射手】、【神射手】和【攻城手】的攻击会将生命值20%以下的敌人强制击杀,"Attacks from [Heavyshooter], [Elite Marksman], and [Besieger] Operators instantly defeat enemies with less than 20% HP",,原文键,模型
+【重射手】、【神射手】和【攻城手】的攻击会将生命值20%以下的敌人强制击杀,"Attacks from [Heavyshooter], [Deadeye], and [Besieger] Operators instantly defeat enemies with less than 20% HP",,原文键,校对
 狙击援护会直接击杀生命低于 20% 的敌人（Boss 除外）,Sniper cover fire instantly defeats enemies with less than 20% HP (Bosses excepted),,原文键,模型
 扣挠之手,Hand of Buckler,,原文键,官方
 【凝滞师】、【削弱者】和【护佑者】攻击时额外造成目标当前生命值3%的法术伤害,"Decel Binder, Hexer, and Abjurer Operators' attacks deal additional Arts damage equal to 3% of the target's current HP",,原文键,官方
@@ -2254,7 +2254,7 @@ Miss.Christine摸摸券,Miss.Christine Petting Ticket,,原文键,官方
 援护干员伤害 +15%，受到伤害 -2,"Support Operator damage +15%, damage taken -2",,原文键,模型
 教堂救济餐券,Church Alms Meal Voucher,,原文键,官方
 可同时部署人数+2，所有我方单位的生命值+6%,"+2 Deployment Limit, all friendly units gain +6% HP",,原文键,官方
-援护干员伤害 +15%，最大生命 +12%,"Supporting Operator damage +15%, Max HP +12%",,原文键,模型
+援护干员伤害 +15%，最大生命 +12%,"Support Operator damage +15%, Max HP +12%",,原文键,校对
 地区行动方案,Regional Action Plan,,原文键,官方
 招募4星干员的希望消耗-2,4-star Operators cost -2 Hope to recruit,,原文键,官方
 本作援护干员没有星级,Support Operators have no star rarity in this game,,原文键,模型
@@ -2276,7 +2276,7 @@ Miss.Christine摸摸券,Miss.Christine Petting Ticket,,原文键,官方
 升级三选一变为四选一,Level-up choices increased from 3 to 4,,原文键,模型
 阿卡胡拉饭碗,Acahuallan Bowl,,原文键,官方
 回复4目标生命，护盾值+2,"Restore 4 Life Point, +2 Objective Shield",,原文键,官方
-护盾生成间隔 -20%（没有护盾时获得护盾），获得时补满护盾,Objective Shield generation interval -20% (grants Objective Shield if none is present); fully replenishes Objective Shield when obtained,,原文键,模型
+护盾生成间隔 -20%（没有护盾时获得护盾），获得时补满护盾,Shield generation interval -20% (grants Shield if none is present); fully replenishes Shield when obtained,,原文键,校对
 立体艺术装置,Three-Dimensional Art Display,,原文键,官方
 回复7目标生命，每次战斗结束后额外回复1目标生命,"Restore 7 Life Point, restore an additional 1 Life Point after each battle",,原文键,官方
 立即回复 70% 最大生命，此后每击败一个 Boss 回复 10% 最大生命,"Immediately restores 70% Max HP, and restores 10% Max HP for each Boss defeated thereafter",,原文键,模型
@@ -2296,16 +2296,16 @@ Miss.Christine摸摸券,Miss.Christine Petting Ticket,,原文键,官方
 使你的骰子获得升级，按6面→8面→12面的顺序将骰子升级1档,"Upgrades your die, increasing its tier by 1 in the order of 6-sided → 8-sided → 12-sided",,原文键,模型
 御2,Defender-2,,原文键,官方
 护盾值+5,+5 Objective Shield,,原文键,官方
-【v0.8 已实装】护盾层数上限 +1,[Implemented in v0.8] Objective Shield limit +1,,原文键,模型
+【v0.8 已实装】护盾层数上限 +1,[Implemented in v0.8] Shield limit +1,,原文键,校对
 嵌体甲片,Embedded Armor Plate,,原文键,官方
 目标生命上限-2，护盾值+8,"-2 Max Life Point, +8 Objective Shield",,原文键,官方
-最大生命 -10，护盾层数上限 +2，护盾生成间隔 -15%,"Max HP -10, Max Objective Shield +2, Objective Shield generation interval -15%",,原文键,模型
+最大生命 -10，护盾层数上限 +2，护盾生成间隔 -15%,"Max HP -10, Shield limit +2, Shield generation interval -15%",,原文键,校对
 达里奥的提灯,Dario's Lantern,,原文键,官方
 获得时抑制指定一名干员的排异反应,"When obtained, suppresses a designated Operator's Rejection",,原文键,官方
 清除并免疫一个排异反应,Clears and grants immunity to 1 Rejection Reaction,,原文键,模型
 “国王的护戒”,'King's Fellowship',,原文键,官方
 护盾值+2，将目标生命全部转化为等量护盾值（目标生命不会低于1）,"+2 Objective Shield, coverts all Life Point into an equivalent amount of Objective Shield (Cannot be reduced below 1 by this effect)",,原文键,官方
-【v0.8 已实装】护盾抵挡伤害时回复 3% 最大生命,"[Implemented in v0.8] When Objective Shield blocks damage, recovers 3% Max HP",,原文键,模型
+【v0.8 已实装】护盾抵挡伤害时回复 3% 最大生命,"[Implemented in v0.8] When Shield blocks damage, recovers 3% Max HP",,原文键,校对
 郁金香的秘方,Tulip's Secret Formula,,原文键,官方
 火油与药膏,Paraffin and Balsam,,原文键,官方
 灯火-30，获得时抑制指定一名干员的排异反应,"-30 Light, when obtained, suppresses a designated Operator's Rejection",,原文键,官方
@@ -2315,7 +2315,7 @@ Miss.Christine摸摸券,Miss.Christine Petting Ticket,,原文键,官方
 灯油回复的灯火 +25%（拾取的灯油与商人出售的灯油）,Light recovered from Lamp Oil +25% (Lamp Oil picked up and sold by merchants),,原文键,模型
 大教堂拼图,Cathedral Puzzle,,原文键,官方
 获得时随机获得1个启示,"When obtained, randomly gain 1 Revelation",,原文键,官方
-随机获得 1 个启示（或一件能凑成组合的藏品）,Obtain 1 random Foldartal (or a collectible that completes a set),,原文键,模型
+随机获得 1 个启示（或一件能凑成组合的藏品）,Obtain 1 random Revelation (or a collectible that completes a set),,原文键,校对
 投币玩具,Coin-Operated Toy,,原文键,官方
 每有5源石锭，所有我方单位的攻击速度+3,"For each 5 Originium Ingots in possession, all friendly units have +3 ASPD",,原文键,官方
 每持有 5 源石锭，全队攻击速度 +3%（上限 +20%）,Squad ATK speed +3% for every 5 Originium Ingots held (up to +20%),,原文键,模型
@@ -2339,7 +2339,7 @@ Miss.Christine摸摸券,Miss.Christine Petting Ticket,,原文键,官方
 每 30 秒放下 2 根阻挡敌人的防暴桩,Deploys 2 Roadblocks to block enemies every 30s,,原文键,模型
 支援急救包,Support First-aid Kit,,原文键,官方
 每次战斗中携带3个急救包,Bring 3 First-aid Kits to each battle,,原文键,官方
-携带 3 个急救包，生命低于 40% 时自动使用,"Carries 3 First Aid kits, automatically used when HP is below 40%",,原文键,模型
+携带 3 个急救包，生命低于 40% 时自动使用,"Carries 3 First Aid Kits, automatically used when HP is below 40%",,原文键,校对
 布雷奥甘肖像,Portrait of Breogan,,原文键,官方
 所有干员部署时失去15点技力,All Operators lose 15 SP when deployed,,原文键,官方
 技力回复 -15%,SP Recovery -15%,,原文键,模型
@@ -2361,7 +2361,7 @@ Miss.Christine摸摸券,Miss.Christine Petting Ticket,,原文键,官方
 商人售价 +15%（docs/154：结局线不再拿灯火当代价；只从「开端」得到）,Merchant prices +15% (docs/154: Ending route no longer costs Light; only obtained from 'Beginnings'),,原文键,模型
 深蓝之心,Caerula Animus,,原文键,官方
 灯火-50，获得时立即使随机一名干员产生排异反应，让探索走向不同的结局,"-50 Light; when obtained, immediately afflicts a random Operator with a Rejection, and leads the exploration toward a different ending",,原文键,官方
-灯火 -50，获得排异反应，开启另一个结局,"Light -50, gain a Rejection Reaction, Unlocks another Ending",,原文键,模型
+灯火 -50，获得排异反应，开启另一个结局,"Light -50, gain a Rejection, unlocks another Ending",,原文键,校对
 结局,Ending,,原文键,模型
 海潮的气息,Breath of the Tide,,原文键,官方
 可同时部署人数+1；获得后【猎潮的骑士】出现在战场，直至被击败,"+1 Deployment Limit; when obtained, [Tide-Hunt Knight] will appear on the battlefield until defeated",,原文键,官方
@@ -2371,7 +2371,7 @@ Miss.Christine摸摸券,Miss.Christine Petting Ticket,,原文键,官方
 「猎潮的骑士」不再出现,'Tide-Hunt Knight' will no longer appear,,原文键,模型
 “荒诞命运”,'Absurd Fate',,原文键,官方
 源石锭+10，钥匙+1,"+10 Originium Ingots, +1 Key",,原文键,官方
-源石锭 +10，下一个补给箱必定掉落藏品,Originium Ingot +10; the next supply box is guaranteed to drop a relic,,原文键,模型
+源石锭 +10，下一个补给箱必定掉落藏品,Originium Ingots +10; the next supply box is guaranteed to drop a relic,,原文键,校对
 骑士骨血,The Knight's Corpus,,原文键,官方
 【猎潮的骑士】的防御力-80%,[Tide-Hunt Knight] has -80% DEF,,原文键,官方
 「猎潮的骑士」受到伤害 +80%,'Tide-Hunt Knight' takes +80% damage,,原文键,模型
@@ -2395,7 +2395,7 @@ Miss.Christine摸摸券,Miss.Christine Petting Ticket,,原文键,官方
 受到伤害时，全屏敌人眩晕 5 秒（冷却 30 秒）,"When taking damage, Stun all enemies on screen for 5s (30s cooldown)",,原文键,模型
 “碎片大厦的回忆”,'Memories of The Shard',,原文键,官方
 每次敌人进入保护目标点时，立刻对全场所有敌人造成3000点真实伤害,Deals 3000 True Damage on all enemy units every time an enemy unit enters the Protection Objective,,原文键,官方
-受到伤害时，对全屏敌人造成大量真实伤害（冷却 30 秒）,"When taking damage, deals a large amount of True damage to all enemies (Cooldown: 30s)",,原文键,模型
+受到伤害时，对全屏敌人造成大量真实伤害（冷却 30 秒）,"When taking damage, deals a large amount of True damage to all enemies on screen (30s cooldown)",,原文键,校对
 “荣耀套餐”,'Glory Pack',,原文键,官方
 我方单位被击倒时，对周围四格的敌人造成6秒晕眩,"When an Operator is defeated, it will Stun all enemies in the four adjacent tiles for 6 seconds",,原文键,官方
 一次受到超过 10% 最大生命的伤害时，周围敌人眩晕 3 秒,"When taking damage exceeding 10% of Max HP in one hit, Stuns surrounding enemies for 3s",,原文键,模型
@@ -2413,7 +2413,7 @@ Miss.Christine摸摸券,Miss.Christine Petting Ticket,,原文键,官方
 攻击速度 +10%，所有敌人攻击速度 -10%,"ATK speed +10%, all enemies' ATK speed -10%",,原文键,模型
 “决心”,'Determination',,原文键,官方
 所有我方干员阻挡数+2，防御力和生命+120%，法术抗性+20，让探索走向不同的结局,"All Operators gain Block +2, DEF and HP +120%, and RES +20; leads the exploration towards a different conclusion",,原文键,官方
-开启另一个结局，并获得大幅强化,"Unlocks another Ending, and gain significant enhancement",,原文键,模型
+开启另一个结局，并获得大幅强化,"Unlocks another Ending, and gains significant enhancement",,原文键,校对
 “观望”,'Vigil',,原文键,官方
 所有我方干员阻挡数+1，让探索走向不同的结局,All Operators gain Block +1; leads the exploration towards a different conclusion,,原文键,官方
 开启另一个结局,Unlocks another Ending,,原文键,模型
@@ -2421,10 +2421,10 @@ Miss.Christine摸摸券,Miss.Christine Petting Ticket,,原文键,官方
 所有我方干员阻挡数-1（不会低于1），让探索走向不同的结局,All Operators gain Block -1 (will not go below 1); leads the exploration towards a different conclusion,,原文键,官方
 “未尽的生命”,'Endless Life',,原文键,官方
 每进入新的一层时，使随机一名干员产生排异反应,Afflicts a random Operator with a Rejection at the start of each new floor,,原文键,官方
-每过 2 分钟获得一个随机排异反应,Gains a random Rejection Reaction every 2 minutes,,原文键,模型
+每过 2 分钟获得一个随机排异反应,Gains a random Rejection every 2 minutes,,原文键,校对
 深蓝回忆,Caerula Memory,,原文键,官方
 灯火-100，获得时立即使随机一名干员产生排异反应,"Light -100, immediately afflicts a random Operator with a Rejection",,原文键,官方
-灯火 -100，获得排异反应,"Light -100, gain a Rejection Reaction",,原文键,模型
+灯火 -100，获得排异反应,"Light -100, gain a Rejection",,原文键,校对
 深蓝之树,Caerula Arbor,,原文键,官方
 所有敌人攻击速度+15；每次作战若未损失目标生命，战斗结束后灯火+15,"Enemy ASPD +15; at the end of operation, if no Life Point is lost, gain +15 Light",,原文键,官方
 所有敌人攻击速度 +15%；每连续 15 秒未受伤，灯火 +6（诅咒与收益并存）,"All enemies' ATK speed +15%; for every 15s without taking damage, Light +6 (a mix of curse and boon)",,原文键,模型
@@ -2469,10 +2469,10 @@ Miss.Christine摸摸券,Miss.Christine Petting Ticket,,原文键,官方
 每持有一件藏品，术师援护伤害 +2%,Caster Support damage +2% for each relic held,,原文键,模型
 断杖-智慧之光,Broken Wand - Light of Wisdom,,原文键,官方
 每拥有一个收藏品，【术师】干员的攻击力+3%，攻击速度+2,"For every collectible owned, [Caster] ATK +3%, ASPD +2",,原文键,官方
-每持有一件藏品，术师援护伤害 +3%，射速 +2%,"For each relic held, Caster support damage +3%, firing rate +2%",,原文键,模型
+每持有一件藏品，术师援护伤害 +3%，射速 +2%,"For each relic held, Caster Support damage +3%, firing rate +2%",,原文键,校对
 断杖-破解,Broken Wand - Solving,,原文键,官方
 场上每有1名【术师】干员，所有敌人的法术抗性-12,"For every [Caster] Operator on the field, enemy RES -12",,原文键,官方
-有术师援护时，所有敌人受到的法术伤害 +12%,"When Caster support is present, Arts damage taken by all enemies +12%",,原文键,模型
+有术师援护时，所有敌人受到的法术伤害 +12%,"When Caster Support is present, Arts damage taken by all enemies +12%",,原文键,校对
 铁卫-城墙,Iron Guard - Wall,,原文键,官方
 所有【重装】干员防御力+40%，法术抗性+10,"[Defender] Operators gain DEF +40%, RES +10",,原文键,官方
 铁卫-高塔,Iron Guard - Tower,,原文键,官方
@@ -2504,7 +2504,7 @@ Miss.Christine摸摸券,Miss.Christine Petting Ticket,,原文键,官方
 源石锭 +18；下一次三选一多一个选项,Originium Ingot +18; 1 extra option for the next 1-out-of-3 choice,,原文键,模型
 源石锭 +12；每击败一个 Boss 再 +15,Originium Ingot +12; +15 more for each Boss defeated,,原文键,模型
 队长的护盾生成间隔 -20%,Leader's Shield generation interval -20%,,原文键,模型
-队长护盾层数上限 +1（没有护盾时获得每 15 秒一层的护盾）；护盾满层时全队攻击速度 +15%,"Leader Max Objective Shield +1 (when without an Objective Shield, gains 1 layer of Objective Shield every 15s); when Objective Shield is at max layers, squad ATK speed +15%",,原文键,模型
+队长护盾层数上限 +1（没有护盾时获得每 15 秒一层的护盾）；护盾满层时全队攻击速度 +15%,"Leader Shield stack limit +1 (if without a Shield, gain 1 stack of Shield every 15s); when Shield is at max stacks, squad ATK speed +15%",,原文键,校对
 队长最大生命 +10；源石锭 +3,Leader Max HP +10; Originium Ingot +3,,原文键,模型
 队长最大生命 +15，立即回复 15 生命,"Leader Max HP +15, immediately recovers 15 HP",,原文键,模型
 队长最大生命 +20，立即回复 20 生命,"Leader Max HP +20, immediately recovers 20 HP",,原文键,模型
@@ -2525,7 +2525,7 @@ Miss.Christine摸摸券,Miss.Christine Petting Ticket,,原文键,官方
 所有敌人造成的伤害 -17%,Damage dealt by all enemies -17%,,原文键,模型
 弱点收割干员命中弱点时给敌人挂「破绽」3 秒：期间它受到的所有伤害 +20%,"When Weakness Harvest Operators hit a weakness, inflicts 'Flaw' on the enemy for 3s: during this time, all damage it takes +20%",,原文键,模型
 命中弱点挂「破绽」：受到的伤害 +20%,Hitting a weakness inflicts 'Flaw': damage taken +20%,,原文键,模型
-弱点收割干员命中弱点时有 25% 概率造成双倍伤害并把敌人震退（Boss 只加伤不震退）,"When Weakness Harvest Operators hit a weakness, 25% chance to deal double damage and knock back the enemy (Bosses only take damage, no knockback)",,原文键,模型
+弱点收割干员命中弱点时有 25% 概率造成双倍伤害并把敌人震退（Boss 只加伤不震退）,"When Weakness Harvest Operators hit a weakness, 25% chance to deal double damage and knock back the enemy (Bosses only take the increased damage, no knockback)",,原文键,校对
 所有敌人对物理与法术伤害都视为弱点,All enemies treat Physical and Arts damage as weaknesses,,原文键,模型
 弱点收割干员击败有弱点的敌人时，弱点转移到 160 范围内最近的另一名敌人（Boss 除外）,"When a Weakness Harvest Operator defeats an enemy with a weakness, the weakness transfers to the nearest other enemy within 160 range (Bosses excepted)",,原文键,模型
 队长物理减伤 +2，受到的伤害 -6%,"Leader Physical damage reduction +2, damage taken -6%",,原文键,模型
@@ -2556,7 +2556,7 @@ Miss.Christine摸摸券,Miss.Christine Petting Ticket,,原文键,官方
 队长受到的治疗量 +30%；受到的侵蚀与神经损伤 -30%,Healing taken by the Leader +30%; Corrosion and Nervous Impairment taken -30%,,原文键,模型
 队长每秒回复 0.5% 最大生命,Leader restores 0.5% Max HP per second,,原文键,模型
 队长物理闪避 +15%（接触、冲撞、子弹等物理攻击）,"Leader Physical dodge +15% (contact, collision, bullets, and other Physical attacks)",,原文键,模型
-队长法术闪避 +15%（海嗣弹幕、水柱、光束等法术攻击）,"Leader Arts Dodge +15% (against Seaborn projectiles, water columns, beams, and other Arts attacks)",,原文键,模型
+队长法术闪避 +15%（海嗣弹幕、水柱、光束等法术攻击）,"Leader Arts dodge +15% (against Seaborn projectiles, water columns, beams, and other Arts attacks)",,原文键,校对
 冲刺后 1.5 秒内队长闪避率 +40%；冲刺路线上的敌人受到队长攻击 ×1 的伤害,Leader dodge rate +40% for 1.5s after sprinting; enemies on the sprint path take Leader ATK ×1 damage,,原文键,模型
 立即升 1 级,Immediately gain 1 level,,原文键,模型
 立即升 2 级,Immediately gain 2 levels,,原文键,模型
@@ -2582,9 +2582,9 @@ Miss.Christine摸摸券,Miss.Christine Petting Ticket,,原文键,官方
 处于眩晕或减速中的敌人受到的伤害 +20%,Enemies inflicted with Stun or Slow take +20% damage,,原文键,模型
 敌人的眩晕自然结束时炸开：90 范围内的其他敌人眩晕 0.5 秒（被波及的不再炸开，Boss 除外）,"When an enemy's Stun ends naturally, they explode: other enemies within 90 radius are Stunned for 0.5s (affected enemies will not explode again, Bosses excepted)",,原文键,模型
 眩晕、束缚、减速的持续时间 +100%；处于眩晕或减速中的敌人被击败时，120 范围内的敌人冻结 1.5 秒（Boss 除外）,"Stun, Bind, and Slow duration +100%; when an enemy under Stun or Slow is defeated, enemies within a 120 radius are Frozen for 1.5s (Bosses excepted)",,原文键,模型
-队长法术抗性 +15%；护盾破裂时释放冲击，对周围（半径 140）敌人造成伤害并击退（Boss 不被击退）,"Leader RES +15%; releases a shockwave when Objective Shield breaks, dealing damage to and knocking back nearby enemies (140 radius) (Bosses are not knocked back)",,原文键,模型
-编队每有一种不同职业，全队伤害 +6%,All Operators' damage +6% for each different Class in the squad,,原文键,模型
-每 0.5 秒把溢出的治疗量转为对队长周围（半径 150）敌人的法术伤害：开局为溢出量的 {$scavenge_mult} 倍，每分钟 +{$scavenge_mult*$pm:1} 倍（10:00 约 {$scavenge_mult*$m10:0} 倍）,"Every 0.5s, converts excess healing into Arts damage to enemies around the Leader (radius 150): initially {$scavenge_mult} times the excess healing, +{$scavenge_mult*$pm:1} times per minute (approx. {$scavenge_mult*$m10:0} times at 10:00).",,原文键,模型
+队长法术抗性 +15%；护盾破裂时释放冲击，对周围（半径 140）敌人造成伤害并击退（Boss 不被击退）,"Leader RES +15%; releases a shockwave when Shield breaks, dealing damage to and knocking back nearby enemies (140 radius) (Bosses are not knocked back)",,原文键,校对
+编队每有一种不同职业，全队伤害 +6%,Squad damage +6% for each different Class in the squad,,原文键,校对
+每 0.5 秒把溢出的治疗量转为对队长周围（半径 150）敌人的法术伤害：开局为溢出量的 {$scavenge_mult} 倍，每分钟 +{$scavenge_mult*$pm:1} 倍（10:00 约 {$scavenge_mult*$m10:0} 倍）,"Every 0.5s, converts excess healing into Arts damage to enemies around the Leader (radius 150): initially {$scavenge_mult} times the excess healing, +{$scavenge_mult*$pm:1} times per minute (approx. {$scavenge_mult*$m10:0} times at 10:00)",,原文键,校对
 所有敌人移动速度 -7.5%，受到的击退 +20%；被击退的敌人眩晕 0.4 秒（Boss 除外）,"All enemies' movement speed -7.5%, knockback taken +20%; knocked back enemies are Stunned for 0.4s (Bosses excepted)",,原文键,模型
 远程干员的攻击伤害按与目标的距离提高：每 60 距离 +10%，300 及以上 +50%,"Ranged Operators' attack damage increases based on distance to the target: +10% per 60 distance, up to +50% at 300 distance and above",,原文键,模型
 没有技能生效时，全队伤害在累计 60 秒内逐渐提升至 +60%；任一技能生效时暂停计时、加成不生效（不清零）,"When no skill is active, squad damage gradually increases to +60% over a cumulative 60s; when any skill is active, pauses the timer and the buff takes no effect (does not reset)",,原文键,模型
@@ -2603,7 +2603,7 @@ Miss.Christine摸摸券,Miss.Christine Petting Ticket,,原文键,官方
 队长物理减伤 +3，法术抗性 +20%,"Leader Physical damage reduction +3, RES +20%",,原文键,模型
 地图上出现一片「遥乡」：队长站在里面每秒回复 3% 最大生命、技力回复 +30%；每 60 秒换一次位置,"A 'Distant Homeland' appears on the map: when the Leader stands inside, recovers 3% Max HP per second, SP Recovery +30%; changes position every 60s",,原文键,模型
 地图上出现一面旗帜：队长站在旗帜附近时全队伤害 +50%、攻击速度 +50%；每 60 秒换一次位置,"A flag appears on the map: when the Leader stands near the flag, squad damage +50%, ATK speed +50%; changes position every 60s",,原文键,模型
-队长每 15 秒生成一层护盾，抵挡一次伤害；护盾生成间隔 -15%,"Leader generates 1 Objective Shield every 15s, blocking 1 instance of damage; Objective Shield generation interval -15%",,原文键,模型
+队长每 15 秒生成一层护盾，抵挡一次伤害；护盾生成间隔 -15%,"Leader generates 1 Shield every 15s, blocking 1 instance of damage; Shield generation interval -15%",,原文键,校对
 远程杂兵的开火间隔 +35%（Boss 除外）,Ranged mobs' attack interval +35% (Bosses excepted),,原文键,模型
 队长闪避率 +8%；闪避后 6 秒内全队伤害 +60%（再次闪避刷新时长）,"Leader Dodge +8%; for 6s after dodging, squad damage +60% (Dodging again refreshes duration)",,原文键,模型
 队长闪避率 +8%；闪避后 6 秒内全队伤害 +130%（再次闪避刷新时长）,"Leader Dodge +8%; for 6s after dodging, squad damage +130% (Dodging again refreshes duration)",,原文键,模型
@@ -2612,18 +2612,18 @@ Miss.Christine摸摸券,Miss.Christine Petting Ticket,,原文键,官方
 队长每有 10% 生命，全队伤害 +3%（满血时 +30%）,Squad damage +3% for every 10% HP the Leader has (+30% at max HP),,原文键,模型
 队长每损失 10% 最大生命，全队攻击速度 +12%（生命 50% 及以下时 +60%）,"For every 10% Max HP the Leader loses, squad ATK speed +12% (+60% when HP is at or below 50%)",,原文键,模型
 队长每损失 10% 生命：全队攻击速度 +12%,For every 10% HP the Leader loses: squad ATK speed +12%,,原文键,模型
-召唤驻场干员的追击与召唤物伤害 +15%；增殖：维什戴尔的魂灵之影 +1 个（副体：伤害为本体的 60%，体型 85%），水月的触手桩在场上限 +1（凯尔希的 Mon3tr、归溟幽灵鲨的替身只加伤害，数量不变）。召唤数量只加一次；每多一层，增益递减,"Summon Presence Operators' follow-up attack and summon damage +15%; Proliferation: Wiš'adel's Revenant Shadow +1 (Sub-body: damage is 60% of the original, size 85%), Mizuki's tentacle pillar deployment limit +1 (Kal'tsit's Mon3tr and Specter the Unchained's substitute only gain damage, quantity remains unchanged). Summon quantity only increases once; buff diminishes with each additional stack",,原文键,模型
-追击与召唤物伤害 +35%,Pursuit and summon damage +35%,,原文键,模型
+召唤驻场干员的追击与召唤物伤害 +15%；增殖：维什戴尔的魂灵之影 +1 个（副体：伤害为本体的 60%，体型 85%），水月的触手桩在场上限 +1（凯尔希的 Mon3tr、归溟幽灵鲨的替身只加伤害，数量不变）。召唤数量只加一次；每多一层，增益递减,"Summon Presence Operators' follow-up attacks and summon damage +15%; Proliferation: Wiš'adel's Revenant Shadow +1 (Sub-body: damage is 60% of the original, size 85%), Mizuki's tentacle pillar deployment limit +1 (Kal'tsit's Mon3tr and Specter the Unchained's substitute only gain damage, quantity remains unchanged). Summon quantity only increases once; buff diminishes with each additional stack",,原文键,校对
+追击与召唤物伤害 +35%,Follow-up attacks and summon damage +35%,,原文键,校对
 增殖：,Proliferation:,,原文键,模型
-维什戴尔的魂灵之影 +1 个（副体：伤害为本体的 60%，体型 85%）,"Wiš'adel's Revenant +1 (Sub-unit: damage is 60% of the original, size 85%)",,原文键,模型
-水月的触手桩在场上限 +1,Max deployed Mizuki tentacles +1,,原文键,模型
+维什戴尔的魂灵之影 +1 个（副体：伤害为本体的 60%，体型 85%）,"Wiš'adel's Revenant Shadow +1 (Sub-body: damage is 60% of the original, size 85%)",,原文键,校对
+水月的触手桩在场上限 +1,Mizuki's tentacle pillar deployment limit +1,,原文键,校对
 对凯尔希：Mon3tr 伤害 +15%,For Kal'tsit: Mon3tr damage +15%,,原文键,模型
 对归溟幽灵鲨：替身伤害 +15%,For Specter the Unchained: Substitute damage +15%,,原文键,模型
 。每多一层，增益递减,. Buff diminishes with each additional stack,,原文键,模型
 ；召唤驻场干员的追击与召唤物伤害 +15%。召唤数量只加一次；每多一层，增益递减,; Summon Presence Operators' follow-up attacks and summon damage +15%. Summon count only increases once; buff diminishes with each additional stack,,原文键,模型
-召唤驻场干员的追击与召唤物伤害 +15%；增殖：本编队暂无召唤物（维什戴尔 / 水月入队后生效）。每多一层，增益递减,Summon Presence Operators' follow-up attack and summon damage +15%; Proliferation: No summons in the current squad (takes effect after Wiš'adel / Mizuki joins). Buff diminishes with each additional stack,,原文键,模型
-增幅：召唤物体型与攻击范围 +15%；召唤驻场干员的追击与召唤物伤害 +25%，追击每命中一个敌人，该干员回复 0.2% 技力（每秒最多 1%）,"Amplification: summon size and attack range +15%; Summon Presence Operators' follow-up attack and summon damage +25%, for each enemy hit by a follow-up attack, the Operator recovers 0.2% SP (max 1% per second)",,原文键,模型
-追击与召唤物伤害 +25%；追击每命中一个敌人，造成这次追击的干员回复 0.2% 技力（每秒最多 1%）,"Follow-up attack and summon damage +25%; for every enemy hit by a follow-up attack, the Operator dealing this follow-up attack recovers 0.2% SP (up to 1% per second)",,原文键,模型
+召唤驻场干员的追击与召唤物伤害 +15%；增殖：本编队暂无召唤物（维什戴尔 / 水月入队后生效）。每多一层，增益递减,Summon Presence Operators' follow-up attacks and summon damage +15%; Proliferation: No summons in the current squad (takes effect after Wiš'adel / Mizuki joins). Buff diminishes with each additional stack,,原文键,校对
+增幅：召唤物体型与攻击范围 +15%；召唤驻场干员的追击与召唤物伤害 +25%，追击每命中一个敌人，该干员回复 0.2% 技力（每秒最多 1%）,"Amplification: summon size and attack range +15%; Summon Presence Operators' follow-up attacks and summon damage +25%, for each enemy hit by a follow-up attack, the Operator recovers 0.2% SP (max 1% per second)",,原文键,校对
+追击与召唤物伤害 +25%；追击每命中一个敌人，造成这次追击的干员回复 0.2% 技力（每秒最多 1%）,"Follow-up attacks and summon damage +25%; for every enemy hit by a follow-up attack, the Operator dealing this follow-up attack recovers 0.2% SP (up to 1% per second)",,原文键,校对
 队长受到的侵蚀 -40%,Corrosion taken by Leader -40%,,原文键,模型
 队长神经损伤累积 -40%,Leader Nervous Impairment accumulation -40%,,原文键,模型
 class:先锋,class:Vanguard,,原文键,模型
@@ -2652,7 +2652,7 @@ class:狙击,class:Sniper,,原文键,模型
 class:术师,class:Caster,,原文键,模型
 术师干员伤害 +20%、攻击速度 +10%,"Caster Operator damage +20%, ATK speed +10%",,原文键,模型
 术师干员每 8 秒对身边（半径 110）敌人引发一次法术爆炸：伤害 40，每分钟 +{40*$pm:0}（10:00 约 {40*$m10:0}）,"Caster Operators trigger an Arts explosion every 8s against nearby enemies (110 radius): 40 damage, +{40*$pm:0} per minute (approx. {40*$m10:0} at 10:00)",,原文键,模型
-术师干员伤害 +50%，攻击范围 -20%,"Caster Operator damage +50%, Attack Range -20%",,原文键,模型
+术师干员伤害 +50%，攻击范围 -20%,"Caster Operator damage +50%, attack range -20%",,原文键,校对
 招募辅助干员时，该干员立即推进 1 个成长节点,"When recruiting a Supporter Operator, they immediately advance 1 growth node",,原文键,模型
 class:辅助,class:Supporter,,原文键,模型
 辅助干员攻击范围 +40%,Supporter Operator attack range +40%,,原文键,模型
@@ -2691,14 +2691,14 @@ class:特种,class:Specialist,,原文键,模型
 升级与藏品的三选一各多一个选项（与「观望」叠加）,Level-up and relic pick-3 screens each have 1 additional option (stacks with 'Wait and See'),,原文键,模型
 护盾生成间隔 -20%（没有护盾时获得每 15 秒一层的护盾），获得时补满护盾,"Shield generation interval -20% (if without a Shield, gain 1 stack of Shield every 15s); fully restores Shield when obtained",,原文键,模型
 获得时队长回复 70% 最大生命；此后每击败一个 Boss 回复 10% 最大生命,"Leader recovers 70% Max HP when obtained; thereafter, recovers 10% Max HP for each Boss defeated",,原文键,模型
-队长护盾层数上限 +1；补给箱钥匙 +1；下一次三选一多一个选项,Leader Objective Shield limit +1; Supply Box Key +1; next choice has 1 additional option,,原文键,模型
-补给箱钥匙 +3（每次藏品三选一多一个选项，用掉一把；钥匙用完前不会遇到箱形恐鱼）,"Supply box Key +3 (adds one extra option to each 1-out-of-3 relic choice, consuming 1 Key; Chest Seaborn will not be encountered before Keys run out)",,原文键,模型
+队长护盾层数上限 +1；补给箱钥匙 +1；下一次三选一多一个选项,Leader Shield limit +1; Supply Box Key +1; next choice has 1 additional option,,原文键,校对
+补给箱钥匙 +3（每次藏品三选一多一个选项，用掉一把；钥匙用完前不会遇到箱形恐鱼）,"Supply Box Key +3 (adds one extra option to each 1-out-of-3 relic choice, consuming 1 Key; Chest Seaborn will not be encountered before Keys run out)",,原文键,校对
 接下来 2 次三选一各多一个选项,The next 2 selections offer 1 extra option each,,原文键,模型
 每击败一个 Boss，接下来 2 次三选一各多一个选项,"Each time a Boss is defeated, the next 2 selections offer 1 extra option each",,原文键,模型
 接下来 6 次三选一各多一个选项,The next 6 selections offer 1 extra option each,,原文键,模型
 升级与藏品的三选一各多一个选项（与四叶草化石、「观望」叠加）,Level-up and relic choices have 1 additional option (stacks with Four-Leaf Clover Fossil and 'Wait and See'),,原文键,模型
 队长护盾层数上限 +1,Max Leader Shield stacks +1,,原文键,模型
-队长护盾层数上限 +2，护盾生成间隔 -15%；每生成一层护盾，对 120 范围内的敌人造成队长攻击 ×1.5 的冲击,"Leader Max Objective Shield +2, Objective Shield generation interval -15%; every time 1 layer of Objective Shield is generated, deals a shockwave equal to Leader ATK ×1.5 to enemies within 120 radius",,原文键,模型
+队长护盾层数上限 +2，护盾生成间隔 -15%；每生成一层护盾，对 120 范围内的敌人造成队长攻击 ×1.5 的冲击,"Leader Max Shield +2, Shield generation interval -15%; every time 1 layer of Shield is generated, deals a shockwave equal to Leader ATK ×1.5 to enemies within 120 radius",,原文键,校对
 解除一个排异反应，并抑制下一次排异反应（只在发生过排异或走深蓝线时出现）,Cures one Rejection and suppresses the next Rejection (Only appears if Rejection has occurred or on the Abyssal route),,原文键,模型
 护盾抵挡伤害时，队长回复 3% 最大生命,"When Shield blocks damage, Leader recovers 3% Max HP",,原文键,模型
 灯火 -30；灯火低于 50 时，全队技力回复 +50%、全队伤害 +50%,"Light -30; when Light is below 50, squad SP Recovery +50% and squad damage +50%",,原文键,模型
@@ -2711,11 +2711,11 @@ class:特种,class:Specialist,,原文键,模型
 携带 3 个急救包：队长生命低于 40% 时自动使用一个，回复 30% 最大生命,"Carries 3 First Aid kits: automatically uses one when Leader HP is below 40%, recovering 30% Max HP",,原文键,模型
 队长生命低于 40% 时自动回复 30%（3 次）,"When Leader HP falls below 40%, automatically recovers 30% HP (3 times)",,原文键,模型
 全队技力回复 -15%,Squad SP Recovery -15%,,原文键,模型
-立即一次排异反应,Immediately suffer 1 Rejection Reaction,,原文键,模型
+立即一次排异反应,Immediately suffer 1 Rejection,,原文键,校对
 队长受击时灯火损失 +10%,Light loss when Leader is attacked +10%,,原文键,模型
 队长受击时灯火损失 +15%,Light loss when Leader is attacked +15%,,原文键,模型
 商人售价 +15%。深蓝之心线的起点（docs/154）,Merchant prices +15%. The starting point of the Caerula Animus route (docs/154),,原文键,模型
-一次排异反应；海嗣更快进化。走向结局三,1 Rejection Reaction; Seaborn evolve faster. Leads to Ending 3,,原文键,模型
+一次排异反应；海嗣更快进化。走向结局三,1 Rejection; Seaborn evolve faster. Leads to Ending 3,,原文键,校对
 猎潮的骑士加入编队，直到他倒下。走向结局二,Tide-Hunt Knight joins the squad until he falls. Leads to Ending 2,,原文键,模型
 队长移动速度 +10%,Leader movement speed +10%,,原文键,模型
 源石锭 +10；补给箱钥匙 +1（每次藏品三选一多一个选项，用掉一把；钥匙用完前不会遇到箱形恐鱼）,"Originium Ingot +10; Supply Box Key +1 (adds 1 extra option to each choose-one-from-three relic selection, consuming 1 Key; Chest Seaborn will not be encountered before Keys run out)",,原文键,模型
@@ -2734,13 +2734,13 @@ class:特种,class:Specialist,,原文键,模型
 升级与藏品的三选一各多一个选项（与四叶草化石叠加）,Level-up and relic pick-3 screens each have 1 additional option (stacks with Four-Leaf Clover Fossil),,原文键,模型
 稀有 / 核心藏品出现率 +30%，队长拾取范围 -20%,"Rare / Core Relic appearance rate +30%, Leader pickup range -20%",,原文键,模型
 每 2 分钟一次排异反应,1 Rejection every 2 minutes,,原文键,模型
-一次排异反应。升华线的起点（docs/154）,1 Rejection Reaction. Starting point of the Ascension route (docs/154),,原文键,模型
-所有敌人攻击速度 +15%；队长每连续 15 秒未受伤，灯火 +6（闪避、护盾或干员格挡抵挡，以及侵蚀持续掉血，都不算受伤）,"All enemies' ATK speed +15%; Light +6 for every 15s the Leader continuously takes no damage (dodges, blocks by Objective Shield or Operators, and continuous HP loss from Corrosion do not count as taking damage)",,原文键,模型
+一次排异反应。升华线的起点（docs/154）,1 Rejection. Starting point of the Ascension route (docs/154),,原文键,校对
+所有敌人攻击速度 +15%；队长每连续 15 秒未受伤，灯火 +6（闪避、护盾或干员格挡抵挡，以及侵蚀持续掉血，都不算受伤）,"All enemies' ATK speed +15%; Light +6 for every 15s the Leader continuously takes no damage (dodges, blocks by Shield or Operators, and continuous HP loss from Corrosion do not count as taking damage)",,原文键,校对
 立即招募一名随机干员（可婉拒），该干员立即推进 1 个成长节点；婉拒或编队已满时改为一次成长三选一,"Immediately recruits a random Operator (can be declined), this Operator immediately advances 1 growth node; if declined or squad is full, changes to a choose-one-from-three growth selection instead",,原文键,模型
 立即招募 1 名随机干员（可婉拒），并直接推进到精英一；婉拒时全队各推进 1 个成长节点，另获一次成长三选一；编队已满时改为全队各推进 1 个成长节点,"Immediately recruit 1 random Operator (can be declined), and directly advance them to Elite 1; if declined, advance 1 growth node for the entire squad, and gain one pick-one-out-of-three growth opportunity; if the squad is full, advance 1 growth node for the entire squad instead",,原文键,模型
 灯火低于 50 时，召唤驻场干员的追击与召唤物伤害 +60%,"When Light is below 50, Summon Presence Operators' pursuits and summon damage +60%",,原文键,模型
-队长每连续 15 秒未受伤，灯火 +3（闪避、护盾或干员格挡抵挡，以及侵蚀持续掉血，都不算受伤）,"Light +3 for every 15s the Leader continuously takes no damage (dodges, blocks by Objective Shield or Operators, and continuous HP loss from Corrosion do not count as taking damage)",,原文键,模型
-队长每连续 15 秒未受伤，灯火 +4（闪避、护盾或干员格挡抵挡，以及侵蚀持续掉血，都不算受伤）,"Light +4 for every 15s the Leader continuously takes no damage (dodges, blocks by Objective Shield or Operators, and continuous HP loss from Corrosion do not count as taking damage)",,原文键,模型
+队长每连续 15 秒未受伤，灯火 +3（闪避、护盾或干员格挡抵挡，以及侵蚀持续掉血，都不算受伤）,"Light +3 for every 15s the Leader continuously takes no damage (dodges, blocks by Shield or Operators, and continuous HP loss from Corrosion do not count as taking damage)",,原文键,校对
+队长每连续 15 秒未受伤，灯火 +4（闪避、护盾或干员格挡抵挡，以及侵蚀持续掉血，都不算受伤）,"Light +4 for every 15s the Leader continuously takes no damage (dodges, blocks by Shield or Operators, and continuous HP loss from Corrosion do not count as taking damage)",,原文键,校对
 受击与黑潮导致的灯火流失 -40%,Light loss from taking damage and Black Tide -40%,,原文键,模型
 受击与黑潮导致的灯火流失 -60%,Light lost from taking hits and Black Tide -60%,,原文键,模型
 每击败一个 Boss：队长失去 20% 当前生命，获得 15 源石锭和一次成长三选一,"For each Boss defeated: Leader loses 20% current HP, gains 15 Originium Ingots and one 1-out-of-3 growth choice",,原文键,模型
@@ -2749,14 +2749,14 @@ class:特种,class:Specialist,,原文键,模型
 每持有一件遭诅古物，队长受到的伤害 -8%（最多 -32%）,Leader takes -8% damage for each Cursed Curio held (up to -32%),,原文键,模型
 每持有一件遭诅古物，全队攻击速度 +15%（最多 +60%）,Squad ATK speed +15% for each Cursed Curio held (up to +60%),,原文键,模型
 队长受到的伤害 -10%；灯火低于 50 时改为 -37%（真实伤害除外）,Leader takes -10% damage; changes to -37% when Light is below 50 (True damage excepted),,原文键,模型
-每持有一件藏品，术师干员伤害 +2%（最多 +40%）,Caster Operator damage +2% for each Relic held (up to +40%),,原文键,模型
+每持有一件藏品，术师干员伤害 +2%（最多 +40%）,Caster Operator damage +2% for each Collectible held (up to +40%),,原文键,校对
 每持有一件藏品，术师干员伤害 +3%、攻击速度 +2%（最多计 20 件）,"For each Collectible held, Caster Operator damage +3%, ATK speed +2% (Counts up to 20 Collectibles)",,原文键,模型
 编队每有 1 名术师干员，法术伤害 +10%,Arts damage +10% for each Caster Operator in the squad,,原文键,模型
 队长受到的伤害 -10%，法术抗性 +10%,"Leader damage taken -10%, RES +10%",,原文键,模型
-队长护盾层数上限 +1（没有护盾时获得每 15 秒一层的护盾）；每有 1 层护盾，队长受到的伤害 -8%（最多 -40%）,"Leader Max Objective Shield +1 (when without an Objective Shield, gains 1 layer of Objective Shield every 15s); damage taken by Leader -8% for every 1 layer of Objective Shield (up to -40%)",,原文键,模型
+队长护盾层数上限 +1（没有护盾时获得每 15 秒一层的护盾）；每有 1 层护盾，队长受到的伤害 -8%（最多 -40%）,"Leader Max Shield +1 (when without a Shield, gains 1 layer of Shield every 15s); damage taken by Leader -8% for every 1 layer of Shield (up to -40%)",,原文键,校对
 随机一名干员伤害 +20%，此后每击败一个 Boss 再 +20%,"A random Operator's damage +20%, and an additional +20% for each Boss defeated thereafter",,原文键,模型
 排异反应「进化」：已有的排异反应全部解除并免疫此后的排异；队长受到的伤害 -20%，全队攻击无视敌人 35% 的防御（只在发生过排异或走深蓝线时出现）,"Rejection 'Evolution': All existing Rejections are cured and immune to future Rejections; Leader takes -20% damage, squad attacks ignore 35% of enemy DEF (only appears if a Rejection has occurred or when on the Abyssal route)",,原文键,模型
 解除并免疫排异；受到伤害 -20%、无视 35% 防御,"Removes and grants immunity to Rejection; damage taken -20%, ignores 35% DEF",,原文键,模型
-干员造成伤害的 0.05% 转为队长生命（藏品伤害不计；每秒最多 0.5% 最大生命；队长生命低于 50% 时上限翻倍）,0.05% of damage dealt by Operators is converted to Leader HP (relic damage not counted; up to 0.5% Max HP per second; limit doubles when Leader HP is below 50%),,原文键,模型
+干员造成伤害的 0.05% 转为队长生命（藏品伤害不计；每秒最多 0.5% 最大生命；队长生命低于 50% 时上限翻倍）,0.05% of damage dealt by Operators is converted to Leader HP (Collectible damage not counted; up to 0.5% Max HP per second; limit doubles when Leader HP is below 50%),,原文键,校对
 击杀累计 60 点时，队长回复 2% 最大生命（普通敌人每只约 2.5 点，按怪物密度折算；精英算 10 点，Boss 算 60 点）,"When accumulated kills reach 60 points, Leader recovers 2% Max HP (normal enemies are worth approx. 2.5 points each, adjusted by enemy density; Elite enemies count as 10 points, Bosses count as 60 points)",,原文键,模型
-多弹火力干员的普攻弹道可穿透所有敌人。每穿过一名敌人，后续伤害减少初始伤害的 15%，最低为初始伤害的 40%。与「贯穿」同时持有时，采用本藏品的穿透效果；对技能弹幕无效,"Multi-Shot Firepower Operators' normal attack projectiles pierce through all enemies. For each enemy pierced, subsequent damage is reduced by 15% of the initial damage, minimum 40% of the initial damage. When held with 'Pierce', this relic's piercing effect takes priority; invalid for skill projectiles",,原文键,模型
+多弹火力干员的普攻弹道可穿透所有敌人。每穿过一名敌人，后续伤害减少初始伤害的 15%，最低为初始伤害的 40%。与「贯穿」同时持有时，采用本藏品的穿透效果；对技能弹幕无效,"Multi-Shot Firepower Operators' normal attack projectiles pierce through all enemies. For each enemy pierced, subsequent damage is reduced by 15% of the initial damage, minimum 40% of the initial damage. When held with 'Pierce', this Collectible's piercing effect takes priority; invalid for skill projectiles",,原文键,校对

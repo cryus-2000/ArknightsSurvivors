@@ -92,7 +92,7 @@ op.exusiai.hit_sources.掩护射击.kind,Physical,物理,模型,
 op.exusiai.hit_sources.弹片.range,Ranged,远程,模型,
 op.exusiai.hit_sources.弹片.kind,Physical,物理,模型,
 op.exusiai.progression.0.name,Anti-Air Priority,对空优先,模型,
-op.exusiai.progression.0.desc,,每 {$prefer_stun_every} 发子弹中有 1 发眩晕弹，使目标眩晕 {$prefer_stun} 秒（精英减半，Boss 除外）；子弹优先瞄准受控目标（眩晕、浮空、失重中的敌人）；打中受控目标时命中即停，并使其定身 {$prefer_pin} 秒（精英减半，Boss 除外；同一敌人 1 秒内至多一次）；伤害 ×{$grow_dmg_twin},缺,
+op.exusiai.progression.0.desc,"1 in every {$prefer_stun_every} bullets is a Stun bullet, Stunning the target for {$prefer_stun}s (halved on Elites, Bosses excepted); bullets prioritize crowd-controlled targets (enemies that are Stunned, Levitated, or Weightless); when hitting a crowd-controlled target, the bullet stops upon impact and immobilizes them for {$prefer_pin}s (halved on Elites, Bosses excepted; at most once per second per enemy); damage ×{$grow_dmg_twin}.",每 {$prefer_stun_every} 发子弹中有 1 发眩晕弹，使目标眩晕 {$prefer_stun} 秒（精英减半，Boss 除外）；子弹优先瞄准受控目标（眩晕、浮空、失重中的敌人）；打中受控目标时命中即停，并使其定身 {$prefer_pin} 秒（精英减半，Boss 除外；同一敌人 1 秒内至多一次）；伤害 ×{$grow_dmg_twin},模型,
 op.exusiai.progression.1.name,Escort Shooting,护航射击,模型,
 op.exusiai.progression.1.desc,"When {$escort_n} or more enemies are within a radius of {$escort_r} around the Leader, bullets prioritize the enemy closest to the Leader, and deal {$escort_kb} knockback; Damage ×{$grow_dmg_power}",队长身边半径 {$escort_r} 内有 {$escort_n} 名及以上敌人时，子弹改为优先射击离队长最近的敌人，并附带 {$escort_kb} 击退；伤害 ×{$grow_dmg_power},模型,
 op.exusiai.progression.2.name,Elite 1,精英一,暂定,暂定（docs/276 §3.6）
@@ -167,7 +167,7 @@ op.eyjafjalla.hit_sources.熔岩天降.kind,Arts,法术,模型,
 op.eyjafjalla.hit_sources.熔池.range,Ranged,远程,模型,
 op.eyjafjalla.hit_sources.熔池.kind,Arts,法术,模型,
 op.eyjafjalla.progression.0.name,Echo,复咏,模型,
-op.eyjafjalla.progression.0.desc,,普攻投出 2 发熔岩弹，第二发伤害 {$twin_mult*100}%：精英化前打同一名敌人，精英一起打另一名敌人（没有则在旁边偏开）；精英二起由「三重咏唱」取代,缺,
+op.eyjafjalla.progression.0.desc,"Normal attacks throw 2 Magma Orbs, the second dealing {$twin_mult*100}% damage: before Promotion, attacks the same enemy; from Elite 1, attacks a different enemy (if none, veers off to the side); from Elite 2, replaced by 'Tercet'.",普攻投出 2 发熔岩弹，第二发伤害 {$twin_mult*100}%：精英化前打同一名敌人，精英一起打另一名敌人（没有则在旁边偏开）；精英二起由「三重咏唱」取代,模型,
 op.eyjafjalla.progression.1.name,Splattering Sparks,火星迸溅,模型,
 op.eyjafjalla.progression.1.desc,"When a Magma Orb explodes, it scatters {$ember_n} pieces of magma that hit nearby enemies and explode in a small area ({$ember_mult*100}% damage of this attack)",熔岩弹爆炸时迸出 {$ember_n} 块熔岩，砸到附近的敌人身上小范围爆炸（这一发 {$ember_mult*100}% 的伤害）,模型,
 op.eyjafjalla.progression.2.name,Elite 1,精英一,暂定,暂定（docs/276 §3.6）
@@ -300,7 +300,7 @@ op.gladiia.blocks.talent.1.do.0.src,Gladiia,歌蕾蒂娅,官方,character_table.
 op.gladiia.blocks.talent.2.do.0.src,Gladiia,歌蕾蒂娅,官方,character_table.char_474_glady
 op.gladiia.blocks.progression.elite2.do.0.src,Ram,冲撞,模型,
 op.gladiia.blocks.progression.shield2.do.0.pop.0.src,Rebound,反震,模型,
-op.gladiia.combo.name,,二重奏,缺,
+op.gladiia.combo.name,Duet,二重奏,模型,
 op.gladiia.combo.desc,"When her hook pulls an enemy into position, if Ulpianus is within range, he performs an additional anchor strike at the landing point (at most once every 2s; does not consume his normal attack cooldown)",她的钩索把敌人拖回到位时，乌尔比安在射程内就朝落点补一次锚击（每 2 秒至多一次，不占他的普攻冷却）,模型,
 op.hoshiguma.name,Hoshiguma,星熊,官方,character_table.char_136_hsguma
 op.hoshiguma.class,Defender,重装,官方,character_table profession（data.gd CLASS_EN）
@@ -1262,9 +1262,9 @@ op.suzuran.attack.desc,"Slowing Foxfire Field: Movement speed of enemies within 
 op.suzuran.skills.0.name,I'll Do My Best,全力以赴,官方,skill_table.skchr_lisa_1
 op.suzuran.skills.0.desc,The next attack instead fires {$s1_shots} foxfires (Damage ×{$s1_mult*$k_pow:2}).,下一次普攻改为射出 {$s1_shots} 发狐火（伤害 ×{$s1_mult*$k_pow:2}）,模型,
 op.suzuran.skills.1.name,Childhood Frolic,儿时的舞乐,官方,skill_table.skchr_lisa_2
-op.suzuran.skills.1.desc,,充能一次后永久生效：光域范围 +60%，其他干员攻击 +{$s2_buff*$k_pow*100:1}%，队长每秒回复 0.4% 最大生命,缺,
+op.suzuran.skills.1.desc,"Takes effect permanently after 1 charge: Foxfire Field AoE +60%, other Operators' ATK +{$s2_buff*$k_pow*100:1}%, Leader recovers 0.4% Max HP per second.",充能一次后永久生效：光域范围 +60%，其他干员攻击 +{$s2_buff*$k_pow*100:1}%，队长每秒回复 0.4% 最大生命,模型,
 op.suzuran.skills.2.name,Foxfire Haze,狐火渺然,官方,skill_table.skchr_lisa_3
-op.suzuran.skills.2.desc,,展开 {$s3_dur} 秒大光域（范围 ×2.2），光域内敌人减速、受到的伤害 +10%，其他干员攻击 +{$s3_buff*$k_pow*100:1}%，队长每秒回复 0.8% 最大生命；期间铃兰不再普攻,缺,
+op.suzuran.skills.2.desc,"Expands a large Foxfire Field for {$s3_dur}s (AoE ×2.2), enemies within the Foxfire Field are Slowed and take +10% damage, other Operators' ATK +{$s3_buff*$k_pow*100:1}%, Leader recovers 0.8% Max HP per second; Suzuran stops attacking during this time.",展开 {$s3_dur} 秒大光域（范围 ×2.2），光域内敌人减速、受到的伤害 +10%，其他干员攻击 +{$s3_buff*$k_pow*100:1}%，队长每秒回复 0.8% 最大生命；期间铃兰不再普攻,模型,
 op.suzuran.talent.name,Prayer,祈愿,暂定,暂定（docs/276 §3.6）
 op.suzuran.talent.desc,Enemies within the Foxfire Field take +10% damage; foxfires +1.,光域内的敌人受到的伤害 +10%；狐火 +1 发,模型,
 op.suzuran.hit_sources.狐火.range,Ranged,远程,模型,
@@ -1297,7 +1297,7 @@ op.suzuran.progression.4.routes.seal.desc,"When casting 'I'll Do My Best', enemi
 op.suzuran.progression.4.routes.hearth.name,Hearth - Kindling,围炉·添薪,模型,
 op.suzuran.progression.4.routes.hearth.desc,"After 'Childhood Frolic' activates, foxfire erupts within a radius of {$aura*$hearth2_r_mult:0} around herself every {$hearth2_every}s ({$hearth2_mult*$k_pow*100:1}% damage, Slows for {$hearth2_slow}s upon hit).",「儿时的舞乐」生效后，每 {$hearth2_every} 秒以自身为中心半径 {$aura*$hearth2_r_mult:0} 爆发一次狐火（{$hearth2_mult*$k_pow*100:1}% 伤害，命中减速 {$hearth2_slow} 秒）,模型,
 op.suzuran.progression.5.name,Elite 2,精英二,暂定,暂定（docs/276 §3.6）
-op.suzuran.progression.5.desc,,解锁三技能「狐火渺然」：展开 {$s3_dur} 秒大光域（范围 ×2.2），光域内敌人减速、受到的伤害 +10%，其他干员攻击 +{$s3_buff*$k_pow*100:1}%，队长每秒回复 0.8% 最大生命；期间铃兰不再普攻；普通攻击强化「九尾祈愿」：身后浮现九尾虚影，每一次普攻都三火归一；大狐火飞过的路径留下狐火 {$trail_life} 秒，每 {$trail_every} 秒灼伤踏入的敌人（狐火 {$trail_mult*100}% 伤害）,缺,
+op.suzuran.progression.5.desc,"Unlocks Skill 3 'Foxfire Haze': Expands a large Foxfire Field for {$s3_dur}s (AoE ×2.2), enemies within the Foxfire Field are Slowed and take +10% damage, other Operators' ATK +{$s3_buff*$k_pow*100:1}%, Leader recovers 0.8% Max HP per second; Suzuran stops attacking during this time; Normal attacks are enhanced to 'Nine-Tailed Prayer': A nine-tailed phantom appears behind her, and every normal attack becomes Three Fires as One; the path of the large Foxfire leaves behind Foxfire for {$trail_life}s, burning enemies that step into it every {$trail_every}s (Foxfire deals {$trail_mult*100}% damage).",解锁三技能「狐火渺然」：展开 {$s3_dur} 秒大光域（范围 ×2.2），光域内敌人减速、受到的伤害 +10%，其他干员攻击 +{$s3_buff*$k_pow*100:1}%，队长每秒回复 0.8% 最大生命；期间铃兰不再普攻；普通攻击强化「九尾祈愿」：身后浮现九尾虚影，每一次普攻都三火归一；大狐火飞过的路径留下狐火 {$trail_life} 秒，每 {$trail_every} 秒灼伤踏入的敌人（狐火 {$trail_mult*100}% 伤害）,模型,
 op.suzuran.progression.5.attack.name,Nine-Tailed Prayer,九尾祈愿,模型,
 op.suzuran.progression.5.attack.desc,"A nine-tailed phantom appears behind her, and every attack merges three foxfires into a large piercing foxfire; the path of the large foxfire leaves behind foxfires for {$trail_life}s, burning enemies who step into them every {$trail_every}s ({$trail_mult*100}% foxfire damage).",身后浮现九尾虚影，每一次普攻都三团狐火合成一团大狐火贯穿；大狐火飞过的路径留下狐火 {$trail_life} 秒，每 {$trail_every} 秒灼伤踏入的敌人（狐火 {$trail_mult*100}% 伤害）,模型,
 op.suzuran.response.name,Prayer,祈愿,暂定,暂定（docs/276 §3.6）
@@ -1357,7 +1357,7 @@ op.texas.hit_sources.骤雨.kind,Physical,物理,模型,
 op.texas.hit_sources.次元斩.range,Melee,近战,模型,
 op.texas.hit_sources.次元斩.kind,Physical,物理,模型,
 op.texas.progression.0.name,Iai,居合,模型,
-op.texas.progression.0.desc,,拔刀每命中一名敌人，队长的冲刺冷却缩短 {$iai_cut} 秒（每次拔刀至多 {$iai_max} 秒）；一次拔刀命中 {$iai_gold_n} 名及以上时，队长下一次冲刺带金色残影；伤害 ×{$grow_dmg_wide},缺,
+op.texas.progression.0.desc,"For every enemy hit by Sword Draw, Leader's dash cooldown is reduced by {$iai_cut}s (up to {$iai_max}s per Sword Draw); when a single Sword Draw hits {$iai_gold_n} or more enemies, Leader's next dash leaves a golden afterimage; damage ×{$grow_dmg_wide}.",拔刀每命中一名敌人，队长的冲刺冷却缩短 {$iai_cut} 秒（每次拔刀至多 {$iai_max} 秒）；一次拔刀命中 {$iai_gold_n} 名及以上时，队长下一次冲刺带金色残影；伤害 ×{$grow_dmg_wide},模型,
 op.texas.progression.1.name,Flaw,破绽,模型,
 op.texas.progression.1.desc,"When Sword Draw hits an enemy winding up an attack, interrupts their attack and causes knockback of {$flaw_kb} (Elites, Bosses excepted); damage ×{$grow_dmg_sharp}.",拔刀命中正在前摇出招的敌人时，打断其出招并击退 {$flaw_kb}（精英、Boss 除外）；伤害 ×{$grow_dmg_sharp},模型,
 op.texas.progression.2.name,Elite 1,精英一,暂定,暂定（docs/276 §3.6）
@@ -1386,7 +1386,7 @@ op.texas.gallery.tags.1,Displace,位移,人改,
 op.texas.gallery.tags.2,Pierce,穿透,模型,
 op.texas.gallery.tags.3,SP,技力,暂定,暂定（docs/276 §3.6）
 op.texas.gallery.desc,"Vanguard Operator. Performs a stationary Sword Draw to Block the two nearest enemies in front of her. When surrounded, clears the area with a circular Sudden Storm, and restores SP to all squad members. After promotion to Elite 1, dashes in the same direction as the Leader. When she is the Leader, her dash has 2 charges, with a slightly shorter distance each time.",先锋干员，原地拔刀阻挡身前最近的两名敌人，被围时以骤雨一圈清场，并为全队回复技力。晋升至精英一后，随队长同向冲刺。当队长时冲刺自带 2 次充能，每次距离略短,模型,
-op.texas.gallery.intro,"Penguin Logistics employee. Usually a woman of few words, but her fighting style is best described as a 'torrential storm'.",企鹅物流员工，虽然平时沉默寡言，但战斗风格却可以用“暴风骤雨”来形容。,人改,「暴风骤雨」呼应她的技能「剑雨」，英文用 storm 保留；候选2：... her fighting style can only be called a downpour of blades.
+op.texas.gallery.intro,"Penguin Logistics employee. Usually a woman of few words, but her fighting style is best described as a 'torrential storm'.",企鹅物流员工，虽然平时沉默寡言，但战斗风格却可以用“暴风骤雨”来形容。,人改,「暴风骤雨」呼应她的技能「剑雨」，英文用 storm 保留；候选2：... her fighting style can only be called a downpour of blades.；「暴风骤雨」本表译 Fierce Sudden Storm，这里没对上
 op.texas.blocks.attack.src,Sword Draw,拔刀,模型,
 op.texas.blocks.attack.combo.0.do.0.src,Turnback Blade,回马剑,人改,
 op.texas.blocks.trait.1.do.0.src,Sudden Storm,骤雨,模型,
@@ -1494,7 +1494,7 @@ op.ulpianus.blocks.skills.2.do.0.then.0.status,Paths Open,开辟,人改,乌尔�
 op.ulpianus.blocks.skills.2.do.0.land_fx.0.text.s,Paths Must Be Opened,必须开辟的通路,官方,skill_table.skchr_ulpia_3
 op.ulpianus.blocks.skills.2.do.0.rift.src,Path Opened,通路洞开,模型,
 op.ulpianus.blocks.skills.2.do.0.rift.after.src,Pathway Aftershock,通路余震,模型,
-op.ulpianus.blocks.trait.0.do.0.src,,二重奏,缺,
+op.ulpianus.blocks.trait.0.do.0.src,Duet,二重奏,模型,
 op.ulpianus.blocks.trait.2.do.0.src,Earthshaker,撼地,模型,
 op.ulpianus.blocks.trait.3.do.0.src,Earthshaker,撼地,模型,
 op.ulpianus.blocks.talent.0.do.0.text,Bloodline ×%d,血脉 ×%d,模型,
@@ -1509,7 +1509,7 @@ op.ulpianus.blocks.progression.drag2.do.0.src,Anchor Strike,锚击,模型,
 op.ulpianus.blocks.response.0.hint,Anchor Chain,锚链,模型,
 op.ulpianus.blocks.response.0.do.0.src,Cast Anchor,抛锚,模型,
 op.ulpianus.blocks.response.0.do.0.back_src,Retract,回拉,模型,
-op.ulpianus.combo.name,,二重奏,缺,
+op.ulpianus.combo.name,Duet,二重奏,模型,
 op.ulpianus.combo.desc,"When Gladiia's hook drags an enemy into position, if Ulpianus is within {$combo_range}, he performs an additional anchor strike at the landing point (deals {$combo_mult*100}% damage, at most once every {$combo_cd}s, does not consume normal attack cooldown).",歌蕾蒂娅的钩索把敌人拖回到位时，乌尔比安在 {$combo_range} 内就朝落点补一次锚击（{$combo_mult*100}% 伤害，每 {$combo_cd} 秒至多一次，不占普攻冷却）,模型,
 op.ulpianus.response.name,Anchor Chain,锚链,模型,
 op.ulpianus.response.trigger,Leader dashes,队长冲刺,人改,
@@ -1590,7 +1590,7 @@ ult.link_note_touch,"When in squad, triggers automatically when conditions are m
 ult.link_note_v2,"Triggers automatically when the Leader uses a skill (at most once every {gap}s for the squad; does not trigger or count interval if no enemies are nearby). Follow prioritizes Cover, Assault prioritizes Pursuit, Deployment prioritizes Gather; Operators retreating with low HP will not trigger.",队长放技能时自动出手（全队每 {gap} 秒最多一次；附近没有敌人时不出手，也不计间隔）。随行时掩护类优先，突击时追击类优先，部署时聚拢类优先；残血撤回中的干员不出手,模型,
 ult.ult_note_aim,"Released by the Leader: Hold Q when energy is full to view range (target/direction follows mouse), release to cast; tap Q to hold, press Q again or left-click to cast.",由队长释放：能量满后按住 Q 看范围（落点 / 方向类跟鼠标选），松开释放；轻点 Q 保持，再按一次 Q 或点左键释放,模型,
 ult.ult_note_aim_touch,"Released by the Leader: Hold the Ultimate button when energy is full to view range (drag to select target/direction), release to cast.",由队长释放：能量满后按住终结技键看范围（落点 / 方向类拖动选），松手释放,模型,
-ult.ops.texas.ult.name,,暴风骤雨,缺,
+ult.ops.texas.ult.name,Fierce Sudden Storm,暴风骤雨,模型,
 ult.ops.texas.ult.desc,"Dashes into the target area and releases consecutive slashes, slashing outward simultaneously, then slashes again from a different angle after a short pause, before returning to her original position.",冲进落点一圈内接连斩出刀痕，同时斩开，隔半拍换个角度再斩一次，收刀回到原位,模型,
 ult.ops.texas.link.name,Sword Draw,拔刀,模型,
 ult.ops.texas.link.desc,"Dashes and slashes in the direction of the Leader's dash. Enemies along the path take a slash, and the first two are blocked.",沿队长冲刺的方向冲刺斩，路径上的敌人都挨一刀，前两名被阻挡,模型,
@@ -1600,21 +1600,21 @@ ult.ops.texas.link_v2.kind,Pursuit,追击,模型,
 ult.ops.texas.link_v2.desc,Instantly passes through the main target in the Link area (prioritizes Elites) and stops behind it; enemies along the path take damage and are Stunned for 0.5s (halved on Elites).,瞬身穿过连携区域的主目标（精英优先），停在它身后；路径上的敌人受到伤害并眩晕 0.5 秒（精英减半）,模型,
 ult.ops.exusiai.ult.name,Full Barrage,全弹倾泻,模型,
 ult.ops.exusiai.ult.desc,"Automatically locks onto surrounding enemies, rapidly unloading a continuous barrage of explosive rounds.",自动锁定周围敌人，转瞬之间连续倾泻爆裂弹,模型,
-ult.ops.exusiai.link.name,,天意,缺,
+ult.ops.exusiai.link.name,Providence,天意,模型,
 ult.ops.exusiai.link.desc,Fires a volley at the closest enemy group behind the Leader.,朝队长身后最近的敌群扫射一轮,模型,
 ult.ops.exusiai.link.trigger,Leader starts a dash,队长冲刺起步,人改,
-ult.ops.exusiai.link_v2.name,,天意,缺,
+ult.ops.exusiai.link_v2.name,Providence,天意,模型,
 ult.ops.exusiai.link_v2.kind,Bonus,附加,人改,
 ult.ops.exusiai.link_v2.desc,Fires 8 piercing tracers toward the area from her current position. Each tracer flies an additional 250 distance after passing through the area.,原地朝区域打出 8 发穿透曳光，每发穿过区域后再飞 250,模型,
-ult.ops.skalter.ult.name,,吐息,缺,
+ult.ops.skalter.ult.name,Breath,吐息,模型,
 ult.ops.skalter.ult.desc,"The Seaborn gathers light in its mouth, releasing a torrent of breath that tracks and burns enemy groups, causing continuous explosions along the path. Ends with a large explosion, leaving behind a domain.",海嗣张口聚光，粗吐息追着敌群烧过去、沿途接连爆炸，收尾一次大爆并留下领域,模型,
-ult.ops.skalter.link.name,,歌声,缺,
+ult.ops.skalter.link.name,Song,歌声,模型,
 ult.ops.skalter.link.desc,"A sound wave sweeps through enemy groups, increasing the squad's ATK speed for 3s.",声浪扫过敌群，之后 3 秒全队攻击速度提升,模型,
 ult.ops.skalter.link.trigger,After another squad member's Link hits,另一名队友的连携命中后,人改,
-ult.ops.skalter.link_v2.name,,歌声,缺,
+ult.ops.skalter.link_v2.name,Song,歌声,模型,
 ult.ops.skalter.link_v2.kind,Cover,掩护,模型,
 ult.ops.skalter.link_v2.desc,"Song covers the area for 3s; when the Leader stands in the area, squad damage +{$link_skalter_atk*100-100:0}%.",歌声覆盖区域 3 秒；队长站在区域里时，全队伤害 +{$link_skalter_atk*100-100:0}%,模型,
-ult.ops.kaltsit.ult.name,,歼灭,缺,
+ult.ops.kaltsit.ult.name,Annihilation,歼灭,模型,
 ult.ops.kaltsit.ult.desc,"Mon3tr dashes to the target location, releasing three consecutive meltdown explosions; reconstructs and returns to the squad after 8s.",Mon3tr 冲到落点，连续三圈熔毁爆发；8 秒后重构归队,模型,
 ult.ops.kaltsit.link.name,Command: Protect,指令：守护,模型,
 ult.ops.kaltsit.link.desc,Mon3tr pounces and deals knockback to enemies. The Leader recovers HP and clears Nervous Impairment.,Mon3tr 扑击击退敌人，队长回复生命并清除神经损伤,模型,
@@ -1622,28 +1622,28 @@ ult.ops.kaltsit.link.trigger,"Leader's HP below 40%, or Nervous Impairment at 80
 ult.ops.kaltsit.link_v2.name,Command: Protect,指令：守护,模型,
 ult.ops.kaltsit.link_v2.kind,Cover,掩护,模型,
 ult.ops.kaltsit.link_v2.desc,"Mon3tr lands in front of the Leader, blocking one instance of damage (within 1.2s) and pushing away enemies in front of it. Kal'tsit restores {$link_kaltsit_heal*100:0}% Max HP to the Leader.",Mon3tr 落到队长前方挡一次伤害（1.2 秒内）并推开身前的敌人，凯尔希为队长回复 {$link_kaltsit_heal*100:0}% 最大生命,模型,
-ult.ops.ulpianus.ult.name,,处决,缺,
+ult.ops.ulpianus.ult.name,Execution,处决,模型,
 ult.ops.ulpianus.ult.desc,"Throws his anchor and dashes along the chain. Upon landing, releases four shockwaves.",掷出铁锚，沿锁链冲过去，落地后四圈裂地,模型,
-ult.ops.ulpianus.link.name,,手术刀,缺,
+ult.ops.ulpianus.link.name,Scalpel,手术刀,模型,
 ult.ops.ulpianus.link.desc,"Smashes down his anchor, dealing knockback and Stun to surrounding enemies.",砸下铁锚，击退并眩晕周围敌人,模型,
 ult.ops.ulpianus.link.trigger,Another squad member's Link hits and nearby enemies are bunched up,另一名队友的连携命中、附近敌人聚成一团时,人改,
-ult.ops.ulpianus.link_v2.name,,手术刀,缺,
+ult.ops.ulpianus.link_v2.name,Scalpel,手术刀,模型,
 ult.ops.ulpianus.link_v2.kind,Gather,聚拢,模型,
 ult.ops.ulpianus.link_v2.desc,"Throws his anchor, pinning the main target in the area (prioritizes Elites) for 1.5s. Normal enemies within 180 range are dragged toward it.",掷锚钉住区域主目标（精英优先）1.5 秒，附近 180 内的普通敌人被拖向它,模型,
-ult.ops.skadi.ult.name,,裂海,缺,
+ult.ops.skadi.ult.name,Sea Cleaver,裂海,模型,
 ult.ops.skadi.ult.desc,"Slashes downward with her greatsword, raising a giant wave in front of her that rolls forward. The wave is cleaved by the sword, splashing pillars of water.",大剑下劈，身前立起一堵巨浪往前滚压，浪头被一剑劈开、溅起水柱,模型,
-ult.ops.skadi.link.name,,起舞,缺,
+ult.ops.skadi.link.name,Dance,起舞,模型,
 ult.ops.skadi.link.desc,"Leaps to the Leader's dash destination, sweeping the greatsword in a full circle and causing knockback.",跃到队长冲刺的落点，大剑横扫一周并击退,模型,
 ult.ops.skadi.link.trigger,Leader's dash ends,队长冲刺结束,人改,
-ult.ops.skadi.link_v2.name,,起舞,缺,
+ult.ops.skadi.link_v2.name,Dance,起舞,模型,
 ult.ops.skadi.link_v2.kind,Pursuit,追击,模型,
 ult.ops.skadi.link_v2.desc,"Dashes through the area dragging the greatsword, leaving a water trail for 1.5s; enemies on the trail take damage every 0.5s.",拖着大剑冲过区域，身后留下一道水痕 1.5 秒，踩在水痕上的敌人每 0.5 秒受到一次伤害,模型,
 ult.ops.gladiia.ult.name,Abyssal Vortex,渊涡,模型,
 ult.ops.gladiia.ult.desc,"Throws a spear, creating an abyssal vortex at the target location that drags enemies in a large area to the center. Crushes them together, then a tidal explosion bursts from the center.",掷出长枪，落点卷起海渊漩涡，把大范围的敌人拖向中心，收拢一砸，潮水再从中心爆开,模型,
-ult.ops.gladiia.link.name,,猎物,缺,
+ult.ops.gladiia.link.name,Prey,猎物,模型,
 ult.ops.gladiia.link.desc,"Throws a grappling hook, dragging distant Elite or ranged enemies to herself.",甩出钩索，把远处的精英或远程敌人拖到身边,模型,
 ult.ops.gladiia.link.trigger,An Elite or ranged enemy appears on screen far from the Leader,屏幕内远离队长处出现精英或远程敌人,人改,
-ult.ops.gladiia.link_v2.name,,猎物,缺,
+ult.ops.gladiia.link_v2.name,Prey,猎物,模型,
 ult.ops.gladiia.link_v2.kind,Gather,聚拢,模型,
 ult.ops.gladiia.link_v2.desc,"Throws a grappling hook, dragging the 6 closest enemies within 210 outside the area into the area, and Stuns them for 0.4s (halved on Elites).",甩出钩索，把区域外 210 内最近的 6 名敌人拖进区域，眩晕 0.4 秒（精英减半）,模型,
 ult.ops.angelina.ult.name,Falling Singularity,奇点坠落,模型,
@@ -1654,15 +1654,15 @@ ult.ops.angelina.link.trigger,Another squad member's Link lights up (acts before
 ult.ops.angelina.link_v2.name,Gravitational Letter,引力信笺,模型,
 ult.ops.angelina.link_v2.kind,Gather,聚拢,模型,
 ult.ops.angelina.link_v2.desc,"Three fragments circle the area's outer edge and contract inward, pulling enemies within 180 outside the area into the area and Slowing them.",三枚碎片绕区域外圈往里收，把区域外 180 内的敌人带进区域并减速,模型,
-ult.ops.eyjafjalla.ult.name,,这招怎么样,缺,
+ult.ops.eyjafjalla.ult.name,How About This,这招怎么样,模型,
 ult.ops.eyjafjalla.ult.desc,"The ground cracks and fire pillars erupt. Lava blocks fall in a circle, leaving a lava floor in the center.",地面龟裂、火柱冲起，熔岩块落满一圈，中间留下熔岩地面,模型,
-ult.ops.eyjafjalla.link.name,,小心火灾,缺,
+ult.ops.eyjafjalla.link.name,Mind the Fire,小心火灾,模型,
 ult.ops.eyjafjalla.link.desc,"Throws an enlarged magma projectile, leaving a magma floor at the target location for 2s.",投出放大的熔岩弹，落点留下 2 秒熔岩,模型,
 ult.ops.eyjafjalla.link.trigger,Leader stands still for 1.2s,队长站定满 1.2 秒,人改,
-ult.ops.eyjafjalla.link_v2.name,,小心火灾,缺,
+ult.ops.eyjafjalla.link_v2.name,Mind the Fire,小心火灾,模型,
 ult.ops.eyjafjalla.link_v2.kind,Bonus,附加,人改,
 ult.ops.eyjafjalla.link_v2.desc,"Tosses a magma block high into the area. Splashes broken rocks at the target location, triggering Ignition on hit enemies, then burns them 2 more times.",高抛一块熔岩砸进区域，落点溅出碎岩并点燃命中的敌人，之后再灼烧两次,模型,
-ult.ops.wisadel.ult.name,,太空大扫除,缺,
+ult.ops.wisadel.ult.name,Space Cleanup,太空大扫除,模型,
 ult.ops.wisadel.ult.desc,"Sets up the cannon and leans back, firing rows of artillery in the designated direction. Each strike is followed by an aftershock.",架炮后仰，朝指定方向一排排炮击，每处炮击后还有余震,模型,
 ult.ops.wisadel.link.name,Gift From Above,天降厚礼,模型,
 ult.ops.wisadel.link.desc,"Fires an additional artillery strike at the enemy group, followed by an aftershock.",朝敌群补一发炮击，随后余震,模型,
@@ -1672,45 +1672,45 @@ ult.ops.wisadel.link_v2.kind,Bonus,附加,人改,
 ult.ops.wisadel.link_v2.desc,"Enemies defeated in the area within 1s after the Leader's skill leave a dark red afterimage that explodes after 0.35s (radius 60); if no enemies are defeated, fires an additional strike at the main target.",队长这次技能后 1 秒内在区域里被打死的敌人留下暗红残影，0.35 秒后炸开（半径 60）；没有敌人被打死时，在主目标处补一发,模型,
 ult.ops.specter_unchained.ult.name,Whirling Greatsaw,巨锯回旋,模型,
 ult.ops.specter_unchained.ult.desc,"The greatsaw enlarges and spins around her, moving with the Leader; for 3s after release, she will not fall and takes reduced damage.",巨锯放大、绕身旋转，跟着队长移动；放出后 3 秒内不会倒下，受到的伤害降低,模型,
-ult.ops.specter_unchained.link.name,,一分为二,缺,
+ult.ops.specter_unchained.link.name,Split in Two,一分为二,模型,
 ult.ops.specter_unchained.link.desc,"The substitute slashes 3 times consecutively. For the next 2s, the Leader's HP cannot fall below 1.",替身连斩三下，之后 2 秒队长生命不会低于 1,模型,
 ult.ops.specter_unchained.link.trigger,Leader takes over 10% Max HP in one hit,队长一次受到最大生命 10% 以上的伤害,人改,
-ult.ops.specter_unchained.link_v2.name,,一分为二,缺,
+ult.ops.specter_unchained.link_v2.name,Split in Two,一分为二,模型,
 ult.ops.specter_unchained.link_v2.kind,Pursuit,追击,模型,
 ult.ops.specter_unchained.link_v2.desc,"She remains stationary, sending a dark red substitute to dash through the area and slash once.",本人不动，分出一个暗红替身冲过区域斩一次,模型,
-ult.ops.mizuki.ult.name,,小菜一碟,缺,
+ult.ops.mizuki.ult.name,Piece of Cake,小菜一碟,模型,
 ult.ops.mizuki.ult.desc,"A giant tentacle emerges from the ground behind him, sweeping a semicircle in the target direction. Smaller tentacles then grab any remaining enemies.",身后破土一条巨型触手，横扫指定方向的半圆，小触手再抓漏网之敌,模型,
-ult.ops.mizuki.link.name,,多谢款待,缺,
+ult.ops.mizuki.link.name,Thanks for the Treat,多谢款待,模型,
 ult.ops.mizuki.link.desc,Tentacles pursue nearby enemies with less than 50% HP and Bind them.,触手追击附近生命低于一半的敌人并束缚,模型,
 ult.ops.mizuki.link.trigger,Several nearby enemies below 50% HP,身边多名敌人生命低于一半,人改,
-ult.ops.mizuki.link_v2.name,,多谢款待,缺,
+ult.ops.mizuki.link_v2.name,Thanks for the Treat,多谢款待,模型,
 ult.ops.mizuki.link_v2.kind,Gather,聚拢,模型,
 ult.ops.mizuki.link_v2.desc,"Tentacles emerge beneath 6 enemies in the area, Binding them for 1s (halved on Elites).",区域里 6 名敌人脚下钻出触手，束缚 1 秒（精英减半）,模型,
-ult.ops.saria.ult.name,,仅需一击,缺,
+ult.ops.saria.ult.name,Just One Strike,仅需一击,模型,
 ult.ops.saria.ult.desc,"Readies a Charged punch and smashes the ground, releasing a shockwave ring in all directions as fissures erupt along the path.",举拳蓄力一拳砸地，冲击环向四周打出，脚下裂纹沿途接连爆开,模型,
-ult.ops.saria.link.name,,防壁,缺,
+ult.ops.saria.link.name,Bulwark,防壁,模型,
 ult.ops.saria.link.desc,Amber crystal pillars surround and protect the Leader for 2s. The Leader recovers HP.,琥珀晶柱围住队长挡 2 秒，队长回复生命,模型,
 ult.ops.saria.link.trigger,Leader's HP below 50%,队长生命低于 50%,人改,
-ult.ops.saria.link_v2.name,,防壁,缺,
+ult.ops.saria.link_v2.name,Bulwark,防壁,模型,
 ult.ops.saria.link_v2.kind,Cover,掩护,模型,
 ult.ops.saria.link_v2.desc,"Grants the Leader 1 Shield, blocking 1 instance of damage (retracted if unused within 1.5s). Calcifies the ground in the area for 1.5s, Slowing enemies on it by 40%.",给队长一层护盾，挡一次伤害（1.5 秒内没用掉就收回）；区域地面钙化 1.5 秒，踩在上面的敌人减速 40%,校对,校对：“护盾”应统一为“Shield”，不应添加“Objective”。
-ult.ops.suzuran.ult.name,,母爱,缺,
+ult.ops.suzuran.ult.name,Mother's Love,母爱,模型,
 ult.ops.suzuran.ult.desc,"Honeysuckle appears beside her, transforming into a flash of white light to slash forward. Halts for a half-beat before the slash marks explode.",忍冬在身旁现身，化作白光瞬身斩出，停顿半拍后斩痕爆裂,校对,校对：“停顿”应根据术语表统一为“Halt”。
-ult.ops.suzuran.link.name,,符文,缺,
+ult.ops.suzuran.link.name,Rune,符文,模型,
 ult.ops.suzuran.link.desc,"Foxfire pursues those enemies, reducing their movement speed and increasing the damage they take.",狐火追向那批敌人，减速并使其受到的伤害提升,校对,校对：减速应译为reducing movement speed，Slow是特定的停顿状态。
 ult.ops.suzuran.link.trigger,After another squad member's Link hits,另一名队友的连携命中后,人改,
-ult.ops.suzuran.link_v2.name,,符文,缺,
+ult.ops.suzuran.link_v2.name,Rune,符文,模型,
 ult.ops.suzuran.link_v2.kind,Bonus,附加,人改,
 ult.ops.suzuran.link_v2.desc,"4 wisps of foxfire circle her once, then each pursues an enemy in the area. Upon impact, reduces the target's movement speed by 30% for 1.5s.",4 团狐火绕她转一圈，再各追向区域内一名敌人，命中后减速 30%，持续 1.5 秒,校对,校对：减速30%应译为reduces movement speed by 30%，Slow是特定的停顿状态。
-ult.ops.logos.ult.name,,丧钟,缺,
+ult.ops.logos.ult.name,Death Knell,丧钟,模型,
 ult.ops.logos.ult.desc,"Expands a circular cursed domain in front of him. Incantations slowly appear above enemies in the area. Upon uttering a single word, the curse seals compress and explode simultaneously, clearing all enemy projectiles in the area.",面前展开圆形咒域，区域内敌人头顶慢慢浮现咒文，一词念出后咒印一起压缩爆开，并清除区域内弹幕,模型,
-ult.ops.logos.link.name,,面纱,缺,
+ult.ops.logos.link.name,Veil,面纱,模型,
 ult.ops.logos.link.desc,"Incantations spread, executing up to 6 normal enemies with less than 30% HP.",咒文扩散，处决至多 6 名生命低于 30% 的普通敌人,模型,
 ult.ops.logos.link.trigger,Several on-screen normal enemies below 30% HP,屏幕内多名普通敌人生命低于 30%,人改,
-ult.ops.logos.link_v2.name,,面纱,缺,
+ult.ops.logos.link_v2.name,Veil,面纱,模型,
 ult.ops.logos.link_v2.kind,Bonus,附加,人改,
 ult.ops.logos.link_v2.desc,"A ring of incantations expands above the area, instantly clearing enemy projectiles within. Reduces enemy movement speed in the area by 50% for 1s. Deals no damage.",区域上空展开一圈咒文，当场消除区域内的敌方弹幕，区域内敌人减速 50%，持续 1 秒；不造成伤害,校对,校对：减速50%应译为reduces movement speed by 50%，Slow是特定的停顿状态。
-ult.ops.hoshiguma.ult.name,,般若,缺,
+ult.ops.hoshiguma.ult.name,Hannya,般若,模型,
 ult.ops.hoshiguma.ult.desc,"Smashes the shield 'Hannya' into the ground, Taunting all enemies and drawing them toward the shield. After blocking for a brief moment, the shield rebounds and explodes.",盾「般若」砸地，嘲讽全场并把敌人吸到盾前，硬挡片刻后盾甲反震炸开,模型,
 ult.ops.hoshiguma.link.name,Yielding No Ground,寸步不让,模型,
 ult.ops.hoshiguma.link.desc,"Dashes to the Leader, raises her shield to push away surrounding enemies, and reduces damage taken by the Leader for a short duration.",冲到队长身边举盾推开周围敌人，队长短时间受到的伤害降低,模型,
@@ -1718,31 +1718,31 @@ ult.ops.hoshiguma.link.trigger,"Leader is hit by melee several times in a row, o
 ult.ops.hoshiguma.link_v2.name,Yielding No Ground,寸步不让,模型,
 ult.ops.hoshiguma.link_v2.kind,Cover,掩护,模型,
 ult.ops.hoshiguma.link_v2.desc,"Instantly moves to the Leader's side and raises her shield, blocking 1 instance of damage (within 1.5s); Taunts melee enemies in the area for 1s.",瞬到队长身侧举盾，挡一次伤害（1.5 秒内）；区域内的近战敌人被嘲讽 1 秒,模型,
-ult.ops.siege.ult.name,,裁定,缺,
+ult.ops.siege.ult.name,Verdict,裁定,模型,
 ult.ops.siege.ult.desc,"Leaps high and smashes her giant hammer into the target location; a shockwave sweeps through, knocking enemies into the air.",高高跃起，巨锤砸向落点，冲击波横扫、敌人被震上半空,模型,
-ult.ops.siege.link.name,,闪开,缺,
+ult.ops.siege.link.name,Step Aside,闪开,模型,
 ult.ops.siege.link.desc,"Leaps toward the densest cluster of enemies near the Leader's location and smashes her hammer, inflicting Stun; increases SP Recovery for other Operators.",跃向队长落点附近最密的敌群砸锤，眩晕敌人，其他干员技力回复加快,模型,
 ult.ops.siege.link.trigger,Leader's dash ends,队长冲刺结束,人改,
-ult.ops.siege.link_v2.name,,闪开,缺,
+ult.ops.siege.link_v2.name,Step Aside,闪开,模型,
 ult.ops.siege.link_v2.kind,Charge,冲阵,模型,
 ult.ops.siege.link_v2.desc,"Charges into the area from the Leader's side, knocking away enemies along the path; smashes the ground with her hammer at the end, inflicting Stun for 0.5s (halved on Elites).",从队长身边冲进区域，撞开沿途的敌人，到尽头一锤砸地，眩晕 0.5 秒（精英减半）,模型,
-ult.ops.irene.ult.name,,剑与灯,缺,
+ult.ops.irene.ult.name,Sword and Lantern,剑与灯,模型,
 ult.ops.irene.ult.desc,"Stamps a judgment emblem on the ground, pinning enemies in range with chains; spins in place to slash three times and fires in all directions; pinned enemies explode sequentially from near to far.",脚下盖下审判纹章，锁链钉住圈内敌人；原地旋身连斩三圈、朝四周连射，被钉住的敌人由近到远连环炸开,模型,
-ult.ops.irene.link.name,,提灯,缺,
+ult.ops.irene.link.name,Lantern,提灯,模型,
 ult.ops.irene.link.desc,Thrusts twice; deals increased damage to Levitating or Stunned enemies.,连刺两下，对浮空、眩晕中的敌人伤害提升,模型,
 ult.ops.irene.link.trigger,Several on-screen enemies are Levitated or Stunned,屏幕内多名敌人浮空或眩晕,人改,
-ult.ops.irene.link_v2.name,,提灯,缺,
+ult.ops.irene.link_v2.name,Lantern,提灯,模型,
 ult.ops.irene.link_v2.kind,Bonus,附加,人改,
 ult.ops.irene.link_v2.desc,"Raises her lantern to make the area Illuminated; enemies in the area take +{$link_irene_amp*100:0}% damage for 3s, followed by a thrust piercing the main target.",提灯照亮区域，区域内敌人 3 秒内受到的伤害 +{$link_irene_amp*100:0}%，随后补一刺穿过主目标,模型,
-ult.ops.lappland.ult.name,,试着抵抗我吧,缺,
+ult.ops.lappland.ult.name,Try to Resist Me,试着抵抗我吧,模型,
 ult.ops.lappland.ult.desc,"Slashes wildly in a frontal fan-shaped area, with sword aura becoming faster and more chaotic; finishes with a horizontal slash that inflicts Silence on hit.",朝前方扇形狂舞乱砍，剑气越砍越快越乱，最后一记横斩收尾，命中沉默,模型,
-ult.ops.lappland.link.name,,封锁,缺,
+ult.ops.lappland.link.name,Lockdown,封锁,模型,
 ult.ops.lappland.link.desc,Sweeps to interrupt the Elite's current attack; prevents them from using special abilities for 2s.,横扫打断精英这次出招，2 秒内不能再放特殊招式,模型,
 ult.ops.lappland.link.trigger,An Elite starts winding up an attack,精英开始读招,人改,
-ult.ops.lappland.link_v2.name,,封锁,缺,
+ult.ops.lappland.link_v2.name,Lockdown,封锁,模型,
 ult.ops.lappland.link_v2.kind,Pursuit,追击,模型,
 ult.ops.lappland.link_v2.desc,Stands at the edge of the area and throws a crescent sword aura that sweeps across the area; inflicts Silence for 1s on enemies hit.,站到区域边缘，掷出一道月牙剑气横扫过区域，命中的敌人沉默 1 秒,模型,
-ult.ops.lumen.ult.name,,人性之光,缺,
+ult.ops.lumen.ult.name,Light of Humanity,人性之光,模型,
 ult.ops.lumen.ult.desc,"A lighthouse Lamp Pillar rises beneath the Leader, spreading a Beacon Ring that burns; the light beam sweeps the surrounding area once before extinguishing.",队长脚下升起灯塔光柱，光圈扩散灼烧，光束扫过周围一圈后熄灭,模型,
 ult.ops.lumen.link.name,Lantern of Mortals,凡人之灯,模型,
 ult.ops.lumen.link.desc,"A light projectile clears the Leader's Nervous Impairment, restores Light, and makes the area around the Leader Illuminated.",光弹清除队长的神经损伤，灯火回复，并照亮队长身边,模型,
@@ -2041,6 +2041,7 @@ lore.doctor.profile_key.所属,Affiliation,所属,人改,可能偏长：11 字�
 弹匣：她每击杀 1 名敌人弹匣 +1（上限 {$mag_cap}，精英二起 {$e2_mag_cap}），敌人倒在队长照亮范围内时 +{$mag_lit_bonus}；弹匣满时下一次射击改为一次倾泻：{$mag_shots} 发扇形散射（每发伤害 ×{$mag_mult}，穿透 {$mag_pierce} 名敌人），然后清空,"Cartridge: Cartridge +1 for every 1 enemy she defeats (Limit {$mag_cap}, {$e2_mag_cap} from Elite 2), +{$mag_lit_bonus} if the enemy falls within the Leader's Light Radius; when Cartridge is full, the next attack unloads {$mag_shots} shots in a frontal cone (Damage ×{$mag_mult} per shot, pierces {$mag_pierce} enemies), then empties Cartridge",,原文键,模型
 物理,Physical,,原文键,模型
 对空优先,Anti-Air Priority,,原文键,模型
+每 {$prefer_stun_every} 发子弹中有 1 发眩晕弹，使目标眩晕 {$prefer_stun} 秒（精英减半，Boss 除外）；子弹优先瞄准受控目标（眩晕、浮空、失重中的敌人）；打中受控目标时命中即停，并使其定身 {$prefer_pin} 秒（精英减半，Boss 除外；同一敌人 1 秒内至多一次）；伤害 ×{$grow_dmg_twin},"1 in every {$prefer_stun_every} bullets is a Stun bullet, Stunning the target for {$prefer_stun}s (halved on Elites, Bosses excepted); bullets prioritize crowd-controlled targets (enemies that are Stunned, Levitated, or Weightless); when hitting a crowd-controlled target, the bullet stops upon impact and immobilizes them for {$prefer_pin}s (halved on Elites, Bosses excepted; at most once per second per enemy); damage ×{$grow_dmg_twin}.",,原文键,模型
 护航射击,Escort Shooting,,原文键,模型
 队长身边半径 {$escort_r} 内有 {$escort_n} 名及以上敌人时，子弹改为优先射击离队长最近的敌人，并附带 {$escort_kb} 击退；伤害 ×{$grow_dmg_power},"When {$escort_n} or more enemies are within a radius of {$escort_r} around the Leader, bullets prioritize the enemy closest to the Leader, and deal {$escort_kb} knockback; Damage ×{$grow_dmg_power}",,原文键,模型
 解锁二技能「扫射模式」；解锁天赋「快速弹匣」：击杀攒满弹匣后倾泻 {$mag_shots} 发；普攻「穿甲连射」：连续命中同一名敌人时每发伤害 +{$e1_per*100}%（最多 +{$e1_per*$e1_max*100}%），{$e1_decay} 秒未命中该敌人则清零,"Unlocks Skill 2 'Shooting Mode'; unlocks Talent 'Fast Cartridge': Unloads {$mag_shots} shots after filling Cartridge via defeats; Normal attack 'Armor-Piercing Burst': When consecutively hitting the same enemy, Damage +{$e1_per*100}% per shot (up to +{$e1_per*$e1_max*100}%), resets if the enemy is not hit for {$e1_decay}s",,原文键,模型
@@ -2083,6 +2084,7 @@ lore.doctor.profile_key.所属,Affiliation,所属,人改,可能偏长：11 字�
 炎息,Pyrobreath,,原文键,官方
 熔岩弹爆炸范围 +{$talent_aoe*100-100}%；「二重咏唱」「点燃」的点燃持续时间 {$burn_dur} → {$burn_dur_e1} 秒,Magma Orb explosion radius +{$talent_aoe*100-100}%; ignite duration of 'Duetto' and 'Ignition' {$burn_dur}s → {$burn_dur_e1}s,,原文键,校对
 复咏,Echo,,原文键,模型
+普攻投出 2 发熔岩弹，第二发伤害 {$twin_mult*100}%：精英化前打同一名敌人，精英一起打另一名敌人（没有则在旁边偏开）；精英二起由「三重咏唱」取代,"Normal attacks throw 2 Magma Orbs, the second dealing {$twin_mult*100}% damage: before Promotion, attacks the same enemy; from Elite 1, attacks a different enemy (if none, veers off to the side); from Elite 2, replaced by 'Tercet'.",,原文键,模型
 火星迸溅,Splattering Sparks,,原文键,模型
 熔岩弹爆炸时迸出 {$ember_n} 块熔岩，砸到附近的敌人身上小范围爆炸（这一发 {$ember_mult*100}% 的伤害）,"When a Magma Orb explodes, it scatters {$ember_n} pieces of magma that hit nearby enemies and explode in a small area ({$ember_mult*100}% damage of this attack)",,原文键,模型
 解锁二技能「点燃」；解锁天赋「炎息」：熔岩弹爆炸范围 +{$talent_aoe*100-100}%，点燃持续时间 +{$burn_dur_e1-$burn_dur} 秒；普攻「熔蚀」：熔岩弹命中的敌人 {$melt_dur} 秒内受到的法术伤害 +{$melt_v*100}%,"Unlocks Skill 2 'Ignition'; unlocks Talent 'Pyrobreath': Magma Orb explosion radius +{$talent_aoe*100-100}%, ignite duration +{$burn_dur_e1-$burn_dur}s; normal attack 'Melt': enemies hit by Magma Orbs take +{$melt_v*100}% Arts damage for {$melt_dur}s",,原文键,模型
@@ -2155,6 +2157,7 @@ lore.doctor.profile_key.所属,Affiliation,所属,人改,可能偏长：11 字�
 碎漩狂舞,Dance of the Shattered Maelstrom,,原文键,模型
 拖拽,Drag,,原文键,模型
 反震,Rebound,,原文键,模型
+二重奏,Duet,,原文键,模型
 她的钩索把敌人拖回到位时，乌尔比安在射程内就朝落点补一次锚击（每 2 秒至多一次，不占他的普攻冷却）,"When her hook pulls an enemy into position, if Ulpianus is within range, he performs an additional anchor strike at the landing point (at most once every 2s; does not consume his normal attack cooldown)",,原文键,模型
 星熊,Hoshiguma,,原文键,官方
 重装,Defender,,原文键,官方
@@ -2651,7 +2654,9 @@ faction:深海猎人,faction:Abyssal Hunter,,原文键,模型
 全力以赴,I'll Do My Best,,原文键,官方
 下一次普攻改为射出 {$s1_shots} 发狐火（伤害 ×{$s1_mult*$k_pow:2}）,The next attack instead fires {$s1_shots} foxfires (Damage ×{$s1_mult*$k_pow:2}).,,原文键,模型
 儿时的舞乐,Childhood Frolic,,原文键,官方
+充能一次后永久生效：光域范围 +60%，其他干员攻击 +{$s2_buff*$k_pow*100:1}%，队长每秒回复 0.4% 最大生命,"Takes effect permanently after 1 charge: Foxfire Field AoE +60%, other Operators' ATK +{$s2_buff*$k_pow*100:1}%, Leader recovers 0.4% Max HP per second.",,原文键,模型
 狐火渺然,Foxfire Haze,,原文键,官方
+展开 {$s3_dur} 秒大光域（范围 ×2.2），光域内敌人减速、受到的伤害 +10%，其他干员攻击 +{$s3_buff*$k_pow*100:1}%，队长每秒回复 0.8% 最大生命；期间铃兰不再普攻,"Expands a large Foxfire Field for {$s3_dur}s (AoE ×2.2), enemies within the Foxfire Field are Slowed and take +10% damage, other Operators' ATK +{$s3_buff*$k_pow*100:1}%, Leader recovers 0.8% Max HP per second; Suzuran stops attacking during this time.",,原文键,模型
 祈愿,Prayer,,原文键,暂定
 光域内的敌人受到的伤害 +10%；狐火 +1 发,Enemies within the Foxfire Field take +10% damage; foxfires +1.,,原文键,模型
 狐火点点,Scattered Foxfires,,原文键,模型
@@ -2670,6 +2675,7 @@ faction:深海猎人,faction:Abyssal Hunter,,原文键,模型
 「全力以赴」出手时，自身周围半径 {$aura*$seal2_r_mult:0} 内的敌人定身 {$seal2_stun} 秒（精英减半，Boss 免疫定身）并减速 {$seal2_slow} 秒,"When casting 'I'll Do My Best', enemies within a radius of {$aura*$seal2_r_mult:0} around herself are Bound for {$seal2_stun}s (halved on Elites, Bosses immune to Bind) and Slowed for {$seal2_slow}s.",,原文键,模型
 围炉·添薪,Hearth - Kindling,,原文键,模型
 「儿时的舞乐」生效后，每 {$hearth2_every} 秒以自身为中心半径 {$aura*$hearth2_r_mult:0} 爆发一次狐火（{$hearth2_mult*$k_pow*100:1}% 伤害，命中减速 {$hearth2_slow} 秒）,"After 'Childhood Frolic' activates, foxfire erupts within a radius of {$aura*$hearth2_r_mult:0} around herself every {$hearth2_every}s ({$hearth2_mult*$k_pow*100:1}% damage, Slows for {$hearth2_slow}s upon hit).",,原文键,模型
+解锁三技能「狐火渺然」：展开 {$s3_dur} 秒大光域（范围 ×2.2），光域内敌人减速、受到的伤害 +10%，其他干员攻击 +{$s3_buff*$k_pow*100:1}%，队长每秒回复 0.8% 最大生命；期间铃兰不再普攻；普通攻击强化「九尾祈愿」：身后浮现九尾虚影，每一次普攻都三火归一；大狐火飞过的路径留下狐火 {$trail_life} 秒，每 {$trail_every} 秒灼伤踏入的敌人（狐火 {$trail_mult*100}% 伤害）,"Unlocks Skill 3 'Foxfire Haze': Expands a large Foxfire Field for {$s3_dur}s (AoE ×2.2), enemies within the Foxfire Field are Slowed and take +10% damage, other Operators' ATK +{$s3_buff*$k_pow*100:1}%, Leader recovers 0.8% Max HP per second; Suzuran stops attacking during this time; Normal attacks are enhanced to 'Nine-Tailed Prayer': A nine-tailed phantom appears behind her, and every normal attack becomes Three Fires as One; the path of the large Foxfire leaves behind Foxfire for {$trail_life}s, burning enemies that step into it every {$trail_every}s (Foxfire deals {$trail_mult*100}% damage).",,原文键,模型
 九尾祈愿,Nine-Tailed Prayer,,原文键,模型
 身后浮现九尾虚影，每一次普攻都三团狐火合成一团大狐火贯穿；大狐火飞过的路径留下狐火 {$trail_life} 秒，每 {$trail_every} 秒灼伤踏入的敌人（狐火 {$trail_mult*100}% 伤害）,"A nine-tailed phantom appears behind her, and every attack merges three foxfires into a large piercing foxfire; the path of the large foxfire leaves behind foxfires for {$trail_life}s, burning enemies who step into them every {$trail_every}s ({$trail_mult*100}% foxfire damage).",,原文键,模型
 队长每次开技能，她的光域闪一下：光域内的敌人受到少量狐火伤害并减速 2 秒，其他干员技力 +1 秒,"Every time the Leader activates a skill, her Foxfire Field flashes: enemies within the Foxfire Field take a small amount of foxfire damage and are Slowed for 2s, and SP of other Operators +1s.",,原文键,校对
@@ -2690,6 +2696,7 @@ faction:深海猎人,faction:Abyssal Hunter,,原文键,模型
 战术快递,Tactical Delivery,,原文键,官方
 队长每次冲刺，她沿同一方向冲刺一次（她当队长时，冲刺路径上的敌人一同被斩）；穿过敌人时全队（不含自身）技力 +{$talent_sp} 秒；一次冲刺穿过 {$talent_many} 名以上敌人时额外 +{$talent_many_sp} 秒；拔刀每次出手再为全队（不含自身）技力 +{$talent_atk_sp} 秒,"Whenever the Leader dashes, she dashes once in the same direction (when she is the Leader, enemies along the dash path are slashed). Passing through enemies grants +{$talent_sp}s SP to all squad members (excluding herself); passing through {$talent_many} or more enemies in one dash grants an additional +{$talent_many_sp}s SP. Each Sword Draw attack grants an additional +{$talent_atk_sp}s SP to all squad members (excluding herself).",,原文键,模型
 居合,Iai,,原文键,模型
+拔刀每命中一名敌人，队长的冲刺冷却缩短 {$iai_cut} 秒（每次拔刀至多 {$iai_max} 秒）；一次拔刀命中 {$iai_gold_n} 名及以上时，队长下一次冲刺带金色残影；伤害 ×{$grow_dmg_wide},"For every enemy hit by Sword Draw, Leader's dash cooldown is reduced by {$iai_cut}s (up to {$iai_max}s per Sword Draw); when a single Sword Draw hits {$iai_gold_n} or more enemies, Leader's next dash leaves a golden afterimage; damage ×{$grow_dmg_wide}.",,原文键,模型
 破绽,Flaw,,原文键,模型
 拔刀命中正在前摇出招的敌人时，打断其出招并击退 {$flaw_kb}（精英、Boss 除外）；伤害 ×{$grow_dmg_sharp},"When Sword Draw hits an enemy winding up an attack, interrupts their attack and causes knockback of {$flaw_kb} (Elites, Bosses excepted); damage ×{$grow_dmg_sharp}.",,原文键,模型
 解锁二技能「冲锋号令·γ型」；解锁天赋「战术快递」：队长每次冲刺，她同向冲刺一次；穿过敌人时为全队回技力，拔刀每次出手再回一点；普通攻击强化「钉剑」：被阻挡的敌人各插一柄源石剑，定住时间延长到 {$pin_dur} 秒（精英减半，Boss 除外）,"Unlocks Skill 2 'Charge γ'. Unlocks Talent 'Tactical Delivery': Whenever the Leader dashes, she dashes once in the same direction; passing through enemies restores SP to all squad members, and each Sword Draw attack restores a small amount of SP. Basic attack upgraded to 'Pinning Sword': Enemies Blocked are each pierced by an Originium sword, extending the immobilization time to {$pin_dur}s (halved on Elites, Bosses excepted).",,原文键,人改
@@ -2811,35 +2818,45 @@ faction:深海猎人,faction:Abyssal Hunter,,原文键,模型
 队长放技能时自动出手（全队每 {gap} 秒最多一次；附近没有敌人时不出手，也不计间隔）。随行时掩护类优先，突击时追击类优先，部署时聚拢类优先；残血撤回中的干员不出手,"Triggers automatically when the Leader uses a skill (at most once every {gap}s for the squad; does not trigger or count interval if no enemies are nearby). Follow prioritizes Cover, Assault prioritizes Pursuit, Deployment prioritizes Gather; Operators retreating with low HP will not trigger.",,原文键,模型
 由队长释放：能量满后按住 Q 看范围（落点 / 方向类跟鼠标选），松开释放；轻点 Q 保持，再按一次 Q 或点左键释放,"Released by the Leader: Hold Q when energy is full to view range (target/direction follows mouse), release to cast; tap Q to hold, press Q again or left-click to cast.",,原文键,模型
 由队长释放：能量满后按住终结技键看范围（落点 / 方向类拖动选），松手释放,"Released by the Leader: Hold the Ultimate button when energy is full to view range (drag to select target/direction), release to cast.",,原文键,模型
+暴风骤雨,Fierce Sudden Storm,,原文键,模型
 冲进落点一圈内接连斩出刀痕，同时斩开，隔半拍换个角度再斩一次，收刀回到原位,"Dashes into the target area and releases consecutive slashes, slashing outward simultaneously, then slashes again from a different angle after a short pause, before returning to her original position.",,原文键,模型
 沿队长冲刺的方向冲刺斩，路径上的敌人都挨一刀，前两名被阻挡,"Dashes and slashes in the direction of the Leader's dash. Enemies along the path take a slash, and the first two are blocked.",,原文键,模型
 队长冲刺起步,Leader starts a dash,,原文键,人改
 瞬身穿过连携区域的主目标（精英优先），停在它身后；路径上的敌人受到伤害并眩晕 0.5 秒（精英减半）,Instantly passes through the main target in the Link area (prioritizes Elites) and stops behind it; enemies along the path take damage and are Stunned for 0.5s (halved on Elites).,,原文键,模型
 全弹倾泻,Full Barrage,,原文键,模型
 自动锁定周围敌人，转瞬之间连续倾泻爆裂弹,"Automatically locks onto surrounding enemies, rapidly unloading a continuous barrage of explosive rounds.",,原文键,模型
+天意,Providence,,原文键,模型
 朝队长身后最近的敌群扫射一轮,Fires a volley at the closest enemy group behind the Leader.,,原文键,模型
 附加,Bonus,,原文键,人改
 原地朝区域打出 8 发穿透曳光，每发穿过区域后再飞 250,Fires 8 piercing tracers toward the area from her current position. Each tracer flies an additional 250 distance after passing through the area.,,原文键,模型
+吐息,Breath,,原文键,模型
 海嗣张口聚光，粗吐息追着敌群烧过去、沿途接连爆炸，收尾一次大爆并留下领域,"The Seaborn gathers light in its mouth, releasing a torrent of breath that tracks and burns enemy groups, causing continuous explosions along the path. Ends with a large explosion, leaving behind a domain.",,原文键,模型
+歌声,Song,,原文键,模型
 声浪扫过敌群，之后 3 秒全队攻击速度提升,"A sound wave sweeps through enemy groups, increasing the squad's ATK speed for 3s.",,原文键,模型
 另一名队友的连携命中后,After another squad member's Link hits,,原文键,人改
 歌声覆盖区域 3 秒；队长站在区域里时，全队伤害 +{$link_skalter_atk*100-100:0}%,"Song covers the area for 3s; when the Leader stands in the area, squad damage +{$link_skalter_atk*100-100:0}%.",,原文键,模型
+歼灭,Annihilation,,原文键,模型
 Mon3tr 冲到落点，连续三圈熔毁爆发；8 秒后重构归队,"Mon3tr dashes to the target location, releasing three consecutive meltdown explosions; reconstructs and returns to the squad after 8s.",,原文键,模型
 指令：守护,Command: Protect,,原文键,模型
 Mon3tr 扑击击退敌人，队长回复生命并清除神经损伤,Mon3tr pounces and deals knockback to enemies. The Leader recovers HP and clears Nervous Impairment.,,原文键,模型
 队长生命低于 40%，或神经损伤达到 80%,"Leader's HP below 40%, or Nervous Impairment at 80%",,原文键,人改
 Mon3tr 落到队长前方挡一次伤害（1.2 秒内）并推开身前的敌人，凯尔希为队长回复 {$link_kaltsit_heal*100:0}% 最大生命,"Mon3tr lands in front of the Leader, blocking one instance of damage (within 1.2s) and pushing away enemies in front of it. Kal'tsit restores {$link_kaltsit_heal*100:0}% Max HP to the Leader.",,原文键,模型
+处决,Execution,,原文键,模型
 掷出铁锚，沿锁链冲过去，落地后四圈裂地,"Throws his anchor and dashes along the chain. Upon landing, releases four shockwaves.",,原文键,模型
+手术刀,Scalpel,,原文键,模型
 砸下铁锚，击退并眩晕周围敌人,"Smashes down his anchor, dealing knockback and Stun to surrounding enemies.",,原文键,模型
 另一名队友的连携命中、附近敌人聚成一团时,Another squad member's Link hits and nearby enemies are bunched up,,原文键,人改
 聚拢,Gather,,原文键,模型
 掷锚钉住区域主目标（精英优先）1.5 秒，附近 180 内的普通敌人被拖向它,"Throws his anchor, pinning the main target in the area (prioritizes Elites) for 1.5s. Normal enemies within 180 range are dragged toward it.",,原文键,模型
+裂海,Sea Cleaver,,原文键,模型
 大剑下劈，身前立起一堵巨浪往前滚压，浪头被一剑劈开、溅起水柱,"Slashes downward with her greatsword, raising a giant wave in front of her that rolls forward. The wave is cleaved by the sword, splashing pillars of water.",,原文键,模型
+起舞,Dance,,原文键,模型
 跃到队长冲刺的落点，大剑横扫一周并击退,"Leaps to the Leader's dash destination, sweeping the greatsword in a full circle and causing knockback.",,原文键,模型
 队长冲刺结束,Leader's dash ends,,原文键,人改
 拖着大剑冲过区域，身后留下一道水痕 1.5 秒，踩在水痕上的敌人每 0.5 秒受到一次伤害,"Dashes through the area dragging the greatsword, leaving a water trail for 1.5s; enemies on the trail take damage every 0.5s.",,原文键,模型
 渊涡,Abyssal Vortex,,原文键,模型
 掷出长枪，落点卷起海渊漩涡，把大范围的敌人拖向中心，收拢一砸，潮水再从中心爆开,"Throws a spear, creating an abyssal vortex at the target location that drags enemies in a large area to the center. Crushes them together, then a tidal explosion bursts from the center.",,原文键,模型
+猎物,Prey,,原文键,模型
 甩出钩索，把远处的精英或远程敌人拖到身边,"Throws a grappling hook, dragging distant Elite or ranged enemies to herself.",,原文键,模型
 屏幕内远离队长处出现精英或远程敌人,An Elite or ranged enemy appears on screen far from the Leader,,原文键,人改
 甩出钩索，把区域外 210 内最近的 6 名敌人拖进区域，眩晕 0.4 秒（精英减半）,"Throws a grappling hook, dragging the 6 closest enemies within 210 outside the area into the area, and Stuns them for 0.4s (halved on Elites).",,原文键,模型
@@ -2849,51 +2866,71 @@ Mon3tr 落到队长前方挡一次伤害（1.2 秒内）并推开身前的敌人
 重力弹把周围敌人拉向目标，给出手的队友聚怪,"A gravity projectile pulls surrounding enemies toward the target, gathering them for the attacking teammate.",,原文键,模型
 另一名队友的连携亮起时（抢在它出手前）,Another squad member's Link lights up (acts before it does),,原文键,人改
 三枚碎片绕区域外圈往里收，把区域外 180 内的敌人带进区域并减速,"Three fragments circle the area's outer edge and contract inward, pulling enemies within 180 outside the area into the area and Slowing them.",,原文键,模型
+这招怎么样,How About This,,原文键,模型
 地面龟裂、火柱冲起，熔岩块落满一圈，中间留下熔岩地面,"The ground cracks and fire pillars erupt. Lava blocks fall in a circle, leaving a lava floor in the center.",,原文键,模型
+小心火灾,Mind the Fire,,原文键,模型
 投出放大的熔岩弹，落点留下 2 秒熔岩,"Throws an enlarged magma projectile, leaving a magma floor at the target location for 2s.",,原文键,模型
 队长站定满 1.2 秒,Leader stands still for 1.2s,,原文键,人改
 高抛一块熔岩砸进区域，落点溅出碎岩并点燃命中的敌人，之后再灼烧两次,"Tosses a magma block high into the area. Splashes broken rocks at the target location, triggering Ignition on hit enemies, then burns them 2 more times.",,原文键,模型
+太空大扫除,Space Cleanup,,原文键,模型
 架炮后仰，朝指定方向一排排炮击，每处炮击后还有余震,"Sets up the cannon and leans back, firing rows of artillery in the designated direction. Each strike is followed by an aftershock.",,原文键,模型
 天降厚礼,Gift From Above,,原文键,模型
 朝敌群补一发炮击，随后余震,"Fires an additional artillery strike at the enemy group, followed by an aftershock.",,原文键,模型
 队长这次技能后 1 秒内在区域里被打死的敌人留下暗红残影，0.35 秒后炸开（半径 60）；没有敌人被打死时，在主目标处补一发,"Enemies defeated in the area within 1s after the Leader's skill leave a dark red afterimage that explodes after 0.35s (radius 60); if no enemies are defeated, fires an additional strike at the main target.",,原文键,模型
 巨锯回旋,Whirling Greatsaw,,原文键,模型
 巨锯放大、绕身旋转，跟着队长移动；放出后 3 秒内不会倒下，受到的伤害降低,"The greatsaw enlarges and spins around her, moving with the Leader; for 3s after release, she will not fall and takes reduced damage.",,原文键,模型
+一分为二,Split in Two,,原文键,模型
 替身连斩三下，之后 2 秒队长生命不会低于 1,"The substitute slashes 3 times consecutively. For the next 2s, the Leader's HP cannot fall below 1.",,原文键,模型
 队长一次受到最大生命 10% 以上的伤害,Leader takes over 10% Max HP in one hit,,原文键,人改
 本人不动，分出一个暗红替身冲过区域斩一次,"She remains stationary, sending a dark red substitute to dash through the area and slash once.",,原文键,模型
+小菜一碟,Piece of Cake,,原文键,模型
 身后破土一条巨型触手，横扫指定方向的半圆，小触手再抓漏网之敌,"A giant tentacle emerges from the ground behind him, sweeping a semicircle in the target direction. Smaller tentacles then grab any remaining enemies.",,原文键,模型
+多谢款待,Thanks for the Treat,,原文键,模型
 触手追击附近生命低于一半的敌人并束缚,Tentacles pursue nearby enemies with less than 50% HP and Bind them.,,原文键,模型
 身边多名敌人生命低于一半,Several nearby enemies below 50% HP,,原文键,人改
 区域里 6 名敌人脚下钻出触手，束缚 1 秒（精英减半）,"Tentacles emerge beneath 6 enemies in the area, Binding them for 1s (halved on Elites).",,原文键,模型
+仅需一击,Just One Strike,,原文键,模型
 举拳蓄力一拳砸地，冲击环向四周打出，脚下裂纹沿途接连爆开,"Readies a Charged punch and smashes the ground, releasing a shockwave ring in all directions as fissures erupt along the path.",,原文键,模型
+防壁,Bulwark,,原文键,模型
 琥珀晶柱围住队长挡 2 秒，队长回复生命,Amber crystal pillars surround and protect the Leader for 2s. The Leader recovers HP.,,原文键,模型
 队长生命低于 50%,Leader's HP below 50%,,原文键,人改
 给队长一层护盾，挡一次伤害（1.5 秒内没用掉就收回）；区域地面钙化 1.5 秒，踩在上面的敌人减速 40%,"Grants the Leader 1 Shield, blocking 1 instance of damage (retracted if unused within 1.5s). Calcifies the ground in the area for 1.5s, Slowing enemies on it by 40%.",,原文键,校对
+母爱,Mother's Love,,原文键,模型
 忍冬在身旁现身，化作白光瞬身斩出，停顿半拍后斩痕爆裂,"Honeysuckle appears beside her, transforming into a flash of white light to slash forward. Halts for a half-beat before the slash marks explode.",,原文键,校对
+符文,Rune,,原文键,模型
 狐火追向那批敌人，减速并使其受到的伤害提升,"Foxfire pursues those enemies, reducing their movement speed and increasing the damage they take.",,原文键,校对
 4 团狐火绕她转一圈，再各追向区域内一名敌人，命中后减速 30%，持续 1.5 秒,"4 wisps of foxfire circle her once, then each pursues an enemy in the area. Upon impact, reduces the target's movement speed by 30% for 1.5s.",,原文键,校对
+丧钟,Death Knell,,原文键,模型
 面前展开圆形咒域，区域内敌人头顶慢慢浮现咒文，一词念出后咒印一起压缩爆开，并清除区域内弹幕,"Expands a circular cursed domain in front of him. Incantations slowly appear above enemies in the area. Upon uttering a single word, the curse seals compress and explode simultaneously, clearing all enemy projectiles in the area.",,原文键,模型
+面纱,Veil,,原文键,模型
 咒文扩散，处决至多 6 名生命低于 30% 的普通敌人,"Incantations spread, executing up to 6 normal enemies with less than 30% HP.",,原文键,模型
 屏幕内多名普通敌人生命低于 30%,Several on-screen normal enemies below 30% HP,,原文键,人改
 区域上空展开一圈咒文，当场消除区域内的敌方弹幕，区域内敌人减速 50%，持续 1 秒；不造成伤害,"A ring of incantations expands above the area, instantly clearing enemy projectiles within. Reduces enemy movement speed in the area by 50% for 1s. Deals no damage.",,原文键,校对
+般若,Hannya,,原文键,模型
 盾「般若」砸地，嘲讽全场并把敌人吸到盾前，硬挡片刻后盾甲反震炸开,"Smashes the shield 'Hannya' into the ground, Taunting all enemies and drawing them toward the shield. After blocking for a brief moment, the shield rebounds and explodes.",,原文键,模型
 寸步不让,Yielding No Ground,,原文键,模型
 冲到队长身边举盾推开周围敌人，队长短时间受到的伤害降低,"Dashes to the Leader, raises her shield to push away surrounding enemies, and reduces damage taken by the Leader for a short duration.",,原文键,模型
 队长短时间内连续被近战命中，或被敌人围住,"Leader is hit by melee several times in a row, or is surrounded",,原文键,人改
 瞬到队长身侧举盾，挡一次伤害（1.5 秒内）；区域内的近战敌人被嘲讽 1 秒,"Instantly moves to the Leader's side and raises her shield, blocking 1 instance of damage (within 1.5s); Taunts melee enemies in the area for 1s.",,原文键,模型
+裁定,Verdict,,原文键,模型
 高高跃起，巨锤砸向落点，冲击波横扫、敌人被震上半空,"Leaps high and smashes her giant hammer into the target location; a shockwave sweeps through, knocking enemies into the air.",,原文键,模型
+闪开,Step Aside,,原文键,模型
 跃向队长落点附近最密的敌群砸锤，眩晕敌人，其他干员技力回复加快,"Leaps toward the densest cluster of enemies near the Leader's location and smashes her hammer, inflicting Stun; increases SP Recovery for other Operators.",,原文键,模型
 冲阵,Charge,,原文键,模型
 从队长身边冲进区域，撞开沿途的敌人，到尽头一锤砸地，眩晕 0.5 秒（精英减半）,"Charges into the area from the Leader's side, knocking away enemies along the path; smashes the ground with her hammer at the end, inflicting Stun for 0.5s (halved on Elites).",,原文键,模型
+剑与灯,Sword and Lantern,,原文键,模型
 脚下盖下审判纹章，锁链钉住圈内敌人；原地旋身连斩三圈、朝四周连射，被钉住的敌人由近到远连环炸开,"Stamps a judgment emblem on the ground, pinning enemies in range with chains; spins in place to slash three times and fires in all directions; pinned enemies explode sequentially from near to far.",,原文键,模型
+提灯,Lantern,,原文键,模型
 连刺两下，对浮空、眩晕中的敌人伤害提升,Thrusts twice; deals increased damage to Levitating or Stunned enemies.,,原文键,模型
 屏幕内多名敌人浮空或眩晕,Several on-screen enemies are Levitated or Stunned,,原文键,人改
 提灯照亮区域，区域内敌人 3 秒内受到的伤害 +{$link_irene_amp*100:0}%，随后补一刺穿过主目标,"Raises her lantern to make the area Illuminated; enemies in the area take +{$link_irene_amp*100:0}% damage for 3s, followed by a thrust piercing the main target.",,原文键,模型
+试着抵抗我吧,Try to Resist Me,,原文键,模型
 朝前方扇形狂舞乱砍，剑气越砍越快越乱，最后一记横斩收尾，命中沉默,"Slashes wildly in a frontal fan-shaped area, with sword aura becoming faster and more chaotic; finishes with a horizontal slash that inflicts Silence on hit.",,原文键,模型
+封锁,Lockdown,,原文键,模型
 横扫打断精英这次出招，2 秒内不能再放特殊招式,Sweeps to interrupt the Elite's current attack; prevents them from using special abilities for 2s.,,原文键,模型
 精英开始读招,An Elite starts winding up an attack,,原文键,人改
 站到区域边缘，掷出一道月牙剑气横扫过区域，命中的敌人沉默 1 秒,Stands at the edge of the area and throws a crescent sword aura that sweeps across the area; inflicts Silence for 1s on enemies hit.,,原文键,模型
+人性之光,Light of Humanity,,原文键,模型
 队长脚下升起灯塔光柱，光圈扩散灼烧，光束扫过周围一圈后熄灭,"A lighthouse Lamp Pillar rises beneath the Leader, spreading a Beacon Ring that burns; the light beam sweeps the surrounding area once before extinguishing.",,原文键,模型
 凡人之灯,Lantern of Mortals,,原文键,模型
 光弹清除队长的神经损伤，灯火回复，并照亮队长身边,"A light projectile clears the Leader's Nervous Impairment, restores Light, and makes the area around the Leader Illuminated.",,原文键,模型

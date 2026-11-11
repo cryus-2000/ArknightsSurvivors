@@ -13,17 +13,17 @@ run.gd.run.affects.010,CC,控制,模型,
 run.gd.run.affects.011,Single-Target,单体,模型,
 run.gd.run.affects.012,Bonus,附带,模型,
 run.gd.run.affects.013,%s cannot advance,%s无可推进,模型,
-run.gd.run.affects.014,Squad None %s,编队无%s,模型,
+run.gd.run.affects.014,No %s in squad,编队无%s,校对,校对：机翻痕迹，语法不通顺
 run.gd.run.affects.015, → Growth Pick 1 of 3, → 成长三选一,模型,
-run.gd.run.affects.016,Squad None Wiš'adel / Mizuki,编队无维什戴尔 / 水月,模型,
+run.gd.run.affects.016,No Wiš'adel / Mizuki in squad,编队无维什戴尔 / 水月,校对,校对：机翻痕迹，语法不通顺
 run.gd.run.affects.017,Medic,医疗,官方,character_table profession（data.gd CLASS_EN）
-run.gd.run.affects.018,Squad None %s Operator,编队无%s干员,模型,
-run.gd.run.affects.019,Squad None,编队无,模型,
+run.gd.run.affects.018,No %s Operator in squad,编队无%s干员,校对,校对：机翻痕迹，语法不通顺
+run.gd.run.affects.019,None in squad,编队无,校对,校对：机翻痕迹，语法不通顺
 run.gd.run.affects.020,No Follow-Up / summon in squad,编队暂无追击 / 召唤,模型,
-run.gd.run.affects.021,Squad None CC,编队无控制,模型,
-run.gd.run.affects.022,Squad currently has no Single-Target ATK,编队暂无单体攻击,模型,
+run.gd.run.affects.021,No CC in squad,编队无控制,校对,校对：机翻痕迹，语法不通顺
+run.gd.run.affects.022,No Single-Target ATK in squad,编队暂无单体攻击,校对,校对：UI文本应简短，保持与其他“编队无”文本句式一致
 run.gd.run.affects.023,No %s damage in squad,编队暂无%s伤害,模型,
-run.gd.run.affects.024,Team,全队,模型,
+run.gd.run.affects.024,Squad,全队,校对,校对：统一术语，与“编队”的固定译名 squad 保持一致
 run.gd.run.affects.025,Leader · ,队长 · ,模型,
 run.gd.run.affects.026,1 random Operator,随机一名干员,模型,
 run.gd.run.affects.027,New Operator · Elite 1,新干员 · 精英一,模型,
@@ -46,7 +46,7 @@ run.gd.run.autotest.009,Enemy,敌人,模型,
 run.gd.run.autotest.010,Boss & Cutscenes,Boss 与演出,模型,
 run.gd.run.beacon.000,Guiding Beacon extinguished,引航灯标熄灭了,模型,
 run.gd.run.beacon.001,Distant Guiding Beacon extinguished,远处的引航灯标熄灭了,模型,
-run.gd.run.beacon.002,"Guiding Beacon has appeared — stand in the Beacon Ring to trigger Ignition, Cleanse Nethersea Brand",引航灯标出现了 —— 站进光圈点燃它，驱散溟痕,模型,
+run.gd.run.beacon.002,"Guiding Beacon has appeared — stand in the Beacon Ring to light it, dispel Nethersea Brand",引航灯标出现了 —— 站进光圈点燃它，驱散溟痕,校对,校对：“点燃它”直译为 light it 即可，“trigger Ignition”属于过度包装的词汇且不必要大写；“驱散”小写即可
 run.gd.run.beacon.003,Beacon,灯标,暂定,暂定（docs/276 §3.6）
 run.gd.run.beacon.004,Guiding Beacon lit · Light +%d,引航灯标已点亮 · 灯火 +%d,模型,
 run.gd.run.beacon.005,Beacon Sanctuary · Recovery +%d%%/s · ASPD +%d%%,灯标庇护 · 回复 +%d%%/秒 · 攻速 +%d%%,模型,
@@ -101,20 +101,20 @@ run.gd.run.combat.014,Boss present: Black Tide halted,Boss 在场：黑潮停滞
 run.gd.run.combat.015,The Black Tide surges again,黑潮再度涌动,模型,
 run.gd.run.combat.016,Black Tide approaching: Safe Zone shrinks in %ds,黑潮将至：%d 秒后安全区缩小,模型,
 run.gd.run.combat.017,Black Tide is approaching!,黑潮正在逼近！,模型,
-run.gd.run.combat.018,Objective Shield Block,护盾抵挡,模型,
+run.gd.run.combat.018,Shield Block,护盾抵挡,校对,校对：统一术语：护盾 -> Shield
 run.gd.run.combat.019,Relic,藏品,模型,
 run.gd.run.combat.020,Cognitive Shaping,认知塑造,模型,
 run.gd.run.combat.021,Reflect,反震,模型,
 run.gd.run.combat.022,Melee,近战,模型,
 run.gd.run.combat.023,Necrosis · SP Paused,凋亡 · 技力暂停,模型,
-run.gd.run.combat.024,Phase Objective Shield,阶段护盾,模型,
+run.gd.run.combat.024,Phase Shield,阶段护盾,校对,校对：统一术语：护盾 -> Shield
 run.gd.run.combat.025,Weakness,破绽,模型,
 run.gd.run.combat.026,Dual,双,模型,
 run.gd.run.combat.027,Ultimate,终结技,暂定,暂定（docs/276 §3.6）
 run.gd.run.combat.028,Execute,处决,模型,
 run.gd.run.combat.029,Fall,坠落,模型,
 run.gd.run.combat.030,Other,其他,模型,
-run.gd.run.combat.031,Objective Shield +1,护盾 +1,模型,
+run.gd.run.combat.031,Shield +1,护盾 +1,校对,校对：统一术语：护盾 -> Shield
 run.gd.run.combo.000,Link·%s,连携·%s,模型,
 run.gd.run.combo.001,Ranged,远程,模型,
 run.gd.run.combo.002,Melee,近战,模型,
@@ -136,7 +136,7 @@ run.gd.run.elite_moment.000,%s · Elite %s,%s · 精英%s,模型,
 run.gd.run.elite_moment.001,I,一,模型,
 run.gd.run.elite_moment.002,II,二,模型,
 run.gd.run.elite_moment.003,Team Effect:,全队效果：,模型,
-run.gd.run.elite_moment.004,Team,全队,模型,
+run.gd.run.elite_moment.004,Squad,全队,校对,校对：统一术语，与“编队”的固定译名 squad 保持一致
 run.gd.run.enemies.000,Stance Ended,架起结束,模型,
 run.gd.run.enemies.001,Support,援护,模型,
 run.gd.run.enemies.002,Tentacle,触手,模型,
@@ -162,7 +162,7 @@ run.gd.run.enemy_demo.006,Tears do not damage Leader · ,泪滴不伤害队长 �
 run.gd.run.enemy_demo.007,Tear Cleansed,泪滴已净化,模型,
 run.gd.run.enemy_demo.008,Touch to Cleanse; buffs Seaborn when not Cleansed,触碰可净化；未净化时强化海嗣,模型,
 run.gd.run.enemy_demo.009,%s%s · %s · Leader is an immortal demo target,%s%s · %s · 队长为不死演示靶,模型,
-run.gd.run.ishar_encounter.000,"Touch the teardrops to slow charging, and reduce her HP before she transforms.",触碰泪滴以减缓充能，在她转化前削减其生命,模型,
+run.gd.run.ishar_encounter.000,"Touch the teardrops to slow charging, and reduce her HP before she transforms",触碰泪滴以减缓充能，在她转化前削减其生命,校对,校对：中文原文没有句号，英文不应随意添加句号。
 run.gd.run.ishar_encounter.001,Tear Cleansed,泪滴已净化,模型,
 run.gd.run.link_bond.000,Team ASPD +%s%%,全队攻速 +%s%%,模型,
 run.gd.run.link_bond.001,Damage to Elite +%s%%,对精英伤害 +%s%%,模型,
@@ -173,7 +173,7 @@ run.gd.run.link_bond.005,movement speed +%s%%,移动速度 +%s%%,模型,
 run.gd.run.link_bond.006,Damage to Bosses +%s%%,对 Boss 伤害 +%s%%,模型,
 run.gd.run.link_bond.007,Team damage taken -%s%%,全队受到伤害 -%s%%,模型,
 run.gd.run.link_bond.008,%s%s · Combo '%s',%s%s · 合击「%s」,模型,
-run.gd.run.link_bond.009,Bonds Formed · %s: %s,羁绊成立 · %s：%s,模型,
+run.gd.run.link_bond.009,Bond Formed · %s: %s,羁绊成立 · %s：%s,校对,校对：中文“羁绊成立”为单数概念，不应使用复数 Bonds。
 run.gd.run.link_bond.010,In squad with at least %d of %s,与%s中至少 %d 人同队,模型,
 run.gd.run.link_bond.011,In squad with %s,与%s同队,模型,
 run.gd.run.link_bond.012,While in same squad %s;,同队期间%s；,模型,
@@ -190,15 +190,15 @@ run.gd.run.link_bond.020,Judgment Under Light,灯下审决,模型,
 run.gd.run.link_bond.021,Pack Hunt,群猎,模型,
 run.gd.run.link_v2.000,Cover,掩护,模型,
 run.gd.run.link_v2.001,Append,附加,模型,
-run.gd.run.link_v2.002,Assault,冲阵,模型,
+run.gd.run.link_v2.002,Charge,冲阵,校对,校对：固定术语中“突击”已定为 Assault，为避免冲突，“冲阵”应改译为 Charge。
 run.gd.run.link_v2.003,Follow-Up,追击,模型,
 run.gd.run.link_v2.004,Gather,聚拢,模型,
 run.gd.run.link_v2.005,Aftermath,余波,模型,
 run.gd.run.motion_shot.000,Upgrade,升级,模型,
 run.gd.run.motion_shot.001,Obtain Relic,获得藏品,模型,
 run.gd.run.motion_shot.002,Recruit Operator,招募干员,模型,
-run.gd.run.motion_shot.003,Upgrade Lv.%d,升级！ Lv.%d,模型,
-run.gd.run.motion_shot.004,Seaborn We Many is approaching — hold the line,海嗣大群正在逼近 —— 稳住阵线,模型,
+run.gd.run.motion_shot.003,Upgrade! Lv.%d,升级！ Lv.%d,校对,校对：丢失了中文原有的感叹号。
+run.gd.run.motion_shot.004,The Seaborn Many is approaching — hold the line,海嗣大群正在逼近 —— 稳住阵线,校对,校对：“大群”在明日方舟官方英文中译为 the Many，We Many 专指“我们，大群”，此处用 Seaborn We Many 语法错误且不准确。
 run.gd.run.motion_shot.005,Basic,基础,模型,
 run.gd.run.motion_shot.006,Rare,稀有,模型,
 run.gd.run.motion_shot.007,Core,核心,模型,
@@ -211,8 +211,8 @@ run.gd.run.motion_shot.013,HUD Banner · Draw In Letter Spacing,HUD 横幅 · �
 run.gd.run.motion_shot.014,"Paused · The second hand stops, the menu ticks forward",暂停 · 秒针停摆，菜单嘀嗒步进,模型,
 run.gd.run.motion_shot.015,Reduce Motion · Upgrade Selection,减少动态效果 · 升级选卡,模型,
 run.gd.run.motion_shot.016,Reduce Motion · Relic Selection,减少动态效果 · 藏品选择,模型,
-run.gd.run.motion_shot.017,Reduce motion effects · Merchant,减少动态效果 · 商人,模型,
-run.gd.run.motion_shot.018,Reduce motion effects · Pause,减少动态效果 · 暂停,模型,
+run.gd.run.motion_shot.017,Reduce Motion · Merchant,减少动态效果 · 商人,校对,校对：统一 UI 用语，与前文的 Reduce Motion 保持一致
+run.gd.run.motion_shot.018,Reduce Motion · Pause,减少动态效果 · 暂停,校对,校对：统一 UI 用语，与前文的 Reduce Motion 保持一致
 run.gd.run.motion_shot.019,Failure results · Salvage records,失败结算 · 打捞记录,模型,
 run.gd.run.pickups.000,Level,等级,模型,
 run.gd.run.pickups.001,Elite Lamp Oil,精英灯油,模型,
@@ -228,7 +228,7 @@ run.gd.run.pickups.010,Emergency Supply,应急补给,模型,
 run.gd.run.pickups.011,Desire to Lead · Upgrade again,领导欲 · 再升一级,模型,
 run.gd.run.progression.000,Swap · %s  SWAP,更换 · %s  SWAP,模型,
 run.gd.run.progression.001,Recruit Operator,招募干员,模型,
-run.gd.run.progression.002,Upgrade Lv.%d,升级！ Lv.%d,模型,
+run.gd.run.progression.002,Upgrade! Lv.%d,升级！ Lv.%d,校对,校对：丢失了中文原有的感叹号。
 run.gd.run.progression.003,No Relic available to Upgrade · ,暂无可升级藏品 · ,模型,
 run.gd.run.progression.004,Key · One more option,钥匙 · 多一个选项,模型,
 run.gd.run.progression.005,Obtain Relic,获得藏品,模型,
@@ -245,7 +245,7 @@ run.gd.run.progression.013,Elite 2,精英二,暂定,暂定（docs/276 §3.6）
 run.gd.run.progression.014,Swap Out ,换下 ,模型,
 run.gd.run.progression.015,Teammate · %s  SWAP OUT,队友 · %s  SWAP OUT,模型,
 run.gd.run.progression.016,Do Not Replace,不替换,模型,
-run.gd.run.progression.017,"'%s' (%s) join the squad, swapping out a teammate · Inherits their Promotion phase and Growth nodes · Leader cannot be swapped · Swapped Operator may still be recruited later",「%s」（%s）加入编队，换下一名队友 · 继承其精英化阶段与成长节点 · 队长不能更换 · 换下的干员之后仍可能再被招募,模型,
+run.gd.run.progression.017,"'%s' (%s) joins the squad, swapping out a teammate · Inherits their Promotion phase and Growth nodes · Leader cannot be swapped · Swapped Operator may still be recruited later",「%s」（%s）加入编队，换下一名队友 · 继承其精英化阶段与成长节点 · 队长不能更换 · 换下的干员之后仍可能再被招募,校对,校对：主谓一致语法修复，单数主语应使用 joins
 run.gd.run.progression.018,Swap Teammate,更换队友,模型,
 run.gd.run.progression.019,Growth Path · %s  PATH,成长路线 · %s  PATH,模型,
 run.gd.run.progression.020,Return,返回,模型,
@@ -265,8 +265,8 @@ run.gd.run.progression.031,Doctor Silver Seal,博士银印,官方,roguelike_topi
 run.gd.run.progression.032,Doctor Silver Seal: '%s' joins the squad as Elite 1,博士银印：「%s」以精英一加入编队,模型,
 run.gd.run.progression.033,HR Bronze Seal: '%s' joins the squad,人事部铜印：「%s」加入编队,模型,
 run.gd.run.progression.034,'%s' joins the squad,「%s」加入编队,模型,
-run.gd.run.progression.035,Doctor Silver Seal: Advances one Growth node for the Team,博士银印：全队各推进一个成长节点,模型,
-run.gd.run.progression.036,"Doctor Silver Seal: Decline '%s' — advance one Growth node for the entire Team, and gain one pick-1-out-of-3 Growth",博士银印：婉拒「%s」—— 全队各推进一个成长节点，另获一次成长三选一,模型,
+run.gd.run.progression.035,Doctor Silver Seal: Entire squad advances 1 Growth node each,博士银印：全队各推进一个成长节点,校对,校对：“全队”应统一为 squad，且“各”表示 each。
+run.gd.run.progression.036,"Doctor Silver Seal: Decline '%s' — entire squad advances 1 Growth node each, and gain 1 pick-1-out-of-3 Growth",博士银印：婉拒「%s」—— 全队各推进一个成长节点，另获一次成长三选一,校对,校对：“全队”应统一为 squad，且“各”表示 each。
 run.gd.run.progression.037,%s Decline '%s' — Change to 1 of 3 Growth choices,%s婉拒「%s」—— 改为一次成长三选一,模型,
 run.gd.run.progression.038,HR Bronze Seal:,人事部铜印：,模型,
 run.gd.run.progression.039,Joins as Elite 1,以精英一加入,模型,
@@ -277,7 +277,7 @@ run.gd.run.progression.041,Joins as Elite 0,以精英零加入,模型,
 run.gd.run.progression.042,Accept to squad · %s  JOIN,接受入队 · %s  JOIN,模型,
 run.gd.run.progression.043,Decline,婉拒,模型,
 run.gd.run.progression.044,Decline  DECLINE,婉拒  DECLINE,模型,
-run.gd.run.progression.045,"Team advances 1 Growth node each, and obtains 1 Growth choice out of 3",全队各推进 1 个成长节点，另获一次成长三选一,模型,
+run.gd.run.progression.045,"Entire squad advances 1 Growth node each, and obtains 1 Growth choice out of 3",全队各推进 1 个成长节点，另获一次成长三选一,校对,校对：“全队”应统一为 squad。
 run.gd.run.progression.046,Change to 1 of 3 Growth choices,改为一次成长三选一,模型,
 run.gd.run.progression.047,Choose whether to join the squad,选择是否加入编队,模型,
 run.gd.run.progression.048,%s promoted to Elite %s,%s 晋升至精英%s,模型,
@@ -356,7 +356,7 @@ run.gd.run.run_stats.062,Block,阻挡,模型,
 run.gd.run.run_stats.063,Mon3tr · Meltdown,Mon3tr · 熔毁,模型,
 run.gd.run.run_stats.064,Support,援护,模型,
 run.gd.run.run_stats.065,Mine,地雷,模型,
-run.gd.run.run_stats.066,Ending I · Precious Days,结局一 · 平凡即是喜乐,模型,
+run.gd.run.run_stats.066,Ending I · Quiet Times,结局一 · 平凡即是喜乐,校对,校对：官方英文为 Quiet Times；官方名未用上：Precious Days
 run.gd.run.run_stats.067,Surging Waves · IV,波涛迭起·Ⅳ,模型,
 run.gd.run.run_stats.068,Self Recovery,自身回复,模型,
 run.gd.run.run_stats.069,Lifesteal,吸血,模型,
@@ -393,7 +393,7 @@ run.gd.run.shop.005,"
 run.gd.run.shop.006,[Cursed],【遭诅】,模型,
 run.gd.run.shop.007,Cursed Curio,遭诅古物,模型,
 run.gd.run.shop.008,First Aid Kit,急救包,模型,
-run.gd.run.shop.009,Recovery 40% Max HP,回复 40% 最大生命,模型,
+run.gd.run.shop.009,Recover 40% Max HP,回复 40% 最大生命,校对,校对：“回复”在此处为动词，应译为Recover
 run.gd.run.shop.010,Lamp Oil,灯油,暂定,暂定（docs/276 §3.6）
 run.gd.run.shop.011,Light +%d,灯火 +%d,模型,
 run.gd.run.shop.012,Basic,基础,模型,
@@ -401,31 +401,31 @@ run.gd.run.shop.013,Rare,稀有,模型,
 run.gd.run.shop.014,"'%s' %d Ingots, holding %d, %s",「%s」%d 锭，持有 %d，%s,模型,
 run.gd.run.shop.015,Need %d,差 %d,模型,
 run.gd.run.shop.016,Purchasable,可买,模型,
-run.gd.run.shop.017,Relic space reserved for ending events; can Upgrade existing Relics,藏品空间已为结局事件预留；可以升级已有藏品,模型,
+run.gd.run.shop.017,Relic space reserved for ending events; can upgrade existing Relics,藏品空间已为结局事件预留；可以升级已有藏品,校对,校对：upgrade作为普通动词不应大写
 run.gd.run.shop.018,Store,商店,模型,
 run.gd.run.shop.019,Merchant,商人,模型,
 run.gd.run.shop.020,The bizarre Merchant packed up the stall and left.,诡意行商收起货摊离开了,模型,
 run.gd.run.shop.021,The Merchant collected the Originium Ingot and left.,商人收好源石锭，离开了,模型,
 run.gd.run.skill_link.000,Penguin Logistics,企鹅物流,模型,
 run.gd.run.skill_link.001,Express Delivery,急件专送,模型,
-run.gd.run.skill_link.002,"Exusiai fires eight tracer rounds in succession at the area, and six swords on Texas's side then fall from above, exploding upon Landing",能天使朝区域连射八发曳光，德克萨斯一侧的六把剑随后从上空落下，落地炸开,模型,
+run.gd.run.skill_link.002,"Exusiai fires eight tracer rounds in succession at the area, and six swords on Texas's side then fall from above, exploding upon landing",能天使朝区域连射八发曳光，德克萨斯一侧的六把剑随后从上空落下，落地炸开,校对,校对：landing作为普通名词不应大写
 run.gd.run.skill_link.003,Nemesis,宿敌,模型,
 run.gd.run.skill_link.004,Clash of Old Grudges,旧怨交锋,模型,
-run.gd.run.skill_link.005,"One Blinks through the target, the other releases a Blade Wave in place, the two blade lights cross at the target; Lappland's strike has a Silence Bonus",一方瞬身穿过目标，另一方原地挥出剑气，两道刃光在目标处交叉；拉普兰德那一道附带沉默,模型,
+run.gd.run.skill_link.005,"One blinks through the target, the other releases a blade wave in place, the two blade lights cross at the target; Lappland's strike inflicts Silence",一方瞬身穿过目标，另一方原地挥出剑气，两道刃光在目标处交叉；拉普兰德那一道附带沉默,校对,校对：blinks和blade wave等非专有名词不应大写；“附带沉默”译为inflicts Silence更符合官方状态描述规范
 run.gd.run.skill_link.006,Abyssal Hunter,深海猎人,官方,gamedata_const.termDescriptionDict.cc.g.abyssal
 run.gd.run.skill_link.007,Lesson Beneath the Tide,潮下授课,模型,
-run.gd.run.skill_link.008,"Ulpianus uses Cast Anchor to pin the target, dragging nearby Enemies toward it; Skadi then smashes her sword into the pinned location",乌尔比安掷锚钉住目标，把周围的敌人拖过去；斯卡蒂随后一剑砸在钉住的位置,模型,
+run.gd.run.skill_link.008,"Ulpianus throws his anchor to pin the target, dragging nearby enemies toward it; Skadi then smashes her sword into the pinned location",乌尔比安掷锚钉住目标，把周围的敌人拖过去；斯卡蒂随后一剑砸在钉住的位置,校对,校对：“掷锚”为普通动作而非技能专有名词；enemies不应大写
 run.gd.run.skill_link.009,Lethal Tide,引潮夺命,模型,
-run.gd.run.skill_link.010,"Gladiia throws her hook to drag outer Enemies into the area, and Specter the Unchained immediately dashes into the center for a horizontal slash",歌蕾蒂娅甩钩把外圈的敌人拖进区域，归溟幽灵鲨随即冲进中心横斩,模型,
+run.gd.run.skill_link.010,"Gladiia throws her hook to drag outer enemies into the area, and Specter the Unchained immediately dashes into the center for a horizontal slash",歌蕾蒂娅甩钩把外圈的敌人拖进区域，归溟幽灵鲨随即冲进中心横斩,校对,校对：enemies不应大写
 run.gd.run.skill_link.011,Vortex Anchor,漩涡钉锚,模型,
-run.gd.run.skill_link.012,"Gladiia creates a Vortex in the center of the area, and Ulpianus's anchor smashes into the center of the Vortex from above.",歌蕾蒂娅在区域中心卷起漩涡，乌尔比安的锚从高处砸进漩涡中心,模型,
+run.gd.run.skill_link.012,"Gladiia creates a vortex in the center of the area, and Ulpianus's anchor smashes into the center of the vortex from above.",歌蕾蒂娅在区域中心卷起漩涡，乌尔比安的锚从高处砸进漩涡中心,校对,校对：vortex作为普通名词不应大写
 run.gd.run.skill_link.013,Dual Fins,双鳍,模型,
-run.gd.run.skill_link.014,"Skadi and Specter the Unchained's charges intersect at the center of the area, each leaving a Water Trace",斯卡蒂与归溟幽灵鲨的冲锋在区域中心交错，各留下一道水痕,模型,
+run.gd.run.skill_link.014,"Skadi and Specter the Unchained's charges intersect at the center of the area, each leaving a water trace",斯卡蒂与归溟幽灵鲨的冲锋在区域中心交错，各留下一道水痕,校对,校对：water trace作为普通名词不应大写
 run.gd.run.skill_link.015,Inquisition,审判庭,模型,
 run.gd.run.skill_link.016,Judgment Under Light,灯下审决,模型,
-run.gd.run.skill_link.017,"Lumen's lantern leaves the area Illuminated, increasing Damage Taken by Enemy within; Irene then pierces through the target",流明提灯照亮区域，其中的敌人受到的伤害提高；艾丽妮随后一刺穿过目标,模型,
+run.gd.run.skill_link.017,"Lumen's lantern leaves the area Illuminated, increasing damage taken by enemies within; Irene then pierces through the target",流明提灯照亮区域，其中的敌人受到的伤害提高；艾丽妮随后一刺穿过目标,校对,校对：damage taken和enemies作为普通词汇不应大写
 run.gd.run.skill_link.018,Pack Hunt,群猎,模型,
-run.gd.run.skill_link.019,"The other Abyssal Hunters pounce on the same target in sequence; Skadi the Corrupting Heart instead begins Chanting in place, increasing Team ATK",其余深海猎人依次扑向同一个目标；浊心斯卡蒂改为原地吟唱，提高全队攻击,模型,
+run.gd.run.skill_link.019,"The other Abyssal Hunters pounce on the same target in sequence; Skadi the Corrupting Heart instead begins chanting in place, increasing squad ATK",其余深海猎人依次扑向同一个目标；浊心斯卡蒂改为原地吟唱，提高全队攻击,校对,校对：chanting不应大写；“全队”根据术语表应统一译为squad
 run.gd.run.skill_link.020,Skill Link·%s·%s,技能连携·%s·%s,模型,
 run.gd.run.skill_link.021,Range,范围,模型,
 run.gd.run.skill_link.022,Physical,物理,模型,
@@ -433,7 +433,7 @@ run.gd.run.skill_link.023,Link,连携,暂定,暂定（docs/276 §3.6）
 run.gd.run.skill_link.024,Explosive Sword Rain,爆炸剑雨,模型,
 run.gd.run.skill_link.025,Cross Slash,十字斩,模型,
 run.gd.run.skill_link.026,Follow-Up,追击,模型,
-run.gd.run.skill_link.027,Assault,冲阵,模型,
+run.gd.run.skill_link.027,Charge,冲阵,校对,校对：固定术语中“突击”已定为 Assault，为避免冲突，“冲阵”应改译为 Charge。
 run.gd.run.skill_link.028,Append,附加,模型,
 run.gd.run.skill_link.029,Gather,聚拢,模型,
 run.gd.run.skill_link.030,Cover,掩护,模型,
@@ -459,10 +459,10 @@ run.gd.run.spawner.003,%s appeared%s,%s 出现了%s,模型,
 run.gd.run.spawner.004, and , 与 ,模型,
 run.gd.run.spawner.005,Threat Level Up · %s: New Seaborn emerge,威胁上升 · %s —— 新的海嗣浮现,模型,
 run.gd.run.spawner.006,Two Elite '%s' appear simultaneously! Defeat them for a chance to Obtain Relic,两只精英「%s」同时出现！击败它们有概率获得藏品,模型,
-run.gd.run.spawner.007,Elite '%s' and '%s' appear simultaneously. Defeat them for a chance to Obtain Relic,精英「%s」与「%s」同时出现！击败它们有概率获得藏品,模型,
+run.gd.run.spawner.007,Elite '%s' and '%s' appear simultaneously! Defeat them for a chance to Obtain Relic,精英「%s」与「%s」同时出现！击败它们有概率获得藏品,校对,校对：中文有感叹号，英文漏译了感叹号
 run.gd.run.spawner.008,Elite '%s' appears! Defeat it for a chance to Obtain Relic,精英「%s」出现！击败它有概率获得藏品,模型,
 run.gd.run.spawner.009,Supply Box,补给箱,模型,
-run.gd.run.spawner.010,Chest Seaborn,箱形恐鱼！,模型,
+run.gd.run.spawner.010,Chest Seaborn!,箱形恐鱼！,校对,校对：中文有感叹号，英文漏译了感叹号
 run.gd.run.spawner.011,Camouflage!,伪装！,模型,
 run.gd.run.telemetry.000,Other,其他,模型,
 run.gd.run.telemetry.001,Corrosion,侵蚀,模型,
@@ -485,7 +485,7 @@ run.gd.run.ult.013,Substitute Slash,替身斩,模型,
 run.gd.run.ult.014,Lantern Illumination,提灯一照,模型,
 run.gd.run.ult.015,Small Tentacle,小触手,模型,
 run.gd.run.ult.016,Drag Blade Charge,拖刃冲锋,模型,
-run.gd.run.ult.017,Assault,冲阵,模型,
+run.gd.run.ult.017,Charge,冲阵,校对,校对：固定术语中“突击”已定为 Assault，为避免冲突，“冲阵”应改译为 Charge。
 run.gd.run.ult.018,Piercing Strafe,穿透扫射,模型,
 run.gd.run.ult.019,Souvenir,好礼,官方,character_table.char_1035_wisdel.talents[0]
 run.gd.run.ult.020,Clear Projectiles,消弹,模型,
@@ -501,16 +501,16 @@ run.gd.run.ult_aim.001,Select Location,选落点,模型,
 run.gd.run.ult_aim.002,Select Direction,选方向,模型,
 run.gd.run.ult_aim.003,Centered on self,以自身为中心,模型,
 run.gd.run.ult_aim.004,Hold to view Range · Release to cast,按住看范围 · 松手释放,模型,
-run.gd.run.ult_aim.005,Hold to view Range · Press Ultimate button again to cast,按住看范围 · 再按终结技键释放,模型,
+run.gd.run.ult_aim.005,Hold to view Range · Press Ultimate button to cast,按住看范围 · 再按终结技键释放,校对,校对：“再”在此处表先后顺序（then），译为 again（再次）不符合操作逻辑
 run.gd.run.ult_aim.006,Hold to view Range · Release to cast,按住看范围 · 松开释放,模型,
-run.gd.run.ult_aim.007,Hold to see Range · Press Q or Left Click to cast,按住看范围 · 再按 Q 或左键释放,模型,
+run.gd.run.ult_aim.007,Hold to view Range · Press Q or Left Click to cast,按住看范围 · 再按 Q 或左键释放,校对,校对：与其他文本统一“看范围”的翻译（view Range）
 run.gd.run.ult_aim.008,Hold to view Range · Release Q to cast,按住看范围 · 松开 Q 释放,模型,
-run.gd.run.ult_aim.009,Drag to select · Tap Ultimate button again to cast,拖动选择 · 再点终结技键释放,模型,
+run.gd.run.ult_aim.009,Drag to select · Tap Ultimate button to cast,拖动选择 · 再点终结技键释放,校对,校对：“再”在此处表先后顺序（then），译为 again（再次）不符合操作逻辑
 run.gd.run.ult_aim.010,Drag to select · Release to cast,拖动选择 · 松手释放,模型,
-run.gd.run.ult_aim.011,Joystick to select · Press Ultimate button again to cast,摇杆选择 · 再按终结技键释放,模型,
+run.gd.run.ult_aim.011,Joystick to select · Press Ultimate button to cast,摇杆选择 · 再按终结技键释放,校对,校对：“再”在此处表先后顺序（then），译为 again（再次）不符合操作逻辑
 run.gd.run.ult_aim.012,Joystick to select · Release to cast,摇杆选择 · 松开释放,模型,
 run.gd.run.ult_aim.013,Select with mouse · Press Q or Left Click to cast,鼠标选择 · 再按 Q 或左键释放,模型,
-run.gd.run.ult_aim.014,Select with Mouse · Release Q to cast,鼠标选择 · 松开 Q 释放,模型,
+run.gd.run.ult_aim.014,Select with mouse · Release Q to cast,鼠标选择 · 松开 Q 释放,校对,校对：统一 mouse 的大小写
 run.gd.run.ult_moves.000,Impact,冲击,模型,
 run.gd.run.ult_moves.001,Cleave,斩开,模型,
 run.gd.run.ult_moves.002,Sword Rain,剑雨,官方,skill_table.skchr_texas_2
@@ -593,19 +593,19 @@ run.gd.characters.blocks.late_shape.009,Physical,物理,模型,
 run.gd.characters.blocks.late_shape.010,Arts,法术,模型,
 run.gd.characters.blocks.m3_hp.000,Mon3tr downed,Mon3tr 倒地,模型,
 run.gd.characters.blocks.m3_hp.001,Mon3tr revived,Mon3tr 复活,模型,
-run.gd.characters.blocks.ob_check.000,blocks must be the target,blocks 必须是对象,模型,
+run.gd.characters.blocks.ob_check.000,blocks must be an object,blocks 必须是对象,校对,校对：“对象”在编程语境中意为 object，而非 target
 run.gd.characters.blocks.ob_check.001,blocks.%s: unrecognized segment (must be zone / attack / trait / skills / talent / progression / summons / follow / hit_fx / look / run_fx / dmg_bonus / response),blocks.%s：不认识的段（只能是 zone / attack / trait / skills / talent / progression / summons / follow / hit_fx / look / run_fx / dmg_bonus / response）,模型,
 run.gd.characters.blocks.ob_check.002,blocks.zone must be an object,blocks.zone 必须是对象,模型,
 run.gd.characters.blocks.ob_check.003,blocks.zone.center can only be leader / self,blocks.zone.center 只能是 leader / self,模型,
 run.gd.characters.blocks.ob_check.004,blocks.attack must be a damage shape (%s),blocks.attack 必须是一个伤害形状（%s）,模型,
 run.gd.characters.blocks.ob_check.005,blocks.skills must have exactly 3 entries (corresponding 1:1 with skills),blocks.skills 必须恰好 3 条（与 skills 一一对应）,模型,
-run.gd.characters.blocks.ob_check.006, must be the target, 必须是对象,模型,
+run.gd.characters.blocks.ob_check.006, must be an object, 必须是对象,校对,校对：“对象”在编程语境下指“object”（对象），而非“target”（目标）。
 run.gd.characters.blocks.ob_check.007,"%s.dur is permanent, but skills[%d] does not have ""permanent"": true","%s.dur 是 permanent，但 skills[%d] 没写 ""permanent"": true",模型,
 run.gd.characters.blocks.ob_check.008,"skills[%d] is permanent, %s.dur must also be ""permanent""","skills[%d] 是 permanent，%s.dur 也要写 ""permanent""",模型,
 run.gd.characters.blocks.ob_check.009,%s.dur cannot be negative,%s.dur 不能为负,模型,
 run.gd.characters.blocks.ob_check.010,%s.%s: Skill blocks only have dur / do / fx / aim / aim_r / status / status_col / attack_patch / end fields,%s.%s：技能积木只有 dur / do / fx / aim / aim_r / status / status_col / attack_patch / end 这几个字段,模型,
 run.gd.characters.blocks.ob_check.011,%s.aim can only be leader / nearest / summon:<type in blocks.summons>,%s.aim 只能是 leader / nearest / summon:<blocks.summons 里的种类>,模型,
-run.gd.characters.blocks.ob_check.012,"%s.attack_patch: attack_patch for landing point Normal Attack (shape.point_aoe) can only pair with dur.next_n ({\""next_attacks\"": N})","%s.attack_patch：落点弹普攻（shape.point_aoe）的 attack_patch 只能配 dur.next_n（{""next_attacks"": N}）",模型,
+run.gd.characters.blocks.ob_check.012,"%s.attack_patch: attack_patch for landing point Normal Attack (shape.point_aoe) can only pair with dur.next_n ({""next_attacks"": N})","%s.attack_patch：落点弹普攻（shape.point_aoe）的 attack_patch 只能配 dur.next_n（{""next_attacks"": N}）",校对,"校对：修复了多余的转义字符（\"" -> ""）。"
 run.gd.characters.blocks.ob_check.013,.attack_phases: Normal Attack swapped by swap_attack of this Operator's Other Skill must be circle / cone,.attack_phases：本干员其他技能的 swap_attack 换上的普攻须是 circle / cone,模型,
 run.gd.characters.blocks.ob_check.014,%s.no_gate must be true / false,%s.no_gate 必须是 true / false,模型,
 run.gd.characters.blocks.ob_check.015,"%s: cannot infer auto-cast threshold distance, please specify need_enemy (radius, × op_range) or add r / range to Skill / Normal Attack",%s：推不出自动释放的门槛距离，请写 need_enemy（半径，× op_range）或让技能 / 普攻带 r / range,模型,
@@ -634,23 +634,23 @@ run.gd.characters.blocks.ob_check.037,"%s: Permanent list can only contain Perma
 run.gd.characters.blocks.ob_check.038,%s: Cannot put '%s' in Skill do,%s：技能 do 里不能放「%s」,模型,
 run.gd.characters.blocks.ob_check.039,.center: shape.cone can only use self as origin,.center：shape.cone 只能以自身为原点,模型,
 run.gd.characters.blocks.ob_check.040,%s.center '%s': summon: should be followed by a type in blocks.summons,%s.center「%s」：summon: 后面应是 blocks.summons 里的种类,模型,
-run.gd.characters.blocks.ob_check.041,.center must be zone / self / leader / target / path / front / summon:<kind>,.center 只能是 zone / self / leader / target / path / front / summon:<种类>,模型,
+run.gd.characters.blocks.ob_check.041,.center must be zone / self / leader / target / path / front / summon:<type>,.center 只能是 zone / self / leader / target / path / front / summon:<种类>,校对,校对：与 p36 保持一致，将“种类”统一翻译为“type”。
 run.gd.characters.blocks.ob_check.042,".only must be a non-empty array, values ",.only 必须是非空数组，取值 ,模型,
 run.gd.characters.blocks.ob_check.043,.only is only used for shape.circle,.only 只用于 shape.circle,模型,
 run.gd.characters.blocks.ob_check.044,.full can only be true / false,.full 只能是 true / false,模型,
 run.gd.characters.blocks.ob_check.045,.split can only be true / false (true = this beat is split between Leader and Mon3tr),.split 只能是 true / false（true = 这一拍在队长与 Mon3tr 间分配）,模型,
-run.gd.characters.blocks.ob_check.046,.scale must be op (× op_atk × companion Multiplier × heal_out),.scale 只能是 op（× op_atk × 同伴倍率 × heal_out）,模型,
+run.gd.characters.blocks.ob_check.046,.scale must be op (× op_atk × companion multiplier × heal_out),.scale 只能是 op（× op_atk × 同伴倍率 × heal_out）,校对,校对：Multiplier 不应大写
 run.gd.characters.blocks.ob_check.047,: verb.lamp requires at least one of add / per_sec / loss_mult / decay_mult / radius_mult,：verb.lamp 要写 add / per_sec / loss_mult / decay_mult / radius_mult 之一,模型,
-run.gd.characters.blocks.ob_check.048,: add (Instant) of verb.lamp cannot be in the same block as per_sec / loss_mult (Permanent),：verb.lamp 的 add（瞬时）不能和 per_sec / loss_mult（常驻）写在同一块,模型,
+run.gd.characters.blocks.ob_check.048,: add (instant) of verb.lamp cannot be in the same block as per_sec / loss_mult (permanent),：verb.lamp 的 add（瞬时）不能和 per_sec / loss_mult（常驻）写在同一块,校对,校对：instant 和 permanent 不应大写
 run.gd.characters.blocks.ob_check.049,%s.stat '%s' must be %s or an exclusive attribute in this Operator's stat_defs,%s.stat「%s」只能是 %s 或本干员 stat_defs 里的专属属性,模型,
 run.gd.characters.blocks.ob_check.050,.op can only be add / mult (exclusive attributes can also be flat),.op 只能是 add / mult（专属属性还可 flat）,模型,
 run.gd.characters.blocks.ob_check.051,: verb.mode requires at least one of dmg_mult / zone_mult / interval_mult / no_attack,：verb.mode 至少写 dmg_mult / zone_mult / interval_mult / no_attack 之一,模型,
 run.gd.characters.blocks.ob_check.052,%s.scope '%s' must be squad / others / in_zone / leader / self / faction:<faction> / class:<class>,%s.scope「%s」只能是 squad / others / in_zone / leader / self / faction:<阵营> / class:<职业>,模型,
-run.gd.characters.blocks.ob_check.053,%s.per '%s' must be faction:<faction> / class:<class> / stack:<stack key> / gn:<Growth node stack key>,%s.per「%s」只能是 faction:<阵营> / class:<职业> / stack:<层数 key> / gn:<成长节点层数 key>,模型,
+run.gd.characters.blocks.ob_check.053,%s.per '%s' must be faction:<faction> / class:<class> / stack:<stack key> / gn:<growth node stack key>,%s.per「%s」只能是 faction:<阵营> / class:<职业> / stack:<层数 key> / gn:<成长节点层数 key>,校对,校对：growth node 不应大写
 run.gd.characters.blocks.ob_check.054,.scope: st.slow_soft currently only supports in_zone,.scope：st.slow_soft 目前只支持 in_zone,模型,
 run.gd.characters.blocks.ob_check.055,.replace can only be true / false,.replace 只能是 true / false,模型,
-run.gd.characters.blocks.ob_check.056,".no_combo only pairs with replace: true, and is true / false (this attack does not chain into Combo Slash of attack.combo)",.no_combo 只配 replace: true，且是 true / false（这一次出手不接 attack.combo 的连斩）,模型,
-run.gd.characters.blocks.ob_check.057,.anim only pairs with replace: true (plays a different sprite strip for the replaced Normal Attack),.anim 只配 replace: true（换掉的那一次普攻播别的帧条）,模型,
+run.gd.characters.blocks.ob_check.056,".no_combo only pairs with replace: true, and is true / false (this attack does not chain into combo slash of attack.combo)",.no_combo 只配 replace: true，且是 true / false（这一次出手不接 attack.combo 的连斩）,校对,校对：combo slash 不应大写
+run.gd.characters.blocks.ob_check.057,.anim only pairs with replace: true (plays a different sprite strip for the replaced normal attack),.anim 只配 replace: true（换掉的那一次普攻播别的帧条）,校对,校对：normal attack 不应大写
 run.gd.characters.blocks.ob_check.058,%s.anim '%s' is not a frame strip key in sprites,%s.anim「%s」不是 sprites 里的帧条键,模型,
 run.gd.characters.blocks.ob_check.059,: replace's every_n does not use delay (executes exactly on this attack frame),：replace 的 every_n 不写 delay（就在这一次出手帧执行）,模型,
 run.gd.characters.blocks.ob_check.060,.vis_anim is only for non-replace appended segments (replace uses anim),.vis_anim 只配非 replace 的追加段（replace 用 anim）,模型,
@@ -658,23 +658,23 @@ run.gd.characters.blocks.ob_check.061,%s.vis_anim '%s' is not an anim strip key 
 run.gd.characters.blocks.ob_check.062,.countdown can only be true / false,.countdown 只能是 true / false,模型,
 run.gd.characters.blocks.ob_check.063,.filter can only be any / elite / boss / zone_ally / marked,.filter 只能是 any / elite / boss / zone_ally / marked,模型,
 run.gd.characters.blocks.ob_check.064,%s missing parameter %s,%s 缺参数 %s,模型,
-run.gd.characters.blocks.ob_check.065,"%s.%s = %s out of Range [%s, %s]","%s.%s = %s 超出范围 [%s, %s]",模型,
+run.gd.characters.blocks.ob_check.065,"%s.%s = %s out of range [%s, %s]","%s.%s = %s 超出范围 [%s, %s]",校对,校对：range 不应大写
 run.gd.characters.blocks.ob_check.066, missing src (damage source name), 缺 src（伤害来源名）,模型,
 run.gd.characters.blocks.ob_check.067,%s.src '%s' is not registered in hit_sources,%s.src「%s」没在 hit_sources 里登记,模型,
 run.gd.characters.blocks.ob_core.000,"Expected a number or ""$key"" expression, actually %s","应为数字或 ""$key"" 表达式，实际是 %s",模型,
-run.gd.characters.blocks.ob_core.001,Expression '%s' Divide by 0,表达式「%s」除以 0,模型,
+run.gd.characters.blocks.ob_core.001,Expression '%s' divided by 0,表达式「%s」除以 0,校对,校对：divided by 0 不应大写，且语法修正为 divided
 run.gd.characters.blocks.ob_core.002,Referenced '$%s' is not in base,引用的「$%s」不在 base 里,模型,
 run.gd.characters.blocks.ob_core.003,base.%s is not a number,base.%s 不是数字,模型,
 run.gd.characters.blocks.ob_core.004,"Unrecognized operand '%s' (only supports numbers, $key, and a single + - * / operation)",看不懂的操作数「%s」（只支持数字、$key 和一次 + - * / 运算）,模型,
-run.gd.characters.blocks.ob_core.005,skill_active should be followed by Skill index 0-2: '%s',skill_active 后面应是技能序号 0–2：「%s」,模型,
+run.gd.characters.blocks.ob_core.005,skill_active should be followed by skill index 0-2: '%s',skill_active 后面应是技能序号 0–2：「%s」,校对,校对：skill index 不应大写
 run.gd.characters.blocks.ob_core.006,Condition left side must be lamp / hp_pct / elite / still / resp_idle / faction:<faction> / class:<class>: '%s',条件左边只能是 lamp / hp_pct / elite / still / resp_idle / faction:<阵营> / class:<职业>：「%s」,模型,
 run.gd.characters.blocks.ob_core.007,Unrecognized condition '%s',看不懂的条件「%s」,模型,
 run.gd.characters.blocks.ob_core.008,: verb.displace must include either kb (impulse) or dist (displacement distance),：verb.displace 要写 kb（冲量）或 dist（位移距离）其中一个,模型,
-run.gd.characters.blocks.ob_core.009,%s: 'verb.displace' is an Instant block and cannot be placed here (%s),%s：「verb.displace」是瞬时积木，不能放在这里（%s）,模型,
+run.gd.characters.blocks.ob_core.009,%s: 'verb.displace' is an instant block and cannot be placed here (%s),%s：「verb.displace」是瞬时积木，不能放在这里（%s）,校对,校对：instant 不应大写
 run.gd.characters.blocks.ob_core.010,%s.dir can only be %s,%s.dir 只能是 %s,模型,
 run.gd.characters.blocks.ob_core.011,%s.center can only be %s,%s.center 只能是 %s,模型,
-run.gd.characters.blocks.ob_core.012,%s: Permanent field (verb.field with tick) Can only use skill do or Permanent list (here is %s),%s：常驻力场（verb.field 带 tick）只能放技能 do 或常驻列表（这里是 %s）,模型,
-run.gd.characters.blocks.ob_core.013,": if verb.field has tick (Permanent field), do not write do / dur (Instant field)",：verb.field 写了 tick（常驻力场）就不写 do / dur（瞬时留场）,模型,
+run.gd.characters.blocks.ob_core.012,%s: permanent field (verb.field with tick) can only use skill do or permanent list (here is %s),%s：常驻力场（verb.field 带 tick）只能放技能 do 或常驻列表（这里是 %s）,校对,校对：permanent 和 can 不应大写
+run.gd.characters.blocks.ob_core.013,": if verb.field has tick (permanent field), do not write do / dur (instant field)",：verb.field 写了 tick（常驻力场）就不写 do / dur（瞬时留场）,校对,校对：permanent 和 instant 不应大写
 run.gd.characters.blocks.ob_core.014,.center can only be leader / self,.center 只能是 leader / self,模型,
 run.gd.characters.blocks.ob_core.015,.look can only be ring / lift / none,.look 只能是 ring / lift / none,模型,
 run.gd.characters.blocks.ob_core.016,.tick requires at least one child item (verb.displace / st.*),.tick 至少要一个子项（verb.displace / st.*）,模型,
@@ -688,7 +688,7 @@ run.gd.characters.blocks.ob_core.023,"%s: 'verb.buff_leader' is a Permanent bloc
 run.gd.characters.blocks.ob_core.024,%s.stat can only be %s,%s.stat 只能是 %s,模型,
 run.gd.characters.blocks.ob_core.025,.op can only be add / mult,.op 只能是 add / mult,模型,
 run.gd.characters.blocks.ob_elite.000,.first_only can only be true / false,.first_only 只能是 true / false,模型,
-run.gd.characters.blocks.ob_elite.001," must be the target {min_d, t, cd, mult, r}"," 必须是对象 {min_d, t, cd, mult, r}",模型,
+run.gd.characters.blocks.ob_elite.001," must be an object {min_d, t, cd, mult, r}"," 必须是对象 {min_d, t, cd, mult, r}",校对,校对：“对象”在编程语境下指 object，而非 target
 run.gd.characters.blocks.ob_elite.002,%s.%s: pounce only has min_d / t / cd / mult / r / fx,%s.%s：扑击只有 min_d / t / cd / mult / r / fx,模型,
 run.gd.characters.blocks.ob_elite.003,%s: '%s' cannot be placed here (%s; can only be in %s),%s：「%s」不能放在这里（%s；只能在 %s）,模型,
 run.gd.characters.blocks.ob_elite.004, missing key (stack name), 缺 key（叠层的名字）,模型,
@@ -719,34 +719,34 @@ run.gd.characters.blocks.ob_hw.005,.chain must be an fx_* frame strip name,.chai
 run.gd.characters.blocks.ob_hw.006,.head must be a proj_* frame strip name (hook head texture),.head 必须是 proj_* 帧条名（钩头贴图）,模型,
 run.gd.characters.blocks.ob_hw.007,.thin_chain should be true / false,.thin_chain 应是 true / false,模型,
 run.gd.characters.blocks.ob_hw.008,.push_out should be true / false,.push_out 应是 true / false,模型,
-run.gd.characters.blocks.ob_hw.009,".pull_cc should be true / false (interrupt + Stun + silence dragged Enemy, Ulpianus)",.pull_cc 应是 true / false（拖回的敌人打断 + 眩晕 + 沉默，乌尔比安）,模型,
+run.gd.characters.blocks.ob_hw.009,".pull_cc should be true / false (interrupt + Stun + Silence dragged enemy, Ulpianus)",.pull_cc 应是 true / false（拖回的敌人打断 + 眩晕 + 沉默，乌尔比安）,校对,校对：官方状态名 Silence 应大写，enemy 无需大写
 run.gd.characters.blocks.ob_hw.010,".heavy_half should be true / false (when Leader, Elite and exploding enemies are dragged half distance, Gladiia)",.heavy_half 应是 true / false（当队长时精英与自爆怪只拖半程，歌蕾蒂娅）,模型,
 run.gd.characters.blocks.ob_hw.011,.drag_only can only be all / ranged (only drags back Ranged enemies),.drag_only 只能是 all / ranged（只拖回远程怪）,模型,
 run.gd.characters.blocks.ob_hw.012,%s.back_src '%s' is not registered in hit_sources,%s.back_src「%s」没在 hit_sources 里登记,模型,
 run.gd.characters.blocks.ob_hw.013,.stages must be an array of 0-4 segments,.stages 必须是 0–4 段的数组,模型,
-run.gd.characters.blocks.ob_hw.014," must be the target {cond, mult}"," 必须是对象 {cond, mult}",模型,
+run.gd.characters.blocks.ob_hw.014," must be an object {cond, mult}"," 必须是对象 {cond, mult}",校对,校对：“对象”在此处指编程中的 object，而非 target
 run.gd.characters.blocks.ob_hw.015,%s.%s: a segment only has cond / mult / on_first,%s.%s：一段只有 cond / mult / on_first,模型,
 run.gd.characters.blocks.ob_hw.016,Unrecognized .cond,.cond 看不懂,模型,
 run.gd.characters.blocks.ob_hw.017,".pursue must be an object {cond, cd, mult, r, src}",".pursue 必须是对象 {cond, cd, mult, r, src}",模型,
-run.gd.characters.blocks.ob_hw.018,".finisher must be the target {cond, every, anim, do, volley}",".finisher 必须是对象 {cond, every, anim, do, volley}",模型,
+run.gd.characters.blocks.ob_hw.018,".finisher must be an object {cond, every, anim, do, volley}",".finisher 必须是对象 {cond, every, anim, do, volley}",校对,校对：“对象”在此处指编程中的 object，而非 target
 run.gd.characters.blocks.ob_hw.019,%s.finisher.anim '%s' is not a frame strip key in sprites,%s.finisher.anim「%s」不是 sprites 里的帧条键,模型,
 run.gd.characters.blocks.ob_hw.020,.aim can only be nearest / thrust,.aim 只能是 nearest / thrust,模型,
 run.gd.characters.blocks.ob_hw.021,.order can only be near,.order 只能是 near,模型,
 run.gd.characters.blocks.ob_hw.022,".origin_off must be [x, y]",".origin_off 必须是 [x, y]",模型,
 run.gd.characters.blocks.ob_hw.023,".cannon must be an object {mult, power, r, src}",".cannon 必须是对象 {mult, power, r, src}",模型,
 run.gd.characters.blocks.ob_hw.024,.center must be self / leader (response action: center when there is no hit point),.center 只能是 self / leader（响应动作：没有命中点时的中心）,模型,
-run.gd.characters.blocks.ob_hw.025,%s.%s must be the target,%s.%s 必须是对象,模型,
+run.gd.characters.blocks.ob_hw.025,%s.%s must be an object,%s.%s 必须是对象,校对,校对：“对象”在此处指编程中的 object，而非 target
 run.gd.characters.blocks.ob_hw.026,%s.anim '%s' is not a frame strip key in sprites,%s.anim「%s」不是 sprites 里的帧条键,模型,
 run.gd.characters.blocks.ob_hw.027,": shape.lantern requires heal {every, pct} and bolt {atk_key, speed, src}","：shape.lantern 要写 heal {every, pct} 与 bolt {atk_key, speed, src}",模型,
-run.gd.characters.blocks.ob_hw.028,.beam must be the target,.beam 必须是对象,模型,
+run.gd.characters.blocks.ob_hw.028,.beam must be an object,.beam 必须是对象,校对,校对：“对象”在此处指编程中的 object，而非 target
 run.gd.characters.blocks.ob_hw.029,.tentacle must be an object,.tentacle 必须是对象,模型,
 run.gd.characters.blocks.ob_hw.030,.full_circle must have a valid cond condition,.full_circle 必须有合法 cond 条件,模型,
-run.gd.characters.blocks.ob_hw.031,.jelly must be the target,.jelly 必须是对象,模型,
+run.gd.characters.blocks.ob_hw.031,.jelly must be an object,.jelly 必须是对象,校对,校对：“对象”在此处指编程中的 object，而非 target
 run.gd.characters.blocks.ob_hw.032,"%s.%s must be an array of [{cond, mult}]","%s.%s 必须是 [{cond, mult}] 数组",模型,
 run.gd.characters.blocks.ob_hw.033,.heavy must be an object with cond,.heavy 必须是带 cond 的对象,模型,
 run.gd.characters.blocks.ob_hw.034,%s.heavy.anim '%s' is not a sprite strip key in sprites,%s.heavy.anim「%s」不是 sprites 里的帧条键,模型,
 run.gd.characters.blocks.ob_hw.035,.from can only be self / leader,.from 只能是 self / leader,模型,
-run.gd.characters.blocks.ob_hw.036,".merge must be the target {cond, every, all, mult, spd, life, r}",".merge 必须是对象 {cond, every, all, mult, spd, life, r}",模型,
+run.gd.characters.blocks.ob_hw.036,".merge must be an object {cond, every, all, mult, spd, life, r}",".merge 必须是对象 {cond, every, all, mult, spd, life, r}",校对,校对：“对象”在此处指编程中的 object，而非 target
 run.gd.characters.blocks.ob_hw.037,".tip must be [x, y]",".tip 必须是 [x, y]",模型,
 run.gd.characters.blocks.ob_hw.038,%s.%s must be an array,%s.%s 必须是数组,模型,
 run.gd.characters.blocks.ob_hw.039,%s.%s '%s' is not registered in hit_sources,%s.%s「%s」没在 hit_sources 里登记,模型,
@@ -757,11 +757,11 @@ run.gd.characters.blocks.ob_summon.000,Mon3tr · Debridement,Mon3tr · 清创,�
 run.gd.characters.blocks.ob_summon.001,Seal Immunity,封印免疫,模型,
 run.gd.characters.blocks.ob_summon.002,Seal,封印,模型,
 run.gd.characters.blocks.ob_summon.003,· Shield,·盾,模型,
-run.gd.characters.blocks.ob_summon.004,Objective Shield -%d,护盾 -%d,模型,
-run.gd.characters.blocks.ob_summon.005,Objective Shield %d,护盾 %d,模型,
+run.gd.characters.blocks.ob_summon.004,Shield -%d,护盾 -%d,校对,校对：固定术语：护盾 -> Shield，不应添加多余的 Objective
+run.gd.characters.blocks.ob_summon.005,Shield %d,护盾 %d,校对,校对：固定术语：护盾 -> Shield，不应添加多余的 Objective
 run.gd.characters.blocks.ob_summon.006,blocks.summons must be an object (type name -> definition),blocks.summons 必须是对象（种类名 → 定义）,模型,
 run.gd.characters.blocks.ob_summon.007,: kind name can only contain letters / numbers / underscores (cannot start with a number),：种类名只能是字母 / 数字 / 下划线（不以数字开头）,模型,
-run.gd.characters.blocks.ob_summon.008, must be the target, 必须是对象,模型,
+run.gd.characters.blocks.ob_summon.008, must be an object, 必须是对象,校对,校对：“对象”在编程语境下指“object”（对象），而非“target”（目标）。
 run.gd.characters.blocks.ob_summon.009,%s.%s: unrecognized field in summon definition (can only be %s),%s.%s：召唤物定义不认识的字段（只能是 %s）,模型,
 run.gd.characters.blocks.ob_summon.010,.invuln can only be true / false,.invuln 只能是 true / false,模型,
 run.gd.characters.blocks.ob_summon.011,: invuln (invincible) summon should not have hp / hp_k,：invuln（无敌）的召唤物不写 hp / hp_k,模型,
@@ -770,7 +770,7 @@ run.gd.characters.blocks.ob_summon.013," missing life (seconds / ""skill"" = dur
 run.gd.characters.blocks.ob_summon.014,".life can only be seconds, ""skill"", or ""permanent""",".life 只能是秒数、""skill"" 或 ""permanent""",模型,
 run.gd.characters.blocks.ob_summon.015,".enemy_target can only be ignore (default: Enemy ignores summon) / decoy (decoy: Melee mobs chase it instead, takes hits when close)",.enemy_target 只能是 ignore（缺省：敌人不理召唤物）/ decoy（诱饵：近战杂兵改追它、贴身时它挨打）,模型,
 run.gd.characters.blocks.ob_summon.016,".col must be 3 numbers [r, g, b]",".col 必须是 3 个数字 [r, g, b]",模型,
-run.gd.characters.blocks.ob_summon.017,.move must be the target (mode / speed / anchor / leash / orbit_r / orbit_speed / target),.move 必须是对象（mode / speed / anchor / leash / orbit_r / orbit_speed / target）,模型,
+run.gd.characters.blocks.ob_summon.017,.move must be an object (mode / speed / anchor / leash / orbit_r / orbit_speed / target),.move 必须是对象（mode / speed / anchor / leash / orbit_r / orbit_speed / target）,校对,校对：在编程语境（JSON/数据结构）中，“对象”应翻译为“object”，而非“target”（目标）。
 run.gd.characters.blocks.ob_summon.018,%s.move.%s: unrecognized field (can only be %s),%s.move.%s：不认识的字段（只能是 %s）,模型,
 run.gd.characters.blocks.ob_summon.019,%s.move.mode can only be %s,%s.move.mode 只能是 %s,模型,
 run.gd.characters.blocks.ob_summon.020,.move.anchor can only be leader / self,.move.anchor 只能是 leader / self,模型,
@@ -778,7 +778,7 @@ run.gd.characters.blocks.ob_summon.021,%s.move.target can only be %s,%s.move.tar
 run.gd.characters.blocks.ob_summon.022,.attack must be a damage shape (shape.circle / shape.cone / shape.line),.attack 必须是一个伤害形状（shape.circle / shape.cone / shape.line）,模型,
 run.gd.characters.blocks.ob_summon.023,.attack.center: Circular hitbox of summon can only be centered on self or target,.attack.center：召唤物的圆形判定只能以自身（self）或目标（target）为心,模型,
 run.gd.characters.blocks.ob_summon.024,%s.%s: Cannot summon again (to prevent infinite summon loops),%s.%s：不能再召唤（免得召唤物连环生成）,模型,
-run.gd.characters.blocks.ob_summon.025,.body must be the target,.body 必须是对象,模型,
+run.gd.characters.blocks.ob_summon.025,.body must be an object,.body 必须是对象,校对,校对：在编程语境中，“对象”应翻译为“object”，而非“target”。
 run.gd.characters.blocks.ob_summon.026,%s.body.%s: unrecognized field (can only be %s),%s.body.%s：不认识的字段（只能是 %s）,模型,
 run.gd.characters.blocks.ob_summon.027,.body.strip must be a strip name (fx_* / proj_* / op_* / ally_*); draws procedural body if missing,.body.strip 必须是帧条名（fx_* / proj_* / op_* / ally_*）；缺图时画程序体,模型,
 run.gd.characters.blocks.ob_summon.028,.body.flip can only be true / false,.body.flip 只能是 true / false,模型,
@@ -793,12 +793,12 @@ run.gd.characters.blocks.ob_summon.036,.on_full must be a non-empty Instant bloc
 run.gd.characters.blocks.ob_summon.037,.scope must be in_zone (controlled character is in this Operator's zone) / always,.scope 只能是 in_zone（主控在本干员区域内）/ always,模型,
 run.gd.characters.blocks.ob_summon.038,DMG Reduction,减伤,模型,
 run.gd.characters.blocks.ob_summon.039,Cleanse,净化,模型,
-run.gd.characters.blocks.ob_summon.040,%s.%s must be the target,%s.%s 必须是对象,模型,
+run.gd.characters.blocks.ob_summon.040,%s.%s must be an object,%s.%s 必须是对象,校对,校对：“对象”在此处指编程中的 object，而非 target
 run.gd.characters.blocks.ob_summon.041,%s.%s.%s: can only be delay / mult / pitch,%s.%s.%s：只能写 delay / mult / pitch,模型,
 run.gd.characters.blocks.ob_summon.042,: verb.summon_mod requires at least one of dmg / aspd / reach / arc / speed / then / mirror / lunge,：verb.summon_mod 至少写 dmg / aspd / reach / arc / speed / then / mirror / lunge 之一,模型,
 run.gd.characters.blocks.ob_summon.043,%s.%s: unrecognized field in verb.summon_mod,%s.%s：verb.summon_mod 不认识的字段,模型,
 run.gd.characters.blocks.ob_summon.044,%s.%s: verb.guard unrecognized field (must be %s),%s.%s：verb.guard 不认识的字段（只能是 %s）,模型,
-run.gd.characters.blocks.ob_summon.045,.look must be the target,.look 必须是对象,模型,
+run.gd.characters.blocks.ob_summon.045,.look must be an object,.look 必须是对象,校对,校对：在编程语境中，“对象”应翻译为“object”，而非“target”。
 run.gd.characters.blocks.ob_summon.046,%s.look.%s: unrecognized field (can only be %s),%s.look.%s：不认识的字段（只能是 %s）,模型,
 run.gd.characters.blocks.ob_summon.047,"%s.what must be a non-empty array, values %s",%s.what 必须是非空数组，取值 %s,模型,
 run.gd.characters.blocks.ob_summon.048,%s.move.%s is only used for mode = escort,%s.move.%s 只用于 mode = escort,模型,
@@ -811,34 +811,34 @@ run.gd.characters.blocks.ob_summon.054,.manual can only be command (hold aim typ
 run.gd.characters.blocks.ob_summon.055,.manual is only used for mode = escort,.manual 只用于 mode = escort,模型,
 run.gd.characters.blocks.ob_summon.056,.status can only be true / false (false = status bar does not show on-field count),.status 只能是 true / false（false = 状态条不显示在场数）,模型,
 run.gd.characters.blocks.ob_summon.057,".float must be an object {h, amp, hz}",".float 必须是对象 {h, amp, hz}",模型,
-run.gd.characters.blocks.ob_summon.058,".anim must be the target, with at least idle",.anim 必须是对象，至少有 idle,模型,
-run.gd.characters.blocks.ob_summon.059,%s.anim.%s: Can only be idle / run / attack / lunge / leap,%s.anim.%s：只能是 idle / run / attack / lunge / leap,模型,
+run.gd.characters.blocks.ob_summon.058,".anim must be an object, with at least idle",.anim 必须是对象，至少有 idle,校对,校对：“对象”在编程语境下应翻译为 object，而不是 target
+run.gd.characters.blocks.ob_summon.059,%s.anim.%s: can only be idle / run / attack / lunge / leap,%s.anim.%s：只能是 idle / run / attack / lunge / leap,校对,校对：统一首字母小写
 run.gd.characters.blocks.ob_summon.060,%s.anim.%s '%s' is not a sprite strip in this Operator's sprites,%s.anim.%s「%s」不是本干员 sprites 里的帧条,模型,
 run.gd.characters.blocks.ob_summon.061,.patch must be an array (≤ 6 items),.patch 必须是数组（≤ 6 条）,模型,
-run.gd.characters.blocks.ob_summon.062,%s.%s: Unrecognized field (can only be %s),%s.%s：不认识的字段（只能是 %s）,模型,
+run.gd.characters.blocks.ob_summon.062,%s.%s: unrecognized field (can only be %s),%s.%s：不认识的字段（只能是 %s）,校对,校对：统一首字母小写
 run.gd.characters.blocks.ob_summon.063, missing cond (when it takes effect), 缺 cond（什么时候生效）,模型,
 run.gd.characters.blocks.ob_summon.064,Unrecognized .cond,.cond 看不懂,模型,
 run.gd.characters.blocks.ob_summon.065,%s.src '%s' is not registered in hit_sources,%s.src「%s」没在 hit_sources 里登记,模型,
-run.gd.characters.blocks.ob_summon.066,.seq.strip must be an anim strip in this Operator's sprites,.seq.strip 必须是本干员 sprites 里的帧条,模型,
+run.gd.characters.blocks.ob_summon.066,.seq.strip must be a sprite strip in this Operator's sprites,.seq.strip 必须是本干员 sprites 里的帧条,校对,校对：统一“帧条”的翻译为 sprite strip
 run.gd.characters.blocks.ob_summon.067,".seq.loop must be [first_frame, last_frame]",".seq.loop 必须是 [首帧, 末帧]",模型,
 run.gd.characters.blocks.ob_summon.068,"%s: procedural fx entry must be exactly one kind (%s), found %d kinds here",%s：程序 fx 条目恰好写一种（%s），这里有 %d 种,模型,
-run.gd.characters.blocks.ob_summon.069,%s.%s: Unrecognized field in procedural fx entry,%s.%s：程序 fx 条目不认识的字段,模型,
+run.gd.characters.blocks.ob_summon.069,%s.%s: unrecognized field in procedural fx entry,%s.%s：程序 fx 条目不认识的字段,校对,校对：统一首字母小写
 run.gd.characters.blocks.ob_summon.070,%s.%s can only be written in the fx of a summon type,%s.%s 只能写在召唤物种类的 fx 里,模型,
 run.gd.characters.blocks.ob_summon.071,.every can only be written on Permanent blocks / summon types,.every 只能写在常驻积木 / 召唤物种类上,模型,
 run.gd.characters.blocks.ob_summon.072,%s.%s must be a particle template object,%s.%s 必须是粒子模板对象,模型,
 run.gd.characters.blocks.ob_summon.073,%s.%s.kind can only be %s,%s.%s.kind 只能是 %s,模型,
 run.gd.characters.blocks.ob_summon.074,"%s.%s.%s: [lo, hi] requires lo <= hi","%s.%s.%s：[lo, hi] 要 lo ≤ hi",模型,
 run.gd.characters.blocks.ob_summon.075,".sprite must be an fx_* strip in V6_FRAMES (string, or {name, fit, scale, rot…})",".sprite 必须是 V6_FRAMES 里的 fx_* 帧条（字符串，或 {name, fit, scale, rot…}）",模型,
-run.gd.characters.blocks.ob_summon.076,%s.sprite.%s: Unrecognized field (can only be name / %s),%s.sprite.%s：不认识的字段（只能是 name / %s）,模型,
+run.gd.characters.blocks.ob_summon.076,%s.sprite.%s: unrecognized field (can only be name / %s),%s.sprite.%s：不认识的字段（只能是 name / %s）,校对,校对：统一首字母小写
 run.gd.characters.blocks.ob_summon.077,".text must be a string or {s, col, size}",".text 必须是字符串或 {s, col, size}",模型,
 run.gd.characters.blocks.ob_summon.078,blocks.attack.%s: shape.support only has every / first / when / do,blocks.attack.%s：shape.support 只有 every / first / when / do,模型,
 run.gd.characters.blocks.ob_summon.079,"blocks.attack.when unrecognized (condition string, §1.3)",blocks.attack.when 看不懂（条件串，§1.3）,模型,
 run.gd.characters.blocks.ob_vortex.000,".vortex must be an object (for parameters, see docs/61 §5.6 Vortex table)",.vortex 必须是对象（参数见 docs/61 §5.6 漩涡表）,模型,
-run.gd.characters.blocks.ob_vortex.001,%s.vortex.%s: unrecognized Vortex parameter (can only be %s),%s.vortex.%s：不认识的漩涡参数（只能是 %s）,模型,
+run.gd.characters.blocks.ob_vortex.001,%s.vortex.%s: unrecognized vortex parameter (can only be %s),%s.vortex.%s：不认识的漩涡参数（只能是 %s）,校对,校对：统一 vortex 小写
 run.gd.characters.blocks.ob_vortex.002,%s.vortex.%s must be an array of 3 numbers,%s.vortex.%s 必须是 3 个数字的数组,模型,
 run.gd.characters.blocks.ob_vortex.003, must be an array (fx entry list), 必须是数组（fx 条目列表）,模型,
 run.gd.characters.blocks.ob_vortex.004,"%s: a block can have at most 16 fx entries, found %d here",%s：一块积木至多 16 个 fx 条目，这里有 %d 个,模型,
-run.gd.characters.blocks.ob_vortex.005, must be the target, 必须是对象,模型,
+run.gd.characters.blocks.ob_vortex.005, must be an object, 必须是对象,校对,校对：“对象”在编程语境下指“object”（对象），而非“target”（目标）。
 run.gd.characters.blocks.ob_vortex.006,%s.%s: unrecognized field in fx entry (can only be %s),%s.%s：fx 条目不认识的字段（只能是 %s）,模型,
 run.gd.characters.blocks.ob_vortex.007, must be a boolean, 须为布尔值,模型,
 run.gd.characters.blocks.ob_vortex.008,": vortex entry is drawn programmatically, do not write strip",：vortex 条目是程序画法，不写 strip,模型,
@@ -857,38 +857,38 @@ run.gd.characters.blocks.ob_vortex.020,.at: close layer can only be self (under 
 run.gd.characters.blocks.ob_vortex.021,".every: Instant blocks / Skill Activations only play once, every can only be written on Permanent blocks",.every：瞬时积木 / 技能发动只播一次，every 只能写在常驻积木上,模型,
 run.gd.characters.blocks.ob_vortex.022,.hold must be true / false,.hold 必须是 true / false,模型,
 run.gd.characters.blocks.ob_vortex.023,".hold: vortex is already Permanent with the block, do not write hold",.hold：vortex 本来就跟着积木常驻，不写 hold,模型,
-run.gd.characters.blocks.ob_vortex.024,".hold is a Permanent follow strip, can only be attached to Permanent blocks (Permanent blocks in Skill do, auras, etc.)",.hold 是常驻跟随帧条，只能挂在常驻积木上（技能 do 里的常驻积木、光环等）,模型,
+run.gd.characters.blocks.ob_vortex.024,".hold is a Permanent follow frame strip, can only be attached to Permanent blocks (Permanent blocks in Skill do, auras, etc.)",.hold 是常驻跟随帧条，只能挂在常驻积木上（技能 do 里的常驻积木、光环等）,校对,校对：统一“帧条”为 frame strip
 run.gd.characters.blocks.ob_vortex.025,%s.layer: hold frame strip can only be %s,%s.layer：hold 帧条只能是 %s,模型,
-run.gd.characters.blocks.ob_vortex.026,.at: hold strip can only be zone / self / leader / members,.at：hold 帧条只能是 zone / self / leader / members,模型,
+run.gd.characters.blocks.ob_vortex.026,.at: hold frame strip can only be zone / self / leader / members,.at：hold 帧条只能是 zone / self / leader / members,校对,校对：统一“帧条”为 frame strip
 run.gd.characters.blocks.ob_vortex.027,.at = members (aura beneficiaries) can only be attached to aura.*,.at = members（光环受益者）只能挂在 aura.* 上,模型,
 run.gd.characters.blocks.ob_vortex.028,"%s.%s: hold frame strip loops with block activation, do not write this field",%s.%s：hold 帧条跟着积木生效循环，不写这个字段,模型,
-run.gd.characters.blocks.ob_vortex.029,.layer = ground is only for Permanent following sprite strips (hold: true),.layer = ground 只给常驻跟随帧条（hold: true）用,模型,
-run.gd.characters.blocks.ob_vortex.030,.fade is only used for Permanent following entries (body layer / vortex / hold sprite strips),.fade 只用于常驻跟随条目（贴身层 / vortex / hold 帧条）,模型,
-run.gd.characters.blocks.ob_vortex.031,.fade out of Range (0-5s),.fade 超出范围（0–5 秒）,模型,
+run.gd.characters.blocks.ob_vortex.029,.layer = ground is only for Permanent following frame strips (hold: true),.layer = ground 只给常驻跟随帧条（hold: true）用,校对,校对：统一“帧条”为 frame strips
+run.gd.characters.blocks.ob_vortex.030,.fade is only used for Permanent following entries (close layer / vortex / hold frame strips),.fade 只用于常驻跟随条目（贴身层 / vortex / hold 帧条）,校对,校对：统一“贴身层”为 close layer，“帧条”为 frame strips
+run.gd.characters.blocks.ob_vortex.031,.fade out of range (0–5s),.fade 超出范围（0–5 秒）,校对,校对：range 不应大写，保留原中文的 en dash
 run.gd.characters.blocks.ob_vortex.032,".fade must be seconds, or [fade in, fade out] as two durations in seconds",".fade 必须是秒数，或 [淡入, 淡出] 两个秒数",模型,
 run.gd.characters.blocks.ob_vortex.033,".if_tex must be a strip name (fx_* / proj_*), prefix with ! to draw only when this texture is missing",.if_tex 必须是帧条名（fx_* / proj_*），前面加 ! 表示缺这条贴图时才画,模型,
 run.gd.characters.blocks.ob_vortex.034,.cond must be a string,.cond 必须是字符串,模型,
 run.gd.characters.blocks.ob_vortex.035,%s.ease can only be %s (grow / grow0 / grow_to / wake require ease),%s.ease 只能是 %s（grow / grow0 / grow_to / wake 要配 ease）,模型,
-run.gd.characters.blocks.ob_vortex.036,".ease: Splash easing is only for one-time frame bars (do not write hold / life / vortex, do not put in melee layer)",.ease：扩散缓动只给一次性帧条用（不写 hold / life / vortex，不放贴身层）,模型,
-run.gd.characters.blocks.ob_vortex.037,".grow_to can only be zone (expand to Area Radius, follow zone) / summon:<summon type with zone>",.grow_to 只能是 zone（扩到区域半径、跟着区域走）/ summon:<带 zone 的召唤物种类>,模型,
+run.gd.characters.blocks.ob_vortex.036,".ease: splash easing is only for one-time frame strips (do not write hold / life / vortex, do not put in close layer)",.ease：扩散缓动只给一次性帧条用（不写 hold / life / vortex，不放贴身层）,校对,校对：统一“贴身层”为 close layer，“帧条”为 frame strips，splash 不应大写
+run.gd.characters.blocks.ob_vortex.037,".grow_to can only be zone (expand to area radius, follow zone) / summon:<summon type with zone>",.grow_to 只能是 zone（扩到区域半径、跟着区域走）/ summon:<带 zone 的召唤物种类>,校对,校对：area radius 不应大写
 run.gd.characters.blocks.ob_vortex.038,.play can only be fps (frame number plays according to frame strip fps),.play 只能是 fps（帧号按帧条 fps 播）,模型,
 run.gd.characters.blocks.ob_vortex.039,".wake must be an object {n, w, a, lag, sy, col}",".wake 必须是对象 {n, w, a, lag, sy, col}",模型,
 run.gd.characters.blocks.ob_vortex.040,".wake.col must be 3 numbers [r, g, b]",".wake.col 必须是 3 个数字 [r, g, b]",模型,
-run.gd.characters.blocks.ob_vortex.041,%s.wake.%s: Unrecognized parameter (can only be n / w / a / lag / sy / col),%s.wake.%s：不认识的参数（只能是 n / w / a / lag / sy / col）,模型,
-run.gd.characters.blocks.ob_vortex.042,%s.wake.%s out of Range (%s–%s),%s.wake.%s 超出范围（%s–%s）,模型,
-run.gd.characters.blocks.ob_vortex.043,.play must be paired with ease (only for Splash easing entries),.play 要配 ease（只用于扩散缓动条目）,模型,
+run.gd.characters.blocks.ob_vortex.041,%s.wake.%s: unrecognized parameter (can only be n / w / a / lag / sy / col),%s.wake.%s：不认识的参数（只能是 n / w / a / lag / sy / col）,校对,校对：unrecognized 不应大写
+run.gd.characters.blocks.ob_vortex.042,%s.wake.%s out of range (%s–%s),%s.wake.%s 超出范围（%s–%s）,校对,校对：range 不应大写
+run.gd.characters.blocks.ob_vortex.043,.play must be paired with ease (only for splash easing entries),.play 要配 ease（只用于扩散缓动条目）,校对,校对：splash 不应大写
 run.gd.characters.blocks.ob_vortex.044,.xfade is only for one-time frame strips (cond switching of Permanent entries has its own crossfade),.xfade 只给一次性帧条用（常驻条目的 cond 切换另有淡入淡出）,模型,
 run.gd.characters.blocks.ob_vortex.045,.xfade requires cond (crossfade based on cond true/false),.xfade 要配 cond（按 cond 的真假交叉淡入淡出）,模型,
 run.gd.characters.blocks.ob_vortex.046,%s.%s can only be true / false,%s.%s 只能是 true / false,模型,
 run.gd.characters.blocks.ob_vortex.047,: delay / stay are only for one-time frame strips,：delay / stay 只给一次性帧条用,模型,
 run.gd.characters.blocks.ob_vortex.048,.stay: looping frame strip (with life written) does not stop at the last frame,.stay：循环帧条（写了 life）不停在末帧,模型,
-run.gd.characters.blocks.ob_vortex.049,".flash can only be fire, and only used for Permanent follow sprite strips (hold)",.flash 只能是 fire，且只给常驻跟随帧条（hold）用,模型,
+run.gd.characters.blocks.ob_vortex.049,".flash can only be fire, and only used for Permanent follow frame strips (hold)",.flash 只能是 fire，且只给常驻跟随帧条（hold）用,校对,校对：统一“帧条”为 frame strips
 run.gd.characters.blocks.ob_vortex.050,.at = mate can only be attached to trig.on_mate_attack,.at = mate 只能挂在 trig.on_mate_attack 上,模型,
-run.gd.characters.blocks.ob_vortex.051,.at = members is only for Permanent follow anim strips (hold),.at = members 只给常驻跟随帧条（hold）用,模型,
+run.gd.characters.blocks.ob_vortex.051,.at = members is only for Permanent follow frame strips (hold),.at = members 只给常驻跟随帧条（hold）用,校对,校对：统一“帧条”为 frame strips
 run.gd.characters.blocks.ob_vortex.052,%s.%s must be an array of %d%s numbers,%s.%s 必须是 %d%s 个数字的数组,模型,
 run.gd.characters.blocks.responses.000,.to must be guard / roam / recall / gathered,.to 只能是 guard / roam / recall / gathered,模型,
 run.gd.characters.blocks.responses.001,blocks.response must be an array,blocks.response 必须是数组,模型,
-run.gd.characters.blocks.responses.002,": Response can only use on_leader_dash / on_leader_skill / on_stance / on_leader_still, or passive with still condition",：响应只能用 on_leader_dash / on_leader_skill / on_stance / on_leader_still，或带 still 条件的 passive,模型,
+run.gd.characters.blocks.responses.002,": response can only use on_leader_dash / on_leader_skill / on_stance / on_leader_still, or passive with still condition",：响应只能用 on_leader_dash / on_leader_skill / on_stance / on_leader_still，或带 still 条件的 passive,校对,校对：response 不应大写
 run.gd.characters.blocks.responses.003,.at can only be start / end,.at 只能是 start / end,模型,
 run.gd.characters.blocks.responses.004,.hint must be a short name of at most 6 characters,.hint 须是至多 6 个字的短名,模型,
 run.gd.characters.blocks.seg_angelina.000,Dense,致密,模型,
@@ -897,7 +897,7 @@ run.gd.characters.blocks.seg_angelina.002,.land can only be densest / nearest,.l
 run.gd.characters.blocks.seg_angelina.003,".muzzle should be [x, y] (origin at feet, facing right, @2x pixels)",".muzzle 应是 [x, y]（脚底为原点、朝右，@2x 像素）",模型,
 run.gd.characters.blocks.seg_angelina.004,.dur: permanent Skill cannot use next_attacks,.dur：permanent 技能不能写 next_attacks,模型,
 run.gd.characters.blocks.seg_angelina.005,%s.dur.%s: dur object only supports next_attacks,%s.dur.%s：dur 对象只支持 next_attacks,模型,
-run.gd.characters.blocks.seg_angelina.006,.attack_patch must be the target,.attack_patch 必须是对象,模型,
+run.gd.characters.blocks.seg_angelina.006,.attack_patch must be an object,.attack_patch 必须是对象,校对,校对：编程语境下“对象”应译为 object，而非 target
 run.gd.characters.blocks.seg_angelina.007,%s.attack_patch.%s: only supports mult / r_mult / force_mult / src / on_hit / power / aoe_mult / on_explode / on_first / first_fx / then_first / kb / burst / swarm,%s.attack_patch.%s：只支持 mult / r_mult / force_mult / src / on_hit / power / aoe_mult / on_explode / on_first / first_fx / then_first / kb / burst / swarm,模型,
 run.gd.characters.blocks.seg_angelina.008,.attack_patch.anim must point to a defined anim strip,.attack_patch.anim 必须指向已定义的帧条,模型,
 run.gd.characters.blocks.seg_exusiai.000,True,真实,模型,
@@ -916,7 +916,7 @@ run.gd.characters.blocks.seg_exusiai.012,".muzzle should be [x, y] (origin at fe
 run.gd.characters.blocks.seg_exusiai.013,"%s.%s should be a sprite strip name (%s..., lowercase letters / numbers / underscores)",%s.%s 应是帧条名（%s…，小写字母 / 数字 / 下划线）,模型,
 run.gd.characters.blocks.seg_exusiai.014,"skills[%d] is permanent, %s.dur must also be ""permanent""","skills[%d] 是 permanent，%s.dur 也要写 ""permanent""",模型,
 run.gd.characters.blocks.seg_exusiai.015,"%s.dur.%s: dur object syntax can only be {""ammo"": N} (count-based)","%s.dur.%s：dur 的对象写法只有 {""ammo"": N}（次数型）",模型,
-run.gd.characters.blocks.seg_exusiai.016,.attack_patch must be the target,.attack_patch 必须是对象,模型,
+run.gd.characters.blocks.seg_exusiai.016,.attack_patch must be an object,.attack_patch 必须是对象,校对,校对：编程语境下“对象”应译为 object，而非 target
 run.gd.characters.blocks.seg_exusiai.017,".attack_patch must be paired with duration or ammo type (dur > 0 or {""ammo"": N})",".attack_patch 要配持续型或次数型（dur > 0 或 {""ammo"": N}）",模型,
 run.gd.characters.blocks.seg_exusiai.018,%s.attack_patch.%s: can only modify %s,%s.attack_patch.%s：只能改 %s,模型,
 run.gd.characters.blocks.seg_eyjafjalla.000,Lava Descent,熔岩天降,模型,
@@ -925,7 +925,7 @@ run.gd.characters.blocks.seg_eyjafjalla.002,%s: '%s' cannot be placed here (%s; 
 run.gd.characters.blocks.seg_eyjafjalla.003,"%s.%s must be [x, y]","%s.%s 必须是 [x, y]",模型,
 run.gd.characters.blocks.seg_eyjafjalla.004,"Each entry in .aoe_mults is {cond, mult}",".aoe_mults 的每一条是 {cond, mult}",模型,
 run.gd.characters.blocks.seg_eyjafjalla.005,"Each entry in .follow is {cond, n, gap, mult, aoe_mult, sz}",".follow 的每一条是 {cond, n, gap, mult, aoe_mult, sz}",模型,
-run.gd.characters.blocks.seg_eyjafjalla.006,".lob must be the target {n, mults, gap, spacing, flight, apex, tex, boom_fx, pool}",".lob 必须是对象 {n, mults, gap, spacing, flight, apex, tex, boom_fx, pool}",模型,
+run.gd.characters.blocks.seg_eyjafjalla.006,".lob must be an object {n, mults, gap, spacing, flight, apex, tex, boom_fx, pool}",".lob 必须是对象 {n, mults, gap, spacing, flight, apex, tex, boom_fx, pool}",校对,校对：编程语境下“对象”应译为 object，而非 target
 run.gd.characters.blocks.seg_eyjafjalla.007,.lob.mults must be an array of numbers (Multiplier for the k-th shot),.lob.mults 必须是数字数组（第 k 发的倍率）,模型,
 run.gd.characters.blocks.seg_eyjafjalla.008,.lob.tex must be a proj_* frame strip name,.lob.tex 必须是 proj_* 帧条名,模型,
 run.gd.characters.blocks.seg_eyjafjalla.009,.origin can only be self / target,.origin 只能是 self / target,模型,
@@ -937,8 +937,8 @@ run.gd.characters.blocks.seg_eyjafjalla.014,.kind can only be arts (omitted = al
 run.gd.characters.blocks.seg_eyjafjalla.015,%s.center can only be %s,%s.center 只能是 %s,模型,
 run.gd.characters.blocks.seg_eyjafjalla.016,.look can only be lava / pool / rune,.look 只能是 lava / pool / rune,模型,
 run.gd.characters.blocks.seg_eyjafjalla.017,.cast can only be instant,.cast 只能是 instant,模型,
-run.gd.characters.blocks.seg_eyjafjalla.018,".pulse must be the target {r, pad, jit, delay, fx, do}",".pulse 必须是对象 {r, pad, jit, delay, fx, do}",模型,
-run.gd.characters.blocks.seg_eyjafjalla.019,.pulse.projectile must be the target,.pulse.projectile 必须是对象,模型,
+run.gd.characters.blocks.seg_eyjafjalla.018,".pulse must be an object {r, pad, jit, delay, fx, do}",".pulse 必须是对象 {r, pad, jit, delay, fx, do}",校对,校对：编程语境下“对象”应译为 object，而非 target
+run.gd.characters.blocks.seg_eyjafjalla.019,.pulse.projectile must be an object,.pulse.projectile 必须是对象,校对,校对：编程语境下“对象”应译为 object，而非 target
 run.gd.characters.blocks.seg_eyjafjalla.020,".pulse.projectile.tip must be [x, y]",".pulse.projectile.tip 必须是 [x, y]",模型,
 run.gd.characters.blocks.seg_eyjafjalla.021,.pulse.projectile.min_flight cannot be greater than max_flight,.pulse.projectile.min_flight 不能大于 max_flight,模型,
 run.gd.characters.blocks.seg_eyjafjalla.022,.pulse must be paired with dur.pulses,.pulse 要配 dur.pulses,模型,
@@ -948,7 +948,7 @@ run.gd.characters.blocks.seg_gladiia.002,Recovery Slash,回收斩,模型,
 run.gd.characters.blocks.seg_gladiia.003,Raging Sea,怒海,模型,
 run.gd.characters.blocks.seg_hoshiguma.000,Instant,瞬时,模型,
 run.gd.characters.blocks.seg_hoshiguma.001,Permanent,常驻,模型,
-run.gd.characters.blocks.seg_hoshiguma.002,Can only use skill do,只能放技能 do,模型,
+run.gd.characters.blocks.seg_hoshiguma.002,Can only place skill do,只能放技能 do,校对,校对：在积木/可视化编程语境下，“放”指的是放置（place）而非使用（use）
 run.gd.characters.blocks.seg_hoshiguma.003,Trigger Block,触发积木,模型,
 run.gd.characters.blocks.seg_hoshiguma.004,%s: '%s' (%s) cannot be placed here (%s),%s：「%s」（%s）不能放在这里（%s）,模型,
 run.gd.characters.blocks.seg_hoshiguma.005,: verb.negate_chance must be either add / mult,：verb.negate_chance 要写 add / mult 之一,模型,
@@ -962,7 +962,7 @@ run.gd.characters.blocks.seg_logos.000,Clear projectiles ×%d,消除弹幕 ×%d,
 run.gd.characters.blocks.seg_logos.001,%s: '%s' cannot be placed here (%s; can only be in %s),%s：「%s」不能放在这里（%s；只能在 %s）,模型,
 run.gd.characters.blocks.seg_logos.002,.pick can only be aim / random,.pick 只能是 aim / random,模型,
 run.gd.characters.blocks.seg_logos.003,": must write then (block executed after Hit), or then_of: attack (uses the Normal Attack block)",：要写 then（命中后执行的积木），或 then_of: attack（用普攻那块的）,模型,
-run.gd.characters.blocks.seg_logos.004,".splash must be the target {r, mult}",".splash 必须是对象 {r, mult}",模型,
+run.gd.characters.blocks.seg_logos.004,".splash must be an object {r, mult}",".splash 必须是对象 {r, mult}",校对,校对：编程语境下“对象”应译为 object，而非 target
 run.gd.characters.blocks.seg_logos.005,Arts,法术,模型,
 run.gd.characters.blocks.seg_lumen.000,Cleanse,驱散,模型,
 run.gd.characters.blocks.seg_lumen.001,Luminescent Unit,发光单元,模型,
@@ -985,14 +985,14 @@ run.gd.characters.blocks.seg_siege.001,Bind,束缚,官方,gamedata_const.termDes
 run.gd.characters.blocks.seg_siege.002,Cold,寒冷,官方,gamedata_const.termDescriptionDict.ba.cold
 run.gd.characters.blocks.seg_siege.003,Slow,减速,模型,
 run.gd.characters.blocks.seg_siege.004,Nervous Impairment,神经损伤,官方,gamedata_const.termDescriptionDict.ba.dt.neural
-run.gd.characters.blocks.seg_skadi.000,"blocks.follow must be the target {leash, gap}","blocks.follow 必须是对象 {leash, gap}",模型,
+run.gd.characters.blocks.seg_skadi.000,"blocks.follow must be an object {leash, gap}","blocks.follow 必须是对象 {leash, gap}",校对,校对：编程语境下“对象”应译为 object，而非 target
 run.gd.characters.blocks.seg_skadi.001,"blocks.follow.side must be [x, y]","blocks.follow.side 必须是 [x, y]",模型,
 run.gd.characters.blocks.seg_skadi.002,"blocks.run_fx must be {every, fx: [entries...]}","blocks.run_fx 必须是 {every, fx: [条目…]}",模型,
 run.gd.characters.blocks.seg_skadi.003,"blocks.attack.far must be a damage shape object (shape.wave / circle / cone) or an array of such, this distant hit replaces Melee Normal Attack",blocks.attack.far 必须是一个伤害形状对象（shape.wave / circle / cone）或这样的数组，远处的这一下替代近战普攻,模型,
 run.gd.characters.blocks.seg_skadi.004,blocks.attack.far.anim must be an anim strip name,blocks.attack.far.anim 必须是帧条名,模型,
 run.gd.characters.blocks.seg_skadi.005,blocks.attack.far.count must be true / false,blocks.attack.far.count 必须是 true / false,模型,
 run.gd.characters.blocks.seg_skadi.006,blocks.attack.combo must be an array of 1-6 segments,blocks.attack.combo 必须是 1–6 段的数组,模型,
-run.gd.characters.blocks.seg_skadi.007," must be the target {cond, delay, do}"," 必须是对象 {cond, delay, do}",模型,
+run.gd.characters.blocks.seg_skadi.007," must be an object {cond, delay, do}"," 必须是对象 {cond, delay, do}",校对,校对：“对象”应译为 object，而非 target
 run.gd.characters.blocks.seg_skadi.008,%s.%s: Combo Slash phase 1 only has cond / delay / do,%s.%s：连斩一段只有 cond / delay / do,模型,
 run.gd.characters.blocks.seg_skadi.009,Unrecognized .cond,.cond 看不懂,模型,
 run.gd.characters.blocks.seg_skadi.010,.basis can only be attack / prev / hit / atk,.basis 只能是 attack / prev / hit / atk,模型,
@@ -1016,25 +1016,25 @@ run.gd.characters.blocks.seg_skadi.027,".release_pose must be {slot, skill, cycl
 run.gd.characters.blocks.seg_skadi.028,.release_pose.slot must reference an action slot with a release frame,.release_pose.slot 须引用有出手帧的动作槽,模型,
 run.gd.characters.blocks.seg_skadi.029,.tex must be an fx_* frame strip name,.tex 必须是 fx_* 帧条名,模型,
 run.gd.characters.blocks.seg_skadi.030,%s: Procedural fx entry must specify exactly one (%s),%s：程序 fx 条目恰好写一种（%s）,模型,
-run.gd.characters.blocks.seg_skadi.031,%s.%s: Unrecognized field in procedural fx entry,%s.%s：程序 fx 条目不认识的字段,模型,
-run.gd.characters.blocks.seg_skadi.032,%s.%s must be the target,%s.%s 必须是对象,模型,
+run.gd.characters.blocks.seg_skadi.031,%s.%s: unrecognized field in procedural fx entry,%s.%s：程序 fx 条目不认识的字段,校对,校对：统一首字母小写
+run.gd.characters.blocks.seg_skadi.032,%s.%s must be an object,%s.%s 必须是对象,校对,校对：“对象”在此处指编程中的 object，而非 target
 run.gd.characters.blocks.seg_skadi.033,"%s.%s is a Permanent visual, can only be attached to a Permanent block",%s.%s 是常驻画面，只能挂在常驻积木上,模型,
 run.gd.characters.blocks.seg_skadi.034,.blade.strip must be an fx_* frame strip name,.blade.strip 必须是 fx_* 帧条名,模型,
 run.gd.characters.blocks.seg_skalter.000,.move.repick is only used for mode = chase,.move.repick 只用于 mode = chase,模型,
-run.gd.characters.blocks.seg_skalter.001,".anim must be the target, with at least idle",.anim 必须是对象，至少有 idle,模型,
+run.gd.characters.blocks.seg_skalter.001,".anim must be an object, with at least idle",.anim 必须是对象，至少有 idle,校对,校对：“对象”在编程语境下应翻译为 object，而不是 target
 run.gd.characters.blocks.seg_skalter.002,%s.anim.%s: Non-Follow summon can only be %s,%s.anim.%s：非随行召唤物只能是 %s,模型,
 run.gd.characters.blocks.seg_skalter.003,%s.anim.%s '%s' is not a sprite strip in this Operator's sprites,%s.anim.%s「%s」不是本干员 sprites 里的帧条,模型,
 run.gd.characters.blocks.seg_skalter.004,: non-Follow summon with anim should not have attack (use verb.summon_cmd action: cast to Command attacks),：非随行召唤物写了 anim 就不写 attack（出手用 verb.summon_cmd action: cast 指挥）,模型,
 run.gd.characters.blocks.seg_skalter.005,".zone must be an object {r, share, mode, look}",".zone 必须是对象 {r, share, mode, look}",模型,
 run.gd.characters.blocks.seg_skalter.006,%s.zone.%s: Unrecognized field (can only be r / share / mode / look),%s.zone.%s：不认识的字段（只能是 r / share / mode / look）,模型,
 run.gd.characters.blocks.seg_skalter.007,.zone.mode can only be true / false (false = excludes zone_mult of verb.mode),.zone.mode 只能是 true / false（false = 不算 verb.mode 的 zone_mult）,模型,
-run.gd.characters.blocks.seg_skalter.008,".zone.look must be the target {strip, fit, scale, max_scale, tint, ring, fade}",".zone.look 必须是对象 {strip, fit, scale, max_scale, tint, ring, fade}",模型,
+run.gd.characters.blocks.seg_skalter.008,".zone.look must be an object {strip, fit, scale, max_scale, tint, ring, fade}",".zone.look 必须是对象 {strip, fit, scale, max_scale, tint, ring, fade}",校对,校对：“对象”应译为 object，而非 target
 run.gd.characters.blocks.seg_skalter.009,%s.zone.look.%s: unrecognized field (can only be %s),%s.zone.look.%s：不认识的字段（只能是 %s）,模型,
 run.gd.characters.blocks.seg_skalter.010,.zone.look.strip must be an fx_* strip name (registered in V6_FRAMES),.zone.look.strip 必须是 fx_* 帧条名（V6_FRAMES 里登记）,模型,
 run.gd.characters.blocks.seg_skalter.011,.zone.look.tint must be 3-4 numbers,.zone.look.tint 必须是 3–4 个数字,模型,
 run.gd.characters.blocks.seg_skalter.012,".band must be [inner, outer] (radius ratio, only used for shape.circle)",".band 必须是 [内, 外]（半径的比例，只用于 shape.circle）",模型,
 run.gd.characters.blocks.seg_skalter.013,.band must satisfy 0 ≤ inner < outer ≤ 1,.band 要满足 0 ≤ 内 < 外 ≤ 1,模型,
-run.gd.characters.blocks.seg_skalter.014,.among can only be attack (only hits Enemy Hit by this Operator's last Normal Attack; only used for shape.circle),.among 只能是 attack（只打本干员上一次普攻命中的敌人；只用于 shape.circle）,模型,
+run.gd.characters.blocks.seg_skalter.014,.among can only be attack (only hits enemies hit by this Operator's last Normal Attack; only used for shape.circle),.among 只能是 attack（只打本干员上一次普攻命中的敌人；只用于 shape.circle）,校对,校对：enemies hit 不需要大写
 run.gd.characters.blocks.seg_skalter.015,: band / among cannot be used with only,：band / among 不和 only 同用,模型,
 run.gd.characters.blocks.seg_skalter.016,": When center: summon:<type> is paired with r: zone, this summon must have zone (summon's own area)",：center: summon:<种类> 配 r: zone 时，这种召唤物要写 zone（召唤物自带区域）,模型,
 run.gd.characters.blocks.seg_skalter.017,Resonance,共鸣,模型,
@@ -1080,8 +1080,8 @@ run.gd.characters.blocks.seg_ulpianus.000,No enemies nearby,附近没有敌人,�
 run.gd.characters.blocks.seg_ulpianus.001,%s: '%s' cannot be placed here (%s; can only be in %s),%s：「%s」不能放在这里（%s；只能在 %s）,模型,
 run.gd.characters.blocks.seg_ulpianus.002,.mode can only be reel / zip,.mode 只能是 reel / zip,模型,
 run.gd.characters.blocks.seg_ulpianus.003,.pick can only be elite / densest,.pick 只能是 elite / densest,模型,
-run.gd.characters.blocks.seg_ulpianus.004,.pull_cc should be true / false (dragged Enemy is interrupted + Stun + silenced),.pull_cc 应是 true / false（拖回的敌人打断 + 眩晕 + 沉默）,模型,
-run.gd.characters.blocks.seg_ulpianus.005,%s.%s must be the target,%s.%s 必须是对象,模型,
+run.gd.characters.blocks.seg_ulpianus.004,.pull_cc should be true / false (dragged Enemy is Interrupted + Stunned + Silenced),.pull_cc 应是 true / false（拖回的敌人打断 + 眩晕 + 沉默）,校对,"校对：状态名称需按照明日方舟国际服官方规范大写（Stunned, Silenced）并保持词性一致"
+run.gd.characters.blocks.seg_ulpianus.005,%s.%s must be an object,%s.%s 必须是对象,校对,校对：“对象”在此处指编程中的 object，而非 target
 run.gd.characters.blocks.seg_ulpianus.006, missing key, 缺 key,模型,
 run.gd.characters.blocks.seg_wisadel.000,SP,技力,暂定,暂定（docs/276 §3.6）
 run.gd.characters.blocks.seg_wisadel.001,True,真实,模型,
@@ -1158,7 +1158,7 @@ run.gd.characters.doctor.006,Multi-Shot Firepower  MULTI,多弹火力  MULTI,模
 run.gd.characters.doctor.007,Persistent Summon  SUMMON,召唤驻场  SUMMON,模型,
 run.gd.characters.doctor.008,CC Detonation  CONTROL,控场引爆  CONTROL,模型,
 run.gd.characters.doctor.009,Weakness Harvest  WEAK,弱点收割  WEAK,模型,
-run.gd.characters.doctor.010,Objective Shield Counter  SHIELD,护盾反击  SHIELD,模型,
+run.gd.characters.doctor.010,Shield Counter  SHIELD,护盾反击  SHIELD,校对,校对：多余了“Objective”一词，原文“护盾反击”直译为“Shield Counter”即可，且“护盾”的固定译名为“Shield”。
 run.gd.characters.doctor.011,Growth,成长,模型,
 run.gd.characters.doctor.012,Doctor,博士,模型,
 run.gd.characters.doctor.013,Suppressed,已被抑制,模型,
@@ -1173,8 +1173,8 @@ run.gd.characters.doctor.021,Physical damage taken ×%.2f → ×%.2f,受到的�
 run.gd.characters.doctor.022,Dodge %d%% → %d%%,闪避 %d%% → %d%%,模型,
 run.gd.characters.doctor.023,movement speed %d → %d,移动速度 %d → %d,模型,
 run.gd.characters.doctor.024,Pickup Range %d → %d,拾取范围 %d → %d,模型,
-run.gd.characters.doctor.025,Attacked Light loss ×%.2f → ×%.2f,受击灯火损失 ×%.2f → ×%.2f,模型,
-run.gd.characters.doctor.026,Dash cooldown %.2f → %.2fs,冲刺冷却 %.2f → %.2f 秒,模型,
+run.gd.characters.doctor.025,Light loss when attacked ×%.2f → ×%.2f,受击灯火损失 ×%.2f → ×%.2f,校对,校对：机翻痕迹，'Attacked Light loss' 表达生硬，应改为 'Light loss when attacked'
+run.gd.characters.doctor.026,Dash cooldown %.2f → %.2f s,冲刺冷却 %.2f → %.2f 秒,校对,校对：数字与单位之间应保留空格，与上下文格式保持一致
 run.gd.characters.doctor.027,Dash distance %d → %d,冲刺距离 %d → %d,模型,
 run.gd.characters.doctor.028,Charges %d → %d,可储存次数 %d → %d,模型,
 run.gd.characters.doctor.029,SP Recovery ×%.2f → ×%.2f,技力回复 ×%.2f → ×%.2f,模型,
@@ -1199,11 +1199,11 @@ run.gd.characters.operator_contract.007,"V9 %s has per-frame anchors, but sprite
 run.gd.characters.operator_contract.008,V8 %s referenced sprite strip '%s' is not in sprites (must be a slot with tex),V8 %s 引用的帧条「%s」不在 sprites（须是带 tex 的槽）,模型,
 run.gd.characters.operator_contract.009,V8 %s referenced sprite strip '%s' is not listed in extra_sprites,V8 %s 引用的帧条「%s」没列进 extra_sprites,模型,
 run.gd.characters.operator_contract.010,"V2 sprites.foot must be [x, y]","V2 sprites.foot 须是 [x, y]",模型,
-run.gd.characters.operator_contract.011,"V2 sprites.size must be 64 (current) or 48 (legacy), Other canvases require sprites.foot_exempt explanation",V2 sprites.size 须是 64（现行）或 48（旧口径），其他画布写 sprites.foot_exempt 说明,模型,
+run.gd.characters.operator_contract.011,"V2 sprites.size must be 64 (current) or 48 (legacy), other canvases require sprites.foot_exempt explanation",V2 sprites.size 须是 64（现行）或 48（旧口径），其他画布写 sprites.foot_exempt 说明,校对,校对：逗号后的 'other' 不应大写
 run.gd.characters.operator_contract.012,V2 48 canvas sprites.foot bottom row must be 46,V2 48 画布的 sprites.foot 脚底行须是 46,模型,
 run.gd.characters.operator_contract.013,"V2 64 canvas sprites.foot must be [32, 60] (fractional origins require sprites.foot_exempt explanation)","V2 64 画布的 sprites.foot 须是 [32, 60]（小数原点写 sprites.foot_exempt 说明）",模型,
 run.gd.characters.operator_contract.014,"V2 sprites.%s.foot must be [x, y]","V2 sprites.%s.foot 须是 [x, y]",模型,
-run.gd.characters.operator_contract.015,"V2 sprites.%s.foot %s is not top-level foot + (0|16|32) transparent padding (if asymmetric crop, write foot_exempt)",V2 sprites.%s.foot %s 不是顶层 foot + (0|16|32) 透明加边（不对称裁窗写 foot_exempt 说明）,模型,
+run.gd.characters.operator_contract.015,"V2 sprites.%s.foot %s is not top-level foot + (0|16|32) transparent padding (if asymmetric crop, write foot_exempt explanation)",V2 sprites.%s.foot %s 不是顶层 foot + (0|16|32) 透明加边（不对称裁窗写 foot_exempt 说明）,校对,校对：漏译“说明”
 run.gd.characters.operator_contract.016,V4 native_motion must be a dictionary,V4 native_motion 须是字典,模型,
 run.gd.characters.operator_contract.017,V4 native_motion.%s unrecognized (only clips / variants / states / exits / yield allowed),V4 native_motion.%s 不认识（只有 clips / variants / states / exits / yield）,模型,
 run.gd.characters.operator_contract.018,V4 native_motion.yield must be an array of anim strip names,V4 native_motion.yield 须是帧条名数组,模型,
@@ -1218,7 +1218,7 @@ run.gd.characters.operator_defs.001,Melee Range Expansion,近战扩域,模型,
 run.gd.characters.operator_defs.002,Persistent Summon,召唤驻场,模型,
 run.gd.characters.operator_defs.003,CC Detonation,控场引爆,模型,
 run.gd.characters.operator_defs.004,Weakness Harvest,弱点收割,模型,
-run.gd.characters.operator_defs.005,Objective Shield Counter,护盾反击,模型,
+run.gd.characters.operator_defs.005,Shield Counter,护盾反击,校对,校对：多余的 Objective，护盾为 Shield
 run.gd.characters.operator_defs.006,Heal-to-Damage Conversion,治疗转伤,模型,
 run.gd.characters.operator_defs.007,Unrecognized character '%s',看不懂的字符「%s」,模型,
 run.gd.characters.operator_defs.008,Extra '%s',多余的「%s」,模型,
@@ -1239,7 +1239,7 @@ run.gd.characters.squad.000,Follow,随行,暂定,暂定（docs/276 §3.6）
 run.gd.characters.squad.001,Assault,突击,暂定,暂定（docs/276 §3.6）
 run.gd.characters.squad.002,Return,归队,模型,
 run.gd.characters.squad.003,Prioritize Bosses,Boss 优先,模型,
-run.gd.characters.squad.004,Prioritize Clear Mobs,清杂优先,模型,
+run.gd.characters.squad.004,Prioritize Clearing Mobs,清杂优先,校对,校对：语法错误，Clear 应为 Clearing
 run.gd.characters.squad.005,Clear Mobs,清杂,模型,
 run.gd.characters.squad.006,Defender,重装,官方,character_table profession（data.gd CLASS_EN）
 run.gd.characters.squad.007,Guard,近卫,官方,character_table profession（data.gd CLASS_EN）
@@ -1250,8 +1250,8 @@ run.gd.characters.squad.011,Medic,医疗,官方,character_table profession（dat
 run.gd.characters.squad.012,Caster,术师,官方,character_table profession（data.gd CLASS_EN）
 run.gd.characters.squad.013,Sniper,狙击,官方,character_table profession（data.gd CLASS_EN）
 run.gd.characters.squad.014,Leader Max HP +%d%%,队长最大生命 +%d%%,模型,
-run.gd.characters.squad.015,HP Recovery +%s/s,生命回复 +%s / 秒,模型,
-run.gd.characters.squad.016,Recruitment Bonus:,入队加成：,模型,
+run.gd.characters.squad.015,HP Recovery +%s / s,生命回复 +%s / 秒,校对,校对：保留占位符周围的空格
+run.gd.characters.squad.016,Squad Join Bonus:,入队加成：,校对,校对：入队应译为 join squad 相关词汇，Recruitment 通常指公开招募
 run.gd.characters.squad.017,Combat time limit not recovered,作战时限未恢复,模型,
 run.gd.characters.squad.018,%s returned to squad,%s 回到队伍,模型,
 run.gd.characters.squad.019,Withdraw,撤回,模型,
@@ -1284,16 +1284,16 @@ run.gd.allies.knight.006,Retreat,撤退,模型,
 追击伤害,Follow-Up Damage,,原文键,模型
 附带,Bonus,,原文键,模型
 %s无可推进,%s cannot advance,,原文键,模型
-编队无%s,Squad None %s,,原文键,模型
+编队无%s,No %s in squad,,原文键,校对
  → 成长三选一, → Growth Pick 1 of 3,,原文键,模型
-编队无维什戴尔 / 水月,Squad None Wiš'adel / Mizuki,,原文键,模型
-编队无%s干员,Squad None %s Operator,,原文键,模型
-编队无,Squad None,,原文键,模型
+编队无维什戴尔 / 水月,No Wiš'adel / Mizuki in squad,,原文键,校对
+编队无%s干员,No %s Operator in squad,,原文键,校对
+编队无,None in squad,,原文键,校对
 编队暂无追击 / 召唤,No Follow-Up / summon in squad,,原文键,模型
-编队无控制,Squad None CC,,原文键,模型
-编队暂无单体攻击,Squad currently has no Single-Target ATK,,原文键,模型
+编队无控制,No CC in squad,,原文键,校对
+编队暂无单体攻击,No Single-Target ATK in squad,,原文键,校对
 编队暂无%s伤害,No %s damage in squad,,原文键,模型
-全队,Team,,原文键,模型
+全队,Squad,,原文键,校对
 队长 · ,Leader · ,,原文键,模型
 随机一名干员,1 random Operator,,原文键,模型
 新干员 · 精英一,New Operator · Elite 1,,原文键,模型
@@ -1310,7 +1310,7 @@ run.gd.allies.knight.006,Retreat,撤退,模型,
 Boss 与演出,Boss & Cutscenes,,原文键,模型
 引航灯标熄灭了,Guiding Beacon extinguished,,原文键,模型
 远处的引航灯标熄灭了,Distant Guiding Beacon extinguished,,原文键,模型
-引航灯标出现了 —— 站进光圈点燃它，驱散溟痕,"Guiding Beacon has appeared — stand in the Beacon Ring to trigger Ignition, Cleanse Nethersea Brand",,原文键,模型
+引航灯标出现了 —— 站进光圈点燃它，驱散溟痕,"Guiding Beacon has appeared — stand in the Beacon Ring to light it, dispel Nethersea Brand",,原文键,校对
 灯标,Beacon,,原文键,暂定
 引航灯标已点亮 · 灯火 +%d,Guiding Beacon lit · Light +%d,,原文键,模型
 灯标庇护 · 回复 +%d%%/秒 · 攻速 +%d%%,Beacon Sanctuary · Recovery +%d%%/s · ASPD +%d%%,,原文键,模型
@@ -1352,15 +1352,14 @@ Boss 在场：黑潮停滞,Boss present: Black Tide halted,,原文键,模型
 黑潮再度涌动,The Black Tide surges again,,原文键,模型
 黑潮将至：%d 秒后安全区缩小,Black Tide approaching: Safe Zone shrinks in %ds,,原文键,模型
 黑潮正在逼近！,Black Tide is approaching!,,原文键,模型
-护盾抵挡,Objective Shield Block,,原文键,模型
+护盾抵挡,Shield Block,,原文键,校对
 藏品,Relic,,原文键,模型
 认知塑造,Cognitive Shaping,,原文键,模型
 凋亡 · 技力暂停,Necrosis · SP Paused,,原文键,模型
-阶段护盾,Phase Objective Shield,,原文键,模型
+阶段护盾,Phase Shield,,原文键,校对
 双,Dual,,原文键,模型
 终结技,Ultimate,,原文键,暂定
-处决,Execute,,原文键,模型
-护盾 +1,Objective Shield +1,,原文键,模型
+护盾 +1,Shield +1,,原文键,校对
 连携·%s,Link·%s,,原文键,模型
 连携,Link,,原文键,暂定
 终结技「%s」,Ultimate '%s',,原文键,模型
@@ -1392,7 +1391,7 @@ Boss 在场：黑潮停滞,Boss present: Black Tide halted,,原文键,模型
 泪滴已净化,Tear Cleansed,,原文键,模型
 触碰可净化；未净化时强化海嗣,Touch to Cleanse; buffs Seaborn when not Cleansed,,原文键,模型
 %s%s · %s · 队长为不死演示靶,%s%s · %s · Leader is an immortal demo target,,原文键,模型
-触碰泪滴以减缓充能，在她转化前削减其生命,"Touch the teardrops to slow charging, and reduce her HP before she transforms.",,原文键,模型
+触碰泪滴以减缓充能，在她转化前削减其生命,"Touch the teardrops to slow charging, and reduce her HP before she transforms",,原文键,校对
 全队攻速 +%s%%,Team ASPD +%s%%,,原文键,模型
 对精英伤害 +%s%%,Damage to Elite +%s%%,,原文键,模型
 全队技力回复 +%s%%,Team SP Recovery +%s%%,,原文键,模型
@@ -1402,7 +1401,7 @@ Boss 在场：黑潮停滞,Boss present: Black Tide halted,,原文键,模型
 对 Boss 伤害 +%s%%,Damage to Bosses +%s%%,,原文键,模型
 全队受到伤害 -%s%%,Team damage taken -%s%%,,原文键,模型
 %s%s · 合击「%s」,%s%s · Combo '%s',,原文键,模型
-羁绊成立 · %s：%s,Bonds Formed · %s: %s,,原文键,模型
+羁绊成立 · %s：%s,Bond Formed · %s: %s,,原文键,校对
 与%s中至少 %d 人同队,In squad with at least %d of %s,,原文键,模型
 与%s同队,In squad with %s,,原文键,模型
 同队期间%s；,While in same squad %s;,,原文键,模型
@@ -1421,8 +1420,8 @@ Bond · %s: When %s, the Link triggered by the %s Leader using a Skill is priori
 升级,Upgrade,,原文键,模型
 获得藏品,Obtain Relic,,原文键,模型
 招募干员,Recruit Operator,,原文键,模型
-升级！ Lv.%d,Upgrade Lv.%d,,原文键,模型
-海嗣大群正在逼近 —— 稳住阵线,Seaborn We Many is approaching — hold the line,,原文键,模型
+升级！ Lv.%d,Upgrade! Lv.%d,,原文键,校对
+海嗣大群正在逼近 —— 稳住阵线,The Seaborn Many is approaching — hold the line,,原文键,校对
 升级选卡 · 发牌翻面,Upgrade card selection · Deal and flip,,原文键,模型
 升级选卡 · 翻面途中点一下 = 跳到终态,Upgrade card selection · Click while flipping = Skip to end state,,原文键,模型
 藏品选择 · 光柱托起（基础 / 稀有 / 核心）,Relic Selection · Supported by Pillar of Light (Basic / Rare / Core),,原文键,模型
@@ -1432,8 +1431,8 @@ HUD 横幅 · 字距收拢,HUD Banner · Draw In Letter Spacing,,原文键,模�
 暂停 · 秒针停摆，菜单嘀嗒步进,"Paused · The second hand stops, the menu ticks forward",,原文键,模型
 减少动态效果 · 升级选卡,Reduce Motion · Upgrade Selection,,原文键,模型
 减少动态效果 · 藏品选择,Reduce Motion · Relic Selection,,原文键,模型
-减少动态效果 · 商人,Reduce motion effects · Merchant,,原文键,模型
-减少动态效果 · 暂停,Reduce motion effects · Pause,,原文键,模型
+减少动态效果 · 商人,Reduce Motion · Merchant,,原文键,校对
+减少动态效果 · 暂停,Reduce Motion · Pause,,原文键,校对
 失败结算 · 打捞记录,Failure results · Salvage records,,原文键,模型
 等级,Level,,原文键,模型
 精英灯油,Elite Lamp Oil,,原文键,模型
@@ -1457,7 +1456,7 @@ Inherits same stage upon replacement",,原文键,模型
 换下 ,Swap Out ,,原文键,模型
 队友 · %s  SWAP OUT,Teammate · %s  SWAP OUT,,原文键,模型
 不替换,Do Not Replace,,原文键,模型
-「%s」（%s）加入编队，换下一名队友 · 继承其精英化阶段与成长节点 · 队长不能更换 · 换下的干员之后仍可能再被招募,"'%s' (%s) join the squad, swapping out a teammate · Inherits their Promotion phase and Growth nodes · Leader cannot be swapped · Swapped Operator may still be recruited later",,原文键,模型
+「%s」（%s）加入编队，换下一名队友 · 继承其精英化阶段与成长节点 · 队长不能更换 · 换下的干员之后仍可能再被招募,"'%s' (%s) joins the squad, swapping out a teammate · Inherits their Promotion phase and Growth nodes · Leader cannot be swapped · Swapped Operator may still be recruited later",,原文键,校对
 更换队友,Swap Teammate,,原文键,模型
 成长路线 · %s  PATH,Growth Path · %s  PATH,,原文键,模型
 返回,Return,,原文键,模型
@@ -1477,8 +1476,8 @@ This Upgrade is not consumed.",,原文键,模型
 博士银印：「%s」以精英一加入编队,Doctor Silver Seal: '%s' joins the squad as Elite 1,,原文键,模型
 人事部铜印：「%s」加入编队,HR Bronze Seal: '%s' joins the squad,,原文键,模型
 「%s」加入编队,'%s' joins the squad,,原文键,模型
-博士银印：全队各推进一个成长节点,Doctor Silver Seal: Advances one Growth node for the Team,,原文键,模型
-博士银印：婉拒「%s」—— 全队各推进一个成长节点，另获一次成长三选一,"Doctor Silver Seal: Decline '%s' — advance one Growth node for the entire Team, and gain one pick-1-out-of-3 Growth",,原文键,模型
+博士银印：全队各推进一个成长节点,Doctor Silver Seal: Entire squad advances 1 Growth node each,,原文键,校对
+博士银印：婉拒「%s」—— 全队各推进一个成长节点，另获一次成长三选一,"Doctor Silver Seal: Decline '%s' — entire squad advances 1 Growth node each, and gain 1 pick-1-out-of-3 Growth",,原文键,校对
 %s婉拒「%s」—— 改为一次成长三选一,%s Decline '%s' — Change to 1 of 3 Growth choices,,原文键,模型
 人事部铜印：,HR Bronze Seal:,,原文键,模型
 以精英一加入,Joins as Elite 1,,原文键,模型
@@ -1489,7 +1488,7 @@ Growth node 1/%d",,原文键,模型
 接受入队 · %s  JOIN,Accept to squad · %s  JOIN,,原文键,模型
 婉拒,Decline,,原文键,模型
 婉拒  DECLINE,Decline  DECLINE,,原文键,模型
-全队各推进 1 个成长节点，另获一次成长三选一,"Team advances 1 Growth node each, and obtains 1 Growth choice out of 3",,原文键,模型
+全队各推进 1 个成长节点，另获一次成长三选一,"Entire squad advances 1 Growth node each, and obtains 1 Growth choice out of 3",,原文键,校对
 改为一次成长三选一,Change to 1 of 3 Growth choices,,原文键,模型
 选择是否加入编队,Choose whether to join the squad,,原文键,模型
 %s 晋升至精英%s,%s promoted to Elite %s,,原文键,模型
@@ -1544,7 +1543,7 @@ Boss 击破,Boss Defeated,,原文键,模型
 触须阵,Tentacle Array,,原文键,模型
 水刃,Water Blade,,原文键,模型
 地雷,Mine,,原文键,模型
-结局一 · 平凡即是喜乐,Ending I · Precious Days,,原文键,模型
+结局一 · 平凡即是喜乐,Ending I · Quiet Times,,原文键,校对
 波涛迭起·Ⅳ,Surging Waves · IV,,原文键,模型
 自身回复,Self Recovery,,原文键,模型
 吸血,Lifesteal,,原文键,模型
@@ -1573,24 +1572,24 @@ Boss 击破,Boss Defeated,,原文键,模型
 (Guaranteed by price: Originium Ingot +%d)",,原文键,模型
 【遭诅】,[Cursed],,原文键,模型
 急救包,First Aid Kit,,原文键,模型
-回复 40% 最大生命,Recovery 40% Max HP,,原文键,模型
+回复 40% 最大生命,Recover 40% Max HP,,原文键,校对
 「%s」%d 锭，持有 %d，%s,"'%s' %d Ingots, holding %d, %s",,原文键,模型
 差 %d,Need %d,,原文键,模型
 可买,Purchasable,,原文键,模型
-藏品空间已为结局事件预留；可以升级已有藏品,Relic space reserved for ending events; can Upgrade existing Relics,,原文键,模型
+藏品空间已为结局事件预留；可以升级已有藏品,Relic space reserved for ending events; can upgrade existing Relics,,原文键,校对
 商店,Store,,原文键,模型
 商人,Merchant,,原文键,模型
 诡意行商收起货摊离开了,The bizarre Merchant packed up the stall and left.,,原文键,模型
 商人收好源石锭，离开了,The Merchant collected the Originium Ingot and left.,,原文键,模型
-能天使朝区域连射八发曳光，德克萨斯一侧的六把剑随后从上空落下，落地炸开,"Exusiai fires eight tracer rounds in succession at the area, and six swords on Texas's side then fall from above, exploding upon Landing",,原文键,模型
+能天使朝区域连射八发曳光，德克萨斯一侧的六把剑随后从上空落下，落地炸开,"Exusiai fires eight tracer rounds in succession at the area, and six swords on Texas's side then fall from above, exploding upon landing",,原文键,校对
 宿敌,Nemesis,,原文键,模型
-一方瞬身穿过目标，另一方原地挥出剑气，两道刃光在目标处交叉；拉普兰德那一道附带沉默,"One Blinks through the target, the other releases a Blade Wave in place, the two blade lights cross at the target; Lappland's strike has a Silence Bonus",,原文键,模型
-乌尔比安掷锚钉住目标，把周围的敌人拖过去；斯卡蒂随后一剑砸在钉住的位置,"Ulpianus uses Cast Anchor to pin the target, dragging nearby Enemies toward it; Skadi then smashes her sword into the pinned location",,原文键,模型
-歌蕾蒂娅甩钩把外圈的敌人拖进区域，归溟幽灵鲨随即冲进中心横斩,"Gladiia throws her hook to drag outer Enemies into the area, and Specter the Unchained immediately dashes into the center for a horizontal slash",,原文键,模型
-歌蕾蒂娅在区域中心卷起漩涡，乌尔比安的锚从高处砸进漩涡中心,"Gladiia creates a Vortex in the center of the area, and Ulpianus's anchor smashes into the center of the Vortex from above.",,原文键,模型
-斯卡蒂与归溟幽灵鲨的冲锋在区域中心交错，各留下一道水痕,"Skadi and Specter the Unchained's charges intersect at the center of the area, each leaving a Water Trace",,原文键,模型
-流明提灯照亮区域，其中的敌人受到的伤害提高；艾丽妮随后一刺穿过目标,"Lumen's lantern leaves the area Illuminated, increasing Damage Taken by Enemy within; Irene then pierces through the target",,原文键,模型
-其余深海猎人依次扑向同一个目标；浊心斯卡蒂改为原地吟唱，提高全队攻击,"The other Abyssal Hunters pounce on the same target in sequence; Skadi the Corrupting Heart instead begins Chanting in place, increasing Team ATK",,原文键,模型
+一方瞬身穿过目标，另一方原地挥出剑气，两道刃光在目标处交叉；拉普兰德那一道附带沉默,"One blinks through the target, the other releases a blade wave in place, the two blade lights cross at the target; Lappland's strike inflicts Silence",,原文键,校对
+乌尔比安掷锚钉住目标，把周围的敌人拖过去；斯卡蒂随后一剑砸在钉住的位置,"Ulpianus throws his anchor to pin the target, dragging nearby enemies toward it; Skadi then smashes her sword into the pinned location",,原文键,校对
+歌蕾蒂娅甩钩把外圈的敌人拖进区域，归溟幽灵鲨随即冲进中心横斩,"Gladiia throws her hook to drag outer enemies into the area, and Specter the Unchained immediately dashes into the center for a horizontal slash",,原文键,校对
+歌蕾蒂娅在区域中心卷起漩涡，乌尔比安的锚从高处砸进漩涡中心,"Gladiia creates a vortex in the center of the area, and Ulpianus's anchor smashes into the center of the vortex from above.",,原文键,校对
+斯卡蒂与归溟幽灵鲨的冲锋在区域中心交错，各留下一道水痕,"Skadi and Specter the Unchained's charges intersect at the center of the area, each leaving a water trace",,原文键,校对
+流明提灯照亮区域，其中的敌人受到的伤害提高；艾丽妮随后一刺穿过目标,"Lumen's lantern leaves the area Illuminated, increasing damage taken by enemies within; Irene then pierces through the target",,原文键,校对
+其余深海猎人依次扑向同一个目标；浊心斯卡蒂改为原地吟唱，提高全队攻击,"The other Abyssal Hunters pounce on the same target in sequence; Skadi the Corrupting Heart instead begins chanting in place, increasing squad ATK",,原文键,校对
 技能连携·%s·%s,Skill Link·%s·%s,,原文键,模型
 爆炸剑雨,Explosive Sword Rain,,原文键,模型
 十字斩,Cross Slash,,原文键,模型
@@ -1611,10 +1610,10 @@ Boss 击破,Boss Defeated,,原文键,模型
  与 , and ,,原文键,模型
 威胁上升 · %s —— 新的海嗣浮现,Threat Level Up · %s: New Seaborn emerge,,原文键,模型
 两只精英「%s」同时出现！击败它们有概率获得藏品,Two Elite '%s' appear simultaneously! Defeat them for a chance to Obtain Relic,,原文键,模型
-精英「%s」与「%s」同时出现！击败它们有概率获得藏品,Elite '%s' and '%s' appear simultaneously. Defeat them for a chance to Obtain Relic,,原文键,模型
+精英「%s」与「%s」同时出现！击败它们有概率获得藏品,Elite '%s' and '%s' appear simultaneously! Defeat them for a chance to Obtain Relic,,原文键,校对
 精英「%s」出现！击败它有概率获得藏品,Elite '%s' appears! Defeat it for a chance to Obtain Relic,,原文键,模型
 补给箱,Supply Box,,原文键,模型
-箱形恐鱼！,Chest Seaborn,,原文键,模型
+箱形恐鱼！,Chest Seaborn!,,原文键,校对
 伪装！,Camouflage!,,原文键,模型
 连携终结技·%s,Link Ultimate · %s,,原文键,模型
 终结技·%s,Ultimate · %s,,原文键,模型
@@ -1624,22 +1623,21 @@ Boss 击破,Boss Defeated,,原文键,模型
 消弹,Clear Projectiles,,原文键,模型
 钙质护盾,Calcification Shield,,原文键,模型
 Mon3tr 掩护,Mon3tr Cover,,原文键,模型
-歌声,Song,,原文键,模型
 %s · 终结技,%s · Ultimate,,原文键,模型
 选落点,Select Location,,原文键,模型
 选方向,Select Direction,,原文键,模型
 以自身为中心,Centered on self,,原文键,模型
 按住看范围 · 松手释放,Hold to view Range · Release to cast,,原文键,模型
-按住看范围 · 再按终结技键释放,Hold to view Range · Press Ultimate button again to cast,,原文键,模型
+按住看范围 · 再按终结技键释放,Hold to view Range · Press Ultimate button to cast,,原文键,校对
 按住看范围 · 松开释放,Hold to view Range · Release to cast,,原文键,模型
-按住看范围 · 再按 Q 或左键释放,Hold to see Range · Press Q or Left Click to cast,,原文键,模型
+按住看范围 · 再按 Q 或左键释放,Hold to view Range · Press Q or Left Click to cast,,原文键,校对
 按住看范围 · 松开 Q 释放,Hold to view Range · Release Q to cast,,原文键,模型
-拖动选择 · 再点终结技键释放,Drag to select · Tap Ultimate button again to cast,,原文键,模型
+拖动选择 · 再点终结技键释放,Drag to select · Tap Ultimate button to cast,,原文键,校对
 拖动选择 · 松手释放,Drag to select · Release to cast,,原文键,模型
-摇杆选择 · 再按终结技键释放,Joystick to select · Press Ultimate button again to cast,,原文键,模型
+摇杆选择 · 再按终结技键释放,Joystick to select · Press Ultimate button to cast,,原文键,校对
 摇杆选择 · 松开释放,Joystick to select · Release to cast,,原文键,模型
 鼠标选择 · 再按 Q 或左键释放,Select with mouse · Press Q or Left Click to cast,,原文键,模型
-鼠标选择 · 松开 Q 释放,Select with Mouse · Release Q to cast,,原文键,模型
+鼠标选择 · 松开 Q 释放,Select with mouse · Release Q to cast,,原文键,校对
 冲击,Impact,,原文键,模型
 斩开,Cleave,,原文键,模型
 爆裂弹,Burst Shell,,原文键,模型
@@ -1686,19 +1684,19 @@ Shape:",,原文键,模型
 扩散,Splash,,原文键,模型
 Mon3tr 倒地,Mon3tr downed,,原文键,模型
 Mon3tr 复活,Mon3tr revived,,原文键,模型
-blocks 必须是对象,blocks must be the target,,原文键,模型
+blocks 必须是对象,blocks must be an object,,原文键,校对
 blocks.%s：不认识的段（只能是 zone / attack / trait / skills / talent / progression / summons / follow / hit_fx / look / run_fx / dmg_bonus / response）,blocks.%s: unrecognized segment (must be zone / attack / trait / skills / talent / progression / summons / follow / hit_fx / look / run_fx / dmg_bonus / response),,原文键,模型
 blocks.zone 必须是对象,blocks.zone must be an object,,原文键,模型
 blocks.zone.center 只能是 leader / self,blocks.zone.center can only be leader / self,,原文键,模型
 blocks.attack 必须是一个伤害形状（%s）,blocks.attack must be a damage shape (%s),,原文键,模型
 blocks.skills 必须恰好 3 条（与 skills 一一对应）,blocks.skills must have exactly 3 entries (corresponding 1:1 with skills),,原文键,模型
- 必须是对象, must be the target,,原文键,模型
+ 必须是对象, must be an object,,原文键,校对
 "%s.dur 是 permanent，但 skills[%d] 没写 ""permanent"": true","%s.dur is permanent, but skills[%d] does not have ""permanent"": true",,原文键,模型
 "skills[%d] 是 permanent，%s.dur 也要写 ""permanent""","skills[%d] is permanent, %s.dur must also be ""permanent""",,原文键,模型
 %s.dur 不能为负,%s.dur cannot be negative,,原文键,模型
 %s.%s：技能积木只有 dur / do / fx / aim / aim_r / status / status_col / attack_patch / end 这几个字段,%s.%s: Skill blocks only have dur / do / fx / aim / aim_r / status / status_col / attack_patch / end fields,,原文键,模型
 %s.aim 只能是 leader / nearest / summon:<blocks.summons 里的种类>,%s.aim can only be leader / nearest / summon:<type in blocks.summons>,,原文键,模型
-"%s.attack_patch：落点弹普攻（shape.point_aoe）的 attack_patch 只能配 dur.next_n（{""next_attacks"": N}）","%s.attack_patch: attack_patch for landing point Normal Attack (shape.point_aoe) can only pair with dur.next_n ({\""next_attacks\"": N})",,原文键,模型
+"%s.attack_patch：落点弹普攻（shape.point_aoe）的 attack_patch 只能配 dur.next_n（{""next_attacks"": N}）","%s.attack_patch: attack_patch for landing point Normal Attack (shape.point_aoe) can only pair with dur.next_n ({""next_attacks"": N})",,原文键,校对
 .attack_phases：本干员其他技能的 swap_attack 换上的普攻须是 circle / cone,.attack_phases: Normal Attack swapped by swap_attack of this Operator's Other Skill must be circle / cone,,原文键,模型
 %s.no_gate 必须是 true / false,%s.no_gate must be true / false,,原文键,模型
 %s：推不出自动释放的门槛距离，请写 need_enemy（半径，× op_range）或让技能 / 普攻带 r / range,"%s: cannot infer auto-cast threshold distance, please specify need_enemy (radius, × op_range) or add r / range to Skill / Normal Attack",,原文键,模型
@@ -1727,23 +1725,23 @@ custom 逃生口用了 %d 个（每名干员至多 2 个，docs/61 §6）,"Used 
 %s：技能 do 里不能放「%s」,%s: Cannot put '%s' in Skill do,,原文键,模型
 .center：shape.cone 只能以自身为原点,.center: shape.cone can only use self as origin,,原文键,模型
 %s.center「%s」：summon: 后面应是 blocks.summons 里的种类,%s.center '%s': summon: should be followed by a type in blocks.summons,,原文键,模型
-.center 只能是 zone / self / leader / target / path / front / summon:<种类>,.center must be zone / self / leader / target / path / front / summon:<kind>,,原文键,模型
+.center 只能是 zone / self / leader / target / path / front / summon:<种类>,.center must be zone / self / leader / target / path / front / summon:<type>,,原文键,校对
 .only 必须是非空数组，取值 ,".only must be a non-empty array, values ",,原文键,模型
 .only 只用于 shape.circle,.only is only used for shape.circle,,原文键,模型
 .full 只能是 true / false,.full can only be true / false,,原文键,模型
 .split 只能是 true / false（true = 这一拍在队长与 Mon3tr 间分配）,.split can only be true / false (true = this beat is split between Leader and Mon3tr),,原文键,模型
-.scale 只能是 op（× op_atk × 同伴倍率 × heal_out）,.scale must be op (× op_atk × companion Multiplier × heal_out),,原文键,模型
+.scale 只能是 op（× op_atk × 同伴倍率 × heal_out）,.scale must be op (× op_atk × companion multiplier × heal_out),,原文键,校对
 ：verb.lamp 要写 add / per_sec / loss_mult / decay_mult / radius_mult 之一,: verb.lamp requires at least one of add / per_sec / loss_mult / decay_mult / radius_mult,,原文键,模型
-：verb.lamp 的 add（瞬时）不能和 per_sec / loss_mult（常驻）写在同一块,: add (Instant) of verb.lamp cannot be in the same block as per_sec / loss_mult (Permanent),,原文键,模型
+：verb.lamp 的 add（瞬时）不能和 per_sec / loss_mult（常驻）写在同一块,: add (instant) of verb.lamp cannot be in the same block as per_sec / loss_mult (permanent),,原文键,校对
 %s.stat「%s」只能是 %s 或本干员 stat_defs 里的专属属性,%s.stat '%s' must be %s or an exclusive attribute in this Operator's stat_defs,,原文键,模型
 .op 只能是 add / mult（专属属性还可 flat）,.op can only be add / mult (exclusive attributes can also be flat),,原文键,模型
 ：verb.mode 至少写 dmg_mult / zone_mult / interval_mult / no_attack 之一,: verb.mode requires at least one of dmg_mult / zone_mult / interval_mult / no_attack,,原文键,模型
 %s.scope「%s」只能是 squad / others / in_zone / leader / self / faction:<阵营> / class:<职业>,%s.scope '%s' must be squad / others / in_zone / leader / self / faction:<faction> / class:<class>,,原文键,模型
-%s.per「%s」只能是 faction:<阵营> / class:<职业> / stack:<层数 key> / gn:<成长节点层数 key>,%s.per '%s' must be faction:<faction> / class:<class> / stack:<stack key> / gn:<Growth node stack key>,,原文键,模型
+%s.per「%s」只能是 faction:<阵营> / class:<职业> / stack:<层数 key> / gn:<成长节点层数 key>,%s.per '%s' must be faction:<faction> / class:<class> / stack:<stack key> / gn:<growth node stack key>,,原文键,校对
 .scope：st.slow_soft 目前只支持 in_zone,.scope: st.slow_soft currently only supports in_zone,,原文键,模型
 .replace 只能是 true / false,.replace can only be true / false,,原文键,模型
-.no_combo 只配 replace: true，且是 true / false（这一次出手不接 attack.combo 的连斩）,".no_combo only pairs with replace: true, and is true / false (this attack does not chain into Combo Slash of attack.combo)",,原文键,模型
-.anim 只配 replace: true（换掉的那一次普攻播别的帧条）,.anim only pairs with replace: true (plays a different sprite strip for the replaced Normal Attack),,原文键,模型
+.no_combo 只配 replace: true，且是 true / false（这一次出手不接 attack.combo 的连斩）,".no_combo only pairs with replace: true, and is true / false (this attack does not chain into combo slash of attack.combo)",,原文键,校对
+.anim 只配 replace: true（换掉的那一次普攻播别的帧条）,.anim only pairs with replace: true (plays a different sprite strip for the replaced normal attack),,原文键,校对
 %s.anim「%s」不是 sprites 里的帧条键,%s.anim '%s' is not a frame strip key in sprites,,原文键,模型
 ：replace 的 every_n 不写 delay（就在这一次出手帧执行）,: replace's every_n does not use delay (executes exactly on this attack frame),,原文键,模型
 .vis_anim 只配非 replace 的追加段（replace 用 anim）,.vis_anim is only for non-replace appended segments (replace uses anim),,原文键,模型
@@ -1751,23 +1749,23 @@ custom 逃生口用了 %d 个（每名干员至多 2 个，docs/61 §6）,"Used 
 .countdown 只能是 true / false,.countdown can only be true / false,,原文键,模型
 .filter 只能是 any / elite / boss / zone_ally / marked,.filter can only be any / elite / boss / zone_ally / marked,,原文键,模型
 %s 缺参数 %s,%s missing parameter %s,,原文键,模型
-"%s.%s = %s 超出范围 [%s, %s]","%s.%s = %s out of Range [%s, %s]",,原文键,模型
+"%s.%s = %s 超出范围 [%s, %s]","%s.%s = %s out of range [%s, %s]",,原文键,校对
  缺 src（伤害来源名）, missing src (damage source name),,原文键,模型
 %s.src「%s」没在 hit_sources 里登记,%s.src '%s' is not registered in hit_sources,,原文键,模型
 "应为数字或 ""$key"" 表达式，实际是 %s","Expected a number or ""$key"" expression, actually %s",,原文键,模型
-表达式「%s」除以 0,Expression '%s' Divide by 0,,原文键,模型
+表达式「%s」除以 0,Expression '%s' divided by 0,,原文键,校对
 引用的「$%s」不在 base 里,Referenced '$%s' is not in base,,原文键,模型
 base.%s 不是数字,base.%s is not a number,,原文键,模型
 看不懂的操作数「%s」（只支持数字、$key 和一次 + - * / 运算）,"Unrecognized operand '%s' (only supports numbers, $key, and a single + - * / operation)",,原文键,模型
-skill_active 后面应是技能序号 0–2：「%s」,skill_active should be followed by Skill index 0-2: '%s',,原文键,模型
+skill_active 后面应是技能序号 0–2：「%s」,skill_active should be followed by skill index 0-2: '%s',,原文键,校对
 条件左边只能是 lamp / hp_pct / elite / still / resp_idle / faction:<阵营> / class:<职业>：「%s」,Condition left side must be lamp / hp_pct / elite / still / resp_idle / faction:<faction> / class:<class>: '%s',,原文键,模型
 看不懂的条件「%s」,Unrecognized condition '%s',,原文键,模型
 ：verb.displace 要写 kb（冲量）或 dist（位移距离）其中一个,: verb.displace must include either kb (impulse) or dist (displacement distance),,原文键,模型
-%s：「verb.displace」是瞬时积木，不能放在这里（%s）,%s: 'verb.displace' is an Instant block and cannot be placed here (%s),,原文键,模型
+%s：「verb.displace」是瞬时积木，不能放在这里（%s）,%s: 'verb.displace' is an instant block and cannot be placed here (%s),,原文键,校对
 %s.dir 只能是 %s,%s.dir can only be %s,,原文键,模型
 %s.center 只能是 %s,%s.center can only be %s,,原文键,模型
-%s：常驻力场（verb.field 带 tick）只能放技能 do 或常驻列表（这里是 %s）,%s: Permanent field (verb.field with tick) Can only use skill do or Permanent list (here is %s),,原文键,模型
-：verb.field 写了 tick（常驻力场）就不写 do / dur（瞬时留场）,": if verb.field has tick (Permanent field), do not write do / dur (Instant field)",,原文键,模型
+%s：常驻力场（verb.field 带 tick）只能放技能 do 或常驻列表（这里是 %s）,%s: permanent field (verb.field with tick) can only use skill do or permanent list (here is %s),,原文键,校对
+：verb.field 写了 tick（常驻力场）就不写 do / dur（瞬时留场）,": if verb.field has tick (permanent field), do not write do / dur (instant field)",,原文键,校对
 .center 只能是 leader / self,.center can only be leader / self,,原文键,模型
 .look 只能是 ring / lift / none,.look can only be ring / lift / none,,原文键,模型
 .tick 至少要一个子项（verb.displace / st.*）,.tick requires at least one child item (verb.displace / st.*),,原文键,模型
@@ -1781,7 +1779,7 @@ skill_active 后面应是技能序号 0–2：「%s」,skill_active should be fo
 %s.stat 只能是 %s,%s.stat can only be %s,,原文键,模型
 .op 只能是 add / mult,.op can only be add / mult,,原文键,模型
 .first_only 只能是 true / false,.first_only can only be true / false,,原文键,模型
-" 必须是对象 {min_d, t, cd, mult, r}"," must be the target {min_d, t, cd, mult, r}",,原文键,模型
+" 必须是对象 {min_d, t, cd, mult, r}"," must be an object {min_d, t, cd, mult, r}",,原文键,校对
 %s.%s：扑击只有 min_d / t / cd / mult / r / fx,%s.%s: pounce only has min_d / t / cd / mult / r / fx,,原文键,模型
 %s：「%s」不能放在这里（%s；只能在 %s）,%s: '%s' cannot be placed here (%s; can only be in %s),,原文键,模型
  缺 key（叠层的名字）, missing key (stack name),,原文键,模型
@@ -1809,33 +1807,33 @@ skill_active 后面应是技能序号 0–2：「%s」,skill_active should be fo
 .head 必须是 proj_* 帧条名（钩头贴图）,.head must be a proj_* frame strip name (hook head texture),,原文键,模型
 .thin_chain 应是 true / false,.thin_chain should be true / false,,原文键,模型
 .push_out 应是 true / false,.push_out should be true / false,,原文键,模型
-.pull_cc 应是 true / false（拖回的敌人打断 + 眩晕 + 沉默，乌尔比安）,".pull_cc should be true / false (interrupt + Stun + silence dragged Enemy, Ulpianus)",,原文键,模型
+.pull_cc 应是 true / false（拖回的敌人打断 + 眩晕 + 沉默，乌尔比安）,".pull_cc should be true / false (interrupt + Stun + Silence dragged enemy, Ulpianus)",,原文键,校对
 .heavy_half 应是 true / false（当队长时精英与自爆怪只拖半程，歌蕾蒂娅）,".heavy_half should be true / false (when Leader, Elite and exploding enemies are dragged half distance, Gladiia)",,原文键,模型
 .drag_only 只能是 all / ranged（只拖回远程怪）,.drag_only can only be all / ranged (only drags back Ranged enemies),,原文键,模型
 %s.back_src「%s」没在 hit_sources 里登记,%s.back_src '%s' is not registered in hit_sources,,原文键,模型
 .stages 必须是 0–4 段的数组,.stages must be an array of 0-4 segments,,原文键,模型
-" 必须是对象 {cond, mult}"," must be the target {cond, mult}",,原文键,模型
+" 必须是对象 {cond, mult}"," must be an object {cond, mult}",,原文键,校对
 %s.%s：一段只有 cond / mult / on_first,%s.%s: a segment only has cond / mult / on_first,,原文键,模型
 .cond 看不懂,Unrecognized .cond,,原文键,模型
 ".pursue 必须是对象 {cond, cd, mult, r, src}",".pursue must be an object {cond, cd, mult, r, src}",,原文键,模型
-".finisher 必须是对象 {cond, every, anim, do, volley}",".finisher must be the target {cond, every, anim, do, volley}",,原文键,模型
+".finisher 必须是对象 {cond, every, anim, do, volley}",".finisher must be an object {cond, every, anim, do, volley}",,原文键,校对
 %s.finisher.anim「%s」不是 sprites 里的帧条键,%s.finisher.anim '%s' is not a frame strip key in sprites,,原文键,模型
 .aim 只能是 nearest / thrust,.aim can only be nearest / thrust,,原文键,模型
 .order 只能是 near,.order can only be near,,原文键,模型
 ".origin_off 必须是 [x, y]",".origin_off must be [x, y]",,原文键,模型
 ".cannon 必须是对象 {mult, power, r, src}",".cannon must be an object {mult, power, r, src}",,原文键,模型
 .center 只能是 self / leader（响应动作：没有命中点时的中心）,.center must be self / leader (response action: center when there is no hit point),,原文键,模型
-%s.%s 必须是对象,%s.%s must be the target,,原文键,模型
+%s.%s 必须是对象,%s.%s must be an object,,原文键,校对
 "：shape.lantern 要写 heal {every, pct} 与 bolt {atk_key, speed, src}",": shape.lantern requires heal {every, pct} and bolt {atk_key, speed, src}",,原文键,模型
-.beam 必须是对象,.beam must be the target,,原文键,模型
+.beam 必须是对象,.beam must be an object,,原文键,校对
 .tentacle 必须是对象,.tentacle must be an object,,原文键,模型
 .full_circle 必须有合法 cond 条件,.full_circle must have a valid cond condition,,原文键,模型
-.jelly 必须是对象,.jelly must be the target,,原文键,模型
+.jelly 必须是对象,.jelly must be an object,,原文键,校对
 "%s.%s 必须是 [{cond, mult}] 数组","%s.%s must be an array of [{cond, mult}]",,原文键,模型
 .heavy 必须是带 cond 的对象,.heavy must be an object with cond,,原文键,模型
 %s.heavy.anim「%s」不是 sprites 里的帧条键,%s.heavy.anim '%s' is not a sprite strip key in sprites,,原文键,模型
 .from 只能是 self / leader,.from can only be self / leader,,原文键,模型
-".merge 必须是对象 {cond, every, all, mult, spd, life, r}",".merge must be the target {cond, every, all, mult, spd, life, r}",,原文键,模型
+".merge 必须是对象 {cond, every, all, mult, spd, life, r}",".merge must be an object {cond, every, all, mult, spd, life, r}",,原文键,校对
 ".tip 必须是 [x, y]",".tip must be [x, y]",,原文键,模型
 %s.%s 必须是数组,%s.%s must be an array,,原文键,模型
 %s.%s「%s」没在 hit_sources 里登记,%s.%s '%s' is not registered in hit_sources,,原文键,模型
@@ -1845,8 +1843,8 @@ skill_active 后面应是技能序号 0–2：「%s」,skill_active should be fo
 Mon3tr · 清创,Mon3tr · Debridement,,原文键,模型
 封印免疫,Seal Immunity,,原文键,模型
 ·盾,· Shield,,原文键,模型
-护盾 -%d,Objective Shield -%d,,原文键,模型
-护盾 %d,Objective Shield %d,,原文键,模型
+护盾 -%d,Shield -%d,,原文键,校对
+护盾 %d,Shield %d,,原文键,校对
 blocks.summons 必须是对象（种类名 → 定义）,blocks.summons must be an object (type name -> definition),,原文键,模型
 ：种类名只能是字母 / 数字 / 下划线（不以数字开头）,: kind name can only contain letters / numbers / underscores (cannot start with a number),,原文键,模型
 %s.%s：召唤物定义不认识的字段（只能是 %s）,%s.%s: unrecognized field in summon definition (can only be %s),,原文键,模型
@@ -1857,7 +1855,7 @@ blocks.summons 必须是对象（种类名 → 定义）,blocks.summons must be 
 ".life 只能是秒数、""skill"" 或 ""permanent""",".life can only be seconds, ""skill"", or ""permanent""",,原文键,模型
 .enemy_target 只能是 ignore（缺省：敌人不理召唤物）/ decoy（诱饵：近战杂兵改追它、贴身时它挨打）,".enemy_target can only be ignore (default: Enemy ignores summon) / decoy (decoy: Melee mobs chase it instead, takes hits when close)",,原文键,模型
 ".col 必须是 3 个数字 [r, g, b]",".col must be 3 numbers [r, g, b]",,原文键,模型
-.move 必须是对象（mode / speed / anchor / leash / orbit_r / orbit_speed / target）,.move must be the target (mode / speed / anchor / leash / orbit_r / orbit_speed / target),,原文键,模型
+.move 必须是对象（mode / speed / anchor / leash / orbit_r / orbit_speed / target）,.move must be an object (mode / speed / anchor / leash / orbit_r / orbit_speed / target),,原文键,校对
 %s.move.%s：不认识的字段（只能是 %s）,%s.move.%s: unrecognized field (can only be %s),,原文键,模型
 %s.move.mode 只能是 %s,%s.move.mode can only be %s,,原文键,模型
 .move.anchor 只能是 leader / self,.move.anchor can only be leader / self,,原文键,模型
@@ -1865,7 +1863,7 @@ blocks.summons 必须是对象（种类名 → 定义）,blocks.summons must be 
 .attack 必须是一个伤害形状（shape.circle / shape.cone / shape.line）,.attack must be a damage shape (shape.circle / shape.cone / shape.line),,原文键,模型
 .attack.center：召唤物的圆形判定只能以自身（self）或目标（target）为心,.attack.center: Circular hitbox of summon can only be centered on self or target,,原文键,模型
 %s.%s：不能再召唤（免得召唤物连环生成）,%s.%s: Cannot summon again (to prevent infinite summon loops),,原文键,模型
-.body 必须是对象,.body must be the target,,原文键,模型
+.body 必须是对象,.body must be an object,,原文键,校对
 %s.body.%s：不认识的字段（只能是 %s）,%s.body.%s: unrecognized field (can only be %s),,原文键,模型
 .body.strip 必须是帧条名（fx_* / proj_* / op_* / ally_*）；缺图时画程序体,.body.strip must be a strip name (fx_* / proj_* / op_* / ally_*); draws procedural body if missing,,原文键,模型
 .body.flip 只能是 true / false,.body.flip can only be true / false,,原文键,模型
@@ -1881,7 +1879,7 @@ blocks.summons 必须是对象（种类名 → 定义）,blocks.summons must be 
 ：verb.summon_mod 至少写 dmg / aspd / reach / arc / speed / then / mirror / lunge 之一,: verb.summon_mod requires at least one of dmg / aspd / reach / arc / speed / then / mirror / lunge,,原文键,模型
 %s.%s：verb.summon_mod 不认识的字段,%s.%s: unrecognized field in verb.summon_mod,,原文键,模型
 %s.%s：verb.guard 不认识的字段（只能是 %s）,%s.%s: verb.guard unrecognized field (must be %s),,原文键,模型
-.look 必须是对象,.look must be the target,,原文键,模型
+.look 必须是对象,.look must be an object,,原文键,校对
 %s.look.%s：不认识的字段（只能是 %s）,%s.look.%s: unrecognized field (can only be %s),,原文键,模型
 %s.what 必须是非空数组，取值 %s,"%s.what must be a non-empty array, values %s",,原文键,模型
 %s.move.%s 只用于 mode = escort,%s.move.%s is only used for mode = escort,,原文键,模型
@@ -1894,28 +1892,28 @@ blocks.summons 必须是对象（种类名 → 定义）,blocks.summons must be 
 .manual 只用于 mode = escort,.manual is only used for mode = escort,,原文键,模型
 .status 只能是 true / false（false = 状态条不显示在场数）,.status can only be true / false (false = status bar does not show on-field count),,原文键,模型
 ".float 必须是对象 {h, amp, hz}",".float must be an object {h, amp, hz}",,原文键,模型
-.anim 必须是对象，至少有 idle,".anim must be the target, with at least idle",,原文键,模型
-%s.anim.%s：只能是 idle / run / attack / lunge / leap,%s.anim.%s: Can only be idle / run / attack / lunge / leap,,原文键,模型
+.anim 必须是对象，至少有 idle,".anim must be an object, with at least idle",,原文键,校对
+%s.anim.%s：只能是 idle / run / attack / lunge / leap,%s.anim.%s: can only be idle / run / attack / lunge / leap,,原文键,校对
 %s.anim.%s「%s」不是本干员 sprites 里的帧条,%s.anim.%s '%s' is not a sprite strip in this Operator's sprites,,原文键,模型
 .patch 必须是数组（≤ 6 条）,.patch must be an array (≤ 6 items),,原文键,模型
-%s.%s：不认识的字段（只能是 %s）,%s.%s: Unrecognized field (can only be %s),,原文键,模型
+%s.%s：不认识的字段（只能是 %s）,%s.%s: unrecognized field (can only be %s),,原文键,校对
  缺 cond（什么时候生效）, missing cond (when it takes effect),,原文键,模型
-.seq.strip 必须是本干员 sprites 里的帧条,.seq.strip must be an anim strip in this Operator's sprites,,原文键,模型
+.seq.strip 必须是本干员 sprites 里的帧条,.seq.strip must be a sprite strip in this Operator's sprites,,原文键,校对
 ".seq.loop 必须是 [首帧, 末帧]",".seq.loop must be [first_frame, last_frame]",,原文键,模型
 %s：程序 fx 条目恰好写一种（%s），这里有 %d 种,"%s: procedural fx entry must be exactly one kind (%s), found %d kinds here",,原文键,模型
-%s.%s：程序 fx 条目不认识的字段,%s.%s: Unrecognized field in procedural fx entry,,原文键,模型
+%s.%s：程序 fx 条目不认识的字段,%s.%s: unrecognized field in procedural fx entry,,原文键,校对
 %s.%s 只能写在召唤物种类的 fx 里,%s.%s can only be written in the fx of a summon type,,原文键,模型
 .every 只能写在常驻积木 / 召唤物种类上,.every can only be written on Permanent blocks / summon types,,原文键,模型
 %s.%s 必须是粒子模板对象,%s.%s must be a particle template object,,原文键,模型
 %s.%s.kind 只能是 %s,%s.%s.kind can only be %s,,原文键,模型
 "%s.%s.%s：[lo, hi] 要 lo ≤ hi","%s.%s.%s: [lo, hi] requires lo <= hi",,原文键,模型
 ".sprite 必须是 V6_FRAMES 里的 fx_* 帧条（字符串，或 {name, fit, scale, rot…}）",".sprite must be an fx_* strip in V6_FRAMES (string, or {name, fit, scale, rot…})",,原文键,模型
-%s.sprite.%s：不认识的字段（只能是 name / %s）,%s.sprite.%s: Unrecognized field (can only be name / %s),,原文键,模型
+%s.sprite.%s：不认识的字段（只能是 name / %s）,%s.sprite.%s: unrecognized field (can only be name / %s),,原文键,校对
 ".text 必须是字符串或 {s, col, size}",".text must be a string or {s, col, size}",,原文键,模型
 blocks.attack.%s：shape.support 只有 every / first / when / do,blocks.attack.%s: shape.support only has every / first / when / do,,原文键,模型
 blocks.attack.when 看不懂（条件串，§1.3）,"blocks.attack.when unrecognized (condition string, §1.3)",,原文键,模型
 .vortex 必须是对象（参数见 docs/61 §5.6 漩涡表）,".vortex must be an object (for parameters, see docs/61 §5.6 Vortex table)",,原文键,模型
-%s.vortex.%s：不认识的漩涡参数（只能是 %s）,%s.vortex.%s: unrecognized Vortex parameter (can only be %s),,原文键,模型
+%s.vortex.%s：不认识的漩涡参数（只能是 %s）,%s.vortex.%s: unrecognized vortex parameter (can only be %s),,原文键,校对
 %s.vortex.%s 必须是 3 个数字的数组,%s.vortex.%s must be an array of 3 numbers,,原文键,模型
  必须是数组（fx 条目列表）, must be an array (fx entry list),,原文键,模型
 %s：一块积木至多 16 个 fx 条目，这里有 %d 个,"%s: a block can have at most 16 fx entries, found %d here",,原文键,模型
@@ -1936,37 +1934,37 @@ blocks.attack.when 看不懂（条件串，§1.3）,"blocks.attack.when unrecogn
 .every：瞬时积木 / 技能发动只播一次，every 只能写在常驻积木上,".every: Instant blocks / Skill Activations only play once, every can only be written on Permanent blocks",,原文键,模型
 .hold 必须是 true / false,.hold must be true / false,,原文键,模型
 .hold：vortex 本来就跟着积木常驻，不写 hold,".hold: vortex is already Permanent with the block, do not write hold",,原文键,模型
-.hold 是常驻跟随帧条，只能挂在常驻积木上（技能 do 里的常驻积木、光环等）,".hold is a Permanent follow strip, can only be attached to Permanent blocks (Permanent blocks in Skill do, auras, etc.)",,原文键,模型
+.hold 是常驻跟随帧条，只能挂在常驻积木上（技能 do 里的常驻积木、光环等）,".hold is a Permanent follow frame strip, can only be attached to Permanent blocks (Permanent blocks in Skill do, auras, etc.)",,原文键,校对
 %s.layer：hold 帧条只能是 %s,%s.layer: hold frame strip can only be %s,,原文键,模型
-.at：hold 帧条只能是 zone / self / leader / members,.at: hold strip can only be zone / self / leader / members,,原文键,模型
+.at：hold 帧条只能是 zone / self / leader / members,.at: hold frame strip can only be zone / self / leader / members,,原文键,校对
 .at = members（光环受益者）只能挂在 aura.* 上,.at = members (aura beneficiaries) can only be attached to aura.*,,原文键,模型
 %s.%s：hold 帧条跟着积木生效循环，不写这个字段,"%s.%s: hold frame strip loops with block activation, do not write this field",,原文键,模型
-.layer = ground 只给常驻跟随帧条（hold: true）用,.layer = ground is only for Permanent following sprite strips (hold: true),,原文键,模型
-.fade 只用于常驻跟随条目（贴身层 / vortex / hold 帧条）,.fade is only used for Permanent following entries (body layer / vortex / hold sprite strips),,原文键,模型
-.fade 超出范围（0–5 秒）,.fade out of Range (0-5s),,原文键,模型
+.layer = ground 只给常驻跟随帧条（hold: true）用,.layer = ground is only for Permanent following frame strips (hold: true),,原文键,校对
+.fade 只用于常驻跟随条目（贴身层 / vortex / hold 帧条）,.fade is only used for Permanent following entries (close layer / vortex / hold frame strips),,原文键,校对
+.fade 超出范围（0–5 秒）,.fade out of range (0–5s),,原文键,校对
 ".fade 必须是秒数，或 [淡入, 淡出] 两个秒数",".fade must be seconds, or [fade in, fade out] as two durations in seconds",,原文键,模型
 .if_tex 必须是帧条名（fx_* / proj_*），前面加 ! 表示缺这条贴图时才画,".if_tex must be a strip name (fx_* / proj_*), prefix with ! to draw only when this texture is missing",,原文键,模型
 %s.ease 只能是 %s（grow / grow0 / grow_to / wake 要配 ease）,%s.ease can only be %s (grow / grow0 / grow_to / wake require ease),,原文键,模型
-.ease：扩散缓动只给一次性帧条用（不写 hold / life / vortex，不放贴身层）,".ease: Splash easing is only for one-time frame bars (do not write hold / life / vortex, do not put in melee layer)",,原文键,模型
-.grow_to 只能是 zone（扩到区域半径、跟着区域走）/ summon:<带 zone 的召唤物种类>,".grow_to can only be zone (expand to Area Radius, follow zone) / summon:<summon type with zone>",,原文键,模型
+.ease：扩散缓动只给一次性帧条用（不写 hold / life / vortex，不放贴身层）,".ease: splash easing is only for one-time frame strips (do not write hold / life / vortex, do not put in close layer)",,原文键,校对
+.grow_to 只能是 zone（扩到区域半径、跟着区域走）/ summon:<带 zone 的召唤物种类>,".grow_to can only be zone (expand to area radius, follow zone) / summon:<summon type with zone>",,原文键,校对
 .play 只能是 fps（帧号按帧条 fps 播）,.play can only be fps (frame number plays according to frame strip fps),,原文键,模型
 ".wake 必须是对象 {n, w, a, lag, sy, col}",".wake must be an object {n, w, a, lag, sy, col}",,原文键,模型
 ".wake.col 必须是 3 个数字 [r, g, b]",".wake.col must be 3 numbers [r, g, b]",,原文键,模型
-%s.wake.%s：不认识的参数（只能是 n / w / a / lag / sy / col）,%s.wake.%s: Unrecognized parameter (can only be n / w / a / lag / sy / col),,原文键,模型
-%s.wake.%s 超出范围（%s–%s）,%s.wake.%s out of Range (%s–%s),,原文键,模型
-.play 要配 ease（只用于扩散缓动条目）,.play must be paired with ease (only for Splash easing entries),,原文键,模型
+%s.wake.%s：不认识的参数（只能是 n / w / a / lag / sy / col）,%s.wake.%s: unrecognized parameter (can only be n / w / a / lag / sy / col),,原文键,校对
+%s.wake.%s 超出范围（%s–%s）,%s.wake.%s out of range (%s–%s),,原文键,校对
+.play 要配 ease（只用于扩散缓动条目）,.play must be paired with ease (only for splash easing entries),,原文键,校对
 .xfade 只给一次性帧条用（常驻条目的 cond 切换另有淡入淡出）,.xfade is only for one-time frame strips (cond switching of Permanent entries has its own crossfade),,原文键,模型
 .xfade 要配 cond（按 cond 的真假交叉淡入淡出）,.xfade requires cond (crossfade based on cond true/false),,原文键,模型
 %s.%s 只能是 true / false,%s.%s can only be true / false,,原文键,模型
 ：delay / stay 只给一次性帧条用,: delay / stay are only for one-time frame strips,,原文键,模型
 .stay：循环帧条（写了 life）不停在末帧,.stay: looping frame strip (with life written) does not stop at the last frame,,原文键,模型
-.flash 只能是 fire，且只给常驻跟随帧条（hold）用,".flash can only be fire, and only used for Permanent follow sprite strips (hold)",,原文键,模型
+.flash 只能是 fire，且只给常驻跟随帧条（hold）用,".flash can only be fire, and only used for Permanent follow frame strips (hold)",,原文键,校对
 .at = mate 只能挂在 trig.on_mate_attack 上,.at = mate can only be attached to trig.on_mate_attack,,原文键,模型
-.at = members 只给常驻跟随帧条（hold）用,.at = members is only for Permanent follow anim strips (hold),,原文键,模型
+.at = members 只给常驻跟随帧条（hold）用,.at = members is only for Permanent follow frame strips (hold),,原文键,校对
 %s.%s 必须是 %d%s 个数字的数组,%s.%s must be an array of %d%s numbers,,原文键,模型
 .to 只能是 guard / roam / recall / gathered,.to must be guard / roam / recall / gathered,,原文键,模型
 blocks.response 必须是数组,blocks.response must be an array,,原文键,模型
-：响应只能用 on_leader_dash / on_leader_skill / on_stance / on_leader_still，或带 still 条件的 passive,": Response can only use on_leader_dash / on_leader_skill / on_stance / on_leader_still, or passive with still condition",,原文键,模型
+：响应只能用 on_leader_dash / on_leader_skill / on_stance / on_leader_still，或带 still 条件的 passive,": response can only use on_leader_dash / on_leader_skill / on_stance / on_leader_still, or passive with still condition",,原文键,校对
 .at 只能是 start / end,.at can only be start / end,,原文键,模型
 .hint 须是至多 6 个字的短名,.hint must be a short name of at most 6 characters,,原文键,模型
 %s：「%s」不能放在这里（只能在 %s）,%s: '%s' cannot be placed here (only in %s),,原文键,模型
@@ -1974,7 +1972,7 @@ blocks.response 必须是数组,blocks.response must be an array,,原文键,模�
 ".muzzle 应是 [x, y]（脚底为原点、朝右，@2x 像素）",".muzzle should be [x, y] (origin at feet, facing right, @2x pixels)",,原文键,模型
 .dur：permanent 技能不能写 next_attacks,.dur: permanent Skill cannot use next_attacks,,原文键,模型
 %s.dur.%s：dur 对象只支持 next_attacks,%s.dur.%s: dur object only supports next_attacks,,原文键,模型
-.attack_patch 必须是对象,.attack_patch must be the target,,原文键,模型
+.attack_patch 必须是对象,.attack_patch must be an object,,原文键,校对
 %s.attack_patch.%s：只支持 mult / r_mult / force_mult / src / on_hit / power / aoe_mult / on_explode / on_first / first_fx / then_first / kb / burst / swarm,%s.attack_patch.%s: only supports mult / r_mult / force_mult / src / on_hit / power / aoe_mult / on_explode / on_first / first_fx / then_first / kb / burst / swarm,,原文键,模型
 .attack_patch.anim 必须指向已定义的帧条,.attack_patch.anim must point to a defined anim strip,,原文键,模型
 过热,Overheat,,原文键,模型
@@ -1995,7 +1993,7 @@ blocks.response 必须是数组,blocks.response must be an array,,原文键,模�
 "%s.%s 必须是 [x, y]","%s.%s must be [x, y]",,原文键,模型
 ".aoe_mults 的每一条是 {cond, mult}","Each entry in .aoe_mults is {cond, mult}",,原文键,模型
 ".follow 的每一条是 {cond, n, gap, mult, aoe_mult, sz}","Each entry in .follow is {cond, n, gap, mult, aoe_mult, sz}",,原文键,模型
-".lob 必须是对象 {n, mults, gap, spacing, flight, apex, tex, boom_fx, pool}",".lob must be the target {n, mults, gap, spacing, flight, apex, tex, boom_fx, pool}",,原文键,模型
+".lob 必须是对象 {n, mults, gap, spacing, flight, apex, tex, boom_fx, pool}",".lob must be an object {n, mults, gap, spacing, flight, apex, tex, boom_fx, pool}",,原文键,校对
 .lob.mults 必须是数字数组（第 k 发的倍率）,.lob.mults must be an array of numbers (Multiplier for the k-th shot),,原文键,模型
 .lob.tex 必须是 proj_* 帧条名,.lob.tex must be a proj_* frame strip name,,原文键,模型
 .origin 只能是 self / target,.origin can only be self / target,,原文键,模型
@@ -2005,15 +2003,15 @@ blocks.response 必须是数组,blocks.response must be an array,,原文键,模�
 .kind 只能是 arts（不写 = 受到的全部伤害 +10%）,.kind can only be arts (omitted = all Damage Taken +10%),,原文键,模型
 .look 只能是 lava / pool / rune,.look can only be lava / pool / rune,,原文键,模型
 .cast 只能是 instant,.cast can only be instant,,原文键,模型
-".pulse 必须是对象 {r, pad, jit, delay, fx, do}",".pulse must be the target {r, pad, jit, delay, fx, do}",,原文键,模型
-.pulse.projectile 必须是对象,.pulse.projectile must be the target,,原文键,模型
+".pulse 必须是对象 {r, pad, jit, delay, fx, do}",".pulse must be an object {r, pad, jit, delay, fx, do}",,原文键,校对
+.pulse.projectile 必须是对象,.pulse.projectile must be an object,,原文键,校对
 ".pulse.projectile.tip 必须是 [x, y]",".pulse.projectile.tip must be [x, y]",,原文键,模型
 .pulse.projectile.min_flight 不能大于 max_flight,.pulse.projectile.min_flight cannot be greater than max_flight,,原文键,模型
 .pulse 要配 dur.pulses,.pulse must be paired with dur.pulses,,原文键,模型
 倒钩 ×%d,Barb ×%d,,原文键,模型
 瞬时,Instant,,原文键,模型
 常驻,Permanent,,原文键,模型
-只能放技能 do,Can only use skill do,,原文键,模型
+只能放技能 do,Can only place skill do,,原文键,校对
 触发积木,Trigger Block,,原文键,模型
 %s：「%s」（%s）不能放在这里（%s）,%s: '%s' (%s) cannot be placed here (%s),,原文键,模型
 ：verb.negate_chance 要写 add / mult 之一,: verb.negate_chance must be either add / mult,,原文键,模型
@@ -2023,7 +2021,7 @@ blocks.response 必须是数组,blocks.response must be an array,,原文键,模�
 消除弹幕 ×%d,Clear projectiles ×%d,,原文键,模型
 .pick 只能是 aim / random,.pick can only be aim / random,,原文键,模型
 ：要写 then（命中后执行的积木），或 then_of: attack（用普攻那块的）,": must write then (block executed after Hit), or then_of: attack (uses the Normal Attack block)",,原文键,模型
-".splash 必须是对象 {r, mult}",".splash must be the target {r, mult}",,原文键,模型
+".splash 必须是对象 {r, mult}",".splash must be an object {r, mult}",,原文键,校对
 伞击伤害,Umbrella Strike Damage,,原文键,模型
 全局伤害,Global Damage,,原文键,模型
 挥伞间隔,Umbrella Swing Interval,,原文键,模型
@@ -2034,14 +2032,14 @@ blocks.response 必须是数组,blocks.response must be an array,,原文键,模�
 追击目标,Follow-Up Target,,原文键,模型
 技力回复,SP Recovery,,原文键,暂定
 净化 · ,Cleanse · ,,原文键,模型
-"blocks.follow 必须是对象 {leash, gap}","blocks.follow must be the target {leash, gap}",,原文键,模型
+"blocks.follow 必须是对象 {leash, gap}","blocks.follow must be an object {leash, gap}",,原文键,校对
 "blocks.follow.side 必须是 [x, y]","blocks.follow.side must be [x, y]",,原文键,模型
 "blocks.run_fx 必须是 {every, fx: [条目…]}","blocks.run_fx must be {every, fx: [entries...]}",,原文键,模型
 blocks.attack.far 必须是一个伤害形状对象（shape.wave / circle / cone）或这样的数组，远处的这一下替代近战普攻,"blocks.attack.far must be a damage shape object (shape.wave / circle / cone) or an array of such, this distant hit replaces Melee Normal Attack",,原文键,模型
 blocks.attack.far.anim 必须是帧条名,blocks.attack.far.anim must be an anim strip name,,原文键,模型
 blocks.attack.far.count 必须是 true / false,blocks.attack.far.count must be true / false,,原文键,模型
 blocks.attack.combo 必须是 1–6 段的数组,blocks.attack.combo must be an array of 1-6 segments,,原文键,模型
-" 必须是对象 {cond, delay, do}"," must be the target {cond, delay, do}",,原文键,模型
+" 必须是对象 {cond, delay, do}"," must be an object {cond, delay, do}",,原文键,校对
 %s.%s：连斩一段只有 cond / delay / do,%s.%s: Combo Slash phase 1 only has cond / delay / do,,原文键,模型
 ：写了 basis（按已算好的伤害取百分比）就不写 power / atk_key,": if basis is written (takes a percentage of calculated damage), do not write power / atk_key",,原文键,模型
 .aim_mult 要配 aim_r,.aim_mult needs aim_r,,原文键,模型
@@ -2068,13 +2066,13 @@ blocks.attack.combo 必须是 1–6 段的数组,blocks.attack.combo must be an 
 ".zone 必须是对象 {r, share, mode, look}",".zone must be an object {r, share, mode, look}",,原文键,模型
 %s.zone.%s：不认识的字段（只能是 r / share / mode / look）,%s.zone.%s: Unrecognized field (can only be r / share / mode / look),,原文键,模型
 .zone.mode 只能是 true / false（false = 不算 verb.mode 的 zone_mult）,.zone.mode can only be true / false (false = excludes zone_mult of verb.mode),,原文键,模型
-".zone.look 必须是对象 {strip, fit, scale, max_scale, tint, ring, fade}",".zone.look must be the target {strip, fit, scale, max_scale, tint, ring, fade}",,原文键,模型
+".zone.look 必须是对象 {strip, fit, scale, max_scale, tint, ring, fade}",".zone.look must be an object {strip, fit, scale, max_scale, tint, ring, fade}",,原文键,校对
 %s.zone.look.%s：不认识的字段（只能是 %s）,%s.zone.look.%s: unrecognized field (can only be %s),,原文键,模型
 .zone.look.strip 必须是 fx_* 帧条名（V6_FRAMES 里登记）,.zone.look.strip must be an fx_* strip name (registered in V6_FRAMES),,原文键,模型
 .zone.look.tint 必须是 3–4 个数字,.zone.look.tint must be 3-4 numbers,,原文键,模型
 ".band 必须是 [内, 外]（半径的比例，只用于 shape.circle）",".band must be [inner, outer] (radius ratio, only used for shape.circle)",,原文键,模型
 .band 要满足 0 ≤ 内 < 外 ≤ 1,.band must satisfy 0 ≤ inner < outer ≤ 1,,原文键,模型
-.among 只能是 attack（只打本干员上一次普攻命中的敌人；只用于 shape.circle）,.among can only be attack (only hits Enemy Hit by this Operator's last Normal Attack; only used for shape.circle),,原文键,模型
+.among 只能是 attack（只打本干员上一次普攻命中的敌人；只用于 shape.circle）,.among can only be attack (only hits enemies hit by this Operator's last Normal Attack; only used for shape.circle),,原文键,校对
 ：band / among 不和 only 同用,: band / among cannot be used with only,,原文键,模型
 ：center: summon:<种类> 配 r: zone 时，这种召唤物要写 zone（召唤物自带区域）,": When center: summon:<type> is paired with r: zone, this summon must have zone (summon's own area)",,原文键,模型
 锯鸣·震地,Saw Roar · Earthshatter,,原文键,模型
@@ -2110,7 +2108,7 @@ blocks.attack.combo 必须是 1–6 段的数组,blocks.attack.combo must be an 
 附近没有敌人,No enemies nearby,,原文键,模型
 .mode 只能是 reel / zip,.mode can only be reel / zip,,原文键,模型
 .pick 只能是 elite / densest,.pick can only be elite / densest,,原文键,模型
-.pull_cc 应是 true / false（拖回的敌人打断 + 眩晕 + 沉默）,.pull_cc should be true / false (dragged Enemy is interrupted + Stun + silenced),,原文键,模型
+.pull_cc 应是 true / false（拖回的敌人打断 + 眩晕 + 沉默）,.pull_cc should be true / false (dragged Enemy is Interrupted + Stunned + Silenced),,原文键,校对
  缺 key, missing key,,原文键,模型
 连发,Burst,,原文键,模型
 ；攻击范围 +%d%%,; Attack Range +%d%%,,原文键,模型
@@ -2155,7 +2153,7 @@ Condition: %s (Met)",,原文键,模型
 召唤驻场  SUMMON,Persistent Summon  SUMMON,,原文键,模型
 控场引爆  CONTROL,CC Detonation  CONTROL,,原文键,模型
 弱点收割  WEAK,Weakness Harvest  WEAK,,原文键,模型
-护盾反击  SHIELD,Objective Shield Counter  SHIELD,,原文键,模型
+护盾反击  SHIELD,Shield Counter  SHIELD,,原文键,校对
 成长,Growth,,原文键,模型
 博士,Doctor,,原文键,模型
 已被抑制,Suppressed,,原文键,模型
@@ -2170,8 +2168,8 @@ Condition: %s (Met)",,原文键,模型
 闪避 %d%% → %d%%,Dodge %d%% → %d%%,,原文键,模型
 移动速度 %d → %d,movement speed %d → %d,,原文键,模型
 拾取范围 %d → %d,Pickup Range %d → %d,,原文键,模型
-受击灯火损失 ×%.2f → ×%.2f,Attacked Light loss ×%.2f → ×%.2f,,原文键,模型
-冲刺冷却 %.2f → %.2f 秒,Dash cooldown %.2f → %.2fs,,原文键,模型
+受击灯火损失 ×%.2f → ×%.2f,Light loss when attacked ×%.2f → ×%.2f,,原文键,校对
+冲刺冷却 %.2f → %.2f 秒,Dash cooldown %.2f → %.2f s,,原文键,校对
 冲刺距离 %d → %d,Dash distance %d → %d,,原文键,模型
 可储存次数 %d → %d,Charges %d → %d,,原文键,模型
 技力回复 ×%.2f → ×%.2f,SP Recovery ×%.2f → ×%.2f,,原文键,模型
@@ -2195,11 +2193,11 @@ V9 %s 有逐帧定位点，但 sprites.draw_scale ≠ 1（定位点换算按整�
 V8 %s 引用的帧条「%s」不在 sprites（须是带 tex 的槽）,V8 %s referenced sprite strip '%s' is not in sprites (must be a slot with tex),,原文键,模型
 V8 %s 引用的帧条「%s」没列进 extra_sprites,V8 %s referenced sprite strip '%s' is not listed in extra_sprites,,原文键,模型
 "V2 sprites.foot 须是 [x, y]","V2 sprites.foot must be [x, y]",,原文键,模型
-V2 sprites.size 须是 64（现行）或 48（旧口径），其他画布写 sprites.foot_exempt 说明,"V2 sprites.size must be 64 (current) or 48 (legacy), Other canvases require sprites.foot_exempt explanation",,原文键,模型
+V2 sprites.size 须是 64（现行）或 48（旧口径），其他画布写 sprites.foot_exempt 说明,"V2 sprites.size must be 64 (current) or 48 (legacy), other canvases require sprites.foot_exempt explanation",,原文键,校对
 V2 48 画布的 sprites.foot 脚底行须是 46,V2 48 canvas sprites.foot bottom row must be 46,,原文键,模型
 "V2 64 画布的 sprites.foot 须是 [32, 60]（小数原点写 sprites.foot_exempt 说明）","V2 64 canvas sprites.foot must be [32, 60] (fractional origins require sprites.foot_exempt explanation)",,原文键,模型
 "V2 sprites.%s.foot 须是 [x, y]","V2 sprites.%s.foot must be [x, y]",,原文键,模型
-V2 sprites.%s.foot %s 不是顶层 foot + (0|16|32) 透明加边（不对称裁窗写 foot_exempt 说明）,"V2 sprites.%s.foot %s is not top-level foot + (0|16|32) transparent padding (if asymmetric crop, write foot_exempt)",,原文键,模型
+V2 sprites.%s.foot %s 不是顶层 foot + (0|16|32) 透明加边（不对称裁窗写 foot_exempt 说明）,"V2 sprites.%s.foot %s is not top-level foot + (0|16|32) transparent padding (if asymmetric crop, write foot_exempt explanation)",,原文键,校对
 V4 native_motion 须是字典,V4 native_motion must be a dictionary,,原文键,模型
 V4 native_motion.%s 不认识（只有 clips / variants / states / exits / yield）,V4 native_motion.%s unrecognized (only clips / variants / states / exits / yield allowed),,原文键,模型
 V4 native_motion.yield 须是帧条名数组,V4 native_motion.yield must be an array of anim strip names,,原文键,模型
@@ -2214,7 +2212,7 @@ V4 native_motion.states「%s」须 0 ≤ from ≤ to < 帧数 %d、rate ≥ 0（
 召唤驻场,Persistent Summon,,原文键,模型
 控场引爆,CC Detonation,,原文键,模型
 弱点收割,Weakness Harvest,,原文键,模型
-护盾反击,Objective Shield Counter,,原文键,模型
+护盾反击,Shield Counter,,原文键,校对
 治疗转伤,Heal-to-Damage Conversion,,原文键,模型
 看不懂的字符「%s」,Unrecognized character '%s',,原文键,模型
 多余的「%s」,Extra '%s',,原文键,模型
@@ -2230,11 +2228,11 @@ base 里没有数字「%s」,No number '%s' in base,,原文键,模型
 随行,Follow,,原文键,暂定
 突击,Assault,,原文键,暂定
 Boss 优先,Prioritize Bosses,,原文键,模型
-清杂优先,Prioritize Clear Mobs,,原文键,模型
+清杂优先,Prioritize Clearing Mobs,,原文键,校对
 清杂,Clear Mobs,,原文键,模型
 队长最大生命 +%d%%,Leader Max HP +%d%%,,原文键,模型
-生命回复 +%s / 秒,HP Recovery +%s/s,,原文键,模型
-入队加成：,Recruitment Bonus:,,原文键,模型
+生命回复 +%s / 秒,HP Recovery +%s / s,,原文键,校对
+入队加成：,Squad Join Bonus:,,原文键,校对
 作战时限未恢复,Combat time limit not recovered,,原文键,模型
 %s 回到队伍,%s returned to squad,,原文键,模型
 撤回,Withdraw,,原文键,模型
