@@ -1,0 +1,62 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4881 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+ffmpeg version n9.0.2-17-g2a571b6068-20260930 Copyright (c) 2000-2026 the FFmpeg developers
+  built with gcc 16.2.0 (crosstool-NG 1.29.0.7_b1a94f6)
+  configuration: --prefix=/ffbuild/prefix --pkg-config-flags=--static --pkg-config=pkg-config --cross-prefix=x86_64-ffbuild-linux-gnu- --arch=x86_64 --target-os=linux --enable-gpl --enable-version3 --disable-debug --enable-iconv --enable-zlib --enable-libxml2 --enable-libsoxr --enable-openssl --enable-libvmaf --enable-libxcb --enable-xlib --enable-fontconfig --enable-libharfbuzz --enable-libfreetype --enable-libfribidi --enable-vulkan --enable-libdav1d --enable-libvorbis --enable-librav1e --enable-librsvg --enable-libpulse --enable-gmp --enable-lzma --enable-liblcevc-dec --enable-opencl --enable-amf --enable-libaom --enable-avisynth --enable-chromaprint --enable-libdavs2 --enable-libdvdread --enable-libdvdnav --disable-libfdk-aac --enable-ffnvcodec --enable-cuda-llvm --enable-frei0r --enable-libgme --enable-libkvazaar --enable-libaribb24 --enable-libaribcaption --enable-libass --enable-libbluray --enable-libjxl --enable-libmp3lame --enable-libopus --enable-libplacebo --enable-librist --enable-libssh --enable-libtheora --enable-libvpx --enable-libwebp --enable-libzmq --enable-lv2 --enable-libvpl --enable-openal --enable-liboapv --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenh264 --enable-libopenjpeg --enable-libopenmpt --enable-librubberband --disable-schannel --enable-sdl2 --enable-libsnappy --enable-libsrt --enable-libsvtav1 --enable-libtwolame --enable-libuavs3d --enable-libdrm --enable-vaapi --enable-libvidstab --enable-libvvenc --disable-whisper --enable-libx264 --enable-libx265 --enable-libxavs2 --enable-libxvid --enable-libzimg --enable-libzvbi --extra-cflags=-DLIBTWOLAME_STATIC --extra-cxxflags= --extra-libs='-lgomp -ldl' --extra-ldflags=-pthread --extra-ldexeflags= --cc=x86_64-ffbuild-linux-gnu-gcc --cxx=x86_64-ffbuild-linux-gnu-g++ --ar=x86_64-ffbuild-linux-gnu-gcc-ar --ranlib=x86_64-ffbuild-linux-gnu-gcc-ranlib --nm=x86_64-ffbuild-linux-gnu-gcc-nm --extra-version=20260930
+  libavutil      61.  1.102 / 61.  1.102
+  libavcodec     63.  1.102 / 63.  1.102
+  libavformat    63.  1.102 / 63.  1.102
+  libavdevice    63.  1.102 / 63.  1.102
+  libavfilter    12.  1.102 / 12.  1.102
+  libswscale     10.  1.102 / 10.  1.102
+  libswresample   7.  1.102 /  7.  1.102
+Input #0, image2, from '/work/repo/build/gl_after_cap/c_%04d.png':
+  Duration: 00:00:06.00, start: 0.000000, bitrate: N/A
+  Stream #0:0: Video: png, rgb24(pc, gbr/unknown/unknown), 1080x406, 30 fps, 30 tbr, 30 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (png (native) -> h264 (libx264))
+Press [q] to stop, [?] for help
+[libx264 @ 0x555ae04948c0] using cpu capabilities: MMX2 SSE2Fast SSSE3 SSE4.2 AVX FMA3 BMI2 AVX2
+[libx264 @ 0x555ae04948c0] profile High, level 3.1, 4:2:0, 8-bit
+[libx264 @ 0x555ae04948c0] 264 - core 165 - H.264/MPEG-4 AVC codec - Copyleft 2003-2025 - http://www.videolan.org/x264.html - options: cabac=1 ref=3 deblock=1:0:0 analyse=0x3:0x113 me=hex subme=7 psy=1 psy_rd=1.00:0.00 mixed_ref=1 me_range=16 chroma_me=1 trellis=1 8x8dct=1 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=-2 threads=12 lookahead_threads=2 sliced_threads=0 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=3 b_pyramid=2 b_adapt=1 b_bias=0 direct=1 weightb=1 open_gop=0 weightp=2 keyint=250 keyint_min=25 scenecut=40 intra_refresh=0 rc_lookahead=40 rc=crf mbtree=1 crf=24.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 ip_ratio=1.40 aq=1:1.00
+Output #0, mp4, to '/work/repo/build/gl_after.mp4':
+  Metadata:
+    encoder         : Lavf63.1.102
+  Stream #0:0: Video: h264 (avc1 / 0x31637661), yuv420p(tv, progressive), 1080x406, q=2-31, 30 fps, 15360 tbn
+    Metadata:
+      encoder         : Lavc63.1.102 libx264
+    Side data:
+      CPB properties: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A
+frame=  107 fps=0.0 q=30.0 size=     256KiB time=00:00:03.50 bitrate= 599.3kbits/s speed=   7x elapsed=0:00:00.50    [mp4 @ 0x555ae0493140] Starting second pass: moving the moov atom to the beginning of the file
+[out#0/mp4 @ 0x555ae0492000] video:636KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 0.458458%
+frame=  180 fps=0.0 q=-1.0 Lsize=     639KiB time=00:00:05.93 bitrate= 882.8kbits/s speed= 9.2x elapsed=0:00:00.64    
+[libx264 @ 0x555ae04948c0] frame I:1     Avg QP:21.30  size: 79920
+[libx264 @ 0x555ae04948c0] frame P:53    Avg QP:22.83  size:  6435
+[libx264 @ 0x555ae04948c0] frame B:126   Avg QP:31.05  size:  1826
+[libx264 @ 0x555ae04948c0] consecutive B-frames:  5.0%  4.4%  1.7% 88.9%
+[libx264 @ 0x555ae04948c0] mb I  I16..4: 11.8% 58.5% 29.6%
+[libx264 @ 0x555ae04948c0] mb P  I16..4:  0.0%  0.2%  1.1%  P16..4: 18.2%  3.1%  4.2%  0.0%  0.0%    skip:73.2%
+[libx264 @ 0x555ae04948c0] mb B  I16..4:  0.0%  0.0%  0.3%  B16..8: 12.0%  1.2%  0.8%  direct: 0.7%  skip:84.9%  L0:37.8% L1:59.5% BI: 2.7%
+[libx264 @ 0x555ae04948c0] 8x8 transform intra:34.9% inter:41.2%
+[libx264 @ 0x555ae04948c0] coded y,uvDC,uvAC intra: 83.4% 61.6% 36.9% inter: 4.1% 3.8% 0.4%
+[libx264 @ 0x555ae04948c0] i16 v,h,dc,p:  7% 14% 49% 29%
+[libx264 @ 0x555ae04948c0] i8 v,h,dc,ddl,ddr,vr,hd,vl,hu: 23% 15% 33%  6%  5%  3%  4%  4%  7%
+[libx264 @ 0x555ae04948c0] i4 v,h,dc,ddl,ddr,vr,hd,vl,hu: 17% 20% 24%  7%  7%  6%  7%  6%  7%
+[libx264 @ 0x555ae04948c0] i8c dc,h,v,p: 61% 20% 17%  2%
+[libx264 @ 0x555ae04948c0] Weighted P-Frames: Y:0.0% UV:0.0%
+[libx264 @ 0x555ae04948c0] ref P L0: 66.6%  8.9%  9.8% 14.6%
+[libx264 @ 0x555ae04948c0] ref B L0: 88.5%  8.5%  3.0%
+[libx264 @ 0x555ae04948c0] ref B L1: 91.3%  8.7%
+[libx264 @ 0x555ae04948c0] kb/s:868.10
+gl_after_1p0 ok edE' were leaked at exit.
+ERROR: 4 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+gl_after_2p0 ok edE' were leaked at exit.
+ERROR: 4 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+gl_after_4p0 ok edE' were leaked at exit.
+ERROR: 4 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+/work/repo/build/gl_after.mp4 0.62 MB
+rate 1.0 aspd 1.0 attacks 5 intervals [1.1, 1.1, 1.767, 1.1]
+rate 2.0 aspd 2.0 attacks 10 intervals [0.567, 0.567, 0.566, 0.567, 0.567]
+rate 4.0 aspd 4.0 attacks 19 intervals [0.284, 0.283, 0.283, 0.284, 0.283]
+media：1 个文件，644K
