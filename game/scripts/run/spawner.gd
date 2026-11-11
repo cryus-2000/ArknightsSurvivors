@@ -337,6 +337,11 @@ func _boss_group(idx: int) -> Array:
 		for a in Cfg.dev_args():
 			if a.begins_with("--forceending=") and D.ENDINGS.has(a.substr(14)):
 				g.ending = a.substr(14)
+		var tb: String = Cfg.test_boss_ending()
+		if tb != "" and D.ENDINGS.has(tb):
+			g.ending = tb   # 无敌测试包网址 boss=（只测试包）：强制最终 Boss
+			if g.get("endg") != null:
+				g.endg.cur = tb   # 结局色 / 结算标题同步
 		return [D.ENDINGS[g.ending].boss]
 	var pool: Array = []
 	for i in D.MID_POOL.size():

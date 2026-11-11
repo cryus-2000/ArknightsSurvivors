@@ -31,6 +31,15 @@ static func note_up(name: String, t: Texture2D, bpp := 4) -> void:
 		big_ev.append([name, w, h, b, true])
 		if big_ev.size() > 40:
 			big_ev.pop_front()
+		if _upbig < 0:
+			_upbig = 1 if (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--upbig") else 0
+		if _upbig == 1:   # 测试：大图读入时打一行（当时的场景 / 阶段），查编队外特效是谁读的（docs/332 §4）
+			var ml := Engine.get_main_loop()
+			var sc = (ml as SceneTree).current_scene if ml is SceneTree else null
+			print("PF UPBIG %s %dx%d scene=%s phase=%s" % [name, w, h, str(sc.name) if sc != null else "?", str(JavaScriptBridge.eval("window.__syPhase||''", true)) if OS.has_feature("web") else ""])
+
+
+static var _upbig := -1
 
 
 static func note_drop(name: String, t, bpp := 4) -> void:

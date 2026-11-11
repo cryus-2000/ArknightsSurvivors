@@ -1190,6 +1190,25 @@ func test_loop() -> bool:
 	return _tloop == 1
 
 
+## 无敌测试包专用：网址参数 boss=paranoia|ishar|izumik|knight 强制本局最终 Boss（对应结局线 standard / deep / resolve / knight；中期 Boss 照常）。
+## endings.judge 直接返回它（结局名、终局配乐、9:30 预读跟着走），spawner._boss_group 也认。调试版另认 --testboss=<同上>。正式包恒为 ""
+const TEST_BOSS_ENDING := {"paranoia": "standard", "ishar": "deep", "izumik": "resolve", "knight": "knight"}
+var _tboss = null
+func test_boss_ending() -> String:
+	if _tboss == null:
+		_tboss = ""
+		if test_god():
+			var v := ""
+			for a in dev_args():
+				if a.begins_with("--testboss="):
+					v = a.substr(11)
+			if v == "" and OS.has_feature("web"):
+				var s = JavaScriptBridge.eval("(function(){try{return new URLSearchParams(location.search).get('boss')||''}catch(e){return ''}})()", true)
+				v = str(s) if s is String else ""
+			_tboss = str(TEST_BOSS_ENDING.get(v.strip_edges().to_lower(), ""))
+	return _tboss
+
+
 func _url_flag(k: String) -> bool:
 	var s = JavaScriptBridge.eval("(function(){try{return new URLSearchParams(location.search).get('%s')||''}catch(e){return ''}})()" % k, true)
 	return s is String and (s == "1" or s == "true")

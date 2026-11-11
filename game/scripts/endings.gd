@@ -1496,6 +1496,9 @@ func _satisfied(e: Dictionary) -> bool:
 
 ## 满足条件的结局里取 priority 最高的；都不满足 = 结局一
 func judge() -> String:
+	var tb: String = Cfg.test_boss_ending()
+	if tb != "" and endings.has(tb):
+		return tb   # 无敌测试包网址 boss=（只测试包，Cfg.test_boss_ending）：结局线固定
 	var best := "standard"
 	var bp := -1
 	for eid in endings:
