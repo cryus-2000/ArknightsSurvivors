@@ -51,7 +51,7 @@ const DIFFICULTY_TIERS := [
 	{"name": "潮位 1 · 巨影", "short": "巨影", "en": "LOOMING", "desc": "Boss 生命 +15%，Boss 招式预警缩短 15%。", "level": 1},
 	{"name": "潮位 2 · 昏灯", "short": "昏灯", "en": "DIM LAMP", "desc": "受击时灯火损失 +30%；灯油掉落 -30%，源石锭掉落 -10%。", "level": 2},
 	{"name": "潮位 3 · 暗涌", "short": "暗涌", "en": "UNDERTOW", "desc": "敌人生命与造成的伤害 +20%。", "level": 3},
-	{"name": "潮位 4 · 寒流", "short": "寒流", "en": "COLD CURRENT", "desc": "大群规模 +20%；小怪控制提前到 5:00，寒霜 2 层即冻结。", "key": "hard", "level": 4},
+	{"name": "潮位 4 · 寒流", "short": "寒流", "en": "COLD CURRENT", "desc": "大群规模 +20%；普通敌人的寒霜、束缚、创口提前到 5:00，寒霜 2 层即冻结。", "key": "hard", "level": 4},
 	{"name": "潮位 5 · 搁浅", "short": "搁浅", "en": "STRANDED", "desc": "队长初始最大生命 -10%；灯油掉落加重到 -40%，源石锭加重到 -25%。", "level": 5},
 	{"name": "潮位 6 · 渊影", "short": "渊影", "en": "ABYSSAL SHADOW", "desc": "Boss 生命加重到 +35%，预警缩短加重到 20%；Boss 造成的伤害再 +15%。", "level": 6},
 	{"name": "潮位 7 · 甲潮", "short": "甲潮", "en": "HARD SHELL", "desc": "敌人生命加重到 +70%，造成的伤害加重到 +25%。", "level": 7},
@@ -141,7 +141,7 @@ const DMOD_TEXT := [
 	["max_hp", "队长初始最大生命 -%d%%", "down"], ["lamp_hit", "受击时灯火损失 +%d%%", "up"], ["oil_drop", "灯油掉落 -%d%%", "down"], ["ingot", "源石锭掉落 -%d%%", "down"],
 	["elite_interval", "精英出现间隔 -%d%%", "down"], ["boss_warn", "Boss 与精英招式预警最多缩短 %d%%（≥ 0.6 秒）", "down"], ["horde", "大群规模 +%d%%", "up"],
 	["horde_in_boss", "Boss 在场时大群照常来袭", "flag"], ["mire_dmg", "溟痕伤害 +%d%%", "up"], ["nerve_rate", "神经损伤累积 +%d%%", "up"],
-	["ctrl_start", "小怪控制提前到 %d:%02d", "time"], ["frost_max", "寒霜 %d 层即冻结", "count"],
+	["ctrl_start", "普通敌人的寒霜、束缚、创口提前到 %d:%02d", "time"], ["frost_max", "寒霜 %d 层即冻结", "count"],
 	["affix_start", "词条提前到 %d:%02d", "time"], ["affix_max", "词条概率上限 %d%%", "pct"],
 ]
 ## time / count / pct 的全局缺省（与 combat.enemy_knob 调用处一致）

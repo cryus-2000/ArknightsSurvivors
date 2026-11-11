@@ -64,6 +64,9 @@ func _obstacles(vs: Vector2) -> Array:
 	var mrad: float = 58.0 if Cfg.phone_ui() else 78.0   # 同 hud_bars.draw_minimap
 	var mc := Vector2(16 + mrad + 8, vs.y - mrad - 24)
 	out.append(Rect2(mc - Vector2(mrad, mrad + 14), Vector2(mrad * 2.0, mrad * 2.0 + 14)))
+	# 顶部中央击杀 / 时间 / 威胁块（hud_v2.top_center：底板 340 宽，桌面到威胁进度条约 y 80、手机一行小字约 y 62）。
+	# 11-12 截图：8:00 接潮双体 + 卡门三个 Boss 指示圈都落在上沿，压住「深渊 / ABYSS · THREAT」字样
+	out.append(Rect2(vs.x / 2.0 - 170.0, 0.0, 340.0, 64.0 if Cfg.phone_ui() else 82.0))
 	if g.touch != null and g.touch.active:
 		for b in g.touch.btn_rects:   # 上一帧实际画出的按键矩形（touch.draw_hud 填；指示层先画、按键层后画，读到的是上一帧的）
 			if b[0] is Rect2:
@@ -331,14 +334,22 @@ func draw_boss_pointers(vs: Vector2, ct: Transform2D) -> void:
 			continue
 		var c := vs / 2.0
 		var d := (sp - c).normalized()
-		var edge: Vector2 = _edge(vs, sp, 72.0)
-		d = (sp - edge).normalized()
-		var tries := 0
-		while tries < 4 and placed.any(func(p): return p.distance_to(edge) < 76.0):
-			var tn: Vector2 = Vector2(0, 1) if absf(edge.x - vs.x / 2.0) > absf(edge.y - vs.y / 2.0) * vs.x / vs.y else Vector2(1, 0)
-			edge = (edge + tn * 80.0).clamp(Vector2(72, 72), vs - Vector2(72, 72 + _console_lift(vs)))
-			tries += 1
-		edge = _dodge(vs, edge, 40.0, 72.0)
+		var e0: Vector2 = _edge(vs, sp, 72.0)
+		# 沿所在屏幕边找第一个既不和已放的指示重叠（< 76）、又不压按键 / 小地图 / 顶部计时块的位置（0, +1, −1, +2 … 格）；
+		# 11-12：原来先防重叠再 _dodge，三只 Boss 都在上沿时被避让挪到同一点叠成一团
+		var tn: Vector2 = Vector2(0, 1) if absf(e0.x - vs.x / 2.0) > absf(e0.y - vs.y / 2.0) * vs.x / vs.y else Vector2(1, 0)
+		var obs: Array = _obstacles(vs)
+		# 上 / 下沿并排时名字一行（宽 160）也不能叠，间距按 164；左 / 右沿上下排，圆 + 名字约 86
+		var gap: float = 164.0 if tn.x > 0.5 else 86.0
+		var edge: Vector2 = Vector2.INF
+		for st in [0, 1, -1, 2, -2, 3, -3, 4, -4]:
+			var p: Vector2 = (e0 + tn * gap * st).clamp(Vector2(72, 72), vs - Vector2(72, 72 + _console_lift(vs)))
+			var bx: Rect2 = _ptr_box(vs, p, 40.0)
+			if not placed.any(func(q): return absf((q - p).dot(tn)) < gap - 1.0 and absf((q - p).dot(tn.orthogonal())) < 60.0) and not obs.any(func(o): return o.intersects(bx)):
+				edge = p
+				break
+		if edge == Vector2.INF:
+			edge = _dodge(vs, e0, 40.0, 72.0)
 		d = (sp - edge).normalized()
 		placed.append(edge)
 		_big_pointer(vs, edge, d, b.tex, "%s  %dm" % [D.ENEMIES.get(b.type, {}).get("name", "Boss"), int(b.pos.distance_to(g.ppos) / 32.0)], BOSS_PTR_COL)
