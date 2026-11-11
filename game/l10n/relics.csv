@@ -913,7 +913,7 @@ relics.relics.items.233.adapt,"Upon each level up, deals a large amount of Arts 
 relics.relics.items.233.rarity,Core,核心,模型,
 relics.relics.items.234.name,'Bedrock',“基岩”,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_40
 relics.relics.items.234.original,"All Operators have +5 DP Cost, but gain +15% ATK, DEF, and HP",所有干员的部署费用+5，但攻击力、防御力和生命+15%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_40.usage
-relics.relics.items.234.adapt,"Damage and Max HP +15%, damage taken -15%, but movement speed -10%",伤害、最大生命 +15%，受到伤害 -15%，但移动速度 -10%,模型,
+relics.relics.items.234.adapt,"Damage and Max HP +15%, damage taken -15%, but movement speed -15%",伤害、最大生命 +15%，受到伤害 -15%，但移动速度 -15%,模型,
 relics.relics.items.234.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.235.name,'Wavebreaker',“分浪”,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_41
 relics.relics.items.235.original,"All Operators have -25% HP, but have -50% Redeployment Time",所有干员的生命-25%，但再部署时间-50%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_41.usage
@@ -1638,7 +1638,7 @@ relics.relic_effects.relics.233.desc,"When the Leader takes damage exceeding 10%
 relics.relic_effects.relics.233.rarity,Core,核心,模型,
 relics.relic_effects.relics.234.desc,"Every 8s, Persistent Summon Operators' next follow-up attack triggers an Arts explosion at the target's location (130 radius): {$wrath_dmg} damage, +{$wrath_dmg*$pm:0} per minute (approx. {$wrath_dmg*$m10:0} at 10:00)",每 8 秒，召唤驻场干员的下一次追击会在目标处引发一次法术爆炸（半径 130）：伤害 {$wrath_dmg}，每分钟 +{$wrath_dmg*$pm:0}（10:00 约 {$wrath_dmg*$m10:0}）,模型,
 relics.relic_effects.relics.234.rarity,Core,核心,模型,
-relics.relic_effects.relics.235.desc,"Squad damage +15%; Leader Max HP +15% and damage taken -15%, but movement speed -10%",全队伤害 +15%；队长最大生命 +15%、受到的伤害 -15%，但移动速度 -10%,模型,
+relics.relic_effects.relics.235.desc,"Squad damage +15%; Leader Max HP +15% and damage taken -15%, but movement speed -15%",全队伤害 +15%；队长最大生命 +15%、受到的伤害 -15%，但移动速度 -15%,模型,
 relics.relic_effects.relics.235.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.236.desc,Leader Max HP -25%; squad SP Recovery +50%,队长最大生命 -25%；全队技力回复 +50%,模型,
 relics.relic_effects.relics.236.rarity,Rare,稀有,模型,
@@ -2404,7 +2404,7 @@ Miss.Christine摸摸券,Miss.Christine Petting Ticket,,原文键,官方
 每次升级时，对随机一名敌人及其周围造成大量法术伤害,"Upon each level up, deals a large amount of Arts damage to a random enemy and its surroundings",,原文键,模型
 “基岩”,'Bedrock',,原文键,官方
 所有干员的部署费用+5，但攻击力、防御力和生命+15%,"All Operators have +5 DP Cost, but gain +15% ATK, DEF, and HP",,原文键,官方
-伤害、最大生命 +15%，受到伤害 -15%，但移动速度 -10%,"Damage and Max HP +15%, damage taken -15%, but movement speed -10%",,原文键,模型
+伤害、最大生命 +15%，受到伤害 -15%，但移动速度 -15%,"Damage and Max HP +15%, damage taken -15%, but movement speed -15%",,原文键,模型
 “分浪”,'Wavebreaker',,原文键,官方
 所有干员的生命-25%，但再部署时间-50%,"All Operators have -25% HP, but have -50% Redeployment Time",,原文键,官方
 最大生命 -25%，技力回复 +50%,"Max HP -25%, SP Recovery +50%",,原文键,模型
@@ -2727,7 +2727,7 @@ class:特种,class:Specialist,,原文键,模型
 队长受到伤害时，对全场敌人造成真实伤害：伤害 120，每分钟 +{120*$pm:0}（10:00 约 {120*$m10:0}）；对 Boss 最多 3% 最大生命；冷却 30 秒,"When the Leader takes damage, deals True damage to all enemies: 120 damage, +{120*$pm:0} per minute (approx. {120*$m10:0} at 10:00); max 3% of Max HP against Bosses; 30s cooldown",,原文键,模型
 队长一次受到超过 10% 最大生命的伤害时，周围敌人眩晕 3 秒（Boss 除外）,"When the Leader takes damage exceeding 10% Max HP in one hit, inflicts Stun on nearby enemies for 3s (Bosses excepted)",,原文键,模型
 每 8 秒，召唤驻场干员的下一次追击会在目标处引发一次法术爆炸（半径 130）：伤害 {$wrath_dmg}，每分钟 +{$wrath_dmg*$pm:0}（10:00 约 {$wrath_dmg*$m10:0}）,"Every 8s, Persistent Summon Operators' next follow-up attack triggers an Arts explosion at the target's location (130 radius): {$wrath_dmg} damage, +{$wrath_dmg*$pm:0} per minute (approx. {$wrath_dmg*$m10:0} at 10:00)",,原文键,模型
-全队伤害 +15%；队长最大生命 +15%、受到的伤害 -15%，但移动速度 -10%,"Squad damage +15%; Leader Max HP +15% and damage taken -15%, but movement speed -10%",,原文键,模型
+全队伤害 +15%；队长最大生命 +15%、受到的伤害 -15%，但移动速度 -15%,"Squad damage +15%; Leader Max HP +15% and damage taken -15%, but movement speed -15%",,原文键,模型
 队长最大生命 -25%；全队技力回复 +50%,Leader Max HP -25%; squad SP Recovery +50%,,原文键,模型
 全队攻击速度 +10%；所有敌人攻击速度 -10%,Squad ATK speed +10%; all enemies' ATK speed -10%,,原文键,模型
 队长最大生命 +30%、物理减伤 +2；精英每次多来 1 只，海嗣生命与造成的伤害 +10%,"Leader Max HP +30%, Physical damage taken -2; 1 additional Elite spawns each time, Seaborn HP and damage dealt +10%",,原文键,模型

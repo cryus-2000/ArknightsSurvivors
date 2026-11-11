@@ -548,7 +548,8 @@
   "aim_fan_px": 60,
   "_aim_fan": "瞄准主控的多道激光（10-25 用户「三条激光都要瞄准人打」，boss_base._aim_fan）：出招时锁定主控位置并沿移动方向提前 aim_lead 秒，各道起点在本体两侧相隔 aim_fan_px 像素、全部穿过锁定点；用于伊莎玛拉三线扫射、偏执泡影一幕凝视两侧、卡门封锁线后两枪",
   "_doc": "Boss 血量与受伤旋钮（docs/42 §8，EA v2，云端 ea-v1 验证）。hp_mid：3:30 / 7:00 中期 Boss；hp_final：10:00 最终 Boss（10-24 用户：直接缩血 15%，2.35 → 2.0）；hp_x_<id>：单只再乘；hit_cap_pct：Boss 单次受伤最多为最大生命的该比例（0 = 关）。其余 boss/* 旋钮仍用代码缺省值（docs/38）",
-  "hp_mid": 1.7,
+  "hp_mid": 2.1,
+  "_hp_mid_1112": "11-12 用户批 docs/335 §4.3：中期 Boss 中位 42–54 秒低于 60–90，hp_mid 1.7 → 2.1；卡门不加（carmen_hp_k 2.4 → 1.9429 = 2.4 × 1.7 / 2.1，总血量逐位不变到四位小数）",
   "_buff_1101": "11-01 用户批 docs/212「偏弱的 Boss 要加强」（claude/boss-buff-1101，旧值见括号，云端配对见 docs/212 §5）：hp_mid 中期 Boss 血量 1.3 → 1.7（目标击杀 60–90 秒；云端 bb1101-m0 正常局中位：卡门 53 → 76、主教 69 → 78、蚀潮兽 64 → 83、斥亡体 69 → 78，塑路者 48 → 54、伊比利亚 41 → 52 仍偏短，再单独加 hp_x_path 2.6 → 2.9、iberia_hp_k 2.9 → 3.4）；塑路者冲撞 path_dash_warn 前摇 0.9 → 0.65、path_dash_track 追踪 0.45 → 0.4、path_dash_lead 预判 0 → 0.3 秒；卡门狙击 carmen_snipe_k 前摇 × 0.75（1）、carmen_snipe_lead 预判 0 → 0.3 秒，伤害都不加；伊莎玛拉 count_k_ishar 发数 1.4 → 1.6、tempo_k_ishar 出招间隔 0.65 → 0.55、每组连段后的破绽 ishar_break_t 6.0 → 4.5 / ishar_break_t3 4.8 → 3.6（连段来得更勤；她的连段内段间隔本来只有约 0.15 秒，真正的空档是破绽）；偏执泡影 count_k_paranoia 1.4 → 1.65、tempo_k_paranoia 0.7 → 0.6（用户：加弹幕压力，不靠堆血）。骑士弧斩不动。难度补偿：dmg_curve/scale 0.86 → 0.76（普通怪伤害，不给奖励的旋钮；云端配对 m0 45.2 → 46.4%、m18 66.7 → 68.5%，docs/212 §5.3）",
   "path_dash_warn": 0.65,
   "path_dash_track": 0.4,
@@ -567,7 +568,7 @@
   "dmg_x_bishop": 1.5,
   "dmg_x_archon": 1.5,
   "dmg_x_immortal": 1.5,
-  "carmen_hp_k": 2.4,
+  "carmen_hp_k": 1.9429,
   "iberia_hp_k": 3.4,
   "carmen_dmg_mult": 1.9,
   "saint_dmg_mult": 1.1,
@@ -1360,7 +1361,7 @@
   "calm_mult": 0.5,
   "double_level_chance": 0.1,
   "stat_scale": 1.0,
-  "revive_hp": 0.5,
+  "revive_hp": 0.3,
   "revive_inv": 3.0
  },
  "sword_ease": {
