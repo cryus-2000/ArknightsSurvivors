@@ -13,7 +13,10 @@ var _end_t := 0.0        # 结算界面停了多久
 var _looped := false
 var _stuck := 0.0        # 同一选择界面已经尝试选了多久
 const PICK_WAIT := 1.2
-const END_WAIT := 8.0    # 结算停 8 秒（性能报告在局终已经写好）再自动开下一局
+const END_WAIT := 8.0
+const SUITE_TIMEOUT := 1500.0   # 连测：局内 25 分钟还没打完最终 Boss 就按「中途退出」记下、开下一局（不让一局卡死整轮）
+const GodSuite = preload("res://scripts/core/god_suite.gd")
+var _summary := false    # 结算停 8 秒（性能报告在局终已经写好）再自动开下一局
 
 
 static func wanted(game) -> bool:
@@ -24,7 +27,10 @@ func _init(game) -> void:
 	g = game
 	if ResourceLoader.exists("res://scripts/core/bot.gd"):
 		bot = load("res://scripts/core/bot.gd").new(g, "expert", 0)   # 发行包不带 bot.gd（release_slim DEV_SCRIPTS）；无敌包导出时保留（export_web.py --god）
-	print("PF AUTOPLAY on loop=%s bot=%s" % [str(Cfg.test_loop()), str(bot != null)])
+	print("PF AUTOPLAY on loop=%s bot=%s suite=%s" % [str(Cfg.test_loop()), str(bot != null), str(Cfg.test_suite())])
+	if Cfg.test_suite():
+		GodSuite.close_panel()   # 闪退后标题页弹过的进度面板
+		GodSuite.start_run(g)    # 记「进行中」：没走到结算就是闪退（core/god_suite.gd）
 
 
 ## 移动方向（game.gd 移动输入链；state == PLAY 时调）
@@ -43,6 +49,11 @@ func step(delta: float) -> void:
 	if _log_t >= 10.0:
 		_log_t = 0.0
 		print("PF AUTOPLAY st=%d kind=%s n=%d t=%.0f age=%.1f modal=%s sq=%d lv=%d" % [g.state, str(g.choice_kind), g.choices.size(), g.t, g.state_age, str(g.onboard.modal()), g.squad.size(), g.level])
+	if Cfg.test_suite() and not _looped and g.t >= SUITE_TIMEOUT and g.state != S.DEAD and g.state != S.WIN:
+		_looped = true
+		print("PF AUTOPLAY suite timeout t=%.0f -> restart" % g.t)
+		g._do_action("restart")   # 离场照常走 game._exit_tree → perf_report.finish("quit") → GodSuite.run_done
+		return
 	match g.state:
 		S.CHOICE:
 			_wait += rd
@@ -104,6 +115,11 @@ func step(delta: float) -> void:
 				g._do_action("resume")
 		S.DEAD, S.WIN:
 			_end_t += rd
+			if Cfg.test_suite() and GodSuite.done() and not _summary and _end_t >= END_WAIT and not g.victory.active:
+				_summary = true
+				_looped = true
+				print("PF AUTOPLAY suite finished")
+				GodSuite.show_summary()   # 四局轮完：停在汇总页（网页 DOM 面板：复制全部 / 保存 / 重新连测）
 			if Cfg.test_loop() and not _looped and _end_t >= END_WAIT and not g.victory.active:
 				_looped = true
 				print("PF AUTOPLAY restart t=%.0f" % g.t)

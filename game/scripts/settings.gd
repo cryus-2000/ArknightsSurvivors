@@ -1183,14 +1183,31 @@ var _tauto := -1
 var _tloop := -1
 func test_auto() -> bool:
 	if _tauto < 0:
-		_tauto = 1 if test_god() and (dev_args().has("--autoplay") or (OS.has_feature("web") and _url_flag("auto"))) else 0
+		_tauto = 1 if test_god() and (test_suite() or dev_args().has("--autoplay") or (OS.has_feature("web") and _url_flag("auto"))) else 0
 	return _tauto == 1
 
 
 func test_loop() -> bool:
 	if _tloop < 0:
-		_tloop = 1 if test_auto() and (dev_args().has("--autoloop") or (OS.has_feature("web") and _url_flag("loop"))) else 0
+		_tloop = 1 if test_auto() and (test_suite() or dev_args().has("--autoloop") or (OS.has_feature("web") and _url_flag("loop"))) else 0
 	return _tloop == 1
+
+
+## 无敌测试包专用：网址 boss=all 或 suite=1 四个最终 Boss 连测（core/god_suite.gd：auto + loop，一局一个 Boss，轮完停在汇总页）；
+## 调试版另认 --testsuite（--testsuite=new 清掉旧进度）。正式包恒为 false
+var _tsuite := -1
+func test_suite() -> bool:
+	if _tsuite < 0:
+		_tsuite = 0
+		if test_god():
+			for a in dev_args():
+				if a == "--testsuite" or a == "--testsuite=new":
+					_tsuite = 1
+			if _tsuite == 0 and OS.has_feature("web"):
+				var s = JavaScriptBridge.eval("(function(){try{var q=new URLSearchParams(location.search);return (q.get('boss')||'')+'|'+(q.get('suite')||'')}catch(e){return '|'}})()", true)
+				var v: PackedStringArray = str(s).split("|") if s is String else PackedStringArray(["", ""])
+				_tsuite = 1 if v[0].strip_edges().to_lower() == "all" or (v.size() > 1 and (v[1] == "1" or v[1] == "true")) else 0
+	return _tsuite == 1
 
 
 ## 无敌测试包专用：网址参数 boss=paranoia|ishar|izumik|knight 强制本局最终 Boss（对应结局线 standard / deep / resolve / knight；中期 Boss 照常）。
@@ -1198,6 +1215,8 @@ func test_loop() -> bool:
 const TEST_BOSS_ENDING := {"paranoia": "standard", "ishar": "deep", "izumik": "resolve", "knight": "knight"}
 var _tboss = null
 func test_boss_ending() -> String:
+	if test_suite():
+		return load("res://scripts/core/god_suite.gd").cur_ending()   # 连测：按进度轮到哪个 Boss（同页重开也要变，不缓存）
 	if _tboss == null:
 		_tboss = ""
 		if test_god():
@@ -1226,6 +1245,8 @@ func test_squad() -> PackedStringArray:
 			if s is String and s != "":
 				for c in s.split(",", false):
 					_tsq.append(c.strip_edges())
+	if _tsq.is_empty() and test_suite():
+		return load("res://scripts/core/god_suite.gd").cur_squad()   # 连测且网址没给 squad=：每局一套高负载编队（不缓存，同页重开也要换）
 	return _tsq
 
 
