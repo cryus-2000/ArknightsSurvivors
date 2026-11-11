@@ -15,7 +15,7 @@ GAME = os.path.join(ROOT, "game")
 
 
 def one(godot, op, mult, secs, skills=False, fps=240, timeout=1500):
-    args = [godot, "--headless", "--fixed-fps", str(fps), "--path", GAME, "res://tests/atk_rate_test.tscn", "--", "--balance", "--bot=afk", "--nodeath",
+    args = [godot, "--headless", "--fixed-fps", str(fps), "--path", GAME, "res://tests/atk_rate_test.tscn", "--", "--balance", "--bot=afk", "--nodeath", "--realtime",
             "--seed=1", "--op=" + op, "--rate_op=" + op, "--rate_mult=%g" % mult, "--rate_secs=%g" % secs] + (["--rate_skills"] if skills else [])
     out, err, to = GR.run_godot(args, timeout)
     m = re.search(r"^ATKRATE (\{.*\})\s*$", out, re.M)
