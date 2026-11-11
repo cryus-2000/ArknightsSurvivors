@@ -83,6 +83,10 @@
 
 ## 系统设计
 
+- [278_english_overflow](278_english_overflow.md)：英文超框预检前 30 条；干员 + 怪物 2176 条量像素宽度，超框 289 条，处理办法见 docs/276 §9；全表 build/l10n_work/overflow.csv。
+- [277_english_preview](277_english_preview.md)：中英对照样张；干员 + 怪物第一批英文初稿 20 条代表与 6 条待定简介；全表在 game/l10n/*.csv；引用：docs/276 §8。
+- [276_english_localization](276_english_localization.md)：方案已暂定、第一批初稿完成（§8）；英文版摸底（约 5 000 条 / 10 万字）、TranslationServer + CSV 模块键、语言切换、插值、防溢出、字体，官方 en_US 术语表与自创词候选、英文口吻、拆分估时；引用：docs/76、61 §1.4、ui.gd。
+
 - [119_build_progression_plan](119_build_progression_plan.md)：待实施方案；基于 e1da3da9 核对升级、招募、六节点与藏品系统，两干员成长分支、有限候选引导、首商人预告及前期压力切片；含 Claude 分阶段实施与验收，尚未改游戏。
 
 | 文档 | 标题 | 状态 | 说明 | 被谁引用 |

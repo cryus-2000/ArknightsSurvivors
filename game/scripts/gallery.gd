@@ -394,20 +394,25 @@ func _build() -> void:
 				if e.has("ammo"):
 					tags.append("装填")
 				tags.append_array(e.get("chips", []))
-				var mech: String = ENEMY_DESC.get(k, e.get("desc", ""))
+				# 英文版（docs/276 §10）：各段先查表再按英文模板拼；中文分支与原来逐字相同
+				var en_m: bool = UI.Loc.en()
+				var mech: String = UI.Loc.s(ENEMY_DESC.get(k, e.get("desc", "")))
 				if e.has("extra"):
-					mech += "\n\n附加攻击：%s（%s）。" % [str(e.extra.name), {"swipe": "扇形扫击", "pulse": "近身震爆", "pierce": "直线突刺", "volley": "扇形弹幕"}.get(str(e.extra.mode), "攻击")]
+					if en_m:
+						mech += "\n\nExtra attack: %s (%s)." % [UI.Loc.s(str(e.extra.name)), {"swipe": "fan sweep", "pulse": "close-range burst", "pierce": "line thrust", "volley": "fan barrage"}.get(str(e.extra.mode), "attack")]
+					else:
+						mech += "\n\n附加攻击：%s（%s）。" % [str(e.extra.name), {"swipe": "扇形扫击", "pulse": "近身震爆", "pierce": "直线突刺", "volley": "扇形弹幕"}.get(str(e.extra.mode), "攻击")]
 					if float(e.extra.get("frost", 0.0)) > 0.0:
-						mech += "命中附加短暂寒冷。"
+						mech += " Hits briefly inflict Cold." if en_m else "命中附加短暂寒冷。"
 					if float(e.extra.get("nerve", 0.0)) > 0.0 and Bal.v("enemy/nerve_hit_mult", 0.0) > 0.0:
-						mech += "命中累积神经损伤。"
+						mech += " Hits build up Nervous Impairment." if en_m else "命中累积神经损伤。"
 					if float(e.extra.get("stun", 0.0)) > 0.0:
-						mech += "命中造成短暂僵直，连续命中有保护间隔。"
+						mech += " Hits cause a brief stagger; repeated hits have a protection window." if en_m else "命中造成短暂僵直，连续命中有保护间隔。"
 				if e.has("patterns"):
 					var moves: Array[String] = []
 					for move in e.patterns:
-						moves.append(str(move.name))
-					mech += "\n\n攻击模式：" + " / ".join(moves) + "。"
+						moves.append(UI.Loc.s(str(move.name)))
+					mech += ("\n\nAttack patterns: " + " / ".join(moves) + ".") if en_m else ("\n\n攻击模式：" + " / ".join(moves) + "。")
 				entries.append({"id": k, "name": e.name, "en": k.to_upper(), "tag": ["", "普通敌人", "精英敌人", "Boss"][tab],
 					"forms": forms, "stats": st, "chips": tags, "desc": _lore_text(k, mech),
 					"locked": not Cfg.unlock_all and not Cfg.gallery_seen.has("enemy:" + str(k)) and not (k == "knight_boss" and Cfg.gallery_seen.has("enemy:knight")), "locked_text": "尚未遭遇，遇到后收录。"})
@@ -584,12 +589,12 @@ func _doctor_entry() -> Dictionary:
 
 ## 介绍文字：lore.json 的档案文字在前，机制说明在后
 func _lore_text(key: String, mech: String) -> String:
-	var lr: String = str(lore.get(key, {}).get("lore", ""))
+	var lr: String = UI.Loc.s(str(lore.get(key, {}).get("lore", "")))   # 英文版：整段先查表再截首行 / 拼机制说明
+	mech = UI.Loc.s(mech)
 	if lr != "" and tab == 0:
 		var first: String = lr.split("\n")[0]
 		return first + ("\n" + mech if mech != "" else "")
-	var l: Dictionary = lore.get(key, {})
-	var out: String = l.get("lore", "")
+	var out: String = lr
 	if out != "" and mech != "":
 		out += "\n\n" + mech
 	elif out == "":
@@ -2118,19 +2123,23 @@ func _skill_rows(cd: Dictionary) -> Array:
 		var ul: Dictionary = ue.get("ult", {})
 		var lk: Dictionary = ue.get("link", {})
 		var un := "ult_note_aim" if Bal.vi("ult/aim", 0) > 0 and ut.has("ult_note_aim") else "ult_note"
+		# 英文版（docs/276 §10）：说明和提示各自查表，再用英文标点拼（整串拼好再查是查不到的）
+		var L10 = UI.Loc
+		var dot := ".\n" if L10.en() else "。\n"
+		var ds := func(t: String) -> String: return L10.s(t).trim_suffix(".") if L10.en() else L10.s(t)   # 英文句末自带句号，拼接前去掉
 		rows.append(["ULTIMATE  //  终结技", str(ul.get("name", "")), str(ul.get("en", "")), "", "", "终结技", true,
-			"%s。\n%s" % [str(ul.get("desc", "")), str(ut.get(un + tu, ut.get(un, "")))]])
+			ds.call(str(ul.get("desc", ""))) + dot + L10.s(str(ut.get(un + tu, ut.get(un, ""))))])
 		var l2: Dictionary = ue.get("link_v2", {})
 		if Bal.vi("link/v2", 0) > 0 and not l2.is_empty():   # 指挥 v2（docs/209 §2）：技能连携，全自动、没有 E 键
 			var lb := {}
 			for k in ["link_irene_amp", "link_kaltsit_heal", "link_lumen_lamp", "link_skalter_atk"]:
 				lb[k] = Bal.v("ult/" + k, {"link_irene_amp": 0.2, "link_kaltsit_heal": 0.03, "link_lumen_lamp": 10.0, "link_skalter_atk": 1.2}[k])
 			rows.append(["LINK  //  连携", str(l2.get("name", "")), str(l2.get("en", "")), "", "", str(l2.get("kind", "连携")), false,
-				"%s。\n%s。" % [Character.fill_line(str(l2.get("desc", "")), lb),
-					str(ut.get("link_note_v2", "")).replace("{gap}", Character.text_fmt(Bal.v("link/v2_gap", 60.0), 0))]])
+				Character.fill_line(ds.call(str(l2.get("desc", ""))), lb) + dot
+					+ L10.s(str(ut.get("link_note_v2", ""))).replace("{gap}", Character.text_fmt(Bal.v("link/v2_gap", 60.0), 0)) + ("." if L10.en() else "。")])
 		else:
 			rows.append(["LINK  //  连携技", str(lk.get("name", "")), str(lk.get("en", "")), "", "", "连携", false,
-				"%s。\n触发：%s。%s" % [str(lk.get("desc", "")), str(lk.get("trigger", "")), str(ut.get("link_note" + tu, ""))]])
+				(ds.call(str(lk.get("desc", ""))) + dot + ("Trigger: %s. %s" if L10.en() else "触发：%s。%s") % [ds.call(str(lk.get("trigger", ""))), L10.s(str(ut.get("link_note" + tu, "")))])])
 		if Bond.ui_on():   # 羁绊连携（docs/217）：连携栏下列出这名干员的全部羁绊
 			for br in Bond.gallery_rows(str(cd.get("id", ""))):
 				rows.append(["BOND  //  羁绊 · %s" % br[1], br[0], "", "", "", "羁绊", false, br[2]])
@@ -2477,7 +2486,8 @@ func _row_heights(descs: Array, avail: float, hh: float, gap: float, dw: float, 
 	var tmin := 0.0
 	for d in descs:
 		var nd: float = hh + (UI.fit(font, d, dw, 9999.0, [10]).h if d != "" else 0.0) + 8.0
-		var mn: float = minf(nd, hh + (44.0 if big3.has(mins.size()) else 22.0))
+		# 每行保底：标题 + 一行说明（三技能 / 终结技两行）；英文版行数约是中文 1.6–2 倍（docs/276 §9），保底多给一行
+		var mn: float = minf(nd, hh + ((58.0 if big3.has(mins.size()) else 36.0) if UI.Loc.en() else (44.0 if big3.has(mins.size()) else 22.0)))
 		need.append(nd)
 		mins.append(mn)
 		tmin += mn

@@ -16,6 +16,8 @@ const ROWS := [
 	{"cn": "音乐", "en": "MUSIC", "key": "music", "type": "vol"},
 	{"cn": "音效", "en": "SFX", "key": "sfx", "type": "vol"},
 	{"cn": "语音", "en": "VOICE", "key": "voice", "type": "vol"},
+	# 语言（docs/276 §10）：两格 中文 / English，格子里的字各用本语言写、不翻；B站 Toy 版不列出（固定中文）
+	{"cn": "语言 / Language", "en": "LANGUAGE", "key": "lang", "type": "lang"},
 	{"cn": "画质", "en": "QUALITY", "key": "quality", "type": "quality"},
 	{"cn": "帧率上限", "en": "FPS CAP", "key": "max_fps", "type": "fps"},
 	{"cn": "全屏", "en": "FULLSCREEN", "key": "fullscreen", "type": "bool"},
@@ -52,13 +54,15 @@ const ROWS := [
 	{"cn": "性能报告", "en": "PERF REPORT", "key": "perf", "type": "perf"},
 	{"cn": "返回", "en": "BACK", "key": "", "type": "back"},
 ]
+## 语言两格：[存档值, 格子里的字]（格子里的字永远用本语言写，不走翻译）
+const LANG_OPTS := [["zh", "中文"], ["en", "English"]]
 const RUNS_HINT := "测试版：本地记录对局摘要（不上传）"
 ## 分类：[中文, 英文, 该页的选项键名]（11-01 docs/213 P10 起列表里不再放返回行，返回在底栏）。10-22 用户定 16 行清单（Codex 界面单 §4）：
 ## 命中顿帧 / Boss 登场演出 / Boss 轮廓光 / 景深 / 辉光 / 水下滤镜 / 法线光照 / 战斗画面缩放 / 对局记录不再露出——
 ## ROWS 与存档键都保留（旧存档兼容），后期四项跟画质档走，对局记录挪到作战结算底栏
 const TABS := [
 	["声音", "SOUND", ["master", "music", "sfx", "voice"]],
-	["画面", "DISPLAY", ["quality", "max_fps", "fullscreen", "res_index", "brightness", "ui_size_pct", "dmg_numbers", "reduce_motion", "perf"]],
+	["画面", "DISPLAY", ["lang", "quality", "max_fps", "fullscreen", "res_index", "brightness", "ui_size_pct", "dmg_numbers", "reduce_motion", "perf"]],
 	["操作", "CONTROLS", ["auto_combo", "auto_ult", "onboard", "pad_rumble", "touch_layout"]],
 ]
 
@@ -207,6 +211,8 @@ func _set_tab(t: int) -> void:
 			continue
 		if not touch and key in TOUCH_ONLY:
 			continue
+		if key == "lang" and Cfg._toy_js != null:
+			continue   # B站 Toy 版固定中文（docs/276 §2.4），不给选
 		if key == "runs" and not Cfg.runs_log_enabled():
 			continue   # 对外包不记录，也不显示这一行
 		if (key == "auto_combo" or key == "auto_ult") and preload("res://scripts/core/balance.gd").vi("ult/on", 1) <= 0:
@@ -353,6 +359,8 @@ func _tap(mp: Vector2, button: int) -> void:
 						Cfg.max_fps = fv
 						Cfg.apply()
 						Sfx.play("ui_move")
+				elif ROWS[i].type == "lang" and mp.x >= control_x + 16.0:
+					_set_lang(LANG_OPTS[clampi(int((mp.x - (control_x + 16.0)) / 90.0), 0, 1)][0])
 				elif ROWS[i].type == "onboard" and mp.x >= control_x + 16.0:
 					_set_onboard(ONBOARD_OPTS[clampi(int((mp.x - (control_x + 16.0)) / 60.0), 0, 2)][0])
 				elif ROWS[i].type == "quality" and mp.x >= control_x - 40.0:
@@ -605,6 +613,9 @@ func _adjust(i: int, dir: int) -> void:
 		"onboard":
 			var oi: int = ONBOARD_OPTS.map(func(o): return o[0]).find(Cfg.onboard)
 			_set_onboard(ONBOARD_OPTS[posmod((oi if oi >= 0 else -1) + dir, 3)][0])
+		"lang":
+			var li: int = LANG_OPTS.map(func(o): return o[0]).find(_lang_now())
+			_set_lang(LANG_OPTS[posmod(li + dir, 2)][0])
 		"bright":
 			Cfg.brightness = clampf(snappedf(Cfg.brightness + dir * 0.05, 0.05), 0.8, 1.4)
 		"uisize":
@@ -866,6 +877,12 @@ func _draw_row(ci: CanvasItem, rr: Rect2, si: int, touch: bool, ty0: float) -> v
 				UI.text(ci, font, fr.position + Vector2(0, 25), "自动" if fv == 0 else str(fv), fs_v - (2 if fv == 0 else 0), Color("10151b") if active else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, fr.size.x)
 			if Cfg.max_fps == 0 and Cfg.fps_lock30:
 				UI.text(ci, font, Vector2(vx - 236, rr.position.y + ty0 - 1.0), "已按本机锁 30", 12 if not touch else 13, UI.CYAN_DIM, HORIZONTAL_ALIGNMENT_RIGHT, 246)
+		"lang":
+			for li in 2:
+				var active: bool = LANG_OPTS[li][0] == _lang_now()
+				var lr := Rect2(vx + 16 + li * 90, rr.position.y + ty0 - 25, 84, 36)
+				ci.draw_rect(lr, UI.CYAN if active else Color("1b252e"))
+				UI.text(ci, font, lr.position + Vector2(0, 25), LANG_OPTS[li][1], fs_v - 3, Color("10151b") if active else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, lr.size.x)
 		"onboard":
 			# 三格 没玩过 / 玩过 / 关闭（同帧率格的样式）；还没问过时三格都不亮，行尾写「下局开局时询问」
 			for oi in 3:
@@ -914,3 +931,18 @@ func _draw_row(ci: CanvasItem, rr: Rect2, si: int, touch: bool, ty0: float) -> v
 				UI.panel(ci, br, Color(0.2, 0.15, 0.05, 0.9), UI.GOLD, 4.0)
 				UI.text(ci, font, br.position + Vector2(0, 16), "应用", 12, UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
 			UI.text(ci, font, Vector2(vx + 190, rr.position.y + ty0), "▶", fs_a, UI.CYAN if on else UI.SUB)
+
+
+## 语言行：当前生效语言（跟随系统时显示解析结果）
+func _lang_now() -> String:
+	return Cfg.Loc.lang
+
+
+func _set_lang(v: String) -> void:
+	if v == Cfg.Loc.lang and Cfg.lang_pref == v:
+		return
+	Cfg.lang_pref = v
+	Cfg.apply_lang()
+	Cfg.save()
+	Sfx.play("ui_move")
+	queue_redraw()
