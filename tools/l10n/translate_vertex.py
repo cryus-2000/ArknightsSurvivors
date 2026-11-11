@@ -271,13 +271,15 @@ def cmd_csv(a):
     import csv
     u, gl, items = units(a.module)
     cache = json.load(open(WORK / ("cache_%s.json" % a.module), encoding="utf-8"))
+    pp = WORK / ("proof_%s.json" % a.module)
+    proof = json.load(open(pp, encoding="utf-8")) if pp.exists() else {}   # 第二遍校对（cmd_proof）：zh → {en, why}
     human = {}
     hp = ROOT / "tools/l10n/review" / ("%s.json" % a.module)
     if hp.exists():
         human = json.load(open(hp, encoding="utf-8"))   # zh → {"en":..., "note":...} 人工复核改过的
     out = ROOT / "game/l10n" / ("%s.csv" % a.module)
     out.parent.mkdir(parents=True, exist_ok=True)
-    stats = {"官方": 0, "暂定": 0, "模型": 0, "人改": 0, "缺": 0}
+    stats = {"官方": 0, "暂定": 0, "模型": 0, "校对": 0, "人改": 0, "缺": 0}
     names = {}   # 本模块短名的最终译法（官方 > 人改 > 模型），查说明里「」引用是否一致
     for it in items:
         z = it["zh"]
@@ -303,7 +305,7 @@ def cmd_csv(a):
         # Godot CSV 翻译表格式（docs/276 §10）：首列 keys，en 是唯一的语言列；_ 开头的列 Godot 导入时跳过（中文原文 / 来源 / 备注只给人看）
         w.writerow(["keys", "en", "_zh", "_source", "_note"])
         srcmap = {}   # 中文原文 → 英文：显示时按原文查表（名字、标签、招式名、已填数的说明）用
-        rank = {"官方": 0, "暂定": 1, "人改": 2, "模型": 3}
+        rank = {"官方": 0, "暂定": 1, "人改": 2, "校对": 3, "模型": 4}
         for it in items:
             zh, note, src = it["zh"], [], ""
             if "official" in it:
@@ -320,6 +322,9 @@ def cmd_csv(a):
                     if oz in zh and old in en:
                         en = en.replace(old, new)
                 src = "模型"
+                if zh in proof and proof[zh].get("en"):
+                    en = fix(proof[zh]["en"]); src = "校对"
+                    note.append("校对：" + str(proof[zh].get("why", ""))[:80])
                 if isinstance(v, dict):
                     if v.get("alt"): note.append("候选2：" + v["alt"])
                     if v.get("hard"): note.append("难翻，待用户定")
@@ -330,7 +335,7 @@ def cmd_csv(a):
                 note.append("首句招聘合同已换官方原文 " + it["quote_src"])
                 body = en.split("\n", 1)[1] if "\n" in en else en   # 中文首行就是「招聘合同」，英文首行整行换掉
                 en = "'%s'\n%s" % (it["quote_en"], body.lstrip())
-            if en and src in ("模型", "人改"):
+            if en and src in ("模型", "校对", "人改"):
                 if ph(en) != ph(zh):
                     note.append("占位符不一致")
                 m = check_term(en, zh, gl)
@@ -348,8 +353,14 @@ def cmd_csv(a):
             if en and (zh not in srcmap or rank.get(src, 9) < rank.get(srcmap[zh][1], 9)):
                 srcmap[zh] = (en, src)
         # 原文键行：键 = 中文原文本身（Godot tr() 查不到时原样返回中文，不会出现空 key）
+        taken = set()   # 已复核的 ops / enemies 原文键优先：其余模块不再重复写同一原文（TranslationServer 同键多份时取哪份不确定）
+        if a.module not in ("ops", "enemies"):
+            for om in ("ops", "enemies"):
+                op = ROOT / "game/l10n" / (om + ".csv")
+                if op.exists():
+                    taken |= {r["keys"] for r in csv.DictReader(open(op, encoding="utf-8")) if r["_source"] == "原文键"}
         for zh, (en, src) in srcmap.items():
-            if zh != en:
+            if zh != en and zh not in taken:
                 w.writerow([zh, en, "", "原文键", src])
         # 短版：定宽格子（HUD 状态名、标签、按钮）用，键 short:<中文原文>（docs/276 §9 第 4 条）
         nshort = 0
@@ -362,12 +373,61 @@ def cmd_csv(a):
     print(out.relative_to(ROOT), stats)
 
 
+PROOF = """You are proofreading an English localization of a Chinese fan game (Arknights squad survivor roguelike, Integrated Strategies #2 'Mizuki & Caerula Arbor' setting).
+Each item has the Chinese source (zh), the current English (en), and where it is used (ctx; a key containing '.gd.' is a UI string from a script).
+Fix ONLY real problems: mistranslation or missing meaning; leftover Chinese; terminology that differs from the fixed terms below; placeholders ({$...}, %d, %s, line breaks) changed, added or dropped; wording that breaks the style rules (no hype words like epic / unleash / powerful / journey / adventure, no exclamation marks unless the Chinese has one, official Arknights Global capitalization for statuses); a UI label (short Chinese) that became a long sentence.
+Do not rewrite for taste. Keep official Arknights names exactly.
+Fixed terms: {terms}
+Return a JSON object mapping the id of every item that needs a change to {"en": corrected English, "why": short reason in Chinese}. Items that are fine must be omitted. Return {} if all are fine."""
+
+
+def cmd_proof(a):
+    import csv
+    rows = [r for r in csv.DictReader(open(ROOT / "game/l10n" / (a.module + ".csv"), encoding="utf-8")) if r["_source"] == "模型"]
+    pp = WORK / ("proof_%s.json" % a.module)
+    sp_ = WORK / ("proofseen_%s.json" % a.module)
+    proof = json.load(open(pp, encoding="utf-8")) if pp.exists() else {}
+    seen = json.load(open(sp_, encoding="utf-8")) if sp_.exists() else {}
+    todo, dup = [], set()
+    for r in rows:
+        if r["_zh"] in dup or r["_zh"] in seen:
+            continue
+        dup.add(r["_zh"]); todo.append(r)
+    if a.limit:
+        todo = todo[:a.limit]
+    terms = dict(X.PROVISIONAL); terms.update(X.STYLE_TERMS)
+    usage_p = WORK / ("usage_proof_%s.json" % a.module)
+    usage = json.load(open(usage_p, encoding="utf-8")) if usage_p.exists() else {"in": 0, "out": 0, "think": 0, "calls": 0}
+    print("%s：校对 %d 条" % (a.module, len(todo)), flush=True)
+    for i in range(0, len(todo), 40):
+        b = todo[i:i + 40]
+        payload = [{"id": "p%d" % j, "zh": r["_zh"], "en": r["en"], "ctx": r["keys"]} for j, r in enumerate(b)]
+        out, um = call(PROOF.replace("{terms}", json.dumps(terms, ensure_ascii=False)) + "\n\nItems:\n" + json.dumps(payload, ensure_ascii=False))
+        if isinstance(out, list):
+            out = {x.get("id"): x for x in out if isinstance(x, dict)}
+        for j, r in enumerate(b):
+            v = out.get("p%d" % j) if isinstance(out, dict) else None
+            if isinstance(v, dict) and isinstance(v.get("en"), str) and v["en"] != r["en"] and ph(v["en"]) == ph(r["_zh"]):
+                proof[r["_zh"]] = {"en": v["en"], "why": v.get("why", "")}
+            seen[r["_zh"]] = 1
+        for k2, k3 in (("in", "promptTokenCount"), ("out", "candidatesTokenCount"), ("think", "thoughtsTokenCount")):
+            usage[k2] += um.get(k3, 0)
+        usage["calls"] += 1
+        json.dump(proof, open(pp, "w", encoding="utf-8"), ensure_ascii=False, indent=0)
+        json.dump(seen, open(sp_, "w", encoding="utf-8"), ensure_ascii=False)
+        json.dump(usage, open(usage_p, "w", encoding="utf-8"), indent=0)
+        print("  批 %d：本批改 %d 条（累计 %d）" % (i // 40 + 1, sum(1 for r in b if r["_zh"] in proof), len(proof)), flush=True)
+    cost = usage["in"] / 1e6 * PRICE_IN + (usage["out"] + usage["think"]) / 1e6 * PRICE_OUT
+    print("校对累计 %d 次调用，估价 $%.2f" % (usage["calls"], cost))
+
+
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser()
     sp = ap.add_subparsers(dest="cmd", required=True)
     r = sp.add_parser("run"); r.add_argument("module"); r.add_argument("--limit", type=int, default=0); r.set_defaults(f=cmd_run)
     c = sp.add_parser("csv"); c.add_argument("module"); c.set_defaults(f=cmd_csv)
+    pr = sp.add_parser("proof"); pr.add_argument("module"); pr.add_argument("--limit", type=int, default=0); pr.set_defaults(f=cmd_proof)
     a = ap.parse_args(); a.f(a)
 
 

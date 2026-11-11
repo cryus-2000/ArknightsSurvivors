@@ -57,8 +57,13 @@ func run() -> void:
 		zh_defs[cid] = Character.load_def(cid)
 	ok(Loc.s("骨海漂流体") == "骨海漂流体", "中文模式原样返回")
 
+	# 语言锁（B站 Toy 版固定中文，docs/276 §12）：锁住时任何选项都解析成中文；不锁时手动选英文生效
+	ok(Loc.resolve("en", true) == "zh" and Loc.resolve("auto", true) == "zh", "语言锁：Toy 版切不到英文")
+	ok(Loc.resolve("en", false) == "en" and Loc.resolve("zh", false) == "zh", "不锁时手动选择生效")
+	ok(Cfg.lang_locked() == false, "源码运行（build.json 无 lang_lock、不在 Toy 容器）不锁语言")
+
 	Loc.setup("en")
-	ok(Loc.s("骨海漂流体") == "Bone Sea Drifter", "原文键：敌人名 → %s" % Loc.s("骨海漂流体"))
+	ok(Loc.s("骨海漂流体") == "Bone Sea Drifter","原文键：敌人名 → %s" % Loc.s("骨海漂流体"))
 	ok(Loc.s("跃浪击") == "Wave Strike", "原文键：官方技能名 → %s" % Loc.s("跃浪击"))
 	ok(Loc.k("enemy.bone.name", "骨海漂流体") == "Bone Sea Drifter", "路径键")
 	ok(Loc.s("二重咏唱 ×3") == "Duetto ×3", "模板 %%d：%s" % Loc.s("二重咏唱 ×3"))

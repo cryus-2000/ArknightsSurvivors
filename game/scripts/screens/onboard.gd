@@ -865,7 +865,7 @@ func _draw_end(vs: Vector2) -> void:
 	var asc: float = font.get_ascent(UI.fs(fsz))
 	var y: float = pr.position.y + 84.0
 	for i in lines.size():
-		hud.draw_string(font, Vector2(pr.position.x + 32.0, y + asc + i * lh), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fsz), _ca(W3, 0.9 * e))
+		hud.draw_string(font, Vector2(pr.position.x + 32.0, y + asc + i * lh), UI.Loc.s(lines[i]), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fsz), _ca(W3, 0.9 * e))
 	y += lines.size() * lh + 8.0
 	UI.text(hud, font, Vector2(pr.position.x + 32.0, y + 14.0), str(c.get("sub", "")), 13, _ca(G3, e))
 	var bw: float = minf(w - 64.0, 220.0)
@@ -876,11 +876,11 @@ func _draw_end(vs: Vector2) -> void:
 	var label: String = str(c.get("button", "开始作战"))
 	var lfs: int = 18
 	var lw: float = font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(lfs)).x
-	hud.draw_string(font, end_rect.get_center() + Vector2(-lw / 2.0, UI.fs(lfs) * 0.36), label, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(lfs), _ca(W3, e))
+	hud.draw_string(font, end_rect.get_center() + Vector2(-lw / 2.0, UI.fs(lfs) * 0.36), UI.Loc.s(label), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(lfs), _ca(W3, e))
 	if not touch:
 		var kh: String = Pad.hint("Enter", "Ⓐ")
 		var kw: float = font.get_string_size(kh, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(12)).x
-		hud.draw_string(font, Vector2(end_rect.end.x - kw - 10.0, end_rect.get_center().y + UI.fs(12) * 0.36), kh, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(12), _ca(G3, e))
+		hud.draw_string(font, Vector2(end_rect.end.x - kw - 10.0, end_rect.get_center().y + UI.fs(12) * 0.36), UI.Loc.s(kh), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(12), _ca(G3, e))
 
 
 # ---------------------------------------------------------------- 正式局小字提示（左上角一行，几秒后淡出）
@@ -975,9 +975,9 @@ func _draw_toast(vs: Vector2) -> void:
 	var asc: float = font.get_ascent(UI.fs(tfs))
 	var x0: float = r.position.x + 12.0
 	var y0: float = r.position.y + 6.0 + asc
-	hud.draw_string(UI.name_font(font), Vector2(x0, y0), str(toast.title), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(tfs), _ca(UI.GOLD, a))
+	hud.draw_string(UI.name_font(font), Vector2(x0, y0), UI.Loc.s(str(toast.title)), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(tfs), _ca(UI.GOLD, a))
 	for i in lines.size():
-		hud.draw_string(font, Vector2(x0 + tw, y0 + i * lh), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(tfs), _ca(W3, 0.92 * a))
+		hud.draw_string(font, Vector2(x0 + tw, y0 + i * lh), UI.Loc.s(lines[i]), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(tfs), _ca(W3, 0.92 * a))
 
 
 func _open_ask() -> void:
@@ -1204,7 +1204,7 @@ func _card(vs: Vector2, id: String, frame: Rect2, t: float, a: float, done_k: fl
 	UI.text(hud, font, tp + Vector2(0, 40), str(c.get("title", "")), 20 if not big else 24, Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, a))
 	var asc: float = font.get_ascent(UI.fs(fsz))
 	for i in lines.size():
-		hud.draw_string(font, Vector2(tp.x, tp.y + 52.0 + asc + i * lh), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fsz), Color(0.85, 0.93, 0.95, a))
+		hud.draw_string(font, Vector2(tp.x, tp.y + 52.0 + asc + i * lh), UI.Loc.s(lines[i]), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fsz), Color(0.85, 0.93, 0.95, a))
 	# 做完条件 / 进度
 	var hy: float = tp.y + 52.0 + lines.size() * lh + 10.0
 	var hint: String = _hint_of(id)
@@ -1231,7 +1231,7 @@ func _card(vs: Vector2, id: String, frame: Rect2, t: float, a: float, done_k: fl
 		hud.draw_rect(skip_rect, Color(0.03, 0.04, 0.05, 0.8 * a))
 		hud.draw_rect(skip_rect, Color(1, 1, 1, 0.3 * a), false, 1.0)
 		var stw: float = font.get_string_size(skip_s, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(12)).x
-		hud.draw_string(font, skip_rect.get_center() + Vector2(-stw / 2.0, UI.fs(12) * 0.36), skip_s, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(12), Color(UI.SUB.r, UI.SUB.g, UI.SUB.b, a))
+		hud.draw_string(font, skip_rect.get_center() + Vector2(-stw / 2.0, UI.fs(12) * 0.36), UI.Loc.s(skip_s), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(12), Color(UI.SUB.r, UI.SUB.g, UI.SUB.b, a))
 	# 做完：打勾
 	if done_k > 0.0:
 		var cc: Vector2 = pr.position + Vector2(pr.size.x - 30.0, 26.0)
@@ -1266,6 +1266,7 @@ func _head_v3(p: Vector2, w: float, cn: String, en: String, fs: int, cfs: float,
 
 ## hud_v2.cap 的宽度（同一套逐字量法）
 func _cap_w(s: String, size: float, sp: float) -> float:
+	s = UI.Loc.s(s)   # 本地化（docs/276 §10）：逐字画之前整串查表
 	var f: Font = UI.latin(true)
 	var w := 0.0
 	for ch in s:
@@ -1315,7 +1316,7 @@ func _card_v3(id: String, frame: Rect2, t: float, a: float, done_k: float, live:
 	_head_v3(tp + Vector2(0, 20.0 if touch else 18.0), tx_w if stacked else (pr.end.x - pad - tp.x), str(c.get("title", "")), en, tfs, cfs, a, (pr.end.x - 10.0 - sk_w - tp.x) if sk_w > 0.0 else -1.0)
 	var asc: float = font.get_ascent(UI.fs(fsz))
 	for i in lines.size():
-		hud.draw_string(font, Vector2(tp.x, tp.y + head_h + asc + i * lh), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fsz), _ca(W3, 0.9 * a))
+		hud.draw_string(font, Vector2(tp.x, tp.y + head_h + asc + i * lh), UI.Loc.s(lines[i]), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fsz), _ca(W3, 0.9 * a))
 	# 做完条件 / 进度
 	var hy: float = tp.y + head_h + lines.size() * lh + 10.0
 	var hint: String = _hint_of(id)

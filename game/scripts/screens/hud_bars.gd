@@ -658,7 +658,7 @@ func _chip_b(tb: TriBatch, tx: Array, pos: Vector2, s: String, col: Color, size:
 	var tc: Color = Color(col.r, col.g, col.b, col.a).lerp(Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, col.a), 0.3)
 	var ci: CanvasItem = g.hud
 	var fnt: Font = g.font
-	tx.append(func(): ci.draw_string(fnt, pos + Vector2(9, size + 2), s, HORIZONTAL_ALIGNMENT_LEFT, -1, size, tc))
+	tx.append(func(): ci.draw_string(fnt, pos + Vector2(9, size + 2), UI.Loc.s(s), HORIZONTAL_ALIGNMENT_LEFT, -1, size, tc))
 	return w
 
 

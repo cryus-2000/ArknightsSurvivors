@@ -592,20 +592,20 @@ func _event_caption(art: Dictionary, p0: Vector2, cx: float) -> void:
 			o2.append(em + q)
 		emb.append(o2)
 	UI.curly_emblem(g.panel_fg, emb, em, 24.0, Color(0.18, 0.72, 1.0))
-	g.panel_fg.draw_string(serif, p0 + Vector2(92, 408 + dy), g.panel_title_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Color.WHITE)
+	g.panel_fg.draw_string(serif, p0 + Vector2(92, 408 + dy), UI.Loc.s(g.panel_title_text), HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Color.WHITE)
 	if panel_sub_text != "":
 		if touch:
 			# 触屏：剧情从事件名下到插画底边（约 4 行 13 号的高度），字号取放得下的最大一档
 			var fs := UI.fit(g.font, UI.soft(panel_sub_text), 440.0, 492.0 - (424.0 + dy), EV_SUB_TOUCH)
 			UI.draw_fit(g.panel_fg, g.font, p0 + Vector2(92, 424 + dy), fs, Color(0.81, 0.79, 0.76))
 		else:
-			g.panel_fg.draw_multiline_string(g.font, p0 + Vector2(92, 440), UI.soft(panel_sub_text), HORIZONTAL_ALIGNMENT_LEFT, 430, 13, 3, Color(0.81, 0.79, 0.76), UI.BRK)
+			g.panel_fg.draw_multiline_string(g.font, p0 + Vector2(92, 440), UI.Loc.s(UI.soft(panel_sub_text)), HORIZONTAL_ALIGNMENT_LEFT, 430, 13, 3, Color(0.81, 0.79, 0.76), UI.BRK)
 	# 右侧标题
 	var col_top: float = EV_COL_TOP if touch else g.panel_scroll.offset_top   # 设计坐标：选项列顶边 196，标题在它上方
 	var L: Dictionary = lay()
 	var tt: float = float(L.ev_title_dy)   # 触屏标题再贴近选项列 12，不压到顶栏的威胁等级行
 	UI.en(g.panel_fg, g.font, Vector2(cx + 20, col_top - 54.0 + tt), "EVENT  ·  CHOOSE ONE", 12, Color(0.6, 0.59, 0.56), 4.0)
-	g.panel_fg.draw_string(serif, Vector2(cx + 20, col_top - 18.0 + tt), "选择一项", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(0.925, 0.91, 0.882))
+	g.panel_fg.draw_string(serif, Vector2(cx + 20, col_top - 18.0 + tt), UI.Loc.s("选择一项"), HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(0.925, 0.91, 0.882))
 	var hint := "←→ 选择 · Ⓐ 确认" if Pad.using else ("点击选项" if Pad.touch else "点击选项，或按 1–%d" % g.choices.size())
 	var hy: float = col_top + minf(ev_bars_h, g.panel_scroll.size.y) + (20.0 if touch else 6.0)   # 触屏：基线落在选项列下方，不压最后一条
 	UI.text(g.panel_fg, g.font, Vector2(cx + 20, hy), hint, int(L.ev_hint_fs), Color(0.55, 0.54, 0.52))
@@ -1429,13 +1429,13 @@ func draw_event_bar(card: Button, o: Dictionary, i: int) -> void:
 		draw_icon_fit(card, itx, base + Vector2(50.0 if ph else 56.0, card.size.y / 2.0), 48.0 if ph else 64.0)
 	else:
 		UI.icon(card, "exit", base + Vector2(50.0 if ph else 56.0, card.size.y / 2.0), 28.0 if ph else 32.0, ink)
-	card.draw_string(serif, base + Vector2(tx0, 30.0 if ph else 38.0), o.name, HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color.WHITE if hov else ink)
+	card.draw_string(serif, base + Vector2(tx0, 30.0 if ph else 38.0), UI.Loc.s(o.name), HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color.WHITE if hov else ink)
 	var x := tx0 + serif.get_string_size(o.name, HORIZONTAL_ALIGNMENT_LEFT, -1, 22).x + 14.0
 	for chp in o.get("chips", []):
 		var cw := g.font.get_string_size(chp[0], HORIZONTAL_ALIGNMENT_LEFT, -1, 11).x + 12.0
 		var cr := Rect2(base + Vector2(x, 12.0 if ph else 20.0), Vector2(cw, 18))
 		card.draw_rect(cr, Color(chp[1].r, chp[1].g, chp[1].b, 0.9), false, 1.0)
-		card.draw_string(g.font, cr.position + Vector2(6, 13), chp[0], HORIZONTAL_ALIGNMENT_LEFT, -1, 11, chp[1])
+		card.draw_string(g.font, cr.position + Vector2(6, 13), UI.Loc.s(chp[0]), HORIZONTAL_ALIGNMENT_LEFT, -1, 11, chp[1])
 		x += cw + 6.0
 	var fb: Dictionary = card.get_meta("fit", {})
 	if not fb.is_empty():
@@ -1618,6 +1618,7 @@ static var _re_paren_en: RegEx
 
 
 static func _has_cjk(t: String) -> bool:
+	t = UI.Loc.s(t)   # 本地化（docs/276 §10）：逐字画之前整串查表
 	for ch in t:
 		var c := ch.unicode_at(0)
 		if c >= 0x4e00 and c <= 0x9fff:

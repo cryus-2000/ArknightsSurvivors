@@ -5,6 +5,7 @@ extends Node
 const Loc = preload("res://scripts/core/loc.gd")
 
 var dir := "res://../build/l10n_shots"
+var tag := "desk"
 var title: Control
 var game: Node
 var count := 0
@@ -14,6 +15,8 @@ func _ready() -> void:
 	for a in Cfg.dev_args():
 		if a.begins_with("--shot_dir="):
 			dir = a.substr(11)
+		if a.begins_with("--shot_tag="):
+			tag = a.substr(11)
 	DirAccess.make_dir_recursive_absolute(dir)
 	call_deferred("run")
 
@@ -26,7 +29,7 @@ func frames(k := 8) -> void:
 func shot(name: String) -> void:
 	await RenderingServer.frame_post_draw
 	var img := get_viewport().get_texture().get_image()
-	img.save_png(dir.path_join("%s_%s.png" % [Loc.lang, name]))
+	img.save_png(dir.path_join("%s_%s_%s.png" % [Loc.lang, tag, name]))
 	count += 1
 	print("SHOT ", name)
 
@@ -46,9 +49,27 @@ func title_part() -> void:
 	title.intro = title.INTRO_LEN
 	title.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
 	title.position = Vector2.ZERO
-	title.size = Vector2(1280, 720)
+	title.size = get_viewport().get_visible_rect().size   # 桌面 1280×720 / 手机比例（--touch + 窄窗口）都按实际视口
 	await frames(6)
 	await shot("01_title")
+	# 标题页其余各屏（同 ui_smoke 清单）
+	var extra: Array = [
+		["01b_difficulty", func(): title.diff_pick = true, func(): title.diff_pick = false],
+		["01c_meta_tree", func(): title.meta_ui.open(), func(): title.meta_ui.close()],
+		["01d_medals", func(): title.medals_ui.open(), func(): title.medals_ui.close()],
+		["01e_guide", func(): title.guide = true, func(): title.guide = false],
+		["01f_credits", func(): title._open_credits(), func(): title.credits = false],
+	]
+	if preload("res://scripts/core/roster.gd").active():
+		extra.append(["01g_headhunt", func(): title.hunt_ui.open(), func(): title.hunt_ui.hh.open = false])
+	if Cfg.can_boss_trial():
+		extra.append(["01h_boss_trial", func(): title.boss_trial.open(), func(): title.boss_trial.close()])
+	for e in extra:
+		e[1].call()
+		await frames(30)
+		await shot(e[0])
+		e[2].call()
+		await frames(4)
 	title._open_op_pick(false)
 	await frames(30)
 	await shot("02_op_pick")
@@ -70,6 +91,11 @@ func title_part() -> void:
 		gl.select_id(pair[1])
 		await frames(20)
 		await shot("04_gallery_%s" % pair[1])
+	for ti in [4, 5, 6, 7]:   # 道具 / 藏品 / 结局 / 事件：各页第一条
+		gl._set_tab(ti)
+		gl.sel = mini(1, gl.entries.size() - 1)
+		await frames(20)
+		await shot("04b_gallery_tab%d" % ti)
 	gl.close()
 	await frames(4)
 	title.settings.open()
@@ -107,9 +133,30 @@ func game_part() -> void:
 		await shot("08_levelup_%d" % i)
 		g.panel.visible = false
 		g.state = g.S.PLAY
+	pg.open_relic_choice()
+	g.panel_ui.motion.skip()
+	await _cards(g, 40)
+	await shot("08b_relic_choice")
+	g.panel.visible = false
+	g.state = g.S.PLAY
 	g.state = g.S.STATS
 	await _cards(g, 20)
 	await shot("09_stats")
+	g.state = g.S.PAUSE
+	await _cards(g, 20)
+	await shot("10_pause")
+	const RS = preload("res://scripts/run/run_stats.gd")
+	var fake = RS.model(RS.fake_raw())
+	g.state = g.S.WIN; g.state_age = 3.0; g.settlement.set_model(fake)
+	await _cards(g, 40)
+	await shot("11_settlement_win")
+	g.run_stats.show_model(fake)
+	await _cards(g, 30)
+	await shot("12_run_stats")
+	g.run_stats.close()
+	g.state = g.S.DEAD; g.state_age = 3.0; g.settlement.set_model(fake)
+	await _cards(g, 40)
+	await shot("13_settlement_dead")
 	g.state = g.S.PLAY
 	g.queue_free()
 	await frames(2)

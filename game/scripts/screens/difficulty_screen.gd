@@ -93,7 +93,7 @@ static func text(c: CanvasItem, font: Font, x: float, y: float, value: String, s
 	var size := maxi(sz, PHONE_MIN_FS) if ph else sz
 	while width > 0 and size > (13 if ph else 11) and font.get_string_size(value, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x > width:
 		size -= 1
-	c.draw_string(font, Vector2(x,y+size), value, HORIZONTAL_ALIGNMENT_LEFT, width, size, col)
+	c.draw_string(font, Vector2(x,y+size), UI.Loc.s(value), HORIZONTAL_ALIGNMENT_LEFT, width, size, col)
 
 static func rect(c: CanvasItem, r: Rect2, col: Color) -> void:
 	c.draw_rect(r,col)

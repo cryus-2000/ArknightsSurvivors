@@ -233,8 +233,8 @@ func _warm_glyphs() -> void:
 	for s0 in range(6, 41):
 		sizes[UI._ks(ci, s0)] = true
 	for ks in sizes:
-		ci.draw_string_outline(fnt, far, WARM_NUM, HORIZONTAL_ALIGNMENT_LEFT, -1, ks, 4, Color(0, 0, 0, 1))
-		ci.draw_string(fnt, far, WARM_NUM, HORIZONTAL_ALIGNMENT_LEFT, -1, ks, Color.WHITE)
+		ci.draw_string_outline(fnt, far, UI.Loc.s(WARM_NUM), HORIZONTAL_ALIGNMENT_LEFT, -1, ks, 4, Color(0, 0, 0, 1))
+		ci.draw_string(fnt, far, UI.Loc.s(WARM_NUM), HORIZONTAL_ALIGNMENT_LEFT, -1, ks, Color.WHITE)
 	# 大群横幅（_draw_under）：int(38 × pop)，pop 1.0–1.8，描边 6
 	var horde := "海嗣注意到了你的存在……自四方合围而来大 群 来 袭海嗣大群 已抵达"
 	for sz in range(38, 69):
@@ -661,11 +661,11 @@ func _dmg_numbers(dn: Array) -> void:
 		for k in order[L]:
 			var ks: int = k % 1024
 			for it in grp[k]:
-				ci.draw_string_outline(fnt, it[0], it[1], HORIZONTAL_ALIGNMENT_CENTER, FT_BOX, ks, 4, Color(0, 0, 0, it[3].a * 0.8))
+				ci.draw_string_outline(fnt, it[0], UI.Loc.s(it[1]), HORIZONTAL_ALIGNMENT_CENTER, FT_BOX, ks, 4, Color(0, 0, 0, it[3].a * 0.8))
 		for k in order[L]:
 			var ks: int = k % 1024
 			for it in grp[k]:
-				ci.draw_string(fnt, it[0], it[1], HORIZONTAL_ALIGNMENT_CENTER, FT_BOX, ks, it[3])
+				ci.draw_string(fnt, it[0], UI.Loc.s(it[1]), HORIZONTAL_ALIGNMENT_CENTER, FT_BOX, ks, it[3])
 
 
 var _numw := {}   # 字号 -> {字串: 宽}（飘字外接框用；数字常重复，省掉重复量字）

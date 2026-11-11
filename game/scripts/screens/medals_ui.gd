@@ -274,6 +274,7 @@ func _tw(s: String, fs: int, f: Font = null) -> float:
 
 
 func _spaced_w(s: String, fs: int, sp: float, f: Font) -> float:
+	s = UI.Loc.s(s)   # 本地化（docs/276 §10）：逐字画之前整串查表
 	var w := 0.0
 	for ch in s:
 		w += f.get_string_size(ch, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x + sp
@@ -282,6 +283,7 @@ func _spaced_w(s: String, fs: int, sp: float, f: Font) -> float:
 
 ## 等字距一行，p.y 是基线；align 0 左对齐 / 1 居中
 func _spaced(p: Vector2, s: String, fs: int, col: Color, sp: float, f: Font, align := 1) -> void:
+	s = UI.Loc.s(s)   # 本地化（docs/276 §10）：逐字画之前整串查表
 	var x := p.x - (_spaced_w(s, fs, sp, f) / 2.0 if align == 1 else 0.0)
 	for ch in s:
 		draw_string(f, Vector2(x, p.y), ch, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, col)

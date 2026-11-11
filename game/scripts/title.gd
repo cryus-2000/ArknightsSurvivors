@@ -984,6 +984,7 @@ func _draw_menu(vs: Vector2) -> void:
 	var fkey: String = Pad.hint("C", "Ⓨ", "") if not ph else ""
 	var fcap: bool = fkey == "C"
 	var ftxt: String = ("明日方舟同人作品 · 非商业 · 与鹰角网络无关 · 致谢与声明 %s" % ("" if fcap else fkey)).strip_edges() if not ph else "致谢与声明"
+	ftxt = UI.Loc.s(ftxt)   # 英文版：先翻再量宽（UI.text 画时也会查表，量宽要一致）
 	var fs := 12 if not ph else int(round(15 * fk))
 	var fw: float = font.get_string_size(ftxt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 	var kw: float = font.get_string_size("C", HORIZONTAL_ALIGNMENT_LEFT, -1, 10).x + 18.0 if fcap else 0.0
@@ -1007,6 +1008,9 @@ func _draw_menu(vs: Vector2) -> void:
 			if fcap:
 				UI.keycap(self, font, Vector2(fx + fw - kw + 6.0, fy - 13.0), "C", _fa(Color(0.45, 0.53, 0.58), ff), 10)
 			TUI.ptext(self, tc, Vector2(fx + fw + 12.0, fy - 4.0), "V2.0", 1.0, _fa(Color(0.45, 0.53, 0.58), ff))
+	# 英文版标注（11-11 用户经协调人：标明是 AI 翻译）：桌面声明上方一行小字；手机在设置页语言行写
+	if not ph and UI.Loc.en():
+		UI.text(self, font, Vector2(lg.pos.x - 420, fy - (40 if (not OS.is_debug_build() and Cfg.runs_log_enabled()) else 20)), "English text is AI-translated from the Chinese original.", 12, _fa(Color(0.45, 0.53, 0.58), ff), HORIZONTAL_ALIGNMENT_RIGHT, 420)
 	# 对内包页脚提示（docs/40，用户 10-10）：声明上面一行；手机只在设置页提示
 	if not ph and not OS.is_debug_build() and Cfg.runs_log_enabled():
 		UI.text(self, font, Vector2(lg.pos.x - 310, fy - 20), "测试版：本地记录对局摘要（不上传）", 12, _fa(UI.GOLD, ff), HORIZONTAL_ALIGNMENT_RIGHT, 310)

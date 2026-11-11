@@ -1,0 +1,607 @@
+keys,en,_zh,_source,_note
+events.waves.threat.0.name,Shallows,浅滩,模型,
+events.waves.threat.0.horde_mix.0.name,Drifter Tide,漂流潮,模型,
+events.waves.threat.1.name,Undertow,暗流,模型,
+events.waves.threat.1.horde_mix.0.name,Slider Swarm,滑行群,模型,
+events.waves.threat.1.horde_mix.1.name,Rockbreaker Formation,凿石阵,模型,
+events.waves.threat.2.name,Deep Dive,深潜,模型,
+events.waves.threat.2.horde_mix.0.name,Seaborn Vanguard,海嗣先锋,模型,
+events.waves.threat.2.horde_mix.1.name,Offspring Bulwark,子代壁垒,模型,
+events.waves.threat.2.horde_mix.2.name,Stampeding Tide,狂奔潮,模型,
+events.waves.threat.3.name,Rift,裂隙,模型,
+events.waves.threat.3.horde_mix.0.name,Submerged Assault,潜袭,模型,
+events.waves.threat.3.horde_mix.1.name,Acid Rain Siege,酸雨围城,模型,
+events.waves.threat.3.horde_mix.2.name,Marker Assault,引痕突击,模型,
+events.waves.threat.4.name,Abyss,深渊,模型,
+events.waves.threat.4.horde_mix.0.name,Deep Sea Tide,深海潮,模型,
+events.waves.threat.4.horde_mix.1.name,Heavy Armor Advance,重甲推进,模型,
+events.waves.threat.4.horde_mix.2.name,Nethersea Heavy Armor,深溟重甲,模型,
+events.waves.threat.5.name,Caerula Arbor,深蓝之树,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_10
+events.waves.threat.5.horde_mix.0.name,Deep Sea Swarm,深海集群,模型,
+events.waves.threat.5.horde_mix.1.name,Deep Blue Encirclement,深蓝合围,模型,
+events.waves.threat.5.horde_mix.2.name,Broodsurge Encirclement,巢涌合围,模型,
+events.waves.endings.standard.name,Ending 1 · Precious Days,结局一 · 平凡即是喜乐,模型,
+events.waves.endings.standard.omen,The end is near — 'Paranoia Illusion' is emerging,终局将至 —— 偏执泡影正在浮现,模型,
+events.waves.endings.standard.gallery.hint,Do not reveal any ending lines. The first run will always end here.,不翻开任何一条结局线。第一次探索必定走到这里。,模型,
+events.waves.endings.standard.gallery.lore,A faintly glowing bubble hung at the end of the deep sea. Mizuki shattered it and continued forward.,深海尽头悬着一团微微发光的泡影。水月打碎了它，继续向前。,模型,
+events.waves.endings.standard.gallery.epilogue,"The bubble bursts. Mizuki returns to the shore, ready for a good meal to welcome tomorrow.",泡影散了。水月回到岸上，准备好好吃一顿，迎接明天。,模型,
+events.waves.endings.knight.name,Ending 2 · Age of the Silence,结局二 · 静谧时代,模型,
+events.waves.endings.knight.omen,The end is near — the Knight walks toward the center of the Black Tide,终局将至 —— 骑士走向了黑潮中心,模型,
+events.waves.endings.knight.gallery.hint,"Obtain Breath of the Tide in 'Fanatic's Delusion', and keep the Tide-Hunt Knight alive until 10:00.",在「狂徒妄念」中得到海潮的气息，并让猎潮的骑士活到 10:00。,模型,「狂徒妄念」本表译 Delusions of Lunacy，这里没对上
+events.waves.endings.knight.gallery.lore,"He charged out of the Black Tide on Rocinante, shielding you from the waves. At the end, he walked into the center of the Black Tide, becoming The Last Knight within the ice.",他骑着罗辛南特从黑潮里冲出来，替你挡下潮水。到了尽头，他走进黑潮中心，在寒冰里成了最后的骑士。,模型,
+events.waves.endings.knight.gallery.epilogue,"A silent giant wave rose, and the Knight's roar was submerged in the silence. The disaster that destroyed Iberia descended once more, never to recede again.",无声的巨浪升起，骑士的怒吼没入静谧。毁灭伊比利亚的灾难再次降临，不会再退去。,模型,
+events.waves.endings.resolve.name,Ending 4 · Stella Caerula,结局四 · 如星空般深蓝,模型,
+events.waves.endings.resolve.omen,The end is near — Caerula Arbor extends its roots,终局将至 —— 深蓝之树伸出了根,模型,
+events.waves.endings.resolve.gallery.hint,"Choose ''Caerula'?!' at the start, and answer during Ascension.",在开端选择「“深蓝”？！」，并在升华中作出回答。,模型,
+events.waves.endings.resolve.gallery.lore,"You led Mizuki into the experimental hub of Caerula Arbor. He gave his answer during his sublimation, and Izumik recalled its offspring in the deepest depths.",你带着水月走进深蓝之树的实验中枢。升华时他给出了自己的回答，伊祖米克在最深处召回子代。,模型,
+events.waves.endings.resolve.gallery.epilogue,"The descendant of evolution rises from the tides of Terra, piercing the clouds, heading for the sea of stars.",进化的后裔从泰拉的潮水中升起，穿过云层，去往星海。,模型,
+events.waves.endings.resolve.epilogue_by_relic.238,"He still accepted the Seaborn as a human. The evolved descendants rose from the tides of Terra, heading toward the sea of stars.",他仍以人的身份接受了海嗣。进化的后裔从泰拉的潮水中升起，去往星海。,模型,
+events.waves.endings.resolve.epilogue_by_relic.239,"He only did what he believed was right. The evolved descendants rose from the tides of Terra, heading toward the sea of stars.",他只做自己认为对的事。进化的后裔从泰拉的潮水中升起，去往星海。,模型,
+events.waves.endings.resolve.epilogue_by_relic.240,"Instinct overwhelmed humanity, and he still doubted who he was. The evolved descendants rose from the tides of Terra, heading toward the sea of stars.",本能压过了人性，他仍在怀疑自己是谁。进化的后裔从泰拉的潮水中升起，去往星海。,模型,
+events.waves.endings.deep.name,Ending 3 · Price of Peace,结局三 · 息潮的代价,模型,
+events.waves.endings.deep.omen,The end is near — Ishar'mla awakens deep within We Many,终局将至 —— 伊莎玛拉在大群深处苏醒,模型,
+events.waves.endings.deep.gallery.hint,"Choose 'Decide to dive into the deep sea' at the beginning, and find the Caerula Animus in the laboratory's garden.",在开端选择「决定潜入深海」，并在实验室的园林里找到深蓝之心。,模型,「决定潜入深海」本表译 Decide to dive into the abyss，这里没对上
+events.waves.endings.deep.gallery.lore,You dove into that massive corpse and found Its Core organ in the center of the garden. Ishar'mla was waiting in the deepest depths.,你们潜进那具巨大的尸骸，在园林中央找到了祂的核心器官。伊莎玛拉在最深处等着。,模型,
+events.waves.endings.deep.gallery.epilogue,"The silence recedes, the tide calms. Mizuki can never return to land.",静谧退去，海潮平息。水月再也回不到陆地上。,模型,
+events.waves.events.0.name,Delusions of Lunacy,狂徒妄念,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossa1_enter.title
+events.waves.events.0.text,"The sky was burning, and the Knight galloped above the waves. Only the azure remained all around, and the wheat ears were calling.",天空在燃烧，骑士驰骋在浪涛之上。四周只剩蔚蓝，麦穗在呼唤。,模型,
+events.waves.events.0.options.0.label,Rage,愤怒,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_bossa1_1.title
+events.waves.events.0.options.0.desc,"Leader Max HP -10%, obtain 'Breath of the Tide': Tide-Hunt Knight joins the squad. Proceed to Ending 2",队长最大生命 -10%，得到「海潮的气息」：猎潮的骑士加入编队。走向结局二,模型,
+events.waves.events.0.options.1.label,Call out,呼号,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_bossa1_2.title
+events.waves.events.0.options.1.desc,"60% chance to obtain 'Breath of the Tide', otherwise nothing",60% 得到「海潮的气息」，失败则一无所获,模型,
+events.waves.events.0.options.2.label,Remain silent,沉默,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_bossa1_3.title
+events.waves.events.0.options.2.desc,Originium Ingot +10,源石锭 +10,模型,
+events.waves.events.0.options.3.label,Leave,离开,官方,roguelike_topic_table.rogue_2.choices.choice_leave.title
+events.waves.events.0.options.3.desc,What exactly does he want to do?,他究竟想做什么？,模型,
+events.waves.events.1.name,The Beginning,开端,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossb1_enter.title
+events.waves.events.1.text,"Bad news came one after another. The documents Mizuki found recorded the bishop's plan, as well as a location called 'Caerula'.",坏消息接踵而至。水月找到的文件里，记着主教的计划，还有一个叫「深蓝」的地点。,模型,
+events.waves.events.1.options.0.label,Decide to dive into the abyss,决定潜入深海,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_bossb1_1.title
+events.waves.events.1.options.0.desc,Obtain 'Bishop's Research': Merchant prices +15% hereafter. Go find the secret left by the bishop,得到「主教的研究」：此后商人售价 +15%。去找主教留下的秘密,模型,
+events.waves.events.1.options.1.label,'Caerula'?!,“深蓝”？！,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_bossb1_3.title
+events.waves.events.1.options.1.desc,Obtain 'Caerula Memory': 1 Rejection Reaction. Follow this name all the way down,得到「深蓝回忆」：一次排异反应。跟着这个名字一路向下,模型,
+events.waves.events.1.options.2.label,Nightmare...,噩梦……,模型,
+events.waves.events.1.options.2.desc,Originium Ingot +15,源石锭 +15,模型,
+events.waves.events.1.options.3.label,Leave,离开,官方,roguelike_topic_table.rogue_2.choices.choice_leave.title
+events.waves.events.1.options.3.desc,Time passes...,时光流逝……,模型,
+events.waves.events.2.name,The Knight Persists,骑士仍在,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossa2_enter.title
+events.waves.events.2.text,The ocean was silent as a mirror. The Knight shattered the mirror and looked at his reflection. His enemy was named Terra.,海洋沉默如镜。骑士踏碎镜面，望向倒影里的自己。他的敌人，叫做泰拉。,模型,
+events.waves.events.2.options.0.label,Resist,反抗,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_bossa2_1.title
+events.waves.events.2.options.0.desc,"Leader HP -15%, Originium Ingot +20 (Original 'Absurd Fate')",队长生命 -15%，源石锭 +20（原作「荒诞命运」）,模型,
+events.waves.events.2.options.1.label,Break free,挣脱,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_bossa2_2.title
+events.waves.events.2.options.1.desc,"Obtain 'The Knight's Corpus': Final Boss takes +80% damage; when Tide-Hunt Knight is in squad, Leader also takes +80% damage.",得到「骑士骨血」：最终 Boss 受到的伤害 +80%；猎潮的骑士在编队时，队长受到的伤害也 +80%,模型,
+events.waves.events.2.options.2.label,Pass by,逐流,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_bossa2_3.title
+events.waves.events.2.options.2.desc,Better stay away from this madman...,还是离这疯子远点……,模型,
+events.waves.events.3.name,Caerula Animus,深蓝之心,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_8
+events.waves.events.3.text,A dusty laboratory is hidden within the massive corpse. The surveillance system recognizes your face and opens the gate. Every room requires some Originium Ingots to access.,巨大的尸骸里藏着一座尘封的实验室。监控认出你的脸，打开了大门。每个房间都要花些源石锭打点。,模型,
+events.waves.events.3.options.0.label,Search the office,搜寻办公室,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_bossb2_1.title
+events.waves.events.3.options.0.desc,Originium Ingot -8: Immediately recruit an Operator,源石锭 -8：立即招募一名干员,模型,
+events.waves.events.3.options.1.label,Search the research area,搜寻科研区,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_bossb2_2.title
+events.waves.events.3.options.1.desc,Originium Ingot -8: Obtain a random Collectible,源石锭 -8：随机获得一件藏品,模型,
+events.waves.events.3.options.2.label,Search the storage room,搜寻储藏室,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_bossb2_3.title
+events.waves.events.3.options.2.desc,Originium Ingot -8: Restore 30% Max HP,源石锭 -8：回复 30% 最大生命,模型,
+events.waves.events.3.options.3.label,Search the living quarters,搜寻生活区,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_bossb2_4.title
+events.waves.events.3.options.3.desc,Originium Ingot -8: Choose 1 of 3 growth options,源石锭 -8：获得一次成长三选一,模型,
+events.waves.events.3.options.4.label,Search the cafeteria,搜寻食堂,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_bossb2_5.title
+events.waves.events.3.options.4.desc,Originium Ingot -8: Leader Max HP +8%,源石锭 -8：队长最大生命 +8%,模型,
+events.waves.events.3.options.5.label,Search the garden,搜寻园林,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_bossb2_6.title
+events.waves.events.3.options.5.desc,"Obtain 'Caerula Animus': 1 Rejection Reaction, Seaborn evolve faster. Proceed to Ending 3",得到「深蓝之心」：一次排异反应，海嗣更快进化。走向结局三,模型,
+events.waves.events.3.options.6.label,Leave,离开,官方,roguelike_topic_table.rogue_2.choices.choice_leave.title
+events.waves.events.3.options.6.desc,"Something is hidden here, but you decide not to touch it",这里藏着什么，但你决定不去碰它,模型,
+events.waves.events.4.name,Paean,赞歌,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossb3_enter.title
+events.waves.events.4.text,"Beside Its resting place was an area untouched by the Seaborn: sea sand, broken statues, and a pair of sleeping beauties tightly gripping their weapons.",祂的栖所旁有一片没被海嗣染指的地方：海砂、破损的人像，和一对紧握武器的睡美人。,模型,
+events.waves.events.4.options.0.label,Kiss the Hunters' foreheads and take their artifacts,亲吻猎人们的额头并取走遗物,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_bossb3_1.title
+events.waves.events.4.options.0.desc,Obtain 'Last Refrain': Obtain 2 random Rare Collectibles,得到「“绝唱”」：随机获得 2 件稀有藏品,模型,
+events.waves.events.4.options.1.label,Leave,离开,官方,roguelike_topic_table.rogue_2.choices.choice_leave.title
+events.waves.events.4.options.1.desc,Let them sleep peacefully,让她们安睡,模型,
+events.waves.events.5.name,Caerula Ritual,深蓝仪式,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc2_enter.title
+events.waves.events.5.text,"Mizuki entered the transfer cabin leading to the bottom of the experimental hub. On the main console, those assimilated processes were still running.",水月进了通往实验中枢底层的传输舱。主控台上，那些被同化的流程还开着。,模型,
+events.waves.events.5.options.0.label,Shut down dangerous process,关闭危险流程,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_bossc2_1.title
+events.waves.events.5.options.0.desc,"Light +30, restore 30% Max HP",灯火 +30，回复 30% 最大生命,模型,
+events.waves.events.5.options.1.label,Make no changes,不做任何改动,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_bossc2_2.title
+events.waves.events.5.options.1.desc,Obtain 'Caerula Arbor': All enemies ATK speed +15%; Light +6 every 15s the Leader takes no damage.,得到「深蓝之树」：所有敌人攻击速度 +15%；队长每 15 秒没有受伤，灯火 +6,模型,
+events.waves.events.6.name,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
+events.waves.events.6.text,"The kin only seek survival, thus they evolve endlessly. Before welcoming the singularity of evolution, It who leads them must first answer: Who am I?",族群唯求生存，所以演化不息。在迎接进化奇点之前，引领它们的祂要先回答：我，是谁？,模型,
+events.waves.events.6.options.0.label,'I am Mizuki. I will fulfill the Doctor's request.',“我是水月，我会完成博士的请求”,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_bossc3_1.title
+events.waves.events.6.options.0.desc,"Obtain 'Determination': Leader Max HP +30%, Physical damage taken -2; 1 additional Elite spawns each time, Seaborn HP and damage +10%. Proceed to Ending 4.",得到「“决心”」：队长最大生命 +30%、物理减伤 +2；精英每次多来 1 只，海嗣生命与伤害 +10%。走向结局四,模型,
+events.waves.events.6.options.1.label,'Let time answer.',“让时间来解答吧”,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_bossc3_2.title
+events.waves.events.6.options.1.desc,Obtain 'Vigil': Level-ups and Collectibles become choose 1 of 4. Head towards Ending 4,得到「“观望”」：升级与藏品改为四选一。走向结局四,模型,
+events.waves.events.6.options.2.label,'We many is not me. I am we many.',“大群非我，我即大群”,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_bossc3_3.title
+events.waves.events.6.options.2.desc,"Obtain 'Hesitation': Rare / Core relic appearance rate +30%, pickup range -20%. Proceed to Ending 4.",得到「“犹疑”」：稀有 / 核心藏品出现率 +30%，拾取范围 -20%。走向结局四,模型,
+events.waves.events.7.name,Lingering Glimmer,残存微光,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_blood2_enter.title
+events.waves.events.7.text,"An Inquisitor who had lost his lantern leaned on his sword, panting on the coastal reef, his feet surrounded by Sea Seaborn corpses.",一位失去提灯的审判官拄着剑，在岸边礁石上喘息，脚边满是恐鱼的尸体。,模型,
+events.waves.events.7.options.0.label,Give her the lantern,送上提灯,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_blood2_1.title
+events.waves.events.7.options.0.desc,Light +40,灯火 +40,模型,
+events.waves.events.7.options.1.label,Quietly approach,悄悄接近,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_blood2_2.title
+events.waves.events.7.options.1.desc,"Leader HP -10%, Light +15",队长生命 -10%，灯火 +15,模型,
+events.waves.events.7.options.2.label,Strike up a conversation,上前攀谈,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_blood2_3.title
+events.waves.events.7.options.2.desc,Originium Ingot +6,源石锭 +6,模型,
+events.waves.events.8.name,A Faint Spark,点滴星火,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_blood1_enter.title
+events.waves.events.8.text,"Phagocytic dust covered the entire city. Amidst the ruins, something glowed beneath the dust.",噬尘覆盖了整座城市。废墟间，有什么东西在噬尘下发着光。,模型,
+events.waves.events.8.options.0.label,Take the risk to go retrieve it,冒险去取,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_blood1_1.title
+events.waves.events.8.options.0.desc,"Leader HP -15%, obtain a main branch Collectible",队长生命 -15%，获得一件主流派藏品,模型,
+events.waves.events.8.options.1.label,Scavenge for supplies from a safe area,拾取安全区域的物资,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_blood1_2.title
+events.waves.events.8.options.1.desc,Originium Ingot +5,源石锭 +5,模型,
+events.waves.events.9.name,Singer by the Sea,海边的歌者,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_2_enter.title
+events.waves.events.9.text,"A lonely Sea Seaborn lay on the reef, its tentacles haphazardly plucking a human instrument, singing its final song.",孤独的恐鱼趴在礁石上，触须胡乱拨着人类的乐器，唱着最后一支歌。,模型,
+events.waves.events.9.options.0.label,Stop and listen,驻足倾听,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_2_1.title
+events.waves.events.9.options.0.desc,"Originium Ingot -12, obtain a main branch Collectible",源石锭 -12，获得一件主流派藏品,模型,
+events.waves.events.9.options.1.label,Turn and leave,转身离开,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_2_2.title
+events.waves.events.9.options.1.desc,Cover your ears first,先捂住耳朵,模型,
+events.waves.events.10.name,The Last Tidewatcher,最后的观潮者,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_1_enter.title
+events.waves.events.10.text,"An Ægir stood against the tide. The giant waves nearly swallowed him several times, but he did not retreat a single step.",一位阿戈尔人迎着潮头站立，巨浪几次险些吞没他，他半步也没退。,模型,
+events.waves.events.10.options.0.label,Take the risk to help him recover his equipment,冒险帮他回收装备,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_1_1.title
+events.waves.events.10.options.0.desc,"Leader HP -15%, obtain a main branch Rare Collectible",队长生命 -15%，获得一件主流派稀有藏品,模型,
+events.waves.events.10.options.0.ops.1.relic_lane.rarity,Rare,稀有,模型,
+events.waves.events.10.options.1.label,Ask him about what he's seen,打听观潮的结果,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_1_2.title
+events.waves.events.10.options.1.desc,Leader Max HP +3%,队长最大生命 +3%,模型,
+events.waves.events.10.options.2.label,Leave,离开,官方,roguelike_topic_table.rogue_2.choices.choice_leave.title
+events.waves.events.10.options.2.desc,This place is too dangerous,这地方太危险了,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_1_3.description
+events.waves.events.11.name,Chance Meeting,相逢,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_trade1_enter.title
+events.waves.events.11.text,"While sheltering from a storm, you stumble into a karst cave. Inside is an amalgamation of half a human and half a Sea Seaborn, draped in fragments of cleric robes.",躲避风暴时，你闯进一个溶洞。里面是半个人和半只恐鱼拼成的东西，身上挂着教士服的残片。,模型,
+events.waves.events.11.options.0.label,Check how it's doing,查看它的情况,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_trade1_1.title
+events.waves.events.11.options.0.desc,"Leader HP -15%, Originium Ingot +8",队长生命 -15%，源石锭 +8,模型,
+events.waves.events.11.options.1.label,Try to save it,尝试救助它,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_trade1_2.title
+events.waves.events.11.options.1.desc,"Leader HP -30%, Leader Max HP +10%",队长生命 -30%，队长最大生命 +10%,模型,
+events.waves.events.11.options.2.label,Quietly back away,默默离开,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_trade1_3.title
+events.waves.events.11.options.2.desc,Maybe it's a trap by the Church of the Deep cultists,说不定是深海教徒的陷阱,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_trade1_3.description
+events.waves.events.12.name,Ocean's Legacy,大海的遗产,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_11_enter.title
+events.waves.events.12.text,"Before the Profound Silence, tales of pirates circulated on the sea; legend had it that their wealth rivaled that of a nation.",大静谧之前，海上流传着海盗的故事，传说他们的财富堪比一国。,模型,
+events.waves.events.12.options.0.label,"Plunder now, worry later",拿了再说,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_11_1.title
+events.waves.events.12.options.0.desc,Obtain a main branch Collectible and a Cursed Collectible,获得一件主流派藏品和一件遭诅藏品,模型,
+events.waves.events.12.options.1.label,Safety first,安全第一,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_11_2.title
+events.waves.events.12.options.1.desc,Obtain a main branch Collectible,获得一件主流派藏品,模型,
+events.waves.events.13.name,For Survival,为了生存,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_trade4_enter.title
+events.waves.events.13.text,"The Islanders brought you into the karst cave, prying open giant shells to collect secretions. The work was simple, and the pay was not bad.",海民把你带进溶洞，撬开巨型贝壳收集分泌物。活很简单，报酬也不错。,模型,
+events.waves.events.13.options.0.label,"The pay's great, so join in",报酬很可观，加入他们,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_trade4_1.title
+events.waves.events.13.options.0.desc,Originium Ingot +2,源石锭 +2,模型,
+events.waves.events.13.options.1.label,It's an easy job,工作很简单,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_trade4_2.title
+events.waves.events.13.options.1.desc,"Originium Ingot -3, 70% chance to obtain Originium Ingot +8",源石锭 -3，70% 获得源石锭 +8,模型,
+events.waves.events.13.options.2.label,Keep working,继续工作,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_trade4_3.title
+events.waves.events.13.options.2.desc,"Originium Ingot -10, 50% chance to gain Originium Ingot +25",源石锭 -10，50% 获得源石锭 +25,模型,
+events.waves.events.13.options.3.label,Leave,离开,官方,roguelike_topic_table.rogue_2.choices.choice_leave.title
+events.waves.events.13.options.3.desc,Maybe next time,还是算了,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_trade3_2.title
+events.waves.events.14.name,Like Flames to Wood,引火之木,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_recruit2_enter.title
+events.waves.events.14.text,"You chopped down a few strange trees with bark as smooth as skin for firewood. At nightfall, the campfire attracted many lost travelers.",你砍了几棵树皮光滑如皮肤的怪树当柴。入夜，篝火引来了不少迷路的旅人。,模型,
+events.waves.events.14.options.0.label,Sleep soundly,放心地睡去,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_recruit2_1.title
+events.waves.events.14.options.0.desc,Immediately recruit an Operator,立即招募一名干员,模型,
+events.waves.events.14.options.1.label,Maintain a rotating night shift,坚持轮流守夜,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_recruit2_2.title
+events.waves.events.14.options.1.desc,"Originium Ingot -5, choose 1 of 3 growth options",源石锭 -5，获得一次成长三选一,模型,
+events.events_v2.events.0.name,Tulip's Commission,郁金香的委托,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_task_enter.title
+events.events_v2.events.0.text,"Three new commissions appear on the terminal from Tulip, Rhodes Island's head of operations in Iberia. A line of fine print is attached to the end of each.",终端上有三条新委托，发件人是罗德岛驻伊比利亚的总负责人郁金香。每条末尾都附了一行小字。,模型,
+events.events_v2.events.0.options.0.label,Take a look at the trickiest commission,点开最棘手的委托,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_task_1.title
+events.events_v2.events.0.options.0.desc,"Enemies spawned in the next 90s have HP and damage +30%, and an Elite squad will appear. Defeat the squad and survive until time ends: Choose 1 of 3 mainstream relics, Originium Ingot +15.",接下来 90 秒刷出的敌人生命与伤害 +30%，并来一支精英小队。小队全灭且坚持到时间结束：主流派藏品三选一，源石锭 +15,模型,
+events.events_v2.events.0.options.0.ops.0.threat.name,The Most Troublesome Commission,最棘手的委托,模型,
+events.events_v2.events.0.options.1.label,Take a look at the mid-tier commission,点开稍有挑战性的委托,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_task_2.title
+events.events_v2.events.0.options.1.desc,Enemies spawned in the next 90s have HP and damage +20%. Survive until time ends: Run EXP +15%.,接下来 90 秒刷出的敌人生命与伤害 +20%。坚持到时间结束：整局经验 +15%,模型,
+events.events_v2.events.0.options.1.ops.0.threat.name,A Slightly Challenging Commission,稍有挑战性的委托,模型,
+events.events_v2.events.0.options.2.label,Take a look at the simplest commission,点开看似轻松的委托,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_task_3.title
+events.events_v2.events.0.options.2.desc,Defeat 150 enemies within 60s: Originium Ingot +10,60 秒内击败 150 名敌人：源石锭 +10,模型,
+events.events_v2.events.0.options.2.ops.0.kills.name,A Seemingly Easy Commission,看似轻松的委托,模型,
+events.events_v2.events.0.options.3.label,Turn off the terminal,关闭终端,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_task_4.title
+events.events_v2.events.0.options.3.desc,Turn around and leave,就此离开,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_grace_2.description
+events.events_v2.events.1.name,Emergency Dispatch,紧急调遣,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_expedition_enter.title
+events.events_v2.events.1.text,"A batch of support supplies has arrived at the nearest safehouse. You can leave it to the logistics department for transport, or dispatch an Operator familiar with the area to retrieve it.",一批支援物资送到了最近的安全屋。可以交给后勤部门转运，也可以派一名熟悉周边的干员去接。,模型,
+events.events_v2.events.1.options.0.label,Dispatch an operator,由干员运送,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_expedition_1.title
+events.events_v2.events.1.options.0.desc,"Select 1 squad member to leave the squad for 45s; upon returning, the Operator gains 1 Promotion level and brings back 1 main branch Basic relic",选一名队友离队 45 秒；归队时该干员精英化一级，并带回一件主流派基础藏品,模型,
+events.events_v2.events.1.options.0.ops.0.away.reward.1.relic_lane.rarity,Basic,基础,模型,
+events.events_v2.events.1.options.1.label,Ask Logistics to handle it,委托后勤部门,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_expedition_2.title
+events.events_v2.events.1.options.1.desc,Originium Ingot +8,源石锭 +8,模型,
+events.events_v2.events.2.name,Advance Squad,先遣小队,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_up1_enter.title
+events.events_v2.events.2.text,You found the Rhodes Island squad that initially sent the distress signal. They were also exploring the surroundings and were willing to exchange intel with you.,你找到了最初发出求助信号的罗德岛小队。他们也在探索周边，愿意和你交换情报。,模型,
+events.events_v2.events.2.options.0.label,Exchange information,交换情报,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_up1_1.title
+events.events_v2.events.2.options.0.desc,"Select an Operator for an immediate Promotion (if Elite 2, choose 1 of 3 growths twice instead); select another teammate to evacuate with the vanguard squad, leaving the squad, but can be recruited again later.",选一名干员立即精英化一级（已精英二改为两次成长三选一）；再选一名队友随先遣小队撤离，离开编队，之后可再招募,模型,
+events.events_v2.events.2.options.1.label,Resupply them,补给他们,模型,
+events.events_v2.events.2.options.1.desc,"Originium Ingot -10, Damage to Elites +10%",源石锭 -10，对精英伤害 +10%,模型,
+events.events_v2.events.2.options.1.ops.1.stat.text,Damage to Elites +10%,对精英伤害 +10%,模型,
+events.events_v2.events.2.options.2.label,Act independently,各自行动,模型,
+events.events_v2.events.2.options.2.desc,Turn around and leave,就此离开,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_grace_2.description
+events.events_v2.events.3.name,The Wares Peddler,变卖身家,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_5_enter.title
+events.events_v2.events.3.text,"An Ægir holds an ocean current monitoring device, claiming it is a relic. He wants to exchange it for money to travel to the most powerful nation on land.",一位阿戈尔人捧着一件监测洋流的仪器，说它是秘宝。他想换一笔钱，去陆上最强大的国家。,模型,
+events.events_v2.events.3.options.0.label,Purchase the instrument,买下这件仪器,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_5_1.title
+events.events_v2.events.3.options.0.desc,"Lose all Originium Ingots, obtain a main branch Core Collectible",消耗全部源石锭，获得一件主流派核心藏品,模型,
+events.events_v2.events.3.options.0.ops.1.relic_lane.rarity,Core,核心,模型,
+events.events_v2.events.3.options.1.label,Try out the instrument,试用仪器,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_5_2.title
+events.events_v2.events.3.options.1.desc,"Leader HP -25%, obtain a main branch Rare Collectible",队长生命 -25%，获得一件主流派稀有藏品,模型,
+events.events_v2.events.3.options.1.ops.1.relic_lane.rarity,Rare,稀有,模型,
+events.events_v2.events.3.options.2.label,Sounds a little sketchy...,听起来不太可信,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_5_3.title
+events.events_v2.events.3.options.2.desc,Originium Ingot +3,源石锭 +3,模型,
+events.events_v2.events.4.name,Neither Black Nor White,是非黑白,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_10_enter.title
+events.events_v2.events.4.text,You rescue a robed Iberian from a swarm of Sea Seaborn. He offers several boxes in gratitude. You cannot tell if he is a cleric or a Church of the Deep cultist.,你从恐鱼群里救下一个穿长袍的伊比利亚人。他捧出几只盒子答谢，你分不清他是教徒还是深海教徒。,模型,
+events.events_v2.events.4.options.0.label,Choose the box with a sword and gun,选择印有剑与铳的盒子,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_10_4.title
+events.events_v2.events.4.options.0.desc,Obtain a Melee Range Expansion / Weakness Harvesting / Multi-Projectile Firepower Collectible,获得一件近战扩域 / 弱点收割 / 多弹火力藏品,模型,
+events.events_v2.events.4.options.1.label,Choose the box with a lantern,选择印有提灯的盒子,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_10_5.title
+events.events_v2.events.4.options.1.desc,Obtain a Survival / Objective Shield Counter / Healing-to-Damage Collectible,获得一件生存 / 护盾反击 / 治疗转伤藏品,模型,
+events.events_v2.events.4.options.2.label,Choose the box with hands clasped in prayer,选择印有祈求双手的盒子,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_10_6.title
+events.events_v2.events.4.options.2.desc,"Obtain a Cursed Collectible, Originium Ingot +25",获得一件遭诅藏品，源石锭 +25,模型,
+events.events_v2.events.4.options.3.label,Choose the box with interlocking keys,选择印有交错密钥的盒子,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_10_7.title
+events.events_v2.events.4.options.3.desc,Obtain a Cursed Collectible and a main branch Rare Collectible,获得一件遭诅藏品和一件主流派稀有藏品,模型,
+events.events_v2.events.4.options.3.ops.1.relic_lane.rarity,Rare,稀有,模型,
+events.events_v2.events.4.options.4.label,Don't ask for anything in return,不求回报,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_10_3.title
+events.events_v2.events.4.options.4.desc,Restores 10% Max HP,回复 10% 最大生命,模型,
+events.events_v2.events.5.name,Mutual Aid,守望相助,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_sacrifice_enter.title
+events.events_v2.events.5.text,"An Ægir brings you into a shelter. Heavy rain falls outside; only the lantern in his hand is lit. Equipment left by the Inquisition sits on the shelves, which he is willing to trade for what you carry.",一位阿戈尔人把你带进避难所。窗外大雨，只有他手里的提灯亮着。架上摆着审判庭留下的装备，他愿意拿来换你带的东西。,模型,
+events.events_v2.events.5.options.0.label,Agree to make a deal,答应交换,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_sacrifice_1.title
+events.events_v2.events.5.options.0.desc,"Hand over 1 relic (stats-only relics only), reveal 3 main branch relics of equal or higher rarity, and choose 1",交出一件藏品（只能交纯属性藏品），从主流派亮出三件稀有度不低于它的藏品，选一件,模型,
+events.events_v2.events.5.options.1.label,Politely refuse,委婉拒绝,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_sacrifice_2.title
+events.events_v2.events.5.options.1.desc,Restores 20% Max HP,回复 20% 最大生命,模型,
+events.events_v2.events.6.name,Traditional Technology,传统技术,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_4_enter.title
+events.events_v2.events.6.text,"In a karst cave, an old Artificer maintains two weapons taller than himself. He says Ægir has no hunters left, and tells you to pick one.",溶洞里，一位老工匠在保养两把比他还高的武器。他说阿戈尔已经没有猎人了，让你挑一把。,模型,
+events.events_v2.events.6.options.0.label,Look at the warhammer,看向巨锤,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_4_1.title
+events.events_v2.events.6.options.0.desc,Obtain a Melee Range Expansion Core Collectible,获得一件近战扩域核心藏品,模型,
+events.events_v2.events.6.options.0.ops.0.relic_lane.rarity,Core,核心,模型,
+events.events_v2.events.6.options.1.label,Look at the greatspear,看向长矛,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_4_2.title
+events.events_v2.events.6.options.1.desc,Obtain a Weakpoint Harvest Core Collectible,获得一件弱点收割核心藏品,模型,
+events.events_v2.events.6.options.1.ops.0.relic_lane.rarity,Core,核心,模型,
+events.events_v2.events.6.options.2.label,Take both,两件都要,模型,
+events.events_v2.events.6.options.2.desc,"Leader HP -60%, take both",队长生命 -60%，两件都拿,模型,
+events.events_v2.events.6.options.2.ops.1.relic_lane.rarity,Core,核心,模型,
+events.events_v2.events.6.options.2.ops.2.relic_lane.rarity,Core,核心,模型,
+events.events_v2.events.6.options.3.label,Opt to choose neither,不做选择,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_4_3.title
+events.events_v2.events.6.options.3.desc,Originium Ingot +5,源石锭 +5,模型,
+events.events_v2.events.7.name,Worship the Flame,敬奉火焰,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_san1_enter.title
+events.events_v2.events.7.text,"A squad of Iberian clerics walks by carrying a furnace, inside which a writhing Sea Seaborn is nailed. The leading cleric states that fire can kill all Seaborn.",一队伊比利亚教士抬着火炉走过，炉里钉着一只还在扭动的恐鱼。为首的教士说，火焰能杀死所有海嗣。,模型,
+events.events_v2.events.7.options.0.label,Pray to the flames for your suffering operators,为受苦的干员请求火焰,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_san1_1.title
+events.events_v2.events.7.options.0.desc,"Promote 1 Operator immediately, Leader Max HP -10%",选一名干员立即精英化一级，队长最大生命 -10%,模型,
+events.events_v2.events.7.options.1.label,Flames cannot save this land,火焰拯救不了这片大地,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_san1_2.title
+events.events_v2.events.7.options.1.desc,"The next node is guaranteed to be an Emergency Operation, wipe out the enemy squad to drop two chests",下一个路口必出一张紧急作战，小队全灭掉两个宝箱,模型,
+events.events_v2.events.7.options.2.label,Come to terms with reality,应付了事,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_san1_3.title
+events.events_v2.events.7.options.2.desc,Light +15,灯火 +15,模型,
+events.events_v2.events.7.options.3.label,Enter battle,进入战斗,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_liar2_3.title
+events.events_v2.events.7.options.3.desc,"Immediately face an Elite squad, defeat them to choose 1 of 3 main branch Collectibles",立即来一支精英小队，全灭得主流派藏品三选一,模型,
+events.events_v2.events.8.name,Bygone Customs,消失的习俗,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_wish_enter.title
+events.events_v2.events.8.text,Several unclaimed items lay on the table. An old custom says that passersby may Take one.,桌上摆着几件没人认领的东西。旧习俗说，路过的人可以带走一件。,模型,
+events.events_v2.events.8.options.0.label,Take one,带走一件,模型,
+events.events_v2.events.8.options.0.desc,Choose 1 of 3 main branch Collectibles (Rare / Core weighted),主流派藏品三选一（稀有 / 核心加权）,模型,
+events.events_v2.events.8.options.1.label,Take another,再拿一件,模型,
+events.events_v2.events.8.options.1.desc,"Leader Max HP -10%, choose 1 of 3 main branch Collectibles twice",队长最大生命 -10%，主流派藏品三选一两次,模型,
+events.events_v2.events.9.name,Path of Suffering,苦路,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_7_enter.title
+events.events_v2.events.9.text,"The Inquisition has tied ascetic rituals to heavy manual labor, offering rewards to those who complete them. Many sign up, but few make it to the end.",审判庭把苦修仪式和重体力活绑在了一起，完成的人能领到奖赏。来报名的人不少，走完的没几个。,模型,
+events.events_v2.events.9.options.0.label,Start by moving the food,从搬运食物开始,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_7_1.title
+events.events_v2.events.9.options.0.desc,"Leader HP -12%, Originium Ingot +6",队长生命 -12%，源石锭 +6,模型,
+events.events_v2.events.9.options.1.label,Toil in the fields,田间农活,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_7_2.title
+events.events_v2.events.9.options.1.desc,"Leader HP -12%, Leader Max HP +4%",队长生命 -12%，队长最大生命 +4%,模型,
+events.events_v2.events.9.options.2.label,Transport building materials and fuel to the watchtower,将石料与燃料运上瞭望塔,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_7_4.title
+events.events_v2.events.9.options.2.desc,"Leader HP -12%, obtain a main branch Collectible",队长生命 -12%，获得一件主流派藏品,模型,
+events.events_v2.events.9.options.3.label,Leave early,提前离开,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_7_6.title
+events.events_v2.events.9.options.3.desc,Maybe next time,还是算了,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_trade3_2.title
+events.events_v2.events.10.name,Meeting in a Dream,梦中之会,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_exchange_enter.title
+events.events_v2.events.10.text,"The fog sends you into the wreckage of a sunken ship. A group of kin stands on the cabin roof, conversing. You can hear that every voice is different.",迷雾把你送进一艘沉船的残骸。舱顶上站着一群同胞，它们在交谈，你听得出每个声音都不一样。,模型,
+events.events_v2.events.10.options.0.label,Discern their vocalizations,分辨它们的发声方式,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_exchange_1.title
+events.events_v2.events.10.options.0.desc,"Originium Ingot -10, ranged enemy attack interval +15%",源石锭 -10，远程杂兵开火间隔 +15%,模型,
+events.events_v2.events.10.options.0.ops.1.stat.text,Ranged mob attack interval +15%,远程杂兵开火间隔 +15%,模型,
+events.events_v2.events.10.options.1.label,Observe their appearances,观察它们的形貌,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_exchange_6.title
+events.events_v2.events.10.options.1.desc,"Leader Max HP -5%, Damage to Elites +12%",队长最大生命 -5%，对精英伤害 +12%,模型,
+events.events_v2.events.10.options.1.ops.1.stat.text,Damage to Elites +12%,对精英伤害 +12%,模型,
+events.events_v2.events.10.options.2.label,Try to mingle in and join their conversation,尝试加入它们的交流,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_exchange_9.title
+events.events_v2.events.10.options.2.desc,"Nervous Impairment buildup +25%, squad SP Recovery +8%",神经损伤累积 +25%，全队技力回复 +8%,模型,
+events.events_v2.events.10.options.2.ops.0.stat.text,Nervous Impairment buildup +25%,神经损伤累积 +25%,模型,
+events.events_v2.events.10.options.3.label,Wake up right away,直接醒来,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_exchange_10.title
+events.events_v2.events.10.options.3.desc,Dreams are not reality,梦境不是现实,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_exchange_10.description
+events.events_v2.events.11.name,Empathy,设身处地,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_8_enter.title
+events.events_v2.events.11.text,"You infiltrate a settlement of Church of the Deep cultists. Sea Seaborn and humans coexist peacefully here, provided there is enough food and no one shows hostility.",你混进了一处深海教徒的聚居地。恐鱼和人在这里相安无事，前提是食物管够，也没人露出敌意。,模型,
+events.events_v2.events.11.options.0.label,Prepare the food,准备食物,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_8_1.title
+events.events_v2.events.11.options.0.desc,"Leader HP -10%, then choose which to feed",队长生命 -10%，再选喂哪一种,模型,
+events.events_v2.events.11.options.1.label,It'd be best to leave now,还是赶紧离开吧,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_8_2.title
+events.events_v2.events.11.options.1.desc,Originium Ingot +3,源石锭 +3,模型,
+events.events_v2.events.12.name,Empathy,设身处地,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_8_enter.title
+events.events_v2.events.12.text,"The food is ready. By the pool, in the Shallows, deep in the cave, things are waiting.",食物备好了。水池边、浅滩上、洞穴深处，都有东西在等。,模型,
+events.events_v2.events.12.options.0.label,Feed the Deep Sea Slider,喂食底海滑动者,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_8_4.title
+events.events_v2.events.12.options.0.desc,Light +20,灯火 +20,模型,
+events.events_v2.events.12.options.1.label,Feed the nethersea brand by the pool,喂食水池边的溟痕,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_8_5.title
+events.events_v2.events.12.options.1.desc,Leader Max HP +4%,队长最大生命 +4%,模型,
+events.events_v2.events.12.options.2.label,Feed the Retching Broodmother,喂食投嗣育母,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_8_7.title
+events.events_v2.events.12.options.2.desc,Recruit an Operator (choose from 2 random classes),招募一名干员（从随机两个职业里选）,模型,
+events.events_v2.events.12.options.3.label,Try feeding them again?,再喂喂看？,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_8_3.title
+events.events_v2.events.12.options.3.desc,"Leader HP -10%, 50% chance to feed again (can only feed one more time)",队长生命 -10%，50% 再喂一次（只能再喂一次）,模型,
+events.events_v2.events.13.name,Empathy,设身处地,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_8_enter.title
+events.events_v2.events.13.text,They are closing in again.,它们又围了过来。,模型,
+events.events_v2.events.13.options.0.label,Feed the Deep Sea Slider,喂食底海滑动者,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_8_4.title
+events.events_v2.events.13.options.0.desc,Light +20,灯火 +20,模型,
+events.events_v2.events.13.options.1.label,Feed the nethersea brand by the pool,喂食水池边的溟痕,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_8_5.title
+events.events_v2.events.13.options.1.desc,Leader Max HP +4%,队长最大生命 +4%,模型,
+events.events_v2.events.13.options.2.label,Feed the Retching Broodmother,喂食投嗣育母,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_8_7.title
+events.events_v2.events.13.options.2.desc,Recruit an Operator (choose from 2 random classes),招募一名干员（从随机两个职业里选）,模型,
+events.events_v2.events.14.name,Homecoming,重返家园,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_recruit1_enter.title
+events.events_v2.events.14.text,"While searching for a messenger station, you meet a cleric returning to Iberia. He is willing to help you contact local Operators, but only handles the communication.",寻找信使驿站时，你遇到一位要回伊比利亚的教士。他愿意帮你联络当地的干员，但只负责联络。,模型,
+events.events_v2.events.14.options.0.label,Entertain him,意思意思,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_recruit1_1.title
+events.events_v2.events.14.options.0.desc,"Originium Ingot -5, recruit an Operator (choose from 2 random classes)",源石锭 -5，招募一名干员（从随机两个职业里选）,模型,
+events.events_v2.events.14.options.1.label,Make a large contribution,重金酬谢,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_recruit1_2.title
+events.events_v2.events.14.options.1.desc,"Originium Ingot -15, recruit any Operator",源石锭 -15，招募任意一名干员,模型,
+events.events_v2.events.14.options.2.label,Faith is self-evident,信仰见证,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_recruit1_3.title
+events.events_v2.events.14.options.2.desc,Originium Ingot +3,源石锭 +3,模型,
+events.events_v2.events.15.name,Seaborn Scholar,海嗣学者,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_trade3_enter.title
+events.events_v2.events.15.text,"An old Ægir is crafting equipment from Sea Seaborn corpses. He says he once worked in an academy studying the Seaborn, and now only wants to put his research to use.",一位老阿戈尔人在用恐鱼的尸体做装备。他说自己待过研究海嗣的科学院，现在只想让研究派上用场。,模型,
+events.events_v2.events.15.options.0.label,Why not give it a try?,要不试试,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_trade3_1.title
+events.events_v2.events.15.options.0.desc,Obtain 1 Survival / Shield Counter Rare relic; 50% chance to also obtain 1 Cursed relic,获得一件生存 / 护盾反击稀有藏品；50% 同时获得一件遭诅藏品,模型,
+events.events_v2.events.15.options.0.ops.0.relic_lane.rarity,Rare,稀有,模型,
+events.events_v2.events.15.options.1.label,Maybe next time,还是算了,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_trade3_2.title
+events.events_v2.events.15.options.1.desc,Originium Ingot +3,源石锭 +3,模型,
+浅滩,Shallows,,原文键,模型
+漂流潮,Drifter Tide,,原文键,模型
+暗流,Undertow,,原文键,模型
+滑行群,Slider Swarm,,原文键,模型
+凿石阵,Rockbreaker Formation,,原文键,模型
+深潜,Deep Dive,,原文键,模型
+海嗣先锋,Seaborn Vanguard,,原文键,模型
+子代壁垒,Offspring Bulwark,,原文键,模型
+狂奔潮,Stampeding Tide,,原文键,模型
+裂隙,Rift,,原文键,模型
+潜袭,Submerged Assault,,原文键,模型
+酸雨围城,Acid Rain Siege,,原文键,模型
+引痕突击,Marker Assault,,原文键,模型
+深渊,Abyss,,原文键,模型
+深海潮,Deep Sea Tide,,原文键,模型
+重甲推进,Heavy Armor Advance,,原文键,模型
+深溟重甲,Nethersea Heavy Armor,,原文键,模型
+深蓝之树,Caerula Arbor,,原文键,官方
+深海集群,Deep Sea Swarm,,原文键,模型
+深蓝合围,Deep Blue Encirclement,,原文键,模型
+巢涌合围,Broodsurge Encirclement,,原文键,模型
+结局一 · 平凡即是喜乐,Ending 1 · Precious Days,,原文键,模型
+终局将至 —— 偏执泡影正在浮现,The end is near — 'Paranoia Illusion' is emerging,,原文键,模型
+不翻开任何一条结局线。第一次探索必定走到这里。,Do not reveal any ending lines. The first run will always end here.,,原文键,模型
+深海尽头悬着一团微微发光的泡影。水月打碎了它，继续向前。,A faintly glowing bubble hung at the end of the deep sea. Mizuki shattered it and continued forward.,,原文键,模型
+泡影散了。水月回到岸上，准备好好吃一顿，迎接明天。,"The bubble bursts. Mizuki returns to the shore, ready for a good meal to welcome tomorrow.",,原文键,模型
+结局二 · 静谧时代,Ending 2 · Age of the Silence,,原文键,模型
+终局将至 —— 骑士走向了黑潮中心,The end is near — the Knight walks toward the center of the Black Tide,,原文键,模型
+在「狂徒妄念」中得到海潮的气息，并让猎潮的骑士活到 10:00。,"Obtain Breath of the Tide in 'Fanatic's Delusion', and keep the Tide-Hunt Knight alive until 10:00.",,原文键,模型
+他骑着罗辛南特从黑潮里冲出来，替你挡下潮水。到了尽头，他走进黑潮中心，在寒冰里成了最后的骑士。,"He charged out of the Black Tide on Rocinante, shielding you from the waves. At the end, he walked into the center of the Black Tide, becoming The Last Knight within the ice.",,原文键,模型
+无声的巨浪升起，骑士的怒吼没入静谧。毁灭伊比利亚的灾难再次降临，不会再退去。,"A silent giant wave rose, and the Knight's roar was submerged in the silence. The disaster that destroyed Iberia descended once more, never to recede again.",,原文键,模型
+结局四 · 如星空般深蓝,Ending 4 · Stella Caerula,,原文键,模型
+终局将至 —— 深蓝之树伸出了根,The end is near — Caerula Arbor extends its roots,,原文键,模型
+在开端选择「“深蓝”？！」，并在升华中作出回答。,"Choose ''Caerula'?!' at the start, and answer during Ascension.",,原文键,模型
+你带着水月走进深蓝之树的实验中枢。升华时他给出了自己的回答，伊祖米克在最深处召回子代。,"You led Mizuki into the experimental hub of Caerula Arbor. He gave his answer during his sublimation, and Izumik recalled its offspring in the deepest depths.",,原文键,模型
+进化的后裔从泰拉的潮水中升起，穿过云层，去往星海。,"The descendant of evolution rises from the tides of Terra, piercing the clouds, heading for the sea of stars.",,原文键,模型
+他仍以人的身份接受了海嗣。进化的后裔从泰拉的潮水中升起，去往星海。,"He still accepted the Seaborn as a human. The evolved descendants rose from the tides of Terra, heading toward the sea of stars.",,原文键,模型
+他只做自己认为对的事。进化的后裔从泰拉的潮水中升起，去往星海。,"He only did what he believed was right. The evolved descendants rose from the tides of Terra, heading toward the sea of stars.",,原文键,模型
+本能压过了人性，他仍在怀疑自己是谁。进化的后裔从泰拉的潮水中升起，去往星海。,"Instinct overwhelmed humanity, and he still doubted who he was. The evolved descendants rose from the tides of Terra, heading toward the sea of stars.",,原文键,模型
+结局三 · 息潮的代价,Ending 3 · Price of Peace,,原文键,模型
+终局将至 —— 伊莎玛拉在大群深处苏醒,The end is near — Ishar'mla awakens deep within We Many,,原文键,模型
+在开端选择「决定潜入深海」，并在实验室的园林里找到深蓝之心。,"Choose 'Decide to dive into the deep sea' at the beginning, and find the Caerula Animus in the laboratory's garden.",,原文键,模型
+你们潜进那具巨大的尸骸，在园林中央找到了祂的核心器官。伊莎玛拉在最深处等着。,You dove into that massive corpse and found Its Core organ in the center of the garden. Ishar'mla was waiting in the deepest depths.,,原文键,模型
+静谧退去，海潮平息。水月再也回不到陆地上。,"The silence recedes, the tide calms. Mizuki can never return to land.",,原文键,模型
+狂徒妄念,Delusions of Lunacy,,原文键,官方
+天空在燃烧，骑士驰骋在浪涛之上。四周只剩蔚蓝，麦穗在呼唤。,"The sky was burning, and the Knight galloped above the waves. Only the azure remained all around, and the wheat ears were calling.",,原文键,模型
+愤怒,Rage,,原文键,官方
+队长最大生命 -10%，得到「海潮的气息」：猎潮的骑士加入编队。走向结局二,"Leader Max HP -10%, obtain 'Breath of the Tide': Tide-Hunt Knight joins the squad. Proceed to Ending 2",,原文键,模型
+60% 得到「海潮的气息」，失败则一无所获,"60% chance to obtain 'Breath of the Tide', otherwise nothing",,原文键,模型
+沉默,Remain silent,,原文键,官方
+源石锭 +10,Originium Ingot +10,,原文键,模型
+离开,Leave,,原文键,官方
+他究竟想做什么？,What exactly does he want to do?,,原文键,模型
+开端,The Beginning,,原文键,官方
+坏消息接踵而至。水月找到的文件里，记着主教的计划，还有一个叫「深蓝」的地点。,"Bad news came one after another. The documents Mizuki found recorded the bishop's plan, as well as a location called 'Caerula'.",,原文键,模型
+决定潜入深海,Decide to dive into the abyss,,原文键,官方
+得到「主教的研究」：此后商人售价 +15%。去找主教留下的秘密,Obtain 'Bishop's Research': Merchant prices +15% hereafter. Go find the secret left by the bishop,,原文键,模型
+“深蓝”？！,'Caerula'?!,,原文键,官方
+得到「深蓝回忆」：一次排异反应。跟着这个名字一路向下,Obtain 'Caerula Memory': 1 Rejection Reaction. Follow this name all the way down,,原文键,模型
+噩梦……,Nightmare...,,原文键,模型
+源石锭 +15,Originium Ingot +15,,原文键,模型
+时光流逝……,Time passes...,,原文键,模型
+骑士仍在,The Knight Persists,,原文键,官方
+海洋沉默如镜。骑士踏碎镜面，望向倒影里的自己。他的敌人，叫做泰拉。,The ocean was silent as a mirror. The Knight shattered the mirror and looked at his reflection. His enemy was named Terra.,,原文键,模型
+反抗,Resist,,原文键,官方
+队长生命 -15%，源石锭 +20（原作「荒诞命运」）,"Leader HP -15%, Originium Ingot +20 (Original 'Absurd Fate')",,原文键,模型
+挣脱,Break free,,原文键,官方
+得到「骑士骨血」：最终 Boss 受到的伤害 +80%；猎潮的骑士在编队时，队长受到的伤害也 +80%,"Obtain 'The Knight's Corpus': Final Boss takes +80% damage; when Tide-Hunt Knight is in squad, Leader also takes +80% damage.",,原文键,模型
+逐流,Pass by,,原文键,官方
+还是离这疯子远点……,Better stay away from this madman...,,原文键,模型
+深蓝之心,Caerula Animus,,原文键,官方
+巨大的尸骸里藏着一座尘封的实验室。监控认出你的脸，打开了大门。每个房间都要花些源石锭打点。,A dusty laboratory is hidden within the massive corpse. The surveillance system recognizes your face and opens the gate. Every room requires some Originium Ingots to access.,,原文键,模型
+搜寻办公室,Search the office,,原文键,官方
+源石锭 -8：立即招募一名干员,Originium Ingot -8: Immediately recruit an Operator,,原文键,模型
+搜寻科研区,Search the research area,,原文键,官方
+源石锭 -8：随机获得一件藏品,Originium Ingot -8: Obtain a random Collectible,,原文键,模型
+搜寻储藏室,Search the storage room,,原文键,官方
+源石锭 -8：回复 30% 最大生命,Originium Ingot -8: Restore 30% Max HP,,原文键,模型
+搜寻生活区,Search the living quarters,,原文键,官方
+源石锭 -8：获得一次成长三选一,Originium Ingot -8: Choose 1 of 3 growth options,,原文键,模型
+搜寻食堂,Search the cafeteria,,原文键,官方
+源石锭 -8：队长最大生命 +8%,Originium Ingot -8: Leader Max HP +8%,,原文键,模型
+搜寻园林,Search the garden,,原文键,官方
+得到「深蓝之心」：一次排异反应，海嗣更快进化。走向结局三,"Obtain 'Caerula Animus': 1 Rejection Reaction, Seaborn evolve faster. Proceed to Ending 3",,原文键,模型
+这里藏着什么，但你决定不去碰它,"Something is hidden here, but you decide not to touch it",,原文键,模型
+赞歌,Paean,,原文键,官方
+祂的栖所旁有一片没被海嗣染指的地方：海砂、破损的人像，和一对紧握武器的睡美人。,"Beside Its resting place was an area untouched by the Seaborn: sea sand, broken statues, and a pair of sleeping beauties tightly gripping their weapons.",,原文键,模型
+亲吻猎人们的额头并取走遗物,Kiss the Hunters' foreheads and take their artifacts,,原文键,官方
+得到「“绝唱”」：随机获得 2 件稀有藏品,Obtain 'Last Refrain': Obtain 2 random Rare Collectibles,,原文键,模型
+让她们安睡,Let them sleep peacefully,,原文键,模型
+深蓝仪式,Caerula Ritual,,原文键,官方
+水月进了通往实验中枢底层的传输舱。主控台上，那些被同化的流程还开着。,"Mizuki entered the transfer cabin leading to the bottom of the experimental hub. On the main console, those assimilated processes were still running.",,原文键,模型
+关闭危险流程,Shut down dangerous process,,原文键,官方
+灯火 +30，回复 30% 最大生命,"Light +30, restore 30% Max HP",,原文键,模型
+不做任何改动,Make no changes,,原文键,官方
+得到「深蓝之树」：所有敌人攻击速度 +15%；队长每 15 秒没有受伤，灯火 +6,Obtain 'Caerula Arbor': All enemies ATK speed +15%; Light +6 every 15s the Leader takes no damage.,,原文键,模型
+升华,Sublimation,,原文键,官方
+族群唯求生存，所以演化不息。在迎接进化奇点之前，引领它们的祂要先回答：我，是谁？,"The kin only seek survival, thus they evolve endlessly. Before welcoming the singularity of evolution, It who leads them must first answer: Who am I?",,原文键,模型
+“我是水月，我会完成博士的请求”,'I am Mizuki. I will fulfill the Doctor's request.',,原文键,官方
+得到「“决心”」：队长最大生命 +30%、物理减伤 +2；精英每次多来 1 只，海嗣生命与伤害 +10%。走向结局四,"Obtain 'Determination': Leader Max HP +30%, Physical damage taken -2; 1 additional Elite spawns each time, Seaborn HP and damage +10%. Proceed to Ending 4.",,原文键,模型
+“让时间来解答吧”,'Let time answer.',,原文键,官方
+得到「“观望”」：升级与藏品改为四选一。走向结局四,Obtain 'Vigil': Level-ups and Collectibles become choose 1 of 4. Head towards Ending 4,,原文键,模型
+“大群非我，我即大群”,'We many is not me. I am we many.',,原文键,官方
+得到「“犹疑”」：稀有 / 核心藏品出现率 +30%，拾取范围 -20%。走向结局四,"Obtain 'Hesitation': Rare / Core relic appearance rate +30%, pickup range -20%. Proceed to Ending 4.",,原文键,模型
+残存微光,Lingering Glimmer,,原文键,官方
+一位失去提灯的审判官拄着剑，在岸边礁石上喘息，脚边满是恐鱼的尸体。,"An Inquisitor who had lost his lantern leaned on his sword, panting on the coastal reef, his feet surrounded by Sea Seaborn corpses.",,原文键,模型
+送上提灯,Give her the lantern,,原文键,官方
+灯火 +40,Light +40,,原文键,模型
+悄悄接近,Quietly approach,,原文键,官方
+队长生命 -10%，灯火 +15,"Leader HP -10%, Light +15",,原文键,模型
+上前攀谈,Strike up a conversation,,原文键,官方
+源石锭 +6,Originium Ingot +6,,原文键,模型
+点滴星火,A Faint Spark,,原文键,官方
+噬尘覆盖了整座城市。废墟间，有什么东西在噬尘下发着光。,"Phagocytic dust covered the entire city. Amidst the ruins, something glowed beneath the dust.",,原文键,模型
+冒险去取,Take the risk to go retrieve it,,原文键,官方
+队长生命 -15%，获得一件主流派藏品,"Leader HP -15%, obtain a main branch Collectible",,原文键,模型
+拾取安全区域的物资,Scavenge for supplies from a safe area,,原文键,官方
+源石锭 +5,Originium Ingot +5,,原文键,模型
+海边的歌者,Singer by the Sea,,原文键,官方
+孤独的恐鱼趴在礁石上，触须胡乱拨着人类的乐器，唱着最后一支歌。,"A lonely Sea Seaborn lay on the reef, its tentacles haphazardly plucking a human instrument, singing its final song.",,原文键,模型
+驻足倾听,Stop and listen,,原文键,官方
+源石锭 -12，获得一件主流派藏品,"Originium Ingot -12, obtain a main branch Collectible",,原文键,模型
+转身离开,Turn and leave,,原文键,官方
+先捂住耳朵,Cover your ears first,,原文键,模型
+最后的观潮者,The Last Tidewatcher,,原文键,官方
+一位阿戈尔人迎着潮头站立，巨浪几次险些吞没他，他半步也没退。,"An Ægir stood against the tide. The giant waves nearly swallowed him several times, but he did not retreat a single step.",,原文键,模型
+冒险帮他回收装备,Take the risk to help him recover his equipment,,原文键,官方
+队长生命 -15%，获得一件主流派稀有藏品,"Leader HP -15%, obtain a main branch Rare Collectible",,原文键,模型
+稀有,Rare,,原文键,模型
+打听观潮的结果,Ask him about what he's seen,,原文键,官方
+队长最大生命 +3%,Leader Max HP +3%,,原文键,模型
+这地方太危险了,This place is too dangerous,,原文键,官方
+相逢,Chance Meeting,,原文键,官方
+躲避风暴时，你闯进一个溶洞。里面是半个人和半只恐鱼拼成的东西，身上挂着教士服的残片。,"While sheltering from a storm, you stumble into a karst cave. Inside is an amalgamation of half a human and half a Sea Seaborn, draped in fragments of cleric robes.",,原文键,模型
+查看它的情况,Check how it's doing,,原文键,官方
+队长生命 -15%，源石锭 +8,"Leader HP -15%, Originium Ingot +8",,原文键,模型
+尝试救助它,Try to save it,,原文键,官方
+队长生命 -30%，队长最大生命 +10%,"Leader HP -30%, Leader Max HP +10%",,原文键,模型
+默默离开,Quietly back away,,原文键,官方
+说不定是深海教徒的陷阱,Maybe it's a trap by the Church of the Deep cultists,,原文键,官方
+大海的遗产,Ocean's Legacy,,原文键,官方
+大静谧之前，海上流传着海盗的故事，传说他们的财富堪比一国。,"Before the Profound Silence, tales of pirates circulated on the sea; legend had it that their wealth rivaled that of a nation.",,原文键,模型
+拿了再说,"Plunder now, worry later",,原文键,官方
+获得一件主流派藏品和一件遭诅藏品,Obtain a main branch Collectible and a Cursed Collectible,,原文键,模型
+安全第一,Safety first,,原文键,官方
+获得一件主流派藏品,Obtain a main branch Collectible,,原文键,模型
+为了生存,For Survival,,原文键,官方
+海民把你带进溶洞，撬开巨型贝壳收集分泌物。活很简单，报酬也不错。,"The Islanders brought you into the karst cave, prying open giant shells to collect secretions. The work was simple, and the pay was not bad.",,原文键,模型
+报酬很可观，加入他们,"The pay's great, so join in",,原文键,官方
+源石锭 +2,Originium Ingot +2,,原文键,模型
+工作很简单,It's an easy job,,原文键,官方
+源石锭 -3，70% 获得源石锭 +8,"Originium Ingot -3, 70% chance to obtain Originium Ingot +8",,原文键,模型
+继续工作,Keep working,,原文键,官方
+源石锭 -10，50% 获得源石锭 +25,"Originium Ingot -10, 50% chance to gain Originium Ingot +25",,原文键,模型
+还是算了,Maybe next time,,原文键,官方
+引火之木,Like Flames to Wood,,原文键,官方
+你砍了几棵树皮光滑如皮肤的怪树当柴。入夜，篝火引来了不少迷路的旅人。,"You chopped down a few strange trees with bark as smooth as skin for firewood. At nightfall, the campfire attracted many lost travelers.",,原文键,模型
+放心地睡去,Sleep soundly,,原文键,官方
+立即招募一名干员,Immediately recruit an Operator,,原文键,模型
+坚持轮流守夜,Maintain a rotating night shift,,原文键,官方
+源石锭 -5，获得一次成长三选一,"Originium Ingot -5, choose 1 of 3 growth options",,原文键,模型
+郁金香的委托,Tulip's Commission,,原文键,官方
+终端上有三条新委托，发件人是罗德岛驻伊比利亚的总负责人郁金香。每条末尾都附了一行小字。,"Three new commissions appear on the terminal from Tulip, Rhodes Island's head of operations in Iberia. A line of fine print is attached to the end of each.",,原文键,模型
+点开最棘手的委托,Take a look at the trickiest commission,,原文键,官方
+接下来 90 秒刷出的敌人生命与伤害 +30%，并来一支精英小队。小队全灭且坚持到时间结束：主流派藏品三选一，源石锭 +15,"Enemies spawned in the next 90s have HP and damage +30%, and an Elite squad will appear. Defeat the squad and survive until time ends: Choose 1 of 3 mainstream relics, Originium Ingot +15.",,原文键,模型
+最棘手的委托,The Most Troublesome Commission,,原文键,模型
+点开稍有挑战性的委托,Take a look at the mid-tier commission,,原文键,官方
+接下来 90 秒刷出的敌人生命与伤害 +20%。坚持到时间结束：整局经验 +15%,Enemies spawned in the next 90s have HP and damage +20%. Survive until time ends: Run EXP +15%.,,原文键,模型
+稍有挑战性的委托,A Slightly Challenging Commission,,原文键,模型
+点开看似轻松的委托,Take a look at the simplest commission,,原文键,官方
+60 秒内击败 150 名敌人：源石锭 +10,Defeat 150 enemies within 60s: Originium Ingot +10,,原文键,模型
+看似轻松的委托,A Seemingly Easy Commission,,原文键,模型
+关闭终端,Turn off the terminal,,原文键,官方
+就此离开,Turn around and leave,,原文键,官方
+紧急调遣,Emergency Dispatch,,原文键,官方
+一批支援物资送到了最近的安全屋。可以交给后勤部门转运，也可以派一名熟悉周边的干员去接。,"A batch of support supplies has arrived at the nearest safehouse. You can leave it to the logistics department for transport, or dispatch an Operator familiar with the area to retrieve it.",,原文键,模型
+由干员运送,Dispatch an operator,,原文键,官方
+选一名队友离队 45 秒；归队时该干员精英化一级，并带回一件主流派基础藏品,"Select 1 squad member to leave the squad for 45s; upon returning, the Operator gains 1 Promotion level and brings back 1 main branch Basic relic",,原文键,模型
+基础,Basic,,原文键,模型
+委托后勤部门,Ask Logistics to handle it,,原文键,官方
+源石锭 +8,Originium Ingot +8,,原文键,模型
+先遣小队,Advance Squad,,原文键,官方
+你找到了最初发出求助信号的罗德岛小队。他们也在探索周边，愿意和你交换情报。,You found the Rhodes Island squad that initially sent the distress signal. They were also exploring the surroundings and were willing to exchange intel with you.,,原文键,模型
+交换情报,Exchange information,,原文键,官方
+选一名干员立即精英化一级（已精英二改为两次成长三选一）；再选一名队友随先遣小队撤离，离开编队，之后可再招募,"Select an Operator for an immediate Promotion (if Elite 2, choose 1 of 3 growths twice instead); select another teammate to evacuate with the vanguard squad, leaving the squad, but can be recruited again later.",,原文键,模型
+补给他们,Resupply them,,原文键,模型
+源石锭 -10，对精英伤害 +10%,"Originium Ingot -10, Damage to Elites +10%",,原文键,模型
+对精英伤害 +10%,Damage to Elites +10%,,原文键,模型
+各自行动,Act independently,,原文键,模型
+变卖身家,The Wares Peddler,,原文键,官方
+一位阿戈尔人捧着一件监测洋流的仪器，说它是秘宝。他想换一笔钱，去陆上最强大的国家。,"An Ægir holds an ocean current monitoring device, claiming it is a relic. He wants to exchange it for money to travel to the most powerful nation on land.",,原文键,模型
+买下这件仪器,Purchase the instrument,,原文键,官方
+消耗全部源石锭，获得一件主流派核心藏品,"Lose all Originium Ingots, obtain a main branch Core Collectible",,原文键,模型
+核心,Core,,原文键,模型
+试用仪器,Try out the instrument,,原文键,官方
+队长生命 -25%，获得一件主流派稀有藏品,"Leader HP -25%, obtain a main branch Rare Collectible",,原文键,模型
+听起来不太可信,Sounds a little sketchy...,,原文键,官方
+源石锭 +3,Originium Ingot +3,,原文键,模型
+是非黑白,Neither Black Nor White,,原文键,官方
+你从恐鱼群里救下一个穿长袍的伊比利亚人。他捧出几只盒子答谢，你分不清他是教徒还是深海教徒。,You rescue a robed Iberian from a swarm of Sea Seaborn. He offers several boxes in gratitude. You cannot tell if he is a cleric or a Church of the Deep cultist.,,原文键,模型
+选择印有剑与铳的盒子,Choose the box with a sword and gun,,原文键,官方
+获得一件近战扩域 / 弱点收割 / 多弹火力藏品,Obtain a Melee Range Expansion / Weakness Harvesting / Multi-Projectile Firepower Collectible,,原文键,模型
+选择印有提灯的盒子,Choose the box with a lantern,,原文键,官方
+获得一件生存 / 护盾反击 / 治疗转伤藏品,Obtain a Survival / Objective Shield Counter / Healing-to-Damage Collectible,,原文键,模型
+选择印有祈求双手的盒子,Choose the box with hands clasped in prayer,,原文键,官方
+获得一件遭诅藏品，源石锭 +25,"Obtain a Cursed Collectible, Originium Ingot +25",,原文键,模型
+选择印有交错密钥的盒子,Choose the box with interlocking keys,,原文键,官方
+获得一件遭诅藏品和一件主流派稀有藏品,Obtain a Cursed Collectible and a main branch Rare Collectible,,原文键,模型
+不求回报,Don't ask for anything in return,,原文键,官方
+回复 10% 最大生命,Restores 10% Max HP,,原文键,模型
+守望相助,Mutual Aid,,原文键,官方
+一位阿戈尔人把你带进避难所。窗外大雨，只有他手里的提灯亮着。架上摆着审判庭留下的装备，他愿意拿来换你带的东西。,"An Ægir brings you into a shelter. Heavy rain falls outside; only the lantern in his hand is lit. Equipment left by the Inquisition sits on the shelves, which he is willing to trade for what you carry.",,原文键,模型
+答应交换,Agree to make a deal,,原文键,官方
+交出一件藏品（只能交纯属性藏品），从主流派亮出三件稀有度不低于它的藏品，选一件,"Hand over 1 relic (stats-only relics only), reveal 3 main branch relics of equal or higher rarity, and choose 1",,原文键,模型
+委婉拒绝,Politely refuse,,原文键,官方
+回复 20% 最大生命,Restores 20% Max HP,,原文键,模型
+传统技术,Traditional Technology,,原文键,官方
+溶洞里，一位老工匠在保养两把比他还高的武器。他说阿戈尔已经没有猎人了，让你挑一把。,"In a karst cave, an old Artificer maintains two weapons taller than himself. He says Ægir has no hunters left, and tells you to pick one.",,原文键,模型
+看向巨锤,Look at the warhammer,,原文键,官方
+获得一件近战扩域核心藏品,Obtain a Melee Range Expansion Core Collectible,,原文键,模型
+看向长矛,Look at the greatspear,,原文键,官方
+获得一件弱点收割核心藏品,Obtain a Weakpoint Harvest Core Collectible,,原文键,模型
+两件都要,Take both,,原文键,模型
+队长生命 -60%，两件都拿,"Leader HP -60%, take both",,原文键,模型
+不做选择,Opt to choose neither,,原文键,官方
+敬奉火焰,Worship the Flame,,原文键,官方
+一队伊比利亚教士抬着火炉走过，炉里钉着一只还在扭动的恐鱼。为首的教士说，火焰能杀死所有海嗣。,"A squad of Iberian clerics walks by carrying a furnace, inside which a writhing Sea Seaborn is nailed. The leading cleric states that fire can kill all Seaborn.",,原文键,模型
+为受苦的干员请求火焰,Pray to the flames for your suffering operators,,原文键,官方
+选一名干员立即精英化一级，队长最大生命 -10%,"Promote 1 Operator immediately, Leader Max HP -10%",,原文键,模型
+火焰拯救不了这片大地,Flames cannot save this land,,原文键,官方
+下一个路口必出一张紧急作战，小队全灭掉两个宝箱,"The next node is guaranteed to be an Emergency Operation, wipe out the enemy squad to drop two chests",,原文键,模型
+应付了事,Come to terms with reality,,原文键,官方
+灯火 +15,Light +15,,原文键,模型
+进入战斗,Enter battle,,原文键,官方
+立即来一支精英小队，全灭得主流派藏品三选一,"Immediately face an Elite squad, defeat them to choose 1 of 3 main branch Collectibles",,原文键,模型
+消失的习俗,Bygone Customs,,原文键,官方
+桌上摆着几件没人认领的东西。旧习俗说，路过的人可以带走一件。,Several unclaimed items lay on the table. An old custom says that passersby may Take one.,,原文键,模型
+带走一件,Take one,,原文键,模型
+主流派藏品三选一（稀有 / 核心加权）,Choose 1 of 3 main branch Collectibles (Rare / Core weighted),,原文键,模型
+再拿一件,Take another,,原文键,模型
+队长最大生命 -10%，主流派藏品三选一两次,"Leader Max HP -10%, choose 1 of 3 main branch Collectibles twice",,原文键,模型
+苦路,Path of Suffering,,原文键,官方
+审判庭把苦修仪式和重体力活绑在了一起，完成的人能领到奖赏。来报名的人不少，走完的没几个。,"The Inquisition has tied ascetic rituals to heavy manual labor, offering rewards to those who complete them. Many sign up, but few make it to the end.",,原文键,模型
+从搬运食物开始,Start by moving the food,,原文键,官方
+队长生命 -12%，源石锭 +6,"Leader HP -12%, Originium Ingot +6",,原文键,模型
+田间农活,Toil in the fields,,原文键,官方
+队长生命 -12%，队长最大生命 +4%,"Leader HP -12%, Leader Max HP +4%",,原文键,模型
+将石料与燃料运上瞭望塔,Transport building materials and fuel to the watchtower,,原文键,官方
+队长生命 -12%，获得一件主流派藏品,"Leader HP -12%, obtain a main branch Collectible",,原文键,模型
+提前离开,Leave early,,原文键,官方
+梦中之会,Meeting in a Dream,,原文键,官方
+迷雾把你送进一艘沉船的残骸。舱顶上站着一群同胞，它们在交谈，你听得出每个声音都不一样。,"The fog sends you into the wreckage of a sunken ship. A group of kin stands on the cabin roof, conversing. You can hear that every voice is different.",,原文键,模型
+分辨它们的发声方式,Discern their vocalizations,,原文键,官方
+源石锭 -10，远程杂兵开火间隔 +15%,"Originium Ingot -10, ranged enemy attack interval +15%",,原文键,模型
+远程杂兵开火间隔 +15%,Ranged mob attack interval +15%,,原文键,模型
+观察它们的形貌,Observe their appearances,,原文键,官方
+队长最大生命 -5%，对精英伤害 +12%,"Leader Max HP -5%, Damage to Elites +12%",,原文键,模型
+对精英伤害 +12%,Damage to Elites +12%,,原文键,模型
+尝试加入它们的交流,Try to mingle in and join their conversation,,原文键,官方
+神经损伤累积 +25%，全队技力回复 +8%,"Nervous Impairment buildup +25%, squad SP Recovery +8%",,原文键,模型
+神经损伤累积 +25%,Nervous Impairment buildup +25%,,原文键,模型
+直接醒来,Wake up right away,,原文键,官方
+梦境不是现实,Dreams are not reality,,原文键,官方
+设身处地,Empathy,,原文键,官方
+你混进了一处深海教徒的聚居地。恐鱼和人在这里相安无事，前提是食物管够，也没人露出敌意。,"You infiltrate a settlement of Church of the Deep cultists. Sea Seaborn and humans coexist peacefully here, provided there is enough food and no one shows hostility.",,原文键,模型
+准备食物,Prepare the food,,原文键,官方
+队长生命 -10%，再选喂哪一种,"Leader HP -10%, then choose which to feed",,原文键,模型
+还是赶紧离开吧,It'd be best to leave now,,原文键,官方
+食物备好了。水池边、浅滩上、洞穴深处，都有东西在等。,"The food is ready. By the pool, in the Shallows, deep in the cave, things are waiting.",,原文键,模型
+喂食底海滑动者,Feed the Deep Sea Slider,,原文键,官方
+灯火 +20,Light +20,,原文键,模型
+喂食水池边的溟痕,Feed the nethersea brand by the pool,,原文键,官方
+队长最大生命 +4%,Leader Max HP +4%,,原文键,模型
+喂食投嗣育母,Feed the Retching Broodmother,,原文键,官方
+招募一名干员（从随机两个职业里选）,Recruit an Operator (choose from 2 random classes),,原文键,模型
+再喂喂看？,Try feeding them again?,,原文键,官方
+队长生命 -10%，50% 再喂一次（只能再喂一次）,"Leader HP -10%, 50% chance to feed again (can only feed one more time)",,原文键,模型
+它们又围了过来。,They are closing in again.,,原文键,模型
+重返家园,Homecoming,,原文键,官方
+寻找信使驿站时，你遇到一位要回伊比利亚的教士。他愿意帮你联络当地的干员，但只负责联络。,"While searching for a messenger station, you meet a cleric returning to Iberia. He is willing to help you contact local Operators, but only handles the communication.",,原文键,模型
+意思意思,Entertain him,,原文键,官方
+源石锭 -5，招募一名干员（从随机两个职业里选）,"Originium Ingot -5, recruit an Operator (choose from 2 random classes)",,原文键,模型
+重金酬谢,Make a large contribution,,原文键,官方
+源石锭 -15，招募任意一名干员,"Originium Ingot -15, recruit any Operator",,原文键,模型
+信仰见证,Faith is self-evident,,原文键,官方
+海嗣学者,Seaborn Scholar,,原文键,官方
+一位老阿戈尔人在用恐鱼的尸体做装备。他说自己待过研究海嗣的科学院，现在只想让研究派上用场。,"An old Ægir is crafting equipment from Sea Seaborn corpses. He says he once worked in an academy studying the Seaborn, and now only wants to put his research to use.",,原文键,模型
+要不试试,Why not give it a try?,,原文键,官方
+获得一件生存 / 护盾反击稀有藏品；50% 同时获得一件遭诅藏品,Obtain 1 Survival / Shield Counter Rare relic; 50% chance to also obtain 1 Cursed relic,,原文键,模型

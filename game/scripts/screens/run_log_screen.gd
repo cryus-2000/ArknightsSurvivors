@@ -1,4 +1,5 @@
 extends RefCounted
+const Loc = preload("res://scripts/core/loc.gd")   # 本地化（docs/276 §10）
 ## 界面 · 对局记录（10-29 用户：结算「对局记录」原来直接用系统打开 runs.jsonl，改成游戏内面板）。
 ## 只在 Cfg.runs_log_enabled()（调试版 / 对内包）时有入口；读本机 user://runs/runs.jsonl（写入逻辑不动，run/telemetry.gd save_local），
 ## 列最近 MAX_N 局（新的在上）：时间、版本、编队头像（队长在前）、结局 / 击倒者、用时、击杀、藏品数。
@@ -189,7 +190,7 @@ func _t(pos: Vector2, s: String, size: int, col: Color, align := 0, max_w := -1.
 			fs -= 1
 		w = g.font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 	var x := pos.x - (w * 0.5 if align == 1 else (w if align == 2 else 0.0))
-	_ci().draw_string(g.font, Vector2(roundf(x), roundf(pos.y + fs * 0.36)), s, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, col)
+	_ci().draw_string(g.font, Vector2(roundf(x), roundf(pos.y + fs * 0.36)), Loc.s(s), HORIZONTAL_ALIGNMENT_LEFT, -1, fs, col)
 	return w
 
 

@@ -1,4 +1,5 @@
 extends RefCounted
+const Loc = preload("res://scripts/core/loc.gd")   # 本地化（docs/276 §10）
 ## 启动页三个新方向的画法（10-30 用户「声纳加载界面得重新设计一下，更加有 PRTS 的感觉，但是保留点深海的特色」）。
 ## 开关 balance.json ui/boot_v：0 = 现行「声呐测绘」（boot_screen._draw）；1 / 2 / 3 = 下面三个方向，挑定后再精修。网页同名方向在 tools/web/loader.js。
 ##   1 终端开机：深色底 + 等宽系统日志逐行滚出（真实阶段 / 正在编译的类别）+ 分段进度条与百分比 + 角标编号；深海 = 上浮的海雪微粒、日志窗右上的小声呐
@@ -32,6 +33,7 @@ func _rm() -> bool:
 
 ## 等宽字：拉丁 / 数字按 0.6 字宽、中文按 1 字宽逐字画（项目只有一套 UI 字体）
 func mono(pos: Vector2, s: String, sz: int, col: Color) -> float:
+	s = Loc.s(s)   # 本地化（docs/276 §10）：逐字画之前整串查表
 	var x := pos.x
 	for ch in s:
 		var wide: bool = ch.unicode_at(0) > 0x2E80
@@ -44,6 +46,7 @@ func mono(pos: Vector2, s: String, sz: int, col: Color) -> float:
 
 
 func mono_w(s: String, sz: int) -> float:
+	s = Loc.s(s)   # 本地化（docs/276 §10）：逐字画之前整串查表
 	var w := 0.0
 	for ch in s:
 		w += sz * (1.0 if ch.unicode_at(0) > 0x2E80 else 0.6)
@@ -51,6 +54,7 @@ func mono_w(s: String, sz: int) -> float:
 
 
 func en(pos: Vector2, s: String, sz: int, col: Color, sp := 3.0) -> float:
+	s = Loc.s(s)   # 本地化（docs/276 §10）：逐字画之前整串查表
 	var x := pos.x
 	for ch in s:
 		c.draw_string(font, Vector2(x, pos.y), ch, HORIZONTAL_ALIGNMENT_LEFT, -1, sz, col)
@@ -59,7 +63,7 @@ func en(pos: Vector2, s: String, sz: int, col: Color, sp := 3.0) -> float:
 
 
 func txt(pos: Vector2, s: String, sz: int, col: Color, align := HORIZONTAL_ALIGNMENT_LEFT, w := -1.0) -> void:
-	c.draw_string(font, pos, s, align, w, sz, col)
+	c.draw_string(font, pos, Loc.s(s), align, w, sz, col)
 
 
 ## 取景角标：矩形四角各一个 L
@@ -168,7 +172,7 @@ func foot(vs: Vector2, compact: bool) -> void:
 func tip_block(r: Rect2, tip: String, ta: float, sz: int) -> void:
 	en(r.position + Vector2(0, 10), "NOTE", 10, DIM, 3.0)
 	var brk := TextServer.BREAK_MANDATORY | TextServer.BREAK_WORD_BOUND | TextServer.BREAK_GRAPHEME_BOUND | TextServer.BREAK_ADAPTIVE
-	c.draw_multiline_string(font, r.position + Vector2(0, 30), tip, HORIZONTAL_ALIGNMENT_LEFT, r.size.x, sz, -1, Color(0.7, 0.78, 0.8, ta), brk)
+	c.draw_multiline_string(font, r.position + Vector2(0, 30), Loc.s(tip), HORIZONTAL_ALIGNMENT_LEFT, r.size.x, sz, -1, Color(0.7, 0.78, 0.8, ta), brk)
 
 
 func header(vs: Vector2, m: float, title: String, code: String, show_code: bool, rule_w := -1.0) -> float:
@@ -320,11 +324,13 @@ func _typed(s: String, age: float) -> String:
 
 
 func _mono_c(pos: Vector2, s: String, sz: int, col: Color) -> void:
+	s = Loc.s(s)   # 本地化（docs/276 §10）：逐字画之前整串查表
 	mono(pos - Vector2(mono_w(s, sz) / 2.0, 0), s, sz, col)
 
 
 ## 字距拉开的英文（居中）
 func _spaced(cx: float, y: float, s: String, sz: int, col: Color, sp: float) -> void:
+	s = Loc.s(s)   # 本地化（docs/276 §10）：逐字画之前整串查表
 	var w := 0.0
 	for ch in s:
 		w += font.get_string_size(ch, HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x + sp
@@ -509,7 +515,7 @@ func draw_v3(vs: Vector2, st: Dictionary) -> void:
 			yy += sz + 12.0
 		var brk := TextServer.BREAK_MANDATORY | TextServer.BREAK_WORD_BOUND | TextServer.BREAK_GRAPHEME_BOUND | TextServer.BREAK_ADAPTIVE
 		en(Vector2(rx, yy + 14), "NOTE", 10, GRAY, 3.0)
-		c.draw_multiline_string(font, Vector2(rx, yy + 34), st.tip, HORIZONTAL_ALIGNMENT_LEFT, rw, sz - 1, -1, Color(0.66, 0.74, 0.77, st.tip_a), brk)
+		c.draw_multiline_string(font, Vector2(rx, yy + 34), Loc.s(st.tip), HORIZONTAL_ALIGNMENT_LEFT, rw, sz - 1, -1, Color(0.66, 0.74, 0.77, st.tip_a), brk)
 	else:
 		var lr3 := Rect2(m + 10, cen.y + R + 84, vs.x - 2 * m - 20, vs.y * 0.24)
 		c.draw_line(lr3.position + Vector2(0, -22), lr3.position + Vector2(lr3.size.x, -22), INK, 1.5)

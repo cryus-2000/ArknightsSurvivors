@@ -1,4 +1,5 @@
 extends RefCounted
+const Loc = preload("res://scripts/core/loc.gd")   # 本地化（docs/276 §10）
 ## 图鉴 / 寻访的入场标志动效（11-05 用户「图鉴和寻访也得加上相关的图标动效，可以参考莱茵生命风格的动效」，参考 github.com/LBEILC/RhineLabUI）。
 ## 只借它的动效手法（逐笔描边、远处大圆环收拢锁定、卫星点依次出现、对角线合拢解密、磨砂变清、缩小淡出退场，缓动一律 smoothstep），
 ## 不用莱茵生命的标志、设定与配色；标志 = 罗德岛（用户允许，screens/rhodes_logo.gd），配色 = 本作 PRTS 冷白 + 青。用户定短版 ≤ 0.8 秒。
@@ -136,10 +137,10 @@ func _draw_decrypt(ci: CanvasItem, vs: Vector2, font: Font, t: float) -> void:
 		var fs: int = int(round(10.0 * u))
 		var head := "PRTS // OPERATOR ARCHIVE"
 		var hn: int = int(ceil(head.length() * ss(0.04, 0.24, t)))
-		ci.draw_string(font, Vector2(fb.position.x + 4.0 * u, fb.position.y + 14.0 * u), head.substr(0, hn), HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(W, out))
+		ci.draw_string(font, Vector2(fb.position.x + 4.0 * u, fb.position.y + 14.0 * u), Loc.s(head.substr(0, hn)), HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(W, out))
 		var no: int = int(round(lerpf(0.0, float(info.get("count", 0)), ss(0.06, 0.4, t))))
 		var nos := "FILE No.%03d" % no
-		ci.draw_string(font, Vector2(fb.end.x - 4.0 * u - font.get_string_size(nos, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x, fb.position.y + 14.0 * u), nos, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(SUB, out))
+		ci.draw_string(font, Vector2(fb.end.x - 4.0 * u - font.get_string_size(nos, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x, fb.position.y + 14.0 * u), Loc.s(nos), HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(SUB, out))
 		ci.draw_rect(Rect2(fb.position.x + 4.0 * u, fb.position.y + 20.0 * u, (fb.size.x - 8.0 * u) * ss(0.04, 0.26, t), 1), Color(SUB, 0.6 * out))
 		# 标志：三角外框逐笔描出 → 点亮
 		_trace(ci, o, s, ss(0.0, 0.24, t), Color(W, out), lerpf(0.5, 2.0, ss(0.0, 0.1, t)))
@@ -155,9 +156,9 @@ func _draw_decrypt(ci: CanvasItem, vs: Vector2, font: Font, t: float) -> void:
 			var shown: float = ss(0.3 + i * 0.03, 0.42 + i * 0.03, t)
 			ci.draw_rect(Rect2(px, ry + rh - 1.0, pw, 1), Color(SUB, 0.3 * out))
 			if shown > 0.0:
-				ci.draw_string(font, Vector2(px, y0 + fs2 * 0.35), str(rows[i][0]), HORIZONTAL_ALIGNMENT_LEFT, -1, fs2, Color(SUB, out))
+				ci.draw_string(font, Vector2(px, y0 + fs2 * 0.35), Loc.s(str(rows[i][0])), HORIZONTAL_ALIGNMENT_LEFT, -1, fs2, Color(SUB, out))
 				var vc: Color = ACC if i == 3 else W
-				ci.draw_string(font, Vector2(px, y0 + fs2 * 0.35), str(rows[i][1]), HORIZONTAL_ALIGNMENT_RIGHT, pw, fs2, Color(vc, out * ss(0.4, 0.9, shown)))
+				ci.draw_string(font, Vector2(px, y0 + fs2 * 0.35), Loc.s(str(rows[i][1])), HORIZONTAL_ALIGNMENT_RIGHT, pw, fs2, Color(vc, out * ss(0.4, 0.9, shown)))
 			var bw: float = pw * (0.55 + 0.4 * absf(sin(i * 1.7 + 0.4))) * ss(0.06 + i * 0.02, 0.16 + i * 0.02, t)   # 遮挡条先从左长出
 			var keep: float = 1.0 - shown
 			if keep > 0.0 and bw > 0.0:
@@ -197,7 +198,7 @@ func _draw_decrypt(ci: CanvasItem, vs: Vector2, font: Font, t: float) -> void:
 			var dt := "DECRYPTED"
 			var dw: float = font.get_string_size(dt, HORIZONTAL_ALIGNMENT_LEFT, -1, dfs).x
 			ci.draw_rect(Rect2(c.x - dw / 2.0 - 6.0 * u, c.y - 12.0 * u - dfs - 2.0 * u, dw + 12.0 * u, dfs + 8.0 * u), Color(BG, 0.92 * fl))   # 底板：别压在档案字上
-			ci.draw_string(font, Vector2(c.x - font.get_string_size(dt, HORIZONTAL_ALIGNMENT_LEFT, -1, dfs).x / 2.0, c.y - 12.0 * u), dt, HORIZONTAL_ALIGNMENT_LEFT, -1, dfs, Color(ACC, fl))
+			ci.draw_string(font, Vector2(c.x - font.get_string_size(dt, HORIZONTAL_ALIGNMENT_LEFT, -1, dfs).x / 2.0, c.y - 12.0 * u), Loc.s(dt), HORIZONTAL_ALIGNMENT_LEFT, -1, dfs, Color(ACC, fl))
 
 
 func _draw_access(ci: CanvasItem, vs: Vector2, font: Font, t: float) -> void:
@@ -218,7 +219,7 @@ func _draw_access(ci: CanvasItem, vs: Vector2, font: Font, t: float) -> void:
 	var fs: int = int(round(maxf(11.0, vs.y / 60.0)))
 	var tw: float = font.get_string_size(msg, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 	var ty: float = c.y - R - 34.0
-	ci.draw_string(font, Vector2(c.x - tw / 2.0, ty), msg.substr(0, n), HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(W, al))
+	ci.draw_string(font, Vector2(c.x - tw / 2.0, ty), Loc.s(msg.substr(0, n)), HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(W, al))
 	if n < msg.length() and int(t * 20.0) % 2 == 0:
 		var cw: float = font.get_string_size(msg.substr(0, n), HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 		ci.draw_rect(Rect2(c.x - tw / 2.0 + cw + 2.0, ty - fs * 0.8, fs * 0.5, fs * 0.9), Color(ACC, al))

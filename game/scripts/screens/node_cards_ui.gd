@@ -207,7 +207,7 @@ static func _back(ci: CanvasItem, r: Rect2, c: Dictionary, st: Dictionary, font:
 	NodeIcons.draw(ci, t, ic, 6.0, Color(col.r, col.g, col.b, a))
 	# 名字 + 英文
 	var nm: String = NodeIcons.NAMES.get(t, "")
-	ci.draw_string(serif, Vector2(r.position.x, r.end.y - 88.0), nm, HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 26, Color(1, 1, 1, a) if hot else Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, a))
+	ci.draw_string(serif, Vector2(r.position.x, r.end.y - 88.0), UI.Loc.s(nm), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 26, Color(1, 1, 1, a) if hot else Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, a))
 	var en: String = NodeIcons.EN.get(t, "")
 	var ew := UI.en_width(font, en, 11, 3.0)
 	UI.en(ci, font, Vector2(r.get_center().x - ew / 2.0, r.end.y - 60.0), en, 11, Color(col.r, col.g, col.b, 0.85 * a), 3.0)
@@ -335,7 +335,7 @@ static func _back_incident(ci: CanvasItem, r: Rect2, st: Dictionary, font: Font,
 		step_line(ci, r.grow(5.0), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.4 * a * float(st.get("hover_k", 1.0))), 2.0, 4)
 	var ic := Vector2(r.get_center().x, roundf(r.position.y + r.size.y * 0.40))
 	NodeIcons.draw(ci, "incident", ic, 7.0, Color(0.89, 0.93, 0.95, a))
-	ci.draw_string(serif, Vector2(r.position.x, roundf(ic.y + 104.0)), "不期而遇", HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 28, Color(0.89, 0.92, 0.94, a))
+	ci.draw_string(serif, Vector2(r.position.x, roundf(ic.y + 104.0)), UI.Loc.s("不期而遇"), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 28, Color(0.89, 0.92, 0.94, a))
 	route_tokens(ci, r, st, font, a)
 
 
@@ -362,7 +362,7 @@ static func route_tokens(ci: CanvasItem, r: Rect2, st: Dictionary, font: Font, a
 			ci.draw_texture_rect(tx, Rect2(Vector2(x, y), Vector2(32, 32)), false, Color(1, 1, 1, ta))
 		var cc: Color = cols[mini(q, cols.size() - 1)] if not cols.is_empty() else UI.CYAN
 		ci.draw_line(Vector2(x + 8.0, y + 38.0), Vector2(x + 24.0, y + 38.0), Color(cc.r, cc.g, cc.b, ta * 0.7), 2.0)
-		ci.draw_string(font, Vector2(x - 24.0, y + 55.0), TOKEN_NAME.get(e, ""), HORIZONTAL_ALIGNMENT_CENTER, 80.0, 12, Color(0.70, 0.77, 0.82, ta))
+		ci.draw_string(font, Vector2(x - 24.0, y + 55.0), UI.Loc.s(TOKEN_NAME.get(e, "")), HORIZONTAL_ALIGNMENT_CENTER, 80.0, 12, Color(0.70, 0.77, 0.82, ta))
 
 
 ## 卡外结局名（用户 10-26）：只在悬停 / 选中的那张卡真带路线时，在它下方写对应结局名（双路线两行）；切卡淡入淡出（alpha 由 choice_panel 平滑）
@@ -375,7 +375,7 @@ static func draw_route_names(ci: CanvasItem, cr: Rect2, ends: Array, alpha: floa
 	y = minf(y, y_max - lh * float(ends.size()))
 	for q in ends.size():
 		var e: String = str(ends[q])
-		ci.draw_string(font, Vector2(cr.get_center().x - 170.0, y + lh * (q + 1) - 6.0), ROUTE_NAME.get(e, ""), HORIZONTAL_ALIGNMENT_CENTER, 340.0, fs, Color(0.80, 0.86, 0.90, alpha))
+		ci.draw_string(font, Vector2(cr.get_center().x - 170.0, y + lh * (q + 1) - 6.0), UI.Loc.s(ROUTE_NAME.get(e, "")), HORIZONTAL_ALIGNMENT_CENTER, 340.0, fs, Color(0.80, 0.86, 0.90, alpha))
 
 
 ## 正面：顶部类型色带（图标 + 节点名）、标题（衬线）、说明；正文自上而下显出，开头迸一圈像素颗粒
@@ -391,13 +391,13 @@ static func _face(ci: CanvasItem, r: Rect2, c: Dictionary, st: Dictionary, font:
 	var sub: String = ("迷雾散去 · " if c.get("fog", false) else "") + str(NodeIcons.NAMES.get(str(c.get("type", "")), ""))
 	var ph: bool = Cfg.phone_ui()   # 手机：小标 16、说明 18（整排缩 0.9，10-26 iPhone 实机可读下限，docs/37）
 	UI.text(ci, font, Vector2(r.position.x, r.position.y + 78.0), sub, 16 if ph else 13, col, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
-	ci.draw_string(serif, Vector2(r.position.x, r.position.y + 136.0), str(st.get("face_title", "")), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 28, Color.WHITE)
+	ci.draw_string(serif, Vector2(r.position.x, r.position.y + 136.0), UI.Loc.s(str(st.get("face_title", ""))), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 28, Color.WHITE)
 	var tag: String = str(st.get("face_tag", ""))
 	if tag != "":
 		var ecs: Array = st.get("ends_cols", [])
 		var tc: Color = ecs[0] if not ecs.is_empty() else UI.CYAN
 		UI.text(ci, font, Vector2(r.position.x, r.position.y + 162.0), tag, 15 if ph else 12, tc, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
-	ci.draw_multiline_string(font, Vector2(r.position.x + (16.0 if ph else 24.0), r.position.y + 196.0), UI.soft(str(st.get("face_body", ""))), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - (32.0 if ph else 48.0), 18 if ph else 14, 6, Color(0.81, 0.79, 0.76), UI.BRK)
+	ci.draw_multiline_string(font, Vector2(r.position.x + (16.0 if ph else 24.0), r.position.y + 196.0), UI.Loc.s(UI.soft(str(st.get("face_body", "")))), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - (32.0 if ph else 48.0), 18 if ph else 14, 6, Color(0.81, 0.79, 0.76), UI.BRK)
 	# 揭示遮罩：还没显出的部分盖回卡底色（按像素行）
 	if reveal < 1.0:
 		var y0 := r.position.y + 96.0 + (r.size.y - 110.0) * UM.out_cubic(reveal)

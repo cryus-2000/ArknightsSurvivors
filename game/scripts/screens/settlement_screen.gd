@@ -657,8 +657,8 @@ func _text(ci: CanvasItem, x: float, y: float, text: String, size := 18, color :
 	var fs := UI.phone_body_step(maxi(size, PHONE_MIN_FS)) if Cfg.phone_ui() else size
 	var c := Color(color, color.a * _fa)
 	if _blur > 0.0:   # 失焦虚影：右侧错开一道淡影
-		ci.draw_string(g.font, Vector2(x + _dx + 5.0 * _blur, y + size), text, HORIZONTAL_ALIGNMENT_LEFT, width, fs, Color(color, color.a * 0.35 * _blur))
-	ci.draw_string(g.font, Vector2(x + _dx, y + size), text, HORIZONTAL_ALIGNMENT_LEFT, width, fs, c)
+		ci.draw_string(g.font, Vector2(x + _dx + 5.0 * _blur, y + size), UI.Loc.s(text), HORIZONTAL_ALIGNMENT_LEFT, width, fs, Color(color, color.a * 0.35 * _blur))
+	ci.draw_string(g.font, Vector2(x + _dx, y + size), UI.Loc.s(text), HORIZONTAL_ALIGNMENT_LEFT, width, fs, c)
 
 func draw(ci: CanvasItem, vs: Vector2) -> void:
 	if model.is_empty():

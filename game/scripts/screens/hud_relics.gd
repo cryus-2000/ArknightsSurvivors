@@ -113,7 +113,7 @@ func draw_speed_button(vs: Vector2) -> void:
 	var lab: String = PlayClock.current_label()
 	var ci: CanvasItem = g.hud
 	var fnt: Font = g.font
-	h.text_flush([func(): ci.draw_string(fnt, Vector2(rect.position.x, rect.position.y + rect.size.y / 2.0 + bs * 0.36), lab, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x, bs, fg),
+	h.text_flush([func(): ci.draw_string(fnt, Vector2(rect.position.x, rect.position.y + rect.size.y / 2.0 + bs * 0.36), UI.Loc.s(lab), HORIZONTAL_ALIGNMENT_CENTER, rect.size.x, bs, fg),
 		func(): UI.text(g.hud, g.font, rect.position + Vector2(0, rect.size.y + 14.0), "倍速" if g.touch.active else "倍速 V", 13 if g.touch.active else 10, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x)])
 	if enabled and not g.touch.active:
 		g.speed_btn = rect

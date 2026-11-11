@@ -15,20 +15,24 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", required=True)
     ap.add_argument("--langs", default="en,zh")
+    ap.add_argument("--only", default="", help="desk / phone：只跑一种")
     ap.add_argument("--extra", default="", help="附加游戏参数，空格分隔（如 --touch）")
     a = ap.parse_args()
     a.out = os.path.abspath(a.out)   # $MEDIA 可能是相对路径；Godot 的工作目录不同，相对路径的 PNG 会写到别处（11-06 第二次就丢了图）
     os.makedirs(a.out, exist_ok=True)
     bad = 0
     for lang in a.langs.split(","):
-        args = [gr.find_godot(), "--path", os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--resolution", "1280x720",
-                "res://tests/l10n_shots.tscn", "--", "--lang=" + lang, "--unlockall",
-                "--shot_dir=" + a.out.replace(os.sep, "/")] + a.extra.split()
+      for tag, res, more in (("desk", "1280x720", []), ("phone", "1560x720", ["--touch"])):
+        if a.only and tag != a.only:
+            continue
+        args = [gr.find_godot(), "--path", os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--resolution", res,
+                "res://tests/l10n_shots.tscn", "--", "--lang=" + lang, "--unlockall", "--shot_tag=" + tag,
+                "--shot_dir=" + a.out.replace(os.sep, "/")] + more + a.extra.split()
         o, e, to = gr.run_godot(args, 1200)
-        open(os.path.join(a.out, "run_%s.log" % lang), "w", encoding="utf-8").write(o + "\n----\n" + e)
+        open(os.path.join(a.out, "run_%s_%s.log" % (lang, tag)), "w", encoding="utf-8").write(o + "\n----\n" + e)
         errs = gr.script_errors(o, e)
         done = [l for l in o.splitlines() if l.startswith("L10N SHOTS")]
-        print(lang, done, "errors:", errs[:5], "timeout" if to else "")
+        print(lang, tag, done, "errors:", errs[:5], "timeout" if to else "")
         bad += (1 if errs or to or not done else 0)
     sys.exit(1 if bad else 0)
 

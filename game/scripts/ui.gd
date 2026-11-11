@@ -344,6 +344,7 @@ static func _chip(ci: CanvasItem, font: Font, pos: Vector2, s: String, col: Colo
 ## bot_c 为整块的底边中点（行数变了底边不动，贴着下面的操作条）。第一行前面可带灰色小字 label；
 ## 放不下先去掉 label，再放不下把末尾收成「+N」，单个也放不下就截断加「…」。返回用了几行
 static func chip_row(ci: CanvasItem, font: Font, bot_c: Vector2, chips: Array, max_w: float, rows := 1, label := "", size := 11, a := 1.0) -> int:
+	label = Loc.short(label)   # 本地化（docs/276 §10）：行首小标签（影响 / 流派）
 	if chips.is_empty():
 		return 0
 	size = _ks(ci, size)

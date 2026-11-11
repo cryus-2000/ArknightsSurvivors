@@ -115,6 +115,7 @@ static func para(ci: CanvasItem, r: Rect2, fill: Color, line := Color(0, 0, 0, 0
 
 ## 字距拉开的小字（英文 / 中文都行）
 static func spaced(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: int, col: Color, gap := 4.0) -> float:
+	s = UI.Loc.s(s)   # 本地化（docs/276 §10）：逐字画之前整串查表
 	var x := pos.x
 	for ch in s:
 		ci.draw_string(font, Vector2(x, pos.y), ch, HORIZONTAL_ALIGNMENT_LEFT, -1, size, col)

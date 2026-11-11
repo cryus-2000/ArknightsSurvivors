@@ -10,7 +10,7 @@ extends RefCounted
 ## 短版：short() 先查 short:<原文>（定宽格子用，docs/276 §9 第 4 条），没有就同 s()。
 
 ## 已接入的模块（game/l10n/<名>.csv）。新模块：加 CSV + .import（compress=0，要能列出全部键给模板用），名字加到这里
-const MODULES := ["ops", "enemies"]
+const MODULES := ["ops", "enemies", "ui", "relics", "events", "meta", "run"]
 ## 「跟随系统」解析成英文的开关：英文翻译未覆盖全部模块前保持 false——系统语言是英文的玩家先看到完整中文，
 ## 不会看到中英夹杂的半成品；在设置里手动选 English 不受影响。全部模块翻完、第三步验收后改 true（docs/276 §10）
 const AUTO_EN_READY := false

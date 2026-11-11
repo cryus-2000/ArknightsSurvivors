@@ -393,7 +393,7 @@ func _t(pos: Vector2, s: String, size: int, col: Color, align := 0, max_w := -1.
 			size -= 1
 		w = g.font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
 	var x := pos.x - (w * 0.5 if align == 1 else (w if align == 2 else 0.0))
-	_ci().draw_string(g.font, Vector2(roundf(x), roundf(pos.y + size * 0.36)), s, HORIZONTAL_ALIGNMENT_LEFT, -1, size, col)
+	_ci().draw_string(g.font, Vector2(roundf(x), roundf(pos.y + size * 0.36)), UI.Loc.s(s), HORIZONTAL_ALIGNMENT_LEFT, -1, size, col)
 	return w
 
 

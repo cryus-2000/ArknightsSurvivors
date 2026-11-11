@@ -233,6 +233,87 @@ def extract():
         print("%-8s 条目 %4d  官方 %4d  需翻（去重）%4d  中文字数 %6d" % (
             name, len(items), sum(1 for i in items if "official" in i), len(uz), sum(len(CJK.findall(z)) for z in uz)))
     print("官方表", len(g), "条 →", WORK / "glossary.json")
+    extract_modules(g)
+
+
+# ---------------------------------------------------------------- 其余模块（docs/276 §11，11-11 恢复）：按原文键接入
+# 模块 → {json: [数据文件]，gd: [脚本 glob]，skip: [不抽的脚本]}。键：<模块>.<文件名>.<路径> / <模块>.gd.<相对路径>.<序号>。
+# 显示时 ui.gd 助手按原文查表（Loc.s），所以这些键只作 CSV 行标识，代码不引用；json 不改结构
+MODULES = {
+    "ui": {"json": ["guide.json", "onboard.json", "credits.json", "balance.json", "boot_order.json", "boot_operator_order.json", "doctor.json"],
+           "gd": ["scripts/*.gd", "scripts/screens/*.gd", "scripts/core/*.gd", "scripts/render/*.gd", "scripts/world/*.gd"],
+           "skip": ["screens/ak_mock.gd", "core/perf_report.gd", "core/loc.gd", "screens/perf_view.gd"]},
+    "relics": {"json": ["relics.json", "relic_effects.json"], "gd": [], "skip": []},
+    "events": {"json": ["waves.json", "events_v2.json"], "gd": [], "skip": []},
+    "meta": {"json": ["meta_tree.json", "meta_roots.json", "cards.json", "medals.json", "synergy.json", "practice_squads.json"],
+             "gd": [], "skip": []},
+    "run": {"json": [], "gd": ["scripts/run/*.gd", "scripts/characters/**/*.gd", "scripts/allies/*.gd"], "skip": []},
+}
+# 只给代码 / 工具看的字段（中文也不翻）
+JSON_SKIP = {"src", "_doc", "requires", "conflicts", "id", "tex", "icon", "sfx", "script", "set", "lane", "pool"}
+
+
+def official_extra():
+    """集成战略 #2 的藏品原作说明（usage）、事件 / 选项标题：中文原文 → 官方英文（整串命中才用）"""
+    cr, er = L("cn_roguelike_topic_table.json")["details"]["rogue_2"], L("en_roguelike_topic_table.json")["details"]["rogue_2"]
+    m = {}
+    for iid, it in cr["items"].items():
+        e = er["items"].get(iid, {})
+        for f in ("usage", "description", "name"):
+            if it.get(f) and e.get(f):
+                m.setdefault(it[f].strip(), (e[f].strip(), "roguelike_topic_table.rogue_2.items.%s.%s" % (iid, f)))
+    for sec in ("choiceScenes", "choices"):
+        for k, v in cr.get(sec, {}).items():
+            e = er.get(sec, {}).get(k, {})
+            for f in ("title", "description"):
+                if v.get(f) and e.get(f):
+                    m.setdefault(v[f].strip(), (e[f].strip(), "roguelike_topic_table.rogue_2.%s.%s.%s" % (sec, k, f)))
+    for k, v in cr.get("nodeTypeData", {}).items():
+        e = er.get("nodeTypeData", {}).get(k, {})
+        if v.get("name") and e.get("name"):
+            m.setdefault(v["name"], (e["name"], "roguelike_topic_table.rogue_2.nodeTypeData.%s" % k))
+    return m
+
+
+def extract_modules(g):
+    import glob
+    ex = official_extra()
+    done_zh = set()
+    for m in ("ops", "enemies"):
+        for it in json.load(open(WORK / (m + ".items.json"), encoding="utf-8")):
+            done_zh.add(it["zh"])
+    for name, spec in MODULES.items():
+        items = []
+        for f in spec["json"]:
+            p = ROOT / "game/data" / f
+            if not p.exists():
+                print("  缺文件", f); continue
+            d = json.load(open(p, encoding="utf-8"))
+            out = []
+            walk(d, [], out)
+            for path, s in out:
+                if any(x in JSON_SKIP for x in path):
+                    continue
+                field = path[-1] if not path[-1].isdigit() else (path[-2] if len(path) > 1 else "")
+                items.append(item("%s.%s.%s" % (name, p.stem, ".".join(path)), s, "game/data/" + f, "/".join(path), field))
+        for gpat in spec["gd"]:
+            for p in sorted(glob.glob(str(ROOT / "game" / gpat), recursive=True)):
+                rel = Path(p).relative_to(ROOT / "game/scripts").as_posix()
+                if rel in spec["skip"] or "/ult" in "/" + rel and Path(p).name.startswith("ult"):
+                    pass
+                if rel in spec["skip"]:
+                    continue
+                for i, (ln, s) in enumerate(gd_strings(Path(p))):
+                    items.append(item("%s.gd.%s.%03d" % (name, rel[:-3].replace("/", "."), i), s, "game/scripts/" + rel, "L%d" % ln, "gd"))
+        for it in items:
+            zh = it["zh"].strip()
+            hit = PROVISIONAL.get(zh) and (PROVISIONAL[zh], "暂定（docs/276 §3.6）") or g.get(zh) or ex.get(zh)
+            if hit:
+                it["official"], it["official_src"] = hit
+        json.dump(items, open(WORK / (name + ".items.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+        uz = {i["zh"] for i in items if "official" not in i and i["zh"] not in done_zh}
+        print("%-8s 条目 %4d  官方 %4d  需翻（去重、扣除 ops / enemies 已有）%4d  中文字数 %6d" % (
+            name, len(items), sum(1 for i in items if "official" in i), len(uz), sum(len(CJK.findall(z)) for z in uz)))
 
 
 if __name__ == "__main__":

@@ -116,9 +116,19 @@ def main():
         binfo["channel"] = "EA"
     else:
         binfo.pop("channel", None)
+    # 多语言只上 itch（Windows / html5），B站 Toy 版固定中文（11-11 用户经协调人，docs/276 §12）：
+    # build.json 写 lang_lock = zh（settings.gd lang_locked 读），翻译表整个不进 Toy 包
+    if a.toy:
+        binfo["lang_lock"] = "zh"
+        shutil.rmtree(os.path.join(src, "game", "l10n"), ignore_errors=True)
+    else:
+        binfo.pop("lang_lock", None)
     with open(bj, "w", encoding="utf-8") as fh:
         json.dump(binfo, fh, ensure_ascii=False, indent=1)
-    print("构建信息：audience=%s" % binfo["audience"])
+    if a.toy:   # 导出断言：Toy 包切不到英文
+        chk_b = json.load(open(bj, encoding="utf-8"))
+        assert chk_b.get("lang_lock") == "zh" and not os.path.exists(os.path.join(src, "game", "l10n")), "Toy 包必须锁中文且不带 game/l10n"
+    print("构建信息：audience=%s%s" % (binfo["audience"], "，语言锁中文" if a.toy else ""))
 
     # 发布检查（玩法系统 tools/check_release.py，docs/33 清单）：对即将打包的这份源码跑，不过就中止
     chk = os.path.join(src, "tools", "check_release.py")

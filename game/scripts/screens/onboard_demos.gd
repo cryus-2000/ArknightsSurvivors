@@ -114,7 +114,7 @@ static func key(ci: CanvasItem, font: Font, c: Vector2, s: float, label: String,
 	ci.draw_rect(kr, Color(1, 1, 1, 0.35 + 0.5 * lit), false, 1.0)
 	var fsz := int(s * 0.55)
 	var tw: float = font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, fsz).x
-	ci.draw_string(font, Vector2(c.x - tw / 2.0, c.y + fsz * 0.36), label, HORIZONTAL_ALIGNMENT_LEFT, -1, fsz, Color(0.04, 0.07, 0.09) if lit > 0.5 else UI.TEXT)
+	ci.draw_string(font, Vector2(c.x - tw / 2.0, c.y + fsz * 0.36), UI.Loc.s(label), HORIZONTAL_ALIGNMENT_LEFT, -1, fsz, Color(0.04, 0.07, 0.09) if lit > 0.5 else UI.TEXT)
 
 
 ## 触屏圆按钮（冲刺 / 指挥 / 终结技）：按下时缩一下、亮起
@@ -124,7 +124,7 @@ static func tbtn(ci: CanvasItem, font: Font, c: Vector2, rad: float, label: Stri
 	ci.draw_arc(c, rr, 0.0, TAU, 32, _ca(col, 0.5 + 0.5 * lit), 1.5)
 	var fsz := int(rad * 0.62)
 	var tw: float = font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, fsz).x
-	ci.draw_string(font, Vector2(c.x - tw / 2.0, c.y + fsz * 0.36), label, HORIZONTAL_ALIGNMENT_LEFT, -1, fsz, Color(0.04, 0.07, 0.09) if lit > 0.5 else UI.TEXT)
+	ci.draw_string(font, Vector2(c.x - tw / 2.0, c.y + fsz * 0.36), UI.Loc.s(label), HORIZONTAL_ALIGNMENT_LEFT, -1, fsz, Color(0.04, 0.07, 0.09) if lit > 0.5 else UI.TEXT)
 	if lit > 0.0:
 		ci.draw_arc(c, rr + 3.0 + 6.0 * lit, 0.0, TAU, 32, _ca(col, 0.4 * (1.0 - lit)), 1.0)
 
@@ -150,7 +150,7 @@ static func tag(ci: CanvasItem, font: Font, p: Vector2, s: String, col: Color, f
 	var w: float = font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, fsz).x + 10.0
 	ci.draw_rect(Rect2(p, Vector2(w, fsz + 8)), Color(0.02, 0.03, 0.04, 0.8 * a))
 	ci.draw_rect(Rect2(p, Vector2(3, fsz + 8)), _ca(col, a))
-	ci.draw_string(font, p + Vector2(7, fsz + 2), s, HORIZONTAL_ALIGNMENT_LEFT, -1, fsz, _ca(UI.TEXT, a))
+	ci.draw_string(font, p + Vector2(7, fsz + 2), UI.Loc.s(s), HORIZONTAL_ALIGNMENT_LEFT, -1, fsz, _ca(UI.TEXT, a))
 
 
 static func _fsz(r: Rect2) -> int:
@@ -283,7 +283,7 @@ static func _lamp(ci: CanvasItem, r: Rect2, t: float, ctx: Dictionary) -> void:
 	else:
 		ci.draw_arc(lp + Vector2(0, -_h(r) * 0.4), r.size.y * (0.08 + 0.3 * refill), 0.0, TAU, 32, _ca(UI.GOLD, 1.0 - refill), 2.0)
 		if refill < 1.0:
-			ci.draw_string(ctx.font, lp + Vector2(10, -_h(r) - 6.0 - 12.0 * refill), "灯火 +50", HORIZONTAL_ALIGNMENT_LEFT, -1, _fsz(r), _ca(UI.GOLD, 1.0 - refill * 0.6))
+			ci.draw_string(ctx.font, lp + Vector2(10, -_h(r) - 6.0 - 12.0 * refill), UI.Loc.s("灯火 +50"), HORIZONTAL_ALIGNMENT_LEFT, -1, _fsz(r), _ca(UI.GOLD, 1.0 - refill * 0.6))
 	# 怪：撞上来再被弹开
 	var ep: Vector2 = P(r, lerpf(0.95, 0.42, _e(ph(t, 0.2, 0.9))), 0.62).lerp(P(r, 0.7, 0.4), ph(t, 0.95, 1.4))
 	blob(ci, ep, r.size.y * 0.07, 1.0 - ph(t, 1.2, 1.5), ph(t, 0.9, 1.0) * (1.0 - ph(t, 1.0, 1.2)))
@@ -295,7 +295,7 @@ static func _lamp(ci: CanvasItem, r: Rect2, t: float, ctx: Dictionary) -> void:
 	ci.draw_rect(br, Color(0, 0, 0, 0.6))
 	ci.draw_rect(Rect2(br.position, Vector2(br.size.x * lamp, br.size.y)), UI.GOLD.lerp(UI.RED, clampf((0.4 - lamp) * 4.0, 0.0, 1.0)))
 	ci.draw_rect(br, Color(1, 1, 1, 0.3), false, 1.0)
-	ci.draw_string(ctx.font, br.position + Vector2(br.size.x + 6, 8), "灯火", HORIZONTAL_ALIGNMENT_LEFT, -1, _fsz(r), UI.GOLD)
+	ci.draw_string(ctx.font, br.position + Vector2(br.size.x + 6, 8), UI.Loc.s("灯火"), HORIZONTAL_ALIGNMENT_LEFT, -1, _fsz(r), UI.GOLD)
 
 
 ## 招募：三选一里出现干员卡 → 选中 → 干员落到队长身边，一起开火
@@ -327,7 +327,7 @@ static func _recruit(ci: CanvasItem, r: Rect2, t: float, ctx: Dictionary) -> voi
 			ci.draw_rect(Rect2(cr.position, Vector2(cr.size.x, 3)), _ca(UI.CYAN if i == 1 else UI.GOLD, ca))
 			if i == 1:
 				fig(ci, mate, cr.position + Vector2(cw / 2.0, chh * 0.78), Rect2(cr.position, Vector2(cw, chh)).grow(-2.0), t, ca)
-				ci.draw_string(ctx.font, cr.position + Vector2(4, chh - 4), "招募", HORIZONTAL_ALIGNMENT_LEFT, -1, _fsz(r), _ca(UI.CYAN, ca))
+				ci.draw_string(ctx.font, cr.position + Vector2(4, chh - 4), UI.Loc.s("招募"), HORIZONTAL_ALIGNMENT_LEFT, -1, _fsz(r), _ca(UI.CYAN, ca))
 				if sel > 0.0:
 					ci.draw_rect(cr.grow(2.0), _ca(UI.CYAN, sel * ca), false, 2.0)
 			else:

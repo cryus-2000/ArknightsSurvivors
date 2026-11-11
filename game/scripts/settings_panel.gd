@@ -211,7 +211,7 @@ func _set_tab(t: int) -> void:
 			continue
 		if not touch and key in TOUCH_ONLY:
 			continue
-		if key == "lang" and Cfg._toy_js != null:
+		if key == "lang" and Cfg.lang_locked():
 			continue   # B站 Toy 版固定中文（docs/276 §2.4），不给选
 		if key == "runs" and not Cfg.runs_log_enabled():
 			continue   # 对外包不记录，也不显示这一行
@@ -883,6 +883,8 @@ func _draw_row(ci: CanvasItem, rr: Rect2, si: int, touch: bool, ty0: float) -> v
 				var lr := Rect2(vx + 16 + li * 90, rr.position.y + ty0 - 25, 84, 36)
 				ci.draw_rect(lr, UI.CYAN if active else Color("1b252e"))
 				UI.text(ci, font, lr.position + Vector2(0, 25), LANG_OPTS[li][1], fs_v - 3, Color("10151b") if active else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, lr.size.x)
+			if _lang_now() == "en":   # AI 翻译标注（11-11 用户经协调人）
+				UI.text(ci, font, Vector2(vx - 236, rr.position.y + ty0 - 1.0), "AI-translated", 12 if not touch else 13, UI.CYAN_DIM, HORIZONTAL_ALIGNMENT_RIGHT, 246)
 		"onboard":
 			# 三格 没玩过 / 玩过 / 关闭（同帧率格的样式）；还没问过时三格都不亮，行尾写「下局开局时询问」
 			for oi in 3:

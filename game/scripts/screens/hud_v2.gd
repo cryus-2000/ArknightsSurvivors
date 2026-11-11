@@ -40,6 +40,7 @@ static func on() -> bool:
 
 ## 字距拉开的大写小标签（Montserrat SemiBold）；返回宽度。align：0 左、1 中、2 右
 func cap(pos: Vector2, s: String, size: float, col: Color = UI.SUB, sp := 1.6, align := 0) -> float:
+	s = UI.Loc.s(s)   # 本地化（docs/276 §10）：逐字画之前整串查表
 	var f: Font = UI.latin(true)
 	var ks: int = int(round(size))
 	var w := 0.0
@@ -62,8 +63,8 @@ func big(pos: Vector2, s: String, size: float, col: Color = UI.TEXT, align := 0)
 		ks = UI.phone_body_step(ks)
 	var w: float = f.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, ks).x
 	var x: float = pos.x - (w if align == 2 else (w / 2.0 if align == 1 else 0.0))
-	g.hud.draw_string(f, Vector2(x + 1, pos.y + 2), s, HORIZONTAL_ALIGNMENT_LEFT, -1, ks, SHADOW)
-	g.hud.draw_string(f, Vector2(x, pos.y), s, HORIZONTAL_ALIGNMENT_LEFT, -1, ks, col)
+	g.hud.draw_string(f, Vector2(x + 1, pos.y + 2), UI.Loc.s(s), HORIZONTAL_ALIGNMENT_LEFT, -1, ks, SHADOW)
+	g.hud.draw_string(f, Vector2(x, pos.y), UI.Loc.s(s), HORIZONTAL_ALIGNMENT_LEFT, -1, ks, col)
 	return w
 
 
@@ -72,8 +73,8 @@ func txt(pos: Vector2, s: String, size: int, col: Color = UI.TEXT, align := HORI
 	col = UI.small_ink(col, size)
 	var ks: int = UI._ks(g.hud, size)
 	var f: Font = g.font if font == null else font
-	g.hud.draw_string(f, pos + Vector2(1, 1), s, align, width, ks, SHADOW)
-	g.hud.draw_string(f, pos, s, align, width, ks, col)
+	g.hud.draw_string(f, pos + Vector2(1, 1), UI.Loc.s(s), align, width, ks, SHADOW)
+	g.hud.draw_string(f, pos, UI.Loc.s(s), align, width, ks, col)
 
 
 func twidth(s: String, size: int) -> float:
@@ -365,14 +366,14 @@ func right_top(vs: Vector2) -> void:
 			var cf: Font = UI.latin() if k == "speed" else g.font
 			var cs: int = int(round(15.0 * r.size.y / PLATE_T.y)) if k == "speed" else UI._ks(g.hud, int(round(13.0 * r.size.y / PLATE_T.y)))
 			var cw: float = cf.get_string_size(cn, HORIZONTAL_ALIGNMENT_LEFT, -1, cs).x
-			g.hud.draw_string(cf, Vector2(r.get_center().x - cw / 2.0, r.get_center().y + cs * 0.36), cn, HORIZONTAL_ALIGNMENT_LEFT, -1, cs, inkc)
+			g.hud.draw_string(cf, Vector2(r.get_center().x - cw / 2.0, r.get_center().y + cs * 0.36), UI.Loc.s(cn), HORIZONTAL_ALIGNMENT_LEFT, -1, cs, inkc)
 			continue
 		cap(Vector2(r.position.x, r.position.y - 5), {"speed": "SPEED", "pause": "PAUSE", "stats": "INFO"}[k], 5.5)
 		var s: String = {"speed": lab, "pause": "II", "stats": "≡"}[k]
 		var f: Font = UI.latin() if k != "stats" else g.font
 		var fs: int = 12 if k == "speed" else 13
 		var sw: float = f.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-		g.hud.draw_string(f, Vector2(r.get_center().x - sw / 2.0, r.position.y + 17), s, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, inkc)
+		g.hud.draw_string(f, Vector2(r.get_center().x - sw / 2.0, r.position.y + 17), UI.Loc.s(s), HORIZONTAL_ALIGNMENT_LEFT, -1, fs, inkc)
 	if not g.touch.active:
 		cap(Vector2(vs.x - 16, RT_Y + 46), "ESC  ·  V", 5.5, UI.SUB, 1.4, 2)
 	if not g.trial.active and (g.ending != "standard" or Cfg.endings_cleared.size() > 0):
@@ -446,7 +447,7 @@ func squad(br: Vector2) -> void:
 			elif k > 0 and k != cur + 1:
 				g.hud.draw_rect(Rect2(cr.position.x, cr.position.y + 4, 1, SEG_H - 8), Color(1, 1, 1, 0.28))
 			var c: Color = Color(0.055, 0.063, 0.07) if k == cur else Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, 0.82)
-			g.hud.draw_string(g.font, Vector2(cr.position.x, cr.position.y + SEG_H - 6), SEG_NAMES[k], HORIZONTAL_ALIGNMENT_CENTER, cw, UI._ks(g.hud, 13), c)
+			g.hud.draw_string(g.font, Vector2(cr.position.x, cr.position.y + SEG_H - 6), UI.Loc.s(SEG_NAMES[k]), HORIZONTAL_ALIGNMENT_CENTER, cw, UI._ks(g.hud, 13), c)
 		# 突击耐力（全队共用）：分段下沿一根细线
 		var sqd = g.squad
 		if sqd.stamina_on():
@@ -467,7 +468,7 @@ func squad(br: Vector2) -> void:
 		var nr := Rect2(Vector2(r.position.x, r.end.y), Vector2(r.size.x, NAME_H))
 		g.hud.draw_rect(nr, UI.PAPER if lead else Color(0.055, 0.063, 0.07, 0.95))
 		if not Cfg.phone_ui():
-			g.hud.draw_string(g.font, Vector2(nr.position.x, nr.end.y - 2), op.display_name().substr(0, 5), HORIZONTAL_ALIGNMENT_CENTER, nr.size.x, UI._ks(g.hud, 8), Color(0.06, 0.07, 0.08) if lead else UI.TEXT)
+			g.hud.draw_string(g.font, Vector2(nr.position.x, nr.end.y - 2), UI.Loc.s(op.display_name().substr(0, 5)), HORIZONTAL_ALIGNMENT_CENTER, nr.size.x, UI._ks(g.hud, 8), Color(0.06, 0.07, 0.08) if lead else UI.TEXT)
 		if lead:
 			var sub_on: bool = op.has_method("away") and op.away()
 			var tr := Rect2(r.position + Vector2(0, -10), Vector2(30, 10))
@@ -476,7 +477,7 @@ func squad(br: Vector2) -> void:
 		# 倒地：暗幕 + 读秒；残血：红框慢闪；技能生效：青色细框
 		if not op.is_leader and op.cmd_down > 0.0:
 			g.hud.draw_rect(r, Color(0, 0, 0, 0.55))
-			g.hud.draw_string(g.font, Vector2(r.position.x, r.get_center().y), "倒地", HORIZONTAL_ALIGNMENT_CENTER, r.size.x, UI._ks(g.hud, 10), UI.RED)
+			g.hud.draw_string(g.font, Vector2(r.position.x, r.get_center().y), UI.Loc.s("倒地"), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, UI._ks(g.hud, 10), UI.RED)
 			big(Vector2(r.get_center().x, r.get_center().y + 16), str(int(ceil(op.cmd_down))), 14, UI.TEXT, 1)
 		elif not op.is_leader and h.allyhp.low(op):
 			var p: float = h.allyhp.pulse()

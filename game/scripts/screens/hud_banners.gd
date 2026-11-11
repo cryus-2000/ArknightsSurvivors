@@ -491,6 +491,7 @@ func draw_banner(vs: Vector2) -> void:
 
 ## 横幅文字按字距展开画（k = 1 时每个字间多出约一个字宽，最宽不超过屏宽 90%），居中
 func _spaced_text(vs: Vector2, y: float, s: String, size: int, col: Color, k: float) -> void:
+	s = UI.Loc.s(s)   # 本地化（docs/276 §10）：逐字画之前整串查表
 	var ws: Array = []
 	var w0 := 0.0
 	for ch in s:

@@ -837,10 +837,10 @@ func _txt(ci: CanvasItem, p: Vector2, s: String, sz: int, col: Color, anchor := 
 	var w := font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x
 	var x := p.x - (w / 2.0 if anchor[0] == "m" else (w if anchor[0] == "r" else 0.0))
 	var y := p.y + font.get_ascent(sz)
-	ci.draw_string_outline(font, Vector2(x, y), s, HORIZONTAL_ALIGNMENT_LEFT, -1, sz, 4, Color(0.02, 0.05, 0.08, 0.85))
-	ci.draw_string(font, Vector2(x, y), s, HORIZONTAL_ALIGNMENT_LEFT, -1, sz, col)
+	ci.draw_string_outline(font, Vector2(x, y), UI.Loc.s(s), HORIZONTAL_ALIGNMENT_LEFT, -1, sz, 4, Color(0.02, 0.05, 0.08, 0.85))
+	ci.draw_string(font, Vector2(x, y), UI.Loc.s(s), HORIZONTAL_ALIGNMENT_LEFT, -1, sz, col)
 	if bold:
-		ci.draw_string_outline(font, Vector2(x, y), s, HORIZONTAL_ALIGNMENT_LEFT, -1, sz, 1, col)
+		ci.draw_string_outline(font, Vector2(x, y), UI.Loc.s(s), HORIZONTAL_ALIGNMENT_LEFT, -1, sz, 1, col)
 	return w
 
 
@@ -1198,6 +1198,7 @@ func _chain_sum(ch: Array) -> String:
 
 ## 按宽度折行（逐字），返回末行底 y；draw = false 时只量
 func _para(ci: CanvasItem, p: Vector2, s: String, sz: int, col: Color, w: float, draw := true) -> float:
+	s = UI.Loc.s(s)   # 本地化（docs/276 §10）：逐字画之前整串查表
 	var line := ""
 	var y := p.y
 	for ch in s:

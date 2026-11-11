@@ -228,7 +228,7 @@ static func _fa(c: Color, a: float) -> Color:
 static func _txt(ci: CanvasItem, font: Font, top_left: Vector2, s: String, size: int, col: Color) -> float:
 	if Cfg.phone_ui():
 		size = UI.phone_body_step(size)
-	ci.draw_string(font, top_left + Vector2(0, font.get_ascent(size)), s, HORIZONTAL_ALIGNMENT_LEFT, -1, size, col)
+	ci.draw_string(font, top_left + Vector2(0, font.get_ascent(size)), UI.Loc.s(s), HORIZONTAL_ALIGNMENT_LEFT, -1, size, col)
 	return font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
 
 
@@ -339,7 +339,7 @@ static func _draw_row(ci: CanvasItem, o: Vector2, k: float, font: Font, m: Dicti
 		var col := Color8(255, 206, 0) if tickets > 0 else Color8(110, 118, 128)
 		var q := bh * 0.2
 		ci.draw_colored_polygon(PackedVector2Array([Vector2(tx.x + q, by), Vector2(tx.x + bw, by), Vector2(tx.x + bw - q, by + bh), Vector2(tx.x, by + bh)]), _fa(col, a))
-		ci.draw_string(font, Vector2(tx.x, by + bh * 0.5 + (font.get_ascent(bfs) - font.get_descent(bfs)) * 0.5), s, HORIZONTAL_ALIGNMENT_CENTER, bw, bfs, Color(0.07, 0.07, 0.09, a))
+		ci.draw_string(font, Vector2(tx.x, by + bh * 0.5 + (font.get_ascent(bfs) - font.get_descent(bfs)) * 0.5), UI.Loc.s(s), HORIZONTAL_ALIGNMENT_CENTER, bw, bfs, Color(0.07, 0.07, 0.09, a))
 	if sup_badge > 0:
 		# 支持作者还有没领的凭证：青底斜块「领 N 张」（青色 = 可操作，和寻访的黄色凭证数分开）
 		var s2 := "领 %d 张" % sup_badge
@@ -349,7 +349,7 @@ static func _draw_row(ci: CanvasItem, o: Vector2, k: float, font: Font, m: Dicti
 		var by2 := tx.y + (fs - bh2) * 0.5 + 2.0 * k
 		var q2 := bh2 * 0.2
 		ci.draw_colored_polygon(PackedVector2Array([Vector2(tx.x + q2, by2), Vector2(tx.x + bw2, by2), Vector2(tx.x + bw2 - q2, by2 + bh2), Vector2(tx.x, by2 + bh2)]), _fa(C, a))
-		ci.draw_string(font, Vector2(tx.x, by2 + bh2 * 0.5 + (font.get_ascent(bfs2) - font.get_descent(bfs2)) * 0.5), s2, HORIZONTAL_ALIGNMENT_CENTER, bw2, bfs2, _fa(INK, a))
+		ci.draw_string(font, Vector2(tx.x, by2 + bh2 * 0.5 + (font.get_ascent(bfs2) - font.get_descent(bfs2)) * 0.5), UI.Loc.s(s2), HORIZONTAL_ALIGNMENT_CENTER, bw2, bfs2, _fa(INK, a))
 	if w > 0.0:
 		ci.draw_line(P.call(tt.tx, tt.ul), P.call(tt.tx + (tt.sw - tt.tx - 64.0) * w, tt.ul), _fa(C, a * w), maxf(1.0, 1.4 * k))
 		var cx: float = tt.sw - 22.0 - h * 0.15

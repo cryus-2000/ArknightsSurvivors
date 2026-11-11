@@ -338,12 +338,12 @@ func draw(vs: Vector2) -> void:
 			var chip := Rect2(tx, y + (lhh - lh - 8.0) / 2.0, lbl_w - 14.0, lh + 8.0)
 			g.hud.draw_rect(chip, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.1 * ea))
 			g.hud.draw_rect(Rect2(chip.position, Vector2(2.0, chip.size.y)), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, ea))
-			g.hud.draw_string(g.font, Vector2(chip.position.x, chip.position.y + 4.0 + la), row.label, HORIZONTAL_ALIGNMENT_CENTER, chip.size.x, UI.fs(lbl_sz), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, ea))
+			g.hud.draw_string(g.font, Vector2(chip.position.x, chip.position.y + 4.0 + la), UI.Loc.s(row.label), HORIZONTAL_ALIGNMENT_CENTER, chip.size.x, UI.fs(lbl_sz), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, ea))
 		var y0 := y
 		for ln2 in row.lines:
 			if y + lhh > r.end.y - 58.0:
 				break
-			g.hud.draw_string(g.font, Vector2(tx + (lbl_w if row.label != "" else 0.0), y + asc), ln2, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fsz), Color(0.9, 0.96, 0.98, ea))
+			g.hud.draw_string(g.font, Vector2(tx + (lbl_w if row.label != "" else 0.0), y + asc), UI.Loc.s(ln2), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fsz), Color(0.9, 0.96, 0.98, ea))
 			y += lhh
 		y = maxf(y, y0 + lhh) + row_gap
 	# 页码点（可点击）

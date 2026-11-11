@@ -48,7 +48,7 @@ static func draw(ci: CanvasItem, font: Font, vs: Vector2, holes: Array, o: Dicti
 	var asc: float = font.get_ascent(UI.fs(fsz))
 	var y: float = pr.position.y + 66.0
 	for i in lines.size():
-		ci.draw_string(font, Vector2(pr.position.x + 22, y + asc + i * lh), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fsz), Color(0.85, 0.93, 0.95, e))
+		ci.draw_string(font, Vector2(pr.position.x + 22, y + asc + i * lh), UI.Loc.s(lines[i]), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fsz), Color(0.85, 0.93, 0.95, e))
 	UI.text(ci, font, pr.position + Vector2(22, ph - 14), str(o.get("hint", "")), 11, Color(UI.SUB.r, UI.SUB.g, UI.SUB.b, e))
 	if not bool(o.get("skip", true)):
 		return Rect2()

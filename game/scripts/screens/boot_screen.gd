@@ -1,4 +1,5 @@
 extends Control
+const Loc = preload("res://scripts/core/loc.gd")   # 本地化（docs/276 §10）
 ## 启动页「声呐测绘」（用户 10-25 定：对照图方向 C 第一张；10-25 追加「启动中要有百分比，并说明在读什么」）。
 ## 主场景是 boot.tscn（本脚本），只依赖字体、标志与提示表，几十毫秒就能画出来；然后按 data/boot_order.json
 ## （tools/gen_boot_order.py 生成，叶子在前）逐个 load() 标题页带出的脚本与资源——每个只编译它自己，进度是真实的，
@@ -535,10 +536,11 @@ func _view_state() -> Dictionary:
 
 
 func _txt(pos: Vector2, s: String, sz: int, col: Color, align := HORIZONTAL_ALIGNMENT_LEFT, w := -1.0) -> void:
-	draw_string(font, pos, s, align, w, sz, col)
+	draw_string(font, pos, Loc.s(s), align, w, sz, col)
 
 
 func _en_w(s: String, sz: int, sp: float) -> float:
+	s = Loc.s(s)   # 本地化（docs/276 §10）：逐字画之前整串查表
 	var w := 0.0
 	for ch in s:
 		w += font.get_string_size(ch, HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x + sp
@@ -547,6 +549,7 @@ func _en_w(s: String, sz: int, sp: float) -> float:
 
 ## 拉丁小字加字距（同标题页英文标签的写法）
 func _en(pos: Vector2, s: String, sz: int, col: Color, sp := 3.0, center := false) -> void:
+	s = Loc.s(s)   # 本地化（docs/276 §10）：逐字画之前整串查表
 	var w := _en_w(s, sz, sp)
 	var x := pos.x - (w / 2.0 if center else 0.0)
 	for ch in s:
@@ -687,4 +690,4 @@ func _draw_panels(vs: Vector2, compact: bool) -> void:
 	var ta := 1.0 if Cfg.reduce_motion else clampf(tip_t / 0.22, 0.0, 1.0) * clampf((4.0 - tip_t) / 0.22, 0.0, 1.0)
 	# 网页包没有中文断词数据（只按空格断，整句不换行冲出面板）：允许按字断（ADAPTIVE：放得下的词不拆）
 	var brk := TextServer.BREAK_MANDATORY | TextServer.BREAK_WORD_BOUND | TextServer.BREAK_GRAPHEME_BOUND | TextServer.BREAK_ADAPTIVE
-	draw_multiline_string(font, Vector2(vs.x - mx - pw + 12, by + 26 + lh), Tips.TIPS[tip_i], HORIZONTAL_ALIGNMENT_LEFT, pw - 24, fs, -1, Color(0.71, 0.78, 0.8, ta), brk)
+	draw_multiline_string(font, Vector2(vs.x - mx - pw + 12, by + 26 + lh), Loc.s(Tips.TIPS[tip_i]), HORIZONTAL_ALIGNMENT_LEFT, pw - 24, fs, -1, Color(0.71, 0.78, 0.8, ta), brk)

@@ -275,7 +275,7 @@ func draw_tip(vs: Vector2) -> void:
 	UI.text(hud, font, pr.position + Vector2(20, 46), info[0], 18, Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, a))
 	var asc: float = font.get_ascent(UI.fs(fsz))
 	for i in lines.size():
-		hud.draw_string(font, Vector2(pr.position.x + 20, pr.position.y + 54.0 + asc + i * lh), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fsz), Color(0.85, 0.93, 0.95, a))
+		hud.draw_string(font, Vector2(pr.position.x + 20, pr.position.y + 54.0 + asc + i * lh), UI.Loc.s(lines[i]), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fsz), Color(0.85, 0.93, 0.95, a))
 
 
 static func _ease(x: float) -> float:

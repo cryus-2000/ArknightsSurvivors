@@ -1,4 +1,5 @@
 extends RefCounted
+const Loc = preload("res://scripts/core/loc.gd")   # 本地化（docs/276 §10）
 ## 局外菜单「T5s」像素风格的公共画法（docs/37 §8、docs/67 §12，10-12 定稿）：标题页磁贴群与难度页共用。
 ## - 像素字：自画 5×7 位图字（0–9、A–Z、罗马数字用 I / V / X 拼、标点 / : + - % . · 与箭头），编号、英文、档位数字用；
 ##   中文仍走 ui.ttf。ui.ttf 没有「Ⅷ」字形，档位数字一律写成 IV / VIII 再用像素字画。
@@ -138,6 +139,7 @@ static func _adv(ch: String, track: int) -> int:
 
 ## 像素字宽度（本地单位）
 static func ptext_w(c: Dictionary, s: String, k: float, track := 1) -> float:
+	s = Loc.s(s)   # 本地化（docs/276 §10）：逐字画之前整串查表
 	var ks := cell(c, k)
 	var w := 0
 	for ch in s.to_upper():
@@ -147,6 +149,7 @@ static func ptext_w(c: Dictionary, s: String, k: float, track := 1) -> float:
 
 ## 像素字：k = 逻辑倍数（按屏幕取整）；align 0 左 / 1 中 / 2 右；pos.y 是字的竖直中线。返回宽度（本地单位）
 static func ptext(ci: CanvasItem, c: Dictionary, pos: Vector2, s: String, k: float, col: Color, track := 1, align := 0) -> float:
+	s = Loc.s(s)   # 本地化（docs/276 §10）：逐字画之前整串查表
 	_font()
 	s = s.to_upper()
 	var ks := cell(c, k)

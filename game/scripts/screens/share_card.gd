@@ -35,7 +35,7 @@ func _t(ci: CanvasItem, p: Vector2, s: String, size: int, col: Color, align := "
 		if width < 0.0:
 			width = 400.0
 		x = p.x - (width * 0.5 if align == "c" else width)   # 居中 / 右对齐：p 是中心点 / 右端
-	ci.draw_string(font, Vector2(x, p.y + size), s, al, width, size, col)
+	ci.draw_string(font, Vector2(x, p.y + size), UI.Loc.s(s), al, width, size, col)
 
 
 static func _time(t: float) -> String:

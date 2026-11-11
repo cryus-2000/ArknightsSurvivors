@@ -323,7 +323,15 @@ var toy_env: Dictionary = {}
 
 ## 按 lang_pref 切换生效语言（设置页改语言后也调这里）
 func apply_lang() -> void:
-	Loc.setup(Loc.resolve(lang_pref, _toy_js != null))
+	Loc.setup(Loc.resolve(lang_pref, lang_locked()))
+
+
+## 语言锁中文：B站 Toy 版（导出时 build.json 写 lang_lock = zh，或运行在 Toy 容器里）——多语言只上 itch（11-11 用户经协调人）
+func lang_locked() -> bool:
+	if _toy_js != null:
+		return true
+	var info = JSON.parse_string(FileAccess.get_file_as_string("res://data/build.json"))
+	return info is Dictionary and str(info.get("lang_lock", "")) == "zh"
 
 
 func _toy_init() -> void:

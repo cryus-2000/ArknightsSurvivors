@@ -175,8 +175,8 @@ func _heading_a(center: Vector2, s: String, size: int, half_w: float, a: float) 
 		var p0 := center + Vector2(sgn * gap, 0)
 		UI.hairline(g.hud, p0, center + Vector2(sgn * half_w, 0), Color(1, 1, 1), 0.42 * a, 0.0)
 		g.hud.draw_rect(Rect2(p0 + Vector2(0.0 if sgn > 0 else -14.0, -1.5), Vector2(14, 3)), Color(1, 1, 1, 0.95 * a))
-	g.hud.draw_string_outline(g.font, center + Vector2(-tw / 2.0, size * 0.36), s, HORIZONTAL_ALIGNMENT_LEFT, -1, size, 6, Color(0, 0, 0, 0.6 * a))
-	g.hud.draw_string(g.font, center + Vector2(-tw / 2.0, size * 0.36), s, HORIZONTAL_ALIGNMENT_LEFT, -1, size, Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, a))
+	g.hud.draw_string_outline(g.font, center + Vector2(-tw / 2.0, size * 0.36), UI.Loc.s(s), HORIZONTAL_ALIGNMENT_LEFT, -1, size, 6, Color(0, 0, 0, 0.6 * a))
+	g.hud.draw_string(g.font, center + Vector2(-tw / 2.0, size * 0.36), UI.Loc.s(s), HORIZONTAL_ALIGNMENT_LEFT, -1, size, Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, a))
 
 
 static func _fa(c: Color, a: float) -> Color:

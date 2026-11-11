@@ -1,0 +1,469 @@
+keys,en,_zh,_source,_note
+meta.meta_tree.nodes.atk1.line,ATK,攻击,模型,
+meta.meta_tree.nodes.atk1.name,Aggression I,攻击性Ⅰ,模型,
+meta.meta_tree.nodes.atk1.desc,All damage +8%,全体伤害 +8%,模型,
+meta.meta_tree.nodes.atk2.line,ATK,攻击,模型,
+meta.meta_tree.nodes.atk2.name,Aggression II,攻击性Ⅱ,模型,
+meta.meta_tree.nodes.atk2.desc,All damage +4%,全体伤害 +4%,模型,
+meta.meta_tree.nodes.atk3.line,ATK,攻击,模型,
+meta.meta_tree.nodes.atk3.name,Aggression III,攻击性Ⅲ,模型,
+meta.meta_tree.nodes.atk3.desc,All damage +4%,全体伤害 +4%,模型,
+meta.meta_tree.nodes.atk4.line,ATK,攻击,模型,
+meta.meta_tree.nodes.atk4.name,Aggression IV,攻击性Ⅳ,模型,
+meta.meta_tree.nodes.atk4.desc,All damage +4%,全体伤害 +4%,模型,
+meta.meta_tree.nodes.atk5.line,ATK,攻击,模型,
+meta.meta_tree.nodes.atk5.name,Aggression V,攻击性Ⅴ,模型,
+meta.meta_tree.nodes.atk5.desc,"All damage +4%. Execute: instantly kills normal enemies when their HP is below 15%, and Elite enemies below 8% (Bosses excepted)",全体伤害 +4%。处决：普通敌人生命低于 15%、精英低于 8% 时直接击杀（Boss 除外）,模型,
+meta.meta_tree.nodes.hp1.line,HP,生命,模型,
+meta.meta_tree.nodes.hp1.name,Survival Instinct I,生存本能Ⅰ,模型,
+meta.meta_tree.nodes.hp1.desc,Leader Max HP +12%,队长最大生命 +12%,模型,
+meta.meta_tree.nodes.hp2.line,HP,生命,模型,
+meta.meta_tree.nodes.hp2.name,Survival Instinct II,生存本能Ⅱ,模型,
+meta.meta_tree.nodes.hp2.desc,Leader Max HP +4%,队长最大生命 +4%,模型,
+meta.meta_tree.nodes.hp3.line,HP,生命,模型,
+meta.meta_tree.nodes.hp3.name,Survival Instinct III,生存本能Ⅲ,模型,
+meta.meta_tree.nodes.hp3.desc,Leader Max HP +5%,队长最大生命 +5%,模型,
+meta.meta_tree.nodes.hp4.line,HP,生命,模型,
+meta.meta_tree.nodes.hp4.name,Survival Instinct IV,生存本能Ⅳ,模型,
+meta.meta_tree.nodes.hp4.desc,Leader Max HP +5%,队长最大生命 +5%,模型,
+meta.meta_tree.nodes.hp5.line,HP,生命,模型,
+meta.meta_tree.nodes.hp5.name,Survival Instinct V,生存本能Ⅴ,模型,
+meta.meta_tree.nodes.hp5.desc,"Leader Max HP +4%. Once per run: when taking fatal damage, survives with 1 HP and takes no damage for 1.5s",队长最大生命 +4%。每次探索限一次：受到致命伤时保留 1 点生命，1.5 秒内不受伤害,模型,
+meta.meta_tree.nodes.def1.line,Damage Reduction,减伤,模型,
+meta.meta_tree.nodes.def1.name,Self-Preservation I,自我保护Ⅰ,模型,
+meta.meta_tree.nodes.def1.desc,Damage taken by Leader -5%,队长受到伤害 -5%,模型,
+meta.meta_tree.nodes.def2.line,Damage Reduction,减伤,模型,
+meta.meta_tree.nodes.def2.name,Self-Preservation II,自我保护Ⅱ,模型,
+meta.meta_tree.nodes.def2.desc,Damage taken by Leader -3%,队长受到伤害 -3%,模型,
+meta.meta_tree.nodes.def3.line,Damage Reduction,减伤,模型,
+meta.meta_tree.nodes.def3.name,Self-Preservation III,自我保护Ⅲ,模型,
+meta.meta_tree.nodes.def3.desc,Damage taken by Leader -3%,队长受到伤害 -3%,模型,
+meta.meta_tree.nodes.def4.line,Damage Reduction,减伤,模型,
+meta.meta_tree.nodes.def4.name,Self-Preservation IV,自我保护Ⅳ,模型,
+meta.meta_tree.nodes.def4.desc,"Damage taken by Leader -2%. After taking no damage for 5s, the next damage taken -50%",队长受到伤害 -2%。连续 5 秒未受伤后，下一次 -50%,模型,
+meta.meta_tree.nodes.reg1.line,Recovery,回复,模型,
+meta.meta_tree.nodes.reg1.name,Vitality I,生命感悟Ⅰ,模型,
+meta.meta_tree.nodes.reg1.desc,Leader HP recovery per second +0.3,队长每秒回复 +0.3 生命,模型,
+meta.meta_tree.nodes.reg2.line,Recovery,回复,模型,
+meta.meta_tree.nodes.reg2.name,Vitality II,生命感悟Ⅱ,模型,
+meta.meta_tree.nodes.reg2.desc,Leader HP recovery +0.1/s,队长每秒回复 +0.1 生命,模型,
+meta.meta_tree.nodes.reg3.line,Recovery,回复,模型,
+meta.meta_tree.nodes.reg3.name,Vitality III,生命感悟Ⅲ,模型,
+meta.meta_tree.nodes.reg3.desc,Leader recovers +0.2 HP per second. Recovery doubles when HP is below 35%,队长每秒回复 +0.2 生命。生命低于 35% 时回复翻倍,模型,
+meta.meta_tree.nodes.sh1.line,Objective Shield,护盾,官方,roguelike_topic_table.rogue_2.items.rogue_2_shield
+meta.meta_tree.nodes.sh1.name,Vigilance I,危机感Ⅰ,模型,
+meta.meta_tree.nodes.sh1.desc,"Leader Objective Shield limit +1 (generates 1 stack every 15s). When Objective Shield breaks, reflects: enemies within a 140 radius take Physical damage equal to 300% of Leader ATK and suffer knockback (Bosses immune to knockback)",队长护盾上限 +1（每 15 秒生成一层）。护盾破碎时反震：周围 140 范围敌人受队长攻击 ×3 物理伤害并击退（Boss 免疫击退）,模型,
+meta.meta_tree.nodes.xp1.line,EXP,经验,模型,
+meta.meta_tree.nodes.xp1.name,Leadership I,领导欲Ⅰ,模型,
+meta.meta_tree.nodes.xp1.desc,EXP +5%,经验 +5%,模型,
+meta.meta_tree.nodes.xp2.line,EXP,经验,模型,
+meta.meta_tree.nodes.xp2.name,Leadership II,领导欲Ⅱ,模型,
+meta.meta_tree.nodes.xp2.desc,EXP +6%,经验 +6%,模型,
+meta.meta_tree.nodes.xp3.line,EXP,经验,模型,
+meta.meta_tree.nodes.xp3.name,Leadership III,领导欲Ⅲ,模型,
+meta.meta_tree.nodes.xp3.desc,EXP +7%,经验 +7%,模型,
+meta.meta_tree.nodes.xp4.line,EXP,经验,模型,
+meta.meta_tree.nodes.xp4.name,Leadership IV,领导欲Ⅳ,模型,
+meta.meta_tree.nodes.xp4.desc,EXP +7%. Leveling up has a 10% chance to grant an additional level,经验 +7%。升级有 10% 概率再升一级,模型,
+meta.meta_tree.nodes.gold1.line,Resources,资源,模型,
+meta.meta_tree.nodes.gold1.name,Hoarding I,收藏癖Ⅰ,模型,
+meta.meta_tree.nodes.gold1.desc,Initial Originium Ingot +3,开局源石锭 +3,模型,
+meta.meta_tree.nodes.gold2.line,Resources,资源,模型,
+meta.meta_tree.nodes.gold2.name,Hoarding II,收藏癖Ⅱ,模型,
+meta.meta_tree.nodes.gold2.desc,Initial Originium Ingot +4,开局源石锭 +4,模型,
+meta.meta_tree.nodes.gold3.line,Resources,资源,模型,
+meta.meta_tree.nodes.gold3.name,Hoarding III,收藏癖Ⅲ,模型,
+meta.meta_tree.nodes.gold3.desc,Initial Originium Ingot +5,开局源石锭 +5,模型,
+meta.meta_tree.nodes.shop1.line,Resources,资源,模型,
+meta.meta_tree.nodes.shop1.name,Negotiation I,交涉Ⅰ,模型,
+meta.meta_tree.nodes.shop1.desc,Merchant price -6%,行商价格 -6%,模型,
+meta.meta_tree.nodes.shop2.line,Resources,资源,模型,
+meta.meta_tree.nodes.shop2.name,Negotiation II,交涉Ⅱ,模型,
+meta.meta_tree.nodes.shop2.desc,Merchant price -6%,行商价格 -6%,模型,
+meta.meta_tree.nodes.shop3.line,Resources,资源,模型,
+meta.meta_tree.nodes.shop3.name,Negotiation III,交涉Ⅲ,模型,
+meta.meta_tree.nodes.shop3.desc,Merchant price -6%,行商价格 -6%,模型,
+meta.meta_tree.nodes.disp1.line,Dispatch,调度,模型,
+meta.meta_tree.nodes.disp1.name,Multithreaded Processing,多程信息处理,模型,
+meta.meta_tree.nodes.disp1.desc,First level up grants 1 additional option (choose 1 of 4),第一次升级多一个选项（四选一）,模型,
+meta.meta_tree.nodes.disp2.line,Dispatch,调度,模型,
+meta.meta_tree.nodes.disp2.name,Introspection,自我审视,模型,
+meta.meta_tree.nodes.disp2.desc,Once per run: Refreshing the Merchant's wares costs 0 Originium Ingots,每次探索限一次：刷新行商货架时不消耗源石锭,模型,
+meta.meta_tree.nodes.disp3.line,Dispatch,调度,模型,
+meta.meta_tree.nodes.disp3.name,Loot Awareness,战利品意识,模型,
+meta.meta_tree.nodes.disp3.desc,"At the start of a run, choose 1 of 3 basic Collectibles",开局从 3 件基础藏品中选 1 件,模型,
+meta.meta_tree.nodes.reg4.line,Recovery,回复,模型,
+meta.meta_tree.nodes.reg4.name,Vitality IV,生命感悟Ⅳ,模型,
+meta.meta_tree.nodes.reg4.desc,Leader HP recovery +0.2/s,队长每秒回复 +0.2 生命,模型,
+meta.meta_tree.nodes.reg5.line,Recovery,回复,模型,
+meta.meta_tree.nodes.reg5.name,Vitality V,生命感悟Ⅴ,模型,
+meta.meta_tree.nodes.reg5.desc,Leader HP recovery +0.2/s,队长每秒回复 +0.2 生命,模型,
+meta.meta_tree.nodes.sh2.line,Objective Shield,护盾,官方,roguelike_topic_table.rogue_2.items.rogue_2_shield
+meta.meta_tree.nodes.sh2.name,Vigilance II,危机感Ⅱ,模型,
+meta.meta_tree.nodes.sh2.desc,Shield generation interval -3s,护盾生成间隔 -3 秒,模型,
+meta.meta_tree.nodes.pick1.line,Utility,便利,模型,
+meta.meta_tree.nodes.pick1.name,Curiosity I,好奇心Ⅰ,模型,
+meta.meta_tree.nodes.pick1.desc,Pickup range +12,拾取范围 +12,模型,
+meta.meta_tree.nodes.pick2.line,Utility,便利,模型,
+meta.meta_tree.nodes.pick2.name,Curiosity II,好奇心Ⅱ,模型,
+meta.meta_tree.nodes.pick2.desc,Pickup range +12,拾取范围 +12,模型,
+meta.meta_tree.nodes.pick3.line,Utility,便利,模型,
+meta.meta_tree.nodes.pick3.name,Curiosity III,好奇心Ⅲ,模型,
+meta.meta_tree.nodes.pick3.desc,Pickup range +14,拾取范围 +14,模型,
+meta.meta_tree.nodes.pick4.line,Utility,便利,模型,
+meta.meta_tree.nodes.pick4.name,Curiosity IV,好奇心Ⅳ,模型,
+meta.meta_tree.nodes.pick4.desc,Pickup range +14,拾取范围 +14,模型,
+meta.meta_tree.nodes.disp4.line,Dispatch,调度,模型,
+meta.meta_tree.nodes.disp4.name,Second Wind,绝处逢生,模型,
+meta.meta_tree.nodes.disp4.desc,"Once per run: when Leader falls, revives with 50% Max HP and takes no damage for 3s",每次探索限一次：队长倒下时以 50% 最大生命复活，3 秒内不受伤害,模型,
+meta.meta_tree.nodes.dodge1.line,Dodge,闪避,模型,
+meta.meta_tree.nodes.dodge1.name,Forethought I,未雨绸缪Ⅰ,模型,
+meta.meta_tree.nodes.dodge1.desc,Leader Dodge +5%,队长闪避率 +5%,模型,
+meta.meta_tree.nodes.dodge2.line,Dodge,闪避,模型,
+meta.meta_tree.nodes.dodge2.name,Forethought II,未雨绸缪Ⅱ,模型,
+meta.meta_tree.nodes.dodge2.desc,Leader Dodge +5%,队长闪避率 +5%,模型,
+meta.meta_tree.nodes.dodge3.line,Dodge,闪避,模型,
+meta.meta_tree.nodes.dodge3.name,Forethought III,未雨绸缪Ⅲ,模型,
+meta.meta_tree.nodes.dodge3.desc,Leader Dodge +5%,队长闪避率 +5%,模型,
+meta.meta_roots.scene.consts.atk.name,Aggression,攻击性,模型,
+meta.meta_roots.scene.consts.hp.name,Survival Instinct,生存本能,模型,
+meta.meta_roots.scene.consts.reg.name,Vitality,生命感悟,模型,
+meta.meta_roots.scene.consts.def.name,Self-Preservation,自我保护,模型,
+meta.meta_roots.scene.consts.xp.name,Leadership,领导欲,模型,
+meta.meta_roots.scene.consts.pick.name,Curiosity,好奇心,模型,
+meta.meta_roots.scene.consts.disp.name,Multithreaded Processing,多程信息处理,模型,
+meta.meta_roots.scene.consts.gold.name,Hoarding,收藏癖,模型,
+meta.meta_roots.scene.consts.shop.name,Negotiation,交涉,模型,
+meta.meta_roots.scene.consts.sh.name,Vigilance,危机感,模型,
+meta.meta_roots.scene.consts.dodge.name,Forethought,未雨绸缪,模型,
+meta.cards.passives.hp.name,Tenacity,坚韧,模型,
+meta.cards.passives.hp.desc,Leader Max HP +20,队长最大生命 +20,模型,
+meta.cards.passives.regen.name,Regeneration,自愈,模型,
+meta.cards.passives.regen.desc,Leader HP recovery +0.4/s,队长生命回复 +0.4 / 秒,模型,
+meta.cards.passives.armor.name,Hardening,硬化,模型,
+meta.cards.passives.armor.desc,Physical damage taken by Leader -8% (multiplicative; ineffective against Arts and True damage),队长受到的物理伤害 -8%（乘算；对法术、真实伤害无效）,模型,
+meta.cards.passives.dodge.name,Aqua Shadow,水影,模型,
+meta.cards.passives.dodge.desc,Leader Dodge +5%,队长闪避率 +5%,模型,
+meta.cards.passives.pickup.name,Perception,感知,模型,
+meta.cards.passives.pickup.desc,Leader pickup range +30%,队长拾取范围 +30%,模型,
+meta.cards.passives.wick.name,Lamp Guard,护灯,模型,
+meta.cards.passives.wick.desc,Light lost when Leader is attacked -15%,队长受击时灯火损失 -15%,模型,
+meta.cards.passives.speed.name,Agility,轻盈,模型,
+meta.cards.passives.speed.desc,Leader movement speed +10%,队长移动速度 +10%,模型,
+meta.cards.passives.dash_cd.name,Swiftness,迅捷,模型,
+meta.cards.passives.dash_cd.desc,Dash cooldown -12%,冲刺冷却 -12%,模型,
+meta.cards.passives.dash_dist.name,Long Leap,远跃,模型,
+meta.cards.passives.dash_dist.desc,Dash distance +12%,冲刺距离 +12%,模型,
+meta.cards.passives.dash_charge.name,Chain Dash,连冲,模型,
+meta.cards.passives.dash_charge.desc,Dash can store 2 charges; cooldown recovers sequentially,冲刺可储存 2 次，冷却逐次恢复,模型,
+meta.cards.passives.sp.name,Synergy: Skill,协同·技,模型,
+meta.cards.passives.sp.desc,Squad SP Recovery +15%,全队技力回复 +15%,模型,
+meta.cards.passives.squad_atk.name,Synergy: ATK,协同·攻,模型,
+meta.cards.passives.squad_atk.desc,Squad Operator ATK +8%,全队干员攻击 +8%,模型,
+meta.cards.passives.squad_aspd.name,Synergy: ASPD,协同·迅,模型,
+meta.cards.passives.squad_aspd.desc,Squad Operator ATK speed +6%,全队干员攻击速度 +6%,模型,
+meta.cards.passives.squad_range.name,Synergy: Range,协同·广,模型,
+meta.cards.passives.squad_range.desc,Squad Operator attack range +8%,全队干员攻击范围 +8%,模型,
+meta.cards.passives.squad_crit.name,Synergy: Crit,协同·专,模型,
+meta.cards.passives.squad_crit.desc,Squad Operator skill power +10%,全队干员技能强度 +10%,模型,
+meta.cards.passives.pierce.name,Pierce,贯穿,模型,
+meta.cards.passives.pierce.desc,Ranged normal attacks pierce 2 additional enemies.,远程普攻可再穿透 2 名敌人。,模型,
+meta.cards.passives.splash.name,Splash,扩散,模型,
+meta.cards.passives.splash.desc,"When normal attacks from Melee Extended Range, Summon, and Crowd-Control Detonation Operators hit, other enemies within a 60 radius of the target take 25% of the damage.",近战扩域、召唤驻场、控场引爆干员的普攻命中时，目标周围 60 范围内的其他敌人受到该次伤害的 25%。,模型,
+meta.cards.passives.chain.name,Chain,连锁,模型,
+meta.cards.passives.chain.desc,"Normal attacks from Multi-target Firepower Operators bounce to 1 other enemy within a 170 radius upon hit, dealing 50% of the damage.",多弹火力干员的普攻命中后弹向 170 范围内的另 1 名敌人，造成该次伤害的 50%。,模型,
+meta.cards.passives.lane_melee.name,Melee · Expansion,近战·扩域,模型,
+meta.cards.passives.lane_melee.desc,Melee Extended Range Operators attack range +12%,近战扩域干员攻击范围 +12%,模型,
+meta.cards.passives.lane_multi.name,Multishot · Rapid Fire,多弹·连射,模型,
+meta.cards.passives.lane_multi.desc,Multi-Projectile Firepower Operators ATK speed +10%,多弹火力干员攻击速度 +10%,模型,
+meta.cards.passives.lane_summon.name,Summon · Co-Strike,召唤·协击,模型,
+meta.cards.passives.lane_summon.desc,Stationary Summon Operators' follow-up and summon damage +10%,召唤驻场干员的追击与召唤物伤害 +10%,模型,
+meta.cards.passives.lane_control.name,Control · Extension,控场·延时,模型,
+meta.cards.passives.lane_control.desc,"Stun, Bind, and Slow duration +15%",眩晕、束缚、减速的持续时间 +15%,模型,
+meta.cards.passives.lane_weak.name,Weakness · Insight,弱点·洞察,模型,
+meta.cards.passives.lane_weak.desc,Weakness Harvesting Operators deal +10% additional Weakness damage,弱点收割干员的弱点伤害额外 +10%,模型,
+meta.cards.passives.lane_shield.name,Shield · Charge,护盾·充能,模型,
+meta.cards.passives.lane_shield.desc,Leader Shield generation interval -8%,队长护盾生成间隔 -8%,模型,
+meta.cards.fillers.0.name,First Aid Supplies,急救补给,模型,
+meta.cards.fillers.0.desc,Leader immediately recovers 30% Max HP,队长立刻回复 30% 最大生命,模型,
+meta.cards.fillers.1.name,Lamp Oil Supplies,灯油补给,模型,
+meta.cards.fillers.1.desc,Light +30,灯火 +30,模型,
+meta.cards.fillers.2.name,Temporary Synergy,临时协同,模型,
+meta.cards.fillers.2.desc,All Operators ATK +4% (stacks),全队干员攻击 +4%（可叠加）,模型,
+meta.medals.set_name,Beneath the Deep Blue,深蓝之下,模型,
+meta.medals.medals.0.name,Beneath the Deep Blue,深蓝之下,模型,
+meta.medals.medals.0.desc,Obtain the other 8 medals in the 'Beneath the Deep Blue' medal set.,获得「深蓝之下」套组中的其余 8 枚蚀刻章。,模型,
+meta.medals.medals.1.name,Faded Illusions,泡影散尽,模型,
+meta.medals.medals.1.desc,Reach the ending 'Precious Days'.,达成结局「平凡即是喜乐」。,模型,
+meta.medals.medals.2.name,Knight's Return to the Tide,骑士归潮,模型,
+meta.medals.medals.2.desc,Reach the ending 'Age of the Silence'.,达成结局「静谧时代」。,模型,
+meta.medals.medals.3.name,Silence of the Tides,潮声止息,模型,
+meta.medals.medals.3.desc,Reach the ending 'Price of Peace'.,达成结局「息潮的代价」。,模型,
+meta.medals.medals.4.name,Caerula Arbor,深蓝之树,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_10
+meta.medals.medals.4.desc,Reach the ending 'Stella Caerula'.,达成结局「如星空般深蓝」。,模型,
+meta.medals.medals.5.name,Synergy Promotion,协同晋升,模型,
+meta.medals.medals.5.desc,"In a run, have 3 Operators in the squad reach Elite 2 simultaneously.",在一次探索中，使编队内 3 名干员同时达到精英二。,模型,
+meta.medals.medals.6.name,Gleanings from the Sea,海中拾遗,模型,
+meta.medals.medals.6.desc,Obtain 50 different Collectibles in total.,累计获得 50 种不同的藏品。,模型,
+meta.medals.medals.7.name,Deepened Cognition,认知深化,模型,
+meta.medals.medals.7.desc,Unlock all available nodes in Cognitive Shaping.,点亮认知塑造中所有已开放节点。,模型,
+meta.medals.medals.8.name,First Glimpse of the Deep Blue,初识深蓝,模型,
+meta.medals.medals.8.desc,Unlock a Cognitive Shaping node for the first time.,首次点亮认知塑造节点。,模型,
+meta.synergy.pairs.0.name,Rapport,默契,模型,
+meta.synergy.pairs.0.dirs.0.kind_dmg,Physical,物理,模型,
+meta.synergy.pairs.0.dirs.0.rng,Ranged,远程,模型,
+meta.synergy.pairs.0.dirs.1.kind_dmg,Physical,物理,模型,
+meta.synergy.pairs.0.dirs.1.rng,Ranged,远程,模型,
+meta.synergy.pairs.0.dirs.2.kind_dmg,Physical,物理,模型,
+meta.synergy.pairs.0.dirs.2.rng,Melee,近战,模型,
+meta.synergy.pairs.1.name,Grudge,恩怨,模型,
+meta.synergy.pairs.1.dirs.0.kind_dmg,Physical,物理,模型,
+meta.synergy.pairs.1.dirs.0.rng,Melee,近战,模型,
+meta.synergy.pairs.1.dirs.1.kind_dmg,Physical,物理,模型,
+meta.synergy.pairs.1.dirs.1.rng,Melee,近战,模型,
+meta.synergy.pairs.2.name,Means Should Be Effective,手段应当有效,模型,
+meta.synergy.pairs.2.dirs.0.kind_dmg,Physical,物理,模型,
+meta.synergy.pairs.2.dirs.0.rng,Melee,近战,模型,
+meta.synergy.pairs.2.dirs.1.kind_dmg,Physical,物理,模型,
+meta.synergy.pairs.2.dirs.1.rng,Melee,近战,模型,
+meta.synergy.pairs.2.dirs.2.kind_dmg,Physical,物理,模型,
+meta.synergy.pairs.2.dirs.2.rng,Melee,近战,模型,
+meta.synergy.pairs.3.name,War Design,战争设计,模型,
+meta.synergy.pairs.3.dirs.0.kind_dmg,Physical,物理,模型,
+meta.synergy.pairs.3.dirs.0.rng,Melee,近战,模型,
+meta.synergy.pairs.4.name,Tidal Watch,潮汐守望,模型,
+meta.synergy.pairs.4.dirs.0.kind_dmg,Physical,物理,模型,
+meta.synergy.pairs.4.dirs.0.rng,Melee,近战,模型,
+meta.synergy.pairs.4.dirs.1.kind_dmg,Arts,法术,模型,
+meta.synergy.pairs.4.dirs.1.rng,Ranged,远程,模型,
+meta.synergy.groups.0.name,Pack Hunting,集群狩猎,模型,
+meta.synergy.groups.0.kind_dmg,Physical,物理,模型,
+meta.synergy.groups.0.rng,Melee,近战,模型,
+meta.practice_squads.squads.wisadel_m0.label,Wiš'adel Starting Squad · No Cognition,维什戴尔开局分队 · 无认知,模型,
+meta.practice_squads.squads.wisadel_m0.slots.1.fp.mods.pickup.0,2|1.11|Level|,2|1.11|等级|,模型,
+meta.practice_squads.squads.wisadel_m0.slots.2.fp.mods.pickup.0,2|1.19|Level|,2|1.19|等级|,模型,
+meta.practice_squads.squads.wisadel_m0.slots.3.fp.mods.pickup.0,2|1.25|Level|,2|1.25|等级|,模型,
+meta.practice_squads.squads.wisadel_m18.label,Wiš'adel Starting Squad · 18 Cells,维什戴尔开局分队 · 18 细胞,模型,
+meta.practice_squads.squads.wisadel_m18.slots.1.fp.mods.pickup.0,2|1.11|Level|,2|1.11|等级|,模型,
+meta.practice_squads.squads.wisadel_m18.slots.2.fp.mods.pickup.0,2|1.19|Level|,2|1.19|等级|,模型,
+meta.practice_squads.squads.wisadel_m18.slots.3.fp.mods.dmg.2,1|0.2|relic:148|class:Sniper,1|0.2|relic:148|class:狙击,模型,
+meta.practice_squads.squads.wisadel_m18.slots.3.fp.mods.dmg.3,1|0.4|relic:149|class:Sniper,1|0.4|relic:149|class:狙击,模型,
+meta.practice_squads.squads.wisadel_m18.slots.3.fp.mods.op_aspd.0,1|-0.2|relic:149|class:Sniper,1|-0.2|relic:149|class:狙击,模型,
+meta.practice_squads.squads.wisadel_m18.slots.3.fp.mods.pickup.0,2|1.25|Level|,2|1.25|等级|,模型,
+meta.practice_squads.squads.skadi_m0.label,Skadi Starter Squad · No Cognition,斯卡蒂开局分队 · 无认知,模型,
+meta.practice_squads.squads.skadi_m0.slots.1.fp.mods.dmg.0,1|0.1|relic_count|class:Caster,1|0.1|relic_count|class:术师,模型,
+meta.practice_squads.squads.skadi_m0.slots.1.fp.mods.pickup.0,2|1.11|Level|,2|1.11|等级|,模型,
+meta.practice_squads.squads.skadi_m0.slots.2.fp.mods.dmg.0,1|0.15|relic:80|class:Caster,1|0.15|relic:80|class:术师,模型,
+meta.practice_squads.squads.skadi_m0.slots.2.fp.mods.pickup.0,2|1.18|Level|,2|1.18|等级|,模型,
+meta.practice_squads.squads.skadi_m0.slots.3.fp.mods.pickup.0,2|1.23|Level|,2|1.23|等级|,模型,
+meta.practice_squads.squads.skadi_m18.label,Skadi Starting Squad · 18 Cells,斯卡蒂开局分队 · 18 细胞,模型,
+meta.practice_squads.squads.skadi_m18.slots.1.fp.mods.dmg.1,1|0.15|relic:80|class:Caster,1|0.15|relic:80|class:术师,模型,
+meta.practice_squads.squads.skadi_m18.slots.1.fp.mods.pickup.0,2|1.11|Level|,2|1.11|等级|,模型,
+meta.practice_squads.squads.skadi_m18.slots.2.fp.mods.dmg.1,1|0.4|relic:165|class:Specialist,1|0.4|relic:165|class:特种,模型,
+meta.practice_squads.squads.skadi_m18.slots.2.fp.mods.op_aspd.1,1|0.3|relic:160|class:Medic,1|0.3|relic:160|class:医疗,模型,
+meta.practice_squads.squads.skadi_m18.slots.2.fp.mods.op_range.0,1|0.18|vgrowth|range:Melee,1|0.18|vgrowth|range:近战,模型,
+meta.practice_squads.squads.skadi_m18.slots.2.fp.mods.pickup.0,2|1.18|Level|,2|1.18|等级|,模型,
+meta.practice_squads.squads.skadi_m18.slots.3.fp.mods.dmg.2,1|0.4|relic:165|class:Specialist,1|0.4|relic:165|class:特种,模型,
+meta.practice_squads.squads.skadi_m18.slots.3.fp.mods.op_aspd.2,1|0.3|relic:160|class:Medic,1|0.3|relic:160|class:医疗,模型,
+meta.practice_squads.squads.skadi_m18.slots.3.fp.mods.op_range.0,1|0.18|vgrowth|range:Melee,1|0.18|vgrowth|range:近战,模型,
+meta.practice_squads.squads.skadi_m18.slots.3.fp.mods.pickup.0,2|1.25|Level|,2|1.25|等级|,模型,
+meta.practice_squads.squads.kaltsit_m0.label,Kal'tsit Starter Squad · No Cognition,凯尔希开局分队 · 无认知,模型,
+meta.practice_squads.squads.kaltsit_m0.slots.1.fp.mods.pickup.0,2|1.11|Level|,2|1.11|等级|,模型,
+meta.practice_squads.squads.kaltsit_m0.slots.2.fp.mods.dmg.0,1|0.15|relic:80|class:Caster,1|0.15|relic:80|class:术师,模型,
+meta.practice_squads.squads.kaltsit_m0.slots.2.fp.mods.pickup.0,2|1.18|Level|,2|1.18|等级|,模型,
+meta.practice_squads.squads.kaltsit_m0.slots.3.fp.mods.dmg.1,1|0.2|relic:148|class:Sniper,1|0.2|relic:148|class:狙击,模型,
+meta.practice_squads.squads.kaltsit_m0.slots.3.fp.mods.pickup.0,2|1.23|Level|,2|1.23|等级|,模型,
+meta.practice_squads.squads.kaltsit_m18.label,Kal'tsit Starting Squad · 18 Cells,凯尔希开局分队 · 18 细胞,模型,
+meta.practice_squads.squads.kaltsit_m18.slots.1.fp.mods.dmg.1,1|0.2|relic:148|class:Sniper,1|0.2|relic:148|class:狙击,模型,
+meta.practice_squads.squads.kaltsit_m18.slots.1.fp.mods.pickup.0,2|1.11|Level|,2|1.11|等级|,模型,
+meta.practice_squads.squads.kaltsit_m18.slots.2.fp.mods.pickup.0,2|1.18|Level|,2|1.18|等级|,模型,
+meta.practice_squads.squads.kaltsit_m18.slots.3.fp.mods.pickup.0,2|1.24|Level|,2|1.24|等级|,模型,
+攻击,ATK,,原文键,模型
+攻击性Ⅰ,Aggression I,,原文键,模型
+全体伤害 +8%,All damage +8%,,原文键,模型
+攻击性Ⅱ,Aggression II,,原文键,模型
+全体伤害 +4%,All damage +4%,,原文键,模型
+攻击性Ⅲ,Aggression III,,原文键,模型
+攻击性Ⅳ,Aggression IV,,原文键,模型
+攻击性Ⅴ,Aggression V,,原文键,模型
+全体伤害 +4%。处决：普通敌人生命低于 15%、精英低于 8% 时直接击杀（Boss 除外）,"All damage +4%. Execute: instantly kills normal enemies when their HP is below 15%, and Elite enemies below 8% (Bosses excepted)",,原文键,模型
+生命,HP,,原文键,模型
+生存本能Ⅰ,Survival Instinct I,,原文键,模型
+队长最大生命 +12%,Leader Max HP +12%,,原文键,模型
+生存本能Ⅱ,Survival Instinct II,,原文键,模型
+队长最大生命 +4%,Leader Max HP +4%,,原文键,模型
+生存本能Ⅲ,Survival Instinct III,,原文键,模型
+队长最大生命 +5%,Leader Max HP +5%,,原文键,模型
+生存本能Ⅳ,Survival Instinct IV,,原文键,模型
+生存本能Ⅴ,Survival Instinct V,,原文键,模型
+队长最大生命 +4%。每次探索限一次：受到致命伤时保留 1 点生命，1.5 秒内不受伤害,"Leader Max HP +4%. Once per run: when taking fatal damage, survives with 1 HP and takes no damage for 1.5s",,原文键,模型
+减伤,Damage Reduction,,原文键,模型
+自我保护Ⅰ,Self-Preservation I,,原文键,模型
+队长受到伤害 -5%,Damage taken by Leader -5%,,原文键,模型
+自我保护Ⅱ,Self-Preservation II,,原文键,模型
+队长受到伤害 -3%,Damage taken by Leader -3%,,原文键,模型
+自我保护Ⅲ,Self-Preservation III,,原文键,模型
+自我保护Ⅳ,Self-Preservation IV,,原文键,模型
+队长受到伤害 -2%。连续 5 秒未受伤后，下一次 -50%,"Damage taken by Leader -2%. After taking no damage for 5s, the next damage taken -50%",,原文键,模型
+回复,Recovery,,原文键,模型
+生命感悟Ⅰ,Vitality I,,原文键,模型
+队长每秒回复 +0.3 生命,Leader HP recovery per second +0.3,,原文键,模型
+生命感悟Ⅱ,Vitality II,,原文键,模型
+队长每秒回复 +0.1 生命,Leader HP recovery +0.1/s,,原文键,模型
+生命感悟Ⅲ,Vitality III,,原文键,模型
+队长每秒回复 +0.2 生命。生命低于 35% 时回复翻倍,Leader recovers +0.2 HP per second. Recovery doubles when HP is below 35%,,原文键,模型
+护盾,Objective Shield,,原文键,官方
+危机感Ⅰ,Vigilance I,,原文键,模型
+队长护盾上限 +1（每 15 秒生成一层）。护盾破碎时反震：周围 140 范围敌人受队长攻击 ×3 物理伤害并击退（Boss 免疫击退）,"Leader Objective Shield limit +1 (generates 1 stack every 15s). When Objective Shield breaks, reflects: enemies within a 140 radius take Physical damage equal to 300% of Leader ATK and suffer knockback (Bosses immune to knockback)",,原文键,模型
+经验,EXP,,原文键,模型
+领导欲Ⅰ,Leadership I,,原文键,模型
+经验 +5%,EXP +5%,,原文键,模型
+领导欲Ⅱ,Leadership II,,原文键,模型
+经验 +6%,EXP +6%,,原文键,模型
+领导欲Ⅲ,Leadership III,,原文键,模型
+经验 +7%,EXP +7%,,原文键,模型
+领导欲Ⅳ,Leadership IV,,原文键,模型
+经验 +7%。升级有 10% 概率再升一级,EXP +7%. Leveling up has a 10% chance to grant an additional level,,原文键,模型
+资源,Resources,,原文键,模型
+收藏癖Ⅰ,Hoarding I,,原文键,模型
+开局源石锭 +3,Initial Originium Ingot +3,,原文键,模型
+收藏癖Ⅱ,Hoarding II,,原文键,模型
+开局源石锭 +4,Initial Originium Ingot +4,,原文键,模型
+收藏癖Ⅲ,Hoarding III,,原文键,模型
+开局源石锭 +5,Initial Originium Ingot +5,,原文键,模型
+交涉Ⅰ,Negotiation I,,原文键,模型
+行商价格 -6%,Merchant price -6%,,原文键,模型
+交涉Ⅱ,Negotiation II,,原文键,模型
+交涉Ⅲ,Negotiation III,,原文键,模型
+调度,Dispatch,,原文键,模型
+多程信息处理,Multithreaded Processing,,原文键,模型
+第一次升级多一个选项（四选一）,First level up grants 1 additional option (choose 1 of 4),,原文键,模型
+自我审视,Introspection,,原文键,模型
+每次探索限一次：刷新行商货架时不消耗源石锭,Once per run: Refreshing the Merchant's wares costs 0 Originium Ingots,,原文键,模型
+战利品意识,Loot Awareness,,原文键,模型
+开局从 3 件基础藏品中选 1 件,"At the start of a run, choose 1 of 3 basic Collectibles",,原文键,模型
+生命感悟Ⅳ,Vitality IV,,原文键,模型
+队长每秒回复 +0.2 生命,Leader HP recovery +0.2/s,,原文键,模型
+生命感悟Ⅴ,Vitality V,,原文键,模型
+危机感Ⅱ,Vigilance II,,原文键,模型
+护盾生成间隔 -3 秒,Shield generation interval -3s,,原文键,模型
+便利,Utility,,原文键,模型
+好奇心Ⅰ,Curiosity I,,原文键,模型
+拾取范围 +12,Pickup range +12,,原文键,模型
+好奇心Ⅱ,Curiosity II,,原文键,模型
+好奇心Ⅲ,Curiosity III,,原文键,模型
+拾取范围 +14,Pickup range +14,,原文键,模型
+好奇心Ⅳ,Curiosity IV,,原文键,模型
+绝处逢生,Second Wind,,原文键,模型
+每次探索限一次：队长倒下时以 50% 最大生命复活，3 秒内不受伤害,"Once per run: when Leader falls, revives with 50% Max HP and takes no damage for 3s",,原文键,模型
+闪避,Dodge,,原文键,模型
+未雨绸缪Ⅰ,Forethought I,,原文键,模型
+队长闪避率 +5%,Leader Dodge +5%,,原文键,模型
+未雨绸缪Ⅱ,Forethought II,,原文键,模型
+未雨绸缪Ⅲ,Forethought III,,原文键,模型
+攻击性,Aggression,,原文键,模型
+生存本能,Survival Instinct,,原文键,模型
+生命感悟,Vitality,,原文键,模型
+自我保护,Self-Preservation,,原文键,模型
+领导欲,Leadership,,原文键,模型
+好奇心,Curiosity,,原文键,模型
+收藏癖,Hoarding,,原文键,模型
+交涉,Negotiation,,原文键,模型
+危机感,Vigilance,,原文键,模型
+未雨绸缪,Forethought,,原文键,模型
+坚韧,Tenacity,,原文键,模型
+队长最大生命 +20,Leader Max HP +20,,原文键,模型
+自愈,Regeneration,,原文键,模型
+队长生命回复 +0.4 / 秒,Leader HP recovery +0.4/s,,原文键,模型
+硬化,Hardening,,原文键,模型
+队长受到的物理伤害 -8%（乘算；对法术、真实伤害无效）,Physical damage taken by Leader -8% (multiplicative; ineffective against Arts and True damage),,原文键,模型
+水影,Aqua Shadow,,原文键,模型
+感知,Perception,,原文键,模型
+队长拾取范围 +30%,Leader pickup range +30%,,原文键,模型
+护灯,Lamp Guard,,原文键,模型
+队长受击时灯火损失 -15%,Light lost when Leader is attacked -15%,,原文键,模型
+轻盈,Agility,,原文键,模型
+队长移动速度 +10%,Leader movement speed +10%,,原文键,模型
+迅捷,Swiftness,,原文键,模型
+冲刺冷却 -12%,Dash cooldown -12%,,原文键,模型
+远跃,Long Leap,,原文键,模型
+冲刺距离 +12%,Dash distance +12%,,原文键,模型
+连冲,Chain Dash,,原文键,模型
+冲刺可储存 2 次，冷却逐次恢复,Dash can store 2 charges; cooldown recovers sequentially,,原文键,模型
+协同·技,Synergy: Skill,,原文键,模型
+全队技力回复 +15%,Squad SP Recovery +15%,,原文键,模型
+协同·攻,Synergy: ATK,,原文键,模型
+全队干员攻击 +8%,Squad Operator ATK +8%,,原文键,模型
+协同·迅,Synergy: ASPD,,原文键,模型
+全队干员攻击速度 +6%,Squad Operator ATK speed +6%,,原文键,模型
+协同·广,Synergy: Range,,原文键,模型
+全队干员攻击范围 +8%,Squad Operator attack range +8%,,原文键,模型
+协同·专,Synergy: Crit,,原文键,模型
+全队干员技能强度 +10%,Squad Operator skill power +10%,,原文键,模型
+贯穿,Pierce,,原文键,模型
+远程普攻可再穿透 2 名敌人。,Ranged normal attacks pierce 2 additional enemies.,,原文键,模型
+扩散,Splash,,原文键,模型
+近战扩域、召唤驻场、控场引爆干员的普攻命中时，目标周围 60 范围内的其他敌人受到该次伤害的 25%。,"When normal attacks from Melee Extended Range, Summon, and Crowd-Control Detonation Operators hit, other enemies within a 60 radius of the target take 25% of the damage.",,原文键,模型
+多弹火力干员的普攻命中后弹向 170 范围内的另 1 名敌人，造成该次伤害的 50%。,"Normal attacks from Multi-target Firepower Operators bounce to 1 other enemy within a 170 radius upon hit, dealing 50% of the damage.",,原文键,模型
+近战·扩域,Melee · Expansion,,原文键,模型
+近战扩域干员攻击范围 +12%,Melee Extended Range Operators attack range +12%,,原文键,模型
+多弹·连射,Multishot · Rapid Fire,,原文键,模型
+多弹火力干员攻击速度 +10%,Multi-Projectile Firepower Operators ATK speed +10%,,原文键,模型
+召唤·协击,Summon · Co-Strike,,原文键,模型
+召唤驻场干员的追击与召唤物伤害 +10%,Stationary Summon Operators' follow-up and summon damage +10%,,原文键,模型
+控场·延时,Control · Extension,,原文键,模型
+眩晕、束缚、减速的持续时间 +15%,"Stun, Bind, and Slow duration +15%",,原文键,模型
+弱点·洞察,Weakness · Insight,,原文键,模型
+弱点收割干员的弱点伤害额外 +10%,Weakness Harvesting Operators deal +10% additional Weakness damage,,原文键,模型
+护盾·充能,Shield · Charge,,原文键,模型
+队长护盾生成间隔 -8%,Leader Shield generation interval -8%,,原文键,模型
+急救补给,First Aid Supplies,,原文键,模型
+队长立刻回复 30% 最大生命,Leader immediately recovers 30% Max HP,,原文键,模型
+灯油补给,Lamp Oil Supplies,,原文键,模型
+灯火 +30,Light +30,,原文键,模型
+临时协同,Temporary Synergy,,原文键,模型
+全队干员攻击 +4%（可叠加）,All Operators ATK +4% (stacks),,原文键,模型
+深蓝之下,Beneath the Deep Blue,,原文键,模型
+获得「深蓝之下」套组中的其余 8 枚蚀刻章。,Obtain the other 8 medals in the 'Beneath the Deep Blue' medal set.,,原文键,模型
+泡影散尽,Faded Illusions,,原文键,模型
+达成结局「平凡即是喜乐」。,Reach the ending 'Precious Days'.,,原文键,模型
+骑士归潮,Knight's Return to the Tide,,原文键,模型
+达成结局「静谧时代」。,Reach the ending 'Age of the Silence'.,,原文键,模型
+潮声止息,Silence of the Tides,,原文键,模型
+达成结局「息潮的代价」。,Reach the ending 'Price of Peace'.,,原文键,模型
+深蓝之树,Caerula Arbor,,原文键,官方
+达成结局「如星空般深蓝」。,Reach the ending 'Stella Caerula'.,,原文键,模型
+协同晋升,Synergy Promotion,,原文键,模型
+在一次探索中，使编队内 3 名干员同时达到精英二。,"In a run, have 3 Operators in the squad reach Elite 2 simultaneously.",,原文键,模型
+海中拾遗,Gleanings from the Sea,,原文键,模型
+累计获得 50 种不同的藏品。,Obtain 50 different Collectibles in total.,,原文键,模型
+认知深化,Deepened Cognition,,原文键,模型
+点亮认知塑造中所有已开放节点。,Unlock all available nodes in Cognitive Shaping.,,原文键,模型
+初识深蓝,First Glimpse of the Deep Blue,,原文键,模型
+首次点亮认知塑造节点。,Unlock a Cognitive Shaping node for the first time.,,原文键,模型
+默契,Rapport,,原文键,模型
+恩怨,Grudge,,原文键,模型
+手段应当有效,Means Should Be Effective,,原文键,模型
+战争设计,War Design,,原文键,模型
+潮汐守望,Tidal Watch,,原文键,模型
+集群狩猎,Pack Hunting,,原文键,模型
+维什戴尔开局分队 · 无认知,Wiš'adel Starting Squad · No Cognition,,原文键,模型
+2|1.11|等级|,2|1.11|Level|,,原文键,模型
+2|1.19|等级|,2|1.19|Level|,,原文键,模型
+2|1.25|等级|,2|1.25|Level|,,原文键,模型
+维什戴尔开局分队 · 18 细胞,Wiš'adel Starting Squad · 18 Cells,,原文键,模型
+1|0.2|relic:148|class:狙击,1|0.2|relic:148|class:Sniper,,原文键,模型
+1|0.4|relic:149|class:狙击,1|0.4|relic:149|class:Sniper,,原文键,模型
+1|-0.2|relic:149|class:狙击,1|-0.2|relic:149|class:Sniper,,原文键,模型
+斯卡蒂开局分队 · 无认知,Skadi Starter Squad · No Cognition,,原文键,模型
+1|0.1|relic_count|class:术师,1|0.1|relic_count|class:Caster,,原文键,模型
+1|0.15|relic:80|class:术师,1|0.15|relic:80|class:Caster,,原文键,模型
+2|1.18|等级|,2|1.18|Level|,,原文键,模型
+2|1.23|等级|,2|1.23|Level|,,原文键,模型
+斯卡蒂开局分队 · 18 细胞,Skadi Starting Squad · 18 Cells,,原文键,模型
+1|0.4|relic:165|class:特种,1|0.4|relic:165|class:Specialist,,原文键,模型
+1|0.3|relic:160|class:医疗,1|0.3|relic:160|class:Medic,,原文键,模型
+1|0.18|vgrowth|range:近战,1|0.18|vgrowth|range:Melee,,原文键,模型
+凯尔希开局分队 · 无认知,Kal'tsit Starter Squad · No Cognition,,原文键,模型
+凯尔希开局分队 · 18 细胞,Kal'tsit Starting Squad · 18 Cells,,原文键,模型
+2|1.24|等级|,2|1.24|Level|,,原文键,模型
