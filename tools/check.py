@@ -249,6 +249,14 @@ def check_op_text():
     return {"name": "干员文字数值 op_text_check", "ok": not errs, "detail": detail, "errors": errs[:8]}
 
 
+def check_desc_values():
+    """不开 Godot（约 1 秒）：藏品说明里的每个数字都对得上数据或已核过的代码值（tools/desc_value_audit.py + desc_value_allow.json，docs/335 §2.1）"""
+    import desc_value_audit
+    rows, sus = desc_value_audit.audit()
+    errs = ["%s %s 说明多出 %s：%s" % (x["kind"], x["id"], x["extra"], x["desc"][:60]) for x in sus]
+    return {"name": "藏品说明数字 desc_values", "ok": not errs, "detail": "%d 条，疑点 %d" % (len(rows), len(sus)), "errors": errs[:8]}
+
+
 def check_ob_tag():
     """不开 Godot（约 1 秒）：积木瞬时执行器 tag 两两不重叠、data_operator 的单播表 EXEC_SEG 与各执行器分支一致（tools/ob_tag_audit.py，docs/101 §7.3.7）"""
     import ob_tag_audit
@@ -1403,7 +1411,7 @@ def main():
     ap.add_argument("--ab", metavar="REF", help="与某个提交做 A/B 对比（机器人标准矩阵）")
     ap.add_argument("--seeds", type=int, default=4)
     ap.add_argument("--keep", action="store_true", help="A/B 结束后保留临时工作树")
-    ap.add_argument("--only", choices=["core", "smoke", "nodes", "hold_aim", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "node_cue_lint", "data_lint", "graph_lint", "check_map", "text_reconcile", "shader_lint", "px_lint", "enemy_art", "asset_lint", "asset_index", "onboard_reload", "opening_transport", "web_music"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
+    ap.add_argument("--only", choices=["core", "smoke", "nodes", "hold_aim", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "desc_values", "ob_tag", "cc_lint", "node_cue_lint", "data_lint", "graph_lint", "check_map", "text_reconcile", "shader_lint", "px_lint", "enemy_art", "asset_lint", "asset_index", "onboard_reload", "opening_transport", "web_music"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
     ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS,
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
     ap.add_argument("--bal", action="append", default=[], metavar="段/键=值",
@@ -1453,6 +1461,8 @@ def main():
         jobs.append(check_art_lint)   # 不开 Godot，约 10 秒；--auto 也跑（只改美术时这是唯一相关项）
     if a.only in (None, "slim"):
         jobs.append(check_release_slim)   # 不开 Godot，约 5 秒；--auto 也跑（改文案 / 美术 / 预设都可能碰到）
+    if a.only in (None, "desc_values"):
+        jobs.append(check_desc_values)   # 不开 Godot，约 1 秒（docs/335）
     if a.only in (None, "op_text"):
         jobs.append(check_op_text)   # 不开 Godot，约 1 秒；--auto 也跑（改干员数值或文字都要对一遍）
     if a.only in (None, "ob_tag"):

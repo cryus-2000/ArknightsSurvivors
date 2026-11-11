@@ -112,10 +112,10 @@ def audit_chars(rows):
         walk(d, "")
 
 
-def main():
+def audit(chars=False):
     rows = []
     audit_relics(rows)
-    if "--all" in sys.argv:
+    if chars:
         audit_chars(rows)
     sus = []
     for kind, rid, text, vals in rows:
@@ -131,6 +131,11 @@ def main():
         extra = [n for n in nums if not match(n, cand) and n not in allow and n not in (0.0, 1.0)]
         if extra:
             sus.append({"kind": kind, "id": rid, "extra": extra, "desc": text, "vals": vals})
+    return rows, sus
+
+
+def main():
+    rows, sus = audit("--all" in sys.argv)
     for s in sus:
         print("%s %s  说明多出 %s\n    说明：%s\n    数据：%s" % (s["kind"], s["id"], s["extra"], s["desc"], s["vals"]))
     print("DESC VALUES rows=%d suspects=%d" % (len(rows), len(sus)))
