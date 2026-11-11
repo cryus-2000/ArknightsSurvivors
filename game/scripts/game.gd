@@ -1856,7 +1856,7 @@ func _process(delta: float) -> void:
 	web_fs.poll(delta)   # 网页版：局内退出全屏（多半是按了 Esc）→ 打开暂停菜单（docs/299）
 	pick.update(delta)
 	wheel.update(delta)   # 指挥圆盘：真实帧间隔（悬停 / 松开判定 / 测试计划）
-	var dt: float = min(delta, 0.05)
+	var dt: float = min(delta, 0.05 * Cfg.test_speed())   # 无敌测试包倍速：time_scale 放大了 delta，封顶同乘（正式包 test_speed 恒 1）
 	var simulated_dt := 0.0
 	if state != _last_state:
 		_last_state = state
