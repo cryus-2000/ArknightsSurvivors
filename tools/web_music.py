@@ -86,7 +86,8 @@ def externalize(gamedir, outdir):
                 subprocess.run([ff, "-v", "error", "-y", "-i", w, "-c:a", "aac", "-b:a", "%dk" % max(24, int(round(kbps * 0.65))),
                                 "-movflags", "+faststart", mo], check=True)
             after += os.path.getsize(mo)
-        meta[name] = {"len": round(dur, 6), "url": "music_%s.m4a" % name}
+        # pre：AAC 编码器前置预滚（1024 样本）秒数。web_music.js 解码后据此判断浏览器有没有去掉预滚，没去掉就平移循环点（11-12 配乐循环验收）
+        meta[name] = {"len": round(dur, 6), "url": "music_%s.m4a" % name, "pre": round(1024.0 / sr, 6)}
         n += 1
         before += size
         after += os.path.getsize(o)

@@ -110,6 +110,9 @@ const STEM_OUT := 0.5
 const MENU_TRACKS := ["title", "archive", "deploy"]
 const MENU_FADE := 1.0       # 局外曲目互切的淡入 / 淡出速度（每秒）= 1 秒
 var menu_pos := {}           # 局外曲目 -> 淡出停下时播到的秒数
+## 商人来回接着放（11-12 用户「肉鸽大部分时候配乐是循环的」）：原来出商店战斗曲从头放，一局三个商人 = 战斗曲前奏重放三遍、来回进出时只听得到开头。
+## 进商店时记下战斗曲播到第几秒，出商店回到同一首就从那里接着放（商店里局内时间不走，接回原处）；换了别的曲目（Boss 等）就作废
+var shop_resume := {}        # {track 战斗曲名, pos 播到的秒数}
 ## 结算配乐（10-28 用户「结算的 BGM 还是老的主题曲，换成新的主题曲」）：胜 / 负都放新主题曲 title（Suno《Deep Ocean Drift》，标题页同一首），
 ## 从结算入场的黑场从头淡入；胜利原音量 2 秒淡入，失败同曲压低 SETTLE_LOSE_DB、4 秒慢淡入（这首没有分层，docs/164）。
 ## 回标题时 title 已在放，play_music 不重开、接着放，失败压的音量 2 秒回到原样。旧的 win / lose 短乐句与 win_loop / lose_loop 循环已删
@@ -581,9 +584,16 @@ func play_music(tname: String) -> void:
 	elif MENU_TRACKS.has(tname) and MENU_TRACKS.has(old):
 		pending = {}
 		_start(tname, MENU_FADE, MENU_FADE)
+	elif old == "shop" and lay.has(tname) and str(shop_resume.get("track", "")) == tname:
+		pending = {}
+		_start(tname, 0.8, 0.6, float(shop_resume.pos))   # 出商店：战斗曲接着放
 	else:
 		pending = {}
 		_start(tname, 0.8, 0.6)
+	if tname == "shop" and lay.has(old) and old.begins_with("battle"):
+		shop_resume = {"track": old, "pos": _lay_pos(old)}
+	elif tname != "shop":
+		shop_resume = {}
 
 
 ## 开播一首（乐句式从第一句开始；各层同一时刻开，保证同步）；旧曲按 old_out 淡出
@@ -1880,7 +1890,8 @@ func _wm_sync() -> void:
 			var ls: float = SHOP_LOOP if w.track == "shop" else 0.0
 			if ln > 0.0 and pos >= ln:
 				pos = ls + fposmod(pos - ls, maxf(ln - ls, 0.1))
-			plays.append([k, _wm_url(w.name), maxf(pos, 0.0), ls, ln, g])
+			# 末项：AAC 编码器前置的预滚秒数（web_music.py 记）。浏览器解码没去掉预滚时 JS 按它平移循环点，否则每圈有约 32 ms 空档 + 跳接
+			plays.append([k, _wm_url(w.name), maxf(pos, 0.0), ls, ln, g, float(_wm.get(w.name, {}).get("pre", 0.0))])
 			w.on = true
 			w.g = g
 		elif not pl.playing and w.on:

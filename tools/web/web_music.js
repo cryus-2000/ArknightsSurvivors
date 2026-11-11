@@ -122,10 +122,13 @@
         var b = bs[i], src = c.createBufferSource(), g = c.createGain();
         src.buffer = b;
         src.loop = true;
-        var ls = Math.max(0, it[3]), le = it[4] > 0 ? Math.min(it[4], b.duration) : b.duration;
+        // AAC 预滚（11-12）：Chromium 按 MP4 编辑表去掉编码器前置的 1024 样本、解出来与原 OGG 逐样本对齐（实测）；
+        // 若某浏览器没去掉，缓冲会比原曲长出 ≥ 预滚（去掉时只多出尾部补齐，< 预滚）——这时循环起止与起播位置一起后移预滚，免得每圈 32 ms 空档 + 跳接
+        var roll = it[6] > 0 && it[4] > 0 && b.duration - it[4] >= it[6] - 0.0005 ? it[6] : 0;   // 别叫 pre：与电平分析节点同名
+        var ls = Math.max(0, it[3]) + roll, le = it[4] > 0 ? Math.min(it[4] + roll, b.duration) : b.duration;
         if (le <= ls + 0.05) { ls = 0; le = b.duration; }
         src.loopStart = ls; src.loopEnd = le;
-        var off = it[2] + late;
+        var off = it[2] + late + roll;
         if (off >= le) off = ls + ((off - ls) % (le - ls));
         g.gain.value = eff(it[0]);
         src.connect(g); g.connect(out(c)); g.connect(pre);
