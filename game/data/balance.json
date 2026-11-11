@@ -1110,7 +1110,8 @@
  "atkspeed": {
   "_doc": "整条攻击条按攻速等比缩放（用户 10-25「攻速高了动作跟不上，整个攻击条一起加速」）：动作窗口 = min(帧条时长, 出手间隔 × active_ratio)，前摇 / 出手帧 / 收势、动画播放都按它等比，不再被 attack_timing.min_duration / min_rest 与水月 min_cd 卡住，实际出手频率 = 面板攻速；min_window 只是防零长度的硬下限；动画播放倍率（帧条时长 ÷ 窗口）超过 anim_k_cap 后画面隔帧抽取（动作略跳帧，出手帧一定显示），判定时间轴照样按攻速缩短；legacy_floor = 1 恢复旧 min_duration / min_rest 下限（对照用）",
   "min_window": 0.03,
-  "anim_k_cap": 3.0
+  "anim_k_cap": 3.0,
+  "hook_follow": 1
  },
  "synergy": {
   "_doc": "干员连携技（docs/160、docs/161）：on 总开关（0 = 完全不求值）；max_active 同时进行的连携条数；cd_mult 冷却倍率；dmg_mult 连携伤害倍率（云端校准用）",

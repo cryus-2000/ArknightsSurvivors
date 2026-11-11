@@ -1233,13 +1233,21 @@ static func hw_hook_start(o, b: Dictionary) -> void:
 	var hand: Vector2 = o.pos + Vector2(float(hv[0]) * float(o.face), float(hv[1]))
 	if absf(to.x - o.pos.x) > 2.0:
 		o._set_face(signf(to.x - o.pos.x), true)
-	var dur: float = clampf(hand.distance_to(to) / float(b.get("speed", 900.0)), 0.1, 0.24)
-	h.hooks.append({"b": b, "phase": "fly", "t": 0.0, "dur": dur, "from": hand, "to": to, "head": hand, "drag": [], "dmg": hw_basis(o, str(b.get("basis", "atk"))), "tgt": tgt_e,
+	var sp: float = hook_speedup(o)   # 钩索整段（飞出 / 绷紧 / 拖回）随攻速等比缩短：lock 的钩不回来就不普攻，不缩短 = 攻速被钩子吃掉（docs/335）
+	var dur: float = clampf(hand.distance_to(to) / float(b.get("speed", 900.0)), 0.1, 0.24) / sp
+	h.hooks.append({"b": b, "phase": "fly", "t": 0.0, "dur": dur, "sp": sp, "from": hand, "to": to, "head": hand, "drag": [], "dmg": hw_basis(o, str(b.get("basis", "atk"))), "tgt": tgt_e,
 		"gl": o.B.get("attack", {}).has("hook_nodes")})   # gl：歌蕾蒂娅成长节点（docs/202，seg_gladiia）
 	if h.hooks[-1].gl:
 		_FXR.ev(o, "gl_throw", {"hk": h.hooks[-1]})   # 歌蕾蒂娅转平面（docs/263）：只画
 	if b.has("fx"):
 		fx_play(o, b.fx, hand, 20.0, [], (to - hand).angle())
+
+
+## 钩索随攻速加速的倍率：op_aspd > 1 才加速（≤ 1 保持原时长），atkspeed/hook_follow = 0 关闭（对照用）
+static func hook_speedup(o) -> float:
+	if BranchBal.v("atkspeed/hook_follow", 1.0) < 0.5:
+		return 1.0
+	return maxf(1.0, o.stat(&"op_aspd"))
 
 
 static func _hw5_hooks(o, dt: float) -> void:
@@ -1297,7 +1305,7 @@ static func _hw5_hook_impact(o, hk: Dictionary) -> void:
 		_MI.hit(o, str(b.get("src", "")), b.get("tags", []), hits)   # 近战打击感包：只画
 	hk.phase = "taut"
 	hk.t = 0.0
-	hk.dur = float(b.get("taut", 0.2))
+	hk.dur = float(b.get("taut", 0.2)) / float(hk.get("sp", 1.0))
 	hk.head = c
 
 
@@ -1357,7 +1365,7 @@ static func _hw5_hook_drag_start(o, hk: Dictionary) -> void:
 		hk.drag.append({"e": e, "from": e.pos, "spot": spot})
 	hk.phase = "drag"
 	hk.t = 0.0
-	hk.dur = float(b.get("drag", 0.18))
+	hk.dur = float(b.get("drag", 0.18)) / float(hk.get("sp", 1.0))
 	hk.front = front
 	if hk.gl:
 		_FXR.ev(o, "gl_drag", {"hk": hk})   # 歌蕾蒂娅转平面（docs/263）：拖痕，只画
