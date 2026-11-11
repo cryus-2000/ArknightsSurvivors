@@ -1666,12 +1666,13 @@ func _draw_top(ph: bool, vr: Rect2) -> void:
 			unl += 1
 	if ph:
 		UI.hazard(self, Rect2(96, 0, 14, 30), ht)
-		UI.text_at(self, font, Vector2(10, 15), "图鉴 · " + str(TABS[tab].cn), 13, UI.C_HZ, "lm", true)
+		UI.text_at(self, font, Vector2(10, 15), UI.Loc.s("图鉴") if UI.Loc.en() else "图鉴 · " + str(TABS[tab].cn), 13, UI.C_HZ, "lm", true)   # 英文「Archive · Operator」压进斜纹，只留 Archive（页签里有当前页）
 		for i in TABS.size():
 			var r := Rect2(116 + i * 47, 5, 45, 21)   # 8 个页签（10-30 加「事件」）：步距 50 → 47，最后一格止于 490，不压右侧面板（504 起）
 			var on := i == tab
 			UI.para(self, r, 6, UI.C_ACC if on else UI.C_D_PANEL, Color(0, 0, 0, 0) if on else UI.fa(UI.C_D_INK, 0.8))
-			UI.text_at(self, font, r.get_center() + Vector2(0, 1), str(TABS[i].cn), 11, UI.C_HZ if on else UI.C_D_INK, "mm")
+			var tf := UI.fit_line(font, UI.Loc.s(str(TABS[i].cn)), 11, 39.0, 8)   # 英文 Operator / Ending 比两个汉字宽：缩字号塞进 45 宽的斜格
+			UI.text_at(self, font, r.get_center() + Vector2(0, 1), tf[0], tf[1], UI.C_HZ if on else UI.C_D_INK, "mm")
 			hits.append([r.grow(2.0), "cat", i])
 		var br := Rect2(W - 52, 6, 42, 20)
 		UI.para(self, br, 6, UI.C_L_INK)

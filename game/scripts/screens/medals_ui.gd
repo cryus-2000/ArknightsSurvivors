@@ -386,7 +386,12 @@ func _draw_head(a: float) -> void:
 func _draw_title(tc: Dictionary, a: float) -> void:
 	var white := Color(0.94, 0.965, 0.98)
 	var tfs := _F(86)
-	_spaced(Vector2(_Q(271, 0).x, _base(_Q(0, 419).y, tfs)), str(Medals.data().get("set_name", "深蓝之下")), tfs, _fa(white, a), 1.0 * k, serif)
+	var set_nm := str(Medals.data().get("set_name", "深蓝之下"))
+	if UI.Loc.en():   # 英文套组名比四个汉字长得多：缩到左栏宽（稿上 66–476）以内，按字心居中
+		var wmax := _Q(476, 0).x - _Q(66, 0).x
+		while tfs > _F(28) and _spaced_w(set_nm, tfs, 1.0 * k, serif) > wmax:
+			tfs -= 2
+	_spaced(Vector2(_Q(271, 0).x, _base(_Q(0, 419).y, tfs)), set_nm, tfs, _fa(white, a), 1.0 * k, serif)
 	# 标题下的波纹细线（设计稿里一道从左下穿过字脚的浪线）
 	var pts := PackedVector2Array()
 	for i in 41:
@@ -468,14 +473,15 @@ func _draw_detail(tc: Dictionary, a: float) -> void:
 	var cx := _P(COL_X, 0).x
 	var y := _P(0, 702).y
 	var nfs := _F(24)
-	var st := "已获得" if got else "未获得"
+	var st := UI.Loc.s("已获得" if got else "未获得")
 	var sfs := _F(13)
-	var nw := _tw(str(d.name), nfs)
+	var dnm := UI.Loc.s(str(d.name))
+	var nw := _tw(dnm, nfs)
 	var sw := _tw(st, sfs) + 12.0 * k
 	var x0 := cx - (nw + 12.0 * k + sw) / 2.0
 	var a0 := a * _layer(0)
 	x0 += _ldx(0)
-	_txt(Vector2(x0, y), str(d.name), nfs, _fa(T, a0))
+	_txt(Vector2(x0, y), dnm, nfs, _fa(T, a0))
 	var sr := Rect2(Vector2(x0 + nw + 12.0 * k, y - sfs - 5.0 * k), Vector2(sw, sfs + 8.0 * k))
 	if got:
 		draw_rect(sr, _fa(Color(0.055, 0.157, 0.204, 0.9), a0))

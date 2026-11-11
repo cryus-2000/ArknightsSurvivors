@@ -840,7 +840,7 @@ func _squad_list(r: Rect2, t: float, title: bool) -> void:
 	var y := r.position.y
 	if title:
 		var tw := _sect(Vector2(r.position.x, y + 10.0), "SQUAD", "编队")
-		_t(Vector2(r.end.x, y + 10.0), "全队伤害 %s · 每秒 %s" % [fmt_n(float(model.get("total", 0.0))), fmt_n(float(model.get("dps", 0.0)))], 13, HH.MUTE, 2, r.size.x - tw - 20.0)
+		_t(Vector2(r.end.x, y + 10.0), ("Squad DMG %s · DPS %s" if UI.Loc.en() else "全队伤害 %s · 每秒 %s") % [fmt_n(float(model.get("total", 0.0))), fmt_n(float(model.get("dps", 0.0)))], 13, HH.MUTE, 2, r.size.x - tw - 20.0)
 		y += 26.0
 	var n := rws.size()
 	if n == 0:
@@ -949,7 +949,7 @@ func _relic_grid(r: Rect2, t: float, title: bool) -> float:
 		if ic != null:
 			_ci().draw_texture_rect(ic, Rect2((c - Vector2(isz, isz) * 0.5).round(), Vector2(isz, isz)), false, Color(1, 1, 1, a))
 		else:
-			_t(c, str(it.name).substr(0, 1), 14, _fa(col, a), 1)
+			_t(c, UI.Loc.s(str(it.name)).substr(0, 1), 14, _fa(col, a), 1)
 		if int(it.lv) > 1:
 			for q in mini(int(it.lv), 5):
 				_ci().draw_rect(Rect2(rr.position.x + cl * 2.0 + q * cl * 3.0, rr.end.y - cl * 3.0, cl * 2.0, cl * 1.5), _fa(col.lightened(0.3), a))
@@ -1298,7 +1298,7 @@ func _taken_icon(ab: Rect2, row: Dictionary, a: float) -> void:
 			var src: Rect2 = fr[1]
 			_fit(tx0, src, _bbox(tx0, int(src.size.x), int(src.size.y), 1), A.hires_of(tx0), ab.grow(-3.0), 3.0, a)
 			return
-		_t(ab.get_center(), str(row.name).substr(0, 1), 16, _fa(HH.LIGHT, a), 1)
+		_t(ab.get_center(), UI.Loc.s(str(row.name)).substr(0, 1), 16, _fa(HH.LIGHT, a), 1)
 		return
 	if env in ["zone", "mire", "nerve", "dark"]:
 		var fr2: Array = _env_art("mire" if env == "nerve" else env)
@@ -1306,4 +1306,4 @@ func _taken_icon(ab: Rect2, row: Dictionary, a: float) -> void:
 		var src2: Rect2 = fr2[1]
 		_fit(tx1, src2, Rect2(Vector2.ZERO, src2.size), 1.0, ab.grow(-3.0), 3.0, a)
 		return
-	_t(ab.get_center(), str(ENV_GLYPH.get(env, str(row.name).substr(0, 1))), 18 if not _ph else 15, _fa(HH.MUTE, a), 1)
+	_t(ab.get_center(), (UI.Loc.s(str(row.name)).substr(0, 1) if UI.Loc.en() else str(ENV_GLYPH.get(env, str(row.name).substr(0, 1)))), 18 if not _ph else 15, _fa(HH.MUTE, a), 1)

@@ -177,6 +177,15 @@ static func _split_fallback(text: String) -> String:
 		for li in lines.size():
 			lines[li] = s(lines[li])
 		return "\n".join(lines)
+	# 「触发：<整句线索>」：冒号前后各自整串查得到就先这么拆（不然下面的括号 / 逗号规则会把整句线索拆碎）
+	var c0 := text.find("：")
+	if c0 > 0 and c0 < 12 and c0 < text.length() - 1:
+		var h0 := text.substr(0, c0)
+		var t0 := text.substr(c0 + 1)
+		var he0 := s(h0)
+		var te0 := s(t0)
+		if he0 != h0 and te0 != t0 and _cjk.search(te0) == null:
+			return he0 + ": " + te0
 	# 卡名显示时把「协同·专」排成「协同 · 专」、日文中点「・」：换回表里的写法再查一次
 	for pair in [[" · ", "·"], [" ・ ", "·"], ["・", "·"]]:
 		if text.contains(pair[0]):

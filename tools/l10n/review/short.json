@@ -29,5 +29,16 @@
  "另一名队友的连携命中、附近敌人聚成一团时": "After Link, enemies bunched",
  "源石锭": "Ingots",
  "推荐": "Auto",
- "中": "Med"
+ "中": "Med",
+ "先锋": "VAN",
+ "近卫": "GRD",
+ "重装": "DEF",
+ "狙击": "SNP",
+ "术师": "CST",
+ "医疗": "MED",
+ "辅助": "SUP",
+ "特种": "SPC",
+ "全部": "All",
+ "选择开局干员": "Pick Operator",
+ "更换封面干员": "Pick Cover"
 }

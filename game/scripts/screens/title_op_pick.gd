@@ -806,7 +806,7 @@ func _op_draw_desk(od: Dictionary) -> void:
 			UI.text_at(self, font, Vector2(rx0 + 22, cy), "全", 13, UI.TEXT, "mm")
 		else:
 			UI.class_glyph(self, c, Vector2(rx0 + 22, cy - 4), 8.0, gc)
-			UI.text_at(self, font, Vector2(rx0 + 22, cy + 12), c, 9, gc if on else UI.fa(UI.B_SUB, dim), "mm")
+			UI.text_at(self, font, Vector2(rx0 + 22, cy + 12), UI.Loc.short(c), 9, gc if on else UI.fa(UI.B_SUB, dim), "mm")
 		if n > 0:
 			op_rects["cls:" + c] = Rect2(rx0, cy - 22, 44, 44)
 	# 名字块：微型代码 + 中文名 + 英文名（打字机）+ 圆角标签 + 一句定位
@@ -896,7 +896,7 @@ func _op_draw_phone(od: Dictionary) -> void:
 	UI.ghost_name(self, font, Vector2(150 + (1.0 - ar) * 40.0, 40 + (1.0 - ar) * 70.0), od.en, _op_name_frac(), int(round(90 * (0.5 + 0.5 * ar))), Color(0.745, 0.824, 1.0, 0.18), 2)
 	_op_draw_art(od)
 	UI.rbox(self, Rect2(8, 6, 142, 22), 3, UI.VIOLET)
-	UI.text_at(self, font, Vector2(16, 17), "更换封面干员" if cover_pick else "选择开局干员", 13, Color.WHITE, "lm")
+	UI.text_at(self, font, Vector2(16, 17), UI.Loc.short("更换封面干员" if cover_pick else "选择开局干员"), 13, Color.WHITE, "lm")
 	var back := Rect2(W - 66, 6, 56, 22)
 	_op_btn(back, "返回")
 	op_rects["back"] = Rect2(W - 80, 0, 80, 40)
@@ -912,10 +912,10 @@ func _op_draw_phone(od: Dictionary) -> void:
 		UI.rbox(self, r, 11, UI.VIOLET if on else UI.B_FILL, Color(0, 0, 0, 0) if on else UI.fa(UI.B_LINE, dim))
 		var gc := Color.WHITE if on else UI.fa(Color(200 / 255.0, 205 / 255.0, 225 / 255.0), dim)
 		if c == "":
-			UI.text_at(self, font, r.get_center(), "全部", 10, gc, "mm")
+			UI.text_at(self, font, r.get_center(), UI.Loc.short("全部"), 10, gc, "mm")
 		else:
 			UI.class_glyph(self, c, Vector2(x + 11, 17), 5.0, gc, 1.5)
-			UI.text_at(self, font, Vector2(x + 33, 17), c, 10, gc, "mm")
+			UI.text_at(self, font, Vector2(x + 33, 17), UI.Loc.short(c), 10, gc, "mm")
 		if n > 0:
 			op_rects["cls:" + c] = Rect2(x - 2, 0, 54, 40)
 	# 名册：两列竖排，上滑翻页

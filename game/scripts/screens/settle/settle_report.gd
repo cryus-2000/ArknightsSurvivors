@@ -265,7 +265,7 @@ func _gains(acc: Color) -> void:
 		if tx != null:
 			ci.draw_texture_rect(tx, r.grow(-7), false, Color(1, 1, 1, fa))
 		else:   # 没有图标：写名字首字
-			txt(r.get_center().x, r.position.y + 10, str(rel[i].name).substr(0, 1), 20, HH.LIGHT, 1)
+			txt(r.get_center().x, r.position.y + 10, Loc.s(str(rel[i].name)).substr(0, 1), 20, HH.LIGHT, 1)
 		var rar := str(rel[i].rarity)
 		var rc: Color = MAG if rar == "遭诅古物" else (Color8(170, 120, 255) if rar == "升华" else acc)
 		poly(PackedVector2Array([Vector2(r.position.x, r.end.y - 13), Vector2(r.position.x + 13, r.end.y), Vector2(r.position.x, r.end.y)]), rc)

@@ -1337,10 +1337,11 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	# 名字按卡宽缩字（11-01 巡检二轮：手机「水月 · 惊跳反射·余悸」被宽度裁成「水月 · 惊跳反射 ·」，后两字直接没了）
 	var nsz: int = (24 if card.has_meta("brief") else 22) if ph else 20
 	var nmax: float = r.size.x - 2.0 * maxf(nx, 10.0) - 8.0
-	while nsz > ((13 if ph else 12) if Loc.en() else (15 if ph else 14)) and g.font.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(nsz)).x > nmax:   # UI.text 画时还会按 fs 放大，这里按放大后的量
+	var nfont: Font = UI.name_font(g.font)   # 按画名字用的字体量（g.font 量出来偏窄，英文长名被裁掉尾巴）
+	while nsz > ((12 if ph else 11) if Loc.en() else (15 if ph else 14)) and nfont.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(nsz)).x > nmax:   # UI.text 画时还会按 fs 放大，这里按放大后的量
 		nsz -= 1
-	if g.font.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(nsz)).x > nmax:
-		nm = UI.fit_line(g.font, nm, nsz, nmax, nsz)[0]
+	if nfont.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(nsz)).x > nmax:
+		nm = UI.fit_line(nfont, nm, nsz, nmax, nsz)[0]
 	UI.text(card, UI.name_font(g.font), r.position + Vector2(nx, ny), nm, nsz, Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, ta), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 2.0 * nx, 3)
 	var fd: Dictionary = card.get_meta("fit", {})
 	if not fd.is_empty():

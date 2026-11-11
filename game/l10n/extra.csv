@@ -31,6 +31,8 @@ extra.0028,Click outside to close,点空白收起,模型,
 extra.0029,Drag to pan,拖动平移,模型,
 extra.0030,Click node for details · Click outside to close · Drag to pan,点节点看详情 · 点空白收起 · 拖动平移,模型,
 extra.0031,Mobility,机动,人改,升级卡类别（term-captain：生存 / 机动 / 协同）
+extra.0034,Squad ASPD,全队攻速,模型,
+extra.0036,Shipboard Observation Subject,留舰观察对象,模型,
 方向键,Arrow keys,,原文键,模型
 ENTER 塑造,ENTER Shape,,原文键,模型
 Z 详情,Z Details,,原文键,模型
@@ -63,6 +65,8 @@ Z 详情,Z Details,,原文键,模型
 拖动平移,Drag to pan,,原文键,模型
 点节点看详情 · 点空白收起 · 拖动平移,Click node for details · Click outside to close · Drag to pan,,原文键,模型
 机动,Mobility,,原文键,人改
+全队攻速,Squad ASPD,,原文键,模型
+留舰观察对象,Shipboard Observation Subject,,原文键,模型
 所需技力 %d · %d%%,SP %d · %d%%,,原文键,人改
 秒,s,,原文键,人改
 生存,Survival,,原文键,人改
