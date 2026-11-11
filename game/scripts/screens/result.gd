@@ -212,12 +212,13 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 		for k in 4:
 			g.hud.draw_circle(gc, 150.0 - k * 28.0 + 6.0 * sin(g.t * 1.3 + k), Color(col.r, col.g, col.b, 0.05 + 0.03 * k))
 		if btx != null:
-			var fw: int = btx.get_width() / 2
+			var nfr: int = maxi(1, preload("res://scripts/art.gd").enemy_frames(str(bd.get("tex", "")), 2))   # 最终 Boss 常态条是 6 帧（原来按 2 帧切，一格里并排 3 只）
+			var fw: int = btx.get_width() / nfr
 			var fh: int = btx.get_height()
 			var k2: float = minf(200.0 / fw, 200.0 / fh)
 			k2 = floorf(k2) if k2 >= 1.0 else k2
 			var sz := Vector2(fw, fh) * k2
-			var fr: int = int(g.t * 2.0) % 2
+			var fr: int = int(g.t * 2.0 * nfr / 2.0) % nfr
 			var bob: float = 4.0 * sin(g.t * 1.6)
 			g.hud.draw_texture_rect_region(btx, Rect2((gc - sz / 2.0 + Vector2(0, bob)).round(), sz), Rect2(fw * fr, 0, fw, fh), Color(0.55, 0.6, 0.7, 0.9))
 			g.hud.draw_texture_rect_region(btx, Rect2((gc - sz / 2.0 + Vector2(0, bob)).round(), sz), Rect2(fw * fr, 0, fw, fh), Color(col.r, col.g, col.b, 0.25 + 0.1 * sin(g.t * 2.0)))

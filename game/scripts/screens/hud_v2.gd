@@ -334,7 +334,8 @@ func right_top(vs: Vector2) -> void:
 	var tch: bool = g.touch.active   # 触屏（11-06 用户「右上角的属性没标出来，大小都有点小」）：数字 22 → 28，标签换中文 11 号
 	var bf: int = 28 if tch else 22
 	var nw: float = UI.latin().get_string_size(str(n), HORIZONTAL_ALIGNMENT_LEFT, -1, bf).x
-	var rx: float = x - 8.0 - maxf(nw, 26.0 if tch else 0.0)
+	# 桌面至少让出「RELICS」小标签的宽（约 38）：11-12 截图开局 0 件藏品时标签伸进「PAUSE」，拼成「RELICSPAUSE」
+	var rx: float = x - 8.0 - maxf(nw, 26.0 if tch else 40.0)
 	shade(Rect2(rx - 70, 4, vs.x - rx + 66, 58 if tch else 44), 0.26)
 	if tch:
 		txt(Vector2(rx, RT_Y + 8), "藏品", 11, UI.SUB)

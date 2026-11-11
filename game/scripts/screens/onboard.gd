@@ -154,6 +154,8 @@ func _dev_arg(key: String, def: String) -> String:
 func eligible() -> bool:
 	if dev != "" or demo_id != "":
 		return true
+	if Cfg.test_auto():
+		return false   # 无敌包自动模式（run/auto_play.gd）：不走新手引导（真机测试的人早已走完；新浏览器第一次进局的强制教程会卡住机器人）
 	return g.mode == g.Mode.PLAY and not g.trial.active and g.demo_op == "" and not Cfg.practice_active
 
 

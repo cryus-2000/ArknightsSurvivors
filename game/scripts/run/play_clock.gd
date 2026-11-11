@@ -29,7 +29,8 @@ static func steps(real_delta: float, accelerated := true) -> PackedFloat64Array:
 		return out
 	# 防「越卡越追」：先把真实帧间隔封到 MAX_STEPS × 1/60（30 fps 以下模拟略放慢），再乘倍速——
 	# 这样 2× 倍速照样是 2×（10-11 补：原写法封的是乘倍速后的时长，30 fps + 2× 时只剩约 1.25×）
-	var rd: float = real_delta if (test_legacy or not accelerated) else minf(real_delta, MAX_STEPS / 60.0)
+	# 无敌测试包 speed=N 用 Engine.time_scale 放大 real_delta，封顶也要跟着乘，否则手机 30 fps 以下倍速被封回 1×（11-11 用户：speed=2 不生效）
+	var rd: float = real_delta if (test_legacy or not accelerated) else minf(real_delta, MAX_STEPS / 60.0 * Cfg.test_speed())
 	var duration: float = rd * (current_speed() if accelerated else 1.0)
 	var count: int = maxi(1, ceili(duration / (1.0 / 60.0 if test_legacy else MAX_STEP)))
 	out.resize(count)

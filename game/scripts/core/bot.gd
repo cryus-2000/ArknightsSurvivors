@@ -48,6 +48,14 @@ var lane := ""
 const RARITY_RANK := {"升华": 4, "核心": 3, "稀有": 2, "基础": 1}
 
 
+## 冲刺请求：批跑走 autotest；无敌包自动模式（run/auto_play.gd，发行包没有 autotest）走 auto_play
+func _dash() -> void:
+	if g.autotest_sys != null:
+		g.autotest_sys.want_dash = true
+	elif g.get("auto_play") != null:
+		g.auto_play.want_dash = true
+
+
 func _init(game, p: String, seed_v: int) -> void:
 	g = game
 	profile = p if p in PROFILES else "normal"
@@ -77,7 +85,7 @@ func move(dt: float) -> Vector2:
 	if profile in ["normal", "expert", "master", "human"]:
 		var dd: Vector2 = g.duck.bot_dash(g.ppos)
 		if dd != Vector2.ZERO:
-			g.autotest_sys.want_dash = true   # 鸭爵跑得比走路快：冲刺好了就朝它冲（docs/216 §11.3）
+			_dash()   # 鸭爵跑得比走路快：冲刺好了就朝它冲（docs/216 §11.3）
 			return dd
 	match profile:
 		"afk":
@@ -319,7 +327,7 @@ func _expert_goal(p: Vector2, near: Array) -> Vector2:
 			beacon_hold = bnear
 			beacon_w = 6.0 if bd2 < 150.0 else 4.0
 		return (bnear - p).normalized() if bd2 > 40.0 else Vector2.ZERO   # 引航灯标：去光圈里站着
-	if not g.merchant.is_empty() and g.merchant.pos.distance_to(p) < 600.0 and not g.merchant.near:
+	if not g.merchant.is_empty() and g.merchant.pos.distance_to(p) < 600.0 and not g.merchant.near and not (g.auto_play != null and g.merchant.get("auto_done", false)):   # 无敌包自动模式：这个商人逛过就不再回去（11-11 用户：没钱也反复进商店）；平衡 / 批跑 auto_play 为 null 不变
 		return (g.merchant.pos - p).normalized()
 	if g.hp > g.max_hp * 0.55:
 		for bb in g.bosses:
@@ -594,7 +602,7 @@ func _move_master(_dt: float) -> Vector2:
 	if g.dash_ready() and g.dash_t <= 0.0:
 		var dd := _master_dash_dir(p, best_dir, spd, bullets, near, gap_dir)
 		if dd != Vector2.ZERO:
-			g.autotest_sys.want_dash = true
+			_dash()
 			if m_dbg:
 				m_stat.dash += 1
 			return dd
@@ -940,7 +948,7 @@ func _move_human(dt: float) -> Vector2:
 		if h_dash_at < 0.0:
 			h_dash_at = g.t + rng.randf() * 2.0 * h_tune.dash_wait
 		elif g.t >= h_dash_at:
-			g.autotest_sys.want_dash = true
+			_dash()
 			h_dash_at = -1.0
 	elif not g.dash_ready():
 		h_dash_at = -1.0

@@ -192,6 +192,7 @@ func open_browse() -> bool:
 func _intro_go() -> void:
 	if open:
 		preload("res://scripts/core/run_reload.gd").mark_stage("hunt_open")
+		load("res://scripts/core/crash_box.gd").opened("寻访")   # 闪退报告开局信息：本页开过几次寻访（docs/332 §4，查第 3 页 WASM 343）
 	intro.start("access", UM.skip_all() or (Cfg.dev_args().has("--huntshot") and not Cfg.dev_args().has("--huntrec")))   # 截图直接终态；--huntrec 录像时播
 	_intro_enter = intro.active()
 	if not _intro_enter:

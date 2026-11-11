@@ -99,6 +99,14 @@ static func apply_test_args(g) -> void:
 			for cid in a.substr(8).split(","):
 				if g.squad.add(cid) != null:
 					g.panel_ui.load_op_tex(cid)
+	# 无敌测试包网址 squad=队长,队友…：队友开局直接入队（只测试包，Cfg.test_squad）
+	var tsq := Cfg.test_squad()
+	if g.demo_op == "" and not g.trial.active and Cfg.test_speed() > 1.0:
+		Engine.time_scale = Cfg.test_speed()   # 无敌测试包网址 speed=（只测试包）；game._exit_tree 复原
+	if g.demo_op == "" and not g.trial.active:
+		for i in range(1, tsq.size()):
+			if load("res://scripts/characters/character.gd").exists(tsq[i]) and g.squad.add(tsq[i]) != null:   # run_setup 没有 Character 常量（2a89cdf03 编译错误）
+				g.panel_ui.load_op_tex(tsq[i])
 	if VisNodesR.on(g):
 		VisNodesR.apply_run(g)   # 看得见的节点开着时怪物同步加强（docs/249 §4，用户 11-05「加成给多了就加强怪物」）
 	# 测试：全队直接推进 N 个成长节点（看精英化后的技能 / 特效）

@@ -110,6 +110,9 @@ const STEM_OUT := 0.5
 const MENU_TRACKS := ["title", "archive", "deploy"]
 const MENU_FADE := 1.0       # 局外曲目互切的淡入 / 淡出速度（每秒）= 1 秒
 var menu_pos := {}           # 局外曲目 -> 淡出停下时播到的秒数
+## 商人来回接着放（11-12 用户「肉鸽大部分时候配乐是循环的」）：原来出商店战斗曲从头放，一局三个商人 = 战斗曲前奏重放三遍、来回进出时只听得到开头。
+## 进商店时记下战斗曲播到第几秒，出商店回到同一首就从那里接着放（商店里局内时间不走，接回原处）；换了别的曲目（Boss 等）就作废
+var shop_resume := {}        # {track 战斗曲名, pos 播到的秒数}
 ## 结算配乐（10-28 用户「结算的 BGM 还是老的主题曲，换成新的主题曲」）：胜 / 负都放新主题曲 title（Suno《Deep Ocean Drift》，标题页同一首），
 ## 从结算入场的黑场从头淡入；胜利原音量 2 秒淡入，失败同曲压低 SETTLE_LOSE_DB、4 秒慢淡入（这首没有分层，docs/164）。
 ## 回标题时 title 已在放，play_music 不重开、接着放，失败压的音量 2 秒回到原样。旧的 win / lose 短乐句与 win_loop / lose_loop 循环已删
@@ -581,9 +584,16 @@ func play_music(tname: String) -> void:
 	elif MENU_TRACKS.has(tname) and MENU_TRACKS.has(old):
 		pending = {}
 		_start(tname, MENU_FADE, MENU_FADE)
+	elif old == "shop" and lay.has(tname) and str(shop_resume.get("track", "")) == tname:
+		pending = {}
+		_start(tname, 0.8, 0.6, float(shop_resume.pos))   # 出商店：战斗曲接着放
 	else:
 		pending = {}
 		_start(tname, 0.8, 0.6)
+	if tname == "shop" and lay.has(old) and old.begins_with("battle"):
+		shop_resume = {"track": old, "pos": _lay_pos(old)}
+	elif tname != "shop":
+		shop_resume = {}
 
 
 ## 开播一首（乐句式从第一句开始；各层同一时刻开，保证同步）；旧曲按 old_out 淡出
@@ -1281,6 +1291,31 @@ func _free_after() -> float:
 	return 0.0 if _fast_swap_on() else FREE_AFTER
 
 
+## 商店防抖（11-11 iPhone 四 Boss 连测第 2 局 2:43 闪退：闪退前约 1 分钟商店 ↔ 战斗一每 2 秒切一次、30 多次，
+## 每次切回都重新下载 + 解码 + 混单声道（音频 35 ↔ 54 MiB 来回、JS 65 ↔ 85），iOS 的解码缓冲 / 离线渲染上下文回收跟不上）：
+## - 在商店里：上一首战斗曲不放（商店是短停留，关店就回同一首），回战斗直接用还在内存里的解码结果；
+## - 回到战斗后：商店曲再留 SHOP_LINGER 秒，期间又进商店也不重解。
+## 只有「战斗 + 商店」两首同驻（≈ 原来每次换曲那一刻的峰值，不抬高峰值）；Boss / 最终 Boss 曲在播或待播时照旧立刻放（docs/305 换 Boss 曲不两首同驻）
+## --bal=web/music_shop_hold=0 退回旧写法（tests/music_shop_flip_test 修前修后对照用）
+const SHOP_LINGER := 20.0
+var _shop_k := -1
+
+func _shop_hold(tname: String) -> bool:
+	if _shop_k < 0:
+		var cfg = get_node_or_null("/root/Cfg")
+		_shop_k = 1 if cfg == null or cfg.mobile_knob("music_shop_hold", 1.0) else 0
+	if _shop_k == 0:
+		return false
+	var nt := str(pending.get("track", ""))
+	if cur_track == "boss" or cur_track.begins_with("final") or nt == "boss" or nt.begins_with("final"):
+		return false
+	if cur_track == "shop" and tname.begins_with("battle"):
+		return true
+	if tname == "shop" and _now() - float(_last_on.get("shop", -99.0)) < SHOP_LINGER:
+		return true
+	return false
+
+
 func _fast_swap_on() -> bool:
 	if _swap_fast < 0:
 		var cfg = get_node_or_null("/root/Cfg")
@@ -1293,6 +1328,8 @@ func _maybe_free(tname: String) -> void:
 		_last_on[tname] = _now()
 		return
 	if _freed.has(tname) or _next.has(tname) or tname == after_stinger or cur_track == "" or _now() - float(_last_on.get(tname, -99.0)) < _free_after():
+		return
+	if _shop_hold(tname):
 		return
 	if _wm_free(tname):
 		_freed[tname] = true
@@ -1853,7 +1890,8 @@ func _wm_sync() -> void:
 			var ls: float = SHOP_LOOP if w.track == "shop" else 0.0
 			if ln > 0.0 and pos >= ln:
 				pos = ls + fposmod(pos - ls, maxf(ln - ls, 0.1))
-			plays.append([k, _wm_url(w.name), maxf(pos, 0.0), ls, ln, g])
+			# 末项：AAC 编码器前置的预滚秒数（web_music.py 记）。浏览器解码没去掉预滚时 JS 按它平移循环点，否则每圈有约 32 ms 空档 + 跳接
+			plays.append([k, _wm_url(w.name), maxf(pos, 0.0), ls, ln, g, float(_wm.get(w.name, {}).get("pre", 0.0))])
 			w.on = true
 			w.g = g
 		elif not pl.playing and w.on:

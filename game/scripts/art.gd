@@ -10,6 +10,51 @@ static var outrun_track := false
 ## 崩溃前快照（core/crash_box.gd）：进缓存的贴图累计张数与最近几张名字
 static var load_n := 0
 static var recent_loads := PackedStringArray()
+## 上传记账（11-11 docs/332 §4，闪退报告用）：新读入 / 新建贴图按「宽 × 高 × 4」累计字节（白剪影网页按 2 字节），crash_box 每次采样取差；
+## up_max 本局最大单张（crash_box.begin 清零；原来整页累计，标题 / 图鉴 / 上一局读过的大图也算进来，11-11 iPhone 报告因此把浊心斯卡蒂、艾丽妮的图记到别的编队头上）；
+## up_owner 本局干员专属特效（fx_owner）按干员累计字节，报告里核对有没有读编队外的；big_ev 是 ≥ BIG_EV_B 的读入 / 释放，crash_box 采样时取走写进事件日志。只做整数累加，不读像素
+const BIG_EV_B := 524288
+static var up_bytes := 0
+static var up_max := {}
+static var up_owner := {}
+static var big_ev: Array = []
+
+
+static func note_up(name: String, t: Texture2D, bpp := 4) -> void:
+	if t == null:
+		return
+	var w := t.get_width()
+	var h := t.get_height()
+	var b := w * h * bpp
+	up_bytes += b
+	if b > int(up_max.get("b", 0)):
+		up_max = {"n": name, "w": w, "h": h, "b": b}
+	var ow := fx_owner(name)
+	if ow != "":
+		up_owner[ow] = int(up_owner.get(ow, 0)) + b
+	if b >= BIG_EV_B:
+		big_ev.append([name, w, h, b, true])
+		if big_ev.size() > 40:
+			big_ev.pop_front()
+		if _upbig < 0:
+			_upbig = 1 if (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--upbig") else 0
+		if _upbig == 1:   # 测试：大图读入时打一行（当时的场景 / 阶段），查编队外特效是谁读的（docs/332 §4）
+			var ml := Engine.get_main_loop()
+			var sc = (ml as SceneTree).current_scene if ml is SceneTree else null
+			print("PF UPBIG %s %dx%d scene=%s phase=%s" % [name, w, h, str(sc.name) if sc != null else "?", str(JavaScriptBridge.eval("window.__syPhase||''", true)) if OS.has_feature("web") else ""])
+
+
+static var _upbig := -1
+
+
+static func note_drop(name: String, t, bpp := 4) -> void:
+	if not (t is Texture2D):
+		return
+	var b: int = (t as Texture2D).get_width() * (t as Texture2D).get_height() * bpp
+	if b >= BIG_EV_B:
+		big_ev.append([name, (t as Texture2D).get_width(), (t as Texture2D).get_height(), b, false])
+		if big_ev.size() > 40:
+			big_ev.pop_front()
 static var _ml := -1          # --memlive（网页测量）：每读一张贴图量一次堆里在用的 MB 与容量，涨了就打印（docs/319 §15）
 static var _ml_live := 0
 static var _ml_cap := 0
@@ -470,6 +515,7 @@ static func tex(name: String, keep_cached := true) -> Texture2D:
 			_hires_rid[t.get_rid()] = density
 			_name_rid[t.get_rid()] = name
 		_cache[name] = t
+		note_up(name, t)
 		load_n += 1
 		if _ml != 0:
 			memlive(name)
@@ -480,6 +526,7 @@ static func tex(name: String, keep_cached := true) -> Texture2D:
 			_outrun[name] = true
 	elif t != null:
 		t.set_meta(&"_ui_density", density)
+		note_up(name, t)
 	return t
 
 
@@ -919,7 +966,11 @@ static var _white_cache := {}   # 原贴图 instance id → 白色剪影（10-21
 static func uncache(name: String) -> void:
 	var t = _cache.get(name)
 	if t is Texture2D:
+		var wt = _white_cache.get(t.get_instance_id())
+		if wt != null:
+			note_drop("白:" + name, wt, 2 if OS.has_feature("web") else 4)
 		_white_cache.erase(t.get_instance_id())
+		note_drop(name, t)
 	_cache.erase(name)
 
 
@@ -974,6 +1025,9 @@ static func drop_new(pre: Dictionary) -> int:
 ## 白剪影释放（game._white_release）：从缓存里拿掉，贴图在没人引用后释放
 static func white_drop(src: Texture2D) -> void:
 	if src != null:
+		var wt = _white_cache.get(src.get_instance_id())
+		if wt != null:
+			note_drop("白:" + str(_name_rid.get(src.get_rid(), "?")), wt, 2 if OS.has_feature("web") else 4)
 		_white_cache.erase(src.get_instance_id())
 
 
@@ -1002,6 +1056,7 @@ static func white_of(src: Texture2D) -> Texture2D:
 	var w := ImageTexture.create_from_image(img)
 	_hires_rid[w.get_rid()] = hires_of(src)
 	_white_cache[wk] = w
+	note_up("白:" + str(_name_rid.get(src.get_rid(), "?")), w, 2 if compact else 4)
 	return w
 
 
@@ -1108,10 +1163,14 @@ const OP_FX := {
 	"texas": ["texas", "ult_texas"], "exusiai": ["exusiai", "ult_exusiai"], "kaltsit": ["mon3tr", "ult_kaltsit"],
 }
 static var _fx_tok := {}
+## 前缀是 ul_ 但多人共用的地裂 / 碎石 / 尘墙（星熊、斯卡蒂终结技、推进之王连携、升级特效 levelup_v2 等都在用）：算公共，开局照读。
+## 原来归到乌尔比安：手机网页编队里没有他时这几张延后、局中用到才补读，性能报告「本局干员特效读入」里就出现编队外的乌尔比安 0.2 MiB（11-12 四 Boss 连测第 2 / 4 局）
+const SHARED_FX := {"fx_ul_crack_line": true, "fx_ul_crack_fork": true, "fx_ul_crack_fork2": true, "fx_ul_crack_fork3": true, "fx_ul_crack_fork4": true,
+	"fx_ul_rock": true, "fx_ul_rock2": true, "fx_ul_dust_ring": true, "fx_ul_dust_wall": true}
 
 ## 帧条名 → 所属干员 id（不是干员专属特效时为 ""）
 static func fx_owner(n: String) -> String:
-	if not (n.begins_with("fx_") or n.begins_with("proj_")):
+	if not (n.begins_with("fx_") or n.begins_with("proj_")) or SHARED_FX.has(n):
 		return ""
 	if _fx_tok.is_empty():
 		for cid in OP_FX:

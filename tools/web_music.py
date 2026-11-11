@@ -20,6 +20,9 @@ import re
 LONG_MIN = 30.0
 OVERLAY_LAYER = re.compile(r"^suno_battle\d_(pulse|drive)$")
 SKIP = {"opening", "boss_in", "boss_down"}
+# 二阶段预混：p2 层名 -> 底层 p1 名 / 输出名（url 与 tools/web/web_music.js 的 PAIRS 一致）。只做结局一偏执泡影：其余三首结局 Boss 各 +1.6 MB，Toy 包 50 MB 线放不下——那三首在 web_music.js 里运行时混（PAIRS mix: null，11-12 docs/319 §24）
+PREMIX_P2 = {"suno_final_p2": "suno_final_p1"}
+PREMIX_P2_OUT = {"suno_final_p2": "suno_final_p12_mono"}
 
 
 def _ffmpeg():
@@ -34,6 +37,7 @@ def externalize(gamedir, outdir):
     os.makedirs(odir, exist_ok=True)
     meta = {}
     n = before = after = 0
+    done = []
     ff = _ffmpeg()
     for f in sorted(os.listdir(mdir)):
         if not f.endswith(".ogg"):
@@ -62,10 +66,33 @@ def externalize(gamedir, outdir):
                 subprocess.run([ff, "-v", "error", "-y", "-i", w, "-af", "pan=mono|c0=0.5*c0+0.5*c1",
                                 "-c:a", "aac", "-b:a", "%dk" % kbps, "-movflags", "+faststart", mobile], check=True)
                 after += os.path.getsize(mobile)
-        meta[name] = {"len": round(dur, 6), "url": "music_%s.m4a" % name}
+        # 偏执泡影二阶段（11-11 docs/332 §2）：手机二阶段原来 p1 + p2 两份单声道缓冲同驻（配乐 19 → 37 MB）。另存 p1 + p2 的单声道预混，
+        # web_music.js 在二阶段放它、把 p1 交叉淡出后释放。同采样率同编码器，AAC 起始延迟与 p1 一致，样本级对齐；单声道码率 × 0.65（同战斗加层）
+        if name in PREMIX_P2:
+            bp = os.path.join(mdir, PREMIX_P2[name] + ".ogg")
+            xb, srb = sf.read(bp, dtype="float32")
+            xa = x.mean(1) if x.ndim == 2 else x
+            xb = xb.mean(1) if xb.ndim == 2 else xb
+            assert srb == sr and abs(len(xb) - len(xa)) <= 1, "预混两层长度 / 采样率不一致：%s" % name
+            n2 = min(len(xa), len(xb))
+            mix = xa[:n2] + xb[:n2]
+            pk = float(abs(mix).max())
+            if pk > 0.999:
+                mix *= 0.999 / pk   # 防削波（偏执泡影实测峰值 0.986，不会触发）
+            mo = os.path.join(odir, "music_%s.m4a" % PREMIX_P2_OUT[name])
+            with tempfile.TemporaryDirectory() as td:
+                w = os.path.join(td, "m.wav")
+                sf.write(w, mix, sr, subtype="FLOAT")
+                subprocess.run([ff, "-v", "error", "-y", "-i", w, "-c:a", "aac", "-b:a", "%dk" % max(24, int(round(kbps * 0.65))),
+                                "-movflags", "+faststart", mo], check=True)
+            after += os.path.getsize(mo)
+        # pre：AAC 编码器前置预滚（1024 样本）秒数。web_music.js 解码后据此判断浏览器有没有去掉预滚，没去掉就平移循环点（11-12 配乐循环验收）
+        meta[name] = {"len": round(dur, 6), "url": "music_%s.m4a" % name, "pre": round(1024.0 / sr, 6)}
         n += 1
         before += size
         after += os.path.getsize(o)
+        done.append(f)
+    for f in done:   # 全部处理完再删：预混要读 p2 之前的 p1 原文件
         for g in (f, f + ".import"):
             gp = os.path.join(mdir, g)
             if os.path.exists(gp):

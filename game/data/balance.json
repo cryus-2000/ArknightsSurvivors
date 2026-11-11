@@ -277,6 +277,8 @@
   "horde_fixed_1": 225,
   "horde_fixed_2": 300,
   "horde_fixed_3": 375,
+  "horde_min_gap": 50,
+  "_horde_min_gap": "任意两波大群之间至少隔这么多秒，过点的顺延（docs/331 §8，11-11）：3:30 中期 Boss 倒下后挂起的 225 / 300 秒两波固定大群原来 23 秒内连着放出、撞上 280 秒换池，是 4:40–5:00 的波峰；0 = 关",
   "horde_fixed_hunt_1": 0,
   "horde_fixed_hunt_2": 1,
   "horde_fixed_hunt_3": 1,
@@ -523,7 +525,7 @@
   "mid_boss_rate": 0.5,
   "mid_boss_cap_mult": 0.6,
   "mid_release_delay": 6,
-  "mid_release_gap": 5,
+  "mid_release_gap": 10,
   "_mid_soften": "中期 Boss 在场时普通怪按 50% 收敛（用户 10-29 定刷怪速率 50%，协调人：之前试做「太难」的几处一并减半）：本级新种类（高阶）权重 × mid_fresh_w、进化体概率 × mid_evo_mult、伤害 × mid_mob_dmg（只作用于这段时间刷出的普通怪）、刷怪点离 Boss 不到 mid_boss_clear_r 换到队长另一侧。四项都设 1 / 0 = 只减速率",
   "mid_fresh_w": 0.5,
   "mid_evo_mult": 0.5,
@@ -553,7 +555,7 @@
   "path_dash_lead": 0.3,
   "carmen_snipe_k": 0.75,
   "carmen_lane_gap": 1.55,
-  "carmen_snipe_lead": 0.3,
+  "carmen_snipe_lead": 0.3, "carmen_lane_mult": 1.15, "_carmen_lane_1111": "卡门狙击单发 e.dmg × carmen_lane_mult（docs/331 §8，11-11 用户「卡门狙击伤害是应该降低」）：1.56 → 1.15（每枪约 57 → 42，占 3:30 队长生命 41% → 30%）；火线、炮身招式不动",
   "hp_final": 2.0,
   "hp_x_path": 2.9,
   "_mid_fight_len": "10-27 测试台（boss-bench）：中期 Boss 单场 20–37 秒招式放不全；按单场 45–75 秒提血：塑路者 1.6 → 2.6（37 → 约 60 秒），接潮组三只各 2.3（23–25 → 约 55 秒；假死复苏按最大生命比例，跟着放大）。tide_combo_cd1/2 配合连段冷却、tide_brk1/2 收招破绽秒数（docs/170 §4.3）",
@@ -898,7 +900,7 @@
   "_doc_comp": "难度补偿（只在 growth/late_shape 开时生效）：普通怪伤害在 comp_from → comp_to 秒平滑升到 × comp_dmg（dmg_curve.target）；所有 Boss 生命 × comp_boss_hp、伤害 × comp_boss_dmg（spawner）；boss_k = 额外弹 / 剑气 / 扩散 / 连锁打 Boss 的伤害倍率。11-05 后期诊断 B 组（docs/250）：Boss 补偿 1.4 / 1.3 / 0.5 → 1.0 / 1.0 / 0.8（几套补偿叠加后 Boss 过硬）。11-05 四开关全开胜率 m0 72.6 / m18 86.9 偏易 → 调难度第二轮 R2a：普通怪伤害 150 → 360 秒升到 × 2.0（原 240 → 420 秒 × 1.5）、Boss 伤害 × 1.2，Boss 生命不加；expert 84 局 m0 52.4% / m18 71.4%，normal 诊断中期 Boss 击破 67%、最终 54%",
   "p3_on": 0, "p3_r": 300, "p3_band": 80, "p3_far": 0.3,
   "_doc_p3": "P3（只在 growth/late_shape 开时）：终结技对普通小怪的伤害按离队长的距离衰减，≤ p3_r 全额，p3_r → p3_r + p3_band 过渡到 × p3_far；p3_on 0 = 关掉 P3 只留形状",
-  "comp_from": 150, "comp_to": 360, "comp_dmg": 2.0, "comp_boss_hp": 1.0, "comp_boss_dmg": 1.2, "boss_k": 0.8,
+  "comp_from": 180, "comp_to": 480, "comp_dmg": 2.0, "comp_boss_hp": 1.0, "comp_boss_dmg": 1.2, "boss_k": 0.8,
   "x_lane": {"logos": "multi", "lumen": "multi", "saria": "melee", "skalter": "control"}
  },
  "response": {
@@ -943,16 +945,16 @@
   "_scale_1107": "11-07 docs/307 §9：引痕者改可躲后机器人 m0 64.9 / m18 81.5 超窗口，用户定数值补偿回窗口：scale 0.76 → 1.0、mid_cut 0.22 → 0.10（加上引痕者前刺倍率 0.8 → 0.9），两个种子段合计 m0 55.1 / m18 69.3",
   "mid_from": 180,
   "mid_to": 420,
-  "knots": [[0, 12.0], [180, 19.0], [300, 23.0], [420, 27.0], [600, 30.0]]
+  "knots": [[0, 12.0], [180, 19.0], [300, 23.0], [420, 27.0], [600, 32.6], [720, 33.0]]
  },
  "duck": {
   "_doc": "鸭爵（稀有敌人，用户 11-03 批，docs/216 §11，run/duck_lord.gd）：on 1 = 开；每局两次，t1_lo–t1_hi、t2_lo–t2_hi 秒内各出现一次（对局种子定），在画面半宽 / 半高 × spawn_edge 处；spd 基础移速（队长 150、普通怪 46–72），每次被攻击加 hit_spd、持续 hit_t 秒，最多叠 hit_stack 段、总速封顶 spd_max（11-04 第二轮：高于队长走路 150、低于冲刺追速约 217 = 走路 + 冷却一到就冲刺，要冲刺才追得上；spd 105 → 130、hit_spd 14 → 25、spd_max 140 → 190、burst_spd 150 → 260、burst_t 0.45 → 0.5）；draw_scale 画面放大倍数（判定不变）；hit_gap 秒内的多次命中只算一段；每次受击另有爆发冲刺：瞬间 +burst_spd，burst_t 秒内二次缓出回落到档位（不受 spd_max 限，约多跑 20 像素；11-04 用户「被攻击后快速逃跑看不出来」，hit_spd 10 → 14）；flee_t 秒没打倒就溜走（不掉落）。生命 = enemies.json duck.hp × 普通怪时间曲线 × hp_mult。打倒必掉 1 件藏品（chest，来源 duck，同精英宝箱：core_gate、稀有加权）+ ingots 个源石锭。补偿：relic/elite_drop_chance 0.25 → 0.15（11-04 第十四批配对 m18 低出窗口 2 点后回调到 0.2，docs/216 §11.4）。",
   "on": 1,
-  "t1_lo": 180, "t1_hi": 360, "t2_lo": 480, "t2_hi": 720,
+  "t1_lo": 250, "t1_hi": 380, "t2_lo": 470, "t2_hi": 560,
   "spawn_edge": 0.85,
   "spd": 130, "hit_spd": 25, "hit_t": 2.0, "hit_stack": 4, "spd_max": 190, "hit_gap": 0.2, "burst_spd": 260, "burst_t": 0.5, "draw_scale": 1.25,
   "flee_t": 30,
-  "hp_mult": 1.0,
+  "hp_mult": 3.0, "avoid_boss": 1, "avoid_before": 5, "avoid_after": 8, "_avoid_1111": "docs/331 §9（11-11 用户「出场时间不要和 Boss 的重叠，血量稍微提上去一点，看看是不是被秒」）：窗口 180–360 / 480–720 → 250–380 / 470–560（两场 Boss 之间）；avoid_boss 1 = 出场时有 Boss 在场、Boss 倒下不到 avoid_after 秒、或下一场 Boss 会在 flee_t + avoid_before 秒内登场就顺延；hp_mult 1.0 → 3.0（改前打倒用时中位 3–4 秒、P10 约 1 秒）",
   "ingots": 6
  },
  "crate": {
@@ -1108,7 +1110,8 @@
  "atkspeed": {
   "_doc": "整条攻击条按攻速等比缩放（用户 10-25「攻速高了动作跟不上，整个攻击条一起加速」）：动作窗口 = min(帧条时长, 出手间隔 × active_ratio)，前摇 / 出手帧 / 收势、动画播放都按它等比，不再被 attack_timing.min_duration / min_rest 与水月 min_cd 卡住，实际出手频率 = 面板攻速；min_window 只是防零长度的硬下限；动画播放倍率（帧条时长 ÷ 窗口）超过 anim_k_cap 后画面隔帧抽取（动作略跳帧，出手帧一定显示），判定时间轴照样按攻速缩短；legacy_floor = 1 恢复旧 min_duration / min_rest 下限（对照用）",
   "min_window": 0.03,
-  "anim_k_cap": 3.0
+  "anim_k_cap": 3.0,
+  "hook_follow": 1
  },
  "synergy": {
   "_doc": "干员连携技（docs/160、docs/161）：on 总开关（0 = 完全不求值）；max_active 同时进行的连携条数；cd_mult 冷却倍率；dmg_mult 连携伤害倍率（云端校准用）",

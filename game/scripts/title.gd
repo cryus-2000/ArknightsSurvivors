@@ -435,6 +435,22 @@ func _ready() -> void:
 			A.mark("title_leave")
 			get_tree().change_scene_to_file.call_deferred("res://game.tscn")
 	load("res://scripts/core/run_reload.gd").mark_stage("title_ready")
+	var hold := 3.0
+	if Cfg.test_suite():
+		# 四 Boss 连测（core/god_suite.gd）：轮完了就停在汇总页不再出发；上一局没结算（闪退）先弹进度面板，30 秒后照常接着下一个 Boss
+		var GS = load("res://scripts/core/god_suite.gd")
+		if GS.done():
+			GS.show_summary()
+			hold = -1.0
+		elif GS.crash_seen():
+			GS.show_summary()
+			hold = 30.0
+	if Cfg.test_auto() and hold > 0.0:
+		# 无敌包自动模式（网址 auto=1，run/auto_play.gd）：标题页停 3 秒后自己出发（同「出发」：预热 → 载入页 → 进局），用户不用点
+		get_tree().create_timer(hold).timeout.connect(func():
+			if is_inside_tree() and leaving < 0.0 and not auto_go:
+				_prewarm()
+				leaving = 0.0)
 
 
 ## 法线图预热（art.gd）：标题页一打开就在后台线程把本局要用的法线图算好 / 读缓存；出发时再调一次（设置里刚打开法线光照的情况）
@@ -1099,6 +1115,9 @@ func _op_ids() -> Array:
 	for a in Cfg.dev_args():
 		if a.begins_with("--squad="):
 			ids.append_array(a.substr(8).split(","))
+	var tsq := Cfg.test_squad()
+	if tsq.size() > 0:
+		ids = Array(tsq)   # 无敌测试包网址 squad=（只测试包）
 	return ids.filter(func(c): return Character.exists(str(c)))
 
 

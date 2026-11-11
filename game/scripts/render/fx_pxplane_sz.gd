@@ -295,11 +295,83 @@ func _aura_quads(ring: Array, px: float) -> Array:
 
 
 func _aura_px(R: int, bt: int, mode: int) -> Array:
-	var key: String = "%d:%d:%d" % [R, bt, mode]
+	# 11-11 docs/332 §3：常态 / 暖光（mode 0 / 1）走预计算采样表的快速版（_aura_ring01），不再逐点 cos / sin、Vector2i 字典去重，结果与 aura_ring 逐项相同；
+	# 常态只随旋转格 (bt / 2) % 64 变，键按它取（原来按 bt，每拍都重算，一半算出来一模一样）。迷雾（mode 2）照旧。--wdold=32 / --wdab=N:32 退回
+	var fast: bool = mode <= 1 and g.world != null and g.world.wd_new(32)
+	var key: String
+	if fast:
+		key = ("%d:r%d:0" % [R, (bt / 2) % 64]) if mode == 0 else ("%d:r%d:%d:1" % [R, (bt / 2) % 64, (bt / 3) % 3])
+	else:
+		key = "%d:%d:%d" % [R, bt, mode]
 	if key != _ring_key:
 		_ring_key = key
-		_ring_px = aura_ring(R, bt, mode)
+		_ring_px = _aura_ring01(R, bt, mode) if fast else aura_ring(R, bt, mode)
 	return _ring_px
+
+
+var _r0_R := -1
+var _r0_tt: Array = []              # 采样点角度 t，与 aura_ring 同式算出（GDScript float 是 64 位，PackedFloat32 会丢精度，所以用 Array）
+var _r0_id := PackedInt32Array()    # 采样点 → 外圈像素格编号（去重用，外圈 / 内圈共用一套编号，同 aura_ring 的 seen）
+var _r0_id2 := PackedInt32Array()   # 采样点 → 内圈（R − 1）像素格编号
+var _r0_xy: Array = []              # 像素格编号 → [x, y]
+
+
+## aura_ring(R, bt, mode) 在 mode 0 / 1 的同结果快速版：同一 R 只建一次采样表；逐帧只做「是否在亮段」与按格去重（PackedByteArray），次序 / 取色与原式相同
+func _aura_ring01(R: int, bt: int, mode: int) -> Array:
+	var n: int = maxi(24, int(R * 6.4))
+	if R != _r0_R:
+		_r0_R = R
+		_r0_tt = []
+		_r0_id = PackedInt32Array()
+		_r0_id2 = PackedInt32Array()
+		_r0_xy = []
+		var ids := {}
+		for q in n:
+			var t: float = float(q) / float(n) * TAU
+			var k1 := Vector2i(int(roundf(R * cos(t))), int(roundf(R * sin(t) * SQ)))
+			var k2 := Vector2i(int(roundf((R - 1) * cos(t))), int(roundf((R - 1) * sin(t) * SQ)))
+			for kk in [k1, k2]:
+				if not ids.has(kk):
+					ids[kk] = _r0_xy.size()
+					_r0_xy.append([kk.x, kk.y])
+			_r0_tt.append(t)
+			_r0_id.append(int(ids[k1]))
+			_r0_id2.append(int(ids[k2]))
+	var out: Array = []
+	var rot: float = float((bt / 2) % 64) / 64.0 * TAU / 12.0
+	var duty: float = [0.42, 0.62, 0.66][mode]
+	var seen := PackedByteArray()
+	seen.resize(_r0_xy.size())
+	for q in n:
+		var seg: float = fposmod(float(_r0_tt[q]) - rot, TAU / 12.0) / (TAU / 12.0)
+		if seg > duty:
+			continue
+		var id: int = _r0_id[q]
+		if seen[id] != 0:
+			continue
+		seen[id] = 1
+		var xy: Array = _r0_xy[id]
+		var c: Color
+		if mode == 0:
+			c = F[2] if seg < duty * 0.7 else F[1]
+		else:
+			c = F[4] if seg < duty * 0.25 else (F[3] if seg < duty * 0.75 else F[2])
+		out.append([xy[0], xy[1], c])
+		if mode >= 1 and seg < duty * 0.75:
+			var id2: int = _r0_id2[q]
+			if seen[id2] == 0:
+				seen[id2] = 1
+				var xy2: Array = _r0_xy[id2]
+				out.append([xy2[0], xy2[1], F[1]])
+	if mode == 1:
+		var r2: float = R * 0.86
+		var m: int = maxi(12, int(r2 * 1.6))
+		for q in m:
+			if (q + bt / 3) % 3 != 0:
+				continue
+			var t2: float = float(q) / float(m) * TAU - rot * 0.5
+			out.append([int(roundf(r2 * cos(t2))), int(roundf(r2 * sin(t2) * SQ)), P[2]])
+	return out
 
 
 ## 排序项：九尾、绕身狐火、狐火弹、大狐火、附着火、拖尾、光域边火、传火线、连携狐火

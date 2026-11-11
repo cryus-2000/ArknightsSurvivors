@@ -16,6 +16,9 @@ const Game = preload("res://scripts/game.gd")
 const CrashBox = preload("res://scripts/core/crash_box.gd")
 const PerfContext = preload("res://scripts/core/perf_context.gd")
 const RunReload = preload("res://scripts/core/run_reload.gd")
+## 四 Boss 连测脚本只在无敌包里（发行包 exclude_filter 不带 god_suite.gd），所以不能静态 preload；只在 suite 为真（Cfg.test_suite）时运行时加载
+static func _gs():
+	return load("res://scripts/core/god_suite.gd") if Cfg.test_suite() else null
 
 const KEEP := 5
 const BUCKET_MS := 0.5
@@ -51,6 +54,15 @@ var _sec_t0 := 0
 var _sec_n := 0
 var _sec_late := false
 var _mem_t := MEM_EVERY
+## 最终 Boss 战段（g.final_boss 在场且没死）：帧时分桶、最差 1 秒、内存 / WASM 峰值（11-11 四 Boss 连测要分段看）
+var h_boss := PackedInt32Array()
+var min_boss := 0.0
+var boss_t0 := -1.0
+var boss_t1 := -1.0
+var mem_boss := 0.0
+var wasm_boss := 0.0
+var wasm_max := 0.0
+var _sec_boss := false
 
 
 func _init(game: Game) -> void:
@@ -58,6 +70,7 @@ func _init(game: Game) -> void:
 	on = Cfg.dev_args().is_empty() or Cfg.dev_args().has("--perfreport")
 	h_all.resize(NB + 1)
 	h_late.resize(NB + 1)
+	h_boss.resize(NB + 1)
 
 
 ## 每帧（game._process）：只加计数
@@ -81,6 +94,13 @@ func tick(delta: float) -> void:
 	h_all[b] += 1
 	if late:
 		h_late[b] += 1
+	var fb = g.final_boss
+	var bossing: bool = fb != null and not fb.dead
+	if bossing:
+		h_boss[b] += 1
+		if boss_t0 < 0.0:
+			boss_t0 = g.t
+		boss_t1 = g.t
 	# 最低 1 秒帧率（真实时间）
 	if _sec_t0 == 0:
 		_sec_begin(now, late)
@@ -91,8 +111,11 @@ func tick(delta: float) -> void:
 		min_all = fps if min_all <= 0.0 else minf(min_all, fps)
 		if _sec_late:
 			min_late = fps if min_late <= 0.0 else minf(min_late, fps)
+		if _sec_boss and bossing:
+			min_boss = fps if min_boss <= 0.0 else minf(min_boss, fps)
 		_sec_end(fps)
 		_sec_begin(now, late)
+		_sec_boss = bossing
 	if bool(g.get("slow_mode")):
 		slow_s += delta
 	if g.enemies.size() > enemy_peak:
@@ -102,6 +125,14 @@ func tick(delta: float) -> void:
 	if _mem_t >= MEM_EVERY:
 		_mem_t = 0.0
 		var m := mem_mb()
+		if bossing:
+			mem_boss = maxf(mem_boss, m)
+		if OS.has_feature("web"):
+			var wc = JavaScriptBridge.eval("window.__syWasm && window.__syWasm.buffer.byteLength", true)
+			if wc != null:
+				wasm_max = maxf(wasm_max, float(wc) / 1048576.0)
+				if bossing:
+					wasm_boss = maxf(wasm_boss, float(wc) / 1048576.0)
 		if m > mem_peak:
 			mem_peak = m
 			mem_mix = _mem_mix()
@@ -226,10 +257,18 @@ static func _count(h: PackedInt32Array) -> int:
 func finish(result: String) -> void:
 	if Cfg.dev_args().has("--perfreport"):
 		print("PERFREPORT finish result=%s on=%s done=%s frames=%d t=%.1f" % [result, str(on), str(done), _count(h_all), g.t])
-	if not on or done or g.demo_op != "" or g.trial.active:
+	if g.demo_op != "" or g.trial.active:
+		return
+	var suite: bool = g.auto_play != null and Cfg.test_suite()
+	if not on or done:
+		if suite and not done:
+			done = true
+			_gs().run_done(g, {}, result)   # 连测：性能报告没开也要推进进度
 		return
 	done = true
 	if (result == "quit" and g.t < 30.0) or _count(h_all) == 0:
+		if suite:
+			_gs().run_done(g, {}, result)
 		return
 	var rec := {
 		"time": Time.get_datetime_string_from_system(false, true),
@@ -245,8 +284,13 @@ func finish(result: String) -> void:
 		"web_at_peak": web_at_peak, "mem_peak": snappedf(mem_peak, 1.0), "mem_src": "显存 + 音频估算" if OS.has_feature("web") else "引擎内存 + 显存",
 		"enemy_peak": enemy_peak, "guard": guard_hit or Cfg.guard_lowered, "slow_n": slow_n, "slow_s": snappedf(slow_s, 1.0),
 		"q0": q0, "guard_stage": guard_stage, "enemy_mix": enemy_mix, "mem_mix": mem_mix, "slow": slow,
+		"wasm_max": snappedf(wasm_max, 0.1),
+		"boss_seg": {} if _count(h_boss) == 0 else {"t0": snappedf(boss_t0, 1.0), "len": snappedf(boss_t1 - boss_t0, 1.0), "frames": _count(h_boss),
+			"p50": pct(h_boss, 0.5), "p95": pct(h_boss, 0.95), "p99": pct(h_boss, 0.99), "min1s": snappedf(min_boss, 0.1),
+			"mem_peak": snappedf(mem_boss, 1.0), "wasm_max": snappedf(wasm_boss, 0.1)},
 	}
 	rec.merge(CrashBox.report_context(g))
+	rec.merge(CrashBox.up_summary())   # 每秒上传峰值 + 最大单张（docs/332 §4，正常结算也留）
 	rec.context = g.perf_context.snapshot(g)
 	rec.run_id = RunReload.run_identity()
 	rec.journey_at_finish = RunReload.journey_snapshot(rec.run_id)
@@ -256,6 +300,8 @@ func finish(result: String) -> void:
 	var all := load_all().duplicate()
 	all.push_front(rec)
 	save_all(all.slice(0, KEEP))
+	if suite:
+		_gs().run_done(g, rec, result)
 
 
 ## 设备信息：网页取 UA、屏幕、devicePixelRatio、deviceMemory、CPU 核数；桌面取系统、型号、处理器、显卡、屏幕、内存
@@ -336,6 +382,13 @@ static func device_line(d: Dictionary) -> String:
 			if ua.contains(k):
 				br = {"CriOS": "Chrome", "EdgiOS": "Edge", "FxiOS": "Firefox", "Edg/": "Edge", "Chrome/": "Chrome", "Firefox/": "Firefox", "Version/": "Safari"}[k]
 				break
+		# App 内置 WebView（11-12 四 Boss 连测在 B站 App 里跑，报告却写「Safari」：缺省值；iOS WKWebView 的 UA 没有 Version/ 也没有 Safari/）
+		var ios := ua.contains("iPhone") or ua.contains("iPad")
+		var wv := "iOS WebView" if ios else ("Android WebView" if ua.contains("Android") else "WebView")
+		if RegEx.create_from_string("(?i)BiliApp|bili-universal|bili-|bilibili").search(ua) != null:
+			br = "B站 App（%s）" % wv
+		elif ios and br == "Safari" and not ua.contains("Safari/"):
+			br = wv
 		var mem: String = "" if float(d.get("mem", 0)) <= 0.0 else " · 内存约 %s GB" % str(d.mem)
 		var draw_size := ""
 		if int(d.get("glw", 0)) > 0 and int(d.get("glh", 0)) > 0:
@@ -366,7 +419,7 @@ static func slow_line(s: Array) -> String:
 static func report_text(r: Dictionary) -> String:
 	var lines := [
 		"方舟幸存者 · 性能报告",
-		"版本 %s（%s）· %s" % [str(r.get("version", "")), str(r.get("commit", "")), str(r.get("time", "")).replace("T", " ")],
+		"版本 %s（%s）%s· %s" % [str(r.get("version", "")), str(r.get("commit", "")), (("· 无敌测试包 " + ("×%s 倍速 " % str(Cfg.test_speed()) if Cfg.test_speed() > 1.0 else "")) if _build().get("test_god", false) == true else ""), str(r.get("time", "")).replace("T", " ")],
 		"设备 " + device_line(r.get("device", {})),
 		quality_line(r),
 		"本局 %s · %s" % [_mmss(float(r.get("len", 0))), RESULT_NAME.get(str(r.get("result", "")), str(r.get("result", "")))],
@@ -377,7 +430,11 @@ static func report_text(r: Dictionary) -> String:
 	lines.append("内存峰值 %d MB（%s）· 同屏敌人峰值 %d · 内存护栏 %s" % [int(r.get("mem_peak", 0)), str(r.get("mem_src", "")), int(r.get("enemy_peak", 0)), "已触发" if r.get("guard", false) else "未触发"])
 	var wp: Dictionary = r.get("web_at_peak", {})
 	if wp.has("wasm_mib"):
-		lines.append("同次采样 %s · WASM 堆容量 %.1f MiB" % [_mmss(float(wp.t)), float(wp.wasm_mib)])
+		lines.append("同次采样 %s · WASM 堆容量 %.1f MiB%s" % [_mmss(float(wp.t)), float(wp.wasm_mib), (" · 本局 WASM 最大 %.1f MiB" % float(r.wasm_max)) if float(r.get("wasm_max", 0)) > 0.0 else ""])
+	var bs: Dictionary = r.get("boss_seg", {})
+	if not bs.is_empty():
+		lines.append("最终 Boss 战 %s 起共 %s · %s · 内存峰值 %d MB%s" % [_mmss(float(bs.get("t0", 0))), _mmss(float(bs.get("len", 0))), frame_line(bs), int(bs.get("mem_peak", 0)),
+			(" · WASM %.1f MiB" % float(bs.wasm_max)) if float(bs.get("wasm_max", 0)) > 0.0 else ""])
 	if r.has("slow_n"):
 		lines.append("掉帧档（手机：界面隔帧 + 同屏上限 50）：进档 %d 次，共 %d 秒" % [int(r.slow_n), int(r.get("slow_s", 0))] if int(r.slow_n) > 0 else "掉帧档：未进档")
 	if r.has("q0"):   # 10-27 加的字段（旧记录没有）
@@ -392,6 +449,7 @@ static func report_text(r: Dictionary) -> String:
 			lines.append("最慢 %d 秒 " % sl.size() + "；".join(PackedStringArray(parts)))
 	lines.append_array(PerfContext.lines(r.get("context", {})))
 	lines.append_array(CrashBox.snapshot_lines(r))
+	lines.append_array(CrashBox.up_lines(r))
 	lines.append_array(RunReload.journey_lines(r.get("run_id", {}), r.get("journey_at_finish", {})))
 	return "\n".join(PackedStringArray(lines))
 

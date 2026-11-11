@@ -1173,6 +1173,105 @@ func note_real(list_name: String, id: String) -> void:
 		save()
 
 
+## 无敌测试包（11-10 用户：iPhone 真机要打到 10 分钟终局验内存，普通打法到不了）：export_web.py --god 往 build.json 写 test_god=true；
+## 调试版另认 --god。队长生命归零时回满，不进结算。正式包（没有这个键）恒为 false。
+var _god := -1
+func test_god() -> bool:
+	if _god < 0:
+		var info = JSON.parse_string(FileAccess.get_file_as_string("res://data/build.json"))
+		_god = 1 if dev_args().has("--god") or (info is Dictionary and info.get("test_god", false) == true) else 0
+	return _god == 1
+
+
+## 无敌测试包专用：网址参数 squad=队长,队友,队友 指定开局编队（iPhone 压力测试，用户没法自己选队友）。
+## 只在 test_god 包的网页上生效；正式包恒为空。第一个是队长，其余开局直接入队。
+## 无敌测试包专用：网址参数 speed=N（1–4）局内倍速，压力测试少花真实时间。正式包恒为 1。
+var _tspd := -1.0
+func test_speed() -> float:
+	if _tspd < 0.0:
+		_tspd = 1.0
+		for a in dev_args():
+			if a.begins_with("--testspeed=") and test_god():
+				_tspd = clampf(float(a.substr(12)), 1.0, 4.0)   # 调试版 / 测量副本同网址 speed=
+		if _tspd == 1.0 and test_god() and OS.has_feature("web"):
+			var s = JavaScriptBridge.eval("(function(){try{return new URLSearchParams(location.search).get('speed')||''}catch(e){return ''}})()", true)
+			if s is String and s.is_valid_float():
+				_tspd = clampf(float(s), 1.0, 4.0)
+	return _tspd
+
+
+## 无敌测试包专用：网址参数 auto=1 自动模式（机器人玩到结算，run/auto_play.gd）、loop=1 结算后自动再来一局；调试版另认 --autoplay / --autoloop。正式包恒为 false
+var _tauto := -1
+var _tloop := -1
+func test_auto() -> bool:
+	if _tauto < 0:
+		_tauto = 1 if test_god() and (test_suite() or dev_args().has("--autoplay") or (OS.has_feature("web") and _url_flag("auto"))) else 0
+	return _tauto == 1
+
+
+func test_loop() -> bool:
+	if _tloop < 0:
+		_tloop = 1 if test_auto() and (test_suite() or dev_args().has("--autoloop") or (OS.has_feature("web") and _url_flag("loop"))) else 0
+	return _tloop == 1
+
+
+## 无敌测试包专用：网址 boss=all 或 suite=1 四个最终 Boss 连测（core/god_suite.gd：auto + loop，一局一个 Boss，轮完停在汇总页）；
+## 调试版另认 --testsuite（--testsuite=new 清掉旧进度）。正式包恒为 false
+var _tsuite := -1
+func test_suite() -> bool:
+	if _tsuite < 0:
+		_tsuite = 0
+		if test_god():
+			for a in dev_args():
+				if a == "--testsuite" or a == "--testsuite=new":
+					_tsuite = 1
+			if _tsuite == 0 and OS.has_feature("web"):
+				var s = JavaScriptBridge.eval("(function(){try{var q=new URLSearchParams(location.search);return (q.get('boss')||'')+'|'+(q.get('suite')||'')}catch(e){return '|'}})()", true)
+				var v: PackedStringArray = str(s).split("|") if s is String else PackedStringArray(["", ""])
+				_tsuite = 1 if v[0].strip_edges().to_lower() == "all" or (v.size() > 1 and (v[1] == "1" or v[1] == "true")) else 0
+	return _tsuite == 1
+
+
+## 无敌测试包专用：网址参数 boss=paranoia|ishar|izumik|knight 强制本局最终 Boss（对应结局线 standard / deep / resolve / knight；中期 Boss 照常）。
+## endings.judge 直接返回它（结局名、终局配乐、9:30 预读跟着走），spawner._boss_group 也认。调试版另认 --testboss=<同上>。正式包恒为 ""
+const TEST_BOSS_ENDING := {"paranoia": "standard", "ishar": "deep", "izumik": "resolve", "knight": "knight"}
+var _tboss = null
+func test_boss_ending() -> String:
+	if test_suite():
+		return load("res://scripts/core/god_suite.gd").cur_ending()   # 连测：按进度轮到哪个 Boss（同页重开也要变，不缓存）
+	if _tboss == null:
+		_tboss = ""
+		if test_god():
+			var v := ""
+			for a in dev_args():
+				if a.begins_with("--testboss="):
+					v = a.substr(11)
+			if v == "" and OS.has_feature("web"):
+				var s = JavaScriptBridge.eval("(function(){try{return new URLSearchParams(location.search).get('boss')||''}catch(e){return ''}})()", true)
+				v = str(s) if s is String else ""
+			_tboss = str(TEST_BOSS_ENDING.get(v.strip_edges().to_lower(), ""))
+	return _tboss
+
+
+func _url_flag(k: String) -> bool:
+	var s = JavaScriptBridge.eval("(function(){try{return new URLSearchParams(location.search).get('%s')||''}catch(e){return ''}})()" % k, true)
+	return s is String and (s == "1" or s == "true")
+
+
+var _tsq = null
+func test_squad() -> PackedStringArray:
+	if _tsq == null:
+		_tsq = PackedStringArray()
+		if test_god() and OS.has_feature("web"):
+			var s = JavaScriptBridge.eval("(function(){try{return new URLSearchParams(location.search).get('squad')||''}catch(e){return ''}})()", true)
+			if s is String and s != "":
+				for c in s.split(",", false):
+					_tsq.append(c.strip_edges())
+	if _tsq.is_empty() and test_suite():
+		return load("res://scripts/core/god_suite.gd").cur_squad()   # 连测且网址没给 squad=：每局一套高负载编队（不缓存，同页重开也要换）
+	return _tsq
+
+
 ## 打包时写进 build.json 的发布对象：public / internal / diagnostic；源码运行（没打包）为 ""
 func build_audience() -> String:
 	var info = JSON.parse_string(FileAccess.get_file_as_string("res://data/build.json"))

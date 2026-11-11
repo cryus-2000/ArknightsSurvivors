@@ -91,6 +91,7 @@ def main():
     ap.add_argument("--no-web-lossy", action="store_true", help="关掉网页专用的近无损压缩（事件插画有损 WebP 0.85、音效 32 kHz 上限，docs/187 §8），对照用")
     ap.add_argument("--no-lossless", action="store_true", help="关掉无损瘦身（字体 WOFF2 + WebP 无损最高档，docs/187），对照用")
     ap.add_argument("--ea", action="store_true", help="对内网页版：build.json audience = internal（演练开、全部解锁）")
+    ap.add_argument("--god", action="store_true", help="无敌测试包：build.json test_god=true（队长生命归零回满，Cfg.test_god）；Toy zip 文件名加 _god。只给真机测内存用，不要提交审核 / 对外发布")
     ap.add_argument("--toy", action="store_true", help="B站 Toy 包：一律加载 Toy SDK、分片不带 .gz 后缀、另打 zip（缺省输出 build/toy/web）")
     a = ap.parse_args()
     if a.toy and a.out == os.path.join(ROOT, "build", "web"):
@@ -112,6 +113,20 @@ def main():
     bj = os.path.join(src, "game", "data", "build.json")
     binfo = json.load(open(bj, encoding="utf-8")) if os.path.exists(bj) else {"version": "dev"}
     binfo.update({"commit": commit, "built": datetime.datetime.now().strftime("%Y%m%d"), "audience": "internal" if a.ea else "public", "encrypted": False, "platform": "web"})
+    if a.god:
+        binfo["test_god"] = True
+        # 自动模式（网址 auto=1，run/auto_play.gd）要机器人：无敌包保留 bot.gd（正式包仍按预设剔除）
+        ep = os.path.join(src, "game", "export_presets.cfg")
+        txt = open(ep, encoding="utf-8").read()
+        txt2 = txt
+        for keep in ("scripts/core/bot.gd*", "scripts/run/auto_play.gd*", "scripts/core/god_suite.gd*"):
+            txt2 = txt2.replace(", " + keep, "").replace(keep + ", ", "")
+        if txt2 == txt:
+            sys.exit("无敌包：export_presets.cfg 里没找到 scripts/core/bot.gd* 排除项（改名了要同步）")
+        open(ep, "w", encoding="utf-8").write(txt2)
+        print("[无敌包] 保留 bot.gd / auto_play.gd / god_suite.gd（自动模式与连测）")
+    else:
+        binfo.pop("test_god", None)
     if a.ea:
         binfo["channel"] = "EA"
     else:
@@ -260,7 +275,7 @@ def main():
     if big > LIMIT:
         sys.exit("有文件超过 25 MB 上限")
     if a.toy:
-        make_toy_zip(a.out, commit)
+        make_toy_zip(a.out, commit + ("_god" if a.god else ""))
 
 
 def woff2_fonts(gpath, names):

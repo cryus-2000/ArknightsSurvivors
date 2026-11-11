@@ -16,6 +16,7 @@ var next_elite: float = Bal.v("enemy/first_elite", 60.0)   # 首只精英出现�
 var _lead_slot := 0.0   # 大群领头精英已占的精英名额（不足一个时攒着）
 var horde_warned := -1.0
 var fixed_i := 0        # 中段固定节拍大群已出到第几波（docs/150）
+var last_horde_t := -INF  # 上一波大群落地时刻（enemy/horde_min_gap 用，docs/331 §8）
 var boss_idx := 0
 var mid_used: Array = []
 ## 手机网页 Boss 预读（11-08 iPhone：3:31 中期 Boss 登场那一帧 172 ms——一次读 28 张帧条 + 建白剪影）：登场前 PF_LEAD 秒先定下是哪一组
@@ -336,6 +337,11 @@ func _boss_group(idx: int) -> Array:
 		for a in Cfg.dev_args():
 			if a.begins_with("--forceending=") and D.ENDINGS.has(a.substr(14)):
 				g.ending = a.substr(14)
+		var tb: String = Cfg.test_boss_ending()
+		if tb != "" and D.ENDINGS.has(tb):
+			g.ending = tb   # 无敌测试包网址 boss=（只测试包）：强制最终 Boss
+			if g.get("endg") != null:
+				g.endg.cur = tb   # 结局色 / 结算标题同步
 		return [D.ENDINGS[g.ending].boss]
 	var pool: Array = []
 	for i in D.MID_POOL.size():
@@ -554,6 +560,11 @@ func _update_horde(stop: bool) -> void:
 		due = maxf(due, _horde_gate)   # 中期 Boss 刚倒下：过点的那波排到放出计划的时刻
 		if boss_alive():
 			due += Bal.v("boss/horde_defer_max", 40.0)
+	# 大群最小间隔（docs/331 §8，11-11 用户「4 分钟多一点那个波峰很奇怪」）：中期 Boss 倒下后挂起的固定节拍大群会连着放出（实测 4:41 / 5:04 两波隔 23 秒），
+	# 撞上 280 秒换池；任意两波之间至少隔 enemy/horde_min_gap 秒，过点的那波顺延。0 = 关（改前行为）
+	var min_gap: float = Bal.v("enemy/horde_min_gap", 0.0)
+	if min_gap > 0.0 and not escort:
+		due = maxf(due, last_horde_t + min_gap)
 	var horde_ok: bool = (g.t < 570.0 and not stop) or escort   # 最终 Boss 战停刷时连预警也不出（护卫波除外）
 	if g.t >= due - 3.0 and horde_warned != due and horde_ok:
 		horde_warned = due
@@ -567,6 +578,7 @@ func _update_horde(stop: bool) -> void:
 				g.horde_streams.append(g.horde_gap + PI + (i - 1) * deg_to_rad(Bal.v("enemy/close_ring_spread_deg", 110.0)) + i * deg_to_rad(Bal.v("enemy/close_ring_rot", 35.0)))
 		Sfx.play("roar", -2.0, 0.55, 0.0)
 	if g.t >= due and horde_ok:
+		last_horde_t = g.t
 		if is_fixed:
 			fixed_i += 1   # 固定节拍那波：不动常规节拍
 		else:

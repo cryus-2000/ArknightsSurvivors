@@ -149,6 +149,7 @@ var hud_view = HudView.new(self)   # 界面 · 局内 HUD（hud 画布节点的 
 var world = WorldView.new(self)   # 世界绘制（2.5D）
 var telemetry = Telemetry.new(self)   # 局内数据记录（docs/40）
 var perf_context := preload("res://scripts/core/perf_context.gd").new()
+var auto_play = null   # 无敌测试包自动模式（run/auto_play.gd，网址 auto=1）：机器人玩到结算，对局仍是 Mode.PLAY
 var perf_rep = PerfReport.new(self)   # 性能报告（core/perf_report.gd；设置 → 画面 → 性能报告）
 var rng := RandomNumberGenerator.new()
 var t := 0.0
@@ -828,6 +829,12 @@ static func _deferred_start_fx(lazy: bool) -> Dictionary:
 		elif a.begins_with("--squad="):
 			for cid in a.substr(8).split(",", false):
 				ids[cid] = true
+	var tsq := Cfg.test_squad()
+	for i in tsq.size():
+		if i == 0:
+			leader = tsq[0]
+		else:
+			ids[tsq[i]] = true
 	ids[leader if Character.exists(leader) else "mizuki"] = true
 	for n in V6_FRAMES:
 		var owner := A.fx_owner(n)
@@ -1051,6 +1058,9 @@ func _white_release(delta: float, now := false) -> void:
 		keep_e = minf(keep_e, 3.0)
 	for e in enemies:
 		_white_alive[str(e.get("tex", ""))] = t
+	# 每轮（5 秒）最多放一种怪的帧条（内存护栏 now 照旧一次放完）：11-12 iPhone 骑士战 10:24 一帧 684 ms、10:48 一帧 140 ms，那一秒只有「释放帧条」——
+	# 最终阶段 3 秒就放，前十分钟的普通怪几十种在同一帧整批 uncache（贴图 + 白剪影 + 描边）。分摊到每 5 秒一种，内存照样腾出来，只是晚几十秒
+	var ev_left: int = 1000000 if now or Bal.v("web/evict_one_per_pass", 1.0) <= 0.0 else 1
 	for n in _white_alive.keys():
 		var idle := t - float(_white_alive[n])
 		if idle > keep_w and MID_BOSS_EXTRA_STRIPS.has(n) and _mid_boss_tex_in_use(n):
@@ -1062,9 +1072,12 @@ func _white_release(delta: float, now := false) -> void:
 					if tex.get(nm) != null:
 						A.white_drop(tex[nm])
 			_drop_outlines(n)
-		if idle > keep_e and _evict_on:
+		if idle > keep_e and _evict_on and ev_left > 0 and _enemy_loaded.has(n):
+			ev_left -= 1
 			_enemy_evict(n)
 			_white_alive.erase(n)
+		elif idle > keep_e and _evict_on and not _enemy_loaded.has(n):
+			_white_alive.erase(n)   # 本来就没读着（或已放过）：只清记录，不占这一轮的名额
 	_font_t += 5.0
 	if _font_t >= 60.0 and Bal.v("web/font_clear_minutely", 0.0) > 0.0:
 		_font_t = 0.0
@@ -1109,6 +1122,9 @@ func _ready() -> void:
 	trial.consume()
 	RunReload.begin_run(self)
 	CrashBox.begin(self)   # 崩溃前快照：局内每 15 秒把内存构成写进本地存储（core/crash_box.gd）
+	var AP = load("res://scripts/run/auto_play.gd") if Cfg.test_auto() else null   # 发行包不带 auto_play.gd / god_suite.gd（release_slim DEV_SCRIPTS）
+	if AP != null and AP.wanted(self):
+		auto_play = AP.new(self)
 	# 随机数最先定：招募开局干员时就会用 rng（战斗台词计时等）。以前 --seed 在 _ready 后段才生效，
 	# 开局干员的台词计时是随机的，第一句台词一出同 seed 的两局就分叉（2026-09-26 查明，docs/36）
 	var seeded := false
@@ -1160,6 +1176,9 @@ func _ready() -> void:
 	for a in Cfg.dev_args():
 		if a.begins_with("--op="):
 			Cfg.character_id = a.substr(5)
+	var tsq := Cfg.test_squad()
+	if tsq.size() > 0 and Character.exists(tsq[0]):
+		Cfg.character_id = tsq[0]   # 无敌测试包网址 squad=（只测试包）
 	if not Character.exists(Cfg.character_id):   # 正式名单 + 测试专用干员（docs/61 §测试，tests/data_ops）
 		Cfg.character_id = "mizuki"
 	A.mark("map+doctor")
@@ -1843,7 +1862,7 @@ func _process(delta: float) -> void:
 	web_fs.poll(delta)   # 网页版：局内退出全屏（多半是按了 Esc）→ 打开暂停菜单（docs/299）
 	pick.update(delta)
 	wheel.update(delta)   # 指挥圆盘：真实帧间隔（悬停 / 松开判定 / 测试计划）
-	var dt: float = min(delta, 0.05)
+	var dt: float = min(delta, 0.05 * Cfg.test_speed())   # 无敌测试包倍速：time_scale 放大了 delta，封顶同乘（正式包 test_speed 恒 1）
 	var simulated_dt := 0.0
 	if state != _last_state:
 		_last_state = state
@@ -1861,6 +1880,8 @@ func _process(delta: float) -> void:
 		res_sel = 0
 	else:
 		state_age += delta
+	if auto_play != null:
+		auto_play.step(delta)
 	if state == S.WIN or state == S.DEAD:
 		settlement.tick(delta)   # Read-only result model; recruitment now opens explicitly from the footer.
 	if demo_op == "":
@@ -2405,6 +2426,8 @@ func _update(dt: float) -> void:
 		mv = demo_sys.wander()
 	elif mode == Mode.BALANCE:
 		mv = bot.move(dt) if bot != null else autotest_sys.bot_move()
+	elif auto_play != null and state == S.PLAY:
+		mv = auto_play.move(dt)
 	elif touch.active and touch.move_vec() != Vector2.ZERO:
 		mv = touch.move_vec()
 	elif Pad.move_vec() != Vector2.ZERO:
@@ -2416,6 +2439,9 @@ func _update(dt: float) -> void:
 	move_in = mv
 	if mode == Mode.BALANCE and autotest_sys.want_dash:
 		autotest_sys.want_dash = false
+		_try_dash()
+	elif auto_play != null and auto_play.want_dash:
+		auto_play.want_dash = false
 		_try_dash()   # 普通机器人出圈回圈时冲刺（autotest.bot_move）
 	if pstun > 0.0 or root_t > 0.0 or (ult != null and ult.playing()):
 		mv = Vector2.ZERO   # 终结技播放中（ult.playing）：移动输入只给瞄准用（move_in 保留），队长原地不动
@@ -2539,6 +2565,10 @@ func _update(dt: float) -> void:
 			floor_hits += 1   # 本该死掉的次数：不死模式下的生存压力指标（docs/27 §6）
 			floor_times.append(int(t))
 		hp = maxf(hp, max_hp * 0.5)
+	if hp <= 0.0 and Cfg.test_god():
+		hp = max_hp   # 无敌测试包（Cfg.test_god）：生命归零直接回满，局照常进行到终局
+		invuln = maxf(invuln, 1.0)
+		vfx.show_banner("无敌测试 —— 生命已回满")
 	if not meta_once_heal.is_empty() and hp > 0.0 and hp < max_hp * float(meta_once_heal[0]):
 		# 认知塑造「为了生存」：每次探索一次，生命低于阈值时立即回复
 		combat.heal(max_hp * float(meta_once_heal[1]), "认知塑造")
@@ -2710,6 +2740,8 @@ var doc_face := 1.0
 
 ## 离开对局（回标题 / 关游戏）：还没记过的这一局按「中途退出」写进本地记录
 func _exit_tree() -> void:
+	if Cfg.test_speed() > 1.0:
+		Engine.time_scale = 1.0   # 无敌测试包倍速只管局内
 	intro_screen.release_transport()
 	if RenderingServer.frame_post_draw.is_connected(_cover_tick):
 		RenderingServer.frame_post_draw.disconnect(_cover_tick)
@@ -2723,6 +2755,7 @@ func _exit_tree() -> void:
 		if demo_op == "":
 			perf_rep.finish("quit")
 			CrashBox.end("quit")
+	panel_ui.release()
 	if demo_op == "":
 		_release_run()
 

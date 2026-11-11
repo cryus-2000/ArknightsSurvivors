@@ -326,7 +326,7 @@
    "rate_mult": 0.85,
    "horde_mult": 0.85,
    "cap_mult": 2.0,
-   "tier_hp": 0.6,
+   "tier_hp": 0.5,
    "tier_dmg": 0.63
   },
   {
@@ -498,8 +498,8 @@
    "rate_mult": 0.75,
    "horde_mult": 0.75,
    "cap_mult": 3.0,
-   "tier_hp": 0.45,
-   "tier_dmg": 0.54
+   "tier_hp": 0.5,
+   "tier_dmg": 0.62
   },
   {
    "name": "深蓝之树",
@@ -701,8 +701,8 @@
    "rate_mult": 0.6,
    "horde_mult": 0.55,
    "cap_mult": 5.0,
-   "tier_hp": 0.35,
-   "tier_dmg": 0.45
+   "tier_hp": 0.42,
+   "tier_dmg": 0.7
   }
  ],
  "boss_times": [

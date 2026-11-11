@@ -1,0 +1,252 @@
+{
+ "_doc": "tools/desc_value_audit.py 的人工核过表（docs/335 §2）：说明里的数不在本条数据里、但已核对等于代码 / balance.json 实际值。改了对应代码要同步改说明和这里。",
+ "7": {
+  "nums": [
+   15
+  ],
+  "src": "stat_defs.gd shield_interval base 15"
+ },
+ "24": {
+  "nums": [
+   10
+  ],
+  "src": "relic_fx.gd rebate per 10 spent"
+ },
+ "56": {
+  "nums": [
+   1.25
+  ],
+  "src": "vis_growth.gd 1+crowd 0.25"
+ },
+ "59": {
+  "nums": [
+   0.08
+  ],
+  "src": "balance vgrowth/burst_gap"
+ },
+ "63": {
+  "nums": [
+   1.6
+  ],
+  "src": "balance vgrowth/qi_range"
+ },
+ "95": {
+  "nums": [
+   700,
+   9
+  ],
+  "src": "relic_fx.gd 18*dot_mult/s r700"
+ },
+ "96": {
+  "nums": [
+   700,
+   12.6
+  ],
+  "src": "relic_fx.gd 18*dot_mult/s r700"
+ },
+ "100": {
+  "nums": [
+   140
+  ],
+  "src": "combat.gd shield_burst r140"
+ },
+ "102": {
+  "nums": [
+   0.5
+  ],
+  "src": "relic_fx.gd overheal_t 0.5"
+ },
+ "104": {
+  "nums": [
+   60,
+   10
+  ],
+  "src": "relic_fx.gd far_dmg linear 0.5@300"
+ },
+ "114": {
+  "nums": [
+   10,
+   40,
+   50
+  ],
+  "src": "relic_fx.gd king_gun; relic/king_low 0.4"
+ },
+ "116": {
+  "nums": [
+   3,
+   30,
+   60
+  ],
+  "src": "relic_fx.gd home zone"
+ },
+ "124": {
+  "nums": [
+   10,
+   3
+  ],
+  "src": "relic_fx.gd hp_dmg max 0.3 linear"
+ },
+ "125": {
+  "nums": [
+   10,
+   12
+  ],
+  "src": "relic_fx.gd low_hp_haste 0.6@0.5"
+ },
+ "126": {
+  "nums": [
+   5,
+   40,
+   30
+  ],
+  "src": "relic_fx.gd king_cake"
+ },
+ "127": {
+  "nums": [
+   10,
+   40,
+   50
+  ],
+  "src": "relic_fx.gd king_branch"
+ },
+ "128": {
+  "nums": [
+   10,
+   40,
+   50,
+   3,
+   150
+  ],
+  "src": "relic_fx.gd king_crown 1.1/1.5/2.5"
+ },
+ "129": {
+  "nums": [
+   60
+  ],
+  "src": "balance vgrowth/sub_dmg 0.6"
+ },
+ "180": {
+  "nums": [
+   12
+  ],
+  "src": "squad_scale -0.03 x 4"
+ },
+ "188": {
+  "nums": [
+   60
+  ],
+  "src": "late_fuse 60"
+ },
+ "189": {
+  "nums": [
+   3
+  ],
+  "src": "Squad.REGULAR_MAX 3"
+ },
+ "191": {
+  "nums": [
+   15
+  ],
+  "src": "shield_interval base 15"
+ },
+ "202": {
+  "nums": [
+   3
+  ],
+  "src": "combat.gd heal 0.03 max_hp"
+ },
+ "204": {
+  "nums": [
+   50
+  ],
+  "src": "relic_fx.gd DEEP_LAMP 50, x1.5"
+ },
+ "207": {
+  "nums": [
+   5,
+   20
+  ],
+  "src": "relic_fx.gd per 5 ingots cap 0.2"
+ },
+ "208": {
+  "nums": [
+   30
+  ],
+  "src": "relic_fx.gd cap 0.3"
+ },
+ "210": {
+  "nums": [
+   3
+  ],
+  "src": "relic_fx.gd MINE_N 3"
+ },
+ "225": {
+  "nums": [
+   80
+  ],
+  "src": "combat.gd +0.8; relic_fx x1.8"
+ },
+ "228": {
+  "nums": [
+   50
+  ],
+  "src": "relic_fx.gd revive 0.5"
+ },
+ "230": {
+  "nums": [
+   20
+  ],
+  "src": "spawner.gd boss/hp_mult_floor 0.8"
+ },
+ "240": {
+  "nums": [
+   30
+  ],
+  "src": "build_guide.gd rare weight x1.3"
+ },
+ "252": {
+  "nums": [
+   0.25
+  ],
+  "src": "0.001/density(0.4)"
+ },
+ "253": {
+  "nums": [
+   32
+  ],
+  "src": "per_relic -0.08 x 4"
+ },
+ "260": {
+  "nums": [
+   15
+  ],
+  "src": "shield_interval base 15"
+ },
+ "261": {
+  "nums": [
+   20
+  ],
+  "src": "relic_fx.gd +0.2"
+ },
+ "263": {
+  "nums": [
+   0.05,
+   50
+  ],
+  "src": "balance relic/steal_*"
+ },
+ "264": {
+  "nums": [
+   2.5,
+   10
+  ],
+  "src": "1/density; relic/killheal_elite 10"
+ },
+ "265": {
+  "nums": [
+   15,
+   40
+  ],
+  "src": "character.gd max(0.4,1-0.15n)"
+ }
+}

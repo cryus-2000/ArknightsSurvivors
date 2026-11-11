@@ -134,6 +134,8 @@ static func _mobile_trim() -> bool:
 
 
 func open() -> void:
+	if not visible:
+		load("res://scripts/core/crash_box.gd").opened("图鉴")   # 闪退报告开局信息（docs/332 §4）；原来记在 _ready，标题页一建图鉴就算「打开 1 次」（11-12 四 Boss 连测每页都报 1 次）
 	if _mobile_trim() and not visible:
 		_pre_cache = A.cache_keys()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
