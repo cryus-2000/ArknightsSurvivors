@@ -1,0 +1,17 @@
+# build_progression
+# 参数：--headless --path /work/repo/game res://tests/build_progression_test.tscn -- --regression --seed=1 --bal=ult/rework=0 --bal=growth/late_shape=0 --bal=growth/visible_nodes=0 --bal=growth/elite_show=0 --balance --seed=1 --op=texas --squad=hoshiguma,eyjafjalla
+# 用时 19 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PF FXLAZY t=0.0 hoshiguma n=9 ms=9
+PF FXLAZY t=0.0 eyjafjalla n=26 ms=25
+PF FXLAZY t=2.1 suzuran n=3 ms=2
+170 checks, 0 failed
+BUILD PROGRESSION failures=0
+PF RUNRELEASE tex=0 audio=0
+
+
+## stderr
+
