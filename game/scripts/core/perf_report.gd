@@ -380,6 +380,13 @@ static func device_line(d: Dictionary) -> String:
 			if ua.contains(k):
 				br = {"CriOS": "Chrome", "EdgiOS": "Edge", "FxiOS": "Firefox", "Edg/": "Edge", "Chrome/": "Chrome", "Firefox/": "Firefox", "Version/": "Safari"}[k]
 				break
+		# App 内置 WebView（11-12 四 Boss 连测在 B站 App 里跑，报告却写「Safari」：缺省值；iOS WKWebView 的 UA 没有 Version/ 也没有 Safari/）
+		var ios := ua.contains("iPhone") or ua.contains("iPad")
+		var wv := "iOS WebView" if ios else ("Android WebView" if ua.contains("Android") else "WebView")
+		if RegEx.create_from_string("(?i)BiliApp|bili-universal|bili-|bilibili").search(ua) != null:
+			br = "B站 App（%s）" % wv
+		elif ios and br == "Safari" and not ua.contains("Safari/"):
+			br = wv
 		var mem: String = "" if float(d.get("mem", 0)) <= 0.0 else " · 内存约 %s GB" % str(d.mem)
 		var draw_size := ""
 		if int(d.get("glw", 0)) > 0 and int(d.get("glh", 0)) > 0:
