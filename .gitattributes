@@ -18,3 +18,5 @@
 *.uid text eol=lf
 *.cfg text eol=lf
 *.gdshader text eol=lf
+# 本地化翻译表一律 LF（docs/276 §10）：原文键里的换行要和脚本 / JSON 里的字符串一字不差，CRLF 检出会混进  查不到
+game/l10n/*.csv text eol=lf
