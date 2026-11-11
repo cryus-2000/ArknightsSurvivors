@@ -707,6 +707,7 @@ static func fill_numbers(ln: String) -> String:
 		"{cmd_stamina}": Sq._num(Bal.v("command/stamina_secs", 25.0)), "{cmd_min}": pc100.call("command/min_start", 0.3),
 		"{cmd_revive}": Sq._num(Bal.v("command/revive_secs", 25.0)),
 		"{cmd_aspd}": str(roundi(Bal.v("command/rush_aspd", 0.25) * 100.0)), "{cmd_sp}": Sq._num(Bal.v("command/rush_sp", 1.5)),   # 指挥加成（11-05 用户「开局指南里在指挥模式的时候可以写上队友加成」）
+		"{lit_bonus}": pc100.call("lamp/lit_bonus", 0.25), "{lit_bonus_hi}": pc100.call("lamp/lit_bonus_hi", 0.4),   # 照亮加成（combat.gd _damage；docs/335 §2：原写死 25%、漏了通明 40%）
 		"{dash_cd}": Sq._num(Bal.v("dash/cd", 1.2)),   # 冲刺冷却（docs/284 §3：操作页单列「冲刺」行）
 	}
 	for k in vals:

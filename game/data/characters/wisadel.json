@@ -1003,13 +1003,13 @@
    "id": "ash_rings",
    "name": "余烬未冷",
    "icon": "skill_wisadel_s1",
-   "desc": "「定点清算」强化的 3 发炮击，余震变为 3 圈并眩晕 {$ash_stun} 秒（精英减半，Boss 免疫）",
+   "desc": "「定点清算」强化的 3 发炮击，余震扩成 3 圈波纹并眩晕 {$ash_stun} 秒（精英减半，Boss 免疫）",
    "branch": {
     "ash": {
      "id": "ash_rings",
      "name": "余烬未冷",
      "icon": "skill_wisadel_s1",
-     "desc": "「定点清算」强化的 3 发炮击，余震变为 3 圈并眩晕 {$ash_stun} 秒（精英减半，Boss 免疫）"
+     "desc": "「定点清算」强化的 3 发炮击，余震扩成 3 圈波纹并眩晕 {$ash_stun} 秒（精英减半，Boss 免疫）"
     },
     "mark": {
      "id": "exec_mark",

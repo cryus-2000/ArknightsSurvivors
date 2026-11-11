@@ -58,6 +58,7 @@
     "relic_impl",
     "relic_reclassification",
     "vis_growth",
+    "calc_truth",
     "card_desc",
     "card_desc_fit",
     "recruit_offer",
