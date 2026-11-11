@@ -115,6 +115,14 @@ def main():
     binfo.update({"commit": commit, "built": datetime.datetime.now().strftime("%Y%m%d"), "audience": "internal" if a.ea else "public", "encrypted": False, "platform": "web"})
     if a.god:
         binfo["test_god"] = True
+        # 自动模式（网址 auto=1，run/auto_play.gd）要机器人：无敌包保留 bot.gd（正式包仍按预设剔除）
+        ep = os.path.join(src, "game", "export_presets.cfg")
+        txt = open(ep, encoding="utf-8").read()
+        txt2 = txt.replace(", scripts/core/bot.gd*", "").replace("scripts/core/bot.gd*, ", "")
+        if txt2 == txt:
+            sys.exit("无敌包：export_presets.cfg 里没找到 scripts/core/bot.gd* 排除项（改名了要同步）")
+        open(ep, "w", encoding="utf-8").write(txt2)
+        print("[无敌包] 保留 scripts/core/bot.gd（自动模式）")
     else:
         binfo.pop("test_god", None)
     if a.ea:

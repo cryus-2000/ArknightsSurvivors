@@ -435,6 +435,12 @@ func _ready() -> void:
 			A.mark("title_leave")
 			get_tree().change_scene_to_file.call_deferred("res://game.tscn")
 	load("res://scripts/core/run_reload.gd").mark_stage("title_ready")
+	if Cfg.test_auto():
+		# 无敌包自动模式（网址 auto=1，run/auto_play.gd）：标题页停 3 秒后自己出发（同「出发」：预热 → 载入页 → 进局），用户不用点
+		get_tree().create_timer(3.0).timeout.connect(func():
+			if is_inside_tree() and leaving < 0.0 and not auto_go:
+				_prewarm()
+				leaving = 0.0)
 
 
 ## 法线图预热（art.gd）：标题页一打开就在后台线程把本局要用的法线图算好 / 读缓存；出发时再调一次（设置里刚打开法线光照的情况）

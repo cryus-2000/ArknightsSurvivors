@@ -1175,6 +1175,26 @@ func test_speed() -> float:
 	return _tspd
 
 
+## 无敌测试包专用：网址参数 auto=1 自动模式（机器人玩到结算，run/auto_play.gd）、loop=1 结算后自动再来一局；调试版另认 --autoplay / --autoloop。正式包恒为 false
+var _tauto := -1
+var _tloop := -1
+func test_auto() -> bool:
+	if _tauto < 0:
+		_tauto = 1 if test_god() and (dev_args().has("--autoplay") or (OS.has_feature("web") and _url_flag("auto"))) else 0
+	return _tauto == 1
+
+
+func test_loop() -> bool:
+	if _tloop < 0:
+		_tloop = 1 if test_auto() and (dev_args().has("--autoloop") or (OS.has_feature("web") and _url_flag("loop"))) else 0
+	return _tloop == 1
+
+
+func _url_flag(k: String) -> bool:
+	var s = JavaScriptBridge.eval("(function(){try{return new URLSearchParams(location.search).get('%s')||''}catch(e){return ''}})()" % k, true)
+	return s is String and (s == "1" or s == "true")
+
+
 var _tsq = null
 func test_squad() -> PackedStringArray:
 	if _tsq == null:

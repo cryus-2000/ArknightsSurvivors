@@ -691,11 +691,11 @@ func _cfg(key: String, def: bool) -> bool:
 
 
 func _auto_ult() -> bool:
-	return g.bot != null or g.autotest or _cfg("auto_ult", false)
+	return g.bot != null or g.autotest or g.auto_play != null or _cfg("auto_ult", false)   # 无敌包自动模式（run/auto_play.gd）同机器人自动放
 
 
 func auto_combo() -> bool:
-	return g.bot != null or g.autotest or _cfg("auto_combo", g.touch != null and g.touch.active)
+	return g.bot != null or g.autotest or g.auto_play != null or _cfg("auto_combo", g.touch != null and g.touch.active)
 
 
 func _auto_cast() -> void:

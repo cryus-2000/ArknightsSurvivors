@@ -149,6 +149,7 @@ var hud_view = HudView.new(self)   # 界面 · 局内 HUD（hud 画布节点的 
 var world = WorldView.new(self)   # 世界绘制（2.5D）
 var telemetry = Telemetry.new(self)   # 局内数据记录（docs/40）
 var perf_context := preload("res://scripts/core/perf_context.gd").new()
+var auto_play = null   # 无敌测试包自动模式（run/auto_play.gd，网址 auto=1）：机器人玩到结算，对局仍是 Mode.PLAY
 var perf_rep = PerfReport.new(self)   # 性能报告（core/perf_report.gd；设置 → 画面 → 性能报告）
 var rng := RandomNumberGenerator.new()
 var t := 0.0
@@ -1115,6 +1116,9 @@ func _ready() -> void:
 	trial.consume()
 	RunReload.begin_run(self)
 	CrashBox.begin(self)   # 崩溃前快照：局内每 15 秒把内存构成写进本地存储（core/crash_box.gd）
+	var AP = load("res://scripts/run/auto_play.gd")
+	if AP.wanted(self):
+		auto_play = AP.new(self)
 	# 随机数最先定：招募开局干员时就会用 rng（战斗台词计时等）。以前 --seed 在 _ready 后段才生效，
 	# 开局干员的台词计时是随机的，第一句台词一出同 seed 的两局就分叉（2026-09-26 查明，docs/36）
 	var seeded := false
@@ -1870,6 +1874,8 @@ func _process(delta: float) -> void:
 		res_sel = 0
 	else:
 		state_age += delta
+	if auto_play != null:
+		auto_play.step(delta)
 	if state == S.WIN or state == S.DEAD:
 		settlement.tick(delta)   # Read-only result model; recruitment now opens explicitly from the footer.
 	if demo_op == "":
@@ -2414,6 +2420,8 @@ func _update(dt: float) -> void:
 		mv = demo_sys.wander()
 	elif mode == Mode.BALANCE:
 		mv = bot.move(dt) if bot != null else autotest_sys.bot_move()
+	elif auto_play != null and state == S.PLAY:
+		mv = auto_play.move(dt)
 	elif touch.active and touch.move_vec() != Vector2.ZERO:
 		mv = touch.move_vec()
 	elif Pad.move_vec() != Vector2.ZERO:
@@ -2425,6 +2433,9 @@ func _update(dt: float) -> void:
 	move_in = mv
 	if mode == Mode.BALANCE and autotest_sys.want_dash:
 		autotest_sys.want_dash = false
+		_try_dash()
+	elif auto_play != null and auto_play.want_dash:
+		auto_play.want_dash = false
 		_try_dash()   # 普通机器人出圈回圈时冲刺（autotest.bot_move）
 	if pstun > 0.0 or root_t > 0.0 or (ult != null and ult.playing()):
 		mv = Vector2.ZERO   # 终结技播放中（ult.playing）：移动输入只给瞄准用（move_in 保留），队长原地不动
