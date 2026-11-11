@@ -359,6 +359,9 @@ def cmd_csv(a):
                 op = ROOT / "game/l10n" / (om + ".csv")
                 if op.exists():
                     taken |= {r["keys"] for r in csv.DictReader(open(op, encoding="utf-8")) if r["_source"] == "原文键"}
+        for zh, h in human.items():   # 补条：拆段后的片段等没有对应抽取条目的人改稿，也写成原文键
+            if not zh.startswith("_") and zh not in srcmap and isinstance(h, dict) and h.get("en"):
+                srcmap[zh] = (h["en"], "人改")
         for zh, (en, src) in srcmap.items():
             if zh != en and zh not in taken:
                 w.writerow([zh, en, "", "原文键", src])

@@ -175,7 +175,7 @@ static func layout(vs: Vector2, ids: Array, ins: Array, touch: bool, font: Font)
 	for j in foot_ids.size():
 		if j > 0:
 			x += 30.0
-		var w: float = font.get_string_size(item(foot_ids[j]).cn, HORIZONTAL_ALIGNMENT_LEFT, -1, fsz).x
+		var w: float = font.get_string_size(UI.Loc.s(item(foot_ids[j]).cn), HORIZONTAL_ALIGNMENT_LEFT, -1, fsz).x   # 按译文量（docs/276 §12）
 		if phone:
 			w /= fk   # xs stores design units; the label is measured at its drawn size.
 		xs.append([x, w])
@@ -228,7 +228,8 @@ static func _fa(c: Color, a: float) -> Color:
 static func _txt(ci: CanvasItem, font: Font, top_left: Vector2, s: String, size: int, col: Color) -> float:
 	if Cfg.phone_ui():
 		size = UI.phone_body_step(size)
-	ci.draw_string(font, top_left + Vector2(0, font.get_ascent(size)), UI.Loc.s(s), HORIZONTAL_ALIGNMENT_LEFT, -1, size, col)
+	s = UI.Loc.s(s)   # 本地化（docs/276 §12）：先翻再画、按译文量宽
+	ci.draw_string(font, top_left + Vector2(0, font.get_ascent(size)), s, HORIZONTAL_ALIGNMENT_LEFT, -1, size, col)
 	return font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
 
 
@@ -294,7 +295,8 @@ static func _draw_label(ci: CanvasItem, o: Vector2, k: float, font: Font, cn: St
 		return
 	ci.draw_rect(Rect2(o + Vector2(2, 2) * k, Vector2(3, 11) * k), _fa(C, a))
 	var w := _txt(ci, font, o + Vector2(12, 0) * k, cn, int(round(12 * k)), _fa(C, a))
-	_en(ci, font, o + Vector2(20, 3) * k + Vector2(w, 0), en, int(round(8 * k)), _fa(M, a), 2.2 * k)
+	if not UI.Loc.en():   # 英文版主标签已是英文，装饰小英文不再重复
+		_en(ci, font, o + Vector2(20, 3) * k + Vector2(w, 0), en, int(round(8 * k)), _fa(M, a), 2.2 * k)
 
 
 ## 一行入口（tt = TIERS 里的一档；o = 行左上，内容按 tt.h 画）
@@ -320,7 +322,7 @@ static func _draw_row(ci: CanvasItem, o: Vector2, k: float, font: Font, m: Dicti
 	var ty: float = 7.0 if tt.en > 0 and not tt.en_inline else (h - tt.fs * 1.3) / 2.0
 	var cw := _txt(ci, font, P.call(tt.tx, ty), m.cn, fs, _fa(tc, a * dm))
 	var tx: Vector2 = P.call(tt.tx, ty) + Vector2(cw + 10.0 * k, 0)
-	if tt.en > 0:
+	if tt.en > 0 and not UI.Loc.en():   # 英文版不画重复的装饰小英文
 		var efs := int(round(tt.en * k))
 		if tt.en_inline:
 			tx.x += _en(ci, font, tx + Vector2(0, (fs - efs) * 0.62), m.en, efs, _fa(M.lerp(C, w), a * dm), 2.2 * k) + 8.0 * k
@@ -439,8 +441,11 @@ static func _draw_deploy(ci: CanvasItem, o: Vector2, k: float, font: Font, water
 	ci.draw_colored_polygon(PackedVector2Array([P.call(266, 54) + nudge, P.call(240, 60) + nudge, P.call(260, 80) + nudge]), _fa(C, a))
 	ci.draw_circle(P.call(190, 130), 4.0 * k, _fa(C, a))
 	var fs := int(round(50 * k))
-	_spaced(ci, font, P.call(8, 14), "集结", fs, _fa(Color.WHITE, a), 4.0 * k)
-	_spaced(ci, font, P.call(34, 74), "出发", fs, _fa(Color.WHITE, a), 4.0 * k)
+	if UI.Loc.en():   # 英文版：一行「Deploy」（官方用词），不拆两行
+		_spaced(ci, font, P.call(8, 44), "Deploy", fs, _fa(Color.WHITE, a), 1.0 * k)
+	else:
+		_spaced(ci, font, P.call(8, 14), "集结", fs, _fa(Color.WHITE, a), 4.0 * k)
+		_spaced(ci, font, P.call(34, 74), "出发", fs, _fa(Color.WHITE, a), 4.0 * k)
 	ci.draw_colored_polygon(PackedVector2Array([P.call(12, 142), P.call(84, 142), P.call(78, 158), P.call(12, 158)]), _fa(C, a))
 	_en(ci, font, P.call(18, 144), "DEPLOY", int(round(10 * k)), _fa(INK, a), 3.0 * k)
 	ci.draw_line(P.call(11, 168), P.call(11 + 161.0 * lerpf(0.55, 1.0, w), 168), _fa(L.lerp(C, w), a), maxf(1.0, 1.3 * k))

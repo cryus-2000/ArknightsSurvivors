@@ -1,0 +1,7 @@
+{
+ "_doc": "人工复核改稿 / 补条（docs/276 §12）：键 = 中文原文。拼接文字拆段后要单独查的片段也放这里（合成 CSV 时写成原文键行）",
+ "非商业": {"en": "Non-commercial", "note": "页脚声明拆段后的片段"},
+ "与鹰角网络无关": {"en": "Not affiliated with Hypergryph", "note": "页脚声明拆段后的片段"},
+ "明日方舟同人作品": {"en": "Arknights Fan Game", "note": "页脚声明拆段后的片段"},
+ "致谢与声明": {"en": "Credits and Disclaimer", "note": "页脚声明拆段后的片段"}
+}

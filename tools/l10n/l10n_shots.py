@@ -22,7 +22,7 @@ def main():
     os.makedirs(a.out, exist_ok=True)
     bad = 0
     for lang in a.langs.split(","):
-      for tag, res, more in (("desk", "1280x720", []), ("phone", "1560x720", ["--touch"])):
+      for tag, res, more in (("desk", "1280x720", []), ("phone", "740x360", ["--touch"])):
         if a.only and tag != a.only:
             continue
         args = [gr.find_godot(), "--path", os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--resolution", res,

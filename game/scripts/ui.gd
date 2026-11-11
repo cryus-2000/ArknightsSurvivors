@@ -1037,6 +1037,7 @@ static func text_at(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: i
 
 ## 微型代码（`No.04 // 近卫 // 近战`、`OPERATOR DATA // SKILL`）：压缩字、不斜体、字距 2；pos 是左上角
 static func code(ci: CanvasItem, font: Font, pos: Vector2, s: String, size := 9, col := B_SUB, anchor := "la") -> float:
+	s = Loc.s(s)   # 本地化：等宽小标签里常拼着中文（「No.01 // 特种」「SKILL 1 // 精英一」）
 	var w := en_width(font, s, size, 2.0)
 	var x := pos.x - (w / 2.0 if anchor == "ma" else (w if anchor == "ra" else 0.0))
 	return en(ci, font, Vector2(x, pos.y + cond(font).get_ascent(size)), s, size, col, 2.0)

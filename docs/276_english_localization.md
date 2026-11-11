@@ -511,3 +511,33 @@ term.<词>                 共用术语（灯火、技力、队长……），�
 | l10n-tr-review | 不新建模块 | 精修 ops / enemies 两块模型稿（约 1 900 条说明只过了自动检查），按 overflow_check 结果改短 53 条严重项 |
 
 翻译会话的 extract 白名单要按自己的文件扩（`tools/l10n/extract.py`），新模块名加到 `Loc.MODULES` 并带 `.csv.import`（compress=0）。全部翻完后：`Loc.AUTO_EN_READY = true`，第三步逐屏截图验收（GCP）。
+
+---
+
+## 12. 全模块接入（11-11，分支 claude/english-1111，基于 main 175e43971）
+
+用户：「英语可以继续做下去了」；「英文翻译我这里不想过目，迭代得差不多了就可以合，记得标注是 AI 翻译的」；「多语言只上 itch，B 站 Toy 版不上英文」（均经协调人转达）。
+
+**做法改动**：§11 原计划的 3 个脚本改写 + 5 个翻译会话没有拆，改由本会话一次做完。其余模块不改成 tr 键，而是沿用 §10 的「原文键」：抽出全部中文字面量和 JSON 文本，翻好写进模块 CSV；`ui.gd` 绘制助手、直接 `draw_string` 的地方（约 70 处机械包上 `Loc.s()`）、逐字绘制的函数（开头整串查表）在显示时按原文查。拼句的地方（图鉴敌人机制行、终结技 / 连携行、升级卡一句话）已在 §10 改整句模板，其余拼句截图里发现再改。
+
+| 模块 CSV | 来源 | 条目 | 官方 | 模型 | 校对改 |
+|---|---|---|---|---|---|
+| ops | 干员 json、ult_text、lore 干员 | 约 1 940 | 238 + 暂定 54 | 1 429 | 73 |
+| enemies | enemies.json、lore 敌人、ENEMY_DESC、enemies/**.gd | 457 | 35 | 396 | 21 |
+| ui | 顶层 / screens / core / render / world 脚本，guide / onboard / credits / balance.txt / 启动页分类 / doctor | 约 2 550 | 106 + 暂定 86 | 2 025 | 335 |
+| relics | relics.json（名字 262 件官方；原作说明 254 件对上官方 usage）、relic_effects | 1 714 | 644 | 1 017 | 53 |
+| events | waves / events_v2（集成战略 #2 事件、选项标题对上官方） | 317 | 130 | 163 | 24 |
+| meta | 认知塑造、升级卡、蚀刻章、连携、练习编队 | 279 | 3 | 269 | 7 |
+| run | run / characters / allies 脚本（伤害来源名、横幅、飘字；终结技代码只抽字符串不改） | 1 262 | 70 + 暂定 29 | 1 043 | 120 |
+
+- **第二遍校对**：`translate_vertex.py proof <模块>`，Vertex Gemini 逐批对照中英，只回需要改的条目（误译、残留中文、术语不统一、占位符、禁用词、短标签变长句），结果 `build/l10n_work/proof_<模块>.json`，合成 CSV 时来源记「校对」。
+- **重名原文**：同一句中文在多个模块里时，以已复核的 ops / enemies 为准，其余模块不再写这条原文键。
+- **花费**：本轮翻译 + 校对约 $15.7（Vertex，按 3.1 Pro 预览档估；含 ops 旧用量）。
+- **工作树被清后恢复**：`tools/l10n/seed_cache.py` 从已提交的 CSV 反推翻译缓存；参照表重下到 `build/l10n_ref/`。
+- **CSV 固定 LF**（`.gitattributes`）：多行原文键在 CRLF 检出时会混进回车符，查表对不上。
+
+**AI 翻译标注**：设置「语言 / Language」行在英文下写 `AI-translated`；标题页桌面版页脚声明上方一行 `English text is AI-translated from the Chinese original.`
+
+**B站 Toy 版不带英文**：`export_web.py --toy` 往包里的 build.json 写 `lang_lock: "zh"`，并把 `game/l10n` 整个排除（打印少带的大小，约 1.7 MiB 未压缩）；导出后扫 `index.pck`，出现任何 `l10n/<模块>.en.translation` / `.csv` 就中止。运行时 `Cfg.lang_locked()`（build.json 锁或在 Toy 容器里）→ `Loc.resolve` 一律中文、设置不列语言行、不读翻译表。没有另加英文字体或英文专用贴图。快检 `l10n` 覆盖锁定判定。
+
+**截图与预审**：`tools/l10n/l10n_shots.py` 在 GCP 上中英 × 桌面 1280×720 / 手机 1560×720（--touch）各跑一遍 `tests/l10n_shots`（标题、难度、认知塑造、蚀刻章、操作说明、致谢、寻访、选人、图鉴干员 / 敌人 / Boss / 道具 / 藏品 / 结局 / 事件、设置、HUD、招募 / 升级 / 藏品卡、属性、暂停、结算胜 / 败、作战记录）；`tools/l10n/l10n_vreview.py` 用 Vertex Gemini（flash）逐张查残留中文、溢出、重叠、截断、裸 key。

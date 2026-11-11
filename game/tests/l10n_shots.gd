@@ -147,6 +147,7 @@ func game_part() -> void:
 	await shot("10_pause")
 	const RS = preload("res://scripts/run/run_stats.gd")
 	var fake = RS.model(RS.fake_raw())
+	g.set_process(true)   # 结算 / 作战记录的入场动画靠 _process 推进（ui_smoke 同样开着）
 	g.state = g.S.WIN; g.state_age = 3.0; g.settlement.set_model(fake)
 	await _cards(g, 40)
 	await shot("11_settlement_win")

@@ -141,16 +141,70 @@ static func s(text: String) -> String:
 			out = t
 		else:
 			out = _match_tpl(text)
-			if out == text and text.contains(" · "):
-				# 代码拼的「A · B」（升级卡「水月 · 强迫性重复」、Boss 招式「手炮 · 炮线」）：整串查不到就逐段查
-				var parts := text.split(" · ")
-				for pi2 in parts.size():
-					parts[pi2] = s(parts[pi2])
-				out = " · ".join(parts)
+			if out == text:
+				out = _split_fallback(text)
 	if _cache.size() >= 4096:
 		_cache.clear()
 	_cache[text] = out
 	return out
+
+
+## 整串、模板都查不到时：代码拼出来的文字按常见拼法拆开逐段查（docs/276 §12）。
+## 多行 → 逐行；「A · B」「A·B」「A / B」→ 逐段；「标签：内容」→「Label: 内容」；末尾计数（「扩散 1/2」「×3」「+25%」「Lv.2」）→ 只查前面。
+## 一段都没变就原样返回（不产出半中半英的拆法以外的东西）
+static var _re_suffix: RegEx
+static func _split_fallback(text: String) -> String:
+	var st := text.strip_edges()
+	if st != text and st != "":   # 首尾带空白：按去空白的原文查，再把空白补回
+		var se := s(st)
+		if se != st:
+			var a := text.find(st)
+			return text.substr(0, a) + se + text.substr(a + st.length())
+	else:   # 表里的键可能带首尾空格（代码字面量 "  精英一解锁"）：补两格前导空格再查一次
+		var t2 := String(TranslationServer.translate("  " + text))
+		if t2 != "  " + text and t2 != "":
+			return t2.strip_edges()
+	if text.contains("\n"):
+		var lines := text.split("\n")
+		for li in lines.size():
+			lines[li] = s(lines[li])
+		return "\n".join(lines)
+	for sep in ["  //  ", " // ", "//", " · ", "·", " / ", "／", "  "]:
+		if text.contains(sep):
+			var parts := text.split(sep)
+			for pi2 in parts.size():
+				parts[pi2] = s(parts[pi2])
+			return (" · " if sep == "·" else sep).join(parts)
+	var ci := text.find("：")
+	if ci > 0 and ci < text.length() - 1:
+		return s(text.substr(0, ci)) + ": " + s(text.substr(ci + 1))
+	if _re_suffix == null:
+		_re_suffix = RegEx.create_from_string("^(.*?\\S)(\\s*(?:[0-9]+\\s*/\\s*[0-9]+|Lv\\.?\\s*[0-9]+|[×x]\\s*[0-9.]+|[+\\-−]?[0-9]+(?:\\.[0-9]+)?%?|（[^）]*）|\\([^)]*\\)))$")
+	var m := _re_suffix.search(text)
+	if m != null:
+		var base := m.get_string(1)
+		var be := s(base)
+		if be != base:
+			var suf := m.get_string(2)
+			if suf.begins_with("（"):
+				suf = " (" + s(suf.substr(1, suf.length() - 2)) + ")"
+			return be + suf
+	# 最后一招：单个空格隔开的几个中文词（「难度 常规」「深蓝之下 未获得」）逐词查；每段都得含中文才拆
+	if text.contains(" "):
+		var ws := text.split(" ", false)
+		var all_cjk := ws.size() >= 2 and ws.size() <= 6
+		for w in ws:
+			if _cjk.search(w) == null:
+				all_cjk = false
+		if all_cjk:
+			var changed := false
+			for wi in ws.size():
+				var we := s(ws[wi])
+				changed = changed or we != ws[wi]
+				ws[wi] = we
+			if changed:
+				return " ".join(ws)
+	return text
 
 
 ## 定宽格子用的短版（short:<原文>），没有短版就同 s()

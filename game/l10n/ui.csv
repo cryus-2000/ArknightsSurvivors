@@ -141,7 +141,7 @@ ui.onboard.cards.final.title,Final Boss,最终 Boss,暂定,暂定（docs/276 §3
 ui.onboard.cards.final.text,"After the Final Boss appears, no other Seaborn will spawn. Defeat it to complete the run.",最终 Boss 登场后不再刷新其他海嗣，击败它即完成探索。,校对,校对：other不应大写
 ui.onboard.cards.duck.title,Duck Lord,鸭爵,官方,enemy_handbook_table.enemy_2001_duckmi
 ui.onboard.cards.duck.text,Duck Lord does not attack. Increases movement speed when attacked. Escapes if not defeated within 30s; drops 1 Relic when defeated.,鸭爵不攻击，受到攻击后越跑越快，30 秒内没被击倒就会溜走；击倒必得 1 件藏品。,校对,校对：defeated作为普通动词不应大写
-ui.credits.title,Credits and Disclaimer,致谢与声明,校对,校对：“与”应翻译为and
+ui.credits.title,Credits and Disclaimer,致谢与声明,人改,页脚声明拆段后的片段
 ui.credits.sections.0.0,Fan Game Disclaimer,同人声明,模型,
 ui.credits.sections.0.1,"Unofficial Arknights fan game, free and non-commercial, not affiliated with Hypergryph. Copyrights of characters, worldviews, and settings belong to Hypergryph.",《明日方舟》非官方同人作品，免费、非商业，与鹰角网络（Hypergryph）无关。角色、世界观与设定版权归鹰角网络所有。,模型,
 ui.credits.sections.1.0,References,资料参考,模型,
@@ -968,7 +968,7 @@ ui.gd.title.002,Loading screen · After audio registration,载入页·音频注�
 ui.gd.title.003,Beta · All archives and difficulties unlocked (does not write to save data),测试版 · 图鉴与难度全开（不写入存档）,校对,校对：统一大小写规范
 ui.gd.title.004,Beta · All unlocked (does not write to save data),测试版 · 已全部解锁（不写入存档）,校对,校对：统一大小写规范，与p35保持一致
 ui.gd.title.005,Arknights fan game · Non-commercial · Not affiliated with Hypergryph · Credits and disclaimer %s,明日方舟同人作品 · 非商业 · 与鹰角网络无关 · 致谢与声明 %s,校对,校对：统一大小写规范，'与'应翻译为and
-ui.gd.title.006,Credits and Disclaimer,致谢与声明,校对,校对：“与”应翻译为and
+ui.gd.title.006,Credits and Disclaimer,致谢与声明,人改,页脚声明拆段后的片段
 ui.gd.title.007,Beta: Local run summary recorded (not uploaded),测试版：本地记录对局摘要（不上传）,模型,
 ui.gd.title.008,Beginner Headhunt: 10-roll recruit 10 Operators,新手寻访：十连招募 10 名干员,模型,
 ui.gd.title.009,Unlocks after completing Beginner Headhunt,完成新手寻访后开放,校对,校对：术语统一，与p38的Beginner Headhunt保持一致
@@ -1986,7 +1986,7 @@ ui.gd.screens.share_card.020,Relic,藏品,模型,
 ui.gd.screens.share_card.021,|  Squad,|  编队,模型,
 ui.gd.screens.share_card.022,Scan to Dive into the Ocean Together,扫码一起潜入深海,校对,校对：the Abyssal 作为名词指代深海存在语法问题，明日方舟中通常将海嗣所在的深海译为 the ocean
 ui.gd.screens.share_card.023,Dive into the Ocean Together,一起潜入深海,校对,校对：the Abyssal 作为名词指代深海存在语法问题，明日方舟中通常将海嗣所在的深海译为 the ocean
-ui.gd.screens.share_card.024,Arknights Fan Game,明日方舟同人作品,模型,
+ui.gd.screens.share_card.024,Arknights Fan Game,明日方舟同人作品,人改,页脚声明拆段后的片段
 ui.gd.screens.share_toy.000,Generating image...,正在生成图片……,模型,
 ui.gd.screens.share_toy.001,Arknights Survivor,方舟幸存者,模型,
 ui.gd.screens.share_toy.002,Record_%s.png,战绩_%s.png,模型,
@@ -2725,7 +2725,7 @@ Boss 在场时暂停缩圈；看清地面的预警圈，点冲刺键躲开，冲
 最终 Boss,Final Boss,,原文键,暂定
 最终 Boss 登场后不再刷新其他海嗣，击败它即完成探索。,"After the Final Boss appears, no other Seaborn will spawn. Defeat it to complete the run.",,原文键,校对
 鸭爵不攻击，受到攻击后越跑越快，30 秒内没被击倒就会溜走；击倒必得 1 件藏品。,Duck Lord does not attack. Increases movement speed when attacked. Escapes if not defeated within 30s; drops 1 Relic when defeated.,,原文键,校对
-致谢与声明,Credits and Disclaimer,,原文键,校对
+致谢与声明,Credits and Disclaimer,,原文键,人改
 同人声明,Fan Game Disclaimer,,原文键,模型
 《明日方舟》非官方同人作品，免费、非商业，与鹰角网络（Hypergryph）无关。角色、世界观与设定版权归鹰角网络所有。,"Unofficial Arknights fan game, free and non-commercial, not affiliated with Hypergryph. Copyrights of characters, worldviews, and settings belong to Hypergryph.",,原文键,模型
 资料参考,References,,原文键,模型
@@ -4081,7 +4081,7 @@ LB / RB 切换分类    ↑ ↓ 选择    ← → 调整    Ⓑ 返回,LB / RB S
 |  编队,|  Squad,,原文键,模型
 扫码一起潜入深海,Scan to Dive into the Ocean Together,,原文键,校对
 一起潜入深海,Dive into the Ocean Together,,原文键,校对
-明日方舟同人作品,Arknights Fan Game,,原文键,模型
+明日方舟同人作品,Arknights Fan Game,,原文键,人改
 正在生成图片……,Generating image...,,原文键,模型
 战绩_%s.png,Record_%s.png,,原文键,模型
 保存失败,Save Failed,,原文键,模型
@@ -4463,3 +4463,5 @@ FPS %.0f  最低 %.0f  帧时 P50 %.1f / P95 %.1f ms,FPS %.0f  Min %.0f  Frameti
 装填被打断 · 破绽 %.1f,Reload Interrupted · Opening %.1f,,原文键,模型
 眩晕 %.1f,Stun %.1f,,原文键,模型
 装填被打断 · 眩晕 %.1f,Reload Interrupted · Stun %.1f,,原文键,模型
+非商业,Non-commercial,,原文键,人改
+与鹰角网络无关,Not affiliated with Hypergryph,,原文键,人改
