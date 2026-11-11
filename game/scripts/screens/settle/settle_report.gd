@@ -68,7 +68,10 @@ func draw(canvas: CanvasItem) -> void:
 	if bp > 0.0:
 		para(Rect2(40, 150, 300 * bp, 62), acc.lerp(HH.LIGHT, 0.6))
 		fa = k(0.55, 0.2)
-		txt(64, 156, "探索完成" if won else "探索终止", 40, HH.INK)
+		var rz := 40
+		while rz > 26 and tw("探索完成" if won else "探索终止", rz) > 262.0:   # 英文「Run Complete」比四个汉字长：缩字号放进色块
+			rz -= 2
+		txt(64, 156 + (40 - rz) * 0.5, "探索完成" if won else "探索终止", rz, HH.INK)
 		txt(358, 158, sub_line(), 16, HH.LIGHT, 0, 360)
 		txt(358, 186, "探索用时 %s  ·  %s" % [mmss(float(m().t)), diff_name()], 14, HH.MUTE)
 		fa = 1.0

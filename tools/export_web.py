@@ -179,7 +179,10 @@ def main():
         with open(os.path.join(tmp, "index.pck"), "rb") as fh:
             pk = fh.read()
         # 查具体资源文件名（loc.gd 源码里有 "res://l10n/%s.en.translation" 格式串，不能只查 l10n/）
-        bad = [m for m in ("ops", "enemies", "ui", "relics", "events", "meta", "run")
+        mods = sorted({f.split(".")[0] for f in os.listdir(os.path.join(ROOT, "game", "l10n")) if f.endswith(".csv")} |
+                      {"ops", "enemies", "ui", "relics", "events", "meta", "run", "extra"}) if os.path.isdir(os.path.join(ROOT, "game", "l10n")) else \
+               ["ops", "enemies", "ui", "relics", "events", "meta", "run", "extra"]
+        bad = [m for m in mods
                if ("l10n/%s.en.translation" % m).encode() in pk or ("l10n/%s.csv" % m).encode() in pk]
         assert not bad, "Toy 包里出现了英文翻译资源：%s" % bad
         print("[检查] Toy 包不含英文翻译资源", flush=True)

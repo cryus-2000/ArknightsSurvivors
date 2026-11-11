@@ -1,17 +1,17 @@
 keys,en,_zh,_source,_note
-meta.meta_tree.nodes.atk1.line,ATK,攻击,模型,
+meta.meta_tree.nodes.atk1.line,Attack,攻击,人改,跨模块统一（review/canon.json）
 meta.meta_tree.nodes.atk1.name,Aggression I,攻击性Ⅰ,模型,
 meta.meta_tree.nodes.atk1.desc,All damage +8%,全体伤害 +8%,模型,
-meta.meta_tree.nodes.atk2.line,ATK,攻击,模型,
+meta.meta_tree.nodes.atk2.line,Attack,攻击,人改,跨模块统一（review/canon.json）
 meta.meta_tree.nodes.atk2.name,Aggression II,攻击性Ⅱ,模型,
 meta.meta_tree.nodes.atk2.desc,All damage +4%,全体伤害 +4%,模型,
-meta.meta_tree.nodes.atk3.line,ATK,攻击,模型,
+meta.meta_tree.nodes.atk3.line,Attack,攻击,人改,跨模块统一（review/canon.json）
 meta.meta_tree.nodes.atk3.name,Aggression III,攻击性Ⅲ,模型,
 meta.meta_tree.nodes.atk3.desc,All damage +4%,全体伤害 +4%,模型,
-meta.meta_tree.nodes.atk4.line,ATK,攻击,模型,
+meta.meta_tree.nodes.atk4.line,Attack,攻击,人改,跨模块统一（review/canon.json）
 meta.meta_tree.nodes.atk4.name,Aggression IV,攻击性Ⅳ,模型,
 meta.meta_tree.nodes.atk4.desc,All damage +4%,全体伤害 +4%,模型,
-meta.meta_tree.nodes.atk5.line,ATK,攻击,模型,
+meta.meta_tree.nodes.atk5.line,Attack,攻击,人改,跨模块统一（review/canon.json）
 meta.meta_tree.nodes.atk5.name,Aggression V,攻击性Ⅴ,模型,
 meta.meta_tree.nodes.atk5.desc,"All damage +4%. Execute: instantly kills normal enemies when their HP is below 15%, and Elite enemies below 8% (Bosses excepted)",全体伤害 +4%。处决：普通敌人生命低于 15%、精英低于 8% 时直接击杀（Boss 除外）,模型,
 meta.meta_tree.nodes.hp1.line,HP,生命,模型,
@@ -29,16 +29,16 @@ meta.meta_tree.nodes.hp4.desc,Leader Max HP +5%,队长最大生命 +5%,模型,
 meta.meta_tree.nodes.hp5.line,HP,生命,模型,
 meta.meta_tree.nodes.hp5.name,Survival Instinct V,生存本能Ⅴ,模型,
 meta.meta_tree.nodes.hp5.desc,"Leader Max HP +4%. Once per run: when taking fatal damage, survives with 1 HP and takes no damage for 1.5s",队长最大生命 +4%。每次探索限一次：受到致命伤时保留 1 点生命，1.5 秒内不受伤害,模型,
-meta.meta_tree.nodes.def1.line,Damage Reduction,减伤,模型,
+meta.meta_tree.nodes.def1.line,DMG Reduction,减伤,人改,跨模块统一（review/canon.json）
 meta.meta_tree.nodes.def1.name,Self-Preservation I,自我保护Ⅰ,模型,
 meta.meta_tree.nodes.def1.desc,Damage taken by Leader -5%,队长受到伤害 -5%,模型,
-meta.meta_tree.nodes.def2.line,Damage Reduction,减伤,模型,
+meta.meta_tree.nodes.def2.line,DMG Reduction,减伤,人改,跨模块统一（review/canon.json）
 meta.meta_tree.nodes.def2.name,Self-Preservation II,自我保护Ⅱ,模型,
 meta.meta_tree.nodes.def2.desc,Damage taken by Leader -3%,队长受到伤害 -3%,模型,
-meta.meta_tree.nodes.def3.line,Damage Reduction,减伤,模型,
+meta.meta_tree.nodes.def3.line,DMG Reduction,减伤,人改,跨模块统一（review/canon.json）
 meta.meta_tree.nodes.def3.name,Self-Preservation III,自我保护Ⅲ,模型,
 meta.meta_tree.nodes.def3.desc,Damage taken by Leader -3%,队长受到伤害 -3%,模型,
-meta.meta_tree.nodes.def4.line,Damage Reduction,减伤,模型,
+meta.meta_tree.nodes.def4.line,DMG Reduction,减伤,人改,跨模块统一（review/canon.json）
 meta.meta_tree.nodes.def4.name,Self-Preservation IV,自我保护Ⅳ,模型,
 meta.meta_tree.nodes.def4.desc,"Damage taken by Leader -2%. After taking no damage for 5s, the next damage taken -50%",队长受到伤害 -2%。连续 5 秒未受伤后，下一次 -50%,模型,
 meta.meta_tree.nodes.reg1.line,Recovery,回复,模型,
@@ -278,7 +278,7 @@ meta.practice_squads.squads.kaltsit_m18.slots.1.fp.mods.dmg.1,1|0.2|relic:148|cl
 meta.practice_squads.squads.kaltsit_m18.slots.1.fp.mods.pickup.0,2|1.11|Level|,2|1.11|等级|,模型,
 meta.practice_squads.squads.kaltsit_m18.slots.2.fp.mods.pickup.0,2|1.18|Level|,2|1.18|等级|,模型,
 meta.practice_squads.squads.kaltsit_m18.slots.3.fp.mods.pickup.0,2|1.24|Level|,2|1.24|等级|,模型,
-攻击,ATK,,原文键,模型
+攻击,Attack,,原文键,人改
 攻击性Ⅰ,Aggression I,,原文键,模型
 全体伤害 +8%,All damage +8%,,原文键,模型
 攻击性Ⅱ,Aggression II,,原文键,模型
@@ -297,7 +297,7 @@ meta.practice_squads.squads.kaltsit_m18.slots.3.fp.mods.pickup.0,2|1.24|Level|,2
 生存本能Ⅳ,Survival Instinct IV,,原文键,模型
 生存本能Ⅴ,Survival Instinct V,,原文键,模型
 队长最大生命 +4%。每次探索限一次：受到致命伤时保留 1 点生命，1.5 秒内不受伤害,"Leader Max HP +4%. Once per run: when taking fatal damage, survives with 1 HP and takes no damage for 1.5s",,原文键,模型
-减伤,Damage Reduction,,原文键,模型
+减伤,DMG Reduction,,原文键,人改
 自我保护Ⅰ,Self-Preservation I,,原文键,模型
 队长受到伤害 -5%,Damage taken by Leader -5%,,原文键,模型
 自我保护Ⅱ,Self-Preservation II,,原文键,模型

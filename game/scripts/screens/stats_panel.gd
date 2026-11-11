@@ -754,7 +754,8 @@ func _v3_header(L: float, T: float, R: float) -> void:
 	var rx: float = R - 4.0
 	for it in [["源石锭", str(g.ingots)], ["藏品", str(g.relics.size())], ["击杀", str(g.kills)], ["时间", "%02d:%02d" % [int(dt) / 60, int(dt) % 60]]]:
 		var vw: float = _hv.v2.big(Vector2(rx, T + 50), it[1], 22, V3_WHITE, 2)
-		_hv.v2.txt(Vector2(rx - _hv.v2.twidth(it[0], 11), T + 68), it[0], 11, V3_GREY)
+		var lb: String = UI.Loc.short(it[0])   # 英文用短写（Ingots），不压到身后 HUD 的按钮
+		_hv.v2.txt(Vector2(rx - _hv.v2.twidth(lb, 11), T + 68), lb, 11, V3_GREY)
 		rx -= maxf(vw, 40.0) + 32.0
 
 
@@ -1155,8 +1156,9 @@ func _phone_header(L: float, T: float, R: float) -> void:
 	var rx: float = R
 	for it in [["源石锭", str(g.ingots)], ["藏品", str(g.relics.size())], ["击杀", str(g.kills)], ["时间", "%02d:%02d" % [int(dt) / 60, int(dt) % 60]]]:
 		var vw: float = _hv.v2.big(Vector2(rx, T + 36), it[1], 20, V3_WHITE, 2)
-		_hv.v2.txt(Vector2(rx - _hv.v2.twidth(it[0], 13), T + 58), it[0], 13, V3_GREY)
-		rx -= maxf(vw, _hv.v2.twidth(it[0], 13)) + 26.0
+		var lb: String = UI.Loc.short(it[0])   # 英文用短写（Ingots），不压到身后 HUD 的按钮
+		_hv.v2.txt(Vector2(rx - _hv.v2.twidth(lb, 13), T + 58), lb, 13, V3_GREY)
+		rx -= maxf(vw, _hv.v2.twidth(lb, 13)) + 26.0
 
 
 ## 手机两栏细线行（左右各一半）；行距按剩余高度 30–40

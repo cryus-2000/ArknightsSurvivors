@@ -972,7 +972,7 @@ op.siege.hit_sources.狮吼.range,Melee,近战,模型,
 op.siege.hit_sources.狮吼.kind,Physical,物理,模型,
 op.siege.hit_sources.粉碎.range,Melee,近战,模型,
 op.siege.hit_sources.粉碎.kind,Physical,物理,模型,
-op.siege.progression.0.name,Earthshatter,震地,模型,
+op.siege.progression.0.name,Earthshatter,震地,人改,跨模块统一（review/canon.json）
 op.siege.progression.0.desc,"Each hammer strike creates a ground-level shockwave upon landing (radius {$quake_r}, {$quake_mult*100}% of hammer strike damage)",每一锤落地打出一圈贴地冲击环（半径 {$quake_r}，锤击 {$quake_mult*100}% 伤害）,模型,
 op.siege.progression.1.name,Lion's Roar,狮吼,模型,
 op.siege.progression.1.desc,"Shockwaves cause knockback; when knocked back enemies collide with other enemies, both take {$roar_col_mult*100}% of hammer strike damage; when colliding with obstacles, they take {$roar_wall_mult*100}% (Bosses excepted)",冲击环击退敌人；被击退的敌人撞上其他敌人时，双方各受锤击 {$roar_col_mult*100}% 伤害，撞上障碍物时受 {$roar_wall_mult*100}%（Boss 除外）,模型,
@@ -1011,10 +1011,10 @@ op.siege.blocks.attack.crush.src,Crushing,粉碎,官方,character_table.char_112
 op.siege.blocks.skills.0.status,Charge γ,冲锋号令·γ型,官方,skill_table.skcom_charge_cost[3]
 op.siege.blocks.skills.0.fx.1.text.s,Charge γ,冲锋号令·γ型,官方,skill_table.skcom_charge_cost[3]
 op.siege.blocks.skills.0.do.1.src,Command,号令,模型,
-op.siege.blocks.skills.1.do.0.src,Earthshatter,震地,模型,
+op.siege.blocks.skills.1.do.0.src,Earthshatter,震地,人改,跨模块统一（review/canon.json）
 op.siege.blocks.skills.2.status,Skull Breaker,碎颅击,官方,skill_table.skchr_siege_3
 op.siege.blocks.skills.2.fx.2.banner,Skull Breaker,碎颅击,官方,skill_table.skchr_siege_3
-op.siege.blocks.progression.leap_again2.do.0.src,Earthshatter,震地,模型,
+op.siege.blocks.progression.leap_again2.do.0.src,Earthshatter,震地,人改,跨模块统一（review/canon.json）
 op.skadi.name,Skadi,斯卡蒂,官方,character_table.char_263_skadi
 op.skadi.class,Guard,近卫,官方,character_table profession（data.gd CLASS_EN）
 op.skadi.faction.0,Abyssal Hunter,深海猎人,官方,gamedata_const.termDescriptionDict.cc.g.abyssal
@@ -2502,7 +2502,7 @@ Mon3tr · 回防,Mon3tr: Defense Return,,原文键,模型
 {$s3_dur} 秒内锤击伤害 ×{$s3_mult}、每次命中 50% 眩晕 0.8 秒（精英减半），攻击速度 -25%,"For {$s3_dur}s, hammer strike deals ×{$s3_mult} damage, each hit has a 50% chance to Stun for 0.8s (halved on Elites), ATK speed -25%",,原文键,模型
 鼓舞,Rally,,原文键,暂定
 锤击命中时为其他干员回复的技力翻倍,Doubles SP restored to other Operators when hammer strikes hit,,原文键,模型
-震地,Earthshatter,,原文键,模型
+震地,Earthshatter,,原文键,人改
 每一锤落地打出一圈贴地冲击环（半径 {$quake_r}，锤击 {$quake_mult*100}% 伤害）,"Each hammer strike creates a ground-level shockwave upon landing (radius {$quake_r}, {$quake_mult*100}% of hammer strike damage)",,原文键,模型
 狮吼,Lion's Roar,,原文键,模型
 冲击环击退敌人；被击退的敌人撞上其他敌人时，双方各受锤击 {$roar_col_mult*100}% 伤害，撞上障碍物时受 {$roar_wall_mult*100}%（Boss 除外）,"Shockwaves cause knockback; when knocked back enemies collide with other enemies, both take {$roar_col_mult*100}% of hammer strike damage; when colliding with obstacles, they take {$roar_wall_mult*100}% (Bosses excepted)",,原文键,模型
@@ -3037,6 +3037,9 @@ Penguin Logistics employee with outstanding individual combat capabilities. Duri
 拉特兰公民。企鹅物流公司成员，从事秘密联络、武装押运等非公开活动，推测身份为信使。合约期内担任企鹅物流驻罗德岛联络人员，协助罗德岛的多项行动。","'Exusiai, employee of Penguin Logistics, will clear out everything in the way using her guns.'
 Citizen of Laterano. Member of Penguin Logistics. Engages in covert communication, armed escort, and other undisclosed activities. Suspected to be a Messenger. Serves as the Penguin Logistics liaison to Rhodes Island during the contract period, assisting in various Rhodes Island operations.",,原文键,模型
 罗德岛的博士。在切尔诺伯格的一处机密地点被罗德岛的小队救出，失去了过去的记忆，重要的事情都回忆不起来。获救后不久，整合运动袭击切尔诺伯格，博士在城中的战斗里接手调集、指挥罗德岛的作战小队。,"The Doctor of Rhodes Island. Rescued by a Rhodes Island squad from a classified location in Chernobog. Lost past memories and cannot recall important events. Shortly after the rescue, Reunion attacked Chernobog. The Doctor took over the mobilization and Command of Rhodes Island combat squads during the battle in the city.",,原文键,模型
+巨炮,Heavy Shell,,原文键,人改
+终焉句点,Final Full Stop,,原文键,人改
+剑影随行,Shadowblade Escort,,原文键,人改
 short:碎漩狂舞,Maelstrom,碎漩狂舞,短版,docs/276 §9 第 4 条
 short:掌握怒海,Raging Sea,掌握怒海,短版,docs/276 §9 第 4 条
 short:定点清算,Liquidation,定点清算,短版,docs/276 §9 第 4 条
@@ -3064,3 +3067,6 @@ short:队长神经损伤达到 60%，或灯火暗淡,Nerve 60% / Light Dim,队�
 short:另一名队友的连携亮起时（抢在它出手前）,Before another Link,另一名队友的连携亮起时（抢在它出手前）,短版,docs/276 §9 第 4 条
 short:另一名队友的连携命中后,After another Link,另一名队友的连携命中后,短版,docs/276 §9 第 4 条
 short:另一名队友的连携命中、附近敌人聚成一团时,"After Link, enemies bunched",另一名队友的连携命中、附近敌人聚成一团时,短版,docs/276 §9 第 4 条
+short:源石锭,Ingots,源石锭,短版,docs/276 §9 第 4 条
+short:推荐,Auto,推荐,短版,docs/276 §9 第 4 条
+short:中,Med,中,短版,docs/276 §9 第 4 条

@@ -1,0 +1,12 @@
+{
+ "_doc": "extra 模块人工补条（docs/276 §12）：运行时拼出来、抽取抓不到的片段 / 模板。键 = 中文原文",
+ "所需技力 %d · %d%%": {"en": "SP %d · %d%%", "note": "stats_panel 技能行括号里的进度"},
+ "触发": {"en": "Trigger", "note": "连携说明前缀"},
+ "入队加成": {"en": "Squad Bonus", "note": "squad.join_bonus_text 拆段"},
+ "男": {"en": "Male", "note": "档案性别"},
+ "秒": {"en": "s", "note": "单位"},
+ "机动": {"en": "Mobility", "note": "升级卡类别（term-captain：生存 / 机动 / 协同）"},
+ "协同": {"en": "Synergy", "note": "升级卡类别"},
+ "生存": {"en": "Survival", "note": "升级卡类别"},
+ "成长节点": {"en": "Growth Node", "note": "升级卡类别"}
+}

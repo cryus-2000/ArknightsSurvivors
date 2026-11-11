@@ -345,7 +345,7 @@ func right_top(vs: Vector2) -> void:
 	var iw: float = UI.latin().get_string_size(str(g.ingots), HORIZONTAL_ALIGNMENT_LEFT, -1, bf).x
 	var ix: float = rx - 20.0 - maxf(iw, 40.0)
 	if tch:
-		txt(Vector2(ix, RT_Y + 8), "源石锭", 11, UI.GREEN)
+		txt(Vector2(ix, RT_Y + 8), UI.Loc.short("源石锭"), 11, UI.GREEN)
 	else:
 		cap(Vector2(ix, RT_Y + 9), "INGOT", 6.5, UI.GREEN)
 	big(Vector2(ix, RT_Y + (40 if tch else 34)), str(g.ingots), bf)

@@ -1,0 +1,68 @@
+keys,en,_zh,_source,_note
+extra.0000,Arrow keys,方向键,模型,
+extra.0001,ENTER Shape,ENTER 塑造,模型,
+extra.0002,Z Details,Z 详情,模型,
+extra.0003,Drag,拖动,模型,
+extra.0004,Pan,平移,模型,
+extra.0005,Drag to Pan,拖动 平移,模型,
+extra.0006,"Tentacles emerge from beneath 6 enemies in the area, inflicting Bind for 1s.",区域里 6 名敌人脚下钻出触手，束缚 1 秒,模型,
+extra.0007,Halved,减半,模型,
+extra.0008,Ulpianus in squad,尔比安同队,模型,
+extra.0009,Specter the Unchained in squad,溟幽灵鲨同队,模型,
+extra.0010,"At least 2 of Gladiia, Specter the Unchained, Ulpianus, and Skadi the Corrupting Heart are in the squad.",蕾蒂娅、归溟幽灵鲨、乌尔比安、浊心斯卡蒂中至少 2 人同队,模型,
+extra.0011,Trigger,触发,人改,连携说明前缀
+extra.0012,Squad Bonus,入队加成,人改,squad.join_bonus_text 拆段
+extra.0013,Leader Max HP,队长最大生命,模型,
+extra.0014,"+15%, HP recovery",+15%，生命回复,模型,
+extra.0015,"Leader Max HP +15%, HP recovery",队长最大生命 +15%，生命回复,模型,
+extra.0016,Co-Strike,协击,人改,跨模块统一（review/canon.json）
+extra.0017,Growth Node,成长节点,人改,升级卡类别
+extra.0018,Synergy,协同,人改,升级卡类别
+extra.0019,Weakness,弱点,模型,
+extra.0020,Insight,洞察,模型,
+extra.0021,Trait,特性,模型,
+extra.0022,Bright,通明,模型,
+extra.0023,Awaken (SP cost,唤醒（所需技力,模型,
+extra.0024,Awaken (SP cost 7 · 0%),唤醒（所需技力 7 · 0%）,模型,
+extra.0025,Precious Days,平凡即是喜乐,人改,跨模块统一（review/canon.json）
+extra.0026,Swift Strike,迅捷打击,模型,
+extra.0027,Click node for details,点节点看详情,模型,
+extra.0028,Click outside to close,点空白收起,模型,
+extra.0029,Drag to pan,拖动平移,模型,
+extra.0030,Click node for details · Click outside to close · Drag to pan,点节点看详情 · 点空白收起 · 拖动平移,模型,
+extra.0031,Mobility,机动,人改,升级卡类别（term-captain：生存 / 机动 / 协同）
+方向键,Arrow keys,,原文键,模型
+ENTER 塑造,ENTER Shape,,原文键,模型
+Z 详情,Z Details,,原文键,模型
+拖动,Drag,,原文键,模型
+平移,Pan,,原文键,模型
+拖动 平移,Drag to Pan,,原文键,模型
+区域里 6 名敌人脚下钻出触手，束缚 1 秒,"Tentacles emerge from beneath 6 enemies in the area, inflicting Bind for 1s.",,原文键,模型
+减半,Halved,,原文键,模型
+尔比安同队,Ulpianus in squad,,原文键,模型
+溟幽灵鲨同队,Specter the Unchained in squad,,原文键,模型
+蕾蒂娅、归溟幽灵鲨、乌尔比安、浊心斯卡蒂中至少 2 人同队,"At least 2 of Gladiia, Specter the Unchained, Ulpianus, and Skadi the Corrupting Heart are in the squad.",,原文键,模型
+触发,Trigger,,原文键,人改
+入队加成,Squad Bonus,,原文键,人改
+队长最大生命,Leader Max HP,,原文键,模型
++15%，生命回复,"+15%, HP recovery",,原文键,模型
+队长最大生命 +15%，生命回复,"Leader Max HP +15%, HP recovery",,原文键,模型
+协击,Co-Strike,,原文键,人改
+成长节点,Growth Node,,原文键,人改
+协同,Synergy,,原文键,人改
+弱点,Weakness,,原文键,模型
+洞察,Insight,,原文键,模型
+特性,Trait,,原文键,模型
+通明,Bright,,原文键,模型
+唤醒（所需技力,Awaken (SP cost,,原文键,模型
+唤醒（所需技力 7 · 0%）,Awaken (SP cost 7 · 0%),,原文键,模型
+平凡即是喜乐,Precious Days,,原文键,人改
+迅捷打击,Swift Strike,,原文键,模型
+点节点看详情,Click node for details,,原文键,模型
+点空白收起,Click outside to close,,原文键,模型
+拖动平移,Drag to pan,,原文键,模型
+点节点看详情 · 点空白收起 · 拖动平移,Click node for details · Click outside to close · Drag to pan,,原文键,模型
+机动,Mobility,,原文键,人改
+所需技力 %d · %d%%,SP %d · %d%%,,原文键,人改
+秒,s,,原文键,人改
+生存,Survival,,原文键,人改

@@ -4,7 +4,7 @@ ui.guide.pages.0.lines.0,"Light | Lost on hit, replenished by picking up Lamp Oi
 ui.guide.pages.0.lines.1,"Nethersea Brand | Purple-black Nethersea Brand on the ground Slows and deals continuous damage, requires igniting a Guiding Beacon to cleanse.",溟痕｜地面的紫黑色溟痕会减速并持续伤害，点燃引航灯标才能净化。,校对,校对：修正不必要的大写（damage），优化表达（requires igniting）
 ui.guide.pages.0.more.0,"HP | If the Leader's HP reaches zero, the run fails. For each additional Operator in the squad, Max HP +{hp_per_member}%, recovery +{regen_per_member} / sec.",生命｜队长生命归零即探索失败。编队每多一名干员，最大生命 +{hp_per_member}%、回复 +{regen_per_member} / 秒。,校对,校对：修正不必要的大写（recovery）
 ui.guide.pages.0.more.1,"Bright | Light ≥ 70: SP recovery +30%, pick up range +20%. When Dim, damage taken +{dark_taken}%, Seaborn movement speed and contact damage +{dark_enemy}%.",通明｜灯火 ≥ 70：技力回复 +30%，拾取范围 +20%。暗淡时受到伤害 +{dark_taken}%，海嗣移速与接触伤害 +{dark_enemy}%。,校对,校对：统一术语（movement speed），修正不必要的大写
-ui.guide.pages.0.more.2,"Illuminated | Range radius varies between 110 and 360 with Light. When Light weakens, the ring shrinks but brightness remains unchanged. Enemies within the ring take +25% damage.",照亮｜范围半径在 110 与 360 之间随灯火变化，灯火变弱时圈缩小、亮度不变。圈内敌人受到伤害 +25%。,模型,
+ui.guide.pages.0.more.2,"Illuminated | Range radius varies between 110 and 360 and Light. When Light weakens, the ring shrinks but brightness remains unchanged. Enemies within the ring take +25% damage.",照亮｜范围半径在 110 与 360 之间随灯火变化，灯火变弱时圈缩小、亮度不变。圈内敌人受到伤害 +25%。,模型,
 ui.guide.pages.0.more.3,"Black Tide | From 2:30, the Safe Zone shrinks in 4 phases. Take continuous damage outside the zone. Move into the white dashed circle when 'Black Tide Approaching' appears.",黑潮｜2:30 起安全区分 4 轮收缩，圈外持续受伤，看到「黑潮将至」就往白色虚线圈里走。,模型,
 ui.guide.pages.1.title,Command,指挥,暂定,暂定（docs/276 §3.6）
 ui.guide.pages.1.lines.0,"Disk | Press F (Controller LB, Touch 'Command' button) to open, select Formation and Targeting preference.",圆盘｜按 F（手柄 LB，触屏「指挥」键）打开，选队形与索敌偏好。,模型,
@@ -357,7 +357,7 @@ ui.gd.data.010,Scarcity,拮据,模型,
 ui.gd.data.011,Originium Ingot drops -30%,源石锭掉落 -30%,模型,
 ui.gd.data.012,Swift Shadow,疾影,模型,
 ui.gd.data.013,Boss attack warning time -25%,Boss 招式预警时间 -25%,模型,
-ui.gd.data.014,Tidal Surge,潮涌,模型,
+ui.gd.data.014,Tidal Surge,潮涌,人改,跨模块统一（review/canon.json）
 ui.gd.data.015,"We Many scale +40%, We Many attack as usual when Boss is present.",大群规模 +40%，Boss 在场时大群照常来袭,校对,校对：中文原句为逗号连接，英文不应擅自拆分为两句
 ui.gd.data.016,Eternal Scar,永痕,模型,
 ui.gd.data.017,Nethersea Brand no longer dissipates,溟痕不再消散,模型,
@@ -444,7 +444,7 @@ ui.gd.endings.001,1,一,模型,
 ui.gd.endings.002,2,二,模型,
 ui.gd.endings.003,"Select one to reveal, takes effect upon reveal",选一张翻开，翻开即生效,模型,
 ui.gd.endings.004,Into the Ocean · En Route,深入海洋 · 途中,校对,校对：与 p12 保持一致，统一“深入海洋”的翻译
-ui.gd.endings.005,Cursed Antiquity,遭诅古物,模型,
+ui.gd.endings.005,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
 ui.gd.endings.006,Ending,结局,模型,
 ui.gd.endings.007,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
 ui.gd.endings.008,Take a break,稍事休息,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_rest_1.title
@@ -498,13 +498,13 @@ ui.gd.endings.055,Squad SP Recovery +%d%%,全队技力回复 +%d%%,模型,
 ui.gd.endings.056,Commission,委托,模型,
 ui.gd.endings.057,Commission: %s — Defeat %d Enemies within %ds,委托：%s —— %d 秒内击败 %d 名敌人,模型,
 ui.gd.endings.058,The bishops remember you — there will be an Emergency Operation at the next intersection.,教士们记住了你 —— 下一个路口会有一场紧急作战,模型,
-ui.gd.endings.059,Basic,基础,模型,
+ui.gd.endings.059,Basic,基础,人改,跨模块统一（review/canon.json）
 ui.gd.endings.060,Rare,稀有,模型,
 ui.gd.endings.061,No obtainable Relic · ,暂无可得藏品 · ,模型,
 ui.gd.endings.062,Gain Relic: %s,获得藏品：%s,模型,
 ui.gd.endings.063,Gain Cursed Relic: %s,获得遭诅藏品：%s,模型,
 ui.gd.endings.064,%s is already Elite 2 — Change to Select 1 of 3 Growths twice,%s 已是精英二 —— 改为两次成长三选一,模型,
-ui.gd.endings.065,%s Promoted to Elite %s,%s 晋升至精英%s,校对,校对：语法修正，应为过去分词 Promoted
+ui.gd.endings.065,%s promoted to Elite %s,%s 晋升至精英%s,人改,跨模块统一（review/canon.json）
 ui.gd.endings.066,Select Operator for Promotion,选择精英化的干员,模型,
 ui.gd.endings.067,The Operator immediately advances to the next Elite Phase.,该干员立即进到下一个精英阶段。,模型,
 ui.gd.endings.068,Elite 0,精英零,模型,
@@ -537,7 +537,7 @@ ui.gd.endings.094,Commission · Formidable Enemy %ds,委托 · 强敌 %d 秒,模
 ui.gd.endings.095,Commission · Defeat Elite squad,委托 · 击败精英小队,模型,
 ui.gd.endings.096,Commission · Defeat %d/%d,委托 · 击败 %d/%d,模型,
 ui.gd.endings.097,%s leaves for %ds,%s 暂离 %d 秒,模型,
-ui.gd.endings.098,"Squad Full, Change to Select 1 of 3 Growths",编队已满，改为一次成长三选一,模型,
+ui.gd.endings.098,"Squad Full, Change to 1 of 3 Growth choices",编队已满，改为一次成长三选一,模型,
 ui.gd.endings.099,Direction of run changed: %s,探索的走向改变了：%s,模型,
 ui.gd.endings.100,Endgame Approaches,终局将至,模型,
 ui.gd.endings.101,Ending 1,结局一,模型,
@@ -562,7 +562,7 @@ ui.gd.gallery.017,"Elite. A crawler carrying an air sac. When HP drops to 2/3 an
 ui.gd.gallery.018,"Elite. Low-altitude Levitating ranged entity, shots inflict Corrosion; falls when crowd-controlled, switches to Melee.",精英。低空悬浮的远程个体，射击附带侵蚀；被控制后坠落，改为近战。,模型,
 ui.gd.gallery.019,"Elite. Throws Baleful Broodlings at the Leader: the landing point shows a warning first, dealing damage and inflicting Corrosion upon landing. The Broodling hatches at the landing point immediately (max 6 on the field).",精英。向队长投掷注亡拟嗣：落点先出预警，落地造成伤害并附加侵蚀，拟嗣随即在落点孵化（场上最多 6 只）。,模型,
 ui.gd.gallery.020,"Elite. Disguises as Supply Box, revealing itself when attacked. Screams for 2.5s after revealing: accumulates Nervous Impairment within 150 radius and consumes Light. Pursues normally but does not bite during this time. Defeating it before the scream ends yields Originium Ingot ×1.5. Bites twice, second bite damage ×0.6. Immune to Stun, Cold, and Silence. Drops Originium Ingot when defeated.",精英。伪装成补给箱，受到攻击后现形。现形后尖叫 2.5 秒：周围 150 内累积神经损伤并吞噬灯火，期间照常追击、不啃咬；尖叫结束前击倒，源石锭 ×1.5。啃咬两连，第二口伤害 ×0.6。免疫眩晕、寒冷和封印；击败后掉落源石锭。,校对,"校对：修正不必要的大写（during, scream, damage, defeated），优化句子结构"
-ui.gd.gallery.021,"Mid-Boss (3:30 / 7:00). Paves a path of life from its feet to the edge of the field, with a signpost at the end of each phase along the route. Leader running past a signpost severs the path, causing fractals on the path to stop and become priority attack targets. Stunned for 3s after all are severed. Act 1 signposts spit splitting fractal ammo to both sides, or release twice-forking branch ammo toward Leader. After HP drops to 50%, a ring of ammo closes in from the outside, with the gap on the path of life. Charge leaves a row of ammo pushed to both sides along the route. 'Charge' and 'Quake' are cast in sequence, revealing an opening after the moves.",中期 Boss（3:30 / 7:00）。从脚下向场边铺生路，路线上每段末端有一个路标；队长跑过路标即截断这条路，路上的分形停下并成为优先攻击目标，全部截断后硬直 3 秒。一幕路标向两侧吐出会分裂的分形弹，或朝队长放出两次分叉的树枝弹；生命降到 50% 后，一圈弹从外向它收拢，缺口在生路上，冲撞沿线留下一排向两侧推开的弹。「冲撞」「震地」连续出招，收招后出现破绽。,校对,"校对：修正不必要的大写（phase, attack, all, ammo, opening）"
+ui.gd.gallery.021,"Mid-Boss (3:30 / 7:00). Paves a path of life from its feet to the edge of the field, with a signpost at the end of each phase along the route. Leader running past a signpost severs the path, causing fractals on the path to stop and become priority attack targets. Stunned for 3s after all are severed. Act 1 signposts spit splitting fractal ammo to both sides, or release twice-forking branch ammo toward Leader. After HP drops to 50%, a ring of ammo closes in from the outside, with the gap on the path of life. Charge leaves a row of ammo pushed to both sides along the route. 'Charge' and 'Quake' are cast in sequence, revealing an opening after the moves.",中期 Boss（3:30 / 7:00）。从脚下向场边铺生路，路线上每段末端有一个路标；队长跑过路标即截断这条路，路上的分形停下并成为优先攻击目标，全部截断后硬直 3 秒。一幕路标向两侧吐出会分裂的分形弹，或朝队长放出两次分叉的树枝弹；生命降到 50% 后，一圈弹从外向它收拢，缺口在生路上，冲撞沿线留下一排向两侧推开的弹。「冲撞」「震地」连续出招，收招后出现破绽。,校对,"校对：修正不必要的大写（phase, attack, all, ammo, opening）；「震地」本表译 Earthshatter，这里没对上"
 ui.gd.gallery.022,"Mid-Boss (7:00). Buffed state of Saint Carmen (same character, only one appears per run): higher HP and ATK, hand cannon only loads 1 shot. 'Hand Cannon' beam pierces fullscreen, 'Bombardment' arcs toward the Leader's position, both sharing ammo. Pursues in melee after emptying ammo, using 'Scatter' at close range to fire 2 waves of 18 pellets each. Reload takes 3s (2.6s in Act 2). Accumulating damage taken or being dashed through during the cast bar interrupts the action, forcing him to his knees and revealing an opening. Below 50% HP, after reload, first releases a 'Clear Chamber' notched loop, then follows with 'Hand Cannon · Triple Combo'.",中期 Boss（7:00）。圣徒卡门的强化状态（同一人物，一次探索只会出现一位）：生命与攻击更高，手炮只装 1 发。「手炮」射线贯穿全屏，「轰击」曲射砸向队长所在位置，两者共用弹药；打空后近身追击，近距离用「散射」连喷 2 波、每波 18 发弹丸。装填 3 秒（第二幕 2.6 秒），读条中累计受到伤害或被冲刺穿身会被打断、跪地露出破绽。50% 后装填完毕先放「清膛」缺口环，再接「手炮·三连」。,校对,"校对：修正不必要的大写（shot, fullscreen, ammo, melee, damage taken, dashed, opening, reload, l"
 ui.gd.gallery.023,"Mid-Boss (3:30 / 7:00). Elderly 'Saint' wielding a hand cannon (same person as Iberia, only one appears in a run): 3 ammo. Long-range 'Snipe', melee 'Cannon Sweep'. Turns and 'Ring Shot' when ammo is full at medium range, emptying 3 shots at once into an ammo ring with three gaps. Reloads for 3s, cast bar can be interrupted. After 50%, emptying ammo triggers 8s of cannon melee, using 'Cannon Smash' to rush to Leader and smash the ground.",中期 Boss（3:30 / 7:00）。持手炮的年迈圣徒（与伊比利亚是同一人物，一次探索只会出现一位）：3 发弹药。远距离「狙击」，近身「炮身横扫」；弹药满且距离适中时转身「环射」，三个缺口的弹环一次打空 3 发。装填 3 秒，读条可被打断。50% 后弹药打空先进入 8 秒炮身近战，用「炮身砸击」冲到队长身边砸地。,校对,"校对：修正不必要的大写（ammo, melee, shots）；「狙击」本表译 Sniper，这里没对上"
 ui.gd.gallery.024,"Mid-Boss (7:00). Appears paired with The Despicable or The Repugnant. Enters reviving state and recovers HP when HP reaches zero; both must be reviving simultaneously for true defeat. When the HP difference between the two is too large, the one with lower HP takes reduced damage. Both release projectiles, with barrages symmetrical along the midline between them: one fires in a fan shape and the other mirrors it, or both simultaneously release oppositely curved projectile loops. When either's HP drops to 50%, they swap positions every 10s, deploying a projectile wall along their connecting line that pushes outward to both sides, while both simultaneously release oppositely rotating spirals. The Bishop's 'Tidal Pillar' and its companion's melee attacks are executed in continuous succession; after the attacks conclude, both simultaneously reveal an opening.",中期 Boss（7:00）。与蔑死体或斥亡体成对出现；生命归零后进入假死并回复，两者同时假死才会真正倒下。两具血量差过大时，血少的一具受到的伤害降低。两具各自放弹，弹幕关于两体之间的中线对称：一具扇射后另一具放镜像，或两具同时放出反向弯曲的弹环。任一具生命降到 50% 后，每 10 秒互换位置，连线上排出向两侧推开的弹墙，两具同时放反向螺旋。主教「潮汐柱」与同伴近战连续出招，收招后两具同时出现破绽。,校对,"校对：修正不必要的大写（paired, reviving, defeat, loops, melee, opening），修正 damage taken 冗余"
@@ -579,7 +579,7 @@ ui.gd.gallery.034,Skill,技能,模型,
 ui.gd.gallery.035,Growth,成长,模型,
 ui.gd.gallery.036,Idle,待机,模型,
 ui.gd.gallery.037,Run,跑步,模型,
-ui.gd.gallery.038,Hit,受击,模型,
+ui.gd.gallery.038,Hit,受击,人改,跨模块统一（review/canon.json）
 ui.gd.gallery.039,Defeat,倒下,模型,
 ui.gd.gallery.040,"Not recruited.
 
@@ -610,7 +610,7 @@ ui.gd.gallery.057,Sector Sweep,扇形扫击,模型,
 ui.gd.gallery.058,Melee Blast,近身震爆,模型,
 ui.gd.gallery.059,Linear Thrust,直线突刺,模型,
 ui.gd.gallery.060,Sector Barrage,扇形弹幕,模型,
-ui.gd.gallery.061,Attack,攻击,模型,
+ui.gd.gallery.061,Attack,攻击,人改,跨模块统一（review/canon.json）
 ui.gd.gallery.062,Hits inflict brief Cold.,命中附加短暂寒冷。,模型,
 ui.gd.gallery.063,Hits accumulate Nervous Impairment.,命中累积神经损伤。,模型,
 ui.gd.gallery.064,Hits deal brief Stagger. Consecutive hits have a protection interval.,命中造成短暂僵直，连续命中有保护间隔。,校对,校对：大小写修正，deal和interval不应大写
@@ -635,11 +635,11 @@ ui.gd.gallery.073,"Not yet achieved.
 Clue:","尚未达成。
 
 线索：",模型,
-ui.gd.gallery.074,Basic,基础,模型,
+ui.gd.gallery.074,Basic,基础,人改,跨模块统一（review/canon.json）
 ui.gd.gallery.075,Rare,稀有,模型,
 ui.gd.gallery.076,Core,核心,模型,
 ui.gd.gallery.077,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
-ui.gd.gallery.078,Cursed Antiquity,遭诅古物,模型,
+ui.gd.gallery.078,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
 ui.gd.gallery.079,Level,等级,模型,
 ui.gd.gallery.080,Style,流派,模型,
 ui.gd.gallery.081,Category,分类,模型,
@@ -693,7 +693,7 @@ ui.gd.gallery.128,Command · Follow,指挥 · 随行,模型,
 ui.gd.gallery.129,Recovery,回复,模型,
 ui.gd.gallery.130,By Leader,随队长,模型,
 ui.gd.gallery.131,Dodge,闪避,模型,
-ui.gd.gallery.132,Pick Up,拾取,模型,
+ui.gd.gallery.132,Pickup,拾取,人改,跨模块统一（review/canon.json）
 ui.gd.gallery.133,Follow,随行,暂定,暂定（docs/276 §3.6）
 ui.gd.gallery.134,Command,指挥,暂定,暂定（docs/276 §3.6）
 ui.gd.gallery.135,Rejection,排异,模型,
@@ -723,7 +723,7 @@ ui.gd.gallery.158,Hostile,敌对,模型,
 ui.gd.gallery.159,Phase 1,一阶段,模型,
 ui.gd.gallery.160,%s · Attack Preview,%s · 攻击演示,模型,
 ui.gd.gallery.161,Archive · ,图鉴 · ,模型,
-ui.gd.gallery.162,Back,返回,模型,
+ui.gd.gallery.162,Back,返回,人改,跨模块统一（review/canon.json）
 ui.gd.gallery.163,Archive,图鉴,模型,
 ui.gd.gallery.164,Back  Ⓑ,返回  Ⓑ,模型,
 ui.gd.gallery.165,All,全部,模型,
@@ -756,7 +756,7 @@ ui.gd.gallery.191,Trigger: %s. %s,触发：%s。%s,模型,
 ui.gd.gallery.192,BOND  //  Trust · %s,BOND  //  羁绊 · %s,模型,
 ui.gd.gallery.193,Trust,羁绊,模型,
 ui.gd.gallery.194,%s Unlock,%s解锁,模型,
-ui.gd.gallery.195,SP cost %d,所需技力 %d,模型,
+ui.gd.gallery.195,SP cost %d,所需技力 %d,人改,跨模块统一（review/canon.json）
 ui.gd.gallery.196,Lasts %ss,持续 %s 秒,模型,
 ui.gd.gallery.197,Permanent Effect,永久生效,模型,
 ui.gd.gallery.198,Manual Activation,手动释放,模型,
@@ -773,10 +773,10 @@ ui.gd.gallery.208,LB / RB Category · D-Pad Select · Ⓧ / Ⓨ Action · Ⓐ Ta
 ui.gd.gallery.209,Q / E Category · ←→ Select · ↑↓ Expand Description · Z / X Action · ENTER Tab · ESC Back,Q / E 分类 · ←→ 选择 · ↑↓ 展开说明 · Z / X 动作 · ENTER 页签 · ESC 返回,模型,
 ui.gd.gallery.210,LB / RB Category · D-Pad ←→ Select · ↑↓ Expand Description · Ⓐ Tab · Ⓑ Back,LB / RB 分类 · 十字键 ←→ 选择 · ↑↓ 展开说明 · Ⓐ 页签 · Ⓑ 返回,模型,
 ui.gd.gallery.211,Options,选项,模型,
-ui.gd.game.000,Cover,援护,模型,
+ui.gd.game.000,Support,援护,人改,跨模块统一（review/canon.json）
 ui.gd.game.001,Ranged,远程,模型,
 ui.gd.game.002,Physical,物理,模型,
-ui.gd.game.003,Arts Cover,法术援护,模型,
+ui.gd.game.003,Arts Support,法术援护,人改,跨模块统一（review/canon.json）
 ui.gd.game.004,Arts,法术,模型,
 ui.gd.game.005,Relic,藏品,模型,
 ui.gd.game.006,Mine,地雷,模型,
@@ -806,7 +806,7 @@ ui.gd.game.029,On,开,模型,
 ui.gd.game.030,Off,关,模型,
 ui.gd.game.031,Music: Off,音乐：关,模型,
 ui.gd.game.032,Music: On,音乐：开,模型,
-ui.gd.game.033,Time Limit not recovered,作战时限未恢复,模型,
+ui.gd.game.033,Combat time limit not restored,作战时限未恢复,人改,跨模块统一（review/canon.json）
 ui.gd.game.034,Self Recovery,自身回复,模型,
 ui.gd.game.035,Cognitive Shaping,认知塑造,模型,
 ui.gd.game.036,For Survival — Leader recovers 30% Max HP,为了生存 —— 队长回复 30% 最大生命,模型,
@@ -816,7 +816,7 @@ ui.gd.medal_toast.000,Gain Medal,获得蚀刻章,模型,
 ui.gd.pad.000,Left Stick,左摇杆,模型,
 ui.gd.pad.001,D-Pad,十字键,模型,
 ui.gd.relic_fx.000,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
-ui.gd.relic_fx.001,Cursed Antiquity,遭诅古物,模型,
+ui.gd.relic_fx.001,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
 ui.gd.relic_fx.002,Ending,结局,模型,
 ui.gd.relic_fx.003,  (Can Upgrade),  (可升级),模型,
 ui.gd.relic_fx.004,"%s
@@ -916,7 +916,7 @@ ui.gd.settings_panel.030,Cloud Save Data,云存档,模型,
 ui.gd.settings_panel.031,Recovery from Cloud,从云端恢复,模型,
 ui.gd.settings_panel.032,Overwrite cloud with local,以本地覆盖云端,模型,
 ui.gd.settings_panel.033,Performance Report,性能报告,模型,
-ui.gd.settings_panel.034,Back,返回,模型,
+ui.gd.settings_panel.034,Back,返回,人改,跨模块统一（review/canon.json）
 ui.gd.settings_panel.035,Chinese,中文,模型,
 ui.gd.settings_panel.036,Beta: Local run summary recorded (not uploaded),测试版：本地记录对局摘要（不上传）,模型,
 ui.gd.settings_panel.037,Audio,声音,模型,
@@ -956,7 +956,7 @@ ui.gd.settings_panel.070,Synced,已同步,模型,
 ui.gd.settings_panel.071,Not Played,没玩过,模型,
 ui.gd.settings_panel.072,Played,玩过,模型,
 ui.gd.settings_panel.073,Apply,应用,模型,
-ui.gd.sfx.000,Deployment,落地,模型,
+ui.gd.sfx.000,Landing,落地,人改,跨模块统一（review/canon.json）
 ui.gd.sfx.001,Charge,冲锋,模型,
 ui.gd.sfx.002,Beam,光束,模型,
 ui.gd.sfx.003,Melee,近身,模型,
@@ -1015,7 +1015,7 @@ ui.gd.title.049,Touch,触屏,模型,
 ui.gd.title.050,Keyboard & Mouse,键鼠,模型,
 ui.gd.title.051,Controller,手柄,模型,
 ui.gd.title.052,"Squad, Light, Nethersea Brand, Command, Relic, Merchant: See Start Guide",编队、灯火、溟痕、指挥、藏品、商人：见开局指南,校对,校对：句首单词首字母应大写
-ui.gd.title.053,Back,返回,模型,
+ui.gd.title.053,Back,返回,人改,跨模块统一（review/canon.json）
 ui.gd.title.054,Credits,致 谢,模型,
 ui.gd.title.055,Arknights Fan Game · Non-commercial · V2.0,明日方舟同人作品 · 非商业 · V2.0,模型,
 ui.gd.title.056,Scroll wheel / ↑↓ / PgUp PgDn to scroll · Drag right scrollbar,滚轮 / ↑↓ / PgUp PgDn 滚动 · 拖动右侧滚动条,模型,
@@ -1043,13 +1043,13 @@ ui.gd.ui.000,Light,灯火,暂定,暂定（docs/276 §3.6）
 ui.gd.ui.001,Combat,战斗,模型,
 ui.gd.ui.002,Survival,生存,模型,
 ui.gd.ui.003,Seaborn,海嗣,模型,
-ui.gd.ui.004,Melee Expansion,近战扩域,模型,
-ui.gd.ui.005,Multi-Ammo Firepower,多弹火力,模型,
-ui.gd.ui.006,Summon Presence,召唤驻场,模型,
-ui.gd.ui.007,Control Detonation,控场引爆,模型,
+ui.gd.ui.004,Melee Range Expansion,近战扩域,人改,跨模块统一（review/canon.json）
+ui.gd.ui.005,Multi-Shot Firepower,多弹火力,人改,跨模块统一（review/canon.json）
+ui.gd.ui.006,Persistent Summon,召唤驻场,人改,跨模块统一（review/canon.json）
+ui.gd.ui.007,Control Detonation,控场引爆,人改,跨模块统一（review/canon.json）
 ui.gd.ui.008,Weakness Harvest,弱点收割,模型,
 ui.gd.ui.009,Shield Counter,护盾反击,模型,
-ui.gd.ui.010,Healing to Damage,治疗转伤,模型,
+ui.gd.ui.010,Heal-to-Damage,治疗转伤,人改,跨模块统一（review/canon.json）
 ui.gd.ui.011,Class,职业,模型,
 ui.gd.ui.012,General,通用,模型,
 ui.gd.ui.013,Economy,经济,模型,
@@ -1105,7 +1105,7 @@ ui.gd.screens.boot_views.010,/ Startup Verification,/ 启动校验,模型,
 ui.gd.screens.boot_views.011,Authentication Passed,认证通过,模型,
 ui.gd.screens.boot_views.012,Startup Verification,启动校验,模型,
 ui.gd.screens.boot_views.013,Resource Index,资源索引,模型,
-ui.gd.screens.boss_intro.000, with , 与 ,模型,
+ui.gd.screens.boss_intro.000, and , 与 ,人改,跨模块统一（review/canon.json）
 ui.gd.screens.boss_intro.001,Final Boss,最终 Boss,暂定,暂定（docs/276 §3.6）
 ui.gd.screens.boss_intro.002,Mid-Boss,中期 Boss,暂定,暂定（docs/276 §3.6）
 ui.gd.screens.boss_intro.003,%s · Defeated,%s · 击破,校对,校对：“击破”在 Boss 语境下通常翻译为 Defeated，Kills 容易产生歧义
@@ -1124,9 +1124,9 @@ ui.gd.screens.boss_trial_menu.011,Normal Battle,正常开战,模型,
 ui.gd.screens.boss_trial_menu.012,Directly enter 2nd Form (Supported Bosses),直接进入第二形态（支持的 Boss）,模型,
 ui.gd.screens.boss_trial_menu.013,Observation Mode: Leader cannot be defeated,观察模式：队长不会倒下,模型,
 ui.gd.screens.boss_trial_menu.014,Start Drill,开始演练,模型,
-ui.gd.screens.boss_trial_menu.015,Back,返回,模型,
-ui.gd.screens.card_motion.000,Cursed Antiquity,遭诅古物,模型,
-ui.gd.screens.card_motion.001,Basic,基础,模型,
+ui.gd.screens.boss_trial_menu.015,Back,返回,人改,跨模块统一（review/canon.json）
+ui.gd.screens.card_motion.000,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
+ui.gd.screens.card_motion.001,Basic,基础,人改,跨模块统一（review/canon.json）
 ui.gd.screens.choice_panel.000,←→ Select · Ⓐ Confirm,←→ 选择 · Ⓐ 确认,模型,
 ui.gd.screens.choice_panel.001,Tap card to select,点击卡片选择,模型,
 ui.gd.screens.choice_panel.002,"Click a card, or press 1–%d to select",点击卡片，或按 1–%d 选择,校对,"校对：修正句中不必要的大写字母（Press, Select）"
@@ -1168,7 +1168,7 @@ ui.gd.screens.choice_panel.037,(after|when|end|start|afterwards|distance|after [
 ui.gd.screens.choice_panel.038,Every ( ?[0-9]+ ?times?| ?[0-9]|time|kill|hit),每(第 ?[0-9]+ ?次|有 ?[0-9]|次|一次|击杀|被),校对,校对：修复正则表达式语法错误（`(?`会导致解析错误，应为空格加问号` ?`），并修正不必要的大写
 ui.gd.screens.choice_panel.039,^(Lasts )?[0-9]+(\.[0-9]+)?s$,^(持续 )?[0-9]+(\.[0-9]+)? 秒$,模型,
 ui.gd.screens.choice_panel.040,Additional,追加,模型,
-ui.gd.screens.choice_panel.041,Attack,攻击,模型,
+ui.gd.screens.choice_panel.041,Attack,攻击,人改,跨模块统一（review/canon.json）
 ui.gd.screens.choice_panel.042,Deal,造成,模型,
 ui.gd.screens.choice_panel.043,Recovery,回复,模型,
 ui.gd.screens.choice_panel.044,Stun,眩晕,模型,
@@ -1191,7 +1191,7 @@ ui.gd.screens.choice_panel.060,After Unlock,解锁后,模型,
 ui.gd.screens.choice_panel.061,When SP Full,技力满后,模型,
 ui.gd.screens.choice_panel.062,Skill,技能,模型,
 ui.gd.screens.choice_panel.063,Decline,婉拒,模型,
-ui.gd.screens.choice_panel.064,Change to select 1 of 3 Growths,改为一次成长三选一,校对,校对：修正句中不必要的大写（保留 Growths 作为专有名词大写）
+ui.gd.screens.choice_panel.064,Change to 1 of 3 Growth choices,改为一次成长三选一,人改,跨模块统一（review/canon.json）
 ui.gd.screens.choice_panel.065,Decline · Change to select 1 of 3 Growths,婉拒 · 改为一次成长三选一,校对,校对：修正句中不必要的大写
 ui.gd.screens.choice_panel.066,Style,流派,模型,
 ui.gd.screens.choice_panel.067,Effect,影响,模型,
@@ -1199,7 +1199,7 @@ ui.gd.screens.choice_panel.068,Select,选择,模型,
 ui.gd.screens.choice_panel.069,Rare,稀有,模型,
 ui.gd.screens.choice_panel.070,Core,核心,模型,
 ui.gd.screens.choice_panel.071,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
-ui.gd.screens.choice_panel.072,Cursed Antiquity,遭诅古物,模型,
+ui.gd.screens.choice_panel.072,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
 ui.gd.screens.choice_panel.073,Growth  GROWTH,成长  GROWTH,模型,
 ui.gd.screens.choice_panel.074,Recruit · ,招募 · ,模型,
 ui.gd.screens.choice_panel.075,Promotion  ELITE,精英化  ELITE,模型,
@@ -1271,9 +1271,9 @@ ui.gd.screens.command_wheel.002,Assault,突击,暂定,暂定（docs/276 §3.6）
 ui.gd.screens.command_wheel.003,"Leaves squad for targeting, acts for a limited time",离队索敌，限时行动,校对,校对：不应大写 targeting
 ui.gd.screens.command_wheel.004,Regroup,归队,模型,
 ui.gd.screens.command_wheel.005,Return to Leader immediately,立即回到队长身边,模型,
-ui.gd.screens.command_wheel.006,Prioritize Mobs,清杂优先,模型,
+ui.gd.screens.command_wheel.006,Prioritize Mobs,清杂优先,人改,跨模块统一（review/canon.json）
 ui.gd.screens.command_wheel.007,"Prioritizes mobs, fires toward dense clusters",优先杂兵，向密集处开火,模型,
-ui.gd.screens.command_wheel.008,Prioritize Boss,Boss 优先,模型,
+ui.gd.screens.command_wheel.008,Prioritize Bosses,Boss 优先,人改,跨模块统一（review/canon.json）
 ui.gd.screens.command_wheel.009,"Squad Focus Fire on Boss, pursues relentlessly during Assault",全队集火 Boss，突击时紧追不放,模型,
 ui.gd.screens.command_wheel.010,Move,移动,官方,gamedata_const.termDescriptionDict.ba.addash
 ui.gd.screens.command_wheel.011,Tap a location: Ally moves there and stations,点一个位置：队友走过去驻扎,校对,校对：中文无句号
@@ -1321,7 +1321,7 @@ ui.gd.screens.difficulty_screen.021,Operation Conditions,行动条件,模型,
 ui.gd.screens.difficulty_screen.022,Standard combat conditions,标准作战条件,模型,
 ui.gd.screens.difficulty_screen.023,Level Cleared,本档通关,模型,
 ui.gd.screens.difficulty_screen.024,Times,次,模型,
-ui.gd.screens.difficulty_screen.025,Back,返回,模型,
+ui.gd.screens.difficulty_screen.025,Back,返回,人改,跨模块统一（review/canon.json）
 ui.gd.screens.difficulty_screen.026,Cognitive Shaping,认知塑造,模型,
 ui.gd.screens.difficulty_screen.027,Locked,未解锁,模型,
 ui.gd.screens.difficulty_screen.028,Confirm Difficulty,确认难度,模型,
@@ -1394,7 +1394,7 @@ ui.gd.screens.headhunt.035,All Unlocked,已全部解锁,模型,
 ui.gd.screens.headhunt.036,Locked  %d,未解锁  %d,模型,
 ui.gd.screens.headhunt.037,New Class,新职业,模型,
 ui.gd.screens.headhunt.038,Arrow Keys Select,方向键选择,模型,
-ui.gd.screens.headhunt.039,Back,返回,模型,
+ui.gd.screens.headhunt.039,Back,返回,人改,跨模块统一（review/canon.json）
 ui.gd.screens.headhunt.040,Confirm Class,确认职业,模型,
 ui.gd.screens.headhunt.041,Targeted Headhunt · Specify Operator,定向寻访 · 指定干员,模型,
 ui.gd.screens.headhunt.042,Personnel Dispatch,人事调度,模型,
@@ -1492,7 +1492,7 @@ ui.gd.screens.hud_bars.004,Light Out · Continuous DMG Taken,灯火寂灭 · 持
 ui.gd.screens.hud_bars.005,Light Dim · Enemy movement speed and damage +%d%% · Damage taken +%d%% · Pick Up -30%%,灯火暗淡 · 敌人移速与伤害 +%d%% · 受到的伤害 +%d%% · 拾取 -30%%,校对,校对：统一术语：移速 -> movement speed
 ui.gd.screens.hud_bars.006,Light Bright · Damage taken by enemies within Light Radius +%d%% · SP Recovery +30%% · Pick Up +20%%,灯火通明 · 照亮范围内敌人受伤 +%d%% · 技力回复 +30%% · 拾取 +20%%,模型,
 ui.gd.screens.hud_bars.007,Light Flickering · Enemies within Light Radius take +%d%% Damage,灯火摇曳 · 照亮范围内敌人受伤 +%d%%,模型,
-ui.gd.screens.hud_bars.008,Kills,击杀,模型,
+ui.gd.screens.hud_bars.008,Kills,击杀,人改,跨模块统一（review/canon.json）
 ui.gd.screens.hud_bars.009,Boss Drill,Boss 演练,校对,校对：统一“演练”的翻译为 Drill（参考 p35）
 ui.gd.screens.hud_bars.010,Clear progress not recorded,不记录通关进度,模型,
 ui.gd.screens.hud_bars.011,Threat %s,威胁 %s,模型,
@@ -1624,7 +1624,7 @@ ui.gd.screens.initial_stats.005,Song Radius,歌域半径,模型,
 ui.gd.screens.initial_stats.006,Dash Distance,冲刺距离,模型,
 ui.gd.screens.initial_stats.007,Attack Range,攻击范围,模型,
 ui.gd.screens.initial_stats.008,Mon3tr Attack,Mon3tr 攻击,模型,
-ui.gd.screens.initial_stats.009,Attack,攻击,模型,
+ui.gd.screens.initial_stats.009,Attack,攻击,人改,跨模块统一（review/canon.json）
 ui.gd.screens.initial_stats.010,Single-target,单体,模型,
 ui.gd.screens.initial_stats.011,Hits,段,校对,校对：“段”在此处作为量词，指攻击的段数（Hits），而非阶段（Phase）。
 ui.gd.screens.initial_stats.012,Shots,发,模型,
@@ -1677,8 +1677,8 @@ ui.gd.screens.intro.017,Recruit,招募,模型,
 ui.gd.screens.intro.018,Passive,被动,模型,
 ui.gd.screens.intro.019,Operator Growth / Recruitment / Survival and Mobility,干员成长 / 招募 / 生存与机动,校对,校对：大小写不统一，招募应为 Recruitment
 ui.gd.screens.intro.020,Shallows,浅滩,模型,
-ui.gd.screens.intro.021,Currents,暗流,模型,
-ui.gd.screens.intro.022,Deep,深潜,模型,
+ui.gd.screens.intro.021,Undertow,暗流,人改,跨模块统一（review/canon.json）
+ui.gd.screens.intro.022,Deep Dive,深潜,人改,跨模块统一（review/canon.json）
 ui.gd.screens.intro.023,Rift,裂隙,模型,
 ui.gd.screens.intro.024,Abyss,深渊,模型,
 ui.gd.screens.intro.025,Caerula Arbor,深蓝之树,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_10
@@ -1702,7 +1702,7 @@ ui.gd.screens.loading_tips.006,Getting the same Relic again will upgrade it.,同
 ui.gd.screens.loading_tips.007,"Elite 1 unlocks Skill 2 and Talent, Elite 2 unlocks Skill 3.",精英一解锁二技能与天赋，精英二解锁三技能。,校对,校对：主谓一致，Unlock 应为 unlocks
 ui.gd.screens.loading_tips.008,"The purple-black Nethersea Brand inflicts Slow, deals continuous damage, and accumulates Nervous Impairment.",紫黑色的溟痕会减速、持续造成伤害，并累积神经损伤。,校对,校对：damage 不应大写
 ui.gd.screens.medals_ui.000,Medal,蚀刻章,模型,
-ui.gd.screens.medals_ui.001,Back,返回,模型,
+ui.gd.screens.medals_ui.001,Back,返回,人改,跨模块统一（review/canon.json）
 ui.gd.screens.medals_ui.002,Beneath the Deep Blue,深蓝之下,模型,
 ui.gd.screens.medals_ui.003,Medal Set,蚀刻章套组,模型,
 ui.gd.screens.medals_ui.004,Obtained,已获得,模型,
@@ -1725,7 +1725,7 @@ ui.gd.screens.meta_tree_ui.014,Cognitive Shaping,认知塑造,模型,
 ui.gd.screens.meta_tree_ui.015,Vital Cells,生机细胞,暂定,暂定（docs/276 §3.6）
 ui.gd.screens.meta_tree_ui.016,Total Gain %d,累计获得 %d,模型,
 ui.gd.screens.meta_tree_ui.017,Shaped,已塑造,模型,
-ui.gd.screens.meta_tree_ui.018,Back,返回,模型,
+ui.gd.screens.meta_tree_ui.018,Back,返回,人改,跨模块统一（review/canon.json）
 ui.gd.screens.meta_tree_ui.019,Recommended,推荐,模型,
 ui.gd.screens.meta_tree_ui.020,Press again to confirm reset,再按确认重置,模型,
 ui.gd.screens.meta_tree_ui.021,Reset All,全部重置,模型,
@@ -1813,7 +1813,7 @@ ui.gd.screens.result.005,Level,等级,模型,
 ui.gd.screens.result.006,Elite 0,精零,模型,
 ui.gd.screens.result.007,Elite 1,精英一,暂定,暂定（docs/276 §3.6）
 ui.gd.screens.result.008,Elite 2,精英二,暂定,暂定（docs/276 §3.6）
-ui.gd.screens.result.009,Kills,击杀,模型,
+ui.gd.screens.result.009,Kills,击杀,人改,跨模块统一（review/canon.json）
 ui.gd.screens.result.010,Difficulty,难度,模型,
 ui.gd.screens.result.011,+%d (Score %d × %.2f),+%d（评分 %d × %.2f）,模型,
 ui.gd.screens.result.012,  New Ending +40,  新结局 +40,模型,
@@ -1839,7 +1839,7 @@ ui.gd.screens.run_log_screen.012,Time / Version,时间 / 版本,模型,
 ui.gd.screens.run_log_screen.013,Squad,编队,模型,
 ui.gd.screens.run_log_screen.014,Ending,结局,模型,
 ui.gd.screens.run_log_screen.015,Time Taken,用时,模型,
-ui.gd.screens.run_log_screen.016,Kills,击杀,模型,
+ui.gd.screens.run_log_screen.016,Kills,击杀,人改,跨模块统一（review/canon.json）
 ui.gd.screens.run_log_screen.017,Relic,藏品,模型,
 ui.gd.screens.run_log_screen.018,Back to Settlement,返回结算,模型,
 ui.gd.screens.run_log_screen.019,Select,选择,模型,
@@ -1862,7 +1862,7 @@ ui.gd.screens.run_stats_screen.014,Operator Details,干员详情,模型,
 ui.gd.screens.run_stats_screen.015,Drill Done,演练完成,模型,
 ui.gd.screens.run_stats_screen.016,Drill Ended,演练结束,模型,
 ui.gd.screens.run_stats_screen.017,Defeated By:,击倒者：,模型,
-ui.gd.screens.run_stats_screen.018,Run Time Taken ,探索用时 ,模型,
+ui.gd.screens.run_stats_screen.018,Run Time ,探索用时 ,模型,
 ui.gd.screens.run_stats_screen.019,Time Taken,用时,模型,
 ui.gd.screens.run_stats_screen.020,Elite 0,精零,模型,
 ui.gd.screens.run_stats_screen.021,Elite 1,精英一,暂定,暂定（docs/276 §3.6）
@@ -1872,7 +1872,7 @@ ui.gd.screens.run_stats_screen.024,Defeated By,击倒者,模型,
 ui.gd.screens.run_stats_screen.025,Squad Damage %s · %s Per Second,全队伤害 %s · 每秒 %s,模型,
 ui.gd.screens.run_stats_screen.026,Did not gain any Relics this run,这次探索没有获得藏品,校对,校对：Gain不应大写，且relic用复数更自然
 ui.gd.screens.run_stats_screen.027,Row %d–%d / Total %d Rows,第 %d–%d 行 / 共 %d 行,模型,
-ui.gd.screens.run_stats_screen.028,Cursed Antiquity,遭诅古物,模型,
+ui.gd.screens.run_stats_screen.028,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
 ui.gd.screens.run_stats_screen.029,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
 ui.gd.screens.run_stats_screen.030,(Run Record restored: only saved the total for each Operator),（对局记录还原：只存了每名干员的合计）,校对,校对：语法修正，restore 作名词时通常在 IT 语境中使用，此处用 restored（已还原）或 restoration 更符合语境
 ui.gd.screens.run_stats_screen.031,Battle Records · ,作战记录 · ,模型,
@@ -1881,7 +1881,7 @@ ui.gd.screens.run_stats_screen.033,Change Operator,换干员,模型,
 ui.gd.screens.run_stats_screen.034,Damage Dealt,造成伤害,模型,
 ui.gd.screens.run_stats_screen.035,Squad %,全队占比,模型,
 ui.gd.screens.run_stats_screen.036,Per Second,每秒,模型,
-ui.gd.screens.run_stats_screen.037,Kills,击杀,模型,
+ui.gd.screens.run_stats_screen.037,Kills,击杀,人改,跨模块统一（review/canon.json）
 ui.gd.screens.run_stats_screen.038,Skill,技能,模型,
 ui.gd.screens.run_stats_screen.039,Heal Leader,治疗队长,模型,
 ui.gd.screens.run_stats_screen.040,Max Single Hit,最高单次,模型,
@@ -1892,8 +1892,8 @@ ui.gd.screens.run_stats_screen.044,Survival,生存,模型,
 ui.gd.screens.run_stats_screen.045,Damage Taken,受到的伤害,模型,
 ui.gd.screens.run_stats_screen.046,HP Recovery,生命回复,模型,
 ui.gd.screens.run_stats_screen.047,Bright Duration,通明时长,模型,
-ui.gd.screens.run_stats_screen.048,Originium Ingot Smelting,源石锭熔铸,校对,校对：smelt 是动词，作名词（熔铸）时应使用动名词 smelting
-ui.gd.screens.run_stats_screen.049,Squad Damage +%s%%,全队伤害 +%s%%,模型,
+ui.gd.screens.run_stats_screen.048,Originium Ingot Smelting,源石锭熔铸,人改,跨模块统一（review/canon.json）
+ui.gd.screens.run_stats_screen.049,Squad Damage +%s%%,全队伤害 +%s%%,人改,跨模块统一（review/canon.json）
 ui.gd.screens.run_stats_screen.050,Consumption,蚀,官方,enemy_handbook_table.enemy_1391_dhbow
 ui.gd.screens.run_stats_screen.051,Dmg,创,模型,
 ui.gd.screens.run_stats_screen.052,Nrv,神,模型,
@@ -1912,7 +1912,7 @@ ui.gd.screens.settings_shell.001,System Settings,系统设置,模型,
 ui.gd.screens.settings_shell.002,Q / E Switch Category    ↑ ↓ Select    ← → Adjust    Scroll to View,Q / E 切换分类    ↑ ↓ 选择    ← → 调整    滚轮翻看,模型,
 ui.gd.screens.settings_shell.003,LB / RB Switch Category    ↑ ↓ Select    ← → Adjust    Ⓑ Back,LB / RB 切换分类    ↑ ↓ 选择    ← → 调整    Ⓑ 返回,模型,
 ui.gd.screens.settings_shell.004,Tap Category to switch · Drag list,点分类切换 · 拖动列表,模型,
-ui.gd.screens.settings_shell.005,Back,返回,模型,
+ui.gd.screens.settings_shell.005,Back,返回,人改,跨模块统一（review/canon.json）
 ui.gd.screens.settlement_screen.000,Exchange Vouchers,兑换凭证,模型,
 ui.gd.screens.settlement_screen.001,Share Record,分享战绩,模型,
 ui.gd.screens.settlement_screen.002,Share  V,分享  V,模型,
@@ -1942,7 +1942,7 @@ ui.gd.screens.settlement_screen.025,Operation Settlement,作战结算,模型,
 ui.gd.screens.settlement_screen.026,Arknights Survivor,方舟幸存者,模型,
 ui.gd.screens.settlement_screen.027,Run Complete,探索完成,校对,校对：Run Done过于口语化，Complete更符合游戏结算界面风格
 ui.gd.screens.settlement_screen.028,Run Terminated,探索终止,模型,
-ui.gd.screens.settlement_screen.029,Run Time Taken,探索用时,模型,
+ui.gd.screens.settlement_screen.029,Run Time,探索用时,人改,跨模块统一（review/canon.json）
 ui.gd.screens.settlement_screen.030,Difficulty Level,难度档,模型,
 ui.gd.screens.settlement_screen.031,Gained This Run,本局获得,模型,
 ui.gd.screens.settlement_screen.032,Vital Cells,生机细胞,暂定,暂定（docs/276 §3.6）
@@ -1965,8 +1965,8 @@ ui.gd.screens.settlement_screen.048, Kills, 击破,模型,
 ui.gd.screens.share_card.000,Arknights Survivor,方舟幸存者,模型,
 ui.gd.screens.share_card.001,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
 ui.gd.screens.share_card.002,Rare,稀有,模型,
-ui.gd.screens.share_card.003,Cursed Antiquity,遭诅古物,模型,
-ui.gd.screens.share_card.004,Basic,基础,模型,
+ui.gd.screens.share_card.003,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
+ui.gd.screens.share_card.004,Basic,基础,人改,跨模块统一（review/canon.json）
 ui.gd.screens.share_card.005,Run Complete,探索完成,校对,校对：Run Done过于口语化，Complete更符合游戏结算界面风格
 ui.gd.screens.share_card.006,Run Terminated,探索终止,模型,
 ui.gd.screens.share_card.007,Defeated:,击倒：,模型,
@@ -2005,7 +2005,7 @@ ui.gd.screens.shop_screen.007,Free Once per Run,本局免费一次,模型,
 ui.gd.screens.shop_screen.008,1 Time Only,仅一次,模型,
 ui.gd.screens.shop_screen.009,Already Refreshed,已刷新过,模型,
 ui.gd.screens.shop_screen.010,Leave,离开,官方,roguelike_topic_table.rogue_2.choices.choice_leave.title
-ui.gd.screens.shop_screen.011,Supplies,补给,模型,
+ui.gd.screens.shop_screen.011,Supplies,补给,人改,跨模块统一（review/canon.json）
 ui.gd.screens.shop_screen.012,Light,灯火,暂定,暂定（docs/276 §3.6）
 ui.gd.screens.shop_screen.013,Abyssal Gift,深海馈赠,模型,
 ui.gd.screens.shop_screen.014,Purchase Limit Full,本次限购已满,模型,
@@ -2044,7 +2044,7 @@ ui.gd.screens.stats_panel.014,Light Radius,照亮范围,暂定,暂定（docs/276
 ui.gd.screens.stats_panel.015,Objective Shield,护盾,官方,roguelike_topic_table.rogue_2.items.rogue_2_shield
 ui.gd.screens.stats_panel.016,%d / %d · Every %.1fs,%d / %d · 每 %.1f 秒,模型,
 ui.gd.screens.stats_panel.017,None,无,模型,
-ui.gd.screens.stats_panel.018,Attack,攻击,模型,
+ui.gd.screens.stats_panel.018,Attack,攻击,人改,跨模块统一（review/canon.json）
 ui.gd.screens.stats_panel.019,Melee / Ranged,近战 / 远程,模型,
 ui.gd.screens.stats_panel.020,Physical / Arts,物理 / 法术,模型,
 ui.gd.screens.stats_panel.021,Run Composition,本局构成,模型,
@@ -2093,7 +2093,7 @@ ui.gd.screens.stats_panel.063,SELECT / Ⓑ Back,SELECT / Ⓑ 返回,模型,
 ui.gd.screens.stats_panel.064,%s  /  squad %d/%d  /  %s  /  %s,%s  /  编队 %d/%d  /  %s  /  %s,校对,校对：统一术语（编队 -> squad）
 ui.gd.screens.stats_panel.065,Trait  ,特性  ,模型,
 ui.gd.screens.stats_panel.066,Originium Ingot,源石锭,官方,roguelike_topic_table.rogue_2.items.rogue_2_gold
-ui.gd.screens.stats_panel.067,Kills,击杀,模型,
+ui.gd.screens.stats_panel.067,Kills,击杀,人改,跨模块统一（review/canon.json）
 ui.gd.screens.stats_panel.068,Time,时间,模型,
 ui.gd.screens.stats_panel.069,Damage Composition,本局伤害构成,模型,
 ui.gd.screens.stats_panel.070,Next ,下一步 ,模型,
@@ -2150,7 +2150,7 @@ ui.gd.screens.title_op_pick.010,Operator displayed on Title Page,显示在标题
 ui.gd.screens.title_op_pick.011,Do not change start squad,不改变开局编队,校对,校对：统一术语（编队 -> squad），修正不必要的大写
 ui.gd.screens.title_op_pick.012,1 Leader; other Operators are recruited via upgrades during a run,队长 1 名；其余干员在探索中通过升级招募,校对,校对：修正语法错误与不必要的大写
 ui.gd.screens.title_op_pick.013,Next: Select Difficulty,下一步：选择难度,模型,
-ui.gd.screens.title_op_pick.014,Back,返回,模型,
+ui.gd.screens.title_op_pick.014,Back,返回,人改,跨模块统一（review/canon.json）
 ui.gd.screens.title_op_pick.015,Cover Operator ,封面干员 ,模型,
 ui.gd.screens.title_op_pick.016,Difficulty ,难度 ,模型,
 ui.gd.screens.title_op_pick.017,All,全,模型,
@@ -2196,13 +2196,13 @@ ui.gd.screens.title_op_pick.056,Recruit via Upgrade during a run,探索中通过
 ui.gd.screens.title_op_pick.057,Style,流派,模型,
 ui.gd.screens.title_op_pick.058,Trust,羁绊,模型,
 ui.gd.screens.title_op_pick.059,%s Operator in squad,编队中有%s干员,校对,校对：统一术语大小写（squad）
-ui.gd.screens.title_op_pick.060,%s card '%s',%s卡「%s」,模型,
+ui.gd.screens.title_op_pick.060,%s card '%s',%s卡「%s」,人改,跨模块统一（review/canon.json）
 ui.gd.screens.title_op_pick.061,Relic #%s,藏品 #%s,模型,
 ui.gd.screens.title_op_pick.062,Elite 2 Requirement:,精英二条件：,模型,
 ui.gd.screens.title_op_pick.063,ARCHIVE // Profile,ARCHIVE // 档案,模型,
 ui.gd.screens.title_tour.000,Archive,图鉴,模型,
 ui.gd.screens.title_tour.001,Tap 'Archive'.,点击「图鉴」。,模型,
-ui.gd.screens.title_tour.002,Back,返回,模型,
+ui.gd.screens.title_tour.002,Back,返回,人改,跨模块统一（review/canon.json）
 ui.gd.screens.title_tour.003,Assemble & Depart,集结出发,模型,
 ui.gd.screens.title_tour.004,Start run.,开始探索。,模型,
 ui.gd.screens.title_tour.005,Tap highlighted area ESC: Skip,点击高亮处　ESC：跳过,模型,
@@ -2247,7 +2247,7 @@ ui.gd.screens.tour.023,Tap: Next,点击：下一步,模型,
 ui.gd.screens.settle.settle_base.000,Defeated:,击倒：,模型,
 ui.gd.screens.settle.settle_base.001,Run Terminated,探索终止,模型,
 ui.gd.screens.settle.settle_base.002,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
-ui.gd.screens.settle.settle_base.003,Cursed Antiquity,遭诅古物,模型,
+ui.gd.screens.settle.settle_base.003,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
 ui.gd.screens.settle.settle_base.004,Rare,稀有,模型,
 ui.gd.screens.settle.settle_base.005,Share Record,分享战绩,模型,
 ui.gd.screens.settle.settle_base.006,Share  V,分享  V,模型,
@@ -2276,7 +2276,7 @@ ui.gd.screens.settle.settle_report.007,%s Per Second,每秒 %s,模型,
 ui.gd.screens.settle.settle_report.008,Enemies Defeated,击败敌人,模型,
 ui.gd.screens.settle.settle_report.009,Elite %d,精英 %d,模型,
 ui.gd.screens.settle.settle_report.010,Max Single Hit,最高单次,模型,
-ui.gd.screens.settle.settle_report.011,Boss Kills,Boss 击破,模型,
+ui.gd.screens.settle.settle_report.011,Bosses Defeated,Boss 击破,人改,跨模块统一（review/canon.json）
 ui.gd.screens.settle.settle_report.012,Damage Taken,受到伤害,模型,
 ui.gd.screens.settle.settle_report.013,HP Recovery,生命回复,模型,
 ui.gd.screens.settle.settle_report.014,|  03 / Squad Output,|  03 / 编队输出,模型,
@@ -2288,7 +2288,7 @@ ui.gd.screens.settle.settle_report.019,Not Issued if Uncleared,未通关不发�
 ui.gd.screens.settle.settle_report.020,"Available Vital Cells %d · 1 Permit costs %d, shared with Cognitive Shaping",可用生机细胞 %d · 兑换 1 张凭证消耗 %d 个，与认知塑造共用,模型,
 ui.gd.screens.settle.settle_report.021,Redeemed %d Headhunting Permits · Currently Owned %d · Remaining Vital Cells %d,已兑换 %d 张寻访凭证 · 现持有 %d 张 · 剩余生机细胞 %d,模型,
 ui.gd.screens.settle.settle_report.022,Available Vital Cells %d · %d more needed for 1 Permit,可用生机细胞 %d · 兑换 1 张凭证还需 %d 个,模型,
-ui.gd.screens.settle.settle_report.023,Cursed Antiquity,遭诅古物,模型,
+ui.gd.screens.settle.settle_report.023,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
 ui.gd.screens.settle.settle_report.024,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
 ui.gd.core.bot.000,Guard,近卫,官方,character_table profession（data.gd CLASS_EN）
 ui.gd.core.bot.001,Defender,重装,官方,character_table profession（data.gd CLASS_EN）
@@ -2297,9 +2297,9 @@ ui.gd.core.bot.003,Specialist,特种,官方,character_table profession（data.gd
 ui.gd.core.bot.004,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
 ui.gd.core.bot.005,Core,核心,模型,
 ui.gd.core.bot.006,Rare,稀有,模型,
-ui.gd.core.bot.007,Basic,基础,模型,
+ui.gd.core.bot.007,Basic,基础,人改,跨模块统一（review/canon.json）
 ui.gd.core.bot.008,Medic,医疗,官方,character_table profession（data.gd CLASS_EN）
-ui.gd.core.bot.009,Cursed Antiquity,遭诅古物,模型,
+ui.gd.core.bot.009,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
 ui.gd.core.cloud_pack.000,Invalid header format,头格式不对,模型,
 ui.gd.core.cloud_pack.001,Incorrect version: v=%d minv=%d,版本号不对：v=%d minv=%d,模型,
 ui.gd.core.cloud_pack.002,"Cloud save data requires version %d, current version %d",云端存档要求版本 %d，本版 %d,校对,校对：修正大小写
@@ -2384,11 +2384,11 @@ ui.gd.core.perf_hud.024,"
 【上次（异常退出那次）的日志】
 ",模型,
 ui.gd.core.perf_hud.025,"Log copied to clipboard, and saved to %s",日志已复制到剪贴板，并存到 %s,模型,
-ui.gd.core.relic_db.000,Basic,基础,模型,
+ui.gd.core.relic_db.000,Basic,基础,人改,跨模块统一（review/canon.json）
 ui.gd.core.relic_db.001,Rare,稀有,模型,
 ui.gd.core.relic_db.002,Core,核心,模型,
 ui.gd.core.relic_db.003,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
-ui.gd.core.relic_db.004,Cursed Antiquity,遭诅古物,模型,
+ui.gd.core.relic_db.004,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
 ui.gd.core.relic_db.005,Ending,结局,模型,
 ui.gd.core.relic_db.006,General,通用,模型,
 ui.gd.core.run_reload.000,New session (Unlinked to previous page),新会话（未关联上页）,模型,
@@ -2513,12 +2513,12 @@ ui.gd.render.fx_pxplane.005,Wave Strike,跃浪击,官方,skill_table.skchr_skadi
 ui.gd.render.fx_pxplane.006,Wave Break Cleave,破浪下劈,模型,
 ui.gd.render.fx_pxplane.007,Shield Counter,举盾反击,模型,
 ui.gd.render.fx_pxplane.008,Hot Sand,热砂,模型,
-ui.gd.render.fx_pxplane.009,Hot Sand Boiling,热砂沸腾,模型,
+ui.gd.render.fx_pxplane.009,Boiling Hot Sand,热砂沸腾,人改,跨模块统一（review/canon.json）
 ui.gd.render.fx_pxplane.010,Luminous Unit,发光单元,模型,
 ui.gd.render.fx_pxplane.011,Synecdoche,提喻,官方,skill_table.skchr_logos_2
 ui.gd.render.fx_pxplane.012,Epitaph,墓志铭,模型,
 ui.gd.render.fx_pxplane.013,Falling Magma,熔岩天降,模型,
-ui.gd.render.fx_pxplane.014,Quake,震地,模型,
+ui.gd.render.fx_pxplane.014,Earthshatter,震地,人改,跨模块统一（review/canon.json）
 ui.gd.render.fx_pxplane.015,Resonance,共鸣,模型,
 ui.gd.render.fx_pxplane.016,Abyssal Echoes,深海的回响,校对,校对：Abyssal是形容词，Echoes of Abyssal语法错误，应改为Abyssal Echoes或Echoes of the Abyss
 ui.gd.render.fx_pxplane.017,Sound Wave,声浪,模型,
@@ -2623,7 +2623,7 @@ ui.gd.render.world.009,Status Resistance,抵抗,官方,gamedata_const.termDescri
 ui.gd.render.world.010,Break Shell,打破外壳,模型,
 ui.gd.render.world.011,Safe Zone %ds,安全区 %d 秒,模型,
 ui.gd.render.world.012,Break,破,模型,
-ui.gd.render.world.013,Teardrop Purified,泪滴已净化,模型,
+ui.gd.render.world.013,Teardrop Purified,泪滴已净化,人改,跨模块统一（review/canon.json）
 ui.gd.render.world.014,Touch Purifying Teardrop,触碰净化泪滴,模型,
 ui.gd.render.world.015,Reviving %ds · Simultaneously defeat the other,假死 %d 秒 · 同时击倒另一体,模型,
 ui.gd.render.world.016,Reloading · Attack interrupts,装填中 · 攻击打断,模型,
@@ -2638,7 +2638,7 @@ ui.gd.render.world.022,Reload Interrupted · Stun %.1f,装填被打断 · 眩晕
 溟痕｜地面的紫黑色溟痕会减速并持续伤害，点燃引航灯标才能净化。,"Nethersea Brand | Purple-black Nethersea Brand on the ground Slows and deals continuous damage, requires igniting a Guiding Beacon to cleanse.",,原文键,校对
 生命｜队长生命归零即探索失败。编队每多一名干员，最大生命 +{hp_per_member}%、回复 +{regen_per_member} / 秒。,"HP | If the Leader's HP reaches zero, the run fails. For each additional Operator in the squad, Max HP +{hp_per_member}%, recovery +{regen_per_member} / sec.",,原文键,校对
 通明｜灯火 ≥ 70：技力回复 +30%，拾取范围 +20%。暗淡时受到伤害 +{dark_taken}%，海嗣移速与接触伤害 +{dark_enemy}%。,"Bright | Light ≥ 70: SP recovery +30%, pick up range +20%. When Dim, damage taken +{dark_taken}%, Seaborn movement speed and contact damage +{dark_enemy}%.",,原文键,校对
-照亮｜范围半径在 110 与 360 之间随灯火变化，灯火变弱时圈缩小、亮度不变。圈内敌人受到伤害 +25%。,"Illuminated | Range radius varies between 110 and 360 with Light. When Light weakens, the ring shrinks but brightness remains unchanged. Enemies within the ring take +25% damage.",,原文键,模型
+照亮｜范围半径在 110 与 360 之间随灯火变化，灯火变弱时圈缩小、亮度不变。圈内敌人受到伤害 +25%。,"Illuminated | Range radius varies between 110 and 360 and Light. When Light weakens, the ring shrinks but brightness remains unchanged. Enemies within the ring take +25% damage.",,原文键,模型
 黑潮｜2:30 起安全区分 4 轮收缩，圈外持续受伤，看到「黑潮将至」就往白色虚线圈里走。,"Black Tide | From 2:30, the Safe Zone shrinks in 4 phases. Take continuous damage outside the zone. Move into the white dashed circle when 'Black Tide Approaching' appears.",,原文键,模型
 圆盘｜按 F（手柄 LB，触屏「指挥」键）打开，选队形与索敌偏好。,"Disk | Press F (Controller LB, Touch 'Command' button) to open, select Formation and Targeting preference.",,原文键,模型
 集火｜圆盘下半圈。点选一名精英或 Boss，全队攻击该目标；小怪不能选。,"Focus Fire | Bottom half of the disc. Select an Elite or Boss, all allies attack the target; mobs cannot be selected.",,原文键,校对
@@ -2854,7 +2854,7 @@ window.__syPhase='建局·%s',window.__syPhase='Setup · %s',,原文键,模型
 源石锭掉落 -30%,Originium Ingot drops -30%,,原文键,模型
 疾影,Swift Shadow,,原文键,模型
 Boss 招式预警时间 -25%,Boss attack warning time -25%,,原文键,模型
-潮涌,Tidal Surge,,原文键,模型
+潮涌,Tidal Surge,,原文键,人改
 大群规模 +40%，Boss 在场时大群照常来袭,"We Many scale +40%, We Many attack as usual when Boss is present.",,原文键,校对
 永痕,Eternal Scar,,原文键,模型
 溟痕不再消散,Nethersea Brand no longer dissipates,,原文键,模型
@@ -2933,7 +2933,7 @@ Boss 在场时大群照常来袭,We Many attacks as usual when Boss is present,,
 二,2,,原文键,模型
 选一张翻开，翻开即生效,"Select one to reveal, takes effect upon reveal",,原文键,模型
 深入海洋 · 途中,Into the Ocean · En Route,,原文键,校对
-遭诅古物,Cursed Antiquity,,原文键,模型
+遭诅古物,Cursed Curio,,原文键,人改
 结局,Ending,,原文键,模型
 升华,Sublimation,,原文键,官方
 稍事休息,Take a break,,原文键,官方
@@ -2987,13 +2987,13 @@ Boss 在场时大群照常来袭,We Many attacks as usual when Boss is present,,
 委托,Commission,,原文键,模型
 委托：%s —— %d 秒内击败 %d 名敌人,Commission: %s — Defeat %d Enemies within %ds,,原文键,模型
 教士们记住了你 —— 下一个路口会有一场紧急作战,The bishops remember you — there will be an Emergency Operation at the next intersection.,,原文键,模型
-基础,Basic,,原文键,模型
+基础,Basic,,原文键,人改
 稀有,Rare,,原文键,模型
 暂无可得藏品 · ,No obtainable Relic · ,,原文键,模型
 获得藏品：%s,Gain Relic: %s,,原文键,模型
 获得遭诅藏品：%s,Gain Cursed Relic: %s,,原文键,模型
 %s 已是精英二 —— 改为两次成长三选一,%s is already Elite 2 — Change to Select 1 of 3 Growths twice,,原文键,模型
-%s 晋升至精英%s,%s Promoted to Elite %s,,原文键,校对
+%s 晋升至精英%s,%s promoted to Elite %s,,原文键,人改
 选择精英化的干员,Select Operator for Promotion,,原文键,模型
 该干员立即进到下一个精英阶段。,The Operator immediately advances to the next Elite Phase.,,原文键,模型
 精英零,Elite 0,,原文键,模型
@@ -3024,7 +3024,7 @@ Boss 在场时大群照常来袭,We Many attacks as usual when Boss is present,,
 委托 · 击败精英小队,Commission · Defeat Elite squad,,原文键,模型
 委托 · 击败 %d/%d,Commission · Defeat %d/%d,,原文键,模型
 %s 暂离 %d 秒,%s leaves for %ds,,原文键,模型
-编队已满，改为一次成长三选一,"Squad Full, Change to Select 1 of 3 Growths",,原文键,模型
+编队已满，改为一次成长三选一,"Squad Full, Change to 1 of 3 Growth choices",,原文键,模型
 探索的走向改变了：%s,Direction of run changed: %s,,原文键,模型
 终局将至,Endgame Approaches,,原文键,模型
 结局一,Ending 1,,原文键,模型
@@ -3038,7 +3038,7 @@ Boss 在场时大群照常来袭,We Many attacks as usual when Boss is present,,
 成长,Growth,,原文键,模型
 待机,Idle,,原文键,模型
 跑步,Run,,原文键,模型
-受击,Hit,,原文键,模型
+受击,Hit,,原文键,人改
 倒下,Defeat,,原文键,模型
 "未招募。
 
@@ -3064,7 +3064,7 @@ Additional Attack: %s (%s).",,原文键,模型
 近身震爆,Melee Blast,,原文键,模型
 直线突刺,Linear Thrust,,原文键,模型
 扇形弹幕,Sector Barrage,,原文键,模型
-攻击,Attack,,原文键,模型
+攻击,Attack,,原文键,人改
 命中附加短暂寒冷。,Hits inflict brief Cold.,,原文键,模型
 命中累积神经损伤。,Hits accumulate Nervous Impairment.,,原文键,模型
 命中造成短暂僵直，连续命中有保护间隔。,Hits deal brief Stagger. Consecutive hits have a protection interval.,,原文键,校对
@@ -3136,7 +3136,7 @@ Mon3tr 熔毁,Mon3tr Meltdown,,原文键,模型
 回复,Recovery,,原文键,模型
 随队长,By Leader,,原文键,模型
 闪避,Dodge,,原文键,模型
-拾取,Pick Up,,原文键,模型
+拾取,Pickup,,原文键,人改
 随行,Follow,,原文键,暂定
 排异,Rejection,,原文键,模型
 跟在队长身后指挥小队，不攻击，也不会受到攻击。队长的移速、拾取的初始值来自博士（初始没有闪避，靠认知塑造、升级与藏品获得），生命、减伤与回复由队长干员决定。灯火照亮的是队长身边，队长受击时灯火熄灭一截。升级时的生存 / 机动 / 协同卡是博士给小队的指挥加成；排异反应记在博士名下，可在属性面板查看。,"Follows behind Leader to Command the squad. Does not attack, and cannot be attacked. Leader's initial movement speed and Pick Up values come from Doctor (no initial Dodge, gained through Cognitive Shaping, Upgrade, and Relic). HP, damage reduction, and Recovery are determined by Leader Operator. Light illuminates the area around Leader. Light extinguishes slightly when Leader is hit. Survival / Mobility / Synergy cards upon Upgrade are Command bonuses from Doctor to the squad. Rejection is recorded under Doctor, and can be viewed in the Stats panel.",,原文键,校对
@@ -3156,7 +3156,7 @@ Mon3tr 熔毁,Mon3tr Meltdown,,原文键,模型
 一阶段,Phase 1,,原文键,模型
 %s · 攻击演示,%s · Attack Preview,,原文键,模型
 图鉴 · ,Archive · ,,原文键,模型
-返回,Back,,原文键,模型
+返回,Back,,原文键,人改
 返回  Ⓑ,Back  Ⓑ,,原文键,模型
 全部,All,,原文键,模型
 按职业,By Class,,原文键,模型
@@ -3179,7 +3179,7 @@ LINK  //  连携技,LINK  //  Link Skill,,原文键,模型
 BOND  //  羁绊 · %s,BOND  //  Trust · %s,,原文键,模型
 羁绊,Trust,,原文键,模型
 %s解锁,%s Unlock,,原文键,模型
-所需技力 %d,SP cost %d,,原文键,模型
+所需技力 %d,SP cost %d,,原文键,人改
 持续 %s 秒,Lasts %ss,,原文键,模型
 永久生效,Permanent Effect,,原文键,模型
 手动释放,Manual Activation,,原文键,模型
@@ -3195,8 +3195,8 @@ LB / RB 分类 · 十字键选择 · Ⓧ / Ⓨ 动作 · Ⓐ 页签 · Ⓑ 返�
 Q / E 分类 · ←→ 选择 · ↑↓ 展开说明 · Z / X 动作 · ENTER 页签 · ESC 返回,Q / E Category · ←→ Select · ↑↓ Expand Description · Z / X Action · ENTER Tab · ESC Back,,原文键,模型
 LB / RB 分类 · 十字键 ←→ 选择 · ↑↓ 展开说明 · Ⓐ 页签 · Ⓑ 返回,LB / RB Category · D-Pad ←→ Select · ↑↓ Expand Description · Ⓐ Tab · Ⓑ Back,,原文键,模型
 选项,Options,,原文键,模型
-援护,Cover,,原文键,模型
-法术援护,Arts Cover,,原文键,模型
+援护,Support,,原文键,人改
+法术援护,Arts Support,,原文键,人改
 地雷,Mine,,原文键,模型
 轰隆隆,Rumble,,原文键,模型
 岁怒,Sui's Wrath,,原文键,模型
@@ -3222,7 +3222,7 @@ FPS %.0f   上限 %d%s   画质 %s   %d:%02d,FPS %.0f   Cap %d%s   Graphics %s  
 关,Off,,原文键,模型
 音乐：关,Music: Off,,原文键,模型
 音乐：开,Music: On,,原文键,模型
-作战时限未恢复,Time Limit not recovered,,原文键,模型
+作战时限未恢复,Combat time limit not restored,,原文键,人改
 自身回复,Self Recovery,,原文键,模型
 认知塑造,Cognitive Shaping,,原文键,模型
 为了生存 —— 队长回复 30% 最大生命,For Survival — Leader recovers 30% Max HP,,原文键,模型
@@ -3342,7 +3342,7 @@ Boss 轮廓光,Boss Highlight,,原文键,模型
 查看,View,,原文键,模型
 打开记录文件夹,Open log folder,,原文键,模型
 应用,Apply,,原文键,模型
-落地,Deployment,,原文键,模型
+落地,Landing,,原文键,人改
 光束,Beam,,原文键,模型
 近身,Melee,,原文键,模型
 全场,Global,,原文键,模型
@@ -3405,13 +3405,13 @@ Q（按住看范围，松开释放）,"Q (Hold to see range, release to cast)",,
 移动摇杆,Move Joystick,,原文键,模型
 战斗,Combat,,原文键,模型
 生存,Survival,,原文键,模型
-近战扩域,Melee Expansion,,原文键,模型
-多弹火力,Multi-Ammo Firepower,,原文键,模型
-召唤驻场,Summon Presence,,原文键,模型
-控场引爆,Control Detonation,,原文键,模型
+近战扩域,Melee Range Expansion,,原文键,人改
+多弹火力,Multi-Shot Firepower,,原文键,人改
+召唤驻场,Persistent Summon,,原文键,人改
+控场引爆,Control Detonation,,原文键,人改
 弱点收割,Weakness Harvest,,原文键,模型
 护盾反击,Shield Counter,,原文键,模型
-治疗转伤,Healing to Damage,,原文键,模型
+治疗转伤,Heal-to-Damage,,原文键,人改
 职业,Class,,原文键,模型
 通用,General,,原文键,模型
 经济,Economy,,原文键,模型
@@ -3455,7 +3455,7 @@ boot:标题页建好,boot: Title Page built,,原文键,模型
 认证通过,Authentication Passed,,原文键,模型
 启动校验,Startup Verification,,原文键,模型
 资源索引,Resource Index,,原文键,模型
- 与 , with ,,原文键,模型
+ 与 , and ,,原文键,人改
 中期 Boss,Mid-Boss,,原文键,暂定
 %s · 击破,%s · Defeated,,原文键,校对
 Boss 演练,Boss Drill,,原文键,校对
@@ -3528,7 +3528,7 @@ Boss 演练,Boss Drill,,原文键,校对
 解锁后,After Unlock,,原文键,模型
 技力满后,When SP Full,,原文键,模型
 婉拒,Decline,,原文键,模型
-改为一次成长三选一,Change to select 1 of 3 Growths,,原文键,校对
+改为一次成长三选一,Change to 1 of 3 Growth choices,,原文键,人改
 婉拒 · 改为一次成长三选一,Decline · Change to select 1 of 3 Growths,,原文键,校对
 影响,Effect,,原文键,模型
 成长  GROWTH,Growth  GROWTH,,原文键,模型
@@ -3597,9 +3597,9 @@ PRTS // 示意原型 · ,PRTS // Prototype · ,,原文键,模型
 突击,Assault,,原文键,暂定
 离队索敌，限时行动,"Leaves squad for targeting, acts for a limited time",,原文键,校对
 立即回到队长身边,Return to Leader immediately,,原文键,模型
-清杂优先,Prioritize Mobs,,原文键,模型
+清杂优先,Prioritize Mobs,,原文键,人改
 优先杂兵，向密集处开火,"Prioritizes mobs, fires toward dense clusters",,原文键,模型
-Boss 优先,Prioritize Boss,,原文键,模型
+Boss 优先,Prioritize Bosses,,原文键,人改
 全队集火 Boss，突击时紧追不放,"Squad Focus Fire on Boss, pursues relentlessly during Assault",,原文键,模型
 点一个位置：队友走过去驻扎,Tap a location: Ally moves there and stations,,原文键,校对
 肃清,Purge,,原文键,模型
@@ -3789,7 +3789,7 @@ WASD 移动 · 攻击自动 · 按住左键朝光标瞄准,WASD Move · Auto Att
 灯火暗淡 · 敌人移速与伤害 +%d%% · 受到的伤害 +%d%% · 拾取 -30%%,Light Dim · Enemy movement speed and damage +%d%% · Damage taken +%d%% · Pick Up -30%%,,原文键,校对
 灯火通明 · 照亮范围内敌人受伤 +%d%% · 技力回复 +30%% · 拾取 +20%%,Light Bright · Damage taken by enemies within Light Radius +%d%% · SP Recovery +30%% · Pick Up +20%%,,原文键,模型
 灯火摇曳 · 照亮范围内敌人受伤 +%d%%,Light Flickering · Enemies within Light Radius take +%d%% Damage,,原文键,模型
-击杀,Kills,,原文键,模型
+击杀,Kills,,原文键,人改
 不记录通关进度,Clear progress not recorded,,原文键,模型
 威胁 %s,Threat %s,,原文键,模型
 破绽 %.1f 秒 · 受伤 +%d%%,Opening %.1fs · Damage taken +%d%%,,原文键,模型
@@ -3913,8 +3913,8 @@ Mon3tr 攻击,Mon3tr Attack,,原文键,模型
 被动,Passive,,原文键,模型
 干员成长 / 招募 / 生存与机动,Operator Growth / Recruitment / Survival and Mobility,,原文键,校对
 浅滩,Shallows,,原文键,模型
-暗流,Currents,,原文键,模型
-深潜,Deep,,原文键,模型
+暗流,Undertow,,原文键,人改
+深潜,Deep Dive,,原文键,人改
 裂隙,Rift,,原文键,模型
 深渊,Abyss,,原文键,模型
 大群来袭,We Many Incoming,,原文键,模型
@@ -4043,7 +4043,7 @@ Boss 演练 · %s（%s）,Boss Trial · %s (%s),,原文键,模型
 选干员,Select Operator,,原文键,模型
 编队 / 藏品,Squad / Relic,,原文键,模型
 干员详情,Operator Details,,原文键,模型
-探索用时 ,Run Time Taken ,,原文键,模型
+探索用时 ,Run Time ,,原文键,模型
 击破最终 Boss,Defeat Final Boss,,原文键,模型
 击倒者,Defeated By,,原文键,模型
 全队伤害 %s · 每秒 %s,Squad Damage %s · %s Per Second,,原文键,模型
@@ -4061,8 +4061,8 @@ Boss 演练 · %s（%s）,Boss Trial · %s (%s),,原文键,模型
 没有造成伤害,No Damage Dealt,,原文键,模型
 受到的伤害,Damage Taken,,原文键,模型
 通明时长,Bright Duration,,原文键,模型
-源石锭熔铸,Originium Ingot Smelting,,原文键,校对
-全队伤害 +%s%%,Squad Damage +%s%%,,原文键,模型
+源石锭熔铸,Originium Ingot Smelting,,原文键,人改
+全队伤害 +%s%%,Squad Damage +%s%%,,原文键,人改
 创,Dmg,,原文键,模型
 神,Nrv,,原文键,模型
 弹,Ammo,,原文键,模型
@@ -4100,7 +4100,7 @@ LB / RB 切换分类    ↑ ↓ 选择    ← → 调整    Ⓑ 返回,LB / RB S
 关闭  Esc,Close  Esc,,原文键,校对
 作战结算,Operation Settlement,,原文键,模型
 方舟幸存者,Arknights Survivor,,原文键,模型
-探索用时,Run Time Taken,,原文键,模型
+探索用时,Run Time,,原文键,人改
 难度档,Difficulty Level,,原文键,模型
 本局获得,Gained This Run,,原文键,模型
 未通关不发放,Not Issued if Uncleared,,原文键,模型
@@ -4143,7 +4143,7 @@ LB / RB 切换分类    ↑ ↓ 选择    ← → 调整    Ⓑ 返回,LB / RB S
 本局免费一次,Free Once per Run,,原文键,模型
 仅一次,1 Time Only,,原文键,模型
 已刷新过,Already Refreshed,,原文键,模型
-补给,Supplies,,原文键,模型
+补给,Supplies,,原文键,人改
 深海馈赠,Abyssal Gift,,原文键,模型
 本次限购已满,Purchase Limit Full,,原文键,模型
 空间已预留,Space Reserved,,原文键,模型
@@ -4270,7 +4270,7 @@ TRAIT // 特性,TRAIT // Trait,,原文键,模型
 由队长承受伤害,Damage taken by Leader,,原文键,模型
 探索中通过升级招募,Recruit via Upgrade during a run,,原文键,模型
 编队中有%s干员,%s Operator in squad,,原文键,校对
-%s卡「%s」,%s card '%s',,原文键,模型
+%s卡「%s」,%s card '%s',,原文键,人改
 藏品 #%s,Relic #%s,,原文键,模型
 精英二条件：,Elite 2 Requirement:,,原文键,模型
 ARCHIVE // 档案,ARCHIVE // Profile,,原文键,模型
@@ -4307,7 +4307,7 @@ WASD 移动，空格冲刺，冲刺中无敌。,"WASD to move, Space to dash, in
 |  02 / 作战数据,|  02 / Combat Stats,,原文键,模型
 每秒 %s,%s Per Second,,原文键,模型
 精英 %d,Elite %d,,原文键,模型
-Boss 击破,Boss Kills,,原文键,模型
+Boss 击破,Bosses Defeated,,原文键,人改
 受到伤害,Damage Taken,,原文键,模型
 |  03 / 编队输出,|  03 / Squad Output,,原文键,模型
 可用生机细胞 %d · 兑换 1 张凭证消耗 %d 个，与认知塑造共用,"Available Vital Cells %d · 1 Permit costs %d, shared with Cognitive Shaping",,原文键,模型
@@ -4486,7 +4486,7 @@ FPS %.0f  最低 %.0f  帧时 P50 %.1f / P95 %.1f ms,FPS %.0f  Min %.0f  Frameti
 请在 B站 App 中打开,Please open in the Bilibili App,,原文键,模型
 请先登录 B站账号,Please log in to Bilibili account first,,原文键,模型
 暂时无法查询，请稍后再试,"Unable to query at this time, please try again later",,原文键,校对
-热砂沸腾,Hot Sand Boiling,,原文键,模型
+热砂沸腾,Boiling Hot Sand,,原文键,人改
 学习中,Learning,,原文键,模型
 加入编队,join the squad,,原文键,模型
 加入支援,Join Support,,原文键,模型
@@ -4510,7 +4510,7 @@ FPS %.0f  最低 %.0f  帧时 P50 %.1f / P95 %.1f ms,FPS %.0f  Min %.0f  Frameti
 打破外壳,Break Shell,,原文键,模型
 安全区 %d 秒,Safe Zone %ds,,原文键,模型
 破,Break,,原文键,模型
-泪滴已净化,Teardrop Purified,,原文键,模型
+泪滴已净化,Teardrop Purified,,原文键,人改
 触碰净化泪滴,Touch Purifying Teardrop,,原文键,模型
 假死 %d 秒 · 同时击倒另一体,Reviving %ds · Simultaneously defeat the other,,原文键,模型
 装填中 · 攻击打断,Reloading · Attack interrupts,,原文键,模型

@@ -277,6 +277,12 @@ def cmd_csv(a):
     hp = ROOT / "tools/l10n/review" / ("%s.json" % a.module)
     if hp.exists():
         human = json.load(open(hp, encoding="utf-8"))   # zh → {"en":..., "note":...} 人工复核改过的
+    cp = ROOT / "tools/l10n/review/canon.json"   # 跨模块统一：同一原文在各模块译法不一（TranslationServer 同键取哪份不确定），只覆盖本模块已有的原文，不新增
+    if cp.exists():
+        zhs = {it["zh"] for it in items}
+        for z, v in json.load(open(cp, encoding="utf-8")).items():
+            if not z.startswith("_") and z in zhs:
+                human[z] = {"en": v, "note": "跨模块统一（review/canon.json）"}
     out = ROOT / "game/l10n" / ("%s.csv" % a.module)
     out.parent.mkdir(parents=True, exist_ok=True)
     stats = {"官方": 0, "暂定": 0, "模型": 0, "校对": 0, "人改": 0, "缺": 0}

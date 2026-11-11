@@ -541,3 +541,10 @@ term.<词>                 共用术语（灯火、技力、队长……），�
 **B站 Toy 版不带英文**：`export_web.py --toy` 往包里的 build.json 写 `lang_lock: "zh"`，并把 `game/l10n` 整个排除（打印少带的大小，约 1.7 MiB 未压缩）；导出后扫 `index.pck`，出现任何 `l10n/<模块>.en.translation` / `.csv` 就中止。运行时 `Cfg.lang_locked()`（build.json 锁或在 Toy 容器里）→ `Loc.resolve` 一律中文、设置不列语言行、不读翻译表。没有另加英文字体或英文专用贴图。快检 `l10n` 覆盖锁定判定。
 
 **截图与预审**：`tools/l10n/l10n_shots.py` 在 GCP 上中英 × 桌面 1280×720 / 手机 1560×720（--touch）各跑一遍 `tests/l10n_shots`（标题、难度、认知塑造、蚀刻章、操作说明、致谢、寻访、选人、图鉴干员 / 敌人 / Boss / 道具 / 藏品 / 结局 / 事件、设置、HUD、招募 / 升级 / 藏品卡、属性、暂停、结算胜 / 败、作战记录）；`tools/l10n/l10n_vreview.py` 用 Vertex Gemini（flash）逐张查残留中文、溢出、重叠、截断、裸 key。
+
+**迭代记录（预审高严重度条数）**：A 轮 39 → B 轮 23（补 screens/settle、native 抽取）→ C 轮 16（其中图鉴手机右栏「截断」6 条、结算数字「重叠」2 条中文版同样如此：右栏按设计出屏、数字是滚动动画，判为误报）。C 轮后的改动：
+
+- **extra 模块**：`Loc.record_missing` 记下英文模式下仍是中文的原文，截图测试写 `missing_<tag>.txt`；`tools/l10n/collect_missing.py` 收成 `build/l10n_work/extra.items.json`（去掉旧拆法产生的半截片段），照常 `translate_vertex.py csv → proof → csv extra`；人工补条 `review/extra.json`。
+- **跨模块统一**：`tools/l10n/review/canon.json`（同一原文在各模块译法不一 40 处 → 剩 5 处单字，单字不在显示时单独查）。只覆盖已有条目，不新增。`平凡即是喜乐` 统一 Precious Days（校对给的「官方英文名」查无实据，不采用）。
+- **拼接串规则**（`Loc._split_fallback`）：卡名「协同 · 专」换回表里的「协同·专」再查；`S1「秘杖·速充模式」` 括号里单独查、换英文引号；末尾计数 / 括号 / 时间（`12:22`）先剥；分隔符加全角空格（手机档案）与「，」。
+- **界面**：入队加成整句在 `squad.join_bonus_text` 直接拼英文；属性页 / HUD 计数标签用短版 `Ingots`；手机设置语言行补选项、英文下不画名称旁的装饰小英文；画质选项短版 `Auto / Med`；藏品 / 升级卡英文下不再并排重复的类别词（压到「详情」）、名字先翻再量宽、无图标首字取英文首字母；结算「Run Complete」缩字号放进色块。

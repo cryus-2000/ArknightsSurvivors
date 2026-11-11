@@ -409,6 +409,8 @@ func _v2_chips(row: Dictionary) -> Dictionary:
 			return {"opts": f, "cur": Cfg.max_fps}
 		"onboard":
 			return {"opts": ONBOARD_OPTS.map(func(o): return [o[1], o[0]]), "cur": Cfg.onboard}
+		"lang":
+			return {"opts": LANG_OPTS.map(func(o): return [o[1], o[0]]), "cur": _lang_now()}
 	return {}
 
 
@@ -474,7 +476,8 @@ func _draw_row_v2(ci: CanvasItem, rr: Rect2, si: int, touch: bool) -> void:
 	var ny: float = rr.position.y + rr.size.y * 0.5 + (fs_cn * 0.36) - (10.0 if has_sub else 0.0)
 	UI.text(ci, font, Vector2(rr.position.x + 18, ny), row.cn, fs_cn, UI.TEXT if on else Color("c9d0d6"))
 	var nw: float = font.get_string_size(row.cn, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fs_cn)).x
-	UI.en(ci, font, Vector2(rr.position.x + 18 + nw + 10, ny - 1), row.en, 9, UI.CYAN_DIM, 1.0)
+	if not UI.Loc.en():   # 英文版选项名已是英文，旁边的装饰小英文不再重复（nw 按中文量，会叠在英文名上）
+		UI.en(ci, font, Vector2(rr.position.x + 18 + nw + 10, ny - 1), row.en, 9, UI.CYAN_DIM, 1.0)
 	var col := _v2_col(rr, touch)
 	if has_sub:
 		UI.text(ci, font, Vector2(rr.position.x + 18, ny + (20.0 if touch else 17.0)), str(sub[0]), 13 if touch else 11, UI.CYAN_DIM if bool(sub[1]) else UI.SUB, HORIZONTAL_ALIGNMENT_LEFT, col.position.x - rr.position.x - 30.0)
@@ -490,7 +493,7 @@ func _draw_row_v2(ci: CanvasItem, rr: Rect2, si: int, touch: bool) -> void:
 			ci.draw_rect(cr, V2_PAPER if act else V2_CHIP)
 			if act:
 				ci.draw_rect(Rect2(cr.position.x, cr.end.y - 3.0, cr.size.x, 3.0), UI.CYAN)
-			UI.text(ci, font, Vector2(cr.position.x, by), str(ch.opts[k][0]), fs_c, V2_INK if act else (UI.TEXT if on else UI.SUB), HORIZONTAL_ALIGNMENT_CENTER, cr.size.x)
+			UI.text(ci, font, Vector2(cr.position.x, by), UI.Loc.short(str(ch.opts[k][0])), fs_c, V2_INK if act else (UI.TEXT if on else UI.SUB), HORIZONTAL_ALIGNMENT_CENTER, cr.size.x)
 		return
 	match row.type:
 		"vol", "uisize", "zoom", "bright", "res":
@@ -576,6 +579,8 @@ func _tap_v2(i: int, r: Rect2, mp: Vector2) -> void:
 				Sfx.play("ui_move")
 			"onboard":
 				_set_onboard(val)
+			"lang":
+				_set_lang(val)
 		return
 	if row.type == "res" and col.has_point(mp) and absf(mp.x - col.get_center().x) < col.size.x * 0.5 - col.size.y:
 		_apply_res()

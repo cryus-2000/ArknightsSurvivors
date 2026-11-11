@@ -1296,6 +1296,8 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 		glyph = g.RL[o.id].name.substr(0, 1)
 	elif o.kind == "weapon":
 		glyph = D.WEAPONS[o.id].glyph
+	if Loc.en():   # 没有图标时画的首字：英文取译名首字母
+		glyph = Loc.s(g.RL[o.id].name if o.kind == "relic" else name).substr(0, 1) if o.kind != "weapon" else glyph
 	var ic: Texture2D = card_icon(o)
 	var bob := sin(g.t * 2.0 + i) * 2.0
 	# 干员相关的卡（招募 / 成长 / 精英化 / 技能进阶）没有专属图标时，画该干员的待机第一帧
@@ -1326,6 +1328,7 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	var nm := name
 	if o.kind == "relic":
 		nm = g.RL[o.id].name
+	nm = Loc.s(nm)   # 英文：先翻再量（译名比中文长得多）
 	var ta: float = motion.text_a   # 招募：落地后名字 / 说明 / 标签再淡入
 	var roomy: bool = card.get_meta("roomy", false)   # 手机横屏缩小后的卡：加大内边距（PAD_X_PHONE 等）
 	var px: float = PAD_X_PHONE if roomy else 20.0
@@ -1334,7 +1337,7 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	# 名字按卡宽缩字（11-01 巡检二轮：手机「水月 · 惊跳反射·余悸」被宽度裁成「水月 · 惊跳反射 ·」，后两字直接没了）
 	var nsz: int = (24 if card.has_meta("brief") else 22) if ph else 20
 	var nmax: float = r.size.x - 2.0 * maxf(nx, 10.0) - 8.0
-	while nsz > (15 if ph else 14) and g.font.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(nsz)).x > nmax:   # UI.text 画时还会按 fs 放大，这里按放大后的量
+	while nsz > ((13 if ph else 12) if Loc.en() else (15 if ph else 14)) and g.font.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(nsz)).x > nmax:   # UI.text 画时还会按 fs 放大，这里按放大后的量
 		nsz -= 1
 	if g.font.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(nsz)).x > nmax:
 		nm = UI.fit_line(g.font, nm, nsz, nmax, nsz)[0]
@@ -1372,6 +1375,8 @@ func card_tag(o: Dictionary) -> Array:
 		var rd: Dictionary = g.RL[o.id]
 		var rar: String = rd.rarity
 		var chip: Array = {"稀有": ["RARE", Color(0.62, 0.72, 0.85)], "核心": ["CORE", UI.GOLD], "升华": ["ASCEND", Color(0.72, 0.64, 1.0)], "遭诅古物": ["CURSED", UI.RED]}.get(rar, ["", Color.WHITE])
+		if Loc.en():   # 英文：左上英文标签 + 稀有度小牌已说全，中文那段（译出来又是 Control · Rare）不再并排，免得压到「详情」
+			return [UI.CAT_EN.get(rd.lane_name, "RELIC"), "", chip[0], chip[1]]
 		return [UI.CAT_EN.get(rd.lane_name, "RELIC"), "%s · %s" % [rd.lane_name, rar], chip[0], chip[1]]
 	var cat := "成长  GROWTH"
 	if o.has("cat"):
@@ -1386,6 +1391,8 @@ func card_tag(o: Dictionary) -> Array:
 	var parts := cat.split("  ", false)
 	if parts.size() >= 2 and parts[parts.size() - 1].to_upper() == parts[parts.size() - 1]:
 		var cn_s := "  ".join(parts.slice(0, parts.size() - 1))
+		if Loc.en() and not cn_s.contains("·"):   # 英文：单个类别词（成长节点 / 协同 / 机动）译出来和英文标签重复
+			cn_s = ""
 		return [parts[parts.size() - 1], cn_s, "", Color.WHITE]
 	return ["", cat, "", Color.WHITE]
 

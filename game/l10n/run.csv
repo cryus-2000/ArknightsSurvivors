@@ -37,9 +37,9 @@ run.gd.run.autotest.000,Arts,法术,模型,
 run.gd.run.autotest.001,Guard,近卫,官方,character_table profession（data.gd CLASS_EN）
 run.gd.run.autotest.002,Other,其他,模型,
 run.gd.run.autotest.003,Hit,命中,模型,
-run.gd.run.autotest.004,Kill,击杀,模型,
-run.gd.run.autotest.005,Pickup,拾取,模型,
-run.gd.run.autotest.006,Attacked,受击,模型,
+run.gd.run.autotest.004,Kills,击杀,人改,跨模块统一（review/canon.json）
+run.gd.run.autotest.005,Pickup,拾取,人改,跨模块统一（review/canon.json）
+run.gd.run.autotest.006,Hit,受击,人改,跨模块统一（review/canon.json）
 run.gd.run.autotest.007,Operator Skill,干员技能,模型,
 run.gd.run.autotest.008,Operator Normal Attack,干员普攻,模型,
 run.gd.run.autotest.009,Enemy,敌人,模型,
@@ -80,15 +80,15 @@ run.gd.run.build_guide.002,Vanguard,先锋,官方,character_table profession（d
 run.gd.run.build_guide.003,Specialist,特种,官方,character_table profession（data.gd CLASS_EN）
 run.gd.run.build_guide.004,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
 run.gd.run.build_guide.005,Core,核心,模型,
-run.gd.run.build_guide.006,Basic,基础,模型,
+run.gd.run.build_guide.006,Basic,基础,人改,跨模块统一（review/canon.json）
 run.gd.run.build_guide.007,Rare,稀有,模型,
-run.gd.run.build_guide.008,Cursed Curio,遭诅古物,模型,
+run.gd.run.build_guide.008,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
 run.gd.run.combat.000,True,真实,模型,
 run.gd.run.combat.001,Arts,法术,模型,
 run.gd.run.combat.002,Dodge,闪避,模型,
 run.gd.run.combat.003,Standby,静守,模型,
 run.gd.run.combat.004,Bind,束缚,官方,gamedata_const.termDescriptionDict.ba.root
-run.gd.run.combat.005,Attacked,受击,模型,
+run.gd.run.combat.005,Hit,受击,人改,跨模块统一（review/canon.json）
 run.gd.run.combat.006,Light -%d,灯火 -%d,模型,
 run.gd.run.combat.007,Frozen,冻结,官方,gamedata_const.termDescriptionDict.ba.frozen
 run.gd.run.combat.008,Slow,减速,模型,
@@ -138,7 +138,7 @@ run.gd.run.elite_moment.002,II,二,模型,
 run.gd.run.elite_moment.003,Team Effect:,全队效果：,模型,
 run.gd.run.elite_moment.004,Squad,全队,校对,校对：统一术语，与“编队”的固定译名 squad 保持一致
 run.gd.run.enemies.000,Stance Ended,架起结束,模型,
-run.gd.run.enemies.001,Support,援护,模型,
+run.gd.run.enemies.001,Support,援护,人改,跨模块统一（review/canon.json）
 run.gd.run.enemies.002,Tentacle,触手,模型,
 run.gd.run.enemies.003,Arts,法术,模型,
 run.gd.run.enemies.004,Fortified · Arts Weakness,架起 · 法术弱点,模型,
@@ -159,11 +159,11 @@ run.gd.run.enemy_demo.003,Attacking,攻击中,模型,
 run.gd.run.enemy_demo.004,Approaching Target,接近目标,模型,
 run.gd.run.enemy_demo.005,Humanoid · Healing Seaborn / Conversion charge %d%%,人形 · 治疗海嗣 / 转化充能 %d%%,模型,
 run.gd.run.enemy_demo.006,Tears do not damage Leader · ,泪滴不伤害队长 · ,模型,
-run.gd.run.enemy_demo.007,Tear Cleansed,泪滴已净化,模型,
+run.gd.run.enemy_demo.007,Teardrop Purified,泪滴已净化,人改,跨模块统一（review/canon.json）
 run.gd.run.enemy_demo.008,Touch to Cleanse; buffs Seaborn when not Cleansed,触碰可净化；未净化时强化海嗣,模型,
 run.gd.run.enemy_demo.009,%s%s · %s · Leader is an immortal demo target,%s%s · %s · 队长为不死演示靶,模型,
 run.gd.run.ishar_encounter.000,"Touch the teardrops to slow charging, and reduce her HP before she transforms",触碰泪滴以减缓充能，在她转化前削减其生命,校对,校对：中文原文没有句号，英文不应随意添加句号。
-run.gd.run.ishar_encounter.001,Tear Cleansed,泪滴已净化,模型,
+run.gd.run.ishar_encounter.001,Teardrop Purified,泪滴已净化,人改,跨模块统一（review/canon.json）
 run.gd.run.link_bond.000,Team ASPD +%s%%,全队攻速 +%s%%,模型,
 run.gd.run.link_bond.001,Damage to Elite +%s%%,对精英伤害 +%s%%,模型,
 run.gd.run.link_bond.002,Team SP Recovery +%s%%,全队技力回复 +%s%%,模型,
@@ -199,7 +199,7 @@ run.gd.run.motion_shot.001,Obtain Relic,获得藏品,模型,
 run.gd.run.motion_shot.002,Recruit Operator,招募干员,模型,
 run.gd.run.motion_shot.003,Upgrade! Lv.%d,升级！ Lv.%d,校对,校对：丢失了中文原有的感叹号。
 run.gd.run.motion_shot.004,The Seaborn Many is approaching — hold the line,海嗣大群正在逼近 —— 稳住阵线,校对,校对：“大群”在明日方舟官方英文中译为 the Many，We Many 专指“我们，大群”，此处用 Seaborn We Many 语法错误且不准确。
-run.gd.run.motion_shot.005,Basic,基础,模型,
+run.gd.run.motion_shot.005,Basic,基础,人改,跨模块统一（review/canon.json）
 run.gd.run.motion_shot.006,Rare,稀有,模型,
 run.gd.run.motion_shot.007,Core,核心,模型,
 run.gd.run.motion_shot.008,Upgrade card selection · Deal and flip,升级选卡 · 发牌翻面,模型,
@@ -219,9 +219,9 @@ run.gd.run.pickups.001,Elite Lamp Oil,精英灯油,模型,
 run.gd.run.pickups.002,Lamp Oil,灯油,暂定,暂定（docs/276 §3.6）
 run.gd.run.pickups.003,Light +%d,灯火 +%d,模型,
 run.gd.run.pickups.004,Magnet: Attract all drops,磁铁：吸取全场掉落,模型,
-run.gd.run.pickups.005,Supply,补给,模型,
+run.gd.run.pickups.005,Supplies,补给,人改,跨模块统一（review/canon.json）
 run.gd.run.pickups.006,+%d HP,+%d 生命,模型,
-run.gd.run.pickups.007,Pickup,拾取,模型,
+run.gd.run.pickups.007,Pickup,拾取,人改,跨模块统一（review/canon.json）
 run.gd.run.pickups.008,Magnet,磁铁,模型,
 run.gd.run.pickups.009,Recovery Potion,回复药剂,模型,
 run.gd.run.pickups.010,Emergency Supply,应急补给,模型,
@@ -248,7 +248,7 @@ run.gd.run.progression.016,Do Not Replace,不替换,模型,
 run.gd.run.progression.017,"'%s' (%s) joins the squad, swapping out a teammate · Inherits their Promotion phase and Growth nodes · Leader cannot be swapped · Swapped Operator may still be recruited later",「%s」（%s）加入编队，换下一名队友 · 继承其精英化阶段与成长节点 · 队长不能更换 · 换下的干员之后仍可能再被招募,校对,校对：主谓一致语法修复，单数主语应使用 joins
 run.gd.run.progression.018,Swap Teammate,更换队友,模型,
 run.gd.run.progression.019,Growth Path · %s  PATH,成长路线 · %s  PATH,模型,
-run.gd.run.progression.020,Return,返回,模型,
+run.gd.run.progression.020,Back,返回,人改,跨模块统一（review/canon.json）
 run.gd.run.progression.021,"Return to the previous step and reselect.
 This Upgrade is not consumed.","回到上一步重新选择。
 这次升级不消耗。",模型,
@@ -278,9 +278,9 @@ run.gd.run.progression.042,Accept to squad · %s  JOIN,接受入队 · %s  JOIN,
 run.gd.run.progression.043,Decline,婉拒,模型,
 run.gd.run.progression.044,Decline  DECLINE,婉拒  DECLINE,模型,
 run.gd.run.progression.045,"Entire squad advances 1 Growth node each, and obtains 1 Growth choice out of 3",全队各推进 1 个成长节点，另获一次成长三选一,校对,校对：“全队”应统一为 squad。
-run.gd.run.progression.046,Change to 1 of 3 Growth choices,改为一次成长三选一,模型,
+run.gd.run.progression.046,Change to 1 of 3 Growth choices,改为一次成长三选一,人改,跨模块统一（review/canon.json）
 run.gd.run.progression.047,Choose whether to join the squad,选择是否加入编队,模型,
-run.gd.run.progression.048,%s promoted to Elite %s,%s 晋升至精英%s,模型,
+run.gd.run.progression.048,%s promoted to Elite %s,%s 晋升至精英%s,人改,跨模块统一（review/canon.json）
 run.gd.run.progression.049,I,一,模型,
 run.gd.run.progression.050,II,二,模型,
 run.gd.run.progression.051,(Elite 1),（精英一）,模型,
@@ -314,10 +314,10 @@ run.gd.run.run_stats.020,Continuous damage after Light is Out,灯火寂灭后的
 run.gd.run.run_stats.021,Relic Cost,藏品的代价,模型,
 run.gd.run.run_stats.022,Relics and Support,藏品与支援,模型,
 run.gd.run.run_stats.023,Other,其他,模型,
-run.gd.run.run_stats.024,Run Duration,探索用时,模型,
-run.gd.run.run_stats.025,Kill,击杀,模型,
+run.gd.run.run_stats.024,Run Time,探索用时,人改,跨模块统一（review/canon.json）
+run.gd.run.run_stats.025,Kills,击杀,人改,跨模块统一（review/canon.json）
 run.gd.run.run_stats.026,Elite Kills,精英击杀,模型,
-run.gd.run.run_stats.027,Boss Defeated,Boss 击破,模型,
+run.gd.run.run_stats.027,Bosses Defeated,Boss 击破,人改,跨模块统一（review/canon.json）
 run.gd.run.run_stats.028,Damage Dealt,造成伤害,模型,
 run.gd.run.run_stats.029,%d per second,每秒 %d,模型,
 run.gd.run.run_stats.030,Max Single-Hit Damage,最高单次伤害,模型,
@@ -334,8 +334,8 @@ run.gd.run.run_stats.040,Dash,冲刺,模型,
 run.gd.run.run_stats.041,Skill Activations,技能发动,模型,
 run.gd.run.run_stats.042,Bonds Formed,羁绊成立,模型,
 run.gd.run.run_stats.043,%d,%d 条,模型,
-run.gd.run.run_stats.044,Originium Ingots Smelted,源石锭熔铸,模型,
-run.gd.run.run_stats.045,Team damage +%s%%,全队伤害 +%s%%,模型,
+run.gd.run.run_stats.044,Originium Ingot Smelting,源石锭熔铸,人改,跨模块统一（review/canon.json）
+run.gd.run.run_stats.045,Squad Damage +%s%%,全队伤害 +%s%%,人改,跨模块统一（review/canon.json）
 run.gd.run.run_stats.046,Total (Main source: %s),合计（主要来源：%s）,模型,
 run.gd.run.run_stats.047,Total,合计,模型,
 run.gd.run.run_stats.048,Mizuki,水月,官方,character_table.char_437_mizuki
@@ -354,14 +354,14 @@ run.gd.run.run_stats.060,Punch,拳击,模型,
 run.gd.run.run_stats.061,Shattered Crystal,碎晶,模型,
 run.gd.run.run_stats.062,Block,阻挡,模型,
 run.gd.run.run_stats.063,Mon3tr · Meltdown,Mon3tr · 熔毁,模型,
-run.gd.run.run_stats.064,Support,援护,模型,
+run.gd.run.run_stats.064,Support,援护,人改,跨模块统一（review/canon.json）
 run.gd.run.run_stats.065,Mine,地雷,模型,
-run.gd.run.run_stats.066,Ending I · Quiet Times,结局一 · 平凡即是喜乐,校对,校对：官方英文为 Quiet Times；官方名未用上：Precious Days
+run.gd.run.run_stats.066,Ending 1 · Precious Days,结局一 · 平凡即是喜乐,人改,跨模块统一（review/canon.json）
 run.gd.run.run_stats.067,Surging Waves · IV,波涛迭起·Ⅳ,模型,
 run.gd.run.run_stats.068,Self Recovery,自身回复,模型,
 run.gd.run.run_stats.069,Lifesteal,吸血,模型,
 run.gd.run.run_stats.070,Kill Recovery,击杀回复,模型,
-run.gd.run.run_stats.071,Pickup,拾取,模型,
+run.gd.run.run_stats.071,Pickup,拾取,人改,跨模块统一（review/canon.json）
 run.gd.run.run_stats.072,Pathshaper,塑路者,官方,enemy_handbook_table.enemy_2031_syboy
 run.gd.run.run_stats.073,Tidelinked Bishop,接潮主教,官方,enemy_handbook_table.enemy_2028_syevil
 run.gd.run.run_stats.074,'Paranoia Illusion',偏执泡影,官方,enemy_handbook_table.enemy_2037_sygirl
@@ -370,7 +370,7 @@ run.gd.run.run_stats.076,General,通用,模型,
 run.gd.run.run_stats.077,Rare,稀有,模型,
 run.gd.run.run_stats.078,Example effect description.,示例效果说明。,模型,
 run.gd.run.run_stats.079,Coffee Plains Coffee Candy,咖啡平原咖啡糖,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_4
-run.gd.run.run_stats.080,Basic,基础,模型,
+run.gd.run.run_stats.080,Basic,基础,人改,跨模块统一（review/canon.json）
 run.gd.run.run_stats.081,"Example effect description, within two lines.",示例效果说明，两行以内。,模型,
 run.gd.run.run_stats.082,'Silent Squad',“静音小队”,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_52
 run.gd.run.run_stats.083,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
@@ -380,7 +380,7 @@ run.gd.run.run_stats.086,Economy,经济,模型,
 run.gd.run.run_stats.087,Example.,示例。,模型,
 run.gd.run.run_stats.088,Cursed Example,遭诅示例,模型,
 run.gd.run.run_stats.089,Survival,生存,模型,
-run.gd.run.run_stats.090,Cursed Curio,遭诅古物,模型,
+run.gd.run.run_stats.090,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
 run.gd.run.run_stats.091,Cursed Relic Example.,遭诅藏品示例。,模型,
 run.gd.run.shop.000,Merchant left,商人离开了,模型,
 run.gd.run.shop.001,Per surplus item bought +%d%%,每购一件余货 +%d%%,模型,
@@ -391,12 +391,12 @@ run.gd.run.shop.005,"
 (Guaranteed by price: Originium Ingot +%d)","
 （按售价保底：源石锭 +%d）",模型,
 run.gd.run.shop.006,[Cursed],【遭诅】,模型,
-run.gd.run.shop.007,Cursed Curio,遭诅古物,模型,
+run.gd.run.shop.007,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
 run.gd.run.shop.008,First Aid Kit,急救包,模型,
 run.gd.run.shop.009,Recover 40% Max HP,回复 40% 最大生命,校对,校对：“回复”在此处为动词，应译为Recover
 run.gd.run.shop.010,Lamp Oil,灯油,暂定,暂定（docs/276 §3.6）
 run.gd.run.shop.011,Light +%d,灯火 +%d,模型,
-run.gd.run.shop.012,Basic,基础,模型,
+run.gd.run.shop.012,Basic,基础,人改,跨模块统一（review/canon.json）
 run.gd.run.shop.013,Rare,稀有,模型,
 run.gd.run.shop.014,"'%s' %d Ingots, holding %d, %s",「%s」%d 锭，持有 %d，%s,模型,
 run.gd.run.shop.015,Need %d,差 %d,模型,
@@ -456,7 +456,7 @@ run.gd.run.spawner.000,%s Retreated,%s 撤离,模型,
 run.gd.run.spawner.001,Ice Reborn — The Last Knight,寒冰重生 —— 最后的骑士,模型,
 run.gd.run.spawner.002, - Both must be defeated simultaneously, —— 两体需同时击倒,模型,
 run.gd.run.spawner.003,%s appeared%s,%s 出现了%s,模型,
-run.gd.run.spawner.004, and , 与 ,模型,
+run.gd.run.spawner.004, and , 与 ,人改,跨模块统一（review/canon.json）
 run.gd.run.spawner.005,Threat Level Up · %s: New Seaborn emerge,威胁上升 · %s —— 新的海嗣浮现,模型,
 run.gd.run.spawner.006,Two Elite '%s' appear simultaneously! Defeat them for a chance to Obtain Relic,两只精英「%s」同时出现！击败它们有概率获得藏品,模型,
 run.gd.run.spawner.007,Elite '%s' and '%s' appear simultaneously! Defeat them for a chance to Obtain Relic,精英「%s」与「%s」同时出现！击败它们有概率获得藏品,校对,校对：中文有感叹号，英文漏译了感叹号
@@ -530,7 +530,7 @@ run.gd.run.ult_moves_b.001,Wave Crest,浪头,模型,
 run.gd.run.ult_moves_b.002,Tidal Surge,涌潮,模型,
 run.gd.run.ult_moves_b.003,Vortex,漩涡,模型,
 run.gd.run.ult_moves_b.004,Draw In,收拢,模型,
-run.gd.run.ult_moves_b.005,Surge,潮涌,模型,
+run.gd.run.ult_moves_b.005,Tidal Surge,潮涌,人改,跨模块统一（review/canon.json）
 run.gd.run.ult_moves_b.006,Ultimate,终结技,暂定,暂定（docs/276 §3.6）
 run.gd.run.ult_moves_b.007,Singularity,奇点,模型,
 run.gd.run.ult_moves_b.008,Ground Smash,砸地,模型,
@@ -559,7 +559,7 @@ run.gd.run.ult_moves_c.010,Block,格挡,模型,
 run.gd.run.ult_moves_c.011,Reflect,反震,模型,
 run.gd.run.ult_moves_c.012,Hot Sand,热砂,模型,
 run.gd.run.ult_moves_c.013,Ground Smash,砸地,模型,
-run.gd.run.ult_moves_c.014,Landing,落地,模型,
+run.gd.run.ult_moves_c.014,Landing,落地,人改,跨模块统一（review/canon.json）
 run.gd.run.ult_moves_c.015,Gust,起风,官方,skill_table.skchr_irene_1
 run.gd.run.ult_moves_c.016,Combo Slash,连斩,模型,
 run.gd.run.ult_moves_c.017,Hand Cannon,手炮,模型,
@@ -576,8 +576,8 @@ run.gd.run.victory_flow.001,The threat in the deep sea has dissipated,深海中�
 run.gd.run.victory_flow.002,Run Complete,探索完成,模型,
 run.gd.run.weapons.000,First Aid,急救,官方,skill_table.skchr_demkni_1
 run.gd.run.weapons.001,Drone,无人机,模型,
-run.gd.run.weapons.002,Arts Support,法术援护,模型,
-run.gd.run.weapons.003,Support,援护,模型,
+run.gd.run.weapons.002,Arts Support,法术援护,人改,跨模块统一（review/canon.json）
+run.gd.run.weapons.003,Support,援护,人改,跨模块统一（review/canon.json）
 run.gd.characters.blocks.late_shape.000,Attack Range +%d%%,攻击范围 +%d%%,模型,
 run.gd.characters.blocks.late_shape.001,"Every %s Normal Attacks, release 1 additional Blade Wave (%d%% Normal Attack damage)",每 %s 次普攻多放 1 道剑气（%d%% 普攻伤害）,模型,
 run.gd.characters.blocks.late_shape.002,Fires 1 extra projectile every %s Normal Attacks (deals %d%% Normal Attack damage to another Enemy),每 %s 次普攻多射 1 发（%d%% 普攻伤害，射向另一名敌人）,模型,
@@ -791,7 +791,7 @@ run.gd.characters.blocks.ob_summon.034,.look can only be cross (gray cross overh
 run.gd.characters.blocks.ob_summon.035,.boss can only be true / false,.boss 只能是 true / false,模型,
 run.gd.characters.blocks.ob_summon.036,.on_full must be a non-empty Instant block array (executes with this Enemy as target when fully stacked),.on_full 必须是非空的瞬时积木数组（叠满时以该敌人为 target 执行）,模型,
 run.gd.characters.blocks.ob_summon.037,.scope must be in_zone (controlled character is in this Operator's zone) / always,.scope 只能是 in_zone（主控在本干员区域内）/ always,模型,
-run.gd.characters.blocks.ob_summon.038,DMG Reduction,减伤,模型,
+run.gd.characters.blocks.ob_summon.038,DMG Reduction,减伤,人改,跨模块统一（review/canon.json）
 run.gd.characters.blocks.ob_summon.039,Cleanse,净化,模型,
 run.gd.characters.blocks.ob_summon.040,%s.%s must be an object,%s.%s 必须是对象,校对,校对：“对象”在此处指编程中的 object，而非 target
 run.gd.characters.blocks.ob_summon.041,%s.%s.%s: can only be delay / mult / pitch,%s.%s.%s：只能写 delay / mult / pitch,模型,
@@ -955,7 +955,7 @@ run.gd.characters.blocks.seg_hoshiguma.005,: verb.negate_chance must be either a
 run.gd.characters.blocks.seg_hoshiguma.006,.attack must be a damage shape (shape.circle / shape.cone / shape.line),.attack 必须是一个伤害形状（shape.circle / shape.cone / shape.line）,模型,
 run.gd.characters.blocks.seg_hoshiguma.007,.negate can only be true / false,.negate 只能是 true / false,模型,
 run.gd.characters.blocks.seg_hoshiguma.008,Weight of Hannya,般若之重,模型,
-run.gd.characters.blocks.seg_hoshiguma.009,Boiling Hot Sand,热砂沸腾,模型,
+run.gd.characters.blocks.seg_hoshiguma.009,Boiling Hot Sand,热砂沸腾,人改,跨模块统一（review/canon.json）
 run.gd.characters.blocks.seg_lappland.000,Counter,反斩,模型,
 run.gd.characters.blocks.seg_lappland.001,Retaliate,回敬,模型,
 run.gd.characters.blocks.seg_logos.000,Clear projectiles ×%d,消除弹幕 ×%d,模型,
@@ -1130,7 +1130,7 @@ run.gd.characters.character.023,Ranged,远程,模型,
 run.gd.characters.character.024,Holds Relic '%s',持有藏品「%s」,模型,
 run.gd.characters.character.025,Doctor Lv.%d,博士 Lv.%d,模型,
 run.gd.characters.character.026,%s Operator in squad,编队中有%s干员,模型,
-run.gd.characters.character.027,%s Card '%s',%s卡「%s」,模型,
+run.gd.characters.character.027,%s card '%s',%s卡「%s」,人改,跨模块统一（review/canon.json）
 run.gd.characters.character.028,Use,使,模型,
 run.gd.characters.character.029,"Once selected, subsequent nodes upgrade along this path.",选定后，之后的节点沿该路线强化,模型,
 run.gd.characters.character.030,; ATK +%d%%,；攻击 +%d%%,模型,
@@ -1156,7 +1156,7 @@ run.gd.characters.doctor.004,Build  BUILD,流派  BUILD,模型,
 run.gd.characters.doctor.005,Melee Range Expansion  MELEE,近战扩域  MELEE,模型,
 run.gd.characters.doctor.006,Multi-Shot Firepower  MULTI,多弹火力  MULTI,模型,
 run.gd.characters.doctor.007,Persistent Summon  SUMMON,召唤驻场  SUMMON,模型,
-run.gd.characters.doctor.008,CC Detonation  CONTROL,控场引爆  CONTROL,模型,
+run.gd.characters.doctor.008,Control Detonation  CONTROL,控场引爆  CONTROL,模型,
 run.gd.characters.doctor.009,Weakness Harvest  WEAK,弱点收割  WEAK,模型,
 run.gd.characters.doctor.010,Shield Counter  SHIELD,护盾反击  SHIELD,校对,校对：多余了“Objective”一词，原文“护盾反击”直译为“Shield Counter”即可，且“护盾”的固定译名为“Shield”。
 run.gd.characters.doctor.011,Growth,成长,模型,
@@ -1213,13 +1213,13 @@ run.gd.characters.operator_contract.021,"V4 native_motion.variants each entry re
 run.gd.characters.operator_contract.022,V4 native_motion.states entries must each have on and slot,V4 native_motion.states 每条须有 on 与 slot,模型,
 run.gd.characters.operator_contract.023,"V4 native_motion.states '%s' requires 0 ≤ from ≤ to < frames %d, rate ≥ 0 (or write loop: true)",V4 native_motion.states「%s」须 0 ≤ from ≤ to < 帧数 %d、rate ≥ 0（或写 loop: true）,模型,
 run.gd.characters.operator_contract.024,"V4 native_motion.exits each entry must be {on, slot, from < frames, tail > 0}","V4 native_motion.exits 每条须是 {on, slot, from < 帧数, tail > 0}",模型,
-run.gd.characters.operator_defs.000,Multi-Shot Firepower,多弹火力,模型,
-run.gd.characters.operator_defs.001,Melee Range Expansion,近战扩域,模型,
-run.gd.characters.operator_defs.002,Persistent Summon,召唤驻场,模型,
-run.gd.characters.operator_defs.003,CC Detonation,控场引爆,模型,
+run.gd.characters.operator_defs.000,Multi-Shot Firepower,多弹火力,人改,跨模块统一（review/canon.json）
+run.gd.characters.operator_defs.001,Melee Range Expansion,近战扩域,人改,跨模块统一（review/canon.json）
+run.gd.characters.operator_defs.002,Persistent Summon,召唤驻场,人改,跨模块统一（review/canon.json）
+run.gd.characters.operator_defs.003,Control Detonation,控场引爆,人改,跨模块统一（review/canon.json）
 run.gd.characters.operator_defs.004,Weakness Harvest,弱点收割,模型,
 run.gd.characters.operator_defs.005,Shield Counter,护盾反击,校对,校对：多余的 Objective，护盾为 Shield
-run.gd.characters.operator_defs.006,Heal-to-Damage Conversion,治疗转伤,模型,
+run.gd.characters.operator_defs.006,Heal-to-Damage,治疗转伤,人改,跨模块统一（review/canon.json）
 run.gd.characters.operator_defs.007,Unrecognized character '%s',看不懂的字符「%s」,模型,
 run.gd.characters.operator_defs.008,Extra '%s',多余的「%s」,模型,
 run.gd.characters.operator_defs.009,Divide by 0,除以 0,模型,
@@ -1238,8 +1238,8 @@ run.gd.characters.operator_defs.021,Recovery,回复,模型,
 run.gd.characters.squad.000,Follow,随行,暂定,暂定（docs/276 §3.6）
 run.gd.characters.squad.001,Assault,突击,暂定,暂定（docs/276 §3.6）
 run.gd.characters.squad.002,Return,归队,模型,
-run.gd.characters.squad.003,Prioritize Bosses,Boss 优先,模型,
-run.gd.characters.squad.004,Prioritize Clearing Mobs,清杂优先,校对,校对：语法错误，Clear 应为 Clearing
+run.gd.characters.squad.003,Prioritize Bosses,Boss 优先,人改,跨模块统一（review/canon.json）
+run.gd.characters.squad.004,Prioritize Mobs,清杂优先,人改,跨模块统一（review/canon.json）
 run.gd.characters.squad.005,Clear Mobs,清杂,模型,
 run.gd.characters.squad.006,Defender,重装,官方,character_table profession（data.gd CLASS_EN）
 run.gd.characters.squad.007,Guard,近卫,官方,character_table profession（data.gd CLASS_EN）
@@ -1252,7 +1252,7 @@ run.gd.characters.squad.013,Sniper,狙击,官方,character_table profession（da
 run.gd.characters.squad.014,Leader Max HP +%d%%,队长最大生命 +%d%%,模型,
 run.gd.characters.squad.015,HP Recovery +%s / s,生命回复 +%s / 秒,校对,校对：保留占位符周围的空格
 run.gd.characters.squad.016,Squad Join Bonus:,入队加成：,校对,校对：入队应译为 join squad 相关词汇，Recruitment 通常指公开招募
-run.gd.characters.squad.017,Combat time limit not recovered,作战时限未恢复,模型,
+run.gd.characters.squad.017,Combat time limit not restored,作战时限未恢复,人改,跨模块统一（review/canon.json）
 run.gd.characters.squad.018,%s returned to squad,%s 回到队伍,模型,
 run.gd.characters.squad.019,Withdraw,撤回,模型,
 run.gd.characters.squad.020,%s HP critical,%s 生命垂危,模型,
@@ -1301,9 +1301,9 @@ run.gd.allies.knight.006,Retreat,撤退,模型,
 神经损伤！,Nervous Impairment!,,原文键,模型
 其他,Other,,原文键,模型
 命中,Hit,,原文键,模型
-击杀,Kill,,原文键,模型
-拾取,Pickup,,原文键,模型
-受击,Attacked,,原文键,模型
+击杀,Kills,,原文键,人改
+拾取,Pickup,,原文键,人改
+受击,Hit,,原文键,人改
 干员技能,Operator Skill,,原文键,模型
 干员普攻,Operator Normal Attack,,原文键,模型
 敌人,Enemy,,原文键,模型
@@ -1338,9 +1338,9 @@ Boss 演练 · %s · 不记录通关进度,Boss Trial · %s · Clear progress no
 等,Lv.,,原文键,模型
 升华,Sublimation,,原文键,官方
 核心,Core,,原文键,模型
-基础,Basic,,原文键,模型
+基础,Basic,,原文键,人改
 稀有,Rare,,原文键,模型
-遭诅古物,Cursed Curio,,原文键,模型
+遭诅古物,Cursed Curio,,原文键,人改
 闪避,Dodge,,原文键,模型
 静守,Standby,,原文键,模型
 冻结,Frozen,,原文键,官方
@@ -1372,7 +1372,7 @@ Boss 在场：黑潮停滞,Boss present: Black Tide halted,,原文键,模型
 %s · 精英%s,%s · Elite %s,,原文键,模型
 全队效果：,Team Effect:,,原文键,模型
 架起结束,Stance Ended,,原文键,模型
-援护,Support,,原文键,模型
+援护,Support,,原文键,人改
 架起 · 法术弱点,Fortified · Arts Weakness,,原文键,模型
 冲撞吸灯,Charge Drains Light,,原文键,模型
 灯火 -8,Light -8,,原文键,模型
@@ -1388,7 +1388,7 @@ Boss 在场：黑潮停滞,Boss present: Black Tide halted,,原文键,模型
 接近目标,Approaching Target,,原文键,模型
 人形 · 治疗海嗣 / 转化充能 %d%%,Humanoid · Healing Seaborn / Conversion charge %d%%,,原文键,模型
 泪滴不伤害队长 · ,Tears do not damage Leader · ,,原文键,模型
-泪滴已净化,Tear Cleansed,,原文键,模型
+泪滴已净化,Teardrop Purified,,原文键,人改
 触碰可净化；未净化时强化海嗣,Touch to Cleanse; buffs Seaborn when not Cleansed,,原文键,模型
 %s%s · %s · 队长为不死演示靶,%s%s · %s · Leader is an immortal demo target,,原文键,模型
 触碰泪滴以减缓充能，在她转化前削减其生命,"Touch the teardrops to slow charging, and reduce her HP before she transforms",,原文键,校对
@@ -1439,7 +1439,7 @@ HUD 横幅 · 字距收拢,HUD Banner · Draw In Letter Spacing,,原文键,模�
 灯油,Lamp Oil,,原文键,暂定
 灯火 +%d,Light +%d,,原文键,模型
 磁铁：吸取全场掉落,Magnet: Attract all drops,,原文键,模型
-补给,Supply,,原文键,模型
+补给,Supplies,,原文键,人改
 +%d 生命,+%d HP,,原文键,模型
 磁铁,Magnet,,原文键,模型
 回复药剂,Recovery Potion,,原文键,模型
@@ -1459,7 +1459,7 @@ Inherits same stage upon replacement",,原文键,模型
 「%s」（%s）加入编队，换下一名队友 · 继承其精英化阶段与成长节点 · 队长不能更换 · 换下的干员之后仍可能再被招募,"'%s' (%s) joins the squad, swapping out a teammate · Inherits their Promotion phase and Growth nodes · Leader cannot be swapped · Swapped Operator may still be recruited later",,原文键,校对
 更换队友,Swap Teammate,,原文键,模型
 成长路线 · %s  PATH,Growth Path · %s  PATH,,原文键,模型
-返回,Return,,原文键,模型
+返回,Back,,原文键,人改
 "回到上一步重新选择。
 这次升级不消耗。","Return to the previous step and reselect.
 This Upgrade is not consumed.",,原文键,模型
@@ -1489,9 +1489,9 @@ Growth node 1/%d",,原文键,模型
 婉拒,Decline,,原文键,模型
 婉拒  DECLINE,Decline  DECLINE,,原文键,模型
 全队各推进 1 个成长节点，另获一次成长三选一,"Entire squad advances 1 Growth node each, and obtains 1 Growth choice out of 3",,原文键,校对
-改为一次成长三选一,Change to 1 of 3 Growth choices,,原文键,模型
+改为一次成长三选一,Change to 1 of 3 Growth choices,,原文键,人改
 选择是否加入编队,Choose whether to join the squad,,原文键,模型
-%s 晋升至精英%s,%s promoted to Elite %s,,原文键,模型
+%s 晋升至精英%s,%s promoted to Elite %s,,原文键,人改
 （精英一）,(Elite 1),,原文键,模型
 （精英二）,(Elite 2),,原文键,模型
 「%s」接替「%s」加入编队%s,'%s' replaces '%s' to join the squad%s,,原文键,模型
@@ -1517,9 +1517,9 @@ Growth node 1/%d",,原文键,模型
 灯火寂灭后的持续伤害,Continuous damage after Light is Out,,原文键,模型
 藏品的代价,Relic Cost,,原文键,模型
 藏品与支援,Relics and Support,,原文键,模型
-探索用时,Run Duration,,原文键,模型
+探索用时,Run Time,,原文键,人改
 精英击杀,Elite Kills,,原文键,模型
-Boss 击破,Boss Defeated,,原文键,模型
+Boss 击破,Bosses Defeated,,原文键,人改
 造成伤害,Damage Dealt,,原文键,模型
 每秒 %d,%d per second,,原文键,模型
 最高单次伤害,Max Single-Hit Damage,,原文键,模型
@@ -1536,14 +1536,14 @@ Boss 击破,Boss Defeated,,原文键,模型
 技能发动,Skill Activations,,原文键,模型
 羁绊成立,Bonds Formed,,原文键,模型
 %d 条,%d,,原文键,模型
-源石锭熔铸,Originium Ingots Smelted,,原文键,模型
-全队伤害 +%s%%,Team damage +%s%%,,原文键,模型
+源石锭熔铸,Originium Ingot Smelting,,原文键,人改
+全队伤害 +%s%%,Squad Damage +%s%%,,原文键,人改
 合计（主要来源：%s）,Total (Main source: %s),,原文键,模型
 合计,Total,,原文键,模型
 触须阵,Tentacle Array,,原文键,模型
 水刃,Water Blade,,原文键,模型
 地雷,Mine,,原文键,模型
-结局一 · 平凡即是喜乐,Ending I · Quiet Times,,原文键,校对
+结局一 · 平凡即是喜乐,Ending 1 · Precious Days,,原文键,人改
 波涛迭起·Ⅳ,Surging Waves · IV,,原文键,模型
 自身回复,Self Recovery,,原文键,模型
 吸血,Lifesteal,,原文键,模型
@@ -1607,7 +1607,7 @@ Boss 击破,Boss Defeated,,原文键,模型
 寒冰重生 —— 最后的骑士,Ice Reborn — The Last Knight,,原文键,模型
  —— 两体需同时击倒, - Both must be defeated simultaneously,,原文键,模型
 %s 出现了%s,%s appeared%s,,原文键,模型
- 与 , and ,,原文键,模型
+ 与 , and ,,原文键,人改
 威胁上升 · %s —— 新的海嗣浮现,Threat Level Up · %s: New Seaborn emerge,,原文键,模型
 两只精英「%s」同时出现！击败它们有概率获得藏品,Two Elite '%s' appear simultaneously! Defeat them for a chance to Obtain Relic,,原文键,模型
 精英「%s」与「%s」同时出现！击败它们有概率获得藏品,Elite '%s' and '%s' appear simultaneously! Defeat them for a chance to Obtain Relic,,原文键,校对
@@ -1651,7 +1651,7 @@ Mon3tr 掩护,Mon3tr Cover,,原文键,模型
 浪头,Wave Crest,,原文键,模型
 漩涡,Vortex,,原文键,模型
 收拢,Draw In,,原文键,模型
-潮涌,Surge,,原文键,模型
+潮涌,Tidal Surge,,原文键,人改
 奇点,Singularity,,原文键,模型
 砸地,Ground Smash,,原文键,模型
 火柱,Fire Pillar,,原文键,模型
@@ -1662,7 +1662,7 @@ Mon3tr 掩护,Mon3tr Cover,,原文键,模型
 瞬身,Blink,,原文键,模型
 斩痕,Slash Mark,,原文键,模型
 咒文,Incantation,,原文键,模型
-落地,Landing,,原文键,模型
+落地,Landing,,原文键,人改
 定罪,Conviction,,原文键,模型
 行刑,Execution,,原文键,模型
 宣判,Verdict,,原文键,模型
@@ -1672,7 +1672,7 @@ Mon3tr 掩护,Mon3tr Cover,,原文键,模型
 深海中的威胁已消散,The threat in the deep sea has dissipated,,原文键,模型
 探索完成,Run Complete,,原文键,模型
 无人机,Drone,,原文键,模型
-法术援护,Arts Support,,原文键,模型
+法术援护,Arts Support,,原文键,人改
 攻击范围 +%d%%,Attack Range +%d%%,,原文键,模型
 每 %s 次普攻多放 1 道剑气（%d%% 普攻伤害）,"Every %s Normal Attacks, release 1 additional Blade Wave (%d%% Normal Attack damage)",,原文键,模型
 每 %s 次普攻多射 1 发（%d%% 普攻伤害，射向另一名敌人）,Fires 1 extra projectile every %s Normal Attacks (deals %d%% Normal Attack damage to another Enemy),,原文键,模型
@@ -1874,7 +1874,7 @@ blocks.summons 必须是对象（种类名 → 定义）,blocks.summons must be 
 .boss 只能是 true / false,.boss can only be true / false,,原文键,模型
 .on_full 必须是非空的瞬时积木数组（叠满时以该敌人为 target 执行）,.on_full must be a non-empty Instant block array (executes with this Enemy as target when fully stacked),,原文键,模型
 .scope 只能是 in_zone（主控在本干员区域内）/ always,.scope must be in_zone (controlled character is in this Operator's zone) / always,,原文键,模型
-减伤,DMG Reduction,,原文键,模型
+减伤,DMG Reduction,,原文键,人改
 %s.%s.%s：只能写 delay / mult / pitch,%s.%s.%s: can only be delay / mult / pitch,,原文键,模型
 ：verb.summon_mod 至少写 dmg / aspd / reach / arc / speed / then / mirror / lunge 之一,: verb.summon_mod requires at least one of dmg / aspd / reach / arc / speed / then / mirror / lunge,,原文键,模型
 %s.%s：verb.summon_mod 不认识的字段,%s.%s: unrecognized field in verb.summon_mod,,原文键,模型
@@ -2016,7 +2016,7 @@ blocks.response 必须是数组,blocks.response must be an array,,原文键,模�
 %s：「%s」（%s）不能放在这里（%s）,%s: '%s' (%s) cannot be placed here (%s),,原文键,模型
 ：verb.negate_chance 要写 add / mult 之一,: verb.negate_chance must be either add / mult,,原文键,模型
 .negate 只能是 true / false,.negate can only be true / false,,原文键,模型
-热砂沸腾,Boiling Hot Sand,,原文键,模型
+热砂沸腾,Boiling Hot Sand,,原文键,人改
 反斩,Counter,,原文键,模型
 消除弹幕 ×%d,Clear projectiles ×%d,,原文键,模型
 .pick 只能是 aim / random,.pick can only be aim / random,,原文键,模型
@@ -2130,7 +2130,7 @@ Elite 2: ATK +%d%%, ATK speed +%d%%",,原文键,模型
 持有藏品「%s」,Holds Relic '%s',,原文键,模型
 博士 Lv.%d,Doctor Lv.%d,,原文键,模型
 编队中有%s干员,%s Operator in squad,,原文键,模型
-%s卡「%s」,%s Card '%s',,原文键,模型
+%s卡「%s」,%s card '%s',,原文键,人改
 使,Use,,原文键,模型
 选定后，之后的节点沿该路线强化,"Once selected, subsequent nodes upgrade along this path.",,原文键,模型
 ；攻击 +%d%%,; ATK +%d%%,,原文键,模型
@@ -2151,7 +2151,7 @@ Condition: %s (Met)",,原文键,模型
 近战扩域  MELEE,Melee Range Expansion  MELEE,,原文键,模型
 多弹火力  MULTI,Multi-Shot Firepower  MULTI,,原文键,模型
 召唤驻场  SUMMON,Persistent Summon  SUMMON,,原文键,模型
-控场引爆  CONTROL,CC Detonation  CONTROL,,原文键,模型
+控场引爆  CONTROL,Control Detonation  CONTROL,,原文键,模型
 弱点收割  WEAK,Weakness Harvest  WEAK,,原文键,模型
 护盾反击  SHIELD,Shield Counter  SHIELD,,原文键,校对
 成长,Growth,,原文键,模型
@@ -2207,13 +2207,13 @@ V4 native_motion.clips.%s 须是正秒数,V4 native_motion.clips.%s must be posi
 V4 native_motion.states 每条须有 on 与 slot,V4 native_motion.states entries must each have on and slot,,原文键,模型
 V4 native_motion.states「%s」须 0 ≤ from ≤ to < 帧数 %d、rate ≥ 0（或写 loop: true）,"V4 native_motion.states '%s' requires 0 ≤ from ≤ to < frames %d, rate ≥ 0 (or write loop: true)",,原文键,模型
 "V4 native_motion.exits 每条须是 {on, slot, from < 帧数, tail > 0}","V4 native_motion.exits each entry must be {on, slot, from < frames, tail > 0}",,原文键,模型
-多弹火力,Multi-Shot Firepower,,原文键,模型
-近战扩域,Melee Range Expansion,,原文键,模型
-召唤驻场,Persistent Summon,,原文键,模型
-控场引爆,CC Detonation,,原文键,模型
+多弹火力,Multi-Shot Firepower,,原文键,人改
+近战扩域,Melee Range Expansion,,原文键,人改
+召唤驻场,Persistent Summon,,原文键,人改
+控场引爆,Control Detonation,,原文键,人改
 弱点收割,Weakness Harvest,,原文键,模型
 护盾反击,Shield Counter,,原文键,校对
-治疗转伤,Heal-to-Damage Conversion,,原文键,模型
+治疗转伤,Heal-to-Damage,,原文键,人改
 看不懂的字符「%s」,Unrecognized character '%s',,原文键,模型
 多余的「%s」,Extra '%s',,原文键,模型
 除以 0,Divide by 0,,原文键,模型
@@ -2227,13 +2227,13 @@ base 里没有数字「%s」,No number '%s' in base,,原文键,模型
 回复,Recovery,,原文键,模型
 随行,Follow,,原文键,暂定
 突击,Assault,,原文键,暂定
-Boss 优先,Prioritize Bosses,,原文键,模型
-清杂优先,Prioritize Clearing Mobs,,原文键,校对
+Boss 优先,Prioritize Bosses,,原文键,人改
+清杂优先,Prioritize Mobs,,原文键,人改
 清杂,Clear Mobs,,原文键,模型
 队长最大生命 +%d%%,Leader Max HP +%d%%,,原文键,模型
 生命回复 +%s / 秒,HP Recovery +%s / s,,原文键,校对
 入队加成：,Squad Join Bonus:,,原文键,校对
-作战时限未恢复,Combat time limit not recovered,,原文键,模型
+作战时限未恢复,Combat time limit not restored,,原文键,人改
 %s 回到队伍,%s returned to squad,,原文键,模型
 撤回,Withdraw,,原文键,模型
 %s 生命垂危,%s HP critical,,原文键,模型

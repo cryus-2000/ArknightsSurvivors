@@ -1,12 +1,12 @@
 keys,en,_zh,_source,_note
 relics.relics.version,v1.0 framework alignment,v1.0 框架对齐,模型,
-relics.relics.lane_names.melee,Melee Range Expansion,近战扩域,模型,
-relics.relics.lane_names.multi,Multi-Shot Firepower,多弹火力,模型,
-relics.relics.lane_names.summon,Summon Presence,召唤驻场,模型,
-relics.relics.lane_names.control,Crowd Control Detonation,控场引爆,模型,
+relics.relics.lane_names.melee,Melee Range Expansion,近战扩域,人改,跨模块统一（review/canon.json）
+relics.relics.lane_names.multi,Multi-Shot Firepower,多弹火力,人改,跨模块统一（review/canon.json）
+relics.relics.lane_names.summon,Persistent Summon,召唤驻场,人改,跨模块统一（review/canon.json）
+relics.relics.lane_names.control,Control Detonation,控场引爆,人改,跨模块统一（review/canon.json）
 relics.relics.lane_names.weak,Weakness Harvest,弱点收割,模型,可能偏长：16 字母 / 中文 4 字
 relics.relics.lane_names.shield,Shield Counter,护盾反击,校对,校对：统一术语：护盾 -> Shield
-relics.relics.lane_names.heal,Heal to Damage,治疗转伤,模型,
+relics.relics.lane_names.heal,Heal-to-Damage,治疗转伤,人改,跨模块统一（review/canon.json）
 relics.relics.lane_names.class,Class,职业,模型,
 relics.relics.lane_names.general,General,通用,模型,
 relics.relics.lane_names.survival,Survival,生存,模型,
@@ -18,122 +18,122 @@ relics.relics.items.0.rarity,Rare,稀有,模型,
 relics.relics.items.1.name,Seaweed Salad,凉拌海草,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_2
 relics.relics.items.1.original,"+1 Squad Size Limit, all friendly units gain +1 ASPD",可携带干员+1，所有我方单位的攻击速度+1,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_2.usage
 relics.relics.items.1.adapt,ATK speed +3%,攻击速度 +3%,模型,
-relics.relics.items.1.rarity,Normal,基础,模型,
+relics.relics.items.1.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.2.name,Orange Storm,橙味风暴,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_3
 relics.relics.items.2.original,"+1 Squad Size Limit, all friendly units gain +1% ATK",可携带干员+1，所有我方单位的攻击力+1%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_3.usage
 relics.relics.items.2.adapt,All damage +3%,所有伤害 +3%,模型,
-relics.relics.items.2.rarity,Normal,基础,模型,
+relics.relics.items.2.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.3.name,Coffee Plains Coffee Candy,咖啡平原咖啡糖,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_4
 relics.relics.items.3.original,"+2 Squad Size Limit, all friendly units gain +2 ASPD",可携带干员+2，所有我方单位的攻击速度+2,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_4.usage
 relics.relics.items.3.adapt,ATK speed +5%,攻击速度 +5%,模型,
-relics.relics.items.3.rarity,Normal,基础,模型,
+relics.relics.items.3.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.4.name,Screaming Cherry,尖叫樱桃,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_5
 relics.relics.items.4.original,"+2 Squad Size Limit, all friendly units gain +2% ATK",可携带干员+2，所有我方单位的攻击力+2%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_5.usage
 relics.relics.items.4.adapt,All damage +5%,所有伤害 +5%,模型,
-relics.relics.items.4.rarity,Normal,基础,模型,
+relics.relics.items.4.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.5.name,Pitt's Assorted Fruits,皮特水果什锦,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_6
 relics.relics.items.5.original,"+3 Squad Size Limit, all friendly units gain +3% ATK, DEF, and HP",可携带干员+3，所有我方单位的攻击力、防御力和生命值+3%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_6.usage
 relics.relics.items.5.adapt,"Damage +4%, Max HP +4%, damage taken -1",伤害 +4%，最大生命 +4%，受到伤害 -1,模型,
-relics.relics.items.5.rarity,Normal,基础,模型,
+relics.relics.items.5.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.6.name,Extra-Pungent Coffee Beans,特级馥郁咖啡豆,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_11
 relics.relics.items.6.original,"+1 Squad Size Limit, +1 Deployment Limit, +1 Objective Shield",可携带干员+1，可同时部署人数+1，护盾值+1,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_11.usage
 relics.relics.items.6.adapt,"Support Operator limit +1, Shield limit +1",援护干员上限 +1，护盾层数上限 +1,校对,校对：统一术语：护盾 -> Shield
-relics.relics.items.6.rarity,Normal,基础,模型,
+relics.relics.items.6.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.7.name,Blue Silk Scarf,蓝色丝巾,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_12
 relics.relics.items.7.original,"+2 Hope, +1 Squad Size Limit",希望+2，可携带干员+1,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_12.usage
 relics.relics.items.7.adapt,Originium Ingot +4; +4 for each Operator recruited afterwards,源石锭 +4；此后每招募一名干员再 +4,模型,
-relics.relics.items.7.rarity,Normal,基础,模型,
+relics.relics.items.7.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.8.name,Red Bow Tie,红色蝴蝶结,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_13
 relics.relics.items.8.original,"+2 Hope, +1 Deployment Limit",希望+2，可同时部署人数+1,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_13.usage
 relics.relics.items.8.adapt,"Hope + deployment limit, duplicates No. 10, can be omitted",希望 + 部署人数，与 10 号重复，可省略,模型,
 relics.relics.items.9.name,Solo Music Box,独奏八音盒,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_14
 relics.relics.items.9.original,"+4 Hope, +1 Deployment Limit",希望+4，可同时部署人数+1,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_14.usage
 relics.relics.items.9.adapt,"Support Operator limit +1, Originium Ingot +12",援护干员上限 +1，源石锭 +12,模型,
-relics.relics.items.9.rarity,Normal,基础,模型,
+relics.relics.items.9.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.10.name,Originium Iris,源石鸢尾花,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_15
 relics.relics.items.10.original,"+6 Hope, +2 Squad Size Limit",希望+6，可携带干员+2,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_15.usage
 relics.relics.items.10.adapt,"Originium Ingot +18, next recruitment has 1 extra option",源石锭 +18，下一次招募多一个选项,模型,
-relics.relics.items.10.rarity,Normal,基础,模型,
+relics.relics.items.10.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.11.name,Weird Flute,古怪的长笛,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_16
 relics.relics.items.11.original,"+4 Hope, +1 Squad Size Limit",希望+4，可携带干员+1,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_16.usage
 relics.relics.items.11.adapt,Originium Ingot +4; +6 for each merchant arrival afterwards,源石锭 +4；此后每位商人到来时再 +6,模型,
-relics.relics.items.11.rarity,Normal,基础,模型,
+relics.relics.items.11.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.12.name,Glass Bird,玻璃小鸟,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_17
 relics.relics.items.12.original,"+4 Hope, +1 Squad Size Limit",希望+4，可携带干员+1,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_16.usage
 relics.relics.items.12.adapt,Originium Ingot +1 for every 50 enemies defeated,每击败 50 名敌人，源石锭 +1,模型,
-relics.relics.items.12.rarity,Normal,基础,模型,
+relics.relics.items.12.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.13.name,Pure Gold Expedition,赤金的远征,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_18
 relics.relics.items.13.original,"+4 Hope, +1 Squad Size Limit, +1 Deployment Limit",希望+4，可携带干员+1，可同时部署人数+1,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_18.usage
 relics.relics.items.13.adapt,"Support Operator limit +1, Originium Ingot +12",援护干员上限 +1，源石锭 +12,模型,
-relics.relics.items.13.rarity,Normal,基础,模型,
+relics.relics.items.13.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.14.name,'Durin Overground Odyssey',《杜林地上环游记》,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_19
 relics.relics.items.14.original,+4 Objective Shield,护盾值+4,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_19.usage
 relics.relics.items.14.adapt,[Implemented in v0.8] Shield generation interval -30%,【v0.8 已实装】护盾生成间隔 -30%,模型,
-relics.relics.items.14.rarity,Normal,基础,模型,
+relics.relics.items.14.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.15.name,'Gaulish Toponym Origins',《旧高卢地名源流考》,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_20
 relics.relics.items.15.original,+6 Objective Shield,护盾值+6,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_20.usage
 relics.relics.items.15.adapt,Shield limit +2,护盾层数上限 +2,校对,校对：统一术语：护盾 -> Shield
-relics.relics.items.15.rarity,Normal,基础,模型,
+relics.relics.items.15.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.16.name,Hot Water Kettle,热水壶,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_21
 relics.relics.items.16.original,"+1 Max Life Point, +1 Hope",目标生命上限+1，希望+1,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_21.usage
 relics.relics.items.16.adapt,"Max HP +10, Originium Ingot +3",最大生命 +10，源石锭 +3,模型,
-relics.relics.items.16.rarity,Normal,基础,模型,
+relics.relics.items.16.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.17.name,Special Suppressor,特殊抑制器,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_22
 relics.relics.items.17.original,"+2 Max Life Point, recover 2 Life Point",目标生命上限+2，回复2目标生命,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_22.usage
 relics.relics.items.17.adapt,"Max HP +15, immediately recovers 15 HP",最大生命 +15，立即回复 15 生命,模型,
-relics.relics.items.17.rarity,Normal,基础,模型,
+relics.relics.items.17.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.18.name,Stone Gargoyle,石像鬼塑像,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_23
 relics.relics.items.18.original,+3 Max Life Point,目标生命上限+3,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_23.usage
 relics.relics.items.18.adapt,"Max HP +20, immediately recovers 20 HP",最大生命 +20，立即回复 20 生命,模型,
-relics.relics.items.18.rarity,Normal,基础,模型,
+relics.relics.items.18.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.19.name,Vampire's Bed,血魔的寝床,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_24
 relics.relics.items.19.original,+4 Max Life Point,目标生命上限+4,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_24.usage
 relics.relics.items.19.adapt,Max HP +30,最大生命 +30,模型,
-relics.relics.items.19.rarity,Normal,基础,模型,
+relics.relics.items.19.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.20.name,Proof of Longevity,长生者之证,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_25
 relics.relics.items.20.original,+6 Max Life Point,目标生命上限+6,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_25.usage
 relics.relics.items.20.adapt,Max HP +50,最大生命 +50,模型,
-relics.relics.items.20.rarity,Normal,基础,模型,
+relics.relics.items.20.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.21.name,Pried Open Toolbox,被撬开的道具箱,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_26
 relics.relics.items.21.original,+4 Hope,希望+4,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_26.usage
 relics.relics.items.21.adapt,Originium Ingot +2 for each Supply Crate destroyed,每打碎一个补给箱，源石锭 +2,模型,
-relics.relics.items.21.rarity,Normal,基础,模型,
+relics.relics.items.21.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.22.name,Antiquated Sheet Music,古旧乐谱残章,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_27
 relics.relics.items.22.original,+4 Hope,希望+4,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_26.usage
 relics.relics.items.22.adapt,Originium Ingot +4; +1 more for each subsequent level up,源石锭 +4；此后每升一级再 +1,模型,
-relics.relics.items.22.rarity,Normal,基础,模型,
+relics.relics.items.22.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.23.name,Letter of Termination Contract,解约协议,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_28
 relics.relics.items.23.original,+4 Hope,希望+4,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_26.usage
 relics.relics.items.23.adapt,"Originium Ingot +4; thereafter, refunds 3 Originium Ingots for every 10 spent at the Rogue Trader",源石锭 +4；此后在商人处每花费 10 枚源石锭，返还 3 枚,模型,
-relics.relics.items.23.rarity,Normal,基础,模型,
+relics.relics.items.23.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.24.name,Universal Key,万能钥匙,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_29
 relics.relics.items.24.original,+6 Hope,希望+6,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_29.usage
 relics.relics.items.24.adapt,Originium Ingot +18,源石锭 +18,模型,
-relics.relics.items.24.rarity,Normal,基础,模型,
+relics.relics.items.24.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.25.name,Banshee's Kiss,女妖之吻,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_30
 relics.relics.items.25.original,+8 Hope,希望+8,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_30.usage
 relics.relics.items.25.adapt,Originium Ingot +30; all item prices at the Rogue Trader +15%,源石锭 +30；商人处所有商品价格 +15%,模型,
-relics.relics.items.25.rarity,Normal,基础,模型,
+relics.relics.items.25.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.26.name,Antique Coins,古旧钱币,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_31
 relics.relics.items.26.original,Immediately gain +10 Originium Ingots,立即获得源石锭+10,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_31.usage
 relics.relics.items.26.adapt,Originium Ingot +10,源石锭 +10,模型,
-relics.relics.items.26.rarity,Normal,基础,模型,
+relics.relics.items.26.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.27.name,Actor's Jewelry Box,演员的首饰盒,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_32
 relics.relics.items.27.original,Immediately gain +18 Originium Ingots.,立即获得源石锭+18,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_32.usage
 relics.relics.items.27.adapt,Originium Ingot +18,源石锭 +18,模型,
-relics.relics.items.27.rarity,Normal,基础,模型,
+relics.relics.items.27.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.28.name,Flawless Jadestone,无瑕宝玉,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_33
 relics.relics.items.28.original,Immediately gain +25 Originium Ingots.,立即获得源石锭+25,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_33.usage
 relics.relics.items.28.adapt,Originium Ingot +25,源石锭 +25,模型,
-relics.relics.items.28.rarity,Normal,基础,模型,
+relics.relics.items.28.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.29.name,Nightsun Flower,夜阳花,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_66
 relics.relics.items.29.original,+10 Light,灯火+10,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_66.usage
 relics.relics.items.29.adapt,"When Light is below 40, recovers 0.5 Light per second until it reaches 40",灯火低于 40 时，每秒回复 0.5 点灯火，回到 40 为止,模型,
-relics.relics.items.29.rarity,Normal,基础,模型,
+relics.relics.items.29.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.30.name,Flamecaller Originium Slug,聚火源石虫,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_67
 relics.relics.items.30.original,+15 Light,灯火+15,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_67.usage
 relics.relics.items.30.adapt,Light +4 when an Elite enemy is defeated; Light +15 when a Boss is defeated,击败精英敌人时灯火 +4，击败 Boss 时灯火 +15,模型,
-relics.relics.items.30.rarity,Normal,基础,模型,
+relics.relics.items.30.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.31.name,Pathfinder Fin,指路鳞,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_68
 relics.relics.items.31.original,+30 Light,灯火+30,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_68.usage
 relics.relics.items.31.adapt,"Guiding Beacon appearance interval -30%, time required to light -40%; grants an additional +15 Light when lit",引航灯标出现间隔 -30%，点亮所需时间 -40%；点亮时灯火额外 +15,模型,
@@ -150,27 +150,27 @@ relics.relics.items.34.adapt,This game has no Vanguard / Guard / Defender Suppor
 relics.relics.items.35.name,Fatal Bolts - Training,残弩-典训,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_40
 relics.relics.items.35.original,Immediately Promote a Sniper Operator (Does not require Hope),立即进阶一个【狙击】干员（不消耗希望）,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_40.usage
 relics.relics.items.35.adapt,Sniper Support level +1 (immediately recruits one if none),狙击援护立即 +1 级（没有就立即招募）,模型,
-relics.relics.items.35.rarity,Normal,基础,模型,
+relics.relics.items.35.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.36.name,Broken Wand - Training,断杖-典训,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_41
 relics.relics.items.36.original,Immediately Promote a Caster Operator (Does not require Hope),立即进阶一个【术师】干员（不消耗希望）,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_41.usage
 relics.relics.items.36.adapt,Caster Support level +1 (immediately recruits one if none),术师援护立即 +1 级（没有就立即招募）,模型,
-relics.relics.items.36.rarity,Normal,基础,模型,
+relics.relics.items.36.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.37.name,Stalwart Aid - Training,支柱-典训,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_42
 relics.relics.items.37.original,Immediately Promote a Supporter Operator (Does not require Hope),立即进阶一个【辅助】干员（不消耗希望）,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_42.usage
 relics.relics.items.37.adapt,Supporter Support level +1 (immediately recruits one if none),辅助援护立即 +1 级（没有就立即招募）,模型,
-relics.relics.items.37.rarity,Normal,基础,模型,
+relics.relics.items.37.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.38.name,Healer's Path - Training,医者-典训,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_43
 relics.relics.items.38.original,Immediately Promote a Medic Operator (Does not require Hope),立即进阶一个【医疗】干员（不消耗希望）,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_43.usage
 relics.relics.items.38.adapt,Medic Support level +1 (immediately recruits one if none),医疗援护立即 +1 级（没有就立即招募）,模型,
-relics.relics.items.38.rarity,Normal,基础,模型,
+relics.relics.items.38.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.39.name,Rusted Blade - Training,锈刃-典训,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_44
 relics.relics.items.39.original,Immediately Promote a Specialist Operator (Does not require Hope),立即进阶一个【特种】干员（不消耗希望）,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_44.usage
 relics.relics.items.39.adapt,Specialist Operators immediately gain 1 growth node,特种干员立即获得 1 次成长节点,模型,
-relics.relics.items.39.rarity,Normal,基础,模型,
+relics.relics.items.39.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.40.name,Fissured Restraints,开裂的束缚带,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_1
 relics.relics.items.40.original,All enemy units have -7% ATK,所有敌方单位的攻击力-7%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_1.usage
 relics.relics.items.40.adapt,All enemies' ATK -7%,所有敌人攻击 -7%,模型,
-relics.relics.items.40.rarity,Normal,基础,模型,
+relics.relics.items.40.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.41.name,'Silent Squad',“静音小队”,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_52
 relics.relics.items.41.original,"All friendly units have +35% ATK, +35% DEF, and +45% HP",所有我方单位的攻击力和防御力+35%，生命+45%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_52.usage
 relics.relics.items.41.adapt,"Damage +35%, damage taken -25%, Max HP +45% (Super Rare)",伤害 +35%，受到伤害 -25%，最大生命 +45%（超稀有）,模型,
@@ -178,15 +178,15 @@ relics.relics.items.41.rarity,Sublimation,升华,官方,roguelike_topic_table.ro
 relics.relics.items.42.name,Abyssal Wyrdmask,奇渊面具,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_2
 relics.relics.items.42.original,All enemy units have -12% ATK,所有敌方单位的攻击力-12%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_2.usage
 relics.relics.items.42.adapt,All enemies' ATK -12%,所有敌人攻击 -12%,模型,
-relics.relics.items.42.rarity,Normal,基础,模型,
+relics.relics.items.42.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.43.name,Godmother's Token,教母的信物,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_3
 relics.relics.items.43.original,All enemy units have -17% ATK,所有敌方单位的攻击力-17%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_3.usage
 relics.relics.items.43.adapt,All enemies' ATK -17%,所有敌人攻击 -17%,模型,
-relics.relics.items.43.rarity,Normal,基础,模型,
+relics.relics.items.43.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.44.name,Worn-out Group Photo,残破合影,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_4
 relics.relics.items.44.original,All enemy units have -12% DEF,所有敌方单位的防御力-12%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_4.usage
 relics.relics.items.44.adapt,Enemies with less than 50% HP take +10% damage,生命低于 50% 的敌人受到伤害 +10%,模型,
-relics.relics.items.44.rarity,Normal,基础,模型,
+relics.relics.items.44.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.45.name,Sea Terror Jerky,恐鱼干,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_5
 relics.relics.items.45.original,All enemy units have -21% DEF,所有敌方单位的防御力-21%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_5.usage
 relics.relics.items.45.adapt,Enemies with less than 50% HP take +18% damage,生命低于 50% 的敌人受到伤害 +18%,模型,
@@ -198,99 +198,99 @@ relics.relics.items.46.rarity,Sublimation,升华,官方,roguelike_topic_table.ro
 relics.relics.items.47.name,Gold-Plated Die,镶金骨骰,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_7
 relics.relics.items.47.original,All enemy units have -15% HP,所有敌方单位的生命-15%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_7.usage
 relics.relics.items.47.adapt,All enemies' HP -18%,所有敌人生命 -18%,模型,
-relics.relics.items.47.rarity,Normal,基础,模型,
+relics.relics.items.47.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.48.name,'The Whisperer in Darknight',“黑夜呢喃”,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_8
 relics.relics.items.48.original,All enemy units have -10% HP,所有敌方单位的生命-10%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_8.usage
 relics.relics.items.48.adapt,All enemies' HP -10%,所有敌人生命 -10%,模型,
-relics.relics.items.48.rarity,Normal,基础,模型,
+relics.relics.items.48.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.49.name,'Profound Silence',《大静谧》,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_9
 relics.relics.items.49.original,All enemy units have -20% HP,所有敌方单位的生命-20%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_9.usage
 relics.relics.items.49.adapt,All enemies' HP -20%,所有敌人生命 -20%,模型,
-relics.relics.items.49.rarity,Normal,基础,模型,
+relics.relics.items.49.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.50.name,Oriron Round Shield,异铁小圆盾,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_10
 relics.relics.items.50.original,All friendly units have +15% DEF,所有我方单位的防御力+15%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_10.usage
 relics.relics.items.50.adapt,Damage taken -8%,受到伤害 -8%,模型,
-relics.relics.items.50.rarity,Normal,基础,模型,
+relics.relics.items.50.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.51.name,Military Mirror Armor,军团护心镜,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_11
 relics.relics.items.51.original,All friendly units have +25% DEF,所有我方单位的防御力+25%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_11.usage
 relics.relics.items.51.adapt,Damage taken -13%,受到伤害 -13%,模型,
-relics.relics.items.51.rarity,Normal,基础,模型,
+relics.relics.items.51.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.52.name,Old Steam Armor,古旧的蒸汽甲胄,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_12
 relics.relics.items.52.original,All friendly units have +35% DEF,所有我方单位的防御力+35%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_12.usage
 relics.relics.items.52.adapt,Damage taken -18%,受到伤害 -18%,模型,
-relics.relics.items.52.rarity,Normal,基础,模型,
+relics.relics.items.52.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.53.name,Emperor's Favor,皇帝的恩宠,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_13
 relics.relics.items.53.original,All friendly melee units have +15% ATK,所有我方近战单位的攻击力+15%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_13.usage
 relics.relics.items.53.adapt,Base damage +15%,基础伤害 +15%,模型,
-relics.relics.items.53.rarity,Normal,基础,模型,
+relics.relics.items.53.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.54.name,Royal Rapier,贵族刺剑,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_14
 relics.relics.items.54.original,All friendly melee units have +25% ATK,所有我方近战单位的攻击力+25%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_14.usage
 relics.relics.items.54.adapt,Base damage +25%,基础伤害 +25%,模型,
-relics.relics.items.54.rarity,Normal,基础,模型,
+relics.relics.items.54.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.55.name,Vieux Vanguard's Blade,老近卫军之锋,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_15
 relics.relics.items.55.original,All friendly melee units have +35% ATK,所有我方近战单位的攻击力+35%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_15.usage
 relics.relics.items.55.adapt,Base damage +35%,基础伤害 +35%,模型,
-relics.relics.items.55.rarity,Normal,基础,模型,
+relics.relics.items.55.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.56.name,Necklace of the Presence,显圣吊坠,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_16
 relics.relics.items.56.original,All friendly ranged units have +15% ATK,所有我方远程单位的攻击力+15%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_16.usage
 relics.relics.items.56.adapt,Support Operator damage +15%,援护干员伤害 +15%,模型,
-relics.relics.items.56.rarity,Normal,基础,模型,
+relics.relics.items.56.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.57.name,Silver Forks,银餐叉,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_17
 relics.relics.items.57.original,All friendly ranged units have +25% ATK,所有我方远程单位的攻击力+25%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_17.usage
 relics.relics.items.57.adapt,Support Operator damage +25%,援护干员伤害 +25%,模型,
-relics.relics.items.57.rarity,Normal,基础,模型,
+relics.relics.items.57.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.58.name,Damaged Revolver Cylinder,损坏的左轮弹巢,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_18
 relics.relics.items.58.original,All friendly ranged units have +35% ATK,所有我方远程单位的攻击力+35%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_18.usage
 relics.relics.items.58.adapt,Support Operator damage +35%,援护干员伤害 +35%,模型,
-relics.relics.items.58.rarity,Normal,基础,模型,
+relics.relics.items.58.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.59.name,Noxious Hemostatic Agent,难闻的止血剂,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_19
 relics.relics.items.59.original,All friendly units have +20% HP,所有我方单位的生命+20%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_19.usage
 relics.relics.items.59.adapt,Max HP +20%,最大生命 +20%,模型,
-relics.relics.items.59.rarity,Normal,基础,模型,
+relics.relics.items.59.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.60.name,First Aid Kit,急救药箱,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_20
 relics.relics.items.60.original,All friendly units have +35% HP,所有我方单位的生命+35%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_20.usage
 relics.relics.items.60.adapt,Max HP +35%,最大生命 +35%,模型,
-relics.relics.items.60.rarity,Normal,基础,模型,
+relics.relics.items.60.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.61.name,Unknown Instrument,未知仪器,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_21
 relics.relics.items.61.original,All friendly units have +50% HP,所有我方单位的生命+50%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_21.usage
 relics.relics.items.61.adapt,Max HP +50%,最大生命 +50%,模型,
-relics.relics.items.61.rarity,Normal,基础,模型,
+relics.relics.items.61.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.62.name,Rusted Razor,锈蚀刀片,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_22
 relics.relics.items.62.original,All enemies take +15% Physical damage,所有敌方单位受到的物理伤害+15%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_22.usage
 relics.relics.items.62.adapt,Physical damage taken by enemies +15%,敌人受到的物理伤害 +15%,模型,
-relics.relics.items.62.rarity,Normal,基础,模型,
+relics.relics.items.62.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.63.name,Carriage Driver's Whip,赶车夫的长鞭,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_23
 relics.relics.items.63.original,All enemies take +25% Physical damage,所有敌方单位受到的物理伤害+25%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_23.usage
 relics.relics.items.63.adapt,As above +25%,同上 +25%,模型,
-relics.relics.items.63.rarity,Normal,基础,模型,
+relics.relics.items.63.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.64.name,'Hateful Avenger',“复仇者”,官方,enemy_handbook_table.enemy_1539_reid
 relics.relics.items.64.original,All enemies take +35% Physical damage,所有敌方单位受到的物理伤害+35%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_24.usage
 relics.relics.items.64.adapt,As above +35%,同上 +35%,模型,
-relics.relics.items.64.rarity,Normal,基础,模型,
+relics.relics.items.64.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.65.name,Standard Anti-Riot Instrument,制式防暴用具,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_25
 relics.relics.items.65.original,All enemies take +20% Arts damage,所有敌方单位受到的法术伤害+20%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_25.usage
 relics.relics.items.65.adapt,"Arts damage taken by enemies (tentacles, Casters, jellyfish) +20%",敌人受到的法术伤害（触手、术师、水母）+20%,模型,
-relics.relics.items.65.rarity,Normal,基础,模型,
+relics.relics.items.65.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.66.name,Emperor's Collection,皇帝的收藏,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_26
 relics.relics.items.66.original,All enemies take +30% Arts damage,所有敌方单位受到的法术伤害+30%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_26.usage
 relics.relics.items.66.adapt,Same as above +30%,同上 +30%,模型,
-relics.relics.items.66.rarity,Normal,基础,模型,
+relics.relics.items.66.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.67.name,'Brilliant Lament',“璀璨悲泣”,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_27
 relics.relics.items.67.original,All enemies take +40% Arts damage,所有敌方单位受到的法术伤害+40%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_27.usage
 relics.relics.items.67.adapt,Same as above +40%,同上 +40%,模型,
-relics.relics.items.67.rarity,Normal,基础,模型,
+relics.relics.items.67.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.68.name,Live Rose,活玫瑰,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_28
 relics.relics.items.68.original,All friendly units receive +20% healing effectiveness,所有我方单位受到的治疗和生命回复效果+20%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_28.usage
 relics.relics.items.68.adapt,All healing effects +20%,所有回复效果 +20%,模型,
-relics.relics.items.68.rarity,Normal,基础,模型,
+relics.relics.items.68.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.69.name,White Flower Crown,苍白花冠,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_29
 relics.relics.items.69.original,All friendly units receive +30% healing effectiveness,所有我方单位受到的治疗和生命回复效果+30%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_29.usage
 relics.relics.items.69.adapt,All recovery effects +30%,所有回复效果 +30%,校对,校对：“回复”应统一译为 recovery，与 p1 保持一致。
-relics.relics.items.69.rarity,Normal,基础,模型,
+relics.relics.items.69.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.70.name,Surging Feast,涌动之餐,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_30
 relics.relics.items.70.original,All friendly units receive +30% healing effectiveness and take -30% Elemental Injury,所有我方单位受到的治疗和生命回复效果+30%，且受到的元素损伤-30%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_30.usage
 relics.relics.items.70.adapt,All recovery effects +30%; Corrosion and Nervous Impairment taken -30% (these two are Elemental Damage in the original game),所有回复效果 +30%，受到的侵蚀和神经损伤 -30%（这两种原作就是元素损伤）,校对,校对：“侵蚀”的固定译名为 Corrosion（不加 Damage）；“元素损伤”在明日方舟官方英文版中为 Elemental Damage。；官方名未用上：Elemental Injury
-relics.relics.items.70.rarity,Normal,基础,模型,
+relics.relics.items.70.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.71.name,Actor's Perfume,演出用香水,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_31
 relics.relics.items.71.original,All friendly units recover 1% of their Max HP per second,所有我方单位每秒回复1%的最大生命值,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_31.usage
 relics.relics.items.71.adapt,Restores 1% Max HP per second,每秒回复 1% 最大生命,模型,
@@ -298,15 +298,15 @@ relics.relics.items.71.rarity,Rare,稀有,模型,
 relics.relics.items.72.name,Designer's Ruler,设计师量尺,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_32
 relics.relics.items.72.original,All friendly units have +15% Physical Dodge,所有我方单位获得15%物理闪避,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_32.usage
 relics.relics.items.72.adapt,Chance to dodge melee attacks +15%,闪避近战攻击 +15%,模型,
-relics.relics.items.72.rarity,Normal,基础,模型,
+relics.relics.items.72.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.73.name,'Arts Killer',“法术杀手”,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_33
 relics.relics.items.73.original,All friendly units have +15% Arts Dodge,所有我方单位获得15%法术闪避,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_33.usage
 relics.relics.items.73.adapt,Ranged attack (projectile) dodge +15%,闪避远程攻击（弹幕）+15%,模型,
-relics.relics.items.73.rarity,Normal,基础,模型,
+relics.relics.items.73.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.74.name,Dancer's Bracelets,舞者手链,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_34
 relics.relics.items.74.original,All friendly units have +10% Physical and Arts Dodge,所有我方单位获得10%物理与法术闪避,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_34.usage
 relics.relics.items.74.adapt,Dodge +10%,闪避率 +10%,模型,
-relics.relics.items.74.rarity,Normal,基础,模型,
+relics.relics.items.74.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.75.name,Doll House,人偶之家,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_35
 relics.relics.items.75.original,+10 Starting DP,初始部署费用+10,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_35.usage
 relics.relics.items.75.adapt,No deployment cost in this game,本作没有部署费用,模型,
@@ -319,11 +319,11 @@ relics.relics.items.77.adapt,No deployment cost in this game,本作没有部署�
 relics.relics.items.78.name,Vortex Confluence,涡旋座,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_38
 relics.relics.items.78.original,"Specialist Operators have +30% ATK, and Caster Operators have +3% ATK",所有【特种】干员的攻击力+30%，所有【术师】干员的攻击力+3%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_38.usage
 relics.relics.items.78.adapt,"Specialist Operator damage +30%, Caster damage +3%",特种干员伤害 +30%，术师伤害 +3%,模型,
-relics.relics.items.78.rarity,Normal,基础,模型,
+relics.relics.items.78.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.79.name,Ocean Voyage,海程,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_39
 relics.relics.items.79.original,"Caster Operators have +30% ATK, and Specialist Operators have +3% ATK",所有【术师】干员的攻击力+30%，所有【特种】干员的攻击力+3%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_39.usage
 relics.relics.items.79.adapt,"Caster damage +30%, Specialist Operator damage +3%",术师伤害 +30%，特种干员伤害 +3%,模型,
-relics.relics.items.79.rarity,Normal,基础,模型,
+relics.relics.items.79.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.80.name,Jet-Black Dance Shoes,漆黑的舞鞋,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_43
 relics.relics.items.80.original,Can deploy Melee Operators on High Ground tiles,可以在高台部署近战位干员,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_43.usage
 relics.relics.items.80.adapt,No high / low ground in this game,本作没有高台 / 低地,模型,
@@ -344,35 +344,35 @@ relics.relics.items.84.rarity,Rare,稀有,模型,
 relics.relics.items.85.name,Bank of Gaul Check,高卢银行支票,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_88
 relics.relics.items.85.original,All Operators start with +12 SP,所有干员的初始技力+12,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_88.usage
 relics.relics.items.85.adapt,As above 20%,同上 20%,模型,
-relics.relics.items.85.rarity,Normal,基础,模型,
+relics.relics.items.85.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.86.name,'Second Economic Reform Act',《第二经济改革法》,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_89
 relics.relics.items.86.original,All Operators start with +18 SP,所有干员的初始技力+18,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_89.usage
 relics.relics.items.86.adapt,As above 30%,同上 30%,模型,
-relics.relics.items.86.rarity,Normal,基础,模型,
+relics.relics.items.86.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.87.name,Vanilla Soda,香草沙士汽水,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_90
 relics.relics.items.87.original,Increases the SP regen rate of Auto Recovery skills by +0.2/s,所有自然回复技能的技力恢复+0.2/秒,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_90.usage
 relics.relics.items.87.adapt,SP Recovery +15%,技力回复 +15%,模型,
-relics.relics.items.87.rarity,Normal,基础,模型,
+relics.relics.items.87.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.88.name,Fowlbeast Liver Pate,羽兽肝酱,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_91
 relics.relics.items.88.original,Increases the SP regen rate of Auto Recovery skills by +0.35/s,所有自然回复技能的技力恢复+0.35/秒,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_91.usage
 relics.relics.items.88.adapt,SP Recovery +25%,技力回复 +25%,模型,
-relics.relics.items.88.rarity,Normal,基础,模型,
+relics.relics.items.88.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.89.name,Dreaming Essence,迷梦香精,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_92
 relics.relics.items.89.original,Increases the SP regen rate of Auto Recovery skills by +0.5/s,所有自然回复技能的技力恢复+0.5/秒,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_92.usage
 relics.relics.items.89.adapt,SP Recovery +35%,技力回复 +35%,模型,
-relics.relics.items.89.rarity,Normal,基础,模型,
+relics.relics.items.89.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.90.name,Captain Morgan's Wine,摩根队长佳酿,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_93
 relics.relics.items.90.original,All Offensive and Defensive Recovery skills recover 1 SP every 3.5s,所有攻击和受击回复的技能每3.5秒回复1点技力,模型,
 relics.relics.items.90.adapt,Normal attacks required to Awaken -1,唤醒所需普攻次数 -1,模型,
-relics.relics.items.90.rarity,Normal,基础,模型,
+relics.relics.items.90.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.91.name,Water of Life,生命之水,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_94
 relics.relics.items.91.original,Increases the SP regen rate of Offensive and Defensive Recovery skills by 1 SP per 2.5s,所有攻击和受击回复的技能每2.5秒回复1点技力,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_94.usage
 relics.relics.items.91.adapt,"Normal attacks required to Awaken -1, SP Recovery +10%",唤醒所需普攻次数 -1，技力回复 +10%,模型,
-relics.relics.items.91.rarity,Normal,基础,模型,
+relics.relics.items.91.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.92.name,Royal Liqueur,皇家利口酒,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_95
 relics.relics.items.92.original,Increases the SP regen rate of Offensive and Defensive Recovery skills by 1 SP per 1.5s,所有攻击和受击回复的技能每1.5秒回复1点技力,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_95.usage
 relics.relics.items.92.adapt,Normal attacks required to Awaken -2,唤醒所需普攻次数 -2,模型,
-relics.relics.items.92.rarity,Normal,基础,模型,
+relics.relics.items.92.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.93.name,'Unleashings',“绽放”,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_96
 relics.relics.items.93.original,All Operators recover 1 SP every time they take damage or Elemental Injury,所有干员每次受到伤害时回复1点技力，每次受到元素损伤时回复1点技力,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_96.usage
 relics.relics.items.93.adapt,Restores 3% SP each time damage is taken; restores an additional 3% SP when taking Corrosion or Nervous Impairment,每次受到伤害回复 3% 技力，受到侵蚀或神经损伤再回复 3%,模型,
@@ -388,7 +388,7 @@ relics.relics.items.95.rarity,Sublimation,升华,官方,roguelike_topic_table.ro
 relics.relics.items.96.name,Victory Horn,凯旋号角,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_99
 relics.relics.items.96.original,"Increases the duration of single-instance status effects such as stun, cold, or freeze by 100%",敌人受到的一次性晕眩、寒冷、冰冻等异常效果影响时间提高100%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_99.usage
 relics.relics.items.96.adapt,"Stun, Bind, and Slow duration +100%",眩晕、束缚、减速的持续时间 +100%,模型,
-relics.relics.items.96.rarity,Normal,基础,模型,
+relics.relics.items.96.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.97.name,Flash Camera,高闪相机,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_100
 relics.relics.items.97.original,"Increases the duration of single-instance status effects such as stun, cold, or freeze by 110%",敌人受到的一次性晕眩、寒冷、冰冻等异常效果影响时间提高110%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_100.usage
 relics.relics.items.97.adapt,Same as above +110%,同上 +110%,模型,
@@ -412,7 +412,7 @@ relics.relics.items.101.rarity,Core,核心,模型,
 relics.relics.items.102.name,Angelina's Inspiration,安洁莉娜的创想,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_105
 relics.relics.items.102.original,"All enemies have -15% Movement Speed, and -1 Weight Level",所有敌方单位移动速度-15%，且重量下降一个等级,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_105.usage
 relics.relics.items.102.adapt,"All enemies' movement speed -15%, more susceptible to knockback",所有敌人移动速度 -15%，更容易被击退,模型,
-relics.relics.items.102.rarity,Normal,基础,模型,
+relics.relics.items.102.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.103.name,Scout's Scope,Scout的狙击镜,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_106
 relics.relics.items.103.original,"When enemy units take damage from allied units, the further they are from the damage source, the higher the damage taken (up to 50%)",所有敌方单位受到我方单位伤害时，距离伤害来源越远受到的伤害越高（最高50%）,模型,
 relics.relics.items.103.adapt,Support Operators' attacks deal more damage the further they are from the target (up to +50%),援护干员的攻击离目标越远伤害越高（最高 +50%）,模型,
@@ -427,7 +427,7 @@ relics.relics.items.105.adapt,No Vanguard / Guard in this game,本作没有先�
 relics.relics.items.106.name,Fortification Co-op - Phalanx,堡垒协议-方阵,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_110
 relics.relics.items.106.original,Increases the ATK of Defender and Supporter Operators by +8% for each Defender or Supporter Operator in the combat squad,战斗编队中每有一名重装和辅助干员，所有重装和辅助干员的攻击力+8%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_110.usage
 relics.relics.items.106.adapt,Supporter assist Slow and damage +8%,辅助援护的减速和伤害 +8%,模型,
-relics.relics.items.106.rarity,Normal,基础,模型,
+relics.relics.items.106.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.107.name,Ranged Co-op - Remote Strike,远程协议-遥击,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_111
 relics.relics.items.107.original,Increases the ATK of Medic and Sniper Operators by +8% for each Medic or Sniper Operator in the combat squad,战斗编队中每有一名医疗和狙击干员，所有医疗和狙击干员的攻击力+8%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_111.usage
 relics.relics.items.107.adapt,"When supported by both a Sniper and a Medic, both effects +16%",同时有狙击和医疗援护时，两者效果 +16%,模型,
@@ -474,7 +474,7 @@ relics.relics.items.117.rarity,Core,核心,模型,
 relics.relics.items.118.name,Fincatcher's Shawl,捕鳞蓑,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_132
 relics.relics.items.118.original,Ranged Operators gain Camouflage,远程干员获得【迷彩】,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_132.usage
 relics.relics.items.118.adapt,Ranged enemies target the Doctor 25% less frequently (original game's 'Camouflage'),远程敌人瞄准博士的频率 -25%（原作的「迷彩」）,模型,
-relics.relics.items.118.rarity,Normal,基础,模型,
+relics.relics.items.118.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.119.name,'Glorious Kazimierz',《光耀卡西米尔》,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_136
 relics.relics.items.119.original,Operators gain +70% ATK for 6 seconds after dodging,干员触发闪避后6秒内攻击力+70%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_136.usage
 relics.relics.items.119.adapt,Damage +70% for 6s after dodging,闪避后 6 秒内伤害 +70%,模型,
@@ -514,19 +514,19 @@ relics.relics.items.127.rarity,Sublimation,升华,官方,roguelike_topic_table.r
 relics.relics.items.128.name,Timeworn Poetry Strips,散轶诗简,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_148
 relics.relics.items.128.original,Summons will no longer use Deployment slots,【召唤物】不再消耗部署位,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_148.usage
 relics.relics.items.128.adapt,Support Operator limit +1,援护干员上限 +1,模型,
-relics.relics.items.128.rarity,Normal,基础,模型,
+relics.relics.items.128.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.129.name,Derivative Terminal - Supercharged Mod,衍生者终端-超级改,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_149
 relics.relics.items.129.original,"Summons have +30% HP, +30% ATK, and +30 ASPD",【召唤物】生命值+30%，攻击力+30%，攻击速度+30,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_149.usage
 relics.relics.items.129.adapt,Damage +30% and trigger frequency +30% for summon effects like glowing jellyfish and high tide shells,发光水母、涨潮螺壳等召唤效果伤害 +30%，频率 +30%,模型,
-relics.relics.items.129.rarity,Normal,基础,模型,
+relics.relics.items.129.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.130.name,Uncle Vought Total Care Kit,沃特大叔养护套装,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_151
 relics.relics.items.130.original,All friendly ranged units take 40% less Elemental Injury,所有我方远程单位受到元素损伤减少40%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_151.usage
 relics.relics.items.130.adapt,Corrosion Damage taken -40%,受到的侵蚀伤害 -40%,模型,
-relics.relics.items.130.rarity,Normal,基础,模型,
+relics.relics.items.130.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.131.name,Ursus Felt Rug,乌萨斯毡毯,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_152
 relics.relics.items.131.original,All friendly melee units take 40% less Elemental Injury,所有我方近战单位受到元素损伤减少40%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_152.usage
 relics.relics.items.131.adapt,Nervous Impairment accumulation -40%,神经损伤累积速度 -40%,模型,
-relics.relics.items.131.rarity,Normal,基础,模型,
+relics.relics.items.131.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.132.name,Blunt Claws - Advancement,钝爪-突破,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_47
 relics.relics.items.132.original,Vanguard Operators have -2 DP Cost and +60% HP,所有【先锋】干员的部署费用-2，生命+60%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_47.usage
 relics.relics.items.132.adapt,Vanguard Class Exclusive,先锋职业专属,模型,
@@ -572,27 +572,27 @@ relics.relics.items.145.adapt,Defender Class Exclusive,重装职业专属,模型
 relics.relics.items.146.name,Fatal Bolts - Advancement,残弩-突破,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_60
 relics.relics.items.146.original,Sniper Operators have -2 DP Cost and +60% HP,所有【狙击】干员的部署费用-2，生命+60%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_60.usage
 relics.relics.items.146.adapt,Recruited Sniper assists start at Lv.2,招募狙击援护时直接 Lv.2,模型,
-relics.relics.items.146.rarity,Normal,基础,模型,
+relics.relics.items.146.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.147.name,Fatal Bolts - Precision,残弩-百步穿杨,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_61
 relics.relics.items.147.original,Sniper Operators have +20% ATK,所有【狙击】干员的攻击力+20%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_61.usage
 relics.relics.items.147.adapt,Sniper support damage +20%,狙击援护伤害 +20%,模型,
-relics.relics.items.147.rarity,Normal,基础,模型,
+relics.relics.items.147.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.148.name,Fatal Bolts - Crossfire,残弩-交叉火力,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_62
 relics.relics.items.148.original,"Sniper Operators have -40% HP, but gain +40% ATK",所有【狙击】干员的生命-40%，但攻击力+40%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_62.usage
 relics.relics.items.148.adapt,"Sniper Support damage +40%, but ATK speed -20%",狙击援护伤害 +40%，但射速 -20%,模型,
-relics.relics.items.148.rarity,Normal,基础,模型,
+relics.relics.items.148.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.149.name,Fatal Bolts - Divine Speed,残弩-神速,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_63
 relics.relics.items.149.original,Sniper Operators have +70 ASPD,所有【狙击】干员的攻击速度+70,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_63.usage
 relics.relics.items.149.adapt,Sniper support ASPD +70%,狙击援护射速 +70%,模型,
-relics.relics.items.149.rarity,Normal,基础,模型,
+relics.relics.items.149.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.150.name,Broken Wand - Advancement,断杖-突破,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_64
 relics.relics.items.150.original,Caster Operators have -3 DP Cost and +60% HP,所有【术师】干员的部署费用-3，生命+60%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_64.usage
 relics.relics.items.150.adapt,Recruited Caster assists start at Lv.2,招募术师援护时直接 Lv.2,模型,
-relics.relics.items.150.rarity,Normal,基础,模型,
+relics.relics.items.150.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.151.name,Broken Wand - Arts Weaving,断杖-织法者,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_65
 relics.relics.items.151.original,Caster Operators have +25% ATK and +25 ASPD,所有【术师】干员的攻击力+25%，攻击速度+25,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_65.usage
 relics.relics.items.151.adapt,"Caster Support damage +25%, ATK speed +25%",术师援护伤害 +25%，射速 +25%,模型,
-relics.relics.items.151.rarity,Normal,基础,模型,
+relics.relics.items.151.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.152.name,Broken Wand - Concentration,断杖-凝神,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_66
 relics.relics.items.152.original,Increases the SP regen rate of Caster Operators by +0.4/s,所有【术师】干员的技力恢复+0.4/秒,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_66.usage
 relics.relics.items.152.adapt,Caster Support releases an additional large-area explosion every 8s,术师援护每 8 秒额外释放一次大范围爆炸,模型,
@@ -600,15 +600,15 @@ relics.relics.items.152.rarity,Rare,稀有,模型,
 relics.relics.items.153.name,Broken Wand - Malediction,断杖-苦难巫咒,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_67
 relics.relics.items.153.original,"Caster Operators have -40% HP, but deal +70% Arts damage",所有【术师】干员生命-40%，但造成的法术伤害+70%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_67.usage
 relics.relics.items.153.adapt,"Caster support damage +70%, but explosion radius -20%",术师援护伤害 +70%，但爆炸范围 -20%,模型,
-relics.relics.items.153.rarity,Normal,基础,模型,
+relics.relics.items.153.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.154.name,Stalwart Aid - Advancement,支柱-突破,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_68
 relics.relics.items.154.original,Supporter Operators have -2 DP Cost and +60% HP,所有【辅助】干员的部署费用-2，生命+60%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_68.usage
 relics.relics.items.154.adapt,Recruited Supporter assists start at Lv.2,招募辅助援护时直接 Lv.2,模型,
-relics.relics.items.154.rarity,Normal,基础,模型,
+relics.relics.items.154.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.155.name,Stalwart Aid - Diligence,支柱-勤奋,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_69
 relics.relics.items.155.original,The SP Cost of Supporter Operators’ skills is decreased by -40%,所有【辅助】干员的技力消耗-40%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_69.usage
 relics.relics.items.155.adapt,Supporter assist Slow range +40%,辅助援护的减速范围 +40%,模型,
-relics.relics.items.155.rarity,Normal,基础,模型,
+relics.relics.items.155.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.156.name,Stalwart Aid - Assistance,支柱-援护,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_70
 relics.relics.items.156.original,Friendly units within the attack range of Supporter Operators gain +20% ATK,所有【辅助】干员使攻击范围内的我方单位攻击力+20%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_70.usage
 relics.relics.items.156.adapt,"When inside a Supporter's Foxfire Field, squad damage +20%",处在辅助光域内时，全队伤害 +20%,模型,
@@ -616,19 +616,19 @@ relics.relics.items.156.rarity,Rare,稀有,模型,
 relics.relics.items.157.name,Stalwart Aid - Counter-Arts,支柱-枯法,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_71
 relics.relics.items.157.original,Enemies within the attack range of Supporter Operators have -20% DEF and -20% RES,所有【辅助】干员攻击范围内的敌方单位防御力-20%，法术抗性-20%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_71.usage
 relics.relics.items.157.adapt,Damage taken +20% for enemies within Supporter Support range,辅助援护范围内的敌人受到伤害 +20%,模型,
-relics.relics.items.157.rarity,Normal,基础,模型,
+relics.relics.items.157.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.158.name,Healer's Path - Advancement,医者-突破,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_72
 relics.relics.items.158.original,Medic Operators have -2 DP Cost and +60% HP,所有【医疗】干员的部署费用-2，生命+60%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_72.usage
 relics.relics.items.158.adapt,Recruited Medic assists start at Lv.2,招募医疗援护时直接 Lv.2,模型,
-relics.relics.items.158.rarity,Normal,基础,模型,
+relics.relics.items.158.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.159.name,Healer's Path - Self-Treating,医者-自医,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_73
 relics.relics.items.159.original,Increases the SP regen rate of Medic Operators by +0.3/s,所有【医疗】干员的技力恢复+0.3/秒,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_73.usage
 relics.relics.items.159.adapt,Medic Support healing frequency +30%,医疗援护治疗频率 +30%,模型,
-relics.relics.items.159.rarity,Normal,基础,模型,
+relics.relics.items.159.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.160.name,Healer's Path - Keen Hands,医者-妙手,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_74
 relics.relics.items.160.original,Medic Operators have +50 ASPD,所有【医疗】干员的攻击速度+50,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_74.usage
 relics.relics.items.160.adapt,Medic Support healing +50%,医疗援护治疗量 +50%,模型,
-relics.relics.items.160.rarity,Normal,基础,模型,
+relics.relics.items.160.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.161.name,Healer's Path - Restore Sanity,医者-固化序列,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_75
 relics.relics.items.161.original,Friendly units within the attack range of Medic Operators gain Status Resistance,所有【医疗】干员攻击范围内的我方单位获得抵抗,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_75.usage
 relics.relics.items.161.adapt,"When supported by a Medic, Nervous Impairment accumulation -50% (original game's 'Resistance')",有医疗援护时，神经损伤累积 -50%（原作的「抵抗」）,校对,校对：「抵抗」的官方英文为 Resistance；「抵抗」本表译 Status Resistance，这里没对上
@@ -636,15 +636,15 @@ relics.relics.items.161.rarity,Rare,稀有,模型,
 relics.relics.items.162.name,Rusted Blade - Advancement,锈刃-突破,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_76
 relics.relics.items.162.original,Specialist Operators have -2 DP Cost and +60% HP,所有【特种】干员的部署费用-2，生命+60%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_76.usage
 relics.relics.items.162.adapt,Max HP +40%,最大生命 +40%,模型,
-relics.relics.items.162.rarity,Normal,基础,模型,
+relics.relics.items.162.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.163.name,Rusted Blade - Execution,锈刃-研磨,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_77
 relics.relics.items.163.original,Specialist Operators have +30 ASPD,所有【特种】干员的攻击速度+30,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_77.usage
 relics.relics.items.163.adapt,ATK speed +20%,攻击速度 +20%,模型,
-relics.relics.items.163.rarity,Normal,基础,模型,
+relics.relics.items.163.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.164.name,Rusted Blade - Isolation,锈刃-单兵,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_78
 relics.relics.items.164.original,Specialist Operators have +40% ATK and DEF,所有【特种】干员的攻击力+40%，防御力+40%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_78.usage
 relics.relics.items.164.adapt,"Damage +40%, damage taken -20%",伤害 +40%，受到伤害 -20%,模型,
-relics.relics.items.164.rarity,Normal,基础,模型,
+relics.relics.items.164.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.165.name,Rusted Blade - No Man's Land,锈刃-可视静谧,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_79
 relics.relics.items.165.original,The Redeployment Time of Specialist Operators is reduced by -35%,所有【特种】干员的再部署时间-35%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_79.usage
 relics.relics.items.165.adapt,Invincible for 0.35s after dodging (the original game's 'Redeployment' is replaced by water illusion dissipating),闪避后 0.35 秒内无敌（原作的「再部署」换成水影消散）,模型,
@@ -652,7 +652,7 @@ relics.relics.items.165.rarity,Rare,稀有,模型,
 relics.relics.items.166.name,Rusted Blade - Overwhelm,锈刃-神力,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_80
 relics.relics.items.166.original,Specialist Operators have +2 shift strength,所有【特种】干员的力度+2,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_80.usage
 relics.relics.items.166.adapt,Knockback significantly increased (original game's 'Shift Force +2'),击退大幅增强（原作的「力度 +2」）,模型,
-relics.relics.items.166.rarity,Normal,基础,模型,
+relics.relics.items.166.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.167.name,Hand of Spikes,尖刺之手,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_81
 relics.relics.items.167.original,"Protector, Arts Protector, and Duelist Operators deal 100% DEF as Arts damage per second to all enemies they are blocking",【铁卫】、【驭法铁卫】和【决战者】对自身阻挡的敌人每秒造成自身防御力100%的法术伤害,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_81.usage
 relics.relics.items.167.adapt,Exclusive to Defender / Vanguard branches,重装 / 先锋分支专属,模型,
@@ -690,31 +690,31 @@ relics.relics.items.175.rarity,Core,核心,模型,
 relics.relics.items.176.name,Game Room Admin Access Card,游戏室管理员权限卡,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_34
 relics.relics.items.176.original,Immediately Promote an Operator (Does not require Hope),立即进阶一个干员（不消耗希望）,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_34.usage
 relics.relics.items.176.adapt,Immediately gain 1 Growth Choice,立即获得 1 次成长三选一,模型,
-relics.relics.items.176.rarity,Normal,基础,模型,
+relics.relics.items.176.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.177.name,Miss.Christine Petting Ticket,Miss.Christine摸摸券,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_35
 relics.relics.items.177.original,Immediately Promote 2 Operators (Does not require Hope),立即进阶两个干员（不消耗希望）,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_35.usage
 relics.relics.items.177.adapt,Immediately gain 2 Growth Choices,立即获得 2 次成长三选一,模型,
-relics.relics.items.177.rarity,Normal,基础,模型,
+relics.relics.items.177.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.178.name,Antique Casting,古旧铸物,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_36
 relics.relics.items.178.original,Immediately Promote 3 Operators (Does not require Hope),立即进阶三个干员（不消耗希望）,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_36.usage
 relics.relics.items.178.adapt,Immediately gain 3 Growth Choices,立即获得 3 次成长三选一,模型,
-relics.relics.items.178.rarity,Normal,基础,模型,
+relics.relics.items.178.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.179.name,Topographical Map,地形图,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_7
 relics.relics.items.179.original,"+1 Deployment Limit, all friendly units gain +4% DEF",可同时部署人数+1，所有我方单位的防御力+4%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_7.usage
 relics.relics.items.179.adapt,"Support Operator limit +1, damage taken -1",援护干员上限 +1，受到伤害 -1,模型,
-relics.relics.items.179.rarity,Normal,基础,模型,
+relics.relics.items.179.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.180.name,Conch of Divine Whispers,神音海螺,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_8
 relics.relics.items.180.original,"+1 Deployment Limit, all friendly units gain +4% HP",可同时部署人数+1，所有我方单位的生命值+4%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_8.usage
 relics.relics.items.180.adapt,"Support Operator limit +1, Max HP +8%",援护干员上限 +1，最大生命 +8%,模型,
-relics.relics.items.180.rarity,Normal,基础,模型,
+relics.relics.items.180.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.181.name,Night-Whispers in the Forest,林间夜话,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_9
 relics.relics.items.181.original,"+2 Deployment Limit, all friendly units gain +6% DEF",可同时部署人数+2，所有我方单位的防御力+6%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_9.usage
 relics.relics.items.181.adapt,"Support Operator damage +15%, damage taken -2",援护干员伤害 +15%，受到伤害 -2,模型,
-relics.relics.items.181.rarity,Normal,基础,模型,
+relics.relics.items.181.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.182.name,Church Alms Meal Voucher,教堂救济餐券,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_10
 relics.relics.items.182.original,"+2 Deployment Limit, all friendly units gain +6% HP",可同时部署人数+2，所有我方单位的生命值+6%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_10.usage
 relics.relics.items.182.adapt,"Support Operator damage +15%, Max HP +12%",援护干员伤害 +15%，最大生命 +12%,校对,校对：统一使用 Support Operator
-relics.relics.items.182.rarity,Normal,基础,模型,
+relics.relics.items.182.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.183.name,Regional Action Plan,地区行动方案,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_45
 relics.relics.items.183.original,4-star Operators cost -2 Hope to recruit,招募4星干员的希望消耗-2,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_45.usage
 relics.relics.items.183.adapt,Support Operators have no star rarity in this game,本作援护干员没有星级,模型,
@@ -727,7 +727,7 @@ relics.relics.items.185.adapt,Support Operators have no star rarity in this game
 relics.relics.items.186.name,Draft of a Speech,一份演讲稿,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_48
 relics.relics.items.186.original,All Operators cost -2 Hope to recruit,招募所有干员的希望消耗-2,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_48.usage
 relics.relics.items.186.adapt,The next recruited Support Operator starts at Lv.2,下一次招募的援护干员直接 Lv.2,模型,
-relics.relics.items.186.rarity,Normal,基础,模型,
+relics.relics.items.186.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.187.name,Rusted Iron Hammer,锈蚀的铁锤,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_49
 relics.relics.items.187.original,Shop vendors charge -50% Originium Ingots for their goods,商店中购买道具所需源石锭-50%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_49.usage
 relics.relics.items.187.adapt,All store prices -50%,商人处所有商品价格 -50%,模型,
@@ -735,7 +735,7 @@ relics.relics.items.187.rarity,Core,核心,模型,
 relics.relics.items.188.name,Rhodes Island Tactical Transceiver,罗德岛战术电台,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_50
 relics.relics.items.188.original,Gain an additional choice when Recruitment Vouchers are dropped after battle,战斗后掉落招募券时，增加一个可选项,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_50.usage
 relics.relics.items.188.adapt,1 extra option when recruiting Support Operators,招募援护干员时多一个选项,模型,
-relics.relics.items.188.rarity,Normal,基础,模型,
+relics.relics.items.188.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.189.name,Four-Leaf Clover Fossil,四叶草化石,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_51
 relics.relics.items.189.original,Gain an additional choice when loot drops from a Wish Fulfilled node or after battle,我方在得偿所愿节点和战斗后掉落战利品时，增加一个可选项,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_51.usage
 relics.relics.items.189.adapt,Level-up choices increased from 3 to 4,升级三选一变为四选一,模型,
@@ -743,7 +743,7 @@ relics.relics.items.189.rarity,Core,核心,模型,
 relics.relics.items.190.name,Acahuallan Bowl,阿卡胡拉饭碗,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_53
 relics.relics.items.190.original,"Restore 4 Life Point, +2 Objective Shield",回复4目标生命，护盾值+2,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_53.usage
 relics.relics.items.190.adapt,Shield generation interval -20% (grants Shield if none is present); fully replenishes Shield when obtained,护盾生成间隔 -20%（没有护盾时获得护盾），获得时补满护盾,校对,校对：根据固定术语表，「护盾」应译为 Shield
-relics.relics.items.190.rarity,Normal,基础,模型,
+relics.relics.items.190.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.191.name,Three-Dimensional Art Display,立体艺术装置,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_54
 relics.relics.items.191.original,"Restore 7 Life Point, restore an additional 1 Life Point after each battle",回复7目标生命，每次战斗结束后额外回复1目标生命,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_54.usage
 relics.relics.items.191.adapt,"Immediately restores 70% Max HP, and restores 10% Max HP for each Boss defeated thereafter",立即回复 70% 最大生命，此后每击败一个 Boss 回复 10% 最大生命,模型,
@@ -754,7 +754,7 @@ relics.relics.items.192.adapt,No Key / Dice in this game,本作没有钥匙 / �
 relics.relics.items.193.name,Three-Key Contract,三钥协定,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_59
 relics.relics.items.193.original,+3 Keys,钥匙+3,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_59.usage
 relics.relics.items.193.adapt,The next 3 supply drops are guaranteed to drop a collectible (Key replaced with chest),接下来 3 个补给箱必定掉落藏品（钥匙换成宝箱）,模型,
-relics.relics.items.193.rarity,Normal,基础,模型,
+relics.relics.items.193.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.194.name,Portable Scriptures,便携经书,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_60
 relics.relics.items.194.original,+2 Die Rolls,掷骰次数+2,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_60.usage
 relics.relics.items.194.adapt,No Key / Dice in this game,本作没有钥匙 / 骰子,模型,
@@ -770,15 +770,15 @@ relics.relics.items.197.adapt,No Key / Dice in this game,本作没有钥匙 / �
 relics.relics.items.198.name,Defender-2,御2,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_64
 relics.relics.items.198.original,+5 Objective Shield,护盾值+5,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_64.usage
 relics.relics.items.198.adapt,[Implemented in v0.8] Shield limit +1,【v0.8 已实装】护盾层数上限 +1,校对,校对：根据固定术语表，「护盾」应译为 Shield
-relics.relics.items.198.rarity,Normal,基础,模型,
+relics.relics.items.198.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.199.name,Embedded Armor Plate,嵌体甲片,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_65
 relics.relics.items.199.original,"-2 Max Life Point, +8 Objective Shield",目标生命上限-2，护盾值+8,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_65.usage
 relics.relics.items.199.adapt,"Max HP -10, Shield limit +2, Shield generation interval -15%",最大生命 -10，护盾层数上限 +2，护盾生成间隔 -15%,校对,校对：根据固定术语表，「护盾」应译为 Shield，且统一使用 Shield limit
-relics.relics.items.199.rarity,Normal,基础,模型,
+relics.relics.items.199.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.200.name,Dario's Lantern,达里奥的提灯,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_76
 relics.relics.items.200.original,"When obtained, suppresses a designated Operator's Rejection",获得时抑制指定一名干员的排异反应,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_76.usage
 relics.relics.items.200.adapt,Clears and grants immunity to 1 Rejection Reaction,清除并免疫一个排异反应,模型,
-relics.relics.items.200.rarity,Normal,基础,模型,
+relics.relics.items.200.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.201.name,'King's Fellowship',“国王的护戒”,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_77
 relics.relics.items.201.original,"+2 Objective Shield, coverts all Life Point into an equivalent amount of Objective Shield (Cannot be reduced below 1 by this effect)",护盾值+2，将目标生命全部转化为等量护盾值（目标生命不会低于1）,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_77.usage
 relics.relics.items.201.adapt,"[Implemented in v0.8] When Shield blocks damage, recovers 3% Max HP",【v0.8 已实装】护盾抵挡伤害时回复 3% 最大生命,校对,校对：根据固定术语表，「护盾」应译为 Shield
@@ -786,7 +786,7 @@ relics.relics.items.201.rarity,Core,核心,模型,
 relics.relics.items.202.name,Tulip's Secret Formula,郁金香的秘方,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_79
 relics.relics.items.202.original,"When obtained, suppresses a designated Operator's Rejection",获得时抑制指定一名干员的排异反应,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_76.usage
 relics.relics.items.202.adapt,Clears and grants immunity to 1 Rejection Reaction,清除并免疫一个排异反应,模型,
-relics.relics.items.202.rarity,Normal,基础,模型,
+relics.relics.items.202.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.203.name,Paraffin and Balsam,火油与药膏,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_80
 relics.relics.items.203.original,"-30 Light, when obtained, suppresses a designated Operator's Rejection",灯火-30，获得时抑制指定一名干员的排异反应,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_80.usage
 relics.relics.items.203.adapt,"Light -30; when Light is below 30, SP Recovery +40%",灯火 -30；灯火低于 30 时技力回复 +40%,模型,
@@ -794,11 +794,11 @@ relics.relics.items.203.rarity,Core,核心,模型,
 relics.relics.items.204.name,Nightsun Grass,夜阳草,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_81
 relics.relics.items.204.original,+5 Light,灯火+5,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_81.usage
 relics.relics.items.204.adapt,Light recovered from Lamp Oil +25% (Lamp Oil picked up and sold by merchants),灯油回复的灯火 +25%（拾取的灯油与商人出售的灯油）,模型,
-relics.relics.items.204.rarity,Normal,基础,模型,
+relics.relics.items.204.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.205.name,Cathedral Puzzle,大教堂拼图,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_82
 relics.relics.items.205.original,"When obtained, randomly gain 1 Revelation",获得时随机获得1个启示,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_82.usage
 relics.relics.items.205.adapt,Obtain 1 random Revelation (or a collectible that completes a set),随机获得 1 个启示（或一件能凑成组合的藏品）,校对,校对：水月肉鸽中的「启示」官方英文为 Revelation（Foldartal 为萨米肉鸽的密文板）
-relics.relics.items.205.rarity,Normal,基础,模型,
+relics.relics.items.205.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.206.name,Coin-Operated Toy,投币玩具,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_113
 relics.relics.items.206.original,"For each 5 Originium Ingots in possession, all friendly units have +3 ASPD",每有5源石锭，所有我方单位的攻击速度+3,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_113.usage
 relics.relics.items.206.adapt,Squad ATK speed +3% for every 5 Originium Ingots held (up to +20%),每持有 5 源石锭，全队攻击速度 +3%（上限 +20%）,模型,
@@ -830,31 +830,31 @@ relics.relics.items.212.rarity,Rare,稀有,模型,
 relics.relics.items.213.name,Support First-aid Kit,支援急救包,官方,roguelike_topic_table.rogue_2.items.rogue_2_active_tool_6
 relics.relics.items.213.original,Bring 3 First-aid Kits to each battle,每次战斗中携带3个急救包,官方,roguelike_topic_table.rogue_2.items.rogue_2_active_tool_6.usage
 relics.relics.items.213.adapt,"Carries 3 First Aid Kits, automatically used when HP is below 40%",携带 3 个急救包，生命低于 40% 时自动使用,校对,校对：统一大小写（First Aid Kit）
-relics.relics.items.213.rarity,Normal,基础,模型,
+relics.relics.items.213.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.214.name,Portrait of Breogan,布雷奥甘肖像,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_1
 relics.relics.items.214.original,All Operators lose 15 SP when deployed,所有干员部署时失去15点技力,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_1.usage
 relics.relics.items.214.adapt,SP Recovery -15%,技力回复 -15%,模型,
-relics.relics.items.214.rarity,Cursed Curio,遭诅古物,模型,
+relics.relics.items.214.rarity,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
 relics.relics.items.215.name,Leviathan's Anabolism,海神的代谢,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_2
 relics.relics.items.215.original,All enemies gain +25% HP,所有敌人生命值+25%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_2.usage
 relics.relics.items.215.adapt,All enemies' HP +25%,所有敌人生命 +25%,模型,
-relics.relics.items.215.rarity,Cursed Curio,遭诅古物,模型,
+relics.relics.items.215.rarity,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
 relics.relics.items.216.name,Failed Specimen,失败的标本,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_3
 relics.relics.items.216.original,"When obtained, immediately afflicts a random Operator with a Rejection",获得时立即使随机一名干员产生排异反应,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_3.usage
 relics.relics.items.216.adapt,Immediately gain 1 random Rejection,立即获得一个随机排异反应,模型,
-relics.relics.items.216.rarity,Cursed Curio,遭诅古物,模型,
+relics.relics.items.216.rarity,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
 relics.relics.items.217.name,'Emergency Light',“应急灯”,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_5
 relics.relics.items.217.original,Lose an additional 2 Light after each battle,每次战斗结束后灯火额外-2,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_5.usage
 relics.relics.items.217.adapt,Light loss when attacked +10%,受击时灯火损失 +10%,模型,
-relics.relics.items.217.rarity,Cursed Curio,遭诅古物,模型,
+relics.relics.items.217.rarity,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
 relics.relics.items.218.name,'Luminous Corpse',“光明之躯”,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_6
 relics.relics.items.218.original,Lose an additional 3 Light after each battle,每次战斗结束后灯火额外-3,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_6.usage
 relics.relics.items.218.adapt,Light loss when attacked +15%,受击时灯火损失 +15%,模型,
-relics.relics.items.218.rarity,Cursed Curio,遭诅古物,模型,
+relics.relics.items.218.rarity,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
 relics.relics.items.219.name,Bishop's Research,主教的研究,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_7
 relics.relics.items.219.original,Lose an additional 5 Light after each battle,每次战斗结束后灯火额外-5,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_7.usage
 relics.relics.items.219.adapt,Merchant prices +15% (docs/154: Ending route no longer costs Light; only obtained from 'Beginnings'),商人售价 +15%（docs/154：结局线不再拿灯火当代价；只从「开端」得到）,模型,
-relics.relics.items.219.rarity,Cursed Curio,遭诅古物,模型,
+relics.relics.items.219.rarity,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
 relics.relics.items.220.name,Caerula Animus,深蓝之心,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_8
 relics.relics.items.220.original,"-50 Light; when obtained, immediately afflicts a random Operator with a Rejection, and leads the exploration toward a different ending",灯火-50，获得时立即使随机一名干员产生排异反应，让探索走向不同的结局,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_8.usage
 relics.relics.items.220.adapt,"Light -50, gain a Rejection, unlocks another Ending",灯火 -50，获得排异反应，开启另一个结局,校对,校对：排异反应的官方英文为 Rejection；修正大小写
@@ -870,7 +870,7 @@ relics.relics.items.222.rarity,Ending,结局,模型,
 relics.relics.items.223.name,'Absurd Fate',“荒诞命运”,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_85
 relics.relics.items.223.original,"+10 Originium Ingots, +1 Key",源石锭+10，钥匙+1,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_85.usage
 relics.relics.items.223.adapt,Originium Ingots +10; the next supply box is guaranteed to drop a relic,源石锭 +10，下一个补给箱必定掉落藏品,校对,校对：统一复数形式（Originium Ingots）
-relics.relics.items.223.rarity,Normal,基础,模型,
+relics.relics.items.223.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.224.name,The Knight's Corpus,骑士骨血,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_86
 relics.relics.items.224.original,[Tide-Hunt Knight] has -80% DEF,【猎潮的骑士】的防御力-80%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_86.usage
 relics.relics.items.224.adapt,'Tide-Hunt Knight' takes +80% damage,「猎潮的骑士」受到伤害 +80%,模型,
@@ -878,11 +878,11 @@ relics.relics.items.224.rarity,Ending,结局,模型,
 relics.relics.items.225.name,'Last Refrain',“绝唱”,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_87
 relics.relics.items.225.original,"When obtained, randomly gain 2 Revelations",获得时随机获得2个启示,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_87.usage
 relics.relics.items.225.adapt,Obtain 2 random Foldartals,随机获得 2 个启示,模型,
-relics.relics.items.225.rarity,Normal,基础,模型,
+relics.relics.items.225.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.226.name,'Civilight Eterna',“文明的存续”,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_117
 relics.relics.items.226.original,All enemies take +150% True damage,所有敌方单位受到的真实伤害+150%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_117.usage
 relics.relics.items.226.adapt,Damage dealt to Bosses +50%,对 Boss 造成的伤害 +50%,模型,
-relics.relics.items.226.rarity,Normal,基础,模型,
+relics.relics.items.226.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.227.name,'End of Times',“时光之末”,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_119
 relics.relics.items.227.original,"For one time only, if you would fail any battle other than the final battle of the area or a Leader battle, you instead gain +1 Life Point and advance to the next step instead of concluding the exploration",仅一次，在非区域最终战斗和领袖战中失败时不结束探索，目标生命+1并继续下一步行动,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_119.usage
 relics.relics.items.227.adapt,"Once only: when HP reaches 0, the run does not end, revives with 50% Max HP",仅一次：生命归零时不结束，以 50% 最大生命复活,模型,
@@ -894,7 +894,7 @@ relics.relics.items.228.rarity,Core,核心,模型,
 relics.relics.items.229.name,'Painful Happiness',“苦痛的快乐”,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_123
 relics.relics.items.229.original,All enemy units have -15% HP and Movement Speed,所有敌方单位的生命-15%，移动速度-15%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_123.usage
 relics.relics.items.229.adapt,"All enemy HP -15%, movement speed -15%",所有敌人生命 -15%，移动速度 -15%,模型,
-relics.relics.items.229.rarity,Normal,基础,模型,
+relics.relics.items.229.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.230.name,'Little Gran Faro',“小格兰法洛”,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_125
 relics.relics.items.230.original,Deals Stun on all enemy units for 5 seconds every time an enemy unit enters the Protection Objective,每次敌人进入保护目标点时，立刻对全场所有敌人造成5秒晕眩,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_125.usage
 relics.relics.items.230.adapt,"When taking damage, Stun all enemies on screen for 5s (30s cooldown)",受到伤害时，全屏敌人眩晕 5 秒（冷却 30 秒）,模型,
@@ -914,15 +914,15 @@ relics.relics.items.233.rarity,Core,核心,模型,
 relics.relics.items.234.name,'Bedrock',“基岩”,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_40
 relics.relics.items.234.original,"All Operators have +5 DP Cost, but gain +15% ATK, DEF, and HP",所有干员的部署费用+5，但攻击力、防御力和生命+15%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_40.usage
 relics.relics.items.234.adapt,"Damage and Max HP +15%, damage taken -15%, but movement speed -10%",伤害、最大生命 +15%，受到伤害 -15%，但移动速度 -10%,模型,
-relics.relics.items.234.rarity,Normal,基础,模型,
+relics.relics.items.234.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.235.name,'Wavebreaker',“分浪”,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_41
 relics.relics.items.235.original,"All Operators have -25% HP, but have -50% Redeployment Time",所有干员的生命-25%，但再部署时间-50%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_41.usage
 relics.relics.items.235.adapt,"Max HP -25%, SP Recovery +50%",最大生命 -25%，技力回复 +50%,模型,
-relics.relics.items.235.rarity,Normal,基础,模型,
+relics.relics.items.235.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.236.name,'Pulse of the Ocean',“海洋的脉搏”,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_42
 relics.relics.items.236.original,"All friendly units have +10 ASPD, all enemy units have -10 ASPD",所有我方单位的攻击速度+10，所有敌方单位的攻击速度-10,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_42.usage
 relics.relics.items.236.adapt,"ATK speed +10%, all enemies' ATK speed -10%",攻击速度 +10%，所有敌人攻击速度 -10%,模型,
-relics.relics.items.236.rarity,Normal,基础,模型,
+relics.relics.items.236.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.237.name,'Determination',“决心”,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_88
 relics.relics.items.237.original,"All Operators gain Block +2, DEF and HP +120%, and RES +20; leads the exploration towards a different conclusion",所有我方干员阻挡数+2，防御力和生命+120%，法术抗性+20，让探索走向不同的结局,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_88.usage
 relics.relics.items.237.adapt,"Unlocks another Ending, and gains significant enhancement",开启另一个结局，并获得大幅强化,校对,校对：修正语法，主语一致应使用单数第三人称 gains
@@ -938,7 +938,7 @@ relics.relics.items.239.rarity,Ending,结局,模型,
 relics.relics.items.240.name,'Endless Life',“未尽的生命”,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_4
 relics.relics.items.240.original,Afflicts a random Operator with a Rejection at the start of each new floor,每进入新的一层时，使随机一名干员产生排异反应,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_4.usage
 relics.relics.items.240.adapt,Gains a random Rejection every 2 minutes,每过 2 分钟获得一个随机排异反应,校对,校对：排异反应的官方英文为 Rejection
-relics.relics.items.240.rarity,Cursed Curio,遭诅古物,模型,
+relics.relics.items.240.rarity,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
 relics.relics.items.241.name,Caerula Memory,深蓝回忆,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_9
 relics.relics.items.241.original,"Light -100, immediately afflicts a random Operator with a Rejection",灯火-100，获得时立即使随机一名干员产生排异反应,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_9.usage
 relics.relics.items.241.adapt,"Light -100, gain a Rejection",灯火 -100，获得排异反应,校对,校对：排异反应的官方英文为 Rejection
@@ -946,15 +946,15 @@ relics.relics.items.241.rarity,Ending,结局,模型,
 relics.relics.items.242.name,Caerula Arbor,深蓝之树,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_10
 relics.relics.items.242.original,"Enemy ASPD +15; at the end of operation, if no Life Point is lost, gain +15 Light",所有敌人攻击速度+15；每次作战若未损失目标生命，战斗结束后灯火+15,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_10.usage
 relics.relics.items.242.adapt,"All enemies' ATK speed +15%; for every 15s without taking damage, Light +6 (a mix of curse and boon)",所有敌人攻击速度 +15%；每连续 15 秒未受伤，灯火 +6（诅咒与收益并存）,模型,
-relics.relics.items.242.rarity,Cursed Curio,遭诅古物,模型,
+relics.relics.items.242.rarity,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
 relics.relics.items.243.name,HR Bronze Seal,人事部铜印,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_69
 relics.relics.items.243.original,Recruit a random 5-star Operator that is automatically Promoted,随机临时招募1名5星干员，且直接就是已进阶的状态,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_69.usage
 relics.relics.items.243.adapt,Immediately recruits a random Support Operator at Lv.2,立即招募一名随机援护干员，直接 Lv.2,模型,
-relics.relics.items.243.rarity,Normal,基础,模型,
+relics.relics.items.243.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.244.name,Doctor Silver Seal,博士银印,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_70
 relics.relics.items.244.original,Recruit a random 6-star Operator that is automatically Promoted,随机临时招募1名6星干员，且直接就是已进阶的状态,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_70.usage
 relics.relics.items.244.adapt,Immediately recruits a random Support Operator at Lv.3,立即招募一名随机援护干员，直接 Lv.3,模型,
-relics.relics.items.244.rarity,Normal,基础,模型,
+relics.relics.items.244.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.245.name,Wordless Coral,无字珊瑚,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_71
 relics.relics.items.245.original,Recover 5 Light for every die roll,每消耗1掷骰次数，回复5灯火,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_71.usage
 relics.relics.items.245.adapt,"When Light is below 30, tentacle pursuit targets +1",灯火低于 30 时，触手追击目标 +1,模型,
@@ -962,7 +962,7 @@ relics.relics.items.245.rarity,Core,核心,模型,
 relics.relics.items.246.name,Underground Scorch,地底的灼痕,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_72
 relics.relics.items.246.original,"At the end of operation, if no Life Point is lost, gain +6 Light",每次作战若未损失目标生命，战斗结束后灯火+6,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_72.usage
 relics.relics.items.246.adapt,Light +3 for every 15s without taking damage,每连续 15 秒未受伤，灯火 +3,模型,
-relics.relics.items.246.rarity,Normal,基础,模型,
+relics.relics.items.246.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.247.name,Great Machinations,铸阳巨械,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_73
 relics.relics.items.247.original,"At the end of operation, if no Life Point is lost, gain +9 Light",每次作战若未损失目标生命，战斗结束后灯火+9,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_73.usage
 relics.relics.items.247.adapt,Light +4 for every 15s without taking damage,每连续 15 秒未受伤，灯火 +4,模型,
@@ -970,11 +970,11 @@ relics.relics.items.247.rarity,Rare,稀有,模型,
 relics.relics.items.248.name,Solidified Lamp Oil,凝固灯油,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_74
 relics.relics.items.248.original,Light loss from battle damage reduced by 40%,战斗损伤导致的灯火损失降低40%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_74.usage
 relics.relics.items.248.adapt,Light loss from taking damage and Black Tide -40%,受击、黑潮导致的灯火流失 -40%,模型,
-relics.relics.items.248.rarity,Normal,基础,模型,
+relics.relics.items.248.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.249.name,Sanctified Lamp Oil,崇圣灯油,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_75
 relics.relics.items.249.original,Light loss from battle damage reduced by 60%,战斗损伤导致的灯火损失降低60%,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_75.usage
 relics.relics.items.249.adapt,Light loss from taking damage and Black Tide -60%,受击、黑潮导致的灯火流失 -60%,模型,
-relics.relics.items.249.rarity,Normal,基础,模型,
+relics.relics.items.249.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.250.name,'King's Crystal',“国王的水晶”,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_78
 relics.relics.items.250.original,"At the end of battle, -2 Life Points (will not go lower than 1), +1 Hope, +5 Originium Ingots",战斗结束后使目标生命-2（目标生命不会低于1），希望+1，源石锭+5,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_grace_78.usage
 relics.relics.items.250.adapt,"For each Boss defeated: lose 20% current HP, gain 15 Originium Ingots and one 1-out-of-3 growth choice",每击败一个 Boss：失去 20% 当前生命，获得 15 源石锭和一次成长三选一,模型,
@@ -1020,7 +1020,7 @@ relics.relics.items.260.rarity,Rare,稀有,模型,
 relics.relics.items.261.name,Fosterer Genotype,养育者基因种,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_159
 relics.relics.items.261.original,"An Operator with Rejection will assimilate 2 nearby normal Operators. When assimilation is complete, the Operator with Rejection temporarily gains [Evolution]: Rejection has no effect, gains 35% Sanctuary, attacks ignore 35% RES and DEF",排异反应干员会同化周围2名正常干员，同化完成将临时获得【进化】：排异反应无效，获得35%的庇护，攻击无视目标35%的法术抗性和防御力,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_fight_159.usage
 relics.relics.items.261.adapt,"Rejection 'evolves': becomes invalid, and grants -35% damage taken and attacks ignore 35% DEF",排异反应会「进化」：失效，并获得受到伤害 -35%、攻击无视 35% 防御,模型,
-relics.relics.items.261.rarity,Normal,基础,模型,
+relics.relics.items.261.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.262.name,Vampire's Silver Cup,血魔的银杯,模型,
 relics.relics.items.262.original,"(New to this game) A silver cup passed down from the banquets of Vampire nobles. Its walls are very thin. Whatever it holds always diminishes a little, yet always returns to the one holding the cup.",（本作新增）血魔贵族宴席上传下来的银杯。杯壁很薄，盛过的东西总会少一点，又总会回到持杯人身上。,模型,
 relics.relics.items.262.adapt,"0.05% of squad damage is converted to Leader HP (limit 0.5% Max HP per second, doubled when at low HP)",全队伤害的 0.05% 转为队长生命（每秒上限 0.5% 最大生命，残血翻倍）,模型,
@@ -1028,7 +1028,7 @@ relics.relics.items.262.rarity,Rare,稀有,模型,
 relics.relics.items.263.name,Hunter's Rations,猎人的口粮,模型,
 relics.relics.items.263.original,"(New addition) Compressed rations carried by Ægir hunters when setting out to sea. The more they hunt, the more they chew.",（本作新增）阿戈尔猎人出海时揣在怀里的压缩干粮。猎得越多，嚼得越勤。,模型,
 relics.relics.items.263.adapt,"Restores 2% Max HP for every 60 enemies killed (Elite counts as 10, Boss counts as 60)",每击杀 60 名敌人回复 2% 最大生命（精英 10、Boss 60）,模型,
-relics.relics.items.263.rarity,Normal,基础,模型,
+relics.relics.items.263.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relics.items.264.name,Armor-Piercing Munitions,穿甲弹,模型,
 relics.relics.items.264.original,Bullets no longer stop at the first body. Damage −15% for each enemy passed through.,子弹不再停在第一具躯体上。每穿过一名敌人，威力 −15%。,模型,
 relics.relics.items.264.adapt,"Ranged normal attacks pierce through all enemies, damage -15% per enemy pierced (minimum 40%); when held with the 'Pierce' card, this relic's piercing effect takes priority and the card's stacks are disabled; invalid for skill projectiles",远程普攻的子弹穿透全部敌人，每穿过一名敌人伤害 −15%（最低 40%）；与「贯穿」卡同在时按本藏品全穿、卡层数失效；对技能弹幕无效,模型,
@@ -1036,62 +1036,62 @@ relics.relics.items.264.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.1.desc,Squad size limit +1; Leader recovers 0.5% Max HP per second (max 1 squad size limit relic per run),编队上限 +1；队长每秒回复 0.5% 最大生命（每次探索最多 1 件编队上限类藏品）,模型,
 relics.relic_effects.relics.1.rarity,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
 relics.relic_effects.relics.2.desc,Squad ATK speed +3%,全队攻击速度 +3%,模型,
-relics.relic_effects.relics.2.rarity,Normal,基础,模型,
+relics.relic_effects.relics.2.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.3.desc,Squad damage +3%,全队伤害 +3%,模型,
-relics.relic_effects.relics.3.rarity,Normal,基础,模型,
+relics.relic_effects.relics.3.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.4.desc,Squad ATK speed +5%,全队攻击速度 +5%,模型,
-relics.relic_effects.relics.4.rarity,Normal,基础,模型,
+relics.relic_effects.relics.4.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.5.desc,Squad damage +5%,全队伤害 +5%,模型,
-relics.relic_effects.relics.5.rarity,Normal,基础,模型,
+relics.relic_effects.relics.5.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.6.desc,"Squad damage +4%; Leader Max HP +4%, Physical damage reduction +1",全队伤害 +4%；队长最大生命 +4%、物理减伤 +1,模型,
-relics.relic_effects.relics.6.rarity,Normal,基础,模型,
+relics.relic_effects.relics.6.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.7.desc,"Leader Shield stack limit +1 (if without a Shield, gain 1 stack of Shield every 15s); Shield generation interval -10%",队长护盾层数上限 +1（没有护盾时获得每 15 秒一层的护盾），护盾生成间隔 -10%,模型,
 relics.relic_effects.relics.7.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.8.desc,Originium Ingot +4; +4 for each Operator recruited afterwards,源石锭 +4；此后每招募一名干员再 +4,模型,
-relics.relic_effects.relics.8.rarity,Normal,基础,模型,
+relics.relic_effects.relics.8.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.9.desc,Originium Ingot +6; next pick-1-out-of-3 has 1 extra option,源石锭 +6；下一次三选一多一个选项,模型,
-relics.relic_effects.relics.9.rarity,Normal,基础,模型,
+relics.relic_effects.relics.9.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.10.desc,Originium Ingot +12; +12 for each Operator recruited thereafter,源石锭 +12；此后每招募一名干员再 +12,模型,
-relics.relic_effects.relics.10.rarity,Normal,基础,模型,
+relics.relic_effects.relics.10.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.11.desc,Originium Ingot +18; 1 extra option for the next 1-out-of-3 choice,源石锭 +18；下一次三选一多一个选项,模型,
-relics.relic_effects.relics.11.rarity,Normal,基础,模型,
+relics.relic_effects.relics.11.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.12.desc,Originium Ingot +4; +6 for each merchant arrival afterwards,源石锭 +4；此后每位商人到来时再 +6,模型,
-relics.relic_effects.relics.12.rarity,Normal,基础,模型,
+relics.relic_effects.relics.12.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.13.desc,Originium Ingot +1 for every 50 enemies defeated,每击败 50 名敌人，源石锭 +1,模型,
-relics.relic_effects.relics.13.rarity,Normal,基础,模型,
+relics.relic_effects.relics.13.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.14.desc,Originium Ingot +12; +15 more for each Boss defeated,源石锭 +12；每击败一个 Boss 再 +15,模型,
-relics.relic_effects.relics.14.rarity,Normal,基础,模型,
+relics.relic_effects.relics.14.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.15.desc,Leader's Shield generation interval -20%,队长的护盾生成间隔 -20%,模型,
-relics.relic_effects.relics.15.rarity,Normal,基础,模型,
+relics.relic_effects.relics.15.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.16.desc,"Leader Shield stack limit +1 (if without a Shield, gain 1 stack of Shield every 15s); when Shield is at max stacks, squad ATK speed +15%",队长护盾层数上限 +1（没有护盾时获得每 15 秒一层的护盾）；护盾满层时全队攻击速度 +15%,校对,校对：根据术语表，护盾应为 Shield，且统一层数的表达为 stack
 relics.relic_effects.relics.16.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.17.desc,Leader Max HP +10; Originium Ingot +3,队长最大生命 +10；源石锭 +3,模型,
-relics.relic_effects.relics.17.rarity,Normal,基础,模型,
+relics.relic_effects.relics.17.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.18.desc,"Leader Max HP +15, immediately recovers 15 HP",队长最大生命 +15，立即回复 15 生命,模型,
-relics.relic_effects.relics.18.rarity,Normal,基础,模型,
+relics.relic_effects.relics.18.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.19.desc,"Leader Max HP +20, immediately recovers 20 HP",队长最大生命 +20，立即回复 20 生命,模型,
-relics.relic_effects.relics.19.rarity,Normal,基础,模型,
+relics.relic_effects.relics.19.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.20.desc,Leader Max HP +30,队长最大生命 +30,模型,
-relics.relic_effects.relics.20.rarity,Normal,基础,模型,
+relics.relic_effects.relics.20.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.21.desc,Leader Max HP +50,队长最大生命 +50,模型,
 relics.relic_effects.relics.21.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.22.desc,Originium Ingot +2 for each Supply Crate destroyed,每打碎一个补给箱，源石锭 +2,模型,
-relics.relic_effects.relics.22.rarity,Normal,基础,模型,
+relics.relic_effects.relics.22.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.23.desc,Originium Ingot +4; +1 more for each subsequent level up,源石锭 +4；此后每升一级再 +1,模型,
-relics.relic_effects.relics.23.rarity,Normal,基础,模型,
+relics.relic_effects.relics.23.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.24.desc,"Originium Ingot +4; thereafter, refunds 3 Originium Ingots for every 10 spent at the Rogue Trader",源石锭 +4；此后在商人处每花费 10 枚源石锭，返还 3 枚,模型,
-relics.relic_effects.relics.24.rarity,Normal,基础,模型,
+relics.relic_effects.relics.24.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.25.desc,"Originium Ingot +12; Supply Box Key +2 (adds 1 extra option to each choose-one-from-three relic selection, consuming 1 Key; Chest Seaborn will not be encountered before Keys run out)",源石锭 +12；补给箱钥匙 +2（每次藏品三选一多一个选项，用掉一把；钥匙用完前不会遇到箱形恐鱼）,模型,
-relics.relic_effects.relics.25.rarity,Normal,基础,模型,
+relics.relic_effects.relics.25.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.26.desc,Originium Ingot +30; all item prices at the Rogue Trader +15%,源石锭 +30；商人处所有商品价格 +15%,模型,
 relics.relic_effects.relics.26.rarity,Rare,稀有,模型,
-relics.relic_effects.relics.27.rarity,Normal,基础,模型,
-relics.relic_effects.relics.28.rarity,Normal,基础,模型,
+relics.relic_effects.relics.27.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
+relics.relic_effects.relics.28.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.29.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.30.desc,"When Light is below 40, recovers 0.5 Light per second until it reaches 40",灯火低于 40 时，每秒回复 0.5 点灯火，回到 40 为止,模型,
-relics.relic_effects.relics.30.rarity,Normal,基础,模型,
+relics.relic_effects.relics.30.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.31.desc,Light +4 when an Elite enemy is defeated; Light +15 when a Boss is defeated,击败精英敌人时灯火 +4，击败 Boss 时灯火 +15,模型,
-relics.relic_effects.relics.31.rarity,Normal,基础,模型,
+relics.relic_effects.relics.31.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.32.desc,"Guiding Beacon appearance interval -30%, time required to light -40%; grants an additional +15 Light when lit",引航灯标出现间隔 -30%，点亮所需时间 -40%；点亮时灯火额外 +15,模型,
 relics.relic_effects.relics.32.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.33.effects.0.args.class,Vanguard,先锋,官方,character_table profession（data.gd CLASS_EN）
@@ -1127,7 +1127,7 @@ relics.relic_effects.relics.40.desc,Immediately advances 1 Specialist Operator b
 relics.relic_effects.relics.40.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.40.requires_class.0,Specialist,特种,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.41.desc,Damage dealt by all enemies -7%,所有敌人造成的伤害 -7%,模型,
-relics.relic_effects.relics.41.rarity,Normal,基础,模型,
+relics.relic_effects.relics.41.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.42.desc,Squad damage +35%; Leader takes -25% damage and Max HP +45%,全队伤害 +35%；队长受到的伤害 -25%、最大生命 +45%,模型,
 relics.relic_effects.relics.42.rarity,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
 relics.relic_effects.relics.43.desc,Damage dealt by all enemies -12%,所有敌人造成的伤害 -12%,模型,
@@ -1138,28 +1138,28 @@ relics.relic_effects.relics.45.desc,"When Weakness Harvest Operators hit a weakn
 relics.relic_effects.relics.45.brief,Hitting a weakness inflicts 'Flaw': damage taken +20%,命中弱点挂「破绽」：受到的伤害 +20%,模型,
 relics.relic_effects.relics.45.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.46.desc,"When Weakness Harvest Operators hit a weakness, 25% chance to deal double damage and knock back the enemy (Bosses only take the increased damage, no knockback)",弱点收割干员命中弱点时有 25% 概率造成双倍伤害并把敌人震退（Boss 只加伤不震退）,校对,校对：漏译“加伤”（指双倍伤害），原译“take damage”未能体现伤害增加的含义。
-relics.relic_effects.relics.46.rarity,Normal,基础,模型,
+relics.relic_effects.relics.46.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.47.desc,All enemies treat Physical and Arts damage as weaknesses,所有敌人对物理与法术伤害都视为弱点,模型,
 relics.relic_effects.relics.47.rarity,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
 relics.relic_effects.relics.48.rarity,Rare,稀有,模型,
-relics.relic_effects.relics.49.rarity,Normal,基础,模型,
+relics.relic_effects.relics.49.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.50.rarity,Core,核心,模型,
 relics.relic_effects.relics.50.desc,"When a Weakness Harvest Operator defeats an enemy with a weakness, the weakness transfers to the nearest other enemy within 160 range (Bosses excepted)",弱点收割干员击败有弱点的敌人时，弱点转移到 160 范围内最近的另一名敌人（Boss 除外）,模型,
 relics.relic_effects.relics.51.desc,"Leader Physical damage reduction +2, damage taken -6%",队长物理减伤 +2，受到的伤害 -6%,模型,
-relics.relic_effects.relics.51.rarity,Normal,基础,模型,
+relics.relic_effects.relics.51.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.52.desc,"Leader Physical damage reduction +3, damage taken -8%",队长物理减伤 +3，受到的伤害 -8%,模型,
 relics.relic_effects.relics.52.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.53.desc,"Leader Physical damage reduction +5, damage taken -10%",队长物理减伤 +5，受到的伤害 -10%,模型,
 relics.relic_effects.relics.53.rarity,Core,核心,模型,
 relics.relic_effects.relics.54.desc,Melee Range Expansion Operators' melee hits have a 15% chance to sweep: other enemies within 110 radius take 50% of this damage,近战扩域干员的近战命中有 15% 概率横扫：周围 110 范围内的其他敌人受到这次伤害的 50%,模型,
-relics.relic_effects.relics.54.rarity,Normal,基础,模型,
+relics.relic_effects.relics.54.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.55.desc,Every 4th melee hit by a Melee Range Expansion Operator becomes a thrust: all enemies within 220 distance in the facing direction take this damage,近战扩域干员每第 4 次近战命中变为突刺：沿朝向 220 距离内的敌人都受到这次伤害,模型,
 relics.relic_effects.relics.55.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.56.desc,"Melee Range Expansion Operators' melee damage +20%; when a Melee Range Expansion Operator's normal attack hitbox (a slash, a shield bash, or a thrust) hits at least 3 enemies simultaneously, this instance of damage ×1.25. Normal attack blade waves hit individually and only benefit from the melee damage bonus. Buff diminishes with each additional stack",近战扩域干员的近战伤害 +20%；近战扩域干员一次普攻判定（一道刀光、一次盾击或一段刺击）同时命中至少 3 名敌人时，这一下伤害再 ×1.25。普攻剑气逐个命中，只享受近战伤害加成。每多一层，增益递减,模型,
 relics.relic_effects.relics.56.rarity,Core,核心,模型,
 relics.relic_effects.relics.56.legacy_desc,Melee damage +32% (melee attacks and skills),近战伤害 +32%（近战攻击与技能）,模型,
 relics.relic_effects.relics.57.desc,"Multi-Shot Firepower Operators' ranged hits bounce to 2 nearby enemies (within 140 radius, each takes 40% of this damage, does not bounce again)",多弹火力干员的远程命中会弹向附近 2 名敌人（140 范围内，各受这次伤害的 40%，不再弹）,模型,
-relics.relic_effects.relics.57.rarity,Normal,基础,模型,
+relics.relic_effects.relics.57.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.58.desc,"Scatter: Multi-Shot Firepower Operators fire 1 additional small projectile with each normal attack at another enemy (if insufficient targets, offset in a fan shape), dealing 15% of normal attack damage; Multi-Shot Firepower Operators' ranged damage +10%. Buff diminishes with each additional stack",散射：多弹火力干员每次普攻多射出 1 发小弹，射向另一名敌人（不够时扇形错开），伤害为普攻的 15%；多弹火力干员的远程伤害 +10%。每多一层，增益递减,模型,
 relics.relic_effects.relics.58.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.58.legacy_desc,Ranged damage +20% (ranged attacks and skills),远程伤害 +20%（远程攻击与技能）,模型,
@@ -1167,13 +1167,13 @@ relics.relic_effects.relics.59.desc,"Burst: 0.08s after each normal attack, Mult
 relics.relic_effects.relics.59.rarity,Core,核心,模型,
 relics.relic_effects.relics.59.legacy_desc,Ranged damage +30% (ranged attacks and skills),远程伤害 +30%（远程攻击与技能）,模型,
 relics.relic_effects.relics.60.desc,Leader Max HP +15%,队长最大生命 +15%,模型,
-relics.relic_effects.relics.60.rarity,Normal,基础,模型,
+relics.relic_effects.relics.60.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.61.desc,Leader Max HP +25%,队长最大生命 +25%,模型,
 relics.relic_effects.relics.61.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.62.desc,Leader Max HP +50%,队长最大生命 +50%,模型,
 relics.relic_effects.relics.62.rarity,Core,核心,模型,
 relics.relic_effects.relics.63.desc,"Blade Wave: Melee Range Expansion Operators fire 1 additional blade wave from the edge of the slash visual with each normal attack, targeting enemies out of normal attack range (flies up to 1.6 times the normal attack range), dealing 35% of normal attack damage, disappears after hitting 1 enemy. Buff diminishes with each additional stack",剑气：近战扩域干员每次普攻额外从刀光边缘射出 1 道剑气，打普攻够不到的敌人（飞到普攻范围的 1.6 倍），伤害为普攻的 35%，命中 1 名敌人后消失。每多一层，增益递减,模型,
-relics.relic_effects.relics.63.rarity,Normal,基础,模型,
+relics.relic_effects.relics.63.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.63.legacy_desc,Physical damage +15%,物理伤害 +15%,模型,
 relics.relic_effects.relics.64.desc,"Amplification: Melee Range Expansion Operators' attack range +18% (slash visual and hitbox enlarged together, blade waves fly further), damage +8%. When holding other attack range relics, buff diminishes with each additional stack",增幅：近战扩域干员攻击范围 +18%（刀光与判定一起放大，剑气飞得更远），伤害 +8%。已持有其他攻击范围藏品时，每多一层，增益递减,模型,
 relics.relic_effects.relics.64.rarity,Rare,稀有,模型,
@@ -1187,7 +1187,7 @@ relics.relic_effects.relics.67.rarity,Core,核心,模型,
 relics.relic_effects.relics.68.desc,Arts damage +40%,法术伤害 +40%,模型,
 relics.relic_effects.relics.68.rarity,Core,核心,模型,
 relics.relic_effects.relics.69.desc,Healing taken by Leader +20%,队长受到的治疗量 +20%,模型,
-relics.relic_effects.relics.69.rarity,Normal,基础,模型,
+relics.relic_effects.relics.69.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.70.desc,Healing taken by Leader +30%,队长受到的治疗量 +30%,模型,
 relics.relic_effects.relics.70.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.71.desc,Healing taken by the Leader +30%; Corrosion and Nervous Impairment taken -30%,队长受到的治疗量 +30%；受到的侵蚀与神经损伤 -30%,模型,
@@ -1195,20 +1195,20 @@ relics.relic_effects.relics.71.rarity,Core,核心,模型,
 relics.relic_effects.relics.72.desc,Leader restores 0.5% Max HP per second,队长每秒回复 0.5% 最大生命,模型,
 relics.relic_effects.relics.72.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.73.desc,"Leader Physical dodge +15% (contact, collision, bullets, and other Physical attacks)",队长物理闪避 +15%（接触、冲撞、子弹等物理攻击）,模型,
-relics.relic_effects.relics.73.rarity,Normal,基础,模型,
+relics.relic_effects.relics.73.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.74.desc,"Leader Arts dodge +15% (against Seaborn projectiles, water columns, beams, and other Arts attacks)",队长法术闪避 +15%（海嗣弹幕、水柱、光束等法术攻击）,校对,校对：统一大小写，dodge 小写以与 p9 的 Physical dodge 保持一致
-relics.relic_effects.relics.74.rarity,Normal,基础,模型,
+relics.relic_effects.relics.74.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.75.desc,Leader dodge rate +40% for 1.5s after sprinting; enemies on the sprint path take Leader ATK ×1 damage,冲刺后 1.5 秒内队长闪避率 +40%；冲刺路线上的敌人受到队长攻击 ×1 的伤害,模型,
-relics.relic_effects.relics.75.rarity,Normal,基础,模型,
+relics.relic_effects.relics.75.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.76.desc,Immediately gain 1 level,立即升 1 级,模型,
-relics.relic_effects.relics.76.rarity,Normal,基础,模型,
+relics.relic_effects.relics.76.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.77.desc,Immediately gain 2 levels,立即升 2 级,模型,
 relics.relic_effects.relics.77.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.78.desc,Immediately gain 3 levels,立即升 3 级,模型,
 relics.relic_effects.relics.78.rarity,Core,核心,模型,
 relics.relic_effects.relics.79.desc,Squad damage +20% (True damage excepted),全队伤害 +20%（真实伤害除外）,模型,
 relics.relic_effects.relics.79.rarity,Rare,稀有,模型,
-relics.relic_effects.relics.80.desc,"Summon Presence Operators' follow-up attacks / summon hits have a 20% chance to trigger another follow-up attack (same damage, does not chain)",召唤驻场干员的追击 / 召唤物命中时有 20% 概率再追击一次（同样伤害，不再连锁）,模型,
+relics.relic_effects.relics.80.desc,"Persistent Summon Operators' follow-up attacks / summon hits have a 20% chance to trigger another follow-up attack (same damage, does not chain)",召唤驻场干员的追击 / 召唤物命中时有 20% 概率再追击一次（同样伤害，不再连锁）,模型,
 relics.relic_effects.relics.80.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.81.desc,Melee Range Expansion Operators' attack range +25%; melee damage +3% for every 1 enemy within 140 radius around them (up to +30%),近战扩域干员攻击范围 +25%；身边 140 范围内每有 1 名敌人，近战伤害 +3%（最多 +30%）,模型,
 relics.relic_effects.relics.81.rarity,Rare,稀有,模型,
@@ -1216,22 +1216,22 @@ relics.relic_effects.relics.82.desc,Multi-Shot Firepower Operators' attack range
 relics.relic_effects.relics.82.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.83.desc,"Every 30s, fully charges a random Operator's skill",每 30 秒随机一名干员的技能立即充满,模型,
 relics.relic_effects.relics.83.rarity,Core,核心,模型,
-relics.relic_effects.relics.84.desc,"When a Summon Presence Operator's follow-up attack / summon defeats an enemy, the enemy explodes on the spot: enemies within a 90 radius take damage equal to 30% of its Max HP (Bosses do not explode, explosions do not chain)",召唤驻场干员的追击 / 召唤物击败敌人时，该敌人原地殉爆：90 范围内敌人受到其最大生命 30% 的伤害（Boss 不殉爆，殉爆不连锁）,模型,
+relics.relic_effects.relics.84.desc,"When a Persistent Summon Operator's follow-up attack / summon defeats an enemy, the enemy explodes on the spot: enemies within a 90 radius take damage equal to 30% of its Max HP (Bosses do not explode, explosions do not chain)",召唤驻场干员的追击 / 召唤物击败敌人时，该敌人原地殉爆：90 范围内敌人受到其最大生命 30% 的伤害（Boss 不殉爆，殉爆不连锁）,模型,
 relics.relic_effects.relics.84.rarity,Core,核心,模型,
 relics.relic_effects.relics.85.desc,"When an Operator's skill ends, their skills each recover 12% SP",干员的技能结束时，该干员的技能各回复 12% 技力,模型,
 relics.relic_effects.relics.85.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.86.desc,Squad SP +20% upon obtaining; subsequently recruited Operators also gain 20% SP upon joining,获得时全队技力 +20%；之后招募的干员入队时也获得 20% 技力,模型,
-relics.relic_effects.relics.86.rarity,Normal,基础,模型,
+relics.relic_effects.relics.86.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.87.desc,Squad SP +30% upon obtaining; subsequently recruited Operators also gain 30% SP upon joining,获得时全队技力 +30%；之后招募的干员入队时也获得 30% 技力,模型,
 relics.relic_effects.relics.87.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.88.desc,Squad SP Recovery +15%,全队技力回复 +15%,模型,
-relics.relic_effects.relics.88.rarity,Normal,基础,模型,
+relics.relic_effects.relics.88.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.89.desc,"For 5s after an Operator activates a skill, squad ATK speed +20% (Activating a skill again refreshes duration)",干员开启技能后 5 秒内，全队攻击速度 +20%（再次开启技能刷新时长）,模型,
 relics.relic_effects.relics.89.rarity,Core,核心,模型,
 relics.relic_effects.relics.90.desc,Squad SP Recovery +35%,全队技力回复 +35%,模型,
 relics.relic_effects.relics.90.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.91.desc,Restores 2% SP to the squad every 3.5s,每 3.5 秒全队回复 2% 技力,模型,
-relics.relic_effects.relics.91.rarity,Normal,基础,模型,
+relics.relic_effects.relics.91.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.92.desc,Restores 2% SP to the squad every 2.5s; Squad SP Recovery +10%,每 2.5 秒全队回复 2% 技力；全队技力回复 +10%,模型,
 relics.relic_effects.relics.92.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.93.desc,Restores 2% SP to the squad every 1.5s,每 1.5 秒全队回复 2% 技力,模型,
@@ -1270,7 +1270,7 @@ relics.relic_effects.relics.106.effects.0.args.classes.0,Vanguard,先锋,官方,
 relics.relic_effects.relics.106.effects.0.args.classes.1,Guard,近卫,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.106.desc,Vanguard and Guard Operator damage +10% for each Vanguard or Guard Operator in the squad,编队每有 1 名先锋或近卫干员，先锋与近卫干员伤害 +10%,模型,
 relics.relic_effects.relics.106.brief,For each Vanguard or Guard: Vanguard and Guard damage +10%,每名先锋或近卫：先锋与近卫伤害 +10%,模型,
-relics.relic_effects.relics.106.rarity,Normal,基础,模型,
+relics.relic_effects.relics.106.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.106.requires_class.0,Vanguard,先锋,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.106.requires_class.1,Guard,近卫,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.107.effects.0.args.count.0,Defender,重装,官方,character_table profession（data.gd CLASS_EN）
@@ -1279,7 +1279,7 @@ relics.relic_effects.relics.107.effects.0.args.classes.0,Defender,重装,官方,
 relics.relic_effects.relics.107.effects.0.args.classes.1,Supporter,辅助,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.107.desc,Defender and Supporter Operator damage +10% for each Defender or Supporter Operator in the squad,编队每有 1 名重装或辅助干员，重装与辅助干员伤害 +10%,模型,
 relics.relic_effects.relics.107.brief,For each Defender or Supporter: Defender and Supporter damage +10%,每名重装或辅助：重装与辅助伤害 +10%,模型,
-relics.relic_effects.relics.107.rarity,Normal,基础,模型,
+relics.relic_effects.relics.107.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.107.requires_class.0,Defender,重装,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.107.requires_class.1,Supporter,辅助,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.108.effects.0.args.count.0,Medic,医疗,官方,character_table profession（data.gd CLASS_EN）
@@ -1288,7 +1288,7 @@ relics.relic_effects.relics.108.effects.0.args.classes.0,Medic,医疗,官方,cha
 relics.relic_effects.relics.108.effects.0.args.classes.1,Sniper,狙击,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.108.desc,Medic and Sniper Operator damage +10% for each Medic or Sniper Operator in the squad,编队每有 1 名医疗或狙击干员，医疗与狙击干员伤害 +10%,模型,
 relics.relic_effects.relics.108.brief,For each Medic or Sniper: Medic and Sniper damage +10%,每名医疗或狙击：医疗与狙击伤害 +10%,模型,
-relics.relic_effects.relics.108.rarity,Normal,基础,模型,
+relics.relic_effects.relics.108.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.108.requires_class.0,Medic,医疗,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.108.requires_class.1,Sniper,狙击,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.109.effects.0.args.count.0,Caster,术师,官方,character_table profession（data.gd CLASS_EN）
@@ -1297,7 +1297,7 @@ relics.relic_effects.relics.109.effects.0.args.classes.0,Caster,术师,官方,ch
 relics.relic_effects.relics.109.effects.0.args.classes.1,Specialist,特种,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.109.desc,Caster and Specialist Operators' ATK speed +8% for each Caster or Specialist Operator in the squad,编队每有 1 名术师或特种干员，术师与特种干员攻击速度 +8%,模型,
 relics.relic_effects.relics.109.brief,For each Caster or Specialist: Caster and Specialist ATK speed +8%,每名术师或特种：术师与特种攻击速度 +8%,模型,
-relics.relic_effects.relics.109.rarity,Normal,基础,模型,
+relics.relic_effects.relics.109.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.109.requires_class.0,Caster,术师,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.109.requires_class.1,Specialist,特种,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.110.desc,Squad damage +60% for 3s after skill activation (activating skill again refreshes duration),技能开启后 3 秒内全队伤害 +60%（再次开启技能刷新时长）,模型,
@@ -1319,7 +1319,7 @@ relics.relic_effects.relics.117.rarity,Core,核心,模型,
 relics.relic_effects.relics.118.desc,"Leader generates 1 Shield every 15s, blocking 1 instance of damage; Shield generation interval -15%",队长每 15 秒生成一层护盾，抵挡一次伤害；护盾生成间隔 -15%,校对,校对：术语统一：“护盾”应译为 Shield，不应添加 Objective。
 relics.relic_effects.relics.118.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.119.desc,Ranged mobs' attack interval +35% (Bosses excepted),远程杂兵的开火间隔 +35%（Boss 除外）,模型,
-relics.relic_effects.relics.119.rarity,Normal,基础,模型,
+relics.relic_effects.relics.119.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.120.desc,"Leader Dodge +8%; for 6s after dodging, squad damage +60% (Dodging again refreshes duration)",队长闪避率 +8%；闪避后 6 秒内全队伤害 +60%（再次闪避刷新时长）,模型,
 relics.relic_effects.relics.120.rarity,Core,核心,模型,
 relics.relic_effects.relics.121.desc,"Leader Dodge +8%; for 6s after dodging, squad damage +130% (Dodging again refreshes duration)",队长闪避率 +8%；闪避后 6 秒内全队伤害 +130%（再次闪避刷新时长）,模型,
@@ -1348,18 +1348,18 @@ relics.relic_effects.relics.129.desc_squad.ops.mizuki,Mizuki's tentacle pillar d
 relics.relic_effects.relics.129.desc_squad.dmg_ops.kaltsit,For Kal'tsit: Mon3tr damage +15%,对凯尔希：Mon3tr 伤害 +15%,模型,
 relics.relic_effects.relics.129.desc_squad.dmg_ops.specter_unchained,For Specter the Unchained: Substitute damage +15%,对归溟幽灵鲨：替身伤害 +15%,模型,
 relics.relic_effects.relics.129.desc_squad.dmg_tail,. Buff diminishes with each additional stack,。每多一层，增益递减,模型,
-relics.relic_effects.relics.129.desc_squad.tail,; Summon Presence Operators' follow-up attacks and summon damage +15%. Summon count only increases once; buff diminishes with each additional stack,；召唤驻场干员的追击与召唤物伤害 +15%。召唤数量只加一次；每多一层，增益递减,模型,
+relics.relic_effects.relics.129.desc_squad.tail,; Persistent Summon Operators' follow-up attacks and summon damage +15%. Summon count only increases once; buff diminishes with each additional stack,；召唤驻场干员的追击与召唤物伤害 +15%。召唤数量只加一次；每多一层，增益递减,模型,
 relics.relic_effects.relics.129.desc_squad.none,Summon Presence Operators' follow-up attacks and summon damage +15%; Proliferation: No summons in the current squad (takes effect after Wiš'adel / Mizuki joins). Buff diminishes with each additional stack,召唤驻场干员的追击与召唤物伤害 +15%；增殖：本编队暂无召唤物（维什戴尔 / 水月入队后生效）。每多一层，增益递减,校对,校对：统一“追击”为 follow-up attacks。
 relics.relic_effects.relics.130.desc,"Amplification: summon size and attack range +15%; Summon Presence Operators' follow-up attacks and summon damage +25%, for each enemy hit by a follow-up attack, the Operator recovers 0.2% SP (max 1% per second)",增幅：召唤物体型与攻击范围 +15%；召唤驻场干员的追击与召唤物伤害 +25%，追击每命中一个敌人，该干员回复 0.2% 技力（每秒最多 1%）,校对,校对：统一“追击”为 follow-up attacks。
-relics.relic_effects.relics.130.rarity,Normal,基础,模型,
+relics.relic_effects.relics.130.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.130.legacy_desc,"Follow-up attacks and summon damage +25%; for every enemy hit by a follow-up attack, the Operator dealing this follow-up attack recovers 0.2% SP (up to 1% per second)",追击与召唤物伤害 +25%；追击每命中一个敌人，造成这次追击的干员回复 0.2% 技力（每秒最多 1%）,校对,校对：统一“追击”为 follow-up attacks。
 relics.relic_effects.relics.131.desc,Corrosion taken by Leader -40%,队长受到的侵蚀 -40%,模型,
-relics.relic_effects.relics.131.rarity,Normal,基础,模型,
+relics.relic_effects.relics.131.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.132.desc,Leader Nervous Impairment accumulation -40%,队长神经损伤累积 -40%,模型,
-relics.relic_effects.relics.132.rarity,Normal,基础,模型,
+relics.relic_effects.relics.132.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.133.effects.0.scope,class:Vanguard,class:先锋,模型,
 relics.relic_effects.relics.133.desc,Vanguard Operator damage +15%; Leader Max HP +20%,先锋干员伤害 +15%；队长最大生命 +20%,模型,
-relics.relic_effects.relics.133.rarity,Normal,基础,模型,
+relics.relic_effects.relics.133.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.133.requires_class.0,Vanguard,先锋,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.134.effects.0.scope,class:Vanguard,class:先锋,模型,
 relics.relic_effects.relics.134.desc,Vanguard Operator SP Recovery +30%,先锋干员技力回复 +30%,模型,
@@ -1375,7 +1375,7 @@ relics.relic_effects.relics.136.rarity,Sublimation,升华,官方,roguelike_topic
 relics.relic_effects.relics.136.requires_class.0,Vanguard,先锋,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.137.effects.0.scope,class:Guard,class:近卫,模型,
 relics.relic_effects.relics.137.desc,Guard Operator damage +10%; Leader Max HP +20%,近卫干员伤害 +10%；队长最大生命 +20%,模型,
-relics.relic_effects.relics.137.rarity,Normal,基础,模型,
+relics.relic_effects.relics.137.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.137.requires_class.0,Guard,近卫,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.138.effects.0.scope,class:Guard,class:近卫,模型,
 relics.relic_effects.relics.138.desc,Guard Operator damage +25%,近卫干员伤害 +25%,模型,
@@ -1395,7 +1395,7 @@ relics.relic_effects.relics.141.desc,"Guard Operator damage +35%, ATK speed +25%
 relics.relic_effects.relics.141.rarity,Core,核心,模型,
 relics.relic_effects.relics.141.requires_class.0,Guard,近卫,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.142.desc,"Leader Max HP +25%, Physical damage reduction +1",队长最大生命 +25%、物理减伤 +1,模型,
-relics.relic_effects.relics.142.rarity,Normal,基础,模型,
+relics.relic_effects.relics.142.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.142.requires_class.0,Defender,重装,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.143.effects.0.scope,class:Defender,class:重装,模型,
 relics.relic_effects.relics.143.desc,Defender Operator damage +40%,重装干员伤害 +40%,模型,
@@ -1416,15 +1416,15 @@ relics.relic_effects.relics.146.rarity,Core,核心,模型,
 relics.relic_effects.relics.146.requires_class.0,Defender,重装,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.147.effects.0.args.class,Sniper,狙击,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.147.desc,"When recruiting a Sniper Operator, they immediately advance 1 growth node",招募狙击干员时，该干员立即推进 1 个成长节点,模型,
-relics.relic_effects.relics.147.rarity,Normal,基础,模型,
+relics.relic_effects.relics.147.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.148.effects.0.scope,class:Sniper,class:狙击,模型,
 relics.relic_effects.relics.148.desc,Sniper Operator damage +20%,狙击干员伤害 +20%,模型,
-relics.relic_effects.relics.148.rarity,Normal,基础,模型,
+relics.relic_effects.relics.148.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.148.requires_class.0,Sniper,狙击,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.149.effects.0.scope,class:Sniper,class:狙击,模型,
 relics.relic_effects.relics.149.effects.1.scope,class:Sniper,class:狙击,模型,
 relics.relic_effects.relics.149.desc,"Sniper Operator damage +40%, ATK speed -20%",狙击干员伤害 +40%，攻击速度 -20%,模型,
-relics.relic_effects.relics.149.rarity,Normal,基础,模型,
+relics.relic_effects.relics.149.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.149.requires_class.0,Sniper,狙击,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.150.effects.0.scope,class:Sniper,class:狙击,模型,
 relics.relic_effects.relics.150.desc,Sniper Operator ATK speed +40%,狙击干员攻击速度 +40%,模型,
@@ -1432,7 +1432,7 @@ relics.relic_effects.relics.150.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.150.requires_class.0,Sniper,狙击,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.151.effects.0.args.class,Caster,术师,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.151.desc,"When recruiting a Caster Operator, they immediately advance 1 growth node",招募术师干员时，该干员立即推进 1 个成长节点,模型,
-relics.relic_effects.relics.151.rarity,Normal,基础,模型,
+relics.relic_effects.relics.151.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.152.effects.0.scope,class:Caster,class:术师,模型,
 relics.relic_effects.relics.152.effects.1.scope,class:Caster,class:术师,模型,
 relics.relic_effects.relics.152.desc,"Caster Operator damage +20%, ATK speed +10%",术师干员伤害 +20%、攻击速度 +10%,模型,
@@ -1445,14 +1445,14 @@ relics.relic_effects.relics.153.requires_class.0,Caster,术师,官方,character_
 relics.relic_effects.relics.154.effects.0.scope,class:Caster,class:术师,模型,
 relics.relic_effects.relics.154.effects.1.scope,class:Caster,class:术师,模型,
 relics.relic_effects.relics.154.desc,"Caster Operator damage +50%, attack range -20%",术师干员伤害 +50%，攻击范围 -20%,校对,校对：统一大小写为 attack range
-relics.relic_effects.relics.154.rarity,Normal,基础,模型,
+relics.relic_effects.relics.154.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.154.requires_class.0,Caster,术师,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.155.effects.0.args.class,Supporter,辅助,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.155.desc,"When recruiting a Supporter Operator, they immediately advance 1 growth node",招募辅助干员时，该干员立即推进 1 个成长节点,模型,
-relics.relic_effects.relics.155.rarity,Normal,基础,模型,
+relics.relic_effects.relics.155.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.156.effects.0.scope,class:Supporter,class:辅助,模型,
 relics.relic_effects.relics.156.desc,Supporter Operator attack range +40%,辅助干员攻击范围 +40%,模型,
-relics.relic_effects.relics.156.rarity,Normal,基础,模型,
+relics.relic_effects.relics.156.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.156.requires_class.0,Supporter,辅助,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.157.effects.0.args.count.0,Supporter,辅助,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.157.desc,"When squad has a Supporter Operator, squad damage +15%",编队有辅助干员时，全队伤害 +15%,模型,
@@ -1463,26 +1463,26 @@ relics.relic_effects.relics.158.requires_class.0,Supporter,辅助,官方,charact
 relics.relic_effects.relics.158.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.159.effects.0.scope,class:Medic,class:医疗,模型,
 relics.relic_effects.relics.159.desc,Medic Operator healing +40%,医疗干员的治疗量 +40%,模型,
-relics.relic_effects.relics.159.rarity,Normal,基础,模型,
+relics.relic_effects.relics.159.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.159.requires_class.0,Medic,医疗,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.160.effects.0.scope,class:Medic,class:医疗,模型,
 relics.relic_effects.relics.160.desc,Medic Operator ATK speed +30% (healing frequency increases accordingly),医疗干员攻击速度 +30%（治疗频率随之提高）,模型,
-relics.relic_effects.relics.160.rarity,Normal,基础,模型,
+relics.relic_effects.relics.160.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.160.requires_class.0,Medic,医疗,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.161.effects.0.scope,class:Medic,class:医疗,模型,
 relics.relic_effects.relics.161.desc,Medic Operator healing +50%,医疗干员治疗量 +50%,模型,
-relics.relic_effects.relics.161.rarity,Normal,基础,模型,
+relics.relic_effects.relics.161.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.161.requires_class.0,Medic,医疗,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.162.desc,Leader Nervous Impairment accumulation -50%; Corrosion taken -30%,队长神经损伤累积 -50%；受到的侵蚀 -30%,模型,
 relics.relic_effects.relics.162.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.162.requires_class.0,Medic,医疗,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.163.effects.0.scope,class:Specialist,class:特种,模型,
 relics.relic_effects.relics.163.desc,Specialist Operator damage +15%; Leader Max HP +25%,特种干员伤害 +15%；队长最大生命 +25%,模型,
-relics.relic_effects.relics.163.rarity,Normal,基础,模型,
+relics.relic_effects.relics.163.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.163.requires_class.0,Specialist,特种,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.164.effects.0.scope,class:Specialist,class:特种,模型,
 relics.relic_effects.relics.164.desc,Specialist Operator ATK speed +20%,特种干员攻击速度 +20%,模型,
-relics.relic_effects.relics.164.rarity,Normal,基础,模型,
+relics.relic_effects.relics.164.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.164.requires_class.0,Specialist,特种,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.165.effects.0.scope,class:Specialist,class:特种,模型,
 relics.relic_effects.relics.165.desc,Specialist Operator damage +40%,特种干员伤害 +40%,模型,
@@ -1491,7 +1491,7 @@ relics.relic_effects.relics.165.requires_class.0,Specialist,特种,官方,charac
 relics.relic_effects.relics.166.desc,Leader Dodge +8%; becomes invincible for 1s after dodging,队长闪避率 +8%；闪避后 1 秒内无敌,模型,
 relics.relic_effects.relics.166.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.167.desc,Squad attacks' knockback against enemies +60% (Bosses excepted),全队攻击对敌人的击退 +60%（Boss 除外）,模型,
-relics.relic_effects.relics.167.rarity,Normal,基础,模型,
+relics.relic_effects.relics.167.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.168.effects.0.args.class,Defender,重装,官方,character_table profession（data.gd CLASS_EN）
 relics.relic_effects.relics.168.desc,"Defender Operators deal Arts damage per second to nearby enemies (100 radius): 12 damage, +{12*$pm:1} per minute (approx. {12*$m10:0} at 10:00)",重装干员每秒对身边（半径 100）敌人造成法术伤害：伤害 12，每分钟 +{12*$pm:1}（10:00 约 {12*$m10:0}）,模型,
 relics.relic_effects.relics.168.rarity,Core,核心,模型,
@@ -1500,9 +1500,9 @@ relics.relic_effects.relics.169.effects.0.args.class,Sniper,狙击,官方,charac
 relics.relic_effects.relics.169.desc,Sniper Operators' attacks instantly kill enemies with less than 20% HP (Bosses excepted),狙击干员的攻击会直接击杀生命低于 20% 的敌人（Boss 除外）,模型,
 relics.relic_effects.relics.169.rarity,Core,核心,模型,
 relics.relic_effects.relics.169.requires_class.0,Sniper,狙击,官方,character_table profession（data.gd CLASS_EN）
-relics.relic_effects.relics.170.desc,"When Summon Presence Operators' follow-up attacks hit, deals additional damage equal to 3% of the target's current HP (0.5% for Bosses; at most once every 0.5s per enemy)",召唤驻场干员的追击命中时，额外造成目标当前生命 3% 的伤害（Boss 0.5%；同一敌人每 0.5 秒最多一次）,模型,
+relics.relic_effects.relics.170.desc,"When Persistent Summon Operators' follow-up attacks hit, deals additional damage equal to 3% of the target's current HP (0.5% for Bosses; at most once every 0.5s per enemy)",召唤驻场干员的追击命中时，额外造成目标当前生命 3% 的伤害（Boss 0.5%；同一敌人每 0.5 秒最多一次）,模型,
 relics.relic_effects.relics.170.rarity,Core,核心,模型,
-relics.relic_effects.relics.171.desc,"For each enemy hit by a Summon Presence Operator's follow-up attack, that Operator recovers 0.5% SP (max 2.5% per second)",召唤驻场干员的追击每命中一个敌人，该干员回复 0.5% 技力（每秒最多 2.5%）,模型,
+relics.relic_effects.relics.171.desc,"For each enemy hit by a Persistent Summon Operator's follow-up attack, that Operator recovers 0.5% SP (max 2.5% per second)",召唤驻场干员的追击每命中一个敌人，该干员回复 0.5% 技力（每秒最多 2.5%）,模型,
 relics.relic_effects.relics.171.rarity,Core,核心,模型,
 relics.relic_effects.relics.172.desc,Squad ATK speed +5% for each Operator in the squad (up to +20%),编队每有 1 名干员，全队攻击速度 +5%（最多 +20%）,模型,
 relics.relic_effects.relics.172.rarity,Rare,稀有,模型,
@@ -1527,38 +1527,38 @@ relics.relic_effects.relics.178.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.179.desc,Immediately gain 3 Growth Choices,立即获得 3 次成长三选一,模型,
 relics.relic_effects.relics.179.rarity,Core,核心,模型,
 relics.relic_effects.relics.180.desc,Leader takes -3% damage for each Operator in the squad (up to -12%),编队每有 1 名干员，队长受到的伤害 -3%（最多 -12%）,模型,
-relics.relic_effects.relics.180.rarity,Normal,基础,模型,
+relics.relic_effects.relics.180.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.181.desc,Leader Max HP +4% for each Operator in the squad (up to +16%),编队每有 1 名干员，队长最大生命 +4%（最多 +16%）,模型,
-relics.relic_effects.relics.181.rarity,Normal,基础,模型,
+relics.relic_effects.relics.181.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.182.desc,"For each Operator in the squad, squad damage +4% (up to +16%); Leader Physical damage reduction +2",编队每有 1 名干员，全队伤害 +4%（最多 +16%）；队长物理减伤 +2,模型,
-relics.relic_effects.relics.182.rarity,Normal,基础,模型,
+relics.relic_effects.relics.182.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.183.desc,"For each Operator in the squad, squad damage +4% and Leader Max HP +3% (up to 4 Operators)",编队每有 1 名干员，全队伤害 +4%、队长最大生命 +3%（最多 4 人）,模型,
 relics.relic_effects.relics.183.brief,"For each Operator: squad damage +4%, Leader Max HP +3%",每名干员：全队伤害 +4%、队长最大生命 +3%,模型,
 relics.relic_effects.relics.183.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.184.desc,Originium Ingot +10 when recruiting Operators,招募干员时源石锭 +10,模型,
-relics.relic_effects.relics.184.rarity,Normal,基础,模型,
+relics.relic_effects.relics.184.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.185.desc,Recruited Operators immediately advance 1 growth node upon joining,招募的干员入队时立即推进 1 个成长节点,模型,
 relics.relic_effects.relics.185.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.186.desc,Gain 1 growth draft when recruiting an Operator,招募干员时获得一次成长三选一,模型,
 relics.relic_effects.relics.186.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.187.desc,The next recruited Operator immediately advances 1 growth node,下一次招募的干员立即推进 1 个成长节点,模型,
-relics.relic_effects.relics.187.rarity,Normal,基础,模型,
+relics.relic_effects.relics.187.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.188.rarity,Core,核心,模型,
 relics.relic_effects.relics.188.desc,All merchant goods' prices -50% (obtained after the last merchant leaves: changed to smelting 60 Originium Ingots),商人处所有商品价格 -50%（最后一位商人离开后获得：改为熔铸 60 枚源石锭）,模型,
 relics.relic_effects.relics.189.desc,"When squad has fewer than 3 Operators, guaranteed recruitment screens have 1 additional option",编队不满 3 人时，必定出现的招募画面多一个选项,模型,
-relics.relic_effects.relics.189.rarity,Normal,基础,模型,
+relics.relic_effects.relics.189.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.190.desc,Level-up and relic pick-3 screens each have 1 additional option (stacks with 'Wait and See'),升级与藏品的三选一各多一个选项（与「观望」叠加）,模型,
 relics.relic_effects.relics.190.rarity,Core,核心,模型,
 relics.relic_effects.relics.191.desc,"Shield generation interval -20% (if without a Shield, gain 1 stack of Shield every 15s); fully restores Shield when obtained",护盾生成间隔 -20%（没有护盾时获得每 15 秒一层的护盾），获得时补满护盾,模型,
-relics.relic_effects.relics.191.rarity,Normal,基础,模型,
+relics.relic_effects.relics.191.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.192.desc,"Leader recovers 70% Max HP when obtained; thereafter, recovers 10% Max HP for each Boss defeated",获得时队长回复 70% 最大生命；此后每击败一个 Boss 回复 10% 最大生命,模型,
 relics.relic_effects.relics.192.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.193.desc,Leader Shield limit +1; Supply Box Key +1; next choice has 1 additional option,队长护盾层数上限 +1；补给箱钥匙 +1；下一次三选一多一个选项,校对,校对：护盾统一为 Shield
 relics.relic_effects.relics.193.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.194.desc,"Supply Box Key +3 (adds one extra option to each 1-out-of-3 relic choice, consuming 1 Key; Chest Seaborn will not be encountered before Keys run out)",补给箱钥匙 +3（每次藏品三选一多一个选项，用掉一把；钥匙用完前不会遇到箱形恐鱼）,校对,校对：统一大小写 Supply Box Key
-relics.relic_effects.relics.194.rarity,Normal,基础,模型,
+relics.relic_effects.relics.194.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.195.desc,The next 2 selections offer 1 extra option each,接下来 2 次三选一各多一个选项,模型,
-relics.relic_effects.relics.195.rarity,Normal,基础,模型,
+relics.relic_effects.relics.195.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.196.desc,"Each time a Boss is defeated, the next 2 selections offer 1 extra option each",每击败一个 Boss，接下来 2 次三选一各多一个选项,模型,
 relics.relic_effects.relics.196.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.197.desc,The next 6 selections offer 1 extra option each,接下来 6 次三选一各多一个选项,模型,
@@ -1566,7 +1566,7 @@ relics.relic_effects.relics.197.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.198.desc,Level-up and relic choices have 1 additional option (stacks with Four-Leaf Clover Fossil and 'Wait and See'),升级与藏品的三选一各多一个选项（与四叶草化石、「观望」叠加）,模型,
 relics.relic_effects.relics.198.rarity,Core,核心,模型,
 relics.relic_effects.relics.199.desc,Max Leader Shield stacks +1,队长护盾层数上限 +1,模型,
-relics.relic_effects.relics.199.rarity,Normal,基础,模型,
+relics.relic_effects.relics.199.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.200.desc,"Leader Max Shield +2, Shield generation interval -15%; every time 1 layer of Shield is generated, deals a shockwave equal to Leader ATK ×1.5 to enemies within 120 radius",队长护盾层数上限 +2，护盾生成间隔 -15%；每生成一层护盾，对 120 范围内的敌人造成队长攻击 ×1.5 的冲击,校对,校对：护盾统一为 Shield
 relics.relic_effects.relics.200.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.201.desc,Cures one Rejection and suppresses the next Rejection (Only appears if Rejection has occurred or on the Abyssal route),解除一个排异反应，并抑制下一次排异反应（只在发生过排异或走深蓝线时出现）,模型,
@@ -1578,8 +1578,8 @@ relics.relic_effects.relics.203.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.204.desc,"Light -30; when Light is below 50, squad SP Recovery +50% and squad damage +50%",灯火 -30；灯火低于 50 时，全队技力回复 +50%、全队伤害 +50%,模型,
 relics.relic_effects.relics.204.rarity,Core,核心,模型,
 relics.relic_effects.relics.205.desc,Light recovered from Lamp Oil +25% (Lamp Oil picked up and sold by merchants),灯油回复的灯火 +25%（拾取的灯油与商人出售的灯油）,模型,
-relics.relic_effects.relics.205.rarity,Normal,基础,模型,
-relics.relic_effects.relics.206.effects.0.args.rarity,Normal,基础,模型,
+relics.relic_effects.relics.205.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
+relics.relic_effects.relics.206.effects.0.args.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.206.desc,Gain 1 random Normal Collectible,随机获得 1 件基础藏品,模型,
 relics.relic_effects.relics.206.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.207.desc,Squad ATK speed +3% for every 5 Originium Ingots held (up to +20%),每持有 5 源石锭，全队攻击速度 +3%（上限 +20%）,模型,
@@ -1598,18 +1598,18 @@ relics.relic_effects.relics.213.desc,Deploys 2 riot barricades in front every 30
 relics.relic_effects.relics.213.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.214.desc,"Carries 3 First Aid kits: automatically uses one when Leader HP is below 40%, recovering 30% Max HP",携带 3 个急救包：队长生命低于 40% 时自动使用一个，回复 30% 最大生命,模型,
 relics.relic_effects.relics.214.brief,"When Leader HP falls below 40%, automatically recovers 30% HP (3 times)",队长生命低于 40% 时自动回复 30%（3 次）,模型,
-relics.relic_effects.relics.214.rarity,Normal,基础,模型,
+relics.relic_effects.relics.214.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.215.desc,Squad SP Recovery -15%,全队技力回复 -15%,模型,
-relics.relic_effects.relics.215.rarity,Cursed Curio,遭诅古物,模型,
-relics.relic_effects.relics.216.rarity,Cursed Curio,遭诅古物,模型,
+relics.relic_effects.relics.215.rarity,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
+relics.relic_effects.relics.216.rarity,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.217.desc,Immediately suffer 1 Rejection,立即一次排异反应,校对,校对：官方英文中“排异反应”为 Rejection，无需加 Reaction
-relics.relic_effects.relics.217.rarity,Cursed Curio,遭诅古物,模型,
+relics.relic_effects.relics.217.rarity,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.218.desc,Light loss when Leader is attacked +10%,队长受击时灯火损失 +10%,模型,
-relics.relic_effects.relics.218.rarity,Cursed Curio,遭诅古物,模型,
+relics.relic_effects.relics.218.rarity,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.219.desc,Light loss when Leader is attacked +15%,队长受击时灯火损失 +15%,模型,
-relics.relic_effects.relics.219.rarity,Cursed Curio,遭诅古物,模型,
+relics.relic_effects.relics.219.rarity,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.220.desc,Merchant prices +15%. The starting point of the Caerula Animus route (docs/154),商人售价 +15%。深蓝之心线的起点（docs/154）,模型,
-relics.relic_effects.relics.220.rarity,Cursed Curio,遭诅古物,模型,
+relics.relic_effects.relics.220.rarity,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.221.desc,1 Rejection; Seaborn evolve faster. Leads to Ending 3,一次排异反应；海嗣更快进化。走向结局三,校对,校对：官方英文中“排异反应”为 Rejection
 relics.relic_effects.relics.221.rarity,Ending,结局,模型,
 relics.relic_effects.relics.222.desc,Tide-Hunt Knight joins the squad until he falls. Leads to Ending 2,猎潮的骑士加入编队，直到他倒下。走向结局二,模型,
@@ -1617,10 +1617,10 @@ relics.relic_effects.relics.222.rarity,Ending,结局,模型,
 relics.relic_effects.relics.223.desc,Leader movement speed +10%,队长移动速度 +10%,模型,
 relics.relic_effects.relics.223.rarity,Ending,结局,模型,
 relics.relic_effects.relics.224.desc,"Originium Ingot +10; Supply Box Key +1 (adds 1 extra option to each choose-one-from-three relic selection, consuming 1 Key; Chest Seaborn will not be encountered before Keys run out)",源石锭 +10；补给箱钥匙 +1（每次藏品三选一多一个选项，用掉一把；钥匙用完前不会遇到箱形恐鱼）,模型,
-relics.relic_effects.relics.224.rarity,Normal,基础,模型,
+relics.relic_effects.relics.224.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.225.desc,"Damage taken by Final Boss +80%; when Tide-Hunt Knight is in the squad, damage taken by Leader +80% (this effect is removed if the Knight falls or leaves the squad)",最终 Boss 受到的伤害 +80%；猎潮的骑士在编队中时，队长受到的伤害 +80%（骑士倒下或离队后此项解除）,模型,
 relics.relic_effects.relics.225.rarity,Ending,结局,模型,
-relics.relic_effects.relics.226.effects.0.args.rarity,Normal,基础,模型,
+relics.relic_effects.relics.226.effects.0.args.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.226.desc,Gain 2 random Normal Collectibles,随机获得 2 件基础藏品,模型,
 relics.relic_effects.relics.226.rarity,Core,核心,模型,
 relics.relic_effects.relics.227.desc,Damage dealt to Bosses +50%,对 Boss 造成的伤害 +50%,模型,
@@ -1636,7 +1636,7 @@ relics.relic_effects.relics.232.desc,"When the Leader takes damage, deals True d
 relics.relic_effects.relics.232.rarity,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
 relics.relic_effects.relics.233.desc,"When the Leader takes damage exceeding 10% Max HP in one hit, inflicts Stun on nearby enemies for 3s (Bosses excepted)",队长一次受到超过 10% 最大生命的伤害时，周围敌人眩晕 3 秒（Boss 除外）,模型,
 relics.relic_effects.relics.233.rarity,Core,核心,模型,
-relics.relic_effects.relics.234.desc,"Every 8s, Summon Presence Operators' next follow-up attack triggers an Arts explosion at the target's location (130 radius): {$wrath_dmg} damage, +{$wrath_dmg*$pm:0} per minute (approx. {$wrath_dmg*$m10:0} at 10:00)",每 8 秒，召唤驻场干员的下一次追击会在目标处引发一次法术爆炸（半径 130）：伤害 {$wrath_dmg}，每分钟 +{$wrath_dmg*$pm:0}（10:00 约 {$wrath_dmg*$m10:0}）,模型,
+relics.relic_effects.relics.234.desc,"Every 8s, Persistent Summon Operators' next follow-up attack triggers an Arts explosion at the target's location (130 radius): {$wrath_dmg} damage, +{$wrath_dmg*$pm:0} per minute (approx. {$wrath_dmg*$m10:0} at 10:00)",每 8 秒，召唤驻场干员的下一次追击会在目标处引发一次法术爆炸（半径 130）：伤害 {$wrath_dmg}，每分钟 +{$wrath_dmg*$pm:0}（10:00 约 {$wrath_dmg*$m10:0}）,模型,
 relics.relic_effects.relics.234.rarity,Core,核心,模型,
 relics.relic_effects.relics.235.desc,"Squad damage +15%; Leader Max HP +15% and damage taken -15%, but movement speed -10%",全队伤害 +15%；队长最大生命 +15%、受到的伤害 -15%，但移动速度 -10%,模型,
 relics.relic_effects.relics.235.rarity,Rare,稀有,模型,
@@ -1651,23 +1651,23 @@ relics.relic_effects.relics.239.rarity,Ending,结局,模型,
 relics.relic_effects.relics.240.desc,"Rare / Core Relic appearance rate +30%, Leader pickup range -20%",稀有 / 核心藏品出现率 +30%，队长拾取范围 -20%,模型,
 relics.relic_effects.relics.240.rarity,Ending,结局,模型,
 relics.relic_effects.relics.241.desc,1 Rejection every 2 minutes,每 2 分钟一次排异反应,模型,
-relics.relic_effects.relics.241.rarity,Cursed Curio,遭诅古物,模型,
+relics.relic_effects.relics.241.rarity,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.242.desc,1 Rejection. Starting point of the Ascension route (docs/154),一次排异反应。升华线的起点（docs/154）,校对,校对：官方英文中“排异反应”为 Rejection
 relics.relic_effects.relics.242.rarity,Ending,结局,模型,
 relics.relic_effects.relics.243.desc,"All enemies' ATK speed +15%; Light +6 for every 15s the Leader continuously takes no damage (dodges, blocks by Shield or Operators, and continuous HP loss from Corrosion do not count as taking damage)",所有敌人攻击速度 +15%；队长每连续 15 秒未受伤，灯火 +6（闪避、护盾或干员格挡抵挡，以及侵蚀持续掉血，都不算受伤）,校对,校对：根据术语表，“护盾”应统一为 Shield，不应过度翻译为 Objective Shield
-relics.relic_effects.relics.243.rarity,Cursed Curio,遭诅古物,模型,
+relics.relic_effects.relics.243.rarity,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.244.desc,"Immediately recruits a random Operator (can be declined), this Operator immediately advances 1 growth node; if declined or squad is full, changes to a choose-one-from-three growth selection instead",立即招募一名随机干员（可婉拒），该干员立即推进 1 个成长节点；婉拒或编队已满时改为一次成长三选一,模型,
 relics.relic_effects.relics.244.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.245.desc,"Immediately recruit 1 random Operator (can be declined), and directly advance them to Elite 1; if declined, advance 1 growth node for the entire squad, and gain one pick-one-out-of-three growth opportunity; if the squad is full, advance 1 growth node for the entire squad instead",立即招募 1 名随机干员（可婉拒），并直接推进到精英一；婉拒时全队各推进 1 个成长节点，另获一次成长三选一；编队已满时改为全队各推进 1 个成长节点,模型,
 relics.relic_effects.relics.245.rarity,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
-relics.relic_effects.relics.246.desc,"When Light is below 50, Summon Presence Operators' pursuits and summon damage +60%",灯火低于 50 时，召唤驻场干员的追击与召唤物伤害 +60%,模型,
+relics.relic_effects.relics.246.desc,"When Light is below 50, Persistent Summon Operators' pursuits and summon damage +60%",灯火低于 50 时，召唤驻场干员的追击与召唤物伤害 +60%,模型,
 relics.relic_effects.relics.246.rarity,Core,核心,模型,
 relics.relic_effects.relics.247.desc,"Light +3 for every 15s the Leader continuously takes no damage (dodges, blocks by Shield or Operators, and continuous HP loss from Corrosion do not count as taking damage)",队长每连续 15 秒未受伤，灯火 +3（闪避、护盾或干员格挡抵挡，以及侵蚀持续掉血，都不算受伤）,校对,校对：根据术语表，“护盾”应统一为 Shield
-relics.relic_effects.relics.247.rarity,Normal,基础,模型,
+relics.relic_effects.relics.247.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.248.desc,"Light +4 for every 15s the Leader continuously takes no damage (dodges, blocks by Shield or Operators, and continuous HP loss from Corrosion do not count as taking damage)",队长每连续 15 秒未受伤，灯火 +4（闪避、护盾或干员格挡抵挡，以及侵蚀持续掉血，都不算受伤）,校对,校对：根据术语表，“护盾”应统一为 Shield
 relics.relic_effects.relics.248.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.249.desc,Light loss from taking damage and Black Tide -40%,受击与黑潮导致的灯火流失 -40%,模型,
-relics.relic_effects.relics.249.rarity,Normal,基础,模型,
+relics.relic_effects.relics.249.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.250.desc,Light lost from taking hits and Black Tide -60%,受击与黑潮导致的灯火流失 -60%,模型,
 relics.relic_effects.relics.250.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.251.desc,"For each Boss defeated: Leader loses 20% current HP, gains 15 Originium Ingots and one 1-out-of-3 growth choice",每击败一个 Boss：队长失去 20% 当前生命，获得 15 源石锭和一次成长三选一,模型,
@@ -1675,10 +1675,10 @@ relics.relic_effects.relics.251.brief,"Defeating a Boss: Originium Ingot +15, 1 
 relics.relic_effects.relics.251.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.252.desc,"Squad damage permanently +0.1% per kill (normal enemies are converted based on mob density, approx. +0.25% each; limit +30%)",每次击杀，全队伤害永久 +0.1%（普通敌人按怪物密度折算，每只约 +0.25%；上限 +30%）,模型,
 relics.relic_effects.relics.252.rarity,Core,核心,模型,
-relics.relic_effects.relics.253.effects.0.args.rarity,Cursed Curio,遭诅古物,模型,
+relics.relic_effects.relics.253.effects.0.args.rarity,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.253.desc,Leader takes -8% damage for each Cursed Curio held (up to -32%),每持有一件遭诅古物，队长受到的伤害 -8%（最多 -32%）,模型,
 relics.relic_effects.relics.253.rarity,Core,核心,模型,
-relics.relic_effects.relics.254.effects.0.args.rarity,Cursed Curio,遭诅古物,模型,
+relics.relic_effects.relics.254.effects.0.args.rarity,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.254.desc,Squad ATK speed +15% for each Cursed Curio held (up to +60%),每持有一件遭诅古物，全队攻击速度 +15%（最多 +60%）,模型,
 relics.relic_effects.relics.254.rarity,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
 relics.relic_effects.relics.255.desc,Leader takes -10% damage; changes to -37% when Light is below 50 (True damage excepted),队长受到的伤害 -10%；灯火低于 50 时改为 -37%（真实伤害除外）,模型,
@@ -1710,17 +1710,17 @@ relics.relic_effects.relics.262.rarity,Core,核心,模型,
 relics.relic_effects.relics.263.desc,0.05% of damage dealt by Operators is converted to Leader HP (Collectible damage not counted; up to 0.5% Max HP per second; limit doubles when Leader HP is below 50%),干员造成伤害的 0.05% 转为队长生命（藏品伤害不计；每秒最多 0.5% 最大生命；队长生命低于 50% 时上限翻倍）,校对,校对：统一“藏品”的译名为 Collectible
 relics.relic_effects.relics.263.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.264.desc,"When accumulated kills reach 60 points, Leader recovers 2% Max HP (normal enemies are worth approx. 2.5 points each, adjusted by enemy density; Elite enemies count as 10 points, Bosses count as 60 points)",击杀累计 60 点时，队长回复 2% 最大生命（普通敌人每只约 2.5 点，按怪物密度折算；精英算 10 点，Boss 算 60 点）,模型,
-relics.relic_effects.relics.264.rarity,Normal,基础,模型,
+relics.relic_effects.relics.264.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 relics.relic_effects.relics.265.desc,"Multi-Shot Firepower Operators' normal attack projectiles pierce through all enemies. For each enemy pierced, subsequent damage is reduced by 15% of the initial damage, minimum 40% of the initial damage. When held with 'Pierce', this Collectible's piercing effect takes priority; invalid for skill projectiles",多弹火力干员的普攻弹道可穿透所有敌人。每穿过一名敌人，后续伤害减少初始伤害的 15%，最低为初始伤害的 40%。与「贯穿」同时持有时，采用本藏品的穿透效果；对技能弹幕无效,校对,校对：统一“藏品”的译名为 Collectible
 relics.relic_effects.relics.265.rarity,Rare,稀有,模型,
 v1.0 框架对齐,v1.0 framework alignment,,原文键,模型
-近战扩域,Melee Range Expansion,,原文键,模型
-多弹火力,Multi-Shot Firepower,,原文键,模型
-召唤驻场,Summon Presence,,原文键,模型
-控场引爆,Crowd Control Detonation,,原文键,模型
+近战扩域,Melee Range Expansion,,原文键,人改
+多弹火力,Multi-Shot Firepower,,原文键,人改
+召唤驻场,Persistent Summon,,原文键,人改
+控场引爆,Control Detonation,,原文键,人改
 弱点收割,Weakness Harvest,,原文键,模型
 护盾反击,Shield Counter,,原文键,校对
-治疗转伤,Heal to Damage,,原文键,模型
+治疗转伤,Heal-to-Damage,,原文键,人改
 职业,Class,,原文键,模型
 通用,General,,原文键,模型
 生存,Survival,,原文键,模型
@@ -1732,7 +1732,7 @@ v1.0 框架对齐,v1.0 framework alignment,,原文键,模型
 凉拌海草,Seaweed Salad,,原文键,官方
 可携带干员+1，所有我方单位的攻击速度+1,"+1 Squad Size Limit, all friendly units gain +1 ASPD",,原文键,官方
 攻击速度 +3%,ATK speed +3%,,原文键,模型
-基础,Normal,,原文键,模型
+基础,Basic,,原文键,人改
 橙味风暴,Orange Storm,,原文键,官方
 可携带干员+1，所有我方单位的攻击力+1%,"+1 Squad Size Limit, all friendly units gain +1% ATK",,原文键,官方
 所有伤害 +3%,All damage +3%,,原文键,模型
@@ -2343,7 +2343,7 @@ Miss.Christine摸摸券,Miss.Christine Petting Ticket,,原文键,官方
 布雷奥甘肖像,Portrait of Breogan,,原文键,官方
 所有干员部署时失去15点技力,All Operators lose 15 SP when deployed,,原文键,官方
 技力回复 -15%,SP Recovery -15%,,原文键,模型
-遭诅古物,Cursed Curio,,原文键,模型
+遭诅古物,Cursed Curio,,原文键,人改
 海神的代谢,Leviathan's Anabolism,,原文键,官方
 所有敌人生命值+25%,All enemies gain +25% HP,,原文键,官方
 所有敌人生命 +25%,All enemies' HP +25%,,原文键,模型
@@ -2562,11 +2562,11 @@ Miss.Christine摸摸券,Miss.Christine Petting Ticket,,原文键,官方
 立即升 2 级,Immediately gain 2 levels,,原文键,模型
 立即升 3 级,Immediately gain 3 levels,,原文键,模型
 全队伤害 +20%（真实伤害除外）,Squad damage +20% (True damage excepted),,原文键,模型
-召唤驻场干员的追击 / 召唤物命中时有 20% 概率再追击一次（同样伤害，不再连锁）,"Summon Presence Operators' follow-up attacks / summon hits have a 20% chance to trigger another follow-up attack (same damage, does not chain)",,原文键,模型
+召唤驻场干员的追击 / 召唤物命中时有 20% 概率再追击一次（同样伤害，不再连锁）,"Persistent Summon Operators' follow-up attacks / summon hits have a 20% chance to trigger another follow-up attack (same damage, does not chain)",,原文键,模型
 近战扩域干员攻击范围 +25%；身边 140 范围内每有 1 名敌人，近战伤害 +3%（最多 +30%）,Melee Range Expansion Operators' attack range +25%; melee damage +3% for every 1 enemy within 140 radius around them (up to +30%),,原文键,模型
 多弹火力干员攻击范围 +20%；远程命中离出手干员越远伤害越高（300 距离及以外 +30%）,Multi-Shot Firepower Operators' attack range +20%; ranged hits deal more damage the further the target is from the attacking Operator (+30% at 300 distance and beyond),,原文键,模型
 每 30 秒随机一名干员的技能立即充满,"Every 30s, fully charges a random Operator's skill",,原文键,模型
-召唤驻场干员的追击 / 召唤物击败敌人时，该敌人原地殉爆：90 范围内敌人受到其最大生命 30% 的伤害（Boss 不殉爆，殉爆不连锁）,"When a Summon Presence Operator's follow-up attack / summon defeats an enemy, the enemy explodes on the spot: enemies within a 90 radius take damage equal to 30% of its Max HP (Bosses do not explode, explosions do not chain)",,原文键,模型
+召唤驻场干员的追击 / 召唤物击败敌人时，该敌人原地殉爆：90 范围内敌人受到其最大生命 30% 的伤害（Boss 不殉爆，殉爆不连锁）,"When a Persistent Summon Operator's follow-up attack / summon defeats an enemy, the enemy explodes on the spot: enemies within a 90 radius take damage equal to 30% of its Max HP (Bosses do not explode, explosions do not chain)",,原文键,模型
 干员的技能结束时，该干员的技能各回复 12% 技力,"When an Operator's skill ends, their skills each recover 12% SP",,原文键,模型
 获得时全队技力 +20%；之后招募的干员入队时也获得 20% 技力,Squad SP +20% upon obtaining; subsequently recruited Operators also gain 20% SP upon joining,,原文键,模型
 获得时全队技力 +30%；之后招募的干员入队时也获得 30% 技力,Squad SP +30% upon obtaining; subsequently recruited Operators also gain 30% SP upon joining,,原文键,模型
@@ -2620,7 +2620,7 @@ Miss.Christine摸摸券,Miss.Christine Petting Ticket,,原文键,官方
 对凯尔希：Mon3tr 伤害 +15%,For Kal'tsit: Mon3tr damage +15%,,原文键,模型
 对归溟幽灵鲨：替身伤害 +15%,For Specter the Unchained: Substitute damage +15%,,原文键,模型
 。每多一层，增益递减,. Buff diminishes with each additional stack,,原文键,模型
-；召唤驻场干员的追击与召唤物伤害 +15%。召唤数量只加一次；每多一层，增益递减,; Summon Presence Operators' follow-up attacks and summon damage +15%. Summon count only increases once; buff diminishes with each additional stack,,原文键,模型
+；召唤驻场干员的追击与召唤物伤害 +15%。召唤数量只加一次；每多一层，增益递减,; Persistent Summon Operators' follow-up attacks and summon damage +15%. Summon count only increases once; buff diminishes with each additional stack,,原文键,模型
 召唤驻场干员的追击与召唤物伤害 +15%；增殖：本编队暂无召唤物（维什戴尔 / 水月入队后生效）。每多一层，增益递减,Summon Presence Operators' follow-up attacks and summon damage +15%; Proliferation: No summons in the current squad (takes effect after Wiš'adel / Mizuki joins). Buff diminishes with each additional stack,,原文键,校对
 增幅：召唤物体型与攻击范围 +15%；召唤驻场干员的追击与召唤物伤害 +25%，追击每命中一个敌人，该干员回复 0.2% 技力（每秒最多 1%）,"Amplification: summon size and attack range +15%; Summon Presence Operators' follow-up attacks and summon damage +25%, for each enemy hit by a follow-up attack, the Operator recovers 0.2% SP (max 1% per second)",,原文键,校对
 追击与召唤物伤害 +25%；追击每命中一个敌人，造成这次追击的干员回复 0.2% 技力（每秒最多 1%）,"Follow-up attacks and summon damage +25%; for every enemy hit by a follow-up attack, the Operator dealing this follow-up attack recovers 0.2% SP (up to 1% per second)",,原文键,校对
@@ -2671,8 +2671,8 @@ class:特种,class:Specialist,,原文键,模型
 全队攻击对敌人的击退 +60%（Boss 除外）,Squad attacks' knockback against enemies +60% (Bosses excepted),,原文键,模型
 重装干员每秒对身边（半径 100）敌人造成法术伤害：伤害 12，每分钟 +{12*$pm:1}（10:00 约 {12*$m10:0}）,"Defender Operators deal Arts damage per second to nearby enemies (100 radius): 12 damage, +{12*$pm:1} per minute (approx. {12*$m10:0} at 10:00)",,原文键,模型
 狙击干员的攻击会直接击杀生命低于 20% 的敌人（Boss 除外）,Sniper Operators' attacks instantly kill enemies with less than 20% HP (Bosses excepted),,原文键,模型
-召唤驻场干员的追击命中时，额外造成目标当前生命 3% 的伤害（Boss 0.5%；同一敌人每 0.5 秒最多一次）,"When Summon Presence Operators' follow-up attacks hit, deals additional damage equal to 3% of the target's current HP (0.5% for Bosses; at most once every 0.5s per enemy)",,原文键,模型
-召唤驻场干员的追击每命中一个敌人，该干员回复 0.5% 技力（每秒最多 2.5%）,"For each enemy hit by a Summon Presence Operator's follow-up attack, that Operator recovers 0.5% SP (max 2.5% per second)",,原文键,模型
+召唤驻场干员的追击命中时，额外造成目标当前生命 3% 的伤害（Boss 0.5%；同一敌人每 0.5 秒最多一次）,"When Persistent Summon Operators' follow-up attacks hit, deals additional damage equal to 3% of the target's current HP (0.5% for Bosses; at most once every 0.5s per enemy)",,原文键,模型
+召唤驻场干员的追击每命中一个敌人，该干员回复 0.5% 技力（每秒最多 2.5%）,"For each enemy hit by a Persistent Summon Operator's follow-up attack, that Operator recovers 0.5% SP (max 2.5% per second)",,原文键,模型
 先锋干员每次击杀回复 3% 技力（每秒最多 9%）,Vanguard Operators recover 3% SP per kill (up to 9% per second),,原文键,模型
 医疗干员每秒对身边（半径 120）敌人造成法术伤害：伤害 {$dust_dmg}，每分钟 +{$dust_dmg*$pm:1}（10:00 约 {$dust_dmg*$m10:0}）,"Medic Operators deal Arts damage per second to nearby enemies (120 radius): {$dust_dmg} damage, +{$dust_dmg*$pm:1} per minute (approx. {$dust_dmg*$m10:0} at 10:00)",,原文键,模型
 术师干员每次命中，术师伤害 +5%（最多 +50%）；3 秒没有命中就清空,"Each time a Caster Operator hits, Caster damage +5% (up to +50%); clears if no hits for 3s",,原文键,模型
@@ -2726,7 +2726,7 @@ class:特种,class:Specialist,,原文键,模型
 队长受到伤害时，全场非 Boss 敌人眩晕 3 秒（冷却 30 秒）,"When Leader takes damage, Stuns all non-Boss enemies on the field for 3s (Cooldown: 30s)",,原文键,模型
 队长受到伤害时，对全场敌人造成真实伤害：伤害 120，每分钟 +{120*$pm:0}（10:00 约 {120*$m10:0}）；对 Boss 最多 3% 最大生命；冷却 30 秒,"When the Leader takes damage, deals True damage to all enemies: 120 damage, +{120*$pm:0} per minute (approx. {120*$m10:0} at 10:00); max 3% of Max HP against Bosses; 30s cooldown",,原文键,模型
 队长一次受到超过 10% 最大生命的伤害时，周围敌人眩晕 3 秒（Boss 除外）,"When the Leader takes damage exceeding 10% Max HP in one hit, inflicts Stun on nearby enemies for 3s (Bosses excepted)",,原文键,模型
-每 8 秒，召唤驻场干员的下一次追击会在目标处引发一次法术爆炸（半径 130）：伤害 {$wrath_dmg}，每分钟 +{$wrath_dmg*$pm:0}（10:00 约 {$wrath_dmg*$m10:0}）,"Every 8s, Summon Presence Operators' next follow-up attack triggers an Arts explosion at the target's location (130 radius): {$wrath_dmg} damage, +{$wrath_dmg*$pm:0} per minute (approx. {$wrath_dmg*$m10:0} at 10:00)",,原文键,模型
+每 8 秒，召唤驻场干员的下一次追击会在目标处引发一次法术爆炸（半径 130）：伤害 {$wrath_dmg}，每分钟 +{$wrath_dmg*$pm:0}（10:00 约 {$wrath_dmg*$m10:0}）,"Every 8s, Persistent Summon Operators' next follow-up attack triggers an Arts explosion at the target's location (130 radius): {$wrath_dmg} damage, +{$wrath_dmg*$pm:0} per minute (approx. {$wrath_dmg*$m10:0} at 10:00)",,原文键,模型
 全队伤害 +15%；队长最大生命 +15%、受到的伤害 -15%，但移动速度 -10%,"Squad damage +15%; Leader Max HP +15% and damage taken -15%, but movement speed -10%",,原文键,模型
 队长最大生命 -25%；全队技力回复 +50%,Leader Max HP -25%; squad SP Recovery +50%,,原文键,模型
 全队攻击速度 +10%；所有敌人攻击速度 -10%,Squad ATK speed +10%; all enemies' ATK speed -10%,,原文键,模型
@@ -2738,7 +2738,7 @@ class:特种,class:Specialist,,原文键,模型
 所有敌人攻击速度 +15%；队长每连续 15 秒未受伤，灯火 +6（闪避、护盾或干员格挡抵挡，以及侵蚀持续掉血，都不算受伤）,"All enemies' ATK speed +15%; Light +6 for every 15s the Leader continuously takes no damage (dodges, blocks by Shield or Operators, and continuous HP loss from Corrosion do not count as taking damage)",,原文键,校对
 立即招募一名随机干员（可婉拒），该干员立即推进 1 个成长节点；婉拒或编队已满时改为一次成长三选一,"Immediately recruits a random Operator (can be declined), this Operator immediately advances 1 growth node; if declined or squad is full, changes to a choose-one-from-three growth selection instead",,原文键,模型
 立即招募 1 名随机干员（可婉拒），并直接推进到精英一；婉拒时全队各推进 1 个成长节点，另获一次成长三选一；编队已满时改为全队各推进 1 个成长节点,"Immediately recruit 1 random Operator (can be declined), and directly advance them to Elite 1; if declined, advance 1 growth node for the entire squad, and gain one pick-one-out-of-three growth opportunity; if the squad is full, advance 1 growth node for the entire squad instead",,原文键,模型
-灯火低于 50 时，召唤驻场干员的追击与召唤物伤害 +60%,"When Light is below 50, Summon Presence Operators' pursuits and summon damage +60%",,原文键,模型
+灯火低于 50 时，召唤驻场干员的追击与召唤物伤害 +60%,"When Light is below 50, Persistent Summon Operators' pursuits and summon damage +60%",,原文键,模型
 队长每连续 15 秒未受伤，灯火 +3（闪避、护盾或干员格挡抵挡，以及侵蚀持续掉血，都不算受伤）,"Light +3 for every 15s the Leader continuously takes no damage (dodges, blocks by Shield or Operators, and continuous HP loss from Corrosion do not count as taking damage)",,原文键,校对
 队长每连续 15 秒未受伤，灯火 +4（闪避、护盾或干员格挡抵挡，以及侵蚀持续掉血，都不算受伤）,"Light +4 for every 15s the Leader continuously takes no damage (dodges, blocks by Shield or Operators, and continuous HP loss from Corrosion do not count as taking damage)",,原文键,校对
 受击与黑潮导致的灯火流失 -40%,Light loss from taking damage and Black Tide -40%,,原文键,模型

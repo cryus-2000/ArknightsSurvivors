@@ -10,7 +10,7 @@ extends RefCounted
 ## 短版：short() 先查 short:<原文>（定宽格子用，docs/276 §9 第 4 条），没有就同 s()。
 
 ## 已接入的模块（game/l10n/<名>.csv）。新模块：加 CSV + .import（compress=0，要能列出全部键给模板用），名字加到这里
-const MODULES := ["ops", "enemies", "ui", "relics", "events", "meta", "run"]
+const MODULES := ["ops", "enemies", "ui", "relics", "events", "meta", "run", "extra"]
 ## 「跟随系统」解析成英文的开关：英文翻译未覆盖全部模块前保持 false——系统语言是英文的玩家先看到完整中文，
 ## 不会看到中英夹杂的半成品；在设置里手动选 English 不受影响。全部模块翻完、第三步验收后改 true（docs/276 §10）
 const AUTO_EN_READY := false
@@ -160,6 +160,7 @@ static var missing := {}
 ## 多行 → 逐行；「A · B」「A·B」「A / B」→ 逐段；「标签：内容」→「Label: 内容」；末尾计数（「扩散 1/2」「×3」「+25%」「Lv.2」）→ 只查前面。
 ## 一段都没变就原样返回（不产出半中半英的拆法以外的东西）
 static var _re_suffix: RegEx
+static var _re_br: RegEx
 static func _split_fallback(text: String) -> String:
 	var st := text.strip_edges()
 	if st != text and st != "":   # 首尾带空白：按去空白的原文查，再把空白补回
@@ -176,17 +177,32 @@ static func _split_fallback(text: String) -> String:
 		for li in lines.size():
 			lines[li] = s(lines[li])
 		return "\n".join(lines)
-	for sep in ["  //  ", " // ", "//", " · ", "·", " / ", "／", "  "]:
-		if text.contains(sep):
-			var parts := text.split(sep)
-			for pi2 in parts.size():
-				parts[pi2] = s(parts[pi2])
-			return (" · " if sep == "·" else sep).join(parts)
-	var ci := text.find("：")
-	if ci > 0 and ci < text.length() - 1:
-		return s(text.substr(0, ci)) + ": " + s(text.substr(ci + 1))
+	# 卡名显示时把「协同·专」排成「协同 · 专」、日文中点「・」：换回表里的写法再查一次
+	for pair in [[" · ", "·"], [" ・ ", "·"], ["・", "·"]]:
+		if text.contains(pair[0]):
+			var nt := text.replace(pair[0], pair[1])
+			var ne := s(nt)
+			if ne != nt:
+				return ne
+	# 「S1「秘杖·速充模式」」：括号里的名字单独查，括号换成英文引号
+	if text.contains("「") and text.contains("」"):
+		if _re_br == null:
+			_re_br = RegEx.create_from_string("「([^」]+)」")
+		var bout := ""
+		var at := 0
+		var hit := false
+		for bm in _re_br.search_all(text):
+			var inner := bm.get_string(1)
+			var ie := s(inner)
+			hit = hit or ie != inner
+			var head := text.substr(at, bm.get_start() - at)
+			bout += (s(head) if head.strip_edges() != "" else head) + (" " if head != "" and not head.ends_with(" ") else "") + "\"" + ie + "\""
+			at = bm.get_end()
+		if hit:
+			return (bout + s(text.substr(at))).strip_edges()
+	# 末尾计数 / 括号先剥（「协同·专  1/4」「唤醒（所需技力 7 · 0%）」「探索用时 12:22」）
 	if _re_suffix == null:
-		_re_suffix = RegEx.create_from_string("^(.*?\\S)(\\s*(?:[0-9]+\\s*/\\s*[0-9]+|Lv\\.?\\s*[0-9]+|[×x]\\s*[0-9.]+|[+\\-−]?[0-9]+(?:\\.[0-9]+)?%?|（[^）]*）|\\([^)]*\\)))$")
+		_re_suffix = RegEx.create_from_string("^(.*?\\S)(\\s*(?:[0-9]+\\s*/\\s*[0-9]+|[0-9]+:[0-9]+(?::[0-9]+)?|Lv\\.?\\s*[0-9]+|[×x]\\s*[0-9.]+|[+\\-−]?[0-9]+(?:\\.[0-9]+)?%?|（[^）]*）|\\([^)]*\\)))$")
 	var m := _re_suffix.search(text)
 	if m != null:
 		var base := m.get_string(1)
@@ -196,6 +212,16 @@ static func _split_fallback(text: String) -> String:
 			if suf.begins_with("（"):
 				suf = " (" + s(suf.substr(1, suf.length() - 2)) + ")"
 			return be + suf
+	for sep in ["  //  ", " // ", "//", " · ", "·", " / ", "／", "  ", "　", "，"]:
+		if text.contains(sep):
+			var parts := text.split(sep)
+			for pi2 in parts.size():
+				parts[pi2] = s(parts[pi2])
+			var jn: String = {"·": " · ", "　": "  ", "，": ", "}.get(sep, sep)
+			return jn.join(parts)
+	var ci := text.find("：")
+	if ci > 0 and ci < text.length() - 1:
+		return s(text.substr(0, ci)) + ": " + s(text.substr(ci + 1))
 	# 最后一招：单个空格隔开的几个中文词（「难度 常规」「深蓝之下 未获得」）逐词查；每段都得含中文才拆
 	if text.contains(" "):
 		var ws := text.split(" ", false)

@@ -1,10 +1,10 @@
 keys,en,_zh,_source,_note
 events.waves.threat.0.name,Shallows,浅滩,模型,
 events.waves.threat.0.horde_mix.0.name,Drifter Tide,漂流潮,模型,
-events.waves.threat.1.name,Undertow,暗流,模型,
+events.waves.threat.1.name,Undertow,暗流,人改,跨模块统一（review/canon.json）
 events.waves.threat.1.horde_mix.0.name,Slider Swarm,滑行群,模型,
 events.waves.threat.1.horde_mix.1.name,Rockbreaker Formation,凿石阵,模型,
-events.waves.threat.2.name,Deep Dive,深潜,模型,
+events.waves.threat.2.name,Deep Dive,深潜,人改,跨模块统一（review/canon.json）
 events.waves.threat.2.horde_mix.0.name,Seaborn Vanguard,海嗣先锋,模型,
 events.waves.threat.2.horde_mix.1.name,Offspring Bulwark,子代壁垒,模型,
 events.waves.threat.2.horde_mix.2.name,Stampeding Tide,狂奔潮,模型,
@@ -20,7 +20,7 @@ events.waves.threat.5.name,Caerula Arbor,深蓝之树,官方,roguelike_topic_tab
 events.waves.threat.5.horde_mix.0.name,Deep Sea Swarm,深海集群,模型,
 events.waves.threat.5.horde_mix.1.name,Deep Blue Encirclement,深蓝合围,模型,
 events.waves.threat.5.horde_mix.2.name,Broodsurge Encirclement,巢涌合围,模型,
-events.waves.endings.standard.name,Ending 1 · Precious Days,结局一 · 平凡即是喜乐,模型,
+events.waves.endings.standard.name,Ending 1 · Precious Days,结局一 · 平凡即是喜乐,人改,跨模块统一（review/canon.json）
 events.waves.endings.standard.omen,The end is near — 'Paranoia Illusion' is emerging,终局将至 —— 偏执泡影正在浮现,模型,
 events.waves.endings.standard.gallery.hint,Do not reveal any ending lines. The first run will always end here.,不翻开任何一条结局线。第一次探索必定走到这里。,模型,
 events.waves.endings.standard.gallery.lore,A faintly glowing bubble hung at the end of the deep sea. Mizuki shattered it and continued forward.,深海尽头悬着一团微微发光的泡影。水月打碎了它，继续向前。,模型,
@@ -183,7 +183,7 @@ events.events_v2.events.1.name,Emergency Dispatch,紧急调遣,官方,roguelike_
 events.events_v2.events.1.text,"A batch of support supplies has arrived at the nearest safehouse. You can leave it to the logistics department for transport, or dispatch an Operator familiar with the area to retrieve it.",一批支援物资送到了最近的安全屋。可以交给后勤部门转运，也可以派一名熟悉周边的干员去接。,模型,
 events.events_v2.events.1.options.0.label,Dispatch an operator,由干员运送,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_expedition_1.title
 events.events_v2.events.1.options.0.desc,"Select 1 squad member to leave the squad for 45s; upon returning, the Operator gains 1 Promotion level and brings back 1 main branch Basic Collectible",选一名队友离队 45 秒；归队时该干员精英化一级，并带回一件主流派基础藏品,校对,校对：统一术语，将“藏品”统一翻译为“Collectible”。
-events.events_v2.events.1.options.0.ops.0.away.reward.1.relic_lane.rarity,Basic,基础,模型,
+events.events_v2.events.1.options.0.ops.0.away.reward.1.relic_lane.rarity,Basic,基础,人改,跨模块统一（review/canon.json）
 events.events_v2.events.1.options.1.label,Ask Logistics to handle it,委托后勤部门,官方,roguelike_topic_table.rogue_2.choices.choice_ro2_expedition_2.title
 events.events_v2.events.1.options.1.desc,Originium Ingot +8,源石锭 +8,模型,
 events.events_v2.events.2.name,Advance Squad,先遣小队,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_up1_enter.title
@@ -318,10 +318,10 @@ events.events_v2.events.15.options.1.label,Maybe next time,还是算了,官方,r
 events.events_v2.events.15.options.1.desc,Originium Ingot +3,源石锭 +3,模型,
 浅滩,Shallows,,原文键,模型
 漂流潮,Drifter Tide,,原文键,模型
-暗流,Undertow,,原文键,模型
+暗流,Undertow,,原文键,人改
 滑行群,Slider Swarm,,原文键,模型
 凿石阵,Rockbreaker Formation,,原文键,模型
-深潜,Deep Dive,,原文键,模型
+深潜,Deep Dive,,原文键,人改
 海嗣先锋,Seaborn Vanguard,,原文键,模型
 子代壁垒,Offspring Bulwark,,原文键,模型
 狂奔潮,Stampeding Tide,,原文键,模型
@@ -337,7 +337,7 @@ events.events_v2.events.15.options.1.desc,Originium Ingot +3,源石锭 +3,模型
 深海集群,Deep Sea Swarm,,原文键,模型
 深蓝合围,Deep Blue Encirclement,,原文键,模型
 巢涌合围,Broodsurge Encirclement,,原文键,模型
-结局一 · 平凡即是喜乐,Ending 1 · Precious Days,,原文键,模型
+结局一 · 平凡即是喜乐,Ending 1 · Precious Days,,原文键,人改
 终局将至 —— 偏执泡影正在浮现,The end is near — 'Paranoia Illusion' is emerging,,原文键,模型
 不翻开任何一条结局线。第一次探索必定走到这里。,Do not reveal any ending lines. The first run will always end here.,,原文键,模型
 深海尽头悬着一团微微发光的泡影。水月打碎了它，继续向前。,A faintly glowing bubble hung at the end of the deep sea. Mizuki shattered it and continued forward.,,原文键,模型
@@ -494,7 +494,7 @@ events.events_v2.events.15.options.1.desc,Originium Ingot +3,源石锭 +3,模型
 一批支援物资送到了最近的安全屋。可以交给后勤部门转运，也可以派一名熟悉周边的干员去接。,"A batch of support supplies has arrived at the nearest safehouse. You can leave it to the logistics department for transport, or dispatch an Operator familiar with the area to retrieve it.",,原文键,模型
 由干员运送,Dispatch an operator,,原文键,官方
 选一名队友离队 45 秒；归队时该干员精英化一级，并带回一件主流派基础藏品,"Select 1 squad member to leave the squad for 45s; upon returning, the Operator gains 1 Promotion level and brings back 1 main branch Basic Collectible",,原文键,校对
-基础,Basic,,原文键,模型
+基础,Basic,,原文键,人改
 委托后勤部门,Ask Logistics to handle it,,原文键,官方
 源石锭 +8,Originium Ingot +8,,原文键,模型
 先遣小队,Advance Squad,,原文键,官方

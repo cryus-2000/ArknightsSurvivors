@@ -344,11 +344,14 @@ func join_bonus_text() -> String:
 	var parts: Array = []
 	var per: float = Bal.v("squad/hp_per_member", 0.15)
 	var rper: float = regen_step(member_steps(ops.size() + 1))
+	var en: bool = UI.Loc.en()   # 英文（docs/276 §12）：整句是拼的，在这里直接拼英文
 	if per > 0.0:
-		parts.append("队长最大生命 +%d%%" % int(round(per * 100.0)))
+		parts.append(("Leader Max HP +%d%%" if en else "队长最大生命 +%d%%") % int(round(per * 100.0)))
 	if rper > 0.0:
-		parts.append("生命回复 +%s / 秒" % _num(rper * g.heal_mult))
-	return ("入队加成：" + "，".join(parts)) if not parts.is_empty() else ""
+		parts.append(("HP Regen +%s/s" if en else "生命回复 +%s / 秒") % _num(rper * g.heal_mult))
+	if parts.is_empty():
+		return ""
+	return ("Squad Bonus: " + ", ".join(parts)) if en else ("入队加成：" + "，".join(parts))
 
 
 ## 0.9 → "0.9"，1.0 → "1"，1.25 → "1.25"（去掉多余的 0）
