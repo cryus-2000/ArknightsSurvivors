@@ -93,10 +93,16 @@ func _verify():
     var info = JSON.parse_string(FileAccess.get_file_as_string("res://data/build.json"))
     if not info is Dictionary or info.get("audience", "") != audience or not info.get("encrypted", false):
         failures.append("build_metadata")
+    # 发行包不得带测试功能（docs/335）：机器人 / 自动模式 / 连测 / 自测驱动脚本都不在包里；无敌开关恒关
+    for dev_path in ["res://scripts/core/bot.gd", "res://scripts/run/auto_play.gd", "res://scripts/core/god_suite.gd", "res://scripts/run/autotest.gd", "res://scripts/run/motion_shot.gd", "res://scripts/run/ult_bench.gd"]:
+        if ResourceLoader.exists(dev_path):
+            failures.append("dev_script_in_pack:" + dev_path)
     var cfg = root.get_node_or_null("Cfg")
     if cfg == null:
         failures.append("cfg_missing")
     else:
+        if cfg.test_god() or cfg.test_auto() or cfg.test_suite() or cfg.test_loop():
+            failures.append("test_flags_on")
         if not cfg.dev_args().is_empty() or OS.is_debug_build():
             failures.append("release_debug_gate")
         # 全部解锁（1.1.1）：对内包启动即打开、只在内存；对外包恒为 false
