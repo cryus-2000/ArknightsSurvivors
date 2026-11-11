@@ -93,6 +93,10 @@ func step(delta: float) -> void:
 				g.intro_screen.close()
 		S.PAUSE:
 			# 失焦自动暂停（web_focus：来通知 / 切后台 / 测量窗口在屏幕外）后 3 秒自己继续：自动模式本来就没人按（11-11 网页仿真两局停在暂停里）
+			# 只续「失焦引起」的暂停（web_focus.paused）；玩家自己按的暂停不动——要在暂停菜单里看 / 复制性能报告（11-11 用户：自动模式一直自己继续，导不出数据）
+			if not g.web_focus.paused:
+				_wait = 0.0
+				return
 			_wait += rd
 			if _wait >= 3.0:
 				_wait = 0.0
