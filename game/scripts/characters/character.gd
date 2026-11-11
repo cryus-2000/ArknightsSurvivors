@@ -4,6 +4,8 @@
 ## 生命、等级、经验、拾取由 game.gd 持有；博士是挂件（characters/doctor.gd：指挥技能、被动、排异反应）。
 ## 干员调用 game.gd 的能力一律走 op_api.gd（本类的父类），不直接调用 g._ 开头的内部函数。
 extends "res://scripts/characters/op_api.gd"
+const Rush = preload("res://scripts/characters/op_rush.gd")   # 突击冲锋（爆发窗口第一下冲锋 / 突击低频自冲刺 / 冲锋拖尾，docs/286 §4 第三批拆出）
+const SkillSeq = preload("res://scripts/characters/op_skill_seq.gd")   # 多段技能帧条序列（skill_seq 的推进 / 打断 / 循环内普攻，docs/286 §4 第三批拆出）
 
 const BossBench = preload("res://scripts/run/boss_bench.gd")   # 录制钩子（docs/170）
 const LaserDraw = preload("res://scripts/render/laser_draw.gd")
@@ -1319,7 +1321,7 @@ func follow(dt: float, target: Vector2) -> void:
 			var step: Vector2 = (target - pos) * k
 			if st == 1 and rush_t > 0.0:
 				mv_src = "rush"
-				step = _rush_step(dt)   # 爆发窗口的第一下冲锋：不受突击限速，冲到目标面前或撞上怪就停（docs/114 §14）
+				step = Rush._rush_step(self, dt)   # 爆发窗口的第一下冲锋：不受突击限速，冲到目标面前或撞上怪就停（docs/114 §14）
 			else:
 				var vmax: float = g.speed * CmdBal.v("command/roam_speed" if st == 1 or ic != null else "command/recall_speed", 1.3 if st == 1 or ic != null else 4.0) * dt
 				if step.length() > vmax:
@@ -1329,12 +1331,12 @@ func follow(dt: float, target: Vector2) -> void:
 			pos = g.map.push_out(pos, 10.0)
 	if st == 1:
 		_cmd_progress(prev, target, dt)
-		_roam_dash_tick(dt)
+		Rush._roam_dash_tick(self, dt)
 	if _pf:
 		_pt = g.prof_add("fo_move", _pt)
 	var vel: Vector2 = (pos - prev) / maxf(dt, 0.0001)
 	_sample_motion(vel, dt)
-	_rush_age(dt)
+	Rush._rush_age(self, dt)
 	var sp_now: float = vel.length()
 	mv = lerpf(mv, sp_now, clampf(dt * (10.0 if sp_now > mv else 20.0), 0.0, 1.0))   # 停下衰减快一倍，不再停住后多跑 0.15–0.27 秒
 	if attack_t <= 0.0:
@@ -1359,7 +1361,7 @@ func follow(dt: float, target: Vector2) -> void:
 	mt += dt
 	if _pf:
 		_pt = g.prof_add("fo_release_" + str(id), _pt)
-	_tick_sq(dt)
+	SkillSeq._tick_sq(self, dt)
 	if _pf:
 		_pt = g.prof_add("fo_tick_sq", _pt)
 	# 动画状态
@@ -1370,7 +1372,7 @@ func follow(dt: float, target: Vector2) -> void:
 	elif is_leader and g.dash_t > 0.0 and attack_t > 0.0 and act_kind == "skill" and def.get("sprites", {}).get("dash_run", false) == true and anim_tex("run") != null:
 		want = "run"   # 冲刺中放技能：身体播跑步相位，不把蹲身前推等技能姿势拖在冲刺里（11-07 拉普兰德，docs/297）；只画，attack_t / fire_t 不动
 	elif sq_atk != "" and anim_tex(sq_atk) != null:
-		want = sqk if _sq_atk_yield() else sq_atk   # 循环期间的普攻变体（sprites.skills.sN.attack）：按其 fire 帧对齐出手，播完回循环（_tick_sq_atk）
+		want = sqk if SkillSeq._sq_atk_yield(self) else sq_atk   # 循环期间的普攻变体（sprites.skills.sN.attack）：按其 fire 帧对齐出手，播完回循环（_tick_sq_atk）
 	elif attack_t > 0.0 and not sq_own and anim_tex(act_anim) != null and not act_anim_yield():
 		want = act_anim   # 序列之外的动作（循环期间起手的普攻 / 另一技能）压过序列，播完接着循环
 	elif sqk != "":
@@ -1385,7 +1387,7 @@ func follow(dt: float, target: Vector2) -> void:
 	anim_t += dt
 	if vis_anim != "" and anim_kind == vis_anim and anim_t >= vis_dur():
 		vis_anim = ""   # 播完回待机（末帧 = 待机 f0，收招不跳）
-	_tick_sq_shadow(dt)
+	SkillSeq._tick_sq_shadow(self, dt)
 	# 跑步帧率按实际移动速度缩放（原固定 fps：快速前压的近战队友脚步打滑 3 倍以上）；帧条按主控基础移速 RUN_REF 画
 	if anim_kind == "run" or (sq_ph == 2 and sq.has("run") and anim_kind == seq_anim(sq.run)):
 		advance_run_phase(dt)   # 技能循环里的跑动段（sprites.skills.sN.run，如星熊格挡移动）也按移速推进同一相位
@@ -1472,7 +1474,7 @@ func start_skill(aim: Vector2, idx: int = -1, dur: float = 0.6, fire_at: float =
 	if idx >= 0:
 		cur_skill = idx
 		spend_sp(idx)
-	if anim == "" and _start_skill_seq(aim, cur_skill):
+	if anim == "" and SkillSeq._start_skill_seq(self, aim, cur_skill):
 		return   # 多条技能帧条（sprites.skills，见下）
 	_start_action("skill", aim, dur, fire_at, anim if anim != "" else skill_anim(cur_skill))
 
@@ -1499,7 +1501,7 @@ func play_vis_anim(kind: String) -> void:
 ## 充满即发干员的技能画面（10-16 水月 S2）：写了 sprites.skills.sN 序列（start / loop / end 或 intro / hold）就按序列播（纯画面：
 ## 不占出手窗口，attack_t / fire_t / 朝向都不动，同 seed 模拟不变；loop 跟着 skill_active_left(i) 走，结束播 end），否则单条 play_vis_anim
 func play_vis_skill(i: int) -> void:
-	if _start_vis_seq(i):
+	if SkillSeq._start_vis_seq(self, i):
 		return
 	play_vis_anim(skill_anim(i))
 
@@ -1543,7 +1545,7 @@ func _start_action(kind: String, aim: Vector2, dur: float, fire_at: float, anim 
 	if aim != Vector2.INF and absf(aim.x - pos.x) > FACE_DEAD:
 		_set_face(signf(aim.x - pos.x))
 	if not (seq_locked() and kind == "attack"):
-		_sq_interrupt()
+		SkillSeq._sq_interrupt(self)
 	act_n += 1
 	act_kind = kind
 	attack_phased = false
@@ -1585,7 +1587,7 @@ func _start_action(kind: String, aim: Vector2, dur: float, fire_at: float, anim 
 	anim_kind = act_anim   # 直接切到出手帧条（原来置空，同帧 anim_state 退回待机，每次起手闪一帧）
 	anim_t = 0.0
 	# 持续技能攻击变体在起手当帧就接管，避免露出一帧普通攻击。
-	_tick_sq_atk(0.0)
+	SkillSeq._tick_sq_atk(self, 0.0)
 	if sq_atk != "":
 		anim_kind = sq_atk
 
@@ -1889,24 +1891,6 @@ func is_roaming() -> bool:
 	return not is_leader and g != null and g.get("squad") != null and g.squad.stance == 1 and cmd_roam() and cmd_down <= 0.0 and pos != Vector2.INF
 
 
-func _roam_dash_cd() -> float:
-	return float(def.get("command", {}).get("roam_dash_cd", CmdBal.v("command/roam_dash_cd", 7.0)))
-
-
-func _roam_dash_tick(dt: float) -> void:
-	if CmdBal.v("command/roam_dash", 1.0) <= 0.0 or not bool(def.get("command", {}).get("roam_dash", true)) or is_leader:
-		return
-	if _roam_dash_t < 0.0:   # 本次出击第一次：按编队序号错开
-		_roam_dash_t = _roam_dash_cd() * (0.6 + 0.12 * float(maxi(0, g.squad.ops.find(self))))
-	if rush_t > 0.0 or cmd_down > 0.0:
-		return
-	_roam_dash_t -= dt
-	if _roam_dash_t > 0.0:
-		return
-	begin_rush()
-	_roam_dash_t = _roam_dash_cd() if rush_t > 0.0 else 1.0
-
-
 func begin_rush() -> void:
 	rush_t = 0.0
 	if is_leader or pos == Vector2.INF or cmd_down > 0.0:
@@ -1919,7 +1903,7 @@ func begin_rush() -> void:
 	var dist: float = dv.length()
 	var run: float = dist - (float(e.r) + 16.0)
 	if run < CmdBal.v("command/rush_min", 60.0):
-		_rush_impact(pos)   # 已经贴着怪：原地顶一下
+		Rush._rush_impact(self, pos)   # 已经贴着怪：原地顶一下
 		return
 	var goal: Vector2 = pos + dv.normalized() * minf(run, CmdBal.v("command/rush_dist", 320.0))
 	goal = g.ppos + (goal - g.ppos).limit_length(CmdBal.v("command/roam_r", 840.0))
@@ -1928,98 +1912,7 @@ func begin_rush() -> void:
 	rush_goal = goal
 	rush_t = CmdBal.v("command/rush_max_t", 0.5)
 	cmd_inv = maxf(cmd_inv, CmdBal.v("command/rush_inv", 0.6))
-	_rush_sfx("dodge", -8.0)
-
-
-func _rush_step(dt: float) -> Vector2:
-	rush_t -= dt
-	var to: Vector2 = rush_goal - pos
-	var sv: Vector2 = to.limit_length(CmdBal.v("command/rush_speed", 780.0) * dt)
-	var np: Vector2 = pos + sv
-	var hit := false
-	for j in query_ids(np, 44.0):
-		var en: Dictionary = g.enemies[j]
-		if not en.dead and not en.chest and en.pos.distance_to(np) < float(en.r) + 20.0:
-			hit = true
-			break
-	_rush_emit_t -= dt
-	if _rush_emit_t <= 0.0:
-		_rush_emit_t = 0.03
-		_rush_push(np, false)
-	if hit or rush_t <= 0.0 or sv.length() >= to.length() - 0.5:
-		rush_t = 0.0
-		_rush_impact(np)
-	return sv
-
-
-## 撞击：身边 command/rush_hit_r 内的怪被推开（精英 ×rush_kb_elite，Boss / 部件 / 宝箱免疫）
-func _rush_impact(p: Vector2) -> void:
-	var hr: float = CmdBal.v("command/rush_hit_r", 56.0)
-	var kb: float = CmdBal.v("command/rush_kb", 340.0)
-	var n := 0
-	for j in query_ids(p, hr + 24.0):
-		var en: Dictionary = g.enemies[j]
-		if en.dead or en.boss or en.chest or en.get("part", false) or en.pos.distance_to(p) > hr + float(en.r):
-			continue
-		var dv: Vector2 = en.pos - p
-		if dv.length_squared() < 1.0:
-			dv = Vector2(face if face != 0.0 else 1.0, 0.0)
-		apply_kb(en, dv.normalized() * kb * (CmdBal.v("command/rush_kb_elite", 0.5) if en.elite else 1.0))
-		n += 1
-	if n > 0 or rush_goal != Vector2.INF:
-		_rush_push(p, true)
-		_rush_sfx("swing_heavy", -7.0)
-	if g.get("trace_every") != null and g.trace_every > 0.0:
-		print("CMD t=%.2f rush %s kb=%d" % [g.t, id, n])
-	rush_goal = Vector2.INF
-
-
-func _rush_sfx(name: String, vol: float) -> void:
-	if g.headless_batch:
-		return
-	var sfx: Node = g.get_node_or_null("/root/Sfx") if g != null and g.is_inside_tree() else null
-	if sfx != null:
-		sfx.play(name, vol)
-
-
-func _rush_push(p: Vector2, big: bool) -> void:
-	if g.headless_batch:
-		return   # 纯画面：无头批跑不记
-	_rush_seq += 1
-	rush_trail.append({"p": p, "a": 0.0, "n": _rush_seq, "big": big})
-
-
-func _rush_age(dt: float) -> void:
-	if rush_trail.is_empty():
-		return
-	var life: float = CmdBal.v("command/rush_trail_life", 0.22)
-	for tp in rush_trail:
-		tp.a += dt
-	rush_trail = rush_trail.filter(func(tp): return tp.a < life)
-
-
-## 金色轨迹：每个点 3 颗 2 / 4 像素的方块（序号哈希摆位），撞击点向外迸 8 颗；三阶透明度；新点带白芯。全部落在 2 px 网格上
-func _draw_rush_trail() -> void:
-	var life: float = CmdBal.v("command/rush_trail_life", 0.22)
-	var optical: bool = g.optical_on
-	for tp in rush_trail:
-		var u: float = clampf(float(tp.a) / life, 0.0, 0.999)
-		var q: float = [1.0, 0.6, 0.3][int(u * 3.0)]
-		var base: Vector2 = tp.p + Vector2(0, -10)
-		var n: int = tp.n
-		var cnt: int = 8 if tp.big else 3
-		for i in cnt:
-			var off: Vector2
-			if tp.big:
-				off = Vector2.from_angle(TAU * i / 8.0 + float(n % 3) * 0.2) * (8.0 + u * 30.0)
-			else:
-				off = Vector2(float((n * 7 + i * 5) % 9 - 4) * 2.0, float((n * 3 + i * 11) % 9 - 4) * 2.0)
-			var pt := Vector2(snappedf(base.x + off.x, 2.0), snappedf(base.y + off.y, 2.0))
-			var s: float = 4.0 if u < 0.4 else 2.0
-			var col := Color(1.0, 0.82, 0.3, q) if u > 0.33 else Color(1.0, 0.95, 0.7, q)
-			cv.draw_rect(Rect2(pt, Vector2(s, s)), col)
-			if optical and u < 0.5 and i == 0:
-				g.glow_next.append([pt, 4.0, Color(1.0, 0.78, 0.3)])
+	Rush._rush_sfx(self, "dodge", -8.0)
 
 
 var _cmd_waypoint := Vector2.INF
@@ -2455,22 +2348,22 @@ func _anim_state_raw() -> Dictionary:
 		var ltx: Texture2D = anim_tex(lk) if lk != "" else null
 		if ltx != null:
 			var ln: int = anim_hframes(ltx, lk)
-			return {"tex": ltx, "frame": _sq_frame(ln), "hf": ln, "flip": (face < 0.0) != sprite_mirror(lk), "kind": lk}
+			return {"tex": ltx, "frame": SkillSeq._sq_frame(self, ln), "hf": ln, "flip": (face < 0.0) != sprite_mirror(lk), "kind": lk}
 	var tx: Texture2D = anim_tex(anim_kind)
 	if tx == null:
 		tx = anim_tex("idle")
 	if tx == null:
 		return {}
 	var kind: String = anim_kind if anim_tex(anim_kind) != null else "idle"
-	if kind == sq_atk and _sq_atk_yield():
+	if kind == sq_atk and SkillSeq._sq_atk_yield(self):
 		kind = seq_anim(sq.run)
 		tx = anim_tex(kind)
 	var n: int = anim_hframes(tx, kind)
 	var fr := 0
 	if sq_atk != "" and kind == sq_atk:
-		return {"tex": tx, "frame": _sq_atk_frame(n), "hf": n, "flip": (face < 0.0) != sprite_mirror(kind), "kind": kind}
+		return {"tex": tx, "frame": SkillSeq._sq_atk_frame(self, n), "hf": n, "flip": (face < 0.0) != sprite_mirror(kind), "kind": kind}
 	if sq_ph != 0 and kind == _sq_kind():
-		return {"tex": tx, "frame": _sq_frame(n), "hf": n, "flip": (face < 0.0) != sprite_mirror(kind), "kind": kind}
+		return {"tex": tx, "frame": SkillSeq._sq_frame(self, n), "hf": n, "flip": (face < 0.0) != sprite_mirror(kind), "kind": kind}
 	if vis_anim != "" and kind == vis_anim:
 		fr = timed_frame(kind, range(n), anim_t)   # 纯画面动作播一遍，停在末帧
 		return {"tex": tx, "frame": fr, "hf": n, "flip": (face < 0.0) != sprite_mirror(kind), "kind": kind}
@@ -2645,144 +2538,17 @@ func _seq_frames(seg, kind: String) -> Array:
 	return frs
 
 
-## 「段」的时长（秒）
-func _seq_len(seg) -> float:
-	var k := seq_anim(seg)
-	if k == "" or (anim_tex(k) == null and not sprite_spec(k).has("frames")):
-		return 0.0
-	return frames_seconds(k, _seq_frames(seg, k))
-
-
-## 起手：按 skills.sN 的类型设出手窗口并进入序列；没定义 / 缺图返回 false（走单条）
-func _start_skill_seq(aim: Vector2, i: int) -> bool:
-	var q := skill_seq(i)
-	if q.is_empty():
-		return false
-	var hold: bool = q.has("hold")
-	var head = q.get("intro" if hold else "start", q.get("anim", null))
-	var hk := seq_anim(head)
-	if hk == "" or (anim_tex(hk) == null and not sprite_spec(hk).has("frames")):
-		return false
-	if not hold and not q.has("start"):
-		return false   # 只写 anim 的走单条（skill_anim 同义）
-	if aim != Vector2.INF and absf(aim.x - pos.x) > FACE_DEAD:
-		_set_face(signf(aim.x - pos.x))
-	var spec := sprite_spec(hk)
-	var fps := float(spec.get("fps", 12.0))
-	var frs: Array = [0] if (hold and not (head is Dictionary)) else _seq_frames(head, hk)
-	var dur := frames_seconds(hk, frs)
-	var fire_at := dur
-	if hold:
-		dur += float(q.get("hold_ms", 250)) / 1000.0   # 出手 = 定格开始
-	else:
-		var fi: int = frs.find(int(spec.get("fire", 0)))
-		fire_at = float(spec.get("fire_time", (float(fi if fi >= 0 else frs.size() - 1) + 0.5) / fps))
-		if spec.has("logic") and frs.size() == int(spec.get("frames", 0)):
-			var lw := logic_window(spec)
-			dur = lw[0]
-			fire_at = lw[1]
-	_sq_pause(i)
-	sq = q
-	sq_i = i
-	sq_ph = 1
-	sq_t = 0.0
-	sq_own = true
-	sq_atk = ""
-	sq_atk_t = -1.0
-	attack_phased = false
-	act_kind = "skill"
-	act_anim = hk
-	attack_dur = dur
-	attack_t = dur
-	fire_t = fire_at
-	anim_kind = hk
-	anim_t = 0.0
-	return true
-
-
-## 纯画面版起手（play_vis_skill）：同 _start_skill_seq 的序列状态，但不设出手窗口（attack_t / fire_t / act_* 不动）。
-## 起手段仍 sq_own（压过同帧起手的普攻画面，与出手窗口版一致），起手播完 _tick_sq 清掉 sq_own，之后普攻画面压过循环、播完接着循环
-func _start_vis_seq(i: int) -> bool:
-	var q := skill_seq(i)
-	if q.is_empty():
-		return false
-	var hold: bool = q.has("hold")
-	var head = q.get("intro" if hold else "start", null)
-	var hk := seq_anim(head)
-	if hk == "" or anim_tex(hk) == null:
-		return false
-	_sq_pause(i)
-	sq = q
-	sq_i = i
-	sq_ph = 1
-	sq_t = 0.0
-	sq_own = true
-	sq_atk = ""
-	sq_atk_t = -1.0
-	vis_anim = ""
-	anim_kind = hk
-	anim_t = 0.0
-	return true
-
-
-## 当前阶段的「段」
-func _sq_seg():
-	match sq_ph:
-		1:
-			return sq.get("intro" if sq.has("hold") else "start", null)
-		2:
-			if not sq.has("hold") and sq.has("run"):
-				var running: bool = mv > (RUN_EXIT if anim_kind == seq_anim(sq.run) else RUN_ENTER)
-				if running and anim_tex(seq_anim(sq.run)) != null:
-					return sq.run
-			return sq.get("hold" if sq.has("hold") else "loop", null)
-		3:
-			return sq.get("end", null)
-		4:
-			return sq.get("enter", null)
-	return null
-
-
 func _sq_kind() -> String:
 	if sq_ph == 0:
 		return ""
-	var k := seq_anim(_sq_seg())
+	var k := seq_anim(SkillSeq._sq_seg(self))
 	return k if anim_tex(k) != null else ""
-
-
-## 当前阶段的帧号：起手 / 收势按帧表播一遍停末帧，定格 / 循环按 fps 循环
-func _sq_frame(n: int) -> int:
-	var seg = _sq_seg()
-	var k := seq_anim(seg)
-	if sq_ph == 2 and (k == "run" or (sq.has("run") and k == seq_anim(sq.run))):
-		return int(run_ph) % n   # 普通跑步与技能跑步段共享相位，不随技能计时重启；步频随移速（10-24 起非 run 帧条的跑动段也是）
-	var frs: Array = [0] if (sq_ph == 1 and sq.has("hold") and not (seg is Dictionary)) else _seq_frames(seg, k)
-	if frs.is_empty():
-		return 0
-	var elapsed := attack_dur - attack_t if sq_ph == 1 and sq_own and attack_t > 0.0 and act_kind == "skill" and act_anim == k else sq_t
-	return clampi(timed_frame(k, frs, elapsed, sq_ph == 2), 0, n - 1)
 
 
 ## 别的动作起手（_start_action）：起手 / 收势途中作废序列；循环 / 定格期间只是暂时被压过
 ## 锁定序列（json sprites.skills.sN.lock = true）：序列整段（起手 / 持续 / 收势）画面不让给普攻等别的动作，普攻起手也不打断序列（纯显示）
 func seq_locked() -> bool:
 	return sq_ph != 0 and bool(sq.get("lock", false))
-
-
-func _sq_interrupt() -> void:
-	if sq_ph == 1 or sq_ph == 3:
-		_sq_clear()
-	sq_own = false
-	sq_atk = ""   # 新动作起手：变体作废（普攻会在 follow 里按新的出手窗口重新对齐）
-	sq_atk_t = -1.0
-
-
-func _sq_pause(i: int) -> void:
-	for n in range(sq_paused.size() - 1, -1, -1):
-		if sq_paused[n].i == i:
-			sq_paused.remove_at(n)
-	if sq_i != i and sq_ph in [2, 4] and not sq.has("hold"):
-		sq_paused.append({"q": sq, "i": sq_i, "ph": sq_ph, "t": sq_t})
 
 
 func _sq_clear() -> void:
@@ -2801,133 +2567,17 @@ func _sq_clear() -> void:
 			sq_ph = int(saved.ph)
 			sq_t = float(saved.t)
 			return
-		if _seq_len(sq.get("end")) > 0.0:
+		if SkillSeq._seq_len(self, sq.get("end")) > 0.0:
 			sq_ph = 3
 			return
 		sq = {}
 		sq_i = -1
 
 
-## follow() 每帧：推进序列阶段（纯画面）
-func _tick_sq(dt: float) -> void:
-	if sq_ph == 0:
-		return
-	var hold: bool = sq.has("hold")
-	# 施法后的进入段被其他动作遮住时暂停，不改变那些动作的逻辑窗口。
-	if sq_ph != 4 or (attack_t <= 0.0 and vis_anim == ""):
-		sq_t += dt
-	match sq_ph:
-		1:
-			var head = sq.get("intro" if hold else "start")
-			var n1: float = (1.0 / float(sprite_spec(seq_anim(head)).get("fps", 12.0))) if (hold and not (head is Dictionary)) else _seq_len(head)
-			if sq_t >= n1:
-				sq_t = 0.0
-				if not hold:
-					sq_own = false   # start 段结束：出手窗口版此时 attack_t 也正好到 0；纯画面版（play_vis_skill）之后让普攻画面压过循环。hold 的出手窗口覆盖整个定格，保留
-				if hold or skill_active_left(sq_i) > 0.0:
-					sq_ph = 4 if not hold and _seq_len(sq.get("enter")) > 0.0 else 2
-				else:
-					_sq_end()
-		2:
-			if hold:
-				if sq_t >= float(sq.get("hold_ms", 250)) / 1000.0:
-					_sq_clear()
-			elif skill_active_left(sq_i) <= 0.0:
-				sq_t = 0.0
-				_sq_end()
-		4:
-			if skill_active_left(sq_i) <= 0.0:
-				sq_t = 0.0
-				_sq_end()
-			elif sq_t >= _seq_len(sq.get("enter")):
-				sq_t = 0.0
-				sq_ph = 2
-		3:
-			if sq_t >= _seq_len(sq.get("end")):
-				_sq_clear()
-	_tick_sq_atk(dt)
-
-
-## 循环期间的普攻变体（sq.attack）：普攻出手窗口开着（act_anim = "attack"）就从这次起手对齐，attack_t 归零后继续播到末帧再清掉
-func _tick_sq_atk(dt: float) -> void:
-	var k := _sq_atk_kind()
-	if k == "":
-		sq_atk = ""
-		sq_atk_t = -1.0
-		return
-	if attack_t > 0.0 and act_kind == "attack" and act_anim == "attack" and not sq_own:
-		var el: float = attack_dur - attack_t   # 这次普攻已播秒数
-		if sq_atk_t < 0.0 or el < sq_atk_t - 0.0001:
-			sq_atk = k   # 新一次普攻：从头对齐（变体比出手窗口短时播完清掉，同一次普攻不再触发）
-		sq_atk_t = el
-	elif sq_atk != "":
-		sq_atk_t += dt
-	else:
-		return
-	if sq_atk == "":
-		return
-	var spec := sprite_spec(sq_atk)
-	var n := float(spec.get("frames", anim_hframes(anim_tex(sq_atk), sq_atk)))
-	if (sq_atk_t >= attack_dur) if attack_phased else (sq_atk_t + _sq_atk_off() >= frames_seconds(sq_atk, range(int(n)))):
-		sq_atk = ""   # 播完回循环
-
-
-## 移动只暂时让出画面，保留变体时钟；同轮停下可接着收势。
-func _sq_atk_yield() -> bool:
-	if sq_atk == "" or sq_ph != 2 or not sq.has("run") or sq_atk_t < attack_fire_at:
-		return false
-	if anim_tex("move_" + sq_atk) != null:
-		return false   # 变体有跑动版：不让位，_move_swap 换上（10-24 塞雷娅跑动拳击）
-	var spec := sprite_spec(sq_atk)
-	if _sq_atk_frame(int(spec.get("frames", anim_hframes(anim_tex(sq_atk), sq_atk)))) <= int(spec.get("fire", 0)):
-		return false   # 出手帧播完再让（10-24 docs/140，同 act_anim_yield）
-	var run_slot := seq_anim(sq.run)
-	return anim_tex(run_slot) != null and mv > (RUN_EXIT if anim_kind == run_slot else RUN_ENTER)
-
-
-## 当前序列循环阶段可用的普攻变体帧条（"" = 没写 / 缺图 / 不在循环阶段）
-func _sq_atk_kind() -> String:
-	if sq_ph != 2 or sq.has("hold"):
-		return ""
-	var k := seq_anim(sq.get("attack", null))
-	return k if k != "" and anim_tex(k) != null else ""
-
-
-## 变体时间轴相对普攻起手的偏移：变体 fire 帧中点对齐普攻条（attack 槽）的出手时刻；变体时间 = sq_atk_t + 偏移
-func _sq_atk_off() -> float:
-	var vs := sprite_spec(sq_atk)
-	var vfps := float(vs.get("fps", 12.0))
-	var v_fire: float = float(vs.get("fire_time", (float(vs.get("fire", 0)) + 0.5) / vfps))
-	var a := sprite_spec("attack")
-	var a_fire: float = float(a.get("fire_time", (float(a.get("fire", 0)) + 0.5) / float(a.get("fps", 12.0)))) if a.has("fire") else attack_dur * 0.5
-	return v_fire - a_fire
-
-
-func _sq_atk_frame(n: int) -> int:
-	if attack_phased:
-		return attack_phase_frame(n, int(sprite_spec(sq_atk).get("fire", 0)), sq_atk_t, sq_atk)
-	if sprite_spec(sq_atk).has("frame_durations"):
-		return timed_frame(sq_atk, range(n), maxf(0.0, sq_atk_t + _sq_atk_off()))
-	var fps := float(sprite_spec(sq_atk).get("fps", 12.0))
-	return clampi(int(maxf(0.0, sq_atk_t + _sq_atk_off()) * fps), 0, n - 1)
-
-
-func _sq_end() -> void:
-	if _seq_len(sq.get("end")) > 0.0:
-		sq_ph = 3
-	else:
-		_sq_clear()
-
-
 ## 统一序列的影子 [缩放, 不透明度]；序列结束后仍完成回地面的渐变。
 var sq_air := 0.0
 var sq_shadow := Vector2.ONE
 
-func _tick_sq_shadow(dt: float) -> void:
-	if sq_ph != 0:
-		sq_shadow = Vector2(float(sq.get("shadow", 1.0)), float(sq.get("shadow_a", 1.0)))
-	var up: bool = sq_ph == 2 or sq_ph == 4 or (sq_ph == 1 and not sq.has("enter"))
-	sq_air = move_toward(sq_air, 1.0 if up else 0.0, dt / 0.25)
 
 ## 范围圈只在出现的一瞬画（10-31 TA 审阅 docs/208 H1「局内到处是圈」，用户多次说圈突兀）：同一个 key 连续被调用
 ## （每帧都调、中断不超过 0.2 秒）算同一次；第一次调用后 0.25 秒全亮、再 0.35 秒淡到 0，之后返回 0 不再画。只读 g.t，不碰随机数
@@ -3012,7 +2662,7 @@ func draw_body() -> void:
 	# 残影（动态模糊，用户选定方案 A，2026-09-25）：突然冲刺时身后 3–4 个带职业色的渐隐分身，先画在本体下面
 	var c: Color = col().lerp(Color.WHITE, 0.35)
 	if not rush_trail.is_empty():
-		_draw_rush_trail()
+		Rush._draw_rush_trail(self)
 	for gh in ghosts:
 		var a: float = GHOST_ALPHA * (1.0 - gh.age / GHOST_LIFE)
 		draw_sprite_at(gh.p + Vector2(foot_dx(gh.st), 0), gh.st.flip, Color(c.r * 1.4, c.g * 1.4, c.b * 1.4, a), gh.st.frame, gh.st.tex, gh.st.hf, foot_off(gh.st.tex, gh.st.get("kind", "")))
