@@ -793,7 +793,8 @@ func _draw_row(ci: CanvasItem, rr: Rect2, si: int, touch: bool, ty0: float) -> v
 		ci.draw_rect(rr, Color(0.05, 0.2, 0.24, 0.7))
 		ci.draw_rect(Rect2(rr.position, Vector2(3, rr.size.y)), UI.CYAN)
 	UI.text(ci, font, rr.position + Vector2(18, ty0), row.cn, fs_cn, UI.TEXT if on else UI.SUB)
-	UI.en(ci, font, rr.position + Vector2(18, ty0 + 16), row.en, 9, UI.CYAN_DIM, 1.0)
+	if not UI.Loc.en():   # 英文版选项名已是英文，下面那行装饰小英文不再重复（会和变长的英文名叠在一起）
+		UI.en(ci, font, rr.position + Vector2(18, ty0 + 16), row.en, 9, UI.CYAN_DIM, 1.0)
 	if row.has("note"):
 		UI.text(ci, font, rr.position + Vector2(18, ty0 + 35), row.note, 11 if not touch else 13, UI.SUB)
 	var vx := rr.position.x + rr.size.x - (230.0 if not touch else 252.0)   # 触屏数值块左移 22：音量「100」（20 号字）不压到右侧滚动条

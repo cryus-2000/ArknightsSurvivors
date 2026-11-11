@@ -146,7 +146,14 @@ static func s(text: String) -> String:
 	if _cache.size() >= 4096:
 		_cache.clear()
 	_cache[text] = out
+	if record_missing and out == text and _cjk != null and _cjk.search(text) != null:
+		missing[text] = true
 	return out
+
+
+## 截图 / 冒烟时打开：英文模式下查完仍是中文的原文记下来（tests/l10n_shots 跑完写 missing.txt，送去补翻）
+static var record_missing := false
+static var missing := {}
 
 
 ## 整串、模板都查不到时：代码拼出来的文字按常见拼法拆开逐段查（docs/276 §12）。

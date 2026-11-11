@@ -89,17 +89,19 @@ func fs(size: int) -> int:
 func txt(x: float, y: float, text: String, size := 18, col := HH.LIGHT, align := 0, width := -1.0) -> float:
 	if fa <= 0.0 or text == "":
 		return 0.0
+	text = UI.Loc.s(text)   # 本地化（docs/276 §12）：先翻再量、再画
 	var z := fs(size)
 	col = UI.small_ink(col, size)
 	var w: float = s.g.font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, z).x
 	if width > 0.0:
 		w = minf(w, width)
 	var ox := 0.0 if align == 0 else (w * 0.5 if align == 1 else w)
-	ci.draw_string(s.g.font, Vector2(x - ox, y + size), text, HORIZONTAL_ALIGNMENT_LEFT, width, z, Color(col, col.a * fa))
+	ci.draw_string(s.g.font, Vector2(x - ox, y + size), UI.Loc.s(text), HORIZONTAL_ALIGNMENT_LEFT, width, z, Color(col, col.a * fa))
 	return w
 
 
 func tw(text: String, size: int) -> float:
+	text = UI.Loc.s(text)
 	return s.g.font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs(size)).x
 
 
@@ -181,13 +183,13 @@ func odo(x: float, y: float, value: float, kk: float, size := 18, col := HH.LIGH
 	var v: float = float(n_final) if kk >= 1.0 else value * UM.out_cubic(kk)
 	var shown: int = maxi(1, str(int(floor(v))).length())
 	if prefix != "":
-		ci.draw_string(fnt, Vector2(cx, by), prefix, HORIZONTAL_ALIGNMENT_LEFT, -1, z, c)
+		ci.draw_string(fnt, Vector2(cx, by), UI.Loc.s(prefix), HORIZONTAL_ALIGNMENT_LEFT, -1, z, c)
 		cx += tw(prefix, size)
 	var di: int = nd   # 从高位往低位：di = 这一位的位次 + 1
 	for ch in final_s:
 		if not (ch >= "0" and ch <= "9"):
 			if di <= shown:
-				ci.draw_string(fnt, Vector2(cx, by), ch, HORIZONTAL_ALIGNMENT_LEFT, -1, z, c)
+				ci.draw_string(fnt, Vector2(cx, by), UI.Loc.s(ch), HORIZONTAL_ALIGNMENT_LEFT, -1, z, c)
 			cx += cw
 			continue
 		di -= 1
@@ -201,13 +203,13 @@ func odo(x: float, y: float, value: float, kk: float, size := 18, col := HH.LIGH
 			fr = fmod(v, 1.0) if di == 0 else clampf(fmod(v, p10) - (p10 - 1.0), 0.0, 1.0)
 		if fr > 0.0:
 			var off: float = z * 0.8 * fr
-			ci.draw_string(fnt, Vector2(cx, by - off), str(d), HORIZONTAL_ALIGNMENT_LEFT, -1, z, Color(c, c.a * (1.0 - fr)))
-			ci.draw_string(fnt, Vector2(cx, by + z * 0.8 - off), str((d + 1) % 10), HORIZONTAL_ALIGNMENT_LEFT, -1, z, Color(c, c.a * fr))
+			ci.draw_string(fnt, Vector2(cx, by - off), UI.Loc.s(str(d)), HORIZONTAL_ALIGNMENT_LEFT, -1, z, Color(c, c.a * (1.0 - fr)))
+			ci.draw_string(fnt, Vector2(cx, by + z * 0.8 - off), UI.Loc.s(str((d + 1) % 10)), HORIZONTAL_ALIGNMENT_LEFT, -1, z, Color(c, c.a * fr))
 		else:
-			ci.draw_string(fnt, Vector2(cx, by), str(d), HORIZONTAL_ALIGNMENT_LEFT, -1, z, c)
+			ci.draw_string(fnt, Vector2(cx, by), UI.Loc.s(str(d)), HORIZONTAL_ALIGNMENT_LEFT, -1, z, c)
 		cx += dw
 	if suffix != "":
-		ci.draw_string(fnt, Vector2(cx, by), suffix, HORIZONTAL_ALIGNMENT_LEFT, -1, z, c)
+		ci.draw_string(fnt, Vector2(cx, by), UI.Loc.s(suffix), HORIZONTAL_ALIGNMENT_LEFT, -1, z, c)
 
 
 func num(v: float) -> String:

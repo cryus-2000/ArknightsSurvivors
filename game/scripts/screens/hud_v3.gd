@@ -569,7 +569,8 @@ func _cmd_block(x: float, base: float, tile: float, rush: String, md: int, s: fl
 	var tx: float = x + tile + 8.0 * s
 	var nw: float = h.v2.twidth(h.v2.SEG_NAMES[md], int(round(12.0 * s)))
 	h.v2.txt(Vector2(tx, ty + (10.0 if not (g.touch.active and Cfg.phone_ui()) else 18.0) * s), h.v2.SEG_NAMES[md], int(round(12.0 * s)), WHITE)
-	h.v2.cap(Vector2(tx + nw + 5.0 * s, ty + 9.5 * s), MODE_EN[md], 4.6 * s, GREY, 1.4)
+	if not UI.Loc.en():   # 英文版指令名已是英文，不再画装饰小英文
+		h.v2.cap(Vector2(tx + nw + 5.0 * s, ty + 9.5 * s), MODE_EN[md], 4.6 * s, GREY, 1.4)
 	var ph: bool = g.touch.active and Cfg.phone_ui()   # 手机字号有下限（docs/37）：只留指令名与作战时限，加成行和四个小图标不画
 	if not ph:
 		h.v2.txt(Vector2(tx, ty + 20.0 * s), rush if md > 0 else "队友不受伤", int(round(7.2 * s)), GREY)

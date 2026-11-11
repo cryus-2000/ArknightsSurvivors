@@ -2244,6 +2244,52 @@ ui.gd.screens.tour.020,"This is the ally's HP. In Assault, allies will take dama
 ui.gd.screens.tour.021,Click / Any key: Next　Right click / ←: Previous,点击 / 任意键：下一步　右键 / ←：上一步,模型,
 ui.gd.screens.tour.022,Ⓐ: Next　Ⓑ: Skip,Ⓐ：下一步　Ⓑ：跳过,模型,
 ui.gd.screens.tour.023,Tap: Next,点击：下一步,模型,
+ui.gd.screens.settle.settle_base.000,Defeated:,击倒：,模型,
+ui.gd.screens.settle.settle_base.001,Run Terminated,探索终止,模型,
+ui.gd.screens.settle.settle_base.002,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
+ui.gd.screens.settle.settle_base.003,Cursed Antiquity,遭诅古物,模型,
+ui.gd.screens.settle.settle_base.004,Rare,稀有,模型,
+ui.gd.screens.settle.settle_base.005,Share Record,分享战绩,模型,
+ui.gd.screens.settle.settle_base.006,Share  V,分享  V,模型,
+ui.gd.screens.settle.settle_base.007,Feedback,意见反馈,模型,
+ui.gd.screens.settle.settle_base.008,Combat Stats  SELECT,作战数据  SELECT,模型,
+ui.gd.screens.settle.settle_base.009,Combat Stats,作战数据,模型,
+ui.gd.screens.settle.settle_base.010,Combat Stats  Tab,作战数据  Tab,模型,
+ui.gd.screens.settle.settle_base.011,Run Record,对局记录,模型,
+ui.gd.screens.settle.settle_base.012,Back to Main UI  B,返回主界面  B,模型,
+ui.gd.screens.settle.settle_base.013,Back to Main UI,返回主界面,模型,
+ui.gd.screens.settle.settle_base.014,Back to Main UI  Esc,返回主界面  Esc,模型,
+ui.gd.screens.settle.settle_base.015,Cognitive Shaping  Y,认知塑造  Y,模型,
+ui.gd.screens.settle.settle_base.016,Cognitive Shaping,认知塑造,模型,
+ui.gd.screens.settle.settle_base.017,Cognitive Shaping  X,认知塑造  X,模型,
+ui.gd.screens.settle.settle_base.018,Headhunt (Owned %d)  A,寻访（持有 %d）  A,模型,
+ui.gd.screens.settle.settle_base.019,Headhunt (Owned %d),寻访（持有 %d）,模型,
+ui.gd.screens.settle.settle_base.020,Headhunt (Owned %d)  Enter,寻访（持有 %d）  Enter,模型,
+ui.gd.screens.settle.settle_report.000,Run Complete,探索完成,校对,校对：Run Done过于口语化，Complete更符合游戏结算界面风格
+ui.gd.screens.settle.settle_report.001,Run Terminated,探索终止,模型,
+ui.gd.screens.settle.settle_report.002,Run Time %s  ·  %s,探索用时 %s  ·  %s,校对,校对：Run Time Taken 略显累赘，Run Time 更符合英语习惯
+ui.gd.screens.settle.settle_report.003,Leader  Lv.%d,队长  Lv.%d,模型,
+ui.gd.screens.settle.settle_report.004,Defeated,击倒,模型,
+ui.gd.screens.settle.settle_report.005,|  02 / Combat Stats,|  02 / 作战数据,模型,
+ui.gd.screens.settle.settle_report.006,Total Damage,总伤害,模型,
+ui.gd.screens.settle.settle_report.007,%s Per Second,每秒 %s,模型,
+ui.gd.screens.settle.settle_report.008,Enemies Defeated,击败敌人,模型,
+ui.gd.screens.settle.settle_report.009,Elite %d,精英 %d,模型,
+ui.gd.screens.settle.settle_report.010,Max Single Hit,最高单次,模型,
+ui.gd.screens.settle.settle_report.011,Boss Kills,Boss 击破,模型,
+ui.gd.screens.settle.settle_report.012,Damage Taken,受到伤害,模型,
+ui.gd.screens.settle.settle_report.013,HP Recovery,生命回复,模型,
+ui.gd.screens.settle.settle_report.014,|  03 / Squad Output,|  03 / 编队输出,模型,
+ui.gd.screens.settle.settle_report.015,%d Targets,%d 名,校对,校对：“名”在数字后是量词，指代目标数量，误译为了名字（Name）。
+ui.gd.screens.settle.settle_report.016,Gained This Run,本局获得,模型,
+ui.gd.screens.settle.settle_report.017,Vital Cells,生机细胞,暂定,暂定（docs/276 §3.6）
+ui.gd.screens.settle.settle_report.018,Headhunting Permit,寻访凭证,模型,
+ui.gd.screens.settle.settle_report.019,Not Issued if Uncleared,未通关不发放,模型,
+ui.gd.screens.settle.settle_report.020,"Available Vital Cells %d · 1 Permit costs %d, shared with Cognitive Shaping",可用生机细胞 %d · 兑换 1 张凭证消耗 %d 个，与认知塑造共用,模型,
+ui.gd.screens.settle.settle_report.021,Redeemed %d Headhunting Permits · Currently Owned %d · Remaining Vital Cells %d,已兑换 %d 张寻访凭证 · 现持有 %d 张 · 剩余生机细胞 %d,模型,
+ui.gd.screens.settle.settle_report.022,Available Vital Cells %d · %d more needed for 1 Permit,可用生机细胞 %d · 兑换 1 张凭证还需 %d 个,模型,
+ui.gd.screens.settle.settle_report.023,Cursed Antiquity,遭诅古物,模型,
+ui.gd.screens.settle.settle_report.024,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
 ui.gd.core.bot.000,Guard,近卫,官方,character_table profession（data.gd CLASS_EN）
 ui.gd.core.bot.001,Defender,重装,官方,character_table profession（data.gd CLASS_EN）
 ui.gd.core.bot.002,Vanguard,先锋,官方,character_table profession（data.gd CLASS_EN）
@@ -4258,6 +4304,15 @@ WASD 移动，空格冲刺，冲刺中无敌。,"WASD to move, Space to dash, in
 点击 / 任意键：下一步　右键 / ←：上一步,Click / Any key: Next　Right click / ←: Previous,,原文键,模型
 Ⓐ：下一步　Ⓑ：跳过,Ⓐ: Next　Ⓑ: Skip,,原文键,模型
 点击：下一步,Tap: Next,,原文键,模型
+|  02 / 作战数据,|  02 / Combat Stats,,原文键,模型
+每秒 %s,%s Per Second,,原文键,模型
+精英 %d,Elite %d,,原文键,模型
+Boss 击破,Boss Kills,,原文键,模型
+受到伤害,Damage Taken,,原文键,模型
+|  03 / 编队输出,|  03 / Squad Output,,原文键,模型
+可用生机细胞 %d · 兑换 1 张凭证消耗 %d 个，与认知塑造共用,"Available Vital Cells %d · 1 Permit costs %d, shared with Cognitive Shaping",,原文键,模型
+已兑换 %d 张寻访凭证 · 现持有 %d 张 · 剩余生机细胞 %d,Redeemed %d Headhunting Permits · Currently Owned %d · Remaining Vital Cells %d,,原文键,模型
+可用生机细胞 %d · 兑换 1 张凭证还需 %d 个,Available Vital Cells %d · %d more needed for 1 Permit,,原文键,模型
 头格式不对,Invalid header format,,原文键,模型
 版本号不对：v=%d minv=%d,Incorrect version: v=%d minv=%d,,原文键,模型
 云端存档要求版本 %d，本版 %d,"Cloud save data requires version %d, current version %d",,原文键,校对

@@ -36,8 +36,16 @@ func shot(name: String) -> void:
 
 func run() -> void:
 	print("L10N lang=", Loc.lang)
+	Loc.record_missing = true
 	await title_part()
 	await game_part()
+	# 英文模式下仍是中文的原文（拆段后查不到的片段等）：写进出图目录，tools/l10n 收去补翻
+	if Loc.lang == "en":
+		var mf := FileAccess.open(dir.path_join("missing_%s.txt" % tag), FileAccess.WRITE)
+		if mf != null:
+			for t in Loc.missing.keys():
+				mf.store_line(JSON.stringify(t))
+	print("L10N MISSING %d" % Loc.missing.size())
 	print("L10N SHOTS done=%d" % count)
 	get_tree().quit(0)
 

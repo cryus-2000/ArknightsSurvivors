@@ -1,4 +1,5 @@
 extends "res://scripts/screens/settle/settle_base.gd"
+const Loc = preload("res://scripts/core/loc.gd")   # 本地化（docs/276 §10）
 const Meta = preload("res://scripts/core/meta.gd")
 ## 方向 A「作战报告」：海报式（docs/125 §4.4 S1 / S2 / S5）。巨型描边英文结果横贯上缘，左侧暗斜板放队长立绘，
 ## 右侧是数据格 + 编队输出条，下缘一条「本局获得」。层级：结果 + 评级 ≫ 队长 ≫ 数据。

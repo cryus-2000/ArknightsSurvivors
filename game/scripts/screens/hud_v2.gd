@@ -78,7 +78,7 @@ func txt(pos: Vector2, s: String, size: int, col: Color = UI.TEXT, align := HORI
 
 
 func twidth(s: String, size: int) -> float:
-	return g.font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, UI._ks(g.hud, size)).x
+	return g.font.get_string_size(UI.Loc.s(s), HORIZONTAL_ALIGNMENT_LEFT, -1, UI._ks(g.hud, size)).x   # 按译文量（docs/276 §12）
 
 
 ## 一根细线做条：暗线打底，亮线填到 frac，线头一颗点；marks = 刻度位置（0..1）

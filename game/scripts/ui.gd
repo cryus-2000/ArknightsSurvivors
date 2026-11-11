@@ -1357,6 +1357,9 @@ static func class_box(ci: CanvasItem, pos: Vector2, s: float, cls: String, on :=
 ## 大数字：微型英文代码 + 小号中文标签，下方大号数值（右侧数据面板）；返回数值宽度
 static func stat_big(ci: CanvasItem, font: Font, pos: Vector2, label: String, en_s: String, val: String, size := 22, ink := C_L_INK, sub := C_L_SUB, a := 1.0) -> float:
 	label = Loc.s(label)   # 本地化（docs/276 §10）：中文模式原样返回
+	if Loc.en():   # 英文版：只写一个标签（英文缩写），不再并排中文名的译文（HP / HP、ATK / Mon3tr 会挤在一起）
+		code(ci, font, pos, en_s if en_s != "" else label, 8, fa(sub, a))
+		return text_at(ci, font, pos + Vector2(0, 12), val, size, fa(ink, a), "la", size >= 18)
 	var ew := code(ci, font, pos, en_s, 8, fa(sub, a))
 	text_at(ci, font, pos + Vector2(ew + 4, -2), label, 9, fa(sub, a))
 	return text_at(ci, font, pos + Vector2(0, 12), val, size, fa(ink, a), "la", size >= 18)

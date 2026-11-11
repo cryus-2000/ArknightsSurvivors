@@ -241,7 +241,7 @@ def extract():
 # 显示时 ui.gd 助手按原文查表（Loc.s），所以这些键只作 CSV 行标识，代码不引用；json 不改结构
 MODULES = {
     "ui": {"json": ["guide.json", "onboard.json", "credits.json", "balance.json", "boot_order.json", "boot_operator_order.json", "doctor.json"],
-           "gd": ["scripts/*.gd", "scripts/screens/*.gd", "scripts/core/*.gd", "scripts/render/*.gd", "scripts/world/*.gd"],
+           "gd": ["scripts/*.gd", "scripts/screens/*.gd", "scripts/screens/settle/*.gd", "scripts/core/*.gd", "scripts/render/*.gd", "scripts/world/*.gd", "scripts/native/*.gd"],
            "skip": ["screens/ak_mock.gd", "core/perf_report.gd", "core/loc.gd", "screens/perf_view.gd"]},
     "relics": {"json": ["relics.json", "relic_effects.json"], "gd": [], "skip": []},
     "events": {"json": ["waves.json", "events_v2.json"], "gd": [], "skip": []},
