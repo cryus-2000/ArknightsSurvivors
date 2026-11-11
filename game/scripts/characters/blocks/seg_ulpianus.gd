@@ -1245,7 +1245,7 @@ static func hw_hook_start(o, b: Dictionary) -> void:
 
 ## 钩索随攻速加速的倍率：op_aspd > 1 才加速（≤ 1 保持原时长），atkspeed/hook_follow = 0 关闭（对照用）
 static func hook_speedup(o) -> float:
-	if BranchBal.v("atkspeed/hook_follow", 1.0) < 0.5:
+	if MfBal.v("atkspeed/hook_follow", 1.0) < 0.5:
 		return 1.0
 	return maxf(1.0, o.stat(&"op_aspd"))
 
