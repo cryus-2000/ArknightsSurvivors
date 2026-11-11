@@ -14,8 +14,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GAME = os.path.join(ROOT, "game")
 
 
-def one(godot, op, mult, secs, skills=False, timeout=900):
-    args = [godot, "--headless", "--path", GAME, "res://tests/atk_rate_test.tscn", "--", "--balance", "--bot=afk", "--nodeath",
+def one(godot, op, mult, secs, skills=False, fps=240, timeout=1500):
+    args = [godot, "--headless", "--fixed-fps", str(fps), "--path", GAME, "res://tests/atk_rate_test.tscn", "--", "--balance", "--bot=afk", "--nodeath",
             "--seed=1", "--op=" + op, "--rate_op=" + op, "--rate_mult=%g" % mult, "--rate_secs=%g" % secs] + (["--rate_skills"] if skills else [])
     out, err, to = GR.run_godot(args, timeout)
     m = re.search(r"^ATKRATE (\{.*\})\s*$", out, re.M)
@@ -29,6 +29,7 @@ def main():
     ap.add_argument("--mults", default="1,2,4")
     ap.add_argument("--secs", type=float, default=30)
     ap.add_argument("--skills", action="store_true", help="技能开着：额外按动作条列出窗口 > 出手间隔的次数")
+    ap.add_argument("--fps", type=int, default=240, help="固定帧率（--fixed-fps）：越高越没有帧取整误差，60 = 实机")
     ap.add_argument("--jobs", type=int, default=2)
     ap.add_argument("--out", default=os.path.join(ROOT, "build", "atk_rate"))
     a = ap.parse_args()
@@ -38,7 +39,7 @@ def main():
     godot = GR.find_godot()
     jobs = [(o, m) for o in ops for m in mults]
     with ThreadPoolExecutor(a.jobs) as ex:
-        res = list(ex.map(lambda j: one(godot, j[0], j[1], a.secs, a.skills), jobs))
+        res = list(ex.map(lambda j: one(godot, j[0], j[1], a.secs, a.skills, a.fps), jobs))
     json.dump(res, open(os.path.join(a.out, "atk_rate_skills.json" if a.skills else "atk_rate.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     by = {(r["op"], r["mult"]): r for r in res}
     lines = ["| 干员 | 倍率 | 面板间隔 s | 实测均间隔 s | 理论出手 | 实测出手 | 偏差 | 起手 | 动作窗口 s | 最大间隔 s | 动作窗口÷间隔 |", "|---|---|---|---|---|---|---|---|---|---|---|"]
