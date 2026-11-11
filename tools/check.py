@@ -249,6 +249,14 @@ def check_op_text():
     return {"name": "干员文字数值 op_text_check", "ok": not errs, "detail": detail, "errors": errs[:8]}
 
 
+def check_desc_values():
+    """不开 Godot（约 1 秒）：藏品说明里的每个数字都对得上数据或已核过的代码值（tools/desc_value_audit.py + desc_value_allow.json，docs/335 §2.1）"""
+    import desc_value_audit
+    rows, sus = desc_value_audit.audit()
+    errs = ["%s %s 说明多出 %s：%s" % (x["kind"], x["id"], x["extra"], x["desc"][:60]) for x in sus]
+    return {"name": "藏品说明数字 desc_values", "ok": not errs, "detail": "%d 条，疑点 %d" % (len(rows), len(sus)), "errors": errs[:8]}
+
+
 def check_ob_tag():
     """不开 Godot（约 1 秒）：积木瞬时执行器 tag 两两不重叠、data_operator 的单播表 EXEC_SEG 与各执行器分支一致（tools/ob_tag_audit.py，docs/101 §7.3.7）"""
     import ob_tag_audit
@@ -1239,6 +1247,7 @@ SCENE_REGRESSIONS = {
     "web_focus": ("失焦保护（docs/317）：失焦后摇杆 / 按键 / 鼠标松开、圆盘取消不下令、选点取消、对局自动暂停、非对局状态回来补暂停", "web_focus_test", r"WEB FOCUS failures=0", ["--touch", "--focustest", "--focuspause", "--op=mizuki", "--squad=hoshiguma,exusiai"]),
     "toy_support": ("B站 Toy「支持作者」（docs/313）：模拟 SDK 关注 / 三连 / unsupported / 未登录，每项只发一次 5 张凭证、关注解锁罗德岛边框 / 三连解锁深海边框、云存档并集、浮层提示", "toy_support_test", r"TOY SUPPORT failures=0", ["--fbtoy", "--toybv=BV1xx411c7mD"]),
     "feedback_code": ("反馈码（docs/311）：没配目标不显示入口、字母表 + 校验位、同摘要同码、改一项就变", "feedback_code_test", r"FEEDBACK failures=0", []),
+    "calc_truth": ("计算正确性（docs/335 §2）：属性块计算顺序、伤害链（照亮 / 弱点 / 防御 / 精英 / Boss 倍率与 4% 单次上限 / 破绽 / 终结技 / 处决）、受伤链（护甲 / 法抗封顶 / Boss 40% 与 2 秒 68% / 全来源 70%）、纯属性藏品逐件接线与叠层递减、入队台阶、指南写出的数与旋钮一致", "calc_truth_test", r"CALC TRUTH failures=0", ["--balance", "--seed=1", "--op=skadi", "--squad=kaltsit,texas"]),
     "card_desc": ("卡片描述不串台：公共成长 / 填充 / 支援卡不含队长手动技能提示（10-22 截图），干员卡只提自己的技能", "card_desc_test", r"CARD DESC failures=0", ["--balance", "--op=ulpianus", "--squad=skadi,angelina"]),
     "recruit_offer": ("入队邀请二选一（docs/252，用户 11-05）：铜印 / 银印 / 立即招募事件机器人同一帧接受、玩家局弹「接受入队 / 婉拒」并暂停，数字键 / 方向键回车 / 点卡都能选，婉拒给成长三选一（银印另加全队推进），满员不弹", "recruit_offer_test", r"RECRUIT OFFER failures=0", ["--bal=ult/rework=0", "--bal=growth/late_shape=0", "--bal=growth/visible_nodes=0", "--bal=growth/elite_show=0", "--balance", "--seed=1", "--op=eyjafjalla"]),
     "recruit_offer_touch": ("入队邀请二选一 · 触屏排版（同上，--touch）", "recruit_offer_test", r"RECRUIT OFFER failures=0", ["--bal=ult/rework=0", "--bal=growth/late_shape=0", "--bal=growth/visible_nodes=0", "--bal=growth/elite_show=0", "--balance", "--seed=1", "--op=eyjafjalla", "--touch"]),
@@ -1404,7 +1413,7 @@ def main():
     ap.add_argument("--ab", metavar="REF", help="与某个提交做 A/B 对比（机器人标准矩阵）")
     ap.add_argument("--seeds", type=int, default=4)
     ap.add_argument("--keep", action="store_true", help="A/B 结束后保留临时工作树")
-    ap.add_argument("--only", choices=["core", "smoke", "nodes", "hold_aim", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "node_cue_lint", "data_lint", "graph_lint", "check_map", "text_reconcile", "shader_lint", "px_lint", "enemy_art", "asset_lint", "asset_index", "onboard_reload", "opening_transport", "web_music"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
+    ap.add_argument("--only", choices=["core", "smoke", "nodes", "hold_aim", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "desc_values", "ob_tag", "cc_lint", "node_cue_lint", "data_lint", "graph_lint", "check_map", "text_reconcile", "shader_lint", "px_lint", "enemy_art", "asset_lint", "asset_index", "onboard_reload", "opening_transport", "web_music"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
     ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS,
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
     ap.add_argument("--bal", action="append", default=[], metavar="段/键=值",
@@ -1454,6 +1463,8 @@ def main():
         jobs.append(check_art_lint)   # 不开 Godot，约 10 秒；--auto 也跑（只改美术时这是唯一相关项）
     if a.only in (None, "slim"):
         jobs.append(check_release_slim)   # 不开 Godot，约 5 秒；--auto 也跑（改文案 / 美术 / 预设都可能碰到）
+    if a.only in (None, "desc_values"):
+        jobs.append(check_desc_values)   # 不开 Godot，约 1 秒（docs/335）
     if a.only in (None, "op_text"):
         jobs.append(check_op_text)   # 不开 Godot，约 1 秒；--auto 也跑（改干员数值或文字都要对一遍）
     if a.only in (None, "ob_tag"):
