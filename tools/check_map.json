@@ -110,7 +110,8 @@
     "toy_support",
     "web_focus",
     "time_scale_combo",
-    "ui_smoke"
+    "ui_smoke",
+    "lifecycle_cycle"
    ]
   },
   "render": {

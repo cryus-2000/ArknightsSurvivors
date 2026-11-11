@@ -2755,6 +2755,7 @@ func _exit_tree() -> void:
 		if demo_op == "":
 			perf_rep.finish("quit")
 			CrashBox.end("quit")
+	panel_ui.release()
 	if demo_op == "":
 		_release_run()
 
