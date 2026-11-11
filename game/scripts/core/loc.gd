@@ -188,7 +188,10 @@ static func _split_fallback(text: String) -> String:
 		if not text.contains("\n\n") and text.count("\n") <= 2:
 			for jc in ["", "：", "·"]:   # 折在冒号 / 中点处的（「指令：结构加固」排成两行、冒号被吃掉）把它补回来
 				var jn0 := text.replace("\n", jc)
+				var rm0 := record_missing
+				record_missing = false   # 试拼出来的串查不到不算缺译（不然 missing 里全是两行粘在一起的假条目）
 				var je0 := s(jn0)
+				record_missing = rm0
 				if je0 != jn0 and _cjk.search(je0) == null:
 					return je0
 		var lines := text.split("\n")

@@ -507,9 +507,15 @@ func _op_entry(cid: String, cd: Dictionary) -> Dictionary:
 	var lines: Array = []
 	for si in cd.get("skills", []).size():
 		var sk3: Dictionary = cd.skills[si]
-		lines.append("S%d「%s」：%s" % [si + 1, sk3.get("name", ""), sk3.get("desc", "")])
+		if UI.Loc.en():   # 本地化：名字 / 说明分开查（拼好再折行，折在名字中间就查不到了）
+			lines.append("S%d \"%s\": %s" % [si + 1, UI.Loc.s(str(sk3.get("name", ""))), UI.Loc.s(str(sk3.get("desc", "")))])
+		else:
+			lines.append("S%d「%s」：%s" % [si + 1, sk3.get("name", ""), sk3.get("desc", "")])
 	if cd.has("talent"):
-		lines.append("天赋「%s」（精英一解锁）：%s" % [cd.talent.get("name", ""), cd.talent.get("desc", "")])
+		if UI.Loc.en():
+			lines.append("Talent \"%s\" (Elite 1): %s" % [UI.Loc.s(str(cd.talent.get("name", ""))), UI.Loc.s(str(cd.talent.get("desc", "")))])
+		else:
+			lines.append("天赋「%s」（精英一解锁）：%s" % [cd.talent.get("name", ""), cd.talent.get("desc", "")])
 	if not lines.is_empty():
 		mech += "\n" + "\n".join(lines)
 	var st: Array = []

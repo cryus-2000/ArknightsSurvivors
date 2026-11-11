@@ -153,6 +153,14 @@ func game_part() -> void:
 	g.state = g.S.PAUSE
 	await _cards(g, 20)
 	await shot("10_pause")
+	# 局内指南（暂停菜单打开的完整版；11-12 指南页改版后逐页截，按正文栏高度自动拆页）
+	g.intro_screen.open(g.S.PAUSE)
+	for vi in g.intro_screen.view_count():
+		g.intro_page = vi
+		await _cards(g, 12)
+		await shot("10b_guide_%02d" % vi)
+	g.state = g.S.PAUSE   # 不走 close()：那里会写存档
+	g.state = g.S.PLAY
 	const RS = preload("res://scripts/run/run_stats.gd")
 	var fake = RS.model(RS.fake_raw())
 	g.set_process(true)   # 结算 / 作战记录的入场动画靠 _process 推进（ui_smoke 同样开着）

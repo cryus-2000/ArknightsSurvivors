@@ -3,8 +3,8 @@ ui.guide.pages.0.title,HP and Light,生命与灯火,校对,校对：“与”翻
 ui.guide.pages.0.lines.0,"Light | Lost on hit, replenished by picking up Lamp Oil. < 30 Dim: take more damage; 0 Out: lose 3 HP per second.",灯火｜受击时损失，拾取灯油补充。< 30 暗淡：受到伤害更多；0 寂灭：每秒失去 3 点生命。,校对,校对：修正不必要的大写（lose 3 HP per second）
 ui.guide.pages.0.lines.1,"Nethersea Brand | Purple-black Nethersea Brand on the ground Slows and deals continuous damage, requires igniting a Guiding Beacon to cleanse.",溟痕｜地面的紫黑色溟痕会减速并持续伤害，点燃引航灯标才能净化。,校对,校对：修正不必要的大写（damage），优化表达（requires igniting）
 ui.guide.pages.0.more.0,"HP | If the Leader's HP reaches zero, the run fails. For each additional Operator in the squad, Max HP +{hp_per_member}%, recovery +{regen_per_member} / sec.",生命｜队长生命归零即探索失败。编队每多一名干员，最大生命 +{hp_per_member}%、回复 +{regen_per_member} / 秒。,校对,校对：修正不必要的大写（recovery）
-ui.guide.pages.0.more.1,"Bright | Light ≥ 70: SP recovery +30%, pick up range +20%. When Dim, damage taken +{dark_taken}%, Seaborn movement speed and contact damage +{dark_enemy}%.",通明｜灯火 ≥ 70：技力回复 +30%，拾取范围 +20%。暗淡时受到伤害 +{dark_taken}%，海嗣移速与接触伤害 +{dark_enemy}%。,校对,校对：统一术语（movement speed），修正不必要的大写
-ui.guide.pages.0.more.2,"Illuminated | Range radius varies between 110 and 360 and Light. When Light weakens, the ring shrinks but brightness remains unchanged. Enemies within the ring take +25% damage.",照亮｜范围半径在 110 与 360 之间随灯火变化，灯火变弱时圈缩小、亮度不变。圈内敌人受到伤害 +25%。,模型,
+ui.guide.pages.0.more.1,"Bright | Light ≥ 70: SP Recovery +30%, Pick Up Range +20%. When Dim, damage taken +{dark_taken}%, Pick Up Range -30%, Seaborn movement speed and contact damage +{dark_enemy}%.",通明｜灯火 ≥ 70：技力回复 +30%，拾取范围 +20%。暗淡时受到伤害 +{dark_taken}%，拾取范围 -30%，海嗣移速与接触伤害 +{dark_enemy}%。,校对,校对：术语统一（移动速度 -> movement speed），修正大小写
+ui.guide.pages.0.more.2,"Illuminated | Range radius varies between 110 and 360 with Light; when Light weakens, the ring shrinks but brightness remains unchanged. Enemies within the ring have damage taken +{lit_bonus}%, +{lit_bonus_hi}% when Bright.",照亮｜范围半径在 110 与 360 之间随灯火变化，灯火变弱时圈缩小、亮度不变。圈内敌人受到伤害 +{lit_bonus}%，通明时 +{lit_bonus_hi}%。,校对,校对：误译（随灯火变化应为 with Light 而非 and Light），修正大小写
 ui.guide.pages.0.more.3,"Black Tide | From 2:30, the Safe Zone shrinks in 4 phases. Take continuous damage outside the zone. Move into the white dashed circle when 'Black Tide Approaching' appears.",黑潮｜2:30 起安全区分 4 轮收缩，圈外持续受伤，看到「黑潮将至」就往白色虚线圈里走。,模型,
 ui.guide.pages.1.title,Command,指挥,暂定,暂定（docs/276 §3.6）
 ui.guide.pages.1.lines.0,"Disk | Press F (Controller LB, Touch 'Command' button) to open, select Formation and Targeting preference.",圆盘｜按 F（手柄 LB，触屏「指挥」键）打开，选队形与索敌偏好。,模型,
@@ -319,6 +319,7 @@ ui.boot_operator_order.67.1,Operator Block,干员积木,模型,
 ui.boot_operator_order.68.1,Operator Block,干员积木,模型,
 ui.doctor.name,Doctor,博士,模型,
 ui.gd.art.000,window.__syPhase='Setup · %s',window.__syPhase='建局·%s',模型,
+ui.gd.art.001,White:,白:,模型,
 ui.gd.boss_ai.000,Tidal Twins Defeated Simultaneously,接潮双体 同时倒下,模型,
 ui.gd.boss_ai.001,Revive (%d / %d),复苏（%d / %d）,模型,
 ui.gd.boss_ai.002,Unified,统一,模型,
@@ -389,7 +390,7 @@ ui.gd.data.042,Undertow,暗涌,模型,
 ui.gd.data.043,Enemy HP and damage dealt +20%.,敌人生命与造成的伤害 +20%。,模型,
 ui.gd.data.044,Tide Level 4 · Cold Current,潮位 4 · 寒流,模型,
 ui.gd.data.045,Cold Current,寒流,模型,
-ui.gd.data.046,"We Many scale +20%; mob control advanced to 5:00, 2 stacks of Frost inflicts Frozen.",大群规模 +20%；小怪控制提前到 5:00，寒霜 2 层即冻结。,模型,
+ui.gd.data.046,"We Many scale +20%; Normal Enemy Frost, Bind, and Wound advanced to 5:00, 2 stacks of Frost inflict Frozen.",大群规模 +20%；普通敌人的寒霜、束缚、创口提前到 5:00，寒霜 2 层即冻结。,校对,校对：语法错误（2 stacks 复数，动词应为 inflict）
 ui.gd.data.047,Tide Level 5 · Stranded,潮位 5 · 搁浅,模型,
 ui.gd.data.048,Stranded,搁浅,模型,
 ui.gd.data.049,"Leader initial Max HP -10%; Lamp Oil drop penalty increased to -40%, Originium Ingot penalty increased to -25%.",队长初始最大生命 -10%；灯油掉落加重到 -40%，源石锭加重到 -25%。,模型,
@@ -428,7 +429,7 @@ ui.gd.data.081,We Many scale +%d%%,大群规模 +%d%%,校对,校对：修正不�
 ui.gd.data.082,We Many attacks as usual when Boss is present,Boss 在场时大群照常来袭,模型,
 ui.gd.data.083,Nethersea Brand damage +%d%%,溟痕伤害 +%d%%,校对,校对：修正不必要的大写（Damage -> damage）
 ui.gd.data.084,Nervous Impairment buildup +%d%%,神经损伤累积 +%d%%,模型,
-ui.gd.data.085,Mob control advanced to %d:%02d,小怪控制提前到 %d:%02d,模型,
+ui.gd.data.085,"Normal Enemy Frost, Bind, and Wound advanced to %d:%02d",普通敌人的寒霜、束缚、创口提前到 %d:%02d,模型,
 ui.gd.data.086,Frozen at %d stacks of Frost,寒霜 %d 层即冻结,模型,
 ui.gd.data.087,Affix advanced to %d:%02d,词条提前到 %d:%02d,模型,
 ui.gd.data.088,Affix probability cap %d%%,词条概率上限 %d%%,模型,
@@ -483,7 +484,7 @@ ui.gd.endings.040,Originium Ingot -%d,源石锭 -%d,模型,
 ui.gd.endings.041,Cursed Relic,遭诅藏品,模型,
 ui.gd.endings.042,Ally temporarily leaves for %ds,队友暂离 %d 秒,模型,
 ui.gd.endings.043,Ally Leaves,队友离队,模型,
-ui.gd.endings.044,%ds Elite Enemy,%d 秒强敌,模型,
+ui.gd.endings.044,Enemy Buffed %ds,敌人强化 %d 秒,模型,
 ui.gd.endings.045,Defeat %d within %ds,%d 秒内击败 %d,模型,
 ui.gd.endings.046,%s Relic,%s藏品,模型,
 ui.gd.endings.047,Choose 1 of Three Relics,藏品三选一,模型,
@@ -533,7 +534,7 @@ ui.gd.endings.090,Commission Done: %s,委托完成：%s,模型,
 ui.gd.endings.091,Commission incomplete: %s,委托未完成：%s,模型,
 ui.gd.endings.092,Squad Full. '%s' stays in the safe house — supplies delivered as usual.,编队已满，「%s」留在安全屋 —— 物资照常送到,模型,
 ui.gd.endings.093,'%s' Regroups with supplies,「%s」带着物资归队,模型,
-ui.gd.endings.094,Commission · Formidable Enemy %ds,委托 · 强敌 %d 秒,模型,
+ui.gd.endings.094,Commission · Enemy Buffed %ds,委托 · 敌人强化 %d 秒,模型,
 ui.gd.endings.095,Commission · Defeat Elite squad,委托 · 击败精英小队,模型,
 ui.gd.endings.096,Commission · Defeat %d/%d,委托 · 击败 %d/%d,模型,
 ui.gd.endings.097,%s leaves for %ds,%s 暂离 %d 秒,模型,
@@ -577,154 +578,154 @@ ui.gd.gallery.032,Profile,档案,模型,
 ui.gd.gallery.033,Stats,属性,模型,
 ui.gd.gallery.034,Skill,技能,模型,
 ui.gd.gallery.035,Growth,成长,模型,
-ui.gd.gallery.036,Idle,待机,模型,
-ui.gd.gallery.037,Run,跑步,模型,
-ui.gd.gallery.038,Hit,受击,人改,跨模块统一（review/canon.json）
-ui.gd.gallery.039,Defeat,倒下,模型,
-ui.gd.gallery.040,"Not recruited.
+ui.gd.gallery.036,Archive,图鉴,模型,
+ui.gd.gallery.037,Idle,待机,模型,
+ui.gd.gallery.038,Run,跑步,模型,
+ui.gd.gallery.039,Hit,受击,人改,跨模块统一（review/canon.json）
+ui.gd.gallery.040,Defeat,倒下,模型,
+ui.gd.gallery.041,"Not recruited.
 
 Unlock with Headhunting Permit after run settlement.","未招募。
 
 探索结算后用寻访凭证解锁。",校对,校对：修正不必要的大写（settlement）
-ui.gd.gallery.041,Preview,演示,模型,
-ui.gd.gallery.042,Melee,近战,模型,
-ui.gd.gallery.043,Ranged,远程,模型,
-ui.gd.gallery.044,Fixed,固定,模型,
-ui.gd.gallery.045,HP,生命,模型,
-ui.gd.gallery.046,Damage,伤害,模型,
-ui.gd.gallery.047,movement speed,移速,校对,校对：统一固定术语 movement speed
-ui.gd.gallery.048,Type,类型,模型,
-ui.gd.gallery.049,Range,射程,模型,
-ui.gd.gallery.050,Weight,体型,模型,
-ui.gd.gallery.051,Corrosion,侵蚀,模型,
-ui.gd.gallery.052,Nervous Impairment,神经损伤,官方,gamedata_const.termDescriptionDict.ba.dt.neural
-ui.gd.gallery.053,Levitate,悬浮,模型,
-ui.gd.gallery.054,Paired,成对,模型,
-ui.gd.gallery.055,Reload,装填,模型,
-ui.gd.gallery.056,"
+ui.gd.gallery.042,Preview,演示,模型,
+ui.gd.gallery.043,Melee,近战,模型,
+ui.gd.gallery.044,Ranged,远程,模型,
+ui.gd.gallery.045,Fixed,固定,模型,
+ui.gd.gallery.046,HP,生命,模型,
+ui.gd.gallery.047,Damage,伤害,模型,
+ui.gd.gallery.048,movement speed,移速,校对,校对：统一固定术语 movement speed
+ui.gd.gallery.049,Type,类型,模型,
+ui.gd.gallery.050,Range,射程,模型,
+ui.gd.gallery.051,Weight,体型,模型,
+ui.gd.gallery.052,Corrosion,侵蚀,模型,
+ui.gd.gallery.053,Nervous Impairment,神经损伤,官方,gamedata_const.termDescriptionDict.ba.dt.neural
+ui.gd.gallery.054,Levitate,悬浮,模型,
+ui.gd.gallery.055,Paired,成对,模型,
+ui.gd.gallery.056,Reload,装填,模型,
+ui.gd.gallery.057,"
 
 Additional Attack: %s (%s).","
 
 附加攻击：%s（%s）。",模型,
-ui.gd.gallery.057,Sector Sweep,扇形扫击,模型,
-ui.gd.gallery.058,Melee Blast,近身震爆,模型,
-ui.gd.gallery.059,Linear Thrust,直线突刺,模型,
-ui.gd.gallery.060,Sector Barrage,扇形弹幕,模型,
-ui.gd.gallery.061,Attack,攻击,人改,跨模块统一（review/canon.json）
-ui.gd.gallery.062,Hits inflict brief Cold.,命中附加短暂寒冷。,模型,
-ui.gd.gallery.063,Hits accumulate Nervous Impairment.,命中累积神经损伤。,模型,
-ui.gd.gallery.064,Hits deal brief Stagger. Consecutive hits have a protection interval.,命中造成短暂僵直，连续命中有保护间隔。,校对,校对：大小写修正，deal和interval不应大写
-ui.gd.gallery.065,"
+ui.gd.gallery.058,Sector Sweep,扇形扫击,模型,
+ui.gd.gallery.059,Melee Blast,近身震爆,模型,
+ui.gd.gallery.060,Linear Thrust,直线突刺,模型,
+ui.gd.gallery.061,Sector Barrage,扇形弹幕,模型,
+ui.gd.gallery.062,Attack,攻击,人改,跨模块统一（review/canon.json）
+ui.gd.gallery.063,Hits inflict brief Cold.,命中附加短暂寒冷。,模型,
+ui.gd.gallery.064,Hits accumulate Nervous Impairment.,命中累积神经损伤。,模型,
+ui.gd.gallery.065,Hits deal brief Stagger. Consecutive hits have a protection interval.,命中造成短暂僵直，连续命中有保护间隔。,校对,校对：大小写修正，deal和interval不应大写
+ui.gd.gallery.066,"
 
 Attack mode:","
 
 攻击模式：",模型,
-ui.gd.gallery.066,Normal Enemy,普通敌人,模型,
-ui.gd.gallery.067,Elite Enemy,精英敌人,模型,
-ui.gd.gallery.068,Not yet encountered. Archive after encountered.,尚未遭遇，遇到后收录。,校对,校对：大小写修正，encountered在句中不应大写
-ui.gd.gallery.069,Final Boss,最终 Boss,暂定,暂定（docs/276 §3.6）
-ui.gd.gallery.070,Phase 2,二阶段,模型,
-ui.gd.gallery.071,Ending · %s,结局 · %s,模型,
-ui.gd.gallery.072,"
+ui.gd.gallery.067,Normal Enemy,普通敌人,模型,
+ui.gd.gallery.068,Elite Enemy,精英敌人,模型,
+ui.gd.gallery.069,Not yet encountered. Archive after encountered.,尚未遭遇，遇到后收录。,校对,校对：大小写修正，encountered在句中不应大写
+ui.gd.gallery.070,Final Boss,最终 Boss,暂定,暂定（docs/276 §3.6）
+ui.gd.gallery.071,Phase 2,二阶段,模型,
+ui.gd.gallery.072,Ending · %s,结局 · %s,模型,
+ui.gd.gallery.073,"
 
 Trigger:","
 
 触发：",模型,
-ui.gd.gallery.073,"Not yet achieved.
+ui.gd.gallery.074,"Not yet achieved.
 
 Clue:","尚未达成。
 
 线索：",模型,
-ui.gd.gallery.074,Basic,基础,人改,跨模块统一（review/canon.json）
-ui.gd.gallery.075,Rare,稀有,模型,
-ui.gd.gallery.076,Core,核心,模型,
-ui.gd.gallery.077,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
-ui.gd.gallery.078,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
-ui.gd.gallery.079,Level,等级,模型,
-ui.gd.gallery.080,Style,流派,模型,
-ui.gd.gallery.081,Category,分类,模型,
-ui.gd.gallery.082,Relic · ,藏品 · ,模型,
-ui.gd.gallery.083, · Unreleased, · 未实装,模型,
-ui.gd.gallery.084,Icon,图标,模型,
-ui.gd.gallery.085,Unobtained. Archive after obtained.,尚未获得，拿到后收录。,模型,
-ui.gd.gallery.086,Illustration,插画,模型,
-ui.gd.gallery.087,Encountered,遇到,模型,
-ui.gd.gallery.088,%d times,%d 次,校对,校对：大小写修正，times不应大写
-ui.gd.gallery.089,Select,选择,模型,
-ui.gd.gallery.090,Not yet encountered. Archive after encountered.,尚未遇到，遇到后收录。,校对,校对：大小写修正，encountered不应大写
-ui.gd.gallery.091,EXP Crystal,经验结晶,模型,
-ui.gd.gallery.092,Drops,掉落物,模型,
-ui.gd.gallery.093,Small,小,模型,
-ui.gd.gallery.094,Large,大,模型,
-ui.gd.gallery.095,Drops from defeated enemies. Pick up to gain EXP.,击败敌人掉落，拾取后获得经验。,校对,校对：大小写修正，pick up和gain不应大写
-ui.gd.gallery.096,Lamp Oil,灯油,暂定,暂定（docs/276 §3.6）
-ui.gd.gallery.097,"Replenishes Light. Light has three levels: Bright (≥ 70) damage taken by enemies within Light Radius +%d%%, SP Recovery +30%%; Flickering (30–70) damage taken by enemies within Light Radius +%d%%; Dim (< 30) damage taken by Leader +5%%, Seaborn movement speed and contact damage +10%%, Seaborn outside the light ring are hard to see. When Light is Out (0), lose 3 HP per second.",补充灯火。灯火分三档：通明（≥ 70）照亮范围内敌人受到的伤害 +%d%%，技力回复 +30%%；摇曳（30–70）照亮范围内敌人受到的伤害 +%d%%；暗淡（< 30）队长受到的伤害 +5%%，海嗣移速与接触伤害 +10%%，灯圈外的海嗣难以看清。灯火寂灭（0）时每秒失去 3 点生命。,校对,校对：统一术语（movement speed），修正不必要的大写，修正“灯火寂灭”为Light is Out，修正复数和语法
-ui.gd.gallery.098,Originium Ingot,源石锭,官方,roguelike_topic_table.rogue_2.items.rogue_2_gold
-ui.gd.gallery.099,Currency,货币,模型,
-ui.gd.gallery.100,"Dropped by Elites, Bosses, and Chest Seaborn. Can be used to purchase Relics and Supplies from the Merchant. After the last Merchant leaves, remaining and subsequently obtained Originium Ingots will be smelted into squad damage.",精英、Boss 与箱形恐鱼会掉落，可在商人处购买藏品与补给。最后一位商人离开后，剩余和之后获得的源石锭会熔铸为全队伤害。,校对,校对：Seaborn本身即为复数，不加s；smelted不应大写
-ui.gd.gallery.101,Magnet,磁铁,模型,
-ui.gd.gallery.102,"Absorbs all EXP Crystals, Lamp Oil, and Originium Ingots on the field when picked up. Low chance to drop from normal enemies; Elites and Bosses are guaranteed to drop a Magnet or Recovery Potion.",拾取后吸取全场的经验结晶、灯油与源石锭。小怪低概率掉落，精英与 Boss 必掉磁铁或回复药剂。,校对,"校对：修正复数（Crystals, Ingots），统一术语（Elites and Bosses）"
-ui.gd.gallery.103,Recovery Potion,回复药剂,模型,
-ui.gd.gallery.104,"Restores 30% Max HP immediately upon pick up. Low drop rate from normal enemies, doubled when Leader HP is below 70%; Elites and Bosses are guaranteed to drop a Magnet or Recovery Potion.",拾取后立即回复 30% 最大生命。小怪低概率掉落，队长生命低于 70% 时掉率翻倍；精英与 Boss 必掉磁铁或回复药剂。,校对,校对：大小写修正，pick up不应大写
-ui.gd.gallery.105,Supply Box,补给箱,模型,
-ui.gd.gallery.106,Chest,宝箱,模型,
-ui.gd.gallery.107,"Appears periodically on the map, grants a Relic when opened. Some are disguised Chest Seaborn.",地图上定期出现，打开后获得藏品。其中一部分是伪装的箱形恐鱼。,模型,
-ui.gd.gallery.108,Ruined Pillar,遗迹残柱,模型,
-ui.gd.gallery.109,Broken Wall,断墙,模型,
-ui.gd.gallery.110,Shipwreck Debris,沉船碎片,模型,
-ui.gd.gallery.111,Seabed Ridge,海底岩脊,模型,
-ui.gd.gallery.112,Seabed Peak,海底山峰,模型,
-ui.gd.gallery.113,Nethersea Brand,溟痕,模型,
-ui.gd.gallery.114,Guiding Beacon,引航灯标,暂定,暂定（docs/276 §3.6）
-ui.gd.gallery.115,Scene,场景,模型,
-ui.gd.gallery.116,"Nethersea Brand periodically appears on the ground and gradually expands. Standing on it inflicts Slow, continuous damage, and Nervous Impairment buildup; igniting a Guiding Beacon can dispel it.",地面上周期性出现并逐渐扩大的溟痕。站在上面会减速、持续受伤并累积神经损伤；点燃引航灯标可以驱散。,校对,校对：语法优化，Ignition of Guiding Beacon表达生硬
-ui.gd.gallery.117,"A small Guiding Beacon modeled after the lighthouses of Iberia, standing extinguished on the seabed. Step into the Beacon Ring to ignite it; the Beacon's light will dispel the surrounding Nethersea Brand, clear Nervous Impairment, and prevent Nethersea Brand from growing in this area temporarily.",仿照伊比利亚灯塔做的小型引航灯标，熄灭着立在海床上。站进光圈点燃它，灯标的光会驱散周围的溟痕、清空神经损伤，这片地方也暂时不会再长出溟痕。,模型,
-ui.gd.gallery.118,"Wreckage from Abyssal ruins. Base blocks movement and linear projectiles, stops upon Dash collision.",深海遗迹中的残骸。底座阻挡移动与直线弹道，冲刺碰撞后停止。,校对,校对：语法优化，Move应为名词movement
-ui.gd.gallery.119,Merchant,商人,模型,
-ui.gd.gallery.120,"Appears 3 times per run, staying for 60s each time. Approach to trade: Relic, Recovery, Lamp Oil, and Refresh.",每次探索出现 3 次，每次停留 60 秒。靠近即可交易：藏品、回复、灯油与刷新。,模型,
-ui.gd.gallery.121,Not yet discovered. Archived upon encounter.,尚未发现，遇到后收录。,校对,校对：语法错误，修正为Archived upon encounter
-ui.gd.gallery.122,Mon3tr Swipe,Mon3tr 爪击,模型,
-ui.gd.gallery.123,Mon3tr Meltdown,Mon3tr 熔毁,模型,
-ui.gd.gallery.124,Talent '%s' (Elite 1 Unlock): %s,天赋「%s」（精英一解锁）：%s,模型,
-ui.gd.gallery.125,Normal Attack,普攻,模型,
-ui.gd.gallery.126,%s Operator,%s干员,模型,
-ui.gd.gallery.127,Doctor,博士,模型,
-ui.gd.gallery.128,Command · Follow,指挥 · 随行,模型,
-ui.gd.gallery.129,Recovery,回复,模型,
-ui.gd.gallery.130,By Leader,随队长,模型,
-ui.gd.gallery.131,Dodge,闪避,模型,
-ui.gd.gallery.132,Pickup,拾取,人改,跨模块统一（review/canon.json）
-ui.gd.gallery.133,Follow,随行,暂定,暂定（docs/276 §3.6）
-ui.gd.gallery.134,Command,指挥,暂定,暂定（docs/276 §3.6）
-ui.gd.gallery.135,Rejection,排异,模型,
-ui.gd.gallery.136,"Follows behind Leader to Command the squad. Does not attack, and cannot be attacked. Leader's initial movement speed and Pick Up values come from Doctor (no initial Dodge, gained through Cognitive Shaping, Upgrade, and Relic). HP, damage reduction, and Recovery are determined by Leader Operator. Light illuminates the area around Leader. Light extinguishes slightly when Leader is hit. Survival / Mobility / Synergy cards upon Upgrade are Command bonuses from Doctor to the squad. Rejection is recorded under Doctor, and can be viewed in the Stats panel.",跟在队长身后指挥小队，不攻击，也不会受到攻击。队长的移速、拾取的初始值来自博士（初始没有闪避，靠认知塑造、升级与藏品获得），生命、减伤与回复由队长干员决定。灯火照亮的是队长身边，队长受击时灯火熄灭一截。升级时的生存 / 机动 / 协同卡是博士给小队的指挥加成；排异反应记在博士名下，可在属性面板查看。,校对,"校对：统一术语“movement speed”，修正不必要的大写（attack, hit, damage reduction），“排异反应”官译为Rejection"
-ui.gd.gallery.137,Vanguard,先锋,官方,character_table profession（data.gd CLASS_EN）
-ui.gd.gallery.138,Guard,近卫,官方,character_table profession（data.gd CLASS_EN）
-ui.gd.gallery.139,Defender,重装,官方,character_table profession（data.gd CLASS_EN）
-ui.gd.gallery.140,Sniper,狙击,官方,character_table profession（data.gd CLASS_EN）
-ui.gd.gallery.141,Caster,术师,官方,character_table profession（data.gd CLASS_EN）
-ui.gd.gallery.142,Medic,医疗,官方,character_table profession（data.gd CLASS_EN）
-ui.gd.gallery.143,Supporter,辅助,官方,character_table profession（data.gd CLASS_EN）
-ui.gd.gallery.144,Specialist,特种,官方,character_table profession（data.gd CLASS_EN）
-ui.gd.gallery.145,Effect Category,效果分类,模型,
-ui.gd.gallery.146,Original Class,原类别,模型,
-ui.gd.gallery.147,Elite 0,精零,模型,
-ui.gd.gallery.148,E1,精一,暂定,暂定（docs/276 §3.6）
-ui.gd.gallery.149,E2,精二,暂定,暂定（docs/276 §3.6）
-ui.gd.gallery.150,Skill 1,一技能,模型,
-ui.gd.gallery.151,Skill 2,二技能,模型,
-ui.gd.gallery.152,Skill 3,三技能,模型,
-ui.gd.gallery.153,Auto-Play,轮播,模型,
-ui.gd.gallery.154,Ultimate,终结技,暂定,暂定（docs/276 §3.6）
-ui.gd.gallery.155,Replay,重播,模型,
-ui.gd.gallery.156,Full Conversion,完整转化,模型,
-ui.gd.gallery.157,Humanoid Healing,人形治疗,模型,
-ui.gd.gallery.158,Hostile,敌对,模型,
-ui.gd.gallery.159,Phase 1,一阶段,模型,
-ui.gd.gallery.160,%s · Attack Preview,%s · 攻击演示,模型,
-ui.gd.gallery.161,Archive · ,图鉴 · ,模型,
-ui.gd.gallery.162,Back,返回,人改,跨模块统一（review/canon.json）
-ui.gd.gallery.163,Archive,图鉴,模型,
+ui.gd.gallery.075,Basic,基础,人改,跨模块统一（review/canon.json）
+ui.gd.gallery.076,Rare,稀有,模型,
+ui.gd.gallery.077,Core,核心,模型,
+ui.gd.gallery.078,Sublimation,升华,官方,roguelike_topic_table.rogue_2.choiceScenes.scene_ro2_bossc3_enter.title
+ui.gd.gallery.079,Cursed Curio,遭诅古物,人改,跨模块统一（review/canon.json）
+ui.gd.gallery.080,Level,等级,模型,
+ui.gd.gallery.081,Style,流派,模型,
+ui.gd.gallery.082,Category,分类,模型,
+ui.gd.gallery.083,Relic · ,藏品 · ,模型,
+ui.gd.gallery.084, · Unreleased, · 未实装,模型,
+ui.gd.gallery.085,Icon,图标,模型,
+ui.gd.gallery.086,Unobtained. Archive after obtained.,尚未获得，拿到后收录。,模型,
+ui.gd.gallery.087,Illustration,插画,模型,
+ui.gd.gallery.088,Encountered,遇到,模型,
+ui.gd.gallery.089,%d times,%d 次,校对,校对：大小写修正，times不应大写
+ui.gd.gallery.090,Select,选择,模型,
+ui.gd.gallery.091,Not yet encountered. Archive after encountered.,尚未遇到，遇到后收录。,校对,校对：大小写修正，encountered不应大写
+ui.gd.gallery.092,EXP Crystal,经验结晶,模型,
+ui.gd.gallery.093,Drops,掉落物,模型,
+ui.gd.gallery.094,Small,小,模型,
+ui.gd.gallery.095,Large,大,模型,
+ui.gd.gallery.096,Drops from defeated enemies. Pick up to gain EXP.,击败敌人掉落，拾取后获得经验。,校对,校对：大小写修正，pick up和gain不应大写
+ui.gd.gallery.097,Lamp Oil,灯油,暂定,暂定（docs/276 §3.6）
+ui.gd.gallery.098,"Replenishes Light. Light has three levels: Bright (≥ 70) damage taken by enemies within Light Radius +%d%%, SP Recovery +30%%; Flickering (30–70) damage taken by enemies within Light Radius +%d%%; Dim (< 30) damage taken by Leader +5%%, Seaborn movement speed and contact damage +10%%, Seaborn outside the light ring are hard to see. When Light is Out (0), lose 3 HP per second.",补充灯火。灯火分三档：通明（≥ 70）照亮范围内敌人受到的伤害 +%d%%，技力回复 +30%%；摇曳（30–70）照亮范围内敌人受到的伤害 +%d%%；暗淡（< 30）队长受到的伤害 +5%%，海嗣移速与接触伤害 +10%%，灯圈外的海嗣难以看清。灯火寂灭（0）时每秒失去 3 点生命。,校对,校对：统一术语（movement speed），修正不必要的大写，修正“灯火寂灭”为Light is Out，修正复数和语法
+ui.gd.gallery.099,Originium Ingot,源石锭,官方,roguelike_topic_table.rogue_2.items.rogue_2_gold
+ui.gd.gallery.100,Currency,货币,模型,
+ui.gd.gallery.101,"Dropped by Elites, Bosses, and Chest Seaborn. Can be used to purchase Relics and Supplies from the Merchant. After the last Merchant leaves, remaining and subsequently obtained Originium Ingots will be smelted into squad damage.",精英、Boss 与箱形恐鱼会掉落，可在商人处购买藏品与补给。最后一位商人离开后，剩余和之后获得的源石锭会熔铸为全队伤害。,校对,校对：Seaborn本身即为复数，不加s；smelted不应大写
+ui.gd.gallery.102,Magnet,磁铁,模型,
+ui.gd.gallery.103,"Absorbs all EXP Crystals, Lamp Oil, and Originium Ingots on the field when picked up. Low chance to drop from normal enemies; Elites and Bosses are guaranteed to drop a Magnet or Recovery Potion.",拾取后吸取全场的经验结晶、灯油与源石锭。小怪低概率掉落，精英与 Boss 必掉磁铁或回复药剂。,校对,"校对：修正复数（Crystals, Ingots），统一术语（Elites and Bosses）"
+ui.gd.gallery.104,Recovery Potion,回复药剂,模型,
+ui.gd.gallery.105,"Restores 30% Max HP immediately upon pick up. Low drop rate from normal enemies, doubled when Leader HP is below 70%; Elites and Bosses are guaranteed to drop a Magnet or Recovery Potion.",拾取后立即回复 30% 最大生命。小怪低概率掉落，队长生命低于 70% 时掉率翻倍；精英与 Boss 必掉磁铁或回复药剂。,校对,校对：大小写修正，pick up不应大写
+ui.gd.gallery.106,Supply Box,补给箱,模型,
+ui.gd.gallery.107,Chest,宝箱,模型,
+ui.gd.gallery.108,"Appears periodically on the map, grants a Relic when opened. Some are disguised Chest Seaborn.",地图上定期出现，打开后获得藏品。其中一部分是伪装的箱形恐鱼。,模型,
+ui.gd.gallery.109,Ruined Pillar,遗迹残柱,模型,
+ui.gd.gallery.110,Broken Wall,断墙,模型,
+ui.gd.gallery.111,Shipwreck Debris,沉船碎片,模型,
+ui.gd.gallery.112,Seabed Ridge,海底岩脊,模型,
+ui.gd.gallery.113,Seabed Peak,海底山峰,模型,
+ui.gd.gallery.114,Nethersea Brand,溟痕,模型,
+ui.gd.gallery.115,Guiding Beacon,引航灯标,暂定,暂定（docs/276 §3.6）
+ui.gd.gallery.116,Scene,场景,模型,
+ui.gd.gallery.117,"Nethersea Brand periodically appears on the ground and gradually expands. Standing on it inflicts Slow, continuous damage, and Nervous Impairment buildup; igniting a Guiding Beacon can dispel it.",地面上周期性出现并逐渐扩大的溟痕。站在上面会减速、持续受伤并累积神经损伤；点燃引航灯标可以驱散。,校对,校对：语法优化，Ignition of Guiding Beacon表达生硬
+ui.gd.gallery.118,"A small Guiding Beacon modeled after the lighthouses of Iberia, standing extinguished on the seabed. Step into the Beacon Ring to ignite it; the Beacon's light will dispel the surrounding Nethersea Brand, clear Nervous Impairment, and prevent Nethersea Brand from growing in this area temporarily.",仿照伊比利亚灯塔做的小型引航灯标，熄灭着立在海床上。站进光圈点燃它，灯标的光会驱散周围的溟痕、清空神经损伤，这片地方也暂时不会再长出溟痕。,模型,
+ui.gd.gallery.119,"Wreckage from Abyssal ruins. Base blocks movement and linear projectiles, stops upon Dash collision.",深海遗迹中的残骸。底座阻挡移动与直线弹道，冲刺碰撞后停止。,校对,校对：语法优化，Move应为名词movement
+ui.gd.gallery.120,Merchant,商人,模型,
+ui.gd.gallery.121,"Appears 3 times per run, staying for 60s each time. Approach to trade: Relic, Recovery, Lamp Oil, and Refresh.",每次探索出现 3 次，每次停留 60 秒。靠近即可交易：藏品、回复、灯油与刷新。,模型,
+ui.gd.gallery.122,Not yet discovered. Archived upon encounter.,尚未发现，遇到后收录。,校对,校对：语法错误，修正为Archived upon encounter
+ui.gd.gallery.123,Mon3tr Swipe,Mon3tr 爪击,模型,
+ui.gd.gallery.124,Mon3tr Meltdown,Mon3tr 熔毁,模型,
+ui.gd.gallery.125,Talent '%s' (Elite 1 Unlock): %s,天赋「%s」（精英一解锁）：%s,模型,
+ui.gd.gallery.126,Normal Attack,普攻,模型,
+ui.gd.gallery.127,%s Operator,%s干员,模型,
+ui.gd.gallery.128,Doctor,博士,模型,
+ui.gd.gallery.129,Command · Follow,指挥 · 随行,模型,
+ui.gd.gallery.130,Recovery,回复,模型,
+ui.gd.gallery.131,By Leader,随队长,模型,
+ui.gd.gallery.132,Dodge,闪避,模型,
+ui.gd.gallery.133,Pickup,拾取,人改,跨模块统一（review/canon.json）
+ui.gd.gallery.134,Follow,随行,暂定,暂定（docs/276 §3.6）
+ui.gd.gallery.135,Command,指挥,暂定,暂定（docs/276 §3.6）
+ui.gd.gallery.136,Rejection,排异,模型,
+ui.gd.gallery.137,"Follows behind Leader to Command the squad. Does not attack, and cannot be attacked. Leader's initial movement speed and Pick Up values come from Doctor (no initial Dodge, gained through Cognitive Shaping, Upgrade, and Relic). HP, damage reduction, and Recovery are determined by Leader Operator. Light illuminates the area around Leader. Light extinguishes slightly when Leader is hit. Survival / Mobility / Synergy cards upon Upgrade are Command bonuses from Doctor to the squad. Rejection is recorded under Doctor, and can be viewed in the Stats panel.",跟在队长身后指挥小队，不攻击，也不会受到攻击。队长的移速、拾取的初始值来自博士（初始没有闪避，靠认知塑造、升级与藏品获得），生命、减伤与回复由队长干员决定。灯火照亮的是队长身边，队长受击时灯火熄灭一截。升级时的生存 / 机动 / 协同卡是博士给小队的指挥加成；排异反应记在博士名下，可在属性面板查看。,校对,"校对：统一术语“movement speed”，修正不必要的大写（attack, hit, damage reduction），“排异反应”官译为Rejection"
+ui.gd.gallery.138,Vanguard,先锋,官方,character_table profession（data.gd CLASS_EN）
+ui.gd.gallery.139,Guard,近卫,官方,character_table profession（data.gd CLASS_EN）
+ui.gd.gallery.140,Defender,重装,官方,character_table profession（data.gd CLASS_EN）
+ui.gd.gallery.141,Sniper,狙击,官方,character_table profession（data.gd CLASS_EN）
+ui.gd.gallery.142,Caster,术师,官方,character_table profession（data.gd CLASS_EN）
+ui.gd.gallery.143,Medic,医疗,官方,character_table profession（data.gd CLASS_EN）
+ui.gd.gallery.144,Supporter,辅助,官方,character_table profession（data.gd CLASS_EN）
+ui.gd.gallery.145,Specialist,特种,官方,character_table profession（data.gd CLASS_EN）
+ui.gd.gallery.146,Effect Category,效果分类,模型,
+ui.gd.gallery.147,Original Class,原类别,模型,
+ui.gd.gallery.148,Elite 0,精零,模型,
+ui.gd.gallery.149,E1,精一,暂定,暂定（docs/276 §3.6）
+ui.gd.gallery.150,E2,精二,暂定,暂定（docs/276 §3.6）
+ui.gd.gallery.151,Skill 1,一技能,模型,
+ui.gd.gallery.152,Skill 2,二技能,模型,
+ui.gd.gallery.153,Skill 3,三技能,模型,
+ui.gd.gallery.154,Auto-Play,轮播,模型,
+ui.gd.gallery.155,Ultimate,终结技,暂定,暂定（docs/276 §3.6）
+ui.gd.gallery.156,Replay,重播,模型,
+ui.gd.gallery.157,Full Conversion,完整转化,模型,
+ui.gd.gallery.158,Humanoid Healing,人形治疗,模型,
+ui.gd.gallery.159,Hostile,敌对,模型,
+ui.gd.gallery.160,Phase 1,一阶段,模型,
+ui.gd.gallery.161,%s · Attack Preview,%s · 攻击演示,模型,
+ui.gd.gallery.162,Archive · ,图鉴 · ,模型,
+ui.gd.gallery.163,Back,返回,人改,跨模块统一（review/canon.json）
 ui.gd.gallery.164,Back  Ⓑ,返回  Ⓑ,模型,
 ui.gd.gallery.165,All,全部,模型,
 ui.gd.gallery.166,By Class,按职业,模型,
@@ -808,10 +809,11 @@ ui.gd.game.031,Music: Off,音乐：关,模型,
 ui.gd.game.032,Music: On,音乐：开,模型,
 ui.gd.game.033,Combat time limit not restored,作战时限未恢复,人改,跨模块统一（review/canon.json）
 ui.gd.game.034,Self Recovery,自身回复,模型,
-ui.gd.game.035,Cognitive Shaping,认知塑造,模型,
-ui.gd.game.036,For Survival — Leader recovers 30% Max HP,为了生存 —— 队长回复 30% 最大生命,模型,
-ui.gd.game.037,Survival Instinct — Leader retains 1 HP,生存本能 —— 队长保留 1 点生命,校对,校对：统一标点符号，中文原文为破折号，应与其他两项保持一致使用“—”而非冒号
-ui.gd.game.038,Second Wind — Leader revives,绝处逢生 —— 队长复活,模型,
+ui.gd.game.035,Invincible Test — HP fully restored,无敌测试 —— 生命已回满,模型,
+ui.gd.game.036,Cognitive Shaping,认知塑造,模型,
+ui.gd.game.037,For Survival — Leader recovers 30% Max HP,为了生存 —— 队长回复 30% 最大生命,模型,
+ui.gd.game.038,Survival Instinct — Leader retains 1 HP,生存本能 —— 队长保留 1 点生命,校对,校对：统一标点符号，中文原文为破折号，应与其他两项保持一致使用“—”而非冒号
+ui.gd.game.039,Second Wind — Leader revives,绝处逢生 —— 队长复活,模型,
 ui.gd.medal_toast.000,Gain Medal,获得蚀刻章,模型,
 ui.gd.pad.000,Left Stick,左摇杆,模型,
 ui.gd.pad.001,D-Pad,十字键,模型,
@@ -1659,37 +1661,35 @@ ui.gd.screens.initial_stats.040,; Leader Damage Taken %s%d%%,；队长受到的�
 ui.gd.screens.intro.000,Objective: Maintain combat until 10:00 and defeat them.,行动目标：维持作战至 10:00，击败它们,模型,
 ui.gd.screens.intro.001,Tap to Skip,点击跳过,模型,
 ui.gd.screens.intro.002,Press Any Key to Skip,任意键跳过,模型,
-ui.gd.screens.intro.003,‹ Prev Page,‹ 上一页,模型,
-ui.gd.screens.intro.004,Skip,跳过,模型,
-ui.gd.screens.intro.005,Next Page ›,下一页 ›,模型,
+ui.gd.screens.intro.003,(Cont.),（续）,模型,
+ui.gd.screens.intro.004,‹ Prev Page,‹ 上一页,模型,
+ui.gd.screens.intro.005,Skip,跳过,模型,
 ui.gd.screens.intro.006,Start run ›,开始探索 ›,模型,
-ui.gd.screens.intro.007,Left Click / Any key: Next Page    Right Click / ←: Previous Page    Click left side of panel to go back,左键 / 任意键：下一页　　右键 / ←：上一页　　点面板左侧也可回退,校对,校对：left 不应大写
-ui.gd.screens.intro.008,Ⓐ / → / RB: Next Page　　← / LB: Previous Page　　Ⓑ: Skip,Ⓐ / → / RB：下一页　　← / LB：上一页　　Ⓑ：跳过,模型,
-ui.gd.screens.intro.009,Click: Next page    Click left of panel: Previous page,点击：下一页　　点面板左侧：上一页,校对,校对：left 不应大写
+ui.gd.screens.intro.007,Next Page ›,下一页 ›,模型,
+ui.gd.screens.intro.008,Dash,冲刺,模型,
+ui.gd.screens.intro.009,Skill,技能,模型,
 ui.gd.screens.intro.010,Drag Left Half Screen,左半屏拖动,模型,
-ui.gd.screens.intro.011,Dash,冲刺,模型,
-ui.gd.screens.intro.012,Skill,技能,模型,
-ui.gd.screens.intro.013,Tap for Auto Aim · Hold and drag for direction,轻点自动瞄准 · 按住拖方向,模型,
-ui.gd.screens.intro.014,Lamp Oil,灯油,暂定,暂定（docs/276 §3.6）
-ui.gd.screens.intro.015,Black Tide Boundary,黑潮边界,模型,
-ui.gd.screens.intro.016,Growth,成长,模型,
-ui.gd.screens.intro.017,Recruit,招募,模型,
-ui.gd.screens.intro.018,Passive,被动,模型,
-ui.gd.screens.intro.019,Operator Growth / Recruitment / Survival and Mobility,干员成长 / 招募 / 生存与机动,校对,校对：大小写不统一，招募应为 Recruitment
-ui.gd.screens.intro.020,Shallows,浅滩,模型,
-ui.gd.screens.intro.021,Undertow,暗流,人改,跨模块统一（review/canon.json）
-ui.gd.screens.intro.022,Deep Dive,深潜,人改,跨模块统一（review/canon.json）
-ui.gd.screens.intro.023,Rift,裂隙,模型,
-ui.gd.screens.intro.024,Abyss,深渊,模型,
-ui.gd.screens.intro.025,Caerula Arbor,深蓝之树,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_10
-ui.gd.screens.intro.026,We Many Incoming,大群来袭,模型,
-ui.gd.screens.intro.027,Merchant  ·  Stays for 60s,商人  ·  停留 60 秒,模型,
-ui.gd.screens.intro.028,Ultimate,终结技,暂定,暂定（docs/276 §3.6）
-ui.gd.screens.intro.029,HP,生命,模型,
-ui.gd.screens.intro.030,Light,灯火,暂定,暂定（docs/276 §3.6）
-ui.gd.screens.intro.031,Ally,队友,模型,
-ui.gd.screens.intro.032,Command,指令,模型,
-ui.gd.screens.intro.033,Bottom of Screen,屏幕正下方,模型,
+ui.gd.screens.intro.011,Tap for Auto Aim,轻点自动瞄准,模型,
+ui.gd.screens.intro.012,Hold and drag to aim,按住拖方向,校对,校对：漏译（拖方向，原译文缺少 drag 的含义）
+ui.gd.screens.intro.013,HP,生命,模型,
+ui.gd.screens.intro.014,Light,灯火,暂定,暂定（docs/276 §3.6）
+ui.gd.screens.intro.015,Illuminated,照亮,暂定,暂定（docs/276 §3.6）
+ui.gd.screens.intro.016,Nethersea Brand,溟痕,模型,
+ui.gd.screens.intro.017,Follow,随行,暂定,暂定（docs/276 §3.6）
+ui.gd.screens.intro.018,Assault,突击,暂定,暂定（docs/276 §3.6）
+ui.gd.screens.intro.019,Deploy,部署,模型,
+ui.gd.screens.intro.020,Focus Fire,集火,暂定,暂定（docs/276 §3.6）
+ui.gd.screens.intro.021,Command,指挥,暂定,暂定（docs/276 §3.6）
+ui.gd.screens.intro.022,Command Disk,指挥圆盘,模型,
+ui.gd.screens.intro.023,Ultimate,终结技,暂定,暂定（docs/276 §3.6）
+ui.gd.screens.intro.024,Ally,队友,模型,
+ui.gd.screens.intro.025,Command,指令,模型,
+ui.gd.screens.intro.026,Bottom of Screen,屏幕正下方,模型,
+ui.gd.screens.intro.027,Merchant Direction,商人方向,模型,
+ui.gd.screens.intro.028,Merchant  ·  Stays for 60s,商人  ·  停留 60 秒,模型,
+ui.gd.screens.intro.029,Encounter,不期而遇,官方,roguelike_topic_table.rogue_2.nodeTypeData.INCIDENT
+ui.gd.screens.intro.030,Four Endings,四个结局,模型,
+ui.gd.screens.intro.031,Keyboard,键盘,模型,
 ui.gd.screens.loading_screen.000,Expand Battlefield,展开战场,模型,
 ui.gd.screens.loading_screen.001,Arknights Fan Game · Non-commercial,明日方舟同人作品 · 非商业,模型,
 ui.gd.screens.loading_tips.000,A purple warning appears 3s before 'We Many Incoming'. The encirclement always leaves a gap; the side without arrows is the breakout direction.,「大群来袭」前 3 秒有紫色预警。包围圈总留一个缺口，没有箭头的一侧就是突围方向。,模型,
@@ -2307,41 +2307,97 @@ ui.gd.core.cloud_pack.003,Incorrect chunk count: %d,分片数不对：%d,模型,
 ui.gd.core.cloud_pack.004,Missing chunk %s,缺分片 %s,校对,校对：修正大小写
 ui.gd.core.cloud_pack.005,Validation Mismatch,校验不符,模型,
 ui.gd.core.cloud_pack.006,Incorrect body structure,正文结构不对,校对,校对：修正大小写
-ui.gd.core.crash_box.000,Critical Memory Snapshot · Includes periodic and peak sampling; peak is the highest among these. BGM is included in audio.,关键内存快照 · 既有周期及尖峰采样，峰值取这些采样中的最高值；配乐计入音频,校对,校对：修正大小写
-ui.gd.core.crash_box.001,Wave %d Boss appears%s,第 %d 波 Boss 登场%s,模型,
-ui.gd.core.crash_box.002, before,前,校对,校对：配合占位符补充前置空格
-ui.gd.core.crash_box.003, after,后,校对,校对：配合占位符补充前置空格
-ui.gd.core.crash_box.004,Peak Sample,采样峰值,模型,
-ui.gd.core.crash_box.005,Last Sample,最后采样,模型,
-ui.gd.core.crash_box.006,VRAM + Audio,显存＋音频,模型,
-ui.gd.core.crash_box.007,VRAM,显存,模型,
-ui.gd.core.crash_box.008,%s %s · %s %d MiB · Texture %d / Buffer %d MiB,%s %s · %s %d MiB · 贴图 %d / 缓冲区 %d MiB,模型,
-ui.gd.core.crash_box.009, · Audio %d MiB, · 音频 %d MiB,模型,
-ui.gd.core.crash_box.010,(Soundtrack %d MiB),（配乐 %d MiB）,模型,
-ui.gd.core.crash_box.011, · WASM capacity %d MiB, · WASM 容量 %d MiB,模型,
-ui.gd.core.crash_box.012,"(function(){var u=navigator.userAgent,m=u.match(/OS (\d+[_\d]*)/);return (/iPhone|iPad/.test(u)?'iOS '+(m?m[1].replace(/_/g,'.'):''):(/Android/.test(u)?'Android':'Desktop'))+' '+screen.width+'x'+screen.height+'@'+(window.devicePixelRatio||1)+(/BiliApp|bili/i.test(u)?' Bilibili':'')})()","(function(){var u=navigator.userAgent,m=u.match(/OS (\d+[_\d]*)/);return (/iPhone|iPad/.test(u)?'iOS '+(m?m[1].replace(/_/g,'.'):''):(/Android/.test(u)?'Android':'桌面'))+' '+screen.width+'x'+screen.height+'@'+(window.devicePixelRatio||1)+(/BiliApp|bili/i.test(u)?' B站':'')})()",模型,
-ui.gd.core.crash_box.013,In-Run,局内,模型,
-ui.gd.core.crash_box.014,Peak,尖峰,模型,
-ui.gd.core.crash_box.015,WASM Heap Growth,WASM 堆增长,模型,
-ui.gd.core.crash_box.016,web·decode failed %d (%s),web·解码失败 %d（%s）,模型,
-ui.gd.core.crash_box.017,"Previous inter-run reload incomplete, reverted to normal return to Title (%s) · Click here to View / copy",上次局间重载没完成，已改走普通回标题（%s）· 点此查看 / 复制,模型,
-ui.gd.core.crash_box.018,Last run exited abnormally (stopped Pre-Run) · Tap to View,上次对局异常退出（开局前就停了）· 点此查看,模型,
-ui.gd.core.crash_box.019,"Last run exited abnormally (In-Run %s, VRAM + audio peak %d MB) · Click here to View / Copy",上次对局异常退出（局内 %s，显存 + 音频峰值 %d MB）· 点此查看 / 复制,模型,
-ui.gd.core.crash_box.020,"[Inter-run Reload Failed] %s (docs/319 §17: Page was not replaced after applying background color, background color removed and reverted to normal return to Title)",【局间重载失败】%s（docs/319 §17：盖上底色后页面没有被替换，已撤掉底色改走普通回标题）,模型,
-ui.gd.core.crash_box.021,[Memory curve before last abnormal Exit] %s Start  Version %s (%s)  %s  squad %s  Graphics %s  Music %s%s,【上次异常退出前的内存曲线】%s 开局  版本 %s（%s）  %s  编队 %s  画质 %s  配乐 %s%s,校对,校对：统一固定术语：编队 -> squad
-ui.gd.core.crash_box.022,"(%d Hz, downloaded %.1f MB)",（%d Hz，已下 %.1f MB）,模型,
-ui.gd.core.crash_box.023,In-Run Real-time | Texture Buffer VRAM Audio(Music) WASM JS | Node Object Enemy VFX Ammo Level | Cached New | Event,局内 实时 | 贴图 缓冲 显存 音频(配乐) WASM JS | 节点 对象 怪 特效 弹 等级 | 缓存张 新读 | 事件,模型,
-ui.gd.core.crash_box.024, Power On, 开机,模型,
-ui.gd.core.crash_box.025,WASM Heap Growth (Page seconds Original→Actual MB Phase):,WASM 堆增长（页面秒 原→实得 MB 阶段）：,模型,
-ui.gd.core.crash_box.026,Last newly loaded texture:,最后一段新读的贴图：,模型,
-ui.gd.core.crash_box.027,Snapshot write failed (most recent):,快照写入失败（最近一次）：,模型,
-ui.gd.core.crash_box.028,Last heartbeat (real-time seconds / In-Run seconds):,最后一次心跳（实时秒 / 局内秒）：,模型,
-ui.gd.core.crash_box.029,Page Event:,页面事件：,模型,
+ui.gd.core.crash_box.000,Ultimate %s #%d,终结技 %s 第 %d 次,校对,校对：误译（第 %d 次表示序数词，而非 %d Times）
+ui.gd.core.crash_box.001,Boss Appears ,Boss 登场 ,模型,
+ui.gd.core.crash_box.002,Boss Appears,Boss 登场,模型,
+ui.gd.core.crash_box.003,Critical Memory Snapshot · Includes periodic and peak sampling; peak is the highest among these. BGM is included in audio.,关键内存快照 · 既有周期及尖峰采样，峰值取这些采样中的最高值；配乐计入音频,校对,校对：修正大小写
+ui.gd.core.crash_box.004,Wave %d Boss appears%s,第 %d 波 Boss 登场%s,模型,
+ui.gd.core.crash_box.005, before,前,校对,校对：配合占位符补充前置空格
+ui.gd.core.crash_box.006, after,后,校对,校对：配合占位符补充前置空格
+ui.gd.core.crash_box.007,Peak Sample,采样峰值,模型,
+ui.gd.core.crash_box.008,Last Sample,最后采样,模型,
+ui.gd.core.crash_box.009,VRAM + Audio,显存＋音频,模型,
+ui.gd.core.crash_box.010,VRAM,显存,模型,
+ui.gd.core.crash_box.011,%s %s · %s %d MiB · Texture %d / Buffer %d MiB,%s %s · %s %d MiB · 贴图 %d / 缓冲区 %d MiB,模型,
+ui.gd.core.crash_box.012, · Audio %d MiB, · 音频 %d MiB,模型,
+ui.gd.core.crash_box.013,(Soundtrack %d MiB),（配乐 %d MiB）,模型,
+ui.gd.core.crash_box.014, · WASM capacity %d MiB, · WASM 容量 %d MiB,模型,
+ui.gd.core.crash_box.015,"(function(){var u=navigator.userAgent,m=u.match(/OS (\d+[_\d]*)/);return (/iPhone|iPad/.test(u)?'iOS '+(m?m[1].replace(/_/g,'.'):''):(/Android/.test(u)?'Android':'Desktop'))+' '+screen.width+'x'+screen.height+'@'+(window.devicePixelRatio||1)+(/BiliApp|bili/i.test(u)?' Bilibili':'')})()","(function(){var u=navigator.userAgent,m=u.match(/OS (\d+[_\d]*)/);return (/iPhone|iPad/.test(u)?'iOS '+(m?m[1].replace(/_/g,'.'):''):(/Android/.test(u)?'Android':'桌面'))+' '+screen.width+'x'+screen.height+'@'+(window.devicePixelRatio||1)+(/BiliApp|bili/i.test(u)?' B站':'')})()",模型,
+ui.gd.core.crash_box.016,Frame Bar,读帧条,模型,
+ui.gd.core.crash_box.017,Barrier,护栏,模型,
+ui.gd.core.crash_box.018,Frame Skip,掉帧档,模型,
+ui.gd.core.crash_box.019,Recovery,恢复,模型,
+ui.gd.core.crash_box.020,Clear Glyphs,清字形,模型,
+ui.gd.core.crash_box.021,In-Run,局内,模型,
+ui.gd.core.crash_box.022,Peak,尖峰,模型,
+ui.gd.core.crash_box.023,WASM Heap Growth,WASM 堆增长,模型,
+ui.gd.core.crash_box.024,web·decode failed %d (%s),web·解码失败 %d（%s）,模型,
+ui.gd.core.crash_box.025,· Phase 2,·二阶段,模型,
+ui.gd.core.crash_box.026,BGM → ,配乐 → ,模型,
+ui.gd.core.crash_box.027,(Fade Out),（淡出）,模型,
+ui.gd.core.crash_box.028,Load,读入,模型,
+ui.gd.core.crash_box.029,Release,释放,模型,
+ui.gd.core.crash_box.030,Texture upload: peak %.1f MiB per second (In-Run %s) · Max single image this run %s %d×%d (%.1f MiB),贴图上传：每秒峰值 %.1f MiB（局内 %s）· 本局最大单张 %s %d×%d（%.1f MiB）,校对,校对：修正不必要的大写（Per Second -> per second）
+ui.gd.core.crash_box.031,Pre-entry (Title / Archive / Headhunt / Loading) max single image %s %d×%d (%.1f MiB; out-of-run images loaded at entry are released),进局前（标题 / 图鉴 / 寻访 / 载入页）最大单张 %s %d×%d（%.1f MiB；进局时局外读的图已放掉）,模型,
+ui.gd.core.crash_box.032,"Operator VFX Load this run (MiB, verify if all are in squad / Recruit):",本局干员特效读入（MiB，核对是否都在编队 / 招募内）：,校对,校对：术语统一（编队 -> squad）
+ui.gd.core.crash_box.033,%s %d Times,%s %d 次,模型,
+ui.gd.core.crash_box.034,Opened before Start:,本页开局前打开过：,模型,
+ui.gd.core.crash_box.035,"Previous inter-run reload incomplete, reverted to normal return to Title (%s) · Click here to View / copy",上次局间重载没完成，已改走普通回标题（%s）· 点此查看 / 复制,模型,
+ui.gd.core.crash_box.036,Last run exited abnormally (stopped Pre-Run) · Tap to View,上次对局异常退出（开局前就停了）· 点此查看,模型,
+ui.gd.core.crash_box.037,"Last run exited abnormally (In-Run %s, VRAM + audio peak %d MB) · Click here to View / Copy",上次对局异常退出（局内 %s，显存 + 音频峰值 %d MB）· 点此查看 / 复制,模型,
+ui.gd.core.crash_box.038,"[Inter-run Reload Failed] %s (docs/319 §17: Page was not replaced after applying background color, background color removed and reverted to normal return to Title)",【局间重载失败】%s（docs/319 §17：盖上底色后页面没有被替换，已撤掉底色改走普通回标题）,模型,
+ui.gd.core.crash_box.039,[Memory curve before last abnormal Exit] %s Start  Version %s (%s)  %s  squad %s  Graphics %s  Music %s%s,【上次异常退出前的内存曲线】%s 开局  版本 %s（%s）  %s  编队 %s  画质 %s  配乐 %s%s,校对,校对：统一固定术语：编队 -> squad
+ui.gd.core.crash_box.040,"(%d Hz, downloaded %.1f MB)",（%d Hz，已下 %.1f MB）,模型,
+ui.gd.core.crash_box.041,In-Run Real-time | Texture Buffer VRAM Audio(Music) WASM JS | Node Object Enemy VFX Ammo Level | Cached New | Event,局内 实时 | 贴图 缓冲 显存 音频(配乐) WASM JS | 节点 对象 怪 特效 弹 等级 | 缓存张 新读 | 事件,模型,
+ui.gd.core.crash_box.042, Power On, 开机,模型,
+ui.gd.core.crash_box.043,WASM Heap Growth (Page seconds Original→Actual MB Phase):,WASM 堆增长（页面秒 原→实得 MB 阶段）：,模型,
+ui.gd.core.crash_box.044,Last newly loaded texture:,最后一段新读的贴图：,模型,
+ui.gd.core.crash_box.045,Snapshot write failed (most recent):,快照写入失败（最近一次）：,模型,
+ui.gd.core.crash_box.046,Last heartbeat (real-time seconds / In-Run seconds):,最后一次心跳（实时秒 / 局内秒）：,模型,
+ui.gd.core.crash_box.047,Page Event:,页面事件：,模型,
+ui.gd.core.crash_box.048,[Start Info] WASM %d MiB at entry · Opened before Start: %s,【开局信息】进局时 WASM %d MiB · 本页开局前打开过：%s,模型,
+ui.gd.core.crash_box.049,None,无,模型,
+ui.gd.core.crash_box.050,"[Pre-Crash High-Freq Curve] 1 row per %ds + Peak sampling, last %d rows",【闪退前高频曲线】每 %d 秒一行 + 尖峰补采，最后 %d 行,模型,
+ui.gd.core.crash_box.051,Real-time In-Run | Texture Buffer Audio(BGM) WASM JS | Mob VFX Ammo | Upload KiB | Resident BGM Count Name | GL ID Table Slots (10k) | BGM Total Decoded,实时 局内 | 贴图 缓冲 音频(配乐) WASM JS | 怪 特效 弹 | 上传KiB | 驻留配乐首数 名 | GL 编号 表槽（万） | 配乐累计解码,模型,
+ui.gd.core.crash_box.052,[Event Log] Last %d entries (Real-time / In-Run),【事件日志】最后 %d 条（实时 / 局内）,模型,
 ui.gd.core.event_book.000,Ending Event,结局线事件,模型,
 ui.gd.core.event_book.001,Encounter,不期而遇,官方,roguelike_topic_table.rogue_2.nodeTypeData.INCIDENT
 ui.gd.core.event_book.002,Node Event,节点事件,模型,
 ui.gd.core.frame_rec.000,Art Cache,Art 缓存,模型,
 ui.gd.core.frame_rec.001,Node Default,节点自带,模型,
+ui.gd.core.god_suite.000,'Paranoia Illusion',偏执泡影,官方,enemy_handbook_table.enemy_2037_sygirl
+ui.gd.core.god_suite.001,Ishar'mla,伊莎玛拉,模型,
+ui.gd.core.god_suite.002,Izumik,伊祖米克,模型,
+ui.gd.core.god_suite.003,The Last Knight,最后的骑士,官方,enemy_handbook_table.enemy_2038_sydonq
+ui.gd.core.god_suite.004,Kal'tsit,凯尔希,官方,character_table.char_003_kalts
+ui.gd.core.god_suite.005,Wiš'adel,维什戴尔,官方,character_table.char_1035_wisdel
+ui.gd.core.god_suite.006,Ulpianus,乌尔比安,官方,character_table.char_4145_ulpia
+ui.gd.core.god_suite.007,Skadi the Corrupting Heart,浊心斯卡蒂,官方,character_table.char_1012_skadi2
+ui.gd.core.god_suite.008,Irene,艾丽妮,官方,character_table.char_4009_irene
+ui.gd.core.god_suite.009,Specter the Unchained,归溟幽灵鲨,官方,character_table.char_1023_ghost2
+ui.gd.core.god_suite.010,Mizuki,水月,官方,character_table.char_437_mizuki
+ui.gd.core.god_suite.011,Hoshiguma,星熊,官方,character_table.char_136_hsguma
+ui.gd.core.god_suite.012,Skadi,斯卡蒂,官方,character_table.char_263_skadi
+ui.gd.core.god_suite.013,(No crash snapshot found for this run),（没有找到这一局的崩溃快照）,模型,
+ui.gd.core.god_suite.014,(No Performance Report for this run: run too short or report not On),（这一局没有性能报告：对局太短或报告未开启）,模型,
+ui.gd.core.god_suite.015,Kills,击破,模型,
+ui.gd.core.god_suite.016,Defeat,倒下,模型,
+ui.gd.core.god_suite.017,Exit Midway,中途退出,模型,
+ui.gd.core.god_suite.018,No Settlement (Crash / Page Closed),未结算（闪退 / 页面被关）,模型,
+ui.gd.core.god_suite.019,Timeout without Kills,超时未击破,模型,
+ui.gd.core.god_suite.020,Settlement,结算,模型,
+ui.gd.core.god_suite.021, · Frametime P50 %.1f / P95 %.1f ms · Worst 1s %s FPS · Peak memory %d MB%s, · 帧时 P50 %.1f / P95 %.1f 毫秒 · 最差 1 秒 %s 帧 · 内存峰值 %d MB%s,模型,
+ui.gd.core.god_suite.022, · Boss Battle , · Boss 战 ,模型,
+ui.gd.core.god_suite.023,%s from %s · P50 %.1f / P95 %.1f ms · Worst 1s %s FPS · Peak memory %d MB%s,%s 起 %s · P50 %.1f / P95 %.1f 毫秒 · 最差 1 秒 %s 帧 · 内存峰值 %d MB%s,模型,
+ui.gd.core.god_suite.024,Total %s,共 %s,模型,
+ui.gd.core.god_suite.025,Arknights Survivor · Invincible Pack Four Final Boss continuous test (Start %s)%s,方舟幸存者 · 无敌包四个最终 Boss 连测（%s 开始）%s,模型,
+ui.gd.core.god_suite.026, · Done, · 已完成,模型,
+ui.gd.core.god_suite.027, · In Progress (Run %d / %d), · 进行中（第 %d / %d 局）,模型,
+ui.gd.core.god_suite.028,Device ,设备 ,模型,
+ui.gd.core.god_suite.029,[Summary],【汇总】,模型,
+ui.gd.core.god_suite.030,(Run pending Settlement),（还没有结算的局）,模型,
+ui.gd.core.god_suite.031,———— Run %d · %s · Start Squad %s ————,———— 第 %d 局 · %s · 开局编队 %s ————,模型,
+ui.gd.core.god_suite.032,Boss Phase ,Boss 战段 ,模型,
 ui.gd.core.perf_context.000,Seed %s,种子 %s,模型,
 ui.gd.core.perf_context.001,Difficulty %s · ,难度 %s · ,模型,
 ui.gd.core.perf_context.002,Tide Level %d,潮位 %d,模型,
@@ -2637,8 +2693,8 @@ ui.gd.render.world.022,Reload Interrupted · Stun %.1f,装填被打断 · 眩晕
 灯火｜受击时损失，拾取灯油补充。< 30 暗淡：受到伤害更多；0 寂灭：每秒失去 3 点生命。,"Light | Lost on hit, replenished by picking up Lamp Oil. < 30 Dim: take more damage; 0 Out: lose 3 HP per second.",,原文键,校对
 溟痕｜地面的紫黑色溟痕会减速并持续伤害，点燃引航灯标才能净化。,"Nethersea Brand | Purple-black Nethersea Brand on the ground Slows and deals continuous damage, requires igniting a Guiding Beacon to cleanse.",,原文键,校对
 生命｜队长生命归零即探索失败。编队每多一名干员，最大生命 +{hp_per_member}%、回复 +{regen_per_member} / 秒。,"HP | If the Leader's HP reaches zero, the run fails. For each additional Operator in the squad, Max HP +{hp_per_member}%, recovery +{regen_per_member} / sec.",,原文键,校对
-通明｜灯火 ≥ 70：技力回复 +30%，拾取范围 +20%。暗淡时受到伤害 +{dark_taken}%，海嗣移速与接触伤害 +{dark_enemy}%。,"Bright | Light ≥ 70: SP recovery +30%, pick up range +20%. When Dim, damage taken +{dark_taken}%, Seaborn movement speed and contact damage +{dark_enemy}%.",,原文键,校对
-照亮｜范围半径在 110 与 360 之间随灯火变化，灯火变弱时圈缩小、亮度不变。圈内敌人受到伤害 +25%。,"Illuminated | Range radius varies between 110 and 360 and Light. When Light weakens, the ring shrinks but brightness remains unchanged. Enemies within the ring take +25% damage.",,原文键,模型
+通明｜灯火 ≥ 70：技力回复 +30%，拾取范围 +20%。暗淡时受到伤害 +{dark_taken}%，拾取范围 -30%，海嗣移速与接触伤害 +{dark_enemy}%。,"Bright | Light ≥ 70: SP Recovery +30%, Pick Up Range +20%. When Dim, damage taken +{dark_taken}%, Pick Up Range -30%, Seaborn movement speed and contact damage +{dark_enemy}%.",,原文键,校对
+照亮｜范围半径在 110 与 360 之间随灯火变化，灯火变弱时圈缩小、亮度不变。圈内敌人受到伤害 +{lit_bonus}%，通明时 +{lit_bonus_hi}%。,"Illuminated | Range radius varies between 110 and 360 with Light; when Light weakens, the ring shrinks but brightness remains unchanged. Enemies within the ring have damage taken +{lit_bonus}%, +{lit_bonus_hi}% when Bright.",,原文键,校对
 黑潮｜2:30 起安全区分 4 轮收缩，圈外持续受伤，看到「黑潮将至」就往白色虚线圈里走。,"Black Tide | From 2:30, the Safe Zone shrinks in 4 phases. Take continuous damage outside the zone. Move into the white dashed circle when 'Black Tide Approaching' appears.",,原文键,模型
 圆盘｜按 F（手柄 LB，触屏「指挥」键）打开，选队形与索敌偏好。,"Disk | Press F (Controller LB, Touch 'Command' button) to open, select Formation and Targeting preference.",,原文键,模型
 集火｜圆盘下半圈。点选一名精英或 Boss，全队攻击该目标；小怪不能选。,"Focus Fire | Bottom half of the disc. Select an Elite or Boss, all allies attack the target; mobs cannot be selected.",,原文键,校对
@@ -2817,6 +2873,7 @@ pixelfx（Hugo Duprez，MIT）；CodeManu「Free Pixel Effects Pack」（CC-BY 4
 作战流程,Combat Flow,,原文键,模型
 博士,Doctor,,原文键,模型
 window.__syPhase='建局·%s',window.__syPhase='Setup · %s',,原文键,模型
+白:,White:,,原文键,模型
 接潮双体 同时倒下,Tidal Twins Defeated Simultaneously,,原文键,模型
 复苏（%d / %d）,Revive (%d / %d),,原文键,模型
 同步中,Syncing,,原文键,模型
@@ -2878,7 +2935,7 @@ Boss 生命 +15%，Boss 招式预警缩短 15%。,"Boss HP +15%, Boss attack war
 敌人生命与造成的伤害 +20%。,Enemy HP and damage dealt +20%.,,原文键,模型
 潮位 4 · 寒流,Tide Level 4 · Cold Current,,原文键,模型
 寒流,Cold Current,,原文键,模型
-大群规模 +20%；小怪控制提前到 5:00，寒霜 2 层即冻结。,"We Many scale +20%; mob control advanced to 5:00, 2 stacks of Frost inflicts Frozen.",,原文键,模型
+大群规模 +20%；普通敌人的寒霜、束缚、创口提前到 5:00，寒霜 2 层即冻结。,"We Many scale +20%; Normal Enemy Frost, Bind, and Wound advanced to 5:00, 2 stacks of Frost inflict Frozen.",,原文键,校对
 潮位 5 · 搁浅,Tide Level 5 · Stranded,,原文键,模型
 搁浅,Stranded,,原文键,模型
 队长初始最大生命 -10%；灯油掉落加重到 -40%，源石锭加重到 -25%。,"Leader initial Max HP -10%; Lamp Oil drop penalty increased to -40%, Originium Ingot penalty increased to -25%.",,原文键,模型
@@ -2917,7 +2974,7 @@ Boss 与精英招式预警最多缩短 %d%%（≥ 0.6 秒）,Boss and Elite atta
 Boss 在场时大群照常来袭,We Many attacks as usual when Boss is present,,原文键,模型
 溟痕伤害 +%d%%,Nethersea Brand damage +%d%%,,原文键,校对
 神经损伤累积 +%d%%,Nervous Impairment buildup +%d%%,,原文键,模型
-小怪控制提前到 %d:%02d,Mob control advanced to %d:%02d,,原文键,模型
+普通敌人的寒霜、束缚、创口提前到 %d:%02d,"Normal Enemy Frost, Bind, and Wound advanced to %d:%02d",,原文键,模型
 寒霜 %d 层即冻结,Frozen at %d stacks of Frost,,原文键,模型
 词条提前到 %d:%02d,Affix advanced to %d:%02d,,原文键,模型
 词条概率上限 %d%%,Affix probability cap %d%%,,原文键,模型
@@ -2972,7 +3029,7 @@ Boss 在场时大群照常来袭,We Many attacks as usual when Boss is present,,
 遭诅藏品,Cursed Relic,,原文键,模型
 队友暂离 %d 秒,Ally temporarily leaves for %ds,,原文键,模型
 队友离队,Ally Leaves,,原文键,模型
-%d 秒强敌,%ds Elite Enemy,,原文键,模型
+敌人强化 %d 秒,Enemy Buffed %ds,,原文键,模型
 %d 秒内击败 %d,Defeat %d within %ds,,原文键,模型
 %s藏品,%s Relic,,原文键,模型
 藏品三选一,Choose 1 of Three Relics,,原文键,模型
@@ -3020,7 +3077,7 @@ Boss 在场时大群照常来袭,We Many attacks as usual when Boss is present,,
 委托未完成：%s,Commission incomplete: %s,,原文键,模型
 编队已满，「%s」留在安全屋 —— 物资照常送到,Squad Full. '%s' stays in the safe house — supplies delivered as usual.,,原文键,模型
 「%s」带着物资归队,'%s' Regroups with supplies,,原文键,模型
-委托 · 强敌 %d 秒,Commission · Formidable Enemy %ds,,原文键,模型
+委托 · 敌人强化 %d 秒,Commission · Enemy Buffed %ds,,原文键,模型
 委托 · 击败精英小队,Commission · Defeat Elite squad,,原文键,模型
 委托 · 击败 %d/%d,Commission · Defeat %d/%d,,原文键,模型
 %s 暂离 %d 秒,%s leaves for %ds,,原文键,模型
@@ -3224,6 +3281,7 @@ FPS %.0f   上限 %d%s   画质 %s   %d:%02d,FPS %.0f   Cap %d%s   Graphics %s  
 音乐：开,Music: On,,原文键,模型
 作战时限未恢复,Combat time limit not restored,,原文键,人改
 自身回复,Self Recovery,,原文键,模型
+无敌测试 —— 生命已回满,Invincible Test — HP fully restored,,原文键,模型
 认知塑造,Cognitive Shaping,,原文键,模型
 为了生存 —— 队长回复 30% 最大生命,For Survival — Leader recovers 30% Max HP,,原文键,模型
 生存本能 —— 队长保留 1 点生命,Survival Instinct — Leader retains 1 HP,,原文键,校对
@@ -3902,26 +3960,20 @@ Mon3tr 攻击,Mon3tr Attack,,原文键,模型
 ；队长受到的伤害 %s%d%%,; Leader Damage Taken %s%d%%,,原文键,模型
 行动目标：维持作战至 10:00，击败它们,Objective: Maintain combat until 10:00 and defeat them.,,原文键,模型
 任意键跳过,Press Any Key to Skip,,原文键,模型
+（续）,(Cont.),,原文键,模型
 ‹ 上一页,‹ Prev Page,,原文键,模型
-下一页 ›,Next Page ›,,原文键,模型
 开始探索 ›,Start run ›,,原文键,模型
-左键 / 任意键：下一页　　右键 / ←：上一页　　点面板左侧也可回退,Left Click / Any key: Next Page    Right Click / ←: Previous Page    Click left side of panel to go back,,原文键,校对
-Ⓐ / → / RB：下一页　　← / LB：上一页　　Ⓑ：跳过,Ⓐ / → / RB: Next Page　　← / LB: Previous Page　　Ⓑ: Skip,,原文键,模型
-点击：下一页　　点面板左侧：上一页,Click: Next page    Click left of panel: Previous page,,原文键,校对
-轻点自动瞄准 · 按住拖方向,Tap for Auto Aim · Hold and drag for direction,,原文键,模型
-黑潮边界,Black Tide Boundary,,原文键,模型
-被动,Passive,,原文键,模型
-干员成长 / 招募 / 生存与机动,Operator Growth / Recruitment / Survival and Mobility,,原文键,校对
-浅滩,Shallows,,原文键,模型
-暗流,Undertow,,原文键,人改
-深潜,Deep Dive,,原文键,人改
-裂隙,Rift,,原文键,模型
-深渊,Abyss,,原文键,模型
-大群来袭,We Many Incoming,,原文键,模型
-商人  ·  停留 60 秒,Merchant  ·  Stays for 60s,,原文键,模型
+下一页 ›,Next Page ›,,原文键,模型
+轻点自动瞄准,Tap for Auto Aim,,原文键,模型
+按住拖方向,Hold and drag to aim,,原文键,校对
+照亮,Illuminated,,原文键,暂定
 队友,Ally,,原文键,模型
 指令,Command,,原文键,模型
 屏幕正下方,Bottom of Screen,,原文键,模型
+商人方向,Merchant Direction,,原文键,模型
+商人  ·  停留 60 秒,Merchant  ·  Stays for 60s,,原文键,模型
+四个结局,Four Endings,,原文键,模型
+键盘,Keyboard,,原文键,模型
 明日方舟同人作品 · 非商业,Arknights Fan Game · Non-commercial,,原文键,模型
 「大群来袭」前 3 秒有紫色预警。包围圈总留一个缺口，没有箭头的一侧就是突围方向。,A purple warning appears 3s before 'We Many Incoming'. The encirclement always leaves a gap; the side without arrows is the breakout direction.,,原文键,模型
 冲刺中无敌。,Invincible during Dash.,,原文键,模型
@@ -4320,6 +4372,9 @@ Boss 击破,Bosses Defeated,,原文键,人改
 缺分片 %s,Missing chunk %s,,原文键,校对
 校验不符,Validation Mismatch,,原文键,模型
 正文结构不对,Incorrect body structure,,原文键,校对
+终结技 %s 第 %d 次,Ultimate %s #%d,,原文键,校对
+Boss 登场 ,Boss Appears ,,原文键,模型
+Boss 登场,Boss Appears,,原文键,模型
 关键内存快照 · 既有周期及尖峰采样，峰值取这些采样中的最高值；配乐计入音频,Critical Memory Snapshot · Includes periodic and peak sampling; peak is the highest among these. BGM is included in audio.,,原文键,校对
 第 %d 波 Boss 登场%s,Wave %d Boss appears%s,,原文键,模型
 前, before,,原文键,校对
@@ -4337,6 +4392,16 @@ Boss 击破,Bosses Defeated,,原文键,人改
 尖峰,Peak,,原文键,模型
 WASM 堆增长,WASM Heap Growth,,原文键,模型
 web·解码失败 %d（%s）,web·decode failed %d (%s),,原文键,模型
+·二阶段,· Phase 2,,原文键,模型
+配乐 → ,BGM → ,,原文键,模型
+（淡出）,(Fade Out),,原文键,模型
+读入,Load,,原文键,模型
+释放,Release,,原文键,模型
+贴图上传：每秒峰值 %.1f MiB（局内 %s）· 本局最大单张 %s %d×%d（%.1f MiB）,Texture upload: peak %.1f MiB per second (In-Run %s) · Max single image this run %s %d×%d (%.1f MiB),,原文键,校对
+进局前（标题 / 图鉴 / 寻访 / 载入页）最大单张 %s %d×%d（%.1f MiB；进局时局外读的图已放掉）,Pre-entry (Title / Archive / Headhunt / Loading) max single image %s %d×%d (%.1f MiB; out-of-run images loaded at entry are released),,原文键,模型
+本局干员特效读入（MiB，核对是否都在编队 / 招募内）：,"Operator VFX Load this run (MiB, verify if all are in squad / Recruit):",,原文键,校对
+%s %d 次,%s %d Times,,原文键,模型
+本页开局前打开过：,Opened before Start:,,原文键,模型
 上次局间重载没完成，已改走普通回标题（%s）· 点此查看 / 复制,"Previous inter-run reload incomplete, reverted to normal return to Title (%s) · Click here to View / copy",,原文键,模型
 上次对局异常退出（开局前就停了）· 点此查看,Last run exited abnormally (stopped Pre-Run) · Tap to View,,原文键,模型
 上次对局异常退出（局内 %s，显存 + 音频峰值 %d MB）· 点此查看 / 复制,"Last run exited abnormally (In-Run %s, VRAM + audio peak %d MB) · Click here to View / Copy",,原文键,模型
@@ -4350,10 +4415,34 @@ WASM 堆增长（页面秒 原→实得 MB 阶段）：,WASM Heap Growth (Page s
 快照写入失败（最近一次）：,Snapshot write failed (most recent):,,原文键,模型
 最后一次心跳（实时秒 / 局内秒）：,Last heartbeat (real-time seconds / In-Run seconds):,,原文键,模型
 页面事件：,Page Event:,,原文键,模型
+【开局信息】进局时 WASM %d MiB · 本页开局前打开过：%s,[Start Info] WASM %d MiB at entry · Opened before Start: %s,,原文键,模型
+【闪退前高频曲线】每 %d 秒一行 + 尖峰补采，最后 %d 行,"[Pre-Crash High-Freq Curve] 1 row per %ds + Peak sampling, last %d rows",,原文键,模型
+实时 局内 | 贴图 缓冲 音频(配乐) WASM JS | 怪 特效 弹 | 上传KiB | 驻留配乐首数 名 | GL 编号 表槽（万） | 配乐累计解码,Real-time In-Run | Texture Buffer Audio(BGM) WASM JS | Mob VFX Ammo | Upload KiB | Resident BGM Count Name | GL ID Table Slots (10k) | BGM Total Decoded,,原文键,模型
+【事件日志】最后 %d 条（实时 / 局内）,[Event Log] Last %d entries (Real-time / In-Run),,原文键,模型
 结局线事件,Ending Event,,原文键,模型
 节点事件,Node Event,,原文键,模型
 Art 缓存,Art Cache,,原文键,模型
 节点自带,Node Default,,原文键,模型
+偏执泡影,'Paranoia Illusion',,原文键,官方
+伊莎玛拉,Ishar'mla,,原文键,模型
+伊祖米克,Izumik,,原文键,模型
+（没有找到这一局的崩溃快照）,(No crash snapshot found for this run),,原文键,模型
+（这一局没有性能报告：对局太短或报告未开启）,(No Performance Report for this run: run too short or report not On),,原文键,模型
+未结算（闪退 / 页面被关）,No Settlement (Crash / Page Closed),,原文键,模型
+超时未击破,Timeout without Kills,,原文键,模型
+结算,Settlement,,原文键,模型
+ · 帧时 P50 %.1f / P95 %.1f 毫秒 · 最差 1 秒 %s 帧 · 内存峰值 %d MB%s, · Frametime P50 %.1f / P95 %.1f ms · Worst 1s %s FPS · Peak memory %d MB%s,,原文键,模型
+ · Boss 战 , · Boss Battle ,,原文键,模型
+%s 起 %s · P50 %.1f / P95 %.1f 毫秒 · 最差 1 秒 %s 帧 · 内存峰值 %d MB%s,%s from %s · P50 %.1f / P95 %.1f ms · Worst 1s %s FPS · Peak memory %d MB%s,,原文键,模型
+共 %s,Total %s,,原文键,模型
+方舟幸存者 · 无敌包四个最终 Boss 连测（%s 开始）%s,Arknights Survivor · Invincible Pack Four Final Boss continuous test (Start %s)%s,,原文键,模型
+ · 已完成, · Done,,原文键,模型
+ · 进行中（第 %d / %d 局）, · In Progress (Run %d / %d),,原文键,模型
+设备 ,Device ,,原文键,模型
+【汇总】,[Summary],,原文键,模型
+（还没有结算的局）,(Run pending Settlement),,原文键,模型
+———— 第 %d 局 · %s · 开局编队 %s ————,———— Run %d · %s · Start Squad %s ————,,原文键,模型
+Boss 战段 ,Boss Phase ,,原文键,模型
 种子 %s,Seed %s,,原文键,模型
 难度 %s · ,Difficulty %s · ,,原文键,模型
 潮位 %d,Tide Level %d,,原文键,模型
@@ -4402,7 +4491,6 @@ FPS %.0f  最低 %.0f  帧时 P50 %.1f / P95 %.1f ms,FPS %.0f  Min %.0f  Frameti
 浏览器历史恢复,Browser History Restored,,原文键,模型
 标题就绪,Title Ready,,原文键,模型
 开局,Start,,原文键,模型
-结算,Settlement,,原文键,模型
 请求重载,Request Reload,,原文键,模型
 重载失败，返回标题,"Reload failed, Back to Title",,原文键,模型
 寻访打开,Headhunt Open,,原文键,模型

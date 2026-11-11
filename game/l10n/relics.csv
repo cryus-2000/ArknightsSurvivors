@@ -1216,7 +1216,7 @@ relics.relic_effects.relics.82.desc,Multi-Shot Firepower Operators' attack range
 relics.relic_effects.relics.82.rarity,Rare,稀有,模型,
 relics.relic_effects.relics.83.desc,"Every 30s, fully charges a random Operator's skill",每 30 秒随机一名干员的技能立即充满,模型,
 relics.relic_effects.relics.83.rarity,Core,核心,模型,
-relics.relic_effects.relics.84.desc,"When a Persistent Summon Operator's follow-up attack / summon defeats an enemy, the enemy explodes on the spot: enemies within a 90 radius take damage equal to 30% of its Max HP (Bosses do not explode, explosions do not chain)",召唤驻场干员的追击 / 召唤物击败敌人时，该敌人原地殉爆：90 范围内敌人受到其最大生命 30% 的伤害（Boss 不殉爆，殉爆不连锁）,模型,
+relics.relic_effects.relics.84.desc,"When an enemy is defeated by a Summon/Stationary Operator's pursuit or a summon, they explode: enemies within a radius of 90 take damage equal to 30% of their Max HP (Bosses excepted; explosions do not chain).",召唤驻场干员的追击 / 召唤物击败敌人时，该敌人原地殉爆：90 范围内敌人受到其最大生命 30% 的伤害（Boss 除外，殉爆不连锁）,校对,校对：“召唤驻场”通常指两类干员（Summon/Stationary），译为 Persistent Summon 存在误译；补充 a summon 对应“召唤物”。
 relics.relic_effects.relics.84.rarity,Core,核心,模型,
 relics.relic_effects.relics.85.desc,"When an Operator's skill ends, their skills each recover 12% SP",干员的技能结束时，该干员的技能各回复 12% 技力,模型,
 relics.relic_effects.relics.85.rarity,Rare,稀有,模型,
@@ -2566,7 +2566,7 @@ Miss.Christine摸摸券,Miss.Christine Petting Ticket,,原文键,官方
 近战扩域干员攻击范围 +25%；身边 140 范围内每有 1 名敌人，近战伤害 +3%（最多 +30%）,Melee Range Expansion Operators' attack range +25%; melee damage +3% for every 1 enemy within 140 radius around them (up to +30%),,原文键,模型
 多弹火力干员攻击范围 +20%；远程命中离出手干员越远伤害越高（300 距离及以外 +30%）,Multi-Shot Firepower Operators' attack range +20%; ranged hits deal more damage the further the target is from the attacking Operator (+30% at 300 distance and beyond),,原文键,模型
 每 30 秒随机一名干员的技能立即充满,"Every 30s, fully charges a random Operator's skill",,原文键,模型
-召唤驻场干员的追击 / 召唤物击败敌人时，该敌人原地殉爆：90 范围内敌人受到其最大生命 30% 的伤害（Boss 不殉爆，殉爆不连锁）,"When a Persistent Summon Operator's follow-up attack / summon defeats an enemy, the enemy explodes on the spot: enemies within a 90 radius take damage equal to 30% of its Max HP (Bosses do not explode, explosions do not chain)",,原文键,模型
+召唤驻场干员的追击 / 召唤物击败敌人时，该敌人原地殉爆：90 范围内敌人受到其最大生命 30% 的伤害（Boss 除外，殉爆不连锁）,"When an enemy is defeated by a Summon/Stationary Operator's pursuit or a summon, they explode: enemies within a radius of 90 take damage equal to 30% of their Max HP (Bosses excepted; explosions do not chain).",,原文键,校对
 干员的技能结束时，该干员的技能各回复 12% 技力,"When an Operator's skill ends, their skills each recover 12% SP",,原文键,模型
 获得时全队技力 +20%；之后招募的干员入队时也获得 20% 技力,Squad SP +20% upon obtaining; subsequently recruited Operators also gain 20% SP upon joining,,原文键,模型
 获得时全队技力 +30%；之后招募的干员入队时也获得 30% 技力,Squad SP +30% upon obtaining; subsequently recruited Operators also gain 30% SP upon joining,,原文键,模型
