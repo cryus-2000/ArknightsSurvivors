@@ -34,9 +34,14 @@ func move(dt: float) -> Vector2:
 
 
 ## 每帧（game._process，真实时间）
+var _log_t := 0.0
 func step(delta: float) -> void:
 	var rd: float = delta / maxf(0.01, Engine.time_scale)
 	var S = g.S
+	_log_t += rd
+	if _log_t >= 10.0:
+		_log_t = 0.0
+		print("PF AUTOPLAY st=%d kind=%s t=%.0f age=%.1f modal=%s" % [g.state, str(g.choice_kind), g.t, g.state_age, str(g.onboard.modal())])
 	match g.state:
 		S.CHOICE:
 			_wait += rd
