@@ -161,6 +161,8 @@ static func begin(g) -> void:
 	_up_sec_b = -1
 	_up_sec_t = 0.0
 	up_peak = {}
+	A.up_max = {}
+	A.up_owner = {}
 	_mus_last = ""
 	cur["open"] = _opened.duplicate()
 	if _web():
@@ -432,7 +434,7 @@ static func _hf_sample(g) -> void:
 	_hf.append(row)
 	if _hf.size() > HF_MAX:
 		_hf.pop_front()
-	var j := JSON.stringify({"hf": _hf, "ev": _evl, "up": up_peak, "um": A.up_max})
+	var j := JSON.stringify({"hf": _hf, "ev": _evl, "up": up_peak, "um": A.up_max, "uo": A.up_owner})
 	JavaScriptBridge.eval("try{localStorage.setItem('%s',%s)}catch(e){}" % [HF_KEY, JSON.stringify(j)], true)
 	if Cfg.dev_args().has("--crashbox"):
 		print("PF CRASHHF " + JSON.stringify(row))
@@ -441,7 +443,7 @@ static func _hf_sample(g) -> void:
 ## 正常结算报告也带的上传读数（perf_report.finish）
 static func up_summary() -> Dictionary:
 	var A = load("res://scripts/art.gd")
-	return {"up_peak": up_peak.duplicate(), "up_max": (A.up_max as Dictionary).duplicate()}
+	return {"up_peak": up_peak.duplicate(), "up_max": (A.up_max as Dictionary).duplicate(), "up_owner": (A.up_owner as Dictionary).duplicate(), "open": _opened.duplicate()}
 
 
 static func up_lines(r: Dictionary) -> PackedStringArray:
@@ -449,8 +451,22 @@ static func up_lines(r: Dictionary) -> PackedStringArray:
 	var pk: Dictionary = r.get("up_peak", {})
 	var mx: Dictionary = r.get("up_max", {})
 	if not pk.is_empty() or not mx.is_empty():
-		o.append("贴图上传：每秒峰值 %.1f MiB（局内 %s）· 本页最大单张 %s %d×%d（%.1f MiB）" % [float(pk.get("b", 0)) / 1048576.0, _mmss(float(pk.get("t", 0))),
+		o.append("贴图上传：每秒峰值 %.1f MiB（局内 %s）· 本局最大单张 %s %d×%d（%.1f MiB）" % [float(pk.get("b", 0)) / 1048576.0, _mmss(float(pk.get("t", 0))),
 			str(mx.get("n", "—")).get_file(), int(mx.get("w", 0)), int(mx.get("h", 0)), float(mx.get("b", 0)) / 1048576.0])
+	var uo: Dictionary = r.get("up_owner", {})
+	if not uo.is_empty():
+		var ks: Array = uo.keys()
+		ks.sort_custom(func(x, y): return int(uo[x]) > int(uo[y]))
+		var parts := PackedStringArray()
+		for k in ks:
+			parts.append("%s %.1f" % [str(k), float(uo[k]) / 1048576.0])
+		o.append("本局干员特效读入（MiB，核对是否都在编队 / 招募内）：" + "、".join(parts))
+	var op: Dictionary = r.get("open", {})
+	if not op.is_empty():
+		var ps := PackedStringArray()
+		for k in op:
+			ps.append("%s %d 次" % [str(k), int(op[k])])
+		o.append("本页开局前打开过：" + "、".join(ps))
 	return o
 
 
@@ -635,7 +651,7 @@ static func _hf_lines(p: Dictionary) -> PackedStringArray:
 	var h: Dictionary = p.get("hfx", {})
 	if h.is_empty():
 		return o
-	o.append_array(up_lines({"up_peak": h.get("up", {}), "up_max": h.get("um", {})}))
+	o.append_array(up_lines({"up_peak": h.get("up", {}), "up_max": h.get("um", {}), "up_owner": h.get("uo", {})}))
 	var rows: Array = h.get("hf", [])
 	if not rows.is_empty():
 		o.append("【闪退前高频曲线】每 %d 秒一行 + 尖峰补采，最后 %d 行" % [int(HF_EVERY), rows.size()])
