@@ -1,0 +1,164 @@
+[
+ {
+  "op": "gladiia",
+  "mult": 1.0,
+  "rec": {
+   "act_dur": 0.6667,
+   "aspd": 1.0,
+   "by_anim": {
+    "attack": {
+     "cd": 29.7,
+     "dur": 18.0,
+     "n": 27,
+     "over": 0
+    }
+   },
+   "cd_avg": 1.0815,
+   "cd_n": 28,
+   "fires": 27,
+   "gap_max": 1.1,
+   "mult": 1.0,
+   "nominal": 1.1,
+   "op": "gladiia",
+   "secs": 30.02,
+   "skills": false,
+   "starts": 27
+  },
+  "errors": []
+ },
+ {
+  "op": "gladiia",
+  "mult": 2.0,
+  "rec": {
+   "act_dur": 0.495,
+   "aspd": 2.0,
+   "by_anim": {
+    "attack": {
+     "cd": 29.15,
+     "dur": 26.235,
+     "n": 53,
+     "over": 0
+    }
+   },
+   "cd_avg": 0.541,
+   "cd_n": 54,
+   "fires": 53,
+   "gap_max": 0.567,
+   "mult": 2.0,
+   "nominal": 0.55,
+   "op": "gladiia",
+   "secs": 30.02,
+   "skills": false,
+   "starts": 53
+  },
+  "errors": []
+ },
+ {
+  "op": "gladiia",
+  "mult": 4.0,
+  "rec": {
+   "act_dur": 0.2475,
+   "aspd": 4.0,
+   "by_anim": {
+    "attack": {
+     "cd": 29.1499999999999,
+     "dur": 26.235,
+     "n": 106,
+     "over": 0
+    }
+   },
+   "cd_avg": 0.2731,
+   "cd_n": 107,
+   "fires": 106,
+   "gap_max": 0.283,
+   "mult": 4.0,
+   "nominal": 0.275,
+   "op": "gladiia",
+   "secs": 30.02,
+   "skills": false,
+   "starts": 106
+  },
+  "errors": []
+ },
+ {
+  "op": "ulpianus",
+  "mult": 1.0,
+  "rec": {
+   "act_dur": 0.6317,
+   "aspd": 1.0,
+   "by_anim": {
+    "attack": {
+     "cd": 29.7,
+     "dur": 17.055,
+     "n": 27,
+     "over": 0
+    }
+   },
+   "cd_avg": 1.0851,
+   "cd_n": 28,
+   "fires": 27,
+   "gap_max": 1.1,
+   "mult": 1.0,
+   "nominal": 1.1,
+   "op": "ulpianus",
+   "secs": 30.02,
+   "skills": false,
+   "starts": 27
+  },
+  "errors": []
+ },
+ {
+  "op": "ulpianus",
+  "mult": 2.0,
+  "rec": {
+   "act_dur": 0.495,
+   "aspd": 2.0,
+   "by_anim": {
+    "attack": {
+     "cd": 29.15,
+     "dur": 26.235,
+     "n": 53,
+     "over": 0
+    }
+   },
+   "cd_avg": 0.5429,
+   "cd_n": 54,
+   "fires": 53,
+   "gap_max": 0.567,
+   "mult": 2.0,
+   "nominal": 0.55,
+   "op": "ulpianus",
+   "secs": 30.02,
+   "skills": false,
+   "starts": 53
+  },
+  "errors": []
+ },
+ {
+  "op": "ulpianus",
+  "mult": 4.0,
+  "rec": {
+   "act_dur": 0.2475,
+   "aspd": 4.0,
+   "by_anim": {
+    "attack": {
+     "cd": 29.1499999999999,
+     "dur": 26.235,
+     "n": 106,
+     "over": 0
+    }
+   },
+   "cd_avg": 0.2741,
+   "cd_n": 107,
+   "fires": 105,
+   "gap_max": 0.283,
+   "mult": 4.0,
+   "nominal": 0.275,
+   "op": "ulpianus",
+   "secs": 30.02,
+   "skills": false,
+   "starts": 106
+  },
+  "errors": []
+ }
+]
