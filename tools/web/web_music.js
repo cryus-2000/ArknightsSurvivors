@@ -4,7 +4,7 @@
 // fetch + decodeAudioData 是异步的：第一次播某首要等它解完，晚到的时间从曲中补上（与引擎「迟到的毫秒从曲中补」同口径），不卡主线程。
 (function () {
   var M = {}, bufs = {}, loading = {}, srcs = {}, gains = {}, toFree = {};
-  var bus = null, lp = null, pre = null, busGain = 1, cut = 20000, fails = 0, dl = 0, lastFail = "";
+  var bus = null, lp = null, pre = null, busGain = 1, cut = 20000, fails = 0, dl = 0, lastFail = "", dec = 0, hit = 0;   // dec：真正 fetch + 解码的次数；hit：直接复用内存里解码结果的次数（商店防抖对照，11-11）
   window.__syMus = M;
   function ctx() {
     var l = window.__syAudioCtx || [];
@@ -62,10 +62,11 @@
   var isMix = {}, retired = {};   // isMix：这个 url 的缓冲是预混；retired：底层 id -> url（GD 那边还在播，这边已停掉放手）
   function load(url) {
     delete toFree[url];   // 新的播放或预热请求可接回正在解码的同一首
-    if (bufs[url]) return Promise.resolve(bufs[url]);
+    if (bufs[url]) { hit++; return Promise.resolve(bufs[url]); }
     if (loading[url]) return loading[url];
     var c = ctx();
     if (!c) return Promise.reject(new Error("no audio context"));
+    dec++;
     var decoded, pr = premix && PAIRS[url];
     if (premix && url === "music_suno_final_p1.m4a") {
       decoded = decode(c, "music_suno_final_p1_mono.m4a").catch(function () { return decode(c, url); });
@@ -237,6 +238,6 @@
     var on = 0; for (var k in srcs) { if (srcs[k].src) on++; }
     return JSON.stringify({ bufs: Object.keys(bufs).length, loading: Object.keys(loading).length, on: on, fails: fails, mb: Math.round(M.mb()), lv: Math.round(M.level() * 10000) / 10000, ctx: (ctx() || {}).state || "none",
       sr: (ctx() || {}).sampleRate || 0, mono: MONO ? 1 : 0, mix: Object.keys(isMix).length, ret: Object.keys(retired).length,
-      nm: Object.keys(bufs).map(function (u) { return String(u).replace(/^music_(suno_)?/, "").replace(/\.m4a$/, "") + (bufs[u].__syMix ? "*" : ""); }).join("+"), dl: Math.round(dl / 104857.6) / 10, lf: lastFail });   // sr：解码按上下文采样率重采样（iOS 常为 48 kHz，缓冲是 24 kHz 原曲的 2 倍）
+      nm: Object.keys(bufs).map(function (u) { return String(u).replace(/^music_(suno_)?/, "").replace(/\.m4a$/, "") + (bufs[u].__syMix ? "*" : ""); }).join("+"), dl: Math.round(dl / 104857.6) / 10, lf: lastFail, dec: dec, hit: hit });   // sr：解码按上下文采样率重采样（iOS 常为 48 kHz，缓冲是 24 kHz 原曲的 2 倍）
   };
 })();

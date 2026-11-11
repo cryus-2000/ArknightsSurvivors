@@ -1281,6 +1281,31 @@ func _free_after() -> float:
 	return 0.0 if _fast_swap_on() else FREE_AFTER
 
 
+## 商店防抖（11-11 iPhone 四 Boss 连测第 2 局 2:43 闪退：闪退前约 1 分钟商店 ↔ 战斗一每 2 秒切一次、30 多次，
+## 每次切回都重新下载 + 解码 + 混单声道（音频 35 ↔ 54 MiB 来回、JS 65 ↔ 85），iOS 的解码缓冲 / 离线渲染上下文回收跟不上）：
+## - 在商店里：上一首战斗曲不放（商店是短停留，关店就回同一首），回战斗直接用还在内存里的解码结果；
+## - 回到战斗后：商店曲再留 SHOP_LINGER 秒，期间又进商店也不重解。
+## 只有「战斗 + 商店」两首同驻（≈ 原来每次换曲那一刻的峰值，不抬高峰值）；Boss / 最终 Boss 曲在播或待播时照旧立刻放（docs/305 换 Boss 曲不两首同驻）
+## --bal=web/music_shop_hold=0 退回旧写法（tests/music_shop_flip_test 修前修后对照用）
+const SHOP_LINGER := 20.0
+var _shop_k := -1
+
+func _shop_hold(tname: String) -> bool:
+	if _shop_k < 0:
+		var cfg = get_node_or_null("/root/Cfg")
+		_shop_k = 1 if cfg == null or cfg.mobile_knob("music_shop_hold", 1.0) else 0
+	if _shop_k == 0:
+		return false
+	var nt := str(pending.get("track", ""))
+	if cur_track == "boss" or cur_track.begins_with("final") or nt == "boss" or nt.begins_with("final"):
+		return false
+	if cur_track == "shop" and tname.begins_with("battle"):
+		return true
+	if tname == "shop" and _now() - float(_last_on.get("shop", -99.0)) < SHOP_LINGER:
+		return true
+	return false
+
+
 func _fast_swap_on() -> bool:
 	if _swap_fast < 0:
 		var cfg = get_node_or_null("/root/Cfg")
@@ -1293,6 +1318,8 @@ func _maybe_free(tname: String) -> void:
 		_last_on[tname] = _now()
 		return
 	if _freed.has(tname) or _next.has(tname) or tname == after_stinger or cur_track == "" or _now() - float(_last_on.get(tname, -99.0)) < _free_after():
+		return
+	if _shop_hold(tname):
 		return
 	if _wm_free(tname):
 		_freed[tname] = true
