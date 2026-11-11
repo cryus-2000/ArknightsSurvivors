@@ -1,0 +1,20 @@
+# memory_pressure
+# 参数：--headless --path /work/repo/game res://tests/memory_pressure_test.tscn -- --regression --seed=1 --memguard --memguard=-1 --quality=mid --lazyfx --dropoutrun --squad=angelina
+# 用时 13 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PF OUTRUN dropped=1
+PF FXLAZY t=0.0 wisadel n=1 ms=0
+PF TEXLAZY t=100.0 e_path ms=28
+PF TEXLAZY t=200.0 e_saint ms=17
+PF MEMGUARD total=0MB -> 清缓存 t=0
+PF MEMGUARD total=530MB -> 清缓存 t=0
+PF MEMGUARD total=640MB -> 分辨率缩放 t=0
+PF MEMGUARD total=640MB -> 清缓存 t=0
+MEMORY PRESSURE failures=0
+
+
+## stderr
+
