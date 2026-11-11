@@ -88,6 +88,13 @@ func step(delta: float) -> void:
 			if _wait >= 2.0 and not g.onboard.modal():
 				_wait = 0.0
 				g.intro_screen.close()
+		S.PAUSE:
+			# 失焦自动暂停（web_focus：来通知 / 切后台 / 测量窗口在屏幕外）后 3 秒自己继续：自动模式本来就没人按（11-11 网页仿真两局停在暂停里）
+			_wait += rd
+			if _wait >= 3.0:
+				_wait = 0.0
+				print("PF AUTOPLAY resume t=%.0f" % g.t)
+				g._do_action("resume")
 		S.DEAD, S.WIN:
 			_end_t += rd
 			if Cfg.test_loop() and not _looped and _end_t >= END_WAIT and not g.victory.active:
