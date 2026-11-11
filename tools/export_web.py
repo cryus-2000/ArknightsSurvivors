@@ -118,11 +118,13 @@ def main():
         # 自动模式（网址 auto=1，run/auto_play.gd）要机器人：无敌包保留 bot.gd（正式包仍按预设剔除）
         ep = os.path.join(src, "game", "export_presets.cfg")
         txt = open(ep, encoding="utf-8").read()
-        txt2 = txt.replace(", scripts/core/bot.gd*", "").replace("scripts/core/bot.gd*, ", "")
+        txt2 = txt
+        for keep in ("scripts/core/bot.gd*", "scripts/run/auto_play.gd*", "scripts/core/god_suite.gd*"):
+            txt2 = txt2.replace(", " + keep, "").replace(keep + ", ", "")
         if txt2 == txt:
             sys.exit("无敌包：export_presets.cfg 里没找到 scripts/core/bot.gd* 排除项（改名了要同步）")
         open(ep, "w", encoding="utf-8").write(txt2)
-        print("[无敌包] 保留 scripts/core/bot.gd（自动模式）")
+        print("[无敌包] 保留 bot.gd / auto_play.gd / god_suite.gd（自动模式与连测）")
     else:
         binfo.pop("test_god", None)
     if a.ea:
