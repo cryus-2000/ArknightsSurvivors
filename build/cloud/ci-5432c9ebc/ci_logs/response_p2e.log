@@ -1,0 +1,16 @@
+# response_p2e
+# 参数：--headless --path /work/repo/game res://tests/response_test.tscn -- --regression --seed=1 --bal=ult/on=0 --balance --seed=1 --op=texas --squad=mizuki,specter_unchained
+# 用时 18 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PF FXLAZY t=0.0 mizuki n=8 ms=11
+PF FXLAZY t=0.0 specter_unchained n=5 ms=5
+5 checks, 0 failed
+RESPONSE failures=0
+PF RUNRELEASE tex=0 audio=0
+
+
+## stderr
+

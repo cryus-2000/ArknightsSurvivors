@@ -1,0 +1,12 @@
+# toy_support
+# 参数：--headless --path /work/repo/game res://tests/toy_support_test.tscn -- --regression --seed=1 --fbtoy --toybv=BV1xx411c7mD
+# 用时 5 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+TOY SUPPORT failures=0
+
+
+## stderr
+

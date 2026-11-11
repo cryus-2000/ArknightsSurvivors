@@ -1,0 +1,15 @@
+# web_focus
+# 参数：--headless --path /work/repo/game res://tests/web_focus_test.tscn -- --regression --seed=1 --touch --focustest --focuspause --op=mizuki --squad=hoshiguma,exusiai
+# 用时 19 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PF FXLAZY t=0.0 hoshiguma n=9 ms=8
+PF FXLAZY t=0.0 exusiai n=23 ms=8
+WEB FOCUS failures=0
+PF RUNRELEASE tex=0 audio=0
+
+
+## stderr
+

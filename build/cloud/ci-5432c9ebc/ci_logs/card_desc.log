@@ -1,0 +1,16 @@
+# card_desc
+# 参数：--headless --path /work/repo/game res://tests/card_desc_test.tscn -- --regression --seed=1 --balance --op=ulpianus --squad=skadi,angelina
+# 用时 19 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PF FXLAZY t=0.0 skadi n=14 ms=20
+PF FXLAZY t=0.0 angelina n=11 ms=10
+2738 checks, 0 failed
+CARD DESC failures=0
+PF RUNRELEASE tex=0 audio=0
+
+
+## stderr
+

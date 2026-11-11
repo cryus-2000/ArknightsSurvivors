@@ -1,0 +1,28 @@
+# touch_move
+# 参数：--headless --path /work/repo/game res://tests/touch_move_test.tscn -- --regression --seed=1 --touch
+# 用时 24 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+TOUCH MOVE 1280x720: visible=(1113.043, 626.087) ui_k=1.11 hud=(1000.0, 562.5001)
+TOUCH MOVE 1280x720 idx=0: dx=56.2 stick=0 vec=(0.976563, 0.0)
+TOUCH MOVE 1280x720 idx=5: dx=50.4 stick=0 vec=(-0.976562, 0.0)
+TOUCH MOVE 1280x720 idx=2147483000: dx=60.7 stick=0 vec=(0.976563, 0.0)
+TOUCH MOVE 1280x720 idx=-1294967296: dx=57.0 stick=0 vec=(-0.976562, 0.0)
+TOUCH MOVE 1280x720 idx=-1: dx=54.1 stick=0 vec=(0.976563, 0.0)
+TOUCH MOVE 1280x720 idx=-1294967297: dx=56.4 stick=0 vec=(-0.976562, 0.0)
+PF RUNRELEASE tex=0 audio=0
+TOUCH MOVE 1560x720: visible=(1356.522, 626.087) ui_k=1.15 hud=(1179.584, 544.4235)
+TOUCH MOVE 1560x720 idx=0: dx=60.4 stick=0 vec=(0.94518, 0.0)
+TOUCH MOVE 1560x720 idx=5: dx=54.2 stick=0 vec=(-0.945179, 0.0)
+TOUCH MOVE 1560x720 idx=2147483000: dx=60.8 stick=0 vec=(0.94518, 0.0)
+TOUCH MOVE 1560x720 idx=-1294967296: dx=64.8 stick=0 vec=(-0.945179, 0.0)
+TOUCH MOVE 1560x720 idx=-1: dx=54.1 stick=0 vec=(0.94518, 0.0)
+TOUCH MOVE 1560x720 idx=-1294967297: dx=58.7 stick=0 vec=(-0.945179, 0.0)
+PF RUNRELEASE tex=0 audio=0
+TOUCH MOVE: 0 failures
+
+
+## stderr
+

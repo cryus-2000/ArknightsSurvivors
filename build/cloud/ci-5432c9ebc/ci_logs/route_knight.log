@@ -1,0 +1,21 @@
+# route_knight
+# 参数：--headless --path /work/repo/game res://tests/route_knight_regression.tscn -- --regression --seed=1
+# 用时 21 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PF PREFETCH t=600.0 e_knight items=0
+PF PREFETCH t=600.0 e_knight items=0
+ROUTE KNIGHT REGRESSION: 0 failures
+PF RUNRELEASE tex=0 audio=0
+PF RUNRELEASE tex=0 audio=0
+PF RUNRELEASE tex=0 audio=0
+PF RUNRELEASE tex=0 audio=0
+PF RUNRELEASE tex=0 audio=0
+PF RUNRELEASE tex=0 audio=0
+PF RUNRELEASE tex=0 audio=0
+
+
+## stderr
+
