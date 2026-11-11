@@ -12,10 +12,10 @@
 "--sptest",
 "--relics=all"
 ],
-"own": "23cb14de374a5eedb377e4fd7e04aba74f57257e0918c80e4220fbc1eef5187c",
-"other": "90967786fc4cc4fb1fa0d0cdcf763088b4679a2475bcd2470c68a57c33a941d1",
-"commit": "5ea1da44",
-"time": "2026-11-10 10:34:10",
+"own": "bdb0d37a9b184a52e7cf2f4e96dc725eebae33cc874b58f0148b9a9aae75311c",
+"other": "7b1c54084f3ef9ebaca5cad9f5a9d05e5912c3af3c200d48cfa1865ac7ea3ac3",
+"commit": "bff1466e",
+"time": "2026-11-11 02:19:36",
 "trace": [
 "TRACE t=0.00 lv=1 k=0 hp=128.70 n=0 rng=-174589854303943223/902404325571654243/1231418626397784201/5159219129543269846/-7141095578072418168 pos=0.00,0.00 h=0.000 sq=1643780469 lamp=10000 nd=4197670970 rl=0",
 "TRACE t=1.06 lv=1 k=0 hp=128.70 n=0 rng=-174589854303943223/902404325571654243/1231418626397784201/5159219129543269846/-7141095578072418168 pos=174.24,0.00 h=0.000 sq=2193256134 lamp=10000 nd=4197670970 rl=0",
@@ -280,9 +280,13 @@
 "dmg": {},
 "drone": 0,
 "duck": {
+"boss_overlap": 0,
 "fled": 0,
+"fled_hp": [],
+"kill_hits": [],
 "kill_t": [],
 "killed": 0,
+"spawn_t": [],
 "spawned": 0
 },
 "elite_stage": 2,

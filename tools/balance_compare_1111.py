@@ -124,8 +124,7 @@ def main():
     A.TH[3]["tier_hp"] = 0.6
     A.TH[5]["tier_hp"], A.TH[5]["tier_dmg"] = 0.35, 0.45
     A.TH[4]["tier_hp"], A.TH[4]["tier_dmg"] = 0.45, 0.54
-    A.B["dmg_curve"]["knots"] = [list(k) for k in A.B["dmg_curve"]["knots"]]
-    A.B["dmg_curve"]["knots"][-1] = [600, 30.0]
+    A.B["dmg_curve"]["knots"] = [[0, 12.0], [180, 19.0], [300, 23.0], [420, 27.0], [600, 30.0]]
     old = [A.pool_avg(A.mob_hit, t) for t in ts]
     oldhp = [A.pool_avg(A.normal_hp, t) for t in ts]
     fig, ax = plt.subplots(1, 2, figsize=(12, 4.2))

@@ -5,8 +5,6 @@ extends RefCounted
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
-const Character = preload("res://scripts/characters/character.gd")
-const NodeIcons = preload("res://scripts/screens/node_icons.gd")   # 节点卡图标（docs/154）
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
@@ -248,7 +246,7 @@ func open(back: int) -> void:
 
 func next_page() -> void:
 	Sfx.play("ui_move")
-	if g.intro_page < pages().size() - 1:
+	if g.intro_page < view_count() - 1:
 		g.intro_page += 1
 		g.intro_t = 0.0
 	else:
@@ -262,6 +260,109 @@ func close() -> void:
 	Sfx.play("ui_ok", -4.0)
 
 
+## ---------------------------------------------------------------- 指南版式（11-11 按 docs/37 水月方案 A + 暂停菜单指挥台版式统一，docs/222 §20）
+## 面板 = 暂停菜单同款：暗底 + 对角两枚直角刻度，居中灰色英文小签 + 白色标题（UI.heading），右上「01 / 06」页码；
+## 左栏插图统一成线框示意（白线 + 灰字，金 = 灯火、青 = 当前 / 可操作、洋红 = 集火），右栏「标签｜正文」；
+## 正文字号固定（桌面 15、手机 19 再走 UI.fs），整页放不下就按条拆成几页（标题后加「（续）」），不再缩字号；
+## 上一页 / 跳过 / 下一页都在面板底栏里，桌面带按键牌。翻页按「视图页」（views）：一页数据可能拆成几张视图页。
+const BODY_DESK := 15
+const BODY_PHONE := 19
+const INK := Color(1, 1, 1, 0.8)       # 示意图主线
+const INK2 := Color(1, 1, 1, 0.26)     # 示意图次线 / 轨道
+const FILL := Color(1, 1, 1, 0.05)     # 示意图面
+var _views: Array = []
+var _vkey := ""
+var _c := Vector2.ZERO   # 示意图中心与缩放（_p 用）
+var _s := 1.0
+
+
+func _touch() -> bool:
+	return Cfg.touch_device()
+
+
+## 面板与各栏的位置（views 与 draw 共用，拆页按同一套尺寸量）
+func _layout(vs: Vector2) -> Dictionary:
+	var touch := _touch()
+	var w: float = vs.x - 24.0 if touch else minf(980.0, vs.x - 48.0)
+	var h: float = vs.y - 16.0 if touch else minf(600.0, vs.y - 40.0)
+	var r := Rect2((vs.x - w) / 2.0, (vs.y - h) / 2.0, w, h)
+	var head_h := 96.0 if touch else 122.0
+	var bar_h := 64.0 if touch else 62.0
+	var ill_w := 260.0 if touch else 300.0
+	var pad := 24.0 if touch else 36.0
+	var fr := Rect2(r.position.x + pad, r.position.y + head_h, ill_w, r.size.y - head_h - bar_h - 14.0)
+	var tx := fr.end.x + (24.0 if touch else 32.0)
+	var fsz := BODY_PHONE if touch else BODY_DESK
+	return {"r": r, "fr": fr, "tx": tx, "tw": r.end.x - pad - tx, "top": fr.position.y, "bot": fr.end.y,
+		"fsz": fsz, "lsz": 15 if touch else 13, "gap": 12.0 if touch else 14.0, "bar_y": r.end.y - bar_h + (6.0 if touch else 12.0)}
+
+
+## 某页实际显示的条目（触屏版最后一页换成 touch_controls）→ [{label, text}]
+func _rows_of(pi: int) -> Array:
+	var last: bool = pi == pages().size() - 1
+	var src: Dictionary = _g().touch_controls if Pad.touch_ui() and last else pages()[pi]
+	var rows: Array = []
+	for ln in page_lines(src, full_guide(), last):
+		var txt: String = touch_line(fill_numbers(ln))
+		var cut: int = txt.find("｜")
+		rows.append({"label": txt.substr(0, cut) if cut > 0 else "", "text": txt.substr(cut + 1) if cut > 0 else txt})
+	return rows
+
+
+## 视图页：每页数据按正文栏高度拆成一张或几张，拆分时各张高度尽量平均。缓存键 = 尺寸 + 完整 / 精简 + 触屏
+func views(vs := Vector2.ZERO) -> Array:
+	if vs == Vector2.ZERO:
+		vs = g.hud.size
+	var key := "%s|%s|%s|%s" % [vs, full_guide(), Pad.touch_ui(), UI.fk]
+	if key == _vkey:
+		return _views
+	_vkey = key
+	_views = []
+	var L := _layout(vs)
+	var fsz: int = L.fsz
+	var lhh: float = g.font.get_height(UI.fs(fsz)) + 2.0
+	var all_rows: Array = []
+	var lbl_w := 0.0
+	for pi in pages().size():
+		var rows := _rows_of(pi)
+		all_rows.append(rows)
+		for row in rows:
+			if row.label != "":
+				lbl_w = maxf(lbl_w, g.font.get_string_size(row.label, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(L.lsz)).x)
+	lbl_w += 26.0
+	var avail: float = L.bot - L.top
+	for pi in all_rows.size():
+		var tot := 0.0
+		for row in all_rows[pi]:
+			row["lines"] = UI.wrap_lines(g.font, row.text, fsz, L.tw - (lbl_w if row.label != "" else 0.0))
+			row["h"] = maxf(row.lines.size(), 1) * lhh
+			tot += row.h + L.gap
+		var n: int = maxi(1, ceili((tot - L.gap) / avail))
+		var target: float = tot / n
+		var chunk: Array = []
+		var ch := 0.0
+		var k := 0
+		for row in all_rows[pi]:
+			var need: float = ch + row.h + (L.gap if not chunk.is_empty() else 0.0)
+			if not chunk.is_empty() and (need > avail or (ch >= target * 0.9 and k < n - 1)):
+				_views.append({"p": pi, "rows": chunk, "cont": k > 0, "h": ch})
+				chunk = []
+				ch = 0.0
+				k += 1
+				need = row.h
+			chunk.append(row)
+			ch = need
+		_views.append({"p": pi, "rows": chunk, "cont": k > 0, "h": ch})
+	for v in _views:
+		v["lbl_w"] = lbl_w
+		v["lhh"] = lhh
+	return _views
+
+
+func view_count() -> int:
+	return views().size()
+
+
 func draw(vs: Vector2) -> void:
 	if g.onboard.modal():
 		g.onboard.draw_modal(vs)   # 新手引导的问题框 / 演示图鉴（screens/onboard.gd）
@@ -269,324 +370,319 @@ func draw(vs: Vector2) -> void:
 	if g.tour.active:
 		g.tour.draw(vs)
 		return
-	g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.0, 0.02, 0.04, 0.88))
-	var pg: Dictionary = pages()[g.intro_page]
-	var rh: float = minf(570.0, vs.y - 16.0)
-	var r := Rect2(vs.x / 2 - 450, vs.y / 2 - rh / 2.0, 900, rh)
+	var vw := views(vs)
+	g.intro_page = clampi(g.intro_page, 0, vw.size() - 1)
+	var v: Dictionary = vw[g.intro_page]
+	var pg: Dictionary = pages()[v.p]
+	var L := _layout(vs)
+	var touch := _touch()
+	var r: Rect2 = L.r
 	var ea := clampf(g.intro_t / 0.25, 0.0, 1.0)
-	r.position.y += (1.0 - ea) * 20.0
-	UI.panel(g.hud, r, UI.BG2, UI.LINE, 16.0, UI.CYAN)
-	UI.en(g.hud, g.font, r.position + Vector2(40, 46), "GUIDE  %d / %d  ·  %s" % [g.intro_page + 1, pages().size(), pg.en], 12, UI.CYAN, 3.0)
-	UI.text(g.hud, g.font, r.position + Vector2(40, 90), pg.title, 30, UI.TEXT)
-	g.hud.draw_line(r.position + Vector2(40, 108), r.position + Vector2(r.size.x - 40, 108), UI.CYAN_DIM, 1.0)
-	# 装饰：大号页码水印（右上，极淡）+ 插图区取景框四角（终末地的取景框角标）
-	if not Cfg.touch_device():   # 手机上右上角是「跳过」，不叠水印
-		UI.text(g.hud, g.font, Vector2(r.end.x - 230, r.position.y + 104), "%02d" % (g.intro_page + 1), 88, Color(0.6, 0.9, 0.95, 0.07 * ea), HORIZONTAL_ALIGNMENT_RIGHT, 190)
-	var fr0 := Rect2(r.position + Vector2(36, 132), Vector2(292, r.size.y - 132.0 - 76.0))
-	for sx in [0.0, 1.0]:
-		for sy in [0.0, 1.0]:
-			var q := Vector2(fr0.position.x + sx * fr0.size.x, fr0.position.y + sy * fr0.size.y)
-			var dx := -16.0 if sx > 0.5 else 16.0
-			var dy := -16.0 if sy > 0.5 else 16.0
-			g.hud.draw_polyline(PackedVector2Array([q + Vector2(0, dy), q, q + Vector2(dx, 0)]), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.4 * ea), 1.5)
-	# 插图区
-	var ic := r.position + Vector2(170, 270)
-	draw_icon(pg.icon, ic)
-	# 文字：按实际折行高度一段接一段排（旧版每段固定 100 像素、最多 4 行，一页 4 段时会压到按钮）；
-	# 整页放不下先缩字号（15 → 12）
-	var tx := r.position.x + 356
-	var tw := r.size.x - 392
-	var top := r.position.y + 142
-	var avail := r.end.y - 62.0 - top
-	var touch: bool = Cfg.touch_device()
-	var fsz := 19 if touch else 17   # 正文先试大字，放不下逐号缩小（手机 19 → 13，桌面 17 → 12；手机局内再乘 UI.fk，量字画字都用 UI.fs）
-	var fsz_min := 13 if touch else 12
-	var src: Dictionary = _g().touch_controls if Pad.touch_ui() and g.intro_page == pages().size() - 1 else pg
-	var src_lines: Array = page_lines(src, full_guide(), g.intro_page == pages().size() - 1)
-	# 每条 =「标签｜正文」：标签列（青色小字）+ 正文列，条与条之间一条淡分隔线；没有「｜」的整行通栏（精简版末页的提示）
-	var rows: Array = []
-	for ln in src_lines:
-		var txt: String = touch_line(fill_numbers(ln))
-		var cut: int = txt.find("｜")
-		rows.append({"label": txt.substr(0, cut) if cut > 0 else "", "text": txt.substr(cut + 1) if cut > 0 else txt})
-	var lbl_w := 92.0 if touch else 78.0
-	var row_gap := 12.0 if touch else 16.0
-	var lhh := 0.0
-	var asc := 0.0
-	while true:
-		lhh = g.font.get_height(UI.fs(fsz)) + 2.0
-		asc = g.font.get_ascent(UI.fs(fsz))
-		var tot := 0.0
-		for row in rows:
-			row["lines"] = UI.wrap_lines(g.font, row.text, fsz, tw - (lbl_w if row.label != "" else 0.0))
-			tot += maxf(row.lines.size() * lhh, lhh) + row_gap
-		if tot - row_gap <= avail or fsz <= fsz_min:
-			break
-		fsz -= 1
-	var lbl_sz := clampi(fsz - 3, 12, 15)
-	var y := top
-	for ri in rows.size():
-		var row: Dictionary = rows[ri]
-		if y + lhh > r.end.y - 58.0:
-			break   # 整条放不下就不画（不让标签孤零零露出来）
+	var dy := (1.0 - UI.ease_out(ea)) * 12.0
+	g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.0, 0.02, 0.04, 0.84))
+	# 面板：暂停菜单同款暗底 + 对角直角刻度（底比暂停略深：手机上面板占满屏，局内顶栏不能透到标题和页码后面）
+	g.hud.draw_rect(r, Color(0.01, 0.015, 0.02, 0.75))
+	var tk := Color(1, 1, 1, 0.5)
+	g.hud.draw_polyline(PackedVector2Array([r.position + Vector2(0, 14), r.position, r.position + Vector2(14, 0)]), tk, 1.0)
+	g.hud.draw_polyline(PackedVector2Array([r.end - Vector2(0, 14), r.end, r.end - Vector2(14, 0)]), tk, 1.0)
+	# 顶栏：英文小签（灰）+ 标题 + 右上页码
+	var cx := r.get_center().x
+	var en_s: String = str(pg.en)
+	var ew := UI.en_width(g.font, en_s, 12, 4.0)
+	UI.en(g.hud, g.font, Vector2(cx - ew / 2.0, r.position.y + (34.0 if touch else 44.0)), en_s, 12, Color(UI.SUB.r, UI.SUB.g, UI.SUB.b, ea), 4.0)
+	var title: String = str(pg.title) + ("（续）" if v.cont else "")
+	var tsz := 26 if touch else 30
+	UI.heading(g.hud, g.font, Vector2(cx, r.position.y + (66.0 if touch else 84.0)), title, tsz, UI.TEXT, minf(300.0, r.size.x / 2.0 - 40.0))
+	var pn := "%02d / %02d" % [g.intro_page + 1, vw.size()]
+	g.hud.draw_string(UI.latin(true), Vector2(r.end.x - (24.0 if touch else 36.0) - 120.0, r.position.y + (34.0 if touch else 44.0)), pn, HORIZONTAL_ALIGNMENT_RIGHT, 120.0, UI.fs(13), Color(UI.SUB.r, UI.SUB.g, UI.SUB.b, ea))
+	# 左栏：线框示意
+	var fr: Rect2 = L.fr
+	fr.position.y += dy
+	g.hud.draw_rect(fr, Color(1, 1, 1, 0.025 * ea))
+	g.hud.draw_rect(fr, Color(1, 1, 1, 0.07 * ea), false, 1.0)
+	_s = clampf(minf(fr.size.x / 290.0, fr.size.y / 290.0), 0.72, 1.15)
+	_c = fr.get_center()
+	draw_icon(pg.icon, _c)
+	# 右栏：「标签｜正文」，整块在正文栏里上下居中
+	var fsz: int = L.fsz
+	var lhh: float = v.lhh
+	var asc: float = g.font.get_ascent(UI.fs(fsz))
+	var lbl_w: float = v.lbl_w
+	var tx: float = L.tx
+	var tw: float = L.tw
+	var y: float = L.top + maxf(0.0, (L.bot - L.top - v.h) / 2.0) + dy
+	var la: float = g.font.get_ascent(UI.fs(L.lsz))
+	var lh: float = g.font.get_height(UI.fs(L.lsz))
+	for ri in v.rows.size():
+		var row: Dictionary = v.rows[ri]
 		if ri > 0:
-			g.hud.draw_line(Vector2(tx, y - row_gap / 2.0 - 1.0), Vector2(tx + tw, y - row_gap / 2.0 - 1.0), Color(0.45, 0.8, 0.85, 0.12 * ea), 1.0)
+			g.hud.draw_line(Vector2(tx, y - L.gap / 2.0), Vector2(tx + tw, y - L.gap / 2.0), Color(1, 1, 1, 0.07 * ea), 1.0)
+		var bx := tx
+		var body_col := Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, ea)
 		if row.label != "":
-			# 标签芯片：淡青底 + 左端一道青条，字居中（终末地的标签牌）
-			var la: float = g.font.get_ascent(UI.fs(lbl_sz))
-			var lh: float = g.font.get_height(UI.fs(lbl_sz))
-			var chip := Rect2(tx, y + (lhh - lh - 8.0) / 2.0, lbl_w - 14.0, lh + 8.0)
-			g.hud.draw_rect(chip, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.1 * ea))
-			g.hud.draw_rect(Rect2(chip.position, Vector2(2.0, chip.size.y)), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, ea))
-			g.hud.draw_string(g.font, Vector2(chip.position.x, chip.position.y + 4.0 + la), row.label, HORIZONTAL_ALIGNMENT_CENTER, chip.size.x, UI.fs(lbl_sz), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, ea))
-		var y0 := y
+			var ly := y + (lhh - lh) / 2.0
+			g.hud.draw_rect(Rect2(tx, ly + 2.0, 2.0, lh - 4.0), Color(1, 1, 1, 0.75 * ea))
+			g.hud.draw_string(g.font, Vector2(tx + 10.0, ly + la), row.label, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(L.lsz), Color(UI.SUB.r, UI.SUB.g, UI.SUB.b, ea))
+			bx += lbl_w
+		else:
+			body_col = Color(UI.SUB.r, UI.SUB.g, UI.SUB.b, ea)
+		var yy := y
 		for ln2 in row.lines:
-			if y + lhh > r.end.y - 58.0:
-				break
-			g.hud.draw_string(g.font, Vector2(tx + (lbl_w if row.label != "" else 0.0), y + asc), ln2, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fsz), Color(0.9, 0.96, 0.98, ea))
-			y += lhh
-		y = maxf(y, y0 + lhh) + row_gap
-	# 页码点（可点击）
+			g.hud.draw_string(g.font, Vector2(bx, yy + asc), ln2, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fsz), body_col)
+			yy += lhh
+		y += row.h + L.gap
+	# 底栏：上一页 ｜ 页码点 ｜ 跳过 · 下一页（全在面板里）
 	g.intro_panel = r
 	g.intro_dots.clear()
 	var mp: Vector2 = g.hud.get_local_mouse_position()
-	for i in pages().size():
-		var dp := Vector2(vs.x / 2 - (pages().size() - 1) * 13 + i * 26, r.end.y - 30)
-		var dr := Rect2(dp - Vector2(12, 12), Vector2(24, 24))
-		g.intro_dots.append([dr, i])
-		var hov: bool = dr.has_point(mp)
-		UI.diamond(g.hud, dp, 6.0 if hov else 5.0, UI.CYAN if i == g.intro_page else (Color(0.3, 0.5, 0.55) if hov else Color(0.15, 0.25, 0.28)))
-	# 上一页 / 跳过 / 下一页 按钮
-	var btns: Array = [["‹ 上一页", "prev"], ["跳过", "skip"], ["下一页 ›", "next"]]   # 10-31 TA H7：键名不夹在按钮文字里
+	var bh := 48.0 if touch else 38.0
+	var by: float = L.bar_y
+	var pad := 24.0 if touch else 36.0
+	var last: bool = g.intro_page == vw.size() - 1
+	var w_prev := 150.0 if touch else 132.0
+	var w_skip := 120.0 if touch else 104.0
+	var w_next := 170.0 if touch else 152.0
+	var b_prev := Rect2(r.position.x + pad, by, w_prev, bh)
+	var b_next := Rect2(r.end.x - pad - w_next, by, w_next, bh)
+	var b_skip := Rect2(b_next.position.x - 12.0 - w_skip, by, w_skip, bh)
+	var defs := [[b_prev, "‹ 上一页", Pad.hint("←", "LB"), g.intro_page == 0], [b_skip, "跳过", Pad.hint("ESC", "Ⓑ"), false],
+		[b_next, "开始探索 ›" if last else "下一页 ›", Pad.hint("→", "RB"), false]]
 	for k in 3:
-		var bw := 118.0 if not touch else 140.0
-		var bx: float = [r.position.x + 40, vs.x / 2 - bw / 2.0, r.end.x - 40 - bw][k]
-		var br := Rect2(bx, r.end.y - 52, bw, 34) if not touch else Rect2(bx, r.end.y - 60, bw, 44)   # 触屏按钮本体 44 高、字 16
-		# 触屏：点击区上下各扩 22、左右各扩 12（34 高 → 78，≈ 43 pt），图形不变
-		var hit: Rect2 = br.grow_individual(12, 22, 12, 22) if Pad.touch_ui() else br
+		var br: Rect2 = defs[k][0]
+		var hit: Rect2 = br.grow_individual(6, 12, 6, 12) if Pad.touch_ui() else br
 		match k:
 			0: g.intro_btn_prev = hit
 			1: g.intro_btn_skip = hit
 			2: g.intro_btn_next = hit
-		var hov2: bool = br.has_point(mp)
-		var dim: bool = k == 0 and g.intro_page == 0
-		if k == 1:
-			br.position.y = r.end.y + 16
-			if br.end.y > vs.y - 4:
-				# 紧凑排版（手机逻辑高 626）：面板下方放不下，「跳过」挪进面板右上角（触屏验收 10-01）
-				br.position = Vector2(r.end.x - 40 - bw, r.position.y + 22)
-			g.intro_btn_skip = br.grow_individual(12, 22, 12, 22) if Pad.touch_ui() else br
-			UI.text(g.hud, g.font, br.position + Vector2(0, 22), btns[k][0], 13 if not touch else 15, UI.CYAN if hov2 else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
-			continue
-		UI.frame(g.hud, br, UI.CYAN, {"cut": 6.0, "bracket": 6.0, "glow": 1.0 if hov2 else 0.0, "alpha": 0.3 if dim else (1.0 if hov2 else 0.7)})
-		UI.text(g.hud, g.font, br.position + Vector2(0, 23 if not touch else 29), btns[k][0] if k != 2 or g.intro_page < pages().size() - 1 else "开始探索 ›", 14 if not touch else 16, UI.TEXT if not dim else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
-	if r.end.y + 66 < vs.y:
-		UI.text(g.hud, g.font, Vector2(r.position.x, r.end.y + 60), Pad.hint("左键 / 任意键：下一页　　右键 / ←：上一页　　点面板左侧也可回退", "Ⓐ / → / RB：下一页　　← / LB：上一页　　Ⓑ：跳过", "点击：下一页　　点面板左侧：上一页"), 12, Color(0.45, 0.55, 0.6), HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+		var dim: bool = defs[k][3]
+		var hov: bool = br.has_point(mp) and not dim and not Pad.touch_ui()
+		if hov:
+			g.hud.draw_rect(br, UI.CYAN)
+		else:
+			g.hud.draw_rect(br, Color(1, 1, 1, 0.04))
+			g.hud.draw_rect(br, Color(1, 1, 1, 0.12 if dim else 0.28), false, 1.0)
+		var ink: Color = Color(0.04, 0.07, 0.09) if hov else (Color(UI.SUB.r, UI.SUB.g, UI.SUB.b, 0.5) if dim else UI.TEXT)
+		var bsz := 18 if touch else 14
+		var key: String = "" if Pad.touch_ui() else str(defs[k][2])
+		if key == "":
+			UI.text(g.hud, g.font, Vector2(br.position.x, br.position.y + bh / 2.0 + bsz * 0.36 * UI.fk), defs[k][1], bsz, ink, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
+		else:
+			UI.text(g.hud, g.font, Vector2(br.position.x + 14.0, br.position.y + bh / 2.0 + bsz * 0.36), defs[k][1], bsz, ink)
+			UI.keycap(g.hud, g.font, Vector2(br.end.x - UI.cwidth(g.font, key, 10) - 20.0, br.position.y + (bh - 17.0) / 2.0), key, ink, 10)
+	# 页码点：在「上一页」与「跳过」之间居中，可点
+	var n := vw.size()
+	var step := 22.0 if touch else 20.0
+	var dcx: float = (b_prev.end.x + b_skip.position.x) / 2.0
+	for i in n:
+		var dp := Vector2(dcx - (n - 1) * step / 2.0 + i * step, by + bh / 2.0)
+		var dr := Rect2(dp - Vector2(step / 2.0, 14), Vector2(step, 28))
+		g.intro_dots.append([dr, i])
+		var hv: bool = dr.has_point(mp) and not Pad.touch_ui()
+		var cur: bool = i == g.intro_page
+		UI.diamond(g.hud, dp, 5.0 if cur or hv else 3.5, Color(1, 1, 1, 0.95) if cur else (Color(1, 1, 1, 0.5) if hv else Color(1, 1, 1, 0.2)))
 
 
-## 触屏版「操作」页插图（手机设置页改版 10-06）：小手机框，左半屏虚拟摇杆（圆环 + 来回摆的旋钮）+ 右下冲刺键 / 技能键，
-## 和局内 touch.gd 的画法同一套（圆底 + 青色环 + 字）
-func _draw_touch_keys(c: Vector2) -> void:
-	var fr := Rect2(c + Vector2(-150, -84), Vector2(300, 168))
-	g.hud.draw_rect(fr, Color(0.03, 0.08, 0.11, 0.9))
-	g.hud.draw_rect(fr, UI.CYAN_DIM, false, 1.5)
-	g.hud.draw_line(Vector2(c.x, fr.position.y + 6), Vector2(c.x, fr.end.y - 6), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.15), 1.0)
-	# 左半屏：摇杆（旋钮绕中心慢转，示意拖动）
-	var so := c + Vector2(-78, 4)
-	g.hud.draw_circle(so, 40.0, Color(0.05, 0.12, 0.16, 0.5))
-	g.hud.draw_arc(so, 40.0, 0.0, TAU, 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.55), 2.0)
-	var knob := so + Vector2(cos(g.intro_t * 1.6), sin(g.intro_t * 1.6)) * 22.0
-	g.hud.draw_circle(knob, 14.0, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.35))
-	g.hud.draw_arc(knob, 14.0, 0.0, TAU, 24, Color(0.8, 1.0, 1.0, 0.85), 2.0)
-	UI.text(g.hud, g.font, so + Vector2(-60, 64), "左半屏拖动", 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 120)
-	# 右下：冲刺键；左上斜方技能键
-	var dc := c + Vector2(96, 36)
-	g.hud.draw_circle(dc, 26.0, Color(0.05, 0.12, 0.16, 0.7))
-	g.hud.draw_arc(dc, 26.0, 0.0, TAU, 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.9), 3.0)
-	UI.text(g.hud, g.font, dc + Vector2(-30, 6), "冲刺", 14, Color(1, 1, 1, 0.9), HORIZONTAL_ALIGNMENT_CENTER, 60)
-	var sc := dc + Vector2(-58, -56)
+# ---------------------------------------------------------------- 线框示意（左栏插图）
+## 示意图坐标：以左栏中心为原点、约 ±140 的方框，按 _s 缩放（字号不缩）
+func _p(x: float, y: float) -> Vector2:
+	return _c + Vector2(x, y) * _s
+
+
+## 示意图里的小字：x 为中心（align 居中）或左端
+func _lbl(x: float, y: float, s: String, col := UI.SUB, size := 13, center := true) -> void:
+	if center:
+		UI.text(g.hud, g.font, _p(x, y) - Vector2(80, 0), s, size, col, HORIZONTAL_ALIGNMENT_CENTER, 160)
+	else:
+		UI.text(g.hud, g.font, _p(x, y), s, size, col)
+
+
+func _ring(c: Vector2, rad: float, col: Color, w := 1.5) -> void:
+	g.hud.draw_arc(c, rad, 0.0, TAU, 64, col, w, true)
+
+
+## 圆环扇区（指挥圆盘示意）
+func _sector(c: Vector2, r0: float, r1: float, a0: float, a1: float) -> PackedVector2Array:
+	var pts := PackedVector2Array()
+	for i in 13:
+		pts.append(c + Vector2.from_angle(lerpf(a0, a1, i / 12.0)) * r1)
+	for i in 13:
+		pts.append(c + Vector2.from_angle(lerpf(a1, a0, i / 12.0)) * r0)
+	return pts
+
+
+## 触屏版「操作」页插图：小手机框，左半屏虚拟摇杆 + 右下冲刺键 / 技能键（和局内 touch.gd 同一布局）
+func _draw_touch_keys() -> void:
+	var fr := Rect2(_p(-130, -78), Vector2(260, 156) * _s)
+	g.hud.draw_rect(fr, FILL)
+	g.hud.draw_rect(fr, INK2, false, 1.5)
+	g.hud.draw_line(_p(0, -72), _p(0, 72), Color(1, 1, 1, 0.12), 1.0)
+	var so := _p(-66, 0)
+	g.hud.draw_circle(so, 36.0 * _s, Color(1, 1, 1, 0.04))
+	_ring(so, 36.0 * _s, INK2, 2.0)
+	var knob := so + Vector2(cos(g.intro_t * 1.6), sin(g.intro_t * 1.6)) * 20.0 * _s
+	g.hud.draw_circle(knob, 13.0 * _s, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.3))
+	_ring(knob, 13.0 * _s, UI.CYAN, 2.0)
+	var dc := _p(84, 34)
+	g.hud.draw_circle(dc, 24.0 * _s, Color(1, 1, 1, 0.05))
+	_ring(dc, 24.0 * _s, INK, 2.0)
+	UI.text(g.hud, g.font, dc + Vector2(-40, 5), "冲刺", 13, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 80)
+	var sc := _p(32, -22)
 	var pulse: float = 0.5 + 0.5 * sin(g.intro_t * 4.0)
-	g.hud.draw_circle(sc, 22.0, Color(0.05, 0.12, 0.16, 0.75))
-	g.hud.draw_arc(sc, 22.0, 0.0, TAU, 32, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.9), 2.0)
-	g.hud.draw_arc(sc, 26.0 + 2.0 * pulse, 0.0, TAU, 32, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.3 + 0.5 * pulse), 2.0)
-	UI.text(g.hud, g.font, sc + Vector2(-30, 5), "技能", 13, Color(1, 1, 1, 0.9), HORIZONTAL_ALIGNMENT_CENTER, 60)
-	UI.text(g.hud, g.font, c + Vector2(10, fr.end.y - c.y - 8), "轻点自动瞄准 · 按住拖方向", 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 140)
+	g.hud.draw_circle(sc, 20.0 * _s, Color(1, 1, 1, 0.05))
+	_ring(sc, 20.0 * _s, INK, 2.0)
+	_ring(sc, (24.0 + 2.0 * pulse) * _s, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.3 + 0.5 * pulse), 2.0)
+	UI.text(g.hud, g.font, sc + Vector2(-40, 5), "技能", 13, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 80)
+	_lbl(-66, 108, "左半屏拖动")
+	_lbl(62, 108, "轻点自动瞄准")
+	_lbl(62, 128, "按住拖方向")
 
 
-func draw_icon(kind: String, c: Vector2) -> void:
+func draw_icon(kind: String, _c0: Vector2) -> void:
 	match kind:
-		"mizuki":
-			# 开局干员的攻击动作（水月沿用 48px 挥伞条）
-			var tx: Texture2D = g.tex.get("player_attack_48") if g.ch.id == "mizuki" else g.ch.anim_tex("attack")
-			if tx != null:
-				var fh0 := tx.get_height()
-				var fr := int(g.intro_t * 8.0) % maxi(1, tx.get_width() / fh0)
-				# 1 美术像素 = 4 屏幕像素，脚底落在 c + (0, 34)；画布 48 / 64 都按 json foot 对齐（48 画布 = 原来的 c − (96, 150)、192 见方）
-				var fs1: float = fh0 / A.hires_of(tx)
-				var ft0: Array = g.ch.sprite_spec("attack").get("foot", g.ch.def.get("sprites", {}).get("foot", [fs1 / 2.0, fs1 - 2.0]))
-				g.hud.draw_texture_rect_region(tx, Rect2(c + Vector2(0, 34) - Vector2(float(ft0[0]), float(ft0[1])) * 4.0, Vector2(fs1, fs1) * 4.0), Rect2(fh0 * fr, 0, fh0, fh0))
-			for k in 3:
-				var et: Texture2D = g.tex.get(["e_bone", "e_slider", "e_stone"][k])
-				if et != null:
-					var fw: int = et.get_width() / maxi(1, A.enemy_frames(["e_bone", "e_slider", "e_stone"][k], 2))   # 第 0 帧（重画帧条 4 帧，原来按 2 帧切画出两只）
-					# 1 美术像素 = 2 屏幕像素：@2x 帧条（docs/94 重画）按 A.hires_of 换算，和 1x 同尺寸
-					g.hud.draw_texture_rect_region(et, Rect2(c + Vector2(-110 + k * 90, 70), Vector2(fw, et.get_height()) * 2.0 / A.hires_of(et)), Rect2(0, 0, fw, et.get_height()))
 		"bars":
-			UI.en(g.hud, g.font, c + Vector2(-110, -60), "HP", 12, UI.SUB, 2.0)
-			UI.bar(g.hud, Rect2(c + Vector2(-80, -72), Vector2(180, 14)), 0.7, Color(0.35, 0.9, 0.75), 10)
-			UI.en(g.hud, g.font, c + Vector2(-110, -10), "LIGHT", 12, UI.GOLD, 1.0)
-			UI.bar(g.hud, Rect2(c + Vector2(-50, -22), Vector2(150, 14)), 0.55, UI.GOLD, 5)
-			for tv in [30.0, 70.0]:
-				var tx2: float = c.x - 50 + 150 * tv / 100.0
-				g.hud.draw_line(Vector2(tx2, c.y - 26), Vector2(tx2, c.y - 4), Color(1, 1, 1, 0.8), 1.5)
-			var ot: Texture2D = g.tex.get("oil")
-			if ot != null:
-				g.hud.draw_texture_rect(ot, Rect2(c + Vector2(-20, 30), Vector2(36, 48)), false)
-			UI.text(g.hud, g.font, c + Vector2(26, 64), "灯油", 14, UI.GOLD)
-		"mire":
-			var mt: Texture2D = g.tex.get("terrain_mire")
-			if mt != null:
-				var fw := mt.get_width() / 2
-				g.hud.draw_texture_rect_region(mt, Rect2(c - Vector2(80, 110), Vector2(160, 160)), Rect2(fw * (int(g.intro_t * 2.0) % 2), 0, fw, mt.get_height()))
-			g.hud.draw_arc(c + Vector2(0, 40), 140.0, PI * 1.1, PI * 1.9, 32, Color(0.85, 0.4, 1.0), 3.0)
-			UI.text(g.hud, g.font, c + Vector2(-60, 110), "黑潮边界", 14, Color(0.85, 0.5, 1.0))
-		"cards":
-			# 三张示意卡：开局干员的待机帧（成长）/ 另一名干员的待机帧（招募）/ 被动图标
-			var other_id := ""
-			for cid0 in Character.list_ids():
-				if cid0 != g.ch.id and Character.load_def(cid0).get("recruitable", true):
-					other_id = cid0
-					break
-			for k in 3:
-				var rc := Rect2(c + Vector2(-130 + k * 88, -90), Vector2(76, 110))
-				var cc: Color = [UI.CYAN, Color(0.55, 0.95, 1.0), UI.GOLD][k]
-				UI.panel(g.hud, rc, Color(0.03, 0.08, 0.1), cc, 6.0)
-				var cc0 := rc.position + Vector2(rc.size.x / 2.0, 48)
-				if k < 2:
-					var idl: Dictionary = g.panel_ui.op_idle(g.ch.id if k == 0 else other_id)
-					if not idl.is_empty():
-						var wn: Rect2 = idl.win   # 64 画布取脚底为准的 48 范围（UI.op_win）
-						var ks: float = 1.5 if wn.size.y <= 48 else 72.0 / wn.size.y
-						var asz := wn.size * ks
-						g.hud.draw_texture_rect_region(idl.tex, Rect2(cc0 - asz / 2.0 + Vector2(0, 4), asz), wn)
-				else:
-					var gt: Texture2D = g.tex.get("growth_hp")
-					if gt != null:
-						g.hud.draw_texture_rect(gt, Rect2(cc0 - Vector2(24, 24), Vector2(48, 48)), false)
-				UI.text(g.hud, g.font, rc.position + Vector2(0, 100), ["成长", "招募", "被动"][k], 12, cc, HORIZONTAL_ALIGNMENT_CENTER, rc.size.x)
-			UI.text(g.hud, g.font, c + Vector2(-130, 60), "干员成长 / 招募 / 生存与机动", 14, UI.SUB)
-		"loot":
-			var items := ["ingot", "e_chest", "pickup_magnet", "pickup_heal", "merchant"]
-			for k in items.size():
-				var tx3: Texture2D = g.tex.get(items[k])
-				if tx3 == null:
-					continue
-				var frames := 2 if items[k] == "e_chest" or items[k] == "merchant" else 1
-				var fw := tx3.get_width() / frames
-				var hi3: float = A.hires_of(tx3)
-				var sc: float = (3.0 if tx3.get_height() / hi3 < 20 else 2.0) / hi3   # 按美术像素定倍数（@2x 不放大一倍）
-				var sz := Vector2(fw, tx3.get_height()) * sc
-				var p := c + Vector2(-120 + (k % 3) * 100, -70 + (k / 3) * 100)
-				g.hud.draw_texture_rect_region(tx3, Rect2(p - sz / 2.0, sz), Rect2(0, 0, fw, tx3.get_height()))
-		"threat":
-			# 威胁等级条 Ⅰ–Ⅵ + 大群预警环
-			var names := ["浅滩", "暗流", "深潜", "裂隙", "深渊", "深蓝之树"]
-			var lit: int = int(g.intro_t * 1.2) % 7
-			for k in 6:
-				var rc := Rect2(c + Vector2(-138 + k * 46, -96), Vector2(40, 14))
-				var on: bool = k < lit
-				g.hud.draw_rect(rc, Color(0.6, 0.35, 1.0, 0.9) if on else Color(0.08, 0.12, 0.16))
-				g.hud.draw_rect(rc, Color(0.7, 0.5, 1.0, 0.8), false, 1.0)
-				UI.text(g.hud, g.font, rc.position + Vector2(0, -6), ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ", "Ⅵ"][k], 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, rc.size.x)
-				UI.text(g.hud, g.font, rc.position + Vector2(-8, 30), names[k], 10, UI.TEXT if on else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, rc.size.x + 16)
-			var hk: float = fmod(g.intro_t, 2.4) / 2.4
-			g.hud.draw_arc(c + Vector2(0, 30), 30.0 + hk * 90.0, 0.0, TAU, 48, Color(0.75, 0.3, 1.0, 0.7 * (1.0 - hk)), 3.0)
-			g.hud.draw_arc(c + Vector2(0, 30), 36.0, 0.0, TAU, 32, Color(0.75, 0.3, 1.0, 0.5), 2.0)
-			var etx: Texture2D = g.tex.get("e_bone")
-			if etx != null:
-				for k in 8:
-					var an: float = TAU * k / 8.0 + g.intro_t * 0.4
-					var fw2: int = etx.get_width() / maxi(1, A.enemy_frames("e_bone", 2))   # 第 0 帧（同上）
-					var pp: Vector2 = c + Vector2(0, 30) + Vector2.from_angle(an) * (78.0 - 30.0 * hk)
-					var esz: Vector2 = Vector2(fw2, etx.get_height()) * 2.0 / A.hires_of(etx)   # @2x 按高清倍率换算
-					g.hud.draw_texture_rect_region(etx, Rect2(pp - esz / 2.0, esz), Rect2(0, 0, fw2, etx.get_height()))
-			UI.text(g.hud, g.font, c + Vector2(-60, 116), "大群来袭", 14, Color(0.85, 0.6, 1.0), HORIZONTAL_ALIGNMENT_CENTER, 120)
-		"merchant":
-			var mtx: Texture2D = g.tex.get("merchant")
-			if mtx != null:
-				var fw3: int = mtx.get_width() / 2
-				var fr3: int = int(g.intro_t * 2.0) % 2
-				var sz3 := Vector2(fw3, mtx.get_height()) * 3.0 / A.hires_of(mtx)   # @2x 按高清倍率换算
-				g.hud.draw_texture_rect_region(mtx, Rect2(c - Vector2(sz3.x / 2.0, sz3.y - 40), sz3), Rect2(fw3 * fr3, 0, fw3, mtx.get_height()))
-			var left: int = 60 - int(fmod(g.intro_t * 6.0, 60.0))
-			var mc: Color = UI.GOLD if left > 15 else UI.GOLD.lerp(UI.RED, 0.5 + 0.5 * sin(g.intro_t * 8.0))
-			UI.ring(g.hud, c + Vector2(0, -120), 22.0, left / 60.0, mc)
-			UI.text(g.hud, g.font, c + Vector2(-30, -114), "%ds" % left, 15, mc, HORIZONTAL_ALIGNMENT_CENTER, 60)
-			UI.text(g.hud, g.font, c + Vector2(-80, 74), "商人  ·  停留 60 秒", 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 160)
-			for k in 3:
-				UI.chip(g.hud, g.font, c + Vector2(-118 + k * 84, 90), ["2:00", "5:00", "8:00"][k], UI.GOLD, 12)
-		"nodes":
-			# 三张背面朝上的节点卡（docs/154）：中间那张「不期而遇」每 1.6 秒抬起一次；左右是随机填充的卡
-			var kinds := ["wish", "incident", "rest"]
-			for k in 3:
-				var up: float = 10.0 * maxf(0.0, sin(g.intro_t * 3.9)) if k == 1 else 0.0
-				var cr := Rect2(c + Vector2(-112 + k * 76 - 32, -64 - up), Vector2(64, 90))
-				g.hud.draw_rect(cr, Color(0.06, 0.11, 0.15, 0.96))
-				g.hud.draw_rect(cr, NodeIcons.COLS[kinds[k]] if k == 1 else Color(1, 1, 1, 0.16), false, 2.0 if k == 1 else 1.0)
-				NodeIcons.draw(g.hud, kinds[k], cr.get_center(), 2.0, NodeIcons.COLS[kinds[k]])
-			var ends := [["Ⅰ", g.endg.ending_col("standard")], ["Ⅱ", g.endg.ending_col("knight")], ["Ⅲ", g.endg.ending_col("deep")], ["Ⅳ", g.endg.ending_col("resolve")]]
-			for k in 4:
-				var ec: Color = ends[k][1]
-				UI.diamond(g.hud, c + Vector2(-66 + k * 44, 92), 9.0, Color(ec.r, ec.g, ec.b, 0.35), ec)
-				UI.text(g.hud, g.font, c + Vector2(-86 + k * 44, 122), ends[k][0], 13, ec, HORIZONTAL_ALIGNMENT_CENTER, 40)
+			# 生命 / 灯火两条（灯火 30、70 两道刻度）+ 照亮圈随灯火变化 + 一片溟痕
+			var lamp_k: float = 0.5 + 0.22 * sin(g.intro_t * 1.1)
+			var x0 := -120.0
+			var bw := 240.0
+			_lbl(x0, -104, "生命", UI.SUB, 13, false)
+			g.hud.draw_rect(Rect2(_p(x0, -96), Vector2(bw, 4) * Vector2(_s, 1)), Color(1, 1, 1, 0.12))
+			g.hud.draw_rect(Rect2(_p(x0, -96), Vector2(bw * 0.72, 4) * Vector2(_s, 1)), INK)
+			_lbl(x0, -62, "灯火", UI.GOLD, 13, false)
+			g.hud.draw_rect(Rect2(_p(x0, -54), Vector2(bw, 8) * Vector2(_s, 1)), Color(0, 0, 0, 0.5))
+			g.hud.draw_rect(Rect2(_p(x0, -54), Vector2(bw, 8) * Vector2(_s, 1)), INK2, false, 1.0)
+			g.hud.draw_rect(Rect2(_p(x0, -54), Vector2(bw * lamp_k, 8) * Vector2(_s, 1)), UI.GOLD)
+			for tv in [0.3, 0.7]:
+				var tx2: float = x0 + bw * tv
+				g.hud.draw_line(_p(tx2, -59), _p(tx2, -41), Color(1, 1, 1, 0.75), 1.5)
+				_lbl(tx2, -24, str(int(tv * 100)), UI.SUB, 12)
+			var lc := _p(-34, 66)
+			var rad: float = (30.0 + 40.0 * lamp_k) * _s
+			g.hud.draw_circle(lc, rad, Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, 0.08))
+			_ring(lc, rad, Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, 0.7))
+			UI.diamond(g.hud, lc, 6.0, INK)
+			UI.text(g.hud, g.font, lc + Vector2(-40, -rad - 8.0), "照亮", 13, UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, 80)
+			var rng := RandomNumberGenerator.new()
+			rng.seed = 7
+			var mire := UI.blob(_p(86, 82), 30.0 * _s, rng, 0.28, 18)
+			g.hud.draw_colored_polygon(mire, Color(UI.VIOLET.r * 0.5, UI.VIOLET.g * 0.4, UI.VIOLET.b * 0.6, 0.55))
+			mire.append(mire[0])
+			g.hud.draw_polyline(mire, Color(UI.VIOLET.r, UI.VIOLET.g, UI.VIOLET.b, 0.75), 1.5, true)
+			_lbl(86, 136, "溟痕")
+		"command":
+			# 指挥圆盘：四个扇区（上半随行 / 突击，下半集火 / 部署），每 1.4 秒轮流亮一项；集火亮洋红
+			var cc := _p(0, -6)
+			var r0 := 34.0 * _s
+			var r1 := 100.0 * _s
+			var names := ["随行", "突击", "部署", "集火"]
+			var hov: int = int(g.intro_t / 1.4) % 4
+			for i in 60:
+				var d := Vector2.from_angle(TAU * i / 60.0)
+				g.hud.draw_line(cc + d * (r1 + 5.0), cc + d * (r1 + (10.0 if i % 15 == 0 else 7.0)), Color(1, 1, 1, 0.35 if i % 15 == 0 else 0.15), 1.0)
+			for i in 4:
+				var a0: float = PI + i * PI / 2.0 + 0.04
+				var a1: float = PI + (i + 1) * PI / 2.0 - 0.04
+				var sec := _sector(cc, r0, r1, a0, a1)
+				var acc: Color = UI.RED if i == 3 else UI.CYAN
+				g.hud.draw_colored_polygon(sec, Color(acc.r, acc.g, acc.b, 0.22) if i == hov else FILL)
+				sec.append(sec[0])
+				g.hud.draw_polyline(sec, acc if i == hov else INK2, 1.5 if i == hov else 1.0, true)
+				var mc := cc + Vector2.from_angle((a0 + a1) / 2.0) * (r0 + r1) / 2.0
+				UI.text(g.hud, g.font, mc + Vector2(-40, 5), names[i], 14, UI.TEXT if i == hov else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 80)
+			_ring(cc, r0 - 6.0 * _s, INK2)
+			UI.text(g.hud, g.font, cc + Vector2(-40, 5), "指挥", 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 80)
+			_lbl(0, 136, "指挥圆盘")
 		"console":
-			# 指挥台示意（hud_v3 的缩略版）：中间队长头像 + 终结技环，左边生命 / 灯火 / 冲刺，右边两名队友 + 指令牌
+			# 指挥台：中间队长头像 + 终结技环，左边生命 / 灯火 / 冲刺，右边两名队友 + 指令牌
 			var ek: float = fmod(g.intro_t * 0.25, 1.0)
-			var ac := c + Vector2(0, -6)
-			g.hud.draw_circle(ac, 26.0, Color(0.05, 0.08, 0.1))
-			g.hud.draw_arc(ac, 31.0, 0.0, TAU, 40, Color(1, 1, 1, 0.2), 3.0, true)
-			g.hud.draw_arc(ac, 31.0, -PI / 2.0, -PI / 2.0 + TAU * ek, 40, Color(0.93, 0.94, 0.95), 3.0, true)
-			UI.text(g.hud, g.font, ac + Vector2(-40, 52), "终结技", 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 80)
-			var lx0: float = c.x - 126.0
-			var lx1: float = c.x - 42.0
-			UI.text(g.hud, g.font, Vector2(lx0, c.y - 22), "生命", 11, UI.SUB)
-			g.hud.draw_rect(Rect2(lx0, c.y - 15, lx1 - lx0, 3.0), Color(0.93, 0.94, 0.95))
-			UI.text(g.hud, g.font, Vector2(lx0, c.y + 6), "灯火", 11, UI.GOLD)
-			var bx: float = lx0 + 28.0
+			var ac := _p(0, -16)
+			g.hud.draw_circle(ac, 26.0 * _s, Color(0.05, 0.08, 0.1))
+			_ring(ac, 31.0 * _s, Color(1, 1, 1, 0.2), 3.0)
+			g.hud.draw_arc(ac, 31.0 * _s, -PI / 2.0, -PI / 2.0 + TAU * ek, 40, UI.CYAN if ek > 0.97 else INK, 3.0, true)
+			_lbl(0, 34, "终结技")
+			var lx0 := -132.0
+			var lx1 := -48.0
+			_lbl(lx0, -36, "生命", UI.SUB, 12, false)
+			g.hud.draw_rect(Rect2(_p(lx0, -26), Vector2((lx1 - lx0) * _s, 3.0)), INK)
+			_lbl(lx0, -6, "灯火", UI.GOLD, 12, false)
+			var bx := lx0 + 30.0
 			var lamp_k: float = 0.55 + 0.25 * sin(g.intro_t * 1.3)
-			g.hud.draw_rect(Rect2(bx - 1, c.y - 2, lx1 - bx + 2, 7.0), Color(0, 0, 0, 0.55))
-			g.hud.draw_rect(Rect2(lx1 - (lx1 - bx) * lamp_k, c.y - 1, (lx1 - bx) * lamp_k, 5.0), UI.GOLD)
+			g.hud.draw_rect(Rect2(_p(bx, -14), Vector2((lx1 - bx) * _s, 7.0)), Color(0, 0, 0, 0.55))
+			g.hud.draw_rect(Rect2(_p(lx1 - (lx1 - bx) * lamp_k, -13), Vector2((lx1 - bx) * lamp_k * _s, 5.0)), UI.GOLD)
 			for tv in [0.3, 0.7]:
 				var tx4: float = lx1 - (lx1 - bx) * tv
-				g.hud.draw_line(Vector2(tx4, c.y - 4), Vector2(tx4, c.y + 7), Color(1, 1, 1, 0.6), 1.0)
-			UI.text(g.hud, g.font, Vector2(lx1 - 30, c.y + 30), "冲刺", 11, UI.SUB)
+				g.hud.draw_line(_p(tx4, -16), _p(tx4, -5), Color(1, 1, 1, 0.6), 1.0)
+			_lbl(lx1 - 34, 22, "冲刺", UI.SUB, 12, false)
 			for q in 2:
-				var px := Vector2(lx1 - 44 - q * 10, c.y + 25)
+				var px := _p(lx1 - 50 - q * 11, 16)
 				g.hud.draw_colored_polygon(PackedVector2Array([px + Vector2(0, -4), px + Vector2(4, -4), px + Vector2(8, 0), px + Vector2(4, 4), px + Vector2(0, 4), px + Vector2(4, 0)]), UI.CYAN if q == 0 else Color(1, 1, 1, 0.2))
 			for q in 2:
-				var tr4 := Rect2(c + Vector2(44 + q * 32, -20), Vector2(26, 26))
-				g.hud.draw_rect(tr4, Color(0.08, 0.12, 0.15))
-				g.hud.draw_rect(tr4, Color(1, 1, 1, 0.3), false, 1.0)
-				g.hud.draw_rect(Rect2(tr4.position + Vector2(0, 30), Vector2(26 * (0.9 - q * 0.4), 2.0)), Color(0.93, 0.94, 0.95))
-			UI.text(g.hud, g.font, c + Vector2(44, 34), "队友", 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 58)
-			var cr4 := Rect2(c + Vector2(110, -20), Vector2(26, 26))
-			g.hud.draw_rect(cr4, Color(0.08, 0.12, 0.15))
+				var tr4 := Rect2(_p(46 + q * 32, -30), Vector2(26, 26) * _s)
+				g.hud.draw_rect(tr4, FILL)
+				g.hud.draw_rect(tr4, INK2, false, 1.0)
+				g.hud.draw_rect(Rect2(tr4.position + Vector2(0, 30 * _s), Vector2(26 * _s * (0.9 - q * 0.4), 2.0)), INK)
+			_lbl(75, 22, "队友")
+			var cr4 := Rect2(_p(112, -30), Vector2(26, 26) * _s)
+			g.hud.draw_rect(cr4, FILL)
 			g.hud.draw_rect(cr4, UI.CYAN, false, 1.0)
-			UI.text(g.hud, g.font, c + Vector2(95, 34), "指令", 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 56)
-			UI.text(g.hud, g.font, c + Vector2(-100, 96), "屏幕正下方", 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 200)
-		"command":
-			# 指挥圆盘：直接缩小画当前的圆盘（终末地风格，command_wheel.gd 同一份画法），每 1.4 秒轮流悬停一项
-			g.wheel.draw_preview(c + Vector2(0, 4), 0.56, g.intro_t)
+			_lbl(125, 22, "指令")
+			# 屏幕示意：外框 + 台子在正下方
+			var sr := Rect2(_p(-110, 66), Vector2(220, 64) * _s)
+			g.hud.draw_rect(sr, INK2, false, 1.0)
+			g.hud.draw_rect(Rect2(_p(-30, 118), Vector2(60, 8) * _s), INK)
+			_lbl(0, 100, "屏幕正下方")
+		"merchant":
+			# 屏幕框 + 边缘金色箭头指向商人；倒计时环 + 2:00 / 5:00 / 8:00 时间轴
+			var sr := Rect2(_p(-120, -126), Vector2(240, 120) * _s)
+			g.hud.draw_rect(sr, FILL)
+			g.hud.draw_rect(sr, INK2, false, 1.0)
+			UI.diamond(g.hud, _p(0, -66), 6.0, INK)
+			var bob: float = 4.0 * sin(g.intro_t * 4.0)
+			var ap := _p(106 + bob / _s, -66)
+			g.hud.draw_colored_polygon(PackedVector2Array([ap + Vector2(8, 0) * _s, ap + Vector2(-6, -9) * _s, ap + Vector2(-2, 0) * _s, ap + Vector2(-6, 9) * _s]), UI.GOLD)
+			_lbl(60, -98, "商人方向", UI.GOLD, 12)
+			var left: int = 60 - int(fmod(g.intro_t * 6.0, 60.0))
+			var mc: Color = UI.GOLD if left > 15 else UI.GOLD.lerp(UI.RED, 0.5 + 0.5 * sin(g.intro_t * 8.0))
+			UI.ring(g.hud, _p(-82, 34), 22.0 * _s, left / 60.0, mc)
+			UI.text(g.hud, g.font, _p(-82, 34) + Vector2(-30, 6), "%ds" % left, 14, mc, HORIZONTAL_ALIGNMENT_CENTER, 60)
+			var t0 := -36.0
+			var t1 := 124.0
+			g.hud.draw_line(_p(t0, 34), _p(t1, 34), INK2, 1.5)
+			for k in 3:
+				var xm: float = t0 + (t1 - t0) * [0.2, 0.5, 0.8][k]
+				UI.diamond(g.hud, _p(xm, 34), 5.0, UI.GOLD)
+				_lbl(xm, 60, ["2:00", "5:00", "8:00"][k], UI.GOLD, 12)
+			_lbl(0, 112, "商人  ·  停留 60 秒")
+		"nodes":
+			# 三张背面朝上的节点卡：中间「不期而遇」每 1.6 秒抬起一次；下面四个结局菱形
+			for k in 3:
+				var up: float = 10.0 * maxf(0.0, sin(g.intro_t * 3.9)) if k == 1 else 0.0
+				var cr := Rect2(_p(-100 + k * 76 - 28, -98 - up), Vector2(56, 82) * _s)
+				g.hud.draw_rect(cr, FILL if k != 1 else Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.1))
+				g.hud.draw_rect(cr, UI.CYAN if k == 1 else INK2, false, 1.5 if k == 1 else 1.0)
+				if k == 1:
+					UI.text(g.hud, g.font, cr.get_center() + Vector2(-20, 9), "?", 24, UI.CYAN, HORIZONTAL_ALIGNMENT_CENTER, 40)
+				else:
+					UI.diamond(g.hud, cr.get_center(), 9.0 * _s, Color(0, 0, 0, 0), INK2)
+			_lbl(0, 6, "不期而遇", UI.CYAN, 12)
+			for k in 4:
+				var ec: Color = g.endg.ending_col(["standard", "knight", "deep", "resolve"][k])
+				var dc := _p(-75 + k * 50, 66)
+				UI.diamond(g.hud, dc, 10.0 * _s, Color(ec.r, ec.g, ec.b, 0.3), ec)
+				UI.text(g.hud, g.font, dc + Vector2(-20, 32 * _s), ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ"][k], 13, ec, HORIZONTAL_ALIGNMENT_CENTER, 40)
+			_lbl(0, 130, "四个结局")
 		"keys":
 			if Pad.touch_ui():
-				_draw_touch_keys(c)
+				_draw_touch_keys()
 				return
-			var keys := [["W", Vector2(0, -60)], ["A", Vector2(-48, -12)], ["S", Vector2(0, -12)], ["D", Vector2(48, -12)], ["Tab", Vector2(-40, 60)], ["Esc", Vector2(40, 60)]]
+			var keys := [["W", 0, -100, 1], ["A", -44, -56, 1], ["S", 0, -56, 1], ["D", 44, -56, 1], ["SPACE", 0, -6, 3],
+				["F", -84, 44, 1], ["Q", -40, 44, 1], ["TAB", 12, 44, 1.5], ["ESC", 74, 44, 1.5]]
 			for kk in keys:
-				var kr := Rect2(c + kk[1] - Vector2(20, 20), Vector2(40 if kk[0].length() == 1 else 56, 40))
-				g.hud.draw_rect(kr, Color(0.08, 0.2, 0.24))
-				g.hud.draw_rect(kr, UI.CYAN, false, 1.5)
-				UI.text(g.hud, g.font, kr.position + Vector2(0, 27), kk[0], 15, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, kr.size.x)
+				var kw: float = 38.0 * float(kk[3]) + 6.0 * (float(kk[3]) - 1.0)
+				var kr := Rect2(_p(float(kk[1]), float(kk[2])) - Vector2(kw, 38.0) * _s / 2.0, Vector2(kw, 38.0) * _s)
+				g.hud.draw_rect(kr, FILL)
+				g.hud.draw_rect(kr, Color(1, 1, 1, 0.5), false, 1.0)
+				UI.text(g.hud, g.font, Vector2(kr.position.x, kr.get_center().y + 5), kk[0], 13, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, kr.size.x)
+			_lbl(0, 112, "键盘")
 
 
 ## 指南正文里的数值占位（docs/83 入队加成读 balance.json squad 段；docs/88 灯火暗淡 / 受击灯火读 lamp 段、暗淡刷新读 enemy 段；不写死）。
