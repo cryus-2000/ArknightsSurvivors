@@ -1246,6 +1246,7 @@ SCENE_REGRESSIONS = {
     "trace_fields": ("TRACE 新增字段 sq / lamp / nd / rl（10-29，docs/126 R3）：只读、不动 rng、对队友位置 / 突击生命 / 技力 / 普攻计时 / 灯火 / 神经损伤 / 藏品数各自敏感、还原后回到原值", "trace_fields_test", r"TRACE FIELDS failures=0", ["--balance", "--op=skadi", "--squad=kaltsit,texas"]),
     "ui_smoke": ("界面冒烟（docs/126 R6）：标题页十屏 + 局内 HUD / 暂停 / 设置 / 属性 / 结算 / 作战记录 / 对局记录各开关两遍，无缺图、无残留节点", "ui_smoke_test", r"UI SMOKE failures=0", []),
     "lifecycle_cycle": ("全流程反复进出 10 轮（标题各屏 → 开局 → 暂停 / 设置 / 结算 / 作战记录 → 销毁）：节点 / 对象 / 资源 / 孤儿 / 静态内存 / 贴图缓存回到基线，docs/335", "lifecycle_cycle_test", r"LIFECYCLE CYCLE failures=0", ["--op=skadi", "--squad=kaltsit"]),
+    "flow_sweep": ("设置面板每一行各向调一次 + 子页开关 + 标签页 + 暂停菜单各动作（docs/335）", "flow_sweep_test", r"FLOW SWEEP failures=0", ["--op=skadi", "--squad=kaltsit"]),
     "time_scale_combo": ("时间缩放组合（圆盘 × 倍速 / 顿帧 / 击破慢动作）：有效缩放等于现行组合规则，退出各模态后回到 1", "time_scale_combo_test", r"TIME SCALE COMBO failures=0", ["--balance", "--op=skadi", "--squad=kaltsit"]),
     "runs_log_guard": ("自动测试不写玩家对局记录：tests/ 下场景（含不带 -- 参数直接起的）被 telemetry.save_local 拦下（10-14 / 10-20 / 10-27 runs.jsonl 里的空局）", "runs_log_guard_test", r"RUNS LOG GUARD failures=0", []),
     "hit_fallback": ("g.hit 空描述符沿用上次：特征测试（已知缺陷：空 h 会错记给上一个干员），显式 h 回归保护", "hit_fallback_test", r"HIT FALLBACK failures=0", ["--balance", "--op=skadi", "--squad=kaltsit"]),
