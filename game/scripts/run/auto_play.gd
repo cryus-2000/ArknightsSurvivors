@@ -103,7 +103,17 @@ func step(delta: float) -> void:
 						if g.shop_sys.can_buy(g.shop_items[i]):
 							g.shop_sys.buy(i)
 							break
-				if _shop_n % 3 == 0:
+				var any := false
+				for it in g.shop_items:
+					if g.shop_sys.can_buy(it):
+						any = true
+						break
+				if _shop_n % 3 == 0 or not any:
+					# 买不起了就走，并记下这个商人逛过（bot.gd 不再朝它走；11-11 用户：没钱也反复进商店）
+					if not g.merchant.is_empty():
+						g.merchant.auto_done = true
+					print("PF AUTOPLAY shop close t=%.0f ingots=%d any=%s" % [g.t, g.ingots, str(any)])
+					_shop_n = 0
 					g.shop_sys.close()
 		S.SHOW:
 			if g.show_t > 1.6:

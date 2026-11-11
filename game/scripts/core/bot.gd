@@ -327,7 +327,7 @@ func _expert_goal(p: Vector2, near: Array) -> Vector2:
 			beacon_hold = bnear
 			beacon_w = 6.0 if bd2 < 150.0 else 4.0
 		return (bnear - p).normalized() if bd2 > 40.0 else Vector2.ZERO   # 引航灯标：去光圈里站着
-	if not g.merchant.is_empty() and g.merchant.pos.distance_to(p) < 600.0 and not g.merchant.near:
+	if not g.merchant.is_empty() and g.merchant.pos.distance_to(p) < 600.0 and not g.merchant.near and not (g.auto_play != null and g.merchant.get("auto_done", false)):   # 无敌包自动模式：这个商人逛过就不再回去（11-11 用户：没钱也反复进商店）；平衡 / 批跑 auto_play 为 null 不变
 		return (g.merchant.pos - p).normalized()
 	if g.hp > g.max_hp * 0.55:
 		for bb in g.bosses:
