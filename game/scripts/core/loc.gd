@@ -34,9 +34,24 @@ static func resolve(pref: String, toy := false) -> String:
 		return "zh"
 	if pref == "zh" or pref == "en":
 		return pref
-	if AUTO_EN_READY and not OS.get_locale_language().begins_with("zh"):
+	if AUTO_EN_READY and not OS.get_locale_language().begins_with("zh") and not _test_run():
 		return "en"
 	return "zh"
+
+
+## 测试 / 无头 / 带启动参数的 debug 运行：「自动」一律中文（断言中文文案的测试不随云端机器的系统语言变）；
+## 英文测试显式传 --lang=en（settings.gd 读命令行，优先于这里）。只靠系统语言判断的逻辑留给正式运行
+static func _test_run() -> bool:
+	if DisplayServer.get_name() == "headless":
+		return true
+	if not OS.is_debug_build():
+		return false
+	if not (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).is_empty():
+		return true
+	for a in OS.get_cmdline_args():
+		if a.begins_with("res://tests/") or a.contains("/tests/"):
+			return true
+	return false
 
 
 ## 启动 / 设置改语言时调用。英文翻译表只在第一次切到英文时读
@@ -207,8 +222,8 @@ static func _split_fallback(text: String) -> String:
 		var te0 := s(t0)
 		if he0 != h0 and te0 != t0 and _cjk.search(te0) == null:
 			return he0 + ": " + te0
-	# 卡名显示时把「协同·专」排成「协同 · 专」、日文中点「・」：换回表里的写法再查一次
-	for pair in [[" · ", "·"], [" ・ ", "·"], ["・", "·"]]:
+	# 卡名显示时把「协同·专」排成「协同 · 专」、日文中点（U+30FB）：换回表里的写法再查一次
+	for pair in [[" · ", "·"], [" " + String.chr(0x30fb) + " ", "·"], [String.chr(0x30fb), "·"]]:   # 中点用 chr 构造：字面量会被 release_slim 当成要显示的字（字体里没有）
 		if text.contains(pair[0]):
 			var nt := text.replace(pair[0], pair[1])
 			var ne := s(nt)

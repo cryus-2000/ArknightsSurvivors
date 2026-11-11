@@ -112,6 +112,8 @@
     "web_focus",
     "time_scale_combo",
     "ui_smoke",
+    "ui_smoke_en",
+    "l10n",
     "lifecycle_cycle",
     "flow_sweep"
    ]
