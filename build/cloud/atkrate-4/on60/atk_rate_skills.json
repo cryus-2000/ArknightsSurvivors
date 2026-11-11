@@ -1,0 +1,140 @@
+[
+ {
+  "op": "gladiia",
+  "mult": 1.0,
+  "rec": {
+   "act_dur": 0.0,
+   "aspd": 1.0,
+   "by_anim": {},
+   "cd_avg": 0.0,
+   "cd_n": 0,
+   "fires": 0,
+   "gap_max": 0.0,
+   "mult": 1.0,
+   "nominal": -1.0,
+   "op": "gladiia",
+   "secs": 30.02,
+   "skills": true,
+   "starts": 0
+  },
+  "errors": [
+   "SCRIPT ERROR: Parse Error: Could not resolve class \"res://scripts/characters/blocks/seg_saria.gd\".",
+   "SCRIPT ERROR: Compile Error: Failed to compile depended scripts."
+  ]
+ },
+ {
+  "op": "gladiia",
+  "mult": 2.0,
+  "rec": {
+   "act_dur": 0.0,
+   "aspd": 2.0,
+   "by_anim": {},
+   "cd_avg": 0.0,
+   "cd_n": 0,
+   "fires": 0,
+   "gap_max": 0.0,
+   "mult": 2.0,
+   "nominal": -1.0,
+   "op": "gladiia",
+   "secs": 30.02,
+   "skills": true,
+   "starts": 0
+  },
+  "errors": [
+   "SCRIPT ERROR: Parse Error: Could not resolve class \"res://scripts/characters/blocks/seg_saria.gd\".",
+   "SCRIPT ERROR: Compile Error: Failed to compile depended scripts."
+  ]
+ },
+ {
+  "op": "gladiia",
+  "mult": 4.0,
+  "rec": {
+   "act_dur": 0.0,
+   "aspd": 4.0,
+   "by_anim": {},
+   "cd_avg": 0.0,
+   "cd_n": 0,
+   "fires": 0,
+   "gap_max": 0.0,
+   "mult": 4.0,
+   "nominal": -1.0,
+   "op": "gladiia",
+   "secs": 30.02,
+   "skills": true,
+   "starts": 0
+  },
+  "errors": [
+   "SCRIPT ERROR: Parse Error: Could not resolve class \"res://scripts/characters/blocks/seg_saria.gd\".",
+   "SCRIPT ERROR: Compile Error: Failed to compile depended scripts."
+  ]
+ },
+ {
+  "op": "ulpianus",
+  "mult": 1.0,
+  "rec": {
+   "act_dur": 0.0,
+   "aspd": 1.0,
+   "by_anim": {},
+   "cd_avg": 0.0,
+   "cd_n": 0,
+   "fires": 0,
+   "gap_max": 0.0,
+   "mult": 1.0,
+   "nominal": -1.0,
+   "op": "ulpianus",
+   "secs": 30.02,
+   "skills": true,
+   "starts": 0
+  },
+  "errors": [
+   "SCRIPT ERROR: Parse Error: Could not resolve class \"res://scripts/characters/blocks/seg_saria.gd\".",
+   "SCRIPT ERROR: Compile Error: Failed to compile depended scripts."
+  ]
+ },
+ {
+  "op": "ulpianus",
+  "mult": 2.0,
+  "rec": {
+   "act_dur": 0.0,
+   "aspd": 2.0,
+   "by_anim": {},
+   "cd_avg": 0.0,
+   "cd_n": 0,
+   "fires": 0,
+   "gap_max": 0.0,
+   "mult": 2.0,
+   "nominal": -1.0,
+   "op": "ulpianus",
+   "secs": 30.02,
+   "skills": true,
+   "starts": 0
+  },
+  "errors": [
+   "SCRIPT ERROR: Parse Error: Could not resolve class \"res://scripts/characters/blocks/seg_saria.gd\".",
+   "SCRIPT ERROR: Compile Error: Failed to compile depended scripts."
+  ]
+ },
+ {
+  "op": "ulpianus",
+  "mult": 4.0,
+  "rec": {
+   "act_dur": 0.0,
+   "aspd": 4.0,
+   "by_anim": {},
+   "cd_avg": 0.0,
+   "cd_n": 0,
+   "fires": 0,
+   "gap_max": 0.0,
+   "mult": 4.0,
+   "nominal": -1.0,
+   "op": "ulpianus",
+   "secs": 30.02,
+   "skills": true,
+   "starts": 0
+  },
+  "errors": [
+   "SCRIPT ERROR: Parse Error: Could not resolve class \"res://scripts/characters/blocks/seg_saria.gd\".",
+   "SCRIPT ERROR: Compile Error: Failed to compile depended scripts."
+  ]
+ }
+]
