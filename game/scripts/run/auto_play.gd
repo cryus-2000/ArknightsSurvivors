@@ -33,6 +33,17 @@ func _init(game) -> void:
 		GodSuite.start_run(g)    # 记「进行中」：没走到结算就是闪退（core/god_suite.gd）
 
 
+## 连测超时（局内秒）；调试版 --suitetimeout=<秒> 改短，测超时 / 重开路径用
+var _tmo := -1.0
+func _timeout() -> float:
+	if _tmo < 0.0:
+		_tmo = SUITE_TIMEOUT
+		for a in Cfg.dev_args():
+			if a.begins_with("--suitetimeout="):
+				_tmo = float(a.substr(15))
+	return _tmo
+
+
 ## 移动方向（game.gd 移动输入链；state == PLAY 时调）
 func move(dt: float) -> Vector2:
 	if bot == null:
@@ -49,10 +60,10 @@ func step(delta: float) -> void:
 	if _log_t >= 10.0:
 		_log_t = 0.0
 		print("PF AUTOPLAY st=%d kind=%s n=%d t=%.0f age=%.1f modal=%s sq=%d lv=%d" % [g.state, str(g.choice_kind), g.choices.size(), g.t, g.state_age, str(g.onboard.modal()), g.squad.size(), g.level])
-	if Cfg.test_suite() and not _looped and g.t >= SUITE_TIMEOUT and g.state != S.DEAD and g.state != S.WIN:
+	if Cfg.test_suite() and not _looped and g.t >= _timeout() and g.state != S.DEAD and g.state != S.WIN:
 		_looped = true
 		print("PF AUTOPLAY suite timeout t=%.0f -> restart" % g.t)
-		g._do_action("restart")   # 离场照常走 game._exit_tree → perf_report.finish("quit") → GodSuite.run_done
+		g._do_action.call_deferred("restart")   # 推迟到帧末：同帧后面的 settlement.tick 还要用视口（直接重开会报 !is_inside_tree）；离场照常走 game._exit_tree → perf_report.finish("quit") → GodSuite.run_done
 		return
 	match g.state:
 		S.CHOICE:
@@ -123,7 +134,7 @@ func step(delta: float) -> void:
 			if Cfg.test_loop() and not _looped and _end_t >= END_WAIT and not g.victory.active:
 				_looped = true
 				print("PF AUTOPLAY restart t=%.0f" % g.t)
-				g._do_action("restart")   # 手机网页整页重载后直接同队出发（core/run_reload.gd）
+				g._do_action.call_deferred("restart")   # 推迟到帧末（同上）；手机网页整页重载后直接同队出发（core/run_reload.gd）
 		_:
 			_wait = 0.0
 	if g.state != S.CHOICE:

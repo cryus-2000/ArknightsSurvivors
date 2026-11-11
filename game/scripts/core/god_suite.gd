@@ -114,7 +114,7 @@ static func run_done(g, rec: Dictionary, result: String) -> void:
 	if cur.is_empty():
 		return
 	var PR = load("res://scripts/core/perf_report.gd")
-	if result == "quit" and float(g.t) >= 1490.0:
+	if result == "quit" and g.auto_play != null and float(g.t) >= g.auto_play._timeout() - 1.0:
 		result = "timeout"   # auto_play.SUITE_TIMEOUT 到点重开
 	var sq: Array = []
 	for o in g.squad.ops:
