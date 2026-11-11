@@ -1,0 +1,25 @@
+# final_boss_completion
+# 参数：--headless --path /work/repo/game res://tests/final_boss_completion_test.tscn -- --regression --seed=1
+# 用时 18 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+NATURAL paranoia ["凝视", "叠影", "追猎泡", "泡影环", "溟泡迸裂", "泡影收束", "呼号"]
+NATURAL knight_boss ["长枪连刺", "断潮劈击", "踏冰裂阵", "冲锋", "侧踏挑枪", "掷枪", "冻结重击", "雪幕劈", "再冲锋", "冰枪封径", "长驱冲锋", "冻潮夹击", "长枪回旋"]
+NATURAL ishar ["三线扫射", "大群之歌", "合唱齐射", "撕咬", "合唱压境", "横扫", "深海触腕", "共鸣", "泪落"]
+NATURAL izumik ["海流牵引", "护群触腕", "潮汐坠落", "震撼", "解读旋涡", "深渊涌流", "分享·全场", "迁徙潮", "分享"]
+FINAL BOSS COMPLETION failures=0
+PF RUNRELEASE tex=0 audio=0
+ERROR: 3 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+ERROR: 3 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+
+
+## stderr
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2733)
+WARNING: 28 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 8 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+
