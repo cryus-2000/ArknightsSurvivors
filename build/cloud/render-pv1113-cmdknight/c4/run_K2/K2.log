@@ -1,0 +1,107 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+OpenGL API 4.5 (Core Profile) Mesa 22.3.6 - Compatibility - Using Device: Mesa/X.org - llvmpipe (LLVM 15.0.6, 256 bits)
+
+PF FXLAZY t=0.0 lumen n=6 ms=2
+PF FXLAZY t=0.0 hoshiguma n=9 ms=3
+PF FXLAZY t=0.0 saria n=9 ms=4
+BEACON mires t=60.1 mires=0
+ENDEV deal m1 ["shop/", "incident/glimmer"] t=115.0 cur=standard relics=[]
+ENDEV flip 0 shop  t=115.0 cur=standard relics=[]
+SHOP ["凯旋号角", "安洁莉娜的创想", "疗养体验卡", "急救包", "灯油"]
+BEACON mires t=120.1 mires=7
+SHOP ["血魔的寝床  (可升级)", "“多功能”发夹", "演员的首饰盒", "急救包", "灯油"]
+SHOP ["血魔的寝床  (可升级)", "“多功能”发夹", "演员的首饰盒", "急救包", "灯油"]
+SHOP ["血魔的寝床  (可升级)", "“多功能”发夹", "演员的首饰盒", "急救包", "灯油"]
+SHOP ["血魔的寝床  (可升级)", "“多功能”发夹", "演员的首饰盒", "急救包", "灯油"]
+SHOP ["血魔的寝床  (可升级)", "“多功能”发夹", "演员的首饰盒", "急救包", "灯油"]
+SHOP ["血魔的寝床  (可升级)", "“多功能”发夹", "演员的首饰盒", "急救包", "灯油"]
+SHOP ["血魔的寝床  (可升级)", "“多功能”发夹", "演员的首饰盒", "急救包", "灯油"]
+SHOP ["血魔的寝床  (可升级)", "“多功能”发夹", "演员的首饰盒", "急救包", "灯油"]
+SHOP ["血魔的寝床  (可升级)", "“多功能”发夹", "演员的首饰盒", "急救包", "灯油"]
+SHOP ["血魔的寝床  (可升级)", "“多功能”发夹", "演员的首饰盒", "急救包", "灯油"]
+SHOP ["血魔的寝床  (可升级)", "“多功能”发夹", "演员的首饰盒", "急救包", "灯油"]
+SHOP ["血魔的寝床  (可升级)", "“多功能”发夹", "演员的首饰盒", "急救包", "灯油"]
+SHOP ["血魔的寝床  (可升级)", "“多功能”发夹", "演员的首饰盒", "急救包", "灯油"]
+SHOP ["血魔的寝床  (可升级)", "“多功能”发夹", "演员的首饰盒", "急救包", "灯油"]
+SHOP ["血魔的寝床  (可升级)", "“多功能”发夹", "演员的首饰盒", "急救包", "灯油"]
+SHOP ["血魔的寝床  (可升级)", "“多功能”发夹", "演员的首饰盒", "急救包", "灯油"]
+SHOP ["血魔的寝床  (可升级)", "“多功能”发夹", "演员的首饰盒", "急救包", "灯油"]
+SHOP ["血魔的寝床  (可升级)", "“多功能”发夹", "演员的首饰盒", "急救包", "灯油"]
+SHOP ["血魔的寝床  (可升级)", "“多功能”发夹", "演员的首饰盒", "急救包", "灯油"]
+SHOP ["血魔的寝床  (可升级)", "“多功能”发夹", "演员的首饰盒", "急救包", "灯油"]
+SHOP ["血魔的寝床  (可升级)", "“多功能”发夹", "演员的首饰盒", "急救包", "灯油"]
+SHOP ["血魔的寝床  (可升级)", "“多功能”发夹", "演员的首饰盒", "急救包", "灯油"]
+SHOP ["血魔的寝床  (可升级)", "“多功能”发夹", "演员的首饰盒", "急救包", "灯油"]
+SHOP ["血魔的寝床  (可升级)", "“多功能”发夹", "演员的首饰盒", "急救包", "灯油"]
+SHOP ["血魔的寝床  (可升级)", "“多功能”发夹", "演员的首饰盒", "急救包", "灯油"]
+SHOP ["血魔的寝床  (可升级)", "“多功能”发夹", "演员的首饰盒", "急救包", "灯油"]
+SHOP ["血魔的寝床  (可升级)", "“多功能”发夹", "演员的首饰盒", "急救包", "灯油"]
+SHOP ["血魔的寝床  (可升级)", "“多功能”发夹", "演员的首饰盒", "急救包", "灯油"]
+SHOP ["血魔的寝床  (可升级)", "“多功能”发夹", "演员的首饰盒", "急救包", "灯油"]
+BEACON spawn t=166.3 mires=16
+BEACON lit cleared=4 in_s=2.1 min_d=33 hold_s=2.0 via=ring t=170.7 mires=7
+BEACON mires t=180.0 mires=3
+PF PREFETCH t=200.0 e_path items=0
+ERROR: Can't save PNG at path: '/tmp/claude-0/shot_3400.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] step (res://scripts/run/autotest.gd:1281)
+       [1] _process (res://scripts/game.gd:1936)
+BEACON spawn t=233.8 mires=24
+BEACON mires t=240.0 mires=21
+ENDEV deal c1 ["incident/madness", "incident/opening", "wish/"] t=262.2 cur=standard relics=[]
+ENDEV flip 0 incident madness t=262.2 cur=standard relics=[]
+ENDEV open madness t=262.2 cur=standard relics=[]
+ENDEV pick madness:1 t=262.2 cur=standard relics=[]
+BEACON expire min_d=400 hold_s=0.0 quit=none maxp=0.00 in_s=0.0 t=278.7 mires=25
+BEACON spawn t=294.7 mires=20
+BEACON mires t=300.0 mires=19
+BEACON lit cleared=10 in_s=2.4 min_d=78 hold_s=0.7 via=ring t=300.5 mires=19
+SHOP ["Scout的狙击镜", "漆黑的舞鞋", "《旧高卢地名源流考》", "急救包", "灯油"]
+ENDEV deal m2 ["elite/", "shop/"] t=360.0 cur=knight relics=["222"]
+BEACON mires t=360.0 mires=17
+ENDEV flip 0 elite  t=360.0 cur=knight relics=["222"]
+PF PREFETCH t=364.6 e_duck items=0
+BEACON spawn t=366.4 mires=28
+BEACON lit cleared=10 in_s=2.2 min_d=52 hold_s=1.5 via=ring t=370.7 mires=29
+DUCK spawn t=374.55 d=313
+DUCK kill t=391.12 after=16.6
+PF PREFETCH t=410.1 e_saint items=0
+BEACON mires t=420.0 mires=26
+BEACON spawn t=434.4 mires=31
+ENDEV deal c2 ["incident/knight_stay", "incident/shelter", "rest/"] t=455.7 cur=knight relics=["222"]
+ENDEV flip 1 incident shelter t=455.7 cur=knight relics=["222"]
+ENDEV open shelter t=455.7 cur=knight relics=["222"]
+ENDEV pick shelter:0 t=455.7 cur=knight relics=["222"]
+BEACON lit cleared=8 in_s=2.2 min_d=69 hold_s=1.4 via=ring t=459.0 mires=24
+BEACON mires t=480.0 mires=26
+SHOP ["佣兵保单", "赶车夫的长鞭  (可升级)", "便携经书", "急救包", "灯油"]
+BEACON spawn t=500.7 mires=26
+PF PREFETCH t=507.3 e_duck items=0
+DUCK spawn t=517.37 d=536
+BEACON lit cleared=8 in_s=2.4 min_d=156 hold_s=0.9 via=mate t=522.4 mires=33
+DUCK kill t=528.92 after=11.6
+BEACON mires t=540.0 mires=33
+BEACON spawn t=565.9 mires=34
+BEACON lit cleared=14 in_s=2.1 min_d=54 hold_s=2.4 via=ring t=569.8 mires=34
+PF PREFETCH t=570.0 e_knight items=0
+PF RTFROM t=585.0
+ENDEV frozen t=600.0 cur=knight relics=["222"]
+BEACON mires t=600.0 mires=14
+BEACON spawn t=632.0 mires=14
+BEACON lit cleared=2 in_s=0.9 min_d=55 hold_s=5.0 via=ring t=648.6 mires=14
+BEACON mires t=660.0 mires=12
+PF RUNRELEASE tex=0 audio=0
+ERROR: Texture with GL ID of 1135: leaked 4586748 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1136: leaked 4586748 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+WARNING: 34 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 28 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: 2 RID allocations of type 'N5GLES37TextureE' were leaked at exit.
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)

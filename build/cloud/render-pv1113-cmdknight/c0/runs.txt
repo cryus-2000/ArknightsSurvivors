@@ -1,0 +1,8 @@
+RUN /usr/local/bin/godot-gl --path /work/repo/game --fixed-fps 60 --resolution 2560x1440 --audio-driver Dummy -s /work/repo/tools/promo/pv_rec_late.gd -- --balance --realtime --nodeath --nohints --bot=master --diff=4 --quality=high --pickframes=3 --slot4 --bossdeath=pv --op=mizuki --squad=skadi,exusiai,hoshiguma --route=memory --forceending=resolve --bal=command/bot_point=0 --bal=command/stamina=0 --pv_finalkill --pv_q=0.86 --seed=113 --rtfrom=200 --pv_rtfrom=200 --pv_win=221-272 --pv_maxt=274 --wheelplan=open@225,sel@0.3:3,ok@0.85,open@262.5,sel@0.3:2,ok@0.85 --pickplan=snap@0.12,ok@0.95,mvf@0.12:640:560,ok@0.95 --pv_out=/work/repo/build/cloud/render-pv1113-cmdknight-c0/run_C1/C1_raw
+C1 rc=0 segs=01_win
+total 126716
+drwxr-xr-x 2 root root      4096 Nov 12 14:44 .
+drwxr-xr-x 4 root root      4096 Nov 12 14:18 ..
+-rw-r--r-- 1 root root    875873 Nov 12 14:41 C1_01_win.json
+-rw-r--r-- 1 root root 128811129 Nov 12 14:44 C1_01_win.mp4
+-rw-r--r-- 1 root root     54226 Nov 12 14:42 C1_pv.log

@@ -1,0 +1,35 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+OpenGL API 4.5 (Core Profile) Mesa 22.3.6 - Compatibility - Using Device: Mesa/X.org - llvmpipe (LLVM 15.0.6, 256 bits)
+
+PF FXLAZY t=0.0 skadi n=14 ms=6
+PF FXLAZY t=0.0 exusiai n=23 ms=6
+PF FXLAZY t=0.0 hoshiguma n=9 ms=6
+BEACON mires t=60.1 mires=0
+ENDEV deal m1 ["shop/", "incident/glimmer"] t=115.0 cur=standard relics=[]
+ENDEV flip 1 incident glimmer t=115.0 cur=standard relics=[]
+ENDEV open glimmer t=115.0 cur=standard relics=[]
+ENDEV pick glimmer:2 t=115.0 cur=standard relics=[]
+BEACON mires t=120.1 mires=15
+SHOP ["散轶诗简  (可升级)", "支援急救包", "显圣吊坠", "急救包", "灯油"]
+BEACON spawn t=164.7 mires=15
+BEACON lit cleared=7 in_s=1.8 min_d=45 hold_s=2.4 via=ring t=168.8 mires=13
+BEACON mires t=180.0 mires=6
+PF PREFETCH t=200.0 e_saint items=0
+PF RTFROM t=200.0
+ERROR: Can't save PNG at path: '/tmp/claude-0/shot_3400.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] step (res://scripts/run/autotest.gd:1281)
+       [1] _process (res://scripts/game.gd:1891)
+BEACON spawn t=234.8 mires=26
+BEACON mires t=240.0 mires=23
+PF RUNRELEASE tex=0 audio=0
+ERROR: Texture with GL ID of 1140: leaked 4586748 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1141: leaked 4586748 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+WARNING: 2 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 2 RID allocations of type 'N5GLES37TextureE' were leaked at exit.

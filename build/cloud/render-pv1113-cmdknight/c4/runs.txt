@@ -1,0 +1,8 @@
+RUN /usr/local/bin/godot-gl --path /work/repo/game --fixed-fps 60 --resolution 1920x1080 --audio-driver Dummy -s /work/repo/tools/promo/pv_rec_late.gd -- --balance --realtime --nodeath --nohints --bot=master --diff=4 --quality=high --pickframes=3 --slot4 --bossdeath=pv --op=suzuran --squad=lumen,hoshiguma,saria --seed=103 --route=knight --forceending=knight --rtfrom=585 --pv_rtfrom=585 --pv_win=596-820 --pv_finalkill --pv_q=0.86 --pv_maxt=822 --pv_out=/work/repo/build/cloud/render-pv1113-cmdknight-c4/run_K2/K2_raw
+K2 rc=0 segs=01_win
+total 227264
+drwxr-xr-x 2 root root      4096 Nov 12 14:46 .
+drwxr-xr-x 4 root root      4096 Nov 12 14:18 ..
+-rw-r--r-- 1 root root   1301847 Nov 12 14:44 K2_01_win.json
+-rw-r--r-- 1 root root 231288136 Nov 12 14:46 K2_01_win.mp4
+-rw-r--r-- 1 root root    117867 Nov 12 14:44 K2_pv.log

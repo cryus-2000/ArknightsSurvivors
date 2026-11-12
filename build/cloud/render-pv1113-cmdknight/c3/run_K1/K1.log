@@ -1,0 +1,72 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:372)
+OpenGL API 4.5 (Core Profile) Mesa 22.3.6 - Compatibility - Using Device: Mesa/X.org - llvmpipe (LLVM 15.0.6, 256 bits)
+
+PF FXLAZY t=0.0 logos n=27 ms=17
+PF FXLAZY t=0.0 kaltsit n=6 ms=6
+PF FXLAZY t=0.0 irene n=21 ms=15
+BEACON mires t=60.1 mires=0
+ENDEV deal m1 ["wish/", "elite/"] t=115.0 cur=standard relics=[]
+ENDEV flip 1 elite  t=115.0 cur=standard relics=[]
+BEACON mires t=120.1 mires=12
+SHOP ["游戏室管理员权限卡", "夜阳花", "衍生者终端-超级改", "急救包", "灯油"]
+BEACON spawn t=171.8 mires=11
+BEACON lit cleared=2 in_s=1.8 min_d=52 hold_s=2.4 via=ring t=174.6 mires=11
+BEACON mires t=180.0 mires=8
+PF PREFETCH t=200.0 e_saint items=0
+ERROR: Can't save PNG at path: '/tmp/claude-0/shot_3400.png'.
+   at: save_image (drivers/png/resource_saver_png.cpp:56)
+   GDScript backtrace (most recent call first):
+       [0] step (res://scripts/run/autotest.gd:1281)
+       [1] _process (res://scripts/game.gd:1891)
+BEACON mires t=240.0 mires=19
+BEACON spawn t=244.8 mires=20
+ENDEV deal c1 ["incident/madness", "incident/opening", "wish/"] t=247.2 cur=standard relics=[]
+ENDEV flip 1 incident opening t=247.2 cur=standard relics=[]
+ENDEV open opening t=247.2 cur=standard relics=[]
+ENDEV pick opening:0 t=247.2 cur=standard relics=[]
+BEACON lit cleared=6 in_s=1.8 min_d=51 hold_s=2.5 via=ring t=247.6 mires=15
+PF PREFETCH t=249.9 e_duck items=0
+DUCK spawn t=259.91 d=386
+DUCK kill t=265.85 after=5.9
+BEACON mires t=300.0 mires=24
+BEACON spawn t=306.0 mires=30
+BEACON lit cleared=12 in_s=1.8 min_d=46 hold_s=1.8 via=ring t=307.8 mires=25
+SHOP ["教堂救济餐券", "被撬开的道具箱", "万能钥匙", "急救包", "灯油"]
+ENDEV deal m2 ["shop/", "elite/"] t=360.0 cur=standard relics=["220"]
+BEACON mires t=360.0 mires=25
+ENDEV flip 0 shop  t=360.0 cur=standard relics=["220"]
+SHOP ["银餐叉  (可升级)", "洁白的舞鞋", "难闻的止血剂  (可升级)", "急救包", "灯油"]
+BEACON spawn t=375.9 mires=28
+BEACON lit cleared=10 in_s=1.8 min_d=54 hold_s=2.4 via=ring t=387.8 mires=27
+PF PREFETCH t=410.1 e_bishop items=0
+PF PREFETCH t=410.1 e_archon items=0
+BEACON mires t=420.0 mires=36
+BEACON spawn t=448.4 mires=39
+ENDEV deal c2 ["wish/", "incident/heart", "elite/"] t=466.4 cur=standard relics=["220"]
+ENDEV flip 2 elite  t=466.4 cur=standard relics=["220"]
+BEACON lit cleared=8 in_s=2.2 min_d=51 hold_s=2.9 via=ring t=469.3 mires=33
+BEACON mires t=480.0 mires=32
+SHOP ["四叶草化石", "“苦痛的快乐”  (可升级)", "【遭诅】“未尽的生命”", "急救包", "灯油"]
+BEACON spawn t=515.9 mires=36
+BEACON lit cleared=8 in_s=1.9 min_d=42 hold_s=2.3 via=ring t=519.5 mires=36
+PF PREFETCH t=524.0 e_duck items=0
+DUCK spawn t=533.94 d=659
+BEACON mires t=540.0 mires=35
+DUCK kill t=553.34 after=19.4
+PF PREFETCH t=570.0 e_knight items=0
+BEACON spawn t=576.2 mires=37
+BEACON lit cleared=2 in_s=2.0 min_d=49 hold_s=2.1 via=ring t=579.2 mires=42
+PF RTFROM t=585.0
+ENDEV frozen t=600.0 cur=standard relics=["220"]
+BEACON mires t=600.0 mires=27
+BEACON spawn t=647.8 mires=31
+PF RUNRELEASE tex=0 audio=0
+ERROR: Texture with GL ID of 1156: leaked 4586748 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+ERROR: Texture with GL ID of 1157: leaked 4586748 bytes.
+   at: ~Utilities (drivers/gles3/storage/utilities.cpp:82)
+WARNING: 2 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 2 RID allocations of type 'N5GLES37TextureE' were leaked at exit.

@@ -1,0 +1,12 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4881 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+RUN /usr/local/bin/godot-gl --path /work/repo/game --fixed-fps 60 --resolution 1920x1080 --audio-driver Dummy -s /work/repo/tools/promo/pv_rec_late.gd -- --balance --realtime --nodeath --nohints --bot=master --diff=4 --quality=high --pickframes=3 --slot4 --bossdeath=pv --op=skadi --squad=gladiia,specter_unchained,hoshiguma --seed=303 --route=knight --forceending=knight --rtfrom=585 --pv_rtfrom=585 --pv_win=596-820 --pv_finalkill --pv_q=0.86 --pv_maxt=822 --pv_out=/work/repo/build/cloud/render-pv1113-cmdknight-c5/run_K3/K3_raw
+K3 rc=0 segs=01_win
+total 163324
+drwxr-xr-x 2 root root      4096 Nov 12 14:41 .
+drwxr-xr-x 4 root root      4096 Nov 12 14:18 ..
+-rw-r--r-- 1 root root   1031288 Nov 12 14:40 K3_01_win.json
+-rw-r--r-- 1 root root 166086947 Nov 12 14:41 K3_01_win.mp4
+-rw-r--r-- 1 root root    112875 Nov 12 14:40 K3_pv.log
+media：3 个文件，160M
