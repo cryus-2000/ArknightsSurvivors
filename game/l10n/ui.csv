@@ -384,7 +384,7 @@ ui.gd.data.036,Tide Level 1 · Colossal Shadow,潮位 1 · 巨影,模型,
 ui.gd.data.037,Colossal Shadow,巨影,模型,
 ui.gd.data.038,"Boss HP +15%, Boss attack warning shortened by 15%.",Boss 生命 +15%，Boss 招式预警缩短 15%。,模型,
 ui.gd.data.039,Tide Level 2 · Dim Light,潮位 2 · 昏灯,模型,
-ui.gd.data.040,"Light loss when hit +30%; Lamp Oil drop -30%, Originium Ingot drop -10%.",受击时灯火损失 +30%；灯油掉落 -30%，源石锭掉落 -10%。,校对,校对：hit 作为普通动词受击不应大写
+ui.gd.data.040,Light loss when hit +30%.,受击时灯火损失 +30%。,校对,校对：hit 作为普通动词受击不应大写
 ui.gd.data.041,Tide Level 3 · Undertow,潮位 3 · 暗涌,模型,
 ui.gd.data.042,Undertow,暗涌,模型,
 ui.gd.data.043,"Enemy HP +20%, damage dealt +10%.",敌人生命 +20%、造成的伤害 +10%。,模型,
@@ -411,7 +411,7 @@ ui.gd.data.063,Dying Candle,残烛,模型,
 ui.gd.data.064,"Light loss when hit increased to +60%, Lamp Oil drop penalty increased to -60%.",受击时灯火损失加重到 +60%，灯油掉落加重到 -60%。,校对,校对：修正不必要的大写（Hit -> hit），并统一“加重到”的翻译（drop penalty increased to）
 ui.gd.data.065,Normal,常规,模型,
 ui.gd.data.066,High Pressure,高压,模型,
-ui.gd.data.067,"Enemy HP +5%, damage dealt +10%; Boss HP +15%, attack warnings 15% shorter; Lamp loss when hit +30%, Lamp Oil and Originium Ingot drops reduced.",敌人生命 +5%、造成的伤害 +10%；Boss 生命 +15%，招式预警缩短 15%；受击时灯火损失 +30%，灯油与源石锭掉落减少。,校对,校对：修正不必要的大写（Damage -> damage）
+ui.gd.data.067,"Enemy HP +5%, damage dealt +10%; Boss HP +15%, attack warnings 15% shorter; Lamp loss when hit +30%.",敌人生命 +5%、造成的伤害 +10%；Boss 生命 +15%，招式预警缩短 15%；受击时灯火损失 +30%。,校对,校对：修正不必要的大写（Damage -> damage）
 ui.gd.data.068,Deep Tide,深潮,模型,
 ui.gd.data.069,"Enemy HP +42%, damage dealt +28%; We Many +60%, attacks as usual when Boss is present; Leader initial Max HP -10%; enemy control effects start at 5:00; Light loss when hit +60%.",敌人生命 +42%、造成的伤害 +28%；大群 +60%，Boss 在场时照常来袭；队长初始最大生命 -10%；普通敌人的控制提前到 5:00；受击时灯火损失 +60%。,校对,"校对：修正不必要的大写（Damage -> damage, Light Loss on Hit -> Light loss when hit）"
 ui.gd.data.070,Enemy HP +%d%%,敌人生命 +%d%%,模型,
@@ -2929,7 +2929,7 @@ Boss 招式预警时间 -25%,Boss attack warning time -25%,,原文键,模型
 巨影,Colossal Shadow,,原文键,模型
 Boss 生命 +15%，Boss 招式预警缩短 15%。,"Boss HP +15%, Boss attack warning shortened by 15%.",,原文键,模型
 潮位 2 · 昏灯,Tide Level 2 · Dim Light,,原文键,模型
-受击时灯火损失 +30%；灯油掉落 -30%，源石锭掉落 -10%。,"Light loss when hit +30%; Lamp Oil drop -30%, Originium Ingot drop -10%.",,原文键,校对
+受击时灯火损失 +30%。,Light loss when hit +30%.,,原文键,校对
 潮位 3 · 暗涌,Tide Level 3 · Undertow,,原文键,模型
 暗涌,Undertow,,原文键,模型
 敌人生命 +20%、造成的伤害 +10%。,"Enemy HP +20%, damage dealt +10%.",,原文键,模型
@@ -2956,7 +2956,7 @@ Boss 生命加重到 +35%，预警缩短加重到 20%；Boss 造成的伤害再 
 受击时灯火损失加重到 +60%，灯油掉落加重到 -60%。,"Light loss when hit increased to +60%, Lamp Oil drop penalty increased to -60%.",,原文键,校对
 常规,Normal,,原文键,模型
 高压,High Pressure,,原文键,模型
-敌人生命 +5%、造成的伤害 +10%；Boss 生命 +15%，招式预警缩短 15%；受击时灯火损失 +30%，灯油与源石锭掉落减少。,"Enemy HP +5%, damage dealt +10%; Boss HP +15%, attack warnings 15% shorter; Lamp loss when hit +30%, Lamp Oil and Originium Ingot drops reduced.",,原文键,校对
+敌人生命 +5%、造成的伤害 +10%；Boss 生命 +15%，招式预警缩短 15%；受击时灯火损失 +30%。,"Enemy HP +5%, damage dealt +10%; Boss HP +15%, attack warnings 15% shorter; Lamp loss when hit +30%.",,原文键,校对
 深潮,Deep Tide,,原文键,模型
 敌人生命 +42%、造成的伤害 +28%；大群 +60%，Boss 在场时照常来袭；队长初始最大生命 -10%；普通敌人的控制提前到 5:00；受击时灯火损失 +60%。,"Enemy HP +42%, damage dealt +28%; We Many +60%, attacks as usual when Boss is present; Leader initial Max HP -10%; enemy control effects start at 5:00; Light loss when hit +60%.",,原文键,校对
 敌人生命 +%d%%,Enemy HP +%d%%,,原文键,模型
