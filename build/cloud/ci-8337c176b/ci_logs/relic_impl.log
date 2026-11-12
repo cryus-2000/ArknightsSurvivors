@@ -1,0 +1,16 @@
+# relic_impl
+# 参数：--headless --path /work/repo/game res://tests/relic_impl_test.tscn -- --regression --seed=1 --balance --op=siege --squad=saria,wisadel
+# 用时 16 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PF FXLAZY t=0.0 saria n=9 ms=8
+PF FXLAZY t=0.0 wisadel n=6 ms=10
+208 checks, 0 failed
+RELIC IMPL failures=0
+PF RUNRELEASE tex=0 audio=0
+
+
+## stderr
+

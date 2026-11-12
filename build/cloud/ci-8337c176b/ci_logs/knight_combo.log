@@ -1,0 +1,20 @@
+# knight_combo
+# 参数：--headless --path /work/repo/game res://tests/knight_combo_test.tscn -- --regression --seed=1
+# 用时 15 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+COMBO 1 ["断潮劈击", "冲锋", "长枪连刺"] dashes=1
+COMBO 1 ["踏冰裂阵", "断潮劈击", "冲锋"] dashes=1
+COMBO 1 ["侧踏挑枪", "冲锋"] dashes=1
+COMBO 1 ["冲锋", "长枪连刺"] dashes=1
+COMBO 1 ["冰线", "寒冷追击", "长枪连刺"] dashes=1
+COMBO 1 ["长枪连刺", "断潮劈击"] dashes=0
+COMBO 1 ["掷枪", "冲锋"] dashes=1
+COMBO 2 ["冲锋", "再冲锋", "裂地冲锋", "再冲锋"] dashes=3
+KNIGHT COMBO failures=0
+
+
+## stderr
+

@@ -1,0 +1,32 @@
+# attack_rhythm
+# 参数：--headless --path /work/repo/game res://tests/attack_rhythm_test.tscn -- --regression --seed=1 --balance --seed=1 --op=mizuki
+# 用时 18 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PF FXLAZY t=0.0 angelina n=11 ms=9
+PF FXLAZY t=0.0 exusiai n=23 ms=9
+PF FXLAZY t=0.0 eyjafjalla n=26 ms=25
+PF FXLAZY t=0.0 gladiia n=8 ms=8
+PF FXLAZY t=0.0 hoshiguma n=9 ms=7
+PF FXLAZY t=0.0 irene n=21 ms=25
+PF FXLAZY t=0.0 kaltsit n=6 ms=11
+PF FXLAZY t=0.0 lappland n=10 ms=20
+PF FXLAZY t=0.0 logos n=27 ms=31
+PF FXLAZY t=0.0 lumen n=6 ms=3
+PF FXLAZY t=0.0 saria n=9 ms=6
+PF FXLAZY t=0.0 siege n=10 ms=14
+PF FXLAZY t=0.0 skadi n=14 ms=12
+PF FXLAZY t=0.0 skalter n=15 ms=53
+PF FXLAZY t=0.0 specter_unchained n=5 ms=4
+PF FXLAZY t=0.0 suzuran n=3 ms=2
+PF FXLAZY t=0.0 texas n=9 ms=7
+PF FXLAZY t=0.0 ulpianus n=7 ms=6
+PF FXLAZY t=0.0 wisadel n=6 ms=10
+ATTACK RHYTHM 2774 checks, 0 failed
+PF RUNRELEASE tex=0 audio=0
+
+
+## stderr
+

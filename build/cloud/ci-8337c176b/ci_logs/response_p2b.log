@@ -1,0 +1,16 @@
+# response_p2b
+# 参数：--headless --path /work/repo/game res://tests/response_test.tscn -- --regression --seed=1 --bal=ult/on=0 --balance --seed=1 --op=lumen --squad=logos,skalter
+# 用时 16 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PF FXLAZY t=0.0 logos n=27 ms=32
+PF FXLAZY t=0.0 skalter n=15 ms=55
+6 checks, 0 failed
+RESPONSE failures=0
+PF RUNRELEASE tex=0 audio=0
+
+
+## stderr
+

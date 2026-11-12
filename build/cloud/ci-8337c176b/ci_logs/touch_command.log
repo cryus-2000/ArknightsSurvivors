@@ -1,0 +1,15 @@
+# touch_command
+# 参数：--headless --path /work/repo/game res://tests/touch_command_test.tscn -- --regression --seed=1 --touch --op=mizuki --squad=hoshiguma,exusiai
+# 用时 15 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PF FXLAZY t=0.0 hoshiguma n=9 ms=5
+PF FXLAZY t=0.0 exusiai n=23 ms=6
+TOUCH COMMAND: 0 failures
+PF RUNRELEASE tex=0 audio=0
+
+
+## stderr
+
