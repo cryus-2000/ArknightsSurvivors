@@ -394,3 +394,4 @@
 | [295_toy_package_audit](295_toy_trim_audit_1107.md) | Toy 包白占地方盘点 11-07 | 备查 | 几乎无死文件，可不进包约 0.3–0.4 MiB | tools/export 预设 |
 | [297_lappland_pose_audit](297_lappland_pose_audit_1107.md) | 拉普兰德双手前推姿势帧核对 + S1 改播原作 Attack 段 | 已落地 | 只改画面，同种子 TRACE 相同；蹲身前推只留 S3 | lappland.json、character.gd（dash_run） |
 | [304_doctor_sprite_audit](304_doctor_sprite_audit_1107.md) | 博士帧条核查：现行为 1 倍放大版、无更新版；补画方案 + Codex 派单 | 待用户 / 制作人定是否派 Codex | 先重画 idle + run | game/art/operators/doctor/、doctor.json |
+| [338_vreview_carbon_cmp](338_vreview_carbon_cmp_1112.md) | vreview 新旧模型对比 11-12 | 备查 | gemini-4-carbon 命中 7/10 vs flash 5/10，但误报同为 1/5、耗时 4 倍花费 5 倍 → 缺省不换；`--model gemini-4-carbon` 可选 | tools/imagegen/vreview.py、vreview_cmp.py |
