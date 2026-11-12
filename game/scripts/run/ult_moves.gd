@@ -1049,10 +1049,10 @@ static func _sk_sea(u, a: Dictionary, o) -> void:
 
 
 ## 轨迹爆点：到点结算（半径 ult/sk_trail_r 85，每人只吃一次轨迹份额）——一团一个大爆点：碎岩炸团 + 白芯闪 + 冲击环 + 灼地 + 掀起的碎岩 + 碎屑 / 灯
-static func _sk_trail(u, a: Dictionary, o, p: Vector2, c: Vector2) -> void:
+static func _sk_trail(u, a: Dictionary, o, p: Vector2, c: Vector2, vis_only := false) -> void:
 	var rb: float = Bal.v("ult/sk_trail_r", 85.0)
 	var er: float = float(a.L) * (1.0 - _edge_w())
-	for e in u.in_circle(p, rb):
+	for e in ([] if vis_only else u.in_circle(p, rb)):   # vis_only：360 版沿途补的爆点只画面（不结算、不留共鸣地带）
 		if a.tseg.has(int(e.id)):
 			continue
 		a.tseg[int(e.id)] = true
@@ -1062,7 +1062,7 @@ static func _sk_trail(u, a: Dictionary, o, p: Vector2, c: Vector2) -> void:
 	if not a.has("tp"):
 		a["tp"] = []
 	a.tp.append(p)   # 轨迹爆点位置：收尾大爆沿这条吐息走过的路裂地（用户 10-31）
-	if a.echo:
+	if a.echo and not vis_only:
 		_sk_zone(u, a, p)
 	if a.get("v2", false):
 		_sk_blast_v2(u, p, 1.0, float(i))
@@ -1246,7 +1246,7 @@ static func _sk_step(u, a: Dictionary, o, dt: float) -> bool:
 	for k in range(a.pend.size() - 1, -1, -1):
 		var pd: Array = a.pend[k]
 		if t >= float(pd[0]):
-			_sk_trail(u, a, o, pd[1], pd[2])
+			_sk_trail(u, a, o, pd[1], pd[2], pd.size() > 3 and bool(pd[3]))
 			a.pend.remove_at(k)
 	_sk_sea(u, a, o)
 	if t < ch:   # 蓄力：海嗣张口，口中聚光（深红 / 青绿光往口里收）；同时先挑好第一个目标、光束朝向它
@@ -1404,8 +1404,17 @@ static func _sk_step(u, a: Dictionary, o, dt: float) -> bool:
 				made += 1
 			if made == 0:
 				a.pend.append([t + 0.06, imp, c])
+			if a.spin and tb < T - 0.2:   # 最后一拍不补（补的爆点要在吐息收尾前炸完，不拖长终结技结束时刻）
+				# 360 版（11-12 用户「浊心斯卡蒂的终结技没有粒子效果了」）：转圈时大半时间扫的是空地，按团合并的爆点每拍常常只有 0–1 个，
+				# 沿途几乎不炸。照 10-30 前旧 360 版：每拍在刚扫过的光束上补到 3 个（近 / 中 / 远，按拍号错开），只画面、不结算伤害
+				var nb: int = int(round(t / Bal.v("ult/sk_trail_dt", 0.16)))
+				for j in range(maxi(made, 1), 3):
+					var rr: float = L * minf(0.95, 0.24 + 0.32 * float(j) + 0.1 * fposmod(float(nb) * 0.618 + float(j) * 0.37, 1.0))
+					a.pend.append([t + 0.08 + 0.05 * float((nb + j) % 3), c + Vector2.from_angle(cur - 0.05) * rr, c, true])
 			a.newp = []   # 一拍排不完的不再另炸（没吃到轨迹份额的由收尾大爆补上）
 		a.fr2 = fr2 + 1
+		if a.spin and fr2 % 3 == 0:   # 360 版扫过的余迹（旧 360 版同款）：光束身后一片淡红扇面
+			u.shape({"kind": "sector", "c": c, "r": L, "a": cur - 0.2, "half": 0.2, "col": COL_SK_RED, "fill": 0.14, "life": 0.35})
 		if tb >= T:
 			a.lap = int(a.lap) + 1
 			if int(a.lap) >= int(a.laps):
