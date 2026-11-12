@@ -115,7 +115,7 @@ meta.meta_tree.nodes.pick4.name,Curiosity IV,好奇心Ⅳ,模型,
 meta.meta_tree.nodes.pick4.desc,Pickup range +14,拾取范围 +14,模型,
 meta.meta_tree.nodes.disp4.line,Dispatch,调度,模型,
 meta.meta_tree.nodes.disp4.name,Second Wind,绝处逢生,模型,
-meta.meta_tree.nodes.disp4.desc,"Once per run: when Leader falls, revives with 50% Max HP and takes no damage for 3s",每次探索限一次：队长倒下时以 50% 最大生命复活，3 秒内不受伤害,模型,
+meta.meta_tree.nodes.disp4.desc,"Once per run: when Leader falls, revives with 30% Max HP and takes no damage for 3s",每次探索限一次：队长倒下时以 30% 最大生命复活，3 秒内不受伤害,模型,
 meta.meta_tree.nodes.dodge1.line,Dodge,闪避,模型,
 meta.meta_tree.nodes.dodge1.name,Forethought I,未雨绸缪Ⅰ,模型,
 meta.meta_tree.nodes.dodge1.desc,Leader Dodge +5%,队长闪避率 +5%,模型,
@@ -355,7 +355,7 @@ meta.practice_squads.squads.kaltsit_m18.slots.3.fp.mods.pickup.0,2|1.24|Level|,2
 拾取范围 +14,Pickup range +14,,原文键,模型
 好奇心Ⅳ,Curiosity IV,,原文键,模型
 绝处逢生,Second Wind,,原文键,模型
-每次探索限一次：队长倒下时以 50% 最大生命复活，3 秒内不受伤害,"Once per run: when Leader falls, revives with 50% Max HP and takes no damage for 3s",,原文键,模型
+每次探索限一次：队长倒下时以 30% 最大生命复活，3 秒内不受伤害,"Once per run: when Leader falls, revives with 30% Max HP and takes no damage for 3s",,原文键,模型
 闪避,Dodge,,原文键,模型
 未雨绸缪Ⅰ,Forethought I,,原文键,模型
 队长闪避率 +5%,Leader Dodge +5%,,原文键,模型

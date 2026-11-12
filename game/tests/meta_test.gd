@@ -59,7 +59,7 @@ func run() -> void:
 				check(sh.has(str(nd.req)), "预算 %d：%s 没有前置 %s" % [b, id, nd.req])
 	check(Meta.shape_for(13).has("sh1") and Meta.shape_for(13).size() == 1, "推荐点法第一个应是危机感Ⅰ（13，10-28 用户定放回第一位）")
 	var s18 := Meta.shape_for(18)
-	check(s18.size() == 2 and Meta.spent(s18) == 18 and s18.has("sh1") and s18.has("atk1"), "预算 18 = 危机感Ⅰ + 攻击性Ⅰ（--meta=18 口径）：%s" % [s18])
+	check(s18.size() == 2 and Meta.spent(s18) == 17 and s18.has("sh1") and s18.has("hp1"), "预算 18 = 危机感Ⅰ + 生存本能Ⅰ（--meta=18 口径，11-12 docs/335 §4.1 生存本能Ⅰ提到第二位）：%s" % [s18])
 	check(Meta.shape_for(22).has("hp1") and Meta.shape_for(36).has("def1"), "之后依次点生存本能Ⅰ / 生命感悟Ⅰ / 自我保护Ⅰ")
 	# 闪避线（10-27）：未雨绸缪Ⅰ→Ⅱ→Ⅲ 一条链、各 +5% 闪避；老存档（没有这三个节点）照常读、花费不变
 	for i in 3:
