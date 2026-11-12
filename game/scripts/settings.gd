@@ -436,6 +436,11 @@ func _ins_update() -> void:
 		for i in 4:
 			_sys[i] = maxf(0.0, float(px[i]) * kk)
 			_ins[i] = _sys[i]
+		# 横屏顶边没有刘海 / 灵动岛：不让系统顶部边距（11-13 用户：新预览里经验条仍会卡在顶栏下面——B站 App 横屏回的 safeArea.top 不为 0，
+		# 顶部中央的击杀 / 时间不让，经验条让了，看着就悬空）。胶囊下面仍并进 _ins 的「上」（下面那段）
+		if vis.x > vis.y:
+			_sys[1] = 0.0
+			_ins[1] = 0.0
 		if cap_px.size.x > 0.0:
 			_cap = Rect2(cap_px.position * kk, cap_px.size * kk)
 			if _cap.position.y < vis.y / ui_k * 0.5:
