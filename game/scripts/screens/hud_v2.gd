@@ -108,7 +108,7 @@ func plate(r: Rect2, col: Color) -> void:
 const HX := 80.0   # 读数列左边（B′ 徽记在 16..68）
 
 func top_left() -> void:
-	var o := Vector2(16, 12)
+	var o := Vector2(16, 12) + Vector2(float(Cfg.hud_ins()[0]), float(Cfg.hud_ins()[1]))   # 触屏让开刘海 / 灵动岛（桌面为 0）
 	var low: bool = g.hp / g.max_hp < 0.3
 	var hs := Vector2(sin(g.t * 90.0), cos(g.t * 70.0)) * 3.0 * g.hp_shake / 0.35
 	shade(Rect2(8, 4, 260, 78))
@@ -219,7 +219,7 @@ func status(vs: Vector2, items: Array, y0: float) -> float:
 	var all: Array = [lamp_item()] + items
 	if Cfg.phone_ui() and all.size() > 3:
 		all = all.slice(0, 2) + [["+%d" % (all.size() - 2), UI.SUB, -1.0]]
-	var x0 := 18.0
+	var x0 := 18.0 + float(Cfg.hud_ins()[0])   # 触屏让开左侧刘海 / 灵动岛（桌面为 0）
 	var wrap_x: float = 380.0
 	if not h.bars.boss_bars().is_empty():
 		wrap_x = minf(380.0, vs.x / 2.0 - minf(h.bars.BB_W_MAX, vs.x * 0.5) / 2.0 - 8.0)
@@ -296,7 +296,13 @@ func plate_size() -> Vector2:
 ## 右上小牌的矩形（从右往左：倍速、暂停、手机再加属性）；点击区由 hud_relics.update_buttons / touch 用同一份
 func plates(vs: Vector2) -> Dictionary:
 	var out := {}
-	var x: float = vs.x - 16.0
+	# 触屏让开右侧刘海 / 灵动岛 / 圆角（Cfg.hud_ins，桌面为 0）；B站 App 沉浸模式右上的胶囊压在这一行时，整排落到胶囊下面
+	var ins: Array = Cfg.hud_ins()
+	var x: float = vs.x - 16.0 - float(ins[2])
+	var y0: float = RT_Y + 12.0 + float(ins[1])
+	var cap: Rect2 = Cfg.capsule_ui()
+	if cap.size.x > 0.0 and cap.position.y < y0 + plate_size().y and cap.end.x > x - 3.0 * plate_size().x:
+		y0 = cap.end.y + 4.0   # 往左挪会挤到顶部中央的击杀 / 时间块，整排落到胶囊下面
 	var L: Dictionary = g.touch.layout(vs) if g.touch.active else {}
 	var ps: Vector2 = plate_size()
 	for k in (["speed", "pause", "stats"] if g.touch.active else ["speed", "pause"]):
@@ -307,14 +313,16 @@ func plates(vs: Vector2) -> Dictionary:
 			out[k] = Rect2(e.c - sz / 2.0, sz)
 			continue
 		x -= ps.x
-		out[k] = Rect2(x, RT_Y + 12.0, ps.x, ps.y)
+		out[k] = Rect2(x, y0, ps.x, ps.y)
 		x -= 4.0 if ps.x <= PLATE.x else 6.0
 	out["left"] = x
+	out["y"] = y0
 	return out
 
 
 func right_top(vs: Vector2) -> void:
 	var P: Dictionary = plates(vs)
+	var RY: float = float(P.y) - 12.0   # 跟右上小牌同一行（触屏让开系统顶部边距 / 胶囊；桌面 = RT_Y）
 	var right: float = P.left - 12.0
 	# 藏品：最近 3 件（手机只留数字）+「RELICS」+ 粗体数
 	g.tray_cells.clear()
@@ -324,7 +332,7 @@ func right_top(vs: Vector2) -> void:
 	var mouse := g.hud.get_local_mouse_position()
 	for k in icons:
 		var id: String = g.relics[n - icons + k]
-		var r := Rect2(x + k * 28.0, RT_Y + 12.0, 24.0, 24.0)
+		var r := Rect2(x + k * 28.0, RY + 12.0, 24.0, 24.0)
 		var ic: Texture2D = g.tex.get("relic_" + id)
 		if ic != null:
 			g.hud.draw_texture_rect(ic, r, false)
@@ -338,23 +346,23 @@ func right_top(vs: Vector2) -> void:
 	var rx: float = x - 8.0 - maxf(nw, 26.0 if tch else 40.0)
 	shade(Rect2(rx - 70, 4, vs.x - rx + 66, 58 if tch else 44), 0.26)
 	if tch:
-		txt(Vector2(rx, RT_Y + 8), "藏品", 11, UI.SUB)
+		txt(Vector2(rx, RY + 8), "藏品", 11, UI.SUB)
 	else:
-		cap(Vector2(rx, RT_Y + 9), "RELICS", 6.5)
-	big(Vector2(rx, RT_Y + (40 if tch else 34)), str(n), bf)
+		cap(Vector2(rx, RY + 9), "RELICS", 6.5)
+	big(Vector2(rx, RY + (40 if tch else 34)), str(n), bf)
 	# 源石锭
 	var iw: float = UI.latin().get_string_size(str(g.ingots), HORIZONTAL_ALIGNMENT_LEFT, -1, bf).x
 	var ix: float = rx - 20.0 - maxf(iw, 40.0)
 	if tch:
-		txt(Vector2(ix, RT_Y + 8), UI.Loc.short("源石锭"), 11, UI.GREEN)
+		txt(Vector2(ix, RY + 8), UI.Loc.short("源石锭"), 11, UI.GREEN)
 	else:
-		cap(Vector2(ix, RT_Y + 9), "INGOT", 6.5, UI.GREEN)
-	big(Vector2(ix, RT_Y + (40 if tch else 34)), str(g.ingots), bf)
+		cap(Vector2(ix, RY + 9), "INGOT", 6.5, UI.GREEN)
+	big(Vector2(ix, RY + (40 if tch else 34)), str(g.ingots), bf)
 	# 小牌：深底细边；倍速 ≠ 1 时反白（纸白）提醒「现在是快进」
 	var lab: String = PlayClock.current_label()
 	var fast: bool = PlayClock.current_speed() != 1.0
 	for k in P:
-		if k == "left":
+		if k == "left" or k == "y":
 			continue
 		var r: Rect2 = P[k]
 		var paper: bool = k == "speed" and fast
@@ -376,9 +384,9 @@ func right_top(vs: Vector2) -> void:
 		var sw: float = f.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 		g.hud.draw_string(f, Vector2(r.get_center().x - sw / 2.0, r.position.y + 17), UI.Loc.s(s), HORIZONTAL_ALIGNMENT_LEFT, -1, fs, inkc)
 	if not g.touch.active:
-		cap(Vector2(vs.x - 16, RT_Y + 46), "ESC  ·  V", 5.5, UI.SUB, 1.4, 2)
+		cap(Vector2(vs.x - 16, RY + 46), "ESC  ·  V", 5.5, UI.SUB, 1.4, 2)
 	if not g.trial.active and (g.ending != "standard" or Cfg.endings_cleared.size() > 0):
-		txt(Vector2(vs.x - 236, RT_Y + (72 if g.touch.active else 62)), g.endg.cur_name(), 11, g.endg.cur_col(), HORIZONTAL_ALIGNMENT_RIGHT, 220)
+		txt(Vector2(vs.x - 236 - float(Cfg.hud_ins()[2]), RY + (72 if g.touch.active else 62)), g.endg.cur_name(), 11, g.endg.cur_col(), HORIZONTAL_ALIGNMENT_RIGHT, 220)
 
 
 # ================================================================ 右下：编队（四格指挥 + 全身立绘卡）

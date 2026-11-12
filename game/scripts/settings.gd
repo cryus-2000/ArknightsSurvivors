@@ -306,13 +306,17 @@ func battle_zoom() -> float:
 	return vy / h * cam_zoom() / (zoom_default_pct() / 100.0)
 
 
-## 系统安全边距（UI 逻辑像素，[左, 上, 右, 下]）：刘海 / 灵动岛 / 圆角 / 底部横条。
-## 原生移动端读 DisplayServer 的安全区；网页读 CSS env(safe-area-inset-*)（页面没声明 viewport-fit=cover 时浏览器自己留黑边，读到 0，
-## 嵌在 itch 的 iframe 里也是 0）；B站 Toy 容器里 tools/web/container.js 已把画布缩进安全区（window.__sySafe），这里按 0 算，
-## 只有沉浸模式下压在画布上的顶栏胶囊（__sySafe.capsule，容器状态里有才有）把它的下沿当成额外的顶部边距（docs/22「Toy 接入」）。
-## 桌面恒为 0。按视口尺寸缓存；Toy 环境变化（_on_toy_change）时清缓存
+## 系统安全边距（UI 逻辑像素，[左, 上, 右, 下]）：刘海 / 灵动岛 / 圆角 / 底部横条，再把顶栏胶囊（B站 App 沉浸模式右上的「分享 | 关闭」）
+## 的下沿并进「上」——触屏按键、选卡面板等整块界面用它，不压胶囊。
+## 11-13 起网页画布铺满整屏（tools/web/container.js，iPhone 17 B站 App 横屏：画布缩进安全区后左侧灵动岛仍压字、顶部露白边），
+## 安全边距由 window.__sySafe 给（B站 App 容器状态与 CSS env(safe-area-inset-*) 逐边取大，见 container.js 文件头）；
+## 世界画面照旧铺满，只有界面按这里内缩。原生移动端读 DisplayServer 的安全区。桌面恒为 0（电脑版画面不变）。
+## 测试：--safe=左,上,右,下（窗口像素，配 --touch）模拟安全区，--capsule=宽,高 模拟右上胶囊（docs/22「Toy 接入」）。
+## 按视口尺寸缓存；Toy 环境变化（_on_toy_change）时清缓存
 var _ins_key := Vector3(-1, -1, -1)
 var _ins: Array = [0.0, 0.0, 0.0, 0.0]
+var _sys: Array = [0.0, 0.0, 0.0, 0.0]   # 不含胶囊的系统边距（hud_ins）
+var _cap := Rect2()   # 胶囊（UI 坐标；没有为空）
 
 ## B站 Toy 环境（tools/web/container.js 的 window.__syToy 桥，docs/22「Toy 接入」）：deviceType（phone / tablet / desktop / unknown，
 ## 只在 B站 App 内拿到容器状态后才有）、是否在容器里。手机版式 phone_ui 在画面比例之外也认 deviceType == phone
@@ -360,24 +364,67 @@ func toy_device() -> String:
 
 
 func safe_insets() -> Array:
+	_ins_update()
+	return _ins
+
+
+## 只含系统边距（刘海 / 灵动岛 / 圆角 / 底部横条），不把胶囊并进「上」：局内 HUD 贴边的东西（经验条、声呐、左侧通知、右上小牌）用它，
+## 胶囊只压右上一角，另用 capsule_ui() 让开
+func hud_ins() -> Array:
+	_ins_update()
+	return _sys
+
+
+## 顶栏胶囊（UI 坐标），没有为空 Rect2
+func capsule_ui() -> Rect2:
+	_ins_update()
+	return _cap
+
+
+func _ins_update() -> void:
 	if not touch_device():
-		return [0.0, 0.0, 0.0, 0.0]
+		_ins = [0.0, 0.0, 0.0, 0.0]
+		_sys = [0.0, 0.0, 0.0, 0.0]
+		_cap = Rect2()
+		return
 	var vis: Vector2 = get_viewport().get_visible_rect().size
 	var key := Vector3(vis.x, vis.y, ui_k)
 	if key == _ins_key:
-		return _ins
+		return
 	_ins_key = key
 	_ins = [0.0, 0.0, 0.0, 0.0]
+	_sys = [0.0, 0.0, 0.0, 0.0]
+	_cap = Rect2()
 	var px := [0.0, 0.0, 0.0, 0.0]
+	var cap_px := Rect2()
 	var per_px := 0.0   # 1 个物理 / CSS 像素 = 多少视口逻辑像素
-	if OS.has_feature("web"):
-		var js = JavaScriptBridge.eval("(function(){var S=window.__sySafe;if(S){var c=S.capsule,t=0;if(c&&c.y<innerHeight*0.5)t=Math.max(0,c.y+c.h);return '0,'+t+',0,0,'+innerWidth;}var d=document.createElement('div');d.style.cssText='position:fixed;visibility:hidden;padding:env(safe-area-inset-left) env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)';document.body.appendChild(d);var s=getComputedStyle(d);var r=[s.paddingLeft,s.paddingTop,s.paddingRight,s.paddingBottom].map(parseFloat).join(',');d.remove();return r+','+innerWidth;})()", true)
+	var sim := false
+	for a in dev_args():
+		if a.begins_with("--safe="):
+			var q: PackedStringArray = a.substr(7).split(",")
+			if q.size() == 4:
+				for i in 4:
+					px[i] = float(q[i])
+				per_px = vis.x / maxf(1.0, float(get_window().size.x))   # 按窗口像素给
+				sim = true
+	if sim:
+		for a in dev_args():
+			if a.begins_with("--capsule="):   # --capsule=宽,高（窗口像素），贴右侧安全边距的右上角，同 container.js guessCapsule
+				var cq: PackedStringArray = a.substr(10).split(",")
+				if cq.size() == 2:
+					var cw: float = float(cq[0])
+					cap_px = Rect2(float(get_window().size.x) - float(px[2]) - cw, 0.0, cw, float(cq[1]))
+	elif OS.has_feature("web"):
+		# __sySafe：{left, top, right, bottom, capsule{x,y,w,h}}，CSS px，相对画布（= 整个窗口）；没有就直接读 env()
+		var js = JavaScriptBridge.eval("(function(){var S=window.__sySafe,c=S&&S.capsule,r;if(S){r=[S.left,S.top,S.right,S.bottom];}else{var d=document.createElement('div');d.style.cssText='position:fixed;visibility:hidden;padding:env(safe-area-inset-left) env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)';document.body.appendChild(d);var s=getComputedStyle(d);r=[s.paddingLeft,s.paddingTop,s.paddingRight,s.paddingBottom].map(parseFloat);d.remove();}r.push(innerWidth);r=r.concat(c?[c.x,c.y,c.w,c.h]:[0,0,0,0]);return r.map(function(v){return Number(v)||0;}).join(',');})()", true)
 		if js is String:
 			var parts: PackedStringArray = js.split(",")
-			if parts.size() == 5 and float(parts[4]) > 0.0:
+			if parts.size() == 9 and float(parts[4]) > 0.0:
 				for i in 4:
 					px[i] = float(parts[i])
 				per_px = vis.x / float(parts[4])
+				if float(parts[7]) > 0.0 and float(parts[8]) > 0.0:
+					cap_px = Rect2(float(parts[5]), float(parts[6]), float(parts[7]), float(parts[8]))
 	elif OS.has_feature("mobile"):
 		var sa: Rect2i = DisplayServer.get_display_safe_area()
 		var ws: Vector2i = DisplayServer.window_get_size()
@@ -385,9 +432,14 @@ func safe_insets() -> Array:
 			px = [sa.position.x, sa.position.y, ws.x - sa.end.x, ws.y - sa.end.y]
 			per_px = vis.x / float(ws.x)
 	if per_px > 0.0:
+		var kk: float = per_px / ui_k
 		for i in 4:
-			_ins[i] = maxf(0.0, float(px[i]) * per_px / ui_k)
-	return _ins
+			_sys[i] = maxf(0.0, float(px[i]) * kk)
+			_ins[i] = _sys[i]
+		if cap_px.size.x > 0.0:
+			_cap = Rect2(cap_px.position * kk, cap_px.size * kk)
+			if _cap.position.y < vis.y / ui_k * 0.5:
+				_ins[1] = maxf(_ins[1], _cap.end.y)
 
 
 ## 触屏控件的安全区（UI 坐标）：touch.gd 与触屏按键布局编辑页共用

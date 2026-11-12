@@ -168,8 +168,9 @@ window.__syRL = {
     // 画布 / 动效层 / 页脚 / 「开始游戏」都放进贴在安全区里的 .p4box，坐标系与 Godot 画布一致。
     // 胶囊（分享 / 关闭）：用 __sySafe.capsule（画布坐标；SDK 没给矩形时 container.js 按 iPhone 实测估，Godot 侧 Cfg.safe_insets 用同一个）
     function safe() {
+      // 11-13 起 container.js 不再改写 innerWidth / innerHeight（Godot 画布铺满整屏、只让界面内缩），安全区尺寸在这里减出来
       var s = window.__sySafe, w = innerWidth, h = innerHeight;
-      var r = s ? { l: s.left, t: s.top, w: w, h: h, cap: s.capsule } : { l: 0, t: 0, w: w, h: h, cap: null };
+      var r = s ? { l: s.left, t: s.top, w: Math.max(1, w - s.left - s.right), h: Math.max(1, h - s.top - s.bottom), cap: s.capsule ? { x: s.capsule.x - s.left, y: s.capsule.y - s.top, w: s.capsule.w, h: s.capsule.h } : null } : { l: 0, t: 0, w: w, h: h, cap: null };   // 胶囊换到安全区框坐标
       return r;
     }
     img.onload = function () {

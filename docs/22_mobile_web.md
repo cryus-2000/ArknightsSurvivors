@@ -34,6 +34,11 @@
 - `tools/web/container.js`（export_web.py 内联到加载器后面）：只在 B站环境（域名含 bilibili / hdslb，或 UA 含 Bili）异步加载 Toy JS SDK；`isSupport('onContainerChange')` 为真（只在 B站 App 内）时先监听再 `setContainerMode({orientation:'landscape', immersive:true})`，按回调的 `viewport` / `safeArea` 把画布缩进安全区（改写 innerWidth / innerHeight + 画布定位，派 resize）；1.5 秒收不到回调回退 `env(safe-area-inset-*)`。itch / 普通浏览器 / 桌面版不加载。
 - 本地用假 `window.toy` + `window.__syToyBoot()` 验证过；需在 B站 App 真机验证。云存档已做（docs/89，10-13）；排行榜 / 分享未做。
 - 10-22 起 Toy 包的接入细节（环境透传、胶囊、回退、导出 / 打包、验证）见下节「Toy 接入」。
+- **11-13 改版（以本条为准，下文「缩进安全区」「四边按 0」的说法作废）**：iPhone 17 B站 App 横屏实测顶部露白边、左侧灵动岛压住「维什戴尔 晋升至精英二」、经验条悬在顶栏下。改成**画布铺满整个窗口、只让界面内缩**：
+  - `container.js`：不再改写 `innerWidth / innerHeight`、不再定位画布；所有包都声明 `viewport-fit=cover` + `theme-color` 深色；`html / body` 底色 `#04070a`（loader.css）。`__sySafe` 四边 = B站容器 `safeArea` 与 `env(safe-area-inset-*)` 逐边取大（CSS px，相对整个窗口）；横屏回来的 safeArea 只有 top 时按竖屏值转 90°（`source: toy-rot`）；iPhone 横屏比例 ≥ 2 却两边都是 0 时估 59 / 0 / 59 / 21（`source: guess`）。resize / 转屏 / visualViewport / 容器变化都重算（转屏 300 ms 后再算一次）。手机回调仍非沉浸横屏时最多再请求 2 次 `setContainerMode`。
+  - 诊断浮层：网址带 `sydiag` 或**四指同时点屏**，左上显示窗口 / visualViewport / 画布 / env / 容器状态 / 最终安全边距；再四指点一次关掉。真机还有白边时让用户截这块。
+  - Godot：`Cfg.safe_insets()` = 系统边距（胶囊下沿并进「上」，整块界面 / 触屏按键用）；新增 `Cfg.hud_ins()`（只有系统边距）与 `Cfg.capsule_ui()`。局内 HUD 按 `hud_ins` 内缩：经验条贴屏幕顶边、左右让开、右端停在胶囊左边；左侧通知、连携提示、声呐、屏外指示框、左上读数、终结技切入条的立绘与名字让开左右；右上小牌（属性 / 暂停 / 倍速）与源石锭 / 藏品让开右侧，胶囊压住这一行时整排落到胶囊下面；指挥台按底部横条上抬 0.6 倍。桌面四边恒为 0，电脑版画面不变。
+  - 测试：`--touch --winsize=WxH --safe=l,t,r,b`（窗口像素）`[--capsule=w,h]` 模拟；`python tools/safe_area_shots.py` 截 iPhone 17（双侧 / 只左 / 只右）、Pro Max、刘海、安卓 20:9 / 19.5:9、16:9、平板 4:3，另存叠了岛 / 圆角 / 胶囊 / 横条示意的 `_dev.png`。
 
 ## Toy 接入（10-22，分支 claude/toy-sdk；SDK 能力见 .claude/skills/bilibili-toy-sdk，官方 FAQ 见 docs/99 §0）
 

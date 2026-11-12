@@ -891,4 +891,4 @@ func blocks_click(mp: Vector2) -> bool:
 		if mp.x > vs.x - sw and mp.y > squad.squad_top(vs) - 44.0:
 			return true
 	var rad: float = 58.0 if Cfg.phone_ui() else 78.0   # 同 hud_bars.draw_minimap
-	return mp.distance_to(Vector2(16.0 + rad + 8.0, vs.y - rad - 24.0)) < rad + 14.0
+	return mp.distance_to(bars.minimap_center(vs, rad)) < rad + 14.0

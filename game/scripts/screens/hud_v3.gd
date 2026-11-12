@@ -137,7 +137,7 @@ func draw(vs: Vector2) -> void:
 func _console(vs: Vector2) -> void:
 	var s: float = k()
 	var cx: float = vs.x / 2.0
-	var base: float = vs.y - 14.0 * s
+	var base: float = vs.y - 14.0 * s - float(Cfg.hud_ins()[3]) * 0.6   # 触屏让开底部横条（iPhone 横屏约 21 CSS px；桌面为 0）
 	if g.touch.active:   # 手机字号有下限：最下一行（「终结技 64%」「冲刺」）按实际字高留底，不被屏幕下沿裁掉
 		base -= maxf(0.0, 0.3 * float(UI._ks(g.hud, int(round(8.5 * s)))) - 2.0)
 	var r: float = 25.0 * s

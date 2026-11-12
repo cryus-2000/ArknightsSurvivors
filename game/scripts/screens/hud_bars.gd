@@ -50,7 +50,7 @@ func top_left_sig(vs: Vector2) -> Array:
 func draw_top_left(vs: Vector2) -> void:
 	# 左上（方案 A · 原作顶栏）：等级圆（外圈 = 经验）+「生命值」「灯火」彩色小标签头 + 数值 + 细条；
 	# 名字与编队人数移到右下编队卡；下面一条灯火状态标签条在后面画（和状态效果一起）
-	var o := Vector2(16, 12)
+	var o := Vector2(16, 12) + Vector2(float(Cfg.hud_ins()[0]), float(Cfg.hud_ins()[1]))   # 触屏让开刘海 / 灵动岛（桌面为 0）
 	var lf := g.hud_lv_flash
 	var bc := UI.CYAN.lerp(UI.GOLD, lf)
 	var lc0 := o + Vector2(26, 30)
@@ -129,8 +129,14 @@ var _xp_t := -9.0
 func draw_xp_top(vs: Vector2) -> void:
 	if g.state == Game.S.OPENING or g.state == Game.S.SHOW or g.xp_need <= 0.0:
 		return
-	var ins: Array = Cfg.safe_insets()
-	var r := Rect2(Vector2(float(ins[0]), float(ins[1])), Vector2(vs.x - float(ins[0]) - float(ins[2]), XP_H))
+	# 11-13 iPhone 17 B站 App：原来按 safe_insets（把右上胶囊下沿 46 当成整行的顶部边距）放，整条悬在顶栏下面。
+	# 现在贴屏幕顶边（只让系统顶部边距），左右让开刘海 / 灵动岛 / 圆角，右端停在胶囊左边
+	var ins: Array = Cfg.hud_ins()
+	var x1: float = vs.x - float(ins[2])
+	var cap: Rect2 = Cfg.capsule_ui()
+	if cap.size.x > 0.0 and cap.position.y <= float(ins[1]) + XP_H:
+		x1 = minf(x1, cap.position.x - 8.0)
+	var r := Rect2(Vector2(float(ins[0]), float(ins[1])), Vector2(maxf(1.0, x1 - float(ins[0])), XP_H))
 	var lf: float = g.hud_lv_flash
 	var full: bool = lf > 0.7   # 升级瞬间：满条白闪，之后回到新等级的进度
 	var k: float = 1.0 if full else clampf(g.xp / g.xp_need, 0.0, 1.0)
@@ -156,7 +162,7 @@ func draw_xp_top(vs: Vector2) -> void:
 func draw_lamp_strip(vs: Vector2) -> void:
 	if HudV2.on():
 		return   # 编辑式：灯火档并进状态行最前面（hud_v2.lamp_item）
-	var o := Vector2(16, 12)
+	var o := Vector2(16, 12) + Vector2(float(Cfg.hud_ins()[0]), float(Cfg.hud_ins()[1]))   # 触屏让开刘海 / 灵动岛（桌面为 0）
 	var st_txt := ""
 	var st_en := "LIGHT"
 	var st_col := UI.GOLD
@@ -663,9 +669,15 @@ func _chip_b(tb: TriBatch, tx: Array, pos: Vector2, s: String, col: Color, size:
 
 
 ## 小地图（左下）：以水月为中心，显示约 1100 范围内的敌人、精英、Boss、宝箱、道具与商人
+## 声呐中心：左下，触屏让开左侧刘海 / 灵动岛与底部横条（Cfg.hud_ins，桌面为 0）；hud_banners._obstacles 同一个
+func minimap_center(vs: Vector2, rad: float) -> Vector2:
+	var ins: Array = Cfg.hud_ins()
+	return Vector2(16 + rad + 8 + float(ins[0]), vs.y - rad - 24 - float(ins[3]) * 0.6)
+
+
 func draw_minimap(vs: Vector2) -> void:
 	var rad := 58.0 if Cfg.phone_ui() else 78.0   # 手机：缩小（左下是摇杆区，10-26 实机挤）
-	var c := Vector2(16 + rad + 8, vs.y - rad - 24)
+	var c: Vector2 = minimap_center(vs, rad)
 	var slr := Rect2(Vector2(c.x - rad + 2, c.y - rad - 8), Vector2(UI.en_width(g.font, "SONAR", 9, 2.0) + 10.0, 14))
 	# 合批（docs/50 §13）：UI.porthole（圆底 + 两道环 + 虚线十字）与标签底同一批，引擎同款几何
 	var pb := TriBatch.new()

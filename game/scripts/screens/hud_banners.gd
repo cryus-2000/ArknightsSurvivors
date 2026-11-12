@@ -52,7 +52,8 @@ func _key_hint(c: Vector2, pre: String, key: String, post: String, size: int, co
 ## 商人方向指示：屏外时边缘圆圈 + 头像 + 箭头 + 距离；屏内时头顶跳动箭头
 ## 屏外指针落在屏幕边缘的位置：沿「中心 → 目标」方向，与内缩 m 的屏幕框求交；指挥台开着时底边再让出整台高度（docs/222 §20）
 func _edge(vs: Vector2, sp: Vector2, m: float) -> Vector2:
-	var r := Rect2(m, m, vs.x - 2.0 * m, vs.y - 2.0 * m - _console_lift(vs))
+	var ins: Array = Cfg.hud_ins()   # 触屏让开刘海 / 灵动岛 / 圆角（桌面为 0）
+	var r := Rect2(m + float(ins[0]), m + float(ins[1]), vs.x - 2.0 * m - float(ins[0]) - float(ins[2]), vs.y - 2.0 * m - _console_lift(vs) - float(ins[1]) - float(ins[3]))
 	var c: Vector2 = r.get_center()
 	var d: Vector2 = (sp - c).normalized()
 	return c + d * minf(absf((r.size.x / 2.0) / maxf(absf(d.x), 0.01)), absf((r.size.y / 2.0) / maxf(absf(d.y), 0.01)))
@@ -62,7 +63,7 @@ func _edge(vs: Vector2, sp: Vector2, m: float) -> Vector2:
 func _obstacles(vs: Vector2) -> Array:
 	var out: Array = []
 	var mrad: float = 58.0 if Cfg.phone_ui() else 78.0   # 同 hud_bars.draw_minimap
-	var mc := Vector2(16 + mrad + 8, vs.y - mrad - 24)
+	var mc: Vector2 = h.bars.minimap_center(vs, mrad)
 	out.append(Rect2(mc - Vector2(mrad, mrad + 14), Vector2(mrad * 2.0, mrad * 2.0 + 14)))
 	# 顶部中央击杀 / 时间 / 威胁块（hud_v2.top_center：底板 340 宽，桌面到威胁进度条约 y 80、手机一行小字约 y 62）。
 	# 11-12 截图：8:00 接潮双体 + 卡门三个 Boss 指示圈都落在上沿，压住「深渊 / ABYSS · THREAT」字样
@@ -525,12 +526,13 @@ func draw_notices(vs: Vector2) -> void:
 	var y: float = lane_y(vs) + 14.0   # 横幅暗带下方，不和它叠
 	if g.ult != null and h.ult.link_tag_on():
 		y += LINK_TAG_H   # 连携 / 羁绊提示占着事件槽：小字排在它下面
+	var nx: float = float(Cfg.hud_ins()[0])   # 触屏让开左侧刘海 / 灵动岛（11-13 iPhone 17 横屏「维什戴尔 晋升至精英二」开头被岛挡住）
 	for n in g.vfx.notices:
 		var a: float = clampf(n.t / 0.6, 0.0, 1.0) * clampf((g.vfx.NOTICE_LIFE - n.t) / 0.2, 0.0, 1.0)
 		var tw: float = minf(g.font.get_string_size(n.text, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(13)).x + 22.0, vs.x * 0.4)
-		g.hud.draw_rect(Rect2(16, y - 15, tw, 22), Color(0.03, 0.035, 0.045, 0.7 * a))
-		g.hud.draw_rect(Rect2(16, y - 15, 3, 22), Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, a))
-		UI.text_fit(g.hud, g.font, Vector2(26, y + 1), n.text, 13, Color(1, 1, 1, 0.9 * a), tw - 14.0)
+		g.hud.draw_rect(Rect2(16 + nx, y - 15, tw, 22), Color(0.03, 0.035, 0.045, 0.7 * a))
+		g.hud.draw_rect(Rect2(16 + nx, y - 15, 3, 22), Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, a))
+		UI.text_fit(g.hud, g.font, Vector2(26 + nx, y + 1), n.text, 13, Color(1, 1, 1, 0.9 * a), tw - 14.0)
 		y += 26.0
 
 

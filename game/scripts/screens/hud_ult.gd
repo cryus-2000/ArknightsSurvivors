@@ -502,13 +502,16 @@ func draw_cutins(vs: Vector2) -> void:
 func _strip(ci: Dictionary, vs: Vector2, right: bool, y: float, w: float, hh: float, off: float, a: float) -> void:
 	var col: Color = ci.col
 	var sx: float = (w + CUT_SLANT + 20.0) * off * (1.0 if right else -1.0)
-	var e: float = vs.x if right else 0.0   # 屏边
-	var inner: float = (vs.x - w) if right else w
+	# 触屏：立绘与名字让开刘海 / 灵动岛（Cfg.hud_ins，桌面为 0），底色仍铺到屏边
+	var ins: Array = Cfg.hud_ins()
+	var e: float = (vs.x - float(ins[2])) if right else float(ins[0])   # 屏边（安全区边）
+	var inner: float = (e - w) if right else e + w
 	var sg: float = -1.0 if right else 1.0   # 朝屏内的方向
+	var eo: float = vs.x if right else 0.0   # 真正的屏边
 	# 平行四边形：屏边一侧伸出屏外 30（滑动时不露边），内侧上沿比下沿多出 CUT_SLANT
 	var p := PackedVector2Array([
-		Vector2(e - sg * 30.0 + sx, y), Vector2(inner + sg * CUT_SLANT + sx, y),
-		Vector2(inner + sx, y + hh), Vector2(e - sg * 30.0 + sx, y + hh)])
+		Vector2(eo - sg * 30.0 + sx, y), Vector2(inner + sg * CUT_SLANT + sx, y),
+		Vector2(inner + sx, y + hh), Vector2(eo - sg * 30.0 + sx, y + hh)])
 	var tb := Tris.new()
 	tb.poly(p, Color(col.r * 0.55, col.g * 0.55, col.b * 0.55, 0.92 * a))
 	# 内侧亮边 + 上下细线
@@ -599,7 +602,7 @@ func _draw_link_tag(vs: Vector2) -> void:
 	var a: float = minf(1.0, t / 0.08) * (1.0 if t < T - 0.2 else (T - t) / 0.2) * (0.7 if _boss_on() else 1.0)
 	var col: Color = u._col(u.lf_op)
 	var sx: float = 0.0 if Cfg.reduce_motion else -18.0 * pow(1.0 - minf(1.0, t / 0.12), 2.0)   # 从左边滑进来一点
-	var c := Vector2(48.0 + sx, h.banners.lane_y(vs) + 30.0)   # 左侧事件槽（docs/221 H3），在状态标签与横幅之下
+	var c := Vector2(48.0 + sx + float(Cfg.hud_ins()[0]), h.banners.lane_y(vs) + 30.0)   # 左侧事件槽（docs/221 H3），在状态标签与横幅之下
 	var r := 26.0
 	var tb := Tris.new()
 	tb.poly(PackedVector2Array([c + Vector2(-r - 8.0, -r - 4.0), c + Vector2(r + 210.0, -r - 4.0), c + Vector2(r + 190.0, r + 4.0), c + Vector2(-r - 8.0, r + 4.0)]),

@@ -2,7 +2,7 @@
    声呐圈 = 进度环 + 扫描扇面；左下终端日志逐行 [OK]；右下提示；左上标志（loader_logo.png = art/ui/title_deep/logo_mark.png）。
    扫描扇面用 transform 动画（合成线程跑，引擎启动占住主线程时也在转）；系统「减少动态效果」时不转。 */
 /* 11-08：崩溃自动刷新后 WebView 原生粉底从边缘露出（docs/318 #5）：根元素不透明、锁住滚动和回弹，页面不会被挪开 */
-html { background: #000; }
+html, body { background: #04070a; color-scheme: dark; }   /* 11-13：深色底，画布没盖到的地方不露白（iPhone B站 App 横屏顶部白边） */
 html, body { margin: 0; height: 100%; overflow: hidden; overscroll-behavior: none; }
 /* WebKit 可从画布外的空白开始选中整块游戏页面；保留输入法、报告文本框及引擎错误文字的原生选区。 */
 body { -webkit-user-select: none; user-select: none; }
