@@ -1305,6 +1305,8 @@
  "ult": {
   "_skalter_hide_summons_doc": "11-07 用户「浊心斯卡蒂必杀技的时候我觉得可以让召唤物海嗣暂时消失，等必杀技结束后继续从浊心斯卡蒂身边重新出现然后出去」：skalter_hide_summons 1 = 召唤物定义写了 ult_hide（现只伊莎玛拉）的，在本干员终结技演出期间沉下去藏起来（不走、不出手、计时不走、区域关），演出结束从她身边依次冒出来（重播浮现帧条）再照常索敌；收起期间区域与出手没了，改数值，缺省 0，用户点头再开（ob_summon._uh_tick）",
   "skalter_hide_summons": 1,
+  "_sk_spin": "浊心斯卡蒂终结技吐息（11-12 用户看 PV v7「改回 360 度，至少这样好看点」）：1 = 以她为圆心从起手朝向匀速转满一圈（时长 = 段表 sweep）；0 = 10-30 的追踪最密敌群版（sk_turn / sk_dwell）。光束画法、轨迹爆点、收尾大爆与领域、伤害份额两版相同",
+  "sk_spin": 1,
   "_doc_px_plane": "docs/275 终结技转平面画面开关按干员分：ult/px_plane_<id>（只改画面，判定 / 时长 / 伤害 / 冲击帧不动）。艾丽妮 px_plane_irene：11-06 用户「艾莉妮新版没问题」后缺省开（1）；0 = 原画面",
   "px_plane": 0, "px_plane_skadi": 1, "px_plane_hoshiguma": 1, "px_plane_irene": 1, "px_plane_gladiia": 1, "px_plane_lumen": 1, "px_plane_angelina": 1, "px_plane_exusiai": 1, "_px_plane_ops": "11-05 拆成按干员开：px_plane 为总开关（1 = 全员都开），px_plane_<干员 id> 单人开；斯卡蒂（用户「斯卡蒂的新版没问题」）开，星熊（11-06 用户「星熊新版也没问题」，docs/254 §9）开，歌蕾蒂娅（11-06 用户已批，docs/263 §9）开，艾丽妮（11-06 用户「艾莉妮新版没问题」）开；流明 px_plane_lumen 只改颜色（暖黄 → 钢蓝白，原版画法 / 节奏 / 音效不动，docs/255 §9），11-06 用户「流明也没问题」缺省开；安洁莉娜 px_plane_angelina 只改颜色（docs/267 §10–11），11-06 用户「安洁莉娜终结技过」缺省开；能天使 px_plane_exusiai（docs/262 §11），11-06 用户「能天使没问题」缺省开", "_gl_px_doc": "歌蕾蒂娅终结技转平面叠加层（docs/263 §9，ult_px_gl.gd）：爆开后 gl_px_slow_delay 秒起 gl_px_slow_t 秒 gl_px_slow 倍速、gl_px_slow_ease 秒加速回原速（演出类，批跑 / TRACE 不缩）；起爆轻震 gl_px_shake 像素 / gl_px_shake_t 秒", "gl_px_slow_delay": 0.1, "gl_px_slow": 0.3, "gl_px_slow_t": 0.5, "gl_px_slow_ease": 0.15, "gl_px_shake": 3.0, "gl_px_shake_t": 0.12,
   "_doc_px_plane_mizuki": "docs/261 §8 水月终结技「水母群」转平面画面（只改画面，判定 / 时长 / 伤害 / 冲击帧时机 / 原版音效都不动）：1 = 开（11-06 用户批，缺省开；水月单独一个开关，不跟艾丽妮的 ult/px_plane 绑），0 = 原画面；px_mz_ease = 水月冲击慢放缓回秒数（任务单 0.15，原 ult/imp_ease 0.35）",
