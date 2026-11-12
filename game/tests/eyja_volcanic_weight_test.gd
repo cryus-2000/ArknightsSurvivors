@@ -1,4 +1,5 @@
 extends Node
+const SkillSeq = preload("res://scripts/characters/op_skill_seq.gd")   # 多段技能序列（docs/286 §8 从 character.gd 拆出）
 
 const Blocks = preload("res://scripts/characters/op_blocks.gd")
 var failures := 0
@@ -114,7 +115,7 @@ func check_runtime() -> void:
 	for frame in 240:
 		op.sp = [-100000.0, -100000.0, -100000.0]
 		op.cd = 0.0 if launches == total else 10000.0
-		var end_left: float = op._seq_len(op.sq.get("end")) - float(op.sq_t) if op.sq_ph == 3 else 0.0
+		var end_left: float = SkillSeq._seq_len(op, op.sq.get("end")) - float(op.sq_t) if op.sq_ph == 3 else 0.0
 		game._update(1.0 / 60.0)
 		if launches == total and op.act_kind == "attack" and op.attack_t > 0.0 and not resumed:
 			check(end_left <= 1.0 / 60.0 + 0.00001, "next ordinary attack cannot cut the last descent frame")
