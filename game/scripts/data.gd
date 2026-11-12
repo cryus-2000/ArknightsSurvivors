@@ -72,7 +72,9 @@ const DIFF_PRESETS := [
 	# enemy_scale（用户 10-22，docs/109 §15）：深潮档的小怪生命 / 伤害倍率在潮位 10 的表上再乘这个系数（只乘 enemy_hp / enemy_dmg，
 	# Boss 生命、潮位阶梯 TIDE_SET、结算系数 ×1.5 都不动）：四档目标（无成长常规 45–55、满点常规 85–90、高压 70–80、深潮 55–65）
 	# 的跨度比潮位 0→10 的实测跨度窄，基础砍 / 树值只能整体平移，深潮档单独微降补齐
-	{"name": "深潮", "short": "深潮", "en": "DEEP TIDE", "tide": 10, "level": 10, "factor": 1.5, "enemy_scale": 0.95,
+	# mid_boss_hp（docs/335 §8）：中期 Boss 血量再乘这个数。11-12 hp_mid 1.7 → 2.1 后深潮 18 细胞 18.5 → 7.1%（深潮本来就有 Boss 生命 +35% 与 Boss 在场照常来大群，
+	# 中期 Boss 战拖长、卡门击杀率约 29%），深潮按加血前的中期 Boss 血量算：1.7 / 2.1；卡门本来就没加血，不乘
+	{"name": "深潮", "short": "深潮", "en": "DEEP TIDE", "tide": 10, "level": 10, "factor": 1.5, "enemy_scale": 0.95, "mid_boss_hp": 0.8095,
 		"desc": "敌人生命 +42%、造成的伤害 +28%；大群 +60%，Boss 在场时照常来袭；队长初始最大生命 -10%；普通敌人的控制提前到 5:00；受击时灯火损失 +60%。"},
 ]
 const PRESET_SCALE_KEYS := ["enemy_hp", "enemy_dmg"]
@@ -86,6 +88,8 @@ static func dmod_for_preset(i: int) -> Dictionary:
 	if k != 1.0:
 		for key in PRESET_SCALE_KEYS:
 			m[key] = float(m[key]) * k
+	if p.has("mid_boss_hp"):
+		m["mid_boss_hp"] = float(p.mid_boss_hp)
 	return m
 
 
@@ -132,6 +136,7 @@ const DMOD_DEFAULT := {
 	"final_stop_mobs": -1.0, "final_clear_mobs_s": -1.0,                 # 最终 Boss 战停刷 / 现有杂兵消散秒数按档覆盖（-1 = 跟 balance.json final 段；spawner.final_knob）
 	"final_trickle_mult": -1.0, "final_trickle_cap": -1.0, "final_trickle_fresh_w": -1.0,   # 最终 Boss 战少量补怪的倍率 / 上限 / 新种类权重按档覆盖（-1 = 跟 final 段）
 	"final_boss_hp": 1.0,                                                 # 只乘最终 Boss 的生命（停刷的补偿旋钮，docs/38 §8.14；不动中期 Boss / 杂兵 / 经验）
+	"mid_boss_hp": 1.0,                                                   # 只乘中期 Boss 的生命（卡门除外；深潮预设 0.8095 抵消 11-12 的 hp_mid 加血，docs/335 §8）
 	# 灯标按档覆盖（-1 = 跟 balance.json beacon 段；beacon._sk）。这里没登记的键 dmod_for_tier 会丢掉，所以 _sk 读的键都要在这里
 	"beacon_safe_bullet": -1.0, "beacon_safe_ranged": -1.0,   # 圈内安全（docs/49g）
 	"beacon_guide_r": -1.0, "beacon_shade_deg": -1.0,                     # 引路 / 背光刷怪（docs/56）
