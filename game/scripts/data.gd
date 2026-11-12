@@ -65,13 +65,15 @@ const DIFFICULTY_TIERS := [
 const DIFF_PRESETS := [
 	{"name": "常规", "short": "常规", "en": "NORMAL", "tide": 0, "level": 0, "factor": 1.0,
 		"desc": "没有额外规则。"},
-	{"name": "高压", "short": "高压", "en": "HIGH PRESSURE", "tide": 5, "level": 5, "factor": 1.25,
-		"desc": "敌人生命与伤害 +20%，大群 +20%；队长初始最大生命 -10%，灯油与源石锭掉落减少。"},
+	# 高压 = 潮位 3（docs/335 §4.2，用户 11-12「你看看怎么调节」）：原潮位 5 一步掉 40 点（无认知 69 → 29%），且队长生命 -10%、5:00 小怪控制、
+	# 寒霜 2 层冻结、大群 +20% 和伤害 +20% 叠在 3:30–7；改成只加敌人生命 / 伤害、Boss 生命与预警、灯火三条，其余留给深潮。结算系数 = Meta.tide_factor(3)
+	{"name": "高压", "short": "高压", "en": "HIGH PRESSURE", "tide": 3, "level": 3, "factor": 1.15,
+		"desc": "敌人生命 +5%、造成的伤害 +20%；Boss 生命 +15%，招式预警缩短 15%；受击时灯火损失 +30%，灯油与源石锭掉落减少。"},
 	# enemy_scale（用户 10-22，docs/109 §15）：深潮档的小怪生命 / 伤害倍率在潮位 10 的表上再乘这个系数（只乘 enemy_hp / enemy_dmg，
 	# Boss 生命、潮位阶梯 TIDE_SET、结算系数 ×1.5 都不动）：四档目标（无成长常规 45–55、满点常规 85–90、高压 70–80、深潮 55–65）
 	# 的跨度比潮位 0→10 的实测跨度窄，基础砍 / 树值只能整体平移，深潮档单独微降补齐
 	{"name": "深潮", "short": "深潮", "en": "DEEP TIDE", "tide": 10, "level": 10, "factor": 1.5, "enemy_scale": 0.95,
-		"desc": "敌人生命 +62%、伤害 +28%；大群 +60%，Boss 在场时照常来袭；受击灯火损失 +60%。"},
+		"desc": "敌人生命 +42%、造成的伤害 +28%；大群 +60%，Boss 在场时照常来袭；队长初始最大生命 -10%；普通敌人的控制提前到 5:00；受击时灯火损失 +60%。"},
 ]
 const PRESET_SCALE_KEYS := ["enemy_hp", "enemy_dmg"]
 
@@ -199,12 +201,14 @@ static func dmod_lines(m: Dictionary) -> Array:
 		if row[2] in ["up", "down"] and absf(v - float(sea.get(row[0], DMOD_DEFAULT[row[0]]))) < 0.0001:
 			continue
 		match row[2]:
-			"up":
-				if v > 1.0001:
-					out.append(row[1] % int(round((v - 1.0) * 100.0)))
+			"up":   # 相对常规（海面）的增幅：常规自带的倍率（standard/enemy_hp 1.14）不算在内，卡面写的就是比常规多多少（docs/335 §4.2）
+				var r: float = v / maxf(0.0001, float(sea.get(row[0], DMOD_DEFAULT[row[0]])))
+				if r > 1.0001:
+					out.append(row[1] % int(round((r - 1.0) * 100.0)))
 			"down":
-				if v < 0.9999:
-					out.append(row[1] % int(round((1.0 - v) * 100.0)))
+				var r2: float = v / maxf(0.0001, float(sea.get(row[0], DMOD_DEFAULT[row[0]])))
+				if r2 < 0.9999:
+					out.append(row[1] % int(round((1.0 - r2) * 100.0)))
 			"flag":
 				if v > 0.5:
 					out.append(row[1])

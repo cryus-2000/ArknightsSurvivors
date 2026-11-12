@@ -27,7 +27,7 @@ func run() -> void:
 		check(int(D.DIFFICULTY_TIERS[i].level) == i, "第 %d 级 level" % i)
 	check(D.dmod_for_tier(0) == D.dmod_for_legacy(0), "潮位 0 = 旧标准")
 	# 三档预设（docs/109 §15）：常规 / 高压 = 纯潮位表；深潮 = 潮位 10 的表上小怪生命 / 伤害再乘 enemy_scale；其余键与潮位 10 相同；--tide=10 走同一张表
-	check(D.dmod_for_preset(0) == D.dmod_for_tier(0) and D.dmod_for_preset(1) == D.dmod_for_tier(5), "常规 / 高压预设 = 潮位 0 / 5 的表")
+	check(D.dmod_for_preset(0) == D.dmod_for_tier(0) and D.dmod_for_preset(1) == D.dmod_for_tier(3), "常规 / 高压预设 = 潮位 0 / 3 的表（docs/335 §4.2）")
 	var m10 := D.dmod_for_tier(10)
 	var px := D.dmod_for_preset(2)
 	var ks: float = float(D.DIFF_PRESETS[2].get("enemy_scale", 1.0))
