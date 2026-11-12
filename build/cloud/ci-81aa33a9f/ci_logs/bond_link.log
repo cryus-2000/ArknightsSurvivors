@@ -1,0 +1,24 @@
+# bond_link
+# 参数：--headless --path /work/repo/game res://tests/bond_link_test.tscn -- --regression --seed=1 --regression --balance --seed=1 --op=texas --squad=exusiai,hoshiguma
+# 用时 18 秒；结束时全机 Godot 6 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PF FXLAZY t=0.0 exusiai n=23 ms=11
+PF FXLAZY t=0.0 hoshiguma n=9 ms=9
+PF FXLAZY t=60.0 lappland n=10 ms=19
+PF FXLAZY t=63.7 ulpianus n=7 ms=6
+PF FXLAZY t=63.7 skadi n=14 ms=12
+PF FXLAZY t=64.8 gladiia n=8 ms=8
+PF FXLAZY t=64.8 specter_unchained n=5 ms=4
+PF FXLAZY t=69.0 irene n=21 ms=33
+PF FXLAZY t=69.0 lumen n=6 ms=2
+PF FXLAZY t=70.2 skalter n=15 ms=60
+PF FXLAZY t=71.4 saria n=9 ms=6
+BOND LINK checks=88 failures=0
+PF RUNRELEASE tex=0 audio=0
+
+
+## stderr
+

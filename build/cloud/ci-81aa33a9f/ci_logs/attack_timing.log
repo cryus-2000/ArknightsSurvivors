@@ -1,0 +1,21 @@
+# attack_timing
+# 参数：--headless --path /work/repo/game res://tests/attack_timing_test.tscn -- --regression --seed=1 --balance --seed=1 --op=wisadel --squad=saria,suzuran
+# 用时 17 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PF FXLAZY t=0.0 saria n=9 ms=8
+PF FXLAZY t=0.0 suzuran n=3 ms=2
+ATTACK TIMING checks=186 failures=0
+PF RUNRELEASE tex=0 audio=0
+
+
+## stderr
+WARNING: 32 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 28 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+
