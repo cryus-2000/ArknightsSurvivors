@@ -10,7 +10,7 @@
 |---|---|---|---|---|
 | 第一批 b205472bf | 死代码（69 个函数 / 常量 / 成员）+ 2 个无引用脚本 + 4 个已定案的回退开关 | 约 1170 | 低 | GCP 全量 + 12 人 TRACE（§5） |
 | 第二批 33e572b1c | pxplane 重复小工具合并到 render/px_util.gd | 约 73 | 低 | 同上 |
-| 第三批（未做） | 拆大文件 | — | 中 | 见 §4，等在途美术分支合完再做 |
+| 第三批 82084b428 … f7e4712a9（11-12） | 拆大文件：world / fx_pxplane / ult / character 拆出 17 个模块 | 0（纯搬移，+331 行是签名与 preload） | 中 | §8 |
 
 **整体判断**：精确重复的代码很少（全仓 ≥5 行的完全相同函数体只有 122 行），冗余主要是两类：① 早期功能换代后留下的无调用函数和回退开关；② 大文件（world.gd 5.7k、fx_pxplane.gd 5.0k、character.gd 3.1k、ult.gd 2.7k）里的长 match 分派。①这次清掉了能确定的部分；②要等美术分支停下来再拆（§4）。
 
@@ -149,3 +149,52 @@ tests/ 下只被录像 / 截图用、没有快检项引用的场景（attack_tim
 | cloud-results/cleanup-eq-8e43 | 8e43100bc（含两批） | — | — | `ARK_EQ_FORCE=1` 强制对改前金样比：**28 / 28 与金样相同** |
 
 game/ 合计：71 个文件，+65 / −1286 行（净删约 1220 行）。金样过期按惯例由协调人合入后统一重录（内容会与现在相同，只换代码哈希）。
+
+## 8. 第三批：拆大文件（11-12，分支 claude/frosty-colden-7dda5d，基线 bc5fb7d5b = integ-1111 + 英文版）
+
+做法统一：被搬的函数原样搬到新文件，改成 `static func f(宿主, 原参数…)`；函数体里对宿主成员的读写加宿主前缀（world 用 `wv.`、fx_pxplane 用 `pv.`、ult 用 `uv.`、character 用 `ov.`），
+宿主常量 / 静态函数经宿主脚本常量（`W.` / `P.` / `U.` / `C.`）取，preload 常量在新文件各抄一行（同一资源）；`g` 在函数开头取一次成局部（同一对象，少一次属性查找）。
+宿主类型都标注（`wv: W` 等），成员名拼错在加载时就报错；子类覆盖的方法经宿主实例调用，动态分派不变。
+状态变量全部留在宿主（实例状态），搬走的只有函数和只被它们用的常量；有外部直接调用（其他脚本 / 测试 `x.f()`）的函数留在宿主，不加转发。
+搬移用一次性脚本做（按词法改写 + 局部变量遮蔽检查），每个文件一个提交。
+
+| 提交 | 宿主（行数前 → 后） | 新文件 |
+|---|---|---|
+| 82084b428 | render/world.gd 5916 → 4014 | world_fx_draw（_draw_fx 分派 + 刀光颗粒 / 月牙 / 灯标驱散环）、world_ebullet_draw（敌方弹幕三遍）、world_zone_draw（缩圈 / 溟痕带）、world_shield_draw（队长护盾）、world_tells_draw（敌人前摇提示 / Boss 状态 / 落柱）、world_aura_draw（巢穴光环 / 灯标） |
+| 067803849 | render/fx_pxplane.gd 5664 → 1574 | 照已有 gl / kal / su 的做法按干员拆：fx_pxplane_hsg / lm / lg / ey / sg / mz / sk / tx（节标题说明随文件走） |
+| 9435a9b44 | run/ult.gd 2828 → 2432 | ult_draw（舞台、冲击帧、像素形、定格白、连携闪、吸气、起手条） |
+| f7e4712a9 | characters/character.gd 3213 → 2863 | op_skill_seq（多段技能帧条序列）、op_rush（突击冲锋 / 低频自冲刺 / 拖尾） |
+
+**没拆的**（留给以后，理由）：
+- world.gd 敌人绘制缓存（`draw_enemy` / `_dc_*` / `_draw_enemy_full`，约 700 行）：每帧每只敌人都走，搬出去每次成员访问多一跳，帧率会话量过这里是瓶颈，不在纯整理里动。
+- character.gd 命令 / 走位 AI（`roam_target` / `_cmd_*` / `_izu_intercept` 一族，约 450 行）：command_ai_test 等按实例方法直接调（含 `has_method`），要拆得一起改测试，另开。
+- fx_pxplane 各节的状态变量（`_lg_fire_t`、`_sk_st` …）仍在主文件：是实例状态，搬要改成每节一个实例，属结构调整不属搬移。
+- game.gd（2819）/ gallery / title_op_pick / autotest：§4 已判收益低；screens/*.gd 英文版刚合，不碰。
+
+**验证**：
+- 本机：每个新文件 Godot 加载无报错；窗口跑（画画面）16 局 × 75–90 秒（星熊、流明、逻各斯、艾雅法拉、推进之王、水月、浊心斯卡蒂、德克萨斯、安洁莉娜、拉普兰德、乌尔比安、铃兰、维什戴尔、能天使 等），SCRIPT ERROR 0；
+  快检单项 core、ult_playback、angelina_skill_anim、assault_dash 通过（skill_lifecycle / render_perf / command_ai / mizuki_skill_anim 见下）。
+- GCP：`cleanup_verify.sh`（真全量快检 + 12 人 × 240 秒画画面跨提交 TRACE，对基线 bc5fb7d5b）与 `ci_cmd.sh`（重录金样 + 全量）——结果见下表。
+
+| 运行 | 提交 | 全量快检 | TRACE（12 人 × 240 秒，画画面，对 bc5fb7d5b） |
+|---|---|---|---|
+| cloud-results/cleanup3a-0678 | 067803849（world + pxplane） | （待回） | （待回） |
+| cloud-results/cleanup3b-f7e4 | f7e4712a9（四个文件全部） | （待回） | （待回） |
+| cloud-results/ci-f7e4712a9 | f7e4712a9 | （待回） | — |
+
+## 9. §6 旧回退开关（11-12 复查）
+
+结论：**这次一个也没删**。按协调人口径「只删已定案、缺省值不会再改的，拿不准的列进文档」，§6 列的都还差用户一句话：
+
+| 开关 | 现缺省 | 状态 | 删掉能省 |
+|---|---|---|---|
+| `render/dash_tell_flow` / `dash_tell_white` | 0 | 10-24 收敛成缺省（docs/139 §7.2），三周没人改回；docs/286 当时写的是「要用户点头」 | world_tells_draw._tell_line 两处判断与水纹 / 白芯画法 |
+| `render/optical_fg_px`（-1 / 1 分支） | 0 | 10-24 用户「看不出来区别」 | world/map.gd 前景两个分支 |
+| `render/optical_normals` | 0 | 对照用 | settings.gd 一处判断 |
+| `feel/move_sticky` + 对内包 F8 `sticky_on` | 0 | 10-24 用户试过没开 | game.gd 移动粘滞一段 + F8 切换 |
+| `ult/px_plane_<id>` 原版画法（§6-1） | 1 | 等 docs/280 二十人终结技过完一次删 | ult_moves*.gd 几百行 |
+| `render/knight_frost_tell`（json 里没有，代码缺省 1） | 1 | 10-27 骑士冰裂纹预警，旧斜线画法的回退 | telegraph_draw.knight_line 与 world.gd 一处判断 |
+| `boss/break_text_final` | 0 | 10-28 用户定「只给 Boss 写字」，1 = 恢复写字 | combat.gd 一处 |
+
+另：代码里 `Bal.v("段/键", 缺省)` 读了、balance.json 没有的键现在约 770 个（docs/199 §4 时 366），绝大多数是调参旋钮不是开关，不在本次范围。
+建议：用户点头后按上表前四行一次删（都是画面 / 手感回退，删分支不动缺省路径，TRACE 应逐行一致）。
