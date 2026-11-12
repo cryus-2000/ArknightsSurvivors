@@ -1,0 +1,8 @@
+RUN /usr/local/bin/godot-gl --path /work/repo/game --fixed-fps 60 --resolution 2560x1440 --audio-driver Dummy -s /work/repo/tools/promo/pv_rec_late.gd -- --balance --realtime --nodeath --nohints --bot=master --diff=4 --quality=high --pickframes=3 --slot4 --bossdeath=pv --op=mizuki --squad=skadi,exusiai,hoshiguma --route=memory --forceending=resolve --seed=113 --rtfrom=80 --pv_rtfrom=80 --pv_win=84-87 --pv_finalkill --pv_q=0.86 --pv_maxt=88 --pv_out=/work/repo/build/cloud/render-pvgcp-smoke-c0/run_T01/T01_raw
+T01 rc=0 segs=01_win
+total 7288
+drwxr-xr-x 2 root root    4096 Nov 12 13:41 .
+drwxr-xr-x 4 root root    4096 Nov 12 13:38 ..
+-rw-r--r-- 1 root root   44426 Nov 12 13:41 T01_01_win.json
+-rw-r--r-- 1 root root 7392057 Nov 12 13:41 T01_01_win.mp4
+-rw-r--r-- 1 root root   14008 Nov 12 13:41 T01_pv.log
