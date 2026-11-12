@@ -1,0 +1,14 @@
+# siege_ulpianus_art
+# 参数：--headless --path /work/repo/game res://tests/siege_ulpianus_art_test.tscn -- --regression --seed=1 --balance --seed=1 --op=siege --squad=ulpianus
+# 用时 17 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PF FXLAZY t=0.0 ulpianus n=7 ms=7
+SIEGE ULPIANUS ART failures=0
+PF RUNRELEASE tex=0 audio=0
+
+
+## stderr
+
