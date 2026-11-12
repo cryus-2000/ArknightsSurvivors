@@ -960,6 +960,8 @@ static func _ex_fire(u, a: Dictionary, o) -> void:
 ## 没有新烧到的就在命中点炸一个；判定半径仍 ult/sk_trail_r（85）。
 ## 伤害（份额合计 1）：激光烧到 ult/sk_laser（0.6）+ 轨迹爆点每人一次 ult/sk_trail（0.15）+ 收尾大爆（剩下的 0.25；深海的回响 0.55 / 0.15 / 0.3，领域 9 秒；潮汐和声份额同缺省、每个爆点留 2 秒共鸣地带，见 _sk_zone）；
 ## 收尾大爆时圈内还没被光束烧到的（追不过来 / 后进圈的）补上激光那一份（单程份额不变：每人至多 激光 + 轨迹 + 大爆 = 1）。判定以她本人为圆心、半径 ult/sk_r（515），外缘 15% 半径为衰减带。
+## 11-12 用户看 PV v7 要求改回 360 度（「改回 360 度，至少这样好看点」）：ult/sk_spin = 1（缺省）以她为圆心从起手朝向匀速转满一圈（时长 = 段表 sweep），
+## 光束画法 / 轨迹爆点 / 收尾大爆与领域 / 伤害份额都不变；ult/sk_spin = 0 = 上面的追踪版。
 ## 领域不再每秒掉血（整段要压在约 4 秒内）：收尾大爆时全队攻击 +20%、队长每秒回复 1.5% 最大生命，持续领域时长（缺省 6 秒，画面同时长）
 
 
@@ -982,7 +984,7 @@ static func _sk_start(u, o, dir: Vector2) -> Dictionary:
 	var a := {"k": "skalter", "soff": soff, "foot": foot, "sf": sf, "sb": sb, "fx": [sf, sb], "beam": [], "close_t": -1.0,
 		"a0": dir.angle(), "cur": dir.angle(), "w": 0.0, "tgt": null, "tgt_hit": -1.0, "laps": laps, "lap": 0, "lfrac": lfrac, "tfrac": tfrac, "bfrac": bfrac, "lseg": {}, "tseg": {},
 		"T": T, "L": Bal.v("ult/sk_r", 515.0), "ch": ch, "dd": dd, "pend": [], "newp": [], "trail_t": ch, "nb": 0, "ci_t": 0.0, "blast_t": -1.0, "blasted": false, "fr2": 0,
-		"echo": rt == "echo", "col": u._col(o)}
+		"echo": rt == "echo", "col": u._col(o), "spin": Bal.v("ult/sk_spin", 1.0) > 0.0, "swept": 0.0}
 	# 口中聚光（蓄力期间长大，吐息期间成根焰）+ 吐息本体各层（每帧改位置）
 	var org: Vector2 = o.pos + soff
 	a["cone"] = _sk_keep(u, a, {"kind": "sector", "c": org, "r": 1.0, "a": 0.0, "half": 0.1, "col": COL_SK_RED, "fill": 0.0, "life": life})
@@ -1277,24 +1279,31 @@ static func _sk_step(u, a: Dictionary, o, dt: float) -> bool:
 	if int(a.lap) < int(a.laps):
 		var tb: float = t - ch
 		# 追目标：目标倒下 / 烧到后停留 ult/sk_dwell 秒 → 换下一团
-		var tg = a.tgt
-		if tg != null and (tg.dead or tg.pos.distance_to(c) > L + 40.0):
-			tg = null
-		if tg != null and float(a.tgt_hit) >= 0.0 and t - float(a.tgt_hit) >= Bal.v("ult/sk_dwell", 0.2):
-			tg = null
-		if tg == null:
-			tg = _sk_pick(u, a, c)
-			a.tgt = tg
-			a.tgt_hit = -1.0
+		var tg = null
 		var prev: float = a.cur
-		var wmax: float = Bal.v("ult/sk_turn", 3.2)
-		var wd := 0.0
-		if tg != null:
-			wd = clampf(wrapf((tg.pos - c).angle() - prev, -PI, PI) * 7.0, -wmax, wmax)
+		if a.spin:
+			# 11-12 用户看 PV v7「改回 360 度，至少这样好看点」（ult/sk_spin = 1）：以她为圆心，从起手朝向匀速转满一圈，时长 = 段表 sweep；
+			# 判定照旧用「光束 + 本帧转过的扇面」，一圈扫完圈内每个敌人都被扫到一次（份额不变）
+			a.swept = TAU if tb >= T else minf(TAU, TAU * tb / maxf(0.001, T))
+			a.cur = float(a.a0) + float(a.swept)
 		else:
-			wd = 0.6   # 圈里没人：慢慢转着烧
-		a.w = move_toward(float(a.w), wd, Bal.v("ult/sk_turn_acc", 14.0) * dt)
-		a.cur = prev + float(a.w) * dt
+			tg = a.tgt
+			if tg != null and (tg.dead or tg.pos.distance_to(c) > L + 40.0):
+				tg = null
+			if tg != null and float(a.tgt_hit) >= 0.0 and t - float(a.tgt_hit) >= Bal.v("ult/sk_dwell", 0.2):
+				tg = null
+			if tg == null:
+				tg = _sk_pick(u, a, c)
+				a.tgt = tg
+				a.tgt_hit = -1.0
+			var wmax: float = Bal.v("ult/sk_turn", 3.2)
+			var wd := 0.0
+			if tg != null:
+				wd = clampf(wrapf((tg.pos - c).angle() - prev, -PI, PI) * 7.0, -wmax, wmax)
+			else:
+				wd = 0.6   # 圈里没人：慢慢转着烧
+			a.w = move_toward(float(a.w), wd, Bal.v("ult/sk_turn_acc", 14.0) * dt)
+			a.cur = prev + float(a.w) * dt
 		var cur: float = a.cur
 		var dir: Vector2 = Vector2.from_angle(cur)
 		var tip: Vector2 = c + dir * L
