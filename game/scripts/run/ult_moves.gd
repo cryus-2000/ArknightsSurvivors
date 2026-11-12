@@ -1064,6 +1064,9 @@ static func _sk_trail(u, a: Dictionary, o, p: Vector2, c: Vector2, vis_only := f
 	a.tp.append(p)   # 轨迹爆点位置：收尾大爆沿这条吐息走过的路裂地（用户 10-31）
 	if a.echo and not vis_only:
 		_sk_zone(u, a, p)
+	if a.spin:
+		_sk_trail_particles(u, a, p, i, vis_only)
+		return
 	if a.get("v2", false):
 		_sk_blast_v2(u, p, (0.62 + 0.5 * fposmod(float(i) * 0.618, 1.0)) if vis_only else 1.0, float(i))   # 补的沿途爆点大小错开（0.62–1.12）
 	else:
@@ -1083,6 +1086,22 @@ static func _sk_trail(u, a: Dictionary, o, p: Vector2, c: Vector2, vis_only := f
 	u.light(p, 190.0, COL_SK_RED.lerp(COL_SK_TEAL, 0.25 if i % 2 == 0 else 0.0), 0.26)
 	u.debris(p, COL_SK_RED if i % 2 == 0 else COL_SK_TEAL, 2)
 	u.shake(4.0, 0.14)
+
+
+## 360 版轨迹爆点（用户 11-12「跟水月的特效一样，是那种粒子感」）：不贴爆炸图 / 碎岩，改水月终结技同款像素粒子云（ult_pixfx.particles：
+## ult_burst 大云 + ult_burst_s 亮芯 + ult_ember 余烬，深红 / 青白两色）+ 颗粒迸散 + 短照地光；结算的爆点大一圈、补的爆点小一圈。只画面
+static func _sk_trail_particles(u, a: Dictionary, p: Vector2, i: int, vis_only: bool) -> void:
+	var k: float = (0.55 + 0.35 * PF.h(float(i) * 1.7)) if vis_only else 1.0
+	var seed0: float = float(i) * 3.1 + 40.0
+	u.shape({"kind": "circle", "c": p, "r": 26.0 * k, "col": Color(1.0, 0.86, 0.9), "fill": 0.85, "life": 0.06})   # 一拍白芯闪
+	PF.particles(u, p, 600, "ult_burst", [COL_SK_RED, COL_SK_RED.lerp(COL_SK_TEAL, 0.35)], 0.0, seed0, 150.0 * k)
+	PF.particles(u, p, 40, "ult_burst_s", [COL_SK_TEAL.lerp(Color.WHITE, 0.4)], 0.02, seed0 + 7.0, 60.0 * k)
+	PF.particles(u, p, 30, "ult_ember", [COL_SK_RED.lerp(Color(1.0, 0.5, 0.4), 0.3)], 0.12, seed0 + 13.0, 70.0 * k)
+	u.grain("bfx_burst", p, Vector2.from_angle(float(i) * 2.39996), COL_SK_RED if i % 2 == 0 else COL_SK_TEAL, int(round(8.0 * k)))
+	u.grain("lava", p, Vector2.UP, COL_SK_RED, 3)
+	u.light(p, 160.0 * k, COL_SK_RED.lerp(COL_SK_TEAL, 0.25 if i % 2 == 0 else 0.0), 0.24)
+	if not vis_only:
+		u.shake(3.0, 0.12)
 
 
 ## ---------------- 吐息 v2（ult/sk_beam_v2，缺省 1；0 = 程序画的各层带子版。pixfx 技能，docs/199 §7.7）
@@ -1403,14 +1422,14 @@ static func _sk_step(u, a: Dictionary, o, dt: float) -> bool:
 				a.pend.append([t + 0.08 + 0.04 * float(made), sum / float(n), c])
 				made += 1
 			if made == 0:
-				a.pend.append([t + 0.06, imp, c])
+				a.pend.append([t + 0.06, (c + dir * L * 0.45) if a.spin else imp, c])
 			if a.spin and tb < T - 0.2:   # 最后一拍不补（补的爆点要在吐息收尾前炸完，不拖长终结技结束时刻）
 				# 360 版（11-12 用户「浊心斯卡蒂的终结技没有粒子效果了」）：转圈时大半时间扫的是空地，按团合并的爆点每拍常常只有 0–1 个，
 				# 沿途几乎不炸。照 10-30 前旧 360 版：每拍在刚扫过的光束上补到 3 个（近 / 中 / 远，按拍号错开），只画面、不结算伤害
 				var nb: int = int(round(t / Bal.v("ult/sk_trail_dt", 0.16)))
 				for j in range(maxi(made, 1), 3):
 					var hj: float = fposmod(float(nb) * 0.618 + float(j) * 0.37, 1.0)   # 按拍号 / 档位的黄金比错开：半径、落后角、时刻都不等距（预审报过等距重复的拼接感）
-					var rr: float = L * minf(0.95, 0.2 + 0.3 * float(j) + 0.22 * hj)
+					var rr: float = L * (0.15 + 0.15 * float(j) + 0.15 * hj)   # 圈内（0.15–0.6 半径）：用户 11-12「不应该在边缘炸，而是在内部炸」
 					a.pend.append([t + 0.06 + 0.1 * fposmod(hj * 2.7 + float(j) * 0.29, 1.0), c + Vector2.from_angle(cur - 0.04 - 0.14 * fposmod(hj * 1.9, 1.0)) * rr, c, true])
 			a.newp = []   # 一拍排不完的不再另炸（没吃到轨迹份额的由收尾大爆补上）
 		a.fr2 = fr2 + 1
