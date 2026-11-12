@@ -20,7 +20,12 @@ func _ready() -> void:
 
 
 func avg_hit(t: float, threat: int) -> float:
-	return DmgCurve.pool_avg(threat) * DmgCurve.mult(t, threat) * DmgCurve.density_k() * Bal.v("dmg_curve/ref_taken", 0.9) - Bal.v("dmg_curve/ref_armor", 1.9)
+	var pa: float = DmgCurve.pool_eff(threat, t) if DmgCurve.norm_full() else DmgCurve.pool_avg(threat)
+	return pa * DmgCurve.mult(t, threat) * DmgCurve.density_k() * Bal.v("dmg_curve/ref_taken", 0.9) - Bal.v("dmg_curve/ref_armor", 1.9)
+
+
+func goal(t: float) -> float:
+	return DmgCurve.target_eff(t) if DmgCurve.norm_full() else DmgCurve.target(t)
 
 
 func threat_at(t: float) -> int:
@@ -60,12 +65,28 @@ func run() -> void:
 	# 池平均一下 = 目标曲线（含换池的时刻前后各一秒）
 	for t in [0.0, 60.0, 120.0, 180.0, 240.0, 279.0, 281.0, 299.0, 301.0, 399.0, 401.0, 519.0, 521.0, 600.0, 700.0]:
 		var th := threat_at(t)
-		var d: float = absf(avg_hit(t, th) - DmgCurve.target(t))
+		var d: float = absf(avg_hit(t, th) - goal(t))
 		check(d < 1e-3, "池平均一下 = 目标 t=%d 威胁 %d 差 %.4f" % [int(t), th, d])
 	# 换池处池平均一下不跳（在目标曲线上，只差 1 秒的增量）
 	for tb in [75.0, 170.0, 280.0, 400.0, 520.0]:
 		var a: float = avg_hit(tb - 0.5, threat_at(tb - 0.5))
 		var b: float = avg_hit(tb + 0.5, threat_at(tb + 0.5))
 		check(absf(b - a) < 0.1, "换池 t=%d 前后池平均一下不跳（%.2f → %.2f）" % [int(tb), a, b])
+	# docs/335 §7 验收：5 秒步长的池平均一下（含换池、渐入）不回落、相邻跳变 ≤ 15%；分级系数渐入端点
+	var prev := -1.0
+	var worst_jump := 0.0
+	for i in 121:
+		var t5 := float(i * 5)
+		var h: float = avg_hit(t5, threat_at(t5))
+		if prev > 0.0:
+			check(h >= prev - 1e-3, "5 秒步长不回落 t=%d（%.2f → %.2f）" % [int(t5), prev, h])
+			worst_jump = maxf(worst_jump, h / prev - 1.0)
+		prev = h
+	check(worst_jump <= 0.15, "5 秒步长相邻跳变 ≤ 15%%，实际最大 %.1f%%" % (worst_jump * 100.0))
+	if Bal.v("enemy/tier_ramp", 0.0) > 0.0:
+		for k in range(1, D.THREAT.size()):
+			var tk: float = float(D.THREAT[k].t)
+			check(absf(DmgCurve.tier_k("tier_dmg", tk, k) - float(D.THREAT[k - 1].get("tier_dmg", 1.0))) < 1e-6, "第 %d 档换档瞬间沿用上一档 tier_dmg" % k)
+			check(absf(DmgCurve.tier_k("tier_dmg", tk + Bal.v("enemy/tier_ramp", 0.0), k) - float(D.THREAT[k].get("tier_dmg", 1.0))) < 1e-6, "第 %d 档渐入结束到本档 tier_dmg" % k)
 	print("DMG CURVE failures=%d  0:00=%.1f 3:00=%.1f 5:00=%.1f 7:00=%.1f 10:00=%.1f" % [failures, DmgCurve.target(0.0), DmgCurve.target(180.0), DmgCurve.target(300.0), DmgCurve.target(420.0), DmgCurve.target(600.0)])
 	get_tree().quit(1 if failures > 0 else 0)

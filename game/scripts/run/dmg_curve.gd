@@ -128,5 +128,75 @@ static func density_k() -> float:
 
 ## 时间倍率 m(t)：乘在基础伤害上（spawner.new_enemy 的 dmg_t）
 static func mult(t: float, threat: int) -> float:
+	if norm_full():
+		var den2: float = pool_eff(threat, t) * density_k() * Bal.v("dmg_curve/ref_taken", 0.9)
+		return maxf(0.05, (target_eff(t) + Bal.v("dmg_curve/ref_armor", 1.9)) / maxf(0.01, den2))
 	var denom: float = pool_avg(threat) * density_k() * Bal.v("dmg_curve/ref_taken", 0.9)
 	return maxf(0.05, (target(t) + Bal.v("dmg_curve/ref_armor", 1.9)) / maxf(0.01, denom))
+
+
+## ---- 换档渐入 + 显式折扣（docs/335 §7，用户 11-12「让整个曲线是平缓的，或者说是渐变过渡的」）
+## 旧口径：上面的 pool_avg 只按「基础伤害」归一，enemy/dmg_x_<类型>（引痕者 0.81）与威胁档 tier_dmg 乘在归一化之外，
+## 换池时池平均一下跟着怪物组成跳（4:40 −16%、1:15 −2.4%、8:40 −3.8%）。
+## 新口径（dmg_curve/norm_full 1）：归一化分母把 dmg_x 与渐入后的 tier_dmg 都算进去（pool_eff），池平均一下 = target_eff(t)，与组成无关；
+## 原来靠 tier_dmg 压下来的平均降幅改成显式折扣 dmg_curve/relief（[秒, 系数] 折线），target_eff = 按秒累计最高的 target × relief，处处单调不降。
+## tier_dmg / tier_hp 本身在换档后 enemy/tier_ramp 秒内从上一档线性过渡（tier_k），只决定同一池里高阶怪与普通怪的相对强弱。
+static func norm_full() -> bool:
+	return Bal.v("dmg_curve/norm_full", 0.0) > 0.0
+
+
+## 威胁档 threat 在时刻 t 的分级系数（tier_hp / tier_dmg，没写按 1）：换档后 enemy/tier_ramp 秒内从上一档线性过渡；0 = 换档即跳（旧行为）
+static func tier_k(key: String, t: float, threat: int) -> float:
+	threat = clampi(threat, 0, D.THREAT.size() - 1)
+	var cur: float = float(D.THREAT[threat].get(key, 1.0))
+	var ramp: float = Bal.v("enemy/tier_ramp", 0.0)
+	if threat == 0 or ramp <= 0.0:
+		return cur
+	var prev: float = float(D.THREAT[threat - 1].get(key, 1.0))
+	return lerpf(prev, cur, clampf((t - float(D.THREAT[threat].t)) / ramp, 0.0, 1.0))
+
+
+## 新口径的池平均：基础伤害 × dmg_x_<类型> × 分级系数（tier_cap 类型），按池里出现次数加权
+static func pool_eff(threat: int, t: float) -> float:
+	var pool: Array = D.THREAT[clampi(threat, 0, D.THREAT.size() - 1)].pool
+	var tk: float = tier_k("tier_dmg", t, threat) * Bal.v("enemy/tier_dmg_scale", 1.0)
+	var s := 0.0
+	for id in pool:
+		var ed: Dictionary = D.ENEMIES[id]
+		s += float(ed.dmg) * Bal.v("enemy/dmg_x_" + str(id), 1.0) * (tk if ed.get("tier_cap", false) else 1.0)
+	return s / maxf(1.0, float(pool.size()))
+
+
+## 显式折扣：dmg_curve/relief 折线 [[秒, 系数], …]，首点前取首点、末点后取末点；没写 = 1
+static func relief(t: float) -> float:
+	var k: Array = Bal.sec("dmg_curve").get("relief", [])
+	if k.is_empty():
+		return 1.0
+	if t <= float(k[0][0]):
+		return float(k[0][1])
+	for i in range(1, k.size()):
+		if t <= float(k[i][0]):
+			var a: float = float(k[i - 1][0])
+			return lerpf(float(k[i - 1][1]), float(k[i][1]), clampf((t - a) / maxf(1e-6, float(k[i][0]) - a), 0.0, 1.0))
+	return float(k[k.size() - 1][1])
+
+
+static var _eff_key := []
+static var _eff: PackedFloat32Array = PackedFloat32Array()   # 0..900 秒每秒累计最高的 target × relief
+
+
+## 有效目标：target(t) × relief(t) 按秒取累计最高（单调保护），秒间线性插值；900 秒后取 target × relief 与 900 秒值的较大者
+static func target_eff(t: float) -> float:
+	var key := [Bal.sec("dmg_curve").hash(), Bal.v("growth/late_shape", 0.0), Bal.v("shape_lv/comp_from", 240.0), Bal.v("shape_lv/comp_to", 420.0), Bal.v("shape_lv/comp_dmg", 1.0)]
+	if key != _eff_key:
+		_eff_key = key
+		_eff.resize(901)
+		var m := -INF
+		for i in 901:
+			m = maxf(m, target(float(i)) * relief(float(i)))
+			_eff[i] = m
+	if t >= 900.0:
+		return maxf(target(t) * relief(t), _eff[900])
+	var u: float = maxf(0.0, t)
+	var i0: int = mini(int(u), 899)
+	return lerpf(_eff[i0], _eff[i0 + 1], clampf(u - i0, 0.0, 1.0))
