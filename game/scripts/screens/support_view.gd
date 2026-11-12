@@ -9,6 +9,14 @@ signal closed
 
 const UI = preload("res://scripts/ui.gd")
 const TS = preload("res://scripts/core/toy_support.gd")
+const ShareCard = preload("res://scripts/screens/share_card.gd")
+const RunStatsScreen = preload("res://scripts/screens/run_stats_screen.gd")
+
+
+## 分享卡预览用的最小宿主（ShareCard 只用 g.font 与 g.run_stats.fmt_n）
+class PreviewHost:
+	var font: Font
+	var run_stats = RunStatsScreen
 
 var font: Font
 var btns := {}               # 动作 -> Rect2
@@ -23,6 +31,8 @@ var _cbs: Array = []         # JavaScriptBridge 回调要一直持有，不然�
 var _sim_t := -1.0           # 模拟 SDK 的延迟计时
 var _sim_id := ""
 var _cur := ""               # 正在查询的项（卡片按钮写「正在查询……」）
+var _sc: RefCounted = null   # 边框预览用的分享卡画法（复用 share_card.gd 的相框，不另画）
+var _pv := {}                # 相框 id -> 样张数据
 var granted := 0             # 本次打开期间发的凭证（测试读）
 
 
@@ -180,6 +190,29 @@ func _gui_input(event: InputEvent) -> void:
 		accept_event()
 
 
+## 样张数据：队长 + 空藏品的一局胜利，只为让相框里有东西
+func _preview_data(fr: String) -> Dictionary:
+	if not _pv.has(fr):
+		_pv[fr] = {"won": true, "result": "探索完成", "result_en": "OPERATION COMPLETE", "ending": "", "tier": "", "t": 1500.0, "hi_label": "总伤害", "hi": "0",
+			"kills": 0, "level": 1, "relic_n": 0, "grade": "S", "relics": [], "frame": fr, "date": "", "name": "博士", "avatar": null, "qr": null,
+			"ops": [{"key": "exusiai", "name": "", "en": "", "elite": 0, "leader": true, "col": UI.CYAN, "art": {}}, {"key": "angelina", "name": "", "en": "", "elite": 0, "leader": false, "col": UI.CYAN, "art": {}}]}
+	return _pv[fr]
+
+
+## 在 box 里画一张缩小的带相框分享卡（box 内居中、等比），dim < 1 时压暗
+func _frame_preview(fr: String, box: Rect2, dim: float) -> void:
+	if _sc == null:
+		var h := PreviewHost.new()
+		h.font = font
+		_sc = ShareCard.new(h)
+	var os: Vector2 = ShareCard.outer_size(fr)
+	var k: float = minf(box.size.x / os.x, box.size.y / os.y)
+	var pos: Vector2 = box.position + (box.size - os * k) * 0.5
+	_sc.draw(self, _preview_data(fr), pos, k, 0.0, false)
+	if dim < 1.0:
+		draw_rect(Rect2(pos, os * k), Color(0.02, 0.03, 0.04, 1.0 - dim))
+
+
 func _hit(p: Vector2) -> String:
 	for k in btns:
 		if (btns[k] as Rect2).grow(4.0).has_point(p):
@@ -191,7 +224,7 @@ func _panel() -> Rect2:
 	var sr: Rect2 = Cfg.touch_safe_rect(size)
 	var ph: bool = Cfg.phone_ui()
 	var w: float = minf(sr.size.x - 32.0, 740.0 if ph else 640.0)
-	var h: float = minf(sr.size.y - 32.0, 470.0 if ph else 420.0)
+	var h: float = minf(sr.size.y - 32.0, 600.0 if ph else 470.0)
 	return Rect2((sr.get_center() - Vector2(w, h) / 2.0).round(), Vector2(w, h))
 
 
@@ -232,13 +265,28 @@ func _draw() -> void:
 		var tx := r.position.x + 18.0
 		var tw := r.size.x - 32.0
 		var dim: float = 1.0 if open_ or got else 0.45
-		UI.text(self, font, Vector2(tx, r.position.y + (34 if ph else 30)), "关注作者" if id == "follow" else "三连视频", 21 if tl else 19, Color(UI.TEXT, dim), HORIZONTAL_ALIGNMENT_LEFT, tw)
-		UI.text(self, font, Vector2(tx, r.position.y + (58 if ph else 52)), "在 B站关注作者" if id == "follow" else "点赞 + 投币 + 收藏 PV", 14 if tl else 13, Color(UI.SUB, dim), HORIZONTAL_ALIGNMENT_LEFT, tw)
-		UI.text(self, font, Vector2(tx, r.position.y + (92 if ph else 84)), "寻访凭证 ×%d" % TS.REWARD, 20 if tl else 18, Color(UI.CYAN, dim), HORIZONTAL_ALIGNMENT_LEFT, tw)
-		# 11-08 用户：两项各送一种边框（关注 = 罗德岛，三连 = 深海）
-		UI.text(self, font, Vector2(tx, r.position.y + (116 if ph else 106)), "专属分享卡边框「%s」" % TS.frame_name(id), 14 if tl else 13, Color(UI.CYAN, dim * 0.8), HORIZONTAL_ALIGNMENT_LEFT, tw)
-		var m: String = str(row_msg.get(id, ""))
 		var gb := Rect2(tx, r.end.y - bh - 14.0, tw, bh)
+		# 右侧：专属边框的缩小预览（11-08 用户：两项各送一种边框；关注 = 罗德岛，三连 = 深海）
+		var pvh: float = gb.position.y - 22.0 - (r.position.y + 12.0)
+		var pvw: float = minf(pvh * 0.69, tw * (0.30 if UI.Loc.en() else 0.42))   # 英文文字长，预览收窄给文字让位
+		var pv := Rect2(r.end.x - 14.0 - pvw, r.position.y + 12.0, pvw, pvh)
+		_frame_preview(str(TS.FRAME_OF[id]), pv, dim)
+		var twt: float = tw - pvw - 10.0
+		UI.text_fit(self, font, Vector2(tx, r.position.y + (34 if ph else 30)), "关注作者" if id == "follow" else "三连视频", 21 if tl else 19, Color(UI.TEXT, dim), twt, 14)
+		UI.text_fit(self, font, Vector2(tx, r.position.y + (58 if ph else 52)), "在 B站关注作者" if id == "follow" else "点赞 + 投币 + 收藏 PV", 14 if tl else 13, Color(UI.SUB, dim), twt, 10)
+		UI.text_fit(self, font, Vector2(tx, r.position.y + (92 if ph else 84)), "寻访凭证 ×%d" % TS.REWARD, 20 if tl else 18, Color(UI.CYAN, dim), twt, 12)
+		# 「边框名」单独一行，避免在名字中间折行
+		var fl := UI.Loc.s("专属分享卡边框「%s」" % TS.frame_name(id))
+		var cut: int = maxi(fl.find("「"), fl.find(" '"))
+		var ffs: int = 14 if tl else 13
+		var fy: float = r.position.y + (116 if ph else 106)
+		var fcol := Color(UI.CYAN, dim * 0.8)
+		if cut > 0:
+			UI.text_fit(self, font, Vector2(tx, fy), fl.substr(0, cut).strip_edges(), ffs, fcol, twt, 10)
+			UI.text_fit(self, font, Vector2(tx, fy + ffs + 7.0), fl.substr(cut).strip_edges(), ffs, fcol, twt, 10)
+		else:
+			UI.text_fit(self, font, Vector2(tx, fy), fl, ffs, fcol, twt, 10)
+		var m: String = str(row_msg.get(id, ""))
 		if m != "" and not got:
 			UI.text(self, font, Vector2(tx, gb.position.y - 10.0), m, 14 if tl else 13, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, tw)
 		btns["go_" + id] = gb
