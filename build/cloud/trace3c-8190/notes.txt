@@ -1,0 +1,5 @@
+base import 1 rc=1
+base import 2 rc=1
+base import 3 rc=1
+a import 1 rc=0
+a import 2 rc=0

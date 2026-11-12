@@ -1,0 +1,41 @@
+/work/cmds.sh: line 10: build/cloud/trace3c-8190/base_import_1.log: No such file or directory
+base import 1 rc=1
+/work/cmds.sh: line 10: build/cloud/trace3c-8190/base_import_2.log: No such file or directory
+base import 2 rc=1
+/work/cmds.sh: line 10: build/cloud/trace3c-8190/base_import_3.log: No such file or directory
+base import 3 rc=1
+a import 1 rc=0
+a import 2 rc=0
+Traceback (most recent call last):
+  File "/work/repo/tools/gcp/render_trace_ab.py", line 37, in <module>
+    res = list(ex.map(run, jobs))
+          ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/concurrent/futures/_base.py", line 619, in result_iterator
+    yield _result_or_cancel(fs.pop())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/concurrent/futures/_base.py", line 317, in _result_or_cancel
+    return fut.result(timeout)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/concurrent/futures/_base.py", line 456, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/lib/python3.11/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/repo/tools/gcp/render_trace_ab.py", line 27, in run
+    p = subprocess.run(args, capture_output=True, text=True, errors="replace", env=env, timeout=600 + int(secs) * 3)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/subprocess.py", line 1207, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/subprocess.py", line 2060, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/usr/lib/python3.11/subprocess.py", line 1251, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['/opt/arkr/godot/godot', '--audio-driver', 'Dummy', '--path', '/work/base/game', '--', '--balance', '--seed=11', '--op=mizuki', '--maxt=240', '--trace=1', '--bot=expert']' timed out after 1320 seconds
+RESULT trace=1
