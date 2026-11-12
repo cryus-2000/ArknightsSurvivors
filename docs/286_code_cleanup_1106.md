@@ -173,14 +173,16 @@ game/ 合计：71 个文件，+65 / −1286 行（净删约 1220 行）。金样
 
 **验证**：
 - 本机：每个新文件 Godot 加载无报错；窗口跑（画画面）16 局 × 75–90 秒（星熊、流明、逻各斯、艾雅法拉、推进之王、水月、浊心斯卡蒂、德克萨斯、安洁莉娜、拉普兰德、乌尔比安、铃兰、维什戴尔、能天使 等），SCRIPT ERROR 0；
-  快检单项 core、ult_playback、angelina_skill_anim、assault_dash 通过（skill_lifecycle / render_perf / command_ai / mizuki_skill_anim 见下）。
+  快检单项 core、ult_playback、angelina_skill_anim、assault_dash、skill_lifecycle、render_perf、command_ai、mizuki_skill_anim 全部通过（`--auto` 对这些核心文件判全量，全量放 GCP）。
+- 注：`cleanup_verify.sh` 的基线检出这次在云上导入失败，改成两台机器分别以基线 / 被测提交做主检出跑同一组局再逐行比（scratchpad 脚本 trace_base.sh，内容同 cleanup_verify 的 TRACE 段）。
 - GCP：`cleanup_verify.sh`（真全量快检 + 12 人 × 240 秒画画面跨提交 TRACE，对基线 bc5fb7d5b）与 `ci_cmd.sh`（重录金样 + 全量）——结果见下表。
 
 | 运行 | 提交 | 全量快检 | TRACE（12 人 × 240 秒，画画面，对 bc5fb7d5b） |
 |---|---|---|---|
-| cloud-results/cleanup3a-0678 | 067803849（world + pxplane） | （待回） | （待回） |
-| cloud-results/cleanup3b-f7e4 | f7e4712a9（四个文件全部） | （待回） | （待回） |
-| cloud-results/ci-f7e4712a9 | f7e4712a9 | （待回） | — |
+| cloud-results/ci-f7e4712a9 | f7e4712a9 | 214 项红 12：其中 9 项基线 ci-bc5fb7d5b 同样红（release_slim、check_map、图鉴连携行 v2、EA 标题、触屏布局、图鉴敌人攻击演示、Boss 演练入口 ×2、卡片描述不串台，均与本批无关）；新增 3 项是测试直接调了搬走的技能序列函数（`o._tick_sq_atk()` 等），8190ceed3 改测试后本机三项通过 | — |
+| cloud-results/cleanup3b-f7e4 | f7e4712a9 | 同上 3 项 + 本脚本不重录金样 / 不建贴图索引的环境项（积木等价金样过期、graph_lint、asset_index） | 未出结果：基线检出导入时 Godot Aborted，基线局全部超时 |
+| cloud-results/trace3c-8190 | 8190ceed3 | — | 未出结果：基线检出（git worktree 浅取）在云上导入三次都 rc=1，同上 |
+| cloud-results/trace3d-base + trace3e-8190 | 基线 bc5fb7d5b / 8190ceed3 各自做主检出、同镜像同参数跑 | — | **12 / 12 逐行一致**（两边各自 A/B 也逐行一致；texas 153 行、irene 148 行两边相同，是局内阵亡提前结束），SCRIPT ERROR 0 |
 
 ## 9. §6 旧回退开关（11-12 复查）
 
