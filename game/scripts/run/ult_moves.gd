@@ -1065,7 +1065,7 @@ static func _sk_trail(u, a: Dictionary, o, p: Vector2, c: Vector2, vis_only := f
 	if a.echo and not vis_only:
 		_sk_zone(u, a, p)
 	if a.get("v2", false):
-		_sk_blast_v2(u, p, 1.0, float(i))
+		_sk_blast_v2(u, p, (0.62 + 0.5 * fposmod(float(i) * 0.618, 1.0)) if vis_only else 1.0, float(i))   # 补的沿途爆点大小错开（0.62–1.12）
 	else:
 		u.shape({"kind": "circle", "c": p, "r": 40.0, "col": Color(1.0, 0.9, 0.92), "fill": 0.9, "life": 0.07})
 		u.shape({"kind": "rock", "c": p, "r": 58.0, "col": COL_SK_RED, "glow": COL_SK_RED.lerp(COL_SK_TEAL, 0.5), "core": COL_SK_TEAL, "seed": float(i), "rot": float(i) * 0.7, "fill": 0.9, "hold": false, "life": 0.22})
@@ -1409,8 +1409,9 @@ static func _sk_step(u, a: Dictionary, o, dt: float) -> bool:
 				# 沿途几乎不炸。照 10-30 前旧 360 版：每拍在刚扫过的光束上补到 3 个（近 / 中 / 远，按拍号错开），只画面、不结算伤害
 				var nb: int = int(round(t / Bal.v("ult/sk_trail_dt", 0.16)))
 				for j in range(maxi(made, 1), 3):
-					var rr: float = L * minf(0.95, 0.24 + 0.32 * float(j) + 0.1 * fposmod(float(nb) * 0.618 + float(j) * 0.37, 1.0))
-					a.pend.append([t + 0.08 + 0.05 * float((nb + j) % 3), c + Vector2.from_angle(cur - 0.05) * rr, c, true])
+					var hj: float = fposmod(float(nb) * 0.618 + float(j) * 0.37, 1.0)   # 按拍号 / 档位的黄金比错开：半径、落后角、时刻都不等距（预审报过等距重复的拼接感）
+					var rr: float = L * minf(0.95, 0.2 + 0.3 * float(j) + 0.22 * hj)
+					a.pend.append([t + 0.06 + 0.1 * fposmod(hj * 2.7 + float(j) * 0.29, 1.0), c + Vector2.from_angle(cur - 0.04 - 0.14 * fposmod(hj * 1.9, 1.0)) * rr, c, true])
 			a.newp = []   # 一拍排不完的不再另炸（没吃到轨迹份额的由收尾大爆补上）
 		a.fr2 = fr2 + 1
 		if a.spin and fr2 % 3 == 0:   # 360 版扫过的余迹（旧 360 版同款）：光束身后一片淡红扇面
