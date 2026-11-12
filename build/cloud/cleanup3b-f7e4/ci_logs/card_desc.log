@@ -1,0 +1,46 @@
+# card_desc
+# 参数：--headless --path /work/repo/game res://tests/card_desc_test.tscn -- --regression --seed=1 --balance --op=ulpianus --squad=skadi,angelina
+# 用时 16 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PF FXLAZY t=0.0 skadi n=14 ms=14
+PF FXLAZY t=0.0 angelina n=11 ms=9
+2738 checks, 30 failed
+CARD DESC failures=30
+PF RUNRELEASE tex=0 audio=0
+
+
+## stderr
+FAIL: mizuki · 强迫性重复 手写 brief 不合规：「Tentacles entangle upon second hit: inflicts Bind for 0.5s and deals additional damage.」
+FAIL: eyjafjalla · 熔岩天降·引燃 一句话丢了数字：「Magma pieces from 'Falling Magma' prioritize ignited enemies」（全文：Magma pieces from 'Falling Magma' prioritize ignited enemies; upon hitting, immediately deals 150% of their remaining burn damage, and spreads the ignite to up to 3 enemies within a 70 radius）
+FAIL: lappland · 双生刃 一句话丢了数字：「Every swing throws two crossing sword auras」（全文：Every swing throws two crossing sword auras (each dealing 55% of swing damage, ±12°, traveling 200 and disappearing upon hitting the first enemy; each enemy takes only one per round).）
+FAIL: logos · 墓志铭·连锁 一句话丢了数字：「Whenever Logos defeats an enemy」（全文：Whenever Logos defeats an enemy, writes a small spell at their location that explodes immediately (radius 50, 40% damage).）
+FAIL: siege · 震地 一句话丢了数字：「Each hammer strike creates a ground-level shockwave upon landing」（全文：Each hammer strike creates a ground-level shockwave upon landing (radius 70, 25% of hammer strike damage)）
+FAIL: siege · 狮吼 一句话丢了数字：「Shockwaves cause knockback」（全文：Shockwaves cause knockback; when knocked back enemies collide with other enemies, both take 30% of hammer strike damage; when colliding with obstacles, they take 50% (Bosses excepted)）
+FAIL: siege · 再跃 一句话丢了数字：「After 'Aerial Hammer' lands」（全文：After 'Aerial Hammer' lands, immediately leaps toward the next group of enemies for a second strike (60% damage); when she is the Leader, does not leap again, but instead strikes the ground to create a fissure toward that group of enemies (same damage)）
+FAIL: siege · 再跃 一句话丢了数字：「After 'Aerial Hammer' lands」（全文：After 'Aerial Hammer' lands, immediately leaps toward the next group of enemies for a second strike (60% damage); when she is the Leader, does not leap again, but instead strikes the ground to create a fissure toward that group of enemies (same damage)）
+FAIL: siege · 万兽之王 一句话丢了数字：「'Charge γ' releases an expanding golden command wave」（全文：'Charge γ' releases an expanding golden command wave (radius 180, 60% of hammer strike damage), causing knockback to minor enemies）
+FAIL: siege · 万兽之王 一句话丢了数字：「'Charge γ' releases an expanding golden command wave」（全文：'Charge γ' releases an expanding golden command wave (radius 180, 60% of hammer strike damage), causing knockback to minor enemies）
+FAIL: skadi · 涌潮 一句话丢了数字：「When 'Swift Strike γ' is used, a water ring surges beneath her」（全文：When 'Swift Strike γ' is used, a water ring surges beneath her (radius 120, 60% damage, causes knockback); after Elite 2, a ring surges every 1s during 'Tidal Elegy'）
+FAIL: skadi · 涌潮 一句话丢了数字：「When 'Swift Strike γ' is used, a water ring surges beneath her」（全文：When 'Swift Strike γ' is used, a water ring surges beneath her (radius 120, 60% damage, causes knockback); after Elite 2, a ring surges every 1s during 'Tidal Elegy'）
+FAIL: skalter · 共鸣 一句话丢了数字：「Whenever an Operator within the song's range defeats an enemy」（全文：Whenever an Operator within the song's range defeats an enemy, a small sound wave is emitted from the location of the defeat (radius 70, 20% damage)）
+FAIL: skalter · 潮汐和声·叠唱 一句话丢了数字：「A second echo sounds after the additional echo」（全文：A second echo sounds after the additional echo (40% damage, also hits the closest 16 enemies)）
+FAIL: specter_unchained · 困兽 一句话丢了数字：「During 'The Skill to Survive'」（全文：During 'The Skill to Survive', every time the Leader is hit, she immediately performs an additional circular slash (at most once every 0.5s); damage ×1.1）
+FAIL: specter_unchained · 困兽 一句话丢了数字：「During 'The Skill to Survive'」（全文：During 'The Skill to Survive', every time the Leader is hit, she immediately performs an additional circular slash (at most once every 0.5s); damage ×1.1）
+FAIL: specter_unchained · 锯鸣·共振 一句话丢了数字：「When whirling saw ends, causes a ground tremor」（全文：When whirling saw ends, causes a ground tremor (radius 160, 50% of circular slash damage, knockback, Bosses excepted); during whirling saw, every 5 hits, the saw blade flings a water blade (travels 200, pierces, 30% of circular slash damage, max 4 blades per whirling saw)）
+FAIL: suzuran · 九尾祈愿 一句话丢了数字：「A nine-tailed phantom appears behind her」（全文：A nine-tailed phantom appears behind her, and every attack merges three foxfires into a large piercing foxfire; the path of the large foxfire leaves behind foxfires for 1s, burning enemies who step into them every 0.3s (15% foxfire damage).）
+FAIL: texas · 剑雨·连绵 一句话丢了数字：「'Sword Rain' drops a third wave」（全文：'Sword Rain' drops a third wave (40% damage).）
+FAIL: ulpianus · 通路洞开 一句话丢了数字：「When the chain of 'Contact Must Be Made' goes taut」（全文：When the chain of 'Contact Must Be Made' goes taut, a path splits open from Ulpianus to the anchor point. Enemies along the path are Levitated for 0.8s and take 82.4% Anchor Strike damage. After Elite 2, throwing the anchor in 'Paths Must Be Opened' also opens a path.）
+FAIL: ulpianus · 通路洞开 一句话丢了数字：「When the chain of 'Contact Must Be Made' goes taut」（全文：When the chain of 'Contact Must Be Made' goes taut, a path splits open from Ulpianus to the anchor point. Enemies along the path are Levitated for 0.8s and take 82.4% Anchor Strike damage. After Elite 2, throwing the anchor in 'Paths Must Be Opened' also opens a path.）
+FAIL: ulpianus · 不容挣脱·绞杀 一句话丢了数字：「Approx」（全文：Approx. 0.3s after enemies hooked by 'Contact Must Be Made' are smashed in front of him, he swings another heavy strike in front of himself: deals 80% Anchor Strike damage and knockback within a radius of 137.）
+FAIL: ulpianus · 通路洞开·余震 一句话丢了数字：「When enemies Levitated by 'Path Opened' land」（全文：When enemies Levitated by 'Path Opened' land, they each erupt with a small shockwave (radius 50, 30% Anchor Strike damage), chaining the landing points together.）
+FAIL: wisadel · 礼尚往来 一句话丢了数字：「Each Bombardment simultaneously fires an additional shell at a second target」（全文：Each Bombardment simultaneously fires an additional shell at a second target (deals 60% damage, with the same aftershock).）
+FAIL: ulpianus 精英1 一句话「Unlocks Skill 2 · Boundaries Must Be Kept」
+FAIL: ulpianus 精英2 一句话「Unlocks Skill 3 · Paths Must Be Opened」
+FAIL: skadi 精英1 一句话「Unlocks Skill 2 · Wave Strike」
+FAIL: skadi 精英2 一句话「Unlocks Skill 3 · Tidal Elegy」
+FAIL: angelina 精英1 一句话「Unlocks Skill 2 · Arcane Staff - Particle Mode」
+FAIL: angelina 精英2 一句话「Unlocks Skill 3 · Arcane Staff - Anti-Gravity Mode」
+

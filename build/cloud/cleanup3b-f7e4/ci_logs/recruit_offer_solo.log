@@ -1,0 +1,14 @@
+# recruit_offer_solo
+# 参数：--headless --path /work/repo/game res://tests/recruit_offer_test.tscn -- --regression --seed=1 --balance --seed=1 --op=eyjafjalla --bot_solo=1
+# 用时 17 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+6 checks, 0 failed
+RECRUIT OFFER failures=0
+PF RUNRELEASE tex=0 audio=0
+
+
+## stderr
+

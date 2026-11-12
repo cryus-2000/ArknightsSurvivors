@@ -1,0 +1,15 @@
+# flow_sweep
+# 参数：--headless --path /work/repo/game res://tests/flow_sweep_test.tscn -- --regression --seed=1 --op=skadi --squad=kaltsit
+# 用时 19 秒；结束时全机 Godot 6 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PF FXLAZY t=0.0 kaltsit n=6 ms=12
+PF RUNRELEASE tex=1107 audio=0
+64 checks, 0 failed
+FLOW SWEEP failures=0
+
+
+## stderr
+
