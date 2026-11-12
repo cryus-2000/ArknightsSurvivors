@@ -1,0 +1,24 @@
+# event_maxhp
+# 参数：--headless --path /work/repo/game res://tests/event_maxhp_test.tscn -- --regression --seed=1
+# 用时 21 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PF PREFETCH t=250.0 e_path items=0
+PANEL GRACE grace=0.80 contact_2s=43.2 hp_left=41.1/101.2
+PF FXLAZY t=250.0 gladiia n=8 ms=9
+PF FXLAZY t=250.0 texas n=9 ms=8
+PF FXLAZY t=250.0 gladiia n=8 ms=0
+PF FXLAZY t=250.0 texas n=9 ms=1
+EVENT MAXHP TEST: 0 failures
+PF RUNRELEASE tex=0 audio=0
+PF RUNRELEASE tex=0 audio=0
+PF RUNRELEASE tex=0 audio=0
+PF RUNRELEASE tex=0 audio=0
+PF RUNRELEASE tex=0 audio=0
+PF RUNRELEASE tex=0 audio=0
+
+
+## stderr
+
