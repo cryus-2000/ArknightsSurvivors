@@ -33,8 +33,9 @@ func run() -> void:
 	var ks: float = float(D.DIFF_PRESETS[2].get("enemy_scale", 1.0))
 	check(ks < 1.0 and is_equal_approx(float(px.enemy_hp), float(m10.enemy_hp) * ks) and is_equal_approx(float(px.enemy_dmg), float(m10.enemy_dmg) * ks), "深潮预设：小怪生命 / 伤害 × enemy_scale（%s）" % ks)
 	for k in m10:
-		if not k in D.PRESET_SCALE_KEYS:
+		if not k in D.PRESET_SCALE_KEYS and k != "mid_boss_hp":
 			check(px[k] == m10[k], "深潮预设其余键同潮位 10：" + str(k))
+	check(is_equal_approx(float(px.mid_boss_hp), float(D.DIFF_PRESETS[2].get("mid_boss_hp", 1.0))) and float(m10.mid_boss_hp) == 1.0, "深潮预设：中期 Boss 血量系数（docs/335 §8）")
 	check(D.dmod_for_tide(10) == px and D.dmod_for_tide(5) == D.dmod_for_tier(5) and D.dmod_for_tide(8) == D.dmod_for_tier(8), "--tide=10 带深潮档修正，5 / 8 为纯潮位表")
 	check(D.dmod_for_tier(4) == D.dmod_for_legacy(1), "潮位 4 = 旧 Ⅳ")
 	var m8 := D.dmod_for_legacy(2)

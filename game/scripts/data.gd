@@ -50,7 +50,7 @@ const DIFFICULTY_TIERS := [
 	{"name": "潮位 0 · 海面", "short": "海面", "en": "SURFACE", "desc": "没有额外规则。", "key": "standard", "level": 0},
 	{"name": "潮位 1 · 巨影", "short": "巨影", "en": "LOOMING", "desc": "Boss 生命 +15%，Boss 招式预警缩短 15%。", "level": 1},
 	{"name": "潮位 2 · 昏灯", "short": "昏灯", "en": "DIM LAMP", "desc": "受击时灯火损失 +30%；灯油掉落 -30%，源石锭掉落 -10%。", "level": 2},
-	{"name": "潮位 3 · 暗涌", "short": "暗涌", "en": "UNDERTOW", "desc": "敌人生命与造成的伤害 +20%。", "level": 3},
+	{"name": "潮位 3 · 暗涌", "short": "暗涌", "en": "UNDERTOW", "desc": "敌人生命 +20%、造成的伤害 +10%。", "level": 3},
 	{"name": "潮位 4 · 寒流", "short": "寒流", "en": "COLD CURRENT", "desc": "大群规模 +20%；普通敌人的寒霜、束缚、创口提前到 5:00，寒霜 2 层即冻结。", "key": "hard", "level": 4},
 	{"name": "潮位 5 · 搁浅", "short": "搁浅", "en": "STRANDED", "desc": "队长初始最大生命 -10%；灯油掉落加重到 -40%，源石锭加重到 -25%。", "level": 5},
 	{"name": "潮位 6 · 渊影", "short": "渊影", "en": "ABYSSAL SHADOW", "desc": "Boss 生命加重到 +35%，预警缩短加重到 20%；Boss 造成的伤害再 +15%。", "level": 6},
@@ -68,11 +68,13 @@ const DIFF_PRESETS := [
 	# 高压 = 潮位 3（docs/335 §4.2，用户 11-12「你看看怎么调节」）：原潮位 5 一步掉 40 点（无认知 69 → 29%），且队长生命 -10%、5:00 小怪控制、
 	# 寒霜 2 层冻结、大群 +20% 和伤害 +20% 叠在 3:30–7；改成只加敌人生命 / 伤害、Boss 生命与预警、灯火三条，其余留给深潮。结算系数 = Meta.tide_factor(3)
 	{"name": "高压", "short": "高压", "en": "HIGH PRESSURE", "tide": 3, "level": 3, "factor": 1.15,
-		"desc": "敌人生命 +5%、造成的伤害 +20%；Boss 生命 +15%，招式预警缩短 15%；受击时灯火损失 +30%，灯油与源石锭掉落减少。"},
+		"desc": "敌人生命 +5%、造成的伤害 +10%；Boss 生命 +15%，招式预警缩短 15%；受击时灯火损失 +30%，灯油与源石锭掉落减少。"},
 	# enemy_scale（用户 10-22，docs/109 §15）：深潮档的小怪生命 / 伤害倍率在潮位 10 的表上再乘这个系数（只乘 enemy_hp / enemy_dmg，
-	# Boss 生命、潮位阶梯 TIDE_SET、结算系数 ×1.5 都不动）：四档目标（无成长常规 45–55、满点常规 85–90、高压 70–80、深潮 55–65）
+	# Boss 生命、潮位阶梯 TIDE_SET、结算系数 ×1.5 都不动）：四档目标（无成长常规 45–55、满点常规 85–90、高压 70–80、深潮 55–65；满点三项 11-12 用户定作废，满点 93–100% 可接受，见 docs/335）
 	# 的跨度比潮位 0→10 的实测跨度窄，基础砍 / 树值只能整体平移，深潮档单独微降补齐
-	{"name": "深潮", "short": "深潮", "en": "DEEP TIDE", "tide": 10, "level": 10, "factor": 1.5, "enemy_scale": 0.95,
+	# mid_boss_hp（docs/335 §8）：中期 Boss 血量再乘这个数。11-12 hp_mid 1.7 → 2.1 后深潮 18 细胞 18.5 → 7.1%（深潮本来就有 Boss 生命 +35% 与 Boss 在场照常来大群，
+	# 中期 Boss 战拖长、卡门击杀率约 29%），深潮按加血前的中期 Boss 血量算：1.7 / 2.1；卡门本来就没加血，不乘
+	{"name": "深潮", "short": "深潮", "en": "DEEP TIDE", "tide": 10, "level": 10, "factor": 1.5, "enemy_scale": 0.95, "mid_boss_hp": 0.8095,
 		"desc": "敌人生命 +42%、造成的伤害 +28%；大群 +60%，Boss 在场时照常来袭；队长初始最大生命 -10%；普通敌人的控制提前到 5:00；受击时灯火损失 +60%。"},
 ]
 const PRESET_SCALE_KEYS := ["enemy_hp", "enemy_dmg"]
@@ -86,6 +88,8 @@ static func dmod_for_preset(i: int) -> Dictionary:
 	if k != 1.0:
 		for key in PRESET_SCALE_KEYS:
 			m[key] = float(m[key]) * k
+	if p.has("mid_boss_hp"):
+		m["mid_boss_hp"] = float(p.mid_boss_hp)
 	return m
 
 
@@ -109,7 +113,7 @@ static func tier_name(tide: int) -> String:
 const TIDE_SET := {
 	1: {"boss_hp": 1.15, "boss_warn": 0.85},
 	2: {"lamp_hit": 1.3, "oil_drop": 0.7, "ingot": 0.9},
-	3: {"enemy_hp": 1.2, "enemy_dmg": 1.2, "beacon_every": 0.8},
+	3: {"enemy_hp": 1.2, "enemy_dmg": 1.1, "beacon_every": 0.8},   # enemy_dmg 1.2 → 1.1（docs/335 §8：高压 = 潮位 3，无认知 30% 死亡集中 3:30–7，伤害 +20% 是主因）
 	5: {"max_hp": 0.9, "oil_drop": 0.6, "ingot": 0.75},
 	6: {"boss_hp": 1.35, "boss_warn": 0.8, "boss_dmg": 1.15},
 	7: {"enemy_hp": 1.7, "enemy_dmg": 1.25, "boss_fight_enemy_hp": 1.0},
@@ -132,6 +136,7 @@ const DMOD_DEFAULT := {
 	"final_stop_mobs": -1.0, "final_clear_mobs_s": -1.0,                 # 最终 Boss 战停刷 / 现有杂兵消散秒数按档覆盖（-1 = 跟 balance.json final 段；spawner.final_knob）
 	"final_trickle_mult": -1.0, "final_trickle_cap": -1.0, "final_trickle_fresh_w": -1.0,   # 最终 Boss 战少量补怪的倍率 / 上限 / 新种类权重按档覆盖（-1 = 跟 final 段）
 	"final_boss_hp": 1.0,                                                 # 只乘最终 Boss 的生命（停刷的补偿旋钮，docs/38 §8.14；不动中期 Boss / 杂兵 / 经验）
+	"mid_boss_hp": 1.0,                                                   # 只乘中期 Boss 的生命（卡门除外；深潮预设 0.8095 抵消 11-12 的 hp_mid 加血，docs/335 §8）
 	# 灯标按档覆盖（-1 = 跟 balance.json beacon 段；beacon._sk）。这里没登记的键 dmod_for_tier 会丢掉，所以 _sk 读的键都要在这里
 	"beacon_safe_bullet": -1.0, "beacon_safe_ranged": -1.0,   # 圈内安全（docs/49g）
 	"beacon_guide_r": -1.0, "beacon_shade_deg": -1.0,                     # 引路 / 背光刷怪（docs/56）

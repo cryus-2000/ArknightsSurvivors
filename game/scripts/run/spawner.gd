@@ -1080,6 +1080,8 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 		e.hp *= Bal.v("boss/hp_final" if is_final_boss_type(type) else "boss/hp_mid", 1.0) * Bal.v("boss/hp_x_" + type, 1.0)
 		if Bal.v("growth/late_shape", 0.0) > 0.0:
 			e.hp *= Bal.v("shape_lv/comp_boss_hp", 1.0)   # 后期形状原型的难度补偿（docs/248）
+		if not is_final_boss_type(type) and type != "carmen":
+			e.hp *= float(g.dmod.get("mid_boss_hp", 1.0))   # 按档只乘中期 Boss 的血（深潮抵消 hp_mid 加血，docs/335 §8；卡门本来没加血）
 		if is_final_boss_type(type):
 			e.hp *= float(g.dmod.get("final_boss_hp", 1.0))   # 按档只加最终 Boss 的血（停刷补偿，docs/38 §8.14；缺省 1.0）
 		e.maxhp = e.hp
