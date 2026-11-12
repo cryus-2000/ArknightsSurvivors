@@ -536,7 +536,9 @@
       "req": "disp3",
       "effects": [
         {
-          "rule": "revive"
+          "rule": "revive",
+          "hp_bal": ["meta/revive_hp", 0.3],
+          "inv_bal": ["meta/revive_inv", 3.0]
         }
       ],
       "desc": "每次探索限一次：队长倒下时以 30% 最大生命复活，3 秒内不受伤害"
