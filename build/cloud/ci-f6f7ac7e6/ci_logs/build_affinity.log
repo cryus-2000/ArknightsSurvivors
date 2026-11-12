@@ -1,0 +1,37 @@
+# build_affinity
+# 参数：--headless --path /work/repo/game res://tests/build_affinity_test.tscn -- --regression --seed=1 --balance --op=angelina --squad=skadi,kaltsit
+# 用时 17 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PF FXLAZY t=0.0 skadi n=14 ms=14
+PF FXLAZY t=0.0 kaltsit n=6 ms=14
+PROFILE angelina lanes=["control"] nodes=6 elite=[0, 3, 6]
+PROFILE exusiai lanes=["multi"] nodes=6 elite=[0, 3, 6]
+PROFILE eyjafjalla lanes=["multi"] nodes=6 elite=[0, 3, 6]
+PROFILE gladiia lanes=["control"] nodes=6 elite=[0, 3, 6]
+PROFILE hoshiguma lanes=["melee", "shield"] nodes=6 elite=[0, 3, 6]
+PROFILE irene lanes=["melee", "control"] nodes=6 elite=[0, 3, 6]
+PROFILE kaltsit lanes=["heal", "summon"] nodes=6 elite=[0, 3, 6]
+PROFILE lappland lanes=["melee"] nodes=6 elite=[0, 3, 6]
+PROFILE logos lanes=["weak"] nodes=6 elite=[0, 3, 6]
+PROFILE lumen lanes=["heal"] nodes=6 elite=[0, 3, 6]
+PROFILE mizuki lanes=["summon", "weak"] nodes=6 elite=[0, 3, 6]
+PROFILE saria lanes=["heal"] nodes=6 elite=[0, 3, 6]
+PROFILE siege lanes=["melee"] nodes=6 elite=[0, 3, 6]
+PROFILE skadi lanes=["melee"] nodes=6 elite=[0, 3, 6]
+PROFILE skalter lanes=["heal"] nodes=6 elite=[0, 3, 6]
+PROFILE specter_unchained lanes=["melee", "summon"] nodes=6 elite=[0, 3, 6]
+PROFILE suzuran lanes=["control"] nodes=6 elite=[0, 3, 6]
+PROFILE texas lanes=["melee", "control"] nodes=6 elite=[0, 3, 6]
+PROFILE ulpianus lanes=["melee"] nodes=6 elite=[0, 3, 6]
+PROFILE wisadel lanes=["multi", "summon"] nodes=6 elite=[0, 3, 6]
+INTERACTION { "exusiai": 0, "eyjafjalla": 0, "irene": 2, "skadi": 0, "skalter": 0, "wisadel": 0 }
+82 checks, 0 failed
+BUILD AFFINITY failures=0
+PF RUNRELEASE tex=0 audio=0
+
+
+## stderr
+
