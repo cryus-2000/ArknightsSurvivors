@@ -355,6 +355,18 @@ def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False, dp
                 print("[网页] 取浮层日志失败：%s" % e)
         cdp.close()
     subprocess.run(["taskkill", "/PID", str(p.pid), "/T", "/F"], capture_output=True)
+    # Edge 启动进程会把浏览器交给另一个进程、自己退出，按启动 PID 的树杀不全（11-13 docs/342：整局跑完后 30–40 个渲染进程仍常驻、占约 3 GB）；
+    # 再按这一局独占的 --user-data-dir 找出余下的 msedge 逐个结束（只匹配本局目录，不碰用户自己的 Edge）
+    try:
+        import psutil
+        for q in psutil.process_iter(["name", "cmdline"]):
+            try:
+                if (q.info["name"] or "").lower() == "msedge.exe" and any(ud in (c or "") for c in (q.info["cmdline"] or [])):
+                    q.kill()
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                pass
+    except ImportError:
+        print("[网页] 没有 psutil：残留 Edge 进程请按 --user-data-dir=%s 手动结束" % ud)
     srv.shutdown()
     shutil.rmtree(ud, ignore_errors=True)
     lines = open(log_p, encoding="utf-8").read().splitlines()
