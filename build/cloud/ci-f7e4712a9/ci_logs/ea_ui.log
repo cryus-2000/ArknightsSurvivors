@@ -1,0 +1,23 @@
+# ea_ui
+# 参数：--headless --path /work/repo/game res://tests/ea_ui_test.tscn -- --regression --seed=1
+# 用时 18 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PF RUNRELEASE tex=1088 audio=0
+EA UI regression: 2 failures
+
+
+## stderr
+ERROR: EA UI: ally elite show says auto
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] check (res://tests/ea_ui_test.gd:13)
+       [1] run (res://tests/ea_ui_test.gd:86)
+ERROR: EA UI: elite card headline names the unlocked skill (Unlocks Skill 3 · Paths Must Be Opened)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] check (res://tests/ea_ui_test.gd:13)
+       [1] run (res://tests/ea_ui_test.gd:89)
+

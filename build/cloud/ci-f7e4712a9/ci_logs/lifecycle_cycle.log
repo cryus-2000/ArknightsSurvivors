@@ -1,0 +1,43 @@
+# lifecycle_cycle
+# 参数：--headless --path /work/repo/game res://tests/lifecycle_cycle_test.tscn -- --regression --seed=1 --op=skadi --squad=kaltsit
+# 用时 50 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PF FXLAZY t=0.0 kaltsit n=6 ms=9
+PF RUNRELEASE tex=1143 audio=0
+LIFECYCLE cycle  1 nodes=68 orphans=0 objects=3915 resources=539 art=0 mem=409.2MiB tex=0.0MiB
+PF FXLAZY t=0.0 kaltsit n=6 ms=9
+PF RUNRELEASE tex=1143 audio=0
+LIFECYCLE cycle  2 nodes=68 orphans=0 objects=3946 resources=539 art=0 mem=410.2MiB tex=0.0MiB
+PF FXLAZY t=0.0 kaltsit n=6 ms=7
+PF RUNRELEASE tex=1143 audio=0
+LIFECYCLE cycle  3 nodes=68 orphans=0 objects=3965 resources=539 art=0 mem=410.5MiB tex=0.0MiB
+PF FXLAZY t=0.0 kaltsit n=6 ms=7
+PF RUNRELEASE tex=1143 audio=0
+LIFECYCLE cycle  4 nodes=68 orphans=0 objects=3979 resources=539 art=0 mem=410.7MiB tex=0.0MiB
+PF FXLAZY t=0.0 kaltsit n=6 ms=7
+PF RUNRELEASE tex=1143 audio=0
+LIFECYCLE cycle  5 nodes=68 orphans=0 objects=3993 resources=539 art=0 mem=410.9MiB tex=0.0MiB
+PF FXLAZY t=0.0 kaltsit n=6 ms=7
+PF RUNRELEASE tex=1143 audio=0
+LIFECYCLE cycle  6 nodes=68 orphans=0 objects=4005 resources=539 art=0 mem=411.1MiB tex=0.0MiB
+PF FXLAZY t=0.0 kaltsit n=6 ms=7
+PF RUNRELEASE tex=1143 audio=0
+LIFECYCLE cycle  7 nodes=68 orphans=0 objects=4016 resources=539 art=0 mem=411.3MiB tex=0.0MiB
+PF FXLAZY t=0.0 kaltsit n=6 ms=8
+PF RUNRELEASE tex=1143 audio=0
+LIFECYCLE cycle  8 nodes=68 orphans=0 objects=4025 resources=539 art=0 mem=411.5MiB tex=0.0MiB
+PF FXLAZY t=0.0 kaltsit n=6 ms=7
+PF RUNRELEASE tex=1143 audio=0
+LIFECYCLE cycle  9 nodes=68 orphans=0 objects=4035 resources=539 art=0 mem=411.8MiB tex=0.0MiB
+PF FXLAZY t=0.0 kaltsit n=6 ms=8
+PF RUNRELEASE tex=1143 audio=0
+LIFECYCLE cycle 10 nodes=68 orphans=0 objects=4041 resources=539 art=0 mem=412.0MiB tex=0.0MiB
+LIFECYCLE 提示：第 3 轮起对象数逐轮上涨（可能是缓慢泄漏，容差内未判失败）
+LIFECYCLE CYCLE failures=0
+
+
+## stderr
+

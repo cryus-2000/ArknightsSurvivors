@@ -1,0 +1,19 @@
+# ulpianus_charge
+# 参数：--headless --path /work/repo/game res://tests/ulpianus_charge_test.tscn -- --regression --seed=1 --bal=ult/rework=0 --bal=growth/late_shape=0 --bal=growth/visible_nodes=0 --bal=growth/elite_show=0 --balance --op=ulpianus
+# 用时 17 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+10 checks, 0 failed
+ULPIANUS CHARGE failures=0
+PF RUNRELEASE tex=0 audio=0
+
+
+## stderr
+ERROR: String formatting error: unsupported format character.
+   at: validated_evaluate (core/variant/variant_op.h:829)
+   GDScript backtrace (most recent call first):
+       [0] test_s3 (res://tests/ulpianus_charge_test.gd:119)
+       [1] _process (res://tests/ulpianus_charge_test.gd:28)
+
