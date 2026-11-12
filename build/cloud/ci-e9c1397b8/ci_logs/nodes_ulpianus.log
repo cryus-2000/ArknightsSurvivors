@@ -1,0 +1,43 @@
+# nodes_ulpianus
+# 参数：--headless --path /work/repo/game res://tests/node_test.tscn -- --balance --seed=1 --op=ulpianus
+# 用时 18 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+NODETEST op=ulpianus prog=0 elite=0
+NODE ulpianus 1 custom blast2 | imm: var:nodes_taken →blast2; stat:op_range 1.0→1.06 | sync: 
+NODE ulpianus 2 custom whirl | imm: var:nodes_taken blast2→blast2,whirl; stat:op_range 1.06→1.12 | sync: 
+NODE ulpianus 3 elite 1.0 | imm: var:elite 0→1; skill2 false→true; sp2 0.0→15.0 | sync: 
+NODE ulpianus 4 custom drag | imm: var:nodes_taken blast2,whirl→blast2,whirl,drag; var:route →drag; stat:op_range 1.12→1.18 | sync: 
+NODE ulpianus 5 custom rift | imm: var:nodes_taken blast2,whirl,drag→blast2,whirl,drag,drag2; stat:op_range 1.18→1.24 | sync: 
+NODE ulpianus 6 elite 2.0 | imm: var:elite 1→2; stat:max_hp 126.0→136.08; stat:op_aspd 1.0→1.06; skill3 false→true; sp3 0.0→22.0; g:max_hp 126.0→136.08 | sync: 
+PASSIVE hp | imm: stat:max_hp 136.08→156.08; g:max_hp 136.08→156.08 | sync: 
+PASSIVE regen | imm: stat:regen 2.5→2.9; g:regen 2.5→2.9 | sync: 
+PASSIVE armor | imm: stat:phys_taken 1.0→0.92 | sync: 
+PASSIVE dodge | imm: stat:dodge 0.0→0.05; g:dodge 0.0→0.05 | sync: 
+PASSIVE pickup | imm: stat:pickup 70.0→91.0; g:pickup 70.0→91.0 | sync: 
+PASSIVE wick | imm: stat:light_decay 1.0→0.85; g:lamp_decay 1.0→0.85 | sync: 
+PASSIVE speed | imm: stat:move_speed 165.0→181.5; g:speed 165.0→181.5 | sync: 
+PASSIVE dash_cd | imm: stat:dash_cd 1.0→0.88 | sync: 
+PASSIVE dash_dist | imm: stat:dash_dist 1.0→1.12 | sync: 
+PASSIVE dash_charge | imm: stat:dash_charges 1.0→2.0 | sync: 
+PASSIVE sp | imm: stat:sp_gain 1.0→1.15; g:sp_mult 1.0→1.15 | sync: 
+PASSIVE squad_atk | imm: stat:op_atk 1.035→1.107 | sync: 
+PASSIVE squad_aspd | imm: stat:op_aspd 1.06→1.12 | sync: 
+PASSIVE squad_range | imm: stat:op_range 1.24→1.32 | sync: 
+PASSIVE squad_crit | imm: stat:op_skill_power 1.03→1.13 | sync: 
+PASSIVE pierce | imm: stat:op_pierce 0.0→2.0 | sync: 
+PASSIVE splash | imm: stat:op_splash 0.0→0.25 | sync: 
+PASSIVE chain | imm: stat:op_chain 0.0→1.0 | sync: 
+PASSIVE lane_melee | imm: stat:op_range 1.32→1.44 | sync: 
+PASSIVE lane_multi | imm:  | sync: 
+PASSIVE lane_summon | imm:  | sync: 
+PASSIVE lane_control | imm: stat:control_dur 1.0→1.15 | sync: 
+PASSIVE lane_weak | imm:  | sync: 
+PASSIVE lane_shield | imm: stat:shield_interval 15.0→13.8 | sync: 
+PF RUNRELEASE tex=0 audio=0
+
+
+## stderr
+

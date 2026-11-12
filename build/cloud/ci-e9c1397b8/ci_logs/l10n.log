@@ -1,0 +1,14 @@
+# l10n
+# 参数：--headless --path /work/repo/game res://tests/l10n_test.tscn -- --regression --seed=1 --balance
+# 用时 5 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+L10N 干员长文本 456 条，仍是中文 0 条（未翻的模块回退中文属正常）
+96 checks, 0 failed
+L10N TEST failures=0
+
+
+## stderr
+
