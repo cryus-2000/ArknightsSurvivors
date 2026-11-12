@@ -1,4 +1,5 @@
 extends Node
+const SkillSeq = preload("res://scripts/characters/op_skill_seq.gd")   # 多段技能序列（docs/286 §8 从 character.gd 拆出）
 const A = preload("res://scripts/art.gd")
 var fails := 0
 
@@ -48,7 +49,7 @@ func _ready() -> void:
 			o.anim_t = float(sample[0])
 			check(int(o.anim_state().frame) == int(sample[1]), id + " idle follows its nonuniform frame boundaries at " + str(sample[0]))
 		for skill in ([2] if id == "eyjafjalla" else ([0, 2] if id == "logos" else [])):
-			check(o._start_skill_seq(o.pos + Vector2(200, 0), int(skill)), id + " starts native skill sequence " + str(skill))
+			check(SkillSeq._start_skill_seq(o, o.pos + Vector2(200, 0), int(skill)), id + " starts native skill sequence " + str(skill))
 			check(o.attack_dur == 8.0 / 12.0, id + " sequence exactly retains the previous skill window " + str(skill))
 			o.attack_t = 0.0
 			o.fire_t = -1.0
@@ -77,15 +78,15 @@ func _ready() -> void:
 	logos.sq_own = false
 	logos.sq_atk = "skill_s3_attack"
 	logos.sq_atk_t = 2.5 / 12.0 + 0.000001
-	check(absf(logos._sq_atk_off()) < 0.000001, "S3 body variant aligns to explicit release seconds rather than uniform frame centres")
-	check(logos._sq_atk_frame(8) == int(logos.sprite_spec("skill_s3_attack").fire), "S3 body variant samples its nonuniform native event pose")
+	check(absf(SkillSeq._sq_atk_off(logos)) < 0.000001, "S3 body variant aligns to explicit release seconds rather than uniform frame centres")
+	check(SkillSeq._sq_atk_frame(logos, 8) == int(logos.sprite_spec("skill_s3_attack").fire), "S3 body variant samples its nonuniform native event pose")
 	logos.act_anim = "attack"
 	logos.act_kind = "attack"
 	logos.attack_dur = 4.0 / 12.0
 	logos.attack_t = 0.01
 	logos.sq_atk = ""
 	logos.sq_atk_t = 0.32
-	logos._tick_sq_atk(0.001)
+	SkillSeq._tick_sq_atk(logos, 0.001)
 	check(logos.sq_atk == "", "finished short variants stay off during the remainder of the same attack")
 	logos._sq_clear()
 	print("THREE OPERATOR ART failures=", fails)

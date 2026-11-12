@@ -1,4 +1,5 @@
 extends Node
+const SkillSeq = preload("res://scripts/characters/op_skill_seq.gd")   # 多段技能序列（docs/286 §8 从 character.gd 拆出）
 const Ch=preload("res://scripts/characters/character.gd")
 const Op=preload("res://scripts/characters/data_operator.gd")
 const NM=preload("res://scripts/characters/native_motion.gd")
@@ -60,13 +61,13 @@ func _ready():
 					o.cd=0.8
 					o.start_attack(Vector2.INF)
 					o.attack_t=o.attack_dur-o.attack_fire_at-0.001
-					o._tick_sq_atk(0.0)
+					SkillSeq._tick_sq_atk(o, 0.0)
 					o.anim_kind=o.sq_atk if o.sq_atk!="" else o._sq_kind()
 					st=o.anim_state()
 					# 10-24 docs/140：出手帧播完前不让位（原来出手那一刻就切跑动，出手姿势看不到）
 					ok(st.kind==o.sq_atk or o.sq_atk=="","moving shows release frame "+id+" s"+str(skill+1))
 					o.attack_t=(o.attack_dur-o.attack_fire_at)*0.4
-					o._tick_sq_atk(0.0)
+					SkillSeq._tick_sq_atk(o, 0.0)
 					o.anim_kind=o.sq_atk if o.sq_atk!="" else o._sq_kind()
 					st=o.anim_state()
 					var variant: String=o.seq_anim(seq.attack)
@@ -83,9 +84,9 @@ func _ready():
 					o.follow(0.0,o.pos)
 					st=o.anim_state()
 					ok(st.kind==variant,"stopping resumes current variant "+id)
-					ok(st.frame==o._sq_atk_frame(int(o.sprite_spec(variant).frames)),"stopping preserves recovery frame "+id)
+					ok(st.frame==SkillSeq._sq_atk_frame(o, int(o.sprite_spec(variant).frames)),"stopping preserves recovery frame "+id)
 					o.attack_t=0.0
-					o._tick_sq_atk(o.attack_dur)
+					SkillSeq._tick_sq_atk(o, o.attack_dur)
 					o.follow(0.0,o.pos)
 					ok(o.sq_atk=="" and o.anim_state().kind==o._sq_kind(),"finished variant returns to loop "+id)
 					o.mv=150.0
@@ -100,8 +101,8 @@ func _ready():
 				o.active[skill]=0.0
 				o.attack_t=0.0
 				o.fire_t=-1.0
-				o._tick_sq(5.0)
-				o._tick_sq(5.0)
+				SkillSeq._tick_sq(o, 5.0)
+				SkillSeq._tick_sq(o, 5.0)
 				ok(o.sq_ph==0,"skill sequence exits "+id+" s"+str(skill+1))
 	var heavy=AuditOp.new(g,Ch.load_def("siege").duplicate(true))
 	heavy.pos=g.ppos
