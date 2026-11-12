@@ -1,0 +1,31 @@
+# onboard_reload
+# 参数：--headless --audio-driver Dummy --fixed-fps 30 --path /work/repo/game -- --balance --realtime --seed=3 --op=mizuki --bot=master --nodeath --onboard=ask --onboardpick=0 --onboardreload --maxt=60
+# 用时 52 秒；结束时全机 Godot 8 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ONBOARD card=recruit t=0.0 real=2.4
+PF FXLAZY t=0.1 irene n=21 ms=32
+ONBOARD card=link t=5.3 real=7.7
+ONBOARD card=ult t=10.6 real=13.0
+ONBOARD card=deploy t=14.9 real=18.3
+ONBOARD card=regroup t=18.8 real=26.1
+ONBOARD card=lamp t=23.3 real=31.4
+ONBOARD card=beacon t=28.6 real=36.7
+BEACON lit cleared=3 in_s=1.8 min_d=0 hold_s=2.9 via=ring t=32.0 mires=3
+ONBOARD card=focus t=33.9 real=42.0
+PF FXLAZY t=45.4 saria n=9 ms=8
+ONBOARD card=drill_end t=58.8 real=68.7
+ONBOARD end_go auto
+ONBOARD forced_done route=vet t=58.8 real=71.1
+ONBOARD reloaded
+PF RUNRELEASE tex=1188 audio=0
+BEACON mires t=60.0 mires=0
+BALANCE {"allies":0,"armor_cf":{"m0":{"a2":17.8971610502763,"a4":13.8971610502763,"a8":5.89716105027635,"all":28.1122574029403,"armor":5.0,"n":3,"phys":21.8971610502763,"phys_n":2,"phys_pre":26.8971610502763}},"boss_hp":-1.0,"bosses":[],"bot":{"bosses":[],"curve":[{"boss":0,"dsrc":{},"ebul":0,"elites":0,"enemies":0,"hp":100,"hpm":1.23,"hpmin":100,"hsrc":{},"kills":0,"lamp":100,"lampmin":100,"lv":1,"mhp":112,"mire_s":0.0,"mires":0,"outc":0,"rg":1.0,"squad":1,"t":0,"taken":0,"zone":0},{"boss":0,"dsrc":{},"ebul":0,"elites":0,"enemies":22,"hp":100,"hpm":1.57,"hpmin":100,"hsrc":{},"kills":10,"lamp":100,"lampmin":100,"lv":2,"mhp":112,"mire_s":0.0,"mires":0,"outc":376,"rg":1.0,"squad":1,"t":30,"taken":0,"zone":0},{"boss":0,"dsrc":{"bullet":6,"contact_bone":21,"corrode":5},"ebul":0,"elites":1,"enemies":15,"hp":100,"hpm":1.9,"hpmin":88,"hsrc":{"拾取":8,"水月":11,"自身回复":14},"kills":59,"lamp":87,"lampmin":87,"lv":4,"mhp":112,"mire_s":0.0,"mires":0,"outc":1776,"rg":1.0,"squad":1,"t":60,"taken":34,"zone":0}],"curve_tail":{"dsrc":{},"hsrc":{},"mhp":112,"t":60,"t0":60,"taken":0},"dark_dmg":0,"dark_s":0,"death_src":"bullet","elite_t":{"mizuki:1":47},"end":{"boss":false,"hp":112,"killer":{"cause":"","key":"e:stone"},"last15":{"corrode_out":0.0,"corrode_peak":0.0,"dark_s":0.0,"ebullets_peak":2,"enemies_peak":17,"hits":[{"amt":6.2,"boss":false,"hp_after":106,"src":"bullet","t":53.1,"zone_out":false}],"mire_s":0.0,"nerve_bursts":0,"t":60.0},"src":"bullet","t":60,"zone_out":false,"zone_phase":-1,"zone_state":0},"floors":[],"hits":111,"hits_pm":110.9,"king_low_s":0,"lamp_end":87,"lamp_gain":{},"lamp_loss":{"受击":12},"lamp_s":[118,0,0,0],"lamp_taken":[34,0,0,0],"low20_s":0,"low_hp_s":0,"moved_pm":9978,"peak":[23,2,0,235,7],"peak_min":[[23,2,0,235,7],[15,0,0,3,0]],"profile":"master","reaper_drain_deaths":0,"recruit_t":[],"still_pct":0,"taken":34,"taken_pm":34},"cmd":{"aggro":0,"downs":0,"roam":9.0,"sortie_downs":0,"sorties":1,"switch":3},"crates":1,"ctrl":{"aslow_slow":0,"aslow_t":0.0,"boss_t":0.0,"floor":0.7,"move_min":1.0,"slow_min":1.0,"stun_slow":0,"stun_t":0.0},"ctrl_src":{"boss":{"dash_break_n":0,"freeze_n":0,"freeze_t":0.0,"slow_t":0.0},"founder":{"dash_break_n":0,"freeze_n":0,"freeze_t":0.0,"slow_t":0.0},"other":{"dash_break_n":0,"freeze_n":0,"freeze_t":0.0,"slow_t":0.0},"skimmer":{"dash_break_n":0,"freeze_n":0,"freeze_t":0.0,"slow_t":0.0},"slow_any_t":0.0},"dashes":1,"dmg":{"bullet":6.21509635266391,"contact_bone":21.8971610502763,"corrode":5.97714690006141},"drone":0,"duck":{"boss_overlap":0,"fled":0,"fled_hp":[],"kill_hits":[],"kill_t":[],"killed":0,"spawn_t":[],"spawned":0},"elite_stage":1,"elites":0,"ending":"standard","final_out":{"伞击":1116.24473730843,"技能·法术":43.7407345151071,"触手":616.760613384191},"floor_hits":0,"floor_times":[],"fuse":{"left":0,"pct":0.0,"pool":0,"t":-1},"growth":{},"heal":{"拾取":8.37027171099652,"水月":11.027596352664,"自身回复":14.691536239342},"heal_offer":0,"heal_offer_low":0,"heal_pick":0,"hordes":[],"ingots":4,"items":{"crate_shield":0,"heal_elite":0,"heal_low":0,"heal_mob":1,"heal_pick":1,"magnet_elite":0,"magnet_mob":1,"magnet_pick":1,"mob_capped":0,"mob_rolled":59,"pack_drop":1,"pack_pick":0},"kill_hits":{"0:bone":[46,72,11.17],"0:slider":[9,20,10.25],"0:stone":[4,18,41.93]},"kills":59,"lamp":87,"levelup_t":[24,33,47],"low_levelups":0,"lv":4,"lv_times":[23,33,47],"marks":{},"maxhp":112.5,"meta":0,"ops":[{"elite":1,"id":"mizuki","prog":3}],"out":{"伞击":1116.24473730843,"技能·法术":43.7407345151071,"触手":616.760613384191},"out_tag":{"aftershock":43.7407345151071,"area":43.7407345151071,"basic":1116.24473730843,"empowered":361.816915625144,"follow_up":616.760613384191,"skill":43.7407345151071},"out_type":{"法术":660.501347899298,"物理":1116.24473730843},"prof":{},"prog_log":[[24,"mizuki",1],[33,"mizuki",2],[47,"mizuki",3]],"prog_offer":{"mizuki":3},"prog_pick":{"mizuki":3},"recall_backstop":0,"recall_n":0,"recruit_offers":[],"rej":{},"relic_offer":[],"relic_out":0.0,"relic_take":[],"relics":0,"shield":{"abs":0.0,"blocks":0,"every":15.0,"max":0,"peak":0,"src_int":[],"src_max":[],"t0":-1.0},"squad":["mizuki"],"sus":{"m0":{"clean":{},"dr":{},"heal":{"拾取":[8.37027171099652,33.75],"水月":[11.027596352664,33.1875]},"lit":0.0}},"swaps":[],"t":60,"terrain":{"bul":0,"dash":0,"ebul":0},"ult":{"combo":0,"combo_auto":0,"combo_up":0,"cult":0,"cult_times":[],"e_combo":0.0,"e_hurt":2.4,"e_kill":6.4,"e_out":5.6,"first_full":-1.0,"full_times":[],"hit_n":0,"idle_full_s":0.0,"link_by":{},"lit":0,"lit_by":{},"miss":0,"ult":0,"ult_times":[]},"win":false,"xp_backstop":0.0,"xp_dropped":157.5,"xp_ground":2.5,"xp_magnet":7.5,"xp_magnet_min":[7.5],"xp_recall":0.0,"xp_recall_min":[],"xp_total":155.0,"xp_total_min":[155.0],"xp_walk":147.5,"xp_walk_min":[147.5]}
+SPAWNQ {"alive_420_max":0,"alive_420_med":0,"alive_420_p95":0,"alive_710_max":0,"alive_710_med":0,"alive_710_p95":0,"cap":0,"deferred":0,"density":0.4,"drop_final":0,"drop_room":0,"forced":0,"hard":0,"hist":{"1-3s":0,"10-30s":0,"3-10s":0,"<1s":0,">=30s":0},"merge_spawns":0,"merged":0,"owed_end":0,"pending_end":0,"q_peak":0,"queued":0,"spawned":73,"wait_cap":10.0,"wait_max":0.0,"wait_mean":0.0,"wait_p50":0.0,"wait_p90":0.0,"wait_p99":0.0}
+PF RUNRELEASE tex=1079 audio=0
+
+
+## stderr
+

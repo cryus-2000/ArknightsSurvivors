@@ -1,0 +1,14 @@
+# ult_playback
+# 参数：--headless --path /work/repo/game res://tests/ult_playback_test.tscn -- --regression --seed=1 --regression --balance --seed=1 --op=irene
+# 用时 25 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ULTPLAY op=irene dur=1.90 frames=114 max_off=462.6 hp_drop=1.3/112 acts=0
+ULT PLAYBACK checks=18 failures=0
+PF RUNRELEASE tex=0 audio=0
+
+
+## stderr
+

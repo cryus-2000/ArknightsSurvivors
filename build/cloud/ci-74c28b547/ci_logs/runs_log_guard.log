@@ -1,0 +1,13 @@
+# runs_log_guard
+# 参数：--headless --path /work/repo/game res://tests/runs_log_guard_test.tscn -- --regression --seed=1
+# 用时 24 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+RUNS LOG GUARD failures=0
+PF RUNRELEASE tex=0 audio=0
+
+
+## stderr
+

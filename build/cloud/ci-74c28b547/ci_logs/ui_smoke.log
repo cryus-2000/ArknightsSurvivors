@@ -1,0 +1,16 @@
+# ui_smoke
+# 参数：--headless --path /work/repo/game res://tests/ui_smoke_test.tscn -- --regression --seed=1
+# 用时 33 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+UI SMOKE 跳过：标题·寻访（带测试参数时 Roster 名册未启用，open_browse 直接返回 false）
+PF RUNRELEASE tex=1118 audio=0
+UI SMOKE 可选缺图（有回退，不算失败）/ 已计失败的缺图：结算·胜利 / relic_999
+85 checks, 0 failed
+UI SMOKE failures=0
+
+
+## stderr
+

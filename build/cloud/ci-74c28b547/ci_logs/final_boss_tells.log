@@ -1,0 +1,17 @@
+# final_boss_tells
+# 参数：--headless --path /work/repo/game res://tests/final_boss_tells_test.tscn -- --regression --seed=1
+# 用时 34 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+FINAL BOSS TELLS moves=89 generic_keys=["paranoia/burst/circle", "paranoia/dash/line", "paranoia/pattern_ring/circle", "ishar/song_ring/circle", "ishar/dash/line", "izumik/sweep/cone", "izumik/pattern_rain/circle", "izumik/pattern_ring/circle", "izumik/izu_wave/circle"]
+FINAL BOSS TELLS failures=0
+
+
+## stderr
+WARNING: 10 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 5 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+

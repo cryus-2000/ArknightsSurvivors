@@ -1,0 +1,19 @@
+# hold_aim_hoshiguma
+# 参数：--headless --audio-driver Dummy --path /work/repo/game res://tests/hold_aim_test.tscn -- --regression --balance --seed=1 --op=hoshiguma
+# 用时 25 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+CASE enemy=true aim=(0.0, 0.0) touch=false -> events=3 aim_seen=(0.0, 0.0) dmg_r=64 dmg_l=0
+CASE enemy=true aim=(-1.0, 0.0) touch=false -> events=3 aim_seen=(-1.0, 0.0) dmg_r=0 dmg_l=64
+CASE enemy=false aim=(1.0, 0.0) touch=false -> events=2 aim_seen=(1.0, 0.0) dmg_r=0 dmg_l=0
+CASE enemy=true aim=(-1.0, 0.0) touch=true -> events=3 aim_seen=(-1.0, 0.0) dmg_r=0 dmg_l=64
+CASE enemy=true aim=(0.0, 0.0) touch=false -> events=3 aim_seen=(0.0, 0.0) dmg_r=64 dmg_l=0
+8 checks, 0 failed
+HOLD AIM hoshiguma failures=0
+PF RUNRELEASE tex=0 audio=0
+
+
+## stderr
+
