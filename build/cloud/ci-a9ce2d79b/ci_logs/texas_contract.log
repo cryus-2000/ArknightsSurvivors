@@ -1,0 +1,14 @@
+# texas_contract
+# 参数：--headless --path /work/repo/game res://tests/texas_contract_test.tscn -- --regression --seed=1 --bal=ult/on=0 --balance --seed=1 --op=texas
+# 用时 16 秒；结束时全机 Godot 8 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+44 checks, 0 failed
+TEXAS CONTRACT failures=0
+PF RUNRELEASE tex=0 audio=0
+
+
+## stderr
+

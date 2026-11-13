@@ -1,0 +1,53 @@
+# esc_layers
+# 参数：--headless --path /work/repo/game res://tests/esc_layers_test.tscn -- --regression --seed=1
+# 用时 27 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PF RUNRELEASE tex=1117 audio=0
+ESC LAYERS: 0 failures
+
+
+## stderr
+ERROR: Not supported by this display server.
+   at: keyboard_get_keycode_from_physical (servers/display/display_server.cpp:1224)
+   GDScript backtrace (most recent call first):
+       [0] kc (res://scripts/pad.gd:269)
+       [1] _input (res://scripts/settings_panel.gd:255)
+ERROR: Not supported by this display server.
+   at: keyboard_get_keycode_from_physical (servers/display/display_server.cpp:1224)
+   GDScript backtrace (most recent call first):
+       [0] kc (res://scripts/pad.gd:269)
+       [1] _input (res://scripts/settings_panel.gd:255)
+ERROR: Not supported by this display server.
+   at: keyboard_get_keycode_from_physical (servers/display/display_server.cpp:1224)
+   GDScript backtrace (most recent call first):
+       [0] kc (res://scripts/pad.gd:269)
+       [1] _input (res://scripts/settings_panel.gd:255)
+ERROR: Not supported by this display server.
+   at: keyboard_get_keycode_from_physical (servers/display/display_server.cpp:1224)
+   GDScript backtrace (most recent call first):
+       [0] kc (res://scripts/pad.gd:269)
+       [1] _input (res://scripts/settings_panel.gd:255)
+ERROR: Not supported by this display server.
+   at: keyboard_get_keycode_from_physical (servers/display/display_server.cpp:1224)
+   GDScript backtrace (most recent call first):
+       [0] kc (res://scripts/pad.gd:269)
+       [1] _input (res://scripts/settings_panel.gd:255)
+ERROR: Not supported by this display server.
+   at: keyboard_get_keycode_from_physical (servers/display/display_server.cpp:1224)
+   GDScript backtrace (most recent call first):
+       [0] kc (res://scripts/pad.gd:269)
+       [1] _input (res://scripts/settings_panel.gd:255)
+ERROR: Not supported by this display server.
+   at: keyboard_get_keycode_from_physical (servers/display/display_server.cpp:1224)
+   GDScript backtrace (most recent call first):
+       [0] kc (res://scripts/pad.gd:269)
+       [1] _unhandled_input (res://scripts/game.gd:2205)
+ERROR: Not supported by this display server.
+   at: keyboard_get_keycode_from_physical (servers/display/display_server.cpp:1224)
+   GDScript backtrace (most recent call first):
+       [0] kc (res://scripts/pad.gd:269)
+       [1] _unhandled_input (res://scripts/game.gd:2201)
+

@@ -1,0 +1,13 @@
+# reaper_rush
+# 参数：--headless --path /work/repo/game res://tests/reaper_rush_test.tscn -- --regression --seed=1
+# 用时 16 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS: reaper rush
+PF RUNRELEASE tex=0 audio=0
+
+
+## stderr
+
