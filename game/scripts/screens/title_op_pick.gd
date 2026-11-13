@@ -430,8 +430,9 @@ func _op_tick(delta: float) -> void:
 	var vs := size
 	var ph := _touch_mode()
 	var dsz := OP_PHONE if ph else OP_DESK
-	op_k = minf(vs.x / dsz.x, vs.y / dsz.y)
-	op_off = ((vs - dsz * op_k) / 2.0).round()
+	var fit: Array = Cfg.fit_design(vs, dsz)   # 触屏放进安全区（灵动岛 / 圆角 / 胶囊），桌面同原来的居中缩放
+	op_k = fit[0]
+	op_off = fit[1]
 	if not op_dragging:
 		op_scroll_f = op_scroll if Cfg.reduce_motion else lerpf(op_scroll_f, op_scroll, 1.0 - exp(-14.0 * delta))
 		if absf(op_scroll_f - op_scroll) < 0.2:

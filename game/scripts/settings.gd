@@ -447,6 +447,55 @@ func _ins_update() -> void:
 				_ins[1] = maxf(_ins[1], _cap.end.y)
 
 
+## 设计稿等比缩放进安全区（11-13 局外 / 弹出界面安全区适配）：返回 [k, off]，画法 draw_set_transform(off, 0, Vector2(k, k))。
+## 先放进「去掉刘海 / 灵动岛 / 圆角 / 横条」的矩形（hud_ins，横屏顶边为 0）居中；B站 App 胶囊压到设计稿右上角时，
+## 先整体往左挪（左边还有余量就不缩），挪不开再在「停在胶囊左边」和「落到胶囊下面」两种缩法里取大的那个。
+## avoid_cap = false：不为胶囊挪 / 缩（调用方自己让顶栏按钮避开胶囊，如寻访 HS.topbar 的 ir）。
+## 桌面 / 无安全区时与原来的 k = min(vs / dsz)、off = ((vs - dsz·k) / 2).round() 完全相同（电脑版画面不变）
+func fit_design(vs: Vector2, dsz: Vector2, avoid_cap := true) -> Array:
+	var ins: Array = hud_ins()
+	var a := Rect2(float(ins[0]), float(ins[1]), maxf(1.0, vs.x - float(ins[0]) - float(ins[2])), maxf(1.0, vs.y - float(ins[1]) - float(ins[3])))
+	var k: float = minf(a.size.x / dsz.x, a.size.y / dsz.y)
+	var off: Vector2 = (a.position + (a.size - dsz * k) / 2.0).round()
+	var cap: Rect2 = capsule_ui()
+	if avoid_cap and cap.size.x > 0.0 and off.x + dsz.x * k > cap.position.x - 4.0 and off.y < cap.end.y:
+		var x_max: float = cap.position.x - 4.0   # 设计稿右沿最多到这里
+		if x_max - dsz.x * k >= a.position.x:
+			off.x = roundf(minf(off.x, x_max - dsz.x * k))
+		else:
+			var k1: float = minf((x_max - a.position.x) / dsz.x, a.size.y / dsz.y)   # 停在胶囊左边
+			var top: float = maxf(a.position.y, cap.end.y + 2.0)
+			var k2: float = minf(a.size.x / dsz.x, (a.end.y - top) / dsz.y)   # 落到胶囊下面
+			if k1 >= k2:
+				k = k1
+				off = Vector2(a.position.x + ((x_max - a.position.x) - dsz.x * k) / 2.0, a.position.y + (a.size.y - dsz.y * k) / 2.0).round()
+			else:
+				k = k2
+				off = Vector2(a.position.x + (a.size.x - dsz.x * k) / 2.0, top + ((a.end.y - top) - dsz.y * k) / 2.0).round()
+	return [k, off]
+
+
+## 整屏界面的内容框（UI 坐标）：去掉刘海 / 灵动岛 / 圆角 / 横条，顶部再让出 B站胶囊（safe_insets 的「上」）。
+## 版式随尺寸流动的整屏界面（作战记录、属性页等）背景照铺整屏，内容 draw_set_transform 到框左上角、按框尺寸排；桌面 = 整屏
+func safe_frame(vs: Vector2) -> Rect2:
+	var ins: Array = safe_insets()
+	return Rect2(float(ins[0]), float(ins[1]), maxf(1.0, vs.x - float(ins[0]) - float(ins[2])), maxf(1.0, vs.y - float(ins[1]) - float(ins[3])))
+
+
+## 贴屏幕左 / 右边的界面元素要让出的宽度（UI 坐标，桌面为 0）：左 = 刘海 / 灵动岛；右 = 刘海 / 灵动岛，
+## 元素纵向范围 [y0, y1] 碰到 B站胶囊时再让到胶囊左边（局外顶栏、右上「返回」这类）
+func edge_l() -> float:
+	return float(hud_ins()[0])
+
+
+func edge_r(vs: Vector2, y0 := 0.0, y1 := 0.0) -> float:
+	var r: float = float(hud_ins()[2])
+	var cap: Rect2 = capsule_ui()
+	if cap.size.x > 0.0 and y0 < cap.end.y and y1 > cap.position.y:
+		r = maxf(r, vs.x - cap.position.x + 6.0)
+	return r
+
+
 ## 触屏控件的安全区（UI 坐标）：touch.gd 与触屏按键布局编辑页共用
 func touch_safe_rect(vs: Vector2) -> Rect2:
 	return TouchLayout.safe_rect(vs, safe_insets())

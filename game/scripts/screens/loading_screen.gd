@@ -185,8 +185,9 @@ func _draw() -> void:
 	# 标志
 	var ls := Vector2(482, 86) * k
 	draw_texture_rect(tex_logo, Rect2(Vector2(vs.x / 2.0 - ls.x / 2.0, vs.y * 0.628), ls), false, Color(1, 1, 1, a))
-	var ew := UI.en(self, font, Vector2(24 * k, 32 * k), "ARKNIGHTS FAN GAME", 11, Color(0.5, 0.64, 0.69, a), 4.0)
-	UI.text(self, font, Vector2(24 * k + ew + 14.0, 33 * k), "明日方舟同人作品 · 非商业", 11, Color(0.5, 0.64, 0.69, a))
+	var lx: float = 24 * k + Cfg.edge_l()   # 触屏让开左侧灵动岛 / 圆角（桌面 0）
+	var ew := UI.en(self, font, Vector2(lx, 32 * k), "ARKNIGHTS FAN GAME", 11, Color(0.5, 0.64, 0.69, a), 4.0)
+	UI.text(self, font, Vector2(lx + ew + 14.0, 33 * k), "明日方舟同人作品 · 非商业", 11, Color(0.5, 0.64, 0.69, a))
 	_draw_tide(vs, k, a)
 	# 提示（T2 淡入淡出；减少动态时直接替换）
 	var ta := a

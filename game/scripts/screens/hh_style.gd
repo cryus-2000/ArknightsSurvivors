@@ -76,21 +76,22 @@ static func right_panel(ci: CanvasItem, vs: Vector2, xt: float, xb: float, y0: f
 
 
 ## 顶栏：左灰块两行英文 + 警示条 + 黄色斜标签（标题）；右「01 / 01」+ 平行四边形返回键。返回返回键矩形
-static func topbar(ci: CanvasItem, font: Font, vs: Vector2, en: Array, title: String, s := 1.0, page := "01 / 01", back := "返回  Esc") -> Rect2:
+## il / ir：左右内缩（触屏安全区：灵动岛 / 圆角 / 胶囊，Cfg.edge_l / edge_r）；底色照旧铺满整条，只挪字和按钮。缺省 0 = 原样
+static func topbar(ci: CanvasItem, font: Font, vs: Vector2, en: Array, title: String, s := 1.0, page := "01 / 01", back := "返回  Esc", il := 0.0, ir := 0.0) -> Rect2:
 	var h := 62.0 * s
 	ci.draw_rect(Rect2(0, 0, vs.x, h), Color8(14, 17, 22))
 	ci.draw_rect(Rect2(0, h - 2, vs.x, 2), Color(1, 1, 1, 0.5))
-	var bw := 160.0 * s
+	var bw := 160.0 * s + il
 	ci.draw_rect(Rect2(0, 0, bw, h - 2), LIGHT2)
 	for i in en.size():
-		spaced(ci, font, Vector2(26 * s, (20 + 18 * i) * s), dec(str(en[i])), int(10 * s), INK, 2.0)
+		spaced(ci, font, Vector2(26 * s + il, (20 + 18 * i) * s), dec(str(en[i])), int(10 * s), INK, 2.0)
 	UI.hazard(ci, Rect2(bw, 0, 28 * s, h - 2), 0.0, YEL, INK, 9.0 * s)
 	var tw := UI.cwidth(font, title, int(22 * s)) + 44 * s
 	para(ci, Rect2(bw + 40 * s, 10 * s, tw, h - 22 * s), YEL)
 	UI.text_at(ci, font, Vector2(bw + 62 * s, h / 2.0 - 1), dec(title, false), int(22 * s), INK, "lm", true)
 	if page != "":
-		spaced(ci, font, Vector2(vs.x - 250 * s, h / 2.0 + 5 * s), page, int(10 * s), MUTE, 3.0)
-	var br := Rect2(vs.x - 160 * s, 12 * s, 140 * s, h - 26 * s)
+		spaced(ci, font, Vector2(vs.x - ir - 250 * s, h / 2.0 + 5 * s), page, int(10 * s), MUTE, 3.0)
+	var br := Rect2(vs.x - ir - 160 * s, 12 * s, 140 * s, h - 26 * s)
 	if back == "":
 		return Rect2()
 	para(ci, br, Color(0, 0, 0, 0), Color(1, 1, 1, 0.8))

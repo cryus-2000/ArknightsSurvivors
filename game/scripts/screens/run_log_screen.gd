@@ -29,6 +29,9 @@ var _ph := false
 var _last_mouse := Vector2(-1, -1)
 
 
+var _fo := Vector2.ZERO   # 内容框左上角（触屏安全区，Cfg.safe_frame；桌面 0）
+
+
 func _init(game) -> void:
 	g = game
 
@@ -162,7 +165,7 @@ func click(mp: Vector2) -> bool:
 	if not open:
 		return false
 	for c in cells:
-		if c[0].has_point(mp):
+		if c[0].has_point(mp - _fo):   # 命中区在内容框坐标里
 			match str(c[1]):
 				"row":
 					enter(int(c[2]))
@@ -213,6 +216,13 @@ func draw(vs: Vector2) -> void:
 	var a0: float = UM.prog(t_open, UM.T2)
 	ci.draw_rect(Rect2(Vector2.ZERO, vs), HH.DARK)
 	HH.fill(ci, PackedVector2Array([Vector2(vs.x * 0.48, 0), Vector2(vs.x, 0), Vector2(vs.x, vs.y), Vector2(vs.x * 0.36, vs.y)]), Color(1, 1, 1, 0.03))
+	# 触屏安全区（11-13）：背景铺满，内容放进去掉灵动岛 / 圆角 / 胶囊 / 横条的框（桌面框 = 整屏）；命中区与鼠标换到框坐标
+	var fr: Rect2 = Cfg.safe_frame(vs)
+	_fo = fr.position
+	vs = fr.size
+	mp -= _fo
+	if _fo != Vector2.ZERO:
+		ci.draw_set_transform(_fo)
 	var M := 40.0 if not _ph else 24.0
 	var acc: Color = entries[sel].acc if not entries.is_empty() else HH.CYB
 	# 左上徽记 + 小英文 + 标题
@@ -290,6 +300,8 @@ func draw(vs: Vector2) -> void:
 		for pr in [["↑ ↓", "选择"], ["ENTER" if not Pad.using else "A", "看作战记录"]]:
 			x += _p(Vector2(x, br.get_center().y), str(pr[0]), 1.0, HH.MUTE) + 6.0
 			x += _t(Vector2(x, br.get_center().y), str(pr[1]), 12, HH.MUTE) + 18.0
+	if _fo != Vector2.ZERO:
+		ci.draw_set_transform(Vector2.ZERO)
 
 
 ## 各列的 x（右对齐列给右边界）

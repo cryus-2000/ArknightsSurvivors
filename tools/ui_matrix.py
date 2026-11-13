@@ -26,7 +26,16 @@ SIZES = {
     "720p": (1280, 720, False), "900p": (1600, 900, False), "1080p": (1920, 1080, False), "1440p": (2560, 1440, False),
     "uw2560": (2560, 1080, False), "4x3": (1024, 768, False), "16x10": (1680, 1050, False),
     "iphone": (2178, 1002, True), "android": (2400, 1080, True), "ipad": (2048, 1536, True),
+    "touch16x9": (1920, 1080, True),
 }
+# 带安全区的尺寸（11-13 安全区适配，docs/22「Toy 接入」）：名字 → (--safe 窗口像素 l,t,r,b, --capsule 宽,高 或 "", 设备示意)
+# iPhone 17 横屏 874×402 CSS ×2；B站 App 真机回的是岛那一侧 62、另一侧 0（env 两侧都是 62，container.js 逐边取大后两侧都让）。
+# 这里左岛 / 右岛各一套，只给岛那一侧，用来分别看两侧有没有让开；圆角 / 岛 / 胶囊 / 横条在截图上叠示意（<界面>_dev.png）
+SAFE = {
+    "ip17L": ("124,0,0,42", "216,92", ("l", 110)), "ip17R": ("0,0,124,42", "216,92", ("r", 110)),
+    "ipad": ("0,0,0,40", "", ("", 36)),
+}
+SIZES.update({"ip17L": (1748, 804, True), "ip17R": (1748, 804, True)})
 RUN = ["--autotest", "--seed=7", "--op=texas", "--squad=exusiai"]
 # 界面：名字 → (参数, 截图文件通配, 超时秒)
 SCREENS = {
@@ -45,6 +54,20 @@ SCREENS = {
     "event": (RUN + ["--eventtest=madness", "--shots=60"], "shot_60.png", 50),
     "pause": (RUN + ["--motionshot=pause,0.9"], "shot_motion_pause_full_*.png", 120),
     "result": (RUN + ["--statsshot=12"], "shot_stats_result.png", 150),
+    "runstats": (RUN + ["--statsshot=12"], "shot_stats_overview.png", 150),
+    "tab": (RUN + ["--tabshot=200"], "shot_tab.png", 60),
+    "recruit": (RUN + ["--motionshot=recruit,1.6"], "shot_motion_recruit_full_*.png", 120),
+    "relic": (RUN + ["--motionshot=relic,1.6"], "shot_motion_relic_full_*.png", 120),
+    "loading": (["--loadingshot"], "shot_loading.png", 90),
+    "support": (["--titleshot", "--supopen"], "shot_title.png", 90),
+    "feedback": (["--titleshot", "--fbopen"], "shot_title.png", 90),
+    "credits": (["--creditsshot"], "shot_credits.png", 90),
+    "guide": (["--guideshot"], "shot_guide.png", 90),
+    # 没有现成钩子的几屏：tests/safe_screens_shots.tscn（场景路径放 -- 前面）
+    "event": (["res://tests/safe_screens_shots.tscn", "--which=event", "--op=texas", "--squad=exusiai"], "shot_event.png", 120),
+    "elite": (["res://tests/safe_screens_shots.tscn", "--which=elite", "--op=texas", "--squad=exusiai"], "shot_elite.png", 120),
+    "ultaim": (["res://tests/safe_screens_shots.tscn", "--which=ultaim", "--op=texas", "--squad=exusiai"], "shot_ultaim.png", 120),
+    "runlog": (["res://tests/safe_screens_shots.tscn", "--which=runlog", "--op=texas", "--squad=exusiai"], "shot_runlog.png", 120),
 }
 
 
@@ -54,14 +77,41 @@ def shoot(out, size, screen):
     d = os.path.join(out, size, "_" + screen)
     shutil.rmtree(d, ignore_errors=True)
     os.makedirs(d)
-    cmd = [gr.find_godot(), "--path", GAME, "--resolution", "%dx%d" % (min(w, 1600), min(h, 900)), "--audio-driver", "Dummy", "--",
+    scene = [args[0]] if args and args[0].startswith("res://") else []
+    args = args[len(scene):]
+    cmd = [gr.find_godot(), "--path", GAME, "--resolution", "%dx%d" % (min(w, 1600), min(h, 900)), "--audio-driver", "Dummy"] + scene + ["--",
            "--shotdir=" + d.replace("\\", "/"), "--winsize=%dx%d" % (w, h)] + (["--touch"] if touch else []) + args
+    if size in SAFE:
+        cmd += ["--safe=" + SAFE[size][0]] + (["--capsule=" + SAFE[size][1]] if SAFE[size][1] else [])
     o, e, to = gr.run_godot(cmd, tmo)
     hits = sorted(glob.glob(os.path.join(d, pat)))
     errs = [ln for ln in (o + e).splitlines() if "SCRIPT ERROR" in ln][:3]
     if hits:
         shutil.copy(hits[-1], os.path.join(out, size, screen + ".png"))
+        if size in SAFE:
+            dev_overlay(os.path.join(out, size, screen + ".png"), size)
+    shutil.rmtree(d, ignore_errors=True)
     return size, screen, bool(hits), errs
+
+
+def dev_overlay(p, size):
+    """圆角外涂黑、灵动岛、底部横条、B站胶囊虚框（只为看图），覆盖原图"""
+    from PIL import Image, ImageDraw
+    safe, cap, (side, rad) = SAFE[size]
+    l, t, r, b = [int(x) for x in safe.split(",")]
+    im = Image.open(p).convert("RGB"); W, H = im.size
+    m = Image.new("L", (W, H), 0); ImageDraw.Draw(m).rounded_rectangle([0, 0, W - 1, H - 1], rad, fill=255)
+    im = Image.composite(im, Image.new("RGB", (W, H), (0, 0, 0)), m)
+    dr = ImageDraw.Draw(im, "RGBA")
+    if side:
+        x0 = 22 if side == "l" else W - 22 - 74
+        dr.rounded_rectangle([x0, H / 2 - 126, x0 + 74, H / 2 + 126], 37, fill=(0, 0, 0, 255))
+    if b:
+        dr.rounded_rectangle([W / 2 - 134, H - 26, W / 2 + 134, H - 16], 5, fill=(235, 235, 235, 230))
+    if cap:
+        cw, chh = [int(x) for x in cap.split(",")]
+        dr.rounded_rectangle([W - r - 24 - 164, 22, W - r - 24, 84], 31, fill=(20, 20, 24, 170), outline=(255, 255, 255, 140), width=2)
+    im.save(p)
 
 
 def sheet(out, sizes, screens):

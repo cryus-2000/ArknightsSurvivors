@@ -925,9 +925,12 @@ func _draw_chrome(ci: CanvasItem) -> void:
 			done += 1
 	for i in 12:   # 顶栏下一条渐隐暗带：推荐 / 重置 / 提示压在连线上也看得清
 		ci.draw_rect(Rect2(0, 60.0 + i * 6.0, vs.x, 6.0), Color(0.012, 0.02, 0.035, 0.92 * pow(1.0 - i / 12.0, 0.7)))
-	HS.topbar(ci, font, vs, ["COGNITION", "SHAPING"], "认知塑造", 1.0, "", "")
+	var il: float = Cfg.edge_l()   # 触屏安全区：灵动岛 / 圆角让左右，右上胶囊让到它左边（桌面 0）
+	var ir: float = Cfg.edge_r(vs, 0.0, 62.0)
+	var ir2: float = Cfg.edge_r(vs, 74.0, 108.0)
+	HS.topbar(ci, font, vs, ["COGNITION", "SHAPING"], "认知塑造", 1.0, "", "", il, ir)
 	# 生机细胞 + 已塑造
-	var rx := vs.x - 470.0
+	var rx := vs.x - 470.0 - ir
 	ci.draw_texture_rect(Icons.tex("cell"), Rect2(rx, 17, 22, 22), false, C_SAP)
 	# 大数字只写当前持有；累计获得挪到标签行（11-07 用户看到「50 / 累计 50」问「为什么这个还有上限」：斜杠读起来像满了，肉鸽不设数量上限）
 	var lw := UI.text_at(ci, font, Vector2(rx + 30, 10), "生机细胞", 11, T_SUB)
@@ -936,7 +939,7 @@ func _draw_chrome(ci: CanvasItem) -> void:
 	UI.text_at(ci, font, Vector2(rx + 186, 10), "已塑造", 11, T_SUB)
 	UI.text_at(ci, font, Vector2(rx + 186, 26), "%d / %d" % [done, Meta.nodes().size()], 20, UI.TEXT, "la", true)
 	# 返回
-	var back := Rect2(vs.x - 160, 12, 140, 36)
+	var back := Rect2(vs.x - 160 - ir, 12, 140, 36)
 	HS.para(ci, back, Color(1, 1, 1, 0.12) if back.has_point(mouse) else Color(0, 0, 0, 0), Color(1, 1, 1, 0.8))
 	var bk := "" if Pad.using else "ESC"
 	UI.text_at(ci, font, back.get_center() + Vector2(UI.key_shift(bk, 14.0), 0), "返回", 15, UI.TEXT, "mm", true)
@@ -944,7 +947,7 @@ func _draw_chrome(ci: CanvasItem) -> void:
 	buttons.append([back, "back"])
 	# 推荐 / 全部重置
 	var bw := 168.0
-	var r2 := Rect2(vs.x - 20 - bw, 74, bw, 34)
+	var r2 := Rect2(vs.x - 20 - bw - ir2, 74, bw, 34)
 	var r1 := Rect2(r2.position.x - 14 - 116, 74, 116, 34)
 	var tch: bool = Pad.touch
 	HS.ghost_btn(ci, font, r1, "推荐", "" if tch else "R", 0.86)
@@ -960,7 +963,7 @@ func _draw_chrome(ci: CanvasItem) -> void:
 		hint = "点节点看详情 · 点空白收起" + (" · 拖动平移" if pan else "")
 	else:
 		hint = Pad.hint("方向键 选择  ·  ENTER 塑造  ·  Z 详情" + ("  ·  拖动 平移" if pan else ""), "十字键 选择  ·  Ⓐ 塑造  ·  Ⓧ 详情", "")
-	UI.text_at(ci, font, Vector2(24, 84), hint, 15 if Cfg.phone_ui() else 12, UI.fa(T_SUB, 0.85))   # D4：手机 12 号只剩 10 像素
+	UI.text_at(ci, font, Vector2(24 + il, 84), hint, 15 if Cfg.phone_ui() else 12, UI.fa(T_SUB, 0.85))   # D4：手机 12 号只剩 10 像素
 
 
 ## 详情卡。桌面：左下浅色档案卡（左黄条、右上切角、「NODE // 认知节点」、组色标签、名称、效果大字、质变、本线进度、状态、塑造按钮），
@@ -981,7 +984,7 @@ func _draw_card(ci: CanvasItem) -> void:
 	var w := 326.0
 	var bh := _card_body(ci, Vector2(0, 0), w, id, false)
 	var h := bh + 62.0
-	var r := Rect2(24.0 - (1.0 - slide) * 40.0, vs.y - 20.0 - h, w, h)
+	var r := Rect2(24.0 + Cfg.edge_l() - (1.0 - slide) * 40.0, vs.y - 20.0 - h, w, h)
 	card_rect = r
 	var scan: float = UI.ease_out(clampf(ck / 0.6, 0.0, 1.0))   # 自上而下扫开（前 0.18 秒）
 	var cut := 22.0
@@ -1014,7 +1017,7 @@ func _draw_card_tab(ci: CanvasItem, id: String) -> void:
 	var s1 := "%s · %s" % [str(nd.name), "已塑造" if _state(id) == "on" else "%d 生机细胞" % int(nd.cost)]
 	var key := "" if Pad.using else Pad.hint("Z", "Ⓧ", "")   # 10-31 TA H7：键名用按键牌，不混写
 	var w := UI.cwidth(font, s1, 13) + UI.cwidth(font, "详情", 15) + (UI.cwidth(font, key, 12) + 22.0 if key != "" else 0.0) + 52.0
-	var r := Rect2(16.0 if Cfg.phone_ui() else 24.0, vs.y - (12.0 if Cfg.phone_ui() else 20.0) - 34.0, w, 34.0)
+	var r := Rect2((16.0 if Cfg.phone_ui() else 24.0) + Cfg.edge_l(), vs.y - (12.0 if Cfg.phone_ui() else 20.0) - 34.0 - float(Cfg.hud_ins()[3]) * 0.6, w, 34.0)
 	HS.para(ci, r, Color(0, 0, 0, 0.55), UI.fa(UI.TEXT, 0.85), 1.5)
 	ci.draw_rect(Rect2(r.position.x + 8.0, r.position.y + 7.0, 4.0, r.size.y - 14.0), HS.YEL)
 	var x := r.position.x + 20.0
@@ -1136,7 +1139,8 @@ func _draw_sheet(ci: CanvasItem, id: String, slide: float) -> void:
 	var st := _state(id)
 	var ch: Array = chains[clampi(sel.x, 0, chains.size() - 1)]
 	var g: int = GROUP_OF.get(_pre(id), 0)
-	var r := Rect2(12.0, vs.y - 12.0 - SHEET_H + (1.0 - slide) * 40.0, vs.x - 24.0, SHEET_H)
+	var ins: Array = Cfg.hud_ins()   # 触屏：左右让开灵动岛 / 圆角，底边让开横条（桌面 0）
+	var r := Rect2(12.0 + float(ins[0]), vs.y - 12.0 - float(ins[3]) * 0.6 - SHEET_H + (1.0 - slide) * 40.0, vs.x - 24.0 - float(ins[0]) - float(ins[2]), SHEET_H)
 	card_rect = r
 	HS.fill(ci, PackedVector2Array([r.position, Vector2(r.end.x - 18.0, r.position.y), Vector2(r.end.x, r.position.y + 18.0), r.end, Vector2(r.position.x, r.end.y)]), HS.LIGHT)
 	ci.draw_rect(Rect2(r.position, Vector2(5, r.size.y)), HS.YEL)

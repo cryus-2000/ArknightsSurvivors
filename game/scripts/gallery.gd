@@ -689,8 +689,13 @@ func _dsz() -> Vector2:
 
 func _fit_view() -> void:
 	var d := _dsz()
-	dk = minf(size.x / d.x, size.y / d.y) if size.x > 0.0 and size.y > 0.0 else 1.0
-	doff = ((size - d * dk) / 2.0).round()
+	if size.x <= 0.0 or size.y <= 0.0:
+		dk = 1.0
+		doff = ((size - d) / 2.0).round()
+		return
+	var fit: Array = Cfg.fit_design(size, d)   # 触屏放进安全区（灵动岛 / 圆角 / 胶囊），桌面同原来的居中缩放
+	dk = fit[0]
+	doff = fit[1]
 
 
 func _design(p: Vector2) -> Vector2:

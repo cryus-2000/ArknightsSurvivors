@@ -1080,14 +1080,16 @@ func draw_phone_v3(vs: Vector2) -> void:
 	g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.008, 0.012, 0.018, 0.95))
 	g.stats_cells.clear()
 	_tips = []
-	var L := 28.0
-	var T := 14.0
-	var R: float = vs.x - 28.0
-	var B: float = vs.y - 12.0
+	# 触屏安全区（11-13）：左右让开灵动岛 / 圆角、底边让开横条；右上的时间 / 击杀等读数再让到 B站胶囊左边（桌面不走这里）
+	var ins: Array = Cfg.hud_ins()
+	var L := 28.0 + float(ins[0])
+	var T := 14.0 + float(ins[1])
+	var R: float = vs.x - 28.0 - float(ins[2])
+	var B: float = vs.y - 12.0 - float(ins[3]) * 0.6
 	var tc := Color(1, 1, 1, 0.45)
 	g.hud.draw_polyline(PackedVector2Array([Vector2(L, T + 12), Vector2(L, T), Vector2(L + 12, T)]), tc, 1.0)
 	g.hud.draw_polyline(PackedVector2Array([Vector2(R, B - 12), Vector2(R, B), Vector2(R - 12, B)]), tc, 1.0)
-	_phone_header(L + 8.0, T, R - 8.0)
+	_phone_header(L + 8.0, T, minf(R, vs.x - Cfg.edge_r(vs, T, T + 64.0) - 8.0) - 8.0)
 	# 页签：字 + 下划线（当前页白字、青线）
 	var page: int = clampi(g.stats_page, 0, 4)
 	var tabs := ["属性", "攻击", "技能", "编队", "藏品"]

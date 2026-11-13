@@ -1211,14 +1211,16 @@ func _guide_rows(touch: bool) -> Array:
 ## 寻访同款版式：暗场 + 左侧浅灰斜切栏（大号中文 + 像素描边英文）+ 右侧键位表 + 底栏返回
 func _draw_guide(vs: Vector2) -> void:
 	HS.backdrop(self, vs)
-	var wt: float = clampf(vs.x * 0.3, 300.0, 420.0)
+	var il: float = Cfg.edge_l()   # 触屏安全区（11-13）：左栏加宽让开灵动岛 / 圆角，右侧与底边让开（桌面 0）
+	var ins: Array = Cfg.hud_ins()
+	var wt: float = clampf(vs.x * 0.3, 300.0, 420.0) + il
 	HS.left_panel(self, vs, wt, wt - 70.0, 0.0)
-	HS.title_block(self, font, Vector2(48, vs.y * 0.2), "01", "操 作", "操作说明", "GUIDE", 1.0, 64)
-	HS.hr_mark(self, font, Vector2(48, vs.y - 120), 1.0, HS.INK2, ["RHODES ISLAND", "OPERATION", "MANUAL"])
+	HS.title_block(self, font, Vector2(48 + il, vs.y * 0.2), "01", "操 作", "操作说明", "GUIDE", 1.0, 64)
+	HS.hr_mark(self, font, Vector2(48 + il, vs.y - 120), 1.0, HS.INK2, ["RHODES ISLAND", "OPERATION", "MANUAL"])
 	var touch: bool = Pad.touch_ui()
 	var rows: Array = _guide_rows(touch)
 	var x0: float = wt + 60.0
-	var x1: float = vs.x - 48.0
+	var x1: float = vs.x - 48.0 - float(ins[2])
 	var top: float = maxf(40.0, vs.y / 2.0 - rows.size() * 22.0 - 30.0)
 	var step: float = minf(44.0, (vs.y - top - 110.0) / rows.size())
 	var kx: float = x0 + 200.0
@@ -1235,9 +1237,10 @@ func _draw_guide(vs: Vector2) -> void:
 		UI.text_at(self, font, Vector2(kx, y + step / 2.0 - 3.0), rows[i][1], 18, HS.CYB, "lm")
 		if not touch and rows[i][2] != "":
 			UI.text_at(self, font, Vector2(px, y + step / 2.0 - 3.0), rows[i][2], 18, Color8(200, 210, 222), "lm")
-	HS.bottom_bar(self, vs, 52.0)
-	UI.text_at(self, font, Vector2(x0, vs.y - 26.0), "编队、灯火、溟痕、指挥、藏品、商人：见开局指南", 14, HS.MUTE, "lm")
-	HS.ghost_btn(self, font, Rect2(vs.x - 196, vs.y - 44, 168, 36), "返回", Pad.hint("Esc", "Ⓑ", ""))
+	var bb: float = float(ins[3]) * 0.6
+	HS.bottom_bar(self, vs, 52.0 + bb)
+	UI.text_at(self, font, Vector2(x0, vs.y - 26.0 - bb), "编队、灯火、溟痕、指挥、藏品、商人：见开局指南", 14, HS.MUTE, "lm")
+	HS.ghost_btn(self, font, Rect2(vs.x - 196 - float(ins[2]), vs.y - 44 - bb, 168, 36), "返回", Pad.hint("Esc", "Ⓑ", ""))
 
 
 ## 致谢与声明：内容来自 data/credits.json。左列条目名（长的折两行）、右列说明 + 链接。
@@ -1374,7 +1377,8 @@ func _credits_input(event: InputEvent) -> void:
 ## 10-22 用户：换寻访 hh_style 模板——暗场 + 左侧浅灰斜切栏（大号中文 + 像素描边英文），右侧正文（滚动逻辑不变）
 func _draw_credits(vs: Vector2) -> void:
 	HS.backdrop(self, vs)
-	var wt: float = clampf(vs.x * 0.3, 300.0, 420.0)
+	var il: float = Cfg.edge_l()   # 触屏安全区（11-13）：左栏加宽让开灵动岛 / 圆角；正文面板右沿让开右侧与胶囊，底边让开横条（桌面 0）
+	var wt: float = clampf(vs.x * 0.3, 300.0, 420.0) + il
 	HS.left_panel(self, vs, wt, wt - 70.0, 0.0)
 	var title: String = credits_data.get("title", "致谢与声明")
 	var tsz := 56
@@ -1382,22 +1386,23 @@ func _draw_credits(vs: Vector2) -> void:
 		var tt := UI.Loc.s(title)
 		while tsz > 24 and font.get_string_size(tt, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(tsz)).x * 1.12 > wt - 100.0:
 			tsz -= 2
-	HS.title_block(self, font, Vector2(48, vs.y * 0.2), "02", "致 谢", title, "CREDITS", 1.0, tsz)
-	HS.hr_mark(self, font, Vector2(48, vs.y - 120), 1.0, HS.INK2, ["ARKNIGHTS", "FAN GAME", "NON-COMMERCIAL"])
+	HS.title_block(self, font, Vector2(48 + il, vs.y * 0.2), "02", "致 谢", title, "CREDITS", 1.0, tsz)
+	HS.hr_mark(self, font, Vector2(48 + il, vs.y - 120), 1.0, HS.INK2, ["ARKNIGHTS", "FAN GAME", "NON-COMMERCIAL"])
 	var secs: Array = credits_data.get("sections", [])
 	var touch: bool = Pad.touch_ui()
 	var px0: float = wt + 24.0
-	var pw: float = minf(CREDITS_W, vs.x - px0 - (12.0 if touch else 24.0))
+	var pw: float = minf(CREDITS_W, vs.x - px0 - (12.0 if touch else 24.0) - float(Cfg.hud_ins()[2]))
 	var tx: float = CREDITS_LX + CREDITS_LW + 18.0
 	var tw: float = pw - tx - 56.0   # 右边留滚动条
 	if tw != cr_lay_w or cr_lay.is_empty():
 		cr_lay = _credits_layout(secs, CREDITS_FS, tw)
 		cr_lay_w = tw
-	var h: float = vs.y
+	var h: float = vs.y - float(Cfg.hud_ins()[3]) * 0.6
 	var r := Rect2(roundf(px0), 0.0, pw, h)
 	cr_panel = Rect2(Vector2.ZERO, vs)   # 整屏都算面板：只有「返回」/ 按键关
 	HS.spaced(self, font, r.position + Vector2(36, 44), credits_data.get("en", "CREDITS"), 11, HS.MUTE, 3.0)
-	UI.text(self, font, Vector2(r.position.x + pw - 336, 50), "明日方舟同人作品 · 非商业 · V2.0", 13, HS.MUTE, HORIZONTAL_ALIGNMENT_RIGHT, 300)   # D1：手机标题页底栏不再写声明与版本号，这里补上
+	var vx: float = minf(r.position.x + pw - 36.0, vs.x - Cfg.edge_r(vs, 34.0, 56.0) - 8.0)   # 右沿停在 B站胶囊左边（桌面 = 原位）
+	UI.text(self, font, Vector2(vx - 300.0, 50), "明日方舟同人作品 · 非商业 · V2.0", 13, HS.MUTE, HORIZONTAL_ALIGNMENT_RIGHT, 300)   # D1：手机标题页底栏不再写声明与版本号，这里补上
 	UI.rule(self, r.position + Vector2(36, 68), r.position + Vector2(pw - 36, 68), UI.EDGE_DIM)
 	# 正文可视区（钉住的标题与底部之间）
 	cr_vr = Rect2(r.position.x + 20, r.position.y + CREDITS_HEAD - 8.0, pw - 40, h - CREDITS_HEAD + 8.0 - CREDITS_FOOT)

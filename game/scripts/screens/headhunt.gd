@@ -104,6 +104,8 @@ var choices: Array = []   # 选职业：职业；选干员：干员 id
 var rects: Array = []     # [Rect2（设计坐标）, 动作]
 var _k := 1.0             # 设计 → 界面单位
 var _off := Vector2.ZERO
+var _ir := 0.0   # 顶栏右侧让出的设计单位（B站胶囊压在设计稿右上角时，Cfg.capsule_ui）
+var _vs := Vector2(1280, 720)   # 本帧界面尺寸：整屏矩形换到设计坐标用（安全区里设计稿不再左右对称居中）
 var _od := {}
 var _img := {}            # 金光遮罩合成用的原图缓存
 var _glow := {}           # [档, 帧, 拉链档] → 裁好的金光贴图
@@ -674,11 +676,18 @@ func _btn(r: Rect2, act) -> void:
 func draw(vs: Vector2) -> void:
 	rects.clear()
 	_warm()
+	_vs = vs
 	var ci: CanvasItem = g.hud
 	_phone = Pad.touch
-	D = Vector2(1280, clampf(roundf(1280.0 * vs.y / vs.x), 600.0, 720.0)) if _phone else DESK
-	_k = minf(vs.x / D.x, vs.y / D.y)
-	_off = ((vs - D * _k) / 2.0).round()
+	# 触屏：设计稿按安全区（去掉灵动岛 / 圆角 / 横条）的比例定高，再放进安全区（胶囊压右上时左挪或缩，Cfg.fit_design）；桌面不变
+	var ins: Array = Cfg.hud_ins()
+	var sa := Vector2(maxf(1.0, vs.x - float(ins[0]) - float(ins[2])), maxf(1.0, vs.y - float(ins[1]) - float(ins[3])))
+	D = Vector2(1280, clampf(roundf(1280.0 * sa.y / sa.x), 600.0, 720.0)) if _phone else DESK
+	var fit: Array = Cfg.fit_design(vs, D, false)   # 整版不为胶囊缩：顶栏右侧（返回 / 页码）用 _ir 让开胶囊
+	_k = fit[0]
+	_off = fit[1]
+	var cap: Rect2 = Cfg.capsule_ui()
+	_ir = maxf(0.0, (_off.x + D.x * _k) - (cap.position.x - 6.0)) / _k if cap.size.x > 0.0 else 0.0
 	ci.draw_rect(Rect2(Vector2.ZERO, vs), HS.DARK)
 	var k0 := _k
 	var off0 := _off
@@ -759,7 +768,7 @@ func _draw_trans(p: float) -> void:
 		return
 	var ci: CanvasItem = g.hud
 	var f: Font = g.font
-	var full := Rect2(-_off / _k, D + _off * 2.0 / _k)
+	var full := Rect2(-_off / _k, _vs / _k)
 	var sk := D.y * 0.35   # 斜切量
 	match _tr:
 		"enter":
@@ -831,7 +840,7 @@ func _draw_entry() -> void:
 	var n := _vouchers()
 	var locked := Roster.locked_ids()
 	HS.left_panel(ci, D, 470, 330, 62)
-	_btn(HS.topbar(ci, f, D, ["PERSONNEL /", "RECRUITMENT"], "寻访"), "back")
+	_btn(HS.topbar(ci, f, D, ["PERSONNEL /", "RECRUITMENT"], "寻访", 1.0, "01 / 01", "返回  Esc", 0.0, _ir), "back")
 	HS.title_block(ci, f, Vector2(36, _p(150, 116)), "01", "人事寻访", "寻访", "HEADHUNT", 1.0, int(_p(80, 64)))
 	var vr := Rect2(36, _p(400, 320), 380, 76)
 	ci.draw_rect(vr, Color(1, 1, 1, 0.55))
@@ -994,7 +1003,7 @@ func _draw_class() -> void:
 	var ci: CanvasItem = g.hud
 	var f: Font = g.font
 	HS.left_panel(ci, D, 500, 380, 62)
-	HS.topbar(ci, f, D, ["PERSONNEL /", "RECRUITMENT"], "定向寻访 · 选择职业", 1.0, "01 / 02", "")   # 11-01 docs/211 D13：有底栏的页「返回」只放底栏
+	HS.topbar(ci, f, D, ["PERSONNEL /", "RECRUITMENT"], "定向寻访 · 选择职业", 1.0, "01 / 02", "", 0.0, _ir)   # 11-01 docs/211 D13：有底栏的页「返回」只放底栏
 	var by := HS.title_block(ci, f, Vector2(36, _p(150, 116)), "01", "定向寻访", "定向寻访", "DIRECTED", 1.0, int(_p(72, 60)))
 	UI.text_at(ci, f, Vector2(36, by + 34), "先选职业，再从未解锁干员中指定 1 名。", int(_p(15, 17)), HS.INK, "lm")
 	UI.text_at(ci, f, Vector2(36, by + 60), "消耗寻访凭证 %d 张。" % _cost_pick(), int(_p(15, 17)), HS.INK, "lm")
@@ -1087,7 +1096,7 @@ func _draw_pick() -> void:
 	var ci: CanvasItem = g.hud
 	var f: Font = g.font
 	HS.right_panel(ci, D, 780, 640, 62, D.y - 88)
-	HS.topbar(ci, f, D, ["PERSONNEL /", "TRANSFER"], "定向寻访 · 指定干员", 1.0, "02 / 02", "")   # D13：返回在底栏
+	HS.topbar(ci, f, D, ["PERSONNEL /", "TRANSFER"], "定向寻访 · 指定干员", 1.0, "02 / 02", "", 0.0, _ir)   # D13：返回在底栏
 	var n := choices.size()
 	var gm := _pick_geom()
 	var cap: int = gm.cap
@@ -1225,7 +1234,7 @@ func _blit(tx: Texture2D, frame: int, fsz: Vector2, origin: Vector2, pos: Vector
 
 func _skip() -> void:
 	var ci: CanvasItem = g.hud
-	var br := Rect2(D.x - 210, 26, 180, 50)
+	var br := Rect2(D.x - 210 - _ir, 26, 180, 50)   # 右上：让开 B站胶囊（_ir，桌面 0）
 	HS.para(ci, br, Color(0, 0, 0, 0.3), UI.TEXT)
 	UI.text_at(ci, g.font, br.get_center(), "跳过", 17, UI.TEXT, "mm", true)
 	UI.btn_key(ci, g.font, br, "ESC", UI.SUB, 10, br.size.y * HS.SKEW + 12.0)   # 10-31 TA H7
@@ -1327,7 +1336,7 @@ func _draw_bag() -> void:
 		else:
 			a = 0.9 * (1.0 - (bt - 0.27) / 0.18)
 			c = Color.WHITE
-		ci.draw_rect(Rect2(-_off / _k, D + _off * 2.0 / _k), UI.fa(c, clampf(a, 0.0, 1.0)))
+		ci.draw_rect(Rect2(-_off / _k, _vs / _k), UI.fa(c, clampf(a, 0.0, 1.0)))
 	_skip()
 
 
@@ -1518,7 +1527,7 @@ func _draw_summary10() -> void:
 			any6 = true
 	var warm: Color = _rar_col(6 if any6 else 5)
 	# ---- 背景：暗底、中心暖光（同心圆叠加）、三道斜向光带缓慢平移、上浮的像素尘
-	var full := Rect2(-_off / _k, D + _off * 2.0 / _k)
+	var full := Rect2(-_off / _k, _vs / _k)
 	ci.draw_rect(full, Color8(9, 11, 16))
 	for k in 7:
 		ci.draw_circle(Vector2(D.x / 2.0, D.y * 0.42), 640.0 - k * 80.0, UI.fa(warm, 0.022 + k * 0.004))
@@ -1534,7 +1543,7 @@ func _draw_summary10() -> void:
 		var sz := 2.0 + float(hsh % 3)
 		ci.draw_rect(Rect2(px, py, sz, sz), UI.fa(warm if k % 3 else Color.WHITE, 0.10 + 0.05 * float(hsh % 4)))
 	HS.outline_px(ci, Vector2(30, D.y - _p(196.0, 176.0)), "RECRUITMENT", 9.0, Color(1, 1, 1, 0.05), Color8(9, 11, 16))
-	HS.topbar(ci, f, D, ["PERSONNEL /", "RECRUITMENT"], "寻访结果", 1.0, "%02d / %02d" % [n, Roster.TEN], "")
+	HS.topbar(ci, f, D, ["PERSONNEL /", "RECRUITMENT"], "寻访结果", 1.0, "%02d / %02d" % [n, Roster.TEN], "", 0.0, _ir)
 	# ---- 十张卡
 	var gap := 6.0
 	var x0 := 22.0
@@ -1648,7 +1657,7 @@ func _draw_summary() -> void:
 	var f: Font = g.font
 	var t := 99.0 if (UM.rm() or UM.skip_all()) else _now() - t0
 	HS.left_panel(ci, D, 400, 290, 62)
-	HS.topbar(ci, f, D, ["PERSONNEL /", "RECRUITMENT"], "本次寻访", 1.0, "01 / 01", "")
+	HS.topbar(ci, f, D, ["PERSONNEL /", "RECRUITMENT"], "本次寻访", 1.0, "01 / 01", "", 0.0, _ir)
 	var by := HS.title_block(ci, f, Vector2(36, _p(150, 116)), "01", "人员寻访记录", "本次寻访", "RECORD", 1.0, int(_p(72, 60)))
 	UI.text_at(ci, f, Vector2(36, by + 34), "本次加入干员如下。", 18, HS.INK, "lm")
 	ci.draw_rect(Rect2(40, by + 74, 3, 100), HS.INK)

@@ -58,6 +58,7 @@ var t_open := 0.0
 var t_page := 0.0
 var skipped := false
 var cells: Array = []   # [Rect2, 动作, 参数]：命中区（终态位置）
+var _fo := Vector2.ZERO   # 内容框左上角（触屏安全区，Cfg.safe_frame；桌面 0）：内容画在框坐标里，命中区 / 鼠标都换到框坐标
 var portraits: Array = []   # [画出的矩形, 允许的框]：干员 / 敌人像（快检检查不出框）
 var _bbox_cache := {}
 var _gen_tex := {}
@@ -297,7 +298,7 @@ func click(mp: Vector2) -> bool:
 		skipped = true
 		return true
 	for c in cells:
-		if c[0].has_point(mp):
+		if c[0].has_point(mp - _fo):   # 命中区在内容框坐标里
 			_act(c[1], c[2])
 			return true
 	return true   # 全屏界面：点空白处不落到下面的结算按钮
@@ -583,7 +584,7 @@ func _button(r: Rect2, label: String, keyname: String, act: String, hov: bool) -
 
 
 func _mouse() -> Vector2:
-	return g.hud.get_local_mouse_position()
+	return g.hud.get_local_mouse_position() - _fo
 
 
 func _hovered(r: Rect2) -> bool:
@@ -617,12 +618,19 @@ func draw(vs: Vector2) -> void:
 		if _last_mouse.x >= 0.0:
 			g.kb_nav = false
 		_last_mouse = mp
+	# 触屏安全区（11-13）：背景铺满整屏，内容放进去掉灵动岛 / 圆角 / 胶囊 / 横条的框里（桌面框 = 整屏，画面不变）
+	var fr: Rect2 = Cfg.safe_frame(vs)
+	_fo = fr.position
+	if _fo != Vector2.ZERO:
+		ci.draw_set_transform(_fo)
 	if page == 0:
-		_draw_overview(vs)
+		_draw_overview(fr.size)
 	elif page == 2 and has_taken():
-		_draw_taken(vs)
+		_draw_taken(fr.size)
 	else:
-		_draw_detail(vs)
+		_draw_detail(fr.size)
+	if _fo != Vector2.ZERO:
+		ci.draw_set_transform(Vector2.ZERO)
 
 
 ## 详情页标题行：徽记 + 小英文 + 中文标题 + 结果（胜利：结局名 · 探索完成；失败：探索终止，洋红）。返回下一块的 y
