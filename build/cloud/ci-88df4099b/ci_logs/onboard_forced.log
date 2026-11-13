@@ -1,0 +1,25 @@
+# onboard_forced
+# 参数：--headless --path /work/repo/game res://tests/onboard_forced_test.tscn -- --regression --seed=1 --balance --seed=1 --op=mizuki --onboard=ask
+# 用时 18 秒；结束时全机 Godot 7 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PF FXLAZY t=0.0 skadi n=14 ms=13
+ONBOARD card=link t=0.0 real=0.3
+ONBOARD card=deploy t=0.0 real=0.3
+ONBOARD card=regroup t=0.0 real=0.3
+ONBOARD card=lamp t=0.0 real=0.3
+ONBOARD card=beacon t=0.0 real=0.3
+BEACON lit cleared=3 in_s=0.0 min_d=9999 hold_s=0.0 via=demo t=0.0 mires=3
+ONBOARD card=focus t=0.0 real=0.3
+ONBOARD toast=merchant
+ONBOARD card=drill_end t=0.0 real=6.4
+ONBOARD card=drill_end t=0.0 real=26.5
+ONBOARD forced_done route=vet t=9999.0 real=26.5
+ONBOARD FORCED failures=0
+PF RUNRELEASE tex=0 audio=0
+
+
+## stderr
+
