@@ -1436,6 +1436,6 @@
  "toy": {
   "_doc": "B站 Toy「支持作者」奖励（docs/313，用户 11-07 定，只在 Toy 版出现）：support_follow = 1 显示「关注作者」一项（送 5 张寻访凭证）；support_bvid = 三连检测的视频 BV 号（送 5 张凭证 + 专属分享卡边框），留空 = 不显示三连那一项（PV 还没发）",
   "support_follow": 1,
-  "support_bvid": ""
+  "support_bvid": "BV1H3Wz6rEAb"
  }
 }

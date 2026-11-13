@@ -350,8 +350,20 @@ static func _draw_row(ci: CanvasItem, o: Vector2, k: float, font: Font, m: Dicti
 		var bh2 := 18.0 * k
 		var by2 := tx.y + (fs - bh2) * 0.5 + 2.0 * k
 		var q2 := bh2 * 0.2
+		# 11-14 用户：「领 10 张」两位数字挤在一起（中文字体与数字回退字体的字距不一致）——逐字画、每字按自身宽度 + 1 像素间隔排
+		var txt2 := UI.Loc.s(s2)
+		var gap2 := maxf(1.0, 1.0 * k)
+		var tw2 := 0.0
+		for ch2 in txt2:
+			tw2 += font.get_string_size(ch2, HORIZONTAL_ALIGNMENT_LEFT, -1, bfs2).x + gap2
+		tw2 -= gap2
+		bw2 = maxf(bw2, tw2 + 16.0 * k)
 		ci.draw_colored_polygon(PackedVector2Array([Vector2(tx.x + q2, by2), Vector2(tx.x + bw2, by2), Vector2(tx.x + bw2 - q2, by2 + bh2), Vector2(tx.x, by2 + bh2)]), _fa(C, a))
-		ci.draw_string(font, Vector2(tx.x, by2 + bh2 * 0.5 + (font.get_ascent(bfs2) - font.get_descent(bfs2)) * 0.5), UI.Loc.s(s2), HORIZONTAL_ALIGNMENT_CENTER, bw2, bfs2, _fa(INK, a))
+		var base2 := by2 + bh2 * 0.5 + (font.get_ascent(bfs2) - font.get_descent(bfs2)) * 0.5
+		var x2 := tx.x + (bw2 - tw2) * 0.5
+		for ch2 in txt2:
+			ci.draw_string(font, Vector2(round(x2), base2), ch2, HORIZONTAL_ALIGNMENT_LEFT, -1, bfs2, _fa(INK, a))
+			x2 += font.get_string_size(ch2, HORIZONTAL_ALIGNMENT_LEFT, -1, bfs2).x + gap2
 	if w > 0.0:
 		ci.draw_line(P.call(tt.tx, tt.ul), P.call(tt.tx + (tt.sw - tt.tx - 64.0) * w, tt.ul), _fa(C, a * w), maxf(1.0, 1.4 * k))
 		var cx: float = tt.sw - 22.0 - h * 0.15
