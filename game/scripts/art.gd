@@ -274,7 +274,9 @@ static func tex_hi(name: String, keep_cached := true) -> Texture2D:
 			t = load(q2)
 		if t != null:
 			# 临时立绘随界面释放，倍率跟着贴图，免得反复进出留下旧 RID。
-			t.set_meta(&"_ui_density", 2.0)
+			var fit: Array = web_fit(t, 2.0)
+			t = fit[0]
+			t.set_meta(&"_ui_density", fit[1])
 	if t == null:
 		t = tex(name, keep_cached)
 		if t == null and not keep_cached and not op_1x_on() and _packed_path(name + "@1x") != "":
@@ -444,6 +446,32 @@ static func _halve(img: Image) -> Image:
 	return half
 
 
+## 网页贴图边长上限（手机 WebGL 常见 MAX_TEXTURE_SIZE = 4096）；big_n = 因超限减半读了几张
+const WEB_MAX_TEX := 4096
+static var big_n := 0
+
+
+## 11-14 用户转报：手机网页寻访结果里水月（@2x 帧条宽 6912）/ 浊心斯卡蒂（4608）画成黑块——超过手机 WebGL 4096 贴图上限。
+## 网页上超限的图逐次减半到上限内，返回 [贴图, 新密度]；屏幕大小 / 锚点 / 帧数不变（绘制处都按 hires_of 除）。没超限原样返回。
+## tex（特效帧条除外）/ tex_hi 读进来都过这一道（--webmaxtex 桌面模拟）
+static func web_fit(t: Texture2D, density: float) -> Array:
+	if t == null or maxi(t.get_width(), t.get_height()) <= WEB_MAX_TEX:
+		return [t, density]
+	if not (OS.has_feature("web") or (OS.is_debug_build() and OS.get_cmdline_user_args().has("--webmaxtex"))):
+		return [t, density]
+	var big: Image = t.get_image()
+	if big == null or big.is_empty():
+		return [t, density]
+	big = big.duplicate()
+	if big.is_compressed():
+		big.decompress()
+	while maxi(big.get_width(), big.get_height()) > WEB_MAX_TEX and big.get_width() % 2 == 0 and big.get_height() % 2 == 0:
+		big.resize(big.get_width() / 2, big.get_height() / 2, Image.INTERPOLATE_NEAREST)
+		density *= 0.5
+	big_n += 1
+	return [ImageTexture.create_from_image(big), density]
+
+
 ## 取贴图；找不到返回 null
 static func tex(name: String, keep_cached := true) -> Texture2D:
 	if _cache.has(name):
@@ -507,6 +535,10 @@ static func tex(name: String, keep_cached := true) -> Texture2D:
 		if not ph.is_empty():
 			t = ph[0]
 			density = ph[1]
+	if t != null and not name.begins_with("fx_"):   # 特效帧条不缩：调用处的锚点 / 截取写死在原图像素上，手机网页本来就读半分辨率 @h（都在 4096 内）；寻访光层只取 CPU 像素切帧
+		var fit: Array = web_fit(t, density)
+		t = fit[0]
+		density = fit[1]
 	if t != null and normal_maps and _wants_normal(name) and src_path != "":
 		t = _with_normal(t, name, src_path)
 	if keep_cached:
