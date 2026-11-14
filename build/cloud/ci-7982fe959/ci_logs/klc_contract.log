@@ -1,0 +1,15 @@
+# klc_contract
+# 参数：--headless --path /work/repo/game res://tests/klc_contract_test.tscn -- --regression --seed=1 --balance --seed=1 --op=irene
+# 用时 16 秒；结束时全机 Godot 8 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PF FXLAZY t=2.1 kaltsit n=6 ms=15
+PF FXLAZY t=2.1 lumen n=6 ms=3
+KLC CONTRACT failures=0
+PF RUNRELEASE tex=0 audio=0
+
+
+## stderr
+
