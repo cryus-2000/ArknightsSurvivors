@@ -20,6 +20,8 @@ var avatar: Texture2D
 var nickname := ""
 var qr: Texture2D
 var _asked := false
+var allow_ask := true          # false：还没有玩家点按（结算自动弹出），先不弹平台确认框
+var _profile_done := false
 var busy := false
 var status := ""              # 分享浮层上的一行状态（保存结果）
 var out_dir := ""             # 测试 / 录像用：桌面版保存改写到这里（缺省 = 图片/方舟幸存者）
@@ -52,14 +54,23 @@ func _on_probe(args: Array) -> void:
 
 
 ## 打开分享卡时调（紧跟玩家点按，平台的数据确认弹窗要用户操作触发）：每局只问一次
-func want_profile() -> void:
-	if _js == null or not sup.profile or _asked:
-		return
+func want_profile() -> bool:
+	if _js == null or not sup.profile or _asked or not allow_ask:
+		return false
 	_asked = true
 	_js.profile(_cb(_on_profile))
+	return true
+
+
+## 等头像昵称回来（拒绝 / 失败也算回来），最多 15 秒
+func profile_wait() -> void:
+	var t0 := Time.get_ticks_msec()
+	while not _profile_done and Time.get_ticks_msec() - t0 < 15000:
+		await get_tree().process_frame
 
 
 func _on_profile(args: Array) -> void:
+	_profile_done = true
 	if args.size() < 2 or str(args[0]) != "ok":
 		return   # 拒绝 / 失败：不画头像昵称
 	var r = JSON.parse_string(str(args[1]))

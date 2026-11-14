@@ -53,6 +53,10 @@ var share_toy
 var share_open := false
 var share_t := 0.0
 var share_data := {}
+var _share_auto := false   # 11-15 用户：结算入场演完自动弹出分享卡，每局一次
+var _share_wait := 0.0
+var _share_auto_open := false   # 这次是自动弹出的：开头一小段不吃确认键，免得连按 Enter 误存图
+const SHARE_AUTO_DELAY := 0.6     # 入场演完先停一下，让玩家看到战绩
 const SHARE_K := 0.78                       # 卡 600×800 → 468×624
 const SHARE_POS := Vector2(406, 40)         # 卡在 1280×720 里的左上角
 const VIEW := Rect2(28, 288, 884, 350)
@@ -111,6 +115,16 @@ func tick(dt: float) -> void:
 		cells = int(g.meta_result.get("cells", 0))
 		vouchers = int(g.roster_new.get("hunt", 0))
 		exchanged = 0
+		_share_auto = Cfg.dev_args().is_empty() or "--shareauto" in Cfg.dev_args()   # 测试 / 截图不自动弹，免得改动金样
+		_share_wait = 0.0
+	if _share_auto and done():
+		if _pending != "" or share_open or g.run_stats.open or g.run_log.open or g.headhunt.open:
+			_share_auto = false   # 玩家已经点了别的
+		else:
+			_share_wait += dt
+			if _share_wait >= SHARE_AUTO_DELAY:
+				_share_auto = false
+				_open_share(false)
 	if _fb_auto and done():
 		_fb_auto = false
 		_run("share" if "--shareopen" in Cfg.dev_args() else "feedback")   # --shareopen：截图分享卡（docs/313 专属边框，配 --supframe）
@@ -331,14 +345,18 @@ func _run(id: String) -> void:
 		"feedback": g.open_feedback(preload("res://scripts/core/feedback.gd").summary(model, wall_s))
 
 
-func _open_share() -> void:
+func _open_share(gesture := true) -> void:
 	if share == null:
 		share = ShareCard.new(g)
 	if share_toy == null:
 		share_toy = ShareToy.new()
+		share_toy.allow_ask = gesture   # 自动弹出不是玩家点按：头像昵称确认弹窗留到玩家第一次点保存再问
 		g.add_child(share_toy)
 		share_toy.setup(g)
-	share_toy.want_profile()   # 紧跟玩家点按：平台的头像昵称确认弹窗要用户操作触发
+	if gesture:
+		share_toy.allow_ask = true
+		share_toy.want_profile()   # 紧跟玩家点按：平台的头像昵称确认弹窗要用户操作触发
+	_share_auto_open = not gesture
 	share_toy.status = ""
 	share_data = share.data(self)
 	share_open = true
@@ -358,6 +376,8 @@ func _close_share() -> void:
 
 ## 分享卡打开时的输入：Esc / Ⓑ / 点卡外 关闭；Enter / S / 点「保存图片」保存
 func _share_input(event: InputEvent) -> void:
+	if _share_auto_open and share_t < 0.45:
+		return   # 自动弹出的头一小段：连按跳过入场的键不落到「保存」上
 	if event is InputEventKey and event.pressed and not event.echo:
 		match Pad.kc(event):
 			KEY_ESCAPE, KEY_T, KEY_V: _close_share()
@@ -384,6 +404,12 @@ func _save_share() -> void:
 	if share_toy == null or share_toy.busy:
 		return
 	Sfx.play("ui_ok", -8.0)
+	if not share_toy.allow_ask:   # 自动弹出后第一次点保存：此时才是玩家点按，先问头像昵称再存
+		share_toy.allow_ask = true
+		if share_toy.want_profile():
+			share_toy.status = "正在获取头像……"
+			g.hud.queue_redraw()
+			await share_toy.profile_wait()
 	share_toy.save(share, share_toy.fill(share_data.duplicate()))
 
 
@@ -515,6 +541,8 @@ func input(event: InputEvent) -> bool:
 	if share_open:
 		_share_input(event)
 		return true
+	if _share_auto and done() and ((event is InputEventKey and event.pressed) or (event is InputEventMouseButton and event.pressed) or (event is InputEventScreenTouch and event.pressed)):
+		_share_auto = false   # 等待自动弹出期间玩家有操作：不再弹
 	if not done():   # 出场中：第一下只跳到终态，不落到按钮上；悬停也不响应
 		if (event is InputEventKey and event.pressed and not event.echo) or (event is InputEventMouseButton and event.pressed) or (event is InputEventScreenTouch and event.pressed):
 			skip()
