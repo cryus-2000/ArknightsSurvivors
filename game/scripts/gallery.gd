@@ -616,6 +616,7 @@ func _lore_text(key: String, mech: String) -> String:
 ## 动效全是界面层：界面时钟 UIMo.now()（真实帧间隔）、不碰任何随机数；「减少动态效果」时位移 / 缩放 / 扫入直接终态，只留 ≤ 120 ms 淡入。
 const DESK := Vector2(1280, 720)
 const PHONE := Vector2(740, 360)
+var _ir := 0.0   # 顶栏右侧让出的设计单位（B站胶囊压在设计稿右上角时，Cfg.capsule_ui；同 headhunt._ir）
 const ART_K := 4.0                 # 立绘倍数上限（@2x 像素）：与选人页 title.gd OP_ART_K 相同，手机 ×0.6
 const CLASS_ORDER: Array = D.CLASS_ORDER
 ## 原作职业线稿图标（寻访同一套，来源见 art/archive/incoming_1028/headhunt_professions_1025/sources.json）
@@ -693,9 +694,13 @@ func _fit_view() -> void:
 		dk = 1.0
 		doff = ((size - d) / 2.0).round()
 		return
-	var fit: Array = Cfg.fit_design(size, d)   # 触屏放进安全区（灵动岛 / 圆角 / 胶囊），桌面同原来的居中缩放
+	# 触屏放进安全区（灵动岛 / 圆角），桌面同原来的居中缩放。11-14 用户 iPhone 14 Pro Max：为胶囊整版缩到胶囊下面后，
+	# 左上浅色块往上补出一大块、右侧面板右边空出一大片白——改同寻访页：整版不为胶囊缩，顶栏「返回」用 _ir 让开胶囊
+	var fit: Array = Cfg.fit_design(size, d, false)
 	dk = fit[0]
 	doff = fit[1]
+	var cap: Rect2 = Cfg.capsule_ui()
+	_ir = maxf(0.0, (doff.x + d.x * dk) - (cap.position.x - 6.0)) / dk if cap.size.x > 0.0 and cap.end.y > doff.y else 0.0
 
 
 func _design(p: Vector2) -> Vector2:
@@ -1687,7 +1692,7 @@ func _draw_top(ph: bool, vr: Rect2) -> void:
 			var tf := UI.fit_line(font, UI.Loc.s(str(TABS[i].cn)), 11, 39.0, 8)   # 英文 Operator / Ending 比两个汉字宽：缩字号塞进 45 宽的斜格
 			UI.text_at(self, font, r.get_center() + Vector2(0, 1), tf[0], tf[1], UI.C_HZ if on else UI.C_D_INK, "mm")
 			hits.append([r.grow(2.0), "cat", i])
-		var br := Rect2(W - 52, 6, 42, 20)
+		var br := Rect2(W - 52 - _ir, 6, 42, 20)
 		UI.para(self, br, 6, UI.C_L_INK)
 		UI.text_at(self, font, br.get_center() + Vector2(0, 1), Pad.hint("ESC", "Ⓑ", "返回"), 10, UI.C_L_INV, "mm")
 		hits.append([br.grow(6.0), "back", 0])
@@ -1999,7 +2004,8 @@ func _draw_panel(e: Dictionary, ph: bool) -> void:
 		_draw_data(e, ph, px, oa, odx)
 		_xf()
 		return
-	UI.code(self, font, Vector2(px.x, 14 if ph else 72), "OPERATOR FILE  //  %s" % ["PROFILE", "STATS", "SKILL", "GROWTH"][info_tab], 7 if ph else 8, UI.fa(UI.C_L_SUB, oa))
+	var fh: String = ["PROFILE", "STATS", "SKILL", "GROWTH"][info_tab]
+	UI.code(self, font, Vector2(px.x, 14 if ph else 72), fh if ph and _ir > 0.0 else "OPERATOR FILE  //  %s" % fh, 7 if ph else 8, UI.fa(UI.C_L_SUB, oa))   # 手机「返回」为胶囊左挪时只留页名，不压字
 	var tr := Rect2(px.x, 34 if ph else 86, px.y - px.x, 26 if ph else 30)
 	var rs: Array = UI.c_tabs(self, font, tr, INFO_TABS, _itab_pos(), 6.0 if ph else 8.0, 12 if ph else 13, oa)
 	for i in rs.size():
@@ -2554,7 +2560,8 @@ func _draw_data(e: Dictionary, ph: bool, px: Vector2, oa: float, odx: float) -> 
 	var x0 := px.x
 	var w := px.y - px.x
 	var y := 14.0 if ph else 72.0
-	UI.code(self, font, Vector2(x0, y), "%s FILE  //  %s" % [str(TABS[tab].en), "LOCKED" if locked else "DATA"], 7 if ph else 8, UI.fa(UI.C_L_SUB, a))
+	var fs: String = "LOCKED" if locked else "DATA"
+	UI.code(self, font, Vector2(x0, y), fs if ph and _ir > 0.0 else "%s FILE  //  %s" % [str(TABS[tab].en), fs], 7 if ph else 8, UI.fa(UI.C_L_SUB, a))   # 同 OPERATOR FILE：「返回」为胶囊左挪时只留短名
 	y += 20.0 if ph else 16.0
 	var tag: String = str(e.get("tag", ""))
 	UI.text_at(self, font, Vector2(x0, y), ("???" if locked else str(e.name)) if ph else tag, 15 if ph else 17, UI.fa(UI.C_L_INK, a), "la", true)
