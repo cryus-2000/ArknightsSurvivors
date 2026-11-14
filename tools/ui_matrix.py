@@ -60,6 +60,7 @@ SCREENS = {
     "relic": (RUN + ["--motionshot=relic,1.6"], "shot_motion_relic_full_*.png", 120),
     "loading": (["--loadingshot"], "shot_loading.png", 90),
     "support": (["--titleshot", "--supopen"], "shot_title.png", 90),
+    "supzoom": (["--titleshot", "--supopen", "--supzoom"], "shot_title.png", 90),
     "feedback": (["--titleshot", "--fbopen"], "shot_title.png", 90),
     "credits": (["--creditsshot"], "shot_credits.png", 90),
     "guide": (["--guideshot"], "shot_guide.png", 90),

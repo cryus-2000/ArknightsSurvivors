@@ -34,6 +34,7 @@ var _cur := ""               # 正在查询的项（卡片按钮写「正在查�
 var _sc: RefCounted = null   # 边框预览用的分享卡画法（复用 share_card.gd 的相框，不另画）
 var _pv := {}                # 相框 id -> 样张数据
 var granted := 0             # 本次打开期间发的凭证（测试读）
+var _zoom := ""              # 放大查看的相框预览（奖励项 id；11-14 用户：分享卡样张要能点开放大）
 
 
 func _ready() -> void:
@@ -51,6 +52,7 @@ func open() -> void:
 	note = ""
 	row_msg = {}
 	granted = 0
+	_zoom = ""
 	Sfx.play("ui_ok")
 	queue_redraw()
 
@@ -157,6 +159,12 @@ func _process(delta: float) -> void:
 
 
 func key(kc: int) -> bool:
+	if _zoom != "":   # 放大图开着：任意确认 / 返回键先收起
+		if kc in [KEY_ESCAPE, KEY_BACKSPACE, KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]:
+			_zoom = ""
+			Sfx.play("ui_ok")
+			return true
+		return false
 	match kc:
 		KEY_ESCAPE, KEY_BACKSPACE:
 			close()
@@ -182,8 +190,17 @@ func _gui_input(event: InputEvent) -> void:
 			hover = h
 			queue_redraw()
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if _zoom != "":   # 放大图：点哪儿都收起
+			_zoom = ""
+			Sfx.play("ui_ok")
+			accept_event()
+			return
 		var h := _hit(event.position)
-		if h.begins_with("go_"):
+		if h.begins_with("pv_"):
+			_zoom = h.substr(3)
+			hover = ""
+			Sfx.play("ui_ok")
+		elif h.begins_with("go_"):
 			check(h.substr(3))
 		elif h == "close" or not _panel().has_point(event.position):
 			close()
@@ -200,17 +217,45 @@ func _preview_data(fr: String) -> Dictionary:
 
 
 ## 在 box 里画一张缩小的带相框分享卡（box 内居中、等比），dim < 1 时压暗
-func _frame_preview(fr: String, box: Rect2, dim: float) -> void:
+func _frame_preview(fr: String, box: Rect2, dim: float) -> Rect2:
 	if _sc == null:
 		var h := PreviewHost.new()
 		h.font = font
 		_sc = ShareCard.new(h)
 	var os: Vector2 = ShareCard.outer_size(fr)
 	var k: float = minf(box.size.x / os.x, box.size.y / os.y)
-	var pos: Vector2 = box.position + (box.size - os * k) * 0.5
+	var pos: Vector2 = (box.position + (box.size - os * k) * 0.5).round()
 	_sc.draw(self, _preview_data(fr), pos, k, 0.0, false)
 	if dim < 1.0:
 		draw_rect(Rect2(pos, os * k), Color(0.02, 0.03, 0.04, 1.0 - dim))
+	return Rect2(pos, os * k)
+
+
+## 预览右下角的放大镜角标（提示可点开）
+func _zoom_badge(r: Rect2, hov: bool) -> void:
+	var s: float = 22.0 if Pad.touch_ui() else 18.0
+	var b := Rect2(r.end - Vector2(s, s) - Vector2(4, 4), Vector2(s, s))
+	draw_rect(b, Color(0.02, 0.03, 0.04, 0.85))
+	draw_rect(b, UI.CYAN if hov else UI.CYAN_DIM, false, 1.0)
+	var c: Vector2 = b.position + Vector2(s * 0.44, s * 0.44)
+	var rad: float = s * 0.22
+	var col: Color = UI.CYAN if hov else UI.TEXT
+	draw_arc(c, rad, 0.0, TAU, 20, col, 1.5, true)
+	draw_line(c + Vector2(rad, rad) * 0.72, b.end - Vector2(s, s) * 0.2, col, 2.0, true)
+
+
+## 放大查看一张相框样张：盖住浮层，点任意处 / Esc 收起
+func _draw_zoom() -> void:
+	draw_rect(Rect2(Vector2.ZERO, size), Color(0.01, 0.02, 0.03, 0.9))
+	var sr: Rect2 = Cfg.touch_safe_rect(size)
+	var tl: bool = Pad.touch_ui()
+	var cap_h: float = 56.0
+	var box := Rect2(sr.position + Vector2(16, 16), sr.size - Vector2(32, 32 + cap_h))
+	var r := _frame_preview(str(TS.FRAME_OF[_zoom]), box, 1.0)
+	var fl := UI.Loc.s("专属分享卡边框「%s」" % TS.frame_name(_zoom))
+	var fs := 20 if tl else 18
+	UI.text(self, font, Vector2(sr.position.x, r.end.y + 30.0), fl, fs, UI.CYAN, HORIZONTAL_ALIGNMENT_CENTER, sr.size.x)
+	UI.text(self, font, Vector2(sr.position.x, r.end.y + 52.0), "点击任意处返回", 14 if tl else 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, sr.size.x)
 
 
 func _hit(p: Vector2) -> String:
@@ -270,7 +315,11 @@ func _draw() -> void:
 		var pvh: float = gb.position.y - 22.0 - (r.position.y + 12.0)
 		var pvw: float = minf(pvh * 0.69, tw * (0.30 if UI.Loc.en() else 0.42))   # 英文文字长，预览收窄给文字让位
 		var pv := Rect2(r.end.x - 14.0 - pvw, r.position.y + 12.0, pvw, pvh)
-		_frame_preview(str(TS.FRAME_OF[id]), pv, dim)
+		var pvr := _frame_preview(str(TS.FRAME_OF[id]), pv, dim)
+		btns["pv_" + id] = pvr
+		if hover == "pv_" + id:
+			draw_rect(pvr.grow(2.0), UI.CYAN, false, 1.5)
+		_zoom_badge(pvr, hover == "pv_" + id)
 		var twt: float = tw - pvw - 10.0
 		UI.text_fit(self, font, Vector2(tx, r.position.y + (34 if ph else 30)), "关注作者" if id == "follow" else "三连视频", 21 if tl else 19, Color(UI.TEXT, dim), twt, 14)
 		UI.text_fit(self, font, Vector2(tx, r.position.y + (58 if ph else 52)), "在 B站关注作者" if id == "follow" else "点赞 + 投币 + 收藏 PV", 14 if tl else 13, Color(UI.SUB, dim), twt, 10)
@@ -280,6 +329,9 @@ func _draw() -> void:
 		var cut: int = maxi(fl.find("「"), fl.find(" '"))
 		var ffs: int = 14 if tl else 13
 		var fy: float = r.position.y + (116 if ph else 106)
+		if cut > 0:   # 两行时第二行别压到领取按钮（手机卡片矮）：放不下就并成一行缩字
+			if fy + ffs + 7.0 > gb.position.y - 6.0:
+				cut = -1
 		var fcol := Color(UI.CYAN, dim * 0.8)
 		if cut > 0:
 			UI.text_fit(self, font, Vector2(tx, fy), fl.substr(0, cut).strip_edges(), ffs, fcol, twt, 10)
@@ -300,6 +352,8 @@ func _draw() -> void:
 	var ow: float = 150.0 if ph else 130.0
 	btns["close"] = Rect2(pr.end.x - 28.0 - ow, by, ow, bh)
 	_btn("close", "关闭", "ESC" if kb else "", false)
+	if _zoom != "":
+		_draw_zoom()
 
 
 func _btn(id: String, label: String, k: String, primary: bool, off := false) -> void:

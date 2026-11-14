@@ -417,6 +417,8 @@ func _ready() -> void:
 		if Cfg.dev_args().has("--supopen"):
 			get_tree().create_timer(0.6 if Cfg.dev_args().has("--supcheck") else 1.4).timeout.connect(func():
 				open_support()
+				if Cfg.dev_args().has("--supzoom"):
+					sup_view._zoom = "follow"   # 截图：放大查看边框样张
 				if Cfg.dev_args().has("--supcheck"):
 					sup_view.check())   # 截图：标题页盖上「支持作者」浮层（--supcheck 顺手点一次检查并领取）
 		if Cfg.dev_args().has("--fbopen"):
