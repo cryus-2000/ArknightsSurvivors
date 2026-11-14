@@ -496,7 +496,7 @@ func _footer(ci: CanvasItem, d: Dictionary, acc: Color) -> void:
 	if d.avatar is Texture2D:
 		_avatar(ci, d, Vector2(54, 745), 30.0, acc)
 		tx = 96.0
-	_t(ci, Vector2(tx, 722), d.name, 20, HH.INK)
+	_t(ci, Vector2(tx, 733 if d.qr is Texture2D else 722), d.name, 20, HH.INK)   # 有码时名字下面不再有副标题，名字居中对齐头像
 	if d.qr is Texture2D:   # 11-15 用户：有二维码就只放码，不写「扫码……」
 		_qr(ci, d, Rect2(W - 104, 702, 86, 86), HH.LIGHT)
 	else:   # 没有二维码（itch / 桌面版）：右侧写游戏名
