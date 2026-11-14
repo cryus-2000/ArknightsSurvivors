@@ -274,9 +274,15 @@ static func tex_hi(name: String, keep_cached := true) -> Texture2D:
 			t = load(q2)
 		if t != null:
 			# 临时立绘随界面释放，倍率跟着贴图，免得反复进出留下旧 RID。
-			var fit: Array = web_fit(t, 2.0)
-			t = fit[0]
-			t.set_meta(&"_ui_density", fit[1])
+			var dens := 2.0
+			var cr: Texture2D = web_crop_strip(t)   # 超限的界面立绘先对称裁掉每帧左右透明边（保住 @2x 和全部帧），裁完仍超限才减半
+			if cr != null:
+				t = cr
+			else:
+				var fit: Array = web_fit(t, dens)
+				t = fit[0]
+				dens = fit[1]
+			t.set_meta(&"_ui_density", dens)
 	if t == null:
 		t = tex(name, keep_cached)
 		if t == null and not keep_cached and not op_1x_on() and _packed_path(name + "@1x") != "":
@@ -470,6 +476,44 @@ static func web_fit(t: Texture2D, density: float) -> Array:
 		density *= 0.5
 	big_n += 1
 	return [ImageTexture.create_from_image(big), density]
+
+
+## 11-14 用户：减半后水月 / 浊心斯卡蒂寻访立绘比别人粗。界面立绘（tex_hi，方帧横排帧条）超限时改为对称裁掉每帧左右的透明边：
+## 各帧非透明区并集按帧中线取左右较宽一侧，帧宽变窄、帧数 / 密度 / 帧中线不变（界面都按帧中线或并集区摆）；
+## 裁掉的左边宽记 meta _crop_dx（帧内横坐标表要减它，如 hud_ult_v 眼睛表）。不是方帧、读不到像素或裁完仍超限返回 null
+static func web_crop_strip(t: Texture2D) -> Texture2D:
+	if t == null or t.get_width() <= WEB_MAX_TEX or t.get_height() > WEB_MAX_TEX:
+		return null
+	if not (OS.has_feature("web") or (OS.is_debug_build() and OS.get_cmdline_user_args().has("--webmaxtex"))):
+		return null
+	var h := t.get_height()
+	if h <= 0 or t.get_width() % h != 0:
+		return null
+	var n := t.get_width() / h
+	var img: Image = t.get_image()
+	if img == null or img.is_empty():
+		return null
+	img = img.duplicate()
+	if img.is_compressed():
+		img.decompress()
+	if img.get_format() != Image.FORMAT_RGBA8:
+		img.convert(Image.FORMAT_RGBA8)
+	var half := 0
+	for i in n:
+		var u := img.get_region(Rect2i(i * h, 0, h, h)).get_used_rect()
+		if u.size.x > 0:
+			half = maxi(half, maxi(h / 2 - u.position.x, u.end.x - h / 2))
+	var fw2 := mini(h, half * 2)
+	if fw2 <= 0 or fw2 * n > WEB_MAX_TEX:
+		return null
+	var dx := h / 2 - fw2 / 2
+	var out := Image.create(fw2 * n, h, false, Image.FORMAT_RGBA8)
+	for i in n:
+		out.blit_rect(img, Rect2i(i * h + dx, 0, fw2, h), Vector2i(i * fw2, 0))
+	big_n += 1
+	var ct := ImageTexture.create_from_image(out)
+	ct.set_meta(&"_crop_dx", dx)
+	return ct
 
 
 ## 取贴图；找不到返回 null

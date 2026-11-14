@@ -339,6 +339,7 @@ func _hi_head(o) -> Array:
 		var k: float = float((art.tex as Texture2D).get_height()) / float(ey.get("fh", 0.0)) if float(ey.get("fh", 0.0)) > 0.0 else 1.0   # 表按 @2x 帧量，按帧高换算（1 倍帧 / 镜像副本都对）
 		var side: float = float(ey.d) * k * 2.0 / EYE_D
 		var c := Vector2(float(ey.eye[0]), float(ey.eye[1])) * k + Vector2(0.0, EYE_UP * side * 0.5)
+		c.x -= float((art.tex as Texture2D).get_meta(&"_crop_dx", 0))   # 网页超限立绘裁了每帧左边（art.web_crop_strip）
 		out = [art.tex, Rect2(c - Vector2(side, side) * 0.5, Vector2(side, side))]
 		_hh[oid] = out
 		return out
