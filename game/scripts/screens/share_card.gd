@@ -497,8 +497,7 @@ func _footer(ci: CanvasItem, d: Dictionary, acc: Color) -> void:
 		_avatar(ci, d, Vector2(54, 745), 30.0, acc)
 		tx = 96.0
 	_t(ci, Vector2(tx, 722), d.name, 20, HH.INK)
-	if d.qr is Texture2D:
-		_t(ci, Vector2(tx, 750), "扫码一起潜入深海", 13, HH.INK2)
+	if d.qr is Texture2D:   # 11-15 用户：有二维码就只放码，不写「扫码……」
 		_qr(ci, d, Rect2(W - 104, 702, 86, 86), HH.LIGHT)
 	else:   # 没有二维码（itch / 桌面版）：右侧写游戏名
 		_t(ci, Vector2(tx, 750), "一起潜入深海", 13, HH.INK2)
