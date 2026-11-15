@@ -184,7 +184,7 @@
       "toy " + (last ? JSON.stringify({ d: last.deviceType, o: last.orientation, im: last.immersive, vp: last.viewport, sa: last.safeArea }) : "none") + "  sdk " + !!window.toy,
       "safe l" + S.left + " t" + S.top + " r" + S.right + " b" + S.bottom + " " + S.source + (S.capsule ? " cap " + Math.round(S.capsule.x) + "," + Math.round(S.capsule.y) + " " + S.capsule.w + "x" + S.capsule.h : "") + "  " + (env.why || ""),
       // 11-16 加载链路（loader.js / boot_err.js）：内核、当前阶段、各阶段耗时、捕获到的错误——玩家截图就能看出卡在哪
-      "ua " + ((/(Chrome|CriOS|Version)\/[\d.]+/.exec(navigator.userAgent) || ["?"])[0]) + (window.__syCompat && window.__syCompat.length ? " OLD:" + window.__syCompat.join(",") : "") + "  engine " + (typeof Engine) + "  wasm " + (typeof WebAssembly),
+      "ua " + ((/Chrome\/[\d.]+/.exec(navigator.userAgent) || /CriOS\/[\d.]+/.exec(navigator.userAgent) || /Version\/[\d.]+/.exec(navigator.userAgent) || ["?"])[0]) + (window.__syCompat && window.__syCompat.length ? " OLD:" + window.__syCompat.join(",") : "") + "  engine " + (typeof Engine) + "  wasm " + (typeof WebAssembly),
       "load " + (window.__syLoadInfo || "-"),
       "t " + (window.__syLoadT ? JSON.stringify(window.__syLoadT) : "-"),
       "err " + ((window.__syErrs || []).slice(-3).join(" | ") || "-")
