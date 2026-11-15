@@ -37,7 +37,7 @@ def main():
         shutil.rmtree(fdir, ignore_errors=True)
         os.makedirs(fdir, exist_ok=True)
         args = [GR.find_godot(), "--path", os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--fixed-fps", str(FPS), "--",
-                "--autotest", "--seed=%d" % a.seed, "--op=" + a.op, "--hardendemo=" + a.boss + ("" if key.startswith("burst") else ",-1"), "--realtime", "--nobossintro",
+                "--balance", "--seed=%d" % a.seed, "--op=" + a.op, "--hardendemo=" + a.boss + ("" if key.startswith("burst") else ",-1"), "--realtime", "--nobossintro",
                 "--recframes=150,%d" % (80 * FPS), "--shotdir=" + fdir, "--sfxtrace"]
         if key.endswith("old"):
             args += ["--bal=boss/last_hold_max=0", "--bal=boss/last_auto_kill=0", "--bal=boss/hp_x_paranoia=" + a.oldhp]

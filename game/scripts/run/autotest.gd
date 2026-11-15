@@ -1878,7 +1878,7 @@ func _bossacts_step(spec: String) -> void:
 
 ## --hardendemo=<Boss>[,<秒>]（11-16 B站玩家「高伤害秒了 Boss 还得硬扛一段出招」对照录像）：第 20 帧在队长右侧刷出 Boss，
 ## 直接摆到最后一幕开头（偏执泡影 = 破茧后二阶段：cocoon_done、半血、act_min 取最后一项 25 秒），登场 <秒>（缺省 3；-1 = 不打，普通构筑照常打）时
-## 一发打空血量（模拟玻璃大炮秒杀，gate_clamp 截在剩 3%）。队长绕圈慢走、血量不低于 30%（照常挨打，看得见掉血）。Boss 倒下 4 秒后退出。
+## 一发打空血量（模拟玻璃大炮秒杀，gate_clamp 截在剩 3%）。队长绕圈慢走、血量不低于 70%（照常挨打，看得见掉血；不会倒下）。Boss 倒下 4 秒后退出。
 ## 对照旧行为：--bal=boss/last_hold_max=0 --bal=boss/last_auto_kill=0（护盾撑满这一幕最短时长、剩 3% 要补刀）
 func _hardendemo_step(spec: String) -> void:
 	var parts: PackedStringArray = spec.split(",")
@@ -1912,7 +1912,7 @@ func _hardendemo_step(spec: String) -> void:
 		return
 	if g.at_frames < 20 or hd_boss.is_empty():
 		return
-	g.hp = maxf(g.hp, g.max_hp * 0.3)
+	g.hp = maxf(g.hp, g.max_hp * 0.7)   # 主控保护单发 ≤40% / 2 秒 ≤68%：留 70% 底，演示不会倒下
 	g.ppos = Vector2(1500, 900) + Vector2.from_angle((g.t - 150.0) * 0.45) * 230.0
 	for o in g.enemies:
 		if not o.dead and not o.boss and not o.chest and not o.get("part", false) and not o.has("decoy_of") and o.age > 0.05:
@@ -1925,6 +1925,15 @@ func _hardendemo_step(spec: String) -> void:
 				break
 			g.combat.damage(b, b.maxhp * 0.5, {})
 		print("HARDENDEMO burst t=%.1f hp=%.3f hold=%s" % [g.t - hd_t0, b.hp / b.maxhp, str(b.get("gate_hold", false))])
+	if not b.dead and not b.invuln and not b.get("part", false) and b.get("hd_burst", false) and not b.get("gate_hold", false):
+		# 队伍持续输出（演示队长单人太弱）：每秒 1.2% 最大生命，过 gate_clamp（护盾期打不动；旧行为护盾碎后 3% 约 2.5 秒补完）
+		var dd: float = g.combat.gate_clamp(b, b.maxhp * 0.012 * minf(g.get_process_delta_time(), 0.05))
+		b.hp -= dd
+		if b.hp <= 0.0:
+			b.hp = 0.0
+			var bh = g.bai.boss(b.type)
+			if bh == null or not bh.on_lethal(b):
+				g.combat.kill(b)
 	if g.at_frames % 30 == 0 and not b.dead:
 		print("HARDENDEMO t=%.1f hp=%.3f hold=%s act_t=%.1f buls=%d warns=%d php=%.0f" % [g.t - hd_t0, b.hp / b.maxhp, str(b.get("gate_hold", false)), float(b.act_t),
 			g.ebullets.filter(func(x): return x.get("src_type", "") == b.type and x.life > 0.0).size(), g.warns.size(), g.hp])
