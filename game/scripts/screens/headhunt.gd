@@ -68,6 +68,7 @@ var open := false:   # 关掉寻访时放掉拉包光层的合成缓存（_img �
 		open = v
 		if not v:
 			_img.clear()
+			_imk.clear()
 			_glow.clear()
 var browse := false     # 标题页进入（10-24 用户：没有凭证也能点进去看卡池；按钮灰显）
 var mode := "entry"       # entry 入口 / class 定向选职业 / pick 定向选干员 / bag 拉包 / op 揭示 / summary 本次寻访
@@ -1184,29 +1185,31 @@ func _light(f: int, s: int) -> Array:
 	var frags := _image("fx_hh_frags")
 	var out := [null, null]
 	if beams != null:
-		var sz := Vector2i(FX_SZ)
-		var img := beams.get_region(Rect2i(Vector2i(f * sz.x, 0), sz))
+		var k: float = _imk.get("fx_hh_beams", 1.0)   # 合成按光层原图的倍率做（网页 / 桌面包是 1 倍：k = 0.5），画的时候照旧铺满 FX_SZ
+		var sz := Vector2i((FX_SZ * k).round())
+		var img := _region("fx_hh_beams", Rect2(Vector2(f * FX_SZ.x, 0), FX_SZ), sz)
 		if frags != null:
-			img.blend_rect(frags.get_region(Rect2i(Vector2i(f * sz.x, 0), sz)), Rect2i(Vector2i.ZERO, sz), Vector2i.ZERO)
-		var rv := _image("fx_hh_reveal")
-		if s < 7 and rv != null:
+			img.blend_rect(_region("fx_hh_frags", Rect2(Vector2(f * FX_SZ.x, 0), FX_SZ), sz), Rect2i(Vector2i.ZERO, sz), Vector2i.ZERO)
+		if s < 7 and _image("fx_hh_reveal") != null:
 			var m := Image.create(sz.x, sz.y, false, Image.FORMAT_RGBA8)
-			m.blit_rect_mask(img, rv.get_region(Rect2i(Vector2i(s * sz.x, 0), sz)), Rect2i(Vector2i.ZERO, sz), Vector2i.ZERO)
+			m.blit_rect_mask(img, _region("fx_hh_reveal", Rect2(Vector2(s * FX_SZ.x, 0), FX_SZ), sz), Rect2i(Vector2i.ZERO, sz), Vector2i.ZERO)
 			img = m
 		out[0] = ImageTexture.create_from_image(img)
-		var clip := _image("fx_hh_light_clip")
-		if clip != null:
-			var c := Image.create(FX_CROP.size.x, FX_CROP.size.y, false, Image.FORMAT_RGBA8)
-			c.blit_rect_mask(img.get_region(FX_CROP), clip.get_region(Rect2i(Vector2i(7 * FX_CROP.size.x, 0), FX_CROP.size)), Rect2i(Vector2i.ZERO, FX_CROP.size), Vector2i.ZERO)
+		if _image("fx_hh_light_clip") != null:
+			var cr := Rect2i((Vector2(FX_CROP.position) * k).round(), (Vector2(FX_CROP.size) * k).round())
+			var c := Image.create(cr.size.x, cr.size.y, false, Image.FORMAT_RGBA8)
+			c.blit_rect_mask(img.get_region(cr), _region("fx_hh_light_clip", Rect2(Vector2(7 * FX_CROP.size.x, 0), Vector2(FX_CROP.size)), cr.size), Rect2i(Vector2i.ZERO, cr.size), Vector2i.ZERO)
 			out[1] = ImageTexture.create_from_image(c)
 	_glow[key] = out
 	return out
 
 
-## 光层按 @2x 像素切帧（FX_SZ / FX_CROP 都是 @2x 坐标），这里统一换回 @2x 尺寸再切：
-## 网页 / 桌面包里整 2 倍放大的 fx_hh_* 换成了 1 倍、手机网页的 light_clip 读半分辨率 @h（tools/web_half.py，docs/319 §16），
-## 原样切会切到别的帧或切空（11-08 用户 iPhone Toy：寻访光效变少）。只放大这份 CPU 副本（关掉寻访时清掉，见 open），GPU 上仍是小图
+## 光层按 @2x 像素切帧（FX_SZ / FX_CROP 都是 @2x 坐标）：网页 / 桌面包里整 2 倍放大的 fx_hh_* 换成了 1 倍、手机网页的 light_clip 读半分辨率 @h
+## （tools/web_half.py，docs/319 §16），原样切会切到别的帧或切空（11-08 用户 iPhone Toy：寻访光效变少）。
+## 11-16（docs/349）：原来把 CPU 副本最近邻放大回 @2x 再切，四张常驻约 35 MB 在 WASM 堆里（加上转换时的临时副本，首次十连把堆从 286 撑到 344 / 412 MB，
+## 安卓 B站 App 首局十几秒被杀）。现在副本保持原图尺寸，切帧坐标按倍率 _imk 换算，合成出的贴图也是原图倍率（画时拉伸铺满，最近邻，观感同原来的放大版）
 const FX_H2 := {"fx_hh_beams": 400, "fx_hh_frags": 400, "fx_hh_reveal": 400, "fx_hh_light_clip": 320}
+var _imk := {}            # 光层 CPU 副本相对 @2x 的倍率（1 倍图 0.5、@h 半分辨率按实际高度算）
 
 func _image(name: String) -> Image:
 	if _img.has(name):
@@ -1214,16 +1217,27 @@ func _image(name: String) -> Image:
 	var tx := A.tex(name)
 	var im: Image = tx.get_image() if tx != null else null
 	if im != null:
-		im = im.duplicate()
+		if im.is_compressed() or im.get_format() != Image.FORMAT_RGBA8:
+			im = im.duplicate()   # 编辑器版 get_image 可能直接给贴图的图像缓存：要改格式时先拷一份
 		if im.is_compressed():
 			im.decompress()
-		im.convert(Image.FORMAT_RGBA8)
+		if im.get_format() != Image.FORMAT_RGBA8:
+			im.convert(Image.FORMAT_RGBA8)
 		var h2: int = int(FX_H2.get(name, 0))
-		if h2 > 0 and im.get_height() > 0 and im.get_height() < h2:
-			var k := float(h2) / im.get_height()
-			im.resize(roundi(im.get_width() * k), h2, Image.INTERPOLATE_NEAREST)
+		_imk[name] = float(im.get_height()) / h2 if h2 > 0 and im.get_height() > 0 else 1.0
 	_img[name] = im
 	return im
+
+
+## 从光层副本里切出 @2x 坐标 r2 那一块，统一成 size（各张倍率不同时最近邻缩放对齐）
+func _region(name: String, r2: Rect2, size: Vector2i) -> Image:
+	var im := _image(name)
+	var k: float = _imk.get(name, 1.0)
+	var r := Rect2i((r2.position * k).round(), (r2.size * k).round())
+	var reg := im.get_region(r)
+	if reg.get_size() != size:
+		reg.resize(size.x, size.y, Image.INTERPOLATE_NEAREST)
+	return reg
 
 
 func _blit(tx: Texture2D, frame: int, fsz: Vector2, origin: Vector2, pos: Vector2, sc: float, col := Color.WHITE) -> void:

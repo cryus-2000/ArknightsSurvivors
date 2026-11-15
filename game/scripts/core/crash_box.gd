@@ -329,7 +329,7 @@ static func sample(g) -> void:
 	var music_measured := false
 	if _web():
 		# g：堆增长记录（[页面秒, 原 MB, 请求 MB, 阶段]）；m：浏览器解码配乐状态；p：主包在 MEMFS 的字节（JS 堆估算，WebKit 没有 performance.memory）
-		var r = JavaScriptBridge.eval("(function(){var w=window.__syWasm,r={w:w&&w.buffer?w.buffer.byteLength:0,g:window.__syWasmGrows||[],p:window.__syPckBytes||0};if(performance.memory){r.j=performance.memory.usedJSHeapSize}if(window.__syMusOn&&window.__syMus){try{r.m=JSON.parse(window.__syMus.state())}catch(e){}}return JSON.stringify(r)})()", true)
+		var r = JavaScriptBridge.eval("(function(){var w=window.__syWasm,r={w:w&&w.buffer?w.buffer.byteLength:0,g:window.__syWasmGrows||[],p:window.__syPckBytes||0};var T=window.__syTouch;if(T){r.tc=[T.s,T.m,T.e,T.c]}if(performance.memory){r.j=performance.memory.usedJSHeapSize}if(window.__syMusOn&&window.__syMus){try{r.m=JSON.parse(window.__syMus.state())}catch(e){}}return JSON.stringify(r)})()", true)
 		var d = JSON.parse_string(str(r)) if r != null else null
 		if d is Dictionary:
 			wasm = float(d.get("w", 0)) / 1048576.0
@@ -340,6 +340,8 @@ static func sample(g) -> void:
 				_tags["WASM 堆增长"] = 1   # 这一段里堆又涨过（engine_patch.py §3）
 			cur.wg = gl.slice(-30)
 			pck = float(d.get("p", 0)) / 1048576.0
+			if d.get("tc", null) is Array:
+				cur.tc = d.tc   # 触点计数 [按下, 拖动, 抬起, 取消]（11-16 安卓 B站「拖不动」：看拖动事件到没到、有没有被宿主取消）
 			var m = d.get("m", null)
 			if m is Dictionary:
 				music_measured = m.has("mb")
@@ -514,6 +516,9 @@ window.__syBBev=ev;
 var c=document.querySelector('canvas');if(c){c.addEventListener('webglcontextlost',function(){ev('WebGL上下文丢失')});c.addEventListener('webglcontextrestored',function(){ev('WebGL上下文恢复')})}
 document.addEventListener('visibilitychange',function(){ev(document.hidden?'切后台':'回前台')});
 addEventListener('pagehide',function(){ev('页面隐藏')});
+var T=window.__syTouch={s:0,m:0,e:0,c:0,t0:0},O={capture:true,passive:true};
+document.addEventListener('touchstart',function(){T.s++;T.t0=Date.now()},O);document.addEventListener('touchmove',function(){T.m++},O);document.addEventListener('touchend',function(){T.e++},O);
+document.addEventListener('touchcancel',function(){T.c++;if(T.c<=6)ev('触点被取消 按下后'+((Date.now()-T.t0)/1000).toFixed(1)+'秒')},O);
 addEventListener('error',function(e){ev('脚本错误 '+String(e.message||'').slice(0,60))});
 addEventListener('unhandledrejection',function(e){ev('未处理拒绝 '+String(e.reason&&e.reason.message||e.reason||'').slice(0,60))});})()""", true)
 
@@ -638,6 +643,8 @@ static func report_text(p: Dictionary) -> String:
 		var hb = JavaScriptBridge.eval("localStorage.getItem('sy_bb_hb')||''", true)
 		if hb != null and str(hb) != "":
 			o.append("最后一次心跳（实时秒 / 局内秒）：" + str(hb))
+	if p.get("tc", null) is Array and (p.tc as Array).size() >= 4:
+		o.append("触点（按下 / 拖动 / 抬起 / 取消）：%d / %d / %d / %d" % [int(p.tc[0]), int(p.tc[1]), int(p.tc[2]), int(p.tc[3])])
 	var ev: Array = p.get("ev", [])
 	if not ev.is_empty():
 		var es := PackedStringArray()
