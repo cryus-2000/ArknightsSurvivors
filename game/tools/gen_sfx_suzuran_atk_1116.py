@@ -13,6 +13,7 @@
   第二批（用户「还有什么候选音效吗」）：
   D 远程法术：p_atk_magfar_n（原作通用远程法术出手）开头 0.25 秒，低通 4.5 kHz，70 ms 淡出；
   E 火系法术：p_atk_firemag_n 开头 0.25 秒（重心约 2.2 kHz，偏暖，狐火感），低通 5 kHz，70 ms 淡出；
+  （11-16 用户定 D，已 --apply d；浊心斯卡蒂原来借现版 op_suzuran_atk ×0.75 音高，换文件前把旧音按 ×0.75 烘成 op_skalter_atk.wav，听感不变）
   F 法术咏唱：p_atk_magspell_n 开头 0.25 秒，低通 4 kHz，80 ms 淡出。
 响度按 docs/113 §1「有效响度」（50 ms 窗 RMS 最大值）对齐现版 op_suzuran_atk（约 −14.5 dB），峰值封顶 −6 dB；
 音量 / 节流仍由 sfx.gd 的 OP_VOL（普攻 −11 dB）与 OP_LIMIT 管，和其他术士普攻同一档。
@@ -99,6 +100,10 @@ def cand_f():
     return fade(lp(load("p_atk_magspell_n.wav", 0.0, 0.25), 4000), 80)
 
 
+## 各版峰值上限（缺省 −6 dB）：D 起音尖，−6 dB 封顶后有效响度只剩 −18.5 dB；放到 −3 dB（现版峰值 −5.2、其他术士普攻 −4.4 ~ −5.2）
+PEAK = {"d": -3.0}
+
+
 CANDS = {"a": cand_a, "b": cand_b, "c": cand_c, "d": cand_d, "e": cand_e, "f": cand_f}
 
 
@@ -114,7 +119,7 @@ def main():
     x0, _ = sf.read(old)
     target = eff_db(x0 if x0.ndim == 1 else x0.mean(axis=1))
     for k, f in CANDS.items():
-        y = level(f(), target)
+        y = level(f(), target, PEAK.get(k, -6.0))
         p = os.path.join(OUT, "op_suzuran_atk_%s.wav" % k)
         sf.write(p, y, SR, subtype="PCM_16")
         print("%s  %.3f 秒  有效响度 %.1f dB（现版 %.1f）  峰值 %.1f dB  → %s" % (k, len(y) / SR, eff_db(y), target, 20 * np.log10(np.abs(y).max()), p))

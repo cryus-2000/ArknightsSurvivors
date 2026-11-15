@@ -33,6 +33,7 @@ const OP_SFX := {
 	"exusiai": ["atk", "atk_b", "atk_c", "hit", "s1", "s2", "s3", "big"],   # 10-25 用户「能天使的音效没有替换」：三条枪声轮换 + 技能连射全换（docs/113 §17）
 	"texas": ["atk", "hit", "s3"],   # s3：原作剑雨 p_skill_swordrain（11-07，game/tools/gen_sfx_texas_s3_1107.py），不再借艾丽妮
 	"hoshiguma": ["hit"],
+	"skalter": ["atk"],   # 11-16：原借 op_suzuran_atk ×0.75（OP_ALT），铃兰普攻换原作 p_atk_magfar_n 后把旧合成音按 ×0.75 烘成专属文件，听感不变
 }
 ## 各类别的默认音量（dB）：普攻 / 命中最频繁，压低；技能发动是一局里少数几次的"高光"，放开
 const OP_VOL := {"atk": -11.0, "hit": -10.0, "s1": -4.0, "s2": -4.0, "s3": -2.0, "big": -6.0, "heal": -9.0, "quake": -13.0}
@@ -42,7 +43,8 @@ const OP_LIMIT := {"atk": 0.06, "hit": 0.06, "quake": 0.08, "big": 0.1, "heal": 
 ## OP_DB 音量偏移（dB，叠在 OP_VOL 与调用处偏移上）；OP_GAP 最短间隔（秒，按请求名算，借用同一文件的干员各算各的）；
 ## OP_PVAR 音高随机（±，取它与调用处的较大值）。数字来自 docs/113 §2 实测：混音里最响的是长尾低频重击的高频连发
 const OP_DB := {"op_eyjafjalla_big": -3.0, "op_kaltsit_big": -2.0, "op_wisadel_quake": -3.0, "op_wisadel_hit": -1.5, "op_exusiai_hit": -6.5,
-	"op_siege_s1_soft": -2.0, "op_texas_s2_soft": -2.0, "op_exusiai_s1": -3.0, "op_exusiai_s2": -3.0, "op_exusiai_s3": -3.0, "op_exusiai_big": -3.0, "op_texas_hit": -3.0}
+	"op_siege_s1_soft": -2.0, "op_texas_s2_soft": -2.0, "op_exusiai_s1": -3.0, "op_exusiai_s2": -3.0, "op_exusiai_s3": -3.0, "op_exusiai_big": -3.0, "op_texas_hit": -3.0,
+	"op_skalter_atk": -3.0}   # 原 OP_ALT 借用时的 −3 dB
 ## 流明（docs/255 §7，11-05 用户「攻击音效有点吵」）：命中光弹 / 发光单元每颗都放，后期一秒十来次 → 最短间隔 0.09 秒 + 音高随机 ±4%；音色用原作 p_atk_lantern_n / p_imp_lantern_n 截短（game/tools/gen_sfx_lumen_atk_1105.py v2）
 const OP_GAP := {"op_exusiai_atk": 0.05, "op_exusiai_hit": 0.2, "op_exusiai_big": 0.5, "op_eyjafjalla_big": 0.2, "op_lumen_hit": 0.09}   # 能天使两项取 docs/262 最新
 const OP_PVAR := {"op_exusiai_atk": 0.09, "op_exusiai_hit": 0.1, "op_irene_atk": 0.08, "op_texas_atk": 0.08, "op_eyjafjalla_atk": 0.08, "op_lumen_atk": 0.07, "op_lumen_hit": 0.04, "op_wisadel_quake": 0.12}
@@ -56,7 +58,7 @@ const OP_FALLBACK := {"atk": "swing", "hit": "hit", "s1": "skill", "s2": "skill"
 ## 缺专属文件时优先借用的近似音（docs/53，比通用 hit 更贴角色；[音名, 音高倍率, 音量偏移 dB]）。正式音色见 docs/53 §5 的制作清单
 const OP_ALT := {"op_logos_hit": ["op_mizuki_hit", 0.8, -4.0],
 	# 浊心斯卡蒂（docs/61，数据干员，暂无专属音）：普攻借铃兰低八度的吟唱，技能借流明 / 铃兰 / 凯尔希的发动音（docs/28 加新干员前的借用）
-	"op_skalter_atk": ["op_suzuran_atk", 0.75, -3.0], "op_skalter_s1": ["op_lumen_s1", 0.85, 0.0],
+	"op_skalter_s1": ["op_lumen_s1", 0.85, 0.0],
 	"op_skalter_s2": ["op_suzuran_s2", 0.8, 0.0], "op_skalter_s3": ["op_kaltsit_s3", 0.85, 0.0],
 	# 星熊（docs/61「星熊」节，数据干员）：盾沿横扫借塞雷娅普攻降调，技能借塞雷娅 / 推进之王 / 斯卡蒂；格挡「铛」已换 CC0 录音 op_hoshiguma_hit（docs/113 §8）
 	"op_hoshiguma_atk": ["op_saria_atk", 0.85, 0.0], "op_hoshiguma_big": ["op_siege_big", 1.25, -2.0],
