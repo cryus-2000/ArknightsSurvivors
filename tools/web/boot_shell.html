@@ -1,0 +1,56 @@
+<!-- 首帧壳（11-16 B站 Toy「加载很久、加载不出来」，docs/22「加载链路」）：export_web.py 插在 body 最前。
+     纯 HTML / CSS，页面解析到这里就画出来，不等任何脚本、不靠 requestAnimationFrame（原加载页方向 4 整页靠 rAF 在画布上逐帧画，WebView 不给帧时全黑）。
+     loader.js 往 #sy-boot-msg / -det / -fill 写阶段、真实字节和速度；加载页（#sy-load）真正画出第一帧后盖在它上面，这里退到下层。
+     #sy-boot-err：诊断卡（boot_err.js 写），超过 20 秒没进标题 / 进度停住 / 报错 / 失败时浮在最上面；「重试」用内联 onclick，脚本全挂了也能点。
+     这里不放 <canvas>（Godot 绑定 DOM 里第一个画布）。 -->
+<style>
+#sy-boot { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 8990; background: #0f1013; color: #eceef0; overflow: hidden;
+  font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif; -webkit-user-select: none; user-select: none;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+#sy-boot .sb-c { position: absolute; left: 0; right: 0; top: 50%; margin: -42vh auto 0; height: 84vh; width: 84vw; max-width: 420px; text-align: center;
+  display: -webkit-box; display: flex; -webkit-box-orient: vertical; flex-direction: column; -webkit-box-pack: center; justify-content: center; }   /* 不用 transform 居中：transform 会隔离标志的 mix-blend-mode，黑底露出来 */
+#sy-boot .sb-logo { display: block; width: 30vh; max-width: 120px; height: auto; margin: 0 auto 2.2vh; mix-blend-mode: lighten; opacity: .9;
+  animation: sb-br 2.6s ease-in-out infinite; }
+#sy-boot .sb-t { font-size: 15px; letter-spacing: .3em; color: #9297a0; margin-bottom: 2.4vh; }
+#sy-boot .sb-bar { position: relative; height: 2px; background: #353943; overflow: hidden; }
+#sy-boot .sb-bar i { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; background: #36e2dc; transform-origin: 0 50%; transform: scaleX(0); transition: transform .3s linear; }
+#sy-boot .sb-bar b { position: absolute; top: 0; bottom: 0; width: 22%; background: linear-gradient(90deg, transparent, rgba(54, 226, 220, .55), transparent);
+  animation: sb-run 1.6s linear infinite; }   /* 一直在走的光：主线程忙时（合成线程跑）也在动，看得出页面没死 */
+#sy-boot .sb-s { margin-top: 1.6vh; font-size: 14px; color: #eceef0; }
+#sy-boot .sb-d { margin-top: .6vh; font-size: 12px; color: #9297a0; font-family: Consolas, "Microsoft YaHei", monospace; min-height: 1.3em; white-space: pre-line; }
+#sy-boot .sb-f { position: absolute; left: 0; right: 0; bottom: 10px; font-size: 11px; color: #5d626b; text-align: center; }
+#sy-boot.fail { z-index: 9600; }
+#sy-boot.fail .sb-bar b, #sy-boot.fail .sb-logo { animation: none; }
+#sy-boot.fail .sb-bar i { background: #e5484d; }
+#sy-boot-err { display: none; position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 9700;
+  width: 94vw; max-width: 560px; max-height: 92vh; overflow: auto; box-sizing: border-box; padding: 10px 12px; border-radius: 4px;
+  background: rgba(20, 22, 27, .97); border: 1px solid #5d626b; border-left-width: 3px;
+  color: #eceef0; font: 13px/1.45 "Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif; text-align: left; -webkit-user-select: text; user-select: text; }
+#sy-boot-err.on { display: block; }
+#sy-boot-err.fatal { border-color: #e5484d; }
+#sy-boot-err.warn { border-color: #c9a227; }
+#sy-boot-err .et { font-weight: bold; }
+#sy-boot-err .ed { margin-top: 2px; color: #b4b8bf; font-size: 12px; white-space: pre-line; }
+#sy-boot-err .dg { margin: 6px 0 0; padding: 6px 8px; background: #0b0c0f; border: 1px solid #2a2d34; color: #9fe3df;
+  font: 11px/1.45 Consolas, "Microsoft YaHei", monospace; white-space: pre-wrap; word-break: break-all; max-height: 34vh; overflow: auto; }
+#sy-boot-err .bt { margin-top: 8px; display: -webkit-box; display: flex; }
+#sy-boot-err .bt button { -webkit-box-flex: 1; flex: 1 1 0; margin-left: 6px; padding: 7px 4px; border: 1px solid #5d626b; border-radius: 3px;
+  background: #1a1c21; color: #eceef0; font: inherit; font-size: 13px; cursor: pointer; white-space: nowrap; }
+#sy-boot-err .bt button:first-child { margin-left: 0; border-color: #36e2dc; background: #0b2a2a; color: #36e2dc; font-weight: bold; }
+#sy-boot-err .hn { margin-top: 6px; font-size: 11px; color: #7d828b; text-align: center; }
+@keyframes sb-br { 0%, 100% { opacity: .9; } 50% { opacity: .62; } }
+@keyframes sb-run { from { transform: translateX(-100%); } to { transform: translateX(460%); } }
+@media (max-height: 420px) { #sy-boot .sb-logo { width: 84px; margin-bottom: 12px; } #sy-boot .sb-t { margin-bottom: 12px; } }
+@media (prefers-reduced-motion: reduce) { #sy-boot .sb-bar b, #sy-boot .sb-logo { animation: none; } }
+</style>
+<div id="sy-boot" role="status" aria-live="polite">
+  <div class="sb-c">
+    <img class="sb-logo" src="loader_rhodes.png" alt="">
+    <div class="sb-t">方舟幸存者</div>
+    <div class="sb-bar"><i id="sy-boot-fill"></i><b></b></div>
+    <div class="sb-s" id="sy-boot-msg">正在载入页面…</div>
+    <div class="sb-d" id="sy-boot-det"></div>
+  </div>
+  <div class="sb-f">明日方舟同人作品 · 非商业 · 与鹰角网络无关</div>
+</div>
+<div id="sy-boot-err" role="alert"><div class="et" id="sy-boot-et"></div><div class="ed" id="sy-boot-ed"></div><pre class="dg" id="sy-boot-dg"></pre><div class="bt"><button type="button" onclick="try{location.reload()}catch(e){}">重试</button><button type="button" id="sy-boot-copy" onclick="if(window.__syDiagCopy)__syDiagCopy()">复制诊断信息</button><button type="button" id="sy-boot-wait" onclick="if(window.__syDiagWait)__syDiagWait();else this.parentNode.parentNode.className=''">继续等待</button></div><div class="hn">截图这张卡私信 UP 主</div></div>

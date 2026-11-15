@@ -59,6 +59,8 @@ window.__syRL = {
     window.addEventListener('pageshow', pin);
   } catch (e) {}
   var total = 0, got = 0, done = false;
+  var files = {}, retries = 0, lastErr = '', tStart = performance.now();   // files：name → { out: Uint8Array（解开后的整块）, e: 清单项, promise: Promise<Response> }（下载段）
+  window.__syLoadT = {};   // 各阶段耗时（ms，相对加载器起点）：诊断浮层 / 测试读
   Object.keys(M).forEach(function (k) { M[k].parts.forEach(function (p) { total += p[1]; }); });
 
   var el = {}, bootT0 = 0, bootProgress = null, bootLabel = "", shownProgress = 0;
@@ -74,7 +76,104 @@ window.__syRL = {
   ];
   var R = 192, C = 2 * Math.PI * R;
   function mb(x) { return (x / 1048576).toFixed(1); }
+
+  // ---------------------------------------------------------------- 内核检查（11-16 B站 App 安卓黑屏）
+  // 引擎脚本 index.js（emscripten 4）要 Chrome 85 / Safari 15 以上（??= / ?. / BigInt64Array / WASM BigInt）。
+  // 旧版安卓系统 WebView 上 index.js 直接语法错误、引擎根本起不来，原来静默黑屏（画布停在默认 300×150）。
+  // 先测：不行就不下那 30 MB，直接告诉玩家原因和怎么办。网址 ?oldcore=1 模拟（测试用）。
+  var compat = (function () {
+    var miss = [];
+    if (/[?&]oldcore=1/.test(location.search)) miss.push('测试：模拟旧内核');
+    try { new Function('var a = null; a ??= {}; return a?.b ?? 1;'); } catch (e) { miss.push('ES2021 语法'); }
+    if (typeof BigInt64Array !== 'function') miss.push('BigInt64Array');
+    if (typeof WebAssembly !== 'object') miss.push('WebAssembly');
+    return miss;
+  })();
+  function coreName() {
+    var ua = navigator.userAgent || '', m = /Chrome\/(\d+)/.exec(ua);
+    if (m) return 'Chrome ' + m[1] + ' 内核';
+    m = /OS (\d+)_\d+.*like Mac OS X/.exec(ua);
+    if (m) return 'iOS ' + m[1];
+    m = /Version\/(\d+)[\d.]* .*Safari/.exec(ua);
+    return m ? 'Safari ' + m[1] : '未知内核';
+  }
+  window.__syCompat = compat;
+
+  // ---------------------------------------------------------------- 首帧壳（tools/web/boot_shell.html，export_web.py 插在 body 最前）
+  // 纯 HTML / CSS，不靠脚本和 rAF 就画得出来；这里只往里写阶段、真实字节、速度。诊断卡见 boot_err.js（__syBootFail / __syBootWarn / __syDiagText）。
+  var speedT = 0, speedB = 0, speed = 0, progSig = '', progT = performance.now(), slowShown = false, okDone = false, failed = false, autoShown = false;
+  var SLOW_MS = 60000;   // 进度（字节 / 阶段 / 游戏回传）这么久没动：再弹一次诊断卡（玩家点过「继续等待」也弹）
+  var AUTO_MS = 20000;   // 超过 20 秒还没进标题：自动弹诊断卡（11-16 用户：让玩家自己截图反馈，不用四指点开）
+  // 诊断数据（boot_err.js __syDiagText 读）：阶段 + 进入这一阶段的时刻 + 各分片字节。只在本机显示，不发任何服务器
+  var diagD = window.__syLoadDiag = { phase: '载入页面', since: Date.now(), parts: [] };
+  function firstErr(s) { if (!window.__syFirstErr) window.__syFirstErr = String(s).slice(0, 200); }
+  function $id(id) { try { return document.getElementById(id); } catch (e) { return null; } }
+  function fail(title, detail) {
+    if (failed || okDone) return;
+    failed = true;
+    stamp('fail');
+    window.__syLoadInfo = 'FAIL ' + title + ' | ' + detail;
+    firstErr(title + '：' + detail);
+    if (window.__syBootFail) window.__syBootFail(title, detail + '\n检查网络后点「重试」。');
+    if (outFn) outFn();
+  }
+  function shellUpd() {
+    var now = performance.now(), t, det = '', f;
+    if (now - speedT >= 1000) {
+      if (speedT) { var sp = (got - speedB) * 1000 / (now - speedT); speed = speed ? speed * 0.6 + sp * 0.4 : sp; }
+      speedT = now; speedB = got;
+    }
+    var unz = 0;
+    Object.keys(files).forEach(function (k) { unz += files[k].unz || 0; });
+    if (compat.length) { t = '无法运行'; f = 0; }
+    else if (got < total) {
+      t = unz ? '正在下载资源（同时解压引擎）' : '正在下载资源';
+      det = mb(Math.min(got, total)) + ' / ' + mb(total) + ' MB' + (speed > 20480 ? ' · ' + (speed / 1048576).toFixed(speed < 1048576 ? 2 : 1) + ' MB/s' : '');
+      f = 0.6 * got / Math.max(1, total);
+    } else if (!done) { t = '正在解压资源'; f = 0.6; }
+    else if (bootProgress === null) { if (!bootT0) bootT0 = now; t = '正在启动引擎'; det = Math.floor((now - (bootT0 || now)) / 1000) + ' s'; f = 0.62; }
+    else if (bootProgress < 1) { t = '正在准备主菜单'; det = Math.floor(bootProgress * 100) + '%'; f = bootProgress; }
+    else { t = '加载完成'; f = 1; }
+    if (retries) det += (det ? ' · ' : '') + '网络重试 ' + retries + ' 次';
+    if (diagD.phase !== t) { diagD.phase = t; diagD.since = Date.now(); }
+    window.__syLoadInfo = (failed ? 'FAIL ' : '') + t + ' ' + det + ' · T+' + Math.round((now - tStart) / 1000) + 's' + (lastErr ? ' · ' + lastErr.slice(0, 80) : '');
+    var sig = got + '|' + done + '|' + bootProgress + '|' + bootLabel;
+    if (sig !== progSig) { progSig = sig; progT = now; if (slowShown && window.__syBootHideWarn) { slowShown = false; window.__syBootHideWarn(); } }
+    else if (!slowShown && !failed && !okDone && !(bootProgress >= 1) && !compat.length && now - progT > SLOW_MS && window.__syBootWarn) {
+      slowShown = true;
+      window.__syBootWarn('加载停住了', Math.round((now - progT) / 1000) + ' 秒没有进展。可以继续等待，也可以点「重试」。', true);
+    }
+    if (!autoShown && !failed && !okDone && !(bootProgress >= 1) && !compat.length && now - tStart > AUTO_MS && window.__syBootWarn) {
+      autoShown = true;
+      window.__syBootWarn('加载时间较长', '网络或设备较慢时需要更久。可以继续等待。', false);
+    }
+    // Godot 自己的报错（#status-notice）：换成本页的失败卡片
+    var nt = $id('status-notice');
+    if (nt && nt.style.display === 'block' && !failed) fail('引擎启动失败', (nt.textContent || '').slice(0, 300));
+    var m = $id('sy-boot-msg');
+    if (!m || failed) return;
+    m.textContent = t;
+    var d2 = $id('sy-boot-det'); if (d2) d2.textContent = det;
+    var fl = $id('sy-boot-fill'); if (fl) fl.style.transform = 'scaleX(' + Math.max(0, Math.min(1, f)).toFixed(3) + ')';
+  }
+  var shellTimer = setInterval(shellUpd, 1000);   // 不依赖加载页：加载页没建起来 / 不出帧时，壳上的阶段与「加载慢」照样更新
+  var outFn = null;
+  if (compat.length) {
+    failed = true;
+    window.__syLoadInfo = 'OLD CORE ' + coreName() + ' ' + compat.join(',');
+    diagD.phase = '内核检查未通过';
+    firstErr('内核过旧：' + coreName() + '，缺少 ' + compat.join('、'));
+    if (window.__syBootFail) window.__syBootFail('内核版本过旧，无法运行',
+      '需要 Chrome 85 / iOS 15 以上的内核，当前是 ' + coreName() + '。\n' +
+      '安卓：在应用商店更新「Android System WebView」或「Chrome」后重新打开。iPhone：升级到 iOS 15 以上。');
+  }
+  // index.js 没跑起来（下载中断 / 语法不支持）：引擎对象不存在，原来静默黑屏
+  document.addEventListener('DOMContentLoaded', function () {
+    if (!compat.length && typeof Engine === 'undefined') fail('引擎脚本没有运行', 'index.js 加载失败或当前内核不支持（' + coreName() + '）。');
+  });
+
   function upd() {
+    shellUpd();
     if (!el.ring) return;
     var f, busy = false;
     if (bootProgress !== null) { f = bootProgress; busy = true; }
@@ -218,9 +317,20 @@ window.__syRL = {
         el.style.cssText = 'left:' + px(i ? -(hx1 - cx) - len : hx1 - cx) + ';top:' + px(0) + ';width:' + px(len) + ';--len:' + px(len - 26 * k) + ';--w:' + px(26 * k);
       });
     }
+    // 11-16：WebView 不给 rAF（页面在后台 / 跨域 iframe 被节流）时画布一帧都不画、整页全黑。画第一帧前本页底色透明、首帧壳露在下面（loader.css .p4on）；
+    // rAF 400 ms 没来就用定时器补画（draw 只在内容变时真画）
+    var lastRaf = 0, painted = false;
     function frame() {
       if (!d.isConnected) return;
       frameId = requestAnimationFrame(frame);
+      lastRaf = performance.now();
+      draw();
+    }
+    var fbTimer = setInterval(function () {
+      if (!d.isConnected) { clearInterval(fbTimer); return; }
+      if (performance.now() - lastRaf > 400) draw();
+    }, 250);
+    function draw() {
       var sf = safe(), dpr = Math.min(2, window.devicePixelRatio || 1), W = Math.round(sf.w * dpr), H = Math.round(sf.h * dpr);
       var t = (performance.now() - T0) / 1000, p = v.f, rd = d.classList.contains('sy-ready') || p >= 1;
       if (rd && readyT < 0) readyT = performance.now();
@@ -311,10 +421,12 @@ window.__syRL = {
       ctx.globalAlpha = rd ? 1 : 0.6 + 0.4 * br;
       lab(rd ? 'ACCESS / GRANTED' : 'ACCESS / PENDING', W - m, H - 20 * k, 11 * k, rd ? ACC : SUB, 'right');
       ctx.globalAlpha = 1;
+      if (!painted) { painted = true; d.classList.add('p4on'); }
     }
     var frameId = requestAnimationFrame(frame);
     v.stop = function () {
       cancelAnimationFrame(frameId);
+      clearInterval(fbTimer);
       img.onload = null;
     };
     return v;
@@ -486,7 +598,7 @@ window.__syRL = {
   function rlPage(d, act) {
     var cv = document.createElement('canvas');
     cv.id = 'sy-rlpage';
-    cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;z-index:30;image-rendering:pixelated;background:#000308';
+    cv.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;z-index:30;image-rendering:pixelated;background:#000308';
     d.appendChild(cv);
     var img = function (s) { var i = new Image(); i.src = s; return i; };
     var bg = img('rl_bg.png'), lg = img('loader_logo.png');
@@ -556,9 +668,18 @@ window.__syRL = {
     el.tip.textContent = TIPS[ti];
     upd();
     var tick = 0, closing = false, tipTimer = 0;
-    var out = function () {
+    var out = function (ok) {
       if (closing) return;
       closing = true;
+      if (ok === true) {   // 正常进标题：首帧壳和提醒卡片一起撤（失败时留着，壳上是失败卡片）
+        okDone = true;
+        window.__syBootOk = true;
+        stamp('title');
+        clearInterval(shellTimer);
+        var sb = $id('sy-boot'), se = $id('sy-boot-err');
+        if (sb) sb.remove();
+        if (se) se.remove();
+      }
       clearInterval(t);
       clearTimeout(tipTimer);
       if (unbindReady) unbindReady();
@@ -577,6 +698,7 @@ window.__syRL = {
         delete window.__syBootDone;
       }, 400);
     };
+    outFn = out;
     // One visual owner: download, engine and Godot warm-up update this same page.
     window.__syBootUp = function () {
       bootProgress = Math.max(shownProgress, 0.6);
@@ -591,6 +713,7 @@ window.__syRL = {
       ready = true;
       bootProgress = 1;
       bootLabel = '接入完成 · 等待指令';
+      if (window.__syBootHideWarn) window.__syBootHideWarn();   // 读完了：收起诊断卡（提醒类），别盖住「开始游戏」；之后要看用四指浮层
       upd();
       // 手机网页局与局之间的整页重载（core/run_reload.gd，docs/319 §14）：玩家刚点过「再来一局 / 回标题」，读完直接开始，不再要一次「开始游戏」
       if (reload) {
@@ -712,7 +835,7 @@ window.__syRL = {
       bootProgress = 1;
       bootLabel = '进入主菜单';
       upd();
-      out();
+      out(true);
     };
     var t = setInterval(function () {
       upd();   // 启动阶段没有字节进度：靠这里按时间推进
@@ -722,8 +845,9 @@ window.__syRL = {
         tipTimer = setTimeout(function () { el.tip.textContent = TIPS[ti]; el.tip.style.opacity = '1'; }, 220);
       }
       var nt = document.getElementById('status-notice');
-      if (nt && nt.style.display === 'block') out();
+      if (nt && nt.style.display === 'block') { fail('引擎启动失败', (nt.textContent || '').slice(0, 300)); out(); }   // Godot 报错：换成首帧壳上的失败卡片（带重新加载）
     }, 150);
+    if (failed) out();   // 建页前就失败了（内核过旧 / 下载失败）：不盖加载页
   }
   if (document.body) build();
   else {
@@ -737,33 +861,105 @@ window.__syRL = {
 
   var hasDS = typeof DecompressionStream === 'function';
 
-  // 把一片写进 out 的 [off, off + raw) 区间。gz 片：第一块带 1f 8b 时经 DecompressionStream 解开；否则（服务器已解压）原样写入。
-  // 返回写入的字节数；写越界 / 不足都按出错处理（part 会重试）。
-  // enc === 'lzma'（index.wasm，docs/187 §5）：不是 gzip 头时收齐压缩字节，用 syLzmaDecode（lzma_dec.js）直接解进 out 的这一段。
+  // ---------------------------------------------------------------- 下载 / 解压（11-16 Toy「加载很久、加载不出来」，docs/22「加载链路」）
+  // 1. 页面一开始就下（不等 index.js 下完、引擎来要）：wasm 分片先下，下完字节再开 pck 分片——引擎要先有完整 wasm 才能编译，
+  //    编译 / LZMA 解码和 pck 下载重叠；原来 6 条一起抢带宽，wasm 要到全部下完前不久才齐，解码 + 编译全压在下载之后。
+  // 2. LZMA（wasm）在 Worker 里解：wasm 整块缓冲区转移给 Worker、解完转回（不另分配，内存峰值不变），主线程不卡（加载页照常动）；
+  //    Worker 不可用时退回主线程切片解（原做法）。
+  // 3. 每片断流 15 秒（收不到字节）就中止重下，最多 4 次（1 / 2 / 4 秒退避）；仍失败 → 加载失败提示 + 「重新加载」。
+  var STALL_MS = 15000, TRIES = 4;
   var lastDownloadPaint = 0;
-  async function once(url, bytes, out, off, raw, enc) {
-    var request;
-    if (warmUrl && new URL(url, document.baseURI).href === warmUrl) {
-      request = warmRequest;
-      warmUrl = warmRequest = null;
-    }
-    var r = await (request || of(url, { cache: 'no-cache' }));
-    if (!r.ok) throw new Error(url + ' ' + r.status);
-    var rd = r.body.getReader(), counted = 0, wrote = 0, gz = null, chunks = null, ds = null, w = null, pump = null, pumpErr = null;
+
+  // LZMA Worker：同一个 Worker 串行解（缓冲区一次只能在一边）。先 ping 通再把缓冲区交过去（起不来就不冒险，退回主线程）
+  var lzP = null, lzW = null, lzSeq = 0, lzCb = {}, lzQ = [], lzBusy = false;
+  function lzWorker() {
+    if (lzP) return lzP;
+    lzP = new Promise(function (resolve) {
+      try {
+        if (/[?&]nolzw=1/.test(location.search) || typeof Worker !== 'function' || typeof Blob !== 'function' || typeof URL === 'undefined' || !URL.createObjectURL || typeof syLzmaDecode !== 'function') return resolve(null);
+        var src = syLzmaDecode.toString() +
+          ';\nonmessage = function (e) { var m = e.data; if (m.ping) return postMessage({ pong: 1 });' +
+          ' syLzmaDecode(new Uint8Array(m.src), new Uint8Array(m.buf, m.off, m.raw), true).then(function (n) { postMessage({ id: m.id, n: n, buf: m.buf }, [m.buf]); },' +
+          ' function (err) { postMessage({ id: m.id, err: String((err && err.message) || err), buf: m.buf }, [m.buf]); }); };';
+        var w = new Worker(URL.createObjectURL(new Blob([src], { type: 'text/javascript' })));
+        var to = setTimeout(function () { resolve(null); }, 4000);
+        w.onmessage = function (e) {
+          if (e.data.pong) { clearTimeout(to); lzW = w; return resolve(w); }
+          var cb = lzCb[e.data.id]; delete lzCb[e.data.id]; if (cb) cb(e.data);
+        };
+        w.onerror = function (ev) {   // 起不来：退回主线程；解到一半崩了（多半是内存）：在途那一片连同缓冲区没了，按加载失败处理
+          clearTimeout(to); resolve(null);
+          lzW = null;
+          Object.keys(lzCb).forEach(function (k) { var cb = lzCb[k]; delete lzCb[k]; cb({ err: 'LZMA Worker 出错：' + ((ev && ev.message) || 'error'), lost: true }); });
+        };
+        w.postMessage({ ping: 1 });
+      } catch (e) { resolve(null); }
+    });
+    return lzP;
+  }
+  // 解一片：src = 压缩字节，写进 F.out 的 [off, off + raw)。返回写入字节数
+  function lzDecode(F, src, off, raw) {
+    return lzWorker().then(function (w) {
+      if (!w || !lzW) { stamp('lzma_main'); return syLzmaDecode(src, F.out.subarray(off, off + raw)); }
+      stamp('lzma_worker');
+      return new Promise(function (resolve, reject) {
+        lzQ.push(function () {
+          var id = ++lzSeq, buf = F.out.buffer;
+          lzBusy = true;
+          lzCb[id] = function (m) {
+            lzBusy = false;
+            if (m.buf) F.out = new Uint8Array(m.buf);
+            if (m.lost) { F.lost = true; F.out = new Uint8Array(F.e.size); }
+            if (m.err) reject(new Error(m.err)); else resolve(m.n);
+            var nx = lzQ.shift(); if (nx) nx();
+          };
+          try {
+            var cp = src.byteOffset === 0 && src.byteLength === src.buffer.byteLength ? src.buffer : src.slice().buffer;
+            w.postMessage({ id: id, src: cp, buf: buf, off: off, raw: raw }, [buf, cp]);
+          } catch (e) {
+            delete lzCb[id]; lzBusy = false;
+            reject(e);
+            var nx = lzQ.shift(); if (nx) nx();
+          }
+        });
+        if (!lzBusy && lzQ.length === 1) lzQ.shift()();
+      });
+    });
+  }
+
+  // 把一片写进 F.out 的 [off, off + raw) 区间。gz 片：第一块带 1f 8b 时经 DecompressionStream 解开；否则（服务器已解压）原样写入。
+  // 返回写入的字节数；写越界 / 不足 / 断流都按出错处理（part 会重试）。
+  // enc === 'lzma'（index.wasm，docs/187 §5）：不是 gzip 头时收齐压缩字节，交给 lzDecode（Worker 或主线程）。
+  async function once(url, bytes, F, off, raw, enc, ps) {
+    var ac = typeof AbortController === 'function' ? new AbortController() : null;
+    var r = null, rd = null, counted = 0, wrote = 0, gz = null, chunks = null, ds = null, w = null, pump = null, pumpErr = null;
+    var lastByte = performance.now(), stalled = false;
+    var dog = setInterval(function () {   // 断流看门狗：响应头或字节 15 秒没动静
+      if (performance.now() - lastByte < STALL_MS) return;
+      stalled = true;
+      clearInterval(dog);
+      try { if (ac) ac.abort(); } catch (e) {}
+      try { if (rd) rd.cancel(); } catch (e) {}
+    }, 1000);
     function sink(v) {   // 解开后的字节 → out
       if (wrote + v.length > raw) throw new Error(url + ' 解开后超过原始长度');
-      out.set(v, off + wrote); wrote += v.length;
+      F.out.set(v, off + wrote); wrote += v.length;
     }
     try {
+      r = await of(url, ac ? { cache: 'no-cache', signal: ac.signal } : { cache: 'no-cache' });
+      if (!r.ok) { firstErr(url.split('/').pop() + ' HTTP ' + r.status); throw new Error(url.split('/').pop() + ' HTTP ' + r.status); }
+      lastByte = performance.now();
+      rd = r.body.getReader();
       for (;;) {
         var x = await rd.read();
+        if (stalled) throw new Error(url + ' 下载中断（' + (STALL_MS / 1000) + ' 秒无数据）');
         if (x.done) break;
         var v = x.value;
+        lastByte = performance.now();
         var add = Math.min(v.length, bytes - counted);
         if (add > 0) {
-          counted += add; got += add;
-          var now = performance.now();
-          if (now - lastDownloadPaint >= 50) { lastDownloadPaint = now; upd(); }
+          counted += add; got += add; ps.got = counted;
+          if (lastByte - lastDownloadPaint >= 50) { lastDownloadPaint = lastByte; upd(); }
         }
         if (gz === null) gz = (v.length > 1 && v[0] === 0x1f && v[1] === 0x8b);
         if (!gz && enc === 'lzma') { if (!chunks) chunks = []; chunks.push(v); continue; }
@@ -782,17 +978,24 @@ window.__syRL = {
           chunks.push(v);
         }
       }
+      clearInterval(dog);
+      got += bytes - counted; counted = bytes;
+      if (enc === 'lzma' && !gz) F.dl++;   // wasm 这一片字节收齐：pck 可以开始下了（见 startAll）
+      if (F.onDl) F.onDl();
+      upd();
       if (ds) { await w.close(); await pump; if (pumpErr) throw pumpErr; }
-      else if (chunks && !gz) { var lz = cat(chunks); chunks = null; wrote = await syLzmaDecode(lz, out.subarray(off, off + raw)); }
+      else if (chunks && !gz) { var lz = cat(chunks); chunks = null; F.unz++; upd(); wrote = await lzDecode(F, lz, off, raw); F.unz--; }
       else if (chunks) { sink(inflate(cat(chunks))); chunks = null; }
       if (wrote !== raw) throw new Error(url + ' 解开后大小不符：' + wrote + ' ≠ ' + raw);
     } catch (e) {
-      got -= counted; upd();
+      clearInterval(dog);
+      got -= counted; ps.got = 0; upd();
+      if (stalled || !/HTTP \d/.test(String(e && e.message))) firstErr(String((e && e.message) || e).split('/').pop());
       if (w) { try { await w.abort(); } catch (e2) {} }
-      try { await rd.cancel(); } catch (e2) {}
+      try { if (rd) await rd.cancel(); } catch (e2) {}
+      if (stalled && !/下载中断/.test(String(e && e.message))) e = new Error(url + ' 下载中断（' + (STALL_MS / 1000) + ' 秒无数据）');
       throw e;
     }
-    got += bytes - counted; upd();
     return wrote;
   }
 
@@ -803,44 +1006,92 @@ window.__syRL = {
     return o;
   }
 
-  async function part(url, bytes, out, off, raw, enc) {
+  async function part(url, bytes, F, off, raw, enc) {
+    var ps = { n: url.split('/').pop().replace(/^index\./, ''), got: 0, tot: bytes, st: '' };   // 诊断卡的分片一行
+    diagD.parts.push(ps);
     for (var i = 0; ; i++) {
-      try { return await once(url, bytes, out, off, raw, enc); }
-      catch (e) { if (i >= 2) throw e; await new Promise(function (r) { setTimeout(r, 800 * (i + 1)); }); }
+      try { var n = await once(url, bytes, F, off, raw, enc, ps); ps.st = ''; ps.got = bytes; return n; }
+      catch (e) {
+        F.unz = 0;
+        if (i >= TRIES - 1 || F.lost) { ps.st = '失败'; throw e; }   // Worker 崩掉时缓冲区（已解的片）一起没了：不再逐片重试，直接报失败让玩家重新加载
+        retries++;
+        ps.st = '重试 ' + (i + 1);
+        lastErr = String((e && e.message) || e);
+        upd();
+        await new Promise(function (r) { setTimeout(r, 1000 * Math.pow(2, i)); });
+      }
     }
   }
 
   var pending = Object.keys(M).length;
   var of = window.fetch.bind(window);
-  // Start one small compressed WASM request alongside index.js. Its normal
-  // consumer takes the original Response stream, including on a cold cache.
-  var warmUrl = null, warmRequest = null;
-  if (M['index.wasm'] && document.baseURI && typeof WebAssembly !== 'undefined') {
-    warmUrl = new URL(M['index.wasm'].parts[0][0], document.baseURI).href;
-    warmRequest = of(warmUrl, { cache: 'no-cache' });
-    warmRequest.catch(function () {}); // part() handles the rejection and retries.
+  function stamp(k) { if (!(k in window.__syLoadT)) window.__syLoadT[k] = Math.round(performance.now() - tStart); }
+  function startFile(name) {
+    var e = M[name], F = files[name] = { e: e, out: new Uint8Array(e.size), dl: 0, unz: 0, nLz: 0 };
+    var off = 0, jobs = [];
+    e.parts.forEach(function (p) {
+      var raw = p.length > 2 ? p[2] : e.size - off;   // 旧清单没有原始长度：只可能是单片
+      if (e.enc === 'lzma') F.nLz++;
+      jobs.push(part(baseUrl + p[0], p[1], F, off, raw, e.enc));
+      off += raw;
+    });
+    if (off !== e.size) { F.promise = Promise.reject(new Error(name + ' 清单分片长度之和不符：' + off + ' ≠ ' + e.size)); return F; }
+    F.promise = Promise.all(jobs).then(function () {
+      stamp(name);
+      if (--pending === 0) { done = true; stamp('unpacked'); upd(); }
+      var out = F.out;
+      var resp = new Response(out, { status: 200, headers: { 'Content-Type': e.type, 'Content-Length': String(e.size) } });
+      resp.__syBuf = out.buffer;
+      if (/\.pck$/.test(name)) window.__syPckBytes = (window.__syPckBytes || 0) + e.size;   // 只算主包：wasm 编译完不留   // 崩溃前快照估 JS 堆（WebKit 没有 performance.memory，docs/319 §13）   // 引擎补丁（engine_patch.py §2）直接拿这块，不再 arrayBuffer() 拼一份、MEMFS 也不再 slice 一份（docs/319 §10）
+      F.out = null;
+      return resp;
+    }, function (err) {
+      fail('资源下载失败', String((err && err.message) || err));
+      throw err;
+    });
+    F.promise.catch(function () {});
+    if (gates[name]) gates[name].open();
+    return F;
   }
+  // 引擎先来要、还在排队（pck 等 wasm 字节）的文件：给它一个等开始的 Promise，不放行到网络（index.pck 本身不存在，会 404）
+  var gates = {};
+  function gate(name) {
+    if (!gates[name]) { var g = gates[name] = {}; g.p = new Promise(function (r) { g.open = r; }); }
+    return gates[name].p.then(function () { return files[name].promise; });
+  }
+  var baseUrl = '';
+  function startAll() {
+    try { baseUrl = new URL('.', document.baseURI || location.href).href; } catch (e) { baseUrl = ''; }
+    var names = Object.keys(M), first = names.filter(function (n) { return M[n].enc === 'lzma' || /\.wasm$/.test(n); });
+    var rest = names.filter(function (n) { return first.indexOf(n) < 0; });
+    var restStarted = false;
+    function startRest() {
+      if (restStarted) return;
+      restStarted = true;
+      stamp('wasm_bytes');
+      rest.forEach(startFile);
+    }
+    first.forEach(function (n) {
+      var F = startFile(n);
+      F.onDl = function () { if (F.dl >= F.nLz) startRest(); };
+      F.promise.then(startRest, startRest);
+    });
+    if (!first.length) startRest();
+    setTimeout(startRest, 30000);   // 保底：wasm 某片一直重试时也别让 pck 干等
+  }
+  if (typeof WebAssembly === 'undefined') stamp('no_wasm');
+  if (!compat.length) startAll();
+
   window.fetch = function (input, init) {
     var url = (typeof input === 'string') ? input : ((input && input.url) || '');
     var path = url.split('?')[0].split('#')[0];
     var name = path.split('/').pop();
-    var e = M[name];
-    if (!e) return of(input, init);
-    var base = path.slice(0, path.length - name.length);
-    var out = new Uint8Array(e.size), off = 0, jobs = [];
-    e.parts.forEach(function (p) {
-      var raw = p.length > 2 ? p[2] : e.size - off;   // 旧清单没有原始长度：只可能是单片
-      jobs.push(part(base + p[0], p[1], out, off, raw, e.enc));
-      off += raw;
-    });
-    if (off !== e.size) return Promise.reject(new Error(name + ' 清单分片长度之和不符：' + off + ' ≠ ' + e.size));
-    return Promise.all(jobs).then(function () {
-      if (--pending === 0) { done = true; upd(); }
-      var resp = new Response(out, { status: 200, headers: { 'Content-Type': e.type, 'Content-Length': String(e.size) } });
-      resp.__syBuf = out.buffer;
-      if (/\.pck$/.test(name)) window.__syPckBytes = (window.__syPckBytes || 0) + e.size;   // 只算主包：wasm 编译完不留   // 崩溃前快照估 JS 堆（WebKit 没有 performance.memory，docs/319 §13）   // 引擎补丁（engine_patch.py §2）直接拿这块，不再 arrayBuffer() 拼一份、MEMFS 也不再 slice 一份（docs/319 §10）
-      return resp;
-    });
+    if (!Object.prototype.hasOwnProperty.call(M, name) || compat.length) return of(input, init);
+    var F = files[name];
+    if (!F) return gate(name);
+    F.taken = true;
+    if (name === 'index.wasm') stamp('engine_asks');
+    return F.promise;
   };
 
   // ---------------------------------------------------------------- 后备：纯 JS gzip 解压（没有 DecompressionStream 的老浏览器）

@@ -11,8 +11,9 @@ input, textarea, [contenteditable]:not([contenteditable="false"]), #status-notic
   -webkit-user-select: text; user-select: text;
 }
 
+/* 11-16：inset 一律拆成 top / right / bottom / left（inset 要 Chrome 87；安卓旧 WebView 不认时加载页宽高为 0、整页被裁成黑屏） */
 #sy-load {
-  position: fixed; inset: 0; z-index: 9000; overflow: hidden;
+  position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 9000; overflow: hidden;
   -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
   background: radial-gradient(ellipse at 50% 50%, #0d1820 0%, #070c11 70%, #04070a 100%);
   font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif; color: #e6eef2;
@@ -33,7 +34,7 @@ input, textarea, [contenteditable]:not([contenteditable="false"]), #status-notic
 }
 #sy-load .sy-go > * { pointer-events: none; }
 #sy-load * { -webkit-tap-highlight-color: transparent; }   /* 11-08 iPhone B站 App：整页收 pointerdown，按住时 WebView 点按高亮罩住整页（粉色调 + 边缘亮边） */
-#sy-load .sy-go .fl, #sy-load .sy-go .gw { position: absolute; inset: 0; transition: inset .12s ease-out, opacity .12s; }
+#sy-load .sy-go .fl, #sy-load .sy-go .gw { position: absolute; top: 0; right: 0; bottom: 0; left: 0; transition: inset .12s ease-out, opacity .12s; }
 #sy-load .sy-go .fl { background: rgba(5, 13, 18, .86); animation: sy-scan-fill .3s linear .3s backwards; }
 #sy-load .sy-go .sc { position: absolute; top: -7px; bottom: -7px; left: 0; width: 1.5px; background: #5ee6e6; box-shadow: -8px 0 14px rgba(94, 230, 230, .35); opacity: 0;
   animation: sy-scan .3s linear .3s; }
@@ -43,7 +44,7 @@ input, textarea, [contenteditable]:not([contenteditable="false"]), #status-notic
 #sy-load .sy-go .fr .tr { stroke: rgba(223, 233, 238, .85); stroke-width: 1.5; stroke-dasharray: 1 1; stroke-dashoffset: 1; animation: sy-trace .45s cubic-bezier(.2, .7, .3, 1) .35s forwards, sy-fade .1s linear .8s forwards; }
 #sy-load .sy-go .fr .bd { stroke: #5ee6e6; stroke-width: 1.5; opacity: 0; animation: sy-in .1s linear .8s forwards, sy-br 2.4s ease-in-out .9s infinite; }
 #sy-load .sy-go .fr .fw { stroke: #5ee6e6; stroke-width: 2; stroke-dasharray: 8 92; opacity: 0; animation: sy-in .3s linear 1.1s forwards, sy-flow 5.5s linear 1.1s infinite; }
-#sy-load .sy-go::after { content: ""; position: absolute; inset: -2px; border: 1px solid #5ee6e6; opacity: 0; animation: sy-lock .25s ease-out .45s; }
+#sy-load .sy-go::after { content: ""; position: absolute; top: -2px; right: -2px; bottom: -2px; left: -2px; border: 1px solid #5ee6e6; opacity: 0; animation: sy-lock .25s ease-out .45s; }
 #sy-load .sy-go i { position: absolute; width: 6px; height: 6px; background: #5ee6e6; --x: 0px; --y: 0px; transform: translate(var(--x), var(--y)) rotate(45deg);
   transition: transform .12s ease-out, width .12s, height .12s; animation: sy-corner .35s cubic-bezier(.2, .7, .3, 1) .1s backwards; }
 #sy-load .sy-go i.c0 { left: -4px; top: -4px; --dx: -1; --dy: -1; } #sy-load .sy-go i.c1 { right: -4px; top: -4px; --dx: 1; --dy: -1; }
@@ -57,21 +58,21 @@ input, textarea, [contenteditable]:not([contenteditable="false"]), #status-notic
 #sy-load .sy-go em { position: absolute; left: -40px; right: -40px; top: calc(100% + 12px); font-style: normal; font-size: 10px; letter-spacing: 4px; color: #708794;
   clip-path: inset(0 100% 0 0); animation: sy-type .35s steps(13) .9s forwards; }
 /* 悬停 / 键盘聚焦 / 手柄（loader 不收手柄，只有键盘）*/
-#sy-load .sy-go:hover .fl, #sy-load .sy-go:focus-visible .fl, #sy-load .sy-go.on .fl { inset: 3px; }
+#sy-load .sy-go:hover .fl, #sy-load .sy-go:focus-visible .fl, #sy-load .sy-go.on .fl { top: 3px; right: 3px; bottom: 3px; left: 3px; }
 #sy-load .sy-go:hover .fr, #sy-load .sy-go:focus-visible .fr, #sy-load .sy-go.on .fr { transform: scale(var(--sx), var(--sy)); }
-#sy-load .sy-go:hover .gw, #sy-load .sy-go:focus-visible .gw { opacity: 1; inset: 3px; }
+#sy-load .sy-go:hover .gw, #sy-load .sy-go:focus-visible .gw { opacity: 1; top: 3px; right: 3px; bottom: 3px; left: 3px; }
 #sy-load .sy-go:hover .fr .bd, #sy-load .sy-go:focus-visible .fr .bd { animation-play-state: running, paused; stroke-opacity: 1; }
 #sy-load .sy-go:hover i, #sy-load .sy-go:focus-visible i { --x: calc(var(--dx) * 2px); --y: calc(var(--dy) * 2px); width: 8px; height: 8px; }
 /* 按下：反白 + 压暗 + 声呐脉冲 */
 #sy-load .sy-go.on .fl { animation: sy-inv .26s linear both; }
 #sy-load .sy-go.on span { animation: sy-inv-t .26s linear both; }
 #sy-load .sy-go.on .fw, #sy-load .sy-go.on em { opacity: 0; transition: opacity .1s; }
-#sy-load .sy-dim { position: absolute; inset: 0; z-index: 19; background: #000306; pointer-events: none; animation: sy-dim .5s ease-out forwards; }
+#sy-load .sy-dim { position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: 19; background: #000306; pointer-events: none; animation: sy-dim .5s ease-out forwards; }
 #sy-load .sy-pulse { position: absolute; z-index: 19; border-radius: 50%; border: 2px solid #5ee6e6; pointer-events: none; opacity: 0;
   animation: sy-pulse .85s cubic-bezier(.2, .7, .3, 1) both; }
 #sy-load .sy-pulse.p0 { box-shadow: inset 0 0 0 8px rgba(94, 230, 230, .08); }
 #sy-load .sy-pulse.p1, #sy-load .sy-pulse.p2 { border-width: 1px; }
-#sy-load .sy-lead { position: absolute; inset: 0; z-index: 19; pointer-events: none; overflow: visible; animation: sy-fade .6s linear .75s forwards; }
+#sy-load .sy-lead { position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: 19; pointer-events: none; overflow: visible; animation: sy-fade .6s linear .75s forwards; }
 #sy-load .sy-lead line { stroke: #5ee6e6; stroke-opacity: .6; stroke-width: 1; stroke-dasharray: 1 1; stroke-dashoffset: 1; animation: sy-trace .25s cubic-bezier(.2, .7, .3, 1) forwards; }
 #sy-load .sy-lead rect { fill: none; stroke: #5ee6e6; stroke-opacity: .85; transform-box: fill-box; transform-origin: center; animation: sy-lockon .2s cubic-bezier(.2, .7, .3, 1) both; }
 #sy-load.sy-ready .sv-ri { display: none; }
@@ -108,7 +109,7 @@ input, textarea, [contenteditable]:not([contenteditable="false"]), #status-notic
   #sy-load .sy-lead { display: none; }
 }
 #sy-load .sy-grid {
-  position: absolute; inset: 0;
+  position: absolute; top: 0; right: 0; bottom: 0; left: 0;
   background-image: linear-gradient(rgba(120, 170, 190, .05) 1px, transparent 1px), linear-gradient(90deg, rgba(120, 170, 190, .05) 1px, transparent 1px);
   background-size: 24px 24px;
 }
@@ -120,7 +121,7 @@ input, textarea, [contenteditable]:not([contenteditable="false"]), #status-notic
   position: absolute; left: 50%; top: 45%; width: min(400px, 52vh, 60vw); aspect-ratio: 1;
   transform: translate(-50%, -50%);
 }
-#sy-load .sy-sonar svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+#sy-load .sy-sonar svg { position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; overflow: visible; }
 #sy-load .sy-sweep { transform-origin: 0 0; animation: sy-spin 3.2s linear infinite; }
 @keyframes sy-spin { to { transform: rotate(360deg); } }
 #sy-load .sy-ring { transition: stroke-dashoffset .3s linear; }
@@ -185,11 +186,11 @@ input, textarea, [contenteditable]:not([contenteditable="false"]), #status-notic
 @keyframes sv-blink { 55% { opacity: 0; } }
 #sy-load .sv-tip .bd { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; font-size: 13px; line-height: 21px; color: #b2c4ca; transition: opacity .22s; }
 /* 海雪：两层首尾相接往上走 */
-#sy-load .sv-snow { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+#sy-load .sv-snow { position: absolute; top: 0; right: 0; bottom: 0; left: 0; overflow: hidden; pointer-events: none; }
 #sy-load .sv-snow i { position: absolute; left: 0; top: 0; width: 1px; height: 1px; animation: sv-rise 40s linear infinite; }
 #sy-load .sv-snow i + i { top: 100vh; }
 @keyframes sv-rise { to { transform: translateY(-100vh); } }
-#sy-load .sv-scan { position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .018) 0 1px, transparent 1px 3px); }
+#sy-load .sv-scan { position: absolute; top: 0; right: 0; bottom: 0; left: 0; background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .018) 0 1px, transparent 1px 3px); }
 /* 1 终端开机 */
 #sy-load .sv-body1 { position: absolute; left: 36px; right: 36px; top: 92px; bottom: 112px; display: grid; grid-template-columns: 62fr 38fr; gap: 40px; }
 #sy-load .sv-prog { position: absolute; left: 36px; right: 36px; bottom: 40px; display: grid; grid-template-columns: 1fr auto; column-gap: 24px; align-items: end; }
@@ -200,7 +201,7 @@ input, textarea, [contenteditable]:not([contenteditable="false"]), #status-notic
 #sy-load .sv-pct { font-size: 34px; line-height: 1; color: #eef3f5; }
 #sy-load .sv-what { grid-column: 1 / 3; margin-top: 8px; font-size: 11px; color: #78909a; }
 /* 2 深潜 */
-#sy-load .sv-deep { position: absolute; inset: 0; background: linear-gradient(#04080c, #010305); opacity: 0; transition: opacity .3s; }
+#sy-load .sv-deep { position: absolute; top: 0; right: 0; bottom: 0; left: 0; background: linear-gradient(#04080c, #010305); opacity: 0; transition: opacity .3s; }
 #sy-load.sv2 { background: linear-gradient(#0d2933, #05101a); }
 #sy-load .sv-body2 { position: absolute; left: 36px; width: calc(62% - 72px); top: 92px; bottom: 50px; display: grid; grid-template-rows: 1fr auto; gap: 20px; }
 #sy-load .sv-gauge { position: absolute; right: 36px; top: 70px; bottom: 50px; width: 300px; }
@@ -218,7 +219,7 @@ input, textarea, [contenteditable]:not([contenteditable="false"]), #status-notic
 /* 3 声呐终端（10-31 第三版：PRTS 终端版式，深海底浅色线） */
 #sy-load.sv3 { background: #060b10; color: #dfe9ee; }
 #sy-load.sv3 .sy-foot { color: #6f858f; }
-#sy-load .sv-net { position: absolute; inset: 0; width: 100%; height: 100%; }
+#sy-load .sv-net { position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; }
 #sy-load .sv-net line { stroke: rgba(48, 70, 82, .95); stroke-width: 1; vector-effect: non-scaling-stroke; opacity: 0; transition: opacity .6s linear; }
 #sy-load .sv-net line.on { opacity: 1; }
 #sy-load .sv-net .nd { fill: #56707c; animation: sv-drift 6s ease-in-out infinite alternate; transform-box: fill-box; }
@@ -233,7 +234,7 @@ input, textarea, [contenteditable]:not([contenteditable="false"]), #status-notic
 #sy-load .sv-brand em { display: block; font-style: normal; font-size: 9px; letter-spacing: 2px; }
 #sy-load .sv-brand span { display: block; margin-top: 6px; font-size: 11px; color: #6f858f; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; }
 #sy-load.sv3 .sv-dial { position: absolute; left: 50%; top: 50%; width: min(440px, 60vh, 44vw); aspect-ratio: 1; transform: translate(-50%, -50%); }
-#sy-load.sv3 .sv-dial svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+#sy-load.sv3 .sv-dial svg { position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; overflow: visible; }
 #sy-load.sv3 .sv-ticks line { stroke: rgba(194, 199, 204, .9); }
 #sy-load.sv3 .sv-ticks line.on { stroke: #dfe9ee; }
 #sy-load.sv3 .sv-ticks line.cur { stroke: #5ee6e6; animation: sv-blink .5s steps(1) infinite; }
@@ -270,7 +271,7 @@ input, textarea, [contenteditable]:not([contenteditable="false"]), #status-notic
 #sy-load.sv3 .sv-tip .sv-cap { border: 0; color: #6f858f; margin: 12px 0 4px; }
 #sy-load.sv3 .sv-tip .bd { color: #a9bac0; }
 #sy-load .sv-build { position: absolute; right: 40px; bottom: 34px; font-size: 11px; color: #6f858f; }
-#sy-load .sv-dark { position: absolute; inset: 0; background: #02050a; opacity: 0; pointer-events: none; transition: opacity .3s; }
+#sy-load .sv-dark { position: absolute; top: 0; right: 0; bottom: 0; left: 0; background: #02050a; opacity: 0; pointer-events: none; transition: opacity .3s; }
 #sy-load .sv-lines div.nw span { animation: sv-type .35s steps(10) both; display: inline-block; overflow: hidden; }
 @keyframes sv-type { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
 #sy-load .sv-jelly { width: 100%; height: auto; display: block; animation: sv-bob 3s ease-in-out infinite; }
@@ -331,6 +332,9 @@ input, textarea, [contenteditable]:not([contenteditable="false"]), #status-notic
 /* ---------------- 方向 4：PRTS 认证终端（11-05，loader.js p4Init；同桌面 boot_views.draw_v4）----------------
    一直在动的都在 .p4fx 里，只动 opacity / transform（合成线程），引擎占住主线程时照样流畅；呼吸 2.6 秒一次（同桌面） */
 #sy-load.sv4 { background: #0f1013; }
+/* 11-16：画布画出第一帧（loader.js 加 .p4on）之前本页透明、内容先藏起来，露出下面的首帧壳 #sy-boot（boot_shell.html）——WebView 不给 rAF 时不再全黑 */
+#sy-load.sv4:not(.p4on) { background: transparent; }
+#sy-load.sv4:not(.p4on) .p4box { visibility: hidden; }
 #sy-load.sv4 .p4box { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }   /* 安全区框（loader.js p4Init 按 __sySafe 定位）：动效层 / 页脚 / 「开始游戏」在里面；画布 .p4c 铺满整屏，刘海 / 圆角处无缝 */
 #sy-load.sv4 .p4c { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
 /* 「潮汐航标」仅将水母送到合成线程。1 个设计像素的缩放与 1280×720 画布的 k 相同。 */

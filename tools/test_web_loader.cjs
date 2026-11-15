@@ -13,10 +13,11 @@ function fixture() {
   root.querySelector = k => parts.get(k);
   root.remove = () => { root.parentNode=null; elements.delete('sy-load'); };
   const body={appendChild:d=>{d.parentNode=body;elements.set(d.id,d);}};
-  const document={body,createElement:()=>root,getElementById:id=>elements.get(id)||null};
+  const document={body,createElement:()=>root,getElementById:id=>elements.get(id)||null,addEventListener:()=>{},baseURI:'http://boot.test/'};
   elements.set('status',child()); elements.set('status-notice',child());
   const window={fetch:async()=>new Response(new Uint8Array([1]))};
-  const context={window,document,performance:{now:()=>1000},console,Response,Uint8Array,Math,Promise,
+  const context={window,document,performance:{now:()=>1000},console,Response,Uint8Array,Math,Promise,URL,AbortController,BigInt64Array,WebAssembly,Object,
+    location:{search:'',href:'http://boot.test/'},navigator:{userAgent:'test'},
     setInterval:f=>{intervals.set(++seq,f);return seq},clearInterval:id=>intervals.delete(id),
     setTimeout:f=>{timeouts.set(++seq,f);return seq},clearTimeout:id=>timeouts.delete(id)};
   const source=fs.readFileSync(path.join(__dirname,'web/loader.js'),'utf8').replace('/*SHUIYUE_MANIFEST*/null',JSON.stringify({'index.pck':{size:1,parts:[['part',1,1]]}}));
