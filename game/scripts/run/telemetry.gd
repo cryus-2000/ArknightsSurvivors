@@ -816,7 +816,7 @@ func on_state(s: int) -> void:
 	if s == g.S.WIN:
 		save_local("win")
 	elif s == g.S.DEAD:
-		save_local("dead")
+		save_local("quit" if bool(g.get("abandoned")) else "dead")   # 放弃探索记作中途退出
 
 
 ## 离开对局场景（回标题 / 关游戏）时调用：还没记过的算中途退出

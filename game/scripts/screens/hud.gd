@@ -354,7 +354,7 @@ func _draw_body() -> void:
 		Game.S.STATS:
 			g.stats_screen.draw(vs)
 		Game.S.PAUSE:
-			g.result_screen.draw(vs, "暂停", "PAUSED", Color(0.925, 0.933, 0.941) if HudV3.on() else UI.CYAN, [["继续", "Esc", "resume"], ["指南", "G", "guide"], ["演示", "H", "demos"], ["设置", "O", "settings"], ["重新开始", "R", "restart"], ["回到标题", "T", "title"]])
+			g.result_screen.draw(vs, "暂停", "PAUSED", Color(0.925, 0.933, 0.941) if HudV3.on() else UI.CYAN, [["继续", "Esc", "resume"], ["指南", "G", "guide"], ["演示", "H", "demos"], ["设置", "O", "settings"], ["重新开始", "R", "restart"], (["回到标题", "T", "title"] if g.trial.active else [("确认放弃？" if Time.get_ticks_msec() - g.abandon_arm_ms <= 3000 else "放弃探索"), "T", "abandon"])])   # 放弃探索：按倒下进结算（11-15 用户），Boss 演练仍直接回标题
 			g.web_focus.draw_pause(vs)   # 失焦自动暂停：「点击继续」（docs/317）
 			g.web_fs.draw_pause(vs)   # 网页版桌面：P 键说明 + 「返回全屏」（docs/299）
 		Game.S.DEAD:

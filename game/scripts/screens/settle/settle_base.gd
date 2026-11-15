@@ -255,6 +255,8 @@ func leader_row() -> Dictionary:
 func sub_line() -> String:
 	if won:
 		return str(m().get("ending_name", ""))
+	if bool(m().get("quit", false)):
+		return "放弃探索"
 	var kl: Dictionary = m().get("killer", {})
 	var n := str(kl.get("name", ""))
 	return ("击倒：" + n) if n != "" else "探索终止"

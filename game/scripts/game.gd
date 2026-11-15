@@ -1872,10 +1872,12 @@ func _process(delta: float) -> void:
 			telemetry.on_state(state)   # 进入胜 / 负时把这一局写进本地记录（docs/40）
 			if state == S.WIN or state == S.DEAD:
 				RunEnd.settle(self)   # 局外结算：寻访凭证、生机细胞、最佳成绩、云存档（run/run_end.gd）
-				perf_rep.finish("win" if state == S.WIN else "dead")
+				perf_rep.finish("win" if state == S.WIN else ("quit" if abandoned else "dead"))
 				if demo_op == "":
-					CrashBox.end("win" if state == S.WIN else "dead")
+					CrashBox.end("win" if state == S.WIN else ("quit" if abandoned else "dead"))
 		state_age = 0.0
+		if state == S.DEAD and abandoned:
+			state_age = HudView.DEATH_T   # 放弃探索：不演倒下过渡，直接进结算
 		ui_skip = false
 		res_sel = 0
 	else:
@@ -2004,6 +2006,15 @@ func _do_action(act: String) -> void:
 			get_tree().change_scene_to_file("res://main.tscn")
 		"stats":
 			run_stats.open_for_run()
+		"abandon":
+			if state != S.PAUSE:
+				return
+			if Time.get_ticks_msec() - abandon_arm_ms > 3000:
+				abandon_arm_ms = Time.get_ticks_msec()   # 第一下只把按钮换成「确认放弃？」，防误触
+				hud.queue_redraw()
+				return
+			abandoned = true
+			state = S.DEAD
 
 
 ## 指南页的输入放在 _input：先于 GUI 控件处理，左键（或面板右半 / 下一页按钮）下一页，右键 / 面板左半 / 上一页按钮上一页，页码点可直接点
@@ -2269,7 +2280,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif k == KEY_M:
 		vfx.show_banner("音乐：关" if Sfx.toggle_music() else "音乐：开")
 	elif k == KEY_T and (state == S.DEAD or state == S.WIN or state == S.PAUSE):
-		_do_action("title")
+		_do_action("abandon" if state == S.PAUSE and not trial.active else "title")
 	elif k == KEY_R and (state == S.DEAD or state == S.WIN or state == S.PAUSE):
 		_do_action("restart")
 	elif state == S.SHOP:
@@ -2763,6 +2774,8 @@ func _exit_tree() -> void:
 ## 手机网页离开一局（回标题 / 重开）：上一局读进静态缓存的贴图、局中补注册的音效与历史语音样本全部退掉（docs/319 §7）。
 ## 同页连开第二局时原来叠在上一局残留上（iPhone 第二局开局被系统杀页）。--bal=web/mobile_run_release=0 退回
 var _restarting := false
+var abandoned := false   # 11-15 用户：暂停菜单「放弃探索」——按倒下进结算（作战报告 / 奖励 / 分享照常），不再直接回标题
+var abandon_arm_ms := -99999   # 第一次点「放弃探索」的时刻；3 秒内再点才执行
 
 func _release_run() -> void:
 	if not Cfg.mobile_knob("mobile_run_release", 1.0) and not Cfg.dev_args().has("--runrelease"):   # 11-08 用户口径：不影响画面的全平台生效（原来只手机网页）

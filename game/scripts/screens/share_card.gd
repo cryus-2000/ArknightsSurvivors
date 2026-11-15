@@ -53,7 +53,7 @@ func data(screen) -> Dictionary:
 	var rank := {"升华": 0, "稀有": 1, "遭诅古物": 2, "基础": 3}
 	relics.sort_custom(func(a, b): return int(rank.get(str(a.rarity), 4)) < int(rank.get(str(b.rarity), 4)))
 	return {"won": won, "result": "探索完成" if won else "探索终止", "result_en": "OPERATION COMPLETE" if won else "OPERATION FAILED",
-		"ending": str(m.get("ending_name", "")) if won else ("击倒：" + str(m.get("killer", {}).get("name", "未知"))),
+		"ending": str(m.get("ending_name", "")) if won else ("放弃探索" if bool(m.get("quit", false)) else ("击倒：" + str(m.get("killer", {}).get("name", "未知")))), "quit": bool(m.get("quit", false)),
 		"tier": str(D.DIFF_PRESETS[clampi(g.preset, 0, D.DIFF_PRESETS.size() - 1)].name), "t": float(m.get("t", 0.0)),
 		"hi_label": "总伤害", "hi": g.run_stats.fmt_n(float(m.get("total", 0.0))), "kills": int(m.get("kills", 0)), "level": int(m.get("level", 1)), "relic_n": int(m.get("relics", relics.size())),
 		"grade": screen.grade(m, g.preset), "ops": ops, "relics": relics.slice(0, 6),
@@ -461,7 +461,7 @@ func _report(ci: CanvasItem, d: Dictionary) -> void:
 		if not won:   # 击倒章（洋红，斜盖在立绘上）
 			ci.draw_set_transform_matrix(_xf * Transform2D(-0.12, Vector2(220, 300)))
 			ci.draw_rect(Rect2(-56, -22, 112, 44), SB.MAG, false, 3.0)
-			_t(ci, Vector2(0, -19), "击倒", 28, SB.MAG, "c", 112)
+			_t(ci, Vector2(0, -19), "撤离" if bool(d.get("quit", false)) else "击倒", 28, SB.MAG, "c", 112)
 			ci.draw_set_transform_matrix(_xf)
 	# 右侧：评级 + 数据格
 	var gk: float = [14.0, 11.0, 8.0][clampi(str(d.grade).length() - 1, 0, 2)]

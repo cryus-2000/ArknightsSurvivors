@@ -1652,6 +1652,21 @@ func step() -> void:
 				if df >= 300:
 					g.get_tree().quit()
 	for a in Cfg.dev_args():
+		# --abandonshot（11-15 放弃探索）：第 60 帧开暂停菜单，150 帧点一下「放弃探索」截一张，170 帧确认进结算，430 帧截结算终态 shot_abandon_settle.png
+		if a == "--abandonshot":
+			if g.at_frames == 60:
+				g.state = g.S.PAUSE
+			if g.at_frames == 150:
+				g._do_action("abandon")
+			if g.at_frames == 160 and DisplayServer.get_name() != "headless":
+				g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_abandon_pause.png")
+			if g.at_frames == 170:
+				g._do_action("abandon")
+			if g.at_frames == 400:
+				g.settlement.skip()
+			if g.at_frames == 430 and DisplayServer.get_name() != "headless":
+				g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_abandon_settle.png")
+				g.get_tree().quit()
 		# --settleshot=win|lose（docs/326 寻访凭证 / 结算兑换 / 关注作者按钮截图）：配 --roster=start5 --metacells=N [--fbtoy]；
 		# 第 60 帧进胜利 / 倒下（走正常局终结算：发凭证、记细胞），第 200 帧跳到结算终态，第 215 帧存 shot_settle_<win|lose>.png
 		if a.begins_with("--settleshot="):

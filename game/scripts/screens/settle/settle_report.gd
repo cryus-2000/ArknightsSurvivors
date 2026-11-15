@@ -152,7 +152,7 @@ func _leader(acc: Color) -> void:
 			var c := Vector2(300, 300)
 			xf(c, -0.12, Vector2.ONE * sc)
 			rect(Rect2(c - Vector2(62, 24), Vector2(124, 48)), MAG, false, 3.0)
-			txt(c.x, c.y - 20, "击倒", 32, MAG, 1)
+			txt(c.x, c.y - 20, "撤离" if bool(m().get("quit", false)) else "击倒", 32, MAG, 1)
 			reset_xf()
 	fa = 1.0
 
