@@ -6,10 +6,10 @@ uid="uid://c08iemod26rxe"
 
 [deps]
 
-files=["res://l10n/meta.en.translation", "res://l10n/meta.ja.translation"]
+files=["res://l10n/meta.en.translation", "res://l10n/meta.ja.translation", "res://l10n/meta.ko.translation"]
 
 source_file="res://l10n/meta.csv"
-dest_files=["res://l10n/meta.en.translation", "res://l10n/meta.ja.translation"]
+dest_files=["res://l10n/meta.en.translation", "res://l10n/meta.ja.translation", "res://l10n/meta.ko.translation"]
 
 [params]
 

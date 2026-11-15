@@ -1,5 +1,5 @@
 extends RefCounted
-## 本地化（docs/276 §10 / §13）：TranslationServer + game/l10n/<模块>.csv（Godot CSV 翻译表，列 keys,en,ja,_zh,_source,_note,_ja_note；_ 开头的列导入时跳过）。
+## 本地化（docs/276 §10 / §13）：TranslationServer + game/l10n/<模块>.csv（Godot CSV 翻译表，列 keys,en,ja,ko,_zh,_source,_note,_ja_note,_ko_note；_ 开头的列导入时跳过）。
 ## 中文是源语言：中文模式下一律原样返回，不查表；英文模式下查不到也原样返回中文——不会出现空串或裸 key。
 ## 两种查法：
 ##   1. 路径键（op.mizuki.skills.1.desc、lore.bone.lore、enemy.izumik.intro.line）：tree() 在读 JSON 时按路径换长文本（说明 / 简介 / 档案），
@@ -18,9 +18,11 @@ const AUTO_EN_READY := true   # 11-12 用户已授权合入（不过目，标 AI
 ## 日文（docs/276 §13，11-15）：「跟随系统」遇到日文系统选日文的开关
 const AUTO_JA_READY := true
 ## 已支持的界面语言（设置里的顺序）。中文是源语言；ja 缺条时 TranslationServer 退到 en（工程 fallback 缺省 en），再缺就是中文原文
-const LANGS := ["zh", "en", "ja"]
+## 韩文（docs/276 §14，11-15）：「跟随系统」遇到韩文系统选韩文的开关；ko 缺条同样退 en 再退中文
+const AUTO_KO_READY := true
+const LANGS := ["zh", "en", "ja", "ko"]
 
-static var lang := "zh"          # 当前生效语言："zh" / "en" / "ja"
+static var lang := "zh"          # 当前生效语言："zh" / "en" / "ja" / "ko"
 static var _ready_tr := {}       # 语言 → 翻译表已读
 static var _tpl_by := {}         # 语言 → 模板桶（见 _tpl）
 static var _cache := {}          # 原文 → 译文（含查不到的，存原文）；超过 4096 条整表清空
@@ -38,6 +40,11 @@ static func ja() -> bool:
 	return lang == "ja"
 
 
+## 韩文（docs/276 §14）：按空格分词（어절），标点同英文的半角写法
+static func ko() -> bool:
+	return lang == "ko"
+
+
 ## 是否在显示译文（非中文）。只管「查不查表」；英文专用的排版分支（按词断行、缩字号、去重复英文小字）仍用 en()
 static func on() -> bool:
 	return lang != "zh"
@@ -52,6 +59,8 @@ static func resolve(pref: String, toy := false) -> String:
 	var sys_l := OS.get_locale_language()
 	if AUTO_JA_READY and sys_l.begins_with("ja") and not _test_run():
 		return "ja"
+	if AUTO_KO_READY and sys_l.begins_with("ko") and not _test_run():
+		return "ko"
 	if AUTO_EN_READY and not sys_l.begins_with("zh") and not _test_run():
 		return "en"
 	return "zh"
@@ -77,24 +86,25 @@ static func setup(new_lang: String) -> void:
 	lang = new_lang if new_lang in LANGS else "zh"
 	_cache.clear()
 	if lang != "zh":
-		if lang == "ja" and not _ready_tr.get("en", false):
-			_load("en")   # 日文缺条时退英文（TranslationServer fallback），英文模板也要有
+		if (lang == "ja" or lang == "ko") and not _ready_tr.get("en", false):
+			_load("en")   # 日文 / 韩文缺条时退英文（TranslationServer fallback），英文模板也要有
 		if not _ready_tr.get(lang, false):
 			_load(lang)
 		_tpl = _tpl_by.get(lang, {})
-		if lang == "ja":
-			_ja_fonts()
-	TranslationServer.set_locale({"en": "en", "ja": "ja"}.get(lang, "zh_CN"))
+		if lang == "ja" or lang == "ko":
+			_l10n_font(lang)
+	TranslationServer.set_locale({"en": "en", "ja": "ja", "ko": "ko"}.get(lang, "zh_CN"))
 
 
-## 日文字形：界面字体（Noto Sans CJK SC 子集）没有假名和日文新字体，挂上 l10n/ui_ja.otf（Noto Sans JP Bold 子集，tools/l10n/make_ja_font.py 生成）。
-## 只在切到日文时 load；放在 l10n/ 下，Toy 包整个不带（export_web --toy）
-static var _ja_font_done := false
-static func _ja_fonts() -> void:
-	if _ja_font_done or not ResourceLoader.exists("res://l10n/ui_ja.otf"):
+## 日文 / 韩文字形：界面字体（Noto Sans CJK SC 子集）没有假名、日文新字体与韩文音节，挂上 l10n/ui_ja.otf（Noto Sans JP Bold 子集，make_ja_font.py）/
+## l10n/ui_ko.otf（Noto Sans KR Bold 子集，make_ko_font.py）。只在切到该语言时 load；放在 l10n/ 下，Toy 包整个不带（export_web --toy）
+static var _font_done := {}
+static func _l10n_font(lg: String) -> void:
+	var fpath := "res://l10n/ui_%s.otf" % lg
+	if _font_done.get(lg, false) or not ResourceLoader.exists(fpath):
 		return
-	_ja_font_done = true
-	var ja_f = load("res://l10n/ui_ja.otf")
+	_font_done[lg] = true
+	var ja_f = load(fpath)
 	if not (ja_f is Font):
 		return
 	for fp in ["res://fonts/ui.ttf", "res://fonts/serif.ttf", "res://fonts/ui_heavy.ttf", "res://fonts/ui_fallback.otf"]:
@@ -121,7 +131,7 @@ static func _load(lg: String) -> void:
 		_ph = RegEx.create_from_string("\\{\\$[^}]*\\}|%[-+0-9.]*[dsf]|%%")
 		_re_fwp = RegEx.create_from_string("[。、；（），：！？]")
 	_tpl = {}
-	if lg == "ja":   # 日文模板先放英文的一份打底（日文缺条的句子按英文模板填），日文的插在各桶前面先匹配
+	if lg == "ja" or lg == "ko":   # 日文 / 韩文模板先放英文的一份打底（日文缺条的句子按英文模板填），日文的插在各桶前面先匹配
 		var en_t: Dictionary = _tpl_by.get("en", {})
 		for kb in en_t:
 			_tpl[kb] = (en_t[kb] as Array).duplicate()
@@ -140,7 +150,7 @@ static func _load(lg: String) -> void:
 			if _ph.search(ks) != null and _cjk.search(ks) != null:
 				var tv := str(t.get_message(k))
 				if tv != "":
-					_add_tpl(ks, tv, lg == "ja")
+					_add_tpl(ks, tv, lg == "ja" or lg == "ko")
 
 
 ## 模板：把原文里的占位换成捕获组，按第一个中文二字组分桶（查找时只试同桶的模板）。front：插到桶前面（日文盖过打底的英文模板）
@@ -208,7 +218,8 @@ static func k(key: String, fallback: String) -> String:
 
 
 ## 语言选项名：永远用本语言写，不翻（设置「语言」行）
-const NATIVE := {"中文": true, "日本語": true, "English": true, "AI翻訳": true, "日本語テキストは中国語原文からのAI翻訳です。": true}
+const NATIVE := {"中文": true, "日本語": true, "English": true, "AI翻訳": true, "日本語テキストは中国語原文からのAI翻訳です。": true,
+	"한국어": true, "AI 번역": true, "한국어 텍스트는 중국어 원문을 AI로 번역한 것입니다.": true}
 
 
 ## 原文键：显示用。中文模式 / 不含中文 / 查不到都原样返回
@@ -227,7 +238,7 @@ static func s(text: String) -> String:
 			out = _match_tpl(text)
 			if out == text:
 				out = _split_fallback(text)
-	elif lang == "en" and _re_fwp != null and _re_fwp.search(text) != null:   # 没有汉字但带全角标点（「PRTS Wiki；ArknightsGameData（Kengxxiao）。」）：换成英文标点
+	elif (lang == "en" or lang == "ko") and _re_fwp != null and _re_fwp.search(text) != null:   # 没有汉字但带全角标点（「PRTS Wiki；ArknightsGameData（Kengxxiao）。」）：换成英文标点
 		out = _ascii_punct(text)
 	if _cache.size() >= 4096:
 		_cache.clear()
@@ -324,6 +335,10 @@ static func _split_fallback(text: String) -> String:
 		var be := s(base)
 		if be != base:
 			var suf := m.get_string(2)
+			if _cjk.search(suf) != null and not suf.strip_edges().begins_with("（"):   # 半角括号后缀带中文（「名  (可升级)」）：整段后缀查表（docs/276 §14）
+				var se := s(suf)
+				if se != suf:
+					return be + ("" if lang == "ja" else " ") + se.strip_edges()
 			if suf.begins_with("（"):
 				var inner_s := s(suf.substr(1, suf.length() - 2))
 				suf = ("（" + inner_s + "）") if lang == "ja" else (" (" + inner_s + ")")
@@ -354,6 +369,27 @@ static func _split_fallback(text: String) -> String:
 			if changed:
 				return " ".join(ws)
 	return text
+
+
+## 韩文按词断行（docs/276 §14）：直接 draw_multiline_string 的地方（开机提示）用。韩文时去掉 BREAK_GRAPHEME_BOUND（它允许任意两字间断行），
+## 并在韩文音节与紧挨的非空白字符间插词连接符 U+2060（同 UI.soft）；其他语言原样返回
+static func brk(flags: int) -> int:
+	return flags & ~TextServer.BREAK_GRAPHEME_BOUND if lang == "ko" else flags
+
+
+static func words(t: String) -> String:
+	if lang != "ko":
+		return t
+	var out := ""
+	var wj := String.chr(0x2060)
+	for i in t.length():
+		out += t[i]
+		if i + 1 < t.length():
+			var a := t.unicode_at(i)
+			var b := t.unicode_at(i + 1)
+			if ((a >= 0xAC00 and a <= 0xD7A3) or (b >= 0xAC00 and b <= 0xD7A3)) and not t[i].strip_edges().is_empty() and not t[i + 1].strip_edges().is_empty():
+				out += wj
+	return out
 
 
 ## 整串直接查表（不拆段、不套模板）：查到返回译文，查不到返回空串。拼接 / 替换过的句子先用它判断能不能整句译

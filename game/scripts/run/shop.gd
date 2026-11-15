@@ -51,7 +51,9 @@ func step_note() -> String:
 	var s := "每购一件余货 +%d%%" % int(round(Bal.v("shop/purchase_step", 0.2) * 100.0))
 	var rs: float = Bal.v("shop/relic_step", 0.3)
 	if rs > 0.0:
-		s += "，藏品再 +%d%%" % int(round(rs * 100.0))
+		var tail := "，藏品再 +%d%%" % int(round(rs * 100.0))
+		# 译文：两段各自按模板查表再拼（整串拼好后按「，」拆，后半段丢了逗号、查不到，docs/276 §14）；中文与原来逐字相同
+		s = (UI.Loc.s(s) + UI.Loc.s(tail)) if UI.Loc.on() else s + tail
 	return s
 
 
@@ -97,8 +99,15 @@ func ingot_desc(it: Dictionary) -> void:
 	if n > base:
 		var a := "源石锭 +%d" % base
 		var b := "源石锭 +%d（按售价保底）" % n
-		d = d.replace(a, b) if d.contains(a) else d + "\n（按售价保底：源石锭 +%d）" % n
-		f = f.replace(a, b) if f.contains(a) else f + "\n（按售价保底：源石锭 +%d）" % n
+		var c := "\n（按售价保底：源石锭 +%d）" % n
+		if UI.Loc.on():   # 译文：说明整段先译，再把译好的「源石锭 +N」换成译好的保底写法（拼好的中文整串查不到，docs/276 §14）；中文与原来逐字相同
+			d = UI.Loc.s(d)
+			f = UI.Loc.s(f)
+			a = UI.Loc.s(a)
+			b = UI.Loc.s(b)
+			c = UI.Loc.s(c)   # 表里的键带开头的换行
+		d = d.replace(a, b) if d.contains(a) else d + c
+		f = f.replace(a, b) if f.contains(a) else f + c
 	it.desc = d
 	it.full = f
 

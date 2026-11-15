@@ -1,469 +1,469 @@
-keys,en,ja,_zh,_source,_note,_ja_note
-meta.meta_tree.nodes.atk1.line,Attack,攻撃,攻击,人改,跨模块统一（review/canon.json）,自译
-meta.meta_tree.nodes.atk1.name,Aggression I,攻撃性Ⅰ,攻击性Ⅰ,模型,,自译
-meta.meta_tree.nodes.atk1.desc,All damage +8%,全体ダメージ +8%,全体伤害 +8%,模型,,自译
-meta.meta_tree.nodes.atk2.line,Attack,攻撃,攻击,人改,跨模块统一（review/canon.json）,自译
-meta.meta_tree.nodes.atk2.name,Aggression II,攻撃性Ⅱ,攻击性Ⅱ,模型,,自译
-meta.meta_tree.nodes.atk2.desc,All damage +4%,全体ダメージ +4%,全体伤害 +4%,模型,,自译
-meta.meta_tree.nodes.atk3.line,Attack,攻撃,攻击,人改,跨模块统一（review/canon.json）,自译
-meta.meta_tree.nodes.atk3.name,Aggression III,攻撃性Ⅲ,攻击性Ⅲ,模型,,自译
-meta.meta_tree.nodes.atk3.desc,All damage +4%,全体ダメージ +4%,全体伤害 +4%,模型,,自译
-meta.meta_tree.nodes.atk4.line,Attack,攻撃,攻击,人改,跨模块统一（review/canon.json）,自译
-meta.meta_tree.nodes.atk4.name,Aggression IV,攻撃性Ⅳ,攻击性Ⅳ,模型,,自译
-meta.meta_tree.nodes.atk4.desc,All damage +4%,全体ダメージ +4%,全体伤害 +4%,模型,,自译
-meta.meta_tree.nodes.atk5.line,Attack,攻撃,攻击,人改,跨模块统一（review/canon.json）,自译
-meta.meta_tree.nodes.atk5.name,Aggression V,攻撃性Ⅴ,攻击性Ⅴ,模型,,自译
-meta.meta_tree.nodes.atk5.desc,"All damage +4%. Execute: instantly kills normal enemies when their HP is below 15%, and Elite enemies below 8% (Bosses excepted)",全体ダメージ +4%。処刑：通常の敵のHPが15%未満、エリートが8%未満になった時、即座に撃破する（ボスを除く）,全体伤害 +4%。处决：普通敌人生命低于 15%、精英低于 8% 时直接击杀（Boss 除外）,模型,,自译
-meta.meta_tree.nodes.hp1.line,HP,HP,生命,模型,,自译
-meta.meta_tree.nodes.hp1.name,Survival Instinct I,生存本能Ⅰ,生存本能Ⅰ,模型,,自译
-meta.meta_tree.nodes.hp1.desc,Leader Max HP +12%,リーダー最大HP+12%,队长最大生命 +12%,模型,,自译
-meta.meta_tree.nodes.hp2.line,HP,HP,生命,模型,,自译
-meta.meta_tree.nodes.hp2.name,Survival Instinct II,生存本能Ⅱ,生存本能Ⅱ,模型,,自译
-meta.meta_tree.nodes.hp2.desc,Leader Max HP +4%,リーダー最大HP+4%,队长最大生命 +4%,模型,,自译
-meta.meta_tree.nodes.hp3.line,HP,HP,生命,模型,,自译
-meta.meta_tree.nodes.hp3.name,Survival Instinct III,生存本能Ⅲ,生存本能Ⅲ,模型,,自译
-meta.meta_tree.nodes.hp3.desc,Leader Max HP +5%,リーダー最大HP+5%,队长最大生命 +5%,模型,,自译
-meta.meta_tree.nodes.hp4.line,HP,HP,生命,模型,,自译
-meta.meta_tree.nodes.hp4.name,Survival Instinct IV,生存本能Ⅳ,生存本能Ⅳ,模型,,自译
-meta.meta_tree.nodes.hp4.desc,Leader Max HP +5%,リーダー最大HP+5%,队长最大生命 +5%,模型,,自译
-meta.meta_tree.nodes.hp5.line,HP,HP,生命,模型,,自译
-meta.meta_tree.nodes.hp5.name,Survival Instinct V,生存本能Ⅴ,生存本能Ⅴ,模型,,自译
-meta.meta_tree.nodes.hp5.desc,"Leader Max HP +4%. Once per run: when taking fatal damage, survives with 1 HP and takes no damage for 1.5s",リーダー最大HP+4%。1回の探索につき1回のみ：致命傷を受けた時、HPを1残して生き残り、1.5秒間ダメージを受けない,队长最大生命 +4%。每次探索限一次：受到致命伤时保留 1 点生命，1.5 秒内不受伤害,模型,,自译
-meta.meta_tree.nodes.def1.line,DMG Reduction,被ダメ軽減,减伤,人改,跨模块统一（review/canon.json）,自译
-meta.meta_tree.nodes.def1.name,Self-Preservation I,自己防衛Ⅰ,自我保护Ⅰ,模型,,自译
-meta.meta_tree.nodes.def1.desc,Damage taken by Leader -5%,リーダー被ダメージ-5%,队长受到伤害 -5%,模型,,自译
-meta.meta_tree.nodes.def2.line,DMG Reduction,被ダメ軽減,减伤,人改,跨模块统一（review/canon.json）,自译
-meta.meta_tree.nodes.def2.name,Self-Preservation II,自己防衛Ⅱ,自我保护Ⅱ,模型,,自译
-meta.meta_tree.nodes.def2.desc,Damage taken by Leader -3%,リーダー被ダメージ-3%,队长受到伤害 -3%,模型,,自译
-meta.meta_tree.nodes.def3.line,DMG Reduction,被ダメ軽減,减伤,人改,跨模块统一（review/canon.json）,自译
-meta.meta_tree.nodes.def3.name,Self-Preservation III,自己防衛Ⅲ,自我保护Ⅲ,模型,,自译
-meta.meta_tree.nodes.def3.desc,Damage taken by Leader -3%,リーダー被ダメージ-3%,队长受到伤害 -3%,模型,,自译
-meta.meta_tree.nodes.def4.line,DMG Reduction,被ダメ軽減,减伤,人改,跨模块统一（review/canon.json）,自译
-meta.meta_tree.nodes.def4.name,Self-Preservation IV,自己防衛Ⅳ,自我保护Ⅳ,模型,,自译
-meta.meta_tree.nodes.def4.desc,"Damage taken by Leader -2%. After taking no damage for 5s, the next damage taken -50%",リーダーの被ダメージ-2%。5秒間ダメージを受けなかった場合、次の被ダメージ-50%,队长受到伤害 -2%。连续 5 秒未受伤后，下一次 -50%,模型,,自译
-meta.meta_tree.nodes.reg1.line,Recovery,回復,回复,模型,,自译
-meta.meta_tree.nodes.reg1.name,Vitality I,HPの悟りⅠ,生命感悟Ⅰ,模型,,自译
-meta.meta_tree.nodes.reg1.desc,Leader HP recovery per second +0.3,リーダーのHP毎秒回復+0.3,队长每秒回复 +0.3 生命,模型,,自译
-meta.meta_tree.nodes.reg2.line,Recovery,回復,回复,模型,,自译
-meta.meta_tree.nodes.reg2.name,Vitality II,HPの悟りⅡ,生命感悟Ⅱ,模型,,自译
-meta.meta_tree.nodes.reg2.desc,Leader HP recovery +0.1/s,リーダーのHP毎秒回復+0.1,队长每秒回复 +0.1 生命,模型,,自译
-meta.meta_tree.nodes.reg3.line,Recovery,回復,回复,模型,,自译
-meta.meta_tree.nodes.reg3.name,Vitality III,HPの悟りⅢ,生命感悟Ⅲ,模型,,自译
-meta.meta_tree.nodes.reg3.desc,Leader recovers +0.2 HP per second. Recovery doubles when HP is below 35%,リーダーのHP毎秒回復+0.2。HPが35%未満の時、回復量が倍になる,队长每秒回复 +0.2 生命。生命低于 35% 时回复翻倍,模型,,自译
-meta.meta_tree.nodes.sh1.line,Objective Shield,シールド値,护盾,官方,roguelike_topic_table.rogue_2.items.rogue_2_shield,官方：roguelike_topic_table.rogue_2.items.rogue_2_shield.name
-meta.meta_tree.nodes.sh1.name,Vigilance I,危機感Ⅰ,危机感Ⅰ,模型,,自译
-meta.meta_tree.nodes.sh1.desc,"Leader Shield limit +1 (generates 1 stack every 15s). When Shield breaks, reflects: enemies within a 140 radius take Physical damage equal to 300% of Leader ATK and suffer knockback (Bosses immune to knockback)",リーダーのシールド値上限+1（15秒ごとに1層生成）。シールド値破壊時に反動：周囲140範囲の敵にリーダーの攻撃力×3の物理ダメージを与え突き飛ばす（ボスは突き飛ばし無効）,队长护盾上限 +1（每 15 秒生成一层）。护盾破碎时反震：周围 140 范围敌人受队长攻击 ×3 物理伤害并击退（Boss 免疫击退）,校对,校对：统一术语“护盾”为“Shield”，而非“Objective Shield”。,自译
-meta.meta_tree.nodes.xp1.line,EXP,経験値,经验,模型,,自译
-meta.meta_tree.nodes.xp1.name,Leadership I,指導欲Ⅰ,领导欲Ⅰ,模型,,自译
-meta.meta_tree.nodes.xp1.desc,EXP +5%,経験値 +5%,经验 +5%,模型,,自译
-meta.meta_tree.nodes.xp2.line,EXP,経験値,经验,模型,,自译
-meta.meta_tree.nodes.xp2.name,Leadership II,指導欲Ⅱ,领导欲Ⅱ,模型,,自译
-meta.meta_tree.nodes.xp2.desc,EXP +6%,経験値 +6%,经验 +6%,模型,,自译
-meta.meta_tree.nodes.xp3.line,EXP,経験値,经验,模型,,自译
-meta.meta_tree.nodes.xp3.name,Leadership III,指導欲Ⅲ,领导欲Ⅲ,模型,,自译
-meta.meta_tree.nodes.xp3.desc,EXP +7%,経験値 +7%,经验 +7%,模型,,自译
-meta.meta_tree.nodes.xp4.line,EXP,経験値,经验,模型,,自译
-meta.meta_tree.nodes.xp4.name,Leadership IV,指導欲Ⅳ,领导欲Ⅳ,模型,,自译
-meta.meta_tree.nodes.xp4.desc,EXP +7%. Leveling up has a 10% chance to grant an additional level,経験値 +7%。レベルアップ時、10%の確率でさらに1レベルアップ,经验 +7%。升级有 10% 概率再升一级,模型,,自译
-meta.meta_tree.nodes.gold1.line,Resources,資源,资源,模型,,自译
-meta.meta_tree.nodes.gold1.name,Hoarding I,収集癖Ⅰ,收藏癖Ⅰ,模型,,自译
-meta.meta_tree.nodes.gold1.desc,Initial Originium Ingot +3,開始時源石錐 +3,开局源石锭 +3,模型,,自译
-meta.meta_tree.nodes.gold2.line,Resources,資源,资源,模型,,自译
-meta.meta_tree.nodes.gold2.name,Hoarding II,収集癖Ⅱ,收藏癖Ⅱ,模型,,自译
-meta.meta_tree.nodes.gold2.desc,Initial Originium Ingot +4,開始時源石錐 +4,开局源石锭 +4,模型,,自译
-meta.meta_tree.nodes.gold3.line,Resources,資源,资源,模型,,自译
-meta.meta_tree.nodes.gold3.name,Hoarding III,収集癖Ⅲ,收藏癖Ⅲ,模型,,自译
-meta.meta_tree.nodes.gold3.desc,Initial Originium Ingot +5,開始時源石錐 +5,开局源石锭 +5,模型,,自译
-meta.meta_tree.nodes.shop1.line,Resources,資源,资源,模型,,自译
-meta.meta_tree.nodes.shop1.name,Negotiation I,交渉Ⅰ,交涉Ⅰ,模型,,自译
-meta.meta_tree.nodes.shop1.desc,Merchant price -6%,行商人価格 -6%,行商价格 -6%,模型,,自译
-meta.meta_tree.nodes.shop2.line,Resources,資源,资源,模型,,自译
-meta.meta_tree.nodes.shop2.name,Negotiation II,交渉Ⅱ,交涉Ⅱ,模型,,自译
-meta.meta_tree.nodes.shop2.desc,Merchant price -6%,行商人価格 -6%,行商价格 -6%,模型,,自译
-meta.meta_tree.nodes.shop3.line,Resources,資源,资源,模型,,自译
-meta.meta_tree.nodes.shop3.name,Negotiation III,交渉Ⅲ,交涉Ⅲ,模型,,自译
-meta.meta_tree.nodes.shop3.desc,Merchant price -6%,行商人価格 -6%,行商价格 -6%,模型,,自译
-meta.meta_tree.nodes.disp1.line,Dispatch,配置,调度,模型,,自译
-meta.meta_tree.nodes.disp1.name,Multithreaded Processing,マルチスレッド処理,多程信息处理,模型,,自译
-meta.meta_tree.nodes.disp1.desc,First level up grants 1 additional option (choose 1 of 4),最初のレベルアップ時にオプションが1つ追加される(4択),第一次升级多一个选项（四选一）,模型,,自译
-meta.meta_tree.nodes.disp2.line,Dispatch,配置,调度,模型,,自译
-meta.meta_tree.nodes.disp2.name,Introspection,自己省察,自我审视,模型,,自译
-meta.meta_tree.nodes.disp2.desc,Once per run: Refreshing the Merchant's wares costs 0 Originium Ingots,探索ごとに1回のみ：行商人の商品を更新する際、源石錐を消費しない,每次探索限一次：刷新行商货架时不消耗源石锭,模型,,自译
-meta.meta_tree.nodes.disp3.line,Dispatch,配置,调度,模型,,自译
-meta.meta_tree.nodes.disp3.name,Loot Awareness,戦利品への意識,战利品意识,模型,,自译
-meta.meta_tree.nodes.disp3.desc,"At the start of a run, choose 1 of 3 basic Collectibles",開始時に3つの基礎秘宝から1つを選択,开局从 3 件基础藏品中选 1 件,模型,,自译
-meta.meta_tree.nodes.reg4.line,Recovery,回復,回复,模型,,自译
-meta.meta_tree.nodes.reg4.name,Vitality IV,HPの悟りⅣ,生命感悟Ⅳ,模型,,自译
-meta.meta_tree.nodes.reg4.desc,Leader HP recovery +0.2/s,リーダーのHP毎秒回復+0.2,队长每秒回复 +0.2 生命,模型,,自译
-meta.meta_tree.nodes.reg5.line,Recovery,回復,回复,模型,,自译
-meta.meta_tree.nodes.reg5.name,Vitality V,HPの悟りⅤ,生命感悟Ⅴ,模型,,自译
-meta.meta_tree.nodes.reg5.desc,Leader HP recovery +0.2/s,リーダーのHP毎秒回復+0.2,队长每秒回复 +0.2 生命,模型,,自译
-meta.meta_tree.nodes.sh2.line,Objective Shield,シールド値,护盾,官方,roguelike_topic_table.rogue_2.items.rogue_2_shield,官方：roguelike_topic_table.rogue_2.items.rogue_2_shield.name
-meta.meta_tree.nodes.sh2.name,Vigilance II,危機感Ⅱ,危机感Ⅱ,模型,,自译
-meta.meta_tree.nodes.sh2.desc,Shield generation interval -3s,シールド値生成間隔 -3秒,护盾生成间隔 -3 秒,模型,,自译
-meta.meta_tree.nodes.pick1.line,Utility,利便性,便利,模型,,自译
-meta.meta_tree.nodes.pick1.name,Curiosity I,好奇心Ⅰ,好奇心Ⅰ,模型,,自译
-meta.meta_tree.nodes.pick1.desc,Pickup range +12,獲得範囲 +12,拾取范围 +12,模型,,自译
-meta.meta_tree.nodes.pick2.line,Utility,利便性,便利,模型,,自译
-meta.meta_tree.nodes.pick2.name,Curiosity II,好奇心Ⅱ,好奇心Ⅱ,模型,,自译
-meta.meta_tree.nodes.pick2.desc,Pickup range +12,獲得範囲 +12,拾取范围 +12,模型,,自译
-meta.meta_tree.nodes.pick3.line,Utility,利便性,便利,模型,,自译
-meta.meta_tree.nodes.pick3.name,Curiosity III,好奇心Ⅲ,好奇心Ⅲ,模型,,自译
-meta.meta_tree.nodes.pick3.desc,Pickup range +14,獲得範囲 +14,拾取范围 +14,模型,,自译
-meta.meta_tree.nodes.pick4.line,Utility,利便性,便利,模型,,自译
-meta.meta_tree.nodes.pick4.name,Curiosity IV,好奇心Ⅳ,好奇心Ⅳ,模型,,自译
-meta.meta_tree.nodes.pick4.desc,Pickup range +14,獲得範囲 +14,拾取范围 +14,模型,,自译
-meta.meta_tree.nodes.disp4.line,Dispatch,配置,调度,模型,,自译
-meta.meta_tree.nodes.disp4.name,Second Wind,起死回生,绝处逢生,模型,,自译
-meta.meta_tree.nodes.disp4.desc,"Once per run: when Leader falls, revives with 30% Max HP and takes no damage for 3s",探索中1回のみ：リーダー死亡時、最大HPの30%で復活し、3秒間ダメージを受けない,每次探索限一次：队长倒下时以 30% 最大生命复活，3 秒内不受伤害,模型,,自译
-meta.meta_tree.nodes.dodge1.line,Dodge,回避,闪避,模型,,自译
-meta.meta_tree.nodes.dodge1.name,Forethought I,未雨綢繆Ⅰ,未雨绸缪Ⅰ,模型,,自译
-meta.meta_tree.nodes.dodge1.desc,Leader Dodge +5%,リーダーの回避率+5%,队长闪避率 +5%,模型,,自译
-meta.meta_tree.nodes.dodge2.line,Dodge,回避,闪避,模型,,自译
-meta.meta_tree.nodes.dodge2.name,Forethought II,未雨綢繆Ⅱ,未雨绸缪Ⅱ,模型,,自译
-meta.meta_tree.nodes.dodge2.desc,Leader Dodge +5%,リーダーの回避率+5%,队长闪避率 +5%,模型,,自译
-meta.meta_tree.nodes.dodge3.line,Dodge,回避,闪避,模型,,自译
-meta.meta_tree.nodes.dodge3.name,Forethought III,未雨綢繆Ⅲ,未雨绸缪Ⅲ,模型,,自译
-meta.meta_tree.nodes.dodge3.desc,Leader Dodge +5%,リーダーの回避率+5%,队长闪避率 +5%,模型,,自译
-meta.meta_roots.scene.consts.atk.name,Aggression,攻撃性,攻击性,模型,,自译
-meta.meta_roots.scene.consts.hp.name,Survival Instinct,生存本能,生存本能,模型,,自译
-meta.meta_roots.scene.consts.reg.name,Vitality,HP感悟,生命感悟,模型,,自译
-meta.meta_roots.scene.consts.def.name,Self-Preservation,自己防衛,自我保护,模型,,自译
-meta.meta_roots.scene.consts.xp.name,Leadership,指導欲,领导欲,模型,,自译
-meta.meta_roots.scene.consts.pick.name,Curiosity,好奇心,好奇心,模型,,自译
-meta.meta_roots.scene.consts.disp.name,Multithreaded Processing,マルチスレッド処理,多程信息处理,模型,,自译
-meta.meta_roots.scene.consts.gold.name,Hoarding,収集癖,收藏癖,模型,,自译
-meta.meta_roots.scene.consts.shop.name,Negotiation,交渉,交涉,模型,,自译
-meta.meta_roots.scene.consts.sh.name,Vigilance,危機感,危机感,模型,,自译
-meta.meta_roots.scene.consts.dodge.name,Forethought,未雨綢繆,未雨绸缪,模型,,自译
-meta.cards.passives.hp.name,Tenacity,堅靭,坚韧,模型,,自译
-meta.cards.passives.hp.desc,Leader Max HP +20,リーダー最大HP+20,队长最大生命 +20,模型,,自译
-meta.cards.passives.regen.name,Regeneration,自然回復,自愈,模型,,自译
-meta.cards.passives.regen.desc,Leader HP recovery +0.4/s,リーダーHP回復+0.4/秒,队长生命回复 +0.4 / 秒,模型,,自译
-meta.cards.passives.armor.name,Hardening,硬化,硬化,模型,,自译
-meta.cards.passives.armor.desc,Physical damage taken by Leader -8% (multiplicative; ineffective against Arts and True damage),リーダーの被物理ダメージ-8%（乗算。術、確定ダメージには無効）,队长受到的物理伤害 -8%（乘算；对法术、真实伤害无效）,模型,,自译
-meta.cards.passives.dodge.name,Aqua Shadow,水影,水影,模型,,自译
-meta.cards.passives.dodge.desc,Leader Dodge +5%,リーダーの回避率+5%,队长闪避率 +5%,模型,,自译
-meta.cards.passives.pickup.name,Perception,感知,感知,模型,,自译
-meta.cards.passives.pickup.desc,Leader pickup range +30%,リーダー獲得範囲 +30%,队长拾取范围 +30%,模型,,自译
-meta.cards.passives.wick.name,Lamp Guard,護灯,护灯,模型,,自译
-meta.cards.passives.wick.desc,Light lost when Leader is attacked -15%,リーダー被撃時の灯火減少量-15%,队长受击时灯火损失 -15%,模型,,自译
-meta.cards.passives.speed.name,Agility,俊敏,轻盈,模型,,自译
-meta.cards.passives.speed.desc,Leader movement speed +10%,リーダーの移動速度+10%,队长移动速度 +10%,模型,,自译
-meta.cards.passives.dash_cd.name,Swiftness,迅速,迅捷,模型,,自译
-meta.cards.passives.dash_cd.desc,Dash cooldown -12%,ダッシュクールダウン-12%,冲刺冷却 -12%,模型,,自译
-meta.cards.passives.dash_dist.name,Long Leap,遠躍,远跃,模型,,自译
-meta.cards.passives.dash_dist.desc,Dash distance +12%,ダッシュ距離+12%,冲刺距离 +12%,模型,,自译
-meta.cards.passives.dash_charge.name,Chain Dash,連衝,连冲,模型,,自译
-meta.cards.passives.dash_charge.desc,Dash can store 2 charges; cooldown recovers sequentially,ダッシュは2回までチャージ可能、クールダウンは順次回復,冲刺可储存 2 次，冷却逐次恢复,模型,,自译
-meta.cards.passives.sp.name,Synergy: SP,協同・技,协同·技,校对,校对：“技”在此处指代“技力”（SP），且对应效果为技力回复，应统一为 SP,自译
-meta.cards.passives.sp.desc,Squad SP Recovery +15%,全体のSP回復+15%,全队技力回复 +15%,模型,,自译
-meta.cards.passives.squad_atk.name,Synergy: ATK,協同・攻,协同·攻,模型,,自译
-meta.cards.passives.squad_atk.desc,Squad Operator ATK +8%,全体オペレーター攻撃力+8%,全队干员攻击 +8%,模型,,自译
-meta.cards.passives.squad_aspd.name,Synergy: ASPD,協同・迅,协同·迅,模型,,自译
-meta.cards.passives.squad_aspd.desc,Squad Operator ATK speed +6%,味方全体の攻撃速度+6%,全队干员攻击速度 +6%,模型,,自译
-meta.cards.passives.squad_range.name,Synergy: Range,協同・広,协同·广,模型,,自译
-meta.cards.passives.squad_range.desc,Squad Operator attack range +8%,味方全体の攻撃範囲+8%,全队干员攻击范围 +8%,模型,,自译
-meta.cards.passives.squad_crit.name,Synergy: Crit,協同・専,协同·专,模型,,自译
-meta.cards.passives.squad_crit.desc,Squad Operator skill power +10%,全体オペレーターのスキル威力+10%,全队干员技能强度 +10%,模型,,自译
-meta.cards.passives.pierce.name,Pierce,貫通,贯穿,模型,,自译
-meta.cards.passives.pierce.desc,Ranged normal attacks pierce 2 additional enemies.,遠距離通常攻撃はさらに敵を2体貫通する。,远程普攻可再穿透 2 名敌人。,模型,,自译
-meta.cards.passives.splash.name,Splash,拡散,扩散,模型,,自译
-meta.cards.passives.splash.desc,"When normal attacks from Melee Extended Range, Stationary Summon, and Crowd-Control Detonation Operators hit, other enemies within a 60 radius of the target take 25% of the damage.",近距離範囲拡大、召喚駐留、牽制起爆オペレーターの通常攻撃命中時、目標の周囲範囲60内の他の敵にそのダメージの25%を与える。,近战扩域、召唤驻场、控场引爆干员的普攻命中时，目标周围 60 范围内的其他敌人受到该次伤害的 25%。,校对,校对：漏译“驻场”（Stationary），需与 p12 保持术语一致。,自译
-meta.cards.passives.chain.name,Chain,連鎖,连锁,模型,,自译
-meta.cards.passives.chain.desc,"Normal attacks from Multi-Projectile Firepower Operators bounce to 1 other enemy within a 170 radius upon hit, dealing 50% of the damage.",多弾火力オペレーターの通常攻撃命中後、範囲170内の別の敵1体に跳ね返り、そのダメージの50%を与える。,多弹火力干员的普攻命中后弹向 170 范围内的另 1 名敌人，造成该次伤害的 50%。,校对,校对：“多弹”翻译前后不一致，应与 p10 统一为 Multi-Projectile。,自译
-meta.cards.passives.lane_melee.name,Melee · Expansion,近距離・拡域,近战·扩域,模型,,自译
-meta.cards.passives.lane_melee.desc,Melee Extended Range Operators attack range +12%,近距離範囲拡大オペレーターの攻撃範囲+12%,近战扩域干员攻击范围 +12%,模型,,自译
-meta.cards.passives.lane_multi.name,Multishot · Rapid Fire,多弾・連射,多弹·连射,模型,,自译
-meta.cards.passives.lane_multi.desc,Multi-Projectile Firepower Operators ATK speed +10%,多弾火力オペレーターの攻撃速度+10%,多弹火力干员攻击速度 +10%,模型,,自译
-meta.cards.passives.lane_summon.name,Summon · Co-Strike,召喚・協撃,召唤·协击,模型,,自译
-meta.cards.passives.lane_summon.desc,Stationary Summon Operators' follow-up and summon damage +10%,召喚駐留オペレーターの追撃と召喚ユニットのダメージ+10%,召唤驻场干员的追击与召唤物伤害 +10%,模型,,自译
-meta.cards.passives.lane_control.name,Control · Extension,牽制・遅延,控场·延时,模型,,自译
-meta.cards.passives.lane_control.desc,"Stun, Bind, and Slow duration +15%",スタン、バインド、減速の継続時間+15%,眩晕、束缚、减速的持续时间 +15%,模型,,自译
-meta.cards.passives.lane_weak.name,Weakness · Insight,弱点・洞察,弱点·洞察,模型,,自译
-meta.cards.passives.lane_weak.desc,Weakness Harvesting Operators deal +10% additional Weakness damage,弱点収穫オペレーターの弱点ダメージがさらに+10%,弱点收割干员的弱点伤害额外 +10%,模型,,自译
-meta.cards.passives.lane_shield.name,Shield · Charge,シールド値・充填,护盾·充能,模型,,自译
-meta.cards.passives.lane_shield.desc,Leader Shield generation interval -8%,リーダーのシールド値生成間隔-8%,队长护盾生成间隔 -8%,模型,,自译
-meta.cards.fillers.0.name,First Aid Supplies,応急処置補給,急救补给,模型,,自译
-meta.cards.fillers.0.desc,Leader immediately recovers 30% Max HP,リーダーは直ちに最大HPの30%を回復,队长立刻回复 30% 最大生命,模型,,自译
-meta.cards.fillers.1.name,Lamp Oil Supplies,灯油補給,灯油补给,模型,,自译
-meta.cards.fillers.1.desc,Light +30,灯火 +30,灯火 +30,模型,,自译
-meta.cards.fillers.2.name,Temporary Synergy,臨時協同,临时协同,模型,,自译
-meta.cards.fillers.2.desc,All Operators ATK +4% (stacks),全体オペレーターの攻撃+4%(重複可能),全队干员攻击 +4%（可叠加）,模型,,自译
-meta.medals.set_name,Beneath the Deep Blue,紺碧の下,深蓝之下,模型,,自译
-meta.medals.medals.0.name,Beneath the Deep Blue,紺碧の下,深蓝之下,模型,,自译
-meta.medals.medals.0.desc,Obtain the other 8 medals in the 'Beneath the Deep Blue' medal set.,「紺碧の下」シリーズの残り8枚の勲章を獲得する。,获得「深蓝之下」套组中的其余 8 枚蚀刻章。,模型,,自译
-meta.medals.medals.1.name,Faded Illusions,泡影散尽,泡影散尽,模型,,自译
-meta.medals.medals.1.desc,Reach the ending 'Precious Days'.,エンディング「平凡こそ幸せ」に到達する。,达成结局「平凡即是喜乐」。,模型,,自译
-meta.medals.medals.2.name,Knight's Return to the Tide,騎士帰潮,骑士归潮,模型,,自译
-meta.medals.medals.2.desc,Reach the ending 'Age of Silence'.,エンディング「静謐なる時代」に到達。,达成结局「静谧时代」。,校对,校对：官方英文结局名为 Age of Silence，多了一个 the。；官方名未用上：Age of the Silence；「静谧时代」本表译 Age of the Silence，这里没对上,自译
-meta.medals.medals.3.name,Silence of the Tides,潮声止息,潮声止息,模型,,自译
-meta.medals.medals.3.desc,Reach the ending 'Price of Peace'.,エンディング「凪の代償」に到達する。,达成结局「息潮的代价」。,模型,,自译
-meta.medals.medals.4.name,Caerula Arbor,紺碧の樹,深蓝之树,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_10,官方：roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_10.name
-meta.medals.medals.4.desc,Reach the ending 'Stella Caerula'.,エンディング「星空を湛えた群青」に到達する。,达成结局「如星空般深蓝」。,模型,,自译
-meta.medals.medals.5.name,Synergy Promotion,協同昇進,协同晋升,模型,,自译
-meta.medals.medals.5.desc,"In a run, have 3 Operators in the squad reach Elite 2 simultaneously.",1回の探索で、編成内のオペレーター3名を同時に昇進2にする。,在一次探索中，使编队内 3 名干员同时达到精英二。,模型,,自译
-meta.medals.medals.6.name,Gleanings from the Sea,海中拾遺,海中拾遗,模型,,自译
-meta.medals.medals.6.desc,Obtain 50 different Collectibles in total.,累計50種類の異なる秘宝を獲得する。,累计获得 50 种不同的藏品。,模型,,自译
-meta.medals.medals.7.name,Deepened Cognition,認知深化,认知深化,模型,,自译
-meta.medals.medals.7.desc,Unlock all available nodes in Cognitive Shaping.,認知形成の解放済みノードをすべて点灯する。,点亮认知塑造中所有已开放节点。,模型,,自译
-meta.medals.medals.8.name,First Glimpse of the Deep Blue,初識深藍,初识深蓝,模型,,自译
-meta.medals.medals.8.desc,Unlock a Cognitive Shaping node for the first time.,初めて認知形成ノードを解放。,首次点亮认知塑造节点。,模型,,自译
-meta.synergy.pairs.0.name,Rapport,連携,默契,模型,,自译
-meta.synergy.pairs.0.dirs.0.kind_dmg,Physical,物理,物理,模型,,自译
-meta.synergy.pairs.0.dirs.0.rng,Ranged,遠距離,远程,模型,,自译
-meta.synergy.pairs.0.dirs.1.kind_dmg,Physical,物理,物理,模型,,自译
-meta.synergy.pairs.0.dirs.1.rng,Ranged,遠距離,远程,模型,,自译
-meta.synergy.pairs.0.dirs.2.kind_dmg,Physical,物理,物理,模型,,自译
-meta.synergy.pairs.0.dirs.2.rng,Melee,近距離,近战,模型,,自译
-meta.synergy.pairs.1.name,Grudge,因縁,恩怨,模型,,自译
-meta.synergy.pairs.1.dirs.0.kind_dmg,Physical,物理,物理,模型,,自译
-meta.synergy.pairs.1.dirs.0.rng,Melee,近距離,近战,模型,,自译
-meta.synergy.pairs.1.dirs.1.kind_dmg,Physical,物理,物理,模型,,自译
-meta.synergy.pairs.1.dirs.1.rng,Melee,近距離,近战,模型,,自译
-meta.synergy.pairs.2.name,Means Should Be Effective,手段は有効であるべき,手段应当有效,模型,,自译
-meta.synergy.pairs.2.dirs.0.kind_dmg,Physical,物理,物理,模型,,自译
-meta.synergy.pairs.2.dirs.0.rng,Melee,近距離,近战,模型,,自译
-meta.synergy.pairs.2.dirs.1.kind_dmg,Physical,物理,物理,模型,,自译
-meta.synergy.pairs.2.dirs.1.rng,Melee,近距離,近战,模型,,自译
-meta.synergy.pairs.2.dirs.2.kind_dmg,Physical,物理,物理,模型,,自译
-meta.synergy.pairs.2.dirs.2.rng,Melee,近距離,近战,模型,,自译
-meta.synergy.pairs.3.name,War Design,戦争設計,战争设计,模型,,自译
-meta.synergy.pairs.3.dirs.0.kind_dmg,Physical,物理,物理,模型,,自译
-meta.synergy.pairs.3.dirs.0.rng,Melee,近距離,近战,模型,,自译
-meta.synergy.pairs.4.name,Tidal Watch,潮汐守望,潮汐守望,模型,,自译
-meta.synergy.pairs.4.dirs.0.kind_dmg,Physical,物理,物理,模型,,自译
-meta.synergy.pairs.4.dirs.0.rng,Melee,近距離,近战,模型,,自译
-meta.synergy.pairs.4.dirs.1.kind_dmg,Arts,術,法术,模型,,自译
-meta.synergy.pairs.4.dirs.1.rng,Ranged,遠距離,远程,模型,,自译
-meta.synergy.groups.0.name,Pack Hunting,集群狩猟,集群狩猎,模型,,自译
-meta.synergy.groups.0.kind_dmg,Physical,物理,物理,模型,,自译
-meta.synergy.groups.0.rng,Melee,近距離,近战,模型,,自译
-meta.practice_squads.squads.wisadel_m0.label,Wiš'adel Starting Squad · No Cognition,ウィシャデル開始分隊 ・ 認知なし,维什戴尔开局分队 · 无认知,模型,,自译
-meta.practice_squads.squads.wisadel_m0.slots.1.fp.mods.pickup.0,2|1.11|Level|,2|1.11|レベル|,2|1.11|等级|,模型,,自译
-meta.practice_squads.squads.wisadel_m0.slots.2.fp.mods.pickup.0,2|1.19|Level|,2|1.19|レベル|,2|1.19|等级|,模型,,自译
-meta.practice_squads.squads.wisadel_m0.slots.3.fp.mods.pickup.0,2|1.25|Level|,2|1.25|レベル|,2|1.25|等级|,模型,,自译
-meta.practice_squads.squads.wisadel_m18.label,Wiš'adel Starting Squad · 18 Cells,ウィシャデル開始分隊・18細胞,维什戴尔开局分队 · 18 细胞,模型,,自译
-meta.practice_squads.squads.wisadel_m18.slots.1.fp.mods.pickup.0,2|1.11|Level|,2|1.11|レベル|,2|1.11|等级|,模型,,自译
-meta.practice_squads.squads.wisadel_m18.slots.2.fp.mods.pickup.0,2|1.19|Level|,2|1.19|レベル|,2|1.19|等级|,模型,,自译
-meta.practice_squads.squads.wisadel_m18.slots.3.fp.mods.dmg.2,1|0.2|relic:148|class:Sniper,1|0.2|relic:148|class:狙撃,1|0.2|relic:148|class:狙击,模型,,自译
-meta.practice_squads.squads.wisadel_m18.slots.3.fp.mods.dmg.3,1|0.4|relic:149|class:Sniper,1|0.4|relic:149|class:狙撃,1|0.4|relic:149|class:狙击,模型,,自译
-meta.practice_squads.squads.wisadel_m18.slots.3.fp.mods.op_aspd.0,1|-0.2|relic:149|class:Sniper,1|-0.2|relic:149|class:狙撃,1|-0.2|relic:149|class:狙击,模型,,自译
-meta.practice_squads.squads.wisadel_m18.slots.3.fp.mods.pickup.0,2|1.25|Level|,2|1.25|レベル|,2|1.25|等级|,模型,,自译
-meta.practice_squads.squads.skadi_m0.label,Skadi Starting Squad · No Cognition,スカジ開始分隊・認知なし,斯卡蒂开局分队 · 无认知,校对,校对：统一“开局分队”的翻译为 Starting Squad,自译
-meta.practice_squads.squads.skadi_m0.slots.1.fp.mods.dmg.0,1|0.1|relic_count|class:Caster,1|0.1|relic_count|class:術師,1|0.1|relic_count|class:术师,模型,,自译
-meta.practice_squads.squads.skadi_m0.slots.1.fp.mods.pickup.0,2|1.11|Level|,2|1.11|レベル|,2|1.11|等级|,模型,,自译
-meta.practice_squads.squads.skadi_m0.slots.2.fp.mods.dmg.0,1|0.15|relic:80|class:Caster,1|0.15|relic:80|class:術師,1|0.15|relic:80|class:术师,模型,,自译
-meta.practice_squads.squads.skadi_m0.slots.2.fp.mods.pickup.0,2|1.18|Level|,2|1.18|レベル|,2|1.18|等级|,模型,,自译
-meta.practice_squads.squads.skadi_m0.slots.3.fp.mods.pickup.0,2|1.23|Level|,2|1.23|レベル|,2|1.23|等级|,模型,,自译
-meta.practice_squads.squads.skadi_m18.label,Skadi Starting Squad · 18 Cells,スカジ開始分隊 ・ 18セル,斯卡蒂开局分队 · 18 细胞,模型,,自译
-meta.practice_squads.squads.skadi_m18.slots.1.fp.mods.dmg.1,1|0.15|relic:80|class:Caster,1|0.15|relic:80|class:術師,1|0.15|relic:80|class:术师,模型,,自译
-meta.practice_squads.squads.skadi_m18.slots.1.fp.mods.pickup.0,2|1.11|Level|,2|1.11|レベル|,2|1.11|等级|,模型,,自译
-meta.practice_squads.squads.skadi_m18.slots.2.fp.mods.dmg.1,1|0.4|relic:165|class:Specialist,1|0.4|relic:165|class:特殊,1|0.4|relic:165|class:特种,模型,,自译
-meta.practice_squads.squads.skadi_m18.slots.2.fp.mods.op_aspd.1,1|0.3|relic:160|class:Medic,1|0.3|relic:160|class:医療,1|0.3|relic:160|class:医疗,模型,,自译
-meta.practice_squads.squads.skadi_m18.slots.2.fp.mods.op_range.0,1|0.18|vgrowth|range:Melee,1|0.18|vgrowth|range:近距離,1|0.18|vgrowth|range:近战,模型,,自译
-meta.practice_squads.squads.skadi_m18.slots.2.fp.mods.pickup.0,2|1.18|Level|,2|1.18|レベル|,2|1.18|等级|,模型,,自译
-meta.practice_squads.squads.skadi_m18.slots.3.fp.mods.dmg.2,1|0.4|relic:165|class:Specialist,1|0.4|relic:165|class:特殊,1|0.4|relic:165|class:特种,模型,,自译
-meta.practice_squads.squads.skadi_m18.slots.3.fp.mods.op_aspd.2,1|0.3|relic:160|class:Medic,1|0.3|relic:160|class:医療,1|0.3|relic:160|class:医疗,模型,,自译
-meta.practice_squads.squads.skadi_m18.slots.3.fp.mods.op_range.0,1|0.18|vgrowth|range:Melee,1|0.18|vgrowth|range:近距離,1|0.18|vgrowth|range:近战,模型,,自译
-meta.practice_squads.squads.skadi_m18.slots.3.fp.mods.pickup.0,2|1.25|Level|,2|1.25|レベル|,2|1.25|等级|,模型,,自译
-meta.practice_squads.squads.kaltsit_m0.label,Kal'tsit Starting Squad · No Cognition,ケルシー開始分隊・認知なし,凯尔希开局分队 · 无认知,校对,校对：统一“开局分队”的翻译为 Starting Squad,自译
-meta.practice_squads.squads.kaltsit_m0.slots.1.fp.mods.pickup.0,2|1.11|Level|,2|1.11|レベル|,2|1.11|等级|,模型,,自译
-meta.practice_squads.squads.kaltsit_m0.slots.2.fp.mods.dmg.0,1|0.15|relic:80|class:Caster,1|0.15|relic:80|class:術師,1|0.15|relic:80|class:术师,模型,,自译
-meta.practice_squads.squads.kaltsit_m0.slots.2.fp.mods.pickup.0,2|1.18|Level|,2|1.18|レベル|,2|1.18|等级|,模型,,自译
-meta.practice_squads.squads.kaltsit_m0.slots.3.fp.mods.dmg.1,1|0.2|relic:148|class:Sniper,1|0.2|relic:148|class:狙撃,1|0.2|relic:148|class:狙击,模型,,自译
-meta.practice_squads.squads.kaltsit_m0.slots.3.fp.mods.pickup.0,2|1.23|Level|,2|1.23|レベル|,2|1.23|等级|,模型,,自译
-meta.practice_squads.squads.kaltsit_m18.label,Kal'tsit Starting Squad · 18 Cells,ケルシー開始分隊 ・ 18セル,凯尔希开局分队 · 18 细胞,模型,,自译
-meta.practice_squads.squads.kaltsit_m18.slots.1.fp.mods.dmg.1,1|0.2|relic:148|class:Sniper,1|0.2|relic:148|class:狙撃,1|0.2|relic:148|class:狙击,模型,,自译
-meta.practice_squads.squads.kaltsit_m18.slots.1.fp.mods.pickup.0,2|1.11|Level|,2|1.11|レベル|,2|1.11|等级|,模型,,自译
-meta.practice_squads.squads.kaltsit_m18.slots.2.fp.mods.pickup.0,2|1.18|Level|,2|1.18|レベル|,2|1.18|等级|,模型,,自译
-meta.practice_squads.squads.kaltsit_m18.slots.3.fp.mods.pickup.0,2|1.24|Level|,2|1.24|レベル|,2|1.24|等级|,模型,,自译
-攻击,Attack,攻撃,,原文键,人改,自译
-攻击性Ⅰ,Aggression I,攻撃性Ⅰ,,原文键,模型,自译
-全体伤害 +8%,All damage +8%,全体ダメージ +8%,,原文键,模型,自译
-攻击性Ⅱ,Aggression II,攻撃性Ⅱ,,原文键,模型,自译
-全体伤害 +4%,All damage +4%,全体ダメージ +4%,,原文键,模型,自译
-攻击性Ⅲ,Aggression III,攻撃性Ⅲ,,原文键,模型,自译
-攻击性Ⅳ,Aggression IV,攻撃性Ⅳ,,原文键,模型,自译
-攻击性Ⅴ,Aggression V,攻撃性Ⅴ,,原文键,模型,自译
-全体伤害 +4%。处决：普通敌人生命低于 15%、精英低于 8% 时直接击杀（Boss 除外）,"All damage +4%. Execute: instantly kills normal enemies when their HP is below 15%, and Elite enemies below 8% (Bosses excepted)",全体ダメージ +4%。処刑：通常の敵のHPが15%未満、エリートが8%未満になった時、即座に撃破する（ボスを除く）,,原文键,模型,自译
-生命,HP,HP,,原文键,模型,自译
-生存本能Ⅰ,Survival Instinct I,生存本能Ⅰ,,原文键,模型,自译
-队长最大生命 +12%,Leader Max HP +12%,リーダー最大HP+12%,,原文键,模型,自译
-生存本能Ⅱ,Survival Instinct II,生存本能Ⅱ,,原文键,模型,自译
-队长最大生命 +4%,Leader Max HP +4%,リーダー最大HP+4%,,原文键,模型,自译
-生存本能Ⅲ,Survival Instinct III,生存本能Ⅲ,,原文键,模型,自译
-队长最大生命 +5%,Leader Max HP +5%,リーダー最大HP+5%,,原文键,模型,自译
-生存本能Ⅳ,Survival Instinct IV,生存本能Ⅳ,,原文键,模型,自译
-生存本能Ⅴ,Survival Instinct V,生存本能Ⅴ,,原文键,模型,自译
-队长最大生命 +4%。每次探索限一次：受到致命伤时保留 1 点生命，1.5 秒内不受伤害,"Leader Max HP +4%. Once per run: when taking fatal damage, survives with 1 HP and takes no damage for 1.5s",リーダー最大HP+4%。1回の探索につき1回のみ：致命傷を受けた時、HPを1残して生き残り、1.5秒間ダメージを受けない,,原文键,模型,自译
-减伤,DMG Reduction,被ダメ軽減,,原文键,人改,自译
-自我保护Ⅰ,Self-Preservation I,自己防衛Ⅰ,,原文键,模型,自译
-队长受到伤害 -5%,Damage taken by Leader -5%,リーダー被ダメージ-5%,,原文键,模型,自译
-自我保护Ⅱ,Self-Preservation II,自己防衛Ⅱ,,原文键,模型,自译
-队长受到伤害 -3%,Damage taken by Leader -3%,リーダー被ダメージ-3%,,原文键,模型,自译
-自我保护Ⅲ,Self-Preservation III,自己防衛Ⅲ,,原文键,模型,自译
-自我保护Ⅳ,Self-Preservation IV,自己防衛Ⅳ,,原文键,模型,自译
-队长受到伤害 -2%。连续 5 秒未受伤后，下一次 -50%,"Damage taken by Leader -2%. After taking no damage for 5s, the next damage taken -50%",リーダーの被ダメージ-2%。5秒間ダメージを受けなかった場合、次の被ダメージ-50%,,原文键,模型,自译
-回复,Recovery,回復,,原文键,模型,自译
-生命感悟Ⅰ,Vitality I,HPの悟りⅠ,,原文键,模型,自译
-队长每秒回复 +0.3 生命,Leader HP recovery per second +0.3,リーダーのHP毎秒回復+0.3,,原文键,模型,自译
-生命感悟Ⅱ,Vitality II,HPの悟りⅡ,,原文键,模型,自译
-队长每秒回复 +0.1 生命,Leader HP recovery +0.1/s,リーダーのHP毎秒回復+0.1,,原文键,模型,自译
-生命感悟Ⅲ,Vitality III,HPの悟りⅢ,,原文键,模型,自译
-队长每秒回复 +0.2 生命。生命低于 35% 时回复翻倍,Leader recovers +0.2 HP per second. Recovery doubles when HP is below 35%,リーダーのHP毎秒回復+0.2。HPが35%未満の時、回復量が倍になる,,原文键,模型,自译
-护盾,Objective Shield,シールド値,,原文键,官方,官方：roguelike_topic_table.rogue_2.items.rogue_2_shield.name
-危机感Ⅰ,Vigilance I,危機感Ⅰ,,原文键,模型,自译
-队长护盾上限 +1（每 15 秒生成一层）。护盾破碎时反震：周围 140 范围敌人受队长攻击 ×3 物理伤害并击退（Boss 免疫击退）,"Leader Shield limit +1 (generates 1 stack every 15s). When Shield breaks, reflects: enemies within a 140 radius take Physical damage equal to 300% of Leader ATK and suffer knockback (Bosses immune to knockback)",リーダーのシールド値上限+1（15秒ごとに1層生成）。シールド値破壊時に反動：周囲140範囲の敵にリーダーの攻撃力×3の物理ダメージを与え突き飛ばす（ボスは突き飛ばし無効）,,原文键,校对,自译
-经验,EXP,経験値,,原文键,模型,自译
-领导欲Ⅰ,Leadership I,指導欲Ⅰ,,原文键,模型,自译
-经验 +5%,EXP +5%,経験値 +5%,,原文键,模型,自译
-领导欲Ⅱ,Leadership II,指導欲Ⅱ,,原文键,模型,自译
-经验 +6%,EXP +6%,経験値 +6%,,原文键,模型,自译
-领导欲Ⅲ,Leadership III,指導欲Ⅲ,,原文键,模型,自译
-经验 +7%,EXP +7%,経験値 +7%,,原文键,模型,自译
-领导欲Ⅳ,Leadership IV,指導欲Ⅳ,,原文键,模型,自译
-经验 +7%。升级有 10% 概率再升一级,EXP +7%. Leveling up has a 10% chance to grant an additional level,経験値 +7%。レベルアップ時、10%の確率でさらに1レベルアップ,,原文键,模型,自译
-资源,Resources,資源,,原文键,模型,自译
-收藏癖Ⅰ,Hoarding I,収集癖Ⅰ,,原文键,模型,自译
-开局源石锭 +3,Initial Originium Ingot +3,開始時源石錐 +3,,原文键,模型,自译
-收藏癖Ⅱ,Hoarding II,収集癖Ⅱ,,原文键,模型,自译
-开局源石锭 +4,Initial Originium Ingot +4,開始時源石錐 +4,,原文键,模型,自译
-收藏癖Ⅲ,Hoarding III,収集癖Ⅲ,,原文键,模型,自译
-开局源石锭 +5,Initial Originium Ingot +5,開始時源石錐 +5,,原文键,模型,自译
-交涉Ⅰ,Negotiation I,交渉Ⅰ,,原文键,模型,自译
-行商价格 -6%,Merchant price -6%,行商人価格 -6%,,原文键,模型,自译
-交涉Ⅱ,Negotiation II,交渉Ⅱ,,原文键,模型,自译
-交涉Ⅲ,Negotiation III,交渉Ⅲ,,原文键,模型,自译
-调度,Dispatch,配置,,原文键,模型,自译
-多程信息处理,Multithreaded Processing,マルチスレッド処理,,原文键,模型,自译
-第一次升级多一个选项（四选一）,First level up grants 1 additional option (choose 1 of 4),最初のレベルアップ時にオプションが1つ追加される(4択),,原文键,模型,自译
-自我审视,Introspection,自己省察,,原文键,模型,自译
-每次探索限一次：刷新行商货架时不消耗源石锭,Once per run: Refreshing the Merchant's wares costs 0 Originium Ingots,探索ごとに1回のみ：行商人の商品を更新する際、源石錐を消費しない,,原文键,模型,自译
-战利品意识,Loot Awareness,戦利品への意識,,原文键,模型,自译
-开局从 3 件基础藏品中选 1 件,"At the start of a run, choose 1 of 3 basic Collectibles",開始時に3つの基礎秘宝から1つを選択,,原文键,模型,自译
-生命感悟Ⅳ,Vitality IV,HPの悟りⅣ,,原文键,模型,自译
-队长每秒回复 +0.2 生命,Leader HP recovery +0.2/s,リーダーのHP毎秒回復+0.2,,原文键,模型,自译
-生命感悟Ⅴ,Vitality V,HPの悟りⅤ,,原文键,模型,自译
-危机感Ⅱ,Vigilance II,危機感Ⅱ,,原文键,模型,自译
-护盾生成间隔 -3 秒,Shield generation interval -3s,シールド値生成間隔 -3秒,,原文键,模型,自译
-便利,Utility,利便性,,原文键,模型,自译
-好奇心Ⅰ,Curiosity I,好奇心Ⅰ,,原文键,模型,自译
-拾取范围 +12,Pickup range +12,獲得範囲 +12,,原文键,模型,自译
-好奇心Ⅱ,Curiosity II,好奇心Ⅱ,,原文键,模型,自译
-好奇心Ⅲ,Curiosity III,好奇心Ⅲ,,原文键,模型,自译
-拾取范围 +14,Pickup range +14,獲得範囲 +14,,原文键,模型,自译
-好奇心Ⅳ,Curiosity IV,好奇心Ⅳ,,原文键,模型,自译
-绝处逢生,Second Wind,起死回生,,原文键,模型,自译
-每次探索限一次：队长倒下时以 30% 最大生命复活，3 秒内不受伤害,"Once per run: when Leader falls, revives with 30% Max HP and takes no damage for 3s",探索中1回のみ：リーダー死亡時、最大HPの30%で復活し、3秒間ダメージを受けない,,原文键,模型,自译
-闪避,Dodge,回避,,原文键,模型,自译
-未雨绸缪Ⅰ,Forethought I,未雨綢繆Ⅰ,,原文键,模型,自译
-队长闪避率 +5%,Leader Dodge +5%,リーダーの回避率+5%,,原文键,模型,自译
-未雨绸缪Ⅱ,Forethought II,未雨綢繆Ⅱ,,原文键,模型,自译
-未雨绸缪Ⅲ,Forethought III,未雨綢繆Ⅲ,,原文键,模型,自译
-攻击性,Aggression,攻撃性,,原文键,模型,自译
-生存本能,Survival Instinct,生存本能,,原文键,模型,自译
-生命感悟,Vitality,HP感悟,,原文键,模型,自译
-自我保护,Self-Preservation,自己防衛,,原文键,模型,自译
-领导欲,Leadership,指導欲,,原文键,模型,自译
-好奇心,Curiosity,好奇心,,原文键,模型,自译
-收藏癖,Hoarding,収集癖,,原文键,模型,自译
-交涉,Negotiation,交渉,,原文键,模型,自译
-危机感,Vigilance,危機感,,原文键,模型,自译
-未雨绸缪,Forethought,未雨綢繆,,原文键,模型,自译
-坚韧,Tenacity,堅靭,,原文键,模型,自译
-队长最大生命 +20,Leader Max HP +20,リーダー最大HP+20,,原文键,模型,自译
-自愈,Regeneration,自然回復,,原文键,模型,自译
-队长生命回复 +0.4 / 秒,Leader HP recovery +0.4/s,リーダーHP回復+0.4/秒,,原文键,模型,自译
-硬化,Hardening,硬化,,原文键,模型,自译
-队长受到的物理伤害 -8%（乘算；对法术、真实伤害无效）,Physical damage taken by Leader -8% (multiplicative; ineffective against Arts and True damage),リーダーの被物理ダメージ-8%（乗算。術、確定ダメージには無効）,,原文键,模型,自译
-水影,Aqua Shadow,水影,,原文键,模型,自译
-感知,Perception,感知,,原文键,模型,自译
-队长拾取范围 +30%,Leader pickup range +30%,リーダー獲得範囲 +30%,,原文键,模型,自译
-护灯,Lamp Guard,護灯,,原文键,模型,自译
-队长受击时灯火损失 -15%,Light lost when Leader is attacked -15%,リーダー被撃時の灯火減少量-15%,,原文键,模型,自译
-轻盈,Agility,俊敏,,原文键,模型,自译
-队长移动速度 +10%,Leader movement speed +10%,リーダーの移動速度+10%,,原文键,模型,自译
-迅捷,Swiftness,迅速,,原文键,模型,自译
-冲刺冷却 -12%,Dash cooldown -12%,ダッシュクールダウン-12%,,原文键,模型,自译
-远跃,Long Leap,遠躍,,原文键,模型,自译
-冲刺距离 +12%,Dash distance +12%,ダッシュ距離+12%,,原文键,模型,自译
-连冲,Chain Dash,連衝,,原文键,模型,自译
-冲刺可储存 2 次，冷却逐次恢复,Dash can store 2 charges; cooldown recovers sequentially,ダッシュは2回までチャージ可能、クールダウンは順次回復,,原文键,模型,自译
-协同·技,Synergy: SP,協同・技,,原文键,校对,自译
-全队技力回复 +15%,Squad SP Recovery +15%,全体のSP回復+15%,,原文键,模型,自译
-协同·攻,Synergy: ATK,協同・攻,,原文键,模型,自译
-全队干员攻击 +8%,Squad Operator ATK +8%,全体オペレーター攻撃力+8%,,原文键,模型,自译
-协同·迅,Synergy: ASPD,協同・迅,,原文键,模型,自译
-全队干员攻击速度 +6%,Squad Operator ATK speed +6%,味方全体の攻撃速度+6%,,原文键,模型,自译
-协同·广,Synergy: Range,協同・広,,原文键,模型,自译
-全队干员攻击范围 +8%,Squad Operator attack range +8%,味方全体の攻撃範囲+8%,,原文键,模型,自译
-协同·专,Synergy: Crit,協同・専,,原文键,模型,自译
-全队干员技能强度 +10%,Squad Operator skill power +10%,全体オペレーターのスキル威力+10%,,原文键,模型,自译
-贯穿,Pierce,貫通,,原文键,模型,自译
-远程普攻可再穿透 2 名敌人。,Ranged normal attacks pierce 2 additional enemies.,遠距離通常攻撃はさらに敵を2体貫通する。,,原文键,模型,自译
-扩散,Splash,拡散,,原文键,模型,自译
-近战扩域、召唤驻场、控场引爆干员的普攻命中时，目标周围 60 范围内的其他敌人受到该次伤害的 25%。,"When normal attacks from Melee Extended Range, Stationary Summon, and Crowd-Control Detonation Operators hit, other enemies within a 60 radius of the target take 25% of the damage.",近距離範囲拡大、召喚駐留、牽制起爆オペレーターの通常攻撃命中時、目標の周囲範囲60内の他の敵にそのダメージの25%を与える。,,原文键,校对,自译
-多弹火力干员的普攻命中后弹向 170 范围内的另 1 名敌人，造成该次伤害的 50%。,"Normal attacks from Multi-Projectile Firepower Operators bounce to 1 other enemy within a 170 radius upon hit, dealing 50% of the damage.",多弾火力オペレーターの通常攻撃命中後、範囲170内の別の敵1体に跳ね返り、そのダメージの50%を与える。,,原文键,校对,自译
-近战·扩域,Melee · Expansion,近距離・拡域,,原文键,模型,自译
-近战扩域干员攻击范围 +12%,Melee Extended Range Operators attack range +12%,近距離範囲拡大オペレーターの攻撃範囲+12%,,原文键,模型,自译
-多弹·连射,Multishot · Rapid Fire,多弾・連射,,原文键,模型,自译
-多弹火力干员攻击速度 +10%,Multi-Projectile Firepower Operators ATK speed +10%,多弾火力オペレーターの攻撃速度+10%,,原文键,模型,自译
-召唤·协击,Summon · Co-Strike,召喚・協撃,,原文键,模型,自译
-召唤驻场干员的追击与召唤物伤害 +10%,Stationary Summon Operators' follow-up and summon damage +10%,召喚駐留オペレーターの追撃と召喚ユニットのダメージ+10%,,原文键,模型,自译
-控场·延时,Control · Extension,牽制・遅延,,原文键,模型,自译
-眩晕、束缚、减速的持续时间 +15%,"Stun, Bind, and Slow duration +15%",スタン、バインド、減速の継続時間+15%,,原文键,模型,自译
-弱点·洞察,Weakness · Insight,弱点・洞察,,原文键,模型,自译
-弱点收割干员的弱点伤害额外 +10%,Weakness Harvesting Operators deal +10% additional Weakness damage,弱点収穫オペレーターの弱点ダメージがさらに+10%,,原文键,模型,自译
-护盾·充能,Shield · Charge,シールド値・充填,,原文键,模型,自译
-队长护盾生成间隔 -8%,Leader Shield generation interval -8%,リーダーのシールド値生成間隔-8%,,原文键,模型,自译
-急救补给,First Aid Supplies,応急処置補給,,原文键,模型,自译
-队长立刻回复 30% 最大生命,Leader immediately recovers 30% Max HP,リーダーは直ちに最大HPの30%を回復,,原文键,模型,自译
-灯油补给,Lamp Oil Supplies,灯油補給,,原文键,模型,自译
-灯火 +30,Light +30,灯火 +30,,原文键,模型,自译
-临时协同,Temporary Synergy,臨時協同,,原文键,模型,自译
-全队干员攻击 +4%（可叠加）,All Operators ATK +4% (stacks),全体オペレーターの攻撃+4%(重複可能),,原文键,模型,自译
-深蓝之下,Beneath the Deep Blue,紺碧の下,,原文键,模型,自译
-获得「深蓝之下」套组中的其余 8 枚蚀刻章。,Obtain the other 8 medals in the 'Beneath the Deep Blue' medal set.,「紺碧の下」シリーズの残り8枚の勲章を獲得する。,,原文键,模型,自译
-泡影散尽,Faded Illusions,泡影散尽,,原文键,模型,自译
-达成结局「平凡即是喜乐」。,Reach the ending 'Precious Days'.,エンディング「平凡こそ幸せ」に到達する。,,原文键,模型,自译
-骑士归潮,Knight's Return to the Tide,騎士帰潮,,原文键,模型,自译
-达成结局「静谧时代」。,Reach the ending 'Age of Silence'.,エンディング「静謐なる時代」に到達。,,原文键,校对,自译
-潮声止息,Silence of the Tides,潮声止息,,原文键,模型,自译
-达成结局「息潮的代价」。,Reach the ending 'Price of Peace'.,エンディング「凪の代償」に到達する。,,原文键,模型,自译
-深蓝之树,Caerula Arbor,紺碧の樹,,原文键,官方,官方：roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_10.name
-达成结局「如星空般深蓝」。,Reach the ending 'Stella Caerula'.,エンディング「星空を湛えた群青」に到達する。,,原文键,模型,自译
-协同晋升,Synergy Promotion,協同昇進,,原文键,模型,自译
-在一次探索中，使编队内 3 名干员同时达到精英二。,"In a run, have 3 Operators in the squad reach Elite 2 simultaneously.",1回の探索で、編成内のオペレーター3名を同時に昇進2にする。,,原文键,模型,自译
-海中拾遗,Gleanings from the Sea,海中拾遺,,原文键,模型,自译
-累计获得 50 种不同的藏品。,Obtain 50 different Collectibles in total.,累計50種類の異なる秘宝を獲得する。,,原文键,模型,自译
-认知深化,Deepened Cognition,認知深化,,原文键,模型,自译
-点亮认知塑造中所有已开放节点。,Unlock all available nodes in Cognitive Shaping.,認知形成の解放済みノードをすべて点灯する。,,原文键,模型,自译
-初识深蓝,First Glimpse of the Deep Blue,初識深藍,,原文键,模型,自译
-首次点亮认知塑造节点。,Unlock a Cognitive Shaping node for the first time.,初めて認知形成ノードを解放。,,原文键,模型,自译
-默契,Rapport,連携,,原文键,模型,自译
-恩怨,Grudge,因縁,,原文键,模型,自译
-手段应当有效,Means Should Be Effective,手段は有効であるべき,,原文键,模型,自译
-战争设计,War Design,戦争設計,,原文键,模型,自译
-潮汐守望,Tidal Watch,潮汐守望,,原文键,模型,自译
-集群狩猎,Pack Hunting,集群狩猟,,原文键,模型,自译
-维什戴尔开局分队 · 无认知,Wiš'adel Starting Squad · No Cognition,ウィシャデル開始分隊 ・ 認知なし,,原文键,模型,自译
-2|1.11|等级|,2|1.11|Level|,2|1.11|レベル|,,原文键,模型,自译
-2|1.19|等级|,2|1.19|Level|,2|1.19|レベル|,,原文键,模型,自译
-2|1.25|等级|,2|1.25|Level|,2|1.25|レベル|,,原文键,模型,自译
-维什戴尔开局分队 · 18 细胞,Wiš'adel Starting Squad · 18 Cells,ウィシャデル開始分隊・18細胞,,原文键,模型,自译
-1|0.2|relic:148|class:狙击,1|0.2|relic:148|class:Sniper,1|0.2|relic:148|class:狙撃,,原文键,模型,自译
-1|0.4|relic:149|class:狙击,1|0.4|relic:149|class:Sniper,1|0.4|relic:149|class:狙撃,,原文键,模型,自译
-1|-0.2|relic:149|class:狙击,1|-0.2|relic:149|class:Sniper,1|-0.2|relic:149|class:狙撃,,原文键,模型,自译
-斯卡蒂开局分队 · 无认知,Skadi Starting Squad · No Cognition,スカジ開始分隊・認知なし,,原文键,校对,自译
-1|0.1|relic_count|class:术师,1|0.1|relic_count|class:Caster,1|0.1|relic_count|class:術師,,原文键,模型,自译
-1|0.15|relic:80|class:术师,1|0.15|relic:80|class:Caster,1|0.15|relic:80|class:術師,,原文键,模型,自译
-2|1.18|等级|,2|1.18|Level|,2|1.18|レベル|,,原文键,模型,自译
-2|1.23|等级|,2|1.23|Level|,2|1.23|レベル|,,原文键,模型,自译
-斯卡蒂开局分队 · 18 细胞,Skadi Starting Squad · 18 Cells,スカジ開始分隊 ・ 18セル,,原文键,模型,自译
-1|0.4|relic:165|class:特种,1|0.4|relic:165|class:Specialist,1|0.4|relic:165|class:特殊,,原文键,模型,自译
-1|0.3|relic:160|class:医疗,1|0.3|relic:160|class:Medic,1|0.3|relic:160|class:医療,,原文键,模型,自译
-1|0.18|vgrowth|range:近战,1|0.18|vgrowth|range:Melee,1|0.18|vgrowth|range:近距離,,原文键,模型,自译
-凯尔希开局分队 · 无认知,Kal'tsit Starting Squad · No Cognition,ケルシー開始分隊・認知なし,,原文键,校对,自译
-凯尔希开局分队 · 18 细胞,Kal'tsit Starting Squad · 18 Cells,ケルシー開始分隊 ・ 18セル,,原文键,模型,自译
-2|1.24|等级|,2|1.24|Level|,2|1.24|レベル|,,原文键,模型,自译
+keys,en,ja,ko,_zh,_source,_note,_ja_note,_ko_note
+meta.meta_tree.nodes.atk1.line,Attack,攻撃,공격,攻击,人改,跨模块统一（review/canon.json）,自译,自译
+meta.meta_tree.nodes.atk1.name,Aggression I,攻撃性Ⅰ,공격성Ⅰ,攻击性Ⅰ,模型,,自译,自译
+meta.meta_tree.nodes.atk1.desc,All damage +8%,全体ダメージ +8%,전체 피해 +8%,全体伤害 +8%,模型,,自译,自译
+meta.meta_tree.nodes.atk2.line,Attack,攻撃,공격,攻击,人改,跨模块统一（review/canon.json）,自译,自译
+meta.meta_tree.nodes.atk2.name,Aggression II,攻撃性Ⅱ,공격성Ⅱ,攻击性Ⅱ,模型,,自译,自译
+meta.meta_tree.nodes.atk2.desc,All damage +4%,全体ダメージ +4%,전체 피해 +4%,全体伤害 +4%,模型,,自译,自译
+meta.meta_tree.nodes.atk3.line,Attack,攻撃,공격,攻击,人改,跨模块统一（review/canon.json）,自译,自译
+meta.meta_tree.nodes.atk3.name,Aggression III,攻撃性Ⅲ,공격성Ⅲ,攻击性Ⅲ,模型,,自译,自译
+meta.meta_tree.nodes.atk3.desc,All damage +4%,全体ダメージ +4%,전체 피해 +4%,全体伤害 +4%,模型,,自译,自译
+meta.meta_tree.nodes.atk4.line,Attack,攻撃,공격,攻击,人改,跨模块统一（review/canon.json）,自译,自译
+meta.meta_tree.nodes.atk4.name,Aggression IV,攻撃性Ⅳ,공격성Ⅳ,攻击性Ⅳ,模型,,自译,自译
+meta.meta_tree.nodes.atk4.desc,All damage +4%,全体ダメージ +4%,전체 피해 +4%,全体伤害 +4%,模型,,自译,自译
+meta.meta_tree.nodes.atk5.line,Attack,攻撃,공격,攻击,人改,跨模块统一（review/canon.json）,自译,自译
+meta.meta_tree.nodes.atk5.name,Aggression V,攻撃性Ⅴ,공격성Ⅴ,攻击性Ⅴ,模型,,自译,自译
+meta.meta_tree.nodes.atk5.desc,"All damage +4%. Execute: instantly kills normal enemies when their HP is below 15%, and Elite enemies below 8% (Bosses excepted)",全体ダメージ +4%。処刑：通常の敵のHPが15%未満、エリートが8%未満になった時、即座に撃破する（ボスを除く）,"전체 피해 +4%. 처형: 일반 적 HP 15% 미만, 엘리트 8% 미만일 시 즉시 처치(보스 제외)",全体伤害 +4%。处决：普通敌人生命低于 15%、精英低于 8% 时直接击杀（Boss 除外）,模型,,自译,自译
+meta.meta_tree.nodes.hp1.line,HP,HP,HP,生命,模型,,自译,自译
+meta.meta_tree.nodes.hp1.name,Survival Instinct I,生存本能Ⅰ,생존 본능 Ⅰ,生存本能Ⅰ,模型,,自译,自译
+meta.meta_tree.nodes.hp1.desc,Leader Max HP +12%,リーダー最大HP+12%,리더 최대 HP +12%,队长最大生命 +12%,模型,,自译,自译
+meta.meta_tree.nodes.hp2.line,HP,HP,HP,生命,模型,,自译,自译
+meta.meta_tree.nodes.hp2.name,Survival Instinct II,生存本能Ⅱ,생존 본능 Ⅱ,生存本能Ⅱ,模型,,自译,自译
+meta.meta_tree.nodes.hp2.desc,Leader Max HP +4%,リーダー最大HP+4%,리더 최대 HP +4%,队长最大生命 +4%,模型,,自译,自译
+meta.meta_tree.nodes.hp3.line,HP,HP,HP,生命,模型,,自译,自译
+meta.meta_tree.nodes.hp3.name,Survival Instinct III,生存本能Ⅲ,생존 본능 Ⅲ,生存本能Ⅲ,模型,,自译,自译
+meta.meta_tree.nodes.hp3.desc,Leader Max HP +5%,リーダー最大HP+5%,리더 최대 HP +5%,队长最大生命 +5%,模型,,自译,自译
+meta.meta_tree.nodes.hp4.line,HP,HP,HP,生命,模型,,自译,自译
+meta.meta_tree.nodes.hp4.name,Survival Instinct IV,生存本能Ⅳ,생존 본능 Ⅳ,生存本能Ⅳ,模型,,自译,自译
+meta.meta_tree.nodes.hp4.desc,Leader Max HP +5%,リーダー最大HP+5%,리더 최대 HP +5%,队长最大生命 +5%,模型,,自译,自译
+meta.meta_tree.nodes.hp5.line,HP,HP,HP,生命,模型,,自译,自译
+meta.meta_tree.nodes.hp5.name,Survival Instinct V,生存本能Ⅴ,생존 본능 Ⅴ,生存本能Ⅴ,模型,,自译,自译
+meta.meta_tree.nodes.hp5.desc,"Leader Max HP +4%. Once per run: when taking fatal damage, survives with 1 HP and takes no damage for 1.5s",リーダー最大HP+4%。1回の探索につき1回のみ：致命傷を受けた時、HPを1残して生き残り、1.5秒間ダメージを受けない,"리더 최대 HP +4%. 탐험당 1회 제한: 치명상 피해를 받을 시 HP를 1 남기고, 1.5초 동안 피해를 받지 않음",队长最大生命 +4%。每次探索限一次：受到致命伤时保留 1 点生命，1.5 秒内不受伤害,模型,,自译,自译
+meta.meta_tree.nodes.def1.line,DMG Reduction,被ダメ軽減,피해 감소,减伤,人改,跨模块统一（review/canon.json）,自译,自译
+meta.meta_tree.nodes.def1.name,Self-Preservation I,自己防衛Ⅰ,자기 보호 Ⅰ,自我保护Ⅰ,模型,,自译,自译
+meta.meta_tree.nodes.def1.desc,Damage taken by Leader -5%,リーダー被ダメージ-5%,리더 받은 피해 -5%,队长受到伤害 -5%,模型,,自译,自译
+meta.meta_tree.nodes.def2.line,DMG Reduction,被ダメ軽減,피해 감소,减伤,人改,跨模块统一（review/canon.json）,自译,自译
+meta.meta_tree.nodes.def2.name,Self-Preservation II,自己防衛Ⅱ,자기 보호 Ⅱ,自我保护Ⅱ,模型,,自译,自译
+meta.meta_tree.nodes.def2.desc,Damage taken by Leader -3%,リーダー被ダメージ-3%,리더 받은 피해 -3%,队长受到伤害 -3%,模型,,自译,自译
+meta.meta_tree.nodes.def3.line,DMG Reduction,被ダメ軽減,피해 감소,减伤,人改,跨模块统一（review/canon.json）,自译,自译
+meta.meta_tree.nodes.def3.name,Self-Preservation III,自己防衛Ⅲ,자기 보호 Ⅲ,自我保护Ⅲ,模型,,自译,自译
+meta.meta_tree.nodes.def3.desc,Damage taken by Leader -3%,リーダー被ダメージ-3%,리더 받은 피해 -3%,队长受到伤害 -3%,模型,,自译,自译
+meta.meta_tree.nodes.def4.line,DMG Reduction,被ダメ軽減,피해 감소,减伤,人改,跨模块统一（review/canon.json）,自译,自译
+meta.meta_tree.nodes.def4.name,Self-Preservation IV,自己防衛Ⅳ,자기 보호 Ⅳ,自我保护Ⅳ,模型,,自译,自译
+meta.meta_tree.nodes.def4.desc,"Damage taken by Leader -2%. After taking no damage for 5s, the next damage taken -50%",リーダーの被ダメージ-2%。5秒間ダメージを受けなかった場合、次の被ダメージ-50%,리더가 받은 피해 -2%. 5초 동안 피해를 받지 않으면 다음 피해 -50%,队长受到伤害 -2%。连续 5 秒未受伤后，下一次 -50%,模型,,自译,自译
+meta.meta_tree.nodes.reg1.line,Recovery,回復,회복,回复,模型,,自译,自译
+meta.meta_tree.nodes.reg1.name,Vitality I,HPの悟りⅠ,HP 각성 Ⅰ,生命感悟Ⅰ,模型,,自译,自译
+meta.meta_tree.nodes.reg1.desc,Leader HP recovery per second +0.3,リーダーのHP毎秒回復+0.3,리더 초당 HP 회복 +0.3,队长每秒回复 +0.3 生命,模型,,自译,自译
+meta.meta_tree.nodes.reg2.line,Recovery,回復,회복,回复,模型,,自译,自译
+meta.meta_tree.nodes.reg2.name,Vitality II,HPの悟りⅡ,HP 각성 Ⅱ,生命感悟Ⅱ,模型,,自译,自译
+meta.meta_tree.nodes.reg2.desc,Leader HP recovery +0.1/s,リーダーのHP毎秒回復+0.1,리더 초당 HP 회복 +0.1,队长每秒回复 +0.1 生命,模型,,自译,自译
+meta.meta_tree.nodes.reg3.line,Recovery,回復,회복,回复,模型,,自译,自译
+meta.meta_tree.nodes.reg3.name,Vitality III,HPの悟りⅢ,HP 각성 Ⅲ,生命感悟Ⅲ,模型,,自译,自译
+meta.meta_tree.nodes.reg3.desc,Leader recovers +0.2 HP per second. Recovery doubles when HP is below 35%,リーダーのHP毎秒回復+0.2。HPが35%未満の時、回復量が倍になる,리더 HP 초당 회복 +0.2. HP가 35% 미만일 때 회복량 2배,队长每秒回复 +0.2 生命。生命低于 35% 时回复翻倍,模型,,自译,自译
+meta.meta_tree.nodes.sh1.line,Objective Shield,シールド値,실드,护盾,官方,roguelike_topic_table.rogue_2.items.rogue_2_shield,官方：roguelike_topic_table.rogue_2.items.rogue_2_shield.name,官方：roguelike_topic_table.rogue_2.items.rogue_2_shield.name
+meta.meta_tree.nodes.sh1.name,Vigilance I,危機感Ⅰ,위기감Ⅰ,危机感Ⅰ,模型,,自译,自译
+meta.meta_tree.nodes.sh1.desc,"Leader Shield limit +1 (generates 1 stack every 15s). When Shield breaks, reflects: enemies within a 140 radius take Physical damage equal to 300% of Leader ATK and suffer knockback (Bosses immune to knockback)",リーダーのシールド値上限+1（15秒ごとに1層生成）。シールド値破壊時に反動：周囲140範囲の敵にリーダーの攻撃力×3の物理ダメージを与え突き飛ばす（ボスは突き飛ばし無効）,리더 실드 상한 +1(15초마다 1스택 생성). 실드 파괴 시 반동: 주변 140 범위 내 적에게 리더 공격의 ×3 물리 대미지를 가하고 밀어내기(보스는 밀어내기 면역),队长护盾上限 +1（每 15 秒生成一层）。护盾破碎时反震：周围 140 范围敌人受队长攻击 ×3 物理伤害并击退（Boss 免疫击退）,校对,校对：统一术语“护盾”为“Shield”，而非“Objective Shield”。,自译,自译
+meta.meta_tree.nodes.xp1.line,EXP,経験値,경험치,经验,模型,,自译,自译
+meta.meta_tree.nodes.xp1.name,Leadership I,指導欲Ⅰ,통솔력Ⅰ,领导欲Ⅰ,模型,,自译,自译
+meta.meta_tree.nodes.xp1.desc,EXP +5%,経験値 +5%,경험치 +5%,经验 +5%,模型,,自译,自译
+meta.meta_tree.nodes.xp2.line,EXP,経験値,경험치,经验,模型,,自译,自译
+meta.meta_tree.nodes.xp2.name,Leadership II,指導欲Ⅱ,통솔력Ⅱ,领导欲Ⅱ,模型,,自译,自译
+meta.meta_tree.nodes.xp2.desc,EXP +6%,経験値 +6%,경험치 +6%,经验 +6%,模型,,自译,自译
+meta.meta_tree.nodes.xp3.line,EXP,経験値,경험치,经验,模型,,自译,自译
+meta.meta_tree.nodes.xp3.name,Leadership III,指導欲Ⅲ,통솔력Ⅲ,领导欲Ⅲ,模型,,自译,自译
+meta.meta_tree.nodes.xp3.desc,EXP +7%,経験値 +7%,경험치 +7%,经验 +7%,模型,,自译,自译
+meta.meta_tree.nodes.xp4.line,EXP,経験値,경험치,经验,模型,,自译,自译
+meta.meta_tree.nodes.xp4.name,Leadership IV,指導欲Ⅳ,통솔력Ⅳ,领导欲Ⅳ,模型,,自译,自译
+meta.meta_tree.nodes.xp4.desc,EXP +7%. Leveling up has a 10% chance to grant an additional level,経験値 +7%。レベルアップ時、10%の確率でさらに1レベルアップ,경험치 +7%. 레벨 업 시 10% 확률로 추가 레벨 업,经验 +7%。升级有 10% 概率再升一级,模型,,自译,自译
+meta.meta_tree.nodes.gold1.line,Resources,資源,자원,资源,模型,,自译,自译
+meta.meta_tree.nodes.gold1.name,Hoarding I,収集癖Ⅰ,수집벽Ⅰ,收藏癖Ⅰ,模型,,自译,自译
+meta.meta_tree.nodes.gold1.desc,Initial Originium Ingot +3,開始時源石錐 +3,시작 오리지늄각뿔 +3,开局源石锭 +3,模型,,自译,自译
+meta.meta_tree.nodes.gold2.line,Resources,資源,자원,资源,模型,,自译,自译
+meta.meta_tree.nodes.gold2.name,Hoarding II,収集癖Ⅱ,수집벽Ⅱ,收藏癖Ⅱ,模型,,自译,自译
+meta.meta_tree.nodes.gold2.desc,Initial Originium Ingot +4,開始時源石錐 +4,시작 오리지늄각뿔 +4,开局源石锭 +4,模型,,自译,自译
+meta.meta_tree.nodes.gold3.line,Resources,資源,자원,资源,模型,,自译,自译
+meta.meta_tree.nodes.gold3.name,Hoarding III,収集癖Ⅲ,수집벽Ⅲ,收藏癖Ⅲ,模型,,自译,自译
+meta.meta_tree.nodes.gold3.desc,Initial Originium Ingot +5,開始時源石錐 +5,시작 오리지늄각뿔 +5,开局源石锭 +5,模型,,自译,自译
+meta.meta_tree.nodes.shop1.line,Resources,資源,자원,资源,模型,,自译,自译
+meta.meta_tree.nodes.shop1.name,Negotiation I,交渉Ⅰ,교섭Ⅰ,交涉Ⅰ,模型,,自译,自译
+meta.meta_tree.nodes.shop1.desc,Merchant price -6%,行商人価格 -6%,상인 가격 -6%,行商价格 -6%,模型,,自译,自译
+meta.meta_tree.nodes.shop2.line,Resources,資源,자원,资源,模型,,自译,自译
+meta.meta_tree.nodes.shop2.name,Negotiation II,交渉Ⅱ,교섭Ⅱ,交涉Ⅱ,模型,,自译,自译
+meta.meta_tree.nodes.shop2.desc,Merchant price -6%,行商人価格 -6%,상인 가격 -6%,行商价格 -6%,模型,,自译,自译
+meta.meta_tree.nodes.shop3.line,Resources,資源,자원,资源,模型,,自译,自译
+meta.meta_tree.nodes.shop3.name,Negotiation III,交渉Ⅲ,교섭Ⅲ,交涉Ⅲ,模型,,自译,自译
+meta.meta_tree.nodes.shop3.desc,Merchant price -6%,行商人価格 -6%,상인 가격 -6%,行商价格 -6%,模型,,自译,自译
+meta.meta_tree.nodes.disp1.line,Dispatch,配置,파견,调度,模型,,自译,自译
+meta.meta_tree.nodes.disp1.name,Multithreaded Processing,マルチスレッド処理,멀티스레드 정보 처리,多程信息处理,模型,,自译,自译
+meta.meta_tree.nodes.disp1.desc,First level up grants 1 additional option (choose 1 of 4),最初のレベルアップ時にオプションが1つ追加される(4択),첫 레벨 업 시 옵션 1개 추가(4택 1),第一次升级多一个选项（四选一）,模型,,自译,自译
+meta.meta_tree.nodes.disp2.line,Dispatch,配置,파견,调度,模型,,自译,自译
+meta.meta_tree.nodes.disp2.name,Introspection,自己省察,자기 성찰,自我审视,模型,,自译,自译
+meta.meta_tree.nodes.disp2.desc,Once per run: Refreshing the Merchant's wares costs 0 Originium Ingots,探索ごとに1回のみ：行商人の商品を更新する際、源石錐を消費しない,탐험당 1회 제한: 상인 진열대 갱신 시 오리지늄각뿔을 소모하지 않음,每次探索限一次：刷新行商货架时不消耗源石锭,模型,,自译,自译
+meta.meta_tree.nodes.disp3.line,Dispatch,配置,파견,调度,模型,,自译,自译
+meta.meta_tree.nodes.disp3.name,Loot Awareness,戦利品への意識,전리품 의식,战利品意识,模型,,自译,自译
+meta.meta_tree.nodes.disp3.desc,"At the start of a run, choose 1 of 3 basic Collectibles",開始時に3つの基礎秘宝から1つを選択,시작 시 기초 소장품 3개 중 1개 선택,开局从 3 件基础藏品中选 1 件,模型,,自译,自译
+meta.meta_tree.nodes.reg4.line,Recovery,回復,회복,回复,模型,,自译,自译
+meta.meta_tree.nodes.reg4.name,Vitality IV,HPの悟りⅣ,HP 각성 Ⅳ,生命感悟Ⅳ,模型,,自译,自译
+meta.meta_tree.nodes.reg4.desc,Leader HP recovery +0.2/s,リーダーのHP毎秒回復+0.2,리더 초당 HP 회복 +0.2,队长每秒回复 +0.2 生命,模型,,自译,自译
+meta.meta_tree.nodes.reg5.line,Recovery,回復,회복,回复,模型,,自译,自译
+meta.meta_tree.nodes.reg5.name,Vitality V,HPの悟りⅤ,HP 각성 Ⅴ,生命感悟Ⅴ,模型,,自译,自译
+meta.meta_tree.nodes.reg5.desc,Leader HP recovery +0.2/s,リーダーのHP毎秒回復+0.2,리더 초당 HP 회복 +0.2,队长每秒回复 +0.2 生命,模型,,自译,自译
+meta.meta_tree.nodes.sh2.line,Objective Shield,シールド値,실드,护盾,官方,roguelike_topic_table.rogue_2.items.rogue_2_shield,官方：roguelike_topic_table.rogue_2.items.rogue_2_shield.name,官方：roguelike_topic_table.rogue_2.items.rogue_2_shield.name
+meta.meta_tree.nodes.sh2.name,Vigilance II,危機感Ⅱ,위기감Ⅱ,危机感Ⅱ,模型,,自译,自译
+meta.meta_tree.nodes.sh2.desc,Shield generation interval -3s,シールド値生成間隔 -3秒,실드 생성 간격 -3초,护盾生成间隔 -3 秒,模型,,自译,自译
+meta.meta_tree.nodes.pick1.line,Utility,利便性,편의,便利,模型,,自译,自译
+meta.meta_tree.nodes.pick1.name,Curiosity I,好奇心Ⅰ,호기심Ⅰ,好奇心Ⅰ,模型,,自译,自译
+meta.meta_tree.nodes.pick1.desc,Pickup range +12,獲得範囲 +12,획득 범위 +12,拾取范围 +12,模型,,自译,自译
+meta.meta_tree.nodes.pick2.line,Utility,利便性,편의,便利,模型,,自译,自译
+meta.meta_tree.nodes.pick2.name,Curiosity II,好奇心Ⅱ,호기심Ⅱ,好奇心Ⅱ,模型,,自译,自译
+meta.meta_tree.nodes.pick2.desc,Pickup range +12,獲得範囲 +12,획득 범위 +12,拾取范围 +12,模型,,自译,自译
+meta.meta_tree.nodes.pick3.line,Utility,利便性,편의,便利,模型,,自译,自译
+meta.meta_tree.nodes.pick3.name,Curiosity III,好奇心Ⅲ,호기심Ⅲ,好奇心Ⅲ,模型,,自译,自译
+meta.meta_tree.nodes.pick3.desc,Pickup range +14,獲得範囲 +14,획득 범위 +14,拾取范围 +14,模型,,自译,自译
+meta.meta_tree.nodes.pick4.line,Utility,利便性,편의,便利,模型,,自译,自译
+meta.meta_tree.nodes.pick4.name,Curiosity IV,好奇心Ⅳ,호기심Ⅳ,好奇心Ⅳ,模型,,自译,自译
+meta.meta_tree.nodes.pick4.desc,Pickup range +14,獲得範囲 +14,획득 범위 +14,拾取范围 +14,模型,,自译,自译
+meta.meta_tree.nodes.disp4.line,Dispatch,配置,파견,调度,模型,,自译,自译
+meta.meta_tree.nodes.disp4.name,Second Wind,起死回生,기사회생,绝处逢生,模型,,自译,自译
+meta.meta_tree.nodes.disp4.desc,"Once per run: when Leader falls, revives with 30% Max HP and takes no damage for 3s",探索中1回のみ：リーダー死亡時、最大HPの30%で復活し、3秒間ダメージを受けない,"탐험당 1회 제한: 리더 사망 시 최대 HP의 30%로 부활, 3초 동안 피해를 받지 않음",每次探索限一次：队长倒下时以 30% 最大生命复活，3 秒内不受伤害,模型,,自译,自译
+meta.meta_tree.nodes.dodge1.line,Dodge,回避,회피,闪避,模型,,自译,自译
+meta.meta_tree.nodes.dodge1.name,Forethought I,未雨綢繆Ⅰ,유비무환 Ⅰ,未雨绸缪Ⅰ,模型,,自译,自译
+meta.meta_tree.nodes.dodge1.desc,Leader Dodge +5%,リーダーの回避率+5%,리더 회피율 +5%,队长闪避率 +5%,模型,,自译,自译
+meta.meta_tree.nodes.dodge2.line,Dodge,回避,회피,闪避,模型,,自译,自译
+meta.meta_tree.nodes.dodge2.name,Forethought II,未雨綢繆Ⅱ,유비무환 Ⅱ,未雨绸缪Ⅱ,模型,,自译,自译
+meta.meta_tree.nodes.dodge2.desc,Leader Dodge +5%,リーダーの回避率+5%,리더 회피율 +5%,队长闪避率 +5%,模型,,自译,自译
+meta.meta_tree.nodes.dodge3.line,Dodge,回避,회피,闪避,模型,,自译,自译
+meta.meta_tree.nodes.dodge3.name,Forethought III,未雨綢繆Ⅲ,유비무환 Ⅲ,未雨绸缪Ⅲ,模型,,自译,自译
+meta.meta_tree.nodes.dodge3.desc,Leader Dodge +5%,リーダーの回避率+5%,리더 회피율 +5%,队长闪避率 +5%,模型,,自译,自译
+meta.meta_roots.scene.consts.atk.name,Aggression,攻撃性,공격성,攻击性,模型,,自译,自译
+meta.meta_roots.scene.consts.hp.name,Survival Instinct,生存本能,생존 본능,生存本能,模型,,自译,自译
+meta.meta_roots.scene.consts.reg.name,Vitality,HP感悟,HP 통찰,生命感悟,模型,,自译,自译
+meta.meta_roots.scene.consts.def.name,Self-Preservation,自己防衛,자기 보호,自我保护,模型,,自译,自译
+meta.meta_roots.scene.consts.xp.name,Leadership,指導欲,통솔력,领导欲,模型,,自译,自译
+meta.meta_roots.scene.consts.pick.name,Curiosity,好奇心,호기심,好奇心,模型,,自译,自译
+meta.meta_roots.scene.consts.disp.name,Multithreaded Processing,マルチスレッド処理,멀티스레드 정보 처리,多程信息处理,模型,,自译,自译
+meta.meta_roots.scene.consts.gold.name,Hoarding,収集癖,수집벽,收藏癖,模型,,自译,自译
+meta.meta_roots.scene.consts.shop.name,Negotiation,交渉,교섭,交涉,模型,,自译,自译
+meta.meta_roots.scene.consts.sh.name,Vigilance,危機感,위기감,危机感,模型,,自译,自译
+meta.meta_roots.scene.consts.dodge.name,Forethought,未雨綢繆,유비무환,未雨绸缪,模型,,自译,自译
+meta.cards.passives.hp.name,Tenacity,堅靭,강인함,坚韧,模型,,自译,自译
+meta.cards.passives.hp.desc,Leader Max HP +20,リーダー最大HP+20,리더 최대 HP +20,队长最大生命 +20,模型,,自译,自译
+meta.cards.passives.regen.name,Regeneration,自然回復,자가 치유,自愈,模型,,自译,自译
+meta.cards.passives.regen.desc,Leader HP recovery +0.4/s,リーダーHP回復+0.4/秒,리더 HP 회복 +0.4/초,队长生命回复 +0.4 / 秒,模型,,自译,自译
+meta.cards.passives.armor.name,Hardening,硬化,경화,硬化,模型,,自译,自译
+meta.cards.passives.armor.desc,Physical damage taken by Leader -8% (multiplicative; ineffective against Arts and True damage),リーダーの被物理ダメージ-8%（乗算。術、確定ダメージには無効）,"리더가 받는 물리 대미지 -8% (곱연산; 마법, 트루 대미지에는 무효)",队长受到的物理伤害 -8%（乘算；对法术、真实伤害无效）,模型,,自译,自译
+meta.cards.passives.dodge.name,Aqua Shadow,水影,물의 그림자,水影,模型,,自译,自译
+meta.cards.passives.dodge.desc,Leader Dodge +5%,リーダーの回避率+5%,리더 회피율 +5%,队长闪避率 +5%,模型,,自译,自译
+meta.cards.passives.pickup.name,Perception,感知,감지,感知,模型,,自译,自译
+meta.cards.passives.pickup.desc,Leader pickup range +30%,リーダー獲得範囲 +30%,리더 획득 범위 +30%,队长拾取范围 +30%,模型,,自译,自译
+meta.cards.passives.wick.name,Lamp Guard,護灯,등불 보호,护灯,模型,,自译,自译
+meta.cards.passives.wick.desc,Light lost when Leader is attacked -15%,リーダー被撃時の灯火減少量-15%,리더 피격 시 등불 손실 -15%,队长受击时灯火损失 -15%,模型,,自译,自译
+meta.cards.passives.speed.name,Agility,俊敏,경쾌함,轻盈,模型,,自译,自译
+meta.cards.passives.speed.desc,Leader movement speed +10%,リーダーの移動速度+10%,리더 이동 속도 +10%,队长移动速度 +10%,模型,,自译,自译
+meta.cards.passives.dash_cd.name,Swiftness,迅速,신속,迅捷,模型,,自译,自译
+meta.cards.passives.dash_cd.desc,Dash cooldown -12%,ダッシュクールダウン-12%,대시 쿨타임 -12%,冲刺冷却 -12%,模型,,自译,自译
+meta.cards.passives.dash_dist.name,Long Leap,遠躍,원거리 도약,远跃,模型,,自译,自译
+meta.cards.passives.dash_dist.desc,Dash distance +12%,ダッシュ距離+12%,대시 거리 +12%,冲刺距离 +12%,模型,,自译,自译
+meta.cards.passives.dash_charge.name,Chain Dash,連衝,연속 돌진,连冲,模型,,自译,自译
+meta.cards.passives.dash_charge.desc,Dash can store 2 charges; cooldown recovers sequentially,ダッシュは2回までチャージ可能、クールダウンは順次回復,"대시 2회 충전 가능, 쿨타임 순차 회복",冲刺可储存 2 次，冷却逐次恢复,模型,,自译,自译
+meta.cards.passives.sp.name,Synergy: SP,協同・技,협동·스킬,协同·技,校对,校对：“技”在此处指代“技力”（SP），且对应效果为技力回复，应统一为 SP,自译,自译
+meta.cards.passives.sp.desc,Squad SP Recovery +15%,全体のSP回復+15%,아군 전체 SP 회복 +15%,全队技力回复 +15%,模型,,自译,自译
+meta.cards.passives.squad_atk.name,Synergy: ATK,協同・攻,협동·공격,协同·攻,模型,,自译,自译
+meta.cards.passives.squad_atk.desc,Squad Operator ATK +8%,全体オペレーター攻撃力+8%,아군 전체 오퍼레이터 공격 +8%,全队干员攻击 +8%,模型,,自译,自译
+meta.cards.passives.squad_aspd.name,Synergy: ASPD,協同・迅,협동·신속,协同·迅,模型,,自译,自译
+meta.cards.passives.squad_aspd.desc,Squad Operator ATK speed +6%,味方全体の攻撃速度+6%,아군 전체 오퍼레이터 공격 속도 +6%,全队干员攻击速度 +6%,模型,,自译,自译
+meta.cards.passives.squad_range.name,Synergy: Range,協同・広,협동·범위,协同·广,模型,,自译,自译
+meta.cards.passives.squad_range.desc,Squad Operator attack range +8%,味方全体の攻撃範囲+8%,아군 전체 오퍼레이터 공격 범위 +8%,全队干员攻击范围 +8%,模型,,自译,自译
+meta.cards.passives.squad_crit.name,Synergy: Crit,協同・専,협동·치명타,协同·专,模型,,自译,自译
+meta.cards.passives.squad_crit.desc,Squad Operator skill power +10%,全体オペレーターのスキル威力+10%,아군 전체 오퍼레이터 스킬 위력 +10%,全队干员技能强度 +10%,模型,,自译,自译
+meta.cards.passives.pierce.name,Pierce,貫通,관통,贯穿,模型,,自译,自译
+meta.cards.passives.pierce.desc,Ranged normal attacks pierce 2 additional enemies.,遠距離通常攻撃はさらに敵を2体貫通する。,원거리 일반 공격이 적 2명을 추가로 관통.,远程普攻可再穿透 2 名敌人。,模型,,自译,自译
+meta.cards.passives.splash.name,Splash,拡散,확산,扩散,模型,,自译,自译
+meta.cards.passives.splash.desc,"When normal attacks from Melee Extended Range, Stationary Summon, and Crowd-Control Detonation Operators hit, other enemies within a 60 radius of the target take 25% of the damage.",近距離範囲拡大、召喚駐留、牽制起爆オペレーターの通常攻撃命中時、目標の周囲範囲60内の他の敵にそのダメージの25%を与える。,"근거리 범위 확장, 소환 유지, 제어 폭발 오퍼레이터의 일반 공격 명중 시, 목표 주변 60 범위 내의 다른 적은 해당 피해의 25%를 받음.",近战扩域、召唤驻场、控场引爆干员的普攻命中时，目标周围 60 范围内的其他敌人受到该次伤害的 25%。,校对,校对：漏译“驻场”（Stationary），需与 p12 保持术语一致。,自译,自译
+meta.cards.passives.chain.name,Chain,連鎖,연쇄,连锁,模型,,自译,自译
+meta.cards.passives.chain.desc,"Normal attacks from Multi-Projectile Firepower Operators bounce to 1 other enemy within a 170 radius upon hit, dealing 50% of the damage.",多弾火力オペレーターの通常攻撃命中後、範囲170内の別の敵1体に跳ね返り、そのダメージの50%を与える。,"다중 발사 화력 오퍼레이터의 일반 공격이 명중 후 170 범위 내의 다른 적 1명에게 튕기며, 해당 피해의 50%를 가함.",多弹火力干员的普攻命中后弹向 170 范围内的另 1 名敌人，造成该次伤害的 50%。,校对,校对：“多弹”翻译前后不一致，应与 p10 统一为 Multi-Projectile。,自译,自译
+meta.cards.passives.lane_melee.name,Melee · Expansion,近距離・拡域,근거리·범위 확장,近战·扩域,模型,,自译,自译
+meta.cards.passives.lane_melee.desc,Melee Extended Range Operators attack range +12%,近距離範囲拡大オペレーターの攻撃範囲+12%,근거리 범위 확장 오퍼레이터 공격 범위 +12%,近战扩域干员攻击范围 +12%,模型,,自译,自译
+meta.cards.passives.lane_multi.name,Multishot · Rapid Fire,多弾・連射,다중 발사·연사,多弹·连射,模型,,自译,自译
+meta.cards.passives.lane_multi.desc,Multi-Projectile Firepower Operators ATK speed +10%,多弾火力オペレーターの攻撃速度+10%,다중 발사 화력 오퍼레이터 공격 속도 +10%,多弹火力干员攻击速度 +10%,模型,,自译,自译
+meta.cards.passives.lane_summon.name,Summon · Co-Strike,召喚・協撃,소환·협공,召唤·协击,模型,,自译,自译
+meta.cards.passives.lane_summon.desc,Stationary Summon Operators' follow-up and summon damage +10%,召喚駐留オペレーターの追撃と召喚ユニットのダメージ+10%,소환 유지 오퍼레이터의 추격 및 소환물 피해 +10%,召唤驻场干员的追击与召唤物伤害 +10%,模型,,自译,自译
+meta.cards.passives.lane_control.name,Control · Extension,牽制・遅延,제어·지연,控场·延时,模型,,自译,自译
+meta.cards.passives.lane_control.desc,"Stun, Bind, and Slow duration +15%",スタン、バインド、減速の継続時間+15%,"기절, 속박, 감속 지속 시간 +15%",眩晕、束缚、减速的持续时间 +15%,模型,,自译,自译
+meta.cards.passives.lane_weak.name,Weakness · Insight,弱点・洞察,약점·통찰,弱点·洞察,模型,,自译,自译
+meta.cards.passives.lane_weak.desc,Weakness Harvesting Operators deal +10% additional Weakness damage,弱点収穫オペレーターの弱点ダメージがさらに+10%,약점 수확 오퍼레이터의 약점 피해 추가 +10%,弱点收割干员的弱点伤害额外 +10%,模型,,自译,自译
+meta.cards.passives.lane_shield.name,Shield · Charge,シールド値・充填,실드·충전,护盾·充能,模型,,自译,自译
+meta.cards.passives.lane_shield.desc,Leader Shield generation interval -8%,リーダーのシールド値生成間隔-8%,리더 실드 생성 간격 -8%,队长护盾生成间隔 -8%,模型,,自译,自译
+meta.cards.fillers.0.name,First Aid Supplies,応急処置補給,응급처치 보급,急救补给,模型,,自译,自译
+meta.cards.fillers.0.desc,Leader immediately recovers 30% Max HP,リーダーは直ちに最大HPの30%を回復,리더 즉시 최대 HP의 30% 회복,队长立刻回复 30% 最大生命,模型,,自译,自译
+meta.cards.fillers.1.name,Lamp Oil Supplies,灯油補給,등유 보급,灯油补给,模型,,自译,自译
+meta.cards.fillers.1.desc,Light +30,灯火 +30,등불 +30,灯火 +30,模型,,自译,自译
+meta.cards.fillers.2.name,Temporary Synergy,臨時協同,임시 협동,临时协同,模型,,自译,自译
+meta.cards.fillers.2.desc,All Operators ATK +4% (stacks),全体オペレーターの攻撃+4%(重複可能),아군 전체 오퍼레이터 공격력 +4%(중첩 가능),全队干员攻击 +4%（可叠加）,模型,,自译,自译
+meta.medals.set_name,Beneath the Deep Blue,紺碧の下,딥블루 아래,深蓝之下,模型,,自译,自译
+meta.medals.medals.0.name,Beneath the Deep Blue,紺碧の下,딥블루 아래,深蓝之下,模型,,自译,自译
+meta.medals.medals.0.desc,Obtain the other 8 medals in the 'Beneath the Deep Blue' medal set.,「紺碧の下」シリーズの残り8枚の勲章を獲得する。,'딥블루 아래' 세트의 나머지 훈장 8개 획득.,获得「深蓝之下」套组中的其余 8 枚蚀刻章。,模型,,自译,自译
+meta.medals.medals.1.name,Faded Illusions,泡影散尽,흩어진 물거품,泡影散尽,模型,,自译,自译
+meta.medals.medals.1.desc,Reach the ending 'Precious Days'.,エンディング「平凡こそ幸せ」に到達する。,엔딩 '소중한 일상' 달성.,达成结局「平凡即是喜乐」。,模型,,自译,自译
+meta.medals.medals.2.name,Knight's Return to the Tide,騎士帰潮,파도로 돌아간 기사,骑士归潮,模型,,自译,自译
+meta.medals.medals.2.desc,Reach the ending 'Age of Silence'.,エンディング「静謐なる時代」に到達。,엔딩 '침묵의 시대' 달성.,达成结局「静谧时代」。,校对,校对：官方英文结局名为 Age of Silence，多了一个 the。；官方名未用上：Age of the Silence；「静谧时代」本表译 Age of the Silence，这里没对上,自译,自译
+meta.medals.medals.3.name,Silence of the Tides,潮声止息,멎은 파도 소리,潮声止息,模型,,自译,自译
+meta.medals.medals.3.desc,Reach the ending 'Price of Peace'.,エンディング「凪の代償」に到達する。,엔딩 '평화의 대가' 달성.,达成结局「息潮的代价」。,模型,,自译,自译
+meta.medals.medals.4.name,Caerula Arbor,紺碧の樹,카이룰라 아버,深蓝之树,官方,roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_10,官方：roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_10.name,官方：roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_10.name
+meta.medals.medals.4.desc,Reach the ending 'Stella Caerula'.,エンディング「星空を湛えた群青」に到達する。,엔딩 '스텔라 카이룰라' 달성.,达成结局「如星空般深蓝」。,模型,,自译,自译
+meta.medals.medals.5.name,Synergy Promotion,協同昇進,협동 승진,协同晋升,模型,,自译,自译
+meta.medals.medals.5.desc,"In a run, have 3 Operators in the squad reach Elite 2 simultaneously.",1回の探索で、編成内のオペレーター3名を同時に昇進2にする。,1회 탐험에서 편성 내 오퍼레이터 3명을 동시에 정예화 2로 만들기.,在一次探索中，使编队内 3 名干员同时达到精英二。,模型,,自译,自译
+meta.medals.medals.6.name,Gleanings from the Sea,海中拾遺,바닷속 습유,海中拾遗,模型,,自译,自译
+meta.medals.medals.6.desc,Obtain 50 different Collectibles in total.,累計50種類の異なる秘宝を獲得する。,서로 다른 소장품 누적 50종 획득.,累计获得 50 种不同的藏品。,模型,,自译,自译
+meta.medals.medals.7.name,Deepened Cognition,認知深化,인지 심화,认知深化,模型,,自译,自译
+meta.medals.medals.7.desc,Unlock all available nodes in Cognitive Shaping.,認知形成の解放済みノードをすべて点灯する。,인지 형성의 개방된 모든 노드 활성화.,点亮认知塑造中所有已开放节点。,模型,,自译,自译
+meta.medals.medals.8.name,First Glimpse of the Deep Blue,初識深藍,심해 첫 만남,初识深蓝,模型,,自译,自译
+meta.medals.medals.8.desc,Unlock a Cognitive Shaping node for the first time.,初めて認知形成ノードを解放。,최초로 인지 형성 노드 활성화.,首次点亮认知塑造节点。,模型,,自译,自译
+meta.synergy.pairs.0.name,Rapport,連携,호흡,默契,模型,,自译,自译
+meta.synergy.pairs.0.dirs.0.kind_dmg,Physical,物理,물리,物理,模型,,自译,自译
+meta.synergy.pairs.0.dirs.0.rng,Ranged,遠距離,원거리,远程,模型,,自译,自译
+meta.synergy.pairs.0.dirs.1.kind_dmg,Physical,物理,물리,物理,模型,,自译,自译
+meta.synergy.pairs.0.dirs.1.rng,Ranged,遠距離,원거리,远程,模型,,自译,自译
+meta.synergy.pairs.0.dirs.2.kind_dmg,Physical,物理,물리,物理,模型,,自译,自译
+meta.synergy.pairs.0.dirs.2.rng,Melee,近距離,근거리,近战,模型,,自译,自译
+meta.synergy.pairs.1.name,Grudge,因縁,원한,恩怨,模型,,自译,自译
+meta.synergy.pairs.1.dirs.0.kind_dmg,Physical,物理,물리,物理,模型,,自译,自译
+meta.synergy.pairs.1.dirs.0.rng,Melee,近距離,근거리,近战,模型,,自译,自译
+meta.synergy.pairs.1.dirs.1.kind_dmg,Physical,物理,물리,物理,模型,,自译,自译
+meta.synergy.pairs.1.dirs.1.rng,Melee,近距離,근거리,近战,模型,,自译,自译
+meta.synergy.pairs.2.name,Means Should Be Effective,手段は有効であるべき,수단은 유효해야 한다,手段应当有效,模型,,自译,自译
+meta.synergy.pairs.2.dirs.0.kind_dmg,Physical,物理,물리,物理,模型,,自译,自译
+meta.synergy.pairs.2.dirs.0.rng,Melee,近距離,근거리,近战,模型,,自译,自译
+meta.synergy.pairs.2.dirs.1.kind_dmg,Physical,物理,물리,物理,模型,,自译,自译
+meta.synergy.pairs.2.dirs.1.rng,Melee,近距離,근거리,近战,模型,,自译,自译
+meta.synergy.pairs.2.dirs.2.kind_dmg,Physical,物理,물리,物理,模型,,自译,自译
+meta.synergy.pairs.2.dirs.2.rng,Melee,近距離,근거리,近战,模型,,自译,自译
+meta.synergy.pairs.3.name,War Design,戦争設計,전쟁 설계,战争设计,模型,,自译,自译
+meta.synergy.pairs.3.dirs.0.kind_dmg,Physical,物理,물리,物理,模型,,自译,自译
+meta.synergy.pairs.3.dirs.0.rng,Melee,近距離,근거리,近战,模型,,自译,自译
+meta.synergy.pairs.4.name,Tidal Watch,潮汐守望,조석 파수,潮汐守望,模型,,自译,自译
+meta.synergy.pairs.4.dirs.0.kind_dmg,Physical,物理,물리,物理,模型,,自译,自译
+meta.synergy.pairs.4.dirs.0.rng,Melee,近距離,근거리,近战,模型,,自译,自译
+meta.synergy.pairs.4.dirs.1.kind_dmg,Arts,術,마법,法术,模型,,自译,自译
+meta.synergy.pairs.4.dirs.1.rng,Ranged,遠距離,원거리,远程,模型,,自译,自译
+meta.synergy.groups.0.name,Pack Hunting,集群狩猟,무리 사냥,集群狩猎,模型,,自译,自译
+meta.synergy.groups.0.kind_dmg,Physical,物理,물리,物理,模型,,自译,自译
+meta.synergy.groups.0.rng,Melee,近距離,근거리,近战,模型,,自译,自译
+meta.practice_squads.squads.wisadel_m0.label,Wiš'adel Starting Squad · No Cognition,ウィシャデル開始分隊 ・ 認知なし,위셔델 시작 분대 · 인지 없음,维什戴尔开局分队 · 无认知,模型,,自译,自译
+meta.practice_squads.squads.wisadel_m0.slots.1.fp.mods.pickup.0,2|1.11|Level|,2|1.11|レベル|,2|1.11|레벨|,2|1.11|等级|,模型,,自译,自译
+meta.practice_squads.squads.wisadel_m0.slots.2.fp.mods.pickup.0,2|1.19|Level|,2|1.19|レベル|,2|1.19|레벨|,2|1.19|等级|,模型,,自译,自译
+meta.practice_squads.squads.wisadel_m0.slots.3.fp.mods.pickup.0,2|1.25|Level|,2|1.25|レベル|,2|1.25|레벨|,2|1.25|等级|,模型,,自译,自译
+meta.practice_squads.squads.wisadel_m18.label,Wiš'adel Starting Squad · 18 Cells,ウィシャデル開始分隊・18細胞,위셔델 시작 분대 · 18 세포,维什戴尔开局分队 · 18 细胞,模型,,自译,自译
+meta.practice_squads.squads.wisadel_m18.slots.1.fp.mods.pickup.0,2|1.11|Level|,2|1.11|レベル|,2|1.11|레벨|,2|1.11|等级|,模型,,自译,自译
+meta.practice_squads.squads.wisadel_m18.slots.2.fp.mods.pickup.0,2|1.19|Level|,2|1.19|レベル|,2|1.19|레벨|,2|1.19|等级|,模型,,自译,自译
+meta.practice_squads.squads.wisadel_m18.slots.3.fp.mods.dmg.2,1|0.2|relic:148|class:Sniper,1|0.2|relic:148|class:狙撃,1|0.2|relic:148|class:스나이퍼,1|0.2|relic:148|class:狙击,模型,,自译,自译
+meta.practice_squads.squads.wisadel_m18.slots.3.fp.mods.dmg.3,1|0.4|relic:149|class:Sniper,1|0.4|relic:149|class:狙撃,1|0.4|relic:149|class:스나이퍼,1|0.4|relic:149|class:狙击,模型,,自译,自译
+meta.practice_squads.squads.wisadel_m18.slots.3.fp.mods.op_aspd.0,1|-0.2|relic:149|class:Sniper,1|-0.2|relic:149|class:狙撃,1|-0.2|relic:149|class:스나이퍼,1|-0.2|relic:149|class:狙击,模型,,自译,自译
+meta.practice_squads.squads.wisadel_m18.slots.3.fp.mods.pickup.0,2|1.25|Level|,2|1.25|レベル|,2|1.25|레벨|,2|1.25|等级|,模型,,自译,自译
+meta.practice_squads.squads.skadi_m0.label,Skadi Starting Squad · No Cognition,スカジ開始分隊・認知なし,스카디 시작 분대 · 무인지,斯卡蒂开局分队 · 无认知,校对,校对：统一“开局分队”的翻译为 Starting Squad,自译,自译
+meta.practice_squads.squads.skadi_m0.slots.1.fp.mods.dmg.0,1|0.1|relic_count|class:Caster,1|0.1|relic_count|class:術師,1|0.1|relic_count|class:캐스터,1|0.1|relic_count|class:术师,模型,,自译,自译
+meta.practice_squads.squads.skadi_m0.slots.1.fp.mods.pickup.0,2|1.11|Level|,2|1.11|レベル|,2|1.11|레벨|,2|1.11|等级|,模型,,自译,自译
+meta.practice_squads.squads.skadi_m0.slots.2.fp.mods.dmg.0,1|0.15|relic:80|class:Caster,1|0.15|relic:80|class:術師,1|0.15|relic:80|class:캐스터,1|0.15|relic:80|class:术师,模型,,自译,自译
+meta.practice_squads.squads.skadi_m0.slots.2.fp.mods.pickup.0,2|1.18|Level|,2|1.18|レベル|,2|1.18|레벨|,2|1.18|等级|,模型,,自译,自译
+meta.practice_squads.squads.skadi_m0.slots.3.fp.mods.pickup.0,2|1.23|Level|,2|1.23|レベル|,2|1.23|레벨|,2|1.23|等级|,模型,,自译,自译
+meta.practice_squads.squads.skadi_m18.label,Skadi Starting Squad · 18 Cells,スカジ開始分隊 ・ 18セル,스카디 시작 분대 · 18 세포,斯卡蒂开局分队 · 18 细胞,模型,,自译,自译
+meta.practice_squads.squads.skadi_m18.slots.1.fp.mods.dmg.1,1|0.15|relic:80|class:Caster,1|0.15|relic:80|class:術師,1|0.15|relic:80|class:캐스터,1|0.15|relic:80|class:术师,模型,,自译,自译
+meta.practice_squads.squads.skadi_m18.slots.1.fp.mods.pickup.0,2|1.11|Level|,2|1.11|レベル|,2|1.11|레벨|,2|1.11|等级|,模型,,自译,自译
+meta.practice_squads.squads.skadi_m18.slots.2.fp.mods.dmg.1,1|0.4|relic:165|class:Specialist,1|0.4|relic:165|class:特殊,1|0.4|relic:165|class:스페셜리스트,1|0.4|relic:165|class:特种,模型,,自译,自译
+meta.practice_squads.squads.skadi_m18.slots.2.fp.mods.op_aspd.1,1|0.3|relic:160|class:Medic,1|0.3|relic:160|class:医療,1|0.3|relic:160|class:메딕,1|0.3|relic:160|class:医疗,模型,,自译,自译
+meta.practice_squads.squads.skadi_m18.slots.2.fp.mods.op_range.0,1|0.18|vgrowth|range:Melee,1|0.18|vgrowth|range:近距離,1|0.18|vgrowth|range:근거리,1|0.18|vgrowth|range:近战,模型,,自译,自译
+meta.practice_squads.squads.skadi_m18.slots.2.fp.mods.pickup.0,2|1.18|Level|,2|1.18|レベル|,2|1.18|레벨|,2|1.18|等级|,模型,,自译,自译
+meta.practice_squads.squads.skadi_m18.slots.3.fp.mods.dmg.2,1|0.4|relic:165|class:Specialist,1|0.4|relic:165|class:特殊,1|0.4|relic:165|class:스페셜리스트,1|0.4|relic:165|class:特种,模型,,自译,自译
+meta.practice_squads.squads.skadi_m18.slots.3.fp.mods.op_aspd.2,1|0.3|relic:160|class:Medic,1|0.3|relic:160|class:医療,1|0.3|relic:160|class:메딕,1|0.3|relic:160|class:医疗,模型,,自译,自译
+meta.practice_squads.squads.skadi_m18.slots.3.fp.mods.op_range.0,1|0.18|vgrowth|range:Melee,1|0.18|vgrowth|range:近距離,1|0.18|vgrowth|range:근거리,1|0.18|vgrowth|range:近战,模型,,自译,自译
+meta.practice_squads.squads.skadi_m18.slots.3.fp.mods.pickup.0,2|1.25|Level|,2|1.25|レベル|,2|1.25|레벨|,2|1.25|等级|,模型,,自译,自译
+meta.practice_squads.squads.kaltsit_m0.label,Kal'tsit Starting Squad · No Cognition,ケルシー開始分隊・認知なし,켈시 시작 분대 · 무인지,凯尔希开局分队 · 无认知,校对,校对：统一“开局分队”的翻译为 Starting Squad,自译,自译
+meta.practice_squads.squads.kaltsit_m0.slots.1.fp.mods.pickup.0,2|1.11|Level|,2|1.11|レベル|,2|1.11|레벨|,2|1.11|等级|,模型,,自译,自译
+meta.practice_squads.squads.kaltsit_m0.slots.2.fp.mods.dmg.0,1|0.15|relic:80|class:Caster,1|0.15|relic:80|class:術師,1|0.15|relic:80|class:캐스터,1|0.15|relic:80|class:术师,模型,,自译,自译
+meta.practice_squads.squads.kaltsit_m0.slots.2.fp.mods.pickup.0,2|1.18|Level|,2|1.18|レベル|,2|1.18|레벨|,2|1.18|等级|,模型,,自译,自译
+meta.practice_squads.squads.kaltsit_m0.slots.3.fp.mods.dmg.1,1|0.2|relic:148|class:Sniper,1|0.2|relic:148|class:狙撃,1|0.2|relic:148|class:스나이퍼,1|0.2|relic:148|class:狙击,模型,,自译,自译
+meta.practice_squads.squads.kaltsit_m0.slots.3.fp.mods.pickup.0,2|1.23|Level|,2|1.23|レベル|,2|1.23|레벨|,2|1.23|等级|,模型,,自译,自译
+meta.practice_squads.squads.kaltsit_m18.label,Kal'tsit Starting Squad · 18 Cells,ケルシー開始分隊 ・ 18セル,켈시 시작 분대 · 18 세포,凯尔希开局分队 · 18 细胞,模型,,自译,自译
+meta.practice_squads.squads.kaltsit_m18.slots.1.fp.mods.dmg.1,1|0.2|relic:148|class:Sniper,1|0.2|relic:148|class:狙撃,1|0.2|relic:148|class:스나이퍼,1|0.2|relic:148|class:狙击,模型,,自译,自译
+meta.practice_squads.squads.kaltsit_m18.slots.1.fp.mods.pickup.0,2|1.11|Level|,2|1.11|レベル|,2|1.11|레벨|,2|1.11|等级|,模型,,自译,自译
+meta.practice_squads.squads.kaltsit_m18.slots.2.fp.mods.pickup.0,2|1.18|Level|,2|1.18|レベル|,2|1.18|레벨|,2|1.18|等级|,模型,,自译,自译
+meta.practice_squads.squads.kaltsit_m18.slots.3.fp.mods.pickup.0,2|1.24|Level|,2|1.24|レベル|,2|1.24|레벨|,2|1.24|等级|,模型,,自译,自译
+攻击,Attack,攻撃,공격,,原文键,人改,自译,自译
+攻击性Ⅰ,Aggression I,攻撃性Ⅰ,공격성Ⅰ,,原文键,模型,自译,自译
+全体伤害 +8%,All damage +8%,全体ダメージ +8%,전체 피해 +8%,,原文键,模型,自译,自译
+攻击性Ⅱ,Aggression II,攻撃性Ⅱ,공격성Ⅱ,,原文键,模型,自译,自译
+全体伤害 +4%,All damage +4%,全体ダメージ +4%,전체 피해 +4%,,原文键,模型,自译,自译
+攻击性Ⅲ,Aggression III,攻撃性Ⅲ,공격성Ⅲ,,原文键,模型,自译,自译
+攻击性Ⅳ,Aggression IV,攻撃性Ⅳ,공격성Ⅳ,,原文键,模型,自译,自译
+攻击性Ⅴ,Aggression V,攻撃性Ⅴ,공격성Ⅴ,,原文键,模型,自译,自译
+全体伤害 +4%。处决：普通敌人生命低于 15%、精英低于 8% 时直接击杀（Boss 除外）,"All damage +4%. Execute: instantly kills normal enemies when their HP is below 15%, and Elite enemies below 8% (Bosses excepted)",全体ダメージ +4%。処刑：通常の敵のHPが15%未満、エリートが8%未満になった時、即座に撃破する（ボスを除く）,"전체 피해 +4%. 처형: 일반 적 HP 15% 미만, 엘리트 8% 미만일 시 즉시 처치(보스 제외)",,原文键,模型,自译,自译
+生命,HP,HP,HP,,原文键,模型,自译,自译
+生存本能Ⅰ,Survival Instinct I,生存本能Ⅰ,생존 본능 Ⅰ,,原文键,模型,自译,自译
+队长最大生命 +12%,Leader Max HP +12%,リーダー最大HP+12%,리더 최대 HP +12%,,原文键,模型,自译,自译
+生存本能Ⅱ,Survival Instinct II,生存本能Ⅱ,생존 본능 Ⅱ,,原文键,模型,自译,自译
+队长最大生命 +4%,Leader Max HP +4%,リーダー最大HP+4%,리더 최대 HP +4%,,原文键,模型,自译,自译
+生存本能Ⅲ,Survival Instinct III,生存本能Ⅲ,생존 본능 Ⅲ,,原文键,模型,自译,自译
+队长最大生命 +5%,Leader Max HP +5%,リーダー最大HP+5%,리더 최대 HP +5%,,原文键,模型,自译,自译
+生存本能Ⅳ,Survival Instinct IV,生存本能Ⅳ,생존 본능 Ⅳ,,原文键,模型,自译,自译
+生存本能Ⅴ,Survival Instinct V,生存本能Ⅴ,생존 본능 Ⅴ,,原文键,模型,自译,自译
+队长最大生命 +4%。每次探索限一次：受到致命伤时保留 1 点生命，1.5 秒内不受伤害,"Leader Max HP +4%. Once per run: when taking fatal damage, survives with 1 HP and takes no damage for 1.5s",リーダー最大HP+4%。1回の探索につき1回のみ：致命傷を受けた時、HPを1残して生き残り、1.5秒間ダメージを受けない,"리더 최대 HP +4%. 탐험당 1회 제한: 치명상 피해를 받을 시 HP를 1 남기고, 1.5초 동안 피해를 받지 않음",,原文键,模型,自译,自译
+减伤,DMG Reduction,被ダメ軽減,피해 감소,,原文键,人改,自译,自译
+自我保护Ⅰ,Self-Preservation I,自己防衛Ⅰ,자기 보호 Ⅰ,,原文键,模型,自译,自译
+队长受到伤害 -5%,Damage taken by Leader -5%,リーダー被ダメージ-5%,리더 받은 피해 -5%,,原文键,模型,自译,自译
+自我保护Ⅱ,Self-Preservation II,自己防衛Ⅱ,자기 보호 Ⅱ,,原文键,模型,自译,自译
+队长受到伤害 -3%,Damage taken by Leader -3%,リーダー被ダメージ-3%,리더 받은 피해 -3%,,原文键,模型,自译,自译
+自我保护Ⅲ,Self-Preservation III,自己防衛Ⅲ,자기 보호 Ⅲ,,原文键,模型,自译,自译
+自我保护Ⅳ,Self-Preservation IV,自己防衛Ⅳ,자기 보호 Ⅳ,,原文键,模型,自译,自译
+队长受到伤害 -2%。连续 5 秒未受伤后，下一次 -50%,"Damage taken by Leader -2%. After taking no damage for 5s, the next damage taken -50%",リーダーの被ダメージ-2%。5秒間ダメージを受けなかった場合、次の被ダメージ-50%,리더가 받은 피해 -2%. 5초 동안 피해를 받지 않으면 다음 피해 -50%,,原文键,模型,自译,自译
+回复,Recovery,回復,회복,,原文键,模型,自译,自译
+生命感悟Ⅰ,Vitality I,HPの悟りⅠ,HP 각성 Ⅰ,,原文键,模型,自译,自译
+队长每秒回复 +0.3 生命,Leader HP recovery per second +0.3,リーダーのHP毎秒回復+0.3,리더 초당 HP 회복 +0.3,,原文键,模型,自译,自译
+生命感悟Ⅱ,Vitality II,HPの悟りⅡ,HP 각성 Ⅱ,,原文键,模型,自译,自译
+队长每秒回复 +0.1 生命,Leader HP recovery +0.1/s,リーダーのHP毎秒回復+0.1,리더 초당 HP 회복 +0.1,,原文键,模型,自译,自译
+生命感悟Ⅲ,Vitality III,HPの悟りⅢ,HP 각성 Ⅲ,,原文键,模型,自译,自译
+队长每秒回复 +0.2 生命。生命低于 35% 时回复翻倍,Leader recovers +0.2 HP per second. Recovery doubles when HP is below 35%,リーダーのHP毎秒回復+0.2。HPが35%未満の時、回復量が倍になる,리더 HP 초당 회복 +0.2. HP가 35% 미만일 때 회복량 2배,,原文键,模型,自译,自译
+护盾,Objective Shield,シールド値,실드,,原文键,官方,官方：roguelike_topic_table.rogue_2.items.rogue_2_shield.name,官方：roguelike_topic_table.rogue_2.items.rogue_2_shield.name
+危机感Ⅰ,Vigilance I,危機感Ⅰ,위기감Ⅰ,,原文键,模型,自译,自译
+队长护盾上限 +1（每 15 秒生成一层）。护盾破碎时反震：周围 140 范围敌人受队长攻击 ×3 物理伤害并击退（Boss 免疫击退）,"Leader Shield limit +1 (generates 1 stack every 15s). When Shield breaks, reflects: enemies within a 140 radius take Physical damage equal to 300% of Leader ATK and suffer knockback (Bosses immune to knockback)",リーダーのシールド値上限+1（15秒ごとに1層生成）。シールド値破壊時に反動：周囲140範囲の敵にリーダーの攻撃力×3の物理ダメージを与え突き飛ばす（ボスは突き飛ばし無効）,리더 실드 상한 +1(15초마다 1스택 생성). 실드 파괴 시 반동: 주변 140 범위 내 적에게 리더 공격의 ×3 물리 대미지를 가하고 밀어내기(보스는 밀어내기 면역),,原文键,校对,自译,自译
+经验,EXP,経験値,경험치,,原文键,模型,自译,自译
+领导欲Ⅰ,Leadership I,指導欲Ⅰ,통솔력Ⅰ,,原文键,模型,自译,自译
+经验 +5%,EXP +5%,経験値 +5%,경험치 +5%,,原文键,模型,自译,自译
+领导欲Ⅱ,Leadership II,指導欲Ⅱ,통솔력Ⅱ,,原文键,模型,自译,自译
+经验 +6%,EXP +6%,経験値 +6%,경험치 +6%,,原文键,模型,自译,自译
+领导欲Ⅲ,Leadership III,指導欲Ⅲ,통솔력Ⅲ,,原文键,模型,自译,自译
+经验 +7%,EXP +7%,経験値 +7%,경험치 +7%,,原文键,模型,自译,自译
+领导欲Ⅳ,Leadership IV,指導欲Ⅳ,통솔력Ⅳ,,原文键,模型,自译,自译
+经验 +7%。升级有 10% 概率再升一级,EXP +7%. Leveling up has a 10% chance to grant an additional level,経験値 +7%。レベルアップ時、10%の確率でさらに1レベルアップ,경험치 +7%. 레벨 업 시 10% 확률로 추가 레벨 업,,原文键,模型,自译,自译
+资源,Resources,資源,자원,,原文键,模型,自译,自译
+收藏癖Ⅰ,Hoarding I,収集癖Ⅰ,수집벽Ⅰ,,原文键,模型,自译,自译
+开局源石锭 +3,Initial Originium Ingot +3,開始時源石錐 +3,시작 오리지늄각뿔 +3,,原文键,模型,自译,自译
+收藏癖Ⅱ,Hoarding II,収集癖Ⅱ,수집벽Ⅱ,,原文键,模型,自译,自译
+开局源石锭 +4,Initial Originium Ingot +4,開始時源石錐 +4,시작 오리지늄각뿔 +4,,原文键,模型,自译,自译
+收藏癖Ⅲ,Hoarding III,収集癖Ⅲ,수집벽Ⅲ,,原文键,模型,自译,自译
+开局源石锭 +5,Initial Originium Ingot +5,開始時源石錐 +5,시작 오리지늄각뿔 +5,,原文键,模型,自译,自译
+交涉Ⅰ,Negotiation I,交渉Ⅰ,교섭Ⅰ,,原文键,模型,自译,自译
+行商价格 -6%,Merchant price -6%,行商人価格 -6%,상인 가격 -6%,,原文键,模型,自译,自译
+交涉Ⅱ,Negotiation II,交渉Ⅱ,교섭Ⅱ,,原文键,模型,自译,自译
+交涉Ⅲ,Negotiation III,交渉Ⅲ,교섭Ⅲ,,原文键,模型,自译,自译
+调度,Dispatch,配置,파견,,原文键,模型,自译,自译
+多程信息处理,Multithreaded Processing,マルチスレッド処理,멀티스레드 정보 처리,,原文键,模型,自译,自译
+第一次升级多一个选项（四选一）,First level up grants 1 additional option (choose 1 of 4),最初のレベルアップ時にオプションが1つ追加される(4択),첫 레벨 업 시 옵션 1개 추가(4택 1),,原文键,模型,自译,自译
+自我审视,Introspection,自己省察,자기 성찰,,原文键,模型,自译,自译
+每次探索限一次：刷新行商货架时不消耗源石锭,Once per run: Refreshing the Merchant's wares costs 0 Originium Ingots,探索ごとに1回のみ：行商人の商品を更新する際、源石錐を消費しない,탐험당 1회 제한: 상인 진열대 갱신 시 오리지늄각뿔을 소모하지 않음,,原文键,模型,自译,自译
+战利品意识,Loot Awareness,戦利品への意識,전리품 의식,,原文键,模型,自译,自译
+开局从 3 件基础藏品中选 1 件,"At the start of a run, choose 1 of 3 basic Collectibles",開始時に3つの基礎秘宝から1つを選択,시작 시 기초 소장품 3개 중 1개 선택,,原文键,模型,自译,自译
+生命感悟Ⅳ,Vitality IV,HPの悟りⅣ,HP 각성 Ⅳ,,原文键,模型,自译,自译
+队长每秒回复 +0.2 生命,Leader HP recovery +0.2/s,リーダーのHP毎秒回復+0.2,리더 초당 HP 회복 +0.2,,原文键,模型,自译,自译
+生命感悟Ⅴ,Vitality V,HPの悟りⅤ,HP 각성 Ⅴ,,原文键,模型,自译,自译
+危机感Ⅱ,Vigilance II,危機感Ⅱ,위기감Ⅱ,,原文键,模型,自译,自译
+护盾生成间隔 -3 秒,Shield generation interval -3s,シールド値生成間隔 -3秒,실드 생성 간격 -3초,,原文键,模型,自译,自译
+便利,Utility,利便性,편의,,原文键,模型,自译,自译
+好奇心Ⅰ,Curiosity I,好奇心Ⅰ,호기심Ⅰ,,原文键,模型,自译,自译
+拾取范围 +12,Pickup range +12,獲得範囲 +12,획득 범위 +12,,原文键,模型,自译,自译
+好奇心Ⅱ,Curiosity II,好奇心Ⅱ,호기심Ⅱ,,原文键,模型,自译,自译
+好奇心Ⅲ,Curiosity III,好奇心Ⅲ,호기심Ⅲ,,原文键,模型,自译,自译
+拾取范围 +14,Pickup range +14,獲得範囲 +14,획득 범위 +14,,原文键,模型,自译,自译
+好奇心Ⅳ,Curiosity IV,好奇心Ⅳ,호기심Ⅳ,,原文键,模型,自译,自译
+绝处逢生,Second Wind,起死回生,기사회생,,原文键,模型,自译,自译
+每次探索限一次：队长倒下时以 30% 最大生命复活，3 秒内不受伤害,"Once per run: when Leader falls, revives with 30% Max HP and takes no damage for 3s",探索中1回のみ：リーダー死亡時、最大HPの30%で復活し、3秒間ダメージを受けない,"탐험당 1회 제한: 리더 사망 시 최대 HP의 30%로 부활, 3초 동안 피해를 받지 않음",,原文键,模型,自译,自译
+闪避,Dodge,回避,회피,,原文键,模型,自译,自译
+未雨绸缪Ⅰ,Forethought I,未雨綢繆Ⅰ,유비무환 Ⅰ,,原文键,模型,自译,自译
+队长闪避率 +5%,Leader Dodge +5%,リーダーの回避率+5%,리더 회피율 +5%,,原文键,模型,自译,自译
+未雨绸缪Ⅱ,Forethought II,未雨綢繆Ⅱ,유비무환 Ⅱ,,原文键,模型,自译,自译
+未雨绸缪Ⅲ,Forethought III,未雨綢繆Ⅲ,유비무환 Ⅲ,,原文键,模型,自译,自译
+攻击性,Aggression,攻撃性,공격성,,原文键,模型,自译,自译
+生存本能,Survival Instinct,生存本能,생존 본능,,原文键,模型,自译,自译
+生命感悟,Vitality,HP感悟,HP 통찰,,原文键,模型,自译,自译
+自我保护,Self-Preservation,自己防衛,자기 보호,,原文键,模型,自译,自译
+领导欲,Leadership,指導欲,통솔력,,原文键,模型,自译,自译
+好奇心,Curiosity,好奇心,호기심,,原文键,模型,自译,自译
+收藏癖,Hoarding,収集癖,수집벽,,原文键,模型,自译,自译
+交涉,Negotiation,交渉,교섭,,原文键,模型,自译,自译
+危机感,Vigilance,危機感,위기감,,原文键,模型,自译,自译
+未雨绸缪,Forethought,未雨綢繆,유비무환,,原文键,模型,自译,自译
+坚韧,Tenacity,堅靭,강인함,,原文键,模型,自译,自译
+队长最大生命 +20,Leader Max HP +20,リーダー最大HP+20,리더 최대 HP +20,,原文键,模型,自译,自译
+自愈,Regeneration,自然回復,자가 치유,,原文键,模型,自译,自译
+队长生命回复 +0.4 / 秒,Leader HP recovery +0.4/s,リーダーHP回復+0.4/秒,리더 HP 회복 +0.4/초,,原文键,模型,自译,自译
+硬化,Hardening,硬化,경화,,原文键,模型,自译,自译
+队长受到的物理伤害 -8%（乘算；对法术、真实伤害无效）,Physical damage taken by Leader -8% (multiplicative; ineffective against Arts and True damage),リーダーの被物理ダメージ-8%（乗算。術、確定ダメージには無効）,"리더가 받는 물리 대미지 -8% (곱연산; 마법, 트루 대미지에는 무효)",,原文键,模型,自译,自译
+水影,Aqua Shadow,水影,물의 그림자,,原文键,模型,自译,自译
+感知,Perception,感知,감지,,原文键,模型,自译,自译
+队长拾取范围 +30%,Leader pickup range +30%,リーダー獲得範囲 +30%,리더 획득 범위 +30%,,原文键,模型,自译,自译
+护灯,Lamp Guard,護灯,등불 보호,,原文键,模型,自译,自译
+队长受击时灯火损失 -15%,Light lost when Leader is attacked -15%,リーダー被撃時の灯火減少量-15%,리더 피격 시 등불 손실 -15%,,原文键,模型,自译,自译
+轻盈,Agility,俊敏,경쾌함,,原文键,模型,自译,自译
+队长移动速度 +10%,Leader movement speed +10%,リーダーの移動速度+10%,리더 이동 속도 +10%,,原文键,模型,自译,自译
+迅捷,Swiftness,迅速,신속,,原文键,模型,自译,自译
+冲刺冷却 -12%,Dash cooldown -12%,ダッシュクールダウン-12%,대시 쿨타임 -12%,,原文键,模型,自译,自译
+远跃,Long Leap,遠躍,원거리 도약,,原文键,模型,自译,自译
+冲刺距离 +12%,Dash distance +12%,ダッシュ距離+12%,대시 거리 +12%,,原文键,模型,自译,自译
+连冲,Chain Dash,連衝,연속 돌진,,原文键,模型,自译,自译
+冲刺可储存 2 次，冷却逐次恢复,Dash can store 2 charges; cooldown recovers sequentially,ダッシュは2回までチャージ可能、クールダウンは順次回復,"대시 2회 충전 가능, 쿨타임 순차 회복",,原文键,模型,自译,自译
+协同·技,Synergy: SP,協同・技,협동·스킬,,原文键,校对,自译,自译
+全队技力回复 +15%,Squad SP Recovery +15%,全体のSP回復+15%,아군 전체 SP 회복 +15%,,原文键,模型,自译,自译
+协同·攻,Synergy: ATK,協同・攻,협동·공격,,原文键,模型,自译,自译
+全队干员攻击 +8%,Squad Operator ATK +8%,全体オペレーター攻撃力+8%,아군 전체 오퍼레이터 공격 +8%,,原文键,模型,自译,自译
+协同·迅,Synergy: ASPD,協同・迅,협동·신속,,原文键,模型,自译,自译
+全队干员攻击速度 +6%,Squad Operator ATK speed +6%,味方全体の攻撃速度+6%,아군 전체 오퍼레이터 공격 속도 +6%,,原文键,模型,自译,自译
+协同·广,Synergy: Range,協同・広,협동·범위,,原文键,模型,自译,自译
+全队干员攻击范围 +8%,Squad Operator attack range +8%,味方全体の攻撃範囲+8%,아군 전체 오퍼레이터 공격 범위 +8%,,原文键,模型,自译,自译
+协同·专,Synergy: Crit,協同・専,협동·치명타,,原文键,模型,自译,自译
+全队干员技能强度 +10%,Squad Operator skill power +10%,全体オペレーターのスキル威力+10%,아군 전체 오퍼레이터 스킬 위력 +10%,,原文键,模型,自译,自译
+贯穿,Pierce,貫通,관통,,原文键,模型,自译,自译
+远程普攻可再穿透 2 名敌人。,Ranged normal attacks pierce 2 additional enemies.,遠距離通常攻撃はさらに敵を2体貫通する。,원거리 일반 공격이 적 2명을 추가로 관통.,,原文键,模型,自译,自译
+扩散,Splash,拡散,확산,,原文键,模型,自译,自译
+近战扩域、召唤驻场、控场引爆干员的普攻命中时，目标周围 60 范围内的其他敌人受到该次伤害的 25%。,"When normal attacks from Melee Extended Range, Stationary Summon, and Crowd-Control Detonation Operators hit, other enemies within a 60 radius of the target take 25% of the damage.",近距離範囲拡大、召喚駐留、牽制起爆オペレーターの通常攻撃命中時、目標の周囲範囲60内の他の敵にそのダメージの25%を与える。,"근거리 범위 확장, 소환 유지, 제어 폭발 오퍼레이터의 일반 공격 명중 시, 목표 주변 60 범위 내의 다른 적은 해당 피해의 25%를 받음.",,原文键,校对,自译,自译
+多弹火力干员的普攻命中后弹向 170 范围内的另 1 名敌人，造成该次伤害的 50%。,"Normal attacks from Multi-Projectile Firepower Operators bounce to 1 other enemy within a 170 radius upon hit, dealing 50% of the damage.",多弾火力オペレーターの通常攻撃命中後、範囲170内の別の敵1体に跳ね返り、そのダメージの50%を与える。,"다중 발사 화력 오퍼레이터의 일반 공격이 명중 후 170 범위 내의 다른 적 1명에게 튕기며, 해당 피해의 50%를 가함.",,原文键,校对,自译,自译
+近战·扩域,Melee · Expansion,近距離・拡域,근거리·범위 확장,,原文键,模型,自译,自译
+近战扩域干员攻击范围 +12%,Melee Extended Range Operators attack range +12%,近距離範囲拡大オペレーターの攻撃範囲+12%,근거리 범위 확장 오퍼레이터 공격 범위 +12%,,原文键,模型,自译,自译
+多弹·连射,Multishot · Rapid Fire,多弾・連射,다중 발사·연사,,原文键,模型,自译,自译
+多弹火力干员攻击速度 +10%,Multi-Projectile Firepower Operators ATK speed +10%,多弾火力オペレーターの攻撃速度+10%,다중 발사 화력 오퍼레이터 공격 속도 +10%,,原文键,模型,自译,自译
+召唤·协击,Summon · Co-Strike,召喚・協撃,소환·협공,,原文键,模型,自译,自译
+召唤驻场干员的追击与召唤物伤害 +10%,Stationary Summon Operators' follow-up and summon damage +10%,召喚駐留オペレーターの追撃と召喚ユニットのダメージ+10%,소환 유지 오퍼레이터의 추격 및 소환물 피해 +10%,,原文键,模型,自译,自译
+控场·延时,Control · Extension,牽制・遅延,제어·지연,,原文键,模型,自译,自译
+眩晕、束缚、减速的持续时间 +15%,"Stun, Bind, and Slow duration +15%",スタン、バインド、減速の継続時間+15%,"기절, 속박, 감속 지속 시간 +15%",,原文键,模型,自译,自译
+弱点·洞察,Weakness · Insight,弱点・洞察,약점·통찰,,原文键,模型,自译,自译
+弱点收割干员的弱点伤害额外 +10%,Weakness Harvesting Operators deal +10% additional Weakness damage,弱点収穫オペレーターの弱点ダメージがさらに+10%,약점 수확 오퍼레이터의 약점 피해 추가 +10%,,原文键,模型,自译,自译
+护盾·充能,Shield · Charge,シールド値・充填,실드·충전,,原文键,模型,自译,自译
+队长护盾生成间隔 -8%,Leader Shield generation interval -8%,リーダーのシールド値生成間隔-8%,리더 실드 생성 간격 -8%,,原文键,模型,自译,自译
+急救补给,First Aid Supplies,応急処置補給,응급처치 보급,,原文键,模型,自译,自译
+队长立刻回复 30% 最大生命,Leader immediately recovers 30% Max HP,リーダーは直ちに最大HPの30%を回復,리더 즉시 최대 HP의 30% 회복,,原文键,模型,自译,自译
+灯油补给,Lamp Oil Supplies,灯油補給,등유 보급,,原文键,模型,自译,自译
+灯火 +30,Light +30,灯火 +30,등불 +30,,原文键,模型,自译,自译
+临时协同,Temporary Synergy,臨時協同,임시 협동,,原文键,模型,自译,自译
+全队干员攻击 +4%（可叠加）,All Operators ATK +4% (stacks),全体オペレーターの攻撃+4%(重複可能),아군 전체 오퍼레이터 공격력 +4%(중첩 가능),,原文键,模型,自译,自译
+深蓝之下,Beneath the Deep Blue,紺碧の下,딥블루 아래,,原文键,模型,自译,自译
+获得「深蓝之下」套组中的其余 8 枚蚀刻章。,Obtain the other 8 medals in the 'Beneath the Deep Blue' medal set.,「紺碧の下」シリーズの残り8枚の勲章を獲得する。,'딥블루 아래' 세트의 나머지 훈장 8개 획득.,,原文键,模型,自译,自译
+泡影散尽,Faded Illusions,泡影散尽,흩어진 물거품,,原文键,模型,自译,自译
+达成结局「平凡即是喜乐」。,Reach the ending 'Precious Days'.,エンディング「平凡こそ幸せ」に到達する。,엔딩 '소중한 일상' 달성.,,原文键,模型,自译,自译
+骑士归潮,Knight's Return to the Tide,騎士帰潮,파도로 돌아간 기사,,原文键,模型,自译,自译
+达成结局「静谧时代」。,Reach the ending 'Age of Silence'.,エンディング「静謐なる時代」に到達。,엔딩 '침묵의 시대' 달성.,,原文键,校对,自译,自译
+潮声止息,Silence of the Tides,潮声止息,멎은 파도 소리,,原文键,模型,自译,自译
+达成结局「息潮的代价」。,Reach the ending 'Price of Peace'.,エンディング「凪の代償」に到達する。,엔딩 '평화의 대가' 달성.,,原文键,模型,自译,自译
+深蓝之树,Caerula Arbor,紺碧の樹,카이룰라 아버,,原文键,官方,官方：roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_10.name,官方：roguelike_topic_table.rogue_2.items.rogue_2_relic_curse_10.name
+达成结局「如星空般深蓝」。,Reach the ending 'Stella Caerula'.,エンディング「星空を湛えた群青」に到達する。,엔딩 '스텔라 카이룰라' 달성.,,原文键,模型,自译,自译
+协同晋升,Synergy Promotion,協同昇進,협동 승진,,原文键,模型,自译,自译
+在一次探索中，使编队内 3 名干员同时达到精英二。,"In a run, have 3 Operators in the squad reach Elite 2 simultaneously.",1回の探索で、編成内のオペレーター3名を同時に昇進2にする。,1회 탐험에서 편성 내 오퍼레이터 3명을 동시에 정예화 2로 만들기.,,原文键,模型,自译,自译
+海中拾遗,Gleanings from the Sea,海中拾遺,바닷속 습유,,原文键,模型,自译,自译
+累计获得 50 种不同的藏品。,Obtain 50 different Collectibles in total.,累計50種類の異なる秘宝を獲得する。,서로 다른 소장품 누적 50종 획득.,,原文键,模型,自译,自译
+认知深化,Deepened Cognition,認知深化,인지 심화,,原文键,模型,自译,自译
+点亮认知塑造中所有已开放节点。,Unlock all available nodes in Cognitive Shaping.,認知形成の解放済みノードをすべて点灯する。,인지 형성의 개방된 모든 노드 활성화.,,原文键,模型,自译,自译
+初识深蓝,First Glimpse of the Deep Blue,初識深藍,심해 첫 만남,,原文键,模型,自译,自译
+首次点亮认知塑造节点。,Unlock a Cognitive Shaping node for the first time.,初めて認知形成ノードを解放。,최초로 인지 형성 노드 활성화.,,原文键,模型,自译,自译
+默契,Rapport,連携,호흡,,原文键,模型,自译,自译
+恩怨,Grudge,因縁,원한,,原文键,模型,自译,自译
+手段应当有效,Means Should Be Effective,手段は有効であるべき,수단은 유효해야 한다,,原文键,模型,自译,自译
+战争设计,War Design,戦争設計,전쟁 설계,,原文键,模型,自译,自译
+潮汐守望,Tidal Watch,潮汐守望,조석 파수,,原文键,模型,自译,自译
+集群狩猎,Pack Hunting,集群狩猟,무리 사냥,,原文键,模型,自译,自译
+维什戴尔开局分队 · 无认知,Wiš'adel Starting Squad · No Cognition,ウィシャデル開始分隊 ・ 認知なし,위셔델 시작 분대 · 인지 없음,,原文键,模型,自译,自译
+2|1.11|等级|,2|1.11|Level|,2|1.11|レベル|,2|1.11|레벨|,,原文键,模型,自译,自译
+2|1.19|等级|,2|1.19|Level|,2|1.19|レベル|,2|1.19|레벨|,,原文键,模型,自译,自译
+2|1.25|等级|,2|1.25|Level|,2|1.25|レベル|,2|1.25|레벨|,,原文键,模型,自译,自译
+维什戴尔开局分队 · 18 细胞,Wiš'adel Starting Squad · 18 Cells,ウィシャデル開始分隊・18細胞,위셔델 시작 분대 · 18 세포,,原文键,模型,自译,自译
+1|0.2|relic:148|class:狙击,1|0.2|relic:148|class:Sniper,1|0.2|relic:148|class:狙撃,1|0.2|relic:148|class:스나이퍼,,原文键,模型,自译,自译
+1|0.4|relic:149|class:狙击,1|0.4|relic:149|class:Sniper,1|0.4|relic:149|class:狙撃,1|0.4|relic:149|class:스나이퍼,,原文键,模型,自译,自译
+1|-0.2|relic:149|class:狙击,1|-0.2|relic:149|class:Sniper,1|-0.2|relic:149|class:狙撃,1|-0.2|relic:149|class:스나이퍼,,原文键,模型,自译,自译
+斯卡蒂开局分队 · 无认知,Skadi Starting Squad · No Cognition,スカジ開始分隊・認知なし,스카디 시작 분대 · 무인지,,原文键,校对,自译,自译
+1|0.1|relic_count|class:术师,1|0.1|relic_count|class:Caster,1|0.1|relic_count|class:術師,1|0.1|relic_count|class:캐스터,,原文键,模型,自译,自译
+1|0.15|relic:80|class:术师,1|0.15|relic:80|class:Caster,1|0.15|relic:80|class:術師,1|0.15|relic:80|class:캐스터,,原文键,模型,自译,自译
+2|1.18|等级|,2|1.18|Level|,2|1.18|レベル|,2|1.18|레벨|,,原文键,模型,自译,自译
+2|1.23|等级|,2|1.23|Level|,2|1.23|レベル|,2|1.23|레벨|,,原文键,模型,自译,自译
+斯卡蒂开局分队 · 18 细胞,Skadi Starting Squad · 18 Cells,スカジ開始分隊 ・ 18セル,스카디 시작 분대 · 18 세포,,原文键,模型,自译,自译
+1|0.4|relic:165|class:特种,1|0.4|relic:165|class:Specialist,1|0.4|relic:165|class:特殊,1|0.4|relic:165|class:스페셜리스트,,原文键,模型,自译,自译
+1|0.3|relic:160|class:医疗,1|0.3|relic:160|class:Medic,1|0.3|relic:160|class:医療,1|0.3|relic:160|class:메딕,,原文键,模型,自译,自译
+1|0.18|vgrowth|range:近战,1|0.18|vgrowth|range:Melee,1|0.18|vgrowth|range:近距離,1|0.18|vgrowth|range:근거리,,原文键,模型,自译,自译
+凯尔希开局分队 · 无认知,Kal'tsit Starting Squad · No Cognition,ケルシー開始分隊・認知なし,켈시 시작 분대 · 무인지,,原文键,校对,自译,自译
+凯尔希开局分队 · 18 细胞,Kal'tsit Starting Squad · 18 Cells,ケルシー開始分隊 ・ 18セル,켈시 시작 분대 · 18 세포,,原文键,模型,自译,自译
+2|1.24|等级|,2|1.24|Level|,2|1.24|レベル|,2|1.24|레벨|,,原文键,模型,自译,自译

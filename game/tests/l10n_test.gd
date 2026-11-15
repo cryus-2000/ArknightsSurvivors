@@ -6,6 +6,7 @@ extends Node
 ## 全部通过打印 "L10N TEST failures=0"
 const Loc = preload("res://scripts/core/loc.gd")
 const Character = preload("res://scripts/characters/character.gd")
+const UI_S = preload("res://scripts/ui.gd")
 
 var n := 0
 var fails := 0
@@ -26,6 +27,14 @@ func _has_cjk(t: String) -> bool:
 	for ch in t:
 		var c := ch.unicode_at(0)
 		if c >= 0x4e00 and c <= 0x9fff:
+			return true
+	return false
+
+
+func _has_hangul(t: String) -> bool:
+	for ch in t:
+		var c := ch.unicode_at(0)
+		if c >= 0xac00 and c <= 0xd7a3:
 			return true
 	return false
 
@@ -139,6 +148,50 @@ func run() -> void:
 	ok(jleft == 0, "日文说明里残留 {$…} 占位 %d 条" % jleft)
 	print("L10N 日文 干员长文本 %d 条，含假名 %d 条" % [jtotal, jkana])
 	ok(jkana * 10 >= jtotal * 9, "干员长文本日文覆盖率 ≥ 90%%（含假名 %d / %d）" % [jkana, jtotal])
+
+	# 韩文（docs/276 §14）：官方名按韩服、缺条退英文、说明换韩文无残留占位、Toy 锁中文、按词断行
+	ok(Loc.resolve("ko", true) == "zh", "语言锁：Toy 版切不到韩文")
+	ok(Loc.resolve("ko", false) == "ko", "不锁时手动选韩文生效")
+	Loc.setup("ko")
+	ok(Loc.ko() and Loc.on() and not Loc.en() and not Loc.ja(), "韩文模式标志")
+	ok(Loc.s("骨海漂流体") == "앙상한 표류체", "韩文原文键：敌人名 → %s" % Loc.s("骨海漂流体"))
+	ok(Loc.s("水月") == "미즈키", "韩文原文键：干员名 → %s" % Loc.s("水月"))
+	ok(Loc.k("enemy.bone.name", "骨海漂流体") == "앙상한 표류체", "韩文路径键")
+	var kduo := Loc.s("二重咏唱 ×3")
+	ok(kduo != "二重咏唱 ×3" and kduo.contains("3") and not _has_cjk(kduo), "韩文模板 %%d：%s" % kduo)
+	ok(Loc.s("这一句表里没有") == "这一句表里没有", "韩文查不到原样返回中文")
+	ok(Loc.s("한국어") == "한국어" and Loc.s("AI 번역") == "AI 번역", "语言选项名不翻")
+	var kleft := 0
+	var khan := 0
+	var ktotal := 0
+	for cid in Character.list_ids():
+		var dk: Dictionary = Character.load_def(cid)
+		var tk: Array = []
+		_texts(dk, "", tk)
+		for t in tk:
+			ktotal += 1
+			if str(t[1]).contains("{$"):
+				kleft += 1
+				printerr("  韩文未填占位 %s.%s：%s" % [cid, t[0], str(t[1]).left(60)])
+			if _has_hangul(str(t[1])):
+				khan += 1
+		var skk: Array = dk.get("skills", [])
+		if skk.size() > 0:
+			var nmk: String = str(skk[0].get("name", ""))
+			ok(Loc.s(nmk) != nmk and not _has_cjk(Loc.s(nmk)), "%s：技能名显示时译成韩文（%s → %s）" % [cid, nmk, Loc.s(nmk)])
+	ok(kleft == 0, "韩文说明里残留 {$…} 占位 %d 条" % kleft)
+	print("L10N 韩文 干员长文本 %d 条，含韩文 %d 条" % [ktotal, khan])
+	ok(khan * 10 >= ktotal * 9, "干员长文本韩文覆盖率 ≥ 90%%（含韩文 %d / %d）" % [khan, ktotal])
+	# 按词断行：窄宽度折行后，每行首尾都落在空格处（原文按空格切出的词一个都不被拆开）
+	var kf: Font = load("res://fonts/ui.ttf")
+	var ks := Loc.s("水月") + " 공격력이 증가하고 적에게 지속적으로 피해를 입힌다"
+	var kl: PackedStringArray = UI_S.wrap_lines(kf, ks, 16, 120.0)
+	var words := ks.split(" ", false)
+	var rebuilt: Array = []
+	for ln in kl:
+		for w in ln.split(" ", false):
+			rebuilt.append(w)
+	ok(kl.size() >= 2 and rebuilt == Array(words), "韩文按词断行（%s）" % " | ".join(kl))
 
 	Loc.setup("zh")
 	for cid in Character.list_ids():

@@ -1,72 +1,72 @@
-keys,en,ja,_zh,_source,_note,_ja_note
-extra.0000,Arrow keys,方向キー,方向键,模型,,自译
-extra.0001,ENTER Shape,ENTER 形成,ENTER 塑造,模型,,自译
-extra.0002,Z Details,Z 詳細,Z 详情,模型,,自译
-extra.0003,Drag,ドラッグ,拖动,模型,,自译
-extra.0004,Pan,スライド,平移,模型,,自译
-extra.0005,Drag to Pan,ドラッグ スライド,拖动 平移,模型,,自译
-extra.0006,"Tentacles emerge from beneath 6 enemies in the area, inflicting Bind for 1s.",範囲内の敵6名の足元から触手が出現し、1秒間バインドさせる,区域里 6 名敌人脚下钻出触手，束缚 1 秒,模型,,自译
-extra.0007,Halved,半減,减半,模型,,自译
-extra.0008,Ulpianus in squad,ウルピアヌス編成時,尔比安同队,模型,,自译
-extra.0009,Specter the Unchained in squad,帰溟スペクターと同編成,溟幽灵鲨同队,模型,,自译
-extra.0010,"At least 2 of Gladiia, Specter the Unchained, Ulpianus, and Skadi the Corrupting Heart are in the squad.",グレイディーア、帰溟スペクター、ウルピアヌス、濁心スカジのうち2人以上が編成にいる,蕾蒂娅、归溟幽灵鲨、乌尔比安、浊心斯卡蒂中至少 2 人同队,模型,,自译
-extra.0011,Trigger,発動,触发,人改,连携说明前缀,自译
-extra.0012,Squad Bonus,加入ボーナス,入队加成,人改,squad.join_bonus_text 拆段,自译
-extra.0013,Leader Max HP,リーダー最大HP,队长最大生命,模型,,自译
-extra.0014,"+15%, HP recovery",+15%、HP回復,+15%，生命回复,模型,,自译
-extra.0015,"Leader Max HP +15%, HP recovery",リーダー最大HP+15%、HP回復,队长最大生命 +15%，生命回复,模型,,自译
-extra.0016,Co-Strike,協撃,协击,人改,跨模块统一（review/canon.json）,自译
-extra.0017,Growth Node,成長ノード,成长节点,人改,升级卡类别,自译
-extra.0018,Synergy,協同,协同,人改,升级卡类别,自译
-extra.0019,Weakness,弱点,弱点,模型,,自译
-extra.0020,Insight,洞察,洞察,模型,,自译
-extra.0021,Trait,特性,特性,模型,,自译
-extra.0022,Bright,明明,通明,模型,,暂定：暂定（docs/276 §13）
-extra.0023,Awaken (SP cost,呼び声(必要SP,唤醒（所需技力,模型,,自译
-extra.0024,Awaken (SP cost 7 · 0%),呼び声(必要SP 7 ・ 0%),唤醒（所需技力 7 · 0%）,模型,,自译
-extra.0025,Precious Days,平凡こそ幸せ,平凡即是喜乐,人改,跨模块统一（review/canon.json）,官方：roguelike_topic_table.rogue_2.archiveComp.endbook
-extra.0026,Swift Strike,迅速攻撃,迅捷打击,模型,,自译
-extra.0027,Click node for details,ノードをタップして詳細を確認,点节点看详情,模型,,自译
-extra.0028,Click outside to close,枠外タップで閉じる,点空白收起,模型,,自译
-extra.0029,Drag to pan,ドラッグでスライド,拖动平移,模型,,自译
-extra.0030,Click node for details · Click outside to close · Drag to pan,ノードをタップして詳細を確認・枠外タップで閉じる・ドラッグでスライド,点节点看详情 · 点空白收起 · 拖动平移,模型,,自译
-extra.0031,Mobility,機動,机动,人改,升级卡类别（term-captain：生存 / 机动 / 协同）,自译
-extra.0034,Squad ASPD,全体攻撃速度,全队攻速,模型,,自译
-extra.0036,Shipboard Observation Subject,艦内観察対象,留舰观察对象,模型,,自译
-方向键,Arrow keys,方向キー,,原文键,模型,自译
-ENTER 塑造,ENTER Shape,ENTER 形成,,原文键,模型,自译
-Z 详情,Z Details,Z 詳細,,原文键,模型,自译
-拖动,Drag,ドラッグ,,原文键,模型,自译
-平移,Pan,スライド,,原文键,模型,自译
-拖动 平移,Drag to Pan,ドラッグ スライド,,原文键,模型,自译
-区域里 6 名敌人脚下钻出触手，束缚 1 秒,"Tentacles emerge from beneath 6 enemies in the area, inflicting Bind for 1s.",範囲内の敵6名の足元から触手が出現し、1秒間バインドさせる,,原文键,模型,自译
-减半,Halved,半減,,原文键,模型,自译
-尔比安同队,Ulpianus in squad,ウルピアヌス編成時,,原文键,模型,自译
-溟幽灵鲨同队,Specter the Unchained in squad,帰溟スペクターと同編成,,原文键,模型,自译
-蕾蒂娅、归溟幽灵鲨、乌尔比安、浊心斯卡蒂中至少 2 人同队,"At least 2 of Gladiia, Specter the Unchained, Ulpianus, and Skadi the Corrupting Heart are in the squad.",グレイディーア、帰溟スペクター、ウルピアヌス、濁心スカジのうち2人以上が編成にいる,,原文键,模型,自译
-触发,Trigger,発動,,原文键,人改,自译
-入队加成,Squad Bonus,加入ボーナス,,原文键,人改,自译
-队长最大生命,Leader Max HP,リーダー最大HP,,原文键,模型,自译
-+15%，生命回复,"+15%, HP recovery",+15%、HP回復,,原文键,模型,自译
-队长最大生命 +15%，生命回复,"Leader Max HP +15%, HP recovery",リーダー最大HP+15%、HP回復,,原文键,模型,自译
-协击,Co-Strike,協撃,,原文键,人改,自译
-成长节点,Growth Node,成長ノード,,原文键,人改,自译
-协同,Synergy,協同,,原文键,人改,自译
-弱点,Weakness,弱点,,原文键,模型,自译
-洞察,Insight,洞察,,原文键,模型,自译
-特性,Trait,特性,,原文键,模型,自译
-通明,Bright,明明,,原文键,模型,暂定：暂定（docs/276 §13）
-唤醒（所需技力,Awaken (SP cost,呼び声(必要SP,,原文键,模型,自译
-唤醒（所需技力 7 · 0%）,Awaken (SP cost 7 · 0%),呼び声(必要SP 7 ・ 0%),,原文键,模型,自译
-平凡即是喜乐,Precious Days,平凡こそ幸せ,,原文键,人改,官方：roguelike_topic_table.rogue_2.archiveComp.endbook
-迅捷打击,Swift Strike,迅速攻撃,,原文键,模型,自译
-点节点看详情,Click node for details,ノードをタップして詳細を確認,,原文键,模型,自译
-点空白收起,Click outside to close,枠外タップで閉じる,,原文键,模型,自译
-拖动平移,Drag to pan,ドラッグでスライド,,原文键,模型,自译
-点节点看详情 · 点空白收起 · 拖动平移,Click node for details · Click outside to close · Drag to pan,ノードをタップして詳細を確認・枠外タップで閉じる・ドラッグでスライド,,原文键,模型,自译
-机动,Mobility,機動,,原文键,人改,自译
-全队攻速,Squad ASPD,全体攻撃速度,,原文键,模型,自译
-留舰观察对象,Shipboard Observation Subject,艦内観察対象,,原文键,模型,自译
-所需技力 %d · %d%%,SP %d · %d%%,必要SP %d ・ %d%%,,原文键,人改,自译
-秒,s,秒,,原文键,人改,自译
-生存,Survival,生存,,原文键,人改,自译
+keys,en,ja,ko,_zh,_source,_note,_ja_note,_ko_note
+extra.0000,Arrow keys,方向キー,방향키,方向键,模型,,自译,自译
+extra.0001,ENTER Shape,ENTER 形成,ENTER 형성,ENTER 塑造,模型,,自译,自译
+extra.0002,Z Details,Z 詳細,Z 상세,Z 详情,模型,,自译,自译
+extra.0003,Drag,ドラッグ,드래그,拖动,模型,,自译,自译
+extra.0004,Pan,スライド,화면 이동,平移,模型,,自译,自译
+extra.0005,Drag to Pan,ドラッグ スライド,드래그 화면 이동,拖动 平移,模型,,自译,自译
+extra.0006,"Tentacles emerge from beneath 6 enemies in the area, inflicting Bind for 1s.",範囲内の敵6名の足元から触手が出現し、1秒間バインドさせる,범위 내 적 6명의 발밑에서 촉수가 솟아나와 1초 동안 속박,区域里 6 名敌人脚下钻出触手，束缚 1 秒,模型,,自译,自译
+extra.0007,Halved,半減,반감,减半,模型,,自译,自译
+extra.0008,Ulpianus in squad,ウルピアヌス編成時,울피아누스 편성 시,尔比安同队,模型,,自译,自译
+extra.0009,Specter the Unchained in squad,帰溟スペクターと同編成,스펙터 디 언체인드 편성,溟幽灵鲨同队,模型,,自译,自译
+extra.0010,"At least 2 of Gladiia, Specter the Unchained, Ulpianus, and Skadi the Corrupting Heart are in the squad.",グレイディーア、帰溟スペクター、ウルピアヌス、濁心スカジのうち2人以上が編成にいる,"글래디아, 스펙터 디 언체인드, 울피아누스, 스카디 더 커럽팅 하트 중 최소 2명 편성",蕾蒂娅、归溟幽灵鲨、乌尔比安、浊心斯卡蒂中至少 2 人同队,模型,,自译,自译
+extra.0011,Trigger,発動,발동,触发,人改,连携说明前缀,自译,自译
+extra.0012,Squad Bonus,加入ボーナス,합류 보너스,入队加成,人改,squad.join_bonus_text 拆段,自译,自译
+extra.0013,Leader Max HP,リーダー最大HP,리더 최대 HP,队长最大生命,模型,,自译,自译
+extra.0014,"+15%, HP recovery",+15%、HP回復,"+15%, HP 회복",+15%，生命回复,模型,,自译,自译
+extra.0015,"Leader Max HP +15%, HP recovery",リーダー最大HP+15%、HP回復,"리더 최대 HP +15%, HP 회복",队长最大生命 +15%，生命回复,模型,,自译,自译
+extra.0016,Co-Strike,協撃,협공,协击,人改,跨模块统一（review/canon.json）,自译,自译
+extra.0017,Growth Node,成長ノード,성장 노드,成长节点,人改,升级卡类别,自译,自译
+extra.0018,Synergy,協同,협동,协同,人改,升级卡类别,自译,自译
+extra.0019,Weakness,弱点,약점,弱点,模型,,自译,自译
+extra.0020,Insight,洞察,통찰,洞察,模型,,自译,自译
+extra.0021,Trait,特性,특성,特性,模型,,自译,自译
+extra.0022,Bright,明明,밝음,通明,模型,,暂定：暂定（docs/276 §13）,暂定：暂定（docs/276 §14）
+extra.0023,Awaken (SP cost,呼び声(必要SP,일깨움(필요 SP,唤醒（所需技力,模型,,自译,自译
+extra.0024,Awaken (SP cost 7 · 0%),呼び声(必要SP 7 ・ 0%),일깨움(필요 SP 7 · 0%),唤醒（所需技力 7 · 0%）,模型,,自译,自译
+extra.0025,Precious Days,平凡こそ幸せ,소중한 일상,平凡即是喜乐,人改,跨模块统一（review/canon.json）,官方：roguelike_topic_table.rogue_2.archiveComp.endbook,官方：roguelike_topic_table.rogue_2.archiveComp.endbook
+extra.0026,Swift Strike,迅速攻撃,신속 타격,迅捷打击,模型,,自译,自译
+extra.0027,Click node for details,ノードをタップして詳細を確認,노드를 터치해 상세 확인,点节点看详情,模型,,自译,自译
+extra.0028,Click outside to close,枠外タップで閉じる,빈 곳을 터치해 접기,点空白收起,模型,,自译,自译
+extra.0029,Drag to pan,ドラッグでスライド,드래그 화면 이동,拖动平移,模型,,自译,自译
+extra.0030,Click node for details · Click outside to close · Drag to pan,ノードをタップして詳細を確認・枠外タップで閉じる・ドラッグでスライド,노드를 터치해 상세 확인 · 빈 곳을 터치해 접기 · 드래그 화면 이동,点节点看详情 · 点空白收起 · 拖动平移,模型,,自译,自译
+extra.0031,Mobility,機動,기동,机动,人改,升级卡类别（term-captain：生存 / 机动 / 协同）,自译,自译
+extra.0034,Squad ASPD,全体攻撃速度,아군 전체 공격 속도,全队攻速,模型,,自译,自译
+extra.0036,Shipboard Observation Subject,艦内観察対象,함내 관찰 대상,留舰观察对象,模型,,自译,自译
+方向键,Arrow keys,方向キー,방향키,,原文键,模型,自译,自译
+ENTER 塑造,ENTER Shape,ENTER 形成,ENTER 형성,,原文键,模型,自译,自译
+Z 详情,Z Details,Z 詳細,Z 상세,,原文键,模型,自译,自译
+拖动,Drag,ドラッグ,드래그,,原文键,模型,自译,自译
+平移,Pan,スライド,화면 이동,,原文键,模型,自译,自译
+拖动 平移,Drag to Pan,ドラッグ スライド,드래그 화면 이동,,原文键,模型,自译,自译
+区域里 6 名敌人脚下钻出触手，束缚 1 秒,"Tentacles emerge from beneath 6 enemies in the area, inflicting Bind for 1s.",範囲内の敵6名の足元から触手が出現し、1秒間バインドさせる,범위 내 적 6명의 발밑에서 촉수가 솟아나와 1초 동안 속박,,原文键,模型,自译,自译
+减半,Halved,半減,반감,,原文键,模型,自译,自译
+尔比安同队,Ulpianus in squad,ウルピアヌス編成時,울피아누스 편성 시,,原文键,模型,自译,自译
+溟幽灵鲨同队,Specter the Unchained in squad,帰溟スペクターと同編成,스펙터 디 언체인드 편성,,原文键,模型,自译,自译
+蕾蒂娅、归溟幽灵鲨、乌尔比安、浊心斯卡蒂中至少 2 人同队,"At least 2 of Gladiia, Specter the Unchained, Ulpianus, and Skadi the Corrupting Heart are in the squad.",グレイディーア、帰溟スペクター、ウルピアヌス、濁心スカジのうち2人以上が編成にいる,"글래디아, 스펙터 디 언체인드, 울피아누스, 스카디 더 커럽팅 하트 중 최소 2명 편성",,原文键,模型,自译,自译
+触发,Trigger,発動,발동,,原文键,人改,自译,自译
+入队加成,Squad Bonus,加入ボーナス,합류 보너스,,原文键,人改,自译,自译
+队长最大生命,Leader Max HP,リーダー最大HP,리더 최대 HP,,原文键,模型,自译,自译
++15%，生命回复,"+15%, HP recovery",+15%、HP回復,"+15%, HP 회복",,原文键,模型,自译,自译
+队长最大生命 +15%，生命回复,"Leader Max HP +15%, HP recovery",リーダー最大HP+15%、HP回復,"리더 최대 HP +15%, HP 회복",,原文键,模型,自译,自译
+协击,Co-Strike,協撃,협공,,原文键,人改,自译,自译
+成长节点,Growth Node,成長ノード,성장 노드,,原文键,人改,自译,自译
+协同,Synergy,協同,협동,,原文键,人改,自译,自译
+弱点,Weakness,弱点,약점,,原文键,模型,自译,自译
+洞察,Insight,洞察,통찰,,原文键,模型,自译,自译
+特性,Trait,特性,특성,,原文键,模型,自译,自译
+通明,Bright,明明,밝음,,原文键,模型,暂定：暂定（docs/276 §13）,暂定：暂定（docs/276 §14）
+唤醒（所需技力,Awaken (SP cost,呼び声(必要SP,일깨움(필요 SP,,原文键,模型,自译,自译
+唤醒（所需技力 7 · 0%）,Awaken (SP cost 7 · 0%),呼び声(必要SP 7 ・ 0%),일깨움(필요 SP 7 · 0%),,原文键,模型,自译,自译
+平凡即是喜乐,Precious Days,平凡こそ幸せ,소중한 일상,,原文键,人改,官方：roguelike_topic_table.rogue_2.archiveComp.endbook,官方：roguelike_topic_table.rogue_2.archiveComp.endbook
+迅捷打击,Swift Strike,迅速攻撃,신속 타격,,原文键,模型,自译,自译
+点节点看详情,Click node for details,ノードをタップして詳細を確認,노드를 터치해 상세 확인,,原文键,模型,自译,自译
+点空白收起,Click outside to close,枠外タップで閉じる,빈 곳을 터치해 접기,,原文键,模型,自译,自译
+拖动平移,Drag to pan,ドラッグでスライド,드래그 화면 이동,,原文键,模型,自译,自译
+点节点看详情 · 点空白收起 · 拖动平移,Click node for details · Click outside to close · Drag to pan,ノードをタップして詳細を確認・枠外タップで閉じる・ドラッグでスライド,노드를 터치해 상세 확인 · 빈 곳을 터치해 접기 · 드래그 화면 이동,,原文键,模型,自译,自译
+机动,Mobility,機動,기동,,原文键,人改,自译,自译
+全队攻速,Squad ASPD,全体攻撃速度,아군 전체 공격 속도,,原文键,模型,自译,自译
+留舰观察对象,Shipboard Observation Subject,艦内観察対象,함내 관찰 대상,,原文键,模型,自译,自译
+所需技力 %d · %d%%,SP %d · %d%%,必要SP %d ・ %d%%,필요 SP %d · %d%%,,原文键,人改,自译,自译
+秒,s,秒,초,,原文键,人改,自译,自译
+生存,Survival,生存,생존,,原文键,人改,自译,自译

@@ -218,6 +218,11 @@ static func text(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: int,
 ## 不在开头标点（《「（）后、也不在结尾标点（》」，。）前插入，避免标点悬在行首。
 ## 弯引号（10-30 招募卡简介「……冲锋”，对她来说」把后引号甩到了行首）：后引号不放行首、前引号不留行尾
 ## 日文禁则（docs/276 §13）：假名也当 CJK 字逐字给断行机会；长音「ー」、小写假名、叠字符不放行首
+## 韩文（docs/276 §14）：按空格分词（어절）断行。文本服务（ICU）缺省允许在两个韩文音节之间断行，会把一个词拆到两行；
+## 在韩文音节与紧挨着的非空白字符之间插零宽的词连接符（U+2060，不占宽、不显示），整词放不下一行时 BREAK_ADAPTIVE 仍会按字断
+static var _WJ := String.chr(0x2060)   # 用 chr 构造：字面量会被 release_slim 当成要显示的字
+static func _hangul(code: int) -> bool:
+	return (code >= 0xAC00 and code <= 0xD7A3) or (code >= 0x1100 and code <= 0x11FF) or (code >= 0x3130 and code <= 0x318F)
 const _NO_BREAK_AFTER := "《「『（【〈“‘"
 const _NO_BREAK_BEFORE := "》」』）】〉，。、；：！？”’…ーぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮヵヶ々ゝゞヽヾ・"
 static func soft(s: String) -> String:
@@ -233,6 +238,8 @@ static func soft(s: String) -> String:
 		var cjk := (code >= 0x4E00 and code <= 0x9FFF) or (code >= 0x3000 and code <= 0x30FF) or (code >= 0xFF00 and code <= 0xFFEF)
 		if cjk and not _NO_BREAK_AFTER.contains(ch) and not _NO_BREAK_BEFORE.contains(nx) and nx != " ":
 			out += "​"
+		elif (_hangul(code) or _hangul(nx.unicode_at(0))) and not ch.strip_edges().is_empty() and not nx.strip_edges().is_empty() and code != 0x200B and nx != "​" and not "/|·".contains(nx) and not "/|·".contains(ch):
+			out += _WJ
 	return out
 
 
@@ -889,7 +896,7 @@ static func _wrap_para(font: Font, sp: String, size: int, width: float) -> Packe
 	var out := PackedStringArray()
 	for i in p.get_line_count():
 		var rg: Vector2i = p.get_line_range(i)
-		out.append(sp.substr(rg.x, rg.y - rg.x).replace("​", "").strip_edges())
+		out.append(sp.substr(rg.x, rg.y - rg.x).replace("​", "").replace(_WJ, "").strip_edges())
 	return out
 
 
