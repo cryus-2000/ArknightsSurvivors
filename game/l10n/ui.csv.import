@@ -6,10 +6,10 @@ uid="uid://dpmxwhr4idil4"
 
 [deps]
 
-files=["res://l10n/ui.en.translation", "res://l10n/ui.ja.translation"]
+files=["res://l10n/ui.en.translation", "res://l10n/ui.ja.translation", "res://l10n/ui.ko.translation"]
 
 source_file="res://l10n/ui.csv"
-dest_files=["res://l10n/ui.en.translation", "res://l10n/ui.ja.translation"]
+dest_files=["res://l10n/ui.en.translation", "res://l10n/ui.ja.translation", "res://l10n/ui.ko.translation"]
 
 [params]
 

@@ -589,3 +589,36 @@ term.<词>                 共用术语（灯火、技力、队长……），�
 **结果（11-15）**：ja 列 14 478 行全部有值（去重原文 5 659 条）：官方 2 072、暂定 215、人改 37（`review/ja.json`）、自译 12 154。Vertex 翻译 135 次调用约 $11。`ui_ja.otf` 780 字 302 KiB（只进 itch 包）。逐屏截图 `tests/l10n_shots --lang=ja` 桌面 54 张 + 手机 59 张无报错；截图里仍是中文的只剩 3 条拼接串（冲刺储存次数的成长卡对比行、深海猎人羁绊条件的截断版），不影响理解，后续按 `missing_*.txt` 补。快检本机通过：l10n、ui_smoke / _en / _ja、card_desc、card_desc_fit、touch_layout、toy_support、slim。
 
 **顺带修的（中英同样受益）**：事件选项标签、Boss 血条名、认知塑造节点名、分享卡队长名后的「队长 Lv」、作战记录「用时」都改成按译文量宽（原来按中文量，译文长了就互相压住）；事件正文 / 节点卡正文先译再插零宽断行（原来插完再查表，查不到）；升级卡 / 商人货品的一句话先整段译再截（原来先按中文截半句，半句查不到）；指南续页标题「（续）」单独查表；手机 HUD「属性」牌用短版并按译文居中。语言选项名不再被翻（英文版原来显示 Chinese）。新版设置页语言行补上 AI 翻译标注（英文版原来只在旧版设置页有）。
+
+---
+
+## 14. 韩文版（11-15，基于 main aac9bf2db）
+
+用户 11-15（经协调人）：再做韩语版，不过目、迭代好就合，标 AI 翻译；只上 itch，B 站 Toy 版仍锁中文。做法照抄 §13 日文版。
+
+**框架改动（loc.gd）**
+- `Loc.LANGS = ["zh", "en", "ja", "ko"]`，`Loc.ko()`；「跟随系统」遇韩文系统选韩文（`AUTO_KO_READY`）。回退 ko → en → zh（同日文：先读英文表与英文模板打底，韩文模板插在桶前）。
+- 拆段规则韩文同英文（半角「: 」「, 」「 · 」，「」换引号），没有汉字的串也把全角标点换半角。
+- 日韩字体合成一个 `_l10n_font(lang)`：切到该语言才 load `res://l10n/ui_<lang>.otf` 挂到 ui / serif / ui_heavy / ui_fallback / 名字粗体的 fallbacks 末尾。
+- 语言选项名「한국어」、标注「AI 번역」、标题页脚「한국어 텍스트는 중국어 원문을 AI로 번역한 것입니다.」进 `Loc.NATIVE` 不翻。
+
+**断行（按词，어절）**：Godot 文本服务（ICU）缺省允许在两个韩文音节之间断行，实测「공격력이 증가하|고」会拆词。`UI.soft()` 在韩文音节与紧挨着的非空白字符之间插词连接符 U+2060（零宽、不显示，`_wrap_para` 输出时去掉），整词放不下一行时 `BREAK_ADAPTIVE` 仍按字断；开机提示等直接 `draw_multiline_string` 的地方用 `Loc.words()` + `Loc.brk()`（韩文时去掉 BREAK_GRAPHEME_BOUND）；Boss 演练说明 Label 同样 `Loc.words`。`UI.fit` / `_fit_line` 的补字号 / 85% 下限走 `Loc.on()`，韩文自动生效。快检 l10n 里加「窄宽度折行后原文的词一个都不被拆开」。
+
+**CSV**：列改为 `keys,en,ja,ko,_zh,_source,_note,_ja_note,_ko_note`。ko 列由 `tools/l10n/translate_ko.py` 写（`glossary` → `run` → `qa` → `csv`），缓存 `build/l10n_work/cache_ko.json`（不进 git）。`translate_vertex.py csv` / `translate_ja.py csv` 重写 CSV 时按键保留 ko 两列。`_ko_note` 记 `官方：<ko_KR 表路径>` / `暂定` / `自译` / `人改`（`tools/l10n/review/ko.json`）。
+- 官方韩文来自 ArknightsGameData_YoStar ko_KR（character / skill / enemy_handbook / roguelike_topic / gamedata_const / uniequip，下载在 `build/l10n_ref/ko_*.json`，不进 git、不进包）。
+- 自创词定稿（`PROVISIONAL_KO`）：队长 리더、终结技 필살기、连携 연계、引航灯标 길잡이 등표、精英一 / 二 정예화 1 / 2、中期 / 最终 Boss 중간 / 최종 보스；韩服官方：灯火 등불、灯火四档 밝음 / 흔들림 / 희미함 / 꺼짐、溟痕 명흔、藏品 소장품、源石锭 오리지늄각뿔、认知塑造 인지 형성、生机细胞 생체 세포、恐鱼 시테러、大群 위매니、审判庭 재판소。
+- 招募卡简介（用户亲写）：送模型时标 `intro`，要求保留原意和梗，给韩服招聘合同作参照；梗说明写在 `_ko_note`。
+
+**整句分支**：入队加成（squad.gd）、精英化卡一句话「스킬 N 해제 · 名」、升级卡一句话（韩文取第一句同英文 `_brief_en`）、图鉴技能 / 天赋行、敌人附加攻击 / 攻击模式、指南行整句查表（同日文）、标题「集结出发」→「작전 / 개시」（韩服作战开始按钮）。
+
+**AI 翻译标注**：设置语言行（新旧两版）写「AI 번역」；标题页桌面版页脚一行韩文说明。
+
+**快检**：`l10n`（加韩文：官方名、路径键、模板、Toy 锁、干员长文本含韩文覆盖率、无残留占位、按词断行）、新增 `ui_smoke_ko`（check_map 顺带补上漏掉的 `ui_smoke_ja`）；`release_slim` 加「韩文缺字」；`export_web --toy` 另查 pck 里不得有 `.ko.translation` / `ui_ko.otf`。
+
+**字体**：`game/l10n/ui_ko.otf` = Noto Sans KR Bold（OFL，与 ui.ttf 同族同字重）子集，只取「韩文文本用到、发行包 ui.ttf 子集与 ui_fallback 都没有」的字（`tools/l10n/make_ko_font.py`，源字体放 `build/fonts_src/NotoSansKR-Bold.otf`，不进 git）。919 字 126 KiB，只进 itch 包（Toy 包随 `l10n/` 整个排除）。
+
+**结果（11-15）**：ko 列 14 478 行全部有值（去重原文 5 660 条）：官方 2 066、暂定 244、人改 38（`review/ko.json`）、自译 12 130。Vertex（gemini-3.1-pro-preview）翻译 137 次调用约 $11.35。逐屏截图 `tests/l10n_shots --lang=ko` 桌面 52 张 + 手机 57 张无报错，按词断行、无缺字（`make_ko_font.py --check` 0）；视频 `build/ko_screens_1115.mp4`（不进 git）。快检本机通过：check_map、slim、l10n、ui_smoke / _en / _ja / _ko、card_desc、card_desc_fit、touch_layout、toy_support、shop_touch_layout、economy、merchant_build_offer、bond_link、link_text、public_gallery。
+
+**顺带修的（英 / 日同样受益）**：商人抬头「每购一件余货 +N%，藏品再 +M%」两段分别查表（原来后半段丢逗号查不到）；货架「源石锭 +N（按售价保底）」先译说明再替换；名字后带半角括号中文后缀（「名  (可升级)」）整段查表；图鉴羁绊条件名单先逐个译名再代入模板（原来「与%s同队」先匹配，「中至少 N 人」留中文）。
+
+**已知剩余（中低）**：藏品说明里 `{9*$pm:1}` 这类表达式占位（「每分钟 +…（10:00 约 …）」）填数后查不到整句，英 / 日 / 韩都会按拆段回退、可能留个别中文短语；「遭」单字片段（截断显示）。手机 740 宽视口下设置页右列、图鉴右栏出屏与中文相同。

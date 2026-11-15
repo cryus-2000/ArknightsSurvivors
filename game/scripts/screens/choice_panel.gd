@@ -884,6 +884,8 @@ static func brief(desc: String) -> String:
 		return _brief_en(desc)
 	if Loc.ja() and _has_kana(desc):
 		return _brief_ja(desc)
+	if Loc.ko() and not _has_cjk(desc):   # 韩文（docs/276 §14）：标点是半角「. 」「; 」「( )」，同英文取第一句
+		return _brief_en(desc)
 	if _re_paren == null:
 		_re_paren = RegEx.create_from_string("（[^）]*）|\\([^)]*\\)")
 		_re_digit = RegEx.create_from_string("[0-9]")
@@ -1112,6 +1114,8 @@ func headline(o: Dictionary) -> String:
 		return "Unlocks Skill %d · %s" % [lv + 1, Loc.s(nm)]
 	if Loc.ja():   # 日文同（docs/276 §13）
 		return "スキル%d解放・%s" % [lv + 1, Loc.s(nm)]
+	if Loc.ko():   # 韩文同（docs/276 §14）
+		return "스킬 %d 해제 · %s" % [lv + 1, Loc.s(nm)]
 	return "解锁%s技能 · %s" % [CN_NUM[lv], nm]
 
 

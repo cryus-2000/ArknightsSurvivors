@@ -304,7 +304,7 @@ func _rows_of(pi: int) -> Array:
 	var rows: Array = []
 	for ln in page_lines(src, full_guide(), last):
 		var txt: String = touch_line(fill_numbers(ln))
-		if UI.Loc.ja():   # 日文（docs/276 §13）：整行（含 {占位}）先查表再填数——填数、拆「｜」之后的半句查不到；日文译文保留「｜」
+		if UI.Loc.ja() or UI.Loc.ko():   # 日文（docs/276 §13）/ 韩文（§14）：整行（含 {占位}）先查表再填数——填数、拆「｜」之后的半句查不到；日文译文保留「｜」
 			var tl := touch_line(ln)
 			var jt := UI.Loc.hit(tl)
 			if jt == "" and tl != ln:   # 触屏替换后的整句表里没有：译键鼠原句，再把替换片段换成各自的译文

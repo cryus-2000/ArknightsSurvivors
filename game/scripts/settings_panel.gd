@@ -55,9 +55,9 @@ const ROWS := [
 	{"cn": "返回", "en": "BACK", "key": "", "type": "back"},
 ]
 ## 语言两格：[存档值, 格子里的字]（格子里的字永远用本语言写，不走翻译）
-## 语言格：三格（中文 / English / 日本語），每格步长
-const LANG_STEP := 80.0
-const LANG_OPTS := [["zh", "中文"], ["en", "English"], ["ja", "日本語"]]   # 选项名永远用本语言写（Loc.NATIVE 不翻）
+## 语言格：四格（中文 / English / 日本語 / 한국어），每格步长（旧版设置页；新版按列宽均分）
+const LANG_STEP := 62.0
+const LANG_OPTS := [["zh", "中文"], ["en", "English"], ["ja", "日本語"], ["ko", "한국어"]]   # 选项名永远用本语言写（Loc.NATIVE 不翻）
 const RUNS_HINT := "测试版：本地记录对局摘要（不上传）"
 ## 分类：[中文, 英文, 该页的选项键名]（11-01 docs/213 P10 起列表里不再放返回行，返回在底栏）。10-22 用户定 16 行清单（Codex 界面单 §4）：
 ## 命中顿帧 / Boss 登场演出 / Boss 轮廓光 / 景深 / 辉光 / 水下滤镜 / 法线光照 / 战斗画面缩放 / 对局记录不再露出——
@@ -419,11 +419,13 @@ func _v2_chips(row: Dictionary) -> Dictionary:
 ## 行的说明 / 状态小字（v2 一律写在名称下一行，不再挤在控件左边）：[文字, 是否强调]
 func _v2_sub(row: Dictionary) -> Array:
 	match row.type:
-		"lang":   # AI 翻译标注（英文 11-11、日文 11-15）：新版设置页写在语言行说明位
+		"lang":   # AI 翻译标注（英文 11-11、日文 / 韩文 11-15）：新版设置页写在语言行说明位
 			if _lang_now() == "en":
 				return ["AI-translated", true]
 			if _lang_now() == "ja":
 				return ["AI翻訳", true]
+			if _lang_now() == "ko":
+				return ["AI 번역", true]
 		"quality":
 			if Cfg.quality_mode == "auto":
 				return ["按设备推荐：%s" % Cfg.QUALITY_NAME.get(Cfg.quality, "高"), true]
@@ -900,6 +902,8 @@ func _draw_row(ci: CanvasItem, rr: Rect2, si: int, touch: bool, ty0: float) -> v
 				UI.text(ci, font, Vector2(vx - 236, rr.position.y + ty0 - 1.0), "AI-translated", 12 if not touch else 13, UI.CYAN_DIM, HORIZONTAL_ALIGNMENT_RIGHT, 246)
 			elif _lang_now() == "ja":   # 日文同样标 AI 翻译（11-15）
 				UI.text(ci, font, Vector2(vx - 236, rr.position.y + ty0 - 1.0), "AI翻訳", 12 if not touch else 13, UI.CYAN_DIM, HORIZONTAL_ALIGNMENT_RIGHT, 246)
+			elif _lang_now() == "ko":   # 韩文同样标 AI 翻译（11-15）
+				UI.text(ci, font, Vector2(vx - 236, rr.position.y + ty0 - 1.0), "AI 번역", 12 if not touch else 13, UI.CYAN_DIM, HORIZONTAL_ALIGNMENT_RIGHT, 246)
 		"onboard":
 			# 三格 没玩过 / 玩过 / 关闭（同帧率格的样式）；还没问过时三格都不亮，行尾写「下局开局时询问」
 			for oi in 3:

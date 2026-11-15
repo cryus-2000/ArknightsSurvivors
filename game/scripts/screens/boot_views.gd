@@ -171,8 +171,8 @@ func foot(vs: Vector2, compact: bool) -> void:
 
 func tip_block(r: Rect2, tip: String, ta: float, sz: int) -> void:
 	en(r.position + Vector2(0, 10), "NOTE", 10, DIM, 3.0)
-	var brk := TextServer.BREAK_MANDATORY | TextServer.BREAK_WORD_BOUND | TextServer.BREAK_GRAPHEME_BOUND | TextServer.BREAK_ADAPTIVE
-	c.draw_multiline_string(font, r.position + Vector2(0, 30), Loc.s(tip), HORIZONTAL_ALIGNMENT_LEFT, r.size.x, sz, -1, Color(0.7, 0.78, 0.8, ta), brk)
+	var brk := Loc.brk(TextServer.BREAK_MANDATORY | TextServer.BREAK_WORD_BOUND | TextServer.BREAK_GRAPHEME_BOUND | TextServer.BREAK_ADAPTIVE)   # 韩文按词断（docs/276 §14）
+	c.draw_multiline_string(font, r.position + Vector2(0, 30), Loc.words(Loc.s(tip)), HORIZONTAL_ALIGNMENT_LEFT, r.size.x, sz, -1, Color(0.7, 0.78, 0.8, ta), brk)
 
 
 func header(vs: Vector2, m: float, title: String, code: String, show_code: bool, rule_w := -1.0) -> float:
@@ -513,9 +513,9 @@ func draw_v3(vs: Vector2, st: Dictionary) -> void:
 			mono(Vector2(rx, yy), str(row[0]), sz, GRAY)
 			mono(Vector2(rx + sz * 3.4, yy), str(row[1]), sz, INK)
 			yy += sz + 12.0
-		var brk := TextServer.BREAK_MANDATORY | TextServer.BREAK_WORD_BOUND | TextServer.BREAK_GRAPHEME_BOUND | TextServer.BREAK_ADAPTIVE
+		var brk := Loc.brk(TextServer.BREAK_MANDATORY | TextServer.BREAK_WORD_BOUND | TextServer.BREAK_GRAPHEME_BOUND | TextServer.BREAK_ADAPTIVE)   # 韩文按词断（docs/276 §14）
 		en(Vector2(rx, yy + 14), "NOTE", 10, GRAY, 3.0)
-		c.draw_multiline_string(font, Vector2(rx, yy + 34), Loc.s(st.tip), HORIZONTAL_ALIGNMENT_LEFT, rw, sz - 1, -1, Color(0.66, 0.74, 0.77, st.tip_a), brk)
+		c.draw_multiline_string(font, Vector2(rx, yy + 34), Loc.words(Loc.s(st.tip)), HORIZONTAL_ALIGNMENT_LEFT, rw, sz - 1, -1, Color(0.66, 0.74, 0.77, st.tip_a), brk)
 	else:
 		var lr3 := Rect2(m + 10, cen.y + R + 84, vs.x - 2 * m - 20, vs.y * 0.24)
 		c.draw_line(lr3.position + Vector2(0, -22), lr3.position + Vector2(lr3.size.x, -22), INK, 1.5)
