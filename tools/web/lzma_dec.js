@@ -1,8 +1,9 @@
 // LZMA（.lzma「alone」格式）解码器，给网页加载器解 index.wasm 的 LZMA 分片（docs/187 §5，export_web.py 用 Python lzma 压）。
 // 本作自写，按 LZMA SDK 公开规格（LzmaSpec）实现，无第三方代码。
 // 直接解进调用方给的 dst（Uint8Array，长度 = 原始字节数）：dst 本身就是滑动窗口，不另分配字典，峰值内存 = 压缩字节 + dst。
+// 11-16：网页加载器优先在 Worker 里跑它（loader.js lzWorker：wasm 整块缓冲区转移过去解、解完转回来，不另分配；主线程不卡）；Worker 不可用时才在主线程跑、按 4 ms 切片让出。
 // 压缩端写的是「未知长度 + 结束标记」；这里解满 dst.length 就停，提前遇到结束标记或越界都抛错（加载器会重试该片）。
-async function syLzmaDecode(src, dst) {
+async function syLzmaDecode(src, dst, noYield) {   // noYield：在 Worker 里跑（loader.js lzWorker），不用让出主线程
   var ip = 13, op = 0, end = dst.length;
   var d = src[0];
   if (d >= 225) throw new Error('lzma: 头部参数不对');
@@ -63,7 +64,7 @@ async function syLzmaDecode(src, dst) {
   while (op < end) {
     if (op >= probe) {
       probe = op + 4096;
-      if (performance.now() >= deadline) {
+      if (!noYield && performance.now() >= deadline) {
         await new Promise(function (resume) { setTimeout(resume, 0); });
         deadline = performance.now() + 4;
       }

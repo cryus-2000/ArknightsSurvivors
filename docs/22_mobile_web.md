@@ -178,6 +178,26 @@ itch App 里扣掉标题栏 / 底栏后画面在 2.2:1 到 2.6:1 以上。根因
 - **静音**：网页版默认"采样播放"模式下，运行时 `AudioServer.add_bus()` 建的 Music / SFX 总线接不上输出，整局没声音。修法：`game/default_bus_layout.tres` 预定义 Music（送 Master，挂 LowPassFilter）和 SFX 两条总线，`project.godot` 指定为默认布局；`sfx.gd` 的 `_ensure_bus` 发现已存在就直接复用，Windows 行为不变。已用无头 Chromium 的 AnalyserNode 测到输出电平。
 - **单文件 25 MB 上限**（EdgeOne / Cloudflare Pages；单个 `.wasm.gz` 的做法已被下文「分片」取代）：`index.wasm` 43.7 MB → 导出后 `gzip -9` 成 `index.wasm.gz`（9.4 MB）并删掉原文件；Web 预设的 `html/head_include` 注入一段 fetch 拦截脚本，把 `.wasm` 请求改取 `.wasm.gz`，按 1f8b 魔数判断后用 DecompressionStream 解压（服务器自动解压时也兼容）。
 
+## 加载链路（11-16，B站 Toy「加载很久、根本加载不出来」）
+
+**现象**：11-15 玩家截图（B站 App 安卓横屏，四指诊断浮层）：除浮层外全黑，连加载页都没有；`canvas 300x150`（引擎根本没启动）、`screen 800x360`（安卓，720p 低端机）。
+
+**原因**（桌面 Chromium 复现不出来，按截图逐项排除后定位到安卓旧 WebView）：
+1. 引擎脚本 `index.js`（emscripten 4.0.20）用了 `??=` / `||=` / `?.` / `??`、`BigInt64Array` 和 WASM BigInt，**最低要 Chrome 85 / Safari 15**。没装谷歌服务的国产安卓机，系统 WebView 常年不更新，内核低于 85 时 `index.js` 直接语法错误 → `Engine` 不存在 → 页面末尾的启动脚本报错 → 画布停在默认 300×150。原来没有任何提示。
+2. 同时加载页看不见：`loader.css` 里 `#sy-load` 只写了 `inset: 0`（要 Chrome 87）。旧内核不认 → 固定定位的加载页没有宽高、`overflow:hidden` 把内容全裁掉 → 只剩 `body` 的深色底，正是截图里的「全黑」。内核 85–86 时引擎能跑，但整个加载过程（几十秒）也是黑的。
+3. 方向 4 加载页整页靠 `requestAnimationFrame` 在画布上逐帧画，WebView 不给帧（页面在后台、跨域 iframe 被节流）时同样一片黑；wasm 的 LZMA 解码在主线程（桌面约 2 秒，手机估 10–20 秒），且 6 个分片一起抢带宽，wasm 要到下载快结束才齐，解码 + 编译全压在下载之后。
+
+**修法**（`tools/web/` 下，`export_web.py` 拼进 `index.html`）：
+- **首帧壳** `boot_shell.html`：纯 HTML / CSS 插在 `<body>` 最前（只用旧内核也认的写法：`top/right/bottom/left`，不用 `inset` / `min()`），页面解析到就有深色底、罗德岛标志、进度条（一直在走的光是 CSS 动画）、阶段文字（`正在下载资源 12.3 / 29.6 MB · 1.2 MB/s` → 解压 → 启动引擎 n 秒 → 准备主菜单 n%）。方向 4 加载页画出第一帧（`.p4on`）后盖在它上面；rAF 400 ms 不来就用定时器补画。
+- **错误捕获** `boot_err.js`：`<head>` 里第一个自有 `<script>`、单独内联（后面那一大块有语法错时它照样在），本页 / `index.js` 的脚本错误立刻弹卡片；卡片里「重新加载」是内联 `onclick`，所有脚本都挂了也能点。
+- **内核检查**（`loader.js` 开头）：测 `??=` / `?.` 语法、`BigInt64Array`、`WebAssembly`；不满足就不下那 30 MB，直接显示「当前浏览器内核版本过旧」+ 检测到的内核版本 + 更新 Android System WebView / Chrome、iOS 15 的说明。`index.js` 没跑起来（`typeof Engine === 'undefined'`）也报。网址 `?oldcore=1` 可模拟。
+- **失败与超时**：每片 15 秒收不到字节就中止重下，最多 4 次（1 / 2 / 4 秒退避），用尽 → 红色失败卡片（哪个文件、HTTP 状态）+「重新加载」；Godot 自己的 `#status-notice` 报错也换成这张卡片。进度（字节 / 阶段 / 游戏回传）60 秒没动 → 黄色「加载比平时慢」提醒（不打断加载，进度恢复自动收起）。
+- **关键路径**：页面一开始就下（不等 `index.js` 下完、引擎来要）；wasm 两片先下，字节收齐再开 pck 四片（引擎先要完整 wasm 才能编译，解码 / 编译和 pck 下载重叠）；引擎提前来要还在排队的 pck 时等它开始，不放行到网络。LZMA 在 Worker 里解：wasm 整块缓冲区转移给 Worker、解完转回，不另分配（内存峰值不变），主线程不卡；Worker 起不来（先 ping）就退回主线程切片解。网址 `?nolzw=1` 强制主线程。
+- **诊断卡**（11-16 用户：让玩家自己截图反馈）：超过 20 秒没进标题、进度 60 秒没动、本页脚本报错、加载失败时自动弹出，不用四指。内容：当前阶段与已停秒数、各分片已下 / 总字节（`01.pck 3.2/8.3（重试 1）`）、第一条报错（脚本错误或下载失败的文件名 + HTTP 状态 / 断流）、系统与 WebView 内核版本、是否在 B站 App 内、包版本（导出时写进 `boot_err.js`，同 `build.txt`）、内存（`deviceMemory` / JS 堆可读时）。三个按钮「重试」「复制诊断信息」「继续等待」，下写「截图这张卡私信 UP 主」（Toy 不许放站外链接 / 联系方式）。「继续等待」后只有新的报错 / 进度停住才再弹；失败卡片没有「继续等待」。复制先用 Clipboard API，不行退 `execCommand`，再不行选中文字让玩家长按复制。**不往任何服务器发数据**。文字生成在 `boot_err.js` 的 `window.__syDiagText()`，诊断卡、复制、四指浮层共用。
+- **诊断浮层**（四指 / `?sydiag`）新增 4 行，并在末尾附上诊断卡同一份文字（进游戏后也能看）：`ua`（内核版本、OLD 标记、`typeof Engine`）、`load`（当前阶段 / 字节 / 重试 / 最近错误）、`t`（各阶段耗时 ms：`wasm_bytes` / `index.wasm` / `index.pck` / `unpacked` / `title` / `fail`）、`err`（捕获到的脚本错误）。下次玩家截图就能看出卡在哪。
+
+**实测**（本地伺服旧 Toy 包 vs 重新注入新加载器的同一包，Playwright 手机横屏 800×360 dpr 2 + toy_mock）：见下表与 `build/toy_load_compare_1116.mp4`。
+
 ## 部署（EdgeOne Pages）
 
 > 2026-10-14：本节已作废，留作记录。现行发布走 itch（docs/33「itch.io」「一键发版」）；阿里云 OSS + CDN 骨架见 docs/33，未接通。
@@ -195,7 +215,7 @@ python tools/export_web.py        # 导出 HEAD 到 build/web/（改了 Web 预�
 一步完成：`git archive` 干净副本 → 把 `art/incoming/*.png` 复制进 `game/art/incoming/`（审稿拼图由 Web 预设 `exclude_filter` 排除）→ Godot 导出 `Web` → **分片** → 内联加载器。需要 Godot 4.7.2 的 `web_nothreads_*.zip` 导出模板（官方 tpz，按 SHA512-SUMS 核对后解压到 `%APPDATA%\Godot\export_templates\4.7.2.stable\`）。
 
 - **分片**（2026-09-26，绕开 25 MB 单文件上限）：`index.pck` / `index.wasm` 按原始字节每 10 MiB 切一片（`--part-mib`），每片 `gzip -9` 成 `index.pck.00.gz` …，删掉原文件；脚本最后逐个检查，有文件超 25 MB 就报错。
-- **加载器** `tools/web/loader.js` + `loader.css`：导出时内联到 Web 预设 `html/head_include` 里的 `<!--SHUIYUE_LOADER-->` 处，分片清单（每片字节数、原文件大小）写进脚本。它拦截引擎对 `index.pck` / `index.wasm` 的 fetch，并行下载全部分片、逐片 DecompressionStream 解压、拼回并核对大小后交给引擎（2026-10-11 起改为边下边解压、直接写进整块缓冲，见 docs/33 网页内存一节，9ee13e45）；每片失败自动重试 2 次。游戏代码不动。取代了原来 head_include 里只管 `.wasm.gz` 的拦截脚本。
+- **加载器** `tools/web/loader.js` + `loader.css`：导出时内联到 Web 预设 `html/head_include` 里的 `<!--SHUIYUE_LOADER-->` 处，分片清单（每片字节数、原文件大小）写进脚本。它拦截引擎对 `index.pck` / `index.wasm` 的 fetch，并行下载全部分片、逐片 DecompressionStream 解压、拼回并核对大小后交给引擎（2026-10-11 起改为边下边解压、直接写进整块缓冲，见 docs/33 网页内存一节，9ee13e45）；每片失败自动重试（11-16 起断流 15 秒超时、最多 4 次，失败有提示和「重新加载」，见上文「加载链路」）。游戏代码不动。取代了原来 head_include 里只管 `.wasm.gz` 的拦截脚本。
 - **加载画面**（10-25 用户定「声呐测绘」，对照图方向 C 第一张）：网格深底，左上标志（`game/art/ui/title_deep/logo_mark.png` 复制为 `loader_logo.png`，1 KB），中间声呐圈（三道同心圆 + 十字 + 扫描扇面 + 回波点，扇面是 CSS transform 动画，引擎占住主线程时也在转），外圈是进度环、圈心百分比；左下「TERMINAL LOG」逐行 `[ OK ]`：下载资源（x / y MB）→ 解压校验 → 启动引擎（显示已等秒数）；右下「TIPS」4 秒换一句（与 `screens/loading_tips.gd` 同一批）。进度环：下载字节占 0–60%（真实）；下载解压完以后是引擎启动，拿不到真实进度，按已等秒数向 80% 渐近（τ = 6 秒）；引擎起来后由游戏内启动页接着走 80–100%（见下）。引擎移除自带 `#status` 后淡出；引擎报错（`#status-notice`）时也撤掉让报错露出来。矮屏（高 ≤ 520，手机横屏）面板与标志缩小；系统「减少动态效果」时扇面不转。
 - **游戏内启动页**（10-25 用户「启动中要加入百分比，然后说明在渲染什么」）：主场景改为 `boot.tscn`（`screens/boot_screen.gd`，只依赖字体、标志、提示表），同一「声呐测绘」版式。启动最慢的一段是读入标题页——`title.gd` 经 preload / extends 一路带出 `game.gd` 与几乎全部脚本（10-25 桌面调试版实测约 12 秒，本机负载高），以前全压在 Godot 静态启动图下。现在启动页按 `game/data/boot_order.json`（`tools/gen_boot_order.py` 生成，叶子在前；GDScript 的 `ResourceLoader.get_dependencies` 不列 preload、导出包里没有源码，所以离线生成）每帧 30 ms 逐个 `load()`，每个只编译它自己，百分比是真实的；圈下写「读取 · 干员积木 / 海嗣 / 战场渲染 …」和当前文件名、条数，左下日志「编译脚本 n / m → 打开标题页」。读完再读 `main.tscn`（都在缓存里）、淡到黑、切标题页。桌面 0–100%；网页接着 HTML 加载页的百分比走（`window.__syPct`），本页第一帧画完就调 `window.__syBootUp()` 让 HTML 加载页淡出（以前要等引擎自带 `#status` 撤掉，那时标题页都出来了，游戏内这一页根本看不到）。新增 / 删改 preload 后跑一次 `python tools/gen_boot_order.py`（`--check` 只比对）；表过期只会让进度粗一点，漏掉的在最后读 `main.tscn` 时一并编译。测试（带命令行参数或无界面）直接进标题页；`--bootshot` 读到一半截 `shot_boot.png` 退出。
 - **桌面启动图**：引擎初始化与自动加载（Sfx / Cfg / Pad / Cloud）在启动页之前，拿不到进度，仍由静态启动图盖着：同一版式的静态帧 `game/art/ui/boot_splash.png`（20 KB，256 色，圈心「启动中」），`project.godot` 的 `application/boot_splash/*`，底色 `#070c11`。10-25 前是 Godot 默认启动图。

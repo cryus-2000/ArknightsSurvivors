@@ -164,6 +164,7 @@
 
   // 诊断浮层（网址带 sydiag 或四指点屏）
   var diagOn = /[?&#]sydiag/.test(location.href), diagEl = null;
+  setInterval(function () { if (diagOn) diag(); }, 1000);   // 开着时每秒刷新（加载阶段 / 错误在变）
   function diag() {
     if (!diagOn) { if (diagEl) diagEl.style.display = "none"; return; }
     if (!document.body) return;
@@ -181,8 +182,13 @@
       "screen " + screen.width + "x" + screen.height + "  canvas " + (cr ? Math.round(cr.left) + "," + Math.round(cr.top) + " " + Math.round(cr.width) + "x" + Math.round(cr.height) : "-"),
       "env l" + e.left + " t" + e.top + " r" + e.right + " b" + e.bottom,
       "toy " + (last ? JSON.stringify({ d: last.deviceType, o: last.orientation, im: last.immersive, vp: last.viewport, sa: last.safeArea }) : "none") + "  sdk " + !!window.toy,
-      "safe l" + S.left + " t" + S.top + " r" + S.right + " b" + S.bottom + " " + S.source + (S.capsule ? " cap " + Math.round(S.capsule.x) + "," + Math.round(S.capsule.y) + " " + S.capsule.w + "x" + S.capsule.h : "") + "  " + (env.why || "")
-    ].join("\n");
+      "safe l" + S.left + " t" + S.top + " r" + S.right + " b" + S.bottom + " " + S.source + (S.capsule ? " cap " + Math.round(S.capsule.x) + "," + Math.round(S.capsule.y) + " " + S.capsule.w + "x" + S.capsule.h : "") + "  " + (env.why || ""),
+      // 11-16 加载链路（loader.js / boot_err.js）：内核、当前阶段、各阶段耗时、捕获到的错误——玩家截图就能看出卡在哪
+      "ua " + ((/(Chrome|CriOS|Version)\/[\d.]+/.exec(navigator.userAgent) || ["?"])[0]) + (window.__syCompat && window.__syCompat.length ? " OLD:" + window.__syCompat.join(",") : "") + "  engine " + (typeof Engine) + "  wasm " + (typeof WebAssembly),
+      "load " + (window.__syLoadInfo || "-"),
+      "t " + (window.__syLoadT ? JSON.stringify(window.__syLoadT) : "-"),
+      "err " + ((window.__syErrs || []).slice(-3).join(" | ") || "-")
+    ].join("\n") + (window.__syDiagText ? "\n" + window.__syDiagText() : "");   // 诊断卡同一份文字（boot_err.js）：阶段 / 分片 / 第一条报错 / 系统 / 环境，进游戏后也能看
   }
 
   function takeState(st) {

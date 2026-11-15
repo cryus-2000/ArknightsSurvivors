@@ -260,7 +260,16 @@ def main():
         js += "\n" + fh.read()
     with open(os.path.join(WEB, "loader.css"), encoding="utf-8") as fh:
         css = fh.read()
-    html = html.replace(MARK, "<style>\n%s</style>\n<script>\n%s</script>" % (css, js))
+    # 首帧壳（tools/web/boot_shell.html，11-16 B站 App 黑屏）：纯 HTML / CSS 插在 <body> 最前，不等脚本 / rAF 就有画面、进度和「重新加载」
+    with open(os.path.join(WEB, "boot_shell.html"), encoding="utf-8") as fh:
+        shell = fh.read()
+    if html.count("<body>") != 1:
+        sys.exit("index.html 里 <body> 不是恰好一处，首帧壳插不进去")
+    html = html.replace("<body>", "<body>\n" + shell, 1)
+    # 加载期错误捕获（tools/web/boot_err.js，11-16）：单独一个 <script>、放在最前——后面那一大块有语法错 / 运行错时也能把原因写到首帧壳上
+    with open(os.path.join(WEB, "boot_err.js"), encoding="utf-8") as fh:
+        boot_err = fh.read().replace("/*SY_BUILD*/''", json.dumps(commit))   # 诊断卡上的包版本（同 build.txt）
+    html = html.replace(MARK, "<script>\n%s</script>\n<style>\n%s</style>\n<script>\n%s</script>" % (boot_err, css, js))
     with open(html_p, "w", encoding="utf-8", newline="\n") as fh:
         fh.write(html)
     shutil.copy2(os.path.join(src, "game", "art", "ui", "title_deep", "logo_mark.png"), os.path.join(tmp, "loader_logo.png"))   # 启动加载页左上标志（loader.css）
