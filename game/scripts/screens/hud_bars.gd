@@ -364,7 +364,7 @@ func _boss_sub(e: Dictionary) -> Array:
 			if e.type == "paranoia":
 				return ["泡膜硬化 · %d 秒后破裂" % left, Color(0.85, 0.72, 1.0)]
 			return ["阶段护盾 · %d 秒后破碎" % left, UI.GOLD]
-		return ["阶段护盾 · 时限到后破碎", UI.GOLD]
+		return ["阶段护盾 · %d 秒后破碎" % ceili(g.combat.gate_hold_left(e)), UI.GOLD]
 	if e.get("coma", false):
 		return ["假死中 —— 趁现在击倒另一体", Color(1, 0.82, 0.88)]
 	if mv_name != "" and g.t - float(e.get("move_t", -99.0)) < MOVE_NAME_T:

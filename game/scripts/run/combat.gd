@@ -956,6 +956,7 @@ func gate_clamp(e: Dictionary, dmg: float) -> float:
 			gate_pass(e)   # 这一击照样结算（截在刻度上），之后 0.8 秒不受伤
 		else:
 			e.gate_hold = true
+			e.hold_t = 0.0
 			g.vfx.add_alert(e.pos + Vector2(0, -e.r - 36.0), "阶段护盾", UI.GOLD, 18)
 	return dmg
 
@@ -991,6 +992,20 @@ func gate_update(e: Dictionary, dt: float) -> void:
 				e.gate_hold = false
 				e.last_done = true
 				last_hold_end(e)
+		elif not e.gates.is_empty() and Bal.v("boss/gate_hold_max", 3.0) > 0.0:
+			# 中间卡点的阶段护盾同样只挡一小段（11-16 用户「撑过这个时间就直接被秒」）：撑满 boss/gate_hold_max 秒就过卡点进下一幕
+			e.hold_t = float(e.get("hold_t", 0.0)) + dt
+			if e.hold_t >= Bal.v("boss/gate_hold_max", 3.0):
+				gate_pass(e)
+
+
+## 中间卡点护盾还剩几秒（HUD 读秒）
+func gate_hold_left(e: Dictionary) -> float:
+	var left: float = float(e.get("act_min", 0.0)) - float(e.get("act_t", 0.0))
+	var mx: float = Bal.v("boss/gate_hold_max", 3.0)
+	if mx > 0.0:
+		left = minf(left, mx - float(e.get("hold_t", 0.0)))
+	return maxf(0.0, left)
 
 
 ## 最后一幕护盾还剩几秒（HUD 读秒）：这一幕最短时长与 last_hold_max 哪个先到
