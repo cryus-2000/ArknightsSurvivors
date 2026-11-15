@@ -204,7 +204,15 @@ static func gallery_rows(oid: String) -> Array:
 	for r in of(oid):
 		var b: Dictionary = r.bond
 		var who: String = "、".join(r.mates.map(func(m): return op_name(str(m))))
+		var LocS = load("res://scripts/core/loc.gd")
+		if LocS.on():   # 译文：名字先各自译再拼（拼好的中文名单整串查不到，模板里会留中文，docs/276 §14）；中文与原来逐字相同
+			who = ("、" if LocS.ja() else ", ").join(r.mates.map(func(m): return LocS.s(op_name(str(m)))))
 		var cond: String = ("与%s中至少 %d 人同队" % [who, int(b.get("min", 3)) - 1]) if b.has("group") else ("与%s同队" % who)
+		if LocS.on():   # 译文：直接取这条模板的译文代入（整句再查时「与%s同队」会先匹配上、把「中至少 N 人」留成中文）；英文模板 %d 在 %s 前，按记号替换不按位置
+			var tk: String = "与%s中至少 %d 人同队" if b.has("group") else "与%s同队"
+			var tv: String = LocS.hit(tk)
+			if tv != "":
+				cond = tv.replace("%s", who).replace("%d", str(int(b.get("min", 3)) - 1))
 		var bt: String = ("同队期间%s；" % buff_text(str(b.id))) if buff_on() else ""
 		out.append([str(b.name), str(b.tag), "%s。\n羁绊 · %s：%s时，%s队长放技能触发的连携优先由羁绊成员接手，换成这招合击。" % [str(b.desc), str(b.tag), cond, bt]])
 	return out

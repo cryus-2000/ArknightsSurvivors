@@ -6,10 +6,10 @@ uid="uid://dfckv66hbo24g"
 
 [deps]
 
-files=["res://l10n/run.en.translation", "res://l10n/run.ja.translation"]
+files=["res://l10n/run.en.translation", "res://l10n/run.ja.translation", "res://l10n/run.ko.translation"]
 
 source_file="res://l10n/run.csv"
-dest_files=["res://l10n/run.en.translation", "res://l10n/run.ja.translation"]
+dest_files=["res://l10n/run.en.translation", "res://l10n/run.ja.translation", "res://l10n/run.ko.translation"]
 
 [params]
 

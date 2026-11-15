@@ -113,6 +113,8 @@
     "time_scale_combo",
     "ui_smoke",
     "ui_smoke_en",
+    "ui_smoke_ja",
+    "ui_smoke_ko",
     "l10n",
     "lifecycle_cycle",
     "flow_sweep"

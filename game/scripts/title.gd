@@ -1031,6 +1031,8 @@ func _draw_menu(vs: Vector2) -> void:
 		UI.text(self, font, Vector2(lg.pos.x - 420, fy - (40 if (not OS.is_debug_build() and Cfg.runs_log_enabled()) else 20)), "English text is AI-translated from the Chinese original.", 12, _fa(Color(0.45, 0.53, 0.58), ff), HORIZONTAL_ALIGNMENT_RIGHT, 420)
 	elif not ph and UI.Loc.ja():   # 日文版同样标注（11-15）
 		UI.text(self, font, Vector2(lg.pos.x - 420, fy - (40 if (not OS.is_debug_build() and Cfg.runs_log_enabled()) else 20)), "日本語テキストは中国語原文からのAI翻訳です。", 12, _fa(Color(0.45, 0.53, 0.58), ff), HORIZONTAL_ALIGNMENT_RIGHT, 420)
+	elif not ph and UI.Loc.ko():   # 韩文版同样标注（11-15）
+		UI.text(self, font, Vector2(lg.pos.x - 420, fy - (40 if (not OS.is_debug_build() and Cfg.runs_log_enabled()) else 20)), "한국어 텍스트는 중국어 원문을 AI로 번역한 것입니다.", 12, _fa(Color(0.45, 0.53, 0.58), ff), HORIZONTAL_ALIGNMENT_RIGHT, 420)
 	# 对内包页脚提示（docs/40，用户 10-10）：声明上面一行；手机只在设置页提示
 	if not ph and not OS.is_debug_build() and Cfg.runs_log_enabled():
 		UI.text(self, font, Vector2(lg.pos.x - 310, fy - 20), "测试版：本地记录对局摘要（不上传）", 12, _fa(UI.GOLD, ff), HORIZONTAL_ALIGNMENT_RIGHT, 310)

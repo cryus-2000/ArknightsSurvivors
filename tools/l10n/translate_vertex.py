@@ -306,23 +306,23 @@ def cmd_csv(a):
         v = cache[z]; old = v.get("en") if isinstance(v, dict) else v
         if isinstance(old, str) and old and old != h["en"] and len(old) >= 4:
             renames[z] = (old, h["en"])
-    # 日文列（docs/276 §13，tools/l10n/translate_ja.py 写）：按键原样保留；新行留空，跑 translate_ja.py run / csv 补
+    # 日文 / 韩文列（docs/276 §13 / §14，translate_ja.py / translate_ko.py 写）：按键原样保留；新行留空，跑 translate_ja.py / translate_ko.py run / csv 补
     keep_ja = {}
     if out.exists():
         for r0 in csv.DictReader(open(out, encoding="utf-8")):
             if "ja" in r0:
-                keep_ja[r0["keys"]] = (r0.get("ja", ""), r0.get("_ja_note", ""))
+                keep_ja[r0["keys"]] = (r0.get("ja", ""), r0.get("_ja_note", ""), r0.get("ko", ""), r0.get("_ko_note", ""))
     with open(out, "w", encoding="utf-8", newline="") as f:
         w0 = csv.writer(f)
 
-        class _JaW:   # 在 en 后插 ja 列、末尾加 _ja_note 列
+        class _JaW:   # 在 en 后插 ja / ko 列、末尾加 _ja_note / _ko_note 列（韩文 docs/276 §14，translate_ko.py 写）
             @staticmethod
             def writerow(row):
                 if row[0] == "keys":
-                    w0.writerow(row[:2] + ["ja"] + row[2:] + ["_ja_note"])
+                    w0.writerow(row[:2] + ["ja", "ko"] + row[2:] + ["_ja_note", "_ko_note"])
                 else:
-                    ja, jn = keep_ja.get(row[0], ("", ""))
-                    w0.writerow(row[:2] + [ja] + row[2:] + [jn])
+                    ja, jn, ko, kn = keep_ja.get(row[0], ("", "", "", ""))
+                    w0.writerow(row[:2] + [ja, ko] + row[2:] + [jn, kn])
         w = _JaW()
         # Godot CSV 翻译表格式（docs/276 §10）：首列 keys，en 是唯一的语言列；_ 开头的列 Godot 导入时跳过（中文原文 / 来源 / 备注只给人看）
         w.writerow(["keys", "en", "_zh", "_source", "_note"])

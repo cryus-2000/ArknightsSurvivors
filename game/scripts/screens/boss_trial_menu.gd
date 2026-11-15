@@ -69,7 +69,7 @@ func _ready() -> void:
 	rule.custom_minimum_size = Vector2(0, 1)
 	box.add_child(rule)
 	var note := Label.new()
-	note.text = "直接进入真实 Boss 战；不写入通关、难度或图鉴进度。"
+	note.text = UI.Loc.words(UI.Loc.s("直接进入真实 Boss 战；不写入通关、难度或图鉴进度。"))   # 韩文按词断行（docs/276 §14）；其他语言同原来由 Label 自动翻译
 	note.add_theme_font_size_override("font_size", 15)
 	note.add_theme_color_override("font_color", UI.SUB)
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

@@ -140,7 +140,7 @@ def main():
         l10n_b = sum(os.path.getsize(os.path.join(dp, f)) for dp, _, fs in os.walk(l10n_dir) for f in fs) if os.path.isdir(l10n_dir) else 0
         shutil.rmtree(l10n_dir, ignore_errors=True)
         # 导入后 pck 里的翻译表与源 CSV 大小相近（compress=0）；网页包另有 gzip，实际下载少得更少
-        print("[瘦身] Toy 版不带英文 / 日文：翻译表与日文字体 %.2f MiB 不进包（itch 网页包会带）" % (l10n_b / 1048576), flush=True)
+        print("[瘦身] Toy 版不带英文 / 日文 / 韩文：翻译表与日韩字体 %.2f MiB 不进包（itch 网页包会带）" % (l10n_b / 1048576), flush=True)
         # 外语语音（11-15，audio/voice/<ja|en|ko>/，tools/voice_lang_1115.py）只进 itch 包；Toy 版语音固定中文（Cfg.voice_lang）
         vl_b = 0
         for vl in VOICE_LANG_DIRS:
@@ -207,8 +207,8 @@ def main():
                       {"ops", "enemies", "ui", "relics", "events", "meta", "run", "extra"}) if os.path.isdir(os.path.join(ROOT, "game", "l10n")) else \
                ["ops", "enemies", "ui", "relics", "events", "meta", "run", "extra"]
         bad = [m for m in mods
-               if ("l10n/%s.en.translation" % m).encode() in pk or ("l10n/%s.ja.translation" % m).encode() in pk or ("l10n/%s.csv" % m).encode() in pk]
-        bad += ["ui_ja.otf"] if b"l10n/ui_ja.otf" in pk else []   # 日文回退字体（docs/276 §13）也在 l10n/ 下
+               if any(("l10n/%s.%s.translation" % (m, lg)).encode() in pk for lg in ("en", "ja", "ko")) or ("l10n/%s.csv" % m).encode() in pk]
+        bad += [f for f in ("ui_ja.otf", "ui_ko.otf") if ("l10n/" + f).encode() in pk]   # 日文 / 韩文回退字体（docs/276 §13 / §14）也在 l10n/ 下
         bad += ["audio/voice/%s/" % vl for vl in VOICE_LANG_DIRS if ("audio/voice/%s/" % vl).encode() in pk]   # 外语语音（11-15）
         assert not bad, "Toy 包里出现了英文翻译资源：%s" % bad
         print("[检查] Toy 包不含英文翻译资源", flush=True)

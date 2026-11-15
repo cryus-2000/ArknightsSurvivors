@@ -399,26 +399,31 @@ func _build() -> void:
 				# 英文版（docs/276 §10）：各段先查表再按英文模板拼；中文分支与原来逐字相同
 				var en_m: bool = UI.Loc.en()
 				var ja_m: bool = UI.Loc.ja()
+				var ko_m: bool = UI.Loc.ko()   # 韩文（docs/276 §14）
 				var mech: String = UI.Loc.s(ENEMY_DESC.get(k, e.get("desc", "")))
 				if e.has("extra"):
 					if ja_m:   # 日文（docs/276 §13）：整句在这里拼
 						mech += "\n\n追加攻撃：%s（%s）。" % [UI.Loc.s(str(e.extra.name)), {"swipe": "扇状薙ぎ払い", "pulse": "近接衝撃", "pierce": "直線突き", "volley": "扇状弾幕"}.get(str(e.extra.mode), "攻撃")]
+					elif ko_m:
+						mech += "\n\n추가 공격: %s (%s)." % [UI.Loc.s(str(e.extra.name)), {"swipe": "부채꼴 휩쓸기", "pulse": "근접 충격파", "pierce": "직선 찌르기", "volley": "부채꼴 탄막"}.get(str(e.extra.mode), "공격")]
 					elif en_m:
 						mech += "\n\nExtra attack: %s (%s)." % [UI.Loc.s(str(e.extra.name)), {"swipe": "fan sweep", "pulse": "close-range burst", "pierce": "line thrust", "volley": "fan barrage"}.get(str(e.extra.mode), "attack")]
 					else:
 						mech += "\n\n附加攻击：%s（%s）。" % [str(e.extra.name), {"swipe": "扇形扫击", "pulse": "近身震爆", "pierce": "直线突刺", "volley": "扇形弹幕"}.get(str(e.extra.mode), "攻击")]
 					if float(e.extra.get("frost", 0.0)) > 0.0:
-						mech += "命中時、短時間寒冷を付与。" if ja_m else (" Hits briefly inflict Cold." if en_m else "命中附加短暂寒冷。")
+						mech += "命中時、短時間寒冷を付与。" if ja_m else (" 적중 시 잠시 한랭 부여." if ko_m else (" Hits briefly inflict Cold." if en_m else "命中附加短暂寒冷。"))
 					if float(e.extra.get("nerve", 0.0)) > 0.0 and Bal.v("enemy/nerve_hit_mult", 0.0) > 0.0:
-						mech += "命中時、神経損傷が蓄積。" if ja_m else (" Hits build up Nervous Impairment." if en_m else "命中累积神经损伤。")
+						mech += "命中時、神経損傷が蓄積。" if ja_m else (" 적중 시 신경 손상 누적." if ko_m else (" Hits build up Nervous Impairment." if en_m else "命中累积神经损伤。"))
 					if float(e.extra.get("stun", 0.0)) > 0.0:
-						mech += "命中時、短時間怯ませる。連続命中には保護時間あり。" if ja_m else (" Hits cause a brief stagger; repeated hits have a protection window." if en_m else "命中造成短暂僵直，连续命中有保护间隔。")
+						mech += "命中時、短時間怯ませる。連続命中には保護時間あり。" if ja_m else (" 적중 시 잠시 경직. 연속 적중에는 보호 시간이 있다." if ko_m else (" Hits cause a brief stagger; repeated hits have a protection window." if en_m else "命中造成短暂僵直，连续命中有保护间隔。"))
 				if e.has("patterns"):
 					var moves: Array[String] = []
 					for move in e.patterns:
 						moves.append(UI.Loc.s(str(move.name)))
 					if ja_m:
 						mech += "\n\n攻撃パターン：" + "／".join(moves) + "。"
+					elif ko_m:
+						mech += "\n\n공격 패턴: " + " / ".join(moves) + "."
 					else:
 						mech += ("\n\nAttack patterns: " + " / ".join(moves) + ".") if en_m else ("\n\n攻击模式：" + " / ".join(moves) + "。")
 				entries.append({"id": k, "name": e.name, "en": k.to_upper(), "tag": ["", "普通敌人", "精英敌人", "Boss"][tab],
@@ -517,6 +522,8 @@ func _op_entry(cid: String, cd: Dictionary) -> Dictionary:
 			lines.append("S%d \"%s\": %s" % [si + 1, UI.Loc.s(str(sk3.get("name", ""))), UI.Loc.s(str(sk3.get("desc", "")))])
 		elif UI.Loc.ja():
 			lines.append("S%d「%s」：%s" % [si + 1, UI.Loc.s(str(sk3.get("name", ""))), UI.Loc.s(str(sk3.get("desc", "")))])
+		elif UI.Loc.ko():
+			lines.append("S%d '%s': %s" % [si + 1, UI.Loc.s(str(sk3.get("name", ""))), UI.Loc.s(str(sk3.get("desc", "")))])
 		else:
 			lines.append("S%d「%s」：%s" % [si + 1, sk3.get("name", ""), sk3.get("desc", "")])
 	if cd.has("talent"):
@@ -524,6 +531,8 @@ func _op_entry(cid: String, cd: Dictionary) -> Dictionary:
 			lines.append("Talent \"%s\" (Elite 1): %s" % [UI.Loc.s(str(cd.talent.get("name", ""))), UI.Loc.s(str(cd.talent.get("desc", "")))])
 		elif UI.Loc.ja():
 			lines.append("素質「%s」（昇進1で解放）：%s" % [UI.Loc.s(str(cd.talent.get("name", ""))), UI.Loc.s(str(cd.talent.get("desc", "")))])
+		elif UI.Loc.ko():
+			lines.append("재능 '%s' (정예화 1 해제): %s" % [UI.Loc.s(str(cd.talent.get("name", ""))), UI.Loc.s(str(cd.talent.get("desc", "")))])
 		else:
 			lines.append("天赋「%s」（精英一解锁）：%s" % [cd.talent.get("name", ""), cd.talent.get("desc", "")])
 	if not lines.is_empty():

@@ -6,10 +6,10 @@ uid="uid://bhfv3q7ay3bbf"
 
 [deps]
 
-files=["res://l10n/events.en.translation", "res://l10n/events.ja.translation"]
+files=["res://l10n/events.en.translation", "res://l10n/events.ja.translation", "res://l10n/events.ko.translation"]
 
 source_file="res://l10n/events.csv"
-dest_files=["res://l10n/events.en.translation", "res://l10n/events.ja.translation"]
+dest_files=["res://l10n/events.en.translation", "res://l10n/events.ja.translation", "res://l10n/events.ko.translation"]
 
 [params]
 

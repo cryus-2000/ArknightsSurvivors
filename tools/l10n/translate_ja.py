@@ -428,7 +428,7 @@ def cmd_csv(a):
     for m in MODULES:
         p = ROOT / "game/l10n" / (m + ".csv")
         rows = list(csv.DictReader(open(p, encoding="utf-8")))
-        cols = ["keys", "en", "ja", "_zh", "_source", "_note", "_ja_note"]
+        cols = ["keys", "en", "ja", "ko", "_zh", "_source", "_note", "_ja_note", "_ko_note"]   # ko 两列（translate_ko.py 写）原样保留
         for r in rows:
             zh, short = unit_of(r)
             uid = ("short:" + zh) if short else zh

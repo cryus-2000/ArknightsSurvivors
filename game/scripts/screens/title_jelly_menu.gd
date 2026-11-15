@@ -458,6 +458,9 @@ static func _draw_deploy(ci: CanvasItem, o: Vector2, k: float, font: Font, water
 	elif UI.Loc.ja():   # 日文版：日服出撃按钮「作戦開始」，同中文拆两行
 		_spaced(ci, font, P.call(8, 14), "作戦", fs, _fa(Color.WHITE, a), 4.0 * k)
 		_spaced(ci, font, P.call(34, 74), "開始", fs, _fa(Color.WHITE, a), 4.0 * k)
+	elif UI.Loc.ko():   # 韩文版：韩服出击按钮「작전 개시」，同中文拆两行
+		_spaced(ci, font, P.call(8, 14), "작전", fs, _fa(Color.WHITE, a), 4.0 * k)
+		_spaced(ci, font, P.call(34, 74), "개시", fs, _fa(Color.WHITE, a), 4.0 * k)
 	else:
 		_spaced(ci, font, P.call(8, 14), "集结", fs, _fa(Color.WHITE, a), 4.0 * k)
 		_spaced(ci, font, P.call(34, 74), "出发", fs, _fa(Color.WHITE, a), 4.0 * k)

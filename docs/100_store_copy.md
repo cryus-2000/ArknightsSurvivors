@@ -1,4 +1,4 @@
-# 100 · 商店页文案与改名候选（2026-10-14，文案；§2 itch 三语 11-15 重写）
+# 100 · 商店页文案与改名候选（2026-10-14，文案；§2 itch 三语 11-15 重写，同日加韩语成四语）
 
 > 用途：B 站 Toy 与 itch 的商店页文案；游戏改名候选。写法按 docs/76（简短、克制、信息密，不用「您」「体验」「全新」「旅程」这类宣传词）。
 > 合规按 docs/99：B 站版不放站外链接、收款码、第三方登录；标题、封面不用他人商标；主标题不写「明日方舟」，原作只在声明里提。
@@ -35,10 +35,10 @@
 
 ---
 
-## 2. itch 版（英 / 中 / 日三语，可放链接；11-15 按当前版本重写）
+## 2. itch 版（英 / 中 / 日 / 韩四语，可放链接；11-15 按当前版本重写）
 
 > 内容以 11-15 的代码和数据为准（main 90ee887c7）：干员 20 名（`game/data/characters/`）、编队 3 人（`squad.gd REGULAR_MAX`，藏品可 +1）、三个技能全自动、Q 终结技（`core/play_keys.gd`）、连携随队长技能自动触发（11-05 起没有 E 键）、中期 Boss 6 只（`waves.json mid_pool`）、最终 Boss 4 只对应 4 个结局、一局 10 分钟、藏品 265 件、三档难度。数字变了要同步这里。
-> 英文、日文为 AI 翻译（docs/276 §12 / §13），页面上写明。itch 包有中 / 英 / 日三种界面语言；B 站 Toy 版只有中文。
+> 英文、日文、韩文为 AI 翻译（docs/276 §12 / §13 / §14），页面上写明。itch 包有中 / 英 / 日 / 韩四种界面语言；B 站 Toy 版只有中文。
 
 **Title**：方舟幸存者 / Arknights Survivors（itch 页现用名；改名后整体替换）
 
@@ -63,7 +63,7 @@ A free, fan-made survivor-like set in the Integrated Strategies theme *Mizuki & 
 - Gamepad: left stick move · Ⓑ / RT dash · Ⓐ / RB Ultimate · right stick aim · LB command wheel · START pause
 - Touch: drag on the left half to move · Dash, Ultimate and Command buttons on the right
 
-**Languages**: Chinese (original), English, Japanese. The English and Japanese text is AI-translated from the Chinese.
+**Languages**: Chinese (original), English, Japanese, Korean. The English, Japanese and Korean text is AI-translated from the Chinese.
 
 **Disclaimer**
 An unofficial, free, non-commercial fan work based on *Arknights*. Characters, world, names and the setting of the Integrated Strategies theme *Mizuki & Caerula Arbor* belong to Hypergryph. This project is not affiliated with Hypergryph. Contact the author for any rights concern and it will be handled immediately.
@@ -89,7 +89,7 @@ An unofficial, free, non-commercial fan work based on *Arknights*. Characters, w
 - 手柄：左摇杆移动 · Ⓑ / RT 冲刺 · Ⓐ / RB 终结技 · 右摇杆瞄准 · LB 指挥圆盘 · START 暂停
 - 触屏：左半屏拖动移动 · 右侧冲刺、终结技、指挥键
 
-**语言**：中文（原文）、English、日本語。英文与日文为 AI 翻译。
+**语言**：中文（原文）、English、日本語、한국어。英文、日文与韩文为 AI 翻译。
 
 **同人声明**
 本作是《明日方舟》的非官方同人作品，免费、非商业。角色、世界观、名称与集成战略「水月与深蓝之树」的设定均属于鹰角网络（Hypergryph），本作与鹰角网络无关。如有侵权请联系作者，将立即处理。
@@ -115,13 +115,40 @@ An unofficial, free, non-commercial fan work based on *Arknights*. Characters, w
 - ゲームパッド：左スティック 移動 ・ Ⓑ / RT ダッシュ ・ Ⓐ / RB 必殺技 ・ 右スティック 照準 ・ LB 指揮サークル ・ START ポーズ
 - タッチ：画面左半分をドラッグで移動 ・ 右側にダッシュ／必殺技／指揮ボタン
 
-**対応言語**：中国語（原文）、英語、日本語。英語と日本語のテキストは中国語からのAI翻訳です。
+**対応言語**：中国語（原文）、英語、日本語、韓国語。英語・日本語・韓国語のテキストは中国語からのAI翻訳です。
 
 **二次創作に関する表記**
 本作は『アークナイツ（明日方舟）』の非公式二次創作であり、無料・非営利で公開しています。キャラクター、世界観、名称、および統合戦略「ミヅキと紺碧の樹」の設定の権利はHypergryph（鷹角網絡）に帰属します。本作はHypergryphとは一切関係ありません。権利上の問題がございましたら作者までご連絡ください。速やかに対応いたします。
 
+### 한국어
+
+**한 줄 소개**: 오퍼레이터 소대를 이끌고 심해로. 시본의 물결 속에서 10분을 버텨라.
+
+**소개**
+통합 전략 '미즈키 & 카이룰라 아버'를 배경으로 한 무료 2차 창작 서바이버라이크 게임입니다. 당신은 로도스 아일랜드의 박사. 리더를 고르고, 시본이 도사린 심해로 잠수해 등불을 지켜 내세요. 오퍼레이터의 스킬 3개는 모두 자동으로 발동하며, 당신은 이동과 대시, 그리고 리더의 필살기를 어디에 떨어뜨릴지를 맡습니다. 레벨 업, 오퍼레이터 모집, 소장품 수집을 거듭해 10:00에 나타나는 최종 보스를 쓰러뜨리세요. 도중에 모은 증표에 따라 네 가지 엔딩 중 어디에 도달할지가 정해집니다.
+
+**특징**
+- 오퍼레이터 20명. 각자 스킬 3개, 모두 자동 발동. 정예화 1·정예화 2에서 싸우는 방식이 바뀝니다
+- 리더마다 전용 필살기(Q). 리더가 스킬을 쓰면 동료가 자동으로 연계하고, 인연이 있는 조합은 합동 공격도 가능
+- 3인 편성(소장품으로 4번째 칸 개방), 소장품 265종과 루트 이벤트로 빌드 구성
+- 중간 보스 6종, 최종 보스 4종, 각각 공략법이 있습니다
+- 등불·명흔·길잡이 등표: 빛이 닿는 범위 안에서 싸우세요
+- 엔딩 4종, 난이도 3단계. 탐험 사이에는 인지 형성·헤드헌팅·훈장
+- 키보드와 마우스, 게임패드, 터치 지원. 브라우저에서 바로 플레이
+
+**조작**
+- 키보드: WASD 이동 · Space 대시 · Q 필살기(누르고 있으면 조준, 떼면 발동) · F 지휘 원판 · Esc 일시정지(브라우저판은 P도 가능) · 왼쪽 클릭을 누르고 있으면 일반 공격 방향 지정
+- 게임패드: 왼쪽 스틱 이동 · Ⓑ / RT 대시 · Ⓐ / RB 필살기 · 오른쪽 스틱 조준 · LB 지휘 원판 · START 일시정지
+- 터치: 화면 왼쪽 절반을 드래그해 이동 · 오른쪽에 대시 / 필살기 / 지휘 버튼
+
+**지원 언어**: 중국어(원문), 영어, 일본어, 한국어. 영어·일본어·한국어 텍스트는 중국어 원문을 AI로 번역한 것입니다.
+
+**2차 창작 고지**
+본 작품은 《명일방주(Arknights)》의 비공식 2차 창작물이며, 무료·비영리로 공개합니다. 캐릭터, 세계관, 명칭 및 통합 전략 '미즈키 & 카이룰라 아버'의 설정에 관한 권리는 Hypergryph(鹰角网络)에 있습니다. 본 작품은 Hypergryph와 아무런 관련이 없습니다. 권리 관련 문제가 있으시면 작자에게 연락해 주세요. 즉시 대응하겠습니다.
+
 > itch 可以放小红书联系方式（菜月colafax（373145407））和致谢页里的第三方素材署名。
 > 日文段落的用语与游戏内日文一致（必殺技 / 連携 / 秘宝 / 認知形成 / 導きの灯標，见 tools/l10n/translate_ja.py PROVISIONAL_JA）；「寻访」= 人材発掘（日服官方）、「蚀刻章」= 勲章，与 ui.csv 的 ja 列一致，改了要同步这里。
+> 韩文段落的用语与游戏内韩文一致（필살기 / 연계 / 소장품 / 인지 형성 / 길잡이 등표 / 등불 / 명흔，见 tools/l10n/translate_ko.py PROVISIONAL_KO；后四条中 등불 / 명흔 / 인지 형성 / 소장품 是韩服官方）；「寻访」= 헤드헌팅（韩服官方）。
 
 ---
 

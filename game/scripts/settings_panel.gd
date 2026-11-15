@@ -16,7 +16,7 @@ const ROWS := [
 	{"cn": "音乐", "en": "MUSIC", "key": "music", "type": "vol"},
 	{"cn": "音效", "en": "SFX", "key": "sfx", "type": "vol"},
 	{"cn": "语音", "en": "VOICE", "key": "voice", "type": "vol"},
-	# 语音语言（11-15，原作日 / 英 / 韩配音）：◀ 跟随界面 / 中文 / 日本語 / English / 韩语 ▶；B站 Toy 版不列出（固定中文语音）
+	# 语音语言（11-15，原作日 / 英 / 韩配音）：◀ 跟随界面 / 中文 / 日本語 / English / 한국어 ▶；B站 Toy 版不列出（固定中文语音）
 	{"cn": "语音语言", "en": "VOICE LANGUAGE", "key": "voice_lang", "type": "vlang"},
 	# 语言（docs/276 §10）：两格 中文 / English，格子里的字各用本语言写、不翻；B站 Toy 版不列出（固定中文）
 	{"cn": "语言 / Language", "en": "LANGUAGE", "key": "lang", "type": "lang"},
@@ -57,9 +57,9 @@ const ROWS := [
 	{"cn": "返回", "en": "BACK", "key": "", "type": "back"},
 ]
 ## 语言两格：[存档值, 格子里的字]（格子里的字永远用本语言写，不走翻译）
-## 语言格：三格（中文 / English / 日本語），每格步长
-const LANG_STEP := 80.0
-const LANG_OPTS := [["zh", "中文"], ["en", "English"], ["ja", "日本語"]]   # 选项名永远用本语言写（Loc.NATIVE 不翻）
+## 语言格：四格（中文 / English / 日本語 / 한국어），每格步长（旧版设置页；新版按列宽均分）
+const LANG_STEP := 62.0
+const LANG_OPTS := [["zh", "中文"], ["en", "English"], ["ja", "日本語"], ["ko", "한국어"]]   # 选项名永远用本语言写（Loc.NATIVE 不翻）
 const RUNS_HINT := "测试版：本地记录对局摘要（不上传）"
 ## 分类：[中文, 英文, 该页的选项键名]（11-01 docs/213 P10 起列表里不再放返回行，返回在底栏）。10-22 用户定 16 行清单（Codex 界面单 §4）：
 ## 命中顿帧 / Boss 登场演出 / Boss 轮廓光 / 景深 / 辉光 / 水下滤镜 / 法线光照 / 战斗画面缩放 / 对局记录不再露出——
@@ -426,11 +426,13 @@ func _v2_sub(row: Dictionary) -> Array:
 		"vlang":   # 跟随界面时写出实际用的语音语言（选项名用本语言写，不翻）
 			if Cfg.voice_lang_pref == "auto":
 				return ["→ " + _vlang_label(Cfg.voice_lang()), false]
-		"lang":   # AI 翻译标注（英文 11-11、日文 11-15）：新版设置页写在语言行说明位
+		"lang":   # AI 翻译标注（英文 11-11、日文 / 韩文 11-15）：新版设置页写在语言行说明位
 			if _lang_now() == "en":
 				return ["AI-translated", true]
 			if _lang_now() == "ja":
 				return ["AI翻訳", true]
+			if _lang_now() == "ko":
+				return ["AI 번역", true]
 		"quality":
 			if Cfg.quality_mode == "auto":
 				return ["按设备推荐：%s" % Cfg.QUALITY_NAME.get(Cfg.quality, "高"), true]
@@ -912,6 +914,8 @@ func _draw_row(ci: CanvasItem, rr: Rect2, si: int, touch: bool, ty0: float) -> v
 				UI.text(ci, font, Vector2(vx - 236, rr.position.y + ty0 - 1.0), "AI-translated", 12 if not touch else 13, UI.CYAN_DIM, HORIZONTAL_ALIGNMENT_RIGHT, 246)
 			elif _lang_now() == "ja":   # 日文同样标 AI 翻译（11-15）
 				UI.text(ci, font, Vector2(vx - 236, rr.position.y + ty0 - 1.0), "AI翻訳", 12 if not touch else 13, UI.CYAN_DIM, HORIZONTAL_ALIGNMENT_RIGHT, 246)
+			elif _lang_now() == "ko":   # 韩文同样标 AI 翻译（11-15）
+				UI.text(ci, font, Vector2(vx - 236, rr.position.y + ty0 - 1.0), "AI 번역", 12 if not touch else 13, UI.CYAN_DIM, HORIZONTAL_ALIGNMENT_RIGHT, 246)
 		"onboard":
 			# 三格 没玩过 / 玩过 / 关闭（同帧率格的样式）；还没问过时三格都不亮，行尾写「下局开局时询问」
 			for oi in 3:
@@ -967,15 +971,15 @@ func _draw_row(ci: CanvasItem, rr: Rect2, si: int, touch: bool, ty0: float) -> v
 
 
 ## ── 语音语言（11-15）────────────────────────────────────────────
-## [存档值, 显示]：「跟随界面」走翻译，语言名永远用本语言写（韩文字形不在界面字体里时退成英文名，免得显示方块）
-const VLANG_OPTS := [["auto", "跟随界面"], ["zh", "中文"], ["ja", "日本語"], ["en", "English"], ["ko", "Korean"]]   # 韩语：实际显示韩文自称（_vlang_label 按码位拼，源码里不写韩文字面量——韩文字体由韩语界面本地化接入，release_slim 缺字检查扫字面量）
+## [存档值, 显示]：「跟随界面」走翻译，语言名永远用本语言写
+const VLANG_OPTS := [["auto", "跟随界面"], ["zh", "中文"], ["ja", "日本語"], ["en", "English"], ["ko", "한국어"]]   # 语言名永远用本语言写（同 LANG_OPTS，韩文字形由 l10n/ui_ko.otf 回退）
 
 
 func _vlang_label(v: String) -> String:
+	if v == "ko":
+		Cfg.Loc._l10n_font("ko")   # 界面不是韩文时 ui_ko.otf 还没挂上（Loc 只在切到韩文时挂），网页版没有系统字体会显示方块；只挂一次
 	for o in VLANG_OPTS:
 		if o[0] == v:
-			if v == "ko" and font != null and font.has_char(0xD55C):
-				return String.chr(0xD55C) + String.chr(0xAD6D) + String.chr(0xC5B4)
 			return o[1]
 	return v
 
