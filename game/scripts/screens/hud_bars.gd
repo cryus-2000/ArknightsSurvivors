@@ -358,12 +358,12 @@ func _boss_sub(e: Dictionary) -> Array:
 	if brk > 0.0:
 		return ["破绽 %.1f 秒 · 受伤 +%d%%" % [brk, roundi((Game.Bal.v("boss/break_mult", 1.4) - 1.0) * 100.0)], UI.GOLD]
 	if e.get("gate_hold", false):
-		if g.combat.hardened(e):
-			# 最后一幕硬化（combat.harden_*）：停招，读秒到 0 自动倒下
-			var left: int = ceili(maxf(0.0, float(e.get("act_min", 0.0)) - float(e.get("act_t", 0.0))))
+		if (e.get("gates", []) as Array).is_empty():
+			# 最后一幕护盾（combat.last_hold_*）：只挡一小段，读秒到 0 碎掉、血还卡在 3% 就直接倒下
+			var left: int = ceili(g.combat.last_hold_left(e))
 			if e.type == "paranoia":
-				return ["泡膜硬化 · 停止攻击 · %d 秒后破裂" % left, Color(0.85, 0.72, 1.0)]
-			return ["阶段护盾 · 停止攻击 · %d 秒后倒下" % left, UI.GOLD]
+				return ["泡膜硬化 · %d 秒后破裂" % left, Color(0.85, 0.72, 1.0)]
+			return ["阶段护盾 · %d 秒后破碎" % left, UI.GOLD]
 		return ["阶段护盾 · 时限到后破碎", UI.GOLD]
 	if e.get("coma", false):
 		return ["假死中 —— 趁现在击倒另一体", Color(1, 0.82, 0.88)]

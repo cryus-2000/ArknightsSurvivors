@@ -536,6 +536,9 @@
   "mid_boss_clear_r": 400
  },
  "boss": {
+  "last_hold_max": 3,
+  "last_auto_kill": 1,
+  "_last_hold": "最后一幕 3% 护盾（11-16 B站玩家反馈、用户定「护盾放一点点、撑过就直接被秒」，docs/38 §1.3）：last_hold_max 护盾最多撑几秒（与这一幕最短时长先到为准；0 = 撑满最短时长，旧行为）；last_auto_kill 1 = 护盾碎时血还卡在 3% 直接倒下（0 = 旧行为，剩 3% 要补刀）",
   "mid_focus": 1,
   "mid_focus_k": 1.5,
   "mid_focus_guard": 30,

@@ -945,10 +945,9 @@ func gate_clamp(e: Dictionary, dmg: float) -> float:
 		if e.hp > lh and e.hp - dmg <= lh and e.act_t < e.act_min:
 			dmg = e.hp - lh
 			e.gate_hold = true
-			if harden_on():
-				harden_start(e)
-			else:
-				g.vfx.add_alert(e.pos + Vector2(0, -e.r - 36.0), "阶段护盾", UI.GOLD, 18)
+			e.hold_t = 0.0
+			var pa: bool = str(e.type) == "paranoia"
+			g.vfx.add_alert(e.pos + Vector2(0, -e.r - 36.0), "泡膜硬化" if pa else "阶段护盾", Color(0.85, 0.72, 1.0) if pa else UI.GOLD, 18)
 		return dmg
 	var line: float = e.maxhp * float(gates[0])
 	if e.hp > line and e.hp - dmg <= line:
@@ -982,63 +981,35 @@ func gate_update(e: Dictionary, dt: float) -> void:
 			if e.gates.is_empty():
 				e.gate_hold = false   # 最后一幕的护盾：到时碎掉，不给过卡点的无敌和掉落
 				e.last_done = true
-				if harden_on():
-					harden_end(e)
+				last_hold_end(e)
 			else:
 				gate_pass(e)
+		elif e.gates.is_empty() and Bal.v("boss/last_hold_max", 3.0) > 0.0:
+			# 最后一幕的护盾只挡一小段（11-16 用户「Boss 撑过这个时间就直接被秒也可以」）：撑满 boss/last_hold_max 秒就碎，不必等满这一幕最短时长
+			e.hold_t = float(e.get("hold_t", 0.0)) + dt
+			if e.hold_t >= Bal.v("boss/last_hold_max", 3.0):
+				e.gate_hold = false
+				e.last_done = true
+				last_hold_end(e)
 
 
-## ---- 最后一幕硬化（11-16 B站玩家「高伤害秒了 Boss 还得硬扛一段出招」；最短时长本身保留）：
-## 最后一幕没满最短时长就打到剩 boss/last_hold（3%）时，Boss 进硬化：不出新招、自己的弹幕 / 预警 / 冲击环收掉、慢慢漂移、碰到不伤人；
-## 时限一到自动倒下（走 Boss 的 on_lethal：偏执泡影一阶段末结茧、接潮假死、骑士重生照旧）。boss/harden_quiet 0 = 旧行为（护盾到时碎掉、剩下 3% 照常打，期间照常出招）。
-## 中间各道卡点的阶段护盾不变（护盾后还有下一幕）。所有带最后一幕最短时长的 Boss（中期 / 结局一～四）共用这一套
-func harden_on() -> bool:
-	return Bal.v("boss/harden_quiet", 1.0) > 0.0
+## 最后一幕护盾还剩几秒（HUD 读秒）：这一幕最短时长与 last_hold_max 哪个先到
+func last_hold_left(e: Dictionary) -> float:
+	var left: float = float(e.get("act_min", 0.0)) - float(e.get("act_t", 0.0))
+	var mx: float = Bal.v("boss/last_hold_max", 3.0)
+	if mx > 0.0:
+		left = minf(left, mx - float(e.get("hold_t", 0.0)))
+	return maxf(0.0, left)
 
 
-## Boss 正处在最后一幕硬化（boss_ai.boss_step 据此停招；enemies.gd 据此放慢、不接触伤人）
-func hardened(e: Dictionary) -> bool:
-	return e.get("gate_hold", false) and (e.get("gates", []) as Array).is_empty() and harden_on()
-
-
-func harden_start(e: Dictionary) -> void:
-	var pa: bool = str(e.type) == "paranoia"
-	g.vfx.add_alert(e.pos + Vector2(0, -e.r - 36.0), "泡膜硬化" if pa else "阶段护盾", Color(0.85, 0.72, 1.0) if pa else UI.GOLD, 20)
-	e.channel = 0.0
-	e.dash_t = 0.0
-	e.kb = Vector2.ZERO
-	e.kb_self = false
-	e.move_name = ""
-	if is_same(g.bai.token_owner, e):
-		g.bai.token_until = 0.0
-	harden_clear(e)
-	Sfx.play("roar", -10.0, 0.7, 0.0)
-
-
-## 收掉这只 Boss 放出的东西：敌弹 0.35 秒内消散且不再伤人、预警撤掉、冲击环停在原地
-func harden_clear(e: Dictionary) -> void:
-	var ty := str(e.type)
-	for b in g.ebullets:
-		if is_same(b.get("owner"), e) or str(b.get("src_type", "")) == ty:
-			b.dmg = 0.0
-			b.life = minf(float(b.get("life", 0.0)), 0.35)
-			b.home = false
-	for b in g.lobs:
-		if is_same(b.get("owner"), e) or str(b.get("src_type", "")) == ty:
-			b.dmg = 0.0
-	for s in g.shocks:
-		if is_same(s.get("owner"), e) or str(s.get("src_type", "")) == ty:
-			s.hit = true
-			s.maxr = float(s.get("r", 0.0))
-			if s.has("dmg"):
-				s.dmg = 0.0
-	g.warns = g.warns.filter(func(w): return not is_same(w.owner, e) or w.done)
-
-
-## 时限到：自动倒下（同 damage 的归零分支：先问 Boss 的 on_lethal，返回 true 的结茧 / 假死 / 重生照旧）
-func harden_end(e: Dictionary) -> void:
-	if e.dead:
+## 最后一幕护盾碎时血量还卡在剩 3% 的 Boss 直接倒下（11-16 用户「直接被秒，不再要求玩家补刀」；boss/last_auto_kill 0 = 旧行为：剩下 3% 照常打）。
+## 同 damage 的归零分支：先问 Boss 的 on_lethal，返回 true 的（偏执泡影一阶段末结茧、接潮假死、骑士重生）照旧
+func last_hold_end(e: Dictionary) -> void:
+	if e.dead or Bal.v("boss/last_auto_kill", 1.0) <= 0.0:
 		return
+	if e.hp > e.maxhp * Bal.v("boss/last_hold", 0.03) + 0.5:
+		return
+	g.vfx.add_alert(e.pos + Vector2(0, -e.r - 36.0), "护盾破碎", UI.GOLD, 20)
 	e.hp = 0.0
 	var bh = g.bai.boss(e.type)
 	if bh != null and bh.on_lethal(e):

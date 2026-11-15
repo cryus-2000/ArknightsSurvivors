@@ -1877,9 +1877,9 @@ func _bossacts_step(spec: String) -> void:
 
 
 ## --hardendemo=<Boss>[,<秒>]（11-16 B站玩家「高伤害秒了 Boss 还得硬扛一段出招」对照录像）：第 20 帧在队长右侧刷出 Boss，
-## 直接摆到最后一幕开头（偏执泡影 = 破茧后二阶段：cocoon_done、半血、act_min 取最后一项 25 秒），登场 <秒>（缺省 3）时一发打空血量
-## （模拟玻璃大炮秒杀，gate_clamp 截在剩 3%）。队长绕圈慢走、血量不低于 30%（照常挨打，看得见掉血）。Boss 倒下 4 秒后退出。
-## 对照：同一份代码加 --bal=boss/harden_quiet=0 = 旧行为（护盾期照常出招）
+## 直接摆到最后一幕开头（偏执泡影 = 破茧后二阶段：cocoon_done、半血、act_min 取最后一项 25 秒），登场 <秒>（缺省 3；-1 = 不打，普通构筑照常打）时
+## 一发打空血量（模拟玻璃大炮秒杀，gate_clamp 截在剩 3%）。队长绕圈慢走、血量不低于 30%（照常挨打，看得见掉血）。Boss 倒下 4 秒后退出。
+## 对照旧行为：--bal=boss/last_hold_max=0 --bal=boss/last_auto_kill=0（护盾撑满这一幕最短时长、剩 3% 要补刀）
 func _hardendemo_step(spec: String) -> void:
 	var parts: PackedStringArray = spec.split(",")
 	var burst_at: float = float(parts[1]) if parts.size() > 1 else 3.0
@@ -1908,7 +1908,7 @@ func _hardendemo_step(spec: String) -> void:
 		b.hp = b.maxhp * 0.5
 		hd_boss = b
 		hd_t0 = g.t
-		print("HARDENDEMO %s act_min=%.1f quiet=%s" % [parts[0], float(b.act_min), str(g.combat.harden_on())])
+		print("HARDENDEMO %s act_min=%.1f maxhp=%.0f" % [parts[0], float(b.act_min), float(b.maxhp)])
 		return
 	if g.at_frames < 20 or hd_boss.is_empty():
 		return
@@ -1918,9 +1918,12 @@ func _hardendemo_step(spec: String) -> void:
 		if not o.dead and not o.boss and not o.chest and not o.get("part", false) and not o.has("decoy_of") and o.age > 0.05:
 			o.dead = true   # 普通波次的杂兵清掉，只看 Boss
 	var b: Dictionary = hd_boss
-	if not b.dead and not b.get("hd_burst", false) and g.t >= hd_t0 + burst_at:
+	if burst_at >= 0.0 and not b.dead and not b.get("hd_burst", false) and g.t >= hd_t0 + burst_at:
 		b.hd_burst = true
-		g.combat.damage(b, b.maxhp * 5.0, {})
+		for k in 400:   # 玻璃大炮：连打到护盾升起（单发会被防御 / 承伤倍率 / 伤害上限削掉）
+			if b.dead or b.get("gate_hold", false) or b.get("part", false):
+				break
+			g.combat.damage(b, b.maxhp * 0.5, {})
 		print("HARDENDEMO burst t=%.1f hp=%.3f hold=%s" % [g.t - hd_t0, b.hp / b.maxhp, str(b.get("gate_hold", false))])
 	if g.at_frames % 30 == 0 and not b.dead:
 		print("HARDENDEMO t=%.1f hp=%.3f hold=%s act_t=%.1f buls=%d warns=%d php=%.0f" % [g.t - hd_t0, b.hp / b.maxhp, str(b.get("gate_hold", false)), float(b.act_t),
@@ -1929,7 +1932,7 @@ func _hardendemo_step(spec: String) -> void:
 		hd_dead_t = g.t
 		hd_dead_f = g.at_frames
 		print("HARDENDEMO dead t=%.1f" % (g.t - hd_t0))
-	if (hd_dead_t >= 0.0 and g.at_frames >= hd_dead_f + 240) or g.t >= hd_t0 + 60.0:
+	if (hd_dead_t >= 0.0 and g.at_frames >= hd_dead_f + 240) or g.t >= hd_t0 + 75.0:
 		print("HARDENDEMO END")
 		if Sfx.trace_on:
 			print("SFXTRACE " + JSON.stringify({"frame0": _rec_f0, "trace": Sfx.trace}))   # 录屏没录满就退：这里补打音效记录（tools/harden_rec.py 混音）
