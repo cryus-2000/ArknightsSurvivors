@@ -84,7 +84,7 @@ def main():
     # release_all 用 git 缺省的短号（仓库变大后是 9 位）命名 final_<提交>；这里按已有目录反查，避免 8 / 9 位对不上（10-26）
     cands = sorted(d.name[len("final_"):] for d in a.release_dir.resolve().glob("final_*") if full.startswith(d.name[len("final_"):]))
     commit = max(cands, key=len) if cands else full[:9]
-    if a.apply and a.confirm != commit:
+    if a.apply and not (len(a.confirm) >= 7 and (commit.startswith(a.confirm) or a.confirm.startswith(commit))):   # ship.py 传 8 位，git 缺省短号可能 9 位
         raise SystemExit("--apply 需要 --confirm %s（发布前先经用户确认）" % commit)
     final = a.release_dir.resolve() / ("final_%s" % commit)
     wins = sorted(glob.glob(str(final / ("%s_Public_Encrypted_*_%s.zip" % (NAME, commit)))))
