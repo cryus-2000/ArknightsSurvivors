@@ -1,0 +1,35 @@
+# 349 · 安卓 B站 App「拖不动 / 首局十几秒退出」（11-16，分支 claude/mystifying-ptolemy-eae9e1，基于 main e6ab2c50f）
+
+玩家反馈（Toy 90ee887c7，安卓 B站 App，795×362 @3.5，编队斯卡蒂，中画质）：进局后拖动移动没反应（升级卡点得动）；第一局约 15 秒异常退出，再进时弹出「上次异常退出前的内存曲线」。
+
+## 0. 结论
+
+| 问题 | 查到的 | 改了什么 |
+|---|---|---|
+| 首局十几秒被杀 | **首次进游戏的十连寻访把 WASM 堆从 286 撑到 344 / 412 MiB，且只涨不缩**（玩家快照里 343 就是这一档）。拉包光层把四张光效图的 CPU 副本最近邻放大回 @2x 常驻（约 35 MiB）+ 转换时的临时副本，叠在开机后已经接近满的堆上，触发 286→344 扩容；揭示页再叠十名干员 @2x 立绘的裁边临时图，344→412 | `headhunt.gd`：光层副本保持原图尺寸，切帧坐标按倍率换算，合成贴图也按原图倍率（画时拉伸铺满，最近邻，观感不变）。见 §2 数字 |
+| 拖不动 | 内置浏览器 / Edge 仿真（795×362 @3.5、安卓 B站 UA、Toy 容器 mock、安全区 l23 t54、合成 TouchEvent 与 DevTools 触摸）里**拖动移动全部正常，复现不出**。触屏链路（Godot touch_cb → `touch.gd` 槽位归一 → 摇杆区）在这个视口下没有算错。只在真机上拖动失灵、点按正常，最像宿主把拖动手势收走（WebView 收到 touchcancel）：B站 App 的侧滑返回 / 系统返回手势，或我们每次抬手都调的 `requestFullscreen`（安卓 WebView 走 `onShowCustomView`，宿主按视频全屏处理） | ① 预设 `head_include`：B站 App / Toy 包 / 安卓 WebView 里不再 `requestFullscreen` + 锁横屏（全屏与方向本来就由 `toy.setContainerMode` 管）；itch 安卓 Chrome 照旧。② 闪退报告记触点计数「按下 / 拖动 / 抬起 / 取消」，前 6 次 touchcancel 记进「页面事件」：下次真机报告能直接看出拖动事件到没到、是不是被宿主取消 |
+
+**另一种可能**：玩家的「异常退出」也可能是页面被关掉（侧滑返回 / 返回键退出 Toy）。手机网页局中途关页面同样记成异常退出（快照没有 `end`），区别在报告末尾「页面事件」：被系统杀页面没有任何事件；被关掉会有「页面隐藏 / 切后台」。玩家贴的片段到「采样峰值」为止，已请协调人核对原文。
+
+## 1. 报告里的「JS」一栏
+
+`core/crash_box.gd` 采样时读 `performance.memory.usedJSHeapSize`（MiB，只有 Chromium 有；iOS / WebKit 没有，用「主包 MEMFS 字节 + 音频」估算并带 `~`）。
+安卓 Chromium 在没开精确内存信息时，这个值是**分桶取整、并按 20 分钟缓存**的（所以 0:00 和 0:15 都是 468 一动不动），不是实时读数；新版 Chromium 还把 ArrayBuffer 等外部内存算进去。
+仿真里同一路径 GC 后的 JS 堆真驻留只有 17 MiB（`perf_web --jsgc`），主包 MEMFS 31 MiB。468 不能当 JS 真占用看，判断以 WASM 容量、显存、音频为准。
+
+## 2. 内存前后（Edge 手机仿真 795×362 @3.5、安卓 B站 UA、Toy 包、全新存档首次进游戏：开始 → 十连寻访 → 跳过 → 完成 → 跳过引导 → 出击 → 新手问题 → 招募 → 局内 30 秒）
+
+脚本：`toy_firstrun.py`（scratchpad，CDP 驱动 + 每步读 `window.__syWasm` 容量与 `__syWasmGrows`）。
+
+（数字见下方表，§2.1）
+
+## 3. 拖动复现记录
+
+- 内置浏览器：Toy 包（8185f341f）+ `toy_mock.js ?toyc=phone`，UA 改安卓 B站、`devicePixelRatio` 3.5、视口 795×362；画布按 Toy 手机上限 2 倍出图（1590×724）。合成 TouchEvent 按住左半屏拖动：摇杆出现、队长移动；「玩过」与「没玩过」（演示局）两条新手路径都正常。
+- Edge 仿真（DevTools 触摸，见 `build/touch_drag_before.mp4` / `touch_drag_after.mp4`）：改前改后拖动都正常（复现不出，录像只证明改动没弄坏触屏移动）。
+- 快检：touch_layout / touch_move / toy_support / ui_smoke / slim / web_focus 通过。
+
+## 4. 没做 / 待真机
+
+- 若下次报告里「触点被取消」频繁出现：说明是宿主收走拖动。可选方向（需用户定）：摇杆改「按下即给方向」的固定摇杆缺省（不靠拖动起步）、局内拦返回键（`history.pushState` 垫一层，第一次返回只暂停，再按才退出）。
+- 揭示页十名干员 @2x 立绘的裁边（`A.web_crop_strip`）每张临时图约 6–20 MiB，逐张做，峰值看最大一张；若 §2 显示揭示页仍触发扩容再改成按需裁。
