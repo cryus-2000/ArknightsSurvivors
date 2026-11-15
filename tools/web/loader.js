@@ -139,11 +139,11 @@ window.__syRL = {
     window.__syLoadInfo = (failed ? 'FAIL ' : '') + t + ' ' + det + ' · T+' + Math.round((now - tStart) / 1000) + 's' + (lastErr ? ' · ' + lastErr.slice(0, 80) : '');
     var sig = got + '|' + done + '|' + bootProgress + '|' + bootLabel;
     if (sig !== progSig) { progSig = sig; progT = now; if (slowShown && window.__syBootHideWarn) { slowShown = false; window.__syBootHideWarn(); } }
-    else if (!slowShown && !failed && !okDone && !compat.length && now - progT > SLOW_MS && window.__syBootWarn) {
+    else if (!slowShown && !failed && !okDone && !(bootProgress >= 1) && !compat.length && now - progT > SLOW_MS && window.__syBootWarn) {
       slowShown = true;
       window.__syBootWarn('加载停住了', Math.round((now - progT) / 1000) + ' 秒没有进展。可以继续等待，也可以点「重试」。', true);
     }
-    if (!autoShown && !failed && !okDone && !compat.length && now - tStart > AUTO_MS && window.__syBootWarn) {
+    if (!autoShown && !failed && !okDone && !(bootProgress >= 1) && !compat.length && now - tStart > AUTO_MS && window.__syBootWarn) {
       autoShown = true;
       window.__syBootWarn('加载时间较长', '网络或设备较慢时需要更久。可以继续等待。', false);
     }
@@ -713,6 +713,7 @@ window.__syRL = {
       ready = true;
       bootProgress = 1;
       bootLabel = '接入完成 · 等待指令';
+      if (window.__syBootHideWarn) window.__syBootHideWarn();   // 读完了：收起诊断卡（提醒类），别盖住「开始游戏」；之后要看用四指浮层
       upd();
       // 手机网页局与局之间的整页重载（core/run_reload.gd，docs/319 §14）：玩家刚点过「再来一局 / 回标题」，读完直接开始，不再要一次「开始游戏」
       if (reload) {
