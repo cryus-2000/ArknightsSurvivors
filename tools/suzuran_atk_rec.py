@@ -16,7 +16,8 @@ import exu_sync_rec as X
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FPS = X.FPS
 NAME = "op_suzuran_atk"
-LABELS = {"old": ("现版", "现版（程序合成）"), "a": ("A", "候选 A 符咒·短"), "b": ("B", "候选 B 符咒·长"), "c": ("C", "候选 C 符咒 + 小铃")}
+LABELS = {"old": ("现版", "现版（程序合成）"), "a": ("A", "候选 A 符咒·短"), "b": ("B", "候选 B 符咒·长"), "c": ("C", "候选 C 符咒 + 小铃"),
+          "d": ("D", "候选 D 远程法术"), "e": ("E", "候选 E 火系法术"), "f": ("F", "候选 F 法术咏唱")}
 
 
 def main():
@@ -25,6 +26,7 @@ def main():
     ap.add_argument("--start", type=float, default=20.0)
     ap.add_argument("--secs", type=float, default=10.0)
     ap.add_argument("--seed", type=int, default=3)
+    ap.add_argument("--only", default="", help="只混这几版，如 d,e,f")
     a = ap.parse_args()
     import imageio_ffmpeg
     ff = imageio_ffmpeg.get_ffmpeg_exe()
@@ -51,6 +53,8 @@ def main():
     shutil.rmtree(raw, ignore_errors=True)
     shutil.copytree(fdir, raw)
     for key, (short, label) in LABELS.items():
+        if a.only and key not in a.only.split(","):
+            continue
         src = os.path.join(a.out, "op_suzuran_atk_%s.wav" % key)
         if not os.path.exists(src):
             print("缺候选", src)

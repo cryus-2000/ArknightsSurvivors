@@ -10,11 +10,15 @@
   A 符咒·短：p_atk_charm2_n 全段（0.15 秒），低通 4.5 kHz，30 ms 淡出；
   B 符咒·长：p_atk_charm_n 开头 0.22 秒，低通 3.6 kHz，60 ms 淡出；
   C 符咒 + 小铃：A 叠 p_atk_shakebell_n 开头 0.18 秒（低通 6 kHz、−12 dB），40 ms 淡出。
+  第二批（用户「还有什么候选音效吗」）：
+  D 远程法术：p_atk_magfar_n（原作通用远程法术出手）开头 0.25 秒，低通 4.5 kHz，70 ms 淡出；
+  E 火系法术：p_atk_firemag_n 开头 0.25 秒（重心约 2.2 kHz，偏暖，狐火感），低通 5 kHz，70 ms 淡出；
+  F 法术咏唱：p_atk_magspell_n 开头 0.25 秒，低通 4 kHz，80 ms 淡出。
 响度按 docs/113 §1「有效响度」（50 ms 窗 RMS 最大值）对齐现版 op_suzuran_atk（约 −14.5 dB），峰值封顶 −6 dB；
 音量 / 节流仍由 sfx.gd 的 OP_VOL（普攻 −11 dB）与 OP_LIMIT 管，和其他术士普攻同一档。
 
-用法（仓库根目录）：python game/tools/gen_sfx_suzuran_atk_1116.py              → 只写 build/sfx_suzuran_1116/（a / b / c + _old 现版副本）
-                    python game/tools/gen_sfx_suzuran_atk_1116.py --apply a|b|c → 再把选中的一版写进 game/audio/sfx/op_suzuran_atk.wav
+用法（仓库根目录）：python game/tools/gen_sfx_suzuran_atk_1116.py              → 只写 build/sfx_suzuran_1116/（a–f + _old 现版副本）
+                    python game/tools/gen_sfx_suzuran_atk_1116.py --apply a…f → 再把选中的一版写进 game/audio/sfx/op_suzuran_atk.wav
 """
 import argparse, os, shutil
 
@@ -83,7 +87,19 @@ def cand_c():
     return fade(y, 40)
 
 
-CANDS = {"a": cand_a, "b": cand_b, "c": cand_c}
+def cand_d():
+    return fade(lp(load("p_atk_magfar_n.wav", 0.0, 0.25), 4500), 70)
+
+
+def cand_e():
+    return fade(lp(load("p_atk_firemag_n.wav", 0.0, 0.25), 5000), 70)
+
+
+def cand_f():
+    return fade(lp(load("p_atk_magspell_n.wav", 0.0, 0.25), 4000), 80)
+
+
+CANDS = {"a": cand_a, "b": cand_b, "c": cand_c, "d": cand_d, "e": cand_e, "f": cand_f}
 
 
 def main():
