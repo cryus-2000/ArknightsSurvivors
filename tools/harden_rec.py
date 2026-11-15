@@ -32,13 +32,19 @@ def main():
     GR.ensure_imported(os.path.join(ROOT, "game"))
     for key in a.only.split(","):
         label = {"burst_old": "高伤害秒杀 · 改前：硬化撑满 25 秒、还要补刀", "burst_new": "高伤害秒杀 · 改后：护盾 3 秒后直接击破",
-                 "normal_old": "普通构筑 · 改前", "normal_new": "普通构筑 · 改后（偏执泡影生命上调）"}[key]
+                 "normal_old": "普通构筑（高手机器人整局）· 改前", "normal_new": "普通构筑（高手机器人整局）· 改后：生命 ×1.75 / 1.45"}[key]
         fdir = os.path.join(a.out, "frames_%s_%s" % (a.boss, key))
         shutil.rmtree(fdir, ignore_errors=True)
         os.makedirs(fdir, exist_ok=True)
-        args = [GR.find_godot(), "--path", os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--fixed-fps", str(FPS), "--",
-                "--balance", "--seed=%d" % a.seed, "--op=" + a.op, "--hardendemo=" + a.boss + ("" if key.startswith("burst") else ",-1"), "--realtime", "--nobossintro",
-                "--recframes=150,%d" % (80 * FPS), "--shotdir=" + fdir, "--sfxtrace"]
+        if key.startswith("burst"):
+            args = [GR.find_godot(), "--path", os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--fixed-fps", str(FPS), "--",
+                    "--balance", "--seed=%d" % a.seed, "--op=" + a.op, "--hardendemo=" + a.boss, "--realtime", "--nobossintro",
+                    "--recframes=150,%d" % (80 * FPS), "--shotdir=" + fdir, "--sfxtrace"]
+        else:
+            # 普通构筑 = 真实整局：高手机器人自然打到 10:00 结局一（--route=none），从最终 Boss 登场前 2 秒录到打完（最多 150 秒）
+            args = [GR.find_godot(), "--path", os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--fixed-fps", str(FPS), "--",
+                    "--balance", "--seed=%d" % a.seed, "--op=" + a.op, "--bot=expert", "--route=none", "--realtime", "--rtfrom=596",
+                    "--recframes=598,%d" % (150 * FPS), "--shotdir=" + fdir, "--sfxtrace"]
         if key.endswith("old"):
             args += ["--bal=boss/last_hold_max=0", "--bal=boss/last_auto_kill=0", "--bal=boss/hp_x_paranoia=" + a.oldhp]
         out, err, to = GR.run_godot(args, 1800)

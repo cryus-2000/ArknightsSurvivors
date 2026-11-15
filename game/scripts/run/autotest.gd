@@ -383,6 +383,7 @@ var _rec_sfx0 := {}
 var _rec_f0 := 0               # --sfxtrace：第一张录屏帧的渲染帧号
 var _rec_music: Array = []     # --sfxtrace：每张录屏帧的配乐采样 [帧号, 低通截止 Hz, [[曲目文件, 音量 dB, 播放位置秒], …]]（tools/ult_rec.py --sfx 离线混配乐）
 var _rec_i := 0
+var _rec_dumped := false   # 录屏中途结束时已补打 SFXTRACE
 var _rec_stride := -1   # --recstride=N（量测）：录像每 N 帧存一张
 ## --breakloop=<周期秒>:<持续秒>（仅测试，录像用）：每过一个周期给所有活着的 Boss 开一次破绽窗口（combat.start_break），看 / 听「打在破绽上」（break_hit）
 var _brk_next := -1.0
@@ -479,6 +480,10 @@ func _rec_step() -> void:
 						dq[n] = d
 				print("SFXREQ " + JSON.stringify(dq))
 			g.get_tree().quit()
+	# 录到一半局面离开可录状态（打赢进胜利 / 结算）：音效记录补打一次，录屏混音照样有声（tools/harden_rec.py 普通构筑整局）
+	if _rec_i > 0 and _rec_left > 0 and Sfx.trace_on and not _rec_dumped and g.state in [g.S.WIN, g.S.DEAD, g.S.STATS]:
+		_rec_dumped = true
+		print("SFXTRACE " + JSON.stringify({"frame0": _rec_f0, "trace": Sfx.trace}))
 
 
 ## --camlog=<起始秒>（docs/139 画面眩晕排查，仅测试）：游戏时间过了起始秒后每帧打印一行 CAMLOG：镜头位置 / 偏移、
@@ -1943,7 +1948,7 @@ func _hardendemo_step(spec: String) -> void:
 		print("HARDENDEMO dead t=%.1f" % (g.t - hd_t0))
 	if (hd_dead_t >= 0.0 and g.at_frames >= hd_dead_f + 240) or g.t >= hd_t0 + 75.0:
 		print("HARDENDEMO END")
-		if Sfx.trace_on:
+		if Sfx.trace_on and not _rec_dumped:
 			print("SFXTRACE " + JSON.stringify({"frame0": _rec_f0, "trace": Sfx.trace}))   # 录屏没录满就退：这里补打音效记录（tools/harden_rec.py 混音）
 		g.get_tree().quit()
 
