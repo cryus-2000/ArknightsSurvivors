@@ -4688,3 +4688,7 @@ FPS %.0f  最低 %.0f  帧时 P50 %.1f / P95 %.1f ms,FPS %.0f  Min %.0f  Frameti
 撤离,Withdrawn,撤退,퇴각,,原文键,模型,自译,自译
 语音语言,Voice Language,ボイス言語,음성 언어,,原文键,模型,自译,自译
 跟随界面,Match UI,UIに合わせる,UI 언어 따름,,原文键,模型,自译,自译
+泡膜硬化,Film Hardened,泡膜硬化,거품막 경화,,原文键,模型,自译,自译
+泡膜硬化 · %d 秒后破裂,Film Hardened · Bursts in %ds,泡膜硬化・%d秒後に破裂,거품막 경화 · %d초 후 파열,,原文键,模型,自译,自译
+阶段护盾 · %d 秒后破碎,Phase Shield · Shatters in %ds,フェーズシールド値・%d秒後に破壊,단계 실드 · %d초 후 파괴됨,,原文键,模型,自译,自译
+护盾破碎,Shield Shattered,シールド破壊,실드 파괴,,原文键,模型,自译,自译

@@ -44,6 +44,10 @@ var ba_next := 0.0
 var ba_p2 := -2.0               # --actsp2：登场后几秒切二阶段血量（-2 = 未读参数，-1 = 没开）
 var ba_ft := {"a": [], "b": []}   # --bossacts --perfab：每帧用时（微秒），a = 新画法、b = g.perf_alt 旧画法
 var ba_us := 0
+var hd_boss: Dictionary = {}   # --hardendemo=<Boss>（11-16 最后一幕硬化对照录像）：演示中的 Boss
+var hd_t0 := 0.0
+var hd_dead_t := -1.0
+var hd_dead_f := 0
 var bm_mate: Dictionary = {}   # --bossmoves=<type>[2]+<搭档>：接潮组的搭档（停在主控左上、不出招、不死，供「统一」等两体招式验收）
 var bm_list: Array = []
 var bm_i := 0
@@ -379,6 +383,7 @@ var _rec_sfx0 := {}
 var _rec_f0 := 0               # --sfxtrace：第一张录屏帧的渲染帧号
 var _rec_music: Array = []     # --sfxtrace：每张录屏帧的配乐采样 [帧号, 低通截止 Hz, [[曲目文件, 音量 dB, 播放位置秒], …]]（tools/ult_rec.py --sfx 离线混配乐）
 var _rec_i := 0
+var _rec_dumped := false   # 录屏中途结束时已补打 SFXTRACE
 var _rec_stride := -1   # --recstride=N（量测）：录像每 N 帧存一张
 ## --breakloop=<周期秒>:<持续秒>（仅测试，录像用）：每过一个周期给所有活着的 Boss 开一次破绽窗口（combat.start_break），看 / 听「打在破绽上」（break_hit）
 var _brk_next := -1.0
@@ -475,6 +480,10 @@ func _rec_step() -> void:
 						dq[n] = d
 				print("SFXREQ " + JSON.stringify(dq))
 			g.get_tree().quit()
+	# 录到一半局面离开可录状态（打赢进胜利 / 结算）：音效记录补打一次，录屏混音照样有声（tools/harden_rec.py 普通构筑整局）
+	if _rec_i > 0 and _rec_left > 0 and Sfx.trace_on and not _rec_dumped and g.state in [g.S.WIN, g.S.DEAD, g.S.STATS]:
+		_rec_dumped = true
+		print("SFXTRACE " + JSON.stringify({"frame0": _rec_f0, "trace": Sfx.trace}))
 
 
 ## --camlog=<起始秒>（docs/139 画面眩晕排查，仅测试）：游戏时间过了起始秒后每帧打印一行 CAMLOG：镜头位置 / 偏移、
@@ -1036,6 +1045,9 @@ func step() -> void:
 		if a.begins_with("--bossacts="):
 			bosstest = true
 			_bossacts_step(a.substr(11))
+		if a.begins_with("--hardendemo="):
+			bosstest = true
+			_hardendemo_step(a.substr(13))
 		if a.begins_with("--bossintro="):
 			# Boss 登场演出测试（docs/36 §5）：第 20 帧在主控旁刷出指定 Boss（逗号分隔 = 同组登场）并走一遍登场，
 			# 登场进行到 0.35 / 0.6 / 0.85 / 1.1 秒各截一张；演完后把 Boss 击杀，击破一拍 0.12 / 0.35 秒再各截一张，然后退出
@@ -1775,7 +1787,7 @@ func step() -> void:
 			o.fill_sp()
 	if g.shot_at.has(g.at_frames) and DisplayServer.get_name() != "headless":
 		g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_%d.png" % g.at_frames)
-	if bosstest and g.at_frames > 610 and bm_boss.is_empty() and ba_boss.is_empty():   # --bossmoves / --bossacts 自己数、放完才退
+	if bosstest and g.at_frames > 610 and bm_boss.is_empty() and ba_boss.is_empty() and hd_boss.is_empty():   # --bossmoves / --bossacts 自己数、放完才退
 		g.get_tree().quit()
 	if (g.state == g.S.WIN and not winshot) or g.at_frames > 14000:
 		print("AUTOTEST END state=%d t=%d" % [g.state, g.t])
@@ -1867,6 +1879,78 @@ func _bossacts_step(spec: String) -> void:
 	_ba_perf()
 	if g.at_frames >= 30 and g.at_frames % _ba_step() == 0 and DisplayServer.get_name() != "headless" and not Cfg.dev_args().has("--noshots"):
 		g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_acts_%s_%04d.png" % [spec.replace("+", "_"), g.at_frames])
+
+
+## --hardendemo=<Boss>[,<秒>]（11-16 B站玩家「高伤害秒了 Boss 还得硬扛一段出招」对照录像）：第 20 帧在队长右侧刷出 Boss，
+## 直接摆到最后一幕开头（偏执泡影 = 破茧后二阶段：cocoon_done、半血、act_min 取最后一项 25 秒），登场 <秒>（缺省 3；-1 = 不打，普通构筑照常打）时
+## 一发打空血量（模拟玻璃大炮秒杀，gate_clamp 截在剩 3%）。队长绕圈慢走、血量不低于 70%（照常挨打，看得见掉血；不会倒下）。Boss 倒下 4 秒后退出。
+## 对照旧行为：--bal=boss/last_hold_max=0 --bal=boss/last_auto_kill=0（护盾撑满这一幕最短时长、剩 3% 要补刀）
+func _hardendemo_step(spec: String) -> void:
+	var parts: PackedStringArray = spec.split(",")
+	var burst_at: float = float(parts[1]) if parts.size() > 1 else 3.0
+	if g.at_frames == 20:
+		g.ppos = Vector2(1500, 900)
+		g.max_hp = 900.0
+		g.hp = 900.0
+		g.t = 150.0
+		var b := g.spawner.spawn_enemy(parts[0], g.ppos + Vector2(260, -40))
+		b.age = 5.0
+		g.bosses.append(b)
+		g.boss = b
+		if g.final_boss == null and g.spawner.is_final_boss_type(b.type):
+			g.final_boss = b
+		if b.type == "paranoia":
+			b.cocoon_done = true
+			g.bai.setup_preview_phase2(b)
+		b.gates = []
+		var ams: Array = b.get("act_mins", [])
+		if not ams.is_empty():
+			b.act_min = float(ams[-1])
+			b.act_mins = []
+		b.act_t = 0.0
+		b.last_done = false
+		b.gate_hold = false
+		b.hp = b.maxhp * 0.5
+		hd_boss = b
+		hd_t0 = g.t
+		print("HARDENDEMO %s act_min=%.1f maxhp=%.0f" % [parts[0], float(b.act_min), float(b.maxhp)])
+		return
+	if g.at_frames < 20 or hd_boss.is_empty():
+		return
+	g.hp = maxf(g.hp, g.max_hp * 0.7)   # 主控保护单发 ≤40% / 2 秒 ≤68%：留 70% 底，演示不会倒下
+	g.ppos = Vector2(1500, 900) + Vector2.from_angle((g.t - 150.0) * 0.45) * 230.0
+	for o in g.enemies:
+		if not o.dead and not o.boss and not o.chest and not o.get("part", false) and not o.has("decoy_of") and o.age > 0.05:
+			o.dead = true   # 普通波次的杂兵清掉，只看 Boss
+	var b: Dictionary = hd_boss
+	if burst_at >= 0.0 and not b.dead and not b.get("hd_burst", false) and g.t >= hd_t0 + burst_at:
+		b.hd_burst = true
+		for k in 400:   # 玻璃大炮：连打到护盾升起（单发会被防御 / 承伤倍率 / 伤害上限削掉）
+			if b.dead or b.get("gate_hold", false) or b.get("part", false):
+				break
+			g.combat.damage(b, b.maxhp * 0.5, {})
+		print("HARDENDEMO burst t=%.1f hp=%.3f hold=%s" % [g.t - hd_t0, b.hp / b.maxhp, str(b.get("gate_hold", false))])
+	if not b.dead and not b.invuln and not b.get("part", false) and b.get("hd_burst", false) and not b.get("gate_hold", false):
+		# 队伍持续输出（演示队长单人太弱）：每秒 1.2% 最大生命，过 gate_clamp（护盾期打不动；旧行为护盾碎后 3% 约 2.5 秒补完）
+		var dd: float = g.combat.gate_clamp(b, b.maxhp * 0.012 * minf(g.get_process_delta_time(), 0.05))
+		b.hp -= dd
+		if b.hp <= 0.0:
+			b.hp = 0.0
+			var bh = g.bai.boss(b.type)
+			if bh == null or not bh.on_lethal(b):
+				g.combat.kill(b)
+	if g.at_frames % 30 == 0 and not b.dead:
+		print("HARDENDEMO t=%.1f hp=%.3f hold=%s act_t=%.1f buls=%d warns=%d php=%.0f" % [g.t - hd_t0, b.hp / b.maxhp, str(b.get("gate_hold", false)), float(b.act_t),
+			g.ebullets.filter(func(x): return x.get("src_type", "") == b.type and x.life > 0.0).size(), g.warns.size(), g.hp])
+	if b.dead and hd_dead_t < 0.0:
+		hd_dead_t = g.t
+		hd_dead_f = g.at_frames
+		print("HARDENDEMO dead t=%.1f" % (g.t - hd_t0))
+	if (hd_dead_t >= 0.0 and g.at_frames >= hd_dead_f + 240) or g.t >= hd_t0 + 75.0:
+		print("HARDENDEMO END")
+		if Sfx.trace_on and not _rec_dumped:
+			print("SFXTRACE " + JSON.stringify({"frame0": _rec_f0, "trace": Sfx.trace}))   # 录屏没录满就退：这里补打音效记录（tools/harden_rec.py 混音）
+		g.get_tree().quit()
 
 
 ## --shotstep=N：每 N 帧截一张（缺省 3；激光收尾等要逐帧看时用 1）
