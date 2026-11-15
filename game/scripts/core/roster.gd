@@ -156,9 +156,21 @@ static func tickets() -> int:
 	return int(Cfg.roster_tickets.get(T_HUNT, 0))
 
 
+## 结算页「寻访」不能用的原因（"" = 可以寻访）。按钮文字、能不能点、maybe_open 都按这一条（11-16 用户：显示持有 10 张、一点又变「无可用凭证」——
+## 名册已满时凭证会被云存档合并（券取较大值）或 Toy 奖励补回来，按钮原来只看张数，点进去 _entry 把凭证折成细胞，回来就成了「无可用凭证」）
+static func hunt_block() -> String:
+	if not active():
+		return "名册已全开"
+	if locked_ids().is_empty():
+		return "干员已全部入职"
+	if tickets() < COST_RANDOM:
+		return "无可用凭证"
+	return ""
+
+
 ## 结算页直接寻访：使用已有凭证（含初始赠券）。细胞须先显式兑换。
 static func can_hunt_from_settlement() -> bool:
-	return active() and tickets() >= COST_RANDOM
+	return hunt_block() == ""
 
 
 static func _rng() -> RandomNumberGenerator:

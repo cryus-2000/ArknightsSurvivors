@@ -168,7 +168,15 @@ func run() -> void:
 	Cfg.meta_earned = {"dtest": 1000}
 	Cfg.roster_unlocked = Roster.all_ids()
 	check(not Roster.exchange_visible() and not Roster.exchange_ticket() and Cfg.meta_bought.dtest == 90, "名册已满：入口隐藏、不兑换、不扣")
+	# 11-16 用户「显示有 10 张寻访，点一下又变无可用凭证」：名册已满还持有凭证（云存档券取大值 / Toy 奖励补回）时，结算页按钮
+	# 不能显示「持有 N」可点，要直接灰显并写「干员已全部入职」；凭证不够才写「无可用凭证」
+	Cfg.roster_tickets = {"hunt": 10}
+	check(not Roster.can_hunt_from_settlement() and Roster.hunt_block() == "干员已全部入职", "名册已满 + 10 张：结算页不可寻访、原因写全部入职（%s）" % Roster.hunt_block())
+	check(preload("res://scripts/screens/settle/settle_base.gd").hunt_blocked_text() == "寻访（干员已全部入职）", "名册已满：按钮文字写全部入职")
 	Cfg.roster_unlocked = []
+	check(Roster.can_hunt_from_settlement() and Roster.hunt_block() == "", "名册未满 + 10 张：可寻访")
+	Cfg.roster_tickets = {}
+	check(Roster.hunt_block() == "无可用凭证" and preload("res://scripts/screens/settle/settle_base.gd").hunt_blocked_text() == "寻访（无可用凭证）", "0 张：无可用凭证")
 	# 存档往返 + 云存档：兑换花费逐设备取大（只增不减）
 	Cfg.roster_tickets = {"hunt": 6}
 	var body2: Dictionary = Cfg.cloud_body()

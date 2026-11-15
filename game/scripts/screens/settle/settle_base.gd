@@ -289,12 +289,23 @@ func btn_text(id: String) -> String:
 		"runs": return "对局记录"
 		"title": return "返回主界面  B" if pad else ("返回主界面" if tch else "返回主界面  Esc")
 		"meta": return "认知塑造  Y" if pad else ("认知塑造" if tch else "认知塑造  X")
-		"hunt": return ("寻访（持有 %d）  A" if pad else ("寻访（持有 %d）" if tch else "寻访（持有 %d）  Enter")) % Roster.tickets()   # 11-01 docs/211 D14：写明持有数
+		"hunt":
+			if not Roster.can_hunt_from_settlement():
+				return hunt_blocked_text()
+			return ("寻访（持有 %d）  A" if pad else ("寻访（持有 %d）" if tch else "寻访（持有 %d）  Enter")) % Roster.tickets()   # 11-01 docs/211 D14：写明持有数
 	return id
 
 
 func btn(id: String, r: Rect2) -> Array:
-	return [id, r.position.x, r.size.x, btn_text(id), id == "hunt" and Roster.tickets() > 0, r]
+	return [id, r.position.x, r.size.x, btn_text(id), id == "hunt" and Roster.can_hunt_from_settlement(), r]
+
+
+## 寻访按钮不能点时的文字（与 Roster.hunt_block 一一对应；11-16：名册已满不再写成「无可用凭证」）
+static func hunt_blocked_text() -> String:
+	match Roster.hunt_block():
+		"名册已全开": return "寻访（名册已全开）"
+		"干员已全部入职": return "寻访（干员已全部入职）"
+	return "寻访（无可用凭证）"
 
 
 ## 底栏缺省排法：一行从 x0 排到 x1，寻访最宽在最右；y / h 由子类定

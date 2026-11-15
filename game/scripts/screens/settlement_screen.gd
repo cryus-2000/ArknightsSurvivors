@@ -7,6 +7,7 @@ const HH = preload("res://scripts/screens/hh_style.gd")
 const UI = preload("res://scripts/ui.gd")
 const UM = preload("res://scripts/ui_motion.gd")
 const Roster = preload("res://scripts/core/roster.gd")
+const SettleBase = preload("res://scripts/screens/settle/settle_base.gd")
 const D = preload("res://scripts/data.gd")
 var g
 # 只在实际绘制分支加载；--texwalk 会读取脚本字段。
@@ -299,7 +300,7 @@ func _buttons() -> Array:
 		out.append(["feedback", 1024, 116, "意见反馈", false, Rect2(1024, 202, 116, 34)])
 	out.append(["title", 374, 250, "返回主界面  B" if Pad.using else ("返回主界面" if tch else "返回主界面  Esc"), false])
 	out.append(["meta", 642, 250, "认知塑造  Y" if Pad.using else ("认知塑造" if tch else "认知塑造  X"), false])
-	out.append(["hunt", 910, 342, ("寻访（持有 %d）  A" if Pad.using else ("寻访（持有 %d）" if tch else "寻访（持有 %d）  Enter")) % Roster.tickets(), Roster.tickets() > 0])   # D14：写明是持有数，免得和「本局获得 ×0」并排时误读
+	out.append(["hunt", 910, 342, ("寻访（持有 %d）  A" if Pad.using else ("寻访（持有 %d）" if tch else "寻访（持有 %d）  Enter")) % Roster.tickets(), Roster.can_hunt_from_settlement()])   # D14：写明是持有数，免得和「本局获得 ×0」并排时误读
 	return out
 
 
@@ -792,7 +793,7 @@ func _draw_buttons(ci: CanvasItem, fp := 1.0) -> void:
 			r.position.y += 80.0 * (1.0 - fp)
 		if id == "hunt" and not Roster.can_hunt_from_settlement():
 			ci.draw_rect(r, Color(HH.DARK2, _fa))
-			_text_key(ci, r.position.x + 20.0, r.get_center().y - 12.0, "寻访（无可用凭证）", 20 if ph else 18, HH.MUTE)
+			_text_key(ci, r.position.x + 20.0, r.get_center().y - 12.0, SettleBase.hunt_blocked_text(), 20 if ph else 18, HH.MUTE)   # 原因与 Roster.hunt_block 一致（11-16）
 			continue
 		var primary: bool = b[4]
 		var text_btn: bool = (id == "records" or id == "runs") and not ph   # 11-01 docs/211 D14：手机上无底色的 16 号文字按钮太小，改成同款按钮、同字号
