@@ -557,3 +557,35 @@ term.<词>                 共用术语（灯火、技力、队长……），�
 - **花费**：预审每轮 Vertex flash 约 1.3–2.0 美元（76 张）；extra 补翻 + 校对每轮 0.1 美元左右。
 
 **已知剩余（中低，不挡合入）**：手机藏品卡说明较长时出省略号（点「详情」看全文）；手机图鉴右栏、选人技能行在 740 宽视口里出屏（中文同样）；个别模板译法 Team / Squad 不统一（如「全队攻速」模板）。
+
+---
+
+## 13. 日文版（11-15，分支 claude/distracted-elbakyan-fbb4e3，基于 main 90ee887c7）
+
+用户 11-15（经协调人）：「加日语版，工作量你做，相信没问题」；itch 简介同时改三语（docs/100 §2）。和英文一样标 AI 翻译、只上 itch，B 站 Toy 版仍锁中文。
+
+**框架改动（loc.gd）**
+- `Loc.LANGS = ["zh", "en", "ja"]`；`Loc.on()` = 显示译文（非中文），`Loc.en()` 只留给英文专用排版（按词断行、缩字号下限、去重复英文小字），`Loc.ja()` 给少数整句分支。
+- 回退顺序 ja → en → zh：切日文时先读英文表（TranslationServer 的 fallback 是 en），日文缺条退英文，再缺是中文原文。模板按语言分开存，日文模板插在桶前、英文模板打底。
+- 「跟随系统」：系统语言 ja 选日文（`AUTO_JA_READY`），其余非中文选英文。Toy 锁中文不变（`resolve(…, toy=true)`）。
+- 拆段规则日文版：冒号用「：」、名字括号保留「」、分隔符「·」→「・」、「，」→「、」，括号尾巴保留全角。
+- 语言选项名永远用本语言写（`Loc.NATIVE`：中文 / English / 日本語，不再被翻成 Chinese）。
+
+**CSV**：列改为 `keys,en,ja,_zh,_source,_note,_ja_note`。ja 列由 `tools/l10n/translate_ja.py` 写（`glossary` → `run` → `qa` → `csv`），以已提交的 CSV 为准、按原文去重翻译，缓存 `build/l10n_work/cache_ja.json`（不进 git）。`_ja_note` 记来源：`官方：<ja_JP 表路径>` / `暂定` / `自译`（模型意译，查不到日服官方名的都算）/ `人改`（`tools/l10n/review/ja.json`）。`translate_vertex.py csv` 重写 CSV 时按键保留 ja 两列。
+- 官方日文来自 ArknightsGameData_YoStar ja_JP（character / skill / enemy_handbook / roguelike_topic / gamedata_const / uniequip，下载在 `build/l10n_ref/ja_*.json`，不进 git、不进包）：干员、技能、天赋、敌人、rogue_2 藏品名与说明、事件标题、术语（スタン、足止め…）、结局名、招聘合同。
+- 自创词定稿（`PROVISIONAL_JA`）：队长 リーダー、终结技 必殺技、连携 連携、灯火四档 明明 / 揺曳 / 幽幽 / 寂滅（官方）、引航灯标 導きの灯標、精英一 / 二 昇進1 / 2、藏品 秘宝、源石锭 源石錐、认知塑造 認知形成（后三条官方）。
+- 招募卡简介（用户亲写）：送模型时标 `intro`，要求保留原意和梗，引用原作的句子给官方日文招聘合同作参照；模型的梗说明写在 `_ja_note`。
+
+**字体**：界面字体（Noto Sans CJK SC 子集）没有假名。`game/l10n/ui_ja.otf` = Noto Sans JP Bold（OFL，同族同字重）子集，只取「日文文本用到、发行包 ui.ttf 子集与 ui_fallback 都没有」的字（`tools/l10n/make_ja_font.py`）；切到日文时才 load，挂在 ui.ttf / serif.ttf / ui_fallback 的 fallbacks 末尾。共享汉字仍用 SC 字形（任务口径允许），假名、日文新字体走 JP 字形。放在 `l10n/` 下，Toy 包随整个目录排除（`export_web --toy` 另查 pck 里不得有 `.ja.translation` / `ui_ja.otf`）。`release_slim` 快检加「日文缺字」一项。
+
+**折行**：`UI.soft()` 把假名也当 CJK 逐字给断行机会；禁则：「ー」、小写假名、々ゝゞヽヾ、「・」不放行首（原有「。、」」等照旧）。`UI.fit` / `_fit_line` 的「补一档字号 / 下限 85%」对日文同样打开；升级卡说明超过两行切紧凑布局、卡名缩字下限同英文；一句话（`choice_panel._brief_ja`）取第一句去括号。
+
+**整句分支**：入队加成（squad.gd）、精英化卡一句话、图鉴技能行 / 天赋行、标题「集结出发」→「作戦 / 開始」（日服出撃按钮）。
+
+**AI 翻译标注**：设置语言行写「AI翻訳」；标题页桌面版页脚「日本語テキストは中国語原文からのAI翻訳です。」
+
+**快检**：`l10n`（加日文：官方名、路径键、模板、Toy 锁、干员长文本含假名覆盖率、无残留占位）、新增 `ui_smoke_ja`；截图 `tests/l10n_shots` 加商人、事件、分享卡、新手引导四屏，`--lang=ja`。
+
+**结果（11-15）**：ja 列 14 478 行全部有值（去重原文 5 659 条）：官方 2 072、暂定 215、人改 37（`review/ja.json`）、自译 12 154。Vertex 翻译 135 次调用约 $11。`ui_ja.otf` 780 字 302 KiB（只进 itch 包）。逐屏截图 `tests/l10n_shots --lang=ja` 桌面 54 张 + 手机 59 张无报错；截图里仍是中文的只剩 3 条拼接串（冲刺储存次数的成长卡对比行、深海猎人羁绊条件的截断版），不影响理解，后续按 `missing_*.txt` 补。快检本机通过：l10n、ui_smoke / _en / _ja、card_desc、card_desc_fit、touch_layout、toy_support、slim。
+
+**顺带修的（中英同样受益）**：事件选项标签、Boss 血条名、认知塑造节点名、分享卡队长名后的「队长 Lv」、作战记录「用时」都改成按译文量宽（原来按中文量，译文长了就互相压住）；事件正文 / 节点卡正文先译再插零宽断行（原来插完再查表，查不到）；升级卡 / 商人货品的一句话先整段译再截（原来先按中文截半句，半句查不到）；指南续页标题「（续）」单独查表；手机 HUD「属性」牌用短版并按译文居中。语言选项名不再被翻（英文版原来显示 Chinese）。新版设置页语言行补上 AI 翻译标注（英文版原来只在旧版设置页有）。

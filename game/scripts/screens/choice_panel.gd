@@ -596,10 +596,10 @@ func _event_caption(art: Dictionary, p0: Vector2, cx: float) -> void:
 	if panel_sub_text != "":
 		if touch:
 			# 触屏：剧情从事件名下到插画底边（约 4 行 13 号的高度），字号取放得下的最大一档
-			var fs := UI.fit(g.font, UI.soft(panel_sub_text), 440.0, 492.0 - (424.0 + dy), EV_SUB_TOUCH)
+			var fs := UI.fit(g.font, UI.soft(UI.Loc.s(panel_sub_text)), 440.0, 492.0 - (424.0 + dy), EV_SUB_TOUCH)
 			UI.draw_fit(g.panel_fg, g.font, p0 + Vector2(92, 424 + dy), fs, Color(0.81, 0.79, 0.76))
 		else:
-			g.panel_fg.draw_multiline_string(g.font, p0 + Vector2(92, 440), UI.Loc.s(UI.soft(panel_sub_text)), HORIZONTAL_ALIGNMENT_LEFT, 430, 13, 3, Color(0.81, 0.79, 0.76), UI.BRK)
+			g.panel_fg.draw_multiline_string(g.font, p0 + Vector2(92, 440), UI.soft(UI.Loc.s(panel_sub_text)), HORIZONTAL_ALIGNMENT_LEFT, 430, 13, 3, Color(0.81, 0.79, 0.76), UI.BRK)
 	# 右侧标题
 	var col_top: float = EV_COL_TOP if touch else g.panel_scroll.offset_top   # 设计坐标：选项列顶边 196，标题在它上方
 	var L: Dictionary = lay()
@@ -758,7 +758,7 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 			# 触屏说明字先试大 2 号，放不下再退回原字号（紧凑布局同理）
 			var f0 := UI.fit(g.font, display_desc, card_w - 40.0, 60.0 if Pad.touch_ui() else DESC_H_DESK, [15, 14, 13, 12] if Pad.touch_ui() else DESC_SIZES_DESK)
 			# 非紧凑布局的说明区实际只容两行（第三行会压到下面的流派 / 影响标签行；中文不会排到三行所以没暴露）：英文超过两行就切紧凑布局
-			var compact: bool = not f0.fit or (Loc.en() and f0.lines.size() > 2)
+			var compact: bool = not f0.fit or (Loc.on() and f0.lines.size() > 2)   # 日文也比中文长：同英文
 			if L.touch:
 				# 手机：说明字比图标要紧——一律紧凑布局（图标 64 在 84、名字 160、说明 176 起到标签行上方），字 20 起、最小 15
 				compact = true
@@ -876,8 +876,14 @@ const BRIEF_MAX := 24
 static var _re_paren: RegEx
 
 static func brief(desc: String) -> String:
+	if Loc.on() and _has_cjk(desc):   # 译文：整段先译再取一句（先按中文截半句再查表，半句查不到）
+		var td := Loc.s(desc)
+		if td != desc:
+			desc = td
 	if Loc.en() and not _has_cjk(desc):
 		return _brief_en(desc)
+	if Loc.ja() and _has_kana(desc):
+		return _brief_ja(desc)
 	if _re_paren == null:
 		_re_paren = RegEx.create_from_string("（[^）]*）|\\([^)]*\\)")
 		_re_digit = RegEx.create_from_string("[0-9]")
@@ -936,6 +942,45 @@ static func brief(desc: String) -> String:
 				return head
 			k = sent.find(sep, k + 1)
 	return sent
+
+
+## 日文一句话（docs/276 §13）：第一句（括号外第一个「。」/「；」之前）去掉括号；括号外没有数字时补上括号里第一个带数字的短语。
+## 中文那套「冒号 / 逗号处找前半句」靠中文虚词判断半截，日文不适用——太长交给 fit 缩字号
+static func _brief_ja(desc: String) -> String:
+	if _re_paren == null:
+		_re_paren = RegEx.create_from_string("（[^）]*）|\\([^)]*\\)")
+		_re_digit = RegEx.create_from_string("[0-9]")
+		_re_numparen = RegEx.create_from_string("（([^）]*[0-9][^）]*)）")
+	var raw: String = desc.strip_edges().split("\n")[0]
+	var depth := 0
+	var end := raw.length()
+	for ci in raw.length():
+		var chr := raw[ci]
+		if chr == "（" or chr == "(":
+			depth += 1
+		elif chr == "）" or chr == ")":
+			depth = maxi(0, depth - 1)
+		elif depth == 0 and (chr == "。" or chr == "；"):
+			end = ci
+			break
+	var first := raw.substr(0, end)
+	var sent := _re_paren.sub(first, "", true).strip_edges()
+	if _re_digit.search(sent) == null:
+		var m := _re_numparen.search(first)
+		if m != null:
+			for piece in m.get_string(1).split("、"):
+				if _re_digit.search(piece) != null:
+					sent += "（%s）" % piece.strip_edges()
+					break
+	return sent if sent != "" else raw
+
+
+static func _has_kana(t: String) -> bool:
+	for ch in t:
+		var c := ch.unicode_at(0)
+		if c >= 0x3041 and c <= 0x30ff:
+			return true
+	return false
 
 
 ## 一句话是不是完整的：不以半截词结尾（card_desc 回归同一规则）
@@ -1065,6 +1110,8 @@ func headline(o: Dictionary) -> String:
 		return ""
 	if Loc.en():   # 英文版整句模板（docs/276 §10：不在代码里拼中文句子再翻）；技能名是 ID，显示时单独查表
 		return "Unlocks Skill %d · %s" % [lv + 1, Loc.s(nm)]
+	if Loc.ja():   # 日文同（docs/276 §13）
+		return "スキル%d解放・%s" % [lv + 1, Loc.s(nm)]
 	return "解锁%s技能 · %s" % [CN_NUM[lv], nm]
 
 
@@ -1303,7 +1350,7 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 		glyph = g.RL[o.id].name.substr(0, 1)
 	elif o.kind == "weapon":
 		glyph = D.WEAPONS[o.id].glyph
-	if Loc.en():   # 没有图标时画的首字：英文取译名首字母
+	if Loc.on():   # 没有图标时画的首字：英文取译名首字母、日文取译名首字
 		glyph = Loc.s(g.RL[o.id].name if o.kind == "relic" else name).substr(0, 1) if o.kind != "weapon" else glyph
 	var ic: Texture2D = card_icon(o)
 	var bob := sin(g.t * 2.0 + i) * 2.0
@@ -1345,7 +1392,7 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	var nsz: int = (24 if card.has_meta("brief") else 22) if ph else 20
 	var nmax: float = r.size.x - 2.0 * maxf(nx, 10.0) - 8.0
 	var nfont: Font = UI.name_font(g.font)   # 按画名字用的字体量（g.font 量出来偏窄，英文长名被裁掉尾巴）
-	while nsz > ((12 if ph else 11) if Loc.en() else (15 if ph else 14)) and nfont.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(nsz)).x > nmax:   # UI.text 画时还会按 fs 放大，这里按放大后的量
+	while nsz > ((12 if ph else 11) if Loc.on() else (15 if ph else 14)) and nfont.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(nsz)).x > nmax:   # UI.text 画时还会按 fs 放大，这里按放大后的量
 		nsz -= 1
 	if nfont.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(nsz)).x > nmax:
 		nm = UI.fit_line(nfont, nm, nsz, nmax, nsz)[0]
@@ -1445,9 +1492,9 @@ func draw_event_bar(card: Button, o: Dictionary, i: int) -> void:
 	else:
 		UI.icon(card, "exit", base + Vector2(50.0 if ph else 56.0, card.size.y / 2.0), 28.0 if ph else 32.0, ink)
 	card.draw_string(serif, base + Vector2(tx0, 30.0 if ph else 38.0), UI.Loc.s(o.name), HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color.WHITE if hov else ink)
-	var x := tx0 + serif.get_string_size(o.name, HORIZONTAL_ALIGNMENT_LEFT, -1, 22).x + 14.0
+	var x := tx0 + serif.get_string_size(UI.Loc.s(o.name), HORIZONTAL_ALIGNMENT_LEFT, -1, 22).x + 14.0   # 按译名量（日文 / 英文更长，标签别压名字）
 	for chp in o.get("chips", []):
-		var cw := g.font.get_string_size(chp[0], HORIZONTAL_ALIGNMENT_LEFT, -1, 11).x + 12.0
+		var cw := g.font.get_string_size(UI.Loc.s(chp[0]), HORIZONTAL_ALIGNMENT_LEFT, -1, 11).x + 12.0
 		var cr := Rect2(base + Vector2(x, 12.0 if ph else 20.0), Vector2(cw, 18))
 		card.draw_rect(cr, Color(chp[1].r, chp[1].g, chp[1].b, 0.9), false, 1.0)
 		card.draw_string(g.font, cr.position + Vector2(6, 13), UI.Loc.s(chp[0]), HORIZONTAL_ALIGNMENT_LEFT, -1, 11, chp[1])

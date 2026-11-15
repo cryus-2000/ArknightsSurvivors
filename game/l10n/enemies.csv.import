@@ -6,10 +6,10 @@ uid="uid://dfiiykr1ifmjk"
 
 [deps]
 
-files=["res://l10n/enemies.en.translation"]
+files=["res://l10n/enemies.en.translation", "res://l10n/enemies.ja.translation"]
 
 source_file="res://l10n/enemies.csv"
-dest_files=["res://l10n/enemies.en.translation"]
+dest_files=["res://l10n/enemies.en.translation", "res://l10n/enemies.ja.translation"]
 
 [params]
 

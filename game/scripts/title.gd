@@ -1029,6 +1029,8 @@ func _draw_menu(vs: Vector2) -> void:
 	# 英文版标注（11-11 用户经协调人：标明是 AI 翻译）：桌面声明上方一行小字；手机在设置页语言行写
 	if not ph and UI.Loc.en():
 		UI.text(self, font, Vector2(lg.pos.x - 420, fy - (40 if (not OS.is_debug_build() and Cfg.runs_log_enabled()) else 20)), "English text is AI-translated from the Chinese original.", 12, _fa(Color(0.45, 0.53, 0.58), ff), HORIZONTAL_ALIGNMENT_RIGHT, 420)
+	elif not ph and UI.Loc.ja():   # 日文版同样标注（11-15）
+		UI.text(self, font, Vector2(lg.pos.x - 420, fy - (40 if (not OS.is_debug_build() and Cfg.runs_log_enabled()) else 20)), "日本語テキストは中国語原文からのAI翻訳です。", 12, _fa(Color(0.45, 0.53, 0.58), ff), HORIZONTAL_ALIGNMENT_RIGHT, 420)
 	# 对内包页脚提示（docs/40，用户 10-10）：声明上面一行；手机只在设置页提示
 	if not ph and not OS.is_debug_build() and Cfg.runs_log_enabled():
 		UI.text(self, font, Vector2(lg.pos.x - 310, fy - 20), "测试版：本地记录对局摘要（不上传）", 12, _fa(UI.GOLD, ff), HORIZONTAL_ALIGNMENT_RIGHT, 310)
@@ -1384,7 +1386,7 @@ func _draw_credits(vs: Vector2) -> void:
 	HS.left_panel(self, vs, wt, wt - 70.0, 0.0)
 	var title: String = credits_data.get("title", "致谢与声明")
 	var tsz := 56
-	if UI.Loc.en():   # 英文「Credits and Disclaimer」比四个汉字长得多：缩到左栏宽以内（11-12 预审：压进右侧正文）
+	if UI.Loc.on():   # 英文「Credits and Disclaimer」（日文同样按左栏宽缩）比四个汉字长得多：缩到左栏宽以内（11-12 预审：压进右侧正文）
 		var tt := UI.Loc.s(title)
 		while tsz > 24 and font.get_string_size(tt, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(tsz)).x * 1.12 > wt - 100.0:
 			tsz -= 2

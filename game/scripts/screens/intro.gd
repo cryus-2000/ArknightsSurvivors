@@ -304,6 +304,19 @@ func _rows_of(pi: int) -> Array:
 	var rows: Array = []
 	for ln in page_lines(src, full_guide(), last):
 		var txt: String = touch_line(fill_numbers(ln))
+		if UI.Loc.ja():   # 日文（docs/276 §13）：整行（含 {占位}）先查表再填数——填数、拆「｜」之后的半句查不到；日文译文保留「｜」
+			var tl := touch_line(ln)
+			var jt := UI.Loc.hit(tl)
+			if jt == "" and tl != ln:   # 触屏替换后的整句表里没有：译键鼠原句，再把替换片段换成各自的译文
+				jt = UI.Loc.hit(ln)
+				if jt != "":
+					for p in _g().touch_subs:
+						if ln.contains(str(p[0])):
+							jt = jt.replace(UI.Loc.s(str(p[0])), UI.Loc.s(str(p[1])))
+			elif jt == "":
+				jt = UI.Loc.hit(ln)
+			if jt != "":
+				txt = fill_numbers(jt)
 		var cut: int = txt.find("｜")
 		# 本地化（docs/276 §10）：标签先翻再量标签列宽；正文由 UI.wrap_lines 先翻再折行
 		rows.append({"label": UI.Loc.s(txt.substr(0, cut)) if cut > 0 else "", "text": txt.substr(cut + 1) if cut > 0 else txt})
@@ -392,6 +405,8 @@ func draw(vs: Vector2) -> void:
 	var ew := UI.en_width(g.font, en_s, 12, 4.0)
 	UI.en(g.hud, g.font, Vector2(cx - ew / 2.0, r.position.y + (34.0 if touch else 44.0)), en_s, 12, Color(UI.SUB.r, UI.SUB.g, UI.SUB.b, ea), 4.0)
 	var title: String = str(pg.title) + ("（续）" if v.cont else "")
+	if v.cont and UI.Loc.on():   # 译文：标题与「（续）」分开查（拼好的整串查不到，「续」会留成中文）
+		title = UI.Loc.s(str(pg.title)) + (" " if UI.Loc.en() else "") + UI.Loc.s("（续）")
 	var tsz := 26 if touch else 30
 	UI.heading(g.hud, g.font, Vector2(cx, r.position.y + (66.0 if touch else 84.0)), title, tsz, UI.TEXT, minf(300.0, r.size.x / 2.0 - 40.0))
 	var pn := "%02d / %02d" % [g.intro_page + 1, vw.size()]

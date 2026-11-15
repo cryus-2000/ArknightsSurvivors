@@ -894,7 +894,7 @@ func _draw_labels(ci: CanvasItem) -> void:
 			var col := T_ON if st == "on" or st == "ok" else (T_POOR if st == "poor" else T_LOCK)
 			var sel_on := id == sid
 			var nm := str(Meta.nodes()[id].name) if sel_on else _short(id)
-			var nw := font.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, fs_s if sel_on else fs_n).x + (20.0 if sel_on else 0.0)
+			var nw := font.get_string_size(UI.Loc.s(nm), HORIZONTAL_ALIGNMENT_LEFT, -1, fs_s if sel_on else fs_n).x + (20.0 if sel_on else 0.0)
 			var cost := "" if st == "on" else str(int(Meta.nodes()[id].cost))
 			var w := nw + (14.0 + TUI.ptext_w(c, cost, pk) if cost != "" else 0.0)
 			var np := Vector2(d.x + r + 6.0, d.y - 9.0)

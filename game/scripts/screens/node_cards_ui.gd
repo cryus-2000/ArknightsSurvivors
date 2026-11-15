@@ -397,7 +397,7 @@ static func _face(ci: CanvasItem, r: Rect2, c: Dictionary, st: Dictionary, font:
 		var ecs: Array = st.get("ends_cols", [])
 		var tc: Color = ecs[0] if not ecs.is_empty() else UI.CYAN
 		UI.text(ci, font, Vector2(r.position.x, r.position.y + 162.0), tag, 15 if ph else 12, tc, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
-	ci.draw_multiline_string(font, Vector2(r.position.x + (16.0 if ph else 24.0), r.position.y + 196.0), UI.Loc.s(UI.soft(str(st.get("face_body", "")))), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - (32.0 if ph else 48.0), 18 if ph else 14, 6, Color(0.81, 0.79, 0.76), UI.BRK)
+	ci.draw_multiline_string(font, Vector2(r.position.x + (16.0 if ph else 24.0), r.position.y + 196.0), UI.soft(UI.Loc.s(str(st.get("face_body", "")))), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - (32.0 if ph else 48.0), 18 if ph else 14, 6, Color(0.81, 0.79, 0.76), UI.BRK)
 	# 揭示遮罩：还没显出的部分盖回卡底色（按像素行）
 	if reveal < 1.0:
 		var y0 := r.position.y + 96.0 + (r.size.y - 110.0) * UM.out_cubic(reveal)

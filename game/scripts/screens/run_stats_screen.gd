@@ -388,13 +388,14 @@ func _ci() -> CanvasItem:
 func _t(pos: Vector2, s: String, size: int, col: Color, align := 0, max_w := -1.0) -> float:
 	col = UI.small_ink(col, size)
 	size = UI.fs(size)   # 手机局内正文放大（UI.fk）；下面量字与画字都用放大后的字号
+	s = UI.Loc.s(s)   # 先翻再量（右对齐 / 居中按译文宽度；日文「所要時間」比「用时」宽，原来压到数字上）
 	var w: float = g.font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
 	if max_w > 0.0 and w > max_w:
 		while size > 10 and g.font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x > max_w:
 			size -= 1
 		w = g.font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
 	var x := pos.x - (w * 0.5 if align == 1 else (w if align == 2 else 0.0))
-	_ci().draw_string(g.font, Vector2(roundf(x), roundf(pos.y + size * 0.36)), UI.Loc.s(s), HORIZONTAL_ALIGNMENT_LEFT, -1, size, col)
+	_ci().draw_string(g.font, Vector2(roundf(x), roundf(pos.y + size * 0.36)), s, HORIZONTAL_ALIGNMENT_LEFT, -1, size, col)
 	return w
 
 

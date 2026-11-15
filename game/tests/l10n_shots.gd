@@ -1,5 +1,5 @@
 extends Node
-## 英文版界面截图（docs/276 §10 第三步验收用）：标题页（选人 / 图鉴干员档案·属性·技能·成长 / 敌人 / Boss / 设置）与局内（HUD / 招募卡 / 升级卡）各截一张。
+## 英文 / 日文版界面截图（docs/276 §10 第三步验收用；§13 日文加商人 / 事件 / 分享卡 / 新手引导）：标题页（选人 / 图鉴干员档案·属性·技能·成长 / 敌人 / Boss / 设置）与局内（HUD / 招募卡 / 升级卡）各截一张。
 ##   godot --path game --resolution 1280x720 res://tests/l10n_shots.tscn -- --lang=en --shot_dir=<目录>（不带 --balance / --op 等开局参数，否则标题页直接开局换场景）
 ## 不判对错，只出图；脚本错误由调用方扫输出。--lang=zh 出中文对照。打印 "L10N SHOTS done=<张数>"
 const Loc = preload("res://scripts/core/loc.gd")
@@ -40,7 +40,7 @@ func run() -> void:
 	await title_part()
 	await game_part()
 	# 英文模式下仍是中文的原文（拆段后查不到的片段等）：写进出图目录，tools/l10n 收去补翻
-	if Loc.lang == "en":
+	if Loc.lang != "zh":
 		var mf := FileAccess.open(dir.path_join("missing_%s.txt" % tag), FileAccess.WRITE)
 		if mf != null:
 			for t in Loc.missing.keys():
@@ -122,6 +122,15 @@ func game_part() -> void:
 	g.headless_batch = false
 	await frames(30)
 	await shot("06_hud")
+	# 新手引导（docs/219）：演示图鉴第一页 + 一张提示卡（11-15 日文验收补）
+	g.onboard.open_viewer()
+	await frames(20)
+	await shot("06b_onboard_viewer")
+	g.onboard.view_i = mini(3, g.onboard.all_ids().size() - 1)
+	await frames(20)
+	await shot("06c_onboard_viewer_p4")
+	g.onboard._view_close()
+	await frames(4)
 	g.set_process(false)
 	var pg = g.progression
 	var opts: Array = []
@@ -147,6 +156,19 @@ func game_part() -> void:
 	await shot("08b_relic_choice")
 	g.panel.visible = false
 	g.state = g.S.PLAY
+	# 商人货架（同 shop_layout_shots）与不期而遇事件（同 safe_screens_shots）
+	g.set_process(true)
+	g.pending_levelups = 0
+	g.pending_chests = 0
+	g.ingots = 40
+	g.merchant = {"pos": g.ppos, "life": 60.0, "near": false, "purchases": 0}
+	g.merchant_idx = 1
+	g.endg.open("madness")   # 事件先截：商人关掉后货架底栏按钮会残留到下一个面板（测试里连开两个面板才有）
+	await _cards(g, 60)
+	await shot("08d_event")
+	g.panel.visible = false
+	g.state = g.S.PLAY
+	g.set_process(false)
 	g.state = g.S.STATS
 	await _cards(g, 20)
 	await shot("09_stats")
@@ -155,10 +177,12 @@ func game_part() -> void:
 	await shot("10_pause")
 	# 局内指南（暂停菜单打开的完整版；11-12 指南页改版后逐页截，按正文栏高度自动拆页）
 	g.intro_screen.open(g.S.PAUSE)
+	g.set_process(true)   # 指南正文的淡入靠 _process（停住时正文是空的）
 	for vi in g.intro_screen.view_count():
 		g.intro_page = vi
-		await _cards(g, 12)
+		await _cards(g, 40)
 		await shot("10b_guide_%02d" % vi)
+	g.set_process(false)
 	g.state = g.S.PAUSE   # 不走 close()：那里会写存档
 	g.state = g.S.PLAY
 	const RS = preload("res://scripts/run/run_stats.gd")
@@ -167,6 +191,11 @@ func game_part() -> void:
 	g.state = g.S.WIN; g.state_age = 3.0; g.settlement.set_model(fake)
 	await _cards(g, 40)
 	await shot("11_settlement_win")
+	g.settlement._open_share(false)   # 战绩分享卡（结算自动弹出的那张）
+	await _cards(g, 50)
+	await shot("11b_share_card")
+	g.settlement._close_share()
+	await _cards(g, 4)
 	g.run_stats.show_model(fake)
 	await _cards(g, 30)
 	await shot("12_run_stats")
@@ -175,6 +204,16 @@ func game_part() -> void:
 	await _cards(g, 40)
 	await shot("13_settlement_dead")
 	g.state = g.S.PLAY
+	# 商人货架放最后截：商人界面关掉后货架层会留在后面几张图上（只在测试里连开面板时出现）
+	g.set_process(true)
+	g.pending_levelups = 0
+	g.pending_chests = 0
+	g.ingots = 40
+	g.merchant = {"pos": g.ppos, "life": 60.0, "near": false, "purchases": 0}
+	g.merchant_idx = 1
+	g.shop_sys.open()
+	await _cards(g, 50)
+	await shot("14_shop")
 	g.queue_free()
 	await frames(2)
 

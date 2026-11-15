@@ -359,8 +359,16 @@ def check_fonts(game=GAME, report=False):
         if fn == "ui.ttf":
             # 11-08 Toy 实测「噤声」「羁绊」首字成方框：网页版没有系统字体，ui.ttf 与 ui_fallback.otf 都没有的字就是方框。
             # 原来只提示，现在报错——新文案用到生僻字后重跑 python tools/make_ui_fallback.py（ui_phone.ttf 字表同 ui.ttf，一并覆盖）
-            nowhere = sorted(c for c in used if ord(c) not in orig and ord(c) not in fb and not c.isspace()
+            jp = os.path.join(game, "l10n", "ui_ja.otf")   # 日文分支的字面量（假名等）由日文回退字体覆盖（docs/276 §13）
+            jcm = TTFont(jp).getBestCmap() if os.path.isfile(jp) else {}
+            nowhere = sorted(c for c in used if ord(c) not in orig and ord(c) not in fb and ord(c) not in jcm and not c.isspace()
                              and unicodedata.category(c) != "Cf" and c not in FONT_GAP_OK)
+            if os.path.isdir(os.path.join(game, "l10n")):
+                sys.path.insert(0, os.path.join(ROOT, "tools", "l10n"))
+                import make_ja_font
+                jm = make_ja_font.missing(game)
+                if jm:
+                    errs.append("日文文本里 ui.ttf 子集、ui_fallback、l10n/ui_ja.otf 都没有的字 %d 个（重跑 tools/l10n/make_ja_font.py）：%s" % (len(jm), "".join(jm[:60])))
             if nowhere:
                 errs.append("ui.ttf 与 ui_fallback.otf 都没有的字 %d 个（网页版显示方框；重跑 tools/make_ui_fallback.py）：%s" % (len(nowhere), "".join(nowhere)))
     return errs, info

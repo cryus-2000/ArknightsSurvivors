@@ -217,8 +217,9 @@ static func text(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: int,
 ## 避免文本服务把整段中文当成一个「词」、只在空格处换行（表现为第一行极短）。
 ## 不在开头标点（《「（）后、也不在结尾标点（》」，。）前插入，避免标点悬在行首。
 ## 弯引号（10-30 招募卡简介「……冲锋”，对她来说」把后引号甩到了行首）：后引号不放行首、前引号不留行尾
+## 日文禁则（docs/276 §13）：假名也当 CJK 字逐字给断行机会；长音「ー」、小写假名、叠字符不放行首
 const _NO_BREAK_AFTER := "《「『（【〈“‘"
-const _NO_BREAK_BEFORE := "》」』）】〉，。、；：！？”’…"
+const _NO_BREAK_BEFORE := "》」』）】〉，。、；：！？”’…ーぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮヵヶ々ゝゞヽヾ・"
 static func soft(s: String) -> String:
 	var out := ""
 	var n := s.length()
@@ -229,7 +230,7 @@ static func soft(s: String) -> String:
 			break
 		var code := ch.unicode_at(0)
 		var nx := s[i + 1]
-		var cjk := (code >= 0x4E00 and code <= 0x9FFF) or (code >= 0x3000 and code <= 0x303F) or (code >= 0xFF00 and code <= 0xFFEF)
+		var cjk := (code >= 0x4E00 and code <= 0x9FFF) or (code >= 0x3000 and code <= 0x30FF) or (code >= 0xFF00 and code <= 0xFFEF)
 		if cjk and not _NO_BREAK_AFTER.contains(ch) and not _NO_BREAK_BEFORE.contains(nx) and nx != " ":
 			out += "​"
 	return out
@@ -897,7 +898,7 @@ static func _wrap_para(font: Font, sp: String, size: int, width: float) -> Packe
 ## 返回 {size, lines, lh（行高）, h（总高）, fit}
 static func fit(font: Font, s: String, width: float, max_h: float, sizes: Array = [13, 12, 11], gap := 0.0) -> Dictionary:
 	s = Loc.s(s)   # 本地化（docs/276 §10）：中文模式原样返回
-	if Loc.en() and sizes.size() > 0:
+	if Loc.on() and sizes.size() > 0:   # 英文 / 日文都比中文长：字号表补一档
 		var lo := int(sizes[-1]) - 1
 		if lo >= ceili(int(sizes[0]) * 0.85):
 			sizes = sizes + [lo]
@@ -948,8 +949,8 @@ static func fit_line(font: Font, s: String, size: int, max_w: float, min_size :=
 
 
 static func _fit_line(font: Font, s: String, size: int, max_w: float, min_size: int) -> Array:
-	if Loc.en():
-		min_size = mini(min_size, ceili(size * 0.85))   # 英文版：缩字号下限放宽到原字号 85%（docs/276 §9 第 3 条）
+	if Loc.on():
+		min_size = mini(min_size, ceili(size * 0.85))   # 英文 / 日文版：缩字号下限放宽到原字号 85%（docs/276 §9 第 3 条）
 	var sz := size
 	while sz > min_size and font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x > max_w:
 		sz -= 1

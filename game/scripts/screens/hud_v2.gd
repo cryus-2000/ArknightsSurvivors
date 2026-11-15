@@ -374,8 +374,9 @@ func right_top(vs: Vector2) -> void:
 			var cn: String = {"speed": lab, "pause": "暂停", "stats": "属性"}[k]
 			var cf: Font = UI.latin() if k == "speed" else g.font
 			var cs: int = int(round(15.0 * r.size.y / PLATE_T.y)) if k == "speed" else UI._ks(g.hud, int(round(13.0 * r.size.y / PLATE_T.y)))
-			var cw: float = cf.get_string_size(cn, HORIZONTAL_ALIGNMENT_LEFT, -1, cs).x
-			g.hud.draw_string(cf, Vector2(r.get_center().x - cw / 2.0, r.get_center().y + cs * 0.36), UI.Loc.s(cn), HORIZONTAL_ALIGNMENT_LEFT, -1, cs, inkc)
+			var cn_t: String = UI.Loc.short(cn)   # 定宽牌：译文用短版，按译文量宽居中（日文「ステータス」放不下）
+			var cw: float = cf.get_string_size(cn_t, HORIZONTAL_ALIGNMENT_LEFT, -1, cs).x
+			g.hud.draw_string(cf, Vector2(r.get_center().x - cw / 2.0, r.get_center().y + cs * 0.36), cn_t, HORIZONTAL_ALIGNMENT_LEFT, -1, cs, inkc)
 			continue
 		cap(Vector2(r.position.x, r.position.y - 5), {"speed": "SPEED", "pause": "PAUSE", "stats": "INFO"}[k], 5.5)
 		var s: String = {"speed": lab, "pause": "II", "stats": "≡"}[k]

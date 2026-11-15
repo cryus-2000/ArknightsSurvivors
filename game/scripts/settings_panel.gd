@@ -55,7 +55,9 @@ const ROWS := [
 	{"cn": "返回", "en": "BACK", "key": "", "type": "back"},
 ]
 ## 语言两格：[存档值, 格子里的字]（格子里的字永远用本语言写，不走翻译）
-const LANG_OPTS := [["zh", "中文"], ["en", "English"]]
+## 语言格：三格（中文 / English / 日本語），每格步长
+const LANG_STEP := 80.0
+const LANG_OPTS := [["zh", "中文"], ["en", "English"], ["ja", "日本語"]]   # 选项名永远用本语言写（Loc.NATIVE 不翻）
 const RUNS_HINT := "测试版：本地记录对局摘要（不上传）"
 ## 分类：[中文, 英文, 该页的选项键名]（11-01 docs/213 P10 起列表里不再放返回行，返回在底栏）。10-22 用户定 16 行清单（Codex 界面单 §4）：
 ## 命中顿帧 / Boss 登场演出 / Boss 轮廓光 / 景深 / 辉光 / 水下滤镜 / 法线光照 / 战斗画面缩放 / 对局记录不再露出——
@@ -360,7 +362,7 @@ func _tap(mp: Vector2, button: int) -> void:
 						Cfg.apply()
 						Sfx.play("ui_move")
 				elif ROWS[i].type == "lang" and mp.x >= control_x + 16.0:
-					_set_lang(LANG_OPTS[clampi(int((mp.x - (control_x + 16.0)) / 90.0), 0, 1)][0])
+					_set_lang(LANG_OPTS[clampi(int((mp.x - (control_x + 16.0)) / LANG_STEP), 0, LANG_OPTS.size() - 1)][0])
 				elif ROWS[i].type == "onboard" and mp.x >= control_x + 16.0:
 					_set_onboard(ONBOARD_OPTS[clampi(int((mp.x - (control_x + 16.0)) / 60.0), 0, 2)][0])
 				elif ROWS[i].type == "quality" and mp.x >= control_x - 40.0:
@@ -417,6 +419,11 @@ func _v2_chips(row: Dictionary) -> Dictionary:
 ## 行的说明 / 状态小字（v2 一律写在名称下一行，不再挤在控件左边）：[文字, 是否强调]
 func _v2_sub(row: Dictionary) -> Array:
 	match row.type:
+		"lang":   # AI 翻译标注（英文 11-11、日文 11-15）：新版设置页写在语言行说明位
+			if _lang_now() == "en":
+				return ["AI-translated", true]
+			if _lang_now() == "ja":
+				return ["AI翻訳", true]
 		"quality":
 			if Cfg.quality_mode == "auto":
 				return ["按设备推荐：%s" % Cfg.QUALITY_NAME.get(Cfg.quality, "高"), true]
@@ -475,7 +482,7 @@ func _draw_row_v2(ci: CanvasItem, rr: Rect2, si: int, touch: bool) -> void:
 	var has_sub: bool = str(sub[0]) != ""
 	var ny: float = rr.position.y + rr.size.y * 0.5 + (fs_cn * 0.36) - (10.0 if has_sub else 0.0)
 	UI.text(ci, font, Vector2(rr.position.x + 18, ny), row.cn, fs_cn, UI.TEXT if on else Color("c9d0d6"))
-	var nw: float = font.get_string_size(row.cn, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fs_cn)).x
+	var nw: float = font.get_string_size(UI.Loc.s(row.cn), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fs_cn)).x   # 按显示的译文量（日文名比中文长）
 	if not UI.Loc.en():   # 英文版选项名已是英文，旁边的装饰小英文不再重复（nw 按中文量，会叠在英文名上）
 		UI.en(ci, font, Vector2(rr.position.x + 18 + nw + 10, ny - 1), row.en, 9, UI.CYAN_DIM, 1.0)
 	var col := _v2_col(rr, touch)
@@ -620,7 +627,7 @@ func _adjust(i: int, dir: int) -> void:
 			_set_onboard(ONBOARD_OPTS[posmod((oi if oi >= 0 else -1) + dir, 3)][0])
 		"lang":
 			var li: int = LANG_OPTS.map(func(o): return o[0]).find(_lang_now())
-			_set_lang(LANG_OPTS[posmod(li + dir, 2)][0])
+			_set_lang(LANG_OPTS[posmod(li + dir, LANG_OPTS.size())][0])
 		"bright":
 			Cfg.brightness = clampf(snappedf(Cfg.brightness + dir * 0.05, 0.05), 0.8, 1.4)
 		"uisize":
@@ -884,13 +891,15 @@ func _draw_row(ci: CanvasItem, rr: Rect2, si: int, touch: bool, ty0: float) -> v
 			if Cfg.max_fps == 0 and Cfg.fps_lock30:
 				UI.text(ci, font, Vector2(vx - 236, rr.position.y + ty0 - 1.0), "已按本机锁 30", 12 if not touch else 13, UI.CYAN_DIM, HORIZONTAL_ALIGNMENT_RIGHT, 246)
 		"lang":
-			for li in 2:
+			for li in LANG_OPTS.size():
 				var active: bool = LANG_OPTS[li][0] == _lang_now()
-				var lr := Rect2(vx + 16 + li * 90, rr.position.y + ty0 - 25, 84, 36)
+				var lr := Rect2(vx + 16 + li * LANG_STEP, rr.position.y + ty0 - 25, LANG_STEP - 6.0, 36)
 				ci.draw_rect(lr, UI.CYAN if active else Color("1b252e"))
 				UI.text(ci, font, lr.position + Vector2(0, 25), LANG_OPTS[li][1], fs_v - 3, Color("10151b") if active else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, lr.size.x)
 			if _lang_now() == "en":   # AI 翻译标注（11-11 用户经协调人）
 				UI.text(ci, font, Vector2(vx - 236, rr.position.y + ty0 - 1.0), "AI-translated", 12 if not touch else 13, UI.CYAN_DIM, HORIZONTAL_ALIGNMENT_RIGHT, 246)
+			elif _lang_now() == "ja":   # 日文同样标 AI 翻译（11-15）
+				UI.text(ci, font, Vector2(vx - 236, rr.position.y + ty0 - 1.0), "AI翻訳", 12 if not touch else 13, UI.CYAN_DIM, HORIZONTAL_ALIGNMENT_RIGHT, 246)
 		"onboard":
 			# 三格 没玩过 / 玩过 / 关闭（同帧率格的样式）；还没问过时三格都不亮，行尾写「下局开局时询问」
 			for oi in 3:

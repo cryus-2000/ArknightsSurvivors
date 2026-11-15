@@ -387,7 +387,7 @@ func _draw_title(tc: Dictionary, a: float) -> void:
 	var white := Color(0.94, 0.965, 0.98)
 	var tfs := _F(86)
 	var set_nm := str(Medals.data().get("set_name", "深蓝之下"))
-	if UI.Loc.en():   # 英文套组名比四个汉字长得多：缩到左栏宽（稿上 66–476）以内，按字心居中
+	if UI.Loc.on():   # 英文 / 日文套组名比四个汉字长得多：缩到左栏宽（稿上 66–476）以内，按字心居中
 		var wmax := _Q(476, 0).x - _Q(66, 0).x
 		while tfs > _F(28) and _spaced_w(set_nm, tfs, 1.0 * k, serif) > wmax:
 			tfs -= 2

@@ -1,5 +1,5 @@
 extends RefCounted
-## 本地化（docs/276 §10）：TranslationServer + game/l10n/<模块>.csv（Godot CSV 翻译表，列 keys,en,_zh,_source,_note；_ 开头的列导入时跳过）。
+## 本地化（docs/276 §10 / §13）：TranslationServer + game/l10n/<模块>.csv（Godot CSV 翻译表，列 keys,en,ja,_zh,_source,_note,_ja_note；_ 开头的列导入时跳过）。
 ## 中文是源语言：中文模式下一律原样返回，不查表；英文模式下查不到也原样返回中文——不会出现空串或裸 key。
 ## 两种查法：
 ##   1. 路径键（op.mizuki.skills.1.desc、lore.bone.lore、enemy.izumik.intro.line）：tree() 在读 JSON 时按路径换长文本（说明 / 简介 / 档案），
@@ -15,8 +15,14 @@ const MODULES := ["ops", "enemies", "ui", "relics", "events", "meta", "run", "ex
 ## 不会看到中英夹杂的半成品；在设置里手动选 English 不受影响。全部模块翻完、第三步验收后改 true（docs/276 §10）
 const AUTO_EN_READY := true   # 11-12 用户已授权合入（不过目，标 AI 翻译）：非中文系统的「自动」选英文
 
-static var lang := "zh"          # 当前生效语言："zh" / "en"
-static var _ready_tr := false
+## 日文（docs/276 §13，11-15）：「跟随系统」遇到日文系统选日文的开关
+const AUTO_JA_READY := true
+## 已支持的界面语言（设置里的顺序）。中文是源语言；ja 缺条时 TranslationServer 退到 en（工程 fallback 缺省 en），再缺就是中文原文
+const LANGS := ["zh", "en", "ja"]
+
+static var lang := "zh"          # 当前生效语言："zh" / "en" / "ja"
+static var _ready_tr := {}       # 语言 → 翻译表已读
+static var _tpl_by := {}         # 语言 → 模板桶（见 _tpl）
 static var _cache := {}          # 原文 → 译文（含查不到的，存原文）；超过 4096 条整表清空
 static var _tpl := {}            # 首个中文二字组 → [[RegEx, 英文模板, 占位记号表], …]
 static var _cjk: RegEx
@@ -28,13 +34,25 @@ static func en() -> bool:
 	return lang == "en"
 
 
+static func ja() -> bool:
+	return lang == "ja"
+
+
+## 是否在显示译文（非中文）。只管「查不查表」；英文专用的排版分支（按词断行、缩字号、去重复英文小字）仍用 en()
+static func on() -> bool:
+	return lang != "zh"
+
+
 ## 设置里的选项（"auto" / "zh" / "en"）→ 生效语言。B站 Toy 版固定中文（toy = true）
 static func resolve(pref: String, toy := false) -> String:
 	if toy:
 		return "zh"
-	if pref == "zh" or pref == "en":
+	if pref in LANGS:
 		return pref
-	if AUTO_EN_READY and not OS.get_locale_language().begins_with("zh") and not _test_run():
+	var sys_l := OS.get_locale_language()
+	if AUTO_JA_READY and sys_l.begins_with("ja") and not _test_run():
+		return "ja"
+	if AUTO_EN_READY and not sys_l.begins_with("zh") and not _test_run():
 		return "en"
 	return "zh"
 
@@ -56,20 +74,60 @@ static func _test_run() -> bool:
 
 ## 启动 / 设置改语言时调用。英文翻译表只在第一次切到英文时读
 static func setup(new_lang: String) -> void:
-	lang = new_lang if new_lang == "en" else "zh"
+	lang = new_lang if new_lang in LANGS else "zh"
 	_cache.clear()
-	if lang == "en" and not _ready_tr:
-		_load()
-	TranslationServer.set_locale("en" if lang == "en" else "zh_CN")
+	if lang != "zh":
+		if lang == "ja" and not _ready_tr.get("en", false):
+			_load("en")   # 日文缺条时退英文（TranslationServer fallback），英文模板也要有
+		if not _ready_tr.get(lang, false):
+			_load(lang)
+		_tpl = _tpl_by.get(lang, {})
+		if lang == "ja":
+			_ja_fonts()
+	TranslationServer.set_locale({"en": "en", "ja": "ja"}.get(lang, "zh_CN"))
 
 
-static func _load() -> void:
-	_ready_tr = true
-	_cjk = RegEx.create_from_string("[\\x{4e00}-\\x{9fff}]")
-	_ph = RegEx.create_from_string("\\{\\$[^}]*\\}|%[-+0-9.]*[dsf]|%%")
-	_re_fwp = RegEx.create_from_string("[。、；（），：！？]")
+## 日文字形：界面字体（Noto Sans CJK SC 子集）没有假名和日文新字体，挂上 l10n/ui_ja.otf（Noto Sans JP Bold 子集，tools/l10n/make_ja_font.py 生成）。
+## 只在切到日文时 load；放在 l10n/ 下，Toy 包整个不带（export_web --toy）
+static var _ja_font_done := false
+static func _ja_fonts() -> void:
+	if _ja_font_done or not ResourceLoader.exists("res://l10n/ui_ja.otf"):
+		return
+	_ja_font_done = true
+	var ja_f = load("res://l10n/ui_ja.otf")
+	if not (ja_f is Font):
+		return
+	for fp in ["res://fonts/ui.ttf", "res://fonts/serif.ttf", "res://fonts/ui_heavy.ttf", "res://fonts/ui_fallback.otf"]:
+		if not ResourceLoader.exists(fp):
+			continue
+		var ff = load(fp)
+		if ff is Font and not (ff as Font).fallbacks.has(ja_f):
+			var fb: Array = (ff as Font).fallbacks.duplicate()
+			fb.append(ja_f)
+			(ff as Font).fallbacks = fb
+	var ui_s = load("res://scripts/ui.gd")
+	if ui_s != null and ui_s.get("_heavy") is Font:   # 名字粗体（FontVariation，自带 fallbacks）
+		var hv: Font = ui_s.get("_heavy")
+		if not hv.fallbacks.has(ja_f):
+			var fb2: Array = hv.fallbacks.duplicate()
+			fb2.append(ja_f)
+			hv.fallbacks = fb2
+
+
+static func _load(lg: String) -> void:
+	_ready_tr[lg] = true
+	if _cjk == null:
+		_cjk = RegEx.create_from_string("[\\x{4e00}-\\x{9fff}]")
+		_ph = RegEx.create_from_string("\\{\\$[^}]*\\}|%[-+0-9.]*[dsf]|%%")
+		_re_fwp = RegEx.create_from_string("[。、；（），：！？]")
+	_tpl = {}
+	if lg == "ja":   # 日文模板先放英文的一份打底（日文缺条的句子按英文模板填），日文的插在各桶前面先匹配
+		var en_t: Dictionary = _tpl_by.get("en", {})
+		for kb in en_t:
+			_tpl[kb] = (en_t[kb] as Array).duplicate()
+	_tpl_by[lg] = _tpl
 	for m in MODULES:
-		var p := "res://l10n/%s.en.translation" % m
+		var p := "res://l10n/%s.%s.translation" % [m, lg]
 		if not ResourceLoader.exists(p):
 			push_warning("翻译表缺失：" + p)
 			continue
@@ -80,11 +138,13 @@ static func _load() -> void:
 		for k in t.get_message_list():
 			var ks := str(k)
 			if _ph.search(ks) != null and _cjk.search(ks) != null:
-				_add_tpl(ks, str(t.get_message(k)))
+				var tv := str(t.get_message(k))
+				if tv != "":
+					_add_tpl(ks, tv, lg == "ja")
 
 
-## 模板：把原文里的占位换成捕获组，按第一个中文二字组分桶（查找时只试同桶的模板）
-static func _add_tpl(zh: String, en_s: String) -> void:
+## 模板：把原文里的占位换成捕获组，按第一个中文二字组分桶（查找时只试同桶的模板）。front：插到桶前面（日文盖过打底的英文模板）
+static func _add_tpl(zh: String, en_s: String, front := false) -> void:
 	var pat := "^"
 	var toks: Array = []
 	var i := 0
@@ -115,7 +175,10 @@ static func _add_tpl(zh: String, en_s: String) -> void:
 		return
 	if not _tpl.has(first_bigram):
 		_tpl[first_bigram] = []
-	_tpl[first_bigram].append([re, en_s, toks])
+	if front:
+		_tpl[first_bigram].push_front([re, en_s, toks])
+	else:
+		_tpl[first_bigram].append([re, en_s, toks])
 
 
 static func _bigram(s: String) -> String:
@@ -138,15 +201,19 @@ static func _esc(s: String) -> String:
 
 ## 路径键：查到返回英文，查不到返回 fallback（中文模式直接返回 fallback）
 static func k(key: String, fallback: String) -> String:
-	if lang != "en":
+	if lang == "zh":
 		return fallback
 	var t := TranslationServer.translate(key)
 	return fallback if t == key or t == "" else String(t)
 
 
+## 语言选项名：永远用本语言写，不翻（设置「语言」行）
+const NATIVE := {"中文": true, "日本語": true, "English": true, "AI翻訳": true, "日本語テキストは中国語原文からのAI翻訳です。": true}
+
+
 ## 原文键：显示用。中文模式 / 不含中文 / 查不到都原样返回
 static func s(text: String) -> String:
-	if lang != "en" or text == "":
+	if lang == "zh" or text == "" or NATIVE.has(text):
 		return text
 	var hit = _cache.get(text)
 	if hit != null:
@@ -160,7 +227,7 @@ static func s(text: String) -> String:
 			out = _match_tpl(text)
 			if out == text:
 				out = _split_fallback(text)
-	elif _re_fwp != null and _re_fwp.search(text) != null:   # 没有汉字但带全角标点（「PRTS Wiki；ArknightsGameData（Kengxxiao）。」）：换成英文标点
+	elif lang == "en" and _re_fwp != null and _re_fwp.search(text) != null:   # 没有汉字但带全角标点（「PRTS Wiki；ArknightsGameData（Kengxxiao）。」）：换成英文标点
 		out = _ascii_punct(text)
 	if _cache.size() >= 4096:
 		_cache.clear()
@@ -207,7 +274,7 @@ static func _split_fallback(text: String) -> String:
 				record_missing = false   # 试拼出来的串查不到不算缺译（不然 missing 里全是两行粘在一起的假条目）
 				var je0 := s(jn0)
 				record_missing = rm0
-				if je0 != jn0 and _cjk.search(je0) == null:
+				if je0 != jn0 and (lang == "ja" or _cjk.search(je0) == null):
 					return je0
 		var lines := text.split("\n")
 		for li in lines.size():
@@ -220,8 +287,8 @@ static func _split_fallback(text: String) -> String:
 		var t0 := text.substr(c0 + 1)
 		var he0 := s(h0)
 		var te0 := s(t0)
-		if he0 != h0 and te0 != t0 and _cjk.search(te0) == null:
-			return he0 + ": " + te0
+		if he0 != h0 and te0 != t0 and (lang == "ja" or _cjk.search(te0) == null):
+			return he0 + ("：" if lang == "ja" else ": ") + te0
 	# 卡名显示时把「协同·专」排成「协同 · 专」、日文中点（U+30FB）：换回表里的写法再查一次
 	for pair in [[" · ", "·"], [" " + String.chr(0x30fb) + " ", "·"], [String.chr(0x30fb), "·"]]:   # 中点用 chr 构造：字面量会被 release_slim 当成要显示的字（字体里没有）
 		if text.contains(pair[0]):
@@ -241,7 +308,10 @@ static func _split_fallback(text: String) -> String:
 			var ie := s(inner)
 			hit = hit or ie != inner
 			var head := text.substr(at, bm.get_start() - at)
-			bout += (s(head) if head.strip_edges() != "" else head) + (" " if head != "" and not head.ends_with(" ") else "") + "\"" + ie + "\""
+			if lang == "ja":   # 日文照旧用「」
+				bout += (s(head) if head.strip_edges() != "" else head) + "「" + ie + "」"
+			else:
+				bout += (s(head) if head.strip_edges() != "" else head) + (" " if head != "" and not head.ends_with(" ") else "") + "\"" + ie + "\""
 			at = bm.get_end()
 		if hit:
 			return (bout + s(text.substr(at))).strip_edges()
@@ -255,18 +325,19 @@ static func _split_fallback(text: String) -> String:
 		if be != base:
 			var suf := m.get_string(2)
 			if suf.begins_with("（"):
-				suf = " (" + s(suf.substr(1, suf.length() - 2)) + ")"
+				var inner_s := s(suf.substr(1, suf.length() - 2))
+				suf = ("（" + inner_s + "）") if lang == "ja" else (" (" + inner_s + ")")
 			return be + suf
 	for sep in ["  //  ", " // ", "//", " · ", "·", " / ", "／", "  ", "　", "，"]:
 		if text.contains(sep):
 			var parts := text.split(sep)
 			for pi2 in parts.size():
 				parts[pi2] = s(parts[pi2])
-			var jn: String = {"·": " · ", "　": "  ", "，": ", "}.get(sep, sep)
+			var jn: String = ({"·": "・", "，": "、"} if lang == "ja" else {"·": " · ", "　": "  ", "，": ", "}).get(sep, sep)
 			return jn.join(parts)
 	var ci := text.find("：")
 	if ci > 0 and ci < text.length() - 1:
-		return s(text.substr(0, ci)) + ": " + s(text.substr(ci + 1))
+		return s(text.substr(0, ci)) + ("：" if lang == "ja" else ": ") + s(text.substr(ci + 1))
 	# 最后一招：单个空格隔开的几个中文词（「难度 常规」「深蓝之下 未获得」）逐词查；每段都得含中文才拆
 	if text.contains(" "):
 		var ws := text.split(" ", false)
@@ -285,9 +356,17 @@ static func _split_fallback(text: String) -> String:
 	return text
 
 
+## 整串直接查表（不拆段、不套模板）：查到返回译文，查不到返回空串。拼接 / 替换过的句子先用它判断能不能整句译
+static func hit(text: String) -> String:
+	if lang == "zh" or text == "":
+		return ""
+	var t := String(TranslationServer.translate(text))
+	return t if t != text and t != "" else ""
+
+
 ## 定宽格子用的短版（short:<原文>），没有短版就同 s()
 static func short(text: String) -> String:
-	if lang != "en" or text == "":
+	if lang == "zh" or text == "":
 		return text
 	var t := String(TranslationServer.translate("short:" + text))
 	return t if t != "short:" + text and t != "" else s(text)
@@ -344,7 +423,7 @@ const LONG := {"desc": true, "brief": true, "branch_desc": true, "intro": true, 
 
 
 static func tree(node, prefix: String) -> void:
-	if lang != "en":
+	if lang == "zh":
 		return
 	_tree(node, prefix, "")
 

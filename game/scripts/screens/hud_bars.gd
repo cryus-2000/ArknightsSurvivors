@@ -443,7 +443,7 @@ func draw_boss_bars(vs: Vector2) -> void:
 		# 名字行：左边名字（双体用「 · 」连），形态点 / 吸收层跟在后面；右边状态小字（双体取更要紧的那体）
 		var nm: String = str(e.name) if not pair else "%s · %s" % [row[0].name, row[1].name]
 		var nx: float = bx + (14.0 if pair else 0.0)
-		var nw: float = g.font.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(13)).x
+		var nw: float = g.font.get_string_size(UI.Loc.s(nm), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(13)).x
 		UI.text(g.hud, g.font, Vector2(nx, y0 + 12.0), nm, 13, Color(1, 0.86, 0.9), HORIZONTAL_ALIGNMENT_LEFT, -1, 2)
 		var tx: float = nx + nw + 8.0
 		if not pair:

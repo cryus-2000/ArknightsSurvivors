@@ -1,4 +1,4 @@
-# 100 · 商店页文案与改名候选（2026-10-14，文案）
+# 100 · 商店页文案与改名候选（2026-10-14，文案；§2 itch 三语 11-15 重写）
 
 > 用途：B 站 Toy 与 itch 的商店页文案；游戏改名候选。写法按 docs/76（简短、克制、信息密，不用「您」「体验」「全新」「旅程」这类宣传词）。
 > 合规按 docs/99：B 站版不放站外链接、收款码、第三方登录；标题、封面不用他人商标；主标题不写「明日方舟」，原作只在声明里提。
@@ -35,35 +35,93 @@
 
 ---
 
-## 2. itch 版（中英双语，可放链接）
+## 2. itch 版（英 / 中 / 日三语，可放链接；11-15 按当前版本重写）
 
-**Title**：方舟幸存者 / Ark Survivors（英文名随改名一起定）
-**Tagline**（≤ 30 字）：带一支小队下潜，在海嗣潮里撑过 10 分钟。
-Lead a small squad into the deep and survive ten minutes of the Seaborn tide.
+> 内容以 11-15 的代码和数据为准（main 90ee887c7）：干员 20 名（`game/data/characters/`）、编队 3 人（`squad.gd REGULAR_MAX`，藏品可 +1）、三个技能全自动、Q 终结技（`core/play_keys.gd`）、连携随队长技能自动触发（11-05 起没有 E 键）、中期 Boss 6 只（`waves.json mid_pool`）、最终 Boss 4 只对应 4 个结局、一局 10 分钟、藏品 265 件、三档难度。数字变了要同步这里。
+> 英文、日文为 AI 翻译（docs/276 §12 / §13），页面上写明。itch 包有中 / 英 / 日三种界面语言；B 站 Toy 版只有中文。
 
-**短介绍**
-同人割草小游戏。你是罗德岛的博士，带着开局干员潜入海嗣盘踞的深海。技能会自动释放，你负责走位和冲刺：升级、招募干员、收集藏品，守住灯火，撑过 10 分钟，打倒最终 Boss。不同的抉择会走向四个结局。
+**Title**：方舟幸存者 / Arknights Survivors（itch 页现用名；改名后整体替换）
 
-A fan-made survivor-like. You are the Doctor of Rhodes Island, leading an operator into a sea held by the Seaborn. Skills fire on their own; you move and dash. Level up, recruit operators, collect relics, keep your lamplight burning, last ten minutes and defeat the final boss. Your choices lead to one of four endings.
+### English
 
-**特色 / Features**
-- 18 名干员，每人三个技能，精英化解锁新技能并改变普攻 / 18 operators, three skills each; promotion unlocks new skills and changes basic attacks
-- 上百件藏品，能凑出不同的流派 / 100+ relics to build around
-- 8 只 Boss，各有破解方法 / 8 bosses, each with its own counterplay
-- 灯火、溟痕、黑潮缩圈 / Lamplight, mire and a shrinking Black Tide
-- 三档难度，四个结局 / 3 difficulty tiers, 4 endings
-- 键鼠、手柄、触屏；普攻可改手动 / Keyboard & mouse, gamepad or touch; optional manual attack
+**Tagline**: Lead a squad of operators into the deep and hold out for ten minutes against the Seaborn tide.
 
-**操作 / Controls**
-- WASD 移动 / move · 空格 冲刺 / Space dash · Q / E 手动技能 / manual skill · Esc 暂停 / pause
-- 手柄 / Gamepad：左摇杆移动 / left stick move · Ⓑ / RB 冲刺 / dash · Ⓐ / Ⓨ 手动技能 / manual skill
-- 触屏 / Touch：左半屏拖动移动 / drag on the left half to move · 冲刺键 / dash button
+**About**
+A free, fan-made survivor-like set in the Integrated Strategies theme *Mizuki & Caerula Arbor*. You are the Doctor of Rhodes Island. Pick a leader, dive into a sea held by the Seaborn and keep your Light burning. All three skills of every operator fire on their own; you move, dash, and choose when the leader's Ultimate lands. Level up, recruit operators, collect relics, and defeat the final boss at 10:00. The tokens you gather along the way decide which of four endings you reach.
 
-**同人声明 / Disclaimer**
-本作是《明日方舟》的非官方同人作品，免费、非商业。角色、世界观、名称与集成战略「水月与深蓝之树」的设定均属于鹰角网络（Hypergryph），本作与鹰角网络无关。如有侵权请联系作者，将立即处理。
+**Features**
+- 20 operators. Three skills each, all automatic; promotion to Elite 1 and Elite 2 changes how they fight.
+- Each leader has an Ultimate on Q. Teammates follow up with Link attacks whenever the leader casts a skill; bonded pairs get a combined attack.
+- Squads of three (a relic can open a fourth slot), 265 relics and route events to build around.
+- 6 mid-bosses and 4 final bosses, each with its own counterplay.
+- Light, Nethersea Brand and Guiding Beacons: fight inside the lit area.
+- 4 endings, 3 difficulty settings, Cognitive Shaping, headhunting and medals between runs.
+- Keyboard & mouse, gamepad or touch. Runs in the browser.
+
+**Controls**
+- Keyboard: WASD move · Space dash · Q Ultimate (hold to aim, release to fire) · F command wheel · Esc pause (P in the browser) · hold left mouse to steer basic attacks
+- Gamepad: left stick move · Ⓑ / RT dash · Ⓐ / RB Ultimate · right stick aim · LB command wheel · START pause
+- Touch: drag on the left half to move · Dash, Ultimate and Command buttons on the right
+
+**Languages**: Chinese (original), English, Japanese. The English and Japanese text is AI-translated from the Chinese.
+
+**Disclaimer**
 An unofficial, free, non-commercial fan work based on *Arknights*. Characters, world, names and the setting of the Integrated Strategies theme *Mizuki & Caerula Arbor* belong to Hypergryph. This project is not affiliated with Hypergryph. Contact the author for any rights concern and it will be handled immediately.
 
+### 中文
+
+**一句话**：带一支干员小队下潜，在海嗣潮里撑过 10 分钟。
+
+**简介**
+同人割草小游戏，背景是集成战略「水月与深蓝之树」。你是罗德岛的博士：选一名队长，潜入海嗣盘踞的深海，守住灯火。每名干员的三个技能都自动释放，你负责走位、冲刺，以及决定队长的终结技落在哪里。升级、招募干员、收集藏品，在 10:00 击败最终 Boss；路上拿到的信物决定走向四个结局中的哪一个。
+
+**特色**
+- 20 名干员，每人三个技能，全部自动释放；精英一、精英二改变战斗方式
+- 每名队长有自己的终结技（Q）；队长放技能时队友自动连携，羁绊搭档另有合击
+- 编队三人（藏品可再开一格），265 件藏品与路线事件，凑出不同流派
+- 6 只中期 Boss、4 只最终 Boss，各有破解方法
+- 灯火、溟痕、引航灯标：站在照亮的范围里打
+- 4 个结局、3 档难度；局外有认知塑造、寻访、蚀刻章
+- 键鼠、手柄、触屏都能玩，浏览器直接开
+
+**操作**
+- 键盘：WASD 移动 · 空格 冲刺 · Q 终结技（按住瞄准、松开释放）· F 指挥圆盘 · Esc 暂停（网页版也可按 P）· 按住左键引导普攻方向
+- 手柄：左摇杆移动 · Ⓑ / RT 冲刺 · Ⓐ / RB 终结技 · 右摇杆瞄准 · LB 指挥圆盘 · START 暂停
+- 触屏：左半屏拖动移动 · 右侧冲刺、终结技、指挥键
+
+**语言**：中文（原文）、English、日本語。英文与日文为 AI 翻译。
+
+**同人声明**
+本作是《明日方舟》的非官方同人作品，免费、非商业。角色、世界观、名称与集成战略「水月与深蓝之树」的设定均属于鹰角网络（Hypergryph），本作与鹰角网络无关。如有侵权请联系作者，将立即处理。
+
+### 日本語
+
+**ひとこと**：オペレーター小隊を率いて深海へ。シーボーンの潮の中で10分間持ちこたえる。
+
+**紹介**
+統合戦略「ミヅキと紺碧の樹」を舞台にした、無料の二次創作サバイバーライクです。プレイヤーはロドスのドクター。リーダーを選び、シーボーンが巣くう深海へ潜り、灯火を守り抜きます。オペレーターのスキル3つはすべて自動発動。プレイヤーは移動とダッシュ、そしてリーダーの必殺技をどこへ撃つかを担当します。レベルアップ、オペレーターの招集、秘宝の収集を重ね、10:00に現れる最終ボスを倒してください。道中で集めた証によって、4つのエンディングのどれに辿り着くかが決まります。
+
+**特徴**
+- オペレーター20名。スキルは各3つ、すべて自動発動。昇進1・昇進2で戦い方が変わる
+- リーダーごとに専用の必殺技（Q）。リーダーがスキルを使うと仲間が自動で連携、絆のある組み合わせには合体攻撃も
+- 3人編成（秘宝で4枠目も）、秘宝265種とルートイベントでビルドを組む
+- 中ボス6体・最終ボス4体、それぞれに攻略法あり
+- 灯火・溟痕・導きの灯標：照らされた範囲で戦う
+- エンディング4種、難易度3段階。探索の合間に認知形成・人材発掘・勲章
+- キーボード＆マウス、ゲームパッド、タッチ操作に対応。ブラウザでそのまま遊べる
+
+**操作**
+- キーボード：WASD 移動 ・ Space ダッシュ ・ Q 必殺技（長押しで照準、離して発動）・ F 指揮サークル ・ Esc ポーズ（ブラウザ版は P も可）・ 左クリック長押しで通常攻撃の向きを指定
+- ゲームパッド：左スティック 移動 ・ Ⓑ / RT ダッシュ ・ Ⓐ / RB 必殺技 ・ 右スティック 照準 ・ LB 指揮サークル ・ START ポーズ
+- タッチ：画面左半分をドラッグで移動 ・ 右側にダッシュ／必殺技／指揮ボタン
+
+**対応言語**：中国語（原文）、英語、日本語。英語と日本語のテキストは中国語からのAI翻訳です。
+
+**二次創作に関する表記**
+本作は『アークナイツ（明日方舟）』の非公式二次創作であり、無料・非営利で公開しています。キャラクター、世界観、名称、および統合戦略「ミヅキと紺碧の樹」の設定の権利はHypergryph（鷹角網絡）に帰属します。本作はHypergryphとは一切関係ありません。権利上の問題がございましたら作者までご連絡ください。速やかに対応いたします。
+
 > itch 可以放小红书联系方式（菜月colafax（373145407））和致谢页里的第三方素材署名。
+> 日文段落的用语与游戏内日文一致（必殺技 / 連携 / 秘宝 / 認知形成 / 導きの灯標，见 tools/l10n/translate_ja.py PROVISIONAL_JA）；「寻访」= 人材発掘（日服官方）、「蚀刻章」= 勲章，与 ui.csv 的 ja 列一致，改了要同步这里。
 
 ---
 

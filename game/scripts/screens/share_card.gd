@@ -457,7 +457,7 @@ func _report(ci: CanvasItem, d: Dictionary) -> void:
 		HH.para(ci, Rect2(16, 548, 250, 34), HH.LIGHT)
 		ci.draw_rect(Rect2(16, 582, 250, 3), acc)
 		_t(ci, Vector2(34, 553), str(ld.name), 20, HH.INK)
-		_t(ci, Vector2(34 + font.get_string_size(str(ld.name), HORIZONTAL_ALIGNMENT_LEFT, -1, 20).x + 10, 559), "队长  Lv.%d" % int(d.get("level", 1)), 12, HH.INK2)
+		_t(ci, Vector2(34 + font.get_string_size(UI.Loc.s(str(ld.name)), HORIZONTAL_ALIGNMENT_LEFT, -1, 20).x + 10, 559), "队长  Lv.%d" % int(d.get("level", 1)), 12, HH.INK2)
 		if not won:   # 击倒章（洋红，斜盖在立绘上）
 			ci.draw_set_transform_matrix(_xf * Transform2D(-0.12, Vector2(220, 300)))
 			ci.draw_rect(Rect2(-56, -22, 112, 44), SB.MAG, false, 3.0)

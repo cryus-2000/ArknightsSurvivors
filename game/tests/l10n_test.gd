@@ -30,6 +30,14 @@ func _has_cjk(t: String) -> bool:
 	return false
 
 
+func _has_kana(t: String) -> bool:
+	for ch in t:
+		var c := ch.unicode_at(0)
+		if c >= 0x3041 and c <= 0x30ff:
+			return true
+	return false
+
+
 func _texts(node, field: String, out: Array) -> void:
 	if node is Dictionary:
 		for k in node:
@@ -97,6 +105,40 @@ func run() -> void:
 	ok(left == 0, "英文说明里残留 {$…} 占位 %d 条" % left)
 	print("L10N 干员长文本 %d 条，仍是中文 %d 条（未翻的模块回退中文属正常）" % [total, cjk_left])
 	ok(cjk_left * 10 < total, "干员长文本英文覆盖率 ≥ 90%%（仍中文 %d / %d）" % [cjk_left, total])
+
+	# 日文（docs/276 §13）：官方名按日服、缺条退英文、说明换日文无残留占位、Toy 锁中文
+	ok(Loc.resolve("ja", true) == "zh", "语言锁：Toy 版切不到日文")
+	ok(Loc.resolve("ja", false) == "ja", "不锁时手动选日文生效")
+	Loc.setup("ja")
+	ok(Loc.ja() and Loc.on() and not Loc.en(), "日文模式标志")
+	ok(Loc.s("骨海漂流体") == "骨海のワンダラー", "日文原文键：敌人名 → %s" % Loc.s("骨海漂流体"))
+	ok(Loc.s("水月") == "ミヅキ", "日文原文键：干员名 → %s" % Loc.s("水月"))
+	ok(Loc.k("enemy.bone.name", "骨海漂流体") == "骨海のワンダラー", "日文路径键")
+	var duo := Loc.s("二重咏唱 ×3")
+	ok(duo != "二重咏唱 ×3" and duo.contains("3"), "日文模板 %%d：%s" % duo)
+	ok(Loc.s("这一句表里没有") == "这一句表里没有", "日文查不到原样返回中文")
+	ok(Loc.s("中文") == "中文" and Loc.s("日本語") == "日本語", "语言选项名不翻")
+	var jleft := 0
+	var jkana := 0
+	var jtotal := 0
+	for cid in Character.list_ids():
+		var dj: Dictionary = Character.load_def(cid)
+		var tj: Array = []
+		_texts(dj, "", tj)
+		for t in tj:
+			jtotal += 1
+			if str(t[1]).contains("{$"):
+				jleft += 1
+				printerr("  日文未填占位 %s.%s：%s" % [cid, t[0], str(t[1]).left(60)])
+			if _has_kana(str(t[1])):
+				jkana += 1
+		var skj: Array = dj.get("skills", [])
+		if skj.size() > 0:
+			var nmj: String = str(skj[0].get("name", ""))
+			ok(Loc.s(nmj) != nmj, "%s：技能名显示时译成日文（%s → %s）" % [cid, nmj, Loc.s(nmj)])
+	ok(jleft == 0, "日文说明里残留 {$…} 占位 %d 条" % jleft)
+	print("L10N 日文 干员长文本 %d 条，含假名 %d 条" % [jtotal, jkana])
+	ok(jkana * 10 >= jtotal * 9, "干员长文本日文覆盖率 ≥ 90%%（含假名 %d / %d）" % [jkana, jtotal])
 
 	Loc.setup("zh")
 	for cid in Character.list_ids():
