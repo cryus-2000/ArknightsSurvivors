@@ -127,6 +127,10 @@ func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	font = load("res://fonts/ui.ttf")
+	# 语言行 / 语音语言行的韩文自称：Loc 只在界面切到韩文时挂 l10n/ui_ko.otf，中 / 英 / 日界面下网页版没有系统字体会显示方块。
+	# 设置面板建好就挂上（只挂一次；Toy 版两行都不列出、包里也没有 l10n/，不挂）
+	if not Cfg.lang_locked():
+		Cfg.Loc._l10n_font("ko")
 	visible = false
 	# 转屏 / 浏览器栏收起：开着的设置面板跟着撑满新的 UI 逻辑区（标题页没有 game._ui_fit 代劳）
 	get_viewport().size_changed.connect(_refit)
@@ -976,8 +980,6 @@ const VLANG_OPTS := [["auto", "跟随界面"], ["zh", "中文"], ["ja", "日本�
 
 
 func _vlang_label(v: String) -> String:
-	if v == "ko":
-		Cfg.Loc._l10n_font("ko")   # 界面不是韩文时 ui_ko.otf 还没挂上（Loc 只在切到韩文时挂），网页版没有系统字体会显示方块；只挂一次
 	for o in VLANG_OPTS:
 		if o[0] == v:
 			return o[1]
