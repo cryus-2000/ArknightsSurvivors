@@ -958,9 +958,16 @@ static func fit_line(font: Font, s: String, size: int, max_w: float, min_size :=
 static func _fit_line(font: Font, s: String, size: int, max_w: float, min_size: int) -> Array:
 	if Loc.on():
 		min_size = mini(min_size, ceili(size * 0.85))   # 英文 / 日文版：缩字号下限放宽到原字号 85%（docs/276 §9 第 3 条）
+	# 结果同「从 size 每次减 1 直到放得下」，但先按宽度比例估一个字号再上下微调：每量一个字号，字体就把这串字按该字号光栅化进一套缓存页，
+	# 寻访揭示页 110 号名字逐号量到 60 多号会留下几十套大字号缓存（11-16 安卓首次十连 WASM 堆扩容，docs/349）
 	var sz := size
-	while sz > min_size and font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x > max_w:
-		sz -= 1
+	var w0: float = font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x
+	if w0 > max_w and sz > min_size:
+		sz = clampi(floori(size * max_w / w0), min_size, size - 1)
+		while sz > min_size and font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x > max_w:
+			sz -= 1
+		while sz + 1 < size and font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, sz + 1).x <= max_w:
+			sz += 1
 	var t := s
 	if font.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x > max_w:
 		while t.length() > 1 and font.get_string_size(t + "…", HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x > max_w:
