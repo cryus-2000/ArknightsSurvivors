@@ -41,6 +41,18 @@ Toy 包：改前 = 90ee887c7（玩家那版）现导；改后 = 90ee887c7 + 本�
 - Edge 仿真（DevTools 触摸，见 `build/touch_drag_before.mp4` / `touch_drag_after.mp4`）：改前改后拖动都正常（复现不出，录像只证明改动没弄坏触屏移动）。
 - 快检：touch_layout / touch_move / toy_support / ui_smoke / slim / web_focus 通过。
 
+### 3.1 真机参数复现（协调人 11-16 补的四指诊断：794×361 @3.5、安全区 l40 t54、胶囊 686,0 108×46、immersive）
+
+`tests/touch_zone_probe.tscn -- --touch --safe=80,108,0,0 --capsule=216,92 --probesize=1588x722`（窗口 = 画布，Toy 手机画布 2 倍上限，安全区 / 胶囊按 2 倍 CSS 给）：
+对局里把屏幕按 40×18 网格逐点按下，左侧 1–25 列（离左边 36 以外到 55% 屏宽）全部起摇杆，右侧只有按键区被按键接走；左半屏中部按下右拖 90，摇杆向量 (1, 0)、队长移动 33。
+**安全区 / 胶囊避让没有把移动区算成不可用，坐标也没偏**（`ins` 左 60 / 上 69 UI 单位只影响按键摆放）。拖动失灵仍指向宿主收走手势，等 §0 加的触点计数回来确认。
+
+### 3.2 右上按键离胶囊（玩家「很容易点到右上角的叉」）
+
+右上小牌（属性 / 暂停 / 倍速，`hud_v2.plates`）被胶囊压时整排落到胶囊下面，原来只离胶囊下沿 4 个 UI 单位（约 3 CSS px）。
+现在离下沿至少 `Cfg.CAP_GAP_CSS` = 24 CSS px（`Cfg.cap_gap()`，网页按 CSS 换算；`--safe` 模拟按窗口 = 2 倍 CSS 换算）；缺省位置的「指挥」键跟着下移，不和小牌挤。终结技 / 瞄准 / 冲刺离胶囊远，不动。
+截图（红框 = 胶囊，黄线 = 胶囊下沿 24 CSS px）：`build/cap_shots/bili_a794_before_after.png`、`bili_a800_before_after.png`（左改前右改后）与 `*_after_full.png`；`tools/safe_area_shots.py --only bili_a794,bili_a800` 重出。
+
 ## 4. 没做 / 待真机
 
 - 若下次报告里「触点被取消」频繁出现：说明是宿主收走拖动。可选方向（需用户定）：摇杆改「按下即给方向」的固定摇杆缺省（不靠拖动起步）、局内拦返回键（`history.pushState` 垫一层，第一次返回只暂停，再按才退出）。

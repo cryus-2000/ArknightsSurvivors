@@ -242,6 +242,13 @@ func layout(vs: Vector2) -> Dictionary:
 	if key != _lay_key:
 		_lay_key = key
 		_lay = TouchLayout.resolve(vs, atk_on, Cfg.touch_layout, Cfg.touch_safe_rect(vs), ph)
+		# 胶囊把右上小牌整排压下来时（hud_v2.plates，离胶囊下沿留一指宽），缺省位置的「指挥」键跟着下移，不和小牌挤在一起（docs/349）
+		var cap: Rect2 = Cfg.capsule_ui()
+		var ce: Dictionary = _lay.get("cmd", {})
+		if cap.size.x > 0.0 and not ce.is_empty() and not ce.custom and ce.c.x + BTN > cap.position.x - Cfg.cap_gap():
+			var need: float = cap.end.y + maxf(4.0, Cfg.cap_gap()) + 32.0 + 12.0 + BTN / 2.0 * float(ce.s)   # 小牌高 32（PLATE_T）+ 间隔 12
+			if ce.c.y < need:
+				ce.c = Vector2(ce.c.x, need)
 	return _lay
 
 
