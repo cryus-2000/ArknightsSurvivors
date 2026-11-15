@@ -302,7 +302,7 @@ func plates(vs: Vector2) -> Dictionary:
 	var y0: float = RT_Y + 12.0 + float(ins[1])
 	var cap: Rect2 = Cfg.capsule_ui()
 	if cap.size.x > 0.0 and cap.position.y < y0 + plate_size().y and cap.end.x > x - 3.0 * plate_size().x:
-		y0 = cap.end.y + 4.0   # 往左挪会挤到顶部中央的击杀 / 时间块，整排落到胶囊下面
+		y0 = cap.end.y + maxf(4.0, Cfg.cap_gap())   # 往左挪会挤到顶部中央的击杀 / 时间块，整排落到胶囊下面；离胶囊下沿留一指宽（docs/349）
 	var L: Dictionary = g.touch.layout(vs) if g.touch.active else {}
 	var ps: Vector2 = plate_size()
 	for k in (["speed", "pause", "stats"] if g.touch.active else ["speed", "pause"]):

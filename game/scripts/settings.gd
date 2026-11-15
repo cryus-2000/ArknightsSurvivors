@@ -321,6 +321,7 @@ var _ins_key := Vector3(-1, -1, -1)
 var _ins: Array = [0.0, 0.0, 0.0, 0.0]
 var _sys: Array = [0.0, 0.0, 0.0, 0.0]   # 不含胶囊的系统边距（hud_ins）
 var _cap := Rect2()   # 胶囊（UI 坐标；没有为空）
+var _cap_gap := 0.0   # 胶囊周围给手指留的空（UI 坐标），见 cap_gap()
 
 ## B站 Toy 环境（tools/web/container.js 的 window.__syToy 桥，docs/22「Toy 接入」）：deviceType（phone / tablet / desktop / unknown，
 ## 只在 B站 App 内拿到容器状态后才有）、是否在容器里。手机版式 phone_ui 在画面比例之外也认 deviceType == phone
@@ -396,6 +397,15 @@ func capsule_ui() -> Rect2:
 	return _cap
 
 
+## 胶囊下沿 / 左沿到局内可点按钮至少留的空（UI 坐标）：CAP_GAP_CSS 个 CSS 像素，约一指宽。
+## 11-16 安卓玩家「手机玩很容易点到右上角的叉」（docs/349）：右上小牌原来只离胶囊下沿 4，伸手点暂停 / 倍速常碰到 B站 App 的关闭胶囊
+const CAP_GAP_CSS := 24.0
+
+func cap_gap() -> float:
+	_ins_update()
+	return _cap_gap
+
+
 func _ins_update() -> void:
 	if not touch_device():
 		_ins = [0.0, 0.0, 0.0, 0.0]
@@ -410,7 +420,9 @@ func _ins_update() -> void:
 	_ins = [0.0, 0.0, 0.0, 0.0]
 	_sys = [0.0, 0.0, 0.0, 0.0]
 	_cap = Rect2()
+	_cap_gap = 0.0
 	var px := [0.0, 0.0, 0.0, 0.0]
+	var css_px := 1.0   # 1 个 CSS 像素 = 多少个 px 单位（网页 1；--safe 模拟按窗口像素给、窗口 = 2 倍 CSS，取 2）
 	var cap_px := Rect2()
 	var per_px := 0.0   # 1 个物理 / CSS 像素 = 多少视口逻辑像素
 	var sim := false
@@ -421,6 +433,7 @@ func _ins_update() -> void:
 				for i in 4:
 					px[i] = float(q[i])
 				per_px = vis.x / maxf(1.0, float(get_window().size.x))   # 按窗口像素给
+				css_px = 2.0
 				sim = true
 	if sim:
 		for a in dev_args():
@@ -458,6 +471,7 @@ func _ins_update() -> void:
 			_ins[1] = 0.0
 		if cap_px.size.x > 0.0:
 			_cap = Rect2(cap_px.position * kk, cap_px.size * kk)
+			_cap_gap = CAP_GAP_CSS * css_px * kk
 			if _cap.position.y < vis.y / ui_k * 0.5:
 				_ins[1] = maxf(_ins[1], _cap.end.y)
 
