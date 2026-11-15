@@ -159,17 +159,33 @@ func _process(_dt: float) -> void:
 	E.elites.clear()
 	game.bosses = []
 	game.pending_chests = 0
-	var sh: float = preload("res://scripts/core/balance.gd").v("relic/mid1_shift", 0.0)   # 途中一后移（docs/191）
-	game.t = 70.0 + sh
+	var sh: float = preload("res://scripts/core/balance.gd").v("relic/mid1_shift", 0.0)   # 途中一后移（docs/191；11-16 起 0）
+	var wins: Array = E.deck_cfg.get("mid", [])
+	check(wins.size() == 3, "3 mid crossroads (11-16)")
+	game.t = float(wins[0][0]) + sh - 5.0
 	E._tick_mid()
-	check(E.mid_done == 0, "no mid crossroad before 1:20")
-	game.t = 81.0 + sh
+	check(E.mid_done == 0, "no mid crossroad before 0:55")
+	game.t = float(wins[0][0]) + sh + 1.0
 	E._tick_mid()
-	check(E.mid_done == 1 and game.choice_kind == "cross" and E.deck.size() == 2, "mid crossroad 1 at 1:20 when calm")
+	check(E.mid_done == 1 and game.choice_kind == "cross" and E.deck.size() == 2 and E.deck.all(func(c): return c.type == "incident"), "mid crossroad 1 at 0:55: 2 incident cards")
+	var m1_ev: Array = E.deck.map(func(c): return str(c.get("event", "")))
+	_close()
+	game.t = float(wins[1][0]) + 1.0
+	E._tick_mid()
+	check(E.mid_done == 2 and game.choice_kind == "cross" and E.deck.size() == 3, "mid crossroad 2 at 1:55: 3 cards")
+	var seen: Dictionary = {}
+	var dup: bool = m1_ev[0] == m1_ev[1]
+	for x in m1_ev:
+		seen[x] = true
+	for c in E.deck:
+		if c.type == "incident":
+			dup = dup or seen.has(c.event)
+			seen[c.event] = true
+	check(not dup, "no repeated incident across mid crossroads")
 	_close()
 	game.t = 365.0
 	E._tick_mid()
-	check(E.mid_done == 2 and game.state == game.S.PLAY, "crossroad 1 not dealt by 6:00 -> mid 2 cancelled")
+	check(E.mid_done == 3 and game.state == game.S.PLAY, "crossroad 1 not dealt by 6:00 -> mid 3 cancelled")
 	print("ET step 9")
 	# 9 每件改版事件（events_v2.json，带原作出处 src）的每个选项都走一遍（含二级屏，机器人选完），之后委托 / 暂离到点结算，不报错、面板关回战斗
 	var stat_rid := ""

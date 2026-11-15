@@ -47,9 +47,10 @@ var _mh_n := 0                  # 事件改最大生命的次数（stats 来源�
 var route := ""                 # --route=knight|heart|memory|none|rand（机器人走哪条线；空 = 按 seed 轮换）
 # ---- 事件改版（docs/184）
 var lines_on := false           # 结局线入口卡开不开（通关结局一后；测试 / 批跑缺省开）
-var mid_done := 0               # 途中路口已发几次（0 / 1 / 2）
+var mid_done := 0               # 途中路口已发几次（0 … cross.mid 窗口数）
+var mid_cur := -1               # 正在发的途中路口是第几个窗口（build_deck(0) 按它取 mid_n / mid_types；-1 = 不限）
 var c1_deal_t := -1.0           # 路口一发牌时刻（晚于途中二最早时刻时取消途中二）
-var slot := ""                  # 当前摊牌：m1 / c1 / m2 / c2（作战记录）
+var slot := ""                  # 当前摊牌：m1 / m2 / c1 / m3 / c2（作战记录）
 var lane_bias := ""             # 下一次藏品三选一：2 件出这个流派（主流派加权，progression.open_relic_choice 读后清掉）
 var chal: Dictionary = {}       # 进行中的委托：{kind, name, end_t, win, squad, ...}
 var away: Array = []            # 暂离的队友：[{id, prog, route, back_t, reward}]
@@ -166,28 +167,43 @@ func _show_deck(title: String) -> void:
 	g.panel_ui.show_choices(title, opts, "cross", "选一张翻开，翻开即生效")
 
 
-## 途中路口（docs/184 §2.5）：1:20 / 6:00 起等中 Boss、精英小队、委托都清场再弹，最晚到点照弹；2 张卡、没有结局卡。
-## 路口一拖到途中二最早时刻之后才发，途中二取消
+## 途中路口（docs/184 §2.5；11-16 加量）：events_v2.json cross.mid 各窗口 [最早, 最晚] 秒起等中 Boss、精英小队、委托都清场再弹，最晚到点照弹；没有结局卡。
+## mid_after[i] = 1 的窗口排在路口一之后：路口一拖到这个窗口最早时刻之后才发（或到点还没发），这一次取消；= 0 的在路口一之前，路口一已发就取消
 func _tick_mid() -> void:
-	if mid_done >= 2 or cross_due > 0:
-		return
 	var wins: Array = deck_cfg.get("mid", [[80, 110], [360, 390]])
-	var w: Array = wins[mini(mid_done, wins.size() - 1)]
-	if mid_done == 0 and Bal.v("relic/mid1_shift", 35.0) != 0.0:
-		var sh: float = Bal.v("relic/mid1_shift", 35.0)   # 途中一整体后移（docs/191：首件藏品推到约 2:00）
+	if mid_done >= wins.size() or cross_due > 0:
+		return
+	var w: Array = wins[mid_done]
+	if mid_done == 0 and Bal.v("relic/mid1_shift", 0.0) != 0.0:
+		var sh: float = Bal.v("relic/mid1_shift", 0.0)   # 途中一整体后移（docs/191；11-16 起缺省 0，窗口直接写在 cross.mid）
 		w = [float(w[0]) + sh, float(w[1]) + sh]
-	if mid_done == 1 and (c1_deal_t >= float(w[0]) or (c1_deal_t < 0.0 and g.t >= float(w[0]))):
-		mid_done = 2
+	var aft: Array = deck_cfg.get("mid_after", [0, 1])
+	var after_c1: bool = int(aft[mini(mid_done, aft.size() - 1)]) >= 1
+	if after_c1 and (c1_deal_t >= float(w[0]) or (c1_deal_t < 0.0 and g.t >= float(w[0]))):
+		mid_done += 1
+		return
+	if not after_c1 and cross_done >= 1:
+		mid_done += 1
 		return
 	if g.t < float(w[0]) or g.state != g.S.PLAY or g.pending_chests > 0 or _ult_busy():
 		return
 	var calm: bool = not g.spawner.boss_alive() and elites.is_empty() and squad_pending.is_empty() and chal.is_empty()
 	if not calm and g.t < float(w[1]):
 		return
+	mid_cur = mid_done
 	mid_done += 1
 	slot = "m%d" % mid_done
 	deck = build_deck(0)
+	mid_cur = -1
 	_show_deck("深入海洋 · 途中")
+
+
+## 途中路口第 i 个窗口的某项设置（数组按窗口取，写成单个值 = 各窗口相同）
+func _mid_cfg(key: String, dflt):
+	var v = deck_cfg.get(key, dflt)
+	if v is Array:
+		return v[clampi(maxi(mid_cur, 0), 0, v.size() - 1)] if not v.is_empty() else dflt
+	return v
 
 
 ## 终结技播放中（ult.playing）：路口 / 途中发牌等播完再弹
@@ -197,7 +213,7 @@ func _ult_busy() -> bool:
 
 ## 还有没有后面的路口（敬奉火焰「麻烦」要有下一个路口兑现）
 func _later_slot() -> bool:
-	return cross_done < 2 or (mid_done < 2 and cross_done < 1)
+	return cross_done < 2 or (mid_done < (deck_cfg.get("mid", [[80, 110], [360, 390]]) as Array).size() and cross_done < 1)
 
 
 ## 卡是不是交易卡（docs/184 §2.1）：得偿所愿 / 紧急作战，或不期而遇里带 trade 的事件
@@ -210,14 +226,15 @@ func _is_trade(c: Dictionary) -> bool:
 	return false
 
 
-## n = 1 / 2：路口一 / 二；n = 0：途中路口（只随机填充，mid_n 张，不出迷雾重重）
+## n = 1 / 2：路口一 / 二；n = 0：途中路口（只随机填充，mid_n 张，不出迷雾重重；mid_types 非空时只出这几类）
 func build_deck(n: int) -> Array:
 	var cards: Array = []
 	for ev in events:
 		if n == 0 or not lines_on or not ev.get("must", false) or int(ev.get("cross", 0)) != n or not _event_ok(ev):
 			continue
 		cards.append({"type": "incident", "event": str(ev.id), "must": true, "ends": LINE_ENDS.get(str(ev.id), [])})
-	var want: int = maxi(int(deck_cfg.get("mid_n" if n == 0 else "n", 2 if n == 0 else 3)), cards.size())
+	var want: int = maxi(int(_mid_cfg("mid_n", 2)) if n == 0 else int(deck_cfg.get("n", 3)), cards.size())
+	var only: Array = _mid_cfg("mid_types", []) if n == 0 and mid_cur >= 0 else []
 	if trouble:
 		trouble = false   # 敬奉火焰的「麻烦」：这个路口必出一张紧急作战，全灭掉两个宝箱
 		cards.append({"type": "elite", "must": false, "ends": [], "double": true, "trade": true})
@@ -226,6 +243,8 @@ func build_deck(n: int) -> Array:
 	var cand: Array = []
 	for t in FILL_TYPES:
 		var w: float = float(W.get(t, 0.0)) * _fill_mult(t, cards)
+		if not only.is_empty() and not only.has(t):
+			w = 0.0
 		var u: float = g.rng.randf()   # 每种都抽一次（不论权重是否为 0），随机数消耗固定
 		if w > 0.0:
 			cand.append([-log(u + 0.0001) / w, t])

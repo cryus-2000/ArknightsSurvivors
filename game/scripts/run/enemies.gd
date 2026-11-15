@@ -441,6 +441,8 @@ func update(dt: float) -> void:
 			spd = 0.0
 		if e.get("haste", 0.0) > 0.0:
 			spd *= 1.4
+		if e.boss and g.combat.hardened(e):
+			spd *= 0.3   # 最后一幕硬化（combat.harden_*）：缓慢漂移，碰到不伤人（接触伤害那里同样排除）
 		var move_dir := dir
 		# 指挥模式仇恨（docs/114 §7）：突击中圈内一部分怪改追最近的突击队友（squad.aggro_target；不突击时不调用、不抽随机数）
 		var ag = _sq.aggro_target(e) if _sq != null and _sq.stance == 1 else null
@@ -562,7 +564,7 @@ func update(dt: float) -> void:
 				e.burst_dur = e.burst_w   # 画面按 burst_w / burst_dur 算鼓胀进度（界面与美术）
 		# ---- 接触伤害
 		# 休眠中的收割者、自爆的狂奔者（V8）没有接触伤害；Boss 登场 2 秒内不造成接触伤害（docs/38 B0 第 6 项：边缘刷出贴脸）
-		if e.dmg > 0.0 and (e.ai == "melee" or D.ENEMIES[e.type].get("contact", false)) and dist < e.r + 12.0 and not e.get("coma", false) and not e.get("dormant", false) and not (e.get("wake_t", 0.0) > 0.0 and D.ENEMIES[e.type].get("wake_no_contact", false)) and not D.ENEMIES[e.type].get("no_contact", false) and not (e.boss and e.age < 2.0) and e.get("air", 0.0) <= 0.0 and not e.get("under", false) and float(e.get("hatch_until", 0.0)) <= g.t:
+		if e.dmg > 0.0 and (e.ai == "melee" or D.ENEMIES[e.type].get("contact", false)) and dist < e.r + 12.0 and not e.get("coma", false) and not e.get("dormant", false) and not (e.get("wake_t", 0.0) > 0.0 and D.ENEMIES[e.type].get("wake_no_contact", false)) and not D.ENEMIES[e.type].get("no_contact", false) and not (e.boss and (e.age < 2.0 or g.combat.hardened(e))) and e.get("air", 0.0) <= 0.0 and not e.get("under", false) and float(e.get("hatch_until", 0.0)) <= g.t:
 			if D.ENEMIES[e.type].get("morph", false):
 				morph(e)
 				continue
