@@ -1546,6 +1546,9 @@ func _op_idle(cid: String) -> Dictionary:
 	var ft = (sp.get("foot") if sp is Dictionary else null)
 	if ft == null:
 		ft = cdef.get("sprites", {}).get("foot", null)
+	var cdx := float(A.tex_hi(tn).get_meta(&"_crop_dx", 0))   # 取镜像前的原贴图（mirror_strip 副本不带 meta）
+	if ft is Array and ft.size() >= 2 and cdx > 0.0:   # 网页超限立绘裁了每帧左边（art.web_crop_strip，水月 / 浊心斯卡蒂）：脚底横坐标同步左移，不然人偏、被框切
+		ft = [float(ft[0]) - cdx / A.hires_of(tx), ft[1]]
 	var out := {"tex": tx, "fw": fw0, "fh": tx.get_height(), "win": UI.op_win(fw0, tx.get_height(), A.hires_of(tx), ft), "foot": ft, "frames": frames}
 	if not _bb_cache.has(tn):
 		_bb_cache[tn] = UI.idle_bb(tx, frames)
