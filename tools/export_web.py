@@ -206,10 +206,13 @@ def main():
         mods = sorted({f.split(".")[0] for f in os.listdir(os.path.join(ROOT, "game", "l10n")) if f.endswith(".csv")} |
                       {"ops", "enemies", "ui", "relics", "events", "meta", "run", "extra"}) if os.path.isdir(os.path.join(ROOT, "game", "l10n")) else \
                ["ops", "enemies", "ui", "relics", "events", "meta", "run", "extra"]
+        # 11-16：按 pck 目录里的文件路径查（格式同 tools/web_pck_report.py），不再按字节搜整包——
+        # 脚本源码进包，settings_panel.gd / sfx.gd 里的 "l10n/ui_ko.otf"、"audio/voice/%s/" 字面量会被误判成资源（e6ab2c50f 起 Toy 导出因此中止）
+        paths = pck_paths(pk)
         bad = [m for m in mods
-               if any(("l10n/%s.%s.translation" % (m, lg)).encode() in pk for lg in ("en", "ja", "ko")) or ("l10n/%s.csv" % m).encode() in pk]
-        bad += [f for f in ("ui_ja.otf", "ui_ko.otf") if ("l10n/" + f).encode() in pk]   # 日文 / 韩文回退字体（docs/276 §13 / §14）也在 l10n/ 下
-        bad += ["audio/voice/%s/" % vl for vl in VOICE_LANG_DIRS if ("audio/voice/%s/" % vl).encode() in pk]   # 外语语音（11-15）
+               if any(("l10n/%s.%s.translation" % (m, lg)) in q for q in paths for lg in ("en", "ja", "ko")) or any(("l10n/%s.csv" % m) in q for q in paths)]
+        bad += [f for f in ("ui_ja.otf", "ui_ko.otf") if any(("l10n/" + f) in q or ("/" + f + "-") in q for q in paths)]   # 日文 / 韩文回退字体（docs/276 §13 / §14）：源文件、.import 或导入产物
+        bad += ["audio/voice/%s/" % vl for vl in VOICE_LANG_DIRS if any(("audio/voice/%s/" % vl) in q for q in paths)]   # 外语语音（11-15）
         assert not bad, "Toy 包里出现了英文翻译资源：%s" % bad
         print("[检查] Toy 包不含英文翻译资源", flush=True)
     part = int(a.part_mib * 1048576)
@@ -296,6 +299,21 @@ def main():
         sys.exit("有文件超过 25 MB 上限")
     if a.toy:
         make_toy_zip(a.out, commit + ("_god" if a.god else ""))
+
+
+def pck_paths(pk):
+    """Godot pck 目录里的全部文件路径（GDPC：头里 file_base / dir_offset，目录项 = 路径长度 + 路径 + 偏移 / 大小 / md5 / 标志）"""
+    import struct
+    assert pk[:4] == b"GDPC", "不是 Godot pck"
+    diro = struct.unpack("<Q", pk[32:40])[0]
+    n = struct.unpack("<I", pk[diro:diro + 4])[0]
+    p, out = diro + 4, []
+    for _ in range(n):
+        ln = struct.unpack("<I", pk[p:p + 4])[0]; p += 4
+        out.append(pk[p:p + ln].rstrip(b"\0").decode("utf-8", "replace")); p += ln
+        p += 8 + 8 + 16 + 4
+    assert n > 100 and any(q.endswith("project.binary") for q in out), "pck 目录解析异常"
+    return out
 
 
 def woff2_fonts(gpath, names):
