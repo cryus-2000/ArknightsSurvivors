@@ -122,6 +122,8 @@
 
 来源：`game/audio/voice/voice_manifest.json`（237 条全部登记，source = https://github.com/isHarryh/Ark-Voice/tree/main/voice_cn，source_note「Original voice recordings are copyrighted by Hypergryph」）与 voice/README.md「素材来源」。每条有 source_operator（char_xxx）与 source_clip（CN_0xx 原语音索引）及截取区间。播放：`game/scripts/sfx.gd:661` 读 `res://audio/voice/<主名>.ogg`，池表 `voice_pools.json`（sfx.gd:688），终结技台词 `game/data/ult_audio.json` 的 voice。
 
+**外语版（11-15，3 × 237）**：同一条的日 / 英 / 韩原作配音在 `game/audio/voice/<ja|en|ko>/<主名>.ogg`（`tools/voice_lang_1115.py`）。来源 Ark-Voice `voice/`、`voice_en/`、`voice_kr/`（固定 79584841f）按各语言 voice_data 切片；长音轨缺（水月、铃兰英语）或与 voice_data 总长对不上（韩语斯卡蒂、浊心斯卡蒂、塞雷娅、歌蕾蒂娅）的取 PRTS 单条（torappu `voice_en|voice_kr/<角色>/cn_0xx.mp3`，英 23 / 韩 44 条）。台词文本来自 ArknightsGameData_YoStar 各区服 charword_table，逐条写在 manifest `langs.<lang>.text`。播放按「语音语言」设置（缺省跟随界面），缺文件回退中文；只进 itch 包，B站 Toy 包导出时剔除（`tools/export_web.py`）。
+
 | 文件 | 原作源（干员 / 语音索引） | 用在哪里 |
 |---|---|---|
 | `voice/angelina_battle.ogg` | char_291_aglina CN_028 | ult_audio.json ops.angelina.voice |

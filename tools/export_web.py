@@ -31,6 +31,7 @@ WORK = os.path.join(ROOT, "build", "_web")
 WEB = os.path.join(ROOT, "tools", "web")
 LIMIT = 25 * 1000 * 1000  # 平台按 25 MB 计，取十进制更保守
 MARK = "<!--SHUIYUE_LOADER-->"
+VOICE_LANG_DIRS = ("ja", "en", "ko")   # 外语语音目录 game/audio/voice/<lang>/（tools/voice_lang_1115.py），Toy 包剔除
 TYPES = {"index.pck": "application/octet-stream", "index.wasm": "application/wasm"}
 
 
@@ -140,6 +141,13 @@ def main():
         shutil.rmtree(l10n_dir, ignore_errors=True)
         # 导入后 pck 里的翻译表与源 CSV 大小相近（compress=0）；网页包另有 gzip，实际下载少得更少
         print("[瘦身] Toy 版不带英文 / 日文：翻译表与日文字体 %.2f MiB 不进包（itch 网页包会带）" % (l10n_b / 1048576), flush=True)
+        # 外语语音（11-15，audio/voice/<ja|en|ko>/，tools/voice_lang_1115.py）只进 itch 包；Toy 版语音固定中文（Cfg.voice_lang）
+        vl_b = 0
+        for vl in VOICE_LANG_DIRS:
+            vd = os.path.join(src, "game", "audio", "voice", vl)
+            vl_b += sum(os.path.getsize(os.path.join(dp, f)) for dp, _, fs in os.walk(vd) for f in fs) if os.path.isdir(vd) else 0
+            shutil.rmtree(vd, ignore_errors=True)
+        print("[瘦身] Toy 版不带日 / 英 / 韩语音：%.2f MiB 不进包（itch 包会带）" % (vl_b / 1048576), flush=True)
     else:
         binfo.pop("lang_lock", None)
     with open(bj, "w", encoding="utf-8") as fh:
@@ -147,6 +155,7 @@ def main():
     if a.toy:   # 导出断言：Toy 包切不到英文
         chk_b = json.load(open(bj, encoding="utf-8"))
         assert chk_b.get("lang_lock") == "zh" and not os.path.exists(os.path.join(src, "game", "l10n")), "Toy 包必须锁中文且不带 game/l10n"
+        assert not any(os.path.exists(os.path.join(src, "game", "audio", "voice", vl)) for vl in VOICE_LANG_DIRS), "Toy 包不带外语语音"
     print("构建信息：audience=%s%s" % (binfo["audience"], "，语言锁中文" if a.toy else ""))
 
     # 发布检查（玩法系统 tools/check_release.py，docs/33 清单）：对即将打包的这份源码跑，不过就中止
@@ -200,6 +209,7 @@ def main():
         bad = [m for m in mods
                if ("l10n/%s.en.translation" % m).encode() in pk or ("l10n/%s.ja.translation" % m).encode() in pk or ("l10n/%s.csv" % m).encode() in pk]
         bad += ["ui_ja.otf"] if b"l10n/ui_ja.otf" in pk else []   # 日文回退字体（docs/276 §13）也在 l10n/ 下
+        bad += ["audio/voice/%s/" % vl for vl in VOICE_LANG_DIRS if ("audio/voice/%s/" % vl).encode() in pk]   # 外语语音（11-15）
         assert not bad, "Toy 包里出现了英文翻译资源：%s" % bad
         print("[检查] Toy 包不含英文翻译资源", flush=True)
     part = int(a.part_mib * 1048576)

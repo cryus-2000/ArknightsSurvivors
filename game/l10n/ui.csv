@@ -4648,3 +4648,5 @@ FPS %.0f  最低 %.0f  帧时 P50 %.1f / P95 %.1f ms,FPS %.0f  Min %.0f  Frameti
 放弃探索,Abandon Operation,探索放棄,,原文键,模型,自译
 确认放弃？,Confirm Abandon?,放棄しますか？,,原文键,模型,自译
 撤离,Withdrawn,撤退,,原文键,模型,自译
+语音语言,Voice Language,ボイス言語,,原文键,模型,自译
+跟随界面,Match UI,UIに合わせる,,原文键,模型,自译

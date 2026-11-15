@@ -16,6 +16,8 @@ const ROWS := [
 	{"cn": "音乐", "en": "MUSIC", "key": "music", "type": "vol"},
 	{"cn": "音效", "en": "SFX", "key": "sfx", "type": "vol"},
 	{"cn": "语音", "en": "VOICE", "key": "voice", "type": "vol"},
+	# 语音语言（11-15，原作日 / 英 / 韩配音）：◀ 跟随界面 / 中文 / 日本語 / English / 韩语 ▶；B站 Toy 版不列出（固定中文语音）
+	{"cn": "语音语言", "en": "VOICE LANGUAGE", "key": "voice_lang", "type": "vlang"},
 	# 语言（docs/276 §10）：两格 中文 / English，格子里的字各用本语言写、不翻；B站 Toy 版不列出（固定中文）
 	{"cn": "语言 / Language", "en": "LANGUAGE", "key": "lang", "type": "lang"},
 	{"cn": "画质", "en": "QUALITY", "key": "quality", "type": "quality"},
@@ -63,7 +65,7 @@ const RUNS_HINT := "测试版：本地记录对局摘要（不上传）"
 ## 命中顿帧 / Boss 登场演出 / Boss 轮廓光 / 景深 / 辉光 / 水下滤镜 / 法线光照 / 战斗画面缩放 / 对局记录不再露出——
 ## ROWS 与存档键都保留（旧存档兼容），后期四项跟画质档走，对局记录挪到作战结算底栏
 const TABS := [
-	["声音", "SOUND", ["master", "music", "sfx", "voice"]],
+	["声音", "SOUND", ["master", "music", "sfx", "voice", "voice_lang"]],
 	["画面", "DISPLAY", ["lang", "quality", "max_fps", "fullscreen", "res_index", "brightness", "ui_size_pct", "dmg_numbers", "reduce_motion", "perf"]],
 	["操作", "CONTROLS", ["auto_combo", "auto_ult", "onboard", "pad_rumble", "touch_layout"]],
 ]
@@ -213,6 +215,8 @@ func _set_tab(t: int) -> void:
 			continue
 		if not touch and key in TOUCH_ONLY:
 			continue
+		if key == "voice_lang" and Cfg.lang_locked():
+			continue   # 语音语言：Toy 版只带中文语音
 		if key == "lang" and Cfg.lang_locked():
 			continue   # B站 Toy 版固定中文（docs/276 §2.4），不给选
 		if key == "runs" and not Cfg.runs_log_enabled():
@@ -343,7 +347,7 @@ func _tap(mp: Vector2, button: int) -> void:
 				_tap_v2(i, r, mp)
 			continue
 		if r.has_point(mp) and view.has_point(mp):
-			var arrows: bool = ROWS[i].type in ["vol", "bright", "res", "uisize", "zoom"]
+			var arrows: bool = ROWS[i].type in ["vol", "bright", "res", "uisize", "zoom", "vlang"]
 			var control_x: float = r.position.x + r.size.x - 8.0 - (252.0 if _tl() else 230.0)
 			var dir := 1
 			if arrows:
@@ -419,6 +423,9 @@ func _v2_chips(row: Dictionary) -> Dictionary:
 ## 行的说明 / 状态小字（v2 一律写在名称下一行，不再挤在控件左边）：[文字, 是否强调]
 func _v2_sub(row: Dictionary) -> Array:
 	match row.type:
+		"vlang":   # 跟随界面时写出实际用的语音语言（选项名用本语言写，不翻）
+			if Cfg.voice_lang_pref == "auto":
+				return ["→ " + _vlang_label(Cfg.voice_lang()), false]
 		"lang":   # AI 翻译标注（英文 11-11、日文 11-15）：新版设置页写在语言行说明位
 			if _lang_now() == "en":
 				return ["AI-translated", true]
@@ -503,7 +510,7 @@ func _draw_row_v2(ci: CanvasItem, rr: Rect2, si: int, touch: bool) -> void:
 			UI.text(ci, font, Vector2(cr.position.x, by), UI.Loc.short(str(ch.opts[k][0])), fs_c, V2_INK if act else (UI.TEXT if on else UI.SUB), HORIZONTAL_ALIGNMENT_CENTER, cr.size.x)
 		return
 	match row.type:
-		"vol", "uisize", "zoom", "bright", "res":
+		"vol", "uisize", "zoom", "bright", "res", "vlang":
 			# ◀ 数值 ▶：两头方格 + 中间数值，下沿细条表示位置（分辨率没有细条）
 			var aw: float = col.size.y
 			var la := Rect2(col.position, Vector2(aw, col.size.y))
@@ -537,6 +544,8 @@ func _draw_row_v2(ci: CanvasItem, rr: Rect2, si: int, touch: bool) -> void:
 					var sz: Vector2i = Cfg.RESOLUTIONS[pi]
 					label = "%d × %d" % [sz.x, sz.y]
 					vcol = UI.SUB if Cfg.fullscreen else (UI.GOLD if pi != Cfg.res_index else UI.TEXT)
+				"vlang":
+					label = _vlang_label(Cfg.voice_lang_pref)
 			UI.text(ci, font, Vector2(mid.position.x, by), label, fs_c + 1, vcol, HORIZONTAL_ALIGNMENT_CENTER, mid.size.x)
 			if fill >= 0.0:
 				ci.draw_rect(Rect2(mid.position.x, mid.end.y - 3.0, mid.size.x, 3.0), Color("303a44"))
@@ -592,7 +601,7 @@ func _tap_v2(i: int, r: Rect2, mp: Vector2) -> void:
 	if row.type == "res" and col.has_point(mp) and absf(mp.x - col.get_center().x) < col.size.x * 0.5 - col.size.y:
 		_apply_res()
 		return
-	_adjust(i, -1 if (row.type in ["vol", "bright", "res", "uisize", "zoom"] and mp.x < col.get_center().x) else 1)
+	_adjust(i, -1 if (row.type in ["vol", "bright", "res", "uisize", "zoom", "vlang"] and mp.x < col.get_center().x) else 1)
 
 
 ## 新手引导三档（docs/219）：[存档值, 格内文字]
@@ -628,6 +637,9 @@ func _adjust(i: int, dir: int) -> void:
 		"lang":
 			var li: int = LANG_OPTS.map(func(o): return o[0]).find(_lang_now())
 			_set_lang(LANG_OPTS[posmod(li + dir, LANG_OPTS.size())][0])
+		"vlang":
+			_set_vlang(dir)
+			return
 		"bright":
 			Cfg.brightness = clampf(snappedf(Cfg.brightness + dir * 0.05, 0.05), 0.8, 1.4)
 		"uisize":
@@ -929,6 +941,10 @@ func _draw_row(ci: CanvasItem, rr: Rect2, si: int, touch: bool, ty0: float) -> v
 			UI.text(ci, font, Vector2(vx + 180, rr.position.y + ty0), "▶", fs_a, UI.CYAN if on else UI.SUB)
 			if dflt:
 				UI.text(ci, font, Vector2(vx - 196, rr.position.y + ty0 - 1.0), "默认", 12 if not touch else 13, UI.SUB, HORIZONTAL_ALIGNMENT_RIGHT, 176)
+		"vlang":
+			UI.text(ci, font, Vector2(vx - 10, rr.position.y + ty0), "◀", fs_a, UI.CYAN if on else UI.SUB)
+			UI.text(ci, font, Vector2(vx, rr.position.y + ty0), _vlang_label(Cfg.voice_lang_pref), fs_v, UI.CYAN, HORIZONTAL_ALIGNMENT_CENTER, 200)
+			UI.text(ci, font, Vector2(vx + 180, rr.position.y + ty0), "▶", fs_a, UI.CYAN if on else UI.SUB)
 		"bright":
 			UI.text(ci, font, Vector2(vx - 10, rr.position.y + ty0), "◀", fs_a, UI.CYAN if on else UI.SUB)
 			UI.text(ci, font, Vector2(vx, rr.position.y + ty0), "%d%%" % int(round(Cfg.brightness * 100.0)), fs_v, UI.CYAN, HORIZONTAL_ALIGNMENT_CENTER, 200)
@@ -948,6 +964,27 @@ func _draw_row(ci: CanvasItem, rr: Rect2, si: int, touch: bool, ty0: float) -> v
 				UI.panel(ci, br, Color(0.2, 0.15, 0.05, 0.9), UI.GOLD, 4.0)
 				UI.text(ci, font, br.position + Vector2(0, 16), "应用", 12, UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
 			UI.text(ci, font, Vector2(vx + 190, rr.position.y + ty0), "▶", fs_a, UI.CYAN if on else UI.SUB)
+
+
+## ── 语音语言（11-15）────────────────────────────────────────────
+## [存档值, 显示]：「跟随界面」走翻译，语言名永远用本语言写（韩文字形不在界面字体里时退成英文名，免得显示方块）
+const VLANG_OPTS := [["auto", "跟随界面"], ["zh", "中文"], ["ja", "日本語"], ["en", "English"], ["ko", "Korean"]]   # 韩语：实际显示韩文自称（_vlang_label 按码位拼，源码里不写韩文字面量——韩文字体由韩语界面本地化接入，release_slim 缺字检查扫字面量）
+
+
+func _vlang_label(v: String) -> String:
+	for o in VLANG_OPTS:
+		if o[0] == v:
+			if v == "ko" and font != null and font.has_char(0xD55C):
+				return String.chr(0xD55C) + String.chr(0xAD6D) + String.chr(0xC5B4)
+			return o[1]
+	return v
+
+
+func _set_vlang(dir: int) -> void:
+	var vi: int = VLANG_OPTS.map(func(o): return o[0]).find(Cfg.voice_lang_pref)
+	Cfg.voice_lang_pref = VLANG_OPTS[posmod(maxi(vi, 0) + dir, VLANG_OPTS.size())][0]
+	Cfg.save()
+	Sfx.play("ui_move")
 
 
 ## 语言行：当前生效语言（跟随系统时显示解析结果）

@@ -728,7 +728,7 @@ var driven_t := 0.0      # 距离游戏上一次主动选曲的时间
 ## 例外（用户 2026-10-12「语音用1」，方案 A）：技能语音（skill_1/2/3）可以打断**正在播的战斗台词**（battle / W 笑声，
 ## VOICE_CHATTER）——台词 0.1 秒淡出，技能语音立即开播，全队间隔从打断时刻起算。部署语音、技能语音之间仍互不打断，
 ## 战斗台词不打断任何语音；台词播完后的 VOICE_GAP 静默期里技能语音照旧放弃（只打断「正在说的台词」，不抢间隔）。
-const VOICE_MAX_LEN := 8.0             # 只防意外的超长文件；Codex 交付最长 6.4 秒，全部可用
+const VOICE_MAX_LEN := 10.0            # 只防意外的超长文件；中文最长 7.2 秒，外语整句最长 9.5 秒（韩语 W 突击，11-15 由 8 提到 10）
 const VOICE_GAP := 3.0                 # 两条语音之间至少间隔（全队）
 const VOICE_OP_GAP := 15.0             # 同一名干员两条语音之间至少间隔
 const VOICE_CD := {"ult": 0.0, "entry": 0.0, "command": 6.0, "skill_1": 45.0, "skill_2": 30.0, "skill_3": 20.0, "battle": 60.0, "w_laugh": 75.0, "lowhp": 20.0}
@@ -829,8 +829,29 @@ func _voice_stream(cid: String, key: String) -> AudioStream:
 	return _voice_file("%s_%s" % [cid, key])
 
 
+## 语音语言（11-15 用户：原作日 / 英 / 韩配音，设置「语音语言」，缺省跟随界面语言；Cfg.voice_lang()）：
+## 外语读 audio/voice/<ja|en|ko>/<主名>.ogg（tools/voice_lang_1115.py），该语言缺这一条时回退中文 audio/voice/<主名>.ogg。
+## B站 Toy 包不带外语目录（tools/export_web.py --toy），Cfg 在 Toy 里也固定返回 zh
+var voice_lang_test := ""              # 测试用：非空时代替 Cfg.voice_lang()（test_core.test_voice）
+func _voice_lang() -> String:
+	if voice_lang_test != "":
+		return voice_lang_test
+	if not is_inside_tree():
+		return "zh"
+	var cfg = get_node_or_null("/root/Cfg")
+	return str(cfg.voice_lang()) if cfg != null and cfg.has_method("voice_lang") else "zh"
+
+
 func _voice_file(stem: String) -> AudioStream:
-	var path := "res://audio/voice/%s.ogg" % stem   # WAV 母带在仓库 art/source/voice（不进包），见 tools/voice_ogg.py
+	var lang := _voice_lang()
+	if lang != "zh":
+		var st_l := _voice_load("res://audio/voice/%s/%s.ogg" % [lang, stem])
+		if st_l != null:
+			return st_l
+	return _voice_load("res://audio/voice/%s.ogg" % stem)   # WAV 母带在仓库 art/source/voice（不进包），见 tools/voice_ogg.py
+
+
+func _voice_load(path: String) -> AudioStream:
 	voice_used[path] = Time.get_ticks_msec()
 	if not voice_streams.has(path):
 		_voice_trim(path)
@@ -1021,7 +1042,7 @@ func voice(cid: String, key: String, queue := false, urgent := false, line := ""
 	if trace_on:
 		trace.append([Engine.get_process_frames(), "voice:" + stem, voice_player.volume_db, 1.0])
 	if voice_log:
-		print("VOICEPLAY %s %s %s" % [cid, key, stem])
+		print("VOICEPLAY %s %s %s %s" % [cid, key, stem, voice_player.stream.resource_path if voice_player.stream != null else ""])
 
 
 ## 终结技期间别的干员不开口（ult.gd 在招式进行中调用，延长锁定）

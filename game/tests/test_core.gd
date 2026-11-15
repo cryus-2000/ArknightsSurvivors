@@ -393,6 +393,32 @@ func test_voice() -> void:
 			ok(have.has("%s_%s.ogg" % [cid, ev]), "语音齐全：%s_%s" % [cid, ev])
 	for f in DirAccess.get_files_at("res://audio/voice"):
 		ok(f.get_extension() != "wav", "audio/voice 里有没转换的 WAV（先跑 tools/voice_ogg.py）：" + f)
+	# 外语语音（11-15，tools/voice_lang_1115.py）：每条中文都登记 ja / en / ko；没标 missing 的文件在 audio/voice/<lang>/ 能加载、不循环、时长一致、不超长
+	for c in man.clips:
+		var langs: Dictionary = c.get("langs", {})
+		for lg in ["ja", "en", "ko"]:
+			ok(langs.has(lg), "外语语音登记了 %s：%s" % [lg, c.file])
+			var e: Dictionary = langs.get(lg, {})
+			if e.is_empty() or e.get("missing", false):
+				continue
+			var lp := "res://audio/voice/%s/%s" % [lg, c.file]
+			ok(str(e.get("file", "")) == "%s/%s" % [lg, c.file], "外语语音路径 = <lang>/<中文同名>：" + lp)
+			var ls = load(lp) if ResourceLoader.exists(lp) else null
+			ok(ls is AudioStreamOggVorbis and not ls.loop, "外语语音能加载、不循环：" + lp)
+			if ls is AudioStreamOggVorbis:
+				ok(absf(ls.get_length() - float(e.duration_seconds)) < 0.01, "外语语音时长与清单一致：%s（%.3f / %.3f）" % [lp, ls.get_length(), float(e.duration_seconds)])
+				ok(ls.get_length() <= SfxS.VOICE_MAX_LEN, "外语语音不超过 VOICE_MAX_LEN：%s %.2f 秒" % [lp, ls.get_length()])
+	# 取文件：语音语言 ja → 读 ja/，缺文件回退中文（sfx._voice_file / _voice_lang）
+	var sx = SfxS.new()
+	var c0: Dictionary = man.clips[0]
+	var stem0: String = str(c0.file).get_basename()
+	ok(sx._voice_file(stem0) != null and sx.voice_streams.has("res://audio/voice/" + c0.file), "无 Cfg 时语音读中文：" + stem0)
+	sx.voice_lang_test = "ja"
+	var ja_st = sx._voice_file(stem0)
+	ok(ja_st != null and sx.voice_streams.get("res://audio/voice/ja/" + c0.file) == ja_st, "语音语言 ja 读 audio/voice/ja/：" + stem0)
+	sx.voice_lang_test = "xx"
+	ok(sx._voice_file(stem0) == sx.voice_streams.get("res://audio/voice/" + c0.file), "该语言缺文件回退中文：" + stem0)
+	sx.free()
 
 
 ## 语音打断规则（用户 10-12「语音用1」方案 A，sfx.gd voice_can_cut）：技能语音只打断正在说的战斗台词（battle / W 笑声），

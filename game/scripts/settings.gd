@@ -40,6 +40,10 @@ var res_index := 0        # 窗口分辨率（RESOLUTIONS 下标；全屏时按�
 ## 语言（docs/276 §10）："auto" = 跟随系统（Loc.resolve；B站 Toy 版固定中文），"zh" / "en" = 手动选。存档 game/lang
 var lang_pref := "auto"
 const Loc = preload("res://scripts/core/loc.gd")
+## 语音语言（11-15）："auto" = 跟随界面语言（zh / ja / en / ko，其余界面语言用中文），或手动 "zh" / "ja" / "en" / "ko"。存档 audio/voice_lang。
+## B站 Toy 版（lang_locked）固定中文，包里也不带外语语音（tools/export_web.py --toy）。sfx.gd _voice_file 读 voice_lang()
+var voice_lang_pref := "auto"
+const VOICE_LANGS := ["zh", "ja", "en", "ko"]
 var dmg_numbers := false   # 11-05 用户「把字什么的都缩小吧，并且默认关闭」：新档缺省关；老档里存过的值照旧读
 var hitstop := true
 var boss_intro := true   # Boss 登场演出（黑边 + 名片，纯画面；screens/boss_intro.gd，用户 10-10）
@@ -330,6 +334,17 @@ func apply_lang() -> void:
 	Loc.setup(Loc.resolve(lang_pref, lang_locked()))
 
 
+## 生效的语音语言（见 voice_lang_pref）
+var _vl_build_lock := -1   # build.json 的 lang_lock 只读一次（voice_lang 每句语音都调）
+func voice_lang() -> String:
+	if _vl_build_lock < 0:
+		_vl_build_lock = 1 if lang_locked() and _toy_js == null else 0
+	if _toy_js != null or _vl_build_lock == 1:
+		return "zh"
+	var v: String = voice_lang_pref if voice_lang_pref != "auto" else str(Loc.lang)
+	return v if VOICE_LANGS.has(v) else "zh"
+
+
 ## 语言锁中文：B站 Toy 版（导出时 build.json 写 lang_lock = zh，或运行在 Toy 容器里）——多语言只上 itch（11-11 用户经协调人）
 func lang_locked() -> bool:
 	if _toy_js != null:
@@ -585,6 +600,8 @@ func _ready() -> void:
 	for a0 in dev_args():   # 测试 / 截图：--lang=en / --lang=zh 本次启动强制语言（只在 debug 构建读命令行）
 		if a0.begins_with("--lang="):
 			lang_pref = a0.substr(7)
+		if a0.begins_with("--voicelang="):   # 测试：本次启动强制语音语言（auto / zh / ja / en / ko）
+			voice_lang_pref = a0.substr(12)
 	apply_lang()
 	load("res://scripts/core/medals.gd").sync()   # 蚀刻章补录：旧存档里已有的结局 / 藏品 / 认知记录，读档时按真实记录补上（下次存档写盘）
 	for a in dev_args():
@@ -683,6 +700,9 @@ func _read_cfg(c: ConfigFile) -> void:
 		max_fps = 0
 	res_index = clampi(int(c.get_value("video", "res_index", res_index)), 0, RESOLUTIONS.size() - 1)
 	lang_pref = str(c.get_value("game", "lang", lang_pref))
+	voice_lang_pref = str(c.get_value("audio", "voice_lang", voice_lang_pref))
+	if voice_lang_pref != "auto" and not VOICE_LANGS.has(voice_lang_pref):
+		voice_lang_pref = "auto"
 	dmg_numbers = c.get_value("game", "dmg_numbers", dmg_numbers)
 	hitstop = c.get_value("game", "hitstop", hitstop)
 	boss_intro = c.get_value("game", "boss_intro", boss_intro)
@@ -1027,6 +1047,7 @@ func save() -> void:
 	c.set_value("video", "max_fps", effective_max_fps())   # 旧键：老版本读到的仍是 60 / 30
 	c.set_value("video", "res_index", res_index)
 	c.set_value("game", "lang", lang_pref)
+	c.set_value("audio", "voice_lang", voice_lang_pref)
 	c.set_value("game", "dmg_numbers", dmg_numbers)
 	c.set_value("game", "hitstop", hitstop)
 	c.set_value("game", "boss_intro", boss_intro)
