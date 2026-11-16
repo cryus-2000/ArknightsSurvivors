@@ -120,6 +120,9 @@ python tools/perf_web.py run --ref <提交> --tag prof --desk 1920x1080 --cpupro
 
 快检：core / slim / toy_support / ui_smoke / touch_layout / web_music / card_desc 通过；Toy 包导出见 §7。
 
-## 7. 出包
+## 7. 出包与验收
 
-见文末追记。
+- Toy 包（8f44319ff）：`export_web.py --toy` 49.75 MB（V2.2 为 49.74），本地伺服后内置浏览器电脑视口走完全新存档首玩路径：开机 → 标题 → 十连寻访 → 跳过 → 引导 → 选人 → 选难度 → 进局 → 新手问题 → 招募，控制台无报错。
+- itch 网页包（8f44319ff）：`export_web.py` 62.8 MiB，`verify_web_build.py --audience public` 无失败项（build/web_verification_public_8f44319ff.json）。
+- 桌面原生：快检均为原生 Godot；对照录像也是原生 1920×1080 录制，左右画面一致。
+- 快检：core / slim / toy_support / ui_smoke / touch_layout / web_music / card_desc 通过。金样未重录（角色分支口径）。
