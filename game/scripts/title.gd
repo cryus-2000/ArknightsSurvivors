@@ -1007,7 +1007,7 @@ func _draw_menu(vs: Vector2) -> void:
 	var fw: float = font.get_string_size(ftxt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 	var kw: float = font.get_string_size("C", HORIZONTAL_ALIGNMENT_LEFT, -1, 10).x + 18.0 if fcap else 0.0
 	fw += kw
-	var vw: float = TUI.ptext_w(tc, "V2.0", 1.0) if not ph else -12.0
+	var vw: float = TUI.ptext_w(tc, _ver(), 1.0) if not ph else -12.0
 	var fx: float = lg.pos.x - fw - 12.0 - vw if lg.align == "r" else lg.pos.x
 	var fy: float = lg.pos.y
 	credits_rect = Rect2(fx - 6, fy - 18, fw + 12, 26)
@@ -1025,7 +1025,7 @@ func _draw_menu(vs: Vector2) -> void:
 			UI.text(self, font, Vector2(fx, fy), ftxt, fs, _fa(Color(0.616, 0.898, 0.937) if cr_hover else Color(0.45, 0.53, 0.58), ff))
 			if fcap:
 				UI.keycap(self, font, Vector2(fx + fw - kw + 6.0, fy - 13.0), "C", _fa(Color(0.45, 0.53, 0.58), ff), 10)
-			TUI.ptext(self, tc, Vector2(fx + fw + 12.0, fy - 4.0), "V2.0", 1.0, _fa(Color(0.45, 0.53, 0.58), ff))
+			TUI.ptext(self, tc, Vector2(fx + fw + 12.0, fy - 4.0), _ver(), 1.0, _fa(Color(0.45, 0.53, 0.58), ff))
 	# 英文版标注（11-11 用户经协调人：标明是 AI 翻译）：桌面声明上方一行小字；手机在设置页语言行写
 	if not ph and UI.Loc.en():
 		UI.text(self, font, Vector2(lg.pos.x - 420, fy - (40 if (not OS.is_debug_build() and Cfg.runs_log_enabled()) else 20)), "English text is AI-translated from the Chinese original.", 12, _fa(Color(0.45, 0.53, 0.58), ff), HORIZONTAL_ALIGNMENT_RIGHT, 420)
@@ -1408,7 +1408,7 @@ func _draw_credits(vs: Vector2) -> void:
 	cr_panel = Rect2(Vector2.ZERO, vs)   # 整屏都算面板：只有「返回」/ 按键关
 	HS.spaced(self, font, r.position + Vector2(36, 44), credits_data.get("en", "CREDITS"), 11, HS.MUTE, 3.0)
 	var vx: float = minf(r.position.x + pw - 36.0, vs.x - Cfg.edge_r(vs, 34.0, 56.0) - 8.0)   # 右沿停在 B站胶囊左边（桌面 = 原位）
-	UI.text(self, font, Vector2(vx - 300.0, 50), "明日方舟同人作品 · 非商业 · V2.0", 13, HS.MUTE, HORIZONTAL_ALIGNMENT_RIGHT, 300)   # D1：手机标题页底栏不再写声明与版本号，这里补上
+	UI.text(self, font, Vector2(vx - 300.0, 50), tr("明日方舟同人作品 · 非商业") + " · " + _ver(), 13, HS.MUTE, HORIZONTAL_ALIGNMENT_RIGHT, 300)   # D1：手机标题页底栏不再写声明与版本号，这里补上
 	UI.rule(self, r.position + Vector2(36, 68), r.position + Vector2(pw - 36, 68), UI.EDGE_DIM)
 	# 正文可视区（钉住的标题与底部之间）
 	cr_vr = Rect2(r.position.x + 20, r.position.y + CREDITS_HEAD - 8.0, pw - 40, h - CREDITS_HEAD + 8.0 - CREDITS_FOOT)
@@ -1547,3 +1547,11 @@ func _compare_shot(spec: String) -> void:
 		out.save_png(_shot_dir() + "/shot_compare_%s.png" % cid)
 		get_tree().quit())
 
+
+## 标题页版本号（11-16 用户定：每发一版 +0.1，与评论区更新日志对齐）：读 data/build.json 的 version，读不到退回 V2
+var _ver_cache := ""
+func _ver() -> String:
+	if _ver_cache == "":
+		var info = JSON.parse_string(FileAccess.get_file_as_string("res://data/build.json"))
+		_ver_cache = "V" + str(info.get("version", "2")) if info is Dictionary else "V2"
+	return _ver_cache
