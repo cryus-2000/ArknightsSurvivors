@@ -1421,7 +1421,8 @@ func step() -> void:
 				perf_dump = null
 			print("BALANCE ", JSON.stringify(g.telemetry.record(lv_marks)))
 			if g.telemetry.bprobe_on:
-				print("BPROBE ", JSON.stringify(g.telemetry.bprobe))   # 选敌排查（11-17）：按干员 [打 Boss, 全部, Boss 命中数]，只在 Boss 在场期间
+				print("BPROBE ", JSON.stringify(g.telemetry.bprobe))
+				print("BPROBESRC ", JSON.stringify(g.telemetry.bprobe_src))   # 选敌排查（11-17）：按干员 [打 Boss, 全部, Boss 命中数]，只在 Boss 在场期间
 			if g.squad != null and Cfg.dev_args().has("--pfxstat"):   # 全队装饰粒子兜底上限（docs/226 §3）：每人被跳过的装饰件、全队同屏峰值
 				print("PFXCAP ", JSON.stringify({"peak": g.squad.pfx_peak, "skipped": g.squad.ops.map(func(o): return [o.op_key, o.pfx_skipped])}))   # 整局记录的格式在 run/telemetry.gd（与玩家本地记录同一份）
 			print("SPAWNQ ", JSON.stringify(g.spawner.queue_report()))   # 同屏普通怪存活上限的刷怪队列统计（docs/50 §15 B）

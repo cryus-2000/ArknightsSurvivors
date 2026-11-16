@@ -169,6 +169,7 @@ func _init(game: Game) -> void:
 ## 平衡局结束时 autotest 打一行 BPROBE。不开时不记
 var bprobe_on := false
 var bprobe: Dictionary = {}
+var bprobe_src: Dictionary = {}   # 同上按伤害来源拆：op -> {src: [打 Boss, 全部]}
 
 
 ## 每帧采样（只观察，不改状态、不用随机数，所以不影响同 seed 复现）
@@ -489,9 +490,15 @@ func on_dmg(e: Dictionary, eff: float, raw: float, hd: Dictionary = {}) -> void:
 		var bp: Array = bprobe.get(op, [0.0, 0.0, 0])
 		bprobe[op] = bp
 		bp[1] += eff
+		var bs: Dictionary = bprobe_src.get(op, {})
+		bprobe_src[op] = bs
+		var bss: Array = bs.get(src, [0.0, 0.0])
+		bs[src] = bss
+		bss[1] += eff
 		if e.boss or e.get("part", false):
 			bp[0] += eff
 			bp[2] += 1
+			bss[0] += eff
 	if g.trial.active:
 		g.trial.on_boss_dmg(op, e, eff)   # Boss 演练记录：按干员的对 Boss 伤害
 	var d: Dictionary = op_out.get(op, {})

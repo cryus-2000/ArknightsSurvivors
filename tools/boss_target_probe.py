@@ -49,9 +49,10 @@ def run(a):
                 "--op=" + sq[0], "--squad=" + ",".join(sq[1:]), "--bprobe"] + a.extra.split() + ["--audio-driver", "Dummy"]
         out, err, to = GR.run_godot(args, 3000)
         m = re.search(r"^BPROBE (\{.*\})\s*$", out, re.M)
+        ms = re.search(r"^BPROBESRC (\{.*\})\s*$", out, re.M)
         b = re.search(r"^BALANCE (\{.*\})\s*$", out, re.M)
         bal = json.loads(b.group(1)) if b else {}
-        rec = {"squad": sq, "seed": sd, "probe": json.loads(m.group(1)) if m else None,
+        rec = {"squad": sq, "seed": sd, "probe": json.loads(m.group(1)) if m else None, "src": json.loads(ms.group(1)) if ms else None,
                "won": bal.get("won"), "t": bal.get("time", bal.get("t")), "timeout": bool(to),
                "errs": GR.script_errors(out, err)[:3]}
         with open(path, "a", encoding="utf-8") as f:
@@ -61,13 +62,20 @@ def run(a):
 
     with ThreadPoolExecutor(a.jobs) as ex:
         list(ex.map(one, jobs))
+    # GCP 批跑只收 .json / .txt / .log（tools/gcp/vm_startup.sh）：再存一份 JSON 数组
+    with open(os.path.join(a.out, a.tag + ".json"), "w", encoding="utf-8") as f:
+        json.dump([json.loads(ln) for ln in open(path, encoding="utf-8")], f, ensure_ascii=False)
 
 
-def agg(path):
-    """op -> {lead: [boss, all, hits, runs], mate: [...]}"""
+def load(path):
+    txt = open(path, encoding="utf-8").read().strip()
+    return json.loads(txt) if txt.startswith("[") else [json.loads(ln) for ln in txt.splitlines() if ln.strip()]
+
+
+def agg(paths):
+    """op -> {lead: [boss, all, hits, runs], mate: [...]}；paths 用逗号连多个文件（各 seed 分开跑时）"""
     res = {}
-    for ln in open(path, encoding="utf-8"):
-        r = json.loads(ln)
+    for r in [r for p in paths.split(",") for r in load(p)]:
         if not r.get("probe"):
             continue
         for k, op in enumerate(r["squad"]):
