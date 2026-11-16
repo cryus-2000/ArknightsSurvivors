@@ -121,6 +121,7 @@ func manual_input_dir() -> Vector2:
 ## 普攻永远自动起手；主控「按住瞄准」期间普攻的方向 / 目标改朝玩家指向，松手立即回到自动索敌。队友、机器人、图鉴演示不响应。
 ## 按住瞄准：键鼠 = 按住左键（不在界面按钮上），手柄 = 右摇杆推过 AIM_STICK，触屏 = 瞄准键拖过死区（touch.gd 写 touch_atk / touch_atk_dir）
 const Bal = preload("res://scripts/core/balance.gd")
+const PlayKeys = preload("res://scripts/core/play_keys.gd")   # 「按住瞄准」/ 终结技键可改键（缺省鼠标左键 / Q）
 const StatDefs = preload("res://scripts/core/stat_defs.gd")
 
 var aim_on := false            # 这一局主控响应按住瞄准（开局定：机器人 / 自动测试 / 图鉴演示不响应）
@@ -170,7 +171,7 @@ func tick_input(dt: float) -> void:
 				_press_point(ld, i, pt)
 
 
-## 此刻是否在按住瞄准：键鼠左键（不在界面按钮上）、手柄右摇杆推过 AIM_STICK、触屏瞄准键拖过死区
+## 此刻是否在按住瞄准：键鼠「按住瞄准」键（缺省左键；鼠标键时不在界面按钮上）、手柄右摇杆推过 AIM_STICK、触屏瞄准键拖过死区
 func aim_held() -> bool:
 	if sim_atk:
 		return true
@@ -178,7 +179,7 @@ func aim_held() -> bool:
 		return false
 	if _touching():
 		return touch_atk and touch_atk_dir != Vector2.ZERO   # 触屏会模拟鼠标左键，只认瞄准键；按着不拖 = 自动
-	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and not _over_hud_btn():
+	if PlayKeys.held("aim", false) or (PlayKeys.held_mouse("aim") and not _over_hud_btn()):
 		return true
 	return _stick_aim() != Vector2.ZERO
 
@@ -196,7 +197,7 @@ func _stick_aim() -> Vector2:
 func mouse_aim() -> bool:
 	if _touching() or Pad.using:
 		return false
-	return Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) or g.t - _mouse_t < Bal.v("manual/mouse_idle", 8.0)
+	return PlayKeys.held("aim") or g.t - _mouse_t < Bal.v("manual/mouse_idle", 8.0)
 
 
 ## 光标所在的世界坐标
@@ -210,7 +211,7 @@ func attack_dir() -> Vector2:
 		return sim_dir.normalized() if sim_dir != Vector2.ZERO else Vector2(g.facing, 0.0)
 	if _touching():
 		return touch_atk_dir.normalized() if touch_atk_dir != Vector2.ZERO else Vector2(g.facing, 0.0)
-	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and not Pad.using:
+	if (PlayKeys.held("aim", false) or PlayKeys.held_mouse("aim")) and not Pad.using:
 		var off: Vector2 = mouse_world() - g.ppos
 		if off.length() > 4.0:
 			return off.normalized()
@@ -294,13 +295,7 @@ func _touching() -> bool:
 
 
 func _skill_key_held() -> bool:
-	if Pad.key_down(KEY_Q) or Pad.key_down(KEY_E) or Pad.key_down(KEY_J):
-		return true
-	for dev in Input.get_connected_joypads():
-		if Input.is_joy_button_pressed(dev, JOY_BUTTON_A) or Input.is_joy_button_pressed(dev, JOY_BUTTON_Y) \
-				or Input.is_joy_button_pressed(dev, JOY_BUTTON_X):
-			return true
-	return false
+	return PlayKeys.held("ult")   # 旧手动技能（ult/on = 0）用「终结技」那一格的绑定
 
 
 func _press_point(o, i: int, pt: Vector2) -> void:

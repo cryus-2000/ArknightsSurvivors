@@ -11,6 +11,7 @@ extends RefCounted
 ## --tipdemo=<id>（进局 25 帧后弹该提示并存帧）；tests/tour_test.gd 测触发与存档。
 
 const UI = preload("res://scripts/ui.gd")
+const PlayKeys = preload("res://scripts/core/play_keys.gd")   # 局内键名按当前绑定（可改键）
 const Game = preload("res://scripts/game.gd")
 const Spotlight = preload("res://scripts/screens/spotlight.gd")
 const Bal = preload("res://scripts/core/balance.gd")
@@ -85,7 +86,7 @@ func _build(vs: Vector2) -> Array:
 		out.append({"title": "移动与冲刺", "en": "MOVE", "text": "按住左半屏拖动移动；点冲刺键冲刺，冲刺中无敌。",
 			"rects": [Rect2(lay.stick.c - Vector2(sr, sr), Vector2(sr, sr) * 2.0), Rect2(lay.dash.c - Vector2(dr, dr), Vector2(dr, dr) * 2.0)]})
 	else:
-		out.append({"title": "移动与冲刺", "en": "MOVE", "text": "WASD 移动，空格冲刺，冲刺中无敌。", "rects": [Rect2(vs / 2.0 - Vector2(64.0, 88.0), Vector2(128.0, 150.0))]})
+		out.append({"title": "移动与冲刺", "en": "MOVE", "text": PlayKeys.fill(UI.Loc.s("{move} 移动，{dash}冲刺，冲刺中无敌。")), "rects": [Rect2(vs / 2.0 - Vector2(64.0, 88.0), Vector2(128.0, 150.0))]})
 	if g.squad.cmd_on():
 		var crect: Rect2
 		var ctext: String

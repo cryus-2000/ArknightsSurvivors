@@ -4,6 +4,7 @@ extends RefCounted
 
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
+const PlayKeys = preload("res://scripts/core/play_keys.gd")   # 局内键名按当前绑定（可改键）
 const Loc = preload("res://scripts/core/loc.gd")   # 本地化（docs/276 §10）
 const A = preload("res://scripts/art.gd")
 const Character = preload("res://scripts/characters/character.gd")
@@ -1187,7 +1188,7 @@ func option_description(option: Dictionary) -> String:
 		var sk: Dictionary = op.skill_def(i)
 		if i > stage or sk.get("mode", "auto") != "manual" or op.g.ult != null:   # 终结技开着时手动技能按自动放（character.is_manual），不写「按 Q」
 			continue
-		var use: String = (("队长点技能键释放" if Pad.touch_ui() else "队长按 Q 释放") if op.is_leader else "作为队友自动释放")
+		var use: String = (("队长点技能键释放" if Pad.touch_ui() else "队长按 %s 释放" % PlayKeys.cur("ult")) if op.is_leader else "作为队友自动释放")
 		var timing: String = "解锁后" if not op.skill_unlocked(i) else "技力满后"
 		return "%s%s「%s」。\n%s" % [timing, use, sk.get("name", "技能"), description]
 	return description

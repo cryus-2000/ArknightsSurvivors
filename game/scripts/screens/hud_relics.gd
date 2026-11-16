@@ -3,6 +3,7 @@ extends RefCounted
 const Bal = preload("res://scripts/core/balance.gd")
 const PlayClock = preload("res://scripts/run/play_clock.gd")
 const UI = preload("res://scripts/ui.gd")
+const PlayKeys = preload("res://scripts/core/play_keys.gd")   # 局内键名按当前绑定（可改键）
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 const Tris = preload("res://scripts/screens/hud_tris.gd")
 const HudV2 = preload("res://scripts/screens/hud_v2.gd")   # 编辑式 HUD（docs/222，ui/hud_v2）
@@ -251,7 +252,7 @@ func draw_relic_tooltip(vs: Vector2) -> void:
 		var id: String = cellinfo[1]
 		if id == "":
 			var more: int = tray_layout(g.relics.size()).more
-			h.draw_tooltip(vs, cr, "另有 %d 件藏品" % more, "较早获得", "藏品栏只显示最近获得的 %d 件。%s" % [g.relics.size() - more, Pad.hint("按 TAB 查看全部。", "按 SELECT 查看全部。", "点「属性」查看全部。")], "", UI.CYAN)
+			h.draw_tooltip(vs, cr, "另有 %d 件藏品" % more, "较早获得", "藏品栏只显示最近获得的 %d 件。%s" % [g.relics.size() - more, Pad.hint("按 %s 查看全部。" % PlayKeys.primary("stats", false), "按 %s 查看全部。" % PlayKeys.cur("stats"), "点「属性」查看全部。")], "", UI.CYAN)
 			return
 		var rd: Dictionary = g.RL[id]
 		var mx: int = g.rfx.max_lv(id)

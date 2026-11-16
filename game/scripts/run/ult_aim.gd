@@ -9,6 +9,7 @@ extends RefCounted
 
 const Bal = preload("res://scripts/core/balance.gd")
 const UI = preload("res://scripts/ui.gd")
+const PlayKeys = preload("res://scripts/core/play_keys.gd")   # 局内键名按当前绑定（可改键）
 const UM = preload("res://scripts/ui_motion.gd")
 const Moves = preload("res://scripts/run/ult_moves.gd")
 
@@ -293,14 +294,14 @@ static func _tip(u) -> String:
 			return "按住看范围 · 松手释放"
 		if Pad.device >= 0 and src != "mouse":
 			return "按住看范围 · 再按终结技键释放" if u.aim_latched else "按住看范围 · 松开释放"
-		return "按住看范围 · 再按 Q 或左键释放" if u.aim_latched else "按住看范围 · 松开 Q 释放"
+		return ("按住看范围 · 再按 %s 或左键释放" if u.aim_latched else "按住看范围 · 松开 %s 释放") % PlayKeys.primary("ult", false)
 	if src == "touch" or (src != "mouse" and tc != null and tc.active):
 		return "拖动选择 · 再点终结技键释放" if u.aim_latched else "拖动选择 · 松手释放"
 	if src == "pad" or (src != "mouse" and Pad.device >= 0):
 		return "摇杆选择 · 再按终结技键释放" if u.aim_latched else "摇杆选择 · 松开释放"
 	if u.aim_latched:
-		return "鼠标选择 · 再按 Q 或左键释放"
-	return "鼠标选择 · 松开 Q 释放"
+		return "鼠标选择 · 再按 %s 或左键释放" % PlayKeys.primary("ult", false)
+	return "鼠标选择 · 松开 %s 释放" % PlayKeys.primary("ult", false)
 
 
 ## 范围格：形状里的 48 格，越靠外越淡、边上一圈亮边（同 command_pick._tiles 的画法）；

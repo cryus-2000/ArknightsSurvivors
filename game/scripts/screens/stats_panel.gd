@@ -4,6 +4,7 @@ extends RefCounted
 
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
+const PlayKeys = preload("res://scripts/core/play_keys.gd")   # 局内键名按当前绑定（可改键）
 const A = preload("res://scripts/art.gd")
 const LinkBond = preload("res://scripts/run/link_bond.gd")   # 「羁绊」一节（docs/221 B1）
 const Bal = preload("res://scripts/core/balance.gd")
@@ -309,7 +310,7 @@ func _draw_more_cell(p: Vector2, cs: float, n: int, fs: int) -> void:
 
 ## 底栏汇总 + 悬停提示（藏品 / 成长 / 技能行）
 func _draw_footer(vs: Vector2, r: Rect2) -> void:
-	UI.text(g.hud, g.font, Vector2(r.position.x, r.end.y - 18), ("藏品 %d 件  ·  击杀 %d  ·  源石锭 %d  ·  " % [g.relics.size(), g.kills, g.ingots]) + Pad.hint("按 TAB / C / ESC 返回", "按 SELECT / Ⓑ 返回", "点空白处返回"), 16 if Cfg.touch_device() else 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+	UI.text(g.hud, g.font, Vector2(r.position.x, r.end.y - 18), ("藏品 %d 件  ·  击杀 %d  ·  源石锭 %d  ·  " % [g.relics.size(), g.kills, g.ingots]) + Pad.hint("按 %s / ESC 返回" % PlayKeys.both("stats", false), "按 SELECT / Ⓑ 返回", "点空白处返回"), 16 if Cfg.touch_device() else 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 	_draw_footer_tips(vs)
 
 
@@ -709,7 +710,7 @@ func draw_v3(vs: Vector2) -> void:
 				_v3_squad(float(xs[2]), top, cw, B - 28.0)
 		g.hud.draw_set_transform(Vector2.ZERO)
 		_curtain(Rect2(float(xs[i]) - 6.0, top - 8.0, cw + 12.0, B - top), k)
-	var back: String = Pad.hint("TAB / C / ESC 返回", "SELECT / Ⓑ 返回", "点空白处返回")
+	var back: String = Pad.hint("%s / ESC 返回" % PlayKeys.both("stats", false), "SELECT / Ⓑ 返回", "点空白处返回")
 	_hv.v2.txt(Vector2(R - _hv.v2.twidth(back, 11), B - 8), back, 11, V3_GREY)
 	_v3_tips(vs)
 	for t in _tips:   # 编队栏技能提示（docs/290）：压在三栏与其余提示之上

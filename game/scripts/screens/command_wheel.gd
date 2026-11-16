@@ -8,6 +8,7 @@ extends RefCounted
 
 const UI = preload("res://scripts/ui.gd")
 const Bal = preload("res://scripts/core/balance.gd")
+const PlayKeys = preload("res://scripts/core/play_keys.gd")   # 指挥圆盘键可改键（缺省 F / 手柄 LB / LT）
 
 ## 圆盘选项：id / 名 / 说明 / 颜色。顺序 = 从左上起顺时针，中心角见 ANG、半宽见 HALF（度，0 = 向右，顺时针为正）
 const ITEMS_BASE := [
@@ -99,6 +100,8 @@ func open(from_event: InputEvent = null, touch := false) -> void:
 	src = ""
 	if from_event is InputEventKey:
 		src = "pad" if from_event.device == Pad.SYNTH_DEVICE else "key"
+	elif from_event is InputEventMouseButton:
+		src = "key"   # 圆盘键改绑到鼠标键（侧键等）：同键盘按住模式
 	Sfx.play("ui_move", -6.0)
 
 
@@ -174,11 +177,8 @@ func _pad_vec() -> Vector2:
 
 
 func _held() -> bool:
-	if src == "key":
-		return Input.is_key_pressed(KEY_F)
-	if src == "pad":
-		var dev: int = Pad.device
-		return Input.is_joy_button_pressed(dev, JOY_BUTTON_LEFT_SHOULDER) or Input.get_joy_axis(dev, JOY_AXIS_TRIGGER_LEFT) > 0.3
+	if src == "key" or src == "pad":
+		return PlayKeys.held("command")   # 键盘 / 鼠标键 / 手柄（pad.gd 按住期间保持虚拟键按下）
 	return false
 
 
@@ -254,7 +254,8 @@ func input(event: InputEvent) -> bool:
 		if not event.pressed or event.echo:
 			return true
 		var k: int = Pad.kc(event)
-		if k == KEY_ESCAPE or k == KEY_K or (k == KEY_F and latched and src == ""):
+		var ka: String = PlayKeys.act(event)
+		if k == KEY_ESCAPE or (ka == "dash" and event.device == Pad.SYNTH_DEVICE) or (ka == "command" and latched and src == ""):
 			cancel()
 		elif latched and (k == KEY_ENTER or k == KEY_KP_ENTER or k == KEY_E or k == KEY_SPACE):
 			if hover >= 0:
@@ -681,8 +682,8 @@ func _tip() -> String:
 	if g.touch != null and g.touch.active and not Pad.using:
 		return "点选指令 · 点空白处取消"
 	if src != "":
-		return Pad.hint("按住移动鼠标选择，松开确认 · ESC 取消", "按住 LB，推摇杆选择，松开确认 · Ⓑ 取消")
-	return Pad.hint("点选指令，或 ENTER 确认 · ESC / F 取消", "推摇杆选择，Ⓐ 确认 · Ⓑ 取消")
+		return Pad.hint("按住移动鼠标选择，松开确认 · ESC 取消", "按住 %s，推摇杆选择，松开确认 · %s 取消" % [PlayKeys.primary("command", true), PlayKeys.primary("dash", true)])
+	return Pad.hint("点选指令，或 ENTER 确认 · ESC / %s 取消" % PlayKeys.primary("command", false), "推摇杆选择，Ⓐ 确认 · %s 取消" % PlayKeys.primary("dash", true))
 
 
 # ---------------------------------------------------------------- 测试计划（只在 autotest / 录片里用）

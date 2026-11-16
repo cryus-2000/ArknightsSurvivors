@@ -3,6 +3,7 @@ extends RefCounted
 ## 界面层约定（docs/39 §3）。2026-09-26 从 game.gd 拆出。
 
 const UI = preload("res://scripts/ui.gd")
+const PlayKeys = preload("res://scripts/core/play_keys.gd")   # 局内键名按当前绑定（可改键）
 const A = preload("res://scripts/art.gd")
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
@@ -22,7 +23,7 @@ func skill_item(op, i: int) -> Dictionary:
 	var sk: Dictionary = op.skill_def(i)
 	var description: String = str(sk.get("desc", ""))
 	if sk.get("mode", "auto") == "manual" and op.g.ult == null:   # 终结技开着时手动技能按自动放（character.is_manual），不写「按 Q」
-		description = ((("队长技力满后点技能键释放。" if Pad.touch_ui() else "队长技力满后按 Q 释放。") if op.is_leader else "作为队友技力满后自动释放。")) + "\n" + description
+		description = ((("队长技力满后点技能键释放。" if Pad.touch_ui() else "队长技力满后按 %s 释放。" % PlayKeys.cur("ult")) if op.is_leader else "作为队友技力满后自动释放。")) + "\n" + description
 	return {"tag": "技能", "tag_en": "SKILL %d" % (i + 1), "glyph": sk.get("name", "技").substr(0, 1), "icon": sk.get("icon", ""), "name": sk.get("name", ""), "desc": description, "col": op.col()}
 
 

@@ -4,6 +4,7 @@ extends RefCounted
 ## ctx：{g, font, touch, lead: 队长待机条, mates: [队友待机条 ×2]}；坐标一律按 r 的比例（0–1）给，换卡片大小自动跟着缩放。
 
 const UI = preload("res://scripts/ui.gd")
+const PlayKeys = preload("res://scripts/core/play_keys.gd")   # 局内键名按当前绑定（可改键）
 const OpFigure = preload("res://scripts/screens/op_figure.gd")
 
 const C_BG := Color(0.035, 0.055, 0.07)
@@ -399,7 +400,7 @@ static func _boss(ci: CanvasItem, r: Rect2, t: float, ctx: Dictionary) -> void:
 	if ctx.touch:
 		tbtn(ci, ctx.font, P(r, 0.86, 0.76), r.size.y * 0.11, "冲刺", lit)
 	else:
-		key(ci, ctx.font, P(r, 0.84, 0.82), r.size.y * 0.15, "空格", lit)
+		key(ci, ctx.font, P(r, 0.84, 0.82), r.size.y * 0.15, PlayKeys.primary("dash", false, true), lit)
 
 
 ## 小队与队长：队长头顶「队长」标，队友跟在身后自动开火
