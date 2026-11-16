@@ -16,6 +16,7 @@ const SDP = preload("res://scripts/run/ult_px_sd.gd")   # 斯卡蒂「斩浪」�
 const GLP = preload("res://scripts/run/ult_px_gl.gd")   # 歌蕾蒂娅终结技转平面叠加层（docs/263 §9：配色对齐 + 爆开那一下加强；只画）
 const MZP = preload("res://scripts/run/ult_px_mz.gd")   # 水月水母群转平面画面（docs/261 §8；只画）
 const ANF = preload("res://scripts/run/ult_an_fine.gd")   # 安洁莉娜终结技精细版（ult/an_fine）
+const WDP = preload("res://scripts/run/ult_wd_proto.gd")   # 维什戴尔终结技更华丽原型（ult/wd_proto，缺省 0 关；docs/353）
 const IDS: Array = ["skadi", "gladiia", "angelina", "eyjafjalla", "wisadel", "specter_unchained", "mizuki"]
 const DIR_OPS: Array = ["skadi", "wisadel", "mizuki"]
 const POINT_OPS: Array = ["gladiia", "angelina", "eyjafjalla"]
@@ -1571,7 +1572,7 @@ static func _wd_start(u, o, d: Vector2) -> Dictionary:
 	var rr: float = Bal.v("ult/wd_shell_r", 175.0)
 	var hw: float = Bal.v("ult/wd_w", 840.0) * 0.5
 	var shells: Array = []   # 每排 3 发：{p, t}
-	var t0: float = Bal.v("ult/wd_t0", 0.15)
+	var t0: float = Bal.v("ult/wd_t0", 0.15) + (WDP.CHARGE if WDP.a_on() else 0.0)
 	var gap: float = Bal.v("ult/wd_gap", 0.1)
 	for k in rows:
 		var row: Array = []
@@ -1579,20 +1580,23 @@ static func _wd_start(u, o, d: Vector2) -> Dictionary:
 		for j in 3:
 			var lat: float = (float(j) - 1.0) * (hw - rr * 0.82) + (18.0 if k % 2 == 1 else -18.0)
 			row.append(o.pos + d * along + n * lat)
-		shells.append({"ps": row, "t": t0 + gap * float(k), "done": false, "after": false})
+		shells.append({"ps": row, "t": WDP.row_t(k, t0, gap), "done": false, "after": false})
 	o.face_to(d.angle())
 	o.play_vis_anim("attack")
 	var col: Color = WD_RED if _wdc() else u._col(o)
+	WDP.warm(u)
+	if WDP.a_on():   # 原型 A：聚能 + 锁定 + 开炮 + 粗弹道，取代细红环 / 细拖线 / 起手炮口
+		WDP.charge_lock(u, o, d, shells, t0 - 0.1)
 	# 落点预兆：每发一圈细红环 + 天上落下的炮弹拖线
-	for k in shells.size():
+	for k in (0 if WDP.a_on() else shells.size()):
 		var sh: Dictionary = shells[k]
 		for p in sh.ps:
 			_ring(u, p, rr * 0.5, rr * 0.5, col, float(sh.t) + 0.05, 2.0)
 			u.shape({"kind": "line", "a": p + Vector2(-90, -520), "b": p + Vector2(-60, -350), "w": 6.0, "col": WD_HOT if _wdc() else Color(1.0, 0.85, 0.6), "life": 0.1,
 				"delay": float(sh.t) - 0.1, "v": Vector2(60, 350) / 0.1})
 	# 炮口：她身前一团火光
-	u.strip("fx_cannon_burst_br" if _wdc() and u.fx_ready("fx_cannon_burst_br") else "fx_cannon_burst", o.pos + d * 40.0 + Vector2(0, -20), {"sc": 2.0})
-	return {"d": d, "n": n, "o0": o.pos, "hw": hw, "rr": rr, "shells": shells, "mseg": {}, "aseg": {}, "delay": Bal.v("ult/wd_after_t", 0.35),
+	u.strip("fx_cannon_burst_br" if _wdc() and u.fx_ready("fx_cannon_burst_br") else "fx_cannon_burst", o.pos + d * 40.0 + Vector2(0, -20), {"sc": 2.0, "delay": t0 - 0.1 if WDP.a_on() else 0.0})
+	return {"fire_t": t0 - 0.1 if WDP.a_on() else -1.0, "vs": PF.vseed(u, o.pos), "d": d, "n": n, "o0": o.pos, "hw": hw, "rr": rr, "shells": shells, "mseg": {}, "aseg": {}, "delay": Bal.v("ult/wd_after_t", 0.35),
 		"ember": rt == "ash", "main": 0.6 if rt == "mark" else Bal.v("ult/wd_main", 0.7), "no_ring": true}
 
 
@@ -1606,12 +1610,19 @@ static func _wd_step(u, a: Dictionary, o) -> bool:
 	var col: Color = WD_RED if _wdc() else u._col(o)
 	var dl: float = a.delay
 	var all_done := true
+	if WDP.a_on():
+		WDP.fire_tick(u, a, t)
+	var fin_k: int = a.shells.size() - 1 if WDP.b_on() else -1   # 原型 B：末排落地时补终爆，冲击帧挪到这一下
 	for k in a.shells.size():
 		var sh: Dictionary = a.shells[k]
 		var ts: float = sh.t
 		if not sh.done and t >= ts:
 			sh.done = true   # 主爆 70%（每人一次）
-			if k == 0 and _wd_v2(u) and _wd_v3():   # 冲击帧：第一排落地那一下（后面几排不再闪），三团爆炸进剪影
+			if k == fin_k and _wd_v2(u):
+				a["hf"] = true
+				u.act["hf"] = true
+				WDP.finale(u, a, a.shells, rr, float(a.vs))
+			if k == 0 and fin_k < 0 and _wd_v2(u) and _wd_v3():   # 冲击帧：第一排落地那一下（后面几排不再闪），三团爆炸进剪影
 				a["hf"] = true
 				u.act["hf"] = true
 			for p in sh.ps:
@@ -1624,10 +1635,12 @@ static func _wd_step(u, a: Dictionary, o) -> bool:
 					# 用户 10-30「跟原本的特效风格不一致、缺少高光」：主体回到她自己的红色尖晶爆裂帧条，只加随机大小 / 转角 / 镜像 / 偏移 / 起爆错开；
 					# 「蓝环可以去掉」→ fx_wd_cannon = fx_wisadel_cannon 去掉蓝色像素
 					u.strip("fx_wd_cannon_br" if _wdc() and u.fx_ready("fx_wd_cannon_br") else ("fx_wd_cannon" if u.fx_ready("fx_wd_cannon") else "fx_wisadel_cannon"), pv, {"sc": 1.9 * rk, "ang": (hp2 - 0.5) * 1.2, "sx": -1.0 if PF.h(hp2 * 7.0) < 0.5 else 1.0,
-						"delay": 0.0 if k == 0 else bdl, "hf": k == 0})
+						"delay": 0.0 if k == 0 else bdl, "hf": k == 0 and fin_k < 0})
+					if WDP.b_on():
+						WDP.ember(u, pv, rk, bdl, hp2)
 					if _wd_v3() and PF.h(hp2 * 59.0) < 0.6:   # 逐帧烟尘（焦灰带一点红），约六成炮弹，往远离她的方向飘
 						PF.dust(u, pv + Vector2.from_angle(hp2 * TAU) * rr * 0.3, 190.0 * rk, bdl + 0.06, hp2 * 70.0, (pv - o0).normalized() * 50.0, WD_DUST if _wdc() else Color(1.0, 0.82, 0.78))
-					u.strip("fx_ws_crater", pv, {"layer": "back", "f": int(hp2 * 97.0) % 4, "sc": rr * 1.1 * rk / 120.0, "ang": hp2 * 5.0, "life": dl + 1.6, "fade": 0.6,
+					u.strip("fx_ws_crater", pv, {"layer": "back", "f": int(hp2 * 97.0) % 4, "sc": rr * 1.1 * rk / 120.0, "ang": hp2 * 5.0, "life": dl + (3.4 if WDP.b_on() else 1.6), "fade": 0.6 if not WDP.b_on() else 1.2,
 						"col": Color(1.0, 0.75, 0.72), "col1": Color(0.6, 0.55, 0.55), "cold": 0.6})   # 弹坑是焦黑地面，只带一点红余烬（整片染红会糊满屏）
 					if hp2 < 0.35:   # 粒子圆团每发都放会排成一格格（预审报重复），只给约三分之一的炮弹、缩小
 						PF.particles(u, pv, WD_PARTS if _wdc() else 60, "ult_burst_s", [WD_SPARK if _wdc() else Color(0.95, 0.1, 0.1)], bdl, hp2 * 50.0, rr * 0.7 * rk)
