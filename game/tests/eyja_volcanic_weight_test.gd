@@ -13,6 +13,7 @@ class PulseOwner extends RefCounted:
 	var events: Array = []
 	func stat(_key) -> float: return 1.0
 	func densest_point(_r, _p) -> Vector2: return Vector2(220, 20)
+	func boss_or_densest(r, p) -> Vector2: return densest_point(r, p)   # 场上没有 Boss：同最密处（11-17 选敌排查）
 	func _exec_list(actions: Array, at: Vector2) -> void: events.append({"actions": actions, "at": at})
 	func fx(_f: Dictionary) -> void: pass
 
