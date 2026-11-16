@@ -9,7 +9,7 @@ const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数�
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
-const MAX_ENEMIES := 450
+const MAX_ENEMIES := 300   # 同屏敌人上限缺省（× 密度，见 max_alive）
 var next_id := 0
 var spawn_acc := 0.0
 var next_elite: float = Bal.v("enemy/first_elite", 60.0)   # 首只精英出现时间（balance.json）
@@ -207,11 +207,9 @@ func mob_count() -> int:
 	return n
 
 
-## 同屏敌人上限：enemy/max_alive（缺省 450）；真人选低画质时 enemy/max_alive_low（300）。
-## 机器人 / 自动测试一律用 450——上限会改玩法，批跑数据不能受玩家设置影响
+## 同屏敌人上限：enemy/max_alive（缺省 300）× 怪物密度 ≈ 120。不分画质、真人与机器人 / 自动测试同一个值（用户 11-16「中高画质和低画质是不是应该上限一致，都是 120」；
+## 之前中高画质 450 × 0.4 ≈ 180、真人低画质 300 × 0.4 = 120，docs/50 §50）。上限会改玩法，所以不能跟玩家设置走
 func max_alive() -> int:
-	if Cfg.quality == "low" and g.mode == g.Mode.PLAY:
-		return dens_cap(int(Bal.v("enemy/max_alive_low", 300.0)))
 	return dens_cap(int(Bal.v("enemy/max_alive", float(MAX_ENEMIES))))
 
 

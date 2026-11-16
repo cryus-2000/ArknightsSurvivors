@@ -973,7 +973,7 @@ func roster_all_open() -> bool:
 
 
 ## 画质档位（10-22 改三档 + 自动）：高 = 全开；中 = 只关法线光照 + 辉光（docs/50 量测：法线最贵、辉光次之，景深 / 水下滤镜几乎免费，10-22 协调人定保留）；
-## 低 = 四项后期全关 + 粒子减半（fx_density）+ 真人局同屏敌人上限 300（spawner.max_alive；机器人 / 自动测试一律 450）+ 演出简化。
+## 低 = 四项后期全关 + 粒子减半（fx_density）+ 演出简化（同屏敌人上限 11-16 起不分画质，spawner.max_alive）。
 ## 这四项后期开关在设置里不再单独露出（键保留、旧存档兼容），一律跟档位走
 func set_quality(q: String) -> void:
 	quality = q if QUALITY_NAME.has(q) else "high"
