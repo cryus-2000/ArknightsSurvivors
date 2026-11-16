@@ -264,7 +264,7 @@ static func draw(ci: CanvasItem, lay: Dictionary, st: Dictionary) -> void:
 		if a <= 0.0:
 			continue
 		var o: Vector2 = lst.o + Vector2(0, r.y + r.pad) * lst.k + Vector2(-st.slide * (1.0 - a), 0)
-		_draw_row(ci, o, lst.k, font, item(r.id), TIERS[r.tier], st.water[r.id], a, st.dim.has(r.id), st.tickets if r.id == 7 else -1, int(st.get("sup_badge", 0)) if r.id == 10 else 0)
+		_draw_row(ci, o, lst.k, font, item(r.id), TIERS[r.tier], st.water[r.id], a, st.dim.has(r.id), st.tickets if r.id == 7 else -1, int(st.get("sup_badge", 0)) if r.id == 10 else 0, int(st.get("sup_ready", 0)) > 0 and r.id == 10)
 	if lay.rects.has(0) and st.a_deploy > 0.0:
 		_draw_deploy(ci, lay.deploy.o, lay.deploy.k, font, st.water[0], st.a_deploy, st.now, st.rm)
 	if st.a_foot > 0.0:
@@ -300,7 +300,7 @@ static func _draw_label(ci: CanvasItem, o: Vector2, k: float, font: Font, cn: St
 
 
 ## 一行入口（tt = TIERS 里的一档；o = 行左上，内容按 tt.h 画）
-static func _draw_row(ci: CanvasItem, o: Vector2, k: float, font: Font, m: Dictionary, tt: Dictionary, water: float, a: float, dim: bool, tickets: int, sup_badge := 0) -> void:
+static func _draw_row(ci: CanvasItem, o: Vector2, k: float, font: Font, m: Dictionary, tt: Dictionary, water: float, a: float, dim: bool, tickets: int, sup_badge := 0, sup_ready := false) -> void:
 	var w := _ease(water)
 	var P := func(x: float, y: float) -> Vector2: return o + Vector2(x, y) * k
 	var h: float = tt.h
@@ -344,7 +344,7 @@ static func _draw_row(ci: CanvasItem, o: Vector2, k: float, font: Font, m: Dicti
 		ci.draw_string(font, Vector2(tx.x, by + bh * 0.5 + (font.get_ascent(bfs) - font.get_descent(bfs)) * 0.5), UI.Loc.s(s), HORIZONTAL_ALIGNMENT_CENTER, bw, bfs, Color(0.07, 0.07, 0.09, a))
 	if sup_badge > 0:
 		# 支持作者还有没领的凭证：青底斜块「领 N 张」（青色 = 可操作，和寻访的黄色凭证数分开）
-		var s2 := "领 %d 张" % sup_badge
+		var s2 := "可领取" if sup_ready else "领 %d 张" % sup_badge   # 11-16 用户：查到满足后要点进去领，角标改「可领取」+ 小红点
 		var bfs2 := int(round(12 * k))
 		var bw2: float = font.get_string_size(s2, HORIZONTAL_ALIGNMENT_LEFT, -1, bfs2).x + 16.0 * k
 		var bh2 := 18.0 * k
@@ -358,12 +358,14 @@ static func _draw_row(ci: CanvasItem, o: Vector2, k: float, font: Font, m: Dicti
 			tw2 += font.get_string_size(ch2, HORIZONTAL_ALIGNMENT_LEFT, -1, bfs2).x + gap2
 		tw2 -= gap2
 		bw2 = maxf(bw2, tw2 + 16.0 * k)
-		ci.draw_colored_polygon(PackedVector2Array([Vector2(tx.x + q2, by2), Vector2(tx.x + bw2, by2), Vector2(tx.x + bw2 - q2, by2 + bh2), Vector2(tx.x, by2 + bh2)]), _fa(C, a))
+		ci.draw_colored_polygon(PackedVector2Array([Vector2(tx.x + q2, by2), Vector2(tx.x + bw2, by2), Vector2(tx.x + bw2 - q2, by2 + bh2), Vector2(tx.x, by2 + bh2)]), _fa(Color8(255, 206, 0) if sup_ready else C, a))
 		var base2 := by2 + bh2 * 0.5 + (font.get_ascent(bfs2) - font.get_descent(bfs2)) * 0.5
 		var x2 := tx.x + (bw2 - tw2) * 0.5
 		for ch2 in txt2:
 			ci.draw_string(font, Vector2(round(x2), base2), ch2, HORIZONTAL_ALIGNMENT_LEFT, -1, bfs2, _fa(INK, a))
 			x2 += font.get_string_size(ch2, HORIZONTAL_ALIGNMENT_LEFT, -1, bfs2).x + gap2
+		if sup_ready:   # 可领取：右上角小红点
+			ci.draw_circle(Vector2(tx.x + bw2 - q2 * 0.5, by2), 4.0 * k, _fa(Color8(232, 69, 60), a))
 	if w > 0.0:
 		ci.draw_line(P.call(tt.tx, tt.ul), P.call(tt.tx + (tt.sw - tt.tx - 64.0) * w, tt.ul), _fa(C, a * w), maxf(1.0, 1.4 * k))
 		var cx: float = tt.sw - 22.0 - h * 0.15

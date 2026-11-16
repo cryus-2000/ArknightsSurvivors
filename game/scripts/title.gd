@@ -397,6 +397,8 @@ func _ready() -> void:
 			get_tree().create_timer(1.2).timeout.connect(func():
 				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_diff_%d_%d.png" % [diff_sel, Cfg.diff_unlocked])
 				get_tree().quit())
+	# 支持作者（docs/313，11-16 用户）：Toy 版后台查一次关注 / 三连，满足的只挂「可领取」角标，要玩家点进浮层领取
+	preload("res://scripts/core/toy_support.gd").probe(queue_redraw)
 	if Cfg.dev_args().has("--loadingshot"):
 		# 出发后载入页的截图（预读完也停在载入页，截图时强制画出来）；带 --reducemotion 截静态版
 		leaving = 0.0
@@ -414,11 +416,15 @@ func _ready() -> void:
 					sel = 0
 			if a == "--reducemotion":
 				Cfg.reduce_motion = true
+		if Cfg.dev_args().has("--supgot"):
+			Cfg.toy_support = preload("res://scripts/core/toy_support.gd").items()   # 截图：存档里两项都已领过
 		if Cfg.dev_args().has("--supopen"):
 			get_tree().create_timer(0.6 if Cfg.dev_args().has("--supcheck") else 1.4).timeout.connect(func():
 				open_support()
 				if Cfg.dev_args().has("--supzoom"):
 					sup_view._zoom = "follow"   # 截图：放大查看边框样张
+				if Cfg.dev_args().has("--supclaim"):
+					sup_view.claim()   # 截图：点一次「领取 N 张寻访凭证」（领取提示 + 上浮动效）
 				if Cfg.dev_args().has("--supcheck"):
 					sup_view.check())   # 截图：标题页盖上「支持作者」浮层（--supcheck 顺手点一次检查并领取）
 		if Cfg.dev_args().has("--fbopen"):
@@ -988,7 +994,7 @@ func _draw_menu(vs: Vector2) -> void:
 	Tiles.draw(self, menu_lay, {"font": font, "sel": sel, "water": menu_water, "now": t, "rm": Cfg.reduce_motion,
 		"a_logo": 0.0, "logo_tex": null, "a_list": a_list, "a_deploy": _item_a(0) * (0.35 if first else 1.0), "a_foot": _seg(2.0, 0.4),
 		"slide": 0.0 if Cfg.reduce_motion else 16.0, "dim": [] if R.active() else [7], "tickets": R.tickets() if R.active() else -1,
-		"sup_badge": preload("res://scripts/core/toy_support.gd").pending_tickets()})   # 10-24 用户：没有凭证也能点进寻访看卡池
+		"sup_badge": preload("res://scripts/core/toy_support.gd").pending_tickets(), "sup_ready": preload("res://scripts/core/toy_support.gd").ready_tickets()})   # 10-24 用户：没有凭证也能点进寻访看卡池
 	if first and not (guide or credits):
 		_draw_first_guide()
 	# 声明（同人 · 非商业 · 与鹰角网络无关 · 致谢与声明）+ 版本：桌面右下，手机跟在底部一行后面

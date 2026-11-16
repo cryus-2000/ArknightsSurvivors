@@ -1245,7 +1245,7 @@ SCENE_REGRESSIONS = {
     "elite_mark_v2_review": ("精英 / 小队标记 v2 规则 + 画法缓存自检（render/elite_mark_v2，缺省关）", "elite_mark_v2_review", r"ELITE_MARK_REVIEW dc_checked=[1-9]", ["--dccheck"]),
     "build_affinity": ("构筑匹配（docs/119 §4.3 / §4.4 → docs/197）：藏品流派 × 干员流派匹配、卡面说明行、强制招募保底与开关", "build_affinity_test", r"BUILD AFFINITY failures=0", ["--balance", "--op=angelina", "--squad=skadi,kaltsit"]),
     "web_focus": ("失焦保护（docs/317）：失焦后摇杆 / 按键 / 鼠标松开、圆盘取消不下令、选点取消、对局自动暂停、非对局状态回来补暂停", "web_focus_test", r"WEB FOCUS failures=0", ["--touch", "--focustest", "--focuspause", "--op=mizuki", "--squad=hoshiguma,exusiai"]),
-    "toy_support": ("B站 Toy「支持作者」（docs/313）：模拟 SDK 关注 / 三连 / unsupported / 未登录，每项只发一次 5 张凭证、关注解锁罗德岛边框 / 三连解锁深海边框、云存档并集、浮层提示", "toy_support_test", r"TOY SUPPORT failures=0", ["--fbtoy", "--toybv=BV1xx411c7mD"]),
+    "toy_support": ("B站 Toy「支持作者」（docs/313）：模拟 SDK 关注 / 三连 / unsupported / 未登录，满足只标可领取、点领取才发 5 张且只发一次、关注解锁罗德岛边框 / 三连解锁深海边框、云存档并集、浮层提示", "toy_support_test", r"TOY SUPPORT failures=0", ["--fbtoy", "--toybv=BV1xx411c7mD"]),
     "feedback_code": ("反馈码（docs/311）：没配目标不显示入口、字母表 + 校验位、同摘要同码、改一项就变", "feedback_code_test", r"FEEDBACK failures=0", []),
     "calc_truth": ("计算正确性（docs/335 §2）：属性块计算顺序、伤害链（照亮 / 弱点 / 防御 / 精英 / Boss 倍率与 4% 单次上限 / 破绽 / 终结技 / 处决）、受伤链（护甲 / 法抗封顶 / Boss 40% 与 2 秒 68% / 全来源 70%）、纯属性藏品逐件接线与叠层递减、入队台阶、指南写出的数与旋钮一致", "calc_truth_test", r"CALC TRUTH failures=0", ["--balance", "--seed=1", "--op=skadi", "--squad=kaltsit,texas"]),
     "card_desc": ("卡片描述不串台：公共成长 / 填充 / 支援卡不含队长手动技能提示（10-22 截图），干员卡只提自己的技能", "card_desc_test", r"CARD DESC failures=0", ["--balance", "--op=ulpianus", "--squad=skadi,angelina"]),

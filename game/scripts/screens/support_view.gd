@@ -2,7 +2,9 @@ extends Control
 ## B站 Toy「支持作者」浮层（docs/313，core/toy_support.gd）：标题页 / 结算页 / 寻访页的「支持作者」入口打开（只在 Toy 版）。
 ## 11-08 用户：关注作者、三连视频两张卡并排，各自一枚「领取」按钮，点了查 SDK（tools/web/support.js → window.__sySupport.check），满足就记账发奖；
 ## 三连没配视频（TS.triple_open() 为假）时照样画出来、置灰、按钮写「PV 发布后开放」。
-## 键盘：Esc 关闭、Enter 把能领的都查一遍。版式跟意见反馈浮层（feedback_view）一致。
+## 11-16 用户：查到满足不再直接到账——卡片按钮先是「检查」，满足后变「领取」，底部出「领取 N 张寻访凭证」；点了才发券（TS.claim），配「+N」上浮提示。
+##   标题页已后台查过（TS.probe）的，打开就是「领取」。
+## 键盘 / 手柄：Esc 关闭；Enter 有可领取的就全部领取，否则把能查的都查一遍。版式跟意见反馈浮层（feedback_view）一致。
 ## 桌面 / 测试（非网页）：--toysim=follow:yes,triple:no:coin 模拟 SDK 返回（结果：yes / no / unsupported / login / err，triple 的 no 可带缺项）
 
 signal closed
@@ -34,6 +36,9 @@ var _cur := ""               # 正在查询的项（卡片按钮写「正在查�
 var _sc: RefCounted = null   # 边框预览用的分享卡画法（复用 share_card.gd 的相框，不另画）
 var _pv := {}                # 相框 id -> 样张数据
 var granted := 0             # 本次打开期间发的凭证（测试读）
+var _fx_t := -1.0            # 领取动效计时（「+N 寻访凭证」上浮）
+var _fx_n := 0
+var _fx_at := Vector2.ZERO
 var _zoom := ""              # 放大查看的相框预览（奖励项 id；11-14 用户：分享卡样张要能点开放大）
 
 
@@ -52,6 +57,7 @@ func open() -> void:
 	note = ""
 	row_msg = {}
 	granted = 0
+	_fx_t = -1.0
 	_zoom = ""
 	Sfx.play("ui_ok")
 	queue_redraw()
@@ -89,7 +95,7 @@ func check(id := "") -> void:
 	busy = true
 	note = "正在查询……"
 	note_ok = false
-	_queue = [id] if id != "" else TS.items().filter(func(x): return TS.claimable(x))
+	_queue = [id] if id != "" else TS.items().filter(func(x): return TS.claimable(x) and not TS.is_ready(x))
 	_next()
 	queue_redraw()
 
@@ -118,13 +124,41 @@ func _next() -> void:
 		_sim_t = 0.0
 
 
-## 一项的查询结果（support.js 回调 / 模拟 / 测试直接调）
+## 领取：id 为空 = 可领取的全部领取（底部按钮 / Enter），否则只领这一项。只发查到满足（TS.is_ready）的，发完立即存档
+func claim(id := "") -> void:
+	if busy:
+		return
+	var n := 0
+	var msg := ""
+	if id == "":
+		var r: Dictionary = TS.claim_all()
+		n = int(r.granted)
+		msg = str(r.msg)
+	else:
+		n = TS.claim(id)
+		if n > 0:
+			msg = "已领取 %d 张寻访凭证和专属分享卡边框「%s」" % [n, TS.frame_name(id)]
+	if n <= 0:
+		return
+	granted += n
+	note = msg
+	note_ok = true
+	row_msg = {}
+	var at: Rect2 = btns.get("claim_all", btns.get("go_" + id, Rect2(size * 0.5, Vector2.ZERO)))
+	_fx_at = at.get_center()
+	_fx_n = n
+	_fx_t = 0.0
+	Sfx.play("ui_ok")
+	queue_redraw()
+
+
+## 一项的查询结果（support.js 回调 / 模拟 / 测试直接调）：满足只标「可领取」，不发券
 func result(id: String, status: String, detail := "") -> void:
 	var r: Dictionary = TS.apply(id, status, detail)
-	granted += int(r.granted)
 	row_msg[id] = str(r.msg)
-	if int(r.granted) > 0:
-		note = str(r.msg)
+	if bool(r.ready):
+		row_msg.erase(id)
+		note = "条件已满足，点「领取」即可到账"
 		note_ok = true
 		Sfx.play("ui_ok")
 	elif status in ["unsupported", "login", "err"]:
@@ -136,16 +170,6 @@ func result(id: String, status: String, detail := "") -> void:
 	_next()
 
 
-func _sim(id: String) -> Array:
-	for a in Cfg.dev_args():
-		if a.begins_with("--toysim="):
-			for tok in a.substr(9).split(","):
-				var ps: PackedStringArray = tok.split(":")
-				if ps.size() >= 2 and ps[0] == id:
-					return [ps[1], ":".join(ps.slice(2)).replace(":", ",")]
-	return ["unsupported", ""]
-
-
 func _process(delta: float) -> void:
 	if not visible:
 		return
@@ -153,8 +177,12 @@ func _process(delta: float) -> void:
 		_sim_t += delta
 		if _sim_t > 0.35:
 			_sim_t = -1.0
-			var s: Array = _sim(_sim_id)
+			var s: Array = TS.sim(_sim_id)
 			result(_sim_id, s[0], s[1])
+	if _fx_t >= 0.0:
+		_fx_t += delta
+		if _fx_t > 1.4:
+			_fx_t = -1.0
 	queue_redraw()
 
 
@@ -169,7 +197,10 @@ func key(kc: int) -> bool:
 		KEY_ESCAPE, KEY_BACKSPACE:
 			close()
 		KEY_ENTER, KEY_KP_ENTER, KEY_SPACE:
-			check()
+			if TS.ready_tickets() > 0:
+				claim()
+			else:
+				check()
 		_:
 			return false
 	return true
@@ -200,8 +231,14 @@ func _gui_input(event: InputEvent) -> void:
 			_zoom = h.substr(3)
 			hover = ""
 			Sfx.play("ui_ok")
+		elif h == "claim_all":
+			claim()
 		elif h.begins_with("go_"):
-			check(h.substr(3))
+			var id := h.substr(3)
+			if TS.is_ready(id):
+				claim(id)
+			else:
+				check(id)
 		elif h == "close" or not _panel().has_point(event.position):
 			close()
 		accept_event()
@@ -285,7 +322,7 @@ func _draw() -> void:
 	var y := pr.position.y
 	UI.text(self, font, Vector2(x, y + 44), "支持作者", 26 if tl else 24, UI.TEXT)
 	UI.en(self, font, Vector2(x + (114 if tl else 106), y + 42), "SUPPORT", 10, UI.CYAN_DIM, 2.0)
-	var intro := "在 B站 App 里关注作者、三连视频，可以领取下面的奖励。每项只能领取一次，不影响正常游玩。"
+	var intro := "在 B站 App 里关注作者、三连视频，满足后点「领取」即可到账。每项只能领取一次，不影响正常游玩。"
 	var fs := 15 if tl else 13
 	var fi := UI.fit(font, intro, iw, 44.0, [fs, fs - 1, fs - 2])
 	UI.draw_fit(self, font, Vector2(x, y + 58), fi, UI.SUB)
@@ -342,16 +379,37 @@ func _draw() -> void:
 		if m != "" and not got:
 			UI.text(self, font, Vector2(tx, gb.position.y - 10.0), m, 14 if tl else 13, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, tw)
 		btns["go_" + id] = gb
-		var lab: String = "已领取" if got else ("PV 发布后开放" if not open_ else ("正在查询……" if busy and _cur == id else "领取"))
-		_btn("go_" + id, lab, "", TS.claimable(id) and not busy, not TS.claimable(id))
+		var rdy: bool = TS.is_ready(id)
+		if rdy:   # 已满足待领取：卡片描边换金色、按钮旁一枚小红点
+			draw_rect(r, Color(UI.GOLD, 0.55), false, 1.0)
+		var lab: String = "已领取" if got else ("PV 发布后开放" if not open_ else ("领取" if rdy else ("正在查询……" if busy and _cur == id else "检查")))
+		_btn("go_" + id, lab, "", rdy and not busy, not TS.claimable(id))
+		if rdy:
+			draw_circle(gb.position + Vector2(gb.size.x - 2.0, 2.0), 5.0, Color("e8453c"))
 	# 总的一句（领取成功 / 环境提示）
 	var by: float = pr.end.y - bh - 22.0
-	if note != "" and note != "正在查询……":
-		UI.text(self, font, Vector2(x, by + bh * 0.5 + 6.0), note, 17 if tl else 15, UI.CYAN if note_ok else UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, iw - 170.0)
-	# 关闭
 	var ow: float = 150.0 if ph else 130.0
+	var rt: int = TS.ready_tickets()
+	var aw: float = 0.0
+	if rt > 0:   # 11-16 用户：满足了要点一下才领
+		aw = 260.0 if ph else 250.0
+		btns["claim_all"] = Rect2(pr.end.x - 28.0 - ow - 12.0 - aw, by, aw, bh)
+		_btn("claim_all", "领取 %d 张寻访凭证" % rt, "ENTER" if kb else "", not busy)
+	if note != "" and note != "正在查询……":
+		UI.text_fit(self, font, Vector2(x, by + bh * 0.5 + 6.0), note, 17 if tl else 15, UI.CYAN if note_ok else UI.GOLD, iw - ow - 24.0 - (aw + 12.0 if aw > 0.0 else 0.0), 11)
+	# 关闭
 	btns["close"] = Rect2(pr.end.x - 28.0 - ow, by, ow, bh)
 	_btn("close", "关闭", "ESC" if kb else "", false)
+	if _fx_t >= 0.0:   # 领取动效：「+N 寻访凭证」从按钮处上浮淡出，按钮一圈金光扩开
+		var e: float = clampf(_fx_t / 1.4, 0.0, 1.0)
+		var al: float = 1.0 - e * e
+		var ring: float = minf(1.0, _fx_t / 0.35)
+		if ring < 1.0:
+			draw_arc(_fx_at, 20.0 + ring * 70.0, 0.0, TAU, 40, Color(UI.GOLD, 1.0 - ring), 3.0, true)
+		var fy2: float = _fx_at.y - 26.0 - 46.0 * (1.0 - pow(1.0 - e, 3.0))
+		draw_rect(Rect2(_fx_at.x - 90.0, fy2 - 26.0, 180.0, 36.0), Color(0.02, 0.03, 0.04, 0.85 * al))
+		draw_rect(Rect2(_fx_at.x - 90.0, fy2 - 26.0, 180.0, 36.0), Color(UI.GOLD, 0.7 * al), false, 1.0)
+		UI.text(self, font, Vector2(_fx_at.x - 160.0, fy2), "+%d 寻访凭证" % _fx_n, 24 if tl else 22, Color(UI.GOLD, al), HORIZONTAL_ALIGNMENT_CENTER, 320.0)
 	if _zoom != "":
 		_draw_zoom()
 
