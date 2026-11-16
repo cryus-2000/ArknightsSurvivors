@@ -198,7 +198,7 @@ func _layer_draw(key: String) -> void:
 
 
 func draw() -> void:
-	if not _glyphs_warm and g.demo_op == "" and not Cfg.mobile_fonts_slim():   # 图鉴演示不预热；手机网页不预热（每个字号一份字形缓存，这批约 150 个字号、60 MB，docs/50 §30）
+	if not _glyphs_warm and g.demo_op == "" and not Cfg.font_slim_part("nowarm"):   # 图鉴演示不预热；手机网页不预热（每个字号一份字形缓存，这批约 150 个字号、60 MB，docs/50 §30）
 		_warm_glyphs()
 	for k in _layers:
 		_layers[k].used = false
@@ -215,7 +215,7 @@ var _qs_on := -1
 ## 弹出放大的字号（飘字 / LEVEL UP / 大群横幅）：手机网页按 4 号一档取整，每个字号都要一份字形缓存，逐号放大会建出几十份（docs/50 §30）；其余平台原样
 func _qs(sz: int) -> int:
 	if _qs_on < 0:
-		_qs_on = 1 if Cfg.mobile_fonts_slim() else 0
+		_qs_on = 1 if Cfg.font_slim_part("qs") else 0
 	if _qs_on == 0 or sz <= 16:
 		return sz
 	return 16 + int(round((sz - 16) / 4.0)) * 4

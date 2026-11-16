@@ -215,6 +215,25 @@ func mobile_fonts_slim() -> bool:
 	return (mobile_web() and mobile_knob("mobile_font_slim", 1.0)) or dev_args().has("--fontslim")
 
 
+## 字形瘦身拆成四项（docs/355，11-17 电脑网页）：subpx 关亚像素定位、clear 进局清标题页字号、nowarm 进局不预热字形、qs 弹出字号按 4 号一档。
+## 手机网页四项都跟 mobile_fonts_slim()；电脑网页各按 web/desk_font_<项>（缺省见 DESK_FONT）；桌面原生都不做。
+## 测试：--fontpart=subpx,clear,… 只开列出的几项（任何平台）
+const DESK_FONT := {"subpx": 1.0, "clear": 1.0, "nowarm": 0.0, "qs": 0.0}
+var _fpart := {}
+
+func font_slim_part(part: String) -> bool:
+	if _fpart.has(part):
+		return _fpart[part]
+	var on := mobile_fonts_slim()
+	if not on and OS.has_feature("web") and not mobile_web():
+		on = mobile_knob("desk_font_" + part, float(DESK_FONT.get(part, 0.0)))
+	for a in dev_args():
+		if a.begins_with("--fontpart="):
+			on = a.substr(11).split(",").has(part)
+	_fpart[part] = on
+	return on
+
+
 func touch_device() -> bool:
 	if _touch < 0:
 		var t: bool = DisplayServer.is_touchscreen_available() or dev_args().has("--touch") or OS.has_feature("web_android") or OS.has_feature("web_ios")
@@ -682,7 +701,7 @@ func _ready() -> void:
 		elif a.begins_with("--camzoom="):
 			cam_zoom_pct = clampi(int(a.substr(10)), ZOOM_PCT_MIN, ZOOM_PCT_MAX)
 	set_quality(_guess_quality() if quality_mode == "auto" else quality_mode)   # 自动档：每次启动按本机检测；手选档：按档位统一开关后期
-	if mobile_fonts_slim():
+	if font_slim_part("subpx"):
 		slim_fonts()
 	if mobile_web() and mobile_knob("mobile_rscale", 0.0):
 		# 手机网页开局按逻辑分辨率（约 1113×626）画再放大：显存省，但整屏线性放大约 2.27 倍，像素边和文字都糊（10-27 用户 iPhone「好糊」）。
