@@ -76,6 +76,18 @@ window.__syRL = {
   ];
   var R = 192, C = 2 * Math.PI * R;
   function mb(x) { return (x / 1048576).toFixed(1); }
+  // 多语言（11-16）：boot_l10n.js 在 head 最前选好语言（window.__syL）、给 __syT 查字典；这里按中文原文查，查不到 / 那段没跑就用中文。
+  // 内部状态（日志 key、diagD.phase、Godot 回传的 bootLabel）一律保持中文，只在画到页面上时翻译。
+  var LANG = window.__syL || 'zh';
+  function T(zh, a, b) {
+    if (window.__syT) return window.__syT(zh, a, b);
+    var r = zh;
+    if (a !== undefined) r = r.split('{0}').join(String(a));
+    if (b !== undefined) r = r.split('{1}').join(String(b));
+    return r;
+  }
+  function TP(s) { return LANG === 'zh' ? s : String(s).split(' · ').map(function (x) { return T(x); }).join(' · '); }   // 「阶段 · 分项」逐段翻译
+  var CJK_FONT = { ja: '"Hiragino Sans","Yu Gothic",Meiryo,"Noto Sans JP",', ko: '"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",' }[LANG] || '';
 
   // ---------------------------------------------------------------- 内核检查（11-16 B站 App 安卓黑屏）
   // 引擎脚本 index.js（emscripten 4）要 Chrome 85 / Safari 15 以上（??= / ?. / BigInt64Array / WASM BigInt）。
@@ -84,18 +96,18 @@ window.__syRL = {
   var compat = (function () {
     var miss = [];
     if (/[?&]oldcore=1/.test(location.search)) miss.push('测试：模拟旧内核');
-    try { new Function('var a = null; a ??= {}; return a?.b ?? 1;'); } catch (e) { miss.push('ES2021 语法'); }
+    try { new Function('var a = null; a ??= {}; return a?.b ?? 1;'); } catch (e) { miss.push(T('ES2021 语法')); }
     if (typeof BigInt64Array !== 'function') miss.push('BigInt64Array');
     if (typeof WebAssembly !== 'object') miss.push('WebAssembly');
     return miss;
   })();
   function coreName() {
     var ua = navigator.userAgent || '', m = /Chrome\/(\d+)/.exec(ua);
-    if (m) return 'Chrome ' + m[1] + ' 内核';
+    if (m) return T('{0} 内核', 'Chrome ' + m[1]);
     m = /OS (\d+)_\d+.*like Mac OS X/.exec(ua);
     if (m) return 'iOS ' + m[1];
     m = /Version\/(\d+)[\d.]* .*Safari/.exec(ua);
-    return m ? 'Safari ' + m[1] : '未知内核';
+    return m ? 'Safari ' + m[1] : T('未知内核');
   }
   window.__syCompat = compat;
 
@@ -108,13 +120,13 @@ window.__syRL = {
   var diagD = window.__syLoadDiag = { phase: '载入页面', since: Date.now(), parts: [] };
   function firstErr(s) { if (!window.__syFirstErr) window.__syFirstErr = String(s).slice(0, 200); }
   function $id(id) { try { return document.getElementById(id); } catch (e) { return null; } }
-  function fail(title, detail) {
+  function fail(title, detail) {   // title：中文原文（按它查译文）；detail：已经拼好的说明 / 错误原文
     if (failed || okDone) return;
     failed = true;
     stamp('fail');
     window.__syLoadInfo = 'FAIL ' + title + ' | ' + detail;
-    firstErr(title + '：' + detail);
-    if (window.__syBootFail) window.__syBootFail(title, detail + '\n检查网络后点「重试」。');
+    firstErr(T(title) + ': ' + detail);
+    if (window.__syBootFail) window.__syBootFail(T(title), detail + '\n' + T('检查网络后点「重试」。'));
     if (outFn) outFn();
   }
   function shellUpd() {
@@ -134,25 +146,25 @@ window.__syRL = {
     else if (bootProgress === null) { if (!bootT0) bootT0 = now; t = '正在启动引擎'; det = Math.floor((now - (bootT0 || now)) / 1000) + ' s'; f = 0.62; }
     else if (bootProgress < 1) { t = '正在准备主菜单'; det = Math.floor(bootProgress * 100) + '%'; f = bootProgress; }
     else { t = '加载完成'; f = 1; }
-    if (retries) det += (det ? ' · ' : '') + '网络重试 ' + retries + ' 次';
+    if (retries) det += (det ? ' · ' : '') + T('网络重试 {0} 次', retries);
     if (diagD.phase !== t) { diagD.phase = t; diagD.since = Date.now(); }
     window.__syLoadInfo = (failed ? 'FAIL ' : '') + t + ' ' + det + ' · T+' + Math.round((now - tStart) / 1000) + 's' + (lastErr ? ' · ' + lastErr.slice(0, 80) : '');
     var sig = got + '|' + done + '|' + bootProgress + '|' + bootLabel;
     if (sig !== progSig) { progSig = sig; progT = now; if (slowShown && window.__syBootHideWarn) { slowShown = false; window.__syBootHideWarn(); } }
     else if (!slowShown && !failed && !okDone && !(bootProgress >= 1) && !compat.length && now - progT > SLOW_MS && window.__syBootWarn) {
       slowShown = true;
-      window.__syBootWarn('加载停住了', Math.round((now - progT) / 1000) + ' 秒没有进展。可以继续等待，也可以点「重试」。', true);
+      window.__syBootWarn(T('加载停住了'), T('{0} 秒没有进展。可以继续等待，也可以点「重试」。', Math.round((now - progT) / 1000)), true);
     }
     if (!autoShown && !failed && !okDone && !(bootProgress >= 1) && !compat.length && now - tStart > AUTO_MS && window.__syBootWarn) {
       autoShown = true;
-      window.__syBootWarn('加载时间较长', '网络或设备较慢时需要更久。可以继续等待。', false);
+      window.__syBootWarn(T('加载时间较长'), T('网络或设备较慢时需要更久。可以继续等待。'), false);
     }
     // Godot 自己的报错（#status-notice）：换成本页的失败卡片
     var nt = $id('status-notice');
     if (nt && nt.style.display === 'block' && !failed) fail('引擎启动失败', (nt.textContent || '').slice(0, 300));
     var m = $id('sy-boot-msg');
     if (!m || failed) return;
-    m.textContent = t;
+    m.textContent = T(t);
     var d2 = $id('sy-boot-det'); if (d2) d2.textContent = det;
     var fl = $id('sy-boot-fill'); if (fl) fl.style.transform = 'scaleX(' + Math.max(0, Math.min(1, f)).toFixed(3) + ')';
   }
@@ -162,14 +174,14 @@ window.__syRL = {
     failed = true;
     window.__syLoadInfo = 'OLD CORE ' + coreName() + ' ' + compat.join(',');
     diagD.phase = '内核检查未通过';
-    firstErr('内核过旧：' + coreName() + '，缺少 ' + compat.join('、'));
-    if (window.__syBootFail) window.__syBootFail('内核版本过旧，无法运行',
-      '需要 Chrome 85 / iOS 15 以上的内核，当前是 ' + coreName() + '。\n' +
-      '安卓：在应用商店更新「Android System WebView」或「Chrome」后重新打开。iPhone：升级到 iOS 15 以上。');
+    firstErr(T('内核过旧：{0}，缺少 {1}', coreName(), compat.join(', ')));
+    if (window.__syBootFail) window.__syBootFail(T('内核版本过旧，无法运行'),
+      T('需要 Chrome 85 / iOS 15 以上的内核，当前是 {0}。', coreName()) + '\n' +
+      T('安卓：在应用商店更新「Android System WebView」或「Chrome」后重新打开。iPhone：升级到 iOS 15 以上。'));
   }
   // index.js 没跑起来（下载中断 / 语法不支持）：引擎对象不存在，原来静默黑屏
   document.addEventListener('DOMContentLoaded', function () {
-    if (!compat.length && typeof Engine === 'undefined') fail('引擎脚本没有运行', 'index.js 加载失败或当前内核不支持（' + coreName() + '）。');
+    if (!compat.length && typeof Engine === 'undefined') fail('引擎脚本没有运行', T('index.js 加载失败或当前内核不支持（{0}）。', coreName()));
   });
 
   function upd() {
@@ -188,12 +200,12 @@ window.__syRL = {
     window.__syPct = f;   // 游戏内启动页从这里接着走（boot_screen.gd）
     if (el.v) {   // 新方向：按真实阶段记系统日志
       var dl0 = got >= total, st;
-      if (!dl0) st = { key: 'dl', text: '资源下载 · ' + mb(Math.min(got, total)) + ' / ' + mb(total) + ' MB' };
-      else if (!done) st = { key: 'unz', text: '解压校验' };
-      else if (bootProgress === null) st = { key: 'eng', text: '启动引擎 · ' + Math.floor((performance.now() - bootT0) / 1000) + ' s' };
-      else if (bootLabel === '准备主菜单' && !logs.some(function (l) { return l.key.indexOf('b读取') === 0; })) st = { key: 'eng', text: '启动引擎', ok: true };   // __syBootUp：引擎起来了，还没开始编译
-      else st = { key: 'b' + bootLabel, text: String(bootLabel).replace('读取 · ', '编译 · ').replace(/^准备主菜单$/, '渲染预热 · 准备主菜单'), ok: bootProgress >= 1 };
-      if (!logs.length) logs.push({ key: 'wake', t: 0, s: '终端唤醒 · 链路建立', ok: true });
+      if (!dl0) st = { key: 'dl', text: T('资源下载') + ' · ' + mb(Math.min(got, total)) + ' / ' + mb(total) + ' MB' };
+      else if (!done) st = { key: 'unz', text: T('解压校验') };
+      else if (bootProgress === null) st = { key: 'eng', text: T('启动引擎') + ' · ' + Math.floor((performance.now() - bootT0) / 1000) + ' s' };
+      else if (bootLabel === '准备主菜单' && !logs.some(function (l) { return l.key.indexOf('b读取') === 0; })) st = { key: 'eng', text: T('启动引擎'), ok: true };   // __syBootUp：引擎起来了，还没开始编译
+      else st = { key: 'b' + bootLabel, text: TP(String(bootLabel).replace('读取 · ', '编译 · ').replace(/^准备主菜单$/, '渲染预热 · 准备主菜单')), ok: bootProgress >= 1 };
+      if (!logs.length) logs.push({ key: 'wake', t: 0, s: TP('终端唤醒 · 链路建立'), ok: true });
       updV(el.v, f, st);
       return;
     }
@@ -240,7 +252,7 @@ window.__syRL = {
   }
   var JELLY = '<svg class="sv-jelly" viewBox="-40 -30 80 100"><path d="M-34 0 A34 26 0 0 1 34 0 Q28 4 22 0 Q17 4 11 0 Q6 4 0 0 Q-6 4 -11 0 Q-17 4 -22 0 Q-28 4 -34 0Z" fill="rgba(140,235,242,.16)" stroke="rgba(150,240,255,.5)" stroke-width="1.2"/>' +
     '<g fill="none" stroke="rgba(150,240,255,.32)" stroke-width="1"><path d="M-24 3 q3 16 -1 32 t1 30"/><path d="M-12 3 q-3 18 1 34 t-1 28"/><path d="M0 3 q3 18 -1 36 t1 26"/><path d="M12 3 q-3 16 1 32 t-1 30"/><path d="M24 3 q3 18 -1 34 t1 24"/></g></svg>';
-  var FOOT = '<div class="sy-foot">明日方舟同人作品 · 非商业 · 与鹰角网络无关</div>';
+  var FOOT = '<div class="sy-foot">' + T('明日方舟同人作品 · 非商业 · 与鹰角网络无关') + '</div>';
   function head(title, code) {
     return '<div class="sv-head"><b class="sy-en">PRTS</b><span>' + title + '</span>' + (code ? '<em class="sv-code"></em>' : '') + '</div>';
   }
@@ -289,7 +301,7 @@ window.__syRL = {
     var BG = '#0f1013', TX = '#eceef0', SUB = '#9297a0', ACC = '#36e2dc', RULE = '#353943';
     var clamp = function (x) { return Math.max(0, Math.min(1, x)); }, ease = function (x) { return 1 - Math.pow(1 - clamp(x), 3); };
     function box(x, y, w, h, c, a) { ctx.globalAlpha = a === undefined ? 1 : a; ctx.fillStyle = c; ctx.fillRect(Math.round(x), Math.round(y), Math.ceil(w), Math.ceil(h)); ctx.globalAlpha = 1; }
-    function lab(s, x, y, sz, c, al) { ctx.fillStyle = c; ctx.font = Math.round(sz) + 'px Consolas,"Microsoft YaHei","PingFang SC",monospace'; ctx.textAlign = al || 'left'; ctx.fillText(s, Math.round(x), Math.round(y)); }
+    function lab(s, x, y, sz, c, al) { ctx.fillStyle = c; ctx.font = Math.round(sz) + 'px Consolas,' + CJK_FONT + '"Microsoft YaHei","PingFang SC",monospace'; ctx.textAlign = al || 'left'; ctx.fillText(s, Math.round(x), Math.round(y)); }
     function head(x, y, s, k, rw) { box(x, y - 6 * k, 18 * k, 2, TX); lab(s, x + 26 * k, y, 13 * k, TX); box(x, y + 12 * k, rw, 1, RULE); }
     // 动效层的位置（CSS 像素），只在窗口尺寸变时重排
     function layout(W, H, dpr, k, cx, cy, span, R, R2, hl, hx1, sf) {
@@ -357,7 +369,7 @@ window.__syRL = {
       ctx.globalAlpha = 1;
       ctx.setTransform(1, 0, 0, 1, Math.round(sf.l * dpr), Math.round(sf.t * dpr));
       lab('SYS 1105 · T+' + ('00' + (rm ? 0 : t).toFixed(1)).slice(-5), cx, 28 * k, 10 * k, SUB, 'center');
-      lab('PRTS', m, 28 * k, 12 * k, TX); lab('/ 启动校验', m + 44 * k, 28 * k, 12 * k, SUB);
+      lab('PRTS', m, 28 * k, 12 * k, TX); lab(T('/ 启动校验'), m + 44 * k, 28 * k, 12 * k, SUB);
       // 胶囊压在标题行上：右侧字与分隔线都停在胶囊左边 12 px；放不下（会碰到中间 SYS 读数）就不写。胶囊伸到右侧面板标题：面板下移
       var hr = W - m, cl = cap ? cap.x * dpr : W, py = 104 * k;
       if (cap && cl < W - m && cap.y * dpr < 48 * k) hr = cl - 12 * dpr;
@@ -399,16 +411,16 @@ window.__syRL = {
       if (!rd) {
         lab(v.stage.text || '', cx, ly, 16 * k, TX, 'center');
         lab('ARCHIVE INDEX  ' + (v.ind ? '---' : ('00' + Math.floor(p * 100)).slice(-3)) + '%', cx, ly + 20 * k, 10 * k, SUB, 'center');
-      } else lab('认证通过', cx, ly, 16 * k, ACC, 'center');
+      } else lab(T('认证通过'), cx, ly, 16 * k, ACC, 'center');
       if (W > 760 * dpr) {
         var lx = m, rx = W - m - 150 * k;
-        head(lx, py, '启动校验', k, 170 * k);
+        head(lx, py, T('启动校验'), k, 170 * k);
         logs.slice(Math.max(0, logs.length - 4)).forEach(function (ln, i) {
           var yy = py + 35 * k + i * 24 * k;
           box(lx, yy - 4 * k, 3 * k, 3 * k, ln.ok ? TX : (ln.key === logKey ? ACC : RULE), ln.ok || ln.key !== logKey ? 1 : 0.45 + 0.55 * br);
           lab(ln.s, lx + 12 * k, yy + 1 * k, 11 * k, ln.ok ? TX : SUB);
         });
-        head(rx, py, '资源索引', k, 150 * k);
+        head(rx, py, T('资源索引'), k, 150 * k);
         var bp = bootProgress === null ? 0 : clamp((bootProgress - 0.6) / 0.4);
         [['DOWNLOAD', clamp(got / Math.max(1, total))], ['UNPACK', done ? 1 : 0], ['ENGINE', bootProgress !== null ? 1 : -1], ['WARMUP', rd ? 1 : bp]].forEach(function (q2, i) {
           var yb = py + 38 * k + i * 32 * k, fq = q2[1];
@@ -609,7 +621,7 @@ window.__syRL = {
       d.appendChild(jelly);
     });
     var t0 = performance.now(), ti = Math.floor(Math.random() * TIPS.length), tt = 0, shown = 0;
-    var GO = { meta: '正在返回认知塑造…', hunt: '正在前往寻访…', restart: '正在准备下一局…', title: '正在返回主界面…' }[act] || '正在返回…';
+    var GO = T({ meta: '正在返回认知塑造…', hunt: '正在前往寻访…', restart: '正在准备下一局…', title: '正在返回主界面…' }[act] || '正在返回…');
     var rm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var LAY = [[-8, 2.5, 0.2, 0.9, [158, 230, 240], [82, 110, 133], [26, 77, 102], 0.16], [-4, 3, 0.13, -1.3, [92, 224, 230], [64, 89, 112], [13, 51, 71], 0.4],
                [0, 2, 0.09, 1.7, [46, 184, 199], [46, 69, 89], [5, 23, 36], 0.92]];
@@ -630,7 +642,7 @@ window.__syRL = {
       vg.addColorStop(0, 'rgba(0,3,8,0)'); vg.addColorStop(1, 'rgba(0,3,8,0.75)'); x.fillStyle = vg; x.fillRect(0, 0, W, H);
       if (lg.complete && lg.naturalWidth) x.drawImage(lg, W / 2 - 241 * k, H * 0.628, 482 * k, 86 * k);
       x.font = Math.max(9, 11 * k) + 'px sans-serif'; x.fillStyle = 'rgba(128,163,176,1)'; x.textBaseline = 'alphabetic';
-      x.fillText('ARKNIGHTS FAN GAME   明日方舟同人作品 · 非商业', 24 * k, 33 * k + 8);
+      x.fillText(LANG === 'zh' ? 'ARKNIGHTS FAN GAME   明日方舟同人作品 · 非商业' : T('明日方舟同人作品 · 非商业'), 24 * k, 33 * k + 8);
       // 进度：浪头追真实进度（带一点冲过头）
       var f = Math.max(0, Math.min(1, Number(window.__syPct || 0)));
       shown += (f - shown) * (rm ? 1 : 0.12);
@@ -650,7 +662,7 @@ window.__syRL = {
       x.fillText(GO + '  ' + Math.floor(f * 100) + '%', W / 2, y + Math.round(8 * tm) * c + 22 * k + 6);
       tt = t - Math.floor(t / 3.5) * 3.5; ti = (Math.floor(t / 3.5) + ti0) % TIPS.length;
       var ta = rm ? 1 : Math.min(1, tt / 0.25, (3.5 - tt) / 0.25);
-      x.globalAlpha = Math.max(0, ta); x.fillText('TIPS   ' + TIPS[ti], W / 2, H * 0.935 + 6);
+      x.globalAlpha = Math.max(0, ta); x.fillText('TIPS   ' + T(TIPS[ti]), W / 2, H * 0.935 + 6);
       x.globalAlpha = 1; x.textAlign = 'left';
       frameId = requestAnimationFrame(frame);
     }
@@ -665,7 +677,7 @@ window.__syRL = {
     var stopReload = reload ? rlPage(d, reload.act) : null;
     var unbindReady = null;
     var ti = Math.floor(Math.random() * TIPS.length);
-    el.tip.textContent = TIPS[ti];
+    el.tip.textContent = T(TIPS[ti]);
     upd();
     var tick = 0, closing = false, tipTimer = 0;
     var out = function (ok) {
@@ -725,7 +737,7 @@ window.__syRL = {
       var dial = d.querySelector('.sv-dial') || d.querySelector('.sy-sonar');
       var touch = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
       var rm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      var LAB = '开始游戏', SCR = '0123456789ABCDEF#/<>+=';
+      var LAB = T('开始游戏').replace(/ /g, String.fromCharCode(160)), SCR = '0123456789ABCDEF#/<>+=';
       var b = document.createElement('button');
       b.type = 'button';
       b.className = 'sy-go';
@@ -842,7 +854,7 @@ window.__syRL = {
       if (++tick % 27 === 0) {
         ti = (ti + 1) % TIPS.length;
         el.tip.style.opacity = '0';
-        tipTimer = setTimeout(function () { el.tip.textContent = TIPS[ti]; el.tip.style.opacity = '1'; }, 220);
+        tipTimer = setTimeout(function () { el.tip.textContent = T(TIPS[ti]); el.tip.style.opacity = '1'; }, 220);
       }
       var nt = document.getElementById('status-notice');
       if (nt && nt.style.display === 'block') { fail('引擎启动失败', (nt.textContent || '').slice(0, 300)); out(); }   // Godot 报错：换成首帧壳上的失败卡片（带重新加载）
@@ -1013,9 +1025,9 @@ window.__syRL = {
       try { var n = await once(url, bytes, F, off, raw, enc, ps); ps.st = ''; ps.got = bytes; return n; }
       catch (e) {
         F.unz = 0;
-        if (i >= TRIES - 1 || F.lost) { ps.st = '失败'; throw e; }   // Worker 崩掉时缓冲区（已解的片）一起没了：不再逐片重试，直接报失败让玩家重新加载
+        if (i >= TRIES - 1 || F.lost) { ps.st = T('失败'); throw e; }   // Worker 崩掉时缓冲区（已解的片）一起没了：不再逐片重试，直接报失败让玩家重新加载
         retries++;
-        ps.st = '重试 ' + (i + 1);
+        ps.st = T('重试 {0}', i + 1);
         lastErr = String((e && e.message) || e);
         upd();
         await new Promise(function (r) { setTimeout(r, 1000 * Math.pow(2, i)); });

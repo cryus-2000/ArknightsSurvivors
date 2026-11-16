@@ -332,7 +332,11 @@ var toy_env: Dictionary = {}
 
 ## 按 lang_pref 切换生效语言（设置页改语言后也调这里）
 func apply_lang() -> void:
-	Loc.setup(Loc.resolve(lang_pref, lang_locked()))
+	var locked := lang_locked()
+	Loc.setup(Loc.resolve(lang_pref, locked))
+	# 网页加载页（tools/web/loader.js / boot_shell.html，11-16）下次打开时按这个语言显示：只存生效语言，Toy 版（锁中文）不写
+	if OS.has_feature("web") and not locked:
+		JavaScriptBridge.eval("try{localStorage.setItem('sy_lang','%s')}catch(e){}" % str(Loc.lang), true)
 
 
 ## 生效的语音语言（见 voice_lang_pref）

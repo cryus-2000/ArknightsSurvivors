@@ -15,6 +15,13 @@
   var BUILD = /*SY_BUILD*/'';   // 包版本（export_web.py 写 commit；同 build.txt）
   var pending = null, dismissed = false, timer = 0, t0 = Date.now();
   function $(id) { try { return document.getElementById(id); } catch (e) { return null; } }
+  function T(zh, a, b) {   // 译文（boot_l10n.js 的 __syT；那段没跑时按中文原文填占位）
+    if (window.__syT) return window.__syT(zh, a, b);
+    var s = zh;
+    if (a !== undefined) s = s.split('{0}').join(String(a));
+    if (b !== undefined) s = s.split('{1}').join(String(b));
+    return s;
+  }
 
   // ---------------------------------------------------------------- 诊断文字
   function sys() {
@@ -24,38 +31,38 @@
     else if ((m = /OS (\d+)_(\d+)(?:_\d+)? like Mac OS X/.exec(ua))) os = 'iOS ' + m[1] + '.' + m[2];
     else if (/Windows/.test(ua)) os = 'Windows';
     else if (/Mac OS X/.test(ua)) os = 'macOS';
-    else os = navigator.platform || '未知系统';
+    else os = navigator.platform || T('未知系统');
     if ((m = /Chrome\/([\d]+)/.exec(ua))) core = 'Chrome ' + m[1] + (/; wv\)/.test(ua) ? ' WebView' : '');
     else if ((m = /Version\/([\d.]+).*Safari/.exec(ua))) core = 'Safari ' + m[1];
     else if (/AppleWebKit/.test(ua)) core = 'WebKit';
-    else core = '未知内核';
+    else core = T('未知内核');
     return os + ' · ' + core;
   }
   function env() {
     var ua = navigator.userAgent || '', m = /(BiliApp|bili-universal|bili-inter|bili-blue|bili-hd|BiliComic)\/?([\d.]*)/i.exec(ua);
     var te = window.__syToyEnv, inApp = !!m || !!(te && te.container);
-    var s = inApp ? 'B站 App' + (m && m[2] ? ' ' + m[2] : '') : '不在 B站 App 内';
-    s += ' · 包 ' + (BUILD || window.__syBuild || '未知');
+    var s = inApp ? T('B站 App') + (m && m[2] ? ' ' + m[2] : '') : T('不在 B站 App 内');
+    s += ' · ' + T('包 {0}', BUILD || window.__syBuild || '?');
     var mem = [];
-    if (navigator.deviceMemory) mem.push('设备内存约 ' + navigator.deviceMemory + ' GB');
-    try { if (performance.memory) mem.push('JS 堆 ' + Math.round(performance.memory.usedJSHeapSize / 1048576) + ' MB'); } catch (e) {}
+    if (navigator.deviceMemory) mem.push(T('设备内存约 {0} GB', navigator.deviceMemory));
+    try { if (performance.memory) mem.push(T('JS 堆 {0} MB', Math.round(performance.memory.usedJSHeapSize / 1048576))); } catch (e) {}
     return s + (mem.length ? ' · ' + mem.join(' · ') : '');
   }
   function mb(x) { return (x / 1048576).toFixed(1); }
   window.__syDiagText = function () {
     var D = window.__syLoadDiag, now = Date.now(), L = [];
     if (D) {
-      L.push('阶段：' + D.phase + ' · 已停 ' + Math.round((now - D.since) / 1000) + ' 秒（共 ' + Math.round((now - t0) / 1000) + ' 秒）');
+      L.push(T('阶段：') + T(D.phase) + ' · ' + T('已停 {0} 秒（共 {1} 秒）', Math.round((now - D.since) / 1000), Math.round((now - t0) / 1000)));
       var ps = [];
       for (var i = 0; i < D.parts.length; i++) {
         var p = D.parts[i];
-        ps.push(p.n + ' ' + (p.got >= p.tot ? mb(p.tot) + ' 齐' : mb(p.got) + '/' + mb(p.tot)) + (p.st ? '（' + p.st + '）' : ''));
+        ps.push(p.n + ' ' + (p.got >= p.tot ? mb(p.tot) + ' ' + T('齐') : mb(p.got) + '/' + mb(p.tot)) + (p.st ? ' (' + p.st + ')' : ''));
       }
-      if (ps.length) L.push('分片：' + ps.join(' · '));
-    } else L.push('阶段：加载器没有运行 · 共 ' + Math.round((now - t0) / 1000) + ' 秒');
-    L.push('报错：' + (window.__syFirstErr || '无'));
-    L.push('系统：' + sys());
-    L.push('环境：' + env());
+      if (ps.length) L.push(T('分片：') + ps.join(' · '));
+    } else L.push(T('阶段：') + T('加载器没有运行 · 共 {0} 秒', Math.round((now - t0) / 1000)));
+    L.push(T('报错：') + (window.__syFirstErr || T('无')));
+    L.push(T('系统：') + sys());
+    L.push(T('环境：') + env());
     return L.join('\n');
   };
 
@@ -74,7 +81,7 @@
     if (kind === 'fatal') {   // 失败：壳进失败态、没什么可等的（壳解析前就失败时在这里补，见 pending）
       var b = $('sy-boot'), m = $('sy-boot-msg'), w = $('sy-boot-wait');
       if (b) b.className = 'fail';
-      if (m) m.textContent = '加载失败';
+      if (m) m.textContent = T('加载失败');
       if (w) w.style.display = 'none';
     }
     c.setAttribute('data-k', kind);
@@ -92,7 +99,7 @@
   window.__syBootFail = function (title, detail) {
     if (window.__syBootOk) return;
     window.__syBootFailed = true;
-    show('fatal', title || '加载失败', detail, true);
+    show('fatal', title || T('加载失败'), detail, true);
   };
   window.__syBootWarn = function (title, detail, force) {
     if (window.__syBootOk || window.__syBootFailed) return;
@@ -110,7 +117,7 @@
     var t = window.__syDiagText(), b = $('sy-boot-copy');
     var c = $('sy-boot-err'), head = $('sy-boot-et');
     if (head && c && c.className.indexOf('on') === 0) t = head.textContent + '\n' + t;
-    function said(s) { if (!b) return; b.textContent = s; setTimeout(function () { b.textContent = '复制诊断信息'; }, 2000); }
+    function said(s) { if (!b) return; b.textContent = s; setTimeout(function () { b.textContent = T('复制诊断信息'); }, 2000); }
     function legacy() {
       var ok = false, ta = document.createElement('textarea');
       ta.value = t; ta.setAttribute('readonly', '');
@@ -120,15 +127,15 @@
       try { ta.setSelectionRange(0, t.length); } catch (e) {}
       try { ok = document.execCommand('copy'); } catch (e) {}
       ta.parentNode.removeChild(ta);
-      if (ok) return said('已复制');
+      if (ok) return said(T('已复制'));
       try {   // 都不行：选中卡上的文字，玩家长按复制
         var g = $('sy-boot-dg'), r = document.createRange(), sel = window.getSelection();
         r.selectNodeContents(g); sel.removeAllRanges(); sel.addRange(r);
       } catch (e) {}
-      said('请长按文字复制');
+      said(T('请长按文字复制'));
     }
     try {
-      if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(t).then(function () { said('已复制'); }, legacy); return; }
+      if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(t).then(function () { said(T('已复制')); }, legacy); return; }
     } catch (e) {}
     legacy();
   };
@@ -158,8 +165,8 @@
     if (!own || window.__syBootOk) return;
     if (!window.__syFirstErr) window.__syFirstErr = s;
     var old = /SyntaxError|Unexpected (token|identifier)|Invalid or unexpected/i.test(String(msg));   // 语法错误多半是内核太旧（引擎要 Chrome 85 以上）
-    window.__syBootWarn(old ? '页面脚本无法运行，可能是内核版本过旧' : '页面脚本出错',
-      old ? '安卓：在应用商店更新「Android System WebView」或「Chrome」后重新打开。iPhone：升级到 iOS 15 以上。' : '加载可能停住。停住时点「重试」。', true);
+    window.__syBootWarn(old ? T('页面脚本无法运行，可能是内核版本过旧') : T('页面脚本出错'),
+      old ? T('安卓：在应用商店更新「Android System WebView」或「Chrome」后重新打开。iPhone：升级到 iOS 15 以上。') : T('加载可能停住。停住时点「重试」。'), true);
   }
   window.addEventListener('error', function (e) {
     if (!e || (e.target && e.target !== window)) return;   // 图片等资源加载失败不算（加载器自己的下载另有重试和提示）
@@ -167,6 +174,6 @@
   }, true);
   window.addEventListener('unhandledrejection', function (e) {
     var r = e && e.reason;
-    note('未处理的异步错误：' + ((r && r.message) || r), '', 0, false);
+    note(T('未处理的异步错误：') + ((r && r.message) || r), '', 0, false);
   });
 })();

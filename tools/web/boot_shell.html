@@ -2,6 +2,8 @@
      纯 HTML / CSS，页面解析到这里就画出来，不等任何脚本、不靠 requestAnimationFrame（原加载页方向 4 整页靠 rAF 在画布上逐帧画，WebView 不给帧时全黑）。
      loader.js 往 #sy-boot-msg / -det / -fill 写阶段、真实字节和速度；加载页（#sy-load）真正画出第一帧后盖在它上面，这里退到下层。
      #sy-boot-err：诊断卡（boot_err.js 写），超过 20 秒没进标题 / 进度停住 / 报错 / 失败时浮在最上面；「重试」用内联 onclick，脚本全挂了也能点。
+     多语言（11-16）：固定文字四种语言都写在这里（.l-zh / .l-en / .l-ja / .l-ko），boot_l10n.js 在 head 里给 html 打 data-sylang，CSS 只显示一种；
+     那段脚本没跑时没有 data-sylang，显示中文。日 / 韩只用系统字体回退，不下载字体。反馈提示（SY_HINT 占位）由 export_web.py 按渠道填（Toy 私信 UP 主 / itch 评论区）。
      这里不放 <canvas>（Godot 绑定 DOM 里第一个画布）。 -->
 <style>
 #sy-boot { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 8990; background: #0f1013; color: #eceef0; overflow: hidden;
@@ -38,6 +40,15 @@
   background: #1a1c21; color: #eceef0; font: inherit; font-size: 13px; cursor: pointer; white-space: nowrap; }
 #sy-boot-err .bt button:first-child { margin-left: 0; border-color: #36e2dc; background: #0b2a2a; color: #36e2dc; font-weight: bold; }
 #sy-boot-err .hn { margin-top: 6px; font-size: 11px; color: #7d828b; text-align: center; }
+.l-en, .l-ja, .l-ko { display: none; }
+html[data-sylang="en"] .l-zh, html[data-sylang="ja"] .l-zh, html[data-sylang="ko"] .l-zh { display: none; }
+html[data-sylang="en"] .l-en, html[data-sylang="ja"] .l-ja, html[data-sylang="ko"] .l-ko { display: inline; }
+html[data-sylang="en"] #sy-boot, html[data-sylang="en"] #sy-boot-err { font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+html[data-sylang="ja"] #sy-boot, html[data-sylang="ja"] #sy-boot-err { font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, "Noto Sans JP", "Noto Sans CJK JP", sans-serif; }
+html[data-sylang="ko"] #sy-boot, html[data-sylang="ko"] #sy-boot-err { font-family: "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", "Noto Sans CJK KR", sans-serif; }
+html[data-sylang="ja"] #sy-boot-err .dg { font-family: Consolas, "Hiragino Sans", "Yu Gothic", Meiryo, "Noto Sans JP", monospace; }
+html[data-sylang="ko"] #sy-boot-err .dg { font-family: Consolas, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", monospace; }
+html[data-sylang="en"] #sy-boot .sb-t { letter-spacing: .12em; }
 @keyframes sb-br { 0%, 100% { opacity: .9; } 50% { opacity: .62; } }
 @keyframes sb-run { from { transform: translateX(-100%); } to { transform: translateX(460%); } }
 @media (max-height: 420px) { #sy-boot .sb-logo { width: 84px; margin-bottom: 12px; } #sy-boot .sb-t { margin-bottom: 12px; } }
@@ -46,11 +57,11 @@
 <div id="sy-boot" role="status" aria-live="polite">
   <div class="sb-c">
     <img class="sb-logo" src="loader_rhodes.png" alt="">
-    <div class="sb-t">方舟幸存者</div>
+    <div class="sb-t"><span class="l-zh">方舟幸存者</span><span class="l-en">Arknights Survivor</span><span class="l-ja">Arknights Survivors</span><span class="l-ko">Arknights Survivors</span></div>
     <div class="sb-bar"><i id="sy-boot-fill"></i><b></b></div>
-    <div class="sb-s" id="sy-boot-msg">正在载入页面…</div>
+    <div class="sb-s" id="sy-boot-msg"><span class="l-zh">正在载入页面…</span><span class="l-en">Loading page…</span><span class="l-ja">ページを読み込み中…</span><span class="l-ko">페이지 불러오는 중…</span></div>
     <div class="sb-d" id="sy-boot-det"></div>
   </div>
-  <div class="sb-f">明日方舟同人作品 · 非商业 · 与鹰角网络无关</div>
+  <div class="sb-f"><span class="l-zh">明日方舟同人作品 · 非商业 · 与鹰角网络无关</span><span class="l-en">Arknights Fan Game · Non-commercial · Not affiliated with Hypergryph</span><span class="l-ja">アークナイツ二次創作ゲーム・非商用・Hypergryphとは無関係</span><span class="l-ko">명일방주 2차 창작 게임 · 비상업 · 하이퍼그리프와 무관함</span></div>
 </div>
-<div id="sy-boot-err" role="alert"><div class="et" id="sy-boot-et"></div><div class="ed" id="sy-boot-ed"></div><pre class="dg" id="sy-boot-dg"></pre><div class="bt"><button type="button" onclick="try{location.reload()}catch(e){}">重试</button><button type="button" id="sy-boot-copy" onclick="if(window.__syDiagCopy)__syDiagCopy()">复制诊断信息</button><button type="button" id="sy-boot-wait" onclick="if(window.__syDiagWait)__syDiagWait();else this.parentNode.parentNode.className=''">继续等待</button></div><div class="hn">截图这张卡私信 UP 主</div></div>
+<div id="sy-boot-err" role="alert"><div class="et" id="sy-boot-et"></div><div class="ed" id="sy-boot-ed"></div><pre class="dg" id="sy-boot-dg"></pre><div class="bt"><button type="button" onclick="try{location.reload()}catch(e){}"><span class="l-zh">重试</span><span class="l-en">Retry</span><span class="l-ja">再試行</span><span class="l-ko">재시도</span></button><button type="button" id="sy-boot-copy" onclick="if(window.__syDiagCopy)__syDiagCopy()"><span class="l-zh">复制诊断信息</span><span class="l-en">Copy diagnostics</span><span class="l-ja">診断情報をコピー</span><span class="l-ko">진단 정보 복사</span></button><button type="button" id="sy-boot-wait" onclick="if(window.__syDiagWait)__syDiagWait();else this.parentNode.parentNode.className=''"><span class="l-zh">继续等待</span><span class="l-en">Keep waiting</span><span class="l-ja">待機を続ける</span><span class="l-ko">계속 기다리기</span></button></div><div class="hn"><!--SY_HINT--></div></div>
