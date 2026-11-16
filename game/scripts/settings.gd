@@ -182,6 +182,13 @@ func mobile_knob(key: String, dflt: float) -> bool:
 	return load("res://scripts/core/balance.gd").v("web/" + key, dflt) > 0.0
 
 
+## 网页省内存项（docs/355）：手机网页按 web/<mkey>，电脑网页按 web/<dkey>（缺省都开；--bal=web/<键>=0 退回）。只放不改画面和声音的项
+func web_lean(mkey: String, dkey: String) -> bool:
+	if not OS.has_feature("web"):
+		return false
+	return mobile_knob(mkey, 1.0) if mobile_web() else mobile_knob(dkey, 1.0)
+
+
 ## 字形缓存瘦身（docs/50 §30.4：桌面低画质一局下来字体缓存 173 个字号、161 张页、62 MB——引擎显存里最大的一块没对上的就是它）：
 ## 关掉亚像素定位（每个字形不再按 1/4 像素存 4 份；像素风的界面字看不出差别），并清掉已有缓存。手机网页开局做、进局再清一次标题页用过的字号
 const FONT_PATHS := ["res://fonts/ui.ttf", "res://fonts/ui_fallback.otf", "res://fonts/serif.ttf"]
@@ -206,6 +213,25 @@ func slim_fonts(clear_only := false) -> void:
 
 func mobile_fonts_slim() -> bool:
 	return (mobile_web() and mobile_knob("mobile_font_slim", 1.0)) or dev_args().has("--fontslim")
+
+
+## 字形瘦身拆成四项（docs/355，11-17 电脑网页）：subpx 关亚像素定位、clear 进局清标题页字号、nowarm 进局不预热字形、qs 弹出字号按 4 号一档。
+## 手机网页四项都跟 mobile_fonts_slim()；电脑网页各按 web/desk_font_<项>（缺省见 DESK_FONT）；桌面原生都不做。
+## 测试：--fontpart=subpx,clear,… 只开列出的几项（任何平台）
+const DESK_FONT := {"subpx": 0.0, "clear": 0.0, "nowarm": 0.0, "qs": 0.0}   # 11-17 实测电脑网页 subpx / clear 省不到内存（字形大头是预热，已删掉过时的 31 档横幅预热）；nowarm / qs 会带回开局卡顿 / 改弹出动画，不开
+var _fpart := {}
+
+func font_slim_part(part: String) -> bool:
+	if _fpart.has(part):
+		return _fpart[part]
+	var on := mobile_fonts_slim()
+	if not on and OS.has_feature("web") and not mobile_web():
+		on = mobile_knob("desk_font_" + part, float(DESK_FONT.get(part, 0.0)))
+	for a in dev_args():
+		if a.begins_with("--fontpart="):
+			on = a.substr(11).split(",").has(part)
+	_fpart[part] = on
+	return on
 
 
 func touch_device() -> bool:
@@ -675,7 +701,7 @@ func _ready() -> void:
 		elif a.begins_with("--camzoom="):
 			cam_zoom_pct = clampi(int(a.substr(10)), ZOOM_PCT_MIN, ZOOM_PCT_MAX)
 	set_quality(_guess_quality() if quality_mode == "auto" else quality_mode)   # 自动档：每次启动按本机检测；手选档：按档位统一开关后期
-	if mobile_fonts_slim():
+	if font_slim_part("subpx"):
 		slim_fonts()
 	if mobile_web() and mobile_knob("mobile_rscale", 0.0):
 		# 手机网页开局按逻辑分辨率（约 1113×626）画再放大：显存省，但整屏线性放大约 2.27 倍，像素边和文字都糊（10-27 用户 iPhone「好糊」）。
@@ -841,7 +867,9 @@ var _max_dpr := -1.0
 func apply_max_dpr() -> void:
 	if not OS.has_feature("web"):
 		return
-	var v: float = load("res://scripts/core/balance.gd").v("web/mobile_max_dpr", 0.0) if mobile_web() else 0.0
+	# 电脑网页 web/desk_max_dpr（docs/355，缺省 0 = 不封）：系统缩放 150% 的笔记本画布 2880×1620 → 封 1 时 1920×1080，显存约 −100 MB、WASM 约 −70 MB；
+	# 实测帧时只差约 3 ms（电脑网页卡在脚本，不在填充），代价是浏览器把画布放大 1.5 倍、字和像素边略软，等用户定
+	var v: float = load("res://scripts/core/balance.gd").v("web/mobile_max_dpr" if mobile_web() else "web/desk_max_dpr", 0.0)
 	for a in dev_args():
 		if a.begins_with("--maxdpr="):
 			v = float(a.substr(9))

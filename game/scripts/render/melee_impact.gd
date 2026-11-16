@@ -13,6 +13,7 @@ const HEAVY := {"迅捷打击·γ型": true, "跃浪击": true, "破浪下劈": 
 ## 不走打击感包的招：歌蕾蒂娅 S3 每 0.75 秒一跳、反震（持续 / 被动，顿帧震屏会一直抖）
 const SKIP := {"碎漩狂舞": true, "反震": true}
 const FLASH_T := 0.07
+static var _flesh_has := {}   # 干员 id -> 有没有受击肉声文件（_flesh）
 
 
 static func on(g) -> bool:
@@ -187,7 +188,13 @@ static func _flesh(o, n: int, heavy: bool) -> void:
 	var g = o.g
 	var oid: String = str(o.id)
 	var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
-	if sfx == null or not ResourceLoader.exists("res://audio/sfx/op_%s_flesh_1.wav" % oid):
+	if sfx == null:
+		return
+	var has = _flesh_has.get(oid)
+	if has == null:
+		has = ResourceLoader.exists("res://audio/sfx/op_%s_flesh_1.wav" % oid)   # 每次命中都查文件系统（网页 MEMFS 路径查找有可见开销，docs/355）：每名干员只查一次
+		_flesh_has[oid] = has
+	if not has:
 		return
 	var nm: String = "op_%s_flesh_%d" % [oid, 1 + int(g.t * 13.0) % 2]
 	sfx.ensure([nm])

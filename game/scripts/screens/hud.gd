@@ -198,7 +198,7 @@ func _layer_draw(key: String) -> void:
 
 
 func draw() -> void:
-	if not _glyphs_warm and g.demo_op == "" and not Cfg.mobile_fonts_slim():   # 图鉴演示不预热；手机网页不预热（每个字号一份字形缓存，这批约 150 个字号、60 MB，docs/50 §30）
+	if not _glyphs_warm and g.demo_op == "" and not Cfg.font_slim_part("nowarm"):   # 图鉴演示不预热；手机网页不预热（每个字号一份字形缓存，这批约 150 个字号、60 MB，docs/50 §30）
 		_warm_glyphs()
 	for k in _layers:
 		_layers[k].used = false
@@ -215,7 +215,7 @@ var _qs_on := -1
 ## 弹出放大的字号（飘字 / LEVEL UP / 大群横幅）：手机网页按 4 号一档取整，每个字号都要一份字形缓存，逐号放大会建出几十份（docs/50 §30）；其余平台原样
 func _qs(sz: int) -> int:
 	if _qs_on < 0:
-		_qs_on = 1 if Cfg.mobile_fonts_slim() else 0
+		_qs_on = 1 if Cfg.font_slim_part("qs") else 0
 	if _qs_on == 0 or sz <= 16:
 		return sz
 	return 16 + int(round((sz - 16) / 4.0)) * 4
@@ -235,20 +235,23 @@ func _warm_glyphs() -> void:
 	for ks in sizes:
 		ci.draw_string_outline(fnt, far, UI.Loc.s(WARM_NUM), HORIZONTAL_ALIGNMENT_LEFT, -1, ks, 4, Color(0, 0, 0, 1))
 		ci.draw_string(fnt, far, UI.Loc.s(WARM_NUM), HORIZONTAL_ALIGNMENT_LEFT, -1, ks, Color.WHITE)
-	# 大群横幅（_draw_under）：int(38 × pop)，pop 1.0–1.8，描边 6
+	# 大群横幅（_draw_under）：10-22b 起固定字号——大群来袭 38（描边 6）、分股合围 / 围猎 28（描边 5），不再随 pop 放大。
+	# 11-17（docs/355）：原来仍按旧写法预热 38–68 共 31 个字号的大号汉字，电脑网页一局字形缓存约 130 MB 显存 + 同量 WASM（堆 286 → 495 MiB），只预热实际用到的两档
 	var horde := "海嗣注意到了你的存在……自四方合围而来大 群 来 袭海嗣大群 已抵达"
-	for sz in range(38, 69):
-		UI.text(ci, fnt, far, horde, sz, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, -1, 6)
-	# 升级字样：LEVEL UP! int(30 × pop)（描边 6）、Lv.n int(18 × pop)（描边 4），pop 0.9–1.6
-	for sz in range(27, 49):
-		UI.text(ci, fnt, far, "LEVEL UP!", sz, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, -1, 6)
-	for sz in range(16, 30):
-		UI.text(ci, fnt, far, "Lv.0123456789", sz, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, -1, 4)
-	# 文字避让版（render/clarity_text）：LEVEL UP! int(18 × pop)（描边 4）、Lv.n int(11 × pop)（描边 3），pop 0.9–1.2
-	for sz in range(16, 22):
-		UI.text(ci, fnt, far, "LEVEL UP!", sz, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, -1, 4)
-	for sz in range(9, 14):
-		UI.text(ci, fnt, far, "Lv.0123456789", sz, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
+	UI.text(ci, fnt, far, horde, 38, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, -1, 6)
+	UI.text(ci, fnt, far, horde, 28, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, -1, 5)
+	# 升级字样（_draw_under）：字号 = max(float_text_min, int(基准 × pop × float_text_k))，与绘制处同一公式（11-17 docs/355：原来按没乘 float_text_k 的旧字号预热，
+	# 大半预热的字号用不上、实际用的又没预热）。LEVEL UP! 基准 30（描边 6）、Lv.n 18（描边 4），pop 0.9–1.6；文字避让版 18（描边 4）/ 11（描边 3），pop 0.9–1.2
+	var ft_k: float = Bal.v("render/float_text_k", 0.7)
+	var ft_min: int = Bal.vi("render/float_text_min", 9)
+	for spec in [["LEVEL UP!", 30.0, 6, 0.9, 1.6], ["Lv.0123456789", 18.0, 4, 0.9, 1.6], ["LEVEL UP!", 18.0, 4, 0.9, 1.2], ["Lv.0123456789", 11.0, 3, 0.9, 1.2]]:
+		var done := {}
+		for i in 141:
+			var pop: float = lerpf(spec[3], spec[4], i / 140.0)
+			var sz: int = _qs(maxi(ft_min, int(spec[1] * pop * ft_k)))
+			if not done.has(sz):
+				done[sz] = true
+				UI.text(ci, fnt, far, spec[0], sz, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, -1, spec[2])
 	# 左上等级数字（hud_bars.draw_top_left）：int(20 × (1 + 0.3 × 闪光))
 	for sz in range(20, 27):
 		UI.ctext(ci, fnt, far, "0123456789", sz, Color.WHITE)

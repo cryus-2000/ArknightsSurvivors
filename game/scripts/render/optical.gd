@@ -67,7 +67,7 @@ var _dl_pos := PackedVector4Array()
 var _dl_col := PackedVector4Array()
 var _fxsz := {}   # 帧条名 → 1x 帧高（世界像素换算用）
 var _fxq_names: Array = []
-var _fxq_drop: bool = (Cfg.mobile_web() and Cfg.mobile_knob("mobile_fxq_drop", 1.0)) or Cfg.dev_args().has("--fxqdrop")   # 压阶版换入后不留原图（docs/287 §3 ①b）
+var _fxq_drop: bool = Cfg.web_lean("mobile_fxq_drop", "desk_fxq_drop") or Cfg.dev_args().has("--fxqdrop")   # 压阶版换入后不留原图（docs/287 §3 ①b）
 var _fxq_orig := {}
 var _fxq_i := 0
 var _fxq_miss := {}
@@ -334,6 +334,8 @@ func _fxq_step(on: bool) -> void:
 			var q: Texture2D = A.tex("optical_fx/" + nm)
 			if q == null or q.get_width() != g.tex[nm].get_width():
 				_fxq_miss[nm] = true   # 没有压阶版（敌方特效 / 寻访），或尺寸对不上（原图换过、压阶版过期）就用原图
+				if q != null:
+					A.uncache("optical_fx/" + nm)   # 尺寸对不上的压阶版不用，也别留在贴图缓存里（11-17：浊心斯卡蒂 wave_big 两张 @2x 原图对 1 倍压阶版，白占 7 MB，docs/355）
 				continue
 			if _fxq_drop:
 				_fxq_orig[nm] = null   # 手机网页（docs/287 §3 ①b）：原图不留一份，从贴图缓存放掉；换回原图时重读

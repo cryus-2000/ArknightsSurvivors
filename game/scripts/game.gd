@@ -1450,8 +1450,8 @@ func _ready() -> void:
 	elif mode == Mode.PLAY or Cfg.dev_args().has("--openshot"):
 		intro_screen.start_opening.call_deferred()
 	A.mark("ready_end")
-	if Cfg.mobile_fonts_slim():
-		Cfg.slim_fonts(true)   # 手机网页：进局清掉标题页 / 载入页用过的字号缓存（docs/50 §30）
+	if Cfg.font_slim_part("clear"):
+		Cfg.slim_fonts(true)   # 手机网页 / 电脑网页：进局清掉标题页 / 载入页用过的字号缓存（docs/50 §30、docs/355）
 	if Cfg.dev_args().has("--fpsosd") and demo_op == "":
 		_fps_osd_add()
 	if mobile_cap():
