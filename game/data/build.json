@@ -1,5 +1,5 @@
 {
  "_doc": "构建信息：局内数据记录（run/telemetry.gd）的版本字段。开发时 commit 为 dev；tools/export_build.py 打包时写入真实提交号。 version 是玩家可见版本号（标题页 V2.1），每发一版 +0.1（11-16 用户定）。",
- "version": "2.1",
+ "version": "2.2",
  "commit": "dev"
 }
