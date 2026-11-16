@@ -1342,7 +1342,7 @@ func _shop_hold(tname: String) -> bool:
 func _fast_swap_on() -> bool:
 	if _swap_fast < 0:
 		var cfg = get_node_or_null("/root/Cfg")
-		_swap_fast = 1 if OS.has_feature("web") and cfg != null and cfg.mobile_web() and cfg.mobile_knob("mobile_music_swap", 1.0) else 0
+		_swap_fast = 1 if cfg != null and cfg.web_lean("mobile_music_swap", "desk_music_swap") else 0   # 11-17 电脑网页也立刻放（docs/355：48 kHz 双声道一首战斗曲三层约 146 MB）
 	return _swap_fast == 1
 
 
@@ -1882,7 +1882,7 @@ var _wm_ll := -1
 func _wm_lazy_layer() -> bool:
 	if _wm_ll < 0:
 		var cfg = get_node_or_null("/root/Cfg")
-		_wm_ll = 1 if cfg != null and cfg.mobile_web() and cfg.mobile_knob("mobile_music_lazy_layer", 1.0) else 0
+		_wm_ll = 1 if cfg != null and cfg.web_lean("mobile_music_lazy_layer", "desk_music_lazy_layer") else 0   # 11-17 电脑网页也按需（docs/355）
 	return _wm_ll == 1
 
 

@@ -182,6 +182,13 @@ func mobile_knob(key: String, dflt: float) -> bool:
 	return load("res://scripts/core/balance.gd").v("web/" + key, dflt) > 0.0
 
 
+## 网页省内存项（docs/355）：手机网页按 web/<mkey>，电脑网页按 web/<dkey>（缺省都开；--bal=web/<键>=0 退回）。只放不改画面和声音的项
+func web_lean(mkey: String, dkey: String) -> bool:
+	if not OS.has_feature("web"):
+		return false
+	return mobile_knob(mkey, 1.0) if mobile_web() else mobile_knob(dkey, 1.0)
+
+
 ## 字形缓存瘦身（docs/50 §30.4：桌面低画质一局下来字体缓存 173 个字号、161 张页、62 MB——引擎显存里最大的一块没对上的就是它）：
 ## 关掉亚像素定位（每个字形不再按 1/4 像素存 4 份；像素风的界面字看不出差别），并清掉已有缓存。手机网页开局做、进局再清一次标题页用过的字号
 const FONT_PATHS := ["res://fonts/ui.ttf", "res://fonts/ui_fallback.otf", "res://fonts/serif.ttf"]

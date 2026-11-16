@@ -31,6 +31,9 @@ var buf=[],send=function(){if(!buf.length)return;var b=buf.join("\\n");buf=[];fe
 setInterval(send,1000);var wrap=function(k){var o=console[k];console[k]=function(){var s=Array.prototype.join.call(arguments," ");
 if(/^(PERF|PF |BALANCE|TRACE|SCRIPT ERROR|ERROR|USER ERROR|BOSSACTS)/.test(s)||k!=="log"){buf.push(s);if(/^(PERF|BALANCE|PF FTDONE|BOSSACTS END)/.test(s))send();}return o.apply(console,arguments);};};
 wrap("log");wrap("error");wrap("warn");})();
+(function(){if(new URLSearchParams(location.search).get("glcount")!=="1")return;var P=WebGL2RenderingContext.prototype,c={},f=0,t0=performance.now();
+["createVertexArray","drawElements","drawArrays","drawElementsInstanced","drawArraysInstanced","bufferData","bufferSubData","texSubImage2D","texImage2D","useProgram","uniform4fv","uniformMatrix4fv","bindTexture","copyTexSubImage2D","generateMipmap","readPixels"].forEach(function(k){var o=P[k];if(!o)return;P[k]=function(){c[k]=(c[k]||0)+1;return o.apply(this,arguments);};});
+var rr=window.requestAnimationFrame;window.requestAnimationFrame=function(cb){return rr(function(t){f++;var n=performance.now();if(n-t0>=5000){var s=[];for(var k in c)s.push(k+"="+(c[k]/f).toFixed(1));console.log("PF GLC frames="+f+" "+s.join(" "));c={};f=0;t0=n;}cb(t);});};})();
 // 逐秒帧数 + wasm 线性内存峰值（10-30 加：手机网页逐项帧时表要「最低 1 秒」「内存峰值」）；输出 PF W <本秒帧数> <内存 MB>
 (function(){var OM=WebAssembly.Memory,mems=[],mx=0,cnt=0,t0=performance.now();
 WebAssembly.Memory=function(d){var m=new OM(d);mems.push(m);return m;};WebAssembly.Memory.prototype=OM.prototype;
@@ -94,7 +97,16 @@ def export(ref):
     import web_half   # 半分辨率贴图（同发布包，docs/319 §16）
     print("[副本] " + web_half.report(web_half.make(gpath)))
     exe = gr.find_godot()
+    # 导入缓存（11-17）：各次导出共用一份 .godot（导入结果按源文件 md5 判断，只重导改过的），省掉每次 10 多分钟的全量导入
+    icache = os.path.join(BASE, "_importcache", ".godot")
+    if os.path.isdir(icache) and not os.path.exists(os.path.join(gpath, ".godot")):
+        shutil.copytree(icache, os.path.join(gpath, ".godot"))
     subprocess.run([exe, "--headless", "--path", gpath, "--import"], capture_output=True)
+    try:
+        shutil.rmtree(icache, ignore_errors=True)
+        shutil.copytree(os.path.join(gpath, ".godot"), icache)
+    except OSError as e:
+        print("[副本] 导入缓存没存上：%s" % e)
     p = subprocess.run([exe, "--headless", "--path", gpath, "--export-release", "Web", os.path.join(tmp, "index.html")], capture_output=True, text=True, encoding="utf-8", errors="replace")
     if not os.path.exists(os.path.join(tmp, "index.pck")):
         print(p.stdout[-3000:], p.stderr[-3000:])
@@ -173,7 +185,7 @@ class _Sock(socket.socket):
     pass
 
 
-def _cdp_setup(port, url, throttle, mobile, throttle_late=False, dpr=3, vw=844, vh=390):
+def _cdp_setup(port, url, throttle, mobile, throttle_late=False, dpr=3, vw=844, vh=390, desk=None):
     """等 Edge 起来，按需开 CPU 节流 / 手机视口 + 触屏，再导航到游戏页（先设好再加载，游戏启动时就认成触屏设备）"""
     t0 = time.time()
     tgt = None
@@ -205,6 +217,8 @@ def _cdp_setup(port, url, throttle, mobile, throttle_late=False, dpr=3, vw=844, 
         cmd("Emulation.setTouchEmulationEnabled", {"enabled": True, "maxTouchPoints": 5})
         cmd("Emulation.setUserAgentOverride", {"userAgent": "Mozilla/5.0 (Linux; Android 13; Pixel 6a) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Mobile Safari/537.36",
                                                "platform": "Linux armv8l"})
+    elif desk:   # --desk WxH --ddpr N（11-17 电脑网页基线）：电脑视口 + 像素比用 DevTools 设，不受窗口 / 屏幕大小限制；不是触屏、不改 UA
+        cmd("Emulation.setDeviceMetricsOverride", {"width": desk[0], "height": desk[1], "deviceScaleFactor": dpr, "mobile": False})
     cmd("Page.navigate", {"url": url})
 
     def snap(path):
@@ -224,7 +238,7 @@ def _cdp_setup(port, url, throttle, mobile, throttle_late=False, dpr=3, vw=844, 
     return s   # 连接留着：断开后节流会失效
 
 
-def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False, dpr=3, win="1280x720", scale=0.0, jsgc=0, jssnap=None):
+def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False, dpr=3, win="1280x720", scale=0.0, jsgc=0, jssnap=None, desk=None, cpuprof=None):
     jssnap = sorted(jssnap or [])
     d = export(ref)
     lastgc = time.time()
@@ -255,25 +269,25 @@ def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False, dp
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     if "--" not in game_args:
         game_args = ["--"] + list(game_args)   # 网页上 get_cmdline_user_args 只认 -- 之后的参数（11-07 实测：不带 -- 时游戏收不到 --balance，停在启动页，docs/305）
-    url = "http://127.0.0.1:%d/index.html?%s" % (port, urllib.parse.urlencode([("a", x) for x in game_args]))
+    url = "http://127.0.0.1:%d/index.html?%s" % (port, urllib.parse.urlencode([("a", x) for x in game_args] + [(k, v) for k, v in (q.split("=", 1) for q in os.environ.get("PERFWEB_QS", "").split("&") if "=" in q)]))
     ud = os.path.join(BASE, "_edge_" + tag)
     shutil.rmtree(ud, ignore_errors=True)
     px, py = gr._TEST_POS if gr._SEC else (-3000, 0)
-    emu = bool(throttle) or mobile
+    emu = bool(throttle) or mobile or bool(desk)
     dbg = 0
     if emu:
         with socket.socket() as s2:
             s2.bind(("127.0.0.1", 0))
             dbg = s2.getsockname()[1]
     p = subprocess.Popen([EDGE, "--user-data-dir=" + ud, "--app=" + ("about:blank" if emu else url), "--window-position=%d,%d" % (px, py),
-                          "--window-size=%s" % ("844,390" if mobile else ("%d,%d" % (int(win.split("x")[0]), int(win.split("x")[1]) + 40))),   # 电脑：+40 是 app 窗口标题栏，画布约等于 --win
+                          "--window-size=%s" % ("844,390" if mobile else ("%d,%d" % (desk[0], desk[1] + 40)) if desk else ("%d,%d" % (int(win.split("x")[0]), int(win.split("x")[1]) + 40))),   # 电脑：+40 是 app 窗口标题栏，画布约等于 --win
                           "--no-first-run", "--no-default-browser-check", "--disable-background-timer-throttling", "--disable-renderer-backgrounding",
                           "--disable-backgrounding-occluded-windows", "--disable-features=CalculateNativeWinOcclusion", "--mute-audio",
                           "--autoplay-policy=no-user-gesture-required"]   # 音频上下文直接 running（仍静音），配乐电平自测读得到（docs/319 §12）
                          + (["--remote-debugging-port=%d" % dbg] if emu else []) + (["--force_low_power_gpu"] if lowgpu else [])
                          + (["--force-device-scale-factor=%g" % scale] if scale > 0 and not mobile else []))
     late = bool(throttle) and "--rtfrom" in " ".join(game_args)   # 后期场景：快进段不节流，看到 PF RTFROM 再开
-    cdp = _cdp_setup(dbg, url, throttle, mobile, late, dpr) if emu else None
+    cdp = _cdp_setup(dbg, url, throttle, mobile, late, dpr, desk=desk) if emu else None
     t0 = time.time()
     lastmem = 0
     memk = 0   # Edge 进程树（渲染 / GPU / 主进程）私有内存之和的峰值，字节（10-30 加；wasm 线性内存在渲染进程里）
@@ -314,7 +328,10 @@ def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False, dp
                         try:
                             cl = q.cmdline()
                             ty = next((a[7:] for a in cl if a.startswith("--type=")), "browser")
-                            by[ty] = by.get(ty, 0) + q.memory_full_info().uss
+                            us = q.memory_full_info().uss
+                            by[ty] = by.get(ty, 0) + us
+                            if ty == "renderer":
+                                by["rmax"] = max(by.get("rmax", 0), us)   # 单个最大的渲染进程 = 游戏标签页（其余是扩展 / 备用渲染进程）
                         except Exception:
                             pass
                     open(log_p, "a", encoding="utf-8").write("PF MEM wall=%d %s" % (lastmem - t0, " ".join("%s=%d" % (k, v / 1048576) for k, v in sorted(by.items())) + chr(10)))
@@ -330,6 +347,39 @@ def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False, dp
                 open(log_p, "a", encoding="utf-8").write("PF JSGC wall=%d used=%.1f total=%.1f\n" % (lastgc - t0, float(u.get("usedSize", 0)) / 1048576, float(u.get("totalSize", 0)) / 1048576))
             except Exception as e:
                 print("[网页] JSGC 失败 %s" % e)
+        # 不强制 GC 的 JS 堆读数（11-17 电脑网页基线）：每 15 秒一行 PF JSHEAP，jsgc 关着时才读（强制 GC 会卡帧、干扰帧时）
+        if jsgc <= 0 and cdp is not None and time.time() - lastgc >= 15:
+            lastgc = time.time()
+            try:
+                r = cdp.cmd("Runtime.getHeapUsage")
+                u = r.get("result", {})
+                # 同一行带 WASM 容量 / 摸过的页、引擎网页样本、出包配乐解码缓冲（MB）：引擎显存统计之外、浏览器渲染进程里的大头
+                e = cdp.cmd("Runtime.evaluate", {"expression": "JSON.stringify({w:window.__syWasm&&window.__syWasm.buffer?Math.round(window.__syWasm.buffer.byteLength/1048576):-1,"
+                                                                 "sa:window.__syAudioMB?Math.round(window.__syAudioMB()):-1,"
+                                                                 "mu:window.__syMus?Math.round(window.__syMus.mb()):-1,cv:(function(){var c=document.querySelector('canvas');return c?c.width+'x'+c.height:''})(),"
+                                                                 "gpu:window.__syGpuName||(window.__syGpuName=(function(){try{var g=document.createElement('canvas').getContext('webgl2'),e=g.getExtension('WEBGL_debug_renderer_info');return String(g.getParameter(e.UNMASKED_RENDERER_WEBGL)).slice(0,60)}catch(x){return '?'}})())})",
+                                                   "returnByValue": True})
+                ex = e.get("result", {}).get("result", {}).get("value", "")
+                open(log_p, "a", encoding="utf-8").write("PF JSHEAP wall=%d used=%.1f total=%.1f %s" % (lastgc - t0, float(u.get("usedSize", 0)) / 1048576, float(u.get("totalSize", 0)) / 1048576, ex) + chr(10))
+            except Exception:
+                pass
+        # --cpuprof A:D（11-17）：快进结束（PF RTFROM）后 A 秒开 DevTools CPU 采样 D 秒，存 prof_<tag>.cpuprofile，并打印按函数的自耗时前列
+        if cpuprof and cdp is not None:
+            if cpuprof[2] == 0 and "PF RTFROM" in open(log_p, encoding="utf-8").read():
+                cpuprof[2] = time.time()
+            if cpuprof[2] > 0 and cpuprof[3] == 0 and time.time() - cpuprof[2] >= cpuprof[0]:
+                cdp.cmd("Profiler.enable")
+                cdp.cmd("Profiler.setSamplingInterval", {"interval": 250})
+                cdp.cmd("Profiler.start")
+                cpuprof[3] = time.time()
+            if cpuprof[3] > 0 and cpuprof[4] == 0 and time.time() - cpuprof[3] >= cpuprof[1]:
+                cpuprof[4] = 1
+                r = cdp.cmd("Profiler.stop")
+                prof = r.get("result", {}).get("profile", {})
+                pp = os.path.join(d, "prof_%s.cpuprofile" % tag)
+                json.dump(prof, open(pp, "w"))
+                print("[网页] CPU 采样 → %s" % pp)
+                cpuprof_report(prof)
         if jssnap and cdp is not None and time.time() - t0 >= jssnap[0]:
             ws = jssnap.pop(0)
             sp = os.path.join(d, "heap_%s_%d.heapsnapshot" % (tag, int(ws)))
@@ -377,6 +427,37 @@ def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False, dp
     return log_p
 
 
+def cpuprof_report(prof, top=40):
+    """DevTools CPU 采样：按函数名合计自耗时（采样数 × 间隔），打印前列与 wasm / JS 胶水 / GC / 空闲大类"""
+    nodes = {n["id"]: n for n in prof.get("nodes", [])}
+    cnt = {}
+    for sid in prof.get("samples", []):
+        cnt[sid] = cnt.get(sid, 0) + 1
+    by = {}
+    tot = 0
+    for nid, c in cnt.items():
+        cf = nodes[nid]["callFrame"]
+        nm = cf.get("functionName") or "(anon)"
+        url = cf.get("url", "")
+        k = "%s [%s]" % (nm, "wasm" if url.startswith("wasm") or "wasm-function" in nm else os.path.basename(url)[:20])
+        by[k] = by.get(k, 0) + c
+        tot += c
+    cat = {}
+    for k, c in by.items():
+        if "[wasm]" in k:
+            g = "wasm"
+        elif k.startswith("(idle)") or k.startswith("(program)") or k.startswith("(garbage"):
+            g = k.split(" ")[0]
+        elif k.startswith("_gl") or k.startswith("gl") or "GL." in k:
+            g = "GL 胶水"
+        else:
+            g = "其他 JS"
+        cat[g] = cat.get(g, 0) + c
+    print("[CPU] 样本 %d：" % tot + "  ".join("%s %.1f%%" % (g, 100.0 * c / max(tot, 1)) for g, c in sorted(cat.items(), key=lambda x: -x[1])))
+    for k, c in sorted(by.items(), key=lambda x: -x[1])[:top]:
+        print("  %5.1f%%  %s" % (100.0 * c / max(tot, 1), k))
+
+
 def summarize(pf):
     for k in sorted(pf):
         v = pf[k]
@@ -402,13 +483,17 @@ def main():
     ap.add_argument("--win", default="1280x720", help="电脑窗口（画布）大小 WxH，如 1514x720（docs/319 §18）")
     ap.add_argument("--scale", type=float, default=0, help="电脑缩放（Windows 显示缩放，如 1.25）：--force-device-scale-factor")
     ap.add_argument("--lowgpu", action="store_true", help="低配模拟：Edge 用核显（--force_low_power_gpu）")
+    ap.add_argument("--cpuprof", default="", help="快进结束后 A 秒开 CPU 采样 D 秒（A:D，如 30:8；要 --desk / --mobile 才有 DevTools 连接，11-17）")
     ap.add_argument("--jssnap", default="", help="在这些墙钟秒数取 JS 堆快照（逗号分隔），存 heap_<tag>_<秒>.heapsnapshot（docs/332 §4）")
+    ap.add_argument("--desk", default="", help="电脑网页视口 WxH（DevTools 设，配 --dpr 设像素比，如 --desk 1920x1080 --dpr 1.5；11-17）")
     ap.add_argument("--jsgc", type=float, default=0, help="每 N 秒强制 GC 后读 JS 堆真驻留（PF JSGC；要 --mobile 或 --throttle 才有 DevTools 连接）")
     a = ap.parse_args(argv)
     if a.cmd == "export":
         print(export(a.ref))
     else:
-        run(a.ref, a.tag, game_args, a.timeout, a.throttle, a.mobile, a.lowgpu, a.dpr, a.win, a.scale, a.jsgc, [float(x) for x in a.jssnap.split(",") if x])
+        run(a.ref, a.tag, game_args, a.timeout, a.throttle, a.mobile, a.lowgpu, a.dpr, a.win, a.scale, a.jsgc, [float(x) for x in a.jssnap.split(",") if x],
+            [int(x) for x in a.desk.split("x")] if a.desk else None,
+            ([float(x) for x in a.cpuprof.split(":")] + [0, 0, 0]) if a.cpuprof else None)
 
 
 if __name__ == "__main__":
