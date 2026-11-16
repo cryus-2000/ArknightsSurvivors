@@ -7,15 +7,15 @@ ui.guide.pages.0.more.1,"Bright | Light ≥ 70: SP Recovery +30%, Pick Up Range 
 ui.guide.pages.0.more.2,"Illuminated | Range radius varies between 110 and 360 with Light; when Light weakens, the ring shrinks but brightness remains unchanged. Enemies within the ring have damage taken +{lit_bonus}%, +{lit_bonus_hi}% when Bright.",照明｜範囲半径は110から360の間で灯火に応じて変化し、灯火が弱まると円は縮小するが明るさは変わらない。円内の敵の被ダメージ+{lit_bonus}%、明明時は+{lit_bonus_hi}%。,"조명｜범위 반경은 등불에 따라 110에서 360 사이로 변화하며, 등불이 약해지면 원이 축소되나 밝기는 변하지 않음. 원 안의 적이 받은 피해 +{lit_bonus}%, 밝음 상태일 때 +{lit_bonus_hi}%.",照亮｜范围半径在 110 与 360 之间随灯火变化，灯火变弱时圈缩小、亮度不变。圈内敌人受到伤害 +{lit_bonus}%，通明时 +{lit_bonus_hi}%。,校对,校对：误译（随灯火变化应为 with Light 而非 and Light），修正大小写,自译,自译
 ui.guide.pages.0.more.3,"Black Tide | From 2:30, the Safe Zone shrinks in 4 phases. Take continuous damage outside the zone. Move into the white dashed circle when 'Black Tide Approaching' appears.",黒潮｜2:30から安全圏が4段階に分けて縮小し、範囲外では継続ダメージを受ける。「黒潮接近」が見えたら白い破線の円内へ移動してください。,"흑조｜2:30부터 안전 구역이 4회에 걸쳐 축소되며, 범위 밖에서는 지속 피해를 받습니다. '흑조 접근 중'이 보이면 흰색 점선 원 안으로 이동하십시오.",黑潮｜2:30 起安全区分 4 轮收缩，圈外持续受伤，看到「黑潮将至」就往白色虚线圈里走。,模型,,自译,自译
 ui.guide.pages.1.title,Command,指揮,지휘,指挥,暂定,暂定（docs/276 §3.6）,暂定：暂定（docs/276 §13）,暂定：暂定（docs/276 §14）
-ui.guide.pages.1.lines.0,"Disk | Press F (Controller LB, Touch 'Command' button) to open, select Formation and Targeting preference.",円盤｜Fキー（コントローラーはLB、タッチ操作は「指揮」ボタン）で開き、陣形と索敵の優先順位を選択する。,"원판｜F (컨트롤러 LB, 터치 '지휘' 버튼)를 눌러 열고, 진형 및 색적 선호도를 선택합니다.",圆盘｜按 F（手柄 LB，触屏「指挥」键）打开，选队形与索敌偏好。,模型,,自译,自译
+ui.guide.pages.1.lines.0,"Disk | Press {cmd} (Controller {p_cmd}, Touch 'Command' button) to open, select Formation and Targeting preference.",円盤｜{cmd}キー（コントローラーは{p_cmd}、タッチ操作は「指揮」ボタン）で開き、陣形と索敵の優先順位を選択する。,"원판｜{cmd} (컨트롤러 {p_cmd}, 터치 '지휘' 버튼)를 눌러 열고, 진형 및 색적 선호도를 선택합니다.",圆盘｜按 {cmd}（手柄 {p_cmd}，触屏「指挥」键）打开，选队形与索敌偏好。,模型,,自译,自译
 ui.guide.pages.1.lines.1,"Focus Fire | Bottom half of the disc. Select an Elite or Boss, all allies attack the target; mobs cannot be selected.",集中攻撃｜円盤の下半円。エリートまたはボスを1体選択し、味方全体でその目標を攻撃する。通常の敵は選択不可。,집중 공격｜원판 하단 반원. 엘리트 또는 보스 1명을 선택하면 아군 전체가 해당 목표를 공격; 일반 몹은 선택 불가.,集火｜圆盘下半圈。点选一名精英或 Boss，全队攻击该目标；小怪不能选。,校对,校对：修正不必要的大写（all allies attack）,自译,自译
 ui.guide.pages.1.more.0,"Bonus | During Assault, Deploy, or Focus Fire, attacking allies gain ASPD +{cmd_aspd}% · SP recovery ×{cmd_sp}; no bonus during Follow, but allies will not take damage.",ボーナス｜突撃、配置、集中攻撃時、出撃した味方の攻撃速度+{cmd_aspd}%・SP回復×{cmd_sp}。追従時はボーナスはないが、味方はダメージを受けない。,"보너스｜돌격, 배치, 집중 공격 시, 출격한 아군 공격 속도 +{cmd_aspd}% · SP 회복 ×{cmd_sp}; 동행 시 보너스는 없으나 아군이 피해를 입지 않음.",加成｜突击、部署、集火时，出击的队友攻速 +{cmd_aspd}% · 技力回复 ×{cmd_sp}；随行时没有加成，但队友不会受伤。,校对,校对：统一术语（SP recovery）,自译,自译
 ui.guide.pages.1.more.1,"Formation | Follow = Guard formation. Allies stay by Leader by class, taking no damage. Assault = Allies attack separately by class. Stamina lasts about {cmd_stamina}s, auto regroup when depleted. Lower half of disk: Deploy = Select a position for an ally to land. Defenders and Guards will block enemies.",陣形｜追従＝護衛陣形。味方が職業別にリーダーの周囲を守り、ダメージを受けない。突撃＝味方が職業別に分かれて出撃。スタミナは約{cmd_stamina}秒、尽きると自動で復帰する。円盤の下半円：配置＝指定した位置に味方を配置する。重装、前衛は敵をブロックする。,"진형｜동행=호위 진형, 아군이 포지션별로 리더 곁을 지키며 피해를 받지 않음; 돌격=아군이 포지션별로 흩어져 출격, 스태미나 약 {cmd_stamina}초, 소진 시 자동 복귀. 원판 하단: 배치=위치를 지정해 아군을 배치, 디펜더와 가드가 적을 저지함.",队形｜随行＝护卫阵型，队友按职业守在队长身边，不会受伤；突击＝队友按职业分头出击，耐力约 {cmd_stamina} 秒，耗尽自动归队。圆盘下半圈：部署＝点一个位置让队友落位，重装、近卫会挡住敌人。,校对,"校对：修正单复数（Allies, enemies），修正不必要的大写",自译,自译
 ui.guide.pages.1.more.2,"Controls | Hold to select, release to confirm, tap to click; in-run time slows down when opened.",操作｜長押しで選択、離して確定、タップでクリック。展開中はゲーム内の進行が遅くなる。,"조작｜길게 눌러 선택, 떼서 확인, 짧게 눌러 클릭; 열려 있을 때 게임 내 시간 느려짐.",操作｜按住选、松开确认，轻点则点选；打开时局内放慢。,校对,"校对：修正不必要的大写（select, in-run）",自译,自译
 ui.guide.pages.1.more.3,"Downed | Allies in Assault and Deploy can be injured by enemies and projectiles. Auto retreat to Leader when HP is below 30%. Downed when HP is depleted, reviving after {cmd_revive}s. Cooldown triggers when stamina is depleted, requiring {cmd_min}% to Assault again.",ダウン｜突撃および配置中の味方は敵や弾幕によって負傷し、HPが30%を下回ると自動でリーダーの元へ撤回される。HPが尽きるとダウンし、{cmd_revive}秒後に復活する。スタミナが尽きるとクールダウンに入り、{cmd_min}%まで回復すると再び突撃可能になる。,"쓰러짐｜돌격 및 배치 중인 아군은 적과 탄막에 의해 부상을 입을 수 있으며, HP가 30% 미만이면 자동으로 리더 곁으로 철회됨; HP가 소진되면 쓰러짐 상태가 되며, {cmd_revive}초 후 부활함. 스태미나가 소진되면 재사용 대기시간이 적용되며, {cmd_min}%까지 회복되어야 다시 돌격할 수 있음.",倒地｜突击和部署中的队友会被敌人与弹幕打伤，生命低于 30% 自动撤回队长身边；生命耗尽即倒地，{cmd_revive} 秒后复活。耐力耗尽后冷却，回到 {cmd_min}% 才能再次突击。,校对,"校对：修正单复数（Allies, enemies, Auto retreat）",自译,自译
-ui.guide.pages.1.more.4,"Aim | Normal attack fires automatically. Hold left click to fire toward cursor, push right stick on controller, or drag aim button on touchscreen; release to return to auto targeting.",照準｜通常攻撃は自動で発動する。左クリック長押しでカーソル方向へ攻撃、コントローラーは右スティックを倒す、タッチパネルは照準ボタンをドラッグする。離すと自動索敵に戻る。,"조준｜일반 공격은 자동으로 발사됩니다. 마우스 좌클릭을 유지하면 커서 방향으로 공격하고, 컨트롤러는 우측 스틱을 밀며, 터치는 조준 버튼을 드래그합니다; 손을 떼면 자동 색적으로 돌아갑니다.",瞄准｜普攻自动出手。按住鼠标左键朝光标打，手柄推右摇杆，触屏拖动瞄准键；松开即回到自动索敌。,校对,校对：修正不必要的大写，Touch 修正为 touchscreen,自译,自译
+ui.guide.pages.1.more.4,"Aim | Normal attack fires automatically. Hold {aim} to fire toward cursor, push right stick on controller, or drag aim button on touchscreen; release to return to auto targeting.",照準｜通常攻撃は自動で発動する。{aim}長押しでカーソル方向へ攻撃、コントローラーは右スティックを倒す、タッチパネルは照準ボタンをドラッグする。離すと自動索敵に戻る。,"조준｜일반 공격은 자동으로 발사됩니다. {aim}을(를) 유지하면 커서 방향으로 공격하고, 컨트롤러는 우측 스틱을 밀며, 터치는 조준 버튼을 드래그합니다; 손을 떼면 자동 색적으로 돌아갑니다.",瞄准｜普攻自动出手。按住{aim}朝光标打，手柄推右摇杆，触屏拖动瞄准键；松开即回到自动索敌。,校对,校对：修正不必要的大写，Touch 修正为 touchscreen,自译,自译
 ui.guide.pages.2.title,Command Terminal,指揮台,지휘대,指挥台,模型,,自译,自译
-ui.guide.pages.2.lines.0,"Position | Bottom of screen: Center is Leader with Ultimate (Q), left is HP, Light, Dash, right is allies and current command.",位置｜画面下部：中央はリーダーと必殺技（Q）、左側はHP、灯火、ダッシュ、右側は味方と現在の指令。,"위치｜화면 중앙 하단: 중앙은 리더와 필살기(Q), 좌측은 HP, 등불, 대시, 우측은 아군과 현재 지령입니다.",位置｜屏幕正下方：中间是队长与终结技（Q），左边是生命、灯火、冲刺，右边是队友与当前指令。,校对,校对：修正不必要的大写，修正单复数（allies）,自译,自译
+ui.guide.pages.2.lines.0,"Position | Bottom of screen: Center is Leader with Ultimate ({ult}), left is HP, Light, Dash, right is allies and current command.",位置｜画面下部：中央はリーダーと必殺技（{ult}）、左側はHP、灯火、ダッシュ、右側は味方と現在の指令。,"위치｜화면 중앙 하단: 중앙은 리더와 필살기({ult}), 좌측은 HP, 등불, 대시, 우측은 아군과 현재 지령입니다.",位置｜屏幕正下方：中间是队长与终结技（{ult}），左边是生命、灯火、冲刺，右边是队友与当前指令。,校对,校对：修正不必要的大写，修正单复数（allies）,自译,自译
 ui.guide.pages.2.lines.1,"Light | The gold bar below HP, value on the right; marks at 30 and 70.",灯火｜HPの下にある金色のゲージ。右側に数値が表示され、30と70の位置に目盛りがある。,"등불｜HP 아래의 금색 막대, 우측에 수치 표시; 30, 70 위치에 각각 눈금이 있습니다.",灯火｜生命下面的金色长条，右边是数值；30、70 处各有一道刻度。,模型,,自译,自译
 ui.guide.pages.2.more.0,"Ultimate | The outer ring of the portrait is energy, turns cyan when full; percentage is below the portrait.",必殺技｜アイコンの外枠はエネルギーを示し、最大になると青緑色に変わる。アイコンの下はパーセンテージ。,"필살기｜초상화 바깥쪽 고리는 에너지로, 가득 차면 청록색으로 변함. 초상화 아래는 백분율.",终结技｜头像外圈是能量，满格转青；头像下是百分比。,模型,,自译,自译
 ui.guide.pages.2.more.1,"Dash Charges | Arrows left of 'Dash': cyan means available, refills from bottom to top when used. 'Multi-Dash' stores one extra charge, 'Swift' reduces cooldown.",ダッシュマス｜「ダッシュ」左側の矢印：青色は使用可能、消費後は下から上へ補充される。「連衝」はストック上限+1、「迅速」はクールタイム短縮。,"대시 칸｜'대시' 왼쪽의 화살표: 청록색은 사용 가능, 사용 후 아래에서 위로 다시 채워짐. '연속 돌진'은 1칸 더 저장, '신속'은 쿨타임 단축.",冲刺格｜「冲刺」左边的箭头：青色可用，用掉后从下往上回填。「连冲」多存一格，「迅捷」缩短冷却。,模型,,自译,自译
@@ -38,23 +38,23 @@ ui.guide.pages.4.more.6,Final Boss | Appears at 10:00. Other Seaborn will no lon
 ui.guide.pages.4.more.7,"Duck Lord | Does not attack, runs faster when attacked, and slips away if not defeated within 30s; defeated guarantees 1 Relic and a small amount of Originium Ingots.",ダック卿｜攻撃せず、攻撃を受けると移動速度が上がる。30秒以内に撃倒しないと逃走する。撃倒で秘宝1個と少量の源石錐を確定ドロップ。,"덕로드｜공격하지 않으며, 피격 시 이동 속도 증가, 30초 내에 처치하지 않으면 도망감; 처치 시 소장품 1개와 소량의 오리지늄각뿔 확정 획득.",鸭爵｜不攻击，受到攻击后越跑越快，30 秒内没被击倒就会溜走；击倒必得 1 件藏品与少量源石锭。,校对,校对：修正不必要的大写（defeated），修正单复数（Originium Ingots）,自译,自译
 ui.guide.pages.5.title,Controls,操作,조작,操作,模型,,自译,自译
 ui.guide.pages.5.lines.0,"Objective | Survive until 10:00, defeat them.",目標｜10:00まで作戦を維持し、敵を撃破する。,"목표｜10:00까지 작전을 유지하고, 적을 처치하십시오.",目标｜维持作战至 10:00，击败它们。,模型,,自译,自译
-ui.guide.pages.5.lines.1,Move | WASD / arrow keys,移動｜WASD / 方向キー,이동｜WASD / 방향키,移动｜WASD / 方向键,校对,校对：修正不必要的大写（arrow keys）,自译,自译
-ui.guide.pages.5.lines.2,"Dash | Space. Invincible during Dash, cooldown approx. {dash_cd}s.",ダッシュ｜スペース。ダッシュ中は無敵、クールダウン約{dash_cd}秒。,"대시｜스페이스. 대시 중 무적, 쿨타임 약 {dash_cd}초.",冲刺｜空格。冲刺中无敌，冷却约 {dash_cd} 秒。,模型,,自译,自译
-ui.guide.pages.5.lines.3,Command | F: Command Disk,指揮｜F：指揮円盤,지휘｜F: 지휘 원판,指挥｜F：指挥圆盘,模型,,自译,自译
-ui.guide.pages.5.lines.4,Panel | Tab / C: Stats    Esc: Pause,パネル｜Tab / C：ステータス　　Esc：一時停止,패널｜Tab / C: 능력치　　Esc: 일시 정지,面板｜Tab / C：属性　　Esc：暂停,模型,,自译,自译
-ui.guide.pages.5.more.0,"Ultimate | Q: Hold when energy is full to see range (target / direction follows mouse), release to cast; squad skills and Link are cast automatically.",必殺技｜Q：エネルギーMAX時に長押しで範囲確認（着弾点 / 方向はマウスに追従）、離して解放。全体のスキルと連携は自動で解放される。,"필살기｜Q: 에너지가 가득 차면 길게 눌러 범위 확인(낙하점 / 방향은 마우스로 선택), 떼면 방출; 아군 전체 스킬과 연계는 모두 자동 방출.",终结技｜Q：能量满后按住看范围（落点 / 方向类跟鼠标选），松开释放；全队技能与连携都自动释放。,校对,校对：不必要的大写（Range），“全队技能”误译为 global Skill，应为 squad skills。,自译,自译
-ui.guide.pages.5.more.1,"Aim | Normal attacks fire automatically; hold Left Click to attack toward cursor, release to return to auto targeting.",照準｜通常攻撃は自動で発動。左クリック長押しでカーソル方向へ攻撃し、離すと自動索敵に戻る。,"조준｜일반 공격 자동 발동; 마우스 좌클릭 유지 시 커서 방향으로 공격하며, 떼면 자동 색적으로 복귀.",瞄准｜普攻自动出手；按住鼠标左键时朝光标方向打，松开即回到自动索敌。,校对,"校对：不必要的大写（Normal Attack, Auto Targeting），且普攻应为复数。",自译,自译
-ui.guide.pages.5.more.2,Controller | Left Stick Move · Ⓑ / RT Dash · Ⓐ / RB Ultimate · Right Stick Aim · LB Command Disk · START Pause · SELECT Stats,コントローラー｜左スティック移動・Ⓑ / RT ダッシュ・Ⓐ / RB 必殺技・右スティック照準・LB 指揮円盤・START 一時停止・SELECT ステータス,컨트롤러｜좌측 스틱 이동 · Ⓑ / RT 대시 · Ⓐ / RB 필살기 · 우측 스틱 조준 · LB 지휘 원판 · START 일시 정지 · SELECT 능력치,手柄｜左摇杆移动 · Ⓑ / RT 冲刺 · Ⓐ / RB 终结技 · 右摇杆瞄准 · LB 指挥圆盘 · START 暂停 · SELECT 属性,模型,,自译,自译
-ui.guide.pages.5.more.3,Other | M: Music  V: Speed  R: Restart,その他｜M：音楽　　V：倍速　　R：リトライ,기타｜M: 음악  V: 배속  R: 재시작,其他｜M：音乐　　V：倍速　　R：重来,模型,,自译,自译
-ui.guide.touch_subs.0.0,"Press F (Controller LB, Touch 'Command' button) to open, select formation and targeting preference",Fキー（コントローラーはLB、タッチ操作は「指揮」ボタン）で開き、陣形と索敵の優先目標を選択する,"F(컨트롤러 LB, 터치 '지휘' 버튼)를 눌러 열기, 진형 및 색적 선호도 선택",按 F（手柄 LB，触屏「指挥」键）打开，选队形与索敌偏好,校对,"校对：不必要的大写（Select Formation, Targeting）。",自译,自译
+ui.guide.pages.5.lines.1,Move | {move2},移動｜{move2},이동｜{move2},移动｜{move2},校对,校对：修正不必要的大写（arrow keys）,自译,自译
+ui.guide.pages.5.lines.2,"Dash | {dash}. Invincible during Dash, cooldown approx. {dash_cd}s.",ダッシュ｜{dash}。ダッシュ中は無敵、クールダウン約{dash_cd}秒。,"대시｜{dash}. 대시 중 무적, 쿨타임 약 {dash_cd}초.",冲刺｜{dash}。冲刺中无敌，冷却约 {dash_cd} 秒。,模型,,自译,自译
+ui.guide.pages.5.lines.3,Command | {cmd}: Command Disk,指揮｜{cmd}：指揮円盤,지휘｜{cmd}: 지휘 원판,指挥｜{cmd}：指挥圆盘,模型,,自译,自译
+ui.guide.pages.5.lines.4,Panel | {stats2}: Stats    Esc: Pause,パネル｜{stats2}：ステータス　　Esc：一時停止,패널｜{stats2}: 능력치　　Esc: 일시 정지,面板｜{stats2}：属性　　Esc：暂停,模型,,自译,自译
+ui.guide.pages.5.more.0,"Ultimate | {ult}: Hold when energy is full to see range (target / direction follows mouse), release to cast; squad skills and Link are cast automatically.",必殺技｜{ult}：エネルギーMAX時に長押しで範囲確認（着弾点 / 方向はマウスに追従）、離して解放。全体のスキルと連携は自動で解放される。,"필살기｜{ult}: 에너지가 가득 차면 길게 눌러 범위 확인(낙하점 / 방향은 마우스로 선택), 떼면 방출; 아군 전체 스킬과 연계는 모두 자동 방출.",终结技｜{ult}：能量满后按住看范围（落点 / 方向类跟鼠标选），松开释放；全队技能与连携都自动释放。,校对,校对：不必要的大写（Range），“全队技能”误译为 global Skill，应为 squad skills。,自译,自译
+ui.guide.pages.5.more.1,"Aim | Normal attacks fire automatically; hold {aim} to attack toward cursor, release to return to auto targeting.",照準｜通常攻撃は自動で発動。{aim}長押しでカーソル方向へ攻撃し、離すと自動索敵に戻る。,"조준｜일반 공격 자동 발동; {aim} 유지 시 커서 방향으로 공격하며, 떼면 자동 색적으로 복귀.",瞄准｜普攻自动出手；按住{aim}时朝光标方向打，松开即回到自动索敌。,校对,"校对：不必要的大写（Normal Attack, Auto Targeting），且普攻应为复数。",自译,自译
+ui.guide.pages.5.more.2,Controller | Left Stick Move · {p_dash} Dash · {p_ult} Ultimate · Right Stick Aim · {p_cmd} Command Disk · START Pause · {p_stats} Stats,コントローラー｜左スティック移動・{p_dash} ダッシュ・{p_ult} 必殺技・右スティック照準・{p_cmd} 指揮円盤・START 一時停止・{p_stats} ステータス,컨트롤러｜좌측 스틱 이동 · {p_dash} 대시 · {p_ult} 필살기 · 우측 스틱 조준 · {p_cmd} 지휘 원판 · START 일시 정지 · {p_stats} 능력치,手柄｜左摇杆移动 · {p_dash} 冲刺 · {p_ult} 终结技 · 右摇杆瞄准 · {p_cmd} 指挥圆盘 · START 暂停 · {p_stats} 属性,模型,,自译,自译
+ui.guide.pages.5.more.3,Other | {music}: Music  {speed}: Speed  R: Restart,その他｜{music}：音楽　　{speed}：倍速　　R：リトライ,기타｜{music}: 음악  {speed}: 배속  R: 재시작,其他｜{music}：音乐　　{speed}：倍速　　R：重来,模型,,自译,自译
+ui.guide.touch_subs.0.0,"Press {cmd} (Controller {p_cmd}, Touch 'Command' button) to open, select formation and targeting preference",{cmd}キー（コントローラーは{p_cmd}、タッチ操作は「指揮」ボタン）で開き、陣形と索敵の優先目標を選択する,"{cmd}(컨트롤러 {p_cmd}, 터치 '지휘' 버튼)를 눌러 열기, 진형 및 색적 선호도 선택",按 {cmd}（手柄 {p_cmd}，触屏「指挥」键）打开，选队形与索敌偏好,校对,"校对：不必要的大写（Select Formation, Targeting）。",自译,自译
 ui.guide.touch_subs.0.1,"Click right 'Command' button to open, select formation and targeting preference",右側の「指揮」ボタンから、陣形と索敵の優先目標を選択してください,"우측의 '지휘' 버튼을 눌러 열고, 진형 및 색적 선호도를 선택하세요",点右侧「指挥」键打开，选队形与索敌偏好,校对,"校对：不必要的大写（Formation, Targeting）。",自译,自译
 ui.guide.touch_subs.1.0,"Press and hold to select, release to confirm, tap to click",長押しで選択、離して決定、タップで選択,"길게 눌러 선택, 떼서 확인, 터치하여 클릭",按住选、松开确认，轻点则点选,模型,,自译,自译
 ui.guide.touch_subs.1.1,Tap option to confirm,オプションをタップして確認,옵션 터치로 확인,点选项确认,校对,校对：不必要的大写，且选项在此处为单数。,自译,自译
-ui.guide.touch_subs.2.0,"Hold Left Click to attack towards the cursor, push Right Stick on Controller, drag aim button on touchscreen",左クリック長押しでカーソル方向へ攻撃。コントローラーは右スティックを倒し、タッチ操作は照準ボタンをドラッグする,"마우스 좌클릭을 길게 눌러 커서 방향으로 공격, 컨트롤러는 우측 스틱을 밀고, 터치 스크린은 조준 버튼을 드래그",按住鼠标左键朝光标打，手柄推右摇杆，触屏拖动瞄准键,校对,校对：不必要的大写（Aim Button），Touch 表达触屏不地道，应为 touchscreen。,自译,自译
+ui.guide.touch_subs.2.0,"Hold {aim} to attack towards the cursor, push Right Stick on Controller, drag aim button on touchscreen",{aim}長押しでカーソル方向へ攻撃。コントローラーは右スティックを倒し、タッチ操作は照準ボタンをドラッグする,"{aim}을(를) 길게 눌러 커서 방향으로 공격, 컨트롤러는 우측 스틱을 밀고, 터치 스크린은 조준 버튼을 드래그",按住{aim}朝光标打，手柄推右摇杆，触屏拖动瞄准键,校对,校对：不必要的大写（Aim Button），Touch 表达触屏不地道，应为 touchscreen。,自译,自译
 ui.guide.touch_subs.2.1,Hold aim button and drag to select direction,照準ボタン長押し＋ドラッグで方向選択,조준 버튼을 길게 누르고 드래그하여 방향 선택,按住瞄准键拖动选方向,校对,校对：不必要的大写（Aim Button）。,自译,自译
 ui.guide.touch_subs.3.0,Refresh stock once (Press F),商品を1回更新（Fキー）,진열대 1회 갱신(F 누르기),刷新一次货架（按 F）,校对,校对：语法错误（1 Times 应为 once），不必要的大写。,自译,自译
 ui.guide.touch_subs.3.1,Refresh stock once,商品を1回更新,진열대 1회 갱신,刷新一次货架,校对,校对：语法错误（1 Times 应为 once），不必要的大写。,自译,自译
-ui.guide.touch_subs.4.0,Leader and Ultimate (Q),リーダーと必殺技（Q）,리더와 필살기(Q),队长与终结技（Q）,校对,校对：“与”应译为 and，而不是 with。,自译,自译
+ui.guide.touch_subs.4.0,Leader and Ultimate ({ult}),リーダーと必殺技（{ult}）,리더와 필살기({ult}),队长与终结技（{ult}）,校对,校对：“与”应译为 and，而不是 with。,自译,自译
 ui.guide.touch_subs.4.1,Leader and Ultimate,リーダーと必殺技,리더와 필살기,队长与终结技,校对,校对：“与”应译为 and，而不是 with。,自译,自译
 ui.guide.touch_controls.lines.0,"Objective | Survive until 10:00, defeat them.",目標｜10:00まで作戦を維持し、敵を撃破する。,"목표｜10:00까지 작전을 유지하고, 적을 처치하십시오.",目标｜维持作战至 10:00，击败它们。,模型,,自译,自译
 ui.guide.touch_controls.lines.1,Move | Press and hold left side of screen to drag,移動｜画面左半分を長押ししてドラッグ,이동｜화면 왼쪽을 누른 채 드래그,移动｜按住屏幕左半边拖动,模型,,自译,自译
@@ -73,7 +73,7 @@ ui.onboard.ask.opts.1.1,Play a 1-minute preview run first,約1分間のプレビ
 ui.onboard.ask.opts.2.0,Skip Tutorial,チュートリアルスキップ,튜토리얼 스킵,跳过引导,模型,,自译,自译
 ui.onboard.ask.opts.2.1,Can be turned on again later in 'Settings · Controls',後で「設定・操作」から再度オンにできる,이후 '설정 · 조작'에서 다시 켤 수 있음,之后可在「设置 · 操作」里重新打开,模型,,自译,自译
 ui.onboard.cards.move.title,Move,移動,이동,移动,官方,gamedata_const.termDescriptionDict.ba.addash,官方：gamedata_const.termDescriptionDict.ba.addash,官方：gamedata_const.termDescriptionDict.ba.addash
-ui.onboard.cards.move.text,"WASD to move, Space to dash (invincible during dash), attacks fire automatically.",WASDで移動、スペースでダッシュ（ダッシュ中は無敵）。攻撃は自動で行われる。,"WASD로 이동, 스페이스로 대시(대시 중 무적), 공격은 자동으로 발동됩니다.",WASD 移动，空格冲刺（冲刺中无敌），攻击会自动打出去。,校对,校对：不必要的大写，优化祈使句语法。,自译,自译
+ui.onboard.cards.move.text,"{move} to move, {dash} to dash (invincible during dash), attacks fire automatically.",{move}で移動、{dash}でダッシュ（ダッシュ中は無敵）。攻撃は自動で行われる。,"{move}(으)로 이동, {dash}(으)로 대시(대시 중 무적), 공격은 자동으로 발동됩니다.",{move} 移动，{dash}冲刺（冲刺中无敌），攻击会自动打出去。,校对,校对：不必要的大写，优化祈使句语法。,自译,自译
 ui.onboard.cards.move.touch,"Hold and drag left half of screen to move, tap 'Dash' button to dash (invincible during dash), attacks fire automatically.",画面左半分をドラッグして移動、ダッシュボタンでダッシュ（ダッシュ中は無敵）。攻撃は自動で行われる。,"화면 좌측 절반 드래그를 유지해 이동, 대시 버튼을 터치해 대시(대시 중 무적), 공격은 자동으로 발동됩니다.",按住左半屏拖动移动，点冲刺键冲刺（冲刺中无敌），攻击会自动打出去。,校对,校对：不必要的大写，优化祈使句语法。,自译,自译
 ui.onboard.cards.move.hint,Move around,移動してください,이동하세요,走动一下,模型,,自译,自译
 ui.onboard.cards.xp.title,EXP and Upgrade,経験値とレベルアップ,경험치와 레벨 업,经验与升级,校对,校对：“与”应译为 and，而不是 with。,自译,自译
@@ -83,10 +83,10 @@ ui.onboard.cards.recruit.title,Recruit,招集,모집,招募,模型,,自译,自�
 ui.onboard.cards.recruit.text,Operator cards appear upon upgrade; select to join the squad. You control the Leader (the Operator selected upon departure); allies fight automatically.,レベルアップ時にオペレーターカードが出現し、選択すると編成加入する。操作するのはリーダー（出発時に選択したオペレーター）であり、味方は自動で作戦を行う。,"레벨 업 시 오퍼레이터 카드가 나타나며, 선택 시 편성에 합류합니다. 플레이어는 리더(출발 시 선택한 오퍼레이터)를 조종하며, 아군은 자동으로 작전합니다.",升级时会出现干员卡，选中即加入编队。你操控的是队长（出发时选的干员），队友自动作战。,校对,"校对：不必要的大写（Upgrade, Depart），Depart 词性错误应为 departure，Ally 漏了复数。",自译,自译
 ui.onboard.cards.recruit.hint,Recruit an Operator,オペレーターを1名招集,오퍼레이터 1명 모집,招募一名干员,校对,校对：“一名”译为 an 更自然，1 过于生硬。,自译,自译
 ui.onboard.cards.ult.title,Ultimate,必殺技,필살기,终结技,暂定,暂定（docs/276 §3.6）,暂定：暂定（docs/276 §13）,暂定：暂定（docs/276 §14）
-ui.onboard.cards.ult.text,"Ultimate charged: Hold Q to view Range, release to cast.",必殺技チャージ完了：Q長押しで範囲を確認、離して解放。,"필살기 충전 완료: Q를 길게 눌러 범위를 확인하고, 손을 떼서 방출하세요.",终结技已充满：按住 Q 看范围，松开释放。,模型,,自译,自译
+ui.onboard.cards.ult.text,"Ultimate charged: Hold {ult} to view Range, release to cast.",必殺技チャージ完了：{ult}長押しで範囲を確認、離して解放。,"필살기 충전 완료: {ult}을(를) 길게 눌러 범위를 확인하고, 손을 떼서 방출하세요.",终结技已充满：按住 {ult} 看范围，松开释放。,模型,,自译,自译
 ui.onboard.cards.ult.touch,"Ultimate is fully charged: Hold Ultimate button to view Range, release to cast.",必殺技チャージ完了：必殺技ボタンを長押しで範囲を確認し、離して解放してください。,"필살기 충전 완료: 필살기 버튼을 길게 눌러 범위를 확인하고, 손을 떼서 방출하세요.",终结技已充满：按住终结技键看范围，松开释放。,模型,,自译,自译
 ui.onboard.cards.ult.hint,Use 1 Ultimate,必殺技を1回解放する,필살기를 1회 방출하세요,释放一次终结技,模型,,自译,自译
-ui.onboard.cards.ult.toast,"Ultimate is charged: Hold Q to view Range, release to cast.",必殺技チャージ完了：Q長押しで範囲を確認、離して解放。,"필살기가 충전되었습니다: Q를 길게 눌러 범위를 확인하고, 손을 떼서 방출하세요.",终结技充满了：按住 Q 看范围，松开释放。,模型,,自译,自译
+ui.onboard.cards.ult.toast,"Ultimate is charged: Hold {ult} to view Range, release to cast.",必殺技チャージ完了：{ult}長押しで範囲を確認、離して解放。,"필살기가 충전되었습니다: {ult}을(를) 길게 눌러 범위를 확인하고, 손을 떼서 방출하세요.",终结技充满了：按住 {ult} 看范围，松开释放。,模型,,自译,自译
 ui.onboard.cards.ult.toast_touch,"Ultimate fully charged: Hold Ultimate button to view Range, release to cast.",必殺技チャージ完了：必殺技ボタンを長押しで範囲を確認し、離して解放してください。,"필살기가 충전되었습니다: 필살기 버튼을 길게 눌러 범위를 확인하고, 손을 떼서 방출하세요.",终结技充满了：按住终结技键看范围，松开释放。,模型,,自译,自译
 ui.onboard.cards.drill_end.title,Preview Ended,プレビュー終了,미리보기 종료,演示结束,模型,,自译,自译
 ui.onboard.cards.drill_end.text,"Squad, Light, and Command are covered. Other content will be prompted in the top left when encountered for the first time.",分隊、灯火、指揮についての説明は以上だ。その他の要素は初めて遭遇した際、左上にヒントが表示される。,"소대, 등불, 지휘에 대한 설명이 끝났습니다. 기타 콘텐츠는 처음 조우 시 좌측 상단에 안내됩니다.",小队、灯火、指挥都讲完了，其余内容第一次遇到时会在左上角提示。,校对,校对：encountered 不应大写,自译,自译
@@ -100,15 +100,15 @@ ui.onboard.cards.merchant.title,Merchant,商人,상인,商人,模型,,自译,自
 ui.onboard.cards.merchant.text,"Merchant only stays for 60s. Follow the gold arrow to find him, use Originium Ingot to buy Relic.",商人は60秒のみ滞在。金色の矢印に従って商人を見つけ、源石錐で秘宝を購入してください。,"상인은 60초만 머무름. 금색 화살표를 따라가 상인을 찾고, 오리지늄각뿔로 소장품을 구매하세요.",商人只停留 60 秒。跟着金色箭头找到他，用源石锭购买藏品。,模型,,自译,自译
 ui.onboard.cards.merchant.hint,Find the Merchant,商人を見つけてください,상인을 찾으세요,找到商人,模型,,自译,自译
 ui.onboard.cards.merchant.toast,"Merchant only stays for 60s, follow the gold arrow to find him, use Originium Ingot to buy Relic.",商人は60秒のみ滞在、金色の矢印に従って商人を見つけ、源石錐で秘宝を購入してください。,"상인은 60초만 머무름, 금색 화살표를 따라가 상인을 찾고, 오리지늄각뿔로 소장품을 구매하세요.",商人只停留 60 秒，跟着金色箭头找到他，用源石锭购买藏品。,模型,,自译,自译
-ui.onboard.cards.boss.text,"Watch the warning circles on the ground, press Space to Dash and dodge, invincible during Dash.",地面の警告円を確認し、スペースでダッシュして回避する。ダッシュ中は無敵。,지면의 경고 원을 확인하고 스페이스를 눌러 대시하여 회피하세요. 대시 중 무적.,看清地面的预警圈，按空格冲刺躲开，冲刺中无敌。,校对,校对：invincible 不应大写,自译,自译
+ui.onboard.cards.boss.text,"Watch the warning circles on the ground, press {dash} to Dash and dodge, invincible during Dash.",地面の警告円を確認し、{dash}でダッシュして回避する。ダッシュ中は無敵。,지면의 경고 원을 확인하고 {dash}을(를) 눌러 대시하여 회피하세요. 대시 중 무적.,看清地面的预警圈，按{dash}冲刺躲开，冲刺中无敌。,校对,校对：invincible 不应大写,自译,自译
 ui.onboard.cards.boss.touch,"Watch the warning circles on the ground, tap Dash Button to dodge, invincible during Dash.",地面の警告範囲を確認し、ダッシュボタンで回避してください。ダッシュ中は無敵。,"지면의 경고 원을 확인하고, 대시 버튼을 눌러 피하세요. 대시 중 무적.",看清地面的预警圈，点冲刺键躲开，冲刺中无敌。,校对,校对：invincible 不应大写,自译,自译
-ui.onboard.cards.boss.toast,"Safe Zone shrinking paused when Boss is present; watch for warning circles on the ground, press Space to Dash and dodge, invincible during Dash.",ボスが存在する時は安全圏の縮小が一時停止する。地面の警告円を確認し、スペースキーでダッシュして回避。ダッシュ中は無敵。,"보스가 필드에 있으면 자기장 축소 일시 정지; 바닥의 경고 원을 확인하고 스페이스를 눌러 대시하여 회피, 대시 중 무적.",Boss 在场时暂停缩圈；看清地面的预警圈，按空格冲刺躲开，冲刺中无敌。,校对,"校对：修正标点符号和大小写（Press -> press, 句号改为逗号以匹配中文，Invincible -> invincible）",自译,自译
+ui.onboard.cards.boss.toast,"Safe Zone shrinking paused when Boss is present; watch for warning circles on the ground, press {dash} to Dash and dodge, invincible during Dash.",ボスが存在する時は安全圏の縮小が一時停止する。地面の警告円を確認し、{dash}キーでダッシュして回避。ダッシュ中は無敵。,"보스가 필드에 있으면 자기장 축소 일시 정지; 바닥의 경고 원을 확인하고 {dash}을(를) 눌러 대시하여 회피, 대시 중 무적.",Boss 在场时暂停缩圈；看清地面的预警圈，按{dash}冲刺躲开，冲刺中无敌。,校对,"校对：修正标点符号和大小写（Press -> press, 句号改为逗号以匹配中文，Invincible -> invincible）",自译,自译
 ui.onboard.cards.boss.toast_touch,"Safe Zone shrinking paused when Boss is present; watch for warning circles on the ground, tap Dash Button to dodge, invincible during Dash.",ボスが存在する時は安全地帯の縮小が一時停止する。地面の警告円を見極め、ダッシュボタンで回避せよ。ダッシュ中は無敵。,"보스 존재 시 자기장 축소 일시 정지; 지면의 경고 원을 확인하고 대시 버튼을 눌러 회피하세요, 대시 중 무적.",Boss 在场时暂停缩圈；看清地面的预警圈，点冲刺键躲开，冲刺中无敌。,校对,校对：修正标点符号和大小写（句号改为逗号以匹配中文，Invincible -> invincible）,自译,自译
 ui.onboard.cards.squad.title,Squad and Leader,小隊とリーダー,소대와 리더,小队与队长,校对,校对：“与”应翻译为 and,自译,自译
 ui.onboard.cards.squad.text,"You control the Leader; if the Leader is defeated, the run fails. Allies follow the Leader and automatically battle.",操作するのはリーダーであり、リーダーが死亡すると探索失敗となる。味方はリーダーに追従し自動で作戦を行う。,"플레이어는 리더를 조종하며, 리더가 사망하면 탐험에 실패합니다. 아군은 리더를 따라 자동으로 작전을 수행합니다.",你操控的是队长，队长倒下即探索失败；队友跟着队长自动作战。,校对,"校对：修正不必要的大写（Defeated, Follow, Auto）并优化表达",自译,自译
 ui.onboard.cards.squad.toast,Leader defeat fails the run. Allies follow the Leader and automatically battle.,リーダーが死亡すると探索失敗。味方はリーダーに追従して自動で作戦を行う。,"리더 사망 시 탐험 실패, 아군은 리더를 따라 자동 작전을 수행합니다.",队长倒下即探索失败，队友跟着队长自动作战。,校对,"校对：修正不必要的大写（Defeat, Auto）并优化表达",自译,自译
 ui.onboard.cards.command.title,Command Disk,指揮サークル,지휘 원판,指挥圆盘,模型,,人改,自译
-ui.onboard.cards.command.text,"Press F to open the Command Disk and issue orders to Allies: Follow, Assault, Focus Fire, etc.",Fキーで指揮円盤を開き、味方に指令を出す：追従、突撃、集中攻撃など。,"F를 눌러 지휘 원판을 열고 아군에게 지령을 내리세요: 동행, 돌격, 집중 공격 등.",按 F 打开指挥圆盘，给队友下令：随行、突击、集火等。,模型,,自译,自译
+ui.onboard.cards.command.text,"Press {cmd} to open the Command Disk and issue orders to Allies: Follow, Assault, Focus Fire, etc.",{cmd}キーで指揮円盤を開き、味方に指令を出す：追従、突撃、集中攻撃など。,"{cmd}을(를) 눌러 지휘 원판을 열고 아군에게 지령을 내리세요: 동행, 돌격, 집중 공격 등.",按 {cmd} 打开指挥圆盘，给队友下令：随行、突击、集火等。,模型,,自译,自译
 ui.onboard.cards.command.touch,"Tap the 'Command' button to open the disk and issue orders to Allies: Follow, Assault, Focus Fire, etc.",「指揮」ボタンで指揮円盤を開き、味方に指令を出す：追従、突撃、集中攻撃など。,"'지휘' 버튼을 터치해 원판을 열고 아군에게 지령을 내리세요: 동행, 돌격, 집중 공격 등.",点「指挥」键打开圆盘，给队友下令：随行、突击、集火等。,模型,,自译,自译
 ui.onboard.cards.command.hint,Issue 1 Command,指揮を1回実行,지휘 1회 하달,下达一次指挥,校对,校对：修正语法（1 Times -> 1 Command）,自译,自译
 ui.onboard.cards.command.toast,"Press {cmd} to open Command Disk, issue orders to allies: Follow, Assault, Deploy, Focus Fire.",{cmd}を押して指揮円盤を開き、味方に命令を出す：追従、突撃、配置、集中攻撃。,"{cmd}를 눌러 지휘 원판을 열고 아군에게 명령 하달: 동행, 돌격, 배치, 집중 공격.",按 {cmd} 打开指挥圆盘，给队友下令：随行、突击、部署、集火。,校对,校对：Ally 应为复数 allies 且不需大写,自译,自译
@@ -118,7 +118,7 @@ ui.onboard.cards.link.text,"When Leader uses a skill, allies will automatically 
 ui.onboard.cards.link.hint,Wait for Leader to use a skill,リーダーのスキル発動を待つ,리더가 스킬을 사용할 때까지 대기하세요,等队长施放技能,校对,校对：修正语法和不必要的大写（use Skill -> use a skill）,自译,自译
 ui.onboard.cards.link.toast,"When Leader uses a skill, allies automatically follow up with a Link.",リーダーがスキルを発動する時、味方が自動で連携を行う。,"리더가 스킬을 사용할 때, 아군이 자동으로 연계를 1회 이어갑니다.",队长施放技能时，队友会自动接上一招连携。,校对,校对：allies 不应大写,自译,自译
 ui.onboard.cards.deploy.title,Command · Deploy,指揮・配置,지휘 · 배치,指挥 · 部署,模型,,自译,自译
-ui.onboard.cards.deploy.text,"A group of enemies swarms from the side. Press F to open the Command Disk, select 'Deploy', and click in the direction enemies are coming from: Defenders and Guards will drop in to block.",敵の群れが側面から押し寄せてくる。Fキーで指揮円盤を開き、「配置」を選択して敵が来る方向をクリック：重装、前衛が配置されブロックする。,"적 무리가 측면에서 몰려옵니다. F를 눌러 지휘 원판을 열고, '배치'를 선택한 후 적이 오는 방향을 클릭하세요: 디펜더, 가드가 배치되어 저지합니다.",一群敌人从侧面涌来。按 F 打开指挥圆盘，选「部署」，点在敌人来的方向：重装、近卫会落位阻挡。,校对,校对：职业名称应使用复数（Defenders and Guards）,自译,自译
+ui.onboard.cards.deploy.text,"A group of enemies swarms from the side. Press {cmd} to open the Command Disk, select 'Deploy', and click in the direction enemies are coming from: Defenders and Guards will drop in to block.",敵の群れが側面から押し寄せてくる。{cmd}キーで指揮円盤を開き、「配置」を選択して敵が来る方向をクリック：重装、前衛が配置されブロックする。,"적 무리가 측면에서 몰려옵니다. {cmd}을(를) 눌러 지휘 원판을 열고, '배치'를 선택한 후 적이 오는 방향을 클릭하세요: 디펜더, 가드가 배치되어 저지합니다.",一群敌人从侧面涌来。按 {cmd} 打开指挥圆盘，选「部署」，点在敌人来的方向：重装、近卫会落位阻挡。,校对,校对：职业名称应使用复数（Defenders and Guards）,自译,自译
 ui.onboard.cards.deploy.touch,"A group of enemies swarms from the side. Tap 'Command' button to open the disk, select 'Deploy', and tap in the direction enemies are coming from: Defenders and Guards will drop in to block.",敵の群れが側面から押し寄せてくる。「指揮」ボタンで円盤を開き、「配置」を選択して敵が来る方向をタップ：重装、前衛が配置されブロックする。,"적 무리가 측면에서 몰려옵니다. '지휘' 버튼을 눌러 원판을 열고, '배치'를 선택한 후 적이 오는 방향을 터치하세요: 디펜더, 가드가 배치되어 저지합니다.",一群敌人从侧面涌来。点「指挥」键打开圆盘，选「部署」，点在敌人来的方向：重装、近卫会落位阻挡。,校对,校对：职业名称应使用复数（Defenders and Guards）,自译,自译
 ui.onboard.cards.deploy.hint,Deploy allies to block enemies,味方を配置して敵をブロック,아군을 배치하여 적을 저지하세요,部署队友挡住敌人,校对,"校对：修正语法和不必要的大写（Ally -> allies, Enemy -> enemies）",自译,自译
 ui.onboard.cards.regroup.title,Command · Follow,指揮・追従,지휘 · 동행,指挥 · 随行,模型,,自译,自译
@@ -761,7 +761,7 @@ ui.gd.gallery.175,1,一,1,一,模型,,自译,自译
 ui.gd.gallery.176,2,二,2,二,模型,,自译,自译
 ui.gd.gallery.177,ATTACK  //  Normal Attack,ATTACK  //  通常攻撃,ATTACK  //  일반 공격,ATTACK  //  普攻,模型,,自译,自译
 ui.gd.gallery.178,Auto,自動,자동,自动,模型,,自译,自译
-ui.gd.gallery.179,Manual Q,手動 Q,수동 Q,手动 Q,模型,,自译,自译
+ui.gd.gallery.179,Manual %s,手動 %s,수동 %s,手动 %s,模型,,自译,自译
 ui.gd.gallery.180,Permanent,永続,영구,永久,模型,,自译,自译
 ui.gd.gallery.181,Recruit,招集,모집,招募,模型,,自译,自译
 ui.gd.gallery.182,Elite 1,昇進1,정예화 1,精英一,暂定,暂定（docs/276 §3.6）,暂定：暂定（docs/276 §13）,暂定：暂定（docs/276 §14）
@@ -1211,7 +1211,7 @@ ui.gd.screens.choice_panel.054,Unlock %s Skill · %s,%sスキル解放・%s,%s �
 ui.gd.screens.choice_panel.055,Details,詳細,상세,详情,模型,,自译,自译
 ui.gd.screens.choice_panel.056,"^[^,]{1,15} Operator[,]?\s*","^[^，,]{1,3}オペレーター[，,]\s*","^[^,]{1,10}오퍼레이터[,]\s*","^[^，,]{1,3}干员[，,]\s*",模型,,自译,自译
 ui.gd.screens.choice_panel.057,Leader: Press skill key to cast,リーダー：スキルキーで解放,리더 스킬 키 터치 시 방출,队长点技能键释放,校对,校对：补充漏掉的冒号以与相邻文本（p8）统一格式，并修正不必要的大写,自译,自译
-ui.gd.screens.choice_panel.058,Leader: Press Q to cast,リーダー：Qキーで解放,리더 Q 키 입력 시 방출,队长按 Q 释放,模型,,自译,自译
+ui.gd.screens.choice_panel.058,Leader: Press %s to cast,リーダー：%sキーで解放,리더 %s 키 입력 시 방출,队长按 %s 释放,模型,,自译,自译
 ui.gd.screens.choice_panel.059,Auto cast as Ally,味方として自動解放,아군일 때 자동 방출,作为队友自动释放,模型,,自译,自译
 ui.gd.screens.choice_panel.060,After Unlock,解放後,잠금 해제 후,解锁后,模型,,自译,自译
 ui.gd.screens.choice_panel.061,When SP Full,SP最大時,SP 최대 시,技力满后,模型,,自译,自译
@@ -1323,9 +1323,9 @@ ui.gd.screens.command_wheel.024,Command,指揮,지휘,指挥,暂定,暂定（doc
 ui.gd.screens.command_wheel.025,Select Command,指令選択,지령 선택,选择指令,模型,,自译,自译
 ui.gd.screens.command_wheel.026,Select Command · Tap empty space to Cancel,指令を選択・空白部分をタップでキャンセル,지령 선택 · 빈 공간을 터치하여 취소,点选指令 · 点空白处取消,模型,,自译,自译
 ui.gd.screens.command_wheel.027,"Hold and Move mouse to Select, release to confirm · ESC to Cancel",長押しでマウスを移動して選択、離して確認・ESCでキャンセル,"마우스를 누른 채 이동하여 선택, 떼어서 확인 · ESC 취소",按住移动鼠标选择，松开确认 · ESC 取消,模型,,自译,自译
-ui.gd.screens.command_wheel.028,"Hold LB, push joystick to Select, release to confirm · Ⓑ to Cancel",LB長押し＋スティックで選択、離して確定・Ⓑ キャンセル,"LB를 누른 채 스틱을 밀어 선택, 떼어서 확인 · Ⓑ 취소",按住 LB，推摇杆选择，松开确认 · Ⓑ 取消,模型,,自译,自译
-ui.gd.screens.command_wheel.029,"Select Command, or ENTER to confirm · ESC / F to Cancel",指令をクリック、またはENTERで確認 ・ ESC / Fでキャンセル,"지령 선택, 또는 ENTER 확인 · ESC / F 취소",点选指令，或 ENTER 确认 · ESC / F 取消,模型,,自译,自译
-ui.gd.screens.command_wheel.030,"Push joystick to Select, Ⓐ Confirm · Ⓑ Cancel",スティックで選択、Ⓐ 確認・Ⓑ キャンセル,"스틱을 밀어 선택, Ⓐ 확인 · Ⓑ 취소",推摇杆选择，Ⓐ 确认 · Ⓑ 取消,模型,,自译,自译
+ui.gd.screens.command_wheel.028,"Hold %s, push joystick to Select, release to confirm · %s to Cancel",%s長押し＋スティックで選択、離して確定・%s キャンセル,"%s을(를) 누른 채 스틱을 밀어 선택, 떼어서 확인 · %s 취소",按住 %s，推摇杆选择，松开确认 · %s 取消,模型,,自译,自译
+ui.gd.screens.command_wheel.029,"Select Command, or ENTER to confirm · ESC / %s to Cancel",指令をクリック、またはENTERで確認 ・ ESC / %sでキャンセル,"지령 선택, 또는 ENTER 확인 · ESC / %s 취소",点选指令，或 ENTER 确认 · ESC / %s 取消,模型,,自译,自译
+ui.gd.screens.command_wheel.030,"Push joystick to Select, Ⓐ Confirm · %s Cancel",スティックで選択、Ⓐ 確認・%s キャンセル,"스틱을 밀어 선택, Ⓐ 확인 · %s 취소",推摇杆选择，Ⓐ 确认 · %s 取消,模型,,自译,自译
 ui.gd.screens.difficulty_screen.000,Beacon Refresh Interval,灯標の更新間隔,등표 갱신 간격,灯标刷新间隔,模型,,自译,自译
 ui.gd.screens.difficulty_screen.001,Late-game Enemy Damage Growth cap +%d%%,終盤の敵ダメージ成長上限 +%d%%,후반 적 피해 성장 상한 +%d%%,后期敌人伤害成长上限 +%d%%,模型,,自译,自译
 ui.gd.screens.difficulty_screen.002,Endgame new Enemy HP Multiplier ×%.2f,終局戦の新規敵HP倍率 ×%.2f,최종전 신규 적 HP 배율 ×%.2f,终局战新增敌人生命倍率 ×%.2f,模型,,自译,自译
@@ -1356,7 +1356,7 @@ ui.gd.screens.difficulty_screen.026,Cognitive Shaping,認知形成,인지 형성
 ui.gd.screens.difficulty_screen.027,Locked,未解放,잠금 미해제,未解锁,模型,,自译,自译
 ui.gd.screens.difficulty_screen.028,Confirm Difficulty,難易度確認,난이도 확인,确认难度,模型,,自译,自译
 ui.gd.screens.elite_show.000,"When Leader SP is full, tap Skill button to cast.",リーダーのSP最大時にスキルボタンで解放。,리더 SP 최대 시 스킬 버튼을 터치하여 방출.,队长技力满后点技能键释放。,校对,校对：语法错误，缺少系动词 is,自译,自译
-ui.gd.screens.elite_show.001,"When Leader SP is full, press Q to cast.",リーダーのSP最大時にQキーで解放。,리더 SP 최대 시 Q를 눌러 방출.,队长技力满后按 Q 释放。,校对,校对：语法错误，缺少系动词,自译,自译
+ui.gd.screens.elite_show.001,"When Leader SP is full, press %s to cast.",リーダーのSP最大時に%sキーで解放。,리더 SP 최대 시 %s을(를) 눌러 방출.,队长技力满后按 %s 释放。,校对,校对：语法错误，缺少系动词,自译,自译
 ui.gd.screens.elite_show.002,Auto casts when SP is full as an ally.,味方として配置時、SP最大時に自動解放。,아군일 경우 SP 최대 시 자동 방출.,作为队友技力满后自动释放。,校对,校对：语法错误，且原意是“作为队友时”,自译,自译
 ui.gd.screens.elite_show.003,Skill,スキル,스킬,技能,模型,,自译,自译
 ui.gd.screens.elite_show.004,Skill,スキル,스킬,技,模型,,自译,自译
@@ -1494,7 +1494,7 @@ ui.gd.screens.hud_banners.010,Inside Black Tide! Back to Safe Zone,黒潮内部�
 ui.gd.screens.hud_banners.011,Black Tide in  %d,黒潮到達まで  %d,흑조 도달까지  %d,黑潮将至  %d,模型,,自译,自译
 ui.gd.screens.hud_banners.012,Safe Zone Shrinking,安全圏縮小中,안전 구역 축소 중,安全区收缩中,模型,,自译,自译
 ui.gd.screens.hud_banners.013,Drag Left Half Screen to Move · Auto Attack · Drag Aim Button to change direction,画面左半分をドラッグして移動・自動攻撃・照準ボタンをドラッグして方向転換,화면 좌측 절반 드래그하여 이동 · 자동 공격 · 조준 버튼 드래그하여 방향 변경,按住左半屏拖动移动 · 攻击自动 · 拖动瞄准键改方向,模型,,自译,自译
-ui.gd.screens.hud_banners.014,WASD Move · Auto Attack · Hold Left Click to Aim toward cursor,WASD 移動・攻撃 自動・左クリック長押しでカーソル方向へ照準,WASD 이동 · 자동 공격 · 좌클릭 유지 시 커서 방향으로 조준,WASD 移动 · 攻击自动 · 按住左键朝光标瞄准,模型,,自译,自译
+ui.gd.screens.hud_banners.014,%s Move · Auto Attack · Hold %s to Aim toward cursor,%s 移動・攻撃 自動・%s長押しでカーソル方向へ照準,%s 이동 · 자동 공격 · %s 유지 시 커서 방향으로 조준,%s 移动 · 攻击自动 · 按住%s朝光标瞄准,模型,,自译,自译
 ui.gd.screens.hud_banners.015,Left Stick Move · Auto Attack · Right Stick Aim,左スティック移動・攻撃自動・右スティック照準,좌측 스틱 이동 · 자동 공격 · 우측 스틱 조준,左摇杆移动 · 攻击自动 · 右摇杆瞄准,模型,,自译,自译
 ui.gd.screens.hud_banners.016,Tap 'Stats',「ステータス」をタップ,'능력치' 클릭,点「属性」,模型,,自译,自译
 ui.gd.screens.hud_banners.017,View Stats of Leader and squad,リーダーと編成のステータスを確認,리더 및 편성의 능력치 보기,查看队长与编队的属性,模型,,自译,自译
@@ -1577,7 +1577,7 @@ ui.gd.screens.hud_relics.002,Relic,秘宝,소장품,藏品,模型,,自译,暂定
 ui.gd.screens.hud_relics.003,%d other Relics,ほか%d個の秘宝,외 소장품 %d개,另有 %d 件藏品,模型,,自译,自译
 ui.gd.screens.hud_relics.004,Gained Earlier,早期獲得,먼저 획득,较早获得,模型,,自译,自译
 ui.gd.screens.hud_relics.005,Relic inventory only shows the %d most recently obtained. %s,秘宝欄には最近獲得した%d個のみ表示されます。%s,소장품 목록은 최근 획득한 %d개만 표시합니다. %s,藏品栏只显示最近获得的 %d 件。%s,模型,,自译,自译
-ui.gd.screens.hud_relics.006,Press TAB to View All.,TABキーで全て確認。,TAB을 눌러 전체 보기.,按 TAB 查看全部。,模型,,自译,自译
+ui.gd.screens.hud_relics.006,Press %s to View All.,%sで全て確認。,%s을(를) 눌러 전체 보기.,按 %s 查看全部。,模型,,自译,自译
 ui.gd.screens.hud_relics.007,Press SELECT to View All.,SELECTで全てを確認。,SELECT를 눌러 전체 보기.,按 SELECT 查看全部。,模型,,自译,自译
 ui.gd.screens.hud_relics.008,Tap 'Stats' to View All.,「ステータス」をタップして全てを確認。,'능력치' 클릭하여 전체 보기.,点「属性」查看全部。,模型,,自译,自译
 ui.gd.screens.hud_squad.000,Squad %d / %d,編成 %d / %d,편성 %d / %d,编队 %d / %d,模型,,自译,自译
@@ -2091,7 +2091,7 @@ ui.gd.screens.stats_panel.033,Relics  %d,秘宝  %d個,소장품  %d개,藏品  
 ui.gd.screens.stats_panel.034,Tap icon to view effect,アイコンをタップして効果を確認,아이콘 터치 시 효과 보기,点图标查看效果,校对,校对：大小写不一致,自译,自译
 ui.gd.screens.stats_panel.035,Hover over icon to view effect,アイコンにカーソルを合わせて効果を確認,마우스를 아이콘에 올려 효과 보기,鼠标移到图标上查看效果,校对,校对：大小写不一致，且与前文统一单数,自译,自译
 ui.gd.screens.stats_panel.036,Relics %d  ·  Kills %d  ·  Originium Ingots %d  ·  ,秘宝 %d 個  ・  撃破 %d  ・  源石錐 %d  ・  ,소장품 %d개  ·  처치 %d  ·  오리지늄각뿔 %d  ·  ,藏品 %d 件  ·  击杀 %d  ·  源石锭 %d  ·  ,校对,校对：物品数量统计应使用复数形式,自译,自译
-ui.gd.screens.stats_panel.037,Press TAB / C / ESC to return,TAB / C / ESCキーで戻る,TAB / C / ESC를 눌러 돌아가기,按 TAB / C / ESC 返回,校对,校对：go Back 大小写错误，且与后续文本统一使用 return,自译,自译
+ui.gd.screens.stats_panel.037,Press %s / ESC to return,%s / ESCキーで戻る,%s / ESC를 눌러 돌아가기,按 %s / ESC 返回,校对,校对：go Back 大小写错误，且与后续文本统一使用 return,自译,自译
 ui.gd.screens.stats_panel.038,Press SELECT / Ⓑ to return,SELECT / Ⓑ で戻る,SELECT / Ⓑ 눌러 돌아가기,按 SELECT / Ⓑ 返回,校对,校对：缺少 to，且与前后文本统一使用 return,自译,自译
 ui.gd.screens.stats_panel.039,Tap empty space to return,余白をタップして戻る,빈 곳을 터치하여 돌아가기,点空白处返回,校对,校对：UI 提示句统一仅句首大写即可,自译,自译
 ui.gd.screens.stats_panel.040,Talent,素質,재능,天赋,模型,,自译,自译
@@ -2116,7 +2116,7 @@ ui.gd.screens.stats_panel.058,(Unlocked at Elite 1),（昇進1で解放）,(정�
 ui.gd.screens.stats_panel.059,%s (Elite %s),%s（エリート%s）,%s (엘리트 %s),%s（精英%s）,模型,,自译,自译
 ui.gd.screens.stats_panel.060,1,一,1,一,模型,,自译,自译
 ui.gd.screens.stats_panel.061,2,二,2,二,模型,,自译,自译
-ui.gd.screens.stats_panel.062,TAB / C / ESC Back,TAB / C / ESC 戻る,TAB / C / ESC 돌아가기,TAB / C / ESC 返回,模型,,自译,自译
+ui.gd.screens.stats_panel.062,%s / ESC Back,%s / ESC 戻る,%s / ESC 돌아가기,%s / ESC 返回,模型,,自译,自译
 ui.gd.screens.stats_panel.063,SELECT / Ⓑ Back,SELECT / Ⓑ 戻る,SELECT / Ⓑ 돌아가기,SELECT / Ⓑ 返回,模型,,自译,自译
 ui.gd.screens.stats_panel.064,%s  /  squad %d/%d  /  %s  /  %s,%s  /  編成 %d/%d  /  %s  /  %s,%s  /  편성 %d/%d  /  %s  /  %s,%s  /  编队 %d/%d  /  %s  /  %s,校对,校对：统一术语（编队 -> squad）,自译,自译
 ui.gd.screens.stats_panel.065,Trait  ,特性  ,특성  ,特性  ,模型,,自译,自译
@@ -2205,7 +2205,7 @@ ui.gd.screens.title_op_pick.037,TRAIT // Trait,TRAIT // 特性,TRAIT // 특성,T
 ui.gd.screens.title_op_pick.038,Interval,間隔,간격,间隔,模型,,自译,自译
 ui.gd.screens.title_op_pick.039,HP,HP,HP,生命,模型,,自译,自译
 ui.gd.screens.title_op_pick.040,Leader %d,リーダー %d,리더 %d,队长 %d,模型,,自译,自译
-ui.gd.screens.title_op_pick.041,Leader: Press Q to cast;,リーダーはQで解放,리더 Q 눌러 방출;,队长按 Q 释放；,模型,,自译,自译
+ui.gd.screens.title_op_pick.041,Leader: Press %s to cast;,リーダーは%sで解放,리더 %s 눌러 방출;,队长按 %s 释放；,模型,,自译,自译
 ui.gd.screens.title_op_pick.042,Leader: Press Ⓐ to cast;,リーダーはⒶで解放,리더 Ⓐ 눌러 방출;,队长按 Ⓐ 释放；,模型,,自译,自译
 ui.gd.screens.title_op_pick.043,Leader: Tap Skill Key to cast;,リーダーはスキルボタンで解放,리더 스킬 버튼 눌러 방출;,队长点技能键释放；,校对,校对：保持与上下文一致补充冒号，“点”译为Tap更准确,自译,自译
 ui.gd.screens.title_op_pick.044,Auto as Ally.,味方として自動行動。,아군일 때 자동.,作为队友自动。,模型,,自译,自译
@@ -2213,7 +2213,7 @@ ui.gd.screens.title_op_pick.045,Talent,素質,재능,天赋,模型,,自译,自�
 ui.gd.screens.title_op_pick.046,  Elite 1 Unlock,  昇進1で解放,  정예화 1 잠금 해제,  精英一解锁,模型,,自译,自译
 ui.gd.screens.title_op_pick.047,Ultimate,必殺技,필살기,终结技,暂定,暂定（docs/276 §3.6）,暂定：暂定（docs/276 §13）,暂定：暂定（docs/276 §14）
 ui.gd.screens.title_op_pick.048,Link,連携,연계,连携,暂定,暂定（docs/276 §3.6）,暂定：暂定（docs/276 §13）,暂定：暂定（docs/276 §14）
-ui.gd.screens.title_op_pick.049,Manual Q,手動 Q,수동 Q,手动 Q,模型,,自译,自译
+ui.gd.screens.title_op_pick.049,Manual %s,手動 %s,수동 %s,手动 %s,模型,,自译,自译
 ui.gd.screens.title_op_pick.050,Manual Ⓐ,手動 Ⓐ,수동 Ⓐ,手动 Ⓐ,模型,,自译,自译
 ui.gd.screens.title_op_pick.051,Manual,手動,수동,手动,模型,,自译,自译
 ui.gd.screens.title_op_pick.052,Auto when Ally,味方時は自動,아군일 때 자동,队友时自动,模型,,自译,自译
@@ -2259,7 +2259,7 @@ ui.gd.screens.tour.007,HP and Light,HPと灯火,HP와 등불,生命与灯火,校
 ui.gd.screens.tour.008,"HP is the Leader's HP; reaching zero means the run fails. Light decreases when hit, and damage taken increases when below 30; replenish by picking up Lamp Oil or igniting Guiding Beacons.",HPはリーダーのHPであり、ゼロになると探索失敗となる。灯火は被撃時に低下し、30未満になると被ダメージが増加する。灯油を獲得するか、導きの灯標をイグニッションすることで補充できる。,"HP는 리더의 HP이며, 0이 되면 탐험에 실패합니다. 등불은 피격 시 감소하며, 30 미만일 때 받은 피해가 증가합니다; 등유를 획득하세요. 길잡이 등표 이그니션으로 보충합니다.",生命值是队长的生命，归零即探索失败。灯火受击时下降，低于 30 时受到的伤害更多；拾取灯油、点燃引航灯标补充。,校对,校对：修正大小写与语法,自译,自译
 ui.gd.screens.tour.009,Move & Dash,移動とダッシュ,이동 및 대시,移动与冲刺,模型,,自译,自译
 ui.gd.screens.tour.010,"Hold and drag left half of screen to move; tap Dash button to dash, invincible during dash.",画面左半分をドラッグして移動。ダッシュボタンでダッシュ、ダッシュ中は無敵。,"화면 좌측 절반 드래그하여 이동; 대시 버튼을 터치해 대시, 대시 중 무적.",按住左半屏拖动移动；点冲刺键冲刺，冲刺中无敌。,校对,校对：修正大小写,自译,自译
-ui.gd.screens.tour.011,"WASD to move, Space to dash, invincible during dash.",WASDで移動、スペースでダッシュ、ダッシュ中は無敵。,"WASD로 이동, 스페이스로 대시, 대시 중 무적.",WASD 移动，空格冲刺，冲刺中无敌。,校对,校对：修正大小写,自译,自译
+ui.gd.screens.tour.011,"{move} to move, {dash} to dash, invincible during dash.",{move}で移動、{dash}でダッシュ、ダッシュ中は無敵。,"{move}(으)로 이동, {dash}(으)로 대시, 대시 중 무적.",{move} 移动，{dash}冲刺，冲刺中无敌。,校对,校对：修正大小写,自译,自译
 ui.gd.screens.tour.012,"Press the 'Command' button to open the Command Disk: Formation (Follow / Assault / Regroup) and allies' targeting preferences. During Assault, allies leave the squad to seek enemies, and automatically regroup when stamina is depleted.",「指揮」キーで指揮円盤を開く：陣形（追従 / 突撃 / 復帰）と味方の索敵傾向を設定できる。突撃時、味方は離脱して索敵し、スタミナが尽きると自動で復帰する。,"'지휘' 버튼을 눌러 지휘 원판 열기: 진형(동행 / 돌격 / 복귀) 및 아군의 색적 성향 설정. 돌격 시 아군이 이탈하여 색적하며, 스태미나가 소진되면 자동으로 복귀합니다.",点「指挥」键打开指挥圆盘：队形（随行 / 突击 / 归队）与队友的索敌偏好。突击时队友离队索敌，耐力耗尽自动归队。,校对,校对：修正大小写,自译,自译
 ui.gd.screens.tour.013,"Press F (Controller LB) to open the Command Disk: Formation (Follow / Assault / Regroup) and allies' targeting preferences. During Assault, allies leave the squad to seek enemies, and automatically regroup when stamina is depleted.",Fキー（コントローラーのLB）を押して指揮円盤を開く：陣形（追従 / 突撃 / 復帰）と味方の索敵設定。突撃時、味方は離脱して索敵し、スタミナが尽きると自動で復帰する。,"F(컨트롤러 LB)를 눌러 지휘 원판 열기: 진형(동행 / 돌격 / 복귀) 및 아군의 색적 성향. 돌격 시 아군이 이탈하여 색적하며, 스태미나가 소진되면 자동 복귀.",按 F（手柄 LB）打开指挥圆盘：队形（随行 / 突击 / 归队）与队友的索敌偏好。突击时队友离队索敌，耐力耗尽自动归队。,校对,校对：修正大小写,自译,自译
 ui.gd.screens.tour.014,Command,指揮,지휘,指挥,暂定,暂定（docs/276 §3.6）,暂定：暂定（docs/276 §13）,暂定：暂定（docs/276 §14）
@@ -2732,15 +2732,15 @@ ui.gd.render.world.022,Reload Interrupted · Stun %.1f,装填中断 ・ スタ�
 通明｜灯火 ≥ 70：技力回复 +30%，拾取范围 +20%。暗淡时受到伤害 +{dark_taken}%，拾取范围 -30%，海嗣移速与接触伤害 +{dark_enemy}%。,"Bright | Light ≥ 70: SP Recovery +30%, Pick Up Range +20%. When Dim, damage taken +{dark_taken}%, Pick Up Range -30%, Seaborn movement speed and contact damage +{dark_enemy}%.",明明｜灯火≥70：SP回復+30%、獲得範囲+20%。幽幽の時、被ダメージ+{dark_taken}%、獲得範囲-30%、シーボーンの移動速度と接触ダメージ+{dark_enemy}%。,"밝음｜등불 ≥ 70: SP 회복 +30%, 획득 범위 +20%. 희미함 상태일 때 받은 피해 +{dark_taken}%, 획득 범위 -30%, 시본 이동 속도 및 접촉 피해 +{dark_enemy}%.",,原文键,校对,自译,自译
 照亮｜范围半径在 110 与 360 之间随灯火变化，灯火变弱时圈缩小、亮度不变。圈内敌人受到伤害 +{lit_bonus}%，通明时 +{lit_bonus_hi}%。,"Illuminated | Range radius varies between 110 and 360 with Light; when Light weakens, the ring shrinks but brightness remains unchanged. Enemies within the ring have damage taken +{lit_bonus}%, +{lit_bonus_hi}% when Bright.",照明｜範囲半径は110から360の間で灯火に応じて変化し、灯火が弱まると円は縮小するが明るさは変わらない。円内の敵の被ダメージ+{lit_bonus}%、明明時は+{lit_bonus_hi}%。,"조명｜범위 반경은 등불에 따라 110에서 360 사이로 변화하며, 등불이 약해지면 원이 축소되나 밝기는 변하지 않음. 원 안의 적이 받은 피해 +{lit_bonus}%, 밝음 상태일 때 +{lit_bonus_hi}%.",,原文键,校对,自译,自译
 黑潮｜2:30 起安全区分 4 轮收缩，圈外持续受伤，看到「黑潮将至」就往白色虚线圈里走。,"Black Tide | From 2:30, the Safe Zone shrinks in 4 phases. Take continuous damage outside the zone. Move into the white dashed circle when 'Black Tide Approaching' appears.",黒潮｜2:30から安全圏が4段階に分けて縮小し、範囲外では継続ダメージを受ける。「黒潮接近」が見えたら白い破線の円内へ移動してください。,"흑조｜2:30부터 안전 구역이 4회에 걸쳐 축소되며, 범위 밖에서는 지속 피해를 받습니다. '흑조 접근 중'이 보이면 흰색 점선 원 안으로 이동하십시오.",,原文键,模型,自译,自译
-圆盘｜按 F（手柄 LB，触屏「指挥」键）打开，选队形与索敌偏好。,"Disk | Press F (Controller LB, Touch 'Command' button) to open, select Formation and Targeting preference.",円盤｜Fキー（コントローラーはLB、タッチ操作は「指揮」ボタン）で開き、陣形と索敵の優先順位を選択する。,"원판｜F (컨트롤러 LB, 터치 '지휘' 버튼)를 눌러 열고, 진형 및 색적 선호도를 선택합니다.",,原文键,模型,自译,自译
+圆盘｜按 {cmd}（手柄 {p_cmd}，触屏「指挥」键）打开，选队形与索敌偏好。,"Disk | Press {cmd} (Controller {p_cmd}, Touch 'Command' button) to open, select Formation and Targeting preference.",円盤｜{cmd}キー（コントローラーは{p_cmd}、タッチ操作は「指揮」ボタン）で開き、陣形と索敵の優先順位を選択する。,"원판｜{cmd} (컨트롤러 {p_cmd}, 터치 '지휘' 버튼)를 눌러 열고, 진형 및 색적 선호도를 선택합니다.",,原文键,模型,自译,自译
 集火｜圆盘下半圈。点选一名精英或 Boss，全队攻击该目标；小怪不能选。,"Focus Fire | Bottom half of the disc. Select an Elite or Boss, all allies attack the target; mobs cannot be selected.",集中攻撃｜円盤の下半円。エリートまたはボスを1体選択し、味方全体でその目標を攻撃する。通常の敵は選択不可。,집중 공격｜원판 하단 반원. 엘리트 또는 보스 1명을 선택하면 아군 전체가 해당 목표를 공격; 일반 몹은 선택 불가.,,原文键,校对,自译,自译
 加成｜突击、部署、集火时，出击的队友攻速 +{cmd_aspd}% · 技力回复 ×{cmd_sp}；随行时没有加成，但队友不会受伤。,"Bonus | During Assault, Deploy, or Focus Fire, attacking allies gain ASPD +{cmd_aspd}% · SP recovery ×{cmd_sp}; no bonus during Follow, but allies will not take damage.",ボーナス｜突撃、配置、集中攻撃時、出撃した味方の攻撃速度+{cmd_aspd}%・SP回復×{cmd_sp}。追従時はボーナスはないが、味方はダメージを受けない。,"보너스｜돌격, 배치, 집중 공격 시, 출격한 아군 공격 속도 +{cmd_aspd}% · SP 회복 ×{cmd_sp}; 동행 시 보너스는 없으나 아군이 피해를 입지 않음.",,原文键,校对,自译,自译
 队形｜随行＝护卫阵型，队友按职业守在队长身边，不会受伤；突击＝队友按职业分头出击，耐力约 {cmd_stamina} 秒，耗尽自动归队。圆盘下半圈：部署＝点一个位置让队友落位，重装、近卫会挡住敌人。,"Formation | Follow = Guard formation. Allies stay by Leader by class, taking no damage. Assault = Allies attack separately by class. Stamina lasts about {cmd_stamina}s, auto regroup when depleted. Lower half of disk: Deploy = Select a position for an ally to land. Defenders and Guards will block enemies.",陣形｜追従＝護衛陣形。味方が職業別にリーダーの周囲を守り、ダメージを受けない。突撃＝味方が職業別に分かれて出撃。スタミナは約{cmd_stamina}秒、尽きると自動で復帰する。円盤の下半円：配置＝指定した位置に味方を配置する。重装、前衛は敵をブロックする。,"진형｜동행=호위 진형, 아군이 포지션별로 리더 곁을 지키며 피해를 받지 않음; 돌격=아군이 포지션별로 흩어져 출격, 스태미나 약 {cmd_stamina}초, 소진 시 자동 복귀. 원판 하단: 배치=위치를 지정해 아군을 배치, 디펜더와 가드가 적을 저지함.",,原文键,校对,自译,自译
 操作｜按住选、松开确认，轻点则点选；打开时局内放慢。,"Controls | Hold to select, release to confirm, tap to click; in-run time slows down when opened.",操作｜長押しで選択、離して確定、タップでクリック。展開中はゲーム内の進行が遅くなる。,"조작｜길게 눌러 선택, 떼서 확인, 짧게 눌러 클릭; 열려 있을 때 게임 내 시간 느려짐.",,原文键,校对,自译,自译
 倒地｜突击和部署中的队友会被敌人与弹幕打伤，生命低于 30% 自动撤回队长身边；生命耗尽即倒地，{cmd_revive} 秒后复活。耐力耗尽后冷却，回到 {cmd_min}% 才能再次突击。,"Downed | Allies in Assault and Deploy can be injured by enemies and projectiles. Auto retreat to Leader when HP is below 30%. Downed when HP is depleted, reviving after {cmd_revive}s. Cooldown triggers when stamina is depleted, requiring {cmd_min}% to Assault again.",ダウン｜突撃および配置中の味方は敵や弾幕によって負傷し、HPが30%を下回ると自動でリーダーの元へ撤回される。HPが尽きるとダウンし、{cmd_revive}秒後に復活する。スタミナが尽きるとクールダウンに入り、{cmd_min}%まで回復すると再び突撃可能になる。,"쓰러짐｜돌격 및 배치 중인 아군은 적과 탄막에 의해 부상을 입을 수 있으며, HP가 30% 미만이면 자동으로 리더 곁으로 철회됨; HP가 소진되면 쓰러짐 상태가 되며, {cmd_revive}초 후 부활함. 스태미나가 소진되면 재사용 대기시간이 적용되며, {cmd_min}%까지 회복되어야 다시 돌격할 수 있음.",,原文键,校对,自译,自译
-瞄准｜普攻自动出手。按住鼠标左键朝光标打，手柄推右摇杆，触屏拖动瞄准键；松开即回到自动索敌。,"Aim | Normal attack fires automatically. Hold left click to fire toward cursor, push right stick on controller, or drag aim button on touchscreen; release to return to auto targeting.",照準｜通常攻撃は自動で発動する。左クリック長押しでカーソル方向へ攻撃、コントローラーは右スティックを倒す、タッチパネルは照準ボタンをドラッグする。離すと自動索敵に戻る。,"조준｜일반 공격은 자동으로 발사됩니다. 마우스 좌클릭을 유지하면 커서 방향으로 공격하고, 컨트롤러는 우측 스틱을 밀며, 터치는 조준 버튼을 드래그합니다; 손을 떼면 자동 색적으로 돌아갑니다.",,原文键,校对,自译,自译
+瞄准｜普攻自动出手。按住{aim}朝光标打，手柄推右摇杆，触屏拖动瞄准键；松开即回到自动索敌。,"Aim | Normal attack fires automatically. Hold {aim} to fire toward cursor, push right stick on controller, or drag aim button on touchscreen; release to return to auto targeting.",照準｜通常攻撃は自動で発動する。{aim}長押しでカーソル方向へ攻撃、コントローラーは右スティックを倒す、タッチパネルは照準ボタンをドラッグする。離すと自動索敵に戻る。,"조준｜일반 공격은 자동으로 발사됩니다. {aim}을(를) 유지하면 커서 방향으로 공격하고, 컨트롤러는 우측 스틱을 밀며, 터치는 조준 버튼을 드래그합니다; 손을 떼면 자동 색적으로 돌아갑니다.",,原文键,校对,自译,自译
 指挥台,Command Terminal,指揮台,지휘대,,原文键,模型,自译,自译
-位置｜屏幕正下方：中间是队长与终结技（Q），左边是生命、灯火、冲刺，右边是队友与当前指令。,"Position | Bottom of screen: Center is Leader with Ultimate (Q), left is HP, Light, Dash, right is allies and current command.",位置｜画面下部：中央はリーダーと必殺技（Q）、左側はHP、灯火、ダッシュ、右側は味方と現在の指令。,"위치｜화면 중앙 하단: 중앙은 리더와 필살기(Q), 좌측은 HP, 등불, 대시, 우측은 아군과 현재 지령입니다.",,原文键,校对,自译,自译
+位置｜屏幕正下方：中间是队长与终结技（{ult}），左边是生命、灯火、冲刺，右边是队友与当前指令。,"Position | Bottom of screen: Center is Leader with Ultimate ({ult}), left is HP, Light, Dash, right is allies and current command.",位置｜画面下部：中央はリーダーと必殺技（{ult}）、左側はHP、灯火、ダッシュ、右側は味方と現在の指令。,"위치｜화면 중앙 하단: 중앙은 리더와 필살기({ult}), 좌측은 HP, 등불, 대시, 우측은 아군과 현재 지령입니다.",,原文键,校对,自译,自译
 灯火｜生命下面的金色长条，右边是数值；30、70 处各有一道刻度。,"Light | The gold bar below HP, value on the right; marks at 30 and 70.",灯火｜HPの下にある金色のゲージ。右側に数値が表示され、30と70の位置に目盛りがある。,"등불｜HP 아래의 금색 막대, 우측에 수치 표시; 30, 70 위치에 각각 눈금이 있습니다.",,原文键,模型,自译,自译
 终结技｜头像外圈是能量，满格转青；头像下是百分比。,"Ultimate | The outer ring of the portrait is energy, turns cyan when full; percentage is below the portrait.",必殺技｜アイコンの外枠はエネルギーを示し、最大になると青緑色に変わる。アイコンの下はパーセンテージ。,"필살기｜초상화 바깥쪽 고리는 에너지로, 가득 차면 청록색으로 변함. 초상화 아래는 백분율.",,原文键,模型,自译,自译
 冲刺格｜「冲刺」左边的箭头：青色可用，用掉后从下往上回填。「连冲」多存一格，「迅捷」缩短冷却。,"Dash Charges | Arrows left of 'Dash': cyan means available, refills from bottom to top when used. 'Multi-Dash' stores one extra charge, 'Swift' reduces cooldown.",ダッシュマス｜「ダッシュ」左側の矢印：青色は使用可能、消費後は下から上へ補充される。「連衝」はストック上限+1、「迅速」はクールタイム短縮。,"대시 칸｜'대시' 왼쪽의 화살표: 청록색은 사용 가능, 사용 후 아래에서 위로 다시 채워짐. '연속 돌진'은 1칸 더 저장, '신속'은 쿨타임 단축.",,原文键,模型,自译,自译
@@ -2763,23 +2763,23 @@ Boss｜中 Boss 在场时暂停缩圈，普通海嗣照常刷新；看清地面�
 鸭爵｜不攻击，受到攻击后越跑越快，30 秒内没被击倒就会溜走；击倒必得 1 件藏品与少量源石锭。,"Duck Lord | Does not attack, runs faster when attacked, and slips away if not defeated within 30s; defeated guarantees 1 Relic and a small amount of Originium Ingots.",ダック卿｜攻撃せず、攻撃を受けると移動速度が上がる。30秒以内に撃倒しないと逃走する。撃倒で秘宝1個と少量の源石錐を確定ドロップ。,"덕로드｜공격하지 않으며, 피격 시 이동 속도 증가, 30초 내에 처치하지 않으면 도망감; 처치 시 소장품 1개와 소량의 오리지늄각뿔 확정 획득.",,原文键,校对,自译,自译
 操作,Controls,操作,조작,,原文键,模型,自译,自译
 目标｜维持作战至 10:00，击败它们。,"Objective | Survive until 10:00, defeat them.",目標｜10:00まで作戦を維持し、敵を撃破する。,"목표｜10:00까지 작전을 유지하고, 적을 처치하십시오.",,原文键,模型,自译,自译
-移动｜WASD / 方向键,Move | WASD / arrow keys,移動｜WASD / 方向キー,이동｜WASD / 방향키,,原文键,校对,自译,自译
-冲刺｜空格。冲刺中无敌，冷却约 {dash_cd} 秒。,"Dash | Space. Invincible during Dash, cooldown approx. {dash_cd}s.",ダッシュ｜スペース。ダッシュ中は無敵、クールダウン約{dash_cd}秒。,"대시｜스페이스. 대시 중 무적, 쿨타임 약 {dash_cd}초.",,原文键,模型,自译,自译
-指挥｜F：指挥圆盘,Command | F: Command Disk,指揮｜F：指揮円盤,지휘｜F: 지휘 원판,,原文键,模型,自译,自译
-面板｜Tab / C：属性　　Esc：暂停,Panel | Tab / C: Stats    Esc: Pause,パネル｜Tab / C：ステータス　　Esc：一時停止,패널｜Tab / C: 능력치　　Esc: 일시 정지,,原文键,模型,自译,自译
-终结技｜Q：能量满后按住看范围（落点 / 方向类跟鼠标选），松开释放；全队技能与连携都自动释放。,"Ultimate | Q: Hold when energy is full to see range (target / direction follows mouse), release to cast; squad skills and Link are cast automatically.",必殺技｜Q：エネルギーMAX時に長押しで範囲確認（着弾点 / 方向はマウスに追従）、離して解放。全体のスキルと連携は自動で解放される。,"필살기｜Q: 에너지가 가득 차면 길게 눌러 범위 확인(낙하점 / 방향은 마우스로 선택), 떼면 방출; 아군 전체 스킬과 연계는 모두 자동 방출.",,原文键,校对,自译,自译
-瞄准｜普攻自动出手；按住鼠标左键时朝光标方向打，松开即回到自动索敌。,"Aim | Normal attacks fire automatically; hold Left Click to attack toward cursor, release to return to auto targeting.",照準｜通常攻撃は自動で発動。左クリック長押しでカーソル方向へ攻撃し、離すと自動索敵に戻る。,"조준｜일반 공격 자동 발동; 마우스 좌클릭 유지 시 커서 방향으로 공격하며, 떼면 자동 색적으로 복귀.",,原文键,校对,自译,自译
-手柄｜左摇杆移动 · Ⓑ / RT 冲刺 · Ⓐ / RB 终结技 · 右摇杆瞄准 · LB 指挥圆盘 · START 暂停 · SELECT 属性,Controller | Left Stick Move · Ⓑ / RT Dash · Ⓐ / RB Ultimate · Right Stick Aim · LB Command Disk · START Pause · SELECT Stats,コントローラー｜左スティック移動・Ⓑ / RT ダッシュ・Ⓐ / RB 必殺技・右スティック照準・LB 指揮円盤・START 一時停止・SELECT ステータス,컨트롤러｜좌측 스틱 이동 · Ⓑ / RT 대시 · Ⓐ / RB 필살기 · 우측 스틱 조준 · LB 지휘 원판 · START 일시 정지 · SELECT 능력치,,原文键,模型,自译,自译
-其他｜M：音乐　　V：倍速　　R：重来,Other | M: Music  V: Speed  R: Restart,その他｜M：音楽　　V：倍速　　R：リトライ,기타｜M: 음악  V: 배속  R: 재시작,,原文键,模型,自译,自译
-按 F（手柄 LB，触屏「指挥」键）打开，选队形与索敌偏好,"Press F (Controller LB, Touch 'Command' button) to open, select formation and targeting preference",Fキー（コントローラーはLB、タッチ操作は「指揮」ボタン）で開き、陣形と索敵の優先目標を選択する,"F(컨트롤러 LB, 터치 '지휘' 버튼)를 눌러 열기, 진형 및 색적 선호도 선택",,原文键,校对,自译,自译
+移动｜{move2},Move | {move2},移動｜{move2},이동｜{move2},,原文键,校对,自译,自译
+冲刺｜{dash}。冲刺中无敌，冷却约 {dash_cd} 秒。,"Dash | {dash}. Invincible during Dash, cooldown approx. {dash_cd}s.",ダッシュ｜{dash}。ダッシュ中は無敵、クールダウン約{dash_cd}秒。,"대시｜{dash}. 대시 중 무적, 쿨타임 약 {dash_cd}초.",,原文键,模型,自译,自译
+指挥｜{cmd}：指挥圆盘,Command | {cmd}: Command Disk,指揮｜{cmd}：指揮円盤,지휘｜{cmd}: 지휘 원판,,原文键,模型,自译,自译
+面板｜{stats2}：属性　　Esc：暂停,Panel | {stats2}: Stats    Esc: Pause,パネル｜{stats2}：ステータス　　Esc：一時停止,패널｜{stats2}: 능력치　　Esc: 일시 정지,,原文键,模型,自译,自译
+终结技｜{ult}：能量满后按住看范围（落点 / 方向类跟鼠标选），松开释放；全队技能与连携都自动释放。,"Ultimate | {ult}: Hold when energy is full to see range (target / direction follows mouse), release to cast; squad skills and Link are cast automatically.",必殺技｜{ult}：エネルギーMAX時に長押しで範囲確認（着弾点 / 方向はマウスに追従）、離して解放。全体のスキルと連携は自動で解放される。,"필살기｜{ult}: 에너지가 가득 차면 길게 눌러 범위 확인(낙하점 / 방향은 마우스로 선택), 떼면 방출; 아군 전체 스킬과 연계는 모두 자동 방출.",,原文键,校对,自译,自译
+瞄准｜普攻自动出手；按住{aim}时朝光标方向打，松开即回到自动索敌。,"Aim | Normal attacks fire automatically; hold {aim} to attack toward cursor, release to return to auto targeting.",照準｜通常攻撃は自動で発動。{aim}長押しでカーソル方向へ攻撃し、離すと自動索敵に戻る。,"조준｜일반 공격 자동 발동; {aim} 유지 시 커서 방향으로 공격하며, 떼면 자동 색적으로 복귀.",,原文键,校对,自译,自译
+手柄｜左摇杆移动 · {p_dash} 冲刺 · {p_ult} 终结技 · 右摇杆瞄准 · {p_cmd} 指挥圆盘 · START 暂停 · {p_stats} 属性,Controller | Left Stick Move · {p_dash} Dash · {p_ult} Ultimate · Right Stick Aim · {p_cmd} Command Disk · START Pause · {p_stats} Stats,コントローラー｜左スティック移動・{p_dash} ダッシュ・{p_ult} 必殺技・右スティック照準・{p_cmd} 指揮円盤・START 一時停止・{p_stats} ステータス,컨트롤러｜좌측 스틱 이동 · {p_dash} 대시 · {p_ult} 필살기 · 우측 스틱 조준 · {p_cmd} 지휘 원판 · START 일시 정지 · {p_stats} 능력치,,原文键,模型,自译,自译
+其他｜{music}：音乐　　{speed}：倍速　　R：重来,Other | {music}: Music  {speed}: Speed  R: Restart,その他｜{music}：音楽　　{speed}：倍速　　R：リトライ,기타｜{music}: 음악  {speed}: 배속  R: 재시작,,原文键,模型,自译,自译
+按 {cmd}（手柄 {p_cmd}，触屏「指挥」键）打开，选队形与索敌偏好,"Press {cmd} (Controller {p_cmd}, Touch 'Command' button) to open, select formation and targeting preference",{cmd}キー（コントローラーは{p_cmd}、タッチ操作は「指揮」ボタン）で開き、陣形と索敵の優先目標を選択する,"{cmd}(컨트롤러 {p_cmd}, 터치 '지휘' 버튼)를 눌러 열기, 진형 및 색적 선호도 선택",,原文键,校对,自译,自译
 点右侧「指挥」键打开，选队形与索敌偏好,"Click right 'Command' button to open, select formation and targeting preference",右側の「指揮」ボタンから、陣形と索敵の優先目標を選択してください,"우측의 '지휘' 버튼을 눌러 열고, 진형 및 색적 선호도를 선택하세요",,原文键,校对,自译,自译
 按住选、松开确认，轻点则点选,"Press and hold to select, release to confirm, tap to click",長押しで選択、離して決定、タップで選択,"길게 눌러 선택, 떼서 확인, 터치하여 클릭",,原文键,模型,自译,自译
 点选项确认,Tap option to confirm,オプションをタップして確認,옵션 터치로 확인,,原文键,校对,自译,自译
-按住鼠标左键朝光标打，手柄推右摇杆，触屏拖动瞄准键,"Hold Left Click to attack towards the cursor, push Right Stick on Controller, drag aim button on touchscreen",左クリック長押しでカーソル方向へ攻撃。コントローラーは右スティックを倒し、タッチ操作は照準ボタンをドラッグする,"마우스 좌클릭을 길게 눌러 커서 방향으로 공격, 컨트롤러는 우측 스틱을 밀고, 터치 스크린은 조준 버튼을 드래그",,原文键,校对,自译,自译
+按住{aim}朝光标打，手柄推右摇杆，触屏拖动瞄准键,"Hold {aim} to attack towards the cursor, push Right Stick on Controller, drag aim button on touchscreen",{aim}長押しでカーソル方向へ攻撃。コントローラーは右スティックを倒し、タッチ操作は照準ボタンをドラッグする,"{aim}을(를) 길게 눌러 커서 방향으로 공격, 컨트롤러는 우측 스틱을 밀고, 터치 스크린은 조준 버튼을 드래그",,原文键,校对,自译,自译
 按住瞄准键拖动选方向,Hold aim button and drag to select direction,照準ボタン長押し＋ドラッグで方向選択,조준 버튼을 길게 누르고 드래그하여 방향 선택,,原文键,校对,自译,自译
 刷新一次货架（按 F）,Refresh stock once (Press F),商品を1回更新（Fキー）,진열대 1회 갱신(F 누르기),,原文键,校对,自译,自译
 刷新一次货架,Refresh stock once,商品を1回更新,진열대 1회 갱신,,原文键,校对,自译,自译
-队长与终结技（Q）,Leader and Ultimate (Q),リーダーと必殺技（Q）,리더와 필살기(Q),,原文键,校对,自译,自译
+队长与终结技（{ult}）,Leader and Ultimate ({ult}),リーダーと必殺技（{ult}）,리더와 필살기({ult}),,原文键,校对,自译,自译
 队长与终结技,Leader and Ultimate,リーダーと必殺技,리더와 필살기,,原文键,校对,自译,自译
 移动｜按住屏幕左半边拖动,Move | Press and hold left side of screen to drag,移動｜画面左半分を長押ししてドラッグ,이동｜화면 왼쪽을 누른 채 드래그,,原文键,模型,自译,自译
 冲刺｜右下「冲刺」键。冲刺中无敌，冷却约 {dash_cd} 秒。,"Dash | Bottom right 'Dash' button. Invincible during dash, cooldown approx {dash_cd}s.",ダッシュ｜右下の「ダッシュ」ボタン。ダッシュ中は無敵。クールダウンは約{dash_cd}秒。,"대시｜우측 하단 '대시' 버튼. 대시 중 무적, 쿨타임 약 {dash_cd}초.",,原文键,校对,自译,自译
@@ -2797,7 +2797,7 @@ Boss｜中 Boss 在场时暂停缩圈，普通海嗣照常刷新；看清地面�
 跳过引导,Skip Tutorial,チュートリアルスキップ,튜토리얼 스킵,,原文键,模型,自译,自译
 之后可在「设置 · 操作」里重新打开,Can be turned on again later in 'Settings · Controls',後で「設定・操作」から再度オンにできる,이후 '설정 · 조작'에서 다시 켤 수 있음,,原文键,模型,自译,自译
 移动,Move,移動,이동,,原文键,官方,官方：gamedata_const.termDescriptionDict.ba.addash,官方：gamedata_const.termDescriptionDict.ba.addash
-WASD 移动，空格冲刺（冲刺中无敌），攻击会自动打出去。,"WASD to move, Space to dash (invincible during dash), attacks fire automatically.",WASDで移動、スペースでダッシュ（ダッシュ中は無敵）。攻撃は自動で行われる。,"WASD로 이동, 스페이스로 대시(대시 중 무적), 공격은 자동으로 발동됩니다.",,原文键,校对,自译,自译
+{move} 移动，{dash}冲刺（冲刺中无敌），攻击会自动打出去。,"{move} to move, {dash} to dash (invincible during dash), attacks fire automatically.",{move}で移動、{dash}でダッシュ（ダッシュ中は無敵）。攻撃は自動で行われる。,"{move}(으)로 이동, {dash}(으)로 대시(대시 중 무적), 공격은 자동으로 발동됩니다.",,原文键,校对,自译,自译
 按住左半屏拖动移动，点冲刺键冲刺（冲刺中无敌），攻击会自动打出去。,"Hold and drag left half of screen to move, tap 'Dash' button to dash (invincible during dash), attacks fire automatically.",画面左半分をドラッグして移動、ダッシュボタンでダッシュ（ダッシュ中は無敵）。攻撃は自動で行われる。,"화면 좌측 절반 드래그를 유지해 이동, 대시 버튼을 터치해 대시(대시 중 무적), 공격은 자동으로 발동됩니다.",,原文键,校对,自译,自译
 走动一下,Move around,移動してください,이동하세요,,原文键,模型,自译,自译
 经验与升级,EXP and Upgrade,経験値とレベルアップ,경험치와 레벨 업,,原文键,校对,自译,自译
@@ -2807,10 +2807,10 @@ WASD 移动，空格冲刺（冲刺中无敌），攻击会自动打出去。,"W
 升级时会出现干员卡，选中即加入编队。你操控的是队长（出发时选的干员），队友自动作战。,Operator cards appear upon upgrade; select to join the squad. You control the Leader (the Operator selected upon departure); allies fight automatically.,レベルアップ時にオペレーターカードが出現し、選択すると編成加入する。操作するのはリーダー（出発時に選択したオペレーター）であり、味方は自動で作戦を行う。,"레벨 업 시 오퍼레이터 카드가 나타나며, 선택 시 편성에 합류합니다. 플레이어는 리더(출발 시 선택한 오퍼레이터)를 조종하며, 아군은 자동으로 작전합니다.",,原文键,校对,自译,自译
 招募一名干员,Recruit an Operator,オペレーターを1名招集,오퍼레이터 1명 모집,,原文键,校对,自译,自译
 终结技,Ultimate,必殺技,필살기,,原文键,暂定,暂定：暂定（docs/276 §13）,暂定：暂定（docs/276 §14）
-终结技已充满：按住 Q 看范围，松开释放。,"Ultimate charged: Hold Q to view Range, release to cast.",必殺技チャージ完了：Q長押しで範囲を確認、離して解放。,"필살기 충전 완료: Q를 길게 눌러 범위를 확인하고, 손을 떼서 방출하세요.",,原文键,模型,自译,自译
+终结技已充满：按住 {ult} 看范围，松开释放。,"Ultimate charged: Hold {ult} to view Range, release to cast.",必殺技チャージ完了：{ult}長押しで範囲を確認、離して解放。,"필살기 충전 완료: {ult}을(를) 길게 눌러 범위를 확인하고, 손을 떼서 방출하세요.",,原文键,模型,自译,自译
 终结技已充满：按住终结技键看范围，松开释放。,"Ultimate is fully charged: Hold Ultimate button to view Range, release to cast.",必殺技チャージ完了：必殺技ボタンを長押しで範囲を確認し、離して解放してください。,"필살기 충전 완료: 필살기 버튼을 길게 눌러 범위를 확인하고, 손을 떼서 방출하세요.",,原文键,模型,自译,自译
 释放一次终结技,Use 1 Ultimate,必殺技を1回解放する,필살기를 1회 방출하세요,,原文键,模型,自译,自译
-终结技充满了：按住 Q 看范围，松开释放。,"Ultimate is charged: Hold Q to view Range, release to cast.",必殺技チャージ完了：Q長押しで範囲を確認、離して解放。,"필살기가 충전되었습니다: Q를 길게 눌러 범위를 확인하고, 손을 떼서 방출하세요.",,原文键,模型,自译,自译
+终结技充满了：按住 {ult} 看范围，松开释放。,"Ultimate is charged: Hold {ult} to view Range, release to cast.",必殺技チャージ完了：{ult}長押しで範囲を確認、離して解放。,"필살기가 충전되었습니다: {ult}을(를) 길게 눌러 범위를 확인하고, 손을 떼서 방출하세요.",,原文键,模型,自译,自译
 终结技充满了：按住终结技键看范围，松开释放。,"Ultimate fully charged: Hold Ultimate button to view Range, release to cast.",必殺技チャージ完了：必殺技ボタンを長押しで範囲を確認し、離して解放してください。,"필살기가 충전되었습니다: 필살기 버튼을 길게 눌러 범위를 확인하고, 손을 떼서 방출하세요.",,原文键,模型,自译,自译
 演示结束,Preview Ended,プレビュー終了,미리보기 종료,,原文键,模型,自译,自译
 小队、灯火、指挥都讲完了，其余内容第一次遇到时会在左上角提示。,"Squad, Light, and Command are covered. Other content will be prompted in the top left when encountered for the first time.",分隊、灯火、指揮についての説明は以上だ。その他の要素は初めて遭遇した際、左上にヒントが表示される。,"소대, 등불, 지휘에 대한 설명이 끝났습니다. 기타 콘텐츠는 처음 조우 시 좌측 상단에 안내됩니다.",,原文键,校对,自译,自译
@@ -2823,15 +2823,15 @@ WASD 移动，空格冲刺（冲刺中无敌），攻击会自动打出去。,"W
 商人只停留 60 秒。跟着金色箭头找到他，用源石锭购买藏品。,"Merchant only stays for 60s. Follow the gold arrow to find him, use Originium Ingot to buy Relic.",商人は60秒のみ滞在。金色の矢印に従って商人を見つけ、源石錐で秘宝を購入してください。,"상인은 60초만 머무름. 금색 화살표를 따라가 상인을 찾고, 오리지늄각뿔로 소장품을 구매하세요.",,原文键,模型,自译,自译
 找到商人,Find the Merchant,商人を見つけてください,상인을 찾으세요,,原文键,模型,自译,自译
 商人只停留 60 秒，跟着金色箭头找到他，用源石锭购买藏品。,"Merchant only stays for 60s, follow the gold arrow to find him, use Originium Ingot to buy Relic.",商人は60秒のみ滞在、金色の矢印に従って商人を見つけ、源石錐で秘宝を購入してください。,"상인은 60초만 머무름, 금색 화살표를 따라가 상인을 찾고, 오리지늄각뿔로 소장품을 구매하세요.",,原文键,模型,自译,自译
-看清地面的预警圈，按空格冲刺躲开，冲刺中无敌。,"Watch the warning circles on the ground, press Space to Dash and dodge, invincible during Dash.",地面の警告円を確認し、スペースでダッシュして回避する。ダッシュ中は無敵。,지면의 경고 원을 확인하고 스페이스를 눌러 대시하여 회피하세요. 대시 중 무적.,,原文键,校对,自译,自译
+看清地面的预警圈，按{dash}冲刺躲开，冲刺中无敌。,"Watch the warning circles on the ground, press {dash} to Dash and dodge, invincible during Dash.",地面の警告円を確認し、{dash}でダッシュして回避する。ダッシュ中は無敵。,지면의 경고 원을 확인하고 {dash}을(를) 눌러 대시하여 회피하세요. 대시 중 무적.,,原文键,校对,自译,自译
 看清地面的预警圈，点冲刺键躲开，冲刺中无敌。,"Watch the warning circles on the ground, tap Dash Button to dodge, invincible during Dash.",地面の警告範囲を確認し、ダッシュボタンで回避してください。ダッシュ中は無敵。,"지면의 경고 원을 확인하고, 대시 버튼을 눌러 피하세요. 대시 중 무적.",,原文键,校对,自译,自译
-Boss 在场时暂停缩圈；看清地面的预警圈，按空格冲刺躲开，冲刺中无敌。,"Safe Zone shrinking paused when Boss is present; watch for warning circles on the ground, press Space to Dash and dodge, invincible during Dash.",ボスが存在する時は安全圏の縮小が一時停止する。地面の警告円を確認し、スペースキーでダッシュして回避。ダッシュ中は無敵。,"보스가 필드에 있으면 자기장 축소 일시 정지; 바닥의 경고 원을 확인하고 스페이스를 눌러 대시하여 회피, 대시 중 무적.",,原文键,校对,自译,自译
+Boss 在场时暂停缩圈；看清地面的预警圈，按{dash}冲刺躲开，冲刺中无敌。,"Safe Zone shrinking paused when Boss is present; watch for warning circles on the ground, press {dash} to Dash and dodge, invincible during Dash.",ボスが存在する時は安全圏の縮小が一時停止する。地面の警告円を確認し、{dash}キーでダッシュして回避。ダッシュ中は無敵。,"보스가 필드에 있으면 자기장 축소 일시 정지; 바닥의 경고 원을 확인하고 {dash}을(를) 눌러 대시하여 회피, 대시 중 무적.",,原文键,校对,自译,自译
 Boss 在场时暂停缩圈；看清地面的预警圈，点冲刺键躲开，冲刺中无敌。,"Safe Zone shrinking paused when Boss is present; watch for warning circles on the ground, tap Dash Button to dodge, invincible during Dash.",ボスが存在する時は安全地帯の縮小が一時停止する。地面の警告円を見極め、ダッシュボタンで回避せよ。ダッシュ中は無敵。,"보스 존재 시 자기장 축소 일시 정지; 지면의 경고 원을 확인하고 대시 버튼을 눌러 회피하세요, 대시 중 무적.",,原文键,校对,自译,自译
 小队与队长,Squad and Leader,小隊とリーダー,소대와 리더,,原文键,校对,自译,自译
 你操控的是队长，队长倒下即探索失败；队友跟着队长自动作战。,"You control the Leader; if the Leader is defeated, the run fails. Allies follow the Leader and automatically battle.",操作するのはリーダーであり、リーダーが死亡すると探索失敗となる。味方はリーダーに追従し自動で作戦を行う。,"플레이어는 리더를 조종하며, 리더가 사망하면 탐험에 실패합니다. 아군은 리더를 따라 자동으로 작전을 수행합니다.",,原文键,校对,自译,自译
 队长倒下即探索失败，队友跟着队长自动作战。,Leader defeat fails the run. Allies follow the Leader and automatically battle.,リーダーが死亡すると探索失敗。味方はリーダーに追従して自動で作戦を行う。,"리더 사망 시 탐험 실패, 아군은 리더를 따라 자동 작전을 수행합니다.",,原文键,校对,自译,自译
 指挥圆盘,Command Disk,指揮サークル,지휘 원판,,原文键,模型,人改,自译
-按 F 打开指挥圆盘，给队友下令：随行、突击、集火等。,"Press F to open the Command Disk and issue orders to Allies: Follow, Assault, Focus Fire, etc.",Fキーで指揮円盤を開き、味方に指令を出す：追従、突撃、集中攻撃など。,"F를 눌러 지휘 원판을 열고 아군에게 지령을 내리세요: 동행, 돌격, 집중 공격 등.",,原文键,模型,自译,自译
+按 {cmd} 打开指挥圆盘，给队友下令：随行、突击、集火等。,"Press {cmd} to open the Command Disk and issue orders to Allies: Follow, Assault, Focus Fire, etc.",{cmd}キーで指揮円盤を開き、味方に指令を出す：追従、突撃、集中攻撃など。,"{cmd}을(를) 눌러 지휘 원판을 열고 아군에게 지령을 내리세요: 동행, 돌격, 집중 공격 등.",,原文键,模型,自译,自译
 点「指挥」键打开圆盘，给队友下令：随行、突击、集火等。,"Tap the 'Command' button to open the disk and issue orders to Allies: Follow, Assault, Focus Fire, etc.",「指揮」ボタンで指揮円盤を開き、味方に指令を出す：追従、突撃、集中攻撃など。,"'지휘' 버튼을 터치해 원판을 열고 아군에게 지령을 내리세요: 동행, 돌격, 집중 공격 등.",,原文键,模型,自译,自译
 下达一次指挥,Issue 1 Command,指揮を1回実行,지휘 1회 하달,,原文键,校对,自译,自译
 按 {cmd} 打开指挥圆盘，给队友下令：随行、突击、部署、集火。,"Press {cmd} to open Command Disk, issue orders to allies: Follow, Assault, Deploy, Focus Fire.",{cmd}を押して指揮円盤を開き、味方に命令を出す：追従、突撃、配置、集中攻撃。,"{cmd}를 눌러 지휘 원판을 열고 아군에게 명령 하달: 동행, 돌격, 배치, 집중 공격.",,原文键,校对,自译,自译
@@ -2841,7 +2841,7 @@ Boss 在场时暂停缩圈；看清地面的预警圈，点冲刺键躲开，冲
 等队长施放技能,Wait for Leader to use a skill,リーダーのスキル発動を待つ,리더가 스킬을 사용할 때까지 대기하세요,,原文键,校对,自译,自译
 队长施放技能时，队友会自动接上一招连携。,"When Leader uses a skill, allies automatically follow up with a Link.",リーダーがスキルを発動する時、味方が自動で連携を行う。,"리더가 스킬을 사용할 때, 아군이 자동으로 연계를 1회 이어갑니다.",,原文键,校对,自译,自译
 指挥 · 部署,Command · Deploy,指揮・配置,지휘 · 배치,,原文键,模型,自译,自译
-一群敌人从侧面涌来。按 F 打开指挥圆盘，选「部署」，点在敌人来的方向：重装、近卫会落位阻挡。,"A group of enemies swarms from the side. Press F to open the Command Disk, select 'Deploy', and click in the direction enemies are coming from: Defenders and Guards will drop in to block.",敵の群れが側面から押し寄せてくる。Fキーで指揮円盤を開き、「配置」を選択して敵が来る方向をクリック：重装、前衛が配置されブロックする。,"적 무리가 측면에서 몰려옵니다. F를 눌러 지휘 원판을 열고, '배치'를 선택한 후 적이 오는 방향을 클릭하세요: 디펜더, 가드가 배치되어 저지합니다.",,原文键,校对,自译,自译
+一群敌人从侧面涌来。按 {cmd} 打开指挥圆盘，选「部署」，点在敌人来的方向：重装、近卫会落位阻挡。,"A group of enemies swarms from the side. Press {cmd} to open the Command Disk, select 'Deploy', and click in the direction enemies are coming from: Defenders and Guards will drop in to block.",敵の群れが側面から押し寄せてくる。{cmd}キーで指揮円盤を開き、「配置」を選択して敵が来る方向をクリック：重装、前衛が配置されブロックする。,"적 무리가 측면에서 몰려옵니다. {cmd}을(를) 눌러 지휘 원판을 열고, '배치'를 선택한 후 적이 오는 방향을 클릭하세요: 디펜더, 가드가 배치되어 저지합니다.",,原文键,校对,自译,自译
 一群敌人从侧面涌来。点「指挥」键打开圆盘，选「部署」，点在敌人来的方向：重装、近卫会落位阻挡。,"A group of enemies swarms from the side. Tap 'Command' button to open the disk, select 'Deploy', and tap in the direction enemies are coming from: Defenders and Guards will drop in to block.",敵の群れが側面から押し寄せてくる。「指揮」ボタンで円盤を開き、「配置」を選択して敵が来る方向をタップ：重装、前衛が配置されブロックする。,"적 무리가 측면에서 몰려옵니다. '지휘' 버튼을 눌러 원판을 열고, '배치'를 선택한 후 적이 오는 방향을 터치하세요: 디펜더, 가드가 배치되어 저지합니다.",,原文键,校对,自译,自译
 部署队友挡住敌人,Deploy allies to block enemies,味方を配置して敵をブロック,아군을 배치하여 적을 저지하세요,,原文键,校对,自译,自译
 指挥 · 随行,Command · Follow,指揮・追従,지휘 · 동행,,原文键,模型,自译,自译
@@ -3279,7 +3279,7 @@ PROFILE  //  档案,PROFILE  //  Profile,PROFILE  //  プロファイル,PROFILE
 精英%s「%s」：%s,Elite %s '%s': %s,エリート%s「%s」：%s,엘리트 %s '%s': %s,,原文键,模型,自译,自译
 ATTACK  //  普攻,ATTACK  //  Normal Attack,ATTACK  //  通常攻撃,ATTACK  //  일반 공격,,原文键,模型,自译,自译
 自动,Auto,自動,자동,,原文键,模型,自译,自译
-手动 Q,Manual Q,手動 Q,수동 Q,,原文键,模型,自译,自译
+手动 %s,Manual %s,手動 %s,수동 %s,,原文键,模型,自译,自译
 永久,Permanent,永続,영구,,原文键,模型,自译,自译
 TALENT  //  精英一,TALENT  //  Elite 1,TALENT  //  昇進1,TALENT  //  정예화 1,,原文键,模型,自译,自译
 天赋,Talent,素質,재능,,原文键,模型,自译,自译
@@ -3641,7 +3641,7 @@ Boss 演练,Boss Drill,ボス演習,보스 연습,,原文键,校对,自译,自�
 详情,Details,詳細,상세,,原文键,模型,自译,自译
 "^[^，,]{1,3}干员[，,]\s*","^[^,]{1,15} Operator[,]?\s*","^[^，,]{1,3}オペレーター[，,]\s*","^[^,]{1,10}오퍼레이터[,]\s*",,原文键,模型,自译,自译
 队长点技能键释放,Leader: Press skill key to cast,リーダー：スキルキーで解放,리더 스킬 키 터치 시 방출,,原文键,校对,自译,自译
-队长按 Q 释放,Leader: Press Q to cast,リーダー：Qキーで解放,리더 Q 키 입력 시 방출,,原文键,模型,自译,自译
+队长按 %s 释放,Leader: Press %s to cast,リーダー：%sキーで解放,리더 %s 키 입력 시 방출,,原文键,模型,自译,自译
 作为队友自动释放,Auto cast as Ally,味方として自動解放,아군일 때 자동 방출,,原文键,模型,自译,自译
 解锁后,After Unlock,解放後,잠금 해제 후,,原文键,模型,自译,自译
 技力满后,When SP Full,SP最大時,SP 최대 시,,原文键,模型,自译,自译
@@ -3738,9 +3738,9 @@ Boss 优先,Prioritize Bosses,ボス優先,보스 우선,,原文键,人改,自�
 选择指令,Select Command,指令選択,지령 선택,,原文键,模型,自译,自译
 点选指令 · 点空白处取消,Select Command · Tap empty space to Cancel,指令を選択・空白部分をタップでキャンセル,지령 선택 · 빈 공간을 터치하여 취소,,原文键,模型,自译,自译
 按住移动鼠标选择，松开确认 · ESC 取消,"Hold and Move mouse to Select, release to confirm · ESC to Cancel",長押しでマウスを移動して選択、離して確認・ESCでキャンセル,"마우스를 누른 채 이동하여 선택, 떼어서 확인 · ESC 취소",,原文键,模型,自译,自译
-按住 LB，推摇杆选择，松开确认 · Ⓑ 取消,"Hold LB, push joystick to Select, release to confirm · Ⓑ to Cancel",LB長押し＋スティックで選択、離して確定・Ⓑ キャンセル,"LB를 누른 채 스틱을 밀어 선택, 떼어서 확인 · Ⓑ 취소",,原文键,模型,自译,自译
-点选指令，或 ENTER 确认 · ESC / F 取消,"Select Command, or ENTER to confirm · ESC / F to Cancel",指令をクリック、またはENTERで確認 ・ ESC / Fでキャンセル,"지령 선택, 또는 ENTER 확인 · ESC / F 취소",,原文键,模型,自译,自译
-推摇杆选择，Ⓐ 确认 · Ⓑ 取消,"Push joystick to Select, Ⓐ Confirm · Ⓑ Cancel",スティックで選択、Ⓐ 確認・Ⓑ キャンセル,"스틱을 밀어 선택, Ⓐ 확인 · Ⓑ 취소",,原文键,模型,自译,自译
+按住 %s，推摇杆选择，松开确认 · %s 取消,"Hold %s, push joystick to Select, release to confirm · %s to Cancel",%s長押し＋スティックで選択、離して確定・%s キャンセル,"%s을(를) 누른 채 스틱을 밀어 선택, 떼어서 확인 · %s 취소",,原文键,模型,自译,自译
+点选指令，或 ENTER 确认 · ESC / %s 取消,"Select Command, or ENTER to confirm · ESC / %s to Cancel",指令をクリック、またはENTERで確認 ・ ESC / %sでキャンセル,"지령 선택, 또는 ENTER 확인 · ESC / %s 취소",,原文键,模型,自译,自译
+推摇杆选择，Ⓐ 确认 · %s 取消,"Push joystick to Select, Ⓐ Confirm · %s Cancel",スティックで選択、Ⓐ 確認・%s キャンセル,"스틱을 밀어 선택, Ⓐ 확인 · %s 취소",,原文键,模型,自译,自译
 灯标刷新间隔,Beacon Refresh Interval,灯標の更新間隔,등표 갱신 간격,,原文键,模型,自译,自译
 后期敌人伤害成长上限 +%d%%,Late-game Enemy Damage Growth cap +%d%%,終盤の敵ダメージ成長上限 +%d%%,후반 적 피해 성장 상한 +%d%%,,原文键,模型,自译,自译
 终局战新增敌人生命倍率 ×%.2f,Endgame new Enemy HP Multiplier ×%.2f,終局戦の新規敵HP倍率 ×%.2f,최종전 신규 적 HP 배율 ×%.2f,,原文键,模型,自译,自译
@@ -3768,7 +3768,7 @@ Boss 在场时大群照常来袭。,We Many attacks as usual when a Boss is pres
 未解锁,Locked,未解放,잠금 미해제,,原文键,模型,自译,自译
 确认难度,Confirm Difficulty,難易度確認,난이도 확인,,原文键,模型,自译,自译
 队长技力满后点技能键释放。,"When Leader SP is full, tap Skill button to cast.",リーダーのSP最大時にスキルボタンで解放。,리더 SP 최대 시 스킬 버튼을 터치하여 방출.,,原文键,校对,自译,自译
-队长技力满后按 Q 释放。,"When Leader SP is full, press Q to cast.",リーダーのSP最大時にQキーで解放。,리더 SP 최대 시 Q를 눌러 방출.,,原文键,校对,自译,自译
+队长技力满后按 %s 释放。,"When Leader SP is full, press %s to cast.",リーダーのSP最大時に%sキーで解放。,리더 SP 최대 시 %s을(를) 눌러 방출.,,原文键,校对,自译,自译
 作为队友技力满后自动释放。,Auto casts when SP is full as an ally.,味方として配置時、SP最大時に自動解放。,아군일 경우 SP 최대 시 자동 방출.,,原文键,校对,自译,自译
 技,Skill,スキル,스킬,,原文键,模型,自译,自译
   ·  新能力解锁,  ·  New Ability Unlocked,  ・  新能力解放,  ·  새로운 능력 잠금 해제,,原文键,模型,自译,自译
@@ -3888,7 +3888,7 @@ Boss 在场时大群照常来袭。,We Many attacks as usual when a Boss is pres
 黑潮将至  %d,Black Tide in  %d,黒潮到達まで  %d,흑조 도달까지  %d,,原文键,模型,自译,自译
 安全区收缩中,Safe Zone Shrinking,安全圏縮小中,안전 구역 축소 중,,原文键,模型,自译,自译
 按住左半屏拖动移动 · 攻击自动 · 拖动瞄准键改方向,Drag Left Half Screen to Move · Auto Attack · Drag Aim Button to change direction,画面左半分をドラッグして移動・自動攻撃・照準ボタンをドラッグして方向転換,화면 좌측 절반 드래그하여 이동 · 자동 공격 · 조준 버튼 드래그하여 방향 변경,,原文键,模型,自译,自译
-WASD 移动 · 攻击自动 · 按住左键朝光标瞄准,WASD Move · Auto Attack · Hold Left Click to Aim toward cursor,WASD 移動・攻撃 自動・左クリック長押しでカーソル方向へ照準,WASD 이동 · 자동 공격 · 좌클릭 유지 시 커서 방향으로 조준,,原文键,模型,自译,自译
+%s 移动 · 攻击自动 · 按住%s朝光标瞄准,%s Move · Auto Attack · Hold %s to Aim toward cursor,%s 移動・攻撃 自動・%s長押しでカーソル方向へ照準,%s 이동 · 자동 공격 · %s 유지 시 커서 방향으로 조준,,原文键,模型,自译,自译
 左摇杆移动 · 攻击自动 · 右摇杆瞄准,Left Stick Move · Auto Attack · Right Stick Aim,左スティック移動・攻撃自動・右スティック照準,좌측 스틱 이동 · 자동 공격 · 우측 스틱 조준,,原文键,模型,自译,自译
 点「属性」,Tap 'Stats',「ステータス」をタップ,'능력치' 클릭,,原文键,模型,自译,自译
 查看队长与编队的属性,View Stats of Leader and squad,リーダーと編成のステータスを確認,리더 및 편성의 능력치 보기,,原文键,模型,自译,自译
@@ -3961,7 +3961,7 @@ WASD 移动 · 攻击自动 · 按住左键朝光标瞄准,WASD Move · Auto Att
 另有 %d 件藏品,%d other Relics,ほか%d個の秘宝,외 소장품 %d개,,原文键,模型,自译,自译
 较早获得,Gained Earlier,早期獲得,먼저 획득,,原文键,模型,自译,自译
 藏品栏只显示最近获得的 %d 件。%s,Relic inventory only shows the %d most recently obtained. %s,秘宝欄には最近獲得した%d個のみ表示されます。%s,소장품 목록은 최근 획득한 %d개만 표시합니다. %s,,原文键,模型,自译,自译
-按 TAB 查看全部。,Press TAB to View All.,TABキーで全て確認。,TAB을 눌러 전체 보기.,,原文键,模型,自译,自译
+按 %s 查看全部。,Press %s to View All.,%sで全て確認。,%s을(를) 눌러 전체 보기.,,原文键,模型,自译,自译
 按 SELECT 查看全部。,Press SELECT to View All.,SELECTで全てを確認。,SELECT를 눌러 전체 보기.,,原文键,模型,自译,自译
 点「属性」查看全部。,Tap 'Stats' to View All.,「ステータス」をタップして全てを確認。,'능력치' 클릭하여 전체 보기.,,原文键,模型,自译,自译
 编队 %d / %d,Squad %d / %d,編成 %d / %d,편성 %d / %d,,原文键,模型,自译,自译
@@ -4304,7 +4304,7 @@ F 刷新  ·  ESC 离开,F Refresh  ·  ESC Leave,F 更新  ・  ESC 離れる,F
 点图标查看效果,Tap icon to view effect,アイコンをタップして効果を確認,아이콘 터치 시 효과 보기,,原文键,校对,自译,自译
 鼠标移到图标上查看效果,Hover over icon to view effect,アイコンにカーソルを合わせて効果を確認,마우스를 아이콘에 올려 효과 보기,,原文键,校对,自译,自译
 藏品 %d 件  ·  击杀 %d  ·  源石锭 %d  ·  ,Relics %d  ·  Kills %d  ·  Originium Ingots %d  ·  ,秘宝 %d 個  ・  撃破 %d  ・  源石錐 %d  ・  ,소장품 %d개  ·  처치 %d  ·  오리지늄각뿔 %d  ·  ,,原文键,校对,自译,自译
-按 TAB / C / ESC 返回,Press TAB / C / ESC to return,TAB / C / ESCキーで戻る,TAB / C / ESC를 눌러 돌아가기,,原文键,校对,自译,自译
+按 %s / ESC 返回,Press %s / ESC to return,%s / ESCキーで戻る,%s / ESC를 눌러 돌아가기,,原文键,校对,自译,自译
 按 SELECT / Ⓑ 返回,Press SELECT / Ⓑ to return,SELECT / Ⓑ で戻る,SELECT / Ⓑ 눌러 돌아가기,,原文键,校对,自译,自译
 点空白处返回,Tap empty space to return,余白をタップして戻る,빈 곳을 터치하여 돌아가기,,原文键,校对,自译,自译
 赋,Talent,素質,재능,,原文键,模型,自译,自译
@@ -4317,7 +4317,7 @@ F 刷新  ·  ESC 离开,F Refresh  ·  ESC Leave,F 更新  ・  ESC 離れる,F
 （%s解锁）,(Unlocked at %s),（%s解放）,(%s 잠금 해제),,原文键,校对,自译,自译
 （精英一解锁）,(Unlocked at Elite 1),（昇進1で解放）,(정예화 1 잠금 해제),,原文键,校对,自译,自译
 %s（精英%s）,%s (Elite %s),%s（エリート%s）,%s (엘리트 %s),,原文键,模型,自译,自译
-TAB / C / ESC 返回,TAB / C / ESC Back,TAB / C / ESC 戻る,TAB / C / ESC 돌아가기,,原文键,模型,自译,自译
+%s / ESC 返回,%s / ESC Back,%s / ESC 戻る,%s / ESC 돌아가기,,原文键,模型,自译,自译
 SELECT / Ⓑ 返回,SELECT / Ⓑ Back,SELECT / Ⓑ 戻る,SELECT / Ⓑ 돌아가기,,原文键,模型,自译,自译
 %s  /  编队 %d/%d  /  %s  /  %s,%s  /  squad %d/%d  /  %s  /  %s,%s  /  編成 %d/%d  /  %s  /  %s,%s  /  편성 %d/%d  /  %s  /  %s,,原文键,校对,自译,自译
 特性  ,Trait  ,特性  ,특성  ,,原文键,模型,自译,自译
@@ -4376,7 +4376,7 @@ ENTER  ·  下一步选择难度,ENTER  ·  Next Select Difficulty,ENTER  ・  �
 定位,Position,ポジション,포지션,,原文键,模型,自译,自译
 TRAIT // 特性,TRAIT // Trait,TRAIT // 特性,TRAIT // 특성,,原文键,模型,自译,自译
 队长 %d,Leader %d,リーダー %d,리더 %d,,原文键,模型,自译,自译
-队长按 Q 释放；,Leader: Press Q to cast;,リーダーはQで解放,리더 Q 눌러 방출;,,原文键,模型,自译,自译
+队长按 %s 释放；,Leader: Press %s to cast;,リーダーは%sで解放,리더 %s 눌러 방출;,,原文键,模型,自译,自译
 队长按 Ⓐ 释放；,Leader: Press Ⓐ to cast;,リーダーはⒶで解放,리더 Ⓐ 눌러 방출;,,原文键,模型,自译,自译
 队长点技能键释放；,Leader: Tap Skill Key to cast;,リーダーはスキルボタンで解放,리더 스킬 버튼 눌러 방출;,,原文键,校对,自译,自译
 作为队友自动。,Auto as Ally.,味方として自動行動。,아군일 때 자동.,,原文键,模型,自译,自译
@@ -4410,7 +4410,7 @@ Boss 在场时暂停缩圈；看清地面的预警圈，冲刺躲开，冲刺中
 生命值是队长的生命，归零即探索失败。灯火受击时下降，低于 30 时受到的伤害更多；拾取灯油、点燃引航灯标补充。,"HP is the Leader's HP; reaching zero means the run fails. Light decreases when hit, and damage taken increases when below 30; replenish by picking up Lamp Oil or igniting Guiding Beacons.",HPはリーダーのHPであり、ゼロになると探索失敗となる。灯火は被撃時に低下し、30未満になると被ダメージが増加する。灯油を獲得するか、導きの灯標をイグニッションすることで補充できる。,"HP는 리더의 HP이며, 0이 되면 탐험에 실패합니다. 등불은 피격 시 감소하며, 30 미만일 때 받은 피해가 증가합니다; 등유를 획득하세요. 길잡이 등표 이그니션으로 보충합니다.",,原文键,校对,自译,自译
 移动与冲刺,Move & Dash,移動とダッシュ,이동 및 대시,,原文键,模型,自译,自译
 按住左半屏拖动移动；点冲刺键冲刺，冲刺中无敌。,"Hold and drag left half of screen to move; tap Dash button to dash, invincible during dash.",画面左半分をドラッグして移動。ダッシュボタンでダッシュ、ダッシュ中は無敵。,"화면 좌측 절반 드래그하여 이동; 대시 버튼을 터치해 대시, 대시 중 무적.",,原文键,校对,自译,自译
-WASD 移动，空格冲刺，冲刺中无敌。,"WASD to move, Space to dash, invincible during dash.",WASDで移動、スペースでダッシュ、ダッシュ中は無敵。,"WASD로 이동, 스페이스로 대시, 대시 중 무적.",,原文键,校对,自译,自译
+{move} 移动，{dash}冲刺，冲刺中无敌。,"{move} to move, {dash} to dash, invincible during dash.",{move}で移動、{dash}でダッシュ、ダッシュ中は無敵。,"{move}(으)로 이동, {dash}(으)로 대시, 대시 중 무적.",,原文键,校对,自译,自译
 点「指挥」键打开指挥圆盘：队形（随行 / 突击 / 归队）与队友的索敌偏好。突击时队友离队索敌，耐力耗尽自动归队。,"Press the 'Command' button to open the Command Disk: Formation (Follow / Assault / Regroup) and allies' targeting preferences. During Assault, allies leave the squad to seek enemies, and automatically regroup when stamina is depleted.",「指揮」キーで指揮円盤を開く：陣形（追従 / 突撃 / 復帰）と味方の索敵傾向を設定できる。突撃時、味方は離脱して索敵し、スタミナが尽きると自動で復帰する。,"'지휘' 버튼을 눌러 지휘 원판 열기: 진형(동행 / 돌격 / 복귀) 및 아군의 색적 성향 설정. 돌격 시 아군이 이탈하여 색적하며, 스태미나가 소진되면 자동으로 복귀합니다.",,原文键,校对,自译,自译
 按 F（手柄 LB）打开指挥圆盘：队形（随行 / 突击 / 归队）与队友的索敌偏好。突击时队友离队索敌，耐力耗尽自动归队。,"Press F (Controller LB) to open the Command Disk: Formation (Follow / Assault / Regroup) and allies' targeting preferences. During Assault, allies leave the squad to seek enemies, and automatically regroup when stamina is depleted.",Fキー（コントローラーのLB）を押して指揮円盤を開く：陣形（追従 / 突撃 / 復帰）と味方の索敵設定。突撃時、味方は離脱して索敵し、スタミナが尽きると自動で復帰する。,"F(컨트롤러 LB)를 눌러 지휘 원판 열기: 진형(동행 / 돌격 / 복귀) 및 아군의 색적 성향. 돌격 시 아군이 이탈하여 색적하며, 스태미나가 소진되면 자동 복귀.",,原文键,校对,自译,自译
 编队卡下方,Below squad card,編成カードの下,편성 카드 하단,,原文键,校对,自译,自译
@@ -4692,3 +4692,41 @@ FPS %.0f  最低 %.0f  帧时 P50 %.1f / P95 %.1f ms,FPS %.0f  Min %.0f  Frameti
 泡膜硬化 · %d 秒后破裂,Film Hardened · Bursts in %ds,泡膜硬化・%d秒後に破裂,거품막 경화 · %d초 후 파열,,原文键,模型,自译,自译
 阶段护盾 · %d 秒后破碎,Phase Shield · Shatters in %ds,フェーズシールド値・%d秒後に破壊,단계 실드 · %d초 후 파괴됨,,原文键,模型,自译,自译
 护盾破碎,Shield Shattered,シールド破壊,실드 파괴,,原文键,模型,自译,自译
+键位设置,Key Bindings,キー設定,키 설정,,原文键,模型,自译,自译
+主键,Primary,メイン,주 키,,原文键,模型,自译,自译
+备用,Alternate,サブ,보조,,原文键,模型,自译,自译
+已恢复默认键位,Default bindings restored,初期キー設定に戻しました,기본 키 설정으로 복원했습니다,,原文键,模型,自译,自译
+按下新按键…,Press a new key…,新しいキーを押してください…,새 키를 누르세요…,,原文键,模型,自译,自译
+按下新的手柄按键…,Press a new controller button…,新しいボタンを押してください…,새 컨트롤러 버튼을 누르세요…,,原文键,模型,自译,自译
+Esc 取消 · Delete 清空,Esc Cancel · Delete Clear,Esc キャンセル・Delete クリア,Esc 취소 · Delete 지우기,,原文键,模型,自译,自译
+SELECT 取消,SELECT Cancel,SELECT キャンセル,SELECT 취소,,原文键,模型,自译,自译
+已被「%s」占用，交换？,Already used by '%s'. Swap?,「%s」に使用中です。入れ替えますか？,'%s'에 이미 사용 중입니다. 교체할까요?,,原文键,模型,自译,自译
+交换,Swap,入れ替え,교체,,原文键,模型,自译,自译
+未绑定,Unbound,未設定,미지정,,原文键,模型,自译,自译
+改键在局内立即生效,Changes take effect immediately in-game,変更はゲーム内ですぐに反映されます,변경 사항은 게임 내에 즉시 적용됩니다,,原文键,模型,自译,自译
+网页版不能绑定浏览器保留键（F5、F11、F12、Ctrl、Alt 等）,"Browser-reserved keys (F5, F11, F12, Ctrl, Alt, etc.) cannot be bound on the web version",Web版ではブラウザ予約キー（F5、F11、F12、Ctrl、Alt など）は設定できません,"웹 버전에서는 브라우저 예약 키(F5, F11, F12, Ctrl, Alt 등)를 지정할 수 없습니다",,原文键,模型,自译,自译
+Esc 固定为暂停 / 返回,Esc is fixed to Pause / Back,Esc は一時停止 / 戻るに固定,Esc는 일시 정지 / 돌아가기로 고정,,原文键,模型,自译,自译
+该按键不能绑定,This key cannot be bound,このキーは設定できません,이 키는 지정할 수 없습니다,,原文键,模型,自译,自译
+浏览器保留此键，网页版不能绑定,Reserved by the browser; cannot be bound on the web version,ブラウザ予約キーのため、Web版では設定できません,브라우저 예약 키이므로 웹 버전에서는 지정할 수 없습니다,,原文键,模型,自译,自译
+该按键固定为暂停,This button is fixed to Pause,このボタンは一時停止に固定,이 버튼은 일시 정지로 고정,,原文键,模型,自译,自译
+滚轮不能绑定,Mouse wheel cannot be bound,マウスホイールは設定できません,마우스 휠은 지정할 수 없습니다,,原文键,模型,自译,自译
+向上移动,Move Up,上へ移動,위로 이동,,原文键,模型,自译,自译
+向下移动,Move Down,下へ移動,아래로 이동,,原文键,模型,自译,自译
+向左移动,Move Left,左へ移動,왼쪽으로 이동,,原文键,模型,自译,自译
+向右移动,Move Right,右へ移動,오른쪽으로 이동,,原文键,模型,自译,自译
+属性面板,Stats Panel,ステータス画面,능력치 패널,,原文键,模型,自译,自译
+鼠标左键,Left Mouse Button,マウス左ボタン,마우스 왼쪽 버튼,,原文键,模型,自译,自译
+鼠标右键,Right Mouse Button,マウス右ボタン,마우스 오른쪽 버튼,,原文键,模型,自译,自译
+鼠标中键,Middle Mouse Button,マウス中ボタン,마우스 가운데 버튼,,原文键,模型,自译,自译
+鼠标侧键 1,Mouse Button 4,マウスサイドボタン 1,마우스 사이드 버튼 1,,原文键,模型,自译,自译
+鼠标侧键 2,Mouse Button 5,マウスサイドボタン 2,마우스 사이드 버튼 2,,原文键,模型,自译,自译
+右键,Right Click,右クリック,우클릭,,原文键,模型,自译,自译
+中键,Middle Click,中クリック,휠 클릭,,原文键,模型,自译,自译
+侧键1,Mouse 4,サイド1,사이드1,,原文键,模型,自译,自译
+侧键2,Mouse 5,サイド2,사이드2,,原文键,模型,自译,自译
+鼠标键 %d,Mouse Button %d,マウスボタン %d,마우스 버튼 %d,,原文键,模型,自译,自译
+点格子后按下新按键,"Click a slot, then press a new key",枠をクリックして新しいキーを押す,칸을 클릭한 뒤 새 키를 누르세요,,原文键,模型,自译,自译
+选中格子按 Ⓐ，再按新按钮,"Select a slot and press Ⓐ, then press a new button",枠を選んで Ⓐ、次に新しいボタンを押す,칸을 선택하고 Ⓐ를 누른 뒤 새 버튼을 누르세요,,原文键,模型,自译,自译
+触屏按键请在「触屏按键布局」里调整,Adjust touch buttons in 'Touch Button Layout',タッチボタンは「タッチボタン配置」で調整してください,터치 버튼은 '터치 버튼 배치'에서 조정하세요,,原文键,模型,自译,自译
+自定义局内键盘、鼠标与手柄按键,"Customize in-run keyboard, mouse and controller bindings",ゲーム内のキーボード・マウス・コントローラー操作を変更,"게임 내 키보드, 마우스, 컨트롤러 키를 변경",,原文键,模型,自译,自译
+默认键位,Default Bindings,デフォルトキー設定,기본 키 설정,,原文键,模型,自译,自译

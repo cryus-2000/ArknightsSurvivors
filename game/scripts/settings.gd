@@ -9,6 +9,7 @@ const D = preload("res://scripts/data.gd")
 const Look = preload("res://scripts/render/look.gd")
 const TouchLayout = preload("res://scripts/touch_layout.gd")
 const CloudPack = preload("res://scripts/core/cloud_pack.gd")
+const PlayKeys = preload("res://scripts/core/play_keys.gd")
 ## 存档里难度字段的含义：1 = 旧版累计档位 0–10；2 = 1.1 起的三档下标；3 = 10-22 的潮位 0–15（只在内部包短暂存在）；
 ## 4 = 10-22 起的三档预设下标（D.DIFF_PRESETS：常规 / 高压 / 深潮 = 潮位 0 / 5 / 10）
 const DIFF_VER := 4
@@ -87,6 +88,10 @@ const UI_K_PHONE := 1.15
 const UI_MIN_H := 470.0
 ## 触屏按键布局（设置 → 游戏 → 触屏按键布局，用户 10-13）：{键: {ax, ay, x, y, s}}，空 = 全部缺省（touch_layout.gd）
 var touch_layout := {}
+## 局内键位（设置 → 操作 → 键位设置，11-16 用户「自由更改键位」）：当前绑定存在 core/play_keys.gd 的静态表里，这里只管存取。
+## 存档 [input] keybinds = 和缺省不同的动作（PlayKeys.overrides()）；旧存档没有 = 全部缺省。上云（cloud_body 的 keybinds，docs/89）。
+## keybinds_set：改过键位（恢复默认后也为 true，云端才会带上「全缺省」覆盖别的设备）
+var keybinds_set := false
 ## 自动连携 / 自动终结技（docs/198 §1.4、§11-7；run/ult.gd 每帧读）：缺省桌面两个都关、触屏「自动连携」开（_ready 里按设备定，读档覆盖）。
 ## 缺省跟设备走，不上云（同一份云档在电脑和手机上各用各的缺省）
 var auto_combo := false
@@ -736,6 +741,7 @@ func _read_cfg(c: ConfigFile) -> void:
 	auto_combo = bool(c.get_value("input", "auto_combo", auto_combo))
 	auto_ult = bool(c.get_value("input", "auto_ult", auto_ult))
 	touch_layout = TouchLayout.load_from(c)
+	load_keybinds(c)
 	ui_size_set = bool(c.get_value("video", "ui_size_set", false))
 	var usz := int(c.get_value("video", "ui_size", 100))
 	ui_size_pct = clampi(usz / 5 * 5, UI_PCT_MIN, UI_PCT_MAX) if (ui_size_set or usz != 100) else ui_pct_default()
@@ -1081,6 +1087,7 @@ func save() -> void:
 	c.set_value("input", "auto_combo", auto_combo)
 	c.set_value("input", "auto_ult", auto_ult)
 	TouchLayout.save_to(c, touch_layout)
+	save_keybinds(c)
 	c.set_value("video", "ui_size", ui_size_pct)
 	if ui_size_set:
 		c.set_value("video", "ui_size_set", true)
@@ -1141,12 +1148,37 @@ func save() -> void:
 		cloud.local_saved()   # 云存档：只记「待上传」并把最新内容交给网页（页面隐藏时上传），不在这里联网
 
 
+## 键位存取（settings.cfg [input]；测试直接拿 ConfigFile 往返）
+func load_keybinds(c: ConfigFile) -> void:
+	PlayKeys.apply(c.get_value("input", "keybinds", {}))
+	keybinds_set = bool(c.get_value("input", "keybinds_set", false))
+
+
+func save_keybinds(c: ConfigFile) -> void:
+	var ov: Dictionary = PlayKeys.overrides()
+	if ov.is_empty() and c.has_section_key("input", "keybinds"):
+		c.erase_section_key("input", "keybinds")
+	elif not ov.is_empty():
+		c.set_value("input", "keybinds", ov)
+	if keybinds_set:
+		c.set_value("input", "keybinds_set", true)
+
+
+## 云存档正文里的键位：改过才写（没改过的存档往返与旧版本逐字相同）
+func _cloud_keybinds() -> Variant:
+	var ov: Dictionary = PlayKeys.overrides()
+	return ov if (keybinds_set or not ov.is_empty()) else null
+
+
 ## ---- 云存档（docs/89）：存档正文与 Cfg 字段互转。合并 / 打包规则在 core/cloud_pack.gd ----
 
 func _settings_sig() -> String:
 	var d := {}
 	for k in CLOUD_SET_KEYS:
 		d[k] = get(k)
+	var kb = _cloud_keybinds()
+	if kb != null:
+		d["keybinds"] = kb
 	return CloudPack.canon(d).md5_text()
 
 
@@ -1164,6 +1196,9 @@ func cloud_body() -> Dictionary:
 	var d: Dictionary = (cloud_extra.get("d", {}) as Dictionary).duplicate(true)
 	for k in CLOUD_SET_KEYS:
 		d[k] = TouchLayout.sanitize(touch_layout) if k == "touch_layout" else get(k)
+	var kb = _cloud_keybinds()
+	if kb != null:
+		d["keybinds"] = kb   # 键位（docs/89）：改过才写
 	var st: Dictionary = (cloud_extra.get("set", {}) as Dictionary).duplicate(true)
 	st["t"] = cloud_set_t
 	st["d"] = d
@@ -1213,6 +1248,9 @@ func cloud_apply(body: Dictionary) -> void:
 		cover_character_id = d.cover_character_id
 	if d.get("touch_layout") is Dictionary:
 		touch_layout = TouchLayout.sanitize(d.touch_layout)
+	if d.get("keybinds") is Dictionary:   # 键位（11-16）：云端没有这项（旧版本 / 没改过）时保持本机
+		PlayKeys.apply(d.keybinds)
+		keybinds_set = true
 	var lists := {"gal": "gallery_seen", "rel": "seen_relics", "end": "endings_cleared", "shows": "seen_shows", "ops": "roster_unlocked", "tsup": "toy_support"}
 	if p.get("meta") is Dictionary:
 		var mt: Dictionary = p.meta
@@ -1298,7 +1336,7 @@ func cloud_apply(body: Dictionary) -> void:
 		if not (k in ["t", "d"]):
 			ex.set[k] = st[k]
 	for k in d:
-		if not (k in CLOUD_SET_KEYS):
+		if not (k in CLOUD_SET_KEYS) and k != "keybinds":
 			ex.d[k] = d[k]
 	for k in p:
 		if not (k in CloudPack.PROG_KEYS):

@@ -456,7 +456,7 @@ func _dash_row(xr: float, ly: float, s: float) -> void:
 	if g.t - _dash_t < 0.3 and not Cfg.reduce_motion:
 		var a: float = 1.0 - (g.t - _dash_t) / 0.3
 		g.hud.draw_rect(Rect2(x - 2.0, cy - chh / 2.0 - 2.0, xr - tw - 6.0 * s - x + 4.0, chh + 4.0), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.25 * a))
-	var key: String = Pad.hint("SPACE", "Ⓑ", "") if not g.touch.active else ""
+	var key: String = PlayKeys.cur("dash", "") if not g.touch.active else ""
 	if key != "":
 		var ks: int = int(round(5.6 * s))
 		var kw: float = UI.cwidth(g.font, key, ks) + 8.0

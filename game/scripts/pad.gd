@@ -5,9 +5,9 @@ extends Node
 ##
 ## 映射按场景上下文（context）切换，由当前场景每帧设置：
 ##   "title"     标题 / 选人 / 难度 / 图鉴 / 设置：方向 = 方向键，Ⓐ = Enter，Ⓑ = Esc，START = Enter，LB / RB = 翻页，Ⓧ / Ⓨ = 切换动作
-##   "play"      对局中：左摇杆 / 十字键移动（不注入方向键），Ⓐ / Ⓨ = 手动技能（Q），Ⓧ = J（ult/on = 0 时兼作手动技能），Ⓑ / RB = 冲刺，RT = 冲刺；右摇杆 = 按住瞄准（doctor 每帧读），START = 暂停（Esc），SELECT = 属性面板（Tab）
-##               终结技开着（balance ult/on，docs/198 §2.4）时对局里改为：Ⓐ / RB = 终结技（Q，按住 = 按住 Q、松开发 Q 的松开事件），Ⓨ = 连携技（E），
-##               冲刺只剩 Ⓑ / RT；ult/on = 0 时映射完全照旧
+##   "play"      对局中：左摇杆 / 十字键移动（不注入方向键），右摇杆 = 按住瞄准（doctor 每帧读）；其余按钮 / 扳机按局内按键表
+##               （core/play_keys.gd，玩家可在「设置 → 操作 → 键位设置」改）翻成该动作的虚拟键注入：缺省 Ⓐ / RB 终结技（按住 = 虚拟键按住）、
+##               Ⓑ / RT 冲刺、LB / LT 指挥圆盘（按住）、START 暂停、SELECT 属性面板
 ##   "game_menu" 对局里的选卡 / 商店 / 暂停 / 结算 / 指南 / 属性面板：方向 = 方向键，Ⓐ = Enter，Ⓑ = Esc，START = Esc，
 ##               SELECT = Tab，Ⓨ = F（商店刷新），LB / RB = PageUp / PageDown（指南翻页）
 ##
@@ -37,20 +37,15 @@ const MAP := {
 		JOY_BUTTON_LEFT_SHOULDER: KEY_PAGEUP, JOY_BUTTON_RIGHT_SHOULDER: KEY_PAGEDOWN,
 		JOY_BUTTON_X: KEY_Z, JOY_BUTTON_Y: KEY_X,
 	},
-	"play": {
-		JOY_BUTTON_A: KEY_Q, JOY_BUTTON_Y: KEY_Q, JOY_BUTTON_X: KEY_J, JOY_BUTTON_START: KEY_ESCAPE, JOY_BUTTON_BACK: KEY_TAB,   # Ⓐ / Ⓨ 手动技能（Q），Ⓧ = J（ult/on = 0 时兼作手动技能；终结技开着时无动作）
-		JOY_BUTTON_B: KEY_K, JOY_BUTTON_RIGHT_SHOULDER: KEY_K,   # 冲刺
-		JOY_BUTTON_LEFT_SHOULDER: KEY_F,   # 指挥模式（docs/114）：LB / LT 循环 随行 → 突击 → 归队
-	},
 	"game_menu": {
 		JOY_BUTTON_A: KEY_ENTER, JOY_BUTTON_B: KEY_ESCAPE, JOY_BUTTON_START: KEY_ESCAPE, JOY_BUTTON_BACK: KEY_TAB,
 		JOY_BUTTON_Y: KEY_F, JOY_BUTTON_LEFT_SHOULDER: KEY_PAGEUP, JOY_BUTTON_RIGHT_SHOULDER: KEY_PAGEDOWN,
 	},
 }
-## 终结技开着时对局里的覆盖：按键表（core/play_keys.gd ULT）里 ult / combo 两个动作的手柄按钮；ult 按住期间保持 KEY_Q 按下，全部松开才发松开
+## 对局里：按钮 → 动作（core/play_keys.gd，可改键）→ 注入该动作的虚拟键；按住型动作按住期间保持虚拟键按下，全部松开才发松开
 const PlayKeys = preload("res://scripts/core/play_keys.gd")
 const Bal = preload("res://scripts/core/balance.gd")
-var _q_hold := {}              # 按住中的终结技键（按钮 → true）
+var _holds := {}               # 按住中的按住型动作：动作 → {按钮: true}
 const DPAD := {JOY_BUTTON_DPAD_UP: Vector2i(0, -1), JOY_BUTTON_DPAD_DOWN: Vector2i(0, 1), JOY_BUTTON_DPAD_LEFT: Vector2i(-1, 0), JOY_BUTTON_DPAD_RIGHT: Vector2i(1, 0)}
 ## 扳机键当作肩键
 const TRIGGER_AS := {JOY_AXIS_TRIGGER_LEFT: JOY_BUTTON_LEFT_SHOULDER, JOY_AXIS_TRIGGER_RIGHT: JOY_BUTTON_RIGHT_SHOULDER}
@@ -108,15 +103,10 @@ func _input(event: InputEvent) -> void:
 				_dir_t = REPEAT_DELAY
 				_nav(d)
 			return
-		if context == "play" and ult_on():
-			if event.button_index in PlayKeys.ULT.ult.pad:
-				_ult_hold(event.button_index, event.pressed)
-				return
-			if event.button_index == JOY_BUTTON_Y:
-				return   # 原连携技键（11-05 收回）：对局里没有动作，也不落到下面的旧映射（Ⓨ = Q）
-		elif not _q_hold.is_empty():
-			_q_hold.clear()
-			_key(KEY_Q, false)   # 按住终结技键时离开对局（选卡弹出等）：补一个松开
+		if context == "play":
+			_play_btn(event.button_index, event.pressed)
+			return
+		_release_holds()   # 按住终结技 / 圆盘键时离开对局（选卡弹出等）：补一个松开
 		if event.pressed:
 			_press_button(event.button_index)
 	elif event is InputEventJoypadMotion:
@@ -127,9 +117,10 @@ func _input(event: InputEvent) -> void:
 			var was: bool = _trig[event.axis]
 			var on: bool = event.axis_value > (0.3 if was else 0.6)
 			_trig[event.axis] = on
-			if on and not was:
-				# 对局里 RT 直接按冲刺（Ⓑ）：终结技开着时 RB 归终结技（core/play_keys.gd ULT）
-				_press_button(JOY_BUTTON_B if (context == "play" and event.axis == JOY_AXIS_TRIGGER_RIGHT) else TRIGGER_AS[event.axis])
+			if on != was and context == "play":
+				_play_btn(PlayKeys.PAD_LT if event.axis == JOY_AXIS_TRIGGER_LEFT else PlayKeys.PAD_RT, on)   # 对局里扳机按按键表（缺省 LT 圆盘 / RT 冲刺）
+			elif on and not was:
+				_press_button(TRIGGER_AS[event.axis])
 	elif event is InputEventKey or event is InputEventScreenTouch:
 		_set_using(false)
 	elif event is InputEventMouseMotion:
@@ -166,19 +157,39 @@ static func ult_on() -> bool:
 	return Bal.vi("ult/on", 1) > 0
 
 
-## Ⓐ / RB：第一个按下时发 Q 按下，全部松开时发 Q 松开（两个一起按、先后松开也只放一次）
-func _ult_hold(b: int, down: bool) -> void:
-	var was: bool = not _q_hold.is_empty()
+## 对局里一个按钮（含扳机 PAD_LT / PAD_RT）按下 / 松开：按键表查动作；按住型第一个按下时发虚拟键按下、全部松开时发松开
+## （两个键一起按、先后松开也只放一次）；其余按下时注入一次
+func _play_btn(b: int, down: bool) -> void:
+	var id: String = PlayKeys.pad_action(b)
+	if id == "":
+		return
+	var vk: int = PlayKeys.vk(id)
+	if not PlayKeys.is_hold(id):
+		if down:
+			tap(vk)
+		return
+	var hs: Dictionary = _holds.get(id, {})
+	var was: bool = not hs.is_empty()
 	if down:
-		_q_hold[b] = true
+		hs[b] = true
 	else:
-		_q_hold.erase(b)
-	var now: bool = not _q_hold.is_empty()
+		hs.erase(b)
+	_holds[id] = hs
+	var now: bool = not hs.is_empty()
 	if now != was:
-		_key(KEY_Q, now)
+		_key(vk, now)
+
+
+func _release_holds() -> void:
+	for id in _holds:
+		if not (_holds[id] as Dictionary).is_empty():
+			_key(PlayKeys.vk(str(id)), false)
+	_holds.clear()
 
 
 func _process(dt: float) -> void:
+	if context != "play" and not _holds.is_empty():
+		_release_holds()
 	if _pads().is_empty():
 		return
 	# 导航：十字键 + 左摇杆（带滞回），主方向优先；对局里不注入（摇杆是移动）

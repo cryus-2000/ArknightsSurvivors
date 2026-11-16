@@ -43,6 +43,8 @@ const ROWS := [
 	# 自动连携 / 自动终结技（docs/198 §1.4）：缺省桌面都关、手机自动连携开（Cfg._ready）；局内即时生效（run/ult.gd 每帧读）。ult/on = 0 时不列出
 	{"cn": "自动连携", "en": "AUTO CHAIN", "key": "auto_combo", "type": "bool", "note": "队友头像亮起后自动出手"},
 	{"cn": "自动终结技", "en": "AUTO ULTIMATE", "key": "auto_ult", "type": "bool", "note": "充满后，敌人密集、精英靠近或生命低于 30% 时自动释放"},
+	# 键位设置（11-16 用户「自由更改键位」）：点「调整」进键位页（screens/keybind_view.gd），键鼠 / 手柄两页、每动作两格、冲突交换、恢复默认；所有设备都列
+	{"cn": "键位设置", "en": "KEY BINDINGS", "key": "keybinds", "type": "keybind", "note": "自定义局内键盘、鼠标与手柄按键"},
 	# 触屏按键布局（用户 10-13）：点「调整」进编辑页（screens/touch_editor.gd），拖动改位置、调大小；只在触屏设备列出
 	{"cn": "触屏按键布局", "en": "TOUCH LAYOUT", "key": "touch_layout", "type": "touchpad"},
 	# 测试版对局记录（docs/40，用户 10-10）：只在 Cfg.runs_log_enabled() 时列出（调试版 / 对内包），对外包没有这一行；
@@ -67,7 +69,7 @@ const RUNS_HINT := "测试版：本地记录对局摘要（不上传）"
 const TABS := [
 	["声音", "SOUND", ["master", "music", "sfx", "voice", "voice_lang"]],
 	["画面", "DISPLAY", ["lang", "quality", "max_fps", "fullscreen", "res_index", "brightness", "ui_size_pct", "dmg_numbers", "reduce_motion", "perf"]],
-	["操作", "CONTROLS", ["auto_combo", "auto_ult", "onboard", "pad_rumble", "touch_layout"]],
+	["操作", "CONTROLS", ["auto_combo", "auto_ult", "onboard", "keybinds", "pad_rumble", "touch_layout"]],
 ]
 
 ## 「存档」页：只在 B站 Toy 环境列出（_tabs）；面板高度仍按 TABS 定（这一页行数少），其他环境排版不变。
@@ -88,6 +90,7 @@ const TOUCH_ONLY := ["touch_layout"]
 var game_ref: Node = null
 var editor: Control = null   # 触屏按键布局编辑页（第一次打开时建）
 var perf_view: Control = null   # 性能报告页（第一次打开时建）
+var keybind_view: Control = null   # 键位设置页（第一次打开时建）
 var eat_release := false     # 编辑页在按下时关掉：同一次点击的松手不能落到设置面板上（触屏版松手才算点选，会误点下面的行）
 
 var font: Font
@@ -249,8 +252,8 @@ func close() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if not visible or (editor != null and editor.visible) or (perf_view != null and perf_view.visible):
-		return   # 触屏按键布局编辑页 / 性能报告页开着：输入归它
+	if not visible or (editor != null and editor.visible) or (perf_view != null and perf_view.visible) or (keybind_view != null and keybind_view.visible):
+		return   # 触屏按键布局编辑页 / 性能报告页 / 键位设置页开着：输入归它
 	if eat_release and event is InputEventMouseButton:
 		if not event.pressed:
 			eat_release = false
@@ -463,6 +466,9 @@ func _v2_sub(row: Dictionary) -> Array:
 				return ["点数值或按 Enter 应用", true]
 		"touchpad":
 			return ["已自定义" if not Cfg.touch_layout.is_empty() else "默认布局", not Cfg.touch_layout.is_empty()]
+		"keybind":
+			var kc: bool = not preload("res://scripts/core/play_keys.gd").overrides().is_empty()
+			return ["已自定义" if kc else "默认键位", kc]
 		"perf":
 			var pr: Array = preload("res://scripts/core/perf_report.gd").load_all()
 			if pr.is_empty():
@@ -556,8 +562,8 @@ func _draw_row_v2(ci: CanvasItem, rr: Rect2, si: int, touch: bool) -> void:
 			if fill >= 0.0:
 				ci.draw_rect(Rect2(mid.position.x, mid.end.y - 3.0, mid.size.x, 3.0), Color("303a44"))
 				ci.draw_rect(Rect2(mid.position.x, mid.end.y - 3.0, mid.size.x * fill, 3.0), UI.CYAN)
-		"touchpad", "perf", "runs", "cloud_pull", "cloud_push":
-			var lbl: String = {"touchpad": "调整", "perf": "查看", "runs": "打开记录文件夹"}.get(row.type, "") as String
+		"touchpad", "keybind", "perf", "runs", "cloud_pull", "cloud_push":
+			var lbl: String = {"touchpad": "调整", "keybind": "调整", "perf": "查看", "runs": "打开记录文件夹"}.get(row.type, "") as String
 			var conf := false
 			var can := true
 			if row.type in ["cloud_pull", "cloud_push"]:
@@ -668,6 +674,9 @@ func _adjust(i: int, dir: int) -> void:
 		"touchpad":
 			open_touch_editor()
 			return
+		"keybind":
+			open_keybinds()
+			return
 		"perf":
 			open_perf()
 			return
@@ -707,6 +716,18 @@ func open_perf() -> void:
 			eat_release = true
 			drag_on = false)
 	perf_view.open()
+
+
+## 打开键位设置页（盖在设置面板上，关掉回到设置）；pad = 直接开手柄页
+func open_keybinds(pad := false) -> void:
+	if keybind_view == null:
+		keybind_view = preload("res://scripts/screens/keybind_view.gd").new()
+		add_child(keybind_view)
+		keybind_view.closed.connect(func():
+			eat_release = true
+			drag_on = false
+			queue_redraw())
+	keybind_view.open(pad or Pad.using)
 
 
 ## 打开触屏按键布局编辑页（盖在设置面板上，关掉回到设置）
@@ -864,10 +885,10 @@ func _draw_row(ci: CanvasItem, rr: Rect2, si: int, touch: bool, ty0: float) -> v
 			ci.draw_rect(br4, Color(0.05, 0.2, 0.24, 0.9) if on else Color(0.04, 0.09, 0.12, 0.8))
 			ci.draw_rect(br4, UI.CYAN if on else UI.CYAN_DIM, false, 1.0)
 			UI.text(ci, font, br4.position + Vector2(0, 18 if not touch else 22), "查看", 14 if not touch else 16, UI.CYAN if on else UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, br4.size.x)
-		"touchpad":
+		"touchpad", "keybind":
 			# 右侧「调整」按钮；左边一行说明（有自定义时写「已自定义」）
-			var custom: bool = not Cfg.touch_layout.is_empty()
-			UI.text(ci, font, Vector2(vx - 14 - (230.0 if touch else 0.0), rr.position.y + ty0), "已自定义" if custom else "默认布局", 13 if touch else 11, UI.CYAN if custom else UI.SUB, HORIZONTAL_ALIGNMENT_RIGHT, 230)
+			var custom: bool = (not Cfg.touch_layout.is_empty()) if row.type == "touchpad" else not preload("res://scripts/core/play_keys.gd").overrides().is_empty()
+			UI.text(ci, font, Vector2(vx - 14 - (230.0 if touch else 0.0), rr.position.y + ty0), "已自定义" if custom else ("默认布局" if row.type == "touchpad" else "默认键位"), 13 if touch else 11, UI.CYAN if custom else UI.SUB, HORIZONTAL_ALIGNMENT_RIGHT, 230)
 			var bh2: float = 32.0 if touch else 26.0
 			var br2 := Rect2(vx + 10, rr.position.y + (ty0 - 15.0 - (3.0 if touch else 0.0)), 180, bh2)
 			ci.draw_rect(br2, Color(0.05, 0.2, 0.24, 0.9) if on else Color(0.04, 0.09, 0.12, 0.8))

@@ -5,6 +5,7 @@ extends RefCounted
 ## 本文件只放画法与各块的编辑式版本；各块入口（hud_bars / hud_relics / hud_squad / hud_allyhp / touch）开头判 on() 后转过来。
 ## 等级牌（B′ 徽记顶上的「LV n」）照旧不改（用户 11-02「等级框先保持现状」）。
 const UI = preload("res://scripts/ui.gd")
+const PlayKeys = preload("res://scripts/core/play_keys.gd")   # 局内键名按当前绑定（可改键）
 const Bal = preload("res://scripts/core/balance.gd")
 const Game = preload("res://scripts/game.gd")
 const PlayClock = preload("res://scripts/run/play_clock.gd")
@@ -433,7 +434,7 @@ func squad(br: Vector2) -> void:
 	var cmd: bool = g.squad.cmd_on()
 	# 小标签行：COMMAND · F / BOND n / SQUAD n/m
 	if cmd:
-		cap(o + Vector2(0, 8), "COMMAND" + ("" if g.touch.active else "  ·  " + (Pad.GLYPH.LB if Pad.using else "F")), 6.5)
+		cap(o + Vector2(0, 8), "COMMAND" + ("" if g.touch.active else "  ·  " + PlayKeys.cur("command")), 6.5)
 	var sq_s := "SQUAD %d/%d" % [n, g.squad.cap()]
 	var sw: float = cap(Vector2(br.x, o.y + 8), sq_s, 6.5, UI.SUB, 1.6, 2)
 	var nb: int = LinkBond.formed_now(g).size()

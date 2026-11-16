@@ -1123,6 +1123,7 @@ SCENE_REGRESSIONS = {
     "suno_layers": ("Suno 整首分层配乐：载入 / 各层同长 / 小节线切层 / 战斗换段 / Boss / 最终 Boss 二阶段（docs/164）", "suno_layers_test", r"SUNO LAYERS: 0 failures", []),
     "menu_bgm": ("局外配乐：各界面选曲、回标题接着放、选人 ↔ 难度不重开、进局清记忆", "menu_bgm_test", r"MENU BGM: 0 failures", []),
     "credits": ("致谢与声明滚动：键鼠 / 手柄 / 触屏输入", "credits_input_test", r"CREDITS INPUT: 0 failures", []),
+    "keybind": ("自由更改键位（11-16）：绑定表改绑 / 冲突交换 / Esc 与网页保留键拦截 / 恢复默认、存档与云存档往返、局内改键生效（键鼠 / 鼠标侧键 / 手柄虚拟键 / 移动）、键名提示与指南读绑定、键位页等新键与冲突框", "keybind_test", r"KEYBIND checks=\d+ failures=0", []),
     "esc_layers": ("各层 Esc 关闭当前层级 / 设置页键盘与输入法物理键码 / 设置 70% 面板与 × 关闭", "esc_layers_test", r"ESC LAYERS: 0 failures", []),
     "title_menu": ("标题磁贴群 / 难度页：四种菜单组、二维导航、键鼠 / 手柄 / 触屏", "title_menu_input_test", r"TITLE MENU INPUT: 0 failures", []),
     "touch_command": ("触屏指挥点选确认：点「指挥」→ 圆盘选集火 / 部署 → 点目标预选 → 换预选 → 再点下令；点空白 / 取消键退出、圈外不预选（docs/312）", "touch_command_test", r"TOUCH COMMAND: 0 failures", ["--touch", "--op=mizuki", "--squad=hoshiguma,exusiai"]),

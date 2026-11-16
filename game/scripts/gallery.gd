@@ -5,6 +5,7 @@ extends Control
 ## Enter / 1–3 或点击切换干员页签，Esc 返回；手柄经 Pad 翻译成同样的键；触屏用 740×360 手机版式。
 
 const UI = preload("res://scripts/ui.gd")
+const PlayKeys = preload("res://scripts/core/play_keys.gd")   # 局内键名按当前绑定（可改键）
 const A = preload("res://scripts/art.gd")
 const D = preload("res://scripts/data.gd")
 const DmgCurve = preload("res://scripts/run/dmg_curve.gd")
@@ -2167,7 +2168,7 @@ func _skill_rows(cd: Dictionary) -> Array:
 		var dot := ".\n" if L10.en() else "。\n"
 		var ds := func(t: String) -> String: return L10.s(t).trim_suffix(".") if L10.en() else L10.s(t)   # 英文句末自带句号，拼接前去掉
 		rows.append(["ULTIMATE  //  终结技", str(ul.get("name", "")), str(ul.get("en", "")), "", "", "终结技", true,
-			ds.call(str(ul.get("desc", ""))) + dot + L10.s(str(ut.get(un + tu, ut.get(un, ""))))])
+			ds.call(str(ul.get("desc", ""))) + dot + PlayKeys.fill(L10.s(str(ut.get(un + tu, ut.get(un, "")))))])
 		var l2: Dictionary = ue.get("link_v2", {})
 		if Bal.vi("link/v2", 0) > 0 and not l2.is_empty():   # 指挥 v2（docs/209 §2）：技能连携，全自动、没有 E 键
 			var lb := {}

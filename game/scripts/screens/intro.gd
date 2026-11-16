@@ -4,6 +4,7 @@ extends RefCounted
 
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
+const PlayKeys = preload("res://scripts/core/play_keys.gd")   # 局内键名按当前绑定（可改键）
 const A = preload("res://scripts/art.gd")
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
@@ -303,7 +304,7 @@ func _rows_of(pi: int) -> Array:
 	var src: Dictionary = _g().touch_controls if Pad.touch_ui() and last else pages()[pi]
 	var rows: Array = []
 	for ln in page_lines(src, full_guide(), last):
-		var txt: String = touch_line(fill_numbers(ln))
+		var txt: String = fill_numbers(touch_line(ln))   # 先换触屏说法（替换表里是带键名占位的原文）再填数 / 键名
 		if UI.Loc.ja() or UI.Loc.ko():   # 日文（docs/276 §13）/ 韩文（§14）：整行（含 {占位}）先查表再填数——填数、拆「｜」之后的半句查不到；日文译文保留「｜」
 			var tl := touch_line(ln)
 			var jt := UI.Loc.hit(tl)
@@ -317,10 +318,23 @@ func _rows_of(pi: int) -> Array:
 				jt = UI.Loc.hit(ln)
 			if jt != "":
 				txt = fill_numbers(jt)
+		elif UI.Loc.en() and _has_key_tok(ln):   # 英文：带键名占位的行先整行查表再填键名（填完的中文查不到表）；译文用「 | 」分标签
+			var et := UI.Loc.hit(touch_line(ln))
+			if et == "":
+				et = UI.Loc.hit(ln)
+			if et != "":
+				txt = fill_numbers(et).replace(" | ", "｜")
 		var cut: int = txt.find("｜")
 		# 本地化（docs/276 §10）：标签先翻再量标签列宽；正文由 UI.wrap_lines 先翻再折行
 		rows.append({"label": UI.Loc.s(txt.substr(0, cut)) if cut > 0 else "", "text": txt.substr(cut + 1) if cut > 0 else txt})
 	return rows
+
+
+static func _has_key_tok(ln: String) -> bool:
+	for t in ["{move", "{dash}", "{ult}", "{aim}", "{cmd}", "{speed}", "{stats", "{pause}", "{music}", "{p_"]:
+		if ln.contains(t):
+			return true
+	return false
 
 
 ## 视图页：每页数据按正文栏高度拆成一张或几张，拆分时各张高度尽量平均。缓存键 = 尺寸 + 完整 / 精简 + 触屏
@@ -690,14 +704,17 @@ func draw_icon(kind: String, _c0: Vector2) -> void:
 			if Pad.touch_ui():
 				_draw_touch_keys()
 				return
-			var keys := [["W", 0, -100, 1], ["A", -44, -56, 1], ["S", 0, -56, 1], ["D", 44, -56, 1], ["SPACE", 0, -6, 3],
-				["F", -84, 44, 1], ["Q", -40, 44, 1], ["TAB", 12, 44, 1.5], ["ESC", 74, 44, 1.5]]
+			# 键位牌按当前绑定写（11-16 可改键）；名字放不下时缩字
+			var kn := func(id: String) -> String: return PlayKeys.primary(id, false)
+			var keys := [[kn.call("up"), 0, -100, 1], [kn.call("left"), -44, -56, 1], [kn.call("down"), 0, -56, 1], [kn.call("right"), 44, -56, 1], [kn.call("dash"), 0, -6, 3],
+				[kn.call("command"), -84, 44, 1], [kn.call("ult"), -40, 44, 1], [kn.call("stats"), 12, 44, 1.5], ["ESC", 74, 44, 1.5]]
 			for kk in keys:
 				var kw: float = 38.0 * float(kk[3]) + 6.0 * (float(kk[3]) - 1.0)
 				var kr := Rect2(_p(float(kk[1]), float(kk[2])) - Vector2(kw, 38.0) * _s / 2.0, Vector2(kw, 38.0) * _s)
 				g.hud.draw_rect(kr, FILL)
 				g.hud.draw_rect(kr, Color(1, 1, 1, 0.5), false, 1.0)
-				UI.text(g.hud, g.font, Vector2(kr.position.x, kr.get_center().y + 5), kk[0], 13, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, kr.size.x)
+				var kfs: int = 13 if UI.cwidth(g.font, str(kk[0]), 13) <= kr.size.x - 4.0 else 10
+				UI.text(g.hud, g.font, Vector2(kr.position.x, kr.get_center().y + 5), str(kk[0]), kfs, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, kr.size.x)
 			_lbl(0, 112, "键盘")
 
 
@@ -707,6 +724,7 @@ func draw_icon(kind: String, _c0: Vector2) -> void:
 static func fill_numbers(ln: String) -> String:
 	if not ln.contains("{"):
 		return ln
+	ln = PlayKeys.fill(ln)   # 键名占位（{move} {dash} {ult} {cmd} {stats2} {p_dash} …，11-16 可改键）按当前绑定填
 	var Bal = preload("res://scripts/core/balance.gd")
 	var Sq = preload("res://scripts/characters/squad.gd")
 	var pct := func(mult: float) -> String: return str(int(round((mult - 1.0) * 100.0)))

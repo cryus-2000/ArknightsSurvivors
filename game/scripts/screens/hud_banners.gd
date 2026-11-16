@@ -2,6 +2,7 @@ extends RefCounted
 const D = preload("res://scripts/data.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const UI = preload("res://scripts/ui.gd")
+const PlayKeys = preload("res://scripts/core/play_keys.gd")   # 局内键名按当前绑定（可改键）
 const UM = preload("res://scripts/ui_motion.gd")
 const A = preload("res://scripts/art.gd")
 const Character = preload("res://scripts/characters/character.gd")   # CLASS_COL（指挥模式屏外标记）
@@ -36,7 +37,7 @@ func draw_leader_hints(ct: Transform2D) -> void:
 		if g.touch.active:
 			UI.text(g.hud, g.font, ct * g.ppos + Vector2(-90, 58 + bp), "%s！按冲刺键挣脱" % g.world.root_label(), 15, rcol, HORIZONTAL_ALIGNMENT_CENTER, 180, 4)
 		else:
-			_key_hint(ct * g.ppos + Vector2(0, 58 + bp), "%s！按" % g.world.root_label(), Pad.hint("SPACE", "Ⓑ", "冲刺键"), "冲刺挣脱", 15, rcol)
+			_key_hint(ct * g.ppos + Vector2(0, 58 + bp), "%s！按" % g.world.root_label(), PlayKeys.cur("dash", "冲刺键"), "冲刺挣脱", 15, rcol)
 
 
 ## 「按 [键] 做某事」一行：键名走按键牌（跟底栏「SPACE 冲刺」同写法，11-01 docs/211 D6），牌居中在 c.x，前后文字左右排开；c.y = 文字基线
@@ -570,7 +571,7 @@ func draw_open_hints(vs: Vector2) -> void:
 	if g.state == Game.S.PLAY and not quiet:
 		if g.t < 6.0:
 			# 普攻永远自动；按住瞄准改方向（10-31 取消手动普攻）
-			var ohint: String = "按住左半屏拖动移动 · 攻击自动 · 拖动瞄准键改方向" if g.touch.active else Pad.hint("WASD 移动 · 攻击自动 · 按住左键朝光标瞄准", "左摇杆移动 · 攻击自动 · 右摇杆瞄准")
+			var ohint: String = "按住左半屏拖动移动 · 攻击自动 · 拖动瞄准键改方向" if g.touch.active else Pad.hint("%s 移动 · 攻击自动 · 按住%s朝光标瞄准" % [PlayKeys.move_text(), PlayKeys.primary("aim", false, true)], "左摇杆移动 · 攻击自动 · 右摇杆瞄准")
 			UI.text(g.hud, g.font, Vector2(0, vs.y - 60 - _console_lift(vs)), ohint, 16, Color(0.7, 0.85, 0.9, 0.8), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
 		elif (g.t < 16.0 and not g.tab_used) or g.tab_hint > 0.0:
 			var ha := clampf(minf(g.t - 6.0, 16.0 - g.t) / 0.5, 0.0, 1.0) if g.tab_hint <= 0.0 else clampf(g.tab_hint / 0.5, 0.0, 1.0)
@@ -581,7 +582,7 @@ func draw_open_hints(vs: Vector2) -> void:
 			g.hud.draw_rect(box, Color(0.03, 0.035, 0.045, 0.82 * ha))
 			g.hud.draw_rect(box, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, (0.3 + 0.5 * pulse) * ha), false, 1.0)
 			# 触屏没有 Tab：写成点右侧「属性」按钮（按钮本身也跟着呼吸，见 touch.draw_hud）
-			var tkey: String = "点「属性」" if g.touch.active else Pad.hint("TAB", "SELECT")
+			var tkey: String = "点「属性」" if g.touch.active else PlayKeys.cur("stats")
 			var tkw: float = UI.keycap(g.hud, g.font, Vector2(cx - 134, y - 12), tkey, Color(1, 1, 1, ha), 12)
 			UI.text(g.hud, g.font, Vector2(cx - 134 + tkw + 12.0, y + 4), "查看队长与编队的属性", 15, Color(0.85, 0.95, 0.95, ha))
 
@@ -593,14 +594,14 @@ func draw_dash_hint(vs: Vector2) -> void:
 	h.batch_begin()   # 色块一批、字最后（性能 9/30）
 	# 暗底 + 按键牌 + 「冲刺」，底边一道青色冷却条（满 = 可冲）
 	# 冲刺牌左边一枚瞄准牌：普攻自动，按住改朝指向（键鼠 按住左键，手柄 右摇杆）
-	var acap: String = Pad.hint("左键", "右摇杆", "瞄准键")
+	var acap: String = PlayKeys.cur("aim", "瞄准键")
 	var akw := UI.cwidth(g.font, acap, 11) + 12.0
 	var aw := 8.0 + akw + 8.0 + 28.0 + 12.0
 	var ar := Rect2(Vector2(vs.x / 2.0 - aw - 70.0 - 8.0, vs.y - 44), Vector2(aw, 28))
 	h._hb.rect(ar, Color(0.03, 0.035, 0.045, 0.74))
 	UI.keycap(g.hud, g.font, ar.position + Vector2(8, 5), acap, Color(1.0, 0.75, 0.45), 11)
 	UI.text(g.hud, g.font, ar.position + Vector2(16 + akw, 19), "瞄准", 13, UI.TEXT)
-	var cap_s: String = Pad.hint("SPACE", "Ⓑ", "冲刺键")
+	var cap_s: String = PlayKeys.cur("dash", "冲刺键")
 	var kw := UI.cwidth(g.font, cap_s, 11) + 12.0
 	var w := 8.0 + kw + 8.0 + 28.0 + 12.0
 	var r := Rect2(Vector2(vs.x / 2.0 - w / 2.0, vs.y - 44), Vector2(w, 28))
@@ -613,7 +614,7 @@ func draw_dash_hint(vs: Vector2) -> void:
 	if not g.dash_used and g.t < 25.0:
 		var a: float = 0.6 + 0.4 * sin(g.t * 4.0)
 		var sp: Vector2 = g.hud_ct() * (g.ppos + Vector2(0, -92))
-		_key_hint(sp - Vector2(36, 0), "按", Pad.hint("SPACE", "Ⓑ", "冲刺键"), "冲刺（无敌）", 15, Color(0.85, 1.0, 1.0, a))
+		_key_hint(sp - Vector2(36, 0), "按", PlayKeys.cur("dash", "冲刺键"), "冲刺（无敌）", 15, Color(0.85, 1.0, 1.0, a))
 
 
 ## 缩圈：主控在安全区外时的方向提示（EA 1.1，玩法系统的缩圈改动配套；「身处黑潮」大字和紫色边缘光在状态栏那段）。
@@ -716,7 +717,7 @@ func draw_command(vs: Vector2, ct: Transform2D) -> void:
 	if g.touch.active or h.v2.on():
 		return   # 触屏：模式写在「指挥」键上（touch.gd）；编辑式：写在编队块的四格里（hud_v2.squad）
 	var y: float = h.squad.squad_top(vs) - 38.0
-	var key: String = Pad.GLYPH.LB if Pad.using else "F"
+	var key: String = PlayKeys.cur("command")
 	var x: float = vs.x - 16.0
 	var kw: float = g.font.get_string_size(key, HORIZONTAL_ALIGNMENT_LEFT, -1, 11).x + 12.0
 	UI.keycap(g.hud, g.font, Vector2(x - kw, y), key, UI.SUB, 11)

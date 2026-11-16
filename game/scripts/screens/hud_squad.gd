@@ -5,6 +5,7 @@ const HudV2 = preload("res://scripts/screens/hud_v2.gd")   # 编辑式 HUD（doc
 const LinkBond = preload("res://scripts/run/link_bond.gd")   # 编队人数旁「羁绊 N」（docs/221 B1）
 const A = preload("res://scripts/art.gd")
 const UI = preload("res://scripts/ui.gd")
+const PlayKeys = preload("res://scripts/core/play_keys.gd")   # 局内键名按当前绑定（可改键）
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 const Tris = preload("res://scripts/screens/hud_tris.gd")
 const Bal = preload("res://scripts/core/balance.gd")
@@ -95,7 +96,7 @@ func _frame_sig(br: Vector2) -> Array:
 	var n: int = g.squad.size()
 	var anim: bool = g.knight.alive or g.knight.submerged
 	var apop: bool = g.get("apop_t") != null and float(g.apop_t) > 0.0
-	var sig: Array = [br, n, g.touch.active, apop, Pad.hint("Q/E", "Ⓐ/Ⓨ"), compact()]
+	var sig: Array = [br, n, g.touch.active, apop, PlayKeys.cur("ult"), compact()]
 	var mp := g.hud.get_local_mouse_position()
 	var sk_y: float = br.y - card_size().y - SQ_SK - 14.0
 	for i in n:
@@ -292,7 +293,7 @@ func draw_squad_hud(br: Vector2, part := 0) -> void:
 					fg.rect(sr, Color(0.04, 0.05, 0.07, 0.55))
 					lock_glyph(fg, sr.end - Vector2(8, 8))
 				if not g.touch.active:
-					txt.append(func(): UI.ctext(g.hud, g.font, Vector2(sr.position.x - 12, sr.position.y - 4), Pad.hint("Q/E", "Ⓐ/Ⓨ"), 10, UI.TEXT if rdy else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, sr.size.x + 24))
+					txt.append(func(): UI.ctext(g.hud, g.font, Vector2(sr.position.x - 12, sr.position.y - 4), PlayKeys.cur("ult"), 10, UI.TEXT if rdy else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, sr.size.x + 24))
 			# 悬停：技能名 + 解锁阶段
 			if sr.has_point(mp):
 				var sd: Dictionary = o.skill_def(k)
@@ -384,7 +385,7 @@ func draw_manual_hint() -> void:
 			manual_hinted = true
 			manual_hint_t = 3.5
 			var nm: String = ld.skill_def(i).get("name", "技能")
-			manual_hint_text = ("点技能键释放「%s」" % nm) if g.touch.active else ("按 %s 释放「%s」" % [Pad.hint("Q / E", "Ⓐ / Ⓨ"), nm])
+			manual_hint_text = ("点技能键释放「%s」" % nm) if g.touch.active else ("按 %s 释放「%s」" % [PlayKeys.cur("ult"), nm])
 			if not g.touch.active and not Pad.using and ld.manual_point(i):
 				manual_hint_text = "左键点地面或按 %s 释放「%s」" % ["Q / E", nm]   # 选落点技能可左键点击释放（doctor.click_skill，10-26）
 	if manual_hint_t <= 0.0:

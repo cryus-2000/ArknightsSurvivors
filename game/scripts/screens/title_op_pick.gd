@@ -11,6 +11,7 @@ extends "res://scripts/screens/title_base.gd"
 # =====================================================================
 const OP_TABS := ["属性", "技能", "编队"]
 const Bal = preload("res://scripts/core/balance.gd")
+const PlayKeys = preload("res://scripts/core/play_keys.gd")   # 局内键名按当前绑定（可改键）
 const Bond = preload("res://scripts/run/link_bond.gd")   # 编队页羁绊行（docs/217）   # 技能页终结技 / 连携行（ult/on、link/v2）与操作说明（title.gd）用
 const OP_TAB_EN := ["STATUS", "SKILL", "SQUAD"]
 const OP_STAGE := ["招募", "精英一", "精英二"]
@@ -1152,7 +1153,7 @@ func _op_skills(ci: CanvasItem, box: Rect2, od: Dictionary, m: Dictionary, ph: b
 		y += rs
 	if sks.size() > op_skill and m.rows[2] >= 1.0:
 		var sk: Dictionary = sks[op_skill]
-		var txt: String = ((Pad.hint("队长按 Q 释放；", "队长按 Ⓐ 释放；", "队长点技能键释放；") + "作为队友自动。") if sk.get("mode", "auto") == "manual" and Bal.vi("ult/on", 1) <= 0 else "") + str(sk.get("desc", ""))
+		var txt: String = ((Pad.hint("队长按 %s 释放；" % PlayKeys.cur("ult"), "队长按 %s 释放；" % PlayKeys.cur("ult"), "队长点技能键释放；") + "作为队友自动。") if sk.get("mode", "auto") == "manual" and Bal.vi("ult/on", 1) <= 0 else "") + str(sk.get("desc", ""))
 		var urows := _op_ult_rows(d)
 		var ures: float = urows.size() * (20.0 if ph else 24.0)
 		var room := (box.end.y - y - ures) if ph else maxf(52.0, box.end.y - y - (34.0 if d.has("talent") else 4.0) - ures)
@@ -1218,7 +1219,7 @@ func _op_skill_row(ci: CanvasItem, r: Rect2, od: Dictionary, i: int, compact: bo
 	UI.en(ci, font, Vector2(tx + 2, r.position.y + (24 if compact else 28) + UI.cond(font, true).get_ascent(esz)), es, esz, UI.fa(UI.B_SUB, a), 1.0, true)
 	UI.sp_ring(ci, font, Vector2(rx, r.position.y + h / 2.0 - 2.0), 13.0, 0.72, UI.CYAN if manual else UI.TEXT, "%d" % int(sk.get("sp", 0)), a)
 	if manual:
-		UI.pill(ci, font, Vector2(tag_x, r.position.y + 6), Pad.hint("手动 Q", "手动 Ⓐ", "手动"), UI.CYAN, 10, true, a)
+		UI.pill(ci, font, Vector2(tag_x, r.position.y + 6), Pad.hint("手动 %s" % PlayKeys.cur("ult"), "手动 %s" % PlayKeys.cur("ult"), "手动"), UI.CYAN, 10, true, a)
 		UI.text_at(ci, font, Vector2(rx - 24, r.end.y - 16), "队友时自动", 9, UI.fa(UI.B_SUB, a), "ra")
 	else:
 		UI.pill(ci, font, Vector2(tag_x, r.position.y + 6), "自动", UI.B_SUB, 10, false, a)

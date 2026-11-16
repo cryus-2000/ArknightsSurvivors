@@ -311,7 +311,7 @@ func card(id: String) -> Dictionary:
 func text_of(id: String, touch: bool) -> String:
 	var c := card(id)
 	var tx: String = str(c.get("touch", c.get("text", ""))) if touch else str(c.get("text", ""))
-	return tx.replace("{cmd}", key_of("command"))
+	return PlayKeys.fill(UI.Loc.s(tx), Pad.using)   # 键名占位（{cmd} {dash} {ult} {move} …）先整句查表、再按当前绑定填（填完的句子查不到表）
 
 
 ## 卡上的做完条件（集火下过令后改成「击败精英」）
@@ -896,7 +896,7 @@ func _toast_card(id: String, force := false) -> void:
 	var tx: String = str(c.get("toast_touch", c.get("toast", ""))) if touch else str(c.get("toast", ""))
 	if tx == "":
 		tx = text_of(id, touch)
-	_toast_push(id, str(c.get("title", "")), tx.replace("{cmd}", key_of("command")))
+	_toast_push(id, str(c.get("title", "")), PlayKeys.fill(UI.Loc.s(tx), Pad.using))
 	if force:
 		toast_t = 0.0
 

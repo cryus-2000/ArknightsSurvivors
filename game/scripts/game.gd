@@ -2209,8 +2209,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if state == S.INTRO:
 		return  # 指南的输入在 _input() 里处理（先于 GUI，不会被任何控件吞掉）
-	if ult != null and event is InputEventKey and not event.pressed and PlayKeys.action_of(Pad.kc(event), true) == "ult":
+	# 局内动作按按键表（core/play_keys.gd，玩家可改键）：键盘键 / 鼠标键 / 手柄注入的虚拟键都先翻成动作名
+	var act: String = PlayKeys.act(event)
+	if ult != null and act == "ult" and ((event is InputEventKey or event is InputEventMouseButton) and not event.pressed):
 		ult.release_q()   # 终结技：松开 Q 放出（按住最多再慢 1 秒）
+	if event is InputEventMouseButton:
+		if event.pressed and act != "" and _action_press(act, event) and is_inside_tree():
+			get_viewport().set_input_as_handled()   # 绑在鼠标键上的动作（侧键冲刺之类）；左键缺省是「按住瞄准」，轮询读，不走这里
+		return
 	if not (event is InputEventKey) or not event.pressed or event.echo:
 		return
 	var k: int = Pad.kc(event)
@@ -2218,24 +2224,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		if is_inside_tree():   # 重新开始 / 回到标题已经换了场景：本节点离开场景树，get_viewport() 为 null
 			get_viewport().set_input_as_handled()
 		return
-	if (k == KEY_SPACE or k == KEY_SHIFT or k == KEY_K) and state == S.PLAY:
-		_try_dash()
-		get_viewport().set_input_as_handled()
-		return
-	# 终结技 Q（docs/198 §2.4，ult/on）：取代下面的手动技能路由。连携全自动，E 不再有绑定（11-05 收回）
-	var act: String = PlayKeys.action_of(k, true) if ult != null else ""
-	if act == "ult" and state == S.PLAY:
-		if ult.press_q():
+	if act != "" and _action_press(act, event):
+		if is_inside_tree():
 			get_viewport().set_input_as_handled()
-		return
-	# 手动技能（ult/on = 0 的旧路由）：Q / E / J（手柄 Ⓐ / Ⓨ 注入 Q，Ⓧ 注入 J）。终结技开着时 J / Ⓧ 不再有动作（10-31 取消攻击键）
-	if (k == KEY_Q or k == KEY_E or (k == KEY_J and ult == null)) and state == S.PLAY:
-		# 唯一的手动技能入口：路由到角色已解锁的 manual 技能（三自动角色无动作）
-		if doctor.try_manual_skill():
-			get_viewport().set_input_as_handled()
-		return
-	if k == KEY_V and state == S.PLAY:
-		PlayClock.cycle()
 		return
 	if k == KEY_F8 and state == S.PLAY and (OS.is_debug_build() or Cfg.build_audience() == "internal"):   # ④ 移动粘滞试手感（用户 10-24）：只在对内包 / 调试版
 		sticky_on = not sticky_on
@@ -2243,32 +2234,16 @@ func _unhandled_input(event: InputEvent) -> void:
 		vfx.show_banner("移动粘滞（试验）：%s · F8 切换" % ("开" if sticky_on else "关"), 2)
 		get_viewport().set_input_as_handled()
 		return
-	if k == KEY_F and state == S.PLAY:   # 指挥模式（docs/114 §13）：F / 手柄 LB / 触屏「指挥」键打开指挥圆盘（按住选、松开确认；轻点则点选）
-		wheel.open(event)
-		get_viewport().set_input_as_handled()
-		return
-	if k == KEY_TAB or k == KEY_C:
-		if state == S.PLAY:
-			state = S.STATS
-			stats_screen.reset_scroll()
-			tab_used = true
-			tab_hint = 0.0
-			Sfx.play("ui_ok", -6.0)
-		elif state == S.STATS:
-			state = S.PLAY
-		elif (state == S.DEAD or state == S.WIN) and not trial.active:
-			Sfx.play("ui_ok", -6.0)
-			run_stats.open_for_run()   # 结算 → 作战记录（docs/77）
-		return
 	if state == S.STATS:
-		if k == KEY_ESCAPE:
+		if k == KEY_ESCAPE or k == KEY_TAB:   # 手柄在属性面板里 SELECT 注入 Tab（Pad game_menu）
 			state = S.PLAY
 		return
-	if (k == KEY_ESCAPE or web_fs.pause_key(k)) and state != S.SHOP:   # 网页版 P 同 Esc（全屏时 Esc 被浏览器拿去退出全屏，docs/299）
-		if state == S.PLAY:
-			state = S.PAUSE
-		elif state == S.PAUSE:
-			state = S.PLAY
+	if (k == KEY_TAB or k == KEY_C) and (state == S.DEAD or state == S.WIN) and not trial.active:
+		Sfx.play("ui_ok", -6.0)
+		run_stats.open_for_run()   # 结算 → 作战记录（docs/77）
+		return
+	if k == KEY_ESCAPE and state != S.SHOP:
+		pass   # 暂停 / 继续走上面的「暂停」动作；其他层 Esc 不做事
 	elif k == KEY_F and state == S.PAUSE and web_fs.btn.has_area():
 		web_fs.request()   # 网页版暂停菜单「返回全屏」
 	elif k == KEY_O and state == S.PAUSE:
@@ -2277,8 +2252,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		intro_screen.open(S.PAUSE)
 	elif k == KEY_H and state == S.PAUSE:
 		onboard.open_viewer()
-	elif k == KEY_M:
-		vfx.show_banner("音乐：关" if Sfx.toggle_music() else "音乐：开")
 	elif k == KEY_T and (state == S.DEAD or state == S.WIN or state == S.PAUSE):
 		_do_action("abandon" if state == S.PAUSE and not trial.active else "title")
 	elif k == KEY_R and (state == S.DEAD or state == S.WIN or state == S.PAUSE):
@@ -2295,6 +2268,57 @@ func _unhandled_input(event: InputEvent) -> void:
 		var i: int = k - KEY_1
 		if i < choices.size():
 			progression.pick(i)
+
+
+## 局内动作按下（键盘 / 鼠标 / 手柄虚拟键，已按按键表翻成动作名）：返回是否已处理（没处理的落到界面快捷键）。
+## 移动 / 瞄准是轮询的（held），这里不管
+func _action_press(act: String, event: InputEvent) -> bool:
+	match act:
+		"dash":
+			if state == S.PLAY:
+				_try_dash()
+				return true
+		"ult":
+			if state == S.PLAY:
+				if ult != null:
+					ult.press_q()   # 终结技 Q（docs/198 §2.4）；连携全自动
+				else:
+					doctor.try_manual_skill()   # ult/on = 0 的旧手动技能：路由到角色已解锁的 manual 技能（三自动角色无动作）
+				return true
+		"speed":
+			if state == S.PLAY:
+				PlayClock.cycle()
+				return true
+		"command":
+			if state == S.PLAY:   # 指挥模式（docs/114 §13）：打开指挥圆盘（按住选、松开确认；轻点则点选）
+				wheel.open(event)
+				return true
+		"stats":
+			if state == S.PLAY:
+				state = S.STATS
+				stats_screen.reset_scroll()
+				tab_used = true
+				tab_hint = 0.0
+				Sfx.play("ui_ok", -6.0)
+				return true
+			if state == S.STATS:
+				state = S.PLAY
+				return true
+			if (state == S.DEAD or state == S.WIN) and not trial.active:
+				Sfx.play("ui_ok", -6.0)
+				run_stats.open_for_run()   # 结算 → 作战记录（docs/77）
+				return true
+		"pause":   # Esc 固定在这一格；网页版缺省备用 P（全屏时 Esc 被浏览器拿去退出全屏，docs/299）
+			if state == S.PLAY:
+				state = S.PAUSE
+				return true
+			if state == S.PAUSE or state == S.STATS:
+				state = S.PLAY
+				return true
+		"music":
+			vfx.show_banner("音乐：关" if Sfx.toggle_music() else "音乐：开")
+			return true
+	return false
 
 
 ## 方向键 / 手柄导航：选卡与商店左右切换焦点、Enter 确认；暂停 / 结算按钮左右（上下）切换、Enter 执行。返回是否已处理
@@ -2430,9 +2454,9 @@ func _update(dt: float) -> void:
 	if mode == Mode.PLAY and not trial.active:
 		telemetry.tick(dt)   # 真实玩家局的整局指标；机器人局由 autotest 按原节奏驱动
 	sync_stats()
-	var mv := Vector2(
-		float(Pad.key_down(KEY_D) or Pad.key_down(KEY_RIGHT)) - float(Pad.key_down(KEY_A) or Pad.key_down(KEY_LEFT)),
-		float(Pad.key_down(KEY_S) or Pad.key_down(KEY_DOWN)) - float(Pad.key_down(KEY_W) or Pad.key_down(KEY_UP)))
+	var mv := Vector2(   # 移动四向按按键表（可改键，缺省 WASD + 方向键）
+		float(PlayKeys.held("right")) - float(PlayKeys.held("left")),
+		float(PlayKeys.held("down")) - float(PlayKeys.held("up")))
 	if demo_op != "":
 		mv = demo_sys.wander()
 	elif mode == Mode.BALANCE:
