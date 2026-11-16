@@ -162,6 +162,13 @@ func _init(game: Game) -> void:
 		if d is Dictionary:
 			build = d
 	rich = Cfg.dev_args().has("--telemetry=full")
+	bprobe_on = Cfg.dev_args().has("--bprobe")
+
+
+## --bprobe（11-17 选敌排查「干员不打 Boss」，只读）：Boss / 部件在场期间，按干员记 [打 Boss（含部件）的有效伤害, 全部有效伤害, 打 Boss 命中次数]；
+## 平衡局结束时 autotest 打一行 BPROBE。不开时不记
+var bprobe_on := false
+var bprobe: Dictionary = {}
 
 
 ## 每帧采样（只观察，不改状态、不用随机数，所以不影响同 seed 复现）
@@ -478,6 +485,13 @@ func on_dmg(e: Dictionary, eff: float, raw: float, hd: Dictionary = {}) -> void:
 		e["_hb"] = hb
 	hb[op] = g.t
 	var src: String = str(h.get("src", "?"))
+	if bprobe_on and g.spawner.boss_alive():
+		var bp: Array = bprobe.get(op, [0.0, 0.0, 0])
+		bprobe[op] = bp
+		bp[1] += eff
+		if e.boss or e.get("part", false):
+			bp[0] += eff
+			bp[2] += 1
 	if g.trial.active:
 		g.trial.on_boss_dmg(op, e, eff)   # Boss 演练记录：按干员的对 Boss 伤害
 	var d: Dictionary = op_out.get(op, {})
