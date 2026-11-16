@@ -235,10 +235,11 @@ func _warm_glyphs() -> void:
 	for ks in sizes:
 		ci.draw_string_outline(fnt, far, UI.Loc.s(WARM_NUM), HORIZONTAL_ALIGNMENT_LEFT, -1, ks, 4, Color(0, 0, 0, 1))
 		ci.draw_string(fnt, far, UI.Loc.s(WARM_NUM), HORIZONTAL_ALIGNMENT_LEFT, -1, ks, Color.WHITE)
-	# 大群横幅（_draw_under）：int(38 × pop)，pop 1.0–1.8，描边 6
+	# 大群横幅（_draw_under）：10-22b 起固定字号——大群来袭 38（描边 6）、分股合围 / 围猎 28（描边 5），不再随 pop 放大。
+	# 11-17（docs/355）：原来仍按旧写法预热 38–68 共 31 个字号的大号汉字，电脑网页一局字形缓存约 130 MB 显存 + 同量 WASM（堆 286 → 495 MiB），只预热实际用到的两档
 	var horde := "海嗣注意到了你的存在……自四方合围而来大 群 来 袭海嗣大群 已抵达"
-	for sz in range(38, 69):
-		UI.text(ci, fnt, far, horde, sz, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, -1, 6)
+	UI.text(ci, fnt, far, horde, 38, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, -1, 6)
+	UI.text(ci, fnt, far, horde, 28, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, -1, 5)
 	# 升级字样：LEVEL UP! int(30 × pop)（描边 6）、Lv.n int(18 × pop)（描边 4），pop 0.9–1.6
 	for sz in range(27, 49):
 		UI.text(ci, fnt, far, "LEVEL UP!", sz, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, -1, 6)

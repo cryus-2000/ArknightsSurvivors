@@ -218,7 +218,7 @@ func mobile_fonts_slim() -> bool:
 ## 字形瘦身拆成四项（docs/355，11-17 电脑网页）：subpx 关亚像素定位、clear 进局清标题页字号、nowarm 进局不预热字形、qs 弹出字号按 4 号一档。
 ## 手机网页四项都跟 mobile_fonts_slim()；电脑网页各按 web/desk_font_<项>（缺省见 DESK_FONT）；桌面原生都不做。
 ## 测试：--fontpart=subpx,clear,… 只开列出的几项（任何平台）
-const DESK_FONT := {"subpx": 1.0, "clear": 1.0, "nowarm": 0.0, "qs": 0.0}
+const DESK_FONT := {"subpx": 0.0, "clear": 0.0, "nowarm": 0.0, "qs": 0.0}   # 11-17 实测电脑网页 subpx / clear 省不到内存（字形大头是预热，已删掉过时的 31 档横幅预热）；nowarm / qs 会带回开局卡顿 / 改弹出动画，不开
 var _fpart := {}
 
 func font_slim_part(part: String) -> bool:
