@@ -867,7 +867,9 @@ var _max_dpr := -1.0
 func apply_max_dpr() -> void:
 	if not OS.has_feature("web"):
 		return
-	var v: float = load("res://scripts/core/balance.gd").v("web/mobile_max_dpr", 0.0) if mobile_web() else 0.0
+	# 电脑网页 web/desk_max_dpr（docs/355，缺省 0 = 不封）：系统缩放 150% 的笔记本画布 2880×1620 → 封 1 时 1920×1080，显存约 −100 MB、WASM 约 −70 MB；
+	# 实测帧时只差约 3 ms（电脑网页卡在脚本，不在填充），代价是浏览器把画布放大 1.5 倍、字和像素边略软，等用户定
+	var v: float = load("res://scripts/core/balance.gd").v("web/mobile_max_dpr" if mobile_web() else "web/desk_max_dpr", 0.0)
 	for a in dev_args():
 		if a.begins_with("--maxdpr="):
 			v = float(a.substr(9))

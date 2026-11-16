@@ -240,16 +240,18 @@ func _warm_glyphs() -> void:
 	var horde := "海嗣注意到了你的存在……自四方合围而来大 群 来 袭海嗣大群 已抵达"
 	UI.text(ci, fnt, far, horde, 38, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, -1, 6)
 	UI.text(ci, fnt, far, horde, 28, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, -1, 5)
-	# 升级字样：LEVEL UP! int(30 × pop)（描边 6）、Lv.n int(18 × pop)（描边 4），pop 0.9–1.6
-	for sz in range(27, 49):
-		UI.text(ci, fnt, far, "LEVEL UP!", sz, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, -1, 6)
-	for sz in range(16, 30):
-		UI.text(ci, fnt, far, "Lv.0123456789", sz, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, -1, 4)
-	# 文字避让版（render/clarity_text）：LEVEL UP! int(18 × pop)（描边 4）、Lv.n int(11 × pop)（描边 3），pop 0.9–1.2
-	for sz in range(16, 22):
-		UI.text(ci, fnt, far, "LEVEL UP!", sz, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, -1, 4)
-	for sz in range(9, 14):
-		UI.text(ci, fnt, far, "Lv.0123456789", sz, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
+	# 升级字样（_draw_under）：字号 = max(float_text_min, int(基准 × pop × float_text_k))，与绘制处同一公式（11-17 docs/355：原来按没乘 float_text_k 的旧字号预热，
+	# 大半预热的字号用不上、实际用的又没预热）。LEVEL UP! 基准 30（描边 6）、Lv.n 18（描边 4），pop 0.9–1.6；文字避让版 18（描边 4）/ 11（描边 3），pop 0.9–1.2
+	var ft_k: float = Bal.v("render/float_text_k", 0.7)
+	var ft_min: int = Bal.vi("render/float_text_min", 9)
+	for spec in [["LEVEL UP!", 30.0, 6, 0.9, 1.6], ["Lv.0123456789", 18.0, 4, 0.9, 1.6], ["LEVEL UP!", 18.0, 4, 0.9, 1.2], ["Lv.0123456789", 11.0, 3, 0.9, 1.2]]:
+		var done := {}
+		for i in 141:
+			var pop: float = lerpf(spec[3], spec[4], i / 140.0)
+			var sz: int = _qs(maxi(ft_min, int(spec[1] * pop * ft_k)))
+			if not done.has(sz):
+				done[sz] = true
+				UI.text(ci, fnt, far, spec[0], sz, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, -1, spec[2])
 	# 左上等级数字（hud_bars.draw_top_left）：int(20 × (1 + 0.3 × 闪光))
 	for sz in range(20, 27):
 		UI.ctext(ci, fnt, far, "0123456789", sz, Color.WHITE)
