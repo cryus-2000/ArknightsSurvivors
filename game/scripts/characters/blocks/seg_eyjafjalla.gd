@@ -523,7 +523,7 @@ static func _hw2_tick(o, dt: float) -> bool:
 			pu.t = float(pu.every)
 			pu.n = int(pu.n) - 1
 			var rr: float = (float(sp.get("r", 290.0)) + float(sp.get("pad", 60.0))) * o.stat(&"op_range")
-			var c: Vector2 = o.densest_point(rr, o.pos)
+			var c: Vector2 = o.boss_or_densest(rr, o.pos)   # 11-17 选敌排查：射程内有可受击 Boss 就砸 Boss（原来只砸最密处），口径同安洁莉娜
 			if c == Vector2.INF:
 				var ts: Array = o.nearest_enemies(1, rr, o.pos)
 				if ts.is_empty():

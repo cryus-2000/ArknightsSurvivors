@@ -187,7 +187,7 @@ static func hw_tether_target(o, b: Dictionary) -> Vector2:
 		if not best.is_empty():
 			return best.pos
 	var pr: float = float(b.get("pick_r", 400.0))
-	var c: Vector2 = o.densest_point(pr, o.pos)
+	var c: Vector2 = o.boss_or_densest(pr, o.pos)   # 11-17 选敌排查：pick_r 内有可受击 Boss 就扑 Boss（原来只扑最密处），口径同安洁莉娜
 	if c == Vector2.INF:
 		var ts: Array = o.nearest_enemies(1, pr, o.pos)
 		return ts[0].pos if not ts.is_empty() else Vector2.INF
@@ -1215,7 +1215,11 @@ static func hw_hook_start(o, b: Dictionary) -> void:
 		var pool: Array = o.aim_targets(24, rr, o.pos) if manual else o.nearest_enemies(24, rr, o.pos)
 		var best: Dictionary = {}
 		var bd := -1.0
-		for e in pool:
+		# 自动选敌排第一的是可受击 Boss / 部件：钩它（11-17 选敌排查：原来只挑 min_d 外最远的那个，歌蕾蒂娅普攻 / S1、乌尔比安精二掷锚
+		# 在 Boss 身边有小怪时几乎钩不到 Boss；同安洁莉娜 abc544d32 口径，Boss 拉不动但照样吃伤害）
+		if not manual:
+			best = o.focus_boss(rr, o.pos)
+		for e in pool if best.is_empty() else []:
 			if int(e.get("id", 0)) < 0:
 				continue
 			var dd: float = e.pos.distance_to(o.pos)

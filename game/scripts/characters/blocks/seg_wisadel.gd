@@ -198,6 +198,10 @@ static func _h4_wd_target(o, a: Dictionary, reach: float) -> Dictionary:
 			cands.append(e)
 	if cands.is_empty():
 		return {}
+	# 统一选敌排到第一的是可受击 Boss / 部件：直接打它（11-17 选敌排查：原来 d0 取 Boss 距离，比 Boss 近的小怪距离差为负、全在 slack 内，
+	# 再按落点人数挑，提到最前的 Boss 又被换掉——同安洁莉娜 abc544d32 的口径）
+	if (cands[0].boss or cands[0].get("part", false)) and o.hittable(cands[0]):
+		return cands[0]   # 候选已按 nearest_enemies 排序（从队长位置），这里不再调 focus_boss
 	var d0: float = cands[0].pos.distance_to(g.ppos)
 	var best: Dictionary = cands[0]
 	var most := -1

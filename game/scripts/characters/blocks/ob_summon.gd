@@ -219,7 +219,7 @@ static func _hp_frac(e: Dictionary) -> float:
 
 
 ## 选目标（chase）：锚点 leash 内。nearest = 离召唤物最近（同伴已盯上的往后排，分散开；含 Boss 优先，同 nearest_enemies）；
-## densest = 敌群最密处最近的；elite = Boss → 精英 → 其余（同档近的先，cap_targets 的顺序）；low_hp = 生命比例最低（同比例按 id）。全部确定性，不取随机数
+## densest = 敌群最密处最近的（射程内有可受击 Boss 时先 Boss，11-17）；elite = Boss → 精英 → 其余（同档近的先，cap_targets 的顺序）；low_hp = 生命比例最低（同比例按 id）。全部确定性，不取随机数
 static func _sm_pick(o, s: Dictionary, mv: Dictionary, anc: Vector2, leash: float):
 	var g = o.g
 	var taken := {}
@@ -230,7 +230,7 @@ static func _sm_pick(o, s: Dictionary, mv: Dictionary, anc: Vector2, leash: floa
 	var how: String = str(mv.get("target", "nearest"))
 	match how:
 		"densest":
-			var dp: Vector2 = o.densest_point(leash, anc)
+			var dp: Vector2 = o.boss_or_densest(leash, anc)   # 11-17 选敌排查：牵引范围内有可受击 Boss 就扑 Boss（浊心斯卡蒂的伊莎玛拉），口径同安洁莉娜
 			if dp == Vector2.INF:
 				return null
 			cand = o.nearest_enemies(1, 60.0, dp)

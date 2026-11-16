@@ -337,6 +337,21 @@ func densest_point(radius: float, origin: Vector2 = Vector2.INF) -> Vector2:
 	return g.enemies_sys.densest_point(radius, origin)
 
 
+## 统一选敌（nearest_enemies：部件优先、中期 Boss 锁定、Boss 优先档、护主）排第一的是可受击的 Boss / 部件就返回它，否则 {}。
+## 「最密处 / 最远 / 人头最多方向」这类选点先问它（11-17 选敌排查，口径同安洁莉娜 abc544d32）：清杂优先档、护主、射程内没有 Boss 时照旧
+func focus_boss(max_dist: float, origin: Vector2 = Vector2.INF) -> Dictionary:
+	var ts: Array = nearest_enemies(1, max_dist, origin)
+	if not ts.is_empty() and (ts[0].boss or ts[0].get("part", false)) and hittable(ts[0]):
+		return ts[0]
+	return {}
+
+
+## 范围技能落点：focus_boss 有就落在它身上，否则敌群最密处（没有敌人返回 Vector2.INF）
+func boss_or_densest(radius: float, origin: Vector2 = Vector2.INF) -> Vector2:
+	var fb := focus_boss(radius, origin)
+	return fb.pos if not fb.is_empty() else densest_point(radius, origin)
+
+
 # ---------------------------------------------------------------- 伤害 / 治疗
 
 ## 登记这一击的伤害来源（结算统计、藏品触发按来源分类）；在 deal_damage 之前调用

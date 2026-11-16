@@ -394,6 +394,11 @@ static func _hw_fan_best(o, b: Dictionary) -> float:
 	var h: Dictionary = o.hw
 	var r: float = hw_fan_r(o, b)
 	var half: float = deg_to_rad(float(b.get("deg", 100.0))) * 0.5
+	# 统一选敌排第一的是可受击 Boss / 部件：扇区对准它（11-17 选敌排查：原来按人头数朝向，Boss 只算 1 个，
+	# 扇区背对 Boss 时普攻 fan_filter 整整 12 秒都不打它；同安洁莉娜 abc544d32 口径）
+	var fb: Dictionary = o.focus_boss(r, o.pos)
+	if not fb.is_empty():
+		return (fb.pos - o.pos).angle()
 	var angs: Array = []
 	for j in o.query_ids(o.pos, r):
 		var e: Dictionary = g.enemies[j]
