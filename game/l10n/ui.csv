@@ -4730,3 +4730,5 @@ Esc 固定为暂停 / 返回,Esc is fixed to Pause / Back,Esc は一時停止 / 
 触屏按键请在「触屏按键布局」里调整,Adjust touch buttons in 'Touch Button Layout',タッチボタンは「タッチボタン配置」で調整してください,터치 버튼은 '터치 버튼 배치'에서 조정하세요,,原文键,模型,自译,自译
 自定义局内键盘、鼠标与手柄按键,"Customize in-run keyboard, mouse and controller bindings",ゲーム内のキーボード・マウス・コントローラー操作を変更,"게임 내 키보드, 마우스, 컨트롤러 키를 변경",,原文键,模型,自译,自译
 默认键位,Default Bindings,デフォルトキー設定,기본 키 설정,,原文键,模型,自译,自译
+探索用时 %s,Run Time %s,探索所要時間 %s,탐험 소요 시간 %s,,原文键,模型,自译,自译
+认知塑造 %d,Cognitive Shaping %d,認知形成 %d,인지 형성 %d,,原文键,模型,自译,自译

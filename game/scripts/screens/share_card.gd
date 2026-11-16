@@ -55,6 +55,7 @@ func data(screen) -> Dictionary:
 	return {"won": won, "result": "探索完成" if won else "探索终止", "result_en": "OPERATION COMPLETE" if won else "OPERATION FAILED",
 		"ending": str(m.get("ending_name", "")) if won else ("放弃探索" if bool(m.get("quit", false)) else ("击倒：" + str(m.get("killer", {}).get("name", "未知")))), "quit": bool(m.get("quit", false)),
 		"tier": str(D.DIFF_PRESETS[clampi(g.preset, 0, D.DIFF_PRESETS.size() - 1)].name), "t": float(m.get("t", 0.0)),
+		"tier_x": SB.diff_extra_of(int(g.meta_cells)),   # 认知塑造投入（11-17 结算 / 分享卡加难度）
 		"hi_label": "总伤害", "hi": g.run_stats.fmt_n(float(m.get("total", 0.0))), "kills": int(m.get("kills", 0)), "level": int(m.get("level", 1)), "relic_n": int(m.get("relics", relics.size())),
 		"grade": screen.grade(m, g.preset), "ops": ops, "relics": relics.slice(0, 6),
 		"frame": frame_pick(), "date": Time.get_date_string_from_system().replace("-", "."),   # 相框（拍立得样张 / 三连专属，docs/313）+ 下巴日期
@@ -443,7 +444,8 @@ func _report(ci: CanvasItem, d: Dictionary) -> void:
 	HH.para(ci, Rect2(28, 146, 236, 56), acc.lerp(HH.LIGHT, 0.6))
 	_t(ci, Vector2(48, 152), d.result, 34, HH.INK)
 	_t(ci, Vector2(284, 150), d.ending, 14, HH.LIGHT, "l", W - 312)
-	_t(ci, Vector2(284, 176), "探索用时 %s  ·  %s" % [_time(d.t), d.tier], 13, HH.MUTE, "l", W - 312)
+	var tx := str(d.get("tier_x", ""))
+	_t(ci, Vector2(284, 176), ("探索用时 %s  ·  %s" % [_time(d.t), UI.Loc.s(tx)]) if tx != "" else ("探索用时 %s" % _time(d.t)), 13, HH.MUTE, "l", W - 312)
 	# 左侧暗斜板 + 队长立绘
 	HH.fill(ci, PackedVector2Array([Vector2(0, 224), Vector2(330, 224), Vector2(280, 590), Vector2(0, 590)]), HH.DARK2.lerp(acc, 0.1))
 	HH.fill(ci, PackedVector2Array([Vector2(330, 224), Vector2(337, 224), Vector2(287, 590), Vector2(280, 590)]), acc)
@@ -469,12 +471,17 @@ func _report(ci: CanvasItem, d: Dictionary) -> void:
 	# 「RATING」按两行字实际画出的格高摆在评级字上方（卡面缩小时像素格取整、不能小于 1 像素，写死的坐标会叠上）
 	var gtop: float = 302.0 - (3.5 * TUI.cell(_pc, gk) + TUI.cell(_pc, gk / 3.0)) / _pc.k
 	_px(ci, Vector2(466, gtop - 6.0 - 3.5 * TUI.cell(_pc, 2.0) / _pc.k), "RATING", 2.0, HH.MUTE, 1, 2)
-	var cells: Array = [[d.hi_label, str(d.hi), 360.0, 370.0, 30], ["击败敌人", g.run_stats.fmt_n(float(d.kills)), 360.0, 444.0, 24], ["潮位", str(d.tier), 470.0, 444.0, 24],
+	var cells: Array = [[d.hi_label, str(d.hi), 360.0, 370.0, 30], ["击败敌人", g.run_stats.fmt_n(float(d.kills)), 360.0, 444.0, 24], ["难度", str(d.tier), 470.0, 444.0, 24],
 		["编队", "%d 名" % d.ops.size(), 360.0, 508.0, 24], ["藏品", str(d.get("relic_n", d.relics.size())), 470.0, 508.0, 24]]
 	for c in cells:
 		ci.draw_rect(Rect2(c[2], c[3], 3, 50), acc if c[3] < 400.0 else HH.DARK3)
 		_t(ci, Vector2(c[2] + 12, c[3]), str(c[0]), 12, HH.MUTE)
-		_t(ci, Vector2(c[2] + 12, c[3] + 14), str(c[1]), int(c[4]), HH.LIGHT, "l", W - c[2] - 40)
+		# 下两排是两列各约 100 宽的小格：值放不下就缩字号（英文「Deep Tide」「High Pressure」，11-17 加难度格），最小 14
+		var avail: float = 96.0 if c[3] > 400.0 else W - c[2] - 40.0
+		var vz := int(c[4])
+		while vz > 14 and font.get_string_size(UI.Loc.s(str(c[1])), HORIZONTAL_ALIGNMENT_LEFT, -1, vz).x > avail:
+			vz -= 1
+		_t(ci, Vector2(c[2] + 12, c[3] + 14 + (int(c[4]) - vz) * 0.5), str(c[1]), vz, HH.LIGHT, "l", avail)
 	# 编队一排（色块 + 名字）+ 关键藏品
 	_t(ci, Vector2(28, 602), "|  编队", 12, HH.MUTE)
 	var n: int = mini(d.ops.size(), 6)

@@ -224,6 +224,15 @@ func diff_name() -> String:
 	return str(D.DIFF_PRESETS[clampi(s.g.preset, 0, D.DIFF_PRESETS.size() - 1)].name)
 
 
+## 本局难度的附加说明（11-17 用户「结算上面没有显示难度」）：认知塑造投入的生机细胞数，没点就不写
+func diff_extra() -> String:
+	return diff_extra_of(int(s.g.meta_cells))
+
+
+static func diff_extra_of(cells: int) -> String:
+	return ("认知塑造 %d" % cells) if cells > 0 else ""
+
+
 func grade() -> String:
 	return s.grade(s.model, s.g.preset)
 

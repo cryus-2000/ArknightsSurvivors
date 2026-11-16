@@ -16,7 +16,12 @@ static func apply_difficulty(g) -> void:
 	g.diff = g.tier
 	g.dmod = D.dmod_for_preset(g.preset)   # 潮位表 + 该档的 enemy_scale（深潮档微降，docs/109 §15）
 	for a in Cfg.dev_args():
-		if a.begins_with("--diff="):
+		if a.begins_with("--preset="):   # 截图 / 测试：按三档预设开局（同标题页选档），不写设置
+			g.preset = clampi(int(a.substr(9)), 0, D.DIFF_PRESETS.size() - 1)
+			g.tier = int(D.DIFF_PRESETS[g.preset].tide)
+			g.diff = g.tier
+			g.dmod = D.dmod_for_preset(g.preset)
+		elif a.begins_with("--diff="):
 			# 批跑：旧累计难度 0–10 拼修正表（与旧数据对得上）
 			g.diff = int(a.substr(7))
 			g.preset = -1

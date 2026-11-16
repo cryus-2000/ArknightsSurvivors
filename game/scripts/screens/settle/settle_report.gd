@@ -73,7 +73,7 @@ func draw(canvas: CanvasItem) -> void:
 			rz -= 2
 		txt(64, 156 + (40 - rz) * 0.5, "探索完成" if won else "探索终止", rz, HH.INK)
 		txt(358, 158, sub_line(), 16, HH.LIGHT, 0, 360)
-		txt(358, 186, "探索用时 %s  ·  %s" % [mmss(float(m().t)), diff_name()], 14, HH.MUTE)
+		_diff_row(358.0, 186.0, acc)
 		fa = 1.0
 	# ④ 评级：右上，描边字放大落定（失败直接淡入）
 	_grade(acc)
@@ -90,6 +90,23 @@ func draw(canvas: CanvasItem) -> void:
 	rect(Rect2(-400, 652, 2080, 500), HH.INK)
 	s._draw_buttons(ci, fa)
 	fa = 1.0
+
+
+## 用时 + 难度（11-17 用户「结算上面没有显示难度」）：「探索用时 mm:ss   难度 [档位] 认知塑造 N」，档位做成主题色实底标签，
+## 和上面的中文结果块同一种斜切色块；认知塑造没点就不写
+func _diff_row(x: float, y: float, acc: Color) -> void:
+	x += txt(x, y, "探索用时 %s" % mmss(float(m().t)), 14, HH.MUTE) + 18.0
+	x += txt(x, y, "难度", 14, HH.MUTE) + 8.0
+	var dn := diff_name()
+	var z: float = fs(15)
+	var base: float = y + 14.0   # 与左边 14 号字同一条基线
+	var cw: float = tw(dn, 15) + 22.0
+	para(Rect2(x, base - z * 0.86 - 3.0, cw, z * 1.12 + 6.0), acc.lerp(HH.LIGHT, 0.6))
+	txt(x + 11.0, base - 15.0, dn, 15, HH.INK)
+	x += cw + 10.0
+	var ex := diff_extra()
+	if ex != "":
+		txt(x, y, ex, 14, HH.LIGHT2)
 
 
 ## 徽记：三层菱形（浅 / 暗 / 主题色）

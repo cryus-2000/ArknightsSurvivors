@@ -312,12 +312,17 @@ static func field_tick(o, b: Dictionary, st: Dictionary, dt: float) -> void:
 	_FXR.ev(o, "ang_field", {"look": st.look, "c": c, "r": st.r, "ring": st.ring, "n": nin})   # 转平面（docs/267）：只画
 
 
-## shape.point_aoe 选落点：land = densest（射程内敌群最密处，缺省）/ nearest
+## shape.point_aoe 选落点：land = densest（射程内敌群最密处，缺省）/ nearest。
+## densest 先问统一选敌（11-17 玩家反馈「安洁莉娜不打 Boss」：原来只找最密的一团，Boss 身边有小怪就一直砸小怪堆）：
+## nearest_enemies 排第一的是可受击的 Boss / 部件（部件优先、中期 Boss 锁定、Boss 优先档与护主同其他干员）就落在它身上，
+## 否则（清杂优先档、护主、射程内没有 Boss）照旧落在最密处——落点仍是范围伤害 + 拉拽，Boss 身边的小怪照样被扯进来
 static func point_aoe_target(o, b: Dictionary) -> Vector2:
 	var reach: float = float(b.get("range", 300.0)) * o.stat(&"op_range")
+	var ts: Array = o.nearest_enemies(1, reach, o.pos)
 	if str(b.get("land", "densest")) == "nearest":
-		var ts: Array = o.nearest_enemies(1, reach, o.pos)
 		return ts[0].pos if not ts.is_empty() else Vector2.INF
+	if not ts.is_empty() and (ts[0].boss or ts[0].get("part", false)) and o.hittable(ts[0]):
+		return ts[0].pos
 	return o.densest_point(reach, o.pos)
 
 
