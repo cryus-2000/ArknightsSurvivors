@@ -325,3 +325,32 @@ Godot 里用打包副本的字体与原字体渲染全部保留字（13 / 18 / 2
 ## 一键发版（2026-10-10 起）
 
 用户定方案 A：改动合入 main、快检与发布检查通过后，协调人直接 `python tools/ship.py`——推 origin/main → release_all 出 public / web / internal 三包 → deploy_itch --apply 推 itch，不再逐次申请。任一步失败即停。`--skip-check` 跳过快检、`--no-itch` 只推代码与出包、`--dry-run` 只打印。对内包永不上 itch（deploy_itch 把关）。日志在 build/ship/<提交>/。
+
+### 发版提速（2026-11-17）
+
+一次完整发版（Windows 包 + itch 网页包 + Toy 包）从约 48 分钟压到 **6 分钟（缓存热）/ 15 分钟（缓存冷）**。
+
+```
+python tools/ship.py --toy          # 同一次网页导入顺带出 Toy 包（build/toy/web + 方舟幸存者_toy_<提交>.zip，只出包不上传，上传仍用 toy update）
+python tools/ship.py --serial       # 退回 Windows / 网页串行出包（排查用）
+ARK_NO_IMPORT_CACHE=1 python tools/ship.py ...   # 关掉导入缓存（对照用）
+```
+
+同一提交 1f8772b20、同一台机器实测（秒；新流程里 Windows 与网页并行，总耗时取较长的那条）：
+
+| 流程 | Windows | itch 网页 | Toy | 合计 |
+|---|---|---|---|---|
+| 旧（串行三次导出） | 984 | 988 | 913 | **2885** |
+| 新，缓存冷（素材大改 / 首次） | 472 | 893（含 Toy） | — | **893** |
+| 新，缓存热（日常发版） | 282 | 362（含 Toy） | — | **362** |
+
+做了什么（按省时大小）：
+
+1. **导入缓存**（tools/import_cache.py）：上次导出成功后，把 `.godot/imported` 产物连同导入后的 `.import` 按「内容键」存进 `build/_import_cache/<win|web>/`（约 100–160 MB，每个变体只留一份快照）。键 = 素材字节 + 导入前 `.import` 字节 + 相对路径 + Godot 可执行文件 + project.godot 的导入相关段（`[rendering]` 等）。下次导入前键对得上的放回干净副本，Godot 只重导变了的。正确性两道核对：存的时候逐条核对 `.md5` 里的 source_md5 / dest_md5，对不上不存；放回后 Godot 自己再核对一遍，对不上就重导。用硬链接放回（同盘、几乎零耗时）。
+2. **新文件首读预读**（import_cache.prewarm_tree）：git archive 新解出来的 1.4 万个文件，第一次被打开时要过实时防护扫描；Godot / 发布检查 / 字体子集都是串行读，单首读就要 124 秒。解完和导入前各用 32 个线程并行读一遍（约 6–14 秒），之后再读就快了。只读不写，不改系统设置。
+3. **itch 网页包与 Toy 包共用一次导入**（export_web --toy-out，release_all --toy）：先按 itch 版导入导出，再在同一份副本上做 Toy 差异（build.json 写 lang_lock、删 l10n/、外语语音、斯卡蒂终结技原图），不重导入直接再导出一次。Toy 的源码断言、pck 路径断言、50 MB 上限照旧，toy_doctor 通过。
+4. **Windows 包与网页包并行**（ship.py 缺省）：两条线各用不同的干净副本（build/_export、build/_web），各占 1 个 Godot。并行时两个编辑器进程会抢 godot_mcp 插件的 6505 端口，后起的 push_error 让导出判失败——出包副本里给 plugin.gd 加 `GODOT_MCP_DISABLE` 开关（godot_runner.disable_mcp_in_copy；addons/ 不进包，pck 不变）。用户开着编辑器时出包也不会再撞。
+5. **可复现**：字体子集 / WOFF2 保存时保留原字体 head.modified（之前每次都写当前时间，字节不同，缓存命不中）；网页音频重编码按「采样 + 参数」复用上次结果（libsndfile 写 Ogg 流序号随机，build/_import_cache/audio_enc，约 20 MB）。
+6. 小项：Windows 副本只解 game/ + tools/（art/、docs/ 约 560 MiB 不进包）；网页半分辨率贴图放子进程和音频步骤同时做；分片 gzip / LZMA 多进程并行（itch 与 Toy 的 index.wasm 相同，只压一次）；release_all 每步完整输出写 build/release/step_<步骤>.log。
+
+产物等价性（tools/compare_builds.py 对比新旧两次出包）：文件清单、各文件大小、index.wasm、zip 成员清单全部一致；pck 目录逐项 md5 只差 7 项，与「旧流程自己跑两次」的差异是同一类——3 个导出场景 .scn、uid_cache.bin、3 个子集字体（新旧字体只差 head 表修改时间，字形 / 度量 / 其余表逐字节相同）。Windows 加密包大小一致（加密内容每次不同，比不了字节）。Toy zip 49.78 MB（与旧流程相差 < 1 KB）。新网页包在本地浏览器能进标题、做新手寻访、进局，控制台无报错。改一张贴图 + 改一个 .import 参数的临时提交实测：只有这两个未命中、pck 里正好这两张 ctex 变了。

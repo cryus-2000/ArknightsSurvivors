@@ -73,7 +73,43 @@ def music_rate(x, sr, tier_rate):
     return tier_rate
 
 
+ENC_CACHE = os.environ.get("ARK_AUDIO_ENC_CACHE")   # export_web 设成 build/_import_cache/audio_enc；不设就不缓存（其他调用方行为不变）
+_ENC_USED = set()
+
+
 def encode(x, sr, level):
+    """同样的采样 + 采样率 + 档位 → 复用上次的编码结果（11-17 发版提速）：libsndfile 写 Ogg 时流序号随机，每次重编码字节都不同，
+    Godot 导入缓存（tools/import_cache.py）因此对 237 条语音全不命中、每次重导；结果缓存让同样的输入得到同样的字节"""
+    if not ENC_CACHE:
+        return _encode(x, sr, level)
+    import hashlib
+    a = np.ascontiguousarray(x, dtype=np.float32)
+    key = hashlib.sha256(b"v1|%d|%r|%r|" % (sr, float(level), a.shape) + a.tobytes()).hexdigest()
+    p = os.path.join(ENC_CACHE, key + ".ogg")
+    _ENC_USED.add(key + ".ogg")
+    try:
+        with open(p, "rb") as fh:
+            return fh.read()
+    except OSError:
+        pass
+    data = _encode(x, sr, level)
+    os.makedirs(ENC_CACHE, exist_ok=True)
+    with open(p + ".tmp", "wb") as fh:
+        fh.write(data)
+    os.replace(p + ".tmp", p)
+    return data
+
+
+def prune_encode_cache():
+    """删掉这次没用到的编码结果，缓存只留当前这一版（约 20 MB）"""
+    if not ENC_CACHE or not os.path.isdir(ENC_CACHE) or not _ENC_USED:
+        return
+    for f in os.listdir(ENC_CACHE):
+        if f not in _ENC_USED:
+            os.remove(os.path.join(ENC_CACHE, f))
+
+
+def _encode(x, sr, level):
     if level > 1.0:   # 质量 1 - level < 0：libsndfile 做不到，走 ffmpeg libvorbis（D / E 档）
         return encode_ff(x, sr, 1.0 - level)
     b = io.BytesIO()
