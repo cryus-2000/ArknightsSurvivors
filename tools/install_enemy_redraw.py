@@ -13,8 +13,8 @@ ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "art" / "archive" / "incoming_1028" / "enemy_redraw_1023" / "animations"
 sys.path.insert(0, str(ROOT / "tools"))
 import asset_paths
-PIX = ROOT / "game" / "data" / "enemy_pixels.json"
-OUT = ROOT / "game" / "data" / "enemy_redraw.json"
+PIX = ROOT / "game" / "themes" / "deep_sea" / "data" / "enemy_pixels.json"   # 主题数据（docs/367 §2）
+OUT = ROOT / "game" / "themes" / "deep_sea" / "data" / "enemy_redraw.json"
 ART_GD = ROOT / "game" / "scripts" / "art.gd"
 BEGIN = "\t# >>> enemy_redraw 死亡帧条（tools/install_enemy_redraw.py 生成，别手改）\n"
 END = "\t# <<< enemy_redraw\n"

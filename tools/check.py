@@ -130,7 +130,7 @@ def plan_auto():
                 bump("ops", p)
             else:
                 bump("text", p)   # 召唤物等附属帧条（如 op_mon3tr_*）：只影响画面，核心契约即可
-        elif p.startswith("game/data/") and name.endswith(".json"):
+        elif (p.startswith("game/data/") or (p.startswith("game/themes/") and "/data/" in p)) and name.endswith(".json"):   # 主题数据（docs/367 §2）同 game/data
             if os.path.exists(os.path.join(ROOT, p)) and _json_text_only(p, base):
                 bump("text", p + "（只改说明字段）")
             elif p.startswith("game/data/characters/") and stem in ids:
@@ -194,9 +194,9 @@ def check_map():
 
 
 def check_static():
-    """不开 Godot 的检查：game/data 下所有 JSON 能解析"""
+    """不开 Godot 的检查：game/data 与主题包（game/themes，docs/367 §2）下所有 JSON 能解析"""
     bad = []
-    for p in glob.glob(os.path.join(GAME, "data", "**", "*.json"), recursive=True):
+    for p in glob.glob(os.path.join(GAME, "data", "**", "*.json"), recursive=True) + glob.glob(os.path.join(GAME, "themes", "**", "*.json"), recursive=True):
         try:
             json.load(open(p, encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as e:
