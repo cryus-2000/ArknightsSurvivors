@@ -117,7 +117,8 @@
     "ui_smoke_ko",
     "l10n",
     "lifecycle_cycle",
-    "flow_sweep"
+    "flow_sweep",
+    "keybind"
    ]
   },
   "render": {
