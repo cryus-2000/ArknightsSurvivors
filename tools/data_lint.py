@@ -19,6 +19,8 @@ import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import theme_paths as TP   # 主题数据路径（docs/367 §2）
 DATA = os.path.join(ROOT, "game", "data")
 SCRIPTS = os.path.join(ROOT, "game", "scripts")
 
@@ -45,7 +47,7 @@ def _load(path, errs):
 
 def check_dupes(errs):
     n = 0
-    for p in sorted(glob.glob(os.path.join(DATA, "**", "*.json"), recursive=True)):
+    for p in sorted(f for d in TP.data_dirs() for f in glob.glob(os.path.join(d, "**", "*.json"), recursive=True)):
         _load(p, errs)
         n += 1
     return n
@@ -61,10 +63,10 @@ def _boss_scripts(ens):
 
 
 def check_waves(errs):
-    ens = _load(os.path.join(DATA, "enemies.json"), [])["enemies"]
+    ens = _load(TP.data_file("enemies.json"), [])["enemies"]
     enemies = set(ens.keys())
-    relics = {str(it.get("id")) for it in _load(os.path.join(DATA, "relics.json"), []).get("items", []) if isinstance(it, dict)}
-    w = _load(os.path.join(DATA, "waves.json"), [])
+    relics = {str(it.get("id")) for it in _load(TP.data_file("relics.json"), []).get("items", []) if isinstance(it, dict)}
+    w = _load(TP.data_file("waves.json"), [])
     bosses = _boss_scripts(ens)
 
     def need(eid, where):
@@ -140,7 +142,7 @@ def check_lanes(errs):
         ls = d.get("lanes")
         if not isinstance(ls, list) or not 1 <= len(ls) <= 2 or any(x not in lanes for x in ls) or len(set(ls)) != len(ls):
             errs.append("characters/%s：lanes 要 1–2 个不重复的流派键（%s），现在是 %s" % (os.path.basename(f), "/".join(sorted(lanes)), ls))
-    fx = json.load(open(os.path.join(DATA, "relic_effects.json"), encoding="utf-8")).get("relics", {})
+    fx = json.load(open(TP.data_file("relic_effects.json"), encoding="utf-8")).get("relics", {})
     for rid, r in fx.items():
         for ef in r.get("effects", []):
             sc = str(ef.get("scope", ""))
@@ -149,7 +151,7 @@ def check_lanes(errs):
                 errs.append("relic_effects.json #%s：流派「%s」不在七个流派里" % (rid, l))
     # 藏品分类只此一套（docs/197）：relics.json 每件恰好一个 lane（7 流派 + 职业 / 通用 / 生存 / 经济），旧的 lanes / cat / tags / effect_category 不得回来
     groups = lanes | {"class", "general", "survival", "economy"}
-    meta = json.load(open(os.path.join(DATA, "relics.json"), encoding="utf-8"))
+    meta = json.load(open(TP.data_file("relics.json"), encoding="utf-8"))
     if set(meta.get("lane_names", {})) != groups:
         errs.append("relics.json：lane_names 要正好是 %s" % "/".join(sorted(groups)))
     for r in meta.get("items", []):

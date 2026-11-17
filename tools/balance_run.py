@@ -352,8 +352,8 @@ def bot_summary(records):
 
 def relic_meta():
     """藏品编号 → {name, lanes, rarity, req}（lanes = [relics.json 的 lane]，docs/197 分类键；req = requires_class 职业门槛）"""
-    meta = json.load(open(os.path.join(GAME, "data", "relics.json"), encoding="utf-8"))
-    fx = json.load(open(os.path.join(GAME, "data", "relic_effects.json"), encoding="utf-8")).get("relics", {})
+    meta = json.load(open(os.path.join(GAME, "themes", "deep_sea", "data", "relics.json"), encoding="utf-8"))
+    fx = json.load(open(os.path.join(GAME, "themes", "deep_sea", "data", "relic_effects.json"), encoding="utf-8")).get("relics", {})
     out = {}
     for r in meta["items"]:
         i = str(int(r["id"]))

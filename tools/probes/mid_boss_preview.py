@@ -22,7 +22,7 @@ SEG_SECONDS = 18
 NAMES = ["path_act1", "path_act2", "tide_archon_act1", "tide_archon_act2", "tide_immortal_act2"]
 SOURCES = ["game/scripts/enemies/mid_cards.gd", "game/scripts/render/mid_card_draw.gd", "game/scripts/enemies/bosses/path.gd", "game/scripts/enemies/bosses/bishop.gd",
            "game/scripts/enemies/bosses/archon.gd", "game/scripts/enemies/bosses/immortal.gd", "game/tests/mid_boss_preview.gd", "game/scripts/render/world.gd",
-           "game/scripts/render/telegraph_draw.gd", "game/data/enemies.json"]
+           "game/scripts/render/telegraph_draw.gd", "game/themes/deep_sea/data/enemies.json"]
 
 
 def main():

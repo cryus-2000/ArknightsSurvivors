@@ -158,6 +158,7 @@ def _runtime_files(game):
     keep = lambda p: os.path.relpath(p, game).replace("\\", "/").split("/")[0] not in skip
     gds = [p for p in glob.glob(os.path.join(game, "scripts", "**", "*.gd"), recursive=True) if keep(p)]
     jsons = [p for p in glob.glob(os.path.join(game, "data", "**", "*.json"), recursive=True) if keep(p)]
+    jsons += [p for p in glob.glob(os.path.join(game, "themes", "**", "*.json"), recursive=True) if keep(p)]   # 主题包数据（11-18 搬家，docs/367）：字体子集要带上它们的字
     scenes = [p for p in glob.glob(os.path.join(game, "**", "*.tscn"), recursive=True) + glob.glob(os.path.join(game, "**", "*.tres"), recursive=True) if keep(p)]
     return gds, jsons, scenes + [os.path.join(game, "project.godot")]
 

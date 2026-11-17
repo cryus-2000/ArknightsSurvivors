@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.join(ROOT, "tools"))
 import asset_paths
 INC = os.path.join(ROOT, "art", "incoming")
 TRIAL = os.path.join(INC, "_trial_icons")
-DATA = os.path.join(ROOT, "game", "data", "relics.json")
+DATA = os.path.join(ROOT, "game", "themes", "deep_sea", "data", "relics.json")
 
 OUTLINE = (0x08, 0x0E, 0x18, 255)
 HILITE = (0xE6, 0xFA, 0xFF, 255)

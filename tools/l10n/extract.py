@@ -9,6 +9,8 @@ import json, os, re, sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "tools"))
+import theme_paths as TP   # 主题数据路径（docs/367 §2）
 REF = ROOT / "build/l10n_ref"
 WORK = ROOT / "build/l10n_work"
 CJK = re.compile(r"[一-鿿]")
@@ -166,7 +168,7 @@ def extract():
     for path, s in out:
         ops.append(item("ult." + ".".join(path), s, "game/data/ult_text.json", "/".join(path), path[-1]))
     lore = json.load(open(ROOT / "game/data/lore.json", encoding="utf-8"))
-    enemy_ids = set(json.load(open(ROOT / "game/data/enemies.json", encoding="utf-8"))["enemies"].keys())
+    enemy_ids = set(json.load(open(ROOT / "game/themes/deep_sea/data/enemies.json", encoding="utf-8"))["enemies"].keys())
     for k, v in lore.items():
         if k.startswith("_"):
             continue
@@ -179,11 +181,11 @@ def extract():
         for pk in (v.get("profile") or {}):
             if CJK.search(pk):
                 dst.append(item("lore.%s.profile_key.%s" % (k, pk), pk, "game/data/lore.json", k + "/profile(key)", "profile_key"))
-    ej = json.load(open(ROOT / "game/data/enemies.json", encoding="utf-8"))
+    ej = json.load(open(ROOT / "game/themes/deep_sea/data/enemies.json", encoding="utf-8"))
     out = []
     walk(ej["enemies"], [], out)
     for path, s in out:
-        ens.append(item("enemy." + ".".join(path), s, "game/data/enemies.json", "/".join(path), path[-1]))
+        ens.append(item("enemy." + ".".join(path), s, "game/themes/deep_sea/data/enemies.json", "/".join(path), path[-1]))
     # 图鉴机制行（gallery.gd ENEMY_DESC）
     gl = open(ROOT / "game/scripts/gallery.gd", encoding="utf-8").read().splitlines()
     on = False
@@ -285,7 +287,7 @@ def extract_modules(g):
     for name, spec in MODULES.items():
         items = []
         for f in spec["json"]:
-            p = ROOT / "game/data" / f
+            p = Path(TP.data_file(f))   # 主题数据在主题包里（docs/367 §2）
             if not p.exists():
                 print("  缺文件", f); continue
             d = json.load(open(p, encoding="utf-8"))
@@ -295,7 +297,7 @@ def extract_modules(g):
                 if any(x in JSON_SKIP for x in path):
                     continue
                 field = path[-1] if not path[-1].isdigit() else (path[-2] if len(path) > 1 else "")
-                items.append(item("%s.%s.%s" % (name, p.stem, ".".join(path)), s, "game/data/" + f, "/".join(path), field))
+                items.append(item("%s.%s.%s" % (name, p.stem, ".".join(path)), s, p.relative_to(ROOT).as_posix(), "/".join(path), field))
         for gpat in spec["gd"]:
             for p in sorted(glob.glob(str(ROOT / "game" / gpat), recursive=True)):
                 rel = Path(p).relative_to(ROOT / "game/scripts").as_posix()

@@ -61,7 +61,7 @@ func pack_tests() -> void:
 	var db = preload("res://scripts/core/relic_db.gd").new()
 	db.load_files()
 	full.prog.rel = db.implemented().map(func(r): return str(r.id))
-	var en: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/enemies.json")).enemies
+	var en: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://themes/deep_sea/data/enemies.json")).enemies
 	full.prog.gal = en.keys().map(func(k): return "enemy:" + str(k)) + ["item:EXP", "item:OIL", "item:INGOT", "item:MAGNET", "item:HEAL", "item:CHEST", "item:PILLAR", "item:RUINED WALL", "item:WRECK", "item:RIDGE", "item:PEAK", "item:MIRE", "item:MERCHANT"]
 	full.prog.end = preload("res://scripts/data.gd").ENDINGS.keys()
 	for k in preload("res://scripts/touch_layout.gd").KEYS:

@@ -21,7 +21,7 @@ import sys
 from collections import Counter, defaultdict
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ENEMIES = os.path.join(HERE, "..", "game", "data", "enemies.json")
+ENEMIES = os.path.join(HERE, "..", "game", "themes", "deep_sea", "data", "enemies.json")
 
 # 每 tick 都会记一笔的持续 / 环境来源：数「挨了几下」时不算
 PER_TICK = {"corrode", "wound", "mire", "zone", "dark", "nerve"}

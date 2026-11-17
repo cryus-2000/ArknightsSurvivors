@@ -53,7 +53,7 @@ def enemies():
 
 def ecol_ramp():
     try:
-        d = json.load(open(os.path.join(ROOT, "game", "data", "enemies.json"), encoding="utf-8"))
+        d = json.load(open(os.path.join(ROOT, "game", "themes", "deep_sea", "data", "enemies.json"), encoding="utf-8"))
         c = d.get("offspring", {}).get("ecol")
         if isinstance(c, list):
             r, g, b = [int(255 * x) for x in c[:3]]

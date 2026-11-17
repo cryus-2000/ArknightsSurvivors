@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 B = json.load(open(os.path.join(ROOT, "game/data/balance.json"), encoding="utf-8"))
-W = json.load(open(os.path.join(ROOT, "game/data/waves.json"), encoding="utf-8"))["threat"]
-E = json.load(open(os.path.join(ROOT, "game/data/enemies.json"), encoding="utf-8"))
+W = json.load(open(os.path.join(ROOT, "game/themes/deep_sea/data/waves.json"), encoding="utf-8"))["threat"]
+E = json.load(open(os.path.join(ROOT, "game/themes/deep_sea/data/enemies.json"), encoding="utf-8"))
 E = E.get("enemies", E)
 en = B["enemy"]
 K = 1.0 / en.get("density", 1.0) ** en.get("density_dmg_exp", 1.0)

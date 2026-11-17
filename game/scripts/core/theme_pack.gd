@@ -1,6 +1,6 @@
 extends RefCounted
 ## 主题包清单与数据路径门面（docs/357 §6.1 阶段 0、docs/359 §2）。
-## 主题相关的数据文件一律经这里取路径：ThemePack.path("waves") → "res://data/waves.json"（水月 / 深海主题当前就指向原路径，数据文件还没搬家）。
+## 主题相关的数据文件一律经这里取路径：ThemePack.path("waves") → "res://themes/deep_sea/data/waves.json"（11-18 起主题自己的数据在主题包里，共享 / 混合的仍在 res://data/，docs/367 §2）。
 ## 清单：res://themes/<id>/theme.json 的 data 段（键 → res:// 路径）、maps 段（地图目录 / 缺省地图）、assets 段（标题 / 配乐 / 地面 / 光照引用，阶段 2 才接线）。
 ## 干员、通用 UI、balance.json 等通用数据不走这里。用法：const ThemePack = preload("res://scripts/core/theme_pack.gd")（不做自动加载：-s 契约测试里也要能用）。
 ## 只读文件、不抽随机数、结果缓存在静态变量里；同种子玩法逐帧不变（tools/theme_parity.py）。

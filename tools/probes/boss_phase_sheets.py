@@ -9,7 +9,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 INC = os.path.join(ROOT, "art", "incoming")
 OUT = os.path.join(ROOT, "build", "boss_phase_sheets")
-PIX = json.load(open(os.path.join(ROOT, "game", "data", "enemy_pixels.json"), encoding="utf-8"))
+PIX = json.load(open(os.path.join(ROOT, "game", "themes", "deep_sea", "data", "enemy_pixels.json"), encoding="utf-8"))
 FONT = os.path.join(ROOT, "game", "fonts", "ui.ttf")
 PW, PH = 520, 360          # 每栏画面
 TXT_H = 190
