@@ -167,3 +167,11 @@ python tools/spine_px_review.py ling --with ling_soul1 ling_soul2 ling_soul3 --d
 **数量与包体**：`game/art/operators/ling/` 共 55 条（本体 21、召唤物 34），1.4 MB；放在 `game/art/` 下会随导出进包（网页包体预算紧，见 memory web-package-budget）。接入前若要发版，可先挪到 art/incoming 或在导出过滤里排除 `art/operators/ling/*`。
 
 **接入时还缺**（玩法排队后做，按 `.claude/skills/new-operator`）：设计稿（普攻 / 三技能 / 精一精二 / 成长节点 / 终结技与连携，召唤物在本作里怎么用）→ 角色 json 与召唤积木 → 转平面特效 → 头像（`op_ling_chibi.png`、`avatar_eyes.json`）与技能图标 → 语音音效 → 快检与云端胜率。
+
+## 8. 嘴（11-18 用户：「嘴需要稍微调整一下」）
+
+原作待机的闭嘴附件 `F_Mouth_01` 很淡，4×4 BOX 后在 @2x 是一条偏灰的三格线、几乎看不出；1 倍「不画嘴」后脸左下还剩一个阴影黑点（嘴骨左上 3 格），读起来像嘴歪了。
+
+改法（`fix.mouth`，同眼睛的贴法）：按嘴骨 `F_Mouth_01` 逐帧位置贴手画小图，颜色取 atlas 里嘴部附件的柔和红褐 `#a67373`——@2x 两格短线（两侧补肤色盖掉原来的灰线），1 倍一格，并把那个黑点盖成肤色。只在该帧嘴槽仍是闭嘴附件时贴（`run_trial.js` 新增 `trackSlots` 逐帧记附件名；1 倍沿用同动作 @2x 的记录，边跑边攻击沿用普攻）：原作换成张嘴图的帧（技能、受击的一部分）保留原样。
+
+注意：嘴色**不能**加进调色板（`keep_colors`）——试过，脸两侧的头发阴影会就近映射成粉色。贴图颜色不受调色板约束。

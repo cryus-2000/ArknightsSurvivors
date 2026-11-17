@@ -679,7 +679,9 @@ async function main() {
     if (cfg.keys) { lines.push(swordLine(sk, i)); if (process.env.SWORD_DEBUG) console.log(i, JSON.stringify(lines[i])); }
     // cfg.trackBones：逐帧记下指定骨骼原点的像素位置（新干员修脸贴眼睛的对位锚点，tools/spine_px.py）
     const tracked = cfg.trackBones ? Object.fromEntries(cfg.trackBones.map(n => { const b = sk.findBone(n); return [n, b ? [+(ANCHOR[0] + b.worldX * SCALE).toFixed(2), +(ANCHOR[1] - b.worldY * SCALE).toFixed(2), +(Math.atan2(b.c, b.a) * 180 / Math.PI).toFixed(1)] : null]; })) : undefined;
-    report.push({ frame: i, contacts, clipped_near_edge: clipped, bones: tracked });
+    // cfg.trackSlots：逐帧记下指定槽当前的附件名（嘴型换图的帧不贴手画嘴，tools/spine_px.py）
+    const slotsNow = cfg.trackSlots ? Object.fromEntries(cfg.trackSlots.map(n => { const sl = sk.findSlot(n); return [n, sl && sl.getAttachment() ? sl.getAttachment().name : null]; })) : undefined;
+    report.push({ frame: i, contacts, clipped_near_edge: clipped, bones: tracked, slots: slotsNow });
   }
   const idle = pixelize(base).canvas;
   fs.writeFileSync(path.join(OUT, 'idle_t0.png'), idle.toBuffer('image/png'));
