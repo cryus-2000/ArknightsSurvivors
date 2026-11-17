@@ -508,7 +508,7 @@ func _share_side(ci: CanvasItem) -> void:
 	var sv := _share_save()
 	_text(ci, sv.position.x, SHARE_POS.y + 6, "分享战绩", 20, HH.LIGHT)
 	ci.draw_rect(sv, Color(HH.CYB.lightened(0.2) if share_toy.busy else HH.CYB, _fa))
-	_text_key(ci, sv.position.x + 16, sv.position.y + 10, "保存图片" if Pad.touch_ui() else "保存图片  Enter", 16, HH.INK)
+	_text_key(ci, sv.position.x + 16, sv.position.y + 10, "保存图片" if Pad.touch_ui() else "保存图片  Enter", 16, HH.INK, sv.size.x - 24.0)
 	if share_toy.status != "":
 		_text(ci, sv.position.x, sv.end.y + 12, share_toy.status, 13, HH.MUTE, 200)
 	if _share_frames().size() > 1:   # 换相框（领过关注 / 三连才有）
@@ -517,10 +517,10 @@ func _share_side(ci: CanvasItem) -> void:
 		ci.draw_rect(fb, Color(HH.CYB, 0.7 * _fa), false, 1.5)
 		var fid := str(share_data.get("frame", ""))
 		var fname: String = str(ShareCard.FRAMES[fid].name) if ShareCard.FRAMES.has(fid) else "默认"
-		_text_key(ci, fb.position.x + 16, fb.position.y + 10, ("相框：%s  ›" % fname) if Pad.touch_ui() else ("相框：%s  F" % fname), 16, HH.LIGHT)
+		_text_key(ci, fb.position.x + 16, fb.position.y + 10, ("相框：%s  ›" % fname) if Pad.touch_ui() else ("相框：%s  F" % fname), 16, HH.LIGHT, fb.size.x - 24.0)
 	var c := _share_close()
 	ci.draw_rect(c, Color(HH.DARK2, _fa))
-	_text_key(ci, c.position.x + 16, c.position.y + 10, "关闭" if Pad.touch_ui() else "关闭  Esc", 16, HH.LIGHT)
+	_text_key(ci, c.position.x + 16, c.position.y + 10, "关闭" if Pad.touch_ui() else "关闭  Esc", 16, HH.LIGHT, c.size.x - 24.0)
 
 
 func _set_hover(id: String) -> void:
@@ -670,14 +670,26 @@ const PHONE_MIN_FS := 15
 
 ## 「标签  键名」（两个空格分隔，UI.split_key）：标签照常写，键名大写进标签后面的按键牌（docs/37：按钮牌上的键名用大写英文；
 ## 11-01 巡检：结算按钮以前把「Esc / Enter / Tab」小写混写进按钮文字）
-func _text_key(ci: CanvasItem, x: float, y: float, text: String, size := 18, color := HH.LIGHT) -> void:
+## max_w > 0：标签 + 按键牌合计不超过这么宽（按译文量；外语版放不下先缩字号，最小 11，再放不下由 _text 截掉）。
+## 11-17 体检：原来按中文原文量宽，英文「Share」「Back to Main UI」比中文宽，按键牌压在字上、寻访不可点的长文案出屏
+func _text_key(ci: CanvasItem, x: float, y: float, text: String, size := 18, color := HH.LIGHT, max_w := -1.0) -> void:
 	var sk: Array = UI.split_key(text)
-	_text(ci, x, y, sk[0], size, color)
+	var lab: String = UI.Loc.s(str(sk[0]))
+	var kw: float = 0.0 if sk[1] == "" else UI.cwidth(g.font, str(sk[1]).to_upper(), 11) + 22.0
+	var sz := size
+	if max_w > 0.0:
+		while sz > 11 and g.font.get_string_size(lab, HORIZONTAL_ALIGNMENT_LEFT, -1, _fs_of(sz)).x + kw > max_w:
+			sz -= 1
+	var yy := y + (size - sz) * 0.5   # 缩了字号仍按原字号的行居中
+	_text(ci, x, yy, sk[0], sz, color, (max_w - kw) if max_w > 0.0 else -1.0)
 	if sk[1] == "" or _fa <= 0.0:
 		return
-	var fs := UI.phone_body_step(maxi(size, PHONE_MIN_FS)) if Cfg.phone_ui() else size
-	var tw: float = g.font.get_string_size(sk[0], HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-	UI.keycap(ci, g.font, Vector2(x + _dx + tw + 10.0, y + size * 0.55 - 7.0), str(sk[1]).to_upper(), Color(color, color.a * 0.75 * _fa), 11)
+	var tw: float = minf(g.font.get_string_size(lab, HORIZONTAL_ALIGNMENT_LEFT, -1, _fs_of(sz)).x, (max_w - kw) if max_w > 0.0 else INF)
+	UI.keycap(ci, g.font, Vector2(x + _dx + tw + 10.0, yy + sz * 0.55 - 7.0), str(sk[1]).to_upper(), Color(color, color.a * 0.75 * _fa), 11)
+
+
+func _fs_of(size: int) -> int:
+	return UI.phone_body_step(maxi(size, PHONE_MIN_FS)) if Cfg.phone_ui() else size
 
 
 func _text(ci: CanvasItem, x: float, y: float, text: String, size := 18, color := HH.LIGHT, width := -1.0) -> void:
@@ -793,7 +805,7 @@ func _draw_buttons(ci: CanvasItem, fp := 1.0) -> void:
 			r.position.y += 80.0 * (1.0 - fp)
 		if id == "hunt" and not Roster.can_hunt_from_settlement():
 			ci.draw_rect(r, Color(HH.DARK2, _fa))
-			_text_key(ci, r.position.x + 20.0, r.get_center().y - 12.0, SettleBase.hunt_blocked_text(), 20 if ph else 18, HH.MUTE)   # 原因与 Roster.hunt_block 一致（11-16）
+			_text_key(ci, r.position.x + 20.0, r.get_center().y - 12.0, SettleBase.hunt_blocked_text(), 20 if ph else 18, HH.MUTE, r.size.x - 28.0)   # 原因与 Roster.hunt_block 一致（11-16）
 			continue
 		var primary: bool = b[4]
 		var text_btn: bool = (id == "records" or id == "runs") and not ph   # 11-01 docs/211 D14：手机上无底色的 16 号文字按钮太小，改成同款按钮、同字号
@@ -824,7 +836,7 @@ func _draw_buttons(ci: CanvasItem, fp := 1.0) -> void:
 				ci.draw_line(o, o + corner[2] * c, HH.CYB, 3.0)
 		var fg: Color = HH.INK if (primary or prs) else (HH.LIGHT if (hov or foc or not text_btn) else HH.MUTE)
 		var fs: int = (20 if ph else 18) if not text_btn else 16
-		_text_key(ci, r.position.x + (20.0 if not text_btn else 0.0) + (4.0 if text_btn and (hov or foc or prs) else 0.0), r.position.y + (r.size.y - fs) * 0.5 - 2.0, str(b[3]), fs, fg)
+		_text_key(ci, r.position.x + (20.0 if not text_btn else 0.0) + (4.0 if text_btn and (hov or foc or prs) else 0.0), r.position.y + (r.size.y - fs) * 0.5 - 2.0, str(b[3]), fs, fg, r.size.x - (28.0 if not text_btn else 8.0))
 
 
 func draw_cards(ci: CanvasItem) -> void:

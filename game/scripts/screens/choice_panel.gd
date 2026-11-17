@@ -199,13 +199,13 @@ func button(text: String, r: Rect2, cb: Callable, enabled: bool, icon := "", not
 			UI.icon(b, icon, Vector2(x + 9, b.size.y / 2.0), 18.0, fg)
 			x += 26.0
 		UI.text(b, g.font, Vector2(x, b.size.y / 2.0 + 5), text, 14, fg)
-		x += g.font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(14)).x + 10.0
+		x += g.font.get_string_size(UI.Loc.s(text), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(14)).x + 10.0   # 按译文量宽（11-17 体检：英文「Refresh Stock」压在价格图标上）
 		if price >= 0:
 			b.draw_texture_rect(g.tex.ingot, Rect2(Vector2(x, b.size.y / 2.0 - 7), Vector2(18, 14)), false, Color(1, 1, 1, 1.0 if enabled else 0.5))
 			UI.ctext(b, g.font, Vector2(x + 22, b.size.y / 2.0 + 7), str(price), 18, fg)
 			x += 22.0 + UI.cwidth(g.font, str(price), 18) + 8.0
-		if note != "":
-			UI.text(b, g.font, Vector2(x, b.size.y / 2.0 + 5), note, 11, UI.SUB)
+		if note != "" and br.end.x - x > 24.0:
+			UI.text(b, g.font, Vector2(x, b.size.y / 2.0 + 5), note, 11, UI.SUB, HORIZONTAL_ALIGNMENT_LEFT, br.end.x - x - 6.0)
 		if key != "" and not Pad.touch_ui():
 			UI.keycap(b, g.font, Vector2(b.size.x - UI.cwidth(g.font, key, 11) - 28, b.size.y / 2.0 - 9), key, fg, 11))
 	b.mouse_entered.connect(b.queue_redraw)

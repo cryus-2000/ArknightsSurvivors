@@ -247,17 +247,20 @@ func _gains(acc: Color) -> void:
 	rect(Rect2(470, y0, 790, 640.0 - y0), Color(HH.DARK2, 0.9))
 	txt(486, y0 + 6, "本局获得", 12, HH.MUTE)
 	var items: Array = [["生机细胞", "+", float(s.cells), HH.LIGHT], ["寻访凭证", "×", float(s.vouchers), HH.CYB]]
+	# 外语版「Gained This Run」比中文宽：两项整体右移让开（11-17 体检：英文压在「Vital Cells」上）；第二项也按第一项标签宽让开
+	var gx0: float = maxf(580.0, 486.0 + tw("本局获得", 12) + 16.0)
+	var gstep: float = maxf(120.0, tw(str(items[0][0]), 12) + 20.0)
 	for i in items.size():
 		var q := k(2.3 + 0.08 * i, 0.4)
 		if q <= 0.0:
 			continue
 		fa = minf(1.0, q * 2.0)
 		var dy := -26.0 * (1.0 - UM.out_back(q, 1.6)) if won else -12.0 * (1.0 - UM.out_cubic(q))
-		txt(580 + i * 120, y0 + 6 + dy, str(items[i][0]), 12, HH.MUTE)
-		odo(580 + i * 120, y0 + 24 + dy, float(items[i][2]), k(2.35 + 0.08 * i, 0.7), 26, items[i][3], str(items[i][1]), "", 3.05 + 0.08 * i)
+		txt(gx0 + i * gstep, y0 + 6 + dy, str(items[i][0]), 12, HH.MUTE)
+		odo(gx0 + i * gstep, y0 + 24 + dy, float(items[i][2]), k(2.35 + 0.08 * i, 0.7), 26, items[i][3], str(items[i][1]), "", 3.05 + 0.08 * i)
 	if bool(s.g.roster_new.get("lost", false)):   # 11-08 用户：没通关不发凭证，只给生机细胞
 		fa = p0
-		txt(752, y0 + 32, "未通关不发放", 11, HH.MUTE)
+		txt(gx0 + gstep + 52.0, y0 + 32, "未通关不发放", 11, HH.MUTE)
 	# 第二行：细胞够 1 张时问一句要不要兑换（11-08 用户），右端是兑换按钮（exchange_rect）；写明和认知塑造共用细胞
 	if ex:
 		fa = p0

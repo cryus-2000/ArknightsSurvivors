@@ -442,7 +442,10 @@ func _report(ci: CanvasItem, d: Dictionary) -> void:
 	_px_line(ci, Vector2(28, 92), word, kk, acc, HH.DARK)
 	# 中文结果块 + 结局 / 用时
 	HH.para(ci, Rect2(28, 146, 236, 56), acc.lerp(HH.LIGHT, 0.6))
-	_t(ci, Vector2(48, 152), d.result, 34, HH.INK)
+	var rz := 34   # 外语结果词（「Run Complete」）比中文宽：缩到色块里（11-17 体检：英文压到右边的结局名上）
+	while rz > 20 and font.get_string_size(UI.Loc.s(str(d.result)), HORIZONTAL_ALIGNMENT_LEFT, -1, rz).x > 200.0:
+		rz -= 1
+	_t(ci, Vector2(48, 152 + (34 - rz) * 0.5), d.result, rz, HH.INK)
 	_t(ci, Vector2(284, 150), d.ending, 14, HH.LIGHT, "l", W - 312)
 	var tx := str(d.get("tier_x", ""))
 	_t(ci, Vector2(284, 176), ("探索用时 %s  ·  %s" % [_time(d.t), UI.Loc.s(tx)]) if tx != "" else ("探索用时 %s" % _time(d.t)), 13, HH.MUTE, "l", W - 312)
@@ -475,9 +478,12 @@ func _report(ci: CanvasItem, d: Dictionary) -> void:
 		["编队", "%d 名" % d.ops.size(), 360.0, 508.0, 24], ["藏品", str(d.get("relic_n", d.relics.size())), 470.0, 508.0, 24]]
 	for c in cells:
 		ci.draw_rect(Rect2(c[2], c[3], 3, 50), acc if c[3] < 400.0 else HH.DARK3)
-		_t(ci, Vector2(c[2] + 12, c[3]), str(c[0]), 12, HH.MUTE)
 		# 下两排是两列各约 100 宽的小格：值放不下就缩字号（英文「Deep Tide」「High Pressure」，11-17 加难度格），最小 14
 		var avail: float = 96.0 if c[3] > 400.0 else W - c[2] - 40.0
+		var lz := 12   # 标签同理（英文「Enemies Defeated」压到右格的「Difficulty」上，11-17 体检），最小 9
+		while lz > 9 and font.get_string_size(UI.Loc.s(str(c[0])), HORIZONTAL_ALIGNMENT_LEFT, -1, lz).x > avail:
+			lz -= 1
+		_t(ci, Vector2(c[2] + 12, c[3] + (12 - lz)), str(c[0]), lz, HH.MUTE, "l", avail)
 		var vz := int(c[4])
 		while vz > 14 and font.get_string_size(UI.Loc.s(str(c[1])), HORIZONTAL_ALIGNMENT_LEFT, -1, vz).x > avail:
 			vz -= 1

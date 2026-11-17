@@ -236,16 +236,17 @@ func draw_card(card: Button, it: Dictionary, i: int) -> void:
 		UI.text(card, g.font, c + Vector2(-30, 10), UI.Loc.s(str(it.name)).substr(0, 1), 28, Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, a), HORIZONTAL_ALIGNMENT_CENTER, 60, 3)
 	# 10-31 TA 审阅 docs/208 H8（同组卡字号统一，商人货架同样检查）：原来逐张判断，长名字那张单独缩到 12。改成整排取都放得下的最大字号
 	var fit_all := func(sz: int) -> bool:
-		return g.shop_items.all(func(x): return g.font.get_string_size(str(x.name), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(sz)).x <= r.size.x - 14.0)
-	var fs := 12
-	for sz in [15, 14, 13]:
+		return g.shop_items.all(func(x): return g.font.get_string_size(UI.Loc.s(str(x.name)), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(sz)).x <= r.size.x - 14.0)   # 按译文量（11-17 体检：英文长名被卡宽截断）
+	var fs := 11
+	for sz in [15, 14, 13, 12]:
 		if fit_all.call(sz):
 			fs = sz
 			break
 	var nfs: int = int(lay().name_fs)
 	if nfs > 0 and fit_all.call(nfs):
 		fs = nfs   # 手机：名字 18（整排都放得下才用）
-	UI.text(card, UI.name_font(g.font), r.position + Vector2(0, 144.0 if sc_compact else 156.0), it.name, fs, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 2)
+	var nm: String = str(UI.fit_line(UI.name_font(g.font), str(it.name), fs, r.size.x - 14.0, fs)[0])   # 最小字号仍放不下：末尾「…」，不被卡宽硬切
+	UI.text(card, UI.name_font(g.font), r.position + Vector2(0, 144.0 if sc_compact else 156.0), nm, fs, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 2)
 	var fd: Dictionary = card.get_meta("fit", {})
 	if not fd.is_empty():
 		var dc := Color(0.86, 0.9, 0.93, a) if (card.has_meta("brief") or scaled()) else Color(0.655, 0.69, 0.725, a)   # 触屏整页缩小后灰字发虚：提亮（11-08 用户「说明的字实一点」）
@@ -310,7 +311,7 @@ func _draw_bg(vs: Vector2, top: float) -> void:
 	g.panel_ui.header(vs, "SHOP  ·  WANDERING TRADER", "流浪商人", note, top - 130.0)
 	# 藏品额度一行：原来在标题说明行下面 8 像素（top − 52），两行字压在一起（10-11）；挪到「货架 GOODS」同一行、GOODS 之后
 	var gw: float = UI.en_width(g.font, "GOODS  ·  %d" % g.shop_items.size(), 12, 3.0)
-	var hw: float = maxf(48.0, g.font.get_string_size("货架", HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(20)).x + 8.0)   # 手机字号放大后「货架」变宽，GOODS 跟在它后面
+	var hw: float = maxf(48.0, g.font.get_string_size(UI.Loc.s("货架"), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(20)).x + 8.0)   # 按译文量（11-17 体检：英文「Stock」压住 GOODS）   # 手机字号放大后「货架」变宽，GOODS 跟在它后面
 	UI.text(g.panel_fg, g.font, Vector2(cx - 280 + hw + gw + 18.0, top - 20.0), g.progression.relic_count_text() + ("" if g.progression.relic_cap() < 0 else "；满后仍可升级已有藏品"), 12, UI.SUB)
 	var mr := Rect2(Vector2(cx - 580, top - 42.0), Vector2(280, CARD_H + 96.0))
 	var mt := Color(0.125, 0.11, 0.094, 0.95)
@@ -337,8 +338,9 @@ func _draw_bg(vs: Vector2, top: float) -> void:
 	g.panel_fg.draw_rect(mr, Color(1, 1, 1, 0.11), false, 1.0)
 	g.panel_fg.draw_rect(Rect2(mr.position, Vector2(14, 2)), UI.GOLD)
 	UI.strip(g.panel_fg, g.font, mr.position + Vector2(12, 12), "STAY", "还会停留 %d 秒" % int(g.merchant.get("life", 0.0)), UI.GOLD, Color(0.95, 0.87, 0.68))
-	UI.tab(g.panel_fg, g.font, mr.position + Vector2(16, 340 + my), "流浪商人", UI.TAB_LAMP)
-	UI.en(g.panel_fg, g.font, mr.position + Vector2(90, 353 + my), "WANDERING TRADER", 10, UI.SUB, 2.0)
+	var mtw: float = UI.tab(g.panel_fg, g.font, mr.position + Vector2(16, 340 + my), "流浪商人", UI.TAB_LAMP)
+	if 16.0 + mtw + 10.0 + UI.en_width(g.font, "WANDERING TRADER", 10, 2.0) <= mr.size.x - 8.0:   # 外语名牌宽（「Wandering Merchant」）时英文副标放不下就不画，原来固定 x=90 压在名牌上
+		UI.en(g.panel_fg, g.font, mr.position + Vector2(maxf(90.0, 16.0 + mtw + 10.0), 353 + my), "WANDERING TRADER", 10, UI.SUB, 2.0)
 	UI.text_fit(g.panel_fg, g.font, mr.position + Vector2(16, 378 + my), "「%s」" % MERCHANT_LINES[maxi(0, g.merchant_idx - 1) % MERCHANT_LINES.size()], 13, Color(0.85, 0.87, 0.89), mr.size.x - 28.0, 10)
 	# 右上：货架 + 持有源石锭（明日方舟费用框）
 	UI.text(g.panel_fg, g.font, Vector2(cx - 280, top - 18.0), "货架", 20, UI.TEXT)

@@ -91,9 +91,10 @@ const PHONE_MIN_FS := 15
 static func text(c: CanvasItem, font: Font, x: float, y: float, value: String, sz: int = 18, col: Color = WHITE, width: float = -1.0) -> void:
 	var ph: bool = Cfg.phone_ui()
 	var size := maxi(sz, PHONE_MIN_FS) if ph else sz
-	while width > 0 and size > (13 if ph else 11) and font.get_string_size(value, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x > width:
+	var tv: String = UI.Loc.s(value)   # 先翻再量（11-17 体检：原来按中文原文缩字号，外语长串被 width 硬切）
+	while width > 0 and size > (13 if ph else 11) and font.get_string_size(tv, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x > width:
 		size -= 1
-	c.draw_string(font, Vector2(x,y+size), UI.Loc.s(value), HORIZONTAL_ALIGNMENT_LEFT, width, size, col)
+	c.draw_string(font, Vector2(x,y+size), tv, HORIZONTAL_ALIGNMENT_LEFT, width, size, col)
 
 static func rect(c: CanvasItem, r: Rect2, col: Color) -> void:
 	c.draw_rect(r,col)
