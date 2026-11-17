@@ -255,7 +255,7 @@ func draw(vs: Vector2) -> void:
 		if gt != null:
 			g.hud.draw_texture_rect(gt, Rect2(gc + Vector2(3, 3), Vector2(isz, isz)), false)
 		else:
-			UI.text(g.hud, g.font, gc + Vector2(0, cs * 0.68), g.progression.growth_def(gid).name.substr(0, 1), int(cs * 0.42), UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, cs)
+			UI.text(g.hud, g.font, gc + Vector2(0, cs * 0.68), UI.Loc.s(str(g.progression.growth_def(gid).name)).substr(0, 1), int(cs * 0.42), UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, cs)
 		UI.text(g.hud, g.font, gc + Vector2(cs - 18, cs - 1), "×%d" % g.growth[gid], fs_tag, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 18, 2)
 		g.stats_cells.append([Rect2(gc, Vector2(cs, cs)), "growth", gid])
 		gi += 1
@@ -287,7 +287,7 @@ func draw(vs: Vector2) -> void:
 		if rt != null:
 			g.hud.draw_texture_rect(rt, Rect2(rc + Vector2(3, 3), Vector2(isz, isz)), false)
 		else:
-			UI.text(g.hud, g.font, rc + Vector2(0, cs * 0.68), rd.name.substr(0, 1), int(cs * 0.42), rcol, HORIZONTAL_ALIGNMENT_CENTER, cs)
+			UI.text(g.hud, g.font, rc + Vector2(0, cs * 0.68), UI.Loc.s(str(rd.name)).substr(0, 1), int(cs * 0.42), rcol, HORIZONTAL_ALIGNMENT_CENTER, cs)
 		var rl: int = g.rfx.lv.get(g.relics[i], 1)
 		if rl > 1:
 			UI.text(g.hud, g.font, rc + Vector2(cs - 18, cs - 1), "L%d" % rl, fs_tag, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 18, 2)
@@ -529,7 +529,7 @@ func _phone_relics(b2: Rect2) -> void:
 		if gt != null:
 			g.hud.draw_texture_rect(gt, Rect2(gc + Vector2(3, 3), Vector2(isz, isz)), false)
 		else:
-			UI.text(g.hud, g.font, gc + Vector2(0, cs * 0.68), g.progression.growth_def(gid).name.substr(0, 1), int(cs * 0.42), UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, cs)
+			UI.text(g.hud, g.font, gc + Vector2(0, cs * 0.68), UI.Loc.s(str(g.progression.growth_def(gid).name)).substr(0, 1), int(cs * 0.42), UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, cs)
 		UI.text(g.hud, g.font, gc + Vector2(cs - 26, cs - 1), "×%d" % g.growth[gid], 13, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 26, 2)
 		g.stats_cells.append([Rect2(gc, Vector2(cs, cs)), "growth", gid])
 		gi += 1
@@ -563,7 +563,7 @@ func _phone_relics(b2: Rect2) -> void:
 		if rt != null:
 			g.hud.draw_texture_rect(rt, Rect2(rc + Vector2(3, 3), Vector2(isz, isz)), false)
 		else:
-			UI.text(g.hud, g.font, rc + Vector2(0, cs * 0.68), rd.name.substr(0, 1), int(cs * 0.42), rcol, HORIZONTAL_ALIGNMENT_CENTER, cs)
+			UI.text(g.hud, g.font, rc + Vector2(0, cs * 0.68), UI.Loc.s(str(rd.name)).substr(0, 1), int(cs * 0.42), rcol, HORIZONTAL_ALIGNMENT_CENTER, cs)
 		var rl: int = g.rfx.lv.get(g.relics[i], 1)
 		if rl > 1:
 			UI.text(g.hud, g.font, rc + Vector2(cs - 26, cs - 1), "L%d" % rl, 13, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 26, 2)
@@ -951,7 +951,7 @@ func _v3_squad(x: float, top: float, w: float, bottom: float) -> void:
 					if rt != null:
 						g.hud.draw_texture_rect(rt, Rect2(rc + Vector2(3, 3), Vector2(cs - 6, cs - 6)), false)
 					else:
-						UI.text(g.hud, g.font, rc + Vector2(0, cs * 0.68), rd.name.substr(0, 1), int(cs * 0.42), V3_WHITE, HORIZONTAL_ALIGNMENT_CENTER, cs)
+						UI.text(g.hud, g.font, rc + Vector2(0, cs * 0.68), UI.Loc.s(str(rd.name)).substr(0, 1), int(cs * 0.42), V3_WHITE, HORIZONTAL_ALIGNMENT_CENTER, cs)
 					var rl: int = g.rfx.lv.get(g.relics[ri], 1)
 					if rl > 1:
 						UI.text(g.hud, g.font, rc + Vector2(cs - 18, cs - 1), "L%d" % rl, 10, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 18, 2)
@@ -1343,7 +1343,7 @@ func _phone_v3_relics(b2: Rect2) -> void:
 					if rt != null:
 						g.hud.draw_texture_rect(rt, Rect2(rc + Vector2(3, 3), Vector2(isz, isz)), false)
 					else:
-						UI.text(g.hud, g.font, rc + Vector2(0, cs * 0.68), rd.name.substr(0, 1), int(cs * 0.42), V3_WHITE, HORIZONTAL_ALIGNMENT_CENTER, cs)
+						UI.text(g.hud, g.font, rc + Vector2(0, cs * 0.68), UI.Loc.s(str(rd.name)).substr(0, 1), int(cs * 0.42), V3_WHITE, HORIZONTAL_ALIGNMENT_CENTER, cs)
 					var rl: int = g.rfx.lv.get(g.relics[ri], 1)
 					if rl > 1:
 						UI.text(g.hud, g.font, rc + Vector2(cs - 26, cs - 1), "L%d" % rl, 13, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 26, 2)

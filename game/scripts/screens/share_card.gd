@@ -533,7 +533,7 @@ func _relic_row(ci: CanvasItem, relics: Array, p: Vector2, sz: float, gap: float
 			var ts := Vector2(tx.get_width(), tx.get_height()) * s
 			ci.draw_texture_rect(tx, Rect2(r.get_center() - ts / 2.0, ts), false)
 		else:
-			_t(ci, r.get_center() - Vector2(0, 12), str(rl.name).substr(0, 1), 20, HH.LIGHT, "c", sz)
+			_t(ci, r.get_center() - Vector2(0, 12), UI.Loc.s(str(rl.name)).substr(0, 1), 20, HH.LIGHT, "c", sz)
 		ci.draw_colored_polygon(PackedVector2Array([Vector2(r.position.x, r.end.y - 13), Vector2(r.position.x + 13, r.end.y), Vector2(r.position.x, r.end.y)]), rc.get(str(rl.rarity), acc))   # 左下角稀有度三角
 
 

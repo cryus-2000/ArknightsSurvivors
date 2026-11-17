@@ -233,7 +233,7 @@ func draw_card(card: Button, it: Dictionary, i: int) -> void:
 	elif it.kind == "heal" and g.tex.get("pickup_heal") != null:
 		g.panel_ui.draw_icon_fit(card, g.tex.pickup_heal, c, 56.0, mod)
 	else:
-		UI.text(card, g.font, c + Vector2(-30, 10), it.name.substr(0, 1), 28, Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, a), HORIZONTAL_ALIGNMENT_CENTER, 60, 3)
+		UI.text(card, g.font, c + Vector2(-30, 10), UI.Loc.s(str(it.name)).substr(0, 1), 28, Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, a), HORIZONTAL_ALIGNMENT_CENTER, 60, 3)
 	# 10-31 TA 审阅 docs/208 H8（同组卡字号统一，商人货架同样检查）：原来逐张判断，长名字那张单独缩到 12。改成整排取都放得下的最大字号
 	var fit_all := func(sz: int) -> bool:
 		return g.shop_items.all(func(x): return g.font.get_string_size(str(x.name), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(sz)).x <= r.size.x - 14.0)

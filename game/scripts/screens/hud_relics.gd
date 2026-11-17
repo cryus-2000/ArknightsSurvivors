@@ -201,7 +201,7 @@ func draw_relic_tray(tr: Vector2) -> void:
 			var dr: float = icon_sz * 0.34
 			var dp := PackedVector2Array([c + Vector2(0, -dr), c + Vector2(dr, 0), c + Vector2(0, dr), c + Vector2(-dr, 0)])
 			_diamond(under, dp, Color(0.03, 0.08, 0.1), col)
-			var ch: String = rd.name.substr(0, 1)
+			var ch: String = UI.Loc.s(str(rd.name)).substr(0, 1)
 			texts.append(func(): UI.text(g.hud, g.font, c + Vector2(-15, 5), ch, 12 if not compact else 9, col, HORIZONTAL_ALIGNMENT_CENTER, 30))
 		var rl: int = g.rfx.lv.get(g.relics[i], 1)
 		if rl > 1:
