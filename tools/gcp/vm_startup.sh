@@ -65,6 +65,7 @@ status "setup"
 if [ "$READY" = 1 ]; then
     # 镜像里的 Godot + 预热过的导入缓存：拷进检出目录，只增量导入改过的素材；env.sh 照 setup_linux.sh 的格式写
     cp -a /opt/arkr/godot_cache game/.godot
+    python3 tools/asset_index.py >/dev/null || true   # 运行时贴图索引是本地生成文件，仓库版会落后（同 setup_linux.sh，docs/364 §5）
     /opt/arkr/godot/godot --headless --path game --import >/dev/null 2>&1 || true
     test -d game/.godot/imported || fail import 97
     printf 'export GODOT="/opt/arkr/godot/godot"\nexport GODOT_MAX_PROCS="${GODOT_MAX_PROCS:-$(nproc)}"\n' > tools/cloud/env.sh
