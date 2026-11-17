@@ -17,7 +17,7 @@ extends RefCounted
 ##   - 不兼容的改动才升 minv：minv 高于本版 → 只读保护（不读、不写、不覆盖云端），本地照常玩。
 ##   - 新版本读旧格式：按 MIGRATIONS 逐级 v → v+1 迁移。
 
-const VERSION := 2           # 本版写出的格式版本（2 = 11-18 加 prog.th 其他主题的进度，docs/365；只加字段，MIN_READ 不升）
+const VERSION := 2           # 本版写出的格式版本（2 = 11-18 加 prog.th 其他主题的进度，docs/366；只加字段，MIN_READ 不升）
 const MIN_READ := 1          # 本版写出的存档，读者至少要是这个版本（只加字段时不升）
 const HEAD_KEY := "sy_h"
 const CHUNK_PREFIX := "sy_d"
@@ -29,7 +29,7 @@ const VALUE_LIMIT := 1024
 const LIST_KEYS := ["gal", "rel", "end", "shows", "ops", "optier", "tsup"]   # tsup：Toy「支持作者」已领取的奖励（docs/313）
 ## med = 蚀刻章 {"got": {key: 获得时刻}, "best": {key: 最好进度}}（merge_med）
 const OPTIONAL_KEYS := ["ops", "optier", "opst", "meta", "dbest", "med", "tsup", "th"]   # 只在正文里有时才规范化 / 合并
-## th = 水月以外的主题进度 {主题 id: {diff, gal, rel, end, dbest, bounty, med}}（docs/365，core/theme_save.gd；旧键始终是水月那一份）
+## th = 水月以外的主题进度 {主题 id: {diff, gal, rel, end, dbest, bounty, med}}（docs/366，core/theme_save.gd；旧键始终是水月那一份）
 const PROG_KEYS := ["diff", "gal", "rel", "end", "shows", "intro", "open", "ops", "optier", "opst", "meta", "dbest", "med", "th"]
 ## 格式迁移：{旧版本 v: 把 v 版正文改成 v+1 版的静态函数名}。目前只有 v1，没有迁移；以后改格式时在这里登记（单测覆盖）
 const MIGRATIONS := {}
@@ -377,7 +377,7 @@ static func merge(local: Dictionary, cloud: Dictionary) -> Dictionary:
 	if lp.has("med") or cp.has("med"):
 		p["med"] = merge_med(lp.get("med", {}), cp.get("med", {}))
 	if lp.has("th") or cp.has("th"):
-		p["th"] = load("res://scripts/core/theme_save.gd").merge_cloud_th(lp.get("th", {}), cp.get("th", {}))   # 其他主题的进度（docs/365）
+		p["th"] = load("res://scripts/core/theme_save.gd").merge_cloud_th(lp.get("th", {}), cp.get("th", {}))   # 其他主题的进度（docs/366）
 	var cloud_newer: bool = int(c.set.t) > int(l.set.t)
 	var win: Dictionary = c.set if cloud_newer else l.set
 	var lose: Dictionary = l.set if cloud_newer else c.set

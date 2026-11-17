@@ -1,5 +1,5 @@
 extends Node
-## 存档按主题分开（docs/365，core/theme_save.gd，check.py 场景回归 theme_save）。只改内存里的 Cfg 和临时 ConfigFile，不调 save()，不碰 user://settings.cfg。
+## 存档按主题分开（docs/366，core/theme_save.gd，check.py 场景回归 theme_save）。只改内存里的 Cfg 和临时 ConfigFile，不调 save()，不碰 user://settings.cfg。
 ## 1. 典型旧存档（新玩家 / 通关结局一 / 四结局全通 / 深潮进度 + 首通赏金 + 蚀刻章）：读档后玩家可见的进度、解锁、名册、认知塑造、凭证与旧版读到的完全一样；
 ##    写出（主题段 + 旧位置）再读、再写再读，三次一致（迁移幂等），旧位置仍是同样的值（旧版本读得到）。
 ## 2. 降级再升级：旧版本只改旧位置（多一个结局、多一件藏品、难度升一档）→ 新版本读到并集，不丢。

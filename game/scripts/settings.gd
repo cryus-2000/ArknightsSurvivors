@@ -9,7 +9,7 @@ const D = preload("res://scripts/data.gd")
 const Look = preload("res://scripts/render/look.gd")
 const TouchLayout = preload("res://scripts/touch_layout.gd")
 const CloudPack = preload("res://scripts/core/cloud_pack.gd")
-const ThemeSave = preload("res://scripts/core/theme_save.gd")   # 存档按主题分开（docs/365）
+const ThemeSave = preload("res://scripts/core/theme_save.gd")   # 存档按主题分开（docs/366）
 const ThemePack = preload("res://scripts/core/theme_pack.gd")
 const PlayKeys = preload("res://scripts/core/play_keys.gd")
 ## 存档里难度字段的含义：1 = 旧版累计档位 0–10；2 = 1.1 起的三档下标；3 = 10-22 的潮位 0–15（只在内部包短暂存在）；
@@ -139,7 +139,7 @@ var meta_bounty: Array = []       # 已领首通赏金的潮位
 var roster_fresh: Array = []      # 刚解锁、还没在名册里看过的干员（选人页 / 图鉴高亮一次；只存本机，不上云）
 var roster_int_grant := false     # 对内包的测试寻访凭证已发过（INTERNAL_TICKETS，每份存档一次）
 var medals := {}                  # 已获得的蚀刻章 {key: 获得时刻 Unix 秒}（core/medals.gd；存档 [medals] 段；获得后永久保留）
-## 存档按主题分开（docs/365，core/theme_save.gd）：上面主题相关的字段（结局、图鉴、藏品、事件图鉴、难度解锁 / 最佳、首通赏金、蚀刻章）
+## 存档按主题分开（docs/366，core/theme_save.gd）：上面主题相关的字段（结局、图鉴、藏品、事件图鉴、难度解锁 / 最佳、首通赏金、蚀刻章）
 ## 始终是当前主题 theme_cur 那一份；别的主题的进度在 theme_saves {id: {字段: 值}}。存档里每个主题一段 [theme_<id>]，旧位置写水月镜像
 var theme_cur := "deep_sea"
 var theme_saves := {}
@@ -841,7 +841,7 @@ func _read_cfg(c: ConfigFile) -> void:
 	_theme_load(c)
 
 
-## 读档最后一步（docs/365）：旧位置读进来的进度 = 水月；与 [theme_deep_sea] 段按字段合并（旧存档迁移、新存档幂等、降级再升级不丢）；
+## 读档最后一步（docs/366）：旧位置读进来的进度 = 水月；与 [theme_deep_sea] 段按字段合并（旧存档迁移、新存档幂等、降级再升级不丢）；
 ## 其他主题段进 theme_saves；当前主题不是水月时切过去
 func _theme_load(c: ConfigFile) -> void:
 	theme_saves = ThemeSave.read_all(c)
@@ -856,7 +856,7 @@ func _theme_load(c: ConfigFile) -> void:
 
 
 ## 写主题段（save() 里、蚀刻章补判之后调；测试直接拿 ConfigFile 调）：当前主题 + 其他主题各一段 [theme_<id>]；
-## 当前主题不是水月时，旧位置改写成水月那一份（旧位置给旧版本读，docs/365）
+## 当前主题不是水月时，旧位置改写成水月那一份（旧位置给旧版本读，docs/366）
 func _theme_write(c: ConfigFile) -> void:
 	ThemeSave.write_section(c, theme_cur, ThemeSave.snapshot(self))
 	for tid in theme_saves:
@@ -865,7 +865,7 @@ func _theme_write(c: ConfigFile) -> void:
 		ThemeSave.write_legacy(c, theme_saves.get(ThemeSave.LEGACY, {}))
 
 
-## 换当前主题（docs/365）：当前这份收进 theme_saves，目标主题那份放进 Cfg 字段（没有就从空开始）。全部解锁（调试 / 对内包）时换主题不重算演示数据
+## 换当前主题（docs/366）：当前这份收进 theme_saves，目标主题那份放进 Cfg 字段（没有就从空开始）。全部解锁（调试 / 对内包）时换主题不重算演示数据
 func theme_switch(tid: String) -> void:
 	if tid == theme_cur:
 		return
@@ -1284,7 +1284,7 @@ func cloud_body() -> Dictionary:
 		"rv": roster_v}, true)
 	if not toy_support.is_empty():
 		pr["tsup"] = toy_support.duplicate()   # Toy「支持作者」已领取（docs/313）：只在领过时写，没领过的存档往返与旧版本逐字相同
-	# 存档按主题分开（docs/365）：旧键始终是水月那一份；其他主题进 prog.th（只有水月时不写，正文与旧版本逐字相同）
+	# 存档按主题分开（docs/366）：旧键始终是水月那一份；其他主题进 prog.th（只有水月时不写，正文与旧版本逐字相同）
 	var th := {}
 	for tid in theme_saves:
 		if tid != ThemeSave.LEGACY:
@@ -1307,7 +1307,7 @@ func cloud_body() -> Dictionary:
 ## 正文里没有的字段（旧版本写的云档）、类型不对的字段都保持本地值，不清空；本版不认识的字段记进 cloud_extra。
 ## 设置签名同步更新，cloud_set_t 取正文里的时刻：采用云端设置不算本机的新修改
 func cloud_apply(body: Dictionary) -> void:
-	var back := theme_cur   # 旧键是水月那一份（docs/365）：先切到水月套用，最后切回
+	var back := theme_cur   # 旧键是水月那一份（docs/366）：先切到水月套用，最后切回
 	if back != ThemeSave.LEGACY:
 		theme_switch(ThemeSave.LEGACY)
 	var st: Dictionary = body.get("set", {}) if body.get("set") is Dictionary else {}
@@ -1428,7 +1428,7 @@ func cloud_apply(body: Dictionary) -> void:
 		if not (k in CloudPack.PROG_KEYS):
 			ex.prog[k] = p[k]
 	cloud_extra = ex
-	# 其他主题（prog.th，docs/365）：合并后的正文为准；事件图鉴不上云，保留本地
+	# 其他主题（prog.th，docs/366）：合并后的正文为准；事件图鉴不上云，保留本地
 	if p.get("th") is Dictionary:
 		for tid in p.th:
 			if str(tid) == ThemeSave.LEGACY:
