@@ -29,6 +29,8 @@ func _init(game) -> void:
 func boss_step(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 	e.bt += dt
 	g.combat.gate_update(e, dt)   # 阶段卡点：每幕计时、护盾到时过卡点（docs/38 §1.3）
+	if e.dead:   # 最后一幕护盾撑满 3 秒在 gate_update 里直接倒下：这一帧不再出招（b82d22ba6 加过，0a75e197d 撤硬化时一并删了）
+		return
 	if g.zone_frozen and is_same(e, g.final_boss):
 		e.pos = g.combat.arena_clamp(e.pos, 80.0)   # 最终 Boss 场地：本体离圈边 ≥80（docs/38 §1.7）
 	# 冲锋 / 突刺计时（_warn_resolve 的 "dash" / "stab" 写入）：Boss 不走 enemy_ai 的冲刺递减，必须在这里递减，
