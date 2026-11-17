@@ -32,7 +32,7 @@
  "recruitable": false,
  "base": {
   "_doc": "菲亚梅塔（docs/382）草案数值。对照维什戴尔（atk 30 / cd 1.4 / 射程 340）、能天使（atk 15 / cd 0.35）：单发最重、间隔最长、射程最远；精二爆心专打密集处中心",
-  "atk": 52,
+  "atk": 56,
   "cd": 1.8,
   "range": 380,
   "aoe": 68,
@@ -42,7 +42,7 @@
   "aim_pad": 60,
   "attack_shell_speed": 420,
   "shell_speed": 460,
-  "boom_kb": 120,
+  "boom_kb": 160,
   "free_interval": 0.85,
   "s1_dur": 10,
   "s1_dmg": 1.8,
@@ -78,11 +78,11 @@
   "core_mult": 0.6
  },
  "leader": {
-  "_doc": "当队长时的受击属性（docs/23）：原作精二满级 生命 1926 / 防御 156 / 法抗 0%（character_table char_300_phenxi），远程主控；原作天赋「陈述苦难」自身生命持续流失，本作只把自然回复压低（0.5，常规 0.8）",
+  "_doc": "当队长时的受击属性（docs/23）：原作精二满级 生命 1926 / 防御 156 / 法抗 0%（character_table char_300_phenxi），远程主控；原作天赋「陈述苦难」自身生命持续流失，本作不做（11-18 云端首轮压低回复后队长胜率 6%，回复改回常规 0.8）",
   "max_hp": 101.0,
   "armor": 1.0,
   "arts_res": 0.0,
-  "regen": 0.5
+  "regen": 0.8
  },
  "sprites": {
   "move_attack": {

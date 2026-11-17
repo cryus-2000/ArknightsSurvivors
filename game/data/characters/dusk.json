@@ -72,6 +72,8 @@
   "lure_r": 180,
   "lure_hurt": 0.4,
   "lure_slow": 1.0,
+  "trap_r": 90,
+  "trap_stun": 1.0,
   "pop_r": 80,
   "pop_mult": 1.2,
   "pool_r": 60,
@@ -343,7 +345,7 @@
  "attack": {
   "mode": "auto",
   "name": "墨弹",
-  "desc": "每 {$cd} 秒向射程 {$range} 内最近的敌人掷出墨弹，落点半径 {$aoe} 溅开（法术），小幅击退（精英减弱，Boss 除外）；「点睛」：每第 {$beast_n} 发墨弹的落点化出一只小自在（存在 {$beast_life} 秒），原地啃咬半径 {$beast_r} 内的敌人（法术），同时至多 4 只"
+  "desc": "每 {$cd} 秒向射程 {$range} 内最近的敌人掷出墨弹，落点半径 {$aoe} 溅开（法术），小幅击退（精英减弱，Boss 除外）；「点睛」：每第 {$beast_n} 发墨弹的落点化出一只小自在（存在 {$beast_life} 秒），原地啃咬半径 {$beast_r} 内的敌人（法术），并把半径 {$lure_r} 内的近战敌人引向自己（{$lure_hp} 点生命，Boss 除外），同时至多 4 只"
  },
  "skills": [
   {
@@ -478,13 +480,13 @@
    "id": "lure",
    "name": "画地为牢",
    "icon": "growth_t_field",
-   "desc": "小自在改为有 {$lure_hp} 点生命：半径 {$lure_r} 内的近战敌人改追它（Boss 除外），被打倒时消散",
+   "desc": "小自在消散（到时或被打倒）时，半径 {$trap_r} 内的敌人被定住 {$trap_stun} 秒（精英减半，Boss 除外）",
    "branch": {
     "lure": {
      "id": "lure",
      "name": "画地为牢",
      "icon": "growth_t_field",
-     "desc": "小自在改为有 {$lure_hp} 点生命：半径 {$lure_r} 内的近战敌人改追它（Boss 除外），被打倒时消散"
+     "desc": "小自在消散（到时或被打倒）时，半径 {$trap_r} 内的敌人被定住 {$trap_stun} 秒（精英减半，Boss 除外）"
     },
     "pop": {
      "id": "pop",
@@ -493,7 +495,7 @@
      "desc": "小自在消散时化墨炸开：半径 {$pop_r} 内的敌人受到墨弹 {$pop_mult*100}% 的法术伤害"
     }
    },
-   "branch_desc": "「画地为牢」让小自在替队长引开近战敌人；「墨散」让小自在消散时炸开",
+   "branch_desc": "「画地为牢」让小自在消散时定住周围敌人；「墨散」让小自在消散时炸开",
    "bot": "lure"
   },
   {
@@ -543,7 +545,11 @@
   "summons": {
    "beast": {
     "name": "小自在",
-    "invuln": true,
+    "invuln": false,
+    "hp": "$lure_hp",
+    "enemy_target": "decoy",
+    "decoy_r": "$lure_r",
+    "hurt_mult": "$lure_hurt",
     "life": "$beast_life",
     "cap": 4,
     "r": 12,
@@ -586,6 +592,10 @@
    "beast_lure": {
     "name": "小自在",
     "invuln": false,
+    "hp": "$lure_hp",
+    "enemy_target": "decoy",
+    "decoy_r": "$lure_r",
+    "hurt_mult": "$lure_hurt",
     "life": "$beast_life",
     "cap": 4,
     "r": 12,
@@ -630,14 +640,28 @@
      "share": 0,
      "mode": false
     },
-    "hp": "$lure_hp",
-    "enemy_target": "decoy",
-    "decoy_r": "$lure_r",
-    "hurt_mult": "$lure_hurt"
+    "on_expire": [
+     {
+      "verb": "displace",
+      "center": "target",
+      "r": "$trap_r",
+      "kb": 0,
+      "on_hit": [
+       {
+        "st": "stun",
+        "dur": "$trap_stun"
+       }
+      ]
+     }
+    ]
    },
    "beast_pop": {
     "name": "小自在",
-    "invuln": true,
+    "invuln": false,
+    "hp": "$lure_hp",
+    "enemy_target": "decoy",
+    "decoy_r": "$lure_r",
+    "hurt_mult": "$lure_hurt",
     "life": "$beast_life",
     "cap": 4,
     "r": 12,
@@ -1060,7 +1084,7 @@
    "lure": {
     "trig": "passive",
     "do": [],
-    "_doc": "画地为牢：召唤种类换 beast_lure（诱饵）"
+    "_doc": "画地为牢：召唤种类换 beast_lure（消散时定住周围敌人）"
    },
    "pop": {
     "trig": "passive",
