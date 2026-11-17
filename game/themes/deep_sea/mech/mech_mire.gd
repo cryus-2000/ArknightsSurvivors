@@ -12,6 +12,15 @@ var lamp_band := 0         # 灯火与溟痕（docs/147）提示用的档：0 �
 var lamp_hint_t := -INF    # 上一次灯火提示的时间（lamp/mire_hint_cd 内不重复）
 
 
+## 最终 Boss 场地冻结：场地里的溟痕清掉（原 freeze_zone 末尾；场地整理仅作后台规则，不暴露禁生成区域或播放净化演出）
+func on_arena_freeze(_fresh: bool) -> void:
+	var remaining: Array = []
+	for m in g.mires:
+		if not g.combat.mire_blocked(m.pos, float(m.get("maxr", m.r))):
+			remaining.append(m)
+	g.mires = remaining
+
+
 func _init(game: Game) -> void:
 	g = game
 

@@ -540,12 +540,9 @@ func _armor_cf(pre: float, post: float, phys: bool) -> void:
 			c["a%d" % k] += maxf(1.0, pre - g.armor - float(k))
 
 
-## 缩圈 / 最终 Boss 场地 → 黑潮缩圈机制（themes/deep_sea/mech/mech_tide_zone.gd，docs/364）。
-## 场地冻结（freeze_zone）现在也由它管；本主题没有缩圈机制时什么都不做（场地相关的 arena_clamp / mire_blocked 只看 g.zone_frozen，照常返回原值）
+## 最终 Boss 场地冻结 → 通用场地 run/arena.gd（docs/364 §7）；缩圈本身归主题机制（mech_tide_zone）
 func freeze_zone(r: float) -> void:
-	var mz = g.mech("tide_zone")
-	if mz != null:
-		mz.freeze_zone(r)
+	g.arena.freeze(r)
 
 
 ## 怪物留下的溟痕（docs/155）→ 溟痕机制（mech_mire.add_enemy_mire）；本主题没有溟痕时什么都不留
@@ -564,16 +561,12 @@ func fade_mire(m: Dictionary) -> void:
 
 ## 最终 Boss 场地是禁生成圆区；最大半径与圆区相交（含相切）就禁止整片生成。
 func mire_blocked(pos: Vector2, radius: float = 0.0) -> bool:
-	return g.zone_frozen and pos.distance_squared_to(g.zone_next_c) <= pow(maxf(0.0, g.zone_next_r) + maxf(0.0, radius), 2.0)
+	return g.arena.blocked(pos, radius)   # 通用场地（run/arena.gd，docs/364 §7）
 
 
 ## 把 Boss 本体、召唤物 / 落点的生成点约束在场地内、离圈边 ≥ margin；场地没冻结时原样返回
 func arena_clamp(p: Vector2, margin := 80.0) -> Vector2:
-	if not g.zone_frozen:
-		return p
-	var lim: float = maxf(0.0, g.zone_next_r - margin)
-	var v: Vector2 = p - g.zone_next_c
-	return p if v.length() <= lim else g.zone_next_c + v.normalized() * lim
+	return g.arena.clamp_point(p, margin)   # 通用场地（run/arena.gd，docs/364 §7）
 
 
 ## 主控指向安全区圆心的单位向量（圈外方向提示用）→ mech_tide_zone.zone_dir；没有缩圈机制时为零向量

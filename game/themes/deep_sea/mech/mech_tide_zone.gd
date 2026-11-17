@@ -1,8 +1,8 @@
 extends "res://scripts/core/theme_mechanic.gd"
 ## 水月主题机制 · 黑潮缩圈（docs/38 §1.7、docs/364 §2）：150 秒起预告 20 秒 → 收缩 25 秒 → 稳定，Boss 在场暂停；圈外掉血 + 灯火流失；
 ## 最终 Boss 登场时 freeze_zone 把圈冻结成场地。圈的状态仍存在 g.zone_c / zone_r / zone_next_* / zone_state / zone_frozen / zone_t
-## （机器人、干员技能、画面读）。本文件从 run/combat.gd 原样搬来（update_zone、_zone_schedule、freeze_zone、_arena_step、zone_dir 与计时状态），
-## combat 留 freeze_zone / zone_dir 转发；arena_clamp / mire_blocked 只看 g.zone_* 的场地状态，留在 combat。
+## （机器人、干员技能、画面读）。本文件从 run/combat.gd 原样搬来（update_zone、_zone_schedule、zone_dir 与计时状态）；
+## 最终 Boss 场地（冻结 / 插值 / 约束 / 禁生成）是通用的 run/arena.gd（docs/364 §7）。
 
 const Game = preload("res://scripts/game.gd")
 var g: Game
@@ -29,10 +29,9 @@ func on_player_tick(dt: float) -> void:
 ## 缩圈：预告 20 秒 → 收缩 25 秒 → 稳定，直到下一轮；圈外为「黑潮」。
 ## 1.1（用户决定）：Boss 在场时缩圈计时整体暂停（预告 / 收缩停在原处，Boss 倒下后接着走）；出圈后前 2 秒不掉血
 func update_zone(dt: float) -> void:
-	# 最终 Boss 场地冻结后不再走缩圈日程（也不弹「黑潮停滞」横幅），只把圈插值到场地；圈外判定照常走下面那段（docs/38 §1.7）
-	if g.zone_frozen:
-		_arena_step(dt)
-	elif not _zone_schedule(dt):
+	# 最终 Boss 场地冻结后不再走缩圈日程（也不弹「黑潮停滞」横幅）；圈外判定照常走下面那段（docs/38 §1.7）
+	# 场地插值由核心的 g.arena.step 在本挂钩之前做完（docs/364 §7）
+	if not g.zone_frozen and not _zone_schedule(dt):
 		return
 	# 圈外：黑潮伤害 + 灯火流失 + 神经损伤
 	var out := g.ppos.distance_to(g.zone_c) - g.zone_r
@@ -98,46 +97,10 @@ func _zone_schedule(dt: float) -> bool:
 				g.zone_state = 3
 				g.zone_t = 0.0
 	return true
-## ---- 最终 Boss 场地（docs/38 §1.7，B1 第二批）
-## 最终 Boss 登场时 freeze_zone(arena_r)：黑潮圈 3 秒内平滑变到场地半径；主控离新圈边不足 100（或在圈外）就把圆心往主控挪；
-## 黑潮还没开始（zone_state == 0）时以主控为圆心新建。冻结后 zone_state = 3、zone_next_* 同步成场地，机器人读到的边界与实际一致。
-var arena_from_c := Vector2.ZERO
-var arena_from_r := 0.0
-var arena_t := 0.0
-
-
-func freeze_zone(r: float) -> void:
-	if g.zone_state == 0:
-		g.zone_c = g.ppos
-		g.zone_r = r + 400.0
+## 最终 Boss 场地冻结（docs/38 §1.7）已拆到通用的 run/arena.gd（docs/364 §7）；冻结那一刻这里只重置缩圈阶段
+func on_arena_freeze(fresh: bool) -> void:
+	if fresh:
 		zone_phase = -1
-	var c: Vector2 = g.zone_c
-	var d: float = g.ppos.distance_to(c)
-	if d > r - 100.0 and d > 0.001:
-		c = g.ppos + (c - g.ppos) / d * (r - 100.0)
-	arena_from_c = g.zone_c
-	arena_from_r = g.zone_r
-	arena_t = 0.0
-	g.zone_next_c = c
-	g.zone_next_r = r
-	g.zone_state = 3
-	g.zone_t = 0.0
-	g.zone_frozen = true
-	# 场地整理仅作后台规则，不暴露禁生成区域或播放净化演出。
-	var remaining: Array = []
-	for m in g.mires:
-		if not g.combat.mire_blocked(m.pos, float(m.get("maxr", m.r))):
-			remaining.append(m)
-	g.mires = remaining
-
-
-func _arena_step(dt: float) -> void:
-	if arena_t >= 3.0:
-		return
-	arena_t = minf(arena_t + dt, 3.0)
-	var k := smoothstep(0.0, 1.0, arena_t / 3.0)
-	g.zone_c = arena_from_c.lerp(g.zone_next_c, k)
-	g.zone_r = lerpf(arena_from_r, g.zone_next_r, k)
 
 
 ## 主控指向安全区圆心的单位向量（圈外方向提示用）

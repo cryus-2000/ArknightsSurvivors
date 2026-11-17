@@ -125,6 +125,7 @@ var guide: BuildGuide = BuildGuide.new(self)   # 构筑引导：保底与加权�
 var music_dir = MusicDirector.new(self)   # 局内配乐调度
 var enemies_sys = EnemiesSys.new(self)   # 敌人的逐帧更新
 var combat = Combat.new(self)   # 战斗结算
+var arena = preload("res://scripts/run/arena.gd").new(self)   # 最终 Boss 场地（通用，docs/364 §7）：冻结 / 插值 / 约束 / 禁生成
 var afflict = Afflict.new(self)   # 负面状态门面（神经损伤 / 侵蚀 / 创口，run/afflict.gd）
 var vfx = Vfx.new(self)   # 特效与提示
 var intro_screen = IntroScreen.new(self)   # 界面 · 开场与教程
@@ -2533,6 +2534,7 @@ func _update(dt: float) -> void:
 	if rg > 0.0 and hp > 0.0:
 		# 遥测（docs/74 §6）：主控自带回复 + 博士「自愈」+ regen_pct 藏品，只记实际回进去的量；走 heal()（补侵蚀创口减疗）
 		combat.heal(rg, "自身回复", "", combat.HEAL_PRESCALED)
+	arena.step(dt)   # 最终 Boss 场地插值（run/arena.gd；原在缩圈 update_zone 开头，灯火挂钩不读圈，顺序等价）
 	for m in mechs:
 		m.on_player_tick(dt)   # 主题机制挂钩（docs/364）：灯火熄灭掉血（mech_lamp）→ 黑潮缩圈（mech_tide_zone）
 	if shield_max > 0 and shield < shield_max:
