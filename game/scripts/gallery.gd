@@ -2340,8 +2340,9 @@ func _sk_head(r: Array, rr: Rect2, ph: bool, tight: bool, a: float) -> void:
 		UI.code(self, font, Vector2(tx0, y + 5), r[0], 7, UI.fa(UI.C_L_SUB, a))
 	var kcw := 0.0   # 终结技键画成按键牌放在标签左边（docs/213 P6：原来写进标签「终结技 Q」）；触屏不画
 	if str(r[0]).begins_with("ULTIMATE") and not UI._touch_ui():
-		kcw = font.get_string_size("Q", HORIZONTAL_ALIGNMENT_LEFT, -1, 10).x + 18.0
-		UI.keycap(self, font, Vector2(tg.position.x - kcw, tg.position.y + 1.0), "Q", UI.fa(UI.C_L_INK, a), 10)
+		var uk: String = PlayKeys.cur("ult")   # 按当前绑定（11-17 体检：改键后这里仍写死 Q）
+		kcw = UI.cond(font).get_string_size(uk, HORIZONTAL_ALIGNMENT_LEFT, -1, 10).x + 18.0
+		UI.keycap(self, font, Vector2(tg.position.x - kcw, tg.position.y + 1.0), uk, UI.fa(UI.C_L_INK, a), 10)
 	var nf := UI.fit_line(font, r[1], 12 if ph else 14, tg.position.x - tx0 - 6.0 - kcw, 9)
 	UI.text_at(self, font, Vector2(tx0, y + (8 if ph else (12 if tight else 15))), nf[0], nf[1], UI.fa(UI.C_L_INK, a))   # 紧凑行（>5 行）上提 3：展开时名字底不压黄线（11-08）
 	if not ph and not tight and r[2] != "":

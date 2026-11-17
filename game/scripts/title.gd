@@ -1218,7 +1218,39 @@ func _guide_rows(touch: bool) -> Array:
 			"冲刺":
 				if not touch:
 					rows[i] = ["冲刺", "空格", "Ⓑ"]
+	if not touch:
+		_apply_keybinds(rows)
 	return rows
+
+
+## 改过键的动作（PlayKeys.overrides，11-16 自由改键）：这一行的键鼠 / 手柄列换成当前绑定的键名；没改过的保留原文（带说明、四语表里有译文）。
+## 11-17 体检：原来整页写死缺省键位，改键后仍显示空格 / Q / F / TAB 等
+const _GUIDE_ACT := {"移动": ["up", "left", "down", "right"], "冲刺": ["dash"], "终结技": ["ult"], "队长技能": ["ult"], "指挥圆盘": ["command"],
+	"按住瞄准": ["aim"], "暂停": ["pause"], "属性": ["stats"], "倍速": ["speed"], "音乐开关": ["music"]}
+func _apply_keybinds(rows: Array) -> void:
+	var ov: Dictionary = PlayKeys.overrides()
+	for i in rows.size():
+		var ids: Array = _GUIDE_ACT.get(str(rows[i][0]), [])
+		for col in [1, 2]:
+			var page := "kb" if col == 1 else "pad"
+			if ids.is_empty() or not ids.any(func(id): return ov.get(page, {}).has(id)):
+				continue
+			if ids.size() == 4:   # 移动：两格各拼四个方向（WASD / ↑←↓→）
+				var parts: Array = []
+				for slot in 2:
+					var t := ""
+					for id in ids:
+						t += PlayKeys.name_of(int(PlayKeys.get_slots(id, false)[slot]), false)
+					if t != "":
+						parts.append(t)
+				rows[i][col] = " / ".join(parts)
+			else:
+				var ns: Array = []
+				for c in PlayKeys.get_slots(ids[0], col == 2):
+					var n := PlayKeys.name_of(int(c), col == 2)
+					if n != "":
+						ns.append(n)
+				rows[i][col] = " / ".join(ns) if not ns.is_empty() else UI.Loc.s("未绑定")
 
 ## 寻访同款版式：暗场 + 左侧浅灰斜切栏（大号中文 + 像素描边英文）+ 右侧键位表 + 底栏返回
 func _draw_guide(vs: Vector2) -> void:
