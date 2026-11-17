@@ -1,4 +1,5 @@
-extends RefCounted
+extends "res://scripts/core/theme_mechanic.gd"
+## 水月主题机制 · 引航灯标（docs/364 §2；原 run/beacon.gd，整文件搬来，清单 mechanics 段声明，game.beacon_sys 指向本实例）。
 ## 引航灯标（名字文案暂定；docs/49d §13.5 方案 C，用户 9/29 定）：溟痕的主动清理手段，只靠走位。
 ## 自然溟痕出现后，每 60–75 秒在主控 250–400 外、溟痕最密的点（缩圈后只刷在圈内）立一座熄灭的灯标，场上最多 1 座未点燃（Boss 在场也刷）；
 ## 主控站进半径 70 的光圈累计 2.5 秒点燃（离开时进度缓慢回退，不清零）。
@@ -25,6 +26,11 @@ var lit_n := 0           # 本局点燃数（平衡输出）
 var zone_on := false     # 队长此刻在生效中的灯标清除圈里（回复 / 攻速加成生效中，_zone_buff）
 var zone_s := 0.0        # 本局在灯标庇护里待了多少秒（遥测）
 var spawned_n := 0
+
+
+## 主题机制挂钩：game 杂项段每帧（原 game.gd 直接调 beacon_sys.update）
+func on_world_tick(dt: float) -> void:
+	update(dt)
 
 
 func _init(game: Game) -> void:

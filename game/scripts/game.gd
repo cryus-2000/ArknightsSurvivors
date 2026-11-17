@@ -58,7 +58,6 @@ const BuildGuide = preload("res://scripts/run/build_guide.gd")
 const Pickups = preload("res://scripts/run/pickups.gd")
 const WeaponsSys = preload("res://scripts/run/weapons.gd")
 const ShopSys = preload("res://scripts/run/shop.gd")
-const Beacon = preload("res://scripts/run/beacon.gd")
 const Spawner = preload("res://scripts/run/spawner.gd")
 const PlayClock = preload("res://scripts/run/play_clock.gd")
 const IsharEncounter = preload("res://scripts/run/ishar_encounter.gd")
@@ -118,7 +117,7 @@ var web_focus = preload("res://scripts/web_focus.gd").new()   # 失焦保护（d
 var web_fs = preload("res://scripts/web_fs.gd").new()   # 网页版全屏与 Esc（docs/299）：退出全屏当暂停、P 键暂停、暂停菜单「返回全屏」；只在网页版桌面生效
 var mech_by_id: Dictionary = ThemePack.make_mechanics(self)   # 主题机制 {id: 实例}，清单 mechanics 段的顺序（docs/364；scripts/core/theme_mechanic.gd）
 var mechs: Array = mech_by_id.values()   # 挂钩点按这个顺序逐个调
-var beacon_sys = Beacon.new(self)  # 引航灯标：站桩点燃、驱散溟痕（run/beacon.gd，docs/49d §13.5 C）
+var beacon_sys = mech_by_id.get("beacon")  # 引航灯标（主题机制 themes/deep_sea/mech/mech_beacon.gd，docs/49d §13.5 C、docs/364）；没有灯标的主题为 null
 var weapons_sys = WeaponsSys.new(self)   # 子弹与支援装置
 var pickups = Pickups.new(self)   # 掉落与拾取
 var progression = Progression.new(self)   # 升级与藏品发放（逻辑）
@@ -2582,7 +2581,8 @@ func _update(dt: float) -> void:
 	if not trial.active and not sandbox:
 		endg.update(dt)
 		endg.tick_final_warning()
-		beacon_sys.update(dt)
+		for m in mechs:
+			m.on_world_tick(dt)   # 主题机制挂钩（docs/364）：引航灯标（mech_beacon）
 		knight.tick_final()   # 结局二：9:00 起走向黑潮中心、到达入潮消失（docs/18 §1）
 		if demo_op == "":
 			shop_sys.update(dt)
