@@ -1322,6 +1322,8 @@
   "px_plane_mizuki": 1, "px_mz_ease": 0.15,
   "_px_plane_wisadel": "维什戴尔终结技只改颜色（docs/274 §8）：1 = 爆裂 / 炮口帧条换黑红重配色版、预兆环 / 拖线 / 尘 / 火星 / 粒子同色，每发粒子团 60 → 36；画面其余、节奏、音效同原版；0 = 原版。11-06 用户批：缺省 1",
   "px_plane_wisadel": 1,
+  "_wd_proto": "维什戴尔终结技更华丽（docs/353，11-17 用户选 A + B）：位 1 = A 蓄力锁定（前摇 +0.32 秒：炮口聚能、红测距光、实心锁定十字、大炮口焰 + 粗弹道）；位 2 = B 轰炸节奏 + 终爆（排间隔 0.12→0.08 加速、末排前停半拍、她前方 300 处补一记大爆 + 裂网 + 尘墙 + 余烬，冲击帧挪到终爆）；3 = A + B（缺省）；0 = V2.2 原样。低画质去尘墙 / 粒子 / 余烬 / 聚能火星、裂网减半",
+  "wd_proto": 3,
   "_doc": "终结技 / 连携技 / 连携终结技（docs/198，原型 ult-proto 10-29）。on：1 = 新系统（Q 终结技、E 连携技；响应动作、隐藏连携、钩与锚、手动技能路由停用），0 = 旧路径（同 seed TRACE 与没有本系统时逐行相同）。能量（§2.1）：e_out 每造成「当前普通怪基准生命 ref_hp × 时间与难度倍率」的伤害加多少，e_kill / e_elite / e_boss 击杀，e_hurt 每损失 1% 最大生命（每 10 秒至多 e_hurt_cap），e_combo 每次连携（每 e_combo_gap 秒至多 1 次），e_sec_cap 每秒总上限，e_mult 总倍率，start_energy 开局自带能量；cells 协同格数，cell_gap 协同每格最短间隔。10-29 第一轮配对后调节奏（目标一局终结技 3–4 次含连携终结技约 1 次、首次约 2:30）：e_mult 1 → 1.2、start_energy 15、cells 7 → 5、cell_gap 40 → 25、combo_cd_mult 1 → 0.75（docs/199 §5.4）。10-30 20 人配对后（用户定一局 3–4 次；实测 m0 约 2.0 / m18 约 2.8、两次间隔中位 130 秒）：e_mult 1.2 → 1.42、e_sec_cap 1.0 → 1.2（间隔约 110 秒）、start_energy 15 → 40（首次约 1:30），威力不动（docs/199 §5.8）。演出（§2.4 / §7）：freeze 顿帧、slow 慢动作速度、slow_t 慢动作真实秒数、hold_max 按住再延长（真实秒）、aim_spd 落点光标速度（游戏时间 px/s）。预算（§3.3）：minion / edge 小怪核心 / 外缘（× ref_hp），elite / boss / final 占最大生命，elite_floor 精英保底，build_cap 构筑上限；cult_* 连携终结技（§7.3）。连携（§2.5）：lit_t 亮起秒数、auto_delay 自动连携延迟、combo_cd_mult 冷却倍率。机器人（§10.2）：bot_n 屏内敌人数、bot_hold_from 留给最终 Boss 的起点、bot_cult_wait 等连携终结技的秒数",
   "on": 1,
   "_doc_px_plane_eyjafjalla": "艾雅法拉终结技只改颜色（docs/259 §8，11-06 用户：原版画面 / 节奏 / 体量 / 音效全部不动；11-06 用户批「过」，缺省开）：1 = 贴图换用 fx_ey_*_pxe（tools/ult_eyja_recolor.py，暖色按亮度对位换到普攻 / 技能定稿的熔岩 9 阶，纯红落到偏橙的暖红），程序色同一映射（ult_moves_b._eyc）；0 = 原版",
