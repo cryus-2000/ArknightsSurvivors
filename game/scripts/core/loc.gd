@@ -247,6 +247,11 @@ static func s(text: String) -> String:
 	_cache[text] = out
 	# 缺译记录：原样没变的；英 / 韩模式下译完仍夹着汉字的（代码拼出来、拆段兜底只换了标点的半中半英串，11-17 体检「增殖: 水月的…」）也记。
 	# 日文本身用汉字，仍只记原样没变的
+	if record_missing:
+		if out != text:
+			_outs[out] = true
+		elif _depth == 0 and _outs.has(text):
+			return out   # 已经是译文（日文汉字串、预先翻好的按钮字）又被送进来查一次：不是缺译
 	if record_missing and _depth == 0 and _cjk != null and _cjk.search(text) != null and (out == text or (lang != "ja" and _cjk.search(out) != null)):
 		missing[text] = true
 	return out
@@ -254,6 +259,7 @@ static func s(text: String) -> String:
 
 ## 截图 / 冒烟时打开：英文模式下查完仍是中文的原文记下来（tests/l10n_shots 跑完写 missing.txt，送去补翻）
 static var record_missing := false
+static var _outs := {}   # record_missing 时本次产出过的译文（含 hit / short）：再送进来不算缺译
 static var _depth := 0   # s() 的递归深度：拆段兜底逐段再调 s()，中间片段不记缺译，只记最外层整串
 static var missing := {}
 
@@ -402,6 +408,8 @@ static func hit(text: String) -> String:
 	if lang == "zh" or text == "":
 		return ""
 	var t := String(TranslationServer.translate(text))
+	if record_missing and t != text and t != "":
+		_outs[t] = true
 	return t if t != text and t != "" else ""
 
 
@@ -410,6 +418,8 @@ static func short(text: String) -> String:
 	if lang == "zh" or text == "":
 		return text
 	var t := String(TranslationServer.translate("short:" + text))
+	if record_missing and t != "short:" + text and t != "":
+		_outs[t] = true
 	return t if t != "short:" + text and t != "" else s(text)
 
 
