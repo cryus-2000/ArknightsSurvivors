@@ -38,6 +38,21 @@ static func path(key: String) -> String:
 	return "res://data/%s.json" % key
 
 
+## 主题机制（docs/364）：按清单 mechanics 段的顺序实例化 → {id: 实例}（字典按插入顺序 = 清单顺序，game.mechs 取 values()）。
+## 每项 {"id": "lamp", "script": "res://themes/deep_sea/mech/mech_lamp.gd"}；脚本继承 scripts/core/theme_mechanic.gd、_init(game)。
+static func make_mechanics(game) -> Dictionary:
+	var out: Dictionary = {}
+	for it in manifest().get("mechanics", []):
+		var sc = load(str(it.script))
+		if sc == null:
+			push_error("theme %s: mechanic script missing: %s" % [_id, it.script])
+			continue
+		var m = sc.new(game)
+		m.id = str(it.id)
+		out[m.id] = m
+	return out
+
+
 ## 地图目录（Map.list_ids 列这个目录下的 *.json）
 static func maps_dir() -> String:
 	return str(manifest().get("maps", {}).get("dir", "res://data/maps"))

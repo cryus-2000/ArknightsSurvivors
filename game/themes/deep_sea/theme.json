@@ -21,6 +21,9 @@
     "ult_text": "res://data/ult_text.json",
     "ult_audio": "res://data/ult_audio.json"
   },
+  "mechanics": [
+    {"id": "lamp", "script": "res://themes/deep_sea/mech/mech_lamp.gd"}
+  ],
   "maps": {
     "dir": "res://data/maps",
     "default": "deep_sea"

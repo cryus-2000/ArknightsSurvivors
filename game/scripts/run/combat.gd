@@ -128,13 +128,8 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 	var ad: Dictionary = D.ENEMIES.get(str(src.get("type", src.get("src_type", ""))), {})
 	if float(ad.get("apop_hit", 0.0)) > 0.0 and (ctrl_on() or ad.get("role", "") == "boss"):
 		add_apop(float(ad.apop_hit))
-	# 灯火只在受击时熄灭：基础 4 + 伤害占最大生命的比例 × 30（10% 血的一击 -7），受「灯火消耗」修正
-	var lamp_loss: float = (Bal.v("lamp/hit_base", 2.0) + Bal.v("lamp/hit_scale", 18.0) * dmg / g.max_hp) * g.lamp_decay * g.lamp_loss_mult
-	var l0: float = g.lamp
-	g.lamp = maxf(0.0, g.lamp - lamp_loss)
-	g.telemetry.lamp_note("受击", g.lamp - l0)
-	if lamp_loss >= 6.0:
-		g.vfx.add_text(g.ppos + Vector2(20, -60), "灯火 -%d" % int(lamp_loss), Color(1.0, 0.6, 0.4), 13)
+	for m in g.mechs:
+		m.on_player_hit(dmg, src)   # 主题机制挂钩（docs/364）：受击掉灯火（mech_lamp）
 	if src.get("corrode", 0.0) > 0.0:
 		g.afflict.add_corrode(dmg, src.corrode, boss, lost)
 	# 命中附带的神经损伤：用户 9/29 按原作改成只有溟痕累积，命中来源乘 enemy/nerve_hit_mult（缺省 0 = 不累积）

@@ -116,6 +116,8 @@ var spawner = Spawner.new(self)   # 刷怪
 var shop_sys = ShopSys.new(self)   # 商人与商店（逻辑）
 var web_focus = preload("res://scripts/web_focus.gd").new()   # 失焦保护（docs/317）：清按住状态、网页版自动暂停、回来把焦点还给画布
 var web_fs = preload("res://scripts/web_fs.gd").new()   # 网页版全屏与 Esc（docs/299）：退出全屏当暂停、P 键暂停、暂停菜单「返回全屏」；只在网页版桌面生效
+var mech_by_id: Dictionary = ThemePack.make_mechanics(self)   # 主题机制 {id: 实例}，清单 mechanics 段的顺序（docs/364；scripts/core/theme_mechanic.gd）
+var mechs: Array = mech_by_id.values()   # 挂钩点按这个顺序逐个调
 var beacon_sys = Beacon.new(self)  # 引航灯标：站桩点燃、驱散溟痕（run/beacon.gd，docs/49d §13.5 C）
 var weapons_sys = WeaponsSys.new(self)   # 子弹与支援装置
 var pickups = Pickups.new(self)   # 掉落与拾取
@@ -2532,9 +2534,8 @@ func _update(dt: float) -> void:
 	if rg > 0.0 and hp > 0.0:
 		# 遥测（docs/74 §6）：主控自带回复 + 博士「自愈」+ regen_pct 藏品，只记实际回进去的量；走 heal()（补侵蚀创口减疗）
 		combat.heal(rg, "自身回复", "", combat.HEAL_PRESCALED)
-	if lamp <= 0.0:
-		combat.lose_hp(3.0 * dt, "dark")
-		hurt_flash = max(hurt_flash, 0.05)
+	for m in mechs:
+		m.on_player_tick(dt)   # 主题机制挂钩（docs/364）：灯火熄灭掉血（mech_lamp）
 	combat.update_zone(dt)
 	if shield_max > 0 and shield < shield_max:
 		shield_cd -= dt
@@ -2714,13 +2715,20 @@ func sync_stats() -> void:
 	squad.sync_stats(stats)
 
 
-## 灯火：灯光照亮范围（游戏判定用）
+## 主题机制实例（docs/364）；本主题没有这个机制时返回 null
+func mech(mid: String):
+	return mech_by_id.get(mid)
+
+
+## 灯火：灯光照亮范围（游戏判定用）；没有灯火机制的主题按满灯算
 func lamp_r() -> float:
-	return lerpf(110.0, 360.0, lamp / 100.0) * squad.light_radius_mult()
+	var ml = mech_by_id.get("lamp")
+	return ml.light_radius() if ml != null else 360.0 * squad.light_radius_mult()
 
 
 func _lamp_sp() -> float:
-	return (1.3 if lamp >= 70.0 else 1.0) * rfx.sp_extra()
+	var ml = mech_by_id.get("lamp")
+	return (ml.sp_mult() if ml != null else 1.0) * rfx.sp_extra()
 
 
 ## 用对局随机数洗牌。Array.shuffle() 走全局随机流，全局流也被纯视觉效果按真实帧率消耗，会让同 seed 的局跑出不同结果
