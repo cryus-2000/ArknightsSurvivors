@@ -543,6 +543,12 @@ async function main() {
   }
 
   function finish(sk, contacts) {
+    // cfg.boneScale：{骨骼名: 倍数}，在最终姿势上把该骨（连同子骨与挂件）等比放大后重算世界变换。
+    // 新干员 Q 版大头（docs/365 §3）：整体缩到身体合规后单独放大头骨，头高落到 26–32（@2x）。
+    if (cfg.boneScale) {
+      for (const [n, v] of Object.entries(cfg.boneScale)) { const b = sk.findBone(n); if (b) { b.scaleX *= v; b.scaleY *= v; } }
+      sk.updateWorldTransform();
+    }
     // Approved 1x face treatment; opt-in so other density exports are unchanged.
     for (const slot of sk.slots) {
       const n = slot.data.name;
@@ -666,7 +672,9 @@ async function main() {
     fs.writeFileSync(path.join(OUT, `f${String(i).padStart(2, '0')}.png`), canvas.toBuffer('image/png'));
     frames.push(sk);
     if (cfg.keys) { lines.push(swordLine(sk, i)); if (process.env.SWORD_DEBUG) console.log(i, JSON.stringify(lines[i])); }
-    report.push({ frame: i, contacts, clipped_near_edge: clipped });
+    // cfg.trackBones：逐帧记下指定骨骼原点的像素位置（新干员修脸贴眼睛的对位锚点，tools/spine_px.py）
+    const tracked = cfg.trackBones ? Object.fromEntries(cfg.trackBones.map(n => { const b = sk.findBone(n); return [n, b ? [+(ANCHOR[0] + b.worldX * SCALE).toFixed(2), +(ANCHOR[1] - b.worldY * SCALE).toFixed(2), +(Math.atan2(b.c, b.a) * 180 / Math.PI).toFixed(1)] : null]; })) : undefined;
+    report.push({ frame: i, contacts, clipped_near_edge: clipped, bones: tracked });
   }
   const idle = pixelize(base).canvas;
   fs.writeFileSync(path.join(OUT, 'idle_t0.png'), idle.toBuffer('image/png'));
