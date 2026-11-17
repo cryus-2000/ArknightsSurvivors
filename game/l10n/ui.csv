@@ -1668,7 +1668,7 @@ ui.gd.screens.initial_stats.019,All within range ×%s%%,範囲内全て ×%s%%,�
 ui.gd.screens.initial_stats.020,Song Buff,歌域バフ,노래 영역 버프,歌域增益,模型,,自译,自译
 ui.gd.screens.initial_stats.021,ATK +%s%%,攻撃 +%s%%,공격 +%s%%,攻击 +%s%%,模型,,自译,自译
 ui.gd.screens.initial_stats.022,Pierce,貫通,관통,穿透,模型,,自译,自译
-ui.gd.screens.initial_stats.023,%d Targets,%d名,%d명,%d 名,校对,校对：“名”在数字后是量词，指代目标数量，误译为了名字（Name）。,自译,自译
+ui.gd.screens.initial_stats.023,%d,%d名,%d명,%d 名,校对,校对：“名”在数字后是量词，指代目标数量，误译为了名字（Name）。,自译,自译
 ui.gd.screens.initial_stats.024,Block,ガード,막기,格挡,模型,,自译,自译
 ui.gd.screens.initial_stats.025,Total Damage Immunity,完全ダメージ無効,피해 완전 면역,完全免伤,模型,,自译,自译
 ui.gd.screens.initial_stats.026,to Elite,対エリート,엘리트 대상,对精英,模型,,自译,自译
@@ -2009,7 +2009,7 @@ ui.gd.screens.share_card.015,Defeated,撃倒,처치,击倒,模型,,自译,自译
 ui.gd.screens.share_card.016,Enemies Defeated,敵撃破,처치한 적,击败敌人,模型,,自译,自译
 ui.gd.screens.share_card.017,Tide Level,潮位,조위,潮位,模型,,自译,自译
 ui.gd.screens.share_card.018,Squad,編成,편성,编队,模型,,自译,自译
-ui.gd.screens.share_card.019,%d Targets,%d名,%d명,%d 名,校对,校对：“名”在数字后是量词，指代目标数量，误译为了名字（Name）。,自译,自译
+ui.gd.screens.share_card.019,%d,%d名,%d명,%d 名,校对,校对：“名”在数字后是量词，指代目标数量，误译为了名字（Name）。,自译,自译
 ui.gd.screens.share_card.020,Relic,秘宝,소장품,藏品,模型,,自译,暂定：暂定（docs/276 §14）
 ui.gd.screens.share_card.021,|  Squad,|  編成,|  편성,|  编队,模型,,自译,自译
 ui.gd.screens.share_card.022,Scan to Dive into the Ocean Together,コードをスキャンして共に深海へ,QR 코드를 스캔하여 함께 심해로 잠수,扫码一起潜入深海,校对,校对：the Abyssal 作为名词指代深海存在语法问题，明日方舟中通常将海嗣所在的深海译为 the ocean,自译,自译
@@ -2193,7 +2193,7 @@ ui.gd.screens.title_op_pick.025,◀ ▶ / Scroll Wheel Switch    ↑↓ Tab    Q
 ui.gd.screens.title_op_pick.026,◀ ▶ Switch    ↑↓ Tab    LB / RB Class    Ⓐ Next,◀ ▶ 切替    ↑↓ タブ    LB / RB 職業    Ⓐ 次へ,◀ ▶ 전환    ↑↓ 탭    LB / RB 포지션    Ⓐ 다음,◀ ▶ 切换    ↑↓ 页签    LB / RB 职业    Ⓐ 下一步,模型,,自译,自译
 ui.gd.screens.title_op_pick.027,Tap Card to switch · Tap again to deploy,カードをタップして切り替え ・ もう一度タップして出撃,카드 터치로 전환 · 한 번 더 터치해 출격,点卡片切换 · 再点一次出击,模型,,自译,自译
 ui.gd.screens.title_op_pick.028,%d remaining,残り%d名,남은 인원 %d명,还有 %d 名,校对,校对：“名”是量词，误译为Name,自译,自译
-ui.gd.screens.title_op_pick.029,%d Targets,%d名,%d명,%d 名,校对,校对：“名”在数字后是量词，指代目标数量，误译为了名字（Name）。,自译,自译
+ui.gd.screens.title_op_pick.029,%d,%d名,%d명,%d 名,校对,校对：“名”在数字后是量词，指代目标数量，误译为了名字（Name）。,自译,自译
 ui.gd.screens.title_op_pick.030,Set as Cover Operator,表紙オペレーターに設定,표지 오퍼레이터로 설정,设为封面干员,模型,,自译,自译
 ui.gd.screens.title_op_pick.031,ENTER  ·  Next Select Difficulty,ENTER  ・  次へ：難易度選択,ENTER  ·  다음 난이도 선택,ENTER  ·  下一步选择难度,模型,,自译,自译
 ui.gd.screens.title_op_pick.032,Controller Ⓐ  ·  Next Select Difficulty,コントローラー Ⓐ  ・  次へ：難易度選択,컨트롤러 Ⓐ  ·  다음 난이도 선택,手柄 Ⓐ  ·  下一步选择难度,模型,,自译,自译
@@ -2308,7 +2308,7 @@ ui.gd.screens.settle.settle_report.011,Bosses Defeated,Boss撃破,보스 격파,
 ui.gd.screens.settle.settle_report.012,Damage Taken,被ダメージ,받은 피해,受到伤害,模型,,自译,自译
 ui.gd.screens.settle.settle_report.013,HP Recovery,HP回復,HP 회복,生命回复,模型,,自译,自译
 ui.gd.screens.settle.settle_report.014,|  03 / Squad Output,|  03 / 編成火力,|  03 / 편성 화력,|  03 / 编队输出,模型,,自译,自译
-ui.gd.screens.settle.settle_report.015,%d Targets,%d名,%d명,%d 名,校对,校对：“名”在数字后是量词，指代目标数量，误译为了名字（Name）。,自译,自译
+ui.gd.screens.settle.settle_report.015,%d,%d名,%d명,%d 名,校对,校对：“名”在数字后是量词，指代目标数量，误译为了名字（Name）。,自译,自译
 ui.gd.screens.settle.settle_report.016,Gained This Run,今回獲得,이번 탐험 획득,本局获得,模型,,自译,自译
 ui.gd.screens.settle.settle_report.017,Vital Cells,有機細胞,생체 세포,生机细胞,暂定,暂定（docs/276 §3.6）,暂定：暂定（docs/276 §13）,暂定：暂定（docs/276 §14）
 ui.gd.screens.settle.settle_report.018,Headhunting Permit,スカウト券,헤드헌팅 허가증,寻访凭证,模型,,自译,自译
@@ -4006,7 +4006,7 @@ Mon3tr 攻击,Mon3tr Attack,Mon3tr 攻撃,Mon3tr 공격,,原文键,模型,自译
 圈内全部 ×%s%%,All within range ×%s%%,範囲内全て ×%s%%,범위 내 전체 ×%s%%,,原文键,模型,自译,自译
 歌域增益,Song Buff,歌域バフ,노래 영역 버프,,原文键,模型,自译,自译
 攻击 +%s%%,ATK +%s%%,攻撃 +%s%%,공격 +%s%%,,原文键,模型,自译,自译
-%d 名,%d Targets,%d名,%d명,,原文键,校对,自译,自译
+%d 名,%d,%d名,%d명,,原文键,校对,自译,自译
 完全免伤,Total Damage Immunity,完全ダメージ無効,피해 완전 면역,,原文键,模型,自译,自译
 对精英,to Elite,対エリート,엘리트 대상,,原文键,模型,自译,自译
 伤害 ×%s,Damage ×%s,ダメージ ×%s,피해 ×%s,,原文键,模型,自译,自译
