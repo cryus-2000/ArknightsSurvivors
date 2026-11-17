@@ -116,7 +116,7 @@ func tick(dt: float) -> void:
 		cells = int(g.meta_result.get("cells", 0))
 		vouchers = int(g.roster_new.get("hunt", 0))
 		exchanged = 0
-		_share_auto = Cfg.dev_args().is_empty() or "--shareauto" in Cfg.dev_args()   # 测试 / 截图不自动弹，免得改动金样
+		_share_auto = (Cfg.dev_args().is_empty() or "--shareauto" in Cfg.dev_args()) and not bool(model.get("quit", false))   # 测试 / 截图不自动弹，免得改动金样；放弃探索的局不自动弹（11-17 协调人定，手动点分享照常）
 		_share_wait = 0.0
 	if _share_auto and done():
 		if _pending != "" or share_open or g.run_stats.open or g.run_log.open or g.headhunt.open:
@@ -751,7 +751,7 @@ func draw(ci: CanvasItem, vs: Vector2) -> void:
 	_text(ci,382,176,RS_time(float(model.t)),21,HH.INK)
 	_enter(0.79, 0.3)
 	_text(ci,518,155,"难度档",12,HH.INK2)
-	_text(ci,518,178,str(D.DIFF_PRESETS[clampi(g.preset,0,D.DIFF_PRESETS.size()-1)].name),18,HH.INK)
+	_text(ci,518,178,SettleBase.diff_name_of(int(g.preset), int(g.tier)),18,HH.INK)
 	# ④ 数字滚动：本局获得 → 总伤害 / 击败敌人
 	_enter(0.9, 0.3)
 	var count := UM.out_cubic(_k(0.95, 0.8))
