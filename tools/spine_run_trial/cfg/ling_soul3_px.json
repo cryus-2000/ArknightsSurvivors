@@ -23,7 +23,10 @@
      8
     ]
    },
-   "note": "Idle 一个循环；原作无移动轨，跟随移动用待机 + 平移（同其他召唤物）"
+   "note": "Idle 一个循环；原作无移动轨，跟随移动用待机 + 平移（同其他召唤物）",
+   "eye_keys": [
+    "eye"
+   ]
   },
   "attack": {
    "sample": {
@@ -34,7 +37,10 @@
      8
     ]
    },
-   "note": "OnAttack 0.367 秒 ≈ f3"
+   "note": "OnAttack 0.367 秒 ≈ f3",
+   "eye_keys": [
+    "eye"
+   ]
   },
   "appear": {
    "sample": {
@@ -47,7 +53,10 @@
     "inclusive": true,
     "end": 1.125
    },
-   "note": "召唤登场"
+   "note": "召唤登场",
+   "eye_keys": [
+    "eye"
+   ]
   },
   "death": {
    "sample": {
@@ -60,7 +69,10 @@
     "inclusive": true,
     "end": 1.125
    },
-   "note": "消散"
+   "note": "消散",
+   "eye_keys": [
+    "eye"
+   ]
   },
   "idle_02": {
    "sample": {
@@ -71,7 +83,10 @@
      8
     ]
    },
-   "note": "弦惊第二形态待机"
+   "note": "弦惊第二形态待机",
+   "eye_keys": [
+    "eye2"
+   ]
   },
   "attack_02": {
    "sample": {
@@ -82,7 +97,18 @@
      8
     ]
    },
-   "note": "第二形态攻击（OnAttack 0.5 秒 ≈ f2）"
+   "note": "第二形态攻击（OnAttack 0.5 秒 ≈ f2）；f3–f4 头转到背面，不贴眼",
+   "eye_keys": [
+    "eye2"
+   ],
+   "eye_frames": [
+    0,
+    1,
+    2,
+    5,
+    6,
+    7
+   ]
   },
   "appear_02": {
    "sample": {
@@ -95,7 +121,10 @@
     "inclusive": true,
     "end": 0.75
    },
-   "note": "变身为第二形态"
+   "note": "变身为第二形态",
+   "eye_keys": [
+    "eye2"
+   ]
   },
   "death_02": {
    "sample": {
@@ -108,7 +137,71 @@
     "inclusive": true,
     "end": 1.125
    },
-   "note": "第二形态消散"
+   "note": "第二形态消散",
+   "eye_keys": [
+    "eye2"
+   ]
+  }
+ },
+ "fix": {
+  "eyes": {
+   "points": {
+    "eye": [
+     "F2_Head_01",
+     51.05,
+     -3.37
+    ],
+    "eye2": [
+     "F_Eye",
+     0,
+     0
+    ]
+   },
+   "colors": {
+    "K": "#0e1e23",
+    "B": "#3f6bd6"
+   },
+   "pattern": {
+    "eye": [
+     "KKKK",
+     ".BB."
+    ],
+    "eye2": [
+     "KKKK",
+     ".BB."
+    ]
+   },
+   "anchor": {
+    "eye": [
+     2,
+     1
+    ],
+    "eye2": [
+     2,
+     1
+    ]
+   },
+   "x1": {
+    "pattern": {
+     "eye": [
+      "KB"
+     ],
+     "eye2": [
+      "KB"
+     ]
+    },
+    "anchor": {
+     "eye": [
+      1,
+      0
+     ],
+     "eye2": [
+      1,
+      0
+     ]
+    }
+   },
+   "_doc": "龙眼：4×4 BOX 后并进头部青色、1 倍上看不见。一形态按头骨 F2_Head_01 局部点 (51.05, -3.37)（4 倍图上量的眼位换算）逐帧定位；弦惊二形态用现成的 F_Eye 骨。@2x 4×2（暗边 + 蓝瞳，蓝取角上的蓝），1 倍 2 格"
   }
  }
 }

@@ -297,7 +297,15 @@ def main():
     fix = spec.get("fix", {}) if not a.no_fix else {}
     eyes = fix.get("eyes")
     e_all = spec.get("fix", {}).get("eyes")
-    track = list(e_all["bones"].values()) if e_all else []   # --no-fix 也记眼骨位置（对照用）
+    track = list(e_all.get("bones", {}).values()) if e_all else []   # --no-fix 也记眼骨位置（对照用）
+    # eyes.points：{名: [骨骼, 局部 x, 局部 y]}——没有眼骨时按头骨局部一点定眼位（召唤物龙，头会转），报告里按「名」记
+    points = dict(e_all.get("points", {})) if e_all else {}
+
+    def eye_map(act):
+        """本动作要贴的眼：{名: 报告里的键}；动作 eye_keys 限定用哪几只（弦惊一 / 二形态眼位不同）"""
+        m = dict((eyes or {}).get("bones", {}))
+        m.update({k: k for k in (eyes or {}).get("points", {})})
+        return {k: v for k, v in m.items() if act.get("eye_keys") is None or k in act["eye_keys"]}
     m_all = spec.get("fix", {}).get("mouth")
     if m_all:
         track.append(m_all["bone"])
@@ -312,11 +320,13 @@ def main():
         c = dict(rig)
         for k in ("sample", "keys", "poses"):
             c.pop(k, None)
-        c.update({k: v for k, v in act.items() if k not in ("durations", "fps", "fix", "note", "eye_frames", "eyes", "dens", "mouth", "mouth_ref")})
+        c.update({k: v for k, v in act.items() if k not in ("durations", "fps", "fix", "note", "eye_frames", "eyes", "eye_keys", "dens", "mouth", "mouth_ref")})
         c["pack"] = dict(rig["pack"], palette_png=pal, scale=spec["scale"])
         c["canvas"] = size
         c["action"] = name
         c["trackBones"] = track
+        if points:
+            c["trackPoints"] = points
         if m_all:
             c["trackSlots"] = [m_all["slot"]]
         if dens == 1:
@@ -352,7 +362,7 @@ def main():
             use_eyes = ey and act.get("eyes", True) and (act.get("eye_frames") is None or i in act["eye_frames"])
             if use_eyes:
                 r = 4 if dens == 2 else 2
-                keep = [(int(b[0]) - r, int(b[1]) - r, int(b[0]) + r + 1, int(b[1]) + r + 1) for bn, b in bones.items() if bn in eyes["bones"].values()]
+                keep = [(int(b[0]) - r, int(b[1]) - r, int(b[0]) + r + 1, int(b[1]) + r + 1) for bn, b in bones.items() if bn in eye_map(act).values()]
             im, s2 = clean(im, keep, speck=2 if dens == 2 else 1)
             st["specks"] += s2["specks"]
             st["lone"] += s2["lone"]
@@ -360,7 +370,7 @@ def main():
                 im, k = outline(im, hexrgb(spec["outline"]["color"]), spec["outline"]["mix"], palette)
                 st["outline_px"] = st.get("outline_px", 0) + k
             if use_eyes:
-                for side, bn in eyes["bones"].items():
+                for side, bn in eye_map(act).items():
                     b = bones.get(bn)
                     if b:
                         st["eye_px"] += stamp(im, ey["pattern"][side], eyes["colors"], b, ey["anchor"][side])
