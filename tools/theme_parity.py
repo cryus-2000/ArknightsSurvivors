@@ -161,7 +161,9 @@ def compare_case(name, la, lb):
     return True, "PARITY %d 行 × %d 字段、TRACE %d 行、BALANCE %d 键全部一致%s" % (len(pa), nf, len(ta), nb, end), st
 
 
-def compare_dirs(da, db, names):
+def compare_dirs(da, db, names, alts=()):
+    """alts：同一基线提交的其他已知走向（同平台、同提交自己跑出的另一种结果，比如 Linux 的 deep_p0，docs/364 §4、docs/367 §4）；
+    某局和 da 不同、但和任一份 alt 逐帧相同，也算一致（报告里注明是哪一份）"""
     ok_all = True
     tot = {"parity_lines": 0, "fields": 0, "cases": 0}
     for n in names:
@@ -172,6 +174,14 @@ def compare_dirs(da, db, names):
             ok_all = False
             continue
         ok, why, st = compare_case(n, read_lines(fa), read_lines(fb))
+        if not ok:
+            for alt in alts:
+                fx = os.path.join(alt, "%s_%s.txt" % (n, args_hash(n)))
+                if os.path.exists(fx):
+                    ok2, why2, st2 = compare_case(n, read_lines(fx), read_lines(fb))
+                    if ok2:
+                        ok, why, st = True, why2 + "（与基线的已知变体 %s 相同；主基线：%s）" % (alt, why), st2
+                        break
         print("%s %-10s %s" % ("一致" if ok else "失败", n, why), flush=True)
         ok_all &= ok
         if st:
@@ -210,6 +220,7 @@ def main():
     ap.add_argument("--self", action="store_true", help="当前工作树自己跑两遍")
     ap.add_argument("--cases", default="", help="逗号分隔，缺省全部：" + ",".join(CASES))
     ap.add_argument("--jobs", type=int, default=2)
+    ap.add_argument("--alt", action="append", default=[], help="compare 用：基线提交的其他已知走向目录（可重复），和其中任一份逐帧相同也算一致")
     a = ap.parse_args()
     names = [n for n in a.cases.split(",") if n] or list(CASES)
     for n in names:
@@ -221,7 +232,7 @@ def main():
     if a.cmd == "record":
         return 0 if record(game, a.dirs[0], names, a.jobs, head) else 1
     if a.cmd == "compare":
-        return 0 if compare_dirs(a.dirs[0], a.dirs[1], names) else 1
+        return 0 if compare_dirs(a.dirs[0], a.dirs[1], names, a.alt) else 1
     here = os.path.join(ROOT, "build", "parity_here")
     shutil.rmtree(here, ignore_errors=True)
     if a.self:

@@ -24,7 +24,7 @@
 | 音频 | 21 → 53 → 28_operator_sfx → 113_sfx_audit → 279 |
 | 部署 | 33 → 22 → 89 / 99（B站 Toy）→ 285（网页包体） |
 | 文案 / 本地化 | 76 → 49 / 49a → 276 |
-| 主题重构 | 357 → 359_theme_pack_stage0 → 364 → 366 |
+| 主题重构 | 357 → 359_theme_pack_stage0 → 364 → 366 → 367 |
 | 傀影（第二主题） | 358 → 359_theme_content_spec → 360 → 361 → 362 → 363 |
 
 ## 其他目录
@@ -412,6 +412,7 @@
 | [359_theme_pack_stage0_1117](359_theme_pack_stage0_1117.md) | 主题包重构 · 阶段 0 前半：同种子基准 + 数据路径清单（11-17） | 进行中 | `tools/theme_parity.py`（7 局：四结局 × 三档 + Boss 台 + 短局，PARITY 36 字段逐帧比）；`themes/deep_sea/theme.json` + `ThemePack`… |
 | [364_theme_mechanics_1117](364_theme_mechanics_1117.md) | 主题包重构 · 第二步：主题机制接口 ThemeMechanic（11-17） | 进行中 | 灯火 / 溟痕 / 灯标 / 缩圈四个机制收进 themes/deep_sea/mech/，清单 mechanics 段声明，五个挂钩点按清单顺序在原调用处调；四个子提交 Windows 7/7、Linux 7/7（de… |
 | [366_theme_save_split_1118](366_theme_save_split_1118.md) | 主题包重构 · 第三步：存档按主题分开（11-18） | 进行中 | 结局 / 图鉴 / 藏品 / 事件图鉴 / 难度解锁与最佳 / 首通赏金 / 蚀刻章按主题存 [theme_<id>]，干员 / 凭证 / 认知塑造 / 设置 / 键位全局；旧位置写水月镜像、读档按字段合并（迁移、幂等、降级不丢）；云存档 v2 加 prog.th（minv 仍 1）；theme_save 测试四类旧档；parity 两平台一致 |
+| [367_theme_step4_1118](367_theme_step4_1118.md) | 主题包重构 · 第四步：主题数据搬家、敌种 id 写死点、存档收尾（11-18） | 进行中 | waves / enemies / events_v2 / relics / relic_effects / medals / medals_layout / enemy_pixels / enemy_redraw / maps 搬进 themes/deep_sea/data（共享 / 混合的留 data/）；tools/theme_paths.py；字体子集与加密包探测带上主题数据；敌种 id 写死 542 → 518（八类规则改读 enemies.json / waves.json），tools/enemy_id_scan.py 七类清单；roster_tiers 按主题、全开包切主题保护；theme_parity --alt；parity 两平台一致 |
 
 ### 傀影（第二主题）
 
