@@ -83,7 +83,7 @@ def cmd_perf(a):
 
 # ---------------------------------------------------------------- cover
 def shoot(op, mode, var, root, start=1.0, n=180):
-    d = os.path.join(root, "%s_%s_%s" % (op, MODES[mode], var))
+    d = os.path.abspath(os.path.join(root, "%s_%s_%s" % (op, MODES[mode], var)))   # 绝对路径：Godot 的工作目录不是仓库根（GCP 上 $OUT 是相对路径）
     shutil.rmtree(d, ignore_errors=True)
     os.makedirs(d)
     dbg = {"full": [], "noop": ["--clutterdbg=noop_" + op], "noen": ["--clutterdbg=noenemy"]}[var]
