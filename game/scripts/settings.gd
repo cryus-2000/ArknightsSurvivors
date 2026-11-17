@@ -865,7 +865,8 @@ func _theme_write(c: ConfigFile) -> void:
 		ThemeSave.write_legacy(c, theme_saves.get(ThemeSave.LEGACY, {}))
 
 
-## 换当前主题（docs/366）：当前这份收进 theme_saves，目标主题那份放进 Cfg 字段（没有就从空开始）。全部解锁（调试 / 对内包）时换主题不重算演示数据
+## 换当前主题（docs/366）：当前这份收进 theme_saves（全部解锁时收的是 _real_progress 里的真实值），目标主题那份放进 Cfg 字段（没有就从空开始）。
+## 全部解锁（调试 / 对内包）时：_real_progress 换成目标主题的真实值、界面重算成全开——否则旧主题的真实进度会被当成新主题的写进存档（docs/366 §5 第 2 条，11-18 修）
 func theme_switch(tid: String) -> void:
 	if tid == theme_cur:
 		return
@@ -873,6 +874,8 @@ func theme_switch(tid: String) -> void:
 	ThemeSave.restore(self, theme_saves.get(tid, {}))
 	theme_saves.erase(tid)
 	theme_cur = tid
+	if unlock_all:
+		_unlock_display()
 
 
 func apply() -> void:
@@ -1024,17 +1027,22 @@ func _apply_unlock_all() -> void:
 	elif build_audience() != "internal":
 		return   # 对外包（public / diagnostic）恒不解锁；对内包（1.1.1，用户 09-30）启动即全部解锁，同样只在内存
 	unlock_all = true
+	_unlock_display()
+	# 对内发布包：名册不全开（roster_all_open() 为假），与新玩家同一流程（新手十连），首次启动另发测试用寻访凭证，写进存档（真实进度，寻访结果也照常存）
+	if internal_roster() and not roster_int_grant:
+		roster_int_grant = true
+		roster_tickets["hunt"] = int(roster_tickets.get("hunt", 0)) + INTERNAL_TICKETS
+		save()
+
+
+## 全部解锁的演示数据：当前主题的真实进度先存进 _real_progress，界面那份换成全开（_apply_unlock_all、theme_switch 用）
+func _unlock_display() -> void:
 	_real_progress = {"diff_unlocked": diff_unlocked, "seen_relics": seen_relics.duplicate(), "endings_cleared": endings_cleared.duplicate()}
 	diff_unlocked = D.DIFF_PRESETS.size() - 1
 	endings_cleared = D.ENDINGS.keys()
 	var db = preload("res://scripts/core/relic_db.gd").new()
 	db.load_files()
 	seen_relics = db.implemented().map(func(r): return r.id)
-	# 对内发布包：名册不全开（roster_all_open() 为假），与新玩家同一流程（新手十连），首次启动另发测试用寻访凭证，写进存档（真实进度，寻访结果也照常存）
-	if internal_roster() and not roster_int_grant:
-		roster_int_grant = true
-		roster_tickets["hunt"] = int(roster_tickets.get("hunt", 0)) + INTERNAL_TICKETS
-		save()
 
 
 ## 对内发布包（非调试版、audience = internal）：图鉴 / 难度 / 结局照旧全开，名册按开局 10 人 + 寻访（10-22、10-24）
@@ -1292,7 +1300,7 @@ func cloud_body() -> Dictionary:
 	if theme_cur != ThemeSave.LEGACY:
 		th[theme_cur] = ThemeSave.to_cloud(ThemeSave.snapshot(self))
 		var ds := ThemeSave.to_cloud(theme_saves.get(ThemeSave.LEGACY, {}))
-		for k in ["diff", "gal", "rel", "end", "dbest", "med"]:
+		for k in ["diff", "gal", "rel", "end", "dbest", "med", "optier"]:
 			pr[k] = ds[k]
 		pr.meta["bounty"] = ds.bounty
 	if not th.is_empty():

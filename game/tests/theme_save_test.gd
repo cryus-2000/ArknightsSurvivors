@@ -121,7 +121,7 @@ func _ready() -> void:
 		var v0 := visible()
 		var exp := {"diff_unlocked": int(p.get("unlocked", 0)), "endings_cleared": p.get("end", []), "gallery_seen": p.get("gal", []),
 			"seen_relics": p.get("rel", []), "diff_best": p.get("dbest", {}), "meta_bounty": p.get("bounty", []), "medals": p.get("med", {}),
-			"medal_best": p.get("medb", {}), "event_log": p.get("evl", {})}
+			"medal_best": p.get("medb", {}), "event_log": p.get("evl", {}), "roster_tiers": p.get("tiers", [])}
 		for f in exp:
 			check(canon(v0[f]) == canon(exp[f]), "%s：读旧档后 %s 应原样 %s，实际 %s" % [name, f, canon(exp[f]), canon(v0[f])])
 		check(Cfg.theme_cur == ThemeSave.LEGACY and Cfg.theme_saves.is_empty(), "%s：旧档归水月、没有别的主题" % name)
@@ -153,6 +153,8 @@ func _ready() -> void:
 	Cfg.theme_switch("phantom")
 	check(Cfg.endings_cleared.is_empty() and Cfg.diff_unlocked == 0 and Cfg.seen_relics.is_empty() and Cfg.medals.is_empty(), "切到新主题从空开始")
 	check(Cfg.roster_unlocked.has("skadi") and not Cfg.meta_shape.is_empty(), "切主题时名册 / 认知塑造（全局）不变")
+	check(Cfg.roster_tiers.is_empty() and Cfg.theme_saves.deep_sea.roster_tiers == [0, 1, 2], "已首通档按主题（11-18）：新主题从空开始，水月的留着")
+	Cfg.roster_tiers.append(0)
 	Cfg.endings_cleared.append("ph_ball")
 	Cfg.diff_unlocked = 1
 	Cfg.gallery_seen.append("enemy:ph_lucien")
@@ -161,6 +163,8 @@ func _ready() -> void:
 	read(c4)
 	check(Cfg.theme_cur == ThemeSave.LEGACY and canon(ThemeSave.snapshot(Cfg)) == canon(ds_before), "重新读档：当前主题水月，进度不变")
 	check(Cfg.theme_saves.has("phantom") and Cfg.theme_saves.phantom.endings_cleared == ["ph_ball"] and int(Cfg.theme_saves.phantom.diff_unlocked) == 1, "新主题的进度读回来了")
+	check(Cfg.roster_tiers == [0, 1, 2] and Cfg.theme_saves.phantom.roster_tiers == [0], "已首通档：两个主题各存各的（%s / %s）" % [str(Cfg.roster_tiers), str(Cfg.theme_saves.phantom.roster_tiers)])
+	check(c4.get_value("roster", "tiers") == [0, 1, 2], "旧位置 [roster] tiers 仍是水月")
 	Cfg.theme_switch("phantom")
 	check(Cfg.endings_cleared == ["ph_ball"] and Cfg.gallery_seen == ["enemy:ph_lucien"], "切回新主题看到它自己的进度")
 	Cfg.theme_switch(ThemeSave.LEGACY)
@@ -174,6 +178,7 @@ func _ready() -> void:
 	read(c4)
 	var b2: Dictionary = Cfg.cloud_body()
 	check(b2.prog.get("th", {}).has("phantom") and b2.prog.th.phantom.end == ["ph_ball"] and b2.prog.end.size() == 4, "有第二主题时 th 带上，旧键仍是水月")
+	check(b2.prog.optier == [0, 1, 2] and b2.prog.th.phantom.optier == [0], "云存档已首通档：旧键 optier 是水月、th 里是傀影")
 	var pk := Pack.pack(b2, 1000)
 	var head = Pack.parse(str(pk.items[Pack.HEAD_KEY]))
 	check(int(head.v) == 2 and int(head.minv) == 1, "头版本 2、最低读者 1（%s）" % str(head))
@@ -207,5 +212,22 @@ func _ready() -> void:
 	Cfg.cloud_apply(Pack.merge(b3, {}))
 	check(Cfg.theme_cur == "phantom" and Cfg.endings_cleared == ["ph_ball", "ph_curtain"] and Cfg.theme_saves.deep_sea.endings_cleared.size() == 4, "当前在傀影时 cloud_apply 后仍在傀影、两边进度都对")
 	Cfg.theme_switch(ThemeSave.LEGACY)
+
+	# ---- 5. 全部解锁（调试 / 对内包）时换主题：真实进度跟着主题走，不串（11-18）
+	read(c4)
+	var ds_real := ThemeSave.snapshot(Cfg)
+	Cfg.unlock_all = true
+	Cfg._unlock_display()
+	check(Cfg.endings_cleared.size() >= 4 and Cfg._real_progress.endings_cleared == ds_real.endings_cleared, "全开：界面全开、真实进度在 _real_progress")
+	Cfg.theme_switch("phantom")
+	check(Cfg._real_progress.endings_cleared == ["ph_ball"] and int(Cfg._real_progress.diff_unlocked) == 1, "全开换主题：_real_progress 换成新主题的真实值（%s）" % str(Cfg._real_progress))
+	check(Cfg.theme_saves.deep_sea.endings_cleared == ds_real.endings_cleared and int(Cfg.theme_saves.deep_sea.diff_unlocked) == int(ds_real.diff_unlocked), "全开换主题：水月收进去的是真实进度，不是全开的演示数据")
+	var c5 := write(c4)
+	check(ThemeSave.read_section(c5, "phantom").endings_cleared == ["ph_ball"], "全开换主题后写档：新主题段是它自己的真实进度")
+	check(canon(ThemeSave.read_section(c5, ThemeSave.LEGACY).endings_cleared) == canon(ds_real.endings_cleared), "全开换主题后写档：水月段没被新主题 / 演示数据覆盖")
+	Cfg.theme_switch(ThemeSave.LEGACY)
+	check(Cfg._real_progress.endings_cleared == ds_real.endings_cleared and Cfg.theme_saves.phantom.endings_cleared == ["ph_ball"], "全开再切回：两边真实进度都对")
+	Cfg.unlock_all = false
+	Cfg._real_progress = {}
 	print("THEME SAVE checks=%d failures=%d" % [checks, failures])
 	get_tree().quit(1 if failures > 0 else 0)

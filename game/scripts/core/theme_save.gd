@@ -6,13 +6,13 @@ extends RefCounted
 ## settings.cfg：
 ##   [theme_<id>] 段：每个主题一段，键 = 下面 FIELDS 的字段名。
 ##   旧位置（[progress] diff_unlocked / diff_best / gallery_seen / seen_relics / event_log / endings_cleared、[meta] bounty、
-##   [medals] got / best）：继续写水月（deep_sea）那一份，给旧版本读（降级不丢进度）。
+##   [medals] got / best、[roster] tiers）：继续写水月（deep_sea）那一份，给旧版本读（降级不丢进度）。
 ## 读档：水月 = [theme_deep_sea] 段与旧位置按字段合并（并集 / 取大，MERGE），所以
 ##   - 旧存档（没有主题段）：旧位置原样成为水月的进度——迁移；
 ##   - 新存档：两处相同，合并结果不变——幂等；
 ##   - 新版写过、旧版又玩过再回到新版：旧版在旧位置新增的进度也并进来，不丢。
 ## 云存档（docs/89）：prog 里原有的 diff / gal / rel / end / dbest / med / meta.bounty 继续是水月那一份（旧版本照常读写）；
-##   其他主题放进 prog.th = {id: {"diff", "gal", "rel", "end", "dbest", "bounty", "med"}}（CloudPack.VERSION 2；旧版本把 th 当未知字段原样透传）。
+##   其他主题放进 prog.th = {id: {"diff", "gal", "rel", "end", "dbest", "bounty", "optier", "med"}}（CloudPack.VERSION 2；旧版本把 th 当未知字段原样透传）。
 ##   事件图鉴 event_log 本来就不上云，主题段里也不上。
 
 const CloudPack = preload("res://scripts/core/cloud_pack.gd")
@@ -30,6 +30,7 @@ const FIELDS := {
 	"meta_bounty": "list",       # 已领首通赏金的潮位
 	"medals": "got",             # 蚀刻章 {key: 获得时刻}
 	"medal_best": "maxmap",      # 蚀刻章历史最好进度 {key: 数}
+	"roster_tiers": "list",      # 已首通的难度档（发过人事调度函；11-18 协调人定按主题：新主题首通同一档也发凭证，docs/366 §1.2）
 }
 ## 内存里全部解锁（调试 / 对内包）时真实值在 Cfg._real_progress 的字段
 const REAL_KEYS := ["diff_unlocked", "seen_relics", "endings_cleared"]
@@ -37,7 +38,7 @@ const REAL_KEYS := ["diff_unlocked", "seen_relics", "endings_cleared"]
 
 static func defaults() -> Dictionary:
 	return {"endings_cleared": [], "gallery_seen": [], "seen_relics": [], "event_log": {}, "diff_unlocked": 0, "diff_best": {},
-		"meta_bounty": [], "medals": {}, "medal_best": {}}
+		"meta_bounty": [], "medals": {}, "medal_best": {}, "roster_tiers": []}
 
 
 ## 当前主题的进度（从 Cfg 字段拷出来；全部解锁时取真实值）
@@ -150,7 +151,7 @@ static func read_legacy(c: ConfigFile) -> Dictionary:
 	var out := {}
 	for pair in [["progress", "endings_cleared", "endings_cleared"], ["progress", "gallery_seen", "gallery_seen"], ["progress", "seen_relics", "seen_relics"],
 			["progress", "event_log", "event_log"], ["progress", "diff_unlocked", "diff_unlocked"], ["progress", "diff_best", "diff_best"],
-			["meta", "bounty", "meta_bounty"], ["medals", "got", "medals"], ["medals", "best", "medal_best"]]:
+			["meta", "bounty", "meta_bounty"], ["medals", "got", "medals"], ["medals", "best", "medal_best"], ["roster", "tiers", "roster_tiers"]]:
 		if c.has_section_key(pair[0], pair[1]):
 			out[pair[2]] = c.get_value(pair[0], pair[1])
 	return out
@@ -167,6 +168,7 @@ static func write_legacy(c: ConfigFile, d: Dictionary) -> void:
 	c.set_value("meta", "bounty", d.get("meta_bounty", df.meta_bounty))
 	c.set_value("medals", "got", d.get("medals", df.medals))
 	c.set_value("medals", "best", d.get("medal_best", df.medal_best))
+	c.set_value("roster", "tiers", d.get("roster_tiers", df.roster_tiers))
 
 
 ## ---- 云存档：prog.th 里一个主题的正文（短键，同 prog 的旧键）
@@ -174,7 +176,7 @@ static func to_cloud(d: Dictionary) -> Dictionary:
 	var df := defaults()
 	return {"diff": int(d.get("diff_unlocked", 0)), "gal": (d.get("gallery_seen", []) as Array).duplicate(), "rel": (d.get("seen_relics", []) as Array).duplicate(),
 		"end": (d.get("endings_cleared", []) as Array).duplicate(), "dbest": (d.get("diff_best", df.diff_best) as Dictionary).duplicate(true),
-		"bounty": (d.get("meta_bounty", []) as Array).duplicate(), "med": {"got": (d.get("medals", {}) as Dictionary).duplicate(), "best": (d.get("medal_best", {}) as Dictionary).duplicate()}}
+		"bounty": (d.get("meta_bounty", []) as Array).duplicate(), "optier": (d.get("roster_tiers", []) as Array).duplicate(), "med": {"got": (d.get("medals", {}) as Dictionary).duplicate(), "best": (d.get("medal_best", {}) as Dictionary).duplicate()}}
 
 
 ## 云端一个主题的正文 → 进度字段（类型不对的项跳过；event_log 不上云，不在这里）
@@ -189,6 +191,8 @@ static func from_cloud(t) -> Dictionary:
 			out[pair[1]] = t[pair[0]].map(func(x): return str(x))
 	if t.get("bounty") is Array:
 		out["meta_bounty"] = t.bounty.map(func(x): return int(x))
+	if t.get("optier") is Array:
+		out["roster_tiers"] = t.optier.map(func(x): return int(x))
 	if t.get("dbest") is Dictionary:
 		out["diff_best"] = (t.dbest as Dictionary).duplicate(true)
 	if t.get("med") is Dictionary:
@@ -210,7 +214,7 @@ static func merge_cloud_th(l, c) -> Dictionary:
 		o.merge(y.duplicate(true), true)
 		if x.has("diff") or y.has("diff"):
 			o["diff"] = maxi(int(x.get("diff", 0)), int(y.get("diff", 0)))
-		for k in ["gal", "rel", "end", "bounty"]:
+		for k in ["gal", "rel", "end", "bounty", "optier"]:
 			if x.has(k) or y.has(k):
 				o[k] = CloudPack.union(x.get(k, []) if x.get(k) is Array else [], y.get(k, []) if y.get(k) is Array else [])
 		if x.has("dbest") or y.has("dbest"):
