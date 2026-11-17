@@ -55,7 +55,7 @@ static var ab_alt := false         # 轮换中：true = 本帧按 0 档画
 static func level() -> int:
 	if _lv < 0:
 		_lv = clampi(Bal.vi("render/declutter", 3), 0, PRESETS.size() - 1)
-	return 0 if ab_alt else _lv
+	return 0 if (ab_alt and not dbg("abop")) else _lv   # --clutterdbg=…,abop：轮换只切按人静音，降噪档不动（docs/368 特效预算量测）
 
 
 static func p(key: String) -> float:
@@ -109,6 +109,8 @@ static func opmask_any() -> bool:
 static func mute_op(oid: String, leader: bool) -> bool:
 	if not dbg_any():
 		return false
+	if dbg("abop") and not ab_alt:
+		return false   # --clutterdbg=noop_<id>,abop --clutterab=N：同局每 N 帧开 / 关该干员特效（--perf 分 /d0 = 关、/dN = 开两桶）
 	return dbg("noop_" + oid) or dbg("nolead" if leader else "nomates")
 
 
