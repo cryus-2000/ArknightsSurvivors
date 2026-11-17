@@ -1,0 +1,9 @@
+一致 standard_p0 PARITY 751 行 × 36 字段、TRACE 743 行、BALANCE 74 键全部一致，结局 standard、胜、742 秒
+一致 knight_p2  PARITY 655 行 × 36 字段、TRACE 648 行、BALANCE 73 键全部一致，结局 knight、胜、647 秒
+失败 deep_p0    PARITY 第一处分歧：帧 9705、t=638.616，字段 eh：A=1558460110 / B=946302752（同行另有 0 个字段不同：）
+一致 deep_p0w   PARITY 718 行 × 36 字段、TRACE 710 行、BALANCE 74 键全部一致，结局 standard、胜、709 秒
+一致 resolve_p1 PARITY 779 行 × 36 字段、TRACE 771 行、BALANCE 74 键全部一致，结局 standard、胜、770 秒
+一致 boss       PARITY 328 行 × 36 字段、TRACE 109 行、BALANCE 73 键全部一致，结局 standard、负、256 秒
+一致 short      PARITY 182 行 × 36 字段、TRACE 181 行、BALANCE 73 键全部一致，结局 standard、负、180 秒
+
+theme_parity 失败：6 局一致 / 7 局，PARITY 共 3413 行 × 36 字段
