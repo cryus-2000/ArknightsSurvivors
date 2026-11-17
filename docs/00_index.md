@@ -24,7 +24,7 @@
 | 音频 | 21 → 53 → 28_operator_sfx → 113_sfx_audit → 279 |
 | 部署 | 33 → 22 → 89 / 99（B站 Toy）→ 285（网页包体） |
 | 文案 / 本地化 | 76 → 49 / 49a → 276 |
-| 主题重构 | 357 → 359_theme_pack_stage0 → 364 |
+| 主题重构 | 357 → 359_theme_pack_stage0 → 364 → 366 |
 | 傀影（第二主题） | 358 → 359_theme_content_spec → 360 → 361 → 362 → 363 |
 
 ## 其他目录
@@ -411,6 +411,7 @@
 | [357_theme_modularity_1117](357_theme_modularity_1117.md) | 第二个肉鸽主题能否模块化：代码调研（11-17） | 进行中 | 部分能、要先重构：地图 / 敌人 / 波次 / 事件 / 藏品已数据驱动但全局单份；灯火 411 / 溟痕 318 / 灯标 229 / 缩圈 214 处散在核心循环；Toy 包 49.78 MB 贴线 → 一包一主题；… |
 | [359_theme_pack_stage0_1117](359_theme_pack_stage0_1117.md) | 主题包重构 · 阶段 0 前半：同种子基准 + 数据路径清单（11-17） | 进行中 | `tools/theme_parity.py`（7 局：四结局 × 三档 + Boss 台 + 短局，PARITY 36 字段逐帧比）；`themes/deep_sea/theme.json` + `ThemePack`… |
 | [364_theme_mechanics_1117](364_theme_mechanics_1117.md) | 主题包重构 · 第二步：主题机制接口 ThemeMechanic（11-17） | 进行中 | 灯火 / 溟痕 / 灯标 / 缩圈四个机制收进 themes/deep_sea/mech/，清单 mechanics 段声明，五个挂钩点按清单顺序在原调用处调；四个子提交 Windows 7/7、Linux 7/7（de… |
+| [366_theme_save_split_1118](366_theme_save_split_1118.md) | 主题包重构 · 第三步：存档按主题分开（11-18） | 进行中 | 结局 / 图鉴 / 藏品 / 事件图鉴 / 难度解锁与最佳 / 首通赏金 / 蚀刻章按主题存 [theme_<id>]，干员 / 凭证 / 认知塑造 / 设置 / 键位全局；旧位置写水月镜像、读档按字段合并（迁移、幂等、降级不丢）；云存档 v2 加 prog.th（minv 仍 1）；theme_save 测试四类旧档；parity 两平台一致 |
 
 ### 傀影（第二主题）
 
