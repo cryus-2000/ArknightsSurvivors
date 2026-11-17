@@ -604,8 +604,9 @@ func morph(e: Dictionary) -> void:
 	e.dead = true
 	g.fx.append({"kind": "ring", "pos": e.pos, "r": 40.0, "life": 0.3, "max": 0.3, "col": Color(0.6, 1.0, 0.6)})
 	g.vfx.add_alert(e.pos + Vector2(0, -24), "蜕变", Color(0.6, 1.0, 0.6), 16)
+	var mp: Array = D.ENEMIES[e.type].get("morph_pool", [])   # enemies.json morph_pool（docs/367 §3）
 	for k in 2:
-		g.spawner.spawn_enemy(["bone", "slider", "stone"][g.rng_enemy.randi() % 3], e.pos + Vector2.from_angle(g.rng_enemy.randf() * TAU) * 20.0)
+		g.spawner.spawn_enemy(mp[g.rng_enemy.randi() % mp.size()], e.pos + Vector2.from_angle(g.rng_enemy.randf() * TAU) * 20.0)
 
 
 ## 敌方投射物推进已搬到 enemies/shot_pool.gd（g.shots.step，docs/101 B7 ④）；这里留旧含义的转发（测试与旧调用）：

@@ -178,7 +178,7 @@ var ctrl := {"boss_t": 0.0, "stun_t": 0.0, "aslow_t": 0.0, "move_min": 1.0, "slo
 ## 按来源分四类（CTRL_CATS + Boss，其余记 other），每类记：被冻结次数 freeze_n、冻结总秒数 freeze_t（冲刺提前挣脱按实际算）、
 ## 冲刺挣脱冻结次数 dash_break_n、被减速总秒数 slow_t（冰霜 g.frost、寒霜层 g.cold、slows 里的减速；同一类同一时刻只算一次）。
 ## slow_any_t = 有任何一种减速在身上的总秒数（不同来源同时生效只算一次）。BALANCE / 本地记录的 "ctrl_src"（telemetry.record）
-const CTRL_CATS := {"founder": "founder", "skimmer": "skimmer"}   # 敌人 type -> 分类：奠基者、漂移体
+## 敌人 type -> 分类：enemies.json 的 ctrl_cat（奠基者、漂移体；docs/367 §3），没写的记 other
 var ctrl_src := {}             # 分类 -> {freeze_n, freeze_t, dash_break_n, slow_t}（ctrl_src_report 输出）
 var ctrl_slow_any := 0.0
 var ctrl_hit_cat := "other"    # enemy_hit 这一下的来源分类：add_cold / add_root 在这一下里读，结束后回到 other
@@ -194,7 +194,7 @@ func ctrl_cat(src: Dictionary) -> String:
 	var t := str(src.get("type", src.get("src_type", "")))
 	if src.get("boss", false) or str(D.ENEMIES.get(t, {}).get("role", "")) == "boss":
 		return "boss"
-	return CTRL_CATS.get(t, "other")
+	return str(D.ENEMIES.get(t, {}).get("ctrl_cat", "other"))
 
 
 func _ctrl_entry(cat: String) -> Dictionary:

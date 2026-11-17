@@ -1,5 +1,6 @@
 {
  "_doc": "刷怪导演表（由 data.gd 迁出）：威胁等级、Boss 时间、中期 Boss 池、结局。",
+ "cap_fallback": {"early": "bone", "late": ["bone", "slider"], "_doc": "普通刷怪抽到同种已满、本级池也全满时换成的敌种：前段（威胁 < 3）固定 early，中后段从 late 里等概率抽（docs/158 §6、docs/367 §3）"},
  "threat": [
   {
    "name": "浅滩",

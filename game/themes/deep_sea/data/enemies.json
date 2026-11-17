@@ -1,5 +1,5 @@
 {
- "_doc": "敌人表（由 data.gd 的 ENEMIES 迁出）。tint 为 [r,g,b]；ai: melee/ranged/static；pattern: burrow/stomp/dash/acid/nova（见 scripts/enemies/enemy_ai.gd）；新增敌人 = 加一条 + 贴图。",
+ "_doc": "主题数据字段（docs/367 §3）：cap_steps 场上同种上限按时间分段 [[到这一秒为止, 上限], …, [-1, 之后的上限]]（没有 cap 时用）；morph_pool 子代蜕变成的敌种；person 同一人物（中期池不重复出场）；ctrl_cat 控制遥测分类；final_track 最终 Boss 的配乐键；final_attack_names 最终 Boss 补充攻击的招式名（enemies/final_attacks.gd）。敌人表（由 data.gd 的 ENEMIES 迁出）。tint 为 [r,g,b]；ai: melee/ranged/static；pattern: burrow/stomp/dash/acid/nova（见 scripts/enemies/enemy_ai.gd）；新增敌人 = 加一条 + 贴图。",
  "enemies": {
   "bone": {
    "name": "骨海漂流体",
@@ -40,6 +40,7 @@
    "dash_lamp_drain": 8.0
   },
   "stone": {
+   "cap_steps": [[180, 6], [420, 8], [-1, 12]],
    "entrench_phys_taken": 0.55,
    "hit_fx": "fx_rock_hit",
    "hit_fx_origin": [10, 10],
@@ -69,6 +70,8 @@
    "ecol": [0.7, 0.7, 0.75]
   },
   "offspring": {
+   "cap_steps": [[420, 6], [-1, 10]],
+   "morph_pool": ["bone", "slider", "stone"],
    "shot_tex": "proj_offspring_spore",
    "apop_hit": 20.0,
    "name": "伊祖米克的子代",
@@ -97,6 +100,7 @@
    "ecol": [0.6, 0.9, 0.5]
   },
   "brood": {
+   "cap_steps": [[-1, 6]],
    "name": "注亡拟嗣",
    "hp": 16.0,
    "spd": 0.0,
@@ -118,6 +122,7 @@
    "contact": true
   },
   "spitter": {
+   "cap_steps": [[-1, 6]],
    "wound_hit": 1,
    "name": "脊海喷吐者",
    "hp": 56.0,
@@ -260,6 +265,7 @@
    "rage_keep_tint": true
   },
   "founder": {
+   "ctrl_cat": "founder",
    "cold_hit": 1,
    "name": "深溟奠基者",
    "hp": 384.0,
@@ -445,6 +451,7 @@
    "ecol": [0.8, 0.55, 1.0]
   },
   "skimmer": {
+   "ctrl_cat": "skimmer",
    "cold_hit": 1,
    "name": "掠海漂移体",
    "hp": 30.0,
@@ -605,6 +612,8 @@
    "ecol": [0.6, 0.7, 1.0]
   },
   "izumik": {
+   "final_attack_names": ["护群触腕", "迁徙潮", "深渊涌流"],
+   "final_track": "final_izumik",
    "bcol": [0.35, 0.55, 1.0],
    "apop_hit": 15.0,
    "wound_hit": 2,
@@ -659,6 +668,7 @@
    "ecol": [0.5, 1.0, 0.7]
   },
   "iberia": {
+   "person": "saint",
    "bcol": [1.0, 0.5, 0.2],
    "bcol_core": [1.0, 0.74, 0.46],
    "bcol_trail": [0.78, 0.33, 0.1],
@@ -726,6 +736,7 @@
    "ecol": [1.0, 0.6, 0.5]
   },
   "carmen": {
+   "person": "saint",
    "bcol": [1.0, 0.94, 0.82],
    "bcol_core": [1.0, 0.97, 0.9],
    "bcol_outline": [0.34, 0.27, 0.15],
@@ -924,6 +935,7 @@
    "ecol": [0.6, 0.8, 1.0]
   },
   "paranoia": {
+   "final_attack_names": ["追猎泡", "溟泡迸裂", "泡影收束"],
    "bcol": [0.78, 0.62, 1.0],
    "bcol_core": [0.7, 0.32, 1.0],
    "bcol_outline": [0.2, 0.08, 0.3],
@@ -991,6 +1003,8 @@
    "ecol": [0.8, 0.6, 1.0]
   },
   "ishar": {
+   "final_attack_names": ["合唱齐射", "合唱压境", "深海触腕"],
+   "final_track": "final_ishar",
    "bcol": [0.25, 1.0, 0.6],
    "bcol_core": [0.74, 1.0, 0.88],
    "bcol_outline": [0.02, 0.2, 0.16],
@@ -1071,6 +1085,8 @@
    }
   },
   "knight_boss": {
+   "final_attack_names": ["踏冰裂阵", "断潮劈击", "侧踏挑枪"],
+   "final_track": "final_knight",
    "gates": [0.66, 0.5],
    "bcol": [0.78, 0.92, 1.0],
    "name": "最后的骑士",

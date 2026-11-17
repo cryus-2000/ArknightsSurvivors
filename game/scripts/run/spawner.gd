@@ -27,7 +27,9 @@ const PF_LEAD_FINAL := 30.0   # 最终 Boss（10:00）提前 30 秒（9:30 起�
 var _pre_group: Array = []
 var _pre_idx := -1
 ## 同一人物的不同档（docs/38 §2.2，用户 10-01 按原作核对：圣徒卡门 / 圣徒伊比利亚是同一人两档）：中期 Boss 抽取按人物排除，同局只出一位
-const SAME_PERSON := {"carmen": "saint", "iberia": "saint"}
+## 同一人物（中期池不重复出场）：enemies.json 的 person 字段（docs/367 §3，原 SAME_PERSON 写死卡门 / 伊比利亚）
+static func _person(t) -> String:
+	return str(D.ENEMIES.get(str(t), {}).get("person", ""))
 var next_chest := 20.0
 
 
@@ -114,7 +116,8 @@ func pick_type() -> String:
 				if type_cap(x) <= 0 or type_n(x) < dens_cap(type_cap(x)):
 					ok.append(x)
 		# 池里全到上限（怪物密度 0.4 把同种上限缩得很小，后段常见）：中后段在骨海漂流体 / 底海滑动者里二选一，不再全给滑动者
-		pick = ok[g.rng_spawn.randi() % ok.size()] if not ok.is_empty() else ((["bone", "slider"][g.rng_spawn.randi() % 2]) if g.threat >= 3 else "bone")
+		var late: Array = D.CAP_FALLBACK.late   # waves.json cap_fallback（docs/367 §3）：late 等概率抽、early 固定（不抽随机数）
+		pick = ok[g.rng_spawn.randi() % ok.size()] if not ok.is_empty() else ((late[g.rng_spawn.randi() % late.size()]) if g.threat >= 3 else str(D.CAP_FALLBACK.early))
 	return pick
 
 
@@ -123,13 +126,11 @@ func type_cap(kind: String) -> int:
 	if D.ENEMIES[kind].has("cap"):
 		var cm: float = float(D.THREAT[g.threat].get("cap_mult", 1.0)) if D.ENEMIES[kind].has("tier_cap") else 1.0
 		return int(round(float(D.ENEMIES[kind].cap) * cm))   # enemies.json 的 cap：场上同种上限（V8 新敌人）；tier_cap 的高阶怪在中后段 × threat.cap_mult（docs/158 §6）
-	match kind:
-		"stone":
-			return 6 if g.t < 180.0 else (8 if g.t < 420.0 else 12)
-		"brood", "spitter":
-			return 6
-		"offspring":
-			return 6 if g.t < 420.0 else 10
+	var steps = D.ENEMIES[kind].get("cap_steps")   # enemies.json cap_steps：[[到这一秒为止, 上限], …, [-1, 之后]]（docs/367 §3，原来按种类写死在这里）
+	if steps is Array:
+		for st in steps:
+			if float(st[0]) < 0.0 or g.t < float(st[0]):
+				return int(st[1])
 	return 0
 
 
@@ -156,10 +157,10 @@ func person_used(i: int) -> bool:
 	var used := {}
 	for u in mid_used:
 		for t in D.MID_POOL[u]:
-			if SAME_PERSON.has(t):
-				used[SAME_PERSON[t]] = true
+			if _person(t) != "":
+				used[_person(t)] = true
 	for t in D.MID_POOL[i]:
-		if SAME_PERSON.has(t) and used.has(SAME_PERSON[t]):
+		if _person(t) != "" and used.has(_person(t)):
 			return true
 	return false
 
