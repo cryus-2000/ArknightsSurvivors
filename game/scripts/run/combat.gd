@@ -1142,6 +1142,8 @@ func _damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 		return
 	# 过卡点后的 0.8 秒无敌 / 阶段护盾：伤害全部挡掉，不飘「无效」（docs/38 §1.3）
 	if e.boss and (e.get("gate_inv", 0.0) > 0.0 or e.get("gate_hold", false)):
+		if e.get("gate_hold", false) and g.telemetry != null:
+			g.telemetry.on_blocked_hit(e, h)   # 护盾挡下的命中也算「参与击杀」（11-17 协调人定：撑满自动倒下时 3 秒窗口里没有有效命中，击杀记不到人）
 		return
 	if e.get("burst_w", 0.0) > 0.0:
 		return   # 囊海爬行者鼓胀期间无敌（enemies.gd）：不飘字、不累计

@@ -473,6 +473,18 @@ static func lamp_tier(v: float) -> int:
 
 ## ---- 作战记录计数（combat / squad / character / game 调用；docs/77）
 ## 一次有效伤害：eff = 实际扣掉的生命（同 dmg_out），raw = 这一下算出来的伤害（不封顶到剩余生命，「最高单次」用）
+## 被阶段护盾挡下的命中（combat._damage 提前返回的那一支）：只刷新「参与击杀」记账，不计伤害（11-17 协调人定）
+func on_blocked_hit(e: Dictionary, h: Dictionary) -> void:
+	var op: String = str(h.get("op", ""))
+	if op == "":
+		return
+	var hb = e.get("_hb")
+	if hb == null:
+		hb = {}
+		e["_hb"] = hb
+	hb[op] = g.t
+
+
 func on_dmg(e: Dictionary, eff: float, raw: float, hd: Dictionary = {}) -> void:
 	var h: Dictionary = hd if not hd.is_empty() else g.hit   # combat.damage 显式传（docs/101 B7 ⑤）
 	diag.dmg(e, eff, h)
