@@ -1,0 +1,11605 @@
+{
+ "args": {
+  "preset": null,
+  "op": null,
+  "squad": "suzuran,shu",
+  "seeds": 4,
+  "seed0": 1,
+  "diff": 0,
+  "jobs": 8,
+  "timeout": 900,
+  "tag": "opb-shu-1118b-mate-suzuran",
+  "extra": "--maxt=1000 --tier=0",
+  "bot": "expert",
+  "bots": null,
+  "lanes": null,
+  "game": null,
+  "keep": "",
+  "nocache": true,
+  "placebos": "0",
+  "dt": null,
+  "out": "build/cloud/opb-shu-1118b/mate_suzuran"
+ },
+ "records": [
+  {
+   "squad": [
+    "suzuran",
+    "shu"
+   ],
+   "seed": 1,
+   "diff": 0,
+   "bot": "expert",
+   "tier": 0,
+   "placebo": 0,
+   "wall": 58.7,
+   "data": {
+    "allies": 2,
+    "armor_cf": {
+     "m0": {
+      "a2": 226.031283114547,
+      "a4": 198.031283114547,
+      "a8": 142.031283114547,
+      "all": 269.422945271533,
+      "armor": 21.0,
+      "n": 16,
+      "phys": 254.031283114547,
+      "phys_n": 14,
+      "phys_pre": 275.031283114547
+     },
+     "m4": {
+      "a2": 591.471426193844,
+      "a4": 524.185109329752,
+      "a8": 399.621742615552,
+      "all": 924.770937134903,
+      "armor": 57.0,
+      "n": 57,
+      "phys": 664.096920351629,
+      "phys_n": 38,
+      "phys_pre": 720.89829935866
+     },
+     "m8": {
+      "a2": 120.64468298117,
+      "a4": 112.64468298117,
+      "a8": 96.6446829811699,
+      "all": 128.64468298117,
+      "armor": 6.0,
+      "n": 4,
+      "phys": 128.64468298117,
+      "phys_n": 4,
+      "phys_pre": 134.64468298117
+     }
+    },
+    "boss_hp": -0.00687143318189917,
+    "bosses": [
+     "carmen:dead",
+     "path:dead"
+    ],
+    "bot": {
+     "bosses": [
+      {
+       "en_alive": 24,
+       "en_alive_pk": 34,
+       "en_near": 9,
+       "en_near_pk": 14,
+       "gates": 1,
+       "on_boss": 0.52,
+       "shield": 0.0,
+       "t0": 210,
+       "t1": 268,
+       "tv": 210,
+       "type": "carmen",
+       "windows": [
+        {
+         "en": 34,
+         "hits": 0,
+         "hp": 1.0,
+         "moves": 0,
+         "out": 0,
+         "t": 0
+        },
+        {
+         "en": 25,
+         "hits": 19,
+         "hp": 0.75,
+         "moves": 2,
+         "out": 9597,
+         "t": 15
+        },
+        {
+         "en": 24,
+         "hits": 6,
+         "hp": 0.54,
+         "moves": 1,
+         "out": 10025,
+         "t": 30
+        },
+        {
+         "en": 23,
+         "hits": 4,
+         "hp": 0.1,
+         "moves": 4,
+         "out": 13809,
+         "t": 45
+        },
+        {
+         "en": 25,
+         "hits": 3,
+         "hp": 0.0,
+         "moves": 2,
+         "out": 7819,
+         "t": 61
+        },
+        {
+         "en": 78,
+         "hits": 32,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 9503,
+         "t": 76
+        },
+        {
+         "en": 49,
+         "hits": 45,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 18747,
+         "t": 91
+        },
+        {
+         "en": 58,
+         "hits": 72,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 15473,
+         "t": 106
+        },
+        {
+         "en": 20,
+         "hits": 70,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 68951,
+         "t": 121
+        },
+        {
+         "en": 42,
+         "hits": 2,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 11682,
+         "t": 136
+        },
+        {
+         "en": 79,
+         "hits": 2,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 12922,
+         "t": 151
+        },
+        {
+         "en": 116,
+         "hits": 62,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 29578,
+         "t": 166
+        },
+        {
+         "en": 118,
+         "hits": 39,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 35280,
+         "t": 181
+        },
+        {
+         "en": 90,
+         "hits": 196,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 49818,
+         "t": 196
+        },
+        {
+         "en": 38,
+         "hits": 62,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 72440,
+         "t": 211
+        },
+        {
+         "en": 39,
+         "hits": 92,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 29716,
+         "t": 226
+        },
+        {
+         "en": 48,
+         "hits": 66,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 38890,
+         "t": 241
+        },
+        {
+         "en": 29,
+         "hits": 108,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 71665,
+         "t": 256
+        },
+        {
+         "en": 100,
+         "hits": 35,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 30924,
+         "t": 271
+        }
+       ]
+      },
+      {
+       "en_alive": 42,
+       "en_alive_pk": 55,
+       "en_near": 12,
+       "en_near_pk": 26,
+       "gates": 1,
+       "on_boss": 0.24,
+       "shield": 0.0,
+       "t0": 420,
+       "t1": 462,
+       "tv": 420,
+       "type": "path",
+       "windows": [
+        {
+         "en": 38,
+         "hits": 0,
+         "hp": 1.0,
+         "moves": 0,
+         "out": 0,
+         "t": 1
+        },
+        {
+         "en": 39,
+         "hits": 92,
+         "hp": 0.84,
+         "moves": 7,
+         "out": 29716,
+         "t": 16
+        },
+        {
+         "en": 48,
+         "hits": 66,
+         "hp": 0.37,
+         "moves": 9,
+         "out": 38890,
+         "t": 31
+        },
+        {
+         "en": 29,
+         "hits": 108,
+         "hp": 0.0,
+         "moves": 8,
+         "out": 71665,
+         "t": 46
+        },
+        {
+         "en": 100,
+         "hits": 35,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 30924,
+         "t": 61
+        }
+       ]
+      }
+     ],
+     "cap_stats": {
+      "any_cut": 0.0,
+      "any_n": 0,
+      "big_n": 0,
+      "boss_cut": 0.0,
+      "boss_n": 0,
+      "hits": 1570,
+      "one_cut": 0.0,
+      "one_n": 0,
+      "post": 1576.9,
+      "pre": 1576.9,
+      "zero": 0
+     },
+     "curve": [
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 0,
+       "hp": 100,
+       "hpm": 1.23,
+       "hpmin": 100,
+       "hsrc": {},
+       "kills": 0,
+       "lamp": 100,
+       "lampmin": 100,
+       "lv": 1,
+       "mhp": 119,
+       "mire_s": 0.0,
+       "mires": 0,
+       "outc": 0,
+       "rg": 0.95,
+       "squad": 2,
+       "t": 0,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 12,
+       "hp": 100,
+       "hpm": 1.57,
+       "hpmin": 100,
+       "hsrc": {},
+       "kills": 20,
+       "lamp": 100,
+       "lampmin": 100,
+       "lv": 3,
+       "mhp": 119,
+       "mire_s": 0.0,
+       "mires": 0,
+       "outc": 625,
+       "rg": 0.95,
+       "squad": 2,
+       "t": 30,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 0,
+       "elites": 1,
+       "enemies": 15,
+       "hp": 100,
+       "hpm": 1.9,
+       "hpmin": 100,
+       "hsrc": {},
+       "kills": 59,
+       "lamp": 100,
+       "lampmin": 100,
+       "lv": 4,
+       "mhp": 122,
+       "mire_s": 0.0,
+       "mires": 0,
+       "outc": 1841,
+       "rg": 0.95,
+       "squad": 2,
+       "t": 60,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 3,
+       "elites": 0,
+       "enemies": 20,
+       "hp": 100,
+       "hpm": 2.24,
+       "hpmin": 100,
+       "hsrc": {},
+       "kills": 122,
+       "lamp": 100,
+       "lampmin": 100,
+       "lv": 6,
+       "mhp": 138,
+       "mire_s": 0.0,
+       "mires": 2,
+       "outc": 6495,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 90,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_tracer": 24,
+        "contact_tracer": 18,
+        "mire": 1
+       },
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 26,
+       "hp": 100,
+       "hpm": 2.57,
+       "hpmin": 82,
+       "hsrc": {
+        "化被草木": 10,
+        "自身回复": 7,
+        "补给": 22,
+        "铃兰": 3
+       },
+       "kills": 176,
+       "lamp": 89,
+       "lampmin": 89,
+       "lv": 7,
+       "mhp": 138,
+       "mire_s": 0.0,
+       "mires": 16,
+       "outc": 13388,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 120,
+       "taken": 44,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "bullet": 7
+       },
+       "ebul": 4,
+       "elites": 0,
+       "enemies": 31,
+       "hp": 100,
+       "hpm": 2.91,
+       "hpmin": 94,
+       "hsrc": {
+        "自身回复": 5,
+        "铃兰": 2
+       },
+       "kills": 239,
+       "lamp": 96,
+       "lampmin": 89,
+       "lv": 9,
+       "mhp": 138,
+       "mire_s": 0.0,
+       "mires": 4,
+       "outc": 18136,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 150,
+       "taken": 7,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_tracer": 16
+       },
+       "ebul": 1,
+       "elites": 1,
+       "enemies": 43,
+       "hp": 100,
+       "hpm": 3.25,
+       "hpmin": 88,
+       "hsrc": {
+        "化被草木": 8,
+        "禾苗": 2,
+        "自身回复": 3,
+        "铃兰": 2
+       },
+       "kills": 328,
+       "lamp": 95,
+       "lampmin": 95,
+       "lv": 10,
+       "mhp": 138,
+       "mire_s": 0.0,
+       "mires": 11,
+       "outc": 30918,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 180,
+       "taken": 16,
+       "zone": 2
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "bullet": 8,
+        "contact_tracer": 25,
+        "corrode": 2,
+        "mire": 1
+       },
+       "ebul": 3,
+       "elites": 0,
+       "enemies": 33,
+       "hp": 96,
+       "hpm": 3.58,
+       "hpmin": 81,
+       "hsrc": {
+        "化被草木": 10,
+        "嘉禾盈仓": 12,
+        "禾苗": 2,
+        "自身回复": 4,
+        "铃兰": 2
+       },
+       "kills": 420,
+       "lamp": 100,
+       "lampmin": 90,
+       "lv": 12,
+       "mhp": 138,
+       "mire_s": 0.1,
+       "mires": 18,
+       "outc": 42881,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 210,
+       "taken": 36,
+       "zone": 3
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "boss_carmen": 159,
+        "contact_tracer": 9,
+        "corrode": 3
+       },
+       "ebul": 1,
+       "elites": 0,
+       "enemies": 24,
+       "hp": 47,
+       "hpm": 3.92,
+       "hpmin": 45,
+       "hsrc": {
+        "化被草木": 26,
+        "嘉禾盈仓": 8,
+        "禾苗": 3,
+        "自身回复": 16,
+        "补给": 41,
+        "铃兰": 7
+       },
+       "kills": 475,
+       "lamp": 53,
+       "lampmin": 53,
+       "lv": 12,
+       "mhp": 138,
+       "mire_s": 0.0,
+       "mires": 24,
+       "outc": 62520,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 240,
+       "taken": 172,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_stone": 3,
+        "boss_carmen": 17,
+        "bullet": 4,
+        "contact_carmen": 56,
+        "contact_tracer": 17
+       },
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 22,
+       "hp": 100,
+       "hpm": 4.25,
+       "hpmin": 30,
+       "hsrc": {
+        "化被草木": 42,
+        "嘉禾盈仓": 24,
+        "拾取": 41,
+        "禾苗": 13,
+        "自身回复": 35,
+        "铃兰": 13
+       },
+       "kills": 530,
+       "lamp": 43,
+       "lampmin": 43,
+       "lv": 13,
+       "mhp": 138,
+       "mire_s": 0.0,
+       "mires": 20,
+       "outc": 84103,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 270,
+       "taken": 98,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_tracer": 17,
+        "bullet": 21,
+        "contact_tracer": 26,
+        "corrode": 10,
+        "mire": 1
+       },
+       "ebul": 11,
+       "elites": 2,
+       "enemies": 45,
+       "hp": 100,
+       "hpm": 4.59,
+       "hpmin": 79,
+       "hsrc": {
+        "化被草木": 24,
+        "嘉禾盈仓": 20,
+        "拾取": 1,
+        "禾苗": 8,
+        "自身回复": 15,
+        "铃兰": 7
+       },
+       "kills": 633,
+       "lamp": 77,
+       "lampmin": 43,
+       "lv": 15,
+       "mhp": 138,
+       "mire_s": 0.1,
+       "mires": 21,
+       "outc": 112082,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 300,
+       "taken": 77,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "bullet": 30,
+        "contact_bone": 31,
+        "contact_nest": 21,
+        "contact_tracer": 140,
+        "corrode": 19
+       },
+       "ebul": 5,
+       "elites": 0,
+       "enemies": 98,
+       "hp": 51,
+       "hpm": 4.93,
+       "hpmin": 44,
+       "hsrc": {
+        "丰年": 41,
+        "化被草木": 33,
+        "嘉禾盈仓": 16,
+        "拾取": 29,
+        "禾苗": 4,
+        "自身回复": 36,
+        "铃兰": 14
+       },
+       "kills": 720,
+       "lamp": 39,
+       "lampmin": 39,
+       "lv": 16,
+       "mhp": 138,
+       "mire_s": 0.0,
+       "mires": 28,
+       "outc": 147786,
+       "rg": 3.18,
+       "squad": 3,
+       "t": 330,
+       "taken": 244,
+       "zone": 2
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_founder": 8,
+        "atk_tracer": 13,
+        "contact_tracer": 9
+       },
+       "ebul": 4,
+       "elites": 1,
+       "enemies": 76,
+       "hp": 100,
+       "hpm": 5.26,
+       "hpmin": 51,
+       "hsrc": {
+        "丰年": 6,
+        "化被草木": 13,
+        "商店": 53,
+        "离离枯荣": 1,
+        "禾苗": 3,
+        "自身回复": 16,
+        "铃兰": 4
+       },
+       "kills": 857,
+       "lamp": 51,
+       "lampmin": 39,
+       "lv": 17,
+       "mhp": 138,
+       "mire_s": 0.0,
+       "mires": 30,
+       "outc": 220533,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 360,
+       "taken": 32,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_tracer": 6,
+        "bullet": 36,
+        "contact_slider": 39,
+        "contact_tracer": 50,
+        "corrode": 16,
+        "mire": 7
+       },
+       "ebul": 1,
+       "elites": 1,
+       "enemies": 116,
+       "hp": 74,
+       "hpm": 5.6,
+       "hpmin": 63,
+       "hsrc": {
+        "丰年": 30,
+        "化被草木": 29,
+        "嘉禾盈仓": 24,
+        "离离枯荣": 3,
+        "禾苗": 4,
+        "自身回复": 16,
+        "铃兰": 11
+       },
+       "kills": 963,
+       "lamp": 13,
+       "lampmin": 13,
+       "lv": 18,
+       "mhp": 138,
+       "mire_s": 0.8,
+       "mires": 35,
+       "outc": 280985,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 390,
+       "taken": 156,
+       "zone": 1
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "atk_bone": 3,
+        "atk_nest": 27,
+        "atk_tracer": 9,
+        "bullet": 93,
+        "contact_tracer": 33,
+        "corrode": 67,
+        "mire": 5,
+        "wound": 2
+       },
+       "ebul": 4,
+       "elites": 0,
+       "enemies": 35,
+       "hp": 55,
+       "hpm": 5.93,
+       "hpmin": 13,
+       "hsrc": {
+        "丰年": 57,
+        "化被草木": 88,
+        "嘉禾盈仓": 36,
+        "离离枯荣": 8,
+        "禾苗": 10,
+        "自身回复": 32,
+        "铃兰": 21
+       },
+       "kills": 1170,
+       "lamp": 17,
+       "lampmin": 0,
+       "lv": 20,
+       "mhp": 138,
+       "mire_s": 0.0,
+       "mires": 38,
+       "outc": 397682,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 420,
+       "taken": 242,
+       "zone": 2
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "atk_reaper": 16,
+        "atk_tracer": 1,
+        "contact_path": 68,
+        "contact_tracer": 9,
+        "wound": 3
+       },
+       "ebul": 13,
+       "elites": 0,
+       "enemies": 45,
+       "hp": 98,
+       "hpm": 6.27,
+       "hpmin": 55,
+       "hsrc": {
+        "丰年": 36,
+        "化被草木": 33,
+        "嘉禾盈仓": 41,
+        "离离枯荣": 1,
+        "禾苗": 7,
+        "自身回复": 23,
+        "补给": 35,
+        "铃兰": 11
+       },
+       "kills": 1241,
+       "lamp": 20,
+       "lampmin": 0,
+       "lv": 21,
+       "mhp": 138,
+       "mire_s": 0.0,
+       "mires": 18,
+       "outc": 473913,
+       "rg": 3.18,
+       "squad": 3,
+       "t": 450,
+       "taken": 100,
+       "zone": 2
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_reaper": 15,
+        "atk_stone": 5,
+        "blast_runner": 23,
+        "bullet": 21,
+        "contact_tracer": 39,
+        "corrode": 5,
+        "mire": 5,
+        "nest": 2,
+        "wound": 8
+       },
+       "ebul": 2,
+       "elites": 2,
+       "enemies": 95,
+       "hp": 77,
+       "hpm": 6.6,
+       "hpmin": 73,
+       "hsrc": {
+        "丰年": 30,
+        "化被草木": 20,
+        "嘉禾盈仓": 15,
+        "离离枯荣": 5,
+        "禾苗": 4,
+        "自身回复": 25,
+        "铃兰": 10
+       },
+       "kills": 1335,
+       "lamp": 8,
+       "lampmin": 0,
+       "lv": 22,
+       "mhp": 145,
+       "mire_s": 0.2,
+       "mires": 31,
+       "outc": 577194,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 480,
+       "taken": 126,
+       "zone": 3
+      }
+     ],
+     "curve_tail": {
+      "dsrc": {
+       "atk_tracer": 18,
+       "contact_tracer": 57,
+       "wound": 2
+      },
+      "hsrc": {
+       "离离枯荣": 1,
+       "禾苗": 2,
+       "自身回复": 2,
+       "铃兰": 1
+      },
+      "mhp": 145,
+      "t": 483,
+      "t0": 480,
+      "taken": 78
+     },
+     "dark_dmg": 90,
+     "dark_s": 30,
+     "death_src": "wound",
+     "elite_t": {
+      "shu:1": 155,
+      "shu:2": 337,
+      "specter_unchained:1": 240,
+      "specter_unchained:2": 418,
+      "suzuran:1": 48,
+      "suzuran:2": 369
+     },
+     "end": {
+      "boss": false,
+      "hits2": [
+       [
+        479.6,
+        "contact_tracer",
+        "e:tracer",
+        0,
+        29.3,
+        29.3,
+        116
+       ],
+       [
+        479.6,
+        "wound",
+        "e:tracer",
+        0,
+        0.0,
+        0.0,
+        116
+       ],
+       [
+        479.8,
+        "mire",
+        "env:mire",
+        0,
+        5.2,
+        5.2,
+        111
+       ],
+       [
+        479.9,
+        "wound",
+        "e:tracer",
+        0,
+        0.0,
+        0.0,
+        113
+       ],
+       [
+        480.4,
+        "contact_tracer",
+        "e:tracer",
+        0,
+        34.8,
+        34.8,
+        79
+       ],
+       [
+        480.4,
+        "wound",
+        "e:tracer",
+        0,
+        0.0,
+        0.0,
+        80
+       ],
+       [
+        480.9,
+        "wound",
+        "e:tracer",
+        0,
+        0.0,
+        0.0,
+        80
+       ],
+       [
+        481.4,
+        "wound",
+        "e:tracer",
+        0,
+        0.0,
+        0.0,
+        82
+       ],
+       [
+        481.7,
+        "atk_tracer",
+        "e:tracer",
+        0,
+        18.5,
+        18.5,
+        63
+       ],
+       [
+        481.7,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        63
+       ],
+       [
+        481.8,
+        "dark",
+        "env:dark",
+        0,
+        0.2,
+        0.2,
+        63
+       ],
+       [
+        481.8,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        63
+       ],
+       [
+        481.9,
+        "dark",
+        "env:dark",
+        0,
+        0.2,
+        0.2,
+        63
+       ],
+       [
+        481.9,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        63
+       ],
+       [
+        481.9,
+        "dark",
+        "env:dark",
+        0,
+        0.2,
+        0.2,
+        62
+       ],
+       [
+        481.9,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        62
+       ],
+       [
+        482.0,
+        "dark",
+        "env:dark",
+        0,
+        0.2,
+        0.2,
+        62
+       ],
+       [
+        482.0,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        62
+       ],
+       [
+        482.1,
+        "dark",
+        "env:dark",
+        0,
+        0.2,
+        0.2,
+        62
+       ],
+       [
+        482.1,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        62
+       ],
+       [
+        482.1,
+        "dark",
+        "env:dark",
+        0,
+        0.2,
+        0.2,
+        62
+       ],
+       [
+        482.1,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        62
+       ],
+       [
+        482.2,
+        "dark",
+        "env:dark",
+        0,
+        0.2,
+        0.2,
+        62
+       ],
+       [
+        482.2,
+        "contact_tracer",
+        "e:tracer",
+        0,
+        23.0,
+        23.0,
+        39
+       ],
+       [
+        482.2,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        39
+       ],
+       [
+        482.3,
+        "dark",
+        "env:dark",
+        0,
+        0.2,
+        0.2,
+        39
+       ],
+       [
+        482.3,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        39
+       ],
+       [
+        482.3,
+        "dark",
+        "env:dark",
+        0,
+        0.2,
+        0.2,
+        39
+       ],
+       [
+        482.3,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        39
+       ],
+       [
+        482.4,
+        "dark",
+        "env:dark",
+        0,
+        0.2,
+        0.2,
+        38
+       ],
+       [
+        482.4,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        38
+       ],
+       [
+        482.5,
+        "dark",
+        "env:dark",
+        0,
+        0.2,
+        0.2,
+        38
+       ],
+       [
+        482.5,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        38
+       ],
+       [
+        482.5,
+        "dark",
+        "env:dark",
+        0,
+        0.2,
+        0.2,
+        38
+       ],
+       [
+        482.5,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        39
+       ],
+       [
+        482.6,
+        "dark",
+        "env:dark",
+        0,
+        0.2,
+        0.2,
+        39
+       ],
+       [
+        482.6,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        39
+       ],
+       [
+        482.7,
+        "dark",
+        "env:dark",
+        0,
+        0.2,
+        0.2,
+        39
+       ],
+       [
+        482.7,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        38
+       ],
+       [
+        482.7,
+        "dark",
+        "env:dark",
+        0,
+        0.2,
+        0.2,
+        38
+       ],
+       [
+        482.7,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        38
+       ],
+       [
+        482.8,
+        "dark",
+        "env:dark",
+        0,
+        0.2,
+        0.2,
+        38
+       ],
+       [
+        482.8,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        38
+       ],
+       [
+        482.9,
+        "dark",
+        "env:dark",
+        0,
+        0.2,
+        0.2,
+        38
+       ],
+       [
+        482.9,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        38
+       ],
+       [
+        482.9,
+        "dark",
+        "env:dark",
+        0,
+        0.2,
+        0.2,
+        38
+       ],
+       [
+        482.9,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        38
+       ],
+       [
+        483.0,
+        "dark",
+        "env:dark",
+        0,
+        0.2,
+        0.2,
+        37
+       ],
+       [
+        483.0,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        37
+       ],
+       [
+        483.1,
+        "dark",
+        "env:dark",
+        0,
+        0.2,
+        0.2,
+        37
+       ],
+       [
+        483.1,
+        "contact_reaper",
+        "e:reaper",
+        0,
+        52.3,
+        52.3,
+        -14
+       ],
+       [
+        483.1,
+        "wound",
+        "e:tracer",
+        0,
+        0.1,
+        0.1,
+        -14
+       ]
+      ],
+      "hp": 0,
+      "killer": {
+       "cause": "",
+       "key": "e:tracer"
+      },
+      "last15": {
+       "corrode_out": 0.0,
+       "corrode_peak": 0.0,
+       "dark_s": 1.3,
+       "ebullets_peak": 18,
+       "enemies_peak": 103,
+       "hits": [
+        {
+         "amt": 29.3,
+         "boss": false,
+         "hp_after": 116,
+         "src": "contact_tracer",
+         "t": 479.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 116,
+         "src": "wound",
+         "t": 479.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 116,
+         "src": "wound",
+         "t": 479.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 116,
+         "src": "wound",
+         "t": 479.8,
+         "zone_out": false
+        },
+        {
+         "amt": 5.2,
+         "boss": false,
+         "hp_after": 111,
+         "src": "mire",
+         "t": 479.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 111,
+         "src": "wound",
+         "t": 479.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 111,
+         "src": "wound",
+         "t": 479.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 111,
+         "src": "wound",
+         "t": 480.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 113,
+         "src": "wound",
+         "t": 480.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 113,
+         "src": "wound",
+         "t": 480.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 113,
+         "src": "wound",
+         "t": 480.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 113,
+         "src": "wound",
+         "t": 480.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 113,
+         "src": "wound",
+         "t": 480.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 113,
+         "src": "wound",
+         "t": 480.3,
+         "zone_out": false
+        },
+        {
+         "amt": 34.8,
+         "boss": false,
+         "hp_after": 79,
+         "src": "contact_tracer",
+         "t": 480.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 79,
+         "src": "wound",
+         "t": 480.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 79,
+         "src": "wound",
+         "t": 480.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 79,
+         "src": "wound",
+         "t": 480.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 79,
+         "src": "wound",
+         "t": 480.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 79,
+         "src": "wound",
+         "t": 480.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 80,
+         "src": "wound",
+         "t": 480.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 80,
+         "src": "wound",
+         "t": 480.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 80,
+         "src": "wound",
+         "t": 480.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 80,
+         "src": "wound",
+         "t": 480.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 80,
+         "src": "wound",
+         "t": 481.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 80,
+         "src": "wound",
+         "t": 481.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 80,
+         "src": "wound",
+         "t": 481.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 80,
+         "src": "wound",
+         "t": 481.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 80,
+         "src": "wound",
+         "t": 481.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 80,
+         "src": "wound",
+         "t": 481.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 80,
+         "src": "wound",
+         "t": 481.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 80,
+         "src": "wound",
+         "t": 481.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 81,
+         "src": "wound",
+         "t": 481.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 82,
+         "src": "wound",
+         "t": 481.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 82,
+         "src": "wound",
+         "t": 481.7,
+         "zone_out": false
+        },
+        {
+         "amt": 18.5,
+         "boss": false,
+         "hp_after": 63,
+         "src": "atk_tracer",
+         "t": 481.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 63,
+         "src": "wound",
+         "t": 481.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 63,
+         "src": "wound",
+         "t": 481.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 63,
+         "src": "wound",
+         "t": 481.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 62,
+         "src": "wound",
+         "t": 481.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 62,
+         "src": "wound",
+         "t": 482.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 62,
+         "src": "wound",
+         "t": 482.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 62,
+         "src": "wound",
+         "t": 482.1,
+         "zone_out": false
+        },
+        {
+         "amt": 23.0,
+         "boss": false,
+         "hp_after": 39,
+         "src": "contact_tracer",
+         "t": 482.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 39,
+         "src": "wound",
+         "t": 482.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 39,
+         "src": "wound",
+         "t": 482.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 39,
+         "src": "wound",
+         "t": 482.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 38,
+         "src": "wound",
+         "t": 482.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 38,
+         "src": "wound",
+         "t": 482.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 39,
+         "src": "wound",
+         "t": 482.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 39,
+         "src": "wound",
+         "t": 482.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 38,
+         "src": "wound",
+         "t": 482.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 38,
+         "src": "wound",
+         "t": 482.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 38,
+         "src": "wound",
+         "t": 482.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 38,
+         "src": "wound",
+         "t": 482.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 38,
+         "src": "wound",
+         "t": 482.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 37,
+         "src": "wound",
+         "t": 483.0,
+         "zone_out": false
+        }
+       ],
+       "mire_s": 0.3,
+       "nerve_bursts": 0,
+       "t": 483.1
+      },
+      "near": [
+       {
+        "hp": 23,
+        "mhp": 138,
+        "src": {
+         "atk_tracer": 9.5,
+         "bullet": 78.4,
+         "contact_tracer": 62.2,
+         "corrode": 32.9,
+         "dark": 11.6
+        },
+        "t": 398.8,
+        "tl": [
+         [
+          384.0,
+          112,
+          25,
+          120,
+          1,
+          15,
+          3,
+          3,
+          0,
+          1,
+          3
+         ],
+         [
+          384.5,
+          115,
+          25,
+          119,
+          2,
+          19,
+          0,
+          1,
+          0,
+          1,
+          3
+         ],
+         [
+          385.0,
+          117,
+          25,
+          120,
+          2,
+          17,
+          0,
+          4,
+          0,
+          1,
+          3
+         ],
+         [
+          385.6,
+          90,
+          19,
+          118,
+          1,
+          17,
+          0,
+          1,
+          1,
+          1,
+          3
+         ],
+         [
+          386.1,
+          93,
+          19,
+          120,
+          1,
+          19,
+          1,
+          1,
+          0,
+          1,
+          3
+         ],
+         [
+          386.6,
+          94,
+          19,
+          119,
+          1,
+          18,
+          3,
+          2,
+          0,
+          1,
+          3
+         ],
+         [
+          387.2,
+          95,
+          19,
+          116,
+          1,
+          12,
+          9,
+          2,
+          0,
+          1,
+          3
+         ],
+         [
+          387.7,
+          96,
+          19,
+          117,
+          1,
+          12,
+          9,
+          1,
+          0,
+          1,
+          3
+         ],
+         [
+          388.2,
+          100,
+          19,
+          118,
+          1,
+          15,
+          9,
+          2,
+          0,
+          1,
+          3
+         ],
+         [
+          388.7,
+          104,
+          19,
+          115,
+          0,
+          12,
+          10,
+          1,
+          0,
+          1,
+          3
+         ],
+         [
+          389.3,
+          105,
+          19,
+          115,
+          1,
+          12,
+          1,
+          1,
+          0,
+          1,
+          3
+         ],
+         [
+          389.8,
+          90,
+          13,
+          116,
+          0,
+          22,
+          1,
+          1,
+          0,
+          1,
+          3
+         ],
+         [
+          390.3,
+          102,
+          13,
+          118,
+          1,
+          10,
+          4,
+          1,
+          0,
+          1,
+          3
+         ],
+         [
+          390.9,
+          106,
+          13,
+          118,
+          1,
+          6,
+          4,
+          1,
+          0,
+          1,
+          3
+         ],
+         [
+          391.4,
+          96,
+          10,
+          120,
+          0,
+          9,
+          4,
+          2,
+          1,
+          1,
+          3
+         ],
+         [
+          391.9,
+          99,
+          10,
+          119,
+          0,
+          15,
+          4,
+          0,
+          1,
+          1,
+          3
+         ],
+         [
+          392.4,
+          103,
+          10,
+          110,
+          0,
+          10,
+          5,
+          0,
+          1,
+          1,
+          3
+         ],
+         [
+          393.0,
+          81,
+          3,
+          111,
+          0,
+          19,
+          10,
+          1,
+          1,
+          1,
+          3
+         ],
+         [
+          393.5,
+          79,
+          3,
+          112,
+          1,
+          26,
+          10,
+          2,
+          0,
+          1,
+          3
+         ],
+         [
+          394.0,
+          48,
+          0,
+          113,
+          1,
+          28,
+          10,
+          5,
+          1,
+          1,
+          3
+         ],
+         [
+          394.5,
+          45,
+          0,
+          111,
+          0,
+          34,
+          9,
+          4,
+          0,
+          1,
+          3
+         ],
+         [
+          395.1,
+          59,
+          0,
+          109,
+          2,
+          32,
+          9,
+          5,
+          0,
+          1,
+          3
+         ],
+         [
+          395.6,
+          59,
+          0,
+          103,
+          5,
+          29,
+          0,
+          5,
+          0,
+          1,
+          3
+         ],
+         [
+          396.1,
+          61,
+          0,
+          90,
+          4,
+          22,
+          0,
+          5,
+          0,
+          1,
+          3
+         ],
+         [
+          396.7,
+          61,
+          0,
+          85,
+          4,
+          21,
+          0,
+          5,
+          0,
+          1,
+          3
+         ],
+         [
+          397.2,
+          60,
+          4,
+          71,
+          5,
+          21,
+          0,
+          3,
+          0,
+          1,
+          3
+         ],
+         [
+          397.7,
+          61,
+          4,
+          65,
+          1,
+          17,
+          1,
+          3,
+          0,
+          1,
+          3
+         ],
+         [
+          398.2,
+          64,
+          4,
+          67,
+          1,
+          18,
+          2,
+          4,
+          0,
+          1,
+          3
+         ],
+         [
+          398.8,
+          23,
+          0,
+          68,
+          1,
+          20,
+          9,
+          5,
+          0,
+          1,
+          3
+         ]
+        ]
+       }
+      ],
+      "src": "wound",
+      "t": 483,
+      "tl": [
+       [
+        467.9,
+        145,
+        15,
+        31,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        468.5,
+        145,
+        15,
+        28,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        469.0,
+        145,
+        15,
+        29,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        469.5,
+        145,
+        15,
+        23,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        470.1,
+        145,
+        15,
+        26,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        470.6,
+        145,
+        15,
+        27,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        471.1,
+        145,
+        15,
+        27,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        471.6,
+        145,
+        15,
+        29,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        472.2,
+        145,
+        15,
+        31,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        472.7,
+        145,
+        15,
+        34,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        473.2,
+        145,
+        15,
+        36,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        473.7,
+        145,
+        15,
+        39,
+        0,
+        2,
+        0,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        474.3,
+        145,
+        15,
+        41,
+        0,
+        2,
+        0,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        474.8,
+        145,
+        15,
+        73,
+        0,
+        3,
+        0,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        475.3,
+        145,
+        15,
+        76,
+        0,
+        3,
+        0,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        475.9,
+        145,
+        15,
+        77,
+        1,
+        3,
+        0,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        476.4,
+        145,
+        15,
+        78,
+        0,
+        7,
+        0,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        476.9,
+        145,
+        15,
+        80,
+        0,
+        7,
+        0,
+        3,
+        0,
+        1,
+        3
+       ],
+       [
+        477.4,
+        145,
+        15,
+        83,
+        0,
+        6,
+        0,
+        0,
+        1,
+        1,
+        3
+       ],
+       [
+        478.0,
+        145,
+        15,
+        85,
+        0,
+        13,
+        0,
+        2,
+        0,
+        1,
+        3
+       ],
+       [
+        478.5,
+        145,
+        15,
+        87,
+        2,
+        20,
+        0,
+        3,
+        0,
+        1,
+        3
+       ],
+       [
+        479.0,
+        145,
+        15,
+        92,
+        4,
+        29,
+        1,
+        5,
+        0,
+        1,
+        3
+       ],
+       [
+        479.6,
+        145,
+        15,
+        94,
+        5,
+        30,
+        3,
+        7,
+        0,
+        1,
+        3
+       ],
+       [
+        480.1,
+        113,
+        8,
+        95,
+        3,
+        29,
+        2,
+        4,
+        0,
+        1,
+        3
+       ],
+       [
+        480.6,
+        79,
+        2,
+        96,
+        4,
+        38,
+        9,
+        7,
+        1,
+        1,
+        3
+       ],
+       [
+        481.1,
+        80,
+        2,
+        99,
+        9,
+        43,
+        9,
+        8,
+        0,
+        1,
+        3
+       ],
+       [
+        481.7,
+        82,
+        2,
+        99,
+        14,
+        47,
+        11,
+        8,
+        0,
+        1,
+        3
+       ],
+       [
+        482.2,
+        39,
+        0,
+        101,
+        17,
+        50,
+        11,
+        8,
+        1,
+        1,
+        3
+       ],
+       [
+        482.7,
+        38,
+        0,
+        102,
+        7,
+        49,
+        12,
+        7,
+        0,
+        1,
+        3
+       ]
+      ],
+      "zone_out": false,
+      "zone_phase": 2,
+      "zone_state": 3
+     },
+     "floors": [],
+     "hits": 962,
+     "hits_pm": 119.5,
+     "king_low_s": 0,
+     "lamp_end": 0,
+     "lamp_gain": {
+      "商人": 10,
+      "灯标": 63,
+      "精英灯油": 126,
+      "藏品": 23
+     },
+     "lamp_loss": {
+      "冲撞吸灯": 8,
+      "受击": 312,
+      "尖叫": 3
+     },
+     "lamp_s": [
+      268,
+      111,
+      71,
+      30
+     ],
+     "lamp_taken": [
+      293,
+      503,
+      349,
+      287
+     ],
+     "low20_s": 6,
+     "low_hp_s": 14,
+     "moved_pm": 9398,
+     "peak": [
+      120,
+      92,
+      9,
+      470,
+      48
+     ],
+     "peak_min": [
+      [
+       17,
+       1,
+       7,
+       45,
+       7
+      ],
+      [
+       36,
+       7,
+       6,
+       81,
+       14
+      ],
+      [
+       54,
+       8,
+       6,
+       246,
+       36
+      ],
+      [
+       43,
+       26,
+       5,
+       140,
+       16
+      ],
+      [
+       82,
+       92,
+       5,
+       215,
+       48
+      ],
+      [
+       101,
+       15,
+       5,
+       470,
+       48
+      ],
+      [
+       120,
+       22,
+       5,
+       397,
+       48
+      ],
+      [
+       94,
+       71,
+       9,
+       338,
+       48
+      ],
+      [
+       103,
+       18,
+       0,
+       342,
+       48
+      ]
+     ],
+     "profile": "expert",
+     "reaper_drain_deaths": 0,
+     "recruit_t": [
+      79
+     ],
+     "still_pct": 5,
+     "taken": 1434,
+     "taken_pm": 178
+    },
+    "cmd": {
+     "aggro": 220,
+     "downs": 0,
+     "roam": 130.3,
+     "sortie_downs": 0,
+     "sorties": 16,
+     "switch": 56
+    },
+    "crates": 8,
+    "cross_picks": [
+     [
+      "m1",
+      "incident",
+      "watcher",
+      1
+     ],
+     [
+      "m2",
+      "incident",
+      "scholar",
+      1
+     ],
+     [
+      "c1",
+      "wish",
+      "",
+      0
+     ],
+     [
+      "m3",
+      "elite",
+      ""
+     ],
+     [
+      "c2",
+      "rest",
+      ""
+     ]
+    ],
+    "ctrl": {
+     "aslow_slow": 0,
+     "aslow_t": 0.0,
+     "boss_t": 100.91,
+     "floor": 0.7,
+     "move_min": 0.8,
+     "slow_min": 0.8,
+     "stun_slow": 0,
+     "stun_t": 0.0
+    },
+    "ctrl_src": {
+     "boss": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 7.85
+     },
+     "founder": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.59
+     },
+     "other": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "skimmer": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "slow_any_t": 8.45
+    },
+    "dashes": 14,
+    "dmg": {
+     "atk_bone": 3.85734083784206,
+     "atk_founder": 8.10476325592249,
+     "atk_nest": 27.6048467308048,
+     "atk_reaper": 32.3608720442999,
+     "atk_stone": 8.69744974097391,
+     "atk_tracer": 108.614187168535,
+     "blast_runner": 23.2839435863772,
+     "boss_carmen": 176.8964736,
+     "bullet": 223.176888623079,
+     "contact_bone": 31.7623728309052,
+     "contact_carmen": 56.0976,
+     "contact_nest": 21.6171263774874,
+     "contact_path": 68.2519983,
+     "contact_reaper": 52.3052693726445,
+     "contact_slider": 39.013570393265,
+     "contact_tracer": 439.19386252547,
+     "corrode": 125.289640905822,
+     "mire": 21.2218455082544,
+     "nest": 2.0,
+     "wound": 17.258696544375
+    },
+    "drone": 0,
+    "duck": {
+     "boss_overlap": 0,
+     "fled": 1,
+     "fled_hp": [
+      1.0
+     ],
+     "kill_hits": [],
+     "kill_t": [],
+     "killed": 0,
+     "spawn_t": [
+      305.4
+     ],
+     "spawned": 1
+    },
+    "elite_stage": 2,
+    "elites": 8,
+    "ending": "standard",
+    "final_out": {
+     "剑气": 12431.0308678956,
+     "技能连携·替身斩·specter_unchained": 5884.42008238784,
+     "替身": 6604.94019351323,
+     "替身闪现": 64069.2201842373,
+     "狐火": 82955.3348514745,
+     "狐火拖尾": 590.366741579916,
+     "狐火点点": 38852.378732629,
+     "秋收": 28605.5811386318,
+     "终结技·suzuran·斩痕": 32586.279603668,
+     "终结技·suzuran·瞬身": 19648.9492544125,
+     "结穗": 17352.034142673,
+     "血色潮痕": 33464.7497801944,
+     "锯刃": 212281.21560984,
+     "镰扫": 30489.3525055652
+    },
+    "floor_hits": 0,
+    "floor_times": [],
+    "fuse": {
+     "left": 0,
+     "pct": 0.0,
+     "pool": 0,
+     "t": -1
+    },
+    "growth": {
+     "lane_summon": 1,
+     "squad_crit": 1
+    },
+    "heal": {
+     "丰年": 202.474195508656,
+     "化被草木": 342.586019434107,
+     "商店": 53.5432888928066,
+     "嘉禾盈仓": 201.088584081866,
+     "拾取": 73.155852245413,
+     "离离枯荣": 21.10118049,
+     "禾苗": 68.6225373455789,
+     "自身回复": 241.794916074439,
+     "补给": 99.4675260145368,
+     "铃兰": 112.870753137418
+    },
+    "heal_offer": 0,
+    "heal_offer_low": 0,
+    "heal_pick": 0,
+    "hordes": [
+     {
+      "comp": {
+       "bone": 8,
+       "slider": 7
+      },
+      "hp": 1245,
+      "hp0": 122,
+      "minhp": 122,
+      "mix": "滑行群",
+      "n": 15,
+      "t": 75,
+      "t80": 9
+     },
+     {
+      "comp": {
+       "bone": 13,
+       "slider": 4,
+       "stone": 3
+      },
+      "hp": 2868,
+      "hp0": 138,
+      "minhp": 122,
+      "mix": "凿石阵",
+      "n": 20,
+      "t": 165,
+      "t80": 12
+     },
+     {
+      "comp": {
+       "bone": 14,
+       "offspring": 2,
+       "slider": 7,
+       "stone": 2
+      },
+      "hp": 7563,
+      "hp0": 138,
+      "minhp": 110,
+      "mix": "子代壁垒",
+      "n": 25,
+      "t": 274,
+      "t80": 18
+     },
+     {
+      "comp": {
+       "bone": 8,
+       "reaper": 2,
+       "runner": 8,
+       "slider": 16,
+       "tracer": 3
+      },
+      "hp": 18693,
+      "hp0": 81,
+      "minhp": 61,
+      "mix": "潜袭",
+      "n": 37,
+      "t": 324,
+      "t80": 6
+     },
+     {
+      "comp": {
+       "bone": 7,
+       "offspring": 2,
+       "reaper": 2,
+       "runner": 7,
+       "slider": 14,
+       "spitter": 4,
+       "tracer": 3
+      },
+      "hp": 28903,
+      "hp0": 138,
+      "minhp": 44,
+      "mix": "酸雨围城",
+      "n": 39,
+      "t": 375,
+      "t80": 39
+     },
+     {
+      "comp": {
+       "bone": 3,
+       "floater": 3,
+       "founder": 2,
+       "nest": 1,
+       "runner": 9,
+       "slider": 4,
+       "stone": 3,
+       "tracer": 2
+      },
+      "hp": 28044,
+      "hp0": 145,
+      "minhp": -14,
+      "mix": "深溟重甲",
+      "n": 27,
+      "t": 474,
+      "t80": -1
+     }
+    ],
+    "ingots": 38,
+    "items": {
+     "crate_shield": 1,
+     "heal_elite": 6,
+     "heal_low": 2,
+     "heal_mob": 10,
+     "heal_pick": 13,
+     "magnet_elite": 4,
+     "magnet_mob": 6,
+     "magnet_pick": 6,
+     "mob_capped": 653,
+     "mob_rolled": 678,
+     "pack_drop": 7,
+     "pack_pick": 3
+    },
+    "kill_hits": {
+     "0:bone": [
+      45,
+      48,
+      1.32
+     ],
+     "0:slider": [
+      9,
+      16,
+      1.39
+     ],
+     "0:stone": [
+      5,
+      20,
+      16.89
+     ],
+     "1:bone": [
+      65,
+      131,
+      40.61
+     ],
+     "1:floater": [
+      8,
+      37,
+      19.34
+     ],
+     "1:slider": [
+      31,
+      92,
+      27.26
+     ],
+     "1:stone": [
+      7,
+      36,
+      10.7
+     ],
+     "1:tracer": [
+      3,
+      138,
+      53.79
+     ],
+     "2:bone": [
+      85,
+      243,
+      104.45
+     ],
+     "2:floater": [
+      12,
+      48,
+      14.65
+     ],
+     "2:runner": [
+      2,
+      6,
+      1.98
+     ],
+     "2:slider": [
+      45,
+      175,
+      82.25
+     ],
+     "2:stone": [
+      7,
+      39,
+      29.24
+     ],
+     "2:tracer": [
+      2,
+      101,
+      49.56
+     ],
+     "3:bone": [
+      84,
+      170,
+      62.59
+     ],
+     "3:floater": [
+      7,
+      36,
+      29.44
+     ],
+     "3:runner": [
+      14,
+      43,
+      15.05
+     ],
+     "3:slider": [
+      27,
+      92,
+      32.06
+     ],
+     "3:spitter": [
+      2,
+      18,
+      5.55
+     ],
+     "3:stone": [
+      8,
+      55,
+      50.89
+     ],
+     "3:tracer": [
+      4,
+      181,
+      59.67
+     ],
+     "4:bone": [
+      86,
+      444,
+      213.64
+     ],
+     "4:floater": [
+      12,
+      90,
+      48.84
+     ],
+     "4:offspring": [
+      1,
+      36,
+      12.61
+     ],
+     "4:reaper": [
+      2,
+      34,
+      9.77
+     ],
+     "4:runner": [
+      9,
+      37,
+      15.18
+     ],
+     "4:slider": [
+      28,
+      151,
+      57.23
+     ],
+     "4:spitter": [
+      5,
+      135,
+      70.15
+     ],
+     "4:stone": [
+      9,
+      97,
+      61.71
+     ],
+     "4:tracer": [
+      4,
+      305,
+      86.32
+     ],
+     "5:bone": [
+      79,
+      422,
+      237.68
+     ],
+     "5:brood": [
+      1,
+      2,
+      0.33
+     ],
+     "5:floater": [
+      12,
+      83,
+      55.43
+     ],
+     "5:founder": [
+      4,
+      119,
+      87.71
+     ],
+     "5:nest": [
+      2,
+      130,
+      71.28
+     ],
+     "5:offspring": [
+      3,
+      68,
+      58.02
+     ],
+     "5:reaper": [
+      16,
+      268,
+      90.96
+     ],
+     "5:runner": [
+      30,
+      171,
+      67.24
+     ],
+     "5:slider": [
+      55,
+      263,
+      124.29
+     ],
+     "5:spitter": [
+      3,
+      51,
+      34.19
+     ],
+     "5:stone": [
+      8,
+      66,
+      50.74
+     ],
+     "5:tracer": [
+      9,
+      209,
+      83.21
+     ],
+     "6:bone": [
+      117,
+      925,
+      679.81
+     ],
+     "6:floater": [
+      10,
+      109,
+      80.07
+     ],
+     "6:founder": [
+      3,
+      143,
+      65.08
+     ],
+     "6:nest": [
+      4,
+      247,
+      215.69
+     ],
+     "6:offspring": [
+      3,
+      97,
+      103.49
+     ],
+     "6:reaper": [
+      21,
+      331,
+      143.14
+     ],
+     "6:runner": [
+      27,
+      242,
+      124.74
+     ],
+     "6:slider": [
+      98,
+      693,
+      395.99
+     ],
+     "6:spitter": [
+      6,
+      148,
+      100.05
+     ],
+     "6:stone": [
+      6,
+      71,
+      83.24
+     ],
+     "6:tracer": [
+      12,
+      367,
+      151.59
+     ],
+     "7:floater": [
+      12,
+      58,
+      54.58
+     ],
+     "7:founder": [
+      8,
+      283,
+      244.8
+     ],
+     "7:fractal": [
+      10,
+      40,
+      50.16
+     ],
+     "7:nest": [
+      8,
+      161,
+      115.51
+     ],
+     "7:offspring": [
+      8,
+      77,
+      45.21
+     ],
+     "7:reaper": [
+      24,
+      194,
+      60.33
+     ],
+     "7:runner": [
+      27,
+      162,
+      72.8
+     ],
+     "7:slider": [
+      34,
+      189,
+      98.69
+     ],
+     "7:spitter": [
+      6,
+      52,
+      40.2
+     ],
+     "7:stone": [
+      17,
+      63,
+      53.79
+     ],
+     "7:tracer": [
+      14,
+      294,
+      153.39
+     ],
+     "8:runner": [
+      3,
+      31,
+      9.71
+     ],
+     "8:slider": [
+      2,
+      12,
+      6.67
+     ],
+     "8:tracer": [
+      1,
+      24,
+      9.9
+     ]
+    },
+    "kills": 1341,
+    "lamp": 0,
+    "levelup_t": [
+     11,
+     30,
+     48,
+     64,
+     79,
+     96,
+     120,
+     125,
+     155,
+     189,
+     193,
+     240,
+     270,
+     275,
+     300,
+     337,
+     369,
+     392,
+     418,
+     435,
+     477
+    ],
+    "low_levelups": 2,
+    "lv": 22,
+    "lv_times": [
+     10,
+     29,
+     48,
+     63,
+     79,
+     96,
+     120,
+     125,
+     154,
+     188,
+     193,
+     240,
+     270,
+     275,
+     300,
+     337,
+     368,
+     391,
+     418,
+     435,
+     477
+    ],
+    "marks": {
+     "120": 7,
+     "300": 15,
+     "480": 22
+    },
+    "maxhp": 145.515825,
+    "meta": 0,
+    "ops": [
+     {
+      "elite": 2,
+      "id": "suzuran",
+      "prog": 6
+     },
+     {
+      "elite": 2,
+      "id": "shu",
+      "prog": 6
+     },
+     {
+      "elite": 2,
+      "id": "specter_unchained",
+      "prog": 6
+     }
+    ],
+    "out": {
+     "剑气": 12431.0308678956,
+     "技能连携·替身斩·specter_unchained": 5884.42008238784,
+     "替身": 6604.94019351323,
+     "替身闪现": 64069.2201842373,
+     "狐火": 82955.3348514745,
+     "狐火拖尾": 590.366741579916,
+     "狐火点点": 38852.378732629,
+     "秋收": 28605.5811386318,
+     "终结技·suzuran·斩痕": 32586.279603668,
+     "终结技·suzuran·瞬身": 19648.9492544125,
+     "结穗": 17352.034142673,
+     "血色潮痕": 33464.7497801944,
+     "锯刃": 212281.21560984,
+     "镰扫": 30489.3525055652
+    },
+    "out_tag": {
+     "area": 515265.17388034,
+     "basic": 271376.149254037,
+     "control": 82955.3348514745,
+     "dot": 40069.6899737076,
+     "entity": 160933.689774829,
+     "growth": 24862.0617357911,
+     "pierce": 36118.7081749668,
+     "projectile": 107817.396587265,
+     "skill": 58119.6489404682,
+     "终结技": 104470.457716161,
+     "连携": 11768.8401647757
+    },
+    "out_type": {
+     "法术": 193072.240703436,
+     "物理": 340508.384127186,
+     "真实": 52235.2288580804
+    },
+    "prof": {},
+    "prog_log": [
+     [
+      11,
+      "suzuran",
+      1
+     ],
+     [
+      30,
+      "suzuran",
+      2
+     ],
+     [
+      48,
+      "suzuran",
+      3
+     ],
+     [
+      64,
+      "suzuran",
+      4
+     ],
+     [
+      96,
+      "suzuran",
+      5
+     ],
+     [
+      120,
+      "shu",
+      1
+     ],
+     [
+      125,
+      "shu",
+      2
+     ],
+     [
+      155,
+      "shu",
+      3
+     ],
+     [
+      189,
+      "specter_unchained",
+      1
+     ],
+     [
+      193,
+      "specter_unchained",
+      2
+     ],
+     [
+      240,
+      "specter_unchained",
+      3
+     ],
+     [
+      270,
+      "specter_unchained",
+      4
+     ],
+     [
+      275,
+      "shu",
+      4
+     ],
+     [
+      300,
+      "shu",
+      5
+     ],
+     [
+      337,
+      "shu",
+      6
+     ],
+     [
+      369,
+      "suzuran",
+      6
+     ],
+     [
+      392,
+      "specter_unchained",
+      5
+     ],
+     [
+      418,
+      "specter_unchained",
+      6
+     ]
+    ],
+    "prog_offer": {
+     "shu": 10,
+     "specter_unchained": 8,
+     "suzuran": 7
+    },
+    "prog_pick": {
+     "shu": 6,
+     "specter_unchained": 6,
+     "suzuran": 6
+    },
+    "recall_backstop": 0,
+    "recall_n": 105,
+    "recruit_offers": [
+     [
+      79,
+      "recruit",
+      2
+     ],
+     [
+      96,
+      "swap",
+      3
+     ],
+     [
+      120,
+      "swap",
+      3
+     ],
+     [
+      155,
+      "swap",
+      3
+     ],
+     [
+      300,
+      "swap",
+      3
+     ],
+     [
+      418,
+      "swap",
+      3
+     ],
+     [
+      435,
+      "swap",
+      3
+     ]
+    ],
+    "rej": {},
+    "relic_offer": [
+     [
+      120,
+      "shop",
+      [
+       "97",
+       "129",
+       "209"
+      ]
+     ],
+     [
+      124,
+      "choice",
+      [
+       "197",
+       "196",
+       "103"
+      ],
+      "elite"
+     ],
+     [
+      270,
+      "choice",
+      [
+       "233",
+       "95",
+       "84"
+      ],
+      "event"
+     ],
+     [
+      270,
+      "choice",
+      [
+       "58",
+       "25",
+       "82",
+       "236"
+      ],
+      "boss"
+     ],
+     [
+      332,
+      "shop",
+      [
+       "31",
+       "145",
+       "125"
+      ]
+     ],
+     [
+      335,
+      "choice",
+      [
+       "251",
+       "60",
+       "81"
+      ],
+      "elite"
+     ]
+    ],
+    "relic_out": 0.0,
+    "relic_take": [
+     [
+      122,
+      "97",
+      [
+       "辅助",
+       "重装",
+       "特种"
+      ],
+      "shop"
+     ],
+     [
+      124,
+      "103",
+      [
+       "辅助",
+       "重装",
+       "特种"
+      ],
+      "choice:elite"
+     ],
+     [
+      270,
+      "233",
+      [
+       "辅助",
+       "重装",
+       "特种"
+      ],
+      "choice:event"
+     ],
+     [
+      270,
+      "58",
+      [
+       "辅助",
+       "重装",
+       "特种"
+      ],
+      "choice:boss"
+     ],
+     [
+      332,
+      "31",
+      [
+       "辅助",
+       "重装",
+       "特种"
+      ],
+      "shop"
+     ],
+     [
+      332,
+      "145",
+      [
+       "辅助",
+       "重装",
+       "特种"
+      ],
+      "shop"
+     ],
+     [
+      335,
+      "81",
+      [
+       "辅助",
+       "重装",
+       "特种"
+      ],
+      "choice:elite"
+     ]
+    ],
+    "relics": 7,
+    "shield": {
+     "abs": 51.5,
+     "blocks": 1,
+     "every": 15.0,
+     "max": 0,
+     "peak": 0,
+     "src_int": [],
+     "src_max": [],
+     "t0": -1.0
+    },
+    "squad": [
+     "suzuran",
+     "shu",
+     "specter_unchained"
+    ],
+    "sus": {
+     "m0": {
+      "clean": {},
+      "dr": {
+       "shu": 2.71864177914252
+      },
+      "heal": {
+       "化被草木·技能": [
+        19.0469842378752,
+        31.1819625
+       ],
+       "商店": [
+        0.0,
+        55.4346
+       ],
+       "拾取": [
+        0.0,
+        197.214075
+       ],
+       "禾苗": [
+        2.494557,
+        2.494557
+       ],
+       "铃兰": [
+        7.760844,
+        7.760844
+       ]
+      },
+      "lit": 0.0
+     },
+     "m3": {
+      "clean": {},
+      "dr": {
+       "shu": 122.219953463649,
+       "shu·盾": 16.63038
+      },
+      "heal": {
+       "丰年·常驻": [
+        47.8123425,
+        47.8123425
+       ],
+       "化被草木·技能": [
+        150.467521681037,
+        166.3038
+       ],
+       "商店": [
+        53.5432888928066,
+        55.4346
+       ],
+       "嘉禾盈仓·技能": [
+        82.9409719672182,
+        87.309495
+       ],
+       "拾取": [
+        73.155852245413,
+        332.6076
+       ],
+       "离离枯荣·常驻": [
+        1.385865,
+        1.385865
+       ],
+       "禾苗": [
+        36.4718552105789,
+        37.8341145
+       ],
+       "铃兰": [
+        49.9413952174181,
+        50.4454860000001
+       ]
+      },
+      "lit": 0.0
+     },
+     "m6": {
+      "clean": {},
+      "dr": {
+       "shu": 123.244626669142,
+       "shu·盾": 22.728186
+      },
+      "heal": {
+       "丰年·常驻": [
+        154.661853008655,
+        158.2900356375
+       ],
+       "化被草木·技能": [
+        173.071513515195,
+        187.7847075
+       ],
+       "嘉禾盈仓·技能": [
+        118.147612114648,
+        118.4914575
+       ],
+       "离离枯荣·常驻": [
+        19.71531549,
+        19.71531549
+       ],
+       "禾苗": [
+        29.656125135,
+        29.656125135
+       ],
+       "铃兰": [
+        55.16851392,
+        55.16851392
+       ]
+      },
+      "lit": 0.0
+     }
+    },
+    "swaps": [],
+    "t": 483,
+    "tel": "full",
+    "terrain": {
+     "bul": 9,
+     "dash": 0,
+     "ebul": 11
+    },
+    "ult": {
+     "combo": 6,
+     "combo_auto": 6,
+     "combo_up": 0,
+     "cult": 0,
+     "cult_times": [],
+     "e_combo": 5.0,
+     "e_hurt": 19.4,
+     "e_kill": 58.8,
+     "e_out": 164.3,
+     "first_full": 153.1,
+     "full_times": [
+      153.1,
+      329.4
+     ],
+     "hit_n": 200,
+     "idle_full_s": 9.5,
+     "link_by": {
+      "specter_unchained": 6
+     },
+     "lit": 6,
+     "lit_by": {},
+     "miss": 0,
+     "ult": 2,
+     "ult_times": [
+      162.5,
+      329.5
+     ]
+    },
+    "win": false,
+    "xp_backstop": 0.0,
+    "xp_dropped": 7077.8,
+    "xp_ground": 894.9,
+    "xp_magnet": 430.4,
+    "xp_magnet_min": [
+     0.0,
+     12.5,
+     137.5,
+     134.0,
+     0.0,
+     146.4
+    ],
+    "xp_recall": 2507.2,
+    "xp_recall_min": [
+     7.5,
+     30.0,
+     15.0,
+     65.0,
+     176.7,
+     144.6,
+     1289.9,
+     778.5
+    ],
+    "xp_total": 6182.9,
+    "xp_total_min": [
+     155.0,
+     320.0,
+     406.3,
+     521.1,
+     877.9,
+     897.5,
+     1334.9,
+     1637.7,
+     32.5
+    ],
+    "xp_walk": 3245.3,
+    "xp_walk_min": [
+     147.5,
+     277.5,
+     253.8,
+     322.1,
+     701.2,
+     606.6,
+     45.0,
+     859.2,
+     32.5
+    ]
+   }
+  },
+  {
+   "squad": [
+    "suzuran",
+    "shu"
+   ],
+   "seed": 2,
+   "diff": 0,
+   "bot": "expert",
+   "tier": 0,
+   "placebo": 0,
+   "wall": 19.1,
+   "data": {
+    "allies": 2,
+    "armor_cf": {
+     "m0": {
+      "a2": 243.843121812623,
+      "a4": 229.843121812623,
+      "a8": 201.843121812623,
+      "all": 270.739273379935,
+      "armor": 10.5,
+      "n": 8,
+      "phys": 257.843121812623,
+      "phys_n": 7,
+      "phys_pre": 268.343121812623
+     }
+    },
+    "boss_hp": -1.0,
+    "bosses": [],
+    "bot": {
+     "bosses": [],
+     "cap_stats": {
+      "any_cut": 21.5,
+      "any_n": 2,
+      "big_n": 0,
+      "boss_cut": 0.0,
+      "boss_n": 0,
+      "hits": 58,
+      "one_cut": 0.0,
+      "one_n": 0,
+      "post": 257.8,
+      "pre": 279.3,
+      "zero": 0
+     },
+     "curve": [
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 0,
+       "hp": 100,
+       "hpm": 1.23,
+       "hpmin": 100,
+       "hsrc": {},
+       "kills": 0,
+       "lamp": 100,
+       "lampmin": 100,
+       "lv": 1,
+       "mhp": 119,
+       "mire_s": 0.0,
+       "mires": 0,
+       "outc": 0,
+       "rg": 0.95,
+       "squad": 2,
+       "t": 0,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 11,
+       "hp": 100,
+       "hpm": 1.57,
+       "hpmin": 100,
+       "hsrc": {},
+       "kills": 21,
+       "lamp": 100,
+       "lampmin": 100,
+       "lv": 2,
+       "mhp": 119,
+       "mire_s": 0.0,
+       "mires": 0,
+       "outc": 602,
+       "rg": 0.95,
+       "squad": 2,
+       "t": 30,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 0,
+       "elites": 1,
+       "enemies": 26,
+       "hp": 100,
+       "hpm": 1.9,
+       "hpmin": 100,
+       "hsrc": {},
+       "kills": 56,
+       "lamp": 100,
+       "lampmin": 100,
+       "lv": 4,
+       "mhp": 119,
+       "mire_s": 0.0,
+       "mires": 1,
+       "outc": 2074,
+       "rg": 0.95,
+       "squad": 2,
+       "t": 60,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "bullet": 12,
+        "contact_tracer": 75,
+        "corrode": 8
+       },
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 25,
+       "hp": 87,
+       "hpm": 2.24,
+       "hpmin": 44,
+       "hsrc": {
+        "化被草木": 13,
+        "自身回复": 6,
+        "补给": 57,
+        "铃兰": 2
+       },
+       "kills": 125,
+       "lamp": 84,
+       "lampmin": 84,
+       "lv": 6,
+       "mhp": 134,
+       "mire_s": 0.0,
+       "mires": 23,
+       "outc": 12133,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 90,
+       "taken": 97,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 3,
+       "elites": 1,
+       "enemies": 28,
+       "hp": 100,
+       "hpm": 2.57,
+       "hpmin": 87,
+       "hsrc": {
+        "化被草木": 6,
+        "自身回复": 6,
+        "铃兰": 3
+       },
+       "kills": 182,
+       "lamp": 84,
+       "lampmin": 84,
+       "lv": 7,
+       "mhp": 134,
+       "mire_s": 0.0,
+       "mires": 24,
+       "outc": 19572,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 120,
+       "taken": 0,
+       "zone": 0
+      }
+     ],
+     "curve_tail": {
+      "dsrc": {
+       "atk_tracer": 34,
+       "contact_tracer": 92
+      },
+      "hsrc": {
+       "化被草木": 6,
+       "禾苗": 1,
+       "自身回复": 3,
+       "铃兰": 3
+      },
+      "mhp": 134,
+      "t": 127,
+      "t0": 120,
+      "taken": 126
+     },
+     "dark_dmg": 0,
+     "dark_s": 0,
+     "death_src": "contact_tracer",
+     "elite_t": {
+      "suzuran:1": 48,
+      "suzuran:2": 122
+     },
+     "end": {
+      "boss": false,
+      "hits2": [
+       [
+        123.9,
+        "atk_tracer",
+        "e:tracer",
+        0,
+        34.0,
+        34.0,
+        100
+       ],
+       [
+        124.5,
+        "contact_tracer",
+        "e:tracer",
+        0,
+        38.0,
+        38.0,
+        69
+       ],
+       [
+        125.1,
+        "contact_tracer",
+        "e:tracer",
+        0,
+        38.0,
+        31.7,
+        40
+       ],
+       [
+        125.5,
+        "contact_tracer",
+        "e:tracer",
+        0,
+        38.0,
+        22.8,
+        19
+       ],
+       [
+        127.4,
+        "atk_tracer",
+        "e:tracer",
+        0,
+        34.0,
+        34.0,
+        -10
+       ]
+      ],
+      "hp": 0,
+      "killer": {
+       "cause": "",
+       "key": "e:tracer"
+      },
+      "last15": {
+       "corrode_out": 0.0,
+       "corrode_peak": 0.0,
+       "dark_s": 0.0,
+       "ebullets_peak": 5,
+       "enemies_peak": 32,
+       "hits": [
+        {
+         "amt": 34.0,
+         "boss": false,
+         "hp_after": 100,
+         "src": "atk_tracer",
+         "t": 123.9,
+         "zone_out": false
+        },
+        {
+         "amt": 38.0,
+         "boss": false,
+         "hp_after": 70,
+         "src": "contact_tracer",
+         "t": 124.5,
+         "zone_out": false
+        },
+        {
+         "amt": 31.7,
+         "boss": false,
+         "hp_after": 40,
+         "src": "contact_tracer",
+         "t": 125.1,
+         "zone_out": false
+        },
+        {
+         "amt": 22.8,
+         "boss": false,
+         "hp_after": 19,
+         "src": "contact_tracer",
+         "t": 125.5,
+         "zone_out": false
+        }
+       ],
+       "mire_s": 0.0,
+       "nerve_bursts": 0,
+       "t": 127.4
+      },
+      "near": [
+       {
+        "hp": 19,
+        "mhp": 134,
+        "src": {
+         "atk_tracer": 34.0,
+         "contact_tracer": 92.5
+        },
+        "t": 125.7,
+        "tl": [
+         [
+          110.9,
+          134,
+          84,
+          30,
+          1,
+          8,
+          0,
+          4,
+          0,
+          1,
+          3
+         ],
+         [
+          111.4,
+          134,
+          84,
+          28,
+          2,
+          5,
+          0,
+          2,
+          0,
+          1,
+          3
+         ],
+         [
+          111.9,
+          134,
+          84,
+          29,
+          3,
+          7,
+          0,
+          3,
+          0,
+          1,
+          3
+         ],
+         [
+          112.5,
+          134,
+          84,
+          28,
+          1,
+          9,
+          0,
+          2,
+          0,
+          1,
+          3
+         ],
+         [
+          113.0,
+          134,
+          84,
+          26,
+          1,
+          6,
+          0,
+          1,
+          0,
+          1,
+          3
+         ],
+         [
+          113.5,
+          134,
+          84,
+          27,
+          1,
+          9,
+          0,
+          2,
+          0,
+          1,
+          3
+         ],
+         [
+          114.0,
+          134,
+          84,
+          24,
+          1,
+          5,
+          0,
+          2,
+          0,
+          1,
+          3
+         ],
+         [
+          114.6,
+          134,
+          84,
+          26,
+          2,
+          5,
+          0,
+          2,
+          0,
+          1,
+          3
+         ],
+         [
+          115.1,
+          134,
+          84,
+          27,
+          1,
+          6,
+          0,
+          2,
+          0,
+          1,
+          3
+         ],
+         [
+          115.6,
+          134,
+          84,
+          27,
+          1,
+          6,
+          0,
+          1,
+          0,
+          1,
+          3
+         ],
+         [
+          116.2,
+          134,
+          84,
+          27,
+          0,
+          5,
+          0,
+          0,
+          0,
+          1,
+          3
+         ],
+         [
+          116.7,
+          134,
+          84,
+          27,
+          0,
+          8,
+          0,
+          0,
+          0,
+          1,
+          3
+         ],
+         [
+          117.2,
+          134,
+          84,
+          25,
+          1,
+          5,
+          0,
+          1,
+          0,
+          1,
+          3
+         ],
+         [
+          117.7,
+          134,
+          84,
+          26,
+          3,
+          7,
+          0,
+          2,
+          0,
+          1,
+          3
+         ],
+         [
+          118.3,
+          134,
+          84,
+          26,
+          1,
+          8,
+          0,
+          1,
+          0,
+          1,
+          3
+         ],
+         [
+          118.8,
+          134,
+          84,
+          27,
+          0,
+          7,
+          0,
+          1,
+          0,
+          1,
+          3
+         ],
+         [
+          119.3,
+          134,
+          84,
+          28,
+          0,
+          6,
+          0,
+          1,
+          0,
+          1,
+          3
+         ],
+         [
+          119.9,
+          134,
+          84,
+          28,
+          1,
+          5,
+          3,
+          1,
+          0,
+          1,
+          3
+         ],
+         [
+          120.4,
+          134,
+          84,
+          28,
+          0,
+          2,
+          3,
+          1,
+          0,
+          1,
+          3
+         ],
+         [
+          120.9,
+          134,
+          84,
+          28,
+          0,
+          3,
+          4,
+          0,
+          0,
+          1,
+          3
+         ],
+         [
+          121.4,
+          134,
+          84,
+          29,
+          0,
+          1,
+          4,
+          1,
+          1,
+          1,
+          3
+         ],
+         [
+          122.0,
+          134,
+          84,
+          29,
+          0,
+          1,
+          1,
+          0,
+          1,
+          1,
+          3
+         ],
+         [
+          122.5,
+          134,
+          84,
+          30,
+          0,
+          2,
+          1,
+          0,
+          1,
+          1,
+          3
+         ],
+         [
+          123.0,
+          134,
+          84,
+          31,
+          0,
+          5,
+          1,
+          0,
+          1,
+          1,
+          3
+         ],
+         [
+          123.6,
+          134,
+          84,
+          31,
+          0,
+          10,
+          1,
+          1,
+          0,
+          1,
+          3
+         ],
+         [
+          124.1,
+          100,
+          76,
+          28,
+          1,
+          7,
+          1,
+          3,
+          1,
+          1,
+          3
+         ],
+         [
+          124.6,
+          71,
+          69,
+          29,
+          3,
+          8,
+          0,
+          4,
+          1,
+          1,
+          3
+         ],
+         [
+          125.1,
+          40,
+          61,
+          30,
+          3,
+          8,
+          0,
+          4,
+          1,
+          1,
+          3
+         ],
+         [
+          125.7,
+          19,
+          53,
+          31,
+          3,
+          9,
+          0,
+          2,
+          1,
+          1,
+          3
+         ]
+        ]
+       }
+      ],
+      "src": "contact_tracer",
+      "t": 127,
+      "tl": [
+       [
+        112.5,
+        134,
+        84,
+        28,
+        1,
+        9,
+        0,
+        2,
+        0,
+        1,
+        3
+       ],
+       [
+        113.0,
+        134,
+        84,
+        26,
+        1,
+        6,
+        0,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        113.5,
+        134,
+        84,
+        27,
+        1,
+        9,
+        0,
+        2,
+        0,
+        1,
+        3
+       ],
+       [
+        114.0,
+        134,
+        84,
+        24,
+        1,
+        5,
+        0,
+        2,
+        0,
+        1,
+        3
+       ],
+       [
+        114.6,
+        134,
+        84,
+        26,
+        2,
+        5,
+        0,
+        2,
+        0,
+        1,
+        3
+       ],
+       [
+        115.1,
+        134,
+        84,
+        27,
+        1,
+        6,
+        0,
+        2,
+        0,
+        1,
+        3
+       ],
+       [
+        115.6,
+        134,
+        84,
+        27,
+        1,
+        6,
+        0,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        116.2,
+        134,
+        84,
+        27,
+        0,
+        5,
+        0,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        116.7,
+        134,
+        84,
+        27,
+        0,
+        8,
+        0,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        117.2,
+        134,
+        84,
+        25,
+        1,
+        5,
+        0,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        117.7,
+        134,
+        84,
+        26,
+        3,
+        7,
+        0,
+        2,
+        0,
+        1,
+        3
+       ],
+       [
+        118.3,
+        134,
+        84,
+        26,
+        1,
+        8,
+        0,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        118.8,
+        134,
+        84,
+        27,
+        0,
+        7,
+        0,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        119.3,
+        134,
+        84,
+        28,
+        0,
+        6,
+        0,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        119.9,
+        134,
+        84,
+        28,
+        1,
+        5,
+        3,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        120.4,
+        134,
+        84,
+        28,
+        0,
+        2,
+        3,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        120.9,
+        134,
+        84,
+        28,
+        0,
+        3,
+        4,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        121.4,
+        134,
+        84,
+        29,
+        0,
+        1,
+        4,
+        1,
+        1,
+        1,
+        3
+       ],
+       [
+        122.0,
+        134,
+        84,
+        29,
+        0,
+        1,
+        1,
+        0,
+        1,
+        1,
+        3
+       ],
+       [
+        122.5,
+        134,
+        84,
+        30,
+        0,
+        2,
+        1,
+        0,
+        1,
+        1,
+        3
+       ],
+       [
+        123.0,
+        134,
+        84,
+        31,
+        0,
+        5,
+        1,
+        0,
+        1,
+        1,
+        3
+       ],
+       [
+        123.6,
+        134,
+        84,
+        31,
+        0,
+        10,
+        1,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        124.1,
+        100,
+        76,
+        28,
+        1,
+        7,
+        1,
+        3,
+        1,
+        1,
+        3
+       ],
+       [
+        124.6,
+        71,
+        69,
+        29,
+        3,
+        8,
+        0,
+        4,
+        1,
+        1,
+        3
+       ],
+       [
+        125.1,
+        40,
+        61,
+        30,
+        3,
+        8,
+        0,
+        4,
+        1,
+        1,
+        3
+       ],
+       [
+        125.7,
+        19,
+        53,
+        31,
+        3,
+        9,
+        0,
+        2,
+        1,
+        1,
+        3
+       ],
+       [
+        126.2,
+        21,
+        53,
+        30,
+        2,
+        7,
+        0,
+        3,
+        0,
+        1,
+        3
+       ],
+       [
+        126.7,
+        22,
+        53,
+        31,
+        1,
+        8,
+        0,
+        2,
+        0,
+        1,
+        3
+       ],
+       [
+        127.2,
+        23,
+        53,
+        32,
+        0,
+        7,
+        0,
+        0,
+        0,
+        1,
+        3
+       ]
+      ],
+      "zone_out": false,
+      "zone_phase": -1,
+      "zone_state": 0
+     },
+     "floors": [],
+     "hits": 56,
+     "hits_pm": 26.4,
+     "king_low_s": 0,
+     "lamp_end": 46,
+     "lamp_gain": {
+      "精英灯油": 4
+     },
+     "lamp_loss": {
+      "受击": 58
+     },
+     "lamp_s": [
+      123,
+      2,
+      0,
+      0
+     ],
+     "lamp_taken": [
+      131,
+      92,
+      0,
+      0
+     ],
+     "low20_s": 1,
+     "low_hp_s": 2,
+     "moved_pm": 9749,
+     "peak": [
+      39,
+      6,
+      8,
+      158,
+      26
+     ],
+     "peak_min": [
+      [
+       25,
+       1,
+       8,
+       60,
+       9
+      ],
+      [
+       39,
+       6,
+       6,
+       158,
+       26
+      ],
+      [
+       32,
+       5,
+       6,
+       108,
+       18
+      ]
+     ],
+     "profile": "expert",
+     "reaper_drain_deaths": 0,
+     "recruit_t": [
+      71
+     ],
+     "still_pct": 1,
+     "taken": 223,
+     "taken_pm": 105
+    },
+    "cmd": {
+     "aggro": 32,
+     "downs": 0,
+     "roam": 34.5,
+     "sortie_downs": 0,
+     "sorties": 4,
+     "switch": 13
+    },
+    "crates": 2,
+    "cross_picks": [
+     [
+      "m1",
+      "incident",
+      "flame",
+      3
+     ]
+    ],
+    "ctrl": {
+     "aslow_slow": 0,
+     "aslow_t": 0.0,
+     "boss_t": 0.0,
+     "floor": 0.7,
+     "move_min": 1.0,
+     "slow_min": 1.0,
+     "stun_slow": 0,
+     "stun_t": 0.0
+    },
+    "ctrl_src": {
+     "boss": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "founder": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "other": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "skimmer": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "slow_any_t": 0.0
+    },
+    "dashes": 0,
+    "dmg": {
+     "atk_tracer": 68.0320028327531,
+     "bullet": 12.8961515673117,
+     "contact_tracer": 168.32404985815,
+     "corrode": 8.59743437820783
+    },
+    "drone": 0,
+    "duck": {
+     "boss_overlap": 0,
+     "fled": 0,
+     "fled_hp": [],
+     "kill_hits": [],
+     "kill_t": [],
+     "killed": 0,
+     "spawn_t": [],
+     "spawned": 0
+    },
+    "elite_stage": 2,
+    "elites": 1,
+    "ending": "standard",
+    "final_out": {
+     "技能连携·引力环·angelina": 711.876054165815,
+     "狐火": 9994.37122918039,
+     "狐火点点": 3127.40843316691,
+     "秘杖·速充模式": 1916.10984855525,
+     "重力弹": 1085.72230295602,
+     "镰扫": 4470.81978199562
+    },
+    "floor_hits": 0,
+    "floor_times": [],
+    "fuse": {
+     "left": 0,
+     "pct": 0.0,
+     "pool": 0,
+     "t": -1
+    },
+    "growth": {},
+    "heal": {
+     "化被草木": 26.9558833904626,
+     "商店": 0.0,
+     "拾取": 0.0,
+     "禾苗": 2.4219,
+     "自身回复": 17.0317458873294,
+     "补给": 57.2009529217783,
+     "铃兰": 9.15405133789822
+    },
+    "heal_offer": 0,
+    "heal_offer_low": 0,
+    "heal_pick": 0,
+    "hordes": [
+     {
+      "comp": {
+       "bone": 8,
+       "slider": 7
+      },
+      "hp": 1245,
+      "hp0": 117,
+      "minhp": 59,
+      "mix": "滑行群",
+      "n": 15,
+      "t": 75,
+      "t80": 10
+     }
+    ],
+    "ingots": 5,
+    "items": {
+     "crate_shield": 0,
+     "heal_elite": 1,
+     "heal_low": 0,
+     "heal_mob": 0,
+     "heal_pick": 1,
+     "magnet_elite": 0,
+     "magnet_mob": 3,
+     "magnet_pick": 2,
+     "mob_capped": 0,
+     "mob_rolled": 193,
+     "pack_drop": 2,
+     "pack_pick": 2
+    },
+    "kill_hits": {
+     "0:bone": [
+      42,
+      42,
+      0.0
+     ],
+     "0:slider": [
+      9,
+      13,
+      0.26
+     ],
+     "0:stone": [
+      5,
+      17,
+      2.97
+     ],
+     "1:bone": [
+      81,
+      137,
+      47.97
+     ],
+     "1:floater": [
+      2,
+      13,
+      16.7
+     ],
+     "1:slider": [
+      31,
+      104,
+      33.97
+     ],
+     "1:spitter": [
+      3,
+      63,
+      35.64
+     ],
+     "1:stone": [
+      7,
+      51,
+      21.37
+     ],
+     "1:tracer": [
+      1,
+      36,
+      22.31
+     ],
+     "2:bone": [
+      7,
+      16,
+      13.19
+     ],
+     "2:floater": [
+      1,
+      3,
+      0.59
+     ],
+     "2:slider": [
+      2,
+      13,
+      5.35
+     ],
+     "2:stone": [
+      2,
+      11,
+      5.02
+     ]
+    },
+    "kills": 194,
+    "lamp": 46,
+    "levelup_t": [
+     11,
+     33,
+     48,
+     71,
+     83,
+     103,
+     122
+    ],
+    "low_levelups": 0,
+    "lv": 8,
+    "lv_times": [
+     11,
+     33,
+     48,
+     70,
+     83,
+     103,
+     122
+    ],
+    "marks": {
+     "120": 7
+    },
+    "maxhp": 134.55,
+    "meta": 0,
+    "ops": [
+     {
+      "elite": 2,
+      "id": "suzuran",
+      "prog": 6
+     },
+     {
+      "elite": 0,
+      "id": "shu",
+      "prog": 0
+     },
+     {
+      "elite": 0,
+      "id": "angelina",
+      "prog": 0
+     }
+    ],
+    "out": {
+     "技能连携·引力环·angelina": 711.876054165815,
+     "狐火": 9994.37122918039,
+     "狐火点点": 3127.40843316691,
+     "秘杖·速充模式": 1916.10984855525,
+     "重力弹": 1085.72230295602,
+     "镰扫": 4470.81978199562
+    },
+    "out_tag": {
+     "area": 20594.4315958542,
+     "basic": 5556.54208495164,
+     "control": 12996.2033806917,
+     "entity": 3127.40843316691,
+     "pierce": 2133.30496386493,
+     "projectile": 11080.0935321364,
+     "skill": 2627.98590272107,
+     "连携": 1423.75210833163
+    },
+    "out_type": {
+     "法术": 16123.6118138586,
+     "物理": 5182.69583616144
+    },
+    "prof": {},
+    "prog_log": [
+     [
+      11,
+      "suzuran",
+      1
+     ],
+     [
+      33,
+      "suzuran",
+      2
+     ],
+     [
+      48,
+      "suzuran",
+      3
+     ],
+     [
+      83,
+      "suzuran",
+      4
+     ],
+     [
+      103,
+      "suzuran",
+      5
+     ],
+     [
+      122,
+      "suzuran",
+      6
+     ]
+    ],
+    "prog_offer": {
+     "shu": 2,
+     "suzuran": 7
+    },
+    "prog_pick": {
+     "suzuran": 6
+    },
+    "recall_backstop": 0,
+    "recall_n": 8,
+    "recruit_offers": [
+     [
+      71,
+      "recruit",
+      2
+     ],
+     [
+      103,
+      "swap",
+      3
+     ]
+    ],
+    "rej": {},
+    "relic_offer": [
+     [
+      120,
+      "shop",
+      [
+       "24",
+       "224",
+       "16"
+      ]
+     ]
+    ],
+    "relic_out": 0.0,
+    "relic_take": [
+     [
+      121,
+      "24",
+      [
+       "辅助",
+       "重装",
+       "辅助"
+      ],
+      "shop"
+     ]
+    ],
+    "relics": 1,
+    "shield": {
+     "abs": 0.0,
+     "blocks": 0,
+     "every": 15.0,
+     "max": 0,
+     "peak": 0,
+     "src_int": [],
+     "src_max": [],
+     "t0": -1.0
+    },
+    "squad": [
+     "suzuran",
+     "shu",
+     "angelina"
+    ],
+    "sus": {
+     "m0": {
+      "clean": {},
+      "dr": {},
+      "heal": {
+       "化被草木·技能": [
+        26.9558833904626,
+        33.6375
+       ],
+       "商店": [
+        0.0,
+        53.82
+       ],
+       "拾取": [
+        0.0,
+        40.365
+       ],
+       "禾苗": [
+        2.4219,
+        2.4219
+       ],
+       "铃兰": [
+        9.15405133789822,
+        9.6876
+       ]
+      },
+      "lit": 0.0
+     }
+    },
+    "swaps": [],
+    "t": 127,
+    "tel": "full",
+    "terrain": {
+     "bul": 4,
+     "dash": 0,
+     "ebul": 0
+    },
+    "ult": {
+     "combo": 1,
+     "combo_auto": 1,
+     "combo_up": 0,
+     "cult": 0,
+     "cult_times": [],
+     "e_combo": 0.6,
+     "e_hurt": 2.1,
+     "e_kill": 16.5,
+     "e_out": 33.9,
+     "first_full": -1.0,
+     "full_times": [],
+     "hit_n": 0,
+     "idle_full_s": 0.0,
+     "link_by": {
+      "angelina": 1
+     },
+     "lit": 1,
+     "lit_by": {},
+     "miss": 0,
+     "ult": 0,
+     "ult_times": []
+    },
+    "win": false,
+    "xp_backstop": 0.0,
+    "xp_dropped": 557.5,
+    "xp_ground": 57.5,
+    "xp_magnet": 2.5,
+    "xp_magnet_min": [
+     2.5
+    ],
+    "xp_recall": 37.5,
+    "xp_recall_min": [
+     5.0,
+     32.5
+    ],
+    "xp_total": 500.0,
+    "xp_total_min": [
+     142.5,
+     317.5,
+     40.0
+    ],
+    "xp_walk": 460.0,
+    "xp_walk_min": [
+     135.0,
+     285.0,
+     40.0
+    ]
+   }
+  },
+  {
+   "squad": [
+    "suzuran",
+    "shu"
+   ],
+   "seed": 3,
+   "diff": 0,
+   "bot": "expert",
+   "tier": 0,
+   "placebo": 0,
+   "wall": 33.3,
+   "data": {
+    "allies": 2,
+    "armor_cf": {
+     "m0": {
+      "a2": 112.352095009212,
+      "a4": 96.3520950092119,
+      "a8": 64.3520950092119,
+      "all": 155.634116101655,
+      "armor": 12.0,
+      "n": 11,
+      "phys": 128.352095009212,
+      "phys_n": 8,
+      "phys_pre": 140.352095009212
+     },
+     "m4": {
+      "a2": 319.668541006323,
+      "a4": 283.066390221799,
+      "a8": 211.066390221799,
+      "all": 368.707089160025,
+      "armor": 33.0,
+      "n": 23,
+      "phys": 363.668541006323,
+      "phys_n": 22,
+      "phys_pre": 396.668541006322
+     }
+    },
+    "boss_hp": 0.210942580672665,
+    "bosses": [
+     "carmen:21%"
+    ],
+    "bot": {
+     "bosses": [
+      {
+       "en_alive": 31,
+       "en_alive_pk": 39,
+       "en_near": 11,
+       "en_near_pk": 23,
+       "gates": 1,
+       "on_boss": 0.42,
+       "shield": 0.0,
+       "t0": 210,
+       "t1": -1,
+       "tv": 210,
+       "type": "carmen",
+       "windows": [
+        {
+         "en": 34,
+         "hits": 0,
+         "hp": 1.0,
+         "moves": 0,
+         "out": 0,
+         "t": 0
+        },
+        {
+         "en": 35,
+         "hits": 6,
+         "hp": 0.87,
+         "moves": 2,
+         "out": 5438,
+         "t": 15
+        },
+        {
+         "en": 26,
+         "hits": 87,
+         "hp": 0.73,
+         "moves": 1,
+         "out": 7726,
+         "t": 30
+        },
+        {
+         "en": 26,
+         "hits": 10,
+         "hp": 0.51,
+         "moves": 3,
+         "out": 9809,
+         "t": 45
+        },
+        {
+         "en": 37,
+         "hits": 29,
+         "hp": 0.38,
+         "moves": 10,
+         "out": 6663,
+         "t": 60
+        },
+        {
+         "en": 32,
+         "hits": 33,
+         "hp": 0.25,
+         "moves": 5,
+         "out": 8092,
+         "t": 75
+        }
+       ]
+      }
+     ],
+     "cap_stats": {
+      "any_cut": 0.0,
+      "any_n": 0,
+      "big_n": 0,
+      "boss_cut": 0.0,
+      "boss_n": 0,
+      "hits": 603,
+      "one_cut": 0.0,
+      "one_n": 0,
+      "post": 631.8,
+      "pre": 631.8,
+      "zero": 0
+     },
+     "curve": [
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 0,
+       "hp": 100,
+       "hpm": 1.23,
+       "hpmin": 100,
+       "hsrc": {},
+       "kills": 0,
+       "lamp": 100,
+       "lampmin": 100,
+       "lv": 1,
+       "mhp": 119,
+       "mire_s": 0.0,
+       "mires": 0,
+       "outc": 0,
+       "rg": 0.95,
+       "squad": 2,
+       "t": 0,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 16,
+       "hp": 100,
+       "hpm": 1.57,
+       "hpmin": 100,
+       "hsrc": {},
+       "kills": 16,
+       "lamp": 100,
+       "lampmin": 100,
+       "lv": 2,
+       "mhp": 119,
+       "mire_s": 0.0,
+       "mires": 0,
+       "outc": 588,
+       "rg": 0.95,
+       "squad": 2,
+       "t": 30,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 0,
+       "elites": 1,
+       "enemies": 11,
+       "hp": 91,
+       "hpm": 1.9,
+       "hpmin": 85,
+       "hsrc": {
+        "自身回复": 4,
+        "铃兰": 2
+       },
+       "kills": 63,
+       "lamp": 100,
+       "lampmin": 100,
+       "lv": 4,
+       "mhp": 119,
+       "mire_s": 0.0,
+       "mires": 0,
+       "outc": 2021,
+       "rg": 0.95,
+       "squad": 2,
+       "t": 60,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 7,
+       "elites": 0,
+       "enemies": 17,
+       "hp": 100,
+       "hpm": 2.24,
+       "hpmin": 91,
+       "hsrc": {
+        "自身回复": 6,
+        "铃兰": 3
+       },
+       "kills": 125,
+       "lamp": 100,
+       "lampmin": 100,
+       "lv": 6,
+       "mhp": 134,
+       "mire_s": 0.0,
+       "mires": 6,
+       "outc": 7101,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 90,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 0,
+       "elites": 1,
+       "enemies": 30,
+       "hp": 100,
+       "hpm": 2.57,
+       "hpmin": 100,
+       "hsrc": {},
+       "kills": 173,
+       "lamp": 100,
+       "lampmin": 100,
+       "lv": 8,
+       "mhp": 141,
+       "mire_s": 0.0,
+       "mires": 11,
+       "outc": 11296,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 120,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 3,
+       "elites": 0,
+       "enemies": 29,
+       "hp": 100,
+       "hpm": 2.91,
+       "hpmin": 100,
+       "hsrc": {},
+       "kills": 241,
+       "lamp": 100,
+       "lampmin": 100,
+       "lv": 9,
+       "mhp": 141,
+       "mire_s": 0.0,
+       "mires": 7,
+       "outc": 19062,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 150,
+       "taken": 0,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "contact_tracer": 16
+       },
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 37,
+       "hp": 100,
+       "hpm": 3.25,
+       "hpmin": 88,
+       "hsrc": {
+        "拾取": 9,
+        "禾苗": 1,
+        "自身回复": 4
+       },
+       "kills": 334,
+       "lamp": 100,
+       "lampmin": 95,
+       "lv": 11,
+       "mhp": 105,
+       "mire_s": 0.0,
+       "mires": 10,
+       "outc": 30669,
+       "rg": 2.69,
+       "squad": 3,
+       "t": 180,
+       "taken": 16,
+       "zone": 2
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "bullet": 9,
+        "contact_tracer": 12,
+        "corrode": 6
+       },
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 33,
+       "hp": 93,
+       "hpm": 3.58,
+       "hpmin": 87,
+       "hsrc": {
+        "化被草木": 5,
+        "拾取": 10,
+        "自身回复": 4,
+        "铃兰": 1
+       },
+       "kills": 421,
+       "lamp": 90,
+       "lampmin": 90,
+       "lv": 12,
+       "mhp": 105,
+       "mire_s": 0.1,
+       "mires": 22,
+       "outc": 41589,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 210,
+       "taken": 29,
+       "zone": 3
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "boss_carmen": 99,
+        "bullet": 18,
+        "corrode": 13,
+        "mire": 6
+       },
+       "ebul": 19,
+       "elites": 0,
+       "enemies": 25,
+       "hp": 100,
+       "hpm": 3.92,
+       "hpmin": 39,
+       "hsrc": {
+        "化被草木": 43,
+        "嘉禾盈仓": 25,
+        "禾苗": 5,
+        "自身回复": 26,
+        "补给": 29,
+        "铃兰": 12
+       },
+       "kills": 473,
+       "lamp": 47,
+       "lampmin": 47,
+       "lv": 12,
+       "mhp": 105,
+       "mire_s": 0.1,
+       "mires": 22,
+       "outc": 54589,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 240,
+       "taken": 137,
+       "zone": 3
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "atk_stone": 6,
+        "atk_tracer": 3,
+        "boss_carmen": 113,
+        "bullet": 13,
+        "contact_tracer": 112,
+        "corrode": 2
+       },
+       "ebul": 66,
+       "elites": 0,
+       "enemies": 36,
+       "hp": 40,
+       "hpm": 4.25,
+       "hpmin": 29,
+       "hsrc": {
+        "化被草木": 42,
+        "嘉禾盈仓": 27,
+        "拾取": 21,
+        "禾苗": 6,
+        "自身回复": 56,
+        "补给": 31,
+        "铃兰": 13
+       },
+       "kills": 518,
+       "lamp": 0,
+       "lampmin": 0,
+       "lv": 13,
+       "mhp": 105,
+       "mire_s": 0.0,
+       "mires": 20,
+       "outc": 70568,
+       "rg": 2.69,
+       "squad": 3,
+       "t": 270,
+       "taken": 250,
+       "zone": 3
+      }
+     ],
+     "curve_tail": {
+      "dsrc": {
+       "atk_stone": 3,
+       "boss_carmen": 49,
+       "bullet": 5,
+       "contact_tracer": 24,
+       "corrode": 3
+      },
+      "hsrc": {
+       "化被草木": 50,
+       "嘉禾盈仓": 25,
+       "禾苗": 6,
+       "自身回复": 34,
+       "铃兰": 12
+      },
+      "mhp": 105,
+      "t": 290,
+      "t0": 270,
+      "taken": 86
+     },
+     "dark_dmg": 74,
+     "dark_s": 24,
+     "death_src": "contact_tracer",
+     "elite_t": {
+      "shu:1": 179,
+      "suzuran:1": 48,
+      "suzuran:2": 116
+     },
+     "end": {
+      "boss": true,
+      "hits2": [
+       [
+        275.7,
+        "dark",
+        "env:dark",
+        0,
+        1.6,
+        1.6,
+        65
+       ],
+       [
+        276.2,
+        "dark",
+        "env:dark",
+        0,
+        1.4,
+        1.4,
+        68
+       ],
+       [
+        276.7,
+        "dark",
+        "env:dark",
+        0,
+        1.6,
+        1.6,
+        70
+       ],
+       [
+        277.2,
+        "dark",
+        "env:dark",
+        0,
+        1.4,
+        1.4,
+        72
+       ],
+       [
+        277.7,
+        "dark",
+        "env:dark",
+        0,
+        1.6,
+        1.6,
+        71
+       ],
+       [
+        278.2,
+        "dark",
+        "env:dark",
+        0,
+        1.4,
+        1.4,
+        71
+       ],
+       [
+        278.7,
+        "dark",
+        "env:dark",
+        0,
+        1.6,
+        1.6,
+        75
+       ],
+       [
+        279.2,
+        "dark",
+        "env:dark",
+        0,
+        1.6,
+        1.6,
+        74
+       ],
+       [
+        279.7,
+        "dark",
+        "env:dark",
+        0,
+        1.4,
+        1.4,
+        74
+       ],
+       [
+        280.2,
+        "dark",
+        "env:dark",
+        0,
+        1.6,
+        1.6,
+        73
+       ],
+       [
+        280.7,
+        "dark",
+        "env:dark",
+        0,
+        1.4,
+        1.4,
+        72
+       ],
+       [
+        281.2,
+        "dark",
+        "env:dark",
+        0,
+        1.6,
+        1.6,
+        71
+       ],
+       [
+        281.7,
+        "dark",
+        "env:dark",
+        0,
+        1.6,
+        1.6,
+        71
+       ],
+       [
+        282.2,
+        "dark",
+        "env:dark",
+        0,
+        1.4,
+        1.4,
+        70
+       ],
+       [
+        282.7,
+        "dark",
+        "env:dark",
+        0,
+        1.6,
+        1.6,
+        70
+       ],
+       [
+        283.2,
+        "dark",
+        "env:dark",
+        0,
+        1.4,
+        1.4,
+        75
+       ],
+       [
+        283.7,
+        "dark",
+        "env:dark",
+        0,
+        1.6,
+        1.6,
+        74
+       ],
+       [
+        284.2,
+        "dark",
+        "env:dark",
+        0,
+        1.4,
+        1.4,
+        74
+       ],
+       [
+        284.7,
+        "dark",
+        "env:dark",
+        0,
+        1.2,
+        1.2,
+        73
+       ],
+       [
+        285.0,
+        "atk_stone",
+        "e:stone",
+        0,
+        3.1,
+        3.1,
+        70
+       ],
+       [
+        285.1,
+        "dark",
+        "env:dark",
+        0,
+        1.4,
+        1.4,
+        70
+       ],
+       [
+        285.4,
+        "boss_carmen",
+        "e:carmen",
+        0,
+        16.4,
+        16.4,
+        54
+       ],
+       [
+        285.5,
+        "dark",
+        "env:dark",
+        0,
+        1.4,
+        1.4,
+        53
+       ],
+       [
+        286.0,
+        "dark",
+        "env:dark",
+        0,
+        1.4,
+        1.4,
+        58
+       ],
+       [
+        286.4,
+        "boss_carmen",
+        "e:carmen",
+        0,
+        18.9,
+        18.9,
+        39
+       ],
+       [
+        286.4,
+        "dark",
+        "env:dark",
+        0,
+        1.4,
+        1.4,
+        38
+       ],
+       [
+        286.9,
+        "dark",
+        "env:dark",
+        0,
+        0.4,
+        0.4,
+        38
+       ],
+       [
+        287.0,
+        "boss_carmen",
+        "e:carmen",
+        0,
+        14.6,
+        14.6,
+        24
+       ],
+       [
+        287.0,
+        "dark",
+        "env:dark",
+        0,
+        1.4,
+        1.4,
+        23
+       ],
+       [
+        287.5,
+        "dark",
+        "env:dark",
+        0,
+        1.4,
+        1.4,
+        27
+       ],
+       [
+        288.0,
+        "dark",
+        "env:dark",
+        0,
+        1.6,
+        1.6,
+        27
+       ],
+       [
+        288.5,
+        "dark",
+        "env:dark",
+        0,
+        1.0,
+        1.0,
+        26
+       ],
+       [
+        288.7,
+        "contact_tracer",
+        "e:tracer",
+        0,
+        12.2,
+        12.2,
+        14
+       ],
+       [
+        288.8,
+        "dark",
+        "env:dark",
+        0,
+        1.4,
+        1.4,
+        34
+       ],
+       [
+        289.3,
+        "dark",
+        "env:dark",
+        0,
+        0.2,
+        0.2,
+        34
+       ],
+       [
+        289.3,
+        "contact_tracer",
+        "e:tracer",
+        0,
+        12.2,
+        12.2,
+        21
+       ],
+       [
+        289.3,
+        "dark",
+        "env:dark",
+        0,
+        1.4,
+        1.4,
+        20
+       ],
+       [
+        289.8,
+        "dark",
+        "env:dark",
+        0,
+        1.4,
+        1.4,
+        24
+       ],
+       [
+        290.3,
+        "dark",
+        "env:dark",
+        0,
+        1.4,
+        1.4,
+        23
+       ],
+       [
+        290.7,
+        "boss_carmen",
+        "e:carmen",
+        0,
+        38.0,
+        38.0,
+        -14
+       ]
+      ],
+      "hp": 0,
+      "killer": {
+       "cause": "",
+       "key": "e:carmen"
+      },
+      "last15": {
+       "corrode_out": 0.1,
+       "corrode_peak": 0.0,
+       "dark_s": 15.0,
+       "ebullets_peak": 93,
+       "enemies_peak": 40,
+       "hits": [
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 64,
+         "src": "corrode",
+         "t": 275.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 65,
+         "src": "corrode",
+         "t": 275.6,
+         "zone_out": false
+        },
+        {
+         "amt": 3.1,
+         "boss": false,
+         "hp_after": 70,
+         "src": "atk_stone",
+         "t": 285.0,
+         "zone_out": false
+        },
+        {
+         "amt": 16.4,
+         "boss": true,
+         "hp_after": 54,
+         "src": "boss_carmen",
+         "t": 285.4,
+         "zone_out": false
+        },
+        {
+         "amt": 18.9,
+         "boss": true,
+         "hp_after": 39,
+         "src": "boss_carmen",
+         "t": 286.4,
+         "zone_out": false
+        },
+        {
+         "amt": 14.6,
+         "boss": true,
+         "hp_after": 24,
+         "src": "boss_carmen",
+         "t": 287.0,
+         "zone_out": false
+        },
+        {
+         "amt": 12.2,
+         "boss": false,
+         "hp_after": 14,
+         "src": "contact_tracer",
+         "t": 288.7,
+         "zone_out": false
+        },
+        {
+         "amt": 12.2,
+         "boss": false,
+         "hp_after": 21,
+         "src": "contact_tracer",
+         "t": 289.3,
+         "zone_out": false
+        }
+       ],
+       "mire_s": 0.0,
+       "nerve_bursts": 0,
+       "t": 290.7
+      },
+      "near": [
+       {
+        "hp": 17,
+        "mhp": 105,
+        "src": {
+         "atk_stone": 3.1,
+         "boss_carmen": 49.9,
+         "contact_tracer": 12.2,
+         "corrode": 2.8,
+         "dark": 45.4
+        },
+        "t": 288.8,
+        "tl": [
+         [
+          274.0,
+          52,
+          0,
+          28,
+          1,
+          12,
+          33,
+          4,
+          1,
+          1,
+          3
+         ],
+         [
+          274.6,
+          54,
+          0,
+          28,
+          0,
+          13,
+          62,
+          2,
+          0,
+          1,
+          3
+         ],
+         [
+          275.1,
+          62,
+          0,
+          29,
+          1,
+          12,
+          92,
+          4,
+          0,
+          1,
+          3
+         ],
+         [
+          275.6,
+          65,
+          0,
+          31,
+          1,
+          12,
+          84,
+          6,
+          0,
+          1,
+          3
+         ],
+         [
+          276.1,
+          65,
+          0,
+          31,
+          1,
+          12,
+          60,
+          5,
+          0,
+          1,
+          3
+         ],
+         [
+          276.7,
+          69,
+          0,
+          32,
+          3,
+          10,
+          60,
+          3,
+          0,
+          1,
+          3
+         ],
+         [
+          277.2,
+          73,
+          0,
+          32,
+          3,
+          10,
+          93,
+          2,
+          0,
+          1,
+          3
+         ],
+         [
+          277.7,
+          72,
+          0,
+          31,
+          2,
+          9,
+          62,
+          2,
+          0,
+          1,
+          3
+         ],
+         [
+          278.3,
+          71,
+          0,
+          31,
+          2,
+          6,
+          32,
+          3,
+          0,
+          1,
+          3
+         ],
+         [
+          278.8,
+          71,
+          0,
+          31,
+          2,
+          7,
+          62,
+          2,
+          0,
+          1,
+          3
+         ],
+         [
+          279.3,
+          75,
+          0,
+          32,
+          0,
+          8,
+          92,
+          4,
+          0,
+          1,
+          3
+         ],
+         [
+          279.8,
+          74,
+          0,
+          32,
+          2,
+          3,
+          68,
+          3,
+          0,
+          1,
+          3
+         ],
+         [
+          280.4,
+          73,
+          0,
+          33,
+          3,
+          3,
+          60,
+          3,
+          0,
+          1,
+          3
+         ],
+         [
+          280.9,
+          73,
+          0,
+          33,
+          0,
+          3,
+          68,
+          1,
+          0,
+          1,
+          3
+         ],
+         [
+          281.4,
+          72,
+          0,
+          33,
+          0,
+          2,
+          62,
+          0,
+          0,
+          1,
+          3
+         ],
+         [
+          282.0,
+          71,
+          0,
+          34,
+          0,
+          4,
+          32,
+          0,
+          0,
+          1,
+          3
+         ],
+         [
+          282.5,
+          71,
+          0,
+          30,
+          0,
+          3,
+          32,
+          0,
+          0,
+          1,
+          3
+         ],
+         [
+          283.0,
+          70,
+          0,
+          31,
+          0,
+          4,
+          32,
+          0,
+          0,
+          1,
+          3
+         ],
+         [
+          283.5,
+          75,
+          0,
+          29,
+          0,
+          1,
+          32,
+          0,
+          0,
+          1,
+          3
+         ],
+         [
+          284.1,
+          75,
+          0,
+          30,
+          0,
+          2,
+          0,
+          1,
+          0,
+          1,
+          3
+         ],
+         [
+          284.6,
+          74,
+          0,
+          29,
+          0,
+          1,
+          0,
+          0,
+          0,
+          1,
+          3
+         ],
+         [
+          285.1,
+          71,
+          0,
+          30,
+          0,
+          2,
+          0,
+          0,
+          1,
+          1,
+          3
+         ],
+         [
+          285.6,
+          53,
+          0,
+          31,
+          0,
+          2,
+          0,
+          0,
+          1,
+          1,
+          3
+         ],
+         [
+          286.2,
+          53,
+          0,
+          32,
+          0,
+          6,
+          0,
+          0,
+          0,
+          1,
+          3
+         ],
+         [
+          286.7,
+          39,
+          0,
+          33,
+          0,
+          5,
+          1,
+          0,
+          1,
+          1,
+          3
+         ],
+         [
+          287.2,
+          24,
+          0,
+          34,
+          0,
+          7,
+          1,
+          1,
+          1,
+          1,
+          3
+         ],
+         [
+          287.8,
+          24,
+          0,
+          35,
+          2,
+          10,
+          2,
+          3,
+          0,
+          1,
+          3
+         ],
+         [
+          288.3,
+          27,
+          0,
+          36,
+          2,
+          12,
+          1,
+          3,
+          0,
+          1,
+          3
+         ],
+         [
+          288.8,
+          17,
+          0,
+          37,
+          1,
+          13,
+          0,
+          2,
+          1,
+          1,
+          3
+         ]
+        ]
+       }
+      ],
+      "src": "contact_tracer",
+      "t": 290,
+      "tl": [
+       [
+        275.6,
+        65,
+        0,
+        31,
+        1,
+        12,
+        84,
+        6,
+        0,
+        1,
+        3
+       ],
+       [
+        276.1,
+        65,
+        0,
+        31,
+        1,
+        12,
+        60,
+        5,
+        0,
+        1,
+        3
+       ],
+       [
+        276.7,
+        69,
+        0,
+        32,
+        3,
+        10,
+        60,
+        3,
+        0,
+        1,
+        3
+       ],
+       [
+        277.2,
+        73,
+        0,
+        32,
+        3,
+        10,
+        93,
+        2,
+        0,
+        1,
+        3
+       ],
+       [
+        277.7,
+        72,
+        0,
+        31,
+        2,
+        9,
+        62,
+        2,
+        0,
+        1,
+        3
+       ],
+       [
+        278.3,
+        71,
+        0,
+        31,
+        2,
+        6,
+        32,
+        3,
+        0,
+        1,
+        3
+       ],
+       [
+        278.8,
+        71,
+        0,
+        31,
+        2,
+        7,
+        62,
+        2,
+        0,
+        1,
+        3
+       ],
+       [
+        279.3,
+        75,
+        0,
+        32,
+        0,
+        8,
+        92,
+        4,
+        0,
+        1,
+        3
+       ],
+       [
+        279.8,
+        74,
+        0,
+        32,
+        2,
+        3,
+        68,
+        3,
+        0,
+        1,
+        3
+       ],
+       [
+        280.4,
+        73,
+        0,
+        33,
+        3,
+        3,
+        60,
+        3,
+        0,
+        1,
+        3
+       ],
+       [
+        280.9,
+        73,
+        0,
+        33,
+        0,
+        3,
+        68,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        281.4,
+        72,
+        0,
+        33,
+        0,
+        2,
+        62,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        282.0,
+        71,
+        0,
+        34,
+        0,
+        4,
+        32,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        282.5,
+        71,
+        0,
+        30,
+        0,
+        3,
+        32,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        283.0,
+        70,
+        0,
+        31,
+        0,
+        4,
+        32,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        283.5,
+        75,
+        0,
+        29,
+        0,
+        1,
+        32,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        284.1,
+        75,
+        0,
+        30,
+        0,
+        2,
+        0,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        284.6,
+        74,
+        0,
+        29,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        285.1,
+        71,
+        0,
+        30,
+        0,
+        2,
+        0,
+        0,
+        1,
+        1,
+        3
+       ],
+       [
+        285.6,
+        53,
+        0,
+        31,
+        0,
+        2,
+        0,
+        0,
+        1,
+        1,
+        3
+       ],
+       [
+        286.2,
+        53,
+        0,
+        32,
+        0,
+        6,
+        0,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        286.7,
+        39,
+        0,
+        33,
+        0,
+        5,
+        1,
+        0,
+        1,
+        1,
+        3
+       ],
+       [
+        287.2,
+        24,
+        0,
+        34,
+        0,
+        7,
+        1,
+        1,
+        1,
+        1,
+        3
+       ],
+       [
+        287.8,
+        24,
+        0,
+        35,
+        2,
+        10,
+        2,
+        3,
+        0,
+        1,
+        3
+       ],
+       [
+        288.3,
+        27,
+        0,
+        36,
+        2,
+        12,
+        1,
+        3,
+        0,
+        1,
+        3
+       ],
+       [
+        288.8,
+        17,
+        0,
+        37,
+        1,
+        13,
+        0,
+        2,
+        1,
+        1,
+        3
+       ],
+       [
+        289.3,
+        21,
+        0,
+        38,
+        1,
+        12,
+        0,
+        4,
+        1,
+        1,
+        3
+       ],
+       [
+        289.9,
+        23,
+        0,
+        39,
+        3,
+        10,
+        0,
+        3,
+        0,
+        1,
+        3
+       ],
+       [
+        290.4,
+        23,
+        0,
+        40,
+        4,
+        9,
+        0,
+        5,
+        0,
+        1,
+        3
+       ]
+      ],
+      "zone_out": false,
+      "zone_phase": 0,
+      "zone_state": 3
+     },
+     "floors": [],
+     "hits": 216,
+     "hits_pm": 44.6,
+     "king_low_s": 0,
+     "lamp_end": 0,
+     "lamp_gain": {
+      "灯标": 20,
+      "精英灯油": 4
+     },
+     "lamp_loss": {
+      "受击": 124
+     },
+     "lamp_s": [
+      215,
+      31,
+      18,
+      24
+     ],
+     "lamp_taken": [
+      93,
+      144,
+      124,
+      157
+     ],
+     "low20_s": 0,
+     "low_hp_s": 4,
+     "moved_pm": 9443,
+     "peak": [
+      47,
+      95,
+      8,
+      258,
+      28
+     ],
+     "peak_min": [
+      [
+       17,
+       1,
+       8,
+       54,
+       5
+      ],
+      [
+       34,
+       8,
+       7,
+       127,
+       13
+      ],
+      [
+       47,
+       11,
+       5,
+       258,
+       28
+      ],
+      [
+       45,
+       20,
+       5,
+       150,
+       26
+      ],
+      [
+       40,
+       95,
+       5,
+       189,
+       8
+      ]
+     ],
+     "profile": "expert",
+     "reaper_drain_deaths": 0,
+     "recruit_t": [
+      81
+     ],
+     "still_pct": 3,
+     "taken": 519,
+     "taken_pm": 107
+    },
+    "cmd": {
+     "aggro": 63,
+     "downs": 0,
+     "roam": 71.6,
+     "sortie_downs": 0,
+     "sorties": 9,
+     "switch": 29
+    },
+    "crates": 5,
+    "cross_picks": [
+     [
+      "m1",
+      "incident",
+      "meeting",
+      0
+     ],
+     [
+      "m2",
+      "rest",
+      ""
+     ]
+    ],
+    "ctrl": {
+     "aslow_slow": 0,
+     "aslow_t": 0.0,
+     "boss_t": 80.72,
+     "floor": 0.7,
+     "move_min": 0.72,
+     "slow_min": 0.72,
+     "stun_slow": 0,
+     "stun_t": 0.0
+    },
+    "ctrl_src": {
+     "boss": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 12.61
+     },
+     "founder": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "other": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "skimmer": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "slow_any_t": 12.61
+    },
+    "dashes": 0,
+    "dmg": {
+     "atk_stone": 9.36932988968073,
+     "atk_tracer": 3.23282089484275,
+     "boss_carmen": 300.8267375808,
+     "bullet": 45.355369846466,
+     "contact_tracer": 165.556947049891,
+     "corrode": 26.0375862207209,
+     "mire": 6.975784981931
+    },
+    "drone": 0,
+    "duck": {
+     "boss_overlap": 0,
+     "fled": 0,
+     "fled_hp": [],
+     "kill_hits": [],
+     "kill_t": [],
+     "killed": 0,
+     "spawn_t": [],
+     "spawned": 0
+    },
+    "elite_stage": 2,
+    "elites": 4,
+    "ending": "standard",
+    "final_out": {
+     "定点爆破": 1988.69543673588,
+     "技能连携·掷锚·ulpianus": 1640.96458293493,
+     "掷锚": 9748.79383412666,
+     "撼地": 8004.64198764493,
+     "狐火": 27323.1200121815,
+     "狐火拖尾": 282.69200232,
+     "狐火点点": 7922.19319988517,
+     "终结技·suzuran·斩痕": 2447.74665714541,
+     "终结技·suzuran·瞬身": 1299.75677447365,
+     "锁链回旋": 947.783783765165,
+     "锚击": 11167.6220045242,
+     "镰扫": 7551.5426259529
+    },
+    "floor_hits": 0,
+    "floor_times": [],
+    "fuse": {
+     "left": 0,
+     "pct": 0.0,
+     "pool": 0,
+     "t": -1
+    },
+    "growth": {},
+    "heal": {
+     "化被草木": 141.920382332716,
+     "商店": 0.0,
+     "嘉禾盈仓": 78.7028448750002,
+     "拾取": 41.374526112087,
+     "禾苗": 19.496295,
+     "自身回复": 138.263466950723,
+     "补给": 61.6483777873551,
+     "铃兰": 47.5084759249583
+    },
+    "heal_offer": 0,
+    "heal_offer_low": 0,
+    "heal_pick": 0,
+    "hordes": [
+     {
+      "comp": {
+       "bone": 8,
+       "slider": 7
+      },
+      "hp": 1245,
+      "hp0": 119,
+      "minhp": 119,
+      "mix": "滑行群",
+      "n": 15,
+      "t": 75,
+      "t80": 9
+     },
+     {
+      "comp": {
+       "bone": 13,
+       "slider": 4,
+       "stone": 3
+      },
+      "hp": 2868,
+      "hp0": 141,
+      "minhp": 105,
+      "mix": "凿石阵",
+      "n": 20,
+      "t": 165,
+      "t80": 13
+     }
+    ],
+    "ingots": 48,
+    "items": {
+     "crate_shield": 1,
+     "heal_elite": 4,
+     "heal_low": 1,
+     "heal_mob": 6,
+     "heal_pick": 8,
+     "magnet_elite": 0,
+     "magnet_mob": 2,
+     "magnet_pick": 1,
+     "mob_capped": 109,
+     "mob_rolled": 440,
+     "pack_drop": 5,
+     "pack_pick": 2
+    },
+    "kill_hits": {
+     "0:bone": [
+      45,
+      48,
+      1.12
+     ],
+     "0:slider": [
+      13,
+      24,
+      4.16
+     ],
+     "0:stone": [
+      5,
+      16,
+      11.55
+     ],
+     "1:bone": [
+      64,
+      110,
+      24.23
+     ],
+     "1:floater": [
+      6,
+      20,
+      8.77
+     ],
+     "1:slider": [
+      30,
+      100,
+      36.49
+     ],
+     "1:stone": [
+      6,
+      23,
+      3.04
+     ],
+     "1:tracer": [
+      3,
+      91,
+      34.25
+     ],
+     "2:bone": [
+      91,
+      152,
+      51.4
+     ],
+     "2:floater": [
+      12,
+      37,
+      31.23
+     ],
+     "2:runner": [
+      1,
+      1,
+      0.0
+     ],
+     "2:slider": [
+      43,
+      112,
+      47.06
+     ],
+     "2:stone": [
+      7,
+      43,
+      24.94
+     ],
+     "2:tracer": [
+      4,
+      63,
+      24.03
+     ],
+     "3:bone": [
+      85,
+      277,
+      156.48
+     ],
+     "3:floater": [
+      11,
+      98,
+      69.36
+     ],
+     "3:runner": [
+      12,
+      29,
+      10.83
+     ],
+     "3:slider": [
+      20,
+      94,
+      48.4
+     ],
+     "3:spitter": [
+      3,
+      49,
+      49.37
+     ],
+     "3:stone": [
+      5,
+      74,
+      70.23
+     ],
+     "3:tracer": [
+      3,
+      86,
+      44.54
+     ],
+     "4:bone": [
+      41,
+      161,
+      107.76
+     ],
+     "4:floater": [
+      4,
+      31,
+      11.23
+     ],
+     "4:runner": [
+      7,
+      23,
+      8.84
+     ],
+     "4:slider": [
+      20,
+      89,
+      51.95
+     ],
+     "4:spitter": [
+      3,
+      55,
+      28.38
+     ],
+     "4:stone": [
+      4,
+      72,
+      63.43
+     ],
+     "4:tracer": [
+      1,
+      105,
+      45.94
+     ]
+    },
+    "kills": 553,
+    "lamp": 0,
+    "levelup_t": [
+     17,
+     33,
+     47,
+     65,
+     81,
+     99,
+     116,
+     138,
+     153,
+     179,
+     201,
+     250
+    ],
+    "low_levelups": 0,
+    "lv": 13,
+    "lv_times": [
+     16,
+     32,
+     47,
+     64,
+     81,
+     98,
+     116,
+     137,
+     152,
+     179,
+     200,
+     250
+    ],
+    "marks": {
+     "120": 8
+    },
+    "maxhp": 105.958125,
+    "meta": 0,
+    "ops": [
+     {
+      "elite": 2,
+      "id": "suzuran",
+      "prog": 6
+     },
+     {
+      "elite": 1,
+      "id": "shu",
+      "prog": 3
+     },
+     {
+      "elite": 0,
+      "id": "ulpianus",
+      "prog": 2
+     }
+    ],
+    "out": {
+     "定点爆破": 1988.69543673588,
+     "技能连携·掷锚·ulpianus": 1640.96458293493,
+     "掷锚": 9748.79383412666,
+     "撼地": 8004.64198764493,
+     "狐火": 27323.1200121815,
+     "狐火拖尾": 282.69200232,
+     "狐火点点": 7922.19319988517,
+     "终结技·suzuran·斩痕": 2447.74665714541,
+     "终结技·suzuran·瞬身": 1299.75677447365,
+     "锁链回旋": 947.783783765165,
+     "锚击": 11167.6220045242,
+     "镰扫": 7551.5426259529
+    },
+    "out_tag": {
+     "aftershock": 1988.69543673588,
+     "area": 74937.0848871366,
+     "basic": 29660.285838623,
+     "control": 27323.1200121815,
+     "entity": 8204.88520220516,
+     "pierce": 14096.8303920388,
+     "projectile": 27323.1200121815,
+     "skill": 15137.2618486806,
+     "终结技": 7495.00686323813,
+     "连携": 3281.92916586985
+    },
+    "out_type": {
+     "法术": 35528.0052143867,
+     "物理": 41050.0442556847,
+     "真实": 3747.50343161906
+    },
+    "prof": {},
+    "prog_log": [
+     [
+      17,
+      "suzuran",
+      1
+     ],
+     [
+      33,
+      "suzuran",
+      2
+     ],
+     [
+      47,
+      "suzuran",
+      3
+     ],
+     [
+      65,
+      "suzuran",
+      4
+     ],
+     [
+      99,
+      "suzuran",
+      5
+     ],
+     [
+      116,
+      "suzuran",
+      6
+     ],
+     [
+      138,
+      "shu",
+      1
+     ],
+     [
+      153,
+      "shu",
+      2
+     ],
+     [
+      179,
+      "shu",
+      3
+     ],
+     [
+      201,
+      "ulpianus",
+      1
+     ],
+     [
+      250,
+      "ulpianus",
+      2
+     ]
+    ],
+    "prog_offer": {
+     "shu": 6,
+     "suzuran": 7,
+     "ulpianus": 5
+    },
+    "prog_pick": {
+     "shu": 3,
+     "suzuran": 6,
+     "ulpianus": 2
+    },
+    "recall_backstop": 0,
+    "recall_n": 53,
+    "recruit_offers": [
+     [
+      47,
+      "recruit",
+      2
+     ],
+     [
+      81,
+      "recruit",
+      2
+     ]
+    ],
+    "rej": {},
+    "relic_offer": [
+     [
+      120,
+      "shop",
+      [
+       "180",
+       "23",
+       "103"
+      ]
+     ],
+     [
+      179,
+      "choice",
+      [
+       "63",
+       "104",
+       "236"
+      ],
+      "elite"
+     ]
+    ],
+    "relic_out": 0.0,
+    "relic_take": [
+     [
+      127,
+      "180",
+      [
+       "辅助",
+       "重装",
+       "近卫"
+      ],
+      "shop"
+     ],
+     [
+      127,
+      "23",
+      [
+       "辅助",
+       "重装",
+       "近卫"
+      ],
+      "shop"
+     ],
+     [
+      179,
+      "236",
+      [
+       "辅助",
+       "重装",
+       "近卫"
+      ],
+      "choice:elite"
+     ]
+    ],
+    "relics": 3,
+    "shield": {
+     "abs": 6.6,
+     "blocks": 1,
+     "every": 15.0,
+     "max": 0,
+     "peak": 0,
+     "src_int": [],
+     "src_max": [],
+     "t0": -1.0
+    },
+    "squad": [
+     "suzuran",
+     "shu",
+     "ulpianus"
+    ],
+    "sus": {
+     "m0": {
+      "clean": {},
+      "dr": {},
+      "heal": {
+       "商店": [
+        0.0,
+        56.511
+       ],
+       "拾取": [
+        9.83631181496207,
+        245.6055
+       ],
+       "禾苗": [
+        1.69533,
+        1.69533
+       ],
+       "铃兰": [
+        6.75441,
+        6.75441
+       ]
+      },
+      "lit": 0.0
+     },
+     "m3": {
+      "clean": {},
+      "dr": {
+       "shu": 84.5282409498705
+      },
+      "heal": {
+       "化被草木·技能": [
+        141.920382332716,
+        145.692421875
+       ],
+       "嘉禾盈仓·技能": [
+        78.7028448750002,
+        79.46859375
+       ],
+       "拾取": [
+        31.5382142971249,
+        63.574875
+       ],
+       "禾苗": [
+        17.800965,
+        17.800965
+       ],
+       "铃兰": [
+        40.7540659249582,
+        41.535585
+       ]
+      },
+      "lit": 0.0
+     }
+    },
+    "swaps": [],
+    "t": 290,
+    "tel": "full",
+    "terrain": {
+     "bul": 0,
+     "dash": 0,
+     "ebul": 1
+    },
+    "ult": {
+     "combo": 4,
+     "combo_auto": 4,
+     "combo_up": 0,
+     "cult": 0,
+     "cult_times": [],
+     "e_combo": 2.5,
+     "e_hurt": 7.9,
+     "e_kill": 40.7,
+     "e_out": 78.1,
+     "first_full": 159.7,
+     "full_times": [
+      159.7
+     ],
+     "hit_n": 37,
+     "idle_full_s": 3.4,
+     "link_by": {
+      "ulpianus": 4
+     },
+     "lit": 4,
+     "lit_by": {},
+     "miss": 0,
+     "ult": 1,
+     "ult_times": [
+      163.1
+     ]
+    },
+    "win": false,
+    "xp_backstop": 0.0,
+    "xp_dropped": 1815.6,
+    "xp_ground": 145.0,
+    "xp_magnet": 47.5,
+    "xp_magnet_min": [
+     0.0,
+     0.0,
+     47.5
+    ],
+    "xp_recall": 430.7,
+    "xp_recall_min": [
+     15.0,
+     81.7,
+     45.0,
+     107.5,
+     181.5
+    ],
+    "xp_total": 1670.6,
+    "xp_total_min": [
+     155.0,
+     347.5,
+     464.5,
+     392.1,
+     311.5
+    ],
+    "xp_walk": 1192.5,
+    "xp_walk_min": [
+     140.0,
+     265.8,
+     372.0,
+     284.6,
+     130.0
+    ]
+   }
+  },
+  {
+   "squad": [
+    "suzuran",
+    "shu"
+   ],
+   "seed": 4,
+   "diff": 0,
+   "bot": "expert",
+   "tier": 0,
+   "placebo": 0,
+   "wall": 73.5,
+   "data": {
+    "allies": 2,
+    "armor_cf": {
+     "m0": {
+      "a2": 300.176210228922,
+      "a4": 268.082402892088,
+      "a8": 208.176745365602,
+      "all": 364.295597473643,
+      "armor": 25.5,
+      "n": 21,
+      "phys": 334.176210228922,
+      "phys_n": 17,
+      "phys_pre": 359.676210228922
+     },
+     "m4": {
+      "a2": 229.980352517639,
+      "a4": 199.697206742933,
+      "a8": 145.037090767528,
+      "all": 293.96809541338,
+      "armor": 25.5,
+      "n": 21,
+      "phys": 263.962364825903,
+      "phys_n": 17,
+      "phys_pre": 289.462364825903
+     },
+     "m8": {
+      "a2": 202.159146343058,
+      "a4": 184.159146343058,
+      "a8": 149.197540031144,
+      "all": 552.134639800644,
+      "armor": 15.0,
+      "n": 25,
+      "phys": 220.786828478278,
+      "phys_n": 10,
+      "phys_pre": 235.786828478278
+     }
+    },
+    "boss_hp": 0.0,
+    "bosses": [
+     "carmen:dead",
+     "bishop:dead",
+     "immortal:dead",
+     "paranoia:dead"
+    ],
+    "bot": {
+     "bosses": [
+      {
+       "en_alive": 23,
+       "en_alive_pk": 35,
+       "en_near": 7,
+       "en_near_pk": 18,
+       "gates": 1,
+       "on_boss": 0.63,
+       "shield": 0.0,
+       "t0": 210,
+       "t1": 251,
+       "tv": 210,
+       "type": "carmen",
+       "windows": [
+        {
+         "en": 28,
+         "hits": 0,
+         "hp": 1.0,
+         "moves": 0,
+         "out": 0,
+         "t": 0
+        },
+        {
+         "en": 22,
+         "hits": 5,
+         "hp": 0.79,
+         "moves": 3,
+         "out": 9295,
+         "t": 16
+        },
+        {
+         "en": 21,
+         "hits": 3,
+         "hp": 0.4,
+         "moves": 3,
+         "out": 10559,
+         "t": 31
+        },
+        {
+         "en": 23,
+         "hits": 0,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 13749,
+         "t": 46
+        },
+        {
+         "en": 38,
+         "hits": 0,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 11948,
+         "t": 61
+        },
+        {
+         "en": 39,
+         "hits": 1,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 12132,
+         "t": 76
+        },
+        {
+         "en": 26,
+         "hits": 0,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 27186,
+         "t": 91
+        },
+        {
+         "en": 50,
+         "hits": 0,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 27265,
+         "t": 106
+        },
+        {
+         "en": 37,
+         "hits": 1,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 36376,
+         "t": 121
+        },
+        {
+         "en": 29,
+         "hits": 0,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 30998,
+         "t": 136
+        },
+        {
+         "en": 41,
+         "hits": 2,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 28288,
+         "t": 151
+        },
+        {
+         "en": 52,
+         "hits": 0,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 44799,
+         "t": 166
+        },
+        {
+         "en": 38,
+         "hits": 0,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 38098,
+         "t": 181
+        },
+        {
+         "en": 40,
+         "hits": 84,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 31160,
+         "t": 196
+        },
+        {
+         "en": 51,
+         "hits": 122,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 34995,
+         "t": 211
+        },
+        {
+         "en": 23,
+         "hits": 207,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 69456,
+         "t": 226
+        },
+        {
+         "en": 26,
+         "hits": 98,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 30114,
+         "t": 241
+        },
+        {
+         "en": 49,
+         "hits": 33,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 54183,
+         "t": 257
+        },
+        {
+         "en": 36,
+         "hits": 171,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 84497,
+         "t": 272
+        },
+        {
+         "en": 46,
+         "hits": 5,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 41575,
+         "t": 287
+        },
+        {
+         "en": 53,
+         "hits": 91,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 46549,
+         "t": 302
+        },
+        {
+         "en": 24,
+         "hits": 91,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 70282,
+         "t": 317
+        },
+        {
+         "en": 30,
+         "hits": 123,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 88967,
+         "t": 332
+        },
+        {
+         "en": 32,
+         "hits": 5,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 55798,
+         "t": 347
+        },
+        {
+         "en": 23,
+         "hits": 156,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 70970,
+         "t": 362
+        },
+        {
+         "en": 55,
+         "hits": 17,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 43667,
+         "t": 377
+        },
+        {
+         "en": 25,
+         "hits": 81,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 97987,
+         "t": 392
+        },
+        {
+         "en": 2,
+         "hits": 87,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 56838,
+         "t": 407
+        },
+        {
+         "en": 2,
+         "hits": 147,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 13430,
+         "t": 422
+        },
+        {
+         "en": 1,
+         "hits": 57,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 26569,
+         "t": 437
+        },
+        {
+         "en": 1,
+         "hits": 1,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 13396,
+         "t": 452
+        }
+       ]
+      },
+      {
+       "en_alive": 35,
+       "en_alive_pk": 53,
+       "en_near": 8,
+       "en_near_pk": 18,
+       "gates": 1,
+       "on_boss": 0.18,
+       "panic_hit": 0.2,
+       "panic_n": 1,
+       "shield": 0.0,
+       "t0": 420,
+       "t1": 455,
+       "tv": 420,
+       "type": "bishop",
+       "windows": [
+        {
+         "en": 51,
+         "hits": 0,
+         "hp": 1.0,
+         "moves": 0,
+         "out": 0,
+         "t": 1
+        },
+        {
+         "en": 23,
+         "hits": 207,
+         "hp": 0.5,
+         "moves": 8,
+         "out": 69456,
+         "t": 16
+        },
+        {
+         "en": 26,
+         "hits": 98,
+         "hp": 0.39,
+         "moves": 10,
+         "out": 30114,
+         "t": 31
+        },
+        {
+         "en": 49,
+         "hits": 33,
+         "hp": 0.0,
+         "moves": 3,
+         "out": 54183,
+         "t": 47
+        },
+        {
+         "en": 36,
+         "hits": 171,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 84497,
+         "t": 62
+        },
+        {
+         "en": 46,
+         "hits": 5,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 41575,
+         "t": 77
+        },
+        {
+         "en": 53,
+         "hits": 91,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 46549,
+         "t": 92
+        },
+        {
+         "en": 24,
+         "hits": 91,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 70282,
+         "t": 107
+        },
+        {
+         "en": 30,
+         "hits": 123,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 88967,
+         "t": 122
+        },
+        {
+         "en": 32,
+         "hits": 5,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 55798,
+         "t": 137
+        },
+        {
+         "en": 23,
+         "hits": 156,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 70970,
+         "t": 152
+        },
+        {
+         "en": 55,
+         "hits": 17,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 43667,
+         "t": 167
+        },
+        {
+         "en": 25,
+         "hits": 81,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 97987,
+         "t": 182
+        },
+        {
+         "en": 2,
+         "hits": 87,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 56838,
+         "t": 197
+        },
+        {
+         "en": 2,
+         "hits": 147,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 13430,
+         "t": 212
+        },
+        {
+         "en": 1,
+         "hits": 57,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 26569,
+         "t": 227
+        },
+        {
+         "en": 1,
+         "hits": 1,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 13396,
+         "t": 242
+        }
+       ]
+      },
+      {
+       "en_alive": 35,
+       "en_alive_pk": 53,
+       "en_near": 8,
+       "en_near_pk": 16,
+       "gates": 1,
+       "on_boss": 0.16,
+       "shield": 0.0,
+       "t0": 420,
+       "t1": 455,
+       "tv": 420,
+       "type": "immortal",
+       "windows": [
+        {
+         "en": 51,
+         "hits": 0,
+         "hp": 1.0,
+         "moves": 0,
+         "out": 0,
+         "t": 1
+        },
+        {
+         "en": 23,
+         "hits": 207,
+         "hp": 0.32,
+         "moves": 7,
+         "out": 69456,
+         "t": 16
+        },
+        {
+         "en": 26,
+         "hits": 98,
+         "hp": 0.24,
+         "moves": 6,
+         "out": 30114,
+         "t": 31
+        },
+        {
+         "en": 49,
+         "hits": 33,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 54183,
+         "t": 47
+        },
+        {
+         "en": 36,
+         "hits": 171,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 84497,
+         "t": 62
+        },
+        {
+         "en": 46,
+         "hits": 5,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 41575,
+         "t": 77
+        },
+        {
+         "en": 53,
+         "hits": 91,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 46549,
+         "t": 92
+        },
+        {
+         "en": 24,
+         "hits": 91,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 70282,
+         "t": 107
+        },
+        {
+         "en": 30,
+         "hits": 123,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 88967,
+         "t": 122
+        },
+        {
+         "en": 32,
+         "hits": 5,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 55798,
+         "t": 137
+        },
+        {
+         "en": 23,
+         "hits": 156,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 70970,
+         "t": 152
+        },
+        {
+         "en": 55,
+         "hits": 17,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 43667,
+         "t": 167
+        },
+        {
+         "en": 25,
+         "hits": 81,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 97987,
+         "t": 182
+        },
+        {
+         "en": 2,
+         "hits": 87,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 56838,
+         "t": 197
+        },
+        {
+         "en": 2,
+         "hits": 147,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 13430,
+         "t": 212
+        },
+        {
+         "en": 1,
+         "hits": 57,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 26569,
+         "t": 227
+        },
+        {
+         "en": 1,
+         "hits": 1,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 13396,
+         "t": 242
+        }
+       ]
+      },
+      {
+       "en_alive": 5,
+       "en_alive_pk": 28,
+       "en_near": 1,
+       "en_near_pk": 8,
+       "gates": 3,
+       "on_boss": 0.64,
+       "shield": 9.9,
+       "t0": 600,
+       "t1": -1,
+       "tv": 600,
+       "type": "paranoia",
+       "windows": [
+        {
+         "en": 25,
+         "hits": 0,
+         "hp": 0.99,
+         "moves": 0,
+         "out": 0,
+         "t": 2
+        },
+        {
+         "en": 2,
+         "hits": 87,
+         "hp": 0.67,
+         "moves": 3,
+         "out": 56838,
+         "t": 17
+        },
+        {
+         "en": 2,
+         "hits": 147,
+         "hp": 0.5,
+         "moves": 8,
+         "out": 13430,
+         "t": 32
+        },
+        {
+         "en": 1,
+         "hits": 57,
+         "hp": 0.0,
+         "moves": 1,
+         "out": 26569,
+         "t": 47
+        },
+        {
+         "en": 1,
+         "hits": 1,
+         "hp": 0.26,
+         "moves": 0,
+         "out": 13396,
+         "t": 62
+        }
+       ]
+      }
+     ],
+     "cap_stats": {
+      "any_cut": 0.0,
+      "any_n": 0,
+      "big_n": 0,
+      "boss_cut": 0.0,
+      "boss_n": 0,
+      "hits": 1893,
+      "one_cut": 0.0,
+      "one_n": 0,
+      "post": 1360.3,
+      "pre": 1360.3,
+      "zero": 0
+     },
+     "curve": [
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 0,
+       "hp": 100,
+       "hpm": 1.23,
+       "hpmin": 100,
+       "hsrc": {},
+       "kills": 0,
+       "lamp": 100,
+       "lampmin": 100,
+       "lv": 1,
+       "mhp": 119,
+       "mire_s": 0.0,
+       "mires": 0,
+       "outc": 0,
+       "rg": 0.95,
+       "squad": 2,
+       "t": 0,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 14,
+       "hp": 100,
+       "hpm": 1.57,
+       "hpmin": 100,
+       "hsrc": {},
+       "kills": 19,
+       "lamp": 100,
+       "lampmin": 100,
+       "lv": 3,
+       "mhp": 119,
+       "mire_s": 0.0,
+       "mires": 0,
+       "outc": 819,
+       "rg": 0.95,
+       "squad": 2,
+       "t": 30,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 0,
+       "elites": 1,
+       "enemies": 17,
+       "hp": 100,
+       "hpm": 1.9,
+       "hpmin": 100,
+       "hsrc": {},
+       "kills": 58,
+       "lamp": 100,
+       "lampmin": 100,
+       "lv": 5,
+       "mhp": 134,
+       "mire_s": 0.0,
+       "mires": 0,
+       "outc": 2238,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 60,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_stone": 10,
+        "contact_tracer": 36
+       },
+       "ebul": 2,
+       "elites": 0,
+       "enemies": 19,
+       "hp": 86,
+       "hpm": 2.24,
+       "hpmin": 80,
+       "hsrc": {
+        "化被草木": 6,
+        "拾取": 15,
+        "自身回复": 4,
+        "铃兰": 2
+       },
+       "kills": 124,
+       "lamp": 95,
+       "lampmin": 91,
+       "lv": 6,
+       "mhp": 134,
+       "mire_s": 0.0,
+       "mires": 5,
+       "outc": 7420,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 90,
+       "taken": 47,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "bullet": 6,
+        "contact_tracer": 18
+       },
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 26,
+       "hp": 100,
+       "hpm": 2.57,
+       "hpmin": 86,
+       "hsrc": {
+        "化被草木": 11,
+        "拾取": 5,
+        "禾苗": 1,
+        "自身回复": 16,
+        "铃兰": 8
+       },
+       "kills": 184,
+       "lamp": 86,
+       "lampmin": 86,
+       "lv": 8,
+       "mhp": 134,
+       "mire_s": 0.0,
+       "mires": 3,
+       "outc": 13131,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 120,
+       "taken": 25,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 1,
+       "elites": 0,
+       "enemies": 26,
+       "hp": 100,
+       "hpm": 2.91,
+       "hpmin": 100,
+       "hsrc": {},
+       "kills": 252,
+       "lamp": 86,
+       "lampmin": 86,
+       "lv": 10,
+       "mhp": 134,
+       "mire_s": 0.0,
+       "mires": 15,
+       "outc": 23338,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 150,
+       "taken": 0,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_tracer": 34,
+        "bullet": 7,
+        "contact_bone": 14,
+        "contact_tracer": 116,
+        "corrode": 3
+       },
+       "ebul": 1,
+       "elites": 2,
+       "enemies": 32,
+       "hp": 100,
+       "hpm": 3.25,
+       "hpmin": 35,
+       "hsrc": {
+        "化被草木": 23,
+        "嘉禾盈仓": 5,
+        "拾取": 77,
+        "禾苗": 5,
+        "自身回复": 31,
+        "补给": 22,
+        "铃兰": 10
+       },
+       "kills": 348,
+       "lamp": 67,
+       "lampmin": 47,
+       "lv": 11,
+       "mhp": 134,
+       "mire_s": 0.0,
+       "mires": 3,
+       "outc": 38672,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 180,
+       "taken": 176,
+       "zone": 2
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "bullet": 9,
+        "contact_tracer": 28,
+        "corrode": 6,
+        "mire": 1
+       },
+       "ebul": 5,
+       "elites": 0,
+       "enemies": 30,
+       "hp": 100,
+       "hpm": 3.58,
+       "hpmin": 89,
+       "hsrc": {
+        "化被草木": 12,
+        "嘉禾盈仓": 16,
+        "拾取": 1,
+        "禾苗": 2,
+        "自身回复": 8,
+        "铃兰": 4
+       },
+       "kills": 433,
+       "lamp": 95,
+       "lampmin": 59,
+       "lv": 12,
+       "mhp": 134,
+       "mire_s": 0.0,
+       "mires": 18,
+       "outc": 52283,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 210,
+       "taken": 45,
+       "zone": 3
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "atk_stone": 3,
+        "boss_carmen": 49,
+        "bullet": 6,
+        "contact_slider": 7,
+        "contact_tracer": 15
+       },
+       "ebul": 33,
+       "elites": 0,
+       "enemies": 20,
+       "hp": 99,
+       "hpm": 3.92,
+       "hpmin": 64,
+       "hsrc": {
+        "化被草木": 23,
+        "嘉禾盈仓": 8,
+        "禾苗": 5,
+        "自身回复": 18,
+        "补给": 15,
+        "铃兰": 9
+       },
+       "kills": 491,
+       "lamp": 86,
+       "lampmin": 73,
+       "lv": 13,
+       "mhp": 134,
+       "mire_s": 0.0,
+       "mires": 8,
+       "outc": 72179,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 240,
+       "taken": 81,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "boss_carmen": 15
+       },
+       "ebul": 0,
+       "elites": 1,
+       "enemies": 40,
+       "hp": 100,
+       "hpm": 4.25,
+       "hpmin": 88,
+       "hsrc": {
+        "嘉禾盈仓": 10,
+        "自身回复": 3,
+        "铃兰": 1
+       },
+       "kills": 580,
+       "lamp": 81,
+       "lampmin": 81,
+       "lv": 15,
+       "mhp": 134,
+       "mire_s": 0.0,
+       "mires": 18,
+       "outc": 96745,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 270,
+       "taken": 15,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "boss_carmen": 13
+       },
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 25,
+       "hp": 100,
+       "hpm": 4.59,
+       "hpmin": 90,
+       "hsrc": {
+        "禾苗": 2,
+        "自身回复": 6,
+        "铃兰": 4
+       },
+       "kills": 698,
+       "lamp": 100,
+       "lampmin": 76,
+       "lv": 16,
+       "mhp": 134,
+       "mire_s": 0.0,
+       "mires": 19,
+       "outc": 135060,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 300,
+       "taken": 13,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "mire": 1
+       },
+       "ebul": 2,
+       "elites": 1,
+       "enemies": 38,
+       "hp": 100,
+       "hpm": 4.93,
+       "hpmin": 99,
+       "hsrc": {},
+       "kills": 822,
+       "lamp": 100,
+       "lampmin": 100,
+       "lv": 17,
+       "mhp": 134,
+       "mire_s": 0.0,
+       "mires": 23,
+       "outc": 199401,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 330,
+       "taken": 1,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_reaper": 6,
+        "contact_reaper": 26
+       },
+       "ebul": 3,
+       "elites": 0,
+       "enemies": 52,
+       "hp": 85,
+       "hpm": 5.26,
+       "hpmin": 83,
+       "hsrc": {
+        "丰年": 5,
+        "化被草木": 1,
+        "嘉禾盈仓": 4,
+        "自身回复": 2,
+        "铃兰": 1
+       },
+       "kills": 918,
+       "lamp": 100,
+       "lampmin": 90,
+       "lv": 19,
+       "mhp": 134,
+       "mire_s": 0.0,
+       "mires": 32,
+       "outc": 245084,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 360,
+       "taken": 33,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 51,
+       "hp": 100,
+       "hpm": 5.6,
+       "hpmin": 85,
+       "hsrc": {
+        "丰年": 3,
+        "化被草木": 10,
+        "嘉禾盈仓": 3
+       },
+       "kills": 1075,
+       "lamp": 100,
+       "lampmin": 100,
+       "lv": 20,
+       "mhp": 134,
+       "mire_s": 0.0,
+       "mires": 29,
+       "outc": 335191,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 390,
+       "taken": 0,
+       "zone": 1
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "atk_tracer": 3,
+        "bullet": 14,
+        "contact_tracer": 14,
+        "corrode": 10,
+        "wound": 6
+       },
+       "ebul": 1,
+       "elites": 2,
+       "enemies": 52,
+       "hp": 100,
+       "hpm": 5.93,
+       "hpmin": 86,
+       "hsrc": {
+        "丰年": 6,
+        "化被草木": 9,
+        "嘉禾盈仓": 4,
+        "拾取": 17,
+        "自身回复": 9,
+        "铃兰": 2
+       },
+       "kills": 1191,
+       "lamp": 100,
+       "lampmin": 92,
+       "lv": 21,
+       "mhp": 134,
+       "mire_s": 0.0,
+       "mires": 30,
+       "outc": 406116,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 420,
+       "taken": 49,
+       "zone": 3
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "atk_reaper": 55,
+        "atk_runner": 14,
+        "atk_tracer": 6,
+        "contact_immortal": 17,
+        "contact_tracer": 20,
+        "corrode": 10,
+        "wound": 13
+       },
+       "ebul": 30,
+       "elites": 0,
+       "enemies": 36,
+       "hp": 92,
+       "hpm": 6.27,
+       "hpmin": 80,
+       "hsrc": {
+        "丰年": 31,
+        "化被草木": 23,
+        "嘉禾盈仓": 16,
+        "离离枯荣": 7,
+        "禾苗": 2,
+        "自身回复": 15,
+        "补给": 24,
+        "铃兰": 8
+       },
+       "kills": 1265,
+       "lamp": 92,
+       "lampmin": 71,
+       "lv": 22,
+       "mhp": 134,
+       "mire_s": 0.0,
+       "mires": 33,
+       "outc": 494682,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 450,
+       "taken": 139,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_tracer": 38,
+        "contact_tracer": 43,
+        "corrode": 1,
+        "nest": 2,
+        "wound": 8
+       },
+       "ebul": 5,
+       "elites": 0,
+       "enemies": 31,
+       "hp": 100,
+       "hpm": 6.6,
+       "hpmin": 67,
+       "hsrc": {
+        "丰年": 23,
+        "化被草木": 19,
+        "嘉禾盈仓": 21,
+        "拾取": 27,
+        "离离枯荣": 3,
+        "禾苗": 1,
+        "自身回复": 18,
+        "铃兰": 9
+       },
+       "kills": 1413,
+       "lamp": 100,
+       "lampmin": 58,
+       "lv": 23,
+       "mhp": 134,
+       "mire_s": 0.0,
+       "mires": 34,
+       "outc": 634722,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 480,
+       "taken": 94,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_tracer": 16,
+        "contact_slider": 41,
+        "mire": 1,
+        "nest": 5,
+        "wound": 2
+       },
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 50,
+       "hp": 100,
+       "hpm": 6.91,
+       "hpmin": 69,
+       "hsrc": {
+        "丰年": 18,
+        "化被草木": 6,
+        "嘉禾盈仓": 9,
+        "禾苗": 3,
+        "自身回复": 20,
+        "铃兰": 8
+       },
+       "kills": 1524,
+       "lamp": 100,
+       "lampmin": 78,
+       "lv": 24,
+       "mhp": 134,
+       "mire_s": 0.1,
+       "mires": 26,
+       "outc": 730139,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 510,
+       "taken": 65,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_tracer": 7,
+        "contact_tracer": 61,
+        "wound": 5
+       },
+       "ebul": 4,
+       "elites": 0,
+       "enemies": 70,
+       "hp": 87,
+       "hpm": 7.22,
+       "hpmin": 74,
+       "hsrc": {
+        "丰年": 13,
+        "化被草木": 20,
+        "嘉禾盈仓": 7,
+        "离离枯荣": 3,
+        "禾苗": 2,
+        "自身回复": 7,
+        "铃兰": 2
+       },
+       "kills": 1651,
+       "lamp": 85,
+       "lampmin": 85,
+       "lv": 25,
+       "mhp": 134,
+       "mire_s": 0.0,
+       "mires": 32,
+       "outc": 843126,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 540,
+       "taken": 74,
+       "zone": 2
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_reaper": 1,
+        "contact_tracer": 20,
+        "wound": 6
+       },
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 19,
+       "hp": 99,
+       "hpm": 7.53,
+       "hpmin": 85,
+       "hsrc": {
+        "丰年": 8,
+        "禾苗": 1,
+        "自身回复": 11,
+        "补给": 19,
+        "铃兰": 3
+       },
+       "kills": 1820,
+       "lamp": 100,
+       "lampmin": 85,
+       "lv": 26,
+       "mhp": 134,
+       "mire_s": 0.0,
+       "mires": 30,
+       "outc": 1014106,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 570,
+       "taken": 28,
+       "zone": 3
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "atk_reaper": 12,
+        "contact_reaper": 46,
+        "mire": 1,
+        "wound": 4
+       },
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 28,
+       "hp": 100,
+       "hpm": 7.83,
+       "hpmin": 65,
+       "hsrc": {
+        "丰年": 5,
+        "化被草木": 9,
+        "嘉禾盈仓": 6,
+        "离离枯荣": 1,
+        "禾苗": 2,
+        "自身回复": 5,
+        "补给": 32,
+        "铃兰": 1
+       },
+       "kills": 1935,
+       "lamp": 85,
+       "lampmin": 85,
+       "lv": 27,
+       "mhp": 134,
+       "mire_s": 0.0,
+       "mires": 16,
+       "outc": 1160222,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 600,
+       "taken": 64,
+       "zone": 3
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "atk_founder": 13,
+        "boss_paranoia": 114,
+        "bullet": 78,
+        "corrode": 43,
+        "nest": 2
+       },
+       "ebul": 72,
+       "elites": 0,
+       "enemies": 2,
+       "hp": 66,
+       "hpm": 8.14,
+       "hpmin": 34,
+       "hsrc": {
+        "丰年": 29,
+        "化被草木": 40,
+        "嘉禾盈仓": 8,
+        "离离枯荣": 7,
+        "禾苗": 4,
+        "自身回复": 24,
+        "补给": 78,
+        "铃兰": 13
+       },
+       "kills": 1961,
+       "lamp": 84,
+       "lampmin": 57,
+       "lv": 28,
+       "mhp": 134,
+       "mire_s": 0.0,
+       "mires": 15,
+       "outc": 1233250,
+       "rg": 3.12,
+       "squad": 3,
+       "t": 630,
+       "taken": 252,
+       "zone": 3
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "boss_paranoia": 27,
+        "corrode": 21,
+        "shock_paranoia": 102
+       },
+       "ebul": 120,
+       "elites": 0,
+       "enemies": 1,
+       "hp": 85,
+       "hpm": 8.45,
+       "hpmin": 45,
+       "hsrc": {
+        "丰年": 30,
+        "化被草木": 23,
+        "嘉禾盈仓": 12,
+        "拾取": 10,
+        "离离枯荣": 4,
+        "禾苗": 3,
+        "自身回复": 40,
+        "补给": 39,
+        "铃兰": 12
+       },
+       "kills": 1962,
+       "lamp": 68,
+       "lampmin": 68,
+       "lv": 28,
+       "mhp": 134,
+       "mire_s": 0.0,
+       "mires": 16,
+       "outc": 1265521,
+       "rg": 1.1,
+       "squad": 3,
+       "t": 660,
+       "taken": 151,
+       "zone": 3
+      }
+     ],
+     "curve_tail": {
+      "dsrc": {},
+      "hsrc": {
+       "自身回复": 3,
+       "补给": 15,
+       "铃兰": 1
+      },
+      "mhp": 134,
+      "t": 668,
+      "t0": 660,
+      "taken": 0
+     },
+     "dark_dmg": 0,
+     "dark_s": 0,
+     "death_src": "shock_paranoia",
+     "elite_t": {
+      "shu:1": 169,
+      "shu:2": 355,
+      "specter_unchained:1": 198,
+      "specter_unchained:2": 252,
+      "suzuran:1": 42,
+      "suzuran:2": 277
+     },
+     "end": {
+      "boss": false,
+      "hits2": [
+       [
+        656.2,
+        "shock_paranoia",
+        "e:paranoia",
+        0,
+        30.4,
+        30.4,
+        104
+       ]
+      ],
+      "hp": 134,
+      "killer": {
+       "cause": "",
+       "key": "e:paranoia"
+      },
+      "last15": {
+       "corrode_out": 0.0,
+       "corrode_peak": 0.0,
+       "dark_s": 0.0,
+       "ebullets_peak": 120,
+       "enemies_peak": 1,
+       "hits": [
+        {
+         "amt": 30.4,
+         "boss": false,
+         "hp_after": 104,
+         "src": "shock_paranoia",
+         "t": 656.2,
+         "zone_out": false
+        }
+       ],
+       "mire_s": 0.0,
+       "nerve_bursts": 0,
+       "t": 668.5
+      },
+      "near": [],
+      "src": "shock_paranoia",
+      "t": 668,
+      "tl": [
+       [
+        653.3,
+        134,
+        75,
+        1,
+        0,
+        0,
+        2,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        653.9,
+        134,
+        75,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        654.4,
+        134,
+        75,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        654.9,
+        134,
+        75,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        655.4,
+        134,
+        75,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        656.0,
+        134,
+        75,
+        1,
+        0,
+        0,
+        65,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        656.5,
+        104,
+        68,
+        1,
+        0,
+        0,
+        120,
+        0,
+        1,
+        1,
+        3
+       ],
+       [
+        657.0,
+        106,
+        68,
+        1,
+        0,
+        0,
+        120,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        657.6,
+        107,
+        68,
+        1,
+        0,
+        0,
+        120,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        658.1,
+        109,
+        68,
+        1,
+        0,
+        0,
+        120,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        658.6,
+        110,
+        68,
+        1,
+        0,
+        1,
+        120,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        659.1,
+        110,
+        68,
+        1,
+        0,
+        1,
+        120,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        659.7,
+        111,
+        68,
+        1,
+        0,
+        1,
+        120,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        660.2,
+        114,
+        68,
+        1,
+        0,
+        1,
+        120,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        660.7,
+        115,
+        68,
+        1,
+        0,
+        1,
+        120,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        661.3,
+        116,
+        68,
+        1,
+        0,
+        1,
+        120,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        661.8,
+        117,
+        68,
+        1,
+        0,
+        1,
+        120,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        662.3,
+        117,
+        68,
+        1,
+        0,
+        1,
+        120,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        662.8,
+        119,
+        68,
+        1,
+        0,
+        1,
+        120,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        663.4,
+        134,
+        68,
+        1,
+        0,
+        1,
+        120,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        663.9,
+        134,
+        100,
+        1,
+        0,
+        1,
+        55,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        664.4,
+        134,
+        100,
+        1,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        664.9,
+        134,
+        100,
+        1,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        665.5,
+        134,
+        100,
+        1,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        666.0,
+        134,
+        100,
+        1,
+        0,
+        1,
+        0,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        666.5,
+        134,
+        100,
+        1,
+        0,
+        1,
+        0,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        667.1,
+        134,
+        100,
+        1,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        667.6,
+        134,
+        100,
+        1,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        668.1,
+        134,
+        100,
+        1,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        3
+       ]
+      ],
+      "zone_out": false,
+      "zone_phase": 4,
+      "zone_state": 3
+     },
+     "floors": [],
+     "hits": 1675,
+     "hits_pm": 150.3,
+     "king_low_s": 1,
+     "lamp_end": 100,
+     "lamp_gain": {
+      "其他": 9,
+      "灯标": 90,
+      "灯油": 71,
+      "精英灯油": 205
+     },
+     "lamp_loss": {
+      "冲撞吸灯": 16,
+      "受击": 351,
+      "尖叫": 9
+     },
+     "lamp_s": [
+      609,
+      56,
+      0,
+      0
+     ],
+     "lamp_taken": [
+      1037,
+      323,
+      0,
+      0
+     ],
+     "low20_s": 0,
+     "low_hp_s": 0,
+     "moved_pm": 9857,
+     "peak": [
+      95,
+      249,
+      8,
+      417,
+      48
+     ],
+     "peak_min": [
+      [
+       21,
+       1,
+       7,
+       78,
+       6
+      ],
+      [
+       35,
+       4,
+       6,
+       96,
+       15
+      ],
+      [
+       51,
+       12,
+       5,
+       302,
+       48
+      ],
+      [
+       38,
+       95,
+       6,
+       195,
+       18
+      ],
+      [
+       60,
+       34,
+       8,
+       292,
+       25
+      ],
+      [
+       84,
+       14,
+       6,
+       400,
+       33
+      ],
+      [
+       81,
+       11,
+       5,
+       417,
+       48
+      ],
+      [
+       95,
+       51,
+       5,
+       394,
+       48
+      ],
+      [
+       72,
+       16,
+       7,
+       329,
+       43
+      ],
+      [
+       71,
+       18,
+       5,
+       415,
+       48
+      ],
+      [
+       28,
+       249,
+       5,
+       308,
+       9
+      ],
+      [
+       1,
+       120,
+       5,
+       136,
+       4
+      ]
+     ],
+     "profile": "expert",
+     "reaper_drain_deaths": 0,
+     "recruit_t": [
+      58
+     ],
+     "still_pct": 3,
+     "taken": 1360,
+     "taken_pm": 122
+    },
+    "cmd": {
+     "aggro": 219,
+     "downs": 0,
+     "roam": 192.7,
+     "sortie_downs": 0,
+     "sorties": 25,
+     "switch": 79
+    },
+    "crates": 14,
+    "cross_picks": [
+     [
+      "m1",
+      "incident",
+      "penance",
+      3
+     ],
+     [
+      "m2",
+      "elite",
+      ""
+     ],
+     [
+      "c1",
+      "wish",
+      "",
+      0
+     ],
+     [
+      "m3",
+      "rest",
+      ""
+     ],
+     [
+      "c2",
+      "incident",
+      "meeting",
+      0
+     ]
+    ],
+    "ctrl": {
+     "aslow_slow": 0,
+     "aslow_t": 0.0,
+     "boss_t": 145.73,
+     "floor": 0.7,
+     "move_min": 0.7,
+     "slow_min": 0.55,
+     "stun_slow": 4,
+     "stun_t": 0.0
+    },
+    "ctrl_src": {
+     "boss": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 4.16
+     },
+     "founder": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 3.04
+     },
+     "other": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "skimmer": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "slow_any_t": 7.19
+    },
+    "dashes": 9,
+    "dmg": {
+     "atk_founder": 13.2503209630297,
+     "atk_reaper": 76.6985685983436,
+     "atk_runner": 14.8675421219185,
+     "atk_stone": 14.089432153197,
+     "atk_tracer": 106.90966744635,
+     "boss_carmen": 77.4516881700166,
+     "boss_paranoia": 142.23877668,
+     "bullet": 123.33431762818,
+     "contact_bone": 14.5555434229481,
+     "contact_immortal": 17.6646,
+     "contact_reaper": 73.0233633028928,
+     "contact_slider": 48.1109717554186,
+     "contact_tracer": 375.347592169006,
+     "corrode": 98.3778271412891,
+     "mire": 4.0146,
+     "nest": 10.2164833483658,
+     "shock_paranoia": 102.639464928,
+     "wound": 47.4652035000001
+    },
+    "drone": 0,
+    "duck": {
+     "boss_overlap": 0,
+     "fled": 1,
+     "fled_hp": [
+      0.97
+     ],
+     "kill_hits": [
+      63
+     ],
+     "kill_t": [
+      16.4
+     ],
+     "killed": 1,
+     "spawn_t": [
+      346.4,
+      512.4
+     ],
+     "spawned": 2
+    },
+    "elite_stage": 2,
+    "elites": 19,
+    "ending": "standard",
+    "final_out": {
+     "剑气": 14507.1213499295,
+     "技能连携·替身斩·specter_unchained": 8147.01580343854,
+     "替身": 5574.90169363873,
+     "替身闪现": 272639.357081522,
+     "狐火": 104897.315527107,
+     "狐火拖尾": 871.223415024687,
+     "狐火点点": 28093.2521895128,
+     "秋收": 21554.8663549869,
+     "终结技·suzuran·斩痕": 42859.6538528739,
+     "终结技·suzuran·瞬身": 25261.2466255155,
+     "结穗": 8543.93666365555,
+     "藏品": 288958.730996323,
+     "血色潮痕": 57204.1066972749,
+     "锯刃": 380689.485636747,
+     "镰扫": 26921.1938589806
+    },
+    "floor_hits": 0,
+    "floor_times": [],
+    "fuse": {
+     "left": 11,
+     "pct": 0.071,
+     "pool": 106,
+     "t": 482
+    },
+    "growth": {
+     "lane_melee": 3,
+     "lane_summon": 2,
+     "sp": 1,
+     "speed": 1,
+     "squad_atk": 1,
+     "squad_range": 1
+    },
+    "heal": {
+     "丰年": 174.861441398542,
+     "化被草木": 241.868883346035,
+     "商店": 0.0,
+     "嘉禾盈仓": 134.567043751033,
+     "拾取": 154.55409302838,
+     "离离枯荣": 30.8401837680981,
+     "禾苗": 40.0212893238724,
+     "自身回复": 249.917532123475,
+     "补给": 247.591401929791,
+     "铃兰": 106.216594659726
+    },
+    "heal_offer": 0,
+    "heal_offer_low": 0,
+    "heal_pick": 0,
+    "hordes": [
+     {
+      "comp": {
+       "bone": 9,
+       "slider": 3,
+       "stone": 3
+      },
+      "hp": 1574,
+      "hp0": 134,
+      "minhp": 108,
+      "mix": "凿石阵",
+      "n": 15,
+      "t": 75,
+      "t80": 11
+     },
+     {
+      "comp": {
+       "bone": 12,
+       "slider": 8
+      },
+      "hp": 2379,
+      "hp0": 48,
+      "minhp": 47,
+      "mix": "滑行群",
+      "n": 20,
+      "t": 165,
+      "t80": 6
+     },
+     {
+      "comp": {
+       "bone": 14,
+       "floater": 2,
+       "runner": 3,
+       "slider": 6
+      },
+      "hp": 4632,
+      "hp0": 134,
+      "minhp": 121,
+      "mix": "狂奔潮",
+      "n": 25,
+      "t": 257,
+      "t80": 11
+     },
+     {
+      "comp": {
+       "bone": 7,
+       "floater": 2,
+       "reaper": 2,
+       "runner": 9,
+       "slider": 13,
+       "tracer": 2
+      },
+      "hp": 15373,
+      "hp0": 134,
+      "minhp": 134,
+      "mix": "引痕突击",
+      "n": 35,
+      "t": 307,
+      "t80": 9
+     },
+     {
+      "comp": {
+       "bone": 7,
+       "offspring": 2,
+       "reaper": 2,
+       "runner": 7,
+       "slider": 14,
+       "spitter": 4,
+       "tracer": 3
+      },
+      "hp": 28903,
+      "hp0": 134,
+      "minhp": 134,
+      "mix": "酸雨围城",
+      "n": 39,
+      "t": 375,
+      "t80": 16
+     },
+     {
+      "comp": {
+       "bone": 4,
+       "founder": 2,
+       "nest": 1,
+       "runner": 7,
+       "slider": 4,
+       "spitter": 2,
+       "stone": 4,
+       "tracer": 2
+      },
+      "hp": 29216,
+      "hp0": 103,
+      "minhp": 90,
+      "mix": "深海潮",
+      "n": 26,
+      "t": 467,
+      "t80": 10
+     },
+     {
+      "comp": {
+       "bone": 2,
+       "floater": 2,
+       "offspring": 3,
+       "reaper": 3,
+       "runner": 3,
+       "slider": 2,
+       "spitter": 3,
+       "stone": 4
+      },
+      "hp": 22307,
+      "hp0": 110,
+      "minhp": 110,
+      "mix": "深蓝合围",
+      "n": 22,
+      "t": 537,
+      "t80": 6
+     }
+    ],
+    "ingots": 0,
+    "items": {
+     "crate_shield": 3,
+     "heal_elite": 16,
+     "heal_low": 1,
+     "heal_mob": 13,
+     "heal_pick": 28,
+     "magnet_elite": 7,
+     "magnet_mob": 8,
+     "magnet_pick": 13,
+     "mob_capped": 849,
+     "mob_rolled": 1091,
+     "pack_drop": 13,
+     "pack_pick": 9
+    },
+    "kill_hits": {
+     "0:bone": [
+      46,
+      49,
+      1.12
+     ],
+     "0:slider": [
+      7,
+      16,
+      3.17
+     ],
+     "0:stone": [
+      3,
+      18,
+      13.07
+     ],
+     "10:floater": [
+      3,
+      26,
+      8.64
+     ],
+     "10:founder": [
+      8,
+      251,
+      86.08
+     ],
+     "10:nest": [
+      4,
+      19,
+      4.68
+     ],
+     "10:offspring": [
+      4,
+      52,
+      25.61
+     ],
+     "10:reaper": [
+      2,
+      42,
+      12.68
+     ],
+     "10:runner": [
+      1,
+      8,
+      3.17
+     ],
+     "10:spitter": [
+      2,
+      31,
+      17.68
+     ],
+     "10:tracer": [
+      3,
+      70,
+      22.51
+     ],
+     "1:bone": [
+      80,
+      118,
+      14.46
+     ],
+     "1:floater": [
+      8,
+      36,
+      11.23
+     ],
+     "1:slider": [
+      24,
+      83,
+      35.35
+     ],
+     "1:stone": [
+      9,
+      57,
+      23.96
+     ],
+     "1:tracer": [
+      3,
+      88,
+      27.92
+     ],
+     "2:bone": [
+      89,
+      192,
+      59.8
+     ],
+     "2:floater": [
+      15,
+      80,
+      33.02
+     ],
+     "2:runner": [
+      1,
+      1,
+      0.0
+     ],
+     "2:slider": [
+      49,
+      174,
+      44.96
+     ],
+     "2:spitter": [
+      2,
+      9,
+      3.11
+     ],
+     "2:stone": [
+      5,
+      23,
+      6.41
+     ],
+     "2:tracer": [
+      4,
+      221,
+      66.0
+     ],
+     "3:bone": [
+      78,
+      215,
+      74.89
+     ],
+     "3:brood": [
+      1,
+      1,
+      0.0
+     ],
+     "3:floater": [
+      12,
+      76,
+      57.74
+     ],
+     "3:runner": [
+      7,
+      27,
+      11.22
+     ],
+     "3:slider": [
+      29,
+      96,
+      39.77
+     ],
+     "3:spitter": [
+      4,
+      49,
+      34.37
+     ],
+     "3:stone": [
+      6,
+      76,
+      85.53
+     ],
+     "3:tracer": [
+      4,
+      224,
+      67.97
+     ],
+     "4:bone": [
+      94,
+      331,
+      102.36
+     ],
+     "4:floater": [
+      17,
+      92,
+      44.88
+     ],
+     "4:nest": [
+      2,
+      23,
+      7.98
+     ],
+     "4:offspring": [
+      2,
+      26,
+      8.58
+     ],
+     "4:reaper": [
+      7,
+      160,
+      39.79
+     ],
+     "4:runner": [
+      25,
+      101,
+      27.91
+     ],
+     "4:slider": [
+      34,
+      182,
+      74.94
+     ],
+     "4:spitter": [
+      6,
+      70,
+      18.74
+     ],
+     "4:stone": [
+      9,
+      79,
+      67.18
+     ],
+     "4:tracer": [
+      8,
+      170,
+      49.89
+     ],
+     "5:bone": [
+      61,
+      321,
+      162.28
+     ],
+     "5:brood": [
+      3,
+      7,
+      2.12
+     ],
+     "5:floater": [
+      14,
+      100,
+      62.25
+     ],
+     "5:founder": [
+      4,
+      195,
+      53.98
+     ],
+     "5:nest": [
+      6,
+      47,
+      20.39
+     ],
+     "5:offspring": [
+      5,
+      44,
+      15.91
+     ],
+     "5:reaper": [
+      24,
+      363,
+      119.92
+     ],
+     "5:runner": [
+      26,
+      206,
+      76.63
+     ],
+     "5:slider": [
+      46,
+      260,
+      109.51
+     ],
+     "5:spitter": [
+      5,
+      43,
+      26.74
+     ],
+     "5:stone": [
+      15,
+      91,
+      48.18
+     ],
+     "5:tracer": [
+      8,
+      148,
+      89.96
+     ],
+     "6:bone": [
+      76,
+      475,
+      186.57
+     ],
+     "6:brood": [
+      2,
+      3,
+      0.33
+     ],
+     "6:duck": [
+      1,
+      63,
+      16.17
+     ],
+     "6:floater": [
+      13,
+      82,
+      54.46
+     ],
+     "6:founder": [
+      6,
+      221,
+      131.81
+     ],
+     "6:nest": [
+      7,
+      85,
+      24.1
+     ],
+     "6:offspring": [
+      7,
+      68,
+      27.25
+     ],
+     "6:reaper": [
+      32,
+      321,
+      88.58
+     ],
+     "6:runner": [
+      44,
+      262,
+      104.77
+     ],
+     "6:slider": [
+      53,
+      328,
+      160.31
+     ],
+     "6:spitter": [
+      9,
+      128,
+      37.17
+     ],
+     "6:stone": [
+      8,
+      93,
+      58.08
+     ],
+     "6:tracer": [
+      14,
+      235,
+      115.51
+     ],
+     "7:bone": [
+      5,
+      52,
+      19.01
+     ],
+     "7:floater": [
+      20,
+      127,
+      61.53
+     ],
+     "7:founder": [
+      14,
+      382,
+      128.24
+     ],
+     "7:nest": [
+      7,
+      105,
+      53.13
+     ],
+     "7:offspring": [
+      7,
+      124,
+      57.88
+     ],
+     "7:reaper": [
+      29,
+      471,
+      139.33
+     ],
+     "7:runner": [
+      30,
+      220,
+      77.24
+     ],
+     "7:slider": [
+      58,
+      364,
+      178.42
+     ],
+     "7:spitter": [
+      6,
+      95,
+      61.12
+     ],
+     "7:stone": [
+      20,
+      175,
+      120.84
+     ],
+     "7:tracer": [
+      20,
+      406,
+      144.6
+     ],
+     "8:floater": [
+      18,
+      78,
+      32.06
+     ],
+     "8:founder": [
+      11,
+      262,
+      92.46
+     ],
+     "8:nest": [
+      10,
+      116,
+      58.87
+     ],
+     "8:offspring": [
+      13,
+      141,
+      46.33
+     ],
+     "8:reaper": [
+      38,
+      479,
+      117.46
+     ],
+     "8:runner": [
+      36,
+      176,
+      64.25
+     ],
+     "8:slider": [
+      66,
+      347,
+      150.38
+     ],
+     "8:spitter": [
+      9,
+      98,
+      59.93
+     ],
+     "8:stone": [
+      17,
+      105,
+      60.12
+     ],
+     "8:tracer": [
+      20,
+      385,
+      119.74
+     ],
+     "9:bone": [
+      10,
+      47,
+      14.45
+     ],
+     "9:floater": [
+      29,
+      138,
+      58.8
+     ],
+     "9:founder": [
+      27,
+      643,
+      244.09
+     ],
+     "9:nest": [
+      26,
+      154,
+      74.88
+     ],
+     "9:offspring": [
+      20,
+      209,
+      91.53
+     ],
+     "9:reaper": [
+      56,
+      554,
+      153.36
+     ],
+     "9:runner": [
+      41,
+      182,
+      64.24
+     ],
+     "9:slider": [
+      9,
+      42,
+      15.84
+     ],
+     "9:spitter": [
+      14,
+      95,
+      44.67
+     ],
+     "9:stone": [
+      4,
+      13,
+      2.37
+     ],
+     "9:tracer": [
+      44,
+      500,
+      172.3
+     ]
+    },
+    "kills": 1963,
+    "lamp": 100,
+    "levelup_t": [
+     14,
+     26,
+     42,
+     58,
+     79,
+     93,
+     110,
+     132,
+     145,
+     169,
+     172,
+     198,
+     211,
+     252,
+     252,
+     277,
+     313,
+     334,
+     355,
+     380,
+     413,
+     441,
+     458,
+     484,
+     518,
+     542,
+     576,
+     605
+    ],
+    "low_levelups": 0,
+    "lv": 28,
+    "lv_times": [
+     14,
+     25,
+     42,
+     57,
+     78,
+     92,
+     109,
+     132,
+     145,
+     171,
+     197,
+     211,
+     252,
+     252,
+     277,
+     312,
+     333,
+     354,
+     380,
+     413,
+     441,
+     458,
+     483,
+     518,
+     541,
+     576,
+     604
+    ],
+    "marks": {
+     "120": 8,
+     "300": 16,
+     "480": 23
+    },
+    "maxhp": 134.55,
+    "meta": 0,
+    "ops": [
+     {
+      "elite": 2,
+      "id": "suzuran",
+      "prog": 6
+     },
+     {
+      "elite": 2,
+      "id": "shu",
+      "prog": 6
+     },
+     {
+      "elite": 2,
+      "id": "specter_unchained",
+      "prog": 6
+     }
+    ],
+    "out": {
+     "剑气": 14507.1213499295,
+     "技能连携·替身斩·specter_unchained": 8147.01580343854,
+     "替身": 5574.90169363873,
+     "替身闪现": 272639.357081522,
+     "狐火": 104897.315527107,
+     "狐火拖尾": 871.223415024687,
+     "狐火点点": 28093.2521895128,
+     "秋收": 21554.8663549869,
+     "终结技·suzuran·斩痕": 42859.6538528739,
+     "终结技·suzuran·瞬身": 25261.2466255155,
+     "结穗": 8543.93666365555,
+     "藏品": 288958.730996323,
+     "血色潮痕": 57204.1066972749,
+     "锯刃": 380689.485636747,
+     "镰扫": 26921.1938589806
+    },
+    "out_tag": {
+     "area": 906989.639118451,
+     "basic": 429165.545850714,
+     "control": 104897.315527107,
+     "dot": 351737.739387234,
+     "entity": 372926.777740628,
+     "growth": 29014.242699859,
+     "pierce": 53669.6905311829,
+     "projectile": 133911.558226966,
+     "skill": 76267.9162818279,
+     "终结技": 136241.800956779,
+     "连携": 16294.0316068771
+    },
+    "out_type": {
+     "法术": 701034.780903132,
+     "物理": 517567.726365012,
+     "真实": 68120.9004783893
+    },
+    "prof": {},
+    "prog_log": [
+     [
+      14,
+      "suzuran",
+      1
+     ],
+     [
+      26,
+      "suzuran",
+      2
+     ],
+     [
+      42,
+      "suzuran",
+      3
+     ],
+     [
+      79,
+      "suzuran",
+      4
+     ],
+     [
+      93,
+      "suzuran",
+      5
+     ],
+     [
+      110,
+      "shu",
+      1
+     ],
+     [
+      132,
+      "specter_unchained",
+      1
+     ],
+     [
+      145,
+      "shu",
+      2
+     ],
+     [
+      169,
+      "shu",
+      3
+     ],
+     [
+      172,
+      "specter_unchained",
+      2
+     ],
+     [
+      198,
+      "specter_unchained",
+      3
+     ],
+     [
+      211,
+      "specter_unchained",
+      4
+     ],
+     [
+      252,
+      "specter_unchained",
+      5
+     ],
+     [
+      252,
+      "specter_unchained",
+      6
+     ],
+     [
+      277,
+      "suzuran",
+      6
+     ],
+     [
+      313,
+      "shu",
+      4
+     ],
+     [
+      334,
+      "shu",
+      5
+     ],
+     [
+      355,
+      "shu",
+      6
+     ]
+    ],
+    "prog_offer": {
+     "shu": 11,
+     "specter_unchained": 8,
+     "suzuran": 7
+    },
+    "prog_pick": {
+     "shu": 6,
+     "specter_unchained": 6,
+     "suzuran": 6
+    },
+    "recall_backstop": 0,
+    "recall_n": 147,
+    "recruit_offers": [
+     [
+      58,
+      "recruit",
+      2
+     ],
+     [
+      169,
+      "swap",
+      3
+     ],
+     [
+      211,
+      "swap",
+      3
+     ],
+     [
+      313,
+      "swap",
+      3
+     ],
+     [
+      334,
+      "swap",
+      3
+     ],
+     [
+      355,
+      "swap",
+      3
+     ],
+     [
+      413,
+      "swap",
+      3
+     ],
+     [
+      441,
+      "swap",
+      3
+     ],
+     [
+      458,
+      "swap",
+      3
+     ],
+     [
+      576,
+      "swap",
+      3
+     ]
+    ],
+    "rej": {},
+    "relic_offer": [
+     [
+      120,
+      "shop",
+      [
+       "91",
+       "109",
+       "55"
+      ]
+     ],
+     [
+      169,
+      "choice",
+      [
+       "103",
+       "97",
+       "191",
+       "177"
+      ],
+      "squad"
+     ],
+     [
+      199,
+      "choice",
+      [
+       "54",
+       "208",
+       "104"
+      ],
+      "elite"
+     ],
+     [
+      252,
+      "choice",
+      [
+       "80",
+       "29",
+       "45",
+       "127"
+      ],
+      "boss"
+     ],
+     [
+      253,
+      "choice",
+      [
+       "95",
+       "98",
+       "23"
+      ],
+      "event"
+     ],
+     [
+      302,
+      "shop",
+      [
+       "57",
+       "193",
+       "180"
+      ]
+     ],
+     [
+      366,
+      "choice",
+      [
+       "83",
+       "226",
+       "263",
+       "58"
+      ],
+      "duck"
+     ],
+     [
+      456,
+      "choice",
+      [
+       "237",
+       "11",
+       "163",
+       "233"
+      ],
+      "boss"
+     ],
+     [
+      457,
+      "choice",
+      [
+       "50",
+       "264",
+       "92",
+       "75"
+      ],
+      "boss"
+     ],
+     [
+      475,
+      "choice",
+      [
+       "103",
+       "97",
+       "27"
+      ],
+      "elite"
+     ],
+     [
+      482,
+      "shop",
+      [
+       "68",
+       "122",
+       "46"
+      ]
+     ]
+    ],
+    "relic_out": 288958.730996323,
+    "relic_take": [
+     [
+      130,
+      "91",
+      [
+       "辅助",
+       "重装",
+       "特种"
+      ],
+      "shop"
+     ],
+     [
+      169,
+      "177",
+      [
+       "辅助",
+       "重装",
+       "特种"
+      ],
+      "choice:squad"
+     ],
+     [
+      199,
+      "208",
+      [
+       "辅助",
+       "重装",
+       "特种"
+      ],
+      "choice:elite"
+     ],
+     [
+      252,
+      "127",
+      [
+       "辅助",
+       "重装",
+       "特种"
+      ],
+      "choice:boss"
+     ],
+     [
+      253,
+      "95",
+      [
+       "辅助",
+       "重装",
+       "特种"
+      ],
+      "choice:event"
+     ],
+     [
+      302,
+      "57",
+      [
+       "辅助",
+       "重装",
+       "特种"
+      ],
+      "shop"
+     ],
+     [
+      302,
+      "193",
+      [
+       "辅助",
+       "重装",
+       "特种"
+      ],
+      "shop"
+     ],
+     [
+      366,
+      "226",
+      [
+       "辅助",
+       "重装",
+       "特种"
+      ],
+      "choice:duck"
+     ],
+     [
+      366,
+      "22",
+      [
+       "辅助",
+       "重装",
+       "特种"
+      ],
+      "relicfx"
+     ],
+     [
+      366,
+      "180",
+      [
+       "辅助",
+       "重装",
+       "特种"
+      ],
+      "relicfx"
+     ],
+     [
+      456,
+      "233",
+      [
+       "辅助",
+       "重装",
+       "特种"
+      ],
+      "choice:boss"
+     ],
+     [
+      457,
+      "50",
+      [
+       "辅助",
+       "重装",
+       "特种"
+      ],
+      "choice:boss"
+     ],
+     [
+      475,
+      "97",
+      [
+       "辅助",
+       "重装",
+       "特种"
+      ],
+      "choice:elite"
+     ],
+     [
+      482,
+      "68",
+      [
+       "辅助",
+       "重装",
+       "特种"
+      ],
+      "shop"
+     ],
+     [
+      482,
+      "122",
+      [
+       "辅助",
+       "重装",
+       "特种"
+      ],
+      "shop"
+     ],
+     [
+      482,
+      "46",
+      [
+       "辅助",
+       "重装",
+       "特种"
+      ],
+      "shop"
+     ]
+    ],
+    "relics": 16,
+    "shield": {
+     "abs": 425.1,
+     "blocks": 20,
+     "every": 15.0,
+     "max": 1,
+     "peak": 1,
+     "src_int": [],
+     "src_max": [
+      {
+       "op": 0,
+       "scope": "",
+       "source": "relic:193",
+       "value": 1.0
+      }
+     ],
+     "t0": 302.01599999999
+    },
+    "squad": [
+     "suzuran",
+     "shu",
+     "specter_unchained"
+    ],
+    "sus": {
+     "m0": {
+      "clean": {},
+      "dr": {},
+      "heal": {
+       "化被草木·技能": [
+        41.9509203913496,
+        47.0925
+       ],
+       "商店": [
+        0.0,
+        53.82
+       ],
+       "嘉禾盈仓·技能": [
+        5.83252658809193,
+        8.073
+       ],
+       "拾取": [
+        98.2111753369319,
+        277.8975
+       ],
+       "禾苗": [
+        6.86205,
+        6.86205
+       ],
+       "铃兰": [
+        20.4516,
+        20.4516
+       ]
+      },
+      "lit": 0.0
+     },
+     "m3": {
+      "clean": {},
+      "dr": {
+       "shu": 32.841877170926
+      },
+      "heal": {
+       "丰年·常驻": [
+        2.01825,
+        2.01825
+       ],
+       "化被草木·技能": [
+        37.2663141984558,
+        50.45625
+       ],
+       "商店": [
+        0.0,
+        53.82
+       ],
+       "嘉禾盈仓·技能": [
+        39.4164636000003,
+        44.4015
+       ],
+       "拾取": [
+        1.37146486094284,
+        403.65
+       ],
+       "禾苗": [
+        11.3022,
+        11.3022
+       ],
+       "铃兰": [
+        20.8378387147869,
+        22.0662
+       ]
+      },
+      "lit": 0.0
+     },
+     "m6": {
+      "clean": {},
+      "dr": {
+       "shu": 67.0763012218248,
+       "shu·盾": 10.764
+      },
+      "heal": {
+       "丰年·常驻": [
+        97.8585918711472,
+        105.35265
+       ],
+       "化被草木·技能": [
+        89.2644129044339,
+        105.958125
+       ],
+       "嘉禾盈仓·技能": [
+        62.6771535629408,
+        73.4643
+       ],
+       "拾取": [
+        44.5755361505054,
+        226.044
+       ],
+       "离离枯荣·常驻": [
+        16.30746,
+        16.30746
+       ],
+       "禾苗": [
+        9.04099759601412,
+        9.082125
+       ],
+       "铃兰": [
+        32.0418985984863,
+        34.22952
+       ]
+      },
+      "lit": 0.0
+     },
+     "m9": {
+      "clean": {},
+      "dr": {
+       "shu": 75.4328946160276,
+       "shu·盾": 21.528
+      },
+      "heal": {
+       "丰年·常驻": [
+        74.9845995273953,
+        80.4272625
+       ],
+       "化被草木·技能": [
+        73.3872358517958,
+        79.720875
+       ],
+       "嘉禾盈仓·技能": [
+        26.6409,
+        26.6409
+       ],
+       "拾取": [
+        10.3959166800003,
+        185.679
+       ],
+       "离离枯荣·常驻": [
+        14.5327237680981,
+        15.50016
+       ],
+       "禾苗": [
+        12.8160417278583,
+        13.037895
+       ],
+       "铃兰": [
+        32.8852573464529,
+        33.15312
+       ]
+      },
+      "lit": 0.0
+     }
+    },
+    "swaps": [],
+    "t": 668,
+    "tel": "full",
+    "terrain": {
+     "bul": 19,
+     "dash": 0,
+     "ebul": 22
+    },
+    "ult": {
+     "combo": 10,
+     "combo_auto": 10,
+     "combo_up": 0,
+     "cult": 0,
+     "cult_times": [],
+     "e_combo": 5.3,
+     "e_hurt": 18.0,
+     "e_kill": 66.4,
+     "e_out": 233.4,
+     "first_full": 149.4,
+     "full_times": [
+      149.4,
+      341.0,
+      540.3
+     ],
+     "hit_n": 188,
+     "idle_full_s": 52.0,
+     "link_by": {
+      "specter_unchained": 10
+     },
+     "lit": 10,
+     "lit_by": {},
+     "miss": 0,
+     "ult": 3,
+     "ult_times": [
+      167.4,
+      375.0,
+      540.3
+     ]
+    },
+    "win": true,
+    "xp_backstop": 0.0,
+    "xp_dropped": 14466.0,
+    "xp_ground": 240.0,
+    "xp_magnet": 2382.4,
+    "xp_magnet_min": [
+     0.0,
+     0.0,
+     249.5,
+     130.0,
+     554.8,
+     0.0,
+     383.1,
+     345.0,
+     700.0,
+     0.0,
+     0.0,
+     20.0
+    ],
+    "xp_recall": 3590.9,
+    "xp_recall_min": [
+     17.5,
+     17.5,
+     10.0,
+     107.4,
+     50.7,
+     638.4,
+     499.4,
+     152.5,
+     437.5,
+     1010.0,
+     650.0
+    ],
+    "xp_total": 14226.0,
+    "xp_total_min": [
+     180.0,
+     372.5,
+     517.6,
+     491.1,
+     1013.2,
+     1325.9,
+     1753.3,
+     2090.1,
+     2462.3,
+     2745.0,
+     1132.5,
+     142.5
+    ],
+    "xp_walk": 8252.7,
+    "xp_walk_min": [
+     162.5,
+     355.0,
+     258.1,
+     253.8,
+     407.7,
+     687.5,
+     870.8,
+     1592.6,
+     1324.8,
+     1735.0,
+     482.5,
+     122.5
+    ]
+   }
+  }
+ ]
+}
