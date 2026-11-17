@@ -1853,6 +1853,8 @@ func _notification(what: int) -> void:
 
 func _process(delta: float) -> void:
 	UM.advance(delta)   # 界面动效时钟（真实帧间隔，不乘对局倍速；scripts/ui_motion.gd）
+	if state != S.PAUSE and abandon_arm_ms > -99999:
+		abandon_arm_ms = -99999   # 离开暂停就撤掉「确认放弃？」：否则点一下后回局内、3 秒内再暂停点一下就直接放弃（11-17 体检）
 	_pm("engine")   # 上一帧结束到这一帧开始：引擎自身、_draw 回调、其他节点（只在 --prof 下记）
 	onboard.update(delta)   # 新手引导（screens/onboard.gd）：真实帧间隔
 	if not is_inside_tree():
