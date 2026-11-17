@@ -114,7 +114,7 @@ def check_balance(errs, verbose):
     bal = _load(os.path.join(DATA, "balance.json"), [])
     leaves = set(_leaves(bal))
     reads, lits, prefixes = set(), set(), set()
-    for p in glob.glob(os.path.join(SCRIPTS, "**", "*.gd"), recursive=True):
+    for p in glob.glob(os.path.join(SCRIPTS, "**", "*.gd"), recursive=True) + glob.glob(os.path.join(ROOT, "game", "themes", "**", "*.gd"), recursive=True):   # 主题包脚本（docs/364、368）也读 balance
         s = open(p, encoding="utf-8").read()
         for path, plus in BAL_CALL.findall(s):
             # 字面后紧跟 + 的是动态拼键（如 "boss/spd_all_k_" + str(type)）：只是前缀，不是完整键
