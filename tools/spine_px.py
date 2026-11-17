@@ -2,7 +2,8 @@
 """新干员 B 方案像素帧条（11-18 用户批准：PRTS Spine 渲染 → 像素化 → 修 → 直接进包；docs/365）。
 
 复用 tools/spine_run_trial（逐附件 4 倍渲染 → 4×4 BOX → 二值透明 → 映射调色板 → 按层序合成），本脚本只管：
-  1. 调色板：没有 Codex 部件包的新干员，从本人 atlas 贴图（不透明像素）中位切分压到 N 色（缺省 96，现有 20 人 @2x 每条 95–130 色）
+  1. 调色板：没有 Codex 部件包（bz_18）的新干员，按 bz_18 build_operator.py 同一算法从本人原生附件取：96 色中位切分 + 眼 / 嘴附件各 8 色本地色
+     （cfg.palette_protect = false 时不补，改用 cfg.keep_colors 手选设定色）
   2. 按动作清单（cfg/<id>_px.json）逐个动作写临时 cfg、调 run_trial.js 出逐帧
   3. 自动清理：小于等于 2 像素的不透明碎块删掉；单点杂色（八邻无同色、八邻 ≥ 6 个同一色）并入周围色
   4. 人工修补层：cfg.fix.eyes 给手画的眼睛小图（字符矩阵），按逐帧眼骨位置贴回；cfg.fix.patches 给逐帧逐像素补丁
@@ -36,15 +37,66 @@ def hexrgb(h):
 
 
 # ---------- 1. 调色板 ----------
-def make_palette(atlas_png, n, out):
-    im = Image.open(atlas_png).convert("RGBA")
-    px = [p[:3] for p in im.get_flattened_data() if p[3] >= 230] if hasattr(im, "get_flattened_data") else [p[:3] for p in im.getdata() if p[3] >= 230]
-    src = Image.new("RGB", (len(px), 1))
-    src.putdata(px)
-    q = src.quantize(colors=n, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
-    pal = q.getpalette()[:n * 3]
-    o = Image.new("RGBA", (n, 1))
-    o.putdata([tuple(pal[i * 3:i * 3 + 3]) + (255,) for i in range(n)])
+def atlas_regions(atlas):
+    """.atlas（libgdx 文本格式）→ [(名, 页图, (x, y, w, h))]；rotate 的区域宽高互换"""
+    out, page, cur = [], None, None
+    lines = open(atlas, encoding="utf-8").read().splitlines()
+    for ln in lines:
+        t = ln.strip()
+        if not t:
+            page = None
+            continue
+        if page is None and t.endswith(".png"):
+            page = t
+            continue
+        if ":" not in t:
+            cur = {"name": t}
+            out.append(cur)
+            cur["page"] = page
+            continue
+        k, v = [x.strip() for x in t.split(":", 1)]
+        if cur is not None and k in ("xy", "size", "rotate"):
+            cur[k] = v
+    res = []
+    for r in out:
+        if "xy" not in r or "size" not in r:
+            continue
+        x, y = map(int, r["xy"].split(","))
+        w, h = map(int, r["size"].split(","))
+        if r.get("rotate") in ("true", "90"):
+            w, h = h, w
+        res.append((r["name"], r["page"], (x, y, w, h)))
+    return res
+
+
+def make_palette(atlas, n, out, protect=True, alpha=96):
+    """同 Codex bz_18 部件包（build_operator.py）口径：全部原生附件颜色（alpha ≥ 96）中位切分 n 色，
+    再给名字含 eye / mouth / iris / pupil 的附件（前 20 个）各补 8 色本地色，防止五官被并进大色块"""
+    import re
+    d = os.path.dirname(atlas)
+    pages, rgb, protected = {}, [], []
+    for name, page, (x, y, w, h) in atlas_regions(atlas):
+        if page not in pages:
+            pages[page] = Image.open(os.path.join(d, page)).convert("RGBA")
+        reg = pages[page].crop((x, y, x + w, y + h))
+        data = list(reg.get_flattened_data() if hasattr(reg, "get_flattened_data") else reg.getdata())
+        rgb += [p[:3] for p in data if p[3] >= alpha]
+        if protect and re.search(r"eye|mouth|iris|pupil", name, re.I) and len(protected) < 20:
+            protected.append([p[:3] for p in data if p[3] > 128])
+    src = Image.new("RGB", (len(rgb), 1))
+    src.putdata(rgb)
+    pal = src.quantize(colors=n, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).getpalette()[:n * 3]
+    cols = [tuple(pal[i * 3:i * 3 + 3]) for i in range(n)]
+    for col in protected:
+        if not col:
+            continue
+        im = Image.new("RGB", (len(col), 1))
+        im.putdata(col)
+        lp = im.quantize(colors=8, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).getpalette()[:24]
+        cols += [tuple(lp[i * 3:i * 3 + 3]) for i in range(len(lp) // 3)]
+    cols = list(dict.fromkeys(cols))
+    o = Image.new("RGBA", (len(cols), 1))
+    o.putdata([c + (255,) for c in cols])
     o.save(out)
     return out
 
@@ -231,8 +283,9 @@ def main():
     origin = (64 + pad, 120 + pad)
 
     pal = os.path.join(out_root, "palette.png")
-    atlas_png = os.path.join(os.path.dirname(src["atlas"]), os.path.basename(src["atlas"])[:-6] + ".png")
-    make_palette(atlas_png, spec.get("colors", 96), pal)
+    # palette_protect：bz_18 的眼 / 嘴附件补色（缺省开）。令关掉：19 个眼眉睫附件多出 94 色，刘海阴影映射成粉色带（docs/365 §2）
+    # palette_alpha：取色的 alpha 下限（bz_18 为 96）；令用 230：半透明的提灯光晕会把灯芯橙色拉淡
+    make_palette(src["atlas"], spec.get("colors", 96), pal, spec.get("palette_protect", True), spec.get("palette_alpha", 96))
     if spec.get("keep_colors"):
         extra_colors(pal, spec["keep_colors"])
 

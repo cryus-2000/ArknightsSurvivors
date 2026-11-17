@@ -177,5 +177,8 @@
    "_doc": "R = 画面左边那只（离刘海白挑染近），L = 右边；首行睫毛、两行虹膜（高光 2 格成组）、末行肤色盖掉 BOX 残留的眼白 / 黑点"
   }
  },
- "_fix_doc": "眼睛：原作 4×4 BOX 后虹膜被睫毛和眼白冲掉，按 PRTS 贴图取色（虹膜 #9b79ac、高光 #c3dcdc、瞳孔 #4a3a55）手画 4×3 小图，按逐帧虹膜骨位置贴回"
+ "_fix_doc": "眼睛：原作 4×4 BOX 后虹膜被睫毛和眼白冲掉，按 PRTS 贴图取色（虹膜 #9b79ac、高光 #c3dcdc、瞳孔 #4a3a55）手画 4×3 小图，按逐帧虹膜骨位置贴回",
+ "palette_protect": false,
+ "palette_alpha": 230,
+ "_palette_doc": "调色板沿用 bz_18 build_operator.py 算法（96 色中位切分），两处偏离：不补眼部 8 色（palette_protect=false，19 个眼眉睫附件多 94 色、刘海下出粉带），取色 alpha ≥ 230（半透明光晕拉淡提灯）；瞳色等设定色用 keep_colors 手选"
 }

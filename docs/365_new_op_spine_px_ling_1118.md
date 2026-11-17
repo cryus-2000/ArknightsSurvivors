@@ -4,6 +4,34 @@
 
 只做了美术管线和帧条：`game/art/operators/ling/` 下 10 条 @2x 帧条已提交，**没有**建 `characters/ling.json`、没有接入玩法，游戏不会加载它们。
 
+## 0. 复用了什么、新增了什么（协调人 11-18 要求核对）
+
+现有 20 人的 Spine 转像素流程是三段：Codex 的 **bt_18**（`art/incoming/bt_18_complete_parts_1017`，逐槽导出原生附件 1000 画布 PNG + `catalog.json`）→ Codex 的 **bz_18 部件包**（`bz_18_native_spine_parts_1017/build_operator.py`：统一网格逐件像素化，`manifest.json` 定缩放 / 原点，调色板 = 全部原生附件色 96 色中位切分 + 眼 / 嘴附件各 8 色）→ 本仓库 **`tools/spine_run_trial/run_trial.js`**（读原生 skel / atlas 摆姿势，逐附件 4 倍渲染 → alpha 加权 4×4 BOX → 阈值 96 二值透明 → 映射到 bz_18 `parts/*.png` 的全部颜色 → 按层序合成）。游戏里的入场 / 跑步等 Spine 帧条都是第三段出的；部件包对第三段只提供**两样东西**：缩放（`global_transform.scale × catalog.scale`）和调色板。没有部件包的新干员（拉普兰德、歌蕾蒂娅）走 `cfg.pack = {scale, root, palette_png}`。
+
+**复现核对**（11-18，用现有 cfg 原样重跑，与仓库帧条逐像素比）：
+
+| 帧条 | 配置 | 结果 |
+|---|---|---|
+| `suzuran/op_suzuran_entry@2x.png` | `cfg/suzuran_entry.json` | 8 帧 0 像素差（24205 个不透明像素） |
+| `mizuki/op_mizuki_entry@2x.png` | `cfg/mizuki_entry.json` | 8 帧 0 像素差（22810 个） |
+
+```bash
+export NODE_PATH=E:/ArknightsSurvivors/build/prts_ref/_node/node_modules
+node tools/spine_run_trial/run_trial.js tools/spine_run_trial/cfg/suzuran_entry.json --clean --out build/spine_px/_repro/suzuran_entry
+```
+
+令用的就是这第三段（`run_trial.js` 原样，走 `cfg.pack`），所以出帧算法与现有 20 人一致。
+
+| | 复用 | 新增 / 不同 |
+|---|---|---|
+| 拉模型 | `tools/prts_spine.py`（TORAPPU 路径表） | 登记 6 名新干员 |
+| 部件包 | 不做 bt_18 / bz_18 那套逐槽 PNG：`run_trial.js` 只用到它的缩放和调色板，逐槽 PNG 与 `parts/` 本身不参与出帧；那两段脚本在 Codex 工作树、依赖 bs_18 审计和维什戴尔渲染器，不宜从本仓库改跑 | `tools/spine_px.py` 直接从令的 atlas 算调色板（同 bz_18 算法：96 色中位切分；可选眼 / 嘴补色），缩放按 docs/103 头身公式定，写进 `cfg.pack` |
+| 调色板偏离 | — | 令关了 bz_18 的眼部补 8 色（令有 19 个眼眉睫附件，补了多 94 色，刘海阴影被映射成粉色带），取色 alpha 下限 230（不然半透明光晕把提灯橙色拉淡）；瞳色等设定色用 `keep_colors` 手选补回 |
+| 出帧 | `run_trial.js` 的 `sample`（按时间采样原作轨）、步态合成（跑步）、`skipAdditive`、`hide`、编辑台数据包 | `boneScale`（Q 版大头：放大头骨）、`trackBones`（逐帧骨骼像素位置） |
+| 入场取段 | `entry_batch.py` 的口径（整个人进画布起到收势） | 令的 Start 全程都在画布里，直接全程 8 帧 |
+| 清理 / 修 | `px_lint.py` 验收口径 | `spine_px.py`：去 ≤ 2 像素碎块、并单点杂色、外圈压暗、按骨位贴手画眼睛、逐帧补丁接口 |
+| 审阅 | `sheet.py` 的 8 倍图思路 | `spine_px_review.py`：同屏站位 + 原速循环 mp4 |
+
 ## 1. 结论
 
 | 项 | 结果 |
