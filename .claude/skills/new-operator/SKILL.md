@@ -82,6 +82,7 @@ description: 加一名新干员（原作查证 → 设计稿 → characters/<id>
 
 现行：20 人都走「转平面」（`fx/px_plane` 1，docs/246 / 254 / 273 各人页、标准 docs/270、口径 memory fx-style-pixelfx-noita）。**转平面接管后 `o.fx()` / `o.sparks()` / `spawn_fx_sprite` 全部不画**（`character.gd draw_pfx` 直接 return，只 `Pxp.KEEP_PFX` 白名单例外），所以节点 / 技能提示必须发 `_FXR.ev(o, "<事件>", {...})` 交给转平面画（docs/310 §2）。
 
+0. **先对特效预算（docs/368 开头速查表）**：从设计稿的「特效需求要点」出发，每招定好元素种类（≤ 3）、覆盖面积档、持续时间，写进转平面文档的自查表；`game/data/characters/<id>.json` 加 `fx_elements`（每招列出元素名，如 `{"atk": ["墨笔触", "云气"], "s1": [...], "ult": [...]}`），快检 `fx_budget` 没有它会报错。帧条登记进 `tools/fx_budget_map.json`（`codes` 加键前缀 → 干员、`stems` 加键干 → 招）。
 1. 写转平面文档（docs 新号，照 docs/273）：配色表（依据原作）、每招拆法（立起层 / 贴地层 / E0 / E1 / E2 各多一个新元素）、范围档、实现、自查表。同一招元素 ≤ 3，红色只给危险。
 2. 代码：`game/scripts/render/fx_pxplane_<短名>.gd`（本人一节）；`fx_pxplane.gd` 的 `IDS` / `METAS`（键前缀）加她，`ev / draw_floor / draw_over / sort_items / draw_sorted` 各一行转发；需要保留的旧粒子进 `KEEP_PFX`。
 3. 帧条：`tools/pxplane_bake_<id>.py`（图形 `pxplane_<id>_art.py`）烤 `game/art/fx/pxp/pxp_<前缀>_*.png` + `game/data/pxp_<id>.json`；Noita 颗粒 / 照地光参数 `game/data/fx_pxplane/<id>.json`；旧式 `fx_<id>_*` / `proj_<id>_*` 帧条（`game/art/fx/`、`fx/proj/`）登记 `art.gd` 帧数 / fps 表，并跑 `python -X utf8 tools/optical_fx_quant.py` 出光学观感压阶版（`game/art/fx/_optical/`，同名同密度）。
@@ -90,7 +91,7 @@ description: 加一名新干员（原作查证 → 设计稿 → characters/<id>
 5. 只画钩子第一行判断「没接管就返回」；转平面开 / 关 TRACE 必须逐行一致（只改画面）。
 6. 送审：先 GIF（`tools/pxplane_gif_<id>.py`，上半 1 倍下半 2 倍、15 fps 原速）→ 用户点头 → 图鉴演示录像逐招 E0→E2 mp4（`tools/elite_demo_shots.py`，memory review-in-gallery）→ `vreview` 预审 → 发用户。GIF 过审 ≠ 实机过（memory gif-not-ingame：另查 1 倍尺寸、半透明盘 / 细环、红铺满屏）。体检 `tools/fx_audit.py both --ops <id>`（docs/270）。
 
-**完成标准**：`new_op_check.py` 的「节点画面事件」一项全绿；fx_audit 核心项过；用户看过录像。
+**完成标准**：`new_op_check.py` 的「节点画面事件」一项全绿；fx_audit 核心项过；**特效预算两项过**——静态 `python tools/check.py --only fx_budget`（包体 / 显存 / 帧条数 / 单条尺寸 / 元素种类，rc 0），运行时 `python tools/fx_budget_runtime.py new --op <id>`（后期绘制帧时增量、各招覆盖面积 / 实心覆盖 / 亮度 / 持续 / 盖住敌人，对照 docs/368 速查表硬上限；画面项在 GCP 跑 `cover`，帧时本机 1 个 Godot），超限项写进设计稿 §7 并报用户，不许自行放宽；用户看过录像。
 **坑**：录像前先跑 `python tools/asset_index.py` 重建 `game/art/index.json`（新帧条不进索引会静默回退旧画面，memory px-index-json-local）；新画面状态若影响普通敌人绘制，进 `_dc_ok` 排除或签名（`check.py --dccheck`）；圆 / 环 / 线用 `world.tb_*` 合批（memory godot-draw-batching）。
 
 ## ⑤ 美术单给 Codex（docs/104，只写范围）

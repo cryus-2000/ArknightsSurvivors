@@ -1,0 +1,1630 @@
+{
+ "_doc": "tools/fx_budget.py 的归属表（docs/368 §1.1）：codes 代号 → 干员（空代号 = 斯卡蒂无前缀帧条）；stems 代号 → {键干: 招}；legacy 旧帧条前缀 → [干员, 招]（最长前缀优先，shared = 不归任何人）；dirs pxp 子目录 → [干员, 招]。新干员加帧条时在这里登记代号和键干",
+ "codes": {
+  "an": "angelina",
+  "ex": "exusiai",
+  "ey": "eyjafjalla",
+  "gl": "gladiia",
+  "hsg": "hoshiguma",
+  "ir": "irene",
+  "ka": "kaltsit",
+  "lg": "logos",
+  "lm": "lumen",
+  "lp": "lappland",
+  "mz": "mizuki",
+  "sa": "saria",
+  "sg": "siege",
+  "sk": "skalter",
+  "": "skadi",
+  "su": "specter_unchained",
+  "sz": "suzuran",
+  "tx": "texas",
+  "ul": "ulpianus",
+  "wd": "wisadel",
+  "ult_ir": "irene"
+ },
+ "stems": {
+  "an": {
+   "band2": "s2",
+   "bandop": "s2",
+   "dense_in": "atk",
+   "dense_pop": "atk",
+   "echo": "atk",
+   "gcore": "s3",
+   "gcore_cast": "s3",
+   "land": "atk",
+   "liftop": "s3",
+   "lk_land": "link",
+   "lk_shard": "link",
+   "lock": "atk",
+   "orb": "atk",
+   "orb_sh": "atk",
+   "rib": "s2",
+   "ripple": "s3",
+   "rockb": "s3",
+   "rocksh_w3": "s3",
+   "rocksh_w4": "s3",
+   "rocksh_w6": "s3",
+   "s1cast": "s1",
+   "splash": "atk",
+   "well": "atk"
+  },
+  "ex": {
+   "bless": "talent",
+   "halo": "s3",
+   "halo_fire": "s3",
+   "hit": "atk",
+   "hit_full": "atk",
+   "hit_full_dm45": "atk",
+   "hit_full_dm90": "atk",
+   "hit_g": "atk",
+   "hit_g_e1_dm45": "atk",
+   "hit_g_e1_dm90": "atk",
+   "hit_g_e2_dm45": "atk",
+   "hit_g_e2_dm90": "atk",
+   "hit_n_e0_dm45": "atk",
+   "hit_n_e0_dm90": "atk",
+   "hit_n_e1_dm45": "atk",
+   "hit_n_e1_dm90": "atk",
+   "hit_n_e2_dm45": "atk",
+   "hit_n_e2_dm90": "atk",
+   "hit_s1_e0_dm45": "s1",
+   "hit_s1_e0_dm90": "s1",
+   "hit_s1_e1_dm45": "s1",
+   "hit_s1_e1_dm90": "s1",
+   "hit_s1_e2_dm45": "s1",
+   "hit_s1_e2_dm90": "s1",
+   "hit_s2_e1_dm45": "s2",
+   "hit_s2_e1_dm90": "s2",
+   "hit_s2_e2_dm45": "s2",
+   "hit_s2_e2_dm90": "s2",
+   "hit_s3_e2_dm45": "s3",
+   "hit_s3_e2_dm90": "s3",
+   "hit_x": "talent",
+   "hit_x_dm45": "talent",
+   "hit_x_dm90": "talent",
+   "mark": "atk",
+   "mz": "atk",
+   "mz_g": "atk",
+   "mz_g_e1_v0_dm45": "atk",
+   "mz_g_e1_v0_dm90": "atk",
+   "mz_g_e1_v1_dm45": "atk",
+   "mz_g_e1_v1_dm90": "atk",
+   "mz_g_e2_v0_dm45": "atk",
+   "mz_g_e2_v0_dm90": "atk",
+   "mz_g_e2_v1_dm45": "atk",
+   "mz_g_e2_v1_dm90": "atk",
+   "mz_n_e0_v0_dm45": "atk",
+   "mz_n_e0_v0_dm90": "atk",
+   "mz_n_e0_v1_dm45": "atk",
+   "mz_n_e0_v1_dm90": "atk",
+   "mz_n_e1_v0_dm45": "atk",
+   "mz_n_e1_v0_dm90": "atk",
+   "mz_n_e1_v1_dm45": "atk",
+   "mz_n_e1_v1_dm90": "atk",
+   "mz_n_e2_v0_dm45": "atk",
+   "mz_n_e2_v0_dm90": "atk",
+   "mz_n_e2_v1_dm45": "atk",
+   "mz_n_e2_v1_dm90": "atk",
+   "mz_s1_e0_v0_dm45": "s1",
+   "mz_s1_e0_v0_dm90": "s1",
+   "mz_s1_e0_v1_dm45": "s1",
+   "mz_s1_e0_v1_dm90": "s1",
+   "mz_s1_e1_v0_dm45": "s1",
+   "mz_s1_e1_v0_dm90": "s1",
+   "mz_s1_e1_v1_dm45": "s1",
+   "mz_s1_e1_v1_dm90": "s1",
+   "mz_s1_e2_v0_dm45": "s1",
+   "mz_s1_e2_v0_dm90": "s1",
+   "mz_s1_e2_v1_dm45": "s1",
+   "mz_s1_e2_v1_dm90": "s1",
+   "mz_s2_e1_v0_dm45": "s2",
+   "mz_s2_e1_v0_dm90": "s2",
+   "mz_s2_e1_v1_dm45": "s2",
+   "mz_s2_e1_v1_dm90": "s2",
+   "mz_s2_e2_v0_dm45": "s2",
+   "mz_s2_e2_v0_dm90": "s2",
+   "mz_s2_e2_v1_dm45": "s2",
+   "mz_s2_e2_v1_dm90": "s2",
+   "mz_s3_e2_v0_dm45": "s3",
+   "mz_s3_e2_v0_dm90": "s3",
+   "mz_s3_e2_v1_dm45": "s3",
+   "mz_s3_e2_v1_dm90": "s3",
+   "ring": "s1",
+   "ring_frag": "s1",
+   "ring_splash": "talent",
+   "smoke": "s3",
+   "steam": "s3",
+   "ult_burst": "ult",
+   "ult_halo": "ult",
+   "ult_pillar": "ult",
+   "ult_raise": "ult",
+   "ult_scorch": "ult"
+  },
+  "ey": {
+   "aura": "s2",
+   "ball_boulder": "atk",
+   "ball_boulder_dm45": "atk",
+   "ball_boulder_dm90": "atk",
+   "ball_chip": "atk",
+   "ball_chip_dm45": "atk",
+   "ball_chip_dm90": "atk",
+   "ball_fire": "atk",
+   "ball_fire_dm45": "atk",
+   "ball_fire_dm90": "atk",
+   "ball_ign": "atk",
+   "ball_ign_dm45": "atk",
+   "ball_ign_dm90": "atk",
+   "ball_lava": "atk",
+   "ball_lava_dm45": "atk",
+   "ball_lava_dm90": "atk",
+   "ball_pow": "atk",
+   "ball_pow_dm45": "atk",
+   "ball_pow_dm90": "atk",
+   "ball_rock": "atk",
+   "ball_rock_dm45": "atk",
+   "ball_rock_dm90": "atk",
+   "boom": "atk",
+   "ignite": "s2",
+   "lava": "s3",
+   "lavaup_l30": "s3",
+   "lavaup_l36": "s3",
+   "lavaup_p25": "s3",
+   "lavaup_p30": "s3",
+   "pool": "s3",
+   "raw_boom": "raw",
+   "raw_ignite": "raw",
+   "raw_lava": "raw",
+   "raw_s1boom": "raw",
+   "raw_s1cast": "raw",
+   "raw_s3boom": "raw",
+   "raw_s3cast": "raw",
+   "raw_splash": "raw",
+   "s1boom": "s1",
+   "s1cast": "s1",
+   "s3boom": "s3",
+   "s3cast": "s3",
+   "splash": "atk"
+  },
+  "gl": {
+   "arr": "atk",
+   "geyser": "talent",
+   "hit": "atk",
+   "link": "link",
+   "pop": "s3",
+   "ram": "talent",
+   "raw_hit": "raw",
+   "raw_ram": "raw",
+   "raw_s1hit": "raw",
+   "raw_s3loop": "raw",
+   "s1arr": "s1",
+   "s1hit": "s1",
+   "s2aura": "s2",
+   "s2cast": "s2",
+   "s2cast_e1_bk": "s2",
+   "s2cast_e2_bk": "s2",
+   "s2pull": "s2",
+   "s3close": "s3",
+   "s3close_bk": "s3",
+   "s3loop": "s3",
+   "s3loop_bk": "s3",
+   "s3open": "s3",
+   "s3open_bk": "s3",
+   "s3tick": "s3",
+   "slash": "talent",
+   "slash_gd_dm45": "talent",
+   "slash_gd_dm90": "talent",
+   "slash_up_dm45": "talent",
+   "slash_up_dm90": "talent",
+   "splash": "talent"
+  },
+  "hsg": {
+   "cover": "link",
+   "pulse": "talent",
+   "qi_s10": "talent",
+   "qi_s10_e0_gd_dm45": "talent",
+   "qi_s10_e0_gd_dm90": "talent",
+   "qi_s10_e0_up_dm45": "talent",
+   "qi_s10_e0_up_dm90": "talent",
+   "qi_s10_e1_gd_dm45": "talent",
+   "qi_s10_e1_gd_dm90": "talent",
+   "qi_s10_e1_up_dm45": "talent",
+   "qi_s10_e1_up_dm90": "talent",
+   "qi_s10_e2_gd_dm45": "talent",
+   "qi_s10_e2_gd_dm90": "talent",
+   "qi_s10_e2_up_dm45": "talent",
+   "qi_s10_e2_up_dm90": "talent",
+   "qi_s16": "talent",
+   "qi_s16_e0_gd_dm45": "talent",
+   "qi_s16_e0_gd_dm90": "talent",
+   "qi_s16_e0_up_dm45": "talent",
+   "qi_s16_e0_up_dm90": "talent",
+   "qi_s16_e1_gd_dm45": "talent",
+   "qi_s16_e1_gd_dm90": "talent",
+   "qi_s16_e1_up_dm45": "talent",
+   "qi_s16_e1_up_dm90": "talent",
+   "qi_s16_e2_gd_dm45": "talent",
+   "qi_s16_e2_gd_dm90": "talent",
+   "qi_s16_e2_up_dm45": "talent",
+   "qi_s16_e2_up_dm90": "talent",
+   "qi_s22": "talent",
+   "qi_s22_e0_gd_dm45": "talent",
+   "qi_s22_e0_gd_dm90": "talent",
+   "qi_s22_e0_up_dm45": "talent",
+   "qi_s22_e0_up_dm90": "talent",
+   "qi_s22_e1_gd_dm45": "talent",
+   "qi_s22_e1_gd_dm90": "talent",
+   "qi_s22_e1_up_dm45": "talent",
+   "qi_s22_e1_up_dm90": "talent",
+   "qi_s22_e2_gd_dm45": "talent",
+   "qi_s22_e2_gd_dm90": "talent",
+   "qi_s22_e2_up_dm45": "talent",
+   "qi_s22_e2_up_dm90": "talent",
+   "raw_rip": "raw",
+   "raw_saw": "raw",
+   "raw_slam": "raw",
+   "raw_sweep": "raw",
+   "raw_thorns": "raw",
+   "rip_l110": "s3",
+   "rip_l110_gd_dm45": "s3",
+   "rip_l110_gd_dm90": "s3",
+   "rip_l110_up_dm45": "s3",
+   "rip_l110_up_dm90": "s3",
+   "rip_l140": "s3",
+   "rip_l140_gd_dm45": "s3",
+   "rip_l140_gd_dm90": "s3",
+   "rip_l140_up_dm45": "s3",
+   "rip_l140_up_dm90": "s3",
+   "s3aura": "s3",
+   "s3cast": "s3",
+   "sand30": "s2",
+   "sand40": "s2",
+   "saw": "s3",
+   "shove": "link",
+   "shove_up_dm45": "link",
+   "shove_up_dm90": "link",
+   "slam": "s1",
+   "sweep": "atk",
+   "sweep_e0_gd_dm45": "atk",
+   "sweep_e0_gd_dm90": "atk",
+   "sweep_e0_up_dm45": "atk",
+   "sweep_e0_up_dm90": "atk",
+   "sweep_e1_gd_dm45": "atk",
+   "sweep_e1_gd_dm90": "atk",
+   "sweep_e1_stance": "atk",
+   "sweep_e1_stance_up_dm45": "atk",
+   "sweep_e1_stance_up_dm90": "atk",
+   "sweep_e1_up_dm45": "atk",
+   "sweep_e1_up_dm90": "atk",
+   "sweep_e2_gd_dm45": "atk",
+   "sweep_e2_gd_dm90": "atk",
+   "sweep_e2_stance": "atk",
+   "sweep_e2_stance_up_dm45": "atk",
+   "sweep_e2_stance_up_dm90": "atk",
+   "sweep_e2_up_dm45": "atk",
+   "sweep_e2_up_dm90": "atk",
+   "thorns": "s2",
+   "thorns_e1_back": "s2",
+   "thorns_e1_front": "s2",
+   "thorns_e2_back": "s2",
+   "thorns_e2_front": "s2"
+  },
+  "ir": {
+   "boom": "talent",
+   "brand": "talent",
+   "fin": "s2",
+   "fin_gd_dm45": "s2",
+   "fin_gd_dm90": "s2",
+   "fin_up_dm45": "s2",
+   "fin_up_dm90": "s2",
+   "gale": "talent",
+   "gust": "s1",
+   "muz": "talent",
+   "nova": "s1",
+   "pick": "atk",
+   "s2": "s2",
+   "s2_e1_up_dm45": "s2",
+   "s2_e1_up_dm90": "s2",
+   "s2_e2_up_dm45": "s2",
+   "s2_e2_up_dm90": "s2",
+   "s2_gd_dm45": "s2",
+   "s2_gd_dm90": "s2",
+   "s3": "s3",
+   "tide3": "talent"
+  },
+  "ka": {
+   "claw": "summon",
+   "echo": "s3",
+   "guard": "talent",
+   "guard_bk": "talent",
+   "guard_bk_up_r": "talent",
+   "guard_fr": "talent",
+   "guard_fr_up_r": "talent",
+   "guard_gd_r": "talent",
+   "heal": "atk",
+   "heal_col": "atk",
+   "heal_cross": "atk",
+   "link": "link",
+   "link_gd_dm45": "link",
+   "link_gd_dm90": "link",
+   "link_up_dm45": "link",
+   "link_up_dm90": "link",
+   "mclaw": "summon",
+   "melt": "summon",
+   "pounce": "summon",
+   "rebuild": "s1",
+   "rima_op_mon3tr_native_attack_1x": "summon",
+   "rima_op_mon3tr_native_attack_2x": "summon",
+   "rima_op_mon3tr_native_idle_1x": "summon",
+   "rima_op_mon3tr_native_idle_2x": "summon",
+   "rima_op_mon3tr_native_leap_1x": "summon",
+   "rima_op_mon3tr_native_leap_2x": "summon",
+   "rima_op_mon3tr_native_lunge_1x": "summon",
+   "rima_op_mon3tr_native_lunge_2x": "summon",
+   "rima_op_mon3tr_native_s2_1x": "summon",
+   "rima_op_mon3tr_native_s2_2x": "summon",
+   "rima_op_mon3tr_native_s3_1x": "summon",
+   "rima_op_mon3tr_native_s3_2x": "summon",
+   "rimb_op_mon3tr_native_attack_1x": "summon",
+   "rimb_op_mon3tr_native_attack_2x": "summon",
+   "rimb_op_mon3tr_native_idle_1x": "summon",
+   "rimb_op_mon3tr_native_idle_2x": "summon",
+   "rimb_op_mon3tr_native_leap_1x": "summon",
+   "rimb_op_mon3tr_native_leap_2x": "summon",
+   "rimb_op_mon3tr_native_lunge_1x": "summon",
+   "rimb_op_mon3tr_native_lunge_2x": "summon",
+   "rimb_op_mon3tr_native_s2_1x": "summon",
+   "rimb_op_mon3tr_native_s2_2x": "summon",
+   "rimb_op_mon3tr_native_s3_1x": "summon",
+   "rimb_op_mon3tr_native_s3_2x": "summon",
+   "s1hex": "s1",
+   "s1rib_bk": "s1",
+   "s1rib_fr": "s1",
+   "s1rib_fr2": "s1",
+   "s2cmd": "s2",
+   "s2hex": "s2",
+   "s2str": "s2",
+   "s3aura": "s3",
+   "s3cast": "s3",
+   "smol": "s3",
+   "spike": "summon"
+  },
+  "lg": {
+   "exec": "s2",
+   "fire": "atk",
+   "hit": "atk",
+   "hits": "atk",
+   "raw_bolt": "raw",
+   "raw_epitaph": "raw",
+   "raw_field": "raw",
+   "raw_hit": "raw",
+   "raw_link": "raw",
+   "raw_lock": "raw",
+   "raw_seal": "raw",
+   "raw_start": "raw",
+   "raw_tick": "raw",
+   "s3open": "s3",
+   "tick": "s2"
+  },
+  "lm": {
+   "burst": "s3",
+   "cleanse": "link",
+   "downpour": "s2",
+   "drizzle": "s1",
+   "flare": "atk",
+   "hit": "atk",
+   "hits": "atk",
+   "lmotes": "link",
+   "mend": "atk",
+   "pulse": "s3",
+   "rain": "s1",
+   "raw_bolt": "raw",
+   "raw_burst": "raw",
+   "raw_downpour": "raw",
+   "raw_drizzle": "raw",
+   "raw_hit": "raw",
+   "raw_lamp": "raw",
+   "raw_mend": "raw",
+   "raw_pillar": "raw",
+   "raw_rain": "raw",
+   "raw_sweep": "raw",
+   "raw_tower": "raw",
+   "s3open": "s3",
+   "tower": "s3"
+  },
+  "lp": {
+   "arm": "s1",
+   "atk": "atk",
+   "atk_e0_up_dm45": "atk",
+   "atk_e0_up_dm90": "atk",
+   "atk_e1_up_dm45": "atk",
+   "atk_e1_up_dm90": "atk",
+   "atk_e2_up_dm45": "atk",
+   "atk_e2_up_dm90": "atk",
+   "atk_gd_dm45": "atk",
+   "atk_gd_dm90": "atk",
+   "atk_h_up_dm45": "s1",
+   "atk_h_up_dm90": "s1",
+   "atk_m_up_dm45": "atk",
+   "atk_m_up_dm90": "atk",
+   "bark": "talent",
+   "block": "s1",
+   "claw": "atk",
+   "dance": "atk",
+   "link": "link",
+   "link_dm45": "link",
+   "link_dm90": "link",
+   "qi_big": "talent",
+   "qi_big_dm45": "talent",
+   "qi_big_dm90": "talent",
+   "qi_far": "talent",
+   "qi_far_dm45": "talent",
+   "qi_far_dm90": "talent",
+   "qi_qi": "talent",
+   "qi_qi_dm45": "talent",
+   "qi_qi_dm90": "talent",
+   "qi_twin": "talent",
+   "qi_twin_dm45": "talent",
+   "qi_twin_dm90": "talent",
+   "qish_big": "talent",
+   "qish_big_dm45": "talent",
+   "qish_big_dm90": "talent",
+   "qish_far": "talent",
+   "qish_far_dm45": "talent",
+   "qish_far_dm90": "talent",
+   "qish_qi": "talent",
+   "qish_qi_dm45": "talent",
+   "qish_qi_dm90": "talent",
+   "qish_twin": "talent",
+   "qish_twin_dm45": "talent",
+   "qish_twin_dm90": "talent",
+   "s1": "s1",
+   "s2": "s2",
+   "s2_aura": "s2",
+   "s3": "s3",
+   "spread": "talent",
+   "wolf": "s2",
+   "wolf_e1_dm45": "s2",
+   "wolf_e1_dm90": "s2",
+   "wolf_e2_dm45": "s2",
+   "wolf_e2_dm90": "s2",
+   "xcut": "s3"
+  },
+  "mz": {
+   "atk": "atk",
+   "atk_e0_gd_dm45": "atk",
+   "atk_e0_gd_dm90": "atk",
+   "atk_e0_up_dm45": "atk",
+   "atk_e0_up_dm90": "atk",
+   "atk_e1_gd_dm45": "atk",
+   "atk_e1_gd_dm90": "atk",
+   "atk_e1_up_dm45": "atk",
+   "atk_e1_up_dm90": "atk",
+   "atk_e2_gd_dm45": "atk",
+   "atk_e2_gd_dm90": "atk",
+   "atk_e2_up_dm45": "atk",
+   "atk_e2_up_dm90": "atk",
+   "awk2": "talent",
+   "bloom": "atk",
+   "burst": "s1",
+   "coil_e1_back": "s2",
+   "coil_e1_front": "s2",
+   "coil_e2_back": "s2",
+   "coil_e2_front": "s2",
+   "jelly": "talent",
+   "moon": "s3",
+   "pool": "s3",
+   "qi": "talent",
+   "raw": "raw",
+   "raw_atk": "raw",
+   "raw_bloom": "raw",
+   "raw_spin3": "raw",
+   "raw_tent": "raw",
+   "ready": "s1",
+   "ripple": "s1",
+   "s1": "s1",
+   "s1_e0_gd_dm45": "s1",
+   "s1_e0_gd_dm90": "s1",
+   "s1_e0_up_dm45": "s1",
+   "s1_e0_up_dm90": "s1",
+   "s1_e1_gd_dm45": "s1",
+   "s1_e1_gd_dm90": "s1",
+   "s1_e1_up_dm45": "s1",
+   "s1_e1_up_dm90": "s1",
+   "s1_e2_gd_dm45": "s1",
+   "s1_e2_gd_dm90": "s1",
+   "s1_e2_up_dm45": "s1",
+   "s1_e2_up_dm90": "s1",
+   "s2": "s2",
+   "s2_e1_gd_dm45": "s2",
+   "s2_e1_gd_dm90": "s2",
+   "s2_e1_up_dm45": "s2",
+   "s2_e1_up_dm90": "s2",
+   "s2_e2_gd_dm45": "s2",
+   "s2_e2_gd_dm90": "s2",
+   "s2_e2_up_dm45": "s2",
+   "s2_e2_up_dm90": "s2",
+   "s2cast": "s2",
+   "spin3": "s3",
+   "sting": "talent",
+   "tent_big": "s3",
+   "tent_cluster": "link",
+   "tent_curl": "atk",
+   "tent_pierce": "s1",
+   "tent_slam": "atk"
+  },
+  "sa": {
+   "bash": "atk",
+   "bash_e0_up_dm45": "atk",
+   "bash_e0_up_dm90": "atk",
+   "bash_e1_up_dm45": "atk",
+   "bash_e1_up_dm90": "atk",
+   "bash_gd_dm45": "atk",
+   "bash_gd_dm90": "atk",
+   "cal0_brk": "s3",
+   "cal0_grow": "s3",
+   "cal0_idle": "s3",
+   "cal1_brk": "s3",
+   "cal1_grow": "s3",
+   "cal1_idle": "s3",
+   "cbash": "s3",
+   "cbash_dm45": "s3",
+   "cbash_dm90": "s3",
+   "chip": "talent",
+   "field": "s3",
+   "hit": "atk",
+   "hit_dm45": "atk",
+   "hit_dm90": "atk",
+   "hita": "atk",
+   "hita_dm45": "atk",
+   "hita_dm90": "atk",
+   "hitc": "atk",
+   "hitc_dm45": "atk",
+   "hitc_dm90": "atk",
+   "hot_aura": "s2",
+   "hot_tick": "s2",
+   "lk_b": "link",
+   "lk_f": "link",
+   "lk_patch": "link",
+   "lk_ring": "link",
+   "markb": "talent",
+   "orb": "talent",
+   "orbbrk": "talent",
+   "pilb0_brk": "talent",
+   "pilb0_idle": "talent",
+   "pilb0_rise": "talent",
+   "pilb1_brk": "talent",
+   "pilb1_idle": "talent",
+   "pilb1_rise": "talent",
+   "pilb2_brk": "talent",
+   "pilb2_idle": "talent",
+   "pilb2_rise": "talent",
+   "pils0_brk": "talent",
+   "pils0_idle": "talent",
+   "pils0_rise": "talent",
+   "pils1_brk": "talent",
+   "pils1_idle": "talent",
+   "pils1_rise": "talent",
+   "pils2_brk": "talent",
+   "pils2_idle": "talent",
+   "pils2_rise": "talent",
+   "qspk": "talent",
+   "s1": "s1",
+   "s2": "s2",
+   "s3cast": "s3",
+   "shat2": "talent",
+   "suit": "atk",
+   "syrhit": "atk"
+  },
+  "sg": {
+   "arc": "atk",
+   "arc_e0_up_dm45": "atk",
+   "arc_e0_up_dm90": "atk",
+   "arc_e1_up_dm45": "atk",
+   "arc_e1_up_dm90": "atk",
+   "arc_e2_up_dm45": "atk",
+   "arc_e2_up_dm90": "atk",
+   "arc_s1_e0_up_dm45": "s1",
+   "arc_s1_e0_up_dm90": "s1",
+   "arc_s1_e1_up_dm45": "s1",
+   "arc_s1_e1_up_dm90": "s1",
+   "arc_s1_e2_up_dm45": "s1",
+   "arc_s1_e2_up_dm90": "s1",
+   "arc_s3_up_dm45": "s3",
+   "arc_s3_up_dm90": "s3",
+   "cmd": "talent",
+   "crash": "talent",
+   "crk_l110": "s2",
+   "crk_l110_gd_dm45": "s2",
+   "crk_l110_gd_dm90": "s2",
+   "crk_l60": "s2",
+   "crk_l60_gd_dm45": "s2",
+   "crk_l60_gd_dm90": "s2",
+   "crk_l90": "s2",
+   "crk_l90_gd_dm45": "s2",
+   "crk_l90_gd_dm90": "s2",
+   "crush": "atk",
+   "fis_l110": "atk",
+   "fis_l110_gd_dm45": "atk",
+   "fis_l110_gd_dm90": "atk",
+   "fis_l60": "atk",
+   "fis_l60_gd_dm45": "atk",
+   "fis_l60_gd_dm90": "atk",
+   "fis_l90": "atk",
+   "fis_l90_gd_dm45": "atk",
+   "fis_l90_gd_dm90": "atk",
+   "fis_l90_up_dm45": "atk",
+   "fis_l90_up_dm90": "atk",
+   "imp": "s1",
+   "imp_atk": "atk",
+   "link": "link",
+   "lion": "s1",
+   "quake": "talent",
+   "quake_roar": "talent",
+   "raw": "raw",
+   "raw_imp": "raw",
+   "raw_slam": "raw",
+   "rift": "talent",
+   "s1cast": "s1",
+   "s3": "s3",
+   "s3_gd_dm45": "s3",
+   "s3_gd_dm90": "s3",
+   "s3aura": "s3",
+   "s3cast": "s3",
+   "slam": "s2",
+   "trail_l24": "s2",
+   "trail_l24_e1_up_dm45": "s2",
+   "trail_l24_e1_up_dm90": "s2",
+   "trail_l24_e2_up_dm45": "s2",
+   "trail_l24_e2_up_dm90": "s2",
+   "trail_l45": "s2",
+   "trail_l45_e1_up_dm45": "s2",
+   "trail_l45_e1_up_dm90": "s2",
+   "trail_l45_e2_up_dm45": "s2",
+   "trail_l45_e2_up_dm90": "s2",
+   "wave_s18": "talent",
+   "wave_s18_e0_gd_dm45": "talent",
+   "wave_s18_e0_gd_dm90": "talent",
+   "wave_s18_e0_up_dm45": "talent",
+   "wave_s18_e0_up_dm90": "talent",
+   "wave_s18_e1_gd_dm45": "talent",
+   "wave_s18_e1_gd_dm90": "talent",
+   "wave_s18_e1_up_dm45": "talent",
+   "wave_s18_e1_up_dm90": "talent",
+   "wave_s18_e2_gd_dm45": "talent",
+   "wave_s18_e2_gd_dm90": "talent",
+   "wave_s18_e2_up_dm45": "talent",
+   "wave_s18_e2_up_dm90": "talent",
+   "wave_s24": "talent",
+   "wave_s24_e0_gd_dm45": "talent",
+   "wave_s24_e0_gd_dm90": "talent",
+   "wave_s24_e0_up_dm45": "talent",
+   "wave_s24_e0_up_dm90": "talent",
+   "wave_s24_e1_gd_dm45": "talent",
+   "wave_s24_e1_gd_dm90": "talent",
+   "wave_s24_e1_up_dm45": "talent",
+   "wave_s24_e1_up_dm90": "talent",
+   "wave_s24_e2_gd_dm45": "talent",
+   "wave_s24_e2_gd_dm90": "talent",
+   "wave_s24_e2_up_dm45": "talent",
+   "wave_s24_e2_up_dm90": "talent",
+   "wave_s30": "talent",
+   "wave_s30_e0_gd_dm45": "talent",
+   "wave_s30_e0_gd_dm90": "talent",
+   "wave_s30_e0_up_dm45": "talent",
+   "wave_s30_e0_up_dm90": "talent",
+   "wave_s30_e1_gd_dm45": "talent",
+   "wave_s30_e1_gd_dm90": "talent",
+   "wave_s30_e1_up_dm45": "talent",
+   "wave_s30_e1_up_dm90": "talent",
+   "wave_s30_e2_gd_dm45": "talent",
+   "wave_s30_e2_gd_dm90": "talent",
+   "wave_s30_e2_up_dm45": "talent",
+   "wave_s30_e2_up_dm90": "talent"
+  },
+  "sk": {
+   "raw": "raw",
+   "raw_wave": "raw"
+  },
+  "": {
+   "backwash": "talent",
+   "basic": "atk",
+   "basic_e0_gd_dm45": "atk",
+   "basic_e0_gd_dm90": "atk",
+   "basic_e0_up_dm45": "atk",
+   "basic_e0_up_dm90": "atk",
+   "basic_e1_gd_dm45": "atk",
+   "basic_e1_gd_dm90": "atk",
+   "basic_e1_up_dm45": "atk",
+   "basic_e1_up_dm90": "atk",
+   "basic_e2_gd_dm45": "atk",
+   "basic_e2_gd_dm90": "atk",
+   "basic_e2_up_dm45": "atk",
+   "basic_e2_up_dm90": "atk",
+   "blade": "talent",
+   "blade_gd_dm45": "talent",
+   "blade_gd_dm90": "talent",
+   "blade_up_dm45": "talent",
+   "blade_up_dm90": "talent",
+   "combo_spin": "link",
+   "combo_swell": "link",
+   "leap": "atk",
+   "nutao": "talent",
+   "pool": "s3",
+   "pulse": "talent",
+   "qi": "talent",
+   "qi_e0_up_dm45": "talent",
+   "qi_e0_up_dm90": "talent",
+   "qi_e1_up_dm45": "talent",
+   "qi_e1_up_dm90": "talent",
+   "qi_e2_up_dm45": "talent",
+   "qi_e2_up_dm90": "talent",
+   "raw": "raw",
+   "raw_basic": "raw",
+   "raw_blade": "raw",
+   "raw_ring": "raw",
+   "raw_spin": "raw",
+   "raw_splash": "raw",
+   "s1": "s1",
+   "s1_e0_gd_dm45": "s1",
+   "s1_e0_gd_dm90": "s1",
+   "s1_e0_up_dm45": "s1",
+   "s1_e0_up_dm90": "s1",
+   "s1_e1_gd_dm45": "s1",
+   "s1_e1_gd_dm90": "s1",
+   "s1_e1_up_dm45": "s1",
+   "s1_e1_up_dm90": "s1",
+   "s1_e2_gd_dm45": "s1",
+   "s1_e2_gd_dm90": "s1",
+   "s1_e2_up_dm45": "s1",
+   "s1_e2_up_dm90": "s1",
+   "s2": "s2",
+   "s2_e1_gd_dm45": "s2",
+   "s2_e1_gd_dm90": "s2",
+   "s2_e1_up_dm45": "s2",
+   "s2_e1_up_dm90": "s2",
+   "s2_e2_gd_dm45": "s2",
+   "s2_e2_gd_dm90": "s2",
+   "s2_e2_up_dm45": "s2",
+   "s2_e2_up_dm90": "s2",
+   "s3cast": "s3",
+   "spin": "atk",
+   "swell": "talent",
+   "swell2": "talent",
+   "wallbrk": "talent",
+   "wallbrk_e1_gd_dm45": "talent",
+   "wallbrk_e1_gd_dm90": "talent",
+   "wallbrk_e1_up_dm45": "talent",
+   "wallbrk_e1_up_dm90": "talent",
+   "wallbrk_e2_gd_dm45": "talent",
+   "wallbrk_e2_gd_dm90": "talent",
+   "wallbrk_e2_up_dm45": "talent",
+   "wallbrk_e2_up_dm90": "talent"
+  },
+  "su": {
+   "blade": "talent",
+   "blade_up_dm45": "talent",
+   "blade_up_dm90": "talent",
+   "curl": "atk",
+   "dollin": "s2",
+   "dollout": "talent",
+   "dollpulse": "talent",
+   "echo": "talent",
+   "flin": "atk",
+   "flout": "atk",
+   "flpulse": "atk",
+   "gouge": "s3",
+   "qi": "talent",
+   "quake": "talent",
+   "s1aura": "s1",
+   "s1col": "s1",
+   "s1fin_bk": "s1",
+   "s1fin_fr": "s1",
+   "s1rune": "s1",
+   "s1splash": "s1",
+   "s2bite": "s2",
+   "s2bite_up_dm45": "s2",
+   "s2bite_up_dm90": "s2",
+   "s2cast": "s2",
+   "s3wave": "s3",
+   "s3wave_bk": "s3",
+   "s3wave_fr": "s3",
+   "saw": "atk",
+   "saw_d": "talent",
+   "saw_d_bk": "talent",
+   "saw_d_fr": "talent",
+   "saw_h_bk": "s3",
+   "saw_h_fr": "s3",
+   "saw_n_bk": "atk",
+   "saw_n_fr": "atk",
+   "saw_s": "talent",
+   "saw_s_bk": "talent",
+   "saw_s_fr": "talent",
+   "saw_w": "atk",
+   "saw_w_bk": "atk",
+   "saw_w_fr": "atk",
+   "tide": "talent"
+  },
+  "sz": {
+   "att": "talent",
+   "bigfox": "s3",
+   "bigfox_dm45": "s3",
+   "bigfox_dm90": "s3",
+   "brand": "talent",
+   "drop": "s3",
+   "fl": "s2",
+   "fl_s": "s2",
+   "gather": "atk",
+   "hb": "talent",
+   "hb_b": "talent",
+   "hb_f": "talent",
+   "heal": "talent",
+   "hit": "atk",
+   "pray": "talent",
+   "pray_b": "talent",
+   "pray_f": "talent",
+   "s1col": "s1",
+   "s1sig": "s1",
+   "s2": "s2",
+   "s2_b": "s2",
+   "s2_f": "s2",
+   "s3": "s3",
+   "s3_b": "s3",
+   "s3_f": "s3",
+   "seal": "talent",
+   "splash": "talent",
+   "stamp": "atk",
+   "tails": "atk",
+   "tails_flare": "atk",
+   "tuft": "s2"
+  },
+  "tx": {
+   "array": "s1",
+   "order": "s2",
+   "pin_h15": "atk",
+   "pin_h9": "atk",
+   "qi": "talent",
+   "qi_s1_e0_gd_dm45": "talent",
+   "qi_s1_e0_gd_dm90": "talent",
+   "qi_s1_e0_up_dm45": "talent",
+   "qi_s1_e0_up_dm90": "talent",
+   "qi_s1_e1_gd_dm45": "talent",
+   "qi_s1_e1_gd_dm90": "talent",
+   "qi_s1_e1_up_dm45": "talent",
+   "qi_s1_e1_up_dm90": "talent",
+   "qi_s1_e2_gd_dm45": "talent",
+   "qi_s1_e2_gd_dm90": "talent",
+   "qi_s1_e2_up_dm45": "talent",
+   "qi_s1_e2_up_dm90": "talent",
+   "qi_s2_e0_gd_dm45": "talent",
+   "qi_s2_e0_gd_dm90": "talent",
+   "qi_s2_e0_up_dm45": "talent",
+   "qi_s2_e0_up_dm90": "talent",
+   "qi_s2_e1_gd_dm45": "talent",
+   "qi_s2_e1_gd_dm90": "talent",
+   "qi_s2_e1_up_dm45": "talent",
+   "qi_s2_e1_up_dm90": "talent",
+   "qi_s2_e2_gd_dm45": "talent",
+   "qi_s2_e2_gd_dm90": "talent",
+   "qi_s2_e2_up_dm45": "talent",
+   "qi_s2_e2_up_dm90": "talent",
+   "qi_s3_e0_gd_dm45": "talent",
+   "qi_s3_e0_gd_dm90": "talent",
+   "qi_s3_e0_up_dm45": "talent",
+   "qi_s3_e0_up_dm90": "talent",
+   "qi_s3_e1_gd_dm45": "talent",
+   "qi_s3_e1_gd_dm90": "talent",
+   "qi_s3_e1_up_dm45": "talent",
+   "qi_s3_e1_up_dm90": "talent",
+   "qi_s3_e2_gd_dm45": "talent",
+   "qi_s3_e2_gd_dm90": "talent",
+   "qi_s3_e2_up_dm45": "talent",
+   "qi_s3_e2_up_dm90": "talent",
+   "raw_line": "raw",
+   "raw_slash": "raw",
+   "raw_spin": "raw",
+   "raw_sword": "raw",
+   "raw_xcut": "raw",
+   "slash": "atk",
+   "slash_e0_gd_dm45": "atk",
+   "slash_e0_gd_dm90": "atk",
+   "slash_e0_up_dm45": "atk",
+   "slash_e0_up_dm90": "atk",
+   "slash_e1_gd_dm45": "atk",
+   "slash_e1_gd_dm90": "atk",
+   "slash_e1_up_dm45": "atk",
+   "slash_e1_up_dm90": "atk",
+   "slash_e2_gd_dm45": "atk",
+   "slash_e2_gd_dm90": "atk",
+   "slash_e2_up_dm45": "atk",
+   "slash_e2_up_dm90": "atk",
+   "spin": "talent",
+   "sw_s14": "talent",
+   "sw_s14_e0_l0": "talent",
+   "sw_s14_e0_l1": "talent",
+   "sw_s14_e1_l0": "talent",
+   "sw_s14_e1_l1": "talent",
+   "sw_s14_e2_l0": "talent",
+   "sw_s14_e2_l1": "talent",
+   "sw_s16": "s1",
+   "sw_s16_e0_l0": "s1",
+   "sw_s16_e0_l1": "s1",
+   "sw_s19": "s1",
+   "sw_s19_e1_l0": "s1",
+   "sw_s19_e1_l1": "s1",
+   "sw_s22": "s3",
+   "sw_s22_e2_l0": "s3",
+   "sw_s22_e2_l1": "s3",
+   "sw_s26": "s3",
+   "sw_s26_e2_l0": "s3",
+   "sw_s26_e2_l1": "s3",
+   "sw_s40": "s1",
+   "sw_s40_e2_l0": "s1",
+   "sw_s40_e2_l1": "s1",
+   "xcut": "link",
+   "xcut_gd_dm45": "link",
+   "xcut_gd_dm90": "link",
+   "xcut_up_dm45": "link",
+   "xcut_up_dm90": "link"
+  },
+  "ul": {
+   "atk": "atk",
+   "bite": "s1",
+   "echo": "talent",
+   "orcam_apex": "s3",
+   "orcam_dive": "s3",
+   "pin": "link",
+   "quake": "atk",
+   "s1": "s1",
+   "s3": "s3",
+   "small": "talent",
+   "whirl": "talent"
+  },
+  "wd": {
+   "boom": "atk",
+   "dawn": "s3",
+   "dawn2": "s3",
+   "dawng": "s3",
+   "dome": "s2",
+   "glint": "s1",
+   "glintb": "s3",
+   "lk": "link",
+   "mz": "atk",
+   "mz_dm45": "atk",
+   "mz_dm90": "atk",
+   "mzg": "s3",
+   "mzg_dm45": "s3",
+   "mzg_dm90": "s3",
+   "pil": "s1",
+   "pop": "atk",
+   "q": "atk",
+   "sb": "atk",
+   "sc": "atk",
+   "sc2": "atk",
+   "shade": "atk",
+   "smz": "atk",
+   "st": "s2",
+   "xpop": "talent"
+  },
+  "ult_ir": {
+   "seal": "ult"
+  }
+ },
+ "legacy": {
+  "fx_acid": [
+   "shared",
+   "other"
+  ],
+  "fx_arcane": [
+   "shared",
+   "other"
+  ],
+  "fx_beacon": [
+   "shared",
+   "other"
+  ],
+  "fx_brood": [
+   "shared",
+   "other"
+  ],
+  "fx_bullet": [
+   "shared",
+   "other"
+  ],
+  "fx_circle": [
+   "shared",
+   "other"
+  ],
+  "fx_corrode": [
+   "shared",
+   "other"
+  ],
+  "fx_death": [
+   "shared",
+   "other"
+  ],
+  "fx_dust": [
+   "shared",
+   "other"
+  ],
+  "fx_elite": [
+   "shared",
+   "other"
+  ],
+  "fx_ember": [
+   "shared",
+   "other"
+  ],
+  "fx_felspell": [
+   "shared",
+   "other"
+  ],
+  "fx_fire": [
+   "shared",
+   "other"
+  ],
+  "fx_heal": [
+   "shared",
+   "other"
+  ],
+  "fx_hh": [
+   "shared",
+   "other"
+  ],
+  "fx_hit": [
+   "shared",
+   "other"
+  ],
+  "fx_holy": [
+   "shared",
+   "other"
+  ],
+  "fx_ink": [
+   "shared",
+   "other"
+  ],
+  "fx_knight": [
+   "shared",
+   "other"
+  ],
+  "fx_levelup": [
+   "shared",
+   "other"
+  ],
+  "fx_missile": [
+   "shared",
+   "other"
+  ],
+  "fx_mother": [
+   "shared",
+   "other"
+  ],
+  "fx_muzzle": [
+   "shared",
+   "other"
+  ],
+  "fx_nest": [
+   "shared",
+   "other"
+  ],
+  "fx_rock": [
+   "shared",
+   "other"
+  ],
+  "fx_shield": [
+   "shared",
+   "other"
+  ],
+  "fx_skimmer": [
+   "shared",
+   "other"
+  ],
+  "fx_slash": [
+   "shared",
+   "other"
+  ],
+  "fx_spitter": [
+   "shared",
+   "other"
+  ],
+  "fx_splash": [
+   "shared",
+   "other"
+  ],
+  "fx_star": [
+   "shared",
+   "other"
+  ],
+  "fx_warn": [
+   "shared",
+   "other"
+  ],
+  "fx_water": [
+   "shared",
+   "other"
+  ],
+  "fx_mire": [
+   "shared",
+   "other"
+  ],
+  "fx_pocket": [
+   "shared",
+   "other"
+  ],
+  "fx_claw": [
+   "shared",
+   "other"
+  ],
+  "fx_cannon": [
+   "shared",
+   "other"
+  ],
+  "fx_px": [
+   "shared",
+   "other"
+  ],
+  "fx_kp": [
+   "shared",
+   "other"
+  ],
+  "fx_ul": [
+   "shared",
+   "other"
+  ],
+  "proj_arcane": [
+   "shared",
+   "other"
+  ],
+  "proj_arrow": [
+   "shared",
+   "other"
+  ],
+  "fx_link": [
+   "shared",
+   "link"
+  ],
+  "fx_lk_hs": [
+   "hoshiguma",
+   "link"
+  ],
+  "fx_lk_ir": [
+   "irene",
+   "link"
+  ],
+  "fx_lk_lo": [
+   "logos",
+   "link"
+  ],
+  "fx_lk_lp": [
+   "lappland",
+   "link"
+  ],
+  "fx_lk_mz": [
+   "mizuki",
+   "link"
+  ],
+  "fx_lk_sa": [
+   "saria",
+   "link"
+  ],
+  "fx_lk_sd": [
+   "skadi",
+   "link"
+  ],
+  "fx_lk_sg": [
+   "siege",
+   "link"
+  ],
+  "fx_lk_sp": [
+   "specter_unchained",
+   "link"
+  ],
+  "fx_lk_sz": [
+   "suzuran",
+   "link"
+  ],
+  "fx_lk_tx": [
+   "texas",
+   "link"
+  ],
+  "fx_ult_exusiai": [
+   "exusiai",
+   "ult"
+  ],
+  "fx_ult_kaltsit": [
+   "kaltsit",
+   "ult"
+  ],
+  "fx_ult_skalter": [
+   "skalter",
+   "ult"
+  ],
+  "fx_ult_texas": [
+   "texas",
+   "ult"
+  ],
+  "fx_ult_ulpianus": [
+   "ulpianus",
+   "ult"
+  ],
+  "fx_irv": [
+   "irene",
+   "ult"
+  ],
+  "fx_ir": [
+   "irene",
+   "ult"
+  ],
+  "fx_la": [
+   "lappland",
+   "ult"
+  ],
+  "fx_lo": [
+   "logos",
+   "ult"
+  ],
+  "fx_lu": [
+   "lumen",
+   "ult"
+  ],
+  "fx_sa": [
+   "saria",
+   "ult"
+  ],
+  "fx_sp": [
+   "specter_unchained",
+   "ult"
+  ],
+  "fx_sz": [
+   "suzuran",
+   "ult"
+  ],
+  "fx_sk": [
+   "skalter",
+   "ult"
+  ],
+  "fx_sd": [
+   "skadi",
+   "ult"
+  ],
+  "fx_mz": [
+   "mizuki",
+   "ult"
+  ],
+  "fx_sg": [
+   "siege",
+   "ult"
+  ],
+  "fx_an": [
+   "angelina",
+   "ult"
+  ],
+  "fx_ey": [
+   "eyjafjalla",
+   "ult"
+  ],
+  "fx_ws": [
+   "wisadel",
+   "ult"
+  ],
+  "fx_hs": [
+   "hoshiguma",
+   "ult"
+  ],
+  "fx_gl_pool": [
+   "gladiia",
+   "s3"
+  ],
+  "fx_gl_vortex": [
+   "gladiia",
+   "link"
+  ],
+  "fx_wd": [
+   "wisadel",
+   "atk"
+  ],
+  "fx_umbrella": [
+   "mizuki",
+   "atk"
+  ],
+  "fx_tentacle": [
+   "mizuki",
+   "atk"
+  ],
+  "fx_thrust": [
+   "irene",
+   "atk"
+  ],
+  "fx_flam": [
+   "eyjafjalla",
+   "atk"
+  ],
+  "fx_sunburst": [
+   "eyjafjalla",
+   "other"
+  ],
+  "fx_mon3tr": [
+   "kaltsit",
+   "summon"
+  ],
+  "fx_kaltsit": [
+   "kaltsit",
+   "other"
+  ],
+  "fx_angelina": [
+   "angelina",
+   "other"
+  ],
+  "fx_exusiai": [
+   "exusiai",
+   "atk"
+  ],
+  "fx_exusiai_hit_s1": [
+   "exusiai",
+   "s1"
+  ],
+  "fx_exusiai_hit_s2": [
+   "exusiai",
+   "s2"
+  ],
+  "fx_exusiai_hit_s3": [
+   "exusiai",
+   "s3"
+  ],
+  "fx_exusiai_muzzle_s1": [
+   "exusiai",
+   "s1"
+  ],
+  "fx_exusiai_muzzle_s2": [
+   "exusiai",
+   "s2"
+  ],
+  "fx_exusiai_muzzle_s3": [
+   "exusiai",
+   "s3"
+  ],
+  "fx_exusiai_halo": [
+   "exusiai",
+   "s3"
+  ],
+  "fx_exusiai_blessed": [
+   "exusiai",
+   "talent"
+  ],
+  "fx_eyja": [
+   "eyjafjalla",
+   "other"
+  ],
+  "fx_gladiia": [
+   "gladiia",
+   "other"
+  ],
+  "fx_gladiia_tornado": [
+   "gladiia",
+   "s3"
+  ],
+  "fx_gladiia_pull": [
+   "gladiia",
+   "s2"
+  ],
+  "fx_hoshiguma": [
+   "hoshiguma",
+   "other"
+  ],
+  "fx_hoshiguma_sand": [
+   "hoshiguma",
+   "s2"
+  ],
+  "fx_hoshiguma_saw": [
+   "hoshiguma",
+   "s3"
+  ],
+  "fx_irene": [
+   "irene",
+   "other"
+  ],
+  "fx_irene_thrust": [
+   "irene",
+   "atk"
+  ],
+  "fx_irene_crescent": [
+   "irene",
+   "s2"
+  ],
+  "fx_irene_lift": [
+   "irene",
+   "atk"
+  ],
+  "fx_irene_gun": [
+   "irene",
+   "talent"
+  ],
+  "fx_lappland": [
+   "lappland",
+   "atk"
+  ],
+  "fx_logos": [
+   "logos",
+   "other"
+  ],
+  "fx_logos_s1": [
+   "logos",
+   "s1"
+  ],
+  "fx_logos_s2": [
+   "logos",
+   "s2"
+  ],
+  "fx_logos_s3": [
+   "logos",
+   "s3"
+  ],
+  "fx_lumen": [
+   "lumen",
+   "other"
+  ],
+  "fx_mizuki": [
+   "mizuki",
+   "other"
+  ],
+  "fx_mizuki_s3": [
+   "mizuki",
+   "s3"
+  ],
+  "fx_mizuki_jelly": [
+   "mizuki",
+   "talent"
+  ],
+  "fx_mizuki_tentacle": [
+   "mizuki",
+   "atk"
+  ],
+  "fx_saria": [
+   "saria",
+   "other"
+  ],
+  "fx_saria_shield_bash": [
+   "saria",
+   "atk"
+  ],
+  "fx_saria_calcite": [
+   "saria",
+   "s3"
+  ],
+  "fx_saria_pillar": [
+   "saria",
+   "talent"
+  ],
+  "fx_siege": [
+   "siege",
+   "atk"
+  ],
+  "fx_skadi": [
+   "skadi",
+   "other"
+  ],
+  "fx_skadi_leap": [
+   "skadi",
+   "atk"
+  ],
+  "fx_skalter": [
+   "skalter",
+   "other"
+  ],
+  "fx_specter": [
+   "specter_unchained",
+   "other"
+  ],
+  "fx_specter_saw": [
+   "specter_unchained",
+   "atk"
+  ],
+  "fx_specter_doll": [
+   "specter_unchained",
+   "s2"
+  ],
+  "fx_suzuran": [
+   "suzuran",
+   "other"
+  ],
+  "fx_texas": [
+   "texas",
+   "other"
+  ],
+  "fx_texas_rain": [
+   "texas",
+   "s1"
+  ],
+  "fx_texas_sword_drop": [
+   "texas",
+   "s1"
+  ],
+  "fx_texas_pin": [
+   "texas",
+   "atk"
+  ],
+  "fx_texas_dash": [
+   "texas",
+   "s2"
+  ],
+  "fx_ulpianus": [
+   "ulpianus",
+   "other"
+  ],
+  "fx_wisadel": [
+   "wisadel",
+   "other"
+  ],
+  "fx_wisadel_cannon": [
+   "wisadel",
+   "atk"
+  ],
+  "fx_wisadel_gift": [
+   "wisadel",
+   "link"
+  ],
+  "proj_angelina": [
+   "angelina",
+   "atk"
+  ],
+  "proj_exusiai": [
+   "exusiai",
+   "atk"
+  ],
+  "proj_eyja": [
+   "eyjafjalla",
+   "atk"
+  ],
+  "proj_foxfire": [
+   "suzuran",
+   "atk"
+  ],
+  "proj_gladiia_hook": [
+   "gladiia",
+   "s1"
+  ],
+  "proj_hoshiguma_sawshield": [
+   "hoshiguma",
+   "s3"
+  ],
+  "proj_lappland_sword": [
+   "lappland",
+   "talent"
+  ],
+  "proj_logos_ink": [
+   "logos",
+   "atk"
+  ],
+  "proj_lumen_bolt": [
+   "lumen",
+   "atk"
+  ],
+  "proj_skadi_surge_blade": [
+   "skadi",
+   "talent"
+  ],
+  "proj_suzuran_bigfox": [
+   "suzuran",
+   "s3"
+  ],
+  "proj_ulpianus_anchor": [
+   "ulpianus",
+   "atk"
+  ],
+  "proj_wisadel_soul_shell": [
+   "wisadel",
+   "atk"
+  ]
+ },
+ "dirs": {
+  "ult_sd": [
+   "skadi",
+   "ult"
+  ],
+  "ult": [
+   "_shared",
+   "ult"
+  ]
+ },
+ "notes": "Rules used: elite-stage mechanics of the basic attack (skadi leap 破浪下劈, lp dance/claw 狼之舞, sa suit, sg crush/fis 破阵, su curl/flin/flout/flpulse, ir pick 挑刺, tx pin) -> atk. Growth/branch nodes (分支/成长节点) and late_shape 剑气 (qi*) -> talent even when triggered by a skill. Mon3tr body sprites + Mon3tr claw/melt/spike/pounce -> summon. raw* = fx/px_plane=2 old-look strips (fx_pxplane.gd mode 2) -> raw. 'skadi?' = unprefixed pxp_<stem> (generic fx_pxplane.gd = skadi); sk = skalter (only raw strips: raw_s1/s2/s3 + raw_wave). ult = irene ult seal (ult_px_ir.gd); ult_sd = skadi ult 斩浪 (ult_px_sd.gd).\nLow-confidence calls:\n- an: rib/band2/bandop -> s2 (绸带/环带); gcore/ripple/liftop/rockb/rocksh -> s3; land/orb/well/echo/lock/splash/dense -> atk.\n- ex: ring/ring_frag -> s1 (ring_s1_gd); ring_splash/hit_x -> talent (溅射/额外弹/连锁); halo/smoke/steam -> s3 (过载/过热); bless -> talent.\n- ey: ignite + aura -> s2 (引燃); lava/pool -> s3; boom/splash/ball_* serve atk + s1 tri variants -> atk.\n- gl: slash/geyser/ram/splash -> talent (branch/late_shape guesses); pop -> s3.\n- hsg: sand -> s2 (荆棘 热砂; node 热砂·落刃 reuses); pulse (般若之重/盾墙反震) -> talent.\n- ir: gust/nova -> s1 (起风); boom/muz (手炮) + brand (严律) + gale/tide3 (branch) -> talent.\n- ka: heal* -> atk (her basic heal; heal_cross also used by link); guard (精二回防) -> talent; echo/smol -> s3 (熔毁).\n- lg: exec (殁亡处决) / tick (提喻) -> s2 is a guess; fire/hit/hits -> atk.\n- lm: burst/tower/pulse -> s3 (灯火不灭); drizzle/rain -> s1; mend/flare -> atk.\n- lp: atk_h/arm/block -> s1 (日晷 回敬/格挡); wolf -> s2 (狼魂 waves); xcut (噤声 观察刻满) -> s3; bark/spread (断喝) -> talent.\n- mz: tentacle forms slam/curl=atk, pierce=s1, big=s3, cluster=link; coil -> s2; jelly/sting (深蓝之籽) + awk2 -> talent.\n- sa: cbash/cal*/field -> s3 (钙质化); hot_* -> s2; orb/chip/markb/pil*/shat2/qspk -> talent.\n- sg: crk_* -> s2 (跃空锤 cracks); cmd (万兽之王) / quake / crash / rift / wave_s* -> talent.\n- skadi?: spin -> atk (also used by S3 big spin and link); swell/swell2/nutao/backwash/wallbrk/blade/pulse -> talent (涌潮/跃浪 branch).\n- su: bare saw -> atk; dollin -> s2; dollout/dollpulse -> talent (替身光环).\n- sz: fl*/tuft -> s2 (guess); drop/bigfox -> s3; pray/hb -> talent (祈愿/围炉).\n- tx: array -> s1 (r65; r56 copy used by S3); spin (骤雨/回马剑) -> talent; sw_s16/s19/s40 -> s1.\n- ul: echo/whirl/small -> talent (定点爆破/锁链回旋/通路洞开·余震); quake (撼地 every swing) -> atk.\n- wd: glint -> s1 (glintb -> s3); mzg -> s3 (巨炮 muzzle, also link 起手); sb/shade/smz/pop -> atk (精一/精二 残影/魂炮).\nLegacy map: short prefixes fx_irv/ir/la/lo/lu/sa/sp/sz/sk/sd/mz/sg/an/ey/ws/hs are old ult_moves*/ult_fx_c strips (some reused by link_fx_a/b); fx_ul_* cracks/dust reused across ops -> shared. Match longest prefix first (e.g. fx_exusiai_hit_s1 overrides fx_exusiai). Full-name optical prefixes marked 'other' when they mix moves."
+}

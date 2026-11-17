@@ -41,7 +41,7 @@ def perf_one(op, a):
             "--op=" + op, "--norecruit", "--bot=expert", "--prog=20", "--quality=" + a.quality,
             "--clutterdbg=noop_%s,abop" % op, "--clutterab=%d" % a.every] + (["--touch"] if a.touch else [])
     t = time.time()
-    out, err, to = GR.run_godot(args, int(t0 * 0.6 + a.secs * 3 + 600))
+    out, err, to = GR.run_godot(args, int(t0 * 6 + a.secs * 4 + 900))   # 快进段带渲染很慢（本机约 1–2 倍速，GCP 软件渲染更慢）
     errs = GR.script_errors(out or "", err or "")[:3]
     perf = None
     for ln in (out or "").splitlines():

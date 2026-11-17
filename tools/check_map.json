@@ -123,6 +123,7 @@
    ]
   },
   "render": {
+   "_doc": "特效预算的静态项 fx_budget（docs/368，不开 Godot）每次快检都跑，不在这里列；运行时项 tools/fx_budget_runtime.py new --op <id> 新干员交付时手动跑",
    "scenes": [
     "render_perf",
     "render_lifetime",
@@ -775,7 +776,7 @@
   {
    "glob": "game/art/**",
    "groups": [],
-   "why": "贴图：静态项（art_lint / asset_lint / asset_index）已覆盖；运行时贴图缺失靠 graph_lint"
+   "why": "贴图：静态项（art_lint / asset_lint / asset_index / fx_budget 特效预算 docs/368）已覆盖；运行时贴图缺失靠 graph_lint"
   },
   {
    "glob": "art/**",
