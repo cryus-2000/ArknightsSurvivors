@@ -1,0 +1,15 @@
+{
+ "id": "ling_soul2",
+ "src": "ling_soul2.src.json",
+ "name": "逍遥",
+ "pack": {
+  "scale": 0.148,
+  "root": [
+   64,
+   120
+  ],
+  "palette_png": ""
+ },
+ "skipAdditive": true,
+ "_doc": "令的召唤物「逍遥」（token_10020_ling_soul2）：龙，无腿，地线 = 待机首帧最低点（run_trial.js 无 legs 分支）"
+}

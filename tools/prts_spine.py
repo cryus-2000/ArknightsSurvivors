@@ -40,11 +40,17 @@ OPS = {
     "kaltsit": "凯尔希", "suzuran": "铃兰", "ulpianus": "乌尔比安", "irene": "艾丽妮", "specter_unchained": "归溟幽灵鲨", "logos": "逻各斯",
     "lumen": "流明", "skalter": "浊心斯卡蒂", "texas": "德克萨斯", "hoshiguma": "星熊", "exusiai": "能天使", "angelina": "安洁莉娜",
     "lappland": "拉普兰德", "gladiia": "歌蕾蒂娅",   # 第四批设计稿（docs/122 / 123，10-22）
+    "ling_soul1": "清平", "ling_soul2": "逍遥", "ling_soul3": "弦惊",   # 令的召唤物（character_table token_10020_ling_soul1–3）
+    "ling": "令", "phantom": "傀影", "dusk": "夕", "shu": "黍", "surtr": "史尔特尔", "fiammetta": "菲亚梅塔",   # 11-18 新干员（B 方案直接进包）
 }
 # 页面缺失 / 页面给的路径在静态站 404 的干员：直接按静态站标准路径 spine38/char/<角色 id>/<角色 id>/<角色 id> 取（10-15 逐个试出来的）
 DIRECT = {"irene": "char_4009_irene", "specter_unchained": "char_1023_ghost2", "lumen": "char_4042_lumen"}
 # PRTS 没有 <名>/spine 页面的新干员：素材在 PRTS 的另一个资源站 torappu（assets/char_spine/<角色 id>/defaultskin/front/<角色 id>，Spine 3.8；10-15 试出）
-TORAPPU = {"wisadel": "char_1035_wisdel", "ulpianus": "char_4145_ulpia", "logos": "char_4133_logos"}
+TORAPPU = {"wisadel": "char_1035_wisdel", "ulpianus": "char_4145_ulpia", "logos": "char_4133_logos",
+           # 11-18：PRTS 页面原文接口对脚本 403，新干员一律走 torappu（令已验证；其余 5 人 id 按游戏数据，拉不到再改）
+           "ling": "char_2023_ling", "phantom": "char_250_phatom", "dusk": "char_2015_dusk", "shu": "char_2025_shu",
+           "surtr": "char_350_surtr", "fiammetta": "char_300_phenxi",
+           "ling_soul1": "token_10020_ling_soul1", "ling_soul2": "token_10020_ling_soul2", "ling_soul3": "token_10020_ling_soul3"}
 PICK = {
     "idle": ["Idle"],
     "attack": ["Attack", "Attack_Loop", "Combat", "Attack_1", "Attack_A"],

@@ -1,0 +1,230 @@
+{
+ "id": "ling",
+ "rig": "ling.json",
+ "scale": 0.148,
+ "canvas": 192,
+ "colors": 96,
+ "_doc": "令 B 方案帧条（11-18 试点，docs/365）：tools/spine_px.py ling 出全部动作；原作 Spine 3.8 char_2023_ling（torappu）",
+ "actions": {
+  "idle": {
+   "sample": {
+    "anim": "Idle",
+    "range": [
+     0,
+     2.1,
+     8
+    ]
+   },
+   "note": "Idle 轨前 2.1 秒（一次呼吸，2.1 秒处回到首帧附近）"
+  },
+  "run": {
+   "fps": 13.333333,
+   "note": "原作无 Move 轨：run_trial 步态合成（与现有 20 人跑步同口径）"
+  },
+  "move_attack": {
+   "mode": "move_attack",
+   "sample": {
+    "anim": "Attack",
+    "times": [
+     0.1,
+     0.3,
+     0.45,
+     0.6,
+     0.75,
+     0.95,
+     1.2,
+     1.45
+    ],
+    "end": 1.6
+   },
+   "dens": [
+    1
+   ],
+   "note": "边跑边攻击（docs/128）：普攻上半身 + 跑步步态腿，同 make_op_1x.py；现有 20 人此槽只有 @1x"
+  },
+  "attack": {
+   "sample": {
+    "anim": "Attack",
+    "times": [
+     0.1,
+     0.3,
+     0.45,
+     0.6,
+     0.75,
+     0.95,
+     1.2,
+     1.45
+    ],
+    "end": 1.6
+   },
+   "note": "出手帧 f3（OnAttack 0.6 秒）"
+  },
+  "skill": {
+   "sample": {
+    "anim": "Skill_02",
+    "range": [
+     0,
+     1.2,
+     8
+    ]
+   },
+   "note": "二技能施放（OnAttack 0.5 秒 ≈ f3）"
+  },
+  "skill_s3": {
+   "sample": {
+    "anim": "Skill_03_Begin",
+    "range": [
+     0,
+     0.5,
+     4
+    ]
+   },
+   "note": "三技能起手"
+  },
+  "skill_s3_loop": {
+   "sample": {
+    "anim": "Skill_03_Loop",
+    "range": [
+     0,
+     1.6333,
+     8
+    ]
+   },
+   "note": "三技能循环（OnAttack 0.467 秒 ≈ f2）"
+  },
+  "skill_s3_end": {
+   "sample": {
+    "anim": "Skill_03_End",
+    "range": [
+     0,
+     0.5,
+     4
+    ]
+   },
+   "note": "三技能收势"
+  },
+  "hurt": {
+   "sample": {
+    "anim": "Die",
+    "times": [
+     0.05,
+     0.12
+    ],
+    "end": 0.2
+   },
+   "note": "原作无受击轨：取 Die 开头两帧当受击后仰；f1 原作闭眼，不贴",
+   "eye_frames": [
+    0
+   ]
+  },
+  "death": {
+   "sample": {
+    "anim": "Die",
+    "range": [
+     0,
+     1.0,
+     8
+    ],
+    "inclusive": true,
+    "end": 1.125
+   },
+   "note": "Die 全程 8 帧（末帧 = 倒地定格）；原作 f1 起闭眼，只在 f0 贴眼睛",
+   "eye_frames": [
+    0
+   ]
+  },
+  "entry": {
+   "sample": {
+    "anim": "Start",
+    "range": [
+     0,
+     1.0,
+     8
+    ],
+    "inclusive": true,
+    "end": 1.125
+   },
+   "note": "Start 全程都在画布内，不用切空中段"
+  }
+ },
+ "outline": {
+  "color": "#140f18",
+  "mix": 0.55
+ },
+ "keep_colors": [
+  "#9b79ac",
+  "#c3dcdc",
+  "#4a3a55",
+  "#2a1f2e",
+  "#fdedd4"
+ ],
+ "fix": {
+  "eyes": {
+   "bones": {
+    "L": "F_L_Eye_02",
+    "R": "F_R_Eye_02"
+   },
+   "colors": {
+    "K": "#2a1f2e",
+    "I": "#9b79ac",
+    "P": "#4a3a55",
+    "H": "#c3dcdc",
+    "S": "#fdedd4"
+   },
+   "pattern": {
+    "R": [
+     "SKKKKK",
+     "SHHPIS",
+     "SIPPIS",
+     "SSSSSS"
+    ],
+    "L": [
+     "SKKKK.",
+     "SHHPI.",
+     "SIPPI.",
+     "SSSSS."
+    ]
+   },
+   "anchor": {
+    "R": [
+     4,
+     1
+    ],
+    "L": [
+     3,
+     1
+    ]
+   },
+   "_doc": "R = 画面左边那只（离刘海白挑染近），L = 右边；首行睫毛、两行虹膜（高光 2 格成组）、末行肤色盖掉 BOX 残留的眼白 / 黑点",
+   "x1": {
+    "pattern": {
+     "R": [
+      "SKK",
+      "SIP",
+      "SSS"
+     ],
+     "L": [
+      ".KK",
+      "SIP",
+      "SSS"
+     ]
+    },
+    "anchor": {
+     "R": [
+      2,
+      2
+     ],
+     "L": [
+      2,
+      2
+     ]
+    },
+    "_doc": "1 倍：睫毛一行 + 虹膜 / 瞳孔一行 + 肤色清残留；对准同一对虹膜骨（坐标已按 1 倍裁切换算）"
+   }
+  }
+ },
+ "_fix_doc": "眼睛：原作 4×4 BOX 后虹膜被睫毛和眼白冲掉，按 PRTS 贴图取色（虹膜 #9b79ac、高光 #c3dcdc、瞳孔 #4a3a55）手画 4×3 小图，按逐帧虹膜骨位置贴回",
+ "palette_protect": false,
+ "palette_alpha": 230,
+ "_palette_doc": "调色板沿用 bz_18 build_operator.py 算法（96 色中位切分），两处偏离：不补眼部 8 色（palette_protect=false，19 个眼眉睫附件多 94 色、刘海下出粉带），取色 alpha ≥ 230（半透明光晕拉淡提灯）；瞳色等设定色用 keep_colors 手选"
+}

@@ -91,12 +91,16 @@ async function main() {
     for (const n of footSlots(side)) { const s = sk.findSlot(n), a = s.getAttachment(); if (!a) continue; const v = verts(sp, s, a); for (let i = 1; i < v.length; i += 2) y = Math.min(y, v[i]); }
     return y;
   };
-  const ground = Math.min(bottom(base, 'L'), bottom(base, 'R'));
+  // cfg.shift = [dx, dy]（源单位）：整体平移根骨（召唤物龙身偏在根骨一侧时挪回画布中线，docs/365 §7）；base 与每帧（finish）都平移
+  if (cfg.shift) { const r = base.getRootBone(); r.x += cfg.shift[0]; r.y += cfg.shift[1]; base.updateWorldTransform(); }
+  // 没有腿（cfg.legs 缺省，如令的召唤物龙）：地线 = 待机首帧全部附件的最低点
+  const allBottom = sk => { let y = Infinity; for (const s of sk.slots) { const a = s.getAttachment(); if (!a || !(a instanceof sp.RegionAttachment || a instanceof sp.MeshAttachment)) continue; const v = verts(sp, s, a); for (let i = 1; i < v.length; i += 2) y = Math.min(y, v[i]); } return y; };
+  const ground = cfg.legs ? Math.min(bottom(base, 'L'), bottom(base, 'R')) : allBottom(base) + (cfg.hover || 0);
   // 鞋底贴原点：地面映射到 y=120（最后一行 119），与游戏原点 (64,120) 和旧 run 条一致。
   // bz_18 的 mapped_root 按整身包围盒放置，推进之王因锤头垂到脚下会让鞋底悬空约 4 像素。
   ANCHOR[0] += PAD; ANCHOR[1] = 120 + PAD + ground * SCALE;
-  const legInfo = {};
-  for (const side of ['L', 'R']) {
+  const legInfo = { L: { L: 0 }, R: { L: 0 } };
+  if (cfg.legs) for (const side of ['L', 'R']) {
     const [a, b, c] = cfg.legs[side].map(n => get(base, n));
     legInfo[side] = { L: dist(a, b) + dist(b, c), foot: ang(c), hipToAnkle: a.worldY - c.worldY, ankleAbove: c.worldY - bottom(base, side) };
   }
@@ -543,6 +547,13 @@ async function main() {
   }
 
   function finish(sk, contacts) {
+    // cfg.boneScale：{骨骼名: 倍数}，在最终姿势上把该骨（连同子骨与挂件）等比放大后重算世界变换。
+    // 新干员 Q 版大头（docs/365 §3）：整体缩到身体合规后单独放大头骨，头高落到 26–32（@2x）。
+    if (cfg.shift) { const r = sk.getRootBone(); r.x += cfg.shift[0]; r.y += cfg.shift[1]; sk.updateWorldTransform(); }
+    if (cfg.boneScale) {
+      for (const [n, v] of Object.entries(cfg.boneScale)) { const b = sk.findBone(n); if (b) { b.scaleX *= v; b.scaleY *= v; } }
+      sk.updateWorldTransform();
+    }
     // Approved 1x face treatment; opt-in so other density exports are unchanged.
     for (const slot of sk.slots) {
       const n = slot.data.name;
@@ -666,7 +677,9 @@ async function main() {
     fs.writeFileSync(path.join(OUT, `f${String(i).padStart(2, '0')}.png`), canvas.toBuffer('image/png'));
     frames.push(sk);
     if (cfg.keys) { lines.push(swordLine(sk, i)); if (process.env.SWORD_DEBUG) console.log(i, JSON.stringify(lines[i])); }
-    report.push({ frame: i, contacts, clipped_near_edge: clipped });
+    // cfg.trackBones：逐帧记下指定骨骼原点的像素位置（新干员修脸贴眼睛的对位锚点，tools/spine_px.py）
+    const tracked = cfg.trackBones ? Object.fromEntries(cfg.trackBones.map(n => { const b = sk.findBone(n); return [n, b ? [+(ANCHOR[0] + b.worldX * SCALE).toFixed(2), +(ANCHOR[1] - b.worldY * SCALE).toFixed(2), +(Math.atan2(b.c, b.a) * 180 / Math.PI).toFixed(1)] : null]; })) : undefined;
+    report.push({ frame: i, contacts, clipped_near_edge: clipped, bones: tracked });
   }
   const idle = pixelize(base).canvas;
   fs.writeFileSync(path.join(OUT, 'idle_t0.png'), idle.toBuffer('image/png'));
@@ -675,7 +688,7 @@ async function main() {
   const idleHead = hb ? [+(ANCHOR[0] + hb.worldX * SCALE).toFixed(2), +(ANCHOR[1] - hb.worldY * SCALE).toFixed(2)] : null;
   fs.writeFileSync(path.join(OUT, 'report.json'), JSON.stringify({ id: cfg.id, scale: SCALE, anchor: ANCHOR, idle_head_px: idleHead, params: P, gait: GAIT, bob: BOB, frames: report }, null, 1));
   if (arg('--editor-ops')) writeEditorOps(frames, arg('--editor-ops'));
-  if (N === 8) writePack(frames); else console.log('帧数', N, '≠ 8：不写编辑台数据包');
+  if (N === 8 && cfg.legs) writePack(frames); else console.log('帧数', N, cfg.legs ? '≠ 8' : '（无腿）', '：不写编辑台数据包');
   // 透视缩短：把武器骨（及子骨）沿剑身方向的轴按比例压短，绕握点；表现剑指向镜头 / 远离镜头
   function foreshorten(sk, w, grip, sc) {
     if (sc == null || sc === 1) return;
