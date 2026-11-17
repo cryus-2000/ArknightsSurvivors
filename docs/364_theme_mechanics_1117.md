@@ -8,7 +8,7 @@
 | `f19956a6f` | **溟痕** → `mech_mire` |
 | `f6be8317e` | **引航灯标** → `mech_beacon`（原 `run/beacon.gd` 整文件搬家） |
 | `eddc0593f` | **黑潮缩圈** → `mech_tide_zone` |
-| `9baabf2b3` | 云端 `setup_linux.sh` 导入前重建 `art/index.json`（§5，和机制无关） |
+| `9baabf2b3`、`82e528b20` | 云端 `setup_linux.sh` 与 GCP 预制镜像路径（`tools/gcp/vm_startup.sh`）导入前重建 `art/index.json`（§5，和机制无关） |
 
 上游：docs/357 §6.2（接口设想）、docs/359 §4（交接）。玩法、数值、画面零变化。
 
@@ -86,9 +86,13 @@
 - 变体 C：t=638.6 秒分歧，704 行、deep 胜 695 秒——出现在灯火提交两遍、溟痕 rep2、缩圈 rep2。
 四个提交都至少有一遍 `deep_p0` 和基线逐帧相同（灯火在补跑里 2 / 4），变体 C 是同一提交内部的随机走向，不是改动引入的；其余 6 局（含 Windows 的 deep 局 `deep_p0w`）每个提交都逐帧一致。结果分支：`cloud-results/pm-<提交>`。
 
+## 4.1 全量快检
+
+GCP `check.py --nocache` 真全量（`a04a96bbc`，`cloud-results/ci-mech-a04a96bb`）：217 项、214 通过；失败的 3 项是积木等价「金样过期」14 组（分支必然过期，合入后在 main 重录）和 asset_index / graph_lint（§5，已在 `82e528b20` 修好，单独验证通过）。
+
 ## 5. `game/art/index.json` 缺 66 个名字（协调人顺带问）
 
 - **原因确认**：仓库里提交的 `game/art/index.json` 落后于磁盘。重建只**增加** 66 个名字（22 张干员 `*_chibi`、`bad_guy_transport`、`op_lappland_move_throw@1x`、`op_wisadel_move_s2_attack@1x` / `_over_attack@1x`、星熊 `pxp_hsg_sweep_*_stance_up_*` 30 张、维什戴尔 `pxp_wd_dawn2_*` 12 张），没有删除、没有改路径。
 - **为什么不直接提交新索引**：11-09 `c4b86fbdf`「撤回误提交的 game/art/index.json（本地生成文件，不进提交）」定的口径是不提交；本机每次录像 / 快检前都先 `asset_index.py` 重建，所以本机不红，只有云端新检出（用的是仓库里那份旧的）会红。
-- **修法（`9baabf2b3`，安全）**：`tools/cloud/setup_linux.sh` 在导入前跑一次 `python3 tools/asset_index.py`，云端和本机口径一致。仓库里的 index.json 没动。
+- **修法（`9baabf2b3` + `82e528b20`，安全）**：`tools/cloud/setup_linux.sh` 和 GCP 预制镜像路径（`vm_startup.sh`，镜像不走 setup_linux）在导入前跑一次 `python3 tools/asset_index.py`，云端和本机口径一致。仓库里的 index.json 没动。验证：GCP `cloud-results/ci-idx-82e528b2` 上 asset_index、graph_lint 都通过。
 - **待协调人定**：既然「不进提交」，更干净的做法是 `git rm --cached game/art/index.json` + 加进 `.gitignore`，导出 / ship 链路确认都会先重建（`check_release` / `export_web` 是否依赖仓库版本要先查）。这一步改了跟踪状态，没替你做。
