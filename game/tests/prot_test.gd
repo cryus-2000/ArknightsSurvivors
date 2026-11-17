@@ -391,7 +391,7 @@ func test_dot_cap() -> void:
 	# Boss 溟痕（Boss 子弹留下的）：每 0.5 秒一跳，合计每秒 ≤4%
 	reset()
 	game.mires.append({"pos": game.ppos, "r": 80.0, "maxr": 80.0, "life": 9.0, "seed": 0.0, "boss": true})
-	game.enemies_sys.mire_tick = 0.0
+	game.mech("mire").mire_tick = 0.0
 	worst = 0.0
 	for sec in 3:
 		var hp1: float = game.hp
@@ -431,7 +431,7 @@ func test_non_boss() -> void:
 	var lamp0: float = game.lamp
 	game.lamp = 30.0   # 灯火与溟痕（docs/147）：灯火在 mire_lo 时既不退散也不逼近，按原数值
 	game.mires.append({"pos": game.ppos, "r": 80.0, "maxr": 80.0, "life": 9.0, "seed": 0.0})
-	game.enemies_sys.mire_tick = 0.0
+	game.mech("mire").mire_tick = 0.0
 	hp0 = game.hp
 	game.enemies_sys.update_status(dt)
 	ok(absf((hp0 - game.hp) - (3.0 + game.max_hp * 0.015)) < EPS, "自然溟痕照原数值结算（%s）" % pct(hp0 - game.hp))
@@ -439,7 +439,7 @@ func test_non_boss() -> void:
 	reset()
 	game.lamp = 100.0
 	game.mires.append({"pos": game.ppos, "r": 80.0, "maxr": 80.0, "life": 9.0, "seed": 0.0})
-	game.enemies_sys.mire_tick = 0.0
+	game.mech("mire").mire_tick = 0.0
 	hp0 = game.hp
 	game.enemies_sys.update_status(dt)
 	var wk: float = 1.0 - Bal.v("lamp/mire_ward_dmg", 0.0)

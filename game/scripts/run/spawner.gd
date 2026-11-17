@@ -758,39 +758,8 @@ func _horde_tail_rest() -> void:
 				nch += 1
 		if nch < 3:
 			spawn_chest(g.ppos + Vector2.from_angle(g.rng_spawn.randf() * TAU) * g.rng_spawn.randf_range(260.0, 420.0))
-	# 溟痕：先照常采样，再排除最终 Boss 禁生成区域，区域外仍可生成。
-	if g.t >= g.next_mire:
-		# 溟痕随时间越来越多、越来越大；缩圈后多出现在圈边
-		# 灯火低（docs/147）：间隔 × (1 − mire_spawn_iv × y)、离队长的距离 × (1 − mire_spawn_near × y)，随机数抽取次数不变
-		var ly: float = g.enemies_sys.lamp_mire_k().y
-		g.next_mire = g.t + g.map.mire_next_interval(g.t) * (1.0 - Bal.v("lamp/mire_spawn_iv", 0.4) * ly)
-		var mp := g.ppos + Vector2.from_angle(g.rng_spawn.randf() * TAU) * g.rng_spawn.randf_range(160.0, 380.0) * (1.0 - Bal.v("lamp/mire_spawn_near", 0.4) * ly)
-		if g.zone_state != 0 and g.rng_spawn.randf() < 0.6:
-			var ang := (g.ppos - g.zone_c).angle() + g.rng_spawn.randf_range(-0.8, 0.8)
-			mp = g.zone_c + Vector2.from_angle(ang) * (g.zone_r - g.rng_spawn.randf_range(20.0, 120.0))
-		# 只和自然溟痕比上限（docs/155：原来和怪物留痕共用总数，拖痕把名额占满后全图不再刷新）；
-		# 满了就淡出离队长最远、且超过 enemy/mire_recycle_d 的一片自然溟痕再刷新的，溟痕跟着队长走而不是定格
-		var nat: Array = g.mires.filter(func(x): return not x.has("src") and not x.get("boss", false) and x.life > 0.0 and not x.has("fade"))
-		var room: bool = nat.size() < int(g.map.mire_cfg().get("max_count", 24))
-		if not room:
-			var far = null
-			var far_d: float = Bal.v("enemy/mire_recycle_d", 520.0)
-			for x in nat:
-				var xd: float = x.pos.distance_to(g.ppos)
-				if xd > far_d:
-					far_d = xd
-					far = x
-			if far != null:
-				g.combat.fade_mire(far)
-				room = true
-		if room:
-			# 总面积到 enemy/mire_area_cap 就跳过这次（先照常 mire_new 消耗随机数，保证不开上限时随机序列不变）
-			var mire: Dictionary = g.map.mire_new(mp, g.t, true)
-			if g.map.mire_area_full():
-				mire.life = 0.0
-			if mire.life > 0.0 and not g.combat.mire_blocked(mire.pos, float(mire.maxr)):
-				mire["t0"] = g.t
-				g.mires.append(mire)
+	for m in g.mechs:
+		m.on_spawn_tick()   # 主题机制挂钩（docs/364）：自然溟痕刷新（mech_mire）
 	# 商人
 	if g.merchant.is_empty() and g.merchant_idx < g.MERCHANT_TIMES.size() and g.t >= g.MERCHANT_TIMES[g.merchant_idx]:
 		g.merchant_idx += 1

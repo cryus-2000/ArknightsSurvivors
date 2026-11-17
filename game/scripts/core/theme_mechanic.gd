@@ -8,7 +8,7 @@ extends RefCounted
 ##   on_player_hit(dmg, src) combat.enemy_hit：控制 / 凋亡结算之后、侵蚀之前（受击掉灯火）
 ##   on_status_tick(dt)      enemies.update_status：侵蚀之后（溟痕：减速 / 掉血 / 神经损伤）；返回 true = 已经结算了
 ##                           巢涌光环与神经损伤，核心不再做缺省结算
-##   on_spawn_tick(dt)       spawner.update：补给箱之后、商人之前（自然溟痕刷新）
+##   on_spawn_tick()         spawner._horde_tail_rest：补给箱之后、商人之前（自然溟痕刷新）
 ##   on_world_tick(dt)       game 杂项段：结局箱之后、骑士之前（引航灯标）
 ## 子类自己声明 `var g: Game` 与 `_init(game)`（带类型的 g 让 := 推断照常生效）；没实现的挂钩是空操作。
 ## 约束：挂钩里抽随机数的次数、顺序必须和搬家前完全一样；纯画面的东西照旧走 g.vrng。
@@ -28,7 +28,7 @@ func on_status_tick(_dt: float) -> bool:
 	return false
 
 
-func on_spawn_tick(_dt: float) -> void:
+func on_spawn_tick() -> void:
 	pass
 
 

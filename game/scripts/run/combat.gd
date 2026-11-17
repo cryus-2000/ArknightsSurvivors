@@ -654,30 +654,18 @@ func freeze_zone(r: float) -> void:
 	g.mires = remaining
 
 
-## 怪物留下的溟痕统一入口（docs/155）：拖痕 trail / 落点 lob / 神经弹 shot / 死亡留痕 death。打上 src 与出生时间 t0，
-## 怪物溟痕超过 enemy/mire_enemy_cap 时最老的一片开始淡出（mire_fade 秒后移除，淡出中不再伤人）。常驻规则不变：没被挤掉的照旧常驻
+## 怪物留下的溟痕（docs/155）→ 溟痕机制（mech_mire.add_enemy_mire）；本主题没有溟痕时什么都不留
 func add_enemy_mire(m: Dictionary, src: String) -> void:
-	if g.beacon_sys.holds(m.pos):
-		return   # 生效中的引航灯标清除圈内不落怪物溟痕（10-26，用户「灯塔范围内的溟痕全部消失」）
-	m["src"] = src
-	m["t0"] = g.t
-	var cap := int(Bal.v("enemy/mire_enemy_cap", 16.0))
-	var n := 0
-	var oldest = null
-	for x in g.mires:
-		if x.has("src") and x.life > 0.0 and not x.has("fade"):
-			n += 1
-			if oldest == null:
-				oldest = x
-	if n >= cap and oldest != null:
-		fade_mire(oldest)
-	g.mires.append(m)
+	var mm = g.mech("mire")
+	if mm != null:
+		mm.add_enemy_mire(m, src)
 
 
-## 让一片溟痕慢慢淡出（不是瞬间消失）：world 按 fade 画透明度，enemies.update_status 倒计时到 0 移除
+## 让一片溟痕慢慢淡出 → mech_mire.fade_mire
 func fade_mire(m: Dictionary) -> void:
-	if not m.has("fade"):
-		m["fade"] = Bal.v("enemy/mire_fade", 1.5)
+	var mm = g.mech("mire")
+	if mm != null:
+		mm.fade_mire(m)
 
 
 ## 最终 Boss 场地是禁生成圆区；最大半径与圆区相交（含相切）就禁止整片生成。
