@@ -305,7 +305,8 @@ func _rows_of(pi: int) -> Array:
 	var rows: Array = []
 	for ln in page_lines(src, full_guide(), last):
 		var txt: String = fill_numbers(touch_line(ln))   # 先换触屏说法（替换表里是带键名占位的原文）再填数 / 键名
-		if UI.Loc.ja() or UI.Loc.ko():   # 日文（docs/276 §13）/ 韩文（§14）：整行（含 {占位}）先查表再填数——填数、拆「｜」之后的半句查不到；日文译文保留「｜」
+		if UI.Loc.ja() or UI.Loc.ko() or UI.Loc.en():   # 日文（docs/276 §13）/ 韩文（§14）/ 英文：整行（含 {占位}）先查表再填数——填数、拆「｜」之后的半句查不到；日文译文保留「｜」，英文用「 | 」
+			# 11-17 体检：英文原来只对带键名占位的行整行查表，其余行拆「｜」后正文半句查不到，局内指南正文整段显示中文
 			var tl := touch_line(ln)
 			var jt := UI.Loc.hit(tl)
 			if jt == "" and tl != ln:   # 触屏替换后的整句表里没有：译键鼠原句，再把替换片段换成各自的译文
@@ -318,12 +319,8 @@ func _rows_of(pi: int) -> Array:
 				jt = UI.Loc.hit(ln)
 			if jt != "":
 				txt = fill_numbers(jt)
-		elif UI.Loc.en() and _has_key_tok(ln):   # 英文：带键名占位的行先整行查表再填键名（填完的中文查不到表）；译文用「 | 」分标签
-			var et := UI.Loc.hit(touch_line(ln))
-			if et == "":
-				et = UI.Loc.hit(ln)
-			if et != "":
-				txt = fill_numbers(et).replace(" | ", "｜")
+				if UI.Loc.en():
+					txt = txt.replace(" | ", "｜")
 		var cut: int = txt.find("｜")
 		# 本地化（docs/276 §10）：标签先翻再量标签列宽；正文由 UI.wrap_lines 先翻再折行
 		rows.append({"label": UI.Loc.s(txt.substr(0, cut)) if cut > 0 else "", "text": txt.substr(cut + 1) if cut > 0 else txt})
