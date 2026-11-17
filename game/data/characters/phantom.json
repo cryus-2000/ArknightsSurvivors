@@ -49,8 +49,9 @@
   "blink_w": 30,
   "blink_t": 0.07,
   "blink_mult": 0.9,
-  "s1_dur": 6.0,
+  "s1_dur": 8.0,
   "s1_shield": 0.18,
+  "s1_kill_shield": 0.01,
   "s1_shield_cap": 0.3,
   "s1_interval": 0.7,
   "s1_mult": 1.0,
@@ -379,8 +380,8 @@
    "name": "暗夜魅影",
    "en": "PHANTOM OF THE NIGHT",
    "sp": 9,
-   "dur": 6.0,
-   "desc": "瞬身切入最近的敌人（{$s1_mult*100}% 伤害）；队长获得 {$s1_shield*100}% 最大生命的屏障（上限 {$s1_shield_cap*100}%），{$s1_dur} 秒内影刃出手间隔 ×{$s1_interval}",
+   "dur": 8.0,
+   "desc": "瞬身切入最近的敌人（{$s1_mult*100}% 伤害）；队长获得 {$s1_shield*100}% 最大生命的屏障（上限 {$s1_shield_cap*100}%），{$s1_dur} 秒内影刃出手间隔 ×{$s1_interval}，期间每击倒一名敌人屏障 +{$s1_kill_shield*100}%",
    "icon": "skill_phantom_s1"
   },
   {
@@ -695,6 +696,19 @@
    "face": true
   },
   "trait": [
+   {
+    "trig": "on_kill",
+    "cond": "skill_active:0",
+    "_doc": "暗夜魅影：期间每击倒一名敌人，队长屏障 + s1_kill_shield（总量上限 s1_shield_cap，刷新持续）；云端第 5 轮诊断：输局死在 5 分钟大群、本人没有任何回复来源",
+    "do": [
+     {
+      "verb": "shield",
+      "pct": "$s1_kill_shield",
+      "cap": "$s1_shield_cap",
+      "dur": "$s1_dur"
+     }
+    ]
+   },
    {
     "trig": "every_n",
     "n": "$ld_n",
