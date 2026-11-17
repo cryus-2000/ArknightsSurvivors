@@ -26,6 +26,7 @@ const BossBench = preload("res://scripts/run/boss_bench.gd")   # 录制钩子（
 const LateRead = preload("res://scripts/render/late_read.gd")   # 后期可读性第一批（docs/247）
 const D = preload("res://scripts/data.gd")
 const RelicDb = preload("res://scripts/core/relic_db.gd")
+const Loc = preload("res://scripts/core/loc.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const Meta = preload("res://scripts/core/meta.gd")   # 队长攻击基数（改打法件的冲击 / 冲刺伤害，docs/203）
 
@@ -320,22 +321,32 @@ func squad_desc(id: String) -> String:
 	var ds: Dictionary = r.get("desc_squad", {})
 	if ds.is_empty() or g == null or g.get("squad") == null:
 		return r.desc
+	# 外语版：拼出来的整句在表里查不到（11-17 体检：英文卡面「增殖: 水月的触手桩在场上限 +1」半中半英），各段先按原文查表再拼；中文 Loc.s 原样返回
 	var parts: Array = []
 	var ops: Dictionary = ds.get("ops", {})
 	for cid in ops:
 		if g.squad.has(cid):
-			parts.append(str(ops[cid]))
+			parts.append(_sq_tr(str(ops[cid])))
+	var sep: String = _sq_tr("；")
 	if parts.is_empty():
 		# 只吃伤害、不增殖的干员（dmg_ops：凯尔希 Mon3tr / 幽灵鲨替身，11-08 用户嫌「Mon3tr 不增加数量」读不懂）：卡面写她能拿到的那部分
 		var dops: Dictionary = ds.get("dmg_ops", {})
 		var dparts: Array = []
 		for cid in dops:
 			if g.squad.has(cid):
-				dparts.append(str(dops[cid]))
+				dparts.append(_sq_tr(str(dops[cid])))
 		if not dparts.is_empty():
-			return RelicDb.fill_desc("；".join(PackedStringArray(dparts)) + str(ds.get("dmg_tail", "")))
+			return RelicDb.fill_desc(sep.join(PackedStringArray(dparts)) + _sq_tr(str(ds.get("dmg_tail", ""))))
 		return RelicDb.fill_desc(str(ds.get("none", r.desc)))
-	return RelicDb.fill_desc(str(ds.get("head", "")) + "；".join(PackedStringArray(parts)) + str(ds.get("tail", "")))
+	var head: String = _sq_tr(str(ds.get("head", "")))
+	if Loc.lang != "zh" and head.ends_with(":"):
+		head += " "
+	return RelicDb.fill_desc(head + sep.join(PackedStringArray(parts)) + _sq_tr(str(ds.get("tail", ""))))
+
+
+## squad_desc 的分段翻译：带 {$…} 占位的段 Loc.s 也能按模板查；空串原样
+static func _sq_tr(t: String) -> String:
+	return t if t == "" else Loc.s(t)
 
 
 ## 这件藏品在熔铸后折算成多少枚源石锭：获得时的源石锭 + 招募 / 击败 Boss 时的源石锭（按一次计）+ late_fuse（锈蚀的铁锤）

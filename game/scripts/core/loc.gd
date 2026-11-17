@@ -243,7 +243,9 @@ static func s(text: String) -> String:
 	if _cache.size() >= 4096:
 		_cache.clear()
 	_cache[text] = out
-	if record_missing and out == text and _cjk != null and _cjk.search(text) != null:
+	# 缺译记录：原样没变的；英 / 韩模式下译完仍夹着汉字的（代码拼出来、拆段兜底只换了标点的半中半英串，11-17 体检「增殖: 水月的…」）也记。
+	# 日文本身用汉字，仍只记原样没变的
+	if record_missing and _cjk != null and _cjk.search(text) != null and (out == text or (lang != "ja" and _cjk.search(out) != null)):
 		missing[text] = true
 	return out
 
