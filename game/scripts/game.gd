@@ -1890,6 +1890,7 @@ func _process(delta: float) -> void:
 		settlement.tick(delta)   # Read-only result model; recruitment now opens explicitly from the footer.
 	if demo_op == "":
 		Pad.context = "play" if state == S.PLAY else "game_menu"   # 图鉴演示（SubViewport 里）不抢手柄映射：图鉴仍按标题页翻译 LB / RB / Ⓐ
+		Pad.menu_of = "stats" if state == S.STATS else ("pause" if state == S.PAUSE and not settings.visible else "")   # 手柄改绑的属性 / 暂停键在面板里也能关（docs/356 §3-4）
 	if mode != Mode.PLAY:
 		_pm("")
 		autotest_sys.step()

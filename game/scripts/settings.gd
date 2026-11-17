@@ -1200,11 +1200,11 @@ func _cloud_keybinds() -> Variant:
 
 ## ---- 云存档（docs/89）：存档正文与 Cfg 字段互转。合并 / 打包规则在 core/cloud_pack.gd ----
 
-func _settings_sig() -> String:
+func _settings_sig(with_kb := true) -> String:
 	var d := {}
 	for k in CLOUD_SET_KEYS:
 		d[k] = get(k)
-	var kb = _cloud_keybinds()
+	var kb = _cloud_keybinds() if with_kb else null
 	if kb != null:
 		d["keybinds"] = kb
 	return CloudPack.canon(d).md5_text()
@@ -1370,7 +1370,8 @@ func cloud_apply(body: Dictionary) -> void:
 		if not (k in CloudPack.PROG_KEYS):
 			ex.prog[k] = p[k]
 	cloud_extra = ex
-	_set_sig = _settings_sig()
+	# 云端没带键位（旧版本 / 别的设备没改过）而本机改过：签名按「不含键位」记，下次 save() 认作本机新修改并上传（docs/356 §3-5）
+	_set_sig = _settings_sig(d.has("keybinds") or _cloud_keybinds() == null)
 
 
 ## 全部解锁（调试 / 对内包）时：界面用的那份是全开的演示数据，真实进度在 _real_progress。

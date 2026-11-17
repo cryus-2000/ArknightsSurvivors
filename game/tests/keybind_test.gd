@@ -48,6 +48,26 @@ func key(k: int) -> void:
 	await frames()
 
 
+func joy(b: int) -> void:
+	for down in [true, false]:
+		var e := InputEventJoypadButton.new()
+		e.device = 0
+		e.button_index = b
+		e.pressed = down
+		Input.parse_input_event(e)
+		await get_tree().process_frame
+	await frames(3)
+
+
+func trig(axis: int, v: float) -> void:
+	var e := InputEventJoypadMotion.new()
+	e.device = 0
+	e.axis = axis
+	e.axis_value = v
+	Input.parse_input_event(e)
+	await frames(2)
+
+
 func shot(name: String) -> void:
 	if shot_dir == "":
 		return
@@ -115,6 +135,9 @@ func table_part() -> void:
 	(body2.set.d as Dictionary).erase("keybinds")
 	Cfg.cloud_apply(body2)
 	check(PlayKeys.act(kev(KEY_Q, true)) == "dash", "云端没有 keybinds 时保持本机")
+	check(Cfg._set_sig != Cfg._settings_sig(), "云端没带 keybinds：签名不含本机键位，下次存档会上传（docs/356 §3-5）")
+	Cfg.cloud_apply(body)
+	check(Cfg._set_sig == Cfg._settings_sig(), "云端带 keybinds：签名与本机一致")
 	Cfg.keybinds_set = false
 	PlayKeys.reset_all()
 	check(not (Cfg.cloud_body().set.d as Dictionary).has("keybinds"), "没改过：云存档不写 keybinds（旧档往返不变）")
@@ -194,6 +217,25 @@ func game_part() -> void:
 	await key(KEY_ESCAPE)
 	check(g.state == g.S.PAUSE, "Esc 仍是暂停")
 	await key(KEY_ESCAPE)
+	# 手柄：属性面板 / 暂停备用键改 Ⓨ / R3，面板里同一个键关掉（docs/356 §3-4；Ⓧ 上面已给冲刺）
+	check(PlayKeys.bind("stats", true, 1, JOY_BUTTON_Y).is_empty() and PlayKeys.bind("pause", true, 1, JOY_BUTTON_RIGHT_STICK).is_empty(), "手柄属性 / 暂停备用改 Ⓨ / R3")
+	Pad.context = "play"
+	Pad._play_btn(JOY_BUTTON_Y, true)
+	Pad._play_btn(JOY_BUTTON_Y, false)
+	await frames(3)
+	check(g.state == g.S.STATS, "手柄 Ⓨ 开属性面板（state=%d）" % g.state)
+	await get_tree().create_timer(0.45).timeout   # 菜单刚打开 0.35 秒内 game.gd 不收手柄注入键（防连按）
+	await joy(JOY_BUTTON_Y)
+	check(g.state == g.S.PLAY, "手柄 Ⓨ 在属性面板里关掉（state=%d）" % g.state)
+	Pad._play_btn(JOY_BUTTON_RIGHT_STICK, true)
+	Pad._play_btn(JOY_BUTTON_RIGHT_STICK, false)
+	await frames(3)
+	check(g.state == g.S.PAUSE, "手柄 R3 暂停（state=%d）" % g.state)
+	await get_tree().create_timer(0.45).timeout
+	await joy(JOY_BUTTON_RIGHT_STICK)
+	check(g.state == g.S.PLAY, "手柄 R3 在暂停里继续（state=%d）" % g.state)
+	PlayKeys.reset_page(true)
+	PlayKeys.bind("dash", true, 0, JOY_BUTTON_X)
 	# 属性面板改 J
 	PlayKeys.bind("stats", false, 0, KEY_J)
 	await key(KEY_J)
@@ -270,6 +312,19 @@ func settings_part(g: Node) -> void:
 	# 手柄页
 	await key(KEY_E)
 	check(kv.pad_page, "E 切到手柄页")
+	# 扳机绑定：吞掉越过阈值那一帧后，继续压扳机不能被 Pad 当成新按下（翻回键鼠页，docs/356 §3-3）
+	var si := -1
+	for i in kv.rows().size():
+		if str(kv.rows()[i].id) == "speed":
+			si = i
+	PlayKeys.set_slot("command", true, 1, -1)   # 先腾出 LT（缺省给指挥圆盘），免得弹冲突框
+	kv.begin_listen(si, 0)
+	await trig(JOY_AXIS_TRIGGER_LEFT, 0.7)
+	await trig(JOY_AXIS_TRIGGER_LEFT, 1.0)
+	check(kv.pad_page and int(PlayKeys.get_slots("speed", true)[0]) == PlayKeys.PAD_LT, "手柄页绑 LT 后不跳页（pad_page=%s，倍速=%s）" % [kv.pad_page, PlayKeys.get_slots("speed", true)])
+	await trig(JOY_AXIS_TRIGGER_LEFT, 0.0)
+	check(kv.pad_page, "松开 LT 仍在手柄页")
+	PlayKeys.reset_page(true)
 	check(kv.rows().size() == PlayKeys.pad_ids().size() + PlayKeys.PAD_FIXED.size(), "手柄页：可改动作 + 摇杆固定项")
 	await shot("keybind_pad_" + UI_lang())
 	await key(KEY_ESCAPE)

@@ -107,7 +107,7 @@ func _input(event: InputEvent) -> void:
 			_play_btn(event.button_index, event.pressed)
 			return
 		_release_holds()   # 按住终结技 / 圆盘键时离开对局（选卡弹出等）：补一个松开
-		if event.pressed:
+		if event.pressed and not _menu_action(event.button_index, event.button_index):
 			_press_button(event.button_index)
 	elif event is InputEventJoypadMotion:
 		if absf(event.axis_value) > 0.5:
@@ -115,12 +115,13 @@ func _input(event: InputEvent) -> void:
 			_set_using(true)
 		if TRIGGER_AS.has(event.axis):
 			var was: bool = _trig[event.axis]
-			var on: bool = event.axis_value > (0.3 if was else 0.6)
-			_trig[event.axis] = on
+			track_trigger(event.axis, event.axis_value)
+			var on: bool = _trig[event.axis]
 			if on != was and context == "play":
 				_play_btn(PlayKeys.PAD_LT if event.axis == JOY_AXIS_TRIGGER_LEFT else PlayKeys.PAD_RT, on)   # 对局里扳机按按键表（缺省 LT 圆盘 / RT 冲刺）
 			elif on and not was:
-				_press_button(TRIGGER_AS[event.axis])
+				if not _menu_action(PlayKeys.PAD_LT if event.axis == JOY_AXIS_TRIGGER_LEFT else PlayKeys.PAD_RT, TRIGGER_AS[event.axis]):
+					_press_button(TRIGGER_AS[event.axis])
 	elif event is InputEventKey or event is InputEventScreenTouch:
 		_set_using(false)
 	elif event is InputEventMouseMotion:
@@ -128,6 +129,31 @@ func _input(event: InputEvent) -> void:
 			_set_using(false)
 	elif event is InputEventMouseButton:
 		_set_using(false)
+
+
+## 扳机滞回（按下 > 0.6、松开 < 0.3）：更新 _trig，返回这一下是不是「刚按下」。
+## 键位页（screens/keybind_view.gd）等新按键时吞掉扳机事件，也要调它，否则 _trig 没更新，之后扳机被当成新按下（docs/356 §3-3）
+func track_trigger(axis: int, value: float) -> bool:
+	var was: bool = _trig.get(axis, false)
+	var on: bool = value > (0.3 if was else 0.6)
+	_trig[axis] = on
+	return on and not was
+
+
+## 对局菜单里（属性面板 / 暂停）：按钮改绑到「属性面板」「暂停」上时，同一个键也能关掉面板 / 继续（docs/356 §3-4）。
+## menu_of 由 game.gd 每帧设（"stats" / "pause" / ""）；菜单里这个按钮缺省是 Enter（确认）时不抢，菜单照常能用
+var menu_of := ""
+
+func _menu_action(code: int, b: int) -> bool:
+	if context != "game_menu" or menu_of == "":
+		return false
+	if int(MAP.get(context, {}).get(b, KEY_NONE)) == KEY_ENTER:
+		return false
+	var id: String = PlayKeys.pad_action(code)
+	if id == "" or not (id == menu_of or (menu_of == "stats" and id == "pause")):
+		return false
+	tap(PlayKeys.vk(id))
+	return true
 
 
 func _press_button(b: int) -> void:

@@ -247,8 +247,9 @@ func _input(event: InputEvent) -> void:
 					_say("该按键不能绑定")   # 十字键在对局里是移动
 				else:
 					try_bind(int(event.button_index))
-			elif event is InputEventJoypadMotion and not synth and event.axis in [JOY_AXIS_TRIGGER_LEFT, JOY_AXIS_TRIGGER_RIGHT] and event.axis_value > 0.6:
-				try_bind(PlayKeys.PAD_LT if event.axis == JOY_AXIS_TRIGGER_LEFT else PlayKeys.PAD_RT)
+			elif event is InputEventJoypadMotion and not synth and event.axis in [JOY_AXIS_TRIGGER_LEFT, JOY_AXIS_TRIGGER_RIGHT]:
+				if Pad.track_trigger(event.axis, event.axis_value):   # 吞掉事件也同步 Pad 的扳机状态，松开前不会再被当成按下翻页
+					try_bind(PlayKeys.PAD_LT if event.axis == JOY_AXIS_TRIGGER_LEFT else PlayKeys.PAD_RT)
 			elif event is InputEventKey and event.pressed and not synth and Pad.kc(event) == KEY_ESCAPE:
 				listen = false
 				queue_redraw()
