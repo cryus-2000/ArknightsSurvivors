@@ -128,7 +128,7 @@ static func _load(lg: String) -> void:
 	_ready_tr[lg] = true
 	if _cjk == null:
 		_cjk = RegEx.create_from_string("[\\x{4e00}-\\x{9fff}]")
-		_ph = RegEx.create_from_string("\\{\\$[^}]*\\}|%[-+0-9.]*[dsf]|%%")
+		_ph = RegEx.create_from_string("\\{[^{}]*\\$[^{}]*\\}|%[-+0-9.]*[dsf]|%%")   # {$x} 与算式占位 {60*$pm:0}（11-17 体检：算式占位的说明填值后查不到译文，如支援爆破先生）
 		_re_fwp = RegEx.create_from_string("[。、；（），：！？]")
 	_tpl = {}
 	if lg == "ja" or lg == "ko":   # 日文 / 韩文模板先放英文的一份打底（日文缺条的句子按英文模板填），日文的插在各桶前面先匹配
@@ -230,6 +230,7 @@ static func s(text: String) -> String:
 	if hit != null:
 		return hit
 	var out := text
+	_depth += 1
 	if _cjk != null and _cjk.search(text) != null:
 		var t := String(TranslationServer.translate(text))
 		if t != text and t != "":
@@ -240,16 +241,28 @@ static func s(text: String) -> String:
 				out = _split_fallback(text)
 	elif (lang == "en" or lang == "ko") and _re_fwp != null and _re_fwp.search(text) != null:   # 没有汉字但带全角标点（「PRTS Wiki；ArknightsGameData（Kengxxiao）。」）：换成英文标点
 		out = _ascii_punct(text)
+	_depth -= 1
 	if _cache.size() >= 4096:
 		_cache.clear()
 	_cache[text] = out
-	if record_missing and out == text and _cjk != null and _cjk.search(text) != null:
+	# 缺译记录：原样没变的；英 / 韩模式下译完仍夹着汉字的（代码拼出来、拆段兜底只换了标点的半中半英串，11-17 体检「增殖: 水月的…」）也记。
+	# 日文本身用汉字，仍只记原样没变的
+	if record_missing:
+		if out != text:
+			_outs[out] = true
+		elif _depth == 0 and _outs.has(text):
+			return out   # 已经是译文（日文汉字串、预先翻好的按钮字）又被送进来查一次：不是缺译
+	if record_missing and _depth == 0 and _cjk != null and _cjk.search(text) != null and (out == text or (lang != "ja" and _cjk.search(out) != null)):
+		if lang == "ja" and _is_kana_text(text):
+			return out   # 带假名 = 已经是日文（干员说明等加载时按键名换好的译文没经过 s()）
 		missing[text] = true
 	return out
 
 
 ## 截图 / 冒烟时打开：英文模式下查完仍是中文的原文记下来（tests/l10n_shots 跑完写 missing.txt，送去补翻）
 static var record_missing := false
+static var _outs := {}   # record_missing 时本次产出过的译文（含 hit / short）：再送进来不算缺译
+static var _depth := 0   # s() 的递归深度：拆段兜底逐段再调 s()，中间片段不记缺译，只记最外层整串
 static var missing := {}
 
 
@@ -397,6 +410,8 @@ static func hit(text: String) -> String:
 	if lang == "zh" or text == "":
 		return ""
 	var t := String(TranslationServer.translate(text))
+	if record_missing and t != text and t != "":
+		_outs[t] = true
 	return t if t != text and t != "" else ""
 
 
@@ -405,6 +420,8 @@ static func short(text: String) -> String:
 	if lang == "zh" or text == "":
 		return text
 	var t := String(TranslationServer.translate("short:" + text))
+	if record_missing and t != "short:" + text and t != "":
+		_outs[t] = true
 	return t if t != "short:" + text and t != "" else s(text)
 
 
@@ -484,3 +501,12 @@ static func _tree(node, path: String, field: String) -> void:
 					node[i] = k(path + "." + str(i), v)
 			elif v is Dictionary or v is Array:
 				_tree(v, path + "." + str(i), field)
+
+
+## 含平假名 / 片假名（U+3040–U+30FF，不含中点「・」U+30FB）：中文原文不会出现，用来判断「已是日文」
+static func _is_kana_text(t: String) -> bool:
+	for i in t.length():
+		var c := t.unicode_at(i)
+		if c >= 0x3040 and c <= 0x30FF and c != 0x30FB:
+			return true
+	return false

@@ -18,7 +18,9 @@ const ITEMS := ["follow", "triple"]
 
 static var bv_test = null    # 测试用：非 null 时顶替 support_bvid（toy_support_test 验「PV 发布后开放」）
 static var ready: Array = []      # 查到已满足、还没点领取的项（只在本次运行里记；重载页面后由 probe 重新查）
-static var _probed := false
+static var _probed := false   # 本次运行已经查过（或正在查）；查询失败会复位，按 _retry_ms 退避后允许再查（11-17 协调人定）
+static var _retry_ms := 0
+static var _backoff_ms := 60000   # 失败后的退避：60 秒起，每次翻倍，最长 10 分钟（标题页每次进来才会调 probe，不会频繁打 SDK）
 static var _js = null
 static var _cbs: Array = []       # JavaScriptBridge 回调要一直持有
 
@@ -211,7 +213,7 @@ static func sim(id: String) -> Array:
 
 ## 标题页进 Toy 版时后台查一次（每次运行一次）：满足的只标「可领取」，查不到 / 出错不提示。done 在每项结果回来后调用（让标题页重画角标）
 static func probe(done := Callable()) -> void:
-	if _probed or not enabled():
+	if _probed or not enabled() or Time.get_ticks_msec() < _retry_ms:
 		return
 	_probed = true
 	for id in items():
@@ -221,10 +223,14 @@ static func probe(done := Callable()) -> void:
 			if _js == null:
 				_js = JavaScriptBridge.get_interface("__sySupport")
 			if _js == null:
+				_probe_failed()
 				return
 			var cb := JavaScriptBridge.create_callback(func(args: Array):
-				if args.size() > 0 and str(args[0]) == "yes":
+				var st: String = str(args[0]) if args.size() > 0 else ""
+				if st == "yes":
 					apply(id, "yes")
+				elif not (st in ["no", "unsupported", "login"]):
+					_probe_failed()   # 离线 / 限流 / 接口报错：退避后允许再查
 				if done.is_valid():
 					done.call())
 			_cbs.append(cb)
@@ -235,3 +241,10 @@ static func probe(done := Callable()) -> void:
 				apply(id, "yes")
 	if not OS.has_feature("web") and done.is_valid():
 		done.call()
+
+
+## 后台查询失败：复位 _probed，下次 probe 至少等 _backoff_ms（再失败就翻倍，封顶 10 分钟）
+static func _probe_failed() -> void:
+	_probed = false
+	_retry_ms = Time.get_ticks_msec() + _backoff_ms
+	_backoff_ms = mini(_backoff_ms * 2, 600000)

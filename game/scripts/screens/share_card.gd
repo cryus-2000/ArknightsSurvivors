@@ -54,7 +54,7 @@ func data(screen) -> Dictionary:
 	relics.sort_custom(func(a, b): return int(rank.get(str(a.rarity), 4)) < int(rank.get(str(b.rarity), 4)))
 	return {"won": won, "result": "探索完成" if won else "探索终止", "result_en": "OPERATION COMPLETE" if won else "OPERATION FAILED",
 		"ending": str(m.get("ending_name", "")) if won else ("放弃探索" if bool(m.get("quit", false)) else ("击倒：" + str(m.get("killer", {}).get("name", "未知")))), "quit": bool(m.get("quit", false)),
-		"tier": str(D.DIFF_PRESETS[clampi(g.preset, 0, D.DIFF_PRESETS.size() - 1)].name), "t": float(m.get("t", 0.0)),
+		"tier": SB.diff_name_of(int(g.preset), int(g.tier)), "t": float(m.get("t", 0.0)),
 		"tier_x": SB.diff_extra_of(int(g.meta_cells)),   # 认知塑造投入（11-17 结算 / 分享卡加难度）
 		"hi_label": "总伤害", "hi": g.run_stats.fmt_n(float(m.get("total", 0.0))), "kills": int(m.get("kills", 0)), "level": int(m.get("level", 1)), "relic_n": int(m.get("relics", relics.size())),
 		"grade": screen.grade(m, g.preset), "ops": ops, "relics": relics.slice(0, 6),

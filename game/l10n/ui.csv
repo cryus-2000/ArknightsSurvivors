@@ -967,7 +967,7 @@ ui.gd.settings_panel.055,Ask at start of next run,次回の開始時に確認,�
 ui.gd.settings_panel.056,Replay preview next run,次回プレビューを再再生,다음 게임에서 미리보기 다시 시청,下局重看演示局,校对,校对：统一大小写规范,自译,自译
 ui.gd.settings_panel.057,Default,デフォルト,기본,默认,模型,,自译,自译
 ui.gd.settings_panel.058,Match screen resolution when fullscreen,フルスクリーン時画面解像度に合わせる,전체 화면 시 화면 해상도에 맞춤,全屏时按屏幕分辨率,校对,校对：统一大小写规范，fullscreen不应大写,自译,自译
-ui.gd.settings_panel.059,Tap value or press Enter to apply,数値をタップまたはEnterキーで適用,수치를 터치하거나 Enter를 눌러 적용,点数值或按 Enter 应用,校对,校对：统一大小写规范，句首和专有名词外小写,自译,自译
+ui.gd.settings_panel.059,Click a value or press Enter to apply,数値をクリックまたはEnterキーで適用,수치를 클릭하거나 Enter를 눌러 적용,点数值或按 Enter 应用,校对,校对：统一大小写规范，句首和专有名词外小写,自译,自译
 ui.gd.settings_panel.060,Customized,カスタム済み,사용자 지정,已自定义,模型,,自译,自译
 ui.gd.settings_panel.061,Default Layout,デフォルトレイアウト,기본 레이아웃,默认布局,模型,,自译,自译
 ui.gd.settings_panel.062,No Record,記録なし,기록 없음,暂无记录,模型,,自译,自译
@@ -1158,10 +1158,10 @@ ui.gd.screens.choice_panel.001,Tap card to select,カードをタップして選
 ui.gd.screens.choice_panel.002,"Click a card, or press 1–%d to select",カードをクリック、または1–%dを押して選択,카드를 클릭하거나 1–%d을(를) 눌러 선택하세요,点击卡片，或按 1–%d 选择,校对,"校对：修正句中不必要的大写字母（Press, Select）",自译,自译
 ui.gd.screens.choice_panel.003,←→ Select · Ⓐ Reveal,←→ 選択・Ⓐ めくる,←→ 선택 · Ⓐ 뒤집기,←→ 选择 · Ⓐ 翻开,模型,,自译,自译
 ui.gd.screens.choice_panel.004,Tap card to reveal,カードをタップしてめくる,카드를 터치하여 뒤집기,点击卡片翻开,模型,,自译,自译
-ui.gd.screens.choice_panel.005,"Tap card to reveal, or press 1–%d",カードをタップしてめくる、または1–%dを押す,"카드를 터치하여 뒤집기, 또는 1–%d 누르기",点击卡片翻开，或按 1–%d,校对,校对：逗号后不应大写，与 p4 保持一致,自译,自译
+ui.gd.screens.choice_panel.005,"Click a card to reveal, or press 1–%d",カードをクリックしてめくる、または1–%dを押す,"카드를 클릭하여 뒤집기, 또는 1–%d 누르기",点击卡片翻开，或按 1–%d,校对,校对：逗号后不应大写，与 p4 保持一致,自译,自译
 ui.gd.screens.choice_panel.006,Select One,1つ選択,항목 선택,选择一项,模型,,自译,自译
-ui.gd.screens.choice_panel.007,Tap Options,オプションクリック,옵션 터치,点击选项,模型,,自译,自译
-ui.gd.screens.choice_panel.008,"Tap Options, or press 1–%d",オプションクリック、または1–%dを押す,"옵션 터치, 또는 1–%d 누르기",点击选项，或按 1–%d,模型,,自译,自译
+ui.gd.screens.choice_panel.007,Tap an option,選択肢をタップ,옵션 터치,点击选项,模型,,自译,自译
+ui.gd.screens.choice_panel.008,"Click an option, or press 1–%d",選択肢をクリック、または1–%dを押す,"옵션 클릭, 또는 1–%d 누르기",点击选项，或按 1–%d,模型,,自译,自译
 ui.gd.screens.choice_panel.009,Choose one discovered Relic to take with you.,発見した秘宝から1つ選んで獲得する,발견한 소장품 중 하나를 선택해 획득하세요,从发现的藏品中挑选一件带走,模型,,自译,自译
 ui.gd.screens.choice_panel.010,Choose an Operator to join the squad,オペレーターを1名選んで編成加入,편성에 합류할 오퍼레이터 선택,挑选一名干员加入编队,模型,,自译,自译
 ui.gd.screens.choice_panel.011,Select One Enhancement,強化を1つ選択,강화 항목 선택,选择一项强化,模型,,自译,自译
@@ -2051,7 +2051,7 @@ ui.gd.screens.shop_screen.025,←→ Select · Ⓐ Purchase,←→ 選択・Ⓐ 
 ui.gd.screens.shop_screen.026,Ⓨ Refresh · Ⓑ Leave,Ⓨ 更新・Ⓑ 離れる,Ⓨ 새로고침 · Ⓑ 떠난다,Ⓨ 刷新 · Ⓑ 离开,模型,,自译,自译
 ui.gd.screens.shop_screen.027,Tap Card to Purchase,カードをタップして購入,카드를 터치하여 구매,点击卡片购买,模型,,自译,自译
 ui.gd.screens.shop_screen.028,Tap 'Refresh Stock' / 'Leave',「商品更新」/「離れる」をタップ,'진열대 갱신' / '떠난다' 클릭,点「刷新货架」/「离开」,模型,,自译,自译
-ui.gd.screens.shop_screen.029,Tap or press 1–%d to purchase,タップまたは1–%dを押して購入,클릭 또는 1–%d 눌러 구매,点击或按 1–%d 购买,模型,,自译,自译
+ui.gd.screens.shop_screen.029,Click or press 1–%d to purchase,クリックまたは1–%dを押して購入,클릭 또는 1–%d 눌러 구매,点击或按 1–%d 购买,模型,,自译,自译
 ui.gd.screens.shop_screen.030,F Refresh  ·  ESC Leave,F 更新  ・  ESC 離れる,F 새로고침  ·  ESC 떠난다,F 刷新  ·  ESC 离开,模型,,自译,自译
 ui.gd.screens.spotlight.000,Skip Tutorial,チュートリアルスキップ,튜토리얼 스킵,跳过引导,模型,,自译,自译
 ui.gd.screens.stats_panel.000,%.1f / s,%.1f / 秒,%.1f / 초,%.1f / 秒,模型,,自译,自译
@@ -3448,7 +3448,7 @@ Boss 轮廓光,Boss Highlight,ボスハイライト,보스 윤곽선,,原文键,
 下局重看演示局,Replay preview next run,次回プレビューを再再生,다음 게임에서 미리보기 다시 시청,,原文键,校对,自译,自译
 默认,Default,デフォルト,기본,,原文键,模型,自译,自译
 全屏时按屏幕分辨率,Match screen resolution when fullscreen,フルスクリーン時画面解像度に合わせる,전체 화면 시 화면 해상도에 맞춤,,原文键,校对,自译,自译
-点数值或按 Enter 应用,Tap value or press Enter to apply,数値をタップまたはEnterキーで適用,수치를 터치하거나 Enter를 눌러 적용,,原文键,校对,自译,自译
+点数值或按 Enter 应用,Click a value or press Enter to apply,数値をクリックまたはEnterキーで適用,수치를 클릭하거나 Enter를 눌러 적용,,原文键,校对,自译,自译
 已自定义,Customized,カスタム済み,사용자 지정,,原文键,模型,自译,自译
 默认布局,Default Layout,デフォルトレイアウト,기본 레이아웃,,原文键,模型,自译,自译
 暂无记录,No Record,記録なし,기록 없음,,原文键,模型,自译,自译
@@ -3596,10 +3596,10 @@ Boss 演练,Boss Drill,ボス演習,보스 연습,,原文键,校对,自译,自�
 点击卡片，或按 1–%d 选择,"Click a card, or press 1–%d to select",カードをクリック、または1–%dを押して選択,카드를 클릭하거나 1–%d을(를) 눌러 선택하세요,,原文键,校对,自译,自译
 ←→ 选择 · Ⓐ 翻开,←→ Select · Ⓐ Reveal,←→ 選択・Ⓐ めくる,←→ 선택 · Ⓐ 뒤집기,,原文键,模型,自译,自译
 点击卡片翻开,Tap card to reveal,カードをタップしてめくる,카드를 터치하여 뒤집기,,原文键,模型,自译,自译
-点击卡片翻开，或按 1–%d,"Tap card to reveal, or press 1–%d",カードをタップしてめくる、または1–%dを押す,"카드를 터치하여 뒤집기, 또는 1–%d 누르기",,原文键,校对,自译,自译
+点击卡片翻开，或按 1–%d,"Click a card to reveal, or press 1–%d",カードをクリックしてめくる、または1–%dを押す,"카드를 클릭하여 뒤집기, 또는 1–%d 누르기",,原文键,校对,自译,自译
 选择一项,Select One,1つ選択,항목 선택,,原文键,模型,自译,自译
-点击选项,Tap Options,オプションクリック,옵션 터치,,原文键,模型,自译,自译
-点击选项，或按 1–%d,"Tap Options, or press 1–%d",オプションクリック、または1–%dを押す,"옵션 터치, 또는 1–%d 누르기",,原文键,模型,自译,自译
+点击选项,Tap an option,選択肢をタップ,옵션 터치,,原文键,模型,自译,自译
+点击选项，或按 1–%d,"Click an option, or press 1–%d",選択肢をクリック、または1–%dを押す,"옵션 클릭, 또는 1–%d 누르기",,原文键,模型,自译,自译
 从发现的藏品中挑选一件带走,Choose one discovered Relic to take with you.,発見した秘宝から1つ選んで獲得する,발견한 소장품 중 하나를 선택해 획득하세요,,原文键,模型,自译,自译
 挑选一名干员加入编队,Choose an Operator to join the squad,オペレーターを1名選んで編成加入,편성에 합류할 오퍼레이터 선택,,原文键,模型,自译,自译
 选择一项强化,Select One Enhancement,強化を1つ選択,강화 항목 선택,,原文键,模型,自译,自译
@@ -4277,7 +4277,7 @@ LB / RB 切换分类    ↑ ↓ 选择    ← → 调整    Ⓑ 返回,LB / RB S
 Ⓨ 刷新 · Ⓑ 离开,Ⓨ Refresh · Ⓑ Leave,Ⓨ 更新・Ⓑ 離れる,Ⓨ 새로고침 · Ⓑ 떠난다,,原文键,模型,自译,自译
 点击卡片购买,Tap Card to Purchase,カードをタップして購入,카드를 터치하여 구매,,原文键,模型,自译,自译
 点「刷新货架」/「离开」,Tap 'Refresh Stock' / 'Leave',「商品更新」/「離れる」をタップ,'진열대 갱신' / '떠난다' 클릭,,原文键,模型,自译,自译
-点击或按 1–%d 购买,Tap or press 1–%d to purchase,タップまたは1–%dを押して購入,클릭 또는 1–%d 눌러 구매,,原文键,模型,自译,自译
+点击或按 1–%d 购买,Click or press 1–%d to purchase,クリックまたは1–%dを押して購入,클릭 또는 1–%d 눌러 구매,,原文键,模型,自译,自译
 F 刷新  ·  ESC 离开,F Refresh  ·  ESC Leave,F 更新  ・  ESC 離れる,F 새로고침  ·  ESC 떠난다,,原文键,模型,自译,自译
 （入队 +%.1f）,(Join squad +%.1f),（加入 +%.1f）,(합류 +%.1f),,原文键,模型,自译,自译
 ，物理伤害 -%d%%,", Physical damage -%d%%",、物理ダメージ-%d%%,", 물리 대미지 -%d%%",,原文键,模型,自译,自译
