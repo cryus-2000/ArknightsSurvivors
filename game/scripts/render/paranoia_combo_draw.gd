@@ -379,4 +379,7 @@ static func _hard_film(g, e: Dictionary) -> void:
 	for k in n:
 		g.wcv.draw_line(o + (pts[k] - o) * 0.72, pts[k], Color(1, 1, 1, 0.35), 1.0)
 	var left: float = clampf(1.0 - float(e.get("act_t", 0.0)) / maxf(0.1, float(e.get("act_min", 1.0))), 0.0, 1.0)
+	var hmx: float = Bal.v("boss/last_hold_max", 3.0)
+	if hmx > 0.0:   # 11-16 起护盾最多撑 last_hold_max 秒：读秒环与 HUD「3 秒后破裂」同口径（11-17 体检：原来按整幕最短时长算，环还剩一大截就碎）
+		left = clampf(g.combat.last_hold_left(e) / maxf(0.1, minf(hmx, float(e.get("act_min", hmx)))), 0.0, 1.0)
 	g.wcv.draw_arc(o, r + 9.0, -PI / 2.0, -PI / 2.0 + TAU * left, 40, Color(c.r, c.g, c.b, 0.85), 2.0)
