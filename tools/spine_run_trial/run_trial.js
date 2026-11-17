@@ -678,8 +678,16 @@ async function main() {
     frames.push(sk);
     if (cfg.keys) { lines.push(swordLine(sk, i)); if (process.env.SWORD_DEBUG) console.log(i, JSON.stringify(lines[i])); }
     // cfg.trackBones：逐帧记下指定骨骼原点的像素位置（新干员修脸贴眼睛的对位锚点，tools/spine_px.py）
-    const tracked = cfg.trackBones ? Object.fromEntries(cfg.trackBones.map(n => { const b = sk.findBone(n); return [n, b ? [+(ANCHOR[0] + b.worldX * SCALE).toFixed(2), +(ANCHOR[1] - b.worldY * SCALE).toFixed(2), +(Math.atan2(b.c, b.a) * 180 / Math.PI).toFixed(1)] : null]; })) : undefined;
-    report.push({ frame: i, contacts, clipped_near_edge: clipped, bones: tracked });
+    const tracked = (cfg.trackBones || cfg.trackPoints) ? Object.fromEntries((cfg.trackBones || []).map(n => { const b = sk.findBone(n); return [n, b ? [+(ANCHOR[0] + b.worldX * SCALE).toFixed(2), +(ANCHOR[1] - b.worldY * SCALE).toFixed(2), +(Math.atan2(b.c, b.a) * 180 / Math.PI).toFixed(1)] : null]; })) : undefined;
+    // cfg.trackPoints：{名: [骨骼, 局部 x, 局部 y]}，逐帧记下骨骼局部坐标一点的像素位置（召唤物龙眼：头骨会转，按局部点换算，docs/365 §9）
+    if (cfg.trackPoints) for (const [n, [bn, lx, ly]] of Object.entries(cfg.trackPoints)) {
+      const b = sk.findBone(bn); if (!b) { tracked[n] = null; continue; }
+      const wx = b.a * lx + b.b * ly + b.worldX, wy = b.c * lx + b.d * ly + b.worldY;
+      tracked[n] = [+(ANCHOR[0] + wx * SCALE).toFixed(2), +(ANCHOR[1] - wy * SCALE).toFixed(2), +(Math.atan2(b.c, b.a) * 180 / Math.PI).toFixed(1)];
+    }
+    // cfg.trackSlots：逐帧记下指定槽当前的附件名（嘴型换图的帧不贴手画嘴，tools/spine_px.py）
+    const slotsNow = cfg.trackSlots ? Object.fromEntries(cfg.trackSlots.map(n => { const sl = sk.findSlot(n); return [n, sl && sl.getAttachment() ? sl.getAttachment().name : null]; })) : undefined;
+    report.push({ frame: i, contacts, clipped_near_edge: clipped, bones: tracked, slots: slotsNow });
   }
   const idle = pixelize(base).canvas;
   fs.writeFileSync(path.join(OUT, 'idle_t0.png'), idle.toBuffer('image/png'));
