@@ -332,8 +332,12 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 			var bsz: int = _fit_size(str(op[0]), 16 if grid2 else (19 if touch else 15), br.size.x - 12.0)
 			UI.text(g.hud, g.font, Vector2(br.position.x, br.position.y + (30 if grid2 else (38 if touch else 26))), op[0], bsz, bink, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
 		else:
-			var lw: float = br.size.x - 14.0 - ((UI.cwidth(g.font, kst, 10) + 12.0 + 26.0) if kst != "" else 10.0)
-			UI.text(g.hud, g.font, br.position + Vector2(14, 38 if touch else 26), op[0], _fit_size(str(op[0]), 19 if touch else 15, lw), bink, HORIZONTAL_ALIGNMENT_LEFT, lw)
+			var lsz0: int = 19 if touch else 15
+			var lw: float = br.size.x - 14.0 - ((UI.cwidth(g.font, kst, 10) + 40.0) if kst != "" else 10.0)
+			if kst != "" and _text_w(str(op[0]), maxi(12, lsz0 - 2)) > lw:   # 窄按钮放不下「标签 + 按键牌」（英文 Continue / Abandon Operation）：让出按键牌，整宽给字
+				kst = ""
+				lw = br.size.x - 20.0
+			UI.text(g.hud, g.font, br.position + Vector2(14, 38 if touch else 26), op[0], _fit_size(str(op[0]), lsz0, lw), bink, HORIZONTAL_ALIGNMENT_LEFT, lw)
 		if kst != "":
 			UI.keycap(g.hud, g.font, Vector2(br.end.x - UI.cwidth(g.font, kst, 10) - 20, br.position.y + 11), kst, bink, 10)
 
@@ -411,8 +415,11 @@ func draw_generic_skill_rows(b1: Rect2, y: float, rows: Array, dfs := 11, nfs :=
 
 ## 按译文量宽：从 size 往下缩到放得下 max_w（最小 11），返回字号（UI.text 原样接收）
 func _fit_size(s: String, size: int, max_w: float) -> int:
-	var t: String = UI.Loc.s(s)
 	var sz := size
-	while sz > 11 and g.font.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(sz)).x > max_w:
+	while sz > 11 and _text_w(s, sz) > max_w:
 		sz -= 1
 	return sz
+
+
+func _text_w(s: String, size: int) -> float:
+	return g.font.get_string_size(UI.Loc.s(s), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(size)).x
