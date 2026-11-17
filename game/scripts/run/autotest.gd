@@ -153,6 +153,42 @@ func trace_extra() -> String:
 	return " sq=%d lamp=%d nd=%d rl=%d" % [trace_squad_hash(), int(roundf(g.lamp * 100.0)), trace_nerve_hash(), g.relics.size()]
 
 
+## --parity=N（theme_parity，docs/359）：每 N 帧打印一行 PARITY 快照（按帧不按 g.t，--bosstest 里 g.t 冻结也照样出）。
+## 只读、不碰 rng、不改状态；字段按 key=value 排开，tools/theme_parity.py 逐字段比、报第一处分歧。只在 debug 构建的 autotest 里，正式游戏路径零开销。
+var parity_every := -1
+
+
+func parity_line() -> String:
+	var eh: PackedStringArray = []
+	for e in g.enemies:
+		eh.append("%s,%.3f,%.3f,%.3f" % [e.type, e.pos.x, e.pos.y, e.hp])
+	var bh: PackedStringArray = []
+	for b in g.bosses:
+		bh.append("%s:%.2f" % [b.type, b.hp])
+	var rl: PackedStringArray = []
+	for r in g.relics:
+		rl.append(str(r))
+	var zone := "%d,%.2f,%.2f,%.2f,%d" % [g.zone_state, g.zone_r, g.zone_c.x, g.zone_c.y, int(g.zone_frozen)]
+	var endg := ""
+	if g.endg != null:
+		endg = "%s/%d/%d/%s/%d" % [g.endg.cur, g.endg.cross_done, g.endg.flipped, g.endg.slot, int(g.endg.frozen)]
+	var f := {
+		"t": "%.3f" % g.t, "st": g.state, "lv": g.level, "xp": "%.3f" % g.xp, "xpn": "%.2f" % g.xp_need, "k": g.kills,
+		"hp": "%.3f" % g.hp, "mhp": "%.2f" % g.max_hp, "lamp": "%.3f" % g.lamp, "lcap": "%.1f" % g.lamp_cap, "thr": g.threat,
+		"ing": g.ingots, "n": g.enemies.size(), "eh": ";".join(eh).hash(), "boss": ";".join(bh),
+		"rng": "%d/%d/%d/%d/%d" % [g.rng.state, g.rng_spawn.state, g.rng_enemy.state, g.rng_drop.state, g.rng_op.state],
+		"pos": "%.3f,%.3f" % [g.ppos.x, g.ppos.y], "rl": ";".join(rl).hash(), "nrl": g.relics.size(), "gr": JSON.stringify(g.growth).hash(),
+		"wp": JSON.stringify(g.weapons).hash(), "sq": trace_squad_hash(), "nd": trace_nerve_hash(), "zone": zone,
+		"mire": "%d/%.2f/%.3f" % [g.mires.size(), g.next_mire, g.in_mire], "bcn": g.beacons.size(), "eb": g.ebullets.size(),
+		"gem": g.gems.size(), "end": g.ending, "endg": endg, "ck": g.choice_kind, "nch": g.choices.size(),
+		"plv": g.pending_levelups, "pch": g.pending_chests, "shield": g.shield,
+	}
+	var parts: PackedStringArray = []
+	for k in f:
+		parts.append("%s=%s" % [k, str(f[k]).replace(" ", "_")])
+	return "PARITY f=%d " % g.at_frames + " ".join(parts)
+
+
 func trace_squad_hash() -> int:
 	var parts: PackedStringArray = []
 	for o in g.squad.ops:
@@ -798,6 +834,13 @@ func step() -> void:
 	_cdpshot_step()
 	_prof_dump()
 	g.at_frames += 1
+	if parity_every < 0:
+		parity_every = 0
+		for a in Cfg.dev_args():
+			if a.begins_with("--parity="):
+				parity_every = maxi(1, int(a.substr(9)))
+	if parity_every > 0 and g.mode == g.Mode.BALANCE and g.at_frames % parity_every == 0:
+		print(parity_line())
 	if g.ult_bench == null and g.ult != null and g.mode == g.Mode.BALANCE and g.at_frames == 1:
 		for a in Cfg.dev_args():
 			if a == "--ultbench" or a.begins_with("--ultbench="):
