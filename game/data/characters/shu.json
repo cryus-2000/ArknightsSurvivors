@@ -1,0 +1,1368 @@
+{
+ "_doc": "黍（docs/381 设计稿，ops-design-b 11-18）：草案，不进名册 / 寻访池（recruitable false）；美术借星熊帧条占位，特效未做",
+ "id": "shu",
+ "trail_col": {
+  "main": [
+   0.55,
+   0.85,
+   0.35
+  ],
+  "alt": [
+   0.95,
+   0.8,
+   0.4
+  ]
+ },
+ "name": "黍",
+ "en": "SHU",
+ "class": "重装",
+ "branch": "守护者",
+ "faction": [
+  "岁"
+ ],
+ "lanes": [
+  "heal",
+  "shield"
+ ],
+ "col": [
+  0.55,
+  0.85,
+  0.35
+ ],
+ "script": "res://scripts/characters/data_operator.gd",
+ "recruitable": false,
+ "base": {
+  "_doc": "黍（docs/381）草案数值：数值全在这里。对照星熊（atk 31 / cd 0.9 / 锥 110）、塞雷娅（atk 43 / cd 0.9）：直接伤害约 75%，价值在禾苗地块（回复 + 庇护）与技能治疗",
+  "atk": 34,
+  "cd": 1.0,
+  "reach": 105,
+  "half_deg": 65,
+  "kb": 160,
+  "_sprout": "禾苗（本作化身原作「播种地块」）：stay 召唤物，自带半径 sprout_r 的区域；队长站在任意一块里时按区域回复 / 庇护（同一名干员只算一次）",
+  "plant_every": 6.0,
+  "sprout_life": 8,
+  "sprout_r": 75,
+  "sprout_heal": 0.005,
+  "s1_heal": 0.05,
+  "s2_dur": 6,
+  "s2_interval": 1.5,
+  "s2_heal": 0.02,
+  "s2_heal_mult": 1.5,
+  "s2_dr": 0.1,
+  "s2_n": 2,
+  "s3_dur": 14,
+  "s3_dmg": 1.5,
+  "s3_heal": 0.004,
+  "s3_atk": 0.15,
+  "s3_aspd": 0.15,
+  "s3_pull": 60,
+  "s3_every": 0.5,
+  "talent_dr": 0.12,
+  "root_stun": 0.3,
+  "jz_r": 120,
+  "jz_kb": 260,
+  "furrow_n": 4,
+  "gr_every": 4.0,
+  "gr_pct": 0.04,
+  "gr_cap": 0.12,
+  "gr_dur": 8.0,
+  "thorn_mult": 0.25,
+  "thorn_every": 1.0,
+  "ripe_heal": 0.015,
+  "thorn2_v": 0.1,
+  "thorn2_dur": 2.0,
+  "reap_n": 3,
+  "reap_r": 140,
+  "reap_mult": 1.3,
+  "reap_kb": 220,
+  "ripe_mult": 0.3,
+  "team_atk": 0.04,
+  "sui_atk": 0.04
+ },
+ "leader": {
+  "_doc": "当队长时的受击属性（docs/23）：原作精二满级 生命 3213 / 防御 602 / 法抗 10%（character_table char_2025_shu），近战主控；介于星熊（3446 / 625）与塞雷娅（3150 / 595）之间，自带治疗，减伤取塞雷娅同档",
+  "max_hp": 105.0,
+  "armor": 3.0,
+  "arts_res": 0.1,
+  "regen": 0.8
+ },
+ "sprites": {
+  "move_attack": {
+   "tex": "op_hoshiguma_move_attack",
+   "frames": 8,
+   "foot": [
+    48,
+    76
+   ],
+   "_doc": "10-23 移动攻击（docs/128 §3）：普攻上半身 + 跑步步态腿，原作 Spine 1 倍像素化（tools/op_1x/make_op_1x.py）；帧序与普攻一一对应，只换贴图"
+  },
+  "entry": {
+   "tex": "op_hoshiguma_entry",
+   "frames": 8,
+   "fps": 9.1429,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.042,
+    0.119,
+    0.119,
+    0.119,
+    0.119,
+    0.119,
+    0.119,
+    0.119
+   ],
+   "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/hoshiguma_entry.json），64 画布 @2x；落下由代码补"
+  },
+  "_doc": "10-20 换 64 画布 @2x（docs/108 §5）：待机 / 普攻 / S3 / 死亡取原作动作条（cb_18），跑步 / S1 / 掷盾 / 接盾在原生骨架上出（tools/spine_run_trial），打包脚本 tools/probes/package_texas_hoshiguma.py。shield = 每帧盾心（1x 帧内像素，同 foot 口径，null = 盾已离手），格挡闪光 / 反击架势红光锚在这里（fx 的 on_sprite）",
+  "idle": {
+   "tex": "op_hoshiguma_idle",
+   "frames": 7,
+   "fps": 2.333333,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.42857142857142855,
+    0.42857142857142855,
+    0.42857142857142855,
+    0.42857142857142855,
+    0.42857142857142855,
+    0.42857142857142855,
+    0.42857142857142855
+   ],
+   "shield": [
+    [
+     23.5,
+     42.2
+    ],
+    [
+     23.5,
+     42.8
+    ],
+    [
+     23.5,
+     42.2
+    ],
+    [
+     23.8,
+     42.8
+    ],
+    [
+     23.2,
+     42.5
+    ],
+    [
+     23.5,
+     42.2
+    ],
+    [
+     23.5,
+     43.0
+    ]
+   ]
+  },
+  "run": {
+   "tex": "op_hoshiguma_run",
+   "frames": 8,
+   "fps": 13.333333,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.075,
+    0.075,
+    0.075,
+    0.075,
+    0.075,
+    0.075,
+    0.075,
+    0.075
+   ],
+   "shield": [
+    [
+     24.2,
+     41.8
+    ],
+    [
+     24.8,
+     43.0
+    ],
+    [
+     26.0,
+     42.0
+    ],
+    [
+     24.5,
+     39.5
+    ],
+    [
+     25.8,
+     40.0
+    ],
+    [
+     24.0,
+     41.5
+    ],
+    [
+     26.0,
+     42.0
+    ],
+    [
+     25.0,
+     41.0
+    ]
+   ]
+  },
+  "attack": {
+   "tex": "op_hoshiguma_attack",
+   "frames": 8,
+   "fps": 19.2,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.1,
+    0.1,
+    0.05,
+    0.05,
+    0.05,
+    0.05,
+    0.05,
+    0.05
+   ],
+   "fire": 2,
+   "fire_time": 0.2,
+   "shield": [
+    [
+     39.5,
+     58.2
+    ],
+    [
+     34.0,
+     53.5
+    ],
+    [
+     60.8,
+     59.2
+    ],
+    [
+     62.2,
+     56.5
+    ],
+    [
+     65.5,
+     53.0
+    ],
+    [
+     65.2,
+     61.0
+    ],
+    [
+     45.8,
+     65.5
+    ],
+    [
+     39.8,
+     58.8
+    ]
+   ],
+   "attack_timing": {
+    "duration": 0.5,
+    "fire_time": 0.2,
+    "active_ratio": 0.9,
+    "windup_ratio": 0.4,
+    "min_duration": 0.13333333333333333,
+    "frame_durations": [
+     0.1,
+     0.1,
+     0.045,
+     0.035,
+     0.04,
+     0.05,
+     0.06,
+     0.07
+    ]
+   }
+  },
+  "skill": {
+   "tex": "op_hoshiguma_skill",
+   "frames": 8,
+   "fps": 13.714286,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.10416666666666667,
+    0.10416666666666667,
+    0.0625,
+    0.0625,
+    0.0625,
+    0.0625,
+    0.0625,
+    0.0625
+   ],
+   "fire": 2,
+   "fire_time": 0.20833333333333334,
+   "shield": [
+    [
+     39.5,
+     58.2
+    ],
+    [
+     34.0,
+     53.5
+    ],
+    [
+     60.8,
+     59.2
+    ],
+    [
+     62.2,
+     56.5
+    ],
+    [
+     65.5,
+     53.0
+    ],
+    [
+     65.2,
+     61.0
+    ],
+    [
+     45.8,
+     65.5
+    ],
+    [
+     39.8,
+     58.8
+    ]
+   ]
+  },
+  "throw": {
+   "tex": "op_hoshiguma_throw",
+   "frames": 8,
+   "fps": 18.666667,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.06,
+    0.06,
+    0.05857142857142858,
+    0.049999999999999996,
+    0.049999999999999996,
+    0.049999999999999996,
+    0.049999999999999996,
+    0.049999999999999996
+   ],
+   "fire": 3,
+   "fire_time": 0.17857142857142858,
+   "shield": [
+    [
+     23.5,
+     42.2
+    ],
+    [
+     18.5,
+     38.2
+    ],
+    [
+     27.2,
+     47.5
+    ],
+    null,
+    null,
+    null,
+    null,
+    null
+   ],
+   "_doc": "精英二「般若回旋」掷盾：第 3 帧起盾离手（盾由 proj_hoshiguma_sawshield 表现）；盾在外面时本体换无盾画面（noshield），盾回来播 catch（native_motion exits）"
+  },
+  "noshield": {
+   "_doc": "盾在外面（般若回旋）时本体换无盾帧条（art，与有盾条同帧数 / 同画布，原作条去盾部件重组 / 原生骨架隐藏盾牌出图）；fallback 只在缺图时用",
+   "art": {
+    "idle": "op_hoshiguma_idle_noshield",
+    "run": "op_hoshiguma_run_noshield",
+    "attack": "op_hoshiguma_attack_noshield",
+    "skill": "op_hoshiguma_attack_noshield",
+    "throw": "op_hoshiguma_throw_noshield"
+   },
+   "fallback": {
+    "anim": "throw",
+    "frames": [
+     2,
+     3
+    ],
+    "fps": 8
+   }
+  },
+  "size": 64,
+  "foot": [
+   32,
+   60
+  ],
+  "s1": {
+   "tex": "op_hoshiguma_s1",
+   "frames": 2,
+   "fps": 3.428571,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.20833333333333334,
+    0.375
+   ],
+   "fire": 1,
+   "fire_time": 0.20833333333333334,
+   "shield": [
+    [
+     45.2,
+     40.5
+    ],
+    [
+     47.8,
+     42.0
+    ]
+   ]
+  },
+  "s1_guard": {
+   "tex": "op_hoshiguma_s1_guard",
+   "frames": 1,
+   "fps": 2.0,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.5
+   ],
+   "shield": [
+    [
+     47.8,
+     42.0
+    ]
+   ]
+  },
+  "s1_counter": {
+   "tex": "op_hoshiguma_s1_counter",
+   "frames": 3,
+   "fps": 7.142857,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.12,
+    0.12,
+    0.18
+   ],
+   "shield": [
+    [
+     62.2,
+     65.0
+    ],
+    [
+     64.5,
+     63.5
+    ],
+    [
+     66.8,
+     60.2
+    ]
+   ],
+   "fire": 1,
+   "fire_time": 0.12
+  },
+  "s3_start": {
+   "tex": "op_hoshiguma_s3_start",
+   "frames": 8,
+   "fps": 13.714286,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.06944444444444445,
+    0.06944444444444445,
+    0.06944444444444445,
+    0.075,
+    0.075,
+    0.075,
+    0.075,
+    0.075
+   ],
+   "fire": 3,
+   "fire_time": 0.20833333333333334,
+   "shield": [
+    [
+     39.5,
+     58.2
+    ],
+    [
+     35.8,
+     56.0
+    ],
+    [
+     42.5,
+     70.5
+    ],
+    [
+     61.2,
+     56.2
+    ],
+    [
+     63.2,
+     58.2
+    ],
+    [
+     65.0,
+     60.2
+    ],
+    [
+     66.2,
+     61.0
+    ],
+    [
+     66.0,
+     60.8
+    ]
+   ]
+  },
+  "s3_loop": {
+   "tex": "op_hoshiguma_s3_loop",
+   "frames": 7,
+   "fps": 21.0,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.047619047619047616,
+    0.047619047619047616,
+    0.047619047619047616,
+    0.047619047619047616,
+    0.047619047619047616,
+    0.047619047619047616,
+    0.047619047619047616
+   ],
+   "shield": [
+    [
+     64.5,
+     59.5
+    ],
+    [
+     66.2,
+     52.5
+    ],
+    [
+     68.5,
+     59.0
+    ],
+    [
+     62.0,
+     57.0
+    ],
+    [
+     68.8,
+     55.0
+    ],
+    [
+     64.0,
+     59.2
+    ],
+    [
+     67.5,
+     53.8
+    ]
+   ]
+  },
+  "s3_end": {
+   "tex": "op_hoshiguma_s3_end",
+   "frames": 8,
+   "fps": 20.0,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.05,
+    0.05,
+    0.05,
+    0.05,
+    0.05,
+    0.05,
+    0.05,
+    0.05
+   ],
+   "shield": [
+    [
+     69.2,
+     58.2
+    ],
+    [
+     62.8,
+     54.5
+    ],
+    [
+     64.2,
+     61.8
+    ],
+    [
+     56.2,
+     65.0
+    ],
+    [
+     48.8,
+     65.8
+    ],
+    [
+     43.2,
+     63.2
+    ],
+    [
+     39.8,
+     59.8
+    ],
+    [
+     39.8,
+     58.8
+    ]
+   ]
+  },
+  "catch": {
+   "tex": "op_hoshiguma_catch",
+   "frames": 8,
+   "fps": 18.604651,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.05,
+    0.06,
+    0.06,
+    0.05,
+    0.05,
+    0.05,
+    0.05,
+    0.06
+   ],
+   "shield": [
+    null,
+    [
+     66.5,
+     56.0
+    ],
+    [
+     62.8,
+     51.2
+    ],
+    [
+     63.8,
+     61.0
+    ],
+    [
+     56.2,
+     65.0
+    ],
+    [
+     48.8,
+     65.8
+    ],
+    [
+     43.0,
+     63.2
+    ],
+    [
+     40.5,
+     58.8
+    ]
+   ]
+  },
+  "death": {
+   "tex": "op_hoshiguma_death",
+   "frames": 8,
+   "fps": 6.974717,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.141,
+    0.141,
+    0.141,
+    0.141,
+    0.141,
+    0.141,
+    0.141,
+    0.16
+   ]
+  },
+  "s1_guard_move": {
+   "tex": "op_hoshiguma_s1_guard_move",
+   "frames": 8,
+   "fps": 13.333333,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.075,
+    0.075,
+    0.075,
+    0.075,
+    0.075,
+    0.075,
+    0.075,
+    0.075
+   ],
+   "_doc": "10-24 格挡窗口里移动（docs/140）：原生 Skill t=0 举盾上半身 + 跑步步态腿（tools/op_1x/native_extra.py），与跑步条共用相位；原来移动时播单帧定格 s1_guard 原地滑行"
+  },
+  "skills": {
+   "_doc": "S1 反手重斩（s1_counter 单条，10-30 改版：不再站定举盾，s1_guard / s1_guard_move 两条素材留档不引用）；S2 盾斧斩落；S3 原作起手 / 持盾切割循环 / 收势",
+   "s1": {
+    "anim": "s1_counter"
+   },
+   "s2": {
+    "anim": "skill"
+   },
+   "s3": {
+    "start": "s3_start",
+    "loop": "s3_loop",
+    "end": "s3_end"
+   }
+  }
+ },
+ "extra_sprites": [
+  "entry",
+  "death",
+  "s1",
+  "s1_guard",
+  "s1_guard_move",
+  "s1_counter",
+  "s3_start",
+  "s3_loop",
+  "s3_end",
+  "throw",
+  "catch"
+ ],
+ "native_motion": {
+  "_doc": "原生动作覆盖层（docs/108 §3.5）：普攻 / S2 / S3 起手按 clips 整条均匀播（击中帧起点 = 伤害时刻）；盾回手（信号 prop 结束）时播接盾",
+  "clips": {
+   "catch": 0.43,
+   "attack": 0.8,
+   "skill": 0.8333333333333334,
+   "s3_start": 0.5555555555555556
+  },
+  "exits": [
+   {
+    "on": "prop",
+    "slot": "catch",
+    "from": 0,
+    "tail": 0.43
+   }
+  ]
+ },
+ "attack": {
+  "mode": "auto",
+  "name": "镰扫",
+  "desc": "每 {$cd} 秒向身前挥镰扫过半径 {$reach} 的扇面（物理），击退敌人；「播种」：每 {$plant_every} 秒在队长脚下种下一株禾苗（存在 {$sprout_life} 秒、半径 {$sprout_r}），队长站在禾苗地块内每秒回复 {$sprout_heal*100}% 最大生命（多块不叠加）"
+ },
+ "skills": [
+  {
+   "name": "化被草木",
+   "en": "VERDANT WISDOM",
+   "sp": 6,
+   "heal": true,
+   "icon": "skill_saria_s1",
+   "desc": "为队长回复 {$s1_heal*100}% 最大生命，队长生命低于一半时翻倍；同时在队长脚下种下一株禾苗"
+  },
+  {
+   "name": "嘉禾盈仓",
+   "en": "BOUNTIFUL HARVEST",
+   "sp": 15,
+   "dur": 6.0,
+   "heal": true,
+   "icon": "skill_saria_s2",
+   "desc": "专注照料（出手间隔 ×{$s2_interval}），在队长周围种下 {$s2_n} 株禾苗；{$s2_dur} 秒内每秒为队长回复 {$s2_heal*100}% 最大生命，禾苗地块的回复 ×{$s2_heal_mult}，队长受到的伤害 -{$s2_dr*100}%"
+  },
+  {
+   "name": "离离枯荣",
+   "en": "SAMSARA",
+   "sp": 25,
+   "dur": 14.0,
+   "heal": true,
+   "icon": "skill_saria_s3",
+   "desc": "在队长脚下种下一株禾苗；{$s3_dur} 秒内伤害 ×{$s3_dmg}，每次挥镰为队长回复 {$s3_heal*100}% 最大生命，全队攻击 +{$s3_atk*100}%、攻速 +{$s3_aspd*100}%；施放处半径 {$sprout_r} 内的敌人持续被拉回地块中心（Boss 除外）"
+  }
+ ],
+ "talent": {
+  "name": "百谷长青",
+  "desc": "队长站在禾苗地块内时受到的伤害 -{$talent_dr*100}%"
+ },
+ "hit_sources": {
+  "镰扫": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "area"
+   ]
+  },
+  "芒刺": {
+   "emitter": "summon",
+   "origin": "route",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "entity",
+    "area"
+   ]
+  },
+  "秋收": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "area"
+   ]
+  },
+  "结穗": {
+   "emitter": "summon",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "entity",
+    "area"
+   ]
+  }
+ },
+ "progression": [
+  {
+   "type": "custom",
+   "id": "jingzhe",
+   "name": "惊蛰",
+   "icon": "growth_b_echo",
+   "desc": "「化被草木」发动时以队长为心震开半径 {$jz_r} 内的敌人（不造成伤害，Boss 除外）"
+  },
+  {
+   "type": "custom",
+   "id": "furrow",
+   "name": "垄作",
+   "icon": "growth_t_field",
+   "desc": "每第 {$furrow_n} 次挥镰，在命中的敌人处种下一株禾苗"
+  },
+  {
+   "type": "elite",
+   "level": 1,
+   "name": "精英一",
+   "desc": "解锁二技能「嘉禾盈仓」；解锁天赋「百谷长青」：队长站在禾苗地块内时受到的伤害 -{$talent_dr*100}%；普攻「缠根」：挥镰命中的敌人被根须缠住 {$root_stun} 秒",
+   "attack": {
+    "name": "缠根",
+    "desc": "挥镰命中的敌人被根须缠住 {$root_stun} 秒（精英减半，Boss 除外）"
+   }
+  },
+  {
+   "type": "custom",
+   "id": "granary",
+   "name": "仓廪",
+   "icon": "growth_armor",
+   "desc": "队长站在禾苗地块内时，每 {$gr_every} 秒获得 {$gr_pct*100}% 最大生命的护盾（至多 {$gr_cap*100}%）",
+   "branch": {
+    "granary": {
+     "id": "granary",
+     "name": "仓廪",
+     "icon": "growth_armor",
+     "desc": "队长站在禾苗地块内时，每 {$gr_every} 秒获得 {$gr_pct*100}% 最大生命的护盾（至多 {$gr_cap*100}%）"
+    },
+    "thorn": {
+     "id": "thorn",
+     "name": "芒刺",
+     "icon": "growth_b_size",
+     "desc": "禾苗每 {$thorn_every} 秒刺伤地块内的敌人（镰扫 {$thorn_mult*100}% 物理伤害）"
+    }
+   },
+   "branch_desc": "「仓廪」让禾苗地块为队长叠护盾；「芒刺」让禾苗刺伤地块内的敌人",
+   "bot": "granary"
+  },
+  {
+   "type": "custom",
+   "id": "thorn",
+   "name": "芒刺",
+   "icon": "growth_b_size",
+   "desc": "禾苗每 {$thorn_every} 秒刺伤地块内的敌人（镰扫 {$thorn_mult*100}% 物理伤害）",
+   "routes": {
+    "granary": {
+     "id": "harvest",
+     "name": "丰年",
+     "icon": "growth_armor",
+     "desc": "每株禾苗枯萎时为队长回复 {$ripe_heal*100}% 最大生命"
+    },
+    "thorn": {
+     "id": "thorn2",
+     "name": "锋芒",
+     "icon": "growth_b_size",
+     "desc": "被芒刺刺中的敌人 {$thorn2_dur} 秒内受到的伤害 +{$thorn2_v*100}%"
+    }
+   }
+  },
+  {
+   "type": "elite",
+   "level": 2,
+   "name": "精英二",
+   "desc": "解锁三技能「离离枯荣」；普通攻击强化「秋收」：每第 {$reap_n} 次挥镰改为环刈（自身周围半径 {$reap_r}、镰扫 ×{$reap_mult}、击退），场上每株禾苗同时结穗爆开（地块内镰扫 {$ripe_mult*100}% 物理伤害）；「天有四时」：全队攻击 +{$team_atk*100}%，编队里每有一名其他【岁】干员再 +{$sui_atk*100}%",
+   "attack": {
+    "name": "秋收",
+    "desc": "每第 {$reap_n} 次挥镰改为环刈（自身周围半径 {$reap_r}、镰扫 ×{$reap_mult}、击退），场上每株禾苗同时结穗爆开（地块内镰扫 {$ripe_mult*100}% 物理伤害）"
+   }
+  }
+ ],
+ "gallery": {
+  "tags": [
+   "近战",
+   "治疗",
+   "地块",
+   "护队长"
+  ],
+  "desc": "重装干员，在队长脚下播种禾苗：地块内回复生命、减轻伤害，技能为队长治疗",
+  "intro": "炎国农业天师，天师府授业天师（草稿，待用户改）"
+ },
+ "blocks": {
+  "_doc": "黍（docs/381 §3）：镰扫 = shape.cone；禾苗 = blocks.summons（stay、自带区域）+ aura.heal in_zone；百谷长青 = verb.dr cond in_zone:leader；精二秋收 = every_n replace + summon_cmd cast",
+  "summons": {
+   "sprout": {
+    "name": "禾苗",
+    "invuln": true,
+    "life": "$sprout_life",
+    "cap": 6,
+    "r": 8,
+    "col": [
+     0.55,
+     0.85,
+     0.35
+    ],
+    "move": {
+     "mode": "stay"
+    },
+    "on_expire": [
+     {
+      "verb": "heal",
+      "cond": "node:harvest",
+      "pct": "$ripe_heal",
+      "src": "丰年"
+     }
+    ],
+    "zone": {
+     "r": "$sprout_r",
+     "share": 0,
+     "mode": false
+    }
+   },
+   "sprout_thorn": {
+    "name": "禾苗",
+    "invuln": true,
+    "life": "$sprout_life",
+    "cap": 6,
+    "r": 8,
+    "col": [
+     0.55,
+     0.85,
+     0.35
+    ],
+    "move": {
+     "mode": "stay"
+    },
+    "on_expire": [
+     {
+      "verb": "heal",
+      "cond": "node:harvest",
+      "pct": "$ripe_heal",
+      "src": "丰年"
+     }
+    ],
+    "zone": {
+     "r": "$sprout_r",
+     "share": 0,
+     "mode": false
+    },
+    "attack": {
+     "shape": "circle",
+     "center": "self",
+     "r": "$sprout_r",
+     "mult": "$thorn_mult",
+     "every": "$thorn_every",
+     "src": "芒刺",
+     "power": false,
+     "on_hit": [
+      {
+       "st": "fragile",
+       "value": "$thorn2_v",
+       "dur": "$thorn2_dur",
+       "cond": "node:thorn2"
+      }
+     ]
+    }
+   }
+  },
+  "attack": {
+   "shape": "cone",
+   "r": "$reach",
+   "half_deg": "$half_deg",
+   "mult": 1.0,
+   "kb": "$kb",
+   "every": "$cd",
+   "src": "镰扫",
+   "slash": true,
+   "on_hit": [
+    {
+     "st": "stun",
+     "dur": "$root_stun",
+     "cond": "elite >= 1"
+    }
+   ]
+  },
+  "trait": [
+   {
+    "trig": "tick",
+    "every": "$plant_every",
+    "_doc": "播种：每 plant_every 秒在队长脚下种一株禾苗",
+    "do": [
+     {
+      "verb": "summon",
+      "kind": "sprout",
+      "n": 1,
+      "at": "leader",
+      "spread": 0,
+      "cond": "!node:thorn"
+     },
+     {
+      "verb": "summon",
+      "kind": "sprout_thorn",
+      "n": 1,
+      "at": "leader",
+      "spread": 0,
+      "cond": "node:thorn"
+     }
+    ]
+   },
+   {
+    "trig": "passive",
+    "do": [
+     {
+      "aura": "heal",
+      "pct": "$sprout_heal",
+      "scope": "in_zone",
+      "src": "禾苗"
+     }
+    ]
+   },
+   {
+    "trig": "every_n",
+    "n": "$furrow_n",
+    "cond": "node:furrow",
+    "do": [
+     {
+      "verb": "summon",
+      "kind": "sprout",
+      "n": 1,
+      "at": "target",
+      "spread": 0,
+      "cond": "!node:thorn"
+     },
+     {
+      "verb": "summon",
+      "kind": "sprout_thorn",
+      "n": 1,
+      "at": "target",
+      "spread": 0,
+      "cond": "node:thorn"
+     }
+    ]
+   },
+   {
+    "trig": "every_n",
+    "n": 1,
+    "cond": "skill_active:2",
+    "do": [
+     {
+      "verb": "heal",
+      "pct": "$s3_heal",
+      "src": "离离枯荣"
+     }
+    ]
+   }
+  ],
+  "skills": [
+   {
+    "dur": 0,
+    "do": [
+     {
+      "verb": "heal",
+      "pct": "$s1_heal",
+      "power": true,
+      "src": "化被草木"
+     },
+     {
+      "verb": "heal",
+      "pct": "$s1_heal",
+      "power": true,
+      "cond": "hp_pct < 0.5",
+      "src": "化被草木"
+     },
+     {
+      "verb": "displace",
+      "cond": "node:jingzhe",
+      "center": "leader",
+      "r": "$jz_r",
+      "kb": "$jz_kb"
+     },
+     {
+      "verb": "summon",
+      "kind": "sprout",
+      "n": 1,
+      "at": "leader",
+      "spread": 0,
+      "cond": "!node:thorn"
+     },
+     {
+      "verb": "summon",
+      "kind": "sprout_thorn",
+      "n": 1,
+      "at": "leader",
+      "spread": 0,
+      "cond": "node:thorn"
+     }
+    ]
+   },
+   {
+    "dur": "$s2_dur",
+    "do": [
+     {
+      "verb": "mode",
+      "interval_mult": "$s2_interval"
+     },
+     {
+      "verb": "heal",
+      "pct": "$s2_heal",
+      "every": 1.0,
+      "power": true,
+      "src": "嘉禾盈仓"
+     },
+     {
+      "verb": "buff_self",
+      "stat": "heal",
+      "op": "mult",
+      "value": "$s2_heal_mult"
+     },
+     {
+      "verb": "dr",
+      "value": "$s2_dr"
+     },
+     {
+      "verb": "summon",
+      "kind": "sprout",
+      "n": "$s2_n",
+      "at": "leader",
+      "spread": 50,
+      "cond": "!node:thorn"
+     },
+     {
+      "verb": "summon",
+      "kind": "sprout_thorn",
+      "n": "$s2_n",
+      "at": "leader",
+      "spread": 50,
+      "cond": "node:thorn"
+     }
+    ]
+   },
+   {
+    "dur": "$s3_dur",
+    "do": [
+     {
+      "verb": "mode",
+      "dmg_mult": "$s3_dmg"
+     },
+     {
+      "aura": "atk",
+      "value": "$s3_atk",
+      "scope": "squad"
+     },
+     {
+      "aura": "aspd",
+      "value": "$s3_aspd",
+      "scope": "squad"
+     },
+     {
+      "verb": "field",
+      "center": "leader",
+      "r": "$sprout_r",
+      "dur": "$s3_dur",
+      "every": "$s3_every",
+      "do": [
+       {
+        "verb": "displace",
+        "center": "target",
+        "r": "$sprout_r",
+        "kb": "-$s3_pull"
+       }
+      ]
+     },
+     {
+      "verb": "summon",
+      "kind": "sprout",
+      "n": 1,
+      "at": "leader",
+      "spread": 0,
+      "cond": "!node:thorn"
+     },
+     {
+      "verb": "summon",
+      "kind": "sprout_thorn",
+      "n": 1,
+      "at": "leader",
+      "spread": 0,
+      "cond": "node:thorn"
+     }
+    ]
+   }
+  ],
+  "talent": [
+   {
+    "trig": "passive",
+    "cond": "in_zone:leader",
+    "_doc": "百谷长青：队长在禾苗地块内受到的伤害 -12%（原作「庇护」）",
+    "do": [
+     {
+      "verb": "dr",
+      "value": "$talent_dr"
+     }
+    ]
+   }
+  ],
+  "progression": {
+   "jingzhe": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "惊蛰：写在 S1 do（cond node:jingzhe）"
+   },
+   "furrow": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "垄作：写在 trait every_n（cond node:furrow）"
+   },
+   "granary": {
+    "trig": "tick",
+    "every": "$gr_every",
+    "cond": "in_zone:leader",
+    "_doc": "仓廪：队长在禾苗地块内每 4 秒得护盾",
+    "do": [
+     {
+      "verb": "shield",
+      "pct": "$gr_pct",
+      "cap": "$gr_cap",
+      "dur": "$gr_dur"
+     }
+    ]
+   },
+   "thorn": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "芒刺：禾苗种类换 sprout_thorn"
+   },
+   "harvest": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "丰年：summons.*.on_expire（cond node:harvest）"
+   },
+   "thorn2": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "锋芒：sprout_thorn attack.on_hit（cond node:thorn2）"
+   },
+   "elite1": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "缠根：写在 attack.on_hit（cond elite >= 1）"
+   },
+   "elite2": [
+    {
+     "trig": "every_n",
+     "n": "$reap_n",
+     "replace": true,
+     "_doc": "秋收：每第 3 次挥镰改为环刈，并让每株禾苗结穗爆开",
+     "do": [
+      {
+       "shape": "circle",
+       "center": "self",
+       "r": "$reap_r",
+       "mult": "$reap_mult",
+       "kb": "$reap_kb",
+       "src": "秋收"
+      },
+      {
+       "verb": "summon_cmd",
+       "kind": "sprout",
+       "action": "cast",
+       "then": [
+        {
+         "shape": "circle",
+         "center": "summon:sprout",
+         "r": "zone",
+         "mult": "$ripe_mult",
+         "src": "结穗"
+        }
+       ]
+      },
+      {
+       "verb": "summon_cmd",
+       "kind": "sprout_thorn",
+       "action": "cast",
+       "then": [
+        {
+         "shape": "circle",
+         "center": "summon:sprout_thorn",
+         "r": "zone",
+         "mult": "$ripe_mult",
+         "src": "结穗"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "trig": "passive",
+     "_doc": "天有四时（原作天赋二，精二给全队）：全队攻击 +4%，编队里每有一名其他【岁】干员再 +4%（至多 3 名）",
+     "do": [
+      {
+       "aura": "atk",
+       "value": "$team_atk",
+       "scope": "squad"
+      },
+      {
+       "aura": "atk",
+       "value": "$sui_atk",
+       "per": "faction:岁",
+       "cap": 3,
+       "scope": "squad"
+      }
+     ]
+    }
+   ]
+  }
+ }
+}
