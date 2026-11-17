@@ -1,411 +1,431 @@
 # 00 · 文档索引
 
-- [327_pv_style_guide_1108](327_pv_style_guide_1108.md)：现行；鹰角 PV 风格规范（拉 6 支官方 PV：镜头 / 转场 / 鼓点 / 明暗与强调色 / 后期 / 字号实测），OFL 替代字体与本作逐级字卡（标题 / 大字卡 / 名字条 / 标名 / 字幕 / 结尾卡），样张脚本 tools/promo/pv_style_typecard.py；给宣传 PV 用；§9–§15 层次感 / 画面美术 / 字体气质 / 画面要素 / 高级感 / 3D 参数 / 对 pv-cut 样帧意见。
-- [308_bot_human_1107](308_bot_human_1107.md)：已实施，待合入；机器人新档 `--bot=human` 按用户真人操作习惯校准（分心直走、预警反应慢、冲刺当走路、终结技晚放、少指点），用户常用开局 × 难度 0：human 27%、失败局中位 5:08，真人 30%、5:36（expert 70%、master 86%）；docs/307 合入后要重测。
-- [306_boss_danmaku_touhou_1107](306_boss_danmaku_touhou_1107.md)：已做进游戏（render/danmaku_v2 缺省 1，骑士不改）；Boss 弹体东方化（圆弹三档 + 米弹 + 针弹、每 Boss 专属色），中期 Boss 为重点，GCP 同帧实机对比 + 运行时生成、包体 0。
-- [303_ult_dmg_1107](303_ult_dmg_1107.md)：已实施，待合入；终结技伤害偏低是 11-05 三项伤害侧减负叠加（P3 队长圈 + 留余烬 + 精英上限）造成，三项关掉、中期 Boss 份额 0.28 → 0.36；清屏 29% → 87%、精英 47% → 68%，配对胜率 m0 −1.8 / m18 +6.0。
-- [301_onboard_card_v3_1107](301_onboard_card_v3_1107.md)：已实施，待合入；开局指南卡与问题框在指挥台开着时按属性面板画（深底 + 两角刻度、Heavy 标题 + 灰英文小签、细线进度条），卡收小一号（桌面 440 / 手机 470），几何与行为不变。
-- [291_hit_feel_evo](291_hit_feel_evo.md)：试点待审；用户 11-07 给的像素近战文章对照（过冲 / 扇形拉丝 / 收招慢于爆发 / 巅峰帧 / 残影）+ §6 刀光以外的手法，德克萨斯 + 星熊挂 `fx/melee_evo` 缺省 0。
-- [288_standard_up_1106](288_standard_up_1106.md)：已实施；普通难度略微调高，`difficulty/standard/enemy_hp` 1.08 → 1.14，GCP 对照 m18 76 → 70、m0 54.5 → 53。
-- [285_web_shrink_1106](285_web_shrink_1106.md)：方案，待审；319b5de4b 网页包 51.07 MiB 拆账（涨在 pxp 转平面帧条 +8.5）与压缩方案，含无损 2.0 MiB + 有损选项。
-- [282_bond_non_numeric](282_bond_non_numeric.md)：设计稿，待审；8 条羁绊的数值盘点 + 每条 2–3 个玩法差异方案与推荐。
-- [283_mid_boss_visibility](283_mid_boss_visibility.md)：设计稿，待审；中期 Boss 不显眼的诊断（体型与精英相同）与改法，不加弹幕提示。
-- [284_magnet_visibility_and_guide_copy](284_magnet_visibility_and_guide_copy.md)：设计稿，待审；磁铁地图可见性两种画法 + 开局指南（指挥台 / 集火 / 冲刺）文案草稿。
-- [281_asset_inventory_1106](281_asset_inventory_1106.md)：现行；11-06 素材引用扫描、已删 3 张无引用贴图、保留项与被否决终结技的分支清单。
-- [280_ult_art_gap_1105](280_ult_art_gap_1105.md)：现行；§6 为 11-06 终结技逐人定稿与通用口径（慢动作回速 0.35 秒）。
+> 2026-11-18 重建（用户：「整理一下一些不在用到的文档，不用的全部删掉，然后再重新整理一下现有的文档」）。整理过程与删除 / 合并清单见 [365_docs_cleanup_1118](365_docs_cleanup_1118.md)。
+> 每篇一行：文档、标题、状态、一句话说明。按领域分组，组内按编号排。
 
-- [gem_v2_1105](gem_v2_1105.md)：进行中；结晶四档改色与独立合并上限候选，默认关闭，含验收入口；任务单 codex_tasks_1105。
+## 规矩
 
-> 2026-10-14 整理（用户：「docs 也需要进行进一步的整理」）。每篇一行：编号、标题、状态、一句话说明、被谁引用。
-> 状态：**现行规范**（现在仍要遵守）／**已实施记录**（已落地，留作记录或参考；代码注释可能还按节引用）／**进行中**（未全部实施或仍在追加）／**作废**。
-> 「被谁引用」是 2026-10-14 扫描 docs/、AGENTS.md、CLAUDE.md、game/、tools/、art/ 的结果：数字是 docs 编号，其后是代码 / 数据文件。
-> 已归档的文档在 `docs/archive/`，原位置留一行指针，所以按编号的旧引用仍能找到。归档不删内容；第一轮（10-13）的归档清单见 `docs/archive/README.md`。
-> 新增文档：在对应分组加一行；文档过时或作废时改这里的状态，作废的整篇挪进 archive/ 并在原位留指针。
-
-## 主题导航（11-06 整理）
-
-> 按主题分组的入口；每篇的详细状态见下面各分组表。**现行** = 现在要遵守或在用；**已取代** = 文首已写指向新文档；**归档** = 已移入 `docs/archive/`（编号旧引用仍能在原位置找到指针，清单见 `archive/README.md`）；**记录** = 已落地的实施 / 评审记录，只作依据。
-
-| 主题 | 现行 | 已取代 / 作废 | 记录（依据） |
-|---|---|---|---|
-| **协作与规范** | 06、41、36、39、76、37、62、144、204（测试体系） | 132（交接页，状态段过期，现行状态见 41 §4.6）、归档 24 / 27 / 28 | 101、126、186、193 |
-| **局外成长 / 构筑 / 藏品** | 109、119–120、154、163d、191、197、202、203、209、217、219 | 148（由 154 取代）、163 草稿（由 163B / 163D 取代） | 57、65、74、163b / 163c（Codex 原文） |
-| **干员（设计与数值）** | 61、26、23、91、60、79、122、123、160、190、205 | 23 的部分条款（见文首） | 110、129、140、181、195 |
-| **终结技与转平面（11-05/06）** | **280 §6（11-06 定稿）**、199、216、250、270（光感标准）、275、246、254–274 各干员页 | 245（配方路线搁置，由转平面取代）、各页中被否决的终结技新版（文首已注） | 243、247–253、281 |
-| **Boss 与怪物** | 95、142 / 142b、165、168–177、183、182、145、201_final_boss | 167（由 168 取代） | 38、49c、212 |
-| **难度与平衡** | 80、27、111、116–117、146、150、178、194、201_difficulty、252 | 71（暂缓） | 82、83、88、199_bal_audit |
-| **美术与素材** | 87、98、103、104、11、189、**281（素材清单）** | 05 的人物尺寸（见 87 / 98）、归档 20 / 24 / 27 | 131、188、214、127、279 |
-| **画面观感 / 界面** | 37、62、144、222、226、244、112、130、139 | 归档 58 / 67 概念稿 | 141、211、213、215、221、224、253 |
-| **发布与平台** | 33、22、89、99、100、121、187、256（GCP 出图） | 22 的部署节 | 51、52、90 |
-| **音频** | 21、28_operator_sfx、113_sfx_audit、164、205、279 | — | 53 |
-
-另：`docs/plans/`（10-18 / 10-20 计划，均为已实施记录）、`docs/reference/`、`docs/assets/`（审阅图）、`docs/archive/`（65 篇归档）。
+- **状态**：**现行** = 现在要遵守或在用的规范 / 设计；**进行中** = 正在做或仍在追加；**待定（方案待审）** = 方案、设计稿或调研，还没定或没做；**记录** = 已落地的实施 / 审计 / 诊断记录，只作依据（以代码为准）；**参考** = 外部资料、底表；**工具输出** = 由脚本生成，别手改；**旧稿（仍被引用）** = 早期文档，内容多已过时，只因代码注释、工具或美术交接还按编号引用而保留。
+- **不再归档**：`docs/archive/` 已撤销。文档作废就直接删（`git rm`），历史留在 git 里；仍被代码 / 工具引用的旧稿留在 `docs/` 根，状态标「旧稿」。
+- **合并**：同一主题多份时合成一份，目标文档开头写「合并自 xx、yy（见 git 历史）」，原文放文末附录；别处的旧编号写成「docs/<新>（原 <旧>）」。
+- **新增文档**：取下一个空编号（现在到 365），在下面对应分组加一行；同一件事两篇说法不同时，以状态为「现行」的那篇为准，还没定的由协调人裁定。
+- **改了状态就改这里**：方案落地后状态改「记录」，被推翻就删文档并修引用（`git grep "docs/<编号>"`，含代码注释、tools、`.claude/skills`）。
 
 ## 新会话先读
 
 | 谁 | 先读 |
 |---|---|
 | 全部会话 | 本索引 → 06 → 41 §1–§3 → 36 §1–§3（含 §1.1）与 §7.5.1 → 39 → 76 |
-| 干员 | 61 → 26 文首 → 23 文首与 §1、§3、§5、§6、§10 → 91 §0.5；改数值前加 79、80 |
-| Boss与怪物 | 95 → 38 §1、§8.11–§8.14 → 49 / 49c → 98 |
-| 数值 / 藏品 | 80 → 27 §2、§3、§9 → 83 → 35 → 74 |
-| 界面与美术 | 37 → 98 → 87（干员帧条）→ 62 §2 → 76 |
-| 音频 | 21 → 53 → 28_operator_sfx → 113_sfx_audit |
-| 部署 | 33 → 22 → 89 / 99（B站 Toy） |
-| 文案 | 76 → 49 / 49a |
-
-同一件事两篇文档说法不同时，先看下面各行「说明」里写的「以 xx 为准」；还没定的冲突由协调人裁定（2026-10-14 冲突表已交协调人）。
-
-## 规范（所有会话遵守）
-
-- [244_elite_mark_v2](244_elite_mark_v2.md)：审阅中；默认关闭的精英白标记、小队沉珊瑚红三角和物种色呼吸光点；来源：11-05 Codex任务单3。
-- [普通怪预警收细](warn_v2_1105.md)：进行中；`render/warn_v2` 默认关，普通怪细边与最后 0.3 秒信号，精英/Boss 保持原画法；截图与云端验收说明。
-
-| 文档 | 标题 | 状态 | 说明 | 被谁引用 |
-|---|---|---|---|---|
-| [06_git_collaboration](06_git_collaboration.md) | Git 协作与美术分工 | 现行规范 | Codex / Claude 分工、交接与合入；「Claude 在主工作区」「没有远程」两句已过时，以 41 §3 为准 | 38、41、54、91、99、归档24 等 12 篇；v14_codex_fx_props.md、skalter_s3_handoff.md、AGENTS.md 等 4 个文件 |
-| [41_agent_team](41_agent_team.md) | 多会话协作 | 现行规范 | 协调人与工作会话、消息标签、分工表、工作树规则；§4.6 是历史待派队列 | 36、53、55、57、归档42、归档44 等 8 篇；run/combat.gd、tools/fix_nova_cannon.py、AGENTS.md |
-| [76_language_style](76_language_style.md) | 语言风格（约束） | 现行规范 | 全部玩家可见文字的口径与术语表；§6 生命倍率已过时 | 77、82、83、88、91、95 等 8 篇；data/lore.json、cloud_save.gd、run/run_stats.gd 等 6 个文件 |
-| [39_code_architecture](39_code_architecture.md) | 代码结构与界面分层 | 现行规范 | 分层、界面层、op_api、画法缓存；§1 未收 bosses/、云存档、g.mode | 38、40、41、43、50、55；game.gd、enemies/bosses/boss_base.gd、run/spawner.gd 等 10 个文件 |
-| [37_ui_style](37_ui_style.md) | 界面风格「潮汐航线」 | 现行规范 | 颜色、组件、各画面规则，§8 T5s；术语以 76 为准 | 22、35、39、41、49、49e 等 11 篇；title.gd、ui.gd、run/affects.gd 等 17 个文件 |
-| [62_ui_motion](62_ui_motion.md) | 界面动效系统 | 进行中 | §2 共用规则现行；部分界面的招牌动效未做；§3.1 / §3.3 被 T5s 取代 | 36、41、58、67、71、77 等 7 篇；tools/concept_title_ui.py、gallery.gd、game.gd 等 17 个文件 |
-| [144_endfield_wheel_style](144_endfield_wheel_style.md) | 指挥圆盘：终末地风格（调研 + 定稿） | 已实现、待用户看实机 | 10-24：终末地界面调研与 7 条规则；圆盘定稿终末地蓝 #1FA8F0（用户由黄改蓝）、12 层叠加（底盘 / 刻度环 / 斜纹带 / 切角扇区 / 外推虚框 / 指针游标…）、打开 / 常驻 / 悬停 / 收起动效、减少动态效果终态；建议只用在圆盘；探针 tools/probes/wheel_style_shots.py | 37、62、76、114 |
-| [98_sprite_standard](98_sprite_standard.md) | 角色与怪物立绘标准 v2 | 现行规范 | 像素密度、同屏比例、敌我配色、特效归属（跨类别以本文为准）；§8 待办已过时 | 87、94、97；op_fix_a_manifest.json、op_fix_b_eye_manifest.json、op_fix_b_manifest.json 等 6 个文件 |
-| [87_art_spec](87_art_spec.md) | 人物帧条统一规格 | 现行规范 | 干员帧条细则与 art_lint 机检；附录 C 记旧条款去向 | 05、91、93、94、95、97 等 17 篇；tools/art_lint.py、tools/check.py、ally_rework_1014_art_lint.json 等 15 个文件 |
-| [05_art_handoff](05_art_handoff.md) | 美术交接说明 | 现行规范 | 文件存放、命名、旧特效帧数；人物尺寸（主角 / 海嗣节）已作废，见 87、98 | 87、归档15；game.gd、tools/make_skill_icons.py、incoming/README.md 等 4 个文件 |
-| [11_relic_icon_spec](11_relic_icon_spec.md) | 藏品图标规范 | 现行规范 | 32×32 藏品图标画法、稀有度、命名；§1 HUD 尺寸以代码为准 | 归档34；tools/gen_relic_icons.py、art.gd、tools/gen_fx_strips.py 等 4 个文件 |
-| [21_music_design](21_music_design.md) | 配乐与音效 | 现行规范 | 曲目、强度、音效约定与混音；混音优先级以 sfx.gd / 53 §5 为准 | 41、99；sfx.gd、run/music_director.gd、title.gd 等 5 个文件 |
-| [49_原作参考](49_原作参考.md) | 原作参考总览 | 现行规范 | 借用原作机制、数值、名字前必查（AGENTS 指定）；索引 49a–d | 62、归档59；enemies/bosses/izumik.gd、AGENTS.md |
-| [49a_集成战略](49a_集成战略.md) | 原作集成战略参考 | 现行规范 | 原作肉鸽名词与机制；§5「本作与原作相反」已过时（结局已对调） | 37、60、71、74、归档75 |
-| [49b_战斗机制](49b_战斗机制.md) | 原作战斗机制参考 | 现行规范 | 职业分支、异常状态、元素损伤、敌人机制 | 38、60；run/combat.gd |
-| [49c_Boss原作](49c_Boss原作.md) | Boss 原作对照 | 现行规范 | 水月 Boss 原作资料；伊祖米克层号与 49a 不一致，待核（49 §7） | 49d、95 |
-| [49d_类幸存者Boss](49d_类幸存者Boss.md) | 类幸存者 Boss 设计参考 | 现行规范 | 同类游戏 Boss 设计参考；灯标、招式令牌等建议已实施 | 38、95、归档49f；run/combat.gd、boss_ai.gd、game.gd 等 7 个文件 |
-
-## 系统设计
-
-- [278_english_overflow](278_english_overflow.md)：英文超框预检前 30 条；干员 + 怪物 2176 条量像素宽度，超框 289 条，处理办法见 docs/276 §9；全表 build/l10n_work/overflow.csv。
-- [277_english_preview](277_english_preview.md)：中英对照样张；干员 + 怪物第一批英文初稿 20 条代表与 6 条待定简介；全表在 game/l10n/*.csv；引用：docs/276 §8。
-- [276_english_localization](276_english_localization.md)：英文 + 日文（§13，11-15）+ 韩文（§14，11-15）本地化；方案已暂定、第一批初稿完成（§8）；英文版摸底（约 5 000 条 / 10 万字）、TranslationServer + CSV 模块键、语言切换、插值、防溢出、字体，官方 en_US 术语表与自创词候选、英文口吻、拆分估时；引用：docs/76、61 §1.4、ui.gd。
-
-- [119_build_progression_plan](119_build_progression_plan.md)：待实施方案；基于 e1da3da9 核对升级、招募、六节点与藏品系统，两干员成长分支、有限候选引导、首商人预告及前期压力切片；含 Claude 分阶段实施与验收，尚未改游戏。
-
-| 文档 | 标题 | 状态 | 说明 | 被谁引用 |
-|---|---|---|---|---|
-| [09_p0_architecture](09_p0_architecture.md) | P0 底层架构 | 已实施记录 | core/ 的 Event / Modifier / Stat / Tag 与效果数据格式；§6 迁移未做 | 17、55、归档14；core/combat_core.gd、core/stat_defs.gd |
-| [17_combat_contract](17_combat_contract.md) | 战斗契约 v1.8 | 现行规范 | 伤害描述符、能力标签仍是现状；§2 / §4 / §5 已作废，见 23 §4.2、26、61 | 23、49b |
-| [18_ending2_knight](18_ending2_knight.md) | 结局二「最后的骑士」 | 现行规范 | §1 骑士同伴 → 9:00 入潮 → 10:00 中心重生；§2 / §3 数值以 knight.gd、95 §4 为准 | 19、95；game.gd、allies/knight.gd |
-| [19_four_endings](19_four_endings.md) | 四结局方案 | 已实施记录（祭坛部分已被 154 取代） | 事件箱与四结局的旧规格；标题「未实现」不实，结局 Boss 09-29 已对调（以 waves.json 为准） | 38、49、49a、49c；endings.gd |
-| [148_route_choice](148_route_choice.md) | 结局走向：替代海嗣祭坛的选路方案 | 已被 154 取代（用户选翻节点卡）；§2 原作调研与 §3 事件链仍有效 | 10-25：原作选路调研（PRTS + 解包）+ 四方案 A 航路图（推荐）/ B 岔路航标 / C Boss 宝箱 + 行商 / D 溟痕石碑；共用按原作重排的事件链；订正 49a §3.1 第 6 / 7 层；示意图 reference/148_route_*.svg | 19、49a；endings.gd、waves.json、guide.json |
-| [154_node_cards](154_node_cards.md) | 翻节点卡：多结局选路正式方案 | 已实装（§9），待合入 | 10-25：取代 148 与海嗣祭坛；首通结局一后，3:30 / 7:00 中 Boss 后翻 3 张节点卡；结局只看信物、不绑灯火，结局入口每局必出、达成过的描结局色边；卡组权重、事件清单（原作 / 本作拟）、接口、机器人与测试、约 6 人日；示意图 reference/154_node_cards.png | 148、18、19；endings.gd、waves.json、choice_panel.gd |
-| [156_event_cg](156_event_cg.md) | 事件插图：原作 CG 像素重构调研 | 调研待用户看 | 10-26：docs/154 用到的 18 件事件在原作都有 1600×900 专属 CG（rogue_2 choiceScenes.background）；PRTS 链接、裁切、难度、优先级（P1 结局线 7 张）；3 张 64 色草稿在 build/event_cg/ | 154；tools/probes/event_cg_pixel_draft.py |
-| [162_swap_frequency](162_swap_frequency.md) | 后期换人频率 | 已改，待合入 | 10-26：满员后换人卡出现率 0.55 → 0.25（7:00 后 0.12）、两张深度卡时不出；后期换人卡间隔 46–59 秒 → 184–265 秒 | balance.json levelup；progression.gd；tools/probes/recruit_freq.py |
-| [172_elite_catchup](172_elite_catchup.md) | 精英化落后补偿 | 已改，待云端对照 | 10-28 定档：深度卡按落后精英阶段加权（×1.8^差 封顶 3）、队长领先 ≥5 节点时保底让给落后者；队长精二 2:08 → 3:29、队友比队长晚 4:04 → 2:42（队友绝对时刻不变）；全队累计培养曲线不变 | balance.json levelup/catchup*；progression.gd |
-| [22_mobile_web](22_mobile_web.md) | 移动端适配（网页） | 现行规范 | 触屏、缩放、超宽、iOS；部署与加载器两节已作废，见 33 | 33、38、41、62、89；tools/export_web.py |
-| [35_relic_lanes](35_relic_lanes.md) | 藏品流派 A–H | 现行规范 | 流派划分、职业门槛、流派加权；部分数值已被 65 §6 改（以 relic_effects.json 为准） | 27、29、36、38、41、57 等 7 篇；relic_fx.gd、characters/character.gd、run/combat.gd 等 15 个文件 |
-| [40_run_telemetry](40_run_telemetry.md) | 局内数据记录 | 现行规范 | runs.jsonl 格式，按包类型决定写不写 | 33、41、43、89、归档59；game.gd、run/telemetry.gd、settings.gd 等 11 个文件 |
-| [43_telemetry_upload](43_telemetry_upload.md) | 局内数据上报接口 | 进行中 | 草案，暂缓（储备方案） | 40、71、归档68；run/telemetry.gd |
-| [49e_奶位分类](49e_奶位分类.md) | 奶位分类 | 已实施记录 | 「净化 / 回复」标签口径 C + 塞雷娅净化（唯一成文处） | 41、60；run/affects.gd、tests/prot_test.gd、saria_legacy.gd |
-| [53_hit_feel](53_hit_feel.md) | 打击感与音效一轮 | 已实施记录 | fx 打击感旋钮说明的唯一出处；§6 遗留项未结 | 41、50、54、55；sfx.gd、render/vfx.gd、run/combat.gd 等 8 个文件 |
-| [54_vfx_pass](54_vfx_pass.md) | 画面特效二轮 | 已实施记录 | 环境与事件特效 8 项；world.gd / vfx.gd 按节引用 | 41；render/world.gd、render/vfx.gd、run/autotest.gd 等 10 个文件 |
-| [56_beacon_approach](56_beacon_approach.md) | 引航灯标「去不去」 | 已实施记录 | 现行灯标规则汇总（§1）与旋钮语义；「圈内安全」见归档 49g | 38、41、57、61；run/beacon.gd、render/world.gd、tests/prot_test.gd 等 10 个文件 |
-| [57_relics_impl](57_relics_impl.md) | 129 件藏品实装 | 已实施记录 | 逐件读法与新池难度；§2 部分数值以 65 / relic_effects.json 为准 | 35、41、60、归档59、归档65；relic_fx.gd、core/stat_defs.gd、run/combat.gd 等 18 个文件 |
-| [58_operator_ui_concept](58_operator_ui_concept.md) | 选人 / 图鉴界面 | 已实施记录 | §11 是 B+ / C4′ 定稿细则（代码引用）；其余为概念稿 | 37、41、62、67；title.gd、tools/concept_operator_ui.py、gallery.gd 等 9 个文件 |
-| [67_title_redesign_concept](67_title_redesign_concept.md) | 标题页改版 | 已实施记录 | §12 T5s 已实装（规则进 37 §8）；§1–§11 为概念；设置 / 致谢二期未做 | 37、62、71、归档68；title.gd、title_menu_input_test.gd、screens/title_tiles.gd 等 14 个文件 |
-| [71_is3_levels](71_is3_levels.md) | 潮位阶梯 | 进行中 | 16 级逐级难度方案；用户 10-12 定暂缓，等局外成长一起做 | 109、归档68；tools/concept_is3_levels.py |
-| [109_meta_progression](109_meta_progression.md) | 局外成长 | 进行中 | v3（10-22 用户拍板）：潮位系数封顶 ×1.5、评分 ÷ 8；认知塑造 560（删钥匙、攻击改对精英 / Boss、生命去末档）；满点溢出核查（入队回复 0.9 → 0.6）；干员解锁（开局 4 人 + 寻访凭证 / 招募券 / 人事调度函 + 意向保底 + 临时招募）；4–6 小时时间线；待定建议清单 | 71、116、111 |
-| [74_relic_late_value_and_lifesteal](74_relic_late_value_and_lifesteal.md) | 藏品后期价值 + 吸血 | 已实施记录 | 熔铸规则与「藏品不设上限」的唯一成文处；§7 第 3 条、L3 未做 | 50、57；relic_fx.gd、run/pickups.gd、tests/relic_impl_test.gd 等 11 个文件 |
-| [77_run_stats](77_run_stats.md) | 作战记录 | 现行规范 | 局终统计界面与计数口径 | 37、62、79；run/combat.gd、game.gd、run/telemetry.gd 等 15 个文件 |
-| [82_sustain_gap](82_sustain_gap.md) | 无医疗编队暴毙诊断 | 已实施记录 | §1 遥测字段（dsrc / hsrc / curve_tail）说明；§3.1 已作废，见 83 | 83、88；data/balance.json、run/telemetry.gd、run/combat.gd 等 4 个文件 |
-| [83_squad_sustain_and_dash](83_squad_sustain_and_dash.md) | 入队回复台阶 + 冲刺卡 | 现行规范 | 入队回复、生存 / 机动 / 协同卡、硬化方案 B、中途换人 | 36、82、88；data/balance.json、run/combat.gd、game.gd 等 14 个文件 |
-| [88_medic_gap](88_medic_gap.md) | 医疗差距 | 已实施记录 | 方案 A + B 部分已定档（28e28118），文中数值还是定档前的；§7 opbase 旋钮 | run/combat.gd、lumen_legacy.gd、run/telemetry.gd 等 11 个文件 |
-| [89_toy_cloud_save](89_toy_cloud_save.md) | B站 Toy 云存档 | 现行规范 | 同步、合并、版本兼容 | 99；settings.gd、settings_panel.gd、core/cloud_pack.gd 等 10 个文件 |
-
-## 干员
-
-| 文档 | 标题 | 状态 | 说明 | 被谁引用 |
-|---|---|---|---|---|
-| [61_operator_blocks](61_operator_blocks.md) | 干员积木规格 | 现行规范 | 数据驱动干员的唯一规格，18 人已数据化 | 25、36、41、91、93、归档59 等 9 篇；characters/op_blocks.gd、characters/data_operator.gd、tests/test_core.gd 等 57 个文件 |
-| [26_operator_skills](26_operator_skills.md) | 三技能契约 v2.5 | 现行规范 | 只看文首契约（普攻 + 3 技能 + 天赋、手动技能 / 普攻）；技能表已过时，以 JSON + 61 为准 | 17、23、27、38、41、49b 等 11 篇；settings.gd、characters/character.gd、characters/doctor.gd 等 10 个文件 |
-| [23_squad_design](23_squad_design.md) | 编队制设计 v0.7 | 现行规范 | 队长 / 博士 / 编队模型、作用域、属性公式；§4.2、§6、§7、§8、§9.4、§11.2 已作废 | 17、26、27、38、49a、49b 等 11 篇；characters/character.gd、game.gd、title.gd 等 29 个文件 |
-| [91_elite_forms](91_elite_forms.md) | 精英化攻击形态 | 现行规范 | §0.5 规则 + 18 人精一 / 精二形态（已全部实现） | 61、76、93；characters/op_blocks.gd、tools/check.py、game.gd 等 18 个文件 |
-| [60_skill_tag_catalog](60_skill_tag_catalog.md) | 原作词汇表 → 积木 | 现行规范 | 积木命名口径（与 61 不一致时以 60 为准），新干员的菜单 | 41、61、归档59；characters/op_blocks.gd |
-| [79_op_dummy_table](79_op_dummy_table.md) | 干员木桩表 | 现行规范 | 理论预算口径与工具 | 36、91、归档72；tools/op_dummy_table.py、game.gd、tests/op_dummy_test.gd 等 4 个文件 |
-| [25_operator_fx](25_operator_fx.md) | 干员特效 | 现行规范 | 成长「看得见」规则、帧条锚点、能天使弹药色；§5.2 精二列被 91 取代 | 23、53、61、归档34、归档66、归档70；characters/character.gd、game.gd、characters/op_blocks.gd 等 23 个文件 |
-| [28_operator_sfx](28_operator_sfx.md) | 干员专属音效 | 已实施记录 | 13 人 op_* 音色与 OP_SFX 约定；「加新干员」一节作废（新干员走 OP_ALT，见 61） | — |
-| [113_sfx_audit](113_sfx_audit.md) | 干员音效盘点与调整 | 进行中 | 10-21：18 人普攻 / 命中 / 技能音效的文件、响度、触发频率总表；问题清单；已调 OP_DB / OP_GAP / OP_PVAR / VOICE_CAP；枪击、锁链替换候选待用户试听；§7 网上 CC0 素材候选清单；§8 已接入 8 个文件（能天使、乌尔比安、德克萨斯、星熊）；§10 乌尔比安锁链 v2 三候选；§11 用户定 C 已接入 | 28、53；sfx.gd、tools/gen_sfx_candidates.py |
-| [31_arknights_reference](31_arknights_reference.md) | 原作技能对照（13 人） | 已实施记录 | 原作技能与档案摘录；总览差距表已过时 | 25、60、归档30；v17_codex_logos_glyphs.md |
-| [维什戴尔 S2 两阶段试做](plans/2026-10-18-wisadel-s2-two-phase.md) | S2 群攻与过载四连发 | 已实施记录 | 8 秒试做、无三人上限、原生八轨动作与炮口事件；已交本地测试包 | wisadel.json、seg_wisadel.gd |
-| [持续攻击阶段模块](plans/2026-10-18-sustained-attack-module-design.md) | 通用阶段、连发与收势 | 已实施记录 | 维什戴尔已迁移；独立夹具 66 项、完整快检 80 项通过 | data_operator、attack_phases、docs/61 |
-| [三干员完整标准化](plans/2026-10-18-three-operator-standardization-design.md) | 维什戴尔、塞雷娅、铃兰生命周期 | 已实现记录 | 九技能统一查询、归属、结束与取消；81 项检查通过，保留角色效果 | data_operator、skill_lifecycle、docs/61 |
-
-## 敌人与 Boss
-
-| 文档 | 标题 | 状态 | 说明 | 被谁引用 |
-|---|---|---|---|---|
-| [166_loading_render_audio_1027](166_loading_render_audio_1027.md) | 单一启动加载页、渲染回收与激光混音 | 已实施记录 | 网页加载交接、遮罩闲置回收 7.03 MiB、圆环局部优化与低频光束提示；含测量边界 | boot_screen.gd、post_fx.gd、boss_attack_draw.gd、sfx.gd、tools/web/loader.js |
-| [170_paranoia_combos_1027](170_paranoia_combos_1027.md) | 偏执泡影连携攻势与弹幕图案 | 已接入，待视觉验收 | 每幕两组有限连段轮换、收招破绽、打断规则；新增 7 种弹幕（身边睁眼轮射、正反旋、自机狙、错位缺口、缝隙墙、停滞再瞄准、幻影空心弹），主动攻击 7→14；开关 boss/paranoia_combos | paranoia_combos.gd、paranoia_combo_draw.gd、paranoia_combos_test.gd |
-| [173_ishar_combos_1027](173_ishar_combos_1027.md) | 伊莎玛拉二阶段连段与图案弹幕 | 已接入，待视觉验收与云端对照 | 三幕各两组 ≤4 段连段 + 破绽；新招合唱环颂 / 泪雨 / 抚愈之歌 / 网鸣 / 大群之声粗光束 / 非弹幕歌声涟漪（7→13 招）；放松弹密度、光束蓄力与消散、伤害旋钮 ishar_combo_dmg 0.8、输出窗口 45–70%，拆网减弹；专属涟漪预警取代斜线填充；boss/ishar_combos 0 回旧轮转 | ishar.gd、ishar_combos.gd、ishar_tell_draw.gd、ishar_combo_test.gd |
-| [174_izumik_combos_1027](174_izumik_combos_1027.md) | 伊祖米克分幕连携与专属弹幕 | 已接入，待视觉 / 难度验收 | 每幕两组连携（≤4 段 + 收招破绽），5 种新弹幕（潮汐相位流、子代共鸣、螺旋弹臂、习得弹、回流弹）与拦截主轴挂钩；迁徙潮预警改波峰勾边；boss/izumik_cards 可 A/B | izumik.gd、izumik_attack_draw.gd、izumik_card_test.gd |
-| [173b_ishar_acts_plan](173b_ishar_acts_plan.md) | 伊莎玛拉三幕方案（一页） | §2 已做（每幕一个躲法主题），待测试台定数值 | 每幕主色 / 场地、招式表（新招 / 旧招变体）、弹幕形态、节奏与破绽；二幕潮涡（螺旋）、三幕侵蚀之泪（追踪）与双束交叉追扫待确认 | ishar_combos.gd、ishar_tell_draw.gd |
-| [169_knight_combos_1027](169_knight_combos_1027.md) | 骑士连招与冰系材质 | 已接入，待视觉验收 | 放射双冰阵、冰波与三刺、二阶段新招；用户提供 Pimen / CreativeKind 素材，统一冷灰蓝及碰撞柱，实机 v4；场地裁剪、闭合夹击、四 Boss 分拍压力；一阶段插枪与耗尽后掷枪布柱，二阶段清柱并停止生成；含接手说明 | knight_boss.gd、final_boss_materials.gd、import_knight_ice.py |
-| [171_saints_1027](171_saints_1027.md) | 圣徒两只：出招组、连携与分级弹幕 | 已接入，待视觉验收 | 每幕 2 组连携、打空弹药装填 = 破绽；伊比利亚重炮 → 碎弹（炮线残弹、弹坑、重炮弹），卡门直线弹列 / 交叉弹列 + 封锁线；大弹发光核心；不照搬符卡制度 | saint.gd、saint_card_preview.gd |
-| [175_path_tide_1027](175_path_tide_1027.md) | 塑路者 / 接潮组弹幕图案与连段 | 已接入，待视觉与难度验收 | 每幕两套图案逐拍交替、分级弹体与显形、颗粒点预警；塑路者分形 / 树枝 / 回流 / 冲撞留弹，接潮组两体镜像弹幕与配合连段；光束蓄力 / 消散、图案弹伤害 ×0.8 旋钮；录像 build/boss_path_tide/v3 | path.gd、bishop.gd、archon.gd、immortal.gd、mid_cards.gd、mid_card_draw.gd、mid_boss_test.gd |
-| [168_boss_volume_tracking_1027](168_boss_volume_tracking_1027.md) | 最终 Boss 材质、薄膜泡与攻击动作返修 | 实机审阅中 | 透明薄膜泡、独立持续追踪、破裂、三 Boss 材质与已有骨骼动作接线 | paranoia_bubble.gd、final_boss_materials.gd、final_attacks.gd、world.gd |
-| [167_boss_pixel_fx_1027](167_boss_pixel_fx_1027.md) | 最终 Boss 新增招式像素材质返修 | 已否定候选 | 历史版本；后续材质、泡影追踪及动作接线以 168 为准 | boss_attack_draw.gd、final_attack_grains.gd |
-| [165_final_boss_complete_1027](165_final_boss_complete_1027.md) | 最终 Boss 完整改造与联动修正 | 已实施记录 | 最终四 Boss 主动攻击 7/8/7/7，特效、追踪、冰柱、泪滴精英、友方保色、枪声与保留杂兵；覆盖 95/142b 的旧口径 | final_attacks.gd、boss_attack_draw.gd、ishar_encounter.gd、post_fx.gd、sfx.gd |
-| [95_boss_moves](95_boss_moves.md) | Boss 招式改版 | 进行中 | 每 Boss 4 招；第 1、2 批已合入（§15、§16），第 3 批（接潮组）与 Boss @2x 补单待做；最终四 Boss 以 165 为准，其余招式以本文为准 | 36、38、98；boss_ai.gd、render/world.gd、tests/boss_variety_test.gd 等 20 个文件 |
-| [150_hunt_into_hordes](150_hunt_into_hordes.md) | 围猎并入大群 + 难度曲线 A / B + 收紧 | 已实施记录 | 10-25：独立围猎关掉，3:45 / 5:00 / 6:15 固定节拍大群（5:00、6:15 围猎型：画面外合拢、缺口 16°、只数 ×1.5、HUD 只画缺口箭头）；所有大群速度散布 + 分批 + 左右摆「慢慢来」；方案 B dmg_late_cap 0.25（10:45 才封顶，影响很小）；合并 trim 后常规高手 76.8%，收紧 dmg_div 340 + horde_dmg 1.4 → 三档高手 58.9 / 35.7 / 14.3%；7:00 后压力回落待补；工具 tools/horde_rec.py | 146、147、149；run/spawner.gd、enemies.gd、screens/hud.gd |
-| [159_assault_dash](159_assault_dash.md) | 突击模式队友低频自冲刺 | 已实施记录 | 10-26：突击中其他队友每 7 秒朝目标冲一段（复用第一下冲锋），德克萨斯每 4.5 秒带伤害冲刺；随行 / 归队不冲；`command/roam_dash` 可调 | 114、151；character.gd、texas.json |
-| [164_suno_layers](164_suno_layers.md) | Suno 分轨接成整首分层循环配乐（战斗三段 / Boss / 最终 Boss / 图鉴） | 已实施记录 | 10-27：分层 / 响度 / bpm；§6 网页 BGM 16.75 MiB、共享 PCM 与切曲回收、手机全层、浏览器内存对照 | 21、50、121、132；sfx.gd、tools/suno_layers.py、web_audio.py |
-| [177_boss_bench](177_boss_bench.md) | Boss 单场测试台：录正常编队打到 Boss 时的队伍快照，直接开打 Boss，云端对照各 Boss 改版 | 工具 + 结果 | 10-27：成长事件日志 + rng 状态重放；3 开局 × 2 档；破绽输出占比 | 36、142b、158；tools/boss_bench.py、tools/cloud/boss_bench_ab.sh、run/boss_bench.gd |
-| [160_run_trail_colors](160_run_trail_colors.md) | 跑动拖尾（灯火余烬）换成队长自己的代表色 | 已实施记录 | 10-26：全员主 / 辅色表（data/characters/<id>.json trail_col）+ 取色依据；数量 / 尺寸不变；旋钮 render/trail_col | 139、87 §4.3；character.gd、optical_particles.gd |
-| [153_attack_scale](153_attack_scale.md) | 攻速整条缩放（去掉 min_duration / min_rest / 水月 min_cd 下限） | 已实施记录 | 10-25：攻击条整条按攻速等比缩短，动画倍率超 3 隔帧抽取；盘点各干员节奏下限；水月 1× / 2.5× / 4× 实测频率；1× TRACE 不变 | 140；character.gd、data_operator.gd、balance.json atkspeed |
-| [155_mire_trail_fix](155_mire_trail_fix.md) | 溟痕「一长串后不动」修复 | 已实施记录 | 10-25：引痕者拖痕改按距离铺、每只 ≤8 片；怪物溟痕单独计数 16、超量淡出最老的；自然溟痕满了淡出最远一片再刷新；新溟痕 3 秒内不被灯火退散；修前 / 修后对比 build/mire_trail_before_after.mp4 | 147；enemy_ai.gd、combat.gd、shot_pool.gd、spawner.gd、enemies.gd、map.gd |
-| [156_event_cg](156_event_cg.md) | 事件插图：原作 CG 像素重构调研 | 调研待用户看 | 10-26：docs/154 用到的 18 件事件在原作都有 1600×900 专属 CG（rogue_2 choiceScenes.background）；PRTS 链接、裁切、难度、优先级（P1 结局线 7 张）；3 张 64 色草稿在 build/event_cg/ | 154；tools/probes/event_cg_pixel_draft.py |
-| [157_spotlight_tour](157_spotlight_tour.md) | 首局聚光框引导 + 到点小提示 | 已实现，待用户看实机 | 10-26：开局改进局后聚光框引导（生命与灯火 / 移动冲刺 / 指挥 3 步，点击翻步、可跳过）；精英 / Boss / 低灯 / 升级各弹一次小提示；翻页指南留在暂停菜单；`--tourdemo` / `--tipdemo` 录片 | 62；tests/tour_test.gd |
-| [147_lamp_mire](147_lamp_mire.md) | 灯火与溟痕（方案 B） | 已实施记录 | 10-25：灯火 ≥70 身边溟痕慢慢收缩、踩着伤害 / 神经 −80%；<30 附近溟痕朝队长挪并长大、新溟痕刷得更近更勤；灯油试过 25→15、25→8（方案 A）后用户定调回原值（25 / 0.006），只保留溟痕规则；进出档小字提示；数值在 balance.json lamp 段；云端三档复测见 §5 | 146、56；run/enemies.gd、spawner.gd、combat.gd、world/map.gd |
-| [160_op_synergy_design](160_op_synergy_design.md) | 干员连携技（设计稿） | 已实施（待云端配对） | 10-26：有 PRTS 出处的关系表（德克萨斯×能天使 / 拉普兰德、乌尔比安×斯卡蒂、幽灵鲨×歌蕾蒂娅、深海猎人群）；触发方案 α / β / γ 对比，推荐 β 技能联动；每对效果草案与数值区间、不成为唯一最优的约束；特效与原作台词需求；§9 用户定稿后的合击动作 + 实现记录 | 118、114、76；synergy.gd、synergy.json |
-| [151_skill_need_enemy](151_skill_need_enemy.md) | 自动技能「范围内没有敌人不放」全员统一 | 已实施记录 | 10-25：门槛 = need_enemy → 伤害积木半径 + 20 → 普攻射程；治疗 / 增益类也加门槛；推进之王 S2 150 → 130；校验每个技能都能推出门槛；全表 | 129、118；data_operator.gd、ob_core.gd、ob_check.gd |
-| [149_trim_pocket_dashfollow](149_trim_pocket_dashfollow.md) | 小怪前后期微调 + 囊海爬行者 1/3 血无敌自爆 + 队友跟随冲刺 | 已实施记录 | 10-25：普通怪前 3 分钟生命 / 伤害 ×1.08、7→8 分钟生命降到 ×0.92；囊海爬行者 66% / 33% 鼓胀无敌后爆裂；删德克萨斯队友短突进，随行队友在队长冲刺时一起冲；干员自动位移盘点表 | 129、118、145；spawner.gd、enemies.gd、character.gd |
-| [163_visible_build_growth](163_visible_build_growth.md) | 可见成长藏品 | 已拍板、已实现（claude/build-growth-impl） | 10-26：盘点构筑体系与「拿到后看得出变强」（仅约 15% 的藏品画面可见）；远程投射物 +1（银餐叉散射 / 左轮弹巢连发）、近战范围 + 普攻剑气（锈蚀刀片 / 老近卫军之锋 / 赶车夫的长鞭）、召唤物 +1 / 体型 / 时长（散轶诗简 / 衍生者终端）共 7 件改造；叠层递减不设上限、与贯穿区分、手机降级档 | 35、61、119、111；relic_effects.json、op_shots |
-| [163b_build_rework_plan_codex](163b_build_rework_plan_codex.md) | 七条流派完整改造方案 v2（Codex 163B，原文存档） | 待用户审，部分并入 163D | Codex 10-26：多弹 / 近战扩域 / 召唤驻场 / 控场引爆 / 弱点收割 / 护盾反击 / 治疗转伤；改 15 件 + 核对 5 件；撤回重击、号角减速、相机合影计数、召唤物副体拆伤 | 163D |
-| [163c_relic_inventory_codex](163c_relic_inventory_codex.md) | 全量藏品分类底表（Codex 163A，265 件 + 同名 JSON） | 参考 | 12 个机制主类、当前效果 / 等级 / 渠道 / 前置 / 反馈方式 | 163B、163D |
-| [163_visible_build_growth_codex](163_visible_build_growth_codex.md) | Codex 版可见成长草稿（历史） | 已被 163B 取代 | 弹体 / 范围 / 剑气 / 召唤的技术讨论 | 163D |
-| [163d_build_fusion](163d_build_fusion.md) | 构筑改造融合稿（163B × 可见成长 7 件） | 已定稿、已实现 | 10-27：以 163B 七流派为骨架逐件对号；五条按推荐定稿（#56 清群倍率、#129 副体只 +1、#130 覆盖不延寿、四流派第二批、固定上限）；§6 含 5 件范围画面核对与三件闪避藏品保底 | 163、163B、163C |
-| [191_relic_pacing](191_relic_pacing.md) | 藏品节奏：来源拆分、降频与核心延后 | 已实现，待整局校准 | 10-28/29：遥测加来源；精英掉箱 0.15 + 2:00 前不掉、途中一后移 35 秒、商店藏品连买涨价；大时刻宝箱多选项 + 稀有加权；升华 / 核心 73 件第一只中期 Boss 倒下前不出。胜局 17 → 12 件，胜率掉，等统一校准 | balance.json relic/*、shop/relic_step、progression、relic_fx、endings |
-| [197_relic_taxonomy](197_relic_taxonomy.md) | 藏品分类统一成一套（映射表） | 待协调人审 | 10-29：lanes A–H / cat / effect_category / tags 四套合成一个 `lane`（docs/181 七流派 + 职业 / 通用 / 生存 / 经济）；265 件逐件映射、每个读取方改法、抽取份额变化 ≤3 点 | 181、35、relics.json、relic_effects.json |
-| [204_test_system_plan](204_test_system_plan.md) | 测试体系方案（模块化快检 + 对账 + 图校验） | 方案 / 部分实装 | 10-30：快检分组、文本数字对账（text_reconcile）、节点 / 引用图校验（graph_lint）；§10 实装记录 | 41、126、199；tools/check.py |
-| [203_relic_trim](203_relic_trim.md) | 藏品精简方案（纯属性三分、被动卡分工、回血 5 条、流派分布） | 待用户审 | 10-30：100 件纯属性藏品逐件分 改打法 19 / 删 30 / 填充 44 / 不动 7；生存被动卡 6 张删、协同 2 张改流派卡 + 新 4 张；回血收成 5 条；改打法份额 36% → 58%；未动数据 | 197、181、191、design_compass_draft_1029 |
-| [187_web_shrink_1028](187_web_shrink_1028.md) | 网页包再压缩评估 | 已实现 | 10-28：按类别拆分；无损四项（字体 WOFF2、WebP 最高档、wasm LZMA 分片 + 自写解码器、art/incoming 关透明渗色）41.62 → 36.10 MiB；音频 C 档 / 音效降采样等用户 | 121、164、22 |
-| [190_op_voice_more](190_op_voice_more.md) | 干员语音扩充 | 已实施 | 10-29：每人入队 4 / 突击 4 / 技能 4 / 闲聊 3 句原作语音（新增 110 条、+1.82 MiB），洗牌不重复 + 同句 60 秒；归队不再开口 | sfx.gd、voice_pools.json、tools/voice_more_1029.py |
-| [192_logos_s3_fx_order](192_logos_s3_fx_order.md) | Codex 特效单：逻各斯 S3 扇形咒域 | 待转 Codex | 10-28：现状（扇形程序画、绕身符咒已是帧条）、原作出处、三条 @2x 帧条规格、范围对齐与性能约束、接口（缺图回退已接入） | seg_logos.gd、art.gd、logos_fx_handoff.md |
-| [194_dmg_curve](194_dmg_curve.md) | 普通怪伤害曲线平滑化 | 已实现 | 10-29：后期一下封顶 30、前期 0–3 分钟平滑曲线、整条单调无断崖（dmg_curve/knots） | spawner.gd、dmg_curve.gd |
-| [195_op_fx_audit_1029](195_op_fx_audit_1029.md) | 干员特效审查 | 记录 | 10-29：全员录像排查实心圆盘、范围跳变、特效与攻击方式不符、白灰色、装饰圆圈 | tools/op_fx_audit_rec.py |
-| [205_ult_audio](205_ult_audio.md) | 终结技语音挑选与专属音效 | 方案，待用户挑 | 10-30：20 人每人终结技固定一句原作语音（候选表 + 推荐）；起手 / 冲击专属音效候选与试听录像；映射表 game/data/ult_audio.json | 198、199、113、53、190；run/ult.gd、sfx.gd |
-| [219_onboarding](219_onboarding.md) | 新手引导：演示局 + 当下提示卡 + 实时小演示 | 第二版，待用户看录像 | 11-01：首局问「玩过《吸血鬼幸存者》这类游戏吗」；没玩过 = 1–2 分钟演示局（移动 → 升级 → 招募 → 终结技，结束重开进正式局）；灯火 / 商人 / Boss / 小队 / 指挥圆盘 / 终结技 / 连携 / 溟痕灯标 / 节点卡在正式局第一次碰到时弹卡（两条线共用）；卡内实时演示（真圆盘缩小画），暂停「演示」重看，设置可改 | 37、76、157、114；screens/onboard.gd、onboard_demos.gd、data/onboard.json |
-| [215_combat_visual_audit_1101](215_combat_visual_audit_1101.md) | 局内战斗画面巡检 11-01 | 已修 8 处，D1 归 C、D4 待用户 | 骑士 5 招预警改冰裂样式；伊祖米克圆形预警、合唱压境、肃清目标格、缺口金线已改；新快检 final_boss_tells 拦「新招退回通用预警」 | 211、170、183、209；render/boss_attack_draw、telegraph_draw |
-| [220_wisadel_fx_calm](220_wisadel_fx_calm.md) | 维什戴尔收特效 11-01 | 已做，待用户看对照 | 齐射只留一团主爆炸、去二次闪光 / 内环、亮度封顶、队友降一档、同屏上限；fx/wd_calm=0 一键回退；后期每秒特效 124 → 57 | 137 §8；seg_wisadel、tools/wisadel_calm_rec.py |
-| [221_late_game_readability_1102](221_late_game_readability_1102.md) | 后期实战画面巡检 11-02 | 清单 + 推荐，待用户批 | 7–10 分钟、4 人满编、Boss + 终结技 + 连携 + 羁绊同框；电脑 / 手机横屏 / 竖屏实录，分层量测（友方占屏、敌弹被友方改色 14–38%、队长周围被盖、界面占屏 11% / 15%）；11 条：敌方层挪顶层、队长剪影、全屏演出排队、左列分槽、羁绊常驻小图标、手机编队卡收起；不降队友特效 | 139 §10–11、130、217 §4、220；Claude outputs/late_audit_1102 |
-| [226_late_render_layers](226_late_render_layers.md) | 后期渲染层三件 11-02 | 已做，待用户看对照 | 敌弹 / 预警挪到友方特效之上（g.wcv 画布切换，新绘制写 g.wcv.draw_*）、队长被盖时画剪影、全队装饰粒子峰值上限 160；改色 4.4% → 3.4%（修正后量法，221 原量法多为噪点） | 221；render/world.gd draw_top、tools/late_render_measure.py |
-| [246_placeables_redraw_1105](246_placeables_redraw_1105.md) | 支援放置物重画 11-05 | 已做，11-05 用户定缺省开、防暴桩橙（placeable_v2 = 1、stake_pal = 1） | 地雷 / 轰隆隆 / 防暴桩按原作装置造型运行时逐像素画（render/placeable_v2），画在敌人之上、冷白描边、呼吸亮点、四段爆炸 + 地面点光；TRACE 开关都逐行一致；轰隆隆伤害来源与地雷拆开 | render/placeable_draw.gd、relic_fx.gd |
-| [243_late_game_diag_1105](243_late_game_diag_1105.md) | 后期攻击不显眼 / 依赖终结技清屏诊断 11-05 | 诊断报告，待用户拍板 | 80 局分桶遥测（--diagbins）+ 分层截图：攻击小 / 碎 / 不随成长长大，受伤红边常亮，终结技按怪血曲线定档；召唤物与放置物、色彩与层级预算、预警、终结技频率；改法 V1–V10 / S1–S5 / P1–P4 | 221、226、242、198；run/diag_bins.gd、tools/late_game_diag*.py |
-| [245_fx_recipe_pilot_1105](245_fx_recipe_pilot_1105.md) | 运行时攻击特效配方 · 逻各斯 / 推进之王试点 11-05 | 试点第二轮（§5 原作改编），待用户看三档图与录像 | §5：主形改按原作轮廓与配色运行时像素化重建（墨羽 / 咒文 / 碎芒 / 咒域；旋光 / 熔岩裂网 / 锤徽），E1 每招一处形状差、E2 原作高阶意象，素材 docs/assets/fx_canon/；开关 fx/recipe（缺省关）：运行时实心硬边主形 + Noita 式大颗粒 + 照地光（盏数 / 强度上限），核心 / 装饰两层；每干员一份 data/fx_recipes/*.json，E1 放大加厚多一拍、E2 质变 + 点缀色；同种子开关 TRACE 逐行一致，开关对照、分层量测、三档并排、20 秒录像 | 243、242；render/fx_recipe.gd、data/fx_recipes/、tools/fx_recipe_compare.py、tools/fx_canon_shots.py、tools/fx_canon_rec.py |
-| [246_pxplane_skadi_1105](246_pxplane_skadi_1105.md) | pixelfx「转平面」试验 · 斯卡蒂 11-05 | 待用户看三栏对比 | 开关 fx/px_plane（缺省关；1 转平面 / 2 旧做法原样贴）：贴地层压扁 + 立起层按 y 排序、1 像素 = 1 美术像素整数放大、色层吃场景光 + 热芯 emit + 照地光、Noita 水滴；统一 15 fps 动画时钟；斩击改月牙刀痕 + 白刃线 + 命中斩痕；同种子 TRACE 逐行一致 | 245、242；render/fx_pxplane.gd、tools/pixelfx_fx/water/ak-skadi-pp.js、tools/pxplane_bake.py、tools/pxplane_shots.py |
-| [254_pxplane_hoshiguma_1105](254_pxplane_hoshiguma_1105.md) | pixelfx「转平面」· 星熊 11-05 | 待用户看三栏对比 | 照 246 做法：盾斧斩钝头刀痕、S1 下劈 + 裂网冲击环、S2 地刺 + 热砂、S3 力之锯撕裂线、般若回旋鬼面飞盾；追加后期剑气（盾击冲击波，同次出手合成一道）、连携「举盾」/「举盾推挡」；开关 fx/px_plane；TRACE 逐行一致 | 246、256；render/fx_pxplane.gd、tools/pixelfx_fx/melee/ak-hoshiguma-pp.js、tools/pxplane_bake.py、tools/pxplane_shots.py |
-| [247_late_read_b1](247_late_read_b1.md) | 后期可读性第一批（只改画面）11-05 | 已做，开关缺省关，待用户看对照 | render/late_read：V1 受伤红边按 1 秒承伤、S1 小队描边 + 脚底光、S2 站在预警里的干员画到预警之上、S3 地雷 / 轰隆隆 / 地面池尺寸下限 + 描边呼吸、V3 降噪只压装饰层、V7 普通怪半混白、V5 主形随精英化放大；S5 轰隆隆拆出伤害来源；同 seed TRACE 开 / 关一致；整帧红主要来自黑潮色调（未改） | 243、226、221；render/late_read.gd、tools/late_read_ab.py、tools/late_read_compare.py |
-| [248_late_power_ab](248_late_power_ab.md) | 后期打得动：形状随成长 + 形状卡 数值原型与 A/B 11-05 | 原型（开关 growth/late_shape 缺省 0），P3 已追加、P3 版胜率未跑 | 精一 / 精二 / Lv14 / Lv20 门槛按「近战 / 多弹 / 召唤 / 控场」四条流派加范围、剑气、多射、穿透（shape_lv 表 + 例外表）；协同·广回池，新卡扩散 / 连锁；诊断 80 对 + 胜率 4 × 84 局：终结技击杀 14 → 11%（潮位 0）/ 19 → 16%（潮位 10），补偿后 m0 63%（超窗 8）/ m18 68%；P3 建议做、P4 暂缓 | 243、201、216；blocks/late_shape.gd、tools/late_power_ab.py |
-| [249_elite_moment](249_elite_moment.md) | 成长看得见：精英化时刻 + 看得见的节点 11-05 | 原型，两开关缺省关，待用户拍板 | growth/elite_show 定格 + 横幅 + 爆亮 + 常驻脚下光池；growth/visible_nodes 节点按流派换范围 / 弹数 / 体量、精二本人一档 + 每人一条全队效果、怪物生命 ×1.08 补偿；云端配对 m0 52.4 / m18 67.9；后期终结技占比不变 | 243、244、91、76；blocks/vis_nodes.gd、run/elite_moment.gd、tools/elite_moment_shots.py |
-| [250_ult_rebalance_ab](250_ult_rebalance_ab.md) | 终结技重新定位 A/B 11-05 | 原型 + A/B 报告，待用户拍板 | 开关 ult/rework（缺省 0）：降频 / 精英与中期 Boss 单次上限 / 清一圈留余烬；诊断 80 局 × 4 组 + 胜率 84 局 × 3 组 × 2 档；推荐与 growth/late_shape 一起开（m0 52.4% / m18 71.4%） | 243、244、199；run/ult.gd、run/diag_bins.gd、tools/ult_rework_ab.py |
-| [251_late_read_b2_1105](251_late_read_b2_1105.md) | 后期可读性第二批 11-05（V4 / V9 / V10） | 已做，三个开关缺省关；录像、额外 TRACE 用例、最终快检未做 | render/light_share 照地光我方保底份额 + 伤害档排序 + 命中照地；render/ground_ring_edge 地面光环只画边 + 呼吸（8:00 光环占屏 16.5% → 1.8%）；render/crowd_env_dim 怪群密集时压暗地面 / 溟痕 / 环境颗粒；TRACE 开关逐行一致；附：云端截图须带 --quality=high，否则光学观感整层关 | render/late_read2.gd、render/optical.gd、render/world.gd、render/vfx.gd、world/map.gd、relic_fx.gd |
-| [252_solo_carry_1105](252_solo_carry_1105.md) | 单 C：自动招募可婉拒 + 单人局胜率小样 11-05 | 已做（婉拒）；补偿开关 squad/solo_buff 缺省 0、A/B 待跑 | 铜印 / 银印 / 立即招募事件改「接受入队 / 婉拒」二选一（机器人同帧接受，TRACE 逐行一致）；--bot_solo=1 单人局机器人；normal 160 局两组胜率均 0、单人早倒 35 秒，高手小样 3/5 vs 0/5；强制招募画面无法婉拒待用户定 | run/progression.gd、relic_fx.gd、endings.gd、tools/solo_carry_batch.py |
-| [253_late_game_research](253_late_game_research.md) | 同类游戏后期画面可读性调研 11-04 | 调研 + 方案，待用户挑 | 11 款同类 + Riot / GDC：角色可见、敌我分色、特效设置、掉落物、成长加码、出处（只核到搜索摘要）；8 个全局方案：红色只留给威胁、结晶退出暖金、地面区域只画边、拥挤时压暗怪群、小队光池、出手短命光源、威胁高亮开关、特效强度设置；推荐三批顺序 | 221、226、139、242 §11–12 |
-| [280_ult_art_gap_1105](280_ult_art_gap_1105.md) | 终结技 × 新美术差异盘点（20 人）11-05 | 待用户定重做名单 | GCP 录 integ 现行终结技 8 帧联系表 + 新美术 S3 / 普攻招牌帧，按配色 / 画法 / 意象 / 体量光感四项打分：差异大 9 人（星熊、塞雷娅、铃兰、流明、推进之王、浊心斯卡蒂、归溟幽灵鲨、乌尔比安、艾丽妮）、中 6 人、小 5 人；音源 20 人都非纯原作；建议处理顺序 | 270、275、198、205；tools/ult_inventory.py、tools/ult_inventory_sheet.py |
-| [287_perf_mem_1106](287_perf_mem_1106.md) | 内存峰值与帧率：基线 + 前 10 热点 11-06 | 进行中 | 基线 main 319b5de4b：手机网页峰值约 635–715 MB（护栏 5:06 降画质），桌面高档 846 MB；全员特效帧条开局全读 206 MB、浊心斯卡蒂歌域每帧重算约 3 ms、铃兰逐像素光环、转平面整表扫描、音频 158 MB；阶段二逐项同局轮换 | 50；render/fx_pxplane*.gd、game.gd、run/ult_px_sd.gd |
-| [305_perf_night_1107](305_perf_night_1107.md) | 性能与帧率夜检 11-07 | 已实施，待合入 | 桌面今天的合入不变差（新旧交替 + 后期减负同局轮换 ±0.5 ms）；修暂停 / 选卡时扬尘只增不减（15 分钟 7600 个、帧时 25 → 90 ms）、手机网页最终 Boss 换曲两首同驻（527 MB 触发护栏）；网页测量脚本修复；手机峰值约 450 MB | 287、50；render/world.gd、sfx.gd、tools/perf_web.py |
-| [309_font_fd_toy_size_1107](309_font_fd_toy_size_1107.md) | 字体「fd is null」报错 + Toy 包余量 11-07 | 已实施，待合入 | 清字形缓存时常驻 Label（性能浮层）用到刚释放的句柄，156 → 0；网页包脚本按源码导出 + 去整行注释，Toy zip 49.21 → 45.92 MB | 305、285、187；settings.gd、tools/export_web.py |
-| [310_growth_node_visibility_audit](310_growth_node_visibility_audit.md) | 成长节点可视化普查 11-07 | 清单已出，待用户定 | 20 人 160 行：明显 101、偏小 29、混同 19、无画面 11；主因转平面下 o.fx 不画（约 20 项）；修法全为画面，2 项另给机制方案 | 298、249、202、254；character.gd draw_pfx、fx_pxplane*.gd |
-| [311_feedback_entry_1107](311_feedback_entry_1107.md) | 玩家反馈入口 11-07 | 已做，待用户给真实链接 | 结算底栏 + 标题页底部一行「意见反馈」；itch / 桌面问卷、Toy toy.navigate 去视频评论区；balance feedback 留空不显示；反馈码 + tools/feedback_decode.py | 99、76；core/feedback.gd、screens/feedback_view.gd |
-| [313_toy_support_reward](313_toy_support_reward.md) | B站 Toy「支持作者」奖励 11-07 | 已做，三连视频待填 BV | 只在 Toy 版：关注送 5 张寻访凭证、三连（toy/support_bvid，留空不显示）送 5 张 + 专属分享卡边框；标题页底部「支持作者」浮层、寻访页凭证不足一句提示；领取记录本地 + 云存档并集；SDK 关注字段名首次上线要核对 | 99、89、311；core/toy_support.gd、screens/support_view.gd、tools/web/support.js |
-| [317_toy_prelaunch_fixes](317_toy_prelaunch_fixes.md) | Toy 首发前修复 11-07 | 已做，待 Toy 预览实测 | ①引导卡占着左上角时到点小提示排队（tour._held / onboard.card_busy）；②失焦保护 web_focus.gd：清按住状态（圆盘 / 选点取消不确认）、网页对局自动暂停、回前台焦点还画布 | 219、299；screens/tour.gd、onboard.gd、web_focus.gd |
-| [315_touch_command_confirm](315_touch_command_confirm.md) | 触屏指挥点选确认 11-07 | 待用户看示意图 | 手机圆盘选集火 / 部署后：可选目标白框、点一下预选（金框）→ 再点下令，点别处换、点空白 / 取消退出；现状问题表（抬手即确认、模拟鼠标键、准星偏移）；command/touch_confirm 可切回 | 196、114；screens/command_pick.gd、command_wheel.gd |
-| [312_low_tier_grains_1107](312_low_tier_grains_1107.md) | 低档加一点点粒子 11-07 | 已做，待合入 | low_grains 0.4→0.55、子弹颗粒低档 0.6 份额、光学粒子仍关；手机网页净差 −0.6 ms、桌面 +0.2 ms；TRACE 一致 | 50 §36、305；render/fx_grains.gd、bullet_fx.gd |
-| [319_ios_mem_1108](319_ios_mem_1108.md) | iPhone 真机开局内存 11-08 | 已做，待合入 + 真机复测 | 仿真走玩家路径才对上真机（--balance 跳过标题页）；图鉴 _warm_demo 整局预读 + 载入页全员 V6 特效 + 战斗曲三层全解码；开局 579/511 → 264/260 MB；音频拆账与方案 ①②③ | 50 §30、287；art.gd、gallery.gd、game.gd、sfx.gd |
-| [326_ticket_rule_1108](326_ticket_rule_1108.md) | 寻访凭证新规则 11-08 | 已做，待合入 | 通关 1 张 / 未通关 0 张；结算页细胞够 15 时问是否兑换（与认知塑造共用余额）、「本局获得」分两行；解锁节奏表：一般玩家一半细胞换约 7 局解锁全员，不偏慢；Toy 10 张正好补齐十连后剩下的 10 人 | 109 §6、313；roster.gd、settle_report.gd、settlement_screen.gd、headhunt.gd |
-| [329_chibi_codex_order_1108](329_chibi_codex_order_1108.md) | 干员 Q 版像素小人美术单（Codex）11-08 | 已接收（11-09 Codex e69312c4f，20 张已接入）| 20 人半身 Q 版，照用户参考小人画法；最终为正面头像（PRTS 默认待机）；1 格 = 1 像素交付；已接入 game/art/operators/<id>/op_<id>_chibi.png，Claude 格子图版已删 | 104、313、87 §4.3；share_card.chibi |
-| [328_medal_redesign_1108](328_medal_redesign_1108.md) | 蚀刻章改版 11-08 | 用户定：版式不改，生图重画 9 枚章面 | PRTS「光荣之路」原作对照与差距；§0 定案：pixgen 高档模型出原图 → medal_bake.py 烘到现有插槽尺寸 / 外形，按 77 / 57 / 44·32 三档配框；A / B 版式方案作废留档（两会话合写） | 62 §3.25、67、76；medals_ui.gd、tools/imagegen/medal_bake.py |
-| [318_toy_loader_safe_area_1108](318_toy_loader_safe_area_1108.md) | Toy 加载页 iPhone 横屏适配 11-08 | 已做，待合入、真机复看 | 灵动岛 / 胶囊让位（安全区框 + 胶囊估计，局内触屏键同受益）、标志 240 原分辨率、「开始游戏」与「认证通过」不再重叠、关 WebView 点按高亮（粉罩推断） | 22、99；tools/web/loader.js、loader.css、container.js |
-| [330_mobile_frame_followup_1107](330_mobile_frame_followup_1107.md) | 手机网页后期帧时接 Codex 11-07 | 已做，待合入 | 维什戴尔层 / 立起特效 / 敌人本体整块拿掉的上限合计约 3.5 ms（Codex 打点值被放大）；敌人缓存收进 squash / air 量不出收益，顺带修受击色透明度；桌面仿真 8:00–9:20 约 28 ms | 305 §8–9、50 §9.9；render/world.gd _dc_ok / _dc_emit |
-| [331_balance_audit_1110](331_balance_audit_1110.md) | 全局数值体检 11-10 | 诊断 + §8 第一轮改数 + §9 鸭爵（11-11，待合入） | 敌人血量 / 涌入、干员秒伤与木桩表、生存、Boss 用时与单发、输出 ÷ 血量；断崖 3:30–7（后期补偿 ×2 + 生命零成长 + 卡门），偏松 7–10 与中期 Boss；§8：补偿拉升 180→480 秒、大群最小间隔 50 秒、后段 tier 收紧、卡门狙击 ×0.74、修 Mon3tr 竖直挥空；m0 64.9→63.7%、3:30–7 死亡 44→25、5 分钟 P90 200→163；§9 鸭爵窗口避开 Boss + 顺延、hp ×3（用时中位 3.5→6.5 秒、重叠 40%→0） | 80、146、194、212、248；tools/balance_audit_1110.py、balance_compare_1111.py、spawner.gd、ob_summon.gd |
-| [332_mobile_late_fps_music_1111](332_mobile_late_fps_music_1111.md) | 手机网页重编队终局闪退 + 后半局帧率 + 终局配乐驻留 11-11 | 已做，待合入 + 真机复测 | 闪退：emscripten GL 编号表撑大 JS 堆（GC 后 100 → 17 MB，engine_patch §9）+ 闪退报告高频曲线 / 事件日志；终局配乐 37 → 18.6 MiB（偏执泡影二阶段 p1+p2 预混接替，快检 web_music）；后半局水月节点提示环 / 铃兰光域逐位不变合批，同局轮换 −1~1.4 ms（约 4%），未达 30 帧，降画面方案待定 | 319 §12/§22、330；web_music.js、fx_pxplane_cue.gd、fx_pxplane_sz.gd |
-| [333_god_suite_four_bosses_1111](333_god_suite_four_bosses_1111.md) | 无敌包四个最终 Boss 连测 11-11 | 已做，待出包真机测 | 网址 boss=all / suite=1：auto+loop 一局一个最终 Boss，进度存 localStorage 跨整页重载，闪退那局下次打开补记；每局换高负载编队（凯尔希 / 维什戴尔 / 乌尔比安 …）；性能报告加最终 Boss 战段、本局 WASM 最大；汇总页一键复制 | 332 §5；god_suite.gd、auto_play.gd、perf_report.gd |
-| [334_music_loop_1112](334_music_loop_1112.md) | 配乐循环验收 11-12 | 已做，待合入 | 各场景配乐都无缝循环（桌面 seek 两轮 + 回环录音对照、网页 web_music.js 离线渲染对照）；修出商店战斗曲从头放 → 接着放；网页 AAC 预滚没去掉时自动平移循环点 | 21、164、319 §12/§23；sfx.gd、web_music.js、web_music.py、tests/music_loop_test、tools/music_loop_check.py |
-| [335_attack_anim_sync_1112](335_attack_anim_sync_1112.md) | 动作与攻速对齐检查 11-12 | 已做，待合入 | 20 人 × 1/2/4 倍攻速 30 秒实测：普攻动作全随攻速缩、出伤帧对齐 25/25；唯一真问题歌蕾蒂娅钩索（4× 只有 1.9×）已修，其余偏差是 1/60 帧取整；统一规则；同种子 TRACE 仅乌尔比安升速后不同 | 153、79、108；character.gd、seg_ulpianus.gd、tests/atk_rate_test.gd、tools/atk_rate_table.py |
-| [335_full_flow_debug_1112](335_full_flow_debug_1112.md) | 全流程 debug 与内存释放测试 11-12 | 已做，待合入 | 反复进出 10 轮测试、设置 / 暂停全扫、婉拒按钮孤儿节点泄漏、发行包剔除 auto_play / god_suite | tests/lifecycle_cycle_test.gd、flow_sweep_test.gd、release_slim、verify_encrypted_game |
-| [337_desk_cam_fixlist_1112](337_desk_cam_fixlist_1112.md) | 桌面战斗镜头评估 + 全局待修清单 11-12 | 方案待用户定 + 清单；§3 小修已做，待合入 | 桌面 126 档干员占屏高 9.1%（手机 11.3%，VS / Brotato / HoT 7–8%），台式屏上实际视角约为手机 2 倍，建议缺省不改，A/B/C 三档备选；25 条待修按严重度排；顺手修屏外指示压顶部字、RELICSPAUSE、罗德岛标志缺笔、4 处文案 | 50 §32/§38、76、285、293、318、332；settings.gd battle_zoom、hud_banners.gd、hud_v2.gd、rhodes_logo.gd、tools/desk_cam_shots.py |
-| [335_balance_check_1112](335_balance_check_1112.md) | 全局数值检查 11-12（合理范围 + 计算正确性） | 诊断 + 测试，数值未改，建议待定 | 设计原理出处（Slay the Spire GDC 2019、Schreiber 成本曲线 / 被支配选项、风险之雨 2 双曲叠层、Brotato 危险等级、Hades 契约、Vampire Survivors 诅咒）；GCP 三档 × 无认知 / 18 细胞 / 满点：常规 69 / 74 / 100、高压 29 / 40 / 99、深潮 4 / 19；认知收益两头偏、常规→高压掉 40 点、中期 Boss 42–54 秒、4:40 单下伤害回落 16%、藏品 3 级硬顶；说明数字 265 + 80 条核对无算错，修 5 处漏写；新快检 calc_truth（447 项）、desc_values | 80、331、194、179、109；tests/calc_truth_test、tools/desc_value_audit.py |
-| [mobile_performance_1106](mobile_performance_1106.md) | 手机性能与生命周期修复 11-06 | 分支实施记录，未合入 | RefCounted 循环、字体护栏限频、同色网格；181 项快检、七人冒烟、TRACE 与局部像素/释放验证通过，手机 30 FPS 待实机验收 | 36、50、287；[实施计划](superpowers/plans/2026-11-06-mobile-performance.md)、check.py |
-| [270_fx_light_particle_standard](270_fx_light_particle_standard.md) | 特效光感 + 粒子感统一标准（px_plane 14 人体检）11-05 | 待用户确认标准与补做名单（第二版数据，量法已修） | GCP 同局三跑（正常 / 关照地光 / 关 emit）差分量照地光与核心辉光，探针记颗粒数 / 寿命 / 边长 / 灯；技能灯取技能后 1 秒最亮一盏；四类招式（普攻命中 / 爆发 / 持续区域 / 治疗）上下限，判定在 fx_audit_sheet.py；低于标准 7 人（浊心斯卡蒂、安洁莉娜、艾雅法拉 S1、能天使、德克萨斯、凯尔希普攻、塞雷娅普攻）+ 边缘 7 人，每人一句补法 | 246、256；tools/fx_audit.py、tools/fx_audit_sheet.py、tests/fx_audit_shot.gd |
-| [271_pxplane_suzuran_1105](271_pxplane_suzuran_1105.md) | pixelfx「转平面」· 铃兰 11-05 | 用户已点头；GCP 出图完成，SCRIPT ERROR 0、TRACE 逐行一致、docs/270 体检核心项过，待合入 | 照 246 做法：普攻追踪火团（精一狐火灼印、精二九尾 + 狐形大狐火 + 拖尾火苗）；S1 金色符阵 + 命中金印（精一火柱、精二九尾张开）；S2 落地火环 + 暖光边 + 铃兰小铃铛祝福；S3 尾焰扫过 + 薄雾边 + 狐火落点；连携四团狐火绕身追迹；狐火点点 / 画地为牢 / 围炉 / 祈愿 / 扩散；纯 Python 烤帧条；开关 fx/px_plane | 246、256、270；render/fx_pxplane_sz.gd、tools/pxplane_suzuran_art.py、tools/pxplane_bake_suzuran.py、tools/pxplane_gif_suzuran.py |
-| [272_pxplane_irene_1105](272_pxplane_irene_1105.md) | pixelfx「转平面」· 艾丽妮 11-05 | 用户已同意第三版送测；已推 claude/pxplane-irene，GCP 出图中 | 照 246 做法 + 270 光感标准，主基调白 + 亮紫、潮水作辅色：普攻星芒 + 实心光锥 + 十字（精一刃尖碎芒、精二八芒 + 裂潮余波细新月 + 手炮追击）；S1 蓄光 + 大光刺 + 水旋；S2 金色大月牙劈潮水花；S3 审判光环 + 光矛 + 提灯；手炮弹道 + 小爆；剑气 = 光刺；连携「提灯一照」光圈 + 长光刃；浮空怪影子缩小 + 浮动；纯 Python 烤帧条；开关 fx/px_plane | 246、256、270；render/fx_pxplane_ir.gd、tools/pxplane_irene_art.py、tools/pxplane_bake_irene.py、tools/pxplane_gif_irene.py |
-| [274_pxplane_wisadel_1105](274_pxplane_wisadel_1105.md) | pixelfx「转平面」· 维什戴尔 11-05 | 第四版用户已同意送测，GCP 出图中 | 照 246 做法、按 270 标准；原作黑红（偏橙血红，避开预警粉红）：爆炸以火星为主（热芯 2 拍 + 带尾红 / 橙火星 + 黑碎点，同屏封顶 60，普攻热芯降一档）+ 贴地暗红薄雾 + 焦痕 + 土尘余震；精一暗红残影殉爆 / 标记，精二魂炮；S1 处刑火柱，S2 贴地掠 + 放射焦星，S3 地平线光穹，连携「天降厚礼」炮弹从天而降 + 余震涟漪；纯 Python 烤帧条；开关 fx/px_plane | 246、256、270；render/fx_pxplane_wd.gd、tools/pxplane_wisadel_art.py、tools/pxplane_bake_wisadel.py、tools/pxplane_gif_wisadel.py |
-| [275_ult_px_irene_1105](275_ult_px_irene_1105.md) | 终结技画面转平面试点 · 艾丽妮「宣判」11-05 | 送审中（GIF + 原版 / 新版并排），开关 ult/px_plane 缺省 0 | 只改画面：纹章保留图案、重采样到美术像素格压扁、改白；光链 / 穿梭斩线 / 连环爆 / 收尾斩击逐格画，白 + 亮紫，潮水作辅色；冲击帧保留，剪影换成新斩线 + 主裂缝；起手蓄力光点收进提灯 | 198、199、272；run/ult_px_ir.gd、tools/ult_px_irene_art.py、tools/ult_px_irene_bake.py、tools/ult_px_irene_gif.py |
-| [273_pxplane_lappland_1105](273_pxplane_lappland_1105.md) | pixelfx「转平面」· 拉普兰德 11-05 | 用户已点头；GCP 出图中 | 照 246 做法：普攻双月牙交错 + 白芯斩痕（精一封招叉〔原作 buff_silence 样式，只精英 / Boss〕/ 狼之舞敌人身上三道弯钩爪痕、精二双生刃月牙剑气）；远掷 = 紫白月牙剑气贴地飞；S1 刻度盘（精一晷针、精二三角光点）+ 格挡 X 刃；S2 黑白狼首弹 + 黑烟（精二菱形晶片）；S3 观察刻痕 + 十字斩；断喝锯齿声波；连携大月牙；纯 Python 烤帧条；开关 fx/px_plane | 246、256、270；render/fx_pxplane_lp.gd、tools/pxplane_lappland_art.py、tools/pxplane_bake_lappland.py、tools/pxplane_gif_lappland.py |
-| [269_pxplane_saria_1105](269_pxplane_saria_1105.md) | pixelfx「转平面」· 塞雷娅 11-05 | 用户已点头；GCP 出图完成，TRACE 逐行一致，待合入 | 照 246 做法：普攻钝头盾面冲击 + 暖白命中芒（精一琥珀碎晶 / 钙化斑、精二满格环冲 + 琥珀晶簇晶柱环）；S1 / S2 医疗绿（急救星芒 + 双环 / 网点药环 + 「+」）；S3 琥珀裂纹 + 区域边 + 冷白晶簇 + 空手拳碎晶喷射；剑气 = 晶刺地波；连携「钙质护盾」晶板 + 钙化斑；纯 Python 烤帧条；开关 fx/px_plane | 246、256；render/fx_pxplane_sa.gd、tools/pxplane_saria_art.py、tools/pxplane_bake_saria.py、tools/pxplane_gif_saria.py |
-| [259_pxplane_eyjafjalla_1105](259_pxplane_eyjafjalla_1105.md) | pixelfx「转平面」· 艾雅法拉 11-05 | 待用户看四栏对比与录像 | 照 246 做法 + 用户「参考 pixelfx 的做法」：爆团 / 火柱 / 火山落点 / 喷柱用库的粒子火（她的熔岩色阶、不加烟），火球 / 熔岩块用库 fireball（5 平面角），S3 实心大爆团 + 花瓣碎片 + 火星线，熔岩池只画边 + 熔岩泡；含后期额外弹 / 连锁、连携「熔岩」/ 旧连携；开关 fx/px_plane；TRACE 逐行一致 | 246、254、255、256；render/fx_pxplane.gd 艾雅法拉段、tools/pixelfx_fx/fire/ak-eyjafjalla-pp.js、tools/pxplane_bake_eyja.py、tools/pxplane_refcol.py |
-| [266_pxplane_ulpianus_1105](266_pxplane_ulpianus_1105.md) | pixelfx「转平面」· 乌尔比安 11-05 | 待用户看 GIF | 照 246 做法：重锚 / 锁链 / 深海，不画裂网；锚击水冠 + 锚印（精一收链拖痕、精二深渊暗涡）、撼地细涟漪、S1 锁链 + 拖拽水沟 + 一束水、S2 锁链界限圈、S3 冲锋破浪 + 漩涡、连携掷锚海水回卷、后期冲击波；帧条纯 Python 生成；开关 fx/px_plane | 246、256；render/fx_pxplane_ul.gd、tools/pxplane_bake_ulpianus.py、tools/pxplane_gif_ulpianus.py |
-| [265_pxplane_kaltsit_1105](265_pxplane_kaltsit_1105.md) | pixelfx「转平面」· 凯尔希 + Mon3tr 11-05（第四批） | GIF 已出，待用户看；未上 GCP | 程序帧条（Python 逐像素，84 张）：爪击三道平行爪痕（精一犁痕、精二晶刺）、治疗缝合环 / 十字 / 下针光柱（骨白薄荷不用红）、扑击交叉爪、回防骨刺环、S1 骨肋合拢、S2 指令符、S3 爆柱 + 熔毁重月牙 + 绿结晶熔毁爆、连携骨刺墙；开关 fx/px_plane | 246、256；render/fx_pxplane_kal.gd、tools/pxplane_kal_art.py、tools/pxplane_gif_kaltsit.py |
-| [267_pxplane_angelina_1105](267_pxplane_angelina_1105.md) | pixelfx「转平面」· 安洁莉娜 11-05 | GIF 已过；GCP 三栏 / 三档 / 录像 / 连携已出，TRACE 逐行一致 | 照 246 做法：普攻重力弹 + 落点内爆（星芒 + 碎片吸入 + 暗凹），精一收紧断弧、精二失重井；S1 下钉三光刃；S2 缠绕绸带；S3 头顶重力核心 + 扭曲波纹 + 大碎石；连携引力环三碎片；悬浮敌人影子缩放 + 浮动；S2 环带流动光点（第二轮）；扩散 / 成长节点；开关 fx/px_plane | 246、256、262；render/fx_pxplane_ang.gd、tools/pxplane_ang_art.py、tools/pxplane_bake_angelina.py、tools/pxplane_gif_angelina.py |
-| [268_pxplane_specter_1105](268_pxplane_specter_1105.md) | pixelfx「转平面」· 归溟幽灵鲨 11-05 | 待用户看 GIF（未上 GCP） | 照 246 做法，突出锯子：腰高锯环（前倾锯齿每拍转、白热刀头弧、前后半圈分开排序）+ 切向橙火星；精一卷刃水纹、精二甩水珠 + 替身闪现；S1 光柱 / 暗焰 / 鲨鳍、S2 替身青残影 / 触须、S3 大浪 + 橙热重锯 + 锯痕；分支招、late_shape 锯盘、连携替身斩；帧条纯 Python 生成；红色全部去掉 | 246、256；render/fx_pxplane_su.gd、tools/pxplane_su_art.py、tools/pxplane_gif_specter.py |
-| [256_gcp_render](256_gcp_render.md) | GCP 出图流程：本机只写代码，截图 / 录像 / TRACE 放 GCP 11-05 | 已做，斯卡蒂分支实跑通过 | tools/gcp_render.py 一条命令：VM checkout → xvfb + Mesa opengl3 + 中文字体 + index.json → 任务脚本（pxplane / trace_ab / custom）→ 媒体传 GCS 并下载到 Claude outputs/render-<名>/、日志推 cloud-results/render-<名>；原作一栏本机事后拼；斯卡蒂 48 分钟 0.07 美元 | 246、41 §3.9；tools/gcp_render.py、tools/gcp/render_prep.sh、tools/gcp/render_jobs/ |
-| [255_pxplane_lumen_1105](255_pxplane_lumen_1105.md) | pixelfx「转平面」· 流明 11-05 | 待用户看三栏对比与录像 | 照 docs/246 做流明普攻 + S1–S3，另含后期额外弹 / 连锁（late_shape）与连携技「清创光弹」；开关 fx/px_plane；运行时逐格画线状件；同屏上限防碎防白；同种子 TRACE 逐行一致 | 246、248；render/fx_pxplane.gd 流明段、tools/pixelfx_fx/water/ak-lumen-pp.js、tools/pxplane_bake_lumen.py |
-| [258_pxplane_logos_1105](258_pxplane_logos_1105.md) | pixelfx「转平面」· 逻各斯 11-05 | 用户 11-05「logos 先这样吧」，待合入 | 照 246 做法：普攻笔光字环 + 蓝紫出手星 + 墨迹彗星（法术弹道、淡金小星、咒文残光）+ 白星芒灰白碎刺 + 两圈墨环；S1 提喻咒文行、S2 殁亡交叉咒文链 + 墨柱、S3 咒域渐变填充 + 流动符文带；late_shape 额外弹 / 连锁、连携「消弹」/「咒文扩散」；咒文一律 1 像素细字；开关 fx/px_plane；TRACE 逐行一致 | 246、254、255、256；render/fx_pxplane.gd 逻各斯段、tools/pixelfx_fx/arcane/ak-logos-pp.js、tools/pxplane_bake_logos.py、tools/pxplane_refcol.py |
-| [257_pxplane_texas_1105](257_pxplane_texas_1105.md) | pixelfx「转平面」· 德克萨斯 11-05 | 待用户看三栏 / 录像；§8 卡肉已交整合，§9 S3 隐藏队长 / 一刀一道、§10 终结技待用户审 | 照 246 做法：拔刀针尖刀痕、骤雨 / 回马剑旋斩、S1 剑雨落剑插地刃光（精二收尾巨剑 + 剑阵）、S2 号令光柱 + 冲刺直线刀光加粗、S3 次元斩直线刀痕 + 落剑、钉剑、余像落剑、后期飞剑剑气、连携十字斩；挂身斩击跟人走；TRACE 逐行一致 | 246、254、256；render/fx_pxplane.gd 德克萨斯段、tools/pixelfx_fx/melee/ak-texas-pp.js、tools/pxplane_bake.py --op texas、tools/pxplane_refcol_texas.py |
-| [263_pxplane_gladiia_1105](263_pxplane_gladiia_1105.md) | pixelfx「转平面」· 歌蕾蒂娅 11-05 | GIF 用户已过；GCP 出图完成，TRACE 逐行一致，待实机看 | 照 246 做普攻钩索（链 + 钩头 + 落地水刺 + V 字拖痕 + 到位拍水，精一锚印、精二深渊紫 + 冲撞贴地涟漪）、S1 大洋裂断（贴地炸开的水花冠 + 沿钩线拉链式掀起的翻卷浪；第二轮去掉直柱，第三轮水墙改翻卷浪）、S2 倾斜细水环 + 往里收的涟漪、S3 龙卷水墙（远 / 近半圈分开排序）、连携「聚拢」、late_shape 范围档 + 扩散；fx_pxplane_gl.gd 单独成文件；送审 GIF tools/pxplane_gif_gladiia.py |
-| [264_pxplane_siege_1105](264_pxplane_siege_1105.md) | pixelfx「转平面」· 推进之王 11-05 | 已出 GCP 三栏 / 三档 / 录像 / 连携三栏，TRACE 逐行一致，待用户看 | 照 246 / 254 做法：下砸锤弧（跟人走）+ 落点裂地 v3（分叉裂网、爆亮冷却、碎石、尘墙）、精二破阵地裂 + 岩刺、S1 号令声浪 + 号令一锤、S2 冲柱大裂网、S3 横向光带 + 地裂扇、后期剑气锤击冲击波、连携「冲阵」尾锤；接打击感包；开关 fx/px_plane | 246、254、256；render/fx_pxplane.gd 推进之王段、tools/pixelfx_fx/melee/ak-siege-pp.js、tools/pxplane_bake.py、tools/pxplane_gif.py |
-| [262_pxplane_exusiai_1105](262_pxplane_exusiai_1105.md) | pixelfx「转平面」· 能天使 11-05 | 第四轮实机已出，待用户看 | 照 246 做法：普攻 / S1–S3 / 倾泻 / 连携「穿透扫射」/ late_shape 额外攻击；肉鸽式高可读光弹（32 方向像素表）、硬星形枪口火、定向金属火花、抛壳与后坐；精一金描边、精二宽弹 + 穿甲亮线 + 队友光环；同屏封顶；录像局 TRACE 501 行一致；开关 fx/px_plane | 246、255、256；render/fx_pxplane_exu.gd、tools/pxplane_exu_art.py、tools/pxplane_bake_exusiai.py、tools/pxplane_gif_exusiai.py |
-| [261_pxplane_mizuki_1105](261_pxplane_mizuki_1105.md) | pixelfx「转平面」· 水月 11-05 | GIF 用户已点头；GCP 出图 + TRACE 逐行一致，待合入 | 照 246 做法：伞击伞面月牙 + 命中青色水母绽开 + 目标脚边触手；S1 三团大水母；S2 一圈触手 + 缠绕；S3 大水母浮起 + 水镜 + 深蓝紫旋斩；深蓝之籽像素水母；连携「小触手」；打击感包加水月、触手音一帧一声 | 246、256；render/fx_pxplane.gd 水月段、tools/pixelfx_fx/water/ak-mizuki-pp.js、tools/pxplane_bake.py --op mizuki、tools/pxplane_gif_mizuki.py |
-| [260_pxplane_skalter_1105](260_pxplane_skalter_1105.md) | pixelfx「转平面」· 浊心斯卡蒂 11-05 | 待用户看三栏与录像 | 照 docs/246 做普攻声浪 / 歌域、S1 气泡、S2 旋涡小鱼、S3 潮涌（粗笔触环 + 实心内部 + 旋转线 + 粗红光柱）、伊莎玛拉、成长 / 后期小环、连携「歌声」；主形运行时画（判定半径连续变化）；开关 fx/px_plane；TRACE 逐行一致 | 246、254、255、256；render/fx_pxplane.gd 浊心斯卡蒂段、tools/pxplane_bake_skalter.py |
-| [224_fly_up_audit_1102](224_fly_up_audit_1102.md) | 「突然向上飞走」排查 11-02 | 4 条已换就地解散，9 条保留待用户定 | 部署撤回 / 掉队归位 / 换人被换下 / 骑士离队改为光圈收拢 + 像素碎散淡出（瞬回的再淡入）；squad/deploy_exit 2 = 跑回、0 = 旧；招募从天而降、拾取吸附、飘字等保留列表 | 219、209；squad._leave_fx、allies/knight.gd |
-| [222_hud_redesign_1102](222_hud_redesign_1102.md) | 局内 HUD 重新设计方向稿 11-02 | 方向稿第三轮，待用户确认 ② 水月深海精进版 | 用户「加了指挥模式和倍速后界面乱」：现状 13 块盘点（队友生命三份、右下三行、右上藏品栏）；三个方向 A 四角收拢（推荐）/ B 底部指挥台 / C 终端侧栏，电脑 + 手机效果稿；开局指南卡统一成炭灰面板 + 青条 + 节点标签条 + 菱形步骤点；§5 第二轮在 A 布局上做三套视觉处理（PRTS 终端 / 水月深海 / 强图形）；§6 第三轮按用户选择精进 ②：磨砂玻璃 + 液面槽 + 泡，编队卡用 @2x 待机帧 | 37、219、221；Claude outputs/hud_redesign_1102、tools/probes/hud_mock_1102.py |
-| [201_final_boss_weak_diag](201_final_boss_weak_diag.md) | 最终 Boss「太弱」诊断与加伤 | 记录 | 10-29：最终 Boss 加伤血量不动；弹速 / 弹数 / 节奏旋钮；伊祖米克连携调度改版（izumik-sched） | 170、142b、bosses/*.gd |
-| [199_bal_audit](199_bal_audit.md) | balance 旋钮对账 + Bal.v 缓存 | 记录 | 10-29：代码缺省值与 balance.json 不一致的 170 键（已改 208 读点，运行结果不变）；只在代码里的 366 键清单；`Bal.v` 路径缓存（桌面同局轮换 -0.3 ms / 帧）；`tools/bal_audit.py` | 27、balance.gd、data_lint |
-| [193_integ_1029](193_integ_1029.md) | integ-1029 整合记录 | 记录 | 10-29：第一批 15 个分支的合入顺序、冲突处理、docs 重编（190 → 192）、素材挪路径 |
-| [196_command_target](196_command_target.md) | 指挥模式「指点」：指定地点 / 目标进攻（方案） | 方案稿，待用户拍板 | 10-29：突击中指点地面（点位）或精英 / Boss（集火），取代清杂 / Boss 优先，圆盘仍 5 格；慢动作选点沿用 ×0.2 + 扣作战时限防滥用；手机拖拽 / 电脑点选 / 手柄光标；机器人三档校准；含默认关的示意原型与 52 秒操作录像 | 114、36、56、设计总纲草稿 |
-| [200_telemetry_plan](200_telemetry_plan.md) | 数据埋点：死因分析与补洞提案 | 提案，待协调人审 | 10-29：用 cal1029 云端 1237 个死亡局做死因分析（tools/death_report.py，暴毙 = 普通怪围死为主）；现有埋点清单、三支柱缺口、分期（P0 遥测补洞 1）；只提案不实现 | 36、40、43、77、82、193；run/telemetry.gd、tools/death_report.py、balance_run.py、runs_report.py |
-| [218_relic_ingot_1101](218_relic_ingot_1101.md) | 源石锭藏品：商店按售价保底 11-01 | 已实施 | 用户口径「越买越赚可以，不能亏」：商店买的立即得锭藏品到手 = max(原数额, ceil(实付 × shop/ingot_relic_floor 1.2))，卡面写保底数额；补给箱 / 事件照原数额；第一版（去锭 / 下架 / 修循环）已撤回 | 57、74、191；shop.gd、relic_fx.gd、balance.json |
-| [214_art_audit_1101](214_art_audit_1101.md) | 美术巡检 11-01 | 已修 1 项，待定 8 项 | 干员 / 怪物 / Boss 名片 / 图标 / 地面件 / 导入设置；Boss 名片裁切已修；1x 瞳色、升级卡缺图标等待定，附重画单 | 87、131、199、211；tools/art_audit_scan.py |
-| [216_ult_review_1101](216_ult_review_1101.md) | 终结技审查 11-01 | 已修 6 项，待定 6 项 | 20 人终结技全流程 + 合集视频；图鉴描述、瞄准提示、圆盘互斥、幽灵鲨冲击帧、安洁莉娜 / 艾丽妮配声已修；艾丽妮改名、逻各斯时停声等待定 | 199、205、209；run/ult*.gd、ult_audio.json、ult_text.json |
-| [189_asset_layout_spec](189_asset_layout_spec.md) | 素材目录与命名规范 + 迁移方案 | 草案，待用户批 | 10-28：收货 art/incoming/<批次> → 在用 game/art/<类别> → 归档 art/archive；前缀 / id / 后缀规则；按索引找图；分 0–6 批迁移；检查 tools/asset_lint.py（只报告） | tools/asset_lint.py、art.gd |
-| [188_asset_audit_1028](188_asset_audit_1028.md) | 素材命名与目录核对 | 待用户看 | 10-28：art/incoming 归档留底、旧合成配乐已删；game/ 没人读的 2 个、语音母带 22 MB 在运行时目录、同内容不同名 16 组、命名不合约定 4 处，只列不改 | art/archive/incoming_1028、game/audio/voice/masters |
-| [186_integ_1028b](186_integ_1028b.md) | 整合分支 integ-1028b 冲突处理记录 | 记录 | 10-28 对内体验包：每处合并冲突一行 + docs 撞号重编表 | — |
-| [183_knight_stage_plan](183_knight_stage_plan.md) | 最后的骑士 · 分阶段方案 v2 | 已接入 | 10-28：每幕招式组、三幕寒潮、二幕冰棱带、重生冲锋形态（原 171，撞号改 183） | knight_boss.gd、final_attacks.gd |
-| [182_enemy_windup](182_enemy_windup.md) | 普通怪蓄力加速 | 已实现 | 10-28：非精英非 Boss 的蓄力 / 预警 / 引信 × windup_mult（原 179，撞号改 182） | enemy_ai.gd |
-| [178_danger_pass](178_danger_pass.md) | 难度危险感回调 | 已实现 | 10-28：防暴毙保护收窄、普通怪伤害增益（claude/danger-pass） | balance.json |
-| [185_card_text_1028](185_card_text_1028.md) | 卡面受益标签与文案修订 | 已实现 | 10-28：主效果 / 附带数值标签分开（淡色「仅物伤」）；点名干员卡只写当前编队；职业分支代指干员的文案改写（旧 → 新）；手机详情不截断 | 163D、76、37 |
-| [181_operator_lanes](181_operator_lanes.md) | 干员流派标签重做 | 待审 | 10-28 用户提出：每人 1–2 个流派（7 个），流派件主效果只给本流派，宽泛附带删或改专属；全员流派表 + 逐件改法 + 4 个待定 | 163B、178、76 |
-| [176_sword_wave_ease](176_sword_wave_ease.md) | 剑气非线性速度 | 已实现（待合入） | 10-27 用户：剑气改「爆发出手 → 衰减滑行」，总距离 / 存活时间 / 判定宽度不变；拉普兰德剑气、斯卡蒂潮刃、可见成长近战剑气共用 sword_ease.gd，旋钮 balance.json sword_ease | 163、136；sword_ease.gd、seg_skadi、vis_growth、sword_wave_capture |
-| [161_elite_squad](161_elite_squad.md) | 紧急作战改「精英小队」 | 已实施记录 | 10-26：按阶段 8 / 10 / 12 只高一阶普通怪，生命 ×2、伤害 ×1.3、共用甲壳 / 潮盾词缀、红色描边 + 脚下红光、入场冲锋；计入同屏上限、放不下的推迟；全灭宝箱（稀有加权）+ 20 源石锭；iPhone 仿真帧时 | 158、154；endings.gd、render/world.gd、waves.json |
-| [184_event_redesign](184_event_redesign.md) | 事件改版：有代价的取舍 + 对口交易 | 已实装（§9，P1 + P2），待合入；10-28 用户五条按推荐 | 10-27：每次摊牌至少一张交易卡、最多一张无代价卡，每件事件留稳妥项；按藏品 lanes 算主流派出对口奖励；一局 4 次翻卡（加 1:20 / 6:00 两张卡的途中路口），首通前也开但无结局入口；结局线规则不变；P1 8 件 + P2 5 件原作事件（rogue_2 choiceScenes 出处）、继承退役；V 价值口径、难度估计、约 7.5 人日、测试口径；示意图 reference/184_event_redesign.png | 154、148、156、161、35；endings.gd、events_v2.json、event_trade_test |
-| [158_horde_stuck_fix](158_horde_stuck_fix.md) | 「怪物冒红光卡在原地」修复 | 已实施记录 | 10-26：大群分批出发延迟借用了收割者专用的 wake_t（只有收割者倒计时），其他怪永远站着，引痕者半血狂暴变红；改用 depart_t 统一倒计时；修前 / 修后对比 build/horde_stuck_before_after.mp4；§5 分级配比本作 vs 原作；§6 分级调整已实施（中后段高阶 10% / 25%、后段每局约 720 只，t5 定档高手 m0 30.4% / m18 55.4%）；§7 高阶单只帧时开销 | 150；spawner.gd、run/enemies.gd、enemy_ai.gd |
-| [179_meta_first18](179_meta_first18.md) | 前 18 个细胞换成看得见的数值（方案） | 待用户确认 | 10-28：18 细胞 = 攻击性Ⅰ + 生存本能Ⅰ +12% + 生命感悟Ⅰ +0.3 + 自我保护Ⅰ -5%；危机感Ⅰ挪到第五位；总量 / 满点不变，预计 m18 50–58% |
-| [145_enemy_canon_and_reach](145_enemy_canon_and_reach.md) | 小怪原作核对 + 攻击范围加强方案 | 方案待用户看 | 10-24：19 种普通怪 / 精英对照 PRTS 与解包数据（名字全对；奠基者 / 引痕者 / 育母弱点与原作相反、箱形恐鱼免疫非原作、囊海爬行者档案不符）；攻击范围现状表；加强 5 只（育母落点圈 30→46、狂奔者 62→90、收割者 / 巢涌者光环待定；囊海爬行者爆裂 80→160 已做），伤害不动；§4 箱形恐鱼新攻击方案；§5 奠基者踏地特效改地面层、骑士图鉴归 Boss 页（已做） | 49b、76、94、96；enemies.json、lore.json、gallery.gd |
-| [146_difficulty_curve_1025](146_difficulty_curve_1025.md) | 难度曲线复查（三档 × 高手 / 普通，云端 336 局） | 方案待用户看 | 10-25：常规「前 1:30 很平 → 2 分钟陡升 → 3:00–5:30 平 → 7:00 台阶 → 7:30–9:30 平 → 最终段回落」；高压 / 深潮倍率开局全额生效、深潮高手 0–3:30 就死 27%；压力几乎全来自近身杂兵，溟痕 2:30 顶到 32 片上限几乎无威胁；方案 A 中段固定节拍大群 + 包围、B 后期伤害继续涨、C 难度倍率渐入（未实施）；§6 灯火：常规 3/4 时间满灯、回补 66% 来自精英灯油、损失 67% 是受击，寂灭占阵亡 30%（深潮 54%）；工具 tools/difficulty_curve.py | 109、111、116、117 |
-| [38_boss_redesign](38_boss_redesign.md) | Boss 重做 v3 | 现行规范 | §1 框架、§8.11 预警、§8.12 难度目标、§8.14 停刷仍有效；已改版 Boss 的招式（第 1、2 批：泡影、伊莎玛拉、伊祖米克、骑士、塑路者、两位圣徒）以 95 为准，接潮组暂按本文 | 21、27、36、37、40、41 等 23 篇；run/combat.gd、boss_ai.gd、tests/prot_test.gd 等 38 个文件 |
-
-## 美术单（给 Codex，进行中）
-
-| 文档 | 标题 | 状态 | 说明 | 被谁引用 |
-|---|---|---|---|---|
-| [93_codex_elite_forms_art](93_codex_elite_forms_art.md) | 精英化攻击形态素材 | 已全部交付 | §0 是全部特效单的规格依据；10-22 逐条核对无未交付项（见 incoming/codex_order_1022_handoff.md §1） | 61、91、95、96、98；elite_art_1_manifest.json、game.gd、ally_rework_1014_handoff.md 等 12 个文件 |
-| [94_codex_enemy_redraw](94_codex_enemy_redraw.md) | 普通 / 精英怪重画 | 进行中 | §0 敌人条款被 98 引用；暖橙补单已被冷色回调，晚补单未交 | 93、96、98；gallery.gd、enemy_redraw_3_handoff.md、game.gd 等 15 个文件 |
-| [96_codex_enemy_attack_fx](96_codex_enemy_attack_fx.md) | 怪物攻击特效 | 进行中 | 第 1 批已接入，第 2 / 3 批未交 | render/world.gd、enemies/enemy_ai.gd、run/enemies.gd 等 7 个文件 |
-| [97_codex_operator_fixes](97_codex_operator_fixes.md) | 干员存量修整 | 进行中 | A–F 已接入；G 批只交了水月，还在 codex/art | 98；incoming/op_fix_b_handoff.md、incoming/op_fix_e_handoff.md、characters/character.gd 等 15 个文件 |
-| [codex_order_1022_handoff](../art/incoming/codex_order_1022_handoff.md) | Codex 素材单 10-22 | 进行中 | §1 精英化素材核对（无未交付项）；§2 骑士 `e_knight*` @2x = 1x × 2 返修单，待交 | docs/93、115、108 §5、98 §10.1 |
-| [90_codex_toy_cover](90_codex_toy_cover.md) | B站 Toy 封面与图标 | 进行中 | 已选定 shadow_1014，未上传 | — |
-
-## 测试与发布
-
-| 文档 | 标题 | 状态 | 说明 | 被谁引用 |
-|---|---|---|---|---|
-| [36_testing](36_testing.md) | 测试规范 | 现行规范 | 快检分级、谁跑全量（§1.1）、复现与基线 TRACE 缓存（§3.2）、云端（§7.5.1，角色会话不推分支）、基线 | 23、27、29、38、39、40 等 22 篇；game.gd、run/autotest.gd、tools/balance_run.py 等 19 个文件 |
-| [80_ab_method](80_ab_method.md) | 平衡对照口径 | 现行规范 | 置信区间 + 同种子配对；胜率差 <10 点不下结论 | 36、38、82、83、88、91 等 7 篇；tools/cloud_compare.py |
-| [27_balance_framework](27_balance_framework.md) | 数值平衡框架 | 现行规范 | §2 分层、§3 档位与预算、§9 新干员流程在用；§1 目标看 38 §8.12，§6 口径看 80，§4 以 balance.json 为准 | data/balance.json |
-| [29_bot_testing](29_bot_testing.md) | 分档机器人 | 现行规范 | 机器人档位与指标；§3 难度目标已作废（见 38 §8.12），第五档 master 见 36 | 27、36、38、41、79、归档46 等 7 篇；tools/balance_run.py、game.gd、data.gd 等 6 个文件 |
-| [33_release_build](33_release_build.md) | 打包发布 | 现行规范 | 双版本三包、itch、瘦身、ship.py 一键发版、发版提速（导入缓存 / 并行 / --toy） | 41、55、99、归档ea_boss_variety_20260927；tools/export_build.py、tools/export_web.py、tools/release_all.py、tools/import_cache.py、tools/compare_builds.py 等 13 个文件 |
-| [50_performance](50_performance.md) | 性能测量 | 进行中 | 帧时测量方法与各轮优化记录；§18 原生运动核心实测，§19 HUD 字体缓存与隔离对照，§20 双端 60 帧迭代（尚未达标），§21 网页为主基准（手机口径、WebGL 状态缓存 −19% / Boss −32%）；§26 叠加特效后的帧率与同屏上限 65（云端不合）；§27 帧率稳定优先：启动页稳 60 再进标题、着色器预热、界面动效审计、`--ftrec` 帧时记录；§28 低配基准（限核 / 网页节流 + 手机视口）与逐级自动降档 | 21、35、36、38、39、41 等 15 篇；render/world.gd、game.gd、data/balance.json 等 34 个文件 |
-| [55_code_audit](55_code_audit.md) | 代码冗余审计 | 进行中 | 大部分清理已做；§6 剩余项未做 | 35、39、41、56、57、归档14；boss_ai.gd、game.gd、relic_fx.gd 等 21 个文件 |
-| [101_arch_audit_1015](101_arch_audit_1015.md) | 代码框架审计与 C++ 预留 | 进行中 | 10-15 框架问题 / 冗余清单、原生代码切入面与构建约束、阶段 0 / 1 / 2 路线；§7 派活清单、§8 待用户定 | — |
-| [286_code_cleanup_1106](286_code_cleanup_1106.md) | 代码整理盘点与去冗余 11-06 | 进行中 | 死代码 69 项 + 2 个无引用脚本 + 4 个已定案回退开关已删（第一批），pxplane 重复小工具合到 render/px_util.gd（第二批）；拆大文件排在美术分支 / 帧率会话之后；§6 待定 | 101、126、39；tools/gcp/render_jobs/cleanup_verify.sh |
-| [104_pixel_pipeline](104_pixel_pipeline.md) | 干员像素素材流程规范 | 现行规范 | 10-16 定：Codex 静态 f0 / 动画（分层合成）两条线、三层验收、f0 并行 + 人内串行；口径只在 103 改 | 97、103；tools/px_lint.py |
-| [105_op_anim_arch_for_codex](105_op_anim_arch_for_codex.md) | 干员动画接口：现状与 Codex 改造说明 | 已实施记录 | 核心迁移已在 6b697796 完成；现行契约见 87 §3.5，补齐序列恢复与互斥校验；截图验收仍由界面与美术负责 | 87、92、101 |
-| [106_codebase_overview_for_codex](106_codebase_overview_for_codex.md) | 代码架构总览（给 Codex 改代码） | 现行规范 | 10-17：目录职责、每帧次序、干员数据与动画接口、测试工具、Codex 改代码规则 §6 | 41、36、101、105 |
-| [107_summon_visual_alignment](107_summon_visual_alignment.md) | 召唤物美术运行时对齐 | 进行中 | 独立显示时钟、真实出手对齐、七条身体接线与Mon3tr特效返工判断；旧专用动作保留 | 06、36、87、104、106 |
-| [108_operator_runtime_arch](108_operator_runtime_arch.md) | 干员动画运行时架构（现行） | 现行规范 | 10-20 架构审读 Codex 10-17 起代码：分层、每帧次序、状态机、字段表、画布口径、冲突 / 废弃清单、剩余 9 人接入方案、校验检查表、审查发现 | 87、98、105、106、107 |
-| [110_op_audit_1021](110_op_audit_1021.md) | 18 人新美术接入后统一复查 | 一次性审计记录 | 10-21：动作快慢（修 ulpianus 出手帧对齐）、攻速阈值（4人会被压缩，突发场景会糊，列待定）、旧美术残留（无硬编码旧路径，56个孤立文件待定）、文案核对（已知例子已修复，无新问题）、护盾强度（队长护盾出场率≈7%、HUD仅shield_max>0显示、塞雷娅无护盾、召唤物护盾零使用） | 76、108、109 |
-| [111_balance_1021](111_balance_1021.md) | 新美术后干员 / 怪物数值复核 | 一次性记录 | 10-21：木桩表 + 云端单人开局 / 配对；水月主控生命 125 / 回复 1.5 / 拖拽 20（单开 45→70%）；标准 63.7、Ⅳ 56.5、Ⅷ 38.4（暂停校准，只登记） | 27、79、80、36 |
-| [115_boss_portrait_candidates](115_boss_portrait_candidates.md) | Boss 登场名片头像：现状、候选与候选 A 实现 | 已实施记录 | 10-21：10 只都有专画头像但是糊剪影；用户选候选 A（局内像素裁切放大，暂弃用专画头像文件但不删），实现记录 + e_knight@2x 尺寸异常待核实 | 38、41、87、104 |
-| [114_command_mode](114_command_mode.md) | 指挥模式（第 1 步原型） | 进行中 | 10-21：一个键循环 随行 / 突击 / 归队（F / LB / 触屏「指挥」键），归队到位后集合站定，突击耐力（25 秒耗尽自动归队、50 秒回满），屏外队友头像标记，balance command 段旋钮；对比视频与机器人小样（突击常开输出 +8%、承伤 +22%）；§7 突击三件套原型（仇恨 / 职业走位 / 队友生命与倒地，各自开关，4 组合小样）；按键名待用户定 | 22、41、76、109 |
-| [116_curve_audit](116_curve_audit.md) | 玩家 / 怪物成长曲线审计 | 方案待用户看 | 10-21：TTK / TTD 按分钟实测（输出 ×22 vs 怪物生命 ×3.2；败局集中 8:20–9:30、单下接触 15–28% 最大生命）；主流肉鸽做法；建议血量不动、压重型怪单下伤害、回血不加 | 27、50、111 |
-| [118_op_response_actions](118_op_response_actions.md) | 干员响应动作（设计稿） | 设计稿 | 10-21：队长冲刺 / 站定 / 开技能 / 指挥切换四类触发源，18 人每人一条轻量响应；机动性约束、四个共用触发器、同 seed 开关、第一批切片建议 | 76、108、114 |
-| [120_build_branch_p1](120_build_branch_p1.md) | 分支培养 P1（试点 4 人） | 已实现、待试玩定档 | 10-22：docs/119 §4.1 节点 4 二选一 + 节点 5 沿路线强化（德克萨斯 / 星熊 / 艾雅法拉 / 铃兰）、§4.2 培养保底简化版；JSON 结构、换人 / 赠送推进事务、参数对照与两路线木桩表；开关 levelup/branch、focus_guard | 119、76、61、tests/build_progression_test |
-| [121_audio_shrink](121_audio_shrink.md) | 网页包压音频 | 已实施记录 | 10-21：324 个音频文件包内大小表；BGM 重编码 0.70、语音 24 kHz 约 57 kbps，音效不动；语音按需加载估算；压前压后对比样本与实导大小 | 113；tools/shrink_audio.py、export_web.py |
-| [2026-10-22-operator-voice](superpowers/plans/2026-10-22-operator-voice.md) | 第六批语音接入计划 | 实施记录 | 两人标准语音、20 条已确认突击回应、登场一次性钩子；保持调度规则与同 seed TRACE | 114、121、106；voice_command_test |
-| [122_op_lappland](122_op_lappland.md) | 拉普兰德设计稿与数值（近卫 · 领主） | 设计 + 数值已填、未接美术 | 10-22：原作身份 / 技能查证（日晷 / 狼魂 / 精神摧毁；「狼之隐 / 深渊的咆哮」查无）、普攻双刃 + 领主剑气、封印天赋、三技能、精一狼之舞 / 精二双生刃、节点 4 断喝 / 狼魂·狂、响应动作「噤声」（设计）、预算表、木桩表与单人胜率、美术需求单（原作 Spine 轨）、新积木清单 | 27、61、91、108、118、119、76、79 |
-| [123_op_gladiia](123_op_gladiia.md) | 歌蕾蒂娅设计稿与数值（特种 · 钩索师 · 深海猎人） | 设计 + 数值已填、未接美术 | 10-22：原作查证（缺水的大洋裂断 / 掌握怒海 / 碎漩狂舞、阿戈尔的波涛）、普攻每下掷钩拖回（hookshot）、深海猎人续航天赋、三技能、精一锚定 / 精二冲撞、节点 4 深海的庇护 / 怒海、响应动作「回收」（设计）、预算表、木桩表与单人胜率、美术需求单、新积木清单 | 27、61、91、108、118、119、76、79 |
-| [124_headhunt_design](124_headhunt_design.md) | 干员寻访（局外解锁）：界面、动效与美术 | 设计稿 | 10-22：结算后寻访揭示（主动作「信号解码」：扫描线自上而下把剪影解码成彩色，4–5 秒可跳过）、招募券选职业 / 人事调度函指定、意向保底、选人 / 图鉴 / 封面干员的未解锁剪影与新加入高亮、特效单（交 Codex）、与局外成长会话的接口；样张 tools/concept_headhunt.py | 37、62、76、109 |
-| [129_op_texas_rework](129_op_texas_rework.md) | 德克萨斯攻击模式（方案 A「阻挡」：原地拔刀宽扇形 + 命中最近两名定住 + 每第 4 次骤雨 360°；技能名改回原作；删定时冲刺、剑雨无敌人不放） | 10-24 已实现，云端对比见 §12 | 10-23 用户「自动冲刺太晕」→ 疾刃三连（27%）→ §11 三方案 → 10-24 拍板 A：成长节点逐个对应、技能名对照与待定、木桩表、全员自动技能空放清单 | 61 §21、108 §18、118 §6、122 |
-| [129_ulpianus_s3_charge](129_ulpianus_s3_charge.md) | 乌尔比安 S3 冲锋 + 歌蕾蒂娅钩索拉人修复 | 已实现、待云端复核 | 10-24：S3 掷锚后本体沿锁链冲向落点（沿途 120% 宽 50 每名一次 + 落地 200%）、画面走光学观感；歌蕾蒂娅「拉不动人」复现（落点 230 ≈ 射程 240、push_out 反推、走廊漏人）与修复（hook_front 110、目标必拖） | 61、108、122、123、76 |
-| [143_ulpianus_charge_fx](143_ulpianus_charge_fx.md) | 乌尔比安 S3 冲锋特效（像素颗粒） | 已实现、待用户拍板 | 10-24：起冲锚尖聚光 → 路径深海水体颗粒逐颗熄灭 → 终点冲击颗粒环 + 落地冷却水花；沿途中档 / 落地重档命中三档；低画质回退 docs/129 画法；探针 tools/probes/ulp_charge_shot.py | 129、136、50、76 |
-| [127_art_ta_review_1023](127_art_ta_review_1023.md) | 美术 TA 审阅（怪物 29 种 + 干员 20 名 + 特效 220 张） | 一次性审阅 | 10-23：游戏内真实缩放对照 + 量化指标（证据在 build/ta_review/）；A 阻碍可读 9 / B 风格割裂 11 / C 整洁 4（含 §6 特效专项）；先做 5 项 + 特效 3 项（文字让出队长、怪物边光、Boss 遮挡、定像素密度、Boss 体量与整数缩放） | 87、104、108 |
-| [130_fx_audit](130_fx_audit.md) | 光学观感开启时的老特效盘点（重复 / 冲突 / 白跑） | 一次性审阅 | 10-24：61 条逐项（在哪 / 现状 / 建议 / 收益 / 风险）+ 精简 15 组按收益排序；法线光照与中档辉光是 GPU 大头，fx_burst 被死亡帧条吃额度是真冲突；低档回退保留 | 50、54、127 |
-| [132_handoff_1024](132_handoff_1024.md) | 交接手册（10-24 晚版，Claude / GPT 通用）：换账号 / 换模型接手先读——接手第一步、工作方式、合入流程、当前状态、在飞分支、待拍板、已定口径 | 现行 |
-| [135_leader_swap](135_leader_swap.md) | 切换队长（原型） | 进行中 | 10-23：Q / RB / 触屏点卡轮流切队长，谁都不瞬移、镜头 0.25 秒缓动、冷却 2 秒、倒地者不能切、生命共用、切换播出击语音；技能键改 E / J | 41、114 |
-| [137_boss_flash](137_boss_flash.md) | 最终 Boss 战频闪：测量与修复 | 已实施记录 | 10-24：主因 Boss 受击白闪每下命中都续（起闪 6–7 次/秒、六七成时间是白的），命中三档次要；改为白闪间隔 ≥ 0.4 秒、0.09 秒淡出、Boss 不换受击姿态、去蓄力 sin 振荡；修后起闪 1.6–2.1 次/秒，框内超 3 次/秒的窗口 18–137 → 0–6；附录像 / 统计工具 tools/boss_flash_rec.py、boss_flash_measure.py；§7 Boss 重影：泡影二阶段别名帧条查不到重画表、按 2 帧切出 3 只并排，已修 | 53、127 |
-| [139_look_nausea](139_look_nausea.md) | 画面「恶心 / 粘腻」排查：镜头取整节拍、非整数放大蠕动、高刷屏锁 60、顿帧频率、色调（暗而浓的青蓝 + 溟痕靛紫网纹）量化与旋钮方案 | 调查 / 待拍板 | 10-24：同 seed 逐项开关录帧（tools/probes/look_nausea.py）；试验开关 render/nausea_safe（缺省关） | 130、132、136 |
-| [136_pixel_particle_template](136_pixel_particle_template.md) | 像素粒子模板（特效粒子化规范，样板：刀光第四版） | 现行 | 10-24：CPU 颗粒 + 一次批绘、2 px 世界格、只用 vrng、高 900 / 中 450、低画质回退；火 / 水 / 电 / 体液模板做法 | 50 §25.4、137 |
-| [138_material_grains_review](138_material_grains_review.md) | Codex 材质颗粒（艾雅 / 拉普兰德）验收：能合、缺省关、修了什么、帧时、同 seed | 一次性审阅 | 10-24：fx/material_grains 关时 / 开时同 seed 逐行相同；桌面 +0.5–0.7 ms；拉普兰德返工 | 136、50 |
-| [131_cleanup_inventory](131_cleanup_inventory.md) | 交接前清理盘点（art/incoming、game、tools、docs、仓库体积） | 一次性审阅 | 10-24：art/incoming 276 MiB 里在用约 21；三批删除计划（零风险约 92 MiB → 需验证约 165 → 需用户定约 41）；.git 2.9 GB 里 1.25 GB 是 codex/* 分支的 Spine 源 zip；查出 move_attack 帧条从未加载（bug） | 55、108、130 |
-| [141_hit_feel_review](141_hit_feel_review.md) | 打击感偏弱的原因调研（A/B/C 三版逐项量化 + 近期削弱提交 + 改进清单，对照 hit-tiers 覆盖面） | 一次性审阅 | 10-24：怪物密度 0.4 使击杀 ×0.4、顿帧 2 帧 + 0.5 秒间隔、拥挤降噪压白闪 / 数字、近战判定 / 画面 1.7–5.5 倍；只读，未改代码 |
-| [142_boss_phases](142_boss_phases.md) | Boss 分幕招式差异化设计稿（10-25 改版：看得出区别） | 设计稿待用户审 | 10-24 初稿：差别小是结构问题（中期 Boss 第二幕老三招不变、D 招出得少、最终 Boss 中间卡点多半是空的、出招不分幕、换幕信号一样），通用底座 + 10 只逐幕机制；用户定不做伊莎玛拉回人形 / 伊比利亚自损、伊祖米克全场分享灯柱内免伤且留缓冲、骑士重生慢走。10-25 改版：每幕三件套（攻击换形 + 特效套 + 转场演出，§2.5 / §3A），示意图 tools/probes/boss_phase_sheets.py → build/boss_phase_sheets/ | 38、95、117、136、137 |
-| [142b_boss_axis](142b_boss_axis.md) | Boss 改版方案 B：每只一个主轴 + §8 合并 A 的新弹幕（现行推荐） | 方案待用户审 | 10-25：用户嫌方案 A 仍是「躲弹幕和冲击」，按同类游戏五种手段（docs/49d）给每只 Boss 一件必须做的事——骑士斗牛撞桩、塑路者截路（跑过路标）、伊比利亚打断装填、卡门封锁线（10-25 掩体删：玩家一直在跑）、泡影冲刺打落、伊莎玛拉破网、伊祖米克拦截子代、接潮组同步；每幕换规则、躲招精简到 2–3 招、最终战用 Boss 自己的机制小怪取代补怪；已按自动攻击核过（玩家只能移动 / 冲刺，主轴目标先于 Boss 自动攻击）；§8 合并版：A 每幕的新弹幕保留，每招标「拦路 / 惩罚 / 定拍」的用处、窗口期停火；§8.4 Boss 专属弹幕色（小怪弹仍青蓝、不加统一外圈）；§8.5 激光定用 Kanpelle（用户 10-25 购买）、枪击用现有素材 + 程序曳光；示意图 tools/probes/boss_axis_sheets.py、boss_combo_sheets.py、fx_candidates_sheet.py → build/ | 49d、95、109、137、139、142 |
-| [140_op_anim_audit](140_op_anim_audit.md) | 干员动作审计：出手对时、攻速、跑动步频、星熊格挡跑动、塞雷娅 S3 放盾 | 已实施记录 + 待拍板 | 10-24：全员普攻出手 0 帧偏差、跑步不滑；修移动中技能出手帧被跑步截掉（12 人）、星熊 S1 格挡跑动条、塞雷娅 S3 按原作放盾 + 空手跑；水月 / 能天使 3 倍攻速被 min_duration 卡待定；用户追加：星熊 S1 改站定嘲讽 + 防御反击（verb.taunt_guard）、塞雷娅 S3 期间空手拳击（含跑动版）；探针 tools/probes/anim_sync_probe.py、走停录像 anim_move_capture.py | 108、110、128 |
-| [112_camera_zoom_brightness](112_camera_zoom_brightness.md) | 战斗镜头拉远 + 全局亮度候选 | 已结案 | 用户 10-22 定：镜头不采用、缺省不变；亮度用 B。10-21：镜头 ×0.85 / ×0.75 / ×2/3 与手机 ×1.0 / ×0.9 的截图、视频、像素与帧时间；刷怪环 / 回收视野会在画面里露馅、需改逻辑视野常量；亮度 A / B / C（暗部、环境光、全局）对照与统计；推荐桌面 2/3、手机 1.0、亮 B | 50、56、80、L4 look |
-| [117_boss_pacing_audit](117_boss_pacing_audit.md) | 后期 Boss 垃圾时间审计 | 方案待用户看 | 10-21：最终 Boss 用时中位 42–101 秒（偏短不偏长）、战内无空转；根因是 10:00 登场后场上敌人数 67→11（−83%）——`final/stop_mobs` + `trickle_mult` 0.35 太保守；建议调高 trickle 旋钮，不建议砍 Boss 血量 | 38、41、95、116 |
-| [99_bilibili_toy_faq](99_bilibili_toy_faq.md) | B站 Toy 官方 FAQ | 现行规范 | 官方答疑帖存档（外部参考）+ 本作对照；§0 的数字已过时 | — |
-| [encrypted_release_20260928](encrypted_release_20260928.md) | Windows 加密发行 | 已实施记录 | 换机重建加密模板步骤的唯一出处（33「一次性准备」链到这里） | — |
-| [live_test_launcher](live_test_launcher.md) | 免打包测试入口 | 现行规范 | 启动测试版.cmd 的用法；末段 Boss 描述已过时 | — |
-
-## 记录
-
-| 文档 | 标题 | 状态 | 说明 | 被谁引用 |
-|---|---|---|---|---|
-| [艾雅法拉弹体重量返修](plans/2026-10-20-eyja-volcanic-weight.md) | 火球、熔岩弹与火山弹表现 | 已实施记录 | 精零单发火球 / 复咏1.6倍、精一双发、精二低抛；分开两类命中，保留方格熔池与阶段实机对照，待视觉认可 | docs/61 §17.2 |
-| [52_EA反馈问卷](52_EA反馈问卷.md) | EA 试玩反馈问卷 | 进行中 | 问卷在收；38 §8.12 普通档目标等它 | 38、41、56 |
-| [100_store_copy](100_store_copy.md) | 商店页文案与改名候选 | 进行中 | B 站 Toy / itch 商店页文案（按 76、99）与游戏改名候选（文案，10-14） | — |
-
-## 已归档（2026-10-14 第二轮，原位留一行指针）
-
-| 文档 | 标题 | 归档原因 | 现行依据 | 被谁引用 |
-|---|---|---|---|---|
-| [08_relic_adaptation](archive/08_relic_adaptation.md) | 水月藏品改编总表（262 件，初版） | 作废：流派已换成 A–H，件表多轮手改 | game/data/relics.json、relic_effects.json；docs/35、57 | 09、11、归档06、归档14；core/relic_db.gd、data/relic_effects.json |
-| [10_art_v6_spec](archive/10_art_v6_spec.md) | 美术 V6 接入约定 | 一次性接入约定；援护四类已删，通用条款被 93 §0、98 §6 取代 | docs/98、93 §0；帧数见 game.gd V6_FRAMES | 55；incoming/art_v6_handoff.md、game.gd |
-| [13_art_v7_spec](archive/13_art_v7_spec.md) | 美术 V7 接入约定（战斗表现层） | 一次性接入约定，末尾接入状态表已过时 | docs/98 §6、93 §0；帧数见 game.gd V6_FRAMES | 归档12；render/world.gd、game.gd |
-| [20_hires_spec](archive/20_hires_spec.md) | @2x 接入约定（水月） | 作废：画法已改为以 @2x 为主、描边 2px、怪物也要 @2x | docs/98 §1、87 §1；加载见 art.gd | 归档24；player_2x_handoff.md、incoming/squad_2x_handoff.md、squad_2x_manifest.json |
-| [24_squad_art_brief](archive/24_squad_art_brief.md) | 首批编队美术指令（给 Codex） | 已交付、验收、接入；通用规格已并入 87 §1 | docs/87、98；Mon3tr 画布 64×64、脚底 (32,60) 仍以本文 §4 为准（98 §3 写成 48×48，待改） | 23、58、87、归档27、归档32、归档38 等 8 篇；characters/character.gd、incoming/squad_2x_handoff.md、squad_batch1_handoff.md 等 9 个文件 |
-| [27_batch2_art_brief](archive/27_batch2_art_brief.md) | 第二批干员美术指令（给 Codex） | 已交付，经 32 审查返修后接入 | docs/87、98；灯塔画布 64×64 仍以本文为准（98 §3 未写） | 归档63 |
-| [28_gamepad](archive/28_gamepad.md) | 手柄适配 | 已实施；键位表早于冲刺、手动普攻 | game/scripts/pad.gd 文件头 | — |
-| [32_art_review_0926_acceptance](archive/32_art_review_0926_acceptance.md) | 美术验收：Codex 返修稿 a9471c7 | 一次性验收，已合入接线；§3-3 提亮要求已被 87 §4.2 否定 | docs/87 | 归档63 |
-| [32_squad_art_review](archive/32_squad_art_review.md) | 编队人物美术审查（三批） | 一次性审查，§1 / §2.1 已交付，§3 代码已改；§2.2 次要项从未派出 | docs/87 | 归档32、归档63；art_review_0926_manifest.json |
-| [42_relic_enemy_curve](archive/42_relic_enemy_curve.md) | 藏品曲线 × 怪物曲线实测 | 09-26 一次性实测，Boss 血量定值已进 balance.json | game/data/balance.json boss 段；docs/38 §8.12、35 | 27、35、归档46；run/spawner.gd、data/balance.json |
-| [44_test_optimization](archive/44_test_optimization.md) | 测试优化方案 | 已实施（--auto、上云已写进 36）；§3 基线作废 | docs/36 §1、§7 | 36、71、归档68；tools/check.py |
-| [49g_灯标圈内安全方案](archive/49g_灯标圈内安全方案.md) | 引航灯标「圈内安全」方案 | 已实施（safe_bullet / safe_ranged 缺省开）；标题仍写「未改代码」 | docs/56 §1；balance.json beacon 段 | 38、41、56；run/enemies.gd、enemies/enemy_ai.gd、run/beacon.gd 等 6 个文件 |
-| [51_1.1_更新日志](archive/51_1.1_更新日志.md) | 1.1 更新日志 | 1.1 版本对外日志；数值段（限购、15 种上限等）已失效 | docs/74 §10、33 | 41 |
-| [59_batch3_operators](archive/59_batch3_operators.md) | 第三批干员技能设计 | 一次性设计稿，五人已数据化 | docs/61 §10–14；各干员 JSON | 25、41、60、61、归档63、归档72；characters/data_operator.gd、characters/op_blocks.gd、tools/gen_fx_batch3.py 等 12 个文件 |
-| [63_batch3_art_brief](archive/63_batch3_art_brief.md) | 第三批干员美术指令（给 Codex） | 已交付、验收、接入；§1 明度线已作废 | docs/87、98；技能名以 61 + 干员 JSON 为准 | 41、61、87、归档59、归档64、归档69；tools/art_lint.py、squad_batch5_reference_feedback.md、squad_batch5_skalter_handoff.md |
-| [64_batch5_art_acceptance](archive/64_batch5_art_acceptance.md) | 第三批帧条验收 + 返修草稿 | §4、§7.3–7.5、§8、§9 已转成返修单并交付 | docs/87（§4 明度、§3.2 跑步） | 61、87、归档69、归档73、归档84、归档86；tools/op_bright_mockup.py、tools/texas_bright_mockup.py、squad_batch5_revision_generation.json 等 11 个文件 |
-| [65_relic_audit](archive/65_relic_audit.md) | 藏品描述与数值审计 | 一次性审计，提案已全部落地；留观项转 74 | relic_effects.json；docs/35 | 61、74；tests/relic_impl_test.gd、relic_fx.gd |
-| [69_codex_rework_1012](archive/69_codex_rework_1012.md) | Codex 返修总单 A / B / C | 已交付；明度线已进 87 §4 与 art_lint TONE_OVERRIDE | docs/87 §3.2、§4 | 87、归档73、归档84、归档85；squad_batch5_hoshiguma_color_handoff.md、squad_batch5_run_rework_handoff.md、squad_batch5_texas_color_handoff.md 等 7 个文件 |
-| [72_operator_stat_audit](archive/72_operator_stat_audit.md) | 干员初始数值审计 | 一次性审计与调整记录，建议已改进 JSON | 干员 JSON；docs/23 文首公式、79 | 74、归档78；screens/initial_stats.gd、data/characters/kaltsit.json、tests/test_core.gd |
-| [73_codex_idle_rework_1012](archive/73_codex_idle_rework_1012.md) | Codex 返修单：第三批五人待机 | 已交付，87 附录 A 记「已全部达标」 | docs/87 §3.1 | 87、归档86；squad_batch5_idle_rework_handoff.md、tools/art_lint.py、costume_1012_exusiai_handoff.md 等 4 个文件 |
-| [84_codex_ulpianus_facing](archive/84_codex_ulpianus_facing.md) | Codex 返修单：乌尔比安 / 推进之王朝向 | 已交付并接入（3867bcfd）；§3 mirror 机制说明仍被代码注释引用 | docs/87 §2 | 87；characters/character.gd、art.gd、gallery.gd 等 6 个文件 |
-| [85_codex_run_rework_1013](archive/85_codex_run_rework_1013.md) | Codex 返修单：五个跑步循环 | 已交付并接入（928b8a35） | docs/87 §3.2 | 87、归档86；tools/art_lint.py、elite_art_2_extended_lint_qa.json、elite_art_2_lint_qa.json 等 4 个文件 |
-| [86_codex_idle_pose_1013](archive/86_codex_idle_pose_1013.md) | Codex 返修单：艾雅法拉 / 铃兰待机侧身 | 已交付并接入（0c342d58） | docs/87 §2 | 87；tools/art_lint.py、incoming/op_fix_e_qa.json |
-| [92_codex_angelina_float](archive/92_codex_angelina_float.md) | Codex 美术单：安洁莉娜浮空 | 已交付，QA 通过并接入 | docs/98 §2；「离地行 38±1」仍以本文为准（98 §2 指回工单） | 98；tools/art_lint.py、incoming/op_fix_c_qa.json、incoming/op_fix_e_qa.json 等 7 个文件 |
-| [ea_ishar_20260927](archive/ea_ishar_20260927.md) | 伊莎玛拉人形治疗与敌对转化（9/27） | 一次性实现记录，同 10-13 那批 ea_*_0927 | docs/38 §8.6、95 | run/ishar_encounter.gd |
+| 干员 | 61 → 26 文首 → 23 文首与 §1、§3、§5、§6、§10 → 91 §0.5 → 108；改数值前加 79、80；加新干员用技能 `new-operator` |
+| Boss与怪物 | 95 → 142b → 165 → 38 §1、§8.11–§8.14 → 49 / 49c → 98；加新怪用技能 `new-enemy` |
+| 数值 / 藏品 | 80 → 27 §2、§3、§9 → 83 → 35 → 74 → 331 |
+| 界面与美术 | 37 → 98 → 87（干员帧条）→ 104 → 62 §2 → 76 |
+| 干员美术（Spine 试点，如令） | 104 → 105 → 108 → 128 → 140 → plans/2026-10-20-spine-run-trial |
+| 音频 | 21 → 53 → 28_operator_sfx → 113_sfx_audit → 279 |
+| 部署 | 33 → 22 → 89 / 99（B站 Toy）→ 285（网页包体） |
+| 文案 / 本地化 | 76 → 49 / 49a → 276 |
+| 主题重构 | 357 → 359_theme_pack_stage0 → 364 |
+| 傀影（第二主题） | 358 → 359_theme_content_spec → 360 → 361 → 362 → 363 |
 
 ## 其他目录
 
 | 目录 | 内容 |
 |---|---|
-| [archive/](archive/README.md) | 归档文档（10-13 第一轮 40 篇 + 10-14 第二轮 25 篇），README 有第一轮逐篇说明 |
-| [reference/](reference/README.md) | 用户提供的参考资料：262 件藏品原作表、全局设计框架 v1.0、藏品图标参考 |
+| [reference/](reference/README.md) | 用户提供的参考资料：262 件藏品原作表、全局设计框架 v1.0、藏品图标参考，以及各文档的示意图 |
+| [plans/](plans/) | 10-20 Spine 跑步试做（令试点要用）、10-18 三人全动画接入、10-29 Mon3tr 血条方案 |
+| assets/ | 245–252 等后期画面文档的审阅图与批跑结果（`assets/*/ab.md` 等由脚本生成） |
+| img/ | 297、304 的对照图 |
+| 201_data/、212_data/ | 201_final_boss_weak_diag、212_boss_checkup_1101 的原始数据与汇总脚本 |
+| 163c_relic_inventory_codex.json | 163c 藏品底表的 JSON 版 |
 
-| [三人全动画接入](plans/2026-10-18-three-attack-timing.md) | 29 条动画、原生像素与分段时序 | 实施记录 | 三人完整动作、攻速适配及测试包；试验分支，未合入 main | docs/87、character.gd、attack_timing_test |
-| [凯尔希削弱方案](plans/2026-10-29-mon3tr-hp-plan.md) | Mon3tr 血条 / 倒地复活 / 治疗分配（待用户审） | 方案（未实施） | 怪不打召唤物的现状、推荐不吸仇恨、削弱估计 85 → 74–78%、改动文件与待定 5 项 | docs/114 §7–8、118、198 §4.4 |
-| [水月标准化](plans/2026-10-18-mizuki-runtime-standardization.md) | 公共攻击时序、技能生命周期与原生像素接入 | 实施记录 | 水月四步修复、旧分支清理；试验分支，未合入 main | docs/61 §26、art/incoming/mizuki_runtime_handoff.md |
+## 文档一览
 
-| [水月 S3 整范围触手](plans/2026-10-18-mizuki-s3-fx.md) | 原作群攻与控制方向、新触手范围表现 | 试验实现 | 保留本作数值、不扣血，移除镜像 | seg_mizuki、mizuki_s3_fx、mizuki_runtime_test |
+### 协作与流程
 
-| [博士统一画风接入](plans/2026-10-18-doctor-style-integration.md) | 待机、跑步、倒下统一及 64/128 原点 | 测试版接入 | 用户批准新画风；保留既有四干员测试基线 | doctor.json、world、title_bg、doctor_run_test |
-- [2026-10-18 怪物原作机制补齐](plans/2026-10-18-enemy-identity.md)：已实施记录；四类普通怪/精英的防御、光环和控制身份补齐与回归清单；引用：docs/95、enemy_identity_test。
-| [干员特效审查 10-29](195_op_fx_audit_1029.md) | 全员干员特效排查：整片填充圆盘去除、白灰色、待确认项 | 已落地一批 | 浊心 / 逻各斯另会话处理；拉普兰德失色圈待用户定 | data_operator、seg_lumen 等、tools/op_fx_audit_rec.py |
-| [测试体系方案 10-30](204_test_system_plan.md) | 快检耗时盘点、`--changed` 路径映射、说明对账、节点可达性、红项登记、分期 | 方案待审 | 未实装；附只读原型 text_reconcile_scan / graph_lint | check.py、known_red、check_map、tools/graph_lint.py |
-| [279_audio_source_inventory](279_audio_source_inventory.md) | 音频来源清单 11-05 | 备查（用户确认原作音源可用） | game/audio 620 个：原作客户端 336（音效 99 + 语音 237）、授权录音 83、程序合成 178、Suno 配乐 22、待查 1（music/shop.ogg）；credits.json 音乐与音效一栏未写原作音效与 Suno | 113、21 |
-| [295_toy_package_audit](295_toy_trim_audit_1107.md) | Toy 包白占地方盘点 11-07 | 备查 | 几乎无死文件，可不进包约 0.3–0.4 MiB | tools/export 预设 |
-| [297_lappland_pose_audit](297_lappland_pose_audit_1107.md) | 拉普兰德双手前推姿势帧核对 + S1 改播原作 Attack 段 | 已落地 | 只改画面，同种子 TRACE 相同；蹲身前推只留 S3 | lappland.json、character.gd（dash_run） |
-| [304_doctor_sprite_audit](304_doctor_sprite_audit_1107.md) | 博士帧条核查：现行为 1 倍放大版、无更新版；补画方案 + Codex 派单 | 待用户 / 制作人定是否派 Codex | 先重画 idle + run | game/art/operators/doctor/、doctor.json |
-| [338_vreview_carbon_cmp](338_vreview_carbon_cmp_1112.md) | vreview 新旧模型对比 11-12 | 备查 | gemini-4-carbon 命中 7/10 vs flash 5/10，但误报同为 1/5、耗时 4 倍花费 5 倍 → 缺省不换；`--model gemini-4-carbon` 可选 | tools/imagegen/vreview.py、vreview_cmp.py |
-| [339_expansion_plan](339_expansion_plan_1112.md) | 未来扩展内容：轮回模式 + 藏品去上限 + 模组分支 11-12 | 方案存档，待用户审，不排开发（用户定先上 PV / Toy 看反响） | 轮回：每轮生命 / 伤害台阶不加数量、4 只最终 Boss 轮换、第 2 轮起双中场、小队上限每轮 +1 桌面封顶 6 / Toy 4、Toy 只到第 2 轮且间幕释放上一只 Boss 资源；藏品：1 / 0.7 / 0.5 / 0.4 / 0.35 后保底 0.3、Lv5 / Lv8 质变 8 模板、Lv3 起权重 ×0.7；模组见 340；开发顺序约 27–30 会话日；待用户定 15 项 | 83、109、248、253、293、332、335、340；squad.gd、relic_fx.gd、waves.json |
-| [340_module_branch](340_module_branch_1105.md) | 模组分支：精二二选一原作模组 11-05 | 方案待用户审（原分支 module-branch 5ca62d13f 的 docs/249，撞号改 340 带入，正文未改；动工前按 docs/76 §4 在 PRTS 复核） | 清群 / 攻坚、取代 late_shape 精二 1.5 档；试点德克萨斯 / 推进之王 / 逻各斯 / 凯尔希；20 人总表，拉普兰德 / 德克萨斯 / 维什戴尔第二条本作自创 | 119、248、249_elite_moment、339；progression.gd、late_shape.gd |
-| [350_keybinds](350_keybinds_1116.md) | 自由更改键位 11-16 | 已实现，待合入（V2.1） | 设置 → 操作 → 键位设置：键鼠 / 手柄两页、每动作主键 + 备用、冲突交换、恢复默认；Esc / START 固定暂停；网页保留键不许绑；存档 + 云存档 keybinds；键名提示读当前绑定 | 89、114、37；core/play_keys.gd、screens/keybind_view.gd、pad.gd、game.gd |
-| [351_boss_targeting](351_boss_targeting_audit_1117.md) | 选敌排查：干员不打 Boss 11-17 | 已实现，待合入 | 20 人选敌全查：歌蕾蒂娅钩最远、维什戴尔 slack 换掉 Boss、逻各斯 S3 扇区、艾雅法拉 / 乌尔比安 S3、伊莎玛拉改 Boss 优先（op_api.focus_boss / boss_or_densest）；--bprobe 测量前后表；有意保留清单 | 安洁莉娜 abc544d32；op_api.gd、tools/boss_target_probe.py |
-| [355_desk_web_perf](355_desk_web_perf_1117.md) | Toy 网页版电脑端内存与帧率 11-17 | 已实现，待合入；待定 5 项（封像素比 / 配乐降规格 / 字形不预热 / -O3 模板 / 标签页进程高水位） | 1080p 显存峰值 449→329、WASM 495→344、配乐缓冲峰值 323→188 MB；帧时安静时持平（卡在 GDScript，wasm 占 89%）；字形预热删过时 31 档横幅字号（全平台）、电脑网页也换曲即放 / 静音层按需；perf_web 加 --desk / --cpuprof / JS 堆读数 / 导入缓存 | 50、285、319、349；hud.gd、sfx.gd、settings.gd、optical.gd、tools/perf_web.py |
-| [357_theme_modularity](357_theme_modularity_1117.md) | 第二个肉鸽主题能否模块化：代码调研 11-17 | 调研结论，待协调人 / 用户定是否立项 | 部分能、要先重构：地图 / 敌人 / 波次 / 事件 / 藏品已数据驱动但全局单份；灯火 411 / 溟痕 318 / 灯标 229 / 缩圈 214 处散在核心循环；Toy 包 49.78 MB 贴线 → 一包一主题；主题包目录 + ThemeDB / ThemeMechanic / EndingRules，BossBase 复用；阶段 0+1 约 11–16 会话日 | 101、126、339、355、76；map.gd、endings.gd、boss_ai.gd、combat.gd、settings.gd、export_web.py |
-| [358_is1_phantom_theme](358_is1_phantom_theme_research_1117.md) | 第二主题「傀影与猩红孤钻」调研：结局、Boss 与移植草案 11-17 | 调研 + 方案草稿，待用户审（§10 四项） | 原作 4 结局：舞会终场 / 卢西恩，滑稽喜剧 / 伤心的大锁，盛大揭幕 / “剧团喉舌”，沉默之章 / “剧作家”（PRTS 逐条出处）；中期 5 选 1；主题机制候选 A 无主的财富（推荐）/ B 剧目；四 Boss 各四招与专属色；结局线接翻节点卡；最小样例推荐卢西恩 + 舞会终场；美术与卢西恩原型可与模块化并行 | 357、154、95、142b、38、76 |
-| [359_theme_pack_stage0](359_theme_pack_stage0_1117.md) | 主题包重构阶段 0 前半：同种子基准 theme_parity + 数据路径清单 11-17 | 已实装，待合入 | `tools/theme_parity.py`（7 局：四结局 × 三档 + Boss 台 + 短局，PARITY 36 字段逐帧比）；`themes/deep_sea/theme.json` + `ThemePack`（Godot 已有 ThemeDB 类名）；17 个主题数据文件、19 个脚本改经清单取路径，玩法零变化；剩余写死点（测试 5、Python 工具 51、敌种 546、标题 / 配乐）与下一步机制接口 | 357、358、36；theme_pack.gd、autotest.gd、check.py、export_presets.cfg |
-| [364_theme_mechanics](364_theme_mechanics_1117.md) | 主题包重构第二步：主题机制接口 ThemeMechanic 11-17 | 已实装，待合入 | 灯火 / 溟痕 / 灯标 / 缩圈四个机制收进 themes/deep_sea/mech/，清单 mechanics 段声明，五个挂钩点按清单顺序在原调用处调；四个子提交 Windows 7/7、Linux 7/7（deep_p0 已知伊莎玛拉随机性除外）；剩余写死 lamp 397 / mire 165 / beacon 186 / zone_ 255 行（读取方：bot、HUD、遥测、画面、干员技能）；art/index.json 落后 66 名的原因与云端修法 | 357、359、36；theme_mechanic.gd、theme_pack.gd、game.gd、combat.gd、enemies.gd、spawner.gd、setup_linux.sh |
-| [359_theme_content_spec](359_theme_content_spec_1117.md) | 主题内容标准（以水月为样本实测）11-17 | 标准草案，待用户审 | 普通怪 12（+机制 2）/ 精英 4（+剧情 1）/ 中期 Boss 5 组 / 最终 4；中期 2 幕 6–7 招、最终 3 幕 + 1 段 12–20 招（≥7）每幕 2 连段不跨幕；事件 31（普通池 21 全带代价）、每局翻卡 5 次；藏品在用 227（机制 14、信物 8）；主题机制 4 槽位（计量 / 地形 / 边界 / 场上目标）；交付清单与新主题填写模板 | 357、358、38、95、142b、165、154、184、80 |
-| [360_phantom_sample_tasks](360_phantom_sample_tasks_1117.md) | 傀影样例任务单（按 359 标准拆）11-17 | 任务单草案，待用户审（§10 四项） | 2 普通 + 1 精英、卢西恩 3 幕 12 招 + 不祥幻影主轴「贴身」、机制 A 无主的财富、浓雾边界、5 事件、结局舞会终场、古堡庭院地图、Suno 3 曲；T-A 现在可做 / T-B 等阶段 0 / T-C 等阶段 1 / T-D 等阶段 2；美术音乐与卢西恩原型并行于重构 | 359、358、357、154、184 |
-| [361_phantom_events_inventory](361_phantom_events_inventory_1117.md) | 傀影原作事件全量清单与对位口径 11-17 | 第 1 步清点完成，口径待用户定（§5 四项） | PRTS 事件一览源码：不期而遇 38（结局线 7）+ 安全的角落 1 + 幕间余兴 4 + 古堡馈赠 2 = 45；分 A 资源 / B 招募进阶 / C 专属藏品 / D 战斗 / E 链式 / F 结局线 / G 幕间余兴七类；建议原作 5 层 ↔ 5 次翻卡 | 360、359、358、154、184 |
-| [362_phantom_full_content](362_phantom_full_content_1117.md) | 傀影全量内容方案 11-17 | 草案，待用户审 | 余下事件 C/D/E/F；原作藏品 245 件比对（本作已有 148、在用 119）与折算；原作 86 关 190 种敌人筛成普通 12 / 精英 4 / 打劫者 4；中期 Boss 5 组各 6 招；大锁 / 喉舌 / 剧作家各 3 幕 12 招；机制 A 完整规则；配乐对位 | 359、360、361、358 |
-| [363_phantom_full_tasks](363_phantom_full_tasks_1117.md) | 傀影全量任务单与排期 11-17 | 草案，待用户审（§7 七项） | 美术 14 单（Codex 约 34 天）、特效 5、音频 4、文案 6、代码 17 项约 50 会话日；依赖分 —/R0/R1/R2；M1 舞会终场约 D22、M2 四结局约 D32、M3 平衡约 D40 | 362、361、360、359、357 |
+| 文档 | 标题 | 状态 | 说明 |
+|---|---|---|---|
+| [01_brainstorm](01_brainstorm.md) | 头脑风暴 | 旧稿（仍被引用） |  |
+| [02_roadmap](02_roadmap.md) | 开发路线 | 旧稿（仍被引用） |  |
+| [06_git_collaboration](06_git_collaboration.md) | 本地 Git 协作：Codex 美术 / Claude 开发 | 现行 | Codex / Claude 分工、交接与合入；「Claude 在主工作区」「没有远程」两句已过时，以 41 §3 为准 |
+| [09_p0_architecture](09_p0_architecture.md) | P0 底层架构方案（Event / Modifier / Stat / Tag / Build Profile） | 记录 | core/ 的 Event / Modifier / Stat / Tag 与效果数据格式；§6 迁移未做 |
+| [17_combat_contract](17_combat_contract.md) | 战斗契约：伤害描述符、三技能制、能力标签（v1.8；§2 已被 docs/23 §4.2 v2.1 / docs/26  | 现行 | 伤害描述符、能力标签仍是现状；§2 / §4 / §5 已作废，见 23 §4.2、26、61 |
+| [39_code_architecture](39_code_architecture.md) | 代码结构与界面分层 | 现行 | 分层、界面层、op_api、画法缓存；§1 未收 bosses/、云存档、g.mode |
+| [41_agent_team](41_agent_team.md) | 多会话协作：协调人 + 工作会话 | 现行 | 协调人与工作会话、消息标签、分工表、工作树规则；§4.6 是历史待派队列 |
+| [55_code_audit](55_code_audit.md) | 架构与代码冗余审计（2026-10-10） | 待定（方案待审） | 大部分清理已做；§6 剩余项未做 |
+| [101_arch_audit_1015](101_arch_audit_1015.md) | 代码框架审计与 C++ 预留方案（架构，2026-10-15） | 待定（方案待审） | 10-15 框架问题 / 冗余清单、原生代码切入面与构建约束、阶段 0 / 1 / 2 路线；§7 派活清单、§8 待用户定 |
+| [101a_op_enemy_access](101a_op_enemy_access.md) | docs/101 附表 A：干员侧对敌人数据的直接访问（逐处清单） | 参考 |  |
+| [102_rename_plan](102_rename_plan.md) | 改名预案：界面影响清单与 tools/rename_game.py（界面与美术，2026-10-15，协调人派） | 记录 |  |
+| [106_codebase_overview_for_codex](106_codebase_overview_for_codex.md) | 代码架构总览（给 Codex 改代码用，2026-10-17） | 现行 | 10-17：目录职责、每帧次序、干员数据与动画接口、测试工具、Codex 改代码规则 §6 |
+| [126_arch_review_1022](126_arch_review_1022.md) | 架构复审：模块化扩展与耦合（架构，2026-10-22） | 记录 |  |
+| [131_cleanup_inventory](131_cleanup_inventory.md) | 交接前清理盘点（10-24，架构） | 记录 | 10-24：art/incoming 276 MiB 里在用约 21；三批删除计划（零风险约 92 MiB → 需验证约 165 → 需用户定约 41）；.git 2.9 GB 里 1.25 GB 是 codex/* 分… |
+| [132_handoff_1024](132_handoff_1024.md) | 交接手册（2026-10-26 晚版，协调人写；换账号 / 换模型接手先读这一页） | 待定（方案待审） | 10-30 后未更新；现行协作看 41、本索引。是否保留待用户定 |
+| [193_integ_1029](193_integ_1029.md) | integ-1029 整合记录 | 记录 | 10-29：第一批 15 个分支的合入顺序、冲突处理、docs 重编（190 → 192）、素材挪路径 |
+| [286_code_cleanup_1106](286_code_cleanup_1106.md) | 代码整理盘点与去冗余（11-06 夜） | 现行 | 死代码 69 项 + 2 个无引用脚本 + 4 个已定案回退开关已删（第一批），pxplane 重复小工具合到 render/px_util.gd（第二批）；拆大文件排在美术分支 / 帧率会话之后；§6 待定 |
+| [365_docs_cleanup_1118](365_docs_cleanup_1118.md) | docs/ 整理报告（11-18） | 记录 | 删了哪些、合并了哪些、待定哪些、改了哪些引用；archive 撤销 |
+| [reference/README](reference/README.md) | 参考资料 (reference) | 参考 |  |
+| [reference/global_design_framework_v1.0](reference/global_design_framework_v1.0.md) | 水月·深海幸存者 | 参考 |  |
+
+### 发布与平台
+
+| 文档 | 标题 | 状态 | 说明 |
+|---|---|---|---|
+| [22_mobile_web](22_mobile_web.md) | 移动端适配（网页版） | 现行 | 触屏、缩放、超宽、iOS；部署与加载器两节已作废，见 33 |
+| [33_release_build](33_release_build.md) | 打包发布版本 | 现行 | 双版本三包、itch、瘦身、ship.py 一键发版、发版提速（导入缓存 / 并行 / --toy） |
+| [89_toy_cloud_save](89_toy_cloud_save.md) | B站 Toy 云存档 | 现行 | 同步、合并、版本兼容 |
+| [90_codex_toy_cover](90_codex_toy_cover.md) | Codex 美术单：B站 Toy 封面与图标（2026-10-13） | 记录 | 已选定 shadow_1014，未上传 |
+| [99_bilibili_toy_faq](99_bilibili_toy_faq.md) | B 站 Toy 开发者 FAQ（官方答疑帖存档，更新至 2026-10-09） | 现行 | 官方答疑帖存档（外部参考）+ 本作对照；§0 的数字已过时 |
+| [100_store_copy](100_store_copy.md) | 商店页文案与改名候选（2026-10-14，文案；§2 itch 三语 11-15 重写，同日加韩语成四语） | 进行中 | B 站 Toy / itch 商店页文案（按 76、99）与游戏改名候选（文案，10-14） |
+| [121_audio_shrink](121_audio_shrink.md) | 网页包压音频（10-21） | 记录 | 10-21：324 个音频文件包内大小表；BGM 重编码 0.70、语音 24 kHz 约 57 kbps，音效不动；语音按需加载估算；压前压后对比样本与实导大小 |
+| [285_web_shrink_1106](285_web_shrink_1106.md) | 网页包体：拆账与压缩（11-06 方案为正文；10-28 再压缩评估、11-07 Toy 包白占盘点见附录） | 记录 | 合并稿：11-06 拆账与方案为正文，附录 A 原 187（10-28 再压缩）、附录 B 原 295（Toy 包白占） |
+| [299_web_fullscreen_esc_1106](299_web_fullscreen_esc_1106.md) | 网页版全屏与 Esc（11-06） | 记录 |  |
+| [309_font_fd_toy_size_1107](309_font_fd_toy_size_1107.md) | 字体「fd is null」报错 + Toy 包余量（11-07，帧率会话，分支 claude/smallfix-110 | 记录 | 清字形缓存时常驻 Label（性能浮层）用到刚释放的句柄，156 → 0；网页包脚本按源码导出 + 去整行注释，Toy zip 49.21 → 45.92 MB |
+| [311_feedback_entry_1107](311_feedback_entry_1107.md) | 玩家反馈入口（11-07） | 现行 | 结算底栏 + 标题页底部一行「意见反馈」；itch / 桌面问卷、Toy toy.navigate 去视频评论区；balance feedback 留空不显示；反馈码 + tools/feedback_decode.py |
+| [313_toy_support_reward](313_toy_support_reward.md) | B站 Toy「支持作者」奖励（11-07） | 现行 | 只在 Toy 版：关注送 5 张寻访凭证、三连（toy/support_bvid，留空不显示）送 5 张 + 专属分享卡边框；标题页底部「支持作者」浮层、寻访页凭证不足一句提示；领取记录本地 + 云存档并集；SDK 关注… |
+| [317_toy_prelaunch_fixes](317_toy_prelaunch_fixes.md) | Toy 首发前两项修复（11-07） | 记录 | ①引导卡占着左上角时到点小提示排队（tour._held / onboard.card_busy）；②失焦保护 web_focus.gd：清按住状态（圆盘 / 选点取消不确认）、网页对局自动暂停、回前台焦点还画布 |
+| [318_toy_loader_safe_area_1108](318_toy_loader_safe_area_1108.md) | Toy 加载页 iPhone 横屏适配（11-08） | 记录 | 灵动岛 / 胶囊让位（安全区框 + 胶囊估计，局内触屏键同受益）、标志 240 原分辨率、「开始游戏」与「认证通过」不再重叠、关 WebView 点按高亮（粉罩推断） |
+| [349_android_bili_touch_crash_1116](349_android_bili_touch_crash_1116.md) | 安卓 B站 App「拖不动 / 首局十几秒退出」（11-16，分支 claude/mystifying-ptolemy- | 记录 |  |
+| [encrypted_release_20260928](encrypted_release_20260928.md) | Windows encrypted release (2026-09-28) | 现行 | 换机重建加密模板步骤的唯一出处（33「一次性准备」链到这里） |
+| [live_test_launcher](live_test_launcher.md) | 免打包测试版入口 | 现行 | 启动测试版.cmd 的用法；末段 Boss 描述已过时 |
+
+### 测试
+
+| 文档 | 标题 | 状态 | 说明 |
+|---|---|---|---|
+| [29_bot_testing](29_bot_testing.md) | 分档机器人测试（AFK / 手残 / 普通 / 高手） | 现行 | 机器人档位与指标；§3 难度目标已作废（见 38 §8.12），第五档 master 见 36 |
+| [36_testing](36_testing.md) | 测试规范 | 现行 | 快检分级、谁跑全量（§1.1）、复现与基线 TRACE 缓存（§3.2）、云端（§7.5.1，角色会话不推分支）、基线 |
+| [44_test_optimization](44_test_optimization.md) | 测试优化方案（2026-09-26，测试与验收） | 旧稿（仍被引用） | docs/36 §1、§7 |
+| [45_gallery_demo_audit](45_gallery_demo_audit.md) | 图鉴技能演示检查清单（2026-09-26，测试与验收） | 旧稿（仍被引用） |  |
+| [80_ab_method](80_ab_method.md) | 平衡对照口径：置信区间 + 同种子配对（2026-10-12） | 现行 | 置信区间 + 同种子配对；胜率差 <10 点不下结论 |
+| [177_boss_bench](177_boss_bench.md) | Boss 单场测试台（2026-10-27） | 现行 | 10-27：成长事件日志 + rng 状态重放；3 开局 × 2 档；破绽输出占比 |
+| [204_test_system_plan](204_test_system_plan.md) | 测试体系方案（模块化快检 + 对账 + 图校验） | 现行 | 10-30：快检分组、文本数字对账（text_reconcile）、节点 / 引用图校验（graph_lint）；§10 实装记录 |
+| [256_gcp_render](256_gcp_render.md) | GCP 出图流程：本机只写代码，截图与录像放 GCP（11-05） | 现行 | tools/gcp_render.py 一条命令：VM checkout → xvfb + Mesa opengl3 + 中文字体 + index.json → 任务脚本（pxplane / trace_ab / cus… |
+| [308_bot_human_1107](308_bot_human_1107.md) | 机器人 human 档：按用户真人操作习惯校准（11-07） | 现行 | 机器人新档 `--bot=human` 按用户真人操作习惯校准（分心直走、预警反应慢、冲刺当走路、终结技晚放、少指点），用户常用开局 × 难度 0：human 27%、失败局中位 5:08，真人 30%、5:36（exp… |
+| [333_god_suite_four_bosses_1111](333_god_suite_four_bosses_1111.md) | 无敌包四个最终 Boss 连测（11-11） | 记录 | 网址 boss=all / suite=1：auto+loop 一局一个最终 Boss，进度存 localStorage 跨整页重载，闪退那局下次打开补记；每局换高负载编队（凯尔希 / 维什戴尔 / 乌尔比安 …）；性能… |
+| [335_full_flow_debug_1112](335_full_flow_debug_1112.md) | 全流程 debug 与内存释放测试（11-12） | 记录 | 反复进出 10 轮测试、设置 / 暂停全扫、婉拒按钮孤儿节点泄漏、发行包剔除 auto_play / god_suite |
+| [356_full_qa_1117](356_full_qa_1117.md) | 全面体检 11-17（V2.2 → main 1f8772b20） | 记录 |  |
+
+### 性能
+
+| 文档 | 标题 | 状态 | 说明 |
+|---|---|---|---|
+| [50_performance](50_performance.md) | 性能测量（测试与验收，2026-09-30） | 现行 | 帧时测量方法与各轮优化记录；§18 原生运动核心实测，§19 HUD 字体缓存与隔离对照，§20 双端 60 帧迭代（尚未达标），§21 网页为主基准（手机口径、WebGL 状态缓存 −19% / Boss −32%）；… |
+| [287_perf_mem_1106](287_perf_mem_1106.md) | 内存峰值与帧率：基线和前 10 个热点（11-06 夜，帧率会话，分支 claude/perf-mem-fc309b） | 记录 | 基线 main 319b5de4b：手机网页峰值约 635–715 MB（护栏 5:06 降画质），桌面高档 846 MB；全员特效帧条开局全读 206 MB、浊心斯卡蒂歌域每帧重算约 3 ms、铃兰逐像素光环、转平面整… |
+| [305_perf_night_1107](305_perf_night_1107.md) | 性能与帧率夜检（11-07 夜，帧率会话，分支 claude/perf-night-1107） | 记录 | 桌面今天的合入不变差（新旧交替 + 后期减负同局轮换 ±0.5 ms）；修暂停 / 选卡时扬尘只增不减（15 分钟 7600 个、帧时 25 → 90 ms）、手机网页最终 Boss 换曲两首同驻（527 MB 触发护栏… |
+| [312_low_tier_grains_1107](312_low_tier_grains_1107.md) | 低档加一点点粒子（11-07，帧率会话，分支 claude/lowfx-grains-1107） | 记录 | low_grains 0.4→0.55、子弹颗粒低档 0.6 份额、光学粒子仍关；手机网页净差 −0.6 ms、桌面 +0.2 ms；TRACE 一致 |
+| [319_ios_mem_1108](319_ios_mem_1108.md) | iPhone 真机开局内存 600 MB：拆账与修法（11-08，帧率会话，分支 claude/ios-mem-1108 | 记录 | 仿真走玩家路径才对上真机（--balance 跳过标题页）；图鉴 _warm_demo 整局预读 + 载入页全员 V6 特效 + 战斗曲三层全解码；开局 579/511 → 264/260 MB；音频拆账与方案 ①②③ |
+| [332_mobile_late_fps_music_1111](332_mobile_late_fps_music_1111.md) | 手机网页重编队终局闪退 + 后半局帧率 + 终局配乐驻留（11-11） | 记录 | 闪退：emscripten GL 编号表撑大 JS 堆（GC 后 100 → 17 MB，engine_patch §9）+ 闪退报告高频曲线 / 事件日志；终局配乐 37 → 18.6 MiB（偏执泡影二阶段 p1+p… |
+| [355_desk_web_perf_1117](355_desk_web_perf_1117.md) | B站 Toy 网页版电脑端内存与帧率（11-17 夜，分支 claude/awesome-swanson-8672bf， | 记录 | 1080p 显存峰值 449→329、WASM 495→344、配乐缓冲峰值 323→188 MB；帧时安静时持平（卡在 GDScript，wasm 占 89%）；字形预热删过时 31 档横幅字号（全平台）、电脑网页也换… |
+| [mobile_performance_1106](mobile_performance_1106.md) | 手机性能与生命周期修复（2026-11-06） | 记录 | RefCounted 循环、字体护栏限频、同色网格；181 项快检、七人冒烟、TRACE 与局部像素/释放验证通过，手机 30 FPS 待实机验收 |
+
+### 玩法与数值
+
+| 文档 | 标题 | 状态 | 说明 |
+|---|---|---|---|
+| [08_relic_adaptation](08_relic_adaptation.md) | 水月藏品改编总表（262 件） | 旧稿（仍被引用） | game/data/relics.json、relic_effects.json；docs/35、57 |
+| [23_squad_design](23_squad_design.md) | 编队制设计（草案 v0.6，2026-09-25） | 现行 | 队长 / 博士 / 编队模型、作用域、属性公式；§4.2、§6、§7、§8、§9.4、§11.2 已作废 |
+| [27_balance_framework](27_balance_framework.md) | 数值平衡框架（P5） | 现行 | §2 分层、§3 档位与预算、§9 新干员流程在用；§1 目标看 38 §8.12，§6 口径看 80，§4 以 balance.json 为准 |
+| [35_relic_lanes](35_relic_lanes.md) | 藏品流派重做方案 | 现行 | 流派划分、职业门槛、流派加权；部分数值已被 65 §6 改（以 relic_effects.json 为准） |
+| [40_run_telemetry](40_run_telemetry.md) | 局内数据记录 | 现行 | runs.jsonl 格式，按包类型决定写不写 |
+| [42_relic_enemy_curve](42_relic_enemy_curve.md) | 藏品曲线 × 怪物曲线：对不对得上（实测） | 旧稿（仍被引用） | game/data/balance.json boss 段；docs/38 §8.12、35 |
+| [43_telemetry_upload](43_telemetry_upload.md) | 局内数据上报接口（草案） | 待定（方案待审） | 草案，暂缓（储备方案） |
+| [46_ea11_numbers_plan](46_ea11_numbers_plan.md) | EA 1.1 数值优化计划（数值会话） | 旧稿（仍被引用） |  |
+| [49e_奶位分类](49e_奶位分类.md) | 奶位分类方案（已定：用户 9/30 定 C + 塞雷娅净化 + 招募加权关） | 参考 | 「净化 / 回复」标签口径 C + 塞雷娅净化（唯一成文处） |
+| [49f_灯标点燃调整方案](49f_灯标点燃调整方案.md) | 引航灯标「点燃难」三种设计调整比较（玩法系统，2026-09-30，方案稿，未改代码） | 旧稿（仍被引用） |  |
+| [49g_灯标圈内安全方案](49g_灯标圈内安全方案.md) | 引航灯标「圈内安全」方案（Boss与怪物 代 玩法系统，2026-10-01，方案稿，未改代码） | 旧稿（仍被引用） | docs/56 §1；balance.json beacon 段 |
+| [56_beacon_approach](56_beacon_approach.md) | 引航灯标「去不去」机制级方案（玩法系统，2026-10-11，方案稿；§5 原型已实装，缺省关；§6 28 局筛：D 过 | 记录 | 现行灯标规则汇总（§1）与旋钮语义；「圈内安全」见归档 49g |
+| [57_relics_impl](57_relics_impl.md) | 剩余 129 件藏品实装方案（2026-10-11） | 记录 | 逐件读法与新池难度；§2 部分数值以 65 / relic_effects.json 为准 |
+| [65_relic_audit](65_relic_audit.md) | 藏品描述与数值审计（2026-10-11） | 旧稿（仍被引用） | relic_effects.json；docs/35 |
+| [68_contracts](68_contracts.md) | 潮汐合约：危机合约式自选难度（设计 + 概念，2026-10-12） | 旧稿（仍被引用） |  |
+| [71_is3_levels](71_is3_levels.md) | 潮位阶梯：水月肉鸽式逐级难度（设计 + 概念，2026-10-12） | 待定（方案待审） | 16 级逐级难度方案；用户 10-12 定暂缓，等局外成长一起做 |
+| [74_relic_late_value_and_lifesteal](74_relic_late_value_and_lifesteal.md) | 藏品后期价值审计 + 吸血藏品设计（2026-10-12） | 记录 | 熔铸规则与「藏品不设上限」的唯一成文处；§7 第 3 条、L3 未做 |
+| [77_run_stats](77_run_stats.md) | 作战记录（局终统计界面） | 现行 | 局终统计界面与计数口径 |
+| [82_sustain_gap](82_sustain_gap.md) | 无医疗编队 6–9 分钟暴毙：诊断与修复（2026-10-13） | 记录 | §1 遥测字段（dsrc / hsrc / curve_tail）说明；§3.1 已作废，见 83 |
+| [83_squad_sustain_and_dash](83_squad_sustain_and_dash.md) | 入队回复台阶、升级卡改版与冲刺卡（2026-10-13） | 现行 | 入队回复、生存 / 机动 / 协同卡、硬化方案 B、中途换人 |
+| [88_medic_gap](88_medic_gap.md) | 有医疗 / 无医疗编队的差距：诊断与方案（2026-10-13） | 记录 | 方案 A + B 部分已定档（28e28118），文中数值还是定档前的；§7 opbase 旋钮 |
+| [109_meta_progression](109_meta_progression.md) | 局外成长：调研与方案（设计，v3 2026-10-22） | 进行中 | v3（10-22 用户拍板）：潮位系数封顶 ×1.5、评分 ÷ 8；认知塑造 560（删钥匙、攻击改对精英 / Boss、生命去末档）；满点溢出核查（入队回复 0.9 → 0.6）；干员解锁（开局 4 人 + 寻访凭证 … |
+| [111_balance_1021](111_balance_1021.md) | 新美术接入后的干员 / 怪物数值复核（2026-10-21） | 记录 | 10-21：木桩表 + 云端单人开局 / 配对；水月主控生命 125 / 回复 1.5 / 拖拽 20（单开 45→70%）；标准 63.7、Ⅳ 56.5、Ⅷ 38.4（暂停校准，只登记） |
+| [114_command_mode](114_command_mode.md) | 指挥模式（第 1 步原型） | 进行中 | 10-21：一个键循环 随行 / 突击 / 归队（F / LB / 触屏「指挥」键），归队到位后集合站定，突击耐力（25 秒耗尽自动归队、50 秒回满），屏外队友头像标记，balance command 段旋钮；对比视频… |
+| [116_curve_audit](116_curve_audit.md) | 玩家 / 怪物成长曲线审计（2026-10-21，只出方案不改数） | 待定（方案待审） | 10-21：TTK / TTD 按分钟实测（输出 ×22 vs 怪物生命 ×3.2；败局集中 8:20–9:30、单下接触 15–28% 最大生命）；主流肉鸽做法；建议血量不动、压重型怪单下伤害、回血不加 |
+| [119_build_progression_plan](119_build_progression_plan.md) | 升级、招募与藏品构筑改进方案（Claude 实施交接） | 记录 | 基于 e1da3da9 核对升级、招募、六节点与藏品系统，两干员成长分支、有限候选引导、首商人预告及前期压力切片；含 Claude 分阶段实施与验收，尚未改游戏。 |
+| [120_build_branch_p1](120_build_branch_p1.md) | 分支培养实施记录（docs/119 §4.1 / §4.2；P1 试点 4 人 + P2 其余 14 人） | 记录 | 10-22：docs/119 §4.1 节点 4 二选一 + 节点 5 沿路线强化（德克萨斯 / 星熊 / 艾雅法拉 / 铃兰）、§4.2 培养保底简化版；JSON 结构、换人 / 赠送推进事务、参数对照与两路线木桩表；… |
+| [133_supply_crates](133_supply_crates.md) | 补给箱回血（claude/supply-crates，10-24） | 记录 |  |
+| [146_difficulty_curve_1025](146_difficulty_curve_1025.md) | 难度曲线复查（10-25，只量不改数） | 待定（方案待审） | 10-25：常规「前 1:30 很平 → 2 分钟陡升 → 3:00–5:30 平 → 7:00 台阶 → 7:30–9:30 平 → 最终段回落」；高压 / 深潮倍率开局全额生效、深潮高手 0–3:30 就死 27%；… |
+| [147_lamp_mire](147_lamp_mire.md) | 灯火与溟痕（方案 B） | 记录 | 10-25：灯火 ≥70 身边溟痕慢慢收缩、踩着伤害 / 神经 −80%；<30 附近溟痕朝队长挪并长大、新溟痕刷得更近更勤；灯油试过 25→15、25→8（方案 A）后用户定调回原值（25 / 0.006），只保留溟痕… |
+| [150_hunt_into_hordes](150_hunt_into_hordes.md) | 围猎并入大群 + 难度曲线 A / B（10-25） | 记录 | 10-25：独立围猎关掉，3:45 / 5:00 / 6:15 固定节拍大群（5:00、6:15 围猎型：画面外合拢、缺口 16°、只数 ×1.5、HUD 只画缺口箭头）；所有大群速度散布 + 分批 + 左右摆「慢慢来」… |
+| [159_assault_dash](159_assault_dash.md) | 突击模式队友低频自冲刺（10-26） | 记录 | 10-26：突击中其他队友每 7 秒朝目标冲一段（复用第一下冲锋），德克萨斯每 4.5 秒带伤害冲刺；随行 / 归队不冲；`command/roam_dash` 可调 |
+| [161_elite_squad](161_elite_squad.md) | 紧急作战改「精英小队」 | 记录 | 10-26：按阶段 8 / 10 / 12 只高一阶普通怪，生命 ×2、伤害 ×1.3、共用甲壳 / 潮盾词缀、红色描边 + 脚下红光、入场冲锋；计入同屏上限、放不下的推迟；全灭宝箱（稀有加权）+ 20 源石锭；iPho… |
+| [162_swap_frequency](162_swap_frequency.md) | 后期换人频率（10-26） | 记录 | 10-26：满员后换人卡出现率 0.55 → 0.25（7:00 后 0.12）、两张深度卡时不出；后期换人卡间隔 46–59 秒 → 184–265 秒 |
+| [163_visible_build_growth](163_visible_build_growth.md) | 可见成长藏品（设计稿）：投射物 +1 / 近战范围与剑气 / 召唤物 +1 | 记录 | 10-26：盘点构筑体系与「拿到后看得出变强」（仅约 15% 的藏品画面可见）；远程投射物 +1（银餐叉散射 / 左轮弹巢连发）、近战范围 + 普攻剑气（锈蚀刀片 / 老近卫军之锋 / 赶车夫的长鞭）、召唤物 +1 / … |
+| [163b_build_rework_plan_codex](163b_build_rework_plan_codex.md) | 七条流派完整改造方案 v2（审阅稿） | 记录 | Codex 10-26：多弹 / 近战扩域 / 召唤驻场 / 控场引爆 / 弱点收割 / 护盾反击 / 治疗转伤；改 15 件 + 核对 5 件；撤回重击、号角减速、相机合影计数、召唤物副体拆伤 |
+| [163c_relic_inventory_codex](163c_relic_inventory_codex.md) | 全量藏品分类与改造审阅底表 | 参考 | 12 个机制主类、当前效果 / 等级 / 渠道 / 前置 / 反馈方式 |
+| [163d_build_fusion](163d_build_fusion.md) | 构筑改造融合稿：Codex 163B 七条流派 × Claude 可见成长 7 件 | 记录 | 10-27：以 163B 七流派为骨架逐件对号；五条按推荐定稿（#56 清群倍率、#129 副体只 +1、#130 覆盖不延寿、四流派第二批、固定上限）；§6 含 5 件范围画面核对与三件闪避藏品保底 |
+| [172_elite_catchup](172_elite_catchup.md) | 精英化落后补偿（10-27） | 记录 | 10-28 定档：深度卡按落后精英阶段加权（×1.8^差 封顶 3）、队长领先 ≥5 节点时保底让给落后者；队长精二 2:08 → 3:29、队友比队长晚 4:04 → 2:42（队友绝对时刻不变）；全队累计培养曲线不变 |
+| [178_danger_pass](178_danger_pass.md) | 难度危险感回调（claude/danger-pass，10-28） | 记录 | 10-28：防暴毙保护收窄、普通怪伤害增益（claude/danger-pass） |
+| [179_meta_first18](179_meta_first18.md) | 前 18 个细胞改成「看得见」的数值（方案，未改代码） | 待定（方案待审） | 10-28：18 细胞 = 攻击性Ⅰ + 生存本能Ⅰ +12% + 生命感悟Ⅰ +0.3 + 自我保护Ⅰ -5%；危机感Ⅰ挪到第五位；总量 / 满点不变，预计 m18 50–58% |
+| [181_operator_lanes](181_operator_lanes.md) | 干员流派标签重做（设计稿，待审） | 待定（方案待审） | 10-28 用户提出：每人 1–2 个流派（7 个），流派件主效果只给本流派，宽泛附带删或改专属；全员流派表 + 逐件改法 + 4 个待定 |
+| [191_relic_pacing](191_relic_pacing.md) | 藏品节奏：来源拆分与降频 | 记录 | 10-28/29：遥测加来源；精英掉箱 0.15 + 2:00 前不掉、途中一后移 35 秒、商店藏品连买涨价；大时刻宝箱多选项 + 稀有加权；升华 / 核心 73 件第一只中期 Boss 倒下前不出。胜局 17 → 1… |
+| [194_dmg_curve](194_dmg_curve.md) | 普通怪伤害曲线平滑化（claude/dmg-curve，10-29） | 记录 | 10-29：后期一下封顶 30、前期 0–3 分钟平滑曲线、整条单调无断崖（dmg_curve/knots） |
+| [196_command_target](196_command_target.md) | 指挥模式「指点」：指定地点 / 目标进攻（方案，10-29） | 待定（方案待审） | 10-29：突击中指点地面（点位）或精英 / Boss（集火），取代清杂 / Boss 优先，圆盘仍 5 格；慢动作选点沿用 ×0.2 + 扣作战时限防滥用；手机拖拽 / 电脑点选 / 手柄光标；机器人三档校准；含默认关… |
+| [197_relic_taxonomy](197_relic_taxonomy.md) | 藏品分类统一成一套（映射表，待审） | 待定（方案待审） | 10-29：lanes A–H / cat / effect_category / tags 四套合成一个 `lane`（docs/181 七流派 + 职业 / 通用 / 生存 / 经济）；265 件逐件映射、每个读取方… |
+| [199_bal_audit](199_bal_audit.md) | docs/199 balance 旋钮对账（10-29，claude/bal-audit） | 记录 | 10-29：代码缺省值与 balance.json 不一致的 170 键（已改 208 读点，运行结果不变）；只在代码里的 366 键清单；`Bal.v` 路径缓存（桌面同局轮换 -0.3 ms / 帧）；`tools/… |
+| [200_telemetry_plan](200_telemetry_plan.md) | 数据埋点：死因分析与补洞提案 | 待定（方案待审） | 10-29：用 cal1029 云端 1237 个死亡局做死因分析（tools/death_report.py，暴毙 = 普通怪围死为主）；现有埋点清单、三支柱缺口、分期（P0 遥测补洞 1）；只提案不实现 |
+| [201_difficulty_calibration](201_difficulty_calibration.md) | 难度校准（终结技 + 连携版，10-30） | 记录 |  |
+| [202_growth_mechanics](202_growth_mechanics.md) | 成长节点去数值化（设计稿，20 人，待审） | 记录 |  |
+| [203_relic_trim](203_relic_trim.md) | 藏品精简方案（定稿，实装中） | 待定（方案待审） | 10-30：100 件纯属性藏品逐件分 改打法 19 / 删 30 / 填充 44 / 不动 7；生存被动卡 6 张删、协同 2 张改流派卡 + 新 4 张；回血收成 5 条；改打法份额 36% → 58%；未动数据 |
+| [209_squad_command_v2](209_squad_command_v2.md) | 小队指挥 v2：战术姿态 · 连携重设计 · 终结技慢动作瞄准 | 记录 |  |
+| [217_bond_link](217_bond_link.md) | 羁绊连携（连携 v2 第二期，docs/209 §2.3） | 记录 |  |
+| [218_relic_ingot_1101](218_relic_ingot_1101.md) | 源石锭藏品：商店按售价保底（11-01） | 记录 | 用户口径「越买越赚可以，不能亏」：商店买的立即得锭藏品到手 = max(原数额, ceil(实付 × shop/ingot_relic_floor 1.2))，卡面写保底数额；补给箱 / 事件照原数额；第一版（去锭 / … |
+| [222_lamp_tiers_1102](222_lamp_tiers_1102.md) | 灯火三档（11-02） | 记录 |  |
+| [240_lamp_relics_1103](240_lamp_relics_1103.md) | 灯火藏品改成持续效果（11-03） | 记录 |  |
+| [248_late_power_ab](248_late_power_ab.md) | 后期打得动：形状随成长 + 形状卡 数值原型与云端 A/B（11-05） | 待定（方案待审） | 精一 / 精二 / Lv14 / Lv20 门槛按「近战 / 多弹 / 召唤 / 控场」四条流派加范围、剑气、多射、穿透（shape_lv 表 + 例外表）；协同·广回池，新卡扩散 / 连锁；诊断 80 对 + 胜率 4… |
+| [249_elite_moment](249_elite_moment.md) | 成长看得见：精英化时刻 + 看得见的节点（11-05） | 待定（方案待审） | growth/elite_show 定格 + 横幅 + 爆亮 + 常驻脚下光池；growth/visible_nodes 节点按流派换范围 / 弹数 / 体量、精二本人一档 + 每人一条全队效果、怪物生命 ×1.08 补… |
+| [250_ult_rebalance_ab](250_ult_rebalance_ab.md) | 终结技重新定位 A/B（11-05） | 待定（方案待审） | 开关 ult/rework（缺省 0）：降频 / 精英与中期 Boss 单次上限 / 清一圈留余烬；诊断 80 局 × 4 组 + 胜率 84 局 × 3 组 × 2 档；推荐与 growth/late_shape 一起… |
+| [252_solo_carry_1105](252_solo_carry_1105.md) | 单 C：自动招募可婉拒 + 单人局胜率小样（11-05） | 待定（方案待审） | 铜印 / 银印 / 立即招募事件改「接受入队 / 婉拒」二选一（机器人同帧接受，TRACE 逐行一致）；--bot_solo=1 单人局机器人；normal 160 局两组胜率均 0、单人早倒 35 秒，高手小样 3/5… |
+| [282_bond_non_numeric](282_bond_non_numeric.md) | 羁绊不只是数值：盘点与玩法差异方案（设计稿，11-06） | 待定（方案待审） | 11-06 设计稿，未审未做 |
+| [288_standard_up_1106](288_standard_up_1106.md) | 普通难度略微调高（11-06） | 记录 | 普通难度略微调高，`difficulty/standard/enemy_hp` 1.08 → 1.14，GCP 对照 m18 76 → 70、m0 54.5 → 53。 |
+| [307_tracer_armor_regen_1107](307_tracer_armor_regen_1107.md) | 引痕者削弱 + 重装护甲（11-07） | 记录 |  |
+| [324_shop_econ_relics_1108](324_shop_econ_relics_1108.md) | 经济藏品去同质 + 货架去重（11-08） | 记录 |  |
+| [326_ticket_rule_1108](326_ticket_rule_1108.md) | 寻访凭证新规则与解锁节奏（11-08） | 记录 | 通关 1 张 / 未通关 0 张；结算页细胞够 15 时问是否兑换（与认知塑造共用余额）、「本局获得」分两行；解锁节奏表：一般玩家一半细胞换约 7 局解锁全员，不偏慢；Toy 10 张正好补齐十连后剩下的 10 人 |
+| [331_balance_audit_1110](331_balance_audit_1110.md) | 全局数值体检（11-10 诊断；11-11 第一轮改数见 §8） | 记录 | 敌人血量 / 涌入、干员秒伤与木桩表、生存、Boss 用时与单发、输出 ÷ 血量；断崖 3:30–7（后期补偿 ×2 + 生命零成长 + 卡门），偏松 7–10 与中期 Boss；§8：补偿拉升 180→480 秒、大群… |
+| [335_balance_check_1112](335_balance_check_1112.md) | 全局数值检查：合理范围 + 计算正确性（11-12） | 待定（方案待审） | 设计原理出处（Slay the Spire GDC 2019、Schreiber 成本曲线 / 被支配选项、风险之雨 2 双曲叠层、Brotato 危险等级、Hades 契约、Vampire Survivors 诅咒）；… |
+
+### 干员
+
+| 文档 | 标题 | 状态 | 说明 |
+|---|---|---|---|
+| [25_operator_fx](25_operator_fx.md) | 编队干员特效设计（Claude，2026-09-25） | 现行 | 成长「看得见」规则、帧条锚点、能天使弹药色；§5.2 精二列被 91 取代 |
+| [26_operator_skills](26_operator_skills.md) | 干员三技能表（契约 v2.5，2026-09-30；v2.1 起 2026-09-25） | 现行 | 只看文首契约（普攻 + 3 技能 + 天赋、手动技能 / 普攻）；技能表已过时，以 JSON + 61 为准 |
+| [31_arknights_reference](31_arknights_reference.md) | 原作技能与表现对照（13 名干员） | 参考 | 原作技能与档案摘录；总览差距表已过时 |
+| [59_batch3_operators](59_batch3_operators.md) | 第三批干员技能设计（浊心斯卡蒂 / 德克萨斯 / 星熊 / 能天使 / 安洁莉娜） | 旧稿（仍被引用） | docs/61 §10–14；各干员 JSON |
+| [60_skill_tag_catalog](60_skill_tag_catalog.md) | 原作技能 / 天赋 / 特性词汇表 → 本作干员积木（2026-10-11） | 现行 | 积木命名口径（与 61 不一致时以 60 为准），新干员的菜单 |
+| [61_operator_blocks](61_operator_blocks.md) | 干员积木规格（数据驱动干员 第一步，2026-10-11） | 现行 | 数据驱动干员的唯一规格，18 人已数据化 |
+| [72_operator_stat_audit](72_operator_stat_audit.md) | 干员初始数值审计（10-12） | 旧稿（仍被引用） | 干员 JSON；docs/23 文首公式、79 |
+| [79_op_dummy_table](79_op_dummy_table.md) | 干员木桩表（理论预算） | 现行 | 理论预算口径与工具 |
+| [91_elite_forms](91_elite_forms.md) | 精英化攻击形态（18 名干员，已审定 2026-10-13） | 现行 | §0.5 规则 + 18 人精一 / 精二形态（已全部实现） |
+| [105_op_anim_arch_for_codex](105_op_anim_arch_for_codex.md) | 干员动画接口：现状架构与交给 Codex 的改造说明（2026-10-17） | 记录 | 核心迁移已在 6b697796 完成；现行契约见 87 §3.5，补齐序列恢复与互斥校验；截图验收仍由界面与美术负责 |
+| [107_summon_visual_alignment](107_summon_visual_alignment.md) | 召唤物原生美术与运行时对齐（2026-10-20） | 待定（方案待审） | 独立显示时钟、真实出手对齐、七条身体接线与Mon3tr特效返工判断；旧专用动作保留 |
+| [108_operator_runtime_arch](108_operator_runtime_arch.md) | 干员动画运行时架构（现行，2026-10-20；同日标准化收口见 §12） | 现行 | 10-20 架构审读 Codex 10-17 起代码：分层、每帧次序、状态机、字段表、画布口径、冲突 / 废弃清单、剩余 9 人接入方案、校验检查表、审查发现 |
+| [118_op_response_actions](118_op_response_actions.md) | 干员响应动作（设计稿） | 待定（方案待审） | 10-21：队长冲刺 / 站定 / 开技能 / 指挥切换四类触发源，18 人每人一条轻量响应；机动性约束、四个共用触发器、同 seed 开关、第一批切片建议 |
+| [122_op_lappland](122_op_lappland.md) | 拉普兰德 `lappland` 设计稿与数值（近卫 · 领主） | 记录 | 10-22：原作身份 / 技能查证（日晷 / 狼魂 / 精神摧毁；「狼之隐 / 深渊的咆哮」查无）、普攻双刃 + 领主剑气、封印天赋、三技能、精一狼之舞 / 精二双生刃、节点 4 断喝 / 狼魂·狂、响应动作「噤声」（设… |
+| [123_op_gladiia](123_op_gladiia.md) | 歌蕾蒂娅 `gladiia` 设计稿与数值（特种 · 钩索师 · 深海猎人） | 记录 | 10-22：原作查证（缺水的大洋裂断 / 掌握怒海 / 碎漩狂舞、阿戈尔的波涛）、普攻每下掷钩拖回（hookshot）、深海猎人续航天赋、三技能、精一锚定 / 精二冲撞、节点 4 深海的庇护 / 怒海、响应动作「回收」（… |
+| [128_op_1x_redraw_move_attack](128_op_1x_redraw_move_attack.md) | 干员 1 倍头像素（Codex 单）+ 1 倍帧条 / 移动攻击现状 | 记录 |  |
+| [129_op_texas_rework](129_op_texas_rework.md) | 德克萨斯普攻重设计（10-23 用户「自动冲刺太晕」；10-24 拍板方案 A「阻挡」） | 记录 | 10-23 用户「自动冲刺太晕」→ 疾刃三连（27%）→ §11 三方案 → 10-24 拍板 A：成长节点逐个对应、技能名对照与待定、木桩表、全员自动技能空放清单 |
+| [129_ulpianus_s3_charge](129_ulpianus_s3_charge.md) | 乌尔比安 S3「必须开辟的通路」冲锋 + 歌蕾蒂娅钩索拉人修复（10-24） | 记录 | 10-24：S3 掷锚后本体沿锁链冲向落点（沿途 120% 宽 50 每名一次 + 落地 200%）、画面走光学观感；歌蕾蒂娅「拉不动人」复现（落点 230 ≈ 射程 240、push_out 反推、走廊漏人）与修复（h… |
+| [140_op_anim_audit](140_op_anim_audit.md) | 干员动作审计：出手对时、攻速、跑动步频、星熊格挡、塞雷娅 S3（2026-10-24） | 记录 | 10-24：全员普攻出手 0 帧偏差、跑步不滑；修移动中技能出手帧被跑步截掉（12 人）、星熊 S1 格挡跑动条、塞雷娅 S3 按原作放盾 + 空手跑；水月 / 能天使 3 倍攻速被 min_duration 卡待定；用… |
+| [143_ulpianus_charge_fx](143_ulpianus_charge_fx.md) | 乌尔比安 S3 冲锋特效（像素颗粒，10-24） | 记录 | 10-24：起冲锚尖聚光 → 路径深海水体颗粒逐颗熄灭 → 终点冲击颗粒环 + 落地冷却水花；沿途中档 / 落地重档命中三档；低画质回退 docs/129 画法；探针 tools/probes/ulp_charge_sh… |
+| [151_skill_need_enemy](151_skill_need_enemy.md) | 自动技能「范围内没有敌人不放」全员统一（10-25） | 记录 | 10-25：门槛 = need_enemy → 伤害积木半径 + 20 → 普攻射程；治疗 / 增益类也加门槛；推进之王 S2 150 → 130；校验每个技能都能推出门槛；全表 |
+| [153_attack_scale](153_attack_scale.md) | 攻速整条缩放：去掉动作窗口 / 出手间隔的下限（10-25） | 记录 | 10-25：攻击条整条按攻速等比缩短，动画倍率超 3 隔帧抽取；盘点各干员节奏下限；水月 1× / 2.5× / 4× 实测频率；1× TRACE 不变 |
+| [160_op_synergy_design](160_op_synergy_design.md) | 干员连携技（设计稿，10-26，只出方案、未改代码） | 记录 | 10-26：有 PRTS 出处的关系表（德克萨斯×能天使 / 拉普兰德、乌尔比安×斯卡蒂、幽灵鲨×歌蕾蒂娅、深海猎人群）；触发方案 α / β / γ 对比，推荐 β 技能联动；每对效果草案与数值区间、不成为唯一最优的约… |
+| [160_run_trail_colors](160_run_trail_colors.md) | 跑动拖尾的干员代表色（10-26） | 记录 | 10-26：全员主 / 辅色表（data/characters/<id>.json trail_col）+ 取色依据；数量 / 尺寸不变；旋钮 render/trail_col |
+| [199_ult_proto](199_ult_proto.md) | 终结技 · 连携技 · 连携终结技 原型（第一步） | 记录 |  |
+| [216_ult_review_1101](216_ult_review_1101.md) | 终结技审查（11-01） | 记录 | 20 人终结技全流程 + 合集视频；图鉴描述、瞄准提示、圆盘互斥、幽灵鲨冲击帧、安洁莉娜 / 艾丽妮配声已修；艾丽妮改名、逻各斯时停声等待定 |
+| [220_wisadel_fx_calm](220_wisadel_fx_calm.md) | 维什戴尔收特效（11-01） | 记录 | 齐射只留一团主爆炸、去二次闪光 / 内环、亮度封顶、队友降一档、同屏上限；fx/wd_calm=0 一键回退；后期每秒特效 124 → 57 |
+| [275_ult_px_irene_1105](275_ult_px_irene_1105.md) | 终结技画面转平面试点 · 艾丽妮「宣判」（11-05） | 记录 | 只改画面：纹章保留图案、重采样到美术像素格压扁、改白；光链 / 穿梭斩线 / 连环爆 / 收尾斩击逐格画，白 + 亮紫，潮水作辅色；冲击帧保留，剪影换成新斩线 + 主裂缝；起手蓄力光点收进提灯 |
+| [280_ult_art_gap_1105](280_ult_art_gap_1105.md) | 终结技 × 新美术差异盘点（20 人，11-05） | 待定（方案待审） | §6 为 11-06 终结技逐人定稿与通用口径（慢动作回速 0.35 秒）。 |
+| [297_lappland_pose_audit_1107](297_lappland_pose_audit_1107.md) | 拉普兰德「双手平举前推」帧核对（11-07） | 记录 | 只改画面，同种子 TRACE 相同；蹲身前推只留 S3 |
+| [298_exu_prefer_visible](298_exu_prefer_visible.md) | 能天使成长节点 01「对空优先」看得见（11-06） | 记录 |  |
+| [298_m3_revive_badge_1106](298_m3_revive_badge_1106.md) | 指挥台 Mon3tr 小牌（11-06） | 记录 |  |
+| [302_branch_card_desc_1107](302_branch_card_desc_1107.md) | 分支成长节点卡面写两条路线（11-07） | 记录 |  |
+| [304_doctor_sprite_audit_1107](304_doctor_sprite_audit_1107.md) | 博士帧条核查与补画派单（2026-11-07） | 待定（方案待审） | 先重画 idle + run |
+| [310_growth_node_visibility_audit](310_growth_node_visibility_audit.md) | 成长节点可视化普查（20 名干员，11-07） | 待定（方案待审） | 20 人 160 行：明显 101、偏小 29、混同 19、无画面 11；主因转平面下 o.fx 不画（约 20 项）；修法全为画面，2 项另给机制方案 |
+| [327_skill_run_slide_1108](327_skill_run_slide_1108.md) | 技能期间滑步（11-08） | 记录 |  |
+| [335_attack_anim_sync_1112](335_attack_anim_sync_1112.md) | 动作与攻速对齐检查（11-12） | 记录 | 20 人 × 1/2/4 倍攻速 30 秒实测：普攻动作全随攻速缩、出伤帧对齐 25/25；唯一真问题歌蕾蒂娅钩索（4× 只有 1.9×）已修，其余偏差是 1/60 帧取整；统一规则；同种子 TRACE 仅乌尔比安升速后… |
+| [353_wisadel_ult_flashy_1117](353_wisadel_ult_flashy_1117.md) | 维什戴尔终结技「更华丽」原型（11-17） | 记录 |  |
+| [plans/2026-10-18-three-attack-timing](plans/2026-10-18-three-attack-timing.md) | 三人全动画与完整攻击时序接入 | 记录 | 三人完整动作、攻速适配及测试包；试验分支，未合入 main |
+| [plans/2026-10-20-spine-run-trial](plans/2026-10-20-spine-run-trial.md) | Spine 部件跑步试做（2026-10-20，干员） | 记录 |  |
+| [plans/2026-10-29-mon3tr-hp-plan](plans/2026-10-29-mon3tr-hp-plan.md) | 凯尔希削弱方案：Mon3tr 有血条、会倒、治疗分配（2026-10-29；用户 10-29 定 5 项后已实现，见 § | 待定（方案待审） | 怪不打召唤物的现状、推荐不吸仇恨、削弱估计 85 → 74–78%、改动文件与待定 5 项 |
+
+### 敌人与 Boss
+
+| 文档 | 标题 | 状态 | 说明 |
+|---|---|---|---|
+| [38_boss_p1_art_acceptance](38_boss_p1_art_acceptance.md) | Boss P1 美术验收（2026-09-26，测试与验收） | 旧稿（仍被引用） |  |
+| [38_boss_p1_art_handoff](38_boss_p1_art_handoff.md) | Boss 重做 P1：最后的骑士 / 伊莎玛拉动画美术交接 | 旧稿（仍被引用） |  |
+| [38_boss_redesign](38_boss_redesign.md) | Boss 重做方案（v3，2026-09-26，用户已确认 §7；代码结构商定中） | 现行 | §1 框架、§8.11 预警、§8.12 难度目标、§8.14 停刷仍有效；已改版 Boss 的招式（第 1、2 批：泡影、伊莎玛拉、伊祖米克、骑士、塑路者、两位圣徒）以 95 为准，接潮组暂按本文 |
+| [48_monster_vfx_audit](48_monster_vfx_audit.md) | 怪物特效审查（2026-09-27，测试与验收，只读） | 旧稿（仍被引用） |  |
+| [49c_Boss原作](49c_Boss原作.md) | Boss 原作对照（水月与深蓝之树） | 现行 | 水月 Boss 原作资料；伊祖米克层号与 49a 不一致，待核（49 §7） |
+| [49d_类幸存者Boss](49d_类幸存者Boss.md) | 类幸存者游戏的 Boss 设计参考 | 现行 | 同类游戏 Boss 设计参考；灯标、招式令牌等建议已实施 |
+| [94_codex_enemy_redraw](94_codex_enemy_redraw.md) | Codex 美术单：普通怪物与精英怪物重画（2026-10-14） | 记录 | §0 敌人条款被 98 引用；暖橙补单已被冷色回调，晚补单未交 |
+| [95_boss_moves](95_boss_moves.md) | Boss 招式与特效改版设计稿（每 Boss 4 招，2026-10-14） | 现行 | 每 Boss 4 招；第 1、2 批已合入（§15、§16），第 3 批（接潮组）与 Boss @2x 补单待做；最终四 Boss 以 165 为准，其余招式以本文为准 |
+| [96_codex_enemy_attack_fx](96_codex_enemy_attack_fx.md) | Codex 美术单：普通怪 / 精英怪攻击特效（2026-10-14） | 记录 | 第 1 批已接入，第 2 / 3 批未交 |
+| [115_boss_portrait_candidates](115_boss_portrait_candidates.md) | Boss 登场名片头像 — 现状、候选与候选 A 实现（2026-10-21） | 记录 | 10-21：10 只都有专画头像但是糊剪影；用户选候选 A（局内像素裁切放大，暂弃用专画头像文件但不删），实现记录 + e_knight@2x 尺寸异常待核实 |
+| [117_boss_pacing_audit](117_boss_pacing_audit.md) | 后期 Boss 垃圾时间审计（2026-10-21，只出方案不改数） | 待定（方案待审） | 10-21：最终 Boss 用时中位 42–101 秒（偏短不偏长）、战内无空转；根因是 10:00 登场后场上敌人数 67→11（−83%）——`final/stop_mobs` + `trickle_mult` 0.… |
+| [137_boss_flash](137_boss_flash.md) | 最终 Boss 战频闪：测量与修复（10-24） | 记录 | 10-24：主因 Boss 受击白闪每下命中都续（起闪 6–7 次/秒、六七成时间是白的），命中三档次要；改为白闪间隔 ≥ 0.4 秒、0.09 秒淡出、Boss 不换受击姿态、去蓄力 sin 振荡；修后起闪 1.6–2… |
+| [142b_boss_axis](142b_boss_axis.md) | Boss 改版方案 B：每只一个主轴 + 合并 A 的新弹幕（10-25，待用户审；已按自动攻击核过） | 现行 | 现行推荐方案；附录 A 为原 142 方案 A |
+| [145_enemy_canon_and_reach](145_enemy_canon_and_reach.md) | 小怪原作核对 + 攻击范围加强方案 | 待定（方案待审） | 10-24：19 种普通怪 / 精英对照 PRTS 与解包数据（名字全对；奠基者 / 引痕者 / 育母弱点与原作相反、箱形恐鱼免疫非原作、囊海爬行者档案不符）；攻击范围现状表；加强 5 只（育母落点圈 30→46、狂奔者… |
+| [155_mire_trail_fix](155_mire_trail_fix.md) | 溟痕「一下子一长串，然后就不动了」修复 | 记录 | 10-25：引痕者拖痕改按距离铺、每只 ≤8 片；怪物溟痕单独计数 16、超量淡出最老的；自然溟痕满了淡出最远一片再刷新；新溟痕 3 秒内不被灯火退散；修前 / 修后对比 build/mire_trail_before_… |
+| [158_horde_stuck_fix](158_horde_stuck_fix.md) | 「怪物身上冒着红光卡在原地」修复 | 记录 | 10-26：大群分批出发延迟借用了收割者专用的 wake_t（只有收割者倒计时），其他怪永远站着，引痕者半血狂暴变红；改用 depart_t 统一倒计时；修前 / 修后对比 build/horde_stuck_befor… |
+| [165_final_boss_complete_1027](165_final_boss_complete_1027.md) | 最终 Boss 完整改造与联动修正（2026-10-27） | 现行 | 最终四 Boss 的现行口径；附录 A 原 168（材质 / 泡影追踪返修） |
+| [169_knight_combos_1027](169_knight_combos_1027.md) | 骑士攻击连段 | 现行 | 放射双冰阵、冰波与三刺、二阶段新招；用户提供 Pimen / CreativeKind 素材，统一冷灰蓝及碰撞柱，实机 v4；场地裁剪、闭合夹击、四 Boss 分拍压力；一阶段插枪与耗尽后掷枪布柱，二阶段清柱并停止生成；… |
+| [170_paranoia_combos_1027](170_paranoia_combos_1027.md) | 偏执泡影连携攻势与弹幕图案（2026-10-27） | 现行 | 每幕两组有限连段轮换、收招破绽、打断规则；新增 7 种弹幕（身边睁眼轮射、正反旋、自机狙、错位缺口、缝隙墙、停滞再瞄准、幻影空心弹），主动攻击 7→14；开关 boss/paranoia_combos |
+| [171_saints_1027](171_saints_1027.md) | 圣徒伊比利亚 / 圣徒卡门：出招组、连携与分级弹幕（10-27） | 现行 | 每幕 2 组连携、打空弹药装填 = 破绽；伊比利亚重炮 → 碎弹（炮线残弹、弹坑、重炮弹），卡门直线弹列 / 交叉弹列 + 封锁线；大弹发光核心；不照搬符卡制度 |
+| [173_ishar_combos_1027](173_ishar_combos_1027.md) | 伊莎玛拉二阶段连段与图案弹幕（2026-10-27） | 现行 | 附录 A 原 173b（三幕一页方案） |
+| [174_izumik_combos_1027](174_izumik_combos_1027.md) | 伊祖米克：分幕连携、专属弹幕与拦截通道（2026-10-27） | 现行 | 每幕两组连携（≤4 段 + 收招破绽），5 种新弹幕（潮汐相位流、子代共鸣、螺旋弹臂、习得弹、回流弹）与拦截主轴挂钩；迁徙潮预警改波峰勾边；boss/izumik_cards 可 A/B |
+| [175_path_tide_1027](175_path_tide_1027.md) | 塑路者 / 接潮组：弹幕图案、连段与粒子预警（10-27） | 现行 | 每幕两套图案逐拍交替、分级弹体与显形、颗粒点预警；塑路者分形 / 树枝 / 回流 / 冲撞留弹，接潮组两体镜像弹幕与配合连段；光束蓄力 / 消散、图案弹伤害 ×0.8 旋钮；录像 build/boss_path_tide… |
+| [182_enemy_windup](182_enemy_windup.md) | 普通怪蓄力加速（claude/enemy-windup，10-28） | 记录 | 10-28：非精英非 Boss 的蓄力 / 预警 / 引信 × windup_mult（原 179，撞号改 182） |
+| [183_knight_stage_plan](183_knight_stage_plan.md) | 最后的骑士 · 分阶段方案 v2（10-28） | 现行 | 10-28：每幕招式组、三幕寒潮、二幕冰棱带、重生冲锋形态（原 171，撞号改 183） |
+| [201_final_boss_weak_diag](201_final_boss_weak_diag.md) | 最终 Boss「太弱」诊断与加伤（10-29） | 记录 | 10-29：最终 Boss 加伤血量不动；弹速 / 弹数 / 节奏旋钮；伊祖米克连携调度改版（izumik-sched） |
+| [206_boss_fx_particles](206_boss_fx_particles.md) | Boss 弹与招式粒子化（特效单） | 记录 |  |
+| [212_boss_checkup_1101](212_boss_checkup_1101.md) | Boss 体检（11-01）：击杀用时、按招式承伤、骑士弧斩命中率 | 记录 |  |
+| [283_mid_boss_visibility](283_mid_boss_visibility.md) | 中期 Boss 不够显眼：诊断与改法（设计稿，11-06） | 待定（方案待审） | 中期 Boss 不显眼的诊断（体型与精英相同）与改法，不加弹幕提示。 |
+| [306_boss_danmaku_touhou_1107](306_boss_danmaku_touhou_1107.md) | Boss 弹幕东方化：样板、对比与进游戏（11-07；§8 已做进游戏，render/danmaku_v2 缺省开） | 现行 | Boss 弹体东方化（圆弹三档 + 米弹 + 针弹、每 Boss 专属色），中期 Boss 为重点，GCP 同帧实机对比 + 运行时生成、包体 0。 |
+| [ea_ishar_20260927](ea_ishar_20260927.md) | 伊莎玛拉人形治疗与敌对转化（2026-09-27） | 旧稿（仍被引用） | docs/38 §8.6、95 |
+| [warn_v2_1105](warn_v2_1105.md) | 普通怪预警：固定红边与内部计时扫线（11-05 修订 5） | 进行中 | `render/warn_v2` 默认关，普通怪细边与最后 0.3 秒信号，精英/Boss 保持原画法；截图与云端验收说明。 |
+
+### 事件与结局
+
+| 文档 | 标题 | 状态 | 说明 |
+|---|---|---|---|
+| [18_ending2_knight](18_ending2_knight.md) | 结局二「最后的骑士」：骑士如何成为同伴，又如何成为最终 Boss（设计稿） | 现行 | §1 骑士同伴 → 9:00 入潮 → 10:00 中心重生；§2 / §3 数值以 knight.gd、95 §4 为准 |
+| [154_node_cards](154_node_cards.md) | 翻节点卡：多结局选路正式方案（10-25 定稿，待开工） | 现行 | 10-25：取代 148 与海嗣祭坛；首通结局一后，3:30 / 7:00 中 Boss 后翻 3 张节点卡；结局只看信物、不绑灯火，结局入口每局必出、达成过的描结局色边；卡组权重、事件清单（原作 / 本作拟）、接口、机… |
+| [156_event_cg](156_event_cg.md) | 事件插图：原作 CG 像素重构调研（10-26） | 待定（方案待审） | 10-26：docs/154 用到的 18 件事件在原作都有 1600×900 专属 CG（rogue_2 choiceScenes.background）；PRTS 链接、裁切、难度、优先级（P1 结局线 7 张）；3… |
+| [184_event_redesign](184_event_redesign.md) | 事件改版：有代价的取舍 + 按构筑出对口交易（10-27 设计稿；10-28 用户「都按推荐做」，P1 已实装，见 §9 | 记录 | 10-27：每次摊牌至少一张交易卡、最多一张无代价卡，每件事件留稳妥项；按藏品 lanes 算主流派出对口奖励；一局 4 次翻卡（加 1:20 / 6:00 两张卡的途中路口），首通前也开但无结局入口；结局线规则不变；P… |
+
+### 界面
+
+| 文档 | 标题 | 状态 | 说明 |
+|---|---|---|---|
+| [37_ui_style](37_ui_style.md) | 界面风格：方案 A「潮汐航线」 | 现行 | 颜色、组件、各画面规则，§8 T5s；术语以 76 为准 |
+| [58_operator_ui_concept](58_operator_ui_concept.md) | 干员选择 / 干员图鉴 概念图（参考《明日方舟》干员界面） | 记录 | §11 是 B+ / C4′ 定稿细则（代码引用）；其余为概念稿 |
+| [62_ui_motion](62_ui_motion.md) | 界面动效系统（全界面推广，每个界面一种招牌动效） | 现行 | §2 共用规则现行；部分界面的招牌动效未做；§3.1 / §3.3 被 T5s 取代 |
+| [67_title_redesign_concept](67_title_redesign_concept.md) | 标题页 / 局外菜单 C4' 改版概念 | 记录 | §12 T5s 已实装（规则进 37 §8）；§1–§11 为概念；设置 / 致谢二期未做 |
+| [112_camera_zoom_brightness](112_camera_zoom_brightness.md) | 战斗镜头拉远 + 全局亮度候选（10-21） | 记录 | 用户 10-22 定：镜头不采用、缺省不变；亮度用 B。10-21：镜头 ×0.85 / ×0.75 / ×2/3 与手机 ×1.0 / ×0.9 的截图、视频、像素与帧时间；刷怪环 / 回收视野会在画面里露馅、需改逻辑… |
+| [124_headhunt_design](124_headhunt_design.md) | 干员寻访（局外解锁）：界面、动效与美术（设计稿） | 待定（方案待审） | 10-22：结算后寻访揭示（主动作「信号解码」：扫描线自上而下把剪影解码成彩色，4–5 秒可跳过）、招募券选职业 / 人事调度函指定、意向保底、选人 / 图鉴 / 封面干员的未解锁剪影与新加入高亮、特效单（交 Codex… |
+| [125_ak_ui_study](125_ak_ui_study.md) | 明日方舟界面设计调研与结算 / 寻访两屏重做（设计稿） | 待定（方案待审） |  |
+| [144_endfield_wheel_style](144_endfield_wheel_style.md) | 指挥圆盘：终末地风格 | 现行 | 10-24：终末地界面调研与 7 条规则；圆盘定稿终末地蓝 #1FA8F0（用户由黄改蓝）、12 层叠加（底盘 / 刻度环 / 斜纹带 / 切角扇区 / 外推虚框 / 指针游标…）、打开 / 常驻 / 悬停 / 收起动效… |
+| [157_spotlight_tour](157_spotlight_tour.md) | 首局聚光框引导 + 到点小提示 | 记录 | 10-26：开局改进局后聚光框引导（生命与灯火 / 移动冲刺 / 指挥 3 步，点击翻步、可跳过）；精英 / Boss / 低灯 / 升级各弹一次小提示；翻页指南留在暂停菜单；`--tourdemo` / `--tipd… |
+| [211_ui_audit_1101](211_ui_audit_1101.md) | 界面与交互巡检（11-01） | 记录 |  |
+| [213_ui_audit2_1101](213_ui_audit2_1101.md) | 界面巡检第二轮（11-01） | 记录 |  |
+| [219_onboarding](219_onboarding.md) | 新手引导：演示局 + 当下提示卡 + 实时小演示（11-01） | 现行 | 11-01：首局问「玩过《吸血鬼幸存者》这类游戏吗」；没玩过 = 1–2 分钟演示局（移动 → 升级 → 招募 → 终结技，结束重开进正式局）；灯火 / 商人 / Boss / 小队 / 指挥圆盘 / 终结技 / 连携 … |
+| [222_hud_redesign_1102](222_hud_redesign_1102.md) | 局内 HUD 重新设计：方向稿（11-02） | 待定（方案待审） | 用户「加了指挥模式和倍速后界面乱」：现状 13 块盘点（队友生命三份、右下三行、右上藏品栏）；三个方向 A 四角收拢（推荐）/ B 底部指挥台 / C 终端侧栏，电脑 + 手机效果稿；开局指南卡统一成炭灰面板 + 青条 … |
+| [224_fly_up_audit_1102](224_fly_up_audit_1102.md) | 「突然向上飞走」排查（11-02） | 记录 | 部署撤回 / 掉队归位 / 换人被换下 / 骑士离队改为光圈收拢 + 像素碎散淡出（瞬回的再淡入）；squad/deploy_exit 2 = 跑回、0 = 旧；招募从天而降、拾取吸附、飘字等保留列表 |
+| [284_magnet_visibility_and_guide_copy](284_magnet_visibility_and_guide_copy.md) | 磁铁在地图上要看得见 + 开局指南补文案（设计稿，11-06） | 待定（方案待审） | 磁铁地图可见性两种画法 + 开局指南（指挥台 / 集火 / 冲刺）文案草稿。 |
+| [290_hud_skill_cd_1106](290_hud_skill_cd_1106.md) | 指挥台技能冷却（11-06 用户定稿） | 记录 |  |
+| [292_font_weights_1106](292_font_weights_1106.md) | 界面字重对照：现在 vs 原作式（11-06） | 记录 |  |
+| [301_onboard_card_v3_1107](301_onboard_card_v3_1107.md) | 开局指南卡按属性面板画（11-07） | 记录 | 开局指南卡与问题框在指挥台开着时按属性面板画（深底 + 两角刻度、Heavy 标题 + 灰英文小签、细线进度条），卡收小一号（桌面 440 / 手机 470），几何与行为不变。 |
+| [315_touch_command_confirm](315_touch_command_confirm.md) | 触屏指挥：点选 → 预选 → 再点确认（11-07） | 待定（方案待审） | 手机圆盘选集火 / 部署后：可选目标白框、点一下预选（金框）→ 再点下令，点别处换、点空白 / 取消退出；现状问题表（抬手即确认、模拟鼠标键、准星偏移）；command/touch_confirm 可切回 |
+| [328_medal_redesign_1108](328_medal_redesign_1108.md) | 蚀刻章改版（11-08） | 待定（方案待审） | PRTS「光荣之路」原作对照与差距；§0 定案：pixgen 高档模型出原图 → medal_bake.py 烘到现有插槽尺寸 / 外形，按 77 / 57 / 44·32 三档配框；A / B 版式方案作废留档（两会话… |
+| [337_desk_cam_fixlist_1112](337_desk_cam_fixlist_1112.md) | 桌面战斗镜头评估 + 全局待修清单（11-12 夜） | 待定（方案待审） | 桌面 126 档干员占屏高 9.1%（手机 11.3%，VS / Brotato / HoT 7–8%），台式屏上实际视角约为手机 2 倍，建议缺省不改，A/B/C 三档备选；25 条待修按严重度排；顺手修屏外指示压顶部… |
+| [350_keybinds_1116](350_keybinds_1116.md) | 自由更改键位（11-16） | 现行 | 设置 → 操作 → 键位设置：键鼠 / 手柄两页、每动作主键 + 备用、冲突交换、恢复默认；Esc / START 固定暂停；网页保留键不许绑；存档 + 云存档 keybinds；键名提示读当前绑定 |
+
+### 美术与特效
+
+| 文档 | 标题 | 状态 | 说明 |
+|---|---|---|---|
+| [05_art_handoff](05_art_handoff.md) | 美术交接说明（给美术制作方） | 现行 | 文件存放、命名、旧特效帧数；人物尺寸（主角 / 海嗣节）已作废，见 87、98 |
+| [10_art_v6_spec](10_art_v6_spec.md) | 美术 V6 接入约定（援护移动、投射物、爆炸、激光） | 旧稿（仍被引用） | docs/98、93 §0；帧数见 game.gd V6_FRAMES |
+| [11_relic_icon_spec](11_relic_icon_spec.md) | 藏品图标设计规范与接入约定 | 现行 | 32×32 藏品图标画法、稀有度、命名；§1 HUD 尺寸以代码为准 |
+| [13_art_v7_spec](13_art_v7_spec.md) | 美术 V7 接入约定：战斗表现层（伞击、触手、进化、敌人攻击、预警、受击、溟痕） | 旧稿（仍被引用） | docs/98 §6、93 §0；帧数见 game.gd V6_FRAMES |
+| [20_hires_spec](20_hires_spec.md) | 高清贴图（@2x）接入约定 —— 第一批：水月 | 旧稿（仍被引用） | docs/98 §1、87 §1；加载见 art.gd |
+| [24_squad_art_brief](24_squad_art_brief.md) | 编队制美术指令（给 Codex） | 旧稿（仍被引用） | docs/87、98；Mon3tr 画布 64×64、脚底 (32,60) 仍以本文 §4 为准（98 §3 写成 48×48，待改） |
+| [30_codex_fx_requests](30_codex_fx_requests.md) | 给 Codex 的特效美术需求（第二批干员武器特效） | 旧稿（仍被引用） |  |
+| [32_art_review_0926_acceptance](32_art_review_0926_acceptance.md) | 美术验收：Codex 返修稿 a9471c7（2026-09-26） | 旧稿（仍被引用） | docs/87 |
+| [32_squad_art_review](32_squad_art_review.md) | 编队人物美术审查（三批干员，2026-09-26） | 旧稿（仍被引用） | docs/87 |
+| [54_vfx_pass](54_vfx_pass.md) | 画面特效二轮：环境与事件特效（2026-10-10） | 记录 | 环境与事件特效 8 项；world.gd / vfx.gd 按节引用 |
+| [63_batch3_art_brief](63_batch3_art_brief.md) | 第三批干员美术指令（给 Codex） | 旧稿（仍被引用） | docs/87、98；技能名以 61 + 干员 JSON 为准 |
+| [64_batch5_art_acceptance](64_batch5_art_acceptance.md) | 美术验收：第三批干员帧条 squad_batch5（2026-10-11） | 旧稿（仍被引用） | docs/87（§4 明度、§3.2 跑步） |
+| [66_codex_fx_brief_skalter](66_codex_fx_brief_skalter.md) | Codex 特效单：浊心斯卡蒂 S3 地面大漩涡（2026-10-11） | 旧稿（仍被引用） |  |
+| [69_codex_rework_1012](69_codex_rework_1012.md) | Codex 返修总单（2026-10-12） | 旧稿（仍被引用） | docs/87 §3.2、§4 |
+| [70_codex_fx_texas_rain](70_codex_fx_texas_rain.md) | Codex 特效单：德克萨斯「剑雨」（2026-10-12） | 旧稿（仍被引用） |  |
+| [73_codex_idle_rework_1012](73_codex_idle_rework_1012.md) | Codex 返修单：第三批五人待机动画（2026-10-12） | 旧稿（仍被引用） | docs/87 §3.1 |
+| [84_codex_ulpianus_facing](84_codex_ulpianus_facing.md) | Codex 返修单：乌尔比安 + 推进之王待机条朝向（2026-10-13） | 旧稿（仍被引用） | docs/87 §2 |
+| [87_art_spec](87_art_spec.md) | 人物帧条统一规格（干员 / 博士 / 敌人，唯一权威版） | 现行 | 干员帧条细则与 art_lint 机检；附录 C 记旧条款去向 |
+| [92_codex_angelina_float](92_codex_angelina_float.md) | Codex 美术单：安洁莉娜「反重力」浮空帧条（2026-10-13） | 旧稿（仍被引用） | docs/98 §2；「离地行 38±1」仍以本文为准（98 §2 指回工单） |
+| [93_codex_elite_forms_art](93_codex_elite_forms_art.md) | Codex 美术单：精英化攻击形态（精一 / 精二）全套素材（2026-10-13，按 10-13 审定更新） | 记录 | §0 是全部特效单的规格依据；10-22 逐条核对无未交付项（见 incoming/codex_order_1022_handoff.md §1） |
+| [97_codex_operator_fixes](97_codex_operator_fixes.md) | Codex 美术单：干员存量修整（2026-10-14） | 记录 | A–F 已接入；G 批只交了水月，还在 codex/art |
+| [98_sprite_standard](98_sprite_standard.md) | 角色与怪物立绘统一标准（v2，2026-10-14） | 现行 | 像素密度、同屏比例、敌我配色、特效归属（跨类别以本文为准）；§8 待办已过时 |
+| [103_body_templates](103_body_templates.md) | 像素人物体型模板（界面与美术，2026-10-15） | 现行 |  |
+| [104_pixel_pipeline](104_pixel_pipeline.md) | 干员像素素材流程规范（Codex 制作 + 本项目验收） | 现行 | 10-16 定：Codex 静态 f0 / 动画（分层合成）两条线、三层验收、f0 并行 + 人内串行；口径只在 103 改 |
+| [127_art_ta_review_1023](127_art_ta_review_1023.md) | 美术 TA 审阅（10-23，main 0ab900ea） | 记录 | 10-23：游戏内真实缩放对照 + 量化指标（证据在 build/ta_review/）；A 阻碍可读 9 / B 风格割裂 11 / C 整洁 4（含 §6 特效专项）；先做 5 项 + 特效 3 项（文字让出队长、怪… |
+| [130_fx_audit](130_fx_audit.md) | 光学观感开启时的老特效盘点（10-24，架构） | 记录 | 10-24：61 条逐项（在哪 / 现状 / 建议 / 收益 / 风险）+ 精简 15 组按收益排序；法线光照与中档辉光是 GPU 大头，fx_burst 被死亡帧条吃额度是真冲突；低档回退保留 |
+| [136_pixel_particle_template](136_pixel_particle_template.md) | 像素粒子模板（特效粒子化规范，样板：刀光第四版） | 现行 | 10-24：CPU 颗粒 + 一次批绘、2 px 世界格、只用 vrng、高 900 / 中 450、低画质回退；火 / 水 / 电 / 体液模板做法 |
+| [138_material_grains_review](138_material_grains_review.md) | 材质颗粒验收（Codex codex/particle-materials @ 7289a73dc，10-24） | 记录 | 10-24：fx/material_grains 关时 / 开时同 seed 逐行相同；桌面 +0.5–0.7 ms；拉普兰德返工 |
+| [139_look_nausea](139_look_nausea.md) | 画面「恶心 / 粘腻」排查（10-24） | 记录 | 10-24：同 seed 逐项开关录帧（tools/probes/look_nausea.py）；试验开关 render/nausea_safe（缺省关） |
+| [189_asset_layout_spec](189_asset_layout_spec.md) | 素材目录与命名规范（10-28 定稿） | 现行 | 10-28：收货 art/incoming/<批次> → 在用 game/art/<类别> → 归档 art/archive；前缀 / id / 后缀规则；按索引找图；分 0–6 批迁移；检查 tools/asset_l… |
+| [192_logos_s3_fx_order](192_logos_s3_fx_order.md) | Codex 特效单：逻各斯 S3「延异视阈」扇形咒域（2026-10-28） | 记录 | 10-28：现状（扇形程序画、绕身符咒已是帧条）、原作出处、三条 @2x 帧条规格、范围对齐与性能约束、接口（缺图回退已接入） |
+| [214_art_audit_1101](214_art_audit_1101.md) | 美术巡检（11-01） | 记录 | 干员 / 怪物 / Boss 名片 / 图标 / 地面件 / 导入设置；Boss 名片裁切已修；1x 瞳色、升级卡缺图标等待定，附重画单 |
+| [215_combat_visual_audit_1101](215_combat_visual_audit_1101.md) | 局内战斗画面巡检（11-01） | 记录 | 骑士 5 招预警改冰裂样式；伊祖米克圆形预警、合唱压境、肃清目标格、缺口金线已改；新快检 final_boss_tells 拦「新招退回通用预警」 |
+| [221_late_game_readability_1102](221_late_game_readability_1102.md) | 后期实战画面巡检（11-02） | 记录 | 7–10 分钟、4 人满编、Boss + 终结技 + 连携 + 羁绊同框；电脑 / 手机横屏 / 竖屏实录，分层量测（友方占屏、敌弹被友方改色 14–38%、队长周围被盖、界面占屏 11% / 15%）；11 条：敌方层… |
+| [226_late_render_layers](226_late_render_layers.md) | 后期渲染层三件（11-02） | 记录 | 敌弹 / 预警挪到友方特效之上（g.wcv 画布切换，新绘制写 g.wcv.draw_*）、队长被盖时画剪影、全队装饰粒子峰值上限 160；改色 4.4% → 3.4%（修正后量法，221 原量法多为噪点） |
+| [243_late_game_diag_1105](243_late_game_diag_1105.md) | 后期攻击不显眼 / 依赖终结技清屏 诊断（11-05） | 待定（方案待审） | 80 局分桶遥测（--diagbins）+ 分层截图：攻击小 / 碎 / 不随成长长大，受伤红边常亮，终结技按怪血曲线定档；召唤物与放置物、色彩与层级预算、预警、终结技频率；改法 V1–V10 / S1–S5 / P1–… |
+| [244_elite_mark_v2](244_elite_mark_v2.md) | 精英标识去红描边（审阅开关） | 进行中 | 默认关闭的精英白标记、小队沉珊瑚红三角和物种色呼吸光点；来源：11-05 Codex任务单3。 |
+| [245_fx_recipe_pilot_1105](245_fx_recipe_pilot_1105.md) | 运行时攻击特效配方 · 逻各斯 / 推进之王试点（11-05） | 待定（方案待审） | §5：主形改按原作轮廓与配色运行时像素化重建（墨羽 / 咒文 / 碎芒 / 咒域；旋光 / 熔岩裂网 / 锤徽），E1 每招一处形状差、E2 原作高阶意象，素材 docs/assets/fx_canon/；开关 fx/r… |
+| [246_placeables_redraw_1105](246_placeables_redraw_1105.md) | 支援放置物重画：地雷 / 轰隆隆 / 防暴桩（11-05） | 记录 | 地雷 / 轰隆隆 / 防暴桩按原作装置造型运行时逐像素画（render/placeable_v2），画在敌人之上、冷白描边、呼吸亮点、四段爆炸 + 地面点光；TRACE 开关都逐行一致；轰隆隆伤害来源与地雷拆开 |
+| [246_pxplane_skadi_1105](246_pxplane_skadi_1105.md) | pixelfx「转平面」试验 · 斯卡蒂（11-05） | 待定（方案待审） | 开关 fx/px_plane（缺省关；1 转平面 / 2 旧做法原样贴）：贴地层压扁 + 立起层按 y 排序、1 像素 = 1 美术像素整数放大、色层吃场景光 + 热芯 emit + 照地光、Noita 水滴；统一 15… |
+| [247_late_read_b1](247_late_read_b1.md) | 后期可读性第一批（11-05） | 记录 | render/late_read：V1 受伤红边按 1 秒承伤、S1 小队描边 + 脚底光、S2 站在预警里的干员画到预警之上、S3 地雷 / 轰隆隆 / 地面池尺寸下限 + 描边呼吸、V3 降噪只压装饰层、V7 普通怪… |
+| [251_late_read_b2_1105](251_late_read_b2_1105.md) | 后期可读性第二批：V4 照地光分账 / V9 地面光环只画边 / V10 拥挤压暗环境（11-05） | 记录 | render/light_share 照地光我方保底份额 + 伤害档排序 + 命中照地；render/ground_ring_edge 地面光环只画边 + 呼吸（8:00 光环占屏 16.5% → 1.8%）；rende… |
+| [254_pxplane_hoshiguma_1105](254_pxplane_hoshiguma_1105.md) | pixelfx「转平面」· 星熊（11-05） | 记录 | 照 246 做法：盾斧斩钝头刀痕、S1 下劈 + 裂网冲击环、S2 地刺 + 热砂、S3 力之锯撕裂线、般若回旋鬼面飞盾；追加后期剑气（盾击冲击波，同次出手合成一道）、连携「举盾」/「举盾推挡」；开关 fx/px_pla… |
+| [255_pxplane_lumen_1105](255_pxplane_lumen_1105.md) | pixelfx「转平面」· 流明（11-05） | 记录 | 照 docs/246 做流明普攻 + S1–S3，另含后期额外弹 / 连锁（late_shape）与连携技「清创光弹」；开关 fx/px_plane；运行时逐格画线状件；同屏上限防碎防白；同种子 TRACE 逐行一致 |
+| [257_pxplane_texas_1105](257_pxplane_texas_1105.md) | pixelfx「转平面」· 德克萨斯（11-05） | 记录 | 照 246 做法：拔刀针尖刀痕、骤雨 / 回马剑旋斩、S1 剑雨落剑插地刃光（精二收尾巨剑 + 剑阵）、S2 号令光柱 + 冲刺直线刀光加粗、S3 次元斩直线刀痕 + 落剑、钉剑、余像落剑、后期飞剑剑气、连携十字斩；挂身… |
+| [258_pxplane_logos_1105](258_pxplane_logos_1105.md) | pixelfx「转平面」· 逻各斯（11-05） | 记录 | 照 246 做法：普攻笔光字环 + 蓝紫出手星 + 墨迹彗星（法术弹道、淡金小星、咒文残光）+ 白星芒灰白碎刺 + 两圈墨环；S1 提喻咒文行、S2 殁亡交叉咒文链 + 墨柱、S3 咒域渐变填充 + 流动符文带；late… |
+| [259_pxplane_eyjafjalla_1105](259_pxplane_eyjafjalla_1105.md) | pixelfx「转平面」· 艾雅法拉（11-05） | 记录 | 照 246 做法 + 用户「参考 pixelfx 的做法」：爆团 / 火柱 / 火山落点 / 喷柱用库的粒子火（她的熔岩色阶、不加烟），火球 / 熔岩块用库 fireball（5 平面角），S3 实心大爆团 + 花瓣碎片… |
+| [260_pxplane_skalter_1105](260_pxplane_skalter_1105.md) | pixelfx「转平面」· 浊心斯卡蒂（11-05） | 记录 | 照 docs/246 做普攻声浪 / 歌域、S1 气泡、S2 旋涡小鱼、S3 潮涌（粗笔触环 + 实心内部 + 旋转线 + 粗红光柱）、伊莎玛拉、成长 / 后期小环、连携「歌声」；主形运行时画（判定半径连续变化）；开关 … |
+| [261_pxplane_mizuki_1105](261_pxplane_mizuki_1105.md) | pixelfx「转平面」· 水月（11-05） | 记录 | 照 246 做法：伞击伞面月牙 + 命中青色水母绽开 + 目标脚边触手；S1 三团大水母；S2 一圈触手 + 缠绕；S3 大水母浮起 + 水镜 + 深蓝紫旋斩；深蓝之籽像素水母；连携「小触手」；打击感包加水月、触手音一帧… |
+| [262_pxplane_exusiai_1105](262_pxplane_exusiai_1105.md) | pixelfx「转平面」· 能天使（11-05） | 记录 | 照 246 做法：普攻 / S1–S3 / 倾泻 / 连携「穿透扫射」/ late_shape 额外攻击；肉鸽式高可读光弹（32 方向像素表）、硬星形枪口火、定向金属火花、抛壳与后坐；精一金描边、精二宽弹 + 穿甲亮线 … |
+| [263_pxplane_gladiia_1105](263_pxplane_gladiia_1105.md) | pixelfx「转平面」· 歌蕾蒂娅（11-05） | 记录 | 照 246 做普攻钩索（链 + 钩头 + 落地水刺 + V 字拖痕 + 到位拍水，精一锚印、精二深渊紫 + 冲撞贴地涟漪）、S1 大洋裂断（贴地炸开的水花冠 + 沿钩线拉链式掀起的翻卷浪；第二轮去掉直柱，第三轮水墙改翻卷… |
+| [264_pxplane_siege_1105](264_pxplane_siege_1105.md) | pixelfx「转平面」· 推进之王（11-05） | 记录 | 照 246 / 254 做法：下砸锤弧（跟人走）+ 落点裂地 v3（分叉裂网、爆亮冷却、碎石、尘墙）、精二破阵地裂 + 岩刺、S1 号令声浪 + 号令一锤、S2 冲柱大裂网、S3 横向光带 + 地裂扇、后期剑气锤击冲击波… |
+| [265_pxplane_kaltsit_1105](265_pxplane_kaltsit_1105.md) | pixelfx「转平面」· 凯尔希 + Mon3tr（11-05，第四批） | 记录 | 程序帧条（Python 逐像素，84 张）：爪击三道平行爪痕（精一犁痕、精二晶刺）、治疗缝合环 / 十字 / 下针光柱（骨白薄荷不用红）、扑击交叉爪、回防骨刺环、S1 骨肋合拢、S2 指令符、S3 爆柱 + 熔毁重月牙 … |
+| [266_pxplane_ulpianus_1105](266_pxplane_ulpianus_1105.md) | pixelfx「转平面」· 乌尔比安（11-05） | 记录 | 照 246 做法：重锚 / 锁链 / 深海，不画裂网；锚击水冠 + 锚印（精一收链拖痕、精二深渊暗涡）、撼地细涟漪、S1 锁链 + 拖拽水沟 + 一束水、S2 锁链界限圈、S3 冲锋破浪 + 漩涡、连携掷锚海水回卷、后期… |
+| [267_pxplane_angelina_1105](267_pxplane_angelina_1105.md) | pixelfx「转平面」· 安洁莉娜（11-05） | 记录 | 照 246 做法：普攻重力弹 + 落点内爆（星芒 + 碎片吸入 + 暗凹），精一收紧断弧、精二失重井；S1 下钉三光刃；S2 缠绕绸带；S3 头顶重力核心 + 扭曲波纹 + 大碎石；连携引力环三碎片；悬浮敌人影子缩放 +… |
+| [268_pxplane_specter_1105](268_pxplane_specter_1105.md) | pixelfx「转平面」· 归溟幽灵鲨（11-05） | 记录 | 照 246 做法，突出锯子：腰高锯环（前倾锯齿每拍转、白热刀头弧、前后半圈分开排序）+ 切向橙火星；精一卷刃水纹、精二甩水珠 + 替身闪现；S1 光柱 / 暗焰 / 鲨鳍、S2 替身青残影 / 触须、S3 大浪 + 橙热… |
+| [269_pxplane_saria_1105](269_pxplane_saria_1105.md) | pixelfx「转平面」· 塞雷娅（11-05） | 记录 | 照 246 做法：普攻钝头盾面冲击 + 暖白命中芒（精一琥珀碎晶 / 钙化斑、精二满格环冲 + 琥珀晶簇晶柱环）；S1 / S2 医疗绿（急救星芒 + 双环 / 网点药环 + 「+」）；S3 琥珀裂纹 + 区域边 + 冷… |
+| [270_fx_light_particle_standard](270_fx_light_particle_standard.md) | 特效光感 + 粒子感统一标准（px_plane 体检，11-05） | 现行 | GCP 同局三跑（正常 / 关照地光 / 关 emit）差分量照地光与核心辉光，探针记颗粒数 / 寿命 / 边长 / 灯；技能灯取技能后 1 秒最亮一盏；四类招式（普攻命中 / 爆发 / 持续区域 / 治疗）上下限，判定… |
+| [271_pxplane_suzuran_1105](271_pxplane_suzuran_1105.md) | pixelfx「转平面」· 铃兰（11-05） | 记录 | 照 246 做法：普攻追踪火团（精一狐火灼印、精二九尾 + 狐形大狐火 + 拖尾火苗）；S1 金色符阵 + 命中金印（精一火柱、精二九尾张开）；S2 落地火环 + 暖光边 + 铃兰小铃铛祝福；S3 尾焰扫过 + 薄雾边 … |
+| [272_pxplane_irene_1105](272_pxplane_irene_1105.md) | pixelfx「转平面」· 艾丽妮（11-05） | 记录 | 照 246 做法 + 270 光感标准，主基调白 + 亮紫、潮水作辅色：普攻星芒 + 实心光锥 + 十字（精一刃尖碎芒、精二八芒 + 裂潮余波细新月 + 手炮追击）；S1 蓄光 + 大光刺 + 水旋；S2 金色大月牙劈潮… |
+| [273_pxplane_lappland_1105](273_pxplane_lappland_1105.md) | pixelfx「转平面」· 拉普兰德（11-05） | 记录 | 照 246 做法：普攻双月牙交错 + 白芯斩痕（精一封招叉〔原作 buff_silence 样式，只精英 / Boss〕/ 狼之舞敌人身上三道弯钩爪痕、精二双生刃月牙剑气）；远掷 = 紫白月牙剑气贴地飞；S1 刻度盘（精… |
+| [274_pxplane_wisadel_1105](274_pxplane_wisadel_1105.md) | pixelfx「转平面」· 维什戴尔（11-05） | 记录 | 照 246 做法、按 270 标准；原作黑红（偏橙血红，避开预警粉红）：爆炸以火星为主（热芯 2 拍 + 带尾红 / 橙火星 + 黑碎点，同屏封顶 60，普攻热芯降一档）+ 贴地暗红薄雾 + 焦痕 + 土尘余震；精一暗红… |
+| [291_hit_feel_evo](291_hit_feel_evo.md) | 打击感进化：像素近战文章对照与试点（11-07） | 待定（方案待审） | 用户 11-07 给的像素近战文章对照（过冲 / 扇形拉丝 / 收招慢于爆发 / 巅峰帧 / 残影）+ §6 刀光以外的手法，德克萨斯 + 星熊挂 `fx/melee_evo` 缺省 0。 |
+| [293_late_fx_ctrl](293_late_fx_ctrl.md) | 后期特效控制（后期画面减负）方案（11-06） | 待定（方案待审） |  |
+| [327_pv_style_guide_1108](327_pv_style_guide_1108.md) | 鹰角 PV 风格规范（给本作宣传 PV 用） | 参考 | 鹰角 PV 风格规范（拉 6 支官方 PV：镜头 / 转场 / 鼓点 / 明暗与强调色 / 后期 / 字号实测），OFL 替代字体与本作逐级字卡（标题 / 大字卡 / 名字条 / 标名 / 字幕 / 结尾卡），样张脚本 … |
+| [gem_v2_1105](gem_v2_1105.md) | 经验结晶分档候选（任务单 11-05） | 进行中 | 结晶四档改色与独立合并上限候选，默认关闭，含验收入口；任务单 codex_tasks_1105。 |
+
+### 音频
+
+| 文档 | 标题 | 状态 | 说明 |
+|---|---|---|---|
+| [21_music_design](21_music_design.md) | 配乐与音效设计（配乐 v3 2026-09-26；音效与混音 2026-09-30） | 现行 | 曲目、强度、音效约定与混音；混音优先级以 sfx.gd / 53 §5 为准 |
+| [28_operator_sfx](28_operator_sfx.md) | 干员专属音效 | 现行 | 13 人 op_* 音色与 OP_SFX 约定；「加新干员」一节作废（新干员走 OP_ALT，见 61） |
+| [53_hit_feel](53_hit_feel.md) | 打击感与音效：一轮审计与收口（2026-10-10） | 现行 | fx 打击感旋钮说明的唯一出处；§6 遗留项未结 |
+| [113_sfx_audit](113_sfx_audit.md) | 干员音效盘点与调整（10-21） | 进行中 | §19.x 补录了原碎片文件 113_exusiai |
+| [164_suno_layers](164_suno_layers.md) | Suno 整首分层配乐（10-27） | 记录 | 10-27：分层 / 响度 / bpm；§6 网页 BGM 16.75 MiB、共享 PCM 与切曲回收、手机全层、浏览器内存对照 |
+| [190_op_voice_more](190_op_voice_more.md) | 干员语音扩充（10-29） | 记录 | 10-29：每人入队 4 / 突击 4 / 技能 4 / 闲聊 3 句原作语音（新增 110 条、+1.82 MiB），洗牌不重复 + 同句 60 秒；归队不再开口 |
+| [205_ult_audio](205_ult_audio.md) | 终结技语音挑选与专属音效 | 待定（方案待审） | 10-30：20 人每人终结技固定一句原作语音（候选表 + 推荐）；起手 / 冲击专属音效候选与试听录像；映射表 game/data/ult_audio.json |
+| [279_audio_source_inventory](279_audio_source_inventory.md) | 音频来源清单（11-05，备查） | 参考 | game/audio 620 个：原作客户端 336（音效 99 + 语音 237）、授权录音 83、程序合成 178、Suno 配乐 22、待查 1（music/shop.ogg）；credits.json 音乐与音效… |
+
+### 文案、原作参考与本地化
+
+| 文档 | 标题 | 状态 | 说明 |
+|---|---|---|---|
+| [49_原作参考](49_原作参考.md) | 原作参考（明日方舟本体 + 集成战略） | 现行 | 借用原作机制、数值、名字前必查（AGENTS 指定）；索引 49a–d |
+| [49a_集成战略](49a_集成战略.md) | 原作集成战略参考（文案 / 设计用） | 现行 | 原作肉鸽名词与机制；§5「本作与原作相反」已过时（结局已对调） |
+| [49b_战斗机制](49b_战斗机制.md) | 原作战斗机制参考：职业分支、异常状态、元素损伤、敌人机制 | 现行 | 职业分支、异常状态、元素损伤、敌人机制 |
+| [76_language_style](76_language_style.md) | 游戏内语言风格规范（约束，必须遵守） | 现行 | 全部玩家可见文字的口径与术语表；§6 生命倍率已过时 |
+| [276_english_localization](276_english_localization.md) | 英文版本地化方案（第一步：摸底 + 方案 + 术语表，待用户定） | 进行中 | 方案已暂定、第一批初稿完成（§8）；英文版摸底（约 5 000 条 / 10 万字）、TranslationServer + CSV 模块键、语言切换、插值、防溢出、字体，官方 en_US 术语表与自创词候选、英文口吻、… |
+| [277_english_preview](277_english_preview.md) | 英文版对照样张（干员 + 怪物，20 条） | 工具输出 | tools/l10n/preview.py 生成；方案见 276 |
+| [278_english_overflow](278_english_overflow.md) | 英文超框预检：前 30 条（干员 + 怪物） | 工具输出 | tools/l10n/overflow_check.py --md 生成；方案见 276 §9 |
+
+### 主题重构
+
+| 文档 | 标题 | 状态 | 说明 |
+|---|---|---|---|
+| [357_theme_modularity_1117](357_theme_modularity_1117.md) | 第二个肉鸽主题能否模块化：代码调研（11-17） | 进行中 | 部分能、要先重构：地图 / 敌人 / 波次 / 事件 / 藏品已数据驱动但全局单份；灯火 411 / 溟痕 318 / 灯标 229 / 缩圈 214 处散在核心循环；Toy 包 49.78 MB 贴线 → 一包一主题；… |
+| [359_theme_pack_stage0_1117](359_theme_pack_stage0_1117.md) | 主题包重构 · 阶段 0 前半：同种子基准 + 数据路径清单（11-17） | 进行中 | `tools/theme_parity.py`（7 局：四结局 × 三档 + Boss 台 + 短局，PARITY 36 字段逐帧比）；`themes/deep_sea/theme.json` + `ThemePack`… |
+| [364_theme_mechanics_1117](364_theme_mechanics_1117.md) | 主题包重构 · 第二步：主题机制接口 ThemeMechanic（11-17） | 进行中 | 灯火 / 溟痕 / 灯标 / 缩圈四个机制收进 themes/deep_sea/mech/，清单 mechanics 段声明，五个挂钩点按清单顺序在原调用处调；四个子提交 Windows 7/7、Linux 7/7（de… |
+
+### 傀影（第二主题）
+
+| 文档 | 标题 | 状态 | 说明 |
+|---|---|---|---|
+| [358_is1_phantom_theme_research_1117](358_is1_phantom_theme_research_1117.md) | 第二主题「傀影与猩红孤钻」调研：结局、Boss 与移植草案（11-17） | 进行中 | 原作 4 结局：舞会终场 / 卢西恩，滑稽喜剧 / 伤心的大锁，盛大揭幕 / “剧团喉舌”，沉默之章 / “剧作家”（PRTS 逐条出处）；中期 5 选 1；主题机制候选 A 无主的财富（推荐）/ B 剧目；四 Boss… |
+| [359_theme_content_spec_1117](359_theme_content_spec_1117.md) | 主题内容标准（以「水月与深蓝之树」为样本实测，11-17） | 进行中 | 普通怪 12（+机制 2）/ 精英 4（+剧情 1）/ 中期 Boss 5 组 / 最终 4；中期 2 幕 6–7 招、最终 3 幕 + 1 段 12–20 招（≥7）每幕 2 连段不跨幕；事件 31（普通池 21 全带… |
+| [360_phantom_sample_tasks_1117](360_phantom_sample_tasks_1117.md) | 傀影样例任务单（按 docs/359 标准拆，11-17） | 进行中 | 2 普通 + 1 精英、卢西恩 3 幕 12 招 + 不祥幻影主轴「贴身」、机制 A 无主的财富、浓雾边界、5 事件、结局舞会终场、古堡庭院地图、Suno 3 曲；T-A 现在可做 / T-B 等阶段 0 / T-C 等… |
+| [361_phantom_events_inventory_1117](361_phantom_events_inventory_1117.md) | 傀影原作事件全量清单与对位口径（11-17） | 进行中 | PRTS 事件一览源码：不期而遇 38（结局线 7）+ 安全的角落 1 + 幕间余兴 4 + 古堡馈赠 2 = 45；分 A 资源 / B 招募进阶 / C 专属藏品 / D 战斗 / E 链式 / F 结局线 / G … |
+| [362_phantom_full_content_1117](362_phantom_full_content_1117.md) | 傀影全量内容方案：事件（余下类别）、藏品、敌人、Boss、主题机制（11-17） | 进行中 | 余下事件 C/D/E/F；原作藏品 245 件比对（本作已有 148、在用 119）与折算；原作 86 关 190 种敌人筛成普通 12 / 精英 4 / 打劫者 4；中期 Boss 5 组各 6 招；大锁 / 喉舌 /… |
+| [363_phantom_full_tasks_1117](363_phantom_full_tasks_1117.md) | 傀影全量任务单与排期（11-17） | 进行中 | 美术 14 单（Codex 约 34 天）、特效 5、音频 4、文案 6、代码 17 项约 50 会话日；依赖分 —/R0/R1/R2；M1 舞会终场约 D22、M2 四结局约 D32、M3 平衡约 D40 |
+
+### 新项目与未来扩展
+
+| 文档 | 标题 | 状态 | 说明 |
+|---|---|---|---|
+| [339_expansion_plan_1112](339_expansion_plan_1112.md) | 未来扩展内容：轮回模式 + 藏品去上限 + 模组分支（方案存档，11-12） | 待定（方案待审） | 轮回：每轮生命 / 伤害台阶不加数量、4 只最终 Boss 轮换、第 2 轮起双中场、小队上限每轮 +1 桌面封顶 6 / Toy 4、Toy 只到第 2 轮且间幕释放上一只 Boss 资源；藏品：1 / 0.7 / 0… |
+| [340_module_branch_1105](340_module_branch_1105.md) | 模组分支：精二二选一原作模组（方案，11-05） | 待定（方案待审） | 清群 / 攻坚、取代 late_shape 精二 1.5 档；试点德克萨斯 / 推进之王 / 逻各斯 / 凯尔希；20 人总表，拉普兰德 / 德克萨斯 / 维什戴尔第二条本作自创 |

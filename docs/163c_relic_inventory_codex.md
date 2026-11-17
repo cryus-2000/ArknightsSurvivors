@@ -129,7 +129,7 @@ source 元数据：any 243 件、boss 13 件、event 9 件。这不是实测随�
 
 表内效果为当前数据原文，未擅自润色。带 {$键} 的占位是模板，不是缺失数值；运行时由 balance 与 fill_desc 展开。来源 any / boss / event 是元数据，具体可获得性见 §2.1。表内“3级”是最高等级，不是本次获得的等级。
 
-完整 effects、tags、前置、冲突、职业门槛、商店许可、旧主类与源文件哈希见 [结构化底表](163_relic_inventory.json)。
+完整 effects、tags、前置、冲突、职业门槛、商店许可、旧主类与源文件哈希见 [结构化底表](163c_relic_inventory_codex.json)。
 
 ### 01 · 攻击伤害与条件增伤（46 件）
 
