@@ -16,7 +16,7 @@ const SDP = preload("res://scripts/run/ult_px_sd.gd")   # 斯卡蒂「斩浪」�
 const GLP = preload("res://scripts/run/ult_px_gl.gd")   # 歌蕾蒂娅终结技转平面叠加层（docs/263 §9：配色对齐 + 爆开那一下加强；只画）
 const MZP = preload("res://scripts/run/ult_px_mz.gd")   # 水月水母群转平面画面（docs/261 §8；只画）
 const ANF = preload("res://scripts/run/ult_an_fine.gd")   # 安洁莉娜终结技精细版（ult/an_fine）
-const WDP = preload("res://scripts/run/ult_wd_proto.gd")   # 维什戴尔终结技更华丽原型（ult/wd_proto，缺省 0 关；docs/353）
+const WDP = preload("res://scripts/run/ult_wd_proto.gd")   # 维什戴尔终结技更华丽（ult/wd_proto，缺省 3 = A + B；docs/353）
 const IDS: Array = ["skadi", "gladiia", "angelina", "eyjafjalla", "wisadel", "specter_unchained", "mizuki"]
 const DIR_OPS: Array = ["skadi", "wisadel", "mizuki"]
 const POINT_OPS: Array = ["gladiia", "angelina", "eyjafjalla"]
