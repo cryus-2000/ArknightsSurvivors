@@ -401,8 +401,11 @@ func _share_input(event: InputEvent) -> void:
 		_close_share()
 
 
+var _share_busy := false   # 等头像昵称中（最多 15 秒）：期间再点保存不另存一张没头像的图
+
+
 func _save_share() -> void:
-	if share_toy == null or share_toy.busy:
+	if share_toy == null or share_toy.busy or _share_busy:
 		return
 	Sfx.play("ui_ok", -8.0)
 	if not share_toy.allow_ask:   # 自动弹出后第一次点保存：此时才是玩家点按，先问头像昵称再存
@@ -410,7 +413,11 @@ func _save_share() -> void:
 		if share_toy.want_profile():
 			share_toy.status = "正在获取头像……"
 			g.hud.queue_redraw()
+			_share_busy = true
 			await share_toy.profile_wait()
+			_share_busy = false
+			if not share_open or share == null:   # 等的时候已关掉分享卡：不再弹下载 / 分享（11-17 体检）
+				return
 	share_toy.save(share, share_toy.fill(share_data.duplicate()))
 
 
