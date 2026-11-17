@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""tools/web/lzma_dec.js 回归（docs/187 §5）：Python lzma 按 export_web.py 同一组参数压，node 解，逐字节比对。
+"""tools/web/lzma_dec.js 回归（docs/285（原 187） §5）：Python lzma 按 export_web.py 同一组参数压，node 解，逐字节比对。
 覆盖：随机字节（全字面量）、长重复（长匹配 / rep）、真 wasm 片段（有 build/toy/web 或 build/web 时取一段），以及默认参数 lc=3 pb=2。
 用法：python tools/test_web_lzma.py
 """

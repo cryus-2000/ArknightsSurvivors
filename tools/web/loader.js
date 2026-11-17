@@ -952,7 +952,7 @@ window.__syRL = {
 
   // 把一片写进 F.out 的 [off, off + raw) 区间。gz 片：第一块带 1f 8b 时经 DecompressionStream 解开；否则（服务器已解压）原样写入。
   // 返回写入的字节数；写越界 / 不足 / 断流都按出错处理（part 会重试）。
-  // enc === 'lzma'（index.wasm，docs/187 §5）：不是 gzip 头时收齐压缩字节，交给 lzDecode（Worker 或主线程）。
+  // enc === 'lzma'（index.wasm，docs/285（原 187） §5）：不是 gzip 头时收齐压缩字节，交给 lzDecode（Worker 或主线程）。
   async function once(url, bytes, F, off, raw, enc, ps) {
     var ac = typeof AbortController === 'function' ? new AbortController() : null;
     var r = null, rd = null, counted = 0, wrote = 0, gz = null, chunks = null, ds = null, w = null, pump = null, pumpErr = null;

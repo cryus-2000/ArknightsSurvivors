@@ -79,7 +79,7 @@ def _pool():
 
 
 def split(out_dir, name, part_bytes, toy=False, enc="gzip"):
-    """enc="lzma"（index.wasm，docs/187 §5）：分片用 .lzma alone 格式，加载器用 tools/web/lzma_dec.js 解；比 gzip -9 小约 3 MiB。
+    """enc="lzma"（index.wasm，docs/285（原 187） §5）：分片用 .lzma alone 格式，加载器用 tools/web/lzma_dec.js 解；比 gzip -9 小约 3 MiB。
     各片并行压缩（11-17 发版提速），文件名 / 内容与串行时逐字节相同"""
     import hashlib
     path = os.path.join(out_dir, name)
@@ -155,11 +155,11 @@ def main():
     ap.add_argument("--out", default=os.path.join(ROOT, "build", "web"))
     ap.add_argument("--part-mib", type=float, default=10)
     ap.add_argument("--worktree-presets", action="store_true", help="用工作区的 export_presets.cfg（改预设时本地试导出用）")
-    ap.add_argument("--audio-tier", default="C", choices=["off", "A", "B", "C", "D", "E"], help="网页包音频再压缩档位（tools/web_audio.py：A 近无损 / B 平衡 / C 缺省（10-28 用户定，B 可回退） / D、E 试听档（docs/187 §7）；off = 不压）")
+    ap.add_argument("--audio-tier", default="C", choices=["off", "A", "B", "C", "D", "E"], help="网页包音频再压缩档位（tools/web_audio.py：A 近无损 / B 平衡 / C 缺省（10-28 用户定，B 可回退） / D、E 试听档（docs/285（原 187） §7）；off = 不压）")
     ap.add_argument("--final-tier", default="D", choices=["C", "D", "E"], help="最终 Boss 8 首配乐的单独档位（tools/web_audio.py FINAL_TIERS；11-06 用户批 D，docs/285 §3）；只在 --audio-tier C 时生效")
-    ap.add_argument("--wasm-gzip", action="store_true", help="index.wasm 分片退回 gzip（缺省 LZMA，docs/187 §5）")
-    ap.add_argument("--no-web-lossy", action="store_true", help="关掉网页专用的近无损压缩（事件插画有损 WebP 0.85、音效 32 kHz 上限，docs/187 §8），对照用")
-    ap.add_argument("--no-lossless", action="store_true", help="关掉无损瘦身（字体 WOFF2 + WebP 无损最高档，docs/187），对照用")
+    ap.add_argument("--wasm-gzip", action="store_true", help="index.wasm 分片退回 gzip（缺省 LZMA，docs/285（原 187） §5）")
+    ap.add_argument("--no-web-lossy", action="store_true", help="关掉网页专用的近无损压缩（事件插画有损 WebP 0.85、音效 32 kHz 上限，docs/285（原 187） §8），对照用")
+    ap.add_argument("--no-lossless", action="store_true", help="关掉无损瘦身（字体 WOFF2 + WebP 无损最高档，docs/285（原 187）），对照用")
     ap.add_argument("--ea", action="store_true", help="对内网页版：build.json audience = internal（演练开、全部解锁）")
     ap.add_argument("--god", action="store_true", help="无敌测试包：build.json test_god=true（队长生命归零回满，Cfg.test_god）；Toy zip 文件名加 _god。只给真机测内存用，不要提交审核 / 对外发布")
     ap.add_argument("--toy", action="store_true", help="B站 Toy 包：一律加载 Toy SDK、分片不带 .gz 后缀、另打 zip（缺省输出 build/toy/web）")
@@ -245,7 +245,7 @@ def main():
     # 字体按实际用字子集化（release_slim，docs/33 §包体瘦身）：只换打包副本里的字体，仓库原字体不动
     font_rows = release_slim.subset_fonts(gpath)
     release_slim.print_font_rows(font_rows)
-    # 无损瘦身（docs/187）：子集字体转 WOFF2 容器（文件名不变，FreeType 按内容识别）；贴图 WebP 无损压到最高档（像素不变，只多花导入时间）
+    # 无损瘦身（docs/285（原 187））：子集字体转 WOFF2 容器（文件名不变，FreeType 按内容识别）；贴图 WebP 无损压到最高档（像素不变，只多花导入时间）
     if not a.no_lossless:
         woff2_fonts(gpath, [r[0] for r in font_rows])
         webp_max(gpath)
@@ -341,7 +341,7 @@ def finish(a, tmp, out_dir, toy, commit, src):
         print("[检查] Toy 包不含英文翻译资源", flush=True)
     part = int(a.part_mib * 1048576)
     manifest = {"index.pck": split(tmp, "index.pck", part, toy)}
-    # wasm：LZMA 分片（docs/187 §5，--wasm-gzip 退回 gzip）；20 MiB 一片，压缩后每片约 3 MiB
+    # wasm：LZMA 分片（docs/285（原 187） §5，--wasm-gzip 退回 gzip）；20 MiB 一片，压缩后每片约 3 MiB
     manifest["index.wasm"] = split(tmp, "index.wasm", part if a.wasm_gzip else 20 * 1048576, toy, "gzip" if a.wasm_gzip else "lzma")
     sys.path.insert(0, WEB)
     import engine_patch
@@ -444,7 +444,7 @@ def pck_paths(pk):
 
 
 def woff2_fonts(gpath, names):
-    """打包副本里的子集字体就地换成 WOFF2 内容（docs/187 §3）：字形 / 度量不变，导入后的 fontdata 约小 30%。
+    """打包副本里的子集字体就地换成 WOFF2 内容（docs/285（原 187） §3）：字形 / 度量不变，导入后的 fontdata 约小 30%。
     文件名不改（场景 / 主题按路径引用），Godot 的 FreeType 带 brotli，按文件头 wOF2 识别"""
     from fontTools.ttLib import TTFont
     before = after = 0
@@ -466,14 +466,14 @@ WEBP_MAX = ("textures/webp_compression/compression_method=6\n"
 
 
 def webp_max(gpath):
-    """打包副本的 project.godot：WebP 无损贴图用最高压缩力度（缺省 2 / 25）。无损，解码像素不变，只是导入慢（docs/187 §3）"""
+    """打包副本的 project.godot：WebP 无损贴图用最高压缩力度（缺省 2 / 25）。无损，解码像素不变，只是导入慢（docs/285（原 187） §3）"""
     p = os.path.join(gpath, "project.godot")
     with open(p, encoding="utf-8") as fh:
         txt = fh.read()
     if "[rendering]\n" not in txt:
         sys.exit("project.godot 里没有 [rendering] 段")
     txt = txt.replace("[rendering]\n", "[rendering]\n\n" + WEBP_MAX, 1)
-    # 透明边渗色不在这里改：运行时贴图（game/art）的 .import 已逐张写好（没有 alpha 1–19 淡像素的关、带的开，docs/187 §6、docs/189）
+    # 透明边渗色不在这里改：运行时贴图（game/art）的 .import 已逐张写好（没有 alpha 1–19 淡像素的关、带的开，docs/285（原 187） §6、docs/189）
     with open(p, "w", encoding="utf-8", newline="\n") as fh:
         fh.write(txt)
     print("[瘦身] 贴图 WebP 无损压缩力度：方法 6 / 系数 100", flush=True)
@@ -548,8 +548,8 @@ def script_text_export(gpath):
     print("[瘦身] 网页包脚本按源码导出、去整行注释：%.2f → %.2f MiB（未压缩）" % (before / 1048576, after / 1048576), flush=True)
 
 
-CG_LOSSY_Q = 0.85   # 事件插画网页版（art/event_cg/web）有损 WebP 质量：源图本来就是有损 WebP，按无损导入反而翻倍（docs/187 §8）
-SFX_MAX_HZ = 32000   # 音效采样率上限：只对 16 kHz 以上能量 < 3% 的文件设，QOA 体积按采样数线性下降（docs/187 §8）
+CG_LOSSY_Q = 0.85   # 事件插画网页版（art/event_cg/web）有损 WebP 质量：源图本来就是有损 WebP，按无损导入反而翻倍（docs/285（原 187） §8）
+SFX_MAX_HZ = 32000   # 音效采样率上限：只对 16 kHz 以上能量 < 3% 的文件设，QOA 体积按采样数线性下降（docs/285（原 187） §8）
 SFX_HF_MAX = 0.03
 # 按类别的音效采样率上限（11-06 用户「先去做语音和音效降采样」，Toy 50 MB 线）：细碎音效 22.05 kHz，
 # 终结技与低频重击要保厚度单列 24 kHz。现状 2.84 MiB（QOA）→ 约 2.44（−0.40）；全部是单声道，不用转
@@ -562,7 +562,7 @@ def sfx_cap(name):
     return SFX_HEAVY_HZ if name.startswith(SFX_HEAVY) else SFX_CAP_HZ
 
 
-SFX_LOW_HZ = 22050   # 11 kHz 以上能量 < 0.3% 的音效再降到 22.05 kHz（11-02，docs/187 §10）
+SFX_LOW_HZ = 22050   # 11 kHz 以上能量 < 0.3% 的音效再降到 22.05 kHz（11-02，docs/285（原 187） §10）
 SFX_LOW_HF_MAX = 0.003
 
 
@@ -582,7 +582,7 @@ def _set_import(path, kv):
 
 
 def web_lossy_assets(gpath):
-    """网页包专用的近无损压缩（10-31 第八批超预算，docs/187 §8）。只改打包副本的 .import，桌面包与仓库不动：
+    """网页包专用的近无损压缩（10-31 第八批超预算，docs/285（原 187） §8）。只改打包副本的 .import，桌面包与仓库不动：
     - 事件插画 art/event_cg/web/*.webp：源图本身是有损 WebP（合计 1.24 MiB），缺省按无损重编后 2.48 MiB；改有损导入 0.85（相对源图 PSNR 中位 40.4 dB、最低 37.8）。
     - 音效 audio/sfx/*.wav：几乎没有 11 kHz 以上内容的降到 22.05 kHz；其余按类别设上限（11-06：细碎 22.05 kHz，终结技 / 重击 24 kHz，sfx_cap），QOA 按采样数缩小"""
     import numpy as np

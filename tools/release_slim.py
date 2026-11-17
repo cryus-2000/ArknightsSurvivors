@@ -8,7 +8,7 @@
    用字 = game/scripts 的字符串与注释 + game/data 的 JSON + 场景 / project.godot 的全部字符 + ASCII + 原字体里所有非汉字字符（标点、数字、符号、全角）。
    ui_fallback.otf 不动，回退链（settings.gd 挂到 ui.ttf 上）照旧。
 3. 测试与工具脚本不进包：两个预设的 exclude_filter 都有 tests/*、tools/*（发布版不读命令行，测试入口不可达，check_release 第 1 项）；
-   scripts/ 下只给开发参数用的脚本（DEV_SCRIPTS：自动测试、平衡机器人、录像 / 基准探针）也排除（11-07 docs/295）。
+   scripts/ 下只给开发参数用的脚本（DEV_SCRIPTS：自动测试、平衡机器人、录像 / 基准探针）也排除（11-07 docs/285（原 295））。
    前提：包里其余脚本不得 preload 它们（只许开发守卫后的运行时 load()），本脚本 check_dev_scripts 检查。
 
     python tools/release_slim.py            # 快检项：审阅图规则不误伤运行时引用的贴图、预设与规则一致、扫描到的字全在子集字体里

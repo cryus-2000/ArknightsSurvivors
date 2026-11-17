@@ -422,3 +422,11 @@ i1（819711 DaVoiceActor「Chain Impact」1.75–2.30 s）「挺好听」→ 作
 | `ult_specter_unchained_*` | 归溟幽灵鲨终结技（用户 10-31 选录音，弹射 + 巨锯） | David Dumais「METLFric_SWING SCRAPE…14」（sf / zip）、ESM「DSGNStngr…Sword Slice…04」（cast）、344 Audio「METLMisc_Metal, Slow Whoosh, Rattle…」（warn）、「Impact Cut Sweep」+ ESM「EXPLDsgn_Explosion Small Blast…03」+ Booms_Vol2_075（impact） | 见 gen specter_unchained() | 0.24–1.22 s |
 | `ult_siege_*` / `ult_specter_unchained_*` / `ult_skadi_*` / `ult_lappland_*` / `ult_suzuran_rupt` / `ult_hoshiguma_boom` / 逻各斯删 sf·cast | 第二轮（11-01，docs/205 §4.7；① 已写进游戏，② 是候选） | **原作** `p_skill_MHshieldaxe_ground` / `_ground2` / `_h2` / `_end`、`p_skill_shieldbreak`、`p_skill_chainsawextension`、`p_skill_chainsawulmextension_1_intro` / `_2` / `_3`、`p_skill_arccutting`、`p_skill_MHdualswords_on`、`p_skill_reticentsword_h` / `_s`、`p_skill_tidesurging_2`、`p_skill_bigwatercannon`、`p_skill_spiritexplo`、`p_skill_fireboomexplo` / `p_skill_robotexplo`（星熊 ②）；Sonniss：ESM Halloween「GORESplt_Gore Designed Transient Heavy Impact Smash 01」、InMotionAudio「GOREMisc_Concrete_MetalPipe02」、ESM Tower Defense「ICEBrk_Skill Freeze Whoosh Break Impact…Shatter 03」、344 Audio「WEAPSwrd_Sword Slide Cuts, Metallic, Impact CM4 2」、ESM「GLASMvmt_Whoosh Glass Crystal Fragments Sharp Shards Dry 05」、344 Audio「WINDDsgn_Wind, Rush, Whoosh, Long x5 01」、Ivo Vicic「13 Fireworks_powerful explosions_multiples in a row_near」（星熊 ① / 推进之王 ② / 铃兰 ②），其余复用本表已登记的 | 见 gen 各函数 | 0.25–1.6 s |
 剑雨插地（`ult_texas_sword_*`）与斩线碎裂（`ult_texas_shatter`）用户 10-31 不要，已删；`ult_audio.json` 对应画面单元写空槽。
+
+### 19.x 10-27 定稿（用户选「原作 Q + 闷响」）
+
+> 补录：原为独立碎片文件 docs/113_exusiai（文件名带不可见字符），10-27 写，合并到此。
+
+- 枪声与技能连射：`python game/tools/gen_sfx_exu5_1026.py --apply Q`（handgun_n / _s / _h 三条轮换，切片来自官方资源，同 §19 出处）。
+- 命中音：原 op_exusiai_hit 约 3000 Hz 纯音，连射时听成「叮叮叮」；换成无音高「闷响」（80–160 Hz 下滑短促噗 + 300–1800 Hz 带通噪声，0.09 秒），峰值为旧版 × 0.55，让枪声当主角。生成见 `game/tools/gen_sfx_exu_hit_1027.py`（`hit_a`；同脚本也出试听对照）。
+- 其他偏高带音高的命中音（德克萨斯约 2600 Hz、流明约 2100、铃兰约 1760、艾丽妮约 1650）留待合并后音效统一处理。
