@@ -2,6 +2,7 @@ extends RefCounted
 ## 界面 · 开场与教程：开局镜头演出（state OPENING）与其 HUD、新手教程分页（state INTRO）的打开 / 翻页 / 关闭 / 绘制。
 ## 界面层约定（docs/39 §3）：只读 game.gd 状态、只画自己的界面；改状态走 game.gd / run/ 的函数。2026-09-26 从 game.gd 拆出。
 
+const ThemePack = preload("res://scripts/core/theme_pack.gd")   # 主题数据路径门面（docs/359 §2）
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
 const PlayKeys = preload("res://scripts/core/play_keys.gd")   # 局内键名按当前绑定（可改键）
@@ -207,7 +208,7 @@ static var _guide: Dictionary = {}
 
 static func _g() -> Dictionary:
 	if _guide.is_empty():
-		_guide = JSON.parse_string(FileAccess.get_file_as_string("res://data/guide.json"))
+		_guide = JSON.parse_string(FileAccess.get_file_as_string(ThemePack.path("guide")))
 	return _guide
 
 

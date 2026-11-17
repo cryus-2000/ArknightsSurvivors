@@ -2,6 +2,7 @@
 ## 状态全在本模块；绘制通过 g（Game 节点）的 draw_* 进行。新地图 = 新增一份主题 JSON（+ 贴图）。
 extends RefCounted
 
+const ThemePack = preload("res://scripts/core/theme_pack.gd")   # 主题数据路径门面（docs/359 §2）
 const A = preload("res://scripts/art.gd")
 const Look = preload("res://scripts/render/look.gd")
 const Dc = preload("res://scripts/render/declutter.gd")   # 后期降噪预设（render/declutter）
@@ -39,7 +40,7 @@ func _init(game, theme_id := "deep_sea") -> void:
 
 static func list_ids() -> Array:
 	var out: Array = []
-	var d := DirAccess.open("res://data/maps")
+	var d := DirAccess.open(ThemePack.maps_dir())
 	if d == null:
 		return out
 	for f in d.get_files():
@@ -50,7 +51,7 @@ static func list_ids() -> Array:
 
 func load_theme(theme_id: String) -> void:
 	id = theme_id
-	var path := "res://data/maps/%s.json" % theme_id
+	var path := ThemePack.map_path(theme_id)
 	var f := FileAccess.open(path, FileAccess.READ)
 	theme = JSON.parse_string(f.get_as_text()) if f != null else {}
 	if theme.is_empty():

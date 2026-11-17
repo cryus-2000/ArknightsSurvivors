@@ -5,6 +5,7 @@ extends RefCounted
 ##   res://data/relic_effects.json  —— 已实装藏品的效果数据（modifier_system 的 effects 数组）+ 价格档
 ## 只有在 relic_effects.json 里有效果的藏品才会进入随机池。
 
+const ThemePack = preload("res://scripts/core/theme_pack.gd")   # 主题数据路径门面（docs/359 §2）
 const PRICE := {"基础": 10, "稀有": 14, "核心": 20, "升华": 30, "遭诅古物": 6, "结局": 0}
 const VBal = preload("res://scripts/core/balance.gd")
 
@@ -35,7 +36,11 @@ static func fill_desc(s: String) -> String:
 	return preload("res://scripts/characters/character.gd").fill_line(s, text_base())
 
 
-func load_files(meta_path: String = "res://data/relics.json", fx_path: String = "res://data/relic_effects.json") -> int:
+func load_files(meta_path: String = "", fx_path: String = "") -> int:
+	if meta_path == "":
+		meta_path = ThemePack.path("relics")   # 缺省读当前主题的藏品表（docs/359 §2）
+	if fx_path == "":
+		fx_path = ThemePack.path("relic_effects")
 	items.clear()
 	var meta = _read_json(meta_path)
 	var fx = _read_json(fx_path)

@@ -12,6 +12,7 @@ extends Control
 ## 操作：方向键 / 手柄十字键按方向找最近的节点；点节点选中并展开详情卡（11-02 用户：缺省收起，点到具体节点再自动展开），
 ## 再点同一节点 / 点空白 / Z 收起，悬停只高亮；Enter / 详情卡「塑造」塑造；R 推荐（按推荐顺序把余额点完）；X 两次全部重置（免费退回）；
 ## Esc 返回；画布比屏幕大时拖动 / 滚轮（Shift 横向）平移，换选中后镜头跟随。减少动态效果：不生长、不呼吸、无光点流动，镜头直接到位。
+const ThemePack = preload("res://scripts/core/theme_pack.gd")   # 主题数据路径门面（docs/359 §2）
 signal closed
 
 const UI = preload("res://scripts/ui.gd")
@@ -160,7 +161,7 @@ static func _v(a) -> Vector2:
 func _build() -> void:
 	chains.clear()
 	pos.clear()
-	var j = JSON.parse_string(FileAccess.get_file_as_string("res://data/meta_roots.json"))
+	var j = JSON.parse_string(FileAccess.get_file_as_string(ThemePack.path("meta_roots")))
 	lay = j.get("scene", {}) if j is Dictionary else {}
 	var nodes := Meta.nodes()
 	var child := {}

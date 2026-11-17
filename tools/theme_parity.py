@@ -30,12 +30,14 @@ CROOT = GR.common_root()
 CACHE = os.path.join(CROOT, "build", "parity_cache")
 PARITY_EVERY = 15   # 帧；--balance 步长约 1/15 秒，约每游戏秒一行
 
-# 四条结局线（endings.gd route：knight / heart / memory / none）× 三档难度（--preset 0/1/2）+ 1 局 Boss 测试台 + 1 局 3 分钟短局
+# 四个结局（standard / knight / deep / resolve）× 三档难度（--preset 0/1/2）+ 1 局 Boss 测试台（伊莎玛拉二阶段）+ 1 局 3 分钟短局
 CASES = {
-    "none_p0": ["--seed=11", "--op=mizuki", "--preset=0", "--route=none"],
-    "knight_p1": ["--seed=12", "--op=wisadel", "--preset=1", "--route=knight", "--god"],
-    "heart_p2": ["--seed=13", "--op=skadi", "--preset=2", "--route=heart", "--god", "--meta=full"],
-    "memory_p1": ["--seed=14", "--op=eyjafjalla", "--preset=1", "--route=memory", "--squad=suzuran,hoshiguma", "--god"],
+    # 局名 = 实际走到的结局_难度档。--god（队长倒下回满）让机器人打满一局、走到结局线；结局靠 seed 选出来（docs/359 §1.2：
+    # 机器人按 --route 选卡，但能不能翻到入口卡看发牌，heart 线 30 个 seed 里只有 seed 33 走到 deep）
+    "standard_p0": ["--seed=11", "--op=mizuki", "--preset=0", "--route=none"],
+    "knight_p2": ["--seed=13", "--op=skadi", "--preset=2", "--route=knight", "--god", "--meta=full"],
+    "deep_p0": ["--seed=33", "--op=mizuki", "--preset=0", "--route=heart", "--god"],
+    "resolve_p1": ["--seed=22", "--op=mizuki", "--preset=1", "--route=memory", "--god"],
     "boss": ["--seed=15", "--op=mizuki", "--bosstest=ishar2", "--parity=5"],
     "short": ["--seed=3", "--op=logos", "--maxt=180", "--squad=lappland"],
 }

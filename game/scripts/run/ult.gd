@@ -6,6 +6,7 @@
 ## 机器人批跑里两者都不生效、阶段长度照旧，不碰随机数。
 extends RefCounted
 
+const ThemePack = preload("res://scripts/core/theme_pack.gd")   # 主题数据路径门面（docs/359 §2）
 const Bal = preload("res://scripts/core/balance.gd")
 const UPX = preload("res://scripts/run/ult_px_exusiai.gd")   # 转平面终结技画面（docs/262 §11，ult/px_plane）：kind = "pxfn" 的图形交给它画
 const Moves = preload("res://scripts/run/ult_moves.gd")
@@ -1809,25 +1810,23 @@ func fx_tick() -> void:
 
 
 ## 终结技 / 连携技名称与简介（data/ult_text.json，图鉴技能页两行 + 终结技演示段标签读；本作新增招式，名称自拟）
-const TEXT_PATH := "res://data/ult_text.json"
 static var _text: Dictionary = {}
 
 static func text_table() -> Dictionary:
 	if _text.is_empty():
-		var d = JSON.parse_string(FileAccess.get_file_as_string(TEXT_PATH)) if FileAccess.file_exists(TEXT_PATH) else null
+		var d = JSON.parse_string(FileAccess.get_file_as_string(ThemePack.path("ult_text"))) if FileAccess.file_exists(ThemePack.path("ult_text")) else null
 		_text = d if d is Dictionary else {"ops": {}}
 	return _text
 
 
 ## 终结技专属音效 / 语音表（docs/205，data/ult_audio.json）：干员的条目叠在 default 上；只在 _begin / _cast / impact / hit 四处读
-const AUDIO_PATH := "res://data/ult_audio.json"
 var _aud_tab := {}
 var _hit_rt := -99.0
 
 
 func _aud(oid: String) -> Dictionary:
 	if _aud_tab.is_empty():
-		var d = JSON.parse_string(FileAccess.get_file_as_string(AUDIO_PATH)) if FileAccess.file_exists(AUDIO_PATH) else null
+		var d = JSON.parse_string(FileAccess.get_file_as_string(ThemePack.path("ult_audio"))) if FileAccess.file_exists(ThemePack.path("ult_audio")) else null
 		_aud_tab = d if d is Dictionary else {"default": {}}
 	if _aud_tab.has("_m:" + oid):
 		return _aud_tab["_m:" + oid]

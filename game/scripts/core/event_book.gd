@@ -3,6 +3,7 @@ extends RefCounted
 ## 记录口径：事件面板弹出算「遇到」一次（同一件事件重弹的下一屏不算）；弹出时显示的选项记「见过」；选了记「选过」次数。
 ## 老存档没有记录，从 0 开始。
 
+const ThemePack = preload("res://scripts/core/theme_pack.gd")   # 主题数据路径门面（docs/359 §2）
 const D = preload("res://scripts/data.gd")
 
 ## 同一件事件的后续屏：选项并进主事件显示（设身处地第二屏 / 再喂一屏），本身不单列、不算遇到
@@ -17,7 +18,7 @@ const GROUPS := ["结局线事件", "不期而遇", "节点事件"]
 static func entries() -> Array:
 	var w: Dictionary = D.Loader.load_waves()
 	var evs: Array = (w.get("events", []) as Array).duplicate(true)
-	var f := FileAccess.open("res://data/events_v2.json", FileAccess.READ)
+	var f := FileAccess.open(ThemePack.path("events_v2"), FileAccess.READ)
 	if f != null:
 		var v2 = JSON.parse_string(f.get_as_text())
 		if v2 is Dictionary:

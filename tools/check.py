@@ -359,6 +359,18 @@ def check_px_lint():
     return {"name": "像素稿验收 px_lint", "ok": not errs, "detail": detail, "errors": errs[:8]}
 
 
+def check_theme_parity():
+    """主题重构同种子基准（docs/359 §1）：tools/theme_parity.py 在基线提交与当前工作树各跑 6 局，逐帧逐字段比。
+    约 25 分钟（本机 2 个 Godot），只在 --only theme_parity 时跑，不进 --auto / 全量；基线 = 环境变量 ARK_PARITY_REF，缺省 main。"""
+    ref = os.environ.get("ARK_PARITY_REF", "main")
+    r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "theme_parity.py"), "--ref", ref], cwd=ROOT,
+                       capture_output=True, text=True, encoding="utf-8", errors="replace")
+    lines = [l for l in r.stdout.splitlines() if l.strip()]
+    bad = [l for l in lines if l.startswith("失败")]
+    return {"name": "主题同种子基准 theme_parity（基线 %s）" % ref, "ok": r.returncode == 0,
+            "detail": lines[-1] if lines else (r.stderr or "")[-300:], "errors": bad[:8]}
+
+
 JOBS = GR.MAX_PROCS   # 本次快检的并行数（main 里按 --jobs 设置）
 LOG_DIR = None   # 本次快检的日志目录（main 里设置）；每次启动 Godot 的完整输出都写进去，失败时报告里给路径
 
@@ -1418,7 +1430,7 @@ def main():
     ap.add_argument("--ab", metavar="REF", help="与某个提交做 A/B 对比（机器人标准矩阵）")
     ap.add_argument("--seeds", type=int, default=4)
     ap.add_argument("--keep", action="store_true", help="A/B 结束后保留临时工作树")
-    ap.add_argument("--only", choices=["core", "smoke", "nodes", "hold_aim", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "desc_values", "ob_tag", "cc_lint", "node_cue_lint", "data_lint", "graph_lint", "check_map", "text_reconcile", "shader_lint", "px_lint", "enemy_art", "asset_lint", "asset_index", "onboard_reload", "opening_transport", "web_music"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
+    ap.add_argument("--only", choices=["core", "smoke", "nodes", "hold_aim", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "desc_values", "ob_tag", "cc_lint", "node_cue_lint", "data_lint", "graph_lint", "check_map", "text_reconcile", "shader_lint", "px_lint", "enemy_art", "asset_lint", "asset_index", "onboard_reload", "opening_transport", "web_music", "theme_parity"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
     ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS,
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
     ap.add_argument("--bal", action="append", default=[], metavar="段/键=值",
@@ -1480,6 +1492,8 @@ def main():
         jobs.append(check_asset_lint)   # 不开 Godot；ERROR 算失败（docs/189）
     if a.only in (None, "asset_index"):
         jobs.append(check_asset_index)
+    if a.only == "theme_parity":
+        jobs.append(check_theme_parity)   # 开 Godot 约 25 分钟；只在 --only theme_parity 时跑（docs/359 §1）
     if a.only == "px_lint":
         jobs.append(check_px_lint)   # 不开 Godot；只在 --only px_lint 时跑（不进 --auto / 全量：样本在 codex-art 工作树，别人机器上可能没有）
     if a.only in (None, "data_lint"):
