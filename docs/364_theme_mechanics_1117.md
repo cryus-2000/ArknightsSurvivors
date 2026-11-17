@@ -96,3 +96,73 @@ GCP `check.py --nocache` 真全量（`a04a96bbc`，`cloud-results/ci-mech-a04a96
 - **为什么不直接提交新索引**：11-09 `c4b86fbdf`「撤回误提交的 game/art/index.json（本地生成文件，不进提交）」定的口径是不提交；本机每次录像 / 快检前都先 `asset_index.py` 重建，所以本机不红，只有云端新检出（用的是仓库里那份旧的）会红。
 - **修法（`9baabf2b3` + `82e528b20`，安全）**：`tools/cloud/setup_linux.sh` 和 GCP 预制镜像路径（`vm_startup.sh`，镜像不走 setup_linux）在导入前跑一次 `python3 tools/asset_index.py`，云端和本机口径一致。仓库里的 index.json 没动。验证：GCP `cloud-results/ci-idx-82e528b2` 上 asset_index、graph_lint 都通过。
 - **待协调人定**：既然「不进提交」，更干净的做法是 `git rm --cached game/art/index.json` + 加进 `.gitignore`，导出 / ship 链路确认都会先重建（`check_release` / `export_web` 是否依赖仓库版本要先查）。这一步改了跟踪状态，没替你做。
+
+---
+
+## 6. 第二步收尾（11-18，分支 `claude/theme-mech2`，以 main `1c4f2e695` 为底）
+
+| 提交 | 内容 |
+|---|---|
+| `953866d48` | `game/art/index.json` 停止跟踪（§8） |
+| `857a70d97` | 机器人的灯标 / 缩圈逻辑改走机制挂钩；`g.beacon_sys` 直接调用判空 |
+| `1c46e1811` | 最终 Boss 场地从缩圈里拆成通用 `run/arena.gd`（§7） |
+
+### 6.1 机器人挂钩（`theme_mechanic.gd`，缺省都是「没意见」）
+
+| 挂钩 | 调用处 | 水月实现 |
+|---|---|---|
+| `bot_return_dir(p, margin)` | 手残 `_move_bad` | 缩圈：离圈边 < margin 往圈心 |
+| `bot_score(q, s) -> float` | 高手 `_score_point`（传入当前分、返回新分，加减顺序原样） | 缩圈：圈边 120 内按超出扣分、圈外 −30 |
+| `bot_goal(bot, p)` | 高手 `_expert_goal`（INF = 没意见；可写 `bot.beacon_hold / beacon_w`） | 灯标：找最近未点燃灯标、近了在光圈站着 |
+| `bot_outside_dir(p)` / `bot_land_bad(land, p)` | master 冲刺 `_master_dash_dir` | 缩圈：出圈冲回、落点不往更外 |
+| `bot_pull(pull)` / `bot_steer(at, mv)` | 普通机器人 `autotest.bot_move`（计时状态 `zone_out_since` / `want_dash` 仍在 autotest） | 灯标拉力；缩圈回圈与出圈冲刺 |
+
+`g.beacon_sys` 直接调用全部判空（`enemy_ai` 2 处、`shot_pool` 2、`enemies` 1、`run_stats` 1、`spawner` 1、`onboard` 1、`map` 1、`mech_mire` 2），没有灯标机制的主题（`beacon_sys == null`）不会空引用。
+
+**机器人还剩的写死**：`bot.gd` 里 `beacon_hold / beacon_w`（通用的「站桩点」加权，名字沿用）和 `_bdbg` 灯标诊断日志、human 档 `zone_edge` 一行（`bot.gd:931`，等价于 `bot_return_dir(p, 90) != ZERO`，下次顺手换）。
+
+### 6.2 验证
+
+- `theme_parity`（只有高手机器人）：见 §9。
+- **其余机器人档**另跑同种子对照（seed 5 维什戴尔 500 秒，`1c4f2e695` vs `857a70d97`，Windows）：normal 214 行 PARITY + 212 行 TRACE、bad 81 + 81、master 506 + 501、human 246 + 243，**四档全部逐行相同**。
+
+## 7. 最终 Boss 场地拆出来（`run/arena.gd`）
+
+- `freeze(r)`（原 `freeze_zone`）、`step(dt)`（原 `_arena_step`，冻结后 3 秒插值）、`blocked(pos, r)`（原 `mire_blocked`）、`clamp_point(p, margin)`（原 `arena_clamp`）原样搬来；`g.arena` 挂在 game 上，`combat.freeze_zone / mire_blocked / arena_clamp` 改转发，调用方不变。
+- 冻结末尾调各机制 `on_arena_freeze(fresh)`：缩圈重置阶段（`zone_phase = -1`，原在冻结开头，中间没人读，等价）、溟痕清掉场地里的（原在冻结末尾）。
+- 插值从缩圈 `update_zone` 开头挪到 `_update_player` 里机制挂钩之前（`arena.step`），中间只有灯火挂钩、它不读圈，顺序等价。
+- **效果**：没有缩圈机制的主题也有最终 Boss 场地（约束 Boss / 召唤落点、禁生成）。圈外伤害仍归主题机制（水月：黑潮）；没有缩圈的主题场地边上没有伤害，要不要另做「场地墙」是下一个主题的设计问题。
+
+## 9. 收尾 parity（`857a70d97`、`1c46e1811`）
+
+| 提交 | Windows 本机（7 局） | Linux GCP（7 局 × 两遍） |
+|---|---|---|
+| `857a70d97` 机器人 | **7 / 7 一致**，PARITY 4105 行 × 36 字段 | rep1 **7 / 7 一致**；rep2 只有 `deep_p0` 落在变体 C（`cloud-results/pm-857a70d97`） |
+| `1c46e1811` 场地 | **7 / 7 一致**，PARITY 4105 行 × 36 字段 | rep1 **7 / 7 一致**；rep2 只有 `deep_p0` 落在变体 C（`cloud-results/pm-1c46e1811`） |
+
+### 9.1 剩余写死处（同 §3 口径）
+
+| 机制 | main 3c28305c3 | 第二步 1c4f2e695 | 现在 1c46e1811 |
+|---|---|---|---|
+| `\blamp` | 444 / 66 | 397 / 66 | **397 / 66** |
+| `\bmire` | 238 / 31 | 165 / 28 | **165 / 29**（多出的是 `run/arena.gd` 的注释与 `mire_blocked` 名字） |
+| `beacon` | 230 / 33 | 186 / 31 | **183 / 32** |
+| `\bzone_` | 323 / 41 | 255 / 40 | **249 / 41** |
+
+协调人定：状态本身（`g.lamp / g.mires / g.beacons / g.zone_*`）的读取方暂不迁移，第三步（存档按主题分）之后再评估；剩下的主要就是这些读取方（HUD、遥测、画面、干员技能、Boss 招式）。
+
+## 8. `game/art/index.json` 停止跟踪（`953866d48`，协调人同意）
+
+- `git rm --cached` + `.gitignore`。`tools/asset_index.py` 加 `write(game_art)`（按磁盘重建，内容没变不写）。
+- 用前重建的地方：
+  - `export_build.py`、`export_web.py`（含 `--toy` / `--toy-out`）：`git archive` 解出副本后**第一步**重建（`web_half.make` 在瘦身之前读它，以前读的是仓库里那份旧的）；之后 `release_slim.prune_game_art` 照旧按瘦身后的文件再重写一次。`release_all.py` / `ship.py` 都经这两个脚本出包，`encrypted_release.py` 只改预设文本，`verify_encrypted_game.py` 读的是副本里的 index。
+  - `godot_runner.ensure_imported`：快检、批跑、`trace_base` / `theme_parity` 临时工作树起 Godot 前重建。
+  - 云端：`setup_linux.sh`、GCP `vm_startup.sh`（上一轮已加）。
+- `ship.py` 的「工作区有未提交改动就停止」：被忽略的文件不出现在 `git status --short`，不再触发。**注意**：主工作区合入这个提交时 git 会删掉工作区里那份 index.json（它不再被跟踪）；下一次跑快检 / 出包会自动重建，手动开编辑器前先 `python tools/asset_index.py`。
+- **出包对照**（本机，改前 = `1c4f2e695` 的工具与源码，改后 = `953866d48`；网页 / Toy 拼回分片解压、读 pck 目录比）：
+
+| 包 | 改前 | 改后 | 结论 |
+|---|---|---|---|
+| Windows 对外加密包 | 打包副本 27224 个文件、pck 126.76 MB、加密 PNG 4545 张 | 同左 | 文件名与大小逐个相同（只有编辑器的 `filesystem_cache10` 差 3 字节）；副本 `art/index.json` 逐字节相同 |
+| itch 网页包 | pck 12937 个文件、56.19 MB（6 片） | 同左 | pck 目录逐项（路径 + 大小）相同，含 `art/index.json` 323097 字节 |
+| Toy 包 | pck 11459 个文件、33.60 MB（4 片）；zip 49,784,144 字节 | 同左 | pck 目录逐项相同，zip 字节数相同 |
