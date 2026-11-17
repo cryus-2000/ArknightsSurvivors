@@ -7,6 +7,7 @@
 | `546858461` | 存档：`roster_tiers` 改按主题；全部解锁包切主题的保护 |
 | `fb8145173` | 主题数据搬进 `game/themes/deep_sea/data/` |
 | `56bd40aee` | 敌种 id：一批规则改读 `enemies.json` / `waves.json`；写死点清单工具 |
+| `d6fc5d52b` | 搬家漏改的工具：`desc_value_audit`、`install_enemy_redraw`（pathlib 写法）、`check.py` 的 JSON 解析检查与 `--auto` 说明字段分级认 `game/themes/*/data` |
 
 ## 1. 存档收尾
 
@@ -32,6 +33,8 @@
 - **Python 工具**：新增 `tools/theme_paths.py`（读同一份清单：`data_file(名)`、`data_dirs()`、`maps_dir()`）；`data_lint`、`graph_lint`、`text_reconcile`、`text_reconcile_scan`、`l10n/extract` 走它；另外 18 个工具 / 探针里写死的 `game/data/<文件>` 改成新路径（`asset_lint`、`asset_paths`、`balance_run`、`death_report`、`gen_relic_icons`、`relic_icons_hand`、`enemy_tone`、`gen_boss_laser`、`dmg_curve_plot`、`balance_audit_1110`、`pxplane_gif_exusiai_ult`、`probes/*` 六个）。`l10n/extract` 写进条目的来源路径会变成新路径；已有 CSV 的 `_source` 列下次重抽时更新（游戏按原文查表，不受影响）。
 - **check_map**：规则改到 `game/themes/*/data/…`；`theme.json`、`mech/*.gd`、主题地图进「全局公共文件」（改了就分支全量）。
 - **测试**：3 处写死的 `res://data/enemies.json` / `medals_layout.json` 改新位置。
+- **出包验证**（本机，`ebe9f5981`）：`export_build.py` 出对外加密 Windows 包，`verify_encrypted_game.py` 通过——包内 4578 张 PNG、1362 个音频、90 个 JSON（含主题包 11 个）全部能从加密 pck 读出。
+- **云端全量快检**（GCP `check.py --nocache`）：`ebe9f5981` 时 `desc_values` 报找不到 `game/data/relic_effects.json`（pathlib 写法漏改），`d6fc5d52b` 修后 218 项、217 通过，唯一失败是积木等价「金样过期」（分支必然过期，合入后重录）；asset_index / graph_lint 已在云端转绿（docs/364 §5 的修法生效）。结果分支 `cloud-results/ci-step4b-d6fc5d52b`。
 - 验证：data_lint、graph_lint、text_reconcile、asset_lint 直接跑通过；check：core、ui_smoke、medals、theme_save、cloud_save、public_gallery、knight_combo、l10n、data_lint、graph_lint、check_map 通过。`tools/test_web_audio.py` 两个 `engine_patch` 用例在改前的 HEAD 上就报错（与本步无关），导出过滤器相关的用例通过。
 
 ## 3. 敌种 id 写死点
