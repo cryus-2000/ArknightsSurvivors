@@ -224,3 +224,12 @@ https://prts.wiki/w/博士 只有一条情报资料，能支持的只有「失�
 ### A.7 招募卡干员简介（2026-10-29）
 
 2026-10-29 用户定：升级三选一里的招募卡 / 换人卡正文改显示一句干员简介（`gallery.intro`，20 人），图鉴仍用机制说明 `gallery.desc`。简介按 PRTS 客观履历 / 基础档案转述，数据对照 https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/zh_CN/gamedata/excel/handbook_info_table.json 与 https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/zh_CN/gamedata/excel/character_table.json 。
+
+### A.9 第六批设计稿 2 人：傀影 / 史尔特尔（2026-11-18，docs/368 / 369；只出设计与数值，未接美术）
+
+| 干员 | 来源 | 干员简介 | 身份 | 用到的事实 |
+|---|---|---|---|---|
+| 傀影 | https://prts.wiki/w/傀影 （`index.php?title=傀影&action=raw`） | 罗德岛干员傀影，如影子般融入黑夜。 | 维多利亚、菲林、男、感染者；特种 · 处决者 | 客观履历（独自行动于维多利亚及周边的刺客，背景未完全实证）；档案资料二（喉部源石结晶，声音能损伤活体精神）；档案资料三（曾随流浪剧团巡演，剧团被矿石病摧毁）；档案资料一（Miss.Christine）。技能 / 天赋名：暗夜魅影 Phantom of the Night、血色乐章 Bloody Opus、夜幕突袭 Night Raid、镜中虚影、虚影精通；模组名「如影随形」「克里斯汀小姐的毛毡」 |
+| 史尔特尔 | https://prts.wiki/w/史尔特尔 （同上取法） | 罗德岛近卫干员史尔特尔，看上去很难接近。 | 出身地不明、萨卡兹、女、感染者；近卫 · 术战者 | 客观履历（缺失性记忆障碍，原因不详的强大战斗能力）；档案资料二（双手大剑高温可融化一般物质，原理难以解析，不属于任何源石技艺）；档案资料三（多重记忆混乱）。技能 / 天赋名：烈焰魔剑 Laevatain、熔核巨影 Molten Giant、黄昏 Twilight、熔火、余烬 |
+
+终结技「最后一幕」「焚尽」、连携「谢幕」「魔剑」、普攻「影刃」「熔剑」、精英普攻与成长节点里不在上表的名字均为本作自拟。招募卡简介两条是草稿，待用户亲写（A.7）。

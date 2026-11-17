@@ -1,0 +1,923 @@
+{
+ "id": "surtr",
+ "trail_col": {
+  "main": [
+   1.0,
+   0.45,
+   0.2
+  ],
+  "alt": [
+   0.75,
+   0.15,
+   0.12
+  ]
+ },
+ "name": "史尔特尔",
+ "en": "SURTR",
+ "class": "近卫",
+ "lanes": [
+  "melee"
+ ],
+ "branch": "术战者",
+ "col": [
+  0.95,
+  0.42,
+  0.22
+ ],
+ "script": "res://scripts/characters/op_surtr.gd",
+ "recruitable": false,
+ "_doc_recruit": "11-18 设计稿阶段（docs/369）：不进名册 / 寻访池，只供木桩表与配对批跑；定稿 + 美术到位后删掉 recruitable",
+ "base": {
+  "_doc": "史尔特尔（docs/369）：近卫 · 术战者。数值为木桩表初版（11-18），待 GCP 配对后再定；文字与积木只引用这里的键",
+  "atk": 66,
+  "cd": 1.15,
+  "reach": 118,
+  "half": 1.2,
+  "kb": 70,
+  "aim_pad": 40,
+  "first_cd": 0.3,
+  "idle_cd": 0.1,
+  "leash": 200,
+  "gap": 30,
+  "s1_mult": 2.2,
+  "s1_r": 1.2,
+  "s1_kb": 160,
+  "s1_refund": 0.34,
+  "s2_dur": 15.0,
+  "s2_atk": 1.5,
+  "s2_r": 1.35,
+  "s2_solo_r": 36,
+  "s2_solo": 0.9,
+  "s3_dur": 18.0,
+  "s3_atk": 1.6,
+  "s3_ring": 130,
+  "s3_heal": 1.0,
+  "s3_mate_heal": 0.3,
+  "s3_drain": 0.04,
+  "burn_dur": 2.0,
+  "burn_every": 0.5,
+  "burn_mult": 0.08,
+  "ember_dur": 4.0,
+  "ember_dur2": 6.0,
+  "ember_cd": 90.0,
+  "e2_r": 46,
+  "e2_front": 1.8,
+  "e2_mult": 0.6,
+  "_doc_growth": "docs/202 成长节点（待试验参数）：spark_*（节点 1 迸火）、lift_*（节点 2 掀翻：魔剑挑飞）、smash_*（4A 熔核：巨影重砸）、giant_*（4B 余影：巨影留场）、quake_*（5A 崩落：重砸后余震）、ashb_*（5B 余火：留场巨影消散爆燃）",
+  "spark_n": 3,
+  "spark_r": 60,
+  "spark_front": 1.6,
+  "spark_mult": 0.35,
+  "lift_dur": 0.5,
+  "lift_n": 4,
+  "lift_r": 50,
+  "lift_mult": 0.3,
+  "smash_n": 3,
+  "smash_r": 80,
+  "smash_mult": 1.2,
+  "smash_stun": 0.6,
+  "giant_life": 4.0,
+  "giant_r": 120,
+  "giant_half": 70,
+  "giant_mult": 0.6,
+  "giant_every": 1.0,
+  "quake_delay": 0.3,
+  "quake_r": 140,
+  "quake_mult": 0.5,
+  "ashb_r": 130,
+  "ashb_mult": 1.0
+ },
+ "leader": {
+  "_doc": "当队长时的受击属性（docs/23）：原作精二满级 生命 2916 / 防御 414 / 法抗 15（PRTS 属性）；近卫里生命最高一档，同斯卡蒂",
+  "max_hp": 117.0,
+  "armor": 2.4,
+  "arts_res": 0.15,
+  "regen": 1.0
+ },
+ "sprites": {
+  "move_attack": {
+   "tex": "op_skadi_move_attack",
+   "frames": 9,
+   "foot": [
+    48,
+    76
+   ],
+   "_doc": "10-23 移动攻击（docs/128 §3）：普攻上半身 + 跑步步态腿，原作 Spine 1 倍像素化（tools/op_1x/make_op_1x.py）；帧序与普攻一一对应，只换贴图"
+  },
+  "entry": {
+   "tex": "op_skadi_entry",
+   "frames": 8,
+   "fps": 9.1429,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.1094,
+    0.1094,
+    0.1093,
+    0.1094,
+    0.1094,
+    0.1093,
+    0.1094,
+    0.1094
+   ],
+   "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/skadi_entry.json），64 画布 @2x；落下由代码补"
+  },
+  "idle": {
+   "tex": "op_skadi_idle",
+   "frames": 8,
+   "fps": 4,
+   "foot": [
+    32,
+    60
+   ],
+   "_doc": "Codex cz_skadi_actions_1020 原生 Idle 8 帧（64 画布）"
+  },
+  "run": {
+   "tex": "op_skadi_run",
+   "frames": 8,
+   "fps": 13.333333333333334,
+   "foot": [
+    32,
+    60
+   ],
+   "_doc": "Claude 步态脚本（tools/spine_run_trial cfg/skadi.json）8 帧 0.6 秒循环；右手拖剑在身后"
+  },
+  "attack": {
+   "tex": "op_skadi_attack_v2",
+   "frames": 9,
+   "fps": 14,
+   "foot": [
+    48,
+    76
+   ],
+   "fire": 5,
+   "frame_durations": [
+    0.033482,
+    0.061384,
+    0.039062,
+    0.022321,
+    0.022321,
+    0.053089,
+    0.03861,
+    0.043436,
+    0.043436
+   ],
+   "fire_time": 0.17857142857142858,
+   "_doc": "10-23 用户逐版定的「侧向劈砍」（tools/spine_run_trial cfg/skadi_sideslash_power.json）：从跑步拖剑位起手、剑不过肩不挡脸，预备后仰 → 两帧快挥重心前冲 → 出手定格 → 冲过头回收；9 帧 96 画布，出手第 5 帧；动作窗口沿用旧条（同 seed 不变）",
+   "attack_timing": {
+    "duration": 0.6,
+    "fire_time": 0.28,
+    "active_ratio": 0.9,
+    "windup_ratio": 0.46666666666666673,
+    "min_duration": 0.13333333333333333,
+    "frame_durations": [
+     0.0525,
+     0.09625,
+     0.06125,
+     0.035,
+     0.035,
+     0.095135,
+     0.069189,
+     0.077838,
+     0.077838
+    ]
+   }
+  },
+  "skill": {
+   "tex": "op_skadi_leap_strike",
+   "frames": 8,
+   "fps": 14,
+   "foot": [
+    48,
+    76
+   ],
+   "fire": 5,
+   "frame_durations": [
+    0.12209302325581395,
+    0.061046511627906974,
+    0.061046511627906974,
+    0.0872093023255814,
+    0.0436046511627907,
+    0.07965686274509806,
+    0.06740196078431374,
+    0.06127450980392157
+   ],
+   "fire_time": 0.375,
+   "_doc": "二技能跃浪击借用跳劈帧条；窗口沿用旧 skill 条 7 帧 / 12fps：总长 7/12 秒、出手 4.5/12 秒（同 seed 不变）"
+  },
+  "size": 64,
+  "foot": [
+   32,
+   60
+  ],
+  "attack_spin": {
+   "tex": "op_skadi_attack_spin",
+   "frames": 12,
+   "fps": 24,
+   "foot": [
+    48,
+    76
+   ],
+   "fire": 3,
+   "frame_durations": [
+    0.06944444444444445,
+    0.06944444444444445,
+    0.06944444444444445,
+    0.032407407407407406,
+    0.032407407407407406,
+    0.032407407407407406,
+    0.032407407407407406,
+    0.032407407407407406,
+    0.032407407407407406,
+    0.032407407407407406,
+    0.032407407407407406,
+    0.032407407407407406
+   ],
+   "fire_time": 0.20833333333333334,
+   "_doc": "Claude 全向回旋 12 帧（背面部件转身 + 剑透视缩短）；窗口沿用旧条 6 帧 / 12fps：总长 0.5 秒、出手 2.5/12 秒"
+  },
+  "leap_strike": {
+   "tex": "op_skadi_leap_strike",
+   "frames": 8,
+   "fps": 14,
+   "foot": [
+    48,
+    76
+   ],
+   "fire": 5,
+   "frame_durations": [
+    0.10465116279069768,
+    0.05232558139534884,
+    0.05232558139534884,
+    0.07475083056478406,
+    0.03737541528239203,
+    0.06827731092436974,
+    0.05777310924369747,
+    0.05252100840336134
+   ],
+   "fire_time": 0.32142857142857145,
+   "_doc": "Claude 跳劈 8 帧（原地播放）；窗口沿用旧条 7 帧 / 14fps：总长 0.5 秒、出手 4.5/14 秒"
+  },
+  "backslash": {
+   "tex": "op_skadi_backslash",
+   "frames": 8,
+   "fps": 14,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.09,
+    0.05,
+    0.05,
+    0.05,
+    0.05,
+    0.1,
+    0.08,
+    0.11
+   ],
+   "_doc": "Claude 反手斩 8 帧；天赋深海掠食者追加斩只播画面（talent vis_anim），不占动作窗口"
+  },
+  "death": {
+   "tex": "op_skadi_death",
+   "frames": 8,
+   "fps": 8,
+   "foot": [
+    48,
+    76
+   ],
+   "_doc": "Codex cz 原生 Die 8 帧（96 画布）"
+  }
+ },
+ "extra_sprites": [
+  "entry",
+  "attack_spin",
+  "leap_strike",
+  "backslash"
+ ],
+ "attack": {
+  "mode": "auto",
+  "name": "熔剑",
+  "desc": "每 {$cd} 秒挥动大剑横斩身前的敌人（法术，扇形约 {$half*114.6:0}°，半径 {$reach}）；近卫·术战者特性：攻击造成法术伤害"
+ },
+ "skills": [
+  {
+   "name": "烈焰魔剑",
+   "en": "LAEVATAIN",
+   "sp": 8,
+   "desc": "斩出强化的一剑：{$s1_mult*100}% 伤害、范围 ×{$s1_r}、击退加大；这一剑击倒精英或 Boss 时立即回满技力，只击倒普通敌人时回复 {$s1_refund*100}% 技力（每剑一次）",
+   "icon": "skill_surtr_s1"
+  },
+  {
+   "name": "熔核巨影",
+   "en": "MOLTEN GIANT",
+   "sp": 18,
+   "dur": 15.0,
+   "desc": "{$s2_dur} 秒内攻击 ×{$s2_atk}、挥剑范围 ×{$s2_r}；身后的熔核巨影每一剑再朝主目标（Boss、精英优先）补一记 {$s2_solo*100}% 伤害",
+   "icon": "skill_surtr_s2"
+  },
+  {
+   "name": "黄昏",
+   "en": "TWILIGHT",
+   "sp": 26,
+   "dur": 18.0,
+   "desc": "队长回满生命（不是队长时回复 {$s3_mate_heal*100}%）；{$s3_dur} 秒内攻击 ×{$s3_atk}，挥剑变为半径 {$s3_ring} 的整圈斩；她是队长时，期间生命逐渐流失（最终每秒 {$s3_drain*100}% 最大生命，不会因此倒下）",
+   "icon": "skill_surtr_s3"
+  }
+ ],
+ "talent": {
+  "name": "余烬",
+  "desc": "队长受到致命伤害时生命保持 1，{$ember_dur} 秒内不会倒下（精英二 {$ember_dur2} 秒）；每 {$ember_cd} 秒至多一次"
+ },
+ "hit_sources": {
+  "熔剑": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "basic",
+    "area"
+   ]
+  },
+  "熔火": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "dot"
+   ]
+  },
+  "巨焰剑": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "basic",
+    "area"
+   ]
+  },
+  "烈焰魔剑": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "skill",
+    "area"
+   ]
+  },
+  "熔核巨影": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "skill"
+   ]
+  },
+  "黄昏": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "skill",
+    "area"
+   ]
+  },
+  "掀翻": {
+   "emitter": "operator",
+   "origin": "route",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "area",
+    "control"
+   ]
+  },
+  "迸火": {
+   "emitter": "operator",
+   "origin": "route",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "area"
+   ]
+  },
+  "熔核": {
+   "emitter": "operator",
+   "origin": "route",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "area",
+    "control"
+   ]
+  },
+  "崩落": {
+   "emitter": "operator",
+   "origin": "route",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "area"
+   ]
+  },
+  "巨影": {
+   "emitter": "summon",
+   "origin": "route",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "entity",
+    "area"
+   ]
+  },
+  "余火": {
+   "emitter": "summon",
+   "origin": "route",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "entity",
+    "area"
+   ]
+  }
+ },
+ "progression": [
+  {
+   "type": "custom",
+   "id": "spark",
+   "name": "迸火",
+   "icon": "growth_t_field",
+   "desc": "一剑命中 {$spark_n} 名以上敌人时，剑锋前方炸开一团火：半径 {$spark_r}，{$spark_mult*100}% 法术伤害"
+  },
+  {
+   "type": "custom",
+   "id": "lift",
+   "name": "掀翻",
+   "icon": "growth_u_spd",
+   "desc": "每第 {$lift_n} 剑，主目标附近半径 {$lift_r} 内的敌人被挑飞 {$lift_dur} 秒并受到 {$lift_mult*100}% 伤害（精英减半，Boss 除外）"
+  },
+  {
+   "type": "elite",
+   "level": 1,
+   "name": "精英一",
+   "desc": "解锁二技能「熔核巨影」；解锁天赋「余烬」：队长受到致命伤害时生命保持 1，{$ember_dur} 秒内不会倒下（精英二 {$ember_dur2} 秒；每 {$ember_cd} 秒至多一次）；普攻「熔火」：大剑命中的敌人被点燃 {$burn_dur} 秒，每秒受到攻击 {$burn_mult*100}% 的法术伤害",
+   "attack": {
+    "name": "熔火",
+    "desc": "大剑命中的敌人被点燃 {$burn_dur} 秒，每秒受到攻击 {$burn_mult*100}% 的法术伤害（可叠加）"
+   }
+  },
+  {
+   "type": "custom",
+   "id": "smash",
+   "name": "熔核",
+   "icon": "skill_surtr_s2",
+   "desc": "「熔核巨影」期间每第 {$smash_n} 剑，巨影朝主目标重砸：半径 {$smash_r}，{$smash_mult*100}% 伤害并眩晕 {$smash_stun} 秒（精英减半，Boss 除外）",
+   "branch": {
+    "smash": {
+     "id": "smash",
+     "name": "熔核",
+     "icon": "skill_surtr_s2",
+     "desc": "「熔核巨影」期间每第 {$smash_n} 剑，巨影朝主目标重砸：半径 {$smash_r}，{$smash_mult*100}% 伤害并眩晕 {$smash_stun} 秒（精英减半，Boss 除外）"
+    },
+    "linger": {
+     "id": "linger",
+     "name": "余影",
+     "icon": "growth_t_count",
+     "desc": "「熔核巨影」结束后，巨影留在原地 {$giant_life} 秒，每 {$giant_every} 秒朝身前挥一剑（{$giant_mult*100}% 伤害）"
+    }
+   },
+   "branch_desc": "「熔核」使巨影在技能期间重砸主目标；「余影」使巨影在技能结束后留场",
+   "bot": "smash"
+  },
+  {
+   "type": "custom",
+   "id": "linger",
+   "name": "余影",
+   "icon": "growth_t_count",
+   "desc": "「熔核巨影」结束后，巨影留在原地 {$giant_life} 秒，每 {$giant_every} 秒朝身前挥一剑（{$giant_mult*100}% 伤害）",
+   "routes": {
+    "smash": {
+     "id": "quake",
+     "name": "崩落",
+     "icon": "skill_surtr_s2",
+     "desc": "巨影重砸后 {$quake_delay} 秒，史尔特尔脚下余震一圈：半径 {$quake_r}，{$quake_mult*100}% 伤害并击退"
+    },
+    "linger": {
+     "id": "ashburst",
+     "name": "余火",
+     "icon": "growth_t_count",
+     "desc": "留场的巨影消散时炸开：半径 {$ashb_r}，{$ashb_mult*100}% 伤害"
+    }
+   }
+  },
+  {
+   "type": "elite",
+   "level": 2,
+   "name": "精英二",
+   "desc": "解锁三技能「黄昏」；余烬延长到 {$ember_dur2} 秒；普通攻击强化「巨焰剑」：剑身燃起熔火，每一剑在剑锋尽头再爆开一团（半径 {$e2_r}，{$e2_mult*100}% 法术伤害并点燃）",
+   "attack": {
+    "name": "巨焰剑",
+    "desc": "剑身燃起熔火，每一剑在剑锋尽头再爆开一团（半径 {$e2_r}，{$e2_mult*100}% 法术伤害并点燃）"
+   }
+  }
+ ],
+ "gallery": {
+  "tags": [
+   "近战",
+   "法术",
+   "范围",
+   "爆发"
+  ],
+  "desc": "近卫干员，双手大剑造成法术伤害。烈焰魔剑击倒敌人即回复技力；黄昏期间挥剑覆盖整圈，作为队长时以生命为代价",
+  "intro": "（草稿，待用户改）神秘的萨卡兹少女，记忆混乱，作战能力原因不详"
+ },
+ "blocks": {
+  "_doc": "史尔特尔（docs/369）：S1 烈焰魔剑：技能动作本身斩出强化的一剑（dur.next_n + attack_patch 只接落点弹 / 弹道 / 手写段普攻，扇形普攻不消耗）；回技力在 op_surtr.gd on_kill。积木 + 小脚本 op_surtr.gd（魔剑回技力、余烬不倒、黄昏流失三处时序，数值全在 base）。普攻 cone 法术大剑横斩；熔火 = 精一起普攻 on_hit 点燃",
+  "follow": {
+   "leash": "$leash",
+   "gap": "$gap"
+  },
+  "hit_fx": [
+   {
+    "pfx": {
+     "kind": "glow",
+     "r": 7.0,
+     "life": 0.18,
+     "col": [
+      1.0,
+      0.55,
+      0.25
+     ],
+     "alpha": 0.55
+    }
+   }
+  ],
+  "summons": {
+   "giant": {
+    "name": "熔核巨影",
+    "invuln": true,
+    "life": "$giant_life",
+    "cap": 1,
+    "r": 18,
+    "col": [
+     1.0,
+     0.45,
+     0.2
+    ],
+    "status": false,
+    "move": {
+     "mode": "stay"
+    },
+    "attack": {
+     "shape": "cone",
+     "r": "$giant_r",
+     "half_deg": "$giant_half",
+     "mult": "$giant_mult",
+     "every": "$giant_every",
+     "src": "巨影",
+     "kb": 60
+    },
+    "on_expire": [
+     {
+      "shape": "circle",
+      "cond": "node:ashburst",
+      "center": "target",
+      "r": "$ashb_r",
+      "r_abs": true,
+      "mult": "$ashb_mult",
+      "src": "余火",
+      "ring": false
+     }
+    ]
+   }
+  },
+  "attack": {
+   "shape": "cone",
+   "origin_off": [
+    0,
+    -10
+   ],
+   "aim_pad": "$aim_pad",
+   "ring": false,
+   "src": "熔剑",
+   "r": "$reach",
+   "half": "$half",
+   "kb": "$kb",
+   "every": "$cd",
+   "first": "$first_cd",
+   "idle": "$idle_cd",
+   "face": true,
+   "r_mults": [
+    {
+     "cond": "skill_active:1",
+     "mult": "$s2_r"
+    }
+   ],
+   "on_hit": [
+    {
+     "st": "burn",
+     "cond": "elite >= 1",
+     "dur": "$burn_dur",
+     "mult": "$burn_mult",
+     "every": "$burn_every",
+     "basis": "atk",
+     "src": "熔火"
+    }
+   ]
+  },
+  "trait": [
+   {
+    "trig": "every_n",
+    "n": 1,
+    "cond": "skill_active:1",
+    "_doc": "熔核巨影：每一剑，巨影再朝主目标（Boss → 精英 → 最近）补一记",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "target",
+      "r": "$s2_solo_r",
+      "r_abs": true,
+      "mult": "$s2_solo",
+      "power": true,
+      "src": "熔核巨影",
+      "ring": false
+     }
+    ]
+   }
+  ],
+  "skills": [
+   {
+    "dur": 0,
+    "status": "烈焰魔剑",
+    "fx": [
+     {
+      "text": {
+       "s": "烈焰魔剑",
+       "col": [
+        1.0,
+        0.55,
+        0.25
+       ],
+       "size": 15
+      },
+      "at": "self",
+      "off": [
+       0,
+       -80
+      ]
+     }
+    ],
+    "do": [
+     {
+      "shape": "cone",
+      "origin_off": [
+       0,
+       -10
+      ],
+      "aim_pad": "$aim_pad",
+      "ring": false,
+      "src": "烈焰魔剑",
+      "r": "$reach*$s1_r",
+      "half": "$half",
+      "mult": "$s1_mult",
+      "power": true,
+      "kb": "$s1_kb",
+      "face": true,
+      "on_hit": [
+       {
+        "st": "burn",
+        "cond": "elite >= 1",
+        "dur": "$burn_dur",
+        "mult": "$burn_mult",
+        "every": "$burn_every",
+        "basis": "atk",
+        "src": "熔火"
+       }
+      ]
+     }
+    ],
+    "need_enemy": 160
+   },
+   {
+    "dur": "$s2_dur",
+    "status": "熔核巨影",
+    "status_col": [
+     1.0,
+     0.45,
+     0.2
+    ],
+    "fx": [
+     {
+      "banner": "熔核巨影"
+     }
+    ],
+    "do": [
+     {
+      "verb": "buff_self",
+      "stat": "atk",
+      "op": "mult",
+      "value": "$s2_atk",
+      "power": true
+     }
+    ],
+    "need_enemy": 200
+   },
+   {
+    "dur": "$s3_dur",
+    "status": "黄昏",
+    "status_col": [
+     1.0,
+     0.35,
+     0.15
+    ],
+    "fx": [
+     {
+      "banner": "黄昏"
+     }
+    ],
+    "do": [
+     {
+      "verb": "buff_self",
+      "stat": "atk",
+      "op": "mult",
+      "value": "$s3_atk",
+      "power": true
+     },
+     {
+      "verb": "swap_attack",
+      "attack": {
+       "shape": "circle",
+       "center": "self",
+       "r": "$s3_ring",
+       "mult": 1.0,
+       "kb": "$kb",
+       "src": "黄昏",
+       "tags": [
+        "skill"
+       ],
+       "ring": false,
+       "on_hit": [
+        {
+         "st": "burn",
+         "cond": "elite >= 1",
+         "dur": "$burn_dur",
+         "mult": "$burn_mult",
+         "every": "$burn_every",
+         "basis": "atk",
+         "src": "熔火"
+        }
+       ]
+      }
+     }
+    ],
+    "need_enemy": 200
+   }
+  ],
+  "talent": [],
+  "progression": {
+   "spark": {
+    "trig": "on_hit_n",
+    "n": "$spark_n",
+    "_doc": "节点 1 迸火：一剑命中 ≥ spark_n 名时，剑锋前方炸开一团火",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "front",
+      "front": "$spark_front",
+      "r": "$spark_r",
+      "r_abs": true,
+      "mult": "$spark_mult",
+      "src": "迸火",
+      "ring": false
+     }
+    ]
+   },
+   "lift": {
+    "trig": "every_n",
+    "n": "$lift_n",
+    "_doc": "节点 2 掀翻：每第 lift_n 剑，主目标被挑飞",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "target",
+      "r": "$lift_r",
+      "r_abs": true,
+      "mult": "$lift_mult",
+      "src": "掀翻",
+      "ring": false,
+      "on_hit": [
+       {
+        "st": "launch",
+        "dur": "$lift_dur",
+        "h": 26
+       }
+      ]
+     }
+    ]
+   },
+   "smash": {
+    "trig": "every_n",
+    "n": "$smash_n",
+    "cond": "skill_active:1",
+    "_doc": "节点 4A 熔核：熔核巨影期间每第 smash_n 剑，巨影朝主目标重砸",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "target",
+      "r": "$smash_r",
+      "r_abs": true,
+      "mult": "$smash_mult",
+      "power": true,
+      "kb": 120,
+      "src": "熔核",
+      "ring": false,
+      "on_hit": [
+       {
+        "st": "stun",
+        "dur": "$smash_stun"
+       }
+      ]
+     }
+    ]
+   },
+   "linger": {
+    "trig": "on_skill_end",
+    "skill": 1,
+    "_doc": "节点 4B 余影：熔核巨影结束后巨影留在原地 giant_life 秒继续挥剑",
+    "do": [
+     {
+      "verb": "summon",
+      "kind": "giant",
+      "at": "self"
+     }
+    ]
+   },
+   "quake": {
+    "trig": "every_n",
+    "n": "$smash_n",
+    "cond": "skill_active:1",
+    "delay": "$quake_delay",
+    "_doc": "节点 5A 崩落：重砸后 quake_delay 秒，她脚下余震一圈",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "self",
+      "r": "$quake_r",
+      "r_abs": true,
+      "mult": "$quake_mult",
+      "power": true,
+      "kb": 90,
+      "src": "崩落",
+      "ring": false
+     }
+    ]
+   },
+   "ashburst": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "节点 5B 余火：写在 summons.giant.on_expire（cond node:ashburst）"
+   },
+   "elite1": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "精一熔火：写在 attack.on_hit / S1 / S3 的 burn（cond elite >= 1）；天赋余烬在 op_surtr.gd prevent_death"
+   },
+   "elite2": {
+    "trig": "every_n",
+    "n": 1,
+    "_doc": "精二巨焰剑：每一剑在剑锋尽头再爆一团熔火（center front，偏移 = e2_r × e2_front ≈ 剑长）",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "front",
+      "front": "$e2_front",
+      "r": "$e2_r",
+      "r_abs": true,
+      "mult": "$e2_mult",
+      "src": "巨焰剑",
+      "ring": false,
+      "on_hit": [
+       {
+        "st": "burn",
+        "cond": "elite >= 1",
+        "dur": "$burn_dur",
+        "mult": "$burn_mult",
+        "every": "$burn_every",
+        "basis": "atk",
+        "src": "熔火"
+       }
+      ]
+     }
+    ]
+   }
+  }
+ }
+}
