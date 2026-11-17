@@ -3,6 +3,7 @@ extends Node2D
 ## 敌人/掉落物/特效用数据数组管理，统一在 _draw 中以像素贴图绘制（美术像素 ×2）。
 ## 灯火是一个真实光源：场景整体偏暗，只有玩家周围被照亮。
 
+const ThemePack = preload("res://scripts/core/theme_pack.gd")   # 主题数据路径门面（docs/359 §2）
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
 const UM = preload("res://scripts/ui_motion.gd")   # 界面动效时钟与缓动（docs/62 §2.7）
@@ -627,7 +628,7 @@ static func preload_tex_names() -> Array:
 	var names: Array = []
 	names.append_array(BASE_TEX)
 	names.append_array(["player_attack_48", "player_idle", "player_run", "player_attack", "player_hurt", "player_death"])
-	var dj = JSON.parse_string(FileAccess.get_file_as_string("res://data/doctor.json"))
+	var dj = JSON.parse_string(FileAccess.get_file_as_string(ThemePack.path("doctor")))
 	if dj is Dictionary:
 		for kind in ["idle", "run", "hurt", "death"]:
 			var dn = dj.get("sprites", {}).get(kind, "")
@@ -654,7 +655,7 @@ static func preload_tex_names() -> Array:
 		names.append(n)
 		for suffix in ENEMY_SUFFIXES:
 			names.append(n + suffix)
-	var mj = JSON.parse_string(FileAccess.get_file_as_string("res://data/maps/%s.json" % Cfg.map_id))
+	var mj = JSON.parse_string(FileAccess.get_file_as_string(ThemePack.map_path(Cfg.map_id)))
 	if mj is Dictionary:
 		for pr in mj.get("props", []):
 			names.append(pr.tex)

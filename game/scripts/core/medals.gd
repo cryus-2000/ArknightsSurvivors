@@ -6,7 +6,7 @@ extends RefCounted
 ## 「真实」= 全部解锁（调试 / 对内包）时用存档里的那份（Cfg._real_progress），不把演示用的全开算进去。
 ## sync() 在读档后（补录旧存档）、每次 Cfg.save() 前、打开蚀刻章页时调：按当前记录把新达成的章补上。
 
-const PATH := "res://data/medals.json"
+const ThemePack = preload("res://scripts/core/theme_pack.gd")   # 主题数据路径门面（docs/359 §2）
 static var _data := {}
 static var _relic_ids := {}
 ## 待提示队列（10-30）：新获得章 {key, t}，由 autoload MedalToast（scripts/medal_toast.gd）取出弹横幅；无界面（headless / 批跑）不入队
@@ -17,7 +17,7 @@ const PENDING_MAX := 64
 
 static func data() -> Dictionary:
 	if _data.is_empty():
-		var j = JSON.parse_string(FileAccess.get_file_as_string(PATH))
+		var j = JSON.parse_string(FileAccess.get_file_as_string(ThemePack.path("medals")))
 		_data = j if j is Dictionary else {"medals": []}
 	return _data
 

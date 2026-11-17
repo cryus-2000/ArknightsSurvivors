@@ -12,6 +12,7 @@
 ## 每次打印 ULTBENCH {…}，最后打印 ULTBENCH_AVG {…} 并退出。
 extends RefCounted
 
+const ThemePack = preload("res://scripts/core/theme_pack.gd")   # 主题数据路径门面（docs/359 §2）
 const Bal = preload("res://scripts/core/balance.gd")
 
 const NORMAL := "fractal"
@@ -48,7 +49,7 @@ func _init(game, arg: String) -> void:
 	for a in Cfg.dev_args():
 		if a.begins_with("--ub_t="):
 			T0 = float(a.substr(7))
-			var w = JSON.parse_string(FileAccess.get_file_as_string("res://data/waves.json"))
+			var w = JSON.parse_string(FileAccess.get_file_as_string(ThemePack.path("waves")))
 			for tier in w.threat:
 				if float(tier.t) <= T0:
 					pool = tier.pool

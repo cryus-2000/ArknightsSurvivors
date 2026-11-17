@@ -19,6 +19,7 @@ extends RefCounted
 ##   测试里演示局结束时直接退出，不重开；new / vet / ask 按第一次进游戏的强制版走，加 --onboardfree 走可跳过版；
 ##   强制版里机器人不会用圆盘、按 Q，到点由这里代按）、--onboarddemo=<卡 id>（进局即出该卡，常驻不收起）。文案在 data/onboard.json，演示画法在 screens/onboard_demos.gd。
 
+const ThemePack = preload("res://scripts/core/theme_pack.gd")   # 主题数据路径门面（docs/359 §2）
 const UI = preload("res://scripts/ui.gd")
 const Game = preload("res://scripts/game.gd")
 const Bal = preload("res://scripts/core/balance.gd")
@@ -126,7 +127,7 @@ var view_rects := {}
 
 func _init(game: Game) -> void:
 	g = game
-	var f := FileAccess.open("res://data/onboard.json", FileAccess.READ)
+	var f := FileAccess.open(ThemePack.path("onboard"), FileAccess.READ)
 	if f != null:
 		var d = JSON.parse_string(f.get_as_text())
 		if d is Dictionary:

@@ -2,6 +2,7 @@ extends RefCounted
 ## 美术资源加载：优先读取项目外的 art/incoming/（美术新交付的图），没有再用游戏内置的占位图。
 ## 这样新图放进文件夹后，重新打开游戏就能看到，不需要重新导出。
 
+const ThemePack = preload("res://scripts/core/theme_pack.gd")   # 主题数据路径门面（docs/359 §2）
 static var _cache := {}
 ## 局外读进缓存的贴图（11-08 iPhone 真机：首次进游戏走新手引导开了图鉴，全员动作帧条 / 敌人 / 名册立绘留在缓存里带进对局，开局贴图 442 MB，
 ## 第二局起没开图鉴 343 MB）。标题页打开时 outrun_track = true，期间 tex / tex_hi 新缓存的名字记进 _outrun；
@@ -66,7 +67,7 @@ static var _enemy_pixel_tops: Dictionary = {}
 static func enemy_pixel_spec(name: String) -> Dictionary:
 	if not _enemy_pixels_loaded:
 		_enemy_pixels_loaded = true
-		var path := "res://data/enemy_pixels.json"
+		var path := ThemePack.path("enemy_pixels")
 		if FileAccess.file_exists(path):
 			var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
 			if parsed is Dictionary:
@@ -81,7 +82,7 @@ static var _redraw_loaded := false
 static func enemy_redraw(name: String) -> Dictionary:
 	if not _redraw_loaded:
 		_redraw_loaded = true
-		var path := "res://data/enemy_redraw.json"
+		var path := ThemePack.path("enemy_redraw")
 		if FileAccess.file_exists(path):
 			var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
 			if parsed is Dictionary:

@@ -5,7 +5,7 @@ extends RefCounted
 ## 测试局缺省不带任何局外成长（与改动前逐局相同）；--meta=<生机细胞数> 按推荐点法点到这个数，--meta=full 点满（机器人校准用，docs/109 §5.4）。
 ## --metanodes=<id,id,…> 只点指定节点（按线单测）。--meta / --metanodes 只在测试局读；正式游玩用存档里的 Cfg.meta_shape。
 
-const PATH := "res://data/meta_tree.json"
+const ThemePack = preload("res://scripts/core/theme_pack.gd")   # 主题数据路径门面（docs/359 §2）
 static var _data := {}
 static var practice_budget := -1   # Boss 演练 · 成品分队的认知档（细胞数）；-1 = 不覆盖
 
@@ -23,7 +23,7 @@ static func leader_atk(g) -> float:
 
 static func data() -> Dictionary:
 	if _data.is_empty():
-		var j = JSON.parse_string(FileAccess.get_file_as_string(PATH))
+		var j = JSON.parse_string(FileAccess.get_file_as_string(ThemePack.path("meta_tree")))
 		_data = j if j is Dictionary else {"nodes": {}, "order": []}
 	return _data
 

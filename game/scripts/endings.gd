@@ -4,6 +4,7 @@
 ## 数据：data/waves.json 的 cross_deck / events / endings + data/events_v2.json；进度：Cfg.endings_cleared（通关过结局一才出结局线入口卡）。
 extends RefCounted
 
+const ThemePack = preload("res://scripts/core/theme_pack.gd")   # 主题数据路径门面（docs/359 §2）
 const BossBench = preload("res://scripts/run/boss_bench.gd")   # 录制钩子（docs/170）
 const D = preload("res://scripts/data.gd")
 const BuildGuide = preload("res://scripts/run/build_guide.gd")   # 构筑引导：主流派等保底 / 加权规则
@@ -87,7 +88,7 @@ func _init(game) -> void:
 
 ## 事件改版数据（data/events_v2.json）：cross 并进 cross_deck、events 追加在 waves.json 事件之后
 func _merge_v2() -> void:
-	var f := FileAccess.open("res://data/events_v2.json", FileAccess.READ)
+	var f := FileAccess.open(ThemePack.path("events_v2"), FileAccess.READ)
 	if f == null:
 		return
 	var v2 = JSON.parse_string(f.get_as_text())

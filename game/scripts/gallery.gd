@@ -4,6 +4,7 @@ extends Control
 ## 从标题菜单打开（斜切黑带转场）；Q/E 或点击切换分页，方向键或点击选择条目（最左一列再 ← 进职业轨），Z/X 或点击切换动作/形态，
 ## Enter / 1–3 或点击切换干员页签，Esc 返回；手柄经 Pad 翻译成同样的键；触屏用 740×360 手机版式。
 
+const ThemePack = preload("res://scripts/core/theme_pack.gd")   # 主题数据路径门面（docs/359 §2）
 const UI = preload("res://scripts/ui.gd")
 const PlayKeys = preload("res://scripts/core/play_keys.gd")   # 局内键名按当前绑定（可改键）
 const A = preload("res://scripts/art.gd")
@@ -83,7 +84,7 @@ var demo_mode := -1
 var info_tab := 0
 const INFO_TABS := ["档案", "属性", "技能", "成长"]   # 属性：主控数值表（与选人「属性」页同源，InitialStats.sheet）
 func _ready() -> void:
-	var lf := FileAccess.open("res://data/lore.json", FileAccess.READ)
+	var lf := FileAccess.open(ThemePack.path("lore"), FileAccess.READ)
 	if lf != null:
 		var ld = JSON.parse_string(lf.get_as_text())
 		if ld is Dictionary:
@@ -599,7 +600,7 @@ static func _enemy_spawn_stats(k: String, e: Dictionary, role: String) -> Array:
 ## 博士：受击体（data/doctor.json）；放在干员页最后，不属于任何职业（筛选时不出现）
 func _doctor_entry() -> Dictionary:
 	var dd: Dictionary = {}
-	var df := FileAccess.open("res://data/doctor.json", FileAccess.READ)
+	var df := FileAccess.open(ThemePack.path("doctor"), FileAccess.READ)
 	if df != null:
 		var dj = JSON.parse_string(df.get_as_text())
 		if dj is Dictionary:

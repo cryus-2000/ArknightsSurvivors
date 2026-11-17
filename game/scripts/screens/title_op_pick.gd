@@ -9,6 +9,7 @@ extends "res://scripts/screens/title_base.gd"
 # 动效全是界面层：用标题页自己的真实时间 t（不是 g.t）、不碰任何随机数；「减少动态效果」（Cfg.reduce_motion）开启时
 # 位移 / 缩放 / 扫入 / 浪幕直接到终态，只留 ≤ 120 ms 淡入淡出（OP_FADE），呼吸光不动
 # =====================================================================
+const ThemePack = preload("res://scripts/core/theme_pack.gd")   # 主题数据路径门面（docs/359 §2）
 const OP_TABS := ["属性", "技能", "编队"]
 const Bal = preload("res://scripts/core/balance.gd")
 const PlayKeys = preload("res://scripts/core/play_keys.gd")   # 局内键名按当前绑定（可改键）
@@ -92,7 +93,7 @@ func _op_layers() -> void:
 func _open_op_pick(for_cover := false) -> void:
 	cover_pick = for_cover
 	if op_defs.is_empty():
-		var lf := FileAccess.open("res://data/lore.json", FileAccess.READ)
+		var lf := FileAccess.open(ThemePack.path("lore"), FileAccess.READ)
 		if lf != null:
 			var ld = JSON.parse_string(lf.get_as_text())
 			if ld is Dictionary:
@@ -1177,10 +1178,10 @@ func _op_skills(ci: CanvasItem, box: Rect2, od: Dictionary, m: Dictionary, ph: b
 
 ## 终结技 / 连携的 [标签, 名字, 一句]（data/ult_text.json；ult/on 关时没有）。连携 v2 的说明带 {占位} 时只写名字
 func _op_ult_rows(d: Dictionary) -> Array:
-	if Bal.vi("ult/on", 1) <= 0 or not FileAccess.file_exists("res://data/ult_text.json"):
+	if Bal.vi("ult/on", 1) <= 0 or not FileAccess.file_exists(ThemePack.path("ult_text")):
 		return []
 	if _ult_txt.is_empty():
-		var j = JSON.parse_string(FileAccess.get_file_as_string("res://data/ult_text.json"))
+		var j = JSON.parse_string(FileAccess.get_file_as_string(ThemePack.path("ult_text")))
 		_ult_txt = j if j is Dictionary else {"ops": {}}
 	var ue: Dictionary = _ult_txt.get("ops", {}).get(str(d.get("id", "")), {})
 	var out: Array = []
