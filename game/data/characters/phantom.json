@@ -86,11 +86,17 @@
   "e2_t": 0.06,
   "e2_mult": 1.6,
   "e2_pause": 0.3,
-  "e2_n": 4,
+  "e2_n": 1,
   "e2_line_len": 170,
   "e2_line_w": 30,
   "e2_line_mult": 0.7,
   "_doc_growth": "docs/202 成长节点（待试验参数）：land_*（节点 1 无声：切入落地斩一圈）、int_shield（节点 2 幕间：暗夜魅影期间每次切入给队长补屏障）、curtain_*（4A 谢幕）、twin_*（4B 如影随形）、encore_*（5A 终场）、mt_*（5B 虚影精通）",
+  "ld_n": 2,
+  "ld_len": 170,
+  "ld_w": 30,
+  "ld_mult": 0.6,
+  "s2_ld_r": 60,
+  "s2_ld_mult": 0.7,
   "land_r": 80,
   "land_mult": 0.5,
   "int_shield": 0.04,
@@ -365,7 +371,7 @@
  "attack": {
   "mode": "auto",
   "name": "影刃",
-  "desc": "每 {$cd} 秒朝最近的敌人刺出一刀（物理，近身窄扇形，半径 {$reach}，最多命中 {$max_n} 名）；特种·处决者特性：不是队长时，每 {$blink_cd} 秒若 {$blink_aim} 内的敌人在刀锋够不到处，瞬身切入它身边（沿途 {$blink_mult*100}% 伤害）"
+  "desc": "每 {$cd} 秒朝最近的敌人刺出一刀（物理，近身窄扇形，半径 {$reach}，最多命中 {$max_n} 名）；特种·处决者特性：不是队长时，每 {$blink_cd} 秒若 {$blink_aim} 内的敌人在刀锋够不到处，瞬身切入它身边（沿途 {$blink_mult*100}% 伤害）；是队长时每第 {$ld_n} 刀附带一道穿身影刺（直线 {$ld_len}，{$ld_mult*100}% 伤害）"
  },
  "skills": [
   {
@@ -381,7 +387,7 @@
    "en": "BLOODY OPUS",
    "sp": 15,
    "dur": 8.0,
-   "desc": "{$s2_dur} 秒内攻击 ×{$s2_atk}；不是队长时，每一刀之后瞬身跳到 {$s2_hop_aim} 内的下一名敌人（沿途 {$s2_hop_mult*100}% 伤害）；虚影出手速度 ×{$s2_mir_aspd}",
+   "desc": "{$s2_dur} 秒内攻击 ×{$s2_atk}；不是队长时，每一刀之后瞬身跳到 {$s2_hop_aim} 内的下一名敌人（沿途 {$s2_hop_mult*100}% 伤害），是队长时每一刀影子在目标处再斩一记（{$s2_ld_mult*100}%）；虚影出手速度 ×{$s2_mir_aspd}",
    "icon": "skill_phantom_s2"
   },
   {
@@ -397,6 +403,16 @@
   "desc": "召出一个虚影，追击 Boss 与精英，以 {$mir_mult*100}% 伤害复刻影刃；傀影放「暗夜魅影」「夜幕突袭」时虚影同时出手；精英二起虚影伤害 ×{$mir_e2}"
  },
  "hit_sources": {
+  "影刺": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "pierce"
+   ]
+  },
   "影刃": {
    "emitter": "operator",
    "origin": "core",
@@ -588,10 +604,10 @@
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "解锁三技能「夜幕突袭」；虚影伤害 ×{$mir_e2}；普通攻击强化「瞬影」：不是队长时，每一刀都瞬身穿过目标、出现在它身后（长 {$e2_len}，{$e2_mult*100}% 伤害，沿途全部命中并停顿 {$e2_pause} 秒，精英减半，Boss 除外）；是队长时每第 {$e2_n} 刀附带一道穿身影刺",
+   "desc": "解锁三技能「夜幕突袭」；虚影伤害 ×{$mir_e2}；普通攻击强化「瞬影」：不是队长时，每一刀都瞬身穿过目标、出现在它身后（长 {$e2_len}，{$e2_mult*100}% 伤害，沿途全部命中并停顿 {$e2_pause} 秒，精英减半，Boss 除外）；是队长时每一刀都附带穿身影刺",
    "attack": {
     "name": "瞬影",
-    "desc": "不是队长时，每一刀都瞬身穿过目标、出现在它身后（长 {$e2_len}，{$e2_mult*100}% 伤害，沿途全部命中并停顿 {$e2_pause} 秒，精英减半，Boss 除外）；是队长时每第 {$e2_n} 刀附带一道穿身影刺（{$e2_line_mult*100}% 伤害）"
+    "desc": "不是队长时，每一刀都瞬身穿过目标、出现在它身后（长 {$e2_len}，{$e2_mult*100}% 伤害，沿途全部命中并停顿 {$e2_pause} 秒，精英减半，Boss 除外）；是队长时每一刀都附带一道穿身影刺（{$e2_line_mult*100}% 伤害）"
    }
   }
  ],
@@ -676,6 +692,42 @@
    "face": true
   },
   "trait": [
+   {
+    "trig": "every_n",
+    "n": "$ld_n",
+    "cond": "is_leader",
+    "_doc": "处决者（队长时）：本体不能自行切入，改为每第 ld_n 刀附带一道穿身影刺",
+    "do": [
+     {
+      "shape": "line",
+      "len": "$ld_len",
+      "width": "$ld_w",
+      "mult": "$ld_mult",
+      "src": "影刺",
+      "tags": [
+       "basic",
+       "pierce"
+      ]
+     }
+    ]
+   },
+   {
+    "trig": "every_n",
+    "n": 1,
+    "cond": "skill_active:1 && is_leader",
+    "_doc": "血色乐章（队长时）：每一刀，影子在目标处再斩一记",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "target",
+      "r": "$s2_ld_r",
+      "r_abs": true,
+      "mult": "$s2_ld_mult",
+      "src": "血色乐章",
+      "ring": false
+     }
+    ]
+   },
    {
     "trig": "tick",
     "every": "$blink_cd",

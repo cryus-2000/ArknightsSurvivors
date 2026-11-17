@@ -1,7 +1,7 @@
-## 史尔特尔（docs/369）：数据干员 + 积木表达不了的三处时序（docs/61 §6 逃生口：只做时序，数值全读 base）。
+## 史尔特尔（docs/369）：数据干员 + 积木表达不了的四处时序（docs/61 §6 逃生口：只做时序，数值全读 base）。
 ## 1. 烈焰魔剑：这一剑击倒敌人时回复技力（精英 / Boss 回满，普通敌人回 s1_refund；每一剑只结算一次）。
 ## 2. 余烬（天赋）：队长受到致命伤害时生命保持 1，ember_dur 秒内不会倒下（精二 ember_dur2）；ember_cd 秒内至多一次。
-## 3. 黄昏：生效那一帧队长回满生命（不是队长时回 s3_mate_heal）；她是队长时，持续期间队长生命逐渐流失（从 0 线性升到 s3_drain × 最大生命 / 秒），流失不会致死。
+## 3. 黄昏：生效那一帧队长回满生命（不是队长时回 s3_mate_heal）；她是队长时，持续期间队长生命逐渐流失（从 0 线性升到 s3_drain × 最大生命 / 秒），流失不会让生命低于 s3_floor。
 ## 确定性：不取随机数；独立文件，不进 op_blocks 继承链（-s 契约测试不加载本文件，但仍不引用自动加载）。
 extends "res://scripts/characters/data_operator.gd"
 
@@ -46,9 +46,10 @@ func update(dt: float) -> void:
 		var amt: float = (g.max_hp - g.hp) if is_leader else g.max_hp * base("s3_mate_heal", 0.3)
 		if amt > 0.0:
 			g.combat.heal(amt, "黄昏")
-	if is_leader and float(s_t[2]) > 0.0 and g.hp > 1.0:
+	var floor_hp: float = maxf(1.0, g.max_hp * base("s3_floor", 0.3))
+	if is_leader and float(s_t[2]) > 0.0 and g.hp > floor_hp:
 		var dur: float = maxf(0.1, base("s3_dur", 18.0))
 		var k: float = clampf(1.0 - float(s_t[2]) / dur, 0.0, 1.0)
-		var amt: float = minf(g.max_hp * base("s3_drain", 0.04) * k * dt, g.hp - 1.0)
+		var amt: float = minf(g.max_hp * base("s3_drain", 0.02) * k * dt, g.hp - floor_hp)
 		if amt > 0.0:
 			g.combat.lose_hp(amt, "黄昏")
