@@ -253,6 +253,8 @@ static func s(text: String) -> String:
 		elif _depth == 0 and _outs.has(text):
 			return out   # 已经是译文（日文汉字串、预先翻好的按钮字）又被送进来查一次：不是缺译
 	if record_missing and _depth == 0 and _cjk != null and _cjk.search(text) != null and (out == text or (lang != "ja" and _cjk.search(out) != null)):
+		if lang == "ja" and _is_kana_text(text):
+			return out   # 带假名 = 已经是日文（干员说明等加载时按键名换好的译文没经过 s()）
 		missing[text] = true
 	return out
 
@@ -499,3 +501,12 @@ static func _tree(node, path: String, field: String) -> void:
 					node[i] = k(path + "." + str(i), v)
 			elif v is Dictionary or v is Array:
 				_tree(v, path + "." + str(i), field)
+
+
+## 含平假名 / 片假名（U+3040–U+30FF，不含中点「・」U+30FB）：中文原文不会出现，用来判断「已是日文」
+static func _is_kana_text(t: String) -> bool:
+	for i in t.length():
+		var c := t.unicode_at(i)
+		if c >= 0x3040 and c <= 0x30FF and c != 0x30FB:
+			return true
+	return false
