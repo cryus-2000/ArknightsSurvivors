@@ -319,8 +319,9 @@ func _gui_input(event: InputEvent) -> void:
 			accept_event()
 			return
 		var moved: bool = absf(event.position.y - _drag_y) > 12.0
+		var pressed_here := _drag   # 按下发生在浏览状态才算一次点按：等待绑定时按下左键（被 try_bind 吞掉）、冲突框点「交换」后的松手不算（11-17 体检：松手又落到格子上重新进入等待 / 误点恢复默认）
 		_drag = false
-		if moved:
+		if moved or not pressed_here:
 			accept_event()
 			return
 		_click(event.position)
