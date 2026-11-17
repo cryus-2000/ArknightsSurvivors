@@ -1942,3 +1942,18 @@ S3 当前契约（2026-10-18）：参考原作的全周范围攻击与追加目�
 | `shape.cannon` 的 `lowmark {cond, below}` | 普攻参数 | 维什戴尔节点 4B「亡者回响」：炮击 / 余震 / 魂炮 / 巨炮波及、且生命比例低于 below 的敌人直接挂残影标记（已带标记的不重复）。不再依赖 S2（S2 `attack_effect.mark` 已删） |
 | `shape.cannon` 的 `chain {cond, window, gap, snap_r}` | 普攻参数 | 维什戴尔节点 5A「余烬未冷·续燃」：S1 强化炮击出手后 window 秒内，被炸死 / 带标记倒下的敌人的残影立即殉爆（不等 0.25 秒）；gap 秒内紧接着的下一发强化炮击，落点吸向离原落点 snap_r 内最近的残影 / 标记（一道弧线 + 落点环）。不改伤害 |
 | `shape.cannon` 的 `fb {cond, kills, sp, cd}` | 普攻参数 | 维什戴尔节点 5B「亡者回响·回馈」：一次残影殉爆杀死 ≥ kills 名敌人时，全队（含自身）技能技力各 + sp 秒，cd 秒内至多一次；金色光点（`h4_spmote`，`_h4wd_draw_pfx` 里补了画法）从殉爆处飞向每名队员 |
+
+## 28. 令 `ling` 的积木（docs/367，11-18，`blocks/seg_ling.gd`，链尾在 seg_gladiia 之后）
+
+八个瞬时积木（登记 `seg_hoshiguma.EXT_BLOCKS` 与 `data_operator.EXEC_SEG` 第 0 段 → `_ext_exec` → `lg_exec`）。召唤物本身仍是 §15 的 `blocks.summons`；这里只管「谁算龙、满了顶掉谁、龙散去时给什么」。不取随机数。
+
+| 积木 | 参数 | 说明 |
+|---|---|---|
+| `verb.lg_summon` | `kind`、`at`（self / leader / target / hit = 上一次普攻落点）、`n`、`spread`、`life`、`cap0 / cap1 / cap2`、`alt_node` + `alt_kind` | 召唤；种类在 `LG_KINDS`（qp / xy / xy2 / xj / xj2）里的计入**跨种类合计上限**（按精英阶段取 capN），满了最早的先散去（`_sm_end` "cap"，执行 on_expire）；节点 alt_node 已选下时换成 alt_kind |
+| `verb.lg_drink` | `sp`、`cap`、`dur`、`burst_node / burst_r / burst_mult / burst_kb / burst_src` | 精一起生效（放在龙的 on_expire）：本干员其余未生效的技能各 + sp 秒技力；`o.gn.drink` +1（至多 cap，dur 秒不续清空；光环 `per: gn:drink`）；浮白节点：层数已满时改为原地炸开并清空 |
+| `verb.lg_decay` | — | `o.gn.drink` 到时清空（`trig.tick` 调） |
+| `verb.lg_lit` | `dur`、`r` | `trig.on_hit_n` 的 do：这一下打中的第一名敌人挂 `lg_lit`（可选键），r 内 `move.mode: chase` 的本干员召唤物把当前目标改成它 |
+| `verb.lg_ming` | `n`、`mult`、`bind`、`range`、`src`、`src_summon`、`chain_node / chain_r / chain_mult` | 本体 + 每条 xy / xy2 各对 n 名不重复的敌人（`nearest_enemies`，Boss 优先）：攻击 × mult × 技能强度法伤 + 束缚（眩晕，精英减半，Boss 除外）；chain_node 已选下时每下再跳一名 |
+| `verb.lg_merge` | `basic`、`big` | 本干员全部龙（含墨龙 mo）走 `_sm_end` "merge"（执行 on_expire），吞了 ≥ 1 条召 big，否则 basic；`o.gn.merged` 记条数 |
+| `verb.lg_split` | `kind`、`life` | 放在弦惊的 on_expire：S3 已不在生效时（自然结束）原地留一条 kind，life 秒；被吞 / 顶替时不留 |
+| `verb.lg_ink` | `n`、`r`、`mult`、`range`、`src` | 同时点 n 名最近的敌人（各一次 `area_hit`），更新 `last_hit_pos` |
