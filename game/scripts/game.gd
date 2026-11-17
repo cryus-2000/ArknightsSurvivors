@@ -2534,8 +2534,7 @@ func _update(dt: float) -> void:
 		# 遥测（docs/74 §6）：主控自带回复 + 博士「自愈」+ regen_pct 藏品，只记实际回进去的量；走 heal()（补侵蚀创口减疗）
 		combat.heal(rg, "自身回复", "", combat.HEAL_PRESCALED)
 	for m in mechs:
-		m.on_player_tick(dt)   # 主题机制挂钩（docs/364）：灯火熄灭掉血（mech_lamp）
-	combat.update_zone(dt)
+		m.on_player_tick(dt)   # 主题机制挂钩（docs/364）：灯火熄灭掉血（mech_lamp）→ 黑潮缩圈（mech_tide_zone）
 	if shield_max > 0 and shield < shield_max:
 		shield_cd -= dt
 		if shield_cd <= 0.0:

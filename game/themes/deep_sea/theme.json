@@ -24,7 +24,8 @@
   "mechanics": [
     {"id": "lamp", "script": "res://themes/deep_sea/mech/mech_lamp.gd"},
     {"id": "mire", "script": "res://themes/deep_sea/mech/mech_mire.gd"},
-    {"id": "beacon", "script": "res://themes/deep_sea/mech/mech_beacon.gd"}
+    {"id": "beacon", "script": "res://themes/deep_sea/mech/mech_beacon.gd"},
+    {"id": "tide_zone", "script": "res://themes/deep_sea/mech/mech_tide_zone.gd"}
   ],
   "maps": {
     "dir": "res://data/maps",

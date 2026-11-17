@@ -1208,7 +1208,7 @@ func test_arena() -> void:
 	ok(game.zone_frozen and game.zone_state == 3 and game.zone_next_r == 520.0, "场地冻结：稳定态、下一圈同步为场地")
 	ok(game.ppos.distance_to(game.zone_next_c) <= 420.0 + 0.01, "主控离场地边 ≥100（%.0f）" % game.ppos.distance_to(game.zone_next_c))
 	for k in 40:
-		c.update_zone(0.1)
+		game.mech("tide_zone").update_zone(0.1)
 	ok(absf(game.zone_r - 520.0) < 0.01 and game.zone_c.distance_to(game.zone_next_c) < 0.01, "3 秒后圈正好是场地")
 	var p: Vector2 = c.arena_clamp(game.zone_next_c + Vector2(2000, 0), 80.0)
 	ok(p.distance_to(game.zone_next_c) <= 440.0 + 0.01, "约束点落在场地内、离圈边 ≥80")

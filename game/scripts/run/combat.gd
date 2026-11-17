@@ -14,15 +14,6 @@ const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类
 var g: Game
 ## 「追击」（docs/35）：带这些标签的伤害吃 followup_dmg 与追击类藏品（追击、余震、殉爆、召唤物）
 const FOLLOWUP_TAGS := ["follow_up", "aftershock", "detonation", "entity"]
-var zone_from_c := Vector2.ZERO
-var zone_from_r := 99999.0
-var zone_phase := 0
-var zone_hurt_t := 0.0
-var zone_out_t := 0.0     # 本次出圈了几秒（圈内为 0）：前 ZONE_GRACE 秒不掉血；界面据此画回圈方向提示
-var zone_paused := false  # Boss 在场，缩圈计时暂停
-const ZONE_START := 150.0
-const ZONE_GRACE := 2.0   # 1.1 用户决定：出圈后 2 秒内不掉血
-const ZONE_RADII := [1300.0, 1000.0, 780.0, 600.0, 480.0]
 var low_warned := false
 ## lose_hp 不记 dmg_log 的来源：泪和熄灯掉血原本就不进 dmg_log（bot.gd 单独记熄灯掉血），BALANCE 输出保持不变
 const NO_LOG := ["tear", "dark"]
@@ -549,109 +540,12 @@ func _armor_cf(pre: float, post: float, phys: bool) -> void:
 			c["a%d" % k] += maxf(1.0, pre - g.armor - float(k))
 
 
-## 缩圈：预告 20 秒 → 收缩 25 秒 → 稳定，直到下一轮；圈外为「黑潮」。
-## 1.1（用户决定）：Boss 在场时缩圈计时整体暂停（预告 / 收缩停在原处，Boss 倒下后接着走）；出圈后前 2 秒不掉血
-func update_zone(dt: float) -> void:
-	# 最终 Boss 场地冻结后不再走缩圈日程（也不弹「黑潮停滞」横幅），只把圈插值到场地；圈外判定照常走下面那段（docs/38 §1.7）
-	if g.zone_frozen:
-		_arena_step(dt)
-	elif not _zone_schedule(dt):
-		return
-	# 圈外：黑潮伤害 + 灯火流失 + 神经损伤
-	var out := g.ppos.distance_to(g.zone_c) - g.zone_r
-	if out > 0.0 and g.state == g.S.PLAY and not g.squad.in_sanctuary(g.ppos):
-		zone_out_t += dt
-		var lz: float = g.lamp
-		g.lamp = maxf(0.0, g.lamp - 6.0 * dt * g.lamp_loss_mult)
-		g.telemetry.lamp_note("圈外", g.lamp - lz)
-		if zone_out_t < ZONE_GRACE:
-			return
-		var dps: float = (2.5 + 1.5 * max(zone_phase, 0)) * (1.0 + minf(out / 300.0, 1.0))
-		lose_hp(dps * dt, "zone")
-		zone_hurt_t -= dt
-		if zone_hurt_t <= 0.0:
-			zone_hurt_t = 0.8
-			g.hurt_flash = maxf(g.hurt_flash, 0.08)
-			g.head_bar_t = 2.0
-			g.vfx.add_text(g.ppos + Vector2(0, -84), "黑潮", Color(0.8, 0.4, 1.0), 16)
-	elif g.state == g.S.PLAY:
-		zone_out_t = 0.0   # 回到圈内（或庇护所）：缓冲重置
-
-
-## 缩圈日程（原 update_zone 前半段，逻辑不变）：返回 false = 黑潮还没开始，本帧不做圈外判定
-func _zone_schedule(dt: float) -> bool:
-	if g.zone_state == 0:
-		if g.t < ZONE_START:
-			return false
-		g.zone_c = g.ppos
-		g.zone_r = ZONE_RADII[0] + 400.0
-		zone_phase = -1
-		g.zone_state = 3
-		g.zone_t = 0.0
-	var paused: bool = g.spawner.boss_alive()
-	if paused != zone_paused:
-		zone_paused = paused
-		if g.zone_state != 3 or zone_phase >= 0:
-			g.vfx.show_banner("Boss 在场：黑潮停滞" if paused else "黑潮再度涌动")
-	if not paused:
-		g.zone_t += dt
-	match g.zone_state:
-		3:
-			if g.zone_t >= (0.0 if zone_phase < 0 else 45.0) and zone_phase < ZONE_RADII.size() - (2 if g.ending == "resolve" else 1):
-				zone_phase += 1
-				g.zone_next_r = ZONE_RADII[zone_phase]
-				var off := Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(0.0, (g.zone_r - g.zone_next_r) * 0.7)
-				g.zone_next_c = g.zone_c + off
-				g.zone_state = 1
-				g.zone_t = 0.0
-				g.vfx.show_banner("黑潮将至：%d 秒后安全区缩小" % 20)
-				Sfx.play("roar", -6.0, 0.5, 0.0)
-		1:
-			if g.zone_t >= 20.0:
-				g.zone_state = 2
-				g.zone_t = 0.0
-				zone_from_c = g.zone_c
-				zone_from_r = g.zone_r
-				g.vfx.show_banner("黑潮正在逼近！")
-		2:
-			var k := clampf(g.zone_t / 25.0, 0.0, 1.0)
-			g.zone_c = zone_from_c.lerp(g.zone_next_c, k)
-			g.zone_r = lerpf(zone_from_r, g.zone_next_r, k)
-			if k >= 1.0:
-				g.zone_state = 3
-				g.zone_t = 0.0
-	return true
-## ---- 最终 Boss 场地（docs/38 §1.7，B1 第二批）
-## 最终 Boss 登场时 freeze_zone(arena_r)：黑潮圈 3 秒内平滑变到场地半径；主控离新圈边不足 100（或在圈外）就把圆心往主控挪；
-## 黑潮还没开始（zone_state == 0）时以主控为圆心新建。冻结后 zone_state = 3、zone_next_* 同步成场地，机器人读到的边界与实际一致。
-var arena_from_c := Vector2.ZERO
-var arena_from_r := 0.0
-var arena_t := 0.0
-
-
+## 缩圈 / 最终 Boss 场地 → 黑潮缩圈机制（themes/deep_sea/mech/mech_tide_zone.gd，docs/364）。
+## 场地冻结（freeze_zone）现在也由它管；本主题没有缩圈机制时什么都不做（场地相关的 arena_clamp / mire_blocked 只看 g.zone_frozen，照常返回原值）
 func freeze_zone(r: float) -> void:
-	if g.zone_state == 0:
-		g.zone_c = g.ppos
-		g.zone_r = r + 400.0
-		zone_phase = -1
-	var c: Vector2 = g.zone_c
-	var d: float = g.ppos.distance_to(c)
-	if d > r - 100.0 and d > 0.001:
-		c = g.ppos + (c - g.ppos) / d * (r - 100.0)
-	arena_from_c = g.zone_c
-	arena_from_r = g.zone_r
-	arena_t = 0.0
-	g.zone_next_c = c
-	g.zone_next_r = r
-	g.zone_state = 3
-	g.zone_t = 0.0
-	g.zone_frozen = true
-	# 场地整理仅作后台规则，不暴露禁生成区域或播放净化演出。
-	var remaining: Array = []
-	for m in g.mires:
-		if not mire_blocked(m.pos, float(m.get("maxr", m.r))):
-			remaining.append(m)
-	g.mires = remaining
+	var mz = g.mech("tide_zone")
+	if mz != null:
+		mz.freeze_zone(r)
 
 
 ## 怪物留下的溟痕（docs/155）→ 溟痕机制（mech_mire.add_enemy_mire）；本主题没有溟痕时什么都不留
@@ -673,15 +567,6 @@ func mire_blocked(pos: Vector2, radius: float = 0.0) -> bool:
 	return g.zone_frozen and pos.distance_squared_to(g.zone_next_c) <= pow(maxf(0.0, g.zone_next_r) + maxf(0.0, radius), 2.0)
 
 
-func _arena_step(dt: float) -> void:
-	if arena_t >= 3.0:
-		return
-	arena_t = minf(arena_t + dt, 3.0)
-	var k := smoothstep(0.0, 1.0, arena_t / 3.0)
-	g.zone_c = arena_from_c.lerp(g.zone_next_c, k)
-	g.zone_r = lerpf(arena_from_r, g.zone_next_r, k)
-
-
 ## 把 Boss 本体、召唤物 / 落点的生成点约束在场地内、离圈边 ≥ margin；场地没冻结时原样返回
 func arena_clamp(p: Vector2, margin := 80.0) -> Vector2:
 	if not g.zone_frozen:
@@ -691,9 +576,10 @@ func arena_clamp(p: Vector2, margin := 80.0) -> Vector2:
 	return p if v.length() <= lim else g.zone_next_c + v.normalized() * lim
 
 
-## 主控指向安全区圆心的单位向量（圈外方向提示用）
+## 主控指向安全区圆心的单位向量（圈外方向提示用）→ mech_tide_zone.zone_dir；没有缩圈机制时为零向量
 func zone_dir() -> Vector2:
-	return (g.zone_c - g.ppos).normalized() if g.zone_state != 0 else Vector2.ZERO
+	var mz = g.mech("tide_zone")
+	return mz.zone_dir() if mz != null else Vector2.ZERO
 
 
 ## 护盾抵挡一次伤害：碎裂特效，可选冲击波与回复

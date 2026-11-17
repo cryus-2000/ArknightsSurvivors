@@ -719,7 +719,7 @@ func ring_snapshot() -> Dictionary:
 ## 结束时的局面（死因 × 缩圈阶段 × Boss 在场；A/B 缩圈规则用，2026-09-27）
 func end_ctx() -> Dictionary:
 	var out: float = g.ppos.distance_to(g.zone_c) - g.zone_r
-	var ec := {"t": int(g.t), "src": last_src, "zone_state": g.zone_state, "zone_phase": g.combat.zone_phase if g.zone_state > 0 else -1,
+	var ec := {"t": int(g.t), "src": last_src, "zone_state": g.zone_state, "zone_phase": g.mech("tide_zone").zone_phase if g.zone_state > 0 and g.mech("tide_zone") != null else -1,
 		"zone_out": out > 0.0, "boss": _boss_alive(), "hp": int(g.hp), "last15": ring_snapshot(), "killer": killer()}   # killer：最近 3 秒归属键 + 持续伤害施加者（docs/200，原来只给结算界面）
 	if rich:
 		ec["tl"] = tl
