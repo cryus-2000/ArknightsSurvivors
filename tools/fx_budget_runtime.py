@@ -94,9 +94,7 @@ def shoot(op, mode, var, root, start=1.0, n=180):
     out, err, to = GR.run_godot(args, 1800)
     errs = GR.script_errors(out or "", err or "")[:2]
     if not glob.glob(os.path.join(d, "f_*.png")):   # 一张没拍到：把输出尾巴留下来查
-        errs.append("timeout=%s out=%s err=%s" % (to, (out or "")[-600:].replace("
-", " | "), (err or "")[-600:].replace("
-", " | ")))
+        errs.append("timeout=%s out=%s err=%s" % (to, " | ".join((out or "")[-600:].splitlines()), " | ".join((err or "")[-600:].splitlines())))
     return d, errs
 
 
