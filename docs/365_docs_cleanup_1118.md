@@ -166,7 +166,7 @@
 
 **没改的**：
 
-- `AGENTS.md` 第 5 行仍写「archived documents live in docs/archive/ with a one-line pointer left at the old path」。入口文件要用户直接确认才改（建议改成「作废文档直接删除，历史在 git；没有归档目录」）。
+- `AGENTS.md` 第 5 行的归档说明：用户 11-18 直接确认后单独提交 `cc108d392` 改成「没有归档目录，作废直接删，合并写来源，仍被引用的旧稿标旧稿」。CLAUDE.md 不涉及，没改。
 - `art/incoming/ult_batch1_1029/alignment_audit.md` 写 `docs/archive/70`（现在是 `docs/70_codex_fx_texas_rain.md`）：Codex 交付文件，不改。
 - `art/archive/incoming_1028/*` 里的旧交接文件引用旧编号：归档美术，不改。
 
