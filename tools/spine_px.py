@@ -9,6 +9,8 @@
   4. 人工修补层：cfg.fix.eyes 给手画的眼睛小图（字符矩阵），按逐帧眼骨位置贴回；cfg.fix.patches 给逐帧逐像素补丁
      （art/src/<id>_fix/<动作>.json：{"f03": [[x, y, "#rrggbb" | null], …]}，null = 擦成透明）
   5. 拼帧条（画布 cfg.canvas，缺省 192，原点 (96,152)，= 1x foot [48,76]）到 build/spine_px/<id>/strips/，--apply 再复制到 game/art/operators/<id>/
+     每个动作缺省出两种密度（cfg.dens / 动作 dens）：@2x，和 @1x（同一 Spine 按 0.5 倍逐附件像素化，同 tools/op_1x/make_op_1x.py ① 路；
+     96 画布、不画嘴、眼睛用 fix.eyes.x1 的 1 倍小图）；召唤物用 tex_prefix / owner 把帧条放进主人目录
   6. 审阅图：每个动作 8 倍逐帧 + GIF；--review 出全部动作拼图
 
     python tools/spine_px.py ling                 # 全部动作
@@ -141,7 +143,7 @@ def durations_of(act, times):
 
 
 # ---------- 3. 自动清理 ----------
-def clean(im, keep_boxes=()):
+def clean(im, keep_boxes=(), speck=2):
     im = im.copy()
     W, H = im.size
     p = im.load()
@@ -161,7 +163,7 @@ def clean(im, keep_boxes=()):
                     if 0 <= nx < W and 0 <= ny < H and (nx, ny) not in seen and p[nx, ny][3]:
                         seen.add((nx, ny))
                         st.append((nx, ny))
-            if len(comp) <= 2:
+            if len(comp) <= speck:
                 for q in comp:
                     p[q] = (0, 0, 0, 0)
                 stats["specks"] += len(comp)
@@ -272,6 +274,7 @@ def main():
     ap.add_argument("--only", nargs="*")
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--no-fix", action="store_true", help="不贴人工修补（看自动结果）")
+    ap.add_argument("--density", type=int, nargs="*", help="只出 2（@2x）或 1（@1x）")
     a = ap.parse_args()
     spec = json.load(open(os.path.join(TRIAL, "cfg", "%s_px.json" % a.id), encoding="utf-8"))
     rig = json.load(open(os.path.join(TRIAL, "cfg", spec.get("rig", a.id + ".json")), encoding="utf-8"))
@@ -297,79 +300,99 @@ def main():
     track = list(e_all["bones"].values()) if e_all else []   # --no-fix 也记眼骨位置（对照用）
     patch_dir = os.path.join(ROOT, "art", "src", "%s_fix" % a.id)
     summary = {}
-    for name, act in spec["actions"].items():
-        if a.only and name not in a.only:
-            continue
+    prefix = spec.get("tex_prefix", "op_%s" % a.id)          # 召唤物：op_<主人>_<召唤物>，帧条放主人目录
+    dst_dir = os.path.join(ROOT, "game", "art", "operators", spec.get("owner", a.id))
+
+    def render(name, act, dens):
+        """dens 2 = @2x（画布 size）；dens 1 = @1x：同一 Spine 按 0.5 倍逐附件像素化（同 make_op_1x.py ① 路），
+        在 size 画布里出完再按原点裁成 size/2 画布（原点 = @2x 原点 / 2，即 1x foot）"""
         c = dict(rig)
         for k in ("sample", "keys", "poses"):
             c.pop(k, None)
-        c.update({k: v for k, v in act.items() if k not in ("durations", "fps", "fix", "note")})
+        c.update({k: v for k, v in act.items() if k not in ("durations", "fps", "fix", "note", "eye_frames", "eyes", "dens")})
         c["pack"] = dict(rig["pack"], palette_png=pal, scale=spec["scale"])
         c["canvas"] = size
         c["action"] = name
         c["trackBones"] = track
+        if dens == 1:
+            c["scaleMul"] = (rig.get("scaleMul") or 1) * 0.5
+            c["noMouth"] = True          # 同 make_op_1x.py：1 倍不画嘴（一格黑点读成脏点）
         if "sample" in act:
             c["sample"] = dict(act["sample"], times=times_of(act))
-            c["sample"].pop("range", None)
-            c["sample"].pop("inclusive", None)
-            c["sample"].pop("end", None)
-        tmp = os.path.join(TRIAL, "cfg", "_%s_%s_px.json" % (a.id, name))
+            for k in ("range", "inclusive", "end"):
+                c["sample"].pop(k, None)
+        tag = "" if dens == 2 else "_1x"
+        tmp = os.path.join(TRIAL, "cfg", "_%s_%s%s_px.json" % (a.id, name, tag))
         json.dump(c, open(tmp, "w", encoding="utf-8"), ensure_ascii=False)
-        fdir = os.path.join(out_root, name, "frames")
+        fdir = os.path.join(out_root, name, "frames" + tag)
         try:
             rep = run_trial(tmp, fdir)
         finally:
             os.remove(tmp)
         n = len(rep["frames"])
-        raw = [Image.open(os.path.join(fdir, "f%02d.png" % i)).convert("RGBA") for i in range(n)]
+        fs = size if dens == 2 else size // 2
+        off = (0, 0) if dens == 2 else (origin[0] - origin[0] // 2, origin[1] - origin[1] // 2)
+        ey = (eyes or {}).get("x1" if dens == 1 else "x2", eyes if dens == 2 else None) if eyes else None
         frames, st = [], {"specks": 0, "lone": 0, "eye_px": 0, "patch_px": 0}
         patches = {}
-        pf = os.path.join(patch_dir, name + ".json")
+        pf = os.path.join(patch_dir, name + ("" if dens == 2 else "@1x") + ".json")
         if fix and os.path.exists(pf):
             patches = json.load(open(pf, encoding="utf-8"))
-        for i, im in enumerate(raw):
+        for i in range(n):
+            im = Image.open(os.path.join(fdir, "f%02d.png" % i)).convert("RGBA")
+            if dens == 1:
+                im = im.crop((off[0], off[1], off[0] + fs, off[1] + fs))
+            bones = {k: (v[0] - off[0], v[1] - off[1]) for k, v in (rep["frames"][i].get("bones") or {}).items() if v}
             keep = []
-            bones = rep["frames"][i].get("bones") or {}
-            if eyes and act.get("eyes", True):
-                for side, bn in eyes["bones"].items():
-                    b = bones.get(bn)
-                    if b:
-                        keep.append((int(b[0]) - 4, int(b[1]) - 4, int(b[0]) + 5, int(b[1]) + 5))
-            im, s = clean(im, keep)
-            st["specks"] += s["specks"]
-            st["lone"] += s["lone"]
+            use_eyes = ey and act.get("eyes", True) and (act.get("eye_frames") is None or i in act["eye_frames"])
+            if use_eyes:
+                r = 4 if dens == 2 else 2
+                keep = [(int(b[0]) - r, int(b[1]) - r, int(b[0]) + r + 1, int(b[1]) + r + 1) for bn, b in bones.items() if bn in eyes["bones"].values()]
+            im, s2 = clean(im, keep, speck=2 if dens == 2 else 1)
+            st["specks"] += s2["specks"]
+            st["lone"] += s2["lone"]
             if spec.get("outline"):
                 im, k = outline(im, hexrgb(spec["outline"]["color"]), spec["outline"]["mix"], palette)
                 st["outline_px"] = st.get("outline_px", 0) + k
-            if eyes and act.get("eyes", True):
+            if use_eyes:
                 for side, bn in eyes["bones"].items():
                     b = bones.get(bn)
-                    if b and (act.get("eye_frames") is None or i in act["eye_frames"]):
-                        st["eye_px"] += stamp(im, eyes["pattern"][side], eyes["colors"], b[:2], eyes["anchor"][side])
+                    if b:
+                        st["eye_px"] += stamp(im, ey["pattern"][side], eyes["colors"], b, ey["anchor"][side])
             if patches.get("f%02d" % i):
                 st["patch_px"] += apply_patch(im, patches["f%02d" % i])
             frames.append(im)
         durs = durations_of(act, times_of(act) if "sample" in act else None)
-        strip = Image.new("RGBA", (size * n, size))
+        strip = Image.new("RGBA", (fs * n, fs))
         for i, f in enumerate(frames):
-            strip.paste(f, (size * i, 0))
+            strip.paste(f, (fs * i, 0))
         os.makedirs(os.path.join(out_root, "strips"), exist_ok=True)
-        sp = os.path.join(out_root, "strips", "op_%s_%s@2x.png" % (a.id, name))
+        sp = os.path.join(out_root, "strips", "%s_%s@%dx.png" % (prefix, name, dens))
         strip.save(sp)
         for i, f in enumerate(frames):
             f.save(os.path.join(fdir, "fixed_f%02d.png" % i))
         colors = len({p for f in frames for p in (f.get_flattened_data() if hasattr(f, "get_flattened_data") else f.getdata()) if p[3]})
         bb = [f.getbbox() for f in frames if f.getbbox()]
         u = (min(b[0] for b in bb), min(b[1] for b in bb), max(b[2] for b in bb), max(b[3] for b in bb))
-        x8_sheet(frames, os.path.join(out_root, name, "%s_x8.png" % name), size, (max(0, u[0] - 2), max(0, u[1] - 2), min(size, u[2] + 2), min(size, u[3] + 2)))
-        gif(frames, durs, os.path.join(out_root, name, "%s.gif" % name))
-        summary[name] = {"frames": n, "durations": durs, "fps": round(n / sum(durs), 4), "colors": colors, "bbox_rel_origin": [u[0] - origin[0], u[1] - origin[1], u[2] - origin[0], u[3] - origin[1]],
-                         "clipped": sorted({c for r in rep["frames"] for c in r.get("clipped_near_edge", [])}), **st}
-        print(name, json.dumps(summary[name], ensure_ascii=False), flush=True)
+        o2 = (origin[0] // (2 // dens), origin[1] // (2 // dens))
+        x8_sheet(frames, os.path.join(out_root, name, "%s%s_x8.png" % (name, tag)), fs, (max(0, u[0] - 2), max(0, u[1] - 2), min(fs, u[2] + 2), min(fs, u[3] + 2)))
+        gif(frames, durs, os.path.join(out_root, name, "%s%s.gif" % (name, tag)), scale=3 if dens == 2 else 6)
+        key = name if dens == 2 else name + "@1x"
+        summary[key] = {"frames": n, "durations": durs, "fps": round(n / sum(durs), 4), "colors": colors, "canvas": fs,
+                        "bbox_rel_origin": [u[0] - o2[0], u[1] - o2[1], u[2] - o2[0], u[3] - o2[1]],
+                        "clipped": sorted({c for r in rep["frames"] for c in r.get("clipped_near_edge", [])}), **st}
+        print(key, json.dumps(summary[key], ensure_ascii=False), flush=True)
         if a.apply:
-            dst = os.path.join(ROOT, "game", "art", "operators", a.id)
-            os.makedirs(dst, exist_ok=True)
-            shutil.copyfile(sp, os.path.join(dst, os.path.basename(sp)))
+            os.makedirs(dst_dir, exist_ok=True)
+            shutil.copyfile(sp, os.path.join(dst_dir, os.path.basename(sp)))
+
+    for name, act in spec["actions"].items():
+        if a.only and name not in a.only:
+            continue
+        for dens in act.get("dens", spec.get("dens", [2, 1])):
+            if a.density and dens not in a.density:
+                continue
+            render(name, act, dens)
     old = {}
     sj = os.path.join(out_root, "summary.json")
     if os.path.exists(sj):

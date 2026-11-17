@@ -127,3 +127,43 @@ python tools/px_lint.py <单帧@2x.png> --only2x --foot 48 76 --out build/px_lin
 - 脚本：`tools/spine_px.py`（管线）、`tools/spine_px_review.py`（同屏图 + 录像）；`tools/spine_run_trial/run_trial.js` 新增 `boneScale`（放大指定骨骼）与 `trackBones`（逐帧骨骼像素位置）；`tools/prts_spine.py` 登记 6 名新干员。
 - 配置：`tools/spine_run_trial/cfg/ling.src.json`、`ling.json`（rig + 跑步）、`ling_px.json`（动作清单 + 修补）。
 - 帧条：`game/art/operators/ling/op_ling_<idle|run|attack|skill|skill_s3|skill_s3_loop|skill_s3_end|hurt|death|entry>@2x.png`，未接入。
+
+## 7. 实战帧条补齐与召唤物（11-18 用户：「实际作战的也要做，同时还有召唤物」；玩法排在主题重构之后）
+
+用户选了「先美术，玩法排队」：本节只出帧条，仍不建 `characters/ling.json`、不接入。接入时用的规格草稿在 `tools/spine_run_trial/cfg/ling_sprites.json`（28 个槽：帧数、逐帧时长、出手帧、foot），可直接并进角色 json 的 `sprites`。
+
+**令本体补齐**（局内 `render/op_1x` 开着时读 @1x，docs/128）：
+
+| 槽 | @2x | @1x | 说明 |
+|---|---|---|---|
+| idle / run / attack / skill / skill_s3 / skill_s3_loop / skill_s3_end / hurt / death / entry | ✓ | ✓ | @1x = 同一 Spine 按 0.5 倍逐附件像素化（同 `make_op_1x.py` ① 路，比 @2x 2×2 合并清楚），96 画布、foot [48,76] |
+| move_attack（边跑边攻击） | — | ✓ | `run_trial.js` 的 `move_attack` 模式：普攻上半身 + 跑步步态腿；现有 20 人此槽也只有 @1x |
+
+1 倍眼睛：单独画了 3×3 小图（睫毛 / 虹膜 + 瞳孔 / 肤色清残留，`fix.eyes.x1`），按同一对虹膜骨贴；1 倍不画嘴（同 `make_op_1x.py`）。
+
+**召唤物**（原作 `character_table`：`token_10020_ling_soul1` 「清平」能阻挡一个敌人、`soul2` 「逍遥」法术伤害、`soul3` 「弦惊」攻击阻挡的所有敌人；Spine 3.8 都在 torappu 同路径规则下，已登记进 `prts_spine.py`）：
+
+| 召唤物 | 槽（@2x + @1x 各一条，均 8 帧） | 原作轨 |
+|---|---|---|
+| 清平 `op_ling_soul1_*` | idle / attack / appear / death | Idle 1.33 s、Attack 1 s（OnAttack 0.367 ≈ f3）、Start、Die |
+| 逍遥 `op_ling_soul2_*` | idle / attack / appear / death / skill | 同上 + Skill 1.17 s（OnAttack 0.5 ≈ f3） |
+| 弦惊 `op_ling_soul3_*` | idle / attack / appear / death + idle_02 / attack_02 / appear_02 / death_02 | 第二形态 `*_02`：Idle_02 2 s、Attack_02 1.67 s（OnAttack 0.5 ≈ f2）、Start_02 0.67 s（变身）、Die_02 |
+
+- 三只龙的骨架、待机外形基本一样（原作如此），弦惊第二形态是持剑的大龙（攻击时剑上举到原点以上 104 像素，192 画布内放得下）。
+- 原作没有移动轨，跟随移动照现有召唤物约定用待机 + 平移。
+- 尺度与令本体相同（0.148，不放大头）；没有腿，`run_trial.js` 新增「无 legs 时地线 = 待机首帧全部附件最低点」，另加 `shift`（整体平移根骨，这三只没用到）。改动后铃兰入场条重跑仍 0 像素差。
+- 调色板各用本身 atlas 64 色（青色单一，64 色够），外圈压暗色改深青 #0a1418。
+- 没做人工修：龙眼在 4×4 BOX 后仍是可读的暗点，没有需要逐像素补的帧。
+
+**命令**：
+
+```bash
+python tools/prts_spine.py ling_soul1 ling_soul2 ling_soul3
+python tools/spine_px.py ling --apply                      # 本体 @2x + @1x + move_attack
+python tools/spine_px.py ling_soul1 --apply                # 召唤物（cfg/ling_soulN.json rig + ling_soulN_px.json）
+python tools/spine_px_review.py ling --with ling_soul1 ling_soul2 ling_soul3 --dens 2 1 --secs 8
+```
+
+**数量与包体**：`game/art/operators/ling/` 共 55 条（本体 21、召唤物 34），1.4 MB；放在 `game/art/` 下会随导出进包（网页包体预算紧，见 memory web-package-budget）。接入前若要发版，可先挪到 art/incoming 或在导出过滤里排除 `art/operators/ling/*`。
+
+**接入时还缺**（玩法排队后做，按 `.claude/skills/new-operator`）：设计稿（普攻 / 三技能 / 精一精二 / 成长节点 / 终结技与连携，召唤物在本作里怎么用）→ 角色 json 与召唤积木 → 转平面特效 → 头像（`op_ling_chibi.png`、`avatar_eyes.json`）与技能图标 → 语音音效 → 快检与云端胜率。

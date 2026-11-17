@@ -1,0 +1,114 @@
+{
+ "id": "ling_soul3",
+ "rig": "ling_soul3.json",
+ "owner": "ling",
+ "tex_prefix": "op_ling_soul3",
+ "scale": 0.148,
+ "canvas": 192,
+ "colors": 64,
+ "palette_alpha": 230,
+ "palette_protect": false,
+ "outline": {
+  "color": "#0a1418",
+  "mix": 0.55
+ },
+ "_doc": "令的召唤物「弦惊」帧条：尺度与令本体相同（0.148，不放大头），帧条放 game/art/operators/ling/",
+ "actions": {
+  "idle": {
+   "sample": {
+    "anim": "Idle",
+    "range": [
+     0,
+     1.3333,
+     8
+    ]
+   },
+   "note": "Idle 一个循环；原作无移动轨，跟随移动用待机 + 平移（同其他召唤物）"
+  },
+  "attack": {
+   "sample": {
+    "anim": "Attack",
+    "range": [
+     0,
+     1.0,
+     8
+    ]
+   },
+   "note": "OnAttack 0.367 秒 ≈ f3"
+  },
+  "appear": {
+   "sample": {
+    "anim": "Start",
+    "range": [
+     0,
+     1.0,
+     8
+    ],
+    "inclusive": true,
+    "end": 1.125
+   },
+   "note": "召唤登场"
+  },
+  "death": {
+   "sample": {
+    "anim": "Die",
+    "range": [
+     0,
+     1.0,
+     8
+    ],
+    "inclusive": true,
+    "end": 1.125
+   },
+   "note": "消散"
+  },
+  "idle_02": {
+   "sample": {
+    "anim": "Idle_02",
+    "range": [
+     0,
+     2.0,
+     8
+    ]
+   },
+   "note": "弦惊第二形态待机"
+  },
+  "attack_02": {
+   "sample": {
+    "anim": "Attack_02",
+    "range": [
+     0,
+     1.6667,
+     8
+    ]
+   },
+   "note": "第二形态攻击（OnAttack 0.5 秒 ≈ f2）"
+  },
+  "appear_02": {
+   "sample": {
+    "anim": "Start_02",
+    "range": [
+     0,
+     0.6667,
+     8
+    ],
+    "inclusive": true,
+    "end": 0.75
+   },
+   "note": "变身为第二形态"
+  },
+  "death_02": {
+   "sample": {
+    "anim": "Die_02",
+    "range": [
+     0,
+     1.0,
+     8
+    ],
+    "inclusive": true,
+    "end": 1.125
+   },
+   "note": "第二形态消散"
+  }
+ }
+}

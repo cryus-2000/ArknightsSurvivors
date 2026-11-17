@@ -1,0 +1,531 @@
+{
+ "_doc": "令帧条规格草稿（11-18，docs/365 §7）：接入时并进 game/data/characters/ling.json 的 sprites；现在游戏不读这个文件。192 画布 @2x / 96 画布 @1x，foot = 1x 原点 [48,76]；frame_durations 为原作时长，出手帧 fire 按 OnAttack 事件。召唤物槽名 <s1|s2|s3>_<动作>，s1 清平 / s2 逍遥 / s3 弦惊",
+ "idle": {
+  "tex": "op_ling_idle",
+  "frames": 8,
+  "fps": 3.8095,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.2625,
+   0.2625,
+   0.2625,
+   0.2625,
+   0.2625,
+   0.2625,
+   0.2625,
+   0.2625
+  ]
+ },
+ "run": {
+  "tex": "op_ling_run",
+  "frames": 8,
+  "fps": 13.3333,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.07500000187500006,
+   0.07500000187500006,
+   0.07500000187500006,
+   0.07500000187500006,
+   0.07500000187500006,
+   0.07500000187500006,
+   0.07500000187500006,
+   0.07500000187500006
+  ]
+ },
+ "attack": {
+  "tex": "op_ling_attack",
+  "frames": 8,
+  "fps": 5.3333,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.2,
+   0.15,
+   0.15,
+   0.15,
+   0.2,
+   0.25,
+   0.25,
+   0.15
+  ],
+  "fire": 3
+ },
+ "skill": {
+  "tex": "op_ling_skill",
+  "frames": 8,
+  "fps": 6.6667,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.15,
+   0.15,
+   0.15,
+   0.15,
+   0.15,
+   0.15,
+   0.15,
+   0.15
+  ],
+  "fire": 3
+ },
+ "skill_s3": {
+  "tex": "op_ling_skill_s3",
+  "frames": 4,
+  "fps": 8.0,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.125,
+   0.125,
+   0.125,
+   0.125
+  ]
+ },
+ "skill_s3_loop": {
+  "tex": "op_ling_skill_s3_loop",
+  "frames": 8,
+  "fps": 4.8981,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.2042,
+   0.2041,
+   0.2042,
+   0.2041,
+   0.2042,
+   0.2042,
+   0.2041,
+   0.2042
+  ],
+  "fire": 2
+ },
+ "skill_s3_end": {
+  "tex": "op_ling_skill_s3_end",
+  "frames": 4,
+  "fps": 8.0,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.125,
+   0.125,
+   0.125,
+   0.125
+  ]
+ },
+ "hurt": {
+  "tex": "op_ling_hurt",
+  "frames": 2,
+  "fps": 13.3333,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.07,
+   0.08
+  ]
+ },
+ "death": {
+  "tex": "op_ling_death",
+  "frames": 8,
+  "fps": 7.1111,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.1429,
+   0.1428,
+   0.1429,
+   0.1428,
+   0.1429,
+   0.1428,
+   0.1429,
+   0.125
+  ]
+ },
+ "entry": {
+  "tex": "op_ling_entry",
+  "frames": 8,
+  "fps": 7.1111,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.1429,
+   0.1428,
+   0.1429,
+   0.1428,
+   0.1429,
+   0.1428,
+   0.1429,
+   0.125
+  ]
+ },
+ "move_attack": {
+  "tex": "op_ling_move_attack",
+  "frames": 8,
+  "fps": 5.3333,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.2,
+   0.15,
+   0.15,
+   0.15,
+   0.2,
+   0.25,
+   0.25,
+   0.15
+  ],
+  "fire": 3,
+  "_note": "只有 @1x（同现有 20 人 move_attack 口径）"
+ },
+ "s1_idle": {
+  "tex": "op_ling_soul1_idle",
+  "frames": 8,
+  "fps": 6.0002,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.1667,
+   0.1666,
+   0.1667,
+   0.1666,
+   0.1667,
+   0.1667,
+   0.1666,
+   0.1667
+  ]
+ },
+ "s1_attack": {
+  "tex": "op_ling_soul1_attack",
+  "frames": 8,
+  "fps": 8.0,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.125,
+   0.125,
+   0.125,
+   0.125,
+   0.125,
+   0.125,
+   0.125,
+   0.125
+  ],
+  "fire": 3
+ },
+ "s1_appear": {
+  "tex": "op_ling_soul1_appear",
+  "frames": 8,
+  "fps": 7.1111,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.1429,
+   0.1428,
+   0.1429,
+   0.1428,
+   0.1429,
+   0.1428,
+   0.1429,
+   0.125
+  ]
+ },
+ "s1_death": {
+  "tex": "op_ling_soul1_death",
+  "frames": 8,
+  "fps": 7.1111,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.1429,
+   0.1428,
+   0.1429,
+   0.1428,
+   0.1429,
+   0.1428,
+   0.1429,
+   0.125
+  ]
+ },
+ "s2_idle": {
+  "tex": "op_ling_soul2_idle",
+  "frames": 8,
+  "fps": 6.0002,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.1667,
+   0.1666,
+   0.1667,
+   0.1666,
+   0.1667,
+   0.1667,
+   0.1666,
+   0.1667
+  ]
+ },
+ "s2_attack": {
+  "tex": "op_ling_soul2_attack",
+  "frames": 8,
+  "fps": 8.0,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.125,
+   0.125,
+   0.125,
+   0.125,
+   0.125,
+   0.125,
+   0.125,
+   0.125
+  ],
+  "fire": 3
+ },
+ "s2_appear": {
+  "tex": "op_ling_soul2_appear",
+  "frames": 8,
+  "fps": 7.1111,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.1429,
+   0.1428,
+   0.1429,
+   0.1428,
+   0.1429,
+   0.1428,
+   0.1429,
+   0.125
+  ]
+ },
+ "s2_death": {
+  "tex": "op_ling_soul2_death",
+  "frames": 8,
+  "fps": 7.1111,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.1429,
+   0.1428,
+   0.1429,
+   0.1428,
+   0.1429,
+   0.1428,
+   0.1429,
+   0.125
+  ]
+ },
+ "s2_skill": {
+  "tex": "op_ling_soul2_skill",
+  "frames": 8,
+  "fps": 6.8569,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.1458,
+   0.1459,
+   0.1458,
+   0.1459,
+   0.1458,
+   0.1458,
+   0.1459,
+   0.1458
+  ],
+  "fire": 3
+ },
+ "s3_idle": {
+  "tex": "op_ling_soul3_idle",
+  "frames": 8,
+  "fps": 6.0002,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.1667,
+   0.1666,
+   0.1667,
+   0.1666,
+   0.1667,
+   0.1667,
+   0.1666,
+   0.1667
+  ]
+ },
+ "s3_attack": {
+  "tex": "op_ling_soul3_attack",
+  "frames": 8,
+  "fps": 8.0,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.125,
+   0.125,
+   0.125,
+   0.125,
+   0.125,
+   0.125,
+   0.125,
+   0.125
+  ],
+  "fire": 3
+ },
+ "s3_appear": {
+  "tex": "op_ling_soul3_appear",
+  "frames": 8,
+  "fps": 7.1111,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.1429,
+   0.1428,
+   0.1429,
+   0.1428,
+   0.1429,
+   0.1428,
+   0.1429,
+   0.125
+  ]
+ },
+ "s3_death": {
+  "tex": "op_ling_soul3_death",
+  "frames": 8,
+  "fps": 7.1111,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.1429,
+   0.1428,
+   0.1429,
+   0.1428,
+   0.1429,
+   0.1428,
+   0.1429,
+   0.125
+  ]
+ },
+ "s3_idle_02": {
+  "tex": "op_ling_soul3_idle_02",
+  "frames": 8,
+  "fps": 4.0,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.25,
+   0.25,
+   0.25,
+   0.25,
+   0.25,
+   0.25,
+   0.25,
+   0.25
+  ]
+ },
+ "s3_attack_02": {
+  "tex": "op_ling_soul3_attack_02",
+  "frames": 8,
+  "fps": 4.7999,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.2083,
+   0.2084,
+   0.2083,
+   0.2084,
+   0.2083,
+   0.2083,
+   0.2084,
+   0.2083
+  ],
+  "fire": 2
+ },
+ "s3_appear_02": {
+  "tex": "op_ling_soul3_appear_02",
+  "frames": 8,
+  "fps": 10.6667,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.0952,
+   0.0953,
+   0.0952,
+   0.0953,
+   0.0952,
+   0.0953,
+   0.0952,
+   0.0833
+  ]
+ },
+ "s3_death_02": {
+  "tex": "op_ling_soul3_death_02",
+  "frames": 8,
+  "fps": 7.1111,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.1429,
+   0.1428,
+   0.1429,
+   0.1428,
+   0.1429,
+   0.1428,
+   0.1429,
+   0.125
+  ]
+ }
+}
