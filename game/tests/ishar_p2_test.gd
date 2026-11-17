@@ -32,7 +32,7 @@ func _ready() -> void:
 	var other: Dictionary = g.spawner.new_enemy("tear", Vector2(100, 0))
 	other.owner = {"id": -1}
 	g.enemies.append_array([own, other])
-	g.bai.transform_ishar(e)
+	g.bai.boss("ishar").transform_ishar(e)
 	check(not e.friendly and not e.invuln and e.phase == 2, "transformation changes allegiance")
 	check(not own.dead and own.get("song_eye", false) and not other.dead and not other.get("song_eye", false), "transformation promotes only own unpurified tears to hostile eyes")
 	check(e.ai == "melee", "P2 uses deliberate attack scheduler, no generic ranged insertion")

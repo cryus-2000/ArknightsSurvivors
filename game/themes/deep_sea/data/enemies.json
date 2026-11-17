@@ -1,5 +1,5 @@
 {
- "_doc": "主题数据字段（docs/367 §3）：cap_steps 场上同种上限按时间分段 [[到这一秒为止, 上限], …, [-1, 之后的上限]]（没有 cap 时用）；morph_pool 子代蜕变成的敌种；person 同一人物（中期池不重复出场）；ctrl_cat 控制遥测分类；final_track 最终 Boss 的配乐键；final_attack_names 最终 Boss 补充攻击的招式名（enemies/final_attacks.gd）。敌人表（由 data.gd 的 ENEMIES 迁出）。tint 为 [r,g,b]；ai: melee/ranged/static；pattern: burrow/stomp/dash/acid/nova（见 scripts/enemies/enemy_ai.gd）；新增敌人 = 加一条 + 贴图。",
+ "_doc": "主题数据字段（docs/367 §3）：cap_steps 场上同种上限按时间分段 [[到这一秒为止, 上限], …, [-1, 之后的上限]]（没有 cap 时用）；morph_pool 子代蜕变成的敌种；person 同一人物（中期池不重复出场）；ctrl_cat 控制遥测分类；final_track 最终 Boss 的配乐键；final_attack_names 最终 Boss 补充攻击的招式名（enemies/final_attacks.gd）；land_break_sfx 冲刺落地破绽的音效 [名, 分贝]（缺省伊莎玛拉那一个）；pair_linker 接潮组里平时放「统一」的那一具。敌人表（由 data.gd 的 ENEMIES 迁出）。tint 为 [r,g,b]；ai: melee/ranged/static；pattern: burrow/stomp/dash/acid/nova（见 scripts/enemies/enemy_ai.gd）；新增敌人 = 加一条 + 贴图。",
  "enemies": {
   "bone": {
    "name": "骨海漂流体",
@@ -791,6 +791,7 @@
    "ecol": [0.7, 0.7, 1.0]
   },
   "bishop": {
+   "pair_linker": true,
    "bcol": [0.3, 0.38, 0.92],
    "name": "接潮主教",
    "hp": 1700.0,
@@ -935,6 +936,7 @@
    "ecol": [0.6, 0.8, 1.0]
   },
   "paranoia": {
+   "land_break_sfx": ["paranoia_land_break", -8.0],
    "final_attack_names": ["追猎泡", "溟泡迸裂", "泡影收束"],
    "bcol": [0.78, 0.62, 1.0],
    "bcol_core": [0.7, 0.32, 1.0],

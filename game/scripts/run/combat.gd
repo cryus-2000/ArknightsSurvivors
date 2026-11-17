@@ -1313,7 +1313,7 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 				if o.get("cocoon_t", 0.0) > 0.0:
 					o.shell_hp -= o.shell_max * chip
 					if o.shell_hp <= 0.0:
-						g.bai.paranoia_hatch(o, true)
+						g.bai.boss(o.type).on_shell_broken(o)   # Boss 钩子（docs/368 §2）
 				else:
 					o.hp -= o.maxhp * chip
 					if o.hp <= 0.0:

@@ -41,10 +41,8 @@ func boss_step(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 		if e.dash_t <= 0.0 and e.get("land_break", 0.0) > 0.0:
 			g.combat.start_break(e, e.land_break)
 			# 落地破绽（tools/gen_sfx_boss_events.py）：伊莎玛拉 = 水花拍地 + 下沉咕噜；偏执泡影 = 膜状「啵嗯」+ 泡沫嘶声
-			if e.type == "paranoia":
-				Sfx.play("paranoia_land_break", -8.0, 1.0, 0.0)
-			else:
-				Sfx.play("ishar_land_break", -0.6, 1.0, 0.0)
+			var lb: Array = D.ENEMIES.get(e.type, {}).get("land_break_sfx", ["ishar_land_break", -0.6])   # enemies.json land_break_sfx [音效, 分贝]（docs/368 §2）
+			Sfx.play(str(lb[0]), float(lb[1]), 1.0, 0.0)
 			e.land_break = 0.0
 	# 接潮：昏迷后回复；两者同时昏迷则一起倒下
 	if e.get("coma", false):
@@ -84,10 +82,10 @@ func boss_step(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 	# 平时由主教放（unite 9 秒，第二幕 7 秒，两体相距 120–520），主教假死时由搭档放（boss/tide_link_cd 4.5 秒，即原接潮共鸣）；占组内共用的招式令牌。
 	# 第二幕（任一具过 50% 卡点）两体之间常亮一条低亮度幽灵线；假死时照旧画亮线。骑士的冰线 / 寒冷追击在 bosses/knight_boss.gd（docs/95 §4）
 	var mate = e.get("partner")
-	if mate != null and not mate.dead and e.type in ["bishop", "archon", "immortal"]:
+	if mate != null and not mate.dead and D.ENEMIES.get(e.type, {}).get("pair", false):   # 接潮组（enemies.json pair，docs/368 §2）
 		var mcoma: bool = mate.get("coma", false)
 		var pair_p2: bool = int(e.get("gates_passed", 0)) >= 1 or int(mate.get("gates_passed", 0)) >= 1
-		var linker: bool = mcoma or e.type == "bishop"
+		var linker: bool = mcoma or D.ENEMIES.get(e.type, {}).get("pair_linker", false)   # 平时由 pair_linker（主教）放统一
 		if linker and (mcoma or pair_p2) and g.t >= float(e.get("link_visual_at", 0.0)):
 			e.link_visual_at = g.t + 0.28
 			var lc: Color = g.vfx.boss_color(e.type)
@@ -104,12 +102,9 @@ func boss_step(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 	if ready and token_owner != null and not is_same(token_owner, e) and not token_owner.dead and g.t < token_until 			and g.bosses.has(token_owner):
 		ready = false
 	finals.update(e, dt)
-	if e.type=="knight_boss":
-		boss(e.type)._knight_stakes(e,dt)
-		ready=ready and e.get("break_t",0.0)<=0.0 and e.stun<=0.0 and e.wind<=0.0
-		if boss(e.type).stake_cast_step(e,dir,ready): ready=false
-	if e.type == "knight_boss" and boss(e.type).combo_step(e,dir,dist,ready):
-		ready = false
+	var hp0 = boss(e.type)
+	if hp0 != null:
+		ready = hp0.pre_attack(e, dt, dir, dist, ready)   # Boss 钩子（docs/368 §2）：骑士的冰枪 / 连段在这里占出招窗口
 	if ready and finals.try_attack(e, dir, dist):
 		ready = false
 	if ready and patterns.try_attack(e, dir, dist):
@@ -176,59 +171,6 @@ func setup_preview_phase2(e: Dictionary) -> void:
 	var h = boss(e.type)
 	if h != null:
 		h.setup_preview_phase2(e)
-
-
-## ---- 兼容旧调用点（combat / enemies / ishar_encounter / tests）：各 Boss 自己的入口已搬进 bosses/<type>.gd，这里只转发
-func transform_ishar(e: Dictionary) -> void:
-	boss("ishar").transform_ishar(e)
-
-
-func _ishar_phase2(e: Dictionary, dir: Vector2, dist: float) -> void:
-	boss("ishar")._ishar_phase2(e, dir, dist)
-
-
-func _ishar_haste(e: Dictionary) -> float:
-	return boss("ishar")._ishar_haste(e)
-
-
-func saint_interrupt(e: Dictionary) -> void:
-	boss("iberia").saint_interrupt(e)
-
-
-func _paranoia_p2(e: Dictionary) -> void:
-	boss("paranoia")._paranoia_p2(e)
-
-
-func _paranoia_aura(e: Dictionary, dist: float) -> void:
-	boss("paranoia")._paranoia_aura(e, dist)
-
-
-func paranoia_cocoon(e: Dictionary) -> void:
-	boss("paranoia").paranoia_cocoon(e)
-
-
-func _paranoia_cocoon_step(e: Dictionary, dt: float) -> void:
-	boss("paranoia")._paranoia_cocoon_step(e, dt)
-
-
-func paranoia_hatch(e: Dictionary, broken: bool) -> void:
-	boss("paranoia").paranoia_hatch(e, broken)
-
-
-func izumik_absorb(e: Dictionary) -> void:
-	boss("izumik").izumik_absorb(e)
-
-
-func _izumik_lamp_step(e: Dictionary, dt: float) -> void:
-	boss("izumik")._izumik_lamp_step(e, dt)
-
-
-func izumik_safe(e: Dictionary) -> bool:
-	return boss("izumik").izumik_safe(e)
-
-
-func _knight_stakes(e: Dictionary, dt: float) -> void:
-	boss("knight_boss")._knight_stakes(e, dt)
 
 
 ## Boss 招式冷却：到时返回 true 并重置

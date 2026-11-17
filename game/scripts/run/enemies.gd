@@ -528,7 +528,7 @@ func update(dt: float) -> void:
 			ab += 1
 			if not e.dead:
 				e.dead = true
-				g.bai.izumik_absorb(iz)
+				g.bai.boss(iz.type).izumik_absorb(iz)
 			continue
 		if e.dead:
 			continue

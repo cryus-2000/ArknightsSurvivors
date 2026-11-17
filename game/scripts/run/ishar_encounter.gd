@@ -34,7 +34,7 @@ func step_ally(e: Dictionary, dt: float) -> void:
 	# 人形可受伤时：打到 boss/ishar_p1_line 血线也立刻转化（与充能先到先算；越线部分由 ishar.on_damaged 截回血线）
 	var hit_out: bool = e.get("ishar_p1", false) and e.hp <= e.maxhp * Bal.v("boss/ishar_p1_line", 0.85)
 	if e.ally_charge >= e.ally_charge_need or hit_out:
-		g.bai.transform_ishar(e)
+		g.bai.boss(e.type).transform_ishar(e)
 		return
 	# 跟随主控，保留空隙；不走敌人接触伤害 / 寻路追击分支。
 	var want: Vector2 = g.ppos + Vector2(-110.0, -45.0)
