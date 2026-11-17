@@ -590,7 +590,7 @@ GitHub 远端除 `main` 和 `cloud-results/*` 外还有 58 个分支（`git bran
 | `healw-base-probe` | `gameplay/healw` 的 A/B 基准版（权重设回 1） | 纯基准探针，无独立结论 | 无 | 可删 |
 | `hunt-probe-base` / `hunt-probe-new` | `balance_run --keep=` 前缀功能 + 围猎机制验证 | `balance_run.py` 现有 `--keep` 参数 | 无 | 可删 |
 | `integ` | 三档数值整合复核（困难攻击倍率等） | 具体数值（困难攻击 1.15）已被后续校准覆盖（现 `difficulty.hard.enemy_dmg` = 1.2，经过 close1–close9 等多轮重算，不可直接比较） | 无（数值早已过时） | 可删 |
-| `late-dmg` | 后期敌人伤害轻微上调方案 a | docs/51 已记（分支本身也改了 docs/51），`enemy/dmg_late_*` 系列旋钮 | 需要时可在 docs/51 查，不在本分支本身 | 可删 |
+| `late-dmg` | 后期敌人伤害轻微上调方案 a | docs/51（已删） 已记（分支本身也改了 docs/51（已删）），`enemy/dmg_late_*` 系列旋钮 | 需要时可在 docs/51（已删） 查，不在本分支本身 | 可删 |
 | `logos-rework-r1-pin` | 逻各斯技能重设计首版（咒文弹、扇形咒域） | main `logos.json`（docs/61 §17.5 数据化迁移版）文案仍是「咒文弹...扇形咒域」，设计概念延续，但实现已被 10-14 积木迁移整体重写 | 无（旧手写实现已废弃） | 可删 |
 | `numbers-probe` | 数值采样探针（`--norelics`/`--relicmax`，30 秒采样输出/藏品/治疗/生命，docs/42 §1） | docs/42 §1 | 无 | 可删 |
 | `probe/b3-base` / `probe/b3-new` | `--forceending=`/`--forceboss2=` 测试开关 | `spawner.gd` 现有这两个开关，注释措辞基本一致 | 无 | 可删 |

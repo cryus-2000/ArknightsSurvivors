@@ -1,7 +1,7 @@
 # 163D · 构筑改造融合稿：Codex 163B 七条流派 × Claude 可见成长 7 件
 
 > 2026-10-27，用户：「codex 那个方案和我们的融合一下」。协调人派单，Claude 写。
-> 来源：[163B 七条流派完整改造方案 v2（Codex 10-26，原文存档）](163b_build_rework_plan_codex.md)、[163C 全量藏品分类（Codex）](163c_relic_inventory_codex.md)（+ 同名 JSON）、[Codex 版可见成长草稿](163_visible_build_growth_codex.md)、[163 可见成长（Claude，已实现）](163_visible_build_growth.md)。
+> 来源：[163B 七条流派完整改造方案 v2（Codex 10-26，原文存档）](163b_build_rework_plan_codex.md)、[163C 全量藏品分类（Codex）](163c_relic_inventory_codex.md)（+ 同名 JSON）、Codex 版可见成长草稿（已删）、[163 可见成长（Claude，已实现）](163_visible_build_growth.md)。
 > 骨架用 163B 的七条流派；已实现的 7 件（分支 `claude/build-growth-impl`）逐件对号。**§4 五条 10-27 用户已认可（按推荐定稿），实施见 §6。**
 
 ## 1. 一页结论
