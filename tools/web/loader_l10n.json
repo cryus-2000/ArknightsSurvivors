@@ -74,8 +74,6 @@
     "资源下载失败": ["Resource download failed", "資源のダウンロードに失敗", "자원 다운로드 실패"],
     "检查网络后点「重试」。": ["Check your network, then tap \"Retry\".", "ネットワークを確認して「再試行」をタップしてください。", "네트워크를 확인한 후 '재시도'를 누르세요."],
     "内核版本过旧，无法运行": ["Browser engine too old to run", "ブラウザエンジンが古いため実行できません", "브라우저 엔진이 오래되어 실행할 수 없습니다"],
-    "需要 Chrome 85 / iOS 15 以上的内核，当前是 {0}。": ["Requires Chrome 85 / iOS 15 or later. Current: {0}.", "Chrome 85 / iOS 15 以上が必要です。現在：{0}。", "Chrome 85 / iOS 15 이상이 필요합니다. 현재: {0}."],
-    "安卓：在应用商店更新「Android System WebView」或「Chrome」后重新打开。iPhone：升级到 iOS 15 以上。": ["Android: update \"Android System WebView\" or \"Chrome\" in your app store, then reopen. iPhone: update to iOS 15 or later.", "Android：ストアで「Android System WebView」または「Chrome」を更新してから開き直してください。iPhone：iOS 15 以上に更新してください。", "Android: 앱 스토어에서 'Android System WebView' 또는 'Chrome'을 업데이트한 후 다시 여세요. iPhone: iOS 15 이상으로 업데이트하세요."],
     "引擎脚本没有运行": ["Engine script did not run", "エンジンスクリプトが実行されていません", "엔진 스크립트가 실행되지 않음"],
     "index.js 加载失败或当前内核不支持（{0}）。": ["index.js failed to load or is not supported by this browser engine ({0}).", "index.js の読み込みに失敗したか、現在のエンジンが非対応です（{0}）。", "index.js 로드 실패 또는 현재 엔진 미지원 ({0})."],
     "页面脚本出错": ["Page script error", "ページスクリプトのエラー", "페이지 스크립트 오류"],
@@ -113,6 +111,9 @@
     "正在前往寻访…": ["Heading to Headhunt…", "人材発掘へ移動中…", "헤드헌팅으로 이동 중…"],
     "正在准备下一局…": ["Preparing the next run…", "次の探索を準備中…", "다음 탐색 준비 중…"],
     "正在返回主界面…": ["Returning to Main UI…", "メインUIに戻っています…", "메인 UI로 돌아가는 중…"],
-    "正在返回…": ["Returning…", "戻っています…", "돌아가는 중…"]
+    "正在返回…": ["Returning…", "戻っています…", "돌아가는 중…"],
+    "需要 Chrome 95 / iOS 16.4 以上的内核，当前是 {0}。": ["Requires Chrome 95 / iOS 16.4 or later. Current: {0}.", "Chrome 95 / iOS 16.4 以上が必要です。現在：{0}。", "Chrome 95 / iOS 16.4 이상이 필요합니다. 현재: {0}."],
+    "安卓：在应用商店更新「Android System WebView」或「Chrome」后重新打开。iPhone：升级到 iOS 16.4 以上。": ["Android: update \"Android System WebView\" or \"Chrome\" in your app store, then reopen. iPhone: update to iOS 16.4 or later.", "Android：ストアで「Android System WebView」または「Chrome」を更新してから開き直してください。iPhone：iOS 16.4 以上に更新してください。", "Android: 앱 스토어에서 'Android System WebView' 또는 'Chrome'을 업데이트한 후 다시 여세요. iPhone: iOS 16.4 이상으로 업데이트하세요."],
+    "WASM 异常处理": ["WASM exceptions", "WASM 例外処理", "WASM 예외 처리"]
   }
 }
