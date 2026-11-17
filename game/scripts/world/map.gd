@@ -767,7 +767,7 @@ func mire_new(pos: Vector2, t: float, endless: bool) -> Dictionary:
 	var d := {"pos": pos, "r": 16.0, "maxr": g.rng.randf_range(float(rr[0]), float(rr[1])) * grow,
 		"life": (float(m.get("life_base", 45)) + t / 20.0) if not endless else 9999.0, "seed": g.rng.randf() * 100.0}
 	# 点燃的引航灯标周围禁刷期内不生成自然溟痕（run/beacon.gd）：随机数照常消耗，只把寿命置 0，下一帧被滤掉
-	if g.beacon_sys.blocks(pos):
+	if g.beacon_sys != null and g.beacon_sys.blocks(pos):
 		d.life = 0.0
 	return d
 

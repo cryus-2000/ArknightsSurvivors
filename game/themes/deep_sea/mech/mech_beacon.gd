@@ -33,6 +33,35 @@ func on_world_tick(dt: float) -> void:
 	update(dt)
 
 
+## 机器人挂钩（docs/364 §6；原 core/bot.gd _expert_goal 灯标段，原样搬来）：高手 / master 找最近的未点燃灯标，近了在光圈里站着
+func bot_goal(bot, p: Vector2) -> Vector2:
+	var seek_r: float = Bal.v("bot/beacon_seek_r", 300.0)   # 协调人 9/30：150 → 300（真人半屏看到灯标就会走过去）
+	# 血量门槛 45% → 25%（协调人 9/30：Ⅷ 主控常年低血，45% 时几乎不去点灯；真人低血反而更想进安全区）；高手 / master 共用，普通在 autotest 里另算
+	var bnear := Vector2.INF
+	for b in g.beacons:
+		if b.lit or g.hp <= g.max_hp * 0.25:
+			continue
+		var bdist: float = b.pos.distance_to(p)
+		if bdist < 700.0 and (bnear == Vector2.INF or bdist < p.distance_to(bnear)):
+			bnear = b.pos
+	if bnear != Vector2.INF:
+		var bd2: float = bnear.distance_to(p)
+		if bd2 < seek_r:
+			bot.beacon_hold = bnear
+			bot.beacon_w = 6.0 if bd2 < 150.0 else 4.0
+		return (bnear - p).normalized() if bd2 > 40.0 else Vector2.ZERO   # 引航灯标：去光圈里站着
+	return Vector2.INF
+
+
+## 机器人挂钩（原 autotest.bot_move 灯标段）：普通机器人没点燃、血量还行就过去站着（光圈半径 70，站到离中心 40 以内就不再拉，免得来回抖）
+func bot_pull(pull: Vector2) -> Vector2:
+	for b in g.beacons:
+		if not b.lit and g.hp > g.max_hp * 0.45 and b.pos.distance_to(g.ppos) < 700.0:
+			pull = (b.pos - g.ppos).normalized() * 0.9 if b.pos.distance_to(g.ppos) > 40.0 else Vector2.ZERO
+			break
+	return pull
+
+
 func _init(game: Game) -> void:
 	g = game
 

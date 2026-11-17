@@ -133,7 +133,7 @@ func _lamp_mire(m: Dictionary, lk: Vector2, dt: float, full := false) -> void:
 		if not m.has("maxr0"):
 			m["maxr0"] = float(m.maxr)
 		var np: Vector2 = m.pos.move_toward(g.ppos, Bal.v("lamp/mire_creep_spd", 14.0) * lk.y * dt)
-		if not g.combat.mire_blocked(np, float(m.maxr)) and not g.beacon_sys.blocks(np):
+		if not g.combat.mire_blocked(np, float(m.maxr)) and not (g.beacon_sys != null and g.beacon_sys.blocks(np)):
 			m.pos = np
 		if not full:   # 自然溟痕总面积到 enemy/mire_area_cap 时不再长（用户 10-29「溟痕不能无限扩张」）
 			m.maxr = minf(float(m.maxr) + Bal.v("lamp/mire_creep_grow", 6.0) * lk.y * dt, float(m.maxr0) * Bal.v("lamp/mire_creep_cap", 1.3))
@@ -168,7 +168,7 @@ func _lamp_hint() -> void:
 ## 怪物留下的溟痕统一入口（docs/155）：拖痕 trail / 落点 lob / 神经弹 shot / 死亡留痕 death。打上 src 与出生时间 t0，
 ## 怪物溟痕超过 enemy/mire_enemy_cap 时最老的一片开始淡出（mire_fade 秒后移除，淡出中不再伤人）。常驻规则不变：没被挤掉的照旧常驻
 func add_enemy_mire(m: Dictionary, src: String) -> void:
-	if g.beacon_sys.holds(m.pos):
+	if g.beacon_sys != null and g.beacon_sys.holds(m.pos):
 		return   # 生效中的引航灯标清除圈内不落怪物溟痕（10-26，用户「灯塔范围内的溟痕全部消失」）
 	m["src"] = src
 	m["t0"] = g.t

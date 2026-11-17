@@ -23,7 +23,7 @@ func step(dt: float) -> void:
 func update_lobs(dt: float) -> void:
 	for l in g.lobs:
 		l.t += dt
-		if l.t >= l.dur and g.beacon_sys.bullet_eaten(l.to):
+		if l.t >= l.dur and g.beacon_sys != null and g.beacon_sys.bullet_eaten(l.to):
 			g.beacon_sys.eat_fx(l.to)   # 圈内安全：落进读条光圈的抛石被灯光吞掉，不伤人、不留溟痕（docs/49g）
 			continue
 		if l.t >= l.dur:
@@ -247,7 +247,7 @@ func update_ebullets(dt: float) -> void:
 		b.life -= dt
 		if g.zone_frozen and b.get("boss", false) and _arena_fly(b):
 			continue
-		if not b.get("boss", false) and g.beacon_sys.bullet_eaten(b.pos):
+		if not b.get("boss", false) and g.beacon_sys != null and g.beacon_sys.bullet_eaten(b.pos):
 			b.life = 0.0   # 圈内安全：非 Boss 子弹进入读条光圈即消散（docs/49g）
 			b["_die"] = "eaten"   # 已有 eat_fx，公共消失画面不叠
 			g.beacon_sys.eat_fx(b.pos)

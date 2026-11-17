@@ -486,7 +486,7 @@ func update(dt: float) -> void:
 					if e.set_t <= 0.0 and e.set_done:
 						e.weak = D.ENEMIES[e.type].get("weak", "")
 					e.cdt -= dt
-					if spd > 0.0 and dist < e.range and e.cdt <= 0.0 and (not e.boss or e.age >= 2.0) and not g.beacon_sys.ranged_held(e) and not sealed:   # sealed：封印期间不远程开火（冷却留着）   # 圈内安全：读条期间远程杂兵不开火，冷却留着出圈即打（docs/49g）
+					if spd > 0.0 and dist < e.range and e.cdt <= 0.0 and (not e.boss or e.age >= 2.0) and not (g.beacon_sys != null and g.beacon_sys.ranged_held(e)) and not sealed:   # sealed：封印期间不远程开火（冷却留着）   # 圈内安全：读条期间远程杂兵不开火，冷却留着出圈即打（docs/49g）
 						if not e.boss and not e.get("shot_ready", false):
 							e["shot_ready"] = true
 							e["shot_wind_until"] = g.t + 0.35

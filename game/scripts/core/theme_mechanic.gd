@@ -10,6 +10,14 @@ extends RefCounted
 ##                           巢涌光环与神经损伤，核心不再做缺省结算
 ##   on_spawn_tick()         spawner._horde_tail_rest：补给箱之后、商人之前（自然溟痕刷新）
 ##   on_world_tick(dt)       game 杂项段：结局箱之后、骑士之前（引航灯标）
+## 机器人挂钩（docs/364 §6；批跑的机器人按主题机制走位，不认具体机制）：
+##   bot_return_dir(p, margin) -> Vector2  手残机器人：要不要先往回走（ZERO = 不用）
+##   bot_score(q, s) -> float              高手：候选落点打分，传入当前分、返回改后的分（照原来的加减顺序做，浮点结果不变）
+##   bot_goal(bot, p) -> Vector2           高手：目标方向（INF = 没意见；可写 bot.beacon_hold / beacon_w）
+##   bot_outside_dir(p) -> Vector2         高手 / master 冲刺：在边界外时指回去的方向（ZERO = 在界内）
+##   bot_land_bad(land, p) -> bool         高手 / master 冲刺：落点不可取
+##   bot_pull(pull) -> Vector2             普通机器人：改拉力（缺省原样返回）
+##   bot_steer(at, mv) -> Vector2          普通机器人：拉力合成后改移动向量（at = autotest 实例，存计时状态）
 ## 子类自己声明 `var g: Game` 与 `_init(game)`（带类型的 g 让 := 推断照常生效）；没实现的挂钩是空操作。
 ## 约束：挂钩里抽随机数的次数、顺序必须和搬家前完全一样；纯画面的东西照旧走 g.vrng。
 
@@ -34,3 +42,31 @@ func on_spawn_tick() -> void:
 
 func on_world_tick(_dt: float) -> void:
 	pass
+
+
+func bot_return_dir(_p: Vector2, _margin: float) -> Vector2:
+	return Vector2.ZERO
+
+
+func bot_score(_q: Vector2, s: float) -> float:
+	return s
+
+
+func bot_goal(_bot, _p: Vector2) -> Vector2:
+	return Vector2.INF
+
+
+func bot_outside_dir(_p: Vector2) -> Vector2:
+	return Vector2.ZERO
+
+
+func bot_land_bad(_land: Vector2, _p: Vector2) -> bool:
+	return false
+
+
+func bot_pull(pull: Vector2) -> Vector2:
+	return pull
+
+
+func bot_steer(_at, mv: Vector2) -> Vector2:
+	return mv

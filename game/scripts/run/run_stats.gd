@@ -90,7 +90,7 @@ static func snapshot(g) -> Dictionary:
 		"bins": tm.out_bins.duplicate(true), "bin_s": tm.BIN_S, "origin": origin,
 		"heal": g.heal_log.duplicate(), "taken": g.dmg_log.duplicate(), "dark_dmg": tm.dark_dmg, "hits": tm.hits,
 		"best": tm.best_hit.duplicate(), "bosses": bosses, "lamp_s": tm.lamp_s.duplicate(),
-		"beacons": [int(g.beacon_sys.lit_n), g.beacons.size()], "dodges": tm.dodges, "dashes": tm.dashes, "blocks": tm.blocks,
+		"beacons": [int(g.beacon_sys.lit_n) if g.beacon_sys != null else 0, g.beacons.size()], "dodges": tm.dodges, "dashes": tm.dashes, "blocks": tm.blocks,
 		"low_hp_s": tm.low_hp_s, "fuse": fuse, "relic_list": relic_list, "killer": killer, "final_boss": final_boss, "quit": bool(g.get("abandoned")),
 		"bonds": g.get_meta("bond_log", []).map(func(x): return str(x.tag) + "·" + str(x.name)),   # 羁绊（docs/217 §7）：本局成立过的
 		"xp": float(g.pickups.xp_total), "chests": tm.chests, "nodes": tm.nodes, "ingots_got": tm.ingots_got, "ingots_spent": tm.ingots_spent}

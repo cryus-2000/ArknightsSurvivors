@@ -153,8 +153,10 @@ func _move_bad(dt: float) -> Vector2:
 		dodge_t -= dt
 		return g.autotest_sys.bot_move()
 	# 缩圈外会被烧死：手残玩家也知道往圈里走，但慢半拍
-	if g.zone_state != 0 and g.ppos.distance_to(g.zone_c) > g.zone_r - 40.0:
-		return (g.zone_c - g.ppos).normalized()
+	for m in g.mechs:
+		var rd: Vector2 = m.bot_return_dir(g.ppos, 40.0)   # 主题机制（docs/364 §6）：黑潮缩圈
+		if rd != Vector2.ZERO:
+			return rd
 	return wander_dir
 
 
@@ -271,14 +273,8 @@ func _score_point(q: Vector2, _near: Array) -> float:
 	for m in g.mires:
 		if g.combat.ground_d(q, m.pos) < float(m.r) + 26.0:
 			s -= 18.0
-	if g.zone_state != 0:
-		var tc: Vector2 = g.zone_next_c if g.zone_state == 1 else g.zone_c
-		var tr: float = g.zone_next_r if g.zone_state == 1 else g.zone_r
-		var over: float = q.distance_to(tc) - (tr - 120.0)
-		if over > 0.0:
-			s -= over * 0.12
-		if q.distance_to(g.zone_c) > g.zone_r:
-			s -= 30.0
+	for m in g.mechs:
+		s = m.bot_score(q, s)   # 主题机制（docs/364 §6）：黑潮缩圈的圈边扣分
 	return s
 
 
@@ -312,21 +308,10 @@ func _expert_goal(p: Vector2, near: Array) -> Vector2:
 			return (e.pos - p).normalized()
 	beacon_hold = Vector2.INF
 	beacon_w = 2.0
-	var seek_r: float = g.Bal.v("bot/beacon_seek_r", 300.0)   # 协调人 9/30：150 → 300（真人半屏看到灯标就会走过去）
-	# 血量门槛 45% → 25%（协调人 9/30：Ⅷ 主控常年低血，45% 时几乎不去点灯；真人低血反而更想进安全区）；高手 / master 共用，普通在 autotest 里另算
-	var bnear := Vector2.INF
-	for b in g.beacons:
-		if b.lit or g.hp <= g.max_hp * 0.25:
-			continue
-		var bdist: float = b.pos.distance_to(p)
-		if bdist < 700.0 and (bnear == Vector2.INF or bdist < p.distance_to(bnear)):
-			bnear = b.pos
-	if bnear != Vector2.INF:
-		var bd2: float = bnear.distance_to(p)
-		if bd2 < seek_r:
-			beacon_hold = bnear
-			beacon_w = 6.0 if bd2 < 150.0 else 4.0
-		return (bnear - p).normalized() if bd2 > 40.0 else Vector2.ZERO   # 引航灯标：去光圈里站着
+	for m in g.mechs:
+		var mg: Vector2 = m.bot_goal(self, p)   # 主题机制（docs/364 §6）：引航灯标（可写 beacon_hold / beacon_w）
+		if mg != Vector2.INF:
+			return mg
 	if not g.merchant.is_empty() and g.merchant.pos.distance_to(p) < 600.0 and not g.merchant.near and not (g.auto_play != null and g.merchant.get("auto_done", false)):   # 无敌包自动模式：这个商人逛过就不再回去（11-11 用户：没钱也反复进商店）；平衡 / 批跑 auto_play 为 null 不变
 		return (g.merchant.pos - p).normalized()
 	if g.hp > g.max_hp * 0.55:
@@ -716,12 +701,16 @@ func _master_dash_dir(p: Vector2, best_dir: Vector2, spd: float, bullets: Array,
 					dir = gap_dir
 				break
 	# ④ 出圈 0.3 秒以上：朝圈心冲
-	if g.zone_state != 0 and p.distance_to(g.zone_c) > g.zone_r:
+	var odir := Vector2.ZERO
+	for m in g.mechs:
+		if odir == Vector2.ZERO:
+			odir = m.bot_outside_dir(p)   # 主题机制（docs/364 §6）：黑潮缩圈
+	if odir != Vector2.ZERO:
 		if m_zone_out < 0.0:
 			m_zone_out = g.t
 		elif g.t - m_zone_out > 0.3:
 			need = true
-			dir = (g.zone_c - p).normalized()
+			dir = odir
 	else:
 		m_zone_out = -1.0
 	if not need or dir == Vector2.ZERO:
@@ -730,8 +719,9 @@ func _master_dash_dir(p: Vector2, best_dir: Vector2, spd: float, bullets: Array,
 	for m in g.mires:
 		if g.combat.ground_d(land, m.pos) < float(m.r):
 			return Vector2.ZERO
-	if g.zone_state != 0 and land.distance_to(g.zone_c) > g.zone_r and land.distance_to(g.zone_c) > p.distance_to(g.zone_c):
-		return Vector2.ZERO
+	for m in g.mechs:
+		if m.bot_land_bad(land, p):   # 主题机制（docs/364 §6）：黑潮缩圈（落点在圈外且更远）
+			return Vector2.ZERO
 	return dir.normalized()
 
 

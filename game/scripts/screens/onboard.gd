@@ -480,7 +480,7 @@ func _place_beacon() -> void:
 	if p == Vector2.INF:
 		_skip_beacon = true
 		return
-	demo_beacon = g.beacon_sys.spawn_demo(p)
+	demo_beacon = g.beacon_sys.spawn_demo(p) if g.beacon_sys != null else null
 	for k in BEACON_MIRES:
 		var m: Dictionary = g.map.mire_new(p + Vector2.from_angle(TAU * k / BEACON_MIRES + 0.5) * 120.0, g.t, false)
 		m.r = m.maxr

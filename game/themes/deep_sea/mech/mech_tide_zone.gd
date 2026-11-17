@@ -143,3 +143,67 @@ func _arena_step(dt: float) -> void:
 ## 主控指向安全区圆心的单位向量（圈外方向提示用）
 func zone_dir() -> Vector2:
 	return (g.zone_c - g.ppos).normalized() if g.zone_state != 0 else Vector2.ZERO
+
+
+## ---- 机器人挂钩（docs/364 §6；原 core/bot.gd / autotest.bot_move 的缩圈段，原样搬来）
+## 手残：快出圈了就往圈心走
+func bot_return_dir(p: Vector2, margin: float) -> Vector2:
+	if g.zone_state != 0 and p.distance_to(g.zone_c) > g.zone_r - margin:
+		return (g.zone_c - p).normalized()
+	return Vector2.ZERO
+
+
+## 高手候选点：离（下一）圈边 120 内按超出量扣分，圈外再 −30
+func bot_score(q: Vector2, s: float) -> float:
+	if g.zone_state != 0:
+		var tc: Vector2 = g.zone_next_c if g.zone_state == 1 else g.zone_c
+		var tr: float = g.zone_next_r if g.zone_state == 1 else g.zone_r
+		var over: float = q.distance_to(tc) - (tr - 120.0)
+		if over > 0.0:
+			s -= over * 0.12
+		if q.distance_to(g.zone_c) > g.zone_r:
+			s -= 30.0
+	return s
+
+
+## 高手 / master 冲刺：在圈外时指向圈心
+func bot_outside_dir(p: Vector2) -> Vector2:
+	if g.zone_state != 0 and p.distance_to(g.zone_c) > g.zone_r:
+		return (g.zone_c - p).normalized()
+	return Vector2.ZERO
+
+
+## 冲刺落点在圈外、而且比现在离圈心更远：不冲
+func bot_land_bad(land: Vector2, p: Vector2) -> bool:
+	return g.zone_state != 0 and land.distance_to(g.zone_c) > g.zone_r and land.distance_to(g.zone_c) > p.distance_to(g.zone_c)
+
+
+## 普通机器人：拉力合成后贴圈边 / 出圈时回圈（计时状态存在 autotest：zone_out_since、want_dash）
+func bot_steer(at, mv: Vector2) -> Vector2:
+	# 缩圈：靠近圈边时往圈内走
+	if g.zone_state != 0:
+		var zc: float = g.ppos.distance_to(g.zone_c)
+		var target_c: Vector2 = g.zone_next_c if g.zone_state == 1 else g.zone_c
+		var target_r: float = g.zone_next_r if g.zone_state == 1 else g.zone_r
+		var od: float = zc - g.zone_r
+		if od > -30.0:
+			# 已贴圈边 / 出圈：真人会先回圈。敌群的「往外推」只留侧向分量（侧身绕过去；溟痕在后面单独加，照样绕开），经验 / 商人等拉力朝外的不跟，
+			# 回圈拉力随出圈距离加大；出圈超过 0.5 秒且冲刺好了就朝圈心冲（2026-09-27：v11-ab 黑潮死亡多是普通机器人被怪群推在圈外，
+			# 实测圈外 165–196 像素、怪群推力 −2.6…−4.8 压过固定的 3.0 回圈拉力）
+			var toc: Vector2 = (g.zone_c - g.ppos).normalized()
+			var rad: float = mv.dot(toc)
+			if rad < 0.0:
+				mv -= toc * rad
+			mv += toc * (3.0 + clampf(od / 50.0, 0.0, 4.0))
+			if od > 0.0:
+				if at.zone_out_since < 0.0:
+					at.zone_out_since = g.t
+				elif g.t - at.zone_out_since > 0.5 and g.dash_ready():
+					at.want_dash = true
+			else:
+				at.zone_out_since = -1.0
+		else:
+			at.zone_out_since = -1.0
+			if g.ppos.distance_to(target_c) > target_r - 160.0 or zc > g.zone_r - 160.0:
+				mv += (target_c - g.ppos).normalized() * 3.0
+	return mv

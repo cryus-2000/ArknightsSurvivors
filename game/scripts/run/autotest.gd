@@ -2225,43 +2225,16 @@ func bot_move() -> Vector2:
 		if e.chest and not e.dead and e.pos.distance_to(g.ppos) < 400.0:
 			pull = (e.pos - g.ppos).normalized() * 0.8
 			break
-	# 引航灯标：没点燃、血量还行就过去站着（光圈半径 70，站到离中心 40 以内就不再拉，免得来回抖）
-	for b in g.beacons:
-		if not b.lit and g.hp > g.max_hp * 0.45 and b.pos.distance_to(g.ppos) < 700.0:
-			pull = (b.pos - g.ppos).normalized() * 0.9 if b.pos.distance_to(g.ppos) > 40.0 else Vector2.ZERO
-			break
+	for m in g.mechs:
+		pull = m.bot_pull(pull)   # 主题机制（docs/364 §6）：引航灯标
 	var dk: Vector2 = g.duck.chase_dir(g.ppos)
 	if dk != Vector2.ZERO:
 		pull = dk   # 鸭爵：追得到就优先追（docs/216 §11）
 	if pull == Vector2.ZERO and nearest_d > 100.0 and nearest_d < 99999.0 and g.hp > g.max_hp * 0.4:
 		pull = (nearest_p - g.ppos).normalized() * 0.5
 	var mv := push * 2.2 + pull
-	# 缩圈：靠近圈边时往圈内走
-	if g.zone_state != 0:
-		var zc: float = g.ppos.distance_to(g.zone_c)
-		var target_c: Vector2 = g.zone_next_c if g.zone_state == 1 else g.zone_c
-		var target_r: float = g.zone_next_r if g.zone_state == 1 else g.zone_r
-		var od: float = zc - g.zone_r
-		if od > -30.0:
-			# 已贴圈边 / 出圈：真人会先回圈。敌群的「往外推」只留侧向分量（侧身绕过去；溟痕在后面单独加，照样绕开），经验 / 商人等拉力朝外的不跟，
-			# 回圈拉力随出圈距离加大；出圈超过 0.5 秒且冲刺好了就朝圈心冲（2026-09-27：v11-ab 黑潮死亡多是普通机器人被怪群推在圈外，
-			# 实测圈外 165–196 像素、怪群推力 −2.6…−4.8 压过固定的 3.0 回圈拉力）
-			var toc: Vector2 = (g.zone_c - g.ppos).normalized()
-			var rad: float = mv.dot(toc)
-			if rad < 0.0:
-				mv -= toc * rad
-			mv += toc * (3.0 + clampf(od / 50.0, 0.0, 4.0))
-			if od > 0.0:
-				if zone_out_since < 0.0:
-					zone_out_since = g.t
-				elif g.t - zone_out_since > 0.5 and g.dash_ready():
-					want_dash = true
-			else:
-				zone_out_since = -1.0
-		else:
-			zone_out_since = -1.0
-			if g.ppos.distance_to(target_c) > target_r - 160.0 or zc > g.zone_r - 160.0:
-				mv += (target_c - g.ppos).normalized() * 3.0
+	for m in g.mechs:
+		mv = m.bot_steer(self, mv)   # 主题机制（docs/364 §6）：黑潮缩圈（贴圈边 / 出圈时回圈、出圈 0.5 秒冲刺）
 	# 溟痕：像真人玩家一样绕开（在里面时全力往外走）；放在回圈之后，回圈时也照样绕开（2026-09-27：放在前面时外推被回圈一起削掉，机器人直穿圈边溟痕，溟痕 / 侵蚀死亡变多）
 	for m in g.mires:
 		var md: Vector2 = g.ppos - m.pos
