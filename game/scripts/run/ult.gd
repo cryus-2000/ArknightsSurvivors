@@ -25,6 +25,7 @@ const MZP = preload("res://scripts/run/ult_px_mz.gd")   # 水月「水母群」�
 const Bond = preload("res://scripts/run/link_bond.gd")   # 羁绊连携（link/bond，docs/217）
 const LinkV2 = preload("res://scripts/run/link_v2.gd")   # 连携 v2（link/v2，docs/209 §2）：全自动、只由队长触发、按姿态挑人   # 慢动作瞄准 v2（ult/aim，docs/209 §3）
 const UltDraw = preload("res://scripts/run/ult_draw.gd")   # 终结技画面层的绘制细节（舞台 / 冲击帧 / 像素形 / 定格白 / 连携闪 / 吸气 / 起手，docs/286 §4 第三批拆出）
+var _dbg_noult: bool = preload("res://scripts/render/declutter.gd").dbg("noult")   # 特效预算量测（docs/368）：发布版恒 false
 
 var CELLS := 7                # 协同格数（balance ult/cells，_init 读；HUD 读 u.CELLS）
 const FULL := 100.0
@@ -1306,6 +1307,8 @@ func _draw_strip(w, s: Dictionary, dim: float) -> void:
 
 ## 地面层（world.gd 在干员地面特效那一步调）：layer = back 的帧条
 func draw_world_back(w) -> void:
+	if _dbg_noult:
+		return   # --clutterdbg=noult（量测，docs/368 §1.3）：终结技画面层整层不画，代码与随机数照跑
 	var dim: float = _dim()
 	for s in shapes:
 		if s.age >= 0.0 and str(s.get("layer", "front")) == "back":
@@ -1455,6 +1458,8 @@ func _dim() -> float:
 
 ## 世界层（world.gd 在干员技能层之后）：瞄准指示 + 占位图形 + 主体层帧条（地面层帧条在 draw_world_back）
 func draw_world(w) -> void:
+	if _dbg_noult:
+		return   # --clutterdbg=noult（量测，docs/368 §1.3）：终结技画面层整层不画，代码与随机数照跑
 	var dim: float = _dim()
 	var px: bool = Bal.vi("ult/px_style", 1) > 0   # 像素风光栅化（用户 10-30）
 	UltDraw._draw_stage(self, w)   # 舞台：压暗 + 放大的出手队友（在本层图形之前画，特效亮在上面）
@@ -2381,6 +2386,8 @@ func bars_k() -> float:
 
 
 func draw_bars(ci: CanvasItem, vs: Vector2) -> void:
+	if _dbg_noult:
+		return   # --clutterdbg=noult（量测，docs/368 §1.3）：终结技画面层整层不画，代码与随机数照跑
 	var k: float = bars_k()
 	if k <= 0.0:
 		return

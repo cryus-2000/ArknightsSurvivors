@@ -28,7 +28,8 @@ GAME = os.path.join(ROOT, "game")
 OUT = os.path.join(ROOT, "build", "fx_budget")
 OPS = sorted(os.path.basename(p)[:-5] for p in glob.glob(os.path.join(GAME, "data", "characters", "*.json")))
 MODES = {3: "atk", 0: "s1", 1: "s2", 2: "s3", 4: "ult"}
-THR = 0.06 * 255 * 3
+THR = 0.06 * 255 * 3        # 覆盖：三通道差和 > 0.06（docs/243 §1.3，含照地光 / 辉光淡染色）
+THR_SOLID = 0.3 * 255 * 3   # 实心覆盖 / 盖住敌人：差和 > 0.3
 BUDGET = os.path.join(ROOT, "tools", "fx_budget.json")
 
 
@@ -36,7 +37,7 @@ BUDGET = os.path.join(ROOT, "tools", "fx_budget.json")
 def perf_one(op, a):
     t0 = a.t0
     args = [GR.find_godot(), "--audio-driver", "Dummy", "--resolution", "1280x720", "--path", GAME, "--",
-            "--balance", "--perf", "--realtime", "--rtfrom=%g" % t0, "--maxt=%g" % (t0 + a.secs), "--nodeath", "--seed=%d" % a.seed,
+            "--balance", "--perf", "--prof", "--realtime", "--rtfrom=%g" % t0, "--maxt=%g" % (t0 + a.secs), "--nodeath", "--seed=%d" % a.seed,
             "--op=" + op, "--norecruit", "--bot=expert", "--prog=20", "--quality=" + a.quality,
             "--clutterdbg=noop_%s,abop" % op, "--clutterab=%d" % a.every] + (["--touch"] if a.touch else [])
     t = time.time()
@@ -60,6 +61,18 @@ def perf_one(op, a):
             a_off, n_off = agg(off, key)
             row[key] = {"on": a_on, "off": a_off, "d": round(a_on - a_off, 3)}
         row["n"] = [n_on, n_off]
+        # --prof 分段 CPU（每帧毫秒）：busy 机器上帧间隔噪声大，绘制 / 模拟各段的 CPU 时间稳得多（docs/368 §1.2 主指标）
+        def stage(d):
+            n = sum(v["n"] for v in d.values())
+            out = {}
+            for v in d.values():
+                for k, ms in (v.get("stage_ms") or {}).items():
+                    out[k] = out.get(k, 0.0) + ms * v["n"] / max(1, n)
+            return out
+        s_on, s_off = stage(on), stage(off)
+        row["stage"] = {k: {"on": round(s_on.get(k, 0), 3), "off": round(s_off.get(k, 0), 3), "d": round(s_on.get(k, 0) - s_off.get(k, 0), 3)}
+                        for k in sorted(set(s_on) | set(s_off))}
+        row["cpu_sum"] = {"on": round(sum(s_on.values()), 3), "off": round(sum(s_off.values()), 3), "d": round(sum(s_on.values()) - sum(s_off.values()), 3)}
     return row
 
 
@@ -86,7 +99,8 @@ def shoot(op, mode, var, root, start=1.0, n=180):
     d = os.path.abspath(os.path.join(root, "%s_%s_%s" % (op, MODES[mode], var)))   # 绝对路径：Godot 的工作目录不是仓库根（GCP 上 $OUT 是相对路径）
     shutil.rmtree(d, ignore_errors=True)
     os.makedirs(d)
-    dbg = {"full": [], "noop": ["--clutterdbg=noop_" + op], "noen": ["--clutterdbg=noenemy"]}[var]
+    # 终结技：该干员特效 + 终结技画面层（舞台压暗、冲击帧、立绘切入）一起静音（noult，docs/368 §1.3）
+    dbg = {"full": [], "noop": ["--clutterdbg=noop_%s%s" % (op, ",noult" if mode == 4 else "")], "noen": ["--clutterdbg=noenemy"]}[var]
     args = [GR.find_godot(), "--audio-driver", "Dummy", "--fixed-fps", "30", "--path", GAME, "res://tests/fx_audit_shot.tscn", "--",
             "--shot_op=" + op, "--shot_stage=2", "--shot_mode=%d" % mode, "--shot_dir=" + d.replace("\\", "/"),
             "--shot_start=%g" % start, "--shot_every=1", "--shot_n=%d" % n, "--shot_w=1280", "--shot_h=720",
@@ -116,7 +130,9 @@ def analyze_move(dfull, dnoop, dnoen):
         if not os.path.exists(q):
             continue
         A, B = load(p), load(q)
-        m = np.abs(A - B).sum(axis=2) > THR
+        dd = np.abs(A - B).sum(axis=2)
+        m = dd > THR
+        ms = dd > THR_SOLID   # 「实心」：改色 > 0.3（照地光 / 辉光的淡染色不算）
         cov = float(m.mean())
         dl = float((lumi(A) - lumi(B)).mean())   # 全屏平均亮度增量（0–255）
         en = None
@@ -124,16 +140,21 @@ def analyze_move(dfull, dnoop, dnoen):
             E = load(r)
             em = np.abs(A - E).sum(axis=2) > THR   # 敌人像素（full 与 noenemy 不同处）
             if em.sum() > 200:
-                en = float((m & em).sum() / em.sum())
-        rows.append((cov, dl, en))
+                en = float((ms & em).sum() / em.sum())   # 敌人像素被我方特效实心盖住（改色 > 0.3）的比例
+        rows.append((cov, dl, en, float(ms.mean())))
     if not rows:
         return None
     cov = np.array([r[0] for r in rows])
     dl = np.array([r[1] for r in rows])
     ens = [r[2] for r in rows if r[2] is not None]
+    sol = np.array([r[3] for r in rows])
     act = cov > 0.005
     return {"frames": len(rows), "cov_peak": round(100 * cov.max(), 2), "cov_mean_active": round(100 * cov[act].mean(), 2) if act.any() else 0.0,
-            "cov_mean": round(100 * cov.mean(), 2), "active_s": round(act.sum() / 30.0, 2), "dlum_peak": round(dl.max(), 2),
+            "flash_frames": int((cov > 0.8).sum()),   # 整屏帧（冲击帧整屏白 / 舞台压暗起落）：终结技许可的例外，单独计
+            "cov_peak_ex": round(100 * float(cov[cov <= 0.8].max()), 2) if (cov <= 0.8).any() else 0.0,   # 去掉整屏帧后的峰值
+            "cov_mean": round(100 * cov.mean(), 2), "solid_peak": round(100 * sol.max(), 2),
+            "solid_mean_active": round(100 * sol[act].mean(), 2) if act.any() else 0.0,
+            "solid_peak_ex": round(100 * float(sol[cov <= 0.8].max()), 2) if (cov <= 0.8).any() else 0.0, "active_s": round(act.sum() / 30.0, 2), "dlum_peak": round(dl.max(), 2),
             "dlum_mean_active": round(dl[act].mean(), 2) if act.any() else 0.0,
             "enemy_covered_peak": round(100 * max(ens), 1) if ens else None,
             "enemy_covered_mean": round(100 * float(np.mean(ens)), 1) if ens else None,
