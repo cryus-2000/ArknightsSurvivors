@@ -186,6 +186,8 @@ def main():
     os.makedirs(src)
     data = subprocess.run(["git", "archive", "--format=tar", a.ref, "game", "art/source/voice", "tools"], cwd=ROOT, stdout=subprocess.PIPE, check=True).stdout
     tarfile.open(fileobj=io.BytesIO(data)).extractall(src, filter="data")
+    import asset_index
+    asset_index.write(os.path.join(src, "game", "art"))   # 运行时贴图索引不进 git（docs/364 §5）：解出来先按副本里的贴图重建（瘦身 / 半分辨率 / Toy 都读它）
     import godot_runner
     godot_runner.disable_mcp_in_copy(os.path.join(src, "game"))   # 并行导出时别抢 MCP 端口（addons/ 不进包）
     import import_cache

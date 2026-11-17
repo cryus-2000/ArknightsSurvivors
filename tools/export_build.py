@@ -173,6 +173,8 @@ def build(a, commit, date, audience, label, encrypted_template, encryption_key):
     # 只解 game/（打进包的全部内容）与 tools/（发布检查、字体子集、半分辨率用）：art/ 源图与 docs/ 约 560 MiB 不进包，解出来只是白写（11-17 发版提速）
     data = subprocess.run(["git", "archive", "--format=tar", a.ref, "game", "tools"], cwd=ROOT, stdout=subprocess.PIPE, check=True).stdout
     tarfile.open(fileobj=io.BytesIO(data)).extractall(src, filter="data")
+    import asset_index
+    asset_index.write(os.path.join(src, "game", "art"))   # 运行时贴图索引不进 git（docs/364 §5）：解出来先按副本里的贴图重建（web_half / 瘦身 / 加密包校验都读它）
     godot_runner.disable_mcp_in_copy(os.path.join(src, "game"))   # 并行导出时别抢 MCP 端口（addons/ 不进包）
     import_cache.prewarm_tree(src, "源码")   # 新解出的文件首读要过实时防护扫描：并行先读一遍（import_cache.prewarm_tree）
     print("源码：%s @ %s" % (a.ref, commit))

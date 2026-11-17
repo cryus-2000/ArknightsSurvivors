@@ -377,6 +377,10 @@ def ensure_imported(game_dir, timeout=900):
     """新工作树没有 game/.godot 导入缓存时先导入，否则贴图全是空的、快检大面积报错（2026-09-26 实测 18/19 项失败）。
     第一遍导入有时只导入一部分（缓存里只有几个文件），所以导入到缓存文件数不再增加为止，最多 3 遍。返回导入的遍数（0 = 本来就有）"""
     imp = os.path.join(game_dir, ".godot", "imported")
+    # 运行时贴图索引 art/index.json 不进 git（docs/364 §5）：每次起测试前按磁盘重建，新工作树 / 临时基线工作树也有
+    if os.path.isdir(os.path.join(game_dir, "art")):
+        import asset_index
+        asset_index.write(os.path.join(game_dir, "art"))
 
     def count():
         return len(os.listdir(imp)) if os.path.isdir(imp) else 0

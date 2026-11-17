@@ -54,3 +54,6 @@ native/.sconsign*.dblite
 
 # 云端批跑本机配置（docs/36 §7；setup_linux.sh 生成，含本机 Godot 路径，不入库）
 tools/cloud/env.sh
+
+# 运行时贴图索引：tools/asset_index.py 按磁盘生成（快检 / 导出 / 云端都在用前重建，docs/364 §5），不进提交
+game/art/index.json
