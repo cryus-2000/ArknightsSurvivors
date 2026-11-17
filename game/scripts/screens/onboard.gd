@@ -127,11 +127,7 @@ var view_rects := {}
 
 func _init(game: Game) -> void:
 	g = game
-	var f := FileAccess.open(ThemePack.path("onboard"), FileAccess.READ)
-	if f != null:
-		var d = JSON.parse_string(f.get_as_text())
-		if d is Dictionary:
-			data = d
+	data = ThemePack.load_merged("onboard")   # 通用卡片 + 本主题的卡片与演示局 / 提示顺序（docs/368 §4）
 	for a in Cfg.dev_args():
 		if a.begins_with("--onboard="):
 			dev = a.substr(10)

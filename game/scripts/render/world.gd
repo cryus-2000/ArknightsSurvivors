@@ -3601,7 +3601,7 @@ func _lazy_tex(n: String) -> Texture2D:
 ## 连接只认该枚泪的有效 owner，不根据场上所有 Boss 猜测归属。
 func tear_zone_info(e: Dictionary) -> Dictionary:
 	var neutral: bool = e.get("friendly", false)
-	var blocked: bool = neutral and g.ishar.tear_blocked(e)
+	var blocked: bool = neutral and g.ishar != null and g.ishar.tear_blocked(e)
 	var owner = e.get("owner")
 	if not owner is Dictionary or owner.get("type", "") != "ishar" or owner.get("dead", true) or owner.get("phase", 0) != 1:
 		owner = {}

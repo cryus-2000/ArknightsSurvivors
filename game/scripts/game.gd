@@ -13,7 +13,6 @@ const Telegraph = preload("res://scripts/enemies/telegraph.gd")
 const ShotPool = preload("res://scripts/enemies/shot_pool.gd")
 const RelicFx = preload("res://scripts/relic_fx.gd")
 const Endings = preload("res://scripts/endings.gd")
-const Knight = preload("res://scripts/allies/knight.gd")
 const Touch = preload("res://scripts/touch.gd")
 const Map = preload("res://scripts/world/map.gd")
 const PostFx = preload("res://scripts/post_fx.gd")
@@ -60,8 +59,6 @@ const WeaponsSys = preload("res://scripts/run/weapons.gd")
 const ShopSys = preload("res://scripts/run/shop.gd")
 const Spawner = preload("res://scripts/run/spawner.gd")
 const PlayClock = preload("res://scripts/run/play_clock.gd")
-const IsharEncounter = preload("res://scripts/run/ishar_encounter.gd")
-const DuckLord = preload("res://scripts/run/duck_lord.gd")
 const BossTrial = preload("res://scripts/run/boss_trial.gd")
 const BossBench = preload("res://scripts/run/boss_bench.gd")
 const VictoryFlow = preload("res://scripts/run/victory_flow.gd")
@@ -98,8 +95,8 @@ enum S { PLAY, CHOICE, PAUSE, DEAD, WIN, SHOP, SHOW, STATS, INTRO, OPENING }
 const PX := 2.0                 # 1 个美术像素 = 2 个世界像素
 const MERCHANT_TIMES := [120.0, 300.0, 480.0]   # 每次都在 Boss（3:30 / 7:00 / 10:00）之前
 
-var ishar = IsharEncounter.new(self)
-var duck = DuckLord.new(self)   # 鸭爵（稀有敌人，docs/216 §11）
+var ishar = ThemePack.make_module(self, "ishar")   # 伊莎玛拉遭遇（主题模块 themes/deep_sea/mod/ishar_encounter.gd，docs/368 §3）；没有的主题为 null
+var duck = ThemePack.make_module(self, "duck")   # 鸭爵（稀有敌人，docs/216 §11；主题模块 themes/deep_sea/mod/duck_lord.gd）；没有的主题为 null
 var trial = BossTrial.new(self)
 var bench = BossBench.new(self)   # Boss 单场测试台（--benchsnap 录制 / --bossbench 开打，docs/170；只在 --balance）
 var victory = VictoryFlow.new(self)
@@ -297,7 +294,7 @@ var final_boss = null
 var mid_boss_down := false   # 本局已击败过中期 Boss（藏品核心延后，docs/191 §6）
 var ending := "standard"
 var endg: RefCounted = null        # 结局与事件箱（scripts/endings.gd）
-var knight: RefCounted = null      # 猎潮的骑士同伴（scripts/allies/knight.gd）
+var knight: RefCounted = null      # 猎潮的骑士同伴（themes/deep_sea/mod/knight.gd）
 var touch: RefCounted = null       # 触屏操作（scripts/touch.gd）
 var pick = preload("res://scripts/screens/command_pick.gd").new(self)   # 指点选目标阶段（示意原型，docs/196；缺省关）
 var wheel = preload("res://scripts/screens/command_wheel.gd").new(self)   # 指挥圆盘（docs/114 §13）
@@ -1216,7 +1213,7 @@ func _ready() -> void:
 	A.normal_maps = wants_normal_maps()
 	rfx = RelicFx.new(self)
 	endg = Endings.new(self)
-	knight = Knight.new(self)
+	knight = ThemePack.make_module(self, "knight")   # 猎潮的骑士同伴（主题模块 themes/deep_sea/mod/knight.gd，docs/368 §3；核心多处直接读，新主题要给空实现）
 	touch = Touch.new(self)
 	if D.ENEMIES.has("knight"):
 		D.ENEMIES.knight.no_spawn = true  # 敌对骑士只在同伴骑士阵亡后进入精英池（每局重置）
@@ -2556,7 +2553,8 @@ func _update(dt: float) -> void:
 		demo_sys.step(dt)
 	elif not trial.active and not sandbox:
 		spawner.update(dt)
-		duck.update(dt)
+		if duck != null:
+			duck.update(dt)
 	_pm("spawn")
 	enemies_sys.build_grid()
 	_pm("grid")

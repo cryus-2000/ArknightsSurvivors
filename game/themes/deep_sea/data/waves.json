@@ -737,6 +737,7 @@
  ],
  "endings": {
   "standard": {
+   "no": 1,
    "name": "结局一 · 平凡即是喜乐",
    "en": "PRECIOUS DAYS",
    "boss": "paranoia",
@@ -753,6 +754,10 @@
    }
   },
   "knight": {
+   "no": 2,
+   "token_relic": "222",
+   "token_name": "海潮的气息",
+   "route_name": "静谧时代",
    "name": "结局二 · 静谧时代",
    "en": "AGE OF SILENCE",
    "boss": "knight_boss",
@@ -777,6 +782,10 @@
    "priority": 1
   },
   "resolve": {
+   "no": 4,
+   "token_relic": "242",
+   "token_name": "深蓝回忆",
+   "route_name": "如星空般深蓝",
    "name": "结局四 · 如星空般深蓝",
    "en": "STARLIT BLUE",
    "boss": "izumik",
@@ -806,6 +815,10 @@
    }
   },
   "deep": {
+   "no": 3,
+   "token_relic": "220",
+   "token_name": "主教的研究",
+   "route_name": "息潮的代价",
    "name": "结局三 · 息潮的代价",
    "en": "THE PRICE OF STILL TIDES",
    "boss": "ishar",

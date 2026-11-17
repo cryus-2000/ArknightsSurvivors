@@ -53,6 +53,50 @@ static func make_mechanics(game) -> Dictionary:
 	return out
 
 
+## 主题专属玩法模块（docs/368 §3）：清单 modules 段 {键: 脚本}，脚本 _init(game)；本主题没有这个模块返回 null
+static func make_module(game, key: String):
+	var path = manifest().get("modules", {}).get(key)
+	if path == null:
+		return null
+	var sc = load(str(path))
+	if sc == null:
+		push_error("theme %s: module script missing: %s" % [_id, path])
+		return null
+	return sc.new(game)
+
+
+## 共享 + 主题两份合并读（docs/368 §4，lore / guide / onboard 这类混合文件）：先读 res://data/<键>.json（共享部分），
+## 再把清单 data 段指向的主题部分叠上去——两边都是字典的键合并（主题优先）、pages_insert 按 at 插回 pages、其余主题覆盖；_doc 不合并。
+## 主题部分和共享路径相同（没拆）时就是那一份。tools/theme_paths.load_json 是同一条规则
+static func load_merged(key: String) -> Dictionary:
+	var shared_p := "res://data/%s.json" % key
+	var out := _read_json(shared_p)
+	var tp := path(key)
+	if tp == shared_p:
+		return out
+	var th := _read_json(tp)
+	for k in th:
+		if str(k) == "_doc":
+			continue
+		if str(k) == "pages_insert":
+			var ins: Array = (th[k] as Array).duplicate()
+			ins.sort_custom(func(a, b): return int(a.at) < int(b.at))
+			if not out.has("pages"):
+				out["pages"] = []
+			for it in ins:
+				(out.pages as Array).insert(int(it.at), it.page)
+		elif th[k] is Dictionary and out.get(k) is Dictionary:
+			(out[k] as Dictionary).merge(th[k], true)
+		else:
+			out[k] = th[k]
+	return out
+
+
+static func _read_json(p: String) -> Dictionary:
+	var d = JSON.parse_string(FileAccess.get_file_as_string(p)) if FileAccess.file_exists(p) else null
+	return d if d is Dictionary else {}
+
+
 ## 地图目录（Map.list_ids 列这个目录下的 *.json）
 static func maps_dir() -> String:
 	return str(manifest().get("maps", {}).get("dir", "res://data/maps"))

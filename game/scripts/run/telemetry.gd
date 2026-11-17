@@ -803,7 +803,7 @@ func record(marks = null) -> Dictionary:
 		"relic_offer": g.dbg_relic_offer, "relic_take": g.dbg_relic_take, "relic_out": g.relic_out, "prof": g.prof, "kills": g.kills,
 		"elites": g.elites_killed, "relics": g.relics.size(), "ingots": g.ingots, "maxhp": g.max_hp,
 		"cross_picks": (g.endg.picks if g.endg != null else []),   # 翻开的路口卡 [摊牌, 卡种, 事件]（11-16 事件加量批跑看次数）
-		"duck": g.duck.log.duplicate(true),   # 鸭爵（docs/216 §11）：出现 / 打倒 / 溜走次数、打倒用时
+		"duck": g.duck.log.duplicate(true) if g.duck != null else {},   # 鸭爵（docs/216 §11）：出现 / 打倒 / 溜走次数、打倒用时
 		# 源石锭熔铸（docs/74）：t 开始时刻（-1 = 没触发）、left 当时剩余、pool 总熔铸、pct 全队伤害加成
 		"fuse": {"t": g.rfx.fuse_t, "left": g.rfx.fuse_left, "pool": g.rfx.fuse_pool, "pct": snappedf(g.rfx.fuse_pct(), 0.001)},
 		"bosses": g.bosses.map(func(b): return "%s:%s" % [b.type, "dead" if b.dead else "%d%%" % int(100 * b.hp / b.maxhp)]),

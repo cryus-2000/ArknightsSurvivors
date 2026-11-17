@@ -11,6 +11,11 @@ static var MID_POOL: Array = Loader.load_waves().mid_pool
 ## 第一个中期 Boss（3:30）只从这些 MID_POOL 下标里抽；双 Boss 与远程风筝型留到第二个（7:00），编队成型后再考（docs/29 §6）
 static var MID_FIRST: Array = Loader.load_waves().get("mid_first", []).map(func(x): return int(x))   # JSON 数字是 float，转 int 才能和下标比较
 static var ENDINGS: Dictionary = Loader.load_waves().endings
+## 结局的显示顺序（编号 Ⅰ–Ⅳ）：按 waves.json endings 的 no 排（docs/368 §1）
+static func ending_order() -> Array:
+	var ks: Array = ENDINGS.keys()
+	ks.sort_custom(func(a, b): return int(ENDINGS[a].get("no", 99)) < int(ENDINGS[b].get("no", 99)))
+	return ks
 static var CAP_FALLBACK: Dictionary = Loader.load_waves().get("cap_fallback", {"early": "bone", "late": ["bone", "slider"]})   # 同种全满时换成的敌种（waves.json cap_fallback，docs/367 §3）
 
 ## 敌人：名称与机制按「水月与深蓝之树」，数值按本作换算

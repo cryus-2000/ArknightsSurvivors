@@ -167,7 +167,7 @@ def extract():
     walk(ut, [], out)
     for path, s in out:
         ops.append(item("ult." + ".".join(path), s, "game/data/ult_text.json", "/".join(path), path[-1]))
-    lore = json.load(open(ROOT / "game/data/lore.json", encoding="utf-8"))
+    lore = TP.load_json("lore.json")   # 干员档案（共享）+ 主题敌人档案（docs/368 §4）；键照旧 lore.<id>.…
     enemy_ids = set(json.load(open(ROOT / "game/themes/deep_sea/data/enemies.json", encoding="utf-8"))["enemies"].keys())
     for k, v in lore.items():
         if k.startswith("_"):
@@ -186,18 +186,7 @@ def extract():
     walk(ej["enemies"], [], out)
     for path, s in out:
         ens.append(item("enemy." + ".".join(path), s, "game/themes/deep_sea/data/enemies.json", "/".join(path), path[-1]))
-    # 图鉴机制行（gallery.gd ENEMY_DESC）
-    gl = open(ROOT / "game/scripts/gallery.gd", encoding="utf-8").read().splitlines()
-    on = False
-    for ln, line in enumerate(gl, 1):
-        if line.startswith("const ENEMY_DESC"):
-            on = True
-            continue
-        if on and line.startswith("}"):
-            break
-        m = on and re.match(r'\s*"(\w+)":\s*"((?:[^"\\]|\\.)*)"', line)
-        if m:
-            ens.append(item("enemy.%s.gallery" % m.group(1), m.group(2), "game/scripts/gallery.gd", "ENEMY_DESC/%s (L%d)" % (m.group(1), ln), "gallery"))
+    # 图鉴机制行：11-18 起是 enemies.json 的 gallery 字段（docs/368 §1），上面 enemies.json 整体遍历时已按 enemy.<id>.gallery 抽出，键不变
     # 敌人 / Boss 脚本里的招式名、横幅、飘字（框架阶段再挂 tr 键）
     for p in sorted((ROOT / "game/scripts/enemies").rglob("*.gd")):
         rel = p.relative_to(ROOT).as_posix()
@@ -249,7 +238,7 @@ MODULES = {
     "events": {"json": ["waves.json", "events_v2.json"], "gd": [], "skip": []},
     "meta": {"json": ["meta_tree.json", "meta_roots.json", "cards.json", "medals.json", "synergy.json", "practice_squads.json"],
              "gd": [], "skip": []},
-    "run": {"json": [], "gd": ["scripts/run/*.gd", "scripts/characters/**/*.gd", "scripts/allies/*.gd"], "skip": []},
+    "run": {"json": [], "gd": ["scripts/run/*.gd", "scripts/characters/**/*.gd", "scripts/allies/*.gd", "themes/*/mech/*.gd", "themes/*/mod/*.gd"], "skip": []},   # 主题包的机制 / 模块（docs/364、368）
 }
 # 只给代码 / 工具看的字段（中文也不翻）
 JSON_SKIP = {"src", "_doc", "requires", "conflicts", "id", "tex", "icon", "sfx", "script", "set", "lane", "pool"}
@@ -286,21 +275,25 @@ def extract_modules(g):
             done_zh.add(it["zh"])
     for name, spec in MODULES.items():
         items = []
+        split = {n: (sp, tp) for n, sp, tp in TP.split_files()}
         for f in spec["json"]:
-            p = Path(TP.data_file(f))   # 主题数据在主题包里（docs/367 §2）
-            if not p.exists():
-                print("  缺文件", f); continue
-            d = json.load(open(p, encoding="utf-8"))
-            out = []
-            walk(d, [], out)
-            for path, s in out:
-                if any(x in JSON_SKIP for x in path):
-                    continue
-                field = path[-1] if not path[-1].isdigit() else (path[-2] if len(path) > 1 else "")
-                items.append(item("%s.%s.%s" % (name, p.stem, ".".join(path)), s, p.relative_to(ROOT).as_posix(), "/".join(path), field))
+            # 拆成「共享 + 主题」的文件（lore / guide / onboard，docs/368 §4）：共享部分键照旧 <模块>.<文件>.<路径>，主题部分 <模块>.<主题>.<文件>.<路径>
+            srcs = [(Path(split[f][0]), name), (Path(split[f][1]), "%s.%s" % (name, TP.DEFAULT))] if f in split else [(Path(TP.data_file(f)), name)]   # 主题数据在主题包里（docs/367 §2）
+            for p, pre in srcs:
+                if not p.exists():
+                    print("  缺文件", f); continue
+                d = json.load(open(p, encoding="utf-8"))
+                out = []
+                walk(d, [], out)
+                for path, s in out:
+                    if any(x in JSON_SKIP for x in path):
+                        continue
+                    field = path[-1] if not path[-1].isdigit() else (path[-2] if len(path) > 1 else "")
+                    items.append(item("%s.%s.%s" % (pre, p.stem, ".".join(path)), s, p.relative_to(ROOT).as_posix(), "/".join(path), field))
         for gpat in spec["gd"]:
             for p in sorted(glob.glob(str(ROOT / "game" / gpat), recursive=True)):
-                rel = Path(p).relative_to(ROOT / "game/scripts").as_posix()
+                pp = Path(p)
+                rel = (pp.relative_to(ROOT / "game/scripts") if (ROOT / "game/scripts") in pp.parents else pp.relative_to(ROOT / "game")).as_posix()   # 主题包脚本按 game/ 相对（docs/368）
                 if rel in spec["skip"] or "/ult" in "/" + rel and Path(p).name.startswith("ult"):
                     pass
                 if rel in spec["skip"]:

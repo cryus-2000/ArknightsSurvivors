@@ -181,7 +181,7 @@ const DUCK_PTR_COL := Color(1.0, 0.86, 0.4)
 func draw_duck_pointer(vs: Vector2, ct: Transform2D) -> void:
 	if g.state != Game.S.PLAY:
 		return
-	var e: Dictionary = g.duck.alive()
+	var e: Dictionary = g.duck.alive() if g.duck != null else {}
 	if e.is_empty():
 		return
 	var sp: Vector2 = ct * e.pos

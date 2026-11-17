@@ -50,3 +50,40 @@ def data_dirs(root=None):
         if os.path.isdir(p):
             out.append(p)
     return out
+
+
+def load_json(name, theme=DEFAULT, root=None):
+    """同 scripts/core/theme_pack.gd load_merged（docs/368 §4）：共享 game/data/<名> 叠上清单指向的主题部分；
+    两边都是字典的键合并（主题优先）、pages_insert 按 at 插回 pages、其余主题覆盖，_doc 不合并。没拆的文件就是清单指向的那一份"""
+    import copy
+    shared = os.path.join(root or ROOT, "game", "data", name)
+    tp = data_file(name, theme, root)
+    if os.path.normcase(os.path.abspath(tp)) == os.path.normcase(os.path.abspath(shared)) or not os.path.exists(shared):
+        with open(tp, encoding="utf-8") as f:
+            return json.load(f)
+    with open(shared, encoding="utf-8") as f:
+        out = json.load(f)
+    with open(tp, encoding="utf-8") as f:
+        th = json.load(f)
+    for k, v in th.items():
+        if k == "_doc":
+            continue
+        if k == "pages_insert":
+            for it in sorted(v, key=lambda x: x["at"]):
+                out.setdefault("pages", []).insert(int(it["at"]), copy.deepcopy(it["page"]))
+        elif isinstance(v, dict) and isinstance(out.get(k), dict):
+            out[k].update(copy.deepcopy(v))
+        else:
+            out[k] = copy.deepcopy(v)
+    return out
+
+
+def split_files(theme=DEFAULT, root=None):
+    """拆成「共享 + 主题」两份的数据（共享 game/data/<名> 与清单指向的主题文件都在）：[(名, 共享路径, 主题路径)]"""
+    out = []
+    for key, res in manifest(theme, root).get("data", {}).items():
+        shared = os.path.join(root or ROOT, "game", "data", key + ".json")
+        tp = _fs(res, root)
+        if os.path.exists(shared) and os.path.normcase(os.path.abspath(tp)) != os.path.normcase(os.path.abspath(shared)):
+            out.append((key + ".json", shared, tp))
+    return out

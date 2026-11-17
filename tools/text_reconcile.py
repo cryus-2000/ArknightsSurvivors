@@ -24,7 +24,7 @@ COUNT_UNITS = "名个次层张件枚发段轮人只条种套"
 
 
 def load(name):
-    return json.load(open(TP.data_file(name), encoding="utf-8"))   # 主题数据在主题包里（docs/367 §2）
+    return TP.load_json(name)   # 主题数据在主题包里（docs/367 §2）；lore / guide / onboard 共享 + 主题合并读（docs/368 §4）
 
 
 class Bal:

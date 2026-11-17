@@ -438,7 +438,7 @@
    "why": ""
   },
   {
-   "glob": "game/scripts/run/ishar_encounter.gd",
+   "glob": "game/themes/*/mod/ishar_encounter.gd",
    "groups": [
     "core",
     "boss",
@@ -809,6 +809,8 @@
   "game/data/doctor.json",
   "game/themes/*/theme.json",
   "game/themes/*/mech/*.gd",
+  "game/themes/*/mod/duck_lord.gd",
+  "game/themes/*/mod/knight.gd",
   "game/themes/*/data/maps/*.json",
   "game/project.godot",
   "game/scripts/run/progression.gd",
