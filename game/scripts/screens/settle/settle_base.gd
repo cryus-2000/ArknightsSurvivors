@@ -221,7 +221,14 @@ func mmss(v: float) -> String:
 
 
 func diff_name() -> String:
-	return str(D.DIFF_PRESETS[clampi(s.g.preset, 0, D.DIFF_PRESETS.size() - 1)].name)
+	return diff_name_of(int(s.g.preset), int(s.g.tier))
+
+
+## 批跑 / --diff / --tide 局 preset = -1：写「潮位 N」，不再被夹成「常规」（11-17 协调人定）
+static func diff_name_of(preset: int, tier: int) -> String:
+	if preset < 0:
+		return "潮位 %d" % tier
+	return str(D.DIFF_PRESETS[clampi(preset, 0, D.DIFF_PRESETS.size() - 1)].name)
 
 
 ## 本局难度的附加说明（11-17 用户「结算上面没有显示难度」）：认知塑造投入的生机细胞数，没点就不写
