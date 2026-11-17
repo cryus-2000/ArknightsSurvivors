@@ -461,3 +461,30 @@ def cache_put(tkey, args_key, rec):
     tmp = p + ".tmp%d" % os.getpid()
     json.dump(rec, open(tmp, "w", encoding="utf-8"), ensure_ascii=False)
     os.replace(tmp, p)
+
+
+# ---------------------------------------------------------------- 出包副本：无头 Godot 不起 MCP 服务
+
+_MCP_GUARD = ('func _start_server() -> void:\n'
+              '\tif OS.get_environment("GODOT_MCP_DISABLE") == "1":\n'
+              '\t\tprint("[Godot MCP] Server disabled (GODOT_MCP_DISABLE=1)")\n'
+              '\t\treturn\n')
+
+
+def disable_mcp_in_copy(game_dir):
+    """出包用的干净副本里给 addons/godot_mcp/plugin.gd 加开关，并给本进程（及子进程）设 GODOT_MCP_DISABLE=1。
+    无头 --import / --export 也会加载编辑器插件；Windows 包与网页包并行导出（或用户开着编辑器）时两个进程抢 6505 端口，
+    后起的那个 push_error，export_build 按「输出里有 ERROR」判导出失败（11-17 实测）。addons/ 不进包，pck 内容不受影响"""
+    os.environ["GODOT_MCP_DISABLE"] = "1"
+    p = os.path.join(game_dir, "addons", "godot_mcp", "plugin.gd")
+    if not os.path.isfile(p):
+        return False
+    txt = open(p, encoding="utf-8").read()
+    if "GODOT_MCP_DISABLE" in txt:
+        return True
+    head = "func _start_server() -> void:\n"
+    if txt.count(head) != 1:
+        raise RuntimeError("plugin.gd 里 _start_server 不是恰好一处，没法加 MCP 开关：%s" % p)
+    with open(p, "w", encoding="utf-8", newline="\n") as fh:
+        fh.write(txt.replace(head, _MCP_GUARD, 1))
+    return True

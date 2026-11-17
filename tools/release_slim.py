@@ -298,7 +298,7 @@ def subset_bytes(src_font, chars):
     opt.passthrough_tables = True
     opt.prune_unicode_ranges = False
     opt.prune_codepage_ranges = False
-    font = TTFont(src_font)
+    font = TTFont(src_font, recalcTimestamp=False)   # 保留原字体 head.modified：否则每次出包字节都不同，导入缓存（tools/import_cache.py）命不中（11-17）
     have = font.getBestCmap()
     s = subset.Subsetter(opt)
     s.populate(unicodes=sorted(ord(c) for c in chars if ord(c) in have))

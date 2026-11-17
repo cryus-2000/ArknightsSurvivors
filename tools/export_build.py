@@ -28,6 +28,7 @@ from pathlib import Path
 import godot_runner
 import encrypted_release
 import release_slim
+import import_cache
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GODOT = os.environ.get("GODOT", r"E:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe")
@@ -169,8 +170,11 @@ def build(a, commit, date, audience, label, encrypted_template, encryption_key):
     src = os.path.join(WORK, "src")
     os.makedirs(src)
     # 1. 干净副本
-    data = subprocess.run(["git", "archive", "--format=tar", a.ref], cwd=ROOT, stdout=subprocess.PIPE, check=True).stdout
+    # 只解 game/（打进包的全部内容）与 tools/（发布检查、字体子集、半分辨率用）：art/ 源图与 docs/ 约 560 MiB 不进包，解出来只是白写（11-17 发版提速）
+    data = subprocess.run(["git", "archive", "--format=tar", a.ref, "game", "tools"], cwd=ROOT, stdout=subprocess.PIPE, check=True).stdout
     tarfile.open(fileobj=io.BytesIO(data)).extractall(src, filter="data")
+    godot_runner.disable_mcp_in_copy(os.path.join(src, "game"))   # 并行导出时别抢 MCP 端口（addons/ 不进包）
+    import_cache.prewarm_tree(src, "源码")   # 新解出的文件首读要过实时防护扫描：并行先读一遍（import_cache.prewarm_tree）
     print("源码：%s @ %s" % (a.ref, commit))
 
     # 发布检查（玩法系统 tools/check_release.py，docs/33 清单）：对即将打包的这份源码跑，不过就中止
@@ -219,6 +223,9 @@ def build(a, commit, date, audience, label, encrypted_template, encryption_key):
     if a.encrypted:
         preset_path = Path(gpath) / "export_presets.cfg"
         preset_path.write_text(encrypted_release.encrypted_preset(preset_path.read_text(encoding="utf-8"), encrypted_template), encoding="utf-8")
+    # 导入缓存复用（tools/import_cache.py，docs/33 §发版提速）：上次成功导出的产物按内容键放回，Godot 只重导变了的
+    cache_keys, _ = import_cache.restore(gpath, "win" if a.encrypted else "win_diag", GODOT)
+    import_cache.prewarm_tree(gpath, "导入前")   # 字体子集 / 半分辨率新写的文件
     if not import_verified(gpath):   # 缺的缓存文件导出时会以 "Cannot open file res://.godot/imported/..." 失败，导出前再清缓存从头导一遍
         print("导入缓存仍不完整，清掉 .godot 从头导一遍", flush=True)
         import_verified(gpath, fresh=True)
@@ -236,6 +243,7 @@ def build(a, commit, date, audience, label, encrypted_template, encryption_key):
         print("\n".join(out.splitlines()[-15:]))
         sys.exit("导出失败：缺少 Godot 4.7.2 导出模板？见 docs/33")
     print("[瘦身] pck：%.2f MB" % (os.path.getsize(os.path.join(game_dir, "ArknightsSurvivors.pck")) / 1e6), flush=True)
+    import_cache.save(gpath, "win" if a.encrypted else "win_diag", cache_keys)
 
     # 3. 启动器 + 说明（美术全在 pck 里，不再带散装 art/ 文件夹）
     n = len(game_art)

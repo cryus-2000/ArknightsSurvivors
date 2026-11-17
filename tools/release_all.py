@@ -35,12 +35,16 @@ EXPORT_LOCK = os.path.join(ROOT, "build", "_export.lock")
 def step(title, cmd):
     print("\n== %s ==\n> %s" % (title, " ".join(cmd)), flush=True)
     p = subprocess.run(cmd, cwd=ROOT, env=ENV, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace")
-    slim = [l for l in p.stdout.splitlines() if l.startswith("[瘦身]")]   # 包体瘦身的前后大小（release_slim）：不在末尾 12 行里也要进日志
+    slim = [l for l in p.stdout.splitlines() if l.startswith(("[瘦身]", "[耗时]", "[导入缓存]", "[预读]", "Toy zip："))]   # 包体瘦身的前后大小（release_slim）：不在末尾 12 行里也要进日志
     if slim:
         print("\n".join(slim), flush=True)
     print("\n".join(p.stdout.splitlines()[-12:]), flush=True)
+    full = os.path.join(ROOT, "build", "release", "step_%s.log" % title.replace(" ", "_"))   # 完整输出（上面只摘了末尾 12 行）
+    os.makedirs(os.path.dirname(full), exist_ok=True)
+    with open(full, "w", encoding="utf-8") as fh:
+        fh.write(p.stdout)
     if p.returncode != 0:
-        sys.exit("失败：%s（退出码 %d），已中止；前面已出的包不算发布物" % (title, p.returncode))
+        sys.exit("失败：%s（退出码 %d），已中止；前面已出的包不算发布物；完整输出 %s" % (title, p.returncode, full))
     return p.stdout
 
 
@@ -92,6 +96,7 @@ def main():
     ap.add_argument("--ref", required=True, help="冻结提交（两个包与网页版都从它出）")
     ap.add_argument("--no-web", action="store_true")
     ap.add_argument("--only", choices=["public", "internal", "web", "web_internal"], help="只出这一份（其余不动）")
+    ap.add_argument("--toy", action="store_true", help="出对外网页版时同一次导入顺带出 B站 Toy 包（export_web --toy-out，产物在 build/toy/；只出包不上传）")
     a = ap.parse_args()
     commit = subprocess.run(["git", "rev-parse", "--short", a.ref], cwd=ROOT, stdout=subprocess.PIPE, text=True, check=True).stdout.strip()
     final = os.path.join(OUT, "final_%s" % commit)
@@ -106,8 +111,12 @@ def main():
         if key not in want:
             continue
         web = os.path.join(final, key)
-        out = step("导出" + kind, [sys.executable, os.path.join(TOOLS, "export_web.py"), "--ref", commit, "--out", web] + extra)
-        last = [l for l in out.splitlines() if l.startswith("完成：")]
+        toy = ["--toy-out", os.path.join(ROOT, "build", "toy", "web")] if a.toy and key == "web" else []
+        out = step("导出" + kind + ("（含 Toy 包）" if toy else ""), [sys.executable, os.path.join(TOOLS, "export_web.py"), "--ref", commit, "--out", web, "--timing"] + extra + toy)
+        last = [l for l in out.splitlines() if l.startswith("完成：%s " % web)]
+        if toy:
+            tz = [l for l in out.splitlines() if l.startswith("Toy zip：")]
+            summary["toy"] = {"dir": toy[1], "zip": tz[-1] if tz else ""}
         step("验证" + kind, [sys.executable, os.path.join(TOOLS, "verify_web_build.py"), "--dir", web, "--audience", aud, "--commit", commit])
         report = os.path.join(final, "web_verification_%s_%s.json" % (aud, commit))
         result = json.load(open(report, encoding="utf-8"))
@@ -116,12 +125,13 @@ def main():
         summary[key] = {"dir": web, "result": last[-1] if last else "", "verify": report, "audience": aud,
                         "unlock_all": result.get("unlock_all"), "boss_trial": result.get("boss_trial"), "max_file_mib": result.get("max_file_mib")}
     path = os.path.join(final, "release_%s.json" % commit)
-    if os.path.exists(path):   # 分次出（--only）时并进已有汇总
-        old = json.load(open(path, encoding="utf-8"))
-        old.update(summary)
-        summary = old
-    with open(path, "w", encoding="utf-8") as fh:
-        json.dump(summary, fh, ensure_ascii=False, indent=1)
+    with godot_runner.file_lock(path + ".lock"):   # ship.py 并行出 public 与 web 时两个进程都要并进汇总
+        if os.path.exists(path):   # 分次出（--only）时并进已有汇总
+            old = json.load(open(path, encoding="utf-8"))
+            old.update(summary)
+            summary = old
+        with open(path, "w", encoding="utf-8") as fh:
+            json.dump(summary, fh, ensure_ascii=False, indent=1)
     print("\n完成（提交 %s）。产物目录：%s" % (commit, final))
     for k in ("public", "internal"):
         if k in summary:
@@ -129,6 +139,8 @@ def main():
     for k in ("web", "web_internal"):
         if k in summary:
             print("  %-12s %s（全部解锁 %s，演练 %s）" % (k, summary[k]["result"], summary[k].get("unlock_all"), summary[k].get("boss_trial")))
+    if "toy" in summary and a.toy:
+        print("  toy          %s" % summary["toy"]["zip"])
 
 
 if __name__ == "__main__":
