@@ -35,7 +35,7 @@
 - **二阶段**：第一次血量归零不死，播放 fx_knight_rebirth，恢复 50% 生命，移速 +20%，冲锋改为连续两次；第二次归零才播放 e_knight_death，胜利。
 - 有 225 骨血：Boss 受到伤害 +80%、水月受到伤害 +80%（原作"双方防御 −80%"）。
 
-## 4. 数据与代码落点（按 docs/14 的结构）
+## 4. 数据与代码落点（按 docs/14（已删） 的结构）
 
 - `data/enemies.json`：`knight`（精英，`no_spawn` 默认 true，退行后解锁）、`knight_boss`（role boss，`phases: 2`）。
 - `data/relic_effects.json`：222 `on_gain: recruit_knight`；223 stat；225 `rule: bone_blood`（伤害结算处读）。

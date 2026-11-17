@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""终结技 × 新美术差异盘点（docs/278）：只看不改。GCP 上跑（docs/256 custom 任务），本机不开 Godot。
+"""终结技 × 新美术差异盘点（docs/280）：只看不改。GCP 上跑（docs/256 custom 任务），本机不开 Godot。
 
   ult --ops a,b   原版终结技联系表：借 tools/ult_rec.py 的 u_<干员> 段（队长 + 两名队友，0:31.5 充满放出，30 帧原速），
                   每人取 8 帧（起手前、起手、蓄力、最亮帧前后、收尾）拼成 <op>_ult_sheet.png，另存最亮帧 <op>_ult_peak.png

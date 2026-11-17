@@ -52,4 +52,4 @@ python3 tools/trace_base.py 29 suzuran 360 --ref main --here --extra="--squad=an
 - 本轮没有可靠的“节省多少 MB”整局测量。资源哨兵和 WeakRef 断言证明对象可以释放，不等同于驱动/浏览器立即归还物理内存。
 - `docs/287` 的手机音频分层音乐、同步图集读取和其他帧时热点仍需按最新代码测量。削减音乐层数会改变体验，本轮保留；不能把历史优化的收益重复算成本分支收益。
 
-参考：[实施计划](superpowers/plans/2026-11-06-mobile-performance.md)、[测试规范](36_testing.md)、[性能测量](50_performance.md)、[此前内存与帧时记录](287_perf_mem_1106.md)。协调人审阅分支后合并；Codex 不合入 main 或发布。
+参考：实施计划（已删）、[测试规范](36_testing.md)、[性能测量](50_performance.md)、[此前内存与帧时记录](287_perf_mem_1106.md)。协调人审阅分支后合并；Codex 不合入 main 或发布。

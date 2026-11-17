@@ -168,7 +168,7 @@ game/
 | world/props、terrain、mire、pickups、npc | 35 | 0.21 | `prop_` `drone_` `terrain_` `mire_` `pickup_` `gem_` `merchant` |
 | world/_legacy/ | 16 | 0.01 | 初版占位 |
 
-`game/` 内部另有三处（批 1 已做）：`game/art/player.png` 删（无人读，docs/188 §2.1）、`game/art/px/mizuki_chibi_walk.png` 删、`game/audio/voice/masters/`（123 个 WAV，22 MB）移到 `art/source/voice/`。
+`game/` 内部另有三处（批 1 已做）：`game/art/player.png` 删（无人读，docs/188（已删） §2.1）、`game/art/px/mizuki_chibi_walk.png` 删、`game/audio/voice/masters/`（123 个 WAV，22 MB）移到 `art/source/voice/`。
 
 ### 6.3 要改的加载路径
 
@@ -197,7 +197,7 @@ game/
 
 每批：一个提交（`git mv` 保历史）+ 相关快检。
 
-实际做法（批 2–4）：`.import` 无损、不生成 mipmap；没有 alpha 1–19 淡像素的关透明边渗色（与桌面版原来读原图一致，网页无损 WebP 小约 1.6 倍，docs/187 §6），带淡像素的 40 张特效开（同网页包原口径）。导入后逐张比对：1806 张与原 PNG 像素一致，39 张淡像素特效只在 alpha < 20 的像素上 RGB 有渗色差。
+实际做法（批 2–4）：`.import` 无损、不生成 mipmap；没有 alpha 1–19 淡像素的关透明边渗色（与桌面版原来读原图一致，网页无损 WebP 小约 1.6 倍，docs/285（原 187） §6），带淡像素的 40 张特效开（同网页包原口径）。导入后逐张比对：1806 张与原 PNG 像素一致，39 张淡像素特效只在 alpha < 20 的像素上 RGB 有渗色差。
 
 ### 6.5 旧路径 → 新路径（从 codex/art 或任何旧分支收货）
 
@@ -214,7 +214,7 @@ game/
 | codex/boss-fx-rework、final-boss-complete、bgm-memory、merchant-bgm、visible-growth、node-icons、event-cg | 都已合进当前分支（ahead 0） | 无 | — |
 | claude/boss-*（paranoia / izumik / ishar / bench）、knight-fx-polish | 10-28 在改，没动 art/incoming 与加载器 | 以后新加的 fx_ / e_ 图如果还放根目录：批 0 的回退能读，lint 报 L1 | 批 3 / 4 动手前问一下在不在加图 |
 | claude/web-shrink | 改了 export_web.py | 批 0 / 2 也改 export_web.py | 先合 web-shrink 再做批 0 |
-| 本分支（asset-tidy） | 归档 art/incoming 批次子目录、删旧合成配乐、docs/188–189、asset_lint | — | 先合本分支 |
+| 本分支（asset-tidy） | 归档 art/incoming 批次子目录、删旧合成配乐、docs/188（已删）–189、asset_lint | — | 先合本分支 |
 
 ## 8. 不做的
 

@@ -164,7 +164,7 @@ python tools/check.py --auto --jobs 1     > build/chk_auto.txt 2>&1; echo rc=$? 
 | 蜕变产物写死 bone / slider / stone；爆裂节点只认 pocket；同种上限缺省 match；抽满回退 bone / slider、精英池空回退 pocket | run/enemies.gd、spawner.gd | `morph_into`、`burst_at`、全部用 `cap`、waves 里写 fallback |
 | 图鉴 `ENEMY_DESC` 常量优先于 json `desc` | gallery.gd | 迁进 enemies.json `desc` |
 | `art.gd V6_FRAMES` 帧数是代码常量 | art.gd | 帧数改读 enemy_pixels.json |
-| docs/142 §2.1 幕招表 `acts / pattern_mods` 未实现 | — | 按 142 落地后，Boss 分幕可纯数据 |
+| docs/142b（原 142） §2.1 幕招表 `acts / pattern_mods` 未实现 | — | 按 142 落地后，Boss 分幕可纯数据 |
 | 测试 / 工具写死 id：boss_variety_test、final_boss_tells_test、enemy_pixel_contract、enemy_scale_field、boss_bench.py `BOSSES` | game/tests、tools | 改成遍历 `D.ENEMIES` / role |
 | 按 type 名的特例（`e.type ==` / `type in [`）：saint.gd 22、world.gd 18、boss_beam.gd 11、final_attacks.gd 8、enemy_ai.gd 7、hud_bars.gd 7 处，另有十余个文件各 2–5 处（如 塑路者在 combo / hud_bossbar / run_stats / demo 里） | 多处 | 逐项挪成字段 |
 | 疑似死字段：`nest.aura_nerve`、`knight_boss.phases` 无读取方 | enemies.json | 删掉或接上 |

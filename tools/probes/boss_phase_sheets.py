@@ -1,4 +1,4 @@
-"""Boss 分幕示意图（docs/142 §3）：每只 Boss 一张，每幕一栏——本体（现有帧条第 0 帧）+ 这一幕的预警形状 / 弹体 / 地面 / 颗粒，
+"""Boss 分幕示意图（docs/142b（原 142） §3）：每只 Boss 一张，每幕一栏——本体（现有帧条第 0 帧）+ 这一幕的预警形状 / 弹体 / 地面 / 颗粒，
 下面写这一幕新多了什么。只是设计示意（程序画的形状，不是游戏截图），不开 Godot。
 
     python tools/probes/boss_phase_sheets.py            # 输出 build/boss_phase_sheets/<boss>.png

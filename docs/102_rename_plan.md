@@ -39,7 +39,7 @@
 | exe / pck 文件名 `ArknightsSurvivors.exe` | `export_build.py`、`encrypted_release.py`、`verify_encrypted_game.py`、`启动对内测试版.bat` | 加密包校验、启动脚本都按这个名找；玩家看到的是包文件夹名（已随 `NAME` 改） |
 | itch 目标 slug、Toy slug | `.deploy.env` 的 `ITCH_TARGET`、Toy 发布记录 | 改了旧链接失效、评论 / 收藏不跟过去；页面标题另改（§3.2、§3.3） |
 | 贴图名 `logo`、私钥目录 `~/.codex/private/ArknightsSurvivors` | `art/incoming/`、`encrypted_release.py` | 资源名 / 本机路径，与玩家无关 |
-| 历史文档、提交记录 | `docs/33`、`docs/41`、`docs/archive/` 等 | 是记录，不追改 |
+| 历史文档、提交记录 | `docs/33`、`docs/41`、`docs/` 等 | 是记录，不追改 |
 
 ## 3. 脚本做不了、要人工做的
 
