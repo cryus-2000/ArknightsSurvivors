@@ -1,0 +1,217 @@
+{
+ "id": "phantom",
+ "rig": "phantom.json",
+ "scale": 0.152,
+ "canvas": 192,
+ "colors": 96,
+ "_doc": "傀影 B 方案帧条（11-18，docs/365 照做）：tools/spine_px.py phantom 出全部动作；原作 Spine 3.8 char_250_phatom（torappu）",
+ "actions": {
+  "idle": {
+   "sample": {
+    "anim": "Idle",
+    "range": [
+     0,
+     3.0,
+     8
+    ]
+   },
+   "note": "Idle 3 秒整轨一循环"
+  },
+  "run": {
+   "fps": 13.333333,
+   "note": "原作无 Move 轨：run_trial 步态合成"
+  },
+  "move_attack": {
+   "mode": "move_attack",
+   "sample": {
+    "anim": "Attack",
+    "times": [
+     0,
+     0.13,
+     0.267,
+     0.36,
+     0.45,
+     0.56,
+     0.68,
+     0.78
+    ],
+    "end": 0.867
+   },
+   "dens": [
+    1
+   ],
+   "note": "边跑边攻击：普攻上半身 + 跑步腿（只出 @1x，同现有 20 人）",
+   "mouth_ref": "attack",
+   "fire": 2
+  },
+  "attack": {
+   "sample": {
+    "anim": "Attack",
+    "times": [
+     0,
+     0.13,
+     0.267,
+     0.36,
+     0.45,
+     0.56,
+     0.68,
+     0.78
+    ],
+    "end": 0.867
+   },
+   "note": "影刃；出手 f2（OnAttack 0.267 秒）",
+   "fire": 2
+  },
+  "attack2": {
+   "sample": {
+    "anim": "Attack_2",
+    "times": [
+     0,
+     0.15,
+     0.3,
+     0.4,
+     0.5,
+     0.6,
+     0.72,
+     0.82
+    ],
+    "end": 0.9
+   },
+   "note": "Attack_2（背刺 / 瞬影收刀备选）；出手 f3（OnAttack 0.4 秒）",
+   "fire": 3
+  },
+  "skill": {
+   "sample": {
+    "anim": "Skill",
+    "range": [
+     0,
+     1.0,
+     8
+    ]
+   },
+   "note": "三技能共用起手：跃起下劈（OnAttack 0.433 ≈ f3），最高离地约 90 像素；f3 原作转身背面，不贴眼睛",
+   "eye_frames": [
+    0,
+    1,
+    2,
+    4,
+    5,
+    6,
+    7
+   ],
+   "fire": 3
+  },
+  "hurt": {
+   "sample": {
+    "anim": "Die",
+    "times": [
+     0.05,
+     0.12
+    ],
+    "end": 0.2
+   },
+   "note": "原作无受击轨：取 Die 开头两帧"
+  },
+  "death": {
+   "sample": {
+    "anim": "Die",
+    "range": [
+     0,
+     1.0,
+     8
+    ],
+    "inclusive": true,
+    "end": 1.125
+   },
+   "note": "Die 全程 8 帧（末帧定格）"
+  },
+  "entry": {
+   "sample": {
+    "anim": "Start",
+    "range": [
+     0.095,
+     1.0,
+     8
+    ],
+    "inclusive": true,
+    "end": 1.13
+   },
+   "note": "Start 0.095 秒起（整个人进画布的下落段）到收势"
+  }
+ },
+ "outline": {
+  "color": "#140f18",
+  "mix": 0.55
+ },
+ "keep_colors": [
+  "#f0d098",
+  "#b09070",
+  "#786040",
+  "#000000"
+ ],
+ "fix": {
+  "eyes": {
+   "bones": {
+    "L": "F_L_Eye",
+    "R": "F_R_Eye"
+   },
+   "colors": {
+    "K": "#121112",
+    "Z": "#ffffff",
+    "a": "#b09070",
+    "e": "#786040",
+    "g": "#f0d098"
+   },
+   "pattern": {
+    "L": [
+     "KKKK",
+     "Zaea",
+     "Zaea",
+     ".ggg",
+     ".gg."
+    ],
+    "R": [
+     "KKK.",
+     "aeag",
+     ".gg."
+    ]
+   },
+   "anchor": {
+    "L": [
+     3.5,
+     3.1
+    ],
+    "R": [
+     2.2,
+     2.0
+    ]
+   },
+   "_doc": "L = 画面左边那只（正脸），R = 右边（3/4 侧脸只露一半）；面具盖住下半脸，眼睛在面具上沿：睫毛一行 + 金瞳（上暗下亮，色取 atlas F_L_Eye）+ 一格竖瞳孔；不画嘴（面具盖住）",
+   "x1": {
+    "pattern": {
+     "L": [
+      "KK",
+      "ge"
+     ],
+     "R": [
+      "K",
+      "g"
+     ]
+    },
+    "anchor": {
+     "L": [
+      2.3,
+      2.6
+     ],
+     "R": [
+      0.6,
+      2.0
+     ]
+    },
+    "_doc": "1 倍：睫毛一格行 + 金瞳 / 瞳孔"
+   }
+  }
+ },
+ "palette_protect": false,
+ "palette_alpha": 230
+}

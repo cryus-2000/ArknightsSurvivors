@@ -16,7 +16,10 @@ sys.path.insert(0, os.path.join(ROOT, "tools"))
 import godot_runner as _GR
 COMMON = _GR.common_root()
 BG = (48, 61, 77, 255)
-NAMES = {"ling": "令", "suzuran": "铃兰", "angelina": "安洁莉娜", "mizuki": "水月", "texas": "德克萨斯", "phantom": "傀影", "dusk": "夕", "shu": "黍", "surtr": "史尔特尔", "fiammetta": "菲亚梅塔"}
+NAMES = {"ling": "令", "suzuran": "铃兰", "angelina": "安洁莉娜", "mizuki": "水月", "texas": "德克萨斯", "phantom": "傀影", "dusk": "夕", "shu": "黍", "surtr": "史尔特尔", "fiammetta": "菲亚梅塔",
+         "gladiia": "歌蕾蒂娅", "specter_unchained": "浊心斯卡蒂", "irene": "艾丽妮", "lappland": "拉普兰德", "skadi": "斯卡蒂",
+         "eyjafjalla": "艾雅法拉", "logos": "逻各斯", "exusiai": "能天使", "wisadel": "维什戴尔", "hoshiguma": "星熊", "saria": "塞雷娅",
+         "ulpianus": "乌尔比安", "dusk_drgn": "小自在"}
 
 
 def font(sz):

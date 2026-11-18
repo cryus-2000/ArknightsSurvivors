@@ -184,3 +184,12 @@ python tools/spine_px_review.py ling --with ling_soul1 ling_soul2 ling_soul3 --d
 - 图案：@2x 4×2（上一行暗边 #0e1e23、下一行两格蓝瞳 #3f6bd6，蓝取头上角饰的蓝），1 倍 2 格（暗 + 蓝）。
 - 弦惊二形态攻击 f3–f4 头转到背面，不贴（`eye_frames`）。
 - 34 条召唤物帧条全部重出；其余没有改动。
+
+## 10. 其余 5 人照做记录（11-18，分支 claude/kind-dijkstra-f3682b）
+
+同一流程（`spine_px.py` + `run_trial.js` 原样），每人一份 `cfg/<id>.src.json`、`<id>.json`（rig + 跑步）、`<id>_px.json`（动作清单 + 修补）、`<id>_sprites.json`（规格草稿，`tools/spine_px_sprites.py` 由 summary 生成）。帧条 `game/art/operators/<id>/`，@2x 192 画布 + @1x 96 画布，未接入。`.import` 由 Godot 在只含这些 PNG 的临时最小工程里 `--import` 生成后拷回（参数与令一致，均为缺省），不用整个工程重新导入。
+特效预算：`tools/fx_budget.py` 只统计 `game/art/fx/` 下的特效帧条和音效，干员本体 / 召唤物本体帧条（`game/art/operators/`）不在统计范围，所以本体美术不需登记 `fx_budget_map.json`；`check` 仍通过。特效阶段再按 docs/368 §5 登记代号与键干。
+
+| 干员 | Spine | 尺度 | 动作（@2x 条数 + @1x） | 人工修 | 备注 |
+|---|---|---|---|---|---|
+| 傀影 | `char_250_phatom` 3.8 | 0.152 + 头 ×1.3，全高 63 | idle / run / attack / attack2 / skill / hurt / death / entry（8 条）+ @1x 9 条（含 move_attack） | 金瞳：睫毛 + 上暗下亮 + 一格竖瞳孔（@2x 4×5 / 3×3，@1x 2 格）；面具盖下半脸不画嘴 | 技能是原作跃起下劈（最高离地约 90 像素），f3 转身背面不贴眼；入场从 0.095 秒起（整个人进画布）；虚影按设计稿用本体帧条染色，不另出图 |
