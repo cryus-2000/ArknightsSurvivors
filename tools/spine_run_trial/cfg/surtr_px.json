@@ -1,7 +1,7 @@
 {
  "id": "surtr",
  "rig": "surtr.json",
- "scale": 0.143,
+ "scale": 0.169,
  "canvas": 192,
  "colors": 96,
  "_doc": "史尔特尔 B 方案帧条（11-18，docs/365 照做）：tools/spine_px.py surtr 出全部动作；原作 Spine 3.8 char_350_surtr（torappu）",
@@ -259,51 +259,52 @@
    },
    "pattern": {
     "L": [
-     "KKKKK",
-     "WHHDI",
-     "WIDDI",
-     "dLLLd"
+     "WHHDIW",
+     "WIDDIW",
+     ".IDDI.",
+     ".LLLL."
     ],
     "R": [
-     "KKK",
-     "HDI",
-     "IDI",
-     "LLd"
+     "HDDI",
+     "IDDI",
+     "IIIL",
+     "LLL."
     ]
    },
    "anchor": {
     "L": [
-     4.2,
-     2.9
+     4.86,
+     1.57
     ],
     "R": [
-     1.5,
-     2.3
+     1.65,
+     2.11
     ]
    },
-   "_doc": "L = 画面左边那只（正脸），R = 右边（3/4 侧窄一格、低一行）；睫毛一行 + 高光 2 格 + 暗红瞳孔（#480000）+ 紫瞳（#a088d0，下沿浅紫 #b090c0），色取 atlas F_Face_Default_j / k；4×4 BOX 后原来只剩灰紫一团",
+   "_doc": "11-18 放大到全高 78：原作睫毛两行保留，下面 4 行手画（眼白 + 高光 2 格 + 暗红瞳孔 2×2 + 紫瞳 #a088d0，下沿浅紫 #b090c0），色取 atlas F_Face_Default_j / k；R = 3/4 侧窄一格",
    "x1": {
     "pattern": {
      "L": [
       "KKK",
-      "WDI"
+      "WDI",
+      ".LI"
      ],
      "R": [
-      "K",
-      "I"
+      "KK",
+      "DI"
      ]
     },
     "anchor": {
      "L": [
-      2.1,
-      1.93
+      1.93,
+      2.28
      ],
      "R": [
-      0.24,
-      2.16
+      0.82,
+      1.55
      ]
     },
-    "_doc": "1 倍：睫毛一行 + 眼白 / 暗红瞳孔 / 紫瞳一行；右眼 3/4 侧只一格紫"
+    "_doc": "1 倍：睫毛一行 + 眼白 / 暗红瞳孔 / 紫瞳两行"
    },
    "_frames_doc": "eye_frames：原作闭眼 / 眨眼帧不贴（--no-fix 后按眼骨 ±3 像素内紫色像素数判定，0 = 闭眼；倒下 f4/f6/f7 左眼半闭也不贴）"
   }
