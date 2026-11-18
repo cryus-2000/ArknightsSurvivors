@@ -148,7 +148,7 @@ def analyze_move(dfull, dnoop, dnoen):
     dl = np.array([r[1] for r in rows])
     ens = [r[2] for r in rows if r[2] is not None]
     sol = np.array([r[3] for r in rows])
-    act = cov > 0.005
+    act = cov > 0.001   # 生效：覆盖 > 0.1% 屏幕（底噪约 0.05%，docs/368 §1.3）
     return {"frames": len(rows), "cov_peak": round(100 * cov.max(), 2), "cov_mean_active": round(100 * cov[act].mean(), 2) if act.any() else 0.0,
             "flash_frames": int((cov > 0.8).sum()),   # 整屏帧（冲击帧整屏白 / 舞台压暗起落）：终结技许可的例外，单独计
             "cov_peak_ex": round(100 * float(cov[cov <= 0.8].max()), 2) if (cov <= 0.8).any() else 0.0,   # 去掉整屏帧后的峰值
@@ -187,25 +187,57 @@ def cmd_cover(a):
         shutil.rmtree(root, ignore_errors=True)
 
 
-# ---------------------------------------------------------------- new（新干员交付）
-def cmd_new(a):
+# ---------------------------------------------------------------- 汇总
+CTRL = ["draw_hud", "hud_top_left", "hud_top", "enemies"]   # 与该干员特效无关的分段：开 / 关两桶之比 = 机器负载漂移，用来校正
+
+
+def draw_delta(row):
+    """该干员特效的世界绘制 CPU 增量（ms / 帧，--prof 口径，已按对照分段校正负载漂移）与占世界绘制的比例"""
+    st = row.get("stage", {})
+    con = sum(st.get(k, {}).get("on", 0) for k in CTRL)
+    coff = sum(st.get(k, {}).get("off", 0) for k in CTRL)
+    k = con / coff if coff > 0 else 1.0
+    dw = st.get("draw_world", {})
+    off = dw.get("off", 0) * k
+    d = dw.get("on", 0) - off
+    return round(d, 2), round(100 * d / off, 1) if off > 0 else 0.0
+
+
+MOVE_CLASS = {"atk": "atk", "s1": "skill", "s2": "skill", "s3": "skill", "ult": "ult"}
+COVER_KEYS = ["cov_peak_ex", "cov_mean_active", "solid_peak_ex", "solid_mean_active", "dlum_mean_active", "active_s", "enemy_covered_mean", "flash_frames"]
+
+
+def check_runtime(op, perf_row, cov):
     b = json.load(open(BUDGET, encoding="utf-8"))
     rt = b.get("runtime", {})
-    a.ops = a.op
-    perf = cmd_perf(a)[a.op]
-    a.modes = "3,0,1,2,4"
-    cmd_cover(a)
-    cov = json.load(open(os.path.join(OUT, "cover.json"), encoding="utf-8")).get(a.op, {})
     bad = []
-    d = perf.get("ft_mean", {}).get("d", 0)
-    if d > rt.get("ft_delta_hard_ms", 9e9):
-        bad.append("后期绘制帧时增量 %.2f ms > 硬上限 %.2f" % (d, rt["ft_delta_hard_ms"]))
-    for mv, r in cov.items():
-        lim = rt.get("cover", {}).get("ult" if mv == "ult" else ("atk" if mv == "atk" else "skill"), {})
-        for key, lk in (("cov_peak", "cov_peak_hard"), ("cov_mean_active", "cov_mean_hard"), ("dlum_mean_active", "dlum_mean_hard"),
-                        ("active_s", "active_s_hard"), ("enemy_covered_mean", "enemy_covered_hard")):
-            if lk in lim and r.get(key) is not None and r[key] > lim[lk]:
-                bad.append("%s %s = %s > 硬上限 %s" % (mv, key, r[key], lim[lk]))
+    if perf_row:
+        d, share = draw_delta(perf_row)
+        if d > rt.get("draw_delta_hard_ms", 9e9):
+            bad.append("后期世界绘制增量 %.2f ms > 硬上限 %s" % (d, rt["draw_delta_hard_ms"]))
+        if share > rt.get("draw_share_hard_pct", 9e9):
+            bad.append("后期世界绘制占比 +%.1f%% > 硬上限 %s%%" % (share, rt["draw_share_hard_pct"]))
+        dc = perf_row.get("dc_med", {}).get("d", 0)
+        if dc > rt.get("dc_delta_hard", 9e9):
+            bad.append("绘制调用增量 +%d > 硬上限 %s" % (dc, rt["dc_delta_hard"]))
+    for mv, r in (cov or {}).items():
+        lim = rt.get("cover", {}).get(MOVE_CLASS.get(mv, "skill"), {})
+        for key in COVER_KEYS:
+            h = lim.get(key + "_hard")
+            if h is not None and r.get(key) is not None and r[key] > h:
+                bad.append("%s %s = %s > 硬上限 %s" % (mv, key, r[key], h))
+    return bad
+
+
+# ---------------------------------------------------------------- new（新干员交付）
+def cmd_new(a):
+    a.ops = a.op
+    perf = cmd_perf(a).get(a.op)
+    if not a.no_cover:
+        a.modes = "3,0,1,2,4"
+        cmd_cover(a)
+    cov = json.load(open(os.path.join(OUT, "cover.json"), encoding="utf-8")).get(a.op, {}) if os.path.exists(os.path.join(OUT, "cover.json")) else {}
+    bad = check_runtime(a.op, perf, cov)
     print("\n".join(bad) if bad else "运行时各项都在硬上限内（docs/368）")
     return 1 if bad else 0
 
@@ -228,6 +260,7 @@ def main():
     ap.add_argument("--shots", default="")
     ap.add_argument("--analyze", action="store_true")
     ap.add_argument("--keep", action="store_true")
+    ap.add_argument("--no-cover", dest="no_cover", action="store_true", help="new：本机只量帧时，画面占比另在 GCP 跑 cover 后放进 --out 的 cover.json")
     ap.add_argument("--out", default="", help="结果目录（缺省 build/fx_budget；GCP 上给 $OUT）")
     a = ap.parse_args()
     global OUT

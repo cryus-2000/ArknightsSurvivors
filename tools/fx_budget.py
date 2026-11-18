@@ -242,6 +242,8 @@ def check():
         if o.startswith("_"):
             continue
         vals = op_vals(d)
+        if not res["imported"]:   # 没有完整导入缓存：包体只能按 PNG 估，与 .ctex 基线不可比，包体项这次不查
+            vals = {k: v for k, v in vals.items() if not k.endswith("_pkg_mb")}
         if o in base:
             for k, v in vals.items():
                 ref = base[o].get(k)
@@ -269,7 +271,7 @@ def check():
         errs.append("%d 张转平面帧条没登记归属（前缀不在 tools/fx_budget_map.json 的 codes 里），例如 %s（docs/368 §5：新干员先登记代号与键干）" % (len(un), ", ".join(un[:4])))
     n_new = len([o for o in res["ops"] if not o.startswith("_") and o not in base])
     detail = "%d 名干员（新 %d 名按硬上限、现有按基线 +%d%%）；%s" % (len([o for o in res["ops"] if not o.startswith("_")]), n_new, round(100 * (grow - 1)),
-                                                     "包体按导入缓存" if res["imported"] else "无完整导入缓存，包体按 PNG 估")
+                                                     "包体按导入缓存" if res["imported"] else "无完整导入缓存，包体项跳过")
     return errs, detail
 
 

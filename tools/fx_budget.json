@@ -661,5 +661,33 @@
  "visual": {
   "elements_per_move_max": 3
  },
- "runtime": {}
+ "runtime": {
+  "_doc": "tools/fx_budget_runtime.py new / check_runtime 用（docs/368 速查表 B）。绘制增量 = --prof 世界绘制分段开 / 关差（按对照分段校正负载漂移，探针约放大 2 倍）；覆盖 = 图鉴演示口径（%屏幕）",
+  "draw_delta_rec_ms": 3,
+  "draw_delta_hard_ms": 5,
+  "draw_share_rec_pct": 15,
+  "draw_share_hard_pct": 25,
+  "dc_delta_rec": 15,
+  "dc_delta_hard": 30,
+  "cover": {
+   "atk": {
+    "cov_peak_ex_hard": 1.0,
+    "solid_peak_ex_hard": 0.6,
+    "enemy_covered_mean_hard": 12,
+    "dlum_mean_active_hard": 1.0
+   },
+   "skill": {
+    "cov_peak_ex_hard": 2.5,
+    "solid_peak_ex_hard": 1.0,
+    "enemy_covered_mean_hard": 14,
+    "dlum_mean_active_hard": 1.0
+   },
+   "ult": {
+    "solid_peak_ex_hard": 10,
+    "solid_mean_active_hard": 4.5,
+    "enemy_covered_mean_hard": 25,
+    "flash_frames_hard": 6
+   }
+  }
+ }
 }
