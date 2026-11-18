@@ -1,5 +1,5 @@
 {
- "_doc": "dusk 帧条规格草稿（B 方案，docs/365 照做）：接入时并进 game/data/characters/dusk.json 的 sprites；现在游戏不读这个文件。192 画布 @2x / 96 画布 @1x，foot = 1x 原点 [48,76]；frame_durations 为原作时长（按 docs/335 出手对时缩放），fire 按原作 OnAttack 事件",
+ "_doc": "dusk 帧条规格草稿（B 方案，docs/365 照做）：接入时并进 game/data/characters/dusk.json 的 sprites；现在游戏不读这个文件。192 画布 @2x / 96 画布 @1x，foot = 1x 原点 [48,76]（个别动作 256 画布，foot [64,92]）；frame_durations 为原作时长（按 docs/335 出手对时缩放），fire 按原作 OnAttack 事件",
  "idle": {
   "tex": "op_dusk_idle",
   "frames": 8,
