@@ -352,6 +352,14 @@ def check_web_music():
     return {"name": name, "ok": ok, "detail": "二阶段 1 份缓冲、退回 / 曲终释放、缺预混退回旧行为" if ok else "%d 项失败" % max(1, len(fails)), "errors": fails[:8]}
 
 
+def check_fx_budget():
+    """不开 Godot（约 2 秒）：每名干员特效预算（tools/fx_budget.py，docs/368）。新干员超硬上限 / 缺 fx_elements 声明 / 某招元素 > 3 种，
+    现有 20 人比登记基线涨 > 10%，算失败；运行时项（帧时、覆盖面积）另跑 tools/fx_budget_runtime.py new --op <id>"""
+    import fx_budget
+    errs, detail = fx_budget.check()
+    return {"name": "特效预算 fx_budget", "ok": not errs, "detail": detail + "（明细 python tools/fx_budget.py scan）", "errors": errs[:8]}
+
+
 def check_px_lint():
     """不开 Godot（约 5 秒）：像素稿验收工具 tools/px_lint.py 在登记样本上跑通、数字等于校准值（干员美术路 1）；只在 --only px_lint 时跑"""
     import px_lint
@@ -1431,7 +1439,7 @@ def main():
     ap.add_argument("--ab", metavar="REF", help="与某个提交做 A/B 对比（机器人标准矩阵）")
     ap.add_argument("--seeds", type=int, default=4)
     ap.add_argument("--keep", action="store_true", help="A/B 结束后保留临时工作树")
-    ap.add_argument("--only", choices=["core", "smoke", "nodes", "hold_aim", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "desc_values", "ob_tag", "cc_lint", "node_cue_lint", "data_lint", "graph_lint", "check_map", "text_reconcile", "shader_lint", "px_lint", "enemy_art", "asset_lint", "asset_index", "onboard_reload", "opening_transport", "web_music", "theme_parity"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
+    ap.add_argument("--only", choices=["core", "smoke", "nodes", "hold_aim", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "desc_values", "ob_tag", "cc_lint", "node_cue_lint", "data_lint", "graph_lint", "check_map", "text_reconcile", "shader_lint", "px_lint", "enemy_art", "asset_lint", "asset_index", "fx_budget", "onboard_reload", "opening_transport", "web_music", "theme_parity"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
     ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS,
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
     ap.add_argument("--bal", action="append", default=[], metavar="段/键=值",
@@ -1493,6 +1501,8 @@ def main():
         jobs.append(check_asset_lint)   # 不开 Godot；ERROR 算失败（docs/189）
     if a.only in (None, "asset_index"):
         jobs.append(check_asset_index)
+    if a.only in (None, "fx_budget"):
+        jobs.append(check_fx_budget)   # 不开 Godot，约 2 秒；--auto 也跑（docs/368：新干员特效包体 / 显存 / 帧条数 / 元素种类）
     if a.only == "theme_parity":
         jobs.append(check_theme_parity)   # 开 Godot 约 25 分钟；只在 --only theme_parity 时跑（docs/359 §1）
     if a.only == "px_lint":
