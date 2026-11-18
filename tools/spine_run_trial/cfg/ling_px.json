@@ -1,7 +1,7 @@
 {
  "id": "ling",
  "rig": "ling.json",
- "scale": 0.148,
+ "scale": 0.154,
  "canvas": 192,
  "colors": 96,
  "_doc": "令 B 方案帧条（11-18 试点，docs/365）：tools/spine_px.py ling 出全部动作；原作 Spine 3.8 char_2023_ling（torappu）",
