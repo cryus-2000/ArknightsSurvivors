@@ -40,6 +40,7 @@ OPS = {
     "kaltsit": "凯尔希", "suzuran": "铃兰", "ulpianus": "乌尔比安", "irene": "艾丽妮", "specter_unchained": "归溟幽灵鲨", "logos": "逻各斯",
     "lumen": "流明", "skalter": "浊心斯卡蒂", "texas": "德克萨斯", "hoshiguma": "星熊", "exusiai": "能天使", "angelina": "安洁莉娜",
     "lappland": "拉普兰德", "gladiia": "歌蕾蒂娅",   # 第四批设计稿（docs/122 / 123，10-22）
+    "dusk_drgn": "小自在",   # 夕的召唤物（character_table token_10015_dusk_drgn）
     "ling_soul1": "清平", "ling_soul2": "逍遥", "ling_soul3": "弦惊",   # 令的召唤物（character_table token_10020_ling_soul1–3）
     "ling": "令", "phantom": "傀影", "dusk": "夕", "shu": "黍", "surtr": "史尔特尔", "fiammetta": "菲亚梅塔",   # 11-18 新干员（B 方案直接进包）
 }
@@ -50,7 +51,8 @@ TORAPPU = {"wisadel": "char_1035_wisdel", "ulpianus": "char_4145_ulpia", "logos"
            # 11-18：PRTS 页面原文接口对脚本 403，新干员一律走 torappu（令已验证；其余 5 人 id 按游戏数据，拉不到再改）
            "ling": "char_2023_ling", "phantom": "char_250_phatom", "dusk": "char_2015_dusk", "shu": "char_2025_shu",
            "surtr": "char_350_surtr", "fiammetta": "char_300_phenxi",
-           "ling_soul1": "token_10020_ling_soul1", "ling_soul2": "token_10020_ling_soul2", "ling_soul3": "token_10020_ling_soul3"}
+           "ling_soul1": "token_10020_ling_soul1", "ling_soul2": "token_10020_ling_soul2", "ling_soul3": "token_10020_ling_soul3",
+           "dusk_drgn": "token_10015_dusk_drgn"}
 PICK = {
     "idle": ["Idle"],
     "attack": ["Attack", "Attack_Loop", "Combat", "Attack_1", "Attack_A"],

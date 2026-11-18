@@ -1,0 +1,82 @@
+{
+ "id": "fiammetta",
+ "src": "fiammetta.src.json",
+ "name": "菲亚梅塔",
+ "body": {
+  "hip": "F_HIP",
+  "chest": "F_CHEST",
+  "head": "F_HEAD"
+ },
+ "legs": {
+  "L": [
+   "F_L_THIGH",
+   "F_L_CALF",
+   "F_L_FOOT"
+  ],
+  "R": [
+   "F_R_THIGH",
+   "F_R_CALF",
+   "F_R_FOOT"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_ARM",
+   "F_L_FOREARM",
+   "F_L_HAND"
+  ],
+  "R": [
+   "F_R_ARM",
+   "F_R_FOREARM",
+   "F_R_HAND"
+  ]
+ },
+ "leadLeg": "L",
+ "hold": "R",
+ "weapon": "F_Weapon_B",
+ "params": {
+  "lean": 7,
+  "headKeep": 0.5,
+  "stride": 1.0,
+  "lift": 1.0,
+  "bob": 0.8,
+  "holdAmp": 6,
+  "armAmp": 20,
+  "elbow": 40,
+  "elbowAmp": 12
+ },
+ "secondary": [
+  {
+   "match": "BANGS|HAIR|Hair",
+   "amp": 2.5,
+   "drag": 3,
+   "lag": 1.2
+  },
+  {
+   "match": "TAIL|Tail",
+   "amp": 3,
+   "drag": 4,
+   "lag": 1.3
+  },
+  {
+   "match": "SKIRT|Skirt",
+   "amp": 2,
+   "drag": 3,
+   "lag": 1.1
+  }
+ ],
+ "pack": {
+  "scale": 0.143,
+  "root": [
+   64,
+   120
+  ],
+  "palette_png": ""
+ },
+ "skipAdditive": true,
+ "canvas": 192,
+ "_doc": "菲亚梅塔（11-18 B 方案）：rig + 跑步步态（大枪在右手 F_Weapon_B、榴弹发射器在左手）；其余动作由 tools/spine_px.py 按 cfg/fiammetta_px.json 采样原作轨",
+ "boneScale": {
+  "F_HEAD": 1.25
+ }
+}
