@@ -1,0 +1,81 @@
+{
+ "id": "surtr",
+ "src": "surtr.src.json",
+ "name": "史尔特尔",
+ "body": {
+  "hip": "F_Hip",
+  "chest": "F_Chest",
+  "head": "F_Head"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg",
+   "F_L_Calf",
+   "F_L_Foot"
+  ],
+  "R": [
+   "F_R_Leg",
+   "F_R_Calf",
+   "F_R_Foot"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm",
+   "F_L_Forearm",
+   "F_L_Hand"
+  ],
+  "R": [
+   "F_R_Arm_b",
+   "F_R_Arm",
+   "F_R_Arm_a"
+  ]
+ },
+ "leadLeg": "L",
+ "hold": "L",
+ "weapon": "F_Weapon",
+ "params": {
+  "lean": 7,
+  "headKeep": 0.5,
+  "stride": 1.0,
+  "lift": 1.0,
+  "bob": 0.8,
+  "holdAmp": 6,
+  "armAmp": 20,
+  "elbow": 40,
+  "elbowAmp": 12
+ },
+ "secondary": [
+  {
+   "match": "^F_Hair_[a-z]+[0-9]*$",
+   "amp": 2.5,
+   "drag": 3,
+   "lag": 1.2
+  },
+  {
+   "match": "^F_Coat",
+   "amp": 2,
+   "drag": 3,
+   "lag": 1.1
+  },
+  {
+   "match": "^F_Annex",
+   "amp": 2,
+   "drag": 2
+  }
+ ],
+ "pack": {
+  "scale": 0.143,
+  "root": [
+   64,
+   120
+  ],
+  "palette_png": ""
+ },
+ "skipAdditive": true,
+ "canvas": 192,
+ "_doc": "史尔特尔（11-18 B 方案）：rig + 跑步步态（剑在左手 F_Weapon）；其余动作由 tools/spine_px.py 按 cfg/surtr_px.json 采样原作轨",
+ "boneScale": {
+  "F_Head": 1.3
+ }
+}

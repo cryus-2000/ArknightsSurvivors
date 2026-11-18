@@ -320,15 +320,14 @@ def main():
         c = dict(rig)
         for k in ("sample", "keys", "poses"):
             c.pop(k, None)
-        c.update({k: v for k, v in act.items() if k not in ("durations", "fps", "fix", "note", "eye_frames", "eyes", "eye_keys", "dens", "mouth", "mouth_ref")})
+        c.update({k: v for k, v in act.items() if k not in ("durations", "fps", "fix", "note", "eye_frames", "eyes", "eye_keys", "dens", "mouth", "mouth_ref", "fire")})
         c["pack"] = dict(rig["pack"], palette_png=pal, scale=spec["scale"])
         c["canvas"] = size
         c["action"] = name
         c["trackBones"] = track
         if points:
             c["trackPoints"] = points
-        if m_all:
-            c["trackSlots"] = [m_all["slot"]]
+        c["trackSlots"] = ([m_all["slot"]] if m_all else []) + list((e_all or {}).get("slots", {}).values())
         if dens == 1:
             c["scaleMul"] = (rig.get("scaleMul") or 1) * 0.5
             c["noMouth"] = True          # 同 make_op_1x.py：1 倍不画嘴（一格黑点读成脏点）
@@ -370,8 +369,12 @@ def main():
                 im, k = outline(im, hexrgb(spec["outline"]["color"]), spec["outline"]["mix"], palette)
                 st["outline_px"] = st.get("outline_px", 0) + k
             if use_eyes:
+                eslots = (eyes or {}).get("slots", {})     # fix.eyes.slots：{眼: 虹膜槽}——该帧槽里没有附件（原作闭眼 / 眨眼换图）就不贴这只眼
+                fslots = rep["frames"][i].get("slots") or {}
                 for side, bn in eye_map(act).items():
                     b = bones.get(bn)
+                    if side in eslots and not fslots.get(eslots[side]):
+                        continue
                     if b:
                         st["eye_px"] += stamp(im, ey["pattern"][side], eyes["colors"], b, ey["anchor"][side])
             # 嘴（fix.mouth）：原作待机嘴附件像素化后只剩偏灰的淡线 / 1 倍里脸上留黑点；按嘴骨贴手画小图，
