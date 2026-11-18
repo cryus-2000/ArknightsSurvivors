@@ -1,0 +1,262 @@
+{
+ "id": "dusk",
+ "rig": "dusk.json",
+ "scale": 0.144,
+ "canvas": 192,
+ "colors": 96,
+ "_doc": "夕 B 方案帧条（11-18，docs/365 照做）：tools/spine_px.py dusk 出全部动作；原作 Spine 3.8 char_2015_dusk（torappu）",
+ "actions": {
+  "idle": {
+   "sample": {
+    "anim": "Idle",
+    "range": [
+     0,
+     2.667,
+     8
+    ]
+   },
+   "note": "Idle 8 秒轨的前 2.667 秒（一次呼吸，按与首帧像素差找回到首帧附近的时刻）",
+   "eye_frames": [
+    0,
+    1,
+    3,
+    4,
+    5,
+    6,
+    7
+   ]
+  },
+  "run": {
+   "fps": 13.333333,
+   "note": "原作无 Move 轨：run_trial 步态合成"
+  },
+  "move_attack": {
+   "mode": "move_attack",
+   "sample": {
+    "anim": "Attack",
+    "times": [
+     0,
+     0.4,
+     0.8,
+     1.03,
+     1.3,
+     1.7,
+     2.2,
+     2.6
+    ],
+    "end": 2.87
+   },
+   "dens": [
+    1
+   ],
+   "fire": 3,
+   "note": "边跑边攻击（只出 @1x）",
+   "eye_frames": [
+    0,
+    1,
+    2,
+    4,
+    5,
+    6,
+    7
+   ]
+  },
+  "attack": {
+   "sample": {
+    "anim": "Attack",
+    "times": [
+     0,
+     0.4,
+     0.8,
+     1.03,
+     1.3,
+     1.7,
+     2.2,
+     2.6
+    ],
+    "end": 2.87
+   },
+   "fire": 3,
+   "note": "墨弹挥笔；出手 f3（OnAttack 1.03 秒）；原作 2.87 秒，接入按 docs/108 attack_timing 压缩",
+   "eye_frames": [
+    0,
+    1,
+    2,
+    4,
+    5,
+    6,
+    7
+   ]
+  },
+  "skill_begin": {
+   "sample": {
+    "anim": "Skill2_Begin",
+    "times": [
+     0,
+     0.085
+    ],
+    "end": 0.17
+   },
+   "note": "S2 起手"
+  },
+  "skill": {
+   "sample": {
+    "anim": "Skill2_Loop",
+    "range": [
+     0,
+     1.33,
+     8
+    ]
+   },
+   "fire": 0,
+   "note": "S2 持续期间循环攻击（Loop 首帧 OnAttack）"
+  },
+  "skill_end": {
+   "sample": {
+    "anim": "Skill2_End",
+    "range": [
+     0,
+     1.0,
+     4
+    ]
+   },
+   "note": "S2 收势",
+   "eye_frames": [
+    0,
+    1,
+    3
+   ]
+  },
+  "skill_s3_attack": {
+   "sample": {
+    "anim": "Skill3_Attack",
+    "times": [
+     0,
+     0.5,
+     0.9,
+     1.17,
+     1.5,
+     2.0,
+     2.6,
+     3.1
+    ],
+    "end": 3.43
+   },
+   "fire": 3,
+   "note": "S3 期间普攻（OnAttack 1.17 秒 ≈ f3）"
+  },
+  "hurt": {
+   "sample": {
+    "anim": "Die",
+    "times": [
+     0.05,
+     0.12
+    ],
+    "end": 0.2
+   },
+   "note": "原作无受击轨：取 Die 开头两帧",
+   "eye_frames": [
+    0
+   ]
+  },
+  "death": {
+   "sample": {
+    "anim": "Die",
+    "range": [
+     0,
+     1.0,
+     8
+    ],
+    "inclusive": true,
+    "end": 1.125
+   },
+   "note": "Die 全程 8 帧（末帧定格）",
+   "eye_frames": [
+    0,
+    4,
+    5,
+    6,
+    7
+   ]
+  },
+  "entry": {
+   "sample": {
+    "anim": "Start",
+    "range": [
+     0,
+     1.0,
+     8
+    ],
+    "inclusive": true,
+    "end": 1.125
+   },
+   "note": "Start 全程（OnStart 0.8）",
+   "eye_frames": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    6,
+    7
+   ]
+  }
+ },
+ "outline": {
+  "color": "#140f18",
+  "mix": 0.55
+ },
+ "keep_colors": [
+  "#e88868",
+  "#f08868",
+  "#783830",
+  "#583838"
+ ],
+ "fix": {
+  "eyes": {
+   "bones": {
+    "L": "F_Face_Default_d2"
+   },
+   "colors": {
+    "S": "#783830",
+    "H": "#fbf9f4",
+    "P": "#583838",
+    "c": "#e88868",
+    "d": "#f08868",
+    "K": "#020001"
+   },
+   "pattern": {
+    "L": [
+     "SHPS",
+     "cPPd",
+     ".cc."
+    ]
+   },
+   "anchor": {
+    "L": [
+     2.5,
+     1.1
+    ]
+   },
+   "_doc": "只有画面左边那只眼露出（右眼原作被刘海盖住，F_Face_Default_k 附近没有瞳色像素，不贴）；在原作睫毛下补暗红眼眶 + 高光 + 瞳孔，色取 atlas F_Face_Default_d / k",
+   "_frames_doc": "eye_frames：原作眨眼 / 闭眼帧不贴（--no-fix 后按眼骨 ±3 像素内红色像素数判定）",
+   "x1": {
+    "pattern": {
+     "L": [
+      "KK",
+      "cP"
+     ]
+    },
+    "anchor": {
+     "L": [
+      1.28,
+      1.57
+     ]
+    },
+    "_doc": "1 倍：睫毛一行 + 红瞳 / 瞳孔一行"
+   }
+  }
+ },
+ "palette_protect": false,
+ "palette_alpha": 230
+}
