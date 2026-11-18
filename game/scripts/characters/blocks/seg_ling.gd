@@ -11,6 +11,7 @@ extends "res://scripts/characters/blocks/seg_gladiia.gd"
 const LG_KINDS := ["qp", "xy", "xy2", "xj", "xj2"]
 const LG_INK := Color(0.42, 0.86, 0.95)     # 龙身青（PRTS 召唤物贴图主色）
 const LG_LAMP := Color(1.0, 0.72, 0.36)     # 提灯暖橙（点灯标记、酒意）
+const LG_TUNE0 := "xy"   # 开局的调（11-18 用户定：逍遥调，墨弹先手；清平调要放 S1 才进）
 
 
 ## data_operator._ext_exec 转来（EXEC_SEG 第 0 段）
@@ -38,6 +39,18 @@ static func lg_exec(o, b: Dictionary, at: Vector2) -> void:
 			_lg_grow(o, b)
 		"verb.lg_ev":
 			_lg_fx(o, str(b.get("ev", "lg_ev")), {"p": at})
+		"verb.lg_lure":
+			_lg_lure(o, b)
+
+
+## 清平诱敌（11-18 用户定：只在重进酒期间）：trait tick（cond skill_active:0）调；对每条 kind 召唤物按 decoy 规则引怪 + 挨贴身打（同 §15.1 decoy），平时常驻的清平只打不引怪、也不挨打
+static func _lg_lure(o, b: Dictionary) -> void:
+	var kind: String = str(b.get("kind", "qp"))
+	var kd: Dictionary = sm_kind(o, kind).duplicate()
+	kd["decoy_r"] = float(b.get("r", 180.0))
+	kd["hurt_mult"] = float(b.get("hurt", 0.2))
+	for s in lg_dragons(o, [kind]):
+		_sm_decoy(o, s, kd)
 
 
 ## 画面事件（只画）：转平面接管令以后由 fx_pxplane 的令一节画；没接管时 fx_recipe 忽略。d 里统一带 tune（当前调）
@@ -47,7 +60,7 @@ static func _lg_fx(o, ev: String, d: Dictionary) -> void:
 
 
 static func lg_tune_of(o) -> String:
-	return str(o.gn.get("tune", "qp"))
+	return str(o.gn.get("tune", LG_TUNE0))
 
 
 ## 龙种所属的调：qp → qp；xy / xy2 → xy；xj / xj2 → xj；墨龙按后缀
