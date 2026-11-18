@@ -43,6 +43,9 @@ const EXT_BLOCKS := {
 	"verb.lg_merge": "instant",       # 令（docs/367，seg_ling）
 	"verb.lg_split": "instant",       # 令（docs/367，seg_ling）
 	"verb.lg_ink": "instant",         # 令（docs/367，seg_ling）
+	"verb.lg_tune": "instant",        # 令（docs/367 §9，seg_ling）
+	"verb.lg_grow": "instant",        # 令（docs/367 §9，seg_ling）
+	"verb.lg_ev": "instant",          # 令（docs/367 §9，seg_ling）
 }
 
 
@@ -58,6 +61,8 @@ static func ext_cond_true(o, k: String) -> bool:
 			return o.is_roaming()
 		"enemy_near":   # 普攻范围（形状半径 + 30，同起手的找目标半径）内有敌人（德克萨斯疾刃三连：没有敌人就照常两连斩，10-23）
 			return not o.nearest_enemies(1, shape_radius(o, o.cur_attack()) + 30.0, o.pos).is_empty()
+		"lg_qp", "lg_xy", "lg_xj":   # 令的当前调（docs/367 §9；o.gn.tune，缺省清平调）
+			return str(o.gn.get("tune", "qp")) == k.substr(3)
 	return false
 
 

@@ -1,5 +1,7 @@
-## 干员积木 · seg_ling（docs/366 令：三种龙的召唤上限、天赋「随付笺咏醉屠苏」、精一「点灯」、S2「笑鸣瑟」、S3「宁作吾」合龙、节点「泼墨」）
-## 接入方式：七个瞬时积木 verb.lg_*（登记在 seg_hoshiguma.EXT_BLOCKS、data_operator.EXEC_SEG → _ext_exec → lg_exec）。
+## 干员积木 · seg_ling（docs/367 令：三种龙的召唤上限、天赋「随付笺咏醉屠苏」、精一「点灯」、S2「笑鸣瑟」、S3「宁作吾」合龙、节点「泼墨」）
+## 11-18 改版（docs/367 §9 A 版「调随技能」）：当前调 o.gn.tune（qp / xy / xj，缺省 qp）由技能切换；龙每 spawn_cd 秒随时间化出一条（verb.lg_grow，满员时换掉最早一条异调龙）；
+## 普攻按调换形（条件 lg_qp / lg_xy / lg_xj + verb.swap_attack）。画面事件见 lg_ev / _lg_fx（只画，特效会话接）。
+## 接入方式：瞬时积木 verb.lg_*（登记在 seg_hoshiguma.EXT_BLOCKS、data_operator.EXEC_SEG → _ext_exec → lg_exec）。
 ## 召唤物本身全用 docs/61 §15 的 blocks.summons（chase / follow、decoy、anim）；本文件只管「谁算龙、满了顶掉谁、龙散去时给什么」。
 ## 天赋层数放 o.gn（docs/202 的扩展状态，光环 per: gn:drink 直接读）。没带 verb.lg_* 的干员一律不走本文件。
 ## 确定性：玩法不取随机数（目标按距离 / Boss 优先 / id）；画面只用 g.vrng。
@@ -30,6 +32,84 @@ static func lg_exec(o, b: Dictionary, at: Vector2) -> void:
 			_lg_split(o, b, at)
 		"verb.lg_ink":
 			_lg_ink(o, b)
+		"verb.lg_tune":
+			_lg_tune(o, b)
+		"verb.lg_grow":
+			_lg_grow(o, b)
+		"verb.lg_ev":
+			_lg_fx(o, str(b.get("ev", "lg_ev")), {"p": at})
+
+
+## 画面事件（只画）：转平面接管令以后由 fx_pxplane 的令一节画；没接管时 fx_recipe 忽略。d 里统一带 tune（当前调）
+static func _lg_fx(o, ev: String, d: Dictionary) -> void:
+	d["tune"] = lg_tune_of(o)
+	_FXR.ev(o, ev, d)
+
+
+static func lg_tune_of(o) -> String:
+	return str(o.gn.get("tune", "qp"))
+
+
+## 龙种所属的调：qp → qp；xy / xy2 → xy；xj / xj2 → xj；墨龙按后缀
+static func lg_group(kind: String) -> String:
+	if kind.begins_with("mo_"):
+		return kind.substr(3)
+	if kind.begins_with("xy"):
+		return "xy"
+	if kind.begins_with("xj"):
+		return "xj"
+	return "qp"
+
+
+## 当前调对应的龙种（逍遥游节点换 xy2）
+static func lg_tune_kind(o, b: Dictionary) -> String:
+	var t := lg_tune_of(o)
+	if t == "xy" and b.has("alt_node") and o.taken.has(str(b.alt_node)):
+		return str(b.get("alt_kind", "xy2"))
+	return {"qp": "qp", "xy": "xy", "xj": "xj"}.get(t, "qp")
+
+
+## 技能起手：切调（tune = qp / xy / xj）
+static func _lg_tune(o, b: Dictionary) -> void:
+	var t: String = str(b.get("tune", "qp"))
+	var old := lg_tune_of(o)
+	if o.skill_on(2) and t != "xj":
+		return   # 宁作吾生效期间锁定弦惊调（S1 技力短，不锁的话会在 S3 中途把调切走）；结束后下一个技能再切
+	o.gn["tune"] = t
+	if t != old:
+		_lg_fx(o, "lg_tune", {"from": old, "p": o.pos})
+
+
+## 化龙节拍（trait 的 trig.tick 每 every 秒调，force = 技能起手立刻化一条）：计时满 cd0 / cd1 / cd2 秒 →
+## 没满员：化出当前调的龙；满员：换掉最早一条异调龙（走 on_expire：天赋照算）；全是同调就停表等空位。S3（宁作吾）生效期间暂停
+static func _lg_grow(o, b: Dictionary) -> void:
+	if o.pos == Vector2.INF or o.skill_on(2):
+		return
+	var force: bool = b.get("force", false)
+	if not force:
+		var e: int = clampi(int(o.elite), 0, 2)
+		var cd: float = float(b.get("cd%d" % e, b.get("cd0", 10.0)))
+		o.gn["grow_t"] = minf(cd, float(o.gn.get("grow_t", cd)) + float(b.get("every", 0.5)))   # 开局即满：第一条马上出
+		if float(o.gn.grow_t) < cd:
+			return
+	var kind := lg_tune_kind(o, b)
+	var mine := lg_dragons(o)
+	var cap := lg_cap(o, b)
+	if mine.size() >= cap:
+		var off = null
+		for s in mine:
+			if lg_group(str(s.kind)) != lg_tune_of(o) or (str(s.kind) != kind and lg_group(kind) == lg_group(str(s.kind)) and str(s.kind) != "xj2"):
+				off = s
+				break
+		if off == null:
+			return   # 全是同调：停表（grow_t 留在满值，空出位置的下一拍就补）
+		_lg_fx(o, "lg_swap", {"p": off.pos, "from": str(off.kind), "kind": kind})
+		_sm_end(o, off, "swap")
+	o.gn["grow_t"] = 0.0
+	sm_spawn(o, {"kind": kind, "n": 1, "at": "self", "spread": 34.0}, o.pos)
+	var last = o.sm.list.back() if not o.sm.is_empty() and not o.sm.list.is_empty() else null
+	if last != null:
+		_lg_fx(o, "lg_spawn", {"p": last.pos, "kind": kind, "s": last})
 
 
 ## 本干员在场的龙（按召唤先后）
@@ -51,6 +131,8 @@ static func lg_summon(o, b: Dictionary, at: Vector2) -> void:
 	var kind: String = str(b.get("kind", ""))
 	if b.has("alt_node") and o.taken.has(str(b.alt_node)):
 		kind = str(b.get("alt_kind", kind))
+	if b.get("by_tune", false):   # 精二落笔成龙 / 连携：kind 是前缀，按当前调取（mo → mo_qp / mo_xy / mo_xj）
+		kind = kind + "_" + lg_tune_of(o)
 	if sm_kind(o, kind).is_empty():
 		return
 	var where: String = str(b.get("at", "self"))
@@ -81,6 +163,13 @@ static func _lg_drink(o, b: Dictionary, at: Vector2) -> void:
 		return
 	var g = o.g
 	var secs: float = float(b.get("sp", 2.0))
+	var win: float = float(b.get("sp_win", 10.0))   # 防刷（docs/367 §9.0）：技力加成 sp_win 秒内至多 sp_max 次
+	var ts: Array = o.gn.get("sp_ts", []).filter(func(x): return float(g.t) - float(x) < win)
+	if ts.size() >= int(b.get("sp_max", 3)):
+		secs = 0.0
+	else:
+		ts.append(float(g.t))
+	o.gn["sp_ts"] = ts
 	for i in 3:
 		if o.skill_unlocked(i) and not o.perm[i] and not o.skill_on(i) and o.sp_need(i) > 0.0:
 			o.sp[i] = minf(o.sp_need(i), float(o.sp[i]) + secs)
@@ -100,6 +189,7 @@ static func _lg_drink(o, b: Dictionary, at: Vector2) -> void:
 	o.gn["drink_t"] = float(g.t) + float(b.get("dur", 15.0))
 	if int(o.gn.drink) != n:
 		o._restat()
+	_lg_fx(o, "lg_drink", {"p": p, "n": int(o.gn.drink), "sp": secs})
 	if o.pos != Vector2.INF:
 		o.float_text(o.pos + Vector2(0, -62), "酒意 ×%d" % int(o.gn.drink), LG_LAMP, 12)
 	if p != Vector2.INF and o.pos != Vector2.INF:   # 散去的龙化作一缕青光回到令身边（只画）
@@ -132,6 +222,7 @@ static func _lg_lit(o, b: Dictionary, at: Vector2) -> void:
 			continue
 		s.tgt = e
 		s.rt = 0.0
+	_lg_fx(o, "lg_lit", {"e": e, "dur": float(b.get("dur", 3.0))})
 	o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -float(e.r) * 2.0 - 6.0), "r": 6.0, "life": 0.5, "col": LG_LAMP, "alpha": 0.8})
 
 
@@ -162,6 +253,7 @@ static func _lg_ming(o, b: Dictionary) -> void:
 			hit[int(e.id)] = true
 			got += 1
 			_lg_ming_hit(o, e, dmg, bind, ve, str(sr[1]), bool(sr[2]))
+			_lg_fx(o, "lg_ming", {"from": from, "e": e, "bind": bind, "summon": bool(sr[2])})
 			o.fx({"kind": "line", "pos": from, "to": e.pos + Vector2(0, -float(e.r)), "life": 0.25, "col": LG_INK, "w": 2.0})
 			if chain and not e.dead:   # 节点「鸣瑟·连」：再跳向近旁一名没被鸣瑟打中的敌人
 				for e2 in o.nearest_enemies(4, float(b.get("chain_r", 120.0)), e.pos):
@@ -199,6 +291,7 @@ static func _lg_merge(o, b: Dictionary) -> void:
 	o.gn["merged"] = n
 	var kind: String = str(b.get("big", "xj2")) if n >= 1 else str(b.get("basic", "xj"))
 	lg_summon(o, {"kind": kind, "at": "leader", "cap0": 9, "cap1": 9, "cap2": 9}, c)
+	_lg_fx(o, "lg_merge", {"p": c, "n": n, "kind": kind})
 	if n >= 1 and c != Vector2.INF:
 		o.float_text(c + Vector2(0, -80), "弦惊 · 合", LG_INK, 14)
 
@@ -207,7 +300,11 @@ static func _lg_merge(o, b: Dictionary) -> void:
 static func _lg_split(o, b: Dictionary, at: Vector2) -> void:
 	if o.skill_on(2):
 		return
-	lg_summon(o, {"kind": str(b.get("kind", "qp")), "at": "target", "life": float(b.get("life", 8.0)), "cap0": 9, "cap1": 9, "cap2": 9}, at)
+	var sb := {"kind": str(b.get("kind", "qp")), "at": "target", "n": int(b.get("n", 1)), "cap0": 9, "cap1": 9, "cap2": 9}
+	if float(b.get("life", 0.0)) > 0.0:
+		sb["life"] = float(b.life)
+	lg_summon(o, sb, at)
+	_lg_fx(o, "lg_split", {"p": at, "n": int(b.get("n", 1))})
 
 
 # ---------------------------------------------------------------- 节点「泼墨」：这一下灯影改为同时落在 n 名敌人身上

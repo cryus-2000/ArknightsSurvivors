@@ -302,6 +302,12 @@ op.gladiia.blocks.progression.elite2.do.0.src,Ram,突進,돌진,冲撞,模型,,�
 op.gladiia.blocks.progression.shield2.do.0.pop.0.src,Rebound,反動,반동,反震,模型,,自译,自译
 op.gladiia.combo.name,Duet,二重奏,이중주,二重奏,模型,,自译,自译
 op.gladiia.combo.desc,"When her hook pulls an enemy into position, if Ulpianus is within range, he performs an additional anchor strike at the landing point (at most once every 2s; does not consume his normal attack cooldown)",彼女の鉤縄が敵を所定の位置に引き寄せた時、ウルピアヌスが射程内にいる場合、落下地点に向けて錨撃を1回追加で行う（2秒ごとに最大1回、彼の通常攻撃のクールダウンを消費しない）,"갈고리가 적을 제자리로 끌어당길 때, 울피아누스가 사거리 내에 있으면 낙하 지점에 닻 치기 1회 추가(2초마다 최대 1회, 일반 공격 쿨타임 미소모)",她的钩索把敌人拖回到位时，乌尔比安在射程内就朝落点补一次锚击（每 2 秒至多一次，不占他的普攻冷却）,模型,,自译,自译
+op.ling.name,Ling,リィン,링,令,官方,character_table.char_2023_ling,官方：character_table.char_2023_ling,官方：character_table.char_2023_ling
+op.ling.class,Supporter,補助,서포터,辅助,官方,character_table profession（data.gd CLASS_EN）,官方：character_table profession（日服職業名）,官方：character_table profession（韩服职业名）
+op.ling.skills.0.name,Sips of Wine,重ねて酒を進み,다시 술을 권하다,重进酒,官方,skill_table.skchr_ling_1,官方：skill_table.skchr_ling_1,官方：skill_table.skchr_ling_1
+op.ling.skills.1.name,Amidst Pleasant Melodies,笑いて瑟を鼓せ,웃으며 슬을 켜다,笑鸣瑟,官方,skill_table.skchr_ling_2,官方：skill_table.skchr_ling_2,官方：skill_table.skchr_ling_2
+op.ling.skills.2.name,To Remain Oneself,寧ろ吾をなさん,나 자신이 되다,宁作吾,官方,skill_table.skchr_ling_3,官方：skill_table.skchr_ling_3,官方：skill_table.skchr_ling_3
+op.ling.talent.name,"So is Writ, an Ode to Wine",酔吟の興、ここに極まれり,시를 쓰고 술에 취하다,随付笺咏醉屠苏,官方,character_table.char_2023_ling.talents[1],官方：character_table.char_2023_ling.talents[1],官方：character_table.char_2023_ling.talents[1]
 op.hoshiguma.name,Hoshiguma,ホシグマ,호시구마,星熊,官方,character_table.char_136_hsguma,官方：character_table.char_136_hsguma,官方：character_table.char_136_hsguma
 op.hoshiguma.class,Defender,重装,디펜더,重装,官方,character_table profession（data.gd CLASS_EN）,官方：character_table profession（日服職業名）,官方：character_table profession（韩服职业名）
 op.hoshiguma.faction.0,Lungmen Guard Department,龍門近衛局,용문근위국,龙门近卫局,官方,gamedata_const.termDescriptionDict.cc.g.lgd,官方：gamedata_const.termDescriptionDict.cc.g.lgd,官方：gamedata_const.termDescriptionDict.cc.g.lgd
@@ -3170,3 +3176,12 @@ short:全部,All,全て,전체,全部,短版,docs/276 §9 第 4 条,自译,自�
 short:选择开局干员,Pick Operator,開始オペレーター選択,시작 오퍼 선택,选择开局干员,短版,docs/276 §9 第 4 条,自译,自译
 short:更换封面干员,Pick Cover,表紙オペレーター変更,표지 오퍼 변경,更换封面干员,短版,docs/276 §9 第 4 条,自译,自译
 short:属性,Stats,情報,정보,属性,短版,docs/276 §9 第 4 条,人改,人改
+令,Ling,リィン,링,,原文键,官方,官方：character_table.char_2023_ling,官方：character_table.char_2023_ling
+召唤师,Summoner,召喚師,소환사,,原文键,官方,官方：uniequip_table.subProfDict.summoner,官方：uniequip_table.subProfDict.summoner
+重进酒,Sips of Wine,重ねて酒を進み,다시 술을 권하다,,原文键,官方,官方：skill_table.skchr_ling_1,官方：skill_table.skchr_ling_1
+笑鸣瑟,Amidst Pleasant Melodies,笑いて瑟を鼓せ,웃으며 슬을 켜다,,原文键,官方,官方：skill_table.skchr_ling_2,官方：skill_table.skchr_ling_2
+宁作吾,To Remain Oneself,寧ろ吾をなさん,나 자신이 되다,,原文键,官方,官方：skill_table.skchr_ling_3,官方：skill_table.skchr_ling_3
+随付笺咏醉屠苏,"So is Writ, an Ode to Wine",酔吟の興、ここに極まれり,시를 쓰고 술에 취하다,,原文键,官方,官方：character_table.char_2023_ling.talents[1],官方：character_table.char_2023_ling.talents[1]
+清平,Tranquility,清平,칭핑,,原文键,官方,官方：character_table.token_10020_ling_soul1,官方：character_table.token_10020_ling_soul1
+逍遥,Peripateticism,逍遥,샤오야오,,原文键,官方,官方：character_table.token_10020_ling_soul2,官方：character_table.token_10020_ling_soul2
+弦惊,Thunderer,弦驚,시엔징,,原文键,官方,官方：character_table.token_10020_ling_soul3,官方：character_table.token_10020_ling_soul3
