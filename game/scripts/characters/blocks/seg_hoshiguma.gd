@@ -35,6 +35,14 @@ const EXT_BLOCKS := {
 	"verb.ll_dial_swing": "instant",  # 待命还没被剑气用掉 → 执行 do（额外掷一道大剑气）并清除待命
 	"verb.ll_riposte": "instant",     # 日晷·回敬：朝最近的敌人原地反斩（r / half / mult / kb / cd / src / slash_fx）
 	"verb.ll_seal_spread": "instant", # 断喝·传染（on_kill 的 do）：刚死的被封印者把封印扩散出去（r / n / dur）
+	"verb.lg_summon": "instant",      # 令（docs/367，seg_ling）
+	"verb.lg_drink": "instant",       # 令（docs/367，seg_ling）
+	"verb.lg_decay": "instant",       # 令（docs/367，seg_ling）
+	"verb.lg_lit": "instant",         # 令（docs/367，seg_ling）
+	"verb.lg_ming": "instant",        # 令（docs/367，seg_ling）
+	"verb.lg_merge": "instant",       # 令（docs/367，seg_ling）
+	"verb.lg_split": "instant",       # 令（docs/367，seg_ling）
+	"verb.lg_ink": "instant",         # 令（docs/367，seg_ling）
 }
 
 

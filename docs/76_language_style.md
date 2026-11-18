@@ -224,3 +224,15 @@ https://prts.wiki/w/博士 只有一条情报资料，能支持的只有「失�
 ### A.7 招募卡干员简介（2026-10-29）
 
 2026-10-29 用户定：升级三选一里的招募卡 / 换人卡正文改显示一句干员简介（`gallery.intro`，20 人），图鉴仍用机制说明 `gallery.desc`。简介按 PRTS 客观履历 / 基础档案转述，数据对照 https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/zh_CN/gamedata/excel/handbook_info_table.json 与 https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/zh_CN/gamedata/excel/character_table.json 。
+
+### A.8 令（2026-11-18，docs/367 设计稿，未进招募）
+
+| 项 | 来源 |
+|---|---|
+| 页面 | https://prts.wiki/w/令 （11-18 页面原文接口对脚本 403，数据以解包为准） |
+| 引言（招聘合同 · 干员简介） | 「来自炎国的诗人令，洒脱无羁，纵情快意，只要有酒，一切皆可入诗。」（character_table `char_2023_ling` itemUsage） |
+| 档案栏位 | 女、出身地炎、种族未公开、生日 3 月 3 日、非感染者（handbook_info_table 基础档案）；客观履历：寓居尚蜀的诗人，与炎国司岁台等政府部门均有联系，在尚蜀事件中接触罗德岛，现以访客身份驻留本舰 |
+| 技能 / 天赋名 | 重进酒 SIPS OF WINE、笑鸣瑟 AMIDST PLEASANT MELODIES、宁作吾 TO REMAIN ONESELF；挑灯问梦 LANTERN LIT, THY DREAM SOUGHT、随付笺咏醉屠苏 SO IS WRIT, AN ODE TO WINE（skill_table / character_table，中英） |
+| 召唤物 | 清平 'Tranquility'、逍遥 'Peripateticism'、弦惊 'Thunderer'（character_table `token_10020_ling_soul1/2/3`） |
+| 模组 | 诗短梦长（uniequip_table `uniequip_002_ling`）；本作借作终结技名 |
+| 解包地址 | https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/zh_CN/gamedata/excel/ 下 character_table / skill_table / uniequip_table / battle_equip_table / handbook_info_table；英文 https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData_YoStar/main/en_US/gamedata/excel/ 同名表 |
