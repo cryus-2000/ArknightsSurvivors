@@ -1,0 +1,315 @@
+{
+ "id": "fiammetta",
+ "rig": "fiammetta.json",
+ "scale": 0.143,
+ "canvas": 192,
+ "colors": 96,
+ "_doc": "菲亚梅塔 B 方案帧条（11-18，docs/365 照做）：tools/spine_px.py fiammetta 出全部动作；原作 Spine 3.8 char_300_phenxi（torappu）",
+ "actions": {
+  "idle": {
+   "sample": {
+    "anim": "Idle",
+    "range": [
+     0,
+     2.67,
+     8
+    ]
+   },
+   "note": "Idle 2.67 秒整轨"
+  },
+  "run": {
+   "fps": 13.333333,
+   "note": "原作无 Move 轨：run_trial 步态合成"
+  },
+  "move_attack": {
+   "mode": "move_attack",
+   "sample": {
+    "anim": "Attack",
+    "times": [
+     0,
+     0.25,
+     0.5,
+     0.7,
+     0.83,
+     1.0,
+     1.17,
+     1.33
+    ],
+    "end": 1.47
+   },
+   "dens": [
+    1
+   ],
+   "fire": 4,
+   "note": "边跑边攻击（只出 @1x）"
+  },
+  "attack": {
+   "sample": {
+    "anim": "Attack",
+    "times": [
+     0,
+     0.25,
+     0.5,
+     0.7,
+     0.83,
+     1.0,
+     1.17,
+     1.33
+    ],
+    "end": 1.47
+   },
+   "fire": 4,
+   "note": "榴弹；出手 f4（OnAttack 0.83 秒）"
+  },
+  "skill_begin": {
+   "sample": {
+    "anim": "Skill_Begin",
+    "times": [
+     0,
+     0.115
+    ],
+    "end": 0.23
+   },
+   "note": "S1 / S3 起手"
+  },
+  "skill_idle": {
+   "sample": {
+    "anim": "Skill_Idle",
+    "range": [
+     0,
+     2.67,
+     8
+    ]
+   },
+   "note": "S1 / S3 期间待机"
+  },
+  "skill": {
+   "sample": {
+    "anim": "Skill_Loop",
+    "times": [
+     0,
+     0.25,
+     0.5,
+     0.7,
+     0.83,
+     1.0,
+     1.17,
+     1.33
+    ],
+    "end": 1.47
+   },
+   "fire": 4,
+   "note": "S1 / S3 期间攻击（OnAttack 0.83）",
+   "eye_skip": {
+    "R": [
+     5,
+     6
+    ]
+   }
+  },
+  "skill_end": {
+   "sample": {
+    "anim": "Skill_End",
+    "range": [
+     0,
+     0.57,
+     4
+    ]
+   },
+   "note": "S1 / S3 收势"
+  },
+  "skill_s2_begin": {
+   "sample": {
+    "anim": "Skill_2_Begin",
+    "times": [
+     0,
+     0.1
+    ],
+    "end": 0.2
+   },
+   "note": "S2 起手"
+  },
+  "skill_s2_idle": {
+   "sample": {
+    "anim": "Skill_2_Idle",
+    "range": [
+     0,
+     1.33,
+     8
+    ]
+   },
+   "note": "S2 期间待机",
+   "eye_skip": {
+    "R": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7
+    ]
+   }
+  },
+  "skill_s2": {
+   "sample": {
+    "anim": "Skill_2_Loop",
+    "range": [
+     0,
+     0.67,
+     8
+    ]
+   },
+   "fire": 0,
+   "note": "S2 灼痕弹出手（OnAttack 0.03 ≈ f0）",
+   "eye_skip": {
+    "L": [
+     1,
+     2,
+     3,
+     4
+    ],
+    "R": [
+     1,
+     2,
+     6
+    ]
+   }
+  },
+  "skill_s2_end": {
+   "sample": {
+    "anim": "Skill_2_End",
+    "range": [
+     0,
+     0.57,
+     4
+    ]
+   },
+   "note": "S2 收势"
+  },
+  "hurt": {
+   "sample": {
+    "anim": "Die",
+    "times": [
+     0.05,
+     0.12
+    ],
+    "end": 0.2
+   },
+   "note": "原作无受击轨：取 Die 开头两帧"
+  },
+  "death": {
+   "sample": {
+    "anim": "Die",
+    "range": [
+     0,
+     1.0,
+     8
+    ],
+    "inclusive": true,
+    "end": 1.125
+   },
+   "note": "Die 全程 8 帧（末帧定格）"
+  },
+  "entry": {
+   "sample": {
+    "anim": "Start",
+    "range": [
+     0,
+     1.0,
+     8
+    ],
+    "inclusive": true,
+    "end": 1.125
+   },
+   "note": "Start 全程（OnStart 0.33）"
+  }
+ },
+ "outline": {
+  "color": "#140f18",
+  "mix": 0.55
+ },
+ "fix": {
+  "eyes": {
+   "bones": {
+    "L": "F_L_EYE",
+    "R": "F_R_EYE"
+   },
+   "slots": {
+    "L": [
+     "F_L_EYE",
+     "F_L_EYE_OFF"
+    ],
+    "R": [
+     "F_R_EYE",
+     "F_R_EYE_OFF"
+    ]
+   },
+   "colors": {
+    "K": "#000000",
+    "W": "#edded5",
+    "H": "#f8f8f8",
+    "P": "#280808",
+    "R": "#f02820",
+    "D": "#b82820"
+   },
+   "pattern": {
+    "L": [
+     "KKKKK",
+     "WHPRD",
+     "WRPPR",
+     ".RRR."
+    ],
+    "R": [
+     "KKKK",
+     "HPRD",
+     ".RR."
+    ]
+   },
+   "anchor": {
+    "L": [
+     4.9,
+     3.34
+    ],
+    "R": [
+     2.63,
+     3.03
+    ]
+   },
+   "_doc": "红瞳在 4×4 BOX 后和红刘海并成一片；按 atlas F_L/R_EYE 取色手画（睫毛 + 眼白 / 高光 + 暗瞳孔 + 亮红瞳 #f02820）；眼槽换成 *_EYE_OFF（原作闭眼）的帧自动不贴；嘴原作淡色两格可读，不修",
+   "x1": {
+    "pattern": {
+     "L": [
+      "KKK",
+      "WRP"
+     ],
+     "R": [
+      "KK",
+      "RP"
+     ]
+    },
+    "anchor": {
+     "L": [
+      2.95,
+      1.67
+     ],
+     "R": [
+      0.81,
+      2.01
+     ]
+    },
+    "_doc": "1 倍：睫毛一行 + 眼白 / 红瞳 / 瞳孔一行"
+   },
+   "_skip_doc": "eye_skip：枪管横过脸的帧这只眼不贴（贴图范围里原始帧有 ≥2 个枪身灰白像素即跳过），不然手画眼会盖到枪上"
+  }
+ },
+ "palette_protect": false,
+ "palette_alpha": 230,
+ "keep_colors": [
+  "#f02820",
+  "#b82820",
+  "#280808",
+  "#edded5"
+ ]
+}

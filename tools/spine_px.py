@@ -320,7 +320,7 @@ def main():
         c = dict(rig)
         for k in ("sample", "keys", "poses"):
             c.pop(k, None)
-        c.update({k: v for k, v in act.items() if k not in ("durations", "fps", "fix", "note", "eye_frames", "eyes", "eye_keys", "dens", "mouth", "mouth_ref", "fire")})
+        c.update({k: v for k, v in act.items() if k not in ("durations", "fps", "fix", "note", "eye_frames", "eyes", "eye_keys", "dens", "mouth", "mouth_ref", "fire", "eye_skip")})
         c["pack"] = dict(rig["pack"], palette_png=pal, scale=spec["scale"])
         c["canvas"] = size
         c["action"] = name
@@ -374,6 +374,8 @@ def main():
                 fslots = rep["frames"][i].get("slots") or {}
                 for side, bn in eye_map(act).items():
                     b = bones.get(bn)
+                    if i in act.get("eye_skip", {}).get(side, []):   # 动作 eye_skip：{眼: [帧]}——该帧这只眼被武器 / 头发挡住，不贴
+                        continue
                     if side in eslots:
                         sv = eslots[side]
                         cur_att = fslots.get(sv if isinstance(sv, str) else sv[0])

@@ -196,5 +196,10 @@ python tools/spine_px_review.py ling --with ling_soul1 ling_soul2 ling_soul3 --d
 | 史尔特尔 | `char_350_surtr` 3.8 | 0.143 + 头 ×1.3，发顶 64（角到 66） | idle / run / attack / skill（S1 魔剑）/ skill_s2（巨影期间下刺）/ skill_s3 / idle_s3 / attack_s3（黄昏）/ hurt / death / entry（11 条）+ @1x 12 条 | 紫瞳：原作 4×4 BOX 后只剩灰紫一团，按 atlas `F_Face_Default_j / k` 取色画 5×4 / 3×4（睫毛 + 高光 + 暗红瞳孔 + 紫瞳）、@1x 2 行；闭眼帧用 eye_frames 排除 | 黄昏三条里巨影（`F_Rb_*`）随原作出现；skill_s2 剑尖下刺出 192 画布底边几像素被裁；剑在左手（步态 `hold: L`） |
 | 夕 | `char_2015_dusk` 3.8 | 0.144 + 头（`F_Head_a`）×1.3，全高 61 | idle（8 秒轨取前 2.667 秒）/ run / attack / skill_begin / skill（S2 循环）/ skill_end / skill_s3_attack / hurt / death / entry（10 条）+ @1x 11 条 | 只有左眼露出（右眼原作被刘海盖住）：暗红眼眶 + 高光 + 瞳孔（@2x 4×3、@1x 2×2），眨眼帧排除 | **召唤物小自在没做**：torappu `assets/char_spine/token_10015_dusk_drgn/defaultskin/front/` 返回 404（同规则令的召唤物可拉），PRTS 页面脚本访问不通；已登记进 `prts_spine.py`，路径查到后照令的召唤物做 |
 | 黍 | `char_2025_shu` 3.8 | 0.155 + 头 ×1.2，发顶 64（角到 72） | idle（4 秒轨是两遍 2 秒循环，取 2 秒）/ run / attack / attack2 / skill_begin / skill_idle / skill / skill_end / skill_s3_begin / skill_s3_idle / skill_s3_attack / skill_s3_attack2 / skill_s3_end / hurt / death / entry（16 条）+ @1x 17 条 | 灰瞳 + 橙圈 + 暗紫竖瞳（@2x 5×4 / 4×4，@1x 2 格）；原作挥镰时闭眼（睫毛槽清空），用 `fix.eyes.slots` 自动跳过 | 召唤物禾苗原作是地块（无 token / Spine），不出帧条；精二「秋收」可借 skill_s3_attack2 |
+| 菲亚梅塔 | `char_300_phenxi` 3.8 | 0.143 + 头 ×1.25，发顶 64 | idle / run / attack / skill_begin / skill_idle / skill / skill_end（S1、S3）/ skill_s2_begin / skill_s2_idle / skill_s2 / skill_s2_end / hurt / death / entry（14 条）+ @1x 15 条 | 红瞳原来和红刘海并成一片：睫毛 + 眼白 / 高光 + 暗瞳孔 + 亮红瞳 #f02820（@2x 5×4 / 4×3，@1x 3+2 格）；`*_EYE_OFF` 帧自动不贴；枪管横过脸的帧用动作 `eye_skip` 按眼跳过 | 大枪在右手（步态 `hold: R`）、榴弹发射器在左手；嘴原作两格淡色可读，不修 |
 
 **闭眼帧判定**（史尔特尔起）：原作闭眼多靠骨骼缩放 / 附件透明，不换附件，`trackSlots` 判不出。办法：先 `--no-fix` 出 @2x，按眼骨 ±3 像素内瞳色像素数判，0 的帧写进动作 `eye_frames`（`build/spine_px/_tools/eyeopen.py` 一类的一次性脚本即可）。换附件闭眼的模型可改用 `fix.eyes.slots`：`{眼: 槽}` 该帧槽没有附件就不贴，`{眼: [槽, 闭眼附件名…]}` 换成闭眼附件也不贴（`spine_px.py` 已支持；黍用睫毛槽）。
+
+**武器挡脸**（菲亚梅塔起）：手画眼按骨位贴，不管遮挡；武器在脸前的帧要跳过。动作 `eye_skip: {眼: [帧]}`（`spine_px.py` 已支持）；判定可按贴图范围里原始帧的武器色像素数（菲亚梅塔：≥ 2 个枪身灰白像素）。
+
+**汇总**：5 人都拉到了 Spine 并出齐帧条；召唤物只有夕的小自在没做（torappu 404），黍的禾苗原作无模型、傀影的虚影按设计稿用本体染色，都不需要单独帧条。
