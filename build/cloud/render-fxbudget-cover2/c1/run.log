@@ -1,0 +1,84 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4936 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+hoshiguma_atk_full 180 
+hoshiguma_atk_noop 180 
+hoshiguma_atk_noen 180 
+hoshiguma_s1_full 180 
+hoshiguma_s1_noop 180 
+hoshiguma_s1_noen 180 
+hoshiguma_s2_full 180 
+hoshiguma_s2_noop 180 
+hoshiguma_s2_noen 180 
+hoshiguma_s3_full 180 
+hoshiguma_s3_noop 180 
+hoshiguma_s3_noen 180 
+hoshiguma_ult_full 240 
+hoshiguma_ult_noop 240 
+hoshiguma_ult_noen 240 
+irene_atk_full 180 
+irene_atk_noop 180 
+irene_atk_noen 180 
+irene_s1_full 180 
+irene_s1_noop 180 
+irene_s1_noen 180 
+irene_s2_full 180 
+irene_s2_noop 180 
+irene_s2_noen 180 
+irene_s3_full 180 
+irene_s3_noop 180 
+irene_s3_noen 180 
+irene_ult_full 240 
+irene_ult_noop 240 
+irene_ult_noen 240 
+kaltsit_atk_full 180 
+kaltsit_atk_noop 180 
+kaltsit_atk_noen 180 
+kaltsit_s1_full 180 
+kaltsit_s1_noop 180 
+kaltsit_s1_noen 180 
+kaltsit_s2_full 180 
+kaltsit_s2_noop 180 
+kaltsit_s2_noen 180 
+kaltsit_s3_full 180 
+kaltsit_s3_noop 180 
+kaltsit_s3_noen 180 
+kaltsit_ult_full 240 
+kaltsit_ult_noop 240 
+kaltsit_ult_noen 240 
+lappland_atk_full 180 
+lappland_atk_noop 180 
+lappland_atk_noen 180 
+lappland_s1_full 180 
+lappland_s1_noop 180 
+lappland_s1_noen 180 
+lappland_s2_full 180 
+lappland_s2_noop 180 
+lappland_s2_noen 180 
+lappland_s3_full 180 
+lappland_s3_noop 180 
+lappland_s3_noen 180 
+lappland_ult_full 240 
+lappland_ult_noop 240 
+lappland_ult_noen 240 
+hoshiguma_atk            peak   0.6%  mean(act)   0.6%  act  0.1s  dlum   0.4  enemy 23.4
+hoshiguma_s1             peak   0.6%  mean(act)   0.6%  act  0.3s  dlum   0.5  enemy 37.9
+hoshiguma_s2             peak   0.6%  mean(act)   0.6%  act  0.6s  dlum   0.4  enemy 32.0
+hoshiguma_s3             peak   0.6%  mean(act)   0.5%  act  0.2s  dlum   0.5  enemy 23.8
+hoshiguma_ult            peak  99.2%  mean(act)  17.3%  act  5.0s  dlum  99.0  enemy 87.7
+irene_atk                peak   0.3%  mean(act)   0.0%  act  0.0s  dlum   0.2  enemy 11.9
+irene_s1                 peak   0.2%  mean(act)   0.0%  act  0.0s  dlum   0.1  enemy 21.9
+irene_s2                 peak   0.3%  mean(act)   0.0%  act  0.0s  dlum   0.3  enemy 16.6
+irene_s3                 peak   0.4%  mean(act)   0.0%  act  0.0s  dlum   0.4  enemy 23.1
+irene_ult                peak  99.8%  mean(act)  19.6%  act  4.3s  dlum 119.8  enemy 87.4
+kaltsit_atk              peak   0.4%  mean(act)   0.0%  act  0.0s  dlum   0.3  enemy 32.1
+kaltsit_s1               peak   0.6%  mean(act)   0.5%  act  0.1s  dlum   0.4  enemy 11.3
+kaltsit_s2               peak   0.6%  mean(act)   0.6%  act  0.1s  dlum   0.5  enemy 24.3
+kaltsit_s3               peak   0.7%  mean(act)   0.7%  act  0.2s  dlum   0.2  enemy 28.3
+kaltsit_ult              peak  99.4%  mean(act)  20.8%  act  3.9s  dlum 118.5  enemy 90.6
+lappland_atk             peak   0.7%  mean(act)   0.6%  act  0.9s  dlum   0.7  enemy 28.0
+lappland_s1              peak   0.5%  mean(act)   0.0%  act  0.0s  dlum   0.6  enemy 4.1
+lappland_s2              peak   0.7%  mean(act)   0.6%  act  1.3s  dlum   0.7  enemy 37.6
+lappland_s3              peak   0.8%  mean(act)   0.6%  act  1.3s  dlum   0.7  enemy 37.4
+lappland_ult             peak  99.8%  mean(act)  16.5%  act  4.6s  dlum 123.8  enemy 90.3
+media：0 个文件，4.0K

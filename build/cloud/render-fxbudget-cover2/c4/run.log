@@ -1,0 +1,84 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4936 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+suzuran_atk_full 180 
+suzuran_atk_noop 180 
+suzuran_atk_noen 180 
+suzuran_s1_full 180 
+suzuran_s1_noop 180 
+suzuran_s1_noen 180 
+suzuran_s2_full 180 
+suzuran_s2_noop 180 
+suzuran_s2_noen 180 
+suzuran_s3_full 180 
+suzuran_s3_noop 180 
+suzuran_s3_noen 180 
+suzuran_ult_full 240 
+suzuran_ult_noop 240 
+suzuran_ult_noen 240 
+texas_atk_full 180 
+texas_atk_noop 180 
+texas_atk_noen 180 
+texas_s1_full 180 
+texas_s1_noop 180 
+texas_s1_noen 180 
+texas_s2_full 180 
+texas_s2_noop 180 
+texas_s2_noen 180 
+texas_s3_full 180 
+texas_s3_noop 180 
+texas_s3_noen 180 
+texas_ult_full 240 
+texas_ult_noop 240 
+texas_ult_noen 240 
+ulpianus_atk_full 180 
+ulpianus_atk_noop 180 
+ulpianus_atk_noen 180 
+ulpianus_s1_full 180 
+ulpianus_s1_noop 180 
+ulpianus_s1_noen 180 
+ulpianus_s2_full 180 
+ulpianus_s2_noop 180 
+ulpianus_s2_noen 180 
+ulpianus_s3_full 180 
+ulpianus_s3_noop 180 
+ulpianus_s3_noen 180 
+ulpianus_ult_full 240 
+ulpianus_ult_noop 240 
+ulpianus_ult_noen 240 
+wisadel_atk_full 180 
+wisadel_atk_noop 180 
+wisadel_atk_noen 180 
+wisadel_s1_full 180 
+wisadel_s1_noop 180 
+wisadel_s1_noen 180 
+wisadel_s2_full 180 
+wisadel_s2_noop 180 
+wisadel_s2_noen 180 
+wisadel_s3_full 180 
+wisadel_s3_noop 180 
+wisadel_s3_noen 180 
+wisadel_ult_full 240 
+wisadel_ult_noop 240 
+wisadel_ult_noen 240 
+suzuran_atk              peak   0.3%  mean(act)   0.0%  act  0.0s  dlum   0.1  enemy 22.8
+suzuran_s1               peak   0.4%  mean(act)   0.0%  act  0.0s  dlum   0.2  enemy 13.6
+suzuran_s2               peak   0.4%  mean(act)   0.0%  act  0.0s  dlum   0.5  enemy 12.2
+suzuran_s3               peak   0.6%  mean(act)   0.6%  act  0.4s  dlum   1.0  enemy 7.1
+suzuran_ult              peak  99.8%  mean(act)  27.7%  act  4.4s  dlum 119.1  enemy 91.9
+texas_atk                peak   0.7%  mean(act)   0.6%  act  1.7s  dlum   0.4  enemy 22.2
+texas_s1                 peak   0.7%  mean(act)   0.6%  act  1.5s  dlum   0.4  enemy 28.3
+texas_s2                 peak   0.7%  mean(act)   0.6%  act  1.0s  dlum   0.5  enemy 22.7
+texas_s3                 peak   0.5%  mean(act)   0.5%  act  0.0s  dlum   0.4  enemy 23.4
+texas_ult                peak  99.7%  mean(act)  16.1%  act  5.0s  dlum 118.0  enemy 84.2
+ulpianus_atk             peak   0.8%  mean(act)   0.6%  act  0.8s  dlum   0.6  enemy 26.3
+ulpianus_s1              peak   0.8%  mean(act)   0.7%  act  0.6s  dlum   0.4  enemy 26.7
+ulpianus_s2              peak   0.6%  mean(act)   0.6%  act  0.6s  dlum   0.4  enemy 22.0
+ulpianus_s3              peak   1.4%  mean(act)   0.7%  act  2.5s  dlum   1.4  enemy 33.0
+ulpianus_ult             peak  99.9%  mean(act)  18.9%  act  4.5s  dlum 113.8  enemy 84.9
+wisadel_atk              peak   0.9%  mean(act)   0.6%  act  2.3s  dlum   0.1  enemy 40.3
+wisadel_s1               peak   0.9%  mean(act)   0.6%  act  2.6s  dlum   0.2  enemy 41.7
+wisadel_s2               peak   1.0%  mean(act)   0.6%  act  2.7s  dlum   0.3  enemy 39.2
+wisadel_s3               peak   2.3%  mean(act)   1.9%  act  5.0s  dlum   0.8  enemy 49.3
+wisadel_ult              peak  99.8%  mean(act)  17.9%  act  6.2s  dlum 120.5  enemy 86.1
+media：0 个文件，4.0K

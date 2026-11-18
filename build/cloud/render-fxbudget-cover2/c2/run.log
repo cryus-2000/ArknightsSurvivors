@@ -1,0 +1,84 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4936 项）
+render_prep 完成，用时 3 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+logos_atk_full 180 
+logos_atk_noop 180 
+logos_atk_noen 180 
+logos_s1_full 180 
+logos_s1_noop 180 
+logos_s1_noen 180 
+logos_s2_full 180 
+logos_s2_noop 180 
+logos_s2_noen 180 
+logos_s3_full 180 
+logos_s3_noop 180 
+logos_s3_noen 180 
+logos_ult_full 240 
+logos_ult_noop 240 
+logos_ult_noen 240 
+lumen_atk_full 180 
+lumen_atk_noop 180 
+lumen_atk_noen 180 
+lumen_s1_full 180 
+lumen_s1_noop 180 
+lumen_s1_noen 180 
+lumen_s2_full 180 
+lumen_s2_noop 180 
+lumen_s2_noen 180 
+lumen_s3_full 180 
+lumen_s3_noop 180 
+lumen_s3_noen 180 
+lumen_ult_full 240 
+lumen_ult_noop 240 
+lumen_ult_noen 240 
+mizuki_atk_full 180 
+mizuki_atk_noop 180 
+mizuki_atk_noen 180 
+mizuki_s1_full 180 
+mizuki_s1_noop 180 
+mizuki_s1_noen 180 
+mizuki_s2_full 180 
+mizuki_s2_noop 180 
+mizuki_s2_noen 180 
+mizuki_s3_full 180 
+mizuki_s3_noop 180 
+mizuki_s3_noen 180 
+mizuki_ult_full 240 
+mizuki_ult_noop 240 
+mizuki_ult_noen 240 
+saria_atk_full 180 
+saria_atk_noop 180 
+saria_atk_noen 180 
+saria_s1_full 180 
+saria_s1_noop 180 
+saria_s1_noen 180 
+saria_s2_full 180 
+saria_s2_noop 180 
+saria_s2_noen 180 
+saria_s3_full 180 
+saria_s3_noop 180 
+saria_s3_noen 180 
+saria_ult_full 240 
+saria_ult_noop 240 
+saria_ult_noen 240 
+logos_atk                peak   0.3%  mean(act)   0.0%  act  0.0s  dlum   0.2  enemy 12.5
+logos_s1                 peak   0.4%  mean(act)   0.0%  act  0.0s  dlum   0.3  enemy 17.0
+logos_s2                 peak   0.3%  mean(act)   0.0%  act  0.0s  dlum   0.2  enemy 6.2
+logos_s3                 peak   2.0%  mean(act)   1.7%  act  5.3s  dlum   0.9  enemy 40.9
+logos_ult                peak  99.8%  mean(act)  23.1%  act  3.2s  dlum 122.2  enemy 93.1
+lumen_atk                peak   0.3%  mean(act)   0.0%  act  0.0s  dlum   0.2  enemy 11.1
+lumen_s1                 peak   0.3%  mean(act)   0.0%  act  0.0s  dlum   0.3  enemy 4.5
+lumen_s2                 peak   0.5%  mean(act)   0.0%  act  0.0s  dlum   0.6  enemy 4.2
+lumen_s3                 peak   0.3%  mean(act)   0.0%  act  0.0s  dlum   0.4  enemy 14.1
+lumen_ult                peak  53.4%  mean(act)  11.7%  act  5.9s  dlum  14.2  enemy 91.8
+mizuki_atk               peak   0.6%  mean(act)   0.5%  act  0.3s  dlum   0.3  enemy 11.5
+mizuki_s1                peak   1.0%  mean(act)   0.7%  act  1.0s  dlum   0.7  enemy 29.0
+mizuki_s2                peak   0.5%  mean(act)   0.5%  act  0.1s  dlum   0.3  enemy 29.8
+mizuki_s3                peak   1.3%  mean(act)   0.9%  act  2.4s  dlum   0.6  enemy 28.0
+mizuki_ult               peak  99.8%  mean(act)  18.9%  act  4.3s  dlum 120.7  enemy 93.4
+saria_atk                peak   0.3%  mean(act)   0.0%  act  0.0s  dlum   0.2  enemy 15.3
+saria_s1                 peak   0.3%  mean(act)   0.0%  act  0.0s  dlum   0.1  enemy 21.6
+saria_s2                 peak   0.2%  mean(act)   0.0%  act  0.0s  dlum   0.2  enemy 22.5
+saria_s3                 peak   0.4%  mean(act)   0.0%  act  0.0s  dlum   0.2  enemy 24.8
+saria_ult                peak  98.3%  mean(act)  25.5%  act  5.0s  dlum  75.3  enemy 90.2
+media：0 个文件，4.0K

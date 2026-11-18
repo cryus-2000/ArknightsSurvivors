@@ -1,0 +1,84 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4936 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+angelina_atk_full 180 
+angelina_atk_noop 180 
+angelina_atk_noen 180 
+angelina_s1_full 180 
+angelina_s1_noop 180 
+angelina_s1_noen 180 
+angelina_s2_full 180 
+angelina_s2_noop 180 
+angelina_s2_noen 180 
+angelina_s3_full 180 
+angelina_s3_noop 180 
+angelina_s3_noen 180 
+angelina_ult_full 240 
+angelina_ult_noop 240 
+angelina_ult_noen 240 
+exusiai_atk_full 180 
+exusiai_atk_noop 180 
+exusiai_atk_noen 180 
+exusiai_s1_full 180 
+exusiai_s1_noop 180 
+exusiai_s1_noen 180 
+exusiai_s2_full 180 
+exusiai_s2_noop 180 
+exusiai_s2_noen 180 
+exusiai_s3_full 180 
+exusiai_s3_noop 180 
+exusiai_s3_noen 180 
+exusiai_ult_full 240 
+exusiai_ult_noop 240 
+exusiai_ult_noen 240 
+eyjafjalla_atk_full 180 
+eyjafjalla_atk_noop 180 
+eyjafjalla_atk_noen 180 
+eyjafjalla_s1_full 180 
+eyjafjalla_s1_noop 180 
+eyjafjalla_s1_noen 180 
+eyjafjalla_s2_full 180 
+eyjafjalla_s2_noop 180 
+eyjafjalla_s2_noen 180 
+eyjafjalla_s3_full 180 
+eyjafjalla_s3_noop 180 
+eyjafjalla_s3_noen 180 
+eyjafjalla_ult_full 240 
+eyjafjalla_ult_noop 240 
+eyjafjalla_ult_noen 240 
+gladiia_atk_full 180 
+gladiia_atk_noop 180 
+gladiia_atk_noen 180 
+gladiia_s1_full 180 
+gladiia_s1_noop 180 
+gladiia_s1_noen 180 
+gladiia_s2_full 180 
+gladiia_s2_noop 180 
+gladiia_s2_noen 180 
+gladiia_s3_full 180 
+gladiia_s3_noop 180 
+gladiia_s3_noen 180 
+gladiia_ult_full 240 
+gladiia_ult_noop 240 
+gladiia_ult_noen 240 
+angelina_atk             peak   0.5%  mean(act)   0.0%  act  0.0s  dlum   0.4  enemy 29.8
+angelina_s1              peak   0.7%  mean(act)   0.6%  act  0.7s  dlum   0.5  enemy 33.6
+angelina_s2              peak   0.4%  mean(act)   0.0%  act  0.0s  dlum   0.4  enemy 6.2
+angelina_s3              peak   0.8%  mean(act)   0.6%  act  1.4s  dlum   0.5  enemy 37.1
+angelina_ult             peak  99.8%  mean(act)  16.1%  act  5.4s  dlum 119.8  enemy 92.8
+exusiai_atk              peak   0.2%  mean(act)   0.0%  act  0.0s  dlum   0.2  enemy 8.6
+exusiai_s1               peak   0.3%  mean(act)   0.0%  act  0.0s  dlum   0.2  enemy 19.4
+exusiai_s2               peak   0.2%  mean(act)   0.0%  act  0.0s  dlum   0.2  enemy 26.5
+exusiai_s3               peak   0.3%  mean(act)   0.0%  act  0.0s  dlum   0.2  enemy 29.1
+exusiai_ult              peak  99.7%  mean(act)  18.4%  act  4.0s  dlum 120.5  enemy 90.1
+eyjafjalla_atk           peak   0.7%  mean(act)   0.6%  act  1.9s  dlum   0.5  enemy 16.3
+eyjafjalla_s1            peak   1.4%  mean(act)   1.0%  act  2.2s  dlum   1.1  enemy 37.7
+eyjafjalla_s2            peak   0.9%  mean(act)   0.7%  act  1.7s  dlum   0.6  enemy 27.6
+eyjafjalla_s3            peak   1.2%  mean(act)   0.8%  act  3.4s  dlum   0.6  enemy 41.7
+eyjafjalla_ult           peak  99.6%  mean(act)  16.8%  act  5.8s  dlum 114.1  enemy 92.6
+gladiia_atk              peak   0.5%  mean(act)   0.5%  act  0.1s  dlum   0.3  enemy 23.9
+gladiia_s1               peak   0.7%  mean(act)   0.6%  act  0.6s  dlum   0.4  enemy 37.6
+gladiia_s2               peak   0.5%  mean(act)   0.5%  act  0.2s  dlum   0.4  enemy 29.0
+gladiia_s3               peak   0.5%  mean(act)   0.0%  act  0.0s  dlum   0.3  enemy 43.2
+gladiia_ult              peak  99.3%  mean(act)  20.3%  act  3.9s  dlum 120.9  enemy 84.8
+media：0 个文件，4.0K

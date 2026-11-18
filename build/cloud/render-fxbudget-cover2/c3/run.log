@@ -1,0 +1,84 @@
+预装镜像（godot 4.7.2; cache from claude/integ-1105 Thu Nov  5 02:21:10 UTC 2026）：跳过 apt / pip
+index.json 已生成（4936 项）
+render_prep 完成，用时 2 秒：GODOT=/usr/local/bin/godot-gl DISPLAY=:99 字体=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+siege_atk_full 180 
+siege_atk_noop 180 
+siege_atk_noen 180 
+siege_s1_full 180 
+siege_s1_noop 180 
+siege_s1_noen 180 
+siege_s2_full 180 
+siege_s2_noop 180 
+siege_s2_noen 180 
+siege_s3_full 180 
+siege_s3_noop 180 
+siege_s3_noen 180 
+siege_ult_full 240 
+siege_ult_noop 240 
+siege_ult_noen 240 
+skadi_atk_full 180 
+skadi_atk_noop 180 
+skadi_atk_noen 180 
+skadi_s1_full 180 
+skadi_s1_noop 180 
+skadi_s1_noen 180 
+skadi_s2_full 180 
+skadi_s2_noop 180 
+skadi_s2_noen 180 
+skadi_s3_full 180 
+skadi_s3_noop 180 
+skadi_s3_noen 180 
+skadi_ult_full 240 
+skadi_ult_noop 240 
+skadi_ult_noen 240 
+skalter_atk_full 180 
+skalter_atk_noop 180 
+skalter_atk_noen 180 
+skalter_s1_full 180 
+skalter_s1_noop 180 
+skalter_s1_noen 180 
+skalter_s2_full 180 
+skalter_s2_noop 180 
+skalter_s2_noen 180 
+skalter_s3_full 180 
+skalter_s3_noop 180 
+skalter_s3_noen 180 
+skalter_ult_full 240 
+skalter_ult_noop 240 
+skalter_ult_noen 240 
+specter_unchained_atk_full 180 
+specter_unchained_atk_noop 180 
+specter_unchained_atk_noen 180 
+specter_unchained_s1_full 180 
+specter_unchained_s1_noop 180 
+specter_unchained_s1_noen 180 
+specter_unchained_s2_full 180 
+specter_unchained_s2_noop 180 
+specter_unchained_s2_noen 180 
+specter_unchained_s3_full 180 
+specter_unchained_s3_noop 180 
+specter_unchained_s3_noen 180 
+specter_unchained_ult_full 240 
+specter_unchained_ult_noop 240 
+specter_unchained_ult_noen 240 
+siege_atk                peak   0.9%  mean(act)   0.7%  act  1.9s  dlum   0.7  enemy 17.5
+siege_s1                 peak   0.8%  mean(act)   0.7%  act  1.5s  dlum   0.7  enemy 23.7
+siege_s2                 peak   1.4%  mean(act)   0.8%  act  2.0s  dlum   1.0  enemy 26.1
+siege_s3                 peak   0.9%  mean(act)   0.7%  act  1.3s  dlum   0.8  enemy 16.3
+siege_ult                peak  99.7%  mean(act)  18.7%  act  4.7s  dlum  92.5  enemy 82.8
+skadi_atk                peak   1.1%  mean(act)   0.7%  act  3.4s  dlum   0.7  enemy 39.7
+skadi_s1                 peak   0.9%  mean(act)   0.7%  act  3.3s  dlum   0.5  enemy 37.2
+skadi_s2                 peak   1.4%  mean(act)   0.8%  act  3.7s  dlum   1.6  enemy 37.8
+skadi_s3                 peak   1.0%  mean(act)   0.8%  act  4.5s  dlum   0.7  enemy 40.1
+skadi_ult                peak  99.3%  mean(act)  14.5%  act  5.4s  dlum 113.8  enemy 83.7
+skalter_atk              peak   1.4%  mean(act)   0.8%  act  5.8s  dlum   1.1  enemy 6.1
+skalter_s1               peak   1.3%  mean(act)   0.8%  act  5.8s  dlum   1.3  enemy 6.0
+skalter_s2               peak   1.3%  mean(act)   0.8%  act  5.2s  dlum   1.2  enemy 3.1
+skalter_s3               peak   3.4%  mean(act)   1.1%  act  5.8s  dlum   2.2  enemy 21.2
+skalter_ult              peak  99.5%  mean(act)  11.7%  act  7.8s  dlum 120.7  enemy 92.1
+specter_unchained_atk    peak   0.9%  mean(act)   0.6%  act  1.9s  dlum   0.7  enemy 39.4
+specter_unchained_s1     peak   1.3%  mean(act)   0.8%  act  2.5s  dlum   0.9  enemy 39.9
+specter_unchained_s2     peak   0.9%  mean(act)   0.7%  act  2.4s  dlum   0.7  enemy 41.9
+specter_unchained_s3     peak   1.3%  mean(act)   0.9%  act  1.1s  dlum   0.7  enemy 26.7
+specter_unchained_ult    peak  99.8%  mean(act)  11.3%  act  6.6s  dlum 100.7  enemy 81.9
+media：0 个文件，4.0K
