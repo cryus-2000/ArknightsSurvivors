@@ -281,9 +281,7 @@ def main():
     src = json.load(open(os.path.join(TRIAL, "cfg", rig["src"]), encoding="utf-8"))
     out_root = os.path.join(COMMON, "build", "spine_px", a.id)
     os.makedirs(out_root, exist_ok=True)
-    size = spec.get("canvas", 192)
-    pad = (size - 128) // 2
-    origin = (64 + pad, 120 + pad)
+    size_all = spec.get("canvas", 192)
 
     pal = os.path.join(out_root, "palette.png")
     # palette_protect：bz_18 的眼 / 嘴附件补色（缺省开）。令关掉：19 个眼眉睫附件多出 94 色，刘海阴影映射成粉色带（docs/365 §2）
@@ -316,11 +314,15 @@ def main():
 
     def render(name, act, dens):
         """dens 2 = @2x（画布 size）；dens 1 = @1x：同一 Spine 按 0.5 倍逐附件像素化（同 make_op_1x.py ① 路），
-        在 size 画布里出完再按原点裁成 size/2 画布（原点 = @2x 原点 / 2，即 1x foot）"""
+        在 size 画布里出完再按原点裁成 size/2 画布（原点 = @2x 原点 / 2，即 1x foot）。
+        动作可写 canvas（如 256）单独放大画布：原点仍按 (64,120) 相对中心平移，1x foot = (canvas/4, canvas/4 + 28)"""
+        size = act.get("canvas", size_all)
+        pad = (size - 128) // 2
+        origin = (64 + pad, 120 + pad)
         c = dict(rig)
         for k in ("sample", "keys", "poses"):
             c.pop(k, None)
-        c.update({k: v for k, v in act.items() if k not in ("durations", "fps", "fix", "note", "eye_frames", "eyes", "eye_keys", "dens", "mouth", "mouth_ref", "fire", "eye_skip")})
+        c.update({k: v for k, v in act.items() if k not in ("durations", "fps", "fix", "note", "eye_frames", "eyes", "eye_keys", "dens", "mouth", "mouth_ref", "fire", "eye_skip", "canvas")})
         c["pack"] = dict(rig["pack"], palette_png=pal, scale=spec["scale"])
         c["canvas"] = size
         c["action"] = name

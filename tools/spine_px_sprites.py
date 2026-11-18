@@ -18,7 +18,7 @@ CFG = os.path.join(ROOT, "tools", "spine_run_trial", "cfg")
 def main(ids):
     owner = ids[0]
     out = {"_doc": "%s 帧条规格草稿（B 方案，docs/365 照做）：接入时并进 game/data/characters/%s.json 的 sprites；现在游戏不读这个文件。"
-                   "192 画布 @2x / 96 画布 @1x，foot = 1x 原点 [48,76]；frame_durations 为原作时长（按 docs/335 出手对时缩放），fire 按原作 OnAttack 事件" % (owner, owner)}
+                   "192 画布 @2x / 96 画布 @1x，foot = 1x 原点 [48,76]（个别动作 256 画布，foot [64,92]）；frame_durations 为原作时长（按 docs/335 出手对时缩放），fire 按原作 OnAttack 事件" % (owner, owner)}
     for oid in ids:
         spec = json.load(open(os.path.join(CFG, "%s_px.json" % oid), encoding="utf-8"))
         summ = json.load(open(os.path.join(_GR.common_root(), "build", "spine_px", oid, "summary.json"), encoding="utf-8"))
@@ -28,7 +28,8 @@ def main(ids):
             s = summ.get(name) or summ.get(name + "@1x")
             if not s:
                 continue
-            e = {"tex": "%s_%s" % (prefix, name), "frames": s["frames"], "fps": s["fps"], "foot": [48, 76], "frame_durations": s["durations"]}
+            c2 = s["canvas"] * (1 if name in summ else 2)   # @2x 画布（192 → foot [48,76]，256 → [64,92]）
+            e = {"tex": "%s_%s" % (prefix, name), "frames": s["frames"], "fps": s["fps"], "foot": [c2 // 4, c2 // 4 + 28], "frame_durations": s["durations"]}
             if "fire" in act:
                 e["fire"] = act["fire"]
             if name + "@1x" in summ and name not in summ:
