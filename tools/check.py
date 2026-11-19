@@ -1019,8 +1019,8 @@ def check_blocks_eq(godot):
 
     def one(j):
         gid, name, extra = j
-        # 11-19 召唤物持续索敌（balance summon/hunt）是金样之后的新行为，手写参照没有：等价比较一律固定旧行为（凯尔希及带她当队友的组）
-        out, err, to, log = _run(godot_args(godot, extra + ["--bal=summon/hunt=0"]), 300, "blocks_eq_%s_%s" % (gid, name.split()[0]))
+        # 11-19 召唤物持续索敌（summon/hunt）与跟随小队指令（summon/cmd）是金样之后的新行为，手写参照没有：等价比较一律固定旧行为（凯尔希及带她当队友的组）
+        out, err, to, log = _run(godot_args(godot, extra + ["--bal=summon/hunt=0", "--bal=summon/cmd=0"]), 300, "blocks_eq_%s_%s" % (gid, name.split()[0]))
         return j, out, err, to, log
     with ThreadPoolExecutor(max(1, len(jobs))) as ex:   # 并发由 GATE 管（≤ --jobs），这里只负责一起排队
         res = list(ex.map(one, jobs))

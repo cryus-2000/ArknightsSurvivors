@@ -1449,5 +1449,5 @@
   "support_follow": 1,
   "support_bvid": "BV1H3Wz6rEAb"
  },
- "summon": {"_doc": "召唤物持续索敌（11-19 用户：杀一个就往回走又锁新目标导致折返跑；ob_summon _hunt_on）：1 = 换目标取离召唤物自己最近的（限锚点 leash 内、Boss 优先照旧）、没目标原地等 hunt_hold 秒再回站位；0 = 旧行为（blocks_eq 凯尔希组固定 0）", "hunt": 1, "hunt_hold": 0.8}
+ "summon": {"_doc": "召唤物持续索敌（11-19 用户：杀一个就往回走又锁新目标导致折返跑；ob_summon _hunt_on）：1 = 换目标取离召唤物自己最近的（限锚点 leash 内、Boss 优先照旧）、没目标原地等 hunt_hold 秒再回站位；0 = 旧行为（blocks_eq 凯尔希组固定 0）", "hunt": 1, "hunt_hold": 0.8, "_cmd_doc": "跟随小队指令（docs/367 §11.2，11-19 用户定）：1 = 突击时锚点换成主人（leash × cmd_roam_k，优先主人的目标）、部署时锚点 = 部署点、主人残血撤回时 leash × cmd_recall_k、集火时一律扑集火目标（队长的召唤物也算）；0 = 一律按 move.anchor", "cmd": 1, "cmd_roam_k": 1.3, "cmd_recall_k": 0.5}
 }
