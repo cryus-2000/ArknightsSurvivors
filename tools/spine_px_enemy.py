@@ -85,8 +85,17 @@ def times(a):
     return [round(d * k / (n if a["loop"] else n - 1), 4) for k in range(n)] if a["loop"] else [round(min(d * k / (n - 1), d - 0.001), 4) for k in range(n)]
 
 
+# 处理方式候选（11-20 用户：先给躯壳 / 意志各出几种，选定再批量）：A = 现行（ENEMIES 表），其余在 A 上覆盖
+VARIANTS = {
+    "A": {"_doc": "现行：64 色（意志 96）+ 外描边（#0a1418，混 55%）"},
+    "B": {"outline": None, "lift": 0.8, "_doc": "无外描边 + 提亮暗部（明度 v^0.8）：更接近原作的亮度，只留原作线稿"},
+    "C": {"colors": 24, "outline": {"color": "#0a1418", "mix": 1.0}, "_doc": "少色平涂：24 色（暗面并块）+ 纯色硬外描边，更像手绘像素"},
+}
+SUFFIX = ""   # --variant 时 = "_v<名>"，帧条与规格写到候选目录，不进 game/
+
+
 def write_cfg(eid, e):
-    k = "sami_" + eid
+    k = "sami_" + eid + SUFFIX
     raw = os.path.join(RAW, e["src"])
     meta = json.load(open(os.path.join(raw, "meta.json"), encoding="utf-8"))
     base = os.path.join(raw, os.path.basename(meta["file"])).replace("\\", "/")
@@ -100,7 +109,7 @@ def write_cfg(eid, e):
         acts[name] = {"sample": {"anim": a["anim"], "times": t}, "durations": durs(a, t)}
     px = {"id": k, "rig": k + ".json", "tex_prefix": "e_" + k, "scale": e["scale"], "canvas": e["canvas"], "dens": [2, 1],
           "colors": e.get("colors", 64), "palette_alpha": 230, "palette_protect": False,
-          "outline": {"color": "#0a1418", "mix": 0.55}, "actions": acts, "keep_colors": e.get("keep", []),
+          "outline": e["outline"] if "outline" in e else {"color": "#0a1418", "mix": 0.55}, "actions": acts, "keep_colors": e.get("keep", []),
           "_doc": "tools/spine_px_enemy.py 生成，别手改；改 ENEMIES 表再跑"}
     json.dump(px, open(os.path.join(CFG, k + "_px.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 
@@ -202,7 +211,7 @@ def post_drone(outs, w, h):
 
 def finish(eid, e):
     """大画布帧条 → 紧框运行时帧条 + 规格"""
-    k = "sami_" + eid
+    k = "sami_" + eid + SUFFIX
     sd = os.path.join(COMMON, "build", "spine_px", k, "strips")
     size = e["canvas"]
     pad = (size - 128) // 2
@@ -237,6 +246,18 @@ def finish(eid, e):
         outs[name] = (o2, o1)
     if e.get("post"):
         globals()[e["post"]](outs, w, h)
+    if e.get("lift"):
+        import colorsys
+        for o2, o1 in outs.values():
+            for im in (o2, o1):
+                px = im.load()
+                for y in range(im.height):
+                    for x in range(im.width):
+                        r, g, b, al = px[x, y]
+                        if al:
+                            hh, ss, vv = colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)
+                            r2, g2, b2 = colorsys.hsv_to_rgb(hh, ss, vv ** e["lift"])
+                            px[x, y] = (round(r2 * 255), round(g2 * 255), round(b2 * 255), al)
     os.makedirs(CMP1X, exist_ok=True)
     for name, fr in strips.items():
         key = "e_" + k if name == "idle" else "e_%s_%s" % (k, name)
@@ -269,7 +290,14 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("ids", nargs="*")
     ap.add_argument("--no-render", action="store_true")
+    ap.add_argument("--variant", help="处理方式候选（VARIANTS 键）：帧条写到 --out，不进 game/、不改规格文件")
+    ap.add_argument("--out", help="候选输出目录")
     a = ap.parse_args()
+    global SUFFIX, DST, CMP1X
+    if a.variant:
+        SUFFIX = "_v" + a.variant
+        DST = CMP1X = os.path.join(a.out, a.variant)
+        os.makedirs(DST, exist_ok=True)
     ids = a.ids or list(ENEMIES)
     ids.sort(key=lambda i: 1 if ENEMIES[i].get("eyes_from") else 0)   # 借眼的排在被借的后面
     old = json.load(open(SPEC_OUT, encoding="utf-8")) if os.path.exists(SPEC_OUT) else {}
@@ -278,14 +306,19 @@ def main():
     old.setdefault("sprites", {})
     old.setdefault("enemies", {})
     for eid in ids:
-        e = ENEMIES[eid]
+        e = dict(ENEMIES[eid])
+        if a.variant:
+            e.update({kk: vv for kk, vv in VARIANTS[a.variant].items() if not kk.startswith("_")})
         if not a.no_render:
             write_cfg(eid, e)
-            r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "spine_px.py"), "sami_" + eid], capture_output=True, text=True, encoding="utf-8", errors="replace")
+            r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "spine_px.py"), "sami_" + eid + SUFFIX], capture_output=True, text=True, encoding="utf-8", errors="replace")
             if r.returncode != 0:
                 print(eid, "失败", r.stdout[-1500:], r.stderr[-1500:])
                 continue
         spec, info = finish(eid, e)
+        if a.variant:
+            json.dump({"spec": spec, "info": info}, open(os.path.join(DST, eid + "_spec.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+            continue
         for kk in [x for x in old["sprites"] if x == "e_sami_" + eid or x.startswith("e_sami_%s_" % eid)]:
             del old["sprites"][kk]
         old["sprites"].update(spec)

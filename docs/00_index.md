@@ -275,7 +275,7 @@
 | [306_boss_danmaku_touhou_1107](306_boss_danmaku_touhou_1107.md) | Boss 弹幕东方化：样板、对比与进游戏（11-07；§8 已做进游戏，render/danmaku_v2 缺省开） | 现行 | Boss 弹体东方化（圆弹三档 + 米弹 + 针弹、每 Boss 专属色），中期 Boss 为重点，GCP 同帧实机对比 + 运行时生成、包体 0。 |
 | [ea_ishar_20260927](ea_ishar_20260927.md) | 伊莎玛拉人形治疗与敌对转化（2026-09-27） | 旧稿（仍被引用） | docs/38 §8.6、95 |
 | [warn_v2_1105](warn_v2_1105.md) | 普通怪预警：固定红边与内部计时扫线（11-05 修订 5） | 进行中 | `render/warn_v2` 默认关，普通怪细边与最后 0.3 秒信号，精英/Boss 保持原画法；截图与云端验收说明。 |
-| [399_sami_enemy_ref_1119](399_sami_enemy_ref_1119.md) | 萨米主题敌人 / Boss 原作素材清单与像素帧条（11-19 / 11-20） | 记录 | 10 个对象 Spine（torappu enemy_spine 路径，含借用的雪怪小队破冰者）+ 图鉴头像 + 配色参考在 build/；11-20 直转成像素帧条进 game/art/enemies/sami/（§5，tools/spine_px_enemy.py），规格在 cfg/sami_enemies_sprites.json 等主题开关接入；积雪银凇无 Spine、国度无模型；原编号 392 与萨米设计稿撞号改 399 |
+| [399_sami_enemy_ref_1119](399_sami_enemy_ref_1119.md) | 萨米主题敌人 / Boss 原作素材清单与像素帧条（11-19 / 11-20） | 记录 | 10 个对象 Spine（torappu enemy_spine 路径，含借用的雪怪小队破冰者）+ 图鉴头像 + 配色参考在 build/；11-20 直转成像素帧条进 game/art/enemies/sami/（§5，tools/spine_px_enemy.py），规格在 cfg/sami_enemies_sprites.json 等主题开关接入；积雪银凇无 Spine、国度无模型；§6 全量 27 个对象清单（原作编号 / 动作 / 体型档 / 样例或全量 / 工作量，素材在 F:\ArknightsSurvivors_build）、§7 处理方式候选 A / B / C 待用户选；原编号 392 与萨米设计稿撞号改 399 |
 
 ### 事件与结局
 

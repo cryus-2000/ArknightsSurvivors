@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""萨米敌人三列对照图（docs/399 §3）：原作参照 / 像素 @1x（×4）/ 像素 @2x（×2），每动作一行取关键帧（出手帧 / 中间帧）；--overview 再拼总览。
+"""萨米敌人三列对照图（docs/399 §5）：原作参照 / 像素 @1x（×4）/ 像素 @2x（×2），每动作一行取关键帧（出手帧 / 中间帧）；--overview 再拼总览。
 
     python tools/spine_px_enemy_cmp.py              # 全部，出 build/spine_px/_sami_cmp/<id>_cmp.png + sami_overview.png
     python tools/spine_px_enemy_cmp.py husk will
@@ -162,7 +162,74 @@ def overview(sheets):
     print(p, img.size)
 
 
-if __name__ == "__main__":
+def variants(out_dir, eids=("husk", "will"), acts={"husk": ("idle", "attack", "death"), "will": ("idle", "sigh")}):
+    """处理方式候选对照（11-20）：每只敌人一张，行 = 候选 × 动作，列 = 原作 / @1x ×4 / @2x ×2；再并成 sami_variants_overview.png
+    候选帧条由 spine_px_enemy.py --variant <名> --out <out_dir> 出"""
+    sheets = []
+    for eid in eids:
+        e = SE.ENEMIES[eid]
+        rows = []
+        for v in SE.VARIANTS:
+            vd = os.path.join(out_dir, v)
+            sj = json.load(open(os.path.join(vd, eid + "_spec.json"), encoding="utf-8"))
+            k = "sami_%s_v%s" % (eid, v)
+            for name in acts[eid]:
+                key = "e_" + k if name == "idle" else "e_%s_%s" % (k, name)
+                sp = sj["spec"][key]
+                w, h = sp["pixels"]["frame_size"]
+                fi = key_frame(name, sp["pixels"]["frames"], sp["redraw"]["event_frames"])
+                f2 = Image.open(os.path.join(vd, key + "@2x.png")).convert("RGBA").crop((w * fi, 0, w * (fi + 1), h))
+                f1 = Image.open(os.path.join(vd, key + ".png")).convert("RGBA").crop((w // 2 * fi, 0, w // 2 * (fi + 1), h // 2))
+                rows.append((v, name, e["acts"][name]["anim"], sp["redraw"]["sample_times"][fi], f1, f2, (w, h)))
+        uniq = {}
+        for v, name, anim, t, *_ in rows:
+            uniq[name] = (anim, t)
+        refs = ref_frames(eid, e, [(n, a, t) for n, (a, t) in uniq.items()])
+        bb = [r.getbbox() for r in refs.values() if r.getbbox()]
+        u = (min(b[0] for b in bb), min(b[1] for b in bb), max(b[2] for b in bb), max(b[3] for b in bb))
+        w, h = rows[0][6]
+        cw, ch = w * 2, h * 2
+        sc = min(cw / (u[2] - u[0]), ch / (u[3] - u[1]))
+        colw, head, rh = max(cw + 24, 230), 120, ch + 30
+        img = Image.new("RGBA", (max(190 + colw * 3, 760), head + rh * len(rows) + 10), BG)
+        dr = ImageDraw.Draw(img)
+        dr.text((12, 8), "%s  %s  处理方式候选" % (e["name"], eid), font=FONT, fill=(255, 235, 150, 255))
+        for n, v in enumerate(SE.VARIANTS):
+            dr.text((12, 34 + 18 * n), "%s：%s" % (v, SE.VARIANTS[v]["_doc"]), font=FONT_S, fill=(200, 210, 225, 255))
+        for c, lab in enumerate(["原作参照", "像素 @1x（×4）", "像素 @2x（×2）"]):
+            dr.text((190 + colw * c + 6, head - 20), lab, font=FONT_S, fill=(170, 220, 255, 255))
+        last = None
+        for r, (v, name, anim, t, f1, f2, _) in enumerate(rows):
+            y = head + rh * r
+            if v != last:
+                dr.line((0, y, img.width, y), fill=(255, 235, 150, 255), width=2)
+                last = v
+            dr.text((10, y + 8), "候选 %s" % v, font=FONT, fill=(255, 235, 150, 255))
+            dr.text((10, y + 36), "%s · %s t=%.2fs" % (name, anim, t), font=FONT_S, fill=(200, 205, 215, 255))
+            ref = refs[name].crop(u)
+            ref = ref.resize((max(1, round(ref.width * sc)), max(1, round(ref.height * sc))), Image.LANCZOS)
+            img.alpha_composite(ref, (190 + 6 + (cw - ref.width) // 2, y + 8 + (ch - ref.height)))
+            img.alpha_composite(f1.resize((f1.width * 4, f1.height * 4), Image.NEAREST), (190 + colw + 6, y + 8))
+            img.alpha_composite(f2.resize((f2.width * 2, f2.height * 2), Image.NEAREST), (190 + colw * 2 + 6, y + 8))
+        p = os.path.join(out_dir, "%s_variants.png" % eid)
+        img.save(p)
+        print(p, img.size, flush=True)
+        sheets.append(img)
+    W = sum(s.width for s in sheets) + 12 * (len(sheets) + 1)
+    H = max(s.height for s in sheets) + 24
+    ov = Image.new("RGBA", (W, H), (28, 32, 42, 255))
+    x = 12
+    for s in sheets:
+        ov.alpha_composite(s, (x, 12))
+        x += s.width + 12
+    p = os.path.join(out_dir, "sami_variants_overview.png")
+    ov.save(p)
+    print(p, ov.size)
+
+
+if __name__ == "__main__" and len(sys.argv) > 2 and sys.argv[1] == "--variants":
+    variants(sys.argv[2])
+elif __name__ == "__main__":
     ids = sys.argv[1:] or list(SE.ENEMIES)
     sheets = [one(i) for i in ids]
     if not sys.argv[1:]:
