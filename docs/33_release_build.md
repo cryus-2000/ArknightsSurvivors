@@ -354,3 +354,50 @@ ARK_NO_IMPORT_CACHE=1 python tools/ship.py ...   # 关掉导入缓存（对照�
 6. 小项：Windows 副本只解 game/ + tools/（art/、docs/ 约 560 MiB 不进包）；网页半分辨率贴图放子进程和音频步骤同时做；分片 gzip / LZMA 多进程并行（itch 与 Toy 的 index.wasm 相同，只压一次）；release_all 每步完整输出写 build/release/step_<步骤>.log。
 
 产物等价性（tools/compare_builds.py 对比新旧两次出包）：文件清单、各文件大小、index.wasm、zip 成员清单全部一致；pck 目录逐项 md5 只差 7 项，与「旧流程自己跑两次」的差异是同一类——3 个导出场景 .scn、uid_cache.bin、3 个子集字体（新旧字体只差 head 表修改时间，字形 / 度量 / 其余表逐字节相同）。Windows 加密包大小一致（加密内容每次不同，比不了字节）。Toy zip 49.78 MB（与旧流程相差 < 1 KB）。新网页包在本地浏览器能进标题、做新手寻访、进局，控制台无报错。改一张贴图 + 改一个 .import 参数的临时提交实测：只有这两个未命中、pck 里正好这两张 ctex 变了。
+
+## Toy 包 50 MB 线腾空间（11-19）
+
+上一版 Toy zip（c1e0c6c65）49.78 MB，新干员放不进。实测构成（zip 内压缩后，MB）：
+
+| 部分 | 大小 | 说明 |
+|---|---|---|
+| 配乐 music_*.m4a（出包，22 个文件） | 20.14 | 立体声 AAC-LC 约 37 kbps / 22 kHz，加层单声道 |
+| index.NN.pck（gzip 分片） | 23.46 | 下面各行是 pck 内各目录 |
+| └ art/fx（其中 pxp 7.2、_optical 0.7、@2x 1.5、@h 0.9） | 10.4 | |
+| └ audio/voice（20 人 × 约 12 条，全中文） | 3.0 | |
+| └ audio/sfx（QOA） | 2.7 | |
+| └ 脚本（源码去整行注释） | 2.2 | |
+| └ art/operators（只带 @1x） | 1.9 | |
+| └ 字体（子集 + WOFF2） | 1.5 | |
+| └ art/event_cg（有损 WebP） | 1.2 | |
+| └ data / 怪物 / 界面 / 其他 | 2.6 | |
+| index.NN.wasm（LZMA） | 6.74 | 引擎，固定 |
+| index.html / js / 图标 / 载入页 | 0.6 | |
+
+做了：
+- **Toy 配乐单独档**（`export_web.py --toy-music A|B|off`，tools/web_music.py TOY_TIERS）：全部单声道（手机本来就在 web_music.js 里混成单声道播），A = 码率 ×0.75（约 −5.4 MB），B = ×0.55 且 16 kHz（约 −9.2 MB）。全单声道后不另存偏执泡影 p1 的 _mono 副本（加载器写 `window.__SY_MUS_MONO = 1`，web_music.js 直接解 p1）。`--toy-out`（共用导入）时另编一份 Toy 档到 out_toy_music/，Toy 那次导出前换进 web_music.json；itch 包配乐不变。缺省 A，等用户试听定档。
+- 实测（main e257f0de6 + 本改动，A 档）：Toy zip **45.56 MB**（配乐 14.70、pck 24.28），toy_doctor 2 条已知警告。
+
+查过、没做：
+- 语音「只留战斗里播的」：代码里所有语音（entry / command / battle / skill / ult / lowhp / 羁绊）都在局内播，没有选人 / 图鉴语音，省不出来。若删部署 / 指挥台词变体（每池留 2 条）约 −0.8 MB，属内容取舍，待用户定。
+- `--toy-fx-half`（tools/web_half.py，缺省关，只支持单独 --toy）：特效 @2x 不进包、电脑 Toy 也读半分辨率，约 −1.5 MB，电脑端特效变糙，待用户点头。
+- 音效 Toy 降到 24 kHz：约 −0.65 MB，要试听。
+- pck 改 LZMA 分片：只省 0.9 MB，手机上 JS 解 33 MB LZMA 慢且占内存，不做。
+- _optical 目录是运行时光学特效（optical.gd 读），不是重复。
+
+每名新干员在 Toy 里实际约 0.8–1 MB（@1x 帧条 0.07–0.26、特效约 0.5、语音约 0.15、音效约 0.1；网页不带 @2x），比按仓库估的 1.5–2 MB 小。6 名新干员的 @1x 帧条已在 e257f0de6 的包里（+0.73 MB）。
+
+### 特效（pck 第二大头 10.4 MB）能安全省多少（11-19 只评估，未改）
+
+从 Toy 包 pck 里逐个取出 ctex 的 WebP 载荷实测：
+
+| 做法 | 估省 | 画面 | 结论 |
+|---|---|---|---|
+| **转平面帧条 pxp 透明像素底色清零**（2717 张）：现在每张 ctex 的 alpha=0 像素底下都带着 RGB，WebP 无损压不动；清零后重编 6.65 → 4.09 MB | **−2.6 MB** | 可见像素逐一相同；画布缺省最近邻采样（project.godot default_texture_filter=0），透明像素颜色看不到 | 推荐。做法：web_pxp_pack 写图时把 alpha=0 的 RGB 置 0，必要时 pxp 的 .import 设 process/fix_alpha_border=false（线性采样的只有前景海草、标题 logo 和几个界面 shader，不碰 fx）；改完要重导入一次 |
+| 其余特效 / 干员 / 界面同样清零 | −0.4 MB | 同上 | 可顺带做 |
+| `--toy-fx-half`：特效 @2x 不进包（电脑也读 @h） | −1.5 MB | 电脑端 Toy 特效变糙（与手机一样） | 要用户点头 |
+| 帧条改有损 WebP | 反而 +50%～+300% | — | 像素画平色 + 透明，有损 WebP 比无损大（q90 约 4 倍、q75 约 2.8 倍），不做 |
+| 低档帧条代替高档 | 0 | — | pxp 的 _gd / _up 是地面层与上层，两层都画；高低档重复只有斯卡蒂终结技（Toy 已只留半分辨率） |
+| _optical 目录 0.63 MB | 0 | — | 运行时光学特效在读，不是重复 |
+
+**已做（11-19 协调人批）**：pxp 透明底色不填（export_web.py pxp_no_alpha_border：art/fx/pxp 下 .import 设 fix_alpha_border=false，源 PNG 透明处本来就是 0）。itch 与 Toy 两个网页包都生效，可见像素不变。Toy zip 45.56 → **42.77 MB**（pck 里 art/fx 9.9 → 7.2 MiB），toy_doctor 2 条已知警告，core 通过。按每名新干员 0.8–1 MB 估，Toy 还能放约 7 名；按 1.5–2 MB 保守估约 3–4 名。
