@@ -399,3 +399,5 @@ ARK_NO_IMPORT_CACHE=1 python tools/ship.py ...   # 关掉导入缓存（对照�
 | 帧条改有损 WebP | 反而 +50%～+300% | — | 像素画平色 + 透明，有损 WebP 比无损大（q90 约 4 倍、q75 约 2.8 倍），不做 |
 | 低档帧条代替高档 | 0 | — | pxp 的 _gd / _up 是地面层与上层，两层都画；高低档重复只有斯卡蒂终结技（Toy 已只留半分辨率） |
 | _optical 目录 0.63 MB | 0 | — | 运行时光学特效在读，不是重复 |
+
+**已做（11-19 协调人批）**：pxp 透明底色不填（export_web.py pxp_no_alpha_border：art/fx/pxp 下 .import 设 fix_alpha_border=false，源 PNG 透明处本来就是 0）。itch 与 Toy 两个网页包都生效，可见像素不变。Toy zip 45.56 → **42.77 MB**（pck 里 art/fx 9.9 → 7.2 MiB），toy_doctor 2 条已知警告，core 通过。按每名新干员 0.8–1 MB 估，Toy 还能放约 7 名；按 1.5–2 MB 保守估约 3–4 名。
