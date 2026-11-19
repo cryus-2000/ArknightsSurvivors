@@ -52,6 +52,12 @@ static var _dbg: Dictionary = {}
 static var _dbg_read := false
 static var ab_every := -1          # --clutterab=N
 static var ab_alt := false         # 轮换中：true = 本帧按 0 档画
+## 切特效显示档（docs/398，Cfg.apply_fx_show）后清缓存，下一帧按新旋钮重算
+static func reset() -> void:
+	_lv = -1
+	_p = {}
+
+
 static func level() -> int:
 	if _lv < 0:
 		_lv = clampi(Bal.vi("render/declutter", 3), 0, PRESETS.size() - 1)

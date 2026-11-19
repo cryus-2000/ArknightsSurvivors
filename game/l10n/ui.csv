@@ -4732,3 +4732,8 @@ Esc 固定为暂停 / 返回,Esc is fixed to Pause / Back,Esc は一時停止 / 
 默认键位,Default Bindings,デフォルトキー設定,기본 키 설정,,原文键,模型,自译,自译
 探索用时 %s,Run Time %s,探索所要時間 %s,탐험 소요 시간 %s,,原文键,模型,自译,自译
 认知塑造 %d,Cognitive Shaping %d,認知形成 %d,인지 형성 %d,,原文键,模型,自译,自译
+ui.gd.settings_panel.074,Effects,エフェクト表示,이펙트 표시,特效显示,模型,,自译,自译
+ui.gd.settings_panel.075,Full,フル,전체,完整,模型,,自译,自译
+ui.gd.settings_panel.076,Reduced,軽量,간소,精简,模型,,自译,自译
+ui.gd.settings_panel.077,Minimal,最小,최소,最少,模型,,自译,自译
+ui.gd.settings_panel.078,Reduced and Minimal fade ally effects; Leader and danger warnings stay unchanged,軽量と最小は味方のエフェクトを薄くします。リーダーと危険予告は変わりません,간소와 최소는 아군 이펙트를 흐리게 합니다. 리더와 위험 예고는 그대로입니다,精简与最少会淡化队友特效，队长与危险预警不变,模型,,自译,自译

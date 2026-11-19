@@ -91,6 +91,8 @@ var iceab := 0                # --iceab=N：每 N 帧轮换骑士冰颗粒开 / 
 var grainab := 0              # --grainab=N：每 N 帧轮换刀光第四版（粒子）开 / 关（--perf 分 /g1 /g0）
 var shdemo_full_t := INF      # --shielddemo：护盾充满的时刻
 var bulfxab := 0              # --bulfxab=N：每 N 帧轮换子弹出现 / 消失画面开 / 关（render/bullet_fx.gd；--perf 分 /b1 /b0）
+var fxab := 0                 # --fxab=N（docs/398）：每 N 帧在「特效显示」完整档与当前档之间轮换（--perf 分 /fs0 /fsN 两桶量净差）
+var fx_alt := false
 var tierab := 0               # --tierab=N（docs/50 §25.3）：每 N 帧轮换命中三档 + 近战刀光开 / 关（只轮换 vfx.tier_off，fx/hit_tiers 开关已删）
 # --stackab=N:m1,m2,…（docs/50 §26）：每 N 帧换下一个掩码（optical.ab_mask：1 CPU 颗粒 / 2 GPU 粒子 / 4 特效照明 / 8 发光层 / 16 低分辨率层 / 32 整套光学），
 # --perf 分 /s<掩码> 桶；切换后 3 帧记进 /sx 不算（低分辨率层重挂、粒子重启）
@@ -872,6 +874,8 @@ func step() -> void:
 				fx1ab = int(a.substr(8))
 			if a.begins_with("--tierab="):
 				tierab = int(a.substr(9))
+			if a.begins_with("--fxab="):
+				fxab = int(a.substr(7))
 			if a.begins_with("--partab="):
 				partab = int(a.substr(9))
 			if a.begins_with("--matab="):
@@ -927,6 +931,10 @@ func step() -> void:
 		g.optical.grains.mat_off = not g.optical.grains.mat_off   # --matab=N：同局轮换材质颗粒
 	if bulfxab > 0 and g.at_frames % bulfxab == 0:
 		g.world.bulfx.off = not g.world.bulfx.off   # --bulfxab=N：同局轮换子弹出现 / 消失画面
+	if fxab > 0 and g.at_frames % fxab == 0:
+		fx_alt = not fx_alt
+		Bal.set_fx_show(0 if fx_alt else Cfg.fx_show)   # --fxab=N：同局轮换特效显示档（--perf 分 /fs0 /fsN）
+		preload("res://scripts/render/declutter.gd").reset()
 	if tierab > 0 and g.at_frames % tierab == 0:
 		g.vfx.tier_off = not g.vfx.tier_off   # --tierab=N：同局轮换命中三档（--perf 分 /t1 /t0 两桶）
 	if fx1ab > 0 and g.at_frames % fx1ab == 0 and g.optical != null:
@@ -2296,6 +2304,8 @@ func _perf_sample() -> void:
 			w += "/sx" if g.at_frames - stack_sw <= 3 else "/s%d" % (g.optical.ab_mask | (128 if Cfg.render_scaled else 0))   # 采样在轮换之前：记的是上一帧所用掩码
 		if bulfxab > 0:
 			w += "/b0" if g.world.bulfx.off else "/b1"   # --bulfxab：上一帧的子弹出现 / 消失画面开关
+		if fxab > 0:
+			w += "/fs0" if fx_alt else "/fsN"   # --fxab：上一帧的特效显示档（轮换在采样之后）
 		if tierab > 0:
 			w += "/t0" if g.vfx.tier_off else "/t1"   # --tierab：上一帧的命中三档开关
 		if fx1ab > 0:

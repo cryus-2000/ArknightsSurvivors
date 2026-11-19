@@ -41,6 +41,8 @@ static func _draw_fx(wv: W) -> void:
 		var foe: bool = f.get("enemy", false) or W.FOE_KINDS.has(f.kind)
 		if ((wv._dbg_foe or wv._dbg_foefx) and foe) or (wv._dbg_friend and not foe and not W.AMB_KINDS.has(f.kind)) or (wv._dbg_amb and W.AMB_KINDS.has(f.kind)):
 			continue   # --clutterdbg 量测：这一层不画
+		if wv._dbg_spark and not foe and W.SPARK_DBG.has(f.kind):
+			continue   # --clutterdbg=nospark：命中 / 击杀火花分账（docs/398）
 		if wv._dbg_opmask and not foe and f.has("sop") and Dc.mute_op(str(f.sop), f.get("lead", false)):
 			continue   # 后期特效分账：该干员出手生成的帧条不画
 		if wv.bfx_grains != null and f.has("bfx") and W.BFX_KINDS.has(f.kind):
