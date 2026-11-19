@@ -56,9 +56,9 @@ TORAPPU = {"wisadel": "char_1035_wisdel", "ulpianus": "char_4145_ulpia", "logos"
 # 敌人 / Boss（11-19 用户批准敌人也走 Spine 直转；萨米主题 docs/391）：torappu assets/enemy_spine/<敌人 id>/<敌人 id>.{skel,atlas,png}（试出，无皮肤目录）
 ENEMY = {"sami_shell": "enemy_2043_smsbr", "sami_caster": "enemy_2044_smwiz", "sami_drone": "enemy_2045_smdrn", "sami_warrior": "enemy_2046_smwar",
          "sami_vinebox": "enemy_2059_smbox", "sami_tree": "enemy_2047_smtree", "sami_blade": "enemy_2048_smgrd", "sami_blade2": "enemy_2049_smgrd2",
-         "sami_will": "enemy_2054_smdeer", "snslime_a": "enemy_1067_snslime_2"}
+         "sami_will": "enemy_2054_smdeer", "snslime_a": "enemy_1067_snslime_2", "snow_icebreaker": "enemy_1069_icebrk_2"}
 OPS.update({"sami_shell": "染污躯壳", "sami_caster": "歪曲施法者", "sami_drone": "坍缩构造体", "sami_warrior": "木裂战士", "sami_vinebox": "巨壳藤蔓",
-            "sami_tree": "积雪银凇", "sami_blade": "“邪魔的利刃”", "sami_blade2": "“邪魔的利刃”，游荡者", "sami_will": "“萨米的意志”", "snslime_a": "冰爆源石虫·α"})
+            "sami_tree": "积雪银凇", "sami_blade": "“邪魔的利刃”", "sami_blade2": "“邪魔的利刃”，游荡者", "sami_will": "“萨米的意志”", "snslime_a": "冰爆源石虫·α", "snow_icebreaker": "雪怪小队破冰者"})
 PICK = {
     "idle": ["Idle"],
     "move": ["Move", "Move_Loop", "Run", "Run_Loop", "Walk"],
