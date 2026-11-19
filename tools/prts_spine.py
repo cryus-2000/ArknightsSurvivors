@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""PRTS 干员 Spine 参照帧（docs/36 §9.1，10-15 用户定；给 Codex 当干员美术参照，内部用，不进 git、不进包）。
+"""PRTS 干员 / 敌人 Spine 参照帧（docs/36 §9.1，10-15 用户定；给 Codex 当干员美术参照，内部用，不进 git、不进包）。
 
 从 PRTS 拉干员「默认皮肤 · 战斗正面」的 Spine 资源（3.8，或较早干员的 3.5.51；3.5 先经 prts_spine35.py 转 JSON）（.skel / .atlas / .png），本地渲染待机 / 攻击 / 技能参照帧。不开浏览器、不用 Godot。
 
@@ -10,7 +10,7 @@
 
 路径：PRTS 页面 `<中文名>/spine` 的原文（index.php?action=raw，一段 JSON）里的 prefix + skin.默认.战斗正面.file；
 页面 HTML 对非浏览器请求返回 403，原文接口与 static.prts.wiki 可以直接取（带浏览器 UA，失败按 2 / 4 / 8 秒重试）。
-输出 build/prts_ref/<id>/：idle_f00–f03（Idle 时长的 0 / 25 / 50 / 75%）、attack_f00–f02（出手前 / 出手 / 收招）、skill_f00–f02（有技能动画时，同三帧），
+输出 build/prts_ref/<id>/：idle_f00–f03（Idle 时长的 0 / 25 / 50 / 75%）、move_f00–f03（有移动动画时）、death_f00–f02（Die 0 / 50 / 100%）、attack_f00–f02（出手前 / 出手 / 收招）、skill_f00–f02（有技能动画时，同三帧），
 1000×1000 透明底，同一干员各帧同一缩放、脚底对齐；另出 <id>_sheet.png（带动画名与帧号的拼图）与 <id>_info.json（动画清单、时长、事件）。
 原始资源放 build/prts_ref/_raw/<id>/；渲染器依赖（spine-ts 3.8 运行时、@napi-rs/canvas）首次自动装到 build/prts_ref/_node/。
 
@@ -53,8 +53,16 @@ TORAPPU = {"wisadel": "char_1035_wisdel", "ulpianus": "char_4145_ulpia", "logos"
            "surtr": "char_350_surtr", "fiammetta": "char_300_phenxi",
            "ling_soul1": "token_10020_ling_soul1", "ling_soul2": "token_10020_ling_soul2", "ling_soul3": "token_10020_ling_soul3",
            "dusk_drgn": "token_10015_dusk_drgn"}
+# 敌人 / Boss（11-19 用户批准敌人也走 Spine 直转；萨米主题 docs/391）：torappu assets/enemy_spine/<敌人 id>/<敌人 id>.{skel,atlas,png}（试出，无皮肤目录）
+ENEMY = {"sami_shell": "enemy_2043_smsbr", "sami_caster": "enemy_2044_smwiz", "sami_drone": "enemy_2045_smdrn", "sami_warrior": "enemy_2046_smwar",
+         "sami_vinebox": "enemy_2059_smbox", "sami_tree": "enemy_2047_smtree", "sami_blade": "enemy_2048_smgrd", "sami_blade2": "enemy_2049_smgrd2",
+         "sami_will": "enemy_2054_smdeer", "snslime_a": "enemy_1067_snslime_2"}
+OPS.update({"sami_shell": "染污躯壳", "sami_caster": "歪曲施法者", "sami_drone": "坍缩构造体", "sami_warrior": "木裂战士", "sami_vinebox": "巨壳藤蔓",
+            "sami_tree": "积雪银凇", "sami_blade": "“邪魔的利刃”", "sami_blade2": "“邪魔的利刃”，游荡者", "sami_will": "“萨米的意志”", "snslime_a": "冰爆源石虫·α"})
 PICK = {
     "idle": ["Idle"],
+    "move": ["Move", "Move_Loop", "Run", "Run_Loop", "Walk"],
+    "death": ["Die", "Dead", "Death"],
     "attack": ["Attack", "Attack_Loop", "Combat", "Attack_1", "Attack_A"],
     "skill": ["Skill", "Skill_Loop", "Skill_1", "Skill_2", "Skill_2_Loop", "Skill_3", "Skill_3_Loop", "Skill_Begin", "Skill_2_Begin", "Skill_3_Begin"],
 }
@@ -102,6 +110,9 @@ def download(oid, name, refresh):
     meta = os.path.join(d, "meta.json")
     if os.path.exists(meta) and not refresh:
         m = json.load(open(meta, encoding="utf-8"))
+    elif oid in ENEMY:
+        c = ENEMY[oid]
+        m = {"name": name, "prefix": "https://torappu.prts.wiki/assets/enemy_spine/", "file": "%s/%s" % (c, c)}
     elif oid in TORAPPU:
         c = TORAPPU[oid]
         m = {"name": name, "prefix": "https://torappu.prts.wiki/assets/char_spine/", "file": "%s/defaultskin/front/%s" % (c, c)}
@@ -194,10 +205,18 @@ def do_one(oid, a):
     if ia:
         d = float(anims[ia]["dur"])
         frames += [{"name": "idle_f%02d" % k, "anim": ia, "t": d * k / 4.0} for k in range(4)]
+    mv = pick(anims, "move")
+    if mv:
+        d = float(anims[mv]["dur"])
+        frames += [{"name": "move_f%02d" % k, "anim": mv, "t": d * k / 4.0} for k in range(4)]
     for kind in ["attack", "skill"]:
         an = pick(anims, kind)
         if an:
             frames += [{"name": "%s_f%02d" % (kind, k), "anim": an, "t": t} for k, t in enumerate(three(anims[an]))]
+    de = pick(anims, "death")
+    if de:
+        d = float(anims[de]["dur"])
+        frames += [{"name": "death_f%02d" % k, "anim": de, "t": d * k / 2.0} for k in range(3)]
     res = run_render(dict(base, frames=frames), runtime)
     sp = sheet(oid, res["frames"], out_dir)
     json.dump({"id": oid, "name": name, "anims": anims, "frames": res["frames"], "scale": res["scale"]},
