@@ -1,0 +1,15 @@
+{
+ "id": "sami_warrior",
+ "src": "sami_warrior.src.json",
+ "name": "木裂战士",
+ "pack": {
+  "scale": 0.161,
+  "root": [
+   64,
+   120
+  ],
+  "palette_png": ""
+ },
+ "skipAdditive": true,
+ "_doc": "萨米敌人「木裂战士」（sami_warrior）：无腿，地线 = 待机首帧最低点（tools/spine_px_enemy.py 生成）"
+}
