@@ -4737,3 +4737,15 @@ ui.gd.settings_panel.075,Full,フル,전체,完整,模型,,自译,自译
 ui.gd.settings_panel.076,Reduced,軽量,간소,精简,模型,,自译,自译
 ui.gd.settings_panel.077,Minimal,最小,최소,最少,模型,,自译,自译
 ui.gd.settings_panel.078,Reduced and Minimal fade ally effects; Leader and danger warnings stay unchanged,軽量と最小は味方のエフェクトを薄くします。リーダーと危険予告は変わりません,간소와 최소는 아군 이펙트를 흐리게 합니다. 리더와 위험 예고는 그대로입니다,精简与最少会淡化队友特效，队长与危险预警不变,模型,,自译,自译
+确定,Confirm,決定,확정,,原文键,模型,自译,自译
+确定婉拒 · 改为一次成长三选一,Confirm decline · Change to select 1 of 3 Growths,辞退を決定・成長（3択）1回に変更,거절 확정 · 성장 3택 1 1회로 변경,,原文键,模型,自译,自译
+点击或按 1–%d 选中，再点一次或按 Enter 确定,"Click or press 1–%d to select, then click again or press Enter to confirm",クリックまたは1–%dで選択、もう一度クリックかEnterで決定,"클릭하거나 1–%d을(를) 눌러 선택, 한 번 더 클릭하거나 Enter로 확정",,原文键,模型,自译,自译
+点击或按 1–%d 选中，再点一次或按 Enter 翻开,"Click or press 1–%d to select, then click again or press Enter to reveal",クリックまたは1–%dで選択、もう一度クリックかEnterでめくる,"클릭하거나 1–%d을(를) 눌러 선택, 한 번 더 클릭하거나 Enter로 뒤집기",,原文键,模型,自译,自译
+点击卡片选中，再点一次确定,"Tap a card to select, tap again to confirm",カードをタップして選択、もう一度タップで決定,"카드를 터치하여 선택, 한 번 더 터치하여 확정",,原文键,模型,自译,自译
+点击卡片选中，再点一次翻开,"Tap a card to select, tap again to reveal",カードをタップして選択、もう一度タップでめくる,"카드를 터치하여 선택, 한 번 더 터치하여 뒤집기",,原文键,模型,自译,自译
+←→ 选中 · Ⓐ 确定,←→ Select · Ⓐ Confirm,←→ 選択・Ⓐ 決定,←→ 선택 · Ⓐ 확정,,原文键,模型,自译,自译
+←→ 选中 · Ⓐ 翻开,←→ Select · Ⓐ Reveal,←→ 選択・Ⓐ めくる,←→ 선택 · Ⓐ 뒤집기,,原文键,模型,自译,自译
+点击选项选中，再点一次确定,"Tap an option to select, tap again to confirm",選択肢をタップして選択、もう一度タップで決定,"옵션을 터치하여 선택, 한 번 더 터치하여 확정",,原文键,模型,自译,自译
+←→ 选中 · Ⓐ 确定购买,←→ Select · Ⓐ Confirm purchase,←→ 選択・Ⓐ 購入を決定,←→ 선택 · Ⓐ 구매 확정,,原文键,模型,自译,自译
+点击选中，再点一次购买,"Tap to select, tap again to purchase",タップで選択、もう一度タップで購入,"터치하여 선택, 한 번 더 터치하여 구매",,原文键,模型,自译,自译
+按 1–%d 选中，Enter 购买,"Press 1–%d to select, Enter to purchase",1–%dで選択、Enterで購入,"1–%d(으)로 선택, Enter로 구매",,原文键,模型,自译,自译

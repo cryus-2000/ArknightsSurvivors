@@ -2223,6 +2223,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventKey) or not event.pressed or event.echo:
 		return
 	var k: int = Pad.kc(event)
+	if _pick_key_blocked(act, k, event):
+		return
 	if _nav_key(k):
 		if is_inside_tree():   # 重新开始 / 回到标题已经换了场景：本节点离开场景树，get_viewport() 为 null
 			get_viewport().set_input_as_handled()
@@ -2261,7 +2263,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		_do_action("restart")
 	elif state == S.SHOP:
 		if k >= KEY_1 and k <= KEY_5:
-			shop_sys.buy(k - KEY_1)
+			panel_ui.choose(k - KEY_1)   # 选中再确定（choice_panel.choose）：第一次只选中
 		elif k == KEY_F:
 			shop_sys.refresh()
 		elif k == KEY_ESCAPE or k == KEY_E:
@@ -2270,7 +2272,19 @@ func _unhandled_input(event: InputEvent) -> void:
 		# 数字键 1..n 对应第 n 张卡（藏品 / Boss 奖励可能多于 3 张，docs/38 B0 第 10 项）
 		var i: int = k - KEY_1
 		if i < choices.size():
-			progression.pick(i)
+			panel_ui.choose(i)   # 选中再确定：第一次只选中，再按同一个数字 / Enter 才生效
+
+
+## 选卡 / 商人里攻击、技能类按键不选不确定（11-20 玩家反馈：选升级卡时按攻击键随手选中一张）：缺省绑定不会撞上确认键 / 数字键 / 方向键，
+## 但可改键——玩家把终结技、冲刺等绑到 Enter 或数字键上时，这个键在选卡界面里什么都不做。移动键（方向键）照常当导航
+const PICK_BLOCK_ACTS := ["ult", "dash", "aim", "command"]
+
+func _pick_key_blocked(act: String, k: int, event: InputEvent) -> bool:
+	if state != S.CHOICE and state != S.SHOP:
+		return false
+	if event.device == Pad.SYNTH_DEVICE or not (act in PICK_BLOCK_ACTS):
+		return false
+	return k == KEY_ENTER or k == KEY_KP_ENTER or (k >= KEY_1 and k <= KEY_9)
 
 
 ## 局内动作按下（键盘 / 鼠标 / 手柄虚拟键，已按按键表翻成动作名）：返回是否已处理（没处理的落到界面快捷键）。
@@ -2339,14 +2353,14 @@ func _nav_key(k: int) -> bool:
 		if dx != 0:
 			nav_sel = (nav_sel + dx + n) % n
 			kb_nav = true
-			Sfx.play("ui_move")
+			if panel_ui.confirm_on():
+				panel_ui.select(nav_sel)   # 方向键 = 选中（不生效），Enter / Ⓐ 再确定
+			else:
+				Sfx.play("ui_move")
 			return true
 		if enter:
 			nav_sel = clampi(nav_sel, 0, n - 1)
-			if state == S.CHOICE:
-				progression.pick(nav_sel)
-			else:
-				shop_sys.buy(nav_sel)
+			panel_ui.confirm_key()   # 选中再确定：还没选中时这一下只选中焦点那张
 			return true
 	elif state == S.PAUSE or state == S.DEAD or state == S.WIN:
 		var m: int = result_btns.size()

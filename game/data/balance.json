@@ -1277,6 +1277,8 @@
   "elite_rim_gain": 2.2
  },
  "ui": {
+  "_doc_pick_confirm": "选中再确定（11-20 B站玩家反馈：电脑端选升级卡时按攻击键常随手选中一张）：升级 / 藏品 / 招募 / 婉拒 / 事件 / 翻节点卡 / 商人货品，第一次点卡、按数字键或方向键只选中，再点同一张 / 按 Enter / 手柄 Ⓐ 才生效，弹出后 0.3 秒内不确定（screens/choice_panel.gd choose）。1 = 开，0 = 旧的一点就生效",
+  "pick_confirm": 1,
   "_doc": "界面（用户 10-13「手机版的字可以放大一点」）：phone_font_mult 手机横屏（Cfg.phone_ui）局内正文字号倍率，< 24 号的字乘它并封顶 24（ui.gd UI.fs），大标题与英文小标签不变；桌面 / 平板 / 标题页不受影响。1 = 关",
   "phone_font_mult": 1.18,
   "_doc_font_ark": "原作式字重（docs/292）：1 = 名字 / 标题用思源黑体 Heavy（字距收 1 像素），桌面正文换 Regular（手机正文仍 Medium）；0 = 旧版全 Bold（缺省：11-06 用户定退回旧粗体，给羁绊技腾网页包空间；ui_heavy / ui_regular 不进发行包，开 1 只在开发版有效）",
