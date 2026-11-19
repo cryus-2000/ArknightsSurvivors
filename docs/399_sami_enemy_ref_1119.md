@@ -122,23 +122,29 @@
 | 寒霜 | `enemy_1042_frostd` | 全量（借用，「寒霜无人机」） | 精英 · 飞行 | Idle 2.0、Move Begin 0.33 / Loop 2.0 / End 0.33、Die 1.0（无攻击轨，攻击用待机） | 472 × 252 | 40 × 75 | 参照 | 小 |
 | 雪怪小队 | `enemy_1064_snsbr` | 全量（借用） | 普通 | Idle 1.0、Run_Loop 0.8、Attack 1.0、Die 1.0 | 440 × 365 | 50 × 60 | 参照 | 小 |
 | 雪怪小队凿冰人 | `enemy_1069_icebrk` | 全量（借用） | 精英 | 同破冰者（同骨骼） | 466 × 349 | 64 × 85 | 参照 | 小 |
+| 角兽 | `enemy_1303_mhshep` | 全量（借用，Ⅱ层 1-4） | 普通 | Idle 9.33、Move 1.27、Attack 0.8、Die 1.0 | 331 × 271 | 50 × 61 | 参照 | 小 |
+| 雪怪术师组长 | `enemy_1068_snmage_2` | 全量（借用，4-8 / 6-2） | 普通 · 远程 | Idle 1.0、Move 1.33、Attack 1.17、Die 1.0 | 311 × 371 | 56 × 47 | 参照 | 小 |
+| 坚岩冠兽 | `enemy_1307_mhrhcr_2` | 全量（借用，Ⅳ层 4-4） | 高阶 | Idle 1.67、Move 1.67、Attack 1.33、Die 1.0 | 392 × 361 | 64 × 70 | 参照 | 小 |
+| 乌萨斯高级着铠术师 | `enemy_1110_uamord_2` | 全量（借用，意志关 b-4） | 精英 · 远程 | Idle 2.0、Move Begin 0.17 / Loop 1.0 / End 0.17、Attack 1.2、Die 0.83 | 225 × 347 | 70 × 45 | 参照 | 小 |
 | 陷落雪祀 | `enemy_2050_smsha` | 全量 | 中期 Boss | Idle 2.0、Move 0.8、Attack 1.5、Skill 1.67、Die 1.8 | 484 × 476 | 90 × 92 | 参照 | 中 |
 | 空洞雪祀 | `enemy_2051_smsha2` | 全量 | 中期 Boss（变体） | 同陷落雪祀（同骨骼） | 484 × 477 | 90 × 92 | 参照 | 小 |
 | 纠缠藤蔓 | `enemy_2052_smgia` | 全量 | 中期 Boss | Idle 2.67、Move 2.67、Attack 1.83、Skill 1.83、Die 2.0 | 525 × 564 | 94 × 88 | 参照 | 中 |
 | 古老藤蔓 | `enemy_2053_smgia2` | 全量 | 中期 Boss（变体） | 同纠缠藤蔓（同骨骼） | 525 × 564 | 94 × 88 | 参照 | 小 |
 | 「木裂」埃克提尔尼尔 | `enemy_2055_smlead` | 全量 | 最终 Boss | Idle 3.33、Move_A 1.33、Move_B 0.87（自我泯灭疾奔）、Attack 2.5、Die 1.0 | 359 × 557 | 150 × 97 | 参照 | 中 |
 | 无垠回荡克雷松 | `enemy_2056_smedzi` | 全量 | 最终 Boss | Idle 4.0、Attack 3.17、Move Begin / End 0.67（Loop 0 秒 = 闪现中不可见）、Die 6.0（另有 Die Begin / Loop / End） | 605 × 613 | 150 × 148 | 参照 | 中–大（闪现进出要配特效） |
-| 哈兰杜汗，大地之鞭 | `enemy_2057_smkght` | 全量 | 最终 Boss（双王） | Idle 1.67、Move 1.87、Attack 2.03、Skill Begin 1.43 / Loop 1.0 / End 2.1（征服）、Victory 1.77、Die 2.5 | 810 × 553 | 140 × 205 | 参照；**头像连接超时没拿到** | 大 |
+| 哈兰杜汗，大地之鞭 | `enemy_2057_smkght` | 全量 | 最终 Boss（双王） | Idle 1.67、Move 1.87、Attack 2.03、Skill Begin 1.43 / Loop 1.0 / End 2.1（征服）、Victory 1.77、Die 2.5 | 810 × 553 | 140 × 205 | 参照 | 大 |
 | 路加萨尔古斯，历法之王 | `enemy_2058_smlion` | 全量 | 最终 Boss（双王） | Idle 1.5、Move 1.5、Attack 1.67、Combat 1.67、Skill_1 Begin / End（瞬身）、Skill_2 Begin / Loop / End（敕令）、Victory 1.0、Die 3.0 | 826 × 539 | 140 × 215 | 参照 | 大 |
 
-合计 27 个对象：样例 11（帧条 10 + 积雪银凇缺 Spine），全量 16（参照已收齐，头像缺 2）。估计工作量：其余 16 只约 10 小时（小 10 × 0.3 + 中 3 × 1 + 中–大 1 × 1.5 + 大 2 × 2），加上 §5 已出的 10 只按选定方式重出约 1 小时，积雪银凇手画约 1 小时。
+合计 31 个对象：样例 11（帧条 10 + 积雪银凇缺 Spine），全量 20（参照已收齐，头像只缺自走车 1 张，torappu 404）。估计工作量：其余 20 只约 11 小时（小 14 × 0.3 + 中 3 × 1 + 中–大 1 × 1.5 + 大 2 × 2），加上 §5 已出的 10 只按选定方式重出约 1 小时，积雪银凇手画约 1 小时。
+
+**运行时键名**（萨米数据会话 11-20 定，`claude/sami-enemy-data` 的 docs/392 §10.0、§11.1，`enemies.json` 的 `tex_final` 已按此写）：`e_sami_<本作 id>`，后缀照 §5.2。样例 10 只 = husk / drone / caster / icebug / breaker / warrior / vinebox / blade / wanderer / will；全量新增 = snsbr（雪怪小队）/ uterer / uterer2 / mhshep / snmage / rockback（坚岩冠兽）/ hound / shadow / frostd / uamord。数据会话名单里**没有**的：凿冰人（同族已有破冰者，不收）、自走车、其余中期 / 结局 Boss（数据会话还没排到）；这些出帧条前先跟数据会话对 id。`tools/prts_spine.py` 的素材键（`sami_shell`、`snow_sbr` 等）只是下载用，不是运行时名。
 
 没收的：
-- docs/390 §4 各层「主要借用」里的通用敌人（囚犯、源石虫、萨卡兹、呼啸骑士团学徒、士兵、狙击步兵、乌萨斯突击者、军用猎狗、萨卡兹魔剑士、提亚卡乌各兵种、倾轧者、末路狂徒、特工组长、残党、高塔术师、量产巨像）：都是通用敌人，跟主题关系弱，等设计稿定了要借哪些再收。
+- docs/390 §4 各层「主要借用」里的通用敌人（囚犯、源石虫、萨卡兹、呼啸骑士团学徒、士兵、狙击步兵、乌萨斯突击者、军用猎狗、萨卡兹魔剑士、提亚卡乌各兵种、倾轧者、末路狂徒、特工组长、残党、高塔术师、量产巨像）：跟冰原无关，数据会话的 docs/392 §11.1 也不收。
 - 随机打劫者（鸭爵 / 高普尼克 / 流泪小子）：水月已有鸭爵，萨米沿用。
 - 国度（地块效果，无模型）、萨米的意志另一个编号 `enemy_9033_acdeer`（别的活动用的版本）。
 
-工具改动：`tools/prts_spine.py` 的 `ENEMY` 表补了这 16 个键（`sami_shaman` 等）；`tools/prts_spine_render.js` 跳过包围盒算出 NaN 的姿势（克雷松闪现中的 Move_Loop 姿势会让整张参照帧空白）。
+工具改动：`tools/prts_spine.py` 的 `ENEMY` 表补了这 20 个键（`sami_shaman` 等）；`tools/prts_spine_render.js` 跳过包围盒算出 NaN 的姿势（克雷松闪现中的 Move_Loop 姿势会让整张参照帧空白）。
 
 ## 7. 处理方式候选（11-20）
 
