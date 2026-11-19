@@ -1,0 +1,1560 @@
+{
+ "tag": "izu1119-bbsup2-h44",
+ "game": "/home/user/ArknightsSurvivors/game",
+ "records": [
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 10,
+   "wall": 24.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.386,
+   "boss_maxhp": 98845.0,
+   "brk_dmg_share": 0.379,
+   "brk_time_share": 0.142,
+   "dmg": 60659.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:skalter|op:skalter\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:skalter|op:skalter\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.speed: 196.02 -> 181.5"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.328,
+   "leader": "angelina",
+   "level": 28,
+   "max_hp": 117.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "angelina_m0_s10_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 450.4,
+   "taken_pct": 3.844,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 11,
+   "wall": 23.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.072,
+   "boss_maxhp": 98845.0,
+   "brk_dmg_share": 0.485,
+   "brk_time_share": 0.144,
+   "dmg": 91754.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:skalter|op:skalter\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:skalter|op:skalter\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "angelina",
+   "level": 28,
+   "max_hp": 191.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "angelina_m0_s11_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 360.5,
+   "taken_pct": 1.885,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 12,
+   "wall": 17.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 98845.0,
+   "brk_dmg_share": 0.75,
+   "brk_time_share": 0.141,
+   "dmg": 98845.0,
+   "fight_t": 89.2,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:skalter|op:skalter\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:skalter|op:skalter\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.speed: 204.93 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.799,
+   "leader": "angelina",
+   "level": 28,
+   "max_hp": 141.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "angelina_m0_s12_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 152.9,
+   "taken_pct": 1.082,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 13,
+   "wall": 25.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.753,
+   "boss_maxhp": 98845.0,
+   "brk_dmg_share": 0.349,
+   "brk_time_share": 0.132,
+   "dmg": 39233.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:skalter|op:skalter\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:skalter|op:skalter\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.speed: 204.93 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "angelina",
+   "level": 27,
+   "max_hp": 113.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "angelina_m0_s13_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 268.2,
+   "taken_pct": 2.377,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 14,
+   "wall": 29.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.967,
+   "boss_maxhp": 98845.0,
+   "brk_dmg_share": 0.209,
+   "brk_time_share": 0.132,
+   "dmg": 23039.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:skalter|op:skalter\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:skalter|op:skalter\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.695,
+   "leader": "angelina",
+   "level": 27,
+   "max_hp": 131.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "angelina_m0_s14_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 418.1,
+   "taken_pct": 3.202,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 15,
+   "wall": 16.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.962,
+   "boss_maxhp": 98845.0,
+   "brk_dmg_share": 0.037,
+   "brk_time_share": 0.105,
+   "dmg": 5419.0,
+   "fight_t": 60.5,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:skalter|op:skalter\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:skalter|op:skalter\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.speed: 196.02 -> 181.5"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "angelina",
+   "level": 27,
+   "max_hp": 91.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "angelina_m0_s15_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 308.5,
+   "taken_pct": 3.407,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 16,
+   "wall": 25.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.668,
+   "boss_maxhp": 84019.0,
+   "brk_dmg_share": 0.584,
+   "brk_time_share": 0.141,
+   "dmg": 27913.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:skalter|op:skalter\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:skalter|op:skalter\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.speed: 204.93 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "angelina",
+   "level": 28,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "angelina_m0_s16_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 137.0,
+   "taken_pct": 1.062,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 17,
+   "wall": 21.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 98845.0,
+   "brk_dmg_share": 0.456,
+   "brk_time_share": 0.136,
+   "dmg": 98845.0,
+   "fight_t": 131.3,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:skalter|op:skalter\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:skalter|op:skalter\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.speed: 204.93 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "angelina",
+   "level": 27,
+   "max_hp": 188.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "angelina_m0_s17_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 290.2,
+   "taken_pct": 1.547,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 18,
+   "wall": 22.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 98845.0,
+   "brk_dmg_share": 0.481,
+   "brk_time_share": 0.149,
+   "dmg": 98845.0,
+   "fight_t": 138.2,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:skalter|op:skalter\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:skalter|op:skalter\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.speed: 204.93 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.994,
+   "leader": "angelina",
+   "level": 27,
+   "max_hp": 119.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "angelina_m0_s18_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 239.7,
+   "taken_pct": 2.015,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 19,
+   "wall": 25.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.633,
+   "boss_maxhp": 98845.0,
+   "brk_dmg_share": 0.429,
+   "brk_time_share": 0.132,
+   "dmg": 41205.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:skalter|op:skalter\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:skalter|op:skalter\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.speed: 196.02 -> 181.5"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "angelina",
+   "level": 27,
+   "max_hp": 123.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "angelina_m0_s19_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 88.0,
+   "taken_pct": 0.716,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 1,
+   "wall": 20.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 98845.0,
+   "brk_dmg_share": 0.325,
+   "brk_time_share": 0.126,
+   "dmg": 98845.0,
+   "fight_t": 128.5,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:skalter|op:skalter\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:skalter|op:skalter\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.speed: 204.93 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "angelina",
+   "level": 28,
+   "max_hp": 124.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "angelina_m0_s1_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 367.3,
+   "taken_pct": 2.959,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 20,
+   "wall": 20.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 98845.0,
+   "brk_dmg_share": 0.421,
+   "brk_time_share": 0.135,
+   "dmg": 98845.0,
+   "fight_t": 132.3,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:skalter|op:skalter\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:skalter|op:skalter\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "angelina",
+   "level": 28,
+   "max_hp": 179.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "angelina_m0_s20_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 196.4,
+   "taken_pct": 1.095,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 21,
+   "wall": 24.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.539,
+   "boss_maxhp": 98845.0,
+   "brk_dmg_share": 0.313,
+   "brk_time_share": 0.147,
+   "dmg": 55407.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:skalter|op:skalter\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:skalter|op:skalter\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.speed: 196.02 -> 181.5"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "angelina",
+   "level": 28,
+   "max_hp": 113.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "angelina_m0_s21_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 180.3,
+   "taken_pct": 1.598,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 22,
+   "wall": 22.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.701,
+   "boss_maxhp": 98845.0,
+   "brk_dmg_share": 0.369,
+   "brk_time_share": 0.131,
+   "dmg": 29557.0,
+   "fight_t": 121.2,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:skalter|op:skalter\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:skalter|op:skalter\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.speed: 204.93 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "angelina",
+   "level": 28,
+   "max_hp": 123.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "angelina_m0_s22_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 239.9,
+   "taken_pct": 1.952,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 23,
+   "wall": 14.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.991,
+   "boss_maxhp": 98845.0,
+   "brk_dmg_share": 0.248,
+   "brk_time_share": 0.046,
+   "dmg": 931.0,
+   "fight_t": 34.7,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:skalter|op:skalter\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:skalter|op:skalter\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "angelina",
+   "level": 27,
+   "max_hp": 111.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "angelina_m0_s23_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 186.2,
+   "taken_pct": 1.684,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 24,
+   "wall": 16.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 98845.0,
+   "brk_dmg_share": 0.52,
+   "brk_time_share": 0.116,
+   "dmg": 98845.0,
+   "fight_t": 84.5,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:skalter|op:skalter\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:skalter|op:skalter\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.945,
+   "leader": "angelina",
+   "level": 28,
+   "max_hp": 116.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "angelina_m0_s24_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 90.0,
+   "taken_pct": 0.776,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 25,
+   "wall": 17.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 98845.0,
+   "brk_dmg_share": 0.48,
+   "brk_time_share": 0.141,
+   "dmg": 98845.0,
+   "fight_t": 97.2,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:skalter|op:skalter\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:skalter|op:skalter\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.speed: 204.93 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.239,
+   "leader": "angelina",
+   "level": 28,
+   "max_hp": 119.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "angelina_m0_s25_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 232.0,
+   "taken_pct": 1.95,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 26,
+   "wall": 19.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.277,
+   "boss_maxhp": 98845.0,
+   "brk_dmg_share": 0.406,
+   "brk_time_share": 0.119,
+   "dmg": 71470.0,
+   "fight_t": 113.5,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:skalter|op:skalter\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:skalter|op:skalter\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.speed: 215.622 -> 199.65"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "angelina",
+   "level": 29,
+   "max_hp": 111.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "angelina_m0_s26_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 400.3,
+   "taken_pct": 3.62,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 27,
+   "wall": 25.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 98845.0,
+   "brk_dmg_share": 0.54,
+   "brk_time_share": 0.15,
+   "dmg": 98845.0,
+   "fight_t": 164.8,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:skalter|op:skalter\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:skalter|op:skalter\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.382,
+   "leader": "angelina",
+   "level": 28,
+   "max_hp": 134.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "angelina_m0_s27_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 500.8,
+   "taken_pct": 3.74,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 28,
+   "wall": 22.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 98845.0,
+   "brk_dmg_share": 0.482,
+   "brk_time_share": 0.147,
+   "dmg": 98845.0,
+   "fight_t": 133.9,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:skalter|op:skalter\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:skalter|op:skalter\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.speed: 225.423 -> 181.5"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "angelina",
+   "level": 27,
+   "max_hp": 111.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "angelina_m0_s28_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 254.8,
+   "taken_pct": 2.305,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 29,
+   "wall": 27.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.931,
+   "boss_maxhp": 98845.0,
+   "brk_dmg_share": 0.148,
+   "brk_time_share": 0.132,
+   "dmg": 20463.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_aspd: 缺 [\"1|0.06|ve2:wisadel|op:wisadel\"] 多 []",
+    "mods.op_atk: 缺 [\"1|0.05|balance:wisadel|op:wisadel\",\"1|0.12|ve2:wisadel|op:wisadel\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 [\"1|0.06|vnode:skalter:1|op:skalter\",\"1|0.06|vnode:skalter:2|op:skalter\"]",
+    "mods.op_skill_power: 缺 [\"1|0.05|balance:wisadel|op:wisadel\"] 多 [\"1|0.02|balance:skalter|op:skalter\"]",
+    "mods.ranged_dmg: 缺 [\"1|0.08|vteam:wisadel|squad\"] 多 []",
+    "squad: [[\"angelina\",2.0,6.0,\"pull\",true],[\"suzuran\",2.0,6.0,\"seal\",false],[\"wisadel\",2.0,6.0,\"ash\",false]] -> [[\"angelina\",2.0,6.0,\"pull\",true],[\"skalter\",0.0,2.0,\"\",false],[\"suzuran\",2.0,6.0,\"seal\",false]]",
+    "stats.speed: 225.423 -> 181.5"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "angelina",
+   "level": 30,
+   "max_hp": 111.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "angelina_m0_s29_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 479.2,
+   "taken_pct": 4.334,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 2,
+   "wall": 26.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.658,
+   "boss_maxhp": 84019.0,
+   "brk_dmg_share": 0.291,
+   "brk_time_share": 0.132,
+   "dmg": 28736.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:skalter|op:skalter\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:skalter|op:skalter\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.speed: 204.93 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "angelina",
+   "level": 28,
+   "max_hp": 166.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "angelina_m0_s2_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 107.8,
+   "taken_pct": 0.975,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 30,
+   "wall": 16.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.961,
+   "boss_maxhp": 84019.0,
+   "brk_dmg_share": 0.092,
+   "brk_time_share": 0.087,
+   "dmg": 3243.0,
+   "fight_t": 54.8,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:skalter|op:skalter\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:skalter|op:skalter\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "angelina",
+   "level": 27,
+   "max_hp": 111.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "angelina_m0_s30_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 243.0,
+   "taken_pct": 2.197,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 31,
+   "wall": 22.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.543,
+   "boss_maxhp": 98845.0,
+   "brk_dmg_share": 0.265,
+   "brk_time_share": 0.136,
+   "dmg": 50161.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.dmg: 缺 [\"1|0.1|relic_squad|class:医疗\",\"1|0.1|relic_squad|class:狙击\",\"1|0.2|relic_squad|class:辅助\",\"1|0.2|relic_squad|class:重装\"] 多 [\"1|0.3|relic_squad|class:辅助\",\"1|0.3|relic_squad|class:重装\"]",
+    "mods.followup_dmg: 缺 [\"1|0.05|vnode:kaltsit:1|op:kaltsit\",\"1|0.05|vnode:kaltsit:2|op:kaltsit\",\"1|0.05|vnode:kaltsit:4|op:kaltsit\",\"1|0.05|vnode:kaltsit:5|op:kaltsit\",\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [] 多 [\"0|-10.0|rej:suzuran:0|\"]",
+    "mods.op_aspd: 缺 [\"1|0.06|ve2:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_atk: 缺 [\"1|0.03|balance:kaltsit|op:kaltsit\",\"1|0.12|ve2:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.05|vnode:kaltsit:1|op:kaltsit\",\"1|0.05|vnode:kaltsit:2|op:kaltsit\",\"1|0.05|vnode:kaltsit:4|op:kaltsit\",\"1|0.05|vnode:kaltsit:5|op:kaltsit\",\"1|0.63|lshape:kaltsit|op:kaltsit\",\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_skill_power: 缺 [\"1|0.03|balance:kaltsit|op:kaltsit\"] 多 [\"1|0.02|balance:skalter|op:skalter\",\"1|0.4|rej:suzuran:0|op:suzuran\"]",
+    "relics.108: 1.0 -> null",
+    "relics.91: 1.0 -> null",
+    "relics.22: 多 1.0",
+    "relics.247: 多 1.0",
+    "squad: [[\"angelina\",2.0,6.0,\"pull\",true],[\"suzuran\",2.0,6.0,\"seal\",false],[\"kaltsit\",2.0,6.0,\"shell\",false]] -> [[\"angelina\",2.0,6.0,\"pull\",true],[\"skalter\",0.0,0.0,\"\",false],[\"suzuran\",2.0,6.0,\"seal\",false]]",
+    "stats.max_hp: 112.85 -> 102.85",
+    "stats.speed: 196.02 -> 181.5"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.825,
+   "leader": "angelina",
+   "level": 28,
+   "max_hp": 103.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "angelina_m0_s31_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 390.8,
+   "taken_pct": 3.8,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 32,
+   "wall": 26.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.702,
+   "boss_maxhp": 98845.0,
+   "brk_dmg_share": 0.435,
+   "brk_time_share": 0.141,
+   "dmg": 46368.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:skalter|op:skalter\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:skalter|op:skalter\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.speed: 204.93 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "angelina",
+   "level": 28,
+   "max_hp": 174.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "angelina_m0_s32_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 588.0,
+   "taken_pct": 3.374,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 3,
+   "wall": 26.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.319,
+   "boss_maxhp": 84019.0,
+   "brk_dmg_share": 0.512,
+   "brk_time_share": 0.136,
+   "dmg": 57927.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:skalter|op:skalter\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|0.92|cold|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:skalter|op:skalter\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "angelina",
+   "level": 29,
+   "max_hp": 148.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "angelina_m0_s3_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 828.2,
+   "taken_pct": 5.232,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 4,
+   "wall": 23.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 98845.0,
+   "brk_dmg_share": 0.538,
+   "brk_time_share": 0.166,
+   "dmg": 103788.0,
+   "fight_t": 174.8,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:skalter|op:skalter\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:skalter|op:skalter\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "angelina",
+   "level": 28,
+   "max_hp": 135.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "angelina_m0_s4_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 359.0,
+   "taken_pct": 2.657,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 5,
+   "wall": 18.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 98845.0,
+   "brk_dmg_share": 0.254,
+   "brk_time_share": 0.143,
+   "dmg": 98845.0,
+   "fight_t": 100.7,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:skalter|op:skalter\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:skalter|op:skalter\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.speed: 204.93 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "angelina",
+   "level": 27,
+   "max_hp": 179.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "angelina_m0_s5_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 202.4,
+   "taken_pct": 1.13,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 6,
+   "wall": 25.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.445,
+   "boss_maxhp": 98845.0,
+   "brk_dmg_share": 0.494,
+   "brk_time_share": 0.148,
+   "dmg": 59830.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:skalter|op:skalter\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:skalter|op:skalter\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.speed: 204.93 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "angelina",
+   "level": 27,
+   "max_hp": 153.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "angelina_m0_s6_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 513.6,
+   "taken_pct": 3.36,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 7,
+   "wall": 21.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 98845.0,
+   "brk_dmg_share": 0.546,
+   "brk_time_share": 0.147,
+   "dmg": 98845.0,
+   "fight_t": 142.6,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:skalter|op:skalter\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:skalter|op:skalter\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.speed: 196.02 -> 181.5"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "angelina",
+   "level": 27,
+   "max_hp": 123.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "angelina_m0_s7_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 3.7,
+   "taken_pct": 0.03,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 8,
+   "wall": 17.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 98845.0,
+   "brk_dmg_share": 0.541,
+   "brk_time_share": 0.152,
+   "dmg": 98845.0,
+   "fight_t": 106.8,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:skalter|op:skalter\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:skalter|op:skalter\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "angelina",
+   "level": 28,
+   "max_hp": 100.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "angelina_m0_s8_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 35.6,
+   "taken_pct": 0.358,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "angelina",
+   "meta": 0,
+   "seed": 9,
+   "wall": 18.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 98845.0,
+   "brk_dmg_share": 0.494,
+   "brk_time_share": 0.157,
+   "dmg": 98845.0,
+   "fight_t": 127.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\",\"1|0.42|lshape:skalter|op:skalter\",\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.875|lshape:angelina|op:angelina\",\"1|0.875|lshape:skalter|op:skalter\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "angelina",
+   "level": 28,
+   "max_hp": 141.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "angelina_m0_s9_slot3",
+   "squad": [
+    "angelina",
+    "skalter",
+    "suzuran"
+   ],
+   "taken": 223.9,
+   "taken_pct": 1.585,
+   "win": true
+  }
+ ]
+}
