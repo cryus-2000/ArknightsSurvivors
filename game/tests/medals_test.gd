@@ -62,7 +62,7 @@ func table_tests() -> void:
 		keys[m.key] = true
 		check(ResourceLoader.exists("res://art/ui/medals/medal_%d.png" % int(m.id)) and ResourceLoader.exists("res://art/ui/medals/medal_%d_slot.png" % int(m.id)), "缺章图：%d" % int(m.id))
 		check(str(m.name) != "" and str(m.desc) != "", "缺名称 / 条件：%s" % m.key)
-	var lay = JSON.parse_string(FileAccess.get_file_as_string("res://data/medals_layout.json"))
+	var lay = JSON.parse_string(FileAccess.get_file_as_string("res://themes/deep_sea/data/medals_layout.json"))
 	var ids := {}
 	for m in lay.medals:
 		ids[int(m.id)] = true

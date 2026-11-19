@@ -1,0 +1,1186 @@
+{
+ "id": "phantom",
+ "trail_col": {
+  "main": [
+   0.85,
+   0.2,
+   0.3
+  ],
+  "alt": [
+   0.25,
+   0.22,
+   0.3
+  ]
+ },
+ "name": "傀影",
+ "en": "PHANTOM",
+ "class": "特种",
+ "lanes": [
+  "melee",
+  "summon"
+ ],
+ "branch": "处决者",
+ "col": [
+  0.62,
+  0.16,
+  0.26
+ ],
+ "script": "res://scripts/characters/data_operator.gd",
+ "recruitable": false,
+ "_doc_recruit": "11-18 设计稿阶段（docs/368）：不进名册 / 寻访池，只供木桩表与配对批跑；定稿 + 美术到位后删掉 recruitable",
+ "base": {
+  "_doc": "傀影（docs/368）：特种 · 处决者。数值为木桩表初版（11-18），待 GCP 配对后再定；文字与积木只引用这里的键",
+  "atk": 58,
+  "cd": 0.8,
+  "reach": 90,
+  "half": 0.9,
+  "max_n": 8,
+  "kb": 20,
+  "aim_pad": 40,
+  "first_cd": 0.3,
+  "idle_cd": 0.1,
+  "leash": 230,
+  "gap": 30,
+  "_doc_trait": "特性「处决者」（原作：再部署时间大幅减少 → 本作：不是队长时自行「再部署」切入）：每 blink_cd 秒，若普攻触及外、blink_aim 内有敌人，瞬身切到那名敌人身边（dash_line 用时 blink_t，沿途 blink_mult）",
+  "blink_cd": 2.2,
+  "blink_aim": 300,
+  "blink_min": 110,
+  "blink_len": 260,
+  "blink_w": 30,
+  "blink_t": 0.07,
+  "blink_mult": 0.9,
+  "s1_dur": 8.0,
+  "s1_shield": 0.18,
+  "s1_kill_shield": 0.01,
+  "s1_shield_cap": 0.3,
+  "s1_interval": 0.7,
+  "s1_mult": 1.0,
+  "s1_len": 260,
+  "s2_dur": 8.0,
+  "s2_atk": 1.5,
+  "s2_hop_aim": 220,
+  "s2_hop_len": 200,
+  "s2_hop_mult": 0.8,
+  "s2_mir_aspd": 1.5,
+  "s3_r": 170,
+  "s3_mult": 3.0,
+  "s3_stun": 2.0,
+  "s3_len": 320,
+  "s3_w": 40,
+  "s3_dash_mult": 0.8,
+  "s3_mir": 0.6,
+  "s3_mir_r": 105,
+  "mir_mult": 0.7,
+  "mir_r": 80,
+  "mir_half": 40,
+  "mir_speed": 380,
+  "mir_leash": 260,
+  "mir_e2": 1.8,
+  "mir_decoy": 130,
+  "s1_mir_r": 70,
+  "s1_mir_mult": 1.0,
+  "bs_n": 3,
+  "bs_r": 30,
+  "bs_mult": 0.3,
+  "bs_pause": 0.4,
+  "e2_len": 150,
+  "e2_w": 36,
+  "e2_t": 0.06,
+  "e2_mult": 1.6,
+  "e2_pause": 0.3,
+  "e2_n": 1,
+  "e2_line_len": 170,
+  "e2_line_w": 30,
+  "e2_line_mult": 0.7,
+  "_doc_growth": "docs/202 成长节点（待试验参数）：land_*（节点 1 无声：切入落地斩一圈）、int_shield（节点 2 幕间：暗夜魅影期间每次切入给队长补屏障）、curtain_*（4A 谢幕）、twin_*（4B 如影随形）、encore_*（5A 终场）、mt_*（5B 虚影精通）",
+  "ld_n": 2,
+  "ld_len": 170,
+  "ld_w": 30,
+  "ld_mult": 0.8,
+  "s2_ld_r": 60,
+  "s2_ld_mult": 0.7,
+  "land_r": 80,
+  "land_mult": 0.5,
+  "int_shield": 0.04,
+  "curtain_r": 170,
+  "curtain_mult": 1.2,
+  "curtain_stun": 0.8,
+  "twin_r": 60,
+  "twin_mult": 0.7,
+  "encore_r": 80,
+  "encore_mult": 0.4,
+  "encore_pause": 0.5,
+  "mt_delay": 0.25,
+  "mt_mult": 0.6
+ },
+ "leader": {
+  "_doc": "当队长时的受击属性（docs/23）：原作精二满级 生命 1645 / 防御 322 / 法抗 0（PRTS 属性）；生命在近战特种里最低一档，防御中等",
+  "max_hp": 108.0,
+  "armor": 2.2,
+  "arts_res": 0.0,
+  "regen": 1.0
+ },
+ "sprites": {
+  "move_attack": {
+   "tex": "op_lappland_move_attack",
+   "frames": 8,
+   "foot": [
+    48,
+    76
+   ],
+   "_doc": "10-23 移动攻击（docs/128 §3）：普攻上半身 + 跑步步态腿，原作 Spine 1 倍像素化（tools/op_1x/make_op_1x.py）；帧序与普攻一一对应，只换贴图"
+  },
+  "entry": {
+   "tex": "op_lappland_entry",
+   "frames": 8,
+   "fps": 12.5589,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.098,
+    0.049,
+    0.098,
+    0.049,
+    0.098,
+    0.098,
+    0.049,
+    0.098
+   ],
+   "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/lappland_entry.json），64 画布 @2x；落下由代码补"
+  },
+  "_doc": "Codex 交付 199d7b73（原生像素 @2x、整数 foot；192 画布槽 foot = 顶层 + (16,16)）。跑步条未交，暂借斯卡蒂 run。attack 走 attack_timing（B 步改出手时刻），skill / throw 为 S1 / S3 与 S2 的起手条",
+  "size": 64,
+  "dash_run": true,
+  "foot": [
+   32,
+   60
+  ],
+  "idle": {
+   "tex": "op_lappland_idle",
+   "frames": 8,
+   "fps": 4.0,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.25,
+    0.25,
+    0.25,
+    0.25,
+    0.25,
+    0.25,
+    0.25,
+    0.25
+   ],
+   "_doc": "Codex 199d7b73 原作 Idle 40 帧 2.000 秒重采样为 8 帧（源帧 [0, 5, 10, 15, 20, 25, 30, 35]；tools/probes/package_lappland_gladiia.py）"
+  },
+  "run": {
+   "tex": "op_lappland_run",
+   "frames": 8,
+   "fps": 13.333333333333334,
+   "foot": [
+    32,
+    60
+   ],
+   "_doc": "10-21 Spine 步态脚本（tools/spine_run_trial cfg/lappland.json）：原作骨架逐部件像素化，调色板取 Codex 待机条；8 帧 0.6 秒循环"
+  },
+  "attack": {
+   "tex": "op_lappland_combat",
+   "frames": 8,
+   "fps": 22.4,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.055803558435887156,
+    0.07440478284648884,
+    0.04836308728905258,
+    0.029761897525608528,
+    0.03720237466641391,
+    0.03720240017661952,
+    0.037202374666413934,
+    0.03720238153637269
+   ],
+   "fire": 3,
+   "fire_time": 0.17857142857142858,
+   "_doc": "Codex 199d7b73 原作 Combat 25 帧 1.167 秒重采样为 8 帧（源帧 [0, 3, 7, 10, 13, 16, 19, 22]，出手帧 = 源第 10 帧 → 第 3 帧；tools/probes/package_lappland_gladiia.py）",
+   "logic": [
+    5,
+    14,
+    2
+   ],
+   "attack_timing": {
+    "duration": 0.4385714285714286,
+    "fire_time": 0.17857142857142858,
+    "active_ratio": 0.9,
+    "windup_ratio": 0.4071661237785016,
+    "min_duration": 0.13333333333333333,
+    "frame_durations": [
+     0.055803558435887156,
+     0.07440478284648884,
+     0.048363087289052586,
+     0.03781818181818182,
+     0.04490909090909091,
+     0.052000000000000005,
+     0.05909090909090909,
+     0.06618181818181817
+    ]
+   }
+  },
+  "death": {
+   "tex": "op_lappland_die",
+   "frames": 8,
+   "fps": 8.0,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.1,
+    0.15,
+    0.15000000000000002,
+    0.09999999999999998,
+    0.09999999999999998,
+    0.15000000000000002,
+    0.15000000000000002,
+    0.09999999999999998
+   ],
+   "_doc": "Codex 199d7b73 原作 Die 20 帧 1.000 秒重采样为 8 帧（源帧 [0, 2, 5, 8, 10, 12, 15, 18]；tools/probes/package_lappland_gladiia.py）"
+  },
+  "skill": {
+   "tex": "op_lappland_skill",
+   "frames": 8,
+   "fps": 5.999999821186071,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.1975309,
+    0.1975308,
+    0.17160496269302367,
+    0.12469133730697635,
+    0.14814819999999995,
+    0.19753090000000006,
+    0.1481481,
+    0.14814817306976313
+   ],
+   "fire": 3,
+   "fire_time": 0.567667,
+   "_doc": "Codex 199d7b73 原作 Skill 28 帧 1.333 秒重采样为 8 帧（源帧 [0, 4, 8, 12, 15, 18, 22, 25]，出手帧 = 源第 12 帧 → 第 3 帧；tools/probes/package_lappland_gladiia.py）"
+  },
+  "throw": {
+   "tex": "op_lappland_attack",
+   "frames": 8,
+   "fps": 5.999999821186071,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.1975309,
+    0.2469136,
+    0.1555555238418579,
+    0.14074077615814207,
+    0.1481481,
+    0.14814820000000006,
+    0.1481481,
+    0.14814817306976313
+   ],
+   "fire": 3,
+   "fire_time": 0.601,
+   "_doc": "Codex 199d7b73 原作 Attack 28 帧 1.333 秒重采样为 8 帧（源帧 [0, 4, 9, 13, 16, 19, 22, 25]，出手帧 = 源第 13 帧 → 第 3 帧；tools/probes/package_lappland_gladiia.py）；10-24 领主远程：作为远程形态普攻帧条，attack_timing 压到 0.7 秒、出手 0.3 秒（原作 1.18 / 0.6 偏慢）",
+   "attack_timing": {
+    "duration": 0.7,
+    "fire_time": 0.3,
+    "active_ratio": 0.9,
+    "windup_ratio": 0.45,
+    "min_duration": 0.2,
+    "frame_durations": [
+     0.098765,
+     0.123457,
+     0.077778,
+     0.076768,
+     0.080808,
+     0.080808,
+     0.080808,
+     0.080808
+    ]
+   }
+  },
+  "move_throw": {
+   "tex": "op_lappland_move_throw",
+   "frames": 8,
+   "fps": 5.999999821186071,
+   "foot": [
+    48,
+    76
+   ],
+   "fire": 3,
+   "_doc": "11-08 S2 狼魂跑动掷刃（用户：边跑边放每掷一次就停一下脚）：throw 出手期间移动时 _move_swap 整条换成本条——上半身同 throw 逐帧（原作 Attack，取样 1.25,0.2,0.45,0.6,0.75,0.9,1,1.2 秒按原条上半身逐帧比对量出，第 3 帧 = OnAttack 0.6），腿是跑步步态；tools/op_1x/make_move_variant.py 出，帧数 / fire / 帧格 / 脚底同 throw"
+  },
+  "s1cast": {
+   "tex": "op_lappland_attack",
+   "frames": 8,
+   "fps": 5.999999821186071,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.1865569523898084,
+    0.2331961668761505,
+    0.14691354342706475,
+    0.1471380893650021,
+    0.1548821100187901,
+    0.15488221456424842,
+    0.1548821100187901,
+    0.1548821864099088
+   ],
+   "fire": 3,
+   "fire_time": 0.567667,
+   "_doc": "11-07 S1 日晷改播原作 Attack 段（单臂前刺；docs/297：用户「放一技能时出现双手平举前推」，那是原作 Skill 段 0.5–0.95s 的蹲身前推，属 S3）。同 op_lappland_attack 贴图，逐帧时长按 skill 条重排：总长与出手时刻（fire_time）同 skill 条，S1 施放窗口不变，同种子对局不变，只换画面"
+  },
+  "skills": {
+   "_doc": "S1 单条 skill；S2 单条 throw（原作 Attack 掷刃）；S3 起手 skill → 持续期由实际剑气事件驱动 throw（与 S2 同一掷刃动作，用户 10-22），等待事件时保持准备姿势、普攻也播 throw、移动 run；10-25 S3 改「噤声」：只播 skill 起手，技能期间普攻照常按远近切换",
+   "s1": {
+    "anim": "s1cast"
+   },
+   "s2": {
+    "anim": "throw"
+   },
+   "s3": {
+    "anim": "skill"
+   }
+  }
+ },
+ "extra_sprites": [
+  "entry",
+  "throw",
+  "move_throw",
+  "s1cast"
+ ],
+ "native_motion": {
+  "_doc": "出手帧对齐（docs/108 §3.5）：普攻画面整条均匀播 clip 秒 = fire_time × 帧数 / 出手帧，出手帧画面起点 = 伤害时刻，收势越过逻辑窗口、下一动作打断",
+  "clips": {
+   "attack": 0.47619
+  }
+ },
+ "attack": {
+  "mode": "auto",
+  "name": "影刃",
+  "desc": "每 {$cd} 秒朝最近的敌人刺出一刀（物理，近身窄扇形，半径 {$reach}，最多命中 {$max_n} 名）；特种·处决者特性：不是队长时，每 {$blink_cd} 秒若 {$blink_aim} 内的敌人在刀锋够不到处，瞬身切入它身边（沿途 {$blink_mult*100}% 伤害）；是队长时每第 {$ld_n} 刀附带一道穿身影刺（直线 {$ld_len}，{$ld_mult*100}% 伤害）"
+ },
+ "skills": [
+  {
+   "name": "暗夜魅影",
+   "en": "PHANTOM OF THE NIGHT",
+   "sp": 9,
+   "dur": 8.0,
+   "desc": "瞬身切入最近的敌人（{$s1_mult*100}% 伤害）；队长获得 {$s1_shield*100}% 最大生命的屏障（上限 {$s1_shield_cap*100}%），{$s1_dur} 秒内影刃出手间隔 ×{$s1_interval}，期间每击倒一名敌人屏障 +{$s1_kill_shield*100}%",
+   "icon": "skill_phantom_s1"
+  },
+  {
+   "name": "血色乐章",
+   "en": "BLOODY OPUS",
+   "sp": 15,
+   "dur": 8.0,
+   "desc": "{$s2_dur} 秒内攻击 ×{$s2_atk}；不是队长时，每一刀之后瞬身跳到 {$s2_hop_aim} 内的下一名敌人（沿途 {$s2_hop_mult*100}% 伤害），是队长时每一刀影子在目标处再斩一记（{$s2_ld_mult*100}%）；虚影出手速度 ×{$s2_mir_aspd}",
+   "icon": "skill_phantom_s2"
+  },
+  {
+   "name": "夜幕突袭",
+   "en": "NIGHT RAID",
+   "sp": 20,
+   "desc": "瞬身切入附近敌人最密处，落地对半径 {$s3_r} 内所有敌人造成 {$s3_mult*100}% 伤害、小力推开并眩晕 {$s3_stun} 秒（精英减半，Boss 除外）；虚影在它的位置同样炸开一次（{$s3_mir*100}% 伤害）",
+   "icon": "skill_phantom_s3"
+  }
+ ],
+ "talent": {
+  "name": "镜中虚影",
+  "desc": "召出一个虚影，追击 Boss 与精英，以 {$mir_mult*100}% 伤害复刻影刃，并把身边 {$mir_decoy} 内的近战敌人引向自己（虚影不会被击倒）；傀影放「暗夜魅影」「夜幕突袭」时虚影同时出手；精英二起虚影伤害 ×{$mir_e2}"
+ },
+ "hit_sources": {
+  "影刺": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "pierce"
+   ]
+  },
+  "影刃": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic"
+   ]
+  },
+  "切入": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "pierce"
+   ]
+  },
+  "背刺": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "follow_up"
+   ]
+  },
+  "瞬影": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "pierce"
+   ]
+  },
+  "暗夜魅影": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "pierce"
+   ]
+  },
+  "血色乐章": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "pierce"
+   ]
+  },
+  "夜幕突袭": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "area",
+    "control"
+   ]
+  },
+  "虚影": {
+   "emitter": "summon",
+   "origin": "talent",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "entity"
+   ]
+  },
+  "无声": {
+   "emitter": "operator",
+   "origin": "route",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "area"
+   ]
+  },
+  "谢幕": {
+   "emitter": "operator",
+   "origin": "route",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "area",
+    "control"
+   ]
+  },
+  "如影随形": {
+   "emitter": "summon",
+   "origin": "route",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "entity",
+    "area"
+   ]
+  },
+  "终场": {
+   "emitter": "operator",
+   "origin": "route",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "area",
+    "control"
+   ]
+  }
+ },
+ "progression": [
+  {
+   "type": "custom",
+   "id": "land",
+   "name": "无声",
+   "icon": "growth_t_field",
+   "desc": "「处决者」切入落地时，向身周斩出一圈影刃：半径 {$land_r}，{$land_mult*100}% 伤害"
+  },
+  {
+   "type": "custom",
+   "id": "interlude",
+   "name": "幕间",
+   "icon": "skill_phantom_s1",
+   "desc": "「暗夜魅影」期间，傀影每次切入为队长补充 {$int_shield*100}% 最大生命的屏障（总量上限不变）"
+  },
+  {
+   "type": "elite",
+   "level": 1,
+   "name": "精英一",
+   "desc": "解锁二技能「血色乐章」；解锁天赋「镜中虚影」：召出一个虚影，追击 Boss 与精英，以 {$mir_mult*100}% 伤害复刻影刃并吸引身边的近战敌人，傀影放「暗夜魅影」「夜幕突袭」时虚影同时出手；普攻「背刺」：每第 {$bs_n} 次影刃，影子从目标身后补一刀（{$bs_mult*100}% 伤害），停顿 {$bs_pause} 秒（精英减半，Boss 除外）",
+   "attack": {
+    "name": "背刺",
+    "desc": "每第 {$bs_n} 次影刃，影子从目标身后补一刀（{$bs_mult*100}% 伤害），停顿 {$bs_pause} 秒（精英减半，Boss 除外）"
+   }
+  },
+  {
+   "type": "custom",
+   "id": "curtain",
+   "name": "谢幕",
+   "icon": "skill_phantom_s2",
+   "desc": "「血色乐章」结束时，在身边落下一圈猩红帷幕：半径 {$curtain_r}，{$curtain_mult*100}% 伤害并眩晕 {$curtain_stun} 秒（精英减半，Boss 除外）",
+   "branch": {
+    "curtain": {
+     "id": "curtain",
+     "name": "谢幕",
+     "icon": "skill_phantom_s2",
+     "desc": "「血色乐章」结束时，在身边落下一圈猩红帷幕：半径 {$curtain_r}，{$curtain_mult*100}% 伤害并眩晕 {$curtain_stun} 秒（精英减半，Boss 除外）"
+    },
+    "twin": {
+     "id": "twin",
+     "name": "如影随形",
+     "icon": "growth_t_count",
+     "desc": "傀影每次瞬身（切入、技能、瞬影）落地时，虚影在它所在处同时斩一刀：半径 {$twin_r}，{$twin_mult*100}% 伤害"
+    }
+   },
+   "branch_desc": "「谢幕」使「血色乐章」以一圈帷幕收尾；「如影随形」使虚影跟着傀影的每次瞬身出手",
+   "bot": "curtain"
+  },
+  {
+   "type": "custom",
+   "id": "twin",
+   "name": "如影随形",
+   "icon": "growth_t_count",
+   "desc": "傀影每次瞬身（切入、技能、瞬影）落地时，虚影在它所在处同时斩一刀：半径 {$twin_r}，{$twin_mult*100}% 伤害",
+   "routes": {
+    "curtain": {
+     "id": "encore",
+     "name": "终场",
+     "icon": "skill_phantom_s2",
+     "desc": "「血色乐章」期间每次跳跃的落点震开一圈：半径 {$encore_r}，{$encore_mult*100}% 伤害，停顿 {$encore_pause} 秒（精英减半，Boss 除外）"
+    },
+    "twin": {
+     "id": "mastery",
+     "name": "虚影精通",
+     "icon": "growth_t_count",
+     "desc": "虚影每次出手后 {$mt_delay} 秒再追斩一刀（{$mt_mult*100}% 伤害）"
+    }
+   }
+  },
+  {
+   "type": "elite",
+   "level": 2,
+   "name": "精英二",
+   "desc": "解锁三技能「夜幕突袭」；虚影伤害 ×{$mir_e2}；普通攻击强化「瞬影」：不是队长时，每一刀都瞬身穿过目标、出现在它身后（长 {$e2_len}，{$e2_mult*100}% 伤害，沿途全部命中并停顿 {$e2_pause} 秒，精英减半，Boss 除外）；是队长时每一刀都附带穿身影刺",
+   "attack": {
+    "name": "瞬影",
+    "desc": "不是队长时，每一刀都瞬身穿过目标、出现在它身后（长 {$e2_len}，{$e2_mult*100}% 伤害，沿途全部命中并停顿 {$e2_pause} 秒，精英减半，Boss 除外）；是队长时每一刀都附带一道穿身影刺（{$e2_line_mult*100}% 伤害）"
+   }
+  }
+ ],
+ "gallery": {
+  "tags": [
+   "近战",
+   "位移",
+   "召唤",
+   "控制"
+  ],
+  "desc": "特种干员，刺客。不是队长时会自行瞬身切入远处的敌人；晋升至精英一后召出虚影追击 Boss 与精英，精英二后每一刀都瞬身穿过目标",
+  "intro": "（草稿，待用户改）独自行动于维多利亚的刺客，行踪难以查定"
+ },
+ "blocks": {
+  "_doc": "傀影（docs/368）：纯积木数据干员，0 个 custom。普攻 cone（最多 max_n 名）；切入 / 技能位移用 shape.dash_line（德克萨斯段）；镜中虚影 = blocks.summons.shadow（docs/61 §15）",
+  "follow": {
+   "leash": "$leash",
+   "gap": "$gap"
+  },
+  "hit_fx": [
+   {
+    "pfx": {
+     "kind": "glow",
+     "r": 6.0,
+     "life": 0.15,
+     "col": [
+      0.85,
+      0.25,
+      0.35
+     ],
+     "alpha": 0.5
+    }
+   }
+  ],
+  "summons": {
+   "shadow": {
+    "name": "虚影",
+    "invuln": true,
+    "life": "permanent",
+    "cap": 1,
+    "r": 10,
+    "col": [
+     0.45,
+     0.2,
+     0.4
+    ],
+    "status": false,
+    "move": {
+     "mode": "chase",
+     "speed": "$mir_speed",
+     "leash": "$mir_leash",
+     "target": "elite",
+     "anchor": "self"
+    },
+    "enemy_target": "decoy",
+    "decoy_r": "$mir_decoy",
+    "attack": {
+     "shape": "cone",
+     "r": "$mir_r",
+     "half_deg": "$mir_half",
+     "mult": "$mir_mult",
+     "every": "$cd",
+     "src": "虚影",
+     "kb": 10
+    }
+   }
+  },
+  "attack": {
+   "shape": "cone",
+   "origin_off": [
+    0,
+    -10
+   ],
+   "aim_pad": "$aim_pad",
+   "ring": false,
+   "src": "影刃",
+   "r": "$reach",
+   "half": "$half",
+   "max_n": "$max_n",
+   "kb": "$kb",
+   "every": "$cd",
+   "first": "$first_cd",
+   "idle": "$idle_cd",
+   "face": true
+  },
+  "trait": [
+   {
+    "trig": "on_kill",
+    "cond": "skill_active:0",
+    "_doc": "暗夜魅影：期间每击倒一名敌人，队长屏障 + s1_kill_shield（总量上限 s1_shield_cap，刷新持续）；云端第 5 轮诊断：输局死在 5 分钟大群、本人没有任何回复来源",
+    "do": [
+     {
+      "verb": "shield",
+      "pct": "$s1_kill_shield",
+      "cap": "$s1_shield_cap",
+      "dur": "$s1_dur"
+     }
+    ]
+   },
+   {
+    "trig": "every_n",
+    "n": "$ld_n",
+    "cond": "is_leader",
+    "_doc": "处决者（队长时）：本体不能自行切入，改为每第 ld_n 刀附带一道穿身影刺",
+    "do": [
+     {
+      "shape": "line",
+      "len": "$ld_len",
+      "width": "$ld_w",
+      "mult": "$ld_mult",
+      "src": "影刺",
+      "tags": [
+       "basic",
+       "pierce"
+      ]
+     }
+    ]
+   },
+   {
+    "trig": "every_n",
+    "n": 1,
+    "cond": "skill_active:1 && is_leader",
+    "_doc": "血色乐章（队长时）：每一刀，影子在目标处再斩一记",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "target",
+      "r": "$s2_ld_r",
+      "r_abs": true,
+      "mult": "$s2_ld_mult",
+      "src": "血色乐章",
+      "ring": false
+     }
+    ]
+   },
+   {
+    "trig": "tick",
+    "every": "$blink_cd",
+    "cond": "!is_leader",
+    "_doc": "特性「处决者」：不是队长时每 blink_cd 秒，普攻触及外（blink_min）、blink_aim 内有敌人 → 瞬身切入",
+    "do": [
+     {
+      "shape": "dash_line",
+      "aim": "nearest",
+      "need_target": true,
+      "aim_r": "$blink_aim",
+      "r": "$blink_len",
+      "w": "$blink_w",
+      "t": "$blink_t",
+      "mult": "$blink_mult",
+      "src": "切入",
+      "tags": [
+       "pierce"
+      ],
+      "min_d": "$blink_min"
+     }
+    ]
+   },
+   {
+    "trig": "on_skill_start",
+    "skill": 0,
+    "at": "summon:shadow",
+    "_doc": "镜中虚影：傀影放暗夜魅影时，虚影在原地斩一圈",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "target",
+      "r": "$s1_mir_r",
+      "r_abs": true,
+      "mult": "$s1_mir_mult",
+      "src": "虚影",
+      "ring": false
+     }
+    ]
+   },
+   {
+    "trig": "on_skill_start",
+    "skill": 2,
+    "at": "summon:shadow",
+    "_doc": "镜中虚影：夜幕突袭，虚影在原地同样炸开一次（伤害 × s3_mir、半径 s3_mir_r）",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "target",
+      "r": "$s3_mir_r",
+      "r_abs": true,
+      "mult": "$s3_mult*$s3_mir",
+      "power": true,
+      "src": "虚影",
+      "ring": false,
+      "on_hit": [
+       {
+        "st": "stun",
+        "dur": "$s3_stun"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "trig": "on_dash_end",
+    "src": "夜幕突袭",
+    "_doc": "夜幕突袭：切入落地后炸开",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "self",
+      "r": "$s3_r",
+      "r_abs": true,
+      "mult": "$s3_mult",
+      "power": true,
+      "kb": 120,
+      "src": "夜幕突袭",
+      "ring": false,
+      "on_hit": [
+       {
+        "st": "stun",
+        "dur": "$s3_stun"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "trig": "every_n",
+    "n": 1,
+    "cond": "skill_active:1 && !is_leader",
+    "_doc": "血色乐章：期间每一刀之后瞬身跳到下一名敌人",
+    "do": [
+     {
+      "shape": "dash_line",
+      "aim": "nearest",
+      "need_target": true,
+      "aim_r": "$s2_hop_aim",
+      "r": "$s2_hop_len",
+      "w": "$blink_w",
+      "t": "$blink_t",
+      "mult": "$s2_hop_mult",
+      "src": "血色乐章",
+      "tags": [
+       "pierce"
+      ],
+      "min_d": 40
+     }
+    ]
+   }
+  ],
+  "skills": [
+   {
+    "dur": "$s1_dur",
+    "status": "暗夜魅影",
+    "status_col": [
+     0.6,
+     0.3,
+     0.6
+    ],
+    "fx": [
+     {
+      "banner": "暗夜魅影"
+     }
+    ],
+    "do": [
+     {
+      "verb": "shield",
+      "pct": "$s1_shield",
+      "cap": "$s1_shield_cap",
+      "dur": "$s1_dur",
+      "power": true
+     },
+     {
+      "verb": "buff_self",
+      "stat": "interval",
+      "op": "mult",
+      "value": "$s1_interval"
+     },
+     {
+      "shape": "dash_line",
+      "aim": "nearest",
+      "need_target": true,
+      "aim_r": "$s1_len",
+      "r": "$s1_len",
+      "w": "$blink_w",
+      "t": "$blink_t",
+      "mult": "$s1_mult",
+      "src": "暗夜魅影",
+      "tags": [
+       "pierce"
+      ],
+      "cond": "!is_leader",
+      "power": true
+     }
+    ],
+    "need_enemy": 200
+   },
+   {
+    "dur": "$s2_dur",
+    "status": "血色乐章",
+    "status_col": [
+     0.85,
+     0.2,
+     0.3
+    ],
+    "fx": [
+     {
+      "banner": "血色乐章"
+     }
+    ],
+    "do": [
+     {
+      "verb": "buff_self",
+      "stat": "atk",
+      "op": "mult",
+      "value": "$s2_atk",
+      "power": true
+     },
+     {
+      "verb": "summon_mod",
+      "kind": "shadow",
+      "aspd": "$s2_mir_aspd"
+     }
+    ],
+    "need_enemy": 200
+   },
+   {
+    "dur": 0.6,
+    "status": "夜幕突袭",
+    "status_col": [
+     0.5,
+     0.2,
+     0.5
+    ],
+    "fx": [
+     {
+      "banner": "夜幕突袭"
+     }
+    ],
+    "do": [
+     {
+      "shape": "dash_line",
+      "aim": "densest",
+      "need_target": true,
+      "aim_r": "$s3_len",
+      "r": "$s3_len",
+      "w": "$s3_w",
+      "t": "$blink_t",
+      "mult": "$s3_dash_mult",
+      "src": "夜幕突袭",
+      "tags": [
+       "pierce"
+      ],
+      "cond": "!is_leader",
+      "power": true
+     },
+     {
+      "shape": "circle",
+      "cond": "is_leader",
+      "center": "self",
+      "r": "$s3_r",
+      "r_abs": true,
+      "mult": "$s3_mult",
+      "power": true,
+      "kb": 120,
+      "src": "夜幕突袭",
+      "ring": false,
+      "on_hit": [
+       {
+        "st": "stun",
+        "dur": "$s3_stun"
+       }
+      ]
+     }
+    ],
+    "need_enemy": 200
+   }
+  ],
+  "talent": [],
+  "progression": {
+   "land": {
+    "trig": "on_dash_end",
+    "src": "切入",
+    "_doc": "节点 1 无声：切入落地斩一圈",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "self",
+      "r": "$land_r",
+      "r_abs": true,
+      "mult": "$land_mult",
+      "src": "无声",
+      "ring": false
+     }
+    ]
+   },
+   "interlude": {
+    "trig": "on_dash_end",
+    "cond": "skill_active:0",
+    "_doc": "节点 2 幕间：暗夜魅影期间每次切入给队长补屏障",
+    "do": [
+     {
+      "verb": "shield",
+      "pct": "$int_shield",
+      "cap": "$s1_shield_cap",
+      "dur": "$s1_dur"
+     }
+    ]
+   },
+   "curtain": {
+    "trig": "on_skill_end",
+    "skill": 1,
+    "_doc": "节点 4A 谢幕：血色乐章结束时落下一圈猩红帷幕",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "self",
+      "r": "$curtain_r",
+      "r_abs": true,
+      "mult": "$curtain_mult",
+      "power": true,
+      "src": "谢幕",
+      "ring": false,
+      "on_hit": [
+       {
+        "st": "stun",
+        "dur": "$curtain_stun"
+       }
+      ]
+     }
+    ]
+   },
+   "twin": {
+    "trig": "on_dash_end",
+    "at": "summon:shadow",
+    "_doc": "节点 4B 如影随形：每次切入（任何来源），虚影同时在它的位置斩一刀",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "summon:shadow",
+      "r": "$twin_r",
+      "r_abs": true,
+      "mult": "$twin_mult",
+      "src": "如影随形",
+      "ring": false
+     }
+    ]
+   },
+   "encore": {
+    "trig": "on_dash_end",
+    "src": "血色乐章",
+    "_doc": "节点 5A 终场：血色乐章每次跳跃落点震一圈，停顿非精英",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "self",
+      "r": "$encore_r",
+      "r_abs": true,
+      "mult": "$encore_mult",
+      "src": "终场",
+      "ring": false,
+      "on_hit": [
+       {
+        "st": "pause",
+        "dur": "$encore_pause"
+       }
+      ]
+     }
+    ]
+   },
+   "mastery": {
+    "verb": "summon_mod",
+    "kind": "shadow",
+    "then": {
+     "delay": "$mt_delay",
+     "mult": "$mt_mult"
+    },
+    "_doc": "节点 5B 虚影精通：虚影每次出手后再追一刀"
+   },
+   "elite1": [
+    {
+     "trig": "on_deploy",
+     "_doc": "天赋「镜中虚影」：精一起召出虚影（常驻，追 Boss → 精英 → 其余）",
+     "do": [
+      {
+       "verb": "summon",
+       "kind": "shadow",
+       "at": "self"
+      }
+     ]
+    },
+    {
+     "trig": "every_n",
+     "n": "$bs_n",
+     "_doc": "精一「背刺」：每第 bs_n 次影刃，影子从目标身后补一刀，停顿非精英",
+     "do": [
+      {
+       "shape": "circle",
+       "center": "target",
+       "r": "$bs_r",
+       "r_abs": true,
+       "mult": "$bs_mult",
+       "src": "背刺",
+       "tags": [
+        "follow_up"
+       ],
+       "ring": false,
+       "on_hit": [
+        {
+         "st": "pause",
+         "dur": "$bs_pause"
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "elite2": [
+    {
+     "trig": "every_n",
+     "n": 1,
+     "replace": true,
+     "cond": "!is_leader",
+     "_doc": "精二「瞬影」：不是队长时，每一刀都换成瞬身斩——从原地消失、穿过目标出现在它身后（沿途全部命中、停顿非精英）；swap_attack 不收 dash_line，用 every_n replace",
+     "do": [
+      {
+       "shape": "dash_line",
+       "aim": "nearest",
+       "need_target": true,
+       "aim_r": "$e2_len",
+       "r": "$e2_len",
+       "w": "$e2_w",
+       "t": "$e2_t",
+       "mult": "$e2_mult",
+       "src": "瞬影",
+       "tags": [
+        "basic",
+        "pierce"
+       ],
+       "on_hit": [
+        {
+         "st": "pause",
+         "dur": "$e2_pause"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "trig": "every_n",
+     "n": "$e2_n",
+     "cond": "is_leader",
+     "_doc": "精二「瞬影」（队长时）：每第 e2_n 刀附带一道穿身影刺",
+     "do": [
+      {
+       "shape": "line",
+       "len": "$e2_line_len",
+       "width": "$e2_line_w",
+       "mult": "$e2_line_mult",
+       "src": "瞬影",
+       "tags": [
+        "basic",
+        "pierce"
+       ]
+      }
+     ]
+    },
+    {
+     "verb": "summon_mod",
+     "kind": "shadow",
+     "dmg": "$mir_e2",
+     "_doc": "精二：虚影属性更强（原作天赋精二档）"
+    }
+   ]
+  }
+ }
+}

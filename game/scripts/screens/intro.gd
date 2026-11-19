@@ -208,7 +208,7 @@ static var _guide: Dictionary = {}
 
 static func _g() -> Dictionary:
 	if _guide.is_empty():
-		_guide = JSON.parse_string(FileAccess.get_file_as_string(ThemePack.path("guide")))
+		_guide = ThemePack.load_merged("guide")   # 通用页 + 本主题的页（pages_insert 插回原位，docs/368 §4）
 	return _guide
 
 
@@ -693,7 +693,7 @@ func draw_icon(kind: String, _c0: Vector2) -> void:
 					UI.diamond(g.hud, cr.get_center(), 9.0 * _s, Color(0, 0, 0, 0), INK2)
 			_lbl(0, 6, "不期而遇", UI.CYAN, 12)
 			for k in 4:
-				var ec: Color = g.endg.ending_col(["standard", "knight", "deep", "resolve"][k])
+				var ec: Color = g.endg.ending_col(D.ending_order()[k])   # 结局显示顺序（waves.json endings no，docs/368 §1）
 				var dc := _p(-75 + k * 50, 66)
 				UI.diamond(g.hud, dc, 10.0 * _s, Color(ec.r, ec.g, ec.b, 0.3), ec)
 				UI.text(g.hud, g.font, dc + Vector2(-20, 32 * _s), ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ"][k], 13, ec, HORIZONTAL_ALIGNMENT_CENTER, 40)

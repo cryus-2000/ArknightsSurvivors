@@ -1,34 +1,46 @@
 {
-  "_doc": "主题包清单（docs/357 §6.1、docs/359 §2）。data：本主题的数据文件，代码经 scripts/core/theme_pack.gd 的 ThemePack.path(键) 取路径；阶段 0 数据还没搬家，路径指向 res://data/ 原文件。maps：地图目录与缺省地图（地图 json 里含地砖 / 景物 / 环境光 / 光柱 / 雪花 / 溟痕参数）。assets：标题 / 配乐 / 地面 / 光照的引用，只登记、阶段 2 才接线（现在代码里仍是 preload 写死）。结局表在 waves.json 的 endings 段。",
+  "_doc": "主题包清单（docs/357 §6.1、docs/359 §2、docs/367）。data：本主题的数据文件，代码经 scripts/core/theme_pack.gd 的 ThemePack.path(键) 取路径。11-18 起主题自己的数据搬进 res://themes/deep_sea/data/（waves 含结局表 endings、enemies、events_v2、relics、relic_effects、medals、medals_layout、enemy_pixels、enemy_redraw、maps/）；lore / guide / onboard 11-18 拆开（docs/368 §4）：主题部分在主题包，共享部分仍在 res://data/ 同名文件，代码用 ThemePack.load_merged(键) 合并读；仍指向 res://data/ 的共享文件：doctor、meta_tree / meta_roots（认知塑造跨主题共享）、ult_text / ult_audio（干员终结技），拆分是内容阶段的事。maps：地图目录与缺省地图。mechanics：主题机制（docs/364）。assets：标题 / 配乐 / 地面 / 光照的引用，只登记、阶段 2 才接线。 modules：主题专属的玩法模块（docs/368 §3），game 上同名成员 g.<键>；没有的主题为 null（knight 例外：现在核心有 85 处直接读 g.knight，新主题要给一个空实现，见 docs/369）。",
   "id": "deep_sea",
   "name": "水月与深蓝之树",
   "data": {
-    "waves": "res://data/waves.json",
-    "enemies": "res://data/enemies.json",
-    "events_v2": "res://data/events_v2.json",
-    "relics": "res://data/relics.json",
-    "relic_effects": "res://data/relic_effects.json",
+    "waves": "res://themes/deep_sea/data/waves.json",
+    "enemies": "res://themes/deep_sea/data/enemies.json",
+    "events_v2": "res://themes/deep_sea/data/events_v2.json",
+    "relics": "res://themes/deep_sea/data/relics.json",
+    "relic_effects": "res://themes/deep_sea/data/relic_effects.json",
     "meta_tree": "res://data/meta_tree.json",
     "meta_roots": "res://data/meta_roots.json",
-    "guide": "res://data/guide.json",
-    "onboard": "res://data/onboard.json",
-    "lore": "res://data/lore.json",
-    "medals": "res://data/medals.json",
-    "medals_layout": "res://data/medals_layout.json",
+    "guide": "res://themes/deep_sea/data/guide.json",
+    "onboard": "res://themes/deep_sea/data/onboard.json",
+    "lore": "res://themes/deep_sea/data/lore.json",
+    "medals": "res://themes/deep_sea/data/medals.json",
+    "medals_layout": "res://themes/deep_sea/data/medals_layout.json",
     "doctor": "res://data/doctor.json",
-    "enemy_pixels": "res://data/enemy_pixels.json",
-    "enemy_redraw": "res://data/enemy_redraw.json",
+    "enemy_pixels": "res://themes/deep_sea/data/enemy_pixels.json",
+    "enemy_redraw": "res://themes/deep_sea/data/enemy_redraw.json",
     "ult_text": "res://data/ult_text.json",
     "ult_audio": "res://data/ult_audio.json"
   },
   "mechanics": [
-    {"id": "lamp", "script": "res://themes/deep_sea/mech/mech_lamp.gd"},
-    {"id": "mire", "script": "res://themes/deep_sea/mech/mech_mire.gd"},
-    {"id": "beacon", "script": "res://themes/deep_sea/mech/mech_beacon.gd"},
-    {"id": "tide_zone", "script": "res://themes/deep_sea/mech/mech_tide_zone.gd"}
+    {
+      "id": "lamp",
+      "script": "res://themes/deep_sea/mech/mech_lamp.gd"
+    },
+    {
+      "id": "mire",
+      "script": "res://themes/deep_sea/mech/mech_mire.gd"
+    },
+    {
+      "id": "beacon",
+      "script": "res://themes/deep_sea/mech/mech_beacon.gd"
+    },
+    {
+      "id": "tide_zone",
+      "script": "res://themes/deep_sea/mech/mech_tide_zone.gd"
+    }
   ],
   "maps": {
-    "dir": "res://data/maps",
+    "dir": "res://themes/deep_sea/data/maps",
     "default": "deep_sea"
   },
   "assets": {
@@ -36,11 +48,23 @@
     "title_tree_script": "res://scripts/title_tree.gd",
     "title_art_dir": "res://art/ui/title_deep/",
     "title_logo": "res://art/ui/title_deep/logo_mark.png",
-    "title_shaders": ["res://shaders/title_deep.gdshader", "res://shaders/title_deep_view.gdshader"],
+    "title_shaders": [
+      "res://shaders/title_deep.gdshader",
+      "res://shaders/title_deep_view.gdshader"
+    ],
     "music_dir": "res://audio/music/",
     "music_layers": "res://audio/music/suno_layers.json",
     "music_web": "res://audio/music/web_music.json",
     "ground_and_light": "maps.default 地图 json 的 tiles / props / big_props / ambient / god_rays / snow 段",
-    "l10n_theme_tables": ["enemies", "events", "relics"]
+    "l10n_theme_tables": [
+      "enemies",
+      "events",
+      "relics"
+    ]
+  },
+  "modules": {
+    "ishar": "res://themes/deep_sea/mod/ishar_encounter.gd",
+    "duck": "res://themes/deep_sea/mod/duck_lord.gd",
+    "knight": "res://themes/deep_sea/mod/knight.gd"
   }
 }

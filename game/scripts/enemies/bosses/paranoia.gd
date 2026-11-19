@@ -372,6 +372,11 @@ func _paranoia_cocoon_step(e: Dictionary, dt: float) -> void:
 		paranoia_hatch(e, false)
 
 
+## 部件吸取把茧壳打空（docs/368 §2，原 combat 直接调 bai.paranoia_hatch）
+func on_shell_broken(e: Dictionary) -> void:
+	paranoia_hatch(e, true)
+
+
 func paranoia_hatch(e: Dictionary, broken: bool) -> void:
 	e.cocoon_t = 0.0
 	e.shell_hp = 0.0

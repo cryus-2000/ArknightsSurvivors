@@ -21,7 +21,7 @@ SEG = 16.0
 SEGMENTS = 6
 SOURCES = ["game/scripts/enemies/bosses/ishar.gd", "game/scripts/enemies/bosses/ishar_combos.gd", "game/tests/ishar_combo_preview.gd",
            "game/scripts/enemies/final_attacks.gd", "game/scripts/render/boss_attack_draw.gd", "game/scripts/render/final_attack_grains.gd",
-           "game/scripts/render/world.gd", "game/scripts/render/telegraph_draw.gd", "game/data/enemies.json"]
+           "game/scripts/render/world.gd", "game/scripts/render/telegraph_draw.gd", "game/themes/deep_sea/data/enemies.json"]
 
 
 def ffmpeg(*args):

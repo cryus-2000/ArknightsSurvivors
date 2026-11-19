@@ -36,7 +36,7 @@ def _ids(sub):
 
 
 def _enemy_ids():
-    p = os.path.join(ROOT, "game", "data", "enemies.json")
+    p = os.path.join(ROOT, "game", "themes", "deep_sea", "data", "enemies.json")
     return set(json.load(open(p, encoding="utf-8"))["enemies"]) if os.path.exists(p) else set()
 
 

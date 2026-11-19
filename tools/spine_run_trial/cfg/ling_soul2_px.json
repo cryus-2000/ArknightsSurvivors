@@ -3,7 +3,7 @@
  "rig": "ling_soul2.json",
  "owner": "ling",
  "tex_prefix": "op_ling_soul2",
- "scale": 0.148,
+ "scale": 0.185,
  "canvas": 192,
  "colors": 64,
  "palette_alpha": 230,
@@ -72,6 +72,47 @@
     ]
    },
    "note": "逍遥技能（OnAttack 0.5 秒 ≈ f3）"
+  }
+ },
+ "fix": {
+  "eyes": {
+   "points": {
+    "eye": [
+     "F2_Head_01",
+     51.05,
+     -3.37
+    ]
+   },
+   "colors": {
+    "K": "#0e1e23",
+    "B": "#3f6bd6"
+   },
+   "pattern": {
+    "eye": [
+     "KKKK",
+     ".BB."
+    ]
+   },
+   "anchor": {
+    "eye": [
+     2,
+     1
+    ]
+   },
+   "x1": {
+    "pattern": {
+     "eye": [
+      "KB"
+     ]
+    },
+    "anchor": {
+     "eye": [
+      1,
+      0
+     ]
+    }
+   },
+   "_doc": "龙眼：4×4 BOX 后并进头部青色、1 倍上看不见。一形态按头骨 F2_Head_01 局部点 (51.05, -3.37)（4 倍图上量的眼位换算）逐帧定位；弦惊二形态用现成的 F_Eye 骨。@2x 4×2（暗边 + 蓝瞳，蓝取角上的蓝），1 倍 2 格"
   }
  }
 }

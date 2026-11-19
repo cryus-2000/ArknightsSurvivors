@@ -1,0 +1,1116 @@
+{
+ "_doc": "夕（docs/380 设计稿，ops-design-b 11-18）：草案，不进名册 / 寻访池（recruitable false）；美术借艾雅法拉帧条占位，特效未做",
+ "id": "dusk",
+ "trail_col": {
+  "main": [
+   0.36,
+   0.62,
+   0.78
+  ],
+  "alt": [
+   0.85,
+   0.3,
+   0.25
+  ]
+ },
+ "name": "夕",
+ "en": "DUSK",
+ "class": "术师",
+ "branch": "阵法术师",
+ "faction": [
+  "岁"
+ ],
+ "lanes": [
+  "summon",
+  "multi"
+ ],
+ "col": [
+  0.36,
+  0.62,
+  0.78
+ ],
+ "script": "res://scripts/characters/data_operator.gd",
+ "recruitable": false,
+ "base": {
+  "_doc": "夕（docs/380）草案数值：数值全在这里，积木与文字只引用 $key。对照艾雅法拉（atk 30 / cd 1.2 / aoe 58）：单发略高、间隔更长、溅射更大，直接秒伤约 85%，其余靠小自在",
+  "atk": 31,
+  "cd": 1.6,
+  "range": 300,
+  "aoe": 72,
+  "first_cd": 0.6,
+  "idle_cd": 0.2,
+  "fire_pad": 40,
+  "aim_pad": 60,
+  "attack_shell_speed": 300,
+  "boom_kb": 90,
+  "_beast": "小自在（原作召唤物 token_10015_dusk_drgn）：每第 beast_n 次墨弹在落点化出一只，原地守着啃咬身边敌人；同种同时至多 4 只（cap 写死在 summons，见 docs/380 §3）",
+  "beast_n": 4,
+  "beast_delay": 0.35,
+  "beast_life": 10,
+  "beast_r": 62,
+  "beast_mult": 0.15,
+  "beast_every": 1.0,
+  "beast_range": 70,
+  "s1_mult": 2.5,
+  "s1_aoe": 1.5,
+  "s2_dur": 12,
+  "s2_dmg": 1.55,
+  "s2_interval": 0.7,
+  "s2_range": 0.25,
+  "s3_dur": 14,
+  "s3_dmg": 2.2,
+  "s3_interval": 1.35,
+  "s3_aoe": 1.35,
+  "s3_life": 8,
+  "talent_per": 0.02,
+  "talent_cap": 15,
+  "ink_slow": 1.2,
+  "bloom_r": 70,
+  "bloom_mult": 0.3,
+  "bloom_kb": 140,
+  "lure_hp": 80,
+  "lure_r": 180,
+  "lure_hurt": 0.4,
+  "lure_slow": 1.0,
+  "trap_r": 90,
+  "trap_stun": 1.0,
+  "pop_r": 80,
+  "pop_mult": 1.2,
+  "pool_r": 60,
+  "pool_dur": 2.0,
+  "pool_every": 0.5,
+  "pool_mult": 0.15,
+  "echo_r": 60,
+  "echo_mult": 0.18
+ },
+ "leader": {
+  "_doc": "当队长时的受击属性（docs/23）：原作精二满级 生命 1801 / 防御 127 / 法抗 20%（character_table char_2015_dusk），远程主控；与艾雅法拉（1743 / 122 / 20%）同档，生命略高",
+  "max_hp": 106.2,
+  "armor": 1.5,
+  "arts_res": 0.2,
+  "regen": 0.8
+ },
+ "sprites": {
+  "move_attack": {
+   "tex": "op_eyjafjalla_move_attack",
+   "frames": 8,
+   "foot": [
+    32.0,
+    60.0
+   ],
+   "_doc": "10-23 移动攻击（docs/128 §3）：普攻上半身 + 跑步步态腿，原作 Spine 1 倍像素化（tools/op_1x/make_op_1x.py）；帧序与普攻一一对应，只换贴图"
+  },
+  "entry": {
+   "tex": "op_eyjafjalla_entry",
+   "frames": 8,
+   "fps": 11.6279,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.086,
+    0.086,
+    0.086,
+    0.086,
+    0.086,
+    0.086,
+    0.086,
+    0.086
+   ],
+   "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/eyjafjalla_entry.json），64 画布 @2x；落下由代码补"
+  },
+  "idle": {
+   "tex": "op_eyjafjalla_idle",
+   "frames": 8,
+   "fps": 2.6666666666666665,
+   "foot": [
+    32.0,
+    60.0
+   ],
+   "frame_durations": [
+    0.42714285714285716,
+    0.42714285714285716,
+    0.42714285714285727,
+    0.42714285714285705,
+    0.42714285714285705,
+    0.4271428571428575,
+    0.4271428571428566,
+    0.010000000000000231
+   ]
+  },
+  "run": {
+   "tex": "op_eyjafjalla_run",
+   "frames": 8,
+   "fps": 13.333333333333334,
+   "foot": [
+    32.0,
+    60.0
+   ],
+   "frame_durations": [
+    0.075,
+    0.075,
+    0.075,
+    0.075,
+    0.075,
+    0.075,
+    0.075,
+    0.075
+   ]
+  },
+  "attack": {
+   "tex": "op_eyjafjalla_attack",
+   "frames": 8,
+   "fps": 28.0,
+   "foot": [
+    32.0,
+    60.0
+   ],
+   "frame_durations": [
+    0.044642857142857144,
+    0.044642857142857144,
+    0.044642857142857144,
+    0.044642857142857144,
+    0.02678571428571428,
+    0.02678571428571428,
+    0.02678571428571428,
+    0.0267857142857143
+   ],
+   "fire": 4,
+   "fire_time": 0.17857142857142858,
+   "attack_timing": {
+    "duration": 0.49857142857142855,
+    "fire_time": 0.17857142857142858,
+    "active_ratio": 0.9,
+    "windup_ratio": 0.35816618911174786,
+    "min_duration": 0.13333333333333333,
+    "frame_durations": [
+     0.044642857142857144,
+     0.044642857142857144,
+     0.044642857142857144,
+     0.04464285714285715,
+     0.061538461538461535,
+     0.07384615384615384,
+     0.08615384615384614,
+     0.09846153846153849
+    ]
+   }
+  },
+  "skill": {
+   "tex": "op_eyjafjalla_skill",
+   "frames": 8,
+   "fps": 12.0,
+   "foot": [
+    32.0,
+    60.0
+   ],
+   "frame_durations": [
+    0.09375,
+    0.09375,
+    0.09375,
+    0.09375,
+    0.07291666666666666,
+    0.07291666666666666,
+    0.07291666666666666,
+    0.07291666666666663
+   ],
+   "fire": 4,
+   "fire_time": 0.375
+  },
+  "death": {
+   "tex": "op_eyjafjalla_death",
+   "frames": 8,
+   "fps": 6.666666401757145,
+   "foot": [
+    48.0,
+    76.0
+   ],
+   "frame_durations": [
+    0.1700000068119594,
+    0.1700000068119594,
+    0.17000000681195943,
+    0.17000000681195937,
+    0.17000000681195948,
+    0.17000000681195937,
+    0.17000000681195937,
+    0.010000000000000009
+   ]
+  },
+  "hurt": {
+   "tex": "op_eyjafjalla_hurt",
+   "frames": 2,
+   "fps": 10.0,
+   "foot": [
+    32.0,
+    60.0
+   ],
+   "frame_durations": [
+    0.1,
+    0.1
+   ]
+  },
+  "size": 64,
+  "foot": [
+   32,
+   60
+  ],
+  "skill_s3": {
+   "tex": "op_eyjafjalla_skill_s3",
+   "frames": 8,
+   "fps": 12.0,
+   "foot": [
+    32.0,
+    60.0
+   ],
+   "frame_durations": [
+    0.09375,
+    0.09375,
+    0.09375,
+    0.09375,
+    0.07291666666666666,
+    0.07291666666666666,
+    0.07291666666666666,
+    0.07291666666666663
+   ],
+   "fire": 4,
+   "fire_time": 0.375
+  },
+  "skill_s3_loop": {
+   "tex": "op_eyjafjalla_skill_s3_loop",
+   "frames": 8,
+   "fps": 6.666666401757145,
+   "foot": [
+    32.0,
+    60.0
+   ],
+   "frame_durations": [
+    0.1700000068119594,
+    0.1700000068119594,
+    0.17000000681195943,
+    0.17000000681195937,
+    0.17000000681195948,
+    0.17000000681195937,
+    0.17000000681195937,
+    0.010000000000000009
+   ]
+  },
+  "skill_s3_end": {
+   "tex": "op_eyjafjalla_skill_s3_end",
+   "frames": 8,
+   "fps": 4.0,
+   "foot": [
+    32.0,
+    60.0
+   ],
+   "frame_durations": [
+    0.07,
+    0.07,
+    0.07,
+    0.07,
+    0.07,
+    0.09,
+    0.07,
+    0.05
+   ]
+  },
+  "skills": {
+   "s1": {
+    "anim": "skill"
+   },
+   "s2": {
+    "anim": "skill"
+   },
+   "s3": {
+    "start": "skill_s3",
+    "loop": "skill_s3_loop",
+    "run": "run",
+    "end": {
+     "anim": "skill_s3_end",
+     "frames": [
+      4,
+      5,
+      6,
+      7
+     ]
+    }
+   }
+  }
+ },
+ "extra_sprites": [
+  "entry",
+  "skill_s3",
+  "skill_s3_loop",
+  "skill_s3_end"
+ ],
+ "attack": {
+  "mode": "auto",
+  "name": "墨弹",
+  "desc": "每 {$cd} 秒向射程 {$range} 内最近的敌人掷出墨弹，落点半径 {$aoe} 溅开（法术），小幅击退（精英减弱，Boss 除外）；「点睛」：每第 {$beast_n} 发墨弹的落点化出一只小自在（存在 {$beast_life} 秒），原地啃咬半径 {$beast_r} 内的敌人（法术），并把半径 {$lure_r} 内的近战敌人引向自己（{$lure_hp} 点生命，Boss 除外），同时至多 4 只"
+ },
+ "skills": [
+  {
+   "name": "工笔入化",
+   "en": "TRANSCENDENTAL STROKE",
+   "sp": 8,
+   "icon": "skill_eyjafjalla_s1",
+   "desc": "朝最近的敌人掷出一发大墨弹：伤害 ×{$s1_mult}，溅开范围 ×{$s1_aoe}"
+  },
+  {
+   "name": "泼墨淋漓",
+   "en": "FLOWING INK",
+   "sp": 14,
+   "dur": 12.0,
+   "icon": "skill_eyjafjalla_s2",
+   "desc": "{$s2_dur} 秒内墨弹伤害 ×{$s2_dmg}，出手间隔 ×{$s2_interval}，射程 +{$s2_range*100}%"
+  },
+  {
+   "name": "写意胜形",
+   "en": "IMAGE OVER FORM",
+   "sp": 24,
+   "dur": 14.0,
+   "icon": "skill_eyjafjalla_s3",
+   "desc": "{$s3_dur} 秒内墨弹伤害 ×{$s3_dmg}、溅开范围 ×{$s3_aoe}，出手间隔 ×{$s3_interval}；每发墨弹的落点都化出一只小自在（存在 {$s3_life} 秒）"
+  }
+ ],
+ "talent": {
+  "name": "化境",
+  "desc": "夕与小自在每击杀一名敌人，夕攻击 +{$talent_per*100}%，至多 {$talent_cap} 层"
+ },
+ "hit_sources": {
+  "墨弹": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "projectile",
+    "area"
+   ]
+  },
+  "工笔入化": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "skill",
+    "projectile",
+    "area"
+   ]
+  },
+  "小自在": {
+   "emitter": "summon",
+   "origin": "core",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "entity",
+    "area"
+   ]
+  },
+  "墨花": {
+   "emitter": "summon",
+   "origin": "talent",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "entity",
+    "area"
+   ]
+  },
+  "墨散": {
+   "emitter": "summon",
+   "origin": "route",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "entity",
+    "area"
+   ]
+  },
+  "余墨": {
+   "emitter": "summon",
+   "origin": "route",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "entity",
+    "dot",
+    "area"
+   ]
+  },
+  "应笔": {
+   "emitter": "summon",
+   "origin": "core",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "entity",
+    "area"
+   ]
+  }
+ },
+ "progression": [
+  {
+   "type": "custom",
+   "id": "ink_bloom",
+   "name": "墨花",
+   "icon": "growth_b_echo",
+   "desc": "小自在化出时墨花炸开：半径 {$bloom_r} 内的敌人受到墨弹 {$bloom_mult*100}% 的法术伤害并被击退"
+  },
+  {
+   "type": "custom",
+   "id": "s1_beast",
+   "name": "点墨成兽",
+   "icon": "skill_eyjafjalla_s1",
+   "desc": "「工笔入化」的大墨弹落点也化出一只小自在，原地啃咬身边的敌人"
+  },
+  {
+   "type": "elite",
+   "level": 1,
+   "name": "精英一",
+   "desc": "解锁二技能「泼墨淋漓」；解锁天赋「化境」：夕与小自在每击杀一名敌人，夕攻击 +{$talent_per*100}%（至多 {$talent_cap} 层）；普攻「墨染」：墨弹命中的敌人减速 {$ink_slow} 秒",
+   "attack": {
+    "name": "墨染",
+    "desc": "墨弹命中的敌人减速 {$ink_slow} 秒（精英减半，Boss 除外），身上沾墨"
+   }
+  },
+  {
+   "type": "custom",
+   "id": "lure",
+   "name": "画地为牢",
+   "icon": "growth_t_field",
+   "desc": "小自在消散（到时或被打倒）时，半径 {$trap_r} 内的敌人被定住 {$trap_stun} 秒（精英减半，Boss 除外）",
+   "branch": {
+    "lure": {
+     "id": "lure",
+     "name": "画地为牢",
+     "icon": "growth_t_field",
+     "desc": "小自在消散（到时或被打倒）时，半径 {$trap_r} 内的敌人被定住 {$trap_stun} 秒（精英减半，Boss 除外）"
+    },
+    "pop": {
+     "id": "pop",
+     "name": "墨散",
+     "icon": "growth_b_size",
+     "desc": "小自在消散时化墨炸开：半径 {$pop_r} 内的敌人受到墨弹 {$pop_mult*100}% 的法术伤害"
+    }
+   },
+   "branch_desc": "「画地为牢」让小自在消散时定住周围敌人；「墨散」让小自在消散时炸开",
+   "bot": "lure"
+  },
+  {
+   "type": "custom",
+   "id": "pop",
+   "name": "墨散",
+   "icon": "growth_b_size",
+   "desc": "小自在消散时化墨炸开：半径 {$pop_r} 内的敌人受到墨弹 {$pop_mult*100}% 的法术伤害",
+   "routes": {
+    "lure": {
+     "id": "lure2",
+     "name": "困兽",
+     "icon": "growth_t_field",
+     "desc": "被小自在啃咬的敌人减速 {$lure_slow} 秒"
+    },
+    "pop": {
+     "id": "pop2",
+     "name": "余墨",
+     "icon": "growth_b_size",
+     "desc": "小自在炸开处留下 {$pool_dur} 秒墨池，每 {$pool_every} 秒造成墨弹 {$pool_mult*100}% 的法术伤害"
+    }
+   }
+  },
+  {
+   "type": "elite",
+   "level": 2,
+   "name": "精英二",
+   "desc": "解锁三技能「写意胜形」；普通攻击强化「应笔」：每发墨弹落地时，场上每只小自在同时朝身边扑咬一次（半径 {$beast_r}、墨弹 {$echo_mult*100}% 法术伤害）",
+   "attack": {
+    "name": "应笔",
+    "desc": "每发墨弹落地时，场上每只小自在同时朝身边扑咬一次（半径 {$beast_r}、墨弹 {$echo_mult*100}% 法术伤害）"
+   }
+  }
+ ],
+ "gallery": {
+  "tags": [
+   "远程",
+   "范围",
+   "法术",
+   "召唤"
+  ],
+  "desc": "术师干员，墨弹落点化出小自在，替队长守住敌群",
+  "intro": "炎国画家，待业。笔下之物皆可成真（草稿，待用户改）"
+ },
+ "blocks": {
+  "_doc": "夕（docs/380 §3）：墨弹 = shape.shell；小自在 = blocks.summons（stay、自带区域）；点睛 = trait every_n；精二应笔 = 墨弹 on_explode 指挥小自在 cast",
+  "summons": {
+   "beast": {
+    "name": "小自在",
+    "invuln": false,
+    "hp": "$lure_hp",
+    "enemy_target": "decoy",
+    "decoy_r": "$lure_r",
+    "hurt_mult": "$lure_hurt",
+    "life": "$beast_life",
+    "cap": 4,
+    "r": 12,
+    "col": [
+     0.36,
+     0.62,
+     0.78
+    ],
+    "move": {
+     "mode": "stay"
+    },
+    "attack": {
+     "shape": "circle",
+     "center": "self",
+     "r": "$beast_r",
+     "mult": "$beast_mult",
+     "every": "$beast_every",
+     "range": "$beast_range",
+     "src": "小自在",
+     "power": false,
+     "on_hit": []
+    },
+    "on_spawn": [
+     {
+      "shape": "circle",
+      "center": "target",
+      "cond": "node:ink_bloom",
+      "r": "$bloom_r",
+      "mult": "$bloom_mult",
+      "kb": "$bloom_kb",
+      "src": "墨花"
+     }
+    ],
+    "zone": {
+     "r": "$beast_r",
+     "share": 0,
+     "mode": false
+    }
+   },
+   "beast_lure": {
+    "name": "小自在",
+    "invuln": false,
+    "hp": "$lure_hp",
+    "enemy_target": "decoy",
+    "decoy_r": "$lure_r",
+    "hurt_mult": "$lure_hurt",
+    "life": "$beast_life",
+    "cap": 4,
+    "r": 12,
+    "col": [
+     0.36,
+     0.62,
+     0.78
+    ],
+    "move": {
+     "mode": "stay"
+    },
+    "attack": {
+     "shape": "circle",
+     "center": "self",
+     "r": "$beast_r",
+     "mult": "$beast_mult",
+     "every": "$beast_every",
+     "range": "$beast_range",
+     "src": "小自在",
+     "power": false,
+     "on_hit": [
+      {
+       "st": "slow",
+       "dur": "$lure_slow",
+       "cond": "node:lure2"
+      }
+     ]
+    },
+    "on_spawn": [
+     {
+      "shape": "circle",
+      "center": "target",
+      "cond": "node:ink_bloom",
+      "r": "$bloom_r",
+      "mult": "$bloom_mult",
+      "kb": "$bloom_kb",
+      "src": "墨花"
+     }
+    ],
+    "zone": {
+     "r": "$beast_r",
+     "share": 0,
+     "mode": false
+    },
+    "on_expire": [
+     {
+      "verb": "displace",
+      "center": "target",
+      "r": "$trap_r",
+      "kb": 0,
+      "on_hit": [
+       {
+        "st": "stun",
+        "dur": "$trap_stun"
+       }
+      ]
+     }
+    ]
+   },
+   "beast_pop": {
+    "name": "小自在",
+    "invuln": false,
+    "hp": "$lure_hp",
+    "enemy_target": "decoy",
+    "decoy_r": "$lure_r",
+    "hurt_mult": "$lure_hurt",
+    "life": "$beast_life",
+    "cap": 4,
+    "r": 12,
+    "col": [
+     0.36,
+     0.62,
+     0.78
+    ],
+    "move": {
+     "mode": "stay"
+    },
+    "attack": {
+     "shape": "circle",
+     "center": "self",
+     "r": "$beast_r",
+     "mult": "$beast_mult",
+     "every": "$beast_every",
+     "range": "$beast_range",
+     "src": "小自在",
+     "power": false,
+     "on_hit": []
+    },
+    "on_spawn": [
+     {
+      "shape": "circle",
+      "center": "target",
+      "cond": "node:ink_bloom",
+      "r": "$bloom_r",
+      "mult": "$bloom_mult",
+      "kb": "$bloom_kb",
+      "src": "墨花"
+     }
+    ],
+    "zone": {
+     "r": "$beast_r",
+     "share": 0,
+     "mode": false
+    },
+    "on_expire": [
+     {
+      "shape": "circle",
+      "center": "target",
+      "r": "$pop_r",
+      "mult": "$pop_mult",
+      "src": "墨散"
+     },
+     {
+      "verb": "field",
+      "cond": "node:pop2",
+      "center": "target",
+      "r": "$pool_r",
+      "dur": "$pool_dur",
+      "every": "$pool_every",
+      "do": [
+       {
+        "shape": "circle",
+        "center": "target",
+        "r": "$pool_r",
+        "mult": "$pool_mult",
+        "src": "余墨"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  "attack": {
+   "shape": "shell",
+   "range": "$range",
+   "fire_pad": "$fire_pad",
+   "every": "$cd",
+   "first": "$first_cd",
+   "idle": "$idle_cd",
+   "aoe": "$aoe",
+   "aoe_mults": [
+    {
+     "cond": "skill_active:2",
+     "mult": "$s3_aoe"
+    }
+   ],
+   "speed": "$attack_shell_speed",
+   "src": "墨弹",
+   "tip": [
+    42,
+    -49
+   ],
+   "tip_skill": [
+    42,
+    -63
+   ],
+   "col": [
+    0.36,
+    0.62,
+    0.78
+   ],
+   "look": {
+    "glow": 13,
+    "tex": "proj_lavaball",
+    "scale": 1.0
+   },
+   "on_explode": [
+    {
+     "verb": "affect",
+     "cond": "elite >= 1",
+     "center": "target",
+     "r": "hit",
+     "_doc": "精一墨染：命中的敌人减速",
+     "on_hit": [
+      {
+       "st": "slow",
+       "dur": "$ink_slow"
+      }
+     ]
+    },
+    {
+     "verb": "displace",
+     "center": "target",
+     "r": "$aoe",
+     "kb": "$boom_kb",
+     "quiet": true
+    },
+    {
+     "verb": "summon_cmd",
+     "kind": "beast",
+     "action": "cast",
+     "cond": "elite >= 2",
+     "then": [
+      {
+       "shape": "circle",
+       "center": "summon:beast",
+       "r": "zone",
+       "mult": "$echo_mult",
+       "src": "应笔"
+      }
+     ]
+    },
+    {
+     "verb": "summon_cmd",
+     "kind": "beast_lure",
+     "action": "cast",
+     "cond": "elite >= 2",
+     "then": [
+      {
+       "shape": "circle",
+       "center": "summon:beast_lure",
+       "r": "zone",
+       "mult": "$echo_mult",
+       "src": "应笔"
+      }
+     ]
+    },
+    {
+     "verb": "summon_cmd",
+     "kind": "beast_pop",
+     "action": "cast",
+     "cond": "elite >= 2",
+     "then": [
+      {
+       "shape": "circle",
+       "center": "summon:beast_pop",
+       "r": "zone",
+       "mult": "$echo_mult",
+       "src": "应笔"
+      }
+     ]
+    }
+   ]
+  },
+  "trait": [
+   {
+    "trig": "every_n",
+    "n": "$beast_n",
+    "delay": "$beast_delay",
+    "at": "attack",
+    "_doc": "点睛（本作改编）：每第 beast_n 发墨弹，落点化出一只小自在",
+    "do": [
+     {
+      "verb": "summon",
+      "kind": "beast",
+      "n": 1,
+      "at": "target",
+      "spread": 0,
+      "cond": "!node:lure && !node:pop"
+     },
+     {
+      "verb": "summon",
+      "kind": "beast_lure",
+      "n": 1,
+      "at": "target",
+      "spread": 0,
+      "cond": "node:lure"
+     },
+     {
+      "verb": "summon",
+      "kind": "beast_pop",
+      "n": 1,
+      "at": "target",
+      "spread": 0,
+      "cond": "node:pop"
+     }
+    ]
+   },
+   {
+    "trig": "every_n",
+    "n": 1,
+    "delay": "$beast_delay",
+    "at": "attack",
+    "cond": "skill_active:2",
+    "_doc": "写意胜形：每发墨弹落点化出 / 刷新小自在",
+    "do": [
+     {
+      "verb": "summon",
+      "kind": "beast",
+      "n": 1,
+      "at": "target",
+      "spread": 0,
+      "cond": "!node:lure && !node:pop",
+      "life": "$s3_life"
+     },
+     {
+      "verb": "summon",
+      "kind": "beast_lure",
+      "n": 1,
+      "at": "target",
+      "spread": 0,
+      "cond": "node:lure",
+      "life": "$s3_life"
+     },
+     {
+      "verb": "summon",
+      "kind": "beast_pop",
+      "n": 1,
+      "at": "target",
+      "spread": 0,
+      "cond": "node:pop",
+      "life": "$s3_life"
+     }
+    ]
+   }
+  ],
+  "skills": [
+   {
+    "aim": "los",
+    "aim_pad": "$aim_pad",
+    "do": [
+     {
+      "shape": "shell",
+      "range": "$range",
+      "fire_pad": "$aim_pad",
+      "aoe": "$aoe",
+      "aoe_mult": "$s1_aoe",
+      "mult": "$s1_mult",
+      "power": true,
+      "speed": "$attack_shell_speed",
+      "src": "工笔入化",
+      "tip": [
+       42,
+       -49
+      ],
+      "tip_skill": [
+       42,
+       -63
+      ],
+      "col": [
+       0.36,
+       0.62,
+       0.78
+      ],
+      "look": {
+       "glow": 17,
+       "tex": "proj_lavaball",
+       "scale": 1.4
+      },
+      "on_explode": [
+       {
+        "verb": "summon",
+        "kind": "beast",
+        "n": 1,
+        "at": "target",
+        "spread": 0,
+        "cond": "!node:lure && !node:pop && node:s1_beast"
+       },
+       {
+        "verb": "summon",
+        "kind": "beast_lure",
+        "n": 1,
+        "at": "target",
+        "spread": 0,
+        "cond": "node:lure && node:s1_beast"
+       },
+       {
+        "verb": "summon",
+        "kind": "beast_pop",
+        "n": 1,
+        "at": "target",
+        "spread": 0,
+        "cond": "node:pop && node:s1_beast"
+       },
+       {
+        "verb": "summon_cmd",
+        "kind": "beast",
+        "action": "cast",
+        "cond": "elite >= 2",
+        "then": [
+         {
+          "shape": "circle",
+          "center": "summon:beast",
+          "r": "zone",
+          "mult": "$echo_mult",
+          "src": "应笔"
+         }
+        ]
+       },
+       {
+        "verb": "summon_cmd",
+        "kind": "beast_lure",
+        "action": "cast",
+        "cond": "elite >= 2",
+        "then": [
+         {
+          "shape": "circle",
+          "center": "summon:beast_lure",
+          "r": "zone",
+          "mult": "$echo_mult",
+          "src": "应笔"
+         }
+        ]
+       },
+       {
+        "verb": "summon_cmd",
+        "kind": "beast_pop",
+        "action": "cast",
+        "cond": "elite >= 2",
+        "then": [
+         {
+          "shape": "circle",
+          "center": "summon:beast_pop",
+          "r": "zone",
+          "mult": "$echo_mult",
+          "src": "应笔"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "dur": "$s2_dur",
+    "do": [
+     {
+      "verb": "mode",
+      "dmg_mult": "$s2_dmg",
+      "interval_mult": "$s2_interval"
+     },
+     {
+      "verb": "buff_self",
+      "stat": "op_range",
+      "op": "add",
+      "value": "$s2_range"
+     }
+    ]
+   },
+   {
+    "dur": "$s3_dur",
+    "do": [
+     {
+      "verb": "mode",
+      "dmg_mult": "$s3_dmg",
+      "interval_mult": "$s3_interval"
+     }
+    ]
+   }
+  ],
+  "talent": [
+   {
+    "trig": "on_kill",
+    "filter": "any",
+    "_doc": "化境：夕与小自在击杀敌人时攻击 +2%（至多 15 层）",
+    "do": [
+     {
+      "verb": "stack",
+      "key": "huajing",
+      "add": 1,
+      "add_boss": 1,
+      "cap": "$talent_cap",
+      "status": "化境 ×%d",
+      "status_col": [
+       0.36,
+       0.62,
+       0.78
+      ]
+     }
+    ]
+   },
+   {
+    "trig": "passive",
+    "do": [
+     {
+      "aura": "atk",
+      "value": "$talent_per",
+      "per": "stack:huajing",
+      "cap": 999,
+      "scope": "self"
+     }
+    ]
+   }
+  ],
+  "progression": {
+   "ink_bloom": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "墨花：写在 summons.*.on_spawn（cond node:ink_bloom）"
+   },
+   "s1_beast": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "点墨成兽：写在 S1 attack_patch.on_explode（cond node:s1_beast）"
+   },
+   "lure": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "画地为牢：召唤种类换 beast_lure（消散时定住周围敌人）"
+   },
+   "pop": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "墨散：召唤种类换 beast_pop（到期炸开）"
+   },
+   "lure2": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "困兽：beast_lure 啃咬附带减速（on_hit cond node:lure2）"
+   },
+   "pop2": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "余墨：beast_pop 炸开处留墨池（on_expire cond node:pop2）"
+   },
+   "elite1": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "墨染：写在 attack.on_explode（cond elite >= 1）"
+   },
+   "elite2": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "应笔：写在 attack.on_explode 的 summon_cmd（cond elite >= 2）"
+   }
+  }
+ }
+}

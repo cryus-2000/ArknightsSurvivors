@@ -12,6 +12,9 @@ var n := 0
 var fails := 0
 
 
+## 日服官方技能名与中文同形（查表结果本来就等于原文），不算「没译」：黍 S1（ja_JP skill_table skchr_shu_1「化被草木」）
+const JA_SAME_AS_ZH := ["化被草木"]
+
 func ok(cond: bool, what: String) -> void:
 	n += 1
 	if not cond:
@@ -144,7 +147,7 @@ func run() -> void:
 		var skj: Array = dj.get("skills", [])
 		if skj.size() > 0:
 			var nmj: String = str(skj[0].get("name", ""))
-			ok(Loc.s(nmj) != nmj, "%s：技能名显示时译成日文（%s → %s）" % [cid, nmj, Loc.s(nmj)])
+			ok(Loc.s(nmj) != nmj or JA_SAME_AS_ZH.has(nmj), "%s：技能名显示时译成日文（%s → %s）" % [cid, nmj, Loc.s(nmj)])
 	ok(jleft == 0, "日文说明里残留 {$…} 占位 %d 条" % jleft)
 	print("L10N 日文 干员长文本 %d 条，含假名 %d 条" % [jtotal, jkana])
 	ok(jkana * 10 >= jtotal * 9, "干员长文本日文覆盖率 ≥ 90%%（含假名 %d / %d）" % [jkana, jtotal])

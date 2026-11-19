@@ -75,7 +75,7 @@ def strip_text(t: str) -> str:
 
 
 def audit_relics(rows):
-    data = json.loads((GAME / "data" / "relic_effects.json").read_text(encoding="utf-8"))["relics"]
+    data = json.loads((GAME / "themes" / "deep_sea" / "data" / "relic_effects.json").read_text(encoding="utf-8"))["relics"]
     for rid, r in data.items():
         texts = [r.get("desc", "")]
         ds = r.get("desc_squad", {})

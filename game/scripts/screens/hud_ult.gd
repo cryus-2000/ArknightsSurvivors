@@ -431,6 +431,8 @@ var _cut_last := 0.0
 
 
 func draw_cutins(vs: Vector2) -> void:
+	if preload("res://scripts/render/declutter.gd").dbg("noult"):
+		return   # --clutterdbg=noult（量测，docs/368 §1.3）：立绘切入条也不画
 	if not _on() or (g.state != Game.S.PLAY and g.state != Game.S.PAUSE):
 		return
 	if _demo_on() and g.state == Game.S.PLAY and g.t > 20.0:

@@ -149,7 +149,7 @@ for f in sorted(glob.glob(os.path.join(ROOT, "game", "data", "characters", "*.js
         return {"tex": t, "im": im, "n": int(n), "d": d}
     ops.append({"id": oid, "name": c.get("name", oid), "ds": float(s.get("draw_scale", 1.0)), "size": s.get("size", 64),
                 "idle": slot("idle"), "attack": slot("attack"), "fps": (s.get("idle") or {}).get("fps") if isinstance(s.get("idle"), dict) else None})
-E = json.load(open(os.path.join(ROOT, "game", "data", "enemies.json"), encoding="utf8"))["enemies"]
+E = json.load(open(os.path.join(ROOT, "game", "themes", "deep_sea", "data", "enemies.json"), encoding="utf8"))["enemies"]
 ens = []
 for k, v in E.items():
     im, d = load(v["tex"])

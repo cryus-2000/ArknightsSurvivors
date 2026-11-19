@@ -4,13 +4,15 @@ const Bal = preload("res://scripts/core/balance.gd")
 const KNIGHT_ICE := ["ice", "ice_field", "ice_wave", "ice_thrust", "ice_lance", "ice_javelin", "ice_wall", "crescent"]
 ## 最终首领的补充攻击。状态只存敌人字典；预警、命中与绘制使用同一份几何。
 ## 招式为本作改编：泡影的侵蚀与幻觉、骑士的长枪与寒冰、合唱与海流。
-const NAMES := {
-	"paranoia": ["追猎泡", "溟泡迸裂", "泡影收束"],
-	"knight_boss": ["踏冰裂阵", "断潮劈击", "侧踏挑枪"],
-	"ishar": ["合唱齐射", "合唱压境", "深海触腕"],
-	"izumik": ["护群触腕", "迁徙潮", "深渊涌流"]}
+const D = preload("res://scripts/data.gd")
+## 各最终 Boss 的补充攻击招式名：enemies.json 的 final_attack_names（docs/367 §3，原 NAMES 写死四个 Boss）；没有这个字段的敌人不出补充攻击
+static func _names(t) -> Array:
+	var v = D.ENEMIES.get(str(t), {}).get("final_attack_names")
+	return v if v is Array else []
 var g
 var hazards: Array = []
+## 兼容旧引用 g.bai.finals.NAMES[类型]（Boss 脚本 / 测试）：{类型: 招式名}，_init 时按 enemies.json 的 final_attack_names 建（docs/367 §3）
+var NAMES := {}
 const PHASE2_NAMES := ["冰枪封径", "冻潮夹击"]
 ## 骑士一阶段每幕的最终 Boss 招（docs/183 v2）：一幕原三招；二幕去掉劈击（主角换成掷枪冰棱）；三幕只有寒潮两招
 const KNIGHT_ACT_NAMES := [["踏冰裂阵", "断潮劈击", "侧踏挑枪"], ["踏冰裂阵", "侧踏挑枪"], ["寒潮回卷", "雪幕劈"]]
@@ -21,15 +23,18 @@ func names_for(e: Dictionary) -> Array:
 		if e.phase == 2:
 			return PHASE2_NAMES
 		return KNIGHT_ACT_NAMES[clampi(int(e.get("gates_passed", 0)), 0, 2)]   # 每幕自己的一组，重复少（用户 10-28）
-	return NAMES[e.type]
+	return _names(e.type)
 
 const JAVELIN_LEN := 110.0
 
 func _init(game) -> void:
 	g = game
+	for t in D.ENEMIES:
+		if not _names(t).is_empty():
+			NAMES[t] = _names(t)
 
 func enabled(e: Dictionary) -> bool:
-	return NAMES.has(e.type) and not e.dead and not e.get("friendly", false) and not e.get("invuln", false) \
+	return not _names(e.type).is_empty() and not e.dead and not e.get("friendly", false) and not e.get("invuln", false) \
 		and not e.get("coma", false) and float(e.get("cocoon_t", 0.0)) <= 0.0 \
 		and (e.type not in ["ishar", "izumik"] or e.phase == 2)
 
@@ -62,7 +67,7 @@ func _warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionar
 	return w
 
 func force_move(e: Dictionary, name: String, dir: Vector2, _dist: float) -> bool:
-	if not NAMES.has(e.type) or not names_for(e).has(name) or not enabled(e):
+	if _names(e.type).is_empty() or not names_for(e).has(name) or not enabled(e):
 		return false
 	var chained: bool = e.type == "knight_boss" and e.get("knight_combo_active", false)
 	var side: Vector2 = dir.orthogonal()

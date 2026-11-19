@@ -26,9 +26,14 @@ const TINT := {
 }
 ## C 版信物提示（Codex 交付 art/archive/incoming_1028/node_route_c_delivery_1026，用户 10-26 定稿）：结局入口卡底放该路线的现有信物图标（32×32，原色）+ 信物名，
 ## 中心距 80；只画已达成过的结局（未知路线不泄露）；图标只是路线提示，不是奖励承诺也不是持有状态
-const ROUTE_RELIC := {"knight": "222", "deep": "220", "resolve": "242"}
-const TOKEN_NAME := {"knight": "海潮的气息", "deep": "主教的研究", "resolve": "深蓝回忆"}
-const ROUTE_NAME := {"knight": "静谧时代", "deep": "息潮的代价", "resolve": "如星空般深蓝"}
+## 结局线的信物藏品 / 信物名 / 路线名：waves.json endings 的 token_relic / token_name / route_name（docs/368 §1，原三张表写死）
+static func route_relic(e) -> String:
+	return str(_D.ENDINGS.get(str(e), {}).get("token_relic", ""))
+static func token_name(e) -> String:
+	return str(_D.ENDINGS.get(str(e), {}).get("token_name", ""))
+static func route_name(e) -> String:
+	return str(_D.ENDINGS.get(str(e), {}).get("route_name", ""))
+const _D = preload("res://scripts/data.gd")
 const INCIDENT_BACK := preload("res://art/ui/node_cards/incident.png")   # 不期而遇精修底纹（272×408，Codex）
 
 
@@ -357,12 +362,12 @@ static func route_tokens(ci: CanvasItem, r: Rect2, st: Dictionary, font: Font, a
 	for q in ends.size():
 		var e: String = str(ends[q])
 		var x := roundf(center - span * 0.5 + q * 80.0 + 24.0)
-		var tx: Texture2D = texs.get(ROUTE_RELIC.get(e, ""), null)
+		var tx: Texture2D = texs.get(route_relic(e), null)
 		if tx != null:
 			ci.draw_texture_rect(tx, Rect2(Vector2(x, y), Vector2(32, 32)), false, Color(1, 1, 1, ta))
 		var cc: Color = cols[mini(q, cols.size() - 1)] if not cols.is_empty() else UI.CYAN
 		ci.draw_line(Vector2(x + 8.0, y + 38.0), Vector2(x + 24.0, y + 38.0), Color(cc.r, cc.g, cc.b, ta * 0.7), 2.0)
-		ci.draw_string(font, Vector2(x - 24.0, y + 55.0), UI.Loc.s(TOKEN_NAME.get(e, "")), HORIZONTAL_ALIGNMENT_CENTER, 80.0, 12, Color(0.70, 0.77, 0.82, ta))
+		ci.draw_string(font, Vector2(x - 24.0, y + 55.0), UI.Loc.s(token_name(e)), HORIZONTAL_ALIGNMENT_CENTER, 80.0, 12, Color(0.70, 0.77, 0.82, ta))
 
 
 ## 卡外结局名（用户 10-26）：只在悬停 / 选中的那张卡真带路线时，在它下方写对应结局名（双路线两行）；切卡淡入淡出（alpha 由 choice_panel 平滑）
@@ -375,7 +380,7 @@ static func draw_route_names(ci: CanvasItem, cr: Rect2, ends: Array, alpha: floa
 	y = minf(y, y_max - lh * float(ends.size()))
 	for q in ends.size():
 		var e: String = str(ends[q])
-		ci.draw_string(font, Vector2(cr.get_center().x - 170.0, y + lh * (q + 1) - 6.0), UI.Loc.s(ROUTE_NAME.get(e, "")), HORIZONTAL_ALIGNMENT_CENTER, 340.0, fs, Color(0.80, 0.86, 0.90, alpha))
+		ci.draw_string(font, Vector2(cr.get_center().x - 170.0, y + lh * (q + 1) - 6.0), UI.Loc.s(route_name(e)), HORIZONTAL_ALIGNMENT_CENTER, 340.0, fs, Color(0.80, 0.86, 0.90, alpha))
 
 
 ## 正面：顶部类型色带（图标 + 节点名）、标题（衬线）、说明；正文自上而下显出，开头迸一圈像素颗粒

@@ -967,11 +967,11 @@ func test_ishar_close() -> void:
 	var keep: Array = game.bosses.duplicate()
 	var e: Dictionary = game.spawner.spawn_enemy("ishar", game.ppos + Vector2(500, 0))
 	game.bosses = [e]
-	game.bai.transform_ishar(e)
+	game.bai.boss("ishar").transform_ishar(e)
 	e.transform_until = 0.0
 	e.ishar_next_at = 0.0
 	var n0: int = game.warns.size()
-	game.bai._ishar_phase2(e, Vector2.LEFT, 500.0)
+	game.bai.boss("ishar")._ishar_phase2(e, Vector2.LEFT, 500.0)
 	var w: Dictionary = game.warns.back() if game.warns.size() > n0 else {}
 	ok(w.get("name", "") == "潮涌迫近" and int(w.get("style", -1)) == 0 and float(w.get("dmg", 1.0)) <= 0.0, "离主控 500：放潮涌迫近（预告样式 0、无伤害，docs/95 §2.5）")
 	ok(w.get("len", 0.0) > 300.0 and w.get("len", 0.0) < 420.0, "冲到主控前约 140（线长 %.0f）" % w.get("len", 0.0))
@@ -1529,25 +1529,25 @@ func test_lore3() -> void:
 		k += 1
 	ok(pa.cocoon_t > 0.0 and pa.invuln and pa.part and pa.shell_hp > 0.0, "偏执泡影第一次归零结茧（外壳 %.0f）" % pa.shell_hp)
 	var h0: float = pa.hp
-	bai._paranoia_cocoon_step(pa, 0.25)
+	bai.boss("paranoia")._paranoia_cocoon_step(pa, 0.25)
 	c.damage(pa, pa.shell_max * 10.0)
 	ok(pa.hp == h0 and pa.shell_hp < pa.shell_max and pa.shell_hp > 0.0, "茧期间伤害打在外壳上，而且一下打不破（受伤速度有上限）")
 	var tt := 0.0
 	while pa.get("cocoon_t", 0.0) > 0.0 and tt < 10.0:
-		bai._paranoia_cocoon_step(pa, 0.1)
+		bai.boss("paranoia")._paranoia_cocoon_step(pa, 0.1)
 		tt += 0.1
 		c.damage(pa, pa.shell_max * 10.0)
 	ok(pa.phase == 2 and pa.break_t > 0.0 and absf(pa.hp - pa.maxhp * Bal.v("boss/paranoia_revive", 0.8)) < 1.0 and tt >= Bal.v("boss/paranoia_shell_min", 4.0) - 0.3, "输出拉满也要约 %.1f 秒打破外壳：复活到 paranoia_revive 并破绽" % tt)
 	pa.dead = true
 	var pb: Dictionary = sp.spawn_enemy("paranoia", game.ppos + Vector2(1600, 0))
-	bai.paranoia_cocoon(pb)
-	bai._paranoia_cocoon_step(pb, Bal.v("boss/paranoia_cocoon", 8.0) + 0.1)
+	bai.boss("paranoia").paranoia_cocoon(pb)
+	bai.boss("paranoia")._paranoia_cocoon_step(pb, Bal.v("boss/paranoia_cocoon", 8.0) + 0.1)
 	ok(pb.phase == 2 and int(pb.get("gaze_bonus", 0)) == 1 and pb.get("break_t", 0.0) <= 0.0, "茧没打破：同样复活，但凝视永久 +1")
 	# 光环
 	var a0: float = game.stats.value(&"op_aspd")
-	bai._paranoia_aura(pb, 100.0)
+	bai.boss("paranoia")._paranoia_aura(pb, 100.0)
 	var a1: float = game.stats.value(&"op_aspd")
-	bai._paranoia_aura(pb, 500.0)
+	bai.boss("paranoia")._paranoia_aura(pb, 500.0)
 	ok(a1 < a0 and absf(game.stats.value(&"op_aspd") - a0) < EPS, "认知负担光环：站在里面全队攻速降低，离开恢复")
 	pb.dead = true
 	# 部件被周围击杀间接削
@@ -1570,8 +1570,8 @@ func test_lore4() -> void:
 	iz.age = 5.0
 	bai._boss_ai(iz, 0.01, Vector2.LEFT, 500.0)
 	ok(iz.phase == 1 and iz.invuln and absf(iz.count_max - Bal.v("boss/izumik_learn", 20.0)) < EPS, "伊祖米克学习期固定 %.0f 秒" % iz.count_max)
-	bai.izumik_absorb(iz)
-	bai.izumik_absorb(iz)
+	bai.boss("izumik").izumik_absorb(iz)
+	bai.boss("izumik").izumik_absorb(iz)
 	ok(int(iz.izu_layers) == 2, "吸收子代叠强化层（%d 层）" % int(iz.izu_layers))
 	var d0: float = iz.dmg
 	bai._boss_ai(iz, Bal.v("boss/izumik_learn", 20.0) + 0.1, Vector2.LEFT, 500.0)
@@ -1579,8 +1579,8 @@ func test_lore4() -> void:
 	var l0: Dictionary = iz.lamps[0]
 	var p0: Vector2 = game.ppos
 	game.ppos = l0.pos
-	bai._izumik_lamp_step(iz, 1.1)
-	ok(l0.lit and bai.izumik_safe(iz), "主控在灯柱旁待 1 秒点亮，光圈里算安全")
+	bai.boss("izumik")._izumik_lamp_step(iz, 1.1)
+	ok(l0.lit and bai.boss("izumik").izumik_safe(iz), "主控在灯柱旁待 1 秒点亮，光圈里算安全")
 	var w: Dictionary = bai._warn(iz, "circle", 2.0, {"follow": true, "r": 2400.0, "act": "izu_wave", "dmg": game.max_hp * 0.2})
 	game.invuln = 0.0
 	var h0: float = game.hp
@@ -1621,7 +1621,7 @@ func test_lore5() -> void:
 	var kn: Dictionary = sp.spawn_enemy("knight_boss", game.ppos + Vector2(1500, 0))
 	kn.age = 10.0
 	kn.gates_passed = 1
-	bai._knight_stakes(kn, 0.01)
+	bai.boss("knight_boss")._knight_stakes(kn, 0.01)
 	var planter=bai.boss("knight_boss")
 	planter.stake_cast_step(kn,Vector2.RIGHT,true)
 	game.t+=1.1
@@ -1632,7 +1632,7 @@ func test_lore5() -> void:
 	game.t += 1.1   # 冰柱先预告 1 秒，破土后才参与碰撞。
 	kn.kb = Vector2(900, 0)
 	kn.kb_self = true
-	bai._knight_stakes(kn, 0.01)
+	bai.boss("knight_boss")._knight_stakes(kn, 0.01)
 	ok(kn.break_t > 0.0 and kn.kb == Vector2.ZERO, "冲锋撞桩：长枪脱手，破绽 %.1f 秒" % kn.break_t)
 	kn.break_t = 0.0
 	kn.phase = 2
@@ -1645,9 +1645,9 @@ func test_lore5() -> void:
 	kn.dead = true
 	game.warns.clear()
 	var ish: Dictionary = sp.spawn_enemy("ishar", game.ppos + Vector2(1600, 0))
-	ok(is_equal_approx(bai._ishar_haste(ish), 1.0), "伊莎玛拉卡点前轮换不变")
+	ok(is_equal_approx(bai.boss("ishar")._ishar_haste(ish), 1.0), "伊莎玛拉卡点前轮换不变")
 	ish.gates_passed = 1
-	ok(bai._ishar_haste(ish) < 1.0, "过卡点后轮换恢复时间 ×%.2f" % bai._ishar_haste(ish))
+	ok(bai.boss("ishar")._ishar_haste(ish) < 1.0, "过卡点后轮换恢复时间 ×%.2f" % bai.boss("ishar")._ishar_haste(ish))
 	ish.dead = true
 
 

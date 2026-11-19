@@ -46,7 +46,7 @@ def main():
     if "func dev_args" not in st or "is_debug_build" not in st:
         errs.append("settings.gd：缺少 dev_args()（发布版屏蔽开发参数）")
 
-    for p in glob.glob(os.path.join(GAME, "scripts", "**", "*.gd"), recursive=True):
+    for p in (glob.glob(os.path.join(GAME, "scripts", "**", "*.gd"), recursive=True) + glob.glob(os.path.join(GAME, "themes", "**", "*.gd"), recursive=True)):
         for i, line in enumerate(read(p).splitlines(), 1):
             code = line.split("#")[0]   # 注释里提到开关名不算
             if any(f in code for f in UNLOCK_FLAGS) and "dev_args()" not in code:
@@ -54,7 +54,7 @@ def main():
 
     # 所有命令行开关（截图 / 自测 / 解锁）一律经 Cfg.dev_args()，发布版里读不到（EA 验收 P2-14：--winshot 等可直接看结局结算页）。
     # 例外：settings.gd 里 dev_args() 本身；sfx.gd 自动加载早于 Cfg，就地用 is_debug_build() 守住
-    for p in glob.glob(os.path.join(GAME, "scripts", "**", "*.gd"), recursive=True):
+    for p in (glob.glob(os.path.join(GAME, "scripts", "**", "*.gd"), recursive=True) + glob.glob(os.path.join(GAME, "themes", "**", "*.gd"), recursive=True)):
         for i, line in enumerate(read(p).splitlines(), 1):
             code = line.split("#")[0]
             if "get_cmdline_user_args" in code and "is_debug_build" not in code:
@@ -81,7 +81,7 @@ def main():
     # _apply_unlock_all 函数体在 settings.gd 里的行号范围（1 起）：只有这几行可以写 unlock_all = true
     first = st[:body.start()].count("\n") + 1 if body else 0
     last = first + body.group(0).count("\n") if body else -1
-    for p in glob.glob(os.path.join(GAME, "scripts", "**", "*.gd"), recursive=True):
+    for p in (glob.glob(os.path.join(GAME, "scripts", "**", "*.gd"), recursive=True) + glob.glob(os.path.join(GAME, "themes", "**", "*.gd"), recursive=True)):
         for i, line in enumerate(read(p).splitlines(), 1):
             code = line.split("#")[0]
             if re.search(r"\bunlock_all\s*=\s*true", code) and not (os.path.basename(p) == "settings.gd" and first <= i <= last):

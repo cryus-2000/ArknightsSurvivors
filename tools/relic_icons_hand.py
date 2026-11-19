@@ -25,7 +25,7 @@ OUT = os.path.join(ROOT, "build", "icons_hand", "png")   # 工作输出（build 
 TRIAL = os.path.join(INC, "_trial_icons")
 BUILD = os.path.join(ROOT, "build", "icons_hand")
 ALL = os.path.join(ROOT, "build", "icons_all")
-DATA = os.path.join(ROOT, "game", "data", "relics.json")
+DATA = os.path.join(ROOT, "game", "themes", "deep_sea", "data", "relics.json")
 PARTS = "abcdefgh"
 MANIFEST = os.path.join(INC, "relic_icons_hand_manifest.json")
 

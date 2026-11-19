@@ -93,11 +93,7 @@ func _op_layers() -> void:
 func _open_op_pick(for_cover := false) -> void:
 	cover_pick = for_cover
 	if op_defs.is_empty():
-		var lf := FileAccess.open(ThemePack.path("lore"), FileAccess.READ)
-		if lf != null:
-			var ld = JSON.parse_string(lf.get_as_text())
-			if ld is Dictionary:
-				op_lore = ld
+		op_lore = ThemePack.load_merged("lore")   # 干员档案（共享）+ 本主题敌人档案（docs/368 §4）
 		for cid in Character.list_ids():
 			var d: Dictionary = Character.load_def(cid)
 			if not d.get("recruitable", true):

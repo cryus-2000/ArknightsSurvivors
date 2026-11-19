@@ -2,6 +2,7 @@ extends RefCounted
 ## 局内配乐调度：按战斗强度 / Boss / 灯火选曲与分层（Sfx 负责播放与对拍），--musiclog 记录。
 ## 2026-09-26 从 game.gd 拆出。
 
+const D = preload("res://scripts/data.gd")   # enemies.json final_track（docs/367 §3）
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 const Bal = preload("res://scripts/core/balance.gd")
 const UM = preload("res://scripts/ui_motion.gd")
@@ -150,10 +151,10 @@ func update(_dt: float) -> void:
 
 ## --musiclog：配乐状态变化时打印一行（只比较曲目 / 档位 / 危险，分数随附）；另外每 5 秒采样一行（MUSICS）
 ## 最终 Boss 的曲目：结局二 / 三 / 四各有自己的分层曲（docs/164 §7），其余（结局一）和缺文件时用 final
-const FINAL_TRACK := {"knight_boss": "final_knight", "ishar": "final_ishar", "izumik": "final_izumik"}
+## 最终 Boss 的配乐键：enemies.json 的 final_track（docs/367 §3），没写的用 final
 
 static func final_track(btype: String) -> String:
-	var t: String = FINAL_TRACK.get(btype, "final")
+	var t: String = str(D.ENEMIES.get(btype, {}).get("final_track", "final"))
 	return t if Sfx.lay.has(t) else "final"
 
 

@@ -96,7 +96,7 @@
     if (!c) return Promise.reject(new Error("no audio context"));
     dec++;
     var decoded, pr = premix && PAIRS[url];
-    if (premix && url === "music_suno_final_p1.m4a") {
+    if (premix && url === "music_suno_final_p1.m4a" && !window.__SY_MUS_MONO) {   // Toy 包配乐全单声道（tools/web_music.py TOY_TIERS）：p1 本身就是单声道，没有 _mono 副本
       decoded = decode(c, "music_suno_final_p1_mono.m4a").catch(function () { return decode(c, url); });
     } else if (pr && !pr.mix) {
       decoded = rtMix(c, url, pr.base);

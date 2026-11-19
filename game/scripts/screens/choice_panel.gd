@@ -1535,7 +1535,7 @@ func draw_node_card(card: Button, o: Dictionary, i: int) -> void:
 				st.face_title = str(ev.get("name", "不期而遇"))
 				st.face_body = str(ev.get("text", ""))
 				if c.get("must", false) and not ends.is_empty():   # 只写已达成过的结局（未知路线不泄露）
-					st.face_tag = " / ".join(ends.map(func(e): return NodeCardsUI.ROUTE_NAME.get(e, "")))
+					st.face_tag = " / ".join(ends.map(func(e): return NodeCardsUI.route_name(e)))
 			"wish":
 				st.face_title = "消失的习俗"
 				st.face_body = "亮出三件藏品，选一件带走；也可以付生命多拿一件。"

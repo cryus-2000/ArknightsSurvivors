@@ -1,21 +1,6 @@
 {
- "_doc": "开局指南文字（文案维护；docs/101 S5，2026-10-15 从 game.gd INTRO_PAGES 与 screens/intro.gd 的 TOUCH_SUBS / TOUCH_CONTROLS / MORE_HINT 原样搬来；10-24 用户定精简为 5 页并重排版：灯火 / 指挥 / 商人 / 祭坛 / 操作（11-06 指挥页后加「指挥台」一页，docs/284 §3），操作页必须在最后（touch_controls 替换最后一页）；同日协调人转用户「开局指南不要写太多」：首次进局的精简版 lines 每页只留一两条一眼要懂的，细节一律放 more（暂停菜单「指南」完整版）。每条写成「标签｜正文」：标签列 + 正文列，条间淡分隔线，没有「｜」的整行通栏；pages：每页 title / en / icon / lines / more；数值写占位 {键}，intro.gd fill_numbers 从 balance.json 填；touch_subs：触屏版逐句替换 [键鼠说法, 触屏说法]；touch_controls：触屏版最后一页「操作」整页换成这段；more_hint：精简版最后一页末尾的提示。",
+ "_doc": "开局指南文字（文案维护；docs/101 S5，2026-10-15 从 game.gd INTRO_PAGES 与 screens/intro.gd 的 TOUCH_SUBS / TOUCH_CONTROLS / MORE_HINT 原样搬来；10-24 用户定精简为 5 页并重排版：灯火 / 指挥 / 商人 / 祭坛 / 操作（11-06 指挥页后加「指挥台」一页，docs/284 §3），操作页必须在最后（touch_controls 替换最后一页）；同日协调人转用户「开局指南不要写太多」：首次进局的精简版 lines 每页只留一两条一眼要懂的，细节一律放 more（暂停菜单「指南」完整版）。每条写成「标签｜正文」：标签列 + 正文列，条间淡分隔线，没有「｜」的整行通栏；pages：每页 title / en / icon / lines / more；数值写占位 {键}，intro.gd fill_numbers 从 balance.json 填；touch_subs：触屏版逐句替换 [键鼠说法, 触屏说法]；touch_controls：触屏版最后一页「操作」整页换成这段；more_hint：精简版最后一页末尾的提示。（11-18 起第 0 页「生命与灯火」是主题内容，拆进主题包 themes/<id>/data/guide.json 的 pages_insert，读时插回原位，docs/368 §4）",
  "pages": [
-  {
-   "title": "生命与灯火",
-   "en": "HP & LAMPLIGHT",
-   "icon": "bars",
-   "lines": [
-    "灯火｜受击时损失，拾取灯油补充。< 30 暗淡：受到伤害更多；0 寂灭：每秒失去 3 点生命。",
-    "溟痕｜地面的紫黑色溟痕会减速并持续伤害，点燃引航灯标才能净化。"
-   ],
-   "more": [
-    "生命｜队长生命归零即探索失败。编队每多一名干员，最大生命 +{hp_per_member}%、回复 +{regen_per_member} / 秒。",
-    "通明｜灯火 ≥ 70：技力回复 +30%，拾取范围 +20%。暗淡时受到伤害 +{dark_taken}%，拾取范围 -30%，海嗣移速与接触伤害 +{dark_enemy}%。",
-    "照亮｜范围半径在 110 与 360 之间随灯火变化，灯火变弱时圈缩小、亮度不变。圈内敌人受到伤害 +{lit_bonus}%，通明时 +{lit_bonus_hi}%。",
-    "黑潮｜2:30 起安全区分 4 轮收缩，圈外持续受伤，看到「黑潮将至」就往白色虚线圈里走。"
-   ]
-  },
   {
    "title": "指挥",
    "en": "COMMAND",

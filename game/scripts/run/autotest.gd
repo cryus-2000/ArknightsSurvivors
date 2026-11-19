@@ -2227,7 +2227,7 @@ func bot_move() -> Vector2:
 			break
 	for m in g.mechs:
 		pull = m.bot_pull(pull)   # 主题机制（docs/364 §6）：引航灯标
-	var dk: Vector2 = g.duck.chase_dir(g.ppos)
+	var dk: Vector2 = g.duck.chase_dir(g.ppos) if g.duck != null else Vector2.ZERO
 	if dk != Vector2.ZERO:
 		pull = dk   # 鸭爵：追得到就优先追（docs/216 §11）
 	if pull == Vector2.ZERO and nearest_d > 100.0 and nearest_d < 99999.0 and g.hp > g.max_hp * 0.4:

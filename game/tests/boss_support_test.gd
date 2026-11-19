@@ -68,7 +68,7 @@ func check_ishar(g) -> void:
 	g.ppos += Vector2(300, 0)
 	g.ishar.step_tear(first, 0.01)
 	ok(first.purified and not g.ishar.promote(boss, mobs[3]), "purification is permanent and does not refill its promotion slot")
-	g.bai.transform_ishar(boss)
+	g.bai.boss("ishar").transform_ishar(boss)
 	ok(first.dead and boss.eyes.size() == 2 and boss.tear_echoes.size() == 2, "uncleansed tears transfer once to hostile eyes and first-act echoes")
 	for eye in boss.eyes:
 		ok(not eye.friendly and not eye.invuln and eye.part and eye.xp == 0.0, "transferred eyes are damageable and cannot duplicate XP")

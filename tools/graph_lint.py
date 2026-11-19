@@ -26,6 +26,8 @@ import time
 T0 = time.time()
 VERBOSE = False
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import theme_paths as TP   # 主题数据路径（docs/367 §2）
 GAME = os.path.join(ROOT, "game")
 DATA = os.path.join(GAME, "data")
 
@@ -138,7 +140,7 @@ def pstr(path):
 
 
 def load(rel_path):
-    p = os.path.join(DATA, rel_path)
+    p = TP.data_file(rel_path, root=ROOT) if "/" not in rel_path else os.path.join(DATA, rel_path)   # 主题数据在主题包里（docs/367 §2）
     with open(p, encoding="utf-8") as f:
         return p, json.load(f)
 
@@ -469,7 +471,7 @@ def check_misc():
     ids = [x["id"] for x in m["medals"]]
     if len(ids) != len(set(ids)):
         hit("R5", p, ("medals",), "medals：id 重复")
-    for f in sorted(glob.glob(os.path.join(DATA, "*.json")) + glob.glob(os.path.join(DATA, "maps", "*.json"))):
+    for f in sorted([x for d in TP.data_dirs(ROOT) for x in glob.glob(os.path.join(d, "*.json"))] + glob.glob(os.path.join(TP.maps_dir(root=ROOT), "*.json"))):
         with open(f, encoding="utf-8") as fh:
             d = json.load(fh)
         for path, v in walk(d):

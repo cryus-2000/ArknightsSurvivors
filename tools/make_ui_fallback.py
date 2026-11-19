@@ -15,7 +15,7 @@ OUT = os.path.join(ROOT, "game", "fonts", "ui_fallback.otf")
 have = TTFont(os.path.join(ROOT, "game", "fonts", "ui.ttf")).getBestCmap()
 src_cmap = TTFont(SRC).getBestCmap()
 chars = set()
-for f in glob.glob(os.path.join(ROOT, "game", "scripts", "**", "*.gd"), recursive=True) + glob.glob(os.path.join(ROOT, "game", "data", "**", "*.json"), recursive=True):
+for f in (glob.glob(os.path.join(ROOT, "game", "scripts", "**", "*.gd"), recursive=True) + glob.glob(os.path.join(ROOT, "game", "themes", "**", "*.gd"), recursive=True) + glob.glob(os.path.join(ROOT, "game", "themes", "**", "*.json"), recursive=True)) + glob.glob(os.path.join(ROOT, "game", "data", "**", "*.json"), recursive=True):
     chars |= {c for c in open(f, encoding="utf-8").read() if ord(c) > 0x7F and ord(c) not in have and ord(c) in src_cmap}
 # 11-08 起再并上发行包瘦身同一套运行时文本（tools/release_slim.runtime_text：全部 .gd / JSON / 场景 / 工程文件），与 check.py release_slim 的缺字检查同口径
 sys.path.insert(0, os.path.join(ROOT, "tools"))

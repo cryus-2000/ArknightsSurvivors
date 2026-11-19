@@ -26,9 +26,9 @@ def J(p):
 
 
 B = J("game/data/balance.json")
-E = J("game/data/enemies.json")
+E = J("game/themes/deep_sea/data/enemies.json")
 E = E.get("enemies", E)
-W = J("game/data/waves.json")
+W = J("game/themes/deep_sea/data/waves.json")
 TH = W["threat"]
 EN = B["enemy"]
 DIFF_HP = B["difficulty"]["standard"].get("enemy_hp", 1.0)

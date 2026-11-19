@@ -1,7 +1,7 @@
 extends Node
 
 const A = preload("res://scripts/art.gd")
-const Knight = preload("res://scripts/allies/knight.gd")
+const Knight = preload("res://themes/deep_sea/mod/knight.gd")
 
 class DrawProbe extends RefCounted:
 	var calls: Array = []

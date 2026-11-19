@@ -44,7 +44,7 @@ T = {"dark_step": 35.0, "near_black": (0.10, 0.25), "mid": 0.40, "sat_full": 0.3
 
 def names():
     try:
-        d = json.load(open(os.path.join(ROOT, "game", "data", "enemies.json"), encoding="utf-8"))["enemies"]
+        d = json.load(open(os.path.join(ROOT, "game", "themes", "deep_sea", "data", "enemies.json"), encoding="utf-8"))["enemies"]
         return {k: v.get("name", k) for k, v in d.items()}
     except Exception:
         return {}

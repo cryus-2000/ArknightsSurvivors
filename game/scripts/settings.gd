@@ -9,6 +9,8 @@ const D = preload("res://scripts/data.gd")
 const Look = preload("res://scripts/render/look.gd")
 const TouchLayout = preload("res://scripts/touch_layout.gd")
 const CloudPack = preload("res://scripts/core/cloud_pack.gd")
+const ThemeSave = preload("res://scripts/core/theme_save.gd")   # 存档按主题分开（docs/366）
+const ThemePack = preload("res://scripts/core/theme_pack.gd")
 const PlayKeys = preload("res://scripts/core/play_keys.gd")
 ## 存档里难度字段的含义：1 = 旧版累计档位 0–10；2 = 1.1 起的三档下标；3 = 10-22 的潮位 0–15（只在内部包短暂存在）；
 ## 4 = 10-22 起的三档预设下标（D.DIFF_PRESETS：常规 / 高压 / 深潮 = 潮位 0 / 5 / 10）
@@ -137,6 +139,10 @@ var meta_bounty: Array = []       # 已领首通赏金的潮位
 var roster_fresh: Array = []      # 刚解锁、还没在名册里看过的干员（选人页 / 图鉴高亮一次；只存本机，不上云）
 var roster_int_grant := false     # 对内包的测试寻访凭证已发过（INTERNAL_TICKETS，每份存档一次）
 var medals := {}                  # 已获得的蚀刻章 {key: 获得时刻 Unix 秒}（core/medals.gd；存档 [medals] 段；获得后永久保留）
+## 存档按主题分开（docs/366，core/theme_save.gd）：上面主题相关的字段（结局、图鉴、藏品、事件图鉴、难度解锁 / 最佳、首通赏金、蚀刻章）
+## 始终是当前主题 theme_cur 那一份；别的主题的进度在 theme_saves {id: {字段: 值}}。存档里每个主题一段 [theme_<id>]，旧位置写水月镜像
+var theme_cur := "deep_sea"
+var theme_saves := {}
 var medal_best := {}              # 蚀刻章的历史最好进度 {key: 数}（协同晋升：一次探索里同时精英二的人数）
 ## 对内包（用户 10-22：要在对内包里测寻访；10-24 开局 10 人 + 20 张；10-26 改：与新玩家同一流程——名册为空 + 新手 10 张、
 ## 先做新手十连），每份存档首次启动再多发这么多张寻访凭证，十连之后用来测单抽 / 定向 / 补满名册
@@ -832,6 +838,44 @@ func _read_cfg(c: ConfigFile) -> void:
 	cloud_extra = ex if ex is Dictionary else {}
 	cloud_v = int(c.get_value("cloud", "v", 0))
 	cloud_minv = int(c.get_value("cloud", "minv", 0))
+	_theme_load(c)
+
+
+## 读档最后一步（docs/366）：旧位置读进来的进度 = 水月；与 [theme_deep_sea] 段按字段合并（旧存档迁移、新存档幂等、降级再升级不丢）；
+## 其他主题段进 theme_saves；当前主题不是水月时切过去
+func _theme_load(c: ConfigFile) -> void:
+	theme_saves = ThemeSave.read_all(c)
+	var ds: Dictionary = ThemeSave.snapshot(self)
+	if theme_saves.has(ThemeSave.LEGACY):
+		ds = ThemeSave.merge(theme_saves[ThemeSave.LEGACY], ds)
+	ThemeSave.restore(self, ds)
+	theme_saves.erase(ThemeSave.LEGACY)
+	theme_cur = ThemeSave.LEGACY
+	if ThemePack.id() != theme_cur:
+		theme_switch(ThemePack.id())
+
+
+## 写主题段（save() 里、蚀刻章补判之后调；测试直接拿 ConfigFile 调）：当前主题 + 其他主题各一段 [theme_<id>]；
+## 当前主题不是水月时，旧位置改写成水月那一份（旧位置给旧版本读，docs/366）
+func _theme_write(c: ConfigFile) -> void:
+	ThemeSave.write_section(c, theme_cur, ThemeSave.snapshot(self))
+	for tid in theme_saves:
+		ThemeSave.write_section(c, tid, theme_saves[tid])
+	if theme_cur != ThemeSave.LEGACY:
+		ThemeSave.write_legacy(c, theme_saves.get(ThemeSave.LEGACY, {}))
+
+
+## 换当前主题（docs/366）：当前这份收进 theme_saves（全部解锁时收的是 _real_progress 里的真实值），目标主题那份放进 Cfg 字段（没有就从空开始）。
+## 全部解锁（调试 / 对内包）时：_real_progress 换成目标主题的真实值、界面重算成全开——否则旧主题的真实进度会被当成新主题的写进存档（docs/366 §5 第 2 条，11-18 修）
+func theme_switch(tid: String) -> void:
+	if tid == theme_cur:
+		return
+	theme_saves[theme_cur] = ThemeSave.snapshot(self)
+	ThemeSave.restore(self, theme_saves.get(tid, {}))
+	theme_saves.erase(tid)
+	theme_cur = tid
+	if unlock_all:
+		_unlock_display()
 
 
 func apply() -> void:
@@ -983,17 +1027,22 @@ func _apply_unlock_all() -> void:
 	elif build_audience() != "internal":
 		return   # 对外包（public / diagnostic）恒不解锁；对内包（1.1.1，用户 09-30）启动即全部解锁，同样只在内存
 	unlock_all = true
+	_unlock_display()
+	# 对内发布包：名册不全开（roster_all_open() 为假），与新玩家同一流程（新手十连），首次启动另发测试用寻访凭证，写进存档（真实进度，寻访结果也照常存）
+	if internal_roster() and not roster_int_grant:
+		roster_int_grant = true
+		roster_tickets["hunt"] = int(roster_tickets.get("hunt", 0)) + INTERNAL_TICKETS
+		save()
+
+
+## 全部解锁的演示数据：当前主题的真实进度先存进 _real_progress，界面那份换成全开（_apply_unlock_all、theme_switch 用）
+func _unlock_display() -> void:
 	_real_progress = {"diff_unlocked": diff_unlocked, "seen_relics": seen_relics.duplicate(), "endings_cleared": endings_cleared.duplicate()}
 	diff_unlocked = D.DIFF_PRESETS.size() - 1
 	endings_cleared = D.ENDINGS.keys()
 	var db = preload("res://scripts/core/relic_db.gd").new()
 	db.load_files()
 	seen_relics = db.implemented().map(func(r): return r.id)
-	# 对内发布包：名册不全开（roster_all_open() 为假），与新玩家同一流程（新手十连），首次启动另发测试用寻访凭证，写进存档（真实进度，寻访结果也照常存）
-	if internal_roster() and not roster_int_grant:
-		roster_int_grant = true
-		roster_tickets["hunt"] = int(roster_tickets.get("hunt", 0)) + INTERNAL_TICKETS
-		save()
 
 
 ## 对内发布包（非调试版、audience = internal）：图鉴 / 难度 / 结局照旧全开，名册按开局 10 人 + 寻访（10-22、10-24）
@@ -1160,6 +1209,7 @@ func save() -> void:
 	load("res://scripts/core/medals.gd").sync()   # 结局 / 藏品 / 认知塑造的记录都经这里落盘：先补判蚀刻章，同一次写进存档
 	c.set_value("medals", "got", medals)
 	c.set_value("medals", "best", medal_best)
+	_theme_write(c)
 	var ss := _settings_sig()
 	if ss != _set_sig:
 		_set_sig = ss
@@ -1242,6 +1292,19 @@ func cloud_body() -> Dictionary:
 		"rv": roster_v}, true)
 	if not toy_support.is_empty():
 		pr["tsup"] = toy_support.duplicate()   # Toy「支持作者」已领取（docs/313）：只在领过时写，没领过的存档往返与旧版本逐字相同
+	# 存档按主题分开（docs/366）：旧键始终是水月那一份；其他主题进 prog.th（只有水月时不写，正文与旧版本逐字相同）
+	var th := {}
+	for tid in theme_saves:
+		if tid != ThemeSave.LEGACY:
+			th[tid] = ThemeSave.to_cloud(theme_saves[tid])
+	if theme_cur != ThemeSave.LEGACY:
+		th[theme_cur] = ThemeSave.to_cloud(ThemeSave.snapshot(self))
+		var ds := ThemeSave.to_cloud(theme_saves.get(ThemeSave.LEGACY, {}))
+		for k in ["diff", "gal", "rel", "end", "dbest", "med", "optier"]:
+			pr[k] = ds[k]
+		pr.meta["bounty"] = ds.bounty
+	if not th.is_empty():
+		pr["th"] = th
 	var out: Dictionary = (cloud_extra.get("top", {}) as Dictionary).duplicate(true)
 	out["set"] = st
 	out["prog"] = pr
@@ -1252,6 +1315,9 @@ func cloud_body() -> Dictionary:
 ## 正文里没有的字段（旧版本写的云档）、类型不对的字段都保持本地值，不清空；本版不认识的字段记进 cloud_extra。
 ## 设置签名同步更新，cloud_set_t 取正文里的时刻：采用云端设置不算本机的新修改
 func cloud_apply(body: Dictionary) -> void:
+	var back := theme_cur   # 旧键是水月那一份（docs/366）：先切到水月套用，最后切回
+	if back != ThemeSave.LEGACY:
+		theme_switch(ThemeSave.LEGACY)
 	var st: Dictionary = body.get("set", {}) if body.get("set") is Dictionary else {}
 	var d: Dictionary = st.get("d", {}) if st.get("d") is Dictionary else {}
 	var p: Dictionary = body.get("prog", {}) if body.get("prog") is Dictionary else {}
@@ -1370,6 +1436,16 @@ func cloud_apply(body: Dictionary) -> void:
 		if not (k in CloudPack.PROG_KEYS):
 			ex.prog[k] = p[k]
 	cloud_extra = ex
+	# 其他主题（prog.th，docs/366）：合并后的正文为准；事件图鉴不上云，保留本地
+	if p.get("th") is Dictionary:
+		for tid in p.th:
+			if str(tid) == ThemeSave.LEGACY:
+				continue
+			var base: Dictionary = (theme_saves.get(str(tid), ThemeSave.defaults()) as Dictionary).duplicate(true)
+			base.merge(ThemeSave.from_cloud(p.th[tid]), true)
+			theme_saves[str(tid)] = base
+	if back != ThemeSave.LEGACY:
+		theme_switch(back)
 	# 云端没带键位（旧版本 / 别的设备没改过）而本机改过：签名按「不含键位」记，下次 save() 认作本机新修改并上传（docs/356 §3-5）
 	_set_sig = _settings_sig(d.has("keybinds") or _cloud_keybinds() == null)
 

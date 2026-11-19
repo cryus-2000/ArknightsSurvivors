@@ -6,7 +6,7 @@
      （cfg.palette_protect = false 时不补，改用 cfg.keep_colors 手选设定色）
   2. 按动作清单（cfg/<id>_px.json）逐个动作写临时 cfg、调 run_trial.js 出逐帧
   3. 自动清理：小于等于 2 像素的不透明碎块删掉；单点杂色（八邻无同色、八邻 ≥ 6 个同一色）并入周围色
-  4. 人工修补层：cfg.fix.eyes 给手画的眼睛小图（字符矩阵），按逐帧眼骨位置贴回；cfg.fix.patches 给逐帧逐像素补丁
+  4. 人工修补层：cfg.fix.eyes 给手画的眼睛小图（字符矩阵），按逐帧眼骨位置贴回；cfg.fix.mouth 同法贴嘴（只贴闭嘴附件的帧）；cfg.fix.patches 给逐帧逐像素补丁
      （art/src/<id>_fix/<动作>.json：{"f03": [[x, y, "#rrggbb" | null], …]}，null = 擦成透明）
   5. 拼帧条（画布 cfg.canvas，缺省 192，原点 (96,152)，= 1x foot [48,76]）到 build/spine_px/<id>/strips/，--apply 再复制到 game/art/operators/<id>/
      每个动作缺省出两种密度（cfg.dens / 动作 dens）：@2x，和 @1x（同一 Spine 按 0.5 倍逐附件像素化，同 tools/op_1x/make_op_1x.py ① 路；
@@ -281,9 +281,7 @@ def main():
     src = json.load(open(os.path.join(TRIAL, "cfg", rig["src"]), encoding="utf-8"))
     out_root = os.path.join(COMMON, "build", "spine_px", a.id)
     os.makedirs(out_root, exist_ok=True)
-    size = spec.get("canvas", 192)
-    pad = (size - 128) // 2
-    origin = (64 + pad, 120 + pad)
+    size_all = spec.get("canvas", 192)
 
     pal = os.path.join(out_root, "palette.png")
     # palette_protect：bz_18 的眼 / 嘴附件补色（缺省开）。令关掉：19 个眼眉睫附件多出 94 色，刘海阴影映射成粉色带（docs/365 §2）
@@ -297,7 +295,18 @@ def main():
     fix = spec.get("fix", {}) if not a.no_fix else {}
     eyes = fix.get("eyes")
     e_all = spec.get("fix", {}).get("eyes")
-    track = list(e_all["bones"].values()) if e_all else []   # --no-fix 也记眼骨位置（对照用）
+    track = list(e_all.get("bones", {}).values()) if e_all else []   # --no-fix 也记眼骨位置（对照用）
+    # eyes.points：{名: [骨骼, 局部 x, 局部 y]}——没有眼骨时按头骨局部一点定眼位（召唤物龙，头会转），报告里按「名」记
+    points = dict(e_all.get("points", {})) if e_all else {}
+
+    def eye_map(act):
+        """本动作要贴的眼：{名: 报告里的键}；动作 eye_keys 限定用哪几只（弦惊一 / 二形态眼位不同）"""
+        m = dict((eyes or {}).get("bones", {}))
+        m.update({k: k for k in (eyes or {}).get("points", {})})
+        return {k: v for k, v in m.items() if act.get("eye_keys") is None or k in act["eye_keys"]}
+    m_all = spec.get("fix", {}).get("mouth")
+    if m_all:
+        track.append(m_all["bone"])
     patch_dir = os.path.join(ROOT, "art", "src", "%s_fix" % a.id)
     summary = {}
     prefix = spec.get("tex_prefix", "op_%s" % a.id)          # 召唤物：op_<主人>_<召唤物>，帧条放主人目录
@@ -305,15 +314,22 @@ def main():
 
     def render(name, act, dens):
         """dens 2 = @2x（画布 size）；dens 1 = @1x：同一 Spine 按 0.5 倍逐附件像素化（同 make_op_1x.py ① 路），
-        在 size 画布里出完再按原点裁成 size/2 画布（原点 = @2x 原点 / 2，即 1x foot）"""
+        在 size 画布里出完再按原点裁成 size/2 画布（原点 = @2x 原点 / 2，即 1x foot）。
+        动作可写 canvas（如 256）单独放大画布：原点仍按 (64,120) 相对中心平移，1x foot = (canvas/4, canvas/4 + 28)"""
+        size = act.get("canvas", size_all)
+        pad = (size - 128) // 2
+        origin = (64 + pad, 120 + pad)
         c = dict(rig)
         for k in ("sample", "keys", "poses"):
             c.pop(k, None)
-        c.update({k: v for k, v in act.items() if k not in ("durations", "fps", "fix", "note", "eye_frames", "eyes", "dens")})
+        c.update({k: v for k, v in act.items() if k not in ("durations", "fps", "fix", "note", "eye_frames", "eyes", "eye_keys", "dens", "mouth", "mouth_ref", "fire", "eye_skip", "canvas")})
         c["pack"] = dict(rig["pack"], palette_png=pal, scale=spec["scale"])
         c["canvas"] = size
         c["action"] = name
         c["trackBones"] = track
+        if points:
+            c["trackPoints"] = points
+        c["trackSlots"] = ([m_all["slot"]] if m_all else []) + [v if isinstance(v, str) else v[0] for v in (e_all or {}).get("slots", {}).values()]
         if dens == 1:
             c["scaleMul"] = (rig.get("scaleMul") or 1) * 0.5
             c["noMouth"] = True          # 同 make_op_1x.py：1 倍不画嘴（一格黑点读成脏点）
@@ -347,7 +363,7 @@ def main():
             use_eyes = ey and act.get("eyes", True) and (act.get("eye_frames") is None or i in act["eye_frames"])
             if use_eyes:
                 r = 4 if dens == 2 else 2
-                keep = [(int(b[0]) - r, int(b[1]) - r, int(b[0]) + r + 1, int(b[1]) + r + 1) for bn, b in bones.items() if bn in eyes["bones"].values()]
+                keep = [(int(b[0]) - r, int(b[1]) - r, int(b[0]) + r + 1, int(b[1]) + r + 1) for bn, b in bones.items() if bn in eye_map(act).values()]
             im, s2 = clean(im, keep, speck=2 if dens == 2 else 1)
             st["specks"] += s2["specks"]
             st["lone"] += s2["lone"]
@@ -355,10 +371,32 @@ def main():
                 im, k = outline(im, hexrgb(spec["outline"]["color"]), spec["outline"]["mix"], palette)
                 st["outline_px"] = st.get("outline_px", 0) + k
             if use_eyes:
-                for side, bn in eyes["bones"].items():
+                # fix.eyes.slots：{眼: 虹膜槽 | [睫毛槽, 闭眼附件名]}——该帧槽里没有附件 / 换成闭眼附件（原作闭眼、眨眼换图）就不贴这只眼
+                eslots = (eyes or {}).get("slots", {})
+                fslots = rep["frames"][i].get("slots") or {}
+                for side, bn in eye_map(act).items():
                     b = bones.get(bn)
+                    if i in act.get("eye_skip", {}).get(side, []):   # 动作 eye_skip：{眼: [帧]}——该帧这只眼被武器 / 头发挡住，不贴
+                        continue
+                    if side in eslots:
+                        sv = eslots[side]
+                        cur_att = fslots.get(sv if isinstance(sv, str) else sv[0])
+                        if not cur_att or (not isinstance(sv, str) and cur_att in sv[1:]):
+                            continue
                     if b:
                         st["eye_px"] += stamp(im, ey["pattern"][side], eyes["colors"], b, ey["anchor"][side])
+            # 嘴（fix.mouth）：原作待机嘴附件像素化后只剩偏灰的淡线 / 1 倍里脸上留黑点；按嘴骨贴手画小图，
+            # 只在该帧嘴槽仍是闭嘴附件（m_all["closed"]）时贴，原作换张嘴图的帧不动
+            if m_all and fix and act.get("mouth", True):
+                mz = m_all.get("x1" if dens == 1 else "x2")
+                b = bones.get(m_all["bone"])
+                cur = (rep["frames"][i].get("slots") or {}).get(m_all["slot"])
+                if dens == 1:   # 1 倍不画嘴（noMouth）把嘴槽清空了：沿用同动作 @2x 同一帧的嘴型（move_attack 用 mouth_ref 指向 attack）
+                    rp = os.path.join(out_root, act.get("mouth_ref", name), "frames", "report.json")
+                    fr2 = json.load(open(rp, encoding="utf-8"))["frames"] if os.path.exists(rp) else []
+                    cur = (fr2[i].get("slots") or {}).get(m_all["slot"]) if i < len(fr2) else None
+                if mz and b and cur == m_all["closed"]:
+                    st["mouth_px"] = st.get("mouth_px", 0) + stamp(im, mz["pattern"], m_all["colors"], b, mz["anchor"])
             if patches.get("f%02d" % i):
                 st["patch_px"] += apply_patch(im, patches["f%02d" % i])
             frames.append(im)

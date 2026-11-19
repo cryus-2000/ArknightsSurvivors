@@ -252,7 +252,7 @@ func check_acts() -> void:
 		tick(e)
 		bolts = bolts or g.ebullets.any(func(b):return b.get("knight_prism",false))
 	check(bolts,"act two spear raises bursting ice prisms")
-	var ej: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/enemies.json"))
+	var ej: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://themes/deep_sea/data/enemies.json"))
 	check(is_equal_approx(float(ej.enemies.knight_boss.gates[1]),0.5),"third act starts at 50 percent")
 
 ## docs/171 重生 v3：长驱冲锋撞场边眩晕、绕场巡猎掷冰枪后破绽、Z 字三连第二冲折 90°

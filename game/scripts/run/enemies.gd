@@ -347,7 +347,7 @@ func update(dt: float) -> void:
 		if e.get("depart_t", 0.0) > 0.0:
 			e.depart_t -= dt   # 大群分批出发的等待（spawner._horde_loose，docs/158）：所有敌人统一在这里倒计时
 		# 不可索敌的第一形态仍参与公共动画计时；移动/治疗交给遭遇模块，不走敌对 AI 和接触伤害。
-		if e.get("friendly", false) or e.get("ishar_p1", false):
+		if (e.get("friendly", false) or e.get("ishar_p1", false)) and g.ishar != null:
 			g.ishar.step_ally(e, dt)
 			continue
 		if e.type == "duck":
@@ -528,7 +528,7 @@ func update(dt: float) -> void:
 			ab += 1
 			if not e.dead:
 				e.dead = true
-				g.bai.izumik_absorb(iz)
+				g.bai.boss(iz.type).izumik_absorb(iz)
 			continue
 		if e.dead:
 			continue
@@ -604,8 +604,9 @@ func morph(e: Dictionary) -> void:
 	e.dead = true
 	g.fx.append({"kind": "ring", "pos": e.pos, "r": 40.0, "life": 0.3, "max": 0.3, "col": Color(0.6, 1.0, 0.6)})
 	g.vfx.add_alert(e.pos + Vector2(0, -24), "蜕变", Color(0.6, 1.0, 0.6), 16)
+	var mp: Array = D.ENEMIES[e.type].get("morph_pool", [])   # enemies.json morph_pool（docs/367 §3）
 	for k in 2:
-		g.spawner.spawn_enemy(["bone", "slider", "stone"][g.rng_enemy.randi() % 3], e.pos + Vector2.from_angle(g.rng_enemy.randf() * TAU) * 20.0)
+		g.spawner.spawn_enemy(mp[g.rng_enemy.randi() % mp.size()], e.pos + Vector2.from_angle(g.rng_enemy.randf() * TAU) * 20.0)
 
 
 ## 敌方投射物推进已搬到 enemies/shot_pool.gd（g.shots.step，docs/101 B7 ④）；这里留旧含义的转发（测试与旧调用）：
