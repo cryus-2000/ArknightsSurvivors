@@ -245,6 +245,16 @@ static func sm_leash(o, mv: Dictionary) -> float:
 	return l * o.stat(&"op_range") if _reach_fix() else l
 
 
+## 统一选敌排第一的是可受击 Boss / 部件、且身体边缘在锚点 leash 内 → 返回它（docs/351 口径，护主 / 清杂优先档照旧由 nearest_enemies 决定）；否则 null
+static func sm_boss_pick(o, anc: Vector2, leash: float):
+	if not _reach_fix():
+		return null
+	var fb: Dictionary = o.focus_boss(leash + 120.0, anc)
+	if fb.is_empty() or not _sm_ok(fb) or sm_edge(fb, anc) > leash:
+		return null
+	return fb
+
+
 ## 敌人到某点的距离（reach_fix 开时量到身体边缘）
 static func sm_edge(e, p: Vector2) -> float:
 	var d: float = e.pos.distance_to(p)
@@ -313,6 +323,9 @@ static func _sm_pick(o, s: Dictionary, mv: Dictionary, anc: Vector2, leash: floa
 			else:
 				cand.sort_custom(func(x, y): return _hp_frac(x) < _hp_frac(y) if _hp_frac(x) != _hp_frac(y) else int(x.id) < int(y.id))
 		_:
+			var fbp = sm_boss_pick(o, anc, leash)   # 牵引范围内有可受击 Boss 就先扑 Boss（11-19：躲波时 Mon3tr / 龙不打伊祖米克）
+			if fbp != null:
+				cand.append(fbp)
 			for e in o.nearest_enemies(6, leash * 2.0, s.pos):
 				if sm_edge(e, anc) <= leash:
 					cand.append(e)
@@ -1734,6 +1747,8 @@ static func mf_step(o, s: Dictionary, kd: Dictionary, dt: float) -> void:
 		s.tgt = tg
 	elif tg == null or tg.dead or sm_edge(tg, anc) > leash + 40.0:
 		tg = _sm_cmd_target(o, null, anc, leash)   # 突击：先接主人正在打的目标
+		if tg == null:
+			tg = sm_boss_pick(o, anc, leash)   # 牵引范围内有可受击 Boss 就先扑 Boss
 		if tg == null:
 			if _hunt_on():   # 持续索敌：离召唤物自己最近的（限锚点 leash 内），不再取离锚点最近的（那会让它掉头跑到另一边）
 				for e in o.nearest_enemies(6, leash * 2.0, s.pos):
