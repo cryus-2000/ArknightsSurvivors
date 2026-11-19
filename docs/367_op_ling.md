@@ -507,3 +507,15 @@ seg_ling 专属事件（`_lg_fx`，`d` 一律带 `tune` = 当前调）：
 - 风险：突击 / 部署时召唤物离开队长，队长身边少了 Mon3tr / 清平这类诱敌掩护，单人局（召唤物是主要掩护）可能更难——上线前按 §5.1 口径在 Claude 云端跑一轮配对（32 seed）。
 
 **需要用户拍板**：① 召唤物是否跟主人的指令走（推荐是，按上表）；② 伊莎玛拉是否例外、永远贴队长；③ 集火是否也指挥队长自己的召唤物（推荐是）。
+
+### 11.3 实装与验证（11-19，用户定「跟指令」，伊莎玛拉不例外，集火也指挥队长的召唤物）
+
+- 实装：`ob_summon.sm_cmd(o)`（每帧一次，按主人的 `squad.stance` / `order_kind` / `station_of` / `cmd_retreat` / `roam_tgt` 定 guard / roam / deploy / recall + 集火目标），`_sm_anchor`、leash 倍率（`summon/cmd_roam_k` 1.3、`cmd_recall_k` 0.5）、`_sm_cmd_target`（集火在锚点 leash × 2 内一律扑；突击先接主人的目标）同时用于追击召唤物（`_sm_step`，含随行 / 绕身的出手选目标）与 Mon3tr（`mf_step`）。开关 `summon/cmd`（缺省 1）；`blocks_eq` 固定 `summon/hunt=0`、`summon/cmd=0`。
+- 验证（Claude 云端一次性例行任务 `summon-ai-1119`，提交 4ff05929c，结果分支 `cloud-results/summon-ai-1119`）：
+  - 回归：core、summon_seal_blocks、m3_hp、mon3tr_fx、ishar_p2、friendly_target 全部 rc 0。
+  - 同种子对照（高手机器人、难度 0、`--norecruit`、32 seed，开关全开 vs 全关）：
+
+| 编队 | 开 | 关 | 同 seed 结论 |
+|---|---|---|---|
+| 无召唤物（德克萨斯 / 能天使 / 星熊） | 68.8%，存活 658 秒 | 68.8%，658 秒 | 32 局玩法字段全部相同；只有 `bot.peak / peak_min` 的特效数、飘字数峰值（纯画面计数）不同 |
+| 有召唤物（凯尔希 / 浊心斯卡蒂 / 令） | 87.5%，633 秒 | 87.5%，666 秒 | 胜率配对差 0；局面不同（召唤物行为变了，属预期） |
