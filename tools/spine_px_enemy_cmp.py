@@ -227,8 +227,62 @@ def variants(out_dir, eids=("husk", "will"), acts={"husk": ("idle", "attack", "d
     print(p, ov.size)
 
 
+def ground(out_dir, pair=("A", "D"), picks=(("husk", "idle"), ("husk", "attack"), ("will", "idle"), ("will", "sigh"))):
+    """深色地面底对照（11-20 看轮廓）：每行一个动作，左 = pair[0]、右 = pair[1]；各给 @2x 原大（游戏里的屏幕尺寸）与 ×2 放大"""
+    import random
+    rnd = random.Random(7)
+
+    def floor(w, h):
+        g = Image.new("RGBA", (w, h), (24, 30, 36, 255))
+        px = g.load()
+        for y in range(0, h, 2):
+            for x in range(0, w, 2):
+                d = rnd.choice((-4, -2, 0, 0, 0, 2, 3))
+                c = (24 + d, 30 + d, 36 + d, 255)
+                for yy in (y, y + 1):
+                    for xx in (x, x + 1):
+                        if xx < w and yy < h:
+                            px[xx, yy] = c
+        return g
+    rows = []
+    for eid, name in picks:
+        fr = {}
+        for v in pair:
+            vd = os.path.join(out_dir, v)
+            sj = json.load(open(os.path.join(vd, eid + "_spec.json"), encoding="utf-8"))
+            k = "sami_%s_v%s" % (eid, v)
+            key = "e_" + k if name == "idle" else "e_%s_%s" % (k, name)
+            sp = sj["spec"][key]
+            w, h = sp["pixels"]["frame_size"]
+            fi = key_frame(name, sp["pixels"]["frames"], sp["redraw"]["event_frames"])
+            fr[v] = Image.open(os.path.join(vd, key + "@2x.png")).convert("RGBA").crop((w * fi, 0, w * (fi + 1), h))
+        rows.append((eid, name, fr))
+    cells = [(max(f.width for f in fr.values()), max(f.height for f in fr.values())) for _, _, fr in rows]
+    zm = [4 if c[1] < 100 else 2 for c in cells]   # 小怪放大 ×4，Boss ×2
+    colw = max(c[0] * (z + 1) + 40 for c, z in zip(cells, zm))
+    W = 150 + colw * len(pair)
+    H = 50 + sum(c[1] * z + 30 for c, z in zip(cells, zm))
+    img = floor(W, H)
+    dr = ImageDraw.Draw(img)
+    dr.text((12, 10), "深色地面对照：左 = 候选 %s，右 = 候选 %s（每格：@2x 原大 + 放大：躯壳 ×4、意志 ×2）" % pair, font=FONT, fill=(255, 235, 150, 255))
+    y = 50
+    for (eid, name, fr), (cw, ch), z in zip(rows, cells, zm):
+        dr.text((10, y + 8), "%s · %s" % (SE.ENEMIES[eid]["name"], name), font=FONT_S, fill=(200, 210, 225, 255))
+        for c, v in enumerate(pair):
+            f = fr[v]
+            x = 150 + colw * c
+            dr.text((x, y), v, font=FONT, fill=(255, 235, 150, 255))
+            img.alpha_composite(f, (x + 24, y + ch * z - f.height + 20))
+            img.alpha_composite(f.resize((f.width * z, f.height * z), Image.NEAREST), (x + 24 + cw + 12, y + 20 + ch * z - f.height * z))
+        y += ch * z + 30
+    p = os.path.join(out_dir, "sami_ground_%s_vs_%s.png" % pair)
+    img.save(p)
+    print(p, img.size)
+
+
 if __name__ == "__main__" and len(sys.argv) > 2 and sys.argv[1] == "--variants":
     variants(sys.argv[2])
+    ground(sys.argv[2])
 elif __name__ == "__main__":
     ids = sys.argv[1:] or list(SE.ENEMIES)
     sheets = [one(i) for i in ids]

@@ -286,7 +286,10 @@ def main():
     pal = os.path.join(out_root, "palette.png")
     # palette_protect：bz_18 的眼 / 嘴附件补色（缺省开）。令关掉：19 个眼眉睫附件多出 94 色，刘海阴影映射成粉色带（docs/365 §2）
     # palette_alpha：取色的 alpha 下限（bz_18 为 96）；令用 230：半透明的提灯光晕会把灯芯橙色拉淡
-    make_palette(src["atlas"], spec.get("colors", 96), pal, spec.get("palette_protect", True), spec.get("palette_alpha", 96))
+    if spec.get("palette_prebuilt"):   # 调色板由调用方预先做好（萨米候选 D：高光单列、局部对比，tools/spine_px_enemy.py）
+        shutil.copyfile(spec["palette_prebuilt"], pal)
+    else:
+        make_palette(src["atlas"], spec.get("colors", 96), pal, spec.get("palette_protect", True), spec.get("palette_alpha", 96))
     if spec.get("keep_colors"):
         extra_colors(pal, spec["keep_colors"])
 

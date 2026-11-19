@@ -90,8 +90,89 @@ VARIANTS = {
     "A": {"_doc": "现行：64 色（意志 96）+ 外描边（#0a1418，混 55%）"},
     "B": {"outline": None, "lift": 0.8, "_doc": "无外描边 + 提亮暗部（明度 v^0.8）：更接近原作的亮度，只留原作线稿"},
     "C": {"colors": 24, "outline": {"color": "#0a1418", "mix": 1.0}, "_doc": "少色平涂：24 色（暗面并块）+ 纯色硬外描边，更像手绘像素"},
+    # 11-20 用户嫌 A 太黑太淡、B / C 发灰、高光白和蓝都没了：在原图（贴图页）上先调再量化
+    "D": {"tex": {"lift": 0.8, "sat": 1.25, "hi_pct": 0.03, "hi_colors": 12, "contrast": 1.18}, "outline": None, "own_outline": 0.45,
+          "_doc": "原图提亮 v^0.8 + 饱和 ×1.25 → 最亮 3% 单列 12 色 → 主色按色相拉开明度 ×1.18 → 描边 = 本色压暗 45%"},
 }
 SUFFIX = ""   # --variant 时 = "_v<名>"，帧条与规格写到候选目录，不进 game/
+
+
+def prep_tex(k, e, base):
+    """候选 D：贴图页先调色，再自己做调色板。返回 (改过的 atlas 路径, 调色板 png)。产物写 build/spine_px/<k>/tex/（F 盘联接）"""
+    import colorsys, shutil
+    t = e["tex"]
+    od = os.path.join(COMMON, "build", "spine_px", k, "tex")
+    os.makedirs(od, exist_ok=True)
+    atlas = base + ".atlas"
+    shutil.copyfile(atlas, os.path.join(od, os.path.basename(atlas)))
+    pages = [ln.strip() for ln in open(atlas, encoding="utf-8") if ln.strip().lower().endswith(".png")]
+    allpx = []
+    for pg in pages:
+        im = Image.open(os.path.join(os.path.dirname(atlas), pg)).convert("RGBA")
+        px = im.load()
+        cache = {}
+        for y in range(im.height):
+            for x in range(im.width):
+                c = px[x, y]
+                if not c[3]:
+                    continue
+                q = cache.get(c[:3])
+                if q is None:
+                    h, sat, v = colorsys.rgb_to_hsv(c[0] / 255, c[1] / 255, c[2] / 255)
+                    r, g, b = colorsys.hsv_to_rgb(h, min(1.0, sat * t["sat"]), v ** t["lift"])
+                    q = cache[c[:3]] = (round(r * 255), round(g * 255), round(b * 255))
+                px[x, y] = q + (c[3],)
+                if c[3] >= 230:
+                    allpx.append(q)
+        im.save(os.path.join(od, pg))
+    lum = lambda c: 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]
+    allpx.sort(key=lum)
+    cut = int(len(allpx) * (1 - t["hi_pct"]))
+    main, hi = allpx[:cut], allpx[cut:]
+
+    def mc(cols, n):
+        im = Image.new("RGB", (len(cols), 1))
+        im.putdata(cols)
+        p = im.quantize(colors=n, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).getpalette()[:n * 3]
+        return [tuple(p[i * 3:i * 3 + 3]) for i in range(len(p) // 3)]
+    pal = mc(main, e.get("colors", 64))
+    # 局部对比：主色按色相分 12 组（灰另成一组），组内明度离组均值 ×contrast——防中间调糊成一片
+    groups = {}
+    for c in pal:
+        h, sat, v = colorsys.rgb_to_hsv(*(x / 255 for x in c))
+        groups.setdefault(-1 if sat < 0.12 else int(h * 12) % 12, []).append((c, h, sat, v))
+    out = []
+    for g in groups.values():
+        m = sum(x[3] for x in g) / len(g)
+        for c, h, sat, v in g:
+            r, gg, b = colorsys.hsv_to_rgb(h, sat, max(0.0, min(1.0, m + (v - m) * t["contrast"])))
+            out.append((round(r * 255), round(gg * 255), round(b * 255)))
+    out += mc(hi, t["hi_colors"])   # 高光单列，不参与上面的并色和拉伸
+    out = list(dict.fromkeys(out))
+    pp = os.path.join(od, "palette_D.png")
+    o = Image.new("RGBA", (len(out), 1))
+    o.putdata([c + (255,) for c in out])
+    o.save(pp)
+    print("%s 调色板 %d 色（高光 %d 色，阈值亮度 %.0f）" % (k, len(out), t["hi_colors"], lum(hi[0])), flush=True)
+    return os.path.join(od, os.path.basename(atlas)).replace("\\", "/"), pp.replace("\\", "/")
+
+
+def own_outline(im, k):
+    """外圈像素 = 本色 ×(1-k)，不吸回调色板（同 spine_px.outline 的判定：与透明四邻接、一像素细件不压）"""
+    W, H = im.size
+    p = im.load()
+    tr = lambda x, y: not (0 <= x < W and 0 <= y < H) or p[x, y][3] == 0
+    ch = []
+    for y in range(H):
+        for x in range(W):
+            c = p[x, y]
+            if c[3] == 0 or not (tr(x - 1, y) or tr(x + 1, y) or tr(x, y - 1) or tr(x, y + 1)):
+                continue
+            if (tr(x - 1, y) and tr(x + 1, y)) or (tr(x, y - 1) and tr(x, y + 1)):
+                continue
+            ch.append((x, y, tuple(round(v * (1 - k)) for v in c[:3]) + (c[3],)))
+    for x, y, c in ch:
+        p[x, y] = c
 
 
 def write_cfg(eid, e):
@@ -99,7 +180,10 @@ def write_cfg(eid, e):
     raw = os.path.join(RAW, e["src"])
     meta = json.load(open(os.path.join(raw, "meta.json"), encoding="utf-8"))
     base = os.path.join(raw, os.path.basename(meta["file"])).replace("\\", "/")
-    json.dump({"skel": base + ".skel", "atlas": base + ".atlas"}, open(os.path.join(CFG, k + ".src.json"), "w", encoding="utf-8"))
+    atlas, pal = base + ".atlas", None
+    if e.get("tex"):
+        atlas, pal = prep_tex(k, e, base)
+    json.dump({"skel": base + ".skel", "atlas": atlas}, open(os.path.join(CFG, k + ".src.json"), "w", encoding="utf-8"))
     rig = {"id": k, "src": k + ".src.json", "name": e["name"], "pack": {"scale": e["scale"], "root": [64, 120], "palette_png": ""},
            "skipAdditive": not e.get("additive"), "_doc": "萨米敌人「%s」（%s）：无腿，地线 = 待机首帧最低点（tools/spine_px_enemy.py 生成）" % (e["name"], e["src"])}
     json.dump(rig, open(os.path.join(CFG, k + ".json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
@@ -110,6 +194,7 @@ def write_cfg(eid, e):
     px = {"id": k, "rig": k + ".json", "tex_prefix": "e_" + k, "scale": e["scale"], "canvas": e["canvas"], "dens": [2, 1],
           "colors": e.get("colors", 64), "palette_alpha": 230, "palette_protect": False,
           "outline": e["outline"] if "outline" in e else {"color": "#0a1418", "mix": 0.55}, "actions": acts, "keep_colors": e.get("keep", []),
+          **({"palette_prebuilt": pal} if pal else {}),
           "_doc": "tools/spine_px_enemy.py 生成，别手改；改 ENEMIES 表再跑"}
     json.dump(px, open(os.path.join(CFG, k + "_px.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 
@@ -258,6 +343,10 @@ def finish(eid, e):
                             hh, ss, vv = colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)
                             r2, g2, b2 = colorsys.hsv_to_rgb(hh, ss, vv ** e["lift"])
                             px[x, y] = (round(r2 * 255), round(g2 * 255), round(b2 * 255), al)
+    if e.get("own_outline"):
+        for o2, o1 in outs.values():
+            for im in (o2, o1):
+                own_outline(im, e["own_outline"])
     os.makedirs(CMP1X, exist_ok=True)
     for name, fr in strips.items():
         key = "e_" + k if name == "idle" else "e_%s_%s" % (k, name)
