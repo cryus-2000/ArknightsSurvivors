@@ -281,6 +281,7 @@ def main():
     lap("配乐出包")
     print("[瘦身] " + half_job.result(), flush=True)
     lap("等半分辨率贴图")
+    print("[瘦身] " + pxp_no_alpha_border(gpath), flush=True)
     pack_px_metadata(gpath)
     cache_keys, _ = import_cache.restore(gpath, "web", GODOT)   # 导入缓存复用（tools/import_cache.py，docs/33 §发版提速）
     import_cache.prewarm_tree(gpath, "导入前")   # 瘦身步骤新写的文件
@@ -527,6 +528,25 @@ def strip_line_comments(src):
                 continue
             i += 1
     return "\n".join(out)
+
+
+def pxp_no_alpha_border(gpath):
+    """转平面帧条（art/fx/pxp，含斯卡蒂终结技半分辨率图集）导入时不做 fix_alpha_border（11-19，docs/33 §Toy 包 50 MB 线）。
+    源 PNG 的透明像素本来就是 RGB 0；fix_alpha_border 会把邻近颜色填进 alpha=0 的像素，WebP 无损压不动（实测 6.65 → 4.09 MB）。
+    画布缺省最近邻采样（project.godot default_texture_filter=0），帧条不在线性采样的节点上画；actor_light.gdshader 只读邻域 alpha，
+    所以透明像素的颜色看不到，可见像素不变。itch 与 Toy 两个网页包都生效（共用一次导入）；桌面包不动"""
+    n = 0
+    for dp, _, fs in os.walk(os.path.join(gpath, "art", "fx", "pxp")):
+        for f in fs:
+            if f.endswith(".png.import"):
+                p = os.path.join(dp, f)
+                with open(p, encoding="utf-8") as fh:
+                    t = fh.read()
+                if "process/fix_alpha_border=true" in t:
+                    with open(p, "w", encoding="utf-8", newline="\n") as fh:
+                        fh.write(t.replace("process/fix_alpha_border=true", "process/fix_alpha_border=false"))
+                    n += 1
+    return "转平面帧条 %d 张导入不填透明底色（fix_alpha_border=false，可见像素不变，约 −2.6 MB）" % n
 
 
 def pack_px_metadata(gpath):
