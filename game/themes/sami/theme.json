@@ -1,0 +1,31 @@
+{
+  "_doc": "萨米主题包占位（docs/391 T-R1，11-19）：只为验证主题开关（--theme=sami / build.json theme）和无灯火 / 灯标主题能进局。数据与地图暂时全指向水月（themes/deep_sea/data），没有机制、没有模块（g.knight 用 scripts/core/knight_none.gd，g.ishar / g.duck 为 null）。T-B1 起由主题会话换成萨米自己的 data / maps / mech / mod（docs/369 清单）。",
+  "id": "sami",
+  "name": "萨米的意志",
+  "data": {
+    "waves": "res://themes/deep_sea/data/waves.json",
+    "enemies": "res://themes/deep_sea/data/enemies.json",
+    "events_v2": "res://themes/deep_sea/data/events_v2.json",
+    "relics": "res://themes/deep_sea/data/relics.json",
+    "relic_effects": "res://themes/deep_sea/data/relic_effects.json",
+    "meta_tree": "res://data/meta_tree.json",
+    "meta_roots": "res://data/meta_roots.json",
+    "guide": "res://themes/deep_sea/data/guide.json",
+    "onboard": "res://themes/deep_sea/data/onboard.json",
+    "lore": "res://themes/deep_sea/data/lore.json",
+    "medals": "res://themes/deep_sea/data/medals.json",
+    "medals_layout": "res://themes/deep_sea/data/medals_layout.json",
+    "doctor": "res://data/doctor.json",
+    "enemy_pixels": "res://themes/deep_sea/data/enemy_pixels.json",
+    "enemy_redraw": "res://themes/deep_sea/data/enemy_redraw.json",
+    "ult_text": "res://data/ult_text.json",
+    "ult_audio": "res://data/ult_audio.json"
+  },
+  "mechanics": [],
+  "maps": {
+    "dir": "res://themes/deep_sea/data/maps",
+    "default": "deep_sea"
+  },
+  "assets": {},
+  "modules": {}
+}

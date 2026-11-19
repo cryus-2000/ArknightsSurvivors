@@ -24,7 +24,7 @@
 | 音频 | 21 → 53 → 28_operator_sfx → 113_sfx_audit → 279 |
 | 部署 | 33 → 22 → 89 / 99（B站 Toy）→ 285（网页包体） |
 | 文案 / 本地化 | 76 → 49 / 49a → 276 |
-| 主题重构 | 357 → 359_theme_pack_stage0 → 364 → 366 → 367 → 368 → 369（新主题接入清单） |
+| 主题重构 | 357 → 359_theme_pack_stage0 → 364 → 366 → 367 → 368 → 369（新主题接入清单） → 395（主题开关） |
 | 傀影（第二主题） | 358 → 359_theme_content_spec → 360 → 361 → 362 → 363 |
 
 ## 其他目录
@@ -419,6 +419,7 @@
 | [367_theme_step4_1118](367_theme_step4_1118.md) | 主题包重构 · 第四步：主题数据搬家、敌种 id 写死点、存档收尾（11-18） | 进行中 | waves / enemies / events_v2 / relics / relic_effects / medals / medals_layout / enemy_pixels / enemy_redraw / maps 搬进 themes/deep_sea/data（共享 / 混合的留 data/）；tools/theme_paths.py；字体子集与加密包探测带上主题数据；敌种 id 写死 542 → 518（八类规则改读 enemies.json / waves.json），tools/enemy_id_scan.py 七类清单；roster_tiers 按主题、全开包切主题保护；theme_parity --alt；parity 两平台一致 |
 | [368_theme_step5_1118](368_theme_step5_1118.md) | 主题包重构 · 第五步：渲染 / 图鉴 / HUD 写死点、Boss 钩子、主题模块、混合文件拆分（11-18） | 进行中 | boss_ai 转发改 BossBase 钩子；伊莎玛拉遭遇 / 鸭爵 / 骑士同伴进 themes/deep_sea/mod；lore / guide / onboard 拆共享 + 主题（ThemePack.load_merged，ui.csv 62 键同步）；图鉴说明 / 血条纹样 / 结局顺序 / 信物表改读数据；核心敌种 id 404 处；theme_shot_diff 画面对照 43 组；只扫 scripts 的工具补扫主题包 |
 | [369_new_theme_checklist_1118](369_new_theme_checklist_1118.md) | 新主题接入清单（11-18） | 现行规范 | 新主题包要提供的文件、theme.json 段、数据字段、机制 / 模块 / Boss 接口、测试；还挡着第二主题的核心项；傀影样例填表 |
+| [395_theme_switch_1119](395_theme_switch_1119.md) | 主题开关与无灯火主题的空引用（T-R1，11-19） | 现行规范 | ThemePack.id() 读 --theme / build.json theme；export_web --theme（Toy 一包一主题）；无灯火主题 g.lamp 钉 50、灯光增伤关；空骑士 knight_none；萨米占位包 |
 
 ### 傀影（第二主题）
 

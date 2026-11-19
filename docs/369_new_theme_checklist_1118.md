@@ -88,7 +88,7 @@ game/themes/<id>/
 |---|---|---|
 | `ishar` | 伊莎玛拉遭遇（友方人形、泪滴、歌眼） | 不需要就不写（核心已判空） |
 | `duck` | 鸭爵（稀有敌人） | 不需要就不写（核心已判空）；要做自己的稀有敌人可以照它写 |
-| `knight` | 猎潮的骑士同伴（结局二） | **必须提供**：核心还有 85 处直读 `g.knight`（`alive`、`update`、`tick_final`……），新主题先给一个空实现（`alive = false`、各方法空操作），以后再改判空 |
+| `knight` | 猎潮的骑士同伴（结局二） | 可不提供：11-19 起清单没有 knight 时自动用 `scripts/core/knight_none.gd`（空骑士，docs/395 §3）；核心仍直读 `g.knight` 的成员要在那里同步 |
 
 ## 6. Boss
 
@@ -127,7 +127,7 @@ game/themes/<id>/
 | 事件 | `events_v2.json`：45 件原作事件对位 | docs/361、362 §1 |
 | 藏品 | `relics.json` + `relic_effects.json`：保留通用藏品 + 主题藏品折算 | docs/362 §2、363 §7 |
 | 主题机制 | 机制 A「无主的财富」：`mech/mech_fortune.gd`（实现需要的挂钩 + 机器人挂钩） | docs/358 §5、362 §5 |
-| 模块 | `knight` 空实现（§5）；不要 `ishar` / `duck` 或自己的稀有敌人 | — |
+| 模块 | 不用写 knight（自动空骑士，docs/395）；不要 `ishar` / `duck` 或自己的稀有敌人 | — |
 | 指南 / 引导 / 档案 | `guide.json pages_insert`（机制说明页）、`onboard.json`（机制卡 + drill / tips）、`lore.json`（敌人档案） | docs/76 §4 |
 | 蚀刻章 | `medals.json` + `medals_layout.json`（傀影章组） | — |
 | 配乐 / 标题 | `assets` 登记（接线等 §7 第 2 条） | docs/362 §4、363 §3 |

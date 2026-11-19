@@ -124,7 +124,7 @@ func _vfx_demo() -> void:
 		g.beacons.append(_vd_beacon)
 	elif _vd_step == 1 and g.t >= 20.0:
 		_vd_step = 2
-		if _vd_beacon != null and not _vd_beacon.lit:
+		if _vd_beacon != null and not _vd_beacon.lit and g.beacon_sys != null:
 			g.beacon_sys._light(_vd_beacon)
 	elif _vd_step == 2 and g.t >= 26.0:
 		_vd_step = 3
