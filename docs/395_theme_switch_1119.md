@@ -38,6 +38,16 @@
 
 `game/themes/sami/theme.json`：数据与地图全指向水月，机制、模块都空，只为验证开关和空引用。T-B1 起由主题会话换成萨米自己的 data / maps / mech / mod。
 
-## 5. 验证
+## 5. 验证（`820384a21`，基线改前 main `e257f0de6`）
 
-见提交说明与协调人汇报：`--theme=sami` 机器人局本机进局无报错；deep_sea theme_parity 7 局（Claude 云端）零差异。
+| 项 | 结果 |
+|---|---|
+| 萨米冒烟（Linux 云端 `cloud-results/theme-switch-1119`） | 3 局 `--theme=sami` 机器人局 0 条脚本错误，`lamp` 全程 50：mizuki `--maxt=300` 打到 218 秒阵亡；skadi `--god` 691 秒胜、logos `--god` 731 秒胜（结局 standard，主题数据仍是水月的）。`--theme=nosuch` 只报一条「theme not found」、按 deep_sea 进局 |
+| theme_parity Linux（同上，基线录两遍） | 6 / 7 逐帧一致；`deep_p0` 伊莎玛拉战 t=646.5 秒分歧（rng 全同，只有 `eh` / `boss` 不同） |
+| `deep_p0` 加跑（`cloud-results/theme-switch-deep-1119`，同机型改前 / 改后各 3 遍） | 改前自己 3 遍互相分叉（t=648.5），改后自己 3 遍也分叉（t=672.3）；两次云端跑之间改前自己也不同（t=638.6 vs t≈680）。改前 / 改后之间没有一对逐帧相同，分歧点 638.6 / 646.5 都在 docs/359 §5、docs/364 §4 记过的伊莎玛拉战窗口，分歧行 rng 全同、只有敌人血量哈希不同 |
+| theme_parity **Windows 本机**（确定性对照） | `deep_p0w`（Windows 走 deep 线，**完整打伊莎玛拉战**，750 秒胜）、`deep_p0` 两局都 **逐帧一致**（PARITY 1508 行 × 36 字段） |
+| 快检（Linux 云端） | core、data_lint、check_release 通过；graph_lint 19 条命中，全是令 / 傀影技能图标不在贴图索引（这些数据本提交没动，不是本提交引入） |
+
+**判定**：Linux `deep_p0` 是已知的环境不确定性（同一提交自跑就分叉），不是本提交引入；本提交在确定性的 Windows 上把同一段伊莎玛拉战逐帧复现。代码层面 deep_sea 下 `has_lamp` 恒真，setter / combat / world 三处改动在水月下取值与改前完全相同。
+
+**附带观察**：这次改前 / 改后 10 份 Linux 记录没有一对跨提交逐帧相同（前几步每次都有），按「环境偶发」解释得通，但 Linux `deep_p0` 已经不适合当零差异判据，建议以后这局只看 Windows（`deep_p0w`）或干脆从 Linux 判据里拿掉。
