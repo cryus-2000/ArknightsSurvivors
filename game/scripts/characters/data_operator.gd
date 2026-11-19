@@ -659,6 +659,10 @@ const EXEC_SEG := {
 	"verb.lg_merge": 0,   # _ext_exec → seg_ling（docs/367 令）
 	"verb.lg_split": 0,   # _ext_exec → seg_ling（docs/367 令）
 	"verb.lg_ink": 0,   # _ext_exec → seg_ling（docs/367 令）
+	"verb.lg_tune": 0,   # _ext_exec → seg_ling（docs/367 §9 令）
+	"verb.lg_grow": 0,   # _ext_exec → seg_ling（docs/367 §9 令）
+	"verb.lg_ev": 0,   # _ext_exec → seg_ling（docs/367 §9 令）
+	"verb.lg_lure": 0,   # _ext_exec → seg_ling（docs/367 §10.6 令）
 	"shape.dash_line": 1,   # tx_exec
 	"verb.fx_rain": 1,   # tx_exec
 	"verb.emit_path": 1,   # tx_exec
@@ -1569,7 +1573,7 @@ func _ext_exec(b: Dictionary, at: Vector2) -> void:
 			SegHoshiguma.exec_line(self, b)
 		"verb.ll_dial_arm", "verb.ll_dial_swing", "verb.ll_riposte", "verb.ll_seal_spread":   # docs/202 拉普兰德成长节点（blocks/seg_lappland.gd）
 			ObCore._F().ll_exec(self, b)
-		"verb.lg_summon", "verb.lg_drink", "verb.lg_decay", "verb.lg_lit", "verb.lg_ming", "verb.lg_merge", "verb.lg_split", "verb.lg_ink":   # docs/367 令（blocks/seg_ling.gd）
+		"verb.lg_summon", "verb.lg_drink", "verb.lg_decay", "verb.lg_lit", "verb.lg_ming", "verb.lg_merge", "verb.lg_split", "verb.lg_ink", "verb.lg_tune", "verb.lg_grow", "verb.lg_ev", "verb.lg_lure":   # docs/367 令（blocks/seg_ling.gd）
 			ObCore._F().lg_exec(self, b, at)
 		"verb.field":
 			if b.has("tick"):   # 常驻力场（安洁莉娜）在 _sustain 里，这里只管瞬时留场

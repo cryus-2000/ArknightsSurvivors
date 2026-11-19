@@ -262,6 +262,20 @@ static func _muted(o) -> bool:
 	return o.g.ult != null and o.g.ult.mute_atk()
 
 
+## 持续索敌（11-19 用户「杀掉一个就想回干员身边，又锁到新的导致折返跑」；balance summon/hunt，0 = 旧行为）：
+## 换目标时取离召唤物自己最近的（仍限锚点 leash 内、Boss 优先照旧），没目标时原地等 summon/hunt_hold 秒、每 0.1 秒再找，过时才回站位
+static func _hunt_on() -> bool:
+	return MfBal.v("summon/hunt", 1.0) > 0.0
+
+
+## 没目标时这一帧要不要原地等（hunt 开、等待未超时、人还在锚点 leash + 40 内）；顺带累计等待秒数
+static func _hunt_hold(s: Dictionary, anc: Vector2, leash: float, dt: float) -> bool:
+	if not _hunt_on():
+		return false
+	s["idle_t"] = float(s.get("idle_t", 0.0)) + dt
+	return float(s.idle_t) < MfBal.v("summon/hunt_hold", 0.8) and s.pos.distance_to(anc) <= leash + 40.0
+
+
 static func sm_tick(o, dt: float) -> void:
 	if o.sm.is_empty():
 		return
@@ -439,10 +453,13 @@ static func _sm_step(o, s: Dictionary, kd: Dictionary, i: int, n: int, dt: float
 			if tg == null and s.rt <= 0.0:
 				tg = _sm_pick(o, s, mv, anc, leash)
 				if tg == null:
-					s.rt = 0.25   # 没目标时每 0.25 秒再找（大群里不每帧排序）
+					s.rt = 0.1 if _hunt_on() else 0.25   # 没目标时每 0.25 秒再找（大群里不每帧排序）；持续索敌时等待期内 0.1 秒
 			if tg != null:
+				s["idle_t"] = 0.0
 				var ga: float = float(s.id) * SM_GOLD
 				want = tg.pos + Vector2(cos(ga), sin(ga) * 0.55) * (float(tg.r) + maxf(8.0, reach * 0.6))
+			elif _hunt_hold(s, anc, leash, dt):
+				want = s.pos   # 持续索敌：杀完先原地找下一个，不立刻往回走
 			else:
 				want = slot
 	s.tgt = tg
@@ -1639,14 +1656,24 @@ static func mf_step(o, s: Dictionary, kd: Dictionary, dt: float) -> void:
 			tg = null
 		s.tgt = tg
 	elif tg == null or tg.dead or tg.pos.distance_to(anc) > leash + 40.0:
-		var ts: Array = o.nearest_enemies(1, leash, anc)
-		tg = ts[0] if not ts.is_empty() else null
+		tg = null
+		if _hunt_on():   # 持续索敌：离召唤物自己最近的（限锚点 leash 内），不再取离锚点最近的（那会让它掉头跑到另一边）
+			for e in o.nearest_enemies(6, leash * 2.0, s.pos):
+				if _sm_ok(e) and e.pos.distance_to(anc) <= leash:
+					tg = e
+					break
+		else:
+			var ts: Array = o.nearest_enemies(1, leash, anc)
+			tg = ts[0] if not ts.is_empty() else null
 		s.tgt = tg
 	if tg != null and float(s.act) <= 0.0 and not mods.get("lunge", {}).is_empty() and _F().el_lunge_try(o, s, kd, tg, mods.lunge):   # 精英化段：扑击
 		SummonVisual.cancel(s)
 		return
 	var want: Vector2 = rest
+	if tg == null and _hunt_hold(s, anc, leash, dt):
+		want = s.pos   # 持续索敌：没目标先原地等 hunt_hold 秒再回站位
 	if tg != null:
+		s["idle_t"] = 0.0
 		var off: Vector2 = s.pos - tg.pos
 		want = tg.pos + (off.normalized() if off.length() > 1.0 else Vector2(-float(s.face), 0)) * (float(tg.r) + float(mv.get("gap", 26.0)))
 	var prev: Vector2 = s.pos
