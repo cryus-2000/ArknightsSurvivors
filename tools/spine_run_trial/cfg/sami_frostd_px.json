@@ -1,0 +1,100 @@
+{
+ "id": "sami_frostd",
+ "rig": "sami_frostd.json",
+ "tex_prefix": "e_sami_frostd",
+ "scale": 0.159,
+ "canvas": 256,
+ "dens": [
+  2,
+  1
+ ],
+ "colors": 64,
+ "palette_alpha": 230,
+ "palette_protect": false,
+ "outline": {
+  "color": "#0a1418",
+  "mix": 0.55
+ },
+ "actions": {
+  "idle": {
+   "sample": {
+    "anim": "Idle",
+    "times": [
+     0.0,
+     0.3333,
+     0.6667,
+     1.0,
+     1.3333,
+     1.6667
+    ]
+   },
+   "durations": [
+    0.3333,
+    0.3333,
+    0.3333,
+    0.3333,
+    0.3333,
+    0.3333
+   ]
+  },
+  "move": {
+   "sample": {
+    "anim": "Move_Loop",
+    "times": [
+     0.0,
+     0.3333,
+     0.6667,
+     1.0,
+     1.3333,
+     1.6667
+    ]
+   },
+   "durations": [
+    0.3333,
+    0.3333,
+    0.3333,
+    0.3333,
+    0.3333,
+    0.3333
+   ]
+  },
+  "death": {
+   "sample": {
+    "anim": "Die",
+    "times": [
+     0.0,
+     0.1429,
+     0.2857,
+     0.4286,
+     0.5714,
+     0.7143,
+     0.8571,
+     0.999
+    ]
+   },
+   "durations": [
+    0.1429,
+    0.1428,
+    0.1429,
+    0.1428,
+    0.1429,
+    0.1428,
+    0.1419,
+    0.06
+   ]
+  },
+  "wound": {
+   "sample": {
+    "anim": "Die",
+    "times": [
+     0.1
+    ]
+   },
+   "durations": [
+    0.12
+   ]
+  }
+ },
+ "keep_colors": [],
+ "_doc": "tools/spine_px_enemy.py 生成，别手改；改 ENEMIES 表再跑"
+}

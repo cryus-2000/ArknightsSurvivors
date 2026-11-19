@@ -1,0 +1,15 @@
+{
+ "id": "sami_hound",
+ "src": "sami_hound.src.json",
+ "name": "王者友伴",
+ "pack": {
+  "scale": 0.165,
+  "root": [
+   64,
+   120
+  ],
+  "palette_png": ""
+ },
+ "skipAdditive": true,
+ "_doc": "萨米敌人「王者友伴」（sami_hound）：无腿，地线 = 待机首帧最低点（tools/spine_px_enemy.py 生成）"
+}

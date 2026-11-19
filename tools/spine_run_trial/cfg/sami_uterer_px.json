@@ -1,0 +1,109 @@
+{
+ "id": "sami_uterer",
+ "rig": "sami_uterer.json",
+ "tex_prefix": "e_sami_uterer",
+ "scale": 0.159,
+ "canvas": 192,
+ "dens": [
+  2,
+  1
+ ],
+ "colors": 64,
+ "palette_alpha": 230,
+ "palette_protect": false,
+ "outline": {
+  "color": "#0a1418",
+  "mix": 0.55
+ },
+ "actions": {
+  "idle": {
+   "sample": {
+    "anim": "Idle",
+    "times": [
+     0.0,
+     0.6667,
+     1.3334,
+     2.0
+    ]
+   },
+   "durations": [
+    0.6667,
+    0.6667,
+    0.6667,
+    0.6667
+   ]
+  },
+  "move": {
+   "sample": {
+    "anim": "Move_Loop",
+    "times": [
+     0.0,
+     0.15,
+     0.3,
+     0.45
+    ]
+   },
+   "durations": [
+    0.15,
+    0.15,
+    0.15,
+    0.15
+   ]
+  },
+  "attack": {
+   "sample": {
+    "anim": "Attack",
+    "times": [
+     0.0,
+     0.2,
+     0.4,
+     0.6,
+     0.8,
+     0.999
+    ]
+   },
+   "durations": [
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.199,
+    0.06
+   ]
+  },
+  "death": {
+   "sample": {
+    "anim": "Die",
+    "times": [
+     0.0,
+     0.2,
+     0.4,
+     0.6,
+     0.8,
+     0.999
+    ]
+   },
+   "durations": [
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.199,
+    0.06
+   ]
+  },
+  "wound": {
+   "sample": {
+    "anim": "Die",
+    "times": [
+     0.1
+    ]
+   },
+   "durations": [
+    0.12
+   ]
+  }
+ },
+ "keep_colors": [],
+ "_doc": "tools/spine_px_enemy.py 生成，别手改；改 ENEMIES 表再跑"
+}

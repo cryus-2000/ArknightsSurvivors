@@ -1,0 +1,15 @@
+{
+ "id": "sami_mhshep",
+ "src": "sami_mhshep.src.json",
+ "name": "角兽",
+ "pack": {
+  "scale": 0.185,
+  "root": [
+   64,
+   120
+  ],
+  "palette_png": ""
+ },
+ "skipAdditive": true,
+ "_doc": "萨米敌人「角兽」（mh_shep）：无腿，地线 = 待机首帧最低点（tools/spine_px_enemy.py 生成）"
+}

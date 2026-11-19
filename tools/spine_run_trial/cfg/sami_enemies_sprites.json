@@ -1826,6 +1826,3491 @@
     "duration": 0.12
    },
    "src_anim": "Die"
+  },
+  "e_sami_shadow": {
+   "pixels": {
+    "anchor": [
+     0.3556,
+     0.9189
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 4,
+    "frame_size": [
+     90,
+     74
+    ]
+   },
+   "redraw": {
+    "frames": 4,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.5,
+     1.0,
+     1.5
+    ],
+    "loop": true,
+    "duration": 2.0
+   },
+   "src_anim": "Idle"
+  },
+  "e_sami_shadow_move": {
+   "pixels": {
+    "anchor": [
+     0.3556,
+     0.9189
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 4,
+    "frame_size": [
+     90,
+     74
+    ]
+   },
+   "redraw": {
+    "frames": 4,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.275,
+     0.55,
+     0.825
+    ],
+    "loop": true,
+    "duration": 1.1
+   },
+   "src_anim": "Move"
+  },
+  "e_sami_shadow_attack": {
+   "pixels": {
+    "anchor": [
+     0.3556,
+     0.9189
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     90,
+     74
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [
+     2
+    ],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.4,
+     0.8,
+     1.2,
+     1.6,
+     1.999
+    ],
+    "loop": false,
+    "duration": 2.0
+   },
+   "src_anim": "Attack"
+  },
+  "e_sami_shadow_death": {
+   "pixels": {
+    "anchor": [
+     0.3556,
+     0.9189
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     90,
+     74
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2,
+     0.4,
+     0.6,
+     0.8,
+     0.999
+    ],
+    "loop": false,
+    "duration": 1.0
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_shadow_wound": {
+   "pixels": {
+    "anchor": [
+     0.3556,
+     0.9189
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 1,
+    "frame_size": [
+     90,
+     74
+    ]
+   },
+   "redraw": {
+    "frames": 1,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.1
+    ],
+    "loop": false,
+    "duration": 0.12
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_hound": {
+   "pixels": {
+    "anchor": [
+     0.5,
+     0.8974
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 4,
+    "frame_size": [
+     136,
+     78
+    ]
+   },
+   "redraw": {
+    "frames": 4,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.3333,
+     0.6666,
+     1.0
+    ],
+    "loop": true,
+    "duration": 1.3333
+   },
+   "src_anim": "Idle"
+  },
+  "e_sami_hound_move": {
+   "pixels": {
+    "anchor": [
+     0.5,
+     0.8974
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 4,
+    "frame_size": [
+     136,
+     78
+    ]
+   },
+   "redraw": {
+    "frames": 4,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.125,
+     0.25,
+     0.375
+    ],
+    "loop": true,
+    "duration": 0.5
+   },
+   "src_anim": "Move"
+  },
+  "e_sami_hound_attack": {
+   "pixels": {
+    "anchor": [
+     0.5,
+     0.8974
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     136,
+     78
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [
+     3
+    ],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2,
+     0.4,
+     0.6,
+     0.8,
+     0.999
+    ],
+    "loop": false,
+    "duration": 1.0
+   },
+   "src_anim": "Attack"
+  },
+  "e_sami_hound_death": {
+   "pixels": {
+    "anchor": [
+     0.5,
+     0.8974
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     136,
+     78
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2,
+     0.4,
+     0.6,
+     0.8,
+     0.999
+    ],
+    "loop": false,
+    "duration": 1.0
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_hound_wound": {
+   "pixels": {
+    "anchor": [
+     0.5,
+     0.8974
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 1,
+    "frame_size": [
+     136,
+     78
+    ]
+   },
+   "redraw": {
+    "frames": 1,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.1
+    ],
+    "loop": false,
+    "duration": 0.12
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_uterer": {
+   "pixels": {
+    "anchor": [
+     0.3902,
+     0.8929
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 4,
+    "frame_size": [
+     82,
+     56
+    ]
+   },
+   "redraw": {
+    "frames": 4,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.6667,
+     1.3334,
+     2.0
+    ],
+    "loop": true,
+    "duration": 2.6667
+   },
+   "src_anim": "Idle"
+  },
+  "e_sami_uterer_move": {
+   "pixels": {
+    "anchor": [
+     0.3902,
+     0.8929
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 4,
+    "frame_size": [
+     82,
+     56
+    ]
+   },
+   "redraw": {
+    "frames": 4,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.15,
+     0.3,
+     0.45
+    ],
+    "loop": true,
+    "duration": 0.6
+   },
+   "src_anim": "Move_Loop"
+  },
+  "e_sami_uterer_attack": {
+   "pixels": {
+    "anchor": [
+     0.3902,
+     0.8929
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     82,
+     56
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [
+     2
+    ],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2,
+     0.4,
+     0.6,
+     0.8,
+     0.999
+    ],
+    "loop": false,
+    "duration": 1.0
+   },
+   "src_anim": "Attack"
+  },
+  "e_sami_uterer_death": {
+   "pixels": {
+    "anchor": [
+     0.3902,
+     0.8929
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     82,
+     56
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2,
+     0.4,
+     0.6,
+     0.8,
+     0.999
+    ],
+    "loop": false,
+    "duration": 1.0
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_uterer_wound": {
+   "pixels": {
+    "anchor": [
+     0.3902,
+     0.8929
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 1,
+    "frame_size": [
+     82,
+     56
+    ]
+   },
+   "redraw": {
+    "frames": 1,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.1
+    ],
+    "loop": false,
+    "duration": 0.12
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_uterer2": {
+   "pixels": {
+    "anchor": [
+     0.3902,
+     0.8929
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 4,
+    "frame_size": [
+     82,
+     56
+    ]
+   },
+   "redraw": {
+    "frames": 4,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.6667,
+     1.3334,
+     2.0
+    ],
+    "loop": true,
+    "duration": 2.6667
+   },
+   "src_anim": "Idle"
+  },
+  "e_sami_uterer2_move": {
+   "pixels": {
+    "anchor": [
+     0.3902,
+     0.8929
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 4,
+    "frame_size": [
+     82,
+     56
+    ]
+   },
+   "redraw": {
+    "frames": 4,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.15,
+     0.3,
+     0.45
+    ],
+    "loop": true,
+    "duration": 0.6
+   },
+   "src_anim": "Move_Loop"
+  },
+  "e_sami_uterer2_attack": {
+   "pixels": {
+    "anchor": [
+     0.3902,
+     0.8929
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     82,
+     56
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [
+     2
+    ],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2,
+     0.4,
+     0.6,
+     0.8,
+     0.999
+    ],
+    "loop": false,
+    "duration": 1.0
+   },
+   "src_anim": "Attack"
+  },
+  "e_sami_uterer2_death": {
+   "pixels": {
+    "anchor": [
+     0.3902,
+     0.8929
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     82,
+     56
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2,
+     0.4,
+     0.6,
+     0.8,
+     0.999
+    ],
+    "loop": false,
+    "duration": 1.0
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_uterer2_wound": {
+   "pixels": {
+    "anchor": [
+     0.3902,
+     0.8929
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 1,
+    "frame_size": [
+     82,
+     56
+    ]
+   },
+   "redraw": {
+    "frames": 1,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.1
+    ],
+    "loop": false,
+    "duration": 0.12
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_frostd": {
+   "pixels": {
+    "anchor": [
+     0.4872,
+     0.88
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     78,
+     50
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.3333,
+     0.6667,
+     1.0,
+     1.3333,
+     1.6667
+    ],
+    "loop": true,
+    "duration": 2.0
+   },
+   "src_anim": "Idle"
+  },
+  "e_sami_frostd_move": {
+   "pixels": {
+    "anchor": [
+     0.4872,
+     0.88
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     78,
+     50
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.3333,
+     0.6667,
+     1.0,
+     1.3333,
+     1.6667
+    ],
+    "loop": true,
+    "duration": 2.0
+   },
+   "src_anim": "Move_Loop"
+  },
+  "e_sami_frostd_death": {
+   "pixels": {
+    "anchor": [
+     0.4872,
+     0.88
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 8,
+    "frame_size": [
+     78,
+     50
+    ]
+   },
+   "redraw": {
+    "frames": 8,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.1429,
+     0.2857,
+     0.4286,
+     0.5714,
+     0.7143,
+     0.8571,
+     0.999
+    ],
+    "loop": false,
+    "duration": 1.0
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_frostd_wound": {
+   "pixels": {
+    "anchor": [
+     0.4872,
+     0.88
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 1,
+    "frame_size": [
+     78,
+     50
+    ]
+   },
+   "redraw": {
+    "frames": 1,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.1
+    ],
+    "loop": false,
+    "duration": 0.12
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_snsbr": {
+   "pixels": {
+    "anchor": [
+     0.475,
+     0.8235
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 4,
+    "frame_size": [
+     80,
+     68
+    ]
+   },
+   "redraw": {
+    "frames": 4,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.25,
+     0.5,
+     0.75
+    ],
+    "loop": true,
+    "duration": 1.0
+   },
+   "src_anim": "Idle"
+  },
+  "e_sami_snsbr_move": {
+   "pixels": {
+    "anchor": [
+     0.475,
+     0.8235
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 4,
+    "frame_size": [
+     80,
+     68
+    ]
+   },
+   "redraw": {
+    "frames": 4,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2,
+     0.4,
+     0.6
+    ],
+    "loop": true,
+    "duration": 0.8
+   },
+   "src_anim": "Run_Loop"
+  },
+  "e_sami_snsbr_attack": {
+   "pixels": {
+    "anchor": [
+     0.475,
+     0.8235
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     80,
+     68
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [
+     2
+    ],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2,
+     0.4,
+     0.6,
+     0.8,
+     0.999
+    ],
+    "loop": false,
+    "duration": 1.0
+   },
+   "src_anim": "Attack"
+  },
+  "e_sami_snsbr_death": {
+   "pixels": {
+    "anchor": [
+     0.475,
+     0.8235
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     80,
+     68
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2,
+     0.4,
+     0.6,
+     0.8,
+     0.999
+    ],
+    "loop": false,
+    "duration": 1.0
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_snsbr_wound": {
+   "pixels": {
+    "anchor": [
+     0.475,
+     0.8235
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 1,
+    "frame_size": [
+     80,
+     68
+    ]
+   },
+   "redraw": {
+    "frames": 1,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.1
+    ],
+    "loop": false,
+    "duration": 0.12
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_mhshep": {
+   "pixels": {
+    "anchor": [
+     0.4571,
+     0.9
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 4,
+    "frame_size": [
+     70,
+     60
+    ]
+   },
+   "redraw": {
+    "frames": 4,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     2.3333,
+     4.6666,
+     7.0
+    ],
+    "loop": true,
+    "duration": 9.3333
+   },
+   "src_anim": "Idle"
+  },
+  "e_sami_mhshep_move": {
+   "pixels": {
+    "anchor": [
+     0.4571,
+     0.9
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 4,
+    "frame_size": [
+     70,
+     60
+    ]
+   },
+   "redraw": {
+    "frames": 4,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.3167,
+     0.6333,
+     0.95
+    ],
+    "loop": true,
+    "duration": 1.2667
+   },
+   "src_anim": "Move"
+  },
+  "e_sami_mhshep_attack": {
+   "pixels": {
+    "anchor": [
+     0.4571,
+     0.9
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     70,
+     60
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [
+     3
+    ],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.16,
+     0.32,
+     0.48,
+     0.64,
+     0.799
+    ],
+    "loop": false,
+    "duration": 0.8
+   },
+   "src_anim": "Attack"
+  },
+  "e_sami_mhshep_death": {
+   "pixels": {
+    "anchor": [
+     0.4571,
+     0.9
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     70,
+     60
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2,
+     0.4,
+     0.6,
+     0.8,
+     0.999
+    ],
+    "loop": false,
+    "duration": 1.0
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_mhshep_wound": {
+   "pixels": {
+    "anchor": [
+     0.4571,
+     0.9
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 1,
+    "frame_size": [
+     70,
+     60
+    ]
+   },
+   "redraw": {
+    "frames": 1,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.1
+    ],
+    "loop": false,
+    "duration": 0.12
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_snmage": {
+   "pixels": {
+    "anchor": [
+     0.5676,
+     0.8824
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 4,
+    "frame_size": [
+     74,
+     68
+    ]
+   },
+   "redraw": {
+    "frames": 4,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.25,
+     0.5,
+     0.75
+    ],
+    "loop": true,
+    "duration": 1.0
+   },
+   "src_anim": "Idle"
+  },
+  "e_sami_snmage_move": {
+   "pixels": {
+    "anchor": [
+     0.5676,
+     0.8824
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 4,
+    "frame_size": [
+     74,
+     68
+    ]
+   },
+   "redraw": {
+    "frames": 4,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.3333,
+     0.6666,
+     1.0
+    ],
+    "loop": true,
+    "duration": 1.3333
+   },
+   "src_anim": "Move"
+  },
+  "e_sami_snmage_attack": {
+   "pixels": {
+    "anchor": [
+     0.5676,
+     0.8824
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     74,
+     68
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [
+     3
+    ],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2333,
+     0.4667,
+     0.7,
+     0.9334,
+     1.1657
+    ],
+    "loop": false,
+    "duration": 1.1667
+   },
+   "src_anim": "Attack"
+  },
+  "e_sami_snmage_death": {
+   "pixels": {
+    "anchor": [
+     0.5676,
+     0.8824
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     74,
+     68
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2,
+     0.4,
+     0.6,
+     0.8,
+     0.999
+    ],
+    "loop": false,
+    "duration": 1.0
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_snmage_wound": {
+   "pixels": {
+    "anchor": [
+     0.5676,
+     0.8824
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 1,
+    "frame_size": [
+     74,
+     68
+    ]
+   },
+   "redraw": {
+    "frames": 1,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.1
+    ],
+    "loop": false,
+    "duration": 0.12
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_rockback": {
+   "pixels": {
+    "anchor": [
+     0.5,
+     0.9211
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 4,
+    "frame_size": [
+     84,
+     76
+    ]
+   },
+   "redraw": {
+    "frames": 4,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.4167,
+     0.8334,
+     1.25
+    ],
+    "loop": true,
+    "duration": 1.6667
+   },
+   "src_anim": "Idle"
+  },
+  "e_sami_rockback_move": {
+   "pixels": {
+    "anchor": [
+     0.5,
+     0.9211
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 4,
+    "frame_size": [
+     84,
+     76
+    ]
+   },
+   "redraw": {
+    "frames": 4,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.4167,
+     0.8334,
+     1.25
+    ],
+    "loop": true,
+    "duration": 1.6667
+   },
+   "src_anim": "Move"
+  },
+  "e_sami_rockback_attack": {
+   "pixels": {
+    "anchor": [
+     0.5,
+     0.9211
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     84,
+     76
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [
+     2
+    ],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2667,
+     0.5333,
+     0.8,
+     1.0666,
+     1.3323
+    ],
+    "loop": false,
+    "duration": 1.3333
+   },
+   "src_anim": "Attack"
+  },
+  "e_sami_rockback_death": {
+   "pixels": {
+    "anchor": [
+     0.5,
+     0.9211
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     84,
+     76
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2,
+     0.4,
+     0.6,
+     0.8,
+     0.999
+    ],
+    "loop": false,
+    "duration": 1.0
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_rockback_wound": {
+   "pixels": {
+    "anchor": [
+     0.5,
+     0.9211
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 1,
+    "frame_size": [
+     84,
+     76
+    ]
+   },
+   "redraw": {
+    "frames": 1,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.1
+    ],
+    "loop": false,
+    "duration": 0.12
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_uamord": {
+   "pixels": {
+    "anchor": [
+     0.2826,
+     0.8478
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     92,
+     92
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.3333,
+     0.6667,
+     1.0,
+     1.3333,
+     1.6667
+    ],
+    "loop": true,
+    "duration": 2.0
+   },
+   "src_anim": "Idle"
+  },
+  "e_sami_uamord_move": {
+   "pixels": {
+    "anchor": [
+     0.2826,
+     0.8478
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     92,
+     92
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.1667,
+     0.3333,
+     0.5,
+     0.6667,
+     0.8333
+    ],
+    "loop": true,
+    "duration": 1.0
+   },
+   "src_anim": "Move_Loop"
+  },
+  "e_sami_uamord_attack": {
+   "pixels": {
+    "anchor": [
+     0.2826,
+     0.8478
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 8,
+    "frame_size": [
+     92,
+     92
+    ]
+   },
+   "redraw": {
+    "frames": 8,
+    "event_frames": [
+     4
+    ],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.1714,
+     0.3429,
+     0.5143,
+     0.6857,
+     0.8571,
+     1.0286,
+     1.199
+    ],
+    "loop": false,
+    "duration": 1.2
+   },
+   "src_anim": "Attack"
+  },
+  "e_sami_uamord_death": {
+   "pixels": {
+    "anchor": [
+     0.2826,
+     0.8478
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 8,
+    "frame_size": [
+     92,
+     92
+    ]
+   },
+   "redraw": {
+    "frames": 8,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.119,
+     0.2381,
+     0.3571,
+     0.4762,
+     0.5952,
+     0.7143,
+     0.8323
+    ],
+    "loop": false,
+    "duration": 0.8333
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_uamord_wound": {
+   "pixels": {
+    "anchor": [
+     0.2826,
+     0.8478
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 1,
+    "frame_size": [
+     92,
+     92
+    ]
+   },
+   "redraw": {
+    "frames": 1,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.1
+    ],
+    "loop": false,
+    "duration": 0.12
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_car": {
+   "pixels": {
+    "anchor": [
+     0.4722,
+     0.8889
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 4,
+    "frame_size": [
+     72,
+     54
+    ]
+   },
+   "redraw": {
+    "frames": 4,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.8,
+     1.6,
+     2.4
+    ],
+    "loop": true,
+    "duration": 3.2
+   },
+   "src_anim": "Idle"
+  },
+  "e_sami_car_move": {
+   "pixels": {
+    "anchor": [
+     0.4722,
+     0.8889
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 4,
+    "frame_size": [
+     72,
+     54
+    ]
+   },
+   "redraw": {
+    "frames": 4,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.8,
+     1.6,
+     2.4
+    ],
+    "loop": true,
+    "duration": 3.2
+   },
+   "src_anim": "Move"
+  },
+  "e_sami_car_death": {
+   "pixels": {
+    "anchor": [
+     0.4722,
+     0.8889
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     72,
+     54
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2,
+     0.4,
+     0.6,
+     0.8,
+     0.999
+    ],
+    "loop": false,
+    "duration": 1.0
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_car_wound": {
+   "pixels": {
+    "anchor": [
+     0.4722,
+     0.8889
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 1,
+    "frame_size": [
+     72,
+     54
+    ]
+   },
+   "redraw": {
+    "frames": 1,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.1
+    ],
+    "loop": false,
+    "duration": 0.12
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_icechisel": {
+   "pixels": {
+    "anchor": [
+     0.2687,
+     0.9138
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     134,
+     116
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.3333,
+     0.6667,
+     1.0,
+     1.3333,
+     1.6667
+    ],
+    "loop": true,
+    "duration": 2.0
+   },
+   "src_anim": "Idle"
+  },
+  "e_sami_icechisel_move": {
+   "pixels": {
+    "anchor": [
+     0.2687,
+     0.9138
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     134,
+     116
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2,
+     0.4,
+     0.6,
+     0.8,
+     1.0
+    ],
+    "loop": true,
+    "duration": 1.2
+   },
+   "src_anim": "Move"
+  },
+  "e_sami_icechisel_attack": {
+   "pixels": {
+    "anchor": [
+     0.2687,
+     0.9138
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 8,
+    "frame_size": [
+     134,
+     116
+    ]
+   },
+   "redraw": {
+    "frames": 8,
+    "event_frames": [
+     3
+    ],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.4286,
+     0.8571,
+     1.2857,
+     1.7143,
+     2.1429,
+     2.5714,
+     2.999
+    ],
+    "loop": false,
+    "duration": 3.0
+   },
+   "src_anim": "Attack"
+  },
+  "e_sami_icechisel_death": {
+   "pixels": {
+    "anchor": [
+     0.2687,
+     0.9138
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 8,
+    "frame_size": [
+     134,
+     116
+    ]
+   },
+   "redraw": {
+    "frames": 8,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.1429,
+     0.2857,
+     0.4286,
+     0.5714,
+     0.7143,
+     0.8571,
+     0.999
+    ],
+    "loop": false,
+    "duration": 1.0
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_icechisel_wound": {
+   "pixels": {
+    "anchor": [
+     0.2687,
+     0.9138
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 1,
+    "frame_size": [
+     134,
+     116
+    ]
+   },
+   "redraw": {
+    "frames": 1,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.1
+    ],
+    "loop": false,
+    "duration": 0.12
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_shaman": {
+   "pixels": {
+    "anchor": [
+     0.4091,
+     0.8983
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     132,
+     118
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.3333,
+     0.6667,
+     1.0,
+     1.3333,
+     1.6667
+    ],
+    "loop": true,
+    "duration": 2.0
+   },
+   "src_anim": "Idle"
+  },
+  "e_sami_shaman_move": {
+   "pixels": {
+    "anchor": [
+     0.4091,
+     0.8983
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     132,
+     118
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.1333,
+     0.2667,
+     0.4,
+     0.5333,
+     0.6667
+    ],
+    "loop": true,
+    "duration": 0.8
+   },
+   "src_anim": "Move"
+  },
+  "e_sami_shaman_attack": {
+   "pixels": {
+    "anchor": [
+     0.4091,
+     0.8983
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 8,
+    "frame_size": [
+     132,
+     118
+    ]
+   },
+   "redraw": {
+    "frames": 8,
+    "event_frames": [
+     2
+    ],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2143,
+     0.4286,
+     0.6429,
+     0.8571,
+     1.0714,
+     1.2857,
+     1.499
+    ],
+    "loop": false,
+    "duration": 1.5
+   },
+   "src_anim": "Attack"
+  },
+  "e_sami_shaman_skill": {
+   "pixels": {
+    "anchor": [
+     0.4091,
+     0.8983
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 8,
+    "frame_size": [
+     132,
+     118
+    ]
+   },
+   "redraw": {
+    "frames": 8,
+    "event_frames": [
+     2
+    ],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2381,
+     0.4762,
+     0.7143,
+     0.9524,
+     1.1905,
+     1.4286,
+     1.6657
+    ],
+    "loop": false,
+    "duration": 1.6667
+   },
+   "src_anim": "Skill"
+  },
+  "e_sami_shaman_death": {
+   "pixels": {
+    "anchor": [
+     0.4091,
+     0.8983
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 8,
+    "frame_size": [
+     132,
+     118
+    ]
+   },
+   "redraw": {
+    "frames": 8,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2571,
+     0.5143,
+     0.7714,
+     1.0286,
+     1.2857,
+     1.5429,
+     1.799
+    ],
+    "loop": false,
+    "duration": 1.8
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_shaman_wound": {
+   "pixels": {
+    "anchor": [
+     0.4091,
+     0.8983
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 1,
+    "frame_size": [
+     132,
+     118
+    ]
+   },
+   "redraw": {
+    "frames": 1,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.1
+    ],
+    "loop": false,
+    "duration": 0.12
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_shaman2": {
+   "pixels": {
+    "anchor": [
+     0.4091,
+     0.8983
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     132,
+     118
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.3333,
+     0.6667,
+     1.0,
+     1.3333,
+     1.6667
+    ],
+    "loop": true,
+    "duration": 2.0
+   },
+   "src_anim": "Idle"
+  },
+  "e_sami_shaman2_move": {
+   "pixels": {
+    "anchor": [
+     0.4091,
+     0.8983
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     132,
+     118
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.1333,
+     0.2667,
+     0.4,
+     0.5333,
+     0.6667
+    ],
+    "loop": true,
+    "duration": 0.8
+   },
+   "src_anim": "Move"
+  },
+  "e_sami_shaman2_attack": {
+   "pixels": {
+    "anchor": [
+     0.4091,
+     0.8983
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 8,
+    "frame_size": [
+     132,
+     118
+    ]
+   },
+   "redraw": {
+    "frames": 8,
+    "event_frames": [
+     2
+    ],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2143,
+     0.4286,
+     0.6429,
+     0.8571,
+     1.0714,
+     1.2857,
+     1.499
+    ],
+    "loop": false,
+    "duration": 1.5
+   },
+   "src_anim": "Attack"
+  },
+  "e_sami_shaman2_skill": {
+   "pixels": {
+    "anchor": [
+     0.4091,
+     0.8983
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 8,
+    "frame_size": [
+     132,
+     118
+    ]
+   },
+   "redraw": {
+    "frames": 8,
+    "event_frames": [
+     2
+    ],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2381,
+     0.4762,
+     0.7143,
+     0.9524,
+     1.1905,
+     1.4286,
+     1.6657
+    ],
+    "loop": false,
+    "duration": 1.6667
+   },
+   "src_anim": "Skill"
+  },
+  "e_sami_shaman2_death": {
+   "pixels": {
+    "anchor": [
+     0.4091,
+     0.8983
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 8,
+    "frame_size": [
+     132,
+     118
+    ]
+   },
+   "redraw": {
+    "frames": 8,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2571,
+     0.5143,
+     0.7714,
+     1.0286,
+     1.2857,
+     1.5429,
+     1.799
+    ],
+    "loop": false,
+    "duration": 1.8
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_shaman2_wound": {
+   "pixels": {
+    "anchor": [
+     0.4091,
+     0.8983
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 1,
+    "frame_size": [
+     132,
+     118
+    ]
+   },
+   "redraw": {
+    "frames": 1,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.1
+    ],
+    "loop": false,
+    "duration": 0.12
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_vine": {
+   "pixels": {
+    "anchor": [
+     0.4328,
+     0.9412
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     134,
+     102
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.4445,
+     0.8889,
+     1.3334,
+     1.7778,
+     2.2223
+    ],
+    "loop": true,
+    "duration": 2.6667
+   },
+   "src_anim": "Idle"
+  },
+  "e_sami_vine_move": {
+   "pixels": {
+    "anchor": [
+     0.4328,
+     0.9412
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     134,
+     102
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.4445,
+     0.8889,
+     1.3334,
+     1.7778,
+     2.2223
+    ],
+    "loop": true,
+    "duration": 2.6667
+   },
+   "src_anim": "Move"
+  },
+  "e_sami_vine_attack": {
+   "pixels": {
+    "anchor": [
+     0.4328,
+     0.9412
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 8,
+    "frame_size": [
+     134,
+     102
+    ]
+   },
+   "redraw": {
+    "frames": 8,
+    "event_frames": [
+     3
+    ],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2619,
+     0.5238,
+     0.7857,
+     1.0476,
+     1.3095,
+     1.5714,
+     1.8323
+    ],
+    "loop": false,
+    "duration": 1.8333
+   },
+   "src_anim": "Attack"
+  },
+  "e_sami_vine_skill": {
+   "pixels": {
+    "anchor": [
+     0.4328,
+     0.9412
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 8,
+    "frame_size": [
+     134,
+     102
+    ]
+   },
+   "redraw": {
+    "frames": 8,
+    "event_frames": [
+     3
+    ],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2619,
+     0.5238,
+     0.7857,
+     1.0476,
+     1.3095,
+     1.5714,
+     1.8323
+    ],
+    "loop": false,
+    "duration": 1.8333
+   },
+   "src_anim": "Skill"
+  },
+  "e_sami_vine_death": {
+   "pixels": {
+    "anchor": [
+     0.4328,
+     0.9412
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 8,
+    "frame_size": [
+     134,
+     102
+    ]
+   },
+   "redraw": {
+    "frames": 8,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2857,
+     0.5714,
+     0.8571,
+     1.1429,
+     1.4286,
+     1.7143,
+     1.999
+    ],
+    "loop": false,
+    "duration": 2.0
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_vine_wound": {
+   "pixels": {
+    "anchor": [
+     0.4328,
+     0.9412
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 1,
+    "frame_size": [
+     134,
+     102
+    ]
+   },
+   "redraw": {
+    "frames": 1,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.1
+    ],
+    "loop": false,
+    "duration": 0.12
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_vine2": {
+   "pixels": {
+    "anchor": [
+     0.4328,
+     0.9412
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     134,
+     102
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.4445,
+     0.8889,
+     1.3334,
+     1.7778,
+     2.2223
+    ],
+    "loop": true,
+    "duration": 2.6667
+   },
+   "src_anim": "Idle"
+  },
+  "e_sami_vine2_move": {
+   "pixels": {
+    "anchor": [
+     0.4328,
+     0.9412
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     134,
+     102
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.4445,
+     0.8889,
+     1.3334,
+     1.7778,
+     2.2223
+    ],
+    "loop": true,
+    "duration": 2.6667
+   },
+   "src_anim": "Move"
+  },
+  "e_sami_vine2_attack": {
+   "pixels": {
+    "anchor": [
+     0.4328,
+     0.9412
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 8,
+    "frame_size": [
+     134,
+     102
+    ]
+   },
+   "redraw": {
+    "frames": 8,
+    "event_frames": [
+     3
+    ],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2619,
+     0.5238,
+     0.7857,
+     1.0476,
+     1.3095,
+     1.5714,
+     1.8323
+    ],
+    "loop": false,
+    "duration": 1.8333
+   },
+   "src_anim": "Attack"
+  },
+  "e_sami_vine2_skill": {
+   "pixels": {
+    "anchor": [
+     0.4328,
+     0.9412
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 8,
+    "frame_size": [
+     134,
+     102
+    ]
+   },
+   "redraw": {
+    "frames": 8,
+    "event_frames": [
+     3
+    ],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2619,
+     0.5238,
+     0.7857,
+     1.0476,
+     1.3095,
+     1.5714,
+     1.8323
+    ],
+    "loop": false,
+    "duration": 1.8333
+   },
+   "src_anim": "Skill"
+  },
+  "e_sami_vine2_death": {
+   "pixels": {
+    "anchor": [
+     0.4328,
+     0.9412
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 8,
+    "frame_size": [
+     134,
+     102
+    ]
+   },
+   "redraw": {
+    "frames": 8,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2857,
+     0.5714,
+     0.8571,
+     1.1429,
+     1.4286,
+     1.7143,
+     1.999
+    ],
+    "loop": false,
+    "duration": 2.0
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_vine2_wound": {
+   "pixels": {
+    "anchor": [
+     0.4328,
+     0.9412
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 1,
+    "frame_size": [
+     134,
+     102
+    ]
+   },
+   "redraw": {
+    "frames": 1,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.1
+    ],
+    "loop": false,
+    "duration": 0.12
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_lead": {
+   "pixels": {
+    "anchor": [
+     0.4674,
+     0.9512
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     184,
+     164
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.5555,
+     1.1111,
+     1.6666,
+     2.2222,
+     2.7777
+    ],
+    "loop": true,
+    "duration": 3.3333
+   },
+   "src_anim": "Idle"
+  },
+  "e_sami_lead_move": {
+   "pixels": {
+    "anchor": [
+     0.4674,
+     0.9512
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     184,
+     164
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2222,
+     0.4444,
+     0.6666,
+     0.8889,
+     1.1111
+    ],
+    "loop": true,
+    "duration": 1.3333
+   },
+   "src_anim": "Move_A"
+  },
+  "e_sami_lead_rush": {
+   "pixels": {
+    "anchor": [
+     0.4674,
+     0.9512
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     184,
+     164
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.1444,
+     0.2889,
+     0.4334,
+     0.5778,
+     0.7222
+    ],
+    "loop": true,
+    "duration": 0.8667
+   },
+   "src_anim": "Move_B"
+  },
+  "e_sami_lead_attack": {
+   "pixels": {
+    "anchor": [
+     0.4674,
+     0.9512
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 8,
+    "frame_size": [
+     184,
+     164
+    ]
+   },
+   "redraw": {
+    "frames": 8,
+    "event_frames": [
+     2
+    ],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.3571,
+     0.7143,
+     1.0714,
+     1.4286,
+     1.7857,
+     2.1429,
+     2.499
+    ],
+    "loop": false,
+    "duration": 2.5
+   },
+   "src_anim": "Attack"
+  },
+  "e_sami_lead_death": {
+   "pixels": {
+    "anchor": [
+     0.4674,
+     0.9512
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 8,
+    "frame_size": [
+     184,
+     164
+    ]
+   },
+   "redraw": {
+    "frames": 8,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.1429,
+     0.2857,
+     0.4286,
+     0.5714,
+     0.7143,
+     0.8571,
+     0.999
+    ],
+    "loop": false,
+    "duration": 1.0
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_lead_wound": {
+   "pixels": {
+    "anchor": [
+     0.4674,
+     0.9512
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 1,
+    "frame_size": [
+     184,
+     164
+    ]
+   },
+   "redraw": {
+    "frames": 1,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.1
+    ],
+    "loop": false,
+    "duration": 0.12
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_cresson": {
+   "pixels": {
+    "anchor": [
+     0.552,
+     0.9344
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     250,
+     244
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.6667,
+     1.3333,
+     2.0,
+     2.6667,
+     3.3333
+    ],
+    "loop": true,
+    "duration": 4.0
+   },
+   "src_anim": "Idle"
+  },
+  "e_sami_cresson_attack": {
+   "pixels": {
+    "anchor": [
+     0.552,
+     0.9344
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 8,
+    "frame_size": [
+     250,
+     244
+    ]
+   },
+   "redraw": {
+    "frames": 8,
+    "event_frames": [
+     4
+    ],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.4524,
+     0.9048,
+     1.3572,
+     1.8095,
+     2.2619,
+     2.7143,
+     3.1657
+    ],
+    "loop": false,
+    "duration": 3.1667
+   },
+   "src_anim": "Attack"
+  },
+  "e_sami_cresson_blink_out": {
+   "pixels": {
+    "anchor": [
+     0.552,
+     0.9344
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     250,
+     244
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.1333,
+     0.2667,
+     0.4,
+     0.5334,
+     0.6657
+    ],
+    "loop": false,
+    "duration": 0.6667
+   },
+   "src_anim": "Move_Begin"
+  },
+  "e_sami_cresson_blink_in": {
+   "pixels": {
+    "anchor": [
+     0.552,
+     0.9344
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     250,
+     244
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.1333,
+     0.2667,
+     0.4,
+     0.5334,
+     0.6657
+    ],
+    "loop": false,
+    "duration": 0.6667
+   },
+   "src_anim": "Move_End"
+  },
+  "e_sami_cresson_death": {
+   "pixels": {
+    "anchor": [
+     0.552,
+     0.9344
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 10,
+    "frame_size": [
+     250,
+     244
+    ]
+   },
+   "redraw": {
+    "frames": 10,
+    "event_frames": [
+     7
+    ],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.6667,
+     1.3333,
+     2.0,
+     2.6667,
+     3.3333,
+     4.0,
+     4.6667,
+     5.3333,
+     5.999
+    ],
+    "loop": false,
+    "duration": 6.0
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_cresson_wound": {
+   "pixels": {
+    "anchor": [
+     0.552,
+     0.9344
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 1,
+    "frame_size": [
+     250,
+     244
+    ]
+   },
+   "redraw": {
+    "frames": 1,
+    "event_frames": [
+     0
+    ],
+    "release_frame": null,
+    "sample_times": [
+     0.1
+    ],
+    "loop": false,
+    "duration": 0.12
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_khan": {
+   "pixels": {
+    "anchor": [
+     0.4875,
+     0.7595
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     320,
+     316
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2778,
+     0.5556,
+     0.8333,
+     1.1111,
+     1.3889
+    ],
+    "loop": true,
+    "duration": 1.6667
+   },
+   "src_anim": "Idle"
+  },
+  "e_sami_khan_move": {
+   "pixels": {
+    "anchor": [
+     0.4875,
+     0.7595
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     320,
+     316
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.3111,
+     0.6222,
+     0.9334,
+     1.2445,
+     1.5556
+    ],
+    "loop": true,
+    "duration": 1.8667
+   },
+   "src_anim": "Move"
+  },
+  "e_sami_khan_attack": {
+   "pixels": {
+    "anchor": [
+     0.4875,
+     0.7595
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 8,
+    "frame_size": [
+     320,
+     316
+    ]
+   },
+   "redraw": {
+    "frames": 8,
+    "event_frames": [
+     3
+    ],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2905,
+     0.5809,
+     0.8714,
+     1.1619,
+     1.4524,
+     1.7428,
+     2.0323
+    ],
+    "loop": false,
+    "duration": 2.0333
+   },
+   "src_anim": "Attack"
+  },
+  "e_sami_khan_conquer_begin": {
+   "pixels": {
+    "anchor": [
+     0.4875,
+     0.7595
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 8,
+    "frame_size": [
+     320,
+     316
+    ]
+   },
+   "redraw": {
+    "frames": 8,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2048,
+     0.4095,
+     0.6143,
+     0.819,
+     1.0238,
+     1.2285,
+     1.4323
+    ],
+    "loop": false,
+    "duration": 1.4333
+   },
+   "src_anim": "Skill_Begin"
+  },
+  "e_sami_khan_conquer_loop": {
+   "pixels": {
+    "anchor": [
+     0.4875,
+     0.7595
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     320,
+     316
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.1667,
+     0.3333,
+     0.5,
+     0.6667,
+     0.8333
+    ],
+    "loop": true,
+    "duration": 1.0
+   },
+   "src_anim": "Skill_Loop"
+  },
+  "e_sami_khan_conquer_end": {
+   "pixels": {
+    "anchor": [
+     0.4875,
+     0.7595
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 8,
+    "frame_size": [
+     320,
+     316
+    ]
+   },
+   "redraw": {
+    "frames": 8,
+    "event_frames": [
+     3
+    ],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.3,
+     0.6,
+     0.9,
+     1.2,
+     1.5,
+     1.8,
+     2.099
+    ],
+    "loop": false,
+    "duration": 2.1
+   },
+   "src_anim": "Skill_End"
+  },
+  "e_sami_khan_death": {
+   "pixels": {
+    "anchor": [
+     0.4875,
+     0.7595
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 8,
+    "frame_size": [
+     320,
+     316
+    ]
+   },
+   "redraw": {
+    "frames": 8,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.3571,
+     0.7143,
+     1.0714,
+     1.4286,
+     1.7857,
+     2.1429,
+     2.499
+    ],
+    "loop": false,
+    "duration": 2.5
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_khan_wound": {
+   "pixels": {
+    "anchor": [
+     0.4875,
+     0.7595
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 1,
+    "frame_size": [
+     320,
+     316
+    ]
+   },
+   "redraw": {
+    "frames": 1,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.1
+    ],
+    "loop": false,
+    "duration": 0.12
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_lion": {
+   "pixels": {
+    "anchor": [
+     0.3214,
+     0.7622
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     336,
+     286
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.25,
+     0.5,
+     0.75,
+     1.0,
+     1.25
+    ],
+    "loop": true,
+    "duration": 1.5
+   },
+   "src_anim": "Idle"
+  },
+  "e_sami_lion_move": {
+   "pixels": {
+    "anchor": [
+     0.3214,
+     0.7622
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     336,
+     286
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.25,
+     0.5,
+     0.75,
+     1.0,
+     1.25
+    ],
+    "loop": true,
+    "duration": 1.5
+   },
+   "src_anim": "Move"
+  },
+  "e_sami_lion_attack": {
+   "pixels": {
+    "anchor": [
+     0.3214,
+     0.7622
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 8,
+    "frame_size": [
+     336,
+     286
+    ]
+   },
+   "redraw": {
+    "frames": 8,
+    "event_frames": [
+     4
+    ],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2381,
+     0.4762,
+     0.7143,
+     0.9524,
+     1.1905,
+     1.4286,
+     1.6657
+    ],
+    "loop": false,
+    "duration": 1.6667
+   },
+   "src_anim": "Attack"
+  },
+  "e_sami_lion_combat": {
+   "pixels": {
+    "anchor": [
+     0.3214,
+     0.7622
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 8,
+    "frame_size": [
+     336,
+     286
+    ]
+   },
+   "redraw": {
+    "frames": 8,
+    "event_frames": [
+     4
+    ],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2381,
+     0.4762,
+     0.7143,
+     0.9524,
+     1.1905,
+     1.4286,
+     1.6657
+    ],
+    "loop": false,
+    "duration": 1.6667
+   },
+   "src_anim": "Combat"
+  },
+  "e_sami_lion_blink_out": {
+   "pixels": {
+    "anchor": [
+     0.3214,
+     0.7622
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     336,
+     286
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.1533,
+     0.3067,
+     0.46,
+     0.6134,
+     0.7657
+    ],
+    "loop": false,
+    "duration": 0.7667
+   },
+   "src_anim": "Skill_1_Begin"
+  },
+  "e_sami_lion_blink_in": {
+   "pixels": {
+    "anchor": [
+     0.3214,
+     0.7622
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     336,
+     286
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [
+     0
+    ],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.2067,
+     0.4133,
+     0.62,
+     0.8266,
+     1.0323
+    ],
+    "loop": false,
+    "duration": 1.0333
+   },
+   "src_anim": "Skill_1_End"
+  },
+  "e_sami_lion_edict_begin": {
+   "pixels": {
+    "anchor": [
+     0.3214,
+     0.7622
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 8,
+    "frame_size": [
+     336,
+     286
+    ]
+   },
+   "redraw": {
+    "frames": 8,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.1905,
+     0.3809,
+     0.5714,
+     0.7619,
+     0.9524,
+     1.1428,
+     1.3323
+    ],
+    "loop": false,
+    "duration": 1.3333
+   },
+   "src_anim": "Skill_2_Begin"
+  },
+  "e_sami_lion_edict_loop": {
+   "pixels": {
+    "anchor": [
+     0.3214,
+     0.7622
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 6,
+    "frame_size": [
+     336,
+     286
+    ]
+   },
+   "redraw": {
+    "frames": 6,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.1667,
+     0.3333,
+     0.5,
+     0.6667,
+     0.8333
+    ],
+    "loop": true,
+    "duration": 1.0
+   },
+   "src_anim": "Skill_2_Loop"
+  },
+  "e_sami_lion_edict_end": {
+   "pixels": {
+    "anchor": [
+     0.3214,
+     0.7622
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 8,
+    "frame_size": [
+     336,
+     286
+    ]
+   },
+   "redraw": {
+    "frames": 8,
+    "event_frames": [
+     2
+    ],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.3571,
+     0.7143,
+     1.0714,
+     1.4286,
+     1.7857,
+     2.1429,
+     2.499
+    ],
+    "loop": false,
+    "duration": 2.5
+   },
+   "src_anim": "Skill_2_End"
+  },
+  "e_sami_lion_death": {
+   "pixels": {
+    "anchor": [
+     0.3214,
+     0.7622
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 8,
+    "frame_size": [
+     336,
+     286
+    ]
+   },
+   "redraw": {
+    "frames": 8,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.0,
+     0.4286,
+     0.8571,
+     1.2857,
+     1.7143,
+     2.1429,
+     2.5714,
+     2.999
+    ],
+    "loop": false,
+    "duration": 3.0
+   },
+   "src_anim": "Die"
+  },
+  "e_sami_lion_wound": {
+   "pixels": {
+    "anchor": [
+     0.3214,
+     0.7622
+    ],
+    "scale": 1.0,
+    "preserve_palette": true,
+    "frames": 1,
+    "frame_size": [
+     336,
+     286
+    ]
+   },
+   "redraw": {
+    "frames": 1,
+    "event_frames": [],
+    "release_frame": null,
+    "sample_times": [
+     0.1
+    ],
+    "loop": false,
+    "duration": 0.12
+   },
+   "src_anim": "Die"
   }
  },
  "enemies": {
@@ -1987,6 +5472,326 @@
     160
    ],
    "top_to_foot_2x": 160,
+   "clipped": []
+  },
+  "shadow": {
+   "id": "shadow",
+   "name": "可汗片影",
+   "src": "sami_shadow",
+   "tier": "normal",
+   "frame_size_2x": [
+    90,
+    74
+   ],
+   "idle_body_2x": [
+    35,
+    52
+   ],
+   "top_to_foot_2x": 55,
+   "clipped": []
+  },
+  "hound": {
+   "id": "hound",
+   "name": "王者友伴",
+   "src": "sami_hound",
+   "tier": "high",
+   "frame_size_2x": [
+    136,
+    78
+   ],
+   "idle_body_2x": [
+    112,
+    63
+   ],
+   "top_to_foot_2x": 63,
+   "clipped": []
+  },
+  "uterer": {
+   "id": "uterer",
+   "name": "乌萨斯裂兽",
+   "src": "ursus_uterer",
+   "tier": "normal",
+   "frame_size_2x": [
+    82,
+    56
+   ],
+   "idle_body_2x": [
+    54,
+    44
+   ],
+   "top_to_foot_2x": 44,
+   "clipped": []
+  },
+  "uterer2": {
+   "id": "uterer2",
+   "name": "乌萨斯裂兽族母",
+   "src": "ursus_uterer2",
+   "tier": "normal",
+   "frame_size_2x": [
+    82,
+    56
+   ],
+   "idle_body_2x": [
+    54,
+    44
+   ],
+   "top_to_foot_2x": 44,
+   "clipped": []
+  },
+  "frostd": {
+   "id": "frostd",
+   "name": "寒霜",
+   "src": "frost_drone",
+   "tier": "elite",
+   "frame_size_2x": [
+    78,
+    50
+   ],
+   "idle_body_2x": [
+    70,
+    40
+   ],
+   "top_to_foot_2x": 40,
+   "clipped": []
+  },
+  "snsbr": {
+   "id": "snsbr",
+   "name": "雪怪小队",
+   "src": "snow_sbr",
+   "tier": "normal",
+   "frame_size_2x": [
+    80,
+    68
+   ],
+   "idle_body_2x": [
+    60,
+    50
+   ],
+   "top_to_foot_2x": 50,
+   "clipped": []
+  },
+  "mhshep": {
+   "id": "mhshep",
+   "name": "角兽",
+   "src": "mh_shep",
+   "tier": "normal",
+   "frame_size_2x": [
+    70,
+    60
+   ],
+   "idle_body_2x": [
+    60,
+    50
+   ],
+   "top_to_foot_2x": 50,
+   "clipped": []
+  },
+  "snmage": {
+   "id": "snmage",
+   "name": "雪怪术师组长",
+   "src": "snow_mage",
+   "tier": "normal",
+   "frame_size_2x": [
+    74,
+    68
+   ],
+   "idle_body_2x": [
+    46,
+    56
+   ],
+   "top_to_foot_2x": 56,
+   "clipped": []
+  },
+  "rockback": {
+   "id": "rockback",
+   "name": "坚岩冠兽",
+   "src": "mh_rockback",
+   "tier": "high",
+   "frame_size_2x": [
+    84,
+    76
+   ],
+   "idle_body_2x": [
+    69,
+    64
+   ],
+   "top_to_foot_2x": 64,
+   "clipped": []
+  },
+  "uamord": {
+   "id": "uamord",
+   "name": "乌萨斯高级着铠术师",
+   "src": "ursus_amord",
+   "tier": "elite",
+   "frame_size_2x": [
+    92,
+    92
+   ],
+   "idle_body_2x": [
+    44,
+    70
+   ],
+   "top_to_foot_2x": 70,
+   "clipped": []
+  },
+  "car": {
+   "id": "car",
+   "name": "勘察用自走车",
+   "src": "sami_car",
+   "tier": "normal",
+   "frame_size_2x": [
+    72,
+    54
+   ],
+   "idle_body_2x": [
+    63,
+    43
+   ],
+   "top_to_foot_2x": 44,
+   "clipped": []
+  },
+  "icechisel": {
+   "id": "icechisel",
+   "name": "雪怪小队凿冰人",
+   "src": "snow_icechisel",
+   "tier": "elite",
+   "frame_size_2x": [
+    134,
+    116
+   ],
+   "idle_body_2x": [
+    85,
+    64
+   ],
+   "top_to_foot_2x": 64,
+   "clipped": []
+  },
+  "shaman": {
+   "id": "shaman",
+   "name": "陷落雪祀",
+   "src": "sami_shaman",
+   "tier": "boss",
+   "frame_size_2x": [
+    132,
+    118
+   ],
+   "idle_body_2x": [
+    90,
+    90
+   ],
+   "top_to_foot_2x": 92,
+   "clipped": []
+  },
+  "shaman2": {
+   "id": "shaman2",
+   "name": "空洞雪祀",
+   "src": "sami_shaman2",
+   "tier": "boss",
+   "frame_size_2x": [
+    132,
+    118
+   ],
+   "idle_body_2x": [
+    90,
+    90
+   ],
+   "top_to_foot_2x": 92,
+   "clipped": []
+  },
+  "vine": {
+   "id": "vine",
+   "name": "纠缠藤蔓",
+   "src": "sami_vine",
+   "tier": "boss",
+   "frame_size_2x": [
+    134,
+    102
+   ],
+   "idle_body_2x": [
+    87,
+    93
+   ],
+   "top_to_foot_2x": 93,
+   "clipped": []
+  },
+  "vine2": {
+   "id": "vine2",
+   "name": "古老藤蔓",
+   "src": "sami_vine2",
+   "tier": "boss",
+   "frame_size_2x": [
+    134,
+    102
+   ],
+   "idle_body_2x": [
+    87,
+    93
+   ],
+   "top_to_foot_2x": 93,
+   "clipped": []
+  },
+  "lead": {
+   "id": "lead",
+   "name": "「木裂」埃克提尔尼尔",
+   "src": "sami_lead",
+   "tier": "boss",
+   "frame_size_2x": [
+    184,
+    164
+   ],
+   "idle_body_2x": [
+    95,
+    148
+   ],
+   "top_to_foot_2x": 152,
+   "clipped": []
+  },
+  "cresson": {
+   "id": "cresson",
+   "name": "无垠回荡克雷松",
+   "src": "sami_cresson",
+   "tier": "boss",
+   "frame_size_2x": [
+    250,
+    244
+   ],
+   "idle_body_2x": [
+    145,
+    148
+   ],
+   "top_to_foot_2x": 150,
+   "clipped": []
+  },
+  "khan": {
+   "id": "khan",
+   "name": "哈兰杜汗，大地之鞭",
+   "src": "sami_khan",
+   "tier": "boss",
+   "frame_size_2x": [
+    320,
+    316
+   ],
+   "idle_body_2x": [
+    204,
+    139
+   ],
+   "top_to_foot_2x": 140,
+   "clipped": []
+  },
+  "lion": {
+   "id": "lion",
+   "name": "路加萨尔古斯，历法之王",
+   "src": "sami_lion",
+   "tier": "boss",
+   "frame_size_2x": [
+    336,
+    286
+   ],
+   "idle_body_2x": [
+    214,
+    139
+   ],
+   "top_to_foot_2x": 139,
    "clipped": []
   }
  }

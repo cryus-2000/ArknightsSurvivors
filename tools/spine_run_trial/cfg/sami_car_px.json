@@ -1,0 +1,88 @@
+{
+ "id": "sami_car",
+ "rig": "sami_car.json",
+ "tex_prefix": "e_sami_car",
+ "scale": 0.131,
+ "canvas": 192,
+ "dens": [
+  2,
+  1
+ ],
+ "colors": 64,
+ "palette_alpha": 230,
+ "palette_protect": false,
+ "outline": {
+  "color": "#0a1418",
+  "mix": 0.55
+ },
+ "actions": {
+  "idle": {
+   "sample": {
+    "anim": "Idle",
+    "times": [
+     0.0,
+     0.8,
+     1.6,
+     2.4
+    ]
+   },
+   "durations": [
+    0.8,
+    0.8,
+    0.8,
+    0.8
+   ]
+  },
+  "move": {
+   "sample": {
+    "anim": "Move",
+    "times": [
+     0.0,
+     0.8,
+     1.6,
+     2.4
+    ]
+   },
+   "durations": [
+    0.8,
+    0.8,
+    0.8,
+    0.8
+   ]
+  },
+  "death": {
+   "sample": {
+    "anim": "Die",
+    "times": [
+     0.0,
+     0.2,
+     0.4,
+     0.6,
+     0.8,
+     0.999
+    ]
+   },
+   "durations": [
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.199,
+    0.06
+   ]
+  },
+  "wound": {
+   "sample": {
+    "anim": "Die",
+    "times": [
+     0.1
+    ]
+   },
+   "durations": [
+    0.12
+   ]
+  }
+ },
+ "keep_colors": [],
+ "_doc": "tools/spine_px_enemy.py 生成，别手改；改 ENEMIES 表再跑"
+}

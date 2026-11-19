@@ -284,6 +284,11 @@ if __name__ == "__main__" and len(sys.argv) > 2 and sys.argv[1] == "--variants":
     variants(sys.argv[2])
     ground(sys.argv[2])
 elif __name__ == "__main__":
+    if "--dst" in sys.argv:   # 帧条在别处（11-20 全量放 F 盘）：python tools/spine_px_enemy_cmp.py --dst <目录> id…
+        i = sys.argv.index("--dst")
+        SE.DST = sys.argv[i + 1]
+        SE.CMP1X = os.path.join(SE.DST, "1x")
+        del sys.argv[i:i + 2]
     ids = sys.argv[1:] or list(SE.ENEMIES)
     sheets = [one(i) for i in ids]
     if not sys.argv[1:]:

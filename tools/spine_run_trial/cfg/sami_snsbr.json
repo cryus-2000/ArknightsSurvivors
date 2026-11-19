@@ -1,0 +1,15 @@
+{
+ "id": "sami_snsbr",
+ "src": "sami_snsbr.src.json",
+ "name": "雪怪小队",
+ "pack": {
+  "scale": 0.137,
+  "root": [
+   64,
+   120
+  ],
+  "palette_png": ""
+ },
+ "skipAdditive": true,
+ "_doc": "萨米敌人「雪怪小队」（snow_sbr）：无腿，地线 = 待机首帧最低点（tools/spine_px_enemy.py 生成）"
+}

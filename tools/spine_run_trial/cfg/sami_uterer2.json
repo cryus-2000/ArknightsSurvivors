@@ -1,0 +1,15 @@
+{
+ "id": "sami_uterer2",
+ "src": "sami_uterer2.src.json",
+ "name": "乌萨斯裂兽族母",
+ "pack": {
+  "scale": 0.159,
+  "root": [
+   64,
+   120
+  ],
+  "palette_png": ""
+ },
+ "skipAdditive": true,
+ "_doc": "萨米敌人「乌萨斯裂兽族母」（ursus_uterer2）：无腿，地线 = 待机首帧最低点（tools/spine_px_enemy.py 生成）"
+}

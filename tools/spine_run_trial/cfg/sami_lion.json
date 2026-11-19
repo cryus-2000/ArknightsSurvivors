@@ -1,0 +1,15 @@
+{
+ "id": "sami_lion",
+ "src": "sami_lion.src.json",
+ "name": "路加萨尔古斯，历法之王",
+ "pack": {
+  "scale": 0.26,
+  "root": [
+   64,
+   120
+  ],
+  "palette_png": ""
+ },
+ "skipAdditive": true,
+ "_doc": "萨米敌人「路加萨尔古斯，历法之王」（sami_lion）：无腿，地线 = 待机首帧最低点（tools/spine_px_enemy.py 生成）"
+}

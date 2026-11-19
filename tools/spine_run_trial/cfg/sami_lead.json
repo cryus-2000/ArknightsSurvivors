@@ -1,0 +1,15 @@
+{
+ "id": "sami_lead",
+ "src": "sami_lead.src.json",
+ "name": "「木裂」埃克提尔尼尔",
+ "pack": {
+  "scale": 0.269,
+  "root": [
+   64,
+   120
+  ],
+  "palette_png": ""
+ },
+ "skipAdditive": true,
+ "_doc": "萨米敌人「「木裂」埃克提尔尼尔」（sami_lead）：无腿，地线 = 待机首帧最低点（tools/spine_px_enemy.py 生成）"
+}

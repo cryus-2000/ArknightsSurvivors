@@ -43,6 +43,7 @@ OPS = {
     "dusk_drgn": "小自在",   # 夕的召唤物（character_table token_10015_dusk_drgn）
     "ling_soul1": "清平", "ling_soul2": "逍遥", "ling_soul3": "弦惊",   # 令的召唤物（character_table token_10020_ling_soul1–3）
     "ling": "令", "phantom": "傀影", "dusk": "夕", "shu": "黍", "surtr": "史尔特尔", "fiammetta": "菲亚梅塔",   # 11-18 新干员（B 方案直接进包）
+    "typhon": "提丰", "sbell2": "圣聆初雪",   # 11-20 萨米新干员（先只收参照）
 }
 # 页面缺失 / 页面给的路径在静态站 404 的干员：直接按静态站标准路径 spine38/char/<角色 id>/<角色 id>/<角色 id> 取（10-15 逐个试出来的）
 DIRECT = {"irene": "char_4009_irene", "specter_unchained": "char_1023_ghost2", "lumen": "char_4042_lumen"}
@@ -51,6 +52,7 @@ TORAPPU = {"wisadel": "char_1035_wisdel", "ulpianus": "char_4145_ulpia", "logos"
            # 11-18：PRTS 页面原文接口对脚本 403，新干员一律走 torappu（令已验证；其余 5 人 id 按游戏数据，拉不到再改）
            "ling": "char_2023_ling", "phantom": "char_250_phatom", "dusk": "char_2015_dusk", "shu": "char_2025_shu",
            "surtr": "char_350_surtr", "fiammetta": "char_300_phenxi",
+           "typhon": "char_2012_typhon", "sbell2": "char_1046_sbell2",
            "ling_soul1": "token_10020_ling_soul1", "ling_soul2": "token_10020_ling_soul2", "ling_soul3": "token_10020_ling_soul3",
            "dusk_drgn": "token_10015_dusk_drgn"}
 # 敌人 / Boss（11-19 用户批准敌人也走 Spine 直转；萨米主题 docs/391）：torappu assets/enemy_spine/<敌人 id>/<敌人 id>.{skel,atlas,png}（试出，无皮肤目录）

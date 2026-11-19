@@ -159,3 +159,24 @@
 - 出法：`python tools/spine_px_enemy.py husk will --variant <A|B|C> --out <目录>`（候选写到候选目录，不进 `game/`）；对照：`python tools/spine_px_enemy_cmp.py --variants <目录>` → 每只一张 `<id>_variants.png`（行 = 候选 × 动作，列 = 原作 / @1x ×4 / @2x ×2）+ `sami_variants_overview.png`。
 - 候选图在 `F:\ArknightsSurvivors_build\kind-dijkstra\sami_candidates\`。
 - 用户选定后：把选中的参数写进 `ENEMIES` 缺省值，重出 §5 的 10 只，再按 §6 顺序做全量（普通 / 精英 → 其余 Boss）。
+- 11-20 加候选 D（用户嫌 A 太黑太淡、B / C 发灰）：原图提亮 v^0.8 + 饱和 ×1.25 再量化，最亮 3% 单列 12 色，主色按色相拉开明度 ×1.18，描边 = 本色压暗 45%（`spine_px.py` 的 `palette_prebuilt`）。另出深色地面 A / D 对照 `sami_ground_A_vs_D.png`。
+- **11-20 用户定 A**（现行参数不变，§5 的 10 只不用重出）。
+
+## 8. 全量帧条（11-20，处理方式 A）
+
+用户 11-20：用 A 把其余 20 只批量出完，**只放 F 盘、不进 `game/`、不接入**。
+
+- 出法：`python tools/spine_px_enemy.py <id…> --dst F:/ArknightsSurvivors_build/kind-dijkstra/sami_px`（1 倍对照写 `<dst>/1x`）；规格照写 `tools/spine_run_trial/cfg/sami_enemies_sprites.json`。对照：`python tools/spine_px_enemy_cmp.py --dst <同上> <id…>` → `build/spine_px/_sami_cmp/<id>_cmp.png`，总览 `sami_full1–4_overview.png`。
+- id（萨米数据会话 11-20 确认）：已有 10 只 = shadow / hound / uterer / uterer2 / frostd / snsbr / mhshep / snmage / rockback / uamord；新定 10 只 = icechisel / car / shaman / shaman2 / vine / vine2 / lead / cresson / khan / lion。数据会话说明：凿冰人用户 11-19 定为不用（只用破冰者），自走车算友方物件；六个中期 / 结局 Boss 的数据位由 docs/393 Boss 会话按这些名字建。
+- 结果（@2x 框 / 待机顶到脚）：全部落在 §6「目标 @2x」±2 像素内。最大的是路加萨尔古斯 336×286（画布放到 576，瞬身落地 `blink_in` 才不贴边）、哈兰杜汗 320×316。
+- 待机宽：哈兰杜汗 204、路加萨尔古斯 214，都 ≤ 320。
+- 动作取法：Move_Begin / Loop / End 三段的只取 Loop 作 move；雪怪小队取 Run_Loop。寒霜、自走车原作没有攻击轨，没出 attack。
+- 招式动作：
+  - 木裂：rush = Move_B（自我泯灭疾奔）。
+  - 克雷松：blink_out / blink_in = Move_Begin / End，Loop 0 秒闪现中不出；death 取整段 Die 6 秒 10 帧。
+  - 哈兰杜汗：conquer_begin / loop / end = Skill 三段。
+  - 路加萨尔古斯：combat、blink_out / in = Skill_1，edict_begin / loop / end = Skill_2。
+  - 双王的 Victory 轨没出。
+- 已知：
+  - 寒霜的 Die 是整体渐隐，二值透明后几乎不变（同坍缩构造体），接入时要补溶解或特效。
+  - 路加萨尔古斯 blink_in 前几帧不可见，是原作如此。

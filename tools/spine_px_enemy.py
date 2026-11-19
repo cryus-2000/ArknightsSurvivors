@@ -73,6 +73,47 @@ ENEMIES = {
                       "surge_begin": A("Skill_01_Begin", 8, 3.0, False), "surge_loop": A("Skill_01_Loop", 6, 2.0),
                       "surge_end": A("Skill_01_End", 4, 0.6667, False), "sigh": A("Skill_02", 8, 2.6667, False),
                       "death": A("Die", 8, 1.1, False), "wound": A("Die", 1, 0, at=0.1)}},
+    # ---- 全量（11-20 用户定处理方式 A；帧条只出到 F 盘 --dst，不进 game/、不接入）。尺度 = 目标高 / Spine 待机高（docs/399 §6）
+    "shadow": {"src": "sami_shadow", "name": "可汗片影", "tier": "normal", "scale": 0.116, "canvas": 192,
+        "acts": {"idle": A("Idle", 4, 2.0), "move": A("Move", 4, 1.1), "attack": A("Attack", 6, 2.0, False), "death": A("Die", 6, 1.0, False), "wound": A("Die", 1, 0, at=0.1)}},
+    "hound": {"src": "sami_hound", "name": "王者友伴", "tier": "high", "scale": 0.165, "canvas": 256,
+        "acts": {"idle": A("Idle", 4, 1.3333), "move": A("Move", 4, 0.5), "attack": A("Attack", 6, 1.0, False), "death": A("Die", 6, 1.0, False), "wound": A("Die", 1, 0, at=0.1)}},
+    "car": {"src": "sami_car", "name": "勘察用自走车", "tier": "normal", "scale": 0.131, "canvas": 192,
+        "acts": {"idle": A("Idle", 4, 3.2), "move": A("Move", 4, 3.2), "death": A("Die", 6, 1.0, False), "wound": A("Die", 1, 0, at=0.1)}},
+    "uterer": {"src": "ursus_uterer", "name": "乌萨斯裂兽", "tier": "normal", "scale": 0.159, "canvas": 192,
+        "acts": {"idle": A("Idle", 4, 2.6667), "move": A("Move_Loop", 4, 0.6), "attack": A("Attack", 6, 1.0, False), "death": A("Die", 6, 1.0, False), "wound": A("Die", 1, 0, at=0.1)}},
+    "uterer2": {"src": "ursus_uterer2", "name": "乌萨斯裂兽族母", "tier": "normal", "scale": 0.159, "canvas": 192,
+        "acts": {"idle": A("Idle", 4, 2.6667), "move": A("Move_Loop", 4, 0.6), "attack": A("Attack", 6, 1.0, False), "death": A("Die", 6, 1.0, False), "wound": A("Die", 1, 0, at=0.1)}},
+    "frostd": {"src": "frost_drone", "name": "寒霜", "tier": "elite", "scale": 0.159, "canvas": 256,
+        "acts": {"idle": A("Idle", 6, 2.0), "move": A("Move_Loop", 6, 2.0), "death": A("Die", 8, 1.0, False), "wound": A("Die", 1, 0, at=0.1)}},
+    "snsbr": {"src": "snow_sbr", "name": "雪怪小队", "tier": "normal", "scale": 0.137, "canvas": 192,
+        "acts": {"idle": A("Idle", 4, 1.0), "move": A("Run_Loop", 4, 0.8), "attack": A("Attack", 6, 1.0, False), "death": A("Die", 6, 1.0, False), "wound": A("Die", 1, 0, at=0.1)}},
+    "icechisel": {"src": "snow_icechisel", "name": "雪怪小队凿冰人", "tier": "elite", "scale": 0.183, "canvas": 256,
+        "acts": {"idle": A("Idle", 6, 2.0), "move": A("Move", 6, 1.2), "attack": A("Attack", 8, 3.0, False), "death": A("Die", 8, 1.0, False), "wound": A("Die", 1, 0, at=0.1)}},
+    "mhshep": {"src": "mh_shep", "name": "角兽", "tier": "normal", "scale": 0.185, "canvas": 192,
+        "acts": {"idle": A("Idle", 4, 9.3333), "move": A("Move", 4, 1.2667), "attack": A("Attack", 6, 0.8, False), "death": A("Die", 6, 1.0, False), "wound": A("Die", 1, 0, at=0.1)}},
+    "snmage": {"src": "snow_mage", "name": "雪怪术师组长", "tier": "normal", "scale": 0.151, "canvas": 192,
+        "acts": {"idle": A("Idle", 4, 1.0), "move": A("Move", 4, 1.3333), "attack": A("Attack", 6, 1.1667, False), "death": A("Die", 6, 1.0, False), "wound": A("Die", 1, 0, at=0.1)}},
+    "rockback": {"src": "mh_rockback", "name": "坚岩冠兽", "tier": "high", "scale": 0.177, "canvas": 256,
+        "acts": {"idle": A("Idle", 4, 1.6667), "move": A("Move", 4, 1.6667), "attack": A("Attack", 6, 1.3333, False), "death": A("Die", 6, 1.0, False), "wound": A("Die", 1, 0, at=0.1)}},
+    "uamord": {"src": "ursus_amord", "name": "乌萨斯高级着铠术师", "tier": "elite", "scale": 0.202, "canvas": 256,
+        "acts": {"idle": A("Idle", 6, 2.0), "move": A("Move_Loop", 6, 1.0), "attack": A("Attack", 8, 1.2, False), "death": A("Die", 8, 0.8333, False), "wound": A("Die", 1, 0, at=0.1)}},
+    "shaman": {"src": "sami_shaman", "name": "陷落雪祀", "tier": "boss", "scale": 0.189, "canvas": 256,
+        "acts": {"idle": A("Idle", 6, 2.0), "move": A("Move", 6, 0.8), "attack": A("Attack", 8, 1.5, False), "skill": A("Skill", 8, 1.6667, False), "death": A("Die", 8, 1.8, False), "wound": A("Die", 1, 0, at=0.1)}},
+    "shaman2": {"src": "sami_shaman2", "name": "空洞雪祀", "tier": "boss", "scale": 0.189, "canvas": 256,
+        "acts": {"idle": A("Idle", 6, 2.0), "move": A("Move", 6, 0.8), "attack": A("Attack", 8, 1.5, False), "skill": A("Skill", 8, 1.6667, False), "death": A("Die", 8, 1.8, False), "wound": A("Die", 1, 0, at=0.1)}},
+    "vine": {"src": "sami_vine", "name": "纠缠藤蔓", "tier": "boss", "scale": 0.167, "canvas": 320,
+        "acts": {"idle": A("Idle", 6, 2.6667), "move": A("Move", 6, 2.6667), "attack": A("Attack", 8, 1.8333, False), "skill": A("Skill", 8, 1.8333, False), "death": A("Die", 8, 2.0, False), "wound": A("Die", 1, 0, at=0.1)}},
+    "vine2": {"src": "sami_vine2", "name": "古老藤蔓", "tier": "boss", "scale": 0.167, "canvas": 320,
+        "acts": {"idle": A("Idle", 6, 2.6667), "move": A("Move", 6, 2.6667), "attack": A("Attack", 8, 1.8333, False), "skill": A("Skill", 8, 1.8333, False), "death": A("Die", 8, 2.0, False), "wound": A("Die", 1, 0, at=0.1)}},
+    "lead": {"src": "sami_lead", "name": "「木裂」埃克提尔尼尔", "tier": "boss", "scale": 0.269, "canvas": 384,
+        "acts": {"idle": A("Idle", 6, 3.3333), "move": A("Move_A", 6, 1.3333), "rush": A("Move_B", 6, 0.8667), "attack": A("Attack", 8, 2.5, False), "death": A("Die", 8, 1.0, False), "wound": A("Die", 1, 0, at=0.1)}},
+    "cresson": {"src": "sami_cresson", "name": "无垠回荡克雷松", "tier": "boss", "scale": 0.245, "canvas": 384,
+        "acts": {"idle": A("Idle", 6, 4.0), "attack": A("Attack", 8, 3.1667, False), "blink_out": A("Move_Begin", 6, 0.6667, False), "blink_in": A("Move_End", 6, 0.6667, False), "death": A("Die", 10, 6.0, False), "wound": A("Die", 1, 0, at=0.1)}},
+    "khan": {"src": "sami_khan", "name": "哈兰杜汗，大地之鞭", "tier": "boss", "scale": 0.253, "canvas": 448,
+        "acts": {"idle": A("Idle", 6, 1.6667), "move": A("Move", 6, 1.8667), "attack": A("Attack", 8, 2.0333, False), "conquer_begin": A("Skill_Begin", 8, 1.4333, False), "conquer_loop": A("Skill_Loop", 6, 1.0), "conquer_end": A("Skill_End", 8, 2.1, False), "death": A("Die", 8, 2.5, False), "wound": A("Die", 1, 0, at=0.1)}},
+    "lion": {"src": "sami_lion", "name": "路加萨尔古斯，历法之王", "tier": "boss", "scale": 0.26, "canvas": 576,
+        "acts": {"idle": A("Idle", 6, 1.5), "move": A("Move", 6, 1.5), "attack": A("Attack", 8, 1.6667, False), "combat": A("Combat", 8, 1.6667, False), "blink_out": A("Skill_1_Begin", 6, 0.7667, False), "blink_in": A("Skill_1_End", 6, 1.0333, False), "edict_begin": A("Skill_2_Begin", 8, 1.3333, False), "edict_loop": A("Skill_2_Loop", 6, 1.0), "edict_end": A("Skill_2_End", 8, 2.5, False), "death": A("Die", 8, 3.0, False), "wound": A("Die", 1, 0, at=0.1)}},
 }
 
 
@@ -381,8 +422,11 @@ def main():
     ap.add_argument("--no-render", action="store_true")
     ap.add_argument("--variant", help="处理方式候选（VARIANTS 键）：帧条写到 --out，不进 game/、不改规格文件")
     ap.add_argument("--out", help="候选输出目录")
+    ap.add_argument("--dst", help="运行时帧条改写到这个目录（11-20：全量先放 F 盘，不进 game/）；1 倍对照写 <dst>/1x")
     a = ap.parse_args()
     global SUFFIX, DST, CMP1X
+    if a.dst:
+        DST, CMP1X = a.dst, os.path.join(a.dst, "1x")
     if a.variant:
         SUFFIX = "_v" + a.variant
         DST = CMP1X = os.path.join(a.out, a.variant)
