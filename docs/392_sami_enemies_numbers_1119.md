@@ -304,7 +304,7 @@
 | `game/data/balance.json` | `boss/hp_x_blade 1.95`、`hp_x_wanderer 3.4`、`hp_x_will 1.75`、三只 `dmg_x_* 1.5`。只有萨米敌人表里有这三种，水月不读 |
 | `tools/sami_paper.py` | 本节的纸面对照，按 `spawner.new_enemy` / `dmg_curve.gd` 的公式算，只读数据 |
 
-**贴图占位**：`tex` 先指水月同档现成帧条（躯壳→骨海漂流体、构造体→分形、施法者→浮海飘航者、冰爆虫→狂奔者、破冰者→奠基者、木裂战士→箱形恐鱼、巨壳藤蔓→鸭爵、利刃 / 游荡者→塑路者、意志→偏执泡影），样例能进局看得见。最终名写在 `tex_final`：`e_sami_shell / e_sami_drone / e_sami_caster / e_sami_snslime / e_sami_icebreaker / e_sami_warrior / e_sami_vinebox / e_sami_blade / e_sami_blade2 / e_sami_will`，按美术会话 `tools/prts_spine.py` 的键名（`sami_shell` … `snow_icebreaker`）取。docs/399 帧条清单还没出，出了再核一次名字，帧条进包时把 `tex` 换成 `tex_final`。
+**贴图占位**：`tex` 先指水月同档现成帧条（躯壳→骨海漂流体、构造体→分形、施法者→浮海飘航者、冰爆虫→狂奔者、破冰者→奠基者、木裂战士→箱形恐鱼、巨壳藤蔓→鸭爵、利刃 / 游荡者→塑路者、意志→偏执泡影），样例能进局看得见。最终名写在 `tex_final`，一律 `e_sami_<本作 id>`（`e_sami_husk / e_sami_drone / e_sami_caster / e_sami_icebug / e_sami_breaker / e_sami_warrior / e_sami_vinebox / e_sami_blade / e_sami_wanderer / e_sami_will`，全量同规则），跟美术会话 docs/399 与 `tools/spine_run_trial/cfg/sami_enemies_sprites.json` 一致（11-20 对齐；帧条可能按用户选的像素处理重出，名字不变）。动画后缀除水月的 `_move / _attack / _death / _wound` 外还有 `_rush`（躯壳、施法者）、`_attack_b`（木裂战士）、`_disguised / _reveal`（藤蔓）、`_combat`（利刃、游荡者）、`_surge_begin / _surge_loop / _surge_end / _sigh`（意志，没有 `_move`），读这些的代码归 T-B。帧条进包时把 `tex` 换成 `tex_final`。
 
 **Boss 脚本占位**：三只都借蔑视体 `archon.gd`（不刷小怪；最初借的塑路者 `path.gd` 会刷水月的分形、`paranoia.gd` 会刷骨海漂流体，冒烟报错后换掉）。意志 `spd 0` 不移动。招式与数值归 docs/393，由 T-B4 / T-B5 写成 `blade.gd` / `will.gd`。
 

@@ -1,5 +1,5 @@
 {
- "_doc": "萨米主题敌人表（docs/392 §5、§11，11-20 落数据）。字段口径同 themes/deep_sea/data/enemies.json 的 _doc。贴图：tex 先指水月同档的现成帧条当占位（样例能进局、看得见）；tex_final 是萨米帧条交付后要换成的名字（与美术会话 prts_spine 键名 sami_* 对齐，docs/399 清单定稿后再核一次）。以 _todo 开头的字段 / 下列新字段代码还没读（T-B2 / T-B3 再接）：hurt_rush 受击暴冲、idle_rush 停火加速、pass_props 穿大型景物、death_blast 死亡冰爆、frosted_mult 打冰霜减速中的队长加伤、collapse 坍缩体（坍缩范式「非线性移动」与国度撑持体候选）、prop_ok 可当国度撑持体、flee_t 稀有逃跑时限。Boss 的 script 先借水月蔑视体 archon.gd 当占位（不刷小怪），招式与数值由 docs/393 定，T-B4 / T-B5 换成 scripts/enemies/bosses/blade.gd / will.gd。 带 full: true 的条目是全量敌人（docs/392 §11），只在 waves_full.json 里刷；样例 waves.json 不用它们。新字段：chill_aura 寒霜光环（范围内队员攻速）、horde_only 只随大群出现（代码未读，T-C 接）。",
+ "_doc": "萨米主题敌人表（docs/392 §5、§11，11-20 落数据）。字段口径同 themes/deep_sea/data/enemies.json 的 _doc。贴图：tex 先指水月同档的现成帧条当占位（样例能进局、看得见）；tex_final = e_sami_<本作 id>，是萨米帧条交付后要换成的名字（与美术会话 docs/399、tools/spine_run_trial/cfg/sami_enemies_sprites.json 对齐；后缀 _move / _attack / _death / _wound 同水月，另有 _rush / _attack_b / _disguised / _reveal / _combat / _surge_begin / _surge_loop / _surge_end / _sigh，代码未读）。以 _todo 开头的字段 / 下列新字段代码还没读（T-B2 / T-B3 再接）：hurt_rush 受击暴冲、idle_rush 停火加速、pass_props 穿大型景物、death_blast 死亡冰爆、frosted_mult 打冰霜减速中的队长加伤、collapse 坍缩体（坍缩范式「非线性移动」与国度撑持体候选）、prop_ok 可当国度撑持体、flee_t 稀有逃跑时限。Boss 的 script 先借水月蔑视体 archon.gd 当占位（不刷小怪），招式与数值由 docs/393 定，T-B4 / T-B5 换成 scripts/enemies/bosses/blade.gd / will.gd。 带 full: true 的条目是全量敌人（docs/392 §11），只在 waves_full.json 里刷；样例 waves.json 不用它们。新字段：chill_aura 寒霜光环（范围内队员攻速）、horde_only 只随大群出现（代码未读，T-C 接）。",
  "enemies": {
   "husk": {
    "gallery": "近战杂兵。受到伤害后短时间大幅加速冲向队长。",
@@ -11,7 +11,7 @@
    "r": 10.0,
    "xp": 1.0,
    "tex": "e_bone",
-   "tex_final": "e_sami_shell",
+   "tex_final": "e_sami_husk",
    "anchor": "foot",
    "ai": "melee",
    "atk_anim": true,
@@ -103,7 +103,7 @@
    "r": 10.0,
    "xp": 1.0,
    "tex": "e_runner",
-   "tex_final": "e_sami_snslime",
+   "tex_final": "e_sami_icebug",
    "anchor": "foot",
    "ai": "melee",
    "cap": 8,
@@ -129,7 +129,7 @@
    "r": 17.0,
    "xp": 5.0,
    "tex": "e_founder",
-   "tex_final": "e_sami_icebreaker",
+   "tex_final": "e_sami_breaker",
    "anchor": "foot",
    "ai": "melee",
    "heavy": true,
@@ -263,7 +263,7 @@
    "r": 26.0,
    "xp": 60.0,
    "tex": "e_path",
-   "tex_final": "e_sami_blade2",
+   "tex_final": "e_sami_wanderer",
    "ai": "melee",
    "role": "boss",
    "script": "archon",
