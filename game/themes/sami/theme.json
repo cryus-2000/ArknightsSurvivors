@@ -3,8 +3,8 @@
   "id": "sami",
   "name": "萨米的意志",
   "data": {
-    "waves": "res://themes/deep_sea/data/waves.json",
-    "enemies": "res://themes/deep_sea/data/enemies.json",
+    "waves": "res://themes/sami/data/waves.json",
+    "enemies": "res://themes/sami/data/enemies.json",
     "events_v2": "res://themes/deep_sea/data/events_v2.json",
     "relics": "res://themes/deep_sea/data/relics.json",
     "relic_effects": "res://themes/deep_sea/data/relic_effects.json",

@@ -1,0 +1,456 @@
+{
+ "_doc": "萨米主题刷怪表（docs/392 §5.2，11-20 落数据）。字段口径同 themes/deep_sea/data/waves.json。阶段时间、精英间隔、evo、速度、rate_mult / horde_mult / cap_mult 照抄水月同位档（对照只差敌人组成）；tier_hp / tier_dmg 不写（= 1）：萨米池平均生命按原值算已落在 docs/359 标准内（水月是高阶多、靠 tier_hp 0.5 折回来），见 docs/392 §10。events 先留空（线索事件跟结局线走，全量再加）；endings 只有样例结局「越过群山」。",
+ "cap_fallback": {
+  "early": "husk",
+  "late": [
+   "husk",
+   "drone"
+  ],
+  "_doc": "普通刷怪抽到同种已满、本级池也全满时换成的敌种：前段（威胁 < 3）固定 early，中后段从 late 里等概率抽（docs/158 §6、docs/367 §3）"
+ },
+ "threat": [
+  {
+   "t": 0.0,
+   "elite": 45.0,
+   "evo": 0.0,
+   "spd": 1.0,
+   "horde_every": 90.0,
+   "name": "初霜湖泽",
+   "en": "FROSTED LAKE",
+   "pool": [
+    "husk",
+    "husk",
+    "husk",
+    "husk"
+   ],
+   "horde": [
+    "husk",
+    "husk",
+    "husk",
+    "husk"
+   ],
+   "horde_mix": [
+    {
+     "name": "躯壳潮",
+     "body": [
+      "husk",
+      "husk",
+      "husk",
+      "husk"
+     ],
+     "extra": []
+    }
+   ],
+   "horde_lead": [
+    "elite"
+   ]
+  },
+  {
+   "t": 75.0,
+   "elite": 55.0,
+   "evo": 0.0,
+   "spd": 1.0,
+   "horde_every": 90.0,
+   "name": "密静林地",
+   "en": "SILENT WOODS",
+   "pool": [
+    "husk",
+    "husk",
+    "husk",
+    "husk",
+    "drone",
+    "drone",
+    "breaker"
+   ],
+   "horde": [
+    "husk",
+    "husk",
+    "husk",
+    "drone"
+   ],
+   "horde_mix": [
+    {
+     "name": "躯壳潮",
+     "body": [
+      "husk",
+      "husk",
+      "husk",
+      "drone"
+     ],
+     "extra": []
+    }
+   ],
+   "horde_lead": [
+    "elite",
+    "breaker"
+   ]
+  },
+  {
+   "t": 170.0,
+   "elite": 50.0,
+   "evo": 0.03,
+   "spd": 1.0,
+   "horde_every": 85.0,
+   "name": "昧明冻土",
+   "en": "DIM PERMAFROST",
+   "pool": [
+    "husk",
+    "husk",
+    "husk",
+    "husk",
+    "drone",
+    "drone",
+    "caster",
+    "caster",
+    "breaker"
+   ],
+   "horde": [
+    "husk",
+    "husk",
+    "drone"
+   ],
+   "horde_mix": [
+    {
+     "name": "躯壳潮",
+     "body": [
+      "husk",
+      "husk",
+      "husk",
+      "drone"
+     ],
+     "extra": []
+    },
+    {
+     "name": "施法者阵",
+     "body": [
+      "husk",
+      "husk",
+      "husk",
+      "drone"
+     ],
+     "extra": [
+      {
+       "id": "caster",
+       "pct": 0.12,
+       "min": 3,
+       "max": 5,
+       "at": "back"
+      }
+     ]
+    }
+   ],
+   "horde_lead": [
+    "elite",
+    "breaker"
+   ]
+  },
+  {
+   "t": 280.0,
+   "elite": 44.0,
+   "evo": 0.08,
+   "spd": 1.03,
+   "horde_every": 80.0,
+   "rate_mult": 0.85,
+   "horde_mult": 0.85,
+   "cap_mult": 2.0,
+   "name": "积冰岩骸",
+   "en": "ICEBOUND RUINS",
+   "pool": [
+    "husk",
+    "husk",
+    "drone",
+    "drone",
+    "caster",
+    "caster",
+    "caster",
+    "icebug",
+    "icebug",
+    "breaker",
+    "breaker"
+   ],
+   "horde": [
+    "husk",
+    "husk",
+    "drone"
+   ],
+   "horde_mix": [
+    {
+     "name": "躯壳潮",
+     "body": [
+      "husk",
+      "husk",
+      "husk",
+      "drone"
+     ],
+     "extra": []
+    },
+    {
+     "name": "冰原伏击",
+     "body": [
+      "husk",
+      "husk",
+      "icebug",
+      "icebug"
+     ],
+     "extra": [
+      {
+       "id": "caster",
+       "pct": 0.1,
+       "min": 3,
+       "max": 5,
+       "at": "back"
+      }
+     ]
+    }
+   ],
+   "horde_lead": [
+    "elite",
+    "breaker"
+   ],
+   "tier_dmg": 0.63
+  },
+  {
+   "t": 400.0,
+   "elite": 38.0,
+   "evo": 0.14,
+   "spd": 1.07,
+   "horde_every": 70.0,
+   "rate_mult": 0.75,
+   "horde_mult": 0.75,
+   "cap_mult": 3.0,
+   "name": "无瑕花园",
+   "en": "FLAWLESS GARDEN",
+   "pool": [
+    "husk",
+    "husk",
+    "drone",
+    "drone",
+    "caster",
+    "caster",
+    "caster",
+    "icebug",
+    "icebug",
+    "breaker",
+    "breaker",
+    "breaker"
+   ],
+   "horde": [
+    "husk",
+    "drone"
+   ],
+   "horde_mix": [
+    {
+     "name": "冰原伏击",
+     "body": [
+      "husk",
+      "husk",
+      "icebug",
+      "icebug"
+     ],
+     "extra": [
+      {
+       "id": "caster",
+       "pct": 0.1,
+       "min": 3,
+       "max": 5,
+       "at": "back"
+      }
+     ]
+    },
+    {
+     "name": "破冰",
+     "body": [
+      "husk",
+      "husk",
+      "husk",
+      "husk"
+     ],
+     "extra": [
+      {
+       "id": "breaker",
+       "pct": 0.06,
+       "min": 1,
+       "max": 2,
+       "at": "front"
+      }
+     ]
+    }
+   ],
+   "horde_lead": [
+    "elite",
+    "breaker"
+   ],
+   "tier_dmg": 0.62
+  },
+  {
+   "t": 520.0,
+   "elite": 32.0,
+   "evo": 0.22,
+   "spd": 1.12,
+   "horde_every": 60.0,
+   "rate_mult": 0.6,
+   "horde_mult": 0.55,
+   "cap_mult": 5.0,
+   "name": "无瑕花园·深处",
+   "en": "GARDEN DEPTHS",
+   "pool": [
+    "husk",
+    "drone",
+    "drone",
+    "caster",
+    "caster",
+    "caster",
+    "icebug",
+    "icebug",
+    "breaker",
+    "breaker",
+    "breaker"
+   ],
+   "horde": [
+    "husk",
+    "drone"
+   ],
+   "horde_mix": [
+    {
+     "name": "冰原伏击",
+     "body": [
+      "husk",
+      "husk",
+      "icebug",
+      "icebug"
+     ],
+     "extra": [
+      {
+       "id": "caster",
+       "pct": 0.1,
+       "min": 3,
+       "max": 5,
+       "at": "back"
+      }
+     ]
+    },
+    {
+     "name": "破冰",
+     "body": [
+      "husk",
+      "husk",
+      "husk",
+      "husk"
+     ],
+     "extra": [
+      {
+       "id": "breaker",
+       "pct": 0.06,
+       "min": 1,
+       "max": 2,
+       "at": "front"
+      }
+     ]
+    }
+   ],
+   "horde_lead": [
+    "elite",
+    "breaker"
+   ],
+   "tier_dmg": 0.7
+  }
+ ],
+ "boss_times": [
+  210.0,
+  420.0,
+  600.0
+ ],
+ "_mid_first_doc": "样例中期 Boss 固定：3:30 邪魔的利刃、7:00 游荡者（docs/391 §3）。mid_first 只放利刃，7:00 从池里剩下的抽 = 游荡者。",
+ "mid_first": [
+  0
+ ],
+ "mid_pool": [
+  [
+   "blade"
+  ],
+  [
+   "wanderer"
+  ]
+ ],
+ "endings": {
+  "standard": {
+   "no": 1,
+   "name": "结局一 · 越过群山",
+   "en": "TO TALK WITH THE MOUNTAINS",
+   "boss": "will",
+   "col": [
+    0.8,
+    0.75,
+    1.0
+   ],
+   "omen": "终局将至 —— 萨米的意志正在苏醒",
+   "gallery": {
+    "hint": "不翻开任何一条结局线。第一次探索必定走到这里。",
+    "lore": "",
+    "epilogue": ""
+   }
+  }
+ },
+ "cross_deck": {
+  "_doc": "翻节点卡（docs/154、184）：3:30 / 7:00 中 Boss 全部倒下 delay 秒后（最晚 t1[1] / t2[1]）翻 n 张卡（结局线入口卡要首通结局一）；weights 填充卡基础权重；rest_* 安全的角落；squad_* 紧急作战；wish_rare 得偿所愿稀有 / 核心权重；途中路口等键在 events_v2.json cross",
+  "n": 3,
+  "t1": [
+   210,
+   390
+  ],
+  "t2": [
+   420,
+   520
+  ],
+  "delay": 2.0,
+  "weights": {
+   "wish": 25,
+   "rest": 20,
+   "elite": 20,
+   "shop": 15,
+   "incident": 15,
+   "fog": 10
+  },
+  "rest_heal": 0.4,
+  "rest_maxhp": 0.05,
+  "rest_light": 15,
+  "_squad": "紧急作战 = 精英小队（docs/161，用户 10-26「两只精英太简单、奖励不够，一下子多一些高阶普通怪，身上带红光标识」）：按阶段（g.t < squad_t[0] / < squad_t[1] / 之后）从 squad_pool 抽 squad_n 只高一阶的普通怪，生命 × squad_hp、伤害 × squad_dmg，全队共用一个词缀（甲壳 / 潮盾），红色描边（脚下红光 10-26 用户去掉）；同屏上限放不下的推迟刷出。全灭：宝箱（下一次藏品三选一稀有 / 核心加权，同得偿所愿）+ squad_ingots 源石锭",
+  "squad_t": [
+   280,
+   520
+  ],
+  "squad_n": [
+   8,
+   10,
+   12
+  ],
+  "squad_pool": [
+   [
+    "caster",
+    "icebug",
+    "drone",
+    "breaker"
+   ],
+   [
+    "breaker",
+    "caster",
+    "icebug",
+    "husk"
+   ],
+   [
+    "breaker",
+    "breaker",
+    "caster",
+    "icebug"
+   ]
+  ],
+  "squad_hp": 2.0,
+  "squad_dmg": 1.3,
+  "squad_ingots": 20,
+  "squad_rush": 2.2,
+  "wish_rare": 1.5
+ },
+ "events": [],
+ "_tier_doc": "分级调整（docs/158 §6，10-26 用户「可以按照这个建议改」）：裂隙 / 深渊 / 深蓝之树三级的刷怪池与大群混编加入高阶（收割者 / 奠基者 / 引痕者 / 巢涌者），大群主体不再全是滑动者；rate_mult = 普通刷新率倍率（最终 Boss 少量补怪不乘）、horde_mult = 大群只数倍率（经验按只数折算守恒）、cap_mult = 高阶（enemies.json tier_cap）同种上限倍率、tier_hp / tier_dmg = 这一级普通刷怪 / 大群里高阶的生命 / 伤害倍率（换进来的高阶单只更多，按生命池与压力不变打折），缺省 1",
+ "_horde_mix_doc": "大群混编（EA 1.1）：每个威胁等级的 horde_mix 随机抽一套（同 seed 可复现，不连续重复）；body 主体按列表循环，extra 特种 pct 占总数比例（夹在 min–max，合计最多一半），at 站位 ring 整圈 / back 后排 / front 前排 / pack 一段弧上成群。没写 horde_mix 时用旧的 horde 列表。实现见 run/spawner.gd horde_plan()"
+}
