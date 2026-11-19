@@ -546,7 +546,7 @@ def pxp_no_alpha_border(gpath):
                     with open(p, "w", encoding="utf-8", newline="\n") as fh:
                         fh.write(t.replace("process/fix_alpha_border=true", "process/fix_alpha_border=false"))
                     n += 1
-    return "转平面帧条 %d 张导入不填透明底色（fix_alpha_border=false，可见像素不变，约 −2.6 MB）" % n
+    return "转平面帧条 %d 张导入不填透明底色（fix_alpha_border=false，可见像素不变，约 -2.6 MB）" % n
 
 
 def pack_px_metadata(gpath):
