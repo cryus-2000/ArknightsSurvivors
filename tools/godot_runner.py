@@ -370,6 +370,13 @@ def stale_imports(game_dir):
                             miss.append(m.group(1))
             elif f.lower().endswith(_IMPORT_EXT) and not os.path.exists(p + ".import"):
                 miss.append(os.path.relpath(p, game_dir))
+            elif f.endswith(".csv") and os.path.exists(p + ".import"):
+                # 翻译表（docs/276 §10）：*.translation 由导入从 CSV 生成、不进 git。CSV 改了（合入新译文）而导入缓存还在时，
+                # 上面两条都查不出来，测试会读到旧译文（11-19 l10n 在 main 上残留已删字段）。任一语言的 .translation 比 CSV 旧就重导入
+                stem = p[:-4]
+                tr = [os.path.join(root, x) for x in files if x.startswith(os.path.basename(stem) + ".") and x.endswith(".translation")]
+                if not tr or min(os.path.getmtime(x) for x in tr) < os.path.getmtime(p):
+                    miss.append(os.path.relpath(p, game_dir))
     return miss
 
 
