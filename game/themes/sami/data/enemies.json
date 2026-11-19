@@ -1,5 +1,5 @@
 {
- "_doc": "萨米主题敌人表（docs/392 §5，11-20 落数据）。字段口径同 themes/deep_sea/data/enemies.json 的 _doc。贴图：tex 先指水月同档的现成帧条当占位（样例能进局、看得见）；tex_final 是萨米帧条交付后要换成的名字（与美术会话 prts_spine 键名 sami_* 对齐，docs/399 清单定稿后再核一次）。以 _todo 开头的字段 / 下列新字段代码还没读（T-B2 / T-B3 再接）：hurt_rush 受击暴冲、idle_rush 停火加速、pass_props 穿大型景物、death_blast 死亡冰爆、frosted_mult 打冰霜减速中的队长加伤、collapse 坍缩体（坍缩范式「非线性移动」与国度撑持体候选）、prop_ok 可当国度撑持体、flee_t 稀有逃跑时限。Boss 的 script 先借水月现成脚本当占位（_script_ph 写明），T-B4 / T-B5 换成 scripts/enemies/bosses/blade.gd / will.gd。",
+ "_doc": "萨米主题敌人表（docs/392 §5、§11，11-20 落数据）。字段口径同 themes/deep_sea/data/enemies.json 的 _doc。贴图：tex 先指水月同档的现成帧条当占位（样例能进局、看得见）；tex_final 是萨米帧条交付后要换成的名字（与美术会话 prts_spine 键名 sami_* 对齐，docs/399 清单定稿后再核一次）。以 _todo 开头的字段 / 下列新字段代码还没读（T-B2 / T-B3 再接）：hurt_rush 受击暴冲、idle_rush 停火加速、pass_props 穿大型景物、death_blast 死亡冰爆、frosted_mult 打冰霜减速中的队长加伤、collapse 坍缩体（坍缩范式「非线性移动」与国度撑持体候选）、prop_ok 可当国度撑持体、flee_t 稀有逃跑时限。Boss 的 script 先借水月蔑视体 archon.gd 当占位（不刷小怪），招式与数值由 docs/393 定，T-B4 / T-B5 换成 scripts/enemies/bosses/blade.gd / will.gd。 带 full: true 的条目是全量敌人（docs/392 §11），只在 waves_full.json 里刷；样例 waves.json 不用它们。新字段：chill_aura 寒霜光环（范围内队员攻速）、horde_only 只随大群出现（代码未读，T-C 接）。",
  "enemies": {
   "husk": {
    "gallery": "近战杂兵。受到伤害后短时间大幅加速冲向队长。",
@@ -15,12 +15,27 @@
    "anchor": "foot",
    "ai": "melee",
    "atk_anim": true,
-   "hurt_rush": {"mult": 2.0, "dur": 1.5, "cd": 3.0},
+   "hurt_rush": {
+    "mult": 2.0,
+    "dur": 1.5,
+    "cd": 3.0
+   },
    "collapse": true,
    "prop_ok": true,
-   "extra": {"name": "残躯扑击", "mode": "swipe", "range": 80, "cd": 15.0, "damage_mult": 0.2, "min_time": 400.0},
+   "extra": {
+    "name": "残躯扑击",
+    "mode": "swipe",
+    "range": 80,
+    "cd": 15.0,
+    "damage_mult": 0.2,
+    "min_time": 400.0
+   },
    "desc": "受到伤害后 1.5 秒内移动速度大幅提升。",
-   "ecol": [0.62, 0.6, 0.72]
+   "ecol": [
+    0.62,
+    0.6,
+    0.72
+   ]
   },
   "drone": {
    "gallery": "飞行，越过大型景物从侧面包抄；生命很低。",
@@ -41,7 +56,11 @@
    "collapse": true,
    "prop_ok": true,
    "desc": "飞行单位，可越过大型景物。",
-   "ecol": [0.35, 0.3, 0.45]
+   "ecol": [
+    0.35,
+    0.3,
+    0.45
+   ]
   },
   "caster": {
    "gallery": "远程法术。一段时间没有出手后移动速度大幅提升，出手后恢复。",
@@ -61,11 +80,18 @@
    "atk": "法术",
    "atk_anim": true,
    "cap": 6,
-   "idle_rush": {"after": 4.0, "mult": 2.0},
+   "idle_rush": {
+    "after": 4.0,
+    "mult": 2.0
+   },
    "collapse": true,
    "prop_ok": true,
    "desc": "4 秒没有出手时移动速度翻倍，出手后恢复。",
-   "ecol": [0.55, 0.45, 0.8]
+   "ecol": [
+    0.55,
+    0.45,
+    0.8
+   ]
   },
   "icebug": {
    "gallery": "借用敌人。死亡时爆炸，对周围造成物理伤害并使队长冰霜减速。",
@@ -81,9 +107,18 @@
    "anchor": "foot",
    "ai": "melee",
    "cap": 8,
-   "death_blast": {"r": 55.0, "mult": 1.2, "frost": 1.0, "ice_t": 2.0},
+   "death_blast": {
+    "r": 55.0,
+    "mult": 1.2,
+    "frost": 1.0,
+    "ice_t": 2.0
+   },
    "desc": "死亡时爆炸（范围 55），命中队长附带 1 秒冰霜减速。",
-   "ecol": [0.75, 0.9, 1.0]
+   "ecol": [
+    0.75,
+    0.9,
+    1.0
+   ]
   },
   "breaker": {
    "gallery": "借用敌人（高阶）。缓慢、厚实，靠近后蓄力砸地；队长处于冰霜减速时伤害更高。",
@@ -108,7 +143,11 @@
    "tier_cap": true,
    "frosted_mult": 1.5,
    "desc": "靠近后蓄力砸地；攻击处于冰霜减速的队长时伤害 ×1.5。",
-   "ecol": [0.8, 0.85, 0.95]
+   "ecol": [
+    0.8,
+    0.85,
+    0.95
+   ]
   },
   "warrior": {
    "gallery": "精英。蓄力后直线突进劈砍，收招后短暂硬直。",
@@ -131,7 +170,11 @@
    "atk_anim": true,
    "collapse": true,
    "desc": "蓄力 0.6 秒后直线突进劈砍，收招后硬直 1.2 秒。",
-   "ecol": [0.55, 0.42, 0.35]
+   "ecol": [
+    0.55,
+    0.42,
+    0.35
+   ]
   },
   "vinebox": {
    "name": "巨壳藤蔓",
@@ -150,7 +193,11 @@
    "no_spawn": true,
    "flee_t": 8.0,
    "desc": "平时伪装成宝箱；受到攻击后起身逃跑，8 秒内没被击破就钻入地下。击破得 10 源石锭。",
-   "ecol": [0.55, 0.5, 0.35]
+   "ecol": [
+    0.55,
+    0.5,
+    0.35
+   ]
   },
   "blade": {
    "bossbar_motif": "ice",
@@ -165,17 +212,46 @@
    "tex_final": "e_sami_blade",
    "ai": "melee",
    "role": "boss",
-   "script": "path",
-   "_script_ph": "占位：借塑路者 path.gd 的招式；T-B4 换 blade.gd（docs/392 §6.1）",
-   "gates": [0.5],
-   "act_min": [6.0, 6.0],
-   "bcol": [0.16, 0.16, 0.19],
-   "bcol_core": [0.96, 0.97, 1.0],
-   "bcol_trail": [0.55, 0.57, 0.62],
-   "bcol_outline": [0.86, 0.88, 0.92],
+   "script": "archon",
+   "_script_ph": "占位：借蔑视体 archon.gd 的招式（不刷小怪；path.gd 会刷水月的分形，11-20 冒烟报错）；T-B4 换 blade.gd（docs/392 §6.1）",
+   "gates": [
+    0.5
+   ],
+   "act_min": [
+    6.0,
+    6.0
+   ],
+   "bcol": [
+    0.16,
+    0.16,
+    0.19
+   ],
+   "bcol_core": [
+    0.96,
+    0.97,
+    1.0
+   ],
+   "bcol_trail": [
+    0.55,
+    0.57,
+    0.62
+   ],
+   "bcol_outline": [
+    0.86,
+    0.88,
+    0.92
+   ],
    "draw_full": true,
-   "intro": {"en": "THE BLADE", "sub": "邪魔的尖兵", "line": ""},
-   "ecol": [0.3, 0.3, 0.35]
+   "intro": {
+    "en": "THE BLADE",
+    "sub": "邪魔的尖兵",
+    "line": ""
+   },
+   "ecol": [
+    0.3,
+    0.3,
+    0.35
+   ]
   },
   "wanderer": {
    "bossbar_motif": "ice",
@@ -190,17 +266,46 @@
    "tex_final": "e_sami_blade2",
    "ai": "melee",
    "role": "boss",
-   "script": "path",
-   "_script_ph": "占位：借塑路者 path.gd 的招式；T-B4 换 blade.gd（与利刃共用，游荡者多 G 招，docs/392 §6.1）",
-   "gates": [0.5],
-   "act_min": [6.0, 6.0],
-   "bcol": [0.2, 0.22, 0.28],
-   "bcol_core": [0.92, 0.95, 1.0],
-   "bcol_trail": [0.5, 0.55, 0.65],
-   "bcol_outline": [0.72, 0.78, 0.88],
+   "script": "archon",
+   "_script_ph": "占位：借蔑视体 archon.gd（同上）；T-B4 换 blade.gd（与利刃共用，游荡者多 G 招，docs/392 §6.1）",
+   "gates": [
+    0.5
+   ],
+   "act_min": [
+    6.0,
+    6.0
+   ],
+   "bcol": [
+    0.2,
+    0.22,
+    0.28
+   ],
+   "bcol_core": [
+    0.92,
+    0.95,
+    1.0
+   ],
+   "bcol_trail": [
+    0.5,
+    0.55,
+    0.65
+   ],
+   "bcol_outline": [
+    0.72,
+    0.78,
+    0.88
+   ],
    "draw_full": true,
-   "intro": {"en": "THE WANDERER", "sub": "邪魔的尖兵", "line": ""},
-   "ecol": [0.32, 0.34, 0.42]
+   "intro": {
+    "en": "THE WANDERER",
+    "sub": "邪魔的尖兵",
+    "line": ""
+   },
+   "ecol": [
+    0.32,
+    0.34,
+    0.42
+   ]
   },
   "will": {
    "bossbar_motif": "ice",
@@ -217,19 +322,307 @@
    "range": 360.0,
    "cd": 1.5,
    "role": "boss",
-   "script": "paranoia",
-   "_script_ph": "占位：借偏执泡影 paranoia.gd 的基础招式（type 不是 paranoia，泡影专属连段 / 光环判断不触发）；T-B5 换 will.gd（docs/392 §6.2）",
+   "script": "archon",
+   "_script_ph": "占位：借蔑视体 archon.gd（不刷小怪；paranoia.gd 会刷水月骨海漂流体）；spd 0 不移动；T-B5 换 will.gd（docs/392 §6.2）",
    "hover": true,
    "arena_r": 520.0,
-   "gates": [0.66, 0.33],
-   "act_min": [13.0, 13.0, 13.0],
-   "bcol": [0.86, 0.8, 1.0],
-   "bcol_core": [1.0, 1.0, 1.0],
-   "bcol_trail": [0.8, 0.74, 0.98],
-   "bcol_outline": [0.3, 0.22, 0.45],
+   "gates": [
+    0.66,
+    0.33
+   ],
+   "act_min": [
+    13.0,
+    13.0,
+    13.0
+   ],
+   "bcol": [
+    0.86,
+    0.8,
+    1.0
+   ],
+   "bcol_core": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "bcol_trail": [
+    0.8,
+    0.74,
+    0.98
+   ],
+   "bcol_outline": [
+    0.3,
+    0.22,
+    0.45
+   ],
    "draw_full": true,
-   "intro": {"cn": "「萨米的意志」", "en": "WILL OF SAMI", "sub": "最终 · 越过群山", "line": ""},
-   "ecol": [0.8, 0.75, 1.0]
+   "intro": {
+    "cn": "「萨米的意志」",
+    "en": "WILL OF SAMI",
+    "sub": "最终 · 越过群山",
+    "line": ""
+   },
+   "ecol": [
+    0.8,
+    0.75,
+    1.0
+   ]
+  },
+  "snsbr": {
+   "gallery": "借用敌人。近战；攻击处于冰霜减速的队长时伤害更高。",
+   "name": "雪怪小队",
+   "hp": 10.0,
+   "hp_late": 1.5,
+   "spd": 70.0,
+   "dmg": 6.0,
+   "r": 10.0,
+   "xp": 1.0,
+   "tex": "e_slider",
+   "tex_final": "e_sami_snsbr",
+   "anchor": "foot",
+   "ai": "melee",
+   "atk_anim": true,
+   "frosted_mult": 1.5,
+   "full": true,
+   "desc": "攻击处于冰霜减速的队长时伤害 ×1.5。",
+   "ecol": [
+    0.75,
+    0.8,
+    0.9
+   ]
+  },
+  "uterer": {
+   "gallery": "借用敌人。成群疾行的作战生物。",
+   "name": "乌萨斯裂兽",
+   "hp": 10.0,
+   "hp_late": 2.0,
+   "spd": 100.0,
+   "dmg": 6.0,
+   "r": 9.0,
+   "xp": 1.0,
+   "tex": "e_runner",
+   "tex_final": "e_sami_uterer",
+   "anchor": "foot",
+   "ai": "melee",
+   "cap": 12,
+   "full": true,
+   "desc": "移动迅速，常成群出现。",
+   "ecol": [
+    0.6,
+    0.45,
+    0.4
+   ]
+  },
+  "uterer2": {
+   "gallery": "借用敌人。裂兽群的领头。",
+   "name": "乌萨斯裂兽族母",
+   "hp": 16.0,
+   "hp_late": 2.0,
+   "spd": 100.0,
+   "dmg": 8.0,
+   "r": 11.0,
+   "xp": 2.0,
+   "tex": "e_slider",
+   "tex_final": "e_sami_uterer2",
+   "anchor": "foot",
+   "ai": "melee",
+   "cap": 3,
+   "full": true,
+   "horde_only": true,
+   "desc": "裂兽群的领头，只随大群出现。",
+   "ecol": [
+    0.65,
+    0.45,
+    0.4
+   ]
+  },
+  "mhshep": {
+   "gallery": "借用敌人。低头蓄力后用尖角冲撞。",
+   "name": "角兽",
+   "hp": 24.0,
+   "spd": 46.0,
+   "dmg": 7.0,
+   "r": 12.0,
+   "xp": 2.0,
+   "tex": "e_stone",
+   "tex_final": "e_sami_mhshep",
+   "anchor": "foot",
+   "ai": "melee",
+   "pattern": "dash",
+   "dash_range": 200,
+   "dash_wind": 0.7,
+   "dash_speed": 3.2,
+   "atk_anim": true,
+   "full": true,
+   "desc": "蓄力 0.7 秒后直线冲撞。",
+   "ecol": [
+    0.8,
+    0.75,
+    0.65
+   ]
+  },
+  "snmage": {
+   "gallery": "借用敌人。远程法术，命中使队长冰霜减速。",
+   "name": "雪怪术师组长",
+   "hp": 50.0,
+   "spd": 40.0,
+   "dmg": 9.0,
+   "r": 13.0,
+   "xp": 3.0,
+   "tex": "e_spitter",
+   "tex_final": "e_sami_snmage",
+   "anchor": "foot",
+   "ai": "ranged",
+   "range": 250.0,
+   "cd": 3.2,
+   "shot_spd": 150,
+   "atk": "法术",
+   "frost": 0.8,
+   "cap": 6,
+   "atk_anim": true,
+   "full": true,
+   "desc": "法术弹命中时附带 0.8 秒冰霜减速。",
+   "ecol": [
+    0.7,
+    0.85,
+    1.0
+   ]
+  },
+  "rockback": {
+   "gallery": "借用敌人（高阶）。厚甲缓行，靠近后重击地面。",
+   "name": "坚岩冠兽",
+   "hp": 360.0,
+   "spd": 30.0,
+   "dmg": 14.0,
+   "r": 18.0,
+   "xp": 8.0,
+   "tex": "e_founder",
+   "tex_final": "e_sami_rockback",
+   "anchor": "foot",
+   "ai": "melee",
+   "heavy": true,
+   "armor": 0.7,
+   "pattern": "stomp",
+   "prepare_range": 300,
+   "stomp_range": 180,
+   "stomp_r": 140,
+   "stomp_cd": 5.0,
+   "atk_anim": true,
+   "cap": 4,
+   "tier_cap": true,
+   "full": true,
+   "desc": "受到的非真实伤害 −30%，难以击退；靠近后重击地面。",
+   "ecol": [
+    0.6,
+    0.6,
+    0.62
+   ]
+  },
+  "hound": {
+   "gallery": "主题敌人（高阶）。高速扑击的兽亲。",
+   "name": "王者友伴",
+   "hp": 150.0,
+   "spd": 135.0,
+   "dmg": 11.0,
+   "r": 16.0,
+   "xp": 4.0,
+   "tex": "e_reaper",
+   "tex_final": "e_sami_hound",
+   "anchor": "foot",
+   "ai": "melee",
+   "pattern": "dash",
+   "dash_range": 260,
+   "dash_wind": 0.5,
+   "dash_speed": 3.6,
+   "atk_anim": true,
+   "cap": 4,
+   "tier_cap": true,
+   "collapse": true,
+   "full": true,
+   "desc": "高速接近后扑击。",
+   "ecol": [
+    0.85,
+    0.7,
+    0.4
+   ]
+  },
+  "shadow": {
+   "gallery": "主题敌人。随双王出现的魂影，不进普通刷怪池。",
+   "name": "可汗片影",
+   "hp": 18.0,
+   "spd": 80.0,
+   "dmg": 8.0,
+   "r": 9.0,
+   "xp": 1.0,
+   "tex": "e_fractal",
+   "tex_final": "e_sami_shadow",
+   "anchor": "foot",
+   "ai": "melee",
+   "no_spawn": true,
+   "collapse": true,
+   "full": true,
+   "desc": "只由结局四 Boss 召唤。",
+   "ecol": [
+    0.5,
+    0.45,
+    0.6
+   ]
+  },
+  "frostd": {
+   "gallery": "精英（借用）。周围低温，范围内队员攻击速度降低。",
+   "name": "寒霜",
+   "hp": 34.0,
+   "spd": 50.0,
+   "dmg": 6.0,
+   "r": 16.0,
+   "xp": 2.0,
+   "tex": "e_mother",
+   "tex_final": "e_sami_frostd",
+   "anchor": "foot",
+   "ai": "ranged",
+   "range": 220.0,
+   "cd": 2.5,
+   "role": "elite",
+   "elite_after": 240,
+   "hover": true,
+   "chill_aura": {
+    "r": 150.0,
+    "atk_spd": -0.3
+   },
+   "full": true,
+   "desc": "半径 150 内的队员攻击速度 −30%。",
+   "ecol": [
+    0.7,
+    0.9,
+    1.0
+   ]
+  },
+  "uamord": {
+   "gallery": "精英（借用）。披甲的术师，远程法术。",
+   "name": "乌萨斯高级着铠术师",
+   "hp": 32.0,
+   "spd": 46.0,
+   "dmg": 9.0,
+   "r": 16.0,
+   "xp": 2.0,
+   "tex": "e_skimmer",
+   "tex_final": "e_sami_uamord",
+   "anchor": "foot",
+   "ai": "ranged",
+   "range": 250.0,
+   "cd": 2.2,
+   "atk": "法术",
+   "role": "elite",
+   "elite_after": 120,
+   "armor": 0.8,
+   "atk_anim": true,
+   "full": true,
+   "desc": "受到的非真实伤害 −20%。",
+   "ecol": [
+    0.55,
+    0.5,
+    0.45
+   ]
   }
  }
 }

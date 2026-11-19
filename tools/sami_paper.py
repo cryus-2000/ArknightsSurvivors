@@ -23,10 +23,10 @@ DEN = EN.get("density", 0.4)
 IFRAME = 0.45   # combat.gd 队长受击后的无敌秒数
 
 
-def load(theme):
+def load(theme, waves="waves.json"):
     d = os.path.join(ROOT, "game/themes", theme, "data")
     E = json.load(open(os.path.join(d, "enemies.json"), encoding="utf-8"))["enemies"]
-    W = json.load(open(os.path.join(d, "waves.json"), encoding="utf-8"))
+    W = json.load(open(os.path.join(d, waves), encoding="utf-8"))
     return E, W
 
 
@@ -127,9 +127,9 @@ def target_eff(t):
 
 # ---------- 主题相关 ----------
 class Theme:
-    def __init__(self, tid):
+    def __init__(self, tid, waves="waves.json"):
         self.id = tid
-        self.E, self.W = load(tid)
+        self.E, self.W = load(tid, waves)
         self.T = self.W["threat"]
 
     def threat(self, t):
@@ -250,6 +250,16 @@ PAIRS = [   # 萨米, 水月对位, 首次出现（萨米池）
     ("breaker", ["tracer", "founder"]),
     ("warrior", ["pocket"]),
 ]
+PAIRS_FULL = PAIRS + [
+    ("snsbr", ["slider", "bone"]),
+    ("uterer", ["slider"]),
+    ("mhshep", ["stone"]),
+    ("snmage", ["spitter"]),
+    ("rockback", ["founder"]),
+    ("hound", ["reaper"]),
+    ("uamord", ["skimmer"]),
+    ("frostd", ["mother"]),
+]
 TIMES = [45, 120, 220, 340, 460, 570]
 
 
@@ -273,13 +283,15 @@ def flag(a, b):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--md")
+    ap.add_argument("--full", action="store_true", help="萨米用全量刷怪表 waves_full.json（docs/392 §11）")
     a = ap.parse_args()
-    S, D = Theme("sami"), Theme("deep_sea")
+    S, D = Theme("sami", "waves_full.json" if a.full else "waves.json"), Theme("deep_sea")
+    pairs = PAIRS_FULL if a.full else PAIRS
     out = []
     w = out.append
     w("### 10.1 单只对照（常规档；括号是萨米 ÷ 水月对位均值 − 1，⚠ = 偏离超过 ±20%）\n")
     w("木桩秒伤按时间取：2:00 前精零、2:00–3:30 精一、之后精二（docs/331 §2）。击杀时间列「中位 / 斯卡蒂 / 艾雅法拉」。\n")
-    for sid, dids in PAIRS:
+    for sid, dids in pairs:
         w(f"**{S.E[sid]['name']} `{sid}`** ↔ " + " / ".join(f"{D.E[x]['name']} `{x}`" for x in dids) + "\n")
         w("| 时间 | 萨米 生命 | 水月 生命 | 萨米 一下 | 水月 一下 | 萨米 每秒上限 | 水月 每秒上限 | 萨米 经验 | 水月 经验 | 萨米 击杀秒（中位 / 斯卡蒂 / 艾雅） | 水月 击杀秒 |")
         w("|---|---|---|---|---|---|---|---|---|---|---|")
