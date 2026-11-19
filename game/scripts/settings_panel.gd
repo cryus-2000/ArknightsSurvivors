@@ -25,6 +25,8 @@ const ROWS := [
 	{"cn": "全屏", "en": "FULLSCREEN", "key": "fullscreen", "type": "bool"},
 	{"cn": "窗口分辨率", "en": "RESOLUTION", "key": "res_index", "type": "res"},
 	{"cn": "伤害数字", "en": "DAMAGE NUMBERS", "key": "dmg_numbers", "type": "bool"},
+	# 特效显示（docs/398，B站玩家 11-19「看花眼」）：完整 / 精简 / 最少，只压队友特效与装饰，队长、敌人、危险预警照常；局内即时生效
+	{"cn": "特效显示", "en": "EFFECTS", "key": "fx_show", "type": "fxshow", "note": "精简与最少会淡化队友特效，队长与危险预警不变"},
 	{"cn": "命中顿帧", "en": "HIT STOP", "key": "hitstop", "type": "bool"},
 	{"cn": "Boss 登场演出", "en": "BOSS INTRO", "key": "boss_intro", "type": "bool"},
 	{"cn": "减少动态效果", "en": "REDUCE MOTION", "key": "reduce_motion", "type": "bool"},
@@ -68,7 +70,7 @@ const RUNS_HINT := "测试版：本地记录对局摘要（不上传）"
 ## ROWS 与存档键都保留（旧存档兼容），后期四项跟画质档走，对局记录挪到作战结算底栏
 const TABS := [
 	["声音", "SOUND", ["master", "music", "sfx", "voice", "voice_lang"]],
-	["画面", "DISPLAY", ["lang", "quality", "max_fps", "fullscreen", "res_index", "brightness", "ui_size_pct", "dmg_numbers", "reduce_motion", "perf"]],
+	["画面", "DISPLAY", ["lang", "quality", "max_fps", "fullscreen", "res_index", "brightness", "ui_size_pct", "dmg_numbers", "fx_show", "reduce_motion", "perf"]],
 	["操作", "CONTROLS", ["auto_combo", "auto_ult", "onboard", "keybinds", "pad_rumble", "touch_layout"]],
 ]
 
@@ -422,6 +424,8 @@ func _v2_chips(row: Dictionary) -> Dictionary:
 			return {"opts": f, "cur": Cfg.max_fps}
 		"onboard":
 			return {"opts": ONBOARD_OPTS.map(func(o): return [o[1], o[0]]), "cur": Cfg.onboard}
+		"fxshow":
+			return {"opts": FX_SHOW_OPTS.map(func(o): return [o[1], o[0]]), "cur": Cfg.fx_show}
 		"lang":
 			return {"opts": LANG_OPTS.map(func(o): return [o[1], o[0]]), "cur": _lang_now()}
 	return {}
@@ -607,6 +611,8 @@ func _tap_v2(i: int, r: Rect2, mp: Vector2) -> void:
 				Sfx.play("ui_move")
 			"onboard":
 				_set_onboard(val)
+			"fxshow":
+				_set_fx_show(val)
 			"lang":
 				_set_lang(val)
 		return
@@ -618,6 +624,17 @@ func _tap_v2(i: int, r: Rect2, mp: Vector2) -> void:
 
 ## 新手引导三档（docs/219）：[存档值, 格内文字]
 const ONBOARD_OPTS := [["new", "没玩过"], ["vet", "玩过"], ["off", "关闭"]]
+## 特效显示三档（docs/398）：[存档值, 格内文字]
+const FX_SHOW_OPTS := [[0, "完整"], [1, "精简"], [2, "最少"]]
+
+
+func _set_fx_show(lv: int) -> void:
+	if lv == Cfg.fx_show:
+		return
+	Cfg.fx_show = lv
+	Cfg.apply_fx_show()
+	Cfg.save()
+	Sfx.play("ui_move")
 
 
 func _set_onboard(m: String) -> void:
@@ -646,6 +663,9 @@ func _adjust(i: int, dir: int) -> void:
 		"onboard":
 			var oi: int = ONBOARD_OPTS.map(func(o): return o[0]).find(Cfg.onboard)
 			_set_onboard(ONBOARD_OPTS[posmod((oi if oi >= 0 else -1) + dir, 3)][0])
+		"fxshow":
+			_set_fx_show(posmod(Cfg.fx_show + dir, 3))
+			return
 		"lang":
 			var li: int = LANG_OPTS.map(func(o): return o[0]).find(_lang_now())
 			_set_lang(LANG_OPTS[posmod(li + dir, LANG_OPTS.size())][0])
