@@ -1448,5 +1448,6 @@
   "_doc": "B站 Toy「支持作者」奖励（docs/313，用户 11-07 定，只在 Toy 版出现）：support_follow = 1 显示「关注作者」一项（送 5 张寻访凭证）；support_bvid = 三连检测的视频 BV 号（送 5 张凭证 + 专属分享卡边框），留空 = 不显示三连那一项（PV 还没发）",
   "support_follow": 1,
   "support_bvid": "BV1H3Wz6rEAb"
- }
+ },
+ "summon": {"_doc": "召唤物持续索敌（11-19 用户：杀一个就往回走又锁新目标导致折返跑；ob_summon _hunt_on）：1 = 换目标取离召唤物自己最近的（限锚点 leash 内、Boss 优先照旧）、没目标原地等 hunt_hold 秒再回站位；0 = 旧行为（blocks_eq 凯尔希组固定 0）", "hunt": 1, "hunt_hold": 0.8}
 }
