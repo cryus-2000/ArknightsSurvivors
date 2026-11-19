@@ -354,3 +354,35 @@ ARK_NO_IMPORT_CACHE=1 python tools/ship.py ...   # 关掉导入缓存（对照�
 6. 小项：Windows 副本只解 game/ + tools/（art/、docs/ 约 560 MiB 不进包）；网页半分辨率贴图放子进程和音频步骤同时做；分片 gzip / LZMA 多进程并行（itch 与 Toy 的 index.wasm 相同，只压一次）；release_all 每步完整输出写 build/release/step_<步骤>.log。
 
 产物等价性（tools/compare_builds.py 对比新旧两次出包）：文件清单、各文件大小、index.wasm、zip 成员清单全部一致；pck 目录逐项 md5 只差 7 项，与「旧流程自己跑两次」的差异是同一类——3 个导出场景 .scn、uid_cache.bin、3 个子集字体（新旧字体只差 head 表修改时间，字形 / 度量 / 其余表逐字节相同）。Windows 加密包大小一致（加密内容每次不同，比不了字节）。Toy zip 49.78 MB（与旧流程相差 < 1 KB）。新网页包在本地浏览器能进标题、做新手寻访、进局，控制台无报错。改一张贴图 + 改一个 .import 参数的临时提交实测：只有这两个未命中、pck 里正好这两张 ctex 变了。
+
+## Toy 包 50 MB 线腾空间（11-19）
+
+上一版 Toy zip（c1e0c6c65）49.78 MB，新干员放不进。实测构成（zip 内压缩后，MB）：
+
+| 部分 | 大小 | 说明 |
+|---|---|---|
+| 配乐 music_*.m4a（出包，22 个文件） | 20.14 | 立体声 AAC-LC 约 37 kbps / 22 kHz，加层单声道 |
+| index.NN.pck（gzip 分片） | 23.46 | 下面各行是 pck 内各目录 |
+| └ art/fx（其中 pxp 7.2、_optical 0.7、@2x 1.5、@h 0.9） | 10.4 | |
+| └ audio/voice（20 人 × 约 12 条，全中文） | 3.0 | |
+| └ audio/sfx（QOA） | 2.7 | |
+| └ 脚本（源码去整行注释） | 2.2 | |
+| └ art/operators（只带 @1x） | 1.9 | |
+| └ 字体（子集 + WOFF2） | 1.5 | |
+| └ art/event_cg（有损 WebP） | 1.2 | |
+| └ data / 怪物 / 界面 / 其他 | 2.6 | |
+| index.NN.wasm（LZMA） | 6.74 | 引擎，固定 |
+| index.html / js / 图标 / 载入页 | 0.6 | |
+
+做了：
+- **Toy 配乐单独档**（`export_web.py --toy-music A|B|off`，tools/web_music.py TOY_TIERS）：全部单声道（手机本来就在 web_music.js 里混成单声道播），A = 码率 ×0.75（约 −5.4 MB），B = ×0.55 且 16 kHz（约 −9.2 MB）。全单声道后不另存偏执泡影 p1 的 _mono 副本（加载器写 `window.__SY_MUS_MONO = 1`，web_music.js 直接解 p1）。`--toy-out`（共用导入）时另编一份 Toy 档到 out_toy_music/，Toy 那次导出前换进 web_music.json；itch 包配乐不变。缺省 A，等用户试听定档。
+- 实测（main e257f0de6 + 本改动，A 档）：Toy zip **45.56 MB**（配乐 14.70、pck 24.28），toy_doctor 2 条已知警告。
+
+查过、没做：
+- 语音「只留战斗里播的」：代码里所有语音（entry / command / battle / skill / ult / lowhp / 羁绊）都在局内播，没有选人 / 图鉴语音，省不出来。若删部署 / 指挥台词变体（每池留 2 条）约 −0.8 MB，属内容取舍，待用户定。
+- `--toy-fx-half`（tools/web_half.py，缺省关，只支持单独 --toy）：特效 @2x 不进包、电脑 Toy 也读半分辨率，约 −1.5 MB，电脑端特效变糙，待用户点头。
+- 音效 Toy 降到 24 kHz：约 −0.65 MB，要试听。
+- pck 改 LZMA 分片：只省 0.9 MB，手机上 JS 解 33 MB LZMA 慢且占内存，不做。
+- _optical 目录是运行时光学特效（optical.gd 读），不是重复。
+
+每名新干员在 Toy 里实际约 0.8–1 MB（@1x 帧条 0.07–0.26、特效约 0.5、语音约 0.15、音效约 0.1；网页不带 @2x），比按仓库估的 1.5–2 MB 小。6 名新干员的 @1x 帧条已在 e257f0de6 的包里（+0.73 MB）。

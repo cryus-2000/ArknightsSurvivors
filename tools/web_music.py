@@ -12,7 +12,7 @@ iPhone B站 App 实测 WASM 一开局就 513 MB。浏览器 decodeAudioData 在 
 - sfx.gd 在网页上看到 web_music.json 就给这些曲目建静音占位播放器，由 web_music.js 照着占位器的播放 / 停止 / 音量出声。
 只改导出副本，仓库与桌面包不动。用法：externalize(副本 game 目录, 网页输出目录)
 """
-import json, os, subprocess, tempfile
+import json, os, shutil, subprocess, tempfile
 
 import soundfile as sf
 
@@ -23,6 +23,13 @@ SKIP = {"opening", "boss_in", "boss_down"}
 # 二阶段预混：p2 层名 -> 底层 p1 名 / 输出名（url 与 tools/web/web_music.js 的 PAIRS 一致）。只做结局一偏执泡影：其余三首结局 Boss 各 +1.6 MB，Toy 包 50 MB 线放不下——那三首在 web_music.js 里运行时混（PAIRS mix: null，11-12 docs/319 §24）
 PREMIX_P2 = {"suno_final_p2": "suno_final_p1"}
 PREMIX_P2_OUT = {"suno_final_p2": "suno_final_p12_mono"}
+# Toy 包专用配乐档（11-19，Toy 50 MB 线要给新干员腾地方）：全部单声道（手机本来就在 web_music.js 里混成单声道再播，听感只差在电脑 Toy 的立体声），
+# 码率 = 现行码率 × k（下限 floor kbps），sr 非空时再降采样。全单声道后偏执泡影 p1 不再另存 _mono 副本（web_music.js 看 __SY_MUS_MONO 直接解 p1）。
+# itch 网页包不传 toy_tier，行为不变。档位由用户试听后定（export_web.py --toy-music）
+TOY_TIERS = {
+    "A": {"k": 0.75, "floor": 20, "sr": None},
+    "B": {"k": 0.55, "floor": 16, "sr": 16000},
+}
 
 
 def _ffmpeg():
@@ -30,11 +37,39 @@ def _ffmpeg():
     return imageio_ffmpeg.get_ffmpeg_exe()
 
 
-def externalize(gamedir, outdir):
-    """返回 (曲数, 原 OGG 字节, 新 AAC 字节)"""
+def externalize(gamedir, outdir, toy_tier=None, toy_outdir=None):
+    """返回 (曲数, 原 OGG 字节, 新 AAC 字节)。toy_tier：TOY_TIERS 的键，None = 现行（itch 网页包）。
+    单独出 Toy 包（export_web --toy）：toy_tier 给档位、toy_outdir 不给，outdir 里就是 Toy 档。
+    共用导入（export_web --toy-out）：outdir 出 itch 现行档，toy_outdir 另出一份 Toy 档（toy_tier 档位），
+    Toy 档的 web_music.json 内容写到 toy_outdir/web_music.toy.json，Toy 那次导出前由调用方换进副本（use_toy_meta）"""
     mdir = os.path.join(gamedir, "audio", "music")
-    odir = outdir   # 平铺在网页输出根目录（Toy zip 只收根目录文件）
-    os.makedirs(odir, exist_ok=True)
+    if toy_outdir:
+        meta, n, before, after, done = _encode_all(mdir, outdir, None)
+        tmeta, _, _, tafter, _ = _encode_all(mdir, toy_outdir, TOY_TIERS[toy_tier])
+        with open(os.path.join(toy_outdir, "web_music.toy.json"), "w", encoding="utf-8") as fh:
+            json.dump(tmeta, fh, ensure_ascii=False, indent=1)
+    else:
+        meta, n, before, after, done = _encode_all(mdir, outdir, TOY_TIERS[toy_tier] if toy_tier else None)
+    for f in done:   # 全部处理完再删：预混要读 p2 之前的 p1 原文件
+        for g in (f, f + ".import"):
+            gp = os.path.join(mdir, g)
+            if os.path.exists(gp):
+                os.remove(gp)
+    with open(os.path.join(mdir, "web_music.json"), "w", encoding="utf-8") as fh:
+        json.dump(meta, fh, ensure_ascii=False, indent=1)
+    return n, before, after
+
+
+def use_toy_meta(gamedir, toy_outdir):
+    """共用导入出 Toy 包：把 Toy 档的 web_music.json 换进副本（之后再导出一次），toy_outdir 里的 .m4a 就是 Toy 包的配乐；返回 Toy 档 AAC 字节"""
+    src = os.path.join(toy_outdir, "web_music.toy.json")
+    shutil.move(src, os.path.join(gamedir, "audio", "music", "web_music.json"))
+    return sum(os.path.getsize(os.path.join(toy_outdir, f)) for f in os.listdir(toy_outdir) if f.endswith(".m4a"))
+
+
+def _encode_all(mdir, odir, tt):
+    """mdir 里的长曲编成 odir/music_*.m4a；返回 (meta, 曲数, 原 OGG 字节, AAC 字节, 处理过的文件名)。不删原文件"""
+    os.makedirs(odir, exist_ok=True)   # 平铺在网页输出根目录（Toy zip 只收根目录文件）
     meta = {}
     n = before = after = 0
     done = []
@@ -54,11 +89,21 @@ def externalize(gamedir, outdir):
         if OVERLAY_LAYER.match(name) and x.ndim == 2:
             x = x.mean(1)   # 战斗加层（打击乐 / 驱动）：手机只放底层，加层只在桌面网页叠在立体声底层上；单声道 × 0.65 码率，省约 2.4 MiB（Toy 包 49.9 → 约 47.5 MB）
             kbps = max(24, int(round(kbps * 0.65)))
+        mix_kbps = max(24, int(round(kbps * 0.65)))   # 二阶段预混（单声道）码率：按 Toy 档缩放之前的口径
+        out_sr = sr
+        if tt:
+            if x.ndim == 2:
+                x = x.mean(1)
+            kbps = max(tt["floor"], int(round(kbps * tt["k"])))
+            mix_kbps = max(tt["floor"], int(round(mix_kbps * tt["k"])))
+            if tt["sr"] and tt["sr"] < sr:
+                out_sr = tt["sr"]
+        ar = ["-ar", str(out_sr)] if out_sr != sr else []
         o = os.path.join(odir, "music_%s.m4a" % name)
         with tempfile.TemporaryDirectory() as td:
             w = os.path.join(td, "a.wav")
             sf.write(w, x, sr, subtype="FLOAT")
-            subprocess.run([ff, "-v", "error", "-y", "-i", w, "-c:a", "aac", "-b:a", "%dk" % kbps, "-movflags", "+faststart", o], check=True)
+            subprocess.run([ff, "-v", "error", "-y", "-i", w, "-c:a", "aac", "-b:a", "%dk" % kbps] + ar + ["-movflags", "+faststart", o], check=True)
             # 偏执泡影 P1：手机原本就在播放前取 (L + R) / 2。另存同码率副本，
             # 避免登场时同时持有整首立体声解码缓冲和单声道渲染目标。
             if name == "suno_final_p1" and x.ndim == 2 and x.shape[1] == 2:
@@ -83,23 +128,16 @@ def externalize(gamedir, outdir):
             with tempfile.TemporaryDirectory() as td:
                 w = os.path.join(td, "m.wav")
                 sf.write(w, mix, sr, subtype="FLOAT")
-                subprocess.run([ff, "-v", "error", "-y", "-i", w, "-c:a", "aac", "-b:a", "%dk" % max(24, int(round(kbps * 0.65))),
-                                "-movflags", "+faststart", mo], check=True)
+                subprocess.run([ff, "-v", "error", "-y", "-i", w, "-c:a", "aac", "-b:a", "%dk" % mix_kbps] + ar +
+                               ["-movflags", "+faststart", mo], check=True)
             after += os.path.getsize(mo)
         # pre：AAC 编码器前置预滚（1024 样本）秒数。web_music.js 解码后据此判断浏览器有没有去掉预滚，没去掉就平移循环点（11-12 配乐循环验收）
-        meta[name] = {"len": round(dur, 6), "url": "music_%s.m4a" % name, "pre": round(1024.0 / sr, 6)}
+        meta[name] = {"len": round(dur, 6), "url": "music_%s.m4a" % name, "pre": round(1024.0 / out_sr, 6)}
         n += 1
         before += size
         after += os.path.getsize(o)
         done.append(f)
-    for f in done:   # 全部处理完再删：预混要读 p2 之前的 p1 原文件
-        for g in (f, f + ".import"):
-            gp = os.path.join(mdir, g)
-            if os.path.exists(gp):
-                os.remove(gp)
-    with open(os.path.join(mdir, "web_music.json"), "w", encoding="utf-8") as fh:
-        json.dump(meta, fh, ensure_ascii=False, indent=1)
-    return n, before, after
+    return meta, n, before, after, done
 
 
 def report(r):
