@@ -1,0 +1,6 @@
+core rc=0
+summon_seal_blocks rc=0
+m3_hp rc=0
+mon3tr_fx rc=0
+ishar_p2 rc=0
+friendly_target rc=0
