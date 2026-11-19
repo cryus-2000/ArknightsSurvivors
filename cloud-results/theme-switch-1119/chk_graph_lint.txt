@@ -1,0 +1,17 @@
+快检：本次最多 4 个 Godot 并行（全机上限 4，开始时全机已有 0 个）；日志 /home/user/ArknightsSurvivors/build/check/quick_1119_080944
+通过 数据 JSON 解析  game/data 全部可解析
+失败 图引用 graph_lint  19 条硬命中
+      game/data/characters/ling.json:724 [skills[0].icon] ling：icon「skill_ling_s1」在 art 索引里找不到
+      game/data/characters/ling.json:732 [skills[1].icon] ling：icon「skill_ling_s2」在 art 索引里找不到
+      game/data/characters/ling.json:740 [skills[2].icon] ling：icon「skill_ling_s3」在 art 索引里找不到
+      game/data/characters/ling.json:912 [progression[3].icon] ling：icon「skill_ling_s2」在 art 索引里找不到
+      game/data/characters/ling.json:918 [progression[3].branch.ming2.icon] ling：icon「skill_ling_s2」在 art 索引里找不到
+      game/data/characters/ling.json:941 [progression[4].routes.ming2.icon] ling：icon「skill_ling_s2」在 art 索引里找不到
+      game/data/characters/phantom.json:385 [skills[0].icon] phantom：icon「skill_phantom_s1」在 art 索引里找不到
+      game/data/characters/phantom.json:393 [skills[1].icon] phantom：icon「skill_phantom_s2」在 art 索引里找不到
+
+快检失败：2 项，失败 1 项（已知红 0 项另计），耗时 1 秒（开始时全机 0 个 Godot，结束时 0 个）；未用缓存
+
+失败项：
+  · 图引用 graph_lint — 19 条硬命中
+    日志：（无）

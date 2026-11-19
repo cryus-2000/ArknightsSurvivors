@@ -1,0 +1,11 @@
+### sami_a.txt ###
+
+### sami_b.txt ###
+ERROR: 3 resources still in use at exit (run with --verbose for details).
+
+### sami_c.txt ###
+ERROR: 3 resources still in use at exit (run with --verbose for details).
+
+### sami_bad.txt ###
+ERROR: theme not found: nosuch（退回 deep_sea）
+
