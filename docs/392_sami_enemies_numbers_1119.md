@@ -695,3 +695,20 @@
 | "萨米的意志" | 10:00 | 49.7 千 | "偏执泡影" | 51.8 千 | -4% |
 | "萨米的意志" | 10:00 | 49.7 千 | 最后的骑士 | 47.8 千 | +4% |
 
+### 11.8 全量 Boss 数据位（docs/393 §8 落数据，11-20）
+
+Boss 会话 docs/393（分支 `claude/sami-boss-design-499a9f` 710007567，§8 八条用户 11-20 已定）要求落进数据的项，本分支照做如下；招式和脚本仍归 Boss 会话。
+
+| 项 | 落在哪 | 现状 |
+|---|---|---|
+| 8 只新 Boss 条目：陷落雪祀 `shaman` / 空洞雪祀 `shaman2` / 纠缠藤蔓 `vine` / 古老藤蔓 `vine2` / 木裂 `lead` / 克雷松 `cresson` / 哈兰杜汗 `khan` / 路加萨尔古斯 `lion` | `enemies.json`（hp / dmg / spd / r / gates / 专属色取 393 §1.2、§4）；`balance.json boss/hp_x_* / dmg_x_*` | 脚本全部占位 `archon.gd`；贴图占位借水月同位，`tex_final = e_sami_<id>`（id 已和美术会话对好） |
+| ① 3:30 抽本体、7:00 抽变体 | `waves_full.json`：`mid_pool` 6 组，`mid_first [0,1,2]`；三个本体共用 `person: sami_mid_body` | 已生效（现有 `spawner.person_used`），7:00 不会抽到本体 |
+| ① 7:00 优先抽 3:30 没出过的家族 | 各 Boss 的 `family` 字段 + `mid_prefer_new_family` | **代码未读**：spawner 的一行改动，交 Boss 会话的代码单子；接上前 7:00 在三个变体里均匀抽 |
+| ② 游荡者「连片」 | 招式规则，进 `blade.gd` / `mech_kingdom.gd` | 无数据字段；参数（中心距 150、裂纹 +50%）由 Boss 会话写脚本时放 balance |
+| ③ 最终 Boss 过卡点：回复 + 坍缩值 −1 | `waves_full.json gate_drop`（heal 1 / oil 0 / collapse −1）；`mechanics.json collapse.loss.final_gate 1` | **代码未读**：combat.gd 现在写死读全局 `boss/gate_drop_oil`，萨米进局仍会掉灯油，要主题代码单子改成读主题的 `gate_drop`（水月不写 = 不变） |
+| ④ 克雷松受伤 ×0.5，稳定场里 ×1.0 | `phys_taken 0.5 / arts_taken 0.5`（代码已读）+ `stab_taken 1.0`（未读） | 平时 ×0.5 已生效；场内恢复要等稳定场代码 |
+| ⑤ 高难变体不做 | 不建条目 | — |
+| ⑦ 双王先倒的不掉额外奖励 | `khan` / `lion`：`first_down_reward false`、`pair`、`pair_gates sum`、`decisive` | 代码未读（等双王单子） |
+| 结局二–四 | `waves_full.json endings`：winter → lead、abyss → cresson、eternal → khan（`boss_group [khan, lion]`、`boss_map eternal_dust`）；优先级 0 / 1 / 2 / 3 | 进入条件要主题代码，先用永远不置上的 flag 占位，现在只会走结局一；omen / 图鉴文案留空，等结局文案单子按 docs/76 写 |
+
+出场生命复核（公式同 §10.4）：利刃 21.0 / 雪祀 19.3 / 藤蔓 25.4；游荡者 34.0 / 空洞雪祀 32.8 / 古老藤蔓 41.3；意志 49.7 / 木裂 48.0 / 克雷松 32.2（+ 回荡段 `echo_hp_frac 0.5` ≈ 16.1）/ 双王各 25.2（千），与 393 §4 一致。最终 Boss 的 `tempo_k / spd_all_k / final_bullet_x` 等按脚本读的旋钮没抄，等 Boss 脚本落地时照水月同位 Boss 抄（393 §4）。⑥⑧ 是美术 / 音频口径，不涉及数据。

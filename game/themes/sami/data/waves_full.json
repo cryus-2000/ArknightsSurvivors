@@ -577,18 +577,40 @@
   420.0,
   600.0
  ],
- "_mid_first_doc": "样例中期 Boss 固定：3:30 邪魔的利刃、7:00 游荡者（docs/391 §3）。mid_first 只放利刃，7:00 从池里剩下的抽 = 游荡者。",
+ "_mid_first_doc": "全量中期 Boss（docs/393 §1.1 / §8 第 1 条，用户 11-20 定）：3:30 从三个原作本体（利刃 / 陷落雪祀 / 纠缠藤蔓 = 下标 0–2，mid_first）里抽；7:00 从三个变体（游荡者 / 空洞雪祀 / 古老藤蔓 = 下标 3–5）里抽。三个本体共用 person「sami_mid_body」，所以 7:00 不会再抽到本体（现有 spawner.person_used 已支持）。「7:00 优先抽 3:30 没出过的家族」靠 enemies.json 的 family 字段，spawner 还没读（一行改动，交 Boss 会话的代码单子）；接上之前 7:00 在三个变体里均匀抽，可能同家族。",
  "mid_first": [
-  0
+  0,
+  1,
+  2
  ],
  "mid_pool": [
   [
    "blade"
   ],
   [
+   "shaman"
+  ],
+  [
+   "vine"
+  ],
+  [
    "wanderer"
+  ],
+  [
+   "shaman2"
+  ],
+  [
+   "vine2"
   ]
  ],
+ "mid_prefer_new_family": true,
+ "gate_drop": {
+  "_doc": "最终 Boss 每过一道卡点的掉落（docs/393 §1.4 / §8 第 3 条，用户 11-20 定）：1 个回复 + 坍缩值 −1，替代水月的灯油。代码现在写死在 combat.gd（boss/gate_drop_heal / gate_drop_oil，全局 balance），萨米主题进局仍会掉灯油；要等主题代码单子改成读本段（水月不写本段 = 维持原样）",
+  "heal": 1.0,
+  "oil": 0.0,
+  "collapse": -1.0
+ },
+ "_endings_doc": "四个结局（docs/390 §2、393 §1.1）：优先级同原作 越过群山 0 < 冬夜 1 < 一瞥 2 < 终始 3。结局二–四的进入条件（密文板 / 坍缩值 / 事件选项）要主题代码，现在用一个不会被置上的 flag 占位，所以只会走结局一；omen / gallery 文案等结局文案单子按 docs/76 写。高难变体（深寒造像 / 虚无之偶 / 哨兵 / 迈入永恒）不建条目（§8 第 5 条）",
  "endings": {
   "standard": {
    "no": 1,
@@ -605,7 +627,77 @@
     "hint": "不翻开任何一条结局线。第一次探索必定走到这里。",
     "lore": "",
     "epilogue": ""
+   },
+   "priority": 0
+  },
+  "winter": {
+   "no": 2,
+   "name": "结局二 · 直至冬夜降临",
+   "en": "WINTERFALL",
+   "boss": "lead",
+   "col": [
+    0.9,
+    0.92,
+    0.97
+   ],
+   "omen": "",
+   "requires": {
+    "flag": "sami_end_winter"
+   },
+   "priority": 1,
+   "gallery": {
+    "hint": "",
+    "lore": "",
+    "epilogue": ""
    }
+  },
+  "abyss": {
+   "no": 3,
+   "name": "结局三 · 自深处的一瞥",
+   "en": "LONG INTO AN ABYSS",
+   "boss": "cresson",
+   "col": [
+    0.8,
+    0.92,
+    0.4
+   ],
+   "omen": "",
+   "requires": {
+    "flag": "sami_end_abyss"
+   },
+   "priority": 2,
+   "gallery": {
+    "hint": "",
+    "lore": "",
+    "epilogue": ""
+   }
+  },
+  "eternal": {
+   "no": 4,
+   "name": "结局四 · 终始",
+   "en": "WHAT BEGINS FOLLOWS WHAT ENDS",
+   "boss": "khan",
+   "col": [
+    0.9,
+    0.35,
+    0.3
+   ],
+   "omen": "",
+   "requires": {
+    "flag": "sami_end_eternal"
+   },
+   "priority": 3,
+   "gallery": {
+    "hint": "",
+    "lore": "",
+    "epilogue": ""
+   },
+   "boss_group": [
+    "khan",
+    "lion"
+   ],
+   "boss_map": "eternal_dust",
+   "_boss_map": "永恒之尘只换 Boss 战冻结场地（10:00 起），不做整局换图（docs/393 §8 第 6 条）；boss_group / boss_map 代码未读"
   }
  },
  "cross_deck": {
