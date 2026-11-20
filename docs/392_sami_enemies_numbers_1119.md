@@ -704,7 +704,7 @@ Boss 会话 docs/393（分支 `claude/sami-boss-design-499a9f` 710007567，§8 �
 | 8 只新 Boss 条目：陷落雪祀 `shaman` / 空洞雪祀 `shaman2` / 纠缠藤蔓 `vine` / 古老藤蔓 `vine2` / 木裂 `lead` / 克雷松 `cresson` / 哈兰杜汗 `khan` / 路加萨尔古斯 `lion` | `enemies.json`（hp / dmg / spd / r / gates / 专属色取 393 §1.2、§4）；`balance.json boss/hp_x_* / dmg_x_*` | 脚本全部占位 `archon.gd`；贴图占位借水月同位，`tex_final = e_sami_<id>`（id 已和美术会话对好） |
 | ① 3:30 抽本体、7:00 抽变体 | `waves_full.json`：`mid_pool` 6 组，`mid_first [0,1,2]`；三个本体共用 `person: sami_mid_body` | 已生效（现有 `spawner.person_used`），7:00 不会抽到本体 |
 | ① 7:00 优先抽 3:30 没出过的家族 | 各 Boss 的 `family` 字段 + `mid_prefer_new_family` | **代码未读**：spawner 的一行改动，交 Boss 会话的代码单子；接上前 7:00 在三个变体里均匀抽 |
-| ② 游荡者「连片」 | 招式规则，进 `blade.gd` / `mech_kingdom.gd` | 无数据字段；参数（中心距 150、裂纹 +50%）由 Boss 会话写脚本时放 balance |
+| ② 连片（用户 11-20 改为所有国度通用） | 通用 `mechanics.json kingdom.link`（dist 150 / width_mul 1.2 / 不传导裂纹）；游荡者覆盖 `wanderer.kingdom_link`（dist 220 / crack_spread 0.5） | 代码未读；规则见 docs/394 §3.3 |
 | ③ 最终 Boss 过卡点：回复 + 坍缩值 −1 | `waves_full.json gate_drop`（heal 1 / oil 0 / collapse −1）；`mechanics.json collapse.loss.final_gate 1` | **代码未读**：combat.gd 现在写死读全局 `boss/gate_drop_oil`，萨米进局仍会掉灯油，要主题代码单子改成读主题的 `gate_drop`（水月不写 = 不变） |
 | ④ 克雷松受伤 ×0.5，稳定场里 ×1.0 | `phys_taken 0.5 / arts_taken 0.5`（代码已读）+ `stab_taken 1.0`（未读） | 平时 ×0.5 已生效；场内恢复要等稳定场代码 |
 | ⑤ 高难变体不做 | 不建条目 | — |
