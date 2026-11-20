@@ -1957,3 +1957,9 @@ S3 当前契约（2026-10-18）：参考原作的全周范围攻击与追加目�
 | `verb.lg_merge` | `basic`、`big` | 本干员全部龙（含墨龙 mo）走 `_sm_end` "merge"（执行 on_expire），吞了 ≥ 1 条召 big，否则 basic；`o.gn.merged` 记条数 |
 | `verb.lg_split` | `kind`、`life` | 放在弦惊的 on_expire：S3 已不在生效时（自然结束）原地留一条 kind，life 秒；被吞 / 顶替时不留 |
 | `verb.lg_ink` | `n`、`r`、`mult`、`range`、`src` | 同时点 n 名最近的敌人（各一次 `area_hit`），更新 `last_hit_pos` |
+| `verb.lg_tune` | `tune`（qp / xy / xj） | 11-18 A 版（docs/367 §10）：切当前调 `o.gn.tune`；条件 `lg_qp / lg_xy / lg_xj`（`EXT_CONDS`）读它 |
+| `verb.lg_grow` | `every`、`cd0 / cd1 / cd2`、`cap0 / cap1 / cap2`、`force`、`alt_node` + `alt_kind` | 化龙节拍：计时满 cdN 化一条当前调的龙；满员换掉最早一条异调龙（`_sm_end "swap"`，执行 on_expire）；全同调停表；S3（技能 2）生效时暂停；`force` = 立刻化一条 |
+| `verb.lg_ev` | `ev` | 只画：发 `fx_recipe.ev(o, ev, {p, tune})` |
+| `verb.lg_summon` 追加 `by_tune` | — | kind 当前缀，按当前调取 `<kind>_<tune>`（墨龙 mo_qp / mo_xy / mo_xj） |
+| `verb.lg_drink` 追加 `sp_win / sp_max` | — | 技力加成 sp_win 秒内至多 sp_max 次 |
+| `verb.lg_split` 追加 `n` | — | 散成 n 条；`life` 不写 = 常驻 |

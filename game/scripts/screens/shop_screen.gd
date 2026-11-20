@@ -63,6 +63,7 @@ func _init(game: Game) -> void:
 func build(restart := false) -> void:
 	if restart:
 		g.panel_ui.motion.start_shop()
+	g.panel_ui.sel_reset(restart)   # 选中再确定：开张 / 刷新重新计弹出锁；买完一件重建卡片只清选中
 	g.nav_sel = clampi(g.nav_sel, 0, maxi(0, g.shop_items.size() - 1))
 	for c in g.panel_box.get_children():
 		c.queue_free()
@@ -77,6 +78,8 @@ func build(restart := false) -> void:
 	for a in Cfg.dev_args():   # --carddetail=<n>（截图验收）：直接展开第 n 张货品的详情
 		if a.begins_with("--carddetail="):
 			g.panel_ui.detail_i = int(a.substr(13))
+		elif a.begins_with("--cardsel=") and restart:   # 截图验收：开张时直接选中第 n 件
+			g.panel_ui.sel_i = int(a.substr(10))
 	var ph := false   # 11-08 起触屏同桌面版式：卡上写说明，放不下的给「详情」（下面 sc_on）
 	var sc_on: bool = scaled()
 	var F: Dictionary = frame()
@@ -117,9 +120,9 @@ func build(restart := false) -> void:
 			card.pressed.connect(func():
 				if not g.panel_ui.detail_tap(card, i):
 					g.panel_ui.detail_i = -1
-					g.shop_sys.buy(i))
+					g.panel_ui.choose(i))
 		else:
-			card.pressed.connect(g.shop_sys.buy.bind(i))
+			card.pressed.connect(g.panel_ui.choose.bind(i))
 		# 触屏说明字先试大 2 号（手机上 12 号只有约 6.5 pt），放不下再退回原字号；手机一句话 20 起、最小 17
 		var szs: Array = ([18, 17, 16, 15, 14] if touch else [14, 13, 12, 11]) if (Pad.touch_ui() and not sc_on) else ([14] if sc_on else [13])   # 电脑说明一律 13（docs/37 最小字号；D9 同排同字号）；触屏同版式整页缩小，大一号 14（11-08 用户），放不下写一句 +「详情」
 		if ph:
@@ -188,7 +191,7 @@ func build(restart := false) -> void:
 ## 货品卡（A4）：炭灰卡 + 节点标签条 + 序号 + 图标光环 + 名称 + 说明 + 作用对象标签（至多两行）+ 底部价格条
 ## （可买：钢蓝，悬停青底；买不起：洋红细边 +「不足」；已售出：整卡变暗、图标去色）
 func draw_card(card: Button, it: Dictionary, i: int) -> void:
-	var hov: bool = g.panel_ui.card_hot(card, i) and not it.sold
+	var hov: bool = g.panel_ui.card_on(card, i) and not it.sold   # 强高亮 = 已选中（确定步骤关掉时 = 悬停 / 焦点）
 	var afford: bool = g.ingots >= it.price
 	var blocked: bool = it.kind == "relic" and (g.shop_sys.relic_buys_left() <= 0 or not g.progression.can_gain_relic(it.id))
 	var r := Rect2(Vector2(0, card.get_meta("oy", 0.0)), card.size)
@@ -201,6 +204,8 @@ func draw_card(card: Button, it: Dictionary, i: int) -> void:
 	card.draw_polygon(PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)]), PackedColorArray([top, top, bot, bot]))
 	card.draw_rect(Rect2(r.position, Vector2(r.size.x, 1)), Color(1, 1, 1, 0.14 * a))
 	card.draw_rect(r, UI.CYAN if hov else Color(1, 1, 1, 0.11 * a), false, 1.0)
+	if g.panel_ui.card_hover_only(card, i) and not it.sold:
+		card.draw_rect(r.grow(1.0), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.6), false, 1.0)   # 悬停 / 焦点未选中：只一道细青边
 	var en_s := "SUPPLY"
 	var cn_s := "补给"
 	if it.kind == "relic":
@@ -281,6 +286,8 @@ func draw_card(card: Button, it: Dictionary, i: int) -> void:
 	UI.ctext(card, g.font, pb.position + Vector2(34, 24), str(it.price), 21, pc)
 	if not afford:
 		UI.text(card, g.font, pb.position + Vector2(40 + UI.cwidth(g.font, str(it.price), 21), 21), "不足", 11, pc)
+	elif hov and g.panel_ui.confirm_on() and pb.size.x - 10.0 - g.font.get_string_size(UI.Loc.s("确定"), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(14)).x >= 40.0 + UI.cwidth(g.font, str(it.price), 21):   # 窄卡放不下就只靠青底表示已选中
+		UI.text(card, g.font, Vector2(pb.position.x, pb.position.y + 22), "确定", 14, pc, HORIZONTAL_ALIGNMENT_RIGHT, pb.size.x - 10.0)   # 已选中：价格条右端写「确定」，再点生效
 	# 10-31 TA H7：价签不再写「[ n ]」（底部提示行已写「按 1–N 购买」）
 
 
@@ -354,6 +361,8 @@ func _draw_bg(vs: Vector2, top: float) -> void:
 	UI.text(g.panel_fg, g.font, Vector2(dp.position.x - 110, dp.position.y + 22), "持有", 12, Color(0.81, 0.84, 0.86), HORIZONTAL_ALIGNMENT_RIGHT, 100)
 	# 按键提示：分两行放在按钮右边（再往右是底栏的技能图标，一行长字会压上去）
 	var hints: Array = ["←→ 选择 · Ⓐ 购买", "Ⓨ 刷新 · Ⓑ 离开"] if Pad.using else (["点击卡片购买", "点「刷新货架」/「离开」"] if Pad.touch else ["点击或按 1–%d 购买" % g.shop_items.size(), "F 刷新  ·  ESC 离开"])
+	if g.panel_ui.confirm_on():   # 选中再确定（choice_panel.choose）
+		hints[0] = "←→ 选中 · Ⓐ 确定购买" if Pad.using else ("点击选中，再点一次购买" if Pad.touch else "按 1–%d 选中，Enter 购买" % g.shop_items.size())
 	var hfs := 12
 	UI.text(g.panel_fg, g.font, Vector2(cx + 116, top + CARD_H + 30.0), hints[0], hfs, UI.SUB)
 	UI.text(g.panel_fg, g.font, Vector2(cx + 116, top + CARD_H + 49.0 if hfs > 12 else top + CARD_H + 47.0), hints[1], hfs, UI.SUB)

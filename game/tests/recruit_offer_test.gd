@@ -9,6 +9,7 @@ extends Node
 ##   ③ 编队已满：铜印 / 事件直接改为一次成长三选一、银印全队推进，不弹二选一
 ## 全部通过打印 "RECRUIT OFFER failures=0"。
 
+const UM = preload("res://scripts/ui_motion.gd")
 const Character = preload("res://scripts/characters/character.gd")
 var game: Node
 var frames := 0
@@ -115,11 +116,22 @@ func test_panel() -> void:
 	ok(game.choices[1].kind == "offer_decline" and game.choices[1].name == "婉拒" and str(game.choices[1].desc) == "改为一次成长三选一", "婉拒卡")
 	ok(game.panel_box.get_child_count() == 2, "面板建了两张卡（%d）" % game.panel_box.get_child_count())
 	ok(game.panel_ui.option_description(acc).begins_with("以精英零"), "卡面说明第一行是档位")
-	# 键盘数字键 2 = 婉拒
+	# 键盘数字键 2 = 婉拒（选中再确定，11-20：第一次只选中；弹出 0.3 秒内再按也不生效；过了锁再按同一个数字才生效）
 	var ev := InputEventKey.new()
 	ev.keycode = KEY_2
 	ev.physical_keycode = KEY_2
 	ev.pressed = true
+	game.panel_ui.sel_t0 = UM.now()   # 刚弹出
+	game._unhandled_input(ev)
+	ok(game.state == game.S.CHOICE and game.choice_kind == "offer" and game.panel_ui.sel_i == 1, "数字键 2 第一次：只选中婉拒（sel %d）" % game.panel_ui.sel_i)
+	game._unhandled_input(ev)
+	ok(game.state == game.S.CHOICE and game.choice_kind == "offer", "弹出 0.3 秒内再按：不确定")
+	var ev_q := InputEventKey.new()   # 攻击 / 技能键绑到 Enter 上时在选卡里不确定（game._pick_key_blocked）
+	ev_q.keycode = KEY_ENTER
+	ev_q.physical_keycode = KEY_ENTER
+	ev_q.pressed = true
+	ok(game._pick_key_blocked("ult", KEY_ENTER, ev_q) and not game._pick_key_blocked("", KEY_ENTER, ev_q), "终结技键绑在 Enter 上：选卡里不确定")
+	game.panel_ui.sel_t0 = -10.0   # 过了弹出锁
 	game._unhandled_input(ev)
 	ok(not game.squad.has(cid), "数字键 2 婉拒：不入队")
 	ok(game.pending_levelups == 1, "婉拒：成长三选一 +1（%d）" % game.pending_levelups)
@@ -132,6 +144,8 @@ func test_panel() -> void:
 	ok(str(game.choices[1].desc).contains("全队各推进 1 个成长节点") and str(game.choices[1].desc).contains("成长三选一"), "银印婉拒卡写全队推进 + 成长三选一")
 	game._nav_key(KEY_RIGHT)
 	game._nav_key(KEY_LEFT)
+	ok(game.state == game.S.CHOICE and game.panel_ui.sel_i == 0, "方向键：只选中接受卡、不生效")
+	game.panel_ui.sel_t0 = -10.0
 	game._nav_key(KEY_ENTER)
 	ok(game.squad.has(cid) and game.squad.get_op(cid).elite >= 1, "回车接受银印：以精英一入队")
 	ok(game.pending_levelups == 0 and game.state != game.S.CHOICE, "接受：不占升级次数、关面板（精英化演出照常排队（升级 %d 状态 %d 面板 %s）" % [game.pending_levelups, game.state, game.choice_kind])
@@ -147,9 +161,12 @@ func test_panel() -> void:
 	ok(str(game.choices[0].desc).begins_with("以精英零加入\n") and not str(game.choices[0].desc).contains("成长节点"), "事件接受卡写「以精英零加入」")
 	var b0: Button = game.panel_box.get_child(0)
 	ok(b0.size.x > 100.0 or b0.custom_minimum_size.x > 100.0, "接受卡有可点区域（%s）" % b0.custom_minimum_size)
+	game.panel_ui.sel_t0 = -10.0
 	b0.pressed.emit()
-	if game.state == game.S.CHOICE and game.choice_kind == "offer":
-		b0.pressed.emit()   # 手机卡带「详情」时第一次点可能只开详情：点卡身仍是选择（_phone_press）
+	ok(game.state == game.S.CHOICE and game.choice_kind == "offer", "点卡第一次：只选中")
+	for _k in 2:
+		if game.state == game.S.CHOICE and game.choice_kind == "offer":
+			b0.pressed.emit()   # 再点同一张 = 确定（手机卡带「详情」时点击可能只开详情：点卡身仍是选择，_phone_press）
 	ok(game.squad.has(cid), "点接受卡：入队")
 	_reset_squad()
 	# 排队：玩家局（offer_auto 为假）排进队列，check_pending 时才弹；排队期间编队满 → 按满员处理

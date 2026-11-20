@@ -50,6 +50,7 @@ const VOICE_LANGS := ["zh", "ja", "en", "ko"]
 var dmg_numbers := false   # 11-05 用户「把字什么的都缩小吧，并且默认关闭」：新档缺省关；老档里存过的值照旧读
 var hitstop := true
 var boss_intro := true   # Boss 登场演出（黑边 + 名片，纯画面；screens/boss_intro.gd，用户 10-10）
+var fx_show := 1   # 特效显示（docs/398）：0 完整 / 1 精简（缺省）/ 2 最少；Bal.set_fx_show 切一组 render/* 旋钮，局内即时生效
 var reduce_motion := false   # 减少动态效果（docs/58 §9 / §11）：界面位移 / 缩放 / 扫入 / 浪幕直接到终态，只留 ≤ 120 ms 淡入淡出
 var outline := true      # Boss 轮廓光（10-13 起普通怪 / 精英不画描边，docs/50 §12 A；部件另有自己的描边）
 var dof := true          # 2.5D 景深与前景
@@ -762,6 +763,8 @@ func _read_cfg(c: ConfigFile) -> void:
 	hitstop = c.get_value("game", "hitstop", hitstop)
 	boss_intro = c.get_value("game", "boss_intro", boss_intro)
 	reduce_motion = c.get_value("game", "reduce_motion", reduce_motion)
+	fx_show = clampi(int(c.get_value("game", "fx_show", fx_show)), 0, 2)
+	apply_fx_show()
 	outline = c.get_value("game", "outline", outline)
 	dof = c.get_value("video", "dof", dof)
 	bloom = c.get_value("video", "bloom", bloom)
@@ -876,6 +879,12 @@ func theme_switch(tid: String) -> void:
 	theme_cur = tid
 	if unlock_all:
 		_unlock_display()
+
+
+## 特效显示档（docs/398）：改 Bal 里的一组画面旋钮并清降噪缓存
+func apply_fx_show() -> void:
+	preload("res://scripts/core/balance.gd").set_fx_show(fx_show)
+	preload("res://scripts/render/declutter.gd").reset()
 
 
 func apply() -> void:
@@ -1153,6 +1162,7 @@ func save() -> void:
 	c.set_value("game", "hitstop", hitstop)
 	c.set_value("game", "boss_intro", boss_intro)
 	c.set_value("game", "reduce_motion", reduce_motion)
+	c.set_value("game", "fx_show", fx_show)
 	c.set_value("game", "outline", outline)
 	c.set_value("video", "dof", dof)
 	c.set_value("video", "bloom", bloom)

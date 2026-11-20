@@ -318,6 +318,8 @@ func _build() -> void:
 			var ops: Array = []
 			for cid in Character.list_ids():
 				var cdef: Dictionary = Character.load_def(cid)
+				if not bool(cdef.get("recruitable", true)) and Roster.active():   # 11-19：未上线（recruitable=false）的新干员不进图鉴，免得显示「用寻访凭证解锁」却永远抽不到；调试版 / 测试局照常显示
+					continue
 				var oe: Dictionary = _op_entry(cid, cdef)
 				oe["first"] = bool(cdef.get("list_first", false))   # list_first：干员 json（封面干员水月排第一）
 				if not Roster.is_unlocked(cid):   # 干员页只认名册（Roster.is_unlocked 与寻访「未解锁 N 名」同一来源；调试版 / 测试局名册视为全开）

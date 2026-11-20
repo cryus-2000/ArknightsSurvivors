@@ -190,8 +190,77 @@ static func _sm_in_cone(anc: Vector2, tg, d: Vector2) -> bool:
 
 
 static func _sm_anchor(o, mv: Dictionary) -> Vector2:
+	var c := sm_cmd(o)
+	if c.anc != Vector2.INF:
+		return c.anc   # 跟随小队指令：突击 = 主人本人、部署 = 部署点（docs/367 §11.2）
 	var p: Vector2 = o.pos if str(mv.get("anchor", "leader")) == "self" else o.g.ppos
 	return p if p != Vector2.INF else o.g.ppos
+
+
+## 召唤物跟随小队指令（docs/367 §11.2，11-19 用户定；balance summon/cmd，0 = 一律按 move.anchor）。按主人（本干员）的指令：
+## guard 随行（锚点按 move.anchor，缺省队长）/ roam 突击（锚点 = 主人，leash × summon/cmd_roam_k，优先主人正在打的目标）/
+## deploy 部署（锚点 = 主人的部署点）/ recall 主人残血撤回（leash × summon/cmd_recall_k，只打近的）；
+## focus = 集火目标（主人是队长也算：召唤物一律扑它）。每帧算一次，缓存在 o.sm
+static func sm_cmd(o) -> Dictionary:
+	var g = o.g
+	var st: Dictionary = sm_st(o)
+	if float(st.get("cmd_t", -1.0)) == float(g.t) and st.has("cmd"):
+		return st.cmd
+	var c := {"mode": "guard", "anc": Vector2.INF, "k": 1.0, "focus": null, "prefer": null}
+	var sq = g.get("squad")
+	if MfBal.v("summon/cmd", 1.0) > 0.0 and sq != null:
+		if str(sq.get("order_kind")) == "focus":
+			var ft = sq.get("order_target")
+			if ft != null and _sm_ok(ft):
+				c.focus = ft
+		if not o.is_leader and o.pos != Vector2.INF and o in sq.ops:
+			if o.cmd_retreat:
+				c.mode = "recall"
+				c.k = MfBal.v("summon/cmd_recall_k", 0.5)
+			elif str(sq.get("order_kind")) == "point" and int(sq.stance) == 1:
+				var sp: Vector2 = sq.station_of(o)
+				if sp != Vector2.INF:
+					c.mode = "deploy"
+					c.anc = sp
+			elif o.is_roaming():
+				c.mode = "roam"
+				c.anc = o.pos
+				c.k = MfBal.v("summon/cmd_roam_k", 1.3)
+				var rt = o.get("roam_tgt")
+				if rt != null and _sm_ok(rt):
+					c.prefer = rt
+	st["cmd"] = c
+	st["cmd_t"] = float(g.t)
+	return c
+
+
+## 召唤物范围（11-19 玩家反馈「凯尔希范围成长没用、躲波站光圈里 Mon3tr 不打 Boss」；balance summon/reach_fix，0 = 旧行为）：
+## leash = move.leash × 主人的 op_range（范围成长 / 范围藏品同样拉远召唤物的出击范围）× 指令倍率；leash 判定一律量到敌人身体边缘（大体型 Boss 不再因为中心远一点就够不着）
+static func _reach_fix() -> bool:
+	return MfBal.v("summon/reach_fix", 1.0) > 0.0
+
+
+static func sm_leash(o, mv: Dictionary) -> float:
+	var l: float = float(mv.get("leash", 240.0)) * float(sm_cmd(o).k)
+	return l * o.stat(&"op_range") if _reach_fix() else l
+
+
+## 敌人到某点的距离（reach_fix 开时量到身体边缘）
+static func sm_edge(e, p: Vector2) -> float:
+	var d: float = e.pos.distance_to(p)
+	return maxf(0.0, d - float(e.get("r", 0.0))) if _reach_fix() else d
+
+
+## 指令给的强制目标：集火目标（锚点 leash × 2 内）优先；没有时 prefer（突击时主人的目标，锚点 leash 内）只在手上没目标时用
+static func _sm_cmd_target(o, tg, anc: Vector2, leash: float):
+	var c := sm_cmd(o)
+	var fo = c.focus
+	if fo != null and _sm_ok(fo) and sm_edge(fo, anc) <= leash * 2.0:
+		return fo
+	var pr = c.prefer
+	if tg == null and pr != null and _sm_ok(pr) and sm_edge(pr, anc) <= leash:
+		return pr
+	return tg
 
 
 ## 攻击距离（世界像素）：写了 range 用 range × op_range；否则按形状（circle 以自身为心 = r，以目标为心 = 40；cone = r；line = len）
@@ -235,9 +304,9 @@ static func _sm_pick(o, s: Dictionary, mv: Dictionary, anc: Vector2, leash: floa
 				return null
 			cand = o.nearest_enemies(1, 60.0, dp)
 		"elite", "low_hp":
-			for j in o.query_ids(anc, leash):
+			for j in o.query_ids(anc, leash + (80.0 if _reach_fix() else 0.0)):   # 量到边缘时把大体型的也查进来
 				var e: Dictionary = g.enemies[j]
-				if _sm_ok(e) and e.pos.distance_to(anc) <= leash:
+				if _sm_ok(e) and sm_edge(e, anc) <= leash:
 					cand.append(e)
 			if how == "elite":
 				cand = o.cap_targets(cand, s.pos, 6)
@@ -245,7 +314,7 @@ static func _sm_pick(o, s: Dictionary, mv: Dictionary, anc: Vector2, leash: floa
 				cand.sort_custom(func(x, y): return _hp_frac(x) < _hp_frac(y) if _hp_frac(x) != _hp_frac(y) else int(x.id) < int(y.id))
 		_:
 			for e in o.nearest_enemies(6, leash * 2.0, s.pos):
-				if e.pos.distance_to(anc) <= leash:
+				if sm_edge(e, anc) <= leash:
 					cand.append(e)
 	cand = cand.filter(func(e): return _sm_ok(e))
 	if cand.is_empty():
@@ -260,6 +329,20 @@ static func _sm_pick(o, s: Dictionary, mv: Dictionary, anc: Vector2, leash: floa
 ## 终结技期间召唤物不起新的出手（ult/mute_atk，ult.gd mute_atk）：照常移动 / 受击，已起手的照打完
 static func _muted(o) -> bool:
 	return o.g.ult != null and o.g.ult.mute_atk()
+
+
+## 持续索敌（11-19 用户「杀掉一个就想回干员身边，又锁到新的导致折返跑」；balance summon/hunt，0 = 旧行为）：
+## 换目标时取离召唤物自己最近的（仍限锚点 leash 内、Boss 优先照旧），没目标时原地等 summon/hunt_hold 秒、每 0.1 秒再找，过时才回站位
+static func _hunt_on() -> bool:
+	return MfBal.v("summon/hunt", 1.0) > 0.0
+
+
+## 没目标时这一帧要不要原地等（hunt 开、等待未超时、人还在锚点 leash + 40 内）；顺带累计等待秒数
+static func _hunt_hold(s: Dictionary, anc: Vector2, leash: float, dt: float) -> bool:
+	if not _hunt_on():
+		return false
+	s["idle_t"] = float(s.get("idle_t", 0.0)) + dt
+	return float(s.idle_t) < MfBal.v("summon/hunt_hold", 0.8) and s.pos.distance_to(anc) <= leash + 40.0
 
 
 static func sm_tick(o, dt: float) -> void:
@@ -426,9 +509,10 @@ static func _sm_step(o, s: Dictionary, kd: Dictionary, i: int, n: int, dt: float
 		"stay":
 			tg = null
 		_:   # chase
-			var leash: float = float(mv.get("leash", 240.0))
-			if tg != null and tg.pos.distance_to(anc) > leash + 40.0:
+			var leash: float = sm_leash(o, mv)
+			if tg != null and sm_edge(tg, anc) > leash + 40.0 and tg != sm_cmd(o).focus:
 				tg = null
+			tg = _sm_cmd_target(o, tg, anc, leash)
 			if mv.has("repick"):   # 精英化第 5 批段：每 repick 秒重新选一次目标（densest = 跟着敌群最密处走）
 				s["rp"] = float(s.get("rp", 0.0)) - dt
 				if float(s.rp) <= 0.0:
@@ -439,10 +523,13 @@ static func _sm_step(o, s: Dictionary, kd: Dictionary, i: int, n: int, dt: float
 			if tg == null and s.rt <= 0.0:
 				tg = _sm_pick(o, s, mv, anc, leash)
 				if tg == null:
-					s.rt = 0.25   # 没目标时每 0.25 秒再找（大群里不每帧排序）
+					s.rt = 0.1 if _hunt_on() else 0.25   # 没目标时每 0.25 秒再找（大群里不每帧排序）；持续索敌时等待期内 0.1 秒
 			if tg != null:
+				s["idle_t"] = 0.0
 				var ga: float = float(s.id) * SM_GOLD
 				want = tg.pos + Vector2(cos(ga), sin(ga) * 0.55) * (float(tg.r) + maxf(8.0, reach * 0.6))
+			elif _hunt_hold(s, anc, leash, dt):
+				want = s.pos   # 持续索敌：杀完先原地找下一个，不立刻往回走
 			else:
 				want = slot
 	s.tgt = tg
@@ -461,8 +548,12 @@ static func _sm_step(o, s: Dictionary, kd: Dictionary, i: int, n: int, dt: float
 		return
 	var t2 = tg
 	if t2 == null:
-		var ts: Array = o.nearest_enemies(1, reach + 30.0, s.pos)
-		t2 = ts[0] if not ts.is_empty() else null
+		var fo = sm_cmd(o).focus   # 集火：随行 / 绕身的召唤物够得着集火目标就打它
+		if fo != null and _sm_ok(fo) and s.pos.distance_to(fo.pos) <= reach + float(fo.r):
+			t2 = fo
+		else:
+			var ts: Array = o.nearest_enemies(1, reach + 30.0, s.pos)
+			t2 = ts[0] if not ts.is_empty() else null
 	if not _sm_ok(t2) or s.pos.distance_to(t2.pos) > reach + float(t2.r):
 		return
 	s.cd = float(a.get("every", 1.0)) / maxf(0.05, o.stat(&"op_aspd"))
@@ -1625,28 +1716,42 @@ static func mf_step(o, s: Dictionary, kd: Dictionary, dt: float) -> void:
 		SummonVisual.cancel(s)
 		_F().el_dash_step(o, s, kd, mods, dt)
 		return
-	var leash: float = float(mv.get("leash", 240.0))
+	var leash: float = sm_leash(o, mv)
 	var anc: Vector2 = _sm_anchor(o, mv)
 	var tg = s.tgt
 	if str(kd.get("manual", "")) == "command" and o.held_aim():
 		# 按住瞄准（10-31 取代手动普攻）：召唤物改扑瞄准方向 ±aim_cone_deg 内的目标；刚按下、目标失效或跑出瞄准锥时换目标。
 		# 松手走下面的自动分支：手上这个还有效就打完，再自动扑最近的
-		if g.doctor.atk_edge or tg == null or tg.dead or tg.pos.distance_to(anc) > leash + 40.0 or not _sm_in_cone(anc, tg, g.doctor.attack_dir()):
+		if g.doctor.atk_edge or tg == null or tg.dead or sm_edge(tg, anc) > leash + 40.0 or not _sm_in_cone(anc, tg, g.doctor.attack_dir()):
 			var tsm: Array = o.aim_targets(1, leash, anc)
 			if not tsm.is_empty() and int(tsm[0].get("id", 0)) >= 0:   # 伪目标（指向上没敌人）不命令，手上的照打
 				tg = tsm[0]
-		if tg != null and (tg.dead or tg.pos.distance_to(anc) > leash + 40.0):
+		if tg != null and (tg.dead or sm_edge(tg, anc) > leash + 40.0):
 			tg = null
 		s.tgt = tg
-	elif tg == null or tg.dead or tg.pos.distance_to(anc) > leash + 40.0:
-		var ts: Array = o.nearest_enemies(1, leash, anc)
-		tg = ts[0] if not ts.is_empty() else null
+	elif sm_cmd(o).focus != null and _sm_cmd_target(o, null, anc, leash) == sm_cmd(o).focus:
+		tg = sm_cmd(o).focus   # 集火：Mon3tr 也扑集火目标
+		s.tgt = tg
+	elif tg == null or tg.dead or sm_edge(tg, anc) > leash + 40.0:
+		tg = _sm_cmd_target(o, null, anc, leash)   # 突击：先接主人正在打的目标
+		if tg == null:
+			if _hunt_on():   # 持续索敌：离召唤物自己最近的（限锚点 leash 内），不再取离锚点最近的（那会让它掉头跑到另一边）
+				for e in o.nearest_enemies(6, leash * 2.0, s.pos):
+					if _sm_ok(e) and sm_edge(e, anc) <= leash:
+						tg = e
+						break
+			else:
+				var ts: Array = o.nearest_enemies(1, leash, anc)
+				tg = ts[0] if not ts.is_empty() else null
 		s.tgt = tg
 	if tg != null and float(s.act) <= 0.0 and not mods.get("lunge", {}).is_empty() and _F().el_lunge_try(o, s, kd, tg, mods.lunge):   # 精英化段：扑击
 		SummonVisual.cancel(s)
 		return
 	var want: Vector2 = rest
+	if tg == null and _hunt_hold(s, anc, leash, dt):
+		want = s.pos   # 持续索敌：没目标先原地等 hunt_hold 秒再回站位
 	if tg != null:
+		s["idle_t"] = 0.0
 		var off: Vector2 = s.pos - tg.pos
 		want = tg.pos + (off.normalized() if off.length() > 1.0 else Vector2(-float(s.face), 0)) * (float(tg.r) + float(mv.get("gap", 26.0)))
 	var prev: Vector2 = s.pos

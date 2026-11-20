@@ -167,6 +167,8 @@ static func draw_card(ci: CanvasItem, size: Vector2, c: Dictionary, st: Dictiona
 		_back(ci, r, c, st, font, serif, col, t, now, a)
 		if c.get("trade", false):
 			_cost_tag(ci, r, font, a)
+		if st.get("sel", false):
+			_confirm_tab(ci, r, font, a)
 	ci.draw_set_transform_matrix(Transform2D.IDENTITY)
 	# 翻转中线闪光（不随卡片压扁）：竖亮线 + 两侧台阶光
 	if fl == i and not rm and flip_age > LIFT_T and flip_age < LIFT_T + FLIP_T:
@@ -312,6 +314,14 @@ static func _dash(ci: CanvasItem, a: Vector2, b: Vector2, col: Color, clip: Rect
 ## 结局色边：2 格粗的色框（两色时左右各半）+ 一段沿框跑动的亮白高光 + 顶边中央罗马数字徽记
 ## 不期而遇卡背（C 版）：精修底纹 + 细银边（左上受光、右下回暗）+ 白色节点图标 + 名字；结局入口在卡底放信物提示
 ## 交易卡角标（docs/184 §2.1）：卡背右上角红色台阶三角 +「代价」，翻开前就知道这张要付东西
+## 已选中（选中再确定，choice_panel.sel_i）：卡顶边正中一枚青底「确定」小牌，压在边框上（左上序号牌、右上「代价」角标之间）
+static func _confirm_tab(ci: CanvasItem, r: Rect2, font: Font, a: float) -> void:
+	var w: float = font.get_string_size(UI.Loc.s("确定"), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(14)).x + 24.0
+	var tr := Rect2(Vector2(roundf(r.get_center().x - w / 2.0), r.position.y - 12.0), Vector2(roundf(w), 24))
+	ci.draw_rect(tr, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, a))
+	UI.text(ci, font, tr.position + Vector2(0, 17), "确定", 14, Color(0.04, 0.07, 0.09, a), HORIZONTAL_ALIGNMENT_CENTER, tr.size.x)
+
+
 static func _cost_tag(ci: CanvasItem, r: Rect2, font: Font, a: float) -> void:
 	var tr := Vector2(r.end.x - 2.0, r.position.y + 2.0)
 	var red := Color(0.86, 0.32, 0.38, 0.95 * a)

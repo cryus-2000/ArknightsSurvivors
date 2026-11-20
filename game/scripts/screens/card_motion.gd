@@ -126,7 +126,7 @@ func update(dt: float) -> void:
 			continue
 		var i: int = card.get_index()
 		var sold: bool = card.has_meta("item") and card.get_meta("item").get("sold", false)
-		var hot: bool = g.panel_ui.card_hot(card as Button, i) and not sold
+		var hot: bool = (g.panel_ui.card_hot(card as Button, i) or g.panel_ui.card_on(card as Button, i)) and not sold   # 悬停 / 焦点 / 已选中都抬起
 		var lift: float = lerpf(card.get_meta("lift"), (-8.0 if ev else -10.0) if hot else 0.0, clampf(dt * 18.0, 0.0, 1.0))
 		card.set_meta("lift", lift)
 		if ev:

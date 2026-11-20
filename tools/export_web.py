@@ -179,6 +179,8 @@ def main():
     ap.add_argument("--no-lossless", action="store_true", help="关掉无损瘦身（字体 WOFF2 + WebP 无损最高档，docs/285（原 187）），对照用")
     ap.add_argument("--ea", action="store_true", help="对内网页版：build.json audience = internal（演练开、全部解锁）")
     ap.add_argument("--god", action="store_true", help="无敌测试包：build.json test_god=true（队长生命归零回满，Cfg.test_god）；Toy zip 文件名加 _god。只给真机测内存用，不要提交审核 / 对外发布")
+    ap.add_argument("--toy-music", default="A", choices=["off", "A", "B"], help="Toy 包配乐档（tools/web_music.py TOY_TIERS，11-19）：A 单声道 ×0.75 码率（约 −5.4 MB）、B 单声道 ×0.55 码率 16 kHz（约 −9.2 MB）、off 同 itch；只在 --toy 时生效")
+    ap.add_argument("--toy-fx-half", action="store_true", help="Toy 包特效 @2x 不进包、电脑也读半分辨率（tools/web_half.py，约 −1.5 MB；11-19 候选，待用户点头再设为缺省）")
     ap.add_argument("--toy", action="store_true", help="B站 Toy 包：一律加载 Toy SDK、分片不带 .gz 后缀、另打 zip（缺省输出 build/toy/web）")
     ap.add_argument("--toy-out", help="同一次导入再出一份 Toy 包到这个目录（itch 网页版导出后改源码再导出一次，翻译表 / 外语语音 / 斯卡蒂原图在第二次导出前删掉；zip 在它的上一级目录），产物与单独跑 --toy 相同（11-17 发版提速）")
     ap.add_argument("--theme", help="只打这一个主题（game/themes/<id>），build.json 写 theme；Toy 包缺省 deep_sea，--toy-out 时只管 Toy 那份（docs/391 T-R1）")
@@ -268,7 +270,9 @@ def main():
     lap("解源码 + 发布检查")
     # 半分辨率贴图（tools/web_half.py，docs/319 §16）：整 2 倍放大的 @2x 换 1 倍；有细节的特效另出 @h、斯卡蒂终结技图集出半分辨率给手机。
     # 只动 art/fx、art/enemies、art/index.json、data/pxp_*.json，和下面的字体 / 音频步骤不碰同一批文件：放到子进程里同时做（11-17 发版提速，约省 50 秒）
-    half_job = _pool().submit(_web_half_job, gpath, a.toy)   # Toy 包：斯卡蒂终结技只留半分辨率版（约 −2.1 MB）
+    if a.toy_out and a.toy_fx_half:
+        sys.exit("--toy-fx-half 只支持单独跑 --toy（共用导入时新出的 1 倍特效图要重导入）")
+    half_job = _pool().submit(_web_half_job, gpath, a.toy, a.toy and a.toy_fx_half)   # Toy 包：斯卡蒂终结技只留半分辨率版（约 −2.1 MB）
     # 字体按实际用字子集化（release_slim，docs/33 §包体瘦身）：只换打包副本里的字体，仓库原字体不动
     font_rows = release_slim.subset_fonts(gpath)
     release_slim.print_font_rows(font_rows)
@@ -294,10 +298,15 @@ def main():
     os.makedirs(tmp)
     # 长配乐出包（tools/web_music.py，docs/319 §12）：不进 index.pck，单独 AAC 由浏览器解码（不在 WASM 堆里整段解码）
     import web_music
-    print("[瘦身] " + web_music.report(web_music.externalize(gpath, tmp)), flush=True)
+    # Toy 包配乐另出一档（tools/web_music.py TOY_TIERS，11-19 Toy 50 MB 线给新干员腾地方）：--toy 时 out/ 里直接是 Toy 档；
+    # --toy-out 时 out/ 是 itch 现行档，另编一份 Toy 档到 out_toy_music/，Toy 那次导出前换进去
+    toy_mus = a.toy_music if (a.toy or a.toy_out) and a.toy_music != "off" else None
+    toy_mus_dir = os.path.join(WORK, "out_toy_music") if a.toy_out and toy_mus else None
+    print("[瘦身] " + web_music.report(web_music.externalize(gpath, tmp, toy_mus, toy_mus_dir)) + ("（Toy 配乐 %s 档：全单声道）" % toy_mus if toy_mus else ""), flush=True)
     lap("配乐出包")
     print("[瘦身] " + half_job.result(), flush=True)
     lap("等半分辨率贴图")
+    print("[瘦身] " + pxp_no_alpha_border(gpath), flush=True)
     pack_px_metadata(gpath)
     cache_keys, _ = import_cache.restore(gpath, "web", GODOT)   # 导入缓存复用（tools/import_cache.py，docs/33 §发版提速）
     import_cache.prewarm_tree(gpath, "导入前")   # 瘦身步骤新写的文件
@@ -326,7 +335,14 @@ def main():
         tmp2 = os.path.join(WORK, "out_toy")
         os.makedirs(tmp2)
         for f in extra:
+            if toy_mus_dir and f.endswith(".m4a"):
+                continue   # 配乐用 Toy 档（下面拷）
             shutil.copy2(os.path.join(a.out, f), os.path.join(tmp2, f))   # itch 那份已拷到 a.out，内容没动过
+        if toy_mus_dir:
+            tb = web_music.use_toy_meta(gpath, toy_mus_dir)   # Toy 档的 web_music.json 换进副本（json 原样进 pck，不用重导入）
+            for f in os.listdir(toy_mus_dir):
+                shutil.copy2(os.path.join(toy_mus_dir, f), os.path.join(tmp2, f))
+            print("[瘦身] Toy 配乐 %s 档：%.2f MiB（itch 档 %.2f MiB）" % (toy_mus, tb / 1048576, sum(os.path.getsize(os.path.join(a.out, f)) for f in extra if f.endswith(".m4a")) / 1048576), flush=True)
         godot_export(gpath, tmp2)
         lap("Godot 导出（Toy）")
         finish(a, tmp2, a.toy_out, True, commit, src)
@@ -335,10 +351,10 @@ def main():
         _POOL.shutdown()
 
 
-def _web_half_job(gpath, toy):
-    """子进程里跑 web_half.make（见 main 里 half_job）；返回报告行"""
+def _web_half_job(gpath, toy, fx_half=False):
+    """子进程里跑 web_half.make（见 main 里 half_job）；返回报告行。fx_half：Toy 特效 @2x 不进包（--toy-fx-half）"""
     import web_half
-    return web_half.report(web_half.make(gpath, sd_half_only=toy))
+    return web_half.report(web_half.make(gpath, sd_half_only=toy, fx_half_only=fx_half))
 
 
 def godot_export(gpath, tmp):
@@ -384,6 +400,8 @@ def finish(a, tmp, out_dir, toy, commit, src):
         js = fh.read() + "\n"
     if toy:
         js += "\nwindow.__SY_TOY = 1;\n"
+    if toy and a.toy_music != "off":
+        js += "window.__SY_MUS_MONO = 1;\n"   # 配乐全单声道、没有偏执泡影 p1 的 _mono 副本（tools/web/web_music.js）
     # 页面隐藏时挂起音频（tools/web/power.js，docs/50 §33）：也要在引擎建 AudioContext 之前
     with open(os.path.join(WEB, "power.js"), encoding="utf-8") as fh:
         js += fh.read() + "\n"
@@ -537,6 +555,25 @@ def strip_line_comments(src):
                 continue
             i += 1
     return "\n".join(out)
+
+
+def pxp_no_alpha_border(gpath):
+    """转平面帧条（art/fx/pxp，含斯卡蒂终结技半分辨率图集）导入时不做 fix_alpha_border（11-19，docs/33 §Toy 包 50 MB 线）。
+    源 PNG 的透明像素本来就是 RGB 0；fix_alpha_border 会把邻近颜色填进 alpha=0 的像素，WebP 无损压不动（实测 6.65 → 4.09 MB）。
+    画布缺省最近邻采样（project.godot default_texture_filter=0），帧条不在线性采样的节点上画；actor_light.gdshader 只读邻域 alpha，
+    所以透明像素的颜色看不到，可见像素不变。itch 与 Toy 两个网页包都生效（共用一次导入）；桌面包不动"""
+    n = 0
+    for dp, _, fs in os.walk(os.path.join(gpath, "art", "fx", "pxp")):
+        for f in fs:
+            if f.endswith(".png.import"):
+                p = os.path.join(dp, f)
+                with open(p, encoding="utf-8") as fh:
+                    t = fh.read()
+                if "process/fix_alpha_border=true" in t:
+                    with open(p, "w", encoding="utf-8", newline="\n") as fh:
+                        fh.write(t.replace("process/fix_alpha_border=true", "process/fix_alpha_border=false"))
+                    n += 1
+    return "转平面帧条 %d 张导入不填透明底色（fix_alpha_border=false，可见像素不变，约 -2.6 MB）" % n
 
 
 def pack_px_metadata(gpath):
