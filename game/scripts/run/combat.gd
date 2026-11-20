@@ -993,7 +993,7 @@ func _damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 	if bh != null and bh.block_damage(e):
 		return
 	# 灯火照亮：光中的敌人受到的伤害 +25%，灯火通明（≥ 70）时 +40%（docs/222；流明光弹的「照亮」e.lit 同样视为在灯光内）
-	if e.pos.distance_squared_to(g.ppos) < g.lamp_r() * g.lamp_r() or e.get("lit", 0.0) > 0.0:
+	if g.has_lamp and (e.pos.distance_squared_to(g.ppos) < g.lamp_r() * g.lamp_r() or e.get("lit", 0.0) > 0.0):   # 没有灯火机制的主题不加（docs/391 T-R1）
 		var lb: float = Bal.v("lamp/lit_bonus_hi", 0.40) if g.lamp >= 70.0 else Bal.v("lamp/lit_bonus", 0.25)
 		if g.bot != null and e.get("lit", 0.0) > 0.0 and e.pos.distance_squared_to(g.ppos) >= g.lamp_r() * g.lamp_r():
 			g.telemetry.sus_seg().lit += dmg * lb   # docs/88 遥测：只因「照亮」多打的伤害（只在 --balance 下记）

@@ -510,7 +510,7 @@ func _beacon_tick() -> void:
 			return
 		_place_beacon()
 		return
-	if cur_t >= BEACON_WAIT and not bool(demo_beacon.lit):
+	if cur_t >= BEACON_WAIT and not bool(demo_beacon.lit) and g.beacon_sys != null:
 		g.beacon_sys.light_demo(demo_beacon)
 
 

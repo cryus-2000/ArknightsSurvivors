@@ -114,6 +114,10 @@ var web_focus = preload("res://scripts/web_focus.gd").new()   # 失焦保护（d
 var web_fs = preload("res://scripts/web_fs.gd").new()   # 网页版全屏与 Esc（docs/299）：退出全屏当暂停、P 键暂停、暂停菜单「返回全屏」；只在网页版桌面生效
 var mech_by_id: Dictionary = ThemePack.make_mechanics(self)   # 主题机制 {id: 实例}，清单 mechanics 段的顺序（docs/364；scripts/core/theme_mechanic.gd）
 var mechs: Array = mech_by_id.values()   # 挂钩点按这个顺序逐个调
+## 本主题有没有灯火机制（docs/391 T-R1）。没有时 g.lamp 钉在 LAMP_NEUTRAL：三十多处干员 / 藏品 / 事件直接加减 g.lamp、读档位（≥70 通明 / <30 昏暗 / ≤0 熄灭），
+## 50 落在中间档，这些效果都不触发；加减写进来也会被 setter 拉回 50。灯光判定半径 lamp_r() 按满灯、灯光增伤不生效（combat.gd）
+const LAMP_NEUTRAL := 50.0
+var has_lamp: bool = mech_by_id.has("lamp")
 var beacon_sys = mech_by_id.get("beacon")  # 引航灯标（主题机制 themes/deep_sea/mech/mech_beacon.gd，docs/49d §13.5 C、docs/364）；没有灯标的主题为 null
 var weapons_sys = WeaponsSys.new(self)   # 子弹与支援装置
 var pickups = Pickups.new(self)   # 掉落与拾取
@@ -184,7 +188,9 @@ var level := 1
 var xp := 0.0
 var xp_need := 8.0
 var kills := 0
-var lamp := 100.0
+var lamp: float = 100.0 if has_lamp else LAMP_NEUTRAL:
+	set(v):
+		lamp = v if has_lamp else LAMP_NEUTRAL
 
 # ---------- 水月：伞击 / 天赋 / 技能 ----------
 var growth := {}                 # 成长项 id -> 已选次数
@@ -1213,7 +1219,7 @@ func _ready() -> void:
 	A.normal_maps = wants_normal_maps()
 	rfx = RelicFx.new(self)
 	endg = Endings.new(self)
-	knight = ThemePack.make_module(self, "knight")   # 猎潮的骑士同伴（主题模块 themes/deep_sea/mod/knight.gd，docs/368 §3；核心多处直接读，新主题要给空实现）
+	knight = ThemePack.make_module(self, "knight", "res://scripts/core/knight_none.gd")   # 猎潮的骑士同伴（主题模块 themes/deep_sea/mod/knight.gd，docs/368 §3；核心多处直接读，新主题要给空实现）
 	touch = Touch.new(self)
 	if D.ENEMIES.has("knight"):
 		D.ENEMIES.knight.no_spawn = true  # 敌对骑士只在同伴骑士阵亡后进入精英池（每局重置）

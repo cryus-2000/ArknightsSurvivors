@@ -8,18 +8,46 @@ extends RefCounted
 const DEFAULT_ID := "deep_sea"
 const ROOT := "res://themes/"
 
-static var _id := DEFAULT_ID
+static var _id := ""
 static var _man: Dictionary = {}
 
 
-## 当前主题 id（阶段 0 只有 deep_sea；选主题界面 / 存档主题层级在后续阶段）
+## 当前主题 id（docs/391 T-R1）：开发版读命令行 --theme=<id>，否则读 res://data/build.json 的 theme（export_web.py / export_build.py --theme 写入，
+## 一个 Toy 包只带一个主题）；都没有 = deep_sea。要求 res://themes/<id>/theme.json 存在，不存在报错退回 deep_sea。第一次调用后缓存，局中不切
 static func id() -> String:
+	if _id == "":
+		_id = _resolve()
 	return _id
+
+
+static func _resolve() -> String:
+	var want := ""
+	var args: PackedStringArray = OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()
+	for a in args:
+		if a.begins_with("--theme="):
+			want = a.substr(8).strip_edges()
+	if want == "":
+		var b = _read_json("res://data/build.json")
+		want = str(b.get("theme", ""))
+	if want == "" or want == DEFAULT_ID:
+		return DEFAULT_ID
+	if not FileAccess.file_exists(ROOT + want + "/theme.json"):
+		push_error("theme not found: %s（退回 %s）" % [want, DEFAULT_ID])
+		return DEFAULT_ID
+	return want
+
+
+## 本主题清单里有没有这个机制（lamp / beacon / …）。game 未建好时（-s 契约测试、界面）也能问
+static func has_mechanic(mid: String) -> bool:
+	for it in manifest().get("mechanics", []):
+		if str(it.get("id", "")) == mid:
+			return true
+	return false
 
 
 static func manifest() -> Dictionary:
 	if _man.is_empty():
-		var p := ROOT + _id + "/theme.json"
+		var p := ROOT + id() + "/theme.json"
 		var d = JSON.parse_string(FileAccess.get_file_as_string(p)) if FileAccess.file_exists(p) else null
 		if not (d is Dictionary):
 			push_error("theme manifest missing: " + p)
@@ -34,7 +62,7 @@ static func path(key: String) -> String:
 	var data: Dictionary = manifest().get("data", {})
 	if data.has(key):
 		return str(data[key])
-	push_error("theme %s: data key missing: %s" % [_id, key])
+	push_error("theme %s: data key missing: %s" % [id(), key])
 	return "res://data/%s.json" % key
 
 
@@ -45,7 +73,7 @@ static func make_mechanics(game) -> Dictionary:
 	for it in manifest().get("mechanics", []):
 		var sc = load(str(it.script))
 		if sc == null:
-			push_error("theme %s: mechanic script missing: %s" % [_id, it.script])
+			push_error("theme %s: mechanic script missing: %s" % [id(), it.script])
 			continue
 		var m = sc.new(game)
 		m.id = str(it.id)
@@ -53,14 +81,17 @@ static func make_mechanics(game) -> Dictionary:
 	return out
 
 
-## 主题专属玩法模块（docs/368 §3）：清单 modules 段 {键: 脚本}，脚本 _init(game)；本主题没有这个模块返回 null
-static func make_module(game, key: String):
+## 主题专属玩法模块（docs/368 §3）：清单 modules 段 {键: 脚本}，脚本 _init(game)；本主题没有这个模块时用 fallback（res:// 脚本路径，空 = 返回 null）
+## knight 的 fallback 是 scripts/core/knight_none.gd（核心多处直接读 g.knight，docs/369 §5）
+static func make_module(game, key: String, fallback := ""):
 	var path = manifest().get("modules", {}).get(key)
 	if path == null:
+		path = fallback
+	if str(path) == "":
 		return null
 	var sc = load(str(path))
 	if sc == null:
-		push_error("theme %s: module script missing: %s" % [_id, path])
+		push_error("theme %s: module script missing: %s" % [id(), path])
 		return null
 	return sc.new(game)
 

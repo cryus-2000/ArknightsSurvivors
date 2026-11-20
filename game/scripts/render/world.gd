@@ -242,7 +242,7 @@ func update_visuals(dt: float) -> void:
 	g.cam.offset = cam_kick.round() + kick_off + (g.ult.shake_off() if g.ult != null else Vector2.ZERO)   # 终结技轻震（用户 10-30 点名要，只给终结技；减少动态效果开时为 0）
 	# 灯火光源：可读灯圈（10-24 用户定；旧开关 render/lamp_readable 与闪烁 / 低灯变红的旧灯光 10-29 已删）——
 	# 圈内亮度固定、不闪、低灯不变红，灯火变弱只缩半径
-	var radius: float = lerp(150.0, 520.0, g.lamp / 100.0) * g.squad.light_radius_mult()
+	var radius: float = lerp(150.0, 520.0, g.lamp / 100.0 if g.has_lamp else 1.0) * g.squad.light_radius_mult()   # 没有灯火机制的主题按满灯照（docs/391 T-R1）
 	var dk: float = g.vfx.dark_k
 	if dk > 0.0:
 		radius *= 1.0 + dk * 0.025 * (0.6 * sin(g.t * 7.3) + 0.4 * sin(g.t * 13.1 + 1.7))   # 暗淡：灯圈边缘轻微抖动（docs/222，纯画面）

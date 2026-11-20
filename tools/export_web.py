@@ -10,6 +10,11 @@
   2. 分片文件名不用 .gz 后缀（Toy 只发布白名单后缀的文件，.pck / .wasm 是 Godot 包必有的后缀，.gz 不确定）：
      index.pck.00.gz → index.00.pck、index.wasm.00.gz → index.00.wasm，内容仍是 gzip，加载器按魔数识别，不改加载器。
 
+--theme <id>（docs/391 T-R1，11-19 用户定「一主题一 Toy、itch 一个包带全部主题」）：打包副本里只留 game/themes/<id>/，
+build.json 写 theme = <id>（scripts/core/theme_pack.gd ThemePack.id() 读）。Toy 包一律只带一个主题：--toy 不给 --theme 时按 deep_sea；
+--toy-out（itch + Toy 共用导入）时 --theme 只管 Toy 那份，itch 那份照旧带全部主题。非 deep_sea 主题的 Toy zip 文件名加 _<id>。
+现在只剔主题包目录本身；标题 / 配乐 / 地面这些还在 game/art、game/audio 下的主题素材按主题剔除是 T-D1 的事（docs/391）。
+
 构建信息：和 Windows 包一样往打包副本的 data/build.json 写 commit / built / audience（public 或 --ea 时 internal）/ encrypted=false，
 --ea 另写 channel=EA。游戏里 Boss 演练入口与「全部解锁」都按 audience 判断（settings.gd，docs/33 §双版本）。
 网页存档在浏览器 IndexedDB、按网站源（协议 + 域名 + 端口）隔离：对内网页版要放在和对外版不同的域名 / 端口下，否则两版共用存档。
@@ -132,6 +137,18 @@ def toy_strip(src, binfo):
     print(TOY_VOICE_MSG % (vl_b / 1048576), flush=True)
 
 
+def theme_only(src, binfo, theme):
+    """只留一个主题包（docs/391 T-R1）：删掉副本里 game/themes/ 下别的主题目录，build.json 写 theme（binfo 就地改，写文件由调用方做）"""
+    td = os.path.join(src, "game", "themes")
+    gone = []
+    for t in sorted(os.listdir(td)):
+        if t != theme and os.path.isdir(os.path.join(td, t)):
+            shutil.rmtree(os.path.join(td, t))
+            gone.append(t)
+    binfo["theme"] = theme
+    print("[主题] 只带 %s%s" % (theme, ("（去掉 %s）" % "、".join(gone)) if gone else ""), flush=True)
+
+
 def toy_assert_src(src):
     bj = os.path.join(src, "game", "data", "build.json")
     chk_b = json.load(open(bj, encoding="utf-8"))
@@ -166,6 +183,7 @@ def main():
     ap.add_argument("--toy-fx-half", action="store_true", help="Toy 包特效 @2x 不进包、电脑也读半分辨率（tools/web_half.py，约 −1.5 MB；11-19 候选，待用户点头再设为缺省）")
     ap.add_argument("--toy", action="store_true", help="B站 Toy 包：一律加载 Toy SDK、分片不带 .gz 后缀、另打 zip（缺省输出 build/toy/web）")
     ap.add_argument("--toy-out", help="同一次导入再出一份 Toy 包到这个目录（itch 网页版导出后改源码再导出一次，翻译表 / 外语语音 / 斯卡蒂原图在第二次导出前删掉；zip 在它的上一级目录），产物与单独跑 --toy 相同（11-17 发版提速）")
+    ap.add_argument("--theme", help="只打这一个主题（game/themes/<id>），build.json 写 theme；Toy 包缺省 deep_sea，--toy-out 时只管 Toy 那份（docs/391 T-R1）")
     ap.add_argument("--timing", action="store_true", help="每步打印耗时")
     a = ap.parse_args()
     if a.toy and a.toy_out:
@@ -188,6 +206,9 @@ def main():
     os.makedirs(src)
     data = subprocess.run(["git", "archive", "--format=tar", a.ref, "game", "art/source/voice", "tools"], cwd=ROOT, stdout=subprocess.PIPE, check=True).stdout
     tarfile.open(fileobj=io.BytesIO(data)).extractall(src, filter="data")
+    toy_theme = a.theme or "deep_sea"
+    if not os.path.isfile(os.path.join(src, "game", "themes", toy_theme, "theme.json")):
+        sys.exit("--theme %s：%s 里没有 game/themes/%s/theme.json" % (toy_theme, a.ref, toy_theme))
     import asset_index
     asset_index.write(os.path.join(src, "game", "art"))   # 运行时贴图索引不进 git（docs/364 §5）：解出来先按副本里的贴图重建（瘦身 / 半分辨率 / Toy 都读它）
     import godot_runner
@@ -228,6 +249,10 @@ def main():
         toy_strip(src, binfo)
     else:
         binfo.pop("lang_lock", None)
+    if a.toy or (a.theme and not a.toy_out):
+        theme_only(src, binfo, toy_theme)   # 一个包只带一个主题（Toy 一律；itch 只在单独给 --theme 时）
+    else:
+        binfo.pop("theme", None)
     with open(bj, "w", encoding="utf-8") as fh:
         json.dump(binfo, fh, ensure_ascii=False, indent=1)
     if a.toy:   # 导出断言：Toy 包切不到英文
@@ -301,6 +326,7 @@ def main():
         bj = os.path.join(src, "game", "data", "build.json")
         binfo = json.load(open(bj, encoding="utf-8"))
         toy_strip(src, binfo)
+        theme_only(src, binfo, toy_theme)
         with open(bj, "w", encoding="utf-8") as fh:
             json.dump(binfo, fh, ensure_ascii=False, indent=1)
         toy_assert_src(src)
@@ -445,7 +471,8 @@ def finish(a, tmp, out_dir, toy, commit, src):
     if big > LIMIT:
         sys.exit("有文件超过 25 MB 上限")
     if toy:
-        make_toy_zip(out_dir, commit + ("_god" if a.god else ""))
+        th = a.theme or "deep_sea"
+        make_toy_zip(out_dir, commit + ("" if th == "deep_sea" else "_" + th) + ("_god" if a.god else ""))
 
 
 def pck_paths(pk):
