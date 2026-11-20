@@ -1131,5 +1131,74 @@
   "atk": 0.2,
   "kingdoms": 8,
   "src": "原作（生命、攻击上升 + 大量国度）/ 本作拟（数值）"
+ },
+ "cold": {
+  "_doc": "圈外寒冷 / 冻结（docs/394 §8，用户 11-20 定，替代水月黑潮的圈外直接掉血）。寒冷值 0–100，每人单独一份（队长 + 出击模式的队友）。src 标出处：PRTS 术语释义「寒冷 / 冻结」查证 = 原作；其余本作拟。代码未接（萨米实装时同 gate_drop 等一起开单）。",
+  "max": 100.0,
+  "gain_out": {
+   "base": 20.0,
+   "phase_k": 0.15,
+   "depth_px": 300.0,
+   "depth_k": 1.0,
+   "grace": 0.0,
+   "formula": "每秒 + base × (1 + phase_k × 缩圈阶段) × (1 + depth_k × min(出圈距离 / depth_px, 1))",
+   "src": "本作拟：圈边阶段 0 约 5.0 秒积满、阶段 4 深处约 1.6 秒"
+  },
+  "decay_in": {
+   "per_sec": 50.0,
+   "delay": 0.0,
+   "src": "本作拟：回圈后满值 2 秒退光"
+  },
+  "decay_out_none": 0.0,
+  "slow": {
+   "max": 0.5,
+   "curve": "linear",
+   "formula": "移速 × (1 − max × 寒冷值 / 100)；与 frost / 其他减速合计封顶 −50%（代替通用 ctrl_move_cap 0.45 的上限）",
+   "aspd": 0.0,
+   "src": "原作寒冷是「攻速 −30」；本作改成移速（用户 11-20 定「移动逐渐变慢」），攻速不减"
+  },
+  "freeze": {
+   "at": 100.0,
+   "dur": 1.75,
+   "reset_to": 0.0,
+   "no_move": true,
+   "no_attack": true,
+   "no_skill": true,
+   "no_ult": true,
+   "no_dash": true,
+   "dps_k": 1.3,
+   "dps_formula": "每秒掉血 = dps_k × (2.5 + 1.5 × 缩圈阶段) × (1 + min(出圈距离 / 300, 1))，即水月黑潮同位置的 1.3 倍；圈内（被敌人冻住）按阶段 0、距离 0 算",
+   "dps_collapse": "frac_only",
+   "knockback": "ignore",
+   "src": "原作冻结「无法移动、攻击及使用技能」（PRTS 术语释义）；时长、掉血、不能冲刺、击退无效本作拟"
+  },
+  "thaw": {
+   "immune": 3.0,
+   "gain_during_immune": 0.0,
+   "in_ring_ends_freeze": true,
+   "src": "原作没有「冻结后免疫」的明文（PRTS 只写敌方寒冷叠成冻结）；3 秒免疫照通用 enemy/root_immune 3.0 的口径，本作拟"
+  },
+  "mates": {
+   "follow_mode": "immune",
+   "deploy_mode": "own_meter",
+   "dps_pct_of_maxhp": true,
+   "src": "用户 11-20 定：随行不结算；出击且人在圈外才结算，每人单独。队友掉血按自身最大生命同比例（队长 100 生命时的数值 ÷ 100）"
+  },
+  "enemy_src": {
+   "boss_cap": 90.0,
+   "boss_cap_src": "本作拟：Boss 和 Boss 招式加的寒冷最多加到 90，Boss 单独冻不住人（docs/393 §1.4「晕眩不上队长」、Boss 战僵直换减速口径）；圈外寒冷照常能顶满",
+   "wave_freeze": true
+  },
+  "collapse": {
+   "per_freeze": 0.5,
+   "src": "本作拟：每次冻结坍缩值 +0.5；冻结掉血只按比例计坍缩（不按每跳 hit_base），免得持续掉血刷涨"
+  },
+  "kingdom": "none",
+  "kingdom_src": "用户 11-19 定国度对敌人无效、冲刺穿过无效；本作拟：站在国度里不改寒冷涨降，冻结期间队长的击杀为 0，国度裂纹照旧只看击杀位置",
+  "arena": {
+   "final_arena": "same",
+   "src": "本作拟：10:00 最终 Boss 冻结场地后圈外照样积寒冷 / 冻结，阶段按冻结时那一档；永恒之尘只换画面"
+  },
+  "replaces": "萨米不用水月的寒霜层数（g.cold / frost_max / frost_root）和 frost 秒数减速：原 frost 字段在寒冷代码接上的同一单里删掉（现在留着，免得接上前连减速都没有）"
  }
 }
