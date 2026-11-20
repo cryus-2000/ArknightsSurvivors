@@ -280,6 +280,70 @@ def ground(out_dir, pair=("A", "D"), picks=(("husk", "idle"), ("husk", "attack")
     print(p, img.size)
 
 
+def block2(f):
+    """2×2 块一致率：按偶数格对齐的 2×2 块里（有不透明像素的），四格完全相同的占比；1.00 = 1 美术像素 = 2 屏幕像素"""
+    px = f.load()
+    tot = same = 0
+    for y in range(0, f.height - 1, 2):
+        for x in range(0, f.width - 1, 2):
+            q = (px[x, y], px[x + 1, y], px[x, y + 1], px[x + 1, y + 1])
+            if any(c[3] for c in q):
+                tot += 1
+                same += all(c == q[0] for c in q)
+    return same / max(tot, 1)
+
+
+def scale_cmp(dst, zoom=2):
+    """像素尺度对照（11-20）：每只萨米敌人（待机首帧 @2x）旁放一只待机高度最接近的水月敌人，雪地色底，标 2×2 块一致率。
+    出 <dst>/sami_scale_vs_deepsea.png（@2x 原大）与 _x2.png（再放大 2 倍便于看颗粒）"""
+    dee = json.load(open(os.path.join(ROOT, "game", "themes", "deep_sea", "data", "enemy_pixels.json"), encoding="utf-8"))
+    dee = dee.get("sprites", dee)
+    ref = []
+    for k, v in sorted(dee.items()):
+        v = v.get("pixels", v) if isinstance(v, dict) else v
+        p = os.path.join(ROOT, "game", "art", "enemies", k[2:], k + "@2x.png")
+        if k.count("_") != 1 or not isinstance(v, dict) or "frames" not in v or not os.path.exists(p):
+            continue
+        im = Image.open(p).convert("RGBA")
+        f = im.crop((0, 0, im.width // v["frames"], im.height))
+        f = f.crop(f.getbbox())
+        ref.append((k[2:], f, block2(f)))
+    cells = []
+    for eid, e in SE.ENEMIES.items():
+        p = os.path.join(dst, "e_sami_%s@2x.png" % eid)
+        if not os.path.exists(p):
+            continue
+        n = spec["sprites"]["e_sami_" + eid]["pixels"]["frames"]
+        im = Image.open(p).convert("RGBA")
+        f = im.crop((0, 0, im.width // n, im.height))
+        r = block2(f)
+        f = f.crop(f.getbbox())
+        m = min(ref, key=lambda t: abs(t[1].height - f.height))
+        cells.append((eid, e["name"], f, r, m))
+    SNOW = (222, 230, 238, 255)
+    cols = 5
+    cw = max(c[2].width + c[4][1].width for c in cells) + 40
+    rows = [cells[i:i + cols] for i in range(0, len(cells), cols)]
+    rh = [max(max(c[2].height, c[4][1].height) for c in r) + 62 for r in rows]
+    img = Image.new("RGBA", (cw * cols + 20, 50 + sum(rh)), SNOW)
+    dr = ImageDraw.Draw(img)
+    dr.text((10, 8), "像素尺度对照：左 = 萨米（@2x = 1 倍 ×2 最近邻），右 = 待机高度最接近的水月敌人；数字 = 2×2 块一致率", font=FONT_S, fill=(30, 40, 55, 255))
+    y = 40
+    for r, h in zip(rows, rh):
+        for i, (eid, name, f, rt, (rid, rf, rr)) in enumerate(r):
+            x = 10 + cw * i
+            base = y + h - 50
+            img.alpha_composite(f, (x, base - f.height))
+            img.alpha_composite(rf, (x + f.width + 14, base - rf.height))
+            dr.text((x, base + 2), "%s %.2f" % (eid, rt), font=FONT_S, fill=(20, 60, 120, 255))
+            dr.text((x, base + 18), "水月 %s %.2f" % (rid, rr), font=FONT_S, fill=(110, 40, 90, 255))
+        y += h
+    p = os.path.join(dst, "sami_scale_vs_deepsea.png")
+    img.save(p)
+    img.resize((img.width * zoom, img.height * zoom), Image.NEAREST).save(p[:-4] + "_x2.png")
+    print(p, img.size, "萨米最低一致率 %.2f" % min(c[3] for c in cells))
+
+
 if __name__ == "__main__" and len(sys.argv) > 2 and sys.argv[1] == "--variants":
     variants(sys.argv[2])
     ground(sys.argv[2])
@@ -289,6 +353,9 @@ elif __name__ == "__main__":
         SE.DST = sys.argv[i + 1]
         SE.CMP1X = os.path.join(SE.DST, "1x")
         del sys.argv[i:i + 2]
+    if "--scale" in sys.argv:   # 像素尺度对照：python tools/spine_px_enemy_cmp.py --dst <目录> --scale
+        scale_cmp(SE.DST)
+        sys.exit(0)
     ids = sys.argv[1:] or list(SE.ENEMIES)
     sheets = [one(i) for i in ids]
     if not sys.argv[1:]:

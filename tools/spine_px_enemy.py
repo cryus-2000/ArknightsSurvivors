@@ -135,6 +135,7 @@ VARIANTS = {
     "D": {"tex": {"lift": 0.8, "sat": 1.25, "hi_pct": 0.03, "hi_colors": 12, "contrast": 1.18}, "outline": None, "own_outline": 0.45,
           "_doc": "原图提亮 v^0.8 + 饱和 ×1.25 → 最亮 3% 单列 12 色 → 主色按色相拉开明度 ×1.18 → 描边 = 本色压暗 45%"},
 }
+NATIVE2X = False   # True = 旧口径：@2x 原生直出（像素只有水月的一半大）
 SUFFIX = ""   # --variant 时 = "_v<名>"，帧条与规格写到候选目录，不进 game/
 
 
@@ -395,6 +396,10 @@ def finish(eid, e):
         if e.get("eyes_from"):
             borrow_eyes(e, key.replace("e_" + k, "e_sami_" + e["eyes_from"][0]) + "@2x.png", out)
             borrow_eyes(e, key.replace("e_" + k, "e_sami_" + e["eyes_from"][0]) + ".png", o1)
+        if not NATIVE2X:
+            # 11-20 用户：像素颗粒要和水月敌人一样大——@2x = 1 倍帧条最近邻 ×2（1 美术像素 = 2 屏幕像素，2×2 块一致率 1.00）。
+            # 1 倍本来就是原生出图（Spine 按 0.5 倍逐附件像素化 + 1 倍下 1 像素描边，见 spine_px.render dens=1），不是从 @2x 缩的
+            out = o1.resize((o1.width * 2, o1.height * 2), Image.NEAREST)
         out.save(os.path.join(DST, key + "@2x.png"))
         # 1 倍只给 Boss 进包（同 install_enemy_redraw.BOSS_1X）；其余写 build/ 只供对照图
         o1.save(os.path.join(DST if boss else CMP1X, key + ".png"))
@@ -422,9 +427,12 @@ def main():
     ap.add_argument("--no-render", action="store_true")
     ap.add_argument("--variant", help="处理方式候选（VARIANTS 键）：帧条写到 --out，不进 game/、不改规格文件")
     ap.add_argument("--out", help="候选输出目录")
+    ap.add_argument("--native2x", action="store_true", help="@2x 原生直出（11-20 前的旧口径）；缺省 = 1 倍 ×2 最近邻")
     ap.add_argument("--dst", help="运行时帧条改写到这个目录（11-20：全量先放 F 盘，不进 game/）；1 倍对照写 <dst>/1x")
     a = ap.parse_args()
     global SUFFIX, DST, CMP1X
+    global NATIVE2X
+    NATIVE2X = a.native2x
     if a.dst:
         DST, CMP1X = a.dst, os.path.join(a.dst, "1x")
     if a.variant:
