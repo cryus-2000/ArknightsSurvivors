@@ -963,7 +963,7 @@ func gate_pass(e: Dictionary) -> void:
 	if e.gate_final:
 		# 最终 Boss 每过一道卡点：回复道具与灯油各一个（boss/gate_drop_*，小数部分按概率）
 		for kd in [["heal", "boss/gate_drop_heal", 1.0], ["oil", "boss/gate_drop_oil", 15.0]]:
-			var n: float = Bal.v(kd[1], 1.0)
+			var n: float = float(D.GATE_DROP.get(kd[0], Bal.v(kd[1], 1.0)))   # 主题 waves gate_drop 覆盖（萨米 oil 0）
 			var cnt := int(n) + (1 if g.rng_drop.randf() < n - floorf(n) else 0)
 			for k in cnt:
 				g.pickups.drop(e.pos + Vector2.from_angle(g.rng_drop.randf() * TAU) * 40.0, kd[0], kd[2])

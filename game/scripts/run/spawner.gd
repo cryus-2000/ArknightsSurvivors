@@ -153,6 +153,20 @@ func pick_elite() -> String:
 ## 最终 Boss 登场时，还没打死的中期 Boss 撤场、不给奖励（用户 9/27，docs/38 B1 ②）：直接移除，不走 kill()（不掉落、不计击杀），
 ## 顺带取消它的预警；7:00 时两只中期 Boss 共存，不撤
 ## 中期池第 i 组里有没有和已出场的 Boss 是同一人物（SAME_PERSON）
+## mid_prefer_new_family 用：这一组里有没有和已抽组同 family 的 Boss
+func _family_used(i: int) -> bool:
+	var used := {}
+	for u in mid_used:
+		for t in D.MID_POOL[u]:
+			var f := str(D.ENEMIES.get(str(t), {}).get("family", ""))
+			if f != "":
+				used[f] = true
+	for t in D.MID_POOL[i]:
+		if used.has(str(D.ENEMIES.get(str(t), {}).get("family", ""))):
+			return true
+	return false
+
+
 func person_used(i: int) -> bool:
 	var used := {}
 	for u in mid_used:
@@ -346,6 +360,10 @@ func _boss_group(idx: int) -> Array:
 	for i in D.MID_POOL.size():
 		if not mid_used.has(i) and (idx != 1 or D.MID_FIRST.is_empty() or D.MID_FIRST.has(i)) and not person_used(i):
 			pool.append(i)
+	if D.MID_PREFER_NEW_FAMILY and not mid_used.is_empty():
+		var fresh: Array = pool.filter(func(i): return not _family_used(i))
+		if not fresh.is_empty():
+			pool = fresh
 	var pick: int = pool[g.rng_spawn.randi() % pool.size()]
 	if g.force_boss >= 0 and not mid_used.has(g.force_boss):
 		pick = g.force_boss
@@ -1295,7 +1313,7 @@ func spawn_chest(pos: Vector2) -> void:
 ## 是否伪装成箱形恐鱼：约 15%；持有补给箱钥匙（docs/57 P17）期间不出。随机数先抽再判断，钥匙不改变 g.rng 的消耗
 func _mimic_roll() -> bool:
 	var roll: bool = g.rng_spawn.randf() < 0.15
-	return roll and g.rfx.rule("chest_keys") <= 0
+	return roll and g.rfx.rule("chest_keys") <= 0 and D.ENEMIES.has("mimic")   # 主题没有箱形恐鱼（萨米）就不伪装；随机数照抽
 
 
 ## 箱形恐鱼现形

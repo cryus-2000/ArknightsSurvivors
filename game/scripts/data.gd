@@ -11,6 +11,9 @@ static var MID_POOL: Array = Loader.load_waves().mid_pool
 ## 第一个中期 Boss（3:30）只从这些 MID_POOL 下标里抽；双 Boss 与远程风筝型留到第二个（7:00），编队成型后再考（docs/29 §6）
 static var MID_FIRST: Array = Loader.load_waves().get("mid_first", []).map(func(x): return int(x))   # JSON 数字是 float，转 int 才能和下标比较
 static var ENDINGS: Dictionary = Loader.load_waves().endings
+## 主题可选（萨米 docs/392 §11.8）：7:00 优先抽和 3:30 不同 family 的组；最终 Boss 卡点掉落覆盖 boss/gate_drop_*。水月不写 = 不变
+static var MID_PREFER_NEW_FAMILY: bool = bool(Loader.load_waves().get("mid_prefer_new_family", false))
+static var GATE_DROP: Dictionary = Loader.load_waves().get("gate_drop", {})
 ## 结局的显示顺序（编号 Ⅰ–Ⅳ）：按 waves.json endings 的 no 排（docs/368 §1）
 static func ending_order() -> Array:
 	var ks: Array = ENDINGS.keys()
