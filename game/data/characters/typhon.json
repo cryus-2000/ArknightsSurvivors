@@ -1,0 +1,695 @@
+{
+ "_doc": "提丰（docs/402）：11-21 用户按建议定稿 §9 五条后实装。积木在 blocks/seg_typhon.gd（verb.ty_*，弹体沿用能天使段）；帧条 Spine 直转（tools/spine_run_trial/cfg/typhon_px.json）。recruitable false：进池前不进招募 / 名册",
+ "id": "typhon",
+ "trail_col": {
+  "main": [
+   0.66,
+   0.5,
+   0.82
+  ],
+  "alt": [
+   0.9,
+   0.9,
+   0.95
+  ]
+ },
+ "name": "提丰",
+ "en": "TYPHON",
+ "class": "狙击",
+ "branch": "攻城手",
+ "lanes": [
+  "multi",
+  "control"
+ ],
+ "col": [
+  0.62,
+  0.48,
+  0.78
+ ],
+ "recruitable": false,
+ "script": "res://scripts/characters/data_operator.gd",
+ "base": {
+  "_doc": "全部数值（docs/27 §9.2）；预算见 docs/402 §4。普攻 76 / 1.8 秒 = 42.2 单体；穿透 2 名（共 3 个目标，每穿一名按通用穿甲 −15%）",
+  "atk": 66,
+  "cd": 1.8,
+  "first_cd": 0.3,
+  "idle_cd": 0.3,
+  "range": 440,
+  "arrow_speed": 560,
+  "pierce": 2,
+  "kb": 60,
+  "fang_max": 5,
+  "fang_keep": 4.0,
+  "fang_ign": 0.1,
+  "fang_elite": 0.03,
+  "_fang": "精一 锐如兽牙：每射一箭 +1 层（至多 fang_max），fang_keep 秒没射清零；每层无视敌人减伤 fang_ign、对精英 / Boss 伤害 +fang_elite",
+  "mire_mult": 1.6,
+  "mire_pause": 1.5,
+  "_mire": "天赋 重如沼泥：她任意技能生效期间，对每名敌人第一次伤害 ×mire_mult、停顿 mire_pause 秒（精英 ×0.5，Boss 除外）",
+  "s1_atk": 1.3,
+  "s1_aspd": 1.35,
+  "s1_dur": 10,
+  "s2_atk": 1.2,
+  "s2_twin": 0.6,
+  "s2_stun_p": 0.3,
+  "s2_stun": 0.8,
+  "s3_ammo": 10,
+  "s3_n": 5,
+  "s3_r": 100,
+  "s3_mult": 1.0,
+  "s3_stun": 0.4,
+  "s3_hop_r": 200,
+  "s3_spill": 0.5,
+  "_s3_spill": "箭雨：标记周围敌人不够 s3_n 名时，多出来落在标记身上的箭伤害 ×s3_spill（木桩第 1 轮单体超能天使 60%，11-21）",
+  "pin_every": 3,
+  "pin_dur": 4.0,
+  "pin_root": 1.2,
+  "pin_echo": 0.4,
+  "pin_r": 90,
+  "pin_max": 3,
+  "_pin": "精二 钉影：每第 pin_every 箭插黑箭 pin_dur 秒、目标定身 pin_root 秒（精英 ×0.5；Boss 改减速 pin_boss_slow 2 秒）；她打中被钉目标时伤害 ×pin_echo 涟漪到黑箭 pin_r 内其他敌人；黑箭至多 pin_max 支",
+  "rip_r": 60,
+  "rip_mult": 0.45,
+  "volley_every": 3,
+  "volley_spread": 24,
+  "hh_cd": 6.0,
+  "herd_r": 70,
+  "herd_mult": 0.5,
+  "herd_pause": 0.8,
+  "hh2_mult": 2.0,
+  "hh2_root": 0.6,
+  "trap_cd": 5.0,
+  "trap_r": 60,
+  "trap_dur": 3.0,
+  "trap_pause": 1.0,
+  "trap_mult": 0.6,
+  "s2_dur": 15,
+  "pin_team": 0.08
+ },
+ "leader": {
+  "_doc": "当队长时的受击属性（docs/23）：原作精二满级 生命 1702 / 防御 113 / 法抗 0%，同能天使档（1613 / 136 / 0 → 99 / 1.0 / 0 / 0.9），生命略高、护甲略低",
+  "max_hp": 102.0,
+  "armor": 0.9,
+  "arts_res": 0.0,
+  "regen": 0.9
+ },
+ "sprites": {
+  "_doc": "11-21 Spine 直转像素（docs/365 照做，tools/spine_run_trial/cfg/typhon_px.json）；192 画布 @2x / 96 @1x，foot [48,76]；idle 最高点 78 @2x。普攻 Attack_Loop 后段拉弓 → OnAttack 放箭，attack_timing 0.9 秒、出手 0.35 秒（f4）",
+  "size": 64,
+  "foot": [
+   48,
+   76
+  ],
+  "foot_exempt": "Spine 直转 192 画布 @2x（docs/365 §1），各帧条 foot 同为 [48, 76]",
+  "dash_run": true,
+  "idle": {
+   "tex": "op_typhon_idle",
+   "frames": 8,
+   "fps": 1.3333,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.75,
+    0.75,
+    0.75,
+    0.75,
+    0.75,
+    0.75,
+    0.75,
+    0.75
+   ]
+  },
+  "run": {
+   "tex": "op_typhon_run",
+   "frames": 8,
+   "fps": 13.3333,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.07500000187500006,
+    0.07500000187500006,
+    0.07500000187500006,
+    0.07500000187500006,
+    0.07500000187500006,
+    0.07500000187500006,
+    0.07500000187500006,
+    0.07500000187500006
+   ]
+  },
+  "skill": {
+   "tex": "op_typhon_skill",
+   "frames": 8,
+   "fps": 8.0,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.125,
+    0.125,
+    0.125,
+    0.125,
+    0.125,
+    0.125,
+    0.125,
+    0.125
+   ]
+  },
+  "s2perm": {
+   "tex": "op_typhon_s2perm",
+   "frames": 8,
+   "fps": 1.0,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  "hurt": {
+   "tex": "op_typhon_hurt",
+   "frames": 2,
+   "fps": 13.3333,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.07,
+    0.08
+   ]
+  },
+  "death": {
+   "tex": "op_typhon_death",
+   "frames": 8,
+   "fps": 8.0,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.1286,
+    0.1285,
+    0.1286,
+    0.1286,
+    0.1286,
+    0.1285,
+    0.1286,
+    0.1
+   ]
+  },
+  "entry": {
+   "tex": "op_typhon_entry",
+   "frames": 8,
+   "fps": 7.1111,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.1429,
+    0.1428,
+    0.1429,
+    0.1428,
+    0.1429,
+    0.1428,
+    0.1429,
+    0.125
+   ]
+  },
+  "attack": {
+   "tex": "op_typhon_attack",
+   "frames": 8,
+   "fps": 8.8889,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.1,
+    0.08,
+    0.08,
+    0.09,
+    0.1,
+    0.15,
+    0.15,
+    0.15
+   ],
+   "fire": 4,
+   "fire_time": 0.35,
+   "attack_timing": {
+    "duration": 0.9,
+    "fire_time": 0.35,
+    "active_ratio": 0.9,
+    "windup_ratio": 0.4,
+    "min_duration": 0.3,
+    "frame_durations": [
+     0.1,
+     0.08,
+     0.08,
+     0.09,
+     0.1,
+     0.15,
+     0.15,
+     0.15
+    ]
+   }
+  },
+  "move_attack": {
+   "tex": "op_typhon_move_attack",
+   "frames": 8,
+   "fps": 8.8889,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.1,
+    0.08,
+    0.08,
+    0.09,
+    0.1,
+    0.15,
+    0.15,
+    0.15
+   ],
+   "fire": 4,
+   "_note": "只有 @1x（同现有 20 人 move_attack 口径）"
+  },
+  "s3loop": {
+   "tex": "op_typhon_s3loop",
+   "frames": 8,
+   "fps": 8.0,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.12,
+    0.1,
+    0.1,
+    0.08,
+    0.12,
+    0.16,
+    0.16,
+    0.16
+   ],
+   "fire": 4
+  },
+  "skills": {
+   "s1": {
+    "anim": "attack"
+   },
+   "s2": {
+    "anim": "attack"
+   },
+   "s3": {
+    "anim": "skill"
+   }
+  }
+ },
+ "extra_sprites": [],
+ "attack": {
+  "mode": "auto",
+  "name": "猎矢",
+  "desc": "每 {$cd} 秒朝射程内最重的敌人射出一支重箭（Boss → 精英 → 重型 → 生命最多），穿透至多 {$pierce} 名敌人"
+ },
+ "skills": [
+  {
+   "name": "迅捷打击·γ型",
+   "en": "SWIFT STRIKE γ",
+   "sp": 8,
+   "dur": "$s1_dur",
+   "desc": "{$s1_dur} 秒内攻击 ×{$s1_atk}、攻击速度 ×{$s1_aspd}",
+   "icon": "skill_typhon_s1"
+  },
+  {
+   "name": "冰原秩序",
+   "en": "ORDER OF THE ICEFIELD",
+   "sp": 14,
+   "dur": "$s2_dur",
+   "desc": "攻击 ×{$s2_atk}，每次攻击射出两支箭（优先不同目标，第二支伤害 ×{$s2_twin}），每支有 {$s2_stun_p*100}% 概率使目标眩晕 {$s2_stun} 秒（精英减半，Boss 除外）；首次持续 {$s2_dur} 秒，第二次起持续时间无限",
+   "icon": "skill_typhon_s2"
+  },
+  {
+   "name": "“永恒狩猎”",
+   "en": "'ETERNAL HUNT'",
+   "sp": 24,
+   "desc": "标记射程内最重的一名敌人；之后每次攻击改为对标记发射一轮箭雨：{$s3_n} 支箭随机落在标记周围 {$s3_r} 内的敌人身上，每支伤害 ×{$s3_mult}、眩晕 {$s3_stun} 秒（精英减半，Boss 除外），周围敌人不够时多出来的箭落在标记身上、伤害 ×{$s3_spill}；标记目标倒下时标记转移到附近最重的敌人；共 {$s3_ammo} 轮",
+   "icon": "skill_typhon_s3"
+  }
+ ],
+ "talent": {
+  "name": "重如沼泥",
+  "desc": "自身技能生效期间，对每名敌人第一次造成伤害时伤害 ×{$mire_mult}，并使其停顿 {$mire_pause} 秒（精英减半，Boss 除外）"
+ },
+ "hit_sources": {
+  "猎矢": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "远程",
+   "kind": "物理",
+   "tags": [
+    "projectile",
+    "basic",
+    "pierce"
+   ]
+  },
+  "冰原秩序": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "远程",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "projectile",
+    "pierce"
+   ]
+  },
+  "“永恒狩猎”": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "远程",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "projectile",
+    "area"
+   ]
+  },
+  "钉影": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "远程",
+   "kind": "物理",
+   "tags": [
+    "follow_up",
+    "area"
+   ]
+  },
+  "空间涟漪": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "远程",
+   "kind": "物理",
+   "tags": [
+    "follow_up",
+    "area"
+   ]
+  },
+  "寒气": {
+   "emitter": "operator",
+   "origin": "talent",
+   "range": "远程",
+   "kind": "物理",
+   "tags": [
+    "follow_up",
+    "area"
+   ]
+  },
+  "影子陷阱": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "远程",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "area"
+   ]
+  },
+  "破甲重矢": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "远程",
+   "kind": "物理",
+   "tags": [
+    "projectile",
+    "basic"
+   ]
+  }
+ },
+ "progression": [
+  {
+   "type": "custom",
+   "id": "ripple",
+   "name": "空间涟漪",
+   "icon": "growth_b_size",
+   "desc": "普攻命中首个目标时荡开一圈涟漪，半径 {$rip_r} 内其他敌人受到 {$rip_mult*100}% 伤害"
+  },
+  {
+   "type": "custom",
+   "id": "volley",
+   "name": "齐射",
+   "icon": "growth_b_count",
+   "desc": "「迅捷打击·γ型」生效期间，每第 {$volley_every} 箭改为扇形三箭，各自穿透"
+  },
+  {
+   "type": "elite",
+   "level": 1,
+   "name": "精英一",
+   "desc": "解锁二技能「冰原秩序」；解锁天赋「重如沼泥」；普攻「锐如兽牙」：每射一箭叠 1 层（至多 {$fang_max} 层，{$fang_keep} 秒未射击清零），每层无视敌人 {$fang_ign*100}% 减伤、对精英与 Boss 伤害 +{$fang_elite*100}%",
+   "attack": {
+    "name": "锐如兽牙",
+    "desc": "每射一箭叠 1 层（至多 {$fang_max} 层，{$fang_keep} 秒未射击清零），每层无视敌人 {$fang_ign*100}% 减伤、对精英与 Boss 伤害 +{$fang_elite*100}%；叠满时箭身转黑、拖出黑影"
+   }
+  },
+  {
+   "type": "custom",
+   "id": "headhunt",
+   "name": "猎首",
+   "icon": "growth_t_field",
+   "desc": "「重如沼泥」对精英与 Boss 每 {$hh_cd} 秒重新生效一次（Boss 只吃伤害加成，不停顿）",
+   "branch": {
+    "headhunt": {
+     "id": "headhunt",
+     "name": "猎首",
+     "icon": "growth_t_field",
+     "desc": "「重如沼泥」对精英与 Boss 每 {$hh_cd} 秒重新生效一次（Boss 只吃伤害加成，不停顿）"
+    },
+    "herd": {
+     "id": "herd",
+     "name": "驱群",
+     "icon": "growth_b_echo",
+     "desc": "被「重如沼泥」停顿的敌人在停顿中被击杀时，迸出一圈寒气：半径 {$herd_r} 内敌人受到 {$herd_mult*100}% 伤害并停顿 {$herd_pause} 秒"
+    }
+   },
+   "branch_desc": "「猎首」让天赋对精英与 Boss 反复生效；「驱群」让停顿中的敌人被击杀时冻住周围一圈",
+   "bot": "herd"
+  },
+  {
+   "type": "custom",
+   "id": "herd",
+   "name": "驱群",
+   "icon": "growth_b_echo",
+   "desc": "被「重如沼泥」停顿的敌人在停顿中被击杀时，迸出一圈寒气：半径 {$herd_r} 内敌人受到 {$herd_mult*100}% 伤害并停顿 {$herd_pause} 秒",
+   "routes": {
+    "headhunt": {
+     "id": "headhunt2",
+     "name": "破甲重矢",
+     "icon": "growth_t_field",
+     "desc": "「锐如兽牙」叠满后，下一箭若射向精英或 Boss，改为一支重矢：伤害 ×{$hh2_mult}，精英定身 {$hh2_root} 秒；之后层数清零"
+    },
+    "herd": {
+     "id": "herd2",
+     "name": "影子陷阱",
+     "icon": "growth_b_echo",
+     "desc": "「冰原秩序」生效期间，每 {$trap_cd} 秒在敌群最密处钉下一处影子陷阱（半径 {$trap_r}，持续 {$trap_dur} 秒）：踏入的敌人停顿 {$trap_pause} 秒并受到 {$trap_mult*100}% 伤害（每名敌人一次）"
+    }
+   }
+  },
+  {
+   "type": "elite",
+   "level": 2,
+   "name": "精英二",
+   "desc": "解锁三技能「“永恒狩猎”」；普通攻击强化「钉影」：每第 {$pin_every} 箭把首个目标的影子钉在地上 {$pin_dur} 秒，使其定身 {$pin_root} 秒（精英减半；Boss 改为减速）；钉住期间她每次打中该目标，伤害的 {$pin_echo*100}% 扩散到黑箭半径 {$pin_r} 内的其他敌人；被钉住的敌人受到全队伤害 +{$pin_team*100}%",
+   "attack": {
+    "name": "钉影",
+    "desc": "每第 {$pin_every} 箭在首个目标脚下插一支黑箭（{$pin_dur} 秒，同时至多 {$pin_max} 支），目标定身 {$pin_root} 秒（精英减半；Boss 改为减速）；她每次打中被钉住的敌人，伤害的 {$pin_echo*100}% 以涟漪扩散到黑箭半径 {$pin_r} 内的其他敌人；被钉住的敌人受到全队伤害 +{$pin_team*100}%"
+   }
+  }
+ ],
+ "gallery": {
+  "tags": [
+   "远程",
+   "穿透",
+   "精英优先",
+   "控制"
+  ],
+  "desc": "攻城手：射程最远，优先射击最重的敌人；重箭穿透一线。技能生效期间对每名敌人的第一箭附带重击与停顿；冰原秩序第二次起持续时间无限。",
+  "intro": "（草稿，待用户改）萨米的猎人，射得最远、一箭最重，专挑最难缠的那个先下手。别碰她的弓。"
+ },
+ "blocks": {
+  "_doc": "积木（docs/61；提丰专属 verb.ty_* 在 blocks/seg_typhon.gd，docs/402 §3）",
+  "attack": {
+   "shape": "projectile",
+   "src": "猎矢",
+   "every": "$cd",
+   "first": "$first_cd",
+   "idle": "$idle_cd",
+   "range": "$range",
+   "speed": "$arrow_speed",
+   "shots": 1,
+   "pierce": "$pierce",
+   "kb": "$kb",
+   "mult": 1.0,
+   "tex": "proj_exusiai_bullet",
+   "muzzle": [
+    22,
+    -24
+   ]
+  },
+  "skills": [
+   {
+    "dur": "$s1_dur",
+    "do": [
+     {
+      "verb": "buff_self",
+      "stat": "op_atk",
+      "op": "mult",
+      "value": "$s1_atk",
+      "power": true
+     },
+     {
+      "verb": "buff_self",
+      "stat": "op_aspd",
+      "op": "mult",
+      "value": "$s1_aspd",
+      "power": true
+     }
+    ],
+    "need_enemy": 440
+   },
+   {
+    "dur": "$s2_dur",
+    "do": [
+     {
+      "verb": "buff_self",
+      "stat": "op_atk",
+      "op": "mult",
+      "value": "$s2_atk",
+      "power": true
+     },
+     {
+      "verb": "ty_s2",
+      "permanent_after": 2,
+      "twin": "$s2_twin",
+      "stun_p": "$s2_stun_p",
+      "stun": "$s2_stun",
+      "src": "冰原秩序"
+     }
+    ],
+    "need_enemy": 440
+   },
+   {
+    "dur": {
+     "ammo": "$s3_ammo"
+    },
+    "do": [
+     {
+      "verb": "ty_hunt",
+      "n": "$s3_n",
+      "r": "$s3_r",
+      "mult": "$s3_mult",
+      "stun": "$s3_stun",
+      "hop_r": "$s3_hop_r", "spill": "$s3_spill",
+      "src": "“永恒狩猎”",
+      "power": true
+     }
+    ],
+    "need_enemy": 440
+   }
+  ],
+  "trait": [
+   {
+    "trig": "passive",
+    "do": [
+     {
+      "verb": "ty_hunter"
+     }
+    ]
+   }
+  ],
+  "talent": [
+   {
+    "trig": "passive",
+    "do": [
+     {
+      "verb": "ty_mire",
+      "mult": "$mire_mult",
+      "pause": "$mire_pause"
+     }
+    ]
+   }
+  ],
+  "progression": {
+   "ripple": {
+    "verb": "ty_ripple",
+    "r": "$rip_r",
+    "mult": "$rip_mult",
+    "src": "空间涟漪"
+   },
+   "volley": {
+    "verb": "ty_volley",
+    "every": "$volley_every",
+    "spread": "$volley_spread"
+   },
+   "headhunt": {
+    "verb": "ty_headhunt",
+    "cd": "$hh_cd"
+   },
+   "herd": {
+    "verb": "ty_herd",
+    "r": "$herd_r",
+    "mult": "$herd_mult",
+    "pause": "$herd_pause",
+    "src": "寒气"
+   },
+   "headhunt2": {
+    "verb": "ty_hh2",
+    "mult": "$hh2_mult",
+    "root": "$hh2_root",
+    "src": "破甲重矢"
+   },
+   "herd2": {
+    "verb": "ty_trap",
+    "cd": "$trap_cd",
+    "r": "$trap_r",
+    "dur": "$trap_dur",
+    "pause": "$trap_pause",
+    "mult": "$trap_mult",
+    "pick_r": 300,
+    "src": "影子陷阱"
+   },
+   "elite1": {
+    "verb": "ty_fang",
+    "max": "$fang_max",
+    "keep": "$fang_keep",
+    "ign": "$fang_ign",
+    "elite": "$fang_elite"
+   },
+   "elite2": {
+    "verb": "ty_pin",
+    "every": "$pin_every",
+    "dur": "$pin_dur",
+    "root": "$pin_root",
+    "echo": "$pin_echo",
+    "r": "$pin_r",
+    "max": "$pin_max",
+    "team": "$pin_team",
+    "src": "钉影"
+   }
+  }
+ }
+}
