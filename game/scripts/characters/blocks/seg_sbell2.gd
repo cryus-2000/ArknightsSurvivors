@@ -9,9 +9,8 @@ extends "res://scripts/characters/blocks/seg_ling.gd"
 
 const SB_ICE := Color(0.62, 0.85, 1.0)      # 冰蓝 #9fd8ff（寒冷 / 冻结环）
 const SB_SNOW := Color(0.46, 0.64, 0.82)    # 积雪填充（压暗的冰蓝：不过光学泛光阈值，雪地 / 深海地面上都不发白）
-const SB_EDGE := Color(0.24, 0.38, 0.62)    # 雪斑描边（压暗的宝蓝）
-const SB_PIP := Color(0.80, 0.90, 0.98)      # 层数亮点
-const SB_BELL := Color(0.63, 0.48, 0.29)    # 暗铜铃纹 #a07a4a
+const SB_EDGE := Color(0.10, 0.15, 0.24)    # 雪区外沿压暗（深灰蓝：暗地上几乎看不出，白雪地上勾出薄雪范围）
+const SB_BELL := Color(0.44, 0.33, 0.21)    # 暗铜小铃（不受光，保持暗铜）
 const SB_TEX_N := 14                        # 雪斑贴图边长（texel），每 texel = 3 世界单位（3 像素格）
 static var _sb_tex: Array = []              # [变体][层数-1] → ImageTexture（只画）
 
@@ -521,38 +520,49 @@ static func _sb_hash(x: int, y: int, v: int) -> int:
 	return (h ^ (h >> 16)) & 0x7fffffff
 
 
-## 雪地贴图（满格 14 × 14 texel，每 texel 3 世界单位）：3 种噪声 × 5 层。层数越多雪点越密越亮（1 层稀疏雪点，5 层满铺）+ 中下层数亮点；
-## 外形 0 的 3 层以上格子带一个暗铜小铃（约三分之一的厚雪格）。相邻格拼起来是一整片雪地，外沿描边在 sb_draw_ground 按邻格画
+## 雪团贴图（只画）：30 × 30 texel（每 texel 3 世界单位，约 2 个格宽），圆形、边缘按角度起伏并带噪点抖动，内部少量雪粒。
+## 相邻格的雪团互相叠住，拼成一整片雪地，看不出 40 × 40 的格子。tex[0..2] = 雪团三种外形，tex[3..5] = 外沿压暗用的稍大雪团，tex[6] = 暗铜小铃
+const SB_BLOB_N := 30
 static func _sb_textures() -> Array:
 	if not _sb_tex.is_empty():
 		return _sb_tex
-	var N := SB_TEX_N
-	var bell := [Vector2i(6, 3), Vector2i(7, 3), Vector2i(5, 4), Vector2i(6, 4), Vector2i(7, 4), Vector2i(8, 4), Vector2i(5, 5), Vector2i(6, 5), Vector2i(7, 5), Vector2i(8, 5), Vector2i(6, 6), Vector2i(7, 6)]
-	var cover := [0.42, 0.58, 0.74, 0.88, 1.0]
-	for v in 3:
-		var row: Array = []
-		for layer in 5:
+	for kind in 2:
+		for v in 3:
+			var N := SB_BLOB_N
 			var img := Image.create(N, N, false, Image.FORMAT_RGBA8)
-			var fa: float = 0.22 + 0.07 * float(layer)
+			var c0: float = (float(N) - 1.0) * 0.5
+			var R: float = 13.0 if kind == 0 else 14.0
 			for y in N:
 				for x in N:
-					var hh: int = _sb_hash(x, y, v) % 1000
-					if float(hh) / 1000.0 >= cover[layer]:
+					var dx: float = float(x) - c0
+					var dy: float = float(y) - c0
+					var ang: float = atan2(dy, dx)
+					var rr: float = R + 1.1 * sin(ang * float(3 + v) + float(v) * 2.1) + 0.7 * cos(ang * float(5 + v) - float(v))
+					var d: float = sqrt(dx * dx + dy * dy)
+					var hh: int = _sb_hash(x, y, v + kind * 7) % 1000
+					if d > rr + 1.0:
 						continue
-					var c: Color = SB_SNOW
-					if hh % 9 == 0:
-						c = Color(0.60, 0.76, 0.90)   # 雪粒高光（暗，不过泛光阈值）
-					img.set_pixel(x, y, Color(c.r, c.g, c.b, fa))
-			if layer >= 2 and v == 0:
-				for p in bell:
-					img.set_pixelv(p, Color(SB_BELL.r, SB_BELL.g, SB_BELL.b, 0.6 + 0.08 * float(layer)))
-			var n := layer + 1
-			var x0 := 7 - n
-			for k in n:
-				img.set_pixel(x0 + k * 2, 10, Color(SB_PIP.r, SB_PIP.g, SB_PIP.b, 0.85))
-			row.append(ImageTexture.create_from_image(img))
-		_sb_tex.append(row)
+					if d > rr - 1.0 and float(hh) / 1000.0 > 0.55 - (d - rr) * 0.3:   # 边缘抖动：噪点圆滑边
+						continue
+					var c: Color = SB_SNOW if kind == 0 else SB_EDGE
+					var al: float = 1.0
+					if kind == 0:
+						al = clampf((rr - d) / (rr * 0.28), 0.25, 1.0)   # 内部按半径平滑衰减：叠在一起不露雪团的边
+						al = snappedf(al, 0.25)
+						if hh % 37 == 0:
+							c = Color(0.66, 0.80, 0.93)   # 少量雪粒（暗，不过泛光阈值）
+							al = 1.0
+					img.set_pixel(x, y, Color(c.r, c.g, c.b, al))
+			_sb_tex.append(ImageTexture.create_from_image(img))
+	var bimg := Image.create(5, 5, false, Image.FORMAT_RGBA8)
+	for p in [Vector2i(2, 0), Vector2i(1, 1), Vector2i(2, 1), Vector2i(3, 1), Vector2i(1, 2), Vector2i(2, 2), Vector2i(3, 2), Vector2i(0, 3), Vector2i(1, 3), Vector2i(2, 3), Vector2i(3, 3), Vector2i(4, 3), Vector2i(2, 4)]:
+		bimg.set_pixelv(p, SB_BELL)
+	_sb_tex.append(ImageTexture.create_from_image(bimg))
 	return _sb_tex
+
+
+const _SB_ALPHA := [0.15, 0.21, 0.27, 0.33, 0.40]   # 层数 → 雪团不透明度（越厚越亮、越实）
+const _SB_N8 := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1), Vector2i(1, 1), Vector2i(1, -1), Vector2i(-1, 1), Vector2i(-1, -1)]
 
 
 static func sb_draw_ground(o) -> void:
@@ -562,41 +572,59 @@ static func sb_draw_ground(o) -> void:
 	var cv = o.cv
 	var tx := _sb_textures()
 	var cs := _sb_cell(o)
-	var sz := Vector2(cs, cs)
+	var t3: float = cs / float(SB_TEX_N)
+	var bs := Vector2(SB_BLOB_N, SB_BLOB_N) * t3
+	var src := Rect2(0, 0, SB_BLOB_N, SB_BLOB_N)
 	var w: Dictionary = st.wave
 	var wr := -1.0
 	if not w.is_empty():
 		wr = float(st.b.get("wave_r", 240.0)) * o.stat(&"op_range") * clampf(float(w.t) / float(st.b.get("wave_t", 0.6)), 0.0, 1.0)
 	var cells: Dictionary = st.cells
-	var ec := Color(SB_EDGE.r * 0.8, SB_EDGE.g * 0.8, SB_EDGE.b * 0.8, 0.5)
-	var t3: float = cs / float(SB_TEX_N)
+	# 一：外沿压暗（只在雪区边界格，往缺雪那一侧偏一点），垫在雪团下面
+	for k in st.order:
+		if int(cells.get(k, 0)) <= 0:
+			continue
+		var out := Vector2.ZERO
+		for d in _SB_N8:
+			if not cells.has(k + d):
+				out += Vector2(d)
+		if out == Vector2.ZERO:
+			continue
+		var h: int = _sb_hash(k.x, k.y, 3)
+		var c := sb_center(o, k) + out.normalized() * cs * 0.18 + _sb_jit(h, cs)
+		cv.draw_texture_rect_region(tx[3 + h % 3], Rect2(c - bs * 0.5, bs), src, Color(1, 1, 1, 0.5))
+	# 二：雪团（层数越多越亮、越不透明）
+	var bells: Array = []
 	for k in st.order:
 		var n: int = int(cells.get(k, 0))
 		if n <= 0:
 			continue
-		var h: int = absi(k.x * 73856093 ^ k.y * 19349663)
-		var tex: Texture2D = tx[h % 3][clampi(n, 1, 5) - 1]
-		var c := sb_center(o, k)
-		var tl := c - sz * 0.5
-		var mod := Color(1, 1, 1, 1)
-		if wr >= 0.0 and absf(c.distance_to(w.c) - wr) < cs * 0.7:   # 霜涛经过的雪格提亮（没雪处圈是断的）
-			mod = Color(1.35, 1.4, 1.5, 1.0)
-		cv.draw_texture_rect_region(tex, Rect2(tl, sz), Rect2(0, 0, SB_TEX_N, SB_TEX_N), mod)   # o.cv 是合批画布（batch_canvas），只有 region 版
-		# 雪区外沿：没有雪的那一侧画一道 1 texel 宽的压暗描边，按格子哈希缩进 0 / 1 texel，边不是一条直线
-		var j: float = t3 * float(h % 2)
-		if not cells.has(k + Vector2i(0, -1)):
-			cv.draw_rect(Rect2(tl + Vector2(0, j), Vector2(cs, t3)), ec)
-		if not cells.has(k + Vector2i(0, 1)):
-			cv.draw_rect(Rect2(tl + Vector2(0, cs - t3 - j), Vector2(cs, t3)), ec)
-		if not cells.has(k + Vector2i(-1, 0)):
-			cv.draw_rect(Rect2(tl + Vector2(j, 0), Vector2(t3, cs)), ec)
-		if not cells.has(k + Vector2i(1, 0)):
-			cv.draw_rect(Rect2(tl + Vector2(cs - t3 - j, 0), Vector2(t3, cs)), ec)
+		var h: int = _sb_hash(k.x, k.y, 1)
+		var c := sb_center(o, k) + _sb_jit(h, cs)
+		var li: int = clampi(n, 1, 5) - 1
+		var br: float = 0.92 + 0.06 * float(li)
+		var mod := Color(br, br, br, float(_SB_ALPHA[li]))
+		if wr >= 0.0 and absf(c.distance_to(w.c) - wr) < cs * 0.7:   # 霜涛经过的雪提亮（没雪处圈是断的）
+			mod = Color(1.3, 1.35, 1.45, minf(1.0, mod.a + 0.2))
+		cv.draw_texture_rect_region(tx[h % 3], Rect2(c - bs * 0.5, bs), src, mod)   # o.cv 是合批画布（batch_canvas），只有 region 版
+		if n >= 5 and h % 19 == 0:
+			bells.append(c)
+	# 三：暗铜小铃（很稀：只在部分 5 层处；抵消局内灯光，保持暗铜本色）
+	if not bells.is_empty():
+		var look = load("res://scripts/render/look.gd")   # 运行时 load：本文件也被 -s 契约测试加载，不能编译期引用带自动加载的脚本
+		var sz := Vector2(5, 5) * t3
+		for c in bells:
+			var um: Color = look.op_unlit_mod(o.g, c)
+			cv.draw_texture_rect_region(tx[6], Rect2(c - sz * 0.5, sz), Rect2(0, 0, 5, 5), Color(um.r, um.g, um.b, 0.9))
 	for s in st.storms:
 		var r: float = float(st.b.get("n5b_r", 50.0))
 		cv.draw_set_transform(s.c, 0.0, Vector2(1.0, 0.55))
 		cv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 20, Color(SB_ICE.r, SB_ICE.g, SB_ICE.b, 0.5), 2.0)
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+static func _sb_jit(h: int, cs: float) -> Vector2:
+	return Vector2(float((h >> 4) % 13) - 6.0, float((h >> 9) % 13) - 6.0) * cs / 42.0
 
 
 ## 调试演示（只在调试版 + 命令行 --sbdemo）：开局在队长右侧摆 1–5 层各一块 3 × 3 样板，撞色对照截图用（docs/403 §6.0）
