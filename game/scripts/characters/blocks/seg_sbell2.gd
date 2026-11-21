@@ -520,9 +520,10 @@ static func _sb_hash(x: int, y: int, v: int) -> int:
 	return (h ^ (h >> 16)) & 0x7fffffff
 
 
-## 雪团贴图（只画）：30 × 30 texel（每 texel 3 世界单位，约 2 个格宽），圆形、边缘按角度起伏并带噪点抖动，内部少量雪粒。
-## 相邻格的雪团互相叠住，拼成一整片雪地，看不出 40 × 40 的格子。tex[0..2] = 雪团三种外形，tex[3..5] = 外沿压暗用的稍大雪团，tex[6] = 暗铜小铃
-const SB_BLOB_N := 30
+## 雪团贴图（只画）：48 × 48 texel（每 texel 3 世界单位），不透明度按高斯衰减（σ ≈ 0.6 格距），按格距铺开后叠出来几乎是平的——
+## 看不出 40 × 40 的格子；边缘再按噪点抖动成像素颗粒的圆滑边。tex[0..2] = 雪团三种噪点，tex[3..5] = 外沿压暗用的稍大雪团，tex[6] = 暗铜小铃
+const SB_BLOB_N := 48
+const SB_SIGMA := 8.4   # texel（= 0.6 × 42 / 3）
 static func _sb_textures() -> Array:
 	if not _sb_tex.is_empty():
 		return _sb_tex
@@ -531,28 +532,24 @@ static func _sb_textures() -> Array:
 			var N := SB_BLOB_N
 			var img := Image.create(N, N, false, Image.FORMAT_RGBA8)
 			var c0: float = (float(N) - 1.0) * 0.5
-			var R: float = 13.0 if kind == 0 else 14.0
+			var sg: float = SB_SIGMA * (1.0 if kind == 0 else 1.15)
 			for y in N:
 				for x in N:
 					var dx: float = float(x) - c0
 					var dy: float = float(y) - c0
 					var ang: float = atan2(dy, dx)
-					var rr: float = R + 1.1 * sin(ang * float(3 + v) + float(v) * 2.1) + 0.7 * cos(ang * float(5 + v) - float(v))
-					var d: float = sqrt(dx * dx + dy * dy)
+					var wob: float = 1.0 + 0.10 * sin(ang * float(3 + v) + float(v) * 2.1)
+					var d: float = sqrt(dx * dx + dy * dy) / wob
+					var al: float = exp(-d * d / (2.0 * sg * sg))
 					var hh: int = _sb_hash(x, y, v + kind * 7) % 1000
-					if d > rr + 1.0:
+					al = clampf(al + (float(hh) / 1000.0 - 0.5) * 0.22, 0.0, 1.0)   # 噪点抖动：边缘是像素颗粒
+					if al < 0.28:   # 截掉高斯尾巴：雪区边缘是带噪点的硬边，不是雾
 						continue
-					if d > rr - 1.0 and float(hh) / 1000.0 > 0.55 - (d - rr) * 0.3:   # 边缘抖动：噪点圆滑边
-						continue
+					al = minf(1.0, 0.55 + al * 0.6)   # 截断后抬平：雪团内部接近实心，叠起来平整
 					var c: Color = SB_SNOW if kind == 0 else SB_EDGE
-					var al: float = 1.0
-					if kind == 0:
-						al = clampf((rr - d) / (rr * 0.28), 0.25, 1.0)   # 内部按半径平滑衰减：叠在一起不露雪团的边
-						al = snappedf(al, 0.25)
-						if hh % 37 == 0:
-							c = Color(0.66, 0.80, 0.93)   # 少量雪粒（暗，不过泛光阈值）
-							al = 1.0
-					img.set_pixel(x, y, Color(c.r, c.g, c.b, al))
+					if kind == 0 and hh % 53 == 0 and al > 0.5:
+						c = Color(0.70, 0.84, 0.95)   # 少量雪粒（暗，不过泛光阈值）
+					img.set_pixel(x, y, Color(c.r, c.g, c.b, snappedf(al, 1.0 / 16.0)))
 			_sb_tex.append(ImageTexture.create_from_image(img))
 	var bimg := Image.create(5, 5, false, Image.FORMAT_RGBA8)
 	for p in [Vector2i(2, 0), Vector2i(1, 1), Vector2i(2, 1), Vector2i(3, 1), Vector2i(1, 2), Vector2i(2, 2), Vector2i(3, 2), Vector2i(0, 3), Vector2i(1, 3), Vector2i(2, 3), Vector2i(3, 3), Vector2i(4, 3), Vector2i(2, 4)]:
@@ -561,7 +558,7 @@ static func _sb_textures() -> Array:
 	return _sb_tex
 
 
-const _SB_ALPHA := [0.15, 0.21, 0.27, 0.33, 0.40]   # 层数 → 雪团不透明度（越厚越亮、越实）
+const _SB_ALPHA := [0.16, 0.21, 0.26, 0.32, 0.38]   # 层数 → 单个雪团的峰值不透明度（铺开后约 ×2.3：0.18–0.48，越厚越亮、越实）
 const _SB_N8 := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1), Vector2i(1, 1), Vector2i(1, -1), Vector2i(-1, 1), Vector2i(-1, -1)]
 
 
@@ -591,8 +588,8 @@ static func sb_draw_ground(o) -> void:
 		if out == Vector2.ZERO:
 			continue
 		var h: int = _sb_hash(k.x, k.y, 3)
-		var c := sb_center(o, k) + out.normalized() * cs * 0.18 + _sb_jit(h, cs)
-		cv.draw_texture_rect_region(tx[3 + h % 3], Rect2(c - bs * 0.5, bs), src, Color(1, 1, 1, 0.5))
+		var c := sb_center(o, k) + out.normalized() * cs * 0.45 + _sb_jit(h, cs)
+		cv.draw_texture_rect_region(tx[3 + h % 3], Rect2(c - bs * 0.5, bs), src, Color(1, 1, 1, 0.32))
 	# 二：雪团（层数越多越亮、越不透明）
 	var bells: Array = []
 	for k in st.order:
