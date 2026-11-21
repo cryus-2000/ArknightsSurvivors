@@ -221,6 +221,8 @@ func cancel_skill_action() -> void:
 
 func on_leave() -> void:
 	AttackPhases.cancel(self)
+	if gn.has("sb"):
+		ObCore._F().sb_leave(self)   # docs/403 圣聆初雪：撤守阵加成、清积雪
 	cancel_skill_action()
 	for i in 3:
 		if SkillLifecycle.owns(self, i):
@@ -298,6 +300,8 @@ func update(dt: float) -> void:
 	ObSummon.sm_tick(self, dt)    # 召唤 / 封印段：召唤物、护盾计时、封印标记（sm 为空时直接返回）
 	ObElite.el_tick(self, dt)    # 精英化段：往返弹体（el 为空时直接返回）
 	SegSkalter.sk_gn_tick(self, dt)   # 成长节点（docs/202）：浊心斯卡蒂的潮声层数（其余干员第一行就返回）
+	if gn.has("sb"):
+		ObCore._F().sb_frame(self, dt)   # docs/403 圣聆初雪：积雪软减速（每帧退回雪上敌人的位移）
 	if SegTexas.tx_update(self, dt):   # 德克萨斯段：冲刺中不起手
 		return
 	if hw_busy or (not hw.is_empty() and ObHw.hw_busy(self)):   # 手写迁移段：喷发序列 / 锚在外面时不起手（同手写的 return）
@@ -663,6 +667,10 @@ const EXEC_SEG := {
 	"verb.lg_grow": 0,   # _ext_exec → seg_ling（docs/367 §9 令）
 	"verb.lg_ev": 0,   # _ext_exec → seg_ling（docs/367 §9 令）
 	"verb.lg_lure": 0,   # _ext_exec → seg_ling（docs/367 §10.6 令）
+	"verb.sb_snow": 0,   # _ext_exec → seg_sbell2（docs/403 圣聆初雪）
+	"verb.sb_blast": 0,   # _ext_exec → seg_sbell2（docs/403 圣聆初雪）
+	"verb.sb_lay": 0,   # _ext_exec → seg_sbell2（docs/403 圣聆初雪）
+	"verb.sb_chill": 0,   # _ext_exec → seg_sbell2（docs/403 圣聆初雪）
 	"shape.dash_line": 1,   # tx_exec
 	"verb.fx_rain": 1,   # tx_exec
 	"verb.emit_path": 1,   # tx_exec
@@ -1214,6 +1222,8 @@ func draw_ground_fx() -> void:
 	if _px_sk() > 0:   # 转平面（docs/260）接管浊心斯卡蒂：S3 漩涡地面帧条、海嗣小歌域地面帧条不画
 		return
 	_draw_hold_strips(cv, "ground")
+	if gn.has("sb"):
+		ObCore._F().sb_draw_ground(self)   # docs/403 圣聆初雪：积雪地格（占位画法，在敌人之下）
 	if not sm.is_empty():
 		SegSkalter.e5_draw_zone_ground(self)   # 精英化第 5 批段：召唤物区域的地面帧条
 
@@ -1332,6 +1342,8 @@ func away() -> bool:
 
 ## 主控本该倒下时阻止（verb.undying 所在技能生效中）
 func prevent_death() -> bool:
+	if gn.has("sb") and ObCore._F().sb_prevent_death(self):   # docs/403 圣聆初雪「圣山的祝福」：一局一次
+		return true
 	return not hw.is_empty() and SegSpecter.h3_prevent_death(self)
 
 
@@ -1575,6 +1587,8 @@ func _ext_exec(b: Dictionary, at: Vector2) -> void:
 			ObCore._F().ll_exec(self, b)
 		"verb.lg_summon", "verb.lg_drink", "verb.lg_decay", "verb.lg_lit", "verb.lg_ming", "verb.lg_merge", "verb.lg_split", "verb.lg_ink", "verb.lg_tune", "verb.lg_grow", "verb.lg_ev", "verb.lg_lure":   # docs/367 令（blocks/seg_ling.gd）
 			ObCore._F().lg_exec(self, b, at)
+		"verb.sb_snow", "verb.sb_blast", "verb.sb_lay", "verb.sb_chill":   # docs/403 圣聆初雪（blocks/seg_sbell2.gd）
+			ObCore._F().sb_exec(self, b, at)
 		"verb.field":
 			if b.has("tick"):   # 常驻力场（安洁莉娜）在 _sustain 里，这里只管瞬时留场
 				return

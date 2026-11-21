@@ -1,0 +1,106 @@
+{
+ "id": "sbell2",
+ "src": "sbell2.src.json",
+ "name": "圣聆初雪",
+ "body": {
+  "hip": "F_Hip_I",
+  "chest": "F_Chest_I",
+  "head": "F_Head_II"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg_I",
+   "F_L_Calf_I",
+   "F_L_Foot_I"
+  ],
+  "R": [
+   "F_R_Leg_I",
+   "F_R_Calf_I",
+   "F_R_Foot_I"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm_I",
+   "F_L_Forearm_I",
+   "F_L_Hand_I"
+  ],
+  "R": [
+   "F_R_Arm_I",
+   "F_R_Forearm_I",
+   "F_R_Hand_I"
+  ]
+ },
+ "leadLeg": "L",
+ "hold": null,
+ "weapon": "",
+ "params": {
+  "lean": 5,
+  "headKeep": 0.5,
+  "stride": 0.8,
+  "lift": 0.8,
+  "bob": 0.7,
+  "holdAmp": 6,
+  "armAmp": 14,
+  "elbow": 30,
+  "elbowAmp": 10
+ },
+ "secondary": [
+  {
+   "match": "^F_(Hair|L_Hair|R_Hair|Bangs|L_Bangs|R_Bangs|L_Temples|R_Temples)",
+   "amp": 2.0,
+   "drag": 3,
+   "lag": 1.2
+  },
+  {
+   "match": "^F_[LR]_Pigtail",
+   "amp": 3,
+   "drag": 4,
+   "lag": 1.3
+  },
+  {
+   "match": "^F_(L_|R_)?Cloak",
+   "amp": 2.5,
+   "drag": 3,
+   "lag": 1.2
+  },
+  {
+   "match": "^F_[LR]_Ribbon",
+   "amp": 3,
+   "drag": 4,
+   "lag": 1.3
+  },
+  {
+   "match": "^F_[LR]_Bell",
+   "amp": 2,
+   "drag": 3,
+   "lag": 1.2
+  },
+  {
+   "match": "^F_Tail",
+   "amp": 3,
+   "drag": 4,
+   "lag": 1.3
+  },
+  {
+   "match": "^F_Skirt",
+   "amp": 1.5,
+   "drag": 2,
+   "lag": 1.1
+  }
+ ],
+ "pack": {
+  "scale": 0.18,
+  "root": [
+   64,
+   120
+  ],
+  "palette_png": ""
+ },
+ "skipAdditive": true,
+ "canvas": 192,
+ "_doc": "圣聆初雪（docs/403 §6.1，11-21）：rig + 跑步步态（原作无 Move / Attack 轨，无武器骨）；其余动作由 tools/spine_px.py 按 cfg/sbell2_px.json 采样原作轨",
+ "boneScale": {
+  "F_Head_II": 1.2
+ }
+}

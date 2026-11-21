@@ -47,6 +47,10 @@ const EXT_BLOCKS := {
 	"verb.lg_grow": "instant",        # 令（docs/367 §9，seg_ling）
 	"verb.lg_ev": "instant",          # 令（docs/367 §9，seg_ling）
 	"verb.lg_lure": "instant",        # 令（docs/367 §10.6，seg_ling）
+	"verb.sb_snow": "instant",        # 圣聆初雪（docs/403，seg_sbell2）：积雪节拍 + 踏雪扫描（trait 的 trig.tick）
+	"verb.sb_blast": "instant",       # 圣聆初雪：铃音吹雪
+	"verb.sb_lay": "instant",         # 圣聆初雪：铺雪（铃落 / 连携 / 终结技）
+	"verb.sb_chill": "instant",       # 圣聆初雪：圣山的祝福 · 寒冷反击
 }
 
 

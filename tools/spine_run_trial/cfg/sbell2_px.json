@@ -1,0 +1,247 @@
+{
+ "id": "sbell2",
+ "rig": "sbell2.json",
+ "scale": 0.18,
+ "canvas": 192,
+ "colors": 96,
+ "_doc": "圣聆初雪 B 方案帧条（docs/403 §6.1，11-21）：tools/spine_px.py sbell2 出全部动作；原作 Spine char_1046_sbell2（torappu）。idle 目标最高点到脚底约 78 @2x（docs/365）",
+ "outline": {
+  "color": "#0c1424",
+  "mix": 0.55
+ },
+ "palette_protect": true,
+ "palette_alpha": 230,
+ "actions": {
+  "idle": {
+   "sample": {
+    "anim": "Idle",
+    "range": [
+     0,
+     2.0,
+     8
+    ]
+   },
+   "note": "Idle 8 秒轨取前 2 秒（一次呼吸）"
+  },
+  "run": {
+   "fps": 13.333333,
+   "note": "原作无 Move 轨：run_trial 步态合成（裙摆遮腿）"
+  },
+  "move_attack": {
+   "mode": "move_attack",
+   "sample": {
+    "anim": "Skill_2_Attack",
+    "times": [
+     0,
+     0.25,
+     0.45,
+     0.6,
+     0.7,
+     0.95,
+     1.3,
+     1.7
+    ],
+    "end": 2.0
+   },
+   "dens": [
+    1
+   ],
+   "fire": 4,
+   "note": "开阵时边走边打（只出 @1x）：Skill_2_Attack 上半身 + 步态"
+  },
+  "attack": {
+   "sample": {
+    "anim": "Skill_2_Attack",
+    "times": [
+     0,
+     0.25,
+     0.45,
+     0.6,
+     0.7,
+     0.95,
+     1.3,
+     1.7
+    ],
+    "end": 2.0
+   },
+   "fire": 4,
+   "note": "开阵攻击 = S2 出手（OnAttack 0.70 ≈ f4）"
+  },
+  "skill": {
+   "sample": {
+    "anim": "Skill",
+    "times": [
+     0,
+     0.2,
+     0.4,
+     0.6,
+     0.77,
+     1.0,
+     1.4,
+     1.8
+    ],
+    "end": 2.0
+   },
+   "fire": 4,
+   "note": "S1 铃音吹雪（OnAttack 0.767 ≈ f4）"
+  },
+  "s2_begin": {
+   "sample": {
+    "anim": "Skill_2_Begin",
+    "range": [
+     0,
+     0.8333,
+     4
+    ]
+   },
+   "note": "S2 起手（开阵）"
+  },
+  "s2_idle": {
+   "sample": {
+    "anim": "Skill_2_Idle",
+    "range": [
+     0,
+     2.6667,
+     8
+    ]
+   },
+   "note": "开阵期间两次出手之间的待机"
+  },
+  "s2_end": {
+   "sample": {
+    "anim": "Skill_2_End",
+    "range": [
+     0,
+     0.5,
+     4
+    ]
+   },
+   "note": "S2 收势（永久技能一般用不到，留着）"
+  },
+  "s3_begin": {
+   "sample": {
+    "anim": "Skill_3_Begin",
+    "times": [
+     0,
+     0.11,
+     0.22
+    ],
+    "end": 0.3333
+   },
+   "note": "S3 起手"
+  },
+  "s3_idle": {
+   "sample": {
+    "anim": "Skill_3_Idle",
+    "range": [
+     0,
+     2.0,
+     8
+    ]
+   },
+   "note": "S3 期间待机（8 秒轨取前 2 秒）"
+  },
+  "s3_attack_a": {
+   "sample": {
+    "anim": "Skill_3_Attack_A",
+    "times": [
+     0,
+     0.2,
+     0.4,
+     0.55,
+     0.67,
+     0.9,
+     1.3,
+     1.7
+    ],
+    "end": 2.0
+   },
+   "fire": 4,
+   "note": "S3 出手 A（OnAttack 0.667 ≈ f4）"
+  },
+  "s3_attack_b": {
+   "sample": {
+    "anim": "Skill_3_Attack_B",
+    "times": [
+     0,
+     0.2,
+     0.4,
+     0.55,
+     0.67,
+     0.9,
+     1.3,
+     1.7
+    ],
+    "end": 2.0
+   },
+   "fire": 4,
+   "note": "S3 出手 B"
+  },
+  "s3_attack_c": {
+   "sample": {
+    "anim": "Skill_3_Attack_C",
+    "times": [
+     0,
+     0.2,
+     0.4,
+     0.55,
+     0.67,
+     0.9,
+     1.3,
+     1.7
+    ],
+    "end": 2.0
+   },
+   "fire": 4,
+   "note": "S3 出手 C"
+  },
+  "s3_end": {
+   "sample": {
+    "anim": "Skill_3_End",
+    "range": [
+     0,
+     0.6667,
+     4
+    ]
+   },
+   "note": "S3 收势"
+  },
+  "hurt": {
+   "sample": {
+    "anim": "Die",
+    "times": [
+     0.05,
+     0.12
+    ],
+    "end": 0.2
+   },
+   "note": "原作无受击轨：取 Die 开头两帧"
+  },
+  "death": {
+   "sample": {
+    "anim": "Die",
+    "range": [
+     0,
+     1.0,
+     8
+    ],
+    "inclusive": true,
+    "end": 1.125
+   },
+   "note": "Die 全程 8 帧（末帧定格）"
+  },
+  "entry": {
+   "sample": {
+    "anim": "Start",
+    "range": [
+     0,
+     1.0,
+     8
+    ],
+    "inclusive": true,
+    "end": 1.125
+   },
+   "note": "Start 全程（OnStart 0.33）"
+  }
+ }
+}

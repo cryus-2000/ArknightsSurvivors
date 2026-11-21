@@ -1,0 +1,911 @@
+{
+  "_doc": "圣聆初雪（docs/403，方案 A 雪阵，11-21 用户拍板）：术师 · 阵法术师。积雪落在世界地格（seg_sbell2.gd）；放出永久 S2 前不攻击（守阵，队长加护甲 / 法抗），之后开阵常驻。美术占位借艾雅法拉帧条，特效占位；recruitable false",
+  "id": "sbell2",
+  "trail_col": {
+    "main": [
+      0.62,
+      0.85,
+      1.0
+    ],
+    "alt": [
+      0.23,
+      0.47,
+      0.85
+    ]
+  },
+  "name": "圣聆初雪",
+  "en": "Pramanix the Prerita",
+  "class": "术师",
+  "branch": "阵法术师",
+  "lanes": [
+    "control",
+    "multi"
+  ],
+  "col": [
+    0.62,
+    0.85,
+    1.0
+  ],
+  "recruitable": false,
+  "script": "res://scripts/characters/data_operator.gd",
+  "base": {
+    "_doc": "全部数值（docs/27 §9.2）；预算见 docs/403 §4。原作对照：积雪 10 / 7.5 / 5.5 秒 → 本作 3.0 / 2.4 / 1.8；踏雪 20% / 50% / 75%。11-21 用户定：S2 永久（s2_open 1.9→0.95、s2_dot 0.15→0.08，总量不变，docs/403 §4.0）；免死回复 30%",
+    "atk": 30,
+    "cd": 2.0,
+    "open_r": 140,
+    "cell": 42,
+    "snow_r": 150,
+    "snow_cd0": 3.0,
+    "snow_cd1": 2.4,
+    "snow_cd2": 1.8,
+    "snow_max": 5,
+    "snow_hit0": 0.25,
+    "snow_hit1": 0.5,
+    "snow_hit2": 0.75,
+    "snow_slow0": 0.1,
+    "snow_slow2": 0.12,
+    "snow_cells_max": 240,
+    "snow_scan": 0.1,
+    "guard_armor": 1.5,
+    "guard_res": 0.15,
+    "bless_r": 90,
+    "bless_cold": 1.5,
+    "bless_gap": 1.0,
+    "bless_heal": 0.3,
+    "bless_self": 2.0,
+    "bless_freeze_r": 240,
+    "bless_freeze": 5.0,
+    "s1_r": 170,
+    "s1_half": 1.05,
+    "s1_mult": 2.4,
+    "s1_kb": 200,
+    "s1_cold": 2.0,
+    "s1_gap": 0.6,
+    "s1_lane_n": 5,
+    "s1_lane_layers": 2,
+    "s2_open": 0.95,
+    "s2_dot": 0.08,
+    "s2_spread_max": 60,
+    "s2_leave_cold": 2.0,
+    "s2_freeze": 1.0,
+    "s3_dur": 15,
+    "s3_atk": 1.5,
+    "s3_aspd": 1.3,
+    "s3_snow_mult": 0.5,
+    "s3_pull_r": 280,
+    "s3_ring": 80,
+    "s3_pull_every": 0.5,
+    "s3_pull_dur": 6.0,
+    "e1_layers": 1,
+    "wave_n": 3,
+    "wave_r": 240,
+    "wave_t": 0.6,
+    "wave_mult": 0.8,
+    "wave_cold": 1.5,
+    "n1_layers": 2,
+    "n1_cells": 8,
+    "n2_freeze": 1.0,
+    "n4a_freeze": 1.0,
+    "n4b_r": 60,
+    "n4b_mult": 0.2,
+    "n5a_freeze": 1.5,
+    "n5a_min": 3,
+    "n5b_r": 50,
+    "n5b_dur": 2.0,
+    "n5b_every": 0.5,
+    "n5b_mult": 0.1,
+    "first_cd": 0.3,
+    "idle_cd": 0.3,
+    "s3_dmg": 1.474,
+    "s3_range": 0.45,
+    "s3_pull_dist": 30,
+    "look_r": 260
+  },
+  "leader": {
+    "_doc": "当队长时的受击属性（docs/23）：原作精二满级 生命 2058 / 防御 265 / 法抗 15（character_table char_1046_sbell2 phases[2]）；守阵（不在技能期间）另加 guard_armor / guard_res，对应特性防御 +200%、法抗 +20",
+    "max_hp": 112.5,
+    "armor": 2.0,
+    "arts_res": 0.15,
+    "regen": 0.9
+  },
+  "sprites": {
+    "_doc": "11-21 Spine 直转像素（docs/403 §6.1，tools/spine_run_trial/cfg/sbell2_px.json）；192 画布 @2x / 96 @1x，foot [48,76]，idle 最高点到脚底 80。原作无 Attack 轨：开阵攻击 = Skill_2_Attack（原作 2.0 秒，attack_timing 压到 1.0 秒、出手 0.35）",
+    "size": 64,
+    "foot": [
+      48,
+      76
+    ],
+    "foot_exempt": "Spine 直转 192 画布 @2x（docs/365 §1），各帧条 foot 同为 [48, 76]",
+    "dash_run": true,
+    "idle": {
+      "tex": "op_sbell2_idle",
+      "frames": 8,
+      "fps": 4.0,
+      "foot": [
+        48,
+        76
+      ],
+      "frame_durations": [
+        0.25,
+        0.25,
+        0.25,
+        0.25,
+        0.25,
+        0.25,
+        0.25,
+        0.25
+      ]
+    },
+    "run": {
+      "tex": "op_sbell2_run",
+      "frames": 8,
+      "fps": 13.3333,
+      "foot": [
+        48,
+        76
+      ],
+      "frame_durations": [
+        0.07500000187500006,
+        0.07500000187500006,
+        0.07500000187500006,
+        0.07500000187500006,
+        0.07500000187500006,
+        0.07500000187500006,
+        0.07500000187500006,
+        0.07500000187500006
+      ]
+    },
+    "attack": {
+      "tex": "op_sbell2_attack",
+      "frames": 8,
+      "fps": 4.0,
+      "foot": [
+        48,
+        76
+      ],
+      "frame_durations": [
+        0.25,
+        0.2,
+        0.15,
+        0.1,
+        0.25,
+        0.35,
+        0.4,
+        0.3
+      ],
+      "fire": 4,
+      "fire_time": 0.7,
+      "attack_timing": {
+        "duration": 1.0,
+        "fire_time": 0.35,
+        "active_ratio": 0.9,
+        "windup_ratio": 0.35,
+        "min_duration": 0.3,
+        "frame_durations": [
+          0.125,
+          0.1,
+          0.075,
+          0.05,
+          0.125,
+          0.175,
+          0.2,
+          0.15
+        ]
+      }
+    },
+    "skill": {
+      "tex": "op_sbell2_skill",
+      "frames": 8,
+      "fps": 4.0,
+      "foot": [
+        48,
+        76
+      ],
+      "frame_durations": [
+        0.2,
+        0.2,
+        0.2,
+        0.17,
+        0.23,
+        0.4,
+        0.4,
+        0.2
+      ],
+      "fire": 4,
+      "fire_time": 0.77
+    },
+    "s2_begin": {
+      "tex": "op_sbell2_s2_begin",
+      "frames": 4,
+      "fps": 4.8002,
+      "foot": [
+        48,
+        76
+      ],
+      "frame_durations": [
+        0.2083,
+        0.2084,
+        0.2083,
+        0.2083
+      ]
+    },
+    "s2_idle": {
+      "tex": "op_sbell2_s2_idle",
+      "frames": 8,
+      "fps": 3.0,
+      "foot": [
+        48,
+        76
+      ],
+      "frame_durations": [
+        0.3333,
+        0.3334,
+        0.3333,
+        0.3334,
+        0.3333,
+        0.3333,
+        0.3334,
+        0.3333
+      ]
+    },
+    "s2_end": {
+      "tex": "op_sbell2_s2_end",
+      "frames": 4,
+      "fps": 8.0,
+      "foot": [
+        48,
+        76
+      ],
+      "frame_durations": [
+        0.125,
+        0.125,
+        0.125,
+        0.125
+      ]
+    },
+    "s3_begin": {
+      "tex": "op_sbell2_s3_begin",
+      "frames": 3,
+      "fps": 9.0009,
+      "foot": [
+        48,
+        76
+      ],
+      "frame_durations": [
+        0.11,
+        0.11,
+        0.1133
+      ]
+    },
+    "s3_idle": {
+      "tex": "op_sbell2_s3_idle",
+      "frames": 8,
+      "fps": 4.0,
+      "foot": [
+        48,
+        76
+      ],
+      "frame_durations": [
+        0.25,
+        0.25,
+        0.25,
+        0.25,
+        0.25,
+        0.25,
+        0.25,
+        0.25
+      ]
+    },
+    "s3_attack_a": {
+      "tex": "op_sbell2_s3_attack_a",
+      "frames": 8,
+      "fps": 4.0,
+      "foot": [
+        48,
+        76
+      ],
+      "frame_durations": [
+        0.2,
+        0.2,
+        0.15,
+        0.12,
+        0.23,
+        0.4,
+        0.4,
+        0.3
+      ],
+      "fire": 4,
+      "fire_time": 0.67
+    },
+    "s3_attack_b": {
+      "tex": "op_sbell2_s3_attack_b",
+      "frames": 8,
+      "fps": 4.0,
+      "foot": [
+        48,
+        76
+      ],
+      "frame_durations": [
+        0.2,
+        0.2,
+        0.15,
+        0.12,
+        0.23,
+        0.4,
+        0.4,
+        0.3
+      ],
+      "fire": 4,
+      "fire_time": 0.67
+    },
+    "s3_attack_c": {
+      "tex": "op_sbell2_s3_attack_c",
+      "frames": 8,
+      "fps": 4.0,
+      "foot": [
+        48,
+        76
+      ],
+      "frame_durations": [
+        0.2,
+        0.2,
+        0.15,
+        0.12,
+        0.23,
+        0.4,
+        0.4,
+        0.3
+      ],
+      "fire": 4,
+      "fire_time": 0.67
+    },
+    "s3_end": {
+      "tex": "op_sbell2_s3_end",
+      "frames": 4,
+      "fps": 5.9997,
+      "foot": [
+        48,
+        76
+      ],
+      "frame_durations": [
+        0.1667,
+        0.1666,
+        0.1667,
+        0.1667
+      ]
+    },
+    "hurt": {
+      "tex": "op_sbell2_hurt",
+      "frames": 2,
+      "fps": 13.3333,
+      "foot": [
+        48,
+        76
+      ],
+      "frame_durations": [
+        0.07,
+        0.08
+      ]
+    },
+    "death": {
+      "tex": "op_sbell2_death",
+      "frames": 8,
+      "fps": 7.1111,
+      "foot": [
+        48,
+        76
+      ],
+      "frame_durations": [
+        0.1429,
+        0.1428,
+        0.1429,
+        0.1428,
+        0.1429,
+        0.1428,
+        0.1429,
+        0.125
+      ]
+    },
+    "entry": {
+      "tex": "op_sbell2_entry",
+      "frames": 8,
+      "fps": 7.1111,
+      "foot": [
+        48,
+        76
+      ],
+      "frame_durations": [
+        0.1429,
+        0.1428,
+        0.1429,
+        0.1428,
+        0.1429,
+        0.1428,
+        0.1429,
+        0.125
+      ]
+    },
+    "move_attack": {
+      "tex": "op_sbell2_move_attack",
+      "frames": 8,
+      "fps": 4.0,
+      "foot": [
+        48,
+        76
+      ],
+      "frame_durations": [
+        0.25,
+        0.2,
+        0.15,
+        0.1,
+        0.25,
+        0.35,
+        0.4,
+        0.3
+      ],
+      "fire": 4,
+      "fire_time": 0.7,
+      "_note": "只有 @1x（同现有 move_attack 口径）"
+    },
+    "skills": {
+      "s1": {
+        "anim": "skill"
+      },
+      "s2": {
+        "anim": "s2_begin"
+      },
+      "s3": {
+        "anim": "s3_begin"
+      }
+    }
+  },
+  "extra_sprites": [
+    "s2_begin",
+    "s2_idle",
+    "s2_end",
+    "s3_begin",
+    "s3_idle",
+    "s3_attack_a",
+    "s3_attack_b",
+    "s3_attack_c",
+    "s3_end",
+    "hurt",
+    "entry"
+  ],
+  "attack": {
+    "mode": "auto",
+    "name": "开阵",
+    "desc": "特性「无垠的雪景」：身边地面每隔一段时间积一层雪（至多 {$snow_max} 层），敌人踏上立即受到攻击 {$snow_hit0*100}%（精一 {$snow_hit1*100}%、精二 {$snow_hit2*100}%）的法术伤害，并按层数减速，首个离开的敌人带走那格积雪。放出「霜涛覆岭」前不攻击，担任队长时防御与法术抗性大幅提升；之后每 {$cd} 秒对周围 {$open_r} 内的全部敌人造成法术伤害"
+  },
+  "skills": [
+    {
+      "name": "铃音吹雪",
+      "en": "",
+      "sp": 7,
+      "icon": "skill_sbell2_s1",
+      "desc": "朝敌群最密处吹出风雪：攻击 {$s1_mult*100}% 的法术伤害，寒冷 {$s1_cold} 秒并推开敌人，随后向前铺出 {$s1_lane_n} 格积雪（每格 +{$s1_lane_layers} 层）；一次吹两下"
+    },
+    {
+      "name": "霜涛覆岭",
+      "en": "",
+      "sp": 16,
+      "icon": "skill_sbell2_s2",
+      "desc": "放出后永久开阵，攻击 {$s2_open*100}% 的群体法术伤害；满 5 层的积雪向四周扩散；积雪上的敌人每秒受到攻击 {$s2_dot*100}% 的法术伤害，离开积雪时寒冷 {$s2_leave_cold} 秒；积雪积满 5 层时冻结格上的敌人 {$s2_freeze} 秒",
+      "permanent": true
+    },
+    {
+      "name": "群山俯首",
+      "en": "",
+      "sp": 28,
+      "dur": "$s3_dur",
+      "icon": "skill_sbell2_s3",
+      "desc": "诱导 {$s3_pull_r} 内的敌人到自身周围（Boss 除外）；{$s3_dur} 秒内开阵范围扩大、伤害提升，攻击力 +{$s3_atk*100-100}%、攻击速度 +{$s3_aspd*100-100}%，积雪生成加快"
+    }
+  ],
+  "talent": {
+    "name": "圣山的祝福",
+    "desc": "队长受到伤害时，周围敌人寒冷 {$bless_cold} 秒；一局一次：队长受到致命伤害时回复 {$bless_heal*100}% 生命并冰封 {$bless_self} 秒，周围 {$bless_freeze_r} 内的敌人冻结 {$bless_freeze} 秒（Boss 除外）"
+  },
+  "hit_sources": {
+    "开阵": {
+      "emitter": "operator",
+      "origin": "core",
+      "range": "远程",
+      "kind": "法术",
+      "tags": [
+        "basic",
+        "area"
+      ]
+    },
+    "积雪": {
+      "emitter": "operator",
+      "origin": "trait",
+      "range": "远程",
+      "kind": "法术",
+      "tags": [
+        "basic",
+        "area",
+        "field"
+      ]
+    },
+    "霜涛": {
+      "emitter": "operator",
+      "origin": "core",
+      "range": "远程",
+      "kind": "法术",
+      "tags": [
+        "basic",
+        "area"
+      ]
+    },
+    "铃音吹雪": {
+      "emitter": "operator",
+      "origin": "skill",
+      "range": "远程",
+      "kind": "法术",
+      "tags": [
+        "skill",
+        "area"
+      ]
+    },
+    "霜涛覆岭": {
+      "emitter": "operator",
+      "origin": "skill",
+      "range": "远程",
+      "kind": "法术",
+      "tags": [
+        "skill",
+        "area",
+        "field"
+      ]
+    },
+    "群山俯首": {
+      "emitter": "operator",
+      "origin": "skill",
+      "range": "远程",
+      "kind": "法术",
+      "tags": [
+        "skill",
+        "area"
+      ]
+    },
+    "雪崩": {
+      "emitter": "operator",
+      "origin": "node",
+      "range": "远程",
+      "kind": "法术",
+      "tags": [
+        "area"
+      ]
+    },
+    "风雪漫卷": {
+      "emitter": "operator",
+      "origin": "node",
+      "range": "远程",
+      "kind": "法术",
+      "tags": [
+        "area",
+        "field"
+      ]
+    }
+  },
+  "progression": [
+    {
+      "type": "custom",
+      "id": "xuejing",
+      "name": "雪径",
+      "icon": "growth_t_field",
+      "desc": "队长冲刺经过的地面积雪 +{$n1_layers} 层"
+    },
+    {
+      "type": "custom",
+      "id": "yanxue",
+      "name": "檐雪",
+      "icon": "skill_sbell2_s1",
+      "desc": "「铃音吹雪」推开的敌人落在积雪上时，积雪碎裂并冻结它 {$n2_freeze} 秒"
+    },
+    {
+      "type": "elite",
+      "level": 1,
+      "name": "精英一",
+      "desc": "解锁二技能「霜涛覆岭」；解锁天赋「圣山的祝福」；开阵「铃落」：开阵攻击打中的敌人脚下积雪 +{$e1_layers} 层",
+      "attack": {
+        "name": "铃落",
+        "desc": "开阵攻击打中的敌人脚下积雪 +{$e1_layers} 层"
+      }
+    },
+    {
+      "type": "custom",
+      "id": "fengdong",
+      "name": "封冻",
+      "icon": "growth_t_field",
+      "desc": "满 5 层的积雪被踏上时冻结那名敌人 {$n4a_freeze} 秒",
+      "branch": {
+        "fengdong": {
+          "id": "fengdong",
+          "name": "封冻",
+          "icon": "growth_t_field",
+          "desc": "满 5 层的积雪被踏上时冻结那名敌人 {$n4a_freeze} 秒；「霜涛覆岭」期间改为冻结该处和相邻地面上的全部敌人"
+        },
+        "xuebeng": {
+          "id": "xuebeng",
+          "name": "雪崩",
+          "icon": "skill_sbell2_s2",
+          "desc": "3 层以上的积雪被踏碎时向周围 {$n4b_r} 炸开冰屑，每层造成攻击 {$n4b_mult*100}% 的法术伤害"
+        }
+      },
+      "branch_desc": "「封冻」积雪满层时冻结敌人；「雪崩」厚积雪被踏碎时炸开冰屑",
+      "bot": "fengdong"
+    },
+    {
+      "type": "custom",
+      "id": "xuebeng",
+      "name": "雪崩",
+      "icon": "skill_sbell2_s2",
+      "desc": "",
+      "routes": {
+        "fengdong": {
+          "id": "ningbing",
+          "name": "凝冰之阵",
+          "icon": "growth_t_field",
+          "desc": "「霜涛覆岭」结束时，场上 {$n5a_min} 层以上的积雪同时碎裂，冻结其上的敌人 {$n5a_freeze} 秒"
+        },
+        "xuebeng": {
+          "id": "fengxue",
+          "name": "风雪漫卷",
+          "icon": "skill_sbell2_s2",
+          "desc": "积雪被踏碎处留下一团风雪 {$n5b_dur} 秒，持续造成法术伤害并使敌人寒冷"
+        }
+      }
+    },
+    {
+      "type": "elite",
+      "level": 2,
+      "name": "精英二",
+      "desc": "解锁三技能「群山俯首」；开阵强化「霜涛」：平时也会出手，每第 {$wave_n} 次积雪沿积雪推出一圈霜涛，攻击积雪上的敌人",
+      "attack": {
+        "name": "霜涛",
+        "desc": "每第 {$wave_n} 次积雪，沿积雪推出一圈霜涛，对积雪上的敌人造成攻击 {$wave_mult*100}% 的法术伤害并寒冷 {$wave_cold} 秒"
+      }
+    }
+  ],
+  "gallery": {
+    "tags": [
+      "法术",
+      "范围",
+      "减速",
+      "冻结",
+      "积雪"
+    ],
+    "desc": "阵法术师，在身边地面铺下积雪，敌人踏上即受伤减速；放出「霜涛覆岭」后持续群体法术伤害，满层积雪会冻结敌人。担任队长时一局一次免于倒下",
+    "intro": "草稿，待用户改：喀兰圣女，全谢拉格的宗教领袖，正着手建设谢拉格的基础教育系统"
+  },
+  "blocks": {
+    "_doc": "docs/403 §3；verb.sb_* 在 blocks/seg_sbell2.gd。S2 / S3 的积雪规则、节点、精英化都在 sb_snow 里按 skill_on / taken / elite 判断",
+    "attack": {
+      "shape": "circle",
+      "center": "self",
+      "r": "$open_r",
+      "every": "$cd",
+      "first": "$first_cd",
+      "idle": "$idle_cd",
+      "mult": "$s2_open",
+      "src": "开阵",
+      "then": [
+        {
+          "verb": "sb_lay",
+          "cond": "elite >= 1",
+          "at": "self",
+          "hits": true,
+          "r": "$open_r",
+          "layers": "$e1_layers"
+        }
+      ]
+    },
+    "skills": [
+      {
+        "dur": 1.0,
+        "need_enemy": "$look_r",
+        "fx": [
+          {
+            "banner": "铃音吹雪"
+          }
+        ],
+        "do": [
+          {
+            "verb": "sb_blast",
+            "r": "$s1_r",
+            "look": "$look_r",
+            "half": "$s1_half",
+            "mult": "$s1_mult",
+            "kb": "$s1_kb",
+            "cold": "$s1_cold",
+            "gap": "$s1_gap",
+            "lane_n": "$s1_lane_n",
+            "lane_layers": "$s1_lane_layers",
+            "src": "铃音吹雪"
+          }
+        ]
+      },
+      {
+        "dur": "permanent",
+        "need_enemy": "$open_r",
+        "fx": [
+          {
+            "banner": "霜涛覆岭"
+          }
+        ],
+        "do": [
+          {
+            "verb": "sb_lay",
+            "at": "self",
+            "r": "$open_r",
+            "layers": 1
+          }
+        ]
+      },
+      {
+        "dur": "$s3_dur",
+        "need_enemy": "$open_r",
+        "fx": [
+          {
+            "banner": "群山俯首"
+          }
+        ],
+        "do": [
+          {
+            "verb": "field",
+            "center": "self",
+            "r": "$s3_pull_r",
+            "ring": "$s3_ring",
+            "every": "$s3_pull_every",
+            "look": "none",
+            "tick": [
+              {
+                "verb": "displace",
+                "dir": "ring",
+                "dist": "$s3_pull_dist",
+                "elite_mult": 0.5
+              }
+            ]
+          },
+          {
+            "verb": "mode",
+            "dmg_mult": "$s3_dmg"
+          },
+          {
+            "verb": "buff_self",
+            "stat": "op_range",
+            "op": "add",
+            "value": "$s3_range"
+          },
+          {
+            "verb": "buff_self",
+            "stat": "op_atk",
+            "op": "mult",
+            "value": "$s3_atk",
+            "power": true
+          },
+          {
+            "verb": "buff_self",
+            "stat": "op_aspd",
+            "op": "mult",
+            "value": "$s3_aspd"
+          }
+        ]
+      }
+    ],
+    "trait": [
+      {
+        "trig": "tick",
+        "every": "$snow_scan",
+        "_doc": "无垠的雪景：积雪节拍 + 踏雪扫描（含 S2 / S3 / 节点 / 精二霜涛 / 免死回复）",
+        "do": [
+          {
+            "verb": "sb_snow",
+            "scan": "$snow_scan",
+            "cell": "$cell",
+            "r": "$snow_r",
+            "cd0": "$snow_cd0",
+            "cd1": "$snow_cd1",
+            "cd2": "$snow_cd2",
+            "max": "$snow_max",
+            "hit0": "$snow_hit0",
+            "hit1": "$snow_hit1",
+            "hit2": "$snow_hit2",
+            "slow0": "$snow_slow0",
+            "slow2": "$snow_slow2",
+            "cap": "$snow_cells_max",
+            "src": "积雪",
+            "s3_snow": "$s3_snow_mult",
+            "s2_spread": "$s2_spread_max",
+            "s2_dot": "$s2_dot",
+            "s2_leave_cold": "$s2_leave_cold",
+            "s2_freeze": "$s2_freeze",
+            "wave_n": "$wave_n",
+            "wave_r": "$wave_r",
+            "wave_t": "$wave_t",
+            "wave_mult": "$wave_mult",
+            "wave_cold": "$wave_cold",
+            "n1_layers": "$n1_layers",
+            "n2_freeze": "$n2_freeze",
+            "n4a_freeze": "$n4a_freeze",
+            "n4b_r": "$n4b_r",
+            "n4b_mult": "$n4b_mult",
+            "n5a_freeze": "$n5a_freeze",
+            "n5a_min": "$n5a_min",
+            "n5b_r": "$n5b_r",
+            "n5b_dur": "$n5b_dur",
+            "n5b_every": "$n5b_every",
+            "n5b_mult": "$n5b_mult",
+            "bless_heal": "$bless_heal",
+            "bless_self": "$bless_self",
+            "bless_r": "$bless_freeze_r",
+            "bless_freeze": "$bless_freeze",
+            "guard_armor": "$guard_armor",
+            "guard_res": "$guard_res"
+          }
+        ]
+      },
+      {
+        "trig": "passive",
+        "cond": "!skill_active:1",
+        "_doc": "守阵：放出永久 S2 前不攻击",
+        "do": [
+          {
+            "verb": "mode",
+            "no_attack": true
+          }
+        ]
+      }
+    ],
+    "talent": [
+      {
+        "trig": "on_hurt",
+        "cd": "$bless_gap",
+        "_doc": "圣山的祝福：队长受击时周围敌人寒冷（免死在 sb_snow / prevent_death，精一起）",
+        "do": [
+          {
+            "verb": "sb_chill",
+            "r": "$bless_r",
+            "cold": "$bless_cold"
+          }
+        ]
+      }
+    ],
+    "progression": {
+      "xuejing": {
+        "trig": "passive",
+        "do": []
+      },
+      "yanxue": {
+        "trig": "passive",
+        "do": []
+      },
+      "fengdong": {
+        "trig": "passive",
+        "do": []
+      },
+      "xuebeng": {
+        "trig": "passive",
+        "do": []
+      },
+      "ningbing": {
+        "trig": "passive",
+        "do": []
+      },
+      "fengxue": {
+        "trig": "passive",
+        "do": []
+      },
+      "elite1": {
+        "trig": "passive",
+        "do": []
+      },
+      "elite2": {
+        "trig": "passive",
+        "do": []
+      }
+    }
+  }
+}
