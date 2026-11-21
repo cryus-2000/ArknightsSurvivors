@@ -1,0 +1,148 @@
+{
+ "id": "typhon",
+ "rig": "typhon.json",
+ "scale": 0.173,
+ "canvas": 192,
+ "colors": 96,
+ "_doc": "提丰帧条（11-21，docs/402 §6）：原作 Spine 3.8 char_2012_typhon（torappu）；巨弓拉满时最宽",
+ "outline": {
+  "color": "#140f18",
+  "mix": 0.55
+ },
+ "palette_protect": true,
+ "palette_alpha": 230,
+ "actions": {
+  "idle": {
+   "sample": {
+    "anim": "Idle",
+    "range": [
+     0,
+     6.0,
+     8
+    ]
+   },
+   "note": "Idle 6 秒整轨一循环"
+  },
+  "run": {
+   "fps": 13.333333,
+   "note": "原作无 Move 轨：run_trial 步态合成"
+  },
+  "attack": {
+   "sample": {
+    "anim": "Attack_Loop",
+    "times": [
+     1.7,
+     1.95,
+     2.15,
+     2.35,
+     0.034,
+     0.2,
+     0.5,
+     0.9
+    ],
+    "end": 1.2
+   },
+   "fire": 4,
+   "note": "Loop 后段拉弓 → OnAttack（0.033）放箭 → 收弓；出手 f4"
+  },
+  "move_attack": {
+   "mode": "move_attack",
+   "sample": {
+    "anim": "Attack_Loop",
+    "times": [
+     1.7,
+     1.95,
+     2.15,
+     2.35,
+     0.034,
+     0.2,
+     0.5,
+     0.9
+    ],
+    "end": 1.2
+   },
+   "dens": [
+    1
+   ],
+   "fire": 4,
+   "note": "边跑边射（只出 @1x）"
+  },
+  "skill": {
+   "sample": {
+    "anim": "Skill_3_Begin",
+    "range": [
+     0,
+     1.0,
+     8
+    ]
+   },
+   "note": "S3 起手 / 终结技拉弓"
+  },
+  "s3loop": {
+   "sample": {
+    "anim": "Skill_3_Loop",
+    "times": [
+     3.6,
+     4.0,
+     4.4,
+     4.75,
+     0.034,
+     0.3,
+     0.7,
+     1.1
+    ],
+    "end": 1.2
+   },
+   "fire": 4,
+   "note": "S3 每轮箭雨（OnAttack 0.033）"
+  },
+  "s2perm": {
+   "sample": {
+    "anim": "Skill_2_2_Idle",
+    "range": [
+     0,
+     8.0,
+     8
+    ]
+   },
+   "note": "S2 永久态待机"
+  },
+  "hurt": {
+   "sample": {
+    "anim": "Die",
+    "times": [
+     0.05,
+     0.12
+    ],
+    "end": 0.2
+   },
+   "note": "原作无受击轨：取 Die 开头两帧"
+  },
+  "death": {
+   "sample": {
+    "anim": "Die",
+    "range": [
+     0,
+     0.9,
+     8
+    ],
+    "inclusive": true,
+    "end": 1.0
+   },
+   "note": "Die 全程"
+  },
+  "entry": {
+   "sample": {
+    "anim": "Start",
+    "range": [
+     0,
+     1.0,
+     8
+    ],
+    "inclusive": true,
+    "end": 1.125
+   },
+   "note": "Start 全程"
+  }
+ }
+}

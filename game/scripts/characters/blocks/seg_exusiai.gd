@@ -248,6 +248,9 @@ static func exu_fire(o, b: Dictionary) -> void:
 				if t.get("replace", true):
 					return
 	var p := _exu_params(o, b, main)
+	if o.tags_all.has("verb.ty_hunter") and not _exu_active(o, "verb.ty_hunter").is_empty():   # 提丰挂钩（docs/402）：攻城手自己射一轮
+		_F().ty_fire(o, p, main)
+		return
 	var burst: int = int(p.get("burst", 1))
 	_exu_volley(o, p, main, burst <= 1)
 	if burst > 1:
@@ -388,6 +391,8 @@ static func exu_tick(o, dt: float) -> void:
 				keep.append(bq)
 		st.burst = keep
 	_exu_bullets(o, dt)
+	if o.tags_all.has("verb.ty_hunter"):
+		_F().ty_tick(o, dt)   # 提丰挂钩（docs/402）
 
 
 ## docs/298 对空优先改版开关 growth_nodes/exu_prefer：0 = 原样；1 = A（锁定框 + 定身星 + 无受控目标时精英优先）；2 = B（A 的画面 + 每第 N 发眩晕弹）
@@ -482,8 +487,11 @@ static func _exu_bullets(o, dt: float) -> void:
 			bu.hit[e.id] = true
 			var was_ctrl: bool = not pref.is_empty() and bu.get("main", false) and _exu_controlled(g, e)   # docs/202：打中时它已受控
 			var sk: Array = el_stack_hit(o, e, str(bu.src))   # 精英化段（st.stack）：[伤害倍率, 满层命中火花（"" = 照旧）]
+			var tym: float = _F().ty_hit_mult(o, e, bu) if bu.has("ty") else 1.0   # 提丰挂钩（docs/402）：锐如兽牙 / 重如沼泥
 			o.log_hit(bu.src, bu.tags)
-			o.deal_damage(e, bu.dmg * (ve if e.elite or e.boss else 1.0) * float(sk[0]) * pm)
+			o.deal_damage(e, bu.dmg * (ve if e.elite or e.boss else 1.0) * float(sk[0]) * pm * tym)
+			if bu.has("ty"):
+				_F().ty_after_hit(o, e, bu, bu.dmg * (ve if e.elite or e.boss else 1.0) * float(sk[0]) * pm * tym)   # 提丰挂钩：停顿 / 眩晕 / 涟漪 / 钉影
 			if _pf_on(o) and bu.get("main", false):
 				_pf_hit(o, e, bu.dmg * (ve if e.elite or e.boss else 1.0) * float(sk[0]) * pm)
 			if not e.dead and g.rfx.sniper_execute(e, g.hit):   # 藏品 #169 扼喉之手：狙击攻击直接处决低血敌人（同维什戴尔 _h4_explode 的门槛与写法；10-15 补漏接）
@@ -628,6 +636,8 @@ static func exu_draw(o) -> void:
 			o.cv.draw_line(bu.p - bu.v.normalized() * 12.0, bu.p, Color(1.0, 0.45, 0.45, 0.85), 3.0)
 	if o.tags_all.has("verb.tracer") or o.tags_all.has("verb.escort") or o.tags_all.has("verb.aim_prefer"):
 		exu_gm_draw(o)   # docs/202
+	if o.tags_all.has("verb.ty_hunter"):
+		_F().ty_draw(o)   # 提丰挂钩（docs/402）：黑箭 / 陷阱 / 标记占位
 	for t in o._trigs():
 		if str(t.get("_tag", "")) == "trig.on_attack":
 			var cn := str(t.get("counter", ""))

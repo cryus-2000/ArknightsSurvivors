@@ -1,0 +1,86 @@
+{
+ "id": "typhon",
+ "src": "typhon.src.json",
+ "name": "提丰",
+ "body": {
+  "hip": "F_Hip_01",
+  "chest": "F_Chest_01",
+  "head": "F_Head_01"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg_01",
+   "F_L_Calf_01",
+   "F_L_Foot_01"
+  ],
+  "R": [
+   "F_R_Leg_01",
+   "F_R_Calf_01",
+   "F_R_Foot_01"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm_01",
+   "F_L_Forearm_01",
+   "C_D_Hand_01"
+  ],
+  "R": [
+   "F_R_Arm_01",
+   "F_R_Forearm_01",
+   "F_R_C_Hand_1"
+  ]
+ },
+ "leadLeg": "L",
+ "hold": "L",
+ "weapon": "C_Weapon_01",
+ "params": {
+  "lean": 7,
+  "headKeep": 0.5,
+  "stride": 1.0,
+  "lift": 1.0,
+  "bob": 0.8,
+  "holdAmp": 6,
+  "armAmp": 20,
+  "elbow": 40,
+  "elbowAmp": 12
+ },
+ "secondary": [
+  {
+   "match": "^F_(L_|R_)?Hiar_",
+   "amp": 2.5,
+   "drag": 3,
+   "lag": 1.2
+  },
+  {
+   "match": "^F_Hair_",
+   "amp": 2.5,
+   "drag": 3,
+   "lag": 1.2
+  },
+  {
+   "match": "^F_(L_|R_)?Coat",
+   "amp": 2,
+   "drag": 3,
+   "lag": 1.1
+  },
+  {
+   "match": "^F_Tail",
+   "amp": 2,
+   "drag": 2,
+   "lag": 1.2
+  }
+ ],
+ "pack": {
+  "scale": 0.173,
+  "root": [
+   64,
+   120
+  ],
+  "palette_png": ""
+ },
+ "skipAdditive": true,
+ "canvas": 192,
+ "_doc": "提丰（11-21，docs/402，照 docs/365 B 方案）：rig + 跑步步态；巨弓 C_Weapon_01（左手持弓）；tools/spine_px.py typhon 按 cfg/typhon_px.json 出动作",
+ "boneScale": {}
+}

@@ -47,6 +47,18 @@ const EXT_BLOCKS := {
 	"verb.lg_grow": "instant",        # 令（docs/367 §9，seg_ling）
 	"verb.lg_ev": "instant",          # 令（docs/367 §9，seg_ling）
 	"verb.lg_lure": "instant",        # 令（docs/367 §10.6，seg_ling）
+	"verb.ty_hunter": "sustain",    # 提丰（docs/402，seg_typhon）
+	"verb.ty_fang": "sustain",      # 提丰（docs/402，seg_typhon）
+	"verb.ty_mire": "sustain",      # 提丰（docs/402，seg_typhon）
+	"verb.ty_pin": "sustain",       # 提丰（docs/402，seg_typhon）
+	"verb.ty_ripple": "sustain",    # 提丰（docs/402，seg_typhon）
+	"verb.ty_volley": "sustain",    # 提丰（docs/402，seg_typhon）
+	"verb.ty_headhunt": "sustain",  # 提丰（docs/402，seg_typhon）
+	"verb.ty_herd": "sustain",      # 提丰（docs/402，seg_typhon）
+	"verb.ty_hh2": "sustain",       # 提丰（docs/402，seg_typhon）
+	"verb.ty_trap": "sustain",      # 提丰（docs/402，seg_typhon）
+	"verb.ty_s2": "skill",           # 提丰 S2 冰原秩序：第 permanent_after 次起永久（docs/402，seg_typhon）
+	"verb.ty_hunt": "skill",         # 提丰 S3 “永恒狩猎”：箭雨参数 + 标记（docs/402，seg_typhon）
 }
 
 
@@ -231,6 +243,8 @@ static func _ext_block(b: Dictionary, p: String, kind: String, tag: String, xk: 
 			_num(b, "spark_mult", p, ctx, false, 0.0, 5.0)
 		"verb.dash_cd_cut", "verb.break_windup", "verb.aim_prefer", "verb.escort", "verb.tracer":
 			_gm_validate(b, p, ctx, tag)
+		"verb.ty_hunter", "verb.ty_fang", "verb.ty_mire", "verb.ty_pin", "verb.ty_ripple", "verb.ty_volley", "verb.ty_headhunt", "verb.ty_herd", "verb.ty_hh2", "verb.ty_trap", "verb.ty_s2", "verb.ty_hunt":   # 提丰（docs/402，blocks/seg_typhon.gd）
+			_F()._ty_validate(b, p, ctx, tag)
 
 
 # ================================================================ docs/202 成长节点（10-29）：星熊「阻挡」「般若之重」「热砂·落刃」「热砂·沸腾」
