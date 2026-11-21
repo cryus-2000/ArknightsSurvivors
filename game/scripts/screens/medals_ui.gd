@@ -12,6 +12,7 @@ extends Control
 ##   切换选中：记录栏分层换入（名称 → 条件 → 进度格逐格点亮 → 日期），选中框两档收紧；跨组时新组的框闪一下。
 ##   进场中点击 / 任意键 = 直接到终态（docs/62 §2.5）；减少动态效果：全部只留 0.12 秒淡入。
 ## 操作：点章 / 方向键选中（按几何方向找最近的一枚）；右上「返回」/ Esc / 退格返回（11-01 docs/213 P9 前是左上「‹ 行动履历」）。
+const ThemePack = preload("res://scripts/core/theme_pack.gd")   # 主题数据路径门面（docs/359 §2）
 signal closed
 
 const Medals = preload("res://scripts/core/medals.gd")
@@ -21,7 +22,6 @@ const UI = preload("res://scripts/ui.gd")
 const HS = preload("res://scripts/screens/hh_style.gd")
 
 const CANVAS := Vector2(1672, 941)
-const LAYOUT := "res://data/medals_layout.json"
 const DIR := "res://art/ui/medals/"
 const GRID := 1672.0 / 1280.0 * 3.0     # 一个美术像素 = 布局单位（标题页 3 逻辑像素）
 const BG_GRID := Vector2i(428, 240)
@@ -106,7 +106,7 @@ func _make_bg() -> void:
 
 
 func _load_items() -> void:
-	var lay = JSON.parse_string(FileAccess.get_file_as_string(LAYOUT))
+	var lay = JSON.parse_string(FileAccess.get_file_as_string(ThemePack.path("medals_layout")))
 	var pos := {}
 	if lay is Dictionary:
 		for m in lay.get("medals", []):

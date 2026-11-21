@@ -308,7 +308,7 @@ func test_squad_tiers() -> void:
 
 # ---------------------------------------------------------------- F
 func test_guide_numbers() -> void:
-	var gd: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/guide.json"))
+	var gd: Dictionary = preload("res://scripts/core/theme_pack.gd").load_merged("guide")   # 通用页 + 主题页（docs/368 §4）
 	var all := ""
 	for p in gd.get("pages", []):
 		for k in ["lines", "more"]:

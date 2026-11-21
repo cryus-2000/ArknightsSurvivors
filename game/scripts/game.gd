@@ -3,6 +3,7 @@ extends Node2D
 ## 敌人/掉落物/特效用数据数组管理，统一在 _draw 中以像素贴图绘制（美术像素 ×2）。
 ## 灯火是一个真实光源：场景整体偏暗，只有玩家周围被照亮。
 
+const ThemePack = preload("res://scripts/core/theme_pack.gd")   # 主题数据路径门面（docs/359 §2）
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
 const UM = preload("res://scripts/ui_motion.gd")   # 界面动效时钟与缓动（docs/62 §2.7）
@@ -12,7 +13,6 @@ const Telegraph = preload("res://scripts/enemies/telegraph.gd")
 const ShotPool = preload("res://scripts/enemies/shot_pool.gd")
 const RelicFx = preload("res://scripts/relic_fx.gd")
 const Endings = preload("res://scripts/endings.gd")
-const Knight = preload("res://scripts/allies/knight.gd")
 const Touch = preload("res://scripts/touch.gd")
 const Map = preload("res://scripts/world/map.gd")
 const PostFx = preload("res://scripts/post_fx.gd")
@@ -57,11 +57,8 @@ const BuildGuide = preload("res://scripts/run/build_guide.gd")
 const Pickups = preload("res://scripts/run/pickups.gd")
 const WeaponsSys = preload("res://scripts/run/weapons.gd")
 const ShopSys = preload("res://scripts/run/shop.gd")
-const Beacon = preload("res://scripts/run/beacon.gd")
 const Spawner = preload("res://scripts/run/spawner.gd")
 const PlayClock = preload("res://scripts/run/play_clock.gd")
-const IsharEncounter = preload("res://scripts/run/ishar_encounter.gd")
-const DuckLord = preload("res://scripts/run/duck_lord.gd")
 const BossTrial = preload("res://scripts/run/boss_trial.gd")
 const BossBench = preload("res://scripts/run/boss_bench.gd")
 const VictoryFlow = preload("res://scripts/run/victory_flow.gd")
@@ -98,8 +95,8 @@ enum S { PLAY, CHOICE, PAUSE, DEAD, WIN, SHOP, SHOW, STATS, INTRO, OPENING }
 const PX := 2.0                 # 1 个美术像素 = 2 个世界像素
 const MERCHANT_TIMES := [120.0, 300.0, 480.0]   # 每次都在 Boss（3:30 / 7:00 / 10:00）之前
 
-var ishar = IsharEncounter.new(self)
-var duck = DuckLord.new(self)   # 鸭爵（稀有敌人，docs/216 §11）
+var ishar = ThemePack.make_module(self, "ishar")   # 伊莎玛拉遭遇（主题模块 themes/deep_sea/mod/ishar_encounter.gd，docs/368 §3）；没有的主题为 null
+var duck = ThemePack.make_module(self, "duck")   # 鸭爵（稀有敌人，docs/216 §11；主题模块 themes/deep_sea/mod/duck_lord.gd）；没有的主题为 null
 var trial = BossTrial.new(self)
 var bench = BossBench.new(self)   # Boss 单场测试台（--benchsnap 录制 / --bossbench 开打，docs/170；只在 --balance）
 var victory = VictoryFlow.new(self)
@@ -115,7 +112,13 @@ var spawner = Spawner.new(self)   # 刷怪
 var shop_sys = ShopSys.new(self)   # 商人与商店（逻辑）
 var web_focus = preload("res://scripts/web_focus.gd").new()   # 失焦保护（docs/317）：清按住状态、网页版自动暂停、回来把焦点还给画布
 var web_fs = preload("res://scripts/web_fs.gd").new()   # 网页版全屏与 Esc（docs/299）：退出全屏当暂停、P 键暂停、暂停菜单「返回全屏」；只在网页版桌面生效
-var beacon_sys = Beacon.new(self)  # 引航灯标：站桩点燃、驱散溟痕（run/beacon.gd，docs/49d §13.5 C）
+var mech_by_id: Dictionary = ThemePack.make_mechanics(self)   # 主题机制 {id: 实例}，清单 mechanics 段的顺序（docs/364；scripts/core/theme_mechanic.gd）
+var mechs: Array = mech_by_id.values()   # 挂钩点按这个顺序逐个调
+## 本主题有没有灯火机制（docs/391 T-R1）。没有时 g.lamp 钉在 LAMP_NEUTRAL：三十多处干员 / 藏品 / 事件直接加减 g.lamp、读档位（≥70 通明 / <30 昏暗 / ≤0 熄灭），
+## 50 落在中间档，这些效果都不触发；加减写进来也会被 setter 拉回 50。灯光判定半径 lamp_r() 按满灯、灯光增伤不生效（combat.gd）
+const LAMP_NEUTRAL := 50.0
+var has_lamp: bool = mech_by_id.has("lamp")
+var beacon_sys = mech_by_id.get("beacon")  # 引航灯标（主题机制 themes/deep_sea/mech/mech_beacon.gd，docs/49d §13.5 C、docs/364）；没有灯标的主题为 null
 var weapons_sys = WeaponsSys.new(self)   # 子弹与支援装置
 var pickups = Pickups.new(self)   # 掉落与拾取
 var progression = Progression.new(self)   # 升级与藏品发放（逻辑）
@@ -123,6 +126,7 @@ var guide: BuildGuide = BuildGuide.new(self)   # 构筑引导：保底与加权�
 var music_dir = MusicDirector.new(self)   # 局内配乐调度
 var enemies_sys = EnemiesSys.new(self)   # 敌人的逐帧更新
 var combat = Combat.new(self)   # 战斗结算
+var arena = preload("res://scripts/run/arena.gd").new(self)   # 最终 Boss 场地（通用，docs/364 §7）：冻结 / 插值 / 约束 / 禁生成
 var afflict = Afflict.new(self)   # 负面状态门面（神经损伤 / 侵蚀 / 创口，run/afflict.gd）
 var vfx = Vfx.new(self)   # 特效与提示
 var intro_screen = IntroScreen.new(self)   # 界面 · 开场与教程
@@ -184,7 +188,9 @@ var level := 1
 var xp := 0.0
 var xp_need := 8.0
 var kills := 0
-var lamp := 100.0
+var lamp: float = 100.0 if has_lamp else LAMP_NEUTRAL:
+	set(v):
+		lamp = v if has_lamp else LAMP_NEUTRAL
 
 # ---------- 水月：伞击 / 天赋 / 技能 ----------
 var growth := {}                 # 成长项 id -> 已选次数
@@ -294,7 +300,7 @@ var final_boss = null
 var mid_boss_down := false   # 本局已击败过中期 Boss（藏品核心延后，docs/191 §6）
 var ending := "standard"
 var endg: RefCounted = null        # 结局与事件箱（scripts/endings.gd）
-var knight: RefCounted = null      # 猎潮的骑士同伴（scripts/allies/knight.gd）
+var knight: RefCounted = null      # 猎潮的骑士同伴（themes/deep_sea/mod/knight.gd）
 var touch: RefCounted = null       # 触屏操作（scripts/touch.gd）
 var pick = preload("res://scripts/screens/command_pick.gd").new(self)   # 指点选目标阶段（示意原型，docs/196；缺省关）
 var wheel = preload("res://scripts/screens/command_wheel.gd").new(self)   # 指挥圆盘（docs/114 §13）
@@ -627,7 +633,7 @@ static func preload_tex_names() -> Array:
 	var names: Array = []
 	names.append_array(BASE_TEX)
 	names.append_array(["player_attack_48", "player_idle", "player_run", "player_attack", "player_hurt", "player_death"])
-	var dj = JSON.parse_string(FileAccess.get_file_as_string("res://data/doctor.json"))
+	var dj = JSON.parse_string(FileAccess.get_file_as_string(ThemePack.path("doctor")))
 	if dj is Dictionary:
 		for kind in ["idle", "run", "hurt", "death"]:
 			var dn = dj.get("sprites", {}).get(kind, "")
@@ -654,7 +660,7 @@ static func preload_tex_names() -> Array:
 		names.append(n)
 		for suffix in ENEMY_SUFFIXES:
 			names.append(n + suffix)
-	var mj = JSON.parse_string(FileAccess.get_file_as_string("res://data/maps/%s.json" % Cfg.map_id))
+	var mj = JSON.parse_string(FileAccess.get_file_as_string(ThemePack.map_path(Cfg.map_id)))
 	if mj is Dictionary:
 		for pr in mj.get("props", []):
 			names.append(pr.tex)
@@ -1213,7 +1219,7 @@ func _ready() -> void:
 	A.normal_maps = wants_normal_maps()
 	rfx = RelicFx.new(self)
 	endg = Endings.new(self)
-	knight = Knight.new(self)
+	knight = ThemePack.make_module(self, "knight", "res://scripts/core/knight_none.gd")   # 猎潮的骑士同伴（主题模块 themes/deep_sea/mod/knight.gd，docs/368 §3；核心多处直接读，新主题要给空实现）
 	touch = Touch.new(self)
 	if D.ENEMIES.has("knight"):
 		D.ENEMIES.knight.no_spawn = true  # 敌对骑士只在同伴骑士阵亡后进入精英池（每局重置）
@@ -2223,6 +2229,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventKey) or not event.pressed or event.echo:
 		return
 	var k: int = Pad.kc(event)
+	if _pick_key_blocked(act, k, event):
+		return
 	if _nav_key(k):
 		if is_inside_tree():   # 重新开始 / 回到标题已经换了场景：本节点离开场景树，get_viewport() 为 null
 			get_viewport().set_input_as_handled()
@@ -2261,7 +2269,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		_do_action("restart")
 	elif state == S.SHOP:
 		if k >= KEY_1 and k <= KEY_5:
-			shop_sys.buy(k - KEY_1)
+			panel_ui.choose(k - KEY_1)   # 选中再确定（choice_panel.choose）：第一次只选中
 		elif k == KEY_F:
 			shop_sys.refresh()
 		elif k == KEY_ESCAPE or k == KEY_E:
@@ -2270,7 +2278,19 @@ func _unhandled_input(event: InputEvent) -> void:
 		# 数字键 1..n 对应第 n 张卡（藏品 / Boss 奖励可能多于 3 张，docs/38 B0 第 10 项）
 		var i: int = k - KEY_1
 		if i < choices.size():
-			progression.pick(i)
+			panel_ui.choose(i)   # 选中再确定：第一次只选中，再按同一个数字 / Enter 才生效
+
+
+## 选卡 / 商人里攻击、技能类按键不选不确定（11-20 玩家反馈：选升级卡时按攻击键随手选中一张）：缺省绑定不会撞上确认键 / 数字键 / 方向键，
+## 但可改键——玩家把终结技、冲刺等绑到 Enter 或数字键上时，这个键在选卡界面里什么都不做。移动键（方向键）照常当导航
+const PICK_BLOCK_ACTS := ["ult", "dash", "aim", "command"]
+
+func _pick_key_blocked(act: String, k: int, event: InputEvent) -> bool:
+	if state != S.CHOICE and state != S.SHOP:
+		return false
+	if event.device == Pad.SYNTH_DEVICE or not (act in PICK_BLOCK_ACTS):
+		return false
+	return k == KEY_ENTER or k == KEY_KP_ENTER or (k >= KEY_1 and k <= KEY_9)
 
 
 ## 局内动作按下（键盘 / 鼠标 / 手柄虚拟键，已按按键表翻成动作名）：返回是否已处理（没处理的落到界面快捷键）。
@@ -2339,14 +2359,14 @@ func _nav_key(k: int) -> bool:
 		if dx != 0:
 			nav_sel = (nav_sel + dx + n) % n
 			kb_nav = true
-			Sfx.play("ui_move")
+			if panel_ui.confirm_on():
+				panel_ui.select(nav_sel)   # 方向键 = 选中（不生效），Enter / Ⓐ 再确定
+			else:
+				Sfx.play("ui_move")
 			return true
 		if enter:
 			nav_sel = clampi(nav_sel, 0, n - 1)
-			if state == S.CHOICE:
-				progression.pick(nav_sel)
-			else:
-				shop_sys.buy(nav_sel)
+			panel_ui.confirm_key()   # 选中再确定：还没选中时这一下只选中焦点那张
 			return true
 	elif state == S.PAUSE or state == S.DEAD or state == S.WIN:
 		var m: int = result_btns.size()
@@ -2531,10 +2551,9 @@ func _update(dt: float) -> void:
 	if rg > 0.0 and hp > 0.0:
 		# 遥测（docs/74 §6）：主控自带回复 + 博士「自愈」+ regen_pct 藏品，只记实际回进去的量；走 heal()（补侵蚀创口减疗）
 		combat.heal(rg, "自身回复", "", combat.HEAL_PRESCALED)
-	if lamp <= 0.0:
-		combat.lose_hp(3.0 * dt, "dark")
-		hurt_flash = max(hurt_flash, 0.05)
-	combat.update_zone(dt)
+	arena.step(dt)   # 最终 Boss 场地插值（run/arena.gd；原在缩圈 update_zone 开头，灯火挂钩不读圈，顺序等价）
+	for m in mechs:
+		m.on_player_tick(dt)   # 主题机制挂钩（docs/364）：灯火熄灭掉血（mech_lamp）→ 黑潮缩圈（mech_tide_zone）
 	if shield_max > 0 and shield < shield_max:
 		shield_cd -= dt
 		if shield_cd <= 0.0:
@@ -2554,7 +2573,8 @@ func _update(dt: float) -> void:
 		demo_sys.step(dt)
 	elif not trial.active and not sandbox:
 		spawner.update(dt)
-		duck.update(dt)
+		if duck != null:
+			duck.update(dt)
 	_pm("spawn")
 	enemies_sys.build_grid()
 	_pm("grid")
@@ -2580,7 +2600,8 @@ func _update(dt: float) -> void:
 	if not trial.active and not sandbox:
 		endg.update(dt)
 		endg.tick_final_warning()
-		beacon_sys.update(dt)
+		for m in mechs:
+			m.on_world_tick(dt)   # 主题机制挂钩（docs/364）：引航灯标（mech_beacon）
 		knight.tick_final()   # 结局二：9:00 起走向黑潮中心、到达入潮消失（docs/18 §1）
 		if demo_op == "":
 			shop_sys.update(dt)
@@ -2713,13 +2734,20 @@ func sync_stats() -> void:
 	squad.sync_stats(stats)
 
 
-## 灯火：灯光照亮范围（游戏判定用）
+## 主题机制实例（docs/364）；本主题没有这个机制时返回 null
+func mech(mid: String):
+	return mech_by_id.get(mid)
+
+
+## 灯火：灯光照亮范围（游戏判定用）；没有灯火机制的主题按满灯算
 func lamp_r() -> float:
-	return lerpf(110.0, 360.0, lamp / 100.0) * squad.light_radius_mult()
+	var ml = mech_by_id.get("lamp")
+	return ml.light_radius() if ml != null else 360.0 * squad.light_radius_mult()
 
 
 func _lamp_sp() -> float:
-	return (1.3 if lamp >= 70.0 else 1.0) * rfx.sp_extra()
+	var ml = mech_by_id.get("lamp")
+	return (ml.sp_mult() if ml != null else 1.0) * rfx.sp_extra()
 
 
 ## 用对局随机数洗牌。Array.shuffle() 走全局随机流，全局流也被纯视觉效果按真实帧率消耗，会让同 seed 的局跑出不同结果

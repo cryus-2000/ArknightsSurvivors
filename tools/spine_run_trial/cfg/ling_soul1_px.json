@@ -1,0 +1,107 @@
+{
+ "id": "ling_soul1",
+ "rig": "ling_soul1.json",
+ "owner": "ling",
+ "tex_prefix": "op_ling_soul1",
+ "scale": 0.185,
+ "canvas": 192,
+ "colors": 64,
+ "palette_alpha": 230,
+ "palette_protect": false,
+ "outline": {
+  "color": "#0a1418",
+  "mix": 0.55
+ },
+ "_doc": "令的召唤物「清平」帧条：尺度与令本体相同（0.148，不放大头），帧条放 game/art/operators/ling/",
+ "actions": {
+  "idle": {
+   "sample": {
+    "anim": "Idle",
+    "range": [
+     0,
+     1.3333,
+     8
+    ]
+   },
+   "note": "Idle 一个循环；原作无移动轨，跟随移动用待机 + 平移（同其他召唤物）"
+  },
+  "attack": {
+   "sample": {
+    "anim": "Attack",
+    "range": [
+     0,
+     1.0,
+     8
+    ]
+   },
+   "note": "OnAttack 0.367 秒 ≈ f3"
+  },
+  "appear": {
+   "sample": {
+    "anim": "Start",
+    "range": [
+     0,
+     1.0,
+     8
+    ],
+    "inclusive": true,
+    "end": 1.125
+   },
+   "note": "召唤登场"
+  },
+  "death": {
+   "sample": {
+    "anim": "Die",
+    "range": [
+     0,
+     1.0,
+     8
+    ],
+    "inclusive": true,
+    "end": 1.125
+   },
+   "note": "消散"
+  }
+ },
+ "fix": {
+  "eyes": {
+   "points": {
+    "eye": [
+     "F2_Head_01",
+     51.05,
+     -3.37
+    ]
+   },
+   "colors": {
+    "K": "#0e1e23",
+    "B": "#3f6bd6"
+   },
+   "pattern": {
+    "eye": [
+     "KKKK",
+     ".BB."
+    ]
+   },
+   "anchor": {
+    "eye": [
+     2,
+     1
+    ]
+   },
+   "x1": {
+    "pattern": {
+     "eye": [
+      "KB"
+     ]
+    },
+    "anchor": {
+     "eye": [
+      1,
+      0
+     ]
+    }
+   },
+   "_doc": "龙眼：4×4 BOX 后并进头部青色、1 倍上看不见。一形态按头骨 F2_Head_01 局部点 (51.05, -3.37)（4 倍图上量的眼位换算）逐帧定位；弦惊二形态用现成的 F_Eye 骨。@2x 4×2（暗边 + 蓝瞳，蓝取角上的蓝），1 倍 2 格"
+  }
+ }
+}

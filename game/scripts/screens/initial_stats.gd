@@ -3,6 +3,7 @@ extends RefCounted
 ## 口径：当主控、精零、1 级、无藏品，含 balance.json 档位修正（atk / aspd / range）。纯显示，不参与战斗计算。
 ## 角色 JSON 的攻击键名不统一（atk / m_atk / umbrella_dmg / bolt_atk …），这里统一映射；
 ## 写死在干员脚本里、JSON 读不到的显示信息（艾丽妮每次 2 段、水月触手系数）放在下面的常量里，改脚本时一起改。
+const ThemePack = preload("res://scripts/core/theme_pack.gd")   # 主题数据路径门面（docs/359 §2）
 const Bal = preload("res://scripts/core/balance.gd")
 const StatDefs = preload("res://scripts/core/stat_defs.gd")
 
@@ -29,7 +30,7 @@ static func _first(data: Dictionary, keys: Array, fallback := 0.0) -> float:
 
 static func _doctor_stats() -> Dictionary:
 	if _doctor.is_empty():
-		var d = JSON.parse_string(FileAccess.get_file_as_string("res://data/doctor.json"))
+		var d = JSON.parse_string(FileAccess.get_file_as_string(ThemePack.path("doctor")))
 		_doctor = d.get("stats", {}) if d is Dictionary else {}
 	return _doctor
 

@@ -48,7 +48,7 @@ def stem(path):
 
 def load_ids():
     ops = {f[:-5] for f in os.listdir(os.path.join(ROOT, "game/data/characters")) if f.endswith(".json")}
-    en = set(json.load(open(os.path.join(ROOT, "game/data/enemies.json"), encoding="utf-8"))["enemies"])
+    en = set(json.load(open(os.path.join(ROOT, "game/themes/deep_sea/data/enemies.json"), encoding="utf-8"))["enemies"])
     blob = ""
     for d in ("game/scripts", "game/data"):
         for dp, _, fs in os.walk(os.path.join(ROOT, d)):

@@ -90,7 +90,10 @@ window.__syRL = {
   var CJK_FONT = { ja: '"Hiragino Sans","Yu Gothic",Meiryo,"Noto Sans JP",', ko: '"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",' }[LANG] || '';
 
   // ---------------------------------------------------------------- 内核检查（11-16 B站 App 安卓黑屏）
-  // 引擎脚本 index.js（emscripten 4）要 Chrome 85 / Safari 15 以上（??= / ?. / BigInt64Array / WASM BigInt）。
+  // 11-17 实测（docs/22「最低内核」）：门槛在引擎 wasm，不在 JS 语法——官方 Godot 4.7 网页模板的 wasm 用了 SIMD（Chrome 91 / Safari 16.4）、
+  // 旧式异常处理 try/catch/throw（Chrome 95 / Safari 15.2）、i64 导入（WASM BigInt，Chrome 85 / Safari 14.1）。合起来要 Chrome 95 / iOS 16.4。
+  // 所以直接用三段几十字节的小 wasm 测这三项（字节同 wasm-feature-detect 的检测模块），比按语法猜准：Chrome 85–94 原来会过检查、下完 30 MB 才编译失败。
+  // index.js 本身要 ES2021（??= / ?.），这里仍测一遍（Chrome 85 起都有，被 wasm 门槛盖住）。
   // 旧版安卓系统 WebView 上 index.js 直接语法错误、引擎根本起不来，原来静默黑屏（画布停在默认 300×150）。
   // 先测：不行就不下那 30 MB，直接告诉玩家原因和怎么办。网址 ?oldcore=1 模拟（测试用）。
   var compat = (function () {
@@ -98,7 +101,15 @@ window.__syRL = {
     if (/[?&]oldcore=1/.test(location.search)) miss.push('测试：模拟旧内核');
     try { new Function('var a = null; a ??= {}; return a?.b ?? 1;'); } catch (e) { miss.push(T('ES2021 语法')); }
     if (typeof BigInt64Array !== 'function') miss.push('BigInt64Array');
-    if (typeof WebAssembly !== 'object') miss.push('WebAssembly');
+    if (typeof WebAssembly !== 'object' || typeof WebAssembly.validate !== 'function') { miss.push('WebAssembly'); return miss; }
+    var hd = [0, 97, 115, 109, 1, 0, 0, 0];
+    var ok = function (b) { try { return WebAssembly.validate(new Uint8Array(hd.concat(b))); } catch (e) { return false; } };
+    if (!ok([1, 5, 1, 96, 0, 1, 123, 3, 2, 1, 0, 10, 10, 1, 8, 0, 65, 0, 253, 15, 253, 98, 11])) miss.push('WASM SIMD');   // i8x16.splat / popcnt
+    if (!ok([1, 4, 1, 96, 0, 0, 3, 2, 1, 0, 10, 8, 1, 6, 0, 6, 64, 25, 11, 11])) miss.push(T('WASM 异常处理'));   // try / catch_all
+    try {   // i64 参数直接收发 BigInt（WASM BigInt 互通）：同步建一个导出 i64 恒等函数的小模块，调一次
+      var bi = new WebAssembly.Instance(new WebAssembly.Module(new Uint8Array(hd.concat([1, 6, 1, 96, 1, 126, 1, 126, 3, 2, 1, 0, 7, 5, 1, 1, 98, 0, 0, 10, 6, 1, 4, 0, 32, 0, 11]))));
+      if (bi.exports.b(BigInt(3)) !== BigInt(3)) miss.push('WASM BigInt');
+    } catch (e) { miss.push('WASM BigInt'); }
     return miss;
   })();
   function coreName() {
@@ -176,8 +187,8 @@ window.__syRL = {
     diagD.phase = '内核检查未通过';
     firstErr(T('内核过旧：{0}，缺少 {1}', coreName(), compat.join(', ')));
     if (window.__syBootFail) window.__syBootFail(T('内核版本过旧，无法运行'),
-      T('需要 Chrome 85 / iOS 15 以上的内核，当前是 {0}。', coreName()) + '\n' +
-      T('安卓：在应用商店更新「Android System WebView」或「Chrome」后重新打开。iPhone：升级到 iOS 15 以上。'));
+      T('需要 Chrome 95 / iOS 16.4 以上的内核，当前是 {0}。', coreName()) + '\n' +
+      T('安卓：在应用商店更新「Android System WebView」或「Chrome」后重新打开。iPhone：升级到 iOS 16.4 以上。'));
   }
   // index.js 没跑起来（下载中断 / 语法不支持）：引擎对象不存在，原来静默黑屏
   document.addEventListener('DOMContentLoaded', function () {
@@ -941,7 +952,7 @@ window.__syRL = {
 
   // 把一片写进 F.out 的 [off, off + raw) 区间。gz 片：第一块带 1f 8b 时经 DecompressionStream 解开；否则（服务器已解压）原样写入。
   // 返回写入的字节数；写越界 / 不足 / 断流都按出错处理（part 会重试）。
-  // enc === 'lzma'（index.wasm，docs/187 §5）：不是 gzip 头时收齐压缩字节，交给 lzDecode（Worker 或主线程）。
+  // enc === 'lzma'（index.wasm，docs/285（原 187） §5）：不是 gzip 头时收齐压缩字节，交给 lzDecode（Worker 或主线程）。
   async function once(url, bytes, F, off, raw, enc, ps) {
     var ac = typeof AbortController === 'function' ? new AbortController() : null;
     var r = null, rd = null, counted = 0, wrote = 0, gz = null, chunks = null, ds = null, w = null, pump = null, pumpErr = null;

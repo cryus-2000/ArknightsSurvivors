@@ -181,7 +181,7 @@ const DUCK_PTR_COL := Color(1.0, 0.86, 0.4)
 func draw_duck_pointer(vs: Vector2, ct: Transform2D) -> void:
 	if g.state != Game.S.PLAY:
 		return
-	var e: Dictionary = g.duck.alive()
+	var e: Dictionary = g.duck.alive() if g.duck != null else {}
 	if e.is_empty():
 		return
 	var sp: Vector2 = ct * e.pos
@@ -619,20 +619,20 @@ func draw_dash_hint(vs: Vector2) -> void:
 
 ## 缩圈：主控在安全区外时的方向提示（EA 1.1，玩法系统的缩圈改动配套；「身处黑潮」大字和紫色边缘光在状态栏那段）。
 ## 主控身边朝安全区圆心方向画三道逐个亮起的人字纹 + 大箭头，主控脚下写掉血倒计时。
-## 前 Combat.ZONE_GRACE 秒不掉血（琥珀色，倒计时「x.x 秒后开始掉血」），之后洋红色「安全区外 · 持续掉血」。
-## 数据：g.combat.zone_out_t（本次出圈秒数，圈内 / 庇护所为 0）与 zone_dir()（指向安全区圆心），玩法系统 d941889
-const Combat = preload("res://scripts/run/combat.gd")
+## 前 ZONE_GRACE 秒不掉血（琥珀色，倒计时「x.x 秒后开始掉血」），之后洋红色「安全区外 · 持续掉血」。
+## 数据：黑潮缩圈机制（mech_tide_zone，docs/364）的 zone_out_t（本次出圈秒数，圈内 / 庇护所为 0）、ZONE_GRACE 与 zone_dir()（指向安全区圆心），玩法系统 d941889
 
 func draw_zone_hint(vs: Vector2) -> void:
-	if g.state != Game.S.PLAY or g.demo_op != "" or g.zone_state == 0:
+	var mz = g.mech("tide_zone")
+	if g.state != Game.S.PLAY or g.demo_op != "" or g.zone_state == 0 or mz == null:
 		return
-	var out_t: float = g.combat.zone_out_t
+	var out_t: float = mz.zone_out_t
 	if out_t <= 0.0:
 		return
 	var dir: Vector2 = g.combat.zone_dir()
 	if dir == Vector2.ZERO:
 		return
-	var hurting: bool = out_t >= Combat.ZONE_GRACE
+	var hurting: bool = out_t >= mz.ZONE_GRACE
 	var col: Color = UI.RED if hurting else UI.GOLD
 	var pulse: float = 0.5 + 0.5 * sin(g.t * (9.0 if hurting else 5.0))
 	var ct := g.hud_ct()
@@ -654,7 +654,7 @@ func draw_zone_hint(vs: Vector2) -> void:
 	g.hud.draw_line(ap - dir * 4.0, ap - dir * 26.0, Color(col.r, col.g, col.b, 0.8), 7.0)
 	# 文字：主控下方（不跟箭头转，免得倒着读）
 	var tp: Vector2 = ct * (g.ppos + Vector2(0, 30))
-	var line2: String = ("%.1f 秒后开始掉血" % maxf(0.0, Combat.ZONE_GRACE - out_t)) if not hurting else "安全区外 · 持续掉血"
+	var line2: String = ("%.1f 秒后开始掉血" % maxf(0.0, mz.ZONE_GRACE - out_t)) if not hurting else "安全区外 · 持续掉血"
 	UI.text(g.hud, g.font, tp - Vector2(120, 0), line2, 15, Color(col.r, col.g, col.b, 0.95), HORIZONTAL_ALIGNMENT_CENTER, 240, 4)
 
 

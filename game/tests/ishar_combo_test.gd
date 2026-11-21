@@ -280,7 +280,7 @@ func _ready() -> void:
 		sl.o.dead = true
 	tick_n(e, 2)
 	check(g.t >= float(e.rebirth_until), "rebirth song ends as soon as the web is cleared")
-	# 8. 三幕方案新招（docs/170b）：潮涡两臂螺旋并反向；侵蚀之泪先追后直；双束两条追扫在队长两侧、中间留缝
+	# 8. 三幕方案新招（docs/173（原 173b，标题写作 170b））：潮涡两臂螺旋并反向；侵蚀之泪先追后直；双束两条追扫在队长两侧、中间留缝
 	e = fresh(1)
 	g.ebullets.clear()
 	cards.play(e, "潮涡", Vector2.RIGHT, 300.0)

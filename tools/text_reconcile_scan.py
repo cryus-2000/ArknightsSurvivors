@@ -87,10 +87,11 @@ def main():
     ap.add_argument("--root", default=ROOT)
     a = ap.parse_args()
     t0 = time.time()
-    data = os.path.join(a.root, "game", "data")
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import theme_paths as TP   # 主题数据在主题包里（docs/367 §2）：game/data 与各主题 data 目录都扫，文件名照旧按相对各自目录
     items = []
-    files = sorted(glob.glob(os.path.join(data, "**", "*.json"), recursive=True))
-    for p in files:
+    files = sorted((d, f) for d in TP.data_dirs(a.root) for f in glob.glob(os.path.join(d, "**", "*.json"), recursive=True))
+    for data, p in files:
         rel = os.path.relpath(p, data)
         if os.path.basename(p) in ("enemy_pixels.json", "enemy_redraw.json", "balance.json", "maps", "medals_layout.json", "boot_order.json"):
             continue

@@ -15,6 +15,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import text_reconcile_scan as SC
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import theme_paths as TP   # 主题数据路径（docs/367 §2）
 DATA = os.path.join(ROOT, "game", "data")
 BASELINE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "text_reconcile_baseline.json")
 SKIP_NUM_KEYS = {"id", "tex", "icon", "key", "rarity", "new", "version", "order"}
@@ -22,7 +24,7 @@ COUNT_UNITS = "名个次层张件枚发段轮人只条种套"
 
 
 def load(name):
-    return json.load(open(os.path.join(DATA, name), encoding="utf-8"))
+    return TP.load_json(name)   # 主题数据在主题包里（docs/367 §2）；lore / guide / onboard 共享 + 主题合并读（docs/368 §4）
 
 
 class Bal:

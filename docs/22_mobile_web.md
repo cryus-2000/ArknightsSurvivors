@@ -183,7 +183,7 @@ itch App 里扣掉标题栏 / 底栏后画面在 2.2:1 到 2.6:1 以上。根因
 **现象**：11-15 玩家截图（B站 App 安卓横屏，四指诊断浮层）：除浮层外全黑，连加载页都没有；`canvas 300x150`（引擎根本没启动）、`screen 800x360`（安卓，720p 低端机）。
 
 **原因**（桌面 Chromium 复现不出来，按截图逐项排除后定位到安卓旧 WebView）：
-1. 引擎脚本 `index.js`（emscripten 4.0.20）用了 `??=` / `||=` / `?.` / `??`、`BigInt64Array` 和 WASM BigInt，**最低要 Chrome 85 / Safari 15**。没装谷歌服务的国产安卓机，系统 WebView 常年不更新，内核低于 85 时 `index.js` 直接语法错误 → `Engine` 不存在 → 页面末尾的启动脚本报错 → 画布停在默认 300×150。原来没有任何提示。
+1. 引擎脚本 `index.js`（emscripten 4.0.20）用了 `??=` / `||=` / `?.` / `??`、`BigInt64Array` 和 WASM BigInt，**最低要 Chrome 85 / Safari 15**（11-17 更正：引擎 wasm 还用了 SIMD 和 wasm 异常处理，实际门槛 Chrome 95 / iOS 16.4，见下文「最低内核」）。没装谷歌服务的国产安卓机，系统 WebView 常年不更新，内核低于 85 时 `index.js` 直接语法错误 → `Engine` 不存在 → 页面末尾的启动脚本报错 → 画布停在默认 300×150。原来没有任何提示。
 2. 同时加载页看不见：`loader.css` 里 `#sy-load` 只写了 `inset: 0`（要 Chrome 87）。旧内核不认 → 固定定位的加载页没有宽高、`overflow:hidden` 把内容全裁掉 → 只剩 `body` 的深色底，正是截图里的「全黑」。内核 85–86 时引擎能跑，但整个加载过程（几十秒）也是黑的。
 3. 方向 4 加载页整页靠 `requestAnimationFrame` 在画布上逐帧画，WebView 不给帧（页面在后台、跨域 iframe 被节流）时同样一片黑；wasm 的 LZMA 解码在主线程（桌面约 2 秒，手机估 10–20 秒），且 6 个分片一起抢带宽，wasm 要到下载快结束才齐，解码 + 编译全压在下载之后。
 
@@ -212,6 +212,30 @@ itch App 里扣掉标题栏 / 底栏后画面在 2.2:1 到 2.6:1 以上。根因
 - 失败路径：屏蔽 `index.01.pck`（404）→ 重试 3 次（约 7 秒）后红色失败卡，分片行标「01.pck 0.0/8.3（失败）」、报错 `index.01.pck HTTP 404`（`build/toy_load_fail404_1116.mp4`）；在加载器脚本开头插 `throw` → 黄色「页面脚本出错」卡，阶段「加载器没有运行」、报错带 `@index.html:行号`；`?oldcore=1` → 红色「内核版本过旧，无法运行」，不下载资源。
 - 录像：`build/toy_load_compare_1116.mp4`（上旧下新，4G + CPU 4×，原速 30 帧）。
 - 下一步要再快，得动：① 游戏侧启动（`boot_screen.gd` 逐个 `load()` + 渲染预热，CPU 4× 下 40–60 秒，是最大一块）；② 下载量（pck 23 MB gzip）。
+
+## 最低内核（11-17，玩家诊断卡：Android 11 · Chrome 83 WebView · B站 App 9190400）
+
+协调人问能不能把门槛从 Chrome 85 降到 80 左右。**结论：不能靠转译 JS 降，门槛在引擎 wasm，实际是 Chrome 95 / iOS 16.4**（原来按 JS 语法写的 85 偏低）。
+
+逐条解码 c1e0c6c65 Toy 包的 `index.wasm`（39.5 MB，官方 Godot 4.7.2 网页模板 + Emscripten 4.0.20）：
+
+| wasm 特性 | 用量 | Chrome / Safari 起始 |
+|---|---|---|
+| SIMD（`0xFD` 前缀） | 161,779 条指令 | 91 / 16.4 |
+| 旧式异常处理（try / catch / throw / rethrow / delegate，tag 段 1 个） | 41 条 | 95 / 15.2 |
+| i64 导入（WASM BigInt 互通，index.js 直接收发 BigInt） | 6 个导入 | 85 / 14.1 |
+| 批量内存 / 非陷阱浮点转换 / 符号扩展 | 8663 / 3596 / 1371 条 | 75 / 75 / 74 |
+
+- 交叉验证：node（V8）关掉旧式异常处理（`--no-experimental-wasm-legacy-eh`）后，游戏 wasm 的 `WebAssembly.validate` 直接为 false；默认开时为 true。SIMD 在 node 里关不掉，按解码计数。
+- JS 侧：`index.js` 要 ES2021（`??=` / `||=` / `?.`、可选 catch 绑定、`BigInt64Array`），Chrome 85 起都有，被 wasm 门槛盖住。转译 index.js 到 ES2019 没有意义：Chrome 83 过了语法这关也编译不了 wasm。
+- 降到 80 左右的唯一办法：用 Godot 4.7.2 源码 + Emscripten 自编网页导出模板，去掉 `-msimd128`、异常改回 JS 实现（不用 `-fwasm-exceptions`）、关 `WASM_BIGINT`（i64 导入拆成两个 i32）。代价：
+  - 要搭 Emscripten + SCons 编 Godot 模板（每次升级引擎都要重编，与官方模板行为可能不一致，要全量回归）；
+  - JS 异常比 wasm 异常慢、代码大（经验上 wasm 体积 +10–20%、带 try 的调用路径变慢），去 SIMD 后数学 / 渲染批处理变慢——**所有玩家**都吃这份性能；
+  - 另出一份兼容 wasm 按需加载：LZMA 后约 6.7 MB，Toy 包现在 49.72 MB、只剩约 0.3 MB 余量，**放不下**；itch 包可以放，但只有 itch 受益。
+  - 受影响人群：没装谷歌服务、系统 WebView 停在 2020 年前后的安卓机（截图这台 Android 11 + Chrome 83）。手机自带浏览器 / Chrome 通常更新得上，诊断卡已提示更新「Android System WebView」。
+  - 建议：先不做；等诊断卡 / 反馈里「内核过旧」的人数有数了再评估。
+- **本次改动**：`loader.js` 内核检查改为直接测引擎要的 wasm 特性——三段几十字节的小 wasm（SIMD：`i8x16.splat` + `popcnt`；异常：`try` + `catch_all`；BigInt：同步实例化一个 i64 恒等导出并用 `BigInt(3)` 调用，字节同 wasm-feature-detect 的检测模块），缺任一项就不下载资源、给「内核版本过旧」失败卡，文案改为「需要 Chrome 95 / iOS 16.4 以上」，诊断卡「报错」行写缺哪项（`WASM SIMD` / `WASM 异常处理` / `WASM BigInt`）。原来 Chrome 85–94、iOS 15–16.3 会过检查、下完 30 MB 才在编译时失败。
+- 验证：当前 Chromium 正常进到「开始游戏」；注入脚本让 SIMD 检测模块校验失败（模拟 Chrome 90）→ 2 秒内出失败卡，分片一个都没下。**没有在真正的旧内核（Chrome 83–94）上跑过**（本机没有旧版浏览器，下载旧版 Chromium 需用户同意）。
 
 ## 部署（EdgeOne Pages）
 

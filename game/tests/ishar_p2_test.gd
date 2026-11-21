@@ -32,7 +32,7 @@ func _ready() -> void:
 	var other: Dictionary = g.spawner.new_enemy("tear", Vector2(100, 0))
 	other.owner = {"id": -1}
 	g.enemies.append_array([own, other])
-	g.bai.transform_ishar(e)
+	g.bai.boss("ishar").transform_ishar(e)
 	check(not e.friendly and not e.invuln and e.phase == 2, "transformation changes allegiance")
 	check(not own.dead and own.get("song_eye", false) and not other.dead and not other.get("song_eye", false), "transformation promotes only own unpurified tears to hostile eyes")
 	check(e.ai == "melee", "P2 uses deliberate attack scheduler, no generic ranged insertion")
@@ -63,7 +63,7 @@ func _ready() -> void:
 			g.bai._update_warns(0.04)
 		# 10-27 连段（docs/170）：一幕 合唱连段（环颂 → 齐射 → 撕咬）与 锁定连段（三线扫射 → 大群之声 → 深海触腕）交替；大群之歌在二幕
 		check(seen.has("ishar_line"), "line ranged patterns at distance %d" % distance)
-		check(not seen.has("bite") and not seen.has("sweep"), "act one reads lines only, no melee bite (docs/170b)")
+		check(not seen.has("bite") and not seen.has("sweep"), "act one reads lines only, no melee bite (docs/173（原 173b，标题写作 170b）)")
 		var regular_names: Array = names.filter(func(n): return n in ["三线扫射", "大群之声", "撕咬", "横扫", "合唱齐射", "深海触腕"])   # 泪滴共鸣 / 潮涌迫近 / 共鸣是机制，不在轮转里
 		check(regular_names.count("三线扫射") >= 2 and regular_names.count("大群之声") >= 2 and regular_names.count("合唱齐射") >= 2, "both act-one combos repeat rather than priority starving")
 		if not (regular_names.count("三线扫射") >= 2 and regular_names.count("合唱齐射") >= 2):

@@ -1837,7 +1837,7 @@ JSON 的 `script` 改为 `data_operator.gd`、写 `blocks`；原脚本留作测�
 - 自动技能、手动及缓冲释放共用互斥；充能继续。一般持续增益依原始 `dur` 到期，阶段内已开始的轮次保留快照。阶段技能结束事件等末轮排空且攻击收势完成后触发一次，不在原始计时归零时提前发；其后的纯视觉收枪继续阻止新技能起手。
 - 首批支持 `circle / cone` 及 `cannon` 适配；拒绝 `free`、`armed/combo` 和 `swap_attack` 组合。随机 circle 必须 `center:target`；inherit circle 可沿用既有 center，包括已存在召唤物的位置，但不接管召唤物的独立攻击或生命周期。新增弹道/召唤/近战特殊形状需要实现其攻击适配，不能仅把形状名加入白名单。
 
-**维什戴尔迁移：**前半段无受击人数上限的范围炮击；后半段四连发；8 秒与现有倍率保持。`attack_effect` 保存炮击的 `aim_r / size / src / mark`，炮口属于动画帧条；炮弹、余震和每轮魂灵同步仍在角色适配层。原 `verb.cannon_exec sustain` 试做协议由本协议取代，不再作为新增干员用法。历史试做见 [原方案](plans/2026-10-18-wisadel-s2-two-phase.md)，本次边界与验收见 [模块设计](plans/2026-10-18-sustained-attack-module-design.md)。
+**维什戴尔迁移：**前半段无受击人数上限的范围炮击；后半段四连发；8 秒与现有倍率保持。`attack_effect` 保存炮击的 `aim_r / size / src / mark`，炮口属于动画帧条；炮弹、余震和每轮魂灵同步仍在角色适配层。原 `verb.cannon_exec sustain` 试做协议由本协议取代，不再作为新增干员用法。历史试做见 原方案（已删），本次边界与验收见 模块设计（已删）。
 
 
 ### 25. 技能效果生命周期（2026-10-18）
@@ -1861,7 +1861,7 @@ o.SkillLifecycle.bind(o, "capability", o.effect_skill, state, "remaining",
 
 已接入适配：`cannon_load`（次数独占）、`saria_heal.hot`（后台限时）、`calc_field`（限时领域）、`fox_cast.haze`（限时增益）、`fox_cast` 暖光（永久增益）。自然结束的治疗尾拍、钙晶更新、暖光恢复仍在原适配器位置，未另加计时器。
 
-新增干员：先复用现有 JSON 积木、技能槽与动画映射；只有全新效果才新增适配器。适配器至少提供绑定、自然结束及取消规则，检查状态单位、槽迁移、刷新、退出与再部署。完整对应和验证边界见 [三干员能力审计](plans/2026-10-18-three-operator-capability-audit.md)。
+新增干员：先复用现有 JSON 积木、技能槽与动画映射；只有全新效果才新增适配器。适配器至少提供绑定、自然结束及取消规则，检查状态单位、槽迁移、刷新、退出与再部署。完整对应和验证边界见 三干员能力审计（已删）。
 
 
 ## 26. 水月公共时序接入（2026-10-18）
@@ -1881,7 +1881,7 @@ S3 当前契约（2026-10-18）：参考原作的全周范围攻击与追加目�
 - 触手追加目标数在基础数上增加 2，默认最多 3 个，按最低当前生命选取；仅这些追加目标获得眩晕。追加目标必须位于本次攻击半径内，不使用半径外补选。S2 同时生效时保留绑缚，追加目标数不叠成额外 +3；成长提供的基础追击数仍保留。
 - 独立 S1 `swarm` 沿用既有选敌与范围，可能命中 S3 半径外目标；该独立效果不属于 S3 追加目标补选。
 - 移除 S3 镜像、延迟 60% 回声伤害、对应 `verb.mirror` 与过时配置。S3 不再绘制三方向斩击、偏移触手团或逐目标触手图像。
-- 实际出手时设置 `s3_fx` 与 `s3_fx_radius`，整片攻击范围内的触手同步出现。特效只表现已结算的攻击，不额外触发伤害或控制；离队时清空。完整表现约定见 [水月 S3 范围攻击与特效方案](plans/2026-10-18-mizuki-s3-fx.md)。
+- 实际出手时设置 `s3_fx` 与 `s3_fx_radius`，整片攻击范围内的触手同步出现。特效只表现已结算的攻击，不额外触发伤害或控制；离队时清空。完整表现约定见 水月 S3 范围攻击与特效方案（已删）。
 
 验收入口：`mizuki_runtime_test`（真实技能入口、1/2/4 倍攻速、主控 / 队友、手动 / 自动、目标死亡、取消 / 重新部署、重叠恢复、成长与缺图，以及 S3 全周群攻、追加目标控制、半径边界、无回声与无生命消耗），`mizuki_skill_anim_test`（完整八帧、fire 对齐、持续循环 / 收势、S1 优先级与无变体回退）。三干员既有 lifecycle / phases / timing / Wisadel 回归保留。
 
@@ -1942,3 +1942,24 @@ S3 当前契约（2026-10-18）：参考原作的全周范围攻击与追加目�
 | `shape.cannon` 的 `lowmark {cond, below}` | 普攻参数 | 维什戴尔节点 4B「亡者回响」：炮击 / 余震 / 魂炮 / 巨炮波及、且生命比例低于 below 的敌人直接挂残影标记（已带标记的不重复）。不再依赖 S2（S2 `attack_effect.mark` 已删） |
 | `shape.cannon` 的 `chain {cond, window, gap, snap_r}` | 普攻参数 | 维什戴尔节点 5A「余烬未冷·续燃」：S1 强化炮击出手后 window 秒内，被炸死 / 带标记倒下的敌人的残影立即殉爆（不等 0.25 秒）；gap 秒内紧接着的下一发强化炮击，落点吸向离原落点 snap_r 内最近的残影 / 标记（一道弧线 + 落点环）。不改伤害 |
 | `shape.cannon` 的 `fb {cond, kills, sp, cd}` | 普攻参数 | 维什戴尔节点 5B「亡者回响·回馈」：一次残影殉爆杀死 ≥ kills 名敌人时，全队（含自身）技能技力各 + sp 秒，cd 秒内至多一次；金色光点（`h4_spmote`，`_h4wd_draw_pfx` 里补了画法）从殉爆处飞向每名队员 |
+
+## 28. 令 `ling` 的积木（docs/367，11-18，`blocks/seg_ling.gd`，链尾在 seg_gladiia 之后）
+
+八个瞬时积木（登记 `seg_hoshiguma.EXT_BLOCKS` 与 `data_operator.EXEC_SEG` 第 0 段 → `_ext_exec` → `lg_exec`）。召唤物本身仍是 §15 的 `blocks.summons`；这里只管「谁算龙、满了顶掉谁、龙散去时给什么」。不取随机数。
+
+| 积木 | 参数 | 说明 |
+|---|---|---|
+| `verb.lg_summon` | `kind`、`at`（self / leader / target / hit = 上一次普攻落点）、`n`、`spread`、`life`、`cap0 / cap1 / cap2`、`alt_node` + `alt_kind` | 召唤；种类在 `LG_KINDS`（qp / xy / xy2 / xj / xj2）里的计入**跨种类合计上限**（按精英阶段取 capN），满了最早的先散去（`_sm_end` "cap"，执行 on_expire）；节点 alt_node 已选下时换成 alt_kind |
+| `verb.lg_drink` | `sp`、`cap`、`dur`、`burst_node / burst_r / burst_mult / burst_kb / burst_src` | 精一起生效（放在龙的 on_expire）：本干员其余未生效的技能各 + sp 秒技力；`o.gn.drink` +1（至多 cap，dur 秒不续清空；光环 `per: gn:drink`）；浮白节点：层数已满时改为原地炸开并清空 |
+| `verb.lg_decay` | — | `o.gn.drink` 到时清空（`trig.tick` 调） |
+| `verb.lg_lit` | `dur`、`r` | `trig.on_hit_n` 的 do：这一下打中的第一名敌人挂 `lg_lit`（可选键），r 内 `move.mode: chase` 的本干员召唤物把当前目标改成它 |
+| `verb.lg_ming` | `n`、`mult`、`bind`、`range`、`src`、`src_summon`、`chain_node / chain_r / chain_mult` | 本体 + 每条 xy / xy2 各对 n 名不重复的敌人（`nearest_enemies`，Boss 优先）：攻击 × mult × 技能强度法伤 + 束缚（眩晕，精英减半，Boss 除外）；chain_node 已选下时每下再跳一名 |
+| `verb.lg_merge` | `basic`、`big` | 本干员全部龙（含墨龙 mo）走 `_sm_end` "merge"（执行 on_expire），吞了 ≥ 1 条召 big，否则 basic；`o.gn.merged` 记条数 |
+| `verb.lg_split` | `kind`、`life` | 放在弦惊的 on_expire：S3 已不在生效时（自然结束）原地留一条 kind，life 秒；被吞 / 顶替时不留 |
+| `verb.lg_ink` | `n`、`r`、`mult`、`range`、`src` | 同时点 n 名最近的敌人（各一次 `area_hit`），更新 `last_hit_pos` |
+| `verb.lg_tune` | `tune`（qp / xy / xj） | 11-18 A 版（docs/367 §10）：切当前调 `o.gn.tune`；条件 `lg_qp / lg_xy / lg_xj`（`EXT_CONDS`）读它 |
+| `verb.lg_grow` | `every`、`cd0 / cd1 / cd2`、`cap0 / cap1 / cap2`、`force`、`alt_node` + `alt_kind` | 化龙节拍：计时满 cdN 化一条当前调的龙；满员换掉最早一条异调龙（`_sm_end "swap"`，执行 on_expire）；全同调停表；S3（技能 2）生效时暂停；`force` = 立刻化一条 |
+| `verb.lg_ev` | `ev` | 只画：发 `fx_recipe.ev(o, ev, {p, tune})` |
+| `verb.lg_summon` 追加 `by_tune` | — | kind 当前缀，按当前调取 `<kind>_<tune>`（墨龙 mo_qp / mo_xy / mo_xj） |
+| `verb.lg_drink` 追加 `sp_win / sp_max` | — | 技力加成 sp_win 秒内至多 sp_max 次 |
+| `verb.lg_split` 追加 `n` | — | 散成 n 条；`life` 不写 = 常驻 |

@@ -2,6 +2,7 @@
 ## 本文件放博士层的专属逻辑：指挥技能（唯一的手动技能）、排异反应、局外成长接入。
 extends RefCounted
 
+const ThemePack = preload("res://scripts/core/theme_pack.gd")   # 主题数据路径门面（docs/359 §2）
 var g
 var def: Dictionary = {}
 var rej_count := 0             # 排异反应次数（结局线用）
@@ -56,7 +57,7 @@ static func cat_name(pid: String) -> String:
 
 func _init(game) -> void:
 	g = game
-	var f := FileAccess.open("res://data/doctor.json", FileAccess.READ)
+	var f := FileAccess.open(ThemePack.path("doctor"), FileAccess.READ)
 	if f != null:
 		var d = JSON.parse_string(f.get_as_text())
 		if d is Dictionary:

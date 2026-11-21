@@ -26,9 +26,14 @@ const TINT := {
 }
 ## C 版信物提示（Codex 交付 art/archive/incoming_1028/node_route_c_delivery_1026，用户 10-26 定稿）：结局入口卡底放该路线的现有信物图标（32×32，原色）+ 信物名，
 ## 中心距 80；只画已达成过的结局（未知路线不泄露）；图标只是路线提示，不是奖励承诺也不是持有状态
-const ROUTE_RELIC := {"knight": "222", "deep": "220", "resolve": "242"}
-const TOKEN_NAME := {"knight": "海潮的气息", "deep": "主教的研究", "resolve": "深蓝回忆"}
-const ROUTE_NAME := {"knight": "静谧时代", "deep": "息潮的代价", "resolve": "如星空般深蓝"}
+## 结局线的信物藏品 / 信物名 / 路线名：waves.json endings 的 token_relic / token_name / route_name（docs/368 §1，原三张表写死）
+static func route_relic(e) -> String:
+	return str(_D.ENDINGS.get(str(e), {}).get("token_relic", ""))
+static func token_name(e) -> String:
+	return str(_D.ENDINGS.get(str(e), {}).get("token_name", ""))
+static func route_name(e) -> String:
+	return str(_D.ENDINGS.get(str(e), {}).get("route_name", ""))
+const _D = preload("res://scripts/data.gd")
 const INCIDENT_BACK := preload("res://art/ui/node_cards/incident.png")   # 不期而遇精修底纹（272×408，Codex）
 
 
@@ -162,6 +167,8 @@ static func draw_card(ci: CanvasItem, size: Vector2, c: Dictionary, st: Dictiona
 		_back(ci, r, c, st, font, serif, col, t, now, a)
 		if c.get("trade", false):
 			_cost_tag(ci, r, font, a)
+		if st.get("sel", false):
+			_confirm_tab(ci, r, font, a)
 	ci.draw_set_transform_matrix(Transform2D.IDENTITY)
 	# 翻转中线闪光（不随卡片压扁）：竖亮线 + 两侧台阶光
 	if fl == i and not rm and flip_age > LIFT_T and flip_age < LIFT_T + FLIP_T:
@@ -307,6 +314,14 @@ static func _dash(ci: CanvasItem, a: Vector2, b: Vector2, col: Color, clip: Rect
 ## 结局色边：2 格粗的色框（两色时左右各半）+ 一段沿框跑动的亮白高光 + 顶边中央罗马数字徽记
 ## 不期而遇卡背（C 版）：精修底纹 + 细银边（左上受光、右下回暗）+ 白色节点图标 + 名字；结局入口在卡底放信物提示
 ## 交易卡角标（docs/184 §2.1）：卡背右上角红色台阶三角 +「代价」，翻开前就知道这张要付东西
+## 已选中（选中再确定，choice_panel.sel_i）：卡顶边正中一枚青底「确定」小牌，压在边框上（左上序号牌、右上「代价」角标之间）
+static func _confirm_tab(ci: CanvasItem, r: Rect2, font: Font, a: float) -> void:
+	var w: float = font.get_string_size(UI.Loc.s("确定"), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(14)).x + 24.0
+	var tr := Rect2(Vector2(roundf(r.get_center().x - w / 2.0), r.position.y - 12.0), Vector2(roundf(w), 24))
+	ci.draw_rect(tr, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, a))
+	UI.text(ci, font, tr.position + Vector2(0, 17), "确定", 14, Color(0.04, 0.07, 0.09, a), HORIZONTAL_ALIGNMENT_CENTER, tr.size.x)
+
+
 static func _cost_tag(ci: CanvasItem, r: Rect2, font: Font, a: float) -> void:
 	var tr := Vector2(r.end.x - 2.0, r.position.y + 2.0)
 	var red := Color(0.86, 0.32, 0.38, 0.95 * a)
@@ -357,12 +372,12 @@ static func route_tokens(ci: CanvasItem, r: Rect2, st: Dictionary, font: Font, a
 	for q in ends.size():
 		var e: String = str(ends[q])
 		var x := roundf(center - span * 0.5 + q * 80.0 + 24.0)
-		var tx: Texture2D = texs.get(ROUTE_RELIC.get(e, ""), null)
+		var tx: Texture2D = texs.get(route_relic(e), null)
 		if tx != null:
 			ci.draw_texture_rect(tx, Rect2(Vector2(x, y), Vector2(32, 32)), false, Color(1, 1, 1, ta))
 		var cc: Color = cols[mini(q, cols.size() - 1)] if not cols.is_empty() else UI.CYAN
 		ci.draw_line(Vector2(x + 8.0, y + 38.0), Vector2(x + 24.0, y + 38.0), Color(cc.r, cc.g, cc.b, ta * 0.7), 2.0)
-		ci.draw_string(font, Vector2(x - 24.0, y + 55.0), UI.Loc.s(TOKEN_NAME.get(e, "")), HORIZONTAL_ALIGNMENT_CENTER, 80.0, 12, Color(0.70, 0.77, 0.82, ta))
+		ci.draw_string(font, Vector2(x - 24.0, y + 55.0), UI.Loc.s(token_name(e)), HORIZONTAL_ALIGNMENT_CENTER, 80.0, 12, Color(0.70, 0.77, 0.82, ta))
 
 
 ## 卡外结局名（用户 10-26）：只在悬停 / 选中的那张卡真带路线时，在它下方写对应结局名（双路线两行）；切卡淡入淡出（alpha 由 choice_panel 平滑）
@@ -375,7 +390,7 @@ static func draw_route_names(ci: CanvasItem, cr: Rect2, ends: Array, alpha: floa
 	y = minf(y, y_max - lh * float(ends.size()))
 	for q in ends.size():
 		var e: String = str(ends[q])
-		ci.draw_string(font, Vector2(cr.get_center().x - 170.0, y + lh * (q + 1) - 6.0), UI.Loc.s(ROUTE_NAME.get(e, "")), HORIZONTAL_ALIGNMENT_CENTER, 340.0, fs, Color(0.80, 0.86, 0.90, alpha))
+		ci.draw_string(font, Vector2(cr.get_center().x - 170.0, y + lh * (q + 1) - 6.0), UI.Loc.s(route_name(e)), HORIZONTAL_ALIGNMENT_CENTER, 340.0, fs, Color(0.80, 0.86, 0.90, alpha))
 
 
 ## 正面：顶部类型色带（图标 + 节点名）、标题（衬线）、说明；正文自上而下显出，开头迸一圈像素颗粒

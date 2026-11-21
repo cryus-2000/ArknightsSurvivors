@@ -83,7 +83,7 @@ func _secondary(e: Dictionary, d: Dictionary, dir: Vector2, dist: float) -> bool
 		return false
 	if g.warns.size() >= 10 or (g.t >= 280.0 and g.t < next_secondary_at):
 		return false
-	if str(a.mode) in ["pierce", "volley"] and g.beacon_sys.ranged_held(e):
+	if str(a.mode) in ["pierce", "volley"] and g.beacon_sys != null and g.beacon_sys.ranged_held(e):
 		return false   # 圈内安全：读条期间远程额外招式（凿石贯射、齐射）不起手，冷却不推进（docs/49g）
 	var reach: float = float(a.range)
 	var warn_color := Color(0.64, 0.95, 1.0) if float(a.get("frost", 0.0)) > 0.0 else (Color(0.95, 0.55, 1.0) if float(a.get("nerve", 0.0)) > 0.0 else Color(0.75, 0.55, 1.0))
@@ -364,7 +364,7 @@ func _dash(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float, s
 ## 站桩吐酸
 func _acid(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float) -> Vector2:
 	e.cdt -= dt
-	if e.cdt <= 0.0 and dist < float(d.get("acid_range", 300)) and not g.beacon_sys.ranged_held(e):   # 圈内安全（docs/49g）
+	if e.cdt <= 0.0 and dist < float(d.get("acid_range", 300)) and not (g.beacon_sys != null and g.beacon_sys.ranged_held(e)):   # 圈内安全（docs/49g）；没有灯标机制的主题为 null
 		e.cdt = float(d.get("acid_cd", 4.2))
 		Sfx.enemy("acid", dist)   # 站桩吐酸：酸弹声（尖，要躲）
 		e.atk_until = g.t + 0.3

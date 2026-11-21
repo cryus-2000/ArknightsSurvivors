@@ -6,6 +6,7 @@
 ## 机器人批跑里两者都不生效、阶段长度照旧，不碰随机数。
 extends RefCounted
 
+const ThemePack = preload("res://scripts/core/theme_pack.gd")   # 主题数据路径门面（docs/359 §2）
 const Bal = preload("res://scripts/core/balance.gd")
 const UPX = preload("res://scripts/run/ult_px_exusiai.gd")   # 转平面终结技画面（docs/262 §11，ult/px_plane）：kind = "pxfn" 的图形交给它画
 const Moves = preload("res://scripts/run/ult_moves.gd")
@@ -24,6 +25,7 @@ const MZP = preload("res://scripts/run/ult_px_mz.gd")   # 水月「水母群」�
 const Bond = preload("res://scripts/run/link_bond.gd")   # 羁绊连携（link/bond，docs/217）
 const LinkV2 = preload("res://scripts/run/link_v2.gd")   # 连携 v2（link/v2，docs/209 §2）：全自动、只由队长触发、按姿态挑人   # 慢动作瞄准 v2（ult/aim，docs/209 §3）
 const UltDraw = preload("res://scripts/run/ult_draw.gd")   # 终结技画面层的绘制细节（舞台 / 冲击帧 / 像素形 / 定格白 / 连携闪 / 吸气 / 起手，docs/286 §4 第三批拆出）
+var _dbg_noult: bool = preload("res://scripts/render/declutter.gd").dbg("noult")   # 特效预算量测（docs/368）：发布版恒 false
 
 var CELLS := 7                # 协同格数（balance ult/cells，_init 读；HUD 读 u.CELLS）
 const FULL := 100.0
@@ -1305,6 +1307,8 @@ func _draw_strip(w, s: Dictionary, dim: float) -> void:
 
 ## 地面层（world.gd 在干员地面特效那一步调）：layer = back 的帧条
 func draw_world_back(w) -> void:
+	if _dbg_noult:
+		return   # --clutterdbg=noult（量测，docs/368 §1.3）：终结技画面层整层不画，代码与随机数照跑
 	var dim: float = _dim()
 	for s in shapes:
 		if s.age >= 0.0 and str(s.get("layer", "front")) == "back":
@@ -1454,6 +1458,8 @@ func _dim() -> float:
 
 ## 世界层（world.gd 在干员技能层之后）：瞄准指示 + 占位图形 + 主体层帧条（地面层帧条在 draw_world_back）
 func draw_world(w) -> void:
+	if _dbg_noult:
+		return   # --clutterdbg=noult（量测，docs/368 §1.3）：终结技画面层整层不画，代码与随机数照跑
 	var dim: float = _dim()
 	var px: bool = Bal.vi("ult/px_style", 1) > 0   # 像素风光栅化（用户 10-30）
 	UltDraw._draw_stage(self, w)   # 舞台：压暗 + 放大的出手队友（在本层图形之前画，特效亮在上面）
@@ -1809,25 +1815,23 @@ func fx_tick() -> void:
 
 
 ## 终结技 / 连携技名称与简介（data/ult_text.json，图鉴技能页两行 + 终结技演示段标签读；本作新增招式，名称自拟）
-const TEXT_PATH := "res://data/ult_text.json"
 static var _text: Dictionary = {}
 
 static func text_table() -> Dictionary:
 	if _text.is_empty():
-		var d = JSON.parse_string(FileAccess.get_file_as_string(TEXT_PATH)) if FileAccess.file_exists(TEXT_PATH) else null
+		var d = JSON.parse_string(FileAccess.get_file_as_string(ThemePack.path("ult_text"))) if FileAccess.file_exists(ThemePack.path("ult_text")) else null
 		_text = d if d is Dictionary else {"ops": {}}
 	return _text
 
 
 ## 终结技专属音效 / 语音表（docs/205，data/ult_audio.json）：干员的条目叠在 default 上；只在 _begin / _cast / impact / hit 四处读
-const AUDIO_PATH := "res://data/ult_audio.json"
 var _aud_tab := {}
 var _hit_rt := -99.0
 
 
 func _aud(oid: String) -> Dictionary:
 	if _aud_tab.is_empty():
-		var d = JSON.parse_string(FileAccess.get_file_as_string(AUDIO_PATH)) if FileAccess.file_exists(AUDIO_PATH) else null
+		var d = JSON.parse_string(FileAccess.get_file_as_string(ThemePack.path("ult_audio"))) if FileAccess.file_exists(ThemePack.path("ult_audio")) else null
 		_aud_tab = d if d is Dictionary else {"default": {}}
 	if _aud_tab.has("_m:" + oid):
 		return _aud_tab["_m:" + oid]
@@ -2382,6 +2386,8 @@ func bars_k() -> float:
 
 
 func draw_bars(ci: CanvasItem, vs: Vector2) -> void:
+	if _dbg_noult:
+		return   # --clutterdbg=noult（量测，docs/368 §1.3）：终结技画面层整层不画，代码与随机数照跑
 	var k: float = bars_k()
 	if k <= 0.0:
 		return

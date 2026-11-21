@@ -40,7 +40,7 @@ def encrypted_preset(text,template):
             match=re.search(r'^exclude_filter="(.*)"$',block,re.M)
             exclude=[s.strip() for s in (match.group(1) if match else '').split(',') if s.strip()]
             block=set_value(block,'exclude_filter',json.dumps(','.join(exclude+[d for d in ('tests/*','tools/*') if d not in exclude])))
-            block=set_value(block,'include_filter','"data/*.json,data/maps/*.json,data/characters/*.json,audio/music/*.json,art/index.json"')
+            block=set_value(block,'include_filter','"data/*.json,data/maps/*.json,data/characters/*.json,themes/*/theme.json,themes/*/data/*.json,themes/*/data/maps/*.json,audio/music/*.json,art/index.json"')
             blocks[i]=block
         elif block.startswith('['+preset+'.options]'):
             block=set_value(block,'custom_template/release',json.dumps(str(template).replace('\\','/')))

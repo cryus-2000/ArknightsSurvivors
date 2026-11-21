@@ -1,7 +1,7 @@
 # 150 围猎并入大群 + 难度曲线 A / B（10-25）
 
 > 用户 10-25：「把围猎和大群合并吧，然后怪物还是从远处围圈过来，但是不要太明显像是平移飘过来的，要那种慢慢来的。」又批 docs/146 方案 B（「难度曲线 B 没问题」）。
-> 落地分支 `claude/combined-difficulty`（与数值会话 `claude/trim-pocket-dash` 合并，见 docs/149）。最终提交 **230f4fcea**。
+> 落地分支 `claude/combined-difficulty`（与数值会话 `claude/trim-pocket-dash` 合并，见 docs/149（已删））。最终提交 **230f4fcea**。
 
 ## 1. 改了什么
 

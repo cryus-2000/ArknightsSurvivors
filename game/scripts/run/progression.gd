@@ -440,22 +440,23 @@ func offer_auto() -> bool:
 	return g.mode != g.Mode.PLAY or g.demo_op != "" or g.trial.active or g.bot != null
 
 
-func offer_recruit(src: String, cid: String) -> void:
+## dec：事件自带的婉拒奖励（{ops: 事件 op, txt: 卡面文案}，B站玩家反馈 11-19：引火之木婉拒照拿成长三选一，让付费的成长项白花钱）；空 = 各来源原规则
+func offer_recruit(src: String, cid: String, dec: Dictionary = {}) -> void:
 	if offer_auto():
-		resolve_offer(src, cid, not solo_bot())
+		resolve_offer(src, cid, not solo_bot(), dec)
 		return
-	offer_queue.append({"src": src, "id": cid})
+	offer_queue.append({"src": src, "id": cid, "dec": dec})
 
 
 ## 结算一次邀请。accept 的分支与改前的直接入队逐句相同
-func resolve_offer(src: String, cid: String, accept: bool) -> void:
+func resolve_offer(src: String, cid: String, accept: bool, dec: Dictionary = {}) -> void:
 	offer_log.append([int(g.t), src, cid, "accept" if accept else "decline"])
 	if not accept:
-		_offer_decline(src, cid)
+		_offer_decline(src, cid, dec)
 		return
 	var o = g.squad.add(cid)
 	if o == null:
-		offer_full(src)
+		offer_full(src, dec)
 		return
 	match src:
 		"silver":
@@ -474,16 +475,23 @@ func resolve_offer(src: String, cid: String, accept: bool) -> void:
 
 
 ## 编队已满（或排队期间人已在队）：各来源原来的满员处理
-func offer_full(src: String) -> void:
-	if src == "silver":
+func offer_full(src: String, dec: Dictionary = {}) -> void:
+	if not dec.is_empty():
+		g.endg._apply_op(dec.ops)
+		g.vfx.show_banner("编队已满，改为%s" % str(dec.txt))
+	elif src == "silver":
 		_advance_all()
 		g.vfx.show_banner("博士银印：全队各推进一个成长节点")
 	else:
 		g.pending_levelups += 1
 
 
-func _offer_decline(src: String, cid: String) -> void:
+func _offer_decline(src: String, cid: String, dec: Dictionary = {}) -> void:
 	var nm: String = str(Character.load_def(cid).get("name", cid))
+	if not dec.is_empty():
+		g.endg._apply_op(dec.ops)
+		g.vfx.show_banner("婉拒「%s」—— 改为%s" % [nm, str(dec.txt)])
+		return
 	g.pending_levelups += 1
 	if src == "silver":
 		_advance_all()
@@ -514,7 +522,7 @@ func open_offer_queued() -> bool:
 	while not offer_queue.is_empty():
 		var x: Dictionary = offer_queue.pop_front()
 		if g.squad.has(str(x.id)) or g.squad.is_full():
-			offer_full(str(x.src))
+			offer_full(str(x.src), x.get("dec", {}))
 			continue
 		open_offer(x)
 		return true
@@ -531,7 +539,7 @@ func open_offer(x: Dictionary) -> void:
 	var acc := {"kind": "recruit", "offer": true, "id": cid, "name": str(d.get("name", cid)), "cls": cls,
 		"desc": offer_tier(src, cid) + "\n" + intro, "cat": "接受入队 · %s  JOIN" % cls}
 	var dec := {"kind": "offer_decline", "name": "婉拒", "cat": "婉拒  DECLINE", "col": UI.SUB,
-		"desc": "全队各推进 1 个成长节点，另获一次成长三选一" if src == "silver" else "改为一次成长三选一"}
+		"desc": "全队各推进 1 个成长节点，另获一次成长三选一" if src == "silver" else ("改为%s" % str(x.dec.txt) if not (x.get("dec", {}) as Dictionary).is_empty() else "改为一次成长三选一")}
 	var sub := "选择是否加入编队"
 	var jb: String = g.squad.join_bonus_text()
 	if jb != "":
@@ -572,7 +580,7 @@ func pick(i: int) -> void:
 		offer_ctx = {}
 		g.panel.visible = false
 		g.state = g.S.PLAY
-		resolve_offer(str(ox.get("src", "event")), str(ox.get("id", "")), o.get("offer", false))
+		resolve_offer(str(ox.get("src", "event")), str(ox.get("id", "")), o.get("offer", false), ox.get("dec", {}))
 		Sfx.play("ui_ok", -4.0)
 		if o.get("offer", false):
 			g.fx.append({"kind": "ring", "pos": g.ppos, "r": 120.0, "life": 0.5, "max": 0.5, "col": Color(0.55, 0.9, 0.55)})

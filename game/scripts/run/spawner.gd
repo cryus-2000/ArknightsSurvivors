@@ -27,7 +27,9 @@ const PF_LEAD_FINAL := 30.0   # 最终 Boss（10:00）提前 30 秒（9:30 起�
 var _pre_group: Array = []
 var _pre_idx := -1
 ## 同一人物的不同档（docs/38 §2.2，用户 10-01 按原作核对：圣徒卡门 / 圣徒伊比利亚是同一人两档）：中期 Boss 抽取按人物排除，同局只出一位
-const SAME_PERSON := {"carmen": "saint", "iberia": "saint"}
+## 同一人物（中期池不重复出场）：enemies.json 的 person 字段（docs/367 §3，原 SAME_PERSON 写死卡门 / 伊比利亚）
+static func _person(t) -> String:
+	return str(D.ENEMIES.get(str(t), {}).get("person", ""))
 var next_chest := 20.0
 
 
@@ -40,7 +42,7 @@ func edge_pos() -> Vector2:
 	var dist: float = g.rng_spawn.randf_range(720.0, 820.0)
 	# 背光刷怪（docs/56 候选 e，beacon/shade_deg > 0 开）：朝向未点燃灯标 ±shade_deg 的扇区不刷杂兵。
 	# 不重掷：把 [0, TAU) 的随机角均匀映射到扇区以外的那段弧上，随机数调用次数与旋钮无关，同 seed 同旋钮可复现
-	var sh: Array = g.beacon_sys.shade_sector()
+	var sh: Array = g.beacon_sys.shade_sector() if g.beacon_sys != null else []
 	if not sh.is_empty():
 		var half: float = sh[1]
 		var u: float = fposmod(ang - (sh[0] + half), TAU)   # 从扇区末端起量的角度 [0, TAU)
@@ -114,7 +116,8 @@ func pick_type() -> String:
 				if type_cap(x) <= 0 or type_n(x) < dens_cap(type_cap(x)):
 					ok.append(x)
 		# 池里全到上限（怪物密度 0.4 把同种上限缩得很小，后段常见）：中后段在骨海漂流体 / 底海滑动者里二选一，不再全给滑动者
-		pick = ok[g.rng_spawn.randi() % ok.size()] if not ok.is_empty() else ((["bone", "slider"][g.rng_spawn.randi() % 2]) if g.threat >= 3 else "bone")
+		var late: Array = D.CAP_FALLBACK.late   # waves.json cap_fallback（docs/367 §3）：late 等概率抽、early 固定（不抽随机数）
+		pick = ok[g.rng_spawn.randi() % ok.size()] if not ok.is_empty() else ((late[g.rng_spawn.randi() % late.size()]) if g.threat >= 3 else str(D.CAP_FALLBACK.early))
 	return pick
 
 
@@ -123,13 +126,11 @@ func type_cap(kind: String) -> int:
 	if D.ENEMIES[kind].has("cap"):
 		var cm: float = float(D.THREAT[g.threat].get("cap_mult", 1.0)) if D.ENEMIES[kind].has("tier_cap") else 1.0
 		return int(round(float(D.ENEMIES[kind].cap) * cm))   # enemies.json 的 cap：场上同种上限（V8 新敌人）；tier_cap 的高阶怪在中后段 × threat.cap_mult（docs/158 §6）
-	match kind:
-		"stone":
-			return 6 if g.t < 180.0 else (8 if g.t < 420.0 else 12)
-		"brood", "spitter":
-			return 6
-		"offspring":
-			return 6 if g.t < 420.0 else 10
+	var steps = D.ENEMIES[kind].get("cap_steps")   # enemies.json cap_steps：[[到这一秒为止, 上限], …, [-1, 之后]]（docs/367 §3，原来按种类写死在这里）
+	if steps is Array:
+		for st in steps:
+			if float(st[0]) < 0.0 or g.t < float(st[0]):
+				return int(st[1])
 	return 0
 
 
@@ -156,10 +157,10 @@ func person_used(i: int) -> bool:
 	var used := {}
 	for u in mid_used:
 		for t in D.MID_POOL[u]:
-			if SAME_PERSON.has(t):
-				used[SAME_PERSON[t]] = true
+			if _person(t) != "":
+				used[_person(t)] = true
 	for t in D.MID_POOL[i]:
-		if SAME_PERSON.has(t) and used.has(SAME_PERSON[t]):
+		if _person(t) != "" and used.has(_person(t)):
 			return true
 	return false
 
@@ -758,39 +759,8 @@ func _horde_tail_rest() -> void:
 				nch += 1
 		if nch < 3:
 			spawn_chest(g.ppos + Vector2.from_angle(g.rng_spawn.randf() * TAU) * g.rng_spawn.randf_range(260.0, 420.0))
-	# 溟痕：先照常采样，再排除最终 Boss 禁生成区域，区域外仍可生成。
-	if g.t >= g.next_mire:
-		# 溟痕随时间越来越多、越来越大；缩圈后多出现在圈边
-		# 灯火低（docs/147）：间隔 × (1 − mire_spawn_iv × y)、离队长的距离 × (1 − mire_spawn_near × y)，随机数抽取次数不变
-		var ly: float = g.enemies_sys.lamp_mire_k().y
-		g.next_mire = g.t + g.map.mire_next_interval(g.t) * (1.0 - Bal.v("lamp/mire_spawn_iv", 0.4) * ly)
-		var mp := g.ppos + Vector2.from_angle(g.rng_spawn.randf() * TAU) * g.rng_spawn.randf_range(160.0, 380.0) * (1.0 - Bal.v("lamp/mire_spawn_near", 0.4) * ly)
-		if g.zone_state != 0 and g.rng_spawn.randf() < 0.6:
-			var ang := (g.ppos - g.zone_c).angle() + g.rng_spawn.randf_range(-0.8, 0.8)
-			mp = g.zone_c + Vector2.from_angle(ang) * (g.zone_r - g.rng_spawn.randf_range(20.0, 120.0))
-		# 只和自然溟痕比上限（docs/155：原来和怪物留痕共用总数，拖痕把名额占满后全图不再刷新）；
-		# 满了就淡出离队长最远、且超过 enemy/mire_recycle_d 的一片自然溟痕再刷新的，溟痕跟着队长走而不是定格
-		var nat: Array = g.mires.filter(func(x): return not x.has("src") and not x.get("boss", false) and x.life > 0.0 and not x.has("fade"))
-		var room: bool = nat.size() < int(g.map.mire_cfg().get("max_count", 24))
-		if not room:
-			var far = null
-			var far_d: float = Bal.v("enemy/mire_recycle_d", 520.0)
-			for x in nat:
-				var xd: float = x.pos.distance_to(g.ppos)
-				if xd > far_d:
-					far_d = xd
-					far = x
-			if far != null:
-				g.combat.fade_mire(far)
-				room = true
-		if room:
-			# 总面积到 enemy/mire_area_cap 就跳过这次（先照常 mire_new 消耗随机数，保证不开上限时随机序列不变）
-			var mire: Dictionary = g.map.mire_new(mp, g.t, true)
-			if g.map.mire_area_full():
-				mire.life = 0.0
-			if mire.life > 0.0 and not g.combat.mire_blocked(mire.pos, float(mire.maxr)):
-				mire["t0"] = g.t
-				g.mires.append(mire)
+	for m in g.mechs:
+		m.on_spawn_tick()   # 主题机制挂钩（docs/364）：自然溟痕刷新（mech_mire）
 	# 商人
 	if g.merchant.is_empty() and g.merchant_idx < g.MERCHANT_TIMES.size() and g.t >= g.MERCHANT_TIMES[g.merchant_idx]:
 		g.merchant_idx += 1

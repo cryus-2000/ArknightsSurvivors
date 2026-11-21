@@ -98,6 +98,7 @@
     "tour",
     "onboard_forced",
     "save_migrate",
+    "theme_save",
     "medals",
     "cloud_save",
     "menu_bgm",
@@ -122,6 +123,7 @@
    ]
   },
   "render": {
+   "_doc": "特效预算的静态项 fx_budget（docs/368，不开 Godot）每次快检都跑，不在这里列；运行时项 tools/fx_budget_runtime.py new --op <id> 新干员交付时手动跑",
    "scenes": [
     "render_perf",
     "render_lifetime",
@@ -437,7 +439,7 @@
    "why": ""
   },
   {
-   "glob": "game/scripts/run/ishar_encounter.gd",
+   "glob": "game/themes/*/mod/ishar_encounter.gd",
    "groups": [
     "core",
     "boss",
@@ -686,7 +688,7 @@
    "why": "终结技 / 连携图鉴文案（link_text）"
   },
   {
-   "glob": "game/data/relics.json",
+   "glob": "game/themes/*/data/relics.json",
    "groups": [
     "core",
     "relic"
@@ -694,7 +696,7 @@
    "why": ""
   },
   {
-   "glob": "game/data/relic_effects.json",
+   "glob": "game/themes/*/data/relic_effects.json",
    "groups": [
     "core",
     "relic"
@@ -710,7 +712,7 @@
    "why": ""
   },
   {
-   "glob": "game/data/events_v2.json",
+   "glob": "game/themes/*/data/events_v2.json",
    "groups": [
     "core",
     "relic"
@@ -727,13 +729,22 @@
    "why": ""
   },
   {
-   "glob": "game/data/{meta_tree,meta_roots,medals,medals_layout}.json",
+   "glob": "game/data/{meta_tree,meta_roots}.json",
    "groups": [
     "core",
     "relic",
     "ui"
    ],
    "why": ""
+  },
+  {
+   "glob": "game/themes/*/data/{medals,medals_layout}.json",
+   "groups": [
+    "core",
+    "relic",
+    "ui"
+   ],
+   "why": "主题数据（docs/367 §2）：蚀刻章表搬进主题包"
   },
   {
    "glob": "game/data/{guide,lore,credits,practice_squads,boot_order}.json",
@@ -752,7 +763,7 @@
    "why": ""
   },
   {
-   "glob": "game/data/{waves,enemies,enemy_pixels,enemy_redraw}.json",
+   "glob": "game/themes/*/data/{waves,enemies,enemy_pixels,enemy_redraw}.json",
    "groups": [
     "core",
     "enemy",
@@ -765,7 +776,7 @@
   {
    "glob": "game/art/**",
    "groups": [],
-   "why": "贴图：静态项（art_lint / asset_lint / asset_index）已覆盖；运行时贴图缺失靠 graph_lint"
+   "why": "贴图：静态项（art_lint / asset_lint / asset_index / fx_budget 特效预算 docs/368）已覆盖；运行时贴图缺失靠 graph_lint"
   },
   {
    "glob": "art/**",
@@ -797,6 +808,11 @@
   "game/scripts/core/stat_defs.gd",
   "game/data/balance.json",
   "game/data/doctor.json",
+  "game/themes/*/theme.json",
+  "game/themes/*/mech/*.gd",
+  "game/themes/*/mod/duck_lord.gd",
+  "game/themes/*/mod/knight.gd",
+  "game/themes/*/data/maps/*.json",
   "game/project.godot",
   "game/scripts/run/progression.gd",
   "game/scripts/run/enemies.gd",

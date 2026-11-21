@@ -29,11 +29,11 @@ def main():
     temp = ROOT / "build/test_tmp"
     temp.mkdir(parents=True, exist_ok=True)
     os.environ["TEMP"] = os.environ["TMP"] = str(temp)
-    roster = json.loads((ROOT / "game/data/enemies.json").read_text(encoding="utf-8"))["enemies"]
+    roster = json.loads((ROOT / "game/themes/deep_sea/data/enemies.json").read_text(encoding="utf-8"))["enemies"]
     ids = args.ids.split(",") if args.ids else list(roster)
     if not ids or any(key not in roster for key in ids):
         parser.error("Unknown or empty enemy IDs")
-    metadata_path = ROOT / "game/data/enemy_pixels.json"
+    metadata_path = ROOT / "game/themes/deep_sea/data/enemy_pixels.json"
     metadata_bytes = metadata_path.read_bytes()
     metadata = json.loads(metadata_bytes)
     source_hashes = {name: hashlib.sha256((ROOT / "art/incoming" / (name + "@2x.png")).read_bytes()).hexdigest()

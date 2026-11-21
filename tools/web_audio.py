@@ -9,8 +9,8 @@
 档位（compression_level：0 最好、1 最小；libsndfile 把它映射成 Vorbis 质量 1 - level）：
   A：配乐最多 32 kHz / 0.85；语音 24 kHz / 0.85
   B 平衡：配乐最多 24 kHz / 0.85，战斗 pulse / drive / 危险层 1.0；语音同 A
-  C 激进：配乐最多 22.05 kHz / 1.1（质量 −0.1，走 ffmpeg；高频多的 pulse 层与最终 Boss 二阶段 p2 仍 1.0，11-03 docs/187 §11）（8 kHz 以上几乎没内容的曲目再降到 16 kHz，§10）；语音 22.05 kHz / 1.0
-  D / E（10-28 试听档，docs/187 §7，只动配乐、语音同 B）：配乐 22.05 / 16 kHz，level 1.1 = Vorbis 质量 -0.1。
+  C 激进：配乐最多 22.05 kHz / 1.1（质量 −0.1，走 ffmpeg；高频多的 pulse 层与最终 Boss 二阶段 p2 仍 1.0，11-03 docs/285（原 187） §11）（8 kHz 以上几乎没内容的曲目再降到 16 kHz，§10）；语音 22.05 kHz / 1.0
+  D / E（10-28 试听档，docs/285（原 187） §7，只动配乐、语音同 B）：配乐 22.05 / 16 kHz，level 1.1 = Vorbis 质量 -0.1。
     libsndfile 最低只到质量 0，这两档改用 imageio_ffmpeg 自带 ffmpeg 的 libvorbis 编码（global_quality = 质量 × 10 × 118）
 这是有损压缩。网页 PCM 大小取决于 AudioContext 采样率，文件降采样本身只减包体；手机上下文另由 power.js 设为 24 kHz。
 用法：export_web.py --audio-tier C（10-28 起缺省，B 可回退）--final-tier D（11-06 起缺省）；单独试：python tools/web_audio.py <game 目录副本> <A|B|C> [最终 Boss 档 C|D|E]（只改传进去的目录）
@@ -24,7 +24,7 @@ import soundfile as sf
 TIERS = {
     "A": {"music_rate": 32000, "music": {"default": 0.85}, "voice": (24000, 0.85)},
     "B": {"music_rate": 24000, "music": {"default": 0.85, "battle_pulse": 1.0, "battle_drive": 1.0, "danger": 1.0}, "voice": (24000, 0.85)},
-    "C": {"music_rate": 22050, "music": {"default": 1.1, "battle_pulse": 1.0, "final_p2": 1.0}, "voice": (22050, 1.0)},   # 语音 0.9 → 1.0：11-02 第十批网页 44.6 超 44.5 预算，省 0.13 MiB（docs/187 §9）；11-07 用户「语音发闷」从 16 kHz / 1.1 提回 22.05 kHz / 1.0（约 +0.8 MiB，Toy 仍 < 50 MB）
+    "C": {"music_rate": 22050, "music": {"default": 1.1, "battle_pulse": 1.0, "final_p2": 1.0}, "voice": (22050, 1.0)},   # 语音 0.9 → 1.0：11-02 第十批网页 44.6 超 44.5 预算，省 0.13 MiB（docs/285（原 187） §9）；11-07 用户「语音发闷」从 16 kHz / 1.1 提回 22.05 kHz / 1.0（约 +0.8 MiB，Toy 仍 < 50 MB）
     # 语音 22.05 kHz / 1.0 → 16 kHz / 1.1（11-06 用户「先去做语音和音效降采样」，Toy 50 MB 线）：237 条单声道 2.67 → 1.88 MiB（−0.79）
     "D": {"music_rate": 22050, "music": {"default": 1.1}, "voice": (24000, 0.85)},
     "E": {"music_rate": 16000, "music": {"default": 1.1}, "voice": (24000, 0.85)},
@@ -57,7 +57,7 @@ def music_group(name):
     return "other"
 
 
-MUSIC_LP_HZ = 16000        # 11-02：本身几乎没有 8 kHz 以上内容的曲目 / 层，再降到 16 kHz（docs/187 §10）
+MUSIC_LP_HZ = 16000        # 11-02：本身几乎没有 8 kHz 以上内容的曲目 / 层，再降到 16 kHz（docs/285（原 187） §10）
 MUSIC_LP_HF_MAX = 0.0012   # 8 kHz 以上能量占比上限（-29 dB）；超过的曲目仍用档位采样率
 
 
@@ -73,7 +73,43 @@ def music_rate(x, sr, tier_rate):
     return tier_rate
 
 
+ENC_CACHE = os.environ.get("ARK_AUDIO_ENC_CACHE")   # export_web 设成 build/_import_cache/audio_enc；不设就不缓存（其他调用方行为不变）
+_ENC_USED = set()
+
+
 def encode(x, sr, level):
+    """同样的采样 + 采样率 + 档位 → 复用上次的编码结果（11-17 发版提速）：libsndfile 写 Ogg 时流序号随机，每次重编码字节都不同，
+    Godot 导入缓存（tools/import_cache.py）因此对 237 条语音全不命中、每次重导；结果缓存让同样的输入得到同样的字节"""
+    if not ENC_CACHE:
+        return _encode(x, sr, level)
+    import hashlib
+    a = np.ascontiguousarray(x, dtype=np.float32)
+    key = hashlib.sha256(b"v1|%d|%r|%r|" % (sr, float(level), a.shape) + a.tobytes()).hexdigest()
+    p = os.path.join(ENC_CACHE, key + ".ogg")
+    _ENC_USED.add(key + ".ogg")
+    try:
+        with open(p, "rb") as fh:
+            return fh.read()
+    except OSError:
+        pass
+    data = _encode(x, sr, level)
+    os.makedirs(ENC_CACHE, exist_ok=True)
+    with open(p + ".tmp", "wb") as fh:
+        fh.write(data)
+    os.replace(p + ".tmp", p)
+    return data
+
+
+def prune_encode_cache():
+    """删掉这次没用到的编码结果，缓存只留当前这一版（约 20 MB）"""
+    if not ENC_CACHE or not os.path.isdir(ENC_CACHE) or not _ENC_USED:
+        return
+    for f in os.listdir(ENC_CACHE):
+        if f not in _ENC_USED:
+            os.remove(os.path.join(ENC_CACHE, f))
+
+
+def _encode(x, sr, level):
     if level > 1.0:   # 质量 1 - level < 0：libsndfile 做不到，走 ffmpeg libvorbis（D / E 档）
         return encode_ff(x, sr, 1.0 - level)
     b = io.BytesIO()

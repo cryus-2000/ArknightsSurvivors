@@ -36,6 +36,20 @@ def dump(idx):
     return json.dumps(idx, ensure_ascii=False, indent=0, sort_keys=True) + "\n"
 
 
+def write(game_art=GAME_ART):
+    """按磁盘重建并写 <game_art>/index.json（内容没变就不写）；返回 (名字数, 重名列表)。
+    11-17 起 index.json 不进 git（docs/364 §5）：快检 / 测试（godot_runner.ensure_imported）、导出副本（export_build / export_web）、
+    云端（setup_linux.sh / gcp vm_startup.sh）都在用到前调这里重建"""
+    idx, dups = build(game_art)
+    path = os.path.join(game_art, "index.json")
+    text = dump(idx)
+    old = open(path, encoding="utf-8").read() if os.path.exists(path) else None
+    if old != text:
+        with open(path, "w", encoding="utf-8", newline="\n") as fh:
+            fh.write(text)
+    return len(idx), dups
+
+
 def check():
     """check.py 用：返回错误列表（空 = 一致）"""
     idx, dups = build()

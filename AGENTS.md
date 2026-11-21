@@ -2,7 +2,7 @@
 
 Read docs/06_git_collaboration.md before making changes.
 
-Docs index: docs/00_index.md lists every document by topic with its status (current spec / implemented record / in progress), a one-line summary and who references it; archived documents live in docs/archive/ with a one-line pointer left at the old path. Read first, all sessions: docs/00_index.md, 06, 41 §1–§3, 36 §1–§3 (including §1.1) and §7.5.1, 39, 76. The index's 「新会话先读」 table adds the per-role list (operators, Boss & enemies, balance / relics, UI & art, audio, deploy, copy).
+Docs index: docs/00_index.md lists every document by domain with its status (current / in progress / pending / record / reference / tool output / legacy) and a one-line summary. There is no archive directory: obsolete documents are deleted (history stays in git), merged documents name their sources at the top, and legacy documents still referenced by code stay in docs/ marked as legacy. Read first, all sessions: docs/00_index.md, 06, 41 §1–§3, 36 §1–§3 (including §1.1) and §7.5.1, 39, 76. The index's 「新会话先读」 table adds the per-role list (operators, Boss & enemies, balance / relics, UI & art, audio, deploy, copy).
 
 Multi-session coordination (Claude sessions): docs/41_agent_team.md. The user normally talks to one coordinator session, which relays tasks; worker sessions report 【收到】/【完成】/【卡住】 to the coordinator and CC it (【抄送】) when the user gives them tasks directly.
 

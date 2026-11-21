@@ -77,6 +77,7 @@ var mate_dim := 1.0               # 队友（非主控）特效再乘的系数�
 ## 队友整体透明度再乘 lerp(1, late_fx_mate, late_k)，队友转平面立起层也走这个系数，队友装饰颗粒按 late_fx_grains 减量；
 ## 队长不再被拥挤降噪压暗（late_fx_lead）；大面积填充变薄（late_fill_k，late_fx_fill）；队友发光点进辉光减量（lf_emit_k，late_fx_emit）。敌弹、预警不动
 var late_k := 0.0
+var danger := 0.0                # 危险优先（docs/398 B 版）：0–1，_danger_want 平滑后
 var lf_emit_k := 1.0              # 当前正在画的干员的发光点系数（squad._op_dim / _pxp_sorted 设；队长恒 1，_fx_order 队长最后画，阶段结束自然回 1）
 var _lf_cv = null
 var _sorted_leader := ""
@@ -103,6 +104,7 @@ var _dbg_amb: bool = Dc.dbg("noamb")
 var _dbg_ground: bool = Dc.dbg("noground")
 var _dbg_gem: bool = Dc.dbg("nogem")
 var _dbg_mire: bool = Dc.dbg("nomire")
+var _dbg_spark: bool = Dc.dbg("nospark")   # 命中 / 击杀火花（spark / shard / impact / hstar，友方）分账量测（docs/398）
 var _dbg_opmask: bool = Dc.opmask_any()   # 后期特效分账（--clutterdbg=nolead / nomates / noop_<id>，Dc.mute_op）
 # docs/139 §8 怪物攻击圈环盘点（量测，只隐藏不改逻辑）：nowarn 地面预警（填充 + 轮廓）、notell 敌人自带危险提示、nofoefx 敌方一次性特效、
 # noshock 冲击环、noaura 光环（巢涌者 / 伪人负担圈）
@@ -143,6 +145,7 @@ var dc_checked := 0               # --dccheck 实际比对的次数（BALANCE pr
 var _rec = null                   # --dccheck 比对时：贴图绘制只记参数、不画
 ## 会被降透明度的友方特效种类（敌方的 rift / bbeam、治疗十字、地面血迹不降）
 const DIM_KINDS := ["explode", "burst", "rays", "ring", "impact", "bslash", "slash", "spark", "shard", "wpillar", "pillar", "beam", "tracer", "quake", "sprite", "frost", "tide_link", "frost_track"]
+const SPARK_DBG := {"spark": true, "shard": true, "impact": true, "hstar": true}   # --clutterdbg=nospark 量测
 const DECO_KINDS := {"spark": true, "shard": true, "mote": true, "ember": true, "trail": true}   # docs/247 V3：降噪只压这些装饰件
 const FOE_KINDS := ["boss_phase", "boss_down", "spear_fly", "frost_track", "frost_step", "reflow", "glint", "drain"]   # 没打 enemy 标记的敌方 / Boss 特效（量测分层用）
 const AMB_KINDS := ["mote", "beacon_burst", "mire_recoil"]   # 系统 / 环境（光尘、大群波、灯标）：量测单独一层
@@ -239,7 +242,7 @@ func update_visuals(dt: float) -> void:
 	g.cam.offset = cam_kick.round() + kick_off + (g.ult.shake_off() if g.ult != null else Vector2.ZERO)   # 终结技轻震（用户 10-30 点名要，只给终结技；减少动态效果开时为 0）
 	# 灯火光源：可读灯圈（10-24 用户定；旧开关 render/lamp_readable 与闪烁 / 低灯变红的旧灯光 10-29 已删）——
 	# 圈内亮度固定、不闪、低灯不变红，灯火变弱只缩半径
-	var radius: float = lerp(150.0, 520.0, g.lamp / 100.0) * g.squad.light_radius_mult()
+	var radius: float = lerp(150.0, 520.0, g.lamp / 100.0 if g.has_lamp else 1.0) * g.squad.light_radius_mult()   # 没有灯火机制的主题按满灯照（docs/391 T-R1）
 	var dk: float = g.vfx.dark_k
 	if dk > 0.0:
 		radius *= 1.0 + dk * 0.025 * (0.6 * sin(g.t * 7.3) + 0.4 * sin(g.t * 13.1 + 1.7))   # 暗淡：灯圈边缘轻微抖动（docs/222，纯画面）
@@ -298,6 +301,12 @@ func update_visuals(dt: float) -> void:
 		mate_dim *= lerpf(1.0, late_fx_v("mate", 0.55), late_k)
 		if late_fx_v("lead", 1.0) > 0.0:   # 队长优先清楚：后期拥挤降噪不再压队长（declutter 3 档 lead_k 0.8）
 			lead_dim = lerpf(lead_dim, 1.0, late_k)
+	# 危险优先（docs/398 B 版，render/danger_fade）：画面里敌弹 / 地面预警 / 抛射物越多，队友特效越退后（透明度与发光点），
+	# 队长、敌人、预警本身不动；危险过去后慢慢回来。只改画面
+	var dwant: float = _danger_want() if g.demo_op == "" and Bal.v("render/danger_fade", 0.0) > 0.0 else 0.0
+	danger = move_toward(danger, dwant, rd * (3.0 if dwant > danger else 0.6))
+	if danger > 0.0:
+		mate_dim *= lerpf(1.0, Bal.v("render/danger_mate", 0.45), danger)
 	# 主次分层试验（docs/139 §10）：render/mate_layer 1 = 队友特效恒定压到 render/mate_fx（0.55）并去饱和 render/mate_desat；
 	# 用户 10-25「队友特效不要降，想其它办法」→ 缺省 0（只剩原来的拥挤降噪），改走 §11「突出队长」
 	mate_desat = 0.0
@@ -1449,6 +1458,20 @@ func _se_draw(ob, kd: int) -> void:
 			_pxp_sorted(ob)
 
 
+## 危险度目标值（0–1）：视野内敌弹 + 地面预警 ×4 + 抛射物 ×2，从 render/danger_from 起、再 render/danger_span 到顶；Boss 在场至少 render/danger_boss
+func _danger_want() -> float:
+	var vr: Rect2 = view_rect(40.0)
+	var n := 0.0
+	for b in g.ebullets:
+		if b is Dictionary and vr.has_point(b.get("pos", Vector2.INF)):
+			n += 1.0
+	n += g.warns.size() * 4.0 + g.lobs.size() * 2.0
+	var k: float = clampf((n - Bal.v("render/danger_from", 6.0)) / maxf(Bal.v("render/danger_span", 40.0), 1.0), 0.0, 1.0)
+	if g.boss != null and not g.boss.dead:
+		k = maxf(k, Bal.v("render/danger_boss", 0.5))
+	return k
+
+
 func _late_fx_k() -> float:
 	if Bal.v("render/late_fx", 0.0) <= 0.0 or g.demo_op != "" or (g.opt_old & 1073741824):   # OPT_LATEFX（仅 --optab 对照）
 		return 0.0
@@ -1470,7 +1493,10 @@ func late_fill_k() -> float:
 
 ## 某名干员的发光点系数（转平面 emit 进辉光层）：队友后期 × late_fx_emit，队长 1
 func late_emit_k(leader: bool) -> float:
-	return 1.0 if leader or late_k <= 0.0 else lerpf(1.0, late_fx_v("emit", 0.4), late_k)
+	if leader:
+		return 1.0
+	var k: float = lerpf(1.0, late_fx_v("emit", 0.4), late_k) if late_k > 0.0 else 1.0
+	return k * lerpf(1.0, Bal.v("render/danger_emit", 0.4), danger) if danger > 0.0 else k
 
 
 ## 同一遍实体绘制共用队长与队友的调色、发光设置。下一次绘制重新读取，换队长也会生效。
@@ -2887,7 +2913,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 			var rk: float = e.pose / 0.3
 			sq *= Vector2(1.0 + 0.22 * rk, 1.0 - 0.14 * rk)
 			bpos.x += e.fx * 12.0 * rk
-	# 最后的骑士 / 敌对骑士的专用帧条（Codex boss_p1，docs/archive/38_boss_p1_art_handoff）：冲锋途中换 e_knight_charge_form 循环（原来被出招姿态盖成攻击帧），
+	# 最后的骑士 / 敌对骑士的专用帧条（Codex boss_p1，docs/38_boss_p1_art_handoff）：冲锋途中换 e_knight_charge_form 循环（原来被出招姿态盖成攻击帧），
 	# 寒冰领域插枪换 e_knight_plant（预警期间举枪 → 落枪，结算后枪尖触地一拍；原来用攻击帧定格）。只换画面，判定和时序不动
 	if e.tex == "e_knight":
 		var ka := knight_animation(e)
@@ -3601,7 +3627,7 @@ func _lazy_tex(n: String) -> Texture2D:
 ## 连接只认该枚泪的有效 owner，不根据场上所有 Boss 猜测归属。
 func tear_zone_info(e: Dictionary) -> Dictionary:
 	var neutral: bool = e.get("friendly", false)
-	var blocked: bool = neutral and g.ishar.tear_blocked(e)
+	var blocked: bool = neutral and g.ishar != null and g.ishar.tear_blocked(e)
 	var owner = e.get("owner")
 	if not owner is Dictionary or owner.get("type", "") != "ishar" or owner.get("dead", true) or owner.get("phase", 0) != 1:
 		owner = {}

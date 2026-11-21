@@ -164,9 +164,9 @@
     if (errs.length < 8) errs.push(s);
     if (!own || window.__syBootOk) return;
     if (!window.__syFirstErr) window.__syFirstErr = s;
-    var old = /SyntaxError|Unexpected (token|identifier)|Invalid or unexpected/i.test(String(msg));   // 语法错误多半是内核太旧（引擎要 Chrome 85 以上）
+    var old = /SyntaxError|Unexpected (token|identifier)|Invalid or unexpected/i.test(String(msg));   // 语法错误多半是内核太旧（引擎要 Chrome 95 / iOS 16.4 以上，docs/22「最低内核」）
     window.__syBootWarn(old ? T('页面脚本无法运行，可能是内核版本过旧') : T('页面脚本出错'),
-      old ? T('安卓：在应用商店更新「Android System WebView」或「Chrome」后重新打开。iPhone：升级到 iOS 15 以上。') : T('加载可能停住。停住时点「重试」。'), true);
+      old ? T('安卓：在应用商店更新「Android System WebView」或「Chrome」后重新打开。iPhone：升级到 iOS 16.4 以上。') : T('加载可能停住。停住时点「重试」。'), true);
   }
   window.addEventListener('error', function (e) {
     if (!e || (e.target && e.target !== window)) return;   // 图片等资源加载失败不算（加载器自己的下载另有重试和提示）

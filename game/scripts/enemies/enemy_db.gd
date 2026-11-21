@@ -1,6 +1,7 @@
 ## 敌人 / 刷怪表加载：data/enemies.json、data/waves.json → 字典（tint 转成 Color）。
 extends RefCounted
 
+const ThemePack = preload("res://scripts/core/theme_pack.gd")   # 主题数据路径门面（docs/359 §2）
 static var _waves: Dictionary = {}
 
 
@@ -15,7 +16,7 @@ static func _read(path: String) -> Dictionary:
 
 static func load_enemies() -> Dictionary:
 	var out: Dictionary = {}
-	var src: Dictionary = _read("res://data/enemies.json").get("enemies", {})
+	var src: Dictionary = _read(ThemePack.path("enemies")).get("enemies", {})
 	for k in src:
 		var e: Dictionary = src[k].duplicate()
 		if e.has("tint") and e.tint is Array:
@@ -40,7 +41,7 @@ static func load_enemies() -> Dictionary:
 
 static func load_waves() -> Dictionary:
 	if _waves.is_empty():
-		_waves = _read("res://data/waves.json")
+		_waves = _read(ThemePack.path("waves"))
 		if not _waves.has("threat"):
 			_waves = {"threat": [], "boss_times": [], "mid_pool": [], "endings": {}}
 	return _waves

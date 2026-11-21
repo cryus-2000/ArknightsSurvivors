@@ -1,0 +1,1476 @@
+{
+ "_doc": "菲亚梅塔（docs/382 设计稿，ops-design-b 11-18）：草案，不进名册 / 寻访池（recruitable false）；美术借维什戴尔帧条占位，特效未做",
+ "id": "fiammetta",
+ "trail_col": {
+  "main": [
+   1.0,
+   0.42,
+   0.22
+  ],
+  "alt": [
+   1.0,
+   0.82,
+   0.45
+  ]
+ },
+ "name": "菲亚梅塔",
+ "en": "FIAMMETTA",
+ "class": "狙击",
+ "branch": "炮手",
+ "faction": [
+  "拉特兰"
+ ],
+ "lanes": [
+  "multi"
+ ],
+ "col": [
+  1.0,
+  0.42,
+  0.22
+ ],
+ "script": "res://scripts/characters/data_operator.gd",
+ "recruitable": false,
+ "base": {
+  "_doc": "菲亚梅塔（docs/382）草案数值。对照维什戴尔（atk 30 / cd 1.4 / 射程 340）、能天使（atk 15 / cd 0.35）：单发最重、间隔最长、射程最远；精二爆心专打密集处中心",
+  "atk": 56,
+  "cd": 1.8,
+  "range": 380,
+  "aoe": 68,
+  "first_cd": 0.6,
+  "idle_cd": 0.2,
+  "fire_pad": 40,
+  "aim_pad": 60,
+  "attack_shell_speed": 420,
+  "shell_speed": 460,
+  "boom_kb": 160,
+  "free_interval": 0.85,
+  "s1_dur": 10,
+  "s1_dmg": 1.8,
+  "s1_range": 0.15,
+  "s2_mult": 4.0,
+  "s2_aoe": 1.4,
+  "s2_len": 380,
+  "s2_w": 50,
+  "s2_line": 2.0,
+  "s3_dur": 12,
+  "s3_dmg": 1.25,
+  "s3_aoe": 1.5,
+  "s3_core": 1.0,
+  "hp_hi": 0.5,
+  "hp_top": 0.8,
+  "t_atk": 0.15,
+  "scorch_r": 40,
+  "scorch_t": 0.6,
+  "scorch_mult": 0.35,
+  "stagger_r": 32,
+  "stagger_t": 0.4,
+  "reload_n": 3,
+  "reload_mult": 0.6,
+  "fire_r": 90,
+  "fire_dur": 3.0,
+  "fire_every": 0.5,
+  "fire_mult": 0.12,
+  "fire_weak": 0.1,
+  "fire_weak_t": 1.0,
+  "hunt_r": 55,
+  "hunt_mult": 0.6,
+  "core_r": 28,
+  "core_mult": 0.6
+ },
+ "leader": {
+  "_doc": "当队长时的受击属性（docs/23）：原作精二满级 生命 1926 / 防御 156 / 法抗 0%（character_table char_300_phenxi），远程主控；原作天赋「陈述苦难」自身生命持续流失，本作不做（11-18 云端首轮压低回复后队长胜率 6%，回复改回常规 0.8）",
+  "max_hp": 101.0,
+  "armor": 1.0,
+  "arts_res": 0.0,
+  "regen": 0.8
+ },
+ "sprites": {
+  "move_attack": {
+   "tex": "op_wisadel_move_attack",
+   "frames": 8,
+   "foot": [
+    32.25,
+    59.860724059636865
+   ],
+   "_doc": "10-23 移动攻击（docs/128 §3）：普攻上半身 + 跑步步态腿，原作 Spine 1 倍像素化（tools/op_1x/make_op_1x.py）；帧序与普攻一一对应，只换贴图"
+  },
+  "entry": {
+   "foot_exempt": "入场条同跑步条用整数脚底 (32, 60)，与小数顶层 foot 相差不到 1px（docs/108 §5）",
+   "tex": "op_wisadel_entry",
+   "frames": 8,
+   "fps": 11.9994,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.0833,
+    0.0834,
+    0.0833,
+    0.0833,
+    0.0834,
+    0.0833,
+    0.0834,
+    0.0833
+   ],
+   "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/wisadel_entry.json），64 画布 @2x；落下由代码补"
+  },
+  "idle": {
+   "tex": "op_wisadel_idle",
+   "frames": 8,
+   "fps": 8.0,
+   "foot": [
+    32.25,
+    59.860724059636865
+   ]
+  },
+  "run": {
+   "foot_exempt": "跑步条沿用整数脚底 (32, 60)，与小数顶层 foot 相差不到 1px（docs/108 §5）",
+   "tex": "op_wisadel_run",
+   "frames": 8,
+   "fps": 13.333333333333334,
+   "foot": [
+    32,
+    60
+   ]
+  },
+  "attack": {
+   "tex": "op_wisadel_attack",
+   "frames": 8,
+   "fps": 8.421052631578947,
+   "foot": [
+    32.25,
+    59.860724059636865
+   ],
+   "fire": 3,
+   "attack_timing": {
+    "duration": 0.95,
+    "fire_time": 0.20833333333333334,
+    "active_ratio": 0.9,
+    "windup_ratio": 0.2192982456140351,
+    "min_duration": 0.2,
+    "frame_durations": [
+     0.06944444444444445,
+     0.06944444444444445,
+     0.06944444444444445,
+     0.10409356725146197,
+     0.12621345029239764,
+     0.14833333333333334,
+     0.170453216374269,
+     0.19257309941520462
+    ]
+   }
+  },
+  "skill": {
+   "tex": "op_wisadel_skill_s1",
+   "frames": 8,
+   "fps": 21.333333333333332,
+   "foot": [
+    32.25,
+    59.860724059636865
+   ],
+   "fire": 3,
+   "fire_time": 0.1875,
+   "frame_durations": [
+    0.0625,
+    0.0625,
+    0.0625,
+    0.037500000000000006,
+    0.037500000000000006,
+    0.03749999999999998,
+    0.03750000000000003,
+    0.03749999999999998
+   ]
+  },
+  "size": 64,
+  "foot_exempt": "Spine 原点烘焙的小数脚底，取整会让本体平移半个 @2x 像素且改变炮口原点；10-20 起已接 4 人保留，新接入一律整数（docs/108 §5）",
+  "foot": [
+   32.25,
+   59.860724059636865
+  ],
+  "hurt": {
+   "tex": "op_wisadel_hurt",
+   "frames": 8,
+   "fps": 8.0,
+   "foot": [
+    48.25,
+    75.86072405963687
+   ]
+  },
+  "death": {
+   "tex": "op_wisadel_death",
+   "frames": 8,
+   "fps": 8.0,
+   "foot": [
+    48.25,
+    75.86072405963687
+   ]
+  },
+  "skill_s2": {
+   "tex": "op_wisadel_skill_s2",
+   "frames": 8,
+   "fps": 16.0,
+   "foot": [
+    32.25,
+    59.860724059636865
+   ],
+   "fire": 3,
+   "fire_time": 0.3125,
+   "frame_durations": [
+    0.10416666666666667,
+    0.10416666666666667,
+    0.10416666666666666,
+    0.03749999999999998,
+    0.03750000000000003,
+    0.03749999999999998,
+    0.03750000000000003,
+    0.03749999999999998
+   ]
+  },
+  "skill_s3": {
+   "tex": "op_wisadel_skill_s3",
+   "frames": 8,
+   "fps": 32.0,
+   "foot": [
+    48.25,
+    75.86072405963687
+   ],
+   "fire": 6,
+   "fire_time": 0.1875,
+   "frame_durations": [
+    0.03125,
+    0.03125,
+    0.03125,
+    0.03125,
+    0.03125,
+    0.03125,
+    0.03125,
+    0.03125
+   ]
+  },
+  "skill_s3_loop": {
+   "tex": "op_wisadel_skill_s3_loop",
+   "frames": 8,
+   "fps": 12.0,
+   "foot": [
+    32.25,
+    59.860724059636865
+   ]
+  },
+  "skills": {
+   "s1": {
+    "anim": "skill"
+   },
+   "s2": {
+    "start": {
+     "anim": "s2_start"
+    },
+    "loop": "s2_idle",
+    "run": "s2_run",
+    "attack": "s2_attack",
+    "end": {
+     "anim": "s2_end"
+    },
+    "phases": [
+     {
+      "loop": "s2_idle",
+      "run": "s2_run",
+      "attack": "s2_attack",
+      "end": "s2_end"
+     },
+     {
+      "transition": "s2_over_start",
+      "loop": "s2_over_idle",
+      "run": "s2_over_run",
+      "attack": "s2_over_attack",
+      "end": "s2_over_end"
+     }
+    ]
+   },
+   "s3": {
+    "start": {
+     "anim": "skill_s3"
+    },
+    "loop": "skill_s3_loop",
+    "run": "skill_s3_run",
+    "attack": "skill_s3_attack",
+    "end": {
+     "anim": "skill_s3_end"
+    }
+   }
+  },
+  "skill_s3_run": {
+   "tex": "op_wisadel_skill_s3_run",
+   "frames": 8,
+   "fps": 13.333333333333334,
+   "foot": [
+    32.25,
+    59.860724059636865
+   ],
+   "_doc": "11-03 S3 跑动（用户「三技能也加」）：原作 Skill_3_Idle 首帧架炮上半身 + 跑步步态腿，逐部件 1 倍像素化（tools/op_1x/make_wisadel_s3_run.py），与跑步条共用相位；帧格 / 脚底同 skill_s3_loop。静止时仍播原作蹲射循环"
+  },
+  "move_skill_s3_attack": {
+   "tex": "op_wisadel_move_skill_s3_attack",
+   "frames": 8,
+   "fps": 19.2,
+   "foot": [
+    48.25,
+    75.86072405963687
+   ],
+   "fire": 3,
+   "fire_time": 0.20833333333333334,
+   "frame_durations": [
+    0.06944444444444445,
+    0.06944444444444445,
+    0.06944444444444445,
+    0.04166666666666666,
+    0.041666666666666685,
+    0.041666666666666685,
+    0.04166666666666663,
+    0.041666666666666685
+   ],
+   "_doc": "11-03 S3 跑动开炮：S3 期间移动时 skill_s3_attack 换成本条（引擎 _move_swap，同 10-24 塞雷娅跑动拳击）；原作 Skill_3_Loop 开炮后坐段逐帧姿势 + 跑步腿（make_wisadel_s3_run.py），帧数 / 出手帧 / 逐帧时长 / 帧格同 skill_s3_attack，炮口出点仍按 tip 不变"
+  },
+  "skill_s3_attack": {
+   "tex": "op_wisadel_skill_s3_attack",
+   "frames": 8,
+   "fps": 19.2,
+   "foot": [
+    48.25,
+    75.86072405963687
+   ],
+   "fire": 3,
+   "fire_time": 0.20833333333333334,
+   "frame_durations": [
+    0.06944444444444445,
+    0.06944444444444445,
+    0.06944444444444445,
+    0.04166666666666666,
+    0.041666666666666685,
+    0.041666666666666685,
+    0.04166666666666663,
+    0.041666666666666685
+   ]
+  },
+  "skill_s3_end": {
+   "tex": "op_wisadel_skill_s3_end",
+   "frames": 8,
+   "fps": 64.0,
+   "foot": [
+    48.25,
+    75.86072405963687
+   ]
+  },
+  "s2_start": {
+   "tex": "op_wisadel_s2_start",
+   "frames": 8,
+   "fps": 23.52941176470588,
+   "foot": [
+    48.25,
+    75.86072405963687
+   ],
+   "fire": 7,
+   "fire_time": 0.3,
+   "frame_durations": [
+    0.04285714285714286,
+    0.04285714285714286,
+    0.04285714285714286,
+    0.04285714285714286,
+    0.04285714285714286,
+    0.04285714285714286,
+    0.04285714285714286,
+    0.04
+   ]
+  },
+  "s2_run": {
+   "tex": "op_wisadel_s2_run",
+   "frames": 8,
+   "fps": 13.333333333333334,
+   "foot": [
+    48.25,
+    75.86072405963687
+   ],
+   "_doc": "10-24 S2 跑动（用户「二技能的跑动动作得加上」「没看到腿」）：普通跑步同一套步态，底稿换成原作 Skill_2_Idle 首帧，步幅放大、浮游武器上抬露出腿，逐部件 1 倍像素化（tools/op_1x/make_wisadel_s2_run.py），帧格 / 脚底同 s2_idle"
+  },
+  "s2_over_run": {
+   "tex": "op_wisadel_s2_over_run",
+   "frames": 8,
+   "fps": 13.333333333333334,
+   "foot": [
+    48.25,
+    75.86072405963687
+   ],
+   "_doc": "10-24 S2 跑动（用户「二技能的跑动动作得加上」「没看到腿」）：普通跑步同一套步态，底稿换成原作 Skill_2_Overload_Idle 首帧，步幅放大、浮游武器上抬露出腿，逐部件 1 倍像素化（tools/op_1x/make_wisadel_s2_run.py），帧格 / 脚底同 s2_over_idle"
+  },
+  "s2_idle": {
+   "tex": "op_wisadel_s2_idle",
+   "frames": 8,
+   "fps": 6.666666666666667,
+   "foot": [
+    48.25,
+    75.86072405963687
+   ]
+  },
+  "s2_attack": {
+   "tex": "op_wisadel_s2_attack",
+   "frames": 8,
+   "fps": 8.421052631578947,
+   "foot": [
+    48.25,
+    75.86072405963687
+   ],
+   "fire": 3,
+   "muzzles": [
+    [
+     [
+      46.0,
+      62.5
+     ],
+     [
+      64.5,
+      39.5
+     ],
+     [
+      62.5,
+      52.75
+     ],
+     [
+      70.5,
+      59.0
+     ]
+    ],
+    [
+     [
+      46.0,
+      62.5
+     ],
+     [
+      64.5,
+      39.5
+     ],
+     [
+      63.0,
+      52.5
+     ],
+     [
+      70.5,
+      58.0
+     ]
+    ],
+    [
+     [
+      46.0,
+      62.5
+     ],
+     [
+      64.0,
+      40.0
+     ],
+     [
+      63.0,
+      52.0
+     ],
+     [
+      70.0,
+      57.25
+     ]
+    ],
+    [
+     [
+      46.0,
+      62.5
+     ],
+     [
+      63.5,
+      40.0
+     ],
+     [
+      63.0,
+      52.0
+     ],
+     [
+      70.0,
+      56.5
+     ]
+    ],
+    [
+     [
+      46.0,
+      62.5
+     ],
+     [
+      52.5,
+      45.0
+     ],
+     [
+      55.5,
+      55.5
+     ],
+     [
+      62.0,
+      60.5
+     ]
+    ],
+    [
+     [
+      46.0,
+      62.5
+     ],
+     [
+      57.5,
+      43.0
+     ],
+     [
+      58.0,
+      54.0
+     ],
+     [
+      65.0,
+      58.5
+     ]
+    ],
+    [
+     [
+      46.0,
+      62.5
+     ],
+     [
+      58.5,
+      42.5
+     ],
+     [
+      58.5,
+      54.0
+     ],
+     [
+      66.0,
+      58.5
+     ]
+    ],
+    [
+     [
+      46.0,
+      62.5
+     ],
+     [
+      64.5,
+      39.5
+     ],
+     [
+      62.5,
+      52.75
+     ],
+     [
+      70.5,
+      59.0
+     ]
+    ]
+   ]
+  },
+  "move_s2_attack": {
+   "tex": "op_wisadel_move_s2_attack",
+   "frames": 8,
+   "fps": 8.421052631578947,
+   "foot": [
+    48.25,
+    75.86072405963687
+   ],
+   "fire": 3,
+   "_doc": "11-08 S2 跑动开炮（用户「S2 边走边放在滑步」，docs/327 §2）：S2 期间移动时 _move_swap 把 s2_attack 整条换成本条——上半身同原条逐帧（原作 Skill_2_Loop 开炮段），腿是跑步步态；tools/op_1x/make_wisadel_s2_run.py 出，帧数 / fire / 帧格 / 脚底同原条，炮口点仍按原条 muzzles 读"
+  },
+  "s2_over_start": {
+   "tex": "op_wisadel_s2_over_start",
+   "frames": 8,
+   "fps": 44.44444444444444,
+   "foot": [
+    48.25,
+    75.86072405963687
+   ]
+  },
+  "s2_over_idle": {
+   "tex": "op_wisadel_s2_over_idle",
+   "frames": 8,
+   "fps": 6.666666666666667,
+   "foot": [
+    48.25,
+    75.86072405963687
+   ]
+  },
+  "s2_over_attack": {
+   "tex": "op_wisadel_s2_over_attack",
+   "frames": 8,
+   "fps": 8.421052631578947,
+   "foot": [
+    48.25,
+    75.86072405963687
+   ],
+   "fire": 3,
+   "muzzles": [
+    [
+     [
+      82.0,
+      43.5
+     ],
+     [
+      64.5,
+      39.5
+     ],
+     [
+      62.5,
+      52.75
+     ],
+     [
+      70.5,
+      59.0
+     ]
+    ],
+    [
+     [
+      82.0,
+      43.5
+     ],
+     [
+      64.5,
+      39.5
+     ],
+     [
+      63.0,
+      52.5
+     ],
+     [
+      70.5,
+      58.0
+     ]
+    ],
+    [
+     [
+      82.5,
+      43.0
+     ],
+     [
+      64.0,
+      40.0
+     ],
+     [
+      63.0,
+      52.0
+     ],
+     [
+      70.0,
+      57.25
+     ]
+    ],
+    [
+     [
+      82.5,
+      43.0
+     ],
+     [
+      63.5,
+      40.0
+     ],
+     [
+      63.0,
+      52.0
+     ],
+     [
+      70.0,
+      56.5
+     ]
+    ],
+    [
+     [
+      78.5,
+      44.5
+     ],
+     [
+      52.5,
+      45.0
+     ],
+     [
+      55.5,
+      55.5
+     ],
+     [
+      63.0,
+      59.75
+     ]
+    ],
+    [
+     [
+      81.5,
+      43.75
+     ],
+     [
+      57.5,
+      43.0
+     ],
+     [
+      58.0,
+      54.0
+     ],
+     [
+      65.0,
+      58.5
+     ]
+    ],
+    [
+     [
+      82.5,
+      44.5
+     ],
+     [
+      58.5,
+      42.5
+     ],
+     [
+      58.5,
+      54.0
+     ],
+     [
+      66.0,
+      58.5
+     ]
+    ],
+    [
+     [
+      82.0,
+      43.5
+     ],
+     [
+      64.5,
+      39.5
+     ],
+     [
+      62.5,
+      52.75
+     ],
+     [
+      70.5,
+      59.0
+     ]
+    ]
+   ]
+  },
+  "move_s2_over_attack": {
+   "tex": "op_wisadel_move_s2_over_attack",
+   "frames": 8,
+   "fps": 8.421052631578947,
+   "foot": [
+    48.25,
+    75.86072405963687
+   ],
+   "fire": 3,
+   "_doc": "11-08 S2 跑动开炮（用户「S2 边走边放在滑步」，docs/327 §2）：S2 期间移动时 _move_swap 把 s2_over_attack 整条换成本条——上半身同原条逐帧（原作 Skill_2_Overload_Loop 开炮段），腿是跑步步态；tools/op_1x/make_wisadel_s2_run.py 出，帧数 / fire / 帧格 / 脚底同原条，炮口点仍按原条 muzzles 读"
+  },
+  "s2_end": {
+   "tex": "op_wisadel_s2_end",
+   "frames": 8,
+   "fps": 40.0,
+   "foot": [
+    48.25,
+    75.86072405963687
+   ]
+  },
+  "s2_over_end": {
+   "tex": "op_wisadel_s2_over_end",
+   "frames": 8,
+   "fps": 16.0,
+   "foot": [
+    48.25,
+    75.86072405963687
+   ]
+  },
+  "native_soul_start": {
+   "tex": "op_wisadel_soul_native_start",
+   "frames": 12,
+   "fps": 12.0,
+   "foot": [
+    10,
+    14
+   ],
+   "frame_size": [
+    20,
+    28
+   ],
+   "visual": {
+    "anim": "native_soul_start",
+    "times": [
+     0.0,
+     0.08333333333333333,
+     0.16666666666666666,
+     0.25,
+     0.3333333333333333,
+     0.4166666666666667,
+     0.5,
+     0.5833333333333334,
+     0.6666666666666666,
+     0.75,
+     0.8333333333333334,
+     0.9166666666666666
+    ],
+    "duration": 1
+   }
+  },
+  "native_soul_die": {
+   "tex": "op_wisadel_soul_native_die",
+   "frames": 12,
+   "fps": 12.0,
+   "foot": [
+    10,
+    14
+   ],
+   "frame_size": [
+    20,
+    28
+   ],
+   "visual": {
+    "anim": "native_soul_die",
+    "times": [
+     0.0,
+     0.08333333333333333,
+     0.16666666666666666,
+     0.25,
+     0.3333333333333333,
+     0.4166666666666667,
+     0.5,
+     0.5833333333333334,
+     0.6666666666666666,
+     0.75,
+     0.8333333333333334,
+     0.9166666666666666
+    ],
+    "duration": 1
+   }
+  },
+  "native_soul_idle": {
+   "tex": "op_wisadel_soul_native_idle",
+   "frames": 24,
+   "fps": 12.0,
+   "foot": [
+    10,
+    14
+   ],
+   "frame_size": [
+    20,
+    28
+   ]
+  },
+  "soul_idle": {
+   "tex": "fx_wisadel_soul",
+   "frames": 6,
+   "fps": 8,
+   "foot": [
+    10,
+    14
+   ],
+   "visual": {
+    "anim": "native_soul_idle",
+    "times": [
+     0.0,
+     0.08333333333333333,
+     0.16666666666666666,
+     0.25,
+     0.3333333333333333,
+     0.4166666666666667,
+     0.5,
+     0.5833333333333334,
+     0.6666666666666666,
+     0.75,
+     0.8333333333333334,
+     0.9166666666666666,
+     1.0,
+     1.0833333333333333,
+     1.1666666666666667,
+     1.25,
+     1.3333333333333333,
+     1.4166666666666667,
+     1.5,
+     1.5833333333333333,
+     1.6666666666666667,
+     1.75,
+     1.8333333333333333,
+     1.9166666666666667
+    ],
+    "duration": 2
+   },
+   "frame_size": [
+    20,
+    28
+   ]
+  }
+ },
+ "extra_sprites": [
+  "entry",
+  "death",
+  "hurt",
+  "skill_s2",
+  "skill_s3",
+  "skill_s3_attack",
+  "skill_s3_end",
+  "skill_s3_loop",
+  "skill_s3_run",
+  "move_skill_s3_attack",
+  "s2_start",
+  "s2_idle",
+  "s2_run",
+  "s2_over_run",
+  "s2_attack",
+  "move_s2_attack",
+  "s2_over_start",
+  "s2_over_idle",
+  "s2_over_attack",
+  "move_s2_over_attack",
+  "s2_end",
+  "s2_over_end",
+  "soul_idle",
+  "native_soul_idle",
+  "native_soul_start",
+  "native_soul_die"
+ ],
+ "attack": {
+  "mode": "auto",
+  "name": "炮击",
+  "desc": "每 {$cd} 秒向射程 {$range} 内最近的敌人发射榴弹，落点半径 {$aoe} 爆炸（物理）并击退（精英减弱，Boss 除外）；「宣告终局」：技能持续期间外出手间隔 ×{$free_interval}"
+ },
+ "skills": [
+  {
+   "name": "“你须直面”",
+   "en": "PROVOCATE",
+   "sp": 12,
+   "dur": 10.0,
+   "icon": "skill_wisadel_s1",
+   "desc": "{$s1_dur} 秒内炮击伤害 ×{$s1_dmg}，射程 +{$s1_range*100}%"
+  },
+  {
+   "name": "“你须愧悔”",
+   "en": "PAENITETE",
+   "sp": 9,
+   "icon": "skill_wisadel_s2",
+   "desc": "朝最近的敌人发射灼痕弹：落点爆炸（炮击 ×{$s2_mult}，范围 ×{$s2_aoe}），随后沿弹道一线（长 {$s2_len}）的灼痕依次炸开（炮击 ×{$s2_line}）"
+  },
+  {
+   "name": "“你须偿还”",
+   "en": "REPONITE",
+   "sp": 22,
+   "dur": 12.0,
+   "icon": "skill_wisadel_s3",
+   "desc": "{$s3_dur} 秒内炮击伤害 ×{$s3_dmg}、爆炸范围 ×{$s3_aoe}，落点中心半径 {$core_r} 内的敌人再受炮击 ×{$s3_core}"
+  }
+ ],
+ "talent": {
+  "name": "陈述苦难",
+  "desc": "队长生命高于 {$hp_hi*100}% 时攻击 +{$t_atk*100}%，高于 {$hp_top*100}% 时再 +{$t_atk*100}%"
+ },
+ "hit_sources": {
+  "炮击": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "远程",
+   "kind": "物理",
+   "tags": [
+    "projectile",
+    "area"
+   ]
+  },
+  "灼痕": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "远程",
+   "kind": "物理",
+   "tags": [
+    "dot",
+    "area"
+   ]
+  },
+  "爆心": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "远程",
+   "kind": "物理",
+   "tags": [
+    "area"
+   ]
+  },
+  "你须愧悔": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "远程",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "projectile",
+    "area"
+   ]
+  },
+  "灼痕弹道": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "远程",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "area"
+   ]
+  },
+  "你须偿还": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "远程",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "area"
+   ]
+  },
+  "余烬": {
+   "emitter": "operator",
+   "origin": "route",
+   "range": "远程",
+   "kind": "物理",
+   "tags": [
+    "dot",
+    "area"
+   ]
+  },
+  "追猎": {
+   "emitter": "operator",
+   "origin": "route",
+   "range": "远程",
+   "kind": "物理",
+   "tags": [
+    "area"
+   ]
+  }
+ },
+ "progression": [
+  {
+   "type": "custom",
+   "id": "stagger",
+   "name": "震荡",
+   "icon": "growth_b_echo",
+   "desc": "榴弹落点半径 {$stagger_r} 内的敌人眩晕 {$stagger_t} 秒（精英减半，Boss 除外）"
+  },
+  {
+   "type": "custom",
+   "id": "reload",
+   "name": "连装",
+   "icon": "skill_wisadel_s1",
+   "desc": "「“你须直面”」期间每第 {$reload_n} 发榴弹后追加一发（炮击 {$reload_mult*100}%）"
+  },
+  {
+   "type": "elite",
+   "level": 1,
+   "name": "精英一",
+   "desc": "解锁二技能「“你须愧悔”」；解锁天赋「陈述苦难」：队长生命高于 {$hp_hi*100}% 时攻击 +{$t_atk*100}%，高于 {$hp_top*100}% 时再 +{$t_atk*100}%；普攻「灼痕」：榴弹落点留下灼痕，{$scorch_t} 秒后炸开（半径 {$scorch_r}，炮击 {$scorch_mult*100}%）",
+   "attack": {
+    "name": "灼痕",
+    "desc": "榴弹落点留下灼痕，{$scorch_t} 秒后炸开（半径 {$scorch_r}，炮击 {$scorch_mult*100}% 物理伤害）"
+   }
+  },
+  {
+   "type": "custom",
+   "id": "penance",
+   "name": "余烬",
+   "icon": "skill_wisadel_s2",
+   "desc": "「“你须愧悔”」的落点留下 {$fire_dur} 秒火海（半径 {$fire_r}，每 {$fire_every} 秒炮击 {$fire_mult*100}%）",
+   "branch": {
+    "penance": {
+     "id": "penance",
+     "name": "余烬",
+     "icon": "skill_wisadel_s2",
+     "desc": "「“你须愧悔”」的落点留下 {$fire_dur} 秒火海（半径 {$fire_r}，每 {$fire_every} 秒炮击 {$fire_mult*100}%）"
+    },
+    "hunt": {
+     "id": "hunt",
+     "name": "追猎",
+     "icon": "skill_wisadel_s1",
+     "desc": "「“你须直面”」期间击杀敌人时，在击杀处小范围爆炸（半径 {$hunt_r}，炮击 {$hunt_mult*100}%）"
+    }
+   },
+   "branch_desc": "「余烬」让「“你须愧悔”」留下火海；「追猎」让「“你须直面”」期间的击杀引发爆炸",
+   "bot": "penance"
+  },
+  {
+   "type": "custom",
+   "id": "hunt",
+   "name": "追猎",
+   "icon": "skill_wisadel_s1",
+   "desc": "「“你须直面”」期间击杀敌人时，在击杀处小范围爆炸（半径 {$hunt_r}，炮击 {$hunt_mult*100}%）",
+   "routes": {
+    "penance": {
+     "id": "penance2",
+     "name": "告解",
+     "icon": "skill_wisadel_s2",
+     "desc": "火海内的敌人受到的伤害 +{$fire_weak*100}%"
+    },
+    "hunt": {
+     "id": "hunt2",
+     "name": "不赦",
+     "icon": "skill_wisadel_s1",
+     "desc": "任何时候击杀精英也会触发追猎爆炸"
+    }
+   }
+  },
+  {
+   "type": "elite",
+   "level": 2,
+   "name": "精英二",
+   "desc": "解锁三技能「“你须偿还”」；普通攻击强化「爆心」：榴弹落点中心半径 {$core_r} 内的敌人再受一次炮击 {$core_mult*100}% 的物理伤害",
+   "attack": {
+    "name": "爆心",
+    "desc": "榴弹落点中心半径 {$core_r} 内的敌人再受一次炮击 {$core_mult*100}% 的物理伤害（落点亮起白热的内圈）"
+   }
+  }
+ ],
+ "gallery": {
+  "tags": [
+   "远程",
+   "范围",
+   "物理",
+   "爆发"
+  ],
+  "desc": "狙击干员，远距离榴弹轰击敌群中心；队长生命越充沛，攻击越高",
+  "intro": "拉特兰公证所高级特派员（草稿，待用户改）"
+ },
+ "blocks": {
+  "_doc": "菲亚梅塔（docs/382 §3）：榴弹 = shape.shell；灼痕 = on_explode 一次性 verb.field；爆心 = on_explode 内圈 shape.circle；陈述苦难 = hp_pct 条件 buff_self",
+  "attack": {
+   "shape": "shell",
+   "range": "$range",
+   "fire_pad": "$fire_pad",
+   "every": "$cd",
+   "first": "$first_cd",
+   "idle": "$idle_cd",
+   "aoe": "$aoe",
+   "aoe_mults": [
+    {
+     "cond": "skill_active:2",
+     "mult": "$s3_aoe"
+    }
+   ],
+   "speed": "$attack_shell_speed",
+   "src": "炮击",
+   "tip": [
+    42,
+    -49
+   ],
+   "tip_skill": [
+    42,
+    -63
+   ],
+   "col": [
+    1.0,
+    0.42,
+    0.22
+   ],
+   "look": {
+    "glow": 12,
+    "tex": "proj_lavaball",
+    "scale": 0.9
+   },
+   "on_explode": [
+    {
+     "verb": "displace",
+     "center": "target",
+     "r": "$aoe",
+     "kb": "$boom_kb",
+     "quiet": true
+    },
+    {
+     "verb": "displace",
+     "cond": "node:stagger",
+     "center": "target",
+     "r": "$stagger_r",
+     "kb": 0,
+     "on_hit": [
+      {
+       "st": "stun",
+       "dur": "$stagger_t"
+      }
+     ]
+    },
+    {
+     "verb": "field",
+     "cond": "elite >= 1",
+     "center": "target",
+     "r": "$scorch_r",
+     "dur": "$scorch_t",
+     "every": "$scorch_t",
+     "do": [
+      {
+       "shape": "circle",
+       "center": "target",
+       "r": "$scorch_r",
+       "mult": "$scorch_mult",
+       "src": "灼痕"
+      }
+     ]
+    },
+    {
+     "shape": "circle",
+     "cond": "elite >= 2",
+     "center": "target",
+     "r": "$core_r",
+     "mult": "$core_mult",
+     "src": "爆心"
+    },
+    {
+     "shape": "circle",
+     "cond": "skill_active:2",
+     "center": "target",
+     "r": "$core_r",
+     "mult": "$s3_core",
+     "power": true,
+     "src": "你须偿还"
+    }
+   ]
+  },
+  "trait": [
+   {
+    "trig": "passive",
+    "cond": "!skill_active:0 && !skill_active:2",
+    "_doc": "宣告终局（原作天赋二）：技能持续期间外出手间隔 ×0.85",
+    "do": [
+     {
+      "verb": "buff_self",
+      "stat": "interval",
+      "op": "mult",
+      "value": "$free_interval"
+     }
+    ]
+   },
+   {
+    "trig": "every_n",
+    "n": "$reload_n",
+    "cond": "skill_active:0 && node:reload",
+    "_doc": "直面·连装：S1 期间每第 3 发后追加一发",
+    "do": [
+     {
+      "shape": "shell",
+      "range": "$range",
+      "fire_pad": "$fire_pad",
+      "aoe": "$aoe",
+      "mult": "$reload_mult",
+      "speed": "$attack_shell_speed",
+      "src": "炮击",
+      "tip": [
+       42,
+       -49
+      ],
+      "tip_skill": [
+       42,
+       -63
+      ],
+      "col": [
+       1.0,
+       0.42,
+       0.22
+      ],
+      "look": {
+       "glow": 10,
+       "tex": "proj_lavaball",
+       "scale": 0.8
+      }
+     }
+    ]
+   },
+   {
+    "trig": "on_kill",
+    "filter": "any",
+    "cond": "skill_active:0 && node:hunt",
+    "_doc": "追猎：S1 期间击杀处小爆",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "target",
+      "r": "$hunt_r",
+      "mult": "$hunt_mult",
+      "src": "追猎"
+     }
+    ]
+   },
+   {
+    "trig": "on_kill",
+    "filter": "elite",
+    "cond": "node:hunt2",
+    "_doc": "不赦：任何时候击杀精英也触发追猎",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "target",
+      "r": "$hunt_r",
+      "mult": "$hunt_mult",
+      "src": "追猎"
+     }
+    ]
+   }
+  ],
+  "skills": [
+   {
+    "dur": "$s1_dur",
+    "do": [
+     {
+      "verb": "mode",
+      "dmg_mult": "$s1_dmg"
+     },
+     {
+      "verb": "buff_self",
+      "stat": "op_range",
+      "op": "add",
+      "value": "$s1_range"
+     }
+    ]
+   },
+   {
+    "aim": "los",
+    "aim_pad": "$aim_pad",
+    "do": [
+     {
+      "shape": "shell",
+      "range": "$range",
+      "fire_pad": "$aim_pad",
+      "aoe": "$aoe",
+      "aoe_mult": "$s2_aoe",
+      "mult": "$s2_mult",
+      "power": true,
+      "speed": "$shell_speed",
+      "src": "你须愧悔",
+      "tip": [
+       42,
+       -49
+      ],
+      "tip_skill": [
+       42,
+       -63
+      ],
+      "col": [
+       1.0,
+       0.42,
+       0.22
+      ],
+      "look": {
+       "glow": 17,
+       "tex": "proj_lavaball",
+       "scale": 1.4
+      },
+      "on_explode": [
+       {
+        "shape": "line",
+        "len": "$s2_len",
+        "width": "$s2_w",
+        "mult": "$s2_line",
+        "power": true,
+        "src": "灼痕弹道"
+       },
+       {
+        "verb": "field",
+        "cond": "node:penance",
+        "center": "target",
+        "r": "$fire_r",
+        "dur": "$fire_dur",
+        "every": "$fire_every",
+        "do": [
+         {
+          "shape": "circle",
+          "center": "target",
+          "r": "$fire_r",
+          "mult": "$fire_mult",
+          "src": "余烬",
+          "on_hit": [
+           {
+            "st": "fragile",
+            "value": "$fire_weak",
+            "dur": "$fire_weak_t",
+            "cond": "node:penance2"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "dur": "$s3_dur",
+    "do": [
+     {
+      "verb": "mode",
+      "dmg_mult": "$s3_dmg"
+     }
+    ]
+   }
+  ],
+  "talent": [
+   {
+    "trig": "passive",
+    "cond": "hp_pct >= $hp_hi",
+    "_doc": "陈述苦难：队长生命高于一半攻击 +15%",
+    "do": [
+     {
+      "verb": "buff_self",
+      "stat": "op_atk",
+      "op": "add",
+      "value": "$t_atk"
+     }
+    ]
+   },
+   {
+    "trig": "passive",
+    "cond": "hp_pct >= $hp_top",
+    "_doc": "高于 80% 再 +15%（原作效果翻倍）",
+    "do": [
+     {
+      "verb": "buff_self",
+      "stat": "op_atk",
+      "op": "add",
+      "value": "$t_atk"
+     }
+    ]
+   }
+  ],
+  "progression": {
+   "stagger": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "震荡：写在 attack.on_explode（cond node:stagger）"
+   },
+   "reload": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "直面·连装：trait every_n（cond node:reload）"
+   },
+   "penance": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "余烬：S2 on_explode field（cond node:penance）"
+   },
+   "hunt": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "追猎：trait on_kill（cond node:hunt）"
+   },
+   "penance2": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "告解：余烬 on_hit fragile（cond node:penance2）"
+   },
+   "hunt2": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "不赦：trait on_kill elite（cond node:hunt2）"
+   },
+   "elite1": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "灼痕：attack.on_explode field（cond elite >= 1）"
+   },
+   "elite2": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "爆心：attack.on_explode 内圈（cond elite >= 2）"
+   }
+  }
+ }
+}

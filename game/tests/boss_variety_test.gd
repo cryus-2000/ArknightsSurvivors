@@ -223,13 +223,13 @@ func _ready() -> void:
 	quiet_tear.purified = true
 	g.enemies = [active_tear, quiet_tear]
 	g.ppos = quiet_tear.pos
-	g.bai.transform_ishar(sea)
+	g.bai.boss("ishar").transform_ishar(sea)
 	check(sea.get("tear_echoes", []).size() == 1 and not active_tear.dead and active_tear.get("song_eye", false) and quiet_tear.dead, "only unpurified tears survive as hostile song eyes")
 	check(g.fx.any(func(f): return f.kind == "tide_link" and f.a == active_tear.pos), "unsuppressed tear visibly links at transformation")
 	g.t += 2.0
 	sea.wind = 0.0
 	sea.ishar_next_at = g.t
-	g.bai._ishar_phase2(sea, Vector2.RIGHT, 250.0)
+	g.bai.boss("ishar")._ishar_phase2(sea, Vector2.RIGHT, 250.0)
 	var echoes: Array = g.warns.filter(func(w): return w.act == "ishar_echo")
 	check(echoes.size() == 1 and echoes[0].get("true", false), "hostile Ishar fires true-damage tear resonance")
 	if not echoes.is_empty():
@@ -436,11 +436,11 @@ func capture_patterns() -> void:
 	g.boss = sea
 	g.final_boss = sea
 	g.ppos = Vector2(250, 0)
-	g.bai.transform_ishar(sea)
+	g.bai.boss("ishar").transform_ishar(sea)
 	g.t += 2.0
 	sea.wind = 0.0
 	sea.ishar_next_at = g.t
-	g.bai._ishar_phase2(sea, Vector2.RIGHT, 380.0)
+	g.bai.boss("ishar")._ishar_phase2(sea, Vector2.RIGHT, 380.0)
 	for w in g.warns.duplicate():
 		if w.act == "ishar_echo":
 			g.bai._warn_resolve(w)

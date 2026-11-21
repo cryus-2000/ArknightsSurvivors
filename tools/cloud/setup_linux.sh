@@ -46,6 +46,9 @@ GODOT="$GODOT_DIR/godot"
 echo "== 3/5 大小写检查（Windows 不分大小写、Linux 分）"
 cd "$REPO"
 python3 tools/cloud/case_check.py
+# 运行时贴图索引 game/art/index.json 是本地生成文件（11-09 c4b86fbdf 定「不进提交」），仓库里那份会落后于磁盘贴图；
+# 本机录像 / 快检前都先重建，云端照做，否则 asset_index / graph_lint 报「索引里找不到」、新帧条静默回退（docs/364 §5）
+python3 tools/asset_index.py
 
 echo "== 4/5 导入项目（生成 game/.godot 缓存，首次约 1–3 分钟）"
 "$GODOT" --headless --path game --import >/dev/null 2>&1 || true

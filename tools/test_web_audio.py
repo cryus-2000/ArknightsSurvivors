@@ -66,6 +66,7 @@ class WebAudioTests(unittest.TestCase):
             self.assertTrue(filters)
             self.assertTrue(all('audio/music/*.json' in line for line in filters))
             self.assertTrue(all('art/index.json' in line for line in filters))   # 运行时贴图索引（docs/189 §6.1）
+            self.assertTrue(all('themes/*/theme.json' in line for line in filters))   # 主题清单（docs/359 §2）：ThemeDB 运行时读
 
 
 if __name__ == '__main__':

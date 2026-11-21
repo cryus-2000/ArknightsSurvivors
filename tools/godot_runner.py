@@ -370,6 +370,13 @@ def stale_imports(game_dir):
                             miss.append(m.group(1))
             elif f.lower().endswith(_IMPORT_EXT) and not os.path.exists(p + ".import"):
                 miss.append(os.path.relpath(p, game_dir))
+            elif f.endswith(".csv") and os.path.exists(p + ".import"):
+                # 翻译表（docs/276 §10）：*.translation 由导入从 CSV 生成、不进 git。CSV 改了（合入新译文）而导入缓存还在时，
+                # 上面两条都查不出来，测试会读到旧译文（11-19 l10n 在 main 上残留已删字段）。任一语言的 .translation 比 CSV 旧就重导入
+                stem = p[:-4]
+                tr = [os.path.join(root, x) for x in files if x.startswith(os.path.basename(stem) + ".") and x.endswith(".translation")]
+                if not tr or min(os.path.getmtime(x) for x in tr) < os.path.getmtime(p):
+                    miss.append(os.path.relpath(p, game_dir))
     return miss
 
 
@@ -377,6 +384,10 @@ def ensure_imported(game_dir, timeout=900):
     """新工作树没有 game/.godot 导入缓存时先导入，否则贴图全是空的、快检大面积报错（2026-09-26 实测 18/19 项失败）。
     第一遍导入有时只导入一部分（缓存里只有几个文件），所以导入到缓存文件数不再增加为止，最多 3 遍。返回导入的遍数（0 = 本来就有）"""
     imp = os.path.join(game_dir, ".godot", "imported")
+    # 运行时贴图索引 art/index.json 不进 git（docs/364 §5）：每次起测试前按磁盘重建，新工作树 / 临时基线工作树也有
+    if os.path.isdir(os.path.join(game_dir, "art")):
+        import asset_index
+        asset_index.write(os.path.join(game_dir, "art"))
 
     def count():
         return len(os.listdir(imp)) if os.path.isdir(imp) else 0
@@ -461,3 +472,30 @@ def cache_put(tkey, args_key, rec):
     tmp = p + ".tmp%d" % os.getpid()
     json.dump(rec, open(tmp, "w", encoding="utf-8"), ensure_ascii=False)
     os.replace(tmp, p)
+
+
+# ---------------------------------------------------------------- 出包副本：无头 Godot 不起 MCP 服务
+
+_MCP_GUARD = ('func _start_server() -> void:\n'
+              '\tif OS.get_environment("GODOT_MCP_DISABLE") == "1":\n'
+              '\t\tprint("[Godot MCP] Server disabled (GODOT_MCP_DISABLE=1)")\n'
+              '\t\treturn\n')
+
+
+def disable_mcp_in_copy(game_dir):
+    """出包用的干净副本里给 addons/godot_mcp/plugin.gd 加开关，并给本进程（及子进程）设 GODOT_MCP_DISABLE=1。
+    无头 --import / --export 也会加载编辑器插件；Windows 包与网页包并行导出（或用户开着编辑器）时两个进程抢 6505 端口，
+    后起的那个 push_error，export_build 按「输出里有 ERROR」判导出失败（11-17 实测）。addons/ 不进包，pck 内容不受影响"""
+    os.environ["GODOT_MCP_DISABLE"] = "1"
+    p = os.path.join(game_dir, "addons", "godot_mcp", "plugin.gd")
+    if not os.path.isfile(p):
+        return False
+    txt = open(p, encoding="utf-8").read()
+    if "GODOT_MCP_DISABLE" in txt:
+        return True
+    head = "func _start_server() -> void:\n"
+    if txt.count(head) != 1:
+        raise RuntimeError("plugin.gd 里 _start_server 不是恰好一处，没法加 MCP 开关：%s" % p)
+    with open(p, "w", encoding="utf-8", newline="\n") as fh:
+        fh.write(txt.replace(head, _MCP_GUARD, 1))
+    return True

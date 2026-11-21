@@ -77,6 +77,16 @@ func on_lethal(e: Dictionary) -> bool:
 	return false
 
 
+## boss_ai 每帧、通用补充攻击（finals.try_attack）之前：返回改过的 ready（false = 这一帧自己占了出招窗口）。缺省原样返回（docs/368 §2）
+func pre_attack(_e: Dictionary, _dt: float, _dir: Vector2, _dist: float, ready: bool) -> bool:
+	return ready
+
+
+## 部件吸取把茧壳打空时（combat.kill 的部件吸取段）：偏执泡影破茧（docs/368 §2）
+func on_shell_broken(_e: Dictionary) -> void:
+	pass
+
+
 ## combat.kill 里（干员击杀回调之后、部件吸取之前）
 func on_kill(_e: Dictionary) -> void:
 	pass

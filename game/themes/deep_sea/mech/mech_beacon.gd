@@ -1,0 +1,439 @@
+extends "res://scripts/core/theme_mechanic.gd"
+## 水月主题机制 · 引航灯标（docs/364 §2；原 run/beacon.gd，整文件搬来，清单 mechanics 段声明，game.beacon_sys 指向本实例）。
+## 引航灯标（名字文案暂定；docs/49d §13.5 方案 C，用户 9/29 定）：溟痕的主动清理手段，只靠走位。
+## 自然溟痕出现后，每 60–75 秒在主控 250–400 外、溟痕最密的点（缩圈后只刷在圈内）立一座熄灭的灯标，场上最多 1 座未点燃（Boss 在场也刷）；
+## 主控站进半径 70 的光圈累计 2.5 秒点燃（离开时进度缓慢回退，不清零）。
+## 点燃（10-26 用户「灯塔范围内的溟痕全部消失」）：清除圈 clear_r 内的溟痕全部驱散——中心在圈内的整片移除，中心在圈外、边压进圈里的削到圈外；
+## 自中心向外扫开（sweep_t 秒扫到圈边，每片到点碎散淡出 sweep_fade 秒），被驱散的溟痕当下就不伤人、不计数（= 移除）。
+## 生效期间（block_t 秒）圈内不留任何非 Boss 溟痕：怪物新留的溟痕不落、圈外长进 / 逼近进来的削掉或驱散；Boss 招式新落的溟痕照常（见 _sweep_hold）。
+## 旧说明：这片区域 30 秒内不再生成自然溟痕
+## （map.mire_new 落点检查 blocks()），灯标亮着当安全区标记，+5 灯火；同时清空主控与光圈内队友的神经损伤。
+## 联动：灯火 < 30 时点燃时间 ×1.5；流明灯塔区覆盖灯标时点燃速度 ×2；缩圈把灯标卷到圈外即熄灭消失。
+## 定位（协调人 9/30）：灯标给的是「局部安全区」，不是清图——Ⅷ 常驻溟痕下存量 25–30 属预期；加强用的旋钮 clear_all_r / block_r 缺省关闭。
+## 状态存在 g.beacons（world / hud 画面读）：{pos, lit, prog, need, lit_t, count_end, count_max, r, clear_r, safe_end, dead}；
+## count_end / count_max 为点燃读条（界面与美术的通用倒计时环可直接吃）。旋钮 balance.json beacon 段，beacon/enabled = 0 关闭。
+
+const UI = preload("res://scripts/ui.gd")
+const Bal = preload("res://scripts/core/balance.gd")
+
+const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
+var g: Game
+
+var next_at := -1.0      # 下一座灯标的刷新时刻（< 0：自然溟痕还没开始）
+var charging = null      # 本帧主控正在读条的那座灯标（未点燃、主控在光圈内、进度在涨）；圈内安全读它（docs/49g）
+var guide = null         # 本帧「引路」生效的那座灯标（未点燃、寿命 < beacon/guide_life、beacon/guide_r > 0）；圈内安全外扩读它（docs/56 候选 a）
+var lit_n := 0           # 本局点燃数（平衡输出）
+var zone_on := false     # 队长此刻在生效中的灯标清除圈里（回复 / 攻速加成生效中，_zone_buff）
+var zone_s := 0.0        # 本局在灯标庇护里待了多少秒（遥测）
+var spawned_n := 0
+
+
+## 主题机制挂钩：game 杂项段每帧（原 game.gd 直接调 beacon_sys.update）
+func on_world_tick(dt: float) -> void:
+	update(dt)
+
+
+## 机器人挂钩（docs/364 §6；原 core/bot.gd _expert_goal 灯标段，原样搬来）：高手 / master 找最近的未点燃灯标，近了在光圈里站着
+func bot_goal(bot, p: Vector2) -> Vector2:
+	var seek_r: float = Bal.v("bot/beacon_seek_r", 300.0)   # 协调人 9/30：150 → 300（真人半屏看到灯标就会走过去）
+	# 血量门槛 45% → 25%（协调人 9/30：Ⅷ 主控常年低血，45% 时几乎不去点灯；真人低血反而更想进安全区）；高手 / master 共用，普通在 autotest 里另算
+	var bnear := Vector2.INF
+	for b in g.beacons:
+		if b.lit or g.hp <= g.max_hp * 0.25:
+			continue
+		var bdist: float = b.pos.distance_to(p)
+		if bdist < 700.0 and (bnear == Vector2.INF or bdist < p.distance_to(bnear)):
+			bnear = b.pos
+	if bnear != Vector2.INF:
+		var bd2: float = bnear.distance_to(p)
+		if bd2 < seek_r:
+			bot.beacon_hold = bnear
+			bot.beacon_w = 6.0 if bd2 < 150.0 else 4.0
+		return (bnear - p).normalized() if bd2 > 40.0 else Vector2.ZERO   # 引航灯标：去光圈里站着
+	return Vector2.INF
+
+
+## 机器人挂钩（原 autotest.bot_move 灯标段）：普通机器人没点燃、血量还行就过去站着（光圈半径 70，站到离中心 40 以内就不再拉，免得来回抖）
+func bot_pull(pull: Vector2) -> Vector2:
+	for b in g.beacons:
+		if not b.lit and g.hp > g.max_hp * 0.45 and b.pos.distance_to(g.ppos) < 700.0:
+			pull = (b.pos - g.ppos).normalized() * 0.9 if b.pos.distance_to(g.ppos) > 40.0 else Vector2.ZERO
+			break
+	return pull
+
+
+func _init(game: Game) -> void:
+	g = game
+
+
+func _k(key: String, d: float) -> float:
+	return Bal.v("beacon/" + key, d)
+
+
+## 指路鳞（藏品 32，docs/240）：出现间隔 / 点亮所需时间倍率、点亮额外灯火；没持有时返回缺省（随机数消耗与改前相同）
+func _guide(key: String, d: float) -> float:
+	return float(g.rfx.rule_args("beacon_guide").get(key, d))
+
+
+func update(dt: float) -> void:
+	charging = null
+	guide = null
+	if _k("enabled", 1.0) <= 0.0 or g.demo_op != "" or g.trial.active:
+		return
+	# 自动测试：每 60 秒记一次场上溟痕数（溟痕存量）
+	if g.mode != g.Mode.PLAY and int(g.t / 60.0) != int((g.t - dt) / 60.0):
+		_log("mires")
+	if next_at < 0.0:
+		var first: float = float(g.map.mire_cfg().get("first_at", 100.0))
+		if g.t >= first:
+			next_at = g.t + g.rng.randf_range(_k("every_min", 60.0), _k("every_max", 75.0)) * float(g.dmod.get("beacon_every", 1.0)) * _guide("every", 1.0)
+		elif g.beacons.is_empty():
+			return   # 自然溟痕还没开始、场上也没灯标（演示局放的除外：新手引导「引航灯标」一步要能读条点燃）
+	# 刷新：场上最多 1 座未点燃；Boss 在场时照样刷（协调人 9/29：Boss 战正是溟痕最多、最需要安全区的时候）
+	if next_at >= 0.0 and g.t >= next_at:
+		next_at = g.t + g.rng.randf_range(_k("every_min", 60.0), _k("every_max", 75.0)) * float(g.dmod.get("beacon_every", 1.0)) * _guide("every", 1.0)
+		if not g.beacons.any(func(b): return not b.lit):
+			_spawn()
+	_sweep_hold()
+	_zone_buff(dt)
+	var r: float = _k("r", 70.0)
+	for b in g.beacons:
+		# 缩圈把灯标卷到圈外：熄灭消失
+		if g.zone_state != 0 and b.pos.distance_to(g.zone_c) > g.zone_r:
+			b.dead = true
+			g.vfx.sparks(b.pos, Vector2.UP, Color(0.6, 0.7, 0.8), 8, 90.0)
+			continue
+		if b.lit:
+			if g.t - b.lit_t > _k("block_t", 30.0):
+				b.dead = true   # 禁刷期结束，灯标完成使命
+				Sfx.play("beacon_end", -11.7, 1.0, 0.0)   # 安全区结束（tools/gen_sfx_events.py）
+			continue
+		# 没点燃的灯标 unlit_life 秒后熄灭，放行下一座（协调人 9/30 定 A：原来没人点的那座一直占位，普通机器人整局只刷 1–3 座）
+		b.age = float(b.get("age", 0.0)) + dt
+		# 「去不去」遥测（docs/56 §4）：寿命内主控离它最近多远、在 2×r 内待了多久；熄灭时写进 BEACON expire 行
+		var pd: float = b.pos.distance_to(g.ppos)
+		b.min_d = minf(float(b.get("min_d", INF)), pd)
+		if pd < 2.0 * r:
+			b.hold_s = float(b.get("hold_s", 0.0)) + dt
+		if b.age > _k("unlit_life", 45.0):
+			b.dead = true
+			g.vfx.sparks(b.pos, Vector2.UP, Color(0.6, 0.7, 0.8), 8, 90.0)
+			Sfx.play("beacon_fizzle", -4.3 if pd < 560.0 else -10.3, 1.0, 0.0)   # 没点燃熄灭：噗噗几下 + 嘶声，无音调（和安全区结束的两音下行区分）
+			# 熄灭提示（别让玩家以为是 bug）：在屏内就在灯标上飘字，在屏外弹一句横幅
+			if pd < 560.0:
+				g.vfx.add_text(b.pos + Vector2(0, -70), "引航灯标熄灭了", Color(0.7, 0.78, 0.85), 15)
+			else:
+				g.vfx.show_banner("远处的引航灯标熄灭了")   # 10-28 用户：去掉「稍后会有新的一座」
+			# quit：none = 从没走到寻灯半径（bot/beacon_seek_r 300）内；approach = 进过寻灯半径但没到 2×r（半路放弃）；edge = 到过 2×r（圈边 / 进过圈）没点
+			var md: float = float(b.get("min_d", INF))
+			var quit := "none" if md >= Bal.v("bot/beacon_seek_r", 300.0) else ("approach" if md >= 2.0 * r else "edge")
+			# maxp = 寿命内最高进度（占需要量）、in_s = 在光圈里的累计秒（docs/56）
+			# stag = 这座灯标寿命内被灯边硬直取代的近战起手数（docs/56 §10，旋钮关时恒 0）
+			_log("expire min_d=%.0f hold_s=%.1f quit=%s maxp=%.2f in_s=%.1f" % [minf(md, 9999.0), float(b.get("hold_s", 0.0)), quit,
+				float(b.get("maxp", 0.0)) / maxf(0.1, float(b.need)), float(b.get("in_s", 0.0))])
+			continue
+		# 引路（docs/56 候选 a，beacon/guide_r > 0 开）：未点燃且寿命 < guide_life 的灯标，guide_r 内吞非 Boss 子弹、远程杂兵不对圈内主控起手
+		if _sk("guide_r") > 0.0 and b.age <= _k("guide_life", 45.0):
+			guide = b
+		var rate := 1.0
+		if g.lamp < 30.0:
+			rate /= _k("low_lamp_mult", 1.5)
+		if g.squad.in_sanctuary(b.pos):
+			rate *= _k("lumen_mult", 2.0)
+		# 队友读条（10-30 用户「移动可以帮忙点亮灯塔」）：任一名队友（没倒地）在光圈里也读条，速率 × beacon/mate_mult；
+		# 队长同在圈里时按队长的速率（不叠加），遥测 via 记 mate
+		var lead_in: bool = pd < r
+		var mate_in: bool = not lead_in and _mate_in(b, r)
+		if (lead_in or mate_in) and g.state == g.S.PLAY:
+			charging = b
+			b.out_t = 0.0
+			b.in_s = float(b.get("in_s", 0.0)) + dt
+			_charge(b, rate if lead_in else rate * _k("mate_mult", 0.75), dt, "ring" if lead_in else "mate")
+		else:
+			# 离开时不清零：先保持 beacon/decay_delay 秒，之后每秒回退需要量的 beacon/decay_pct（缺省 0 / 0.2 = 离开就按 0.5 秒/秒退，docs/49f ①）
+			b.out_t = float(b.get("out_t", 0.0)) + dt
+			if b.out_t >= _k("decay_delay", 0.0):
+				b.prog = maxf(0.0, b.prog - b.need * _k("decay_pct", 0.2) * dt)
+			b.count_end = 0.0
+			b["tick"] = int(b.prog / 0.5)
+	g.beacons = g.beacons.filter(func(b): return not b.dead)
+
+
+## 有没有队友（非队长、在场、没倒地）站在灯标光圈 r 内
+func _mate_in(b: Dictionary, r: float) -> bool:
+	if g.get("squad") == null:
+		return false
+	for o in g.squad.ops:
+		if not o.is_leader and o.pos != Vector2.INF and o.cmd_down <= 0.0 and o.pos.distance_to(b.pos) < r:
+			return true
+	return false
+
+
+## 读条一帧：进度按 rate 涨，到 need 点燃；via 记最后一下是在光圈（ring）、接力环（relay）还是只有队友在圈里（mate）（遥测用）
+func _charge(b: Dictionary, rate: float, dt: float, via: String) -> void:
+	b.prog = minf(b.need, b.prog + rate * dt)
+	b.maxp = maxf(float(b.get("maxp", 0.0)), b.prog)
+	b.count_max = b.need
+	b.count_end = g.t + (b.need - b.prog) / rate
+	# 进度嘀嗒：每 0.5 秒进度一声，音高随进度升高（回退后重新充能会再响）
+	var tk := int(b.prog / 0.5)
+	if tk > int(b.get("tick", 0)) and b.prog < b.need:
+		Sfx.play("beacon_tick", -12.0, 0.85 + 0.5 * b.prog / b.need, 0.0)
+	b["tick"] = tk
+	if b.prog >= b.need:
+		b["via"] = via
+		_light(b)
+
+
+## 选址：主控 250–400 的环上取 16 方向 × 3 半径的候选点（圈内），挑 clear_r 内非 Boss 溟痕最多的那个
+## （协调人 9/29：灯标同时是「溟痕在哪」的指路标）；一块都罩不到时退回随机方向。随机数先取、次数固定，保证同 seed 可复现
+func _spawn() -> void:
+	var ang := g.rng.randf() * TAU
+	var p: Vector2 = g.ppos + Vector2.from_angle(ang) * g.rng.randf_range(_k("dist_min", 250.0), _k("dist_max", 400.0))
+	var cr: float = _k("clear_r", 260.0)
+	var best_n := 0
+	for k in 16:
+		for rr in [_k("dist_min", 250.0), (_k("dist_min", 250.0) + _k("dist_max", 400.0)) * 0.5, _k("dist_max", 400.0)]:
+			var q: Vector2 = g.spawner.safe_event_pos(g.ppos + Vector2.from_angle(ang + TAU * k / 16.0) * rr, 110.0)
+			var n := 0
+			for m in g.mires:
+				if not m.get("boss", false) and m.life > 0.0 and m.pos.distance_to(q) < cr:
+					n += 1
+			if n > best_n:
+				best_n = n
+				p = q
+	p = g.spawner.safe_event_pos(p, 110.0)
+	g.beacons.append({"pos": p, "lit": false, "prog": 0.0, "need": _k("need", 2.5) * _guide("need", 1.0), "lit_t": -1.0, "count_end": 0.0, "count_max": 0.0, "dead": false,
+		"r": _k("r", 70.0), "clear_r": _k("clear_r", 260.0), "safe_end": 0.0, "age": 0.0, "out_t": 0.0,
+		"min_d": INF, "hold_s": 0.0, "guide_r": _sk("guide_r"), "guide_life": _k("guide_life", 45.0),   # min_d / hold_s 遥测；guide_* 给画面画引路圈（docs/56）
+		"in_s": 0.0, "maxp": 0.0})   # in_s / maxp 遥测（docs/56）
+	spawned_n += 1
+	g.vfx.show_banner("引航灯标出现了 —— 站进光圈点燃它，驱散溟痕")
+	_log("spawn")
+
+
+## 新手引导演示局放一座灯标（onboard.gd「引航灯标」一步）：不取随机数（同 seed 的正式局不受影响）、不弹横幅（卡片已经在说）
+func spawn_demo(p: Vector2) -> Dictionary:
+	var b := {"pos": p, "lit": false, "prog": 0.0, "need": _k("need", 2.5), "lit_t": -1.0, "count_end": 0.0, "count_max": 0.0, "dead": false,
+		"r": _k("r", 70.0), "clear_r": _k("clear_r", 260.0), "safe_end": 0.0, "age": 0.0, "out_t": 0.0,
+		"min_d": INF, "hold_s": 0.0, "guide_r": 0.0, "guide_life": _k("guide_life", 45.0), "in_s": 0.0, "maxp": 0.0}
+	g.beacons.append(b)
+	return b
+
+
+## 新手引导：玩家等太久没点，由引导代点亮（演示一遍效果）
+func light_demo(b: Dictionary) -> void:
+	if not b.lit and not b.dead:
+		b["via"] = "demo"
+		_light(b)
+
+
+func _light(b: Dictionary) -> void:
+	b.lit = true
+	b.lit_t = g.t
+	b.safe_end = g.t + _k("block_t", 30.0)
+	b.count_end = 0.0
+	lit_n += 1
+	# beacon/clear_all_r（缺省 0 = 关）：> 0 时点燃清痕半径改用它（取两者较大者），留给真人反馈后加强用（协调人 9/30 ①）
+	var cr: float = clear_radius()
+	var cleared := 0
+	var cleared_pts: Array = []   # 被驱散的溟痕 [pos, r, 延迟秒]：只给画面用（world 的 mire_recoil 退散动画按延迟依次碎散），不影响模拟
+	for m in g.mires:
+		if m.life <= 0.0 or m.has("fade"):
+			continue
+		var d: float = m.pos.distance_to(b.pos)
+		if d - float(m.get("maxr", m.r)) >= cr and d - float(m.r) >= cr:
+			continue
+		var delay: float = clampf(d / cr, 0.0, 1.0) * _k("sweep_t", 0.3)
+		if d <= cr:
+			_dispel(m, delay)   # 各来源都净化（含点燃时已在场的 Boss 溟痕）
+			cleared += 1
+			cleared_pts.append([m.pos, float(m.r), delay])
+		else:
+			_trim(m, d - cr, delay)   # 中心在圈外：压进圈里的部分削掉
+			cleared_pts.append([m.pos + (b.pos - m.pos).normalized() * (d - cr + 8.0), minf(float(m.r), 48.0), delay])
+	b["cleared"] = cleared_pts
+	if cleared > 0:
+		Sfx.play("mire_clear", -10.2, 1.0, 0.0)   # 清掉溟痕：溶解嘶声，叠在点亮光爆下（tools/gen_sfx_events.py）
+	var l0: float = g.lamp
+	var add: float = _k("lamp", 5.0) + _guide("lamp", 0.0)
+	g.lamp = minf(g.lamp_cap, g.lamp + add)
+	g.telemetry.lamp_note("灯标", g.lamp - l0)
+	clear_nerve(b.pos, _k("r", 70.0))
+	# 点燃光爆（爆闪、扩到 clear_r 的光环、放射光、火花）由界面与美术画（lit 由 false 变 true 那一帧），这里只留飘字
+	g.vfx.add_text(b.pos + Vector2(0, -70), "引航灯标已点亮 · 灯火 +%d" % int(add), UI.GOLD, 16)
+	Sfx.play("beacon_lit", 1.4, 1.0, 0.0)   # 点燃光爆
+	# 点燃遥测：in_s / min_d / hold_s 同 expire
+	_log("lit cleared=%d in_s=%.1f min_d=%.0f hold_s=%.1f via=%s" % [cleared, float(b.get("in_s", 0.0)),
+		minf(float(b.get("min_d", INF)), 9999.0), float(b.get("hold_s", 0.0)), str(b.get("via", "ring"))])
+
+
+## 点燃清除半径（clear_all_r 旋钮 > 0 时取较大者）
+func clear_radius() -> float:
+	return maxf(_k("clear_r", 260.0), _k("clear_all_r", 0.0))
+
+
+## 灯标正在生效（点燃后 block_t 秒内）
+func active(b: Dictionary) -> bool:
+	return b.lit and not b.dead and g.t - float(b.lit_t) <= _k("block_t", 30.0)
+
+
+## 驱散一片：当下就不伤人、不长、不计数（走淡出分支），delay 秒后扫到它、再 sweep_fade 秒碎散淡出后移除
+func _dispel(m: Dictionary, delay: float) -> void:
+	m["fade"] = delay + _k("sweep_fade", 0.25)
+	m["fade_len"] = _k("sweep_fade", 0.25)
+
+
+## 削掉压进圈里的部分：最大半径立刻收到 keep（不再往圈里长），画面半径 delay 秒后跟着收（beacon.update 里）；剩得太小就整片驱散
+func _trim(m: Dictionary, keep: float, delay: float) -> void:
+	if keep < 16.0:
+		_dispel(m, delay)
+		return
+	m.maxr = minf(float(m.get("maxr", m.r)), keep)
+	m["trim_r"] = keep
+	m["trim_at"] = g.t + delay
+
+
+## 生效期间每帧：圈内的非 Boss 溟痕（怪物新留的、灯火低时逼近进来的、圈外长进来的）随到随散；削边到点后收画面半径。
+## Boss 招式在生效期间新落的溟痕不管（docs/49g：圈内安全只管非 Boss，Boss 的预警 / 子弹 / 落点照常，免得站灯里就能无视 Boss 招式）；
+## 点燃那一刻已在场的 Boss 溟痕照旧一起驱散（点燃是一次性的净化，与改前相同）
+func _sweep_hold() -> void:
+	var lit_now: Array = g.beacons.filter(func(b): return active(b))
+	for m in g.mires:
+		if m.has("trim_at") and g.t >= float(m.trim_at):
+			m.r = minf(float(m.r), float(m.trim_r))
+			m.erase("trim_at")
+		if lit_now.is_empty() or m.life <= 0.0 or m.has("fade") or m.get("boss", false):
+			continue
+		var cr: float = clear_radius()
+		for b in lit_now:
+			var d: float = m.pos.distance_to(b.pos)
+			if d - float(m.r) >= cr and d - float(m.get("maxr", m.r)) >= cr:
+				continue
+			if d <= cr:
+				_dispel(m, 0.0)
+				g.fx.append({"kind": "mire_recoil", "pts": [[m.pos, float(m.r), 0.0]], "from": b.pos, "life": 0.35, "max": 0.35, "tex": g.vfx.strip("fx_mire_dissolve")})
+			else:
+				_trim(m, d - cr, 0.0)
+			break
+
+
+## 灯标庇护（10-26 用户「提供一些回血加速和攻速加速」）：队长在生效中的灯标清除圈里时，每秒回复 zone_regen_pct × 最大生命、全队攻速 +zone_aspd；
+## 出圈或生效结束即撤（stats 来源 "beacon_zone"）。两个旋钮都 0 = 关
+func _zone_buff(dt: float) -> void:
+	var cr: float = clear_radius()
+	var inside: bool = g.beacons.any(func(b): return active(b) and b.pos.distance_to(g.ppos) <= cr)
+	if inside:
+		zone_s += dt
+	if inside == zone_on:
+		return
+	zone_on = inside
+	g.stats.remove_source("beacon_zone")
+	if inside:
+		var rp: float = _k("zone_regen_pct", 0.015)
+		var asp: float = _k("zone_aspd", 0.25)
+		if rp > 0.0:
+			g.stats.add(&"regen_pct", "flat", rp, "beacon_zone")   # regen_pct 基础 0：用 flat（add 是百分比加成）
+		if asp > 0.0:
+			g.stats.add(&"op_aspd", "add", asp, "beacon_zone")
+		if rp > 0.0 or asp > 0.0:
+			g.vfx.add_text(g.ppos + Vector2(0, -96), "灯标庇护 · 回复 +%d%%/秒 · 攻速 +%d%%" % [int(round(rp * 100.0)), int(round(asp * 100.0))], UI.GOLD, 15)
+	g.sync_stats()
+
+
+## 怪物溟痕落点检查（combat.add_enemy_mire）：落在生效中的灯标清除圈内就不落
+func holds(p: Vector2) -> bool:
+	var cr: float = clear_radius()
+	for b in g.beacons:
+		if active(b) and b.pos.distance_to(p) <= cr:
+			return true
+	return false
+
+
+## ---- 圈内安全（docs/49g，协调人 10-01 定候选 e；三个旋钮缺省 0 = 关，可按档开：difficulty/<档>/beacon_safe_* ≥ 0 时优先）
+## 只在读条期间（charging）生效，只作用于非 Boss 的敌人与子弹；Boss 的预警、子弹、冲锋照常
+func _sk(key: String, d := 0.0) -> float:
+	var v := float(g.dmod.get("beacon_" + key, -1.0))
+	return v if v >= 0.0 else _k(key, d)
+
+
+## 非 Boss 子弹 / 抛石进入正在读条的光圈：被灯光吞掉（beacon/safe_bullet）
+## 引路（docs/56 a，beacon/guide_r > 0）：未点燃灯标 guide_r 内的非 Boss 子弹也吞，不要求主控在读条——光圈 r 70 的规则只是它的内圈
+func bullet_eaten(pos: Vector2) -> bool:
+	if charging != null and _sk("safe_bullet") > 0.0 and g.combat.ground_d(pos, charging.pos) < float(charging.r):
+		return true
+	return guide != null and g.combat.ground_d(pos, guide.pos) < _sk("guide_r")
+
+
+## 远程杂兵不对正在读条的主控发起新的远程出招（beacon/safe_ranged）；调用方不推进冷却，出圈即恢复
+## 引路：主控在未点燃灯标 guide_r 内时同样不起手（docs/56 a ②）
+func ranged_held(e: Dictionary) -> bool:
+	if e.get("boss", false):
+		return false
+	if charging != null and _sk("safe_ranged") > 0.0:
+		return true
+	return guide != null and g.combat.ground_d(g.ppos, guide.pos) < _sk("guide_r")
+
+
+## 背光刷怪（docs/56 候选 e，beacon/shade_deg > 0 开）：有未点燃灯标且在主控 beacon/shade_dist（600）内时，
+## 返回 [主控→灯标 的角度, 半张角（弧度）] 给 spawner.edge_pos() 避开；没有要避的扇区返回空数组。
+## 不看 guide_life：点燃或熄灭即恢复。Boss / 事件刷新不经 edge_pos，不受影响
+func shade_sector() -> Array:
+	var deg: float = _sk("shade_deg")
+	if deg <= 0.0:
+		return []
+	var dist: float = _k("shade_dist", 600.0)
+	for b in g.beacons:
+		if not b.lit and not b.dead and b.pos.distance_to(g.ppos) < dist:
+			return [(b.pos - g.ppos).angle(), deg_to_rad(minf(deg, 170.0))]
+	return []
+
+
+## 子弹被吞的画面：暖色小光环 + 几点光屑（走 g.fx / sparks 现有合批，标 enemy 不被降噪），真人才看得出「圈里没中弹」是灯的作用
+func eat_fx(pos: Vector2) -> void:
+	g.fx.append({"kind": "ring", "pos": pos, "r": 9.0, "life": 0.22, "max": 0.22, "col": Color(1.8, 1.45, 0.7), "enemy": true})
+	g.vfx.sparks(pos, Vector2.UP, Color(1.9, 1.5, 0.8), 3, 70.0)
+
+
+## 点燃时清空神经损伤：主控，以及站在光圈内、自己带神经损伤字段的队友（Boss与怪物 加回神经损伤后按它的字段接）
+func clear_nerve(at: Vector2, r: float) -> void:
+	g.afflict.clear_nerve()
+	for o in g.squad.ops:
+		if o.get("nerve") != null and o.pos != Vector2.INF and o.pos.distance_to(at) < r:
+			o.set("nerve", 0.0)
+
+
+## map.mire_new 落点检查：点燃的灯标周围禁刷期内不生成自然溟痕
+func blocks(p: Vector2) -> bool:
+	# beacon/block_r（缺省 0 = 关）：> 0 时禁刷半径改用它（取与清痕半径的较大者），同上留作旋钮
+	var cr: float = maxf(maxf(_k("clear_r", 260.0), _k("clear_all_r", 0.0)), _k("block_r", 0.0))
+	for b in g.beacons:
+		if b.lit and g.t - b.lit_t <= _k("block_t", 30.0) and b.pos.distance_to(p) < cr:
+			return true
+	return false
+
+
+## 占位画面（地面层，world.draw_world 在溟痕之后调用）：熄灭 = 灰圈 + 进度环；点燃 = 暖光圈 + 清净区边界。正式贴图由界面与美术出
+func draw() -> void:
+	var r: float = _k("r", 70.0)
+	for b in g.beacons:
+		g.draw_set_transform(b.pos, 0.0, Vector2(1.0, 0.5))
+		if b.lit:
+			var a: float = 0.35 + 0.1 * sin(g.t * 3.0)
+			g.draw_circle(Vector2.ZERO, r, Color(1.0, 0.85, 0.5, 0.18))
+			g.draw_arc(Vector2.ZERO, _k("clear_r", 260.0), 0.0, TAU, 64, Color(1.0, 0.85, 0.5, a * 0.6), 2.0)
+		else:
+			g.draw_circle(Vector2.ZERO, r, Color(0.5, 0.6, 0.7, 0.12))
+			g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 48, Color(0.7, 0.8, 0.9, 0.5), 2.0)
+			if b.prog > 0.0:
+				g.draw_arc(Vector2.ZERO, r, -PI / 2.0, -PI / 2.0 + TAU * b.prog / b.need, 48, Color(1.0, 0.85, 0.5, 0.95), 5.0)
+		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		# 灯柱本体（占位）：一根竖条 + 顶端灯
+		var top: Vector2 = b.pos + Vector2(0, -46)
+		g.draw_rect(Rect2(b.pos + Vector2(-4, -44), Vector2(8, 44)), Color(0.25, 0.28, 0.32))
+		g.draw_circle(top, 9.0, Color(1.0, 0.85, 0.5) if b.lit else Color(0.35, 0.4, 0.45))
+
+
+func _log(what: String) -> void:
+	if g.mode != g.Mode.PLAY:
+		print("BEACON %s t=%.1f mires=%d" % [what, g.t, g.mires.size()])

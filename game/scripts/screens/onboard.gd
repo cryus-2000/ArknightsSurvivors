@@ -19,6 +19,7 @@ extends RefCounted
 ##   测试里演示局结束时直接退出，不重开；new / vet / ask 按第一次进游戏的强制版走，加 --onboardfree 走可跳过版；
 ##   强制版里机器人不会用圆盘、按 Q，到点由这里代按）、--onboarddemo=<卡 id>（进局即出该卡，常驻不收起）。文案在 data/onboard.json，演示画法在 screens/onboard_demos.gd。
 
+const ThemePack = preload("res://scripts/core/theme_pack.gd")   # 主题数据路径门面（docs/359 §2）
 const UI = preload("res://scripts/ui.gd")
 const Game = preload("res://scripts/game.gd")
 const Bal = preload("res://scripts/core/balance.gd")
@@ -126,11 +127,7 @@ var view_rects := {}
 
 func _init(game: Game) -> void:
 	g = game
-	var f := FileAccess.open("res://data/onboard.json", FileAccess.READ)
-	if f != null:
-		var d = JSON.parse_string(f.get_as_text())
-		if d is Dictionary:
-			data = d
+	data = ThemePack.load_merged("onboard")   # 通用卡片 + 本主题的卡片与演示局 / 提示顺序（docs/368 §4）
 	for a in Cfg.dev_args():
 		if a.begins_with("--onboard="):
 			dev = a.substr(10)
@@ -479,7 +476,7 @@ func _place_beacon() -> void:
 	if p == Vector2.INF:
 		_skip_beacon = true
 		return
-	demo_beacon = g.beacon_sys.spawn_demo(p)
+	demo_beacon = g.beacon_sys.spawn_demo(p) if g.beacon_sys != null else null
 	for k in BEACON_MIRES:
 		var m: Dictionary = g.map.mire_new(p + Vector2.from_angle(TAU * k / BEACON_MIRES + 0.5) * 120.0, g.t, false)
 		m.r = m.maxr
@@ -513,7 +510,7 @@ func _beacon_tick() -> void:
 			return
 		_place_beacon()
 		return
-	if cur_t >= BEACON_WAIT and not bool(demo_beacon.lit):
+	if cur_t >= BEACON_WAIT and not bool(demo_beacon.lit) and g.beacon_sys != null:
 		g.beacon_sys.light_demo(demo_beacon)
 
 

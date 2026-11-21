@@ -14,6 +14,7 @@ const CardMotion = preload("res://scripts/screens/card_motion.gd")   # 各种面
 const NodeIcons = preload("res://scripts/screens/node_icons.gd")   # 节点卡图标（docs/154）
 const NodeCardsUI = preload("res://scripts/screens/node_cards_ui.gd")   # 翻节点卡卡面与演出（docs/154）
 const UM = preload("res://scripts/ui_motion.gd")
+const Bal = preload("res://scripts/core/balance.gd")
 const HudSquad = preload("res://scripts/screens/hud_squad.gd")   # 选中余光飞向编队卡：用它的排法常量
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
@@ -68,6 +69,14 @@ const CARD_SCALE_PHONE := 0.82
 const BRIEF_SIZES_PHONE := [15, 14, 13]
 ## 手机：正在看完整说明的那张卡（-1 = 没有）；点「详情」开 / 关，换一批卡、选中时清掉
 var detail_i := -1
+## 选中再确定（11-20 B站玩家反馈：电脑端选升级卡时按攻击键常随手选中一张）：凡是一点就生效的选项（升级 / 藏品 / 招募 / 婉拒 / 事件 /
+## 翻节点卡 / 商人货品）都分两步——第一次点卡、按数字键或方向键只选中（卡片高亮、底部操作条变「确定」），再点同一张、点「确定」
+## 或按确认键（Enter / 手柄 Ⓐ）才生效；面板弹出后 CONFIRM_LOCK 秒内不接受确定。攻击 / 技能键不选不确定（game.gd _pick_key_blocked）。
+## 入口统一走 choose(i) / confirm_key()（选卡与商人共用）；批跑 / 机器人直接调 progression.pick / shop_sys.buy，不受影响。
+## 开关 ui/pick_confirm（缺省 1；0 = 旧的一点就生效）
+const CONFIRM_LOCK := 0.3
+var sel_i := -1          # 已选中、等确定的那一项（-1 = 还没选）
+var sel_t0 := -10.0      # 面板弹出（或商人开张 / 刷新）的界面时刻：之后 CONFIRM_LOCK 秒内不确定
 ## 选中余光（10-26 用户「优化动效」：以前一选卡片就凭空消失）：选中那一刻记下这张卡的屏幕矩形，
 ## 面板照旧马上关、游戏马上继续，HUD 上画 PICK_GLOW 秒「整卡缩成光点飞向编队卡 / 藏品栏」（11-01 docs/215 D1；原为原位外扩青框）。几个矩形 + 圆，手机 30 帧无负担
 const PICK_GLOW := 0.3
@@ -173,6 +182,91 @@ func card_hot(card: Button, i: int) -> bool:
 	return card.is_hovered()
 
 
+static func confirm_on() -> bool:
+	return Bal.v("ui/pick_confirm", 1.0) > 0.0
+
+
+## 卡片画成「选中」的强高亮：开了确定步骤时只看 sel_i（悬停只给细边，card_hover_only），关了照旧看悬停 / 焦点
+func card_on(card: Button, i: int) -> bool:
+	return i == sel_i if confirm_on() else card_hot(card, i)
+
+
+## 只是鼠标悬停 / 键盘焦点、还没选中：画一道细青边提示「可以点」
+func card_hover_only(card: Button, i: int) -> bool:
+	return confirm_on() and i != sel_i and card_hot(card, i)
+
+
+## 换一批选项（弹出面板 / 商人开张、刷新）：清掉选中，重新开始 CONFIRM_LOCK 计时
+func sel_reset(lock := true) -> void:
+	sel_i = -1
+	if lock:
+		sel_t0 = UM.now()
+
+
+func _sel_ready() -> bool:
+	return UM.now() - sel_t0 >= CONFIRM_LOCK
+
+
+func _sel_count() -> int:
+	return g.shop_items.size() if g.state == Game.S.SHOP else g.choices.size()
+
+
+func _commit(i: int) -> void:
+	if g.state == Game.S.SHOP:
+		g.shop_sys.buy(i)
+	else:
+		g.progression.pick(i)
+
+
+func _sel_redraw() -> void:
+	for box in [g.panel_box, g.panel_col]:
+		for c in box.get_children():
+			if c is Control:
+				(c as Control).queue_redraw()
+	if decline_btn != null and decline_btn.visible:
+		decline_btn.queue_redraw()
+	g.panel_fg.queue_redraw()
+
+
+## 只选中第 i 项（不生效）：点卡 / 数字键 / 方向键
+func select(i: int) -> void:
+	if i < 0 or i >= _sel_count():
+		return
+	g.nav_sel = i
+	if i != sel_i:
+		sel_i = i
+		Sfx.play("ui_move", -4.0)
+	_sel_redraw()
+
+
+## 点卡 / 数字键：没开确定步骤就直接生效；已选中同一项（且过了弹出锁）= 确定；否则只选中
+func choose(i: int) -> void:
+	if i < 0 or i >= _sel_count():
+		return
+	if not confirm_on():
+		_commit(i)
+		return
+	if i == sel_i and _sel_ready():
+		_commit(i)
+		return
+	select(i)
+
+
+## 确认键（Enter / 手柄 Ⓐ）/「确定」：有选中的就生效（过了弹出锁）；还没选中就先选中当前焦点
+func confirm_key() -> void:
+	var n := _sel_count()
+	if n <= 0:
+		return
+	if not confirm_on():
+		_commit(clampi(g.nav_sel, 0, n - 1))
+		return
+	if sel_i < 0 or sel_i >= n:
+		select(clampi(g.nav_sel, 0, n - 1))
+		return
+	if _sel_ready():
+		_commit(sel_i)
+
+
 ## 面板底部的按钮（商店：刷新 / 离开）：A 风格暗底细边；可带线性图标、源石锭价格、备注、按键牌。鼠标与触屏都能点
 func button(text: String, r: Rect2, cb: Callable, enabled: bool, icon := "", note := "", price := -1, key := "") -> void:
 	var b := Button.new()
@@ -253,7 +347,7 @@ func build(parent: Node) -> void:
 	decline_btn.draw.connect(_draw_decline)
 	decline_btn.mouse_entered.connect(decline_btn.queue_redraw)
 	decline_btn.mouse_exited.connect(decline_btn.queue_redraw)
-	decline_btn.pressed.connect(func(): g.progression.pick(int(decline_btn.get_meta("i", -1))))
+	decline_btn.pressed.connect(func(): choose(int(decline_btn.get_meta("i", -1))))
 	decline_btn.visible = false
 	g.panel_box = HBoxContainer.new()
 	g.panel_box.add_theme_constant_override("separation", 36)
@@ -432,6 +526,11 @@ func draw_bg() -> void:
 				var hint := "←→ 选择 · Ⓐ 确认" if Pad.using else ("点击卡片选择" if Pad.touch else "点击卡片，或按 1–%d 选择" % g.choices.size())
 				if g.choice_kind == "cross":
 					hint = "←→ 选择 · Ⓐ 翻开" if Pad.using else ("点击卡片翻开" if Pad.touch else "点击卡片翻开，或按 1–%d" % g.choices.size())
+				if confirm_on():   # 选中再确定（choose）
+					if g.choice_kind == "cross":
+						hint = "←→ 选中 · Ⓐ 翻开" if Pad.using else ("点击卡片选中，再点一次翻开" if Pad.touch else "点击或按 1–%d 选中，再点一次或按 Enter 翻开" % g.choices.size())
+					else:
+						hint = "←→ 选中 · Ⓐ 确定" if Pad.using else ("点击卡片选中，再点一次确定" if Pad.touch else "点击或按 1–%d 选中，再点一次或按 Enter 确定" % g.choices.size())
 				UI.text(g.panel_fg, g.font, Vector2(0, CARDS_TOP + CARD_H * row_k + 26), hint, 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
 			motion.draw_under(g.panel_fg)   # 藏品光柱（压暗带之上、卡片之下）
 			if g.choice_kind == "cross":
@@ -448,7 +547,7 @@ func draw_bg() -> void:
 						continue
 					var nc: Dictionary = g.choices[bi].get("node", {})
 					var ne: Array = (nc.get("ends", []) as Array).filter(func(e): return Cfg.endings_cleared.has(e))
-					var on: bool = g.endg.flipped < 0 and not ne.is_empty() and card_hot(cd as Button, bi)
+					var on: bool = g.endg.flipped < 0 and not ne.is_empty() and (card_hot(cd as Button, bi) or card_on(cd as Button, bi))
 					var al: float = _ease_meta(cd, "names_a", 1.0 if on else 0.0, 0.16)
 					var y_min: float = (CARDS_TOP + CARD_H * row_k + 34.0) if not lay().touch else 0.0
 					NodeCardsUI.draw_route_names(g.panel_fg, rects[bi], ne, al, g.font, y_min, vs.y - 6.0, 16 if lay().touch else 14)
@@ -608,6 +707,8 @@ func _event_caption(art: Dictionary, p0: Vector2, cx: float) -> void:
 	UI.en(g.panel_fg, g.font, Vector2(cx + 20, col_top - 54.0 + tt), "EVENT  ·  CHOOSE ONE", 12, Color(0.6, 0.59, 0.56), 4.0)
 	g.panel_fg.draw_string(serif, Vector2(cx + 20, col_top - 18.0 + tt), UI.Loc.s("选择一项"), HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(0.925, 0.91, 0.882))
 	var hint := "←→ 选择 · Ⓐ 确认" if Pad.using else ("点击选项" if Pad.touch else "点击选项，或按 1–%d" % g.choices.size())
+	if confirm_on():   # 选中再确定（choose）
+		hint = "←→ 选中 · Ⓐ 确定" if Pad.using else ("点击选项选中，再点一次确定" if Pad.touch else "点击或按 1–%d 选中，再点一次或按 Enter 确定" % g.choices.size())
 	var hy: float = col_top + minf(ev_bars_h, g.panel_scroll.size.y) + (20.0 if touch else 6.0)   # 触屏：基线落在选项列下方，不压最后一条
 	UI.text(g.panel_fg, g.font, Vector2(cx + 20, hy), hint, int(L.ev_hint_fs), Color(0.55, 0.54, 0.52))
 
@@ -646,6 +747,7 @@ func offset_poly(p: PackedVector2Array, o: Vector2, _clip: PackedVector2Array) -
 func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := false) -> void:
 	g.choices = opts
 	g.choice_kind = kind
+	sel_reset()
 	if kind == "event":
 		ev_shown_t = UM.now()
 	g.nav_sel = 0
@@ -687,6 +789,8 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 	for a in Cfg.dev_args():   # --carddetail=<n>（截图验收）：打开时直接展开第 n 张卡的详情
 		if a.begins_with("--carddetail="):
 			detail_i = int(a.substr(13))
+		elif a.begins_with("--cardsel="):   # 截图验收：打开时直接选中第 n 张（选中再确定的画法）
+			sel_i = int(a.substr(10))
 	var briefs: bool = L.phone and kind != "event" and kind != "cross"   # 手机：卡上只写一句核心效果
 	var row_cards: bool = kind != "event" and kind != "cross"
 	if L.phone and kind != "event":
@@ -745,9 +849,9 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 		card.mouse_exited.connect(card.queue_redraw)
 		if L.touch:
 			# 点「详情」看完整说明，点别处照常选；more 在下面排版后才定（手机招募卡缩到 15 还放不下才给详情），按下时再看
-			card.pressed.connect(func(): _phone_press(card, i) if card.get_meta("more", false) else g.progression.pick(i))
+			card.pressed.connect(func(): _phone_press(card, i) if card.get_meta("more", false) else choose(i))
 		else:
-			card.pressed.connect(g.progression.pick.bind(i))
+			card.pressed.connect(choose.bind(i))
 		# 说明文字：创建时按宽度排好版（放不下先缩字号）。选卡卡片三行还放不下就切紧凑布局——
 		# 图标缩小、名字上移，把位置让给说明；事件选项条则按行数加高
 		if ev:
@@ -1125,7 +1229,7 @@ func _phone_press(card: Button, i: int) -> void:
 	if detail_tap(card, i):
 		return
 	detail_i = -1
-	g.progression.pick(i)
+	choose(i)
 
 
 ## 手机卡片（选卡 / 商店）：这次点击落在「详情」键上（触控区比画出来的大一圈）就开 / 关完整说明并返回 true
@@ -1261,11 +1365,13 @@ func add_recruit_decline() -> void:
 func _draw_decline() -> void:
 	var i: int = int(decline_btn.get_meta("i", -1))
 	var hot: bool = (i == g.nav_sel) if (Pad.using or g.kb_nav) else decline_btn.is_hovered()
+	var on: bool = confirm_on() and i == sel_i   # 已选中：青边 +「确定」，再点一次生效
 	var r := Rect2(Vector2.ZERO, decline_btn.size)
-	decline_btn.draw_rect(r, Color(0.05, 0.06, 0.08, 0.72 if hot else 0.5))
-	decline_btn.draw_rect(r, Color(0.55, 0.54, 0.52, 0.9 if hot else 0.45), false, 1.0)
+	decline_btn.draw_rect(r, Color(0.05, 0.06, 0.08, 0.72 if (hot or on) else 0.5))
+	decline_btn.draw_rect(r, UI.CYAN if on else Color(0.55, 0.54, 0.52, 0.9 if hot else 0.45), false, 1.0)
 	var key: String = "" if Pad.touch_ui() else ("Ⓐ" if Pad.using else str(i + 1))
-	var txt: String = "婉拒 · 改为一次成长三选一"
+	var txt: String = "确定婉拒 · 改为一次成长三选一" if on else "婉拒 · 改为一次成长三选一"
+	hot = hot or on
 	UI.ctext(decline_btn, g.font, Vector2(0, r.size.y / 2.0 + 6.0), txt + ("   [%s]" % key if key != "" and not Pad.using else ""), 15, Color(0.86, 0.85, 0.82) if hot else Color(0.62, 0.61, 0.58), HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 
 
@@ -1324,7 +1430,7 @@ func card_color(o: Dictionary) -> Color:
 func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	if motion.begin(card, i):
 		return   # 升级选卡翻面前：这一帧画的是卡背
-	var hov := card_hot(card, i)
+	var hov := card_on(card, i)   # 强高亮 = 已选中（确定步骤关掉时 = 悬停 / 焦点）
 	var r := Rect2(Vector2(0, card.get_meta("oy", 0.0)), card.size)
 	if hov:
 		for k in 3:
@@ -1334,6 +1440,8 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	card.draw_polygon(PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)]), PackedColorArray([top, top, bot, bot]))
 	card.draw_rect(Rect2(r.position, Vector2(r.size.x, 1)), Color(1, 1, 1, 0.14))
 	card.draw_rect(r, UI.CYAN if hov else Color(1, 1, 1, 0.11), false, 1.0)
+	if card_hover_only(card, i):
+		card.draw_rect(r.grow(1.0), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.6), false, 1.0)   # 悬停 / 焦点未选中：只一道细青边
 	var tag := card_tag(o)
 	UI.strip(card, g.font, r.position + Vector2(14, 14), tag[0], tag[1], UI.CYAN if hov else Color(1, 1, 1, 0.88), UI.TEXT, 12)
 	if card.get_meta("more", false) and card.get_meta("phone", false):
@@ -1420,12 +1528,13 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	card.draw_rect(ab, UI.CYAN if hov else Color(UI.STEEL.r, UI.STEEL.g, UI.STEEL.b, 0.4))
 	var ink := Color(0.04, 0.07, 0.09) if hov else Color.WHITE
 	var sfs := 17 if ph else 14   # 10-31 TA H7：操作条只写「选择」，序号只在右上角（桌面）
-	var w1 := g.font.get_string_size("选择", HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(sfs)).x
+	var act := "确定" if hov and confirm_on() else "选择"   # 选中后操作条就是「确定」键：再点这张卡生效
+	var w1 := g.font.get_string_size(UI.Loc.s(act), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(sfs)).x
 	var sx := ab.get_center().x - w1 / 2.0
 	if ph and card.has_meta("brief"):
 		sfs = BTN_FS_PHONE
-		sx = ab.get_center().x - g.font.get_string_size("选择", HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(sfs)).x / 2.0
-	UI.text(card, g.font, Vector2(sx, ab.position.y + (ab.size.y / 2.0 + 6.0 if (ph and card.has_meta("brief")) else (21.0 if ph else 20.0))), "选择", sfs, ink)
+		sx = ab.get_center().x - g.font.get_string_size(UI.Loc.s(act), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(sfs)).x / 2.0
+	UI.text(card, g.font, Vector2(sx, ab.position.y + (ab.size.y / 2.0 + 6.0 if (ph and card.has_meta("brief")) else (21.0 if ph else 20.0))), act, sfs, ink)
 	motion.end(card, i, o)
 
 
@@ -1471,7 +1580,8 @@ func draw_icon_fit(ci: CanvasItem, tx: Texture2D, c: Vector2, target: float, mod
 ## 事件选项条（C 版式）：左端撕边的暗条 + 墨圈里的图标 + 衬线标题 + 效果小牌 + 说明（Label）+ 右侧序号；
 ## 选中：浅色底 + 左侧蓝色竖条 + 蓝色序号
 func draw_event_bar(card: Button, o: Dictionary, i: int) -> void:
-	var hov: bool = card_hot(card, i) and not o.get("disabled", false)
+	var hov: bool = card_on(card, i) and not o.get("disabled", false)   # 强高亮 = 已选中（确定步骤关掉时 = 悬停 / 焦点）
+	var hint_hov: bool = card_hover_only(card, i) and not o.get("disabled", false)
 	card.self_modulate.a = 0.45 if o.get("disabled", false) else 1.0   # 买不起的选项（深蓝之心的房间）整条压暗
 	var art := event_art(g.panel_title_text)
 	var ox: float = card.get_meta("ox", 0.0)
@@ -1483,7 +1593,7 @@ func draw_event_bar(card: Button, o: Dictionary, i: int) -> void:
 	var sp := PackedVector2Array()
 	for q in shape:
 		sp.append(base + Vector2(q.x * w / 596.0, q.y * card.size.y / 100.0))
-	UI.fill_poly(card, sp, Color(0.925, 0.91, 0.882, 0.14) if hov else Color(0.07, 0.07, 0.075, 0.9))
+	UI.fill_poly(card, sp, Color(0.925, 0.91, 0.882, 0.14) if hov else (Color(0.925, 0.91, 0.882, 0.07) if hint_hov else Color(0.07, 0.07, 0.075, 0.9)))
 	var en_ring: PackedVector2Array = art.ensos[i % art.ensos.size()]
 	var er := PackedVector2Array()
 	for q in en_ring:
@@ -1507,8 +1617,14 @@ func draw_event_bar(card: Button, o: Dictionary, i: int) -> void:
 	var fb: Dictionary = card.get_meta("fit", {})
 	if not fb.is_empty():
 		UI.draw_fit(card, g.font, base + Vector2(tx0, 40.0 if ph else 50.0), fb, Color(0.81, 0.79, 0.76))
-	if not Pad.touch_ui():   # 序号 = 数字键，触屏不画（10-31 TA H7）
-		UI.ctext(card, g.font, base + Vector2(w - 46, card.size.y / 2.0 + 10.0), str(i + 1), 24, Color(0.18, 0.72, 1.0) if hov else Color(0.37, 0.36, 0.35), HORIZONTAL_ALIGNMENT_CENTER, 24)
+	if hov and confirm_on():
+		# 已选中：右上角画「确定」小键、序号不画（再点这一条生效）；触屏同样画
+		var cw2: float = g.font.get_string_size(UI.Loc.s("确定"), HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(14)).x + 16.0
+		var cb := Rect2(base + Vector2(w - 14.0 - cw2, 10.0), Vector2(cw2, 26))   # 右上角（名字行右端），不压说明
+		card.draw_rect(cb, Color(0.18, 0.72, 1.0))
+		UI.text(card, g.font, cb.position + Vector2(0, 18), "确定", 14, Color(0.04, 0.07, 0.09), HORIZONTAL_ALIGNMENT_CENTER, cb.size.x)
+	elif not Pad.touch_ui():   # 序号 = 数字键，触屏不画（10-31 TA H7）
+		UI.ctext(card, g.font, base + Vector2(w - 46, card.size.y / 2.0 + 10.0), str(i + 1), 24, Color(0.18, 0.72, 1.0) if (hov or hint_hov) else Color(0.37, 0.36, 0.35), HORIZONTAL_ALIGNMENT_CENTER, 24)
 	if hov:
 		card.draw_rect(Rect2(base + Vector2(8, 20), Vector2(8, card.size.y - 40.0)), Color(0.18, 0.72, 1.0, 0.25))
 		card.draw_rect(Rect2(base + Vector2(10, 22), Vector2(4, card.size.y - 44.0)), Color(0.18, 0.72, 1.0))
@@ -1519,9 +1635,9 @@ func draw_event_bar(card: Button, o: Dictionary, i: int) -> void:
 func draw_node_card(card: Button, o: Dictionary, i: int) -> void:
 	var c: Dictionary = o.get("node", {})
 	var ends: Array = (c.get("ends", []) as Array).filter(func(e): return Cfg.endings_cleared.has(e))
-	var hot: bool = card_hot(card, i) and g.endg.flipped < 0
+	var hot: bool = (card_hot(card, i) or card_on(card, i)) and g.endg.flipped < 0
 	var st := {
-		"i": i, "n": g.choices.size(), "hot": hot, "flipped": g.endg.flipped,
+		"i": i, "n": g.choices.size(), "hot": hot, "sel": confirm_on() and i == sel_i and g.endg.flipped < 0, "flipped": g.endg.flipped,
 		"deal_t": motion.t0, "flip_t": g.endg.flip_t, "ends": ends, "ends_cols": ends.map(func(e): return g.endg.ending_col(e)),
 		"center_x": (card.get_global_transform().affine_inverse() * g.panel_box.get_global_rect().get_center()).x,
 		"hover_k": _ease_meta(card, "hover_k", 1.0 if hot else 0.0, 0.14),
@@ -1535,7 +1651,7 @@ func draw_node_card(card: Button, o: Dictionary, i: int) -> void:
 				st.face_title = str(ev.get("name", "不期而遇"))
 				st.face_body = str(ev.get("text", ""))
 				if c.get("must", false) and not ends.is_empty():   # 只写已达成过的结局（未知路线不泄露）
-					st.face_tag = " / ".join(ends.map(func(e): return NodeCardsUI.ROUTE_NAME.get(e, "")))
+					st.face_tag = " / ".join(ends.map(func(e): return NodeCardsUI.route_name(e)))
 			"wish":
 				st.face_title = "消失的习俗"
 				st.face_body = "亮出三件藏品，选一件带走；也可以付生命多拿一件。"

@@ -17,8 +17,7 @@ var h:
 	set(value):
 		_owner_ref = weakref(value) if value != null else null
 
-const MOTIF := {"knight_boss": "ice", "paranoia": "bubble", "ishar": "wave", "izumik": "root", "iberia": "flame", "carmen": "cross",
-	"path": "frac", "bishop": "wave", "archon": "wave", "immortal": "wave"}
+## 血条两端纹样：enemies.json 的 bossbar_motif（docs/368 §1，原 MOTIF 写死 10 个 Boss），缺省 frac
 const ROW_H := 40.0
 const PAIR_H := 44.0
 const BT_HOLD := 0.45
@@ -329,7 +328,7 @@ func _draw_outro(v: Dictionary, r: Rect2, k: float) -> void:
 ## emblem = true 时画成单枚徽记（铭牌色块 / 细线样式的名字前）
 func motif(type: String, r: Rect2, c: Color, t: float, emblem := false) -> void:
 	var ci = g.hud
-	var m: String = MOTIF.get(type, "frac")
+	var m: String = str(D.ENEMIES.get(type, {}).get("bossbar_motif", "frac"))
 	var cy: float = r.get_center().y
 	if emblem:
 		var cc: Vector2 = r.get_center()

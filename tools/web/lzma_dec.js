@@ -1,4 +1,4 @@
-// LZMA（.lzma「alone」格式）解码器，给网页加载器解 index.wasm 的 LZMA 分片（docs/187 §5，export_web.py 用 Python lzma 压）。
+// LZMA（.lzma「alone」格式）解码器，给网页加载器解 index.wasm 的 LZMA 分片（docs/285（原 187） §5，export_web.py 用 Python lzma 压）。
 // 本作自写，按 LZMA SDK 公开规格（LzmaSpec）实现，无第三方代码。
 // 直接解进调用方给的 dst（Uint8Array，长度 = 原始字节数）：dst 本身就是滑动窗口，不另分配字典，峰值内存 = 压缩字节 + dst。
 // 11-16：网页加载器优先在 Worker 里跑它（loader.js lzWorker：wasm 整块缓冲区转移过去解、解完转回来，不另分配；主线程不卡）；Worker 不可用时才在主线程跑、按 4 ms 切片让出。

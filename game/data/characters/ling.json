@@ -1,0 +1,1900 @@
+{
+ "id": "ling",
+ "trail_col": {
+  "main": [
+   0.42,
+   0.86,
+   0.95
+  ],
+  "alt": [
+   1.0,
+   0.72,
+   0.36
+  ]
+ },
+ "name": "令",
+ "en": "LING",
+ "class": "辅助",
+ "branch": "召唤师",
+ "lanes": [
+  "summon",
+  "control"
+ ],
+ "col": [
+  0.42,
+  0.86,
+  0.95
+ ],
+ "recruitable": false,
+ "script": "res://scripts/characters/data_operator.gd",
+ "base": {
+  "_doc": "令（docs/367，11-18 §9 A 版「调随技能」，§10.6 开局逍遥调 + 清平只在 S1 诱敌）：辅助 · 召唤师。当前调由最近放的技能决定（S1 清平调 / S2 逍遥调 / S3 弦惊调，开局逍遥调）；龙每 grow_cd0/1/2 秒随时间化出一条当前调的龙，上限 cap0/1/2（特性「挑灯问梦」），满员时换掉最早一条异调龙；普攻按调换形（墨弹 point_aoe / 墨击 cone / 剑痕 line）；天赋「随付笺咏醉屠苏」龙散去 → 其余技能 +drink_sp 秒（sp_win 秒内至多 sp_max 次）、酒意 +drink_atk 攻击",
+  "atk": 24,
+  "cd": 1.1,
+  "first_cd": 0.3,
+  "idle_cd": 0.2,
+  "bolt_range": 380,
+  "bolt_r": 22,
+  "bolt_speed": 520,
+  "bolt_mult": 1.3,
+  "hit_r": 170,
+  "hit_half": 1.05,
+  "hit_mult": 1.2,
+  "hit_kb": 30,
+  "edge_len": 260,
+  "edge_w": 30,
+  "edge_mult": 0.9,
+  "leash": 220,
+  "gap": 60,
+  "cap0": 3,
+  "cap1": 4,
+  "cap2": 5,
+  "grow_cd0": 8.0,
+  "grow_cd1": 8.0,
+  "grow_cd2": 6.0,
+  "s1_dur": 16.0,
+  "s1_atk": 1.2,
+  "s1_aspd": 1.2,
+  "qp_hp": 260,
+  "qp_hurt": 0.2,
+  "qp_decoy": 220,
+  "qp_leash": 220,
+  "qp_speed": 300,
+  "qp_r": 64,
+  "qp_mult": 0.5,
+  "qp_cd": 1.0,
+  "qp_kb": 30,
+  "ming_mult": 2.2,
+  "ming_n": 4,
+  "ming_bind": 2.5,
+  "ming_range": 320,
+  "xy_mult": 0.3,
+  "xy_cd": 1.2,
+  "xy_r": 30,
+  "xy_range": 260,
+  "s3_dur": 15.0,
+  "s3_atk": 1.15,
+  "xj_mult": 0.8,
+  "xj_r": 70,
+  "xj_cd": 1.0,
+  "xj2_mult": 1.0,
+  "xj2_r": 110,
+  "xj2_cd": 1.2,
+  "xj2_kb": 80,
+  "xj_aura_cd": 0.5,
+  "xj2_aura_r": 130,
+  "xj2_aura_mult": 0.25,
+  "split_n": 2,
+  "drink_sp": 2.0,
+  "drink_atk": 0.03,
+  "drink_cap": 5,
+  "drink_dur": 15.0,
+  "sp_win": 10.0,
+  "sp_max": 3,
+  "lit_dur": 3.0,
+  "lit_r": 260,
+  "mo_n": 4,
+  "mo_life": 6.0,
+  "mo_mult": 0.3,
+  "mo_cap": 2,
+  "mo_leash": 220,
+  "pomo_n": 3,
+  "pomo_k": 3,
+  "pomo_r": 30,
+  "pomo_mult": 0.8,
+  "tail_cd": 2.0,
+  "tail_r": 90,
+  "tail_mult": 0.6,
+  "tail_kb": 120,
+  "chain_r": 120,
+  "chain_mult": 0.6,
+  "burst_r": 140,
+  "burst_mult": 3.0,
+  "burst_kb": 100,
+  "roam_leash": 300,
+  "roam_len": 130,
+  "roam_w": 22,
+  "cloud_r": 80,
+  "cloud_dur": 3.0,
+  "cloud_every": 0.5,
+  "cloud_mult": 0.15,
+  "cloud_slow": 0.6
+ },
+ "leader": {
+  "_doc": "当队长的受击属性：原作精二满级 生命 1079 / 防御 138 / 法抗 20（character_table char_2023_ling），初定同安洁莉娜（94.5 / 1.0 / 0.2）",
+  "max_hp": 94.5,
+  "armor": 1.0,
+  "arts_res": 0.2,
+  "regen": 0.8
+ },
+ "sprites": {
+  "_doc": "11-18 Spine 直转像素（docs/365 §7，tools/spine_run_trial/cfg/ling_sprites.json）；192 画布 @2x / 96 @1x，foot [48,76]。普攻原作 1.5 秒，attack_timing 压到 0.75 秒、出手 0.25 秒；召唤物槽 s1 清平 / s2 逍遥 / s3 弦惊（_02 第二形态）",
+  "size": 64,
+  "foot": [
+   48,
+   76
+  ],
+  "foot_exempt": "Spine 直转 192 画布 @2x（docs/365 §1），各帧条 foot 同为 [48, 76]",
+  "dash_run": true,
+  "idle": {
+   "tex": "op_ling_idle",
+   "frames": 8,
+   "fps": 3.8095,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.2625,
+    0.2625,
+    0.2625,
+    0.2625,
+    0.2625,
+    0.2625,
+    0.2625,
+    0.2625
+   ]
+  },
+  "run": {
+   "tex": "op_ling_run",
+   "frames": 8,
+   "fps": 13.3333,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.07500000187500006,
+    0.07500000187500006,
+    0.07500000187500006,
+    0.07500000187500006,
+    0.07500000187500006,
+    0.07500000187500006,
+    0.07500000187500006,
+    0.07500000187500006
+   ]
+  },
+  "attack": {
+   "tex": "op_ling_attack",
+   "frames": 8,
+   "fps": 5.3333,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.2,
+    0.15,
+    0.15,
+    0.15,
+    0.2,
+    0.25,
+    0.25,
+    0.15
+   ],
+   "fire": 3,
+   "fire_time": 0.5,
+   "attack_timing": {
+    "duration": 0.75,
+    "fire_time": 0.25,
+    "active_ratio": 0.9,
+    "windup_ratio": 0.4,
+    "min_duration": 0.25,
+    "frame_durations": [
+     0.1,
+     0.075,
+     0.075,
+     0.075,
+     0.1,
+     0.125,
+     0.125,
+     0.075
+    ]
+   }
+  },
+  "skill": {
+   "tex": "op_ling_skill",
+   "frames": 8,
+   "fps": 6.6667,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.15,
+    0.15,
+    0.15,
+    0.15,
+    0.15,
+    0.15,
+    0.15,
+    0.15
+   ],
+   "fire": 3
+  },
+  "skill_s3": {
+   "tex": "op_ling_skill_s3",
+   "frames": 4,
+   "fps": 8.0,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.125,
+    0.125,
+    0.125,
+    0.125
+   ]
+  },
+  "skill_s3_loop": {
+   "tex": "op_ling_skill_s3_loop",
+   "frames": 8,
+   "fps": 4.8981,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.2042,
+    0.2041,
+    0.2042,
+    0.2041,
+    0.2042,
+    0.2042,
+    0.2041,
+    0.2042
+   ],
+   "fire": 2
+  },
+  "skill_s3_end": {
+   "tex": "op_ling_skill_s3_end",
+   "frames": 4,
+   "fps": 8.0,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.125,
+    0.125,
+    0.125,
+    0.125
+   ]
+  },
+  "hurt": {
+   "tex": "op_ling_hurt",
+   "frames": 2,
+   "fps": 13.3333,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.07,
+    0.08
+   ]
+  },
+  "death": {
+   "tex": "op_ling_death",
+   "frames": 8,
+   "fps": 7.1111,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.1429,
+    0.1428,
+    0.1429,
+    0.1428,
+    0.1429,
+    0.1428,
+    0.1429,
+    0.125
+   ]
+  },
+  "entry": {
+   "tex": "op_ling_entry",
+   "frames": 8,
+   "fps": 7.1111,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.1429,
+    0.1428,
+    0.1429,
+    0.1428,
+    0.1429,
+    0.1428,
+    0.1429,
+    0.125
+   ]
+  },
+  "move_attack": {
+   "tex": "op_ling_move_attack",
+   "frames": 8,
+   "fps": 5.3333,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.2,
+    0.15,
+    0.15,
+    0.15,
+    0.2,
+    0.25,
+    0.25,
+    0.15
+   ],
+   "fire": 3,
+   "_note": "只有 @1x（同现有 20 人 move_attack 口径）"
+  },
+  "s1_idle": {
+   "tex": "op_ling_soul1_idle",
+   "frames": 8,
+   "fps": 6.0002,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.1667,
+    0.1666,
+    0.1667,
+    0.1666,
+    0.1667,
+    0.1667,
+    0.1666,
+    0.1667
+   ]
+  },
+  "s1_attack": {
+   "tex": "op_ling_soul1_attack",
+   "frames": 8,
+   "fps": 8.0,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.125,
+    0.125,
+    0.125,
+    0.125,
+    0.125,
+    0.125,
+    0.125,
+    0.125
+   ],
+   "fire": 3
+  },
+  "s1_appear": {
+   "tex": "op_ling_soul1_appear",
+   "frames": 8,
+   "fps": 7.1111,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.1429,
+    0.1428,
+    0.1429,
+    0.1428,
+    0.1429,
+    0.1428,
+    0.1429,
+    0.125
+   ]
+  },
+  "s1_death": {
+   "tex": "op_ling_soul1_death",
+   "frames": 8,
+   "fps": 7.1111,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.1429,
+    0.1428,
+    0.1429,
+    0.1428,
+    0.1429,
+    0.1428,
+    0.1429,
+    0.125
+   ]
+  },
+  "s2_idle": {
+   "tex": "op_ling_soul2_idle",
+   "frames": 8,
+   "fps": 6.0002,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.1667,
+    0.1666,
+    0.1667,
+    0.1666,
+    0.1667,
+    0.1667,
+    0.1666,
+    0.1667
+   ]
+  },
+  "s2_attack": {
+   "tex": "op_ling_soul2_attack",
+   "frames": 8,
+   "fps": 8.0,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.125,
+    0.125,
+    0.125,
+    0.125,
+    0.125,
+    0.125,
+    0.125,
+    0.125
+   ],
+   "fire": 3
+  },
+  "s2_appear": {
+   "tex": "op_ling_soul2_appear",
+   "frames": 8,
+   "fps": 7.1111,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.1429,
+    0.1428,
+    0.1429,
+    0.1428,
+    0.1429,
+    0.1428,
+    0.1429,
+    0.125
+   ]
+  },
+  "s2_death": {
+   "tex": "op_ling_soul2_death",
+   "frames": 8,
+   "fps": 7.1111,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.1429,
+    0.1428,
+    0.1429,
+    0.1428,
+    0.1429,
+    0.1428,
+    0.1429,
+    0.125
+   ]
+  },
+  "s2_skill": {
+   "tex": "op_ling_soul2_skill",
+   "frames": 8,
+   "fps": 6.8569,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.1458,
+    0.1459,
+    0.1458,
+    0.1459,
+    0.1458,
+    0.1458,
+    0.1459,
+    0.1458
+   ],
+   "fire": 3
+  },
+  "s3_idle": {
+   "tex": "op_ling_soul3_idle",
+   "frames": 8,
+   "fps": 6.0002,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.1667,
+    0.1666,
+    0.1667,
+    0.1666,
+    0.1667,
+    0.1667,
+    0.1666,
+    0.1667
+   ]
+  },
+  "s3_attack": {
+   "tex": "op_ling_soul3_attack",
+   "frames": 8,
+   "fps": 8.0,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.125,
+    0.125,
+    0.125,
+    0.125,
+    0.125,
+    0.125,
+    0.125,
+    0.125
+   ],
+   "fire": 3
+  },
+  "s3_appear": {
+   "tex": "op_ling_soul3_appear",
+   "frames": 8,
+   "fps": 7.1111,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.1429,
+    0.1428,
+    0.1429,
+    0.1428,
+    0.1429,
+    0.1428,
+    0.1429,
+    0.125
+   ]
+  },
+  "s3_death": {
+   "tex": "op_ling_soul3_death",
+   "frames": 8,
+   "fps": 7.1111,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.1429,
+    0.1428,
+    0.1429,
+    0.1428,
+    0.1429,
+    0.1428,
+    0.1429,
+    0.125
+   ]
+  },
+  "s3_idle_02": {
+   "tex": "op_ling_soul3_idle_02",
+   "frames": 8,
+   "fps": 4.0,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.25,
+    0.25,
+    0.25,
+    0.25,
+    0.25,
+    0.25,
+    0.25,
+    0.25
+   ]
+  },
+  "s3_attack_02": {
+   "tex": "op_ling_soul3_attack_02",
+   "frames": 8,
+   "fps": 4.7999,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.2083,
+    0.2084,
+    0.2083,
+    0.2084,
+    0.2083,
+    0.2083,
+    0.2084,
+    0.2083
+   ],
+   "fire": 2
+  },
+  "s3_appear_02": {
+   "tex": "op_ling_soul3_appear_02",
+   "frames": 8,
+   "fps": 10.6667,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.0952,
+    0.0953,
+    0.0952,
+    0.0953,
+    0.0952,
+    0.0953,
+    0.0952,
+    0.0833
+   ]
+  },
+  "s3_death_02": {
+   "tex": "op_ling_soul3_death_02",
+   "frames": 8,
+   "fps": 7.1111,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.1429,
+    0.1428,
+    0.1429,
+    0.1428,
+    0.1429,
+    0.1428,
+    0.1429,
+    0.125
+   ]
+  },
+  "skills": {
+   "s1": {
+    "anim": "skill"
+   },
+   "s2": {
+    "anim": "skill"
+   },
+   "s3": {
+    "anim": "skill_s3"
+   }
+  }
+ },
+ "extra_sprites": [
+  "skill_s3",
+  "skill_s3_loop",
+  "skill_s3_end",
+  "hurt",
+  "entry",
+  "s1_idle",
+  "s1_attack",
+  "s1_appear",
+  "s1_death",
+  "s2_idle",
+  "s2_attack",
+  "s2_appear",
+  "s2_death",
+  "s2_skill",
+  "s3_idle",
+  "s3_attack",
+  "s3_appear",
+  "s3_death",
+  "s3_idle_02",
+  "s3_attack_02",
+  "s3_appear_02",
+  "s3_death_02"
+ ],
+ "attack": {
+  "mode": "auto",
+  "name": "挑灯",
+  "desc": "每 {$grow_cd0} 秒在身边化出一条当前调的龙（同时至多 {$cap0} 条，满员时最早一条别的调的龙换成当前调）；普攻随调变化：清平调「墨击」身边半径 {$hit_r} 扇形，逍遥调「墨弹」{$bolt_range} 内最近的敌人（Boss 优先），弦惊调「剑痕」穿透一线（长 {$edge_len}）。开局为逍遥调，放哪个技能就转为哪个调"
+ },
+ "skills": [
+  {
+   "name": "重进酒",
+   "en": "SIPS OF WINE",
+   "sp": 8,
+   "dur": 16.0,
+   "icon": "skill_ling_s1",
+   "desc": "转为清平调：立刻化出一条清平，之后化出的龙都是清平；普攻变为墨击；{$s1_dur} 秒内清平截住扑向队长的近战敌人（{$qp_decoy} 内的近战敌人改追清平），令与龙的攻击 +{$s1_atk*100-100}%、攻击速度 +{$s1_aspd*100-100}%"
+  },
+  {
+   "name": "笑鸣瑟",
+   "en": "AMIDST PLEASANT MELODIES",
+   "sp": 10,
+   "dur": 1.0,
+   "icon": "skill_ling_s2",
+   "desc": "转为逍遥调：立刻化出一条逍遥，之后化出的龙都是逍遥（随行队长，远程打击 {$xy_range} 内的敌人）；普攻变为墨弹；令与场上每条逍遥各对 {$ming_n} 名敌人鸣瑟，造成攻击 {$ming_mult*100}% 的法术伤害并束缚 {$ming_bind} 秒（精英减半，Boss 除外）"
+  },
+  {
+   "name": "宁作吾",
+   "en": "TO REMAIN ONESELF",
+   "sp": 24,
+   "dur": 15.0,
+   "icon": "skill_ling_s3",
+   "desc": "转为弦惊调：普攻变为剑痕；弦惊吞下场上全部的龙，化为持剑的第二形态 {$s3_dur} 秒（宽扇形重斩，每 {$xj_aura_cd} 秒以剑气伤害半径 {$xj2_aura_r} 内的敌人），期间令与龙的攻击 +{$s3_atk*100-100}%、不再化龙；结束时散成 {$split_n} 条弦惊"
+  }
+ ],
+ "talent": {
+  "name": "随付笺咏醉屠苏",
+  "desc": "龙散去（被击倒、被换掉、被吞下）时，令其余技能各充能 {$drink_sp} 秒（每 {$sp_win} 秒至多 {$sp_max} 次），并得到 1 层酒意：攻击 +{$drink_atk*100}%，至多 {$drink_cap} 层，{$drink_dur} 秒内没有新的酒意则全部散去"
+ },
+ "hit_sources": {
+  "墨弹": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "basic",
+    "area",
+    "projectile"
+   ]
+  },
+  "墨击": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "basic",
+    "area"
+   ]
+  },
+  "剑痕": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "basic",
+    "area"
+   ]
+  },
+  "泼墨": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "basic",
+    "area"
+   ]
+  },
+  "笑鸣瑟": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "skill",
+    "control"
+   ]
+  },
+  "醉卧": {
+   "emitter": "operator",
+   "origin": "talent",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "follow_up",
+    "area"
+   ]
+  },
+  "墨云": {
+   "emitter": "operator",
+   "origin": "talent",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "area",
+    "dot"
+   ]
+  },
+  "清平": {
+   "emitter": "summon",
+   "origin": "core",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "entity"
+   ]
+  },
+  "清平·摆尾": {
+   "emitter": "summon",
+   "origin": "route",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "entity",
+    "area"
+   ]
+  },
+  "逍遥": {
+   "emitter": "summon",
+   "origin": "core",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "entity"
+   ]
+  },
+  "逍遥·鸣瑟": {
+   "emitter": "summon",
+   "origin": "skill",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "entity",
+    "skill",
+    "control"
+   ]
+  },
+  "弦惊": {
+   "emitter": "summon",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "entity"
+   ]
+  },
+  "弦惊·剑势": {
+   "emitter": "summon",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "entity",
+    "skill",
+    "area"
+   ]
+  },
+  "弦惊·剑气": {
+   "emitter": "summon",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "entity",
+    "skill",
+    "area"
+   ]
+  },
+  "墨龙": {
+   "emitter": "summon",
+   "origin": "core",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "entity",
+    "basic"
+   ]
+  }
+ },
+ "progression": [
+  {
+   "type": "custom",
+   "id": "pomo",
+   "name": "泼墨",
+   "icon": "growth_b_range",
+   "desc": "每第 {$pomo_n} 次普攻改为泼墨：同时落在 {$pomo_k} 名敌人身上，各造成 {$pomo_mult*100}% 伤害"
+  },
+  {
+   "type": "custom",
+   "id": "qptail",
+   "name": "清平调",
+   "icon": "growth_t_field",
+   "desc": "清平调时，每 {$tail_cd} 秒清平甩尾横扫一圈：半径 {$tail_r} 内 {$tail_mult*100}% 伤害并击退"
+  },
+  {
+   "type": "elite",
+   "level": 1,
+   "name": "精英一",
+   "desc": "解锁二技能「笑鸣瑟」；解锁天赋「随付笺咏醉屠苏」；龙的上限 +1，化龙间隔缩短为 {$grow_cd1} 秒；普攻「点灯」：普攻打中的敌人挂上灯火 {$lit_dur} 秒，{$lit_r} 内追击的龙立刻改扑它",
+   "attack": {
+    "name": "点灯",
+    "desc": "普攻打中的敌人挂上灯火 {$lit_dur} 秒，{$lit_r} 内追击的龙立刻改扑它"
+   }
+  },
+  {
+   "type": "custom",
+   "id": "ming2",
+   "name": "鸣瑟·连",
+   "icon": "growth_t_field",
+   "desc": "鸣瑟命中后再跳向近旁一名敌人（{$chain_r} 内），造成 {$chain_mult*100}% 伤害并同样束缚",
+   "branch": {
+    "ming2": {
+     "id": "ming2",
+     "name": "鸣瑟·连",
+     "icon": "growth_t_field",
+     "desc": "鸣瑟命中后再跳向近旁一名敌人（{$chain_r} 内），造成 {$chain_mult*100}% 伤害并同样束缚"
+    },
+    "fubai": {
+     "id": "fubai",
+     "name": "浮白",
+     "icon": "growth_t_field",
+     "desc": "酒意满 {$drink_cap} 层时，下一条散去的龙改为醉卧：原地炸开，半径 {$burst_r} 内造成攻击 {$burst_mult*100}% 的伤害并击退，酒意清空"
+    }
+   },
+   "branch_desc": "「鸣瑟·连」鸣瑟多跳一名敌人；「浮白」酒意满层后下一条散去的龙原地炸开",
+   "bot": "ming2"
+  },
+  {
+   "type": "custom",
+   "id": "fubai",
+   "name": "浮白",
+   "icon": "growth_t_field",
+   "desc": "酒意满 {$drink_cap} 层时，下一条散去的龙改为醉卧：原地炸开，半径 {$burst_r} 内造成攻击 {$burst_mult*100}% 的伤害并击退，酒意清空",
+   "routes": {
+    "ming2": {
+     "id": "xyy",
+     "name": "逍遥游",
+     "icon": "growth_b_range",
+     "desc": "逍遥不再随行，离队游向 {$roam_leash} 内敌群最密处，出手改为穿透一线的鸣弦（长 {$roam_len}）"
+    },
+    "fubai": {
+     "id": "zzx",
+     "name": "醉中仙",
+     "icon": "growth_t_field",
+     "desc": "龙散去处留下一团墨云 {$cloud_dur} 秒：半径 {$cloud_r} 内敌人减速，每 {$cloud_every} 秒受到攻击 {$cloud_mult*100}% 的伤害"
+    }
+   }
+  },
+  {
+   "type": "elite",
+   "level": 2,
+   "name": "精英二",
+   "desc": "解锁三技能「宁作吾」；龙的上限 +1，化龙间隔缩短为 {$grow_cd2} 秒；普通攻击强化「落笔成龙」：每第 {$mo_n} 次普攻在落点化出一条当前调的墨龙，追咬附近敌人 {$mo_life} 秒（每种至多 2 条，不计入龙的上限）",
+   "attack": {
+    "name": "落笔成龙",
+    "desc": "每第 {$mo_n} 次普攻在落点化出一条当前调的墨龙，追咬附近敌人 {$mo_life} 秒"
+   }
+  }
+ ],
+ "gallery": {
+  "tags": [
+   "召唤",
+   "法术",
+   "束缚",
+   "龙"
+  ],
+  "desc": "辅助干员，身边的龙随时间一条条化出，放哪个技能就转为哪个调：清平截击近战敌人，逍遥随行远射并鸣瑟束缚，弦惊吞下场上的龙化为持剑巨龙；普攻随调在墨击、墨弹、剑痕之间变化",
+  "intro": "草稿，待用户改：寓居尚蜀的诗人，与炎国司岁台等部门均有联系，现以访客身份驻留罗德岛"
+ },
+ "blocks": {
+  "_doc": "令（docs/367 §9 A 版）：普攻底形是墨弹（point_aoe，逍遥调）；清平调 / 弦惊调由 trait 里 passive(cond lg_qp / lg_xj) 的 verb.swap_attack 换成墨击（cone）/ 剑痕（line），节奏同 attack.every。龙全走 blocks.summons；时序在 seg_ling（verb.lg_*）",
+  "follow": {
+   "leash": "$leash",
+   "gap": "$gap"
+  },
+  "summons": {
+   "qp": {
+    "_doc": "清平（清平调）：常驻；原作「能够阻挡一个敌人」→ 诱敌只在重进酒期间（trait tick → verb.lg_lure：qp_decoy 内近战杂兵改追它、贴身的每秒打它一下 × qp_hurt）；平时只打不引怪、不挨打。被打空即散去（天赋照算），化龙节拍补回",
+    "name": "清平",
+    "hp": "$qp_hp",
+    "life": "permanent",
+    "cap": 5,
+    "r": 12,
+    "col": [
+     0.42,
+     0.86,
+     0.95
+    ],
+    "move": {
+     "mode": "chase",
+     "speed": "$qp_speed",
+     "leash": "$qp_leash",
+     "target": "nearest",
+     "anchor": "leader"
+    },
+    "body": {
+     "strip": "op_ling_soul1_idle",
+     "frames": 8,
+     "fps": 6.0,
+     "anchor": [
+      48,
+      76
+     ],
+     "scale": 0.5
+    },
+    "attack": {
+     "shape": "cone",
+     "r": "$qp_r",
+     "half_deg": 55,
+     "mult": "$qp_mult",
+     "every": "$qp_cd",
+     "kb": "$qp_kb",
+     "src": "清平"
+    },
+    "on_expire": [
+     {
+      "verb": "lg_drink",
+      "sp": "$drink_sp",
+      "sp_win": "$sp_win",
+      "sp_max": "$sp_max",
+      "cap": "$drink_cap",
+      "dur": "$drink_dur",
+      "burst_node": "fubai",
+      "burst_r": "$burst_r",
+      "burst_mult": "$burst_mult",
+      "burst_kb": "$burst_kb",
+      "burst_src": "醉卧"
+     },
+     {
+      "verb": "field",
+      "cond": "node:zzx",
+      "center": "target",
+      "r": "$cloud_r",
+      "dur": "$cloud_dur",
+      "every": "$cloud_every",
+      "cap": 3,
+      "do": [
+       {
+        "shape": "circle",
+        "center": "target",
+        "r": "$cloud_r",
+        "mult": "$cloud_mult",
+        "src": "墨云",
+        "tags": [
+         "dot"
+        ],
+        "on_hit": [
+         {
+          "st": "slow",
+          "dur": "$cloud_slow"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "xy": {
+    "_doc": "逍遥（逍遥调）：常驻，随行队长身边，打 xy_range 内最近的敌人（法术点溅）",
+    "name": "逍遥",
+    "invuln": true,
+    "life": "permanent",
+    "cap": 5,
+    "r": 11,
+    "col": [
+     0.42,
+     0.86,
+     0.95
+    ],
+    "move": {
+     "mode": "follow",
+     "anchor": "leader",
+     "orbit_r": 58,
+     "speed": 320
+    },
+    "body": {
+     "strip": "op_ling_soul2_idle",
+     "frames": 8,
+     "fps": 6.0,
+     "anchor": [
+      48,
+      76
+     ],
+     "scale": 0.5
+    },
+    "attack": {
+     "shape": "circle",
+     "center": "target",
+     "r": "$xy_r",
+     "range": "$xy_range",
+     "mult": "$xy_mult",
+     "every": "$xy_cd",
+     "src": "逍遥"
+    },
+    "on_expire": [
+     {
+      "verb": "lg_drink",
+      "sp": "$drink_sp",
+      "sp_win": "$sp_win",
+      "sp_max": "$sp_max",
+      "cap": "$drink_cap",
+      "dur": "$drink_dur",
+      "burst_node": "fubai",
+      "burst_r": "$burst_r",
+      "burst_mult": "$burst_mult",
+      "burst_kb": "$burst_kb",
+      "burst_src": "醉卧"
+     },
+     {
+      "verb": "field",
+      "cond": "node:zzx",
+      "center": "target",
+      "r": "$cloud_r",
+      "dur": "$cloud_dur",
+      "every": "$cloud_every",
+      "cap": 3,
+      "do": [
+       {
+        "shape": "circle",
+        "center": "target",
+        "r": "$cloud_r",
+        "mult": "$cloud_mult",
+        "src": "墨云",
+        "tags": [
+         "dot"
+        ],
+        "on_hit": [
+         {
+          "st": "slow",
+          "dur": "$cloud_slow"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "xy2": {
+    "_doc": "逍遥（节点 5「逍遥游」）：离队游猎敌群最密处，出手改为穿透一线的鸣弦",
+    "name": "逍遥",
+    "invuln": true,
+    "life": "permanent",
+    "cap": 5,
+    "r": 11,
+    "col": [
+     0.42,
+     0.86,
+     0.95
+    ],
+    "move": {
+     "mode": "chase",
+     "speed": 300,
+     "leash": "$roam_leash",
+     "target": "densest",
+     "anchor": "leader"
+    },
+    "body": {
+     "strip": "op_ling_soul2_idle",
+     "frames": 8,
+     "fps": 6.0,
+     "anchor": [
+      48,
+      76
+     ],
+     "scale": 0.5
+    },
+    "attack": {
+     "shape": "line",
+     "len": "$roam_len",
+     "width": "$roam_w",
+     "mult": "$xy_mult",
+     "every": "$xy_cd",
+     "src": "逍遥"
+    },
+    "on_expire": [
+     {
+      "verb": "lg_drink",
+      "sp": "$drink_sp",
+      "sp_win": "$sp_win",
+      "sp_max": "$sp_max",
+      "cap": "$drink_cap",
+      "dur": "$drink_dur",
+      "burst_node": "fubai",
+      "burst_r": "$burst_r",
+      "burst_mult": "$burst_mult",
+      "burst_kb": "$burst_kb",
+      "burst_src": "醉卧"
+     },
+     {
+      "verb": "field",
+      "cond": "node:zzx",
+      "center": "target",
+      "r": "$cloud_r",
+      "dur": "$cloud_dur",
+      "every": "$cloud_every",
+      "cap": 3,
+      "do": [
+       {
+        "shape": "circle",
+        "center": "target",
+        "r": "$cloud_r",
+        "mult": "$cloud_mult",
+        "src": "墨云",
+        "tags": [
+         "dot"
+        ],
+        "on_hit": [
+         {
+          "st": "slow",
+          "dur": "$cloud_slow"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "xj": {
+    "_doc": "弦惊 基础形态（弦惊调常驻；S3 时被吞进第二形态）",
+    "name": "弦惊",
+    "invuln": true,
+    "life": "permanent",
+    "cap": 5,
+    "r": 13,
+    "col": [
+     0.42,
+     0.86,
+     0.95
+    ],
+    "move": {
+     "mode": "chase",
+     "speed": 300,
+     "leash": 240,
+     "target": "nearest",
+     "anchor": "leader"
+    },
+    "body": {
+     "strip": "op_ling_soul3_idle",
+     "frames": 8,
+     "fps": 6.0,
+     "anchor": [
+      48,
+      76
+     ],
+     "scale": 0.5
+    },
+    "attack": {
+     "shape": "cone",
+     "r": "$xj_r",
+     "half_deg": 60,
+     "mult": "$xj_mult",
+     "every": "$xj_cd",
+     "src": "弦惊"
+    },
+    "on_expire": [
+     {
+      "verb": "lg_drink",
+      "sp": "$drink_sp",
+      "sp_win": "$sp_win",
+      "sp_max": "$sp_max",
+      "cap": "$drink_cap",
+      "dur": "$drink_dur",
+      "burst_node": "fubai",
+      "burst_r": "$burst_r",
+      "burst_mult": "$burst_mult",
+      "burst_kb": "$burst_kb",
+      "burst_src": "醉卧"
+     },
+     {
+      "verb": "field",
+      "cond": "node:zzx",
+      "center": "target",
+      "r": "$cloud_r",
+      "dur": "$cloud_dur",
+      "every": "$cloud_every",
+      "cap": 3,
+      "do": [
+       {
+        "shape": "circle",
+        "center": "target",
+        "r": "$cloud_r",
+        "mult": "$cloud_mult",
+        "src": "墨云",
+        "tags": [
+         "dot"
+        ],
+        "on_hit": [
+         {
+          "st": "slow",
+          "dur": "$cloud_slow"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "xj2": {
+    "_doc": "弦惊 第二形态（S3 技能期间）：宽扇形重斩 + 每 xj_aura_cd 秒周身剑气（trait tick）；结束散成 split_n 条弦惊",
+    "name": "弦惊",
+    "invuln": true,
+    "life": "skill",
+    "cap": 1,
+    "r": 22,
+    "col": [
+     0.42,
+     0.86,
+     0.95
+    ],
+    "move": {
+     "mode": "chase",
+     "speed": 280,
+     "leash": 260,
+     "target": "nearest",
+     "anchor": "leader"
+    },
+    "body": {
+     "strip": "op_ling_soul3_idle_02",
+     "frames": 8,
+     "fps": 4.0,
+     "anchor": [
+      48,
+      76
+     ],
+     "scale": 0.5
+    },
+    "attack": {
+     "shape": "cone",
+     "r": "$xj2_r",
+     "half_deg": 75,
+     "mult": "$xj2_mult",
+     "every": "$xj2_cd",
+     "kb": "$xj2_kb",
+     "src": "弦惊·剑势"
+    },
+    "on_expire": [
+     {
+      "verb": "lg_drink",
+      "sp": "$drink_sp",
+      "sp_win": "$sp_win",
+      "sp_max": "$sp_max",
+      "cap": "$drink_cap",
+      "dur": "$drink_dur",
+      "burst_node": "fubai",
+      "burst_r": "$burst_r",
+      "burst_mult": "$burst_mult",
+      "burst_kb": "$burst_kb",
+      "burst_src": "醉卧"
+     },
+     {
+      "verb": "field",
+      "cond": "node:zzx",
+      "center": "target",
+      "r": "$cloud_r",
+      "dur": "$cloud_dur",
+      "every": "$cloud_every",
+      "cap": 3,
+      "do": [
+       {
+        "shape": "circle",
+        "center": "target",
+        "r": "$cloud_r",
+        "mult": "$cloud_mult",
+        "src": "墨云",
+        "tags": [
+         "dot"
+        ],
+        "on_hit": [
+         {
+          "st": "slow",
+          "dur": "$cloud_slow"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "verb": "lg_split",
+      "kind": "xj",
+      "n": "$split_n"
+     }
+    ]
+   },
+   "mo_qp": {
+    "_doc": "墨龙·清平调（精二「落笔成龙」）：不计上限、不触发天赋",
+    "name": "墨龙",
+    "invuln": true,
+    "life": "$mo_life",
+    "cap": 2,
+    "r": 9,
+    "col": [
+     0.3,
+     0.55,
+     0.7
+    ],
+    "move": {
+     "mode": "chase",
+     "speed": 320,
+     "leash": "$mo_leash",
+     "target": "nearest",
+     "anchor": "leader"
+    },
+    "body": {
+     "strip": "op_ling_soul1_idle",
+     "frames": 8,
+     "fps": 6.0,
+     "anchor": [
+      48,
+      76
+     ],
+     "scale": 0.4,
+     "tint": [
+      0.45,
+      0.55,
+      0.7
+     ]
+    },
+    "attack": {
+     "shape": "cone",
+     "r": 50,
+     "half_deg": 55,
+     "mult": "$mo_mult",
+     "every": 0.9,
+     "src": "墨龙"
+    }
+   },
+   "mo_xy": {
+    "_doc": "墨龙·逍遥调",
+    "name": "墨龙",
+    "invuln": true,
+    "life": "$mo_life",
+    "cap": 2,
+    "r": 9,
+    "col": [
+     0.3,
+     0.55,
+     0.7
+    ],
+    "move": {
+     "mode": "follow",
+     "anchor": "leader",
+     "orbit_r": 58,
+     "speed": 320
+    },
+    "body": {
+     "strip": "op_ling_soul2_idle",
+     "frames": 8,
+     "fps": 6.0,
+     "anchor": [
+      48,
+      76
+     ],
+     "scale": 0.4,
+     "tint": [
+      0.45,
+      0.55,
+      0.7
+     ]
+    },
+    "attack": {
+     "shape": "circle",
+     "center": "target",
+     "r": 24,
+     "range": 240,
+     "mult": "$mo_mult",
+     "every": 1.0,
+     "src": "墨龙"
+    }
+   },
+   "mo_xj": {
+    "_doc": "墨龙·弦惊调",
+    "name": "墨龙",
+    "invuln": true,
+    "life": "$mo_life",
+    "cap": 2,
+    "r": 9,
+    "col": [
+     0.3,
+     0.55,
+     0.7
+    ],
+    "move": {
+     "mode": "chase",
+     "speed": 320,
+     "leash": "$mo_leash",
+     "target": "nearest",
+     "anchor": "leader"
+    },
+    "body": {
+     "strip": "op_ling_soul3_idle",
+     "frames": 8,
+     "fps": 6.0,
+     "anchor": [
+      48,
+      76
+     ],
+     "scale": 0.4,
+     "tint": [
+      0.45,
+      0.55,
+      0.7
+     ]
+    },
+    "attack": {
+     "shape": "line",
+     "len": 90,
+     "width": 20,
+     "mult": "$mo_mult",
+     "every": 1.0,
+     "src": "墨龙"
+    }
+   }
+  },
+  "attack": {
+   "shape": "point_aoe",
+   "land": "nearest",
+   "range": "$bolt_range",
+   "speed": "$bolt_speed",
+   "r": "$bolt_r",
+   "every": "$cd",
+   "first": "$first_cd",
+   "idle": "$idle_cd",
+   "mult": "$bolt_mult",
+   "src": "墨弹",
+   "muzzle": [
+    30,
+    -60
+   ],
+   "then": [
+    {
+     "verb": "lg_ev",
+     "ev": "lg_bolt_land"
+    },
+    {
+     "verb": "lg_lit",
+     "cond": "elite >= 1",
+     "dur": "$lit_dur",
+     "r": "$lit_r"
+    }
+   ]
+  },
+  "skills": [
+   {
+    "dur": "$s1_dur",
+    "status": "重进酒",
+    "status_col": [
+     0.42,
+     0.86,
+     0.95
+    ],
+    "fx": [
+     {
+      "banner": "重进酒"
+     }
+    ],
+    "do": [
+     {
+      "verb": "lg_tune",
+      "tune": "qp"
+     },
+     {
+      "verb": "lg_grow",
+      "every": 0.5,
+      "cd0": "$grow_cd0",
+      "cd1": "$grow_cd1",
+      "cd2": "$grow_cd2",
+      "alt_node": "xyy",
+      "alt_kind": "xy2",
+      "cap0": "$cap0",
+      "cap1": "$cap1",
+      "cap2": "$cap2",
+      "force": true
+     },
+     {
+      "verb": "buff_self",
+      "stat": "op_atk",
+      "op": "mult",
+      "value": "$s1_atk",
+      "power": true
+     },
+     {
+      "verb": "buff_self",
+      "stat": "op_aspd",
+      "op": "mult",
+      "value": "$s1_aspd"
+     }
+    ]
+   },
+   {
+    "dur": 1.0,
+    "need_enemy": 320,
+    "fx": [
+     {
+      "banner": "笑鸣瑟"
+     }
+    ],
+    "do": [
+     {
+      "verb": "lg_tune",
+      "tune": "xy"
+     },
+     {
+      "verb": "lg_grow",
+      "every": 0.5,
+      "cd0": "$grow_cd0",
+      "cd1": "$grow_cd1",
+      "cd2": "$grow_cd2",
+      "alt_node": "xyy",
+      "alt_kind": "xy2",
+      "cap0": "$cap0",
+      "cap1": "$cap1",
+      "cap2": "$cap2",
+      "force": true
+     },
+     {
+      "verb": "lg_ming",
+      "n": "$ming_n",
+      "mult": "$ming_mult",
+      "bind": "$ming_bind",
+      "range": "$ming_range",
+      "src": "笑鸣瑟",
+      "src_summon": "逍遥·鸣瑟",
+      "chain_node": "ming2",
+      "chain_r": "$chain_r",
+      "chain_mult": "$chain_mult"
+     }
+    ]
+   },
+   {
+    "dur": "$s3_dur",
+    "status": "宁作吾",
+    "status_col": [
+     0.42,
+     0.86,
+     0.95
+    ],
+    "fx": [
+     {
+      "banner": "宁作吾"
+     }
+    ],
+    "do": [
+     {
+      "verb": "lg_tune",
+      "tune": "xj"
+     },
+     {
+      "verb": "buff_self",
+      "stat": "op_atk",
+      "op": "mult",
+      "value": "$s3_atk",
+      "power": true
+     },
+     {
+      "verb": "lg_merge",
+      "basic": "xj",
+      "big": "xj2"
+     }
+    ]
+   }
+  ],
+  "trait": [
+   {
+    "trig": "tick",
+    "every": 0.5,
+    "_doc": "挑灯问梦：化龙节拍（满 grow_cd 秒化一条当前调的龙；满员换掉最早一条异调龙；S3 期间暂停）",
+    "do": [
+     {
+      "verb": "lg_grow",
+      "every": 0.5,
+      "cd0": "$grow_cd0",
+      "cd1": "$grow_cd1",
+      "cd2": "$grow_cd2",
+      "alt_node": "xyy",
+      "alt_kind": "xy2",
+      "cap0": "$cap0",
+      "cap1": "$cap1",
+      "cap2": "$cap2"
+     }
+    ]
+   },
+   {
+    "trig": "passive",
+    "cond": "lg_qp",
+    "_doc": "清平调：普攻换成墨击（身边扇形）",
+    "do": [
+     {
+      "verb": "swap_attack",
+      "attack": {
+       "shape": "cone",
+       "r": "$hit_r",
+       "half": "$hit_half",
+       "mult": "$hit_mult",
+       "kb": "$hit_kb",
+       "src": "墨击",
+       "face": true,
+       "ring": false
+      }
+     }
+    ]
+   },
+   {
+    "trig": "passive",
+    "cond": "lg_xj",
+    "_doc": "弦惊调：普攻换成剑痕（穿透一线）",
+    "do": [
+     {
+      "verb": "swap_attack",
+      "attack": {
+       "shape": "line",
+       "len": "$edge_len",
+       "width": "$edge_w",
+       "mult": "$edge_mult",
+       "src": "剑痕"
+      }
+     }
+    ]
+   },
+   {
+    "trig": "tick",
+    "every": 0.2,
+    "cond": "skill_active:0",
+    "_doc": "重进酒期间清平诱敌（11-18 用户定：平时常驻的清平不引怪）",
+    "do": [
+     {
+      "verb": "lg_lure",
+      "kind": "qp",
+      "r": "$qp_decoy",
+      "hurt": "$qp_hurt"
+     }
+    ]
+   },
+   {
+    "trig": "every_n",
+    "n": 1,
+    "_doc": "画面事件：每次普攻出手（lg_atk，带当前调；只画）",
+    "do": [
+     {
+      "verb": "lg_ev",
+      "ev": "lg_atk"
+     }
+    ]
+   },
+   {
+    "trig": "tick",
+    "every": "$xj_aura_cd",
+    "cond": "skill_active:2",
+    "_doc": "宁作吾：第二形态每 xj_aura_cd 秒周身剑气（原作「每 0.5 秒对周围四格敌人造成法伤」）",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "summon:xj2",
+      "r": "$xj2_aura_r",
+      "mult": "$xj2_aura_mult",
+      "src": "弦惊·剑气",
+      "power": true,
+      "tags": [
+       "area"
+      ]
+     }
+    ]
+   }
+  ],
+  "talent": [
+   {
+    "trig": "passive",
+    "_doc": "随付笺咏醉屠苏：酒意每层攻击 +drink_atk",
+    "do": [
+     {
+      "aura": "atk",
+      "value": "$drink_atk",
+      "scope": "self",
+      "per": "gn:drink",
+      "cap": "$drink_cap"
+     }
+    ]
+   },
+   {
+    "trig": "tick",
+    "every": 0.5,
+    "do": [
+     {
+      "verb": "lg_decay"
+     }
+    ]
+   }
+  ],
+  "progression": {
+   "pomo": {
+    "trig": "every_n",
+    "n": "$pomo_n",
+    "replace": true,
+    "_doc": "泼墨：每第 pomo_n 次普攻改为同时落在 pomo_k 名敌人身上",
+    "do": [
+     {
+      "verb": "lg_ink",
+      "n": "$pomo_k",
+      "r": "$pomo_r",
+      "mult": "$pomo_mult",
+      "range": "$bolt_range",
+      "src": "泼墨"
+     }
+    ]
+   },
+   "qptail": {
+    "trig": "tick",
+    "every": "$tail_cd",
+    "cond": "lg_qp",
+    "_doc": "清平调：清平每 tail_cd 秒甩尾横扫一圈",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "summon:qp",
+      "r": "$tail_r",
+      "mult": "$tail_mult",
+      "kb": "$tail_kb",
+      "src": "清平·摆尾",
+      "tags": [
+       "area"
+      ]
+     }
+    ]
+   },
+   "elite1": {
+    "trig": "on_hit_n",
+    "n": 1,
+    "_doc": "精一点灯：墨击 / 剑痕命中（墨弹走 attack.then）的敌人挂灯，lit_r 内追击型的龙改扑它",
+    "do": [
+     {
+      "verb": "lg_lit",
+      "dur": "$lit_dur",
+      "r": "$lit_r"
+     }
+    ]
+   },
+   "ming2": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "鸣瑟·连：写在 S2 lg_ming 的 chain_node"
+   },
+   "fubai": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "浮白：写在龙 on_expire 的 lg_drink.burst_node"
+   },
+   "xyy": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "逍遥游：写在 lg_grow 的 alt_node（逍遥调化 xy2）"
+   },
+   "zzx": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "醉中仙：写在龙 on_expire 的 verb.field（cond node:zzx）"
+   },
+   "elite2": {
+    "trig": "every_n",
+    "n": "$mo_n",
+    "_doc": "精二落笔成龙：每第 mo_n 次普攻在落点化出一条当前调的墨龙",
+    "do": [
+     {
+      "verb": "lg_summon",
+      "kind": "mo",
+      "by_tune": true,
+      "at": "hit"
+     }
+    ]
+   }
+  }
+ }
+}

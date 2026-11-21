@@ -35,6 +35,18 @@ const EXT_BLOCKS := {
 	"verb.ll_dial_swing": "instant",  # 待命还没被剑气用掉 → 执行 do（额外掷一道大剑气）并清除待命
 	"verb.ll_riposte": "instant",     # 日晷·回敬：朝最近的敌人原地反斩（r / half / mult / kb / cd / src / slash_fx）
 	"verb.ll_seal_spread": "instant", # 断喝·传染（on_kill 的 do）：刚死的被封印者把封印扩散出去（r / n / dur）
+	"verb.lg_summon": "instant",      # 令（docs/367，seg_ling）
+	"verb.lg_drink": "instant",       # 令（docs/367，seg_ling）
+	"verb.lg_decay": "instant",       # 令（docs/367，seg_ling）
+	"verb.lg_lit": "instant",         # 令（docs/367，seg_ling）
+	"verb.lg_ming": "instant",        # 令（docs/367，seg_ling）
+	"verb.lg_merge": "instant",       # 令（docs/367，seg_ling）
+	"verb.lg_split": "instant",       # 令（docs/367，seg_ling）
+	"verb.lg_ink": "instant",         # 令（docs/367，seg_ling）
+	"verb.lg_tune": "instant",        # 令（docs/367 §9，seg_ling）
+	"verb.lg_grow": "instant",        # 令（docs/367 §9，seg_ling）
+	"verb.lg_ev": "instant",          # 令（docs/367 §9，seg_ling）
+	"verb.lg_lure": "instant",        # 令（docs/367 §10.6，seg_ling）
 }
 
 
@@ -50,6 +62,8 @@ static func ext_cond_true(o, k: String) -> bool:
 			return o.is_roaming()
 		"enemy_near":   # 普攻范围（形状半径 + 30，同起手的找目标半径）内有敌人（德克萨斯疾刃三连：没有敌人就照常两连斩，10-23）
 			return not o.nearest_enemies(1, shape_radius(o, o.cur_attack()) + 30.0, o.pos).is_empty()
+		"lg_qp", "lg_xy", "lg_xj":   # 令的当前调（docs/367 §9；o.gn.tune，缺省清平调）
+			return str(o.gn.get("tune", "xy")) == k.substr(3)   # 缺省 = seg_ling.LG_TUNE0（开局逍遥调）
 	return false
 
 

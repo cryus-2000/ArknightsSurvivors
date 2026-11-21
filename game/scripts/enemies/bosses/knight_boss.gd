@@ -62,6 +62,17 @@ func cancel_combo(e: Dictionary) -> void:
 	g.bai.finals.hazards = g.bai.finals.hazards.filter(func(h):return not is_same(h.owner,e))
 
 ## Called before the shared optional attacks, so a reserved follow-up cannot be stolen.
+## boss_ai 的出招前钩子（原 boss_ai 里按 knight_boss 写死的一段，docs/368 §2）：冰枪桩、掷桩、连段
+func pre_attack(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool) -> bool:
+	_knight_stakes(e, dt)
+	ready = ready and e.get("break_t", 0.0) <= 0.0 and e.stun <= 0.0 and e.wind <= 0.0
+	if stake_cast_step(e, dir, ready):
+		ready = false
+	if combo_step(e, dir, dist, ready):
+		ready = false
+	return ready
+
+
 func combo_step(e: Dictionary, dir: Vector2, dist: float, ready: bool) -> bool:
 	if not e.get("knight_combo_active",false): return false
 	if e.dead or e.get("friendly",false) or e.get("invuln",false) or e.stun>0.0 or e.get("break_t",0.0)>0.0 \

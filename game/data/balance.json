@@ -5,7 +5,7 @@
   "roam_dash": 1,
   "roam_dash_cd": 7.0,
   "_roam_dash": "突击模式低频自冲刺（用户 10-26）：突击中每名队友每 roam_dash_cd 秒朝突击目标冲一段（character._roam_dash_tick → begin_rush，起手按编队序号错开）；def.command.roam_dash_cd 可覆盖，def.command.roam_dash = false 的（德克萨斯）走自己 json 里 cond roaming 的带伤害冲刺；roam_dash 0 = 关",
-  "_doc": "指挥模式（docs/114，10-21 原型）：on 总开关（0 = 关，不显示按钮、按键无效）；roam_r 突击活动圈半径（离队长；10-22 断后版 380 约 0.5–0.7 屏，10-27 用户「可以稍微跑的远一点，出框了也没关系」放到 840 约 1.3 屏，屏外队友有边缘头像标记；只在圈内挑怪、出圈回收）；rear_d 断后锚点在队长身后多远（按队长移动方向反侧）；leash 只剩瞬移阈值（× 1.6；10-27 随 roam_r 放到 1200）；boss_rush Boss 优先档全队集火（1 = 开：圈里有可受击的 Boss / 部件时突击队友直接冲 Boss / 部件、不做紧急护主，队友普攻也不再因小怪贴近队长让开 Boss；队长自己的选敌不变；0 = 10-24 旧逻辑）；detour_hold 局部绕行点选定后至少保持秒数（10-27 修擦边来回切导致的卡帧）；evade 队友闪避开关（随行 / 突击中站在未结算预警区里、或 evade_t 秒内会被敌弹擦到（判定加宽 evade_pad），就在身边 8 方向 × evade_step / 2 倍距离挑安全且离原目标最近的点，保持 evade_hold 秒）；side 近战走位开关（围着目标挑 side_r 内近战怪最少的一侧站，偏向队长侧，多出 side_hyst 只才换边）；spread_r 出击队友之间互相让开的距离；priority_default 开局的索敌优先级（10-27 用户定 1 = 清杂优先，机器人也走缺省；0 = Boss 优先，旧缺省）；roam_speed / recall_speed 突击 / 归队限速（× 队长移速）；recall_done 归队归位判定距离；recall_max 归队最长秒数；wheel_slow 指挥圆盘打开时局内时间系数（0.2，不全停）；wheel_style 圆盘 / 指点配色（0 终末地蓝，1 PRTS·警戒黄，2 PRTS·终端冷白青，3 指挥台统一：黑白灰 + 青 + 洋红、刻度环代替斜纹，11-05 用户定为缺省）；target_proto / order_* / pick_*（docs/196 指点示意原型，缺省关）：order_r 选点范围、order_pt_r 点位作战半径、order_idle 点位清空多久自动归队、order_break 队长走多远指令作废、pick_cost 选点每真实秒扣作战时限、pick_cap 选点上限秒；「移动」10-30 改为驻扎（用户「移动的范围是不是可以小很多？变成一个小点，并且干员会直接走过去驻扎」）：落点只画小标记，队友走到点上站定（编队位 × station_spread 错开），自动攻击射程内的敌人，下别的指令 / 作战时限耗尽 / 队长走出 order_break 才结束，order_pt_r / order_idle 不再使用；「肃清」10-30 加（用户「移动保留，然后增加肃清区域的选项，因为移动可以帮忙点亮灯塔」）：clear_r 肃清圈半径，圈内清空 clear_idle 秒或下令后 clear_secs 秒回到随行；order_cd 下令冷却；target_proto 1 = 圆盘下半圈换成移动 / 肃清 / 集火（6 格）；bot_point 机器人用指点（Boss 在场集火最近的 Boss；队长 bot_surround_r 内敌人 ≥ bot_surround_n 时对 order_r 内最密一块肃清；每 bot_point_every 秒看一次）；gather 归队到位后站定秒数（集合完毕再回随行）；recall_inv 按下归队后队友无敌秒数（离站位远的直接闪回队长身边）；voice_gap 突击 / 归队语音最短间隔秒数；stamina_secs 突击耐力满→空秒数（只按时间扣，耗尽自动归队）；regen_secs 不突击时空→满秒数；min_start 耐力低于它不能发起突击（耗尽后的冷却线）；range_k 远程突击站位 = 普攻射程 × 它；stamina 耐力开关；aggro 仇恨开关（突击中 aggro_r 内 aggro_share 比例的怪改追最近的突击队友，rng_enemy 每只掷一次）；detour_step 局部绕行采样步长；stall_secs 有位移目标却持续停滞的判定时长；retry_secs 暂时跳过卡住目标的时长；guard_r 队长近身紧急护卫半径；stop_range_k 站定距离不超过当前普攻有效距离的比例；retreat_k 远程低于期望距离此比例时后撤；hp 队友生命开关（上限 = 队长生命上限 × 职业系数 HP_K_DEF × hp_mul，hp_k_<职业> 可覆盖；突击中被近战怪碰到掉 敌伤 × op_dmg_k，间隔 op_inv 秒；不突击 hp_regen_secs 回满；血空倒地 revive_secs 秒原地复活或归队集合时在队长身边复活，复活 revive_hp 生命 + revive_inv 秒无敌；倒地的留在倒地点不跟随、归队也不带走，队长站到 revive_near 内复活计时 × revive_near_k）；bot_roam_at 机器人耐力回到多少才再突击（缺省 1.0 = 回满，每次都是完整作战时限）；bot_roam 机器人局突击常开（耐力够就突击，耗尽归队后回到 min_start 再突击；对照用）。intercept 截子代开关（10-28 用户定 B：Boss 无敌期间有「喂食」子代游向它时，非队长队友随行 / 突击都去截，按离本体由近到远按编队位分配，站到子代与本体之间；子代清完或 Boss 不再无敌就回原走位；归队不截；0 = 关）；intercept_r 只截队长这么远以内的子代。hpbar_style 队友血条样式（docs/114 §19）：4 = 队长生命条正下方（10-28 用户定，缺省）；0 = 编队卡下细条（§17 原版）、1 = 编队卡加强、2 = 头顶条跟人走、3 = 左侧生命列；1–4 屏外头像外圈画血量 / 复活弧。；voice_mode 指挥合唱（10-28 用户：突击 / 归队时队友各自开口）：0 = 旧口径只一人、1 = 交替（缺省，轮换谁先开口，其余每人晚 voice_stagger 秒，允许尾部重叠）、2 = 同时；同一名干员自己不重叠，两条以上同时在播每条压 voice_duck_db；follow_vmax 随行移动限速（× 队长移速，10-28 修「队友攻击时一下子闪现」：原来随行 lerp 不限速，近战前压点一跳就一两帧冲过去；瞬移只剩 leash × 1.6 掉队归位与归队瞬回，两者都有退场闪光 + 落点光圈）（10-29 死开关清理，docs/197：上文提到的 voice_mode 开关已删，只留现行路径）",
+  "_doc": "指挥模式（docs/114，10-21 原型）：on 总开关（0 = 关，不显示按钮、按键无效）；roam_r 突击活动圈半径（离队长；10-22 断后版 380 约 0.5–0.7 屏，10-27 用户「可以稍微跑的远一点，出框了也没关系」放到 840 约 1.3 屏，屏外队友有边缘头像标记；只在圈内挑怪、出圈回收）；rear_d 断后锚点在队长身后多远（按队长移动方向反侧）；leash 只剩瞬移阈值（× 1.6；10-27 随 roam_r 放到 1200）；boss_rush Boss 优先档全队集火（1 = 开：圈里有可受击的 Boss / 部件时突击队友直接冲 Boss / 部件、不做紧急护主，队友普攻也不再因小怪贴近队长让开 Boss；队长自己的选敌不变；0 = 10-24 旧逻辑）；detour_hold 局部绕行点选定后至少保持秒数（10-27 修擦边来回切导致的卡帧）；evade 队友闪避开关（随行 / 突击中站在未结算预警区里、或 evade_t 秒内会被敌弹擦到（判定加宽 evade_pad），就在身边 8 方向 × evade_step / 2 倍距离挑安全且离原目标最近的点，保持 evade_hold 秒）；side 近战走位开关（围着目标挑 side_r 内近战怪最少的一侧站，偏向队长侧，多出 side_hyst 只才换边）；spread_r 出击队友之间互相让开的距离；priority_default 开局的索敌优先级（10-27 用户定 1 = 清杂优先，机器人也走缺省；0 = Boss 优先，旧缺省）；roam_speed / recall_speed 突击 / 归队限速（× 队长移速）；recall_done 归队归位判定距离；recall_max 归队最长秒数；wheel_slow 指挥圆盘打开时局内时间系数（0.2，不全停）；wheel_style 圆盘 / 指点配色（0 终末地蓝，1 PRTS·警戒黄，2 PRTS·终端冷白青，3 指挥台统一：黑白灰 + 青 + 洋红、刻度环代替斜纹，11-05 用户定为缺省）；target_proto / order_* / pick_*（docs/196 指点示意原型，缺省关）：order_r 选点范围、order_pt_r 点位作战半径、order_idle 点位清空多久自动归队、order_break 队长走多远指令作废、pick_cost 选点每真实秒扣作战时限、pick_cap 选点上限秒；「移动」10-30 改为驻扎（用户「移动的范围是不是可以小很多？变成一个小点，并且干员会直接走过去驻扎」）：落点只画小标记，队友走到点上站定（编队位 × station_spread 错开），自动攻击射程内的敌人，下别的指令 / 作战时限耗尽 / 队长走出 order_break 才结束，order_pt_r / order_idle 不再使用；「肃清」10-30 加（用户「移动保留，然后增加肃清区域的选项，因为移动可以帮忙点亮灯塔」）：clear_r 肃清圈半径，圈内清空 clear_idle 秒或下令后 clear_secs 秒回到随行；order_cd 下令冷却；target_proto 1 = 圆盘下半圈换成移动 / 肃清 / 集火（6 格）；bot_point 机器人用指点（Boss 在场集火最近的 Boss；队长 bot_surround_r 内敌人 ≥ bot_surround_n 时对 order_r 内最密一块肃清；每 bot_point_every 秒看一次）；gather 归队到位后站定秒数（集合完毕再回随行）；recall_inv 按下归队后队友无敌秒数（离站位远的直接闪回队长身边）；voice_gap 突击 / 归队语音最短间隔秒数；stamina_secs 突击耐力满→空秒数（只按时间扣，耗尽自动归队）；regen_secs 不突击时空→满秒数；min_start 耐力低于它不能发起突击（耗尽后的冷却线）；range_k 远程突击站位 = 普攻射程 × 它；stamina 耐力开关；aggro 仇恨开关（突击中 aggro_r 内 aggro_share 比例的怪改追最近的突击队友，rng_enemy 每只掷一次）；detour_step 局部绕行采样步长；stall_secs 有位移目标却持续停滞的判定时长；retry_secs 暂时跳过卡住目标的时长；guard_r 队长近身紧急护卫半径；stop_range_k 站定距离不超过当前普攻有效距离的比例；retreat_k 远程低于期望距离此比例时后撤；hp 队友生命开关（上限 = 队长生命上限 × 职业系数 HP_K_DEF × hp_mul，hp_k_<职业> 可覆盖；突击中被近战怪碰到掉 敌伤 × op_dmg_k，间隔 op_inv 秒；不突击 hp_regen_secs 回满；血空倒地 revive_secs 秒原地复活或归队集合时在队长身边复活，复活 revive_hp 生命 + revive_inv 秒无敌；倒地的留在倒地点不跟随、归队也不带走，队长站到 revive_near 内复活计时 × revive_near_k）；bot_roam_at 机器人耐力回到多少才再突击（缺省 1.0 = 回满，每次都是完整作战时限）；bot_roam 机器人局突击常开（耐力够就突击，耗尽归队后回到 min_start 再突击；对照用）。intercept 截子代开关（10-28 用户定 B：Boss 无敌期间有「喂食」子代游向它时，非队长队友随行 / 突击都去截，按离本体由近到远按编队位分配，站到子代与本体之间；子代清完或 Boss 不再无敌就回原走位；归队不截；0 = 关）；intercept_r 只截队长这么远以内的子代（11-19 B站玩家反馈「队友没必要跑出去追子代，后期顺手就清了，跑出去观感怪」：1200 → 320，只截已经到队伍身边的，远处的交给队长走位和普攻）。hpbar_style 队友血条样式（docs/114 §19）：4 = 队长生命条正下方（10-28 用户定，缺省）；0 = 编队卡下细条（§17 原版）、1 = 编队卡加强、2 = 头顶条跟人走、3 = 左侧生命列；1–4 屏外头像外圈画血量 / 复活弧。；voice_mode 指挥合唱（10-28 用户：突击 / 归队时队友各自开口）：0 = 旧口径只一人、1 = 交替（缺省，轮换谁先开口，其余每人晚 voice_stagger 秒，允许尾部重叠）、2 = 同时；同一名干员自己不重叠，两条以上同时在播每条压 voice_duck_db；follow_vmax 随行移动限速（× 队长移速，10-28 修「队友攻击时一下子闪现」：原来随行 lerp 不限速，近战前压点一跳就一两帧冲过去；瞬移只剩 leash × 1.6 掉队归位与归队瞬回，两者都有退场闪光 + 落点光圈）（10-29 死开关清理，docs/197：上文提到的 voice_mode 开关已删，只留现行路径）",
   "on": 1,
   "roam_r": 840,
   "_v2_doc": "战术姿态 v2（docs/209 §1）：v2 总开关（0 = 全部回到改动前）；escort 随行 = 护卫阵型（队长 escort_r 内最近 12 只敌人质心为威胁方向，escort_turn 弧度 / 秒转向；重装挡前、近战前侧两翼、远程后排、医疗 / 辅助贴身）；roles 突击职业分工（role_snipe 狙击偏好精英 / 飞行 / 部件、role_dense 术师按 90 内敌人数、role_lead 先锋偏好队长前进方向前方、近卫 / 特种按离队长距离）；self_center 突击 / 部署中「以队长为中心」的积木范围改以自己为中心；block 部署阻挡（block_<职业> 阻挡数，精英占 2，block_at 到驻扎点多近才算站定，block_pull 内没挡满就引怪）；expose 突击 / 部署中吃敌弹（op_bullet_k）与预警招式（op_warn_k）；retreat 残血撤回（retreat_hp 跌破撤、retreat_back 回到才归位）；heal_mates 医疗给 medic_r 内生命最低的队友每秒回 medic_heal，部署时医疗跟去。圆盘 v2 合并为 随行 / 突击 / 部署 / 集火 四项（随行 = 队友离得远时先闪回集合）",
@@ -15,7 +15,7 @@
   "rear_d": 160,
   "leash": 1200,
   "intercept": 1,
-  "intercept_r": 1200,
+  "intercept_r": 320,
   "boss_rush": 1,
   "priority_default": 1,
   "detour_hold": 0.3,
@@ -209,7 +209,8 @@
   "texas": {"tier": "A", "atk": 0.0, "aspd": 0.0, "range": 0.0, "skill_power": 0.0},
   "exusiai": {"tier": "S", "atk": 0.03, "aspd": 0.0, "range": 0.0, "skill_power": 0.03},
   "lappland": {"tier": "A", "atk": 0.0, "aspd": 0.0, "range": 0.0, "skill_power": 0.0},
-  "gladiia": {"tier": "A", "atk": 0.0, "aspd": 0.0, "range": 0.0, "skill_power": 0.0}
+  "gladiia": {"tier": "A", "atk": 0.0, "aspd": 0.0, "range": 0.0, "skill_power": 0.0},
+  "ling": {"tier": "A", "atk": 0.0, "aspd": 0.0, "range": 0.0, "skill_power": 0.0}
  },
  "enemy": {
   "_doc": "敌人生命 / 攻击随时间的曲线（docs/27 §4）。hp = base × (1 + min(t,hp_knee)/hp_div + max(t-hp_knee,0)/hp_late_div)；dmg = base × (1 + min(t,dmg_knee)/dmg_div)",
@@ -691,7 +692,10 @@
   "_final_bullet_x": "最终 Boss 加伤（用户 10-29，docs/201；combat.final_boss_hit_x）：最终 Boss 在场时 Boss 来源的敌弹 × final_bullet_x_<类型>、招式 / 冲击环 / 接触 × final_move_x_<类型>，血量不动。目标按 10:00 队长约 157 血：普通一发约 20（12–15%）、重招 25–35%；骑士招式已到 25–45%（单发 40% 保护兜底），只抬冰屑弹",
   "knight_big_walk": 1.0,
   "_dmg_x": "dmg_x_<id>：单只 Boss 伤害再乘（缺省 1.0）。骑士 10-28 按测试台（docs/170）：血 3.0 → 2.55 压超时、伤害 ×2.5 让持续压力能击倒队长，docs/169 §输出窗口 末尾有表",
-  "hp_x_izumik": 1.8,
+  "hp_x_izumik": 3.6,
+  "izumik_stack_dmg": 0.2,
+  "izumik_stack_heal": 0.08,
+  "_izumik_1119": "11-19 B站玩家反馈「3 辅过结局四」后用户定 A+C（docs/375 §4）：A 血量 hp_x_izumik 1.8 → 3.6（测试台 32 seed 无认知：参照编队 52 → 70 秒、三辅助 90 → 116 秒，先取下限）；C 阐释阶段吸收代价 izumik_stack_dmg 0.15 → 0.2、izumik_stack_heal 0.05 → 0.08（代码缺省值，小步；只惩罚放子代过去的打法）",
   "izumik_taken_out": 0.6,
   "izumik_break_taken": 1.68,
   "izumik_mire_life": 10.0,
@@ -1273,6 +1277,8 @@
   "elite_rim_gain": 2.2
  },
  "ui": {
+  "_doc_pick_confirm": "选中再确定（11-20 B站玩家反馈：电脑端选升级卡时按攻击键常随手选中一张）：升级 / 藏品 / 招募 / 婉拒 / 事件 / 翻节点卡 / 商人货品，第一次点卡、按数字键或方向键只选中，再点同一张 / 按 Enter / 手柄 Ⓐ 才生效，弹出后 0.3 秒内不确定（screens/choice_panel.gd choose）。1 = 开，0 = 旧的一点就生效",
+  "pick_confirm": 1,
   "_doc": "界面（用户 10-13「手机版的字可以放大一点」）：phone_font_mult 手机横屏（Cfg.phone_ui）局内正文字号倍率，< 24 号的字乘它并封顶 24（ui.gd UI.fs），大标题与英文小标签不变；桌面 / 平板 / 标题页不受影响。1 = 关",
   "phone_font_mult": 1.18,
   "_doc_font_ark": "原作式字重（docs/292）：1 = 名字 / 标题用思源黑体 Heavy（字距收 1 像素），桌面正文换 Regular（手机正文仍 Medium）；0 = 旧版全 Bold（缺省：11-06 用户定退回旧粗体，给羁绊技腾网页包空间；ui_heavy / ui_regular 不进发行包，开 1 只在开发版有效）",
@@ -1447,5 +1453,6 @@
   "_doc": "B站 Toy「支持作者」奖励（docs/313，用户 11-07 定，只在 Toy 版出现）：support_follow = 1 显示「关注作者」一项（送 5 张寻访凭证）；support_bvid = 三连检测的视频 BV 号（送 5 张凭证 + 专属分享卡边框），留空 = 不显示三连那一项（PV 还没发）",
   "support_follow": 1,
   "support_bvid": "BV1H3Wz6rEAb"
- }
+ },
+ "summon": {"_doc": "召唤物持续索敌（11-19 用户：杀一个就往回走又锁新目标导致折返跑；ob_summon _hunt_on）：1 = 换目标取离召唤物自己最近的（限锚点 leash 内、Boss 优先照旧）、没目标原地等 hunt_hold 秒再回站位；0 = 旧行为（blocks_eq 凯尔希组固定 0）", "hunt": 1, "hunt_hold": 0.8, "_cmd_doc": "跟随小队指令（docs/367 §11.2，11-19 用户定）：1 = 突击时锚点换成主人（leash × cmd_roam_k，优先主人的目标）、部署时锚点 = 部署点、主人残血撤回时 leash × cmd_recall_k、集火时一律扑集火目标（队长的召唤物也算）；0 = 一律按 move.anchor", "cmd": 1, "cmd_roam_k": 1.3, "cmd_recall_k": 0.5, "_reach_fix_doc": "召唤物范围（11-19 玩家反馈凯尔希范围成长无效、躲波时 Mon3tr 不打伊祖米克）：1 = leash × 主人 op_range、leash 判定量到敌人身体边缘；0 = 旧行为（blocks_eq 固定 0）", "reach_fix": 1}
 }

@@ -14,15 +14,6 @@ const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类
 var g: Game
 ## 「追击」（docs/35）：带这些标签的伤害吃 followup_dmg 与追击类藏品（追击、余震、殉爆、召唤物）
 const FOLLOWUP_TAGS := ["follow_up", "aftershock", "detonation", "entity"]
-var zone_from_c := Vector2.ZERO
-var zone_from_r := 99999.0
-var zone_phase := 0
-var zone_hurt_t := 0.0
-var zone_out_t := 0.0     # 本次出圈了几秒（圈内为 0）：前 ZONE_GRACE 秒不掉血；界面据此画回圈方向提示
-var zone_paused := false  # Boss 在场，缩圈计时暂停
-const ZONE_START := 150.0
-const ZONE_GRACE := 2.0   # 1.1 用户决定：出圈后 2 秒内不掉血
-const ZONE_RADII := [1300.0, 1000.0, 780.0, 600.0, 480.0]
 var low_warned := false
 ## lose_hp 不记 dmg_log 的来源：泪和熄灯掉血原本就不进 dmg_log（bot.gd 单独记熄灯掉血），BALANCE 输出保持不变
 const NO_LOG := ["tear", "dark"]
@@ -128,13 +119,8 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 	var ad: Dictionary = D.ENEMIES.get(str(src.get("type", src.get("src_type", ""))), {})
 	if float(ad.get("apop_hit", 0.0)) > 0.0 and (ctrl_on() or ad.get("role", "") == "boss"):
 		add_apop(float(ad.apop_hit))
-	# 灯火只在受击时熄灭：基础 4 + 伤害占最大生命的比例 × 30（10% 血的一击 -7），受「灯火消耗」修正
-	var lamp_loss: float = (Bal.v("lamp/hit_base", 2.0) + Bal.v("lamp/hit_scale", 18.0) * dmg / g.max_hp) * g.lamp_decay * g.lamp_loss_mult
-	var l0: float = g.lamp
-	g.lamp = maxf(0.0, g.lamp - lamp_loss)
-	g.telemetry.lamp_note("受击", g.lamp - l0)
-	if lamp_loss >= 6.0:
-		g.vfx.add_text(g.ppos + Vector2(20, -60), "灯火 -%d" % int(lamp_loss), Color(1.0, 0.6, 0.4), 13)
+	for m in g.mechs:
+		m.on_player_hit(dmg, src)   # 主题机制挂钩（docs/364）：受击掉灯火（mech_lamp）
 	if src.get("corrode", 0.0) > 0.0:
 		g.afflict.add_corrode(dmg, src.corrode, boss, lost)
 	# 命中附带的神经损伤：用户 9/29 按原作改成只有溟痕累积，命中来源乘 enemy/nerve_hit_mult（缺省 0 = 不累积）
@@ -192,7 +178,7 @@ var ctrl := {"boss_t": 0.0, "stun_t": 0.0, "aslow_t": 0.0, "move_min": 1.0, "slo
 ## 按来源分四类（CTRL_CATS + Boss，其余记 other），每类记：被冻结次数 freeze_n、冻结总秒数 freeze_t（冲刺提前挣脱按实际算）、
 ## 冲刺挣脱冻结次数 dash_break_n、被减速总秒数 slow_t（冰霜 g.frost、寒霜层 g.cold、slows 里的减速；同一类同一时刻只算一次）。
 ## slow_any_t = 有任何一种减速在身上的总秒数（不同来源同时生效只算一次）。BALANCE / 本地记录的 "ctrl_src"（telemetry.record）
-const CTRL_CATS := {"founder": "founder", "skimmer": "skimmer"}   # 敌人 type -> 分类：奠基者、漂移体
+## 敌人 type -> 分类：enemies.json 的 ctrl_cat（奠基者、漂移体；docs/367 §3），没写的记 other
 var ctrl_src := {}             # 分类 -> {freeze_n, freeze_t, dash_break_n, slow_t}（ctrl_src_report 输出）
 var ctrl_slow_any := 0.0
 var ctrl_hit_cat := "other"    # enemy_hit 这一下的来源分类：add_cold / add_root 在这一下里读，结束后回到 other
@@ -208,7 +194,7 @@ func ctrl_cat(src: Dictionary) -> String:
 	var t := str(src.get("type", src.get("src_type", "")))
 	if src.get("boss", false) or str(D.ENEMIES.get(t, {}).get("role", "")) == "boss":
 		return "boss"
-	return CTRL_CATS.get(t, "other")
+	return str(D.ENEMIES.get(t, {}).get("ctrl_cat", "other"))
 
 
 func _ctrl_entry(cat: String) -> Dictionary:
@@ -554,163 +540,39 @@ func _armor_cf(pre: float, post: float, phys: bool) -> void:
 			c["a%d" % k] += maxf(1.0, pre - g.armor - float(k))
 
 
-## 缩圈：预告 20 秒 → 收缩 25 秒 → 稳定，直到下一轮；圈外为「黑潮」。
-## 1.1（用户决定）：Boss 在场时缩圈计时整体暂停（预告 / 收缩停在原处，Boss 倒下后接着走）；出圈后前 2 秒不掉血
-func update_zone(dt: float) -> void:
-	# 最终 Boss 场地冻结后不再走缩圈日程（也不弹「黑潮停滞」横幅），只把圈插值到场地；圈外判定照常走下面那段（docs/38 §1.7）
-	if g.zone_frozen:
-		_arena_step(dt)
-	elif not _zone_schedule(dt):
-		return
-	# 圈外：黑潮伤害 + 灯火流失 + 神经损伤
-	var out := g.ppos.distance_to(g.zone_c) - g.zone_r
-	if out > 0.0 and g.state == g.S.PLAY and not g.squad.in_sanctuary(g.ppos):
-		zone_out_t += dt
-		var lz: float = g.lamp
-		g.lamp = maxf(0.0, g.lamp - 6.0 * dt * g.lamp_loss_mult)
-		g.telemetry.lamp_note("圈外", g.lamp - lz)
-		if zone_out_t < ZONE_GRACE:
-			return
-		var dps: float = (2.5 + 1.5 * max(zone_phase, 0)) * (1.0 + minf(out / 300.0, 1.0))
-		lose_hp(dps * dt, "zone")
-		zone_hurt_t -= dt
-		if zone_hurt_t <= 0.0:
-			zone_hurt_t = 0.8
-			g.hurt_flash = maxf(g.hurt_flash, 0.08)
-			g.head_bar_t = 2.0
-			g.vfx.add_text(g.ppos + Vector2(0, -84), "黑潮", Color(0.8, 0.4, 1.0), 16)
-	elif g.state == g.S.PLAY:
-		zone_out_t = 0.0   # 回到圈内（或庇护所）：缓冲重置
-
-
-## 缩圈日程（原 update_zone 前半段，逻辑不变）：返回 false = 黑潮还没开始，本帧不做圈外判定
-func _zone_schedule(dt: float) -> bool:
-	if g.zone_state == 0:
-		if g.t < ZONE_START:
-			return false
-		g.zone_c = g.ppos
-		g.zone_r = ZONE_RADII[0] + 400.0
-		zone_phase = -1
-		g.zone_state = 3
-		g.zone_t = 0.0
-	var paused: bool = g.spawner.boss_alive()
-	if paused != zone_paused:
-		zone_paused = paused
-		if g.zone_state != 3 or zone_phase >= 0:
-			g.vfx.show_banner("Boss 在场：黑潮停滞" if paused else "黑潮再度涌动")
-	if not paused:
-		g.zone_t += dt
-	match g.zone_state:
-		3:
-			if g.zone_t >= (0.0 if zone_phase < 0 else 45.0) and zone_phase < ZONE_RADII.size() - (2 if g.ending == "resolve" else 1):
-				zone_phase += 1
-				g.zone_next_r = ZONE_RADII[zone_phase]
-				var off := Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(0.0, (g.zone_r - g.zone_next_r) * 0.7)
-				g.zone_next_c = g.zone_c + off
-				g.zone_state = 1
-				g.zone_t = 0.0
-				g.vfx.show_banner("黑潮将至：%d 秒后安全区缩小" % 20)
-				Sfx.play("roar", -6.0, 0.5, 0.0)
-		1:
-			if g.zone_t >= 20.0:
-				g.zone_state = 2
-				g.zone_t = 0.0
-				zone_from_c = g.zone_c
-				zone_from_r = g.zone_r
-				g.vfx.show_banner("黑潮正在逼近！")
-		2:
-			var k := clampf(g.zone_t / 25.0, 0.0, 1.0)
-			g.zone_c = zone_from_c.lerp(g.zone_next_c, k)
-			g.zone_r = lerpf(zone_from_r, g.zone_next_r, k)
-			if k >= 1.0:
-				g.zone_state = 3
-				g.zone_t = 0.0
-	return true
-## ---- 最终 Boss 场地（docs/38 §1.7，B1 第二批）
-## 最终 Boss 登场时 freeze_zone(arena_r)：黑潮圈 3 秒内平滑变到场地半径；主控离新圈边不足 100（或在圈外）就把圆心往主控挪；
-## 黑潮还没开始（zone_state == 0）时以主控为圆心新建。冻结后 zone_state = 3、zone_next_* 同步成场地，机器人读到的边界与实际一致。
-var arena_from_c := Vector2.ZERO
-var arena_from_r := 0.0
-var arena_t := 0.0
-
-
+## 最终 Boss 场地冻结 → 通用场地 run/arena.gd（docs/364 §7）；缩圈本身归主题机制（mech_tide_zone）
 func freeze_zone(r: float) -> void:
-	if g.zone_state == 0:
-		g.zone_c = g.ppos
-		g.zone_r = r + 400.0
-		zone_phase = -1
-	var c: Vector2 = g.zone_c
-	var d: float = g.ppos.distance_to(c)
-	if d > r - 100.0 and d > 0.001:
-		c = g.ppos + (c - g.ppos) / d * (r - 100.0)
-	arena_from_c = g.zone_c
-	arena_from_r = g.zone_r
-	arena_t = 0.0
-	g.zone_next_c = c
-	g.zone_next_r = r
-	g.zone_state = 3
-	g.zone_t = 0.0
-	g.zone_frozen = true
-	# 场地整理仅作后台规则，不暴露禁生成区域或播放净化演出。
-	var remaining: Array = []
-	for m in g.mires:
-		if not mire_blocked(m.pos, float(m.get("maxr", m.r))):
-			remaining.append(m)
-	g.mires = remaining
+	g.arena.freeze(r)
 
 
-## 怪物留下的溟痕统一入口（docs/155）：拖痕 trail / 落点 lob / 神经弹 shot / 死亡留痕 death。打上 src 与出生时间 t0，
-## 怪物溟痕超过 enemy/mire_enemy_cap 时最老的一片开始淡出（mire_fade 秒后移除，淡出中不再伤人）。常驻规则不变：没被挤掉的照旧常驻
+## 怪物留下的溟痕（docs/155）→ 溟痕机制（mech_mire.add_enemy_mire）；本主题没有溟痕时什么都不留
 func add_enemy_mire(m: Dictionary, src: String) -> void:
-	if g.beacon_sys.holds(m.pos):
-		return   # 生效中的引航灯标清除圈内不落怪物溟痕（10-26，用户「灯塔范围内的溟痕全部消失」）
-	m["src"] = src
-	m["t0"] = g.t
-	var cap := int(Bal.v("enemy/mire_enemy_cap", 16.0))
-	var n := 0
-	var oldest = null
-	for x in g.mires:
-		if x.has("src") and x.life > 0.0 and not x.has("fade"):
-			n += 1
-			if oldest == null:
-				oldest = x
-	if n >= cap and oldest != null:
-		fade_mire(oldest)
-	g.mires.append(m)
+	var mm = g.mech("mire")
+	if mm != null:
+		mm.add_enemy_mire(m, src)
 
 
-## 让一片溟痕慢慢淡出（不是瞬间消失）：world 按 fade 画透明度，enemies.update_status 倒计时到 0 移除
+## 让一片溟痕慢慢淡出 → mech_mire.fade_mire
 func fade_mire(m: Dictionary) -> void:
-	if not m.has("fade"):
-		m["fade"] = Bal.v("enemy/mire_fade", 1.5)
+	var mm = g.mech("mire")
+	if mm != null:
+		mm.fade_mire(m)
 
 
 ## 最终 Boss 场地是禁生成圆区；最大半径与圆区相交（含相切）就禁止整片生成。
 func mire_blocked(pos: Vector2, radius: float = 0.0) -> bool:
-	return g.zone_frozen and pos.distance_squared_to(g.zone_next_c) <= pow(maxf(0.0, g.zone_next_r) + maxf(0.0, radius), 2.0)
-
-
-func _arena_step(dt: float) -> void:
-	if arena_t >= 3.0:
-		return
-	arena_t = minf(arena_t + dt, 3.0)
-	var k := smoothstep(0.0, 1.0, arena_t / 3.0)
-	g.zone_c = arena_from_c.lerp(g.zone_next_c, k)
-	g.zone_r = lerpf(arena_from_r, g.zone_next_r, k)
+	return g.arena.blocked(pos, radius)   # 通用场地（run/arena.gd，docs/364 §7）
 
 
 ## 把 Boss 本体、召唤物 / 落点的生成点约束在场地内、离圈边 ≥ margin；场地没冻结时原样返回
 func arena_clamp(p: Vector2, margin := 80.0) -> Vector2:
-	if not g.zone_frozen:
-		return p
-	var lim: float = maxf(0.0, g.zone_next_r - margin)
-	var v: Vector2 = p - g.zone_next_c
-	return p if v.length() <= lim else g.zone_next_c + v.normalized() * lim
+	return g.arena.clamp_point(p, margin)   # 通用场地（run/arena.gd，docs/364 §7）
 
 
-## 主控指向安全区圆心的单位向量（圈外方向提示用）
+## 主控指向安全区圆心的单位向量（圈外方向提示用）→ mech_tide_zone.zone_dir；没有缩圈机制时为零向量
 func zone_dir() -> Vector2:
-	return (g.zone_c - g.ppos).normalized() if g.zone_state != 0 else Vector2.ZERO
+	var mz = g.mech("tide_zone")
+	return mz.zone_dir() if mz != null else Vector2.ZERO
 
 
 ## 护盾抵挡一次伤害：碎裂特效，可选冲击波与回复
@@ -1131,7 +993,7 @@ func _damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 	if bh != null and bh.block_damage(e):
 		return
 	# 灯火照亮：光中的敌人受到的伤害 +25%，灯火通明（≥ 70）时 +40%（docs/222；流明光弹的「照亮」e.lit 同样视为在灯光内）
-	if e.pos.distance_squared_to(g.ppos) < g.lamp_r() * g.lamp_r() or e.get("lit", 0.0) > 0.0:
+	if g.has_lamp and (e.pos.distance_squared_to(g.ppos) < g.lamp_r() * g.lamp_r() or e.get("lit", 0.0) > 0.0):   # 没有灯火机制的主题不加（docs/391 T-R1）
 		var lb: float = Bal.v("lamp/lit_bonus_hi", 0.40) if g.lamp >= 70.0 else Bal.v("lamp/lit_bonus", 0.25)
 		if g.bot != null and e.get("lit", 0.0) > 0.0 and e.pos.distance_squared_to(g.ppos) >= g.lamp_r() * g.lamp_r():
 			g.telemetry.sus_seg().lit += dmg * lb   # docs/88 遥测：只因「照亮」多打的伤害（只在 --balance 下记）
@@ -1451,7 +1313,7 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 				if o.get("cocoon_t", 0.0) > 0.0:
 					o.shell_hp -= o.shell_max * chip
 					if o.shell_hp <= 0.0:
-						g.bai.paranoia_hatch(o, true)
+						g.bai.boss(o.type).on_shell_broken(o)   # Boss 钩子（docs/368 §2）
 				else:
 					o.hp -= o.maxhp * chip
 					if o.hp <= 0.0:

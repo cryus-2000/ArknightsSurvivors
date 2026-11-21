@@ -8,7 +8,7 @@
    用字 = game/scripts 的字符串与注释 + game/data 的 JSON + 场景 / project.godot 的全部字符 + ASCII + 原字体里所有非汉字字符（标点、数字、符号、全角）。
    ui_fallback.otf 不动，回退链（settings.gd 挂到 ui.ttf 上）照旧。
 3. 测试与工具脚本不进包：两个预设的 exclude_filter 都有 tests/*、tools/*（发布版不读命令行，测试入口不可达，check_release 第 1 项）；
-   scripts/ 下只给开发参数用的脚本（DEV_SCRIPTS：自动测试、平衡机器人、录像 / 基准探针）也排除（11-07 docs/295）。
+   scripts/ 下只给开发参数用的脚本（DEV_SCRIPTS：自动测试、平衡机器人、录像 / 基准探针）也排除（11-07 docs/285（原 295））。
    前提：包里其余脚本不得 preload 它们（只许开发守卫后的运行时 load()），本脚本 check_dev_scripts 检查。
 
     python tools/release_slim.py            # 快检项：审阅图规则不误伤运行时引用的贴图、预设与规则一致、扫描到的字全在子集字体里
@@ -156,8 +156,9 @@ def _json_strings(v, out, docs):
 def _runtime_files(game):
     skip = ("tests", "tools", "addons", ".godot")   # 不进包 / 不是游戏内容的目录（相对 game/ 的第一级）
     keep = lambda p: os.path.relpath(p, game).replace("\\", "/").split("/")[0] not in skip
-    gds = [p for p in glob.glob(os.path.join(game, "scripts", "**", "*.gd"), recursive=True) if keep(p)]
+    gds = [p for p in glob.glob(os.path.join(game, "scripts", "**", "*.gd"), recursive=True) + glob.glob(os.path.join(game, "themes", "**", "*.gd"), recursive=True) if keep(p)]   # 主题包脚本（机制 / 模块，docs/364、368）的字也进字体子集
     jsons = [p for p in glob.glob(os.path.join(game, "data", "**", "*.json"), recursive=True) if keep(p)]
+    jsons += [p for p in glob.glob(os.path.join(game, "themes", "**", "*.json"), recursive=True) if keep(p)]   # 主题包数据（11-18 搬家，docs/367）：字体子集要带上它们的字
     scenes = [p for p in glob.glob(os.path.join(game, "**", "*.tscn"), recursive=True) + glob.glob(os.path.join(game, "**", "*.tres"), recursive=True) if keep(p)]
     return gds, jsons, scenes + [os.path.join(game, "project.godot")]
 
@@ -298,7 +299,7 @@ def subset_bytes(src_font, chars):
     opt.passthrough_tables = True
     opt.prune_unicode_ranges = False
     opt.prune_codepage_ranges = False
-    font = TTFont(src_font)
+    font = TTFont(src_font, recalcTimestamp=False)   # 保留原字体 head.modified：否则每次出包字节都不同，导入缓存（tools/import_cache.py）命不中（11-17）
     have = font.getBestCmap()
     s = subset.Subsetter(opt)
     s.populate(unicodes=sorted(ord(c) for c in chars if ord(c) in have))

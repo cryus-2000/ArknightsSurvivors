@@ -1,0 +1,305 @@
+{
+ "_doc": "shu 帧条规格草稿（B 方案，docs/365 照做）：接入时并进 game/data/characters/shu.json 的 sprites；现在游戏不读这个文件。192 画布 @2x / 96 画布 @1x，foot = 1x 原点 [48,76]（个别动作 256 画布，foot [64,92]）；frame_durations 为原作时长（按 docs/335 出手对时缩放），fire 按原作 OnAttack 事件",
+ "idle": {
+  "tex": "op_shu_idle",
+  "frames": 8,
+  "fps": 4.0,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.25,
+   0.25,
+   0.25,
+   0.25,
+   0.25,
+   0.25,
+   0.25,
+   0.25
+  ]
+ },
+ "run": {
+  "tex": "op_shu_run",
+  "frames": 8,
+  "fps": 13.3333,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.07500000187500006,
+   0.07500000187500006,
+   0.07500000187500006,
+   0.07500000187500006,
+   0.07500000187500006,
+   0.07500000187500006,
+   0.07500000187500006,
+   0.07500000187500006
+  ]
+ },
+ "move_attack": {
+  "tex": "op_shu_move_attack",
+  "frames": 8,
+  "fps": 6.6667,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.15,
+   0.15,
+   0.12,
+   0.11,
+   0.17,
+   0.18,
+   0.17,
+   0.15
+  ],
+  "fire": 4,
+  "only_1x": true
+ },
+ "attack": {
+  "tex": "op_shu_attack",
+  "frames": 8,
+  "fps": 6.6667,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.15,
+   0.15,
+   0.12,
+   0.11,
+   0.17,
+   0.18,
+   0.17,
+   0.15
+  ],
+  "fire": 4
+ },
+ "attack2": {
+  "tex": "op_shu_attack2",
+  "frames": 8,
+  "fps": 6.1538,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.15,
+   0.15,
+   0.12,
+   0.11,
+   0.19,
+   0.2,
+   0.2,
+   0.18
+  ],
+  "fire": 4
+ },
+ "skill_begin": {
+  "tex": "op_shu_skill_begin",
+  "frames": 2,
+  "fps": 7.4074,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.135,
+   0.135
+  ]
+ },
+ "skill_idle": {
+  "tex": "op_shu_skill_idle",
+  "frames": 8,
+  "fps": 2.0,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.5,
+   0.5,
+   0.5,
+   0.5,
+   0.5,
+   0.5,
+   0.5,
+   0.5
+  ]
+ },
+ "skill": {
+  "tex": "op_shu_skill",
+  "frames": 8,
+  "fps": 6.1538,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.15,
+   0.15,
+   0.12,
+   0.11,
+   0.19,
+   0.2,
+   0.2,
+   0.18
+  ],
+  "fire": 4
+ },
+ "skill_end": {
+  "tex": "op_shu_skill_end",
+  "frames": 2,
+  "fps": 7.4074,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.135,
+   0.135
+  ]
+ },
+ "skill_s3_begin": {
+  "tex": "op_shu_skill_s3_begin",
+  "frames": 2,
+  "fps": 11.7647,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.085,
+   0.085
+  ]
+ },
+ "skill_s3_idle": {
+  "tex": "op_shu_skill_s3_idle",
+  "frames": 8,
+  "fps": 2.0,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.5,
+   0.5,
+   0.5,
+   0.5,
+   0.5,
+   0.5,
+   0.5,
+   0.5
+  ]
+ },
+ "skill_s3_attack": {
+  "tex": "op_shu_skill_s3_attack",
+  "frames": 8,
+  "fps": 6.6667,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.15,
+   0.15,
+   0.12,
+   0.11,
+   0.17,
+   0.18,
+   0.17,
+   0.15
+  ],
+  "fire": 4
+ },
+ "skill_s3_attack2": {
+  "tex": "op_shu_skill_s3_attack2",
+  "frames": 8,
+  "fps": 6.1538,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.15,
+   0.15,
+   0.12,
+   0.11,
+   0.19,
+   0.2,
+   0.2,
+   0.18
+  ],
+  "fire": 4
+ },
+ "skill_s3_end": {
+  "tex": "op_shu_skill_s3_end",
+  "frames": 4,
+  "fps": 8.0,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.125,
+   0.125,
+   0.125,
+   0.125
+  ]
+ },
+ "hurt": {
+  "tex": "op_shu_hurt",
+  "frames": 2,
+  "fps": 13.3333,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.07,
+   0.08
+  ]
+ },
+ "death": {
+  "tex": "op_shu_death",
+  "frames": 8,
+  "fps": 7.1111,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.1429,
+   0.1428,
+   0.1429,
+   0.1428,
+   0.1429,
+   0.1428,
+   0.1429,
+   0.125
+  ]
+ },
+ "entry": {
+  "tex": "op_shu_entry",
+  "frames": 8,
+  "fps": 7.1111,
+  "foot": [
+   48,
+   76
+  ],
+  "frame_durations": [
+   0.1429,
+   0.1428,
+   0.1429,
+   0.1428,
+   0.1429,
+   0.1428,
+   0.1429,
+   0.125
+  ]
+ }
+}

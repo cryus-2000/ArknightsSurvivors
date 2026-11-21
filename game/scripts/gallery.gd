@@ -4,6 +4,7 @@ extends Control
 ## 从标题菜单打开（斜切黑带转场）；Q/E 或点击切换分页，方向键或点击选择条目（最左一列再 ← 进职业轨），Z/X 或点击切换动作/形态，
 ## Enter / 1–3 或点击切换干员页签，Esc 返回；手柄经 Pad 翻译成同样的键；触屏用 740×360 手机版式。
 
+const ThemePack = preload("res://scripts/core/theme_pack.gd")   # 主题数据路径门面（docs/359 §2）
 const UI = preload("res://scripts/ui.gd")
 const PlayKeys = preload("res://scripts/core/play_keys.gd")   # 局内键名按当前绑定（可改键）
 const A = preload("res://scripts/art.gd")
@@ -30,36 +31,10 @@ const TABS := [
 	{"cn": "事件", "en": "EVENT"},
 ]
 const TAB_EVENT := 7
-const ENDING_ORDER := ["standard", "knight", "deep", "resolve"]   # 显示编号 Ⅰ–Ⅳ（按原作：深蓝之心线 = 结局三，抉择线 = 结局四；id 不变，存档不错位）
+## 结局的显示顺序（编号 Ⅰ–Ⅳ）：waves.json endings 的 no（docs/368 §1，原 ENDING_ORDER 写死）
 
 ## 敌人图鉴说明（机制按本作实现）
-const ENEMY_DESC := {
-	"tracer": "生命不高于 50% 时加速并铺设溟痕，受到的物理伤害减少 35%；发动前刺攻击。",
-	"nest": "光环持续造成法术伤害和神经损伤，重叠法伤仅取最强者。眩晕、寒冷时长减半，免疫停顿；近身发动触须攻击。",
-	"bone": "近战，命中附带「侵蚀」。",   # 11-01 docs/211 D7：设定段（lore.json）已写「最常见的海嗣个体」，机制段不重复
-	"slider": "近战；冲刺撞上队长时额外熄灭 8 点灯火。",   # D7：「贴着海床滑行」设定段已写
-	"stone": "远程投掷碎石。首次接敌架起 20 秒，期间受到的物理伤害减少 45%，法术伤害增加 50%。",
-	"offspring": "伊祖米克的子代，行动迟缓但生命很高；碰到队长时蜕变成 2 只其他海嗣。",
-	"brood": "由投嗣育母投出、落地孵化的子体，不会移动并逐渐衰亡，接触造成侵蚀。",
-	"fractal": "塑路者碎裂时放出的高速碎片。",
-	"spitter": "远程抛射酸液：落点先出预警，落地造成范围伤害并留下溟痕，命中附带侵蚀。",
-	"tear": "伊莎玛拉人形阶段用技能「抗争之泪」召唤，不会伤害队长；未被压制时为伊莎玛拉的转化充能。队长靠近即可压制，伊莎玛拉转化后消失。",
-	"pocket": "精英。背负气囊的爬行者，生命降到 2/3 和 1/3 时各鼓胀 1.1 秒后爆裂一次（范围 160），鼓胀期间不受伤害；看到它发亮就离开。",
-	"skimmer": "精英。低空悬浮的远程个体，射击附带侵蚀；被控制后坠落，改为近战。",
-	"mother": "精英。向队长投掷注亡拟嗣：落点先出预警，落地造成伤害并附加侵蚀，拟嗣随即在落点孵化（场上最多 6 只）。",
-	"mimic": "精英。伪装成补给箱，受到攻击后现形。现形后尖叫 2.5 秒：周围 150 内累积神经损伤并吞噬灯火，期间照常追击、不啃咬；尖叫结束前击倒，源石锭 ×1.5。啃咬两连，第二口伤害 ×0.6。免疫眩晕、寒冷和封印；击败后掉落源石锭。",
-	"path": "中期 Boss（3:30 / 7:00）。从脚下向场边铺生路，路线上每段末端有一个路标；队长跑过路标即截断这条路，路上的分形停下并成为优先攻击目标，全部截断后硬直 3 秒。一幕路标向两侧吐出会分裂的分形弹，或朝队长放出两次分叉的树枝弹；生命降到 50% 后，一圈弹从外向它收拢，缺口在生路上，冲撞沿线留下一排向两侧推开的弹。「冲撞」「震地」连续出招，收招后出现破绽。",
-	"iberia": "中期 Boss（7:00）。圣徒卡门的强化状态（同一人物，一次探索只会出现一位）：生命与攻击更高，手炮只装 1 发。「手炮」射线贯穿全屏，「轰击」曲射砸向队长所在位置，两者共用弹药；打空后近身追击，近距离用「散射」连喷 2 波、每波 18 发弹丸。装填 3 秒（第二幕 2.6 秒），读条中累计受到伤害或被冲刺穿身会被打断、跪地露出破绽。50% 后装填完毕先放「清膛」缺口环，再接「手炮·三连」。",
-	"carmen": "中期 Boss（3:30 / 7:00）。持手炮的年迈圣徒（与伊比利亚是同一人物，一次探索只会出现一位）：3 发弹药。远距离「狙击」，近身「炮身横扫」；弹药满且距离适中时转身「环射」，三个缺口的弹环一次打空 3 发。装填 3 秒，读条可被打断。50% 后弹药打空先进入 8 秒炮身近战，用「炮身砸击」冲到队长身边砸地。",
-	"bishop": "中期 Boss（7:00）。与蔑死体或斥亡体成对出现；生命归零后进入假死并回复，两者同时假死才会真正倒下。两具血量差过大时，血少的一具受到的伤害降低。两具各自放弹，弹幕关于两体之间的中线对称：一具扇射后另一具放镜像，或两具同时放出反向弯曲的弹环。任一具生命降到 50% 后，每 10 秒互换位置，连线上排出向两侧推开的弹墙，两具同时放反向螺旋。主教「潮汐柱」与同伴近战连续出招，收招后两具同时出现破绽。",
-	"archon": "接潮主教的同伴。粗壮的近战海嗣，命中附带侵蚀，同样会假死。「横扫」连挥两爪，「跃击」砸向队长所在位置，「蚀潮吐息」命中后 3 秒内侵蚀伤害 +25%；任一具生命降到 50% 后，跃击落地时放出「裂潮」刃环。",
-	"immortal": "接潮主教的同伴。迅捷的近战海嗣，命中附带侵蚀，同样会假死。「连斩」连续突刺 3 段（50% 后 4 段），与主教「潮汐柱」连续出招；搭档假死时狂暴并「迸发」，自己复苏时也会迸发。",
-	"paranoia": "结局一「平凡即是喜乐」的最终 Boss。七种主动攻击：「凝视」依次瞄准的光束；「叠影」每段重新追踪队长；「泡影环」缺口弹环；「呼号」扇形喷涌；「追猎泡」短时追踪后直行；「幻影合围」两侧光束；「泡影收束」向内合拢的泡群，留有出口。认知负担光环降低全队攻速。生命降至一半时坠落，首次归零后结茧，复苏时恢复至最大生命的 50%。",
-	"izumik": "结局四「如星空般深蓝」的最终 Boss。学习阶段无敌，子代从场边缓慢靠近本体；吸收子代后发动分享。阐释阶段按幕成组连续出招，每组结束露出破绽：「潮汐坠落」「解读旋涡」「分享」「震撼」「护群触腕」「迁徙潮」「深渊涌流」，以及摆动的水流弹、子代共鸣、螺旋弹臂、停顿后转向的习得弹、卷回的回流弹。水流在子代来向留出通道；走在路上的子代会跟着放弹，吸收层数越多习得弹越多。迁徙潮横穿场地并留有通道，涌流形成向内收拢的环带。震撼与三幕的分享·全场可通过冲刺或站进点亮的灯柱光圈躲避，灯柱不挡别的弹。",
-	"ishar": "结局三「息潮的代价」的最终 Boss。人形阶段不受攻击，治疗海嗣并将其强化为精英，红色描边标记强化目标。三枚泪滴各维持一名精英；触碰泪滴可永久净化并解除对应强化。未净化的泪加快转化，转化后成为可破坏的歌眼。敌对形态有七种主动攻击：「泪落」「三线扫射」「大群之歌」「撕咬」「合唱齐射」「合唱压境」「深海触腕」。拆除合唱海嗣可削弱齐射与压境，击破歌眼可中断泪滴共鸣并解除对应精英强化。",
-	"knight_boss": "结局二「静谧时代」的最终 Boss。八种主动攻击：「冲锋」「冰线」「长枪连刺」「掷枪」「长枪回旋」「踏冰裂阵」「断潮劈击」「侧踏挑枪」。冰线后接寒冷追击，裂阵封锁三条通道，劈击向前推进，侧踏后重新瞄准挑枪。一阶段布置五根冰柱，全部撞碎后才生成下一批。首次生命归零后寒冰重生，残柱碎裂且不再生成，冲锋接续三段；累积受击可触发寒冷反击。",
-	"knight": "精英。最后的骑士，只在猎潮的骑士（结局二路线）倒下后出现。直线冲锋，命中附带冰霜减速。",
-}
+## 敌人图鉴的机制说明：enemies.json 的 gallery 字段（docs/368 §1，原 ENEMY_DESC 写死 25 种），没写的用 desc
 const RelicDb = preload("res://scripts/core/relic_db.gd")
 var lore: Dictionary = {}       # data/lore.json
 var relic_db: RefCounted
@@ -83,11 +58,7 @@ var demo_mode := -1
 var info_tab := 0
 const INFO_TABS := ["档案", "属性", "技能", "成长"]   # 属性：主控数值表（与选人「属性」页同源，InitialStats.sheet）
 func _ready() -> void:
-	var lf := FileAccess.open("res://data/lore.json", FileAccess.READ)
-	if lf != null:
-		var ld = JSON.parse_string(lf.get_as_text())
-		if ld is Dictionary:
-			lore = ld
+	lore = ThemePack.load_merged("lore")   # 干员档案（共享）+ 本主题敌人档案（docs/368 §4）
 	relic_db = RelicDb.new()
 	relic_db.load_files()
 	visible = false
@@ -347,6 +318,8 @@ func _build() -> void:
 			var ops: Array = []
 			for cid in Character.list_ids():
 				var cdef: Dictionary = Character.load_def(cid)
+				if not bool(cdef.get("recruitable", true)) and Roster.active():   # 11-19：未上线（recruitable=false）的新干员不进图鉴，免得显示「用寻访凭证解锁」却永远抽不到；调试版 / 测试局照常显示
+					continue
 				var oe: Dictionary = _op_entry(cid, cdef)
 				oe["first"] = bool(cdef.get("list_first", false))   # list_first：干员 json（封面干员水月排第一）
 				if not Roster.is_unlocked(cid):   # 干员页只认名册（Roster.is_unlocked 与寻访「未解锁 N 名」同一来源；调试版 / 测试局名册视为全开）
@@ -401,7 +374,7 @@ func _build() -> void:
 				var en_m: bool = UI.Loc.en()
 				var ja_m: bool = UI.Loc.ja()
 				var ko_m: bool = UI.Loc.ko()   # 韩文（docs/276 §14）
-				var mech: String = UI.Loc.s(ENEMY_DESC.get(k, e.get("desc", "")))
+				var mech: String = UI.Loc.s(str(e.get("gallery", e.get("desc", ""))))
 				if e.has("extra"):
 					if ja_m:   # 日文（docs/276 §13）：整句在这里拼
 						mech += "\n\n追加攻撃：%s（%s）。" % [UI.Loc.s(str(e.extra.name)), {"swipe": "扇状薙ぎ払い", "pulse": "近接衝撃", "pierce": "直線突き", "volley": "扇状弾幕"}.get(str(e.extra.mode), "攻撃")]
@@ -432,8 +405,8 @@ func _build() -> void:
 					"locked": not Cfg.unlock_all and not Cfg.gallery_seen.has("enemy:" + str(k)) and not (k == "knight_boss" and Cfg.gallery_seen.has("enemy:knight")), "locked_text": "尚未遭遇，遇到后收录。"})
 		6:
 			# 结局：四格；未达成显示 ???，达成后显示最终 Boss 立绘与一句话
-			for i in ENDING_ORDER.size():
-				var eid: String = ENDING_ORDER[i]
+			for i in D.ending_order().size():
+				var eid: String = D.ending_order()[i]
 				if not D.ENDINGS.has(eid):
 					continue
 				var en: Dictionary = D.ENDINGS[eid]
@@ -599,7 +572,7 @@ static func _enemy_spawn_stats(k: String, e: Dictionary, role: String) -> Array:
 ## 博士：受击体（data/doctor.json）；放在干员页最后，不属于任何职业（筛选时不出现）
 func _doctor_entry() -> Dictionary:
 	var dd: Dictionary = {}
-	var df := FileAccess.open("res://data/doctor.json", FileAccess.READ)
+	var df := FileAccess.open(ThemePack.path("doctor"), FileAccess.READ)
 	if df != null:
 		var dj = JSON.parse_string(df.get_as_text())
 		if dj is Dictionary:

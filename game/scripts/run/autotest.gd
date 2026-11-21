@@ -91,6 +91,8 @@ var iceab := 0                # --iceab=N：每 N 帧轮换骑士冰颗粒开 / 
 var grainab := 0              # --grainab=N：每 N 帧轮换刀光第四版（粒子）开 / 关（--perf 分 /g1 /g0）
 var shdemo_full_t := INF      # --shielddemo：护盾充满的时刻
 var bulfxab := 0              # --bulfxab=N：每 N 帧轮换子弹出现 / 消失画面开 / 关（render/bullet_fx.gd；--perf 分 /b1 /b0）
+var fxab := 0                 # --fxab=N（docs/398）：每 N 帧在「特效显示」完整档与当前档之间轮换（--perf 分 /fs0 /fsN 两桶量净差）
+var fx_alt := false
 var tierab := 0               # --tierab=N（docs/50 §25.3）：每 N 帧轮换命中三档 + 近战刀光开 / 关（只轮换 vfx.tier_off，fx/hit_tiers 开关已删）
 # --stackab=N:m1,m2,…（docs/50 §26）：每 N 帧换下一个掩码（optical.ab_mask：1 CPU 颗粒 / 2 GPU 粒子 / 4 特效照明 / 8 发光层 / 16 低分辨率层 / 32 整套光学），
 # --perf 分 /s<掩码> 桶；切换后 3 帧记进 /sx 不算（低分辨率层重挂、粒子重启）
@@ -124,7 +126,7 @@ func _vfx_demo() -> void:
 		g.beacons.append(_vd_beacon)
 	elif _vd_step == 1 and g.t >= 20.0:
 		_vd_step = 2
-		if _vd_beacon != null and not _vd_beacon.lit:
+		if _vd_beacon != null and not _vd_beacon.lit and g.beacon_sys != null:
 			g.beacon_sys._light(_vd_beacon)
 	elif _vd_step == 2 and g.t >= 26.0:
 		_vd_step = 3
@@ -151,6 +153,42 @@ func _init(game: Game) -> void:
 ## rl = 藏品数
 func trace_extra() -> String:
 	return " sq=%d lamp=%d nd=%d rl=%d" % [trace_squad_hash(), int(roundf(g.lamp * 100.0)), trace_nerve_hash(), g.relics.size()]
+
+
+## --parity=N（theme_parity，docs/359）：每 N 帧打印一行 PARITY 快照（按帧不按 g.t，--bosstest 里 g.t 冻结也照样出）。
+## 只读、不碰 rng、不改状态；字段按 key=value 排开，tools/theme_parity.py 逐字段比、报第一处分歧。只在 debug 构建的 autotest 里，正式游戏路径零开销。
+var parity_every := -1
+
+
+func parity_line() -> String:
+	var eh: PackedStringArray = []
+	for e in g.enemies:
+		eh.append("%s,%.3f,%.3f,%.3f" % [e.type, e.pos.x, e.pos.y, e.hp])
+	var bh: PackedStringArray = []
+	for b in g.bosses:
+		bh.append("%s:%.2f" % [b.type, b.hp])
+	var rl: PackedStringArray = []
+	for r in g.relics:
+		rl.append(str(r))
+	var zone := "%d,%.2f,%.2f,%.2f,%d" % [g.zone_state, g.zone_r, g.zone_c.x, g.zone_c.y, int(g.zone_frozen)]
+	var endg := ""
+	if g.endg != null:
+		endg = "%s/%d/%d/%s/%d" % [g.endg.cur, g.endg.cross_done, g.endg.flipped, g.endg.slot, int(g.endg.frozen)]
+	var f := {
+		"t": "%.3f" % g.t, "st": g.state, "lv": g.level, "xp": "%.3f" % g.xp, "xpn": "%.2f" % g.xp_need, "k": g.kills,
+		"hp": "%.3f" % g.hp, "mhp": "%.2f" % g.max_hp, "lamp": "%.3f" % g.lamp, "lcap": "%.1f" % g.lamp_cap, "thr": g.threat,
+		"ing": g.ingots, "n": g.enemies.size(), "eh": ";".join(eh).hash(), "boss": ";".join(bh),
+		"rng": "%d/%d/%d/%d/%d" % [g.rng.state, g.rng_spawn.state, g.rng_enemy.state, g.rng_drop.state, g.rng_op.state],
+		"pos": "%.3f,%.3f" % [g.ppos.x, g.ppos.y], "rl": ";".join(rl).hash(), "nrl": g.relics.size(), "gr": JSON.stringify(g.growth).hash(),
+		"wp": JSON.stringify(g.weapons).hash(), "sq": trace_squad_hash(), "nd": trace_nerve_hash(), "zone": zone,
+		"mire": "%d/%.2f/%.3f" % [g.mires.size(), g.next_mire, g.in_mire], "bcn": g.beacons.size(), "eb": g.ebullets.size(),
+		"gem": g.gems.size(), "end": g.ending, "endg": endg, "ck": g.choice_kind, "nch": g.choices.size(),
+		"plv": g.pending_levelups, "pch": g.pending_chests, "shield": g.shield,
+	}
+	var parts: PackedStringArray = []
+	for k in f:
+		parts.append("%s=%s" % [k, str(f[k]).replace(" ", "_")])
+	return "PARITY f=%d " % g.at_frames + " ".join(parts)
 
 
 func trace_squad_hash() -> int:
@@ -798,6 +836,13 @@ func step() -> void:
 	_cdpshot_step()
 	_prof_dump()
 	g.at_frames += 1
+	if parity_every < 0:
+		parity_every = 0
+		for a in Cfg.dev_args():
+			if a.begins_with("--parity="):
+				parity_every = maxi(1, int(a.substr(9)))
+	if parity_every > 0 and g.mode == g.Mode.BALANCE and g.at_frames % parity_every == 0:
+		print(parity_line())
 	if g.ult_bench == null and g.ult != null and g.mode == g.Mode.BALANCE and g.at_frames == 1:
 		for a in Cfg.dev_args():
 			if a == "--ultbench" or a.begins_with("--ultbench="):
@@ -829,6 +874,8 @@ func step() -> void:
 				fx1ab = int(a.substr(8))
 			if a.begins_with("--tierab="):
 				tierab = int(a.substr(9))
+			if a.begins_with("--fxab="):
+				fxab = int(a.substr(7))
 			if a.begins_with("--partab="):
 				partab = int(a.substr(9))
 			if a.begins_with("--matab="):
@@ -884,6 +931,10 @@ func step() -> void:
 		g.optical.grains.mat_off = not g.optical.grains.mat_off   # --matab=N：同局轮换材质颗粒
 	if bulfxab > 0 and g.at_frames % bulfxab == 0:
 		g.world.bulfx.off = not g.world.bulfx.off   # --bulfxab=N：同局轮换子弹出现 / 消失画面
+	if fxab > 0 and g.at_frames % fxab == 0:
+		fx_alt = not fx_alt
+		Bal.set_fx_show(0 if fx_alt else Cfg.fx_show)   # --fxab=N：同局轮换特效显示档（--perf 分 /fs0 /fsN）
+		preload("res://scripts/render/declutter.gd").reset()
 	if tierab > 0 and g.at_frames % tierab == 0:
 		g.vfx.tier_off = not g.vfx.tier_off   # --tierab=N：同局轮换命中三档（--perf 分 /t1 /t0 两桶）
 	if fx1ab > 0 and g.at_frames % fx1ab == 0 and g.optical != null:
@@ -2182,43 +2233,16 @@ func bot_move() -> Vector2:
 		if e.chest and not e.dead and e.pos.distance_to(g.ppos) < 400.0:
 			pull = (e.pos - g.ppos).normalized() * 0.8
 			break
-	# 引航灯标：没点燃、血量还行就过去站着（光圈半径 70，站到离中心 40 以内就不再拉，免得来回抖）
-	for b in g.beacons:
-		if not b.lit and g.hp > g.max_hp * 0.45 and b.pos.distance_to(g.ppos) < 700.0:
-			pull = (b.pos - g.ppos).normalized() * 0.9 if b.pos.distance_to(g.ppos) > 40.0 else Vector2.ZERO
-			break
-	var dk: Vector2 = g.duck.chase_dir(g.ppos)
+	for m in g.mechs:
+		pull = m.bot_pull(pull)   # 主题机制（docs/364 §6）：引航灯标
+	var dk: Vector2 = g.duck.chase_dir(g.ppos) if g.duck != null else Vector2.ZERO
 	if dk != Vector2.ZERO:
 		pull = dk   # 鸭爵：追得到就优先追（docs/216 §11）
 	if pull == Vector2.ZERO and nearest_d > 100.0 and nearest_d < 99999.0 and g.hp > g.max_hp * 0.4:
 		pull = (nearest_p - g.ppos).normalized() * 0.5
 	var mv := push * 2.2 + pull
-	# 缩圈：靠近圈边时往圈内走
-	if g.zone_state != 0:
-		var zc: float = g.ppos.distance_to(g.zone_c)
-		var target_c: Vector2 = g.zone_next_c if g.zone_state == 1 else g.zone_c
-		var target_r: float = g.zone_next_r if g.zone_state == 1 else g.zone_r
-		var od: float = zc - g.zone_r
-		if od > -30.0:
-			# 已贴圈边 / 出圈：真人会先回圈。敌群的「往外推」只留侧向分量（侧身绕过去；溟痕在后面单独加，照样绕开），经验 / 商人等拉力朝外的不跟，
-			# 回圈拉力随出圈距离加大；出圈超过 0.5 秒且冲刺好了就朝圈心冲（2026-09-27：v11-ab 黑潮死亡多是普通机器人被怪群推在圈外，
-			# 实测圈外 165–196 像素、怪群推力 −2.6…−4.8 压过固定的 3.0 回圈拉力）
-			var toc: Vector2 = (g.zone_c - g.ppos).normalized()
-			var rad: float = mv.dot(toc)
-			if rad < 0.0:
-				mv -= toc * rad
-			mv += toc * (3.0 + clampf(od / 50.0, 0.0, 4.0))
-			if od > 0.0:
-				if zone_out_since < 0.0:
-					zone_out_since = g.t
-				elif g.t - zone_out_since > 0.5 and g.dash_ready():
-					want_dash = true
-			else:
-				zone_out_since = -1.0
-		else:
-			zone_out_since = -1.0
-			if g.ppos.distance_to(target_c) > target_r - 160.0 or zc > g.zone_r - 160.0:
-				mv += (target_c - g.ppos).normalized() * 3.0
+	for m in g.mechs:
+		mv = m.bot_steer(self, mv)   # 主题机制（docs/364 §6）：黑潮缩圈（贴圈边 / 出圈时回圈、出圈 0.5 秒冲刺）
 	# 溟痕：像真人玩家一样绕开（在里面时全力往外走）；放在回圈之后，回圈时也照样绕开（2026-09-27：放在前面时外推被回圈一起削掉，机器人直穿圈边溟痕，溟痕 / 侵蚀死亡变多）
 	for m in g.mires:
 		var md: Vector2 = g.ppos - m.pos
@@ -2280,6 +2304,8 @@ func _perf_sample() -> void:
 			w += "/sx" if g.at_frames - stack_sw <= 3 else "/s%d" % (g.optical.ab_mask | (128 if Cfg.render_scaled else 0))   # 采样在轮换之前：记的是上一帧所用掩码
 		if bulfxab > 0:
 			w += "/b0" if g.world.bulfx.off else "/b1"   # --bulfxab：上一帧的子弹出现 / 消失画面开关
+		if fxab > 0:
+			w += "/fs0" if fx_alt else "/fsN"   # --fxab：上一帧的特效显示档（轮换在采样之后）
 		if tierab > 0:
 			w += "/t0" if g.vfx.tier_off else "/t1"   # --tierab：上一帧的命中三档开关
 		if fx1ab > 0:

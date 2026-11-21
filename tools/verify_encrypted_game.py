@@ -286,7 +286,7 @@ def main():
     match=re.search(r'^exclude_filter="(.*)"$',preset,re.M)
     excludes=[value.strip() for value in match.group(1).split(',')] if match else []
     audio=['res://'+p.relative_to(project).as_posix() for p in sorted((project/'audio').rglob('*')) if p.suffix.lower() in ('.ogg','.wav') and in_export(p,project,excludes)]
-    json_paths=['res://'+p.relative_to(project).as_posix() for p in sorted((project/'data').rglob('*.json')) if in_export(p,project,excludes)]
+    json_paths=['res://'+p.relative_to(project).as_posix() for p in sorted(list((project/'data').rglob('*.json'))+list((project/'themes').rglob('*.json'))) if in_export(p,project,excludes)]
     text=PROBE.replace('__IMAGES__',json.dumps(images,ensure_ascii=False)).replace('__AUDIO__',json.dumps(audio)).replace('__JSON__',json.dumps(json_paths)).replace('__AUDIENCE__',json.dumps(manifest['audience']))
     exe=package/'game/ArknightsSurvivors.exe'; pck=exe.with_suffix('.pck')
     enc.check_encrypted_pck(pck)

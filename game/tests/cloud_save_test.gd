@@ -61,7 +61,7 @@ func pack_tests() -> void:
 	var db = preload("res://scripts/core/relic_db.gd").new()
 	db.load_files()
 	full.prog.rel = db.implemented().map(func(r): return str(r.id))
-	var en: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/enemies.json")).enemies
+	var en: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://themes/deep_sea/data/enemies.json")).enemies
 	full.prog.gal = en.keys().map(func(k): return "enemy:" + str(k)) + ["item:EXP", "item:OIL", "item:INGOT", "item:MAGNET", "item:HEAL", "item:CHEST", "item:PILLAR", "item:RUINED WALL", "item:WRECK", "item:RIDGE", "item:PEAK", "item:MIRE", "item:MERCHANT"]
 	full.prog.end = preload("res://scripts/data.gd").ENDINGS.keys()
 	for k in preload("res://scripts/touch_layout.gd").KEYS:
@@ -273,6 +273,10 @@ func compat_tests() -> void:
 	var mig := Pack.migrate({"set": {}, "prog": {}}, 1, 3, steps)
 	check(mig.get("m12") == true and mig.get("m23") == true, "迁移应逐级按顺序执行：%s" % mig)
 	var v1items: Dictionary = Pack.pack(body(1, 0, []), 1, 1, 1).items
+	var v1h = Pack.parse(str(v1items[Pack.HEAD_KEY]))   # pack 写的头版本不低于本版（11-18 起 VERSION 2）：手动改回 v1 当旧档
+	v1h.v = 1
+	v1h.minv = 1
+	v1items[Pack.HEAD_KEY] = JSON.stringify(v1h)
 	var mu := Pack.unpack(v1items, 3, steps)
 	check(mu.status == "ok" and mu.body.get("m23") == true, "读旧版本的档时应走迁移")
 	check(Pack.migrate({"a": 1}, 1, 1, steps) == {"a": 1}, "同版本不迁移")

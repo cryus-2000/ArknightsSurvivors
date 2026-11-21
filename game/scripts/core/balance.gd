@@ -37,6 +37,74 @@ static func _load() -> void:
 	_preset("nausea_safe", NAUSEA_SAFE)
 	_preset("palette_trial", PALETTE_TRIAL)
 	_preset("foe_calm", FOE_CALM)
+	_fx_given = {}
+	_fx_base = {}
+	set_fx_show(_fx_lv)
+
+
+## 设置「特效显示」三档（docs/398，B站玩家 11-19「视觉效果太多容易看花眼」；用户 11-19 定精简 = A + B 做缺省）。
+## 只改画面：队友特效、发光点、装饰颗粒、大面积填充、队友伤害数字、击杀火花；队长、敌人、敌方弹幕 / 预警、掉落物、溟痕不动。
+## 0 完整 = data/balance.json 原值（docs/293 A 版）；1 精简 = 队友再降一档 + 5:00 起渐入 + 数字合并（A）+ 危险优先（B，world._danger_want）；
+## 2 最少 = 再压一档。命令行 --bal= 单独写过的键优先；调试 --bal=render/fx_show=N 盖过存档
+const FX_SHOW := [
+	{},
+	{"render/late_fx_t0": 300.0, "render/late_fx_ramp": 120.0,
+		"render/late_fx_mate": 0.6, "render/late_fx_mate_mobile": 0.6,
+		"render/late_fx_fill": 0.35, "render/late_fx_fill_mobile": 0.3,
+		"render/late_fx_emit": 0.25, "render/late_fx_emit_mobile": 0.2,
+		"render/late_fx_grains": 0.3, "render/late_fx_grains_mobile": 0.25,
+		"render/mate_numbers": 1.0, "render/declutter_num_merge_t": 0.9, "render/declutter_num_merge_r": 72.0,
+		"render/danger_fade": 1.0},
+	{"render/late_fx_t0": 300.0, "render/late_fx_ramp": 120.0,
+		"render/late_fx_mate": 0.4, "render/late_fx_mate_mobile": 0.4,
+		"render/late_fx_fill": 0.25, "render/late_fx_fill_mobile": 0.25,
+		"render/late_fx_emit": 0.15, "render/late_fx_emit_mobile": 0.12,
+		"render/late_fx_grains": 0.15, "render/late_fx_grains_mobile": 0.12,
+		"render/mate_numbers": 1.0, "render/declutter_num_merge_t": 0.9, "render/declutter_num_merge_r": 72.0,
+		"render/danger_fade": 1.0, "render/danger_mate": 0.35,
+		"render/declutter_spark_budget": 50.0, "render/declutter_kill_k": 0.2},
+]
+static var _fx_lv := 1
+static var _fx_base := {}    # 各档动过的键在 balance.json 里的原值（没有的记 null = 删掉）
+static var _fx_given := {}   # 命令行 --bal= 写过的键
+
+
+static func set_fx_show(lv: int) -> void:
+	_fx_lv = clampi(lv, 0, FX_SHOW.size() - 1)
+	if not _loaded:
+		return   # _load 结尾会按 _fx_lv 套
+	var r: Dictionary = _data.get("render") if _data.get("render") is Dictionary else {}
+	if _fx_given.is_empty():
+		_fx_given["_"] = true
+		for a in (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()):
+			if a.begins_with("--bal=") and a.count("=") == 2:
+				_fx_given[a.substr(6).split("=")[0]] = true
+		if _fx_given.has("render/fx_show"):
+			_fx_given["_lv"] = int(r.get("fx_show", 1.0))
+	if _fx_given.has("_lv"):
+		_fx_lv = clampi(int(_fx_given["_lv"]), 0, FX_SHOW.size() - 1)
+	if not (_data.get("render") is Dictionary):
+		_data["render"] = r
+	for t in FX_SHOW:
+		for path in t:
+			var k: String = str(path).split("/")[1]
+			if not _fx_base.has(k):
+				_fx_base[k] = r.get(k)
+	for k in _fx_base:   # 先还原成原值
+		if _fx_given.has("render/" + k):
+			continue
+		if _fx_base[k] == null:
+			r.erase(k)
+		else:
+			r[k] = _fx_base[k]
+	for path in FX_SHOW[_fx_lv]:
+		if not _fx_given.has(path):
+			r[str(path).split("/")[1]] = FX_SHOW[_fx_lv][path]
+
+
+static func fx_show_level() -> int:
+	_load()
+	return _fx_lv
 
 
 ## docs/139 画面眩晕排查的「推荐组合」试验开关 render/nausea_safe（缺省 0 = 不动）：1 时把 NAUSEA_SAFE 里的旋钮一次套上，

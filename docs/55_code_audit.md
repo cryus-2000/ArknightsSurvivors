@@ -66,7 +66,7 @@
 | --- | --- | --- |
 | `characters/character.gd:374` | `func attack_gate` | docs/26 §手动普攻把它列为干员可调的 API；现各干员用 `idle_cd()`。建议：下次改 docs/26 时一并删 |
 | `core/build_profile.gd:133` | `func snapshot` | docs/09 §5 / §6-6 计划「`--balance` 结束时打印 `core.profile.snapshot()`」，未接 |
-| `core/stat_block.gd:136` | `func breakdown` | docs/09 §2 / docs/14：属性面板用，未接（`stats_panel.gd` 用的是 `STAT_SYNC`） |
+| `core/stat_block.gd:136` | `func breakdown` | docs/09 §2 / docs/14（已删）：属性面板用，未接（`stats_panel.gd` 用的是 `STAT_SYNC`） |
 | `core/balance.gd:68` | `static func reload` | 注释「测试用」；`--bal=` 探针可能用到 |
 | `pad.gd:52` | `const GLYPH` | `tools/make_ui_fallback.py` 按它补圈字字形；留 |
 
@@ -175,7 +175,7 @@
   - 本次清理后新增 2 张：`proj_tide.png`、`fx_tide_hit.png`
   - 交叉核对 `art/requests/*.md` 与各 `*_handoff.md`：以上都没有「待接线」记录（`enemy_v8` 之类有记录的都已接）。
 
-**已删 10-11**（40 张 / 6 个目录文件，约 250 KB；删前逐个按文件名整词全仓库复查）：`evo_*` 6 张；`growth_b_dmg / b_pierce / t_dmg / t_power / t_reach / t_stake / u_dmg` 7 张；命名式藏品图 17 张（docs/14 已注明没用到）；`weapon_drone.png`、`drone_missile.png`、`proj_tide.png`、`fx_tide_hit.png`（后三张只在 v5 / v6 交接清单与 docs/10 规格表里作为历史交付记录出现，游戏代码与数据无引用）；`_old_logos_glyphs/` 6 张（`gen_logos_glyphs.py` 只在目录存在时并排预览，重跑时会自动重建备份，不受影响）。
+**已删 10-11**（40 张 / 6 个目录文件，约 250 KB；删前逐个按文件名整词全仓库复查）：`evo_*` 6 张；`growth_b_dmg / b_pierce / t_dmg / t_power / t_reach / t_stake / u_dmg` 7 张；命名式藏品图 17 张（docs/14（已删） 已注明没用到）；`weapon_drone.png`、`drone_missile.png`、`proj_tide.png`、`fx_tide_hit.png`（后三张只在 v5 / v6 交接清单与 docs/10 规格表里作为历史交付记录出现，游戏代码与数据无引用）；`_old_logos_glyphs/` 6 张（`gen_logos_glyphs.py` 只在目录存在时并排预览，重跑时会自动重建备份，不受影响）。
 `art/incoming` 没有 `.import` 伴生文件（桌面版按路径读原图），删后 `godot_runner.ensure_imported` 导入无缺资源报错；水月 `--relics=all --maxprog` 冒烟、图鉴 `--allrelics` 藏品页截图均无脚本错误 / 缺图日志。
 **复核后留下的**：
 - `growth_b_count / b_echo / b_range / b_size / t_count / t_field / u_area / u_spd` 8 张：**审计漏判**——`game/data/characters/*.json` 成长节点的 `"icon"` 字段引用（艾雅法拉、逻各斯、黍、塞雷娅、铃兰、维什戴尔、凯尔希、水月、伊内丝、推进之王、斯卡蒂、乌尔比安、幽灵鲨），`game.gd` 按 `icon` 名加载贴图。审计按「名字去尾段缩短查前缀」时把 `growth_b_` 整组当成旧水月成长线，没逐张查 JSON 字面量。

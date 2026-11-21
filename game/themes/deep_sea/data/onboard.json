@@ -1,0 +1,75 @@
+{
+ "_doc": "水月主题的新手引导（docs/368 §4）：主题卡片与演示局 / 提示顺序，和 game/data/onboard.json 合并读（ThemePack.load_merged(\"onboard\")）。",
+ "cards": {
+  "lamp": {
+   "title": "灯火",
+   "en": "LAMP",
+   "text": "受击会损失灯火，灯火低于 30 时受到的伤害更多；拾取灯油补充。",
+   "hint": "拾取灯油",
+   "toast": "受击会损失灯火，低于 30 时受到的伤害更多；拾取灯油补充。"
+  },
+  "beacon": {
+   "title": "引航灯标",
+   "en": "BEACON",
+   "text": "灯标亮起前是灰色的。走进它的光圈，停留约 3 秒点燃：圈内溟痕退散，灯火 +5，30 秒内在灯标附近回复和攻速提升。",
+   "hint": "点燃引航灯标"
+  },
+  "mire": {
+   "title": "溟痕与引航灯标",
+   "en": "BEACON",
+   "text": "溟痕会减速并持续造成伤害。站在引航灯标旁将其点燃，可以驱散溟痕。",
+   "hint": "点燃一座引航灯标",
+   "toast": "溟痕会减速并持续造成伤害，点燃附近的引航灯标可以驱散。"
+  },
+  "final": {
+   "title": "最终 Boss",
+   "en": "FINAL",
+   "text": "最终 Boss 登场后不再刷新其他海嗣，击败它即完成探索。",
+   "hint": "",
+   "toast_only": true
+  },
+  "duck": {
+   "title": "鸭爵",
+   "en": "DUCK",
+   "text": "鸭爵不攻击，受到攻击后越跑越快，30 秒内没被击倒就会溜走；击倒必得 1 件藏品。",
+   "hint": "",
+   "toast_only": true
+  }
+ },
+ "drill": [
+  "move",
+  "xp",
+  "recruit",
+  "link",
+  "ult",
+  "deploy",
+  "regroup",
+  "lamp",
+  "beacon",
+  "focus",
+  "drill_end"
+ ],
+ "drill_vet": [
+  "recruit",
+  "link",
+  "ult",
+  "deploy",
+  "regroup",
+  "lamp",
+  "beacon",
+  "focus",
+  "drill_end"
+ ],
+ "tips": [
+  "lamp",
+  "merchant",
+  "boss",
+  "final",
+  "duck",
+  "squad",
+  "command",
+  "ult",
+  "link",
+  "mire"
+ ]
+}

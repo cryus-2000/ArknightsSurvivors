@@ -659,7 +659,7 @@ static func orbit_tick(o, b: Dictionary, st: Dictionary, dt: float) -> void:
 const FX_VORTEX_FADE := 0.4
 
 ## 无参数条件
-const EXT_CONDS := ["beacon_charging", "enemy_near", "roaming"]   # 主控正在给灯标读条（run/beacon.gd charging）
+const EXT_CONDS := ["beacon_charging", "enemy_near", "roaming", "lg_qp", "lg_xy", "lg_xj"]   # lg_*：令的当前调（docs/367 §9，seg_ling）   # 主控正在给灯标读条（run/beacon.gd charging）
 
 const FIELD_CENTERS := ["self", "leader", "target", "zone", "last_hit"]
 

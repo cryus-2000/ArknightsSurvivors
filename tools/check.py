@@ -130,7 +130,7 @@ def plan_auto():
                 bump("ops", p)
             else:
                 bump("text", p)   # 召唤物等附属帧条（如 op_mon3tr_*）：只影响画面，核心契约即可
-        elif p.startswith("game/data/") and name.endswith(".json"):
+        elif (p.startswith("game/data/") or (p.startswith("game/themes/") and "/data/" in p)) and name.endswith(".json"):   # 主题数据（docs/367 §2）同 game/data
             if os.path.exists(os.path.join(ROOT, p)) and _json_text_only(p, base):
                 bump("text", p + "（只改说明字段）")
             elif p.startswith("game/data/characters/") and stem in ids:
@@ -194,9 +194,9 @@ def check_map():
 
 
 def check_static():
-    """不开 Godot 的检查：game/data 下所有 JSON 能解析"""
+    """不开 Godot 的检查：game/data 与主题包（game/themes，docs/367 §2）下所有 JSON 能解析"""
     bad = []
-    for p in glob.glob(os.path.join(GAME, "data", "**", "*.json"), recursive=True):
+    for p in glob.glob(os.path.join(GAME, "data", "**", "*.json"), recursive=True) + glob.glob(os.path.join(GAME, "themes", "**", "*.json"), recursive=True):
         try:
             json.load(open(p, encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as e:
@@ -352,11 +352,31 @@ def check_web_music():
     return {"name": name, "ok": ok, "detail": "二阶段 1 份缓冲、退回 / 曲终释放、缺预混退回旧行为" if ok else "%d 项失败" % max(1, len(fails)), "errors": fails[:8]}
 
 
+def check_fx_budget():
+    """不开 Godot（约 2 秒）：每名干员特效预算（tools/fx_budget.py，docs/368）。新干员超硬上限 / 缺 fx_elements 声明 / 某招元素 > 3 种，
+    现有 20 人比登记基线涨 > 10%，算失败；运行时项（帧时、覆盖面积）另跑 tools/fx_budget_runtime.py new --op <id>"""
+    import fx_budget
+    errs, detail = fx_budget.check()
+    return {"name": "特效预算 fx_budget", "ok": not errs, "detail": detail + "（明细 python tools/fx_budget.py scan）", "errors": errs[:8]}
+
+
 def check_px_lint():
     """不开 Godot（约 5 秒）：像素稿验收工具 tools/px_lint.py 在登记样本上跑通、数字等于校准值（干员美术路 1）；只在 --only px_lint 时跑"""
     import px_lint
     errs, detail = px_lint.check()
     return {"name": "像素稿验收 px_lint", "ok": not errs, "detail": detail, "errors": errs[:8]}
+
+
+def check_theme_parity():
+    """主题重构同种子基准（docs/359 §1）：tools/theme_parity.py 在基线提交与当前工作树各跑 6 局，逐帧逐字段比。
+    约 25 分钟（本机 2 个 Godot），只在 --only theme_parity 时跑，不进 --auto / 全量；基线 = 环境变量 ARK_PARITY_REF，缺省 main。"""
+    ref = os.environ.get("ARK_PARITY_REF", "main")
+    r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "theme_parity.py"), "--ref", ref], cwd=ROOT,
+                       capture_output=True, text=True, encoding="utf-8", errors="replace")
+    lines = [l for l in r.stdout.splitlines() if l.strip()]
+    bad = [l for l in lines if l.startswith("失败")]
+    return {"name": "主题同种子基准 theme_parity（基线 %s）" % ref, "ok": r.returncode == 0,
+            "detail": lines[-1] if lines else (r.stderr or "")[-300:], "errors": bad[:8]}
 
 
 JOBS = GR.MAX_PROCS   # 本次快检的并行数（main 里按 --jobs 设置）
@@ -1007,7 +1027,8 @@ def check_blocks_eq(godot):
 
     def one(j):
         gid, name, extra = j
-        out, err, to, log = _run(godot_args(godot, extra), 300, "blocks_eq_%s_%s" % (gid, name.split()[0]))
+        # 11-19 召唤物持续索敌（summon/hunt）与跟随小队指令（summon/cmd）是金样之后的新行为，手写参照没有：等价比较一律固定旧行为（凯尔希及带她当队友的组）
+        out, err, to, log = _run(godot_args(godot, extra + ["--bal=summon/hunt=0", "--bal=summon/cmd=0", "--bal=summon/reach_fix=0"]), 300, "blocks_eq_%s_%s" % (gid, name.split()[0]))
         return j, out, err, to, log
     with ThreadPoolExecutor(max(1, len(jobs))) as ex:   # 并发由 GATE 管（≤ --jobs），这里只负责一起排队
         res = list(ex.map(one, jobs))
@@ -1236,6 +1257,7 @@ SCENE_REGRESSIONS = {
     "roster": ("干员解锁（docs/109 §12）：开局 5 人、随机寻访先补齐职业、不重复、定向寻访 2 张、旧券折算、局终通关 1 张 / 未通关 0 张、满员折细胞、云存档并集", "roster_test", r"ROSTER failures=0", ["--roster=start5"]),
     "onboard_forced": ("新手引导强制部分（docs/219 §6）：第一次进游戏问题框无跳过、Esc 不选、两条线都走演示局（招募 / 连携 / 终结技 / 指挥）、连携一步到点直接触发、onboard_done 存档与云存档取或", "onboard_forced_test", r"ONBOARD FORCED failures=0", ["--balance", "--seed=1", "--op=mizuki", "--onboard=ask"]),
     "tour": ("首局聚光框引导 + 到点小提示（screens/tour.gd）：小提示每样只弹一次并记存档 / 排队、老存档不再弹、TIPS 与 Cfg.TIP_IDS 一致", "tour_test", r"TOUR failures=0", ["--roster=new"]),
+    "theme_save": ("存档按主题分开（docs/366）：典型旧存档迁移前后可见进度一致、写出再读幂等、旧位置给旧版本、降级再升级不丢、第二主题各存各的、云存档 th 兼容与冲突合并", "theme_save_test", r"THEME SAVE checks=\d+ failures=0", []),
     "save_migrate": ("存档迁移样本（docs/126 R1）：难度 diff_ver 1–5、旧倍速、旧亮度缺省、三种旧券、没有 [roster] 段的老存档", "save_migrate_test", r"SAVE MIGRATE failures=0", []),
     "medals": ("蚀刻章「深蓝之下」（core/medals.gd）：章表、藏品 49 / 50 边界与去重、结局 / 协同晋升 / 认知首次与全部、认知重置不收回、套组、读档补录、云存档合并与往返", "medals_test", r"MEDALS failures=0", []),
     "cloud_save": ("B站云存档：打包 / 分片 / 平台限制 / 校验 / 版本 / 合并规则 / Cfg 往返 / 非网页不启用（docs/89）", "cloud_save_test", r"CLOUD SAVE failures=0", []),
@@ -1418,7 +1440,7 @@ def main():
     ap.add_argument("--ab", metavar="REF", help="与某个提交做 A/B 对比（机器人标准矩阵）")
     ap.add_argument("--seeds", type=int, default=4)
     ap.add_argument("--keep", action="store_true", help="A/B 结束后保留临时工作树")
-    ap.add_argument("--only", choices=["core", "smoke", "nodes", "hold_aim", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "desc_values", "ob_tag", "cc_lint", "node_cue_lint", "data_lint", "graph_lint", "check_map", "text_reconcile", "shader_lint", "px_lint", "enemy_art", "asset_lint", "asset_index", "onboard_reload", "opening_transport", "web_music"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
+    ap.add_argument("--only", choices=["core", "smoke", "nodes", "hold_aim", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "desc_values", "ob_tag", "cc_lint", "node_cue_lint", "data_lint", "graph_lint", "check_map", "text_reconcile", "shader_lint", "px_lint", "enemy_art", "asset_lint", "asset_index", "fx_budget", "onboard_reload", "opening_transport", "web_music", "theme_parity"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
     ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS,
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
     ap.add_argument("--bal", action="append", default=[], metavar="段/键=值",
@@ -1480,6 +1502,10 @@ def main():
         jobs.append(check_asset_lint)   # 不开 Godot；ERROR 算失败（docs/189）
     if a.only in (None, "asset_index"):
         jobs.append(check_asset_index)
+    if a.only in (None, "fx_budget"):
+        jobs.append(check_fx_budget)   # 不开 Godot，约 2 秒；--auto 也跑（docs/368：新干员特效包体 / 显存 / 帧条数 / 元素种类）
+    if a.only == "theme_parity":
+        jobs.append(check_theme_parity)   # 开 Godot 约 25 分钟；只在 --only theme_parity 时跑（docs/359 §1）
     if a.only == "px_lint":
         jobs.append(check_px_lint)   # 不开 Godot；只在 --only px_lint 时跑（不进 --auto / 全量：样本在 codex-art 工作树，别人机器上可能没有）
     if a.only in (None, "data_lint"):

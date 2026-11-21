@@ -4,6 +4,7 @@
 ## 数据：data/waves.json 的 cross_deck / events / endings + data/events_v2.json；进度：Cfg.endings_cleared（通关过结局一才出结局线入口卡）。
 extends RefCounted
 
+const ThemePack = preload("res://scripts/core/theme_pack.gd")   # 主题数据路径门面（docs/359 §2）
 const BossBench = preload("res://scripts/run/boss_bench.gd")   # 录制钩子（docs/170）
 const D = preload("res://scripts/data.gd")
 const BuildGuide = preload("res://scripts/run/build_guide.gd")   # 构筑引导：主流派等保底 / 加权规则
@@ -87,7 +88,7 @@ func _init(game) -> void:
 
 ## 事件改版数据（data/events_v2.json）：cross 并进 cross_deck、events 追加在 waves.json 事件之后
 func _merge_v2() -> void:
-	var f := FileAccess.open("res://data/events_v2.json", FileAccess.READ)
+	var f := FileAccess.open(ThemePack.path("events_v2"), FileAccess.READ)
 	if f == null:
 		return
 	var v2 = JSON.parse_string(f.get_as_text())
@@ -799,7 +800,7 @@ func _apply_op(x: Dictionary) -> void:
 		g.hp = maxf(1.0, g.hp + g.max_hp * float(x.hp_pct))
 		g.vfx.add_text(g.ppos + Vector2(0, -70), "生命 %+d%%" % int(round(float(x.hp_pct) * 100.0)), Color(1.0, 0.45, 0.45), 16)
 	if x.has("recruit"):
-		_recruit()
+		_recruit(x)
 	if x.has("gain"):
 		g.rfx._on_gain(str(x.gain), x.get("args", {}))
 	if x.has("relic"):
@@ -1213,13 +1214,21 @@ func _max_hp(pct: float) -> void:
 
 
 ## 立即招募一名干员（随机，g.rng；接受入队 / 婉拒二选一，婉拒改为一次成长三选一，docs/252）；编队已满改为一次成长三选一
-func _recruit() -> void:
+## op 可带 decline（婉拒 / 满员时改给的事件 op）+ decline_txt（卡面 / 横幅文案）：引火之木用（B站玩家反馈 11-19：原来婉拒照拿成长三选一，付费的「坚持轮流守夜」被完全压制）
+func _recruit(x: Dictionary = {}) -> void:
+	var dec := {}
+	if x.has("decline"):
+		dec = {"ops": x.decline, "txt": str(x.get("decline_txt", ""))}
 	var cards: Array = g.progression.recruit_cards()
 	if cards.is_empty():
+		if not dec.is_empty():
+			_apply_op(dec.ops)
+			g.vfx.show_banner("编队已满，改为%s" % str(dec.txt))
+			return
 		g.pending_levelups += 1
 		g.vfx.show_banner("编队已满，改为一次成长三选一")
 		return
-	g.progression.offer_recruit("event", str(cards[g.rng.randi() % cards.size()].id))   # 接受入队 / 婉拒（docs/252）
+	g.progression.offer_recruit("event", str(cards[g.rng.randi() % cards.size()].id), dec)   # 接受入队 / 婉拒（docs/252）
 
 
 ## ---------- 机器人 ----------

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""终结技 × 新美术差异盘点（docs/278）的对照总图：每人一行 = 原版终结技 8 帧（ult_inventory.py ult 的联系表拆格）+ 新美术 S3 / 普攻招牌帧（中心 640×360）。
+"""终结技 × 新美术差异盘点（docs/280）的对照总图：每人一行 = 原版终结技 8 帧（ult_inventory.py ult 的联系表拆格）+ 新美术 S3 / 普攻招牌帧（中心 640×360）。
 只用 PIL，本机可跑。  python tools/ult_inventory_sheet.py --ult <dir> --art <dir> [<dir> …] --order a,b,… --out <png> [--chunk 5]"""
 import argparse, glob, os
 from PIL import Image, ImageDraw, ImageFont

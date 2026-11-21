@@ -22,7 +22,6 @@ extends RefCounted
 ##   life      弹体寿命秒（缺省 2.8）；fx：结算时在出弹点放的特效帧条名（缺图不放）；fx_col：给 fx 乘色（卡门借伊比利亚的清膛环换金色）
 const D = preload("res://scripts/data.gd")
 const Game = preload("res://scripts/game.gd")
-const FINAL_TYPES := ["paranoia", "knight_boss", "ishar", "izumik"]
 const OWNER_CAP := 160   # 10-25 弹幕加密（×1.4 + 多一圈）后放宽：原 120 / 240，解读旋涡 3 圈 × 50 会被截
 const TOTAL_CAP := 320
 var g: Game
@@ -78,7 +77,7 @@ func try_attack(e: Dictionary, dir: Vector2, dist: float) -> bool:
 		if tries >= moves.size():
 			return false
 	var move: Dictionary = moves[index]
-	var enhanced: bool = FINAL_TYPES.has(e.type) and e.phase == 2
+	var enhanced: bool = g.spawner.is_final_boss_type(e.type) and e.phase == 2
 	if forced == "" and enhanced and int(move.get("p2_every", 1)) > 1:
 		# 二阶段每 p2_every 轮才放一次（泡影环）：没轮到就跳过这一条、轮转照走
 		var ps: Dictionary = e.get("pattern_skip", {})
@@ -93,7 +92,7 @@ func try_attack(e: Dictionary, dir: Vector2, dist: float) -> bool:
 		waves = mini(waves, int(e.ammo))
 	var interval: float = float(move.get("wave_interval", 0.6))
 	var end := 0.0
-	var base_mult: float = float(move.get("mult", 0.65 if FINAL_TYPES.has(e.type) else 0.8))
+	var base_mult: float = float(move.get("mult", 0.65 if g.spawner.is_final_boss_type(e.type) else 0.8))
 	for k in waves:
 		var angle: float = dir.angle() + (0.10 if k % 2 else -0.10)
 		var data := {"pattern_id": str(e.type) + ":" + str(index), "pattern": move,
@@ -168,7 +167,7 @@ func try_attack(e: Dictionary, dir: Vector2, dist: float) -> bool:
 		end = maxf(end, w.dur)
 	e.pattern_cycle = (index + 1) % moves.size()
 	var cd_key: String = "cd_p2" if (enhanced and move.has("cd_p2")) else "cd"
-	e.pattern_next = g.t + end + float(move.get(cd_key, 5.0 if FINAL_TYPES.has(e.type) else 6.5))
+	e.pattern_next = g.t + end + float(move.get(cd_key, 5.0 if g.spawner.is_final_boss_type(e.type) else 6.5))
 	e.wind = maxf(e.wind, end + float(move.get("recover", 1.0)))
 	e.cdt = maxf(e.cdt, end + float(move.get("recover", 1.0)))
 	return true

@@ -144,7 +144,7 @@
 |---|---|---|---|---|
 | 112_camera_zoom_brightness | 12 KB | 索引「已结案」，用户 10-22 定 | 文内已记决定 | 归档 + 留指针 |
 | 105_op_anim_arch_for_codex | 7 KB | 「已实施记录」；docs/108 第 4 行写冲突以 108 为准，skill_pose 接口已进 87 §3.5 | 108、87 §3.5 | 归档 + 留指针（87、108 在引） |
-| plans/2026-10-18-*（10 个）、plans/2026-10-20-*（5 个） | 86 KB | Codex 运行时实施日志；docs/108 已审到 6b697796..7784b32c，**索引里「试验分支，未合入 main」那几行已过期**；7 个没进索引 | 108、61 | 移到 docs/archive/plans/，改索引 |
+| plans/2026-10-18-*（10 个）、plans/2026-10-20-*（5 个） | 86 KB | Codex 运行时实施日志；docs/108 已审到 6b697796..7784b32c，**索引里「试验分支，未合入 main」那几行已过期**；7 个没进索引 | 108、61 | 移到 docs/plans/，改索引 |
 | superpowers/ 下 spine-editor、summon-visual-alignment ×2 | 5 KB | 代理计划草稿，不在索引 | 107（在做）、spine_editor/README | 107 结束后归档 |
 | 71_is3_levels | 31 KB | 「进行中」但 10-12 起暂停，109 §5.3 重定义了潮位阶梯 | 109 §5.3 | 留，状态改「暂缓 / 部分被 109 取代」 |
 | 52 EA 反馈问卷、90 codex_toy_cover、43 telemetry_upload、100 store_copy | 24 KB | 「进行中」但 10 天以上没动 | — | 留，问协调人是否还开着 |

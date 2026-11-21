@@ -22,7 +22,7 @@ LASER_BOSSES = ["iberia", "carmen", "paranoia", "ishar", "bishop", "archon"]   #
 
 def boss_colors():
     import json
-    d = json.load(open(os.path.join(ROOT, "game", "data", "enemies.json"), encoding="utf-8"))
+    d = json.load(open(os.path.join(ROOT, "game", "themes", "deep_sea", "data", "enemies.json"), encoding="utf-8"))
     d = d.get("enemies", d)
     return {k: tuple(d[k]["bcol"]) for k in LASER_BOSSES}
 ROWS = {"src": 0, "src_on": 1, "mid": 2, "mid_on": 3, "hit": 4, "hit_on": 5}
