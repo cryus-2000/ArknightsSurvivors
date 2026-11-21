@@ -136,6 +136,8 @@ func _spawn_props(k: Dictionary) -> void:
 		e.spd *= float(pr.get("spd", 0.8))
 		e.affix = ""
 		e["k_prop"] = true
+		if bool(pr.get("heavy", false)):
+			e["heavy"] = true   # 撑持体算重型（mechanics.json kingdom.props.heavy，用户 11-21）：提丰优先点它、击退 ×0.3
 		k.props.append(int(e.id))
 
 

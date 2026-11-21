@@ -263,6 +263,8 @@
    "spd": 0.8,
    "leash": 160,
    "affix": false,
+   "heavy": true,
+   "heavy_doc": "用户 11-21 定：撑持体按重型敌人算（个体 e.heavy，生成时写；类型表里的 husk / drone / caster 本身不变）。读 heavy 的地方：提丰「优先攻击最重的敌人」、击退 ×0.3（enemies.gd）、安洁莉娜位移 / 悬浮力度 ×0.3",
    "src": "本作拟（生命 / 经验倍率用户 11-19 定）"
   },
   "crack": {

@@ -16,7 +16,7 @@ static var _D = null
 static func _heavy(e: Dictionary) -> bool:
 	if _D == null:
 		_D = load("res://scripts/data.gd")
-	return _D.ENEMIES.get(e.get("type", ""), {}).get("heavy", false)
+	return _D.ENEMIES.get(e.get("type", ""), {}).get("heavy", false) or bool(e.get("heavy", false))   # 个体重型：萨米撑持体（mech_kingdom 写 e.heavy）
 
 
 ## 失重（st.weightless）期间受到的击退倍率；没有失重 = 1.0（character.gd melee_hit 的击退乘它，老干员乘 1.0 逐字节不变）

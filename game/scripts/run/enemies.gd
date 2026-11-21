@@ -429,7 +429,7 @@ func update(dt: float) -> void:
 
 		# ---- 移动
 		# 重型怪只削外来击退；自己冲锋 / 突刺（kb_self，boss_ai 的 dash / stab）不削，否则骑士冲锋只冲出 1/3（用户实机反馈 9/27）
-		var v: Vector2 = e.kb * (0.3 if D.ENEMIES[e.type].get("heavy", false) and not e.get("kb_self", false) else 1.0)
+		var v: Vector2 = e.kb * (0.3 if (D.ENEMIES[e.type].get("heavy", false) or e.get("heavy", false)) and not e.get("kb_self", false) else 1.0)
 		var spd: float = e.spd * dark_mod * (0.65 if e.slow > 0.0 else 1.0)
 		if float(e.get("lite_slow_t", 0.0)) > g.t:
 			spd *= 1.0 - float(e.lite_slow)   # 轻减速（lite_slow，铃兰狐火命中，10-29）：与普通减速乘算
