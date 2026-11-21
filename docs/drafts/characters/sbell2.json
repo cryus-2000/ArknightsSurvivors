@@ -29,7 +29,7 @@
   "recruitable": false,
   "script": "res://scripts/characters/data_operator.gd",
   "base": {
-    "_doc": "全部数值（docs/27 §9.2）；预算见 docs/403 §4。原作对照：积雪 10 / 7.5 / 5.5 秒 → 本作 3.0 / 2.4 / 1.8；踏雪 20% / 50% / 75%。11-21 用户定：S2 永久（s2_open 1.9→0.95、s2_dot 0.15→0.08，总量不变，docs/403 §4.0）；免死回复 30%；open_min = §7.1「按敌数开合」改法的门槛，0 = 不启用",
+    "_doc": "全部数值（docs/27 §9.2）；预算见 docs/403 §4。原作对照：积雪 10 / 7.5 / 5.5 秒 → 本作 3.0 / 2.4 / 1.8；踏雪 20% / 50% / 75%。11-21 用户定：S2 永久（s2_open 1.9→0.95、s2_dot 0.15→0.08，总量不变，docs/403 §4.0）；免死回复 30%",
     "atk": 30,
     "cd": 2.0,
     "open_r": 140,
@@ -95,8 +95,7 @@
     "n5b_r": 50,
     "n5b_dur": 2.0,
     "n5b_every": 0.5,
-    "n5b_mult": 0.1,
-    "open_min": 0
+    "n5b_mult": 0.1
   },
   "leader": {
     "_doc": "当队长时的受击属性（docs/23）：原作精二满级 生命 2058 / 防御 265 / 法抗 15（character_table char_1046_sbell2 phases[2]）；守阵（不在技能期间）另加 guard_armor / guard_res，对应特性防御 +200%、法抗 +20",
@@ -383,15 +382,14 @@
     "intro": "草稿，待用户改：喀兰圣女，全谢拉格的宗教领袖，正着手建设谢拉格的基础教育系统"
   },
   "blocks": {
-    "_doc": "verb.sb_* 与 trig.on_leader_hit 为待写积木（docs/403 §3）；S2 永久，S3 的 mode 替换 S2 倍率不连乘；need_enemy_n 为 §7.1 改法的新参数",
+    "_doc": "verb.sb_* 与 trig.on_leader_hit 为待写积木（docs/403 §3）；S2 永久，S3 的 mode 替换 S2 倍率不连乘",
     "attack": {
       "shape": "circle",
       "center": "self",
       "src": "开阵",
       "r": "$open_r",
       "every": "$cd",
-      "cond": "skill_active:1",
-      "need_enemy_n": "$open_min"
+      "cond": "skill_active:1"
     },
     "skills": [
       {
