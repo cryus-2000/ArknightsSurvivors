@@ -118,6 +118,8 @@ var mechs: Array = mech_by_id.values()   # 挂钩点按这个顺序逐个调
 ## 50 落在中间档，这些效果都不触发；加减写进来也会被 setter 拉回 50。灯光判定半径 lamp_r() 按满灯、灯光增伤不生效（combat.gd）
 const LAMP_NEUTRAL := 50.0
 var has_lamp: bool = mech_by_id.has("lamp")
+## 主题的敌人行为挂钩（萨米 themes/sami/mech/mech_foes.gd，docs/392 §13）：清单里 id 为 foes 的机制；水月没有 = null，各挂钩点都先判空
+var foe = mech_by_id.get("foes")
 var beacon_sys = mech_by_id.get("beacon")  # 引航灯标（主题机制 themes/deep_sea/mech/mech_beacon.gd，docs/49d §13.5 C、docs/364）；没有灯标的主题为 null
 var weapons_sys = WeaponsSys.new(self)   # 子弹与支援装置
 var pickups = Pickups.new(self)   # 掉落与拾取
@@ -313,6 +315,8 @@ var cold_t := 0.0                  # 寒霜剩余秒数（层数整体到时清�
 var cold_immune := 0.0             # 满层冻结后免疫再叠的秒数
 var root_t := 0.0                  # 冻结 / 束缚：不能移动（可以攻击，冲刺挣脱）
 var root_immune := 0.0             # 硬控后免疫秒数
+var frozen_t := 0.0                # 萨米圈外冻结（docs/394 §8.2）：不能移动 / 攻击 / 技能 / 冲刺 / 终结技；水月恒 0
+var cold_move := 1.0               # 萨米寒冷值减速（docs/394 §8.1，mech_cold 每帧写）；水月恒 1
 var wound := 0                     # 侵蚀创口层数：减受治疗 + 每秒掉血
 var wound_t := 0.0
 var nerve_lock := 0.0             # 神经损伤满格后不再累积的秒数（combat.update_nerve）
@@ -2449,7 +2453,7 @@ func hud_live() -> bool:
 
 
 func _try_dash() -> void:
-	if not dash_ready() or dash_t > 0.0 or state != S.PLAY or (ult != null and ult.playing()):
+	if not dash_ready() or dash_t > 0.0 or state != S.PLAY or (ult != null and ult.playing()) or frozen_t > 0.0:
 		return
 	dash_dir = (move_in if move_in != Vector2.ZERO else Vector2(facing, 0)).normalized()
 	dash_t = DASH_TIME
@@ -2501,7 +2505,7 @@ func _update(dt: float) -> void:
 	elif auto_play != null and auto_play.want_dash:
 		auto_play.want_dash = false
 		_try_dash()   # 普通机器人出圈回圈时冲刺（autotest.bot_move）
-	if pstun > 0.0 or root_t > 0.0 or (ult != null and ult.playing()):
+	if pstun > 0.0 or root_t > 0.0 or frozen_t > 0.0 or (ult != null and ult.playing()):
 		mv = Vector2.ZERO   # 终结技播放中（ult.playing）：移动输入只给瞄准用（move_in 保留），队长原地不动
 	moving = mv != Vector2.ZERO
 	leader_still_t = 0.0 if moving or dash_t > 0.0 or pstun > 0.0 or root_t > 0.0 else leader_still_t + dt
@@ -2511,13 +2515,13 @@ func _update(dt: float) -> void:
 		if mv.x != 0.0 and swing_face <= 0.0:
 			facing = sign(mv.x)
 	# 溟痕：陷在里面移动速度 -45%；Boss 战里僵直 / 攻速减缓换成的减速也乘在这里，Boss 存活期间合计不低于 0.7（combat.move_mult）
-	var mspd: float = speed * combat.move_mult((1.0 - 0.45 * in_mire) * rej_slow * combat.ctrl_slow())
+	var mspd: float = speed * combat.move_mult((1.0 - 0.45 * in_mire) * rej_slow * combat.ctrl_slow()) * cold_move
 	if sticky_on or Bal.v("feel/move_sticky", 0.0) > 0.0:
 		if fire_slow_t > 0.0:
 			fire_slow_t -= dt
 			mspd *= 1.0 - Bal.v("feel/fire_slow", 0.25)
 		_mv_s = _mv_s.move_toward(mv, dt / maxf(0.01, Bal.v("feel/accel_t", 0.06)))
-		if pstun > 0.0 or root_t > 0.0:
+		if pstun > 0.0 or root_t > 0.0 or frozen_t > 0.0:
 			_mv_s = Vector2.ZERO
 		mv = _mv_s
 	pvel = mv * mspd

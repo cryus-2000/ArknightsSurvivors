@@ -355,7 +355,7 @@ func _boss_group(idx: int) -> Array:
 			g.ending = tb   # 无敌测试包网址 boss=（只测试包）：强制最终 Boss
 			if g.get("endg") != null:
 				g.endg.cur = tb   # 结局色 / 结算标题同步
-		return [D.ENDINGS[g.ending].boss]
+		return D.ENDINGS[g.ending].get("boss_group", [D.ENDINGS[g.ending].boss])   # 双 Boss 结局（萨米终始：哈兰杜汗 + 路加萨尔古斯）；水月结局没有 boss_group
 	var pool: Array = []
 	for i in D.MID_POOL.size():
 		if not mid_used.has(i) and (idx != 1 or D.MID_FIRST.is_empty() or D.MID_FIRST.has(i)) and not person_used(i):
@@ -1271,6 +1271,8 @@ func spawn_enemy(type: String, pos: Vector2) -> Dictionary:
 	# 休眠的敌人（钵海收割者）从屏幕外刷出来就看不到了：改放到主控周围 330–480 的海床上当伏兵；大群里的会在刷出后唤醒
 	if e.dormant and pos.distance_to(g.ppos) > 700.0:
 		e.pos = g.map.push_out(g.ppos + Vector2.from_angle(g.rng_spawn.randf() * TAU) * g.rng_spawn.randf_range(330.0, 480.0), e.r)
+	if g.foe != null:
+		g.foe.on_enemy_spawned(e)   # 主题（萨米）：坍缩范式改生命 / 移速（docs/394 §2）
 	g.enemies_sys.admit(e)   # 唯一出生口（docs/101 B5）：槽位 + id 表
 	check_enemy(e, type)
 	return e

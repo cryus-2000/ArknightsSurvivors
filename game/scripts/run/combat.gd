@@ -92,6 +92,8 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 		dmg *= g.elite_taken_mult   # 王庭盟约（docs/57 P7）：精英来源对主控的伤害
 	if boss:
 		dmg *= final_boss_hit_x()
+	if g.foe != null:
+		dmg *= g.foe.player_hit_mult(src)   # 主题（萨米）：打冻结 / 寒冷目标加伤、站在国度里挨 Boss 招 ×1.5（docs/394 §8.4、docs/393 §1.3）
 	one_cap = float(src.get("hit_cap", 0.0))   # 来源自带的单次上限（玩法系统「围猎」事件敌人 e.hit_cap，其子弹 / 抛石照带）
 	# 认知塑造「自我保护」末节：连续 meta/calm_t 秒未受伤后，下一次受到的伤害 × meta/calm_mult（受击后 rfx.on_hurt 归零计时）
 	if g.rfx.rule("calm_guard") > 0 and g.rfx.calm_t >= Bal.v("meta/calm_t", 5.0):
@@ -1218,6 +1220,8 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 	if e.dead:
 		return
 	e.dead = true
+	if g.foe != null:
+		g.foe.on_enemy_killed(e)   # 主题敌人行为（萨米：冰爆、国度裂纹、坍缩值，docs/392 §13）
 	if g.ult != null:
 		g.ult.on_kill(e)   # 终结技能量：击杀来源
 	# 补给箱被打碎

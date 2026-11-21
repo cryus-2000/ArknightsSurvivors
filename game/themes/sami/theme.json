@@ -21,7 +21,24 @@
     "ult_text": "res://data/ult_text.json",
     "ult_audio": "res://data/ult_audio.json"
   },
-  "mechanics": [],
+  "mechanics": [
+    {
+      "id": "cold",
+      "script": "res://themes/sami/mech/mech_cold.gd"
+    },
+    {
+      "id": "collapse",
+      "script": "res://themes/sami/mech/mech_collapse.gd"
+    },
+    {
+      "id": "kingdom",
+      "script": "res://themes/sami/mech/mech_kingdom.gd"
+    },
+    {
+      "id": "foes",
+      "script": "res://themes/sami/mech/mech_foes.gd"
+    }
+  ],
   "maps": {
     "dir": "res://themes/deep_sea/data/maps",
     "default": "deep_sea"

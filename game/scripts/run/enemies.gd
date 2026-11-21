@@ -95,10 +95,23 @@ const HF_ELITE := 32
 const HF_CHEST := 64
 const HF_FEED := 128
 const HF_IZUMIK1 := 256   # 一阶段伊祖米克（子代碰到就被吸收）
+const HF_PASS := 512      # 穿大型景物（enemies.json pass_props，萨米坍缩构造体）：不做景物推出；原生运动核心不认这一位（只在 GDScript 路径生效）
 var _hp := PackedVector2Array()
 var _hr := PackedFloat64Array()
 var _hz := PackedFloat64Array()   # Boss 的场地留边（骑士按整个画幅顶角算，其余 = r）
 var _hf := PackedInt32Array()
+
+
+## 带 pass_props 的种类（萨米坍缩构造体；水月没有 = 空表）
+var _pass: Dictionary = _build_pass()
+
+
+static func _build_pass() -> Dictionary:
+	var out := {}
+	for k in D.ENEMIES:
+		if D.ENEMIES[k].get("pass_props", false):
+			out[k] = true
+	return out
 
 
 func _hot_gather(n: int) -> void:
@@ -117,6 +130,8 @@ func _hot_gather(n: int) -> void:
 			f |= HF_FRIENDLY
 		if e.ai == "static":
 			f |= HF_STATIC
+		if _pass.has(e.type):
+			f |= HF_PASS
 		if e.boss:
 			f |= HF_BOSS
 			var margin := float(e.r)
@@ -273,7 +288,7 @@ func _motion_core(n: int, dt: float) -> void:
 			var offset: Vector2 = p - zc
 			if offset.length_squared() > limit * limit:
 				p = zc + offset.normalized() * limit
-		if not (fi & HF_BOSS) and not (fi & HF_STATIC) and (i + fn) % 2 == 0:
+		if not (fi & (HF_BOSS | HF_STATIC | HF_PASS)) and (i + fn) % 2 == 0:
 			p = g.map.push_out(p, ri * 0.8)
 		_hp[i] = p
 
@@ -438,6 +453,8 @@ func update(dt: float) -> void:
 			spd = 0.0
 		if e.get("haste", 0.0) > 0.0:
 			spd *= 1.4
+		if g.foe != null:
+			spd = g.foe.enemy_spd(e, spd, dist, dt)   # 主题敌人行为（萨米：受击暴冲 / 停火突进 / 馈赠 / 宝箱藤蔓逃跑，docs/392 §13）
 		var move_dir := dir
 		# 指挥模式仇恨（docs/114 §7）：突击中圈内一部分怪改追最近的突击队友（squad.aggro_target；不突击时不调用、不抽随机数）
 		var ag = _sq.aggro_target(e) if _sq != null and _sq.stance == 1 else null

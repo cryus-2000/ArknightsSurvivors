@@ -301,6 +301,8 @@ func _resolve(w: Dictionary) -> void:
 		e.atk_until = g.t + 0.35
 	if w.act=="knight_seed": return # The spear landing, not release, emits the impact and pillar warnings.
 	var dv := Vector2.from_angle(w.ang)
+	if w.has("cb"):
+		(w.cb as Callable).call(w)   # 主题 Boss 脚本的结算回调（萨米 sami_boss.gd：结算时补弹幕 / 铺地块）；之后照常按 act 结算
 	if w.act == "final_attack":
 		g.bai.finals.resolve(w)
 		return

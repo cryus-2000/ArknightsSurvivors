@@ -216,7 +216,7 @@
    "tex_final": "e_sami_blade",
    "ai": "melee",
    "role": "boss",
-   "script": "archon",
+   "script": "sami/blade",
    "_script_ph": "占位：借蔑视体 archon.gd 的招式（不刷小怪；path.gd 会刷水月的分形，11-20 冒烟报错）；T-B4 换 blade.gd（docs/392 §6.1）",
    "gates": [
     0.5
@@ -272,7 +272,7 @@
    "tex_final": "e_sami_wanderer",
    "ai": "melee",
    "role": "boss",
-   "script": "archon",
+   "script": "sami/blade",
    "_script_ph": "占位：借蔑视体 archon.gd（同上）；T-B4 换 blade.gd（与利刃共用，游荡者多 G 招，docs/392 §6.1）",
    "gates": [
     0.5
@@ -330,11 +330,11 @@
    "xp": 0.0,
    "tex": "e_paranoia",
    "tex_final": "e_sami_will",
-   "ai": "ranged",
+   "ai": "melee",
    "range": 360.0,
    "cd": 1.5,
    "role": "boss",
-   "script": "archon",
+   "script": "sami/will",
    "_script_ph": "占位：借蔑视体 archon.gd（不刷小怪；paranoia.gd 会刷水月骨海漂流体）；spd 0 不移动；T-B5 换 will.gd（docs/392 §6.2）",
    "hover": true,
    "arena_r": 520.0,
@@ -491,7 +491,6 @@
    "cd": 3.2,
    "shot_spd": 150,
    "atk": "法术",
-   "frost": 0.8,
    "cap": 6,
    "atk_anim": true,
    "full": true,
@@ -658,9 +657,9 @@
    "tex_final": "e_sami_shaman",
    "ai": "ranged",
    "range": 300.0,
-   "cd": 2.0,
+   "cd": 99.0,
    "role": "boss",
-   "script": "archon",
+   "script": "sami/shaman",
    "_script_ph": "占位：借蔑视体 archon.gd 的招式（不刷小怪）；招式见 docs/393 §2.3，Boss 会话的脚本单子换成 shaman.gd",
    "person": "sami_mid_body",
    "family": "shaman",
@@ -708,7 +707,7 @@
    "tex_final": "e_sami_vine",
    "ai": "melee",
    "role": "boss",
-   "script": "archon",
+   "script": "sami/vine",
    "_script_ph": "占位：借蔑视体 archon.gd 的招式（不刷小怪）；招式见 docs/393 §2.5，Boss 会话的脚本单子换成 vine.gd",
    "person": "sami_mid_body",
    "family": "vine",
@@ -754,9 +753,9 @@
    "tex_final": "e_sami_shaman2",
    "ai": "ranged",
    "range": 300.0,
-   "cd": 2.0,
+   "cd": 99.0,
    "role": "boss",
-   "script": "archon",
+   "script": "sami/shaman",
    "_script_ph": "占位：借蔑视体 archon.gd 的招式（不刷小怪）；招式见 docs/393 §2.4，Boss 会话的脚本单子换成 shaman.gd",
    "family": "shaman",
    "gates": [
@@ -803,7 +802,7 @@
    "tex_final": "e_sami_vine2",
    "ai": "melee",
    "role": "boss",
-   "script": "archon",
+   "script": "sami/vine",
    "_script_ph": "占位：借蔑视体 archon.gd 的招式（不刷小怪）；招式见 docs/393 §2.6，Boss 会话的脚本单子换成 vine.gd",
    "family": "vine",
    "gates": [
@@ -848,7 +847,7 @@
    "tex_final": "e_sami_lead",
    "ai": "melee",
    "role": "boss",
-   "script": "archon",
+   "script": "sami/lead",
    "_script_ph": "占位：借蔑视体 archon.gd 的招式（不刷小怪）；招式见 docs/393 §3.2，Boss 会话的脚本单子换成 lead.gd",
    "gates": [
     0.7,
@@ -888,7 +887,6 @@
     0.2,
     0.2
    ],
-   "frost": 1.2,
    "_frost": "原作攻击附寒冷 4.5 秒；本作按 docs/393 §1.4 压到 1.0–1.5 秒，走现成 frost 减速",
    "cold_add": 30.0,
    "cold_pulse": 40.0,
@@ -905,11 +903,11 @@
    "xp": 0.0,
    "tex": "e_ishar",
    "tex_final": "e_sami_cresson",
-   "ai": "ranged",
+   "ai": "melee",
    "range": 340.0,
    "cd": 1.5,
    "role": "boss",
-   "script": "archon",
+   "script": "sami/cresson",
    "_script_ph": "占位：借蔑视体 archon.gd 的招式（不刷小怪）；招式见 docs/393 §3.3，Boss 会话的脚本单子换成 cresson.gd",
    "gates": [
     0.66,
@@ -964,7 +962,8 @@
    "tex_final": "e_sami_khan",
    "ai": "melee",
    "role": "boss",
-   "script": "archon",
+   "script": "sami/twin",
+   "twin": "lion",
    "_script_ph": "占位：借蔑视体 archon.gd 的招式（不刷小怪）；招式见 docs/393 §3.4，Boss 会话的脚本单子换成 khan.gd",
    "gates": [
     0.66,
@@ -997,7 +996,6 @@
     0.35,
     0.3
    ],
-   "pair": "lion",
    "pair_gates": "sum",
    "decisive": {
     "spd_k": 2.0,
@@ -1020,7 +1018,8 @@
    "tex_final": "e_sami_lion",
    "ai": "melee",
    "role": "boss",
-   "script": "archon",
+   "script": "sami/twin",
+   "twin": "khan",
    "_script_ph": "占位：借蔑视体 archon.gd 的招式（不刷小怪）；招式见 docs/393 §3.4，Boss 会话的脚本单子换成 lion.gd",
    "gates": [
     0.66,
@@ -1053,7 +1052,6 @@
     0.58,
     1.0
    ],
-   "pair": "khan",
    "pair_gates": "sum",
    "decisive": {
     "spd_k": 2.0,

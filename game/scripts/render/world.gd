@@ -502,6 +502,8 @@ func draw_world() -> void:
 	g.squad.draw_ground_fx()   # 干员紧贴地砖的大片地面特效（docs/61 §5.6 layer = ground）：压在溟痕 / 地面预警之下
 	_pk("ground")
 	_draw_mires()
+	for m in g.mechs:
+		m.draw_ground(self)   # 主题机制地面件（萨米国度、Boss 场上实体的占位画法）
 	var ground_count := g.fx.size()
 	_draw_ground_sprites()
 	_pk("mire")

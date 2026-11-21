@@ -412,7 +412,7 @@ func press_q() -> bool:
 	if phase == "aim" and aim_v2 and aim_latched:
 		confirm_aim()   # 轻点进入的瞄准：再按一次 Q 释放
 		return true
-	if phase != "" or energy < FULL:
+	if phase != "" or energy < FULL or g.frozen_t > 0.0:
 		return false
 	if g.get("wheel") != null and g.wheel.is_open:
 		return false   # 指挥圆盘开着时不进终结技（键盘的 Q 本来就被圆盘吞掉；触屏终结技键不经过圆盘，11-01 终结技审查）

@@ -467,8 +467,8 @@ func update(dt: float) -> void:
 		tot += o.pfx.size()
 	pfx_peak = maxi(pfx_peak, tot)
 	for o in ops:
-		if o.cmd_down > 0.0:
-			continue   # 倒地：不充技力、不出手（docs/114 §7）
+		if o.cmd_down > 0.0 or (o.is_leader and g.frozen_t > 0.0):
+			continue   # 倒地：不充技力、不出手（docs/114 §7）；萨米冻结中的队长同样不动手（docs/394 §8.2）
 		g.vfx.spawn_tier = 2 if LateRead2.on("light_share") and o.skill_active() else 1   # docs/251 V4：这名干员这一帧生成的帧条，技能期间记重击档（纯画面标记）
 		o.tick_sp(dt)
 		_battle_voice(o, dt)

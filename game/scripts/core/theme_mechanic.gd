@@ -11,6 +11,7 @@ extends RefCounted
 ##   on_spawn_tick()         spawner._horde_tail_rest：补给箱之后、商人之前（自然溟痕刷新）
 ##   on_world_tick(dt)       game 杂项段：结局箱之后、骑士之前（引航灯标）
 ##   on_arena_freeze(fresh)  run/arena.gd 最终 Boss 场地冻结末尾（缩圈重置阶段、溟痕清掉场地里的）
+##   draw_ground(w)          render/world 溟痕层之后（萨米国度 / Boss 地面件的占位画法；w = world 渲染器，画到 w.g.wcv）
 ## 机器人挂钩（docs/364 §6；批跑的机器人按主题机制走位，不认具体机制）：
 ##   bot_return_dir(p, margin) -> Vector2  手残机器人：要不要先往回走（ZERO = 不用）
 ##   bot_score(q, s) -> float              高手：候选落点打分，传入当前分、返回改后的分（照原来的加减顺序做，浮点结果不变）
@@ -47,6 +48,10 @@ func on_world_tick(_dt: float) -> void:
 
 ## 最终 Boss 场地冻结那一刻（run/arena.gd freeze 末尾；fresh = 冻结前圈还没开始）
 func on_arena_freeze(_fresh: bool) -> void:
+	pass
+
+
+func draw_ground(_w) -> void:
 	pass
 
 
