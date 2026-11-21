@@ -4,7 +4,7 @@
 > 下面 §0–§4 保留设计稿原文；与实装不同的地方以 §5.1「实装差异」为准。
 > 依据：docs/27 §9（新干员流程）、61（积木）、91（精英化口径，§0.4 动词表）、108（帧条契约）、198 / 199 / 280 §6（终结技 / 连携）、202（成长节点去数值化）、310（节点可见）、365（Spine 直转像素与尺度）、76（文案）、79（木桩表）、80（对照口径）；萨米主题 docs/390 / 391 / 392 / 393 / 394（国度、坍缩、寒冷）。流程样板：令 docs/367（分支 `claude/op-ling`）。
 > 原作资料：解包 `character_table / skill_table / handbook_info_table / uniequip_table / battle_equip_table`（Kengxxiao/ArknightsGameData zh_CN，本机 `build/akgd/`，11-21 读）；英文名 YoStar en_US（同目录 `en_*`）。PRTS 页面 https://prts.wiki/w/提丰 （页面原文接口对脚本 403，同 docs/365 §5；数据以解包为准、页面人工对照）。Spine：`tools/prts_spine.py typhon`（torappu `char_2012_typhon`，11-21 拉到 `build/prts_ref/typhon/`，不进 git）。
-> 数值草案的 JSON：`docs/drafts/characters/typhon.json`（**放在 docs 下而不是 `game/data/characters/`**：里面用到的 `verb.ty_*` 还没实现，放进游戏目录会让 `check.py --only core` 的 validate_operator 报错、名册里多出一名空壳；审过、积木段写完再挪进去）。
+> JSON：`game/data/characters/typhon.json`（11-21 实装时由 docs/drafts 草案移入，草案已删）。
 > 查不到 / 未采用：原作没有终结技与连携；终结技名借原作模组名「冰原的影子」（uniequip_003_typhon，可查证，非技能名，同令借模组名的做法）；连携名「狩猎灾异」本作自拟（取自档案资料一「狩猎萨米人口中的『灾异』」）；普攻名与精英化 / 成长节点名都是本作自拟。语音表（charword_table）本机没有，入队 / 技能语音等接语音时再查。
 
 ---
@@ -186,7 +186,7 @@
 
 ---
 
-## 4. 数值预算表（docs/27 §9.1；数值全在 `docs/drafts/characters/typhon.json base`）
+## 4. 数值预算表（docs/27 §9.1；数值全在 `game/data/characters/typhon.json base`）
 
 | 项目 | 值 | 说明 |
 |---|---|---|
