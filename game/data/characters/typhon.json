@@ -38,6 +38,8 @@
   "arrow_speed": 560,
   "pierce": 2,
   "kb": 60,
+  "guard_r": 130,
+  "_guard_r": "特性选目标：队长 guard_r 内的非 Boss 敌人先打（离队长近的先），其余再按 Boss → 精英 → 重型 → 生命最多（11-21 云端配对第 1 轮胜率 22%、输局多死于追踪者贴身，docs/402 §5.3）",
   "fang_max": 5,
   "fang_keep": 4.0,
   "fang_ign": 0.1,
@@ -324,7 +326,7 @@
  "attack": {
   "mode": "auto",
   "name": "猎矢",
-  "desc": "每 {$cd} 秒朝射程内最重的敌人射出一支重箭（Boss → 精英 → 重型 → 生命最多），穿透至多 {$pierce} 名敌人"
+  "desc": "每 {$cd} 秒射出一支重箭，穿透至多 {$pierce} 名敌人；先射队长身边 {$guard_r} 内的敌人，其余优先射最重的敌人（Boss → 精英 → 重型 → 生命最多）"
  },
  "skills": [
   {
@@ -603,7 +605,8 @@
       "r": "$s3_r",
       "mult": "$s3_mult",
       "stun": "$s3_stun",
-      "hop_r": "$s3_hop_r", "spill": "$s3_spill",
+      "hop_r": "$s3_hop_r",
+      "spill": "$s3_spill",
       "src": "“永恒狩猎”",
       "power": true
      }
@@ -616,7 +619,8 @@
     "trig": "passive",
     "do": [
      {
-      "verb": "ty_hunter"
+      "verb": "ty_hunter",
+      "guard_r": "$guard_r"
      }
     ]
    }

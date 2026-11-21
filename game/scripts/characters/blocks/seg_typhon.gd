@@ -43,15 +43,22 @@ static func _ty_s2_on(o) -> bool:
 static func ty_targets(o, n: int, rr: float) -> Array:
 	if o.held_aim() or o.prio_mode() == 1:
 		return _exu_targets(o, n, rr, 1.0)   # 手动瞄准 / 指挥「清杂优先」照能天使的口径
+	var hb := _ty_one(o, "verb.ty_hunter")
+	var guard: float = float(hb.get("guard_r", 0.0))   # 近身护卫（11-21 云端配对：只按「最重」选时追踪者贴到队长身上没人打，胜率 22%）
+	var lp: Vector2 = o.g.ppos if o.g.ppos != Vector2.INF else o.pos
 	var keyed: Array = []
 	for j in o.query_ids(o.pos, rr):
 		var e: Dictionary = o.g.enemies[j]
 		if e.dead or e.chest or o.pos.distance_to(e.pos) > rr:
 			continue
 		var tier: int = 0 if e.boss else (1 if e.elite else (2 if _heavy(e) else 3))
+		var hp_key: float = -float(e.hp)
+		if guard > 0.0 and not e.boss and e.pos.distance_to(lp) <= guard:
+			tier = -1   # 贴近队长的敌人先打，同档离队长近的先
+			hp_key = e.pos.distance_to(lp)
 		if not o.hittable(e):
 			tier += 10
-		keyed.append([tier, -float(e.hp), o.pos.distance_to(e.pos), int(e.id), e])
+		keyed.append([tier, hp_key, o.pos.distance_to(e.pos), int(e.id), e])
 	keyed.sort_custom(func(x, y):
 		for k in 4:
 			if x[k] != y[k]:
@@ -490,7 +497,7 @@ static func ty_status_items(o) -> Array:
 static func _ty_validate(b: Dictionary, p: String, ctx: Dictionary, tag: String) -> void:
 	match tag:
 		"verb.ty_hunter":
-			pass
+			_num(b, "guard_r", p, ctx, false, 0.0, 400.0)
 		"verb.ty_fang":
 			_num(b, "max", p, ctx, true, 1.0, 20.0)
 			_num(b, "keep", p, ctx, true, 0.5, 30.0)
