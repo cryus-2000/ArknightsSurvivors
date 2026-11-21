@@ -7,9 +7,10 @@
 ## 画面是占位（docs/403 §6.0：浅冰蓝雪斑 + 层数亮点 + 暗铜铃纹），转平面特效另做。
 extends "res://scripts/characters/blocks/seg_ling.gd"
 
-const SB_ICE := Color(0.62, 0.85, 1.0)      # 积雪冰蓝 #9fd8ff
-const SB_EDGE := Color(0.30, 0.52, 0.82)    # 雪斑描边（压暗的宝蓝）
-const SB_PIP := Color(0.96, 1.0, 1.0)       # 层数亮点
+const SB_ICE := Color(0.62, 0.85, 1.0)      # 冰蓝 #9fd8ff（寒冷 / 冻结环）
+const SB_SNOW := Color(0.46, 0.64, 0.82)    # 积雪填充（压暗的冰蓝：不过光学泛光阈值，雪地 / 深海地面上都不发白）
+const SB_EDGE := Color(0.24, 0.38, 0.62)    # 雪斑描边（压暗的宝蓝）
+const SB_PIP := Color(0.80, 0.90, 0.98)      # 层数亮点
 const SB_BELL := Color(0.63, 0.48, 0.29)    # 暗铜铃纹 #a07a4a
 const SB_TEX_N := 14                        # 雪斑贴图边长（texel），每 texel = 3 世界单位（3 像素格）
 static var _sb_tex: Array = []              # [变体][层数-1] → ImageTexture（只画）
@@ -139,6 +140,8 @@ static func _sb_tick(o, b: Dictionary) -> void:
 		_sb_shatter_all(o, b)
 	st.s2_was = s2
 	_sb_guard(o, b)
+	if OS.is_debug_build():
+		sb_demo(o)
 	# 一：积雪节拍
 	if o.pos != Vector2.INF:
 		var cd: float = float(b.get("cd%d" % e2, b.get("cd0", 3.0))) * (float(b.get("s3_snow", 0.5)) if s3 else 1.0)
@@ -511,45 +514,42 @@ static func _sb_bless_apply(o, b: Dictionary) -> void:
 
 # ---------------------------------------------------------------- 画法（占位，只画；data_operator.draw_ground_fx 调）
 
-## 雪斑贴图：3 种外形 × 5 层（层数 = 填充不透明度 + 底部亮点数），中上一个暗铜小铃
+## 整数哈希（只画）：雪点分布不出现条纹
+static func _sb_hash(x: int, y: int, v: int) -> int:
+	var h: int = (x * 374761393 + y * 668265263 + v * 1442695041) & 0x7fffffff
+	h = ((h ^ (h >> 13)) * 1274126177) & 0x7fffffff
+	return (h ^ (h >> 16)) & 0x7fffffff
+
+
+## 雪地贴图（满格 14 × 14 texel，每 texel 3 世界单位）：3 种噪声 × 5 层。层数越多雪点越密越亮（1 层稀疏雪点，5 层满铺）+ 中下层数亮点；
+## 外形 0 的 3 层以上格子带一个暗铜小铃（约三分之一的厚雪格）。相邻格拼起来是一整片雪地，外沿描边在 sb_draw_ground 按邻格画
 static func _sb_textures() -> Array:
 	if not _sb_tex.is_empty():
 		return _sb_tex
 	var N := SB_TEX_N
-	var bell := [Vector2i(6, 2), Vector2i(7, 2), Vector2i(5, 3), Vector2i(6, 3), Vector2i(7, 3), Vector2i(8, 3), Vector2i(5, 4), Vector2i(6, 4), Vector2i(7, 4), Vector2i(8, 4), Vector2i(4, 5), Vector2i(9, 5), Vector2i(6, 6), Vector2i(7, 6)]
+	var bell := [Vector2i(6, 3), Vector2i(7, 3), Vector2i(5, 4), Vector2i(6, 4), Vector2i(7, 4), Vector2i(8, 4), Vector2i(5, 5), Vector2i(6, 5), Vector2i(7, 5), Vector2i(8, 5), Vector2i(6, 6), Vector2i(7, 6)]
+	var cover := [0.42, 0.58, 0.74, 0.88, 1.0]
 	for v in 3:
 		var row: Array = []
 		for layer in 5:
 			var img := Image.create(N, N, false, Image.FORMAT_RGBA8)
-			var inside := {}
+			var fa: float = 0.22 + 0.07 * float(layer)
 			for y in N:
 				for x in N:
-					var dx: float = float(x) - 6.5
-					var dy: float = float(y) - 6.5
-					var ang: float = atan2(dy, dx)
-					var wob: float = 0.55 * sin(ang * float(3 + v) + float(v) * 1.7) + 0.35 * cos(ang * 5.0 - float(v))
-					if sqrt(dx * dx + dy * dy) <= 6.0 + wob:
-						inside[Vector2i(x, y)] = true
-			var fa: float = 0.40 + 0.11 * float(layer)
-			for p in inside:
-				var edge := false
-				for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
-					if not inside.has(p + d):
-						edge = true
-				var c: Color = SB_EDGE if edge else SB_ICE
-				var a: float = minf(1.0, fa + (0.18 if edge else 0.0))
-				if not edge and (p.x + p.y * 3 + v) % 11 == 0:
-					c = Color(0.86, 0.95, 1.0)
-				img.set_pixelv(p, Color(c.r, c.g, c.b, a))
-			for p in bell:
-				if inside.has(p):
-					img.set_pixelv(p, Color(SB_BELL.r, SB_BELL.g, SB_BELL.b, 0.55 + 0.08 * float(layer)))
+					var hh: int = _sb_hash(x, y, v) % 1000
+					if float(hh) / 1000.0 >= cover[layer]:
+						continue
+					var c: Color = SB_SNOW
+					if hh % 9 == 0:
+						c = Color(0.60, 0.76, 0.90)   # 雪粒高光（暗，不过泛光阈值）
+					img.set_pixel(x, y, Color(c.r, c.g, c.b, fa))
+			if layer >= 2 and v == 0:
+				for p in bell:
+					img.set_pixelv(p, Color(SB_BELL.r, SB_BELL.g, SB_BELL.b, 0.6 + 0.08 * float(layer)))
 			var n := layer + 1
 			var x0 := 7 - n
-			for i in n:
-				var pp := Vector2i(x0 + i * 2, 10)
-				if inside.has(pp):
-					img.set_pixelv(pp, Color(SB_PIP.r, SB_PIP.g, SB_PIP.b, 1.0))
+			for k in n:
+				img.set_pixel(x0 + k * 2, 10, Color(SB_PIP.r, SB_PIP.g, SB_PIP.b, 0.85))
 			row.append(ImageTexture.create_from_image(img))
 		_sb_tex.append(row)
 	return _sb_tex
@@ -562,25 +562,51 @@ static func sb_draw_ground(o) -> void:
 	var cv = o.cv
 	var tx := _sb_textures()
 	var cs := _sb_cell(o)
-	var px: float = cs / float(SB_TEX_N)
-	var sz := Vector2(SB_TEX_N * px, SB_TEX_N * px)
+	var sz := Vector2(cs, cs)
 	var w: Dictionary = st.wave
 	var wr := -1.0
 	if not w.is_empty():
 		wr = float(st.b.get("wave_r", 240.0)) * o.stat(&"op_range") * clampf(float(w.t) / float(st.b.get("wave_t", 0.6)), 0.0, 1.0)
+	var cells: Dictionary = st.cells
+	var ec := Color(SB_EDGE.r * 0.8, SB_EDGE.g * 0.8, SB_EDGE.b * 0.8, 0.5)
+	var t3: float = cs / float(SB_TEX_N)
 	for k in st.order:
-		var n: int = int(st.cells.get(k, 0))
+		var n: int = int(cells.get(k, 0))
 		if n <= 0:
 			continue
 		var h: int = absi(k.x * 73856093 ^ k.y * 19349663)
 		var tex: Texture2D = tx[h % 3][clampi(n, 1, 5) - 1]
 		var c := sb_center(o, k)
+		var tl := c - sz * 0.5
 		var mod := Color(1, 1, 1, 1)
 		if wr >= 0.0 and absf(c.distance_to(w.c) - wr) < cs * 0.7:   # 霜涛经过的雪格提亮（没雪处圈是断的）
-			mod = Color(1.6, 1.7, 1.8, 1.0)
-		cv.draw_texture_rect(tex, Rect2(c - sz * 0.5, sz), false, mod)
+			mod = Color(1.35, 1.4, 1.5, 1.0)
+		cv.draw_texture_rect_region(tex, Rect2(tl, sz), Rect2(0, 0, SB_TEX_N, SB_TEX_N), mod)   # o.cv 是合批画布（batch_canvas），只有 region 版
+		# 雪区外沿：没有雪的那一侧画一道 1 texel 宽的压暗描边，按格子哈希缩进 0 / 1 texel，边不是一条直线
+		var j: float = t3 * float(h % 2)
+		if not cells.has(k + Vector2i(0, -1)):
+			cv.draw_rect(Rect2(tl + Vector2(0, j), Vector2(cs, t3)), ec)
+		if not cells.has(k + Vector2i(0, 1)):
+			cv.draw_rect(Rect2(tl + Vector2(0, cs - t3 - j), Vector2(cs, t3)), ec)
+		if not cells.has(k + Vector2i(-1, 0)):
+			cv.draw_rect(Rect2(tl + Vector2(j, 0), Vector2(t3, cs)), ec)
+		if not cells.has(k + Vector2i(1, 0)):
+			cv.draw_rect(Rect2(tl + Vector2(cs - t3 - j, 0), Vector2(t3, cs)), ec)
 	for s in st.storms:
 		var r: float = float(st.b.get("n5b_r", 50.0))
 		cv.draw_set_transform(s.c, 0.0, Vector2(1.0, 0.55))
 		cv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 20, Color(SB_ICE.r, SB_ICE.g, SB_ICE.b, 0.5), 2.0)
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## 调试演示（只在调试版 + 命令行 --sbdemo）：开局在队长右侧摆 1–5 层各一块 3 × 3 样板，撞色对照截图用（docs/403 §6.0）
+static func sb_demo(o) -> void:
+	var st := sb_st(o)
+	if bool(st.get("demo", false)) or not OS.is_debug_build() or not ("--sbdemo" in OS.get_cmdline_user_args()):
+		return
+	st.demo = true
+	var base := sb_key(o, o.g.ppos) + Vector2i(-9, 6)
+	for i in 5:
+		for dy in 3:
+			for dx in 3:
+				sb_add(o, base + Vector2i(i * 4 + dx, dy), i + 1)
