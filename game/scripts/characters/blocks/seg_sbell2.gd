@@ -450,6 +450,8 @@ static func _sb_densest(o, look: float, half: float, skip: float) -> float:
 		if n > best:
 			best = n
 			ba = a
+	if best <= 0 and skip != INF:
+		return skip   # 第二下别的方向没有敌人（单体）：补打同一方向
 	return ba
 
 
