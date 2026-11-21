@@ -52,6 +52,7 @@ func all_moves(e: Dictionary) -> Array:
 func _a_cleave(e: Dictionary, dir: Vector2, _d: float) -> float:
 	var w := w_cone(e, dir.angle(), PI / 3.0, 100.0, 1.2, 0.20, "斩击", {"track": 0.4})
 	w.cb = func(ww):
+		_fx_cleave(e, float(ww.ang))
 		for s in [-1.0, 1.0]:
 			fan(e, e.pos, float(ww.ang) + s * PI / 3.0, 0.15, 3, 200.0, 0, 0.10)
 	return 1.4
@@ -60,6 +61,9 @@ func _a_cleave(e: Dictionary, dir: Vector2, _d: float) -> float:
 ## B 投刃：直线 0.8 秒（半宽 24），结算时沿线放 1 枚大刃片
 func _b_throw(e: Dictionary, dir: Vector2, _d: float) -> float:
 	var w := w_line(e, dir.angle(), 460.0, 48.0, 0.8, 0.18, "投刃", {"track": 0.3})
+	var fx = sfx()
+	if fx != null:
+		fx.play("blade_charge", e.pos + Vector2(0, -34), 0.0)   # 原作 smgrd_attack_01_start：暗红团 + 环内收，末段十字星正好落在出手
 	w.cb = func(ww): shot(e, e.pos, float(ww.ang), 340.0, 2, 0.12)
 	return 1.0
 
@@ -76,7 +80,9 @@ func _c_burst(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	for k in mine.slice(maxi(0, mine.size() - 8)):
 		var kp: Vector2 = k.pos
 		var kr: float = k.r
-		later(e, 0.15 * i, func(): w_circle(e, kp, kr, 1.1 if _wand(e) else 0.9, 0.15, "国度爆发" if i == 0 else ""))
+		later(e, 0.15 * i, func():
+			var w := w_circle(e, kp, kr, 1.1 if _wand(e) else 0.9, 0.15, "国度爆发" if i == 0 else "")
+			w.cb = func(_ww): _fx_burst(kp, kr))
 		i += 1
 	return 1.2 + 0.15 * i
 
@@ -84,6 +90,9 @@ func _c_burst(e: Dictionary, _dir: Vector2, _d: float) -> float:
 ## D 回旋：自身为心 24 发中圆弹，2 个缺口，扩散 180，显形 0.9 秒（缺口提前画出）
 func _d_ring(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	ring(e, e.pos, 24, 180.0, 1, 0.12, gaps_at(e.pos), 0.0, {"hold": 0.9})
+	var fx = sfx()
+	if fx != null:
+		fx.play("blade_star", e.pos + Vector2(0, -30), 0.0, 0.8)
 	return 1.2
 
 
@@ -93,6 +102,7 @@ func _e_chase(e: Dictionary, dir: Vector2, _d: float) -> float:
 	var from: Vector2 = e.pos
 	var w := w_stab(e, a, 300.0, 60.0, 0.8, 0.22, "追猎", {"track": 0.3})
 	w.cb = func(ww):
+		_fx_chase(from, float(ww.ang), 300.0)
 		var km = kingdoms()
 		if km != null:
 			for k in 3:
@@ -103,6 +113,10 @@ func _e_chase(e: Dictionary, dir: Vector2, _d: float) -> float:
 ## F 刃雨：对称环 16 发米弹 ×2 层（第二层错开半格、晚 0.4 秒）+ 3 发针弹自机狙
 func _f_rain(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	ring(e, e.pos, 16, 170.0, 0, 0.10, [], 0.0, {"hold": 0.6})
+	var fx = sfx()
+	if fx != null:
+		fx.play("blade_star", e.pos + Vector2(0, -30), 0.0, 0.7)
+		later(e, 0.4, func(): fx.play("blade_star", e.pos + Vector2(0, -30), PI / 4.0, 0.6))
 	later(e, 0.4, func(): ring(e, e.pos, 16, 170.0, 0, 0.10, [], PI / 16.0, {"hold": 0.6}))
 	later(e, 0.8, func(): aim(e, e.pos, 3, 0.12, 300.0, 0, 0.10))
 	return 1.4
@@ -111,7 +125,10 @@ func _f_rain(e: Dictionary, _dir: Vector2, _d: float) -> float:
 ## G 皇帝的猎杀（游荡者）：队长身边依次落 3 个圈（锁定时刻位置）+ 一道直线收尾
 func _g_hunt(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	for k in 3:
-		later(e, 0.45 * k, func(): w_circle(e, g.ppos, 60.0, 0.9, 0.15, "皇帝的猎杀" if k == 0 else ""))
+		later(e, 0.45 * k, func():
+			var hp: Vector2 = g.ppos
+			var w := w_circle(e, hp, 60.0, 0.9, 0.15, "皇帝的猎杀" if k == 0 else "")
+			w.cb = func(_ww): _fx_burst(hp, 60.0))
 	later(e, 1.5, func(): w_line(e, (g.ppos - e.pos).angle(), 520.0, 40.0, 0.8, 0.20, ""))
 	return 2.6
 
@@ -126,3 +143,40 @@ func on_kingdom_break(e: Dictionary) -> void:
 		e.kb_hist = []
 		g.combat.start_break(e, 2.5)
 		vuln(e, 2.5, 1.5 / maxf(0.01, Bal.v("boss/break_mult", 1.4)))
+
+
+## ---- 攻击特效（docs/401 §3.2；原作 smgrd：黑 + 深红，十字星 / 刀光 / 红橙速度线 / 黑烟；只画）
+## 斩击：沿扇形挥出一道深红月牙刀光（smgrd_attack_02_hit：白 → 红 → 黑），扇边甩红橙火花，脚下一团黑烟
+func _fx_cleave(e: Dictionary, ang: float) -> void:
+	var fx = sfx()
+	if fx == null:
+		return
+	fx.play("blade_slash", e.pos + Vector2.from_angle(ang) * 18.0 + Vector2(0, -10), ang, 1.25)
+	for s in [-1.0, 1.0]:
+		fx.sparks(e.pos + Vector2.from_angle(ang + s * PI / 3.0) * 70.0, ang + s * PI / 3.0, 0.35, 5, 300.0, fx.BLOOD)
+	fx.smoke(e.pos + Vector2.from_angle(ang) * 40.0, 4, Color(0.0, 0.0, 0.0, 0.45), 14.0, 16.0, 0.8)
+
+
+## 国度爆发 / 皇帝的猎杀落点：十字星闪（shizixing）+ 一圈黑烟往外翻（smgrd_buff_03_range：黑烟 + 暗红点）+ 红余烬
+func _fx_burst(pos: Vector2, r: float) -> void:
+	var fx = sfx()
+	if fx == null:
+		return
+	fx.play("blade_star", pos + Vector2(0, -8), 0.0, clampf(r / 60.0, 0.8, 1.6))
+	for i in 8:
+		var a: float = TAU * float(i) / 8.0
+		fx.smoke(pos + Vector2.from_angle(a) * r * 0.6, 1, Color(0.0, 0.0, 0.0, 0.5), r * 0.22, 22.0, 0.9)
+	fx.embers(pos, 8, Color(0.75, 0.06, 0.04), 110.0, 90.0, 0.8)
+
+
+## 追猎：冲过的直线上留一串黑烟 + 红橙速度线（smgrd suduxina / xian_01）
+func _fx_chase(from: Vector2, ang: float, ln: float) -> void:
+	var fx = sfx()
+	if fx == null:
+		return
+	var d := Vector2.from_angle(ang)
+	for i in 7:
+		var p: Vector2 = from + d * ln * (float(i) + 0.5) / 7.0
+		fx.smoke(p, 1, Color(0.0, 0.0, 0.0, 0.5), 12.0, 10.0, 0.7)
+		fx.sparks(p, ang + PI, 0.25, 2, 260.0, fx.BLOOD)
+	fx.play("blade_star", from + d * ln + Vector2(0, -20), 0.0, 0.8)

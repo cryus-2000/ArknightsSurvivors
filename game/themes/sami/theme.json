@@ -37,6 +37,10 @@
     {
       "id": "foes",
       "script": "res://themes/sami/mech/mech_foes.gd"
+    },
+    {
+      "id": "fx",
+      "script": "res://themes/sami/mech/mech_fx.gd"
     }
   ],
   "maps": {

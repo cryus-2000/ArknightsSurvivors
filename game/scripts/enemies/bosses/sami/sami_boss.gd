@@ -202,6 +202,11 @@ func kingdoms():
 	return g.mech("kingdom")
 
 
+## 攻击特效模块（themes/sami/mech/mech_fx.gd，docs/401；只画）。没装（别的主题借脚本）时返回 null，调用方判空
+func sfx():
+	return g.mech("fx")
+
+
 ## 场地中心（最终 Boss 冻结场地 = 缩圈圆心；中期 Boss 用出场时队长的位置）
 func center(e: Dictionary) -> Vector2:
 	if g.zone_frozen:

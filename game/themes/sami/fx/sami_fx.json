@@ -1,0 +1,107 @@
+{
+ "_doc": "萨米敌人攻击特效主形帧条（docs/401）：tools/sami_fx_bake.py 生成，勿手改。size / origin 单位是 1x 纹素（游戏里 ×2 = 世界像素）。",
+ "husk_hit": {
+  "frames": 6,
+  "fps": 15,
+  "size": [
+   17,
+   35
+  ],
+  "origin": [
+   4,
+   17
+  ],
+  "part": "slash"
+ },
+ "caster_star": {
+  "frames": 6,
+  "fps": 15,
+  "size": [
+   18,
+   18
+  ],
+  "origin": [
+   9,
+   9
+  ],
+  "part": "star"
+ },
+ "caster_pop": {
+  "frames": 5,
+  "fps": 15,
+  "size": [
+   23,
+   27
+  ],
+  "origin": [
+   11,
+   13
+  ],
+  "part": "pop"
+ },
+ "icebug_nova": {
+  "frames": 9,
+  "fps": 15,
+  "size": [
+   60,
+   60
+  ],
+  "origin": [
+   30,
+   30
+  ],
+  "part": "nova"
+ },
+ "blade_charge": {
+  "frames": 15,
+  "fps": 15,
+  "size": [
+   56,
+   56
+  ],
+  "origin": [
+   28,
+   28
+  ],
+  "part": "charge"
+ },
+ "blade_star": {
+  "frames": 6,
+  "fps": 15,
+  "size": [
+   32,
+   32
+  ],
+  "origin": [
+   16,
+   16
+  ],
+  "part": "star"
+ },
+ "blade_slash": {
+  "frames": 6,
+  "fps": 15,
+  "size": [
+   42,
+   81
+  ],
+  "origin": [
+   9,
+   39
+  ],
+  "part": "slash"
+ },
+ "blade_pop": {
+  "frames": 5,
+  "fps": 15,
+  "size": [
+   39,
+   31
+  ],
+  "origin": [
+   19,
+   19
+  ],
+  "part": "pop"
+ }
+}

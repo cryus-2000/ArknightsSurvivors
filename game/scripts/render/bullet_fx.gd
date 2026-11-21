@@ -499,7 +499,7 @@ func draw_trails() -> void:
 	var thin: bool = n > int(Bal.v("render/btrail_thin", 100.0))
 	var fr0: int = int(clock * 14.0)
 	for b in g.ebullets:
-		if not b.get("boss", false) or b.get("hidden", false) or str(b.get("kind", "")) == "boss_blade" or float(b.life) <= 0.0 or w.bbv2.mine(b):
+		if not b.get("boss", false) or b.get("hidden", false) or str(b.get("kind", "")) == "boss_blade" or float(b.life) <= 0.0 or w.bbv2.mine(b) or b.get("sfx_own", false):
 			continue   # 第二版画法的 Boss 弹有自己的掉光粒子，不画旧拖尾（docs/306 §8）
 		var id: int = int(b.get("_bid", 0))
 		if thin and id % 2 == 1:

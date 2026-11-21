@@ -655,6 +655,8 @@ func _draw_foe_upper() -> void:
 		bulfx.draw_grounds()   # Boss 落地迸散（docs/206 §4）
 		bulfx.draw_trails()   # Boss 弹拖尾光粒（压在弹体之下，docs/206 §2）
 		EbDraw._draw_ebullets_lobs_shocks(self)
+		for m in g.mechs:
+			m.draw_front(self)   # 主题机制敌方特效（萨米 mech_fx，docs/401）
 	bulfx.draw_top()   # 新弹亮芯闪 + 消失残影（压在弹体之上）
 	_draw_hit_dot()
 	_pk("ebullets_lobs_shocks")

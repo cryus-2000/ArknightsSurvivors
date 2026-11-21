@@ -497,7 +497,7 @@ func step_trails(danger: Color, on: bool) -> void:
 		for b in g.ebullets:
 			if n >= TRAIL_PTS:
 				break
-			if b.life <= 0.0:
+			if b.life <= 0.0 or b.get("sfx_own", false):   # sfx_own：萨米专属弹体自带拖尾（themes/sami/mech/mech_fx，docs/401）
 				continue
 			_tp_img.set_pixel(n, 0, Color(b.pos.x, b.pos.y - 16.0, 0, 1))
 			_tc_img.set_pixel(n, 0, g.optical.eb_col(b) if g.optical != null else danger)   # Boss 弹危险色、杂兵弹敌弹色（docs/139 §7.3）

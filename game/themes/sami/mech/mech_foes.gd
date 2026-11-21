@@ -50,6 +50,9 @@ func enemy_spd(e: Dictionary, spd: float, _dist: float, _dt: float) -> float:
 		if e.hp < last - 0.01 and g.t >= float(e.get("hr_cd", 0.0)):
 			e["hr_until"] = g.t + float(hr.get("dur", 1.5))
 			e["hr_cd"] = g.t + float(hr.get("cd", 3.0))
+			var fx = g.mech("fx")
+			if fx != null:
+				fx.rush(e)   # 只画（docs/401）
 		e["hr_hp"] = e.hp
 		if g.t < float(e.get("hr_until", 0.0)):
 			spd *= float(hr.get("mult", 2.0))
@@ -132,8 +135,12 @@ func on_enemy_killed(e: Dictionary) -> void:
 ## 冰爆源石虫：死亡时半径 r 爆炸（伤害 = dmg × mult，算环境伤害）+ 寒冷 cold_add；纠缠 / 古老藤蔓在范围里吃 10 秒脆弱（docs/393 §2.5）
 func _blast(e: Dictionary, db: Dictionary, d: Dictionary) -> void:
 	var r: float = float(db.get("r", 55.0))
-	g.fx.append({"kind": "ring", "pos": e.pos, "r": r, "life": 0.35, "max": 0.35, "col": Color(0.7, 0.9, 1.0), "enemy": true})
-	g.vfx.sparks(e.pos, Vector2.UP, Color(0.8, 1.0, 1.4), 10, 200.0)
+	var fx = g.mech("fx")
+	if fx != null:
+		fx.icebug_blast(e.pos, r)   # docs/401：冰蓝冲击环 + 雪屑（只画）
+	else:
+		g.fx.append({"kind": "ring", "pos": e.pos, "r": r, "life": 0.35, "max": 0.35, "col": Color(0.7, 0.9, 1.0), "enemy": true})
+		g.vfx.sparks(e.pos, Vector2.UP, Color(0.8, 1.0, 1.4), 10, 200.0)
 	env_blast(e.pos, r, 10.0)
 	if float(db.get("ice_t", 0.0)) > 0.0:
 		ices.append([e.pos, r, g.t + float(db.ice_t)])
@@ -228,7 +235,14 @@ func _vinebox_swap() -> void:
 func draw_ground(_w) -> void:
 	var cv = g.wcv
 	for x in ices:
-		cv.draw_circle(x[0], float(x[1]), Color(0.75, 0.9, 1.0, 0.18))
+		# 冰面（docs/401：原作 snslime dimian 冷白霜地）：淡霜面 + 边缘一圈 2 像素冰晶点，最后 0.6 秒淡出
+		var fa: float = clampf((float(x[2]) - g.t) / 0.6, 0.0, 1.0)
+		var r: float = float(x[1])
+		cv.draw_circle(x[0], r * 0.92, Color(0.72, 0.86, 1.0, 0.10 * fa))
+		for i in 18:
+			var h: int = (i * 7919 + int(x[0].x) * 31 + int(x[0].y) * 17) & 1023
+			var at: Vector2 = x[0] + Vector2.from_angle(TAU * float(i) / 18.0 + float(h % 13) * 0.02) * r * (0.62 + float(h % 37) / 100.0)
+			cv.draw_rect(Rect2((at * 0.5).floor() * 2.0, Vector2(2, 2)), Color(0.86, 0.95, 1.0, 0.75 * fa))
 	for b in g.bosses:
 		if b.dead:
 			continue

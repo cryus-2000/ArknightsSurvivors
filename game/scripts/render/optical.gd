@@ -137,7 +137,7 @@ func _dyn_lights(xf: Transform2D, k: float) -> void:
 		for b in g.ebullets:
 			if ne >= 40:
 				break
-			if b.life <= 0.0 or not vr.has_point(b.pos):
+			if b.life <= 0.0 or not vr.has_point(b.pos) or b.get("sfx_own", false):
 				continue
 			ne += 1
 			cand.append([0.3, b.pos + Vector2(0, -16), 44.0, eb_col(b), 1, 0])
