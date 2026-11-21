@@ -52,7 +52,7 @@ static func ty_targets(o, n: int, rr: float) -> Array:
 		if e.dead or e.chest or o.pos.distance_to(e.pos) > rr:
 			continue
 		var tier: int = 0 if e.boss else (1 if e.elite else (2 if _heavy(e) else 3))
-		var hp_key: float = -float(e.hp)
+		var hp_key: float = -float(e.hp) if tier < 3 else e.pos.distance_to(lp)   # 普通杂兵按离队长近的先（11-21 配对：按生命最多选会漏掉冲脸的追踪者）
 		if guard > 0.0 and not e.boss and e.pos.distance_to(lp) <= guard:
 			tier = -1   # 贴近队长的敌人先打，同档离队长近的先
 			hp_key = e.pos.distance_to(lp)
