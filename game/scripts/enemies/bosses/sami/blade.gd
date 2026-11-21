@@ -76,12 +76,17 @@ func _c_burst(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var mine: Array = km.list.filter(func(k): return int(k.owner_id) == int(e.id))
 	if mine.is_empty():
 		return -1.0
-	var i := 0
+	# 叠在一起的国度只放一个圈（中心距 < 0.9 r 的并掉，docs/401 §4：3–4 个预警叠成一团读不清；并集面积几乎不变）
+	var pick: Array = []
 	for k in mine.slice(maxi(0, mine.size() - 8)):
+		if pick.all(func(q): return (q.pos as Vector2).distance_to(k.pos) >= 0.9 * float(k.r)):
+			pick.append(k)
+	var i := 0
+	for k in pick:
 		var kp: Vector2 = k.pos
 		var kr: float = k.r
 		later(e, 0.15 * i, func():
-			var w := w_circle(e, kp, kr, 1.1 if _wand(e) else 0.9, 0.15, "国度爆发" if i == 0 else "")
+			var w := w_circle(e, kp, kr, 1.1 if _wand(e) else 0.9, 0.15, "国度爆发" if i == 0 else "", {"no_fx": sfx() != null})
 			w.cb = func(_ww): _fx_burst(kp, kr))
 		i += 1
 	return 1.2 + 0.15 * i
@@ -127,7 +132,7 @@ func _g_hunt(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	for k in 3:
 		later(e, 0.45 * k, func():
 			var hp: Vector2 = g.ppos
-			var w := w_circle(e, hp, 60.0, 0.9, 0.15, "皇帝的猎杀" if k == 0 else "")
+			var w := w_circle(e, hp, 60.0, 0.9, 0.15, "皇帝的猎杀" if k == 0 else "", {"no_fx": sfx() != null})
 			w.cb = func(_ww): _fx_burst(hp, 60.0))
 	later(e, 1.5, func(): w_line(e, (g.ppos - e.pos).angle(), 520.0, 40.0, 0.8, 0.20, ""))
 	return 2.6
@@ -157,16 +162,19 @@ func _fx_cleave(e: Dictionary, ang: float) -> void:
 	fx.smoke(e.pos + Vector2.from_angle(ang) * 40.0, 4, Color(0.0, 0.0, 0.0, 0.45), 14.0, 16.0, 0.8)
 
 
-## 国度爆发 / 皇帝的猎杀落点：十字星闪（shizixing）+ 一圈黑烟往外翻（smgrd_buff_03_range：黑烟 + 暗红点）+ 红余烬
+## 国度爆发 / 皇帝的猎杀落点：照原作 smgrd_attack_01_hit + buff_03_range 的结构——十字星爆闪（shizixing 黑 → 红 → 白 → 红 → 黑）→
+## 红橙拉伸火花向外迸（suduxina / lizi）+ 黑 / 暗红碎石抛起落下（shitou）+ 黑烟往上拉长（smoke）。不画实心圆盘、不画圈
 func _fx_burst(pos: Vector2, r: float) -> void:
 	var fx = sfx()
 	if fx == null:
 		return
-	fx.play("blade_star", pos + Vector2(0, -8), 0.0, clampf(r / 60.0, 0.8, 1.6))
-	for i in 8:
-		var a: float = TAU * float(i) / 8.0
-		fx.smoke(pos + Vector2.from_angle(a) * r * 0.6, 1, Color(0.0, 0.0, 0.0, 0.5), r * 0.22, 22.0, 0.9)
-	fx.embers(pos, 8, Color(0.75, 0.06, 0.04), 110.0, 90.0, 0.8)
+	fx.play("blade_star", pos + Vector2(0, -8), 0.0, clampf(r / 60.0, 0.8, 1.4))
+	fx.play("blade_pop", pos + Vector2(0, -6), 0.0, clampf(r / 50.0, 1.0, 1.6))
+	fx.sparks(pos, 0.0, PI, 14, 330.0, fx.BLOOD, true, 0.32)
+	fx.embers(pos, 7, Color(0.05, 0.02, 0.02), 170.0, 320.0, 0.6)
+	fx.embers(pos, 5, Color(0.7, 0.05, 0.03), 140.0, 300.0, 0.55)
+	for i in 4:
+		fx.smoke(pos + Vector2.from_angle(TAU * float(i) / 4.0 + 0.4) * r * 0.3, 1, Color(0.0, 0.0, 0.0, 0.55), 10.0, 34.0, 0.8)
 
 
 ## 追猎：冲过的直线上留一串黑烟 + 红橙速度线（smgrd suduxina / xian_01）

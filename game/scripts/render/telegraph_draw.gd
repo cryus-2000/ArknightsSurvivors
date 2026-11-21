@@ -104,6 +104,8 @@ static func draw_fills(g) -> void:
 			var f: float = clampf(1.0 - (w.t - w.dur) / 0.25, 0.0, 1.0)
 			c = Color(2.0, 2.0, 2.0)
 			fa = 0.45 * f * Bal.v("render/warn_flash_fill", 1.0)   # docs/139 §8：结算白闪的整片白填充（0 = 只闪轮廓）
+			if w.get("no_fx", false):
+				fa = 0.0   # 放招方自画结算特效（萨米 Boss，docs/401）：只闪轮廓，不铺整片白盘
 			oa = 0.9 * f
 			k = 1.0
 		# 颜色不再乘 1.7–2.0：乘完在灯光里褪成白色 / 粉彩，色相丢失（docs/48 全局 ④）；亮度靠 alpha 和白芯（world.draw_warn_outlines）

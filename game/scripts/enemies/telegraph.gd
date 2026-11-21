@@ -409,10 +409,12 @@ func _resolve(w: Dictionary) -> void:
 			warn_damage(w)
 		"lob":
 			# 轰击（docs/95 §6.2 C，第 2 批用）：固定落点圈结算 + 1.5 秒火光（纯画面）；耗弹由放招方按 ammo_cost 处理
-			if not g.vfx.fx_sprite("fx_saint_shell_burst", w.pos, g.PX * 1.5, 0.0):
-				g.fx.append({"kind": "explode", "pos": w.pos, "r": w.r, "life": 0.4, "max": 0.4, "col": c})
-			g.fx.append({"kind": "ring", "pos": w.pos, "r": w.r * 0.8, "life": 1.5, "max": 1.5, "col": Color(c.r * 1.2, c.g * 0.8, c.b * 0.5), "enemy": true})
-			g.vfx.sparks(w.pos, Vector2.UP, Color(1.6, 1.0, 0.5), 16, 280.0)
+			# no_fx：放招方自己画结算特效（萨米 Boss，docs/401），通用火光 / 圈 / 火花都不画（只画面）
+			if not w.get("no_fx", false):
+				if not g.vfx.fx_sprite("fx_saint_shell_burst", w.pos, g.PX * 1.5, 0.0):
+					g.fx.append({"kind": "explode", "pos": w.pos, "r": w.r, "life": 0.4, "max": 0.4, "col": c})
+				g.fx.append({"kind": "ring", "pos": w.pos, "r": w.r * 0.8, "life": 1.5, "max": 1.5, "col": Color(c.r * 1.2, c.g * 0.8, c.b * 0.5), "enemy": true})
+				g.vfx.sparks(w.pos, Vector2.UP, Color(1.6, 1.0, 0.5), 16, 280.0)
 			Sfx.play("boom", -2.0, 0.9, 0.0)
 			g.vfx.shake_screen(0.8)
 			warn_damage(w)

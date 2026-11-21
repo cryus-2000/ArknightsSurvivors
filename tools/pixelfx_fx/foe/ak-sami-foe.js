@@ -66,7 +66,6 @@ export function create(o) {
       if (P === "slash") {
         // 暗影先铺（原作 bg01 暗底 + slash02 黑影），刀光压在上面：白（1 帧）→ 主色 → 黑，向外略扩、变薄
         const u = clamp(t / D), grow = 1 + 0.18 * ease.outCubic(u);
-        if (t < 0.28) crescent(p, R * 1.3 * grow, 1.15, R * 0.8, BLACK, 0.5 * (1 - u));
         const sw = clamp(t / 0.07);
         const c = t < 0.07 ? WHITE : t < 0.14 ? RAMP[5] : t < 0.21 ? RAMP[4] : t < 0.28 ? RAMP[3] : RAMP[2];
         const th = R * (t < 0.14 ? 0.62 : 0.62 * (1 - (t - 0.14) / (D - 0.14)) + 0.1);
@@ -80,7 +79,6 @@ export function create(o) {
         const u = clamp(t / D), rr = R * (0.45 + 0.75 * ease.outQuart(u));
         const pts = blob.map((b) => [Math.cos(b.a) * rr * b.r, Math.sin(b.a) * rr * b.r * 0.85]);
         // 暗边（原作 bg：黑 35%）比亮团大一圈，往外淡
-        p.poly(pts.map(([x, y]) => [x * 1.35, y * 1.35]), BLACK, 0.5 * (1 - u));
         if (t < 0.24) {
           const c = t < 0.07 ? WHITE : t < 0.14 ? RAMP[5] : RAMP[4];
           p.poly(pts, t < 0.07 ? RAMP[4] : RAMP[3], t < 0.17 ? 1 : 0.7);
@@ -97,7 +95,6 @@ export function create(o) {
         // 四芒星：0–0.07 白芯闪亮、尖刺最长；之后收缩冷却；斜 45° 一对短刺
         const u = clamp(t / D), L = R * (t < 0.07 ? 1.15 : 1.15 * (1 - ease.inQuad(clamp((t - 0.07) / (D - 0.07)))));
         const w = Math.max(1, R * 0.16 * (1 - u * 0.6));
-        p.disc(0, 0, R * 0.55 * (1 - u), BLACK, 0.45 * (1 - u));
         const c = t < 0.07 ? WHITE : t < 0.14 ? RAMP[5] : RAMP[4];
         for (const [dx, dy, k] of [[1, 0, 1], [-1, 0, 1], [0, 1, 0.75], [0, -1, 0.75], [0.7, 0.7, 0.4], [-0.7, 0.7, 0.4], [0.7, -0.7, 0.4], [-0.7, -0.7, 0.4]]) {
           const l = L * k;
@@ -111,25 +108,28 @@ export function create(o) {
         // 地面霜渍：0.08 起铺开，冷白、透出地面（原作 dimian 白 + andi 深蓝）
         if (t > 0.05) {
           const fr = R * 0.9 * ease.outCubic(clamp((t - 0.05) / 0.2));
-          p.disc(0, 0, fr * 1.05, RAMP[2], 0.22 * (1 - u * 0.7));
           for (const ch of chunks) for (let k = 0; k < 3; k++) p.dot(Math.cos(ch.a + k * 0.12) * fr * (ch.d * 0.7 + k * 0.08), Math.sin(ch.a + k * 0.12) * fr * (ch.d * 0.7 + k * 0.08), RAMP[5], 0.8 * (1 - u));
         }
         // 白闪
         if (t < 0.1) {
-          p.disc(0, 0, R * (t < 0.05 ? 0.55 : 0.38), t < 0.05 ? WHITE : RAMP[5], 1);
-          p.disc(0, 0, R * (t < 0.05 ? 0.75 : 0.6), RAMP[4], 0.6);
+          // 白闪：实心不规则核 + 6 根冰刺（原作 baoshan + baoci），不画半透明外圈
+          p.poly(blob.map((b) => [Math.cos(b.a) * R * 0.42 * b.r, Math.sin(b.a) * R * 0.36 * b.r]), t < 0.05 ? WHITE : RAMP[5]);
+          for (const ch of chunks.slice(0, 6)) {
+            const L = R * (t < 0.05 ? 0.75 : 0.95) * ch.d;
+            p.beam(Math.cos(ch.a) * R * 0.25, Math.sin(ch.a) * R * 0.22, Math.cos(ch.a) * L, Math.sin(ch.a) * L * 0.85, 1.5, t < 0.05 ? RAMP[6] : RAMP[4]);
+          }
         }
-        // 冲击环：外扩到 R，厚度递减，两个断口；颜色 青白 → 青 → 深蓝
-        const ru = ease.outQuart(clamp(t / 0.42)), rr = R * (0.2 + 0.85 * ru), w = Math.max(1, R * 0.22 * (1 - ru) + 1);
-        if (t < 0.46) {
-          const c = t < 0.1 ? RAMP[6] : t < 0.2 ? RAMP[5] : t < 0.3 ? RAMP[4] : RAMP[3];
-          const segs = 20;
+        // 冲击环：碎冰环（原作 huan），粗、不等宽、5 处断口，外扩到 R，0.32 秒内碎完；不画细环
+        const ru = ease.outQuart(clamp(t / 0.3)), rr = R * (0.25 + 0.8 * ru);
+        if (t < 0.32) {
+          const c = t < 0.07 ? RAMP[6] : t < 0.14 ? RAMP[5] : t < 0.21 ? RAMP[4] : RAMP[3];
+          const segs = 15;
           for (let i = 0; i < segs; i++) {
-            const a0 = (i / segs) * TAU, a1 = ((i + 1) / segs) * TAU;
-            if (gaps.some((g) => Math.abs(Math.atan2(Math.sin(a0 - g), Math.cos(a0 - g))) < 0.32)) continue;
+            if (i % 3 === 2) continue;                          // 断口
+            const a0 = (i / segs) * TAU + gaps[0], a1 = a0 + TAU / segs * 0.85;
+            const w = Math.max(2, R * (0.3 - 0.15 * ru) * (0.7 + 0.6 * chunks[i % 7].d));
             p.arc(0, 0, rr, w, a0, a1, c, 1);
           }
-          p.ring(0, 0, rr + w * 0.5 + 1, 1, RAMP[2], 0.6 * (1 - ru));
         }
         if (t < 0.14) p.glow(0, 0, R * 1.2, RAMP[4], 0.55 * (1 - t / 0.14));
       } else if (P === "charge") {
@@ -138,17 +138,16 @@ export function create(o) {
         const ct = Math.min(t, 0.8) / 0.8;
         if (t < 0.84) {
           const br = R * (0.28 + 0.16 * ct + 0.04 * Math.sin(t * 40));
-          p.disc(0, 0, br * 1.45, BLACK, 0.7);
           p.disc(0, 0, br, RAMP[2], 1);
           p.disc(0, 0, br * 0.6, RAMP[3], 1);
           if (ct > 0.6) p.disc(0, 0, br * 0.3, RAMP[5], 1);
-          for (let k = 0; k < 3; k++) {
-            const ph = (ct * 1.6 + k / 3) % 1;
+          for (let k = 0; k < 2; k++) {
+            const ph = (ct * 1.6 + k / 2) % 1;
             if (t > 0.78 && ph > 0.5) continue;
             const rr = R * 2.1 * (1 - ease.inQuad(ph));
             if (rr < br) continue;
             const c = ph < 0.4 ? RAMP[1] : ph < 0.75 ? RAMP[3] : RAMP[5];
-            p.ring(0, 0, rr, ph < 0.5 ? 1.5 : 2.5, c, 0.4 + 0.6 * ph);
+            if (ph > 0.15) p.ring(0, 0, rr, ph < 0.5 ? 2 : 3, c, 1);   // 实心粗环（不用半透明抖点的细环）
           }
           p.glow(0, 0, R * 1.1, RAMP[3], 0.25 + 0.3 * ct);
         }

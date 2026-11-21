@@ -351,7 +351,7 @@ func _tick_aspd() -> void:
 
 ## 占位画法：地块 = 低亮度圆 + 描边，连接带 = 粗线；裂纹 = 描边弧长
 func draw_ground(_w) -> void:
-	if list.is_empty():
+	if list.is_empty() or (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--nokingdomdraw"):   # --nokingdomdraw：特效审片不画国度占位（国度画面暂停，docs/401）
 		return
 	var cv = g.wcv
 	if _links_dirty:

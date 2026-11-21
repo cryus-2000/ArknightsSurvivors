@@ -238,7 +238,6 @@ func draw_ground(_w) -> void:
 		# 冰面（docs/401：原作 snslime dimian 冷白霜地）：淡霜面 + 边缘一圈 2 像素冰晶点，最后 0.6 秒淡出
 		var fa: float = clampf((float(x[2]) - g.t) / 0.6, 0.0, 1.0)
 		var r: float = float(x[1])
-		cv.draw_circle(x[0], r * 0.92, Color(0.72, 0.86, 1.0, 0.10 * fa))
 		for i in 18:
 			var h: int = (i * 7919 + int(x[0].x) * 31 + int(x[0].y) * 17) & 1023
 			var at: Vector2 = x[0] + Vector2.from_angle(TAU * float(i) / 18.0 + float(h % 13) * 0.02) * r * (0.62 + float(h % 37) / 100.0)

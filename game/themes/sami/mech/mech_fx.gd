@@ -113,7 +113,7 @@ func icebug_blast(pos: Vector2, r: float) -> void:
 	play("icebug_nova", pos, 0.0, r / 55.0)
 	sparks(pos, 0.0, PI, 12, 240.0, FROST, true, 0.35)
 	embers(pos, 6, Color(0.86, 0.95, 1.0), 150.0, 260.0, 0.55)
-	smoke(pos + Vector2(0, -6), 4, Color(0.55, 0.62, 0.66, 0.35), r * 0.35, 24.0, 0.8)
+	embers(pos, 5, Color(0.55, 0.85, 1.0), 120.0, 200.0, 0.45)
 
 
 ## 染污躯壳受击暴冲（mech_foes.enemy_spd 调）

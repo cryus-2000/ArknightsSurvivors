@@ -24,12 +24,15 @@ PIECES = {
     "husk_hit": ("slash", 12, "steel", 1),      # 染污躯壳爪击命中（原作 smsbr_attack_01_hit）
     "caster_star": ("star", 9, "ice", 2),       # 歪曲施法者出手星闪（smwiz_attack_01_start_02）
     "caster_pop": ("pop", 9, "ice", 3),         # 法术弹命中（smwiz_attack_01_hit）
-    "icebug_nova": ("nova", 28, "frost", 4),    # 冰爆源石虫死亡冰爆，r55 世界像素（snslime_die_01_start）
+    "icebug_nova": ("nova", 28, "frost", 4),   # 光层不烤（LIGHT_K 0）：暗地上不糊成一团雾    # 冰爆源石虫死亡冰爆，r55 世界像素（snslime_die_01_start）
     "blade_charge": ("charge", 13, "blood", 5), # 利刃投刃蓄能（smgrd_attack_01_start）
     "blade_star": ("star", 16, "blood", 6),     # 利刃十字星（出手 / 国度爆发）
     "blade_slash": ("slash", 30, "blood", 7),   # 利刃斩击（smgrd_attack_02_hit），扇形 r100
     "blade_pop": ("pop", 13, "blood", 8),       # 刃片 / 投刃命中（smgrd_attack_01_hit）
 }
+
+
+LIGHT_K = {}   # 光层系数（缺省 0：光晕烤成半透明一圈会糊成雾 / 半透明盘，docs/401 §2.3；要发光的件单独写）
 
 
 def bake(key, part, R, ramp, seed):
@@ -41,7 +44,7 @@ def bake(key, part, R, ramp, seed):
     w, h = meta["frameSize"]
     n = meta["frames"]
     col = np.asarray(Image.open(os.path.join(d, "color.png")).convert("RGBA")).astype(np.float32) / 255.0
-    lit = np.asarray(Image.open(os.path.join(d, "light.png")).convert("RGB")).astype(np.float32) / 255.0
+    lit = np.asarray(Image.open(os.path.join(d, "light.png")).convert("RGB")).astype(np.float32) / 255.0 * LIGHT_K.get(key, 0.0)
     a = col[..., 3:4]
     prem = col[..., :3] * a + lit                      # 光层加色（预乘）
     la = np.clip(lit.max(axis=2, keepdims=True), 0, 1)
