@@ -1,0 +1,10801 @@
+{
+ "args": {
+  "preset": null,
+  "op": "typhon",
+  "squad": null,
+  "seeds": 4,
+  "seed0": 5,
+  "diff": 0,
+  "jobs": 4,
+  "timeout": 900,
+  "tag": "typhon-ty-1121f-p1",
+  "extra": "--maxt=1000 --tier=0",
+  "bot": "expert",
+  "bots": null,
+  "lanes": null,
+  "game": null,
+  "keep": "",
+  "nocache": true,
+  "placebos": "0",
+  "dt": null,
+  "out": "build/cloud/typhon-ty-1121f/p1"
+ },
+ "records": [
+  {
+   "squad": [
+    "typhon"
+   ],
+   "seed": 5,
+   "diff": 0,
+   "bot": "expert",
+   "tier": 0,
+   "placebo": 0,
+   "wall": 12.8,
+   "data": {
+    "allies": 0,
+    "armor_cf": {
+     "m0": {
+      "a2": 53.4339338031631,
+      "a4": 45.4339338031631,
+      "a8": 30.9880433161511,
+      "all": 114.254269765584,
+      "armor": 3.6,
+      "n": 7,
+      "phys": 61.4339338031631,
+      "phys_n": 4,
+      "phys_pre": 65.0339338031631
+     }
+    },
+    "boss_hp": -1.0,
+    "bosses": [],
+    "bot": {
+     "bosses": [],
+     "cap_stats": {
+      "any_cut": 0.0,
+      "any_n": 0,
+      "big_n": 0,
+      "boss_cut": 0.0,
+      "boss_n": 0,
+      "hits": 120,
+      "one_cut": 0.0,
+      "one_n": 0,
+      "post": 137.4,
+      "pre": 137.4,
+      "zero": 0
+     },
+     "curve": [
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 0,
+       "hp": 100,
+       "hpm": 1.23,
+       "hpmin": 100,
+       "hsrc": {},
+       "kills": 0,
+       "lamp": 100,
+       "lampmin": 100,
+       "lv": 1,
+       "mhp": 102,
+       "mire_s": 0.0,
+       "mires": 0,
+       "outc": 0,
+       "rg": 0.9,
+       "squad": 1,
+       "t": 0,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_stone": 7,
+        "bullet": 8
+       },
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 14,
+       "hp": 99,
+       "hpm": 1.57,
+       "hpmin": 92,
+       "hsrc": {
+        "自身回复": 14
+       },
+       "kills": 19,
+       "lamp": 92,
+       "lampmin": 92,
+       "lv": 2,
+       "mhp": 102,
+       "mire_s": 0.0,
+       "mires": 0,
+       "outc": 601,
+       "rg": 0.9,
+       "squad": 1,
+       "t": 30,
+       "taken": 15,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 0,
+       "elites": 1,
+       "enemies": 27,
+       "hp": 100,
+       "hpm": 2.47,
+       "hpmin": 99,
+       "hsrc": {},
+       "kills": 55,
+       "lamp": 100,
+       "lampmin": 92,
+       "lv": 4,
+       "mhp": 102,
+       "mire_s": 0.0,
+       "mires": 0,
+       "outc": 1729,
+       "rg": 0.9,
+       "squad": 1,
+       "t": 60,
+       "taken": 0,
+       "zone": 0
+      }
+     ],
+     "curve_tail": {
+      "dsrc": {
+       "atk_stone": 14,
+       "atk_tracer": 9,
+       "bullet": 44,
+       "corrode": 22
+      },
+      "hsrc": {
+       "自身回复": 15
+      },
+      "mhp": 102,
+      "t": 78,
+      "t0": 60,
+      "taken": 91
+     },
+     "dark_dmg": 0,
+     "dark_s": 0,
+     "death_src": "corrode",
+     "elite_t": {
+      "typhon:1": 50
+     },
+     "end": {
+      "boss": false,
+      "hits2": [
+       [
+        67.3,
+        "bullet",
+        "e:spitter",
+        0,
+        22.4,
+        22.4,
+        70
+       ],
+       [
+        67.3,
+        "corrode",
+        "e:spitter",
+        0,
+        2.0,
+        2.0,
+        68
+       ],
+       [
+        67.6,
+        "mire",
+        "env:mire",
+        0,
+        0.9,
+        0.9,
+        67
+       ],
+       [
+        67.7,
+        "corrode",
+        "e:spitter",
+        0,
+        2.6,
+        2.6,
+        65
+       ],
+       [
+        68.2,
+        "corrode",
+        "e:spitter",
+        0,
+        2.0,
+        2.0,
+        64
+       ],
+       [
+        68.7,
+        "corrode",
+        "e:spitter",
+        0,
+        1.4,
+        1.4,
+        63
+       ],
+       [
+        69.2,
+        "corrode",
+        "e:spitter",
+        0,
+        1.2,
+        1.2,
+        62
+       ],
+       [
+        69.7,
+        "corrode",
+        "e:spitter",
+        0,
+        0.7,
+        0.7,
+        61
+       ],
+       [
+        70.2,
+        "corrode",
+        "e:spitter",
+        0,
+        0.8,
+        0.8,
+        61
+       ],
+       [
+        70.7,
+        "corrode",
+        "e:spitter",
+        0,
+        0.5,
+        0.5,
+        61
+       ],
+       [
+        74.6,
+        "bullet",
+        "e:spitter",
+        0,
+        22.4,
+        22.4,
+        42
+       ],
+       [
+        74.6,
+        "corrode",
+        "e:spitter",
+        0,
+        3.1,
+        3.1,
+        39
+       ],
+       [
+        75.1,
+        "corrode",
+        "e:spitter",
+        0,
+        2.1,
+        2.1,
+        38
+       ],
+       [
+        75.6,
+        "corrode",
+        "e:spitter",
+        0,
+        0.8,
+        0.8,
+        37
+       ],
+       [
+        75.8,
+        "atk_tracer",
+        "e:tracer",
+        0,
+        9.4,
+        9.4,
+        28
+       ],
+       [
+        75.8,
+        "corrode",
+        "e:spitter",
+        0,
+        1.6,
+        1.6,
+        26
+       ],
+       [
+        76.3,
+        "corrode",
+        "e:spitter",
+        0,
+        1.3,
+        1.3,
+        26
+       ],
+       [
+        76.8,
+        "corrode",
+        "e:spitter",
+        0,
+        0.8,
+        0.8,
+        25
+       ],
+       [
+        77.3,
+        "corrode",
+        "e:spitter",
+        0,
+        0.8,
+        0.8,
+        25
+       ],
+       [
+        77.8,
+        "corrode",
+        "e:spitter",
+        0,
+        0.5,
+        0.5,
+        25
+       ],
+       [
+        78.1,
+        "atk_tracer",
+        "e:tracer",
+        0,
+        29.9,
+        29.9,
+        -4
+       ],
+       [
+        78.1,
+        "corrode",
+        "e:spitter",
+        0,
+        0.1,
+        0.1,
+        -4
+       ]
+      ],
+      "hp": 0,
+      "killer": {
+       "cause": "",
+       "key": "e:tracer"
+      },
+      "last15": {
+       "corrode_out": 22.2,
+       "corrode_peak": 10.7,
+       "dark_s": 0.0,
+       "ebullets_peak": 5,
+       "enemies_peak": 59,
+       "hits": [
+        {
+         "amt": 22.4,
+         "boss": false,
+         "hp_after": 69,
+         "src": "bullet",
+         "t": 67.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 69,
+         "src": "corrode",
+         "t": 67.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 69,
+         "src": "corrode",
+         "t": 67.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 69,
+         "src": "corrode",
+         "t": 67.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 68,
+         "src": "corrode",
+         "t": 67.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 67,
+         "src": "corrode",
+         "t": 67.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 67,
+         "src": "mire",
+         "t": 67.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 67,
+         "src": "corrode",
+         "t": 67.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 67,
+         "src": "corrode",
+         "t": 67.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 66,
+         "src": "corrode",
+         "t": 67.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 66,
+         "src": "corrode",
+         "t": 67.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 66,
+         "src": "corrode",
+         "t": 67.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 66,
+         "src": "corrode",
+         "t": 68.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 65,
+         "src": "corrode",
+         "t": 68.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 65,
+         "src": "corrode",
+         "t": 68.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 65,
+         "src": "corrode",
+         "t": 68.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 65,
+         "src": "corrode",
+         "t": 68.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 64,
+         "src": "corrode",
+         "t": 68.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 64,
+         "src": "corrode",
+         "t": 68.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 64,
+         "src": "corrode",
+         "t": 68.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 64,
+         "src": "corrode",
+         "t": 68.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 64,
+         "src": "corrode",
+         "t": 68.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 64,
+         "src": "corrode",
+         "t": 68.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 63,
+         "src": "corrode",
+         "t": 68.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 63,
+         "src": "corrode",
+         "t": 68.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 63,
+         "src": "corrode",
+         "t": 68.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 63,
+         "src": "corrode",
+         "t": 68.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 63,
+         "src": "corrode",
+         "t": 69.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 63,
+         "src": "corrode",
+         "t": 69.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 63,
+         "src": "corrode",
+         "t": 69.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 62,
+         "src": "corrode",
+         "t": 69.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 62,
+         "src": "corrode",
+         "t": 69.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 62,
+         "src": "corrode",
+         "t": 69.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 62,
+         "src": "corrode",
+         "t": 69.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 62,
+         "src": "corrode",
+         "t": 69.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 62,
+         "src": "corrode",
+         "t": 69.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 62,
+         "src": "corrode",
+         "t": 69.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 62,
+         "src": "corrode",
+         "t": 69.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 62,
+         "src": "corrode",
+         "t": 69.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 62,
+         "src": "corrode",
+         "t": 69.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 62,
+         "src": "corrode",
+         "t": 69.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 62,
+         "src": "corrode",
+         "t": 69.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 62,
+         "src": "corrode",
+         "t": 70.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 61,
+         "src": "corrode",
+         "t": 70.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 61,
+         "src": "corrode",
+         "t": 70.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 61,
+         "src": "corrode",
+         "t": 70.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 61,
+         "src": "corrode",
+         "t": 70.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 61,
+         "src": "corrode",
+         "t": 70.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 61,
+         "src": "corrode",
+         "t": 70.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 61,
+         "src": "corrode",
+         "t": 70.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 61,
+         "src": "corrode",
+         "t": 70.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 61,
+         "src": "corrode",
+         "t": 70.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 61,
+         "src": "corrode",
+         "t": 70.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 61,
+         "src": "corrode",
+         "t": 70.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 61,
+         "src": "corrode",
+         "t": 70.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 61,
+         "src": "corrode",
+         "t": 70.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 61,
+         "src": "corrode",
+         "t": 70.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 61,
+         "src": "corrode",
+         "t": 71.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 61,
+         "src": "corrode",
+         "t": 71.0,
+         "zone_out": false
+        },
+        {
+         "amt": 22.4,
+         "boss": false,
+         "hp_after": 42,
+         "src": "bullet",
+         "t": 74.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 42,
+         "src": "corrode",
+         "t": 74.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 41,
+         "src": "corrode",
+         "t": 74.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 41,
+         "src": "corrode",
+         "t": 74.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 41,
+         "src": "corrode",
+         "t": 74.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 40,
+         "src": "corrode",
+         "t": 74.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 40,
+         "src": "corrode",
+         "t": 74.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 40,
+         "src": "corrode",
+         "t": 75.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 39,
+         "src": "corrode",
+         "t": 75.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 39,
+         "src": "corrode",
+         "t": 75.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 39,
+         "src": "corrode",
+         "t": 75.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 39,
+         "src": "corrode",
+         "t": 75.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 38,
+         "src": "corrode",
+         "t": 75.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 38,
+         "src": "corrode",
+         "t": 75.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 38,
+         "src": "corrode",
+         "t": 75.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 38,
+         "src": "corrode",
+         "t": 75.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 37,
+         "src": "corrode",
+         "t": 75.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 37,
+         "src": "corrode",
+         "t": 75.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 37,
+         "src": "corrode",
+         "t": 75.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 28,
+         "src": "corrode",
+         "t": 75.8,
+         "zone_out": false
+        },
+        {
+         "amt": 9.4,
+         "boss": false,
+         "hp_after": 28,
+         "src": "atk_tracer",
+         "t": 75.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 27,
+         "src": "corrode",
+         "t": 75.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 27,
+         "src": "corrode",
+         "t": 75.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 27,
+         "src": "corrode",
+         "t": 76.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 27,
+         "src": "corrode",
+         "t": 76.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 27,
+         "src": "corrode",
+         "t": 76.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 27,
+         "src": "corrode",
+         "t": 76.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 26,
+         "src": "corrode",
+         "t": 76.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 26,
+         "src": "corrode",
+         "t": 76.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 26,
+         "src": "corrode",
+         "t": 76.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 26,
+         "src": "corrode",
+         "t": 76.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 26,
+         "src": "corrode",
+         "t": 76.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 26,
+         "src": "corrode",
+         "t": 76.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 26,
+         "src": "corrode",
+         "t": 76.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 26,
+         "src": "corrode",
+         "t": 76.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 26,
+         "src": "corrode",
+         "t": 76.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 26,
+         "src": "corrode",
+         "t": 76.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 26,
+         "src": "corrode",
+         "t": 76.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 25,
+         "src": "corrode",
+         "t": 77.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 25,
+         "src": "corrode",
+         "t": 77.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 25,
+         "src": "corrode",
+         "t": 77.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 25,
+         "src": "corrode",
+         "t": 77.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 25,
+         "src": "corrode",
+         "t": 77.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 25,
+         "src": "corrode",
+         "t": 77.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 25,
+         "src": "corrode",
+         "t": 77.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 25,
+         "src": "corrode",
+         "t": 77.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 25,
+         "src": "corrode",
+         "t": 77.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 25,
+         "src": "corrode",
+         "t": 77.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 25,
+         "src": "corrode",
+         "t": 77.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 25,
+         "src": "corrode",
+         "t": 77.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 25,
+         "src": "corrode",
+         "t": 77.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 25,
+         "src": "corrode",
+         "t": 77.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 25,
+         "src": "corrode",
+         "t": 77.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 25,
+         "src": "corrode",
+         "t": 77.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 25,
+         "src": "corrode",
+         "t": 78.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 25,
+         "src": "corrode",
+         "t": 78.1,
+         "zone_out": false
+        }
+       ],
+       "mire_s": 0.0,
+       "nerve_bursts": 0,
+       "t": 78.1
+      },
+      "near": [],
+      "src": "corrode",
+      "t": 78,
+      "tl": [
+       [
+        62.8,
+        88,
+        94,
+        30,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        1
+       ],
+       [
+        63.4,
+        89,
+        94,
+        30,
+        0,
+        3,
+        0,
+        0,
+        0,
+        1,
+        1
+       ],
+       [
+        63.9,
+        89,
+        94,
+        31,
+        1,
+        6,
+        0,
+        1,
+        0,
+        1,
+        1
+       ],
+       [
+        64.4,
+        90,
+        94,
+        32,
+        0,
+        7,
+        0,
+        2,
+        0,
+        1,
+        1
+       ],
+       [
+        64.9,
+        90,
+        94,
+        31,
+        0,
+        5,
+        0,
+        2,
+        0,
+        1,
+        1
+       ],
+       [
+        65.5,
+        91,
+        94,
+        32,
+        1,
+        4,
+        0,
+        1,
+        0,
+        1,
+        1
+       ],
+       [
+        66.0,
+        91,
+        94,
+        32,
+        0,
+        4,
+        3,
+        0,
+        0,
+        1,
+        1
+       ],
+       [
+        66.5,
+        92,
+        94,
+        33,
+        0,
+        5,
+        5,
+        1,
+        0,
+        1,
+        1
+       ],
+       [
+        67.1,
+        92,
+        94,
+        33,
+        0,
+        5,
+        5,
+        2,
+        0,
+        1,
+        1
+       ],
+       [
+        67.6,
+        67,
+        88,
+        34,
+        2,
+        5,
+        3,
+        2,
+        1,
+        1,
+        1
+       ],
+       [
+        68.1,
+        65,
+        88,
+        34,
+        2,
+        7,
+        3,
+        4,
+        0,
+        1,
+        1
+       ],
+       [
+        68.6,
+        64,
+        87,
+        35,
+        4,
+        8,
+        0,
+        4,
+        0,
+        1,
+        1
+       ],
+       [
+        69.2,
+        62,
+        85,
+        36,
+        4,
+        9,
+        0,
+        3,
+        0,
+        1,
+        1
+       ],
+       [
+        69.7,
+        62,
+        82,
+        37,
+        1,
+        10,
+        0,
+        4,
+        0,
+        1,
+        1
+       ],
+       [
+        70.2,
+        61,
+        78,
+        38,
+        2,
+        11,
+        1,
+        2,
+        0,
+        1,
+        1
+       ],
+       [
+        70.8,
+        61,
+        76,
+        39,
+        2,
+        11,
+        1,
+        3,
+        0,
+        1,
+        1
+       ],
+       [
+        71.3,
+        61,
+        76,
+        38,
+        2,
+        9,
+        0,
+        4,
+        0,
+        1,
+        1
+       ],
+       [
+        71.8,
+        62,
+        76,
+        38,
+        2,
+        9,
+        0,
+        4,
+        0,
+        1,
+        1
+       ],
+       [
+        72.3,
+        62,
+        76,
+        39,
+        2,
+        8,
+        0,
+        3,
+        0,
+        1,
+        1
+       ],
+       [
+        72.9,
+        63,
+        76,
+        40,
+        1,
+        9,
+        0,
+        1,
+        0,
+        1,
+        1
+       ],
+       [
+        73.4,
+        63,
+        76,
+        40,
+        0,
+        9,
+        0,
+        3,
+        0,
+        1,
+        1
+       ],
+       [
+        73.9,
+        64,
+        76,
+        40,
+        1,
+        8,
+        1,
+        3,
+        0,
+        1,
+        1
+       ],
+       [
+        74.4,
+        64,
+        76,
+        41,
+        2,
+        8,
+        1,
+        3,
+        0,
+        1,
+        1
+       ],
+       [
+        75.0,
+        40,
+        69,
+        40,
+        1,
+        7,
+        0,
+        2,
+        1,
+        1,
+        1
+       ],
+       [
+        75.5,
+        38,
+        69,
+        57,
+        1,
+        5,
+        0,
+        1,
+        0,
+        1,
+        1
+       ],
+       [
+        76.0,
+        27,
+        65,
+        56,
+        2,
+        5,
+        0,
+        3,
+        1,
+        1,
+        1
+       ],
+       [
+        76.6,
+        26,
+        65,
+        57,
+        3,
+        7,
+        0,
+        2,
+        0,
+        1,
+        1
+       ],
+       [
+        77.1,
+        25,
+        65,
+        58,
+        4,
+        9,
+        0,
+        5,
+        0,
+        1,
+        1
+       ],
+       [
+        77.6,
+        25,
+        65,
+        58,
+        5,
+        9,
+        0,
+        4,
+        0,
+        1,
+        1
+       ]
+      ],
+      "zone_out": false,
+      "zone_phase": -1,
+      "zone_state": 0
+     },
+     "floors": [],
+     "hits": 114,
+     "hits_pm": 87.5,
+     "king_low_s": 0,
+     "lamp_end": 57,
+     "lamp_gain": {
+      "精英灯油": 7
+     },
+     "lamp_loss": {
+      "受击": 37,
+      "尖叫": 12
+     },
+     "lamp_s": [
+      74,
+      3,
+      0,
+      0
+     ],
+     "lamp_taken": [
+      64,
+      42,
+      0,
+      0
+     ],
+     "low20_s": 0,
+     "low_hp_s": 2,
+     "moved_pm": 9738,
+     "peak": [
+      59,
+      5,
+      0,
+      52,
+      6
+     ],
+     "peak_min": [
+      [
+       27,
+       1,
+       0,
+       46,
+       4
+      ],
+      [
+       59,
+       5,
+       0,
+       52,
+       6
+      ]
+     ],
+     "profile": "expert",
+     "reaper_drain_deaths": 0,
+     "recruit_t": [],
+     "still_pct": 0,
+     "taken": 107,
+     "taken_pm": 82
+    },
+    "cmd": {
+     "aggro": 0,
+     "downs": 0,
+     "roam": 8.4,
+     "sortie_downs": 0,
+     "sorties": 1,
+     "switch": 2
+    },
+    "crates": 1,
+    "cross_picks": [
+     [
+      "m1",
+      "incident",
+      "task",
+      0
+     ]
+    ],
+    "ctrl": {
+     "aslow_slow": 0,
+     "aslow_t": 0.0,
+     "boss_t": 0.0,
+     "floor": 0.7,
+     "move_min": 1.0,
+     "slow_min": 1.0,
+     "stun_slow": 0,
+     "stun_t": 0.0
+    },
+    "ctrl_src": {
+     "boss": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "founder": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "other": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "skimmer": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "slow_any_t": 0.0
+    },
+    "dashes": 0,
+    "dmg": {
+     "atk_stone": 22.1932210553502,
+     "atk_tracer": 39.2407127478129,
+     "bullet": 52.8203359624205,
+     "corrode": 22.2723797486396,
+     "mire": 0.906
+    },
+    "drone": 0,
+    "duck": {
+     "boss_overlap": 0,
+     "fled": 0,
+     "fled_hp": [],
+     "kill_hits": [],
+     "kill_t": [],
+     "killed": 0,
+     "spawn_t": [],
+     "spawned": 0
+    },
+    "elite_stage": 1,
+    "elites": 0,
+    "ending": "standard",
+    "final_out": {
+     "冰原秩序": 1260.39463366595,
+     "散射": 1070.36993256313,
+     "猎矢": 2619.07467776722,
+     "空间涟漪": 792.585676307541
+    },
+    "floor_hits": 0,
+    "floor_times": [],
+    "fuse": {
+     "left": 0,
+     "pct": 0.0,
+     "pool": 0,
+     "t": -1
+    },
+    "growth": {},
+    "heal": {
+     "自身回复": 30.8253676827527
+    },
+    "heal_offer": 0,
+    "heal_offer_low": 0,
+    "heal_pick": 0,
+    "hordes": [
+     {
+      "comp": {
+       "bone": 8,
+       "slider": 7
+      },
+      "hp": 1618,
+      "hp0": 40,
+      "minhp": -4,
+      "mix": "滑行群",
+      "n": 15,
+      "t": 75,
+      "t80": -1
+     }
+    ],
+    "ingots": 4,
+    "items": {
+     "crate_shield": 0,
+     "heal_elite": 0,
+     "heal_low": 1,
+     "heal_mob": 1,
+     "heal_pick": 0,
+     "magnet_elite": 0,
+     "magnet_mob": 0,
+     "magnet_pick": 0,
+     "mob_capped": 0,
+     "mob_rolled": 70,
+     "pack_drop": 1,
+     "pack_pick": 0
+    },
+    "kill_hits": {
+     "0:bone": [
+      42,
+      42,
+      0.0
+     ],
+     "0:slider": [
+      9,
+      13,
+      9.84
+     ],
+     "0:stone": [
+      4,
+      8,
+      5.36
+     ],
+     "1:bone": [
+      11,
+      11,
+      0.0
+     ],
+     "1:slider": [
+      1,
+      2,
+      0.99
+     ],
+     "1:stone": [
+      3,
+      20,
+      14.58
+     ]
+    },
+    "kills": 70,
+    "lamp": 57,
+    "levelup_t": [
+     12,
+     37,
+     50
+    ],
+    "low_levelups": 0,
+    "lv": 4,
+    "lv_times": [
+     11,
+     36,
+     49
+    ],
+    "marks": {},
+    "maxhp": 102.0,
+    "meta": 0,
+    "ops": [
+     {
+      "elite": 1,
+      "id": "typhon",
+      "prog": 3
+     }
+    ],
+    "out": {
+     "冰原秩序": 1260.39463366595,
+     "散射": 1070.36993256313,
+     "猎矢": 2619.07467776722,
+     "空间涟漪": 792.585676307541
+    },
+    "out_tag": {
+     "area": 1585.17135261508,
+     "basic": 2619.07467776722,
+     "follow_up": 1585.17135261508,
+     "growth": 2140.73986512625,
+     "pierce": 3879.46931143317,
+     "projectile": 6020.20917655943,
+     "skill": 1260.39463366595
+    },
+    "out_type": {
+     "物理": 5742.42492030384
+    },
+    "prof": {},
+    "prog_log": [
+     [
+      12,
+      "typhon",
+      1
+     ],
+     [
+      37,
+      "typhon",
+      2
+     ],
+     [
+      50,
+      "typhon",
+      3
+     ]
+    ],
+    "prog_offer": {
+     "typhon": 3
+    },
+    "prog_pick": {
+     "typhon": 3
+    },
+    "recall_backstop": 0,
+    "recall_n": 4,
+    "recruit_offers": [
+     [
+      50,
+      "recruit",
+      1
+     ]
+    ],
+    "rej": {},
+    "relic_offer": [],
+    "relic_out": 0.0,
+    "relic_take": [],
+    "relics": 0,
+    "shield": {
+     "abs": 0.0,
+     "blocks": 0,
+     "every": 15.0,
+     "max": 0,
+     "peak": 0,
+     "src_int": [],
+     "src_max": [],
+     "t0": -1.0
+    },
+    "squad": [
+     "typhon"
+    ],
+    "sus": {},
+    "swaps": [],
+    "t": 78,
+    "tel": "full",
+    "terrain": {
+     "bul": 2,
+     "dash": 0,
+     "ebul": 0
+    },
+    "ult": {
+     "combo": 0,
+     "combo_auto": 0,
+     "combo_up": 0,
+     "cult": 0,
+     "cult_times": [],
+     "e_combo": 0.0,
+     "e_hurt": 3.2,
+     "e_kill": 8.5,
+     "e_out": 12.9,
+     "first_full": -1.0,
+     "full_times": [],
+     "hit_n": 0,
+     "idle_full_s": 0.0,
+     "link_by": {},
+     "lit": 0,
+     "lit_by": {},
+     "miss": 0,
+     "ult": 0,
+     "ult_times": []
+    },
+    "win": false,
+    "xp_backstop": 0.0,
+    "xp_dropped": 192.5,
+    "xp_ground": 35.0,
+    "xp_magnet": 0.0,
+    "xp_magnet_min": [],
+    "xp_recall": 12.5,
+    "xp_recall_min": [
+     0.0,
+     12.5
+    ],
+    "xp_total": 157.5,
+    "xp_total_min": [
+     135.0,
+     22.5
+    ],
+    "xp_walk": 145.0,
+    "xp_walk_min": [
+     135.0,
+     10.0
+    ]
+   }
+  },
+  {
+   "squad": [
+    "typhon"
+   ],
+   "seed": 6,
+   "diff": 0,
+   "bot": "expert",
+   "tier": 0,
+   "placebo": 0,
+   "wall": 30.0,
+   "data": {
+    "allies": 2,
+    "armor_cf": {
+     "m0": {
+      "a2": 213.165677139006,
+      "a4": 185.20351564369,
+      "a8": 136.896916348962,
+      "all": 293.838089495683,
+      "armor": 12.6,
+      "n": 19,
+      "phys": 241.165677139006,
+      "phys_n": 14,
+      "phys_pre": 253.765677139006
+     },
+     "m4": {
+      "a2": 236.727686655549,
+      "a4": 214.727686655549,
+      "a8": 171.146312528675,
+      "all": 306.108434881291,
+      "armor": 9.9,
+      "n": 15,
+      "phys": 258.727686655549,
+      "phys_n": 11,
+      "phys_pre": 268.627686655549
+     }
+    },
+    "boss_hp": -0.00185903968431032,
+    "bosses": [
+     "carmen:dead"
+    ],
+    "bot": {
+     "bosses": [
+      {
+       "en_alive": 18,
+       "en_alive_pk": 26,
+       "en_near": 4,
+       "en_near_pk": 9,
+       "gates": 1,
+       "on_boss": 0.51,
+       "shield": 0.0,
+       "t0": 210,
+       "t1": 259,
+       "tv": 210,
+       "type": "carmen",
+       "windows": [
+        {
+         "en": 26,
+         "hits": 0,
+         "hp": 1.0,
+         "moves": 0,
+         "out": 0,
+         "t": 0
+        },
+        {
+         "en": 12,
+         "hits": 5,
+         "hp": 0.76,
+         "moves": 7,
+         "out": 13974,
+         "t": 15
+        },
+        {
+         "en": 18,
+         "hits": 3,
+         "hp": 0.34,
+         "moves": 4,
+         "out": 13442,
+         "t": 30
+        },
+        {
+         "en": 19,
+         "hits": 2,
+         "hp": 0.09,
+         "moves": 2,
+         "out": 9487,
+         "t": 45
+        },
+        {
+         "en": 52,
+         "hits": 2,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 9624,
+         "t": 61
+        },
+        {
+         "en": 37,
+         "hits": 18,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 16720,
+         "t": 76
+        },
+        {
+         "en": 37,
+         "hits": 33,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 20068,
+         "t": 91
+        },
+        {
+         "en": 73,
+         "hits": 1,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 24723,
+         "t": 106
+        },
+        {
+         "en": 36,
+         "hits": 0,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 44568,
+         "t": 121
+        },
+        {
+         "en": 44,
+         "hits": 0,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 22094,
+         "t": 136
+        }
+       ]
+      }
+     ],
+     "cap_stats": {
+      "any_cut": 5.6,
+      "any_n": 1,
+      "big_n": 0,
+      "boss_cut": 0.0,
+      "boss_n": 0,
+      "hits": 110,
+      "one_cut": 0.0,
+      "one_n": 0,
+      "post": 605.2,
+      "pre": 610.8,
+      "zero": 0
+     },
+     "curve": [
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 0,
+       "hp": 100,
+       "hpm": 1.23,
+       "hpmin": 100,
+       "hsrc": {},
+       "kills": 0,
+       "lamp": 100,
+       "lampmin": 100,
+       "lv": 1,
+       "mhp": 102,
+       "mire_s": 0.0,
+       "mires": 0,
+       "outc": 0,
+       "rg": 0.9,
+       "squad": 1,
+       "t": 0,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "bullet": 8
+       },
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 19,
+       "hp": 99,
+       "hpm": 1.57,
+       "hpmin": 92,
+       "hsrc": {
+        "自身回复": 7
+       },
+       "kills": 14,
+       "lamp": 96,
+       "lampmin": 96,
+       "lv": 2,
+       "mhp": 102,
+       "mire_s": 0.0,
+       "mires": 0,
+       "outc": 348,
+       "rg": 0.9,
+       "squad": 1,
+       "t": 30,
+       "taken": 8,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "bullet": 8,
+        "contact_bone": 12,
+        "corrode": 3
+       },
+       "ebul": 0,
+       "elites": 1,
+       "enemies": 15,
+       "hp": 100,
+       "hpm": 1.9,
+       "hpmin": 86,
+       "hsrc": {
+        "拾取": 3,
+        "自身回复": 7,
+        "补给": 13
+       },
+       "kills": 59,
+       "lamp": 100,
+       "lampmin": 88,
+       "lv": 4,
+       "mhp": 102,
+       "mire_s": 0.0,
+       "mires": 0,
+       "outc": 1646,
+       "rg": 0.9,
+       "squad": 1,
+       "t": 60,
+       "taken": 24,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "contact_slider": 17
+       },
+       "ebul": 5,
+       "elites": 0,
+       "enemies": 25,
+       "hp": 98,
+       "hpm": 2.24,
+       "hpmin": 85,
+       "hsrc": {
+        "自身回复": 15
+       },
+       "kills": 118,
+       "lamp": 100,
+       "lampmin": 79,
+       "lv": 6,
+       "mhp": 132,
+       "mire_s": 0.0,
+       "mires": 2,
+       "outc": 6980,
+       "rg": 1.2,
+       "squad": 3,
+       "t": 90,
+       "taken": 17,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_tracer": 4,
+        "bullet": 12
+       },
+       "ebul": 3,
+       "elites": 0,
+       "enemies": 16,
+       "hp": 94,
+       "hpm": 2.57,
+       "hpmin": 89,
+       "hsrc": {
+        "自身回复": 25
+       },
+       "kills": 186,
+       "lamp": 100,
+       "lampmin": 96,
+       "lv": 8,
+       "mhp": 132,
+       "mire_s": 0.0,
+       "mires": 9,
+       "outc": 13774,
+       "rg": 1.2,
+       "squad": 3,
+       "t": 120,
+       "taken": 17,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_tracer": 17,
+        "bullet": 8
+       },
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 20,
+       "hp": 100,
+       "hpm": 2.91,
+       "hpmin": 81,
+       "hsrc": {
+        "商店": 20,
+        "拾取": 1,
+        "自身回复": 11
+       },
+       "kills": 250,
+       "lamp": 91,
+       "lampmin": 91,
+       "lv": 9,
+       "mhp": 132,
+       "mire_s": 0.0,
+       "mires": 13,
+       "outc": 21236,
+       "rg": 1.2,
+       "squad": 3,
+       "t": 150,
+       "taken": 26,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "bullet": 14,
+        "contact_slider": 24
+       },
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 22,
+       "hp": 92,
+       "hpm": 3.25,
+       "hpmin": 83,
+       "hsrc": {
+        "拾取": 14,
+        "自身回复": 14
+       },
+       "kills": 349,
+       "lamp": 100,
+       "lampmin": 89,
+       "lv": 11,
+       "mhp": 144,
+       "mire_s": 0.0,
+       "mires": 12,
+       "outc": 34553,
+       "rg": 3.37,
+       "squad": 3,
+       "t": 180,
+       "taken": 39,
+       "zone": 2
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "atk_tracer": 5
+       },
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 27,
+       "hp": 100,
+       "hpm": 3.58,
+       "hpmin": 90,
+       "hsrc": {
+        "自身回复": 15
+       },
+       "kills": 428,
+       "lamp": 97,
+       "lampmin": 97,
+       "lv": 12,
+       "mhp": 144,
+       "mire_s": 0.0,
+       "mires": 19,
+       "outc": 44291,
+       "rg": 1.2,
+       "squad": 3,
+       "t": 210,
+       "taken": 5,
+       "zone": 3
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "boss_carmen": 115,
+        "contact_tracer": 44
+       },
+       "ebul": 65,
+       "elites": 0,
+       "enemies": 21,
+       "hp": 83,
+       "hpm": 3.92,
+       "hpmin": 14,
+       "hsrc": {
+        "拾取": 86,
+        "自身回复": 49
+       },
+       "kills": 479,
+       "lamp": 92,
+       "lampmin": 62,
+       "lv": 13,
+       "mhp": 144,
+       "mire_s": 0.0,
+       "mires": 5,
+       "outc": 72195,
+       "rg": 1.2,
+       "squad": 3,
+       "t": 240,
+       "taken": 159,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_stone": 15,
+        "boss_carmen": 18,
+        "bullet": 9,
+        "contact_slider": 8
+       },
+       "ebul": 1,
+       "elites": 0,
+       "enemies": 54,
+       "hp": 88,
+       "hpm": 4.25,
+       "hpmin": 67,
+       "hsrc": {
+        "拾取": 21,
+        "自身回复": 39
+       },
+       "kills": 542,
+       "lamp": 68,
+       "lampmin": 68,
+       "lv": 14,
+       "mhp": 130,
+       "mire_s": 0.0,
+       "mires": 10,
+       "outc": 89827,
+       "rg": 1.2,
+       "squad": 3,
+       "t": 270,
+       "taken": 51,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "bullet": 28,
+        "contact_tracer": 62,
+        "corrode": 7
+       },
+       "ebul": 4,
+       "elites": 1,
+       "enemies": 33,
+       "hp": 68,
+       "hpm": 4.59,
+       "hpmin": 63,
+       "hsrc": {
+        "拾取": 42,
+        "自身回复": 30
+       },
+       "kills": 663,
+       "lamp": 95,
+       "lampmin": 49,
+       "lv": 16,
+       "mhp": 130,
+       "mire_s": 0.0,
+       "mires": 15,
+       "outc": 125877,
+       "rg": 1.2,
+       "squad": 3,
+       "t": 300,
+       "taken": 98,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "nest": 4
+       },
+       "ebul": 9,
+       "elites": 0,
+       "enemies": 36,
+       "hp": 100,
+       "hpm": 4.93,
+       "hpmin": 68,
+       "hsrc": {
+        "商店": 36,
+        "自身回复": 8
+       },
+       "kills": 798,
+       "lamp": 82,
+       "lampmin": 82,
+       "lv": 17,
+       "mhp": 130,
+       "mire_s": 0.0,
+       "mires": 25,
+       "outc": 194798,
+       "rg": 1.2,
+       "squad": 3,
+       "t": 330,
+       "taken": 4,
+       "zone": 2
+      }
+     ],
+     "curve_tail": {
+      "dsrc": {
+       "bullet": 14,
+       "contact_reaper": 45,
+       "contact_slider": 53
+      },
+      "hsrc": {
+       "自身回复": 7
+      },
+      "mhp": 130,
+      "t": 358,
+      "t0": 330,
+      "taken": 113
+     },
+     "dark_dmg": 0,
+     "dark_s": 0,
+     "death_src": "contact_reaper",
+     "elite_t": {
+      "eyjafjalla:1": 290,
+      "skadi:1": 185,
+      "typhon:1": 53,
+      "typhon:2": 134
+     },
+     "end": {
+      "boss": false,
+      "hits2": [
+       [
+        352.4,
+        "contact_slider",
+        "e:slider",
+        0,
+        26.8,
+        26.8,
+        103
+       ],
+       [
+        354.9,
+        "contact_slider",
+        "e:slider",
+        0,
+        27.2,
+        27.2,
+        79
+       ],
+       [
+        358.0,
+        "bullet",
+        "e:stone",
+        0,
+        14.6,
+        14.6,
+        68
+       ],
+       [
+        358.4,
+        "contact_reaper",
+        "e:reaper",
+        0,
+        45.2,
+        45.2,
+        23
+       ],
+       [
+        358.9,
+        "contact_reaper",
+        "e:reaper",
+        0,
+        45.2,
+        39.6,
+        -15
+       ]
+      ],
+      "hp": 0,
+      "killer": {
+       "cause": "",
+       "key": "e:reaper"
+      },
+      "last15": {
+       "corrode_out": 0.0,
+       "corrode_peak": 0.0,
+       "dark_s": 0.0,
+       "ebullets_peak": 8,
+       "enemies_peak": 51,
+       "hits": [
+        {
+         "amt": 26.8,
+         "boss": false,
+         "hp_after": 103,
+         "src": "contact_slider",
+         "t": 352.4,
+         "zone_out": false
+        },
+        {
+         "amt": 27.2,
+         "boss": false,
+         "hp_after": 79,
+         "src": "contact_slider",
+         "t": 354.9,
+         "zone_out": false
+        },
+        {
+         "amt": 14.6,
+         "boss": false,
+         "hp_after": 68,
+         "src": "bullet",
+         "t": 358.0,
+         "zone_out": false
+        },
+        {
+         "amt": 45.2,
+         "boss": false,
+         "hp_after": 23,
+         "src": "contact_reaper",
+         "t": 358.4,
+         "zone_out": false
+        }
+       ],
+       "mire_s": 0.0,
+       "nerve_bursts": 0,
+       "t": 358.9
+      },
+      "near": [
+       {
+        "hp": 23,
+        "mhp": 130,
+        "src": {
+         "bullet": 14.6,
+         "contact_reaper": 45.2,
+         "contact_slider": 54.0
+        },
+        "t": 358.7,
+        "tl": [
+         [
+          343.9,
+          130,
+          82,
+          45,
+          0,
+          13,
+          0,
+          0,
+          0,
+          1,
+          3
+         ],
+         [
+          344.5,
+          130,
+          82,
+          44,
+          0,
+          10,
+          0,
+          1,
+          0,
+          1,
+          3
+         ],
+         [
+          345.0,
+          130,
+          82,
+          41,
+          0,
+          2,
+          0,
+          0,
+          0,
+          1,
+          3
+         ],
+         [
+          345.5,
+          130,
+          82,
+          41,
+          0,
+          1,
+          8,
+          0,
+          0,
+          1,
+          3
+         ],
+         [
+          346.0,
+          130,
+          82,
+          43,
+          0,
+          2,
+          7,
+          0,
+          0,
+          1,
+          3
+         ],
+         [
+          346.6,
+          130,
+          82,
+          44,
+          0,
+          1,
+          7,
+          0,
+          0,
+          1,
+          3
+         ],
+         [
+          347.1,
+          130,
+          82,
+          45,
+          0,
+          0,
+          7,
+          0,
+          0,
+          1,
+          3
+         ],
+         [
+          347.6,
+          130,
+          82,
+          45,
+          0,
+          2,
+          7,
+          0,
+          0,
+          1,
+          3
+         ],
+         [
+          348.1,
+          130,
+          82,
+          45,
+          0,
+          4,
+          0,
+          0,
+          0,
+          1,
+          3
+         ],
+         [
+          348.7,
+          130,
+          82,
+          46,
+          0,
+          4,
+          0,
+          1,
+          0,
+          1,
+          3
+         ],
+         [
+          349.2,
+          130,
+          82,
+          48,
+          0,
+          3,
+          0,
+          0,
+          0,
+          1,
+          3
+         ],
+         [
+          349.7,
+          130,
+          82,
+          48,
+          0,
+          5,
+          0,
+          0,
+          0,
+          1,
+          3
+         ],
+         [
+          350.3,
+          130,
+          82,
+          49,
+          0,
+          6,
+          0,
+          1,
+          0,
+          1,
+          3
+         ],
+         [
+          350.8,
+          130,
+          82,
+          49,
+          2,
+          7,
+          0,
+          3,
+          0,
+          1,
+          3
+         ],
+         [
+          351.3,
+          130,
+          82,
+          50,
+          1,
+          9,
+          3,
+          3,
+          0,
+          1,
+          3
+         ],
+         [
+          351.8,
+          130,
+          82,
+          43,
+          1,
+          8,
+          2,
+          2,
+          0,
+          1,
+          3
+         ],
+         [
+          352.4,
+          130,
+          82,
+          43,
+          1,
+          8,
+          3,
+          3,
+          0,
+          1,
+          3
+         ],
+         [
+          352.9,
+          103,
+          76,
+          40,
+          1,
+          6,
+          3,
+          1,
+          0,
+          1,
+          3
+         ],
+         [
+          353.4,
+          104,
+          76,
+          42,
+          2,
+          9,
+          2,
+          2,
+          0,
+          1,
+          3
+         ],
+         [
+          354.0,
+          105,
+          76,
+          42,
+          3,
+          10,
+          0,
+          5,
+          0,
+          1,
+          3
+         ],
+         [
+          354.5,
+          105,
+          76,
+          43,
+          4,
+          9,
+          0,
+          5,
+          0,
+          1,
+          3
+         ],
+         [
+          355.0,
+          79,
+          62,
+          43,
+          4,
+          9,
+          0,
+          3,
+          1,
+          1,
+          3
+         ],
+         [
+          355.5,
+          79,
+          62,
+          44,
+          3,
+          13,
+          3,
+          4,
+          0,
+          1,
+          3
+         ],
+         [
+          356.1,
+          80,
+          62,
+          42,
+          5,
+          12,
+          3,
+          7,
+          0,
+          1,
+          3
+         ],
+         [
+          356.6,
+          81,
+          62,
+          44,
+          9,
+          13,
+          3,
+          7,
+          0,
+          1,
+          3
+         ],
+         [
+          357.1,
+          81,
+          62,
+          43,
+          7,
+          14,
+          3,
+          5,
+          0,
+          1,
+          3
+         ],
+         [
+          357.7,
+          82,
+          62,
+          46,
+          7,
+          16,
+          1,
+          4,
+          0,
+          1,
+          3
+         ],
+         [
+          358.2,
+          68,
+          58,
+          44,
+          5,
+          12,
+          1,
+          3,
+          1,
+          1,
+          3
+         ],
+         [
+          358.7,
+          23,
+          49,
+          43,
+          5,
+          11,
+          1,
+          5,
+          1,
+          1,
+          3
+         ]
+        ]
+       }
+      ],
+      "src": "contact_reaper",
+      "t": 358,
+      "tl": [
+       [
+        343.9,
+        130,
+        82,
+        45,
+        0,
+        13,
+        0,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        344.5,
+        130,
+        82,
+        44,
+        0,
+        10,
+        0,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        345.0,
+        130,
+        82,
+        41,
+        0,
+        2,
+        0,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        345.5,
+        130,
+        82,
+        41,
+        0,
+        1,
+        8,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        346.0,
+        130,
+        82,
+        43,
+        0,
+        2,
+        7,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        346.6,
+        130,
+        82,
+        44,
+        0,
+        1,
+        7,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        347.1,
+        130,
+        82,
+        45,
+        0,
+        0,
+        7,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        347.6,
+        130,
+        82,
+        45,
+        0,
+        2,
+        7,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        348.1,
+        130,
+        82,
+        45,
+        0,
+        4,
+        0,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        348.7,
+        130,
+        82,
+        46,
+        0,
+        4,
+        0,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        349.2,
+        130,
+        82,
+        48,
+        0,
+        3,
+        0,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        349.7,
+        130,
+        82,
+        48,
+        0,
+        5,
+        0,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        350.3,
+        130,
+        82,
+        49,
+        0,
+        6,
+        0,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        350.8,
+        130,
+        82,
+        49,
+        2,
+        7,
+        0,
+        3,
+        0,
+        1,
+        3
+       ],
+       [
+        351.3,
+        130,
+        82,
+        50,
+        1,
+        9,
+        3,
+        3,
+        0,
+        1,
+        3
+       ],
+       [
+        351.8,
+        130,
+        82,
+        43,
+        1,
+        8,
+        2,
+        2,
+        0,
+        1,
+        3
+       ],
+       [
+        352.4,
+        130,
+        82,
+        43,
+        1,
+        8,
+        3,
+        3,
+        0,
+        1,
+        3
+       ],
+       [
+        352.9,
+        103,
+        76,
+        40,
+        1,
+        6,
+        3,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        353.4,
+        104,
+        76,
+        42,
+        2,
+        9,
+        2,
+        2,
+        0,
+        1,
+        3
+       ],
+       [
+        354.0,
+        105,
+        76,
+        42,
+        3,
+        10,
+        0,
+        5,
+        0,
+        1,
+        3
+       ],
+       [
+        354.5,
+        105,
+        76,
+        43,
+        4,
+        9,
+        0,
+        5,
+        0,
+        1,
+        3
+       ],
+       [
+        355.0,
+        79,
+        62,
+        43,
+        4,
+        9,
+        0,
+        3,
+        1,
+        1,
+        3
+       ],
+       [
+        355.5,
+        79,
+        62,
+        44,
+        3,
+        13,
+        3,
+        4,
+        0,
+        1,
+        3
+       ],
+       [
+        356.1,
+        80,
+        62,
+        42,
+        5,
+        12,
+        3,
+        7,
+        0,
+        1,
+        3
+       ],
+       [
+        356.6,
+        81,
+        62,
+        44,
+        9,
+        13,
+        3,
+        7,
+        0,
+        1,
+        3
+       ],
+       [
+        357.1,
+        81,
+        62,
+        43,
+        7,
+        14,
+        3,
+        5,
+        0,
+        1,
+        3
+       ],
+       [
+        357.7,
+        82,
+        62,
+        46,
+        7,
+        16,
+        1,
+        4,
+        0,
+        1,
+        3
+       ],
+       [
+        358.2,
+        68,
+        58,
+        44,
+        5,
+        12,
+        1,
+        3,
+        1,
+        1,
+        3
+       ],
+       [
+        358.7,
+        23,
+        49,
+        43,
+        5,
+        11,
+        1,
+        5,
+        1,
+        1,
+        3
+       ]
+      ],
+      "zone_out": false,
+      "zone_phase": 1,
+      "zone_state": 3
+     },
+     "floors": [],
+     "hits": 106,
+     "hits_pm": 17.7,
+     "king_low_s": 0,
+     "lamp_end": 40,
+     "lamp_gain": {
+      "灯标": 40,
+      "精英灯油": 104
+     },
+     "lamp_loss": {
+      "冲撞吸灯": 24,
+      "受击": 162,
+      "尖叫": 17
+     },
+     "lamp_s": [
+      333,
+      24,
+      0,
+      0
+     ],
+     "lamp_taken": [
+      342,
+      222,
+      0,
+      0
+     ],
+     "low20_s": 0,
+     "low_hp_s": 3,
+     "moved_pm": 9668,
+     "peak": [
+      75,
+      95,
+      4,
+      325,
+      30
+     ],
+     "peak_min": [
+      [
+       20,
+       1,
+       0,
+       88,
+       4
+      ],
+      [
+       41,
+       5,
+       1,
+       144,
+       14
+      ],
+      [
+       50,
+       7,
+       1,
+       144,
+       11
+      ],
+      [
+       34,
+       95,
+       4,
+       120,
+       8
+      ],
+      [
+       68,
+       66,
+       4,
+       149,
+       20
+      ],
+      [
+       75,
+       16,
+       3,
+       325,
+       30
+      ]
+     ],
+     "profile": "expert",
+     "reaper_drain_deaths": 0,
+     "recruit_t": [
+      72,
+      86
+     ],
+     "still_pct": 2,
+     "taken": 565,
+     "taken_pm": 94
+    },
+    "cmd": {
+     "aggro": 56,
+     "downs": 0,
+     "roam": 92.9,
+     "sortie_downs": 0,
+     "sorties": 9,
+     "switch": 30
+    },
+    "crates": 6,
+    "cross_picks": [
+     [
+      "m1",
+      "incident",
+      "survive",
+      1
+     ],
+     [
+      "m2",
+      "incident",
+      "glimmer",
+      1
+     ],
+     [
+      "c1",
+      "incident",
+      "madness",
+      0
+     ]
+    ],
+    "ctrl": {
+     "aslow_slow": 0,
+     "aslow_t": 0.0,
+     "boss_t": 49.43,
+     "floor": 0.7,
+     "move_min": 0.8,
+     "slow_min": 0.8,
+     "stun_slow": 0,
+     "stun_t": 0.0
+    },
+    "ctrl_src": {
+     "boss": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 3.76
+     },
+     "founder": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "other": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "skimmer": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "slow_any_t": 3.76
+    },
+    "dashes": 5,
+    "dmg": {
+     "atk_stone": 15.5428831051492,
+     "atk_tracer": 27.7067361775164,
+     "boss_carmen": 133.528608,
+     "bullet": 105.035035265102,
+     "contact_bone": 12.6508563735268,
+     "contact_reaper": 84.8490877904538,
+     "contact_slider": 103.830383710716,
+     "contact_tracer": 106.986513764734,
+     "corrode": 10.8933204718466,
+     "nest": 4.20165331731724
+    },
+    "drone": 0,
+    "duck": {
+     "boss_overlap": 0,
+     "fled": 0,
+     "fled_hp": [],
+     "kill_hits": [
+      44
+     ],
+     "kill_t": [
+      8.5
+     ],
+     "killed": 1,
+     "spawn_t": [
+      267.6
+     ],
+     "spawned": 1
+    },
+    "elite_stage": 2,
+    "elites": 7,
+    "ending": "knight",
+    "final_out": {
+     "“永恒狩猎”": 19637.624342168,
+     "冰原秩序": 34629.441616106,
+     "剑气": 6583.36067466074,
+     "反手斩": 972.649294022313,
+     "大剑": 36688.5193569587,
+     "寒气": 459.858459903346,
+     "影子陷阱": 6301.56152637621,
+     "技能连携·拖刃·skadi": 1787.28542100427,
+     "技能连携·水痕·skadi": 549.251654735929,
+     "技能连携·点燃·eyjafjalla": 1014.60418490671,
+     "技能连携·熔岩·eyjafjalla": 3681.75365078944,
+     "散射": 50832.3663283462,
+     "火星": 2063.28156113489,
+     "点燃": 2454.64747404233,
+     "点燃弹": 1361.21522287274,
+     "熔岩团": 258.321172032,
+     "熔岩弹": 13636.6059723489,
+     "猎矢": 1577.82143291979,
+     "破浪下劈": 5362.35172440963,
+     "空间涟漪": 2851.03463613252,
+     "终结技·typhon·冲击": 20701.3973311364,
+     "跃浪": 2614.72697743135,
+     "跃浪击": 8338.81633250942,
+     "迅捷打击·γ型": 9660.06727494442,
+     "钉影": 398.514538173057,
+     "骑士": 6287.2961320644
+    },
+    "floor_hits": 0,
+    "floor_times": [],
+    "fuse": {
+     "left": 0,
+     "pct": 0.0,
+     "pool": 0,
+     "t": -1
+    },
+    "growth": {},
+    "heal": {
+     "商店": 57.7556989342057,
+     "拾取": 169.085763128298,
+     "自身回复": 233.021952439725,
+     "补给": 13.7019577898662
+    },
+    "heal_offer": 0,
+    "heal_offer_low": 0,
+    "heal_pick": 0,
+    "hordes": [
+     {
+      "comp": {
+       "bone": 9,
+       "slider": 3,
+       "stone": 3
+      },
+      "hp": 1574,
+      "hp0": 117,
+      "minhp": 100,
+      "mix": "凿石阵",
+      "n": 15,
+      "t": 75,
+      "t80": 14
+     },
+     {
+      "comp": {
+       "bone": 12,
+       "slider": 8
+      },
+      "hp": 2379,
+      "hp0": 132,
+      "minhp": 117,
+      "mix": "滑行群",
+      "n": 20,
+      "t": 165,
+      "t80": 9
+     },
+     {
+      "comp": {
+       "bone": 16,
+       "slider": 7,
+       "stone": 2
+      },
+      "hp": 5090,
+      "hp0": 130,
+      "minhp": 114,
+      "mix": "海嗣先锋",
+      "n": 25,
+      "t": 265,
+      "t80": 16
+     },
+     {
+      "comp": {
+       "bone": 6,
+       "offspring": 2,
+       "reaper": 2,
+       "runner": 6,
+       "slider": 13,
+       "spitter": 4,
+       "tracer": 3
+      },
+      "hp": 22764,
+      "hp0": 130,
+      "minhp": 125,
+      "mix": "酸雨围城",
+      "n": 36,
+      "t": 315,
+      "t80": 14
+     }
+    ],
+    "ingots": 29,
+    "items": {
+     "crate_shield": 0,
+     "heal_elite": 2,
+     "heal_low": 3,
+     "heal_mob": 8,
+     "heal_pick": 10,
+     "magnet_elite": 6,
+     "magnet_mob": 7,
+     "magnet_pick": 13,
+     "mob_capped": 78,
+     "mob_rolled": 806,
+     "pack_drop": 4,
+     "pack_pick": 1
+    },
+    "kill_hits": {
+     "0:bone": [
+      49,
+      50,
+      1.39
+     ],
+     "0:slider": [
+      8,
+      9,
+      0.07
+     ],
+     "0:stone": [
+      2,
+      6,
+      2.24
+     ],
+     "1:bone": [
+      77,
+      97,
+      6.67
+     ],
+     "1:floater": [
+      4,
+      12,
+      13.79
+     ],
+     "1:slider": [
+      31,
+      76,
+      25.85
+     ],
+     "1:stone": [
+      9,
+      43,
+      43.56
+     ],
+     "1:tracer": [
+      3,
+      49,
+      15.64
+     ],
+     "2:bone": [
+      86,
+      118,
+      15.52
+     ],
+     "2:floater": [
+      12,
+      27,
+      15.84
+     ],
+     "2:runner": [
+      6,
+      11,
+      0.93
+     ],
+     "2:slider": [
+      45,
+      82,
+      57.29
+     ],
+     "2:stone": [
+      6,
+      19,
+      44.22
+     ],
+     "2:tracer": [
+      6,
+      104,
+      36.3
+     ],
+     "3:bone": [
+      69,
+      90,
+      41.78
+     ],
+     "3:brood": [
+      2,
+      4,
+      1.85
+     ],
+     "3:floater": [
+      11,
+      40,
+      45.01
+     ],
+     "3:runner": [
+      5,
+      8,
+      5.62
+     ],
+     "3:slider": [
+      26,
+      52,
+      19.48
+     ],
+     "3:spitter": [
+      5,
+      34,
+      45.87
+     ],
+     "3:stone": [
+      8,
+      34,
+      44.94
+     ],
+     "3:tracer": [
+      4,
+      128,
+      62.31
+     ],
+     "4:bone": [
+      94,
+      223,
+      132.81
+     ],
+     "4:duck": [
+      1,
+      44,
+      7.72
+     ],
+     "4:floater": [
+      12,
+      45,
+      33.34
+     ],
+     "4:nest": [
+      1,
+      53,
+      5.08
+     ],
+     "4:reaper": [
+      4,
+      49,
+      14.99
+     ],
+     "4:runner": [
+      16,
+      36,
+      20.28
+     ],
+     "4:slider": [
+      33,
+      94,
+      33.69
+     ],
+     "4:spitter": [
+      2,
+      35,
+      29.77
+     ],
+     "4:stone": [
+      12,
+      79,
+      56.91
+     ],
+     "4:tracer": [
+      7,
+      223,
+      99.65
+     ],
+     "5:bone": [
+      81,
+      378,
+      140.54
+     ],
+     "5:brood": [
+      1,
+      1,
+      0.0
+     ],
+     "5:floater": [
+      18,
+      93,
+      48.78
+     ],
+     "5:founder": [
+      3,
+      271,
+      84.08
+     ],
+     "5:nest": [
+      3,
+      269,
+      55.77
+     ],
+     "5:offspring": [
+      4,
+      132,
+      32.87
+     ],
+     "5:reaper": [
+      8,
+      132,
+      19.53
+     ],
+     "5:runner": [
+      40,
+      133,
+      32.72
+     ],
+     "5:slider": [
+      41,
+      148,
+      49.94
+     ],
+     "5:spitter": [
+      7,
+      123,
+      51.62
+     ],
+     "5:stone": [
+      11,
+      86,
+      55.72
+     ],
+     "5:tracer": [
+      11,
+      197,
+      45.36
+     ]
+    },
+    "kills": 892,
+    "lamp": 40,
+    "levelup_t": [
+     17,
+     45,
+     53,
+     71,
+     86,
+     95,
+     103,
+     134,
+     153,
+     175,
+     185,
+     223,
+     260,
+     271,
+     290,
+     321,
+     330
+    ],
+    "low_levelups": 1,
+    "lv": 18,
+    "lv_times": [
+     16,
+     44,
+     52,
+     71,
+     85,
+     94,
+     103,
+     133,
+     153,
+     174,
+     184,
+     222,
+     260,
+     270,
+     289,
+     320,
+     330
+    ],
+    "marks": {
+     "120": 8,
+     "300": 16
+    },
+    "maxhp": 130.0806,
+    "meta": 0,
+    "ops": [
+     {
+      "elite": 2,
+      "id": "typhon",
+      "prog": 6
+     },
+     {
+      "elite": 1,
+      "id": "eyjafjalla",
+      "prog": 5
+     },
+     {
+      "elite": 1,
+      "id": "skadi",
+      "prog": 4
+     }
+    ],
+    "out": {
+     "“永恒狩猎”": 19637.624342168,
+     "冰原秩序": 34629.441616106,
+     "剑气": 6583.36067466074,
+     "反手斩": 972.649294022313,
+     "大剑": 36688.5193569587,
+     "寒气": 459.858459903346,
+     "影子陷阱": 6301.56152637621,
+     "技能连携·拖刃·skadi": 1787.28542100427,
+     "技能连携·水痕·skadi": 549.251654735929,
+     "技能连携·点燃·eyjafjalla": 1014.60418490671,
+     "技能连携·熔岩·eyjafjalla": 3681.75365078944,
+     "散射": 50832.3663283462,
+     "火星": 2063.28156113489,
+     "点燃": 2454.64747404233,
+     "点燃弹": 1361.21522287274,
+     "熔岩团": 258.321172032,
+     "熔岩弹": 13636.6059723489,
+     "猎矢": 1577.82143291979,
+     "破浪下劈": 5362.35172440963,
+     "空间涟漪": 2851.03463613252,
+     "终结技·typhon·冲击": 20701.3973311364,
+     "跃浪": 2614.72697743135,
+     "跃浪击": 8338.81633250942,
+     "迅捷打击·γ型": 9660.06727494442,
+     "钉影": 398.514538173057,
+     "骑士": 6287.2961320644
+    },
+    "out_tag": {
+     "ally": 6287.2961320644,
+     "area": 140253.74189417,
+     "basic": 43628.6925142881,
+     "charge": 2898.81554572071,
+     "dot": 2454.64747404233,
+     "entity": 2614.72697743135,
+     "follow_up": 27521.8981569537,
+     "growth": 114831.454006014,
+     "pierce": 36207.2630490258,
+     "projectile": 187995.765325597,
+     "skill": 136475.252575557,
+     "stab": 3388.48058634369,
+     "终结技": 41402.7946622729,
+     "连携": 14065.7898228727
+    },
+    "out_type": {
+     "法术": 22857.5698595113,
+     "物理": 197145.407101482,
+     "真实": 20701.3973311364
+    },
+    "prof": {},
+    "prog_log": [
+     [
+      17,
+      "typhon",
+      1
+     ],
+     [
+      45,
+      "typhon",
+      2
+     ],
+     [
+      53,
+      "typhon",
+      3
+     ],
+     [
+      95,
+      "typhon",
+      4
+     ],
+     [
+      103,
+      "typhon",
+      5
+     ],
+     [
+      134,
+      "typhon",
+      6
+     ],
+     [
+      153,
+      "skadi",
+      1
+     ],
+     [
+      175,
+      "skadi",
+      2
+     ],
+     [
+      185,
+      "skadi",
+      3
+     ],
+     [
+      223,
+      "eyjafjalla",
+      1
+     ],
+     [
+      260,
+      "skadi",
+      4
+     ],
+     [
+      271,
+      "eyjafjalla",
+      2
+     ],
+     [
+      290,
+      "eyjafjalla",
+      3
+     ],
+     [
+      321,
+      "eyjafjalla",
+      4
+     ],
+     [
+      330,
+      "eyjafjalla",
+      5
+     ]
+    ],
+    "prog_offer": {
+     "eyjafjalla": 9,
+     "skadi": 7,
+     "typhon": 7
+    },
+    "prog_pick": {
+     "eyjafjalla": 5,
+     "skadi": 4,
+     "typhon": 6
+    },
+    "recall_backstop": 0,
+    "recall_n": 45,
+    "recruit_offers": [
+     [
+      53,
+      "recruit",
+      1
+     ],
+     [
+      71,
+      "forced",
+      1
+     ],
+     [
+      86,
+      "recruit",
+      2
+     ],
+     [
+      185,
+      "swap",
+      3
+     ],
+     [
+      290,
+      "swap",
+      3
+     ]
+    ],
+    "rej": {},
+    "relic_offer": [
+     [
+      120,
+      "shop",
+      [
+       "12",
+       "180",
+       "55"
+      ]
+     ],
+     [
+      168,
+      "choice",
+      [
+       "209",
+       "97",
+       "183"
+      ],
+      "elite"
+     ],
+     [
+      260,
+      "choice",
+      [
+       "141",
+       "57",
+       "77",
+       "14"
+      ],
+      "boss"
+     ],
+     [
+      276,
+      "choice",
+      [
+       "85",
+       "25",
+       "193"
+      ],
+      "duck"
+     ],
+     [
+      303,
+      "shop",
+      [
+       "108",
+       "213",
+       "23"
+      ]
+     ]
+    ],
+    "relic_out": 0.0,
+    "relic_take": [
+     [
+      123,
+      "12",
+      [
+       "狙击",
+       "术师",
+       "近卫"
+      ],
+      "shop"
+     ],
+     [
+      123,
+      "180",
+      [
+       "狙击",
+       "术师",
+       "近卫"
+      ],
+      "shop"
+     ],
+     [
+      168,
+      "183",
+      [
+       "狙击",
+       "术师",
+       "近卫"
+      ],
+      "choice:elite"
+     ],
+     [
+      260,
+      "141",
+      [
+       "狙击",
+       "术师",
+       "近卫"
+      ],
+      "choice:boss"
+     ],
+     [
+      261,
+      "222",
+      [
+       "狙击",
+       "术师",
+       "近卫"
+      ],
+      "event"
+     ],
+     [
+      276,
+      "193",
+      [
+       "狙击",
+       "术师",
+       "近卫"
+      ],
+      "choice:duck"
+     ],
+     [
+      303,
+      "108",
+      [
+       "狙击",
+       "术师",
+       "近卫"
+      ],
+      "shop"
+     ],
+     [
+      303,
+      "213",
+      [
+       "狙击",
+       "术师",
+       "近卫"
+      ],
+      "shop"
+     ]
+    ],
+    "relics": 8,
+    "shield": {
+     "abs": 81.9,
+     "blocks": 4,
+     "every": 15.0,
+     "max": 1,
+     "peak": 1,
+     "src_int": [],
+     "src_max": [
+      {
+       "op": 0,
+       "scope": "",
+       "source": "relic:193",
+       "value": 1.0
+      }
+     ],
+     "t0": 276.936
+    },
+    "squad": [
+     "typhon",
+     "eyjafjalla",
+     "skadi"
+    ],
+    "sus": {
+     "m0": {
+      "clean": {},
+      "dr": {},
+      "heal": {
+       "商店": [
+        20.956375387472,
+        53.04
+       ],
+       "拾取": [
+        18.816910344576,
+        153.5202
+       ]
+      },
+      "lit": 0.0
+     },
+     "m3": {
+      "clean": {},
+      "dr": {},
+      "heal": {
+       "商店": [
+        36.7993235467337,
+        52.03224
+       ],
+       "拾取": [
+        150.268852783722,
+        247.15314
+       ]
+      },
+      "lit": 0.0
+     }
+    },
+    "swaps": [],
+    "t": 358,
+    "tel": "full",
+    "terrain": {
+     "bul": 43,
+     "dash": 0,
+     "ebul": 3
+    },
+    "ult": {
+     "combo": 5,
+     "combo_auto": 5,
+     "combo_up": 0,
+     "cult": 0,
+     "cult_times": [],
+     "e_combo": 3.0,
+     "e_hurt": 9.6,
+     "e_kill": 49.4,
+     "e_out": 119.9,
+     "first_full": 151.7,
+     "full_times": [
+      151.7,
+      323.5
+     ],
+     "hit_n": 39,
+     "idle_full_s": 13.2,
+     "link_by": {
+      "eyjafjalla": 3,
+      "skadi": 2
+     },
+     "lit": 5,
+     "lit_by": {},
+     "miss": 0,
+     "ult": 2,
+     "ult_times": [
+      164.8,
+      323.6
+     ]
+    },
+    "win": false,
+    "xp_backstop": 0.0,
+    "xp_dropped": 3771.4,
+    "xp_ground": 277.5,
+    "xp_magnet": 1157.5,
+    "xp_magnet_min": [
+     37.5,
+     190.8,
+     98.8,
+     185.0,
+     202.9,
+     442.5
+    ],
+    "xp_recall": 331.3,
+    "xp_recall_min": [
+     0.0,
+     5.0,
+     77.5,
+     71.3,
+     90.0,
+     87.5
+    ],
+    "xp_total": 3493.9,
+    "xp_total_min": [
+     145.0,
+     412.5,
+     542.5,
+     490.0,
+     831.4,
+     1072.5
+    ],
+    "xp_walk": 2005.2,
+    "xp_walk_min": [
+     107.5,
+     216.7,
+     366.3,
+     233.8,
+     538.5,
+     542.5
+    ]
+   }
+  },
+  {
+   "squad": [
+    "typhon"
+   ],
+   "seed": 7,
+   "diff": 0,
+   "bot": "expert",
+   "tier": 0,
+   "placebo": 0,
+   "wall": 25.9,
+   "data": {
+    "allies": 2,
+    "armor_cf": {
+     "m0": {
+      "a2": 96.471090803103,
+      "a4": 84.518548159521,
+      "a8": 64.518548159521,
+      "all": 239.999759440071,
+      "armor": 5.4,
+      "n": 16,
+      "phys": 108.471090803103,
+      "phys_n": 6,
+      "phys_pre": 113.871090803103
+     },
+     "m4": {
+      "a2": 116.494746630663,
+      "a4": 98.4947466306627,
+      "a8": 62.5796277073375,
+      "all": 174.824542621846,
+      "armor": 8.1,
+      "n": 13,
+      "phys": 134.494746630663,
+      "phys_n": 9,
+      "phys_pre": 142.594746630663
+     }
+    },
+    "boss_hp": -0.000761162800712293,
+    "bosses": [
+     "carmen:dead"
+    ],
+    "bot": {
+     "bosses": [
+      {
+       "en_alive": 15,
+       "en_alive_pk": 25,
+       "en_near": 2,
+       "en_near_pk": 5,
+       "gates": 1,
+       "on_boss": 0.52,
+       "shield": 0.0,
+       "t0": 210,
+       "t1": 267,
+       "tv": 210,
+       "type": "carmen",
+       "windows": [
+        {
+         "en": 25,
+         "hits": 0,
+         "hp": 1.0,
+         "moves": 0,
+         "out": 0,
+         "t": 0
+        },
+        {
+         "en": 13,
+         "hits": 4,
+         "hp": 0.8,
+         "moves": 2,
+         "out": 12428,
+         "t": 15
+        },
+        {
+         "en": 18,
+         "hits": 2,
+         "hp": 0.49,
+         "moves": 2,
+         "out": 13982,
+         "t": 30
+        },
+        {
+         "en": 15,
+         "hits": 1,
+         "hp": 0.31,
+         "moves": 4,
+         "out": 10246,
+         "t": 46
+        },
+        {
+         "en": 20,
+         "hits": 3,
+         "hp": 0.0,
+         "moves": 1,
+         "out": 14568,
+         "t": 61
+        },
+        {
+         "en": 50,
+         "hits": 4,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 19491,
+         "t": 76
+        }
+       ]
+      }
+     ],
+     "cap_stats": {
+      "any_cut": 0.0,
+      "any_n": 0,
+      "big_n": 0,
+      "boss_cut": 0.0,
+      "boss_n": 0,
+      "hits": 324,
+      "one_cut": 0.0,
+      "one_n": 0,
+      "post": 470.3,
+      "pre": 470.3,
+      "zero": 0
+     },
+     "curve": [
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 0,
+       "hp": 100,
+       "hpm": 1.23,
+       "hpmin": 100,
+       "hsrc": {},
+       "kills": 0,
+       "lamp": 100,
+       "lampmin": 100,
+       "lv": 1,
+       "mhp": 102,
+       "mire_s": 0.0,
+       "mires": 0,
+       "outc": 0,
+       "rg": 0.9,
+       "squad": 1,
+       "t": 0,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "bullet": 7
+       },
+       "ebul": 0,
+       "elites": 1,
+       "enemies": 18,
+       "hp": 98,
+       "hpm": 1.57,
+       "hpmin": 92,
+       "hsrc": {
+        "自身回复": 6
+       },
+       "kills": 15,
+       "lamp": 96,
+       "lampmin": 96,
+       "lv": 2,
+       "mhp": 102,
+       "mire_s": 0.0,
+       "mires": 0,
+       "outc": 686,
+       "rg": 0.9,
+       "squad": 1,
+       "t": 30,
+       "taken": 7,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "bullet": 8
+       },
+       "ebul": 0,
+       "elites": 1,
+       "enemies": 10,
+       "hp": 100,
+       "hpm": 2.38,
+       "hpmin": 91,
+       "hsrc": {
+        "自身回复": 10
+       },
+       "kills": 65,
+       "lamp": 92,
+       "lampmin": 92,
+       "lv": 5,
+       "mhp": 117,
+       "mire_s": 0.0,
+       "mires": 0,
+       "outc": 2400,
+       "rg": 1.05,
+       "squad": 2,
+       "t": 60,
+       "taken": 8,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "bullet": 13
+       },
+       "ebul": 1,
+       "elites": 0,
+       "enemies": 21,
+       "hp": 98,
+       "hpm": 2.8,
+       "hpmin": 88,
+       "hsrc": {
+        "自身回复": 12
+       },
+       "kills": 122,
+       "lamp": 100,
+       "lampmin": 75,
+       "lv": 6,
+       "mhp": 117,
+       "mire_s": 0.0,
+       "mires": 7,
+       "outc": 8695,
+       "rg": 1.05,
+       "squad": 2,
+       "t": 90,
+       "taken": 13,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_tracer": 4,
+        "bullet": 12
+       },
+       "ebul": 5,
+       "elites": 0,
+       "enemies": 27,
+       "hp": 100,
+       "hpm": 3.22,
+       "hpmin": 88,
+       "hsrc": {
+        "自身回复": 20
+       },
+       "kills": 183,
+       "lamp": 100,
+       "lampmin": 92,
+       "lv": 8,
+       "mhp": 132,
+       "mire_s": 0.0,
+       "mires": 15,
+       "outc": 17091,
+       "rg": 1.2,
+       "squad": 3,
+       "t": 120,
+       "taken": 17,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "bullet": 70,
+        "corrode": 34
+       },
+       "ebul": 1,
+       "elites": 0,
+       "enemies": 26,
+       "hp": 87,
+       "hpm": 3.64,
+       "hpmin": 63,
+       "hsrc": {
+        "拾取": 39,
+        "自身回复": 29,
+        "补给": 19
+       },
+       "kills": 252,
+       "lamp": 86,
+       "lampmin": 86,
+       "lv": 9,
+       "mhp": 132,
+       "mire_s": 0.1,
+       "mires": 16,
+       "outc": 28876,
+       "rg": 1.2,
+       "squad": 3,
+       "t": 150,
+       "taken": 106,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "contact_tracer": 21
+       },
+       "ebul": 3,
+       "elites": 0,
+       "enemies": 24,
+       "hp": 100,
+       "hpm": 4.06,
+       "hpmin": 83,
+       "hsrc": {
+        "拾取": 7,
+        "自身回复": 32
+       },
+       "kills": 355,
+       "lamp": 100,
+       "lampmin": 80,
+       "lv": 11,
+       "mhp": 132,
+       "mire_s": 0.1,
+       "mires": 7,
+       "outc": 47421,
+       "rg": 1.2,
+       "squad": 3,
+       "t": 180,
+       "taken": 22,
+       "zone": 2
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "bullet": 13,
+        "corrode": 6
+       },
+       "ebul": 1,
+       "elites": 0,
+       "enemies": 24,
+       "hp": 98,
+       "hpm": 4.48,
+       "hpmin": 87,
+       "hsrc": {
+        "自身回复": 2,
+        "补给": 16
+       },
+       "kills": 439,
+       "lamp": 95,
+       "lampmin": 95,
+       "lv": 12,
+       "mhp": 132,
+       "mire_s": 0.0,
+       "mires": 12,
+       "outc": 63933,
+       "rg": 1.2,
+       "squad": 3,
+       "t": 210,
+       "taken": 20,
+       "zone": 3
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "boss_carmen": 81,
+        "bullet": 5
+       },
+       "ebul": 6,
+       "elites": 0,
+       "enemies": 17,
+       "hp": 99,
+       "hpm": 4.9,
+       "hpmin": 43,
+       "hsrc": {
+        "拾取": 19,
+        "自身回复": 29,
+        "补给": 39
+       },
+       "kills": 491,
+       "lamp": 86,
+       "lampmin": 85,
+       "lv": 13,
+       "mhp": 132,
+       "mire_s": 0.1,
+       "mires": 16,
+       "outc": 90957,
+       "rg": 1.2,
+       "squad": 3,
+       "t": 240,
+       "taken": 88,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_tracer": 9,
+        "bullet": 5,
+        "contact_slider": 9,
+        "contact_tracer": 10
+       },
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 20,
+       "hp": 100,
+       "hpm": 5.32,
+       "hpmin": 84,
+       "hsrc": {
+        "拾取": 18,
+        "自身回复": 17
+       },
+       "kills": 543,
+       "lamp": 85,
+       "lampmin": 75,
+       "lv": 14,
+       "mhp": 119,
+       "mire_s": 0.0,
+       "mires": 20,
+       "outc": 114636,
+       "rg": 1.2,
+       "squad": 3,
+       "t": 270,
+       "taken": 35,
+       "zone": 3
+      }
+     ],
+     "curve_tail": {
+      "dsrc": {
+       "atk_founder": 12,
+       "atk_offspring": 12,
+       "atk_reaper": 8,
+       "atk_tracer": 21,
+       "bullet": 14,
+       "contact_tracer": 40,
+       "corrode": 9,
+       "nest": 2
+      },
+      "hsrc": {
+       "自身回复": 23
+      },
+      "mhp": 119,
+      "t": 298,
+      "t0": 270,
+      "taken": 123
+     },
+     "dark_dmg": 0,
+     "dark_s": 0,
+     "death_src": "corrode",
+     "elite_t": {
+      "exusiai:1": 178,
+      "exusiai:2": 294,
+      "typhon:1": 47,
+      "typhon:2": 194
+     },
+     "end": {
+      "boss": false,
+      "hits2": [
+       [
+        285.8,
+        "atk_founder",
+        "e:founder",
+        0,
+        12.8,
+        12.8,
+        52
+       ],
+       [
+        287.7,
+        "atk_reaper",
+        "e:reaper",
+        0,
+        8.9,
+        8.9,
+        45
+       ],
+       [
+        290.9,
+        "nest",
+        "env:nest",
+        0,
+        2.6,
+        2.6,
+        47
+       ],
+       [
+        293.3,
+        "bullet",
+        "e:spitter",
+        0,
+        14.8,
+        14.8,
+        35
+       ],
+       [
+        293.3,
+        "corrode",
+        "e:spitter",
+        0,
+        2.1,
+        2.1,
+        33
+       ],
+       [
+        293.8,
+        "corrode",
+        "e:spitter",
+        0,
+        1.6,
+        1.6,
+        32
+       ],
+       [
+        294.3,
+        "corrode",
+        "e:spitter",
+        0,
+        1.4,
+        1.4,
+        31
+       ],
+       [
+        294.8,
+        "corrode",
+        "e:spitter",
+        0,
+        0.8,
+        0.8,
+        31
+       ],
+       [
+        295.3,
+        "corrode",
+        "e:spitter",
+        0,
+        0.8,
+        0.8,
+        31
+       ],
+       [
+        295.8,
+        "corrode",
+        "e:spitter",
+        0,
+        0.7,
+        0.7,
+        31
+       ],
+       [
+        296.3,
+        "corrode",
+        "e:spitter",
+        0,
+        0.1,
+        0.1,
+        31
+       ],
+       [
+        296.6,
+        "atk_offspring",
+        "e:offspring",
+        0,
+        12.6,
+        12.6,
+        19
+       ],
+       [
+        296.6,
+        "corrode",
+        "e:spitter",
+        0,
+        0.7,
+        0.7,
+        18
+       ],
+       [
+        297.1,
+        "corrode",
+        "e:spitter",
+        0,
+        0.8,
+        0.8,
+        18
+       ],
+       [
+        297.6,
+        "corrode",
+        "e:spitter",
+        0,
+        0.7,
+        0.7,
+        18
+       ],
+       [
+        298.1,
+        "corrode",
+        "e:spitter",
+        0,
+        0.0,
+        0.0,
+        18
+       ],
+       [
+        298.8,
+        "contact_reaper",
+        "e:reaper",
+        0,
+        25.8,
+        25.8,
+        -6
+       ]
+      ],
+      "hp": 0,
+      "killer": {
+       "cause": "",
+       "key": "e:reaper"
+      },
+      "last15": {
+       "corrode_out": 9.6,
+       "corrode_peak": 7.1,
+       "dark_s": 0.0,
+       "ebullets_peak": 9,
+       "enemies_peak": 57,
+       "hits": [
+        {
+         "amt": 12.8,
+         "boss": false,
+         "hp_after": 52,
+         "src": "atk_founder",
+         "t": 285.8,
+         "zone_out": false
+        },
+        {
+         "amt": 8.9,
+         "boss": false,
+         "hp_after": 45,
+         "src": "atk_reaper",
+         "t": 287.7,
+         "zone_out": false
+        },
+        {
+         "amt": 2.6,
+         "boss": false,
+         "hp_after": 47,
+         "src": "nest",
+         "t": 290.9,
+         "zone_out": false
+        },
+        {
+         "amt": 14.8,
+         "boss": false,
+         "hp_after": 34,
+         "src": "bullet",
+         "t": 293.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 34,
+         "src": "corrode",
+         "t": 293.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 34,
+         "src": "corrode",
+         "t": 293.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 34,
+         "src": "corrode",
+         "t": 293.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 34,
+         "src": "corrode",
+         "t": 293.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 33,
+         "src": "corrode",
+         "t": 293.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 33,
+         "src": "corrode",
+         "t": 293.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 33,
+         "src": "corrode",
+         "t": 293.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 33,
+         "src": "corrode",
+         "t": 293.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 33,
+         "src": "corrode",
+         "t": 293.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 33,
+         "src": "corrode",
+         "t": 293.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 33,
+         "src": "corrode",
+         "t": 294.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 32,
+         "src": "corrode",
+         "t": 294.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 32,
+         "src": "corrode",
+         "t": 294.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 32,
+         "src": "corrode",
+         "t": 294.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 32,
+         "src": "corrode",
+         "t": 294.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 32,
+         "src": "corrode",
+         "t": 294.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 32,
+         "src": "corrode",
+         "t": 294.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 32,
+         "src": "corrode",
+         "t": 294.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 32,
+         "src": "corrode",
+         "t": 294.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 31,
+         "src": "corrode",
+         "t": 294.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 31,
+         "src": "corrode",
+         "t": 294.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 31,
+         "src": "corrode",
+         "t": 294.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 31,
+         "src": "corrode",
+         "t": 294.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 31,
+         "src": "corrode",
+         "t": 294.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 31,
+         "src": "corrode",
+         "t": 295.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 31,
+         "src": "corrode",
+         "t": 295.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 31,
+         "src": "corrode",
+         "t": 295.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 31,
+         "src": "corrode",
+         "t": 295.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 31,
+         "src": "corrode",
+         "t": 295.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 31,
+         "src": "corrode",
+         "t": 295.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 31,
+         "src": "corrode",
+         "t": 295.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 31,
+         "src": "corrode",
+         "t": 295.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 31,
+         "src": "corrode",
+         "t": 295.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 31,
+         "src": "corrode",
+         "t": 295.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 31,
+         "src": "corrode",
+         "t": 295.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 31,
+         "src": "corrode",
+         "t": 295.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 31,
+         "src": "corrode",
+         "t": 295.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 31,
+         "src": "corrode",
+         "t": 295.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 31,
+         "src": "corrode",
+         "t": 295.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 31,
+         "src": "corrode",
+         "t": 295.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 31,
+         "src": "corrode",
+         "t": 296.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 31,
+         "src": "corrode",
+         "t": 296.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 31,
+         "src": "corrode",
+         "t": 296.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 31,
+         "src": "corrode",
+         "t": 296.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 31,
+         "src": "corrode",
+         "t": 296.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 31,
+         "src": "corrode",
+         "t": 296.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 18,
+         "src": "corrode",
+         "t": 296.6,
+         "zone_out": false
+        },
+        {
+         "amt": 12.6,
+         "boss": false,
+         "hp_after": 18,
+         "src": "atk_offspring",
+         "t": 296.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 18,
+         "src": "corrode",
+         "t": 296.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 18,
+         "src": "corrode",
+         "t": 296.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 18,
+         "src": "corrode",
+         "t": 296.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 18,
+         "src": "corrode",
+         "t": 296.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 18,
+         "src": "corrode",
+         "t": 296.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 18,
+         "src": "corrode",
+         "t": 297.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 18,
+         "src": "corrode",
+         "t": 297.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 18,
+         "src": "corrode",
+         "t": 297.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 18,
+         "src": "corrode",
+         "t": 297.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 18,
+         "src": "corrode",
+         "t": 297.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 18,
+         "src": "corrode",
+         "t": 297.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 18,
+         "src": "corrode",
+         "t": 297.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 18,
+         "src": "corrode",
+         "t": 297.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 18,
+         "src": "corrode",
+         "t": 297.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 18,
+         "src": "corrode",
+         "t": 297.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 18,
+         "src": "corrode",
+         "t": 297.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 18,
+         "src": "corrode",
+         "t": 297.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 18,
+         "src": "corrode",
+         "t": 297.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 18,
+         "src": "corrode",
+         "t": 297.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 18,
+         "src": "corrode",
+         "t": 297.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 18,
+         "src": "corrode",
+         "t": 298.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 18,
+         "src": "corrode",
+         "t": 298.1,
+         "zone_out": false
+        }
+       ],
+       "mire_s": 0.0,
+       "nerve_bursts": 0,
+       "t": 298.8
+      },
+      "near": [
+       {
+        "hp": 18,
+        "mhp": 119,
+        "src": {
+         "atk_founder": 12.8,
+         "atk_offspring": 12.6,
+         "atk_reaper": 8.9,
+         "bullet": 14.8,
+         "corrode": 8.0,
+         "nest": 2.6
+        },
+        "t": 296.9,
+        "tl": [
+         [
+          282.1,
+          60,
+          83,
+          48,
+          1,
+          3,
+          0,
+          2,
+          0,
+          0,
+          3
+         ],
+         [
+          282.6,
+          61,
+          83,
+          46,
+          1,
+          3,
+          0,
+          2,
+          0,
+          0,
+          3
+         ],
+         [
+          283.1,
+          61,
+          83,
+          48,
+          1,
+          6,
+          1,
+          2,
+          0,
+          0,
+          3
+         ],
+         [
+          283.7,
+          62,
+          83,
+          49,
+          1,
+          4,
+          0,
+          2,
+          1,
+          0,
+          3
+         ],
+         [
+          284.2,
+          63,
+          83,
+          49,
+          1,
+          4,
+          0,
+          2,
+          0,
+          0,
+          3
+         ],
+         [
+          284.7,
+          63,
+          83,
+          50,
+          0,
+          4,
+          0,
+          1,
+          0,
+          0,
+          3
+         ],
+         [
+          285.3,
+          64,
+          83,
+          50,
+          1,
+          4,
+          0,
+          1,
+          0,
+          0,
+          3
+         ],
+         [
+          285.8,
+          65,
+          83,
+          51,
+          0,
+          4,
+          0,
+          0,
+          0,
+          0,
+          3
+         ],
+         [
+          286.3,
+          53,
+          79,
+          50,
+          0,
+          4,
+          0,
+          2,
+          1,
+          0,
+          3
+         ],
+         [
+          286.8,
+          53,
+          79,
+          51,
+          1,
+          8,
+          1,
+          2,
+          0,
+          0,
+          3
+         ],
+         [
+          287.4,
+          54,
+          79,
+          52,
+          1,
+          9,
+          0,
+          3,
+          0,
+          1,
+          3
+         ],
+         [
+          287.9,
+          46,
+          75,
+          53,
+          6,
+          12,
+          0,
+          4,
+          1,
+          1,
+          3
+         ],
+         [
+          288.4,
+          46,
+          75,
+          51,
+          2,
+          8,
+          0,
+          3,
+          0,
+          1,
+          3
+         ],
+         [
+          288.9,
+          47,
+          75,
+          51,
+          2,
+          6,
+          0,
+          2,
+          0,
+          1,
+          3
+         ],
+         [
+          289.5,
+          47,
+          75,
+          50,
+          2,
+          4,
+          0,
+          2,
+          1,
+          0,
+          3
+         ],
+         [
+          290.0,
+          48,
+          75,
+          51,
+          1,
+          2,
+          4,
+          2,
+          0,
+          0,
+          3
+         ],
+         [
+          290.5,
+          49,
+          75,
+          53,
+          2,
+          2,
+          4,
+          2,
+          0,
+          0,
+          3
+         ],
+         [
+          291.1,
+          47,
+          72,
+          55,
+          2,
+          2,
+          4,
+          2,
+          1,
+          0,
+          3
+         ],
+         [
+          291.6,
+          47,
+          72,
+          54,
+          2,
+          2,
+          4,
+          2,
+          0,
+          0,
+          3
+         ],
+         [
+          292.1,
+          48,
+          72,
+          55,
+          1,
+          5,
+          1,
+          1,
+          1,
+          0,
+          3
+         ],
+         [
+          292.6,
+          49,
+          72,
+          56,
+          2,
+          6,
+          2,
+          2,
+          0,
+          0,
+          3
+         ],
+         [
+          293.2,
+          49,
+          72,
+          56,
+          1,
+          7,
+          2,
+          2,
+          0,
+          0,
+          3
+         ],
+         [
+          293.7,
+          33,
+          68,
+          54,
+          1,
+          9,
+          1,
+          3,
+          1,
+          1,
+          3
+         ],
+         [
+          294.2,
+          32,
+          68,
+          55,
+          0,
+          10,
+          8,
+          1,
+          1,
+          1,
+          3
+         ],
+         [
+          294.8,
+          31,
+          68,
+          54,
+          1,
+          9,
+          9,
+          2,
+          1,
+          1,
+          3
+         ],
+         [
+          295.3,
+          31,
+          68,
+          54,
+          2,
+          11,
+          9,
+          4,
+          0,
+          1,
+          3
+         ],
+         [
+          295.8,
+          31,
+          68,
+          54,
+          3,
+          10,
+          8,
+          5,
+          0,
+          1,
+          3
+         ],
+         [
+          296.3,
+          31,
+          68,
+          53,
+          2,
+          8,
+          8,
+          4,
+          0,
+          1,
+          3
+         ],
+         [
+          296.9,
+          18,
+          64,
+          52,
+          1,
+          5,
+          3,
+          1,
+          1,
+          1,
+          3
+         ]
+        ]
+       }
+      ],
+      "src": "corrode",
+      "t": 298,
+      "tl": [
+       [
+        283.7,
+        62,
+        83,
+        49,
+        1,
+        4,
+        0,
+        2,
+        1,
+        0,
+        3
+       ],
+       [
+        284.2,
+        63,
+        83,
+        49,
+        1,
+        4,
+        0,
+        2,
+        0,
+        0,
+        3
+       ],
+       [
+        284.7,
+        63,
+        83,
+        50,
+        0,
+        4,
+        0,
+        1,
+        0,
+        0,
+        3
+       ],
+       [
+        285.3,
+        64,
+        83,
+        50,
+        1,
+        4,
+        0,
+        1,
+        0,
+        0,
+        3
+       ],
+       [
+        285.8,
+        65,
+        83,
+        51,
+        0,
+        4,
+        0,
+        0,
+        0,
+        0,
+        3
+       ],
+       [
+        286.3,
+        53,
+        79,
+        50,
+        0,
+        4,
+        0,
+        2,
+        1,
+        0,
+        3
+       ],
+       [
+        286.8,
+        53,
+        79,
+        51,
+        1,
+        8,
+        1,
+        2,
+        0,
+        0,
+        3
+       ],
+       [
+        287.4,
+        54,
+        79,
+        52,
+        1,
+        9,
+        0,
+        3,
+        0,
+        1,
+        3
+       ],
+       [
+        287.9,
+        46,
+        75,
+        53,
+        6,
+        12,
+        0,
+        4,
+        1,
+        1,
+        3
+       ],
+       [
+        288.4,
+        46,
+        75,
+        51,
+        2,
+        8,
+        0,
+        3,
+        0,
+        1,
+        3
+       ],
+       [
+        288.9,
+        47,
+        75,
+        51,
+        2,
+        6,
+        0,
+        2,
+        0,
+        1,
+        3
+       ],
+       [
+        289.5,
+        47,
+        75,
+        50,
+        2,
+        4,
+        0,
+        2,
+        1,
+        0,
+        3
+       ],
+       [
+        290.0,
+        48,
+        75,
+        51,
+        1,
+        2,
+        4,
+        2,
+        0,
+        0,
+        3
+       ],
+       [
+        290.5,
+        49,
+        75,
+        53,
+        2,
+        2,
+        4,
+        2,
+        0,
+        0,
+        3
+       ],
+       [
+        291.1,
+        47,
+        72,
+        55,
+        2,
+        2,
+        4,
+        2,
+        1,
+        0,
+        3
+       ],
+       [
+        291.6,
+        47,
+        72,
+        54,
+        2,
+        2,
+        4,
+        2,
+        0,
+        0,
+        3
+       ],
+       [
+        292.1,
+        48,
+        72,
+        55,
+        1,
+        5,
+        1,
+        1,
+        1,
+        0,
+        3
+       ],
+       [
+        292.6,
+        49,
+        72,
+        56,
+        2,
+        6,
+        2,
+        2,
+        0,
+        0,
+        3
+       ],
+       [
+        293.2,
+        49,
+        72,
+        56,
+        1,
+        7,
+        2,
+        2,
+        0,
+        0,
+        3
+       ],
+       [
+        293.7,
+        33,
+        68,
+        54,
+        1,
+        9,
+        1,
+        3,
+        1,
+        1,
+        3
+       ],
+       [
+        294.2,
+        32,
+        68,
+        55,
+        0,
+        10,
+        8,
+        1,
+        1,
+        1,
+        3
+       ],
+       [
+        294.8,
+        31,
+        68,
+        54,
+        1,
+        9,
+        9,
+        2,
+        1,
+        1,
+        3
+       ],
+       [
+        295.3,
+        31,
+        68,
+        54,
+        2,
+        11,
+        9,
+        4,
+        0,
+        1,
+        3
+       ],
+       [
+        295.8,
+        31,
+        68,
+        54,
+        3,
+        10,
+        8,
+        5,
+        0,
+        1,
+        3
+       ],
+       [
+        296.3,
+        31,
+        68,
+        53,
+        2,
+        8,
+        8,
+        4,
+        0,
+        1,
+        3
+       ],
+       [
+        296.9,
+        18,
+        64,
+        52,
+        1,
+        5,
+        3,
+        1,
+        1,
+        1,
+        3
+       ],
+       [
+        297.4,
+        18,
+        64,
+        52,
+        1,
+        6,
+        8,
+        2,
+        0,
+        1,
+        3
+       ],
+       [
+        297.9,
+        18,
+        64,
+        50,
+        0,
+        5,
+        7,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        298.5,
+        19,
+        64,
+        50,
+        1,
+        8,
+        7,
+        3,
+        0,
+        1,
+        3
+       ]
+      ],
+      "zone_out": false,
+      "zone_phase": 1,
+      "zone_state": 1
+     },
+     "floors": [],
+     "hits": 310,
+     "hits_pm": 62.2,
+     "king_low_s": 0,
+     "lamp_end": 57,
+     "lamp_gain": {
+      "灯标": 39,
+      "灯油": 34,
+      "精英灯油": 31
+     },
+     "lamp_loss": {
+      "冲撞吸灯": 8,
+      "受击": 126,
+      "尖叫": 12
+     },
+     "lamp_s": [
+      292,
+      5,
+      0,
+      0
+     ],
+     "lamp_taken": [
+      407,
+      37,
+      0,
+      0
+     ],
+     "low20_s": 2,
+     "low_hp_s": 5,
+     "moved_pm": 9671,
+     "peak": [
+      58,
+      88,
+      4,
+      187,
+      21
+     ],
+     "peak_min": [
+      [
+       20,
+       1,
+       1,
+       82,
+       4
+      ],
+      [
+       40,
+       5,
+       2,
+       132,
+       12
+      ],
+      [
+       50,
+       12,
+       2,
+       187,
+       19
+      ],
+      [
+       28,
+       25,
+       2,
+       87,
+       12
+      ],
+      [
+       58,
+       88,
+       4,
+       169,
+       21
+      ]
+     ],
+     "profile": "expert",
+     "reaper_drain_deaths": 0,
+     "recruit_t": [
+      58,
+      97
+     ],
+     "still_pct": 2,
+     "taken": 444,
+     "taken_pm": 89
+    },
+    "cmd": {
+     "aggro": 44,
+     "downs": 0,
+     "roam": 81.5,
+     "sortie_downs": 0,
+     "sorties": 8,
+     "switch": 26
+    },
+    "crates": 5,
+    "cross_picks": [
+     [
+      "m1",
+      "incident",
+      "boxes",
+      3
+     ],
+     [
+      "m2",
+      "elite",
+      ""
+     ],
+     [
+      "c1",
+      "incident",
+      "madness",
+      0
+     ]
+    ],
+    "ctrl": {
+     "aslow_slow": 0,
+     "aslow_t": 0.0,
+     "boss_t": 57.42,
+     "floor": 0.7,
+     "move_min": 0.76,
+     "slow_min": 0.76,
+     "stun_slow": 0,
+     "stun_t": 0.0
+    },
+    "ctrl_src": {
+     "boss": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 3.7
+     },
+     "founder": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.59
+     },
+     "other": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "skimmer": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "slow_any_t": 4.29
+    },
+    "dashes": 12,
+    "dmg": {
+     "atk_founder": 12.7673036693745,
+     "atk_offspring": 12.5669690186539,
+     "atk_reaper": 8.91511892332517,
+     "atk_tracer": 35.8039376246759,
+     "boss_carmen": 81.7632,
+     "bullet": 151.807367141519,
+     "contact_reaper": 25.7859445219828,
+     "contact_slider": 9.12868775946139,
+     "contact_tracer": 73.7306079936327,
+     "corrode": 51.440215236673,
+     "mire": 3.9912,
+     "nest": 2.55516540929265
+    },
+    "drone": 0,
+    "duck": {
+     "boss_overlap": 0,
+     "fled": 0,
+     "fled_hp": [],
+     "kill_hits": [],
+     "kill_t": [],
+     "killed": 0,
+     "spawn_t": [
+      276.1
+     ],
+     "spawned": 1
+    },
+    "elite_stage": 2,
+    "elites": 5,
+    "ending": "knight",
+    "final_out": {
+     "“永恒狩猎”": 18347.7471938579,
+     "冰原秩序": 30500.4422603779,
+     "冲锋模式": 10538.0633716882,
+     "弹匣倾泻": 5408.97495819954,
+     "影子陷阱": 5917.55775365213,
+     "技能连携·熔岩·eyjafjalla": 656.417345775471,
+     "技能连携·穿透扫射·exusiai": 764.068475015995,
+     "散射": 53688.3418987683,
+     "点燃": 1519.27435126384,
+     "熔岩弹": 9316.99425135376,
+     "猎矢": 1944.30278255166,
+     "空间涟漪": 3073.40119506093,
+     "终结技·typhon·冲击": 3188.10597535429,
+     "过载模式": 889.221021501723,
+     "速射": 9670.52533981597,
+     "钉影": 114.129817864021,
+     "骑士": 1348.13196512636
+    },
+    "floor_hits": 0,
+    "floor_times": [],
+    "fuse": {
+     "left": 0,
+     "pct": 0.0,
+     "pool": 0,
+     "t": -1
+    },
+    "growth": {},
+    "heal": {
+     "拾取": 85.016334382234,
+     "自身回复": 185.139144852693,
+     "补给": 76.0380266801876
+    },
+    "heal_offer": 0,
+    "heal_offer_low": 0,
+    "heal_pick": 0,
+    "hordes": [
+     {
+      "comp": {
+       "bone": 9,
+       "slider": 3,
+       "stone": 3
+      },
+      "hp": 1967,
+      "hp0": 117,
+      "minhp": 103,
+      "mix": "凿石阵",
+      "n": 15,
+      "t": 75,
+      "t80": 11
+     },
+     {
+      "comp": {
+       "bone": 12,
+       "slider": 8
+      },
+      "hp": 2974,
+      "hp0": 132,
+      "minhp": 110,
+      "mix": "滑行群",
+      "n": 20,
+      "t": 165,
+      "t80": 11
+     },
+     {
+      "comp": {
+       "bone": 14,
+       "offspring": 2,
+       "slider": 7,
+       "stone": 2
+      },
+      "hp": 9397,
+      "hp0": 119,
+      "minhp": 45,
+      "mix": "子代壁垒",
+      "n": 25,
+      "t": 273,
+      "t80": 23
+     }
+    ],
+    "ingots": 66,
+    "items": {
+     "crate_shield": 1,
+     "heal_elite": 1,
+     "heal_low": 2,
+     "heal_mob": 7,
+     "heal_pick": 7,
+     "magnet_elite": 5,
+     "magnet_mob": 5,
+     "magnet_pick": 8,
+     "mob_capped": 64,
+     "mob_rolled": 569,
+     "pack_drop": 4,
+     "pack_pick": 3
+    },
+    "kill_hits": {
+     "0:bone": [
+      51,
+      52,
+      0.0
+     ],
+     "0:slider": [
+      10,
+      14,
+      8.59
+     ],
+     "0:stone": [
+      3,
+      11,
+      51.55
+     ],
+     "1:bone": [
+      71,
+      128,
+      33.8
+     ],
+     "1:floater": [
+      6,
+      30,
+      16.11
+     ],
+     "1:slider": [
+      29,
+      80,
+      30.15
+     ],
+     "1:stone": [
+      6,
+      38,
+      74.45
+     ],
+     "1:tracer": [
+      4,
+      114,
+      39.33
+     ],
+     "2:bone": [
+      98,
+      249,
+      102.34
+     ],
+     "2:brood": [
+      1,
+      1,
+      0.0
+     ],
+     "2:floater": [
+      15,
+      89,
+      48.12
+     ],
+     "2:runner": [
+      3,
+      5,
+      1.19
+     ],
+     "2:slider": [
+      40,
+      132,
+      56.81
+     ],
+     "2:spitter": [
+      4,
+      59,
+      76.29
+     ],
+     "2:stone": [
+      6,
+      31,
+      21.72
+     ],
+     "2:tracer": [
+      2,
+      291,
+      71.15
+     ],
+     "3:bone": [
+      59,
+      119,
+      53.77
+     ],
+     "3:floater": [
+      14,
+      98,
+      51.74
+     ],
+     "3:runner": [
+      13,
+      36,
+      14.12
+     ],
+     "3:slider": [
+      27,
+      108,
+      31.87
+     ],
+     "3:spitter": [
+      5,
+      43,
+      24.42
+     ],
+     "3:stone": [
+      12,
+      104,
+      79.6
+     ],
+     "3:tracer": [
+      8,
+      319,
+      72.66
+     ],
+     "4:bone": [
+      67,
+      228,
+      142.21
+     ],
+     "4:brood": [
+      2,
+      5,
+      2.31
+     ],
+     "4:floater": [
+      11,
+      81,
+      40.34
+     ],
+     "4:offspring": [
+      1,
+      15,
+      2.44
+     ],
+     "4:reaper": [
+      4,
+      92,
+      31.29
+     ],
+     "4:runner": [
+      10,
+      39,
+      20.26
+     ],
+     "4:slider": [
+      30,
+      123,
+      46.58
+     ],
+     "4:spitter": [
+      6,
+      98,
+      71.14
+     ],
+     "4:stone": [
+      11,
+      101,
+      58.68
+     ],
+     "4:tracer": [
+      4,
+      187,
+      37.35
+     ]
+    },
+    "kills": 639,
+    "lamp": 57,
+    "levelup_t": [
+     14,
+     41,
+     46,
+     58,
+     71,
+     97,
+     115,
+     129,
+     162,
+     178,
+     193,
+     214,
+     246,
+     270,
+     294
+    ],
+    "low_levelups": 1,
+    "lv": 16,
+    "lv_times": [
+     14,
+     41,
+     46,
+     57,
+     70,
+     97,
+     115,
+     129,
+     161,
+     178,
+     193,
+     214,
+     245,
+     270,
+     294
+    ],
+    "marks": {
+     "120": 8
+    },
+    "maxhp": 119.34,
+    "meta": 0,
+    "ops": [
+     {
+      "elite": 2,
+      "id": "typhon",
+      "prog": 6
+     },
+     {
+      "elite": 0,
+      "id": "eyjafjalla",
+      "prog": 1
+     },
+     {
+      "elite": 2,
+      "id": "exusiai",
+      "prog": 6
+     }
+    ],
+    "out": {
+     "“永恒狩猎”": 18347.7471938579,
+     "冰原秩序": 30500.4422603779,
+     "冲锋模式": 10538.0633716882,
+     "弹匣倾泻": 5408.97495819954,
+     "影子陷阱": 5917.55775365213,
+     "技能连携·熔岩·eyjafjalla": 656.417345775471,
+     "技能连携·穿透扫射·exusiai": 764.068475015995,
+     "散射": 53688.3418987683,
+     "点燃": 1519.27435126384,
+     "熔岩弹": 9316.99425135376,
+     "猎矢": 1944.30278255166,
+     "空间涟漪": 3073.40119506093,
+     "终结技·typhon·冲击": 3188.10597535429,
+     "过载模式": 889.221021501723,
+     "速射": 9670.52533981597,
+     "钉影": 114.129817864021,
+     "骑士": 1348.13196512636
+    },
+    "out_tag": {
+     "ally": 1348.13196512636,
+     "area": 69631.6411304233,
+     "basic": 11614.8281223676,
+     "charge": 958.79342250976,
+     "dot": 1519.27435126384,
+     "follow_up": 6375.0620258499,
+     "growth": 107376.683797537,
+     "pierce": 48391.7833728173,
+     "projectile": 193992.954976885,
+     "skill": 95066.9283447336,
+     "stab": 389.338542616599,
+     "终结技": 6376.21195070859,
+     "连携": 2840.97164158293
+    },
+    "out_type": {
+     "法术": 12219.5481967774,
+     "物理": 141478.045785097,
+     "真实": 3188.10597535429
+    },
+    "prof": {},
+    "prog_log": [
+     [
+      14,
+      "typhon",
+      1
+     ],
+     [
+      41,
+      "typhon",
+      2
+     ],
+     [
+      46,
+      "typhon",
+      3
+     ],
+     [
+      71,
+      "typhon",
+      4
+     ],
+     [
+      115,
+      "typhon",
+      5
+     ],
+     [
+      129,
+      "exusiai",
+      1
+     ],
+     [
+      162,
+      "exusiai",
+      2
+     ],
+     [
+      178,
+      "exusiai",
+      3
+     ],
+     [
+      193,
+      "typhon",
+      6
+     ],
+     [
+      214,
+      "exusiai",
+      4
+     ],
+     [
+      246,
+      "exusiai",
+      5
+     ],
+     [
+      270,
+      "eyjafjalla",
+      1
+     ],
+     [
+      294,
+      "exusiai",
+      6
+     ]
+    ],
+    "prog_offer": {
+     "exusiai": 7,
+     "eyjafjalla": 7,
+     "typhon": 7
+    },
+    "prog_pick": {
+     "exusiai": 6,
+     "eyjafjalla": 1,
+     "typhon": 6
+    },
+    "recall_backstop": 0,
+    "recall_n": 48,
+    "recruit_offers": [
+     [
+      58,
+      "forced",
+      1
+     ],
+     [
+      97,
+      "recruit",
+      2
+     ],
+     [
+      129,
+      "swap",
+      3
+     ]
+    ],
+    "rej": {},
+    "relic_offer": [
+     [
+      120,
+      "shop",
+      [
+       "9",
+       "27",
+       "97"
+      ]
+     ],
+     [
+      166,
+      "choice",
+      [
+       "82",
+       "265",
+       "75",
+       "30"
+      ],
+      "squad"
+     ],
+     [
+      269,
+      "choice",
+      [
+       "63",
+       "77",
+       "16",
+       "231"
+      ],
+      "boss"
+     ]
+    ],
+    "relic_out": 0.0,
+    "relic_take": [
+     [
+      55,
+      "216",
+      [
+       "狙击"
+      ],
+      "event"
+     ],
+     [
+      55,
+      "58",
+      [
+       "狙击"
+      ],
+      "event"
+     ],
+     [
+      121,
+      "9",
+      [
+       "狙击",
+       "术师",
+       "狙击"
+      ],
+      "shop"
+     ],
+     [
+      121,
+      "27",
+      [
+       "狙击",
+       "术师",
+       "狙击"
+      ],
+      "shop"
+     ],
+     [
+      121,
+      "97",
+      [
+       "狙击",
+       "术师",
+       "狙击"
+      ],
+      "shop"
+     ],
+     [
+      166,
+      "82",
+      [
+       "狙击",
+       "术师",
+       "狙击"
+      ],
+      "choice:squad"
+     ],
+     [
+      269,
+      "222",
+      [
+       "狙击",
+       "术师",
+       "狙击"
+      ],
+      "event"
+     ],
+     [
+      269,
+      "231",
+      [
+       "狙击",
+       "术师",
+       "狙击"
+      ],
+      "choice:boss"
+     ]
+    ],
+    "relics": 8,
+    "shield": {
+     "abs": 10.5,
+     "blocks": 1,
+     "every": 15.0,
+     "max": 0,
+     "peak": 0,
+     "src_int": [],
+     "src_max": [],
+     "t0": -1.0
+    },
+    "squad": [
+     "typhon",
+     "eyjafjalla",
+     "exusiai"
+    ],
+    "sus": {
+     "m0": {
+      "clean": {},
+      "dr": {},
+      "heal": {
+       "拾取": [
+        47.0585068327668,
+        149.94
+       ]
+      },
+      "lit": 0.0
+     },
+     "m3": {
+      "clean": {},
+      "dr": {},
+      "heal": {
+       "拾取": [
+        37.9578275494672,
+        119.34
+       ]
+      },
+      "lit": 0.0
+     }
+    },
+    "swaps": [],
+    "t": 298,
+    "tel": "full",
+    "terrain": {
+     "bul": 95,
+     "dash": 0,
+     "ebul": 6
+    },
+    "ult": {
+     "combo": 4,
+     "combo_auto": 4,
+     "combo_up": 0,
+     "cult": 0,
+     "cult_times": [],
+     "e_combo": 2.1,
+     "e_hurt": 8.8,
+     "e_kill": 41.8,
+     "e_out": 94.8,
+     "first_full": 141.8,
+     "full_times": [
+      141.8
+     ],
+     "hit_n": 15,
+     "idle_full_s": 24.1,
+     "link_by": {
+      "exusiai": 2,
+      "eyjafjalla": 2
+     },
+     "lit": 4,
+     "lit_by": {},
+     "miss": 0,
+     "ult": 1,
+     "ult_times": [
+      165.9
+     ]
+    },
+    "win": false,
+    "xp_backstop": 0.0,
+    "xp_dropped": 2532.1,
+    "xp_ground": 108.5,
+    "xp_magnet": 505.8,
+    "xp_magnet_min": [
+     50.0,
+     108.3,
+     0.0,
+     110.0,
+     237.5
+    ],
+    "xp_recall": 396.6,
+    "xp_recall_min": [
+     2.5,
+     40.0,
+     119.1,
+     58.8,
+     176.2
+    ],
+    "xp_total": 2423.6,
+    "xp_total_min": [
+     187.5,
+     395.8,
+     427.1,
+     646.6,
+     766.5
+    ],
+    "xp_walk": 1521.2,
+    "xp_walk_min": [
+     135.0,
+     247.5,
+     308.0,
+     477.9,
+     352.8
+    ]
+   }
+  },
+  {
+   "squad": [
+    "typhon"
+   ],
+   "seed": 8,
+   "diff": 0,
+   "bot": "expert",
+   "tier": 0,
+   "placebo": 0,
+   "wall": 50.4,
+   "data": {
+    "allies": 2,
+    "armor_cf": {
+     "m0": {
+      "a2": 66.1760197257297,
+      "a4": 58.4687683237131,
+      "a8": 46.4687683237131,
+      "all": 138.426662893504,
+      "armor": 3.6,
+      "n": 10,
+      "phys": 74.1760197257297,
+      "phys_n": 4,
+      "phys_pre": 77.7760197257297
+     },
+     "m4": {
+      "a2": 232.379624185742,
+      "a4": 202.441800723753,
+      "a8": 148.448827571111,
+      "all": 275.546942017503,
+      "armor": 14.4,
+      "n": 17,
+      "phys": 263.334132361354,
+      "phys_n": 16,
+      "phys_pre": 277.734132361354
+     },
+     "m8": {
+      "a2": 107.109887093903,
+      "a4": 97.1098870939029,
+      "a8": 77.1098870939028,
+      "all": 441.497773221447,
+      "armor": 4.5,
+      "n": 12,
+      "phys": 117.109887093903,
+      "phys_n": 5,
+      "phys_pre": 121.609887093903
+     }
+    },
+    "boss_hp": 0.0,
+    "bosses": [
+     "carmen:dead",
+     "bishop:dead",
+     "immortal:dead",
+     "paranoia:dead"
+    ],
+    "bot": {
+     "bosses": [
+      {
+       "en_alive": 18,
+       "en_alive_pk": 26,
+       "en_near": 4,
+       "en_near_pk": 9,
+       "gates": 1,
+       "on_boss": 0.52,
+       "shield": 0.0,
+       "t0": 210,
+       "t1": 264,
+       "tv": 210,
+       "type": "carmen",
+       "windows": [
+        {
+         "en": 26,
+         "hits": 0,
+         "hp": 1.0,
+         "moves": 0,
+         "out": 0,
+         "t": 0
+        },
+        {
+         "en": 18,
+         "hits": 3,
+         "hp": 0.78,
+         "moves": 2,
+         "out": 11018,
+         "t": 15
+        },
+        {
+         "en": 18,
+         "hits": 29,
+         "hp": 0.44,
+         "moves": 3,
+         "out": 9755,
+         "t": 30
+        },
+        {
+         "en": 18,
+         "hits": 30,
+         "hp": 0.16,
+         "moves": 4,
+         "out": 12223,
+         "t": 45
+        },
+        {
+         "en": 52,
+         "hits": 1,
+         "hp": 0.0,
+         "moves": 2,
+         "out": 11188,
+         "t": 61
+        },
+        {
+         "en": 53,
+         "hits": 2,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 17776,
+         "t": 76
+        },
+        {
+         "en": 33,
+         "hits": 2,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 29697,
+         "t": 91
+        },
+        {
+         "en": 37,
+         "hits": 0,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 36411,
+         "t": 106
+        },
+        {
+         "en": 32,
+         "hits": 1,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 41218,
+         "t": 121
+        },
+        {
+         "en": 34,
+         "hits": 1,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 23980,
+         "t": 136
+        },
+        {
+         "en": 39,
+         "hits": 4,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 24671,
+         "t": 151
+        },
+        {
+         "en": 80,
+         "hits": 0,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 27127,
+         "t": 166
+        },
+        {
+         "en": 50,
+         "hits": 1,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 45608,
+         "t": 181
+        },
+        {
+         "en": 38,
+         "hits": 50,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 40758,
+         "t": 196
+        },
+        {
+         "en": 25,
+         "hits": 40,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 52957,
+         "t": 211
+        },
+        {
+         "en": 27,
+         "hits": 7,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 46472,
+         "t": 226
+        },
+        {
+         "en": 23,
+         "hits": 121,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 71633,
+         "t": 242
+        },
+        {
+         "en": 79,
+         "hits": 0,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 36018,
+         "t": 257
+        },
+        {
+         "en": 37,
+         "hits": 0,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 87337,
+         "t": 272
+        },
+        {
+         "en": 32,
+         "hits": 110,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 70544,
+         "t": 287
+        },
+        {
+         "en": 33,
+         "hits": 19,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 52092,
+         "t": 302
+        },
+        {
+         "en": 26,
+         "hits": 0,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 63619,
+         "t": 317
+        },
+        {
+         "en": 32,
+         "hits": 1,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 100986,
+         "t": 332
+        },
+        {
+         "en": 34,
+         "hits": 91,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 76205,
+         "t": 347
+        },
+        {
+         "en": 30,
+         "hits": 0,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 79952,
+         "t": 362
+        },
+        {
+         "en": 30,
+         "hits": 0,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 71772,
+         "t": 377
+        },
+        {
+         "en": 27,
+         "hits": 1,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 74963,
+         "t": 392
+        },
+        {
+         "en": 2,
+         "hits": 131,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 68786,
+         "t": 407
+        },
+        {
+         "en": 2,
+         "hits": 3,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 35092,
+         "t": 422
+        }
+       ]
+      },
+      {
+       "en_alive": 25,
+       "en_alive_pk": 31,
+       "en_near": 2,
+       "en_near_pk": 8,
+       "gates": 1,
+       "on_boss": 0.27,
+       "shield": 0.0,
+       "t0": 420,
+       "t1": 446,
+       "tv": 420,
+       "type": "bishop",
+       "windows": [
+        {
+         "en": 25,
+         "hits": 0,
+         "hp": 0.94,
+         "moves": 0,
+         "out": 0,
+         "t": 1
+        },
+        {
+         "en": 27,
+         "hits": 7,
+         "hp": 0.43,
+         "moves": 8,
+         "out": 46472,
+         "t": 16
+        },
+        {
+         "en": 23,
+         "hits": 121,
+         "hp": 0.0,
+         "moves": 3,
+         "out": 71633,
+         "t": 32
+        },
+        {
+         "en": 79,
+         "hits": 0,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 36018,
+         "t": 47
+        },
+        {
+         "en": 37,
+         "hits": 0,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 87337,
+         "t": 62
+        },
+        {
+         "en": 32,
+         "hits": 110,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 70544,
+         "t": 77
+        },
+        {
+         "en": 33,
+         "hits": 19,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 52092,
+         "t": 92
+        },
+        {
+         "en": 26,
+         "hits": 0,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 63619,
+         "t": 107
+        },
+        {
+         "en": 32,
+         "hits": 1,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 100986,
+         "t": 122
+        },
+        {
+         "en": 34,
+         "hits": 91,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 76205,
+         "t": 137
+        },
+        {
+         "en": 30,
+         "hits": 0,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 79952,
+         "t": 152
+        },
+        {
+         "en": 30,
+         "hits": 0,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 71772,
+         "t": 167
+        },
+        {
+         "en": 27,
+         "hits": 1,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 74963,
+         "t": 182
+        },
+        {
+         "en": 2,
+         "hits": 131,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 68786,
+         "t": 197
+        },
+        {
+         "en": 2,
+         "hits": 3,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 35092,
+         "t": 212
+        }
+       ]
+      },
+      {
+       "en_alive": 25,
+       "en_alive_pk": 31,
+       "en_near": 4,
+       "en_near_pk": 12,
+       "gates": 1,
+       "on_boss": 0.18,
+       "shield": 3.0,
+       "t0": 420,
+       "t1": 446,
+       "tv": 420,
+       "type": "immortal",
+       "windows": [
+        {
+         "en": 25,
+         "hits": 0,
+         "hp": 1.0,
+         "moves": 0,
+         "out": 0,
+         "t": 1
+        },
+        {
+         "en": 27,
+         "hits": 7,
+         "hp": 0.63,
+         "moves": 7,
+         "out": 46472,
+         "t": 16
+        },
+        {
+         "en": 23,
+         "hits": 121,
+         "hp": 0.0,
+         "moves": 7,
+         "out": 71633,
+         "t": 32
+        },
+        {
+         "en": 79,
+         "hits": 0,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 36018,
+         "t": 47
+        },
+        {
+         "en": 37,
+         "hits": 0,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 87337,
+         "t": 62
+        },
+        {
+         "en": 32,
+         "hits": 110,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 70544,
+         "t": 77
+        },
+        {
+         "en": 33,
+         "hits": 19,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 52092,
+         "t": 92
+        },
+        {
+         "en": 26,
+         "hits": 0,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 63619,
+         "t": 107
+        },
+        {
+         "en": 32,
+         "hits": 1,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 100986,
+         "t": 122
+        },
+        {
+         "en": 34,
+         "hits": 91,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 76205,
+         "t": 137
+        },
+        {
+         "en": 30,
+         "hits": 0,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 79952,
+         "t": 152
+        },
+        {
+         "en": 30,
+         "hits": 0,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 71772,
+         "t": 167
+        },
+        {
+         "en": 27,
+         "hits": 1,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 74963,
+         "t": 182
+        },
+        {
+         "en": 2,
+         "hits": 131,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 68786,
+         "t": 197
+        },
+        {
+         "en": 2,
+         "hits": 3,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 35092,
+         "t": 212
+        }
+       ]
+      },
+      {
+       "en_alive": 7,
+       "en_alive_pk": 31,
+       "en_near": 1,
+       "en_near_pk": 8,
+       "gates": 3,
+       "on_boss": 0.49,
+       "shield": 15.1,
+       "t0": 600,
+       "t1": -1,
+       "tv": 600,
+       "type": "paranoia",
+       "windows": [
+        {
+         "en": 27,
+         "hits": 0,
+         "hp": 1.0,
+         "moves": 0,
+         "out": 0,
+         "t": 2
+        },
+        {
+         "en": 2,
+         "hits": 131,
+         "hp": 0.66,
+         "moves": 7,
+         "out": 68786,
+         "t": 17
+        },
+        {
+         "en": 2,
+         "hits": 3,
+         "hp": 0.08,
+         "moves": 1,
+         "out": 35092,
+         "t": 32
+        }
+       ]
+      }
+     ],
+     "cap_stats": {
+      "any_cut": 0.0,
+      "any_n": 0,
+      "big_n": 1,
+      "boss_cut": 62.5,
+      "boss_n": 3,
+      "hits": 773,
+      "one_cut": 0.0,
+      "one_n": 0,
+      "post": 846.7,
+      "pre": 909.2,
+      "zero": 0
+     },
+     "curve": [
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 0,
+       "hp": 100,
+       "hpm": 1.23,
+       "hpmin": 100,
+       "hsrc": {},
+       "kills": 0,
+       "lamp": 100,
+       "lampmin": 100,
+       "lv": 1,
+       "mhp": 102,
+       "mire_s": 0.0,
+       "mires": 0,
+       "outc": 0,
+       "rg": 0.9,
+       "squad": 1,
+       "t": 0,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 17,
+       "hp": 100,
+       "hpm": 1.57,
+       "hpmin": 100,
+       "hsrc": {},
+       "kills": 16,
+       "lamp": 100,
+       "lampmin": 100,
+       "lv": 2,
+       "mhp": 102,
+       "mire_s": 0.0,
+       "mires": 0,
+       "outc": 423,
+       "rg": 0.9,
+       "squad": 1,
+       "t": 30,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 0,
+       "elites": 1,
+       "enemies": 21,
+       "hp": 100,
+       "hpm": 1.9,
+       "hpmin": 100,
+       "hsrc": {},
+       "kills": 54,
+       "lamp": 85,
+       "lampmin": 85,
+       "lv": 4,
+       "mhp": 102,
+       "mire_s": 0.0,
+       "mires": 0,
+       "outc": 2056,
+       "rg": 0.9,
+       "squad": 1,
+       "t": 60,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "bullet": 24
+       },
+       "ebul": 4,
+       "elites": 1,
+       "enemies": 25,
+       "hp": 84,
+       "hpm": 2.24,
+       "hpmin": 81,
+       "hsrc": {
+        "自身回复": 6
+       },
+       "kills": 118,
+       "lamp": 86,
+       "lampmin": 85,
+       "lv": 6,
+       "mhp": 117,
+       "mire_s": 0.0,
+       "mires": 0,
+       "outc": 6543,
+       "rg": 1.05,
+       "squad": 2,
+       "t": 90,
+       "taken": 24,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "bullet": 21,
+        "contact_tracer": 19
+       },
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 14,
+       "hp": 83,
+       "hpm": 2.57,
+       "hpmin": 76,
+       "hsrc": {
+        "拾取": 11,
+        "自身回复": 28
+       },
+       "kills": 188,
+       "lamp": 73,
+       "lampmin": 73,
+       "lv": 8,
+       "mhp": 117,
+       "mire_s": 0.0,
+       "mires": 5,
+       "outc": 13765,
+       "rg": 1.05,
+       "squad": 2,
+       "t": 120,
+       "taken": 40,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 3,
+       "elites": 0,
+       "enemies": 17,
+       "hp": 100,
+       "hpm": 2.91,
+       "hpmin": 83,
+       "hsrc": {
+        "商店": 16,
+        "自身回复": 2
+       },
+       "kills": 253,
+       "lamp": 100,
+       "lampmin": 73,
+       "lv": 9,
+       "mhp": 132,
+       "mire_s": 0.0,
+       "mires": 17,
+       "outc": 20384,
+       "rg": 1.2,
+       "squad": 3,
+       "t": 150,
+       "taken": 0,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 18,
+       "hp": 100,
+       "hpm": 3.25,
+       "hpmin": 100,
+       "hsrc": {},
+       "kills": 352,
+       "lamp": 100,
+       "lampmin": 100,
+       "lv": 11,
+       "mhp": 132,
+       "mire_s": 0.0,
+       "mires": 8,
+       "outc": 33791,
+       "rg": 1.2,
+       "squad": 3,
+       "t": 180,
+       "taken": 0,
+       "zone": 2
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "bullet": 11,
+        "corrode": 5
+       },
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 26,
+       "hp": 100,
+       "hpm": 3.58,
+       "hpmin": 91,
+       "hsrc": {
+        "拾取": 11,
+        "自身回复": 5
+       },
+       "kills": 428,
+       "lamp": 95,
+       "lampmin": 95,
+       "lv": 13,
+       "mhp": 132,
+       "mire_s": 0.0,
+       "mires": 15,
+       "outc": 46338,
+       "rg": 1.2,
+       "squad": 3,
+       "t": 210,
+       "taken": 17,
+       "zone": 3
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "atk_tracer": 4,
+        "boss_carmen": 50,
+        "bullet": 6,
+        "corrode": 3
+       },
+       "ebul": 4,
+       "elites": 0,
+       "enemies": 19,
+       "hp": 100,
+       "hpm": 3.92,
+       "hpmin": 72,
+       "hsrc": {
+        "塞雷娅": 51,
+        "自身回复": 13
+       },
+       "kills": 481,
+       "lamp": 95,
+       "lampmin": 75,
+       "lv": 13,
+       "mhp": 132,
+       "mire_s": 0.0,
+       "mires": 14,
+       "outc": 66586,
+       "rg": 1.2,
+       "squad": 3,
+       "t": 240,
+       "taken": 64,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "boss_carmen": 121,
+        "bullet": 14,
+        "corrode": 2
+       },
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 26,
+       "hp": 100,
+       "hpm": 4.25,
+       "hpmin": 51,
+       "hsrc": {
+        "塞雷娅": 62,
+        "自身回复": 51,
+        "补给": 20,
+        "针剂回流": 3
+       },
+       "kills": 534,
+       "lamp": 59,
+       "lampmin": 59,
+       "lv": 15,
+       "mhp": 132,
+       "mire_s": 0.0,
+       "mires": 18,
+       "outc": 89625,
+       "rg": 1.2,
+       "squad": 3,
+       "t": 270,
+       "taken": 138,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "contact_tracer": 20,
+        "mire": 4
+       },
+       "ebul": 2,
+       "elites": 1,
+       "enemies": 35,
+       "hp": 100,
+       "hpm": 4.59,
+       "hpmin": 84,
+       "hsrc": {
+        "塞雷娅": 11,
+        "自身回复": 5,
+        "针剂回流": 7
+       },
+       "kills": 656,
+       "lamp": 90,
+       "lampmin": 59,
+       "lv": 16,
+       "mhp": 132,
+       "mire_s": 0.7,
+       "mires": 30,
+       "outc": 133160,
+       "rg": 1.2,
+       "squad": 3,
+       "t": 300,
+       "taken": 24,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_tracer": 28
+       },
+       "ebul": 9,
+       "elites": 0,
+       "enemies": 36,
+       "hp": 100,
+       "hpm": 4.93,
+       "hpmin": 78,
+       "hsrc": {
+        "塞雷娅": 21,
+        "自身回复": 2,
+        "针剂回流": 3
+       },
+       "kills": 791,
+       "lamp": 100,
+       "lampmin": 83,
+       "lv": 18,
+       "mhp": 132,
+       "mire_s": 0.0,
+       "mires": 17,
+       "outc": 212102,
+       "rg": 3.59,
+       "squad": 3,
+       "t": 330,
+       "taken": 28,
+       "zone": 2
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_reaper": 17,
+        "bullet": 12,
+        "contact_tracer": 15,
+        "mire": 1
+       },
+       "ebul": 0,
+       "elites": 1,
+       "enemies": 41,
+       "hp": 100,
+       "hpm": 5.26,
+       "hpmin": 85,
+       "hsrc": {
+        "塞雷娅": 29,
+        "自身回复": 16,
+        "针剂回流": 1
+       },
+       "kills": 896,
+       "lamp": 86,
+       "lampmin": 86,
+       "lv": 19,
+       "mhp": 132,
+       "mire_s": 0.0,
+       "mires": 30,
+       "outc": 260677,
+       "rg": 1.6,
+       "squad": 3,
+       "t": 360,
+       "taken": 47,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_reaper": 11
+       },
+       "ebul": 3,
+       "elites": 1,
+       "enemies": 52,
+       "hp": 100,
+       "hpm": 5.6,
+       "hpmin": 91,
+       "hsrc": {
+        "塞雷娅": 3,
+        "自身回复": 3,
+        "针剂回流": 3
+       },
+       "kills": 1041,
+       "lamp": 86,
+       "lampmin": 86,
+       "lv": 20,
+       "mhp": 132,
+       "mire_s": 0.0,
+       "mires": 31,
+       "outc": 334061,
+       "rg": 1.6,
+       "squad": 3,
+       "t": 390,
+       "taken": 11,
+       "zone": 1
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "atk_tracer": 4,
+        "wound": 1
+       },
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 30,
+       "hp": 100,
+       "hpm": 5.93,
+       "hpmin": 96,
+       "hsrc": {
+        "塞雷娅": 1,
+        "自身回复": 3,
+        "针剂回流": 3
+       },
+       "kills": 1179,
+       "lamp": 96,
+       "lampmin": 83,
+       "lv": 21,
+       "mhp": 132,
+       "mire_s": 0.1,
+       "mires": 33,
+       "outc": 420282,
+       "rg": 1.6,
+       "squad": 3,
+       "t": 420,
+       "taken": 7,
+       "zone": 2
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_tracer": 1,
+        "contact_tracer": 27,
+        "wound": 4
+       },
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 19,
+       "hp": 100,
+       "hpm": 6.27,
+       "hpmin": 79,
+       "hsrc": {
+        "塞雷娅": 17,
+        "自身回复": 11,
+        "针剂回流": 5
+       },
+       "kills": 1257,
+       "lamp": 92,
+       "lampmin": 92,
+       "lv": 23,
+       "mhp": 139,
+       "mire_s": 0.0,
+       "mires": 30,
+       "outc": 542935,
+       "rg": 3.71,
+       "squad": 3,
+       "t": 450,
+       "taken": 34,
+       "zone": 2
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 41,
+       "hp": 100,
+       "hpm": 6.6,
+       "hpmin": 100,
+       "hsrc": {},
+       "kills": 1391,
+       "lamp": 100,
+       "lampmin": 92,
+       "lv": 23,
+       "mhp": 139,
+       "mire_s": 0.0,
+       "mires": 33,
+       "outc": 661380,
+       "rg": 1.62,
+       "squad": 3,
+       "t": 480,
+       "taken": 0,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_reaper": 24,
+        "mire": 2,
+        "wound": 5
+       },
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 30,
+       "hp": 100,
+       "hpm": 6.91,
+       "hpmin": 86,
+       "hsrc": {
+        "塞雷娅": 20,
+        "自身回复": 11
+       },
+       "kills": 1536,
+       "lamp": 100,
+       "lampmin": 91,
+       "lv": 24,
+       "mhp": 139,
+       "mire_s": 0.2,
+       "mires": 20,
+       "outc": 788696,
+       "rg": 3.71,
+       "squad": 3,
+       "t": 510,
+       "taken": 31,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "contact_pocket": 49
+       },
+       "ebul": 4,
+       "elites": 0,
+       "enemies": 42,
+       "hp": 77,
+       "hpm": 7.22,
+       "hpmin": 64,
+       "hsrc": {
+        "塞雷娅": 15,
+        "自身回复": 2
+       },
+       "kills": 1669,
+       "lamp": 89,
+       "lampmin": 89,
+       "lv": 25,
+       "mhp": 139,
+       "mire_s": 0.0,
+       "mires": 32,
+       "outc": 934055,
+       "rg": 1.62,
+       "squad": 3,
+       "t": 540,
+       "taken": 49,
+       "zone": 2
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_tracer": 20,
+        "wound": 2
+       },
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 27,
+       "hp": 100,
+       "hpm": 7.53,
+       "hpmin": 77,
+       "hsrc": {
+        "塞雷娅": 39,
+        "自身回复": 14
+       },
+       "kills": 1801,
+       "lamp": 100,
+       "lampmin": 83,
+       "lv": 26,
+       "mhp": 139,
+       "mire_s": 0.0,
+       "mires": 25,
+       "outc": 1103320,
+       "rg": 3.71,
+       "squad": 3,
+       "t": 570,
+       "taken": 22,
+       "zone": 3
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "atk_founder": 23
+       },
+       "ebul": 0,
+       "elites": 0,
+       "enemies": 36,
+       "hp": 100,
+       "hpm": 7.83,
+       "hpmin": 83,
+       "hsrc": {
+        "塞雷娅": 14,
+        "自身回复": 4,
+        "针剂回流": 4
+       },
+       "kills": 1917,
+       "lamp": 93,
+       "lampmin": 93,
+       "lv": 27,
+       "mhp": 139,
+       "mire_s": 0.0,
+       "mires": 15,
+       "outc": 1244050,
+       "rg": 1.62,
+       "squad": 3,
+       "t": 600,
+       "taken": 23,
+       "zone": 3
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "boss_paranoia": 109,
+        "bullet": 57,
+        "corrode": 17,
+        "shock_paranoia": 94,
+        "wound": 2
+       },
+       "ebul": 108,
+       "elites": 0,
+       "enemies": 2,
+       "hp": 66,
+       "hpm": 8.14,
+       "hpmin": 42,
+       "hsrc": {
+        "塞雷娅": 118,
+        "自身回复": 28,
+        "藏品": 41,
+        "遥乡": 29,
+        "针剂回流": 15
+       },
+       "kills": 1950,
+       "lamp": 71,
+       "lampmin": 52,
+       "lv": 28,
+       "mhp": 139,
+       "mire_s": 0.0,
+       "mires": 14,
+       "outc": 1349460,
+       "rg": 3.71,
+       "squad": 3,
+       "t": 630,
+       "taken": 281,
+       "zone": 3
+      }
+     ],
+     "curve_tail": {
+      "dsrc": {},
+      "hsrc": {
+       "塞雷娅": 12,
+       "拾取": 23,
+       "自身回复": 6,
+       "针剂回流": 4
+      },
+      "mhp": 139,
+      "t": 647,
+      "t0": 630,
+      "taken": 0
+     },
+     "dark_dmg": 0,
+     "dark_s": 0,
+     "death_src": "shock_paranoia",
+     "elite_t": {
+      "saria:1": 186,
+      "saria:2": 315,
+      "specter_unchained:1": 324,
+      "specter_unchained:2": 409,
+      "typhon:1": 59,
+      "typhon:2": 110
+     },
+     "end": {
+      "boss": false,
+      "hits2": [
+       [
+        615.0,
+        "boss_paranoia",
+        "e:paranoia",
+        0,
+        61.2,
+        53.8,
+        59
+       ],
+       [
+        615.0,
+        "corrode",
+        "e:spitter",
+        0,
+        1.1,
+        1.1,
+        62
+       ],
+       [
+        615.5,
+        "corrode",
+        "e:spitter",
+        0,
+        0.7,
+        0.7,
+        65
+       ],
+       [
+        616.0,
+        "corrode",
+        "e:spitter",
+        0,
+        0.8,
+        0.8,
+        68
+       ],
+       [
+        616.5,
+        "corrode",
+        "e:spitter",
+        0,
+        0.3,
+        0.3,
+        68
+       ],
+       [
+        628.7,
+        "shock_paranoia",
+        "e:paranoia",
+        0,
+        44.0,
+        44.0,
+        95
+       ],
+       [
+        629.2,
+        "shock_paranoia",
+        "e:paranoia",
+        0,
+        44.0,
+        44.0,
+        52
+       ],
+       [
+        629.8,
+        "shock_paranoia",
+        "e:paranoia",
+        0,
+        44.0,
+        6.6,
+        91
+       ]
+      ],
+      "hp": 139,
+      "killer": {
+       "cause": "",
+       "key": "e:paranoia"
+      },
+      "last15": {
+       "corrode_out": 0.0,
+       "corrode_peak": 0.0,
+       "dark_s": 0.0,
+       "ebullets_peak": 142,
+       "enemies_peak": 3,
+       "hits": [],
+       "mire_s": 0.0,
+       "nerve_bursts": 0,
+       "t": 647.2
+      },
+      "near": [],
+      "src": "shock_paranoia",
+      "t": 647,
+      "tl": [
+       [
+        632.3,
+        114,
+        95,
+        3,
+        1,
+        1,
+        120,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        632.8,
+        115,
+        94,
+        2,
+        0,
+        1,
+        120,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        633.3,
+        139,
+        100,
+        2,
+        0,
+        1,
+        120,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        633.9,
+        139,
+        100,
+        2,
+        0,
+        1,
+        120,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        634.4,
+        139,
+        100,
+        2,
+        0,
+        1,
+        120,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        634.9,
+        139,
+        100,
+        2,
+        0,
+        1,
+        120,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        635.4,
+        139,
+        100,
+        2,
+        0,
+        1,
+        120,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        636.0,
+        139,
+        100,
+        2,
+        0,
+        1,
+        120,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        636.5,
+        139,
+        100,
+        2,
+        0,
+        1,
+        131,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        637.0,
+        139,
+        100,
+        2,
+        1,
+        1,
+        142,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        637.6,
+        139,
+        100,
+        2,
+        1,
+        1,
+        142,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        638.1,
+        139,
+        100,
+        2,
+        1,
+        1,
+        77,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        638.6,
+        139,
+        100,
+        2,
+        1,
+        1,
+        33,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        639.1,
+        139,
+        100,
+        2,
+        1,
+        1,
+        44,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        639.7,
+        139,
+        100,
+        2,
+        1,
+        1,
+        38,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        640.3,
+        139,
+        100,
+        2,
+        1,
+        1,
+        31,
+        1,
+        1,
+        1,
+        3
+       ],
+       [
+        640.8,
+        139,
+        100,
+        2,
+        1,
+        1,
+        37,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        641.3,
+        139,
+        100,
+        2,
+        1,
+        1,
+        40,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        641.8,
+        139,
+        100,
+        2,
+        1,
+        1,
+        35,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        642.4,
+        139,
+        100,
+        2,
+        0,
+        1,
+        27,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        642.9,
+        139,
+        100,
+        2,
+        0,
+        1,
+        24,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        643.4,
+        139,
+        100,
+        2,
+        0,
+        1,
+        16,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        644.0,
+        139,
+        100,
+        2,
+        0,
+        1,
+        14,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        644.5,
+        139,
+        100,
+        2,
+        0,
+        1,
+        5,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        645.0,
+        139,
+        100,
+        2,
+        0,
+        1,
+        5,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        645.5,
+        139,
+        100,
+        2,
+        0,
+        1,
+        2,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        646.1,
+        139,
+        100,
+        2,
+        0,
+        1,
+        2,
+        0,
+        0,
+        1,
+        3
+       ],
+       [
+        646.6,
+        139,
+        100,
+        2,
+        0,
+        1,
+        0,
+        1,
+        0,
+        1,
+        3
+       ],
+       [
+        647.1,
+        139,
+        100,
+        2,
+        0,
+        1,
+        0,
+        1,
+        0,
+        1,
+        3
+       ]
+      ],
+      "zone_out": false,
+      "zone_phase": 4,
+      "zone_state": 3
+     },
+     "floors": [],
+     "hits": 693,
+     "hits_pm": 64.2,
+     "king_low_s": 0,
+     "lamp_end": 100,
+     "lamp_gain": {
+      "商人": 26,
+      "灯标": 91,
+      "灯油": 4,
+      "精英灯油": 153
+     },
+     "lamp_loss": {
+      "受击": 236,
+      "尖叫": 38
+     },
+     "lamp_s": [
+      594,
+      49,
+      0,
+      0
+     ],
+     "lamp_taken": [
+      697,
+      149,
+      0,
+      0
+     ],
+     "low20_s": 0,
+     "low_hp_s": 0,
+     "moved_pm": 9727,
+     "peak": [
+      83,
+      142,
+      0,
+      299,
+      27
+     ],
+     "peak_min": [
+      [
+       22,
+       1,
+       0,
+       98,
+       4
+      ],
+      [
+       35,
+       9,
+       0,
+       127,
+       10
+      ],
+      [
+       45,
+       7,
+       0,
+       143,
+       18
+      ],
+      [
+       28,
+       5,
+       0,
+       126,
+       13
+      ],
+      [
+       60,
+       93,
+       0,
+       140,
+       21
+      ],
+      [
+       68,
+       13,
+       0,
+       299,
+       27
+      ],
+      [
+       83,
+       14,
+       0,
+       241,
+       26
+      ],
+      [
+       80,
+       49,
+       0,
+       277,
+       21
+      ],
+      [
+       58,
+       14,
+       0,
+       297,
+       25
+      ],
+      [
+       43,
+       20,
+       0,
+       231,
+       24
+      ],
+      [
+       36,
+       142,
+       0,
+       150,
+       9
+      ]
+     ],
+     "profile": "expert",
+     "reaper_drain_deaths": 0,
+     "recruit_t": [
+      66,
+      126
+     ],
+     "still_pct": 2,
+     "taken": 846,
+     "taken_pm": 78
+    },
+    "cmd": {
+     "aggro": 92,
+     "downs": 0,
+     "roam": 160.4,
+     "sortie_downs": 0,
+     "sorties": 14,
+     "switch": 47
+    },
+    "crates": 12,
+    "cross_picks": [
+     [
+      "m1",
+      "incident",
+      "scholar",
+      1
+     ],
+     [
+      "m2",
+      "incident",
+      "legacy",
+      0
+     ],
+     [
+      "c1",
+      "incident",
+      "opening",
+      0
+     ],
+     [
+      "m3",
+      "shop",
+      ""
+     ],
+     [
+      "c2",
+      "rest",
+      ""
+     ]
+    ],
+    "ctrl": {
+     "aslow_slow": 0,
+     "aslow_t": 0.0,
+     "boss_t": 128.24,
+     "floor": 0.7,
+     "move_min": 0.7,
+     "slow_min": 0.7,
+     "stun_slow": 3,
+     "stun_t": 0.0
+    },
+    "ctrl_src": {
+     "boss": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 7.33
+     },
+     "founder": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 1.91
+     },
+     "other": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "skimmer": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "slow_any_t": 9.24
+    },
+    "dashes": 8,
+    "dmg": {
+     "atk_founder": 23.321917532205,
+     "atk_reaper": 52.9732601374274,
+     "atk_tracer": 60.0543362034057,
+     "boss_carmen": 171.931392,
+     "boss_paranoia": 109.503576,
+     "bullet": 148.513134791468,
+     "contact_pocket": 49.056253030503,
+     "contact_tracer": 82.9711580374455,
+     "corrode": 28.5688745968951,
+     "mire": 9.17742494876861,
+     "shock_paranoia": 94.6764,
+     "wound": 15.9935489999999
+    },
+    "drone": 0,
+    "duck": {
+     "boss_overlap": 0,
+     "fled": 1,
+     "fled_hp": [
+      0.34
+     ],
+     "kill_hits": [
+      20
+     ],
+     "kill_t": [
+      1.2
+     ],
+     "killed": 1,
+     "spawn_t": [
+      272.5,
+      471.2
+     ],
+     "spawned": 2
+    },
+    "elite_stage": 2,
+    "elites": 20,
+    "ending": "standard",
+    "final_out": {
+     "“永恒狩猎”": 87660.8436439575,
+     "冰原秩序": 191221.508389089,
+     "剑气": 44913.723687292,
+     "寒气": 1410.31168359539,
+     "影子陷阱": 17009.3312248875,
+     "急救针剂": 11480.1630565883,
+     "技能连携·替身斩·specter_unchained": 4543.58590116369,
+     "拳击": 50365.8190036674,
+     "散射": 343859.799659584,
+     "晶柱": 106.993103616,
+     "晶簇": 2820.39520357173,
+     "替身": 706.412036625193,
+     "替身闪现": 143701.134371229,
+     "猎矢": 2445.43120117141,
+     "真实": 291103.50014615,
+     "空间涟漪": 9696.84686508258,
+     "终结技·typhon·冲击": 23287.7885501036,
+     "血色潮痕": 23760.1327611876,
+     "钉影": 1996.06814446613,
+     "钙晶": 2754.46469484481,
+     "锯刃": 141448.26597902
+    },
+    "floor_hits": 0,
+    "floor_times": [],
+    "fuse": {
+     "left": 22,
+     "pct": 0.047,
+     "pool": 71,
+     "t": 525
+    },
+    "growth": {
+     "lane_control": 1,
+     "lane_melee": 1,
+     "sp": 2,
+     "speed": 1,
+     "squad_atk": 2,
+     "squad_crit": 1
+    },
+    "heal": {
+     "商店": 16.7946304725172,
+     "塞雷娅": 420.03581349447,
+     "拾取": 46.4280017744325,
+     "自身回复": 218.05494877096,
+     "藏品": 41.769,
+     "补给": 20.3111579999995,
+     "遥乡": 29.85564582,
+     "针剂回流": 53.4920779457336
+    },
+    "heal_offer": 0,
+    "heal_offer_low": 0,
+    "heal_pick": 0,
+    "hordes": [
+     {
+      "comp": {
+       "bone": 9,
+       "slider": 3,
+       "stone": 3
+      },
+      "hp": 1574,
+      "hp0": 117,
+      "minhp": 96,
+      "mix": "凿石阵",
+      "n": 15,
+      "t": 75,
+      "t80": 11
+     },
+     {
+      "comp": {
+       "bone": 12,
+       "slider": 8
+      },
+      "hp": 2379,
+      "hp0": 132,
+      "minhp": 132,
+      "mix": "滑行群",
+      "n": 20,
+      "t": 165,
+      "t80": 9
+     },
+     {
+      "comp": {
+       "bone": 14,
+       "offspring": 2,
+       "slider": 7,
+       "stone": 2
+      },
+      "hp": 7356,
+      "hp0": 132,
+      "minhp": 130,
+      "mix": "子代壁垒",
+      "n": 25,
+      "t": 270,
+      "t80": 13
+     },
+     {
+      "comp": {
+       "bone": 7,
+       "floater": 2,
+       "reaper": 2,
+       "runner": 9,
+       "slider": 14,
+       "tracer": 2
+      },
+      "hp": 16677,
+      "hp0": 132,
+      "minhp": 122,
+      "mix": "引痕突击",
+      "n": 36,
+      "t": 320,
+      "t80": 9
+     },
+     {
+      "comp": {
+       "bone": 9,
+       "reaper": 2,
+       "runner": 8,
+       "slider": 17,
+       "tracer": 3
+      },
+      "hp": 23507,
+      "hp0": 132,
+      "minhp": 121,
+      "mix": "潜袭",
+      "n": 39,
+      "t": 375,
+      "t80": 14
+     },
+     {
+      "comp": {
+       "bone": 3,
+       "floater": 3,
+       "founder": 2,
+       "nest": 1,
+       "runner": 9,
+       "slider": 3,
+       "stone": 3,
+       "tracer": 2
+      },
+      "hp": 27531,
+      "hp0": 139,
+      "minhp": 138,
+      "mix": "深溟重甲",
+      "n": 26,
+      "t": 465,
+      "t80": 7
+     },
+     {
+      "comp": {
+       "bone": 2,
+       "floater": 2,
+       "offspring": 3,
+       "reaper": 2,
+       "runner": 3,
+       "slider": 2,
+       "spitter": 3,
+       "stone": 4
+      },
+      "hp": 20682,
+      "hp0": 139,
+      "minhp": 90,
+      "mix": "深蓝合围",
+      "n": 21,
+      "t": 535,
+      "t80": 6
+     }
+    ],
+    "ingots": 0,
+    "items": {
+     "crate_shield": 2,
+     "heal_elite": 11,
+     "heal_low": 0,
+     "heal_mob": 5,
+     "heal_pick": 13,
+     "magnet_elite": 13,
+     "magnet_mob": 13,
+     "magnet_pick": 24,
+     "mob_capped": 1052,
+     "mob_rolled": 876,
+     "pack_drop": 11,
+     "pack_pick": 1
+    },
+    "kill_hits": {
+     "0:bone": [
+      40,
+      40,
+      0.0
+     ],
+     "0:slider": [
+      12,
+      15,
+      4.62
+     ],
+     "0:stone": [
+      1,
+      1,
+      0.0
+     ],
+     "10:floater": [
+      3,
+      8,
+      3.64
+     ],
+     "10:founder": [
+      8,
+      217,
+      72.0
+     ],
+     "10:nest": [
+      6,
+      73,
+      21.25
+     ],
+     "10:offspring": [
+      3,
+      23,
+      32.54
+     ],
+     "10:reaper": [
+      4,
+      17,
+      6.27
+     ],
+     "10:spitter": [
+      2,
+      6,
+      8.78
+     ],
+     "10:tracer": [
+      7,
+      45,
+      30.94
+     ],
+     "1:bone": [
+      80,
+      92,
+      10.92
+     ],
+     "1:floater": [
+      12,
+      27,
+      11.09
+     ],
+     "1:slider": [
+      27,
+      38,
+      7.98
+     ],
+     "1:stone": [
+      10,
+      34,
+      73.65
+     ],
+     "1:tracer": [
+      3,
+      38,
+      25.42
+     ],
+     "2:bone": [
+      80,
+      132,
+      34.43
+     ],
+     "2:floater": [
+      17,
+      64,
+      23.84
+     ],
+     "2:runner": [
+      1,
+      2,
+      0.33
+     ],
+     "2:slider": [
+      51,
+      121,
+      51.77
+     ],
+     "2:spitter": [
+      1,
+      4,
+      0.92
+     ],
+     "2:stone": [
+      6,
+      22,
+      10.56
+     ],
+     "2:tracer": [
+      5,
+      89,
+      45.41
+     ],
+     "3:bone": [
+      56,
+      111,
+      63.06
+     ],
+     "3:brood": [
+      1,
+      1,
+      0.0
+     ],
+     "3:floater": [
+      6,
+      33,
+      19.67
+     ],
+     "3:runner": [
+      14,
+      27,
+      15.51
+     ],
+     "3:slider": [
+      30,
+      86,
+      45.02
+     ],
+     "3:spitter": [
+      7,
+      43,
+      36.83
+     ],
+     "3:stone": [
+      11,
+      59,
+      25.93
+     ],
+     "3:tracer": [
+      5,
+      120,
+      49.36
+     ],
+     "4:bone": [
+      74,
+      232,
+      107.89
+     ],
+     "4:brood": [
+      2,
+      3,
+      1.19
+     ],
+     "4:floater": [
+      14,
+      71,
+      47.34
+     ],
+     "4:offspring": [
+      3,
+      64,
+      41.45
+     ],
+     "4:reaper": [
+      11,
+      117,
+      30.75
+     ],
+     "4:runner": [
+      8,
+      21,
+      7.12
+     ],
+     "4:slider": [
+      39,
+      128,
+      75.37
+     ],
+     "4:spitter": [
+      4,
+      21,
+      23.17
+     ],
+     "4:stone": [
+      14,
+      96,
+      56.69
+     ],
+     "4:tracer": [
+      5,
+      198,
+      45.68
+     ],
+     "5:bone": [
+      58,
+      162,
+      79.55
+     ],
+     "5:floater": [
+      17,
+      54,
+      35.52
+     ],
+     "5:founder": [
+      6,
+      555,
+      123.29
+     ],
+     "5:nest": [
+      4,
+      168,
+      49.16
+     ],
+     "5:offspring": [
+      5,
+      38,
+      45.14
+     ],
+     "5:reaper": [
+      30,
+      215,
+      62.39
+     ],
+     "5:runner": [
+      41,
+      101,
+      19.76
+     ],
+     "5:slider": [
+      41,
+      122,
+      46.34
+     ],
+     "5:spitter": [
+      6,
+      33,
+      36.42
+     ],
+     "5:stone": [
+      16,
+      71,
+      72.14
+     ],
+     "5:tracer": [
+      15,
+      302,
+      82.68
+     ],
+     "6:bone": [
+      83,
+      311,
+      157.92
+     ],
+     "6:brood": [
+      1,
+      3,
+      0.0
+     ],
+     "6:floater": [
+      21,
+      70,
+      46.05
+     ],
+     "6:founder": [
+      7,
+      324,
+      130.62
+     ],
+     "6:nest": [
+      5,
+      130,
+      72.6
+     ],
+     "6:offspring": [
+      4,
+      66,
+      71.61
+     ],
+     "6:reaper": [
+      25,
+      226,
+      77.89
+     ],
+     "6:runner": [
+      41,
+      144,
+      52.13
+     ],
+     "6:slider": [
+      57,
+      231,
+      120.15
+     ],
+     "6:spitter": [
+      6,
+      62,
+      72.13
+     ],
+     "6:stone": [
+      15,
+      63,
+      42.64
+     ],
+     "6:tracer": [
+      15,
+      207,
+      98.49
+     ],
+     "7:bone": [
+      3,
+      4,
+      2.57
+     ],
+     "7:duck": [
+      1,
+      20,
+      1.19
+     ],
+     "7:floater": [
+      18,
+      60,
+      21.97
+     ],
+     "7:founder": [
+      14,
+      325,
+      90.35
+     ],
+     "7:nest": [
+      8,
+      104,
+      49.7
+     ],
+     "7:offspring": [
+      10,
+      85,
+      64.61
+     ],
+     "7:reaper": [
+      28,
+      143,
+      41.58
+     ],
+     "7:runner": [
+      31,
+      78,
+      21.8
+     ],
+     "7:slider": [
+      45,
+      102,
+      62.42
+     ],
+     "7:spitter": [
+      7,
+      46,
+      39.08
+     ],
+     "7:stone": [
+      18,
+      64,
+      50.29
+     ],
+     "7:tracer": [
+      24,
+      182,
+      78.1
+     ],
+     "8:floater": [
+      29,
+      62,
+      31.82
+     ],
+     "8:founder": [
+      20,
+      383,
+      197.4
+     ],
+     "8:nest": [
+      16,
+      202,
+      167.69
+     ],
+     "8:offspring": [
+      19,
+      134,
+      142.63
+     ],
+     "8:reaper": [
+      33,
+      141,
+      33.12
+     ],
+     "8:runner": [
+      45,
+      94,
+      18.56
+     ],
+     "8:slider": [
+      30,
+      54,
+      13.86
+     ],
+     "8:spitter": [
+      12,
+      51,
+      51.95
+     ],
+     "8:stone": [
+      32,
+      89,
+      59.4
+     ],
+     "8:tracer": [
+      36,
+      253,
+      118.94
+     ],
+     "9:bone": [
+      2,
+      6,
+      0.73
+     ],
+     "9:floater": [
+      24,
+      71,
+      24.81
+     ],
+     "9:founder": [
+      30,
+      512,
+      223.13
+     ],
+     "9:nest": [
+      27,
+      222,
+      107.66
+     ],
+     "9:offspring": [
+      18,
+      117,
+      47.14
+     ],
+     "9:reaper": [
+      47,
+      209,
+      54.63
+     ],
+     "9:runner": [
+      38,
+      82,
+      21.66
+     ],
+     "9:spitter": [
+      13,
+      51,
+      32.21
+     ],
+     "9:stone": [
+      3,
+      13,
+      5.88
+     ],
+     "9:tracer": [
+      45,
+      304,
+      144.0
+     ]
+    },
+    "kills": 1952,
+    "lamp": 100,
+    "levelup_t": [
+     11,
+     43,
+     59,
+     66,
+     78,
+     92,
+     110,
+     126,
+     151,
+     177,
+     186,
+     208,
+     257,
+     267,
+     291,
+     315,
+     324,
+     354,
+     381,
+     409,
+     439,
+     449,
+     480,
+     526,
+     565,
+     575,
+     607,
+     640
+    ],
+    "low_levelups": 0,
+    "lv": 29,
+    "lv_times": [
+     11,
+     42,
+     58,
+     65,
+     78,
+     91,
+     109,
+     125,
+     150,
+     177,
+     186,
+     208,
+     257,
+     267,
+     291,
+     315,
+     324,
+     353,
+     380,
+     408,
+     439,
+     448,
+     480,
+     525,
+     565,
+     575,
+     607,
+     639
+    ],
+    "marks": {
+     "120": 8,
+     "300": 16,
+     "480": 23
+    },
+    "maxhp": 139.23,
+    "meta": 0,
+    "ops": [
+     {
+      "elite": 2,
+      "id": "typhon",
+      "prog": 6
+     },
+     {
+      "elite": 2,
+      "id": "specter_unchained",
+      "prog": 6
+     },
+     {
+      "elite": 2,
+      "id": "saria",
+      "prog": 6
+     }
+    ],
+    "out": {
+     "“永恒狩猎”": 87660.8436439575,
+     "冰原秩序": 191221.508389089,
+     "剑气": 44913.723687292,
+     "寒气": 1410.31168359539,
+     "影子陷阱": 17009.3312248875,
+     "急救针剂": 11480.1630565883,
+     "技能连携·替身斩·specter_unchained": 4543.58590116369,
+     "拳击": 50365.8190036674,
+     "散射": 343859.799659584,
+     "晶柱": 106.993103616,
+     "晶簇": 2820.39520357173,
+     "替身": 706.412036625193,
+     "替身闪现": 143701.134371229,
+     "猎矢": 2445.43120117141,
+     "真实": 291103.50014615,
+     "空间涟漪": 9696.84686508258,
+     "终结技·typhon·冲击": 23287.7885501036,
+     "血色潮痕": 23760.1327611876,
+     "钉影": 1996.06814446613,
+     "钙晶": 2754.46469484481,
+     "锯刃": 141448.26597902
+    },
+    "out_tag": {
+     "area": 548090.136579228,
+     "basic": 194259.516183859,
+     "control": 61845.9820602558,
+     "dot": 24466.5447978128,
+     "empowered": 5771.6805196432,
+     "entity": 171029.136967503,
+     "execute": 291103.50014615,
+     "follow_up": 31781.3132847047,
+     "growth": 777547.046693749,
+     "pierce": 193666.93959026,
+     "projectile": 1070354.99298456,
+     "skill": 439873.395634633,
+     "trim": 291103.50014615,
+     "终结技": 46575.5771002073,
+     "连携": 9087.17180232737
+    },
+    "out_type": {
+     "法术": 144407.546407855,
+     "物理": 937493.684202785,
+     "真实": 314391.288696253
+    },
+    "prof": {},
+    "prog_log": [
+     [
+      11,
+      "typhon",
+      1
+     ],
+     [
+      43,
+      "typhon",
+      2
+     ],
+     [
+      59,
+      "typhon",
+      3
+     ],
+     [
+      78,
+      "typhon",
+      4
+     ],
+     [
+      92,
+      "typhon",
+      5
+     ],
+     [
+      110,
+      "typhon",
+      6
+     ],
+     [
+      151,
+      "saria",
+      1
+     ],
+     [
+      177,
+      "saria",
+      2
+     ],
+     [
+      186,
+      "saria",
+      3
+     ],
+     [
+      208,
+      "saria",
+      4
+     ],
+     [
+      257,
+      "saria",
+      5
+     ],
+     [
+      267,
+      "specter_unchained",
+      1
+     ],
+     [
+      291,
+      "specter_unchained",
+      2
+     ],
+     [
+      315,
+      "saria",
+      6
+     ],
+     [
+      324,
+      "specter_unchained",
+      3
+     ],
+     [
+      354,
+      "specter_unchained",
+      4
+     ],
+     [
+      381,
+      "specter_unchained",
+      5
+     ],
+     [
+      409,
+      "specter_unchained",
+      6
+     ]
+    ],
+    "prog_offer": {
+     "saria": 6,
+     "specter_unchained": 11,
+     "typhon": 6
+    },
+    "prog_pick": {
+     "saria": 6,
+     "specter_unchained": 6,
+     "typhon": 6
+    },
+    "recall_backstop": 0,
+    "recall_n": 93,
+    "recruit_offers": [
+     [
+      66,
+      "forced",
+      1
+     ],
+     [
+      110,
+      "recruit",
+      2
+     ],
+     [
+      126,
+      "forced",
+      2
+     ],
+     [
+      151,
+      "swap",
+      3
+     ],
+     [
+      267,
+      "swap",
+      3
+     ],
+     [
+      381,
+      "swap",
+      3
+     ],
+     [
+      409,
+      "swap",
+      3
+     ],
+     [
+      449,
+      "swap",
+      3
+     ]
+    ],
+    "rej": {},
+    "relic_offer": [
+     [
+      120,
+      "shop",
+      [
+       "214",
+       "72",
+       "58"
+      ]
+     ],
+     [
+      267,
+      "choice",
+      [
+       "192",
+       "196",
+       "85",
+       "112"
+      ],
+      "boss"
+     ],
+     [
+      316,
+      "shop",
+      [
+       "22",
+       "95",
+       "104"
+      ]
+     ],
+     [
+      319,
+      "choice",
+      [
+       "227",
+       "80",
+       "224"
+      ],
+      "elite"
+     ],
+     [
+      360,
+      "shop",
+      [
+       "59",
+       "82",
+       "108"
+      ]
+     ],
+     [
+      389,
+      "choice",
+      [
+       "91",
+       "28",
+       "181"
+      ],
+      "elite"
+     ],
+     [
+      395,
+      "choice",
+      [
+       "230",
+       "123",
+       "55"
+      ],
+      "elite"
+     ],
+     [
+      448,
+      "choice",
+      [
+       "116",
+       "122",
+       "63",
+       "85"
+      ],
+      "boss"
+     ],
+     [
+      449,
+      "choice",
+      [
+       "213",
+       "13",
+       "68",
+       "85"
+      ],
+      "boss"
+     ],
+     [
+      473,
+      "choice",
+      [
+       "79",
+       "264",
+       "110"
+      ],
+      "duck"
+     ],
+     [
+      474,
+      "choice",
+      [
+       "166",
+       "80",
+       "213"
+      ],
+      "elite"
+     ],
+     [
+      525,
+      "shop",
+      [
+       "207",
+       "97",
+       "193"
+      ]
+     ]
+    ],
+    "relic_out": 291103.50014615,
+    "relic_take": [
+     [
+      115,
+      "57",
+      [
+       "狙击",
+       "特种"
+      ],
+      "event"
+     ],
+     [
+      115,
+      "219",
+      [
+       "狙击",
+       "特种"
+      ],
+      "event"
+     ],
+     [
+      122,
+      "214",
+      [
+       "狙击",
+       "特种"
+      ],
+      "shop"
+     ],
+     [
+      266,
+      "220",
+      [
+       "狙击",
+       "特种",
+       "重装"
+      ],
+      "event"
+     ],
+     [
+      267,
+      "112",
+      [
+       "狙击",
+       "特种",
+       "重装"
+      ],
+      "choice:boss"
+     ],
+     [
+      316,
+      "22",
+      [
+       "狙击",
+       "特种",
+       "重装"
+      ],
+      "shop"
+     ],
+     [
+      316,
+      "104",
+      [
+       "狙击",
+       "特种",
+       "重装"
+      ],
+      "shop"
+     ],
+     [
+      319,
+      "227",
+      [
+       "狙击",
+       "特种",
+       "重装"
+      ],
+      "choice:elite"
+     ],
+     [
+      360,
+      "108",
+      [
+       "狙击",
+       "特种",
+       "重装"
+      ],
+      "shop"
+     ],
+     [
+      389,
+      "91",
+      [
+       "狙击",
+       "特种",
+       "重装"
+      ],
+      "choice:elite"
+     ],
+     [
+      395,
+      "123",
+      [
+       "狙击",
+       "特种",
+       "重装"
+      ],
+      "choice:elite"
+     ],
+     [
+      448,
+      "116",
+      [
+       "狙击",
+       "特种",
+       "重装"
+      ],
+      "choice:boss"
+     ],
+     [
+      449,
+      "68",
+      [
+       "狙击",
+       "特种",
+       "重装"
+      ],
+      "choice:boss"
+     ],
+     [
+      473,
+      "110",
+      [
+       "狙击",
+       "特种",
+       "重装"
+      ],
+      "choice:duck"
+     ],
+     [
+      474,
+      "213",
+      [
+       "狙击",
+       "特种",
+       "重装"
+      ],
+      "choice:elite"
+     ],
+     [
+      525,
+      "207",
+      [
+       "狙击",
+       "特种",
+       "重装"
+      ],
+      "shop"
+     ],
+     [
+      525,
+      "97",
+      [
+       "狙击",
+       "特种",
+       "重装"
+      ],
+      "shop"
+     ]
+    ],
+    "relics": 17,
+    "shield": {
+     "abs": 46.6,
+     "blocks": 2,
+     "every": 15.0,
+     "max": 0,
+     "peak": 0,
+     "src_int": [],
+     "src_max": [],
+     "t0": -1.0
+    },
+    "squad": [
+     "typhon",
+     "specter_unchained",
+     "saria"
+    ],
+    "sus": {
+     "m0": {
+      "clean": {},
+      "dr": {},
+      "heal": {
+       "商店": [
+        16.7946304725172,
+        46.92
+       ],
+       "塞雷娅": [
+        0.0,
+        82.774224
+       ],
+       "拾取": [
+        11.6856496327251,
+        96.39
+       ]
+      },
+      "lit": 0.0
+     },
+     "m3": {
+      "clean": {},
+      "dr": {
+       "saria": 47.8486286061042
+      },
+      "heal": {
+       "塞雷娅": [
+        176.558751158236,
+        580.00566
+       ],
+       "拾取": [
+        11.6234379817076,
+        79.56
+       ],
+       "针剂回流": [
+        17.0616700901212,
+        26.177658624
+       ]
+      },
+      "lit": 0.0
+     },
+     "m6": {
+      "clean": {},
+      "dr": {
+       "saria": 19.022556561944
+      },
+      "heal": {
+       "商店": [
+        0.0,
+        55.692
+       ],
+       "塞雷娅": [
+        58.522033189866,
+        670.58144478
+       ],
+       "拾取": [
+        0.0,
+        163.098
+       ],
+       "遥乡": [
+        0.0,
+        5.7891834
+       ],
+       "针剂回流": [
+        12.6220778556123,
+        14.3208
+       ]
+      },
+      "lit": 0.0
+     },
+     "m9": {
+      "clean": {},
+      "dr": {
+       "saria": 29.7200196239537
+      },
+      "heal": {
+       "塞雷娅": [
+        184.955029146368,
+        514.20646368
+       ],
+       "拾取": [
+        23.1189141599998,
+        167.076
+       ],
+       "藏品": [
+        41.769,
+        41.769
+       ],
+       "遥乡": [
+        29.85564582,
+        34.81780302
+       ],
+       "针剂回流": [
+        23.80833,
+        23.80833
+       ]
+      },
+      "lit": 0.0
+     }
+    },
+    "swaps": [],
+    "t": 647,
+    "tel": "full",
+    "terrain": {
+     "bul": 43,
+     "dash": 0,
+     "ebul": 23
+    },
+    "ult": {
+     "combo": 9,
+     "combo_auto": 9,
+     "combo_up": 0,
+     "cult": 0,
+     "cult_times": [],
+     "e_combo": 7.1,
+     "e_hurt": 11.7,
+     "e_kill": 75.7,
+     "e_out": 275.4,
+     "first_full": 152.1,
+     "full_times": [
+      152.1,
+      321.2,
+      469.2,
+      619.6
+     ],
+     "hit_n": 37,
+     "idle_full_s": 16.4,
+     "link_by": {
+      "saria": 5,
+      "specter_unchained": 4
+     },
+     "lit": 9,
+     "lit_by": {},
+     "miss": 0,
+     "ult": 4,
+     "ult_times": [
+      167.0,
+      322.5,
+      469.3,
+      619.7
+     ]
+    },
+    "win": true,
+    "xp_backstop": 0.0,
+    "xp_dropped": 15476.4,
+    "xp_ground": 792.5,
+    "xp_magnet": 4041.1,
+    "xp_magnet_min": [
+     0.0,
+     119.2,
+     162.1,
+     113.8,
+     206.4,
+     957.2,
+     810.1,
+     1167.1,
+     505.3
+    ],
+    "xp_recall": 3138.0,
+    "xp_recall_min": [
+     7.5,
+     0.0,
+     80.0,
+     20.0,
+     87.7,
+     17.5,
+     36.3,
+     104.0,
+     420.0,
+     1322.5,
+     1042.5
+    ],
+    "xp_total": 14683.9,
+    "xp_total_min": [
+     112.5,
+     462.5,
+     577.5,
+     381.3,
+     925.2,
+     1470.9,
+     1718.1,
+     2128.2,
+     1780.3,
+     3167.5,
+     1960.0
+    ],
+    "xp_walk": 7504.8,
+    "xp_walk_min": [
+     105.0,
+     343.3,
+     335.4,
+     247.5,
+     631.1,
+     496.3,
+     871.7,
+     857.0,
+     855.0,
+     1845.0,
+     917.5
+    ]
+   }
+  }
+ ]
+}
