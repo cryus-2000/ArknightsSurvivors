@@ -11,8 +11,8 @@
   "script": "res://scripts/characters/data_operator.gd",
   "recruitable": false,
   "base": {
-    "_doc": "全部数值（docs/27 §9.2）；预算见 docs/402 §4。普攻 64 / 1.8 秒 = 35.6 单体；穿透 3 名每穿 ×0.7",
-    "atk": 64,
+    "_doc": "全部数值（docs/27 §9.2）；预算见 docs/402 §4。普攻 76 / 1.8 秒 = 42.2 单体（对照能天使 E0 木桩 61，docs/402 §5）；穿透 3 名每穿 ×0.7",
+    "atk": 76,
     "cd": 1.8,
     "first_cd": 0.3,
     "idle_cd": 0.3,
