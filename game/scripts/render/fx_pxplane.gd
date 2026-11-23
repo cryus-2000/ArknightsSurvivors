@@ -30,7 +30,7 @@ const META_PREFIXED := {
 const META_BAKED_PREFIX := {"hsg": "hoshiguma", "mz": "mizuki", "sg": "siege", "tx": "texas"}
 const MI = preload("res://scripts/render/melee_impact.gd")   # 近战打击感包（docs/246 §11）：斩痕 / 照地光提亮
 const ART := "res://art/fx/pxp/pxp_%s.png"
-const IDS := {"logos": true, "skadi": true, "hoshiguma": true, "lumen": true, "eyjafjalla": true, "siege": true, "exusiai": true, "mizuki": true, "angelina": true, "saria": true, "texas": true, "gladiia": true, "ulpianus": true, "suzuran": true, "irene": true, "kaltsit": true, "wisadel": true, "skalter": true, "specter_unchained": true, "lappland": true}
+const IDS := {"logos": true, "skadi": true, "hoshiguma": true, "lumen": true, "eyjafjalla": true, "siege": true, "exusiai": true, "mizuki": true, "angelina": true, "saria": true, "texas": true, "gladiia": true, "ulpianus": true, "suzuran": true, "irene": true, "kaltsit": true, "wisadel": true, "skalter": true, "specter_unchained": true, "lappland": true, "sbell2": true}
 const GL = preload("res://scripts/render/fx_pxplane_gl.gd")   # 歌蕾蒂娅一节（docs/263）单独成文件
 const UL = preload("res://scripts/render/fx_pxplane_ul.gd")   # 乌尔比安一节（docs/266）单独成文件
 const KA = preload("res://scripts/render/fx_pxplane_kal.gd")   # 凯尔希一节（docs/265）单独成文件
@@ -96,7 +96,7 @@ func mode() -> int:
 static func owns_id(game, oid: String) -> bool:
 	if game == null or not IDS.has(oid):
 		return false
-	if oid in ["exusiai", "angelina", "saria", "suzuran", "irene", "kaltsit", "wisadel", "lappland"]:   # 能天使（docs/262）/ 安洁莉娜（docs/267）/ 塞雷娅（docs/269）/ 艾丽妮（docs/272）没有「旧做法原样贴」对照：2 = 不接管（当前游戏原样）
+	if oid in ["exusiai", "angelina", "saria", "suzuran", "irene", "kaltsit", "wisadel", "lappland", "sbell2"]:   # 能天使（docs/262）/ 安洁莉娜（docs/267）/ 塞雷娅（docs/269）/ 艾丽妮（docs/272）没有「旧做法原样贴」对照：2 = 不接管（当前游戏原样）
 		return of(game).mode() == 1
 	return of(game).mode() > 0
 
@@ -186,6 +186,16 @@ func _lp():
 	if _lpm == null:
 		_lpm = load("res://scripts/render/fx_pxplane_lp.gd").new(self)
 	return _lpm
+
+
+## 圣聆初雪一节（docs/403 §9，单独文件 fx_pxplane_sb.gd；运行时 load 避免循环 preload）
+var _sbm = null
+
+
+func _sb():
+	if _sbm == null:
+		_sbm = load("res://scripts/render/fx_pxplane_sb.gd").new(self)
+	return _sbm
 
 
 ## ob_summon.sm_draw_over 转来（docs/273，只画）：拉普兰德接管时封印标记画成被斩断的符印、观察层数画成头顶刻痕。没接管返回 null
@@ -418,6 +428,9 @@ func ev(o, kind: String, d: Dictionary) -> void:
 		return
 	if str(o.id) == "irene":
 		_ir().ev(o, kind, d, t, R, p)
+		return
+	if str(o.id) == "sbell2":
+		_sb().ev(o, kind, d, t, R, p)
 		return
 	if str(o.id) == "wisadel":
 		_wd().ev(o, kind, d, t, R, p)
@@ -810,6 +823,9 @@ func draw_floor(o) -> void:
 	if id == "irene":
 		_ir().draw_floor(o)
 		return
+	if id == "sbell2":
+		_sb().draw_floor(o)
+		return
 	if id == "wisadel":
 		_wd().draw_floor(o)
 		return
@@ -855,6 +871,10 @@ func draw_over(o) -> void:
 	if str(o.id) == "lappland":
 		if mode() == 1:
 			_lp().draw_over(o)   # 封印传染细虚线（docs/273）
+		return
+	if str(o.id) == "sbell2":
+		if mode() == 1:
+			_sb().draw_over(o)   # 吹雪 / 开阵铃光 / 免死冰壳（docs/403 §9）
 		return
 	if mode() != 2:
 		return
@@ -955,6 +975,9 @@ static func sort_items(game) -> Array:
 			if str(o.id) == "irene":
 				r._ir().sort_items(o, out)
 				continue
+			if str(o.id) == "sbell2":
+				r._sb().sort_items(o, out)
+				continue
 			if str(o.id) == "wisadel":
 				r._wd().sort_items(o, out)
 				continue
@@ -1021,6 +1044,9 @@ static func draw_sorted(game, ci, it: Dictionary) -> void:
 		return
 	if it.has("sz"):   # 铃兰运行时件（docs/271）
 		r._szx().draw_rt(ci, it)
+		return
+	if it.has("sbrt"):   # 圣聆初雪运行时件（docs/403 §9）：冰晶爆 / 冰块 / 冰壳
+		r._sb().draw_rt(ci, it)
 		return
 	if it.has("ir"):   # 艾丽妮运行时件（docs/272）
 		r._ir().draw_rt(ci, it)

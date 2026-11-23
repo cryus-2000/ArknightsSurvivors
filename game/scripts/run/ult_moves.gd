@@ -13,6 +13,7 @@ const A = preload("res://scripts/art.gd")
 ## 其余 15 人（用户 10-29「20 个干员的都做好」）：分两个文件写，接口同本文件（handles / aim_kind / aim_r / start / step）
 const MB = preload("res://scripts/run/ult_moves_b.gd")   # 斯卡蒂 / 歌蕾蒂娅 / 安洁莉娜 / 艾雅法拉 / 维什戴尔 / 归溟幽灵鲨 / 水月
 const MC = preload("res://scripts/run/ult_moves_c.gd")   # 塞雷娅 / 铃兰 / 逻各斯 / 星熊 / 推进之王 / 艾丽妮 / 拉普兰德 / 流明
+const MSB = preload("res://scripts/run/ult_sb.gd")   # 圣聆初雪「千分之一的心」（docs/403 §9）
 
 const POINT_OPS := ["texas", "kaltsit", "ulpianus"]
 const COL_SK_RED := Color(0.78, 0.06, 0.14)
@@ -25,6 +26,8 @@ static func aim_kind(id: String) -> String:
 		return MB.aim_kind(id)
 	if MC.handles(id):
 		return MC.aim_kind(id)
+	if MSB.handles(id):
+		return MSB.aim_kind(id)
 	return "point" if id in POINT_OPS else "none"
 
 
@@ -34,6 +37,8 @@ static func aim_r(id: String) -> float:
 		return MB.aim_r(id)
 	if MC.handles(id):
 		return MC.aim_r(id)
+	if MSB.handles(id):
+		return MSB.aim_r(id)
 	match id:
 		"exusiai":
 			return Bal.v("ult/ex_r", 545.0)
@@ -71,6 +76,9 @@ static func start(u, o, aim: Vector2, dir: Vector2) -> Dictionary:
 			elif MC.handles(str(o.id)):
 				a = MC.start(u, o, aim, dir)
 				a["k"] = "mc"
+			elif MSB.handles(str(o.id)):
+				a = MSB.start(u, o, aim, dir)
+				a["k"] = "sb"
 			else:
 				a = _gen_start(u, o)
 	a["o"] = o
@@ -101,6 +109,8 @@ static func step(u, a: Dictionary, dt: float) -> bool:
 			return MB.step(u, a, dt)
 		"mc":
 			return MC.step(u, a, dt)
+		"sb":
+			return MSB.step(u, a, dt)
 	return _gen_step(u, a, o)
 
 

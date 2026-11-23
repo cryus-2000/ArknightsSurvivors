@@ -110,7 +110,10 @@ static func sb_freeze(o, e: Dictionary, secs: float, growth := false) -> void:
 		o.add_cc_growth(e, s)
 	else:
 		o.add_cc(e, s)
-	o.fx({"kind": "ring", "pos": e.pos, "r": float(e.r) + 6.0, "r0": float(e.r) + 6.0, "life": minf(s, 1.2), "col": SB_ICE, "floor": true, "w": 2.0, "alpha": 0.9})
+	if _FXR.owns(o):
+		_FXR.ev(o, "sb_freeze", {"e": e, "s": s})   # 转平面（docs/403 §9）：冰封块，只画
+	else:
+		o.fx({"kind": "ring", "pos": e.pos, "r": float(e.r) + 6.0, "r0": float(e.r) + 6.0, "life": minf(s, 1.2), "col": SB_ICE, "floor": true, "w": 2.0, "alpha": 0.9})
 
 
 ## 寒冷 = 减速状态（Boss 也吃，同 st.slow）
@@ -208,6 +211,7 @@ static func _sb_snowfall(o, b: Dictionary, s2: bool) -> void:
 	st.cyc = int(st.cyc) + 1
 	if int(o.elite) >= 2 and int(st.cyc) % maxi(1, int(b.get("wave_n", 3))) == 0:
 		st.wave = {"t": 0.0, "c": o.pos, "hit": {}}
+		_FXR.ev(o, "sb_wave", {"c": o.pos})   # 只画
 	_FXR.ev(o, "sb_snow", {"p": o.pos, "r": r})
 
 
@@ -278,11 +282,13 @@ static func _sb_break(o, b: Dictionary, k: Vector2i, n: int, _e: Dictionary) -> 
 	var st := sb_st(o)
 	sb_remove(o, k)
 	var c := sb_center(o, k)
+	_FXR.ev(o, "sb_break", {"c": c, "n": n})   # 只画
 	if o.taken.has(str(b.get("n4b", "xuebeng"))) and n >= int(b.get("n4b_min", 3)):
 		var r: float = float(b.get("n4b_r", 60.0)) * o.stat(&"op_range")
 		var dmg: float = o.base("atk", 0.0) * float(b.get("n4b_mult", 0.2)) * float(n) * float(o.loc.dmg) * o._dmg_bonus()
 		o.area_hit("雪崩", c, r, dmg, 0.0, 0.0, ["area"], 0)
-		o.fx({"kind": "ring", "pos": c, "r": r, "r0": 6.0, "life": 0.25, "col": SB_ICE, "floor": true, "w": 2.0, "alpha": 0.8})
+		if not _FXR.owns(o):
+			o.fx({"kind": "ring", "pos": c, "r": r, "r0": 6.0, "life": 0.25, "col": SB_ICE, "floor": true, "w": 2.0, "alpha": 0.8})
 	if o.taken.has(str(b.get("n5b", "fengxue"))) and st.storms.size() < 16:
 		st.storms.append({"c": c, "t": 0.0, "acc": 0.0})
 
@@ -431,7 +437,8 @@ static func _sb_blast(o, b: Dictionary) -> void:
 	for i in int(b.get("lane_n", 5)):
 		sb_add(o, sb_key(o, o.pos + dir * cs * (float(i) + 1.0)), int(b.get("lane_layers", 2)))
 	_FXR.ev(o, "sb_blast", {"p": o.pos, "ang": ang, "r": r, "half": half, "es": hits})
-	o.fx({"kind": "ring", "pos": o.pos + dir * r * 0.5, "r": r * 0.5, "r0": r * 0.2, "life": 0.3, "col": SB_ICE, "floor": true, "w": 3.0, "alpha": 0.8})
+	if not _FXR.owns(o):
+		o.fx({"kind": "ring", "pos": o.pos + dir * r * 0.5, "r": r * 0.5, "r0": r * 0.2, "life": 0.3, "col": SB_ICE, "floor": true, "w": 3.0, "alpha": 0.8})
 
 
 ## look 内敌人最多的方向（8 方向扇形计数，同数取序号小的；skip = 第二下避开的方向，相差 < 半角的跳过）
@@ -464,9 +471,12 @@ static func _sb_lay_ring(o, b: Dictionary, at: Vector2) -> void:
 		return
 	var r: float = float(b.get("r", 60.0)) * o.stat(&"op_range")
 	if b.get("hits", false):   # 铃落：开阵半径内的敌人脚下各 +layers 层
+		var ps: Array = []
 		for e in o.nearest_enemies(int(b.get("n", 12)), r, c):
 			if _sb_ground_enemy(e):
 				sb_add(o, sb_key(o, e.pos), int(b.get("layers", 1)))
+				ps.append(e.pos)
+		_FXR.ev(o, "sb_bell", {"ps": ps})   # 只画
 		return
 	for k in sb_keys_in(o, c, r):
 		sb_add(o, k, int(b.get("layers", 1)))
@@ -480,7 +490,10 @@ static func _sb_chill(o, b: Dictionary) -> void:
 	var r: float = float(b.get("r", 90.0))
 	for e in o.nearest_enemies(16, r, g.ppos):
 		sb_cold(o, e, float(b.get("cold", 1.5)))
-	o.fx({"kind": "ring", "pos": g.ppos, "r": r, "r0": 12.0, "life": 0.25, "col": SB_ICE, "floor": true, "w": 2.0, "alpha": 0.7})
+	if _FXR.owns(o):
+		_FXR.ev(o, "sb_chill", {"c": g.ppos, "r": r})   # 只画（转平面目前不画寒气圈，留给连携雪幕）
+	else:
+		o.fx({"kind": "ring", "pos": g.ppos, "r": r, "r0": 12.0, "life": 0.25, "col": SB_ICE, "floor": true, "w": 2.0, "alpha": 0.7})
 
 
 ## data_operator.prevent_death：精一起一局一次；返回 true 时游戏把生命设成 1，下一次 tick 再补回 heal 比例
@@ -510,7 +523,7 @@ static func _sb_bless_apply(o, b: Dictionary) -> void:
 	for k in sb_keys_in(o, g.ppos, r):
 		sb_add(o, k, int(b.get("max", 5)))
 	g.vfx.show_banner("圣山的祝福 —— 队长免于倒下")
-	_FXR.ev(o, "sb_bless", {"p": g.ppos, "r": r})
+	_FXR.ev(o, "sb_bless", {"p": g.ppos, "r": r, "dur": secs})
 
 
 # ---------------------------------------------------------------- 画法（占位，只画；data_operator.draw_ground_fx 调）
@@ -576,7 +589,7 @@ static func sb_draw_ground(o) -> void:
 	var src := Rect2(0, 0, SB_BLOB_N, SB_BLOB_N)
 	var w: Dictionary = st.wave
 	var wr := -1.0
-	if not w.is_empty():
+	if not w.is_empty() and not _FXR.owns(o):   # 转平面接管时霜涛由 fx_pxplane_sb 画断续冰浪峰，这里不再整圈提亮
 		wr = float(st.b.get("wave_r", 240.0)) * o.stat(&"op_range") * clampf(float(w.t) / float(st.b.get("wave_t", 0.6)), 0.0, 1.0)
 	var cells: Dictionary = st.cells
 	# 一：外沿压暗（只在雪区边界格，往缺雪那一侧偏一点），垫在雪团下面
@@ -629,6 +642,7 @@ static func _sb_jit(h: int, cs: float) -> Vector2:
 ## 调试演示（只在调试版 + 命令行 --sbdemo）：开局在队长右侧摆 1–5 层各一块 3 × 3 样板，撞色对照截图用（docs/403 §6.0）
 static func sb_demo(o) -> void:
 	var st := sb_st(o)
+	_sb_demo_bless(o, st)
 	if bool(st.get("demo", false)) or not OS.is_debug_build() or not ("--sbdemo" in OS.get_cmdline_user_args()):
 		return
 	st.demo = true
@@ -637,3 +651,16 @@ static func sb_demo(o) -> void:
 		for dy in 3:
 			for dx in 3:
 				sb_add(o, base + Vector2i(i * 4 + dx, dy), i + 1)
+
+
+## 调试演示（只在调试版 + 命令行 --sbbless=<秒>）：到点触发一次天赋免死（录特效演示用；正式局不走）
+static func _sb_demo_bless(o, st: Dictionary) -> void:
+	if bool(st.get("demo_bl", false)) or not OS.is_debug_build():
+		return
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--sbbless=") and float(o.g.t) >= float(a.substr(10)) and int(o.elite) >= 1:
+			st.demo_bl = true
+			st.bless = false
+			if sb_prevent_death(o):
+				o.g.hp = 1.0
+			return

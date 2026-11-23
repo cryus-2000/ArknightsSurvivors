@@ -19,6 +19,7 @@
     "ulpianus": {"voice": "ulpianus_command_2", "voice_alt": ["ulpianus_entry_2", "ulpianus_skill_3", "ulpianus_battle"], "vol": {"crack_hit": -14.0}, "seg": {"锁链": {"on": "dash"}, "裂地": {"hit": "crack_hit", "gap": 0.16}},
       "fx": {"ring": {"r": 90.0, "w": 5.0, "slot": "anchor", "gap": 0.3},
              "strip:fx_ult_ulpianus_burst_front": {"slot": ["splash_1", "splash_2", "splash_3"], "gap": 0.12, "vol": -9.0}}},
+    "sbell2": {"hf_slot": "shatter", "seg": {"落雪": {}, "碎冰": {}}},
     "skadi": {"hf_slot": "crash", "voice": "skadi_battle", "voice_alt": ["skadi_entry"], "vol": {"impact": -4.0, "wave": -4.0, "crash": 1.0}, "seg": {"下劈": {}, "浪头": {"on": "wave"}, "涌潮": {}}},
     "gladiia": {"hf_slot": "surge", "voice": "gladiia_battle", "voice_alt": ["gladiia_entry_2"], "seg": {"漩涡": {}, "收拢": {"on": "crush"}, "潮涌": {}},
       "fx": {"strip:fx_gladiia_tornado_open": {"slot": "open"}, "strip:fx_gladiia_tornado_loop": {"slot": "loop", "vol": -6.0},

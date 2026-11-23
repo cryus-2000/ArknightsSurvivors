@@ -1,0 +1,4 @@
+{
+	"_doc": "docs/403 §9 圣聆初雪转平面（fx/px_plane = 1）：颜色组给 Noita 颗粒、照地光与受击反应用；主形在 render/fx_pxplane_sb.gd 运行时逐美术像素画。色取 PRTS 立绘：发银白、斗篷宝蓝渐浅蓝、内衬深海军蓝、铃铛暗铜（只作点缀）",
+	"palette": {"dark": "#16234a", "main": "#3a78d8", "hot": "#dcecff", "accent": "#a07a4a", "light": "#9fd8ff", "flash": "#bfe2ff"}
+}

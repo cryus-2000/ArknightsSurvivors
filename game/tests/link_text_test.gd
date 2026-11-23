@@ -23,7 +23,7 @@ func ok(v: bool, what: String) -> void:
 func _ready() -> void:
 	var gal = load("res://scripts/gallery.gd").new()
 	var ops: Dictionary = Ult.text_table().get("ops", {})
-	ok(ops.size() == Link.SAMPLE.size(), "ult_text ops %d == SAMPLE %d" % [ops.size(), Link.SAMPLE.size()])
+	ok(ops.size() >= Link.SAMPLE.size(), "ult_text ops %d >= SAMPLE %d" % [ops.size(), Link.SAMPLE.size()])   # 11-24 新干员（圣聆初雪）先有终结技文案、连携未做，只要求 SAMPLE 都在表里
 	for id in Link.SAMPLE:
 		var e: Dictionary = ops.get(id, {})
 		var l2: Dictionary = e.get("link_v2", {})

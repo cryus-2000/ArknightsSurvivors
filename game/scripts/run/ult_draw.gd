@@ -106,6 +106,10 @@ static func _draw_hit_frame(uv: U, w) -> void:
 		SDP.of(g).draw_hf(uv, w, Color(fg.r, fg.g, fg.b) if (inv or hc.size() == 4) else Color.WHITE)   # 斯卡蒂：劈浪那一拍的立起层剪影
 	if MZP.on():
 		MZP.of(g).draw_hf(uv, w, Color(fg.r, fg.g, fg.b) if (inv or hc.size() == 4) else Color.WHITE)   # 转平面（docs/261 §8）：9 只海月水母剪影
+	if uv.caster != null and str(uv.caster.id) == "sbell2":   # 圣聆初雪（docs/403 §9）：冰缝网剪影；运行时 load 免循环 preload
+		var pxs = load("res://scripts/render/fx_pxplane.gd")
+		if pxs.owns_id(g, "sbell2"):
+			pxs.of(g)._sb().draw_hf(uv, w, Color(fg.r, fg.g, fg.b) if (inv or hc.size() == 4) else Color.WHITE)
 
 
 static func _span(uv: U, w, y: float, x0: float, x1: float, G: float, col: Color) -> void:

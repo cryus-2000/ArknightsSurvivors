@@ -504,6 +504,7 @@ func _react(e, col: Color, heavy: bool, ft2: float = REACT_FLASH) -> void:
 	var prev: Array = reacts.get(id, [])
 	var st: float = g.t + REACT_STOP if heavy else (float(prev[2]) if not prev.is_empty() else -1.0)
 	var ft: float = float(prev[3]) if not prev.is_empty() and g.t < float(prev[2]) else g.t
+	ft2 *= Bal.v("fx/hit_flash_mul", 1.0)   # 审片演示可关闪色（停顿照旧），同 vfx.gd 受击白闪
 	reacts[id] = [g.t, col, st, ft, ft2]   # ft2：闪色时长（配方 / 转平面 json 的 flash_t，缺省 REACT_FLASH）
 
 

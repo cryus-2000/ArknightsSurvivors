@@ -1750,7 +1750,8 @@ func impact(pos: Vector2) -> void:
 	if not (_hf_on() or act.get("hf_done", false) or act.get("soft", false)):   # soft：温柔型招式（流明）不闪白
 		flash_rt = _imp_rt   # 冲击帧招式不叠共用白闪：白闪会把冲击帧和拖影一起盖掉（用户 10-31「看不出区别」）
 	light(pos, 320.0, _col(caster), 0.6)   # 冲击帧：一盏大灯照亮地面（光学观感）
-	debris(pos, _col(caster), 3)
+	if not act.get("no_debris", false):   # 招式自己画炸点（提丰重做样张）时不撒共用碎石
+		debris(pos, _col(caster), 3)
 	g.hurt_duck = maxf(float(g.hurt_duck), Bal.v("ult/imp_duck", 0.8))   # 配乐低通：冲击前一瞬压下去
 	var c: Color = _col(caster).lerp(Color.WHITE, 0.5)
 	if not act.get("no_ring", false):   # 招式自己不要圈（德克萨斯：范围由斩线表达）
@@ -2287,6 +2288,8 @@ func _fin_release() -> void:
 	if sfx != null:
 		sfx.play("boom", Bal.v("ult/finish_rumble_db", 2.0), Bal.v("ult/finish_rumble_pitch", 0.55))   # 低频轰鸣：通用 boom 降调
 	shake(Bal.v("ult/finish_shake", 4.5), Bal.v("ult/finish_shake_t", 0.2))
+	if act.get("no_debris", false):
+		return   # 招式自己画炸点（提丰重做样张）：不撒共用灰褐碎粒 / 烟尘
 	var col: Color = _col(caster) if caster != null else Color.WHITE
 	var sd: float = float(serial) * 7.31 + _imp_pos.x * 0.013 + _imp_pos.y * 0.007
 	var grey := Color(0.56, 0.54, 0.51)
