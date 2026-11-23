@@ -116,7 +116,9 @@ func test_s2(o) -> void:
 	step(o, 0.2)
 	ok(kind(o) == "skill_s2_hold", "S2 0.30 s：仍定格")
 	step(o, 0.05)
-	ok(o.sq_ph == 0 and o.attack_t <= 0.0 and kind(o) == "idle", "S2 0.35 s：定格结束回待机，窗口同时结束")
+	ok(o.sq_ph == 0 and o.attack_t <= 0.0 and kind(o) == "skill_s2" and o.vis_tail, "S2 0.35 s：定格结束、窗口同时结束，接原作 Skill2 余段（纯画面，docs/408 tail）")
+	step(o, 1.4)
+	ok(o.vis_anim == "" and kind(o) == "idle", "S2 余段播完回待机")
 
 
 # ---------------------------------------------------------------- S3：起手 → 循环（迷雾期间）→ 收势

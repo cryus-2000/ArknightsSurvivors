@@ -63,6 +63,7 @@ var act_anim := "attack"   # 当前动作实际播放的帧条（通常同 act_k
 # ---- 动画：贴图槽来自 def.sprites（idle / run / attack / hurt / death），帧数 = 宽 / 高
 var anim_kind := ""
 var anim_t := 0.0
+var perm_t := 0.0   # 永续技能换姿态的画面时钟（_perm_pose，docs/408）
 var vis_hold_until := -1.0   # 卡肉局部顿帧（render/melee_impact.meat，只画）：到这个游戏时间之前本体停在命中那一帧
 var vis_hold_st: Dictionary = {}
 const ANIM_FPS := {"idle": 4.0, "run": 10.0, "hurt": 10.0, "death": 6.0}
@@ -1385,6 +1386,7 @@ func follow(dt: float, target: Vector2) -> void:
 		anim_kind = want
 		anim_t = 0.0
 	anim_t += dt
+	perm_t += dt   # 永续技能换姿态的循环时钟（_perm_pose，纯画面）
 	if vis_anim != "" and anim_kind == vis_anim and anim_t >= vis_dur():
 		vis_anim = ""   # 播完回待机（末帧 = 待机 f0，收招不跳）
 	SkillSeq._tick_sq_shadow(self, dt)
@@ -1489,11 +1491,13 @@ func skill_anim(i: int) -> String:
 
 ## 独立视觉叠层，不调度伤害；保留给既有展示和视觉技能调用。
 var vis_anim := ""
+var vis_tail := false   # vis_anim 是序列定格后的施法余段（skills.sN.tail）：任何新动作 / 新序列起手即让位
 
 func play_vis_anim(kind: String) -> void:
 	if anim_tex(kind) == null:
 		return
 	vis_anim = kind
+	vis_tail = false
 	anim_kind = kind
 	anim_t = 0.0
 
@@ -2323,7 +2327,42 @@ func anim_hframes(tx: Texture2D, kind: String = "") -> int:
 
 ## 当前帧（贴图 / 帧序号 / 帧数），残影 / 分身等复用。道具离手（prop_out）时换成无盾画面（_noshield）
 func anim_state() -> Dictionary:
-	return _move_swap(_noshield(_anim_state_raw()))
+	return _move_swap(_perm_pose(_noshield(_anim_state_raw())))
+
+
+## 永续技能换姿态（11-23 docs/407 F17 / docs/408）：def.sprites.perm_pose = {"s2": {"idle": 槽, "attack": 槽}}（键 = 技能序号 + 1），
+## 该技能永久生效（perm[i]）后，待机改播原作技能持续轨（自己的帧时长循环），普攻改播原作技能攻击轨（帧数须与 attack 相同，帧号照 attack 的出手对齐）。
+## 只换贴图与 kind（脚底 / 镜像按新槽），出手时刻、朝向等模拟量不动，同 seed 不变。移动中的普攻仍交给 _move_swap 播跑动版。
+func _perm_pose(st: Dictionary) -> Dictionary:
+	if st.is_empty():
+		return st
+	var pp = def.get("sprites", {}).get("perm_pose", null)
+	if not (pp is Dictionary):
+		return st
+	var kind := str(st.get("kind", ""))
+	if kind != "idle" and kind != "attack":
+		return st
+	if kind == "attack" and mv > RUN_ENTER:
+		return st
+	for key in pp:
+		var i := int(str(key).substr(1)) - 1
+		if i < 0 or i >= perm.size() or not perm[i]:
+			continue
+		var ms := str(pp[key].get(kind, ""))
+		var mtx: Texture2D = anim_tex(ms) if ms != "" else null
+		if mtx == null:
+			continue
+		var n: int = anim_hframes(mtx, ms)
+		var out := st.duplicate()
+		if kind == "idle" or n != int(st.get("hf", 0)):
+			# 持续轨循环：按 perm_t（只在动画推进里累加的画面时钟）取帧，待机与普攻之间切换不从头播（浊心斯卡蒂普攻 = 原地漂浮，也播这条）
+			out["frame"] = timed_frame(ms, range(n), perm_t, true) if sprite_spec(ms).has("frame_durations") else int(perm_t * float(sprite_spec(ms).get("fps", 4.0))) % n
+		out["tex"] = mtx
+		out["hf"] = n
+		out["kind"] = ms
+		out["flip"] = (face < 0.0) != sprite_mirror(ms)
+		return out
+	return st
 
 
 ## 移动攻击（10-23 用户「边跑边攻击」，docs/128 §3）：出手动作期间在移动、且有 sprites.move_<动作> 帧条（帧数相同）时，

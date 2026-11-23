@@ -97,7 +97,7 @@ func test_skalter(o) -> void:
 	step(o, 0.30)
 	ok(st(o).kind == "skill_s2" and int(st(o).frame) == ff, "技能生效时刻画面在关键姿势帧 %d" % ff)
 	step(o, 1.0)
-	ok(st(o).kind == "idle", "技能画面播完回待机")
+	ok(st(o).kind == ("idle_s2" if o.perm[1] else "idle"), "技能画面播完回待机（S2 永久生效后待机 = 原作 Skill_2_Loop，docs/408 perm_pose）")
 	ok(int(o.sprite_spec("idle").frames) == 36, "待机 36 帧加密")
 
 

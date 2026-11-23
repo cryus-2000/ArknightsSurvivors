@@ -75,6 +75,12 @@ static func errors(d: Dictionary) -> Array:
 					if ph is Dictionary:
 						for slot in ph.values():
 							refs[str(slot)] = "sprites.skills.%s.phases" % sk
+	var pp = sp.get("perm_pose", {})   # 永续技能换姿态（docs/408）
+	if pp is Dictionary:
+		for sk in pp:
+			if pp[sk] is Dictionary:
+				for slot in pp[sk].values():
+					refs[str(slot)] = "sprites.perm_pose.%s" % sk
 	var sks = d.get("skills", [])
 	if sks is Array:
 		for i in sks.size():

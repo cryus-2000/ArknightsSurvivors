@@ -737,6 +737,8 @@ func _ready() -> void:
 ## 没写的键沿用当前值；版本迁移都在这里：难度 diff_ver（_migrate_progress）、观感 look_ver、旧倍速、旧券、没有 [roster] 段的老存档
 func _read_cfg(c: ConfigFile) -> void:
 	cover_character_id = str(c.get_value("display", "cover_character", "mizuki"))
+	if preload("res://scripts/characters/operator_defs.gd").hidden(cover_character_id):
+		cover_character_id = "mizuki"   # 11-23 暂不上线的干员（operator_defs.HIDDEN）：老存档选过的退回缺省
 	play_speed = float(c.get_value("game", "play_speed", 1.0))
 	if play_speed == 2.0:   # 10-22 删 2× 倍速：旧存档回落到最接近的 1.5×
 		play_speed = 1.5
@@ -810,6 +812,8 @@ func _read_cfg(c: ConfigFile) -> void:
 	roster_spare = c.get_value("roster", "spare", roster_spare)
 	roster_tiers = c.get_value("roster", "tiers", roster_tiers)
 	roster_wish = str(c.get_value("roster", "wish", roster_wish))
+	if preload("res://scripts/characters/operator_defs.gd").hidden(roster_wish):
+		roster_wish = ""   # 意向干员是暂不上线的（operator_defs.HIDDEN）：清掉，免得保底指向抽不到的人
 	roster_pity = int(c.get_value("roster", "pity", roster_pity))
 	roster_draws = int(c.get_value("roster", "draws", roster_draws))
 	roster_seed = int(c.get_value("roster", "seed", roster_seed))
@@ -1348,7 +1352,7 @@ func cloud_apply(body: Dictionary) -> void:
 		cam_zoom_pct = -1 if z <= 0 else clampi(z / 5 * 5, ZOOM_PCT_MIN, ZOOM_PCT_MAX)
 	if (d.get("play_speed") is float or d.get("play_speed") is int) and float(d.play_speed) in [1.0, 1.5, 2.0]:
 		play_speed = 1.5 if float(d.play_speed) == 2.0 else float(d.play_speed)   # 旧云存档的 2.0 回落 1.5（10-22 删 2×）
-	if d.get("cover_character_id") is String and FileAccess.file_exists("res://data/characters/%s.json" % d.cover_character_id):
+	if d.get("cover_character_id") is String and FileAccess.file_exists("res://data/characters/%s.json" % d.cover_character_id) 			and not preload("res://scripts/characters/operator_defs.gd").hidden(d.cover_character_id):
 		cover_character_id = d.cover_character_id
 	if d.get("touch_layout") is Dictionary:
 		touch_layout = TouchLayout.sanitize(d.touch_layout)
@@ -1400,6 +1404,8 @@ func cloud_apply(body: Dictionary) -> void:
 			roster_spare = (st0.sp as Dictionary).duplicate()
 		if st0.get("wish") is String:
 			roster_wish = st0.wish
+			if preload("res://scripts/characters/operator_defs.gd").hidden(roster_wish):
+				roster_wish = ""
 		for k in ["pity", "draws", "seed"]:
 			if st0.get(k) is float or st0.get(k) is int:
 				set("roster_" + k, int(st0[k]))

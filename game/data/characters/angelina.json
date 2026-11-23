@@ -93,6 +93,9 @@
   "regen": 0.8
  },
  "sprites": {
+  "attack_s2": {"tex": "op_angelina_attack_s2", "frames": 8, "fps": 19.2, "foot": [48, 76], "frame_durations": [0.062186719439633865, 0.062186719439633865, 0.08395989345406561, 0.036564632482732125, 0.05626417019238256, 0.05626417019238253, 0.05626417019238253, 0.0029761912734536104], "fire": 3, "fire_time": 0.20833333333333334, "attack_timing": {"duration": 0.5483333333333333, "fire_time": 0.20833333333333334, "active_ratio": 0.9, "windup_ratio": 0.3799392097264438, "min_duration": 0.13333333333333333, "frame_durations": [0.06218671973813012, 0.06218671973813012, 0.0839598938570731, 0.05230769230769231, 0.060153846153846155, 0.068, 0.07584615384615384, 0.08369230769230773]}, "_doc": "11-23 docs/408：S2 永续后的普攻（原作 Skill1_Loop，OnAttack 源帧对到出手帧 3；时序同 attack，sprites.perm_pose 换贴图）"},
+  "skill_s2": {"tex": "op_angelina_skill_s2", "frames": 8, "fps": 13.714286, "foot": [32, 60], "frame_durations": [0.07291666666666667, 0.07291666666666667, 0.07291666666666667, 0.07291666566666669, 0.07291666666666667, 0.07291666666666667, 0.07291666666666667, 0.07291666766666668], "fire": 4, "fire_time": 0.2916666666666667, "_doc": "11-23 docs/408：S2 施法 = 原作 Skill1_Begin 整条（时序同 skill 槽，逻辑窗口不变）"},
+  "perm_pose": {"s2": {"attack": "attack_s2"}},
   "move_attack": {
    "tex": "op_angelina_move_attack",
    "frames": 8,
@@ -350,7 +353,7 @@
    ]
   }
  },
- "extra_sprites": [
+ "extra_sprites": ["attack_s2", "skill_s2", 
   "entry",
   "float_in",
   "float",
@@ -372,6 +375,7 @@
   },
   {
    "name": "秘杖·微粒模式",
+   "anim": "skill_s2",
    "en": "ARCANE STAFF - PARTICLE MODE",
    "sp": 15,
    "permanent": true,

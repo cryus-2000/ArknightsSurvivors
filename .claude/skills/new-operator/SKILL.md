@@ -6,6 +6,7 @@ description: 加一名新干员（原作查证 → 设计稿 → characters/<id>
 # new-operator：加一名新干员
 
 以拉普兰德（docs/122 设计稿、docs/273 转平面、`game/data/characters/lappland.json`、`seg_lappland.gd`）为样板。每步做完对一遍「完成标准」再往下走。
+**设计规范总表 docs/407**：开工前读 §1（干员）+ §2（特效），每步完成标准之外再勾 407 对应节末尾的「交付前自查」；与本技能说法冲突时以 407 为准（如尺度、连携、送审格式）。
 检查脚本：`python tools/new_op_check.py <id>`（只读，列缺项；见 §⑧）。模板在本目录 `templates/`。
 
 ## 0. 开工前
@@ -34,10 +35,10 @@ description: 加一名新干员（原作查证 → 设计稿 → characters/<id>
 - **精一**：普攻追加一个可感知的机制 + 画面上一个小新元素（输出位 ≤ +8%）；**精二**：普攻形态质变、一眼认出，动词不能和 docs/91 §0.4 表里已有的重复，替换不叠加（docs/91 §0.2 / §0.5）。
 - **成长节点**（docs/202 §0）：节点 1、2 只落在普攻 / 已有天赋式行为 / S1；节点 4、5 可落在 S1 / S2，不依赖 S3；不做纯数值（倍率 / 半径 / 冷却 / 层数 +1），要新触发 / 新形状 / 新目标规则 / 引爆 / 标记 / 残留；普通节点自带 +6% 攻击（`NODE_ATK`）不动；不许第 7 个节点、不许 >20% 的单节点（docs/27 §9.5）。
 - **每个节点玩家选了以后 1 倍像素能看出变化**（docs/310 标准）：设计稿里每个节点写「画面：……」一列。
-- 终结技 Q / 连携 E（docs/198 / 199、280 §6）：新干员也要一个终结技、一个连携效果，名字与说明进 `ult_text.json`；连携不和已有的重复。
+- 终结技 Q / 连携 E（docs/198 / 199、280 §6；现行口径见 docs/407 §1 O9–O10）：新干员也要一个终结技、一个连携效果，名字与说明进 `ult_text.json`；连携不和已有的重复。
 - 不改 `balance.json enemy / xp / levelup` 来适配她；不新增只对她生效的全局属性（用 `op:<id>` 作用域）。
 
-**完成标准**：协调人 / 用户审过设计稿（新机制先给方案再做，memory self-tune-authority）；00_index 已加一行。
+**完成标准**：协调人 / 用户审过设计稿（新机制先给方案再做，memory self-tune-authority）；00_index 已加一行；docs/407 §1「交付前自查（干员）」逐条勾过。
 
 ## ③ 数据（`game/data/characters/<id>.json`，积木优先）
 
@@ -91,7 +92,7 @@ description: 加一名新干员（原作查证 → 设计稿 → characters/<id>
 5. 只画钩子第一行判断「没接管就返回」；转平面开 / 关 TRACE 必须逐行一致（只改画面）。
 6. 送审：先 GIF（`tools/pxplane_gif_<id>.py`，上半 1 倍下半 2 倍、15 fps 原速）→ 用户点头 → 图鉴演示录像逐招 E0→E2 mp4（`tools/elite_demo_shots.py`，memory review-in-gallery）→ `vreview` 预审 → 发用户。GIF 过审 ≠ 实机过（memory gif-not-ingame：另查 1 倍尺寸、半透明盘 / 细环、红铺满屏）。体检 `tools/fx_audit.py both --ops <id>`（docs/270）。
 
-**完成标准**：`new_op_check.py` 的「节点画面事件」一项全绿；fx_audit 核心项过；**特效预算两项过**——静态 `python tools/check.py --only fx_budget`（包体 / 显存 / 帧条数 / 单条尺寸 / 元素种类，rc 0），运行时 `python tools/fx_budget_runtime.py new --op <id>`（后期绘制帧时增量、各招覆盖面积 / 实心覆盖 / 亮度 / 持续 / 盖住敌人，对照 docs/368 速查表硬上限；画面项在 GCP 跑 `cover`，帧时本机 1 个 Godot），超限项写进设计稿 §7 并报用户，不许自行放宽；用户看过录像。
+**完成标准**：`new_op_check.py` 的「节点画面事件」一项全绿；fx_audit 核心项过；**特效预算两项过**——静态 `python tools/check.py --only fx_budget`（包体 / 显存 / 帧条数 / 单条尺寸 / 元素种类，rc 0），运行时 `python tools/fx_budget_runtime.py new --op <id>`（后期绘制帧时增量、各招覆盖面积 / 实心覆盖 / 亮度 / 持续 / 盖住敌人，对照 docs/368 速查表硬上限；画面项在 GCP 跑 `cover`，帧时本机 1 个 Godot），超限项写进设计稿 §7 并报用户，不许自行放宽；**docs/407 §2「交付前自查（特效）」逐条勾过（终结技冲击帧接法、高潮一下、1 倍可见、元素 ≤ 3、mp4 交付）**；用户看过录像。
 **坑**：录像前先跑 `python tools/asset_index.py` 重建 `game/art/index.json`（新帧条不进索引会静默回退旧画面，memory px-index-json-local）；新画面状态若影响普通敌人绘制，进 `_dc_ok` 排除或签名（`check.py --dccheck`）；圆 / 环 / 线用 `world.tb_*` 合批（memory godot-draw-batching）。
 
 ## ⑤ 美术单给 Codex（docs/104，只写范围）
@@ -104,7 +105,7 @@ description: 加一名新干员（原作查证 → 设计稿 → characters/<id>
 - 1 倍帧条（docs/128，`render/op_1x`）：`tools/op_1x/make_op_1x.py` 从原作 Spine 逐部件出 `op_<id>_<槽>@1x.png`（含 `move_attack` 边跑边攻击槽），眼睛修正 `tools/op_1x/eye_fix.py`；拉普兰德 9 条 @1x 都由它出。
 - 技能图标 `game/art/ui/skills/skill_<id>_s1..s3.png`（Claude 出：`tools/make_skill_icons.py` 或 pixgen）。
 
-**完成标准**：art_lint 过；`sprites` 里每个槽都有图（或注明借用占位）。
+**完成标准**：（尺度 / B 方案以 docs/407 §1 O12–O14 为准）art_lint 过；`sprites` 里每个槽都有图（或注明借用占位）。
 
 ## ⑥ 音效与语音
 
@@ -160,6 +161,7 @@ python tools/check.py --auto --jobs 1  > build/chk_auto.txt 2>&1; echo rc=$?   #
 
 - 只提交自己的文件（`git add <明确路径>`，不扫别人的改动）；`.gd.uid` 随脚本；不提交 `.godot/`、build 产物、`build/prts_ref`。
 - 00_index 加设计稿 / 转平面文档行；docs/61 末尾加新积木节；docs/76 附录 A 加来源；docs/41 / 交接页如有要求一并更新。
+- 汇报里写一句「已对 docs/407 §1 / §2 自查」。
 - 汇报三行以内：分支 + 提交号（commit 结果出来后再写，memory hash-after-commit）+ 关键数字（胜率区间 / 快检 rc）。**不自己合 main、不推 main**，推分支也归协调人（memory no-self-merge-main）。
 - 用户要看的 mp4 / 图用 SendUserFile 直接发文件，不贴本地链接。
 

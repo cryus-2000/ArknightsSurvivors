@@ -17,6 +17,7 @@ const ULT := 4
 const DEMO_HORDE := 16
 const DEMO_FILL_AT := 1.0
 const DEMO_HOLD := 1.5
+var hold_s := DEMO_HOLD   # 录像工具可调长（tests/elite_demo_shot.gd --shot_hold，看永续技能生效后的姿态，docs/408）；图鉴本身不改
 const DEMO_MAX := 14.0
 const DEMO_MAX_LINGER := 27.0    # 留场表现中的上限（幽灵鲨：S2 10 秒 + 替身 12 秒 + 起手）
 var demo_ph_t := 0.0
@@ -109,7 +110,7 @@ func step(dt: float) -> void:
 	var busy: bool = g.ch.skill_active_left(si) > 0.0 or g.ch.skill_pending(si) or lingering
 	# 从效果结束起再停 DEMO_HOLD 秒（以前从放出时算：凯尔希熔毁 8 秒一结束就切段，收尾大爆演不到）；普攻出手不算忙，只是不在出手中途切
 	demo_after_t = 0.0 if busy or demo_cast_t < 0.0 else demo_after_t + dt
-	var done: bool = demo_cast_t >= 0.0 and demo_after_t >= DEMO_HOLD and not g.ch.acting()
+	var done: bool = demo_cast_t >= 0.0 and demo_after_t >= hold_s and not g.ch.acting()
 	if done or demo_ph_t >= (DEMO_MAX_LINGER if busy else DEMO_MAX):
 		next_phase()
 		return

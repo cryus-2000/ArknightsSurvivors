@@ -11,6 +11,7 @@ description: 加一种新怪物（普通怪 / 精英 / 中期 Boss / 最终 Boss
 ## 0. 开工前
 
 - 先读：AGENTS.md、docs/00_index.md「新会话先读 · Boss与怪物」行（95 → 38 §1、§8.11–§8.14 → 49 / 49c → 98）、docs/76、docs/306（Boss 弹幕）、docs/283（中期 Boss 可见性）。
+- **设计规范总表 docs/407 §3**（敌人与 Boss，特效另看 §2.2–§2.3）：开工前读，交付前勾该节末尾「交付前自查」；与本技能冲突时以 407 为准。
 - Boss 设计口径（用户定，memory boss-design）：**图案弹幕不做符卡；每只 Boss 专属弹幕色；不弹文字提示（不加「快躲」类横幅 / 头顶字）；弹幕紧张主要交给最终 Boss**；中期 Boss 重在「一眼认出这是 Boss」（docs/283）。
 - 自己的工作树和分支（`claude/enemy-<id>` / `claude/boss-<id>`）；入口文件不改；**文档号先查各分支最大号**（同 new-operator §0）；本机 Godot 按协调人当前口径（平时最多 1 个），批跑 / TRACE / 测试台上 GCP。
 
@@ -127,6 +128,7 @@ python tools/check.py --auto --jobs 1     > build/chk_auto.txt 2>&1; echo rc=$? 
 
 - 只提交自己的文件；`.gd.uid` 随脚本；`.import` 别手写 uid（让 Godot `--import` 生成）；index.json 随提交。
 - 00_index「敌人与 Boss」表加设计稿行；docs/76 附录 A 加来源；docs/38 / 95 如改通用规则同步。
+- docs/407 §3「交付前自查（敌人 / Boss）」逐条勾过，汇报里写一句「已对 407 §3 自查」。
 - 三行汇报：分支 + 提交号（读到再报）+ 关键数字；不合 main、不推分支（协调人做）。
 
 ---

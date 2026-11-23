@@ -68,6 +68,7 @@
     "regen": 0.8
   },
   "sprites": {
+  "skill_s2": {"tex": "op_suzuran_skill_s2", "frames": 6, "fps": 4.834996118466887, "foot": [32.0, 59.53074616425449], "frame_durations": [0.3076190549986703, 0.18476190192358832, 0.24619047846112918, 0.2461904784611295, 0.2461904784611293, 0.010000000000000009], "_doc": "11-23 docs/408：S2 施法余段 = 原作 Skill2 f2–f7（skills.s2.tail，纯画面）；intro / hold 贴图 = Skill2 f0 / f1"},
   "move_attack": {"tex": "op_suzuran_move_attack", "frames": 8, "foot": [32.0, 59.53074616425449], "_doc": "10-23 移动攻击（docs/128 §3）：普攻上半身 + 跑步步态腿，原作 Spine 1 倍像素化（tools/op_1x/make_op_1x.py）；帧序与普攻一一对应，只换贴图"},
   "entry": {"foot_exempt": "入场条同跑步条用整数脚底 (32, 60)，与小数顶层 foot 相差不到 1px（docs/108 §5）", "tex": "op_suzuran_entry", "frames": 8, "fps": 10.6667, "foot": [32, 60], "frame_durations": [0.0938, 0.0937, 0.0937, 0.0938, 0.0938, 0.0937, 0.0937, 0.0938], "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/suzuran_entry.json），64 画布 @2x；落下由代码补"},
     "idle": {
@@ -181,6 +182,7 @@
         "anim": "skill"
       },
       "s2": {
+        "tail": "skill_s2",
         "intro": {
           "anim": "skill_s2_intro"
         },
@@ -231,7 +233,7 @@
       ]
     }
   },
-  "extra_sprites": ["entry", 
+  "extra_sprites": ["skill_s2", "entry", 
     "death",
     "skill_s2_hold",
     "skill_s2_intro",

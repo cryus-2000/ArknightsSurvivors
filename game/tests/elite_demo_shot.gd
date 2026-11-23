@@ -24,6 +24,7 @@ func _ready() -> void:
 	var h := 360
 	var nodes := -1
 	var walk := false
+	var hold := -1.0
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--shot_op="):
 			op = a.substr(10)
@@ -43,6 +44,8 @@ func _ready() -> void:
 			nodes = int(a.substr(13))
 		elif a.begins_with("--shot_w="):
 			w = int(a.substr(9))
+		elif a.begins_with("--shot_hold="):
+			hold = float(a.substr(12))
 		elif a == "--shot_walk=1":
 			walk = true
 		elif a == "--shot_log=1":
@@ -60,6 +63,8 @@ func _ready() -> void:
 	game.demo_nodes = nodes   # >= 0：成长节点验收，按节点数推进（路线 --route=<干员>:<路线> 另传）
 	game.demo_sys.configure(stage, mode)
 	game.demo_sys.walk_force = walk
+	if hold > 0.0:
+		game.demo_sys.hold_s = hold
 	vp.add_child(game)
 
 
