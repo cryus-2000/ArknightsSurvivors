@@ -122,6 +122,8 @@
   "regen": 2.5
  },
  "sprites": {
+  "idle_s2": {"tex": "op_ulpianus_idle_s2", "frames": 8, "fps": 1.3333333333333333, "foot": [32, 60], "_doc": "11-23 docs/408：S2 永续后的待机 = 原作 Skill_2_Idle（6 秒 8 帧，make_op_1x 同一 cfg）"},
+  "perm_pose": {"s2": {"idle": "idle_s2"}},
   "move_attack": {
    "tex": "op_ulpianus_move_attack",
    "frames": 8,
@@ -1524,7 +1526,7 @@
    }
   ]
  },
- "extra_sprites": [
+ "extra_sprites": ["idle_s2", 
   "entry",
   "throw",
   "tether_native",

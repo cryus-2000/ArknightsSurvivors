@@ -42,6 +42,7 @@ static func _start_skill_seq(ov: C, aim: Vector2, i: int) -> bool:
 			var lw := C.logic_window(spec)
 			dur = lw[0]
 			fire_at = lw[1]
+	_drop_tail(ov)
 	_sq_pause(ov, i)
 	ov.sq = q
 	ov.sq_i = i
@@ -117,7 +118,17 @@ static func _sq_frame(ov: C, n: int) -> int:
 	return clampi(ov.timed_frame(k, frs, elapsed, ov.sq_ph == 2), 0, n - 1)
 
 
+## 施法余段（skills.sN.tail，纯画面）遇到新动作 / 新序列就停
+static func _drop_tail(ov: C) -> void:
+	if ov.vis_tail:
+		ov.vis_tail = false
+		if ov.vis_anim != "" and ov.anim_kind == ov.vis_anim:
+			ov.anim_kind = "idle"
+		ov.vis_anim = ""
+
+
 static func _sq_interrupt(ov: C) -> void:
+	_drop_tail(ov)
 	if ov.sq_ph == 1 or ov.sq_ph == 3:
 		ov._sq_clear()
 	ov.sq_own = false
@@ -156,7 +167,11 @@ static func _tick_sq(ov: C, dt: float) -> void:
 		2:
 			if hold:
 				if ov.sq_t >= float(ov.sq.get("hold_ms", 250)) / 1000.0:
+					var tail := str(ov.sq.get("tail", ""))
 					ov._sq_clear()
+					if tail != "" and ov.sq_ph == 0:   # 恢复了被遮住的循环（S3 迷雾）就不接余段
+						ov.play_vis_anim(tail)
+						ov.vis_tail = true   # 定格后接原作施法余段（11-23 铃兰 S2 原作 Skill2，docs/408）：纯画面，逻辑窗口仍只到定格结束
 			elif ov.skill_active_left(ov.sq_i) <= 0.0:
 				ov.sq_t = 0.0
 				_sq_end(ov)

@@ -1,0 +1,42 @@
+{
+ "id": "skalter",
+ "src": "skalter.src.json",
+ "name": "浊心斯卡蒂 · S2 永续待机（原作 Skill_2_Loop，docs/408）",
+ "action": "idle_s2",
+ "legs": {
+  "L": [
+   "bone5",
+   "bone6",
+   "bone7"
+  ],
+  "R": [
+   "bone2",
+   "bone3",
+   "bone4"
+  ]
+ },
+ "body": {
+  "hip": "bone",
+  "chest": "bone9",
+  "head": "bone10"
+ },
+ "sample": {
+  "anim": "Skill_2_Loop",
+  "times": [
+   0.0,
+   0.238095,
+   0.47619,
+   0.714286,
+   0.952381,
+   1.190476,
+   1.428571,
+   1.666667,
+   1.904762,
+   2.142857,
+   2.380952,
+   2.619048,
+   2.857143,
+   3.095238
+  ]
+ }
+}
