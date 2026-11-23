@@ -245,6 +245,7 @@
 | [304_doctor_sprite_audit_1107](304_doctor_sprite_audit_1107.md) | 博士帧条核查与补画派单（2026-11-07） | 待定（方案待审） | 先重画 idle + run |
 | [310_growth_node_visibility_audit](310_growth_node_visibility_audit.md) | 成长节点可视化普查（20 名干员，11-07） | 待定（方案待审） | 20 人 160 行：明显 101、偏小 29、混同 19、无画面 11；主因转平面下 o.fx 不画（约 20 项）；修法全为画面，2 项另给机制方案 |
 | [327_skill_run_slide_1108](327_skill_run_slide_1108.md) | 技能期间滑步（11-08） | 记录 |  |
+| [408_perm_skill_anim_backfill](408_perm_skill_anim_backfill.md) | 永续技能换动作补齐清单（F17，11-23） | 待定（等协调人） | 9 名永续技能干员逐个列原作轨与现状：已完成 3、需补 3（安洁莉娜 / 浊心斯卡蒂 / 乌尔比安）、拉普兰德与 docs/297 冲突待定、逻各斯只核对、铃兰可选；91 §0.4 同批补了后来 8 人精二行 |
 | [335_attack_anim_sync_1112](335_attack_anim_sync_1112.md) | 动作与攻速对齐检查（11-12） | 记录 | 20 人 × 1/2/4 倍攻速 30 秒实测：普攻动作全随攻速缩、出伤帧对齐 25/25；唯一真问题歌蕾蒂娅钩索（4× 只有 1.9×）已修，其余偏差是 1/60 帧取整；统一规则；同种子 TRACE 仅乌尔比安升速后… |
 | [353_wisadel_ult_flashy_1117](353_wisadel_ult_flashy_1117.md) | 维什戴尔终结技「更华丽」原型（11-17） | 记录 |  |
 | [plans/2026-10-18-three-attack-timing](plans/2026-10-18-three-attack-timing.md) | 三人全动画与完整攻击时序接入 | 记录 | 三人完整动作、攻速适配及测试包；试验分支，未合入 main |
