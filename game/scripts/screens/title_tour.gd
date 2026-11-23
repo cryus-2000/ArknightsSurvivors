@@ -27,6 +27,10 @@ var _rec_i := 0
 var _step_t := 0.0
 var _probed := false
 var _clicked := false
+var _tap_ms := -1000       # 上一次处理的点按（毫秒）：触屏一下会先来模拟鼠标键、再来触点本身，只认一次
+var _swallowed := 0        # 本步点在高亮外被吞掉的次数：到 SWALLOW_MAX 就结束引导，绝不把玩家卡死（11-23 手机反馈：点哪都没反应）
+const SWALLOW_MAX := 3
+const STEP_TIMEOUT := 25.0 # 第 ① ③ 步停这么久没进展就自动结束引导（兜底：点按根本没送到这里时也不会一直盖着）
 
 
 func setup(title_node: Control) -> void:
@@ -61,6 +65,9 @@ func _process(dt: float) -> void:
 		return
 	t += dt
 	_step_t += dt
+	if step != 1 and _step_t > STEP_TIMEOUT and not _demo:
+		_finish()
+		return
 	match step:
 		0:
 			tl.sel = 1
@@ -90,6 +97,7 @@ func _go(i: int) -> void:
 	step = i
 	t = 0.0
 	_step_t = 0.0
+	_swallowed = 0
 
 
 func _finish() -> void:
@@ -127,15 +135,42 @@ func _input(event: InputEvent) -> void:
 			_:
 				get_viewport().set_input_as_handled()
 		return
-	if event is InputEventMouseButton and event.pressed:
-		if step == 1:
-			return
-		var p: Vector2 = make_input_local(event).position
-		if event.button_index == MOUSE_BUTTON_LEFT and skip_rect.has_point(p):
+	# 触屏（11-23 手机反馈「进来就卡在『点击图鉴』，点哪都没用」）：以前只认鼠标键、点在高亮处再原样交给标题，
+	# 中间任何一环没接上（触点没模拟出鼠标键、标题那帧不收输入）玩家就被整屏吞点卡死。现在鼠标键和触点都认，
+	# 点在高亮处由引导自己激活那一项；高亮外吞满 SWALLOW_MAX 次就结束引导
+	var tap: bool = (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT) 		or (event is InputEventScreenTouch and event.pressed)
+	var other_btn: bool = event is InputEventMouseButton and event.pressed and not tap
+	if not tap and not other_btn:
+		return
+	if step == 1:
+		return
+	get_viewport().set_input_as_handled()
+	if other_btn:
+		return
+	var now := Time.get_ticks_msec()
+	if now - _tap_ms < 350:
+		return   # 同一下点按的另一半（模拟鼠标键 / 触点）
+	_tap_ms = now
+	var p: Vector2 = make_input_local(event).position
+	if skip_rect.has_point(p):
+		_finish()
+	elif _hole().grow(8.0).has_point(p):
+		_activate_hole()
+	else:
+		_swallowed += 1
+		if _swallowed >= SWALLOW_MAX:
 			_finish()
-		elif event.button_index == MOUSE_BUTTON_LEFT and _hole().grow(5.0).has_point(p):
-			return   # 点在高亮处：交给标题
-		get_viewport().set_input_as_handled()
+
+
+## 点在高亮处：直接让标题激活被框的那一项（① 图鉴 ③ 集结出发）
+func _activate_hole() -> void:
+	match step:
+		0:
+			tl.sel = 1
+			tl._activate(1)
+		2:
+			tl.sel = 0
+			tl._activate(0)
 
 
 func _draw() -> void:
@@ -168,10 +203,7 @@ func _demo_step() -> void:
 				print("TTOUR outside_click_swallowed=%s" % (not tl.gallery.visible))
 			if _step_t > 1.6 and not _clicked:
 				_clicked = true
-				if Cfg.touch_device():
-					tl._activate(1)   # 触屏演示：标题页整体按 ui_k 放大，合成事件的坐标换算对不上，直接激活（桌面走真实输入通路）
-				else:
-					_click(_hole().get_center())
+				_click(_hole().get_center())   # 桌面 / 触屏都走真实输入通路（合成事件按窗口坐标）
 		1:
 			if _step_t > 2.6:
 				tl.gallery.close()
@@ -184,7 +216,7 @@ func _demo_step() -> void:
 func _click(p: Vector2) -> void:
 	var ev := InputEventMouseButton.new()
 	ev.button_index = MOUSE_BUTTON_LEFT
-	ev.position = get_global_transform_with_canvas() * p
+	ev.position = get_viewport().get_final_transform() * (get_global_transform_with_canvas() * p)   # 窗口坐标：再乘视口拉伸 / 高分屏缩放（以前漏了，演示点不中）
 	ev.global_position = ev.position
 	ev.pressed = true
 	Input.parse_input_event(ev)
