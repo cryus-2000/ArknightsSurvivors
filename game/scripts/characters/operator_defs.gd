@@ -11,14 +11,25 @@ const LANES := {"multi": "多弹火力", "melee": "近战扩域", "summon": "召
 ## 目录内容运行中不变：第一次扫完记住（10-25 帧率：界面每帧经 op_idle 调到，每次都是一次目录扫描）。返回副本，调用方改了不影响缓存
 static var _ids: Array = []
 
+## 暂不上线的干员（11-23 用户定：对外只放实装的 20 人；令 / 傀影 / 史尔特尔 / 夕 / 黍 / 菲亚梅塔 缺指挥语音、培养分支、帧条验收，留给后续主题）。
+## 数据留在 data/characters，名单 / 名册 / 图鉴 / 选人 / 寻访都看不到；调试构建带 --allops 才列出（做这几人时用）
+const HIDDEN := ["dusk", "fiammetta", "ling", "phantom", "shu", "surtr"]
+
 static func list_ids() -> Array:
 	if _ids.is_empty():
+		var all_ops: bool = OS.is_debug_build() and OS.get_cmdline_user_args().has("--allops")
 		var d := DirAccess.open("res://data/characters")
 		if d != null:
 			for f in d.get_files():
 				if f.ends_with(".json"):
-					_ids.append(f.get_basename())
+					var cid := f.get_basename()
+					if all_ops or not HIDDEN.has(cid):
+						_ids.append(cid)
 	return _ids.duplicate()
+
+
+static func hidden(cid: String) -> bool:
+	return not list_ids().has(cid) and HIDDEN.has(cid)
 
 
 static func load_def(cid: String) -> Dictionary:
