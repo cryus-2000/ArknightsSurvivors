@@ -234,3 +234,11 @@
 - 演示夹具 `game/tests/sami_fx_demo.gd`：关水下滤镜（带暗角）；每镜头同种子重放；利刃逐招单独镜头；新加 `--z1` 只录 1 倍全景。
 - 录法：临时分支合 `claude/sami-map-art-wip`（亮雪地图，WIP 不合 main）后录，录完删临时分支；`--theme=sami --nokingdomdraw --z1`，`--write-movie` + `--fixed-fps 30`，静音，窗口放屏幕外。
 - 成片：`F:\sami_enemy_fx_ref\sami_enemy_fx_demo_snow_1125.mp4`（1280×720、30 帧、38 秒、27 MB，crf 20，未超 30 MB 不另压）。
+
+## 10. 协调人退回：1 倍下读不出（11-25）
+
+- 受击：萨米主题不画通用细红受击环（combat.hurt 读 `mech_fx.own_hurt`；水月无 fx 机制，不变）。改成地面件（mech_fx.draw_ground）：躯壳爪击 = 三道斜划深槽 + 翻起的亮雪唇，0.09 秒划开、1.4 秒淡出，落在队长和来袭方之间；其他来源 = 一圈雪块压痕；都带踢起的暗 / 亮两色雪块。
+- 施法者法术弹：白芯 + 冰蓝环 + 黑靛暗边的米粒（长 22、宽 9），身后 64 像素锥形冰蓝拖尾 + 白芯短尾 + 碎冰颗粒。萨米自画弹（sfx_own）不再叠光学层的敌弹红核心（optical._draw_trails）。
+- 冰爆源石虫：1 倍下冰蓝碎块冲击环已经看得见，没改。
+- 没改：邪魔的利刃斩击的扇形地面预警是通用预警画法（淡粉半透明扇面），不在本次范围。
+- 成片：`F:\sami_enemy_fx_ref\sami_enemy_fx_demo_snow_1125b.mp4`（1 倍、无暗角、30 帧、静音、38 秒、27 MB）。
