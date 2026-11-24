@@ -31,6 +31,10 @@ var parts: Array = []        # [p0, v, 出生 t, 寿命, 颜色, 尺寸, 种类(
 var rushers: Array = []
 var rng := RandomNumberGenerator.new()
 var hits := {}               # 遥测 / 演示：命中件按来源计数
+var marks: Array = []        # 地面受击痕 [位置, 角度, 出生 t, 种类(0 爪痕 1 压痕)]
+var own_hurt := true         # combat.hurt 读：本主题不画通用细红受击环
+const M_MAX := 12
+const GOUGE := [Color(0.1, 0.13, 0.2), Color(0.26, 0.32, 0.42), Color(0.93, 0.96, 1.0)]   # 爪痕：深槽 / 槽壁 / 翻起的雪唇
 const OWN := {"caster": "needle", "blade": "blade", "wanderer": "blade"}
 
 
@@ -96,13 +100,15 @@ func on_player_hit(dmg: float, src: Dictionary) -> void:
 	var ang: float = (g.ppos - sp).angle() if sp.distance_to(g.ppos) > 1.0 else -PI * 0.5
 	var hp: Vector2 = g.ppos + Vector2(0, -14)
 	hits[t] = int(hits.get(t, 0)) + 1
+	_mark(g.ppos + Vector2(0, 8) - Vector2.from_angle(ang) * 26.0, ang, 0 if t == "husk" else 1)   # 落在队长和来袭方之间，别被队长身子挡住
 	match t:
 		"husk":
 			play("husk_hit", hp - Vector2.from_angle(ang) * 14.0, ang, 1.8)
 			sparks(hp, ang, 0.8, 8, 300.0, STEEL)
 		"caster":
 			play("caster_pop", hp, ang, 1.7)
-			sparks(hp, ang, 0.7, 6, 220.0, ICE)
+			sparks(hp, ang, 0.7, 10, 260.0, ICE)
+			embers(hp, 6, Color(0.85, 0.93, 1.0), 170.0, 260.0, 0.5, 4.0)
 		"blade", "wanderer":
 			play("blade_pop", hp, ang)
 			sparks(hp, ang, 0.6, 9, 320.0, BLOOD)
@@ -122,6 +128,68 @@ func rush(e: Dictionary) -> void:
 	if not rushers.has(e):
 		rushers.append(e)
 	smoke(e.pos, 3, Color(0.02, 0.05, 0.08, 0.45), 8.0, 20.0, 0.6)
+
+
+## 受击地面痕：爪痕（躯壳）= 三道斜划深槽 + 翻起的雪唇；其他 = 一圈被踩碎的雪块压痕（不画细环，docs/401 §10）
+func _mark(pos: Vector2, ang: float, kind: int) -> void:
+	if marks.size() >= M_MAX:
+		marks.pop_front()
+	marks.append([pos, ang, g.t, kind])
+	# 踢起的雪块：暗面 + 亮面两色，亮雪地上靠暗面读出来
+	embers(pos, 5, GOUGE[1], 130.0, 300.0, 0.45, 4.0)
+	embers(pos, 4, GOUGE[2], 110.0, 300.0, 0.45, 4.0)
+
+
+func draw_ground(w) -> void:
+	if marks.is_empty():
+		return
+	var now: float = g.t
+	var keep: Array = []
+	for m in marks:
+		var age: float = now - float(m[2])
+		if age >= 1.4 or age < 0.0:
+			continue
+		keep.append(m)
+		var fade: float = 1.0 - clampf((age - 0.7) / 0.7, 0.0, 1.0)
+		var grow: float = clampf(age / 0.09, 0.0, 1.0)   # 划开的过程：前 0.09 秒从起点拉到全长
+		var p0: Vector2 = m[0]
+		if int(m[3]) == 0:
+			var d := Vector2.from_angle(float(m[1]) + 1.05)
+			var n := d.orthogonal()
+			for i in 3:
+				var off: float = (float(i) - 1.0) * 13.0
+				var L: float = (58.0 - absf(off) * 0.9) * grow
+				var a: Vector2 = p0 + n * off - d * 29.0 + d * 4.0 * float(i)
+				var b: Vector2 = a + d * L
+				var mid: Vector2 = (a + b) * 0.5
+				var wd: float = 6.0 - absf(off) * 0.12
+				_gouge(w, a, b, mid + n * wd, mid - n * wd, fade, n)
+		else:
+			var rr: float = 14.0 + 6.0 * grow
+			for i in 7:
+				var aa: float = float(i) * TAU / 7.0 + float(m[1])
+				var q: Vector2 = p0 + Vector2(cos(aa), sin(aa) * 0.55) * rr
+				var s := 4.0 + float(i % 3) * 2.0
+				var c1 := GOUGE[0]
+				c1.a = 0.85 * fade
+				var c2 := GOUGE[2]
+				c2.a = fade
+				w.tb_quad(_snap(q), _snap(q) + Vector2(s, 0), _snap(q) + Vector2(s, s * 0.6), _snap(q) + Vector2(0, s * 0.6), c1)
+				w.tb_quad(_snap(q) + Vector2(0, -2), _snap(q) + Vector2(s, -2), _snap(q) + Vector2(s, 0), _snap(q), c2)
+	marks = keep
+	w.tb_flush()
+
+
+func _gouge(w, a: Vector2, b: Vector2, l: Vector2, r: Vector2, fade: float, n: Vector2) -> void:
+	var lip := GOUGE[2]
+	lip.a = fade
+	var wall := GOUGE[1]
+	wall.a = 0.9 * fade
+	var deep := GOUGE[0]
+	deep.a = 0.95 * fade
+	w.tb_poly(PackedVector2Array([a, l + n * 2.0, b, r - n * 2.0]), lip)    # 翻起的雪唇（亮，压在槽外沿）
+	w.tb_poly(PackedVector2Array([a, l, b, r]), wall)
+	w.tb_poly(PackedVector2Array([a.lerp(b, 0.08), l.lerp(r, 0.25), b.lerp(a, 0.1), r.lerp(l, 0.25)]), deep)
 
 
 ## ---- 绘制
@@ -226,18 +294,23 @@ func _own_bullets(cv, now: float) -> void:
 		var nrm := d.orthogonal()
 		var bp: Vector2 = b.pos + Vector2(0, -16)
 		if kind == "needle":
-			# 本作地面是暗雪夜，纯黑针读不出来：保留黑芯（原作），外加 2 像素冰蓝亮边 + 白针尖 + 冰蓝晕（原作 bg 0.87,0.91,0.99 加强）
-			cv.draw_circle(bp, 11.0, Color(0.56, 0.78, 1.0, 0.22))
-			var L := 15.0
-			var W := 5.0
-			var pts := PackedVector2Array([bp + d * L, bp + nrm * W, bp - d * L * 0.7, bp - nrm * W])
-			cv.draw_colored_polygon(pts, Color(0.02, 0.02, 0.03))
-			pts.append(bp + d * L)
-			cv.draw_polyline(pts, Color(0.62, 0.82, 1.0), 2.0)
-			cv.draw_line(bp + d * (L - 6.0), bp + d * L, Color(1, 1, 1), 2.0)
-			if now - float(b.get("sfx_tt", -9.0)) > 0.05:
+			# 敌弹规格（docs/392 §6）：白芯 + 冰蓝色环 + 黑靛暗边（原作黑针收成暗边），沿飞行方向拉长的米粒；
+			# 身后一条由冰蓝到透明的锥形拖尾 + 白芯短尾 + 碎冰颗粒。1 倍全景（镜头缩小）在亮雪地上也要一眼看到（11-25 协调人退回）
+			var L := 22.0
+			var W := 9.0
+			var TL := 64.0
+			var ice := Color(0.3, 0.6, 1.0)
+			cv.draw_polygon(PackedVector2Array([bp + nrm * W * 0.85, bp - d * TL, bp - nrm * W * 0.85]),
+				PackedColorArray([Color(ice, 0.8), Color(ice, 0.0), Color(ice, 0.8)]))
+			cv.draw_polygon(PackedVector2Array([bp + nrm * 3.0, bp - d * TL * 0.55, bp - nrm * 3.0]),
+				PackedColorArray([Color(1, 1, 1, 0.9), Color(1, 1, 1, 0.0), Color(1, 1, 1, 0.9)]))
+			var dk := Color(0.03, 0.04, 0.12)
+			cv.draw_colored_polygon(PackedVector2Array([bp + d * (L + 3.0), bp + nrm * (W + 2.5), bp - d * (L * 0.75 + 3.0), bp - nrm * (W + 2.5)]), dk)
+			cv.draw_colored_polygon(PackedVector2Array([bp + d * L, bp + nrm * W, bp - d * L * 0.75, bp - nrm * W]), Color(0.36, 0.66, 1.0))
+			cv.draw_colored_polygon(PackedVector2Array([bp + d * L * 0.7, bp + nrm * W * 0.45, bp - d * L * 0.45, bp - nrm * W * 0.45]), Color(1, 1, 1))
+			if now - float(b.get("sfx_tt", -9.0)) > 0.04:
 				b["sfx_tt"] = now
-				_add(bp - d * 8.0, -v * 0.15 + nrm * rng.randf_range(-20, 20), 0.4, [Color(1, 1, 1), Color(0.24, 0.3, 0.37)][rng.randi() % 2], 2.0, 0)
+				_add(bp - d * 14.0 + nrm * rng.randf_range(-6, 6), -v * 0.12 + nrm * rng.randf_range(-25, 25), 0.4, [Color(1, 1, 1), Color(0.2, 0.45, 0.9), dk][rng.randi() % 3], 4.0, 0)
 		else:
 			var tier: int = int(b.get("tier", 0))
 			var L2: float = [9.0, 12.0, 20.0][clampi(tier, 0, 2)]

@@ -509,7 +509,9 @@ func hurt(amount: float, ignore_armor := false, boss := false) -> float:
 		Sfx.duck_music(Bal.v("fx/hurt_duck_hz", 900.0))
 	Pad.rumble(0.25 + 0.35 * sev, 0.1 + 0.6 * sev, 0.12 + 0.12 * sev)
 	g.vfx.sparks(g.ppos + Vector2(0, -24), Vector2.UP, Color(1.0, 0.3, 0.35), 6 + int(8 * sev), 220.0)
-	g.fx.append({"kind": "ring", "pos": g.ppos + Vector2(0, -10), "r": 40.0 + 30.0 * sev, "life": 0.25, "max": 0.25, "col": Color(1.0, 0.3, 0.35)})
+	var hfx = g.mech("fx")
+	if hfx == null or not hfx.get("own_hurt"):   # 萨米 mech_fx 自己画受击（地面爪痕 / 雪块，docs/401 §10），不要通用细红环
+		g.fx.append({"kind": "ring", "pos": g.ppos + Vector2(0, -10), "r": 40.0 + 30.0 * sev, "life": 0.25, "max": 0.25, "col": Color(1.0, 0.3, 0.35)})
 	if amount >= 1.0 or not boss:   # Boss 这一击被主控保护截到不足 1 点（2 秒合计已满、满血保护）时不飘「-0」
 		g.vfx.add_text(g.ppos + Vector2(randf_range(-14, 14), -84), "-%d" % int(amount), Color(1.0, 0.3, 0.3), int(20 + 10 * sev))
 	# 首次跌破 30%：时间短暂变慢 + 警告

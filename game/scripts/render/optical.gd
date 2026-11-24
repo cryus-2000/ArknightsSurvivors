@@ -607,7 +607,7 @@ func _draw_trails(list: Array, enemy: bool) -> void:
 			break
 		var v: Vector2 = b.get("vel", Vector2.ZERO)
 		var sp := v.length()
-		if enemy and fx1 and b.get("life", 1.0) > 0.0:
+		if enemy and fx1 and b.get("life", 1.0) > 0.0 and not b.get("sfx_own", false):   # sfx_own：萨米专属弹体自带白芯（mech_fx，docs/401 §10）
 			var c0: Vector2 = ((b.pos + Vector2(0, -16)) / 2.0).floor() * 2.0   # 敌弹红核心（危险色，所有敌弹，不只快的）
 			var ecc: Color = eb_col(b)
 			glow_node.draw_rect(Rect2(c0 - Vector2(1, 1), Vector2(4, 4)), Color(ecc.r, ecc.g, ecc.b, 0.95))

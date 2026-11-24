@@ -127,6 +127,7 @@ func setup(seg: Dictionary) -> void:
 		fx.strips.clear()
 		fx.parts.clear()
 		fx.rushers.clear()
+		fx.marks.clear()
 	var foes = g.mech("foes")
 	if foes != null:
 		foes.ices.clear()
