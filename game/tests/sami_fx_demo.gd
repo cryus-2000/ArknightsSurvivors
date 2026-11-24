@@ -3,7 +3,7 @@ extends Node
 ## 每个镜头录两遍：先 1 倍全景，再 2 倍放大中心（同种子重放，画面一致）。镜头：染污躯壳（爪击 + 受击暴冲）→ 歪曲施法者（黑针法术弹）
 ## → 冰爆源石虫（死亡冰爆）→ 邪魔的利刃逐招（斩击 / 投刃 / 回旋 / 国度爆发 / 追猎 / 刃雨，每招一个镜头）。
 ## 队长不会死（每帧补满血，照常挨打好看命中件）；水下滤镜（含暗角）关掉。
-## 录像：--write-movie <avi> --fixed-fps 30，加 --nokingdomdraw 不画国度占位（国度画面暂停）；--seg=N 只录第 N 个镜头；--check 无头只跑模拟。
+## 录像：--write-movie <avi> --fixed-fps 30，加 --nokingdomdraw 不画国度占位（国度画面暂停）；--seg=N 只录第 N 个镜头；--z1 只录 1 倍不放大；--check 无头只跑模拟。
 var g
 var title: Label
 var base_zoom := Vector2.ONE
@@ -56,14 +56,16 @@ func _ready() -> void:
 	overlay.add_child(title)
 	var counts := {}
 	var only := -1
+	var zooms := [1.0, 2.0]
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--seg="): only = int(arg.substr(6))
+		if arg == "--z1": zooms = [1.0]   # 只录 1 倍全景
 	var shots := _shots()
 	for si in shots.size():
 		if only >= 0 and si != only:
 			continue
 		var seg: Dictionary = shots[si]
-		for zk in [1.0, 2.0]:
+		for zk in zooms:
 			setup(seg)
 			var n: int = int(float(seg.dur) / DT)
 			var moved := false
