@@ -272,7 +272,7 @@ static func _sb_scan(o, b: Dictionary, s2: bool) -> void:
 		non[id] = rec
 		if not e.boss:
 			var old: Array = st.slow.get(id, [])
-			nslow[id] = [e, minf(0.9, slow_per * float(n)), old[2] if old.size() >= 3 else e.pos]
+			nslow[id] = [e, minf(float(b.get("slow_cap", 0.9)), slow_per * float(n)), old[2] if old.size() >= 3 else e.pos]
 	st.on = non
 	st.slow = nslow
 
