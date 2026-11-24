@@ -190,3 +190,22 @@ func draw(e: Dictionary, cv) -> void:
 		cv.draw_circle(t.pos, 24.0, Color(0.85, 0.92, 1.0, 0.75))
 		for h in int(t.hits):
 			cv.draw_circle(t.pos + Vector2(-10 + 10 * h, -32), 3.0, Color(0.6, 0.5, 1.0, 0.9))
+
+
+## 机器人主轴：站到最近一棵完好银凇正南 70（冰凌瞄队长这一列落下，先砸到银凇）
+func axis_do(e: Dictionary, p: Vector2) -> Vector2:
+	var best = null
+	for t in e.get("trees", []):
+		if float(t.dead_t) < 0.0 and (best == null or t.pos.distance_to(p) < best.pos.distance_to(p)):
+			best = t
+	if best == null:
+		return Vector2.INF
+	return go_to(p, best.pos + Vector2(0, 70), 16.0)
+
+
+## 不理主轴：离银凇所在的列远一点（站在两棵之间的空列）
+func axis_ignore(e: Dictionary, p: Vector2) -> Vector2:
+	for t in e.get("trees", []):
+		if float(t.dead_t) < 0.0 and absf(t.pos.x - p.x) < COL_W and p.y > t.pos.y:
+			return Vector2(signf(p.x - t.pos.x + 0.01), 0.0)
+	return Vector2.INF

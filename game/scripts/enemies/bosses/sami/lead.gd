@@ -239,3 +239,35 @@ func draw(e: Dictionary, cv) -> void:
 		var on: bool = g.t >= float(s.next) and (ai == 0 or float(s.lit) > g.t)
 		cv.draw_circle(s.pos, 18.0, Color(1.0, 0.85, 0.4, 0.75) if on else Color(0.6, 0.7, 0.85, 0.45))
 		cv.draw_arc(s.pos, 30.0, 0.0, TAU, 20, Color(1.0, 0.85, 0.4, 0.5 if on else 0.15), 2.0)
+
+
+## 机器人主轴：挑一个能用的停驻点，站到「停驻点在自己和木裂连线上、点后 80」的位置让他走过去；二幕起点没亮先跑过去点亮
+func axis_do(e: Dictionary, p: Vector2) -> Vector2:
+	if float(e.get("annihil_t", 0.0)) > g.t or act_i(e) >= 3:
+		return Vector2.INF
+	var ai: int = act_i(e)
+	var best = null
+	var bd := INF
+	for s in e.get("stops", []):
+		if s.gone or g.t < float(s.next) - 2.0:
+			continue
+		var d: float = s.pos.distance_to(p) + s.pos.distance_to(e.pos) * 0.5
+		if d < bd:
+			bd = d
+			best = s
+	if best == null:
+		return Vector2.INF
+	if ai >= 1 and float(best.lit) <= g.t + 1.0:
+		return go_to(p, best.pos, 20.0)
+	var away: Vector2 = (best.pos - e.pos)
+	if away.length() < 1.0:
+		return Vector2.INF
+	return go_to(p, best.pos + away.normalized() * 80.0, 20.0)
+
+
+## 不理主轴：绕开停驻点（离任何一个点都保持 120 以上）
+func axis_ignore(e: Dictionary, p: Vector2) -> Vector2:
+	for s in e.get("stops", []):
+		if not s.gone and s.pos.distance_to(p) < 120.0:
+			return (p - s.pos).normalized()
+	return Vector2.INF

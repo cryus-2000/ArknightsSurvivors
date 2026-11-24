@@ -214,3 +214,33 @@ func center(e: Dictionary) -> Vector2:
 ## 占位画法挂钩（mech_kingdom.draw_ground 之后由 sami_draw 统一调；子类画自己的场上实体）
 func draw(_e: Dictionary, _cv) -> void:
 	pass
+
+
+## ---- 测试机器人的主轴行为（docs/142b 第 7 条「测试机器人必须会主轴」；core/bot.gd 在 Boss 战里问这里）----
+## 返回想去的方向（不必归一，长度当权重）；Vector2.INF = 没意见，走机器人原来的逻辑。
+## --axisbot=0（调试）：机器人故意不理主轴（测「不理主轴用时 ×2」那一档）；各 Boss 的 axis_ignore 可写反着来的走法
+static var _axis_mode := -1
+
+
+func axis_on() -> bool:
+	if _axis_mode < 0:
+		_axis_mode = 0 if Cfg.dev_args().has("--axisbot=0") else 1
+	return _axis_mode == 1
+
+
+func bot_axis(e: Dictionary, p: Vector2) -> Vector2:
+	return axis_do(e, p) if axis_on() else axis_ignore(e, p)
+
+
+func axis_do(_e: Dictionary, _p: Vector2) -> Vector2:
+	return Vector2.INF
+
+
+func axis_ignore(_e: Dictionary, _p: Vector2) -> Vector2:
+	return Vector2.INF
+
+
+## 走到 q：到了（< tol）返回 ZERO（站定），否则单位方向
+func go_to(p: Vector2, q: Vector2, tol := 14.0) -> Vector2:
+	var d: Vector2 = q - p
+	return Vector2.ZERO if d.length() < tol else d.normalized()

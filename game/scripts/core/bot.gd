@@ -312,6 +312,9 @@ func _expert_goal(p: Vector2, near: Array) -> Vector2:
 		var mg: Vector2 = m.bot_goal(self, p)   # 主题机制（docs/364 §6）：引航灯标（可写 beacon_hold / beacon_w）
 		if mg != Vector2.INF:
 			return mg
+	var ax: Vector2 = _boss_axis(p)
+	if ax != Vector2.INF:
+		return ax
 	if not g.merchant.is_empty() and g.merchant.pos.distance_to(p) < 600.0 and not g.merchant.near and not (g.auto_play != null and g.merchant.get("auto_done", false)):   # 无敌包自动模式：这个商人逛过就不再回去（11-11 用户：没钱也反复进商店）；平衡 / 批跑 auto_play 为 null 不变
 		return (g.merchant.pos - p).normalized()
 	if g.hp > g.max_hp * 0.55:
@@ -756,7 +759,23 @@ func _shop_master() -> int:
 
 ## Boss 战站位：生命 35% 以上就按主控射程贴上去（近战主控 60–120，远程 170–260），不像 expert 那样一律站 200–320 外；
 ## 返回 Vector2.INF = 不管（没有 Boss / 残血 / 无敌）
+## Boss 主轴（docs/142b 第 7 条）：Boss 脚本有 bot_axis 就问它（萨米 Boss；水月 Boss 没有这个函数 = 原样）
+func _boss_axis(p: Vector2) -> Vector2:
+	for bb in g.bosses:
+		if bb.dead:
+			continue
+		var sc = g.bai.boss(bb.type)
+		if sc != null and sc.has_method("bot_axis"):
+			var v: Vector2 = sc.bot_axis(bb, p)
+			if v != Vector2.INF:
+				return v
+	return Vector2.INF
+
+
 func _master_boss_goal(p: Vector2) -> Vector2:
+	var ax: Vector2 = _boss_axis(p)
+	if ax != Vector2.INF:
+		return ax
 	if g.hp < g.max_hp * m_tune.boss_hp:
 		return Vector2.INF
 	var melee_lead: bool = MELEE.has(g.ch.cls) if g.ch != null else false
