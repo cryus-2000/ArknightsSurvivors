@@ -257,7 +257,10 @@ static func _sb_scan(o, b: Dictionary, s2: bool) -> void:
 		var rec: Dictionary = prev if not prev.is_empty() else {"k": k, "hit": false, "e": e}
 		if not bool(rec.hit):   # 踏上（或积雪生成到脚下）：立即受伤一次
 			rec.hit = true
-			sb_hit(o, e, hit_mult, src, ["basic", "area"])
+			var icd: float = float(b.get("hit_icd", 0.0))   # 同一敌人踏雪伤害间隔（11-24：快速冲锋怪一秒跨三格、连吃三下，收割者冲不到队长身边，胜率 80%+ 的主因）
+			if icd <= 0.0 or float(g.t) - float(e.get("sb_hit_t", -INF)) >= icd:
+				e["sb_hit_t"] = float(g.t)
+				sb_hit(o, e, hit_mult, src, ["basic", "area"])
 			if fengdong and n >= mx:
 				_sb_fengdong(o, b, k, e, s2)
 			_FXR.ev(o, "sb_step", {"e": e, "n": n})
