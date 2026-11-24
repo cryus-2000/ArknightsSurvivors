@@ -45,7 +45,7 @@
     "snow_slow0": 0.05,
     "snow_slow2": 0.06,
     "snow_slow_cap": 0.3,
-    "snow_hit_icd": 1.5,
+    "snow_hit_icd": 3.0,
     "snow_cells_max": 240,
     "snow_scan": 0.1,
     "guard_armor": 1.0,
