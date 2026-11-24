@@ -116,11 +116,11 @@ static func sb_freeze(o, e: Dictionary, secs: float, growth := false) -> void:
 		o.fx({"kind": "ring", "pos": e.pos, "r": float(e.r) + 6.0, "r0": float(e.r) + 6.0, "life": minf(s, 1.2), "col": SB_ICE, "floor": true, "w": 2.0, "alpha": 0.9})
 
 
-## 寒冷 = 减速状态（Boss 也吃，同 st.slow）
+## 寒冷 = 减速状态（精英减半；Boss 不受——11-24 用户同意：胜率偏高，中期 / 最终 Boss 都不吃她的减速，积雪照常铺在脚下）
 static func sb_cold(o, e: Dictionary, secs: float) -> void:
-	if e.dead or secs <= 0.0:
+	if e.dead or e.boss or secs <= 0.0:
 		return
-	o.add_cc(e, -INF, secs * (1.0 if e.boss else (0.5 if e.elite else 1.0)))
+	o.add_cc(e, -INF, secs * (0.5 if e.elite else 1.0))
 
 
 static func _sb_ground_enemy(e: Dictionary) -> bool:

@@ -54,9 +54,7 @@ static func step(u, a: Dictionary, _dt: float) -> bool:
 			u.hit(o, e, Bal.v("ult/sb_freeze_frac", 0.15), {"src": "落雪", "pre": true})
 			if e.dead:
 				continue
-			if e.boss:
-				o.add_cc(e, -INF, 2.0)   # Boss 不冻，减速
-			else:
+			if not e.boss:   # Boss 不冻也不减速（11-24，同 seg_sbell2.sb_cold）
 				SB.sb_freeze(o, e, (SHATTER - t) + Bal.v("ult/sb_freeze_tail", 0.6))
 	if not a.snow and t >= FREEZE1 and o.gn.has("sb"):   # 范围内地格积满（之后照常被踩掉；S2 期间会立刻溢出）
 		a.snow = true
