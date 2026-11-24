@@ -64,7 +64,7 @@
     "s1_gap": 0.6,
     "s1_lane_n": 5,
     "s1_lane_layers": 2,
-    "s2_open": 1.7,
+    "s2_open": 0.0,
     "s2_dot": 0.08,
     "s2_spread_max": 60,
     "s2_leave_cold": 1.0,
