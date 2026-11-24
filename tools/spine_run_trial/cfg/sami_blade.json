@@ -1,0 +1,15 @@
+{
+ "id": "sami_blade",
+ "src": "sami_blade.src.json",
+ "name": "“邪魔的利刃”",
+ "pack": {
+  "scale": 0.194,
+  "root": [
+   64,
+   120
+  ],
+  "palette_png": ""
+ },
+ "skipAdditive": true,
+ "_doc": "萨米敌人「“邪魔的利刃”」（sami_blade）：无腿，地线 = 待机首帧最低点（tools/spine_px_enemy.py 生成）"
+}

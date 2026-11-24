@@ -1,0 +1,15 @@
+{
+ "id": "sami_shaman",
+ "src": "sami_shaman.src.json",
+ "name": "陷落雪祀",
+ "pack": {
+  "scale": 0.189,
+  "root": [
+   64,
+   120
+  ],
+  "palette_png": ""
+ },
+ "skipAdditive": true,
+ "_doc": "萨米敌人「陷落雪祀」（sami_shaman）：无腿，地线 = 待机首帧最低点（tools/spine_px_enemy.py 生成）"
+}

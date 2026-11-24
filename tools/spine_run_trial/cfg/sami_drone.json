@@ -1,0 +1,15 @@
+{
+ "id": "sami_drone",
+ "src": "sami_drone.src.json",
+ "name": "坍缩构造体",
+ "pack": {
+  "scale": 0.197,
+  "root": [
+   64,
+   120
+  ],
+  "palette_png": ""
+ },
+ "skipAdditive": false,
+ "_doc": "萨米敌人「坍缩构造体」（sami_drone）：无腿，地线 = 待机首帧最低点（tools/spine_px_enemy.py 生成）"
+}

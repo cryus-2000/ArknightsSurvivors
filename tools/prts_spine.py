@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""PRTS 干员 Spine 参照帧（docs/36 §9.1，10-15 用户定；给 Codex 当干员美术参照，内部用，不进 git、不进包）。
+"""PRTS 干员 / 敌人 Spine 参照帧（docs/36 §9.1，10-15 用户定；给 Codex 当干员美术参照，内部用，不进 git、不进包）。
 
 从 PRTS 拉干员「默认皮肤 · 战斗正面」的 Spine 资源（3.8，或较早干员的 3.5.51；3.5 先经 prts_spine35.py 转 JSON）（.skel / .atlas / .png），本地渲染待机 / 攻击 / 技能参照帧。不开浏览器、不用 Godot。
 
@@ -10,7 +10,7 @@
 
 路径：PRTS 页面 `<中文名>/spine` 的原文（index.php?action=raw，一段 JSON）里的 prefix + skin.默认.战斗正面.file；
 页面 HTML 对非浏览器请求返回 403，原文接口与 static.prts.wiki 可以直接取（带浏览器 UA，失败按 2 / 4 / 8 秒重试）。
-输出 build/prts_ref/<id>/：idle_f00–f03（Idle 时长的 0 / 25 / 50 / 75%）、attack_f00–f02（出手前 / 出手 / 收招）、skill_f00–f02（有技能动画时，同三帧），
+输出 build/prts_ref/<id>/：idle_f00–f03（Idle 时长的 0 / 25 / 50 / 75%）、move_f00–f03（有移动动画时）、death_f00–f02（Die 0 / 50 / 100%）、attack_f00–f02（出手前 / 出手 / 收招）、skill_f00–f02（有技能动画时，同三帧），
 1000×1000 透明底，同一干员各帧同一缩放、脚底对齐；另出 <id>_sheet.png（带动画名与帧号的拼图）与 <id>_info.json（动画清单、时长、事件）。
 原始资源放 build/prts_ref/_raw/<id>/；渲染器依赖（spine-ts 3.8 运行时、@napi-rs/canvas）首次自动装到 build/prts_ref/_node/。
 
@@ -43,6 +43,7 @@ OPS = {
     "dusk_drgn": "小自在",   # 夕的召唤物（character_table token_10015_dusk_drgn）
     "ling_soul1": "清平", "ling_soul2": "逍遥", "ling_soul3": "弦惊",   # 令的召唤物（character_table token_10020_ling_soul1–3）
     "ling": "令", "phantom": "傀影", "dusk": "夕", "shu": "黍", "surtr": "史尔特尔", "fiammetta": "菲亚梅塔",   # 11-18 新干员（B 方案直接进包）
+    "typhon": "提丰", "sbell2": "圣聆初雪",   # 11-20 萨米新干员（先只收参照）
 }
 # 页面缺失 / 页面给的路径在静态站 404 的干员：直接按静态站标准路径 spine38/char/<角色 id>/<角色 id>/<角色 id> 取（10-15 逐个试出来的）
 DIRECT = {"irene": "char_4009_irene", "specter_unchained": "char_1023_ghost2", "lumen": "char_4042_lumen"}
@@ -51,10 +52,31 @@ TORAPPU = {"wisadel": "char_1035_wisdel", "ulpianus": "char_4145_ulpia", "logos"
            # 11-18：PRTS 页面原文接口对脚本 403，新干员一律走 torappu（令已验证；其余 5 人 id 按游戏数据，拉不到再改）
            "ling": "char_2023_ling", "phantom": "char_250_phatom", "dusk": "char_2015_dusk", "shu": "char_2025_shu",
            "surtr": "char_350_surtr", "fiammetta": "char_300_phenxi",
+           "typhon": "char_2012_typhon", "sbell2": "char_1046_sbell2",
            "ling_soul1": "token_10020_ling_soul1", "ling_soul2": "token_10020_ling_soul2", "ling_soul3": "token_10020_ling_soul3",
            "dusk_drgn": "token_10015_dusk_drgn"}
+# 敌人 / Boss（11-19 用户批准敌人也走 Spine 直转；萨米主题 docs/391）：torappu assets/enemy_spine/<敌人 id>/<敌人 id>.{skel,atlas,png}（试出，无皮肤目录）
+ENEMY = {"sami_shell": "enemy_2043_smsbr", "sami_caster": "enemy_2044_smwiz", "sami_drone": "enemy_2045_smdrn", "sami_warrior": "enemy_2046_smwar",
+         "sami_vinebox": "enemy_2059_smbox", "sami_tree": "enemy_2047_smtree", "sami_blade": "enemy_2048_smgrd", "sami_blade2": "enemy_2049_smgrd2",
+         "sami_will": "enemy_2054_smdeer", "snslime_a": "enemy_1067_snslime_2", "snow_icebreaker": "enemy_1069_icebrk_2",
+         # 11-20 萨米全量（docs/399 §6）：其余中期 / 结局 Boss、双王随从、自走车、Boss 关借用敌人
+         "sami_shaman": "enemy_2050_smsha", "sami_shaman2": "enemy_2051_smsha2", "sami_vine": "enemy_2052_smgia", "sami_vine2": "enemy_2053_smgia2",
+         "sami_lead": "enemy_2055_smlead", "sami_cresson": "enemy_2056_smedzi", "sami_khan": "enemy_2057_smkght", "sami_lion": "enemy_2058_smlion",
+         "sami_shadow": "enemy_2060_smshdw", "sami_hound": "enemy_2061_smhond", "sami_car": "enemy_2062_smcar",
+         "ursus_uterer": "enemy_1108_uterer", "ursus_uterer2": "enemy_1108_uterer_2", "frost_drone": "enemy_1042_frostd",
+         "snow_sbr": "enemy_1064_snsbr", "snow_icechisel": "enemy_1069_icebrk",
+         "mh_shep": "enemy_1303_mhshep", "snow_mage": "enemy_1068_snmage_2", "mh_rockback": "enemy_1307_mhrhcr_2", "ursus_amord": "enemy_1110_uamord_2"}
+OPS.update({"sami_shell": "染污躯壳", "sami_caster": "歪曲施法者", "sami_drone": "坍缩构造体", "sami_warrior": "木裂战士", "sami_vinebox": "巨壳藤蔓",
+            "sami_tree": "积雪银凇", "sami_blade": "“邪魔的利刃”", "sami_blade2": "“邪魔的利刃”，游荡者", "sami_will": "“萨米的意志”", "snslime_a": "冰爆源石虫·α", "snow_icebreaker": "雪怪小队破冰者",
+            "sami_shaman": "陷落雪祀", "sami_shaman2": "空洞雪祀", "sami_vine": "纠缠藤蔓", "sami_vine2": "古老藤蔓", "sami_lead": "“木裂”埃克提尔尼尔",
+            "sami_cresson": "无垠回荡克雷松", "sami_khan": "哈兰杜汗，大地之鞭", "sami_lion": "路加萨尔古斯，历法之王", "sami_shadow": "可汗片影",
+            "sami_hound": "王者友伴", "sami_car": "勘察用自走车", "ursus_uterer": "乌萨斯裂兽", "ursus_uterer2": "乌萨斯裂兽族母", "frost_drone": "寒霜",
+            "snow_sbr": "雪怪小队", "snow_icechisel": "雪怪小队凿冰人",
+            "mh_shep": "角兽", "snow_mage": "雪怪术师组长", "mh_rockback": "坚岩冠兽", "ursus_amord": "乌萨斯高级着铠术师"})
 PICK = {
     "idle": ["Idle"],
+    "move": ["Move", "Move_Loop", "Run", "Run_Loop", "Walk"],
+    "death": ["Die", "Dead", "Death"],
     "attack": ["Attack", "Attack_Loop", "Combat", "Attack_1", "Attack_A"],
     "skill": ["Skill", "Skill_Loop", "Skill_1", "Skill_2", "Skill_2_Loop", "Skill_3", "Skill_3_Loop", "Skill_Begin", "Skill_2_Begin", "Skill_3_Begin"],
 }
@@ -102,6 +124,9 @@ def download(oid, name, refresh):
     meta = os.path.join(d, "meta.json")
     if os.path.exists(meta) and not refresh:
         m = json.load(open(meta, encoding="utf-8"))
+    elif oid in ENEMY:
+        c = ENEMY[oid]
+        m = {"name": name, "prefix": "https://torappu.prts.wiki/assets/enemy_spine/", "file": "%s/%s" % (c, c)}
     elif oid in TORAPPU:
         c = TORAPPU[oid]
         m = {"name": name, "prefix": "https://torappu.prts.wiki/assets/char_spine/", "file": "%s/defaultskin/front/%s" % (c, c)}
@@ -194,10 +219,18 @@ def do_one(oid, a):
     if ia:
         d = float(anims[ia]["dur"])
         frames += [{"name": "idle_f%02d" % k, "anim": ia, "t": d * k / 4.0} for k in range(4)]
+    mv = pick(anims, "move")
+    if mv:
+        d = float(anims[mv]["dur"])
+        frames += [{"name": "move_f%02d" % k, "anim": mv, "t": d * k / 4.0} for k in range(4)]
     for kind in ["attack", "skill"]:
         an = pick(anims, kind)
         if an:
             frames += [{"name": "%s_f%02d" % (kind, k), "anim": an, "t": t} for k, t in enumerate(three(anims[an]))]
+    de = pick(anims, "death")
+    if de:
+        d = float(anims[de]["dur"])
+        frames += [{"name": "death_f%02d" % k, "anim": de, "t": d * k / 2.0} for k in range(3)]
     res = run_render(dict(base, frames=frames), runtime)
     sp = sheet(oid, res["frames"], out_dir)
     json.dump({"id": oid, "name": name, "anims": anims, "frames": res["frames"], "scale": res["scale"]},

@@ -1,0 +1,15 @@
+{
+ "id": "sami_frostd",
+ "src": "sami_frostd.src.json",
+ "name": "寒霜",
+ "pack": {
+  "scale": 0.159,
+  "root": [
+   64,
+   120
+  ],
+  "palette_png": ""
+ },
+ "skipAdditive": true,
+ "_doc": "萨米敌人「寒霜」（frost_drone）：无腿，地线 = 待机首帧最低点（tools/spine_px_enemy.py 生成）"
+}

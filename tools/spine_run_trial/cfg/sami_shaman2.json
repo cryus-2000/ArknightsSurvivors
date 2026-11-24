@@ -1,0 +1,15 @@
+{
+ "id": "sami_shaman2",
+ "src": "sami_shaman2.src.json",
+ "name": "空洞雪祀",
+ "pack": {
+  "scale": 0.189,
+  "root": [
+   64,
+   120
+  ],
+  "palette_png": ""
+ },
+ "skipAdditive": true,
+ "_doc": "萨米敌人「空洞雪祀」（sami_shaman2）：无腿，地线 = 待机首帧最低点（tools/spine_px_enemy.py 生成）"
+}

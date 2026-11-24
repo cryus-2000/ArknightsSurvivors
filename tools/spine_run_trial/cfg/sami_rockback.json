@@ -1,0 +1,15 @@
+{
+ "id": "sami_rockback",
+ "src": "sami_rockback.src.json",
+ "name": "坚岩冠兽",
+ "pack": {
+  "scale": 0.177,
+  "root": [
+   64,
+   120
+  ],
+  "palette_png": ""
+ },
+ "skipAdditive": true,
+ "_doc": "萨米敌人「坚岩冠兽」（mh_rockback）：无腿，地线 = 待机首帧最低点（tools/spine_px_enemy.py 生成）"
+}

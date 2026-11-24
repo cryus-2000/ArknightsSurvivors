@@ -1,0 +1,15 @@
+{
+ "id": "sami_vinebox",
+ "src": "sami_vinebox.src.json",
+ "name": "巨壳藤蔓",
+ "pack": {
+  "scale": 0.193,
+  "root": [
+   64,
+   120
+  ],
+  "palette_png": ""
+ },
+ "skipAdditive": true,
+ "_doc": "萨米敌人「巨壳藤蔓」（sami_vinebox）：无腿，地线 = 待机首帧最低点（tools/spine_px_enemy.py 生成）"
+}

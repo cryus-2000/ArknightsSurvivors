@@ -2991,7 +2991,8 @@ func _draw_enemy_full(e: Dictionary) -> void:
 			_spr_outline(name, frames, frame, bpos, sc, flip, Color(PART_COL.r * 2.0, PART_COL.g * 2.0, PART_COL.b * 2.0, 0.8), anc, sq)
 	# 描边只给 Boss 和部件（docs/50 §12 A：普通怪 / 精英取消描边，少一层贴图切换）
 	# 精英冷色描边（render/elite_rim）不受「Boss 轮廓光」开关影响
-	if g.tex.has(name + "_white") and ((Cfg.outline and (e.boss or e.get("part", false))) or _rim_on(e)):
+	# enemies.json no_outline（萨米陷落雪祀 / 纠缠藤蔓 / 空洞雪祀 / 古老藤蔓，11-25）：细枝 / 藤蔓镂空多，1 像素白描边把缝全填白、成一片白点阵，这几只不画 Boss 白描边
+	if g.tex.has(name + "_white") and ((Cfg.outline and (e.boss or e.get("part", false)) and not D.ENEMIES.get(e.type, _NO_DEF).get("no_outline", false)) or _rim_on(e)):
 		var oc := Color(2.2, 2.0, 2.6, 0.5) if not e.elite else (elite_rim_col if _rim_on(e) else Color(3.2, 1.1, 0.7, 0.75))
 		if e.get("squad", false):
 			oc = SQUAD_RIM_COL

@@ -1,0 +1,15 @@
+{
+ "id": "sami_cresson",
+ "src": "sami_cresson.src.json",
+ "name": "无垠回荡克雷松",
+ "pack": {
+  "scale": 0.245,
+  "root": [
+   64,
+   120
+  ],
+  "palette_png": ""
+ },
+ "skipAdditive": true,
+ "_doc": "萨米敌人「无垠回荡克雷松」（sami_cresson）：无腿，地线 = 待机首帧最低点（tools/spine_px_enemy.py 生成）"
+}

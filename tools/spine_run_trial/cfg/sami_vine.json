@@ -1,0 +1,15 @@
+{
+ "id": "sami_vine",
+ "src": "sami_vine.src.json",
+ "name": "纠缠藤蔓",
+ "pack": {
+  "scale": 0.167,
+  "root": [
+   64,
+   120
+  ],
+  "palette_png": ""
+ },
+ "skipAdditive": true,
+ "_doc": "萨米敌人「纠缠藤蔓」（sami_vine）：无腿，地线 = 待机首帧最低点（tools/spine_px_enemy.py 生成）"
+}
