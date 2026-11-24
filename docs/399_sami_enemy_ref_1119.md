@@ -188,3 +188,36 @@
 - 改法：`spine_px_enemy.py` 缺省改成 @2x = 1 倍帧条最近邻 ×2，旧口径留 `--native2x`。1 倍本来就是原生出图（Spine 按 0.5 倍逐附件像素化，再加 1 倍下的 1 像素描边），不是从 @2x 缩的，所以没有重出，只用 `--no-render` 重新裁框。调色板仍是 A，尺寸与 anchor 不变。
 - 范围：30 只全部重出到 `F:\ArknightsSurvivors_build\kind-dijkstra\sami_px`（样例 10 只的 F 盘版也已换新）。积雪银凇没有 Spine，不在其中。`game/art/enemies/sami/` 里 11-20 早先提交的样例 10 只仍是原生 @2x，接入时要换成 F 盘版。
 - 对照：`python tools/spine_px_enemy_cmp.py --dst <F 盘目录> --scale` → `sami_scale_vs_deepsea.png`（@2x 原大，雪地色底）与 `_x2.png`。每只萨米配一只待机高度最接近的水月敌人。萨米 30 只、水月 27 只的 2×2 块一致率都是 1.00。
+
+## 10. 接进萨米主题（11-25，分支 claude/sami-enemy-sprites，从 e0c7abe36 拉）
+
+用户 11-25：「先去做一下画面」。萨米 Boss 脚本和普通怪特质在 claude/sami-enemy-data（e0c7abe36），画面原来全是水月占位（enemies.json 的 tex）。
+
+- 帧条：直接用 §9 的 F 盘版（`F:\ArknightsSurvivors_build\kind-dijkstra\sami_px`，@2x = 1 倍 ×2，处理方式 A），没有重渲。
+- 装法：`python tools/install_sami_enemies.py --src <F 盘目录> --imports`，可重复运行。
+  - 按 `themes/sami/data/enemies.json` 的 tex_final，装现有敌人帧条契约里的本体（待机）/ `_move` / `_attack` / `_death` / `_wound`。这几条是 world.gd / game.gd 读的。Boss 另装 1 倍（boss_intro 读）。
+  - 28 只全装：样例 10 + 全量 18。凿冰人、自走车不在敌人表里，没装。原作专属轨（rush、combat、surge、sigh、skill、blink、conquer、edict 等）代码不读，不进包。
+  - 装好后 `art/enemies/sami/` 共 190 张，旧的原生 @2x 样例和契约外动作已删。新 png 的 .import 由 Godot 在 F 盘临时工程生成，fix_alpha_border 改为 false，同现有敌人。
+  - `enemies.json` 的 tex 改成 tex_final。
+  - `themes/sami/data/enemy_pixels.json` / `enemy_redraw.json` = 水月同名文件 + 萨米条目，萨米局里鸭爵等仍读水月贴图。`theme.json` 指过去；水月主题文件一个字不动。
+  - `art.gd` V6_FRAMES 新加一段「sami 死亡帧条」（28 条，[帧数, 帧数 / 原作时长]）。
+- 尺寸：沿用 §2 的体型档（@2x 顶到脚）：
+  - 普通 25–58；高阶、精英 63–71。
+  - 中期 Boss 90–93；结局 Boss 139–160（意志宽 192）。
+  - 美术像素与水月同为 2 屏幕像素，Boss 明显大于普通怪。
+  - 脚底锚点 = 规格 anchor（原作原点，脚底）；色调、瞳色沿用处理方式 A（11-20 用户定）。
+- 局内对照：`python tools/sami_enemy_shots.py --out F:/ArknightsSurvivors_build/sami_enemy_sprites`。
+  - 每只一局 `--theme=sami --spawntest=<id> --spawnhold`，取第 48 帧 1280×720 整屏截图，按 `SPAWNPOS` 行给的屏幕位置裁一块，左原作右局内，拼成 `sami_enemy_ingame_vs_canon.png`（另有 `_x2`）。
+  - `--spawnhold` 是 autotest.gd 新加的开发参数，只截图用：敌人刷远一点、不动（spd 0）、打不死（hp 1e9）、萨米 Boss 不选招（busy_t），每张截图打印 SPAWNPOS。
+  - 截图口径：
+    - 敌人朝向队长（左），白色细边是光学观感的朝灯亮线。
+    - 木裂刷出就带自己的粉色圈。
+    - 意志刷出点正好压在地图大石上，下半身被石头挡住。这两处是截图位置问题，不是帧条问题。
+- 验证：
+  - `theme_parity --ref e0c7abe36` 7 局一致（水月零差异）。
+  - 快检相关项：asset_lint / asset_index / data_lint / px_lint 通过。
+  - art_lint 的 FAIL 全是干员（夕、菲亚梅塔等），与本分支无关。
+- 已知：
+  - 寒霜、坍缩构造体的死亡是原作整体渐隐，二值透明后几乎不变；坍缩构造体已手补光核溶解，寒霜还没有。
+  - 克雷松死亡 10 帧 6 秒，偏长。
+  - 原作专属招式轨还没接（等 Boss 会话要用时再装）。

@@ -34,6 +34,7 @@ var shop_visits := 0
 var shop_hold := false   # --shopids：截卡面前机器人不买（docs/240）
 var lv_marks := {}
 var bosstest := false
+var _spawn_hold: Array = []   # --spawnhold 刷出的敌人（只截图用）
 var bossintro_kill_at := -1   # --bossintro：登场演完后击杀 Boss 的帧号（之后 90 帧退出）
 # --bossmoves=<type>[2][+<搭档>]（docs/95 §12 验收开关）：在主控旁刷出该 Boss（后缀 2 = 二阶段；+搭档 = 接潮组另一具，停在左上不出招），按 bosses/<type>.gd demo_moves 的顺序
 # 逐招 force_move，预警进度 60% 截 shot_bossmove_<type>_<招>.png、结算后 8 帧截 _hit.png；全部放完退出
@@ -1057,11 +1058,22 @@ func step() -> void:
 				g.ppos = Vector2(1500, 900)
 				g.max_hp = 900.0
 				g.hp = 900.0
+				var hold: bool = Cfg.dev_args().has("--spawnhold")
 				for st in a.substr(12).split(","):
-					var se: Dictionary = g.spawner.spawn_enemy(st, g.ppos + Vector2(230, -40))
+					var se: Dictionary = g.spawner.spawn_enemy(st, g.ppos + (Vector2(560, 40) if hold else Vector2(230, -40)))
 					se.age = 5.0
+					if hold:
+						# --spawnhold（萨米帧条对照截图，tools/sami_enemy_shots.py）：刷远一点、不动、打不死，每张截图打印它在屏幕上的脚底位置
+						se.spd = 0.0
+						se.busy_t = 1.0e9   # 萨米 Boss 选招（sami_boss.pick）一直「占用中」：不出招，预警圈不盖本体
+						se.hp = 1.0e9
+						se.maxhp = 1.0e9
+						_spawn_hold.append(se)
 			if g.at_frames > 20 and g.at_frames % 6 == 0 and g.at_frames <= 320 and DisplayServer.get_name() != "headless":
 				g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_spawn_%s_%03d.png" % [a.substr(12).replace(",", "_"), g.at_frames])
+				for se in _spawn_hold:
+					var sp: Vector2 = g.get_viewport().get_canvas_transform() * Vector2(se.pos)
+					print("SPAWNPOS %d %s %.1f %.1f" % [g.at_frames, se.type, sp.x, sp.y])
 			if g.at_frames > 330:
 				g.get_tree().quit()
 		if a.begins_with("--bosstest="):

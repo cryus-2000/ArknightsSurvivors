@@ -16,8 +16,8 @@
     "medals": "res://themes/deep_sea/data/medals.json",
     "medals_layout": "res://themes/deep_sea/data/medals_layout.json",
     "doctor": "res://data/doctor.json",
-    "enemy_pixels": "res://themes/deep_sea/data/enemy_pixels.json",
-    "enemy_redraw": "res://themes/deep_sea/data/enemy_redraw.json",
+    "enemy_pixels": "res://themes/sami/data/enemy_pixels.json",
+    "enemy_redraw": "res://themes/sami/data/enemy_redraw.json",
     "ult_text": "res://data/ult_text.json",
     "ult_audio": "res://data/ult_audio.json"
   },

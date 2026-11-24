@@ -1413,4 +1413,13 @@ const V6_FRAMES := {
 	"e_saint_death": [8, 3.4], "e_skimmer_death": [8, 8.0], "e_slider_death": [6, 3.6], "e_spitter_death": [6, 4.7],
 	"e_stone_death": [6, 6.0], "e_tear_death": [6, 7.5], "e_tracer_death": [6, 6.0],
 	# <<< enemy_redraw
+	# >>> sami 死亡帧条（tools/install_sami_enemies.py 生成，别手改）
+	"e_sami_blade_death": [8, 8.0], "e_sami_breaker_death": [6, 6.0], "e_sami_caster_death": [6, 6.0], "e_sami_cresson_death": [10, 1.7],
+	"e_sami_drone_death": [6, 12.0], "e_sami_frostd_death": [8, 8.0], "e_sami_hound_death": [6, 6.0], "e_sami_husk_death": [6, 6.0],
+	"e_sami_icebug_death": [6, 6.0], "e_sami_khan_death": [8, 3.2], "e_sami_lead_death": [8, 8.0], "e_sami_lion_death": [8, 2.7],
+	"e_sami_mhshep_death": [6, 6.0], "e_sami_rockback_death": [6, 6.0], "e_sami_shadow_death": [6, 6.0], "e_sami_shaman2_death": [8, 4.4],
+	"e_sami_shaman_death": [8, 4.4], "e_sami_snmage_death": [6, 6.0], "e_sami_snsbr_death": [6, 6.0], "e_sami_uamord_death": [8, 9.6],
+	"e_sami_uterer2_death": [6, 6.0], "e_sami_uterer_death": [6, 6.0], "e_sami_vine2_death": [8, 4.0], "e_sami_vine_death": [8, 4.0],
+	"e_sami_vinebox_death": [6, 6.0], "e_sami_wanderer_death": [8, 8.0], "e_sami_warrior_death": [8, 12.0], "e_sami_will_death": [8, 7.3],
+	# <<< sami
 }
