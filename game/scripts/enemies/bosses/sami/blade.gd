@@ -168,13 +168,16 @@ func _fx_burst(pos: Vector2, r: float) -> void:
 	var fx = sfx()
 	if fx == null:
 		return
-	fx.play("blade_star", pos + Vector2(0, -8), 0.0, clampf(r / 60.0, 0.8, 1.4))
-	fx.play("blade_pop", pos + Vector2(0, -6), 0.0, clampf(r / 50.0, 1.0, 1.6))
-	fx.sparks(pos, 0.0, PI, 14, 330.0, fx.BLOOD, true, 0.32)
-	fx.embers(pos, 7, Color(0.05, 0.02, 0.02), 170.0, 320.0, 0.6)
-	fx.embers(pos, 5, Color(0.7, 0.05, 0.03), 140.0, 300.0, 0.55)
-	for i in 4:
-		fx.smoke(pos + Vector2.from_angle(TAU * float(i) / 4.0 + 0.4) * r * 0.3, 1, Color(0.0, 0.0, 0.0, 0.55), 10.0, 34.0, 0.8)
+	var k: float = clampf(r / 64.0, 0.9, 1.5)
+	fx.play("blade_nova", pos, 0.0, k)                                  # 红黑碎环外扩（huan_02 + shitou）
+	fx.play("blade_star", pos + Vector2(0, -10), 0.0, 2.0 * k)          # 十字星爆闪（shizixing）
+	fx.play("blade_pop", pos + Vector2(0, -6), 0.0, 2.2 * k)            # 白 → 红 → 黑迸散核（baoshan）
+	fx.sparks(pos, 0.0, PI, 22, 440.0, fx.BLOOD, true, 0.34)            # 红橙速度线（suduxina）
+	fx.embers(pos, 10, Color(0.04, 0.01, 0.01), 230.0, 380.0, 0.65, 4.0)   # 黑碎石
+	fx.embers(pos, 6, Color(0.72, 0.04, 0.02), 190.0, 340.0, 0.6, 4.0)     # 暗红碎石
+	for i in 6:
+		fx.smoke(pos + Vector2.from_angle(TAU * float(i) / 6.0 + 0.4) * r * 0.35, 1, Color(0.0, 0.0, 0.0, 0.6), 13.0, 40.0, 0.9)
+	g.vfx.shake_screen(0.3)   # 轻震（用户 10-31 同意同量级）
 
 
 ## 追猎：冲过的直线上留一串黑烟 + 红橙速度线（smgrd suduxina / xian_01）

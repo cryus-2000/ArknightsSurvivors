@@ -122,7 +122,7 @@ export function create(o) {
         // 冲击环：碎冰环（原作 huan），粗、不等宽、5 处断口，外扩到 R，0.32 秒内碎完；不画细环
         const ru = ease.outQuart(clamp(t / 0.3)), rr = R * (0.25 + 0.8 * ru);
         if (t < 0.32) {
-          const c = t < 0.07 ? RAMP[6] : t < 0.14 ? RAMP[5] : t < 0.21 ? RAMP[4] : RAMP[3];
+          const c = t < 0.07 ? RAMP[5] : t < 0.14 ? RAMP[4] : t < 0.21 ? RAMP[3] : RAMP[2];   // 浅雪地：环用中深阶，白只给第 0 帧的核
           const segs = 15;
           for (let i = 0; i < segs; i++) {
             if (i % 3 === 2) continue;                          // 断口

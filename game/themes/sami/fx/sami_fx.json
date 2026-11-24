@@ -103,5 +103,18 @@
    17
   ],
   "part": "pop"
+ },
+ "blade_nova": {
+  "frames": 9,
+  "fps": 15,
+  "size": [
+   69,
+   70
+  ],
+  "origin": [
+   34,
+   35
+  ],
+  "part": "nova"
  }
 }

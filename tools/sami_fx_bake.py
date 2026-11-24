@@ -29,10 +29,33 @@ PIECES = {
     "blade_star": ("star", 16, "blood", 6),     # 利刃十字星（出手 / 国度爆发）
     "blade_slash": ("slash", 30, "blood", 7),   # 利刃斩击（smgrd_attack_02_hit），扇形 r100
     "blade_pop": ("pop", 13, "blood", 8),       # 刃片 / 投刃命中（smgrd_attack_01_hit）
+    "blade_nova": ("nova", 32, "blood", 9),     # 国度爆发 / 皇帝的猎杀：红黑碎环（smgrd_attack_01_hit huan_02 红环 + 碎石），r64 世界像素
 }
+OUTLINE = (8 / 255.0, 14 / 255.0, 24 / 255.0)   # #080E18：浅色雪地上每件都靠这圈暗边读出形状（docs/401 §9）
 
 
 LIGHT_K = {}   # 光层系数（缺省 0：光晕烤成半透明一圈会糊成雾 / 半透明盘，docs/401 §2.3；要发光的件单独写）
+
+
+def _outline(f):
+    """实心像素（alpha ≥ 0.5）外面一圈 1 像素暗边（四邻接）；裁边时已经留了 1 像素空"""
+    solid = f[..., 3] >= 0.5
+    nb = np.zeros(solid.shape, np.int32)   # 四邻接实心邻居数：孤立点 / 抖点（< 2 个邻居）不描，免得一片描边脏点
+    nb[1:, :] += solid[:-1, :]
+    nb[:-1, :] += solid[1:, :]
+    nb[:, 1:] += solid[:, :-1]
+    nb[:, :-1] += solid[:, 1:]
+    core = solid & (nb >= 2)
+    grow = core.copy()
+    grow[1:, :] |= core[:-1, :]
+    grow[:-1, :] |= core[1:, :]
+    grow[:, 1:] |= core[:, :-1]
+    grow[:, :-1] |= core[:, 1:]
+    edge = grow & ~solid
+    out = f.copy()
+    out[edge, 0], out[edge, 1], out[edge, 2] = OUTLINE
+    out[edge, 3] = 1.0
+    return out
 
 
 def bake(key, part, R, ramp, seed):
@@ -58,7 +81,7 @@ def bake(key, part, R, ramp, seed):
     alpha = np.max([f[..., 3] for f in frames], axis=0)
     ys, xs = np.where(alpha > 0.02)
     x0, x1, y0, y1 = max(0, xs.min() - 1), min(w, xs.max() + 2), max(0, ys.min() - 1), min(h, ys.max() + 2)
-    frames = [f[y0:y1, x0:x1] for f in frames]
+    frames = [_outline(f[y0:y1, x0:x1]) for f in frames]
     strip = np.concatenate(frames, axis=1)
     Image.fromarray((strip * 255 + 0.5).astype(np.uint8), "RGBA").save(os.path.join(OUT, "sfx_%s.png" % key))
     ox, oy = meta["pivot"]

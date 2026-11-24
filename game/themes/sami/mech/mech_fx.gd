@@ -17,9 +17,10 @@ const P_MAX := 420           # 同屏颗粒上限（网页预算，docs/401 §5�
 const S_MAX := 48            # 同屏帧条上限
 
 # 原作色
-const STEEL := [Color(0.02, 0.024, 0.03), Color(0.2, 0.25, 0.31), Color(0.72, 0.77, 0.82), Color(1, 1, 1)]
-const ICE := [Color(0.0, 0.05, 0.16), Color(0.32, 0.58, 0.83), Color(0.56, 0.78, 1.0), Color(0.87, 0.93, 1.0)]
-const FROST := [Color(0.0, 0.13, 0.42), Color(0.18, 0.73, 1.0), Color(0.54, 0.89, 1.0), Color(0.9, 0.98, 1.0)]
+# 浅色雪地（昧明冻土）上颗粒取原作曲线里的中深段：白 / 淡色会混进雪里（docs/401 §9）
+const STEEL := [Color(0.02, 0.024, 0.03), Color(0.06, 0.08, 0.1), Color(0.2, 0.25, 0.31), Color(0.34, 0.4, 0.48)]
+const ICE := [Color(0.0, 0.05, 0.16), Color(0.0, 0.14, 0.43), Color(0.12, 0.36, 0.7), Color(0.32, 0.58, 0.83)]
+const FROST := [Color(0.0, 0.13, 0.42), Color(0.0, 0.2, 0.55), Color(0.0, 0.38, 0.8), Color(0.1, 0.55, 0.95)]
 const BLOOD := [Color(0.04, 0.0, 0.0), Color(0.62, 0.0, 0.0), Color(1.0, 0.17, 0.11), Color(1.0, 0.58, 0.26)]
 
 var g: Game
@@ -69,7 +70,7 @@ func sparks(pos: Vector2, ang: float, spread: float, n: int, spd: float, pal: Ar
 	for i in n:
 		var a: float = ang + rng.randf_range(-spread, spread)
 		var s: float = spd * rng.randf_range(0.45, 1.0)
-		_add(pos, Vector2.from_angle(a) * s, life * rng.randf_range(0.5, 1.0), pal[rng.randi_range(1, 3)], 2.0, 2 if stretch else 0, 0.0)
+		_add(pos, Vector2.from_angle(a) * s, life * rng.randf_range(0.5, 1.0), pal[rng.randi_range(1, 3)], 4.0, 2 if stretch else 0, 0.0)
 
 
 ## 暗烟：原作 smoke（黑 / 深钢蓝，alpha 0.24–0.5，慢慢上浮变大）
@@ -80,10 +81,10 @@ func smoke(pos: Vector2, n: int, col: Color, r: float, rise := 18.0, life := 0.9
 
 
 ## 余烬 / 碎屑：2 像素方块，抛起后落下（grav > 0）
-func embers(pos: Vector2, n: int, col: Color, spd: float, grav := 120.0, life := 0.7) -> void:
+func embers(pos: Vector2, n: int, col: Color, spd: float, grav := 120.0, life := 0.7, sz := 2.0) -> void:
 	for i in n:
 		var a: float = rng.randf_range(-PI, 0.0)
-		_add(pos, Vector2.from_angle(a) * spd * rng.randf_range(0.3, 1.0), life * rng.randf_range(0.6, 1.0), col, 2.0, 0, grav)
+		_add(pos, Vector2.from_angle(a) * spd * rng.randf_range(0.3, 1.0), life * rng.randf_range(0.6, 1.0), col, sz, 0, grav)
 
 
 ## ---- 事件
@@ -97,10 +98,10 @@ func on_player_hit(dmg: float, src: Dictionary) -> void:
 	hits[t] = int(hits.get(t, 0)) + 1
 	match t:
 		"husk":
-			play("husk_hit", hp - Vector2.from_angle(ang) * 12.0, ang, 1.3)
-			sparks(hp, ang, 0.8, 6, 260.0, STEEL)
+			play("husk_hit", hp - Vector2.from_angle(ang) * 14.0, ang, 1.8)
+			sparks(hp, ang, 0.8, 8, 300.0, STEEL)
 		"caster":
-			play("caster_pop", hp, ang)
+			play("caster_pop", hp, ang, 1.7)
 			sparks(hp, ang, 0.7, 6, 220.0, ICE)
 		"blade", "wanderer":
 			play("blade_pop", hp, ang)
@@ -111,9 +112,9 @@ func on_player_hit(dmg: float, src: Dictionary) -> void:
 ## 冰爆源石虫（mech_foes._blast 调，替掉占位圈）：白闪 → 冰蓝冲击环（主形）+ 雪块碎屑 + 青色火花 + 灰白烟
 func icebug_blast(pos: Vector2, r: float) -> void:
 	play("icebug_nova", pos, 0.0, r / 55.0)
-	sparks(pos, 0.0, PI, 12, 240.0, FROST, true, 0.35)
-	embers(pos, 6, Color(0.86, 0.95, 1.0), 150.0, 260.0, 0.55)
-	embers(pos, 5, Color(0.55, 0.85, 1.0), 120.0, 200.0, 0.45)
+	sparks(pos, 0.0, PI, 14, 260.0, FROST, true, 0.35)
+	embers(pos, 6, Color(0.0, 0.3, 0.7), 150.0, 260.0, 0.55, 4.0)
+	embers(pos, 5, Color(0.06, 0.12, 0.22), 120.0, 200.0, 0.45, 4.0)
 
 
 ## 染污躯壳受击暴冲（mech_foes.enemy_spd 调）
@@ -163,15 +164,16 @@ func draw_front(w) -> void:
 				w.tb_circle(pos, float(p[5]) * (0.7 + 0.6 * u), c, 0.8, 10)
 			2:
 				var v: Vector2 = p[1] * (1.0 - u * 0.6)
-				var tail: Vector2 = pos - v * 0.035
+				var tail: Vector2 = pos - v * 0.05
 				var c2 := col.lerp(Color(col.r * 0.3, col.g * 0.3, col.b * 0.35), u)
 				c2.a = 1.0 - u * u
-				w.tb_line(_snap(tail), _snap(pos), c2, 2.0)
+				w.tb_line(_snap(tail), _snap(pos), c2, float(p[5]) * 0.75)
 			_:
 				var c3 := col
 				c3.a = 1.0 - u * u
 				var q := _snap(pos)
-				w.tb_quad(q, q + Vector2(PX, 0), q + Vector2(PX, PX), q + Vector2(0, PX), c3)
+				var sz: float = maxf(PX, floorf(float(p[5]) / PX) * PX)
+				w.tb_quad(q, q + Vector2(sz, 0), q + Vector2(sz, sz), q + Vector2(0, sz), c3)
 	parts = live
 	w.tb_flush()
 
@@ -215,7 +217,7 @@ func _own_bullets(cv, now: float) -> void:
 			b["own_draw"] = true
 			b["sfx_own"] = true   # 光学拖尾 / 照地光 / Boss 弹拖尾也跳过（optical_particles、optical、bullet_fx）
 			if kind == "needle":
-				play("caster_star", b.pos + Vector2(0, -16), 0.0)
+				play("caster_star", b.pos + Vector2(0, -16), 0.0, 1.7)
 			elif int(b.get("tier", 0)) >= 2:
 				play("blade_star", b.pos, 0.0, 0.7)
 		var v: Vector2 = b.vel
