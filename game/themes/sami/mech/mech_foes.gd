@@ -106,6 +106,9 @@ func on_enemy_spawned(e: Dictionary) -> void:
 
 
 func on_enemy_killed(e: Dictionary) -> void:
+	var tm = g.mech("totem")
+	if tm != null:
+		tm.on_kill(e)   # 密文板掉落（精英 / 中期 Boss / 宝箱）
 	var d: Dictionary = D.ENEMIES.get(e.type, {})
 	var db = d.get("death_blast", null)
 	if db is Dictionary:

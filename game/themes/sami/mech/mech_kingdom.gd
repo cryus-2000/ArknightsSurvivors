@@ -250,6 +250,9 @@ func _break(k: Dictionary) -> void:
 		var cm = _cm()
 		if cm != null:
 			cm.add(float(K.get("reward", {}).get("collapse", -1.0)), "kingdom")
+		var tm = g.mech("totem")
+		if tm != null:
+			tm.on_kingdom_break()   # 瓦解国度 20% 掉 1 块密文板
 		var xpv: float = float(K.get("reward", {}).get("xp_mobs", 3.0)) * maxf(1.0, g.spawner.xp_unit() if g.spawner.has_method("xp_unit") else 1.0)
 		g.pickups.drop(k.pos, "xp", xpv)
 	for n in nb:

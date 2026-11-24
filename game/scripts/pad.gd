@@ -188,6 +188,8 @@ static func ult_on() -> bool:
 func _play_btn(b: int, down: bool) -> void:
 	var id: String = PlayKeys.pad_action(b)
 	if id == "":
+		if b == JOY_BUTTON_Y and down:
+			tap(KEY_T)   # 主题机制键（萨米密文板宣告，docs/411）：Y 在对局里没绑动作时注入 T；没有这类机制的主题 T 在对局中不做事
 		return
 	var vk: int = PlayKeys.vk(id)
 	if not PlayKeys.is_hold(id):

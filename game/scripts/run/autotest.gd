@@ -318,6 +318,8 @@ func _stats_shot() -> bool:
 func bot_pick() -> int:
 	if g.choices.is_empty():
 		return 0
+	if g.choice_kind == "mech" and g.mech(str(g.choices[0].get("mech", ""))) != null:
+		return g.mech(str(g.choices[0].get("mech", ""))).choice_bot()   # 主题机制面板（萨米密文板）
 	if g.choice_kind == "swap":
 		return g.progression.auto_swap_pick()   # 更换队友画面（bot/swap 缺省 0 = 不替换）
 	if g.choice_kind == "branch":
@@ -1691,6 +1693,8 @@ func step() -> void:
 				g.progression.pick(g.endg.bot_choice())   # 翻节点卡与事件：按路线选（docs/154，--route）
 			elif g.choice_kind == "swap":
 				g.progression.pick(g.progression.auto_swap_pick())
+			elif g.choice_kind == "mech":
+				g.progression.pick(bot_pick())
 			elif not deep.is_empty() and g.rng.randf() < 0.7:
 				g.progression.pick(deep[g.rng.randi() % deep.size()])
 			else:
