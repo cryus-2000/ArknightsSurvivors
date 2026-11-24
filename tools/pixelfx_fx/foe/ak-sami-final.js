@@ -8,7 +8,9 @@ import { Rng, clamp, ease, TAU, WHITE, hex, mix } from "../../core/index.js";
 const H = (a) => a.map(hex);
 const WILL = H(["#081a30", "#163f6e", "#2f74b4", "#62a8e6", "#a8d8ff", "#e2f4ff", "#ffffff"]);   // 意志特效主形：原作白 + 冰蓝（实机 BV14P411k7ke：白雪冰晶本体 + 冰蓝芯）
 const WILLB = hex("#7b55c0");   // 意志 Boss 弹环色：虹光紫（392 §6.0），只给弹
-const KHANB = hex("#e65a4d"), LUKAB = hex("#a894ff"), LUKAG = hex("#f0b030");   // 双王 Boss 弹环色（393 §1.2；路加 A 用原作金对照）
+const KHANB = hex("#e65a4d"), LUKAB = hex("#f0a030"), LUKAG = LUKAB;   // 双王 Boss 弹环色：哈兰暗红（393 §1.2）；路加改原作金橙（协调人 11-25：尽可能还原原作）
+const SAND = H(["#2a1c0e", "#5a3e20", "#8a6438", "#b8905a", "#dcbc88", "#f4e2bc"]);   // 时光之沙米黄沙（实机 BV1Ds421A7E3）
+const LILAC = H(["#1a0e2a", "#3a2456", "#6a4a96", "#9c7cc8", "#c8b0ec", "#f0e6ff"]);  // 克雷松苗圃淡紫（实机 BV19m4y1E7Vd）
 const ICE = H(["#0a2a4a", "#2a6aa8", "#68b4ec", "#aee2ff"]);                                       // 原作 xueli / baoshan 冰蓝
 const CRACK = H(["#0c141c", "#24323e", "#40505e"]);                                                // 原作 dilie 灰蓝地裂
 const TEAL = H(["#000a06", "#00261c", "#0b4a35", "#1a7050", "#4aa37a", "#bfe8d2"]);                // 木裂原作 smlead_buff 深青绿
@@ -80,8 +82,11 @@ export function create(o) {
     p.circle(x, y, r, ring);
     p.circle(x, y, r * 0.55, WHITE);
   }
-  function rice(p, x, y, ang, L, Wd, ring) {   // 米弹 / 针弹：白芯 + 色环，长轴朝飞行方向
+  function rice(p, x, y, ang, L, Wd, ring, trail = true) {   // 米弹 / 针弹：白芯 + 色环 + 暗边（烘焙描边），身后 3 粒拖尾、带一点光
+    L *= 1.2; Wd *= 1.15;
     const c = Math.cos(ang), s = Math.sin(ang), nx = -s, ny = c;
+    if (trail) for (const [k, sz] of [[0.85, 3], [1.35, 2], [1.85, 2]]) p.rect(Math.round(x - c * L * k - sz / 2), Math.round(y - s * L * k - sz / 2), sz, sz, ring);
+    p.glow(x, y, Wd * 2.2, ring, 0.45);
     p.poly([[x + c * L / 2, y + s * L / 2], [x + nx * Wd / 2, y + ny * Wd / 2], [x - c * L / 2, y - s * L / 2], [x - nx * Wd / 2, y - ny * Wd / 2]], ring);
     p.poly([[x + c * L * 0.3, y + s * L * 0.3], [x + nx * Wd * 0.22, y + ny * Wd * 0.22], [x - c * L * 0.3, y - s * L * 0.3], [x - nx * Wd * 0.22, y - ny * Wd * 0.22]], WHITE);
   }
@@ -100,6 +105,20 @@ export function create(o) {
       if (w <= 1) p.line(a[0], a[1], bx, by, c);
       else p.beam(a[0], a[1], bx, by, w, c);
       if (inner != null) p.line(a[0], a[1], bx, by, inner);
+    }
+  }
+  // 落地余烬：迸出去减速停住，白 → 主色 → 暗慢慢冷掉（Noita 质感），热的时候带光
+  function mkEmbers(cx, cy, t0, n, spd, cols) {
+    return mkParts(n, () => { const a = R(0, TAU), v = R(0.4, 1) * spd; return { x: cx + R(-4, 4), y: cy + R(-3, 3), vx: Math.cos(a) * v, vy: Math.sin(a) * v * 0.8, t0: t0 + R(0, 0.06), life: R(0.7, 1.2), cols, s: Rn.next() < 0.4 ? 3 : 2 }; });
+  }
+  function drawEmbers(p, list, now) {
+    for (const e of list) {
+      const a = now - e.t0;
+      if (a < 0 || a > e.life) continue;
+      const d = a < 0.25 ? a - 2 * a * a : 0.125, x = e.x + e.vx * d, y = e.y + e.vy * d;
+      const k = a / e.life, c = a < 0.08 ? WHITE : k < 0.35 ? e.cols[0] : k < 0.7 ? e.cols[1] : e.cols[2];
+      p.rect(Math.round(x), Math.round(y), e.s, e.s, c);
+      if (k < 0.35) p.glow(x, y, 5, e.cols[0], 0.5);
     }
   }
   // 解析颗粒（按出生时间算位置，确定性）
@@ -124,6 +143,7 @@ export function create(o) {
   const icicles = [];
   cols.forEach((cx, ci) => rows.forEach((ry, ri) => icicles.push({ x: cx + R(-3, 3), y: ry, t0: ci * 0.6 + ri * 0.07, cr: Array.from({ length: 4 }, (_, k) => jagPts(cx, ry, cx + Math.cos(k * 1.57 + R(-0.4, 0.4)) * R(9, 14), ry + Math.sin(k * 1.57 + R(-0.4, 0.4)) * R(5, 8), 3, 1.5)) })));
   const icChips = icicles.map((ic) => mkParts(7, (i) => ({ kind: "chip", x: ic.x, y: ic.y - 6, vx: R(-55, 55), vy: R(-70, -10), g: 240, t0: ic.t0 + (P === "willA" ? 0.8 : 1.25) + R(0, 0.04), life: R(0.35, 0.55), s: R(2, 3.5), rot: R(0, TAU), spin: R(-12, 12), c: [WILL[2], WILL[3], WILL[4], ICE[2]][i % 4] })));
+  const icEmb = icicles.map((ic) => mkEmbers(ic.x, ic.y - 3, ic.t0 + (P === "willA" ? 0.8 : 1.25), 5, 60, [WILL[4], WILL[3], WILL[2]]));
   const colCrack = cols.map((cx) => jagPts(cx, -140, cx, 140, 28, 2.5));
   const GAPS = [[0.15, 0.62], [2.45, 2.92]];
   const inGap = (a) => { a = ((a % TAU) + TAU) % TAU; return GAPS.some(([g0, g1]) => a > g0 && a < g1); };
@@ -135,12 +155,21 @@ export function create(o) {
   const flakes = mkParts(260, () => ({ ts: R(0, 6.0), ox: R(-12, 12), oy: R(-50, -4), vx: R(-14, 14), vy: R(-26, -6), life: R(0.35, 0.7), s: Rn.next() < 0.5 ? 1 : 2, w: Rn.next() < 0.5, spin: R(-10, 10), rot: R(0, TAU), k: Rn.next() }));
   const wisps = mkParts(5, (k) => ({ ox: -9 + k * 4.5 + R(-1, 1), h: R(8, 14), ph: R(0, TAU) }));
   const bodyCr = mkParts(4, () => jagPts(R(-6, 6), R(-34, -26), R(-7, 7), R(-18, -10), 3, 1.5));
+  const feetEmb = [];
+  for (let i = 0; i < 3; i++) for (let tt = 1.4 + 1.6 * i; tt < 2.4 + 1.6 * i; tt += 0.045) {
+    const L = leadPos(tt), a = POS.lead[i], b = POS.lead[i + 1], d = Math.hypot(b[0] - a[0], b[1] - a[1]), dx = (b[0] - a[0]) / d, dy = (b[1] - a[1]) / d;
+    for (let k = 0; k < 2; k++) feetEmb.push({ x: L.x + R(-4, 4), y: L.y + R(-2, 2), vx: -dx * R(60, 120) + R(-30, 30), vy: -dy * R(60, 120) + R(-30, 10), t0: tt, life: R(0.5, 0.9), s: Rn.next() < 0.4 ? 3 : 2, cols: P === "leadA" ? [TEAL[4], TEAL[2], TEAL[0]] : [RED[5], RED[4], RED[2]] });
+  }
   const kick = [1, 2, 3].map((i) => mkParts(10, () => ({ kind: "chip", x: POS.lead[i][0], y: POS.lead[i][1], vx: R(-60, 60), vy: R(-60, 0), g: 220, t0: 2.4 + 1.6 * (i - 1), life: R(0.3, 0.5), s: R(2, 3), rot: R(0, TAU), spin: R(-10, 10), c: 0 })));
 
   // 克雷松
   const [C0x, C0y] = POS.cresFrom, [C1x, C1y] = POS.cresTo, [DX, DY] = POS.device;
   const needles = mkParts(30, () => ({ a: R(0, TAU), r: R(30, 60), d: R(0, 0.25) }));
-  const ripSeg = mkParts(3, () => Array.from({ length: 14 }, () => R(0.75, 1.2)));
+  const tears = mkParts(12, () => ({ kind: "chip", x: C0x + R(-6, 6), y: C0y - 22 + R(-8, 8), vx: R(-40, 40), vy: R(-36, 24), g: 0, t0: 0.9 + R(0, 0.08), life: R(0.7, 1.0), s: R(3, 6), rot: R(0, TAU), spin: R(-6, 6), shrink: true, c: 0 }));
+  const twinkle = mkParts(7, (i) => ({ x: C0x + R(-34, 34), y: C0y - 22 + R(-26, 20), t0: 0.95 + i * 0.1 }));
+  const nursery = [[-30, 18], [28, 22]].map(([ox, oy]) => ({ x: C1x + ox, y: C1y + oy, tiles: mkParts(16, () => ({ dx: R(-15, 15), dy: R(-9, 9), s: R(3, 5) })) }));
+  const arrEmb = mkEmbers(C1x, C1y - 20, 1.5, 14, 90, [LILAC[4], LILAC[3], LILAC[1]]);
+  const curtain = mkParts(70, (k) => ({ a: k / 70 * TAU + R(-0.03, 0.03), ph: R(0, 1), h: R(14, 26) }));
   const slit = jagPts(C1x - 22, C1y, C1x + 22, C1y, 9, 2);
   const specks = mkParts(16, () => ({ kind: "dot", x: C1x, y: C1y - 24, vx: R(-70, 70), vy: R(-80, 30), g: 90, t0: 1.5 + R(0, 0.1), life: R(0.4, 0.8), s: Rn.next() < 0.4 ? 2 : 1, c: 0 }));
   const lattice = [];
@@ -150,11 +179,22 @@ export function create(o) {
   // 双王
   const [KX, KY] = POS.khan, [LX, LY] = POS.lion, RR = 80;
   const rimOrder = mkParts(20, (k) => ({ k, at: R(0, 0.85) }));
+  const mounds = mkParts(44, (k) => ({ a: k / 44 * TAU + R(-0.03, 0.03), at: R(0, 0.8), w: R(4, 7) }));
+  const sandBurst = (cx, cy) => mkParts(110, () => { const a = R(0, TAU); return { a, v: R(110, 240), s: Rn.next() < 0.35 ? 3 : 2, c: Math.floor(R(1, 5)), life: R(0.4, 0.75), d0: R(0, 10) }; });
+  const sandK = sandBurst(), sandL = sandBurst();
+  const embK = mkEmbers(LX, LY - 6, 2.5, 16, 120, [RED[4], RED[2], RED[0]]), embL = mkEmbers(KX, KY - 6, 6.1, 16, 120, [GOLD[4], GOLD[3], GOLD[1]]);
+  function drawSand(p, list, cx, cy, u) {   // 沙流迸散：沙粒成团往外冲、减速、落下（有体积的冲击带，不画环）
+    for (const q of list) {
+      if (u > q.life) continue;
+      const d = q.d0 + q.v * (u - u * u / (2 * q.life)), x = cx + Math.cos(q.a) * d, y = cy + Math.sin(q.a) * d * 0.8 - 14 * Math.sin(Math.PI * u / q.life);
+      p.rect(Math.round(x), Math.round(y), q.s, q.s, SAND[q.c]);
+    }
+  }
   const kCracks = mkParts(9, (k) => { const a = k / 9 * TAU + R(-0.2, 0.2); return jagPts(LX + Math.cos(a) * RR * 0.98, LY + Math.sin(a) * RR * 0.8 * 0.98, LX + Math.cos(a + R(-0.3, 0.3)) * R(6, 16), LY + Math.sin(a) * R(4, 10), 7, 4); });
   const embersIn = mkParts(26, () => ({ a: R(0, TAU), r: R(30, 55), ph: R(0, 1), c: Rn.next() < 0.5 ? RED[3] : RED[0] }));
   const rocks = (cx, cy, t0, pal) => mkParts(18, (i) => ({ kind: "chip", x: cx + R(-10, 10), y: cy + R(-6, 6), vx: R(-120, 120), vy: R(-110, 40), g: 200, t0: t0 + R(0, 0.05), life: R(0.4, 0.75), s: R(2, 4), rot: R(0, TAU), spin: R(-14, 14), c: pal[i % pal.length] }));
   const rocksK = rocks(LX, LY, 2.5, [RED[0], RED[2], RED[1]]);
-  const rocksL = rocks(KX, KY, 6.1, P === "kingsA" ? [GOLD[1], GOLD[3], GOLD[0]] : [PURP[1], PURP[3], PURP[0]]);
+  const rocksL = rocks(KX, KY, 6.1, [GOLD[1], SAND[2], GOLD[0]]);
   const smokes = mkParts(8, () => ({ a: R(0, TAU), d: R(20, 60), r: R(5, 9) }));
   const crossStars = mkParts(16, () => ({ a: R(0, TAU), d: Math.sqrt(Rn.next()) * RR * 0.9, t0: R(0, 0.45), L: R(4, 8) }));
   const sparkOut = mkParts(14, (i) => ({ kind: "streak", x: 0, y: 0, a: i / 14 * TAU + R(-0.15, 0.15), sp: R(140, 220), life: R(0.18, 0.3), s: 2 }));
@@ -175,7 +215,7 @@ export function create(o) {
               else if (tau < 1.6) for (const cr of ic.cr) drawJag(p, cr, Math.min(1, (tau - 0.8) / 0.12) * (1 - Math.max(0, (tau - 1.2) / 0.4)), 1.6, CRACK[0], null);
             } else {
               if (tau > 0.5 && tau < 0.66) star4(p, ic.x, ic.y - 62, 3, 1, WILL[5]);                 // 高处一点冰光（预兆）
-              if (tau >= 0.6 && tau < 0.8) { const h = 62 * (1 - (tau - 0.6) / 0.2); shard(p, ic.x, ic.y - h - 16, Math.PI / 2, 22, 8, WILL[3], WILL[5]); }
+              if (tau >= 0.6 && tau < 0.8) { const h = 62 * (1 - (tau - 0.6) / 0.2); shard(p, ic.x, ic.y - h - 16, Math.PI / 2, 22, 8, WILL[3], WILL[5]); p.glow(ic.x, ic.y - h - 12, 10, WILL[4], 0.5); }
               if (tau >= 0.8 && tau < 0.87) star4(p, ic.x, ic.y - 4, 14, 2.5, WILL[4]);
               if (tau >= 0.8 && tau < 1.15) shard(p, ic.x, ic.y - 13, Math.PI / 2, 16 * (1 - (tau - 0.8) / 0.35), 7, WILL[2], WILL[4]);
             }
@@ -195,7 +235,8 @@ export function create(o) {
             if (tau < 0.07) star4(p, ic.x, ic.y - 10, 8, 1.5, WILL[4]);
           }
         }
-        if (!U) for (const cs of icChips) for (const q of cs) drawPart(p, q, A ? t : t - 0.45 + 0.45);
+        if (!U) for (const cs of icChips) for (const q of cs) drawPart(p, q, t);
+        if (!U) for (const em of icEmb) drawEmbers(p, em, t);
         // —— 叹息（2.8–6.0）——
         const s = t - 2.8;
         if (s >= 0) {
@@ -271,11 +312,11 @@ export function create(o) {
           for (let i = 0; i < 3; i++) {
             const d0 = 1.4 + 1.6 * i, a = POS.lead[i], b = POS.lead[i + 1];
             if (t < d0) continue;
-            const u1 = ease.inOutQuad(clamp((t - d0) / 1.0)), u0 = clamp((t - d0 - 0.5) / 0.8);
+            const u1 = ease.inOutQuad(clamp((t - d0) / 1.0)), u0 = clamp((t - d0 - 1.6) / 1.0);
             if (u1 <= u0) continue;
             const x0 = a[0] + (b[0] - a[0]) * u0, y0 = a[1] + (b[1] - a[1]) * u0, x1 = a[0] + (b[0] - a[0]) * u1, y1 = a[1] + (b[1] - a[1]) * u1;
-            if (A) { p.beam(x0, y0 - 3, x1, y1 - 3, 2, TEAL[1]); p.beam(x0, y0 + 3, x1, y1 + 3, 2, TEAL[1]); }
-            else p.line(x0, y0, x1, y1, RED[3]);
+            if (A) { p.beam(x0, y0 - 3, x1, y1 - 3, 1.5, TEAL[1]); p.beam(x0, y0 + 3, x1, y1 + 3, 1.5, TEAL[1]); }
+            else { p.beam(x0, y0, x1, y1, 2, RED[2]); p.line(x0, y0, x1, y1, RED[4]); }
           }
         } else if (on) {
           if (A) {
@@ -288,7 +329,8 @@ export function create(o) {
           } else {
             for (const cr of bodyCr) {   // 身上裂出红缝（剥离）
               const pts = cr.map(([x, y]) => [bx + x, by + y]);
-              drawJag(p, pts, grow, 1, t % 0.27 < 0.2 ? RED[4] : RED[3], null);
+              drawJag(p, pts, grow, 1, t % 0.27 < 0.2 ? RED[5] : RED[4], null);
+              p.glow(pts[1][0], pts[1][1], 8, RED[4], 0.35 * grow);
             }
           }
           // 碎屑：A 黑白碎片（原作 lizi 白 / 黑），B 黑红三角碎片；第 i 段冲刺掉得更多
@@ -301,19 +343,20 @@ export function create(o) {
             let vx = f.vx, vy = f.vy;
             if (P0.dash >= 0) { const q0 = POS.lead[P0.dash], q1 = POS.lead[P0.dash + 1], d = Math.hypot(q1[0] - q0[0], q1[1] - q0[1]); vx -= (q1[0] - q0[0]) / d * 40; vy -= (q1[1] - q0[1]) / d * 40; }
             const x = P0.x + f.ox + vx * a, y = P0.y + f.oy + vy * a + 30 * a * a;
-            if (A) p.rect(Math.round(x), Math.round(y), f.s, f.s, f.w ? hex("#eef4f0") : TEAL[0]);
-            else { const s = 1.5 + f.s, an = f.rot + f.spin * a; p.tri(x + Math.cos(an) * s, y + Math.sin(an) * s, x + Math.cos(an + 2.3) * s, y + Math.sin(an + 2.3) * s, x + Math.cos(an + 4) * s * 0.6, y + Math.sin(an + 4) * s * 0.6, f.w ? RED[3] : RED[0]); }
+            if (A) p.rect(Math.round(x), Math.round(y), f.s + 1, f.s + 1, f.w ? hex("#eef4f0") : TEAL[0]);
+            else { const s = 2.2 + f.s, an = f.rot + f.spin * a; p.tri(x + Math.cos(an) * s, y + Math.sin(an) * s, x + Math.cos(an + 2.3) * s, y + Math.sin(an + 2.3) * s, x + Math.cos(an + 4) * s * 0.6, y + Math.sin(an + 4) * s * 0.6, f.w ? RED[3] : RED[0]); }
           }
+          drawEmbers(p, feetEmb, t);
           for (const ks of kick) for (const q of ks) drawPart(p, { ...q, c: A ? [TEAL[2], TEAL[0], hex("#eef4f0")][Math.floor(q.s * 7) % 3] : [RED[0], RED[2], RED[3]][Math.floor(q.s * 7) % 3] }, t);
         }
       }
 
       // ================= 克雷松：闪现 + 稳定场 =================
       if (P === "cresA" || P === "cresB") {
-        const A = P === "cresA", pal = A ? INDIGO : YG;
+        const A = P === "cresA", pal = A ? INDIGO : LILAC;
         // 落点眼纹：提前 1.5 秒睁开一半，落地后阖上
-        if (U && t < 2.0) {
-          const op = t < 1.5 ? 0.5 * ease.outCubic(clamp(t / 0.6)) : 0.5 * (1 - clamp((t - 1.5) / 0.4));
+        if (U && t < 6.6) {
+          const op = t >= 2.0 ? 0 : t < 1.5 ? 0.5 * ease.outCubic(clamp(t / 0.6)) : 0.5 * (1 - clamp((t - 1.5) / 0.4));
           const w = 22, h = 9;
           if (op > 0.02) {
             const up = [], lo = [];
@@ -324,7 +367,13 @@ export function create(o) {
             if (t < 1.5 && t % 0.4 < 0.2) p.dot(C1x + 2, C1y - 3, pal[5]);
             if (!A) for (let k = 0; k < 4; k++) { const a = [0.3, 2.8, 3.5, 6.0][k]; p.line(C1x + Math.cos(a) * w * 0.9, C1y + Math.sin(a) * 6, C1x + Math.cos(a) * (w + 9), C1y + Math.sin(a) * 9, pal[2]); }
           }
-          if (t >= 1.5) drawJag(p, slit, Math.min(1, (t - 1.5) / 0.1) * (1 - clamp((t - 1.8) / 0.3)), t < 1.7 ? 4 : 2, pal[0], pal[3]);   // 地缝裂开，本体从缝里挤出
+          for (const n of nursery) {   // 苗圃（原作淡紫）：落地后两处一块块铺开，带白闪
+            const g = clamp((t - 1.9) / 0.6);
+            if (g <= 0) continue;
+            for (const tl of n.tiles) { if (Math.hypot(tl.dx, tl.dy * 1.6) > 16 * g) continue; p.poly([[n.x + tl.dx, n.y + tl.dy - tl.s * 0.6], [n.x + tl.dx + tl.s, n.y + tl.dy], [n.x + tl.dx, n.y + tl.dy + tl.s * 0.6], [n.x + tl.dx - tl.s, n.y + tl.dy]], tl.s > 4 ? LILAC[3] : LILAC[2]); }
+            if ((t * 5) % 1 < 0.3) p.dot(n.x + 4, n.y - 2, LILAC[5]);
+          }
+          if (t >= 1.5 && t < 2.2) drawJag(p, slit, Math.min(1, (t - 1.5) / 0.1) * (1 - clamp((t - 1.8) / 0.3)), t < 1.7 ? 4 : 2, pal[0], pal[3]);   // 地缝裂开，本体从缝里挤出
         }
         if (!U) {
           const cx = C0x, cy = C0y - 25;
@@ -335,16 +384,9 @@ export function create(o) {
             p.beam(cx + Math.cos(n.a) * r, cy + Math.sin(n.a) * r, cx + Math.cos(n.a) * (r + 7), cy + Math.sin(n.a) * (r + 7), 1.6, INDIGO[0]);
           }
           if (t > 0.85 && t < 0.95) star4(p, cx, cy, 14, 2, pal[3]);
-          for (let k = 0; k < 3; k++) {   // 残影涟漪：粗、有断口、慢慢外扩后碎掉（不画细环）
-            const age = t - 0.9 - 0.18 * k;
-            if (age < 0 || age > 0.9) continue;
-            const r = 8 + 36 * ease.outCubic(age / 0.9), w = 3.2 * (1 - age / 0.9) + 1.5;
-            for (let i = 0; i < 14; i++) {
-              if ((i + k) % 4 === 3) continue;
-              const a0 = i / 14 * TAU, rr = A ? r : r * ripSeg[k][i];
-              p.arc(C0x, C0y - 8, rr, w, a0, a0 + TAU / 14 * 0.8, age < 0.3 ? pal[3] : pal[2]);
-            }
-          }
+          for (const q of tears) drawPart(p, { ...q, c: [pal[0], pal[2], pal[3]][Math.floor(q.s * 3) % 3] }, t);   // 空间碎片：消失处裂成几片暗色碎玻璃，慢慢漂开缩小
+          for (const w of twinkle) { const a = t - w.t0; if (a < 0 || a > 0.3) continue; const L = 7 * Math.sin(Math.PI * a / 0.3); star4(p, w.x, w.y, L, 1, A ? INDIGO[4] : LILAC[4]); p.glow(w.x, w.y, 6, A ? INDIGO[4] : LILAC[4], 0.5); }   // 原作白四芒星一颗颗闪
+          drawEmbers(p, arrEmb, t);
           if (t >= 1.5 && t < 1.6) star4(p, C1x, C1y - 24, 18, 2.5, pal[4]);
           for (const q of specks) drawPart(p, { ...q, c: A ? (q.s > 1 ? ORANGE : INDIGO[4]) : (q.s > 1 ? YG[4] : YG[2]) }, t);
         }
@@ -364,12 +406,12 @@ export function create(o) {
           if (fu >= 0) {
             if (A) {
               // 场边 28 根短桩依次立起（扫一圈 0.35 秒）+ 场内十字格点随波前亮起再收成小点
-              if (!U) for (let k = 0; k < 28; k++) {
-                const a = -Math.PI / 2 + k / 28 * TAU, at = k / 28 * 0.35;
+              if (!U) for (const m of curtain) {   // 场边光幕：一圈光点从地里往上飘（有体积，不画线）
+                const at = (m.a / TAU) * 0.35;
                 if (fu < at) continue;
-                const c = fu - at < 0.07 ? SLATE[5] : SLATE[2];
-                p.beam(DX + Math.cos(a) * (fr - 8), DY + Math.sin(a) * (fr - 8) * 0.8, DX + Math.cos(a) * fr, DY + Math.sin(a) * fr * 0.8, 3.5, c);
-                p.rect(Math.round(DX + Math.cos(a) * fr) - 1, Math.round(DY + Math.sin(a) * fr * 0.8) - 1, 2, 2, SLATE[5]);
+                const k = (m.ph + (fu - at) * 1.3) % 1, x = DX + Math.cos(m.a) * fr, y = DY + Math.sin(m.a) * fr * 0.8 - k * m.h;
+                p.rect(Math.round(x), Math.round(y), 2, k < 0.5 ? 3 : 2, k < 0.3 ? SLATE[5] : SLATE[3]);
+                if (k < 0.3) p.glow(x, y, 4, SLATE[4], 0.4);
               }
               if (U) for (const g of lattice) {
                 const at = g.d / fr * 0.5, a = fu - at;
@@ -380,11 +422,11 @@ export function create(o) {
             } else {
               // 6 根锚桩在场边升起，再用粗虚线一段段连起来；场里少量光点往上飘
               const anc = Array.from({ length: 6 }, (_, k) => { const a = -Math.PI / 2 + k / 6 * TAU; return [DX + Math.cos(a) * fr, DY + Math.sin(a) * fr * 0.8]; });
-              if (U) for (let k = 0; k < 6; k++) {
-                const lt = clamp((fu - 0.25 - k * 0.06) / 0.25);
+              if (!U) for (let k = 0; k < 6; k++) {   // 光点沿相邻锚桩之间流过去（颗粒，不画线）
+                const lt = fu - 0.25 - k * 0.06;
                 if (lt <= 0) continue;
-                const [x0, y0] = anc[k], [x1, y1] = anc[(k + 1) % 6], L = Math.hypot(x1 - x0, y1 - y0);
-                for (let d = 0; d < L * lt; d += 10) { const e = Math.min(d + 6, L * lt); p.beam(x0 + (x1 - x0) * d / L, y0 + (y1 - y0) * d / L, x0 + (x1 - x0) * e / L, y0 + (y1 - y0) * e / L, 2.5, SLATE[3]); }
+                const [x0, y0] = anc[k], [x1, y1] = anc[(k + 1) % 6];
+                for (let j = 0; j < 5; j++) { const u = (j / 5 + lt * 0.8) % 1, x = x0 + (x1 - x0) * u, y = y0 + (y1 - y0) * u - 6 - 3 * Math.sin(u * Math.PI); p.rect(Math.round(x), Math.round(y), 3, 2, SLATE[5]); p.glow(x, y, 5, SLATE[4], 0.35); }
               }
               if (!U) {
                 for (let k = 0; k < 6; k++) {
@@ -393,6 +435,8 @@ export function create(o) {
                   const [x, y] = anc[k];
                   p.rect(x - 2, y - h, 4, h, SLATE[1]);
                   p.rect(x - 1, y - h - 2, 2, 3, fu - k * 0.04 < 0.3 ? SLATE[5] : SLATE[4]);
+                  const ph = 18 * clamp((fu - k * 0.04 - 0.15) / 0.2);   // 锚桩顶上一柱光（实心、上细下粗）
+                  if (ph > 0) { p.poly([[x - 2, y - h - 2], [x + 2, y - h - 2], [x, y - h - 2 - ph]], SLATE[4]); p.glow(x, y - h - 8, 9, SLATE[4], 0.5); }
                 }
                 for (const m of rising) {
                   const a = s - m.t0;
@@ -422,10 +466,13 @@ export function create(o) {
           if (t < 2.5) {
             if (A) {
               if (U) {
-                for (const ro of rimOrder) {   // 圈边一段段压出来（粗、断口）
-                  if (q < ro.at) continue;
-                  const a0 = ro.k / 20 * TAU;
-                  p.arc(LX, LY, RR, 4, a0, a0 + TAU / 20 * 0.72, RED[2]);
+                for (const m of mounds) {   // 圈边一座座沙丘隆起（有体积，代替线框）
+                  const g = clamp((q - m.at) / 0.15);
+                  if (g <= 0) continue;
+                  const x = LX + Math.cos(m.a) * RR, y = LY + Math.sin(m.a) * RR * 0.8;
+                  p.ellipse(x, y, m.w, 1.5 + 2.5 * g, SAND[1]);
+                  p.ellipse(x, y - 1.5 * g, m.w * 0.8, 1 + 2 * g, SAND[3]);
+                  p.ellipse(x - 1, y - 2.5 * g, m.w * 0.4, 0.8 + g, SAND[5]);
                 }
                 for (const cr of kCracks) drawJag(p, cr, ease.inQuad(q) * 0.9, 2.2, RED[0], q > 0.6 && t % 0.2 < 0.1 ? RED[4] : RED[3]);   // 裂纹从圈边往圆心爬
               }
@@ -451,12 +498,8 @@ export function create(o) {
               if (r > 6) p.arc(LX, LY, r, 6, a0, a0 + 0.9, RED[3]);
             }
             if (!U) {
-              const ru = ease.outQuart(clamp(u / 0.4)), r = 8 + (RR + 6) * ru, w = Math.max(2, 9 * (1 - ru) + 2);
-              if (u < 0.5) for (let i = 0; i < 18; i++) {   // 冲击环：粗、断口、红 → 黑
-                if (i % 5 === 4) continue;
-                const a0 = i / 18 * TAU;
-                p.arc(LX, LY - 6, r, w, a0, a0 + TAU / 18 * 0.85, u < 0.1 ? RED[4] : u < 0.25 ? RED[3] : A ? RED[1] : RED[0]);
-              }
+              drawSand(p, sandK, LX, LY - 4, u);
+              drawEmbers(p, embK, t);
               if (u < 0.08) star4(p, LX, LY - 14, 30, 4, RED[4]);
               if (u > 0.05 && u < 0.9) for (const sm of smokes) {   // 暗红烟团（实心、往外收缩）
                 const k = clamp((u - 0.05) / 0.85), rr = sm.r * (1 - k);
@@ -478,7 +521,7 @@ export function create(o) {
         }
         // —— 敕令（路加 → 圈画在哈兰脚下），3.6–7.2 ——
         {
-          const s = t - 3.6, q = clamp(s / 2.5), u = s - 2.5, pal = A ? GOLD : PURP;
+          const s = t - 3.6, q = clamp(s / 2.5), u = s - 2.5, pal = GOLD;
           if (s >= 0 && s < 2.5) {
             if (A) {
               if (U) for (let k = 0; k < 48; k++) {   // 历法刻度：顺时针一格格亮起，像一圈日晷
@@ -497,9 +540,10 @@ export function create(o) {
                 const a = k / 16 * TAU - Math.PI / 2, plunge = clamp((s - 2.3) / 0.2), bob = Math.sin(s * 6 + k) * 1.5;
                 const r = (RR + 14 + bob) * (1 - 0.8 * ease.inQuad(plunge));
                 const hx = KX + Math.cos(a) * r, hy = KY + Math.sin(a) * r * 0.85, tx = KX + Math.cos(a) * (r + 20), ty = KY + Math.sin(a) * (r + 20) * 0.85;
-                p.beam(tx, ty, hx, hy, 2.6, PURP[2]);
+                p.beam(tx, ty, hx, hy, 2.6, GOLD[2]);
                 const nx = -Math.sin(a), ny = Math.cos(a);
-                p.tri(hx - Math.cos(a) * 8, hy - Math.sin(a) * 8 * 0.85, hx + nx * 5 + Math.cos(a) * 1, hy + ny * 5, hx - nx * 5 + Math.cos(a) * 1, hy - ny * 5, PURP[4]);
+                p.tri(hx - Math.cos(a) * 8, hy - Math.sin(a) * 8 * 0.85, hx + nx * 5 + Math.cos(a) * 1, hy + ny * 5, hx - nx * 5 + Math.cos(a) * 1, hy - ny * 5, GOLD[4]);
+                p.glow(hx, hy, 6, GOLD[4], 0.4);
               }
             }
             if (!U) {
@@ -507,12 +551,8 @@ export function create(o) {
               for (let k = 0; k < 18; k++) { const kk = (k / 18 + s * 0.7) % 1, a = k * 2.4, r = 50 * (1 - kk); p.rect(Math.round(LX + Math.cos(a) * r), Math.round(LY - 34 + Math.sin(a) * r * 0.8), 2, 2, k % 2 ? pal[4] : pal[2]); }   // 沙光往身上收（sand_01）
             }
           } else if (s >= 2.5 && u < 1.2 && !U) {
-            const ru = ease.outQuart(clamp(u / 0.4)), r = 8 + (RR + 6) * ru, w = Math.max(2, 9 * (1 - ru) + 2);
-            if (u < 0.5) for (let i = 0; i < 18; i++) {
-              if (i % 6 === 5) continue;
-              const a0 = i / 18 * TAU + 0.1;
-              p.arc(KX, KY - 6, r, w, a0, a0 + TAU / 18 * 0.85, u < 0.1 ? pal[5] : u < 0.25 ? pal[4] : pal[2]);
-            }
+            drawSand(p, sandL, KX, KY - 4, u);
+            drawEmbers(p, embL, t);
             if (u < 0.08) star4(p, KX, KY - 14, 30, 4, pal[4]);
             for (const cs of crossStars) {   // 圈里十字星一颗颗迸开（cross_star_01）
               const a = u - cs.t0;
