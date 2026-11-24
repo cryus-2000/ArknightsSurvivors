@@ -6,7 +6,9 @@
 import { Rng, clamp, ease, TAU, WHITE, hex, mix } from "../../core/index.js";
 
 const H = (a) => a.map(hex);
-const WILL = H(["#120822", "#2c1450", "#4e2a86", "#7b55c0", "#b49cec", "#e4dcff", "#ffffff"]);   // 意志：淡紫白 → 虹光紫 → 深紫（392 §6.0）
+const WILL = H(["#081a30", "#163f6e", "#2f74b4", "#62a8e6", "#a8d8ff", "#e2f4ff", "#ffffff"]);   // 意志特效主形：原作白 + 冰蓝（实机 BV14P411k7ke：白雪冰晶本体 + 冰蓝芯）
+const WILLB = hex("#7b55c0");   // 意志 Boss 弹环色：虹光紫（392 §6.0），只给弹
+const KHANB = hex("#e65a4d"), LUKAB = hex("#a894ff"), LUKAG = hex("#f0b030");   // 双王 Boss 弹环色（393 §1.2；路加 A 用原作金对照）
 const ICE = H(["#0a2a4a", "#2a6aa8", "#68b4ec", "#aee2ff"]);                                       // 原作 xueli / baoshan 冰蓝
 const CRACK = H(["#0c141c", "#24323e", "#40505e"]);                                                // 原作 dilie 灰蓝地裂
 const TEAL = H(["#000a06", "#00261c", "#0b4a35", "#1a7050", "#4aa37a", "#bfe8d2"]);                // 木裂原作 smlead_buff 深青绿
@@ -77,6 +79,11 @@ export function create(o) {
   function bullet(p, x, y, r, ring) {   // Boss 弹：白芯 + 专属色环（docs/393 §1.2）
     p.circle(x, y, r, ring);
     p.circle(x, y, r * 0.55, WHITE);
+  }
+  function rice(p, x, y, ang, L, Wd, ring) {   // 米弹 / 针弹：白芯 + 色环，长轴朝飞行方向
+    const c = Math.cos(ang), s = Math.sin(ang), nx = -s, ny = c;
+    p.poly([[x + c * L / 2, y + s * L / 2], [x + nx * Wd / 2, y + ny * Wd / 2], [x - c * L / 2, y - s * L / 2], [x - nx * Wd / 2, y - ny * Wd / 2]], ring);
+    p.poly([[x + c * L * 0.3, y + s * L * 0.3], [x + nx * Wd * 0.22, y + ny * Wd * 0.22], [x - c * L * 0.3, y - s * L * 0.3], [x - nx * Wd * 0.22, y - ny * Wd * 0.22]], WHITE);
   }
   function jagPts(x0, y0, x1, y1, n, amp) {
     const pts = [[x0, y0]], dx = x1 - x0, dy = y1 - y0, L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L;
@@ -231,10 +238,22 @@ export function create(o) {
                 }
               }
             }
-            if (!U) for (let k = 0; k < 24; k++) {   // 24 发中圆弹骑在波前上
-              const a = (k / 24) * TAU + 0.07;
+            const E = (r, a) => [WX + Math.cos(a) * r, WY + Math.sin(a) * r * 0.85];
+            if (!U && A) for (let k = 0; k < 12; k++) {   // 弹幕「雪花」：12 根冰枝（每枝 3 发针弹 + 2 发分叉），缺口处整枝空掉
+              const a = (k / 12) * TAU + 0.07;
               if (inGap(a)) continue;
-              bullet(p, WX + Math.cos(a) * (rr + 3), WY + Math.sin(a) * (rr + 3) * 0.85, 4, WILL[3]);
+              const r0 = rr + 4;
+              rice(p, ...E(r0, a), a, 10, 4.5, WILLB);
+              rice(p, ...E(r0 - 11, a), a, 9, 4, WILLB);
+              rice(p, ...E(r0 - 21, a), a, 8, 4, WILLB);
+              rice(p, ...E(r0 - 13, a - 0.07 - 6 / r0), a - 0.6, 8, 3.5, WILLB);
+              rice(p, ...E(r0 - 13, a + 0.07 + 6 / r0), a + 0.6, 8, 3.5, WILLB);
+            }
+            if (!U && !A) for (let k = 0; k < 18; k++) {   // 弹幕「冰凌」：18 道冰凌（针弹前后两发）跟着波前顶出去
+              const a = (k / 18) * TAU + 0.05;
+              if (inGap(a)) continue;
+              rice(p, ...E(rr + 6, a), a, 11, 4.5, WILLB);
+              rice(p, ...E(rr - 6, a), a, 9, 4, WILLB);
             }
           }
         }
@@ -444,6 +463,15 @@ export function create(o) {
                 if (rr > 1) p.circle(LX + Math.cos(sm.a) * sm.d * (0.6 + 0.6 * k), LY + Math.sin(sm.a) * sm.d * 0.7 * (0.6 + 0.6 * k) - 10 * k, rr, k < 0.3 ? RED[2] : RED[1]);
               }
               for (const q2 of rocksK) drawPart(p, q2, t);
+              if (A && u >= 0.12) for (const cr of kCracks) for (const i of [2, 4, 6]) {   // 弹幕「裂地」：沿裂纹排开的米弹顺着裂纹方向往外甩
+                const [x, y] = cr[i], dx = x - LX, dy = y - LY, d = Math.hypot(dx, dy) || 1, k = 70 + 15 * i;
+                rice(p, x + dx / d * k * (u - 0.12), y + dy / d * k * (u - 0.12), Math.atan2(dy, dx), 10, 4.5, KHANB);
+              }
+              if (!A) for (let e = 0; e <= 0.6; e += 0.06) for (let k = 0; k < 3; k++) {   // 弹幕「鞭」：三条鞭形螺旋米弹臂
+                if (u < e) continue;
+                const a = e * 5 + k / 3 * TAU, r = 8 + 110 * (u - e);
+                rice(p, LX + Math.cos(a) * r, LY + Math.sin(a) * r * 0.85, a + 0.5, 10, 4.5, KHANB);
+              }
               if (u < 0.3) for (const sk of sparkOut) { const a = u; if (a > sk.life) continue; const d = sk.sp * a + 10; p.beam(LX + Math.cos(sk.a) * d, LY - 10 + Math.sin(sk.a) * d * 0.8, LX + Math.cos(sk.a) * (d + 12), LY - 10 + Math.sin(sk.a) * (d + 12) * 0.8, 2, u < 0.1 ? RED[5] : RED[3]); }
             }
           }
@@ -492,6 +520,14 @@ export function create(o) {
               star4(p, KX + Math.cos(cs.a) * cs.d, KY + Math.sin(cs.a) * cs.d * 0.85, cs.L * (a < 0.1 ? 1 : 1 - (a - 0.1) / 0.2), 1, pal[4], pal[5]);
             }
             for (const q2 of rocksL) drawPart(p, q2, t);
+            if (A) for (let j = 0; j < 12; j++) {   // 弹幕「日晷」：12 个刻度上各一发，顺时针一格格射出
+              const a = -Math.PI / 2 + j / 12 * TAU, rel = 0.1 + 0.06 * j, r = RR + 2 + (u > rel ? 100 * (u - rel) : 0);
+              rice(p, KX + Math.cos(a) * r, KY + Math.sin(a) * r, a, 11, 5, LUKAG);
+            } else for (const u0 of [0.08, 0.3]) for (let k = 0; k < 16; k++) {   // 弹幕「箭雨」：16 支箭扎地后反弹成两波针弹
+              if (u < u0) continue;
+              const a = k / 16 * TAU - Math.PI / 2 + (u0 > 0.1 ? TAU / 32 : 0), r = 10 + 110 * (u - u0);
+              rice(p, KX + Math.cos(a) * r, KY + Math.sin(a) * r * 0.85, a, 11, 4.5, LUKAB);
+            }
             if (u < 0.3) for (const sk of sparkOut) { const d = sk.sp * u + 10; if (u > sk.life) continue; p.beam(KX + Math.cos(sk.a) * d, KY - 10 + Math.sin(sk.a) * d * 0.8, KX + Math.cos(sk.a) * (d + 12), KY - 10 + Math.sin(sk.a) * (d + 12) * 0.8, 2, u < 0.1 ? pal[5] : pal[3]); }
           }
         }
