@@ -692,7 +692,8 @@
     1.0
    ],
    "cold_add": 30.0,
-   "_cold": "原作普攻附寒冷 4.5 秒并跳 3 个目标；寒链每根针 +30、链跳每跳同样加（Boss 来源最多加到 90）"
+   "_cold": "原作普攻附寒冷 4.5 秒并跳 3 个目标；寒链每根针 +30、链跳每跳同样加（Boss 来源最多加到 90）",
+   "no_outline": true
   },
   "vine": {
    "bossbar_motif": "ice",
@@ -738,7 +739,8 @@
     0.45,
     0.85,
     0.35
-   ]
+   ],
+   "no_outline": true
   },
   "shaman2": {
    "bossbar_motif": "ice",
@@ -787,7 +789,8 @@
     0.95
    ],
    "cold_add": 30.0,
-   "_cold": "同陷落雪祀，链跳 4 次"
+   "_cold": "同陷落雪祀，链跳 4 次",
+   "no_outline": true
   },
   "vine2": {
    "bossbar_motif": "ice",
@@ -832,7 +835,8 @@
     0.38,
     0.7,
     0.42
-   ]
+   ],
+   "no_outline": true
   },
   "lead": {
    "bossbar_motif": "ice",

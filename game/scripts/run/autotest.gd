@@ -1068,7 +1068,11 @@ func step() -> void:
 						se.busy_t = 1.0e9   # 萨米 Boss 选招（sami_boss.pick）一直「占用中」：不出招，预警圈不盖本体
 						se.hp = 1.0e9
 						se.maxhp = 1.0e9
+						se["stops"] = []   # 木裂停驻点（lead.gd）：空表 = 不建停驻点，不会走去停驻、开破绽圈盖住本体
+						se["hold_pos"] = se.pos
 						_spawn_hold.append(se)
+			for se in _spawn_hold:
+				se.pos = se.hold_pos   # 每帧钉回原位（Boss 脚本自己的位移 / 击退不算）
 			if g.at_frames > 20 and g.at_frames % 6 == 0 and g.at_frames <= 320 and DisplayServer.get_name() != "headless":
 				g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_spawn_%s_%03d.png" % [a.substr(12).replace(",", "_"), g.at_frames])
 				for se in _spawn_hold:

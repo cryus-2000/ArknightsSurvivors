@@ -15,7 +15,8 @@ sys.path.insert(0, TOOLS)
 import godot_runner as GR
 import spine_px_enemy as SE
 
-SHOT = 48   # --spawntest --spawnhold 第 48 帧（镜头已跟上队长瞬移；敌人不动、打不死，脚底屏幕位置由 SPAWNPOS 行给出）
+SHOT = 48   # --spawntest --spawnhold 第 48 帧（镜头已跟上队长瞬移；敌人钉在原位、打不死，脚底屏幕位置由 SPAWNPOS 行给出）
+SHOT_AT = {"lead": 72}   # 木裂选招不受 busy_t 管，第 30–60 帧自己的预警圈盖住本体；66–96 帧干净
 FONT = ImageFont.truetype(r"C:\Windows\Fonts\msyh.ttc", 16)
 FONT_S = ImageFont.truetype(r"C:\Windows\Fonts\msyh.ttc", 13)
 
@@ -32,12 +33,13 @@ def shoot(game, out, eid):
     cmd = [GR.find_godot(), "--path", game, "--resolution", "1280x720", "--audio-driver", "Dummy", "--fixed-fps", "60", "--",
            "--balance", "--theme=sami", "--seed=1", "--op=mizuki", "--spawntest=" + eid, "--spawnhold", "--nohud", "--shotdir=" + sd]
     o, e, to = GR.run_godot(cmd, 240)
-    p = os.path.join(sd, "shot_spawn_%s_%03d.png" % (eid, SHOT))
+    shot = SHOT_AT.get(eid, SHOT)
+    p = os.path.join(sd, "shot_spawn_%s_%03d.png" % (eid, shot))
     if not os.path.exists(p):
         return eid, None, "没截到%s %s" % ("（超时）" if to else "", "；".join(GR.script_errors(o, e)[:2]))
     dst = os.path.join(out, "ingame_%s.png" % eid)
     shutil.copy2(p, dst)
-    pos = [l.split() for l in o.splitlines() if l.startswith("SPAWNPOS %d " % SHOT)]
+    pos = [l.split() for l in o.splitlines() if l.startswith("SPAWNPOS %d " % shot)]
     if pos:
         json.dump([float(pos[0][3]), float(pos[0][4])], open(dst[:-4] + ".json", "w"))
     shutil.rmtree(sd, ignore_errors=True)
@@ -70,7 +72,7 @@ def sheet(out, shots):
     rhs = [max(c[5] for c in rr) + 30 for rr in rows]
     img = Image.new("RGBA", (cw * cols + 10, 40 + sum(rhs)), BG)
     dr = ImageDraw.Draw(img)
-    dr.text((10, 8), "萨米敌人：左 = 原作（待机，缩放到框内），右 = 局内截图 1 倍（1280×720，--theme=sami --spawntest --spawnhold，第 %d 帧；朝向队长）" % SHOT, font=FONT, fill=(255, 235, 150, 255))
+    dr.text((10, 8), "萨米敌人：左 = 原作（待机，缩放到框内），右 = 局内截图 1 倍（1280×720，--theme=sami --spawntest --spawnhold，第 %d 帧，木裂第 72 帧；朝向队长）" % SHOT, font=FONT, fill=(255, 235, 150, 255))
     y = 40
     for rr, rh in zip(rows, rhs):
         for i, (eid, name, r, crop, bw, bh) in enumerate(rr):
