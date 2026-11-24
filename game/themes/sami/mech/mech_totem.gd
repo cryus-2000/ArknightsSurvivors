@@ -32,6 +32,7 @@ var _deals := 0
 var _price_restore := 0.0        # 惊讶协语打折：下一帧还原
 var _wid := 0
 var _bot_t := 0.0
+var _demo_done := false
 var _demo_t := -1.0              # --totemdemo=<秒>（调试，录像用）：到点打开宣告面板，之前机器人不自动宣告
 var drones: Array = []           # 斗志昂扬无人机 {end, t, w}
 var guards: Array = []           # 友方盾卫 {pos, hp, maxhp, end, w}
@@ -385,7 +386,10 @@ func on_world_tick(dt: float) -> void:
 	if _demo_t < INF:
 		if g.t >= _demo_t and g.state == g.S.PLAY:
 			_demo_t = INF
+			_demo_done = true   # 演示只开一次；之后机器人也不自动宣告，录像里只有演示这一次
 			open_panel()
+		return
+	if _demo_done:
 		return
 	if g.bot != null:
 		_bot_tick(dt)
@@ -715,47 +719,87 @@ func on_touch_btn() -> void:
 		open_panel()
 
 
+const PAGE := 2   # 面板一行最多 4 张卡：不超过 3 块全放 +「取消」；超过 3 块每页 2 块 +「下一页」+「取消」
+
+
 func open_panel() -> void:
-	_ui = {"step": "L", "picks": []}
-	var opts: Array = []
-	for lid in layouts():
-		var b: Dictionary = boards[lid]
-		var ok: bool = effects().any(func(e): return why_not(lid, e) == "")
-		var o := {"kind": "mech", "mech": id, "id": "L:" + lid, "name": str(b.name), "desc": "时机：" + timing_text(lid) + ("" if ok else "（手里没有能配的本因）"),
-			"icon": "e_event", "chips": [[CN_COL.get(str(b.color), "") + " · 布局", COLS.get(str(b.color), Color.WHITE)], [CN_RAR.get(str(b.rarity), ""), Color(0.7, 0.7, 0.75)]], "col": COLS.get(str(b.color), Color.WHITE)}
-		if not ok:
-			o.disabled = true
-		opts.append(o)
-	if opts.is_empty():
+	if layouts().is_empty():
 		g.vfx.show_banner("手里没有布局密文板")
 		return
+	_ui = {"step": "L", "picks": [], "page": 0}
+	_show_layouts()
+
+
+## 同一块板合并成一张卡（名字后写 ×n）；能配的排前面
+func _grouped(ids: Array, ok_fn: Callable) -> Array:
+	var seen: Dictionary = {}
+	var order: Array = []
+	for bid in ids:
+		if not seen.has(bid):
+			seen[bid] = 0
+			order.append(bid)
+		seen[bid] = int(seen[bid]) + 1
+	var good: Array = order.filter(func(b): return ok_fn.call(b))
+	var bad: Array = order.filter(func(b): return not ok_fn.call(b))
+	return (good + bad).map(func(b): return [b, int(seen[b])])
+
+
+func _page(items: Array, opts_fn: Callable) -> Array:
+	var n: int = items.size()
+	var per: int = n if n <= PAGE + 1 else PAGE
+	var pages: int = maxi(1, int(ceil(n / float(maxi(1, per)))))
+	var p: int = int(_ui.get("page", 0)) % pages
+	_ui.page = p
+	var opts: Array = []
+	for it in items.slice(p * per, p * per + per):
+		opts.append(opts_fn.call(it))
+	if pages > 1:
+		opts.append({"kind": "mech", "mech": id, "id": "next", "name": "下一页", "desc": "第 %d / %d 页" % [p + 1, pages], "icon": "e_event", "chips": [], "cat": "翻页  MORE", "col": Color(0.6, 0.7, 0.8)})
 	opts.append(_cancel())
-	g.panel_ui.show_choices("宣告密文板 · 选布局", opts, "mech", "布局决定何时生效 · 本因 %d 块 · 宣告后坍缩值 −1" % effects().size())
+	return opts
+
+
+func _show_layouts() -> void:
+	_ui.step = "L"
+	var items: Array = _grouped(layouts(), func(lid): return effects().any(func(e): return why_not(lid, e) == ""))
+	var opts: Array = _page(items, func(it):
+		var lid: String = it[0]
+		var b: Dictionary = boards[lid]
+		var ok: bool = effects().any(func(e): return why_not(lid, e) == "")
+		var o := {"kind": "mech", "mech": id, "id": "L:" + lid, "name": str(b.name) + (" ×%d" % int(it[1]) if int(it[1]) > 1 else ""), "desc": "时机：" + timing_text(lid) + ("" if ok else "（手里没有能配的本因）"),
+			"icon": "e_event", "cat": "布局 · %s · %s  LAYOUT" % [CN_COL.get(str(b.color), ""), CN_RAR.get(str(b.rarity), "")], "chips": [], "col": COLS.get(str(b.color), Color.WHITE)}
+		if not ok:
+			o.disabled = true
+		return o)
+	g.panel_ui.show_choices("宣告密文板 · 选布局", opts, "mech", "布局决定何时生效 · 本因 %d 块 · 宣告后坍缩值 −1" % effects().size(), int(_ui.get("shown", 0)) > 0)
+	_ui.shown = 1
 
 
 func _cancel() -> Dictionary:
-	return {"kind": "mech", "mech": id, "id": "back", "name": "取消", "desc": "回到战斗，不消耗密文板", "icon": "exit", "chips": [], "col": Color(0.6, 0.6, 0.65)}
+	return {"kind": "mech", "mech": id, "id": "back", "name": "取消", "desc": "回到战斗，不消耗密文板", "icon": "exit", "chips": [], "cat": "取消  CANCEL", "col": Color(0.6, 0.6, 0.65)}
 
 
 func _effects_panel(lid: String) -> void:
+	if str(_ui.get("step", "")) != "E":
+		_ui.page = 0
 	_ui.step = "E"
 	_ui.lid = lid
-	var opts: Array = []
-	for eid in effects():
+	var items: Array = _grouped(effects(), func(eid): return why_not(lid, eid) == "")
+	var opts: Array = _page(items, func(it):
+		var eid: String = it[0]
 		var b: Dictionary = boards[eid]
 		var why := why_not(lid, eid)
 		var syn: bool = why == "" and synergy(lid, eid)
 		var txt: String = effect_text(eid, syn)
 		if syn and str(b.get("synergy", {}).get("ally", "")) == "operator":
 			txt = effect_text(eid, false) + "（协语效果暂未开放）"
-		var chips: Array = [[CN_COL.get(str(b.color), "") + " · 本因", COLS.get(str(b.color), Color.WHITE)]]
+		var chips: Array = []
 		if syn:
 			chips.append(["柯瓦狄协语", Color(1.0, 0.85, 0.45)])
-		var o := {"kind": "mech", "mech": id, "id": "E:" + eid, "name": str(b.name), "desc": txt if why == "" else "%s（%s）" % [txt, why], "icon": "e_event", "chips": chips, "col": COLS.get(str(b.color), Color.WHITE)}
+		var o := {"kind": "mech", "mech": id, "id": "E:" + eid, "name": str(b.name) + (" ×%d" % int(it[1]) if int(it[1]) > 1 else ""), "desc": txt if why == "" else "%s（%s）" % [txt, why], "icon": "e_event", "chips": chips, "cat": "本因 · %s · %s  CAUSE" % [CN_COL.get(str(b.color), ""), CN_RAR.get(str(b.rarity), "")], "col": COLS.get(str(b.color), Color.WHITE)}
 		if why != "":
 			o.disabled = true
-		opts.append(o)
-	opts.append(_cancel())
+		return o)
 	g.panel_ui.show_choices("宣告「%s」· 选本因" % boards[lid].name, opts, "mech", "时机：" + timing_text(lid), true)
 
 
@@ -763,9 +807,9 @@ func _pick_panel(of: Array) -> void:
 	_ui.step = "P"
 	var opts: Array = []
 	for t in of:
-		opts.append({"kind": "mech", "mech": id, "id": "P:" + str(t), "name": TIMING_CN.get(str(t), str(t)), "desc": "这一份在%s生效" % TIMING_CN.get(str(t), str(t)), "icon": "e_event", "chips": [], "col": Color(0.42, 0.66, 1.0)})
+		opts.append({"kind": "mech", "mech": id, "id": "P:" + str(t), "name": TIMING_CN.get(str(t), str(t)), "desc": "这一份在%s生效" % TIMING_CN.get(str(t), str(t)), "icon": "e_event", "chips": [], "cat": "时机  TIMING", "col": Color(0.42, 0.66, 1.0)})
 	opts.append(_cancel())
-	g.panel_ui.show_choices("宣告「%s · %s」· 自选时机" % [boards[_ui.lid].name, boards[_ui.eid].name], opts, "mech", "", true)
+	g.panel_ui.show_choices("宣告「%s · %s」· 自选时机" % [boards[_ui.lid].name, boards[_ui.eid].name], opts, "mech", "这块布局要你选一次在什么时候生效", true)
 
 
 ## progression.pick 在 choice_kind == "mech" 时转到这里
@@ -779,6 +823,13 @@ func choice_pick(i: int) -> void:
 		Sfx.play("ui_move", -6.0, 0.7)
 		return
 	Sfx.play("ui_ok", -6.0)
+	if oid == "next":
+		_ui.page = int(_ui.get("page", 0)) + 1
+		if str(_ui.step) == "E":
+			_effects_panel(str(_ui.lid))
+		else:
+			_show_layouts()
+		return
 	if oid.begins_with("L:"):
 		_effects_panel(oid.substr(2))
 	elif oid.begins_with("E:"):
