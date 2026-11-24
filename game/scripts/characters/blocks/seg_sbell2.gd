@@ -498,6 +498,7 @@ static func _sb_chill(o, b: Dictionary) -> void:
 
 ## data_operator.prevent_death：精一起一局一次；返回 true 时游戏把生命设成 1，下一次 tick 再补回 heal 比例
 static func sb_prevent_death(o) -> bool:
+	return false   # 消融试验
 	if int(o.elite) < 1 or not o.gn.has("sb"):
 		return false
 	var st: Dictionary = o.gn.sb
