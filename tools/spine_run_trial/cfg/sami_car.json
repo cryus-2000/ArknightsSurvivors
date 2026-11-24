@@ -1,0 +1,15 @@
+{
+ "id": "sami_car",
+ "src": "sami_car.src.json",
+ "name": "勘察用自走车",
+ "pack": {
+  "scale": 0.131,
+  "root": [
+   64,
+   120
+  ],
+  "palette_png": ""
+ },
+ "skipAdditive": true,
+ "_doc": "萨米敌人「勘察用自走车」（sami_car）：无腿，地线 = 待机首帧最低点（tools/spine_px_enemy.py 生成）"
+}

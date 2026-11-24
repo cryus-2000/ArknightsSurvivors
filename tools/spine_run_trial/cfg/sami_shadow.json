@@ -1,0 +1,15 @@
+{
+ "id": "sami_shadow",
+ "src": "sami_shadow.src.json",
+ "name": "可汗片影",
+ "pack": {
+  "scale": 0.116,
+  "root": [
+   64,
+   120
+  ],
+  "palette_png": ""
+ },
+ "skipAdditive": true,
+ "_doc": "萨米敌人「可汗片影」（sami_shadow）：无腿，地线 = 待机首帧最低点（tools/spine_px_enemy.py 生成）"
+}

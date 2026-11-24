@@ -1,0 +1,15 @@
+{
+ "id": "sami_will",
+ "src": "sami_will.src.json",
+ "name": "“萨米的意志”",
+ "pack": {
+  "scale": 0.135,
+  "root": [
+   64,
+   120
+  ],
+  "palette_png": ""
+ },
+ "skipAdditive": true,
+ "_doc": "萨米敌人「“萨米的意志”」（sami_will）：无腿，地线 = 待机首帧最低点（tools/spine_px_enemy.py 生成）"
+}

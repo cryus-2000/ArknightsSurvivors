@@ -1,0 +1,125 @@
+{
+ "id": "sami_uamord",
+ "rig": "sami_uamord.json",
+ "tex_prefix": "e_sami_uamord",
+ "scale": 0.202,
+ "canvas": 256,
+ "dens": [
+  2,
+  1
+ ],
+ "colors": 64,
+ "palette_alpha": 230,
+ "palette_protect": false,
+ "outline": {
+  "color": "#0a1418",
+  "mix": 0.55
+ },
+ "actions": {
+  "idle": {
+   "sample": {
+    "anim": "Idle",
+    "times": [
+     0.0,
+     0.3333,
+     0.6667,
+     1.0,
+     1.3333,
+     1.6667
+    ]
+   },
+   "durations": [
+    0.3333,
+    0.3333,
+    0.3333,
+    0.3333,
+    0.3333,
+    0.3333
+   ]
+  },
+  "move": {
+   "sample": {
+    "anim": "Move_Loop",
+    "times": [
+     0.0,
+     0.1667,
+     0.3333,
+     0.5,
+     0.6667,
+     0.8333
+    ]
+   },
+   "durations": [
+    0.1667,
+    0.1667,
+    0.1667,
+    0.1667,
+    0.1667,
+    0.1667
+   ]
+  },
+  "attack": {
+   "sample": {
+    "anim": "Attack",
+    "times": [
+     0.0,
+     0.1714,
+     0.3429,
+     0.5143,
+     0.6857,
+     0.8571,
+     1.0286,
+     1.199
+    ]
+   },
+   "durations": [
+    0.1714,
+    0.1715,
+    0.1714,
+    0.1714,
+    0.1714,
+    0.1715,
+    0.1704,
+    0.06
+   ]
+  },
+  "death": {
+   "sample": {
+    "anim": "Die",
+    "times": [
+     0.0,
+     0.119,
+     0.2381,
+     0.3571,
+     0.4762,
+     0.5952,
+     0.7143,
+     0.8323
+    ]
+   },
+   "durations": [
+    0.119,
+    0.1191,
+    0.119,
+    0.1191,
+    0.119,
+    0.1191,
+    0.118,
+    0.06
+   ]
+  },
+  "wound": {
+   "sample": {
+    "anim": "Die",
+    "times": [
+     0.1
+    ]
+   },
+   "durations": [
+    0.12
+   ]
+  }
+ },
+ "keep_colors": [],
+ "_doc": "tools/spine_px_enemy.py 生成，别手改；改 ENEMIES 表再跑"
+}

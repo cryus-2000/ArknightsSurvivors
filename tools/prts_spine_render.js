@@ -66,6 +66,7 @@ async function main() {
   for (const f of frames) {
     const sk = pose(f.anim, f.t);
     sk.getBounds(off, sz, []);   // 3.5 只收两个参数，多给的忽略
+    if (!Number.isFinite(off.x + off.y + sz.x + sz.y)) { console.error("bounds NaN", f.name); continue; }   // 克雷松个别姿势包围盒出 NaN（11-20）
     minX = Math.min(minX, off.x); minY = Math.min(minY, off.y);
     maxX = Math.max(maxX, off.x + sz.x); maxY = Math.max(maxY, off.y + sz.y);
   }

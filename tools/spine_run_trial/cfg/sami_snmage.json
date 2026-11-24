@@ -1,0 +1,15 @@
+{
+ "id": "sami_snmage",
+ "src": "sami_snmage.src.json",
+ "name": "雪怪术师组长",
+ "pack": {
+  "scale": 0.151,
+  "root": [
+   64,
+   120
+  ],
+  "palette_png": ""
+ },
+ "skipAdditive": true,
+ "_doc": "萨米敌人「雪怪术师组长」（snow_mage）：无腿，地线 = 待机首帧最低点（tools/spine_px_enemy.py 生成）"
+}

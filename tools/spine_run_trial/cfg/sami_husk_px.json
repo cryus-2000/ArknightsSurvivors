@@ -1,0 +1,125 @@
+{
+ "id": "sami_husk",
+ "rig": "sami_husk.json",
+ "tex_prefix": "e_sami_husk",
+ "scale": 0.141,
+ "canvas": 192,
+ "dens": [
+  2,
+  1
+ ],
+ "colors": 64,
+ "palette_alpha": 230,
+ "palette_protect": false,
+ "outline": {
+  "color": "#0a1418",
+  "mix": 0.55
+ },
+ "actions": {
+  "idle": {
+   "sample": {
+    "anim": "Idle",
+    "times": [
+     0.0,
+     0.25,
+     0.5,
+     0.75
+    ]
+   },
+   "durations": [
+    0.25,
+    0.25,
+    0.25,
+    0.25
+   ]
+  },
+  "move": {
+   "sample": {
+    "anim": "Move",
+    "times": [
+     0.0,
+     0.5,
+     1.0,
+     1.5
+    ]
+   },
+   "durations": [
+    0.5,
+    0.5,
+    0.5,
+    0.5
+   ]
+  },
+  "rush": {
+   "sample": {
+    "anim": "Run",
+    "times": [
+     0.0,
+     0.1667,
+     0.3333,
+     0.5
+    ]
+   },
+   "durations": [
+    0.1667,
+    0.1667,
+    0.1667,
+    0.1667
+   ]
+  },
+  "attack": {
+   "sample": {
+    "anim": "Attack",
+    "times": [
+     0.0,
+     0.2333,
+     0.4667,
+     0.7,
+     0.9334,
+     1.1657
+    ]
+   },
+   "durations": [
+    0.2333,
+    0.2334,
+    0.2333,
+    0.2334,
+    0.2323,
+    0.06
+   ]
+  },
+  "death": {
+   "sample": {
+    "anim": "Die",
+    "times": [
+     0.0,
+     0.2,
+     0.4,
+     0.6,
+     0.8,
+     0.999
+    ]
+   },
+   "durations": [
+    0.2,
+    0.2,
+    0.2,
+    0.2,
+    0.199,
+    0.06
+   ]
+  },
+  "wound": {
+   "sample": {
+    "anim": "Die",
+    "times": [
+     0.1
+    ]
+   },
+   "durations": [
+    0.12
+   ]
+  }
+ },
+ "_doc": "tools/spine_px_enemy.py 生成，别手改；改 ENEMIES 表再跑"
+}
