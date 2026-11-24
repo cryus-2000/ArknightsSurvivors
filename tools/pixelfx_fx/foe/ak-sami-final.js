@@ -165,7 +165,7 @@ export function create(o) {
   // 克雷松
   const [C0x, C0y] = POS.cresFrom, [C1x, C1y] = POS.cresTo, [DX, DY] = POS.device;
   const needles = mkParts(30, () => ({ a: R(0, TAU), r: R(30, 60), d: R(0, 0.25) }));
-  const tears = mkParts(12, () => ({ kind: "chip", x: C0x + R(-6, 6), y: C0y - 22 + R(-8, 8), vx: R(-40, 40), vy: R(-36, 24), g: 0, t0: 0.9 + R(0, 0.08), life: R(0.7, 1.0), s: R(3, 6), rot: R(0, TAU), spin: R(-6, 6), shrink: true, c: 0 }));
+  const tears = mkParts(18, () => ({ kind: "chip", x: C0x + R(-8, 8), y: C0y - 22 + R(-10, 10), vx: R(-55, 55), vy: R(-45, 30), g: 0, t0: 0.9 + R(0, 0.08), life: R(0.9, 1.3), s: R(6, 11), rot: R(0, TAU), spin: R(-6, 6), shrink: true, c: 0 }));
   const twinkle = mkParts(7, (i) => ({ x: C0x + R(-34, 34), y: C0y - 22 + R(-26, 20), t0: 0.95 + i * 0.1 }));
   const nursery = [[-30, 18], [28, 22]].map(([ox, oy]) => ({ x: C1x + ox, y: C1y + oy, tiles: mkParts(16, () => ({ dx: R(-15, 15), dy: R(-9, 9), s: R(3, 5) })) }));
   const arrEmb = mkEmbers(C1x, C1y - 20, 1.5, 14, 90, [LILAC[4], LILAC[3], LILAC[1]]);
@@ -316,7 +316,7 @@ export function create(o) {
             if (u1 <= u0) continue;
             const x0 = a[0] + (b[0] - a[0]) * u0, y0 = a[1] + (b[1] - a[1]) * u0, x1 = a[0] + (b[0] - a[0]) * u1, y1 = a[1] + (b[1] - a[1]) * u1;
             if (A) { p.beam(x0, y0 - 3, x1, y1 - 3, 1.5, TEAL[1]); p.beam(x0, y0 + 3, x1, y1 + 3, 1.5, TEAL[1]); }
-            else { p.beam(x0, y0, x1, y1, 2, RED[2]); p.line(x0, y0, x1, y1, RED[4]); }
+            else { p.beam(x0, y0, x1, y1, 7, RED[1]); p.beam(x0, y0, x1, y1, 3, RED[3]); }   // 有宽度的暗红地面拖痕带（不画细线）
           }
         } else if (on) {
           if (A) {
@@ -357,13 +357,14 @@ export function create(o) {
         // 落点眼纹：提前 1.5 秒睁开一半，落地后阖上
         if (U && t < 6.6) {
           const op = t >= 2.0 ? 0 : t < 1.5 ? 0.5 * ease.outCubic(clamp(t / 0.6)) : 0.5 * (1 - clamp((t - 1.5) / 0.4));
-          const w = 22, h = 9;
+          const w = 40, h = 15;
           if (op > 0.02) {
             const up = [], lo = [];
             for (let i = 0; i <= 16; i++) { const x = -1 + i / 8; up.push([C1x + x * w, C1y - h * op * 2 * (1 - x * x)]); lo.push([C1x + x * w, C1y + h * 0.6 * (1 - x * x)]); }
             p.poly(up.concat(lo.reverse()), pal[1]);
-            p.circle(C1x, C1y - 1, Math.min(6, h * op * 1.6), pal[3]);
-            p.circle(C1x, C1y - 1, 2.5, pal[0]);
+            p.circle(C1x, C1y - 1, Math.min(11, h * op * 1.6), pal[3]);
+            p.circle(C1x, C1y - 1, 4.5, pal[0]);
+            p.circle(C1x + 3, C1y - 4, 1.5, pal[5]);
             if (t < 1.5 && t % 0.4 < 0.2) p.dot(C1x + 2, C1y - 3, pal[5]);
             if (!A) for (let k = 0; k < 4; k++) { const a = [0.3, 2.8, 3.5, 6.0][k]; p.line(C1x + Math.cos(a) * w * 0.9, C1y + Math.sin(a) * 6, C1x + Math.cos(a) * (w + 9), C1y + Math.sin(a) * 9, pal[2]); }
           }
@@ -377,6 +378,11 @@ export function create(o) {
         }
         if (!U) {
           const cx = C0x, cy = C0y - 25;
+          if (t < 2.0) {   // 眼纹上方一团往上冒的光点 + 光晕（有体积，不画环）：提前 1.5 秒把落点亮出来
+            const op = t < 1.5 ? ease.outCubic(clamp(t / 0.6)) : 1 - clamp((t - 1.5) / 0.4);
+            for (let k = 0; k < 18; k++) { const ph = (k / 18 + t * 0.9) % 1, x = C1x + Math.sin(k * 2.4) * 30 * (1 - ph * 0.4), y = C1y - ph * 30; if (ph < op) { p.rect(Math.round(x), Math.round(y), 3, 3, ph < 0.4 ? pal[4] : pal[3]); p.glow(x, y, 6, pal[4], 0.45); } }
+            p.glow(C1x, C1y - 4, 30, pal[4], 0.55 * op);
+          }
           if (A && t > 0.3 && t < 0.9) for (const n of needles) {   // 黑色速度线往身上收（原作 suduxin_bais 负速度）
             const k = clamp((t - 0.3 - n.d) / 0.5);
             if (k <= 0 || k >= 1) continue;
