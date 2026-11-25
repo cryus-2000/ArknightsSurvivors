@@ -9,6 +9,7 @@ const BossBench = preload("res://scripts/run/boss_bench.gd")   # 录制钩子（
 const D = preload("res://scripts/data.gd")
 const BuildGuide = preload("res://scripts/run/build_guide.gd")   # 构筑引导：主流派等保底 / 加权规则
 const Bal = preload("res://scripts/core/balance.gd")
+const TT = preload("res://scripts/core/theme_text.gd")   # 主题文案覆盖（docs/412）
 const NodeIcons = preload("res://scripts/screens/node_icons.gd")
 const UM = preload("res://scripts/ui_motion.gd")
 const EventBook = preload("res://scripts/core/event_book.gd")   # 事件图鉴记录（docs/184 §11）
@@ -467,7 +468,9 @@ func _open_rest() -> void:
 		{"kind": "event", "id": "rest:1", "name": "添加燃料", "desc": "灯火 +%d" % li, "icon": "e_event", "chips": [["灯火 +%d" % li, Color(0.95, 0.89, 0.76)]], "cat": "安全的角落", "col": NodeIcons.COLS.rest},
 		{"kind": "event", "id": "rest:2", "name": "重整编制", "desc": "立即招募一名干员（编队已满时改为一次成长三选一）", "icon": "e_event", "chips": [], "cat": "安全的角落", "col": NodeIcons.COLS.rest},
 	]
-	g.panel_ui.show_choices("安全屋", opts, "event", "火光摇曳，食物冒着热气。好好休整，更大的浪涛还在前方。")
+	if not g.has_lamp:
+		opts = opts.filter(func(o): return str(o.id) != "rest:1")   # 无灯火主题没有「添加燃料」（docs/412 B23）
+	g.panel_ui.show_choices("安全屋", opts, "event", TT.t("rest.sub", "火光摇曳，食物冒着热气。好好休整，更大的浪涛还在前方。"))
 
 
 func _rest(k: int) -> void:
@@ -502,7 +505,7 @@ func _spawn_elites() -> void:
 		var p: Vector2 = g.ppos + Vector2.from_angle(ang) * g.rng_spawn.randf_range(720.0, 840.0)
 		squad_pending.append([str(pool[g.rng_spawn.randi() % pool.size()]), p - g.ppos])
 	_squad_release()
-	g.vfx.show_banner("紧急作战：精英小队来袭 · %s —— 全部击败获得宝箱与源石锭" % ("甲壳" if squad_affix == "armor" else "潮盾"))
+	g.vfx.show_banner("紧急作战：精英小队来袭 · %s —— 全部击败获得宝箱与源石锭" % ("甲壳" if squad_affix == "armor" else TT.t("affix.tide_shield", "潮盾")))
 	Sfx.play("roar", -3.0)
 
 
@@ -612,7 +615,7 @@ func open(ev_id: String, count := true) -> void:
 		for o in op.get("ops", []):
 			if o.has("chance"):
 				chips.append(["%d%%" % int(round(float(o.chance) * 100.0)), Color(0.18, 0.72, 1.0)])
-			if o.has("light"):
+			if o.has("light") and g.has_lamp:
 				chips.append(["灯火 %+d" % int(o.light), Color(0.95, 0.89, 0.76)])
 			if o.has("relic"):
 				icon = "relic_" + str(o.relic)
@@ -1202,7 +1205,8 @@ func status_items() -> Array:
 ## 灯火增减：只当普通奖励用（docs/154：结局线不拿灯火当门槛 / 代价）；付灯火最低降到 10
 func _light(v: float) -> void:
 	g.lamp = minf(g.lamp, maxf(10.0, g.lamp + v)) if v < 0.0 else minf(g.lamp_cap, g.lamp + v)
-	g.vfx.add_text(g.ppos + Vector2(0, -90), "灯火 %+d" % int(v), Color(1.0, 0.8, 0.45), 16)
+	if g.has_lamp:
+		g.vfx.add_text(g.ppos + Vector2(0, -90), "灯火 %+d" % int(v), Color(1.0, 0.8, 0.45), 16)
 
 
 ## 队长最大生命按比例增减（事件来源，走 stats，叠乘）

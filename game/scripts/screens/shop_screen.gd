@@ -53,6 +53,13 @@ func frame() -> Dictionary:
 	var k: float = minf(1.0, minf(sr.size.x / DBOX.size.x, sr.size.y / DBOX.size.y))
 	return {"k": k, "o": (sr.get_center() - k * DBOX.get_center()).round(), "vs": DVS}
 const MERCHANT_LINES := ["灯火暗下来之前，把源石锭花掉吧。", "深海里什么都能换，只要你出得起价。", "别盯着我看，看货。", "都是从沉船里捞上来的，保真。"]
+const TT = preload("res://scripts/core/theme_text.gd")   # 主题文案覆盖（docs/412）
+
+
+## 商人台词：主题覆盖表 shop.lines（「|」分隔）优先，没有 = MERCHANT_LINES（docs/412 B29–B31）
+func _lines() -> Array:
+	var s := TT.t("shop.lines", "")
+	return Array(s.split("|")) if s != "" else MERCHANT_LINES
 
 
 func _init(game: Game) -> void:
@@ -225,7 +232,7 @@ func draw_card(card: Button, it: Dictionary, i: int) -> void:
 	if card.get_meta("more", false) and not it.sold:
 		g.panel_ui.draw_detail_chip(card, r, i, true)
 	if it.get("deep", false):
-		UI.chip(card, g.font, r.position + Vector2(10, 36), "深海馈赠", Color(UI.PURPLE.r, UI.PURPLE.g, UI.PURPLE.b, a), 10)
+		UI.chip(card, g.font, r.position + Vector2(10, 36), TT.t("shop.cursed_tag", "深海馈赠"), Color(UI.PURPLE.r, UI.PURPLE.g, UI.PURPLE.b, a), 10)
 	var sc_compact: bool = card.get_meta("compact", false)
 	var c := r.position + Vector2(r.size.x / 2.0, 76.0 if sc_compact else 88.0)
 	UI.halo(card, c, 32.0, UI.CYAN, hov, a)
@@ -348,7 +355,7 @@ func _draw_bg(vs: Vector2, top: float) -> void:
 	var mtw: float = UI.tab(g.panel_fg, g.font, mr.position + Vector2(16, 340 + my), "流浪商人", UI.TAB_LAMP)
 	if 16.0 + mtw + 10.0 + UI.en_width(g.font, "WANDERING TRADER", 10, 2.0) <= mr.size.x - 8.0:   # 外语名牌宽（「Wandering Merchant」）时英文副标放不下就不画，原来固定 x=90 压在名牌上
 		UI.en(g.panel_fg, g.font, mr.position + Vector2(maxf(90.0, 16.0 + mtw + 10.0), 353 + my), "WANDERING TRADER", 10, UI.SUB, 2.0)
-	UI.text_fit(g.panel_fg, g.font, mr.position + Vector2(16, 378 + my), "「%s」" % MERCHANT_LINES[maxi(0, g.merchant_idx - 1) % MERCHANT_LINES.size()], 13, Color(0.85, 0.87, 0.89), mr.size.x - 28.0, 10)
+	UI.text_fit(g.panel_fg, g.font, mr.position + Vector2(16, 378 + my), "「%s」" % _lines()[maxi(0, g.merchant_idx - 1) % _lines().size()], 13, Color(0.85, 0.87, 0.89), mr.size.x - 28.0, 10)
 	# 右上：货架 + 持有源石锭（明日方舟费用框）
 	UI.text(g.panel_fg, g.font, Vector2(cx - 280, top - 18.0), "货架", 20, UI.TEXT)
 	UI.en(g.panel_fg, g.font, Vector2(cx - 280 + hw, top - 20.0), "GOODS  ·  %d" % g.shop_items.size(), 12, UI.SUB, 3.0)

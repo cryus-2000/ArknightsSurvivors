@@ -6,6 +6,7 @@ extends RefCounted
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
 const Bal = preload("res://scripts/core/balance.gd")
+const TT = preload("res://scripts/core/theme_text.gd")   # 主题文案覆盖（docs/412）
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
@@ -462,7 +463,7 @@ func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 		var ta := clampf(age / 0.6, 0.0, 1.0) * clampf((3.4 - age) / 0.8, 0.0, 1.0)
 		var cy := vs.y * 0.3
 		var jit := Vector2(sin(g.t * 53.0), cos(g.t * 47.0)) * (2.0 if hw and not streams else 0.0)
-		var line := ("海嗣注意到了你的存在……" if g.t < 240.0 else "海嗣自四方合围而来……") if streams or hunt_w else "大 群 来 袭"
+		var line := (TT.t("horde.notice", "海嗣注意到了你的存在……") if g.t < 240.0 else TT.t("horde.surround", "海嗣自四方合围而来……")) if streams or hunt_w else TT.t("horde.big", "大 群 来 袭")   # 萨米改写（docs/412 B17–B18）
 		if ta > 0.0:
 			if streams or hunt_w:
 				# 分股合围 / 围猎只是告知（docs/221 H5）：放到横幅那一带、小一号，不压在队长身前的战场正中

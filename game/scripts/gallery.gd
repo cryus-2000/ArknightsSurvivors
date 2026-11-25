@@ -456,6 +456,13 @@ func _build() -> void:
 						"desc": {"terrain_mire": "地面上周期性出现并逐渐扩大的溟痕。站在上面会减速、持续受伤并累积神经损伤；点燃引航灯标可以驱散。", "prop_beacon": "仿照伊比利亚灯塔做的小型引航灯标，熄灭着立在海床上。站进光圈点燃它，灯标的光会驱散周围的溟痕、清空神经损伤，这片地方也暂时不会再长出溟痕。"}.get(sp[2], "深海遗迹中的残骸。底座阻挡移动与直线弹道，冲刺碰撞后停止。")})
 			entries.append({"name": "商人", "en": "MERCHANT", "tag": "NPC", "forms": [_anim_n("商人", "merchant", 2, 2.0)], "stats": [], "desc": "每次探索出现 3 次，每次停留 60 秒。靠近即可交易：藏品、回复、灯油与刷新。"})
 	if tab == 4:
+		# 主题覆盖（docs/412 B70–B76）：gallery.hide = 不收录的英文键（「|」分隔），gallery.desc.<EN> = 改写说明
+		var TT = preload("res://scripts/core/theme_text.gd")
+		var hide: Array = Array(TT.t("gallery.hide", "").split("|", false))
+		entries = entries.filter(func(en0): return not hide.has(str(en0.get("en", ""))))
+		for en1 in entries:
+			if TT.has("gallery.desc." + str(en1.get("en", ""))):
+				en1["desc"] = TT.t("gallery.desc." + str(en1.get("en", "")), str(en1.get("desc", "")))
 		for entry in entries:
 			entry["locked"] = not Cfg.unlock_all and not Cfg.gallery_seen.has("item:" + str(entry.en))
 			entry["locked_text"] = "尚未发现，遇到后收录。"
@@ -583,7 +590,7 @@ func _doctor_entry() -> Dictionary:
 	return {"id": "doctor", "name": dd.get("name", "博士"), "en": dd.get("en", "DOCTOR"), "tag": "指挥 · 随行", "forms": forms,
 		"stats": [["回复", "随队长"], ["移速", str(int(round(float(ds.get("move_speed", 150)) * Bal.v("squad/leader_speed_mult", 1.1))))],
 			["闪避", "%d%%" % int(Bal.v("squad/leader_dodge", float(ds.get("dodge", 0.0))) * 100.0)], ["拾取", str(int(ds.get("pickup", 70)))]],
-		"chips": ["随行", "指挥", "排异"], "cls": "", "col": UI.STEEL,
+		"chips": Array(preload("res://scripts/core/theme_text.gd").t("gallery.doctor_chips", "随行|指挥|排异").split("|")), "cls": "", "col": UI.STEEL,
 		"od": {"tex": f0.tex, "frames": int(f0.frames), "hires": A.hires_of(f0.tex)},
 		"desc": _lore_text("doctor", "跟在队长身后指挥小队，不攻击，也不会受到攻击。队长的移速、拾取的初始值来自博士（初始没有闪避，靠认知塑造、升级与藏品获得），生命、减伤与回复由队长干员决定。灯火照亮的是队长身边，队长受击时灯火熄灭一截。升级时的生存 / 机动 / 协同卡是博士给小队的指挥加成；排异反应记在博士名下，可在属性面板查看。")}
 

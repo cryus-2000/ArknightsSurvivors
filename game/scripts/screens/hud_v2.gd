@@ -217,7 +217,7 @@ func lamp_item() -> Array:
 
 ## 状态行：「STATUS」小标签 + 用「/」隔开的一行字（状态色压淡），最多两行，放不下收成「+N」
 func status(vs: Vector2, items: Array, y0: float) -> float:
-	var all: Array = [lamp_item()] + items
+	var all: Array = ([lamp_item()] if g.has_lamp else []) + items   # 无灯火主题（萨米）不放灯火档（docs/412 B12）
 	if Cfg.phone_ui() and all.size() > 3:
 		all = all.slice(0, 2) + [["+%d" % (all.size() - 2), UI.SUB, -1.0]]
 	var x0 := 18.0 + float(Cfg.hud_ins()[0])   # 触屏让开左侧刘海 / 灵动岛（桌面为 0）

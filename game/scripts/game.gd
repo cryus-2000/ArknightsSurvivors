@@ -5,6 +5,7 @@ extends Node2D
 
 const ThemePack = preload("res://scripts/core/theme_pack.gd")   # 主题数据路径门面（docs/359 §2）
 const D = preload("res://scripts/data.gd")
+const TT = preload("res://scripts/core/theme_text.gd")   # 主题文案覆盖（docs/412）
 const UI = preload("res://scripts/ui.gd")
 const UM = preload("res://scripts/ui_motion.gd")   # 界面动效时钟与缓动（docs/62 §2.7）
 const A = preload("res://scripts/art.gd")
@@ -1430,7 +1431,7 @@ func _ready() -> void:
 	if demo_op == "":
 		Sfx.cut_target = 20000.0
 		Sfx.vol_target = -4.0
-		vfx.show_banner("深海的潮水正在涌来……")
+		vfx.show_banner(TT.t("run.open", "深海的潮水正在涌来……"))   # docs/412 B20
 	RunSetup.apply_difficulty(self)   # 难度预设 / 批跑难度参数（run/run_setup.gd）
 	perf_context.configured(str(D.DIFF_PRESETS[preset].name) if preset >= 0 else "", tier, diff, meta_cells)
 	sync_stats()

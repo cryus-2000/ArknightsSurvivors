@@ -9,6 +9,7 @@ const Tris = preload("res://scripts/screens/hud_tris.gd")
 const TriBatch = preload("res://scripts/render/tri_batch.gd")
 const PlayClock = preload("res://scripts/run/play_clock.gd")
 const HudUltV = preload("res://scripts/screens/hud_ult_v.gd")
+const TT = preload("res://scripts/core/theme_text.gd")   # 主题文案覆盖（docs/412）
 const HudV2 = preload("res://scripts/screens/hud_v2.gd")   # 编辑式 HUD（docs/222，ui/hud_v2）   # 终结技并进左上的原型开关（ui/hud_ult_v）
 var g: Game
 ## The HUD owns its sections; the return link must not retain it after a run.
@@ -77,20 +78,21 @@ func draw_top_left(vs: Vector2) -> void:
 	UI.ctext(g.hud, g.font, Vector2(hx + UI.cwidth(g.font, hps, 21) + 4, o.y + 40) + hs, "/ %d" % int(g.max_hp), 13, UI.SUB)
 	UI.gbar(g.hud, Rect2(Vector2(hx, o.y + 47) + hs, Vector2(150, 4)), g.hp / g.max_hp, hpc, 0, g.hp_trail / g.max_hp)
 	h.corrode_seg(Rect2(Vector2(hx, o.y + 47) + hs, Vector2(150, 4)), 1.0)
-	# 灯火：30 / 70 两道刻度
-	var lx := hx + 172.0
-	var lamp_low := g.lamp < 30.0
-	# 三档颜色（docs/222）：通明亮金（随 vfx.lit_k 过渡）、摇曳原金色、暗淡暗红慢闪（寂灭同色、闪得快些）
-	var lc := UI.GOLD.lerp(Color(1.0, 0.9, 0.5), g.vfx.lit_k) if not lamp_low else Color(0.55, 0.08, 0.1).lerp(Color(0.95, 0.3, 0.25), 0.5 + 0.5 * sin(g.t * (5.0 if g.lamp <= 0.0 else 2.4)))
-	UI.tab(g.hud, g.font, Vector2(lx, o.y), "灯火", UI.TAB_LAMP if not lamp_low else UI.RED)
-	var lps := "%d" % int(g.lamp)
-	UI.ctext(g.hud, g.font, Vector2(lx, o.y + 40), lps, 21, lc if lamp_low else UI.TEXT)
-	UI.ctext(g.hud, g.font, Vector2(lx + UI.cwidth(g.font, lps, 21) + 4, o.y + 40), "/ %d" % int(g.lamp_cap), 13, UI.SUB)
-	var lbr := Rect2(Vector2(lx, o.y + 47), Vector2(120, 4))
-	UI.gbar(g.hud, lbr, g.lamp / 100.0, lc)
-	for tv in [30.0, 70.0]:
-		var tx: float = lbr.position.x + lbr.size.x * tv / 100.0
-		h._hb.rect(Rect2(tx, lbr.position.y - 2, 1, lbr.size.y + 4), Color(1, 1, 1, 0.7))
+	if g.has_lamp:   # 没有灯火机制的主题（萨米）整块不画（docs/412 B10）
+		# 灯火：30 / 70 两道刻度
+		var lx := hx + 172.0
+		var lamp_low := g.lamp < 30.0
+		# 三档颜色（docs/222）：通明亮金（随 vfx.lit_k 过渡）、摇曳原金色、暗淡暗红慢闪（寂灭同色、闪得快些）
+		var lc := UI.GOLD.lerp(Color(1.0, 0.9, 0.5), g.vfx.lit_k) if not lamp_low else Color(0.55, 0.08, 0.1).lerp(Color(0.95, 0.3, 0.25), 0.5 + 0.5 * sin(g.t * (5.0 if g.lamp <= 0.0 else 2.4)))
+		UI.tab(g.hud, g.font, Vector2(lx, o.y), "灯火", UI.TAB_LAMP if not lamp_low else UI.RED)
+		var lps := "%d" % int(g.lamp)
+		UI.ctext(g.hud, g.font, Vector2(lx, o.y + 40), lps, 21, lc if lamp_low else UI.TEXT)
+		UI.ctext(g.hud, g.font, Vector2(lx + UI.cwidth(g.font, lps, 21) + 4, o.y + 40), "/ %d" % int(g.lamp_cap), 13, UI.SUB)
+		var lbr := Rect2(Vector2(lx, o.y + 47), Vector2(120, 4))
+		UI.gbar(g.hud, lbr, g.lamp / 100.0, lc)
+		for tv in [30.0, 70.0]:
+			var tx: float = lbr.position.x + lbr.size.x * tv / 100.0
+			h._hb.rect(Rect2(tx, lbr.position.y - 2, 1, lbr.size.y + 4), Color(1, 1, 1, 0.7))
 	# 神经损伤 / 侵蚀：生命条下方一道洋红细条
 	if g.nerve > 1.0:
 		var ny: float = o.y + 54 + HudUltV.top_add(g.touch.active)   # 终结技原型 A / C 在生命条下多一层，神经细条跟着下移
@@ -160,6 +162,8 @@ func draw_xp_top(vs: Vector2) -> void:
 
 ## 灯火状态标签条（左上面板下方）
 func draw_lamp_strip(vs: Vector2) -> void:
+	if not g.has_lamp:
+		return   # 没有灯火机制的主题不画（docs/412 B11）
 	if HudV2.on():
 		return   # 编辑式：灯火档并进状态行最前面（hud_v2.lamp_item）
 	var o := Vector2(16, 12) + Vector2(float(Cfg.hud_ins()[0]), float(Cfg.hud_ins()[1]))   # 触屏让开刘海 / 灵动岛（桌面为 0）
@@ -586,7 +590,7 @@ func status_items() -> Array:
 	if g.in_mire > 0.5:
 		items.append(["溟痕 · 减速", Color(0.85, 0.45, 1.0), -1.0])
 	if g.zone_state != 0 and g.ppos.distance_to(g.zone_c) > g.zone_r:
-		items.append(["黑潮", Color(0.9, 0.4, 1.0), -1.0])
+		items.append([TT.t("zone.status", "黑潮"), Color(0.9, 0.4, 1.0), -1.0])   # 萨米：风雪（docs/412 B14）
 	if g.lamp < 30.0:
 		items.append(["灯火暗淡", Color(1.0, 0.55, 0.45), -1.0])
 	return items

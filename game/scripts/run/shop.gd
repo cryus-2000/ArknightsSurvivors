@@ -164,7 +164,8 @@ func roll(first := false) -> void:
 	for it in g.shop_items:
 		ingot_desc(it)
 	g.shop_items.append({"kind": "heal", "id": "heal", "name": "急救包", "desc": "回复 40% 最大生命", "price": price("heal"), "sold": false})
-	g.shop_items.append({"kind": "oil", "id": "oil", "name": "灯油", "desc": oil_desc(), "price": price("oil"), "sold": false})
+	if g.has_lamp:   # 无灯火主题不上架灯油（docs/412 B27）
+		g.shop_items.append({"kind": "oil", "id": "oil", "name": "灯油", "desc": oil_desc(), "price": price("oil"), "sold": false})
 
 
 ## 商人灯油：灯火 + shop/oil_amount × 灯油效果（夜阳草，docs/240）；11-05 用户「5块钱+50会不会太多了，可以价格不变但是少加点」→ 50 改 30，价格不变

@@ -210,7 +210,10 @@ static func dmod_for_tier(tide: int) -> Dictionary:
 static func dmod_lines(m: Dictionary) -> Array:
 	var out: Array = []
 	var sea := dmod_for_legacy(0)   # 海面本身带的倍率（11-03 起 standard/enemy_hp 1.08，docs/216 §10）不算「额外规则」，跟海面相同就不写
-	for row in DMOD_TEXT:
+	for row0 in DMOD_TEXT:
+		var row: Array = [row0[0], preload("res://scripts/core/theme_text.gd").t("dmod." + str(row0[0]), str(row0[1])), row0[2]]   # 主题覆盖（萨米：灯火 / 灯油 / 溟痕不显示、大群 → 敌群，docs/412 B4–B6）
+		if str(row[1]) == "":
+			continue
 		var v := float(m.get(row[0], DMOD_DEFAULT[row[0]]))
 		if row[2] in ["up", "down"] and absf(v - float(sea.get(row[0], DMOD_DEFAULT[row[0]]))) < 0.0001:
 			continue
