@@ -1,0 +1,1542 @@
+[
+ {
+  "op": "skadi",
+  "meta": 0,
+  "seed": 1,
+  "wall": 79.5,
+  "real": [
+   {
+    "boss": "path",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 28414.0,
+    "boss_src_share": 0.721,
+    "brk_dmg_share": 0.472,
+    "brk_time_share": 0.366,
+    "bul_avg": 26.6,
+    "bul_peak": 59,
+    "dmg": 28414.0,
+    "fight_t": 67.3,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 0.502,
+    "leader": "skadi",
+    "level": 14,
+    "max_hp": 137.0,
+    "phases": [
+     [
+      "path",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 1,
+    "squad": [
+     "skadi",
+     "wisadel",
+     "angelina"
+    ],
+    "taken": 162.5,
+    "taken_pct": 1.187,
+    "win": true
+   },
+   {
+    "boss": "bishop+archon",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 83283.0,
+    "boss_src_share": 0.822,
+    "brk_dmg_share": 0.286,
+    "brk_time_share": 0.222,
+    "bul_avg": 40.8,
+    "bul_peak": 108,
+    "dmg": 83283.0,
+    "fight_t": 54.8,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "skadi",
+    "level": 22,
+    "max_hp": 137.0,
+    "phases": [
+     [
+      "bishop",
+      1,
+      0.0
+     ],
+     [
+      "archon",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 2,
+    "squad": [
+     "skadi",
+     "wisadel",
+     "angelina"
+    ],
+    "taken": 60.1,
+    "taken_pct": 0.439,
+    "win": true
+   },
+   {
+    "boss": "paranoia",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 60740.0,
+    "boss_src_share": 0.947,
+    "brk_dmg_share": 0.294,
+    "brk_time_share": 0.193,
+    "bul_avg": 69.5,
+    "bul_peak": 320,
+    "dmg": 91081.0,
+    "fight_t": 127.0,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 0.663,
+    "leader": "skadi",
+    "level": 28,
+    "max_hp": 123.0,
+    "phases": [
+     [
+      "paranoia",
+      1,
+      0.0
+     ],
+     [
+      "paranoia",
+      2,
+      55.2
+     ]
+    ],
+    "result": "win",
+    "slot": 3,
+    "squad": [
+     "skadi",
+     "wisadel",
+     "angelina"
+    ],
+    "taken": 879.5,
+    "taken_pct": 7.139,
+    "win": true
+   }
+  ],
+  "timeout": false,
+  "snaps": [
+   "BENCHSNAP slot=1 t=210.0 group=path events=15 mobs=22",
+   "BENCHSNAP slot=2 t=420.0 group=bishop+archon events=31 mobs=34",
+   "BENCHSNAP slot=3 t=600.0 group=paranoia events=45 mobs=38"
+  ],
+  "script_errors": 0,
+  "first_error": "",
+  "run_t": 726,
+  "floor_hits": 0
+ },
+ {
+  "op": "skadi",
+  "meta": 0,
+  "seed": 2,
+  "wall": 69.1,
+  "real": [
+   {
+    "boss": "carmen",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 20821.0,
+    "boss_src_share": 0.552,
+    "brk_dmg_share": 0.348,
+    "brk_time_share": 0.236,
+    "bul_avg": 9.1,
+    "bul_peak": 108,
+    "dmg": 20821.0,
+    "fight_t": 46.7,
+    "hp0_frac": 0.916,
+    "hp_end_frac": 0.981,
+    "leader": "skadi",
+    "level": 13,
+    "max_hp": 160.0,
+    "phases": [
+     [
+      "carmen",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 1,
+    "squad": [
+     "skadi",
+     "eyjafjalla",
+     "logos"
+    ],
+    "taken": 222.2,
+    "taken_pct": 1.391,
+    "win": true
+   },
+   {
+    "boss": "bishop+immortal",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 71716.0,
+    "boss_src_share": 0.439,
+    "brk_dmg_share": 0.596,
+    "brk_time_share": 0.215,
+    "bul_avg": 59.2,
+    "bul_peak": 103,
+    "dmg": 71716.0,
+    "fight_t": 44.2,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 0.57,
+    "leader": "skadi",
+    "level": 22,
+    "max_hp": 160.0,
+    "phases": [
+     [
+      "bishop",
+      1,
+      0.0
+     ],
+     [
+      "immortal",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 2,
+    "squad": [
+     "skadi",
+     "eyjafjalla",
+     "logos"
+    ],
+    "taken": 271.7,
+    "taken_pct": 1.701,
+    "win": true
+   },
+   {
+    "boss": "paranoia",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 60740.0,
+    "boss_src_share": 0.925,
+    "brk_dmg_share": 0.314,
+    "brk_time_share": 0.111,
+    "bul_avg": 78.4,
+    "bul_peak": 263,
+    "dmg": 87465.0,
+    "fight_t": 64.4,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 0.757,
+    "leader": "skadi",
+    "level": 29,
+    "max_hp": 240.0,
+    "phases": [
+     [
+      "paranoia",
+      1,
+      0.0
+     ],
+     [
+      "paranoia",
+      2,
+      30.2
+     ]
+    ],
+    "result": "win",
+    "slot": 3,
+    "squad": [
+     "skadi",
+     "eyjafjalla",
+     "logos"
+    ],
+    "taken": 472.9,
+    "taken_pct": 1.974,
+    "win": true
+   }
+  ],
+  "timeout": false,
+  "snaps": [
+   "BENCHSNAP slot=1 t=210.0 group=carmen events=18 mobs=28",
+   "BENCHSNAP slot=2 t=420.0 group=bishop+immortal events=34 mobs=33",
+   "BENCHSNAP slot=3 t=600.0 group=paranoia events=50 mobs=25"
+  ],
+  "script_errors": 0,
+  "first_error": "",
+  "run_t": 664,
+  "floor_hits": 0
+ },
+ {
+  "op": "skadi",
+  "meta": 0,
+  "seed": 3,
+  "wall": 75.6,
+  "real": [
+   {
+    "boss": "path",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 28414.0,
+    "boss_src_share": 0.0,
+    "brk_dmg_share": 0.496,
+    "brk_time_share": 0.349,
+    "bul_avg": 27.4,
+    "bul_peak": 57,
+    "dmg": 28414.0,
+    "fight_t": 55.6,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "skadi",
+    "level": 13,
+    "max_hp": 152.0,
+    "phases": [
+     [
+      "path",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 1,
+    "squad": [
+     "skadi",
+     "hoshiguma",
+     "exusiai"
+    ],
+    "taken": 41.7,
+    "taken_pct": 0.274,
+    "win": true
+   },
+   {
+    "boss": "carmen",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 26219.0,
+    "boss_src_share": 0.848,
+    "brk_dmg_share": 0.28,
+    "brk_time_share": 0.191,
+    "bul_avg": 10.3,
+    "bul_peak": 107,
+    "dmg": 26219.0,
+    "fight_t": 39.4,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 0.996,
+    "leader": "skadi",
+    "level": 22,
+    "max_hp": 228.0,
+    "phases": [
+     [
+      "carmen",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 2,
+    "squad": [
+     "skadi",
+     "hoshiguma",
+     "exusiai"
+    ],
+    "taken": 122.6,
+    "taken_pct": 0.537,
+    "win": true
+   },
+   {
+    "boss": "paranoia",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 51629.0,
+    "boss_src_share": 1.0,
+    "brk_dmg_share": 0.301,
+    "brk_time_share": 0.195,
+    "bul_avg": 55.2,
+    "bul_peak": 249,
+    "dmg": 74338.0,
+    "fight_t": 74.3,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 0.941,
+    "leader": "skadi",
+    "level": 28,
+    "max_hp": 205.0,
+    "phases": [
+     [
+      "paranoia",
+      1,
+      0.0
+     ],
+     [
+      "paranoia",
+      2,
+      37.1
+     ]
+    ],
+    "result": "win",
+    "slot": 3,
+    "squad": [
+     "skadi",
+     "hoshiguma",
+     "exusiai"
+    ],
+    "taken": 212.9,
+    "taken_pct": 1.037,
+    "win": true
+   }
+  ],
+  "timeout": false,
+  "snaps": [
+   "BENCHSNAP slot=1 t=210.0 group=path events=15 mobs=26",
+   "BENCHSNAP slot=2 t=420.0 group=carmen events=32 mobs=39",
+   "BENCHSNAP slot=3 t=600.0 group=paranoia events=47 mobs=42"
+  ],
+  "script_errors": 0,
+  "first_error": "",
+  "run_t": 674,
+  "floor_hits": 0
+ },
+ {
+  "op": "skadi",
+  "meta": 0,
+  "seed": 4,
+  "wall": 66.6,
+  "real": [
+   {
+    "boss": "carmen",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 20821.0,
+    "boss_src_share": 0.59,
+    "brk_dmg_share": 0.448,
+    "brk_time_share": 0.268,
+    "bul_avg": 13.6,
+    "bul_peak": 108,
+    "dmg": 20821.0,
+    "fight_t": 69.0,
+    "hp0_frac": 0.9,
+    "hp_end_frac": 0.569,
+    "leader": "skadi",
+    "level": 14,
+    "max_hp": 152.0,
+    "phases": [
+     [
+      "carmen",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 1,
+    "squad": [
+     "skadi",
+     "irene",
+     "suzuran"
+    ],
+    "taken": 391.8,
+    "taken_pct": 2.576,
+    "win": true
+   },
+   {
+    "boss": "bishop+archon",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 83283.0,
+    "boss_src_share": 0.484,
+    "brk_dmg_share": 0.603,
+    "brk_time_share": 0.365,
+    "bul_avg": 26.8,
+    "bul_peak": 68,
+    "dmg": 83283.0,
+    "fight_t": 35.4,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 0.582,
+    "leader": "skadi",
+    "level": 22,
+    "max_hp": 152.0,
+    "phases": [
+     [
+      "bishop",
+      1,
+      0.0
+     ],
+     [
+      "archon",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 2,
+    "squad": [
+     "skadi",
+     "irene",
+     "suzuran"
+    ],
+    "taken": 244.7,
+    "taken_pct": 1.609,
+    "win": true
+   },
+   {
+    "boss": "paranoia",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 60740.0,
+    "boss_src_share": 0.936,
+    "brk_dmg_share": 0.384,
+    "brk_time_share": 0.121,
+    "bul_avg": 58.8,
+    "bul_peak": 146,
+    "dmg": 87364.0,
+    "fight_t": 50.4,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "skadi",
+    "level": 29,
+    "max_hp": 142.0,
+    "phases": [
+     [
+      "paranoia",
+      1,
+      0.0
+     ],
+     [
+      "paranoia",
+      2,
+      24.5
+     ]
+    ],
+    "result": "win",
+    "slot": 3,
+    "squad": [
+     "skadi",
+     "irene",
+     "suzuran"
+    ],
+    "taken": 371.7,
+    "taken_pct": 2.444,
+    "win": true
+   }
+  ],
+  "timeout": false,
+  "snaps": [
+   "BENCHSNAP slot=1 t=210.0 group=carmen events=13 mobs=31",
+   "BENCHSNAP slot=2 t=420.0 group=bishop+archon events=29 mobs=44",
+   "BENCHSNAP slot=3 t=600.0 group=paranoia events=47 mobs=33"
+  ],
+  "script_errors": 0,
+  "first_error": "",
+  "run_t": 650,
+  "floor_hits": 0
+ },
+ {
+  "op": "skadi",
+  "meta": 0,
+  "seed": 5,
+  "wall": 73.1,
+  "real": [
+   {
+    "boss": "carmen",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 20821.0,
+    "boss_src_share": 0.86,
+    "brk_dmg_share": 0.301,
+    "brk_time_share": 0.279,
+    "bul_avg": 10.7,
+    "bul_peak": 108,
+    "dmg": 20821.0,
+    "fight_t": 99.5,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 0.846,
+    "leader": "skadi",
+    "level": 15,
+    "max_hp": 152.0,
+    "phases": [
+     [
+      "carmen",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 1,
+    "squad": [
+     "skadi",
+     "hoshiguma",
+     "texas"
+    ],
+    "taken": 247.4,
+    "taken_pct": 1.626,
+    "win": true
+   },
+   {
+    "boss": "bishop+archon",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 83283.0,
+    "boss_src_share": 0.982,
+    "brk_dmg_share": 0.543,
+    "brk_time_share": 0.295,
+    "bul_avg": 28.5,
+    "bul_peak": 81,
+    "dmg": 83283.0,
+    "fight_t": 54.1,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "skadi",
+    "level": 22,
+    "max_hp": 152.0,
+    "phases": [
+     [
+      "bishop",
+      1,
+      0.0
+     ],
+     [
+      "archon",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 2,
+    "squad": [
+     "skadi",
+     "hoshiguma",
+     "texas"
+    ],
+    "taken": 174.4,
+    "taken_pct": 1.146,
+    "win": true
+   },
+   {
+    "boss": "paranoia",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 60740.0,
+    "boss_src_share": 1.0,
+    "brk_dmg_share": 0.25,
+    "brk_time_share": 0.188,
+    "bul_avg": 50.9,
+    "bul_peak": 249,
+    "dmg": 87465.0,
+    "fight_t": 71.2,
+    "hp0_frac": 0.995,
+    "hp_end_frac": 0.805,
+    "leader": "skadi",
+    "level": 28,
+    "max_hp": 152.0,
+    "phases": [
+     [
+      "paranoia",
+      1,
+      0.0
+     ],
+     [
+      "paranoia",
+      2,
+      36.0
+     ]
+    ],
+    "result": "win",
+    "slot": 3,
+    "squad": [
+     "skadi",
+     "hoshiguma",
+     "texas"
+    ],
+    "taken": 339.2,
+    "taken_pct": 2.23,
+    "win": true
+   }
+  ],
+  "timeout": false,
+  "snaps": [
+   "BENCHSNAP slot=1 t=210.0 group=carmen events=14 mobs=32",
+   "BENCHSNAP slot=2 t=420.0 group=bishop+archon events=28 mobs=32",
+   "BENCHSNAP slot=3 t=600.0 group=paranoia events=45 mobs=36"
+  ],
+  "script_errors": 0,
+  "first_error": "",
+  "run_t": 671,
+  "floor_hits": 0
+ },
+ {
+  "op": "skadi",
+  "meta": 0,
+  "seed": 6,
+  "wall": 83.7,
+  "real": [
+   {
+    "boss": "carmen",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 20821.0,
+    "boss_src_share": 0.846,
+    "brk_dmg_share": 0.286,
+    "brk_time_share": 0.328,
+    "bul_avg": 10.5,
+    "bul_peak": 108,
+    "dmg": 20821.0,
+    "fight_t": 90.0,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "skadi",
+    "level": 14,
+    "max_hp": 152.0,
+    "phases": [
+     [
+      "carmen",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 1,
+    "squad": [
+     "skadi",
+     "lumen",
+     "suzuran"
+    ],
+    "taken": 503.5,
+    "taken_pct": 3.31,
+    "win": true
+   },
+   {
+    "boss": "path",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 35781.0,
+    "boss_src_share": 0.274,
+    "brk_dmg_share": 0.368,
+    "brk_time_share": 0.313,
+    "bul_avg": 28.9,
+    "bul_peak": 64,
+    "dmg": 35781.0,
+    "fight_t": 42.4,
+    "hp0_frac": 0.874,
+    "hp_end_frac": 1.0,
+    "leader": "skadi",
+    "level": 21,
+    "max_hp": 182.0,
+    "phases": [
+     [
+      "path",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 2,
+    "squad": [
+     "skadi",
+     "lumen",
+     "suzuran"
+    ],
+    "taken": 292.5,
+    "taken_pct": 1.606,
+    "win": true
+   },
+   {
+    "boss": "paranoia",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 60740.0,
+    "boss_src_share": 0.966,
+    "brk_dmg_share": 0.371,
+    "brk_time_share": 0.197,
+    "bul_avg": 76.4,
+    "bul_peak": 320,
+    "dmg": 91109.0,
+    "fight_t": 131.0,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "skadi",
+    "level": 28,
+    "max_hp": 182.0,
+    "phases": [
+     [
+      "paranoia",
+      1,
+      0.0
+     ],
+     [
+      "paranoia",
+      2,
+      58.5
+     ]
+    ],
+    "result": "win",
+    "slot": 3,
+    "squad": [
+     "skadi",
+     "lumen",
+     "suzuran"
+    ],
+    "taken": 752.4,
+    "taken_pct": 4.132,
+    "win": true
+   }
+  ],
+  "timeout": false,
+  "snaps": [
+   "BENCHSNAP slot=1 t=210.0 group=carmen events=13 mobs=30",
+   "BENCHSNAP slot=2 t=420.0 group=path events=27 mobs=81",
+   "BENCHSNAP slot=3 t=600.0 group=paranoia events=47 mobs=39"
+  ],
+  "script_errors": 0,
+  "first_error": "",
+  "run_t": 731,
+  "floor_hits": 0
+ },
+ {
+  "op": "skadi",
+  "meta": 18,
+  "seed": 1,
+  "wall": 76.9,
+  "real": [
+   {
+    "boss": "path",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 28414.0,
+    "boss_src_share": 0.0,
+    "brk_dmg_share": 0.496,
+    "brk_time_share": 0.36,
+    "bul_avg": 28.4,
+    "bul_peak": 61,
+    "dmg": 28414.0,
+    "fight_t": 65.7,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "skadi",
+    "level": 14,
+    "max_hp": 170.0,
+    "phases": [
+     [
+      "path",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 1,
+    "squad": [
+     "skadi",
+     "wisadel",
+     "hoshiguma"
+    ],
+    "taken": 31.0,
+    "taken_pct": 0.182,
+    "win": true
+   },
+   {
+    "boss": "bishop+immortal",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 71716.0,
+    "boss_src_share": 0.278,
+    "brk_dmg_share": 0.604,
+    "brk_time_share": 0.291,
+    "bul_avg": 28.5,
+    "bul_peak": 91,
+    "dmg": 71716.0,
+    "fight_t": 44.3,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 0.913,
+    "leader": "skadi",
+    "level": 22,
+    "max_hp": 153.0,
+    "phases": [
+     [
+      "bishop",
+      1,
+      0.0
+     ],
+     [
+      "immortal",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 2,
+    "squad": [
+     "skadi",
+     "wisadel",
+     "hoshiguma"
+    ],
+    "taken": 54.0,
+    "taken_pct": 0.352,
+    "win": true
+   },
+   {
+    "boss": "paranoia",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 60740.0,
+    "boss_src_share": 0.918,
+    "brk_dmg_share": 0.35,
+    "brk_time_share": 0.21,
+    "bul_avg": 56.6,
+    "bul_peak": 249,
+    "dmg": 87465.0,
+    "fight_t": 84.6,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 0.7,
+    "leader": "skadi",
+    "level": 29,
+    "max_hp": 138.0,
+    "phases": [
+     [
+      "paranoia",
+      1,
+      0.0
+     ],
+     [
+      "paranoia",
+      2,
+      41.0
+     ]
+    ],
+    "result": "win",
+    "slot": 3,
+    "squad": [
+     "skadi",
+     "wisadel",
+     "hoshiguma"
+    ],
+    "taken": 295.3,
+    "taken_pct": 2.14,
+    "win": true
+   }
+  ],
+  "timeout": false,
+  "snaps": [
+   "BENCHSNAP slot=1 t=210.0 group=path events=12 mobs=34",
+   "BENCHSNAP slot=2 t=420.0 group=bishop+immortal events=33 mobs=36",
+   "BENCHSNAP slot=3 t=600.0 group=paranoia events=51 mobs=39"
+  ],
+  "script_errors": 0,
+  "first_error": "",
+  "run_t": 684,
+  "floor_hits": 0
+ },
+ {
+  "op": "skadi",
+  "meta": 18,
+  "seed": 2,
+  "wall": 79.5,
+  "real": [
+   {
+    "boss": "carmen",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 20821.0,
+    "boss_src_share": 0.92,
+    "brk_dmg_share": 0.493,
+    "brk_time_share": 0.292,
+    "bul_avg": 9.1,
+    "bul_peak": 108,
+    "dmg": 20821.0,
+    "fight_t": 59.2,
+    "hp0_frac": 0.901,
+    "hp_end_frac": 1.0,
+    "leader": "skadi",
+    "level": 14,
+    "max_hp": 170.0,
+    "phases": [
+     [
+      "carmen",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 1,
+    "squad": [
+     "skadi",
+     "lumen",
+     "suzuran"
+    ],
+    "taken": 230.9,
+    "taken_pct": 1.355,
+    "win": true
+   },
+   {
+    "boss": "bishop+archon",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 83283.0,
+    "boss_src_share": 0.747,
+    "brk_dmg_share": 0.705,
+    "brk_time_share": 0.334,
+    "bul_avg": 35.3,
+    "bul_peak": 109,
+    "dmg": 83283.0,
+    "fight_t": 63.4,
+    "hp0_frac": 0.796,
+    "hp_end_frac": 1.0,
+    "leader": "skadi",
+    "level": 22,
+    "max_hp": 170.0,
+    "phases": [
+     [
+      "bishop",
+      1,
+      0.0
+     ],
+     [
+      "archon",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 2,
+    "squad": [
+     "skadi",
+     "lumen",
+     "suzuran"
+    ],
+    "taken": 191.3,
+    "taken_pct": 1.123,
+    "win": true
+   },
+   {
+    "boss": "paranoia",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 51629.0,
+    "boss_src_share": 1.0,
+    "brk_dmg_share": 0.319,
+    "brk_time_share": 0.171,
+    "bul_avg": 76.5,
+    "bul_peak": 272,
+    "dmg": 75847.0,
+    "fight_t": 118.8,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "skadi",
+    "level": 29,
+    "max_hp": 170.0,
+    "phases": [
+     [
+      "paranoia",
+      1,
+      0.0
+     ],
+     [
+      "paranoia",
+      2,
+      57.3
+     ]
+    ],
+    "result": "win",
+    "slot": 3,
+    "squad": [
+     "skadi",
+     "lumen",
+     "suzuran"
+    ],
+    "taken": 682.1,
+    "taken_pct": 4.004,
+    "win": true
+   }
+  ],
+  "timeout": false,
+  "snaps": [
+   "BENCHSNAP slot=1 t=210.0 group=carmen events=13 mobs=31",
+   "BENCHSNAP slot=2 t=420.0 group=bishop+archon events=24 mobs=39",
+   "BENCHSNAP slot=3 t=600.0 group=paranoia events=38 mobs=44"
+  ],
+  "script_errors": 0,
+  "first_error": "",
+  "run_t": 718,
+  "floor_hits": 0
+ },
+ {
+  "op": "skadi",
+  "meta": 18,
+  "seed": 3,
+  "wall": 72.3,
+  "real": [
+   {
+    "boss": "path",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 28414.0,
+    "boss_src_share": 0.804,
+    "brk_dmg_share": 0.521,
+    "brk_time_share": 0.366,
+    "bul_avg": 26.6,
+    "bul_peak": 57,
+    "dmg": 28414.0,
+    "fight_t": 52.5,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 0.905,
+    "leader": "skadi",
+    "level": 14,
+    "max_hp": 170.0,
+    "phases": [
+     [
+      "path",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 1,
+    "squad": [
+     "skadi",
+     "hoshiguma",
+     "skalter"
+    ],
+    "taken": 157.4,
+    "taken_pct": 0.924,
+    "win": true
+   },
+   {
+    "boss": "bishop+immortal",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 71716.0,
+    "boss_src_share": 0.515,
+    "brk_dmg_share": 0.612,
+    "brk_time_share": 0.262,
+    "bul_avg": 32.2,
+    "bul_peak": 103,
+    "dmg": 71716.0,
+    "fight_t": 22.6,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 0.66,
+    "leader": "skadi",
+    "level": 21,
+    "max_hp": 161.0,
+    "phases": [
+     [
+      "bishop",
+      1,
+      0.0
+     ],
+     [
+      "immortal",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 2,
+    "squad": [
+     "skadi",
+     "hoshiguma",
+     "skalter"
+    ],
+    "taken": 135.0,
+    "taken_pct": 0.839,
+    "win": true
+   },
+   {
+    "boss": "knight_boss",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 76378.0,
+    "boss_src_share": 1.0,
+    "brk_dmg_share": 0.374,
+    "brk_time_share": 0.217,
+    "bul_avg": 10.5,
+    "bul_peak": 48,
+    "dmg": 112276.0,
+    "fight_t": 44.4,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "skadi",
+    "level": 28,
+    "max_hp": 233.0,
+    "phases": [
+     [
+      "knight_boss",
+      1,
+      0.0
+     ],
+     [
+      "knight_boss",
+      2,
+      29.6
+     ]
+    ],
+    "result": "win",
+    "slot": 3,
+    "squad": [
+     "skadi",
+     "hoshiguma",
+     "skalter"
+    ],
+    "taken": 311.4,
+    "taken_pct": 1.337,
+    "win": true
+   }
+  ],
+  "timeout": false,
+  "snaps": [
+   "BENCHSNAP slot=1 t=210.0 group=path events=17 mobs=32",
+   "BENCHSNAP slot=2 t=420.0 group=bishop+immortal events=33 mobs=39",
+   "BENCHSNAP slot=3 t=600.0 group=knight_boss events=47 mobs=38"
+  ],
+  "script_errors": 0,
+  "first_error": "",
+  "run_t": 644,
+  "floor_hits": 0
+ },
+ {
+  "op": "skadi",
+  "meta": 18,
+  "seed": 4,
+  "wall": 71.9,
+  "real": [
+   {
+    "boss": "path",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 28414.0,
+    "boss_src_share": 0.0,
+    "brk_dmg_share": 0.428,
+    "brk_time_share": 0.351,
+    "bul_avg": 27.6,
+    "bul_peak": 58,
+    "dmg": 28414.0,
+    "fight_t": 37.2,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "skadi",
+    "level": 14,
+    "max_hp": 170.0,
+    "phases": [
+     [
+      "path",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 1,
+    "squad": [
+     "skadi",
+     "irene",
+     "suzuran"
+    ],
+    "taken": 3.1,
+    "taken_pct": 0.018,
+    "win": true
+   },
+   {
+    "boss": "carmen",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 26219.0,
+    "boss_src_share": 0.706,
+    "brk_dmg_share": 0.031,
+    "brk_time_share": 0.062,
+    "bul_avg": 0.1,
+    "bul_peak": 1,
+    "dmg": 26219.0,
+    "fight_t": 21.3,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 0.987,
+    "leader": "skadi",
+    "level": 22,
+    "max_hp": 246.0,
+    "phases": [
+     [
+      "carmen",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 2,
+    "squad": [
+     "skadi",
+     "irene",
+     "suzuran"
+    ],
+    "taken": 54.8,
+    "taken_pct": 0.222,
+    "win": true
+   },
+   {
+    "boss": "paranoia",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 60740.0,
+    "boss_src_share": 1.0,
+    "brk_dmg_share": 0.389,
+    "brk_time_share": 0.154,
+    "bul_avg": 57.4,
+    "bul_peak": 249,
+    "dmg": 89287.0,
+    "fight_t": 77.4,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "skadi",
+    "level": 29,
+    "max_hp": 246.0,
+    "phases": [
+     [
+      "paranoia",
+      1,
+      0.0
+     ],
+     [
+      "paranoia",
+      2,
+      37.5
+     ]
+    ],
+    "result": "win",
+    "slot": 3,
+    "squad": [
+     "skadi",
+     "irene",
+     "suzuran"
+    ],
+    "taken": 628.0,
+    "taken_pct": 2.549,
+    "win": true
+   }
+  ],
+  "timeout": false,
+  "snaps": [
+   "BENCHSNAP slot=1 t=210.0 group=path events=14 mobs=32",
+   "BENCHSNAP slot=2 t=420.0 group=carmen events=32 mobs=37",
+   "BENCHSNAP slot=3 t=600.0 group=paranoia events=45 mobs=31"
+  ],
+  "script_errors": 0,
+  "first_error": "",
+  "run_t": 677,
+  "floor_hits": 0
+ },
+ {
+  "op": "skadi",
+  "meta": 18,
+  "seed": 5,
+  "wall": 65.5,
+  "real": [
+   {
+    "boss": "carmen",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 20821.0,
+    "boss_src_share": 0.945,
+    "brk_dmg_share": 0.448,
+    "brk_time_share": 0.271,
+    "bul_avg": 13.1,
+    "bul_peak": 108,
+    "dmg": 20821.0,
+    "fight_t": 64.0,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "skadi",
+    "level": 14,
+    "max_hp": 170.0,
+    "phases": [
+     [
+      "carmen",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 1,
+    "squad": [
+     "skadi",
+     "hoshiguma",
+     "specter_unchained"
+    ],
+    "taken": 130.8,
+    "taken_pct": 0.768,
+    "win": true
+   },
+   {
+    "boss": "bishop+archon",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 83283.0,
+    "boss_src_share": 0.783,
+    "brk_dmg_share": 0.683,
+    "brk_time_share": 0.351,
+    "bul_avg": 27.8,
+    "bul_peak": 67,
+    "dmg": 83283.0,
+    "fight_t": 36.7,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "skadi",
+    "level": 21,
+    "max_hp": 153.0,
+    "phases": [
+     [
+      "bishop",
+      1,
+      0.0
+     ],
+     [
+      "archon",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 2,
+    "squad": [
+     "skadi",
+     "hoshiguma",
+     "specter_unchained"
+    ],
+    "taken": 19.2,
+    "taken_pct": 0.125,
+    "win": true
+   },
+   {
+    "boss": "knight_boss",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 76378.0,
+    "boss_src_share": 0.872,
+    "brk_dmg_share": 0.556,
+    "brk_time_share": 0.298,
+    "bul_avg": 13.0,
+    "bul_peak": 49,
+    "dmg": 112276.0,
+    "fight_t": 60.2,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 0.692,
+    "leader": "skadi",
+    "level": 28,
+    "max_hp": 153.0,
+    "phases": [
+     [
+      "knight_boss",
+      1,
+      0.0
+     ],
+     [
+      "knight_boss",
+      2,
+      37.6
+     ]
+    ],
+    "result": "win",
+    "slot": 3,
+    "squad": [
+     "skadi",
+     "hoshiguma",
+     "specter_unchained"
+    ],
+    "taken": 207.3,
+    "taken_pct": 1.352,
+    "win": true
+   }
+  ],
+  "timeout": false,
+  "snaps": [
+   "BENCHSNAP slot=1 t=210.0 group=carmen events=14 mobs=34",
+   "BENCHSNAP slot=2 t=420.0 group=bishop+archon events=33 mobs=38",
+   "BENCHSNAP slot=3 t=600.0 group=knight_boss events=51 mobs=49"
+  ],
+  "script_errors": 0,
+  "first_error": "",
+  "run_t": 660,
+  "floor_hits": 0
+ },
+ {
+  "op": "skadi",
+  "meta": 18,
+  "seed": 6,
+  "wall": 71.2,
+  "real": [
+   {
+    "boss": "path",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 28414.0,
+    "boss_src_share": 1.0,
+    "brk_dmg_share": 0.515,
+    "brk_time_share": 0.349,
+    "bul_avg": 28.1,
+    "bul_peak": 64,
+    "dmg": 28414.0,
+    "fight_t": 63.3,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "skadi",
+    "level": 14,
+    "max_hp": 170.0,
+    "phases": [
+     [
+      "path",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 1,
+    "squad": [
+     "skadi",
+     "exusiai",
+     "lumen"
+    ],
+    "taken": 166.5,
+    "taken_pct": 0.977,
+    "win": true
+   },
+   {
+    "boss": "carmen",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 26219.0,
+    "boss_src_share": 0.869,
+    "brk_dmg_share": 0.033,
+    "brk_time_share": 0.107,
+    "bul_avg": 9.6,
+    "bul_peak": 108,
+    "dmg": 26219.0,
+    "fight_t": 28.4,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "skadi",
+    "level": 21,
+    "max_hp": 184.0,
+    "phases": [
+     [
+      "carmen",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 2,
+    "squad": [
+     "skadi",
+     "exusiai",
+     "lumen"
+    ],
+    "taken": 111.3,
+    "taken_pct": 0.605,
+    "win": true
+   },
+   {
+    "boss": "paranoia",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 60740.0,
+    "boss_src_share": 1.0,
+    "brk_dmg_share": 0.365,
+    "brk_time_share": 0.159,
+    "bul_avg": 56.6,
+    "bul_peak": 246,
+    "dmg": 87465.0,
+    "fight_t": 66.0,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 0.813,
+    "leader": "skadi",
+    "level": 29,
+    "max_hp": 260.0,
+    "phases": [
+     [
+      "paranoia",
+      1,
+      0.0
+     ],
+     [
+      "paranoia",
+      2,
+      31.7
+     ]
+    ],
+    "result": "win",
+    "slot": 3,
+    "squad": [
+     "skadi",
+     "exusiai",
+     "lumen"
+    ],
+    "taken": 749.5,
+    "taken_pct": 2.882,
+    "win": true
+   }
+  ],
+  "timeout": false,
+  "snaps": [
+   "BENCHSNAP slot=1 t=210.0 group=path events=14 mobs=32",
+   "BENCHSNAP slot=2 t=420.0 group=carmen events=28 mobs=44",
+   "BENCHSNAP slot=3 t=600.0 group=paranoia events=41 mobs=36"
+  ],
+  "script_errors": 0,
+  "first_error": "",
+  "run_t": 666,
+  "floor_hits": 0
+ }
+]
