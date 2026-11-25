@@ -104,6 +104,46 @@ func w_stab(e: Dictionary, ang: float, ln: float, wid: float, dur: float, pct: f
 	return _warn(e, "line", dur, d)
 
 
+## ---- 直接判定（脚本自己的场上实体、地形推进等）：按落点圈结算一次，伤害口径同预警（docs/393 §12）
+func hit_now(e: Dictionary, pos: Vector2, r: float, pct: float, x := {}) -> bool:
+	var hp0: float = g.hp
+	var w := {"shape": "circle", "pos": pos, "r": r, "owner": e, "dmg": pd(e, pct), "act": "lob", "corrode": 0.0}
+	w.merge(x, true)
+	g.tele.warn_damage(w)
+	return g.hp < hp0
+
+
+## ---- 临时障碍（冰桩 / 冰峰 / 冰柱，docs/393 §11.10）：e.obst = [{pos, r, until}]；挡队长走路（每帧推出去），也挡 Boss 自己的弹
+func add_obst(e: Dictionary, pos: Vector2, r: float, life: float) -> void:
+	if not e.has("obst"):
+		e["obst"] = []
+	e.obst.append({"pos": pos, "r": r, "until": g.t + life})
+
+
+func obst_tick(e: Dictionary) -> void:
+	if not e.has("obst") or e.obst.is_empty():
+		return
+	e.obst = e.obst.filter(func(o): return float(o.until) > g.t)
+	for o in e.obst:
+		var d: Vector2 = g.ppos - o.pos
+		var rr: float = float(o.r) + 10.0
+		if d.length() < rr:
+			g.ppos = o.pos + (d.normalized() if d.length() > 0.1 else Vector2.DOWN) * rr
+	for b in g.ebullets:
+		if b.life > 0.0 and int(b.get("source_id", -1)) == int(e.id):
+			for o in e.obst:
+				if b.pos.distance_to(o.pos) < float(o.r):
+					b.life = 0.0
+					break
+
+
+func obst_at(e: Dictionary, p: Vector2, pad := 0.0) -> bool:
+	for o in e.get("obst", []):
+		if p.distance_to(o.pos) < float(o.r) + pad:
+			return true
+	return false
+
+
 ## ---- 延时队列
 func later(e: Dictionary, delay: float, f: Callable) -> void:
 	if not e.has("sq"):
@@ -129,19 +169,26 @@ func tick(e: Dictionary, dt: float) -> void:
 		_tint2(e, tint2_col)
 
 
-## 选招：本帧可以出招且不在上一招的占用时间里 → 按表顺序放第一条可放的
+## 选招：本帧可以出招且不在上一招的占用时间里 → 可放的招里挑最久没放过的（11-26：原来按表顺序放第一条，表尾的招会被冷却短的招一直挤掉）
 func pick(e: Dictionary, ready: bool, dir: Vector2, dist: float) -> void:
 	if not ready or g.t < float(e.get("busy_t", 0.0)) or e.get("coma", false):
 		return
+	if not e.has("used_t"):
+		e["used_t"] = {}
+	var cand: Array = []
 	for m in moves(e):
 		if dist < float(m[2]) or dist > float(m[3]):
 			continue
 		if float(e.get("cds", {}).get(str(m[0]), 0.0)) > g.t:
 			continue
+		cand.append(m)
+	cand.sort_custom(func(x, y): return float(e.used_t.get(str(x[0]), -1.0)) < float(e.used_t.get(str(y[0]), -1.0)))
+	for m in cand:
 		var busy: float = float((m[4] as Callable).call(e, dir, dist))
 		if busy < 0.0:
 			continue
 		_cd(e, str(m[0]), float(m[1]) * float(e.get("cd_k", 1.0)))
+		e.used_t[str(m[0])] = g.t
 		e.busy_t = g.t + busy
 		return
 
