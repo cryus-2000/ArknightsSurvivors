@@ -1,0 +1,2118 @@
+{
+ "tag": "samibench6-on-shaman",
+ "game": "/home/user/ArknightsSurvivors/game",
+ "records": [
+  {
+   "boss": "shaman",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 1,
+   "wall": 17.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 20898.0,
+   "fight_t": 64.7,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.3|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:logos|op:logos\",\"1|0.18|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 144.612 -> 140.4"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.753,
+   "leader": "kaltsit",
+   "level": 13,
+   "max_hp": 140.0,
+   "moves": {
+    "shaman:冰柱寒链": 8,
+    "shaman:反自然馈赠": 3,
+    "shaman:寒灾": 4,
+    "shaman:寒链·弹射": 8,
+    "shaman:踏雪·收屑": 3,
+    "shaman:霜陷·冰晶": 8,
+    "shaman:风雪·斜飘": 8
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "kaltsit_m0_s1_slot1",
+   "squad": [
+    "kaltsit",
+    "skadi",
+    "logos"
+   ],
+   "src": {
+    "boss_shaman": 1.76883643162393,
+    "contact_husk": 0.0945580754389228,
+    "contact_mhshep": 0.0371073449070262
+   },
+   "taken": 266.8,
+   "taken_pct": 1.901,
+   "win": true
+  },
+  {
+   "boss": "shaman",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 2,
+   "wall": 19.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.356,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 13448.0,
+   "fight_t": 93.9,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.3|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:eyjafjalla\",\"2|1.25|command|op:wisadel\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:eyjafjalla|op:eyjafjalla\",\"1|0.18|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:eyjafjalla\",\"2|1.5|command|op:wisadel\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "kaltsit",
+   "level": 14,
+   "max_hp": 140.0,
+   "moves": {
+    "shaman:冰柱寒链": 13,
+    "shaman:反自然馈赠": 6,
+    "shaman:寒灾": 3,
+    "shaman:寒链·弹射": 13,
+    "shaman:踏雪·收屑": 3,
+    "shaman:霜陷·冰晶": 13,
+    "shaman:风雪·斜飘": 13
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "kaltsit_m0_s2_slot1",
+   "squad": [
+    "kaltsit",
+    "eyjafjalla",
+    "wisadel"
+   ],
+   "src": {
+    "boss_shaman": 3.09370555555556,
+    "contact_drone": 0.0394934346716197,
+    "contact_husk": 0.108362857245455,
+    "contact_snsbr": 0.658896844765861,
+    "contact_uterer": 0.0769678489388619
+   },
+   "taken": 558.4,
+   "taken_pct": 3.977,
+   "win": false
+  },
+  {
+   "boss": "shaman",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 3,
+   "wall": 19.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.501,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 10432.0,
+   "fight_t": 75.6,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.12|lshape:gladiia|op:gladiia\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|0.3|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.18|lshape:kaltsit|op:kaltsit\",\"1|0.25|lshape:gladiia|op:gladiia\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.3|totem_3|\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "kaltsit",
+   "level": 14,
+   "max_hp": 126.0,
+   "moves": {
+    "shaman:冰柱寒链": 12,
+    "shaman:反自然馈赠": 5,
+    "shaman:寒链·弹射": 11,
+    "shaman:霜陷·冰晶": 12,
+    "shaman:风雪·斜飘": 11
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "kaltsit_m0_s3_slot1",
+   "squad": [
+    "kaltsit",
+    "skalter",
+    "gladiia"
+   ],
+   "src": {
+    "boss_shaman": 2.68580756777767,
+    "contact_breaker": 1.00145616796738,
+    "contact_drone": 0.121663637324276,
+    "contact_husk": 0.440225126196619
+   },
+   "taken": 596.6,
+   "taken_pct": 4.249,
+   "win": false
+  },
+  {
+   "boss": "shaman",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 4,
+   "wall": 19.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 20898.0,
+   "fight_t": 96.2,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.75|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.15|lshape:specter_unchained|op:specter_unchained\",\"1|0.45|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 144.612 -> 140.4"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 14,
+   "max_hp": 149.0,
+   "moves": {
+    "shaman:冰柱寒链": 13,
+    "shaman:反自然馈赠": 4,
+    "shaman:寒灾": 5,
+    "shaman:寒链·弹射": 12,
+    "shaman:踏雪·收屑": 5,
+    "shaman:霜陷·冰晶": 12,
+    "shaman:风雪·斜飘": 12
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "kaltsit_m0_s4_slot1",
+   "squad": [
+    "kaltsit",
+    "specter_unchained",
+    "lumen"
+   ],
+   "src": {
+    "boss_shaman": 3.56753236111111,
+    "contact_husk": 0.0501657806504918,
+    "contact_rockback": 0.130371245384843
+   },
+   "taken": 526.2,
+   "taken_pct": 3.748,
+   "win": true
+  },
+  {
+   "boss": "shaman",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 5,
+   "wall": 16.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.223,
+   "boss_maxhp": 26122.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 20286.0,
+   "fight_t": 56.1,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.3|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:logos\"] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.08|lshape:logos|op:logos\",\"1|0.18|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:logos\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "kaltsit",
+   "level": 13,
+   "max_hp": 140.0,
+   "moves": {
+    "shaman:冰柱寒链": 8,
+    "shaman:反自然馈赠": 3,
+    "shaman:寒灾": 3,
+    "shaman:寒链·弹射": 7,
+    "shaman:踏雪·收屑": 2,
+    "shaman:霜陷·冰晶": 7,
+    "shaman:风雪·斜飘": 7
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "kaltsit_m0_s5_slot1",
+   "squad": [
+    "kaltsit",
+    "logos",
+    "suzuran"
+   ],
+   "src": {
+    "boss_shaman": 1.81058719017094,
+    "bullet": 0.124615384615385,
+    "contact_mhshep": 0.11211767381234
+   },
+   "taken": 287.4,
+   "taken_pct": 2.047,
+   "win": false
+  },
+  {
+   "boss": "shaman",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 6,
+   "wall": 20.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 20898.0,
+   "fight_t": 99.7,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.12|lshape:angelina|op:angelina\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|0.75|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.25|lshape:angelina|op:angelina\",\"1|0.45|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 148.95 -> 140.4",
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 14,
+   "max_hp": 145.0,
+   "moves": {
+    "shaman:冰柱寒链": 14,
+    "shaman:反自然馈赠": 6,
+    "shaman:寒灾": 4,
+    "shaman:寒链·弹射": 13,
+    "shaman:踏雪·收屑": 3,
+    "shaman:霜陷·冰晶": 14,
+    "shaman:风雪·斜飘": 13
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "kaltsit_m0_s6_slot1",
+   "squad": [
+    "kaltsit",
+    "angelina",
+    "texas"
+   ],
+   "src": {
+    "boss_shaman": 2.71548364316239
+   },
+   "taken": 381.3,
+   "taken_pct": 2.715,
+   "win": true
+  },
+  {
+   "boss": "shaman",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 1,
+   "wall": 20.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 20898.0,
+   "fight_t": 101.6,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.75|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.45|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 161.965 -> 157.248"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.902,
+   "leader": "kaltsit",
+   "level": 14,
+   "max_hp": 162.0,
+   "moves": {
+    "shaman:冰柱寒链": 13,
+    "shaman:反自然馈赠": 5,
+    "shaman:寒灾": 6,
+    "shaman:寒链·弹射": 12,
+    "shaman:踏雪·收屑": 6,
+    "shaman:霜陷·冰晶": 13,
+    "shaman:风雪·斜飘": 13
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "kaltsit_m18_s1_slot1",
+   "squad": [
+    "kaltsit",
+    "eyjafjalla",
+    "irene"
+   ],
+   "src": {
+    "boss_shaman": 2.55540502899878,
+    "contact_breaker": 0.10082563868145,
+    "contact_husk": 0.134437190817115,
+    "contact_uterer": 0.055198647015728
+   },
+   "taken": 447.5,
+   "taken_pct": 2.846,
+   "win": true
+  },
+  {
+   "boss": "shaman",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 2,
+   "wall": 19.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 20898.0,
+   "fight_t": 87.5,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.75|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.15|lshape:texas|op:texas\",\"1|0.45|lshape:kaltsit|op:kaltsit\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 14,
+   "max_hp": 157.0,
+   "moves": {
+    "shaman:冰柱寒链": 11,
+    "shaman:反自然馈赠": 4,
+    "shaman:寒灾": 5,
+    "shaman:寒链·弹射": 11,
+    "shaman:踏雪·收屑": 5,
+    "shaman:霜陷·冰晶": 11,
+    "shaman:风雪·斜飘": 11
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "kaltsit_m18_s2_slot1",
+   "squad": [
+    "kaltsit",
+    "irene",
+    "texas"
+   ],
+   "src": {
+    "boss_shaman": 1.67283739697802
+   },
+   "taken": 263.1,
+   "taken_pct": 1.673,
+   "win": true
+  },
+  {
+   "boss": "shaman",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 3,
+   "wall": 16.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 20898.0,
+   "fight_t": 52.2,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.75|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.15|lshape:hoshiguma|op:hoshiguma\",\"1|0.45|lshape:kaltsit|op:kaltsit\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.412,
+   "leader": "kaltsit",
+   "level": 14,
+   "max_hp": 157.0,
+   "moves": {
+    "shaman:冰柱寒链": 7,
+    "shaman:反自然馈赠": 4,
+    "shaman:寒灾": 4,
+    "shaman:寒链·弹射": 6,
+    "shaman:踏雪·收屑": 3,
+    "shaman:霜陷·冰晶": 6,
+    "shaman:风雪·斜飘": 6
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "kaltsit_m18_s3_slot1",
+   "squad": [
+    "kaltsit",
+    "hoshiguma",
+    "ulpianus"
+   ],
+   "src": {
+    "boss_shaman": 0.815762429410867,
+    "contact_mhshep": 0.0569586614964018,
+    "shock_breaker": 0.442325107844999
+   },
+   "taken": 206.8,
+   "taken_pct": 1.315,
+   "win": true
+  },
+  {
+   "boss": "shaman",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 4,
+   "wall": 18.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 26122.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 26122.0,
+   "fight_t": 92.3,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.75|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.15|lshape:irene|op:irene\",\"1|0.45|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 161.965 -> 157.248"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.927,
+   "leader": "kaltsit",
+   "level": 15,
+   "max_hp": 167.0,
+   "moves": {
+    "shaman:冰柱寒链": 12,
+    "shaman:反自然馈赠": 6,
+    "shaman:寒灾": 5,
+    "shaman:寒链·弹射": 11,
+    "shaman:踏雪·收屑": 5,
+    "shaman:霜陷·冰晶": 12,
+    "shaman:风雪·斜飘": 12
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "kaltsit_m18_s4_slot1",
+   "squad": [
+    "kaltsit",
+    "specter_unchained",
+    "irene"
+   ],
+   "src": {
+    "boss_shaman": 1.76832388965201,
+    "contact_breaker": 0.0552583086541217,
+    "contact_husk": 0.0534603212605613,
+    "shock_breaker": 0.0777568568318325
+   },
+   "taken": 307.4,
+   "taken_pct": 1.955,
+   "win": true
+  },
+  {
+   "boss": "shaman",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 5,
+   "wall": 18.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 20898.0,
+   "fight_t": 79.1,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.12|lshape:skalter|op:skalter\"] 多 []",
+    "mods.dmg: 缺 [\"2|1.2|link:skalter|\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|0.75|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.25|lshape:skalter|op:skalter\",\"1|0.45|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.dmg_mult: 1.2 -> 1.0"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.99,
+   "leader": "kaltsit",
+   "level": 14,
+   "max_hp": 149.0,
+   "moves": {
+    "shaman:冰柱寒链": 10,
+    "shaman:反自然馈赠": 5,
+    "shaman:寒灾": 5,
+    "shaman:寒链·弹射": 9,
+    "shaman:踏雪·收屑": 5,
+    "shaman:霜陷·冰晶": 10,
+    "shaman:风雪·斜飘": 10
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "kaltsit_m18_s5_slot1",
+   "squad": [
+    "kaltsit",
+    "wisadel",
+    "skalter"
+   ],
+   "src": {
+    "boss_shaman": 2.09710479624542
+   },
+   "taken": 329.8,
+   "taken_pct": 2.097,
+   "win": true
+  },
+  {
+   "boss": "shaman",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 6,
+   "wall": 18.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 20898.0,
+   "fight_t": 95.2,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.75|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:wisadel|op:wisadel\",\"1|0.45|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 166.824 -> 157.248"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 14,
+   "max_hp": 168.0,
+   "moves": {
+    "shaman:冰柱寒链": 12,
+    "shaman:反自然馈赠": 4,
+    "shaman:寒灾": 6,
+    "shaman:寒链·弹射": 11,
+    "shaman:踏雪·收屑": 6,
+    "shaman:霜陷·冰晶": 12,
+    "shaman:风雪·斜飘": 12
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "kaltsit_m18_s6_slot1",
+   "squad": [
+    "kaltsit",
+    "wisadel",
+    "exusiai"
+   ],
+   "src": {
+    "boss_shaman": 2.30381249046093,
+    "bullet": 0.222527472527472,
+    "contact_husk": 0.0483908863305442,
+    "shock_breaker": 0.125832740526777
+   },
+   "taken": 424.7,
+   "taken_pct": 2.701,
+   "win": true
+  },
+  {
+   "boss": "shaman",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 1,
+   "wall": 17.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.574,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 8898.0,
+   "fight_t": 55.5,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.12|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.25|lshape:suzuran|op:suzuran\",\"1|0.375|lshape:skadi|op:skadi\"] 多 []",
+    "stats.max_hp: 195.829 -> 190.125"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 190.0,
+   "moves": {
+    "shaman:冰柱寒链": 9,
+    "shaman:反自然馈赠": 3,
+    "shaman:寒链·弹射": 8,
+    "shaman:霜陷·冰晶": 9,
+    "shaman:风雪·斜飘": 8
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "skadi_m0_s1_slot1",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "suzuran"
+   ],
+   "src": {
+    "boss_shaman": 1.83672373438527
+   },
+   "taken": 349.2,
+   "taken_pct": 1.837,
+   "win": false
+  },
+  {
+   "boss": "shaman",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 2,
+   "wall": 16.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.531,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 9791.0,
+   "fight_t": 55.0,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.08|lshape:eyjafjalla|op:eyjafjalla\",\"1|0.375|lshape:skadi|op:skadi\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 144.0,
+   "moves": {
+    "shaman:冰柱寒链": 9,
+    "shaman:反自然馈赠": 4,
+    "shaman:寒链·弹射": 8,
+    "shaman:霜陷·冰晶": 8,
+    "shaman:风雪·斜飘": 8
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "skadi_m0_s2_slot1",
+   "squad": [
+    "skadi",
+    "eyjafjalla",
+    "hoshiguma"
+   ],
+   "src": {
+    "boss_shaman": 1.65511505588429,
+    "contact_breaker": 0.166089420293689
+   },
+   "taken": 277.0,
+   "taken_pct": 1.821,
+   "win": false
+  },
+  {
+   "boss": "shaman",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 3,
+   "wall": 20.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 20898.0,
+   "fight_t": 114.0,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.15|lshape:hoshiguma|op:hoshiguma\",\"1|0.15|lshape:skadi|op:skadi\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 15,
+   "max_hp": 152.0,
+   "moves": {
+    "shaman:冰柱寒链": 15,
+    "shaman:反自然馈赠": 7,
+    "shaman:寒灾": 3,
+    "shaman:寒链·弹射": 15,
+    "shaman:踏雪·收屑": 2,
+    "shaman:霜陷·冰晶": 15,
+    "shaman:风雪·斜飘": 15
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m0_s3_slot1",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "mizuki"
+   ],
+   "src": {
+    "boss_shaman": 1.98918257725181,
+    "bullet": 0.242840236686391,
+    "contact_uterer": 0.0489395242417485,
+    "shock_breaker": 0.53809870746628
+   },
+   "taken": 428.8,
+   "taken_pct": 2.819,
+   "win": true
+  },
+  {
+   "boss": "shaman",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 4,
+   "wall": 18.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.163,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 17494.0,
+   "fight_t": 88.6,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:wisadel|op:wisadel\",\"1|0.375|lshape:skadi|op:skadi\"] 多 []",
+    "stats.max_hp: 156.663 -> 152.1"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 157.0,
+   "moves": {
+    "shaman:冰柱寒链": 12,
+    "shaman:反自然馈赠": 5,
+    "shaman:寒灾": 5,
+    "shaman:寒链·弹射": 11,
+    "shaman:踏雪·收屑": 4,
+    "shaman:霜陷·冰晶": 11,
+    "shaman:风雪·斜飘": 11
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "skadi_m0_s4_slot1",
+   "squad": [
+    "skadi",
+    "saria",
+    "wisadel"
+   ],
+   "src": {
+    "boss_shaman": 2.99080078895464
+   },
+   "taken": 454.9,
+   "taken_pct": 2.991,
+   "win": false
+  },
+  {
+   "boss": "shaman",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 5,
+   "wall": 15.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.164,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 17474.0,
+   "fight_t": 41.0,
+   "fp_diff": [
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.08|lshape:logos|op:logos\",\"1|0.375|lshape:skadi|op:skadi\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 152.0,
+   "moves": {
+    "shaman:冰柱寒链": 6,
+    "shaman:反自然馈赠": 2,
+    "shaman:寒灾": 2,
+    "shaman:寒链·弹射": 5,
+    "shaman:踏雪·收屑": 2,
+    "shaman:霜陷·冰晶": 5,
+    "shaman:风雪·斜飘": 5
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "skadi_m0_s5_slot1",
+   "squad": [
+    "skadi",
+    "logos",
+    "exusiai"
+   ],
+   "src": {
+    "boss_shaman": 1.42211768573307
+   },
+   "taken": 216.3,
+   "taken_pct": 1.422,
+   "win": false
+  },
+  {
+   "boss": "shaman",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 6,
+   "wall": 24.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 20898.0,
+   "fight_t": 135.7,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.15|lshape:saria|op:saria\",\"1|0.15|lshape:skadi|op:skadi\"] 多 []",
+    "stats.max_hp: 161.363 -> 152.1"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.548,
+   "leader": "skadi",
+   "level": 16,
+   "max_hp": 157.0,
+   "moves": {
+    "shaman:冰柱寒链": 18,
+    "shaman:反自然馈赠": 8,
+    "shaman:寒灾": 7,
+    "shaman:寒链·弹射": 17,
+    "shaman:踏雪·收屑": 7,
+    "shaman:霜陷·冰晶": 17,
+    "shaman:风雪·斜飘": 17
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m0_s6_slot1",
+   "squad": [
+    "skadi",
+    "saria",
+    "kaltsit"
+   ],
+   "src": {
+    "boss_shaman": 5.3781915634451,
+    "bullet": 0.112473372781065
+   },
+   "taken": 835.1,
+   "taken_pct": 5.491,
+   "win": true
+  },
+  {
+   "boss": "shaman",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 1,
+   "wall": 21.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 20898.0,
+   "fight_t": 97.5,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.12|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.25|lshape:suzuran|op:suzuran\",\"1|0.375|lshape:skadi|op:skadi\"] 多 []",
+    "stats.max_hp: 214.628 -> 208.377"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.921,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 208.0,
+   "moves": {
+    "shaman:冰柱寒链": 13,
+    "shaman:反自然馈赠": 6,
+    "shaman:寒灾": 5,
+    "shaman:寒链·弹射": 12,
+    "shaman:踏雪·收屑": 5,
+    "shaman:霜陷·冰晶": 13,
+    "shaman:风雪·斜飘": 12
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s1_slot1",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "suzuran"
+   ],
+   "src": {
+    "boss_shaman": 2.20129716811356
+   },
+   "taken": 458.7,
+   "taken_pct": 2.201,
+   "win": true
+  },
+  {
+   "boss": "shaman",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 2,
+   "wall": 18.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.641,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 7500.0,
+   "fight_t": 67.1,
+   "fp_diff": [
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:specter_unchained\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.15|lshape:specter_unchained|op:specter_unchained\",\"1|0.375|lshape:skadi|op:skadi\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:specter_unchained\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 170.0,
+   "moves": {
+    "shaman:冰柱寒链": 11,
+    "shaman:反自然馈赠": 3,
+    "shaman:寒链·弹射": 10,
+    "shaman:霜陷·冰晶": 10,
+    "shaman:风雪·斜飘": 10
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "skadi_m18_s2_slot1",
+   "squad": [
+    "skadi",
+    "lumen",
+    "specter_unchained"
+   ],
+   "src": {
+    "boss_shaman": 2.65899373062835
+   },
+   "taken": 453.0,
+   "taken_pct": 2.659,
+   "win": false
+  },
+  {
+   "boss": "shaman",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 3,
+   "wall": 17.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.486,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 10751.0,
+   "fight_t": 49.0,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.15|lshape:hoshiguma|op:hoshiguma\",\"1|0.375|lshape:skadi|op:skadi\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 153.0,
+   "moves": {
+    "shaman:冰柱寒链": 7,
+    "shaman:反自然馈赠": 3,
+    "shaman:寒灾": 1,
+    "shaman:寒链·弹射": 7,
+    "shaman:霜陷·冰晶": 7,
+    "shaman:风雪·斜飘": 7
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "skadi_m18_s3_slot1",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "kaltsit"
+   ],
+   "src": {
+    "boss_shaman": 1.40902798616981,
+    "shock_breaker": 0.367470089594307
+   },
+   "taken": 302.6,
+   "taken_pct": 1.776,
+   "win": false
+  },
+  {
+   "boss": "shaman",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 4,
+   "wall": 18.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 20898.0,
+   "fight_t": 90.9,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.15|lshape:hoshiguma|op:hoshiguma\",\"1|0.375|lshape:skadi|op:skadi\"] 多 []",
+    "stats.max_hp: 175.463 -> 170.352"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.881,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 163.0,
+   "moves": {
+    "shaman:冰柱寒链": 12,
+    "shaman:反自然馈赠": 6,
+    "shaman:寒灾": 6,
+    "shaman:寒链·弹射": 11,
+    "shaman:踏雪·收屑": 5,
+    "shaman:霜陷·冰晶": 11,
+    "shaman:风雪·斜飘": 11
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s4_slot1",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "mizuki"
+   ],
+   "src": {
+    "boss_shaman": 1.08615455057763
+   },
+   "taken": 185.0,
+   "taken_pct": 1.086,
+   "win": true
+  },
+  {
+   "boss": "shaman",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 5,
+   "wall": 16.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.135,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 18071.0,
+   "fight_t": 65.7,
+   "fp_diff": [
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.08|lshape:logos|op:logos\",\"1|0.375|lshape:skadi|op:skadi\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 179.0,
+   "moves": {
+    "shaman:冰柱寒链": 8,
+    "shaman:反自然馈赠": 4,
+    "shaman:寒灾": 4,
+    "shaman:寒链·弹射": 8,
+    "shaman:踏雪·收屑": 4,
+    "shaman:霜陷·冰晶": 8,
+    "shaman:风雪·斜飘": 8
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "skadi_m18_s5_slot1",
+   "squad": [
+    "skadi",
+    "logos",
+    "mizuki"
+   ],
+   "src": {
+    "boss_shaman": 1.48263204032435
+   },
+   "taken": 265.2,
+   "taken_pct": 1.483,
+   "win": false
+  },
+  {
+   "boss": "shaman",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 6,
+   "wall": 22.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 20898.0,
+   "fight_t": 113.7,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.3|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.15|lshape:skadi|op:skadi\",\"1|0.18|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 180.726 -> 170.352"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.961,
+   "leader": "skadi",
+   "level": 15,
+   "max_hp": 175.0,
+   "moves": {
+    "shaman:冰柱寒链": 15,
+    "shaman:反自然馈赠": 8,
+    "shaman:寒灾": 6,
+    "shaman:寒链·弹射": 14,
+    "shaman:踏雪·收屑": 5,
+    "shaman:霜陷·冰晶": 15,
+    "shaman:风雪·斜飘": 15
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s6_slot1",
+   "squad": [
+    "skadi",
+    "saria",
+    "kaltsit"
+   ],
+   "src": {
+    "boss_shaman": 3.79541537522307,
+    "bullet": 0.114116652578191
+   },
+   "taken": 666.0,
+   "taken_pct": 3.91,
+   "win": true
+  },
+  {
+   "boss": "shaman",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 1,
+   "wall": 21.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 20898.0,
+   "fight_t": 92.9,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.15|lshape:hoshiguma|op:hoshiguma\",\"1|0.2|lshape:wisadel|op:wisadel\"] 多 []",
+    "stats.max_hp: 132.561 -> 128.7"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.211,
+   "leader": "wisadel",
+   "level": 15,
+   "max_hp": 133.0,
+   "moves": {
+    "shaman:冰柱寒链": 13,
+    "shaman:反自然馈赠": 6,
+    "shaman:寒灾": 3,
+    "shaman:寒链·弹射": 12,
+    "shaman:踏雪·收屑": 3,
+    "shaman:霜陷·冰晶": 13,
+    "shaman:风雪·斜飘": 13
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s1_slot1",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "texas"
+   ],
+   "src": {
+    "boss_shaman": 1.43054009324009,
+    "contact_husk": 0.052979757748006
+   },
+   "taken": 190.9,
+   "taken_pct": 1.484,
+   "win": true
+  },
+  {
+   "boss": "shaman",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 2,
+   "wall": 21.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 20898.0,
+   "fight_t": 96.8,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.15|lshape:lappland|op:lappland\",\"1|0.2|lshape:wisadel|op:wisadel\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.188,
+   "leader": "wisadel",
+   "level": 14,
+   "max_hp": 122.0,
+   "moves": {
+    "shaman:冰柱寒链": 13,
+    "shaman:反自然馈赠": 5,
+    "shaman:寒灾": 5,
+    "shaman:寒链·弹射": 12,
+    "shaman:踏雪·收屑": 5,
+    "shaman:霜陷·冰晶": 12,
+    "shaman:风雪·斜飘": 12
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s2_slot1",
+   "squad": [
+    "wisadel",
+    "lappland",
+    "gladiia"
+   ],
+   "src": {
+    "boss_shaman": 2.93195804195804,
+    "contact_drone": 0.143437316018371,
+    "contact_husk": 0.0576730703507075,
+    "contact_snsbr": 0.0655399243791563
+   },
+   "taken": 411.7,
+   "taken_pct": 3.199,
+   "win": true
+  },
+  {
+   "boss": "shaman",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 3,
+   "wall": 17.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.211,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 16493.0,
+   "fight_t": 48.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.12|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.25|lshape:suzuran|op:suzuran\",\"1|0.2|lshape:wisadel|op:wisadel\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "wisadel",
+   "level": 14,
+   "max_hp": 126.0,
+   "moves": {
+    "shaman:冰柱寒链": 7,
+    "shaman:反自然馈赠": 3,
+    "shaman:寒灾": 2,
+    "shaman:寒链·弹射": 5,
+    "shaman:踏雪·收屑": 2,
+    "shaman:霜陷·冰晶": 6,
+    "shaman:风雪·斜飘": 6
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "wisadel_m0_s3_slot1",
+   "squad": [
+    "wisadel",
+    "logos",
+    "suzuran"
+   ],
+   "src": {
+    "boss_shaman": 1.78991514771331,
+    "shock_breaker": 0.432084794659078
+   },
+   "taken": 280.5,
+   "taken_pct": 2.222,
+   "win": false
+  },
+  {
+   "boss": "shaman",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 4,
+   "wall": 15.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.875,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 2602.0,
+   "fight_t": 21.8,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:exusiai|op:exusiai\",\"1|0.08|lshape:wisadel|op:wisadel\"] 多 []",
+    "stats.max_hp: 89.479 -> 86.873"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 89.0,
+   "moves": {
+    "shaman:冰柱寒链": 4,
+    "shaman:反自然馈赠": 2,
+    "shaman:寒链·弹射": 3,
+    "shaman:霜陷·冰晶": 3,
+    "shaman:风雪·斜飘": 3
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "wisadel_m0_s4_slot1",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "exusiai"
+   ],
+   "src": {
+    "boss_shaman": 1.56103807303807
+   },
+   "taken": 135.6,
+   "taken_pct": 1.561,
+   "win": false
+  },
+  {
+   "boss": "shaman",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 5,
+   "wall": 14.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.603,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 8292.0,
+   "fight_t": 29.8,
+   "fp_diff": [
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.15|lshape:lappland|op:lappland\",\"1|0.2|lshape:wisadel|op:wisadel\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 129.0,
+   "moves": {
+    "shaman:冰柱寒链": 5,
+    "shaman:反自然馈赠": 1,
+    "shaman:寒链·弹射": 4,
+    "shaman:霜陷·冰晶": 5,
+    "shaman:风雪·斜飘": 4
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "wisadel_m0_s5_slot1",
+   "squad": [
+    "wisadel",
+    "texas",
+    "lappland"
+   ],
+   "src": {
+    "boss_shaman": 1.09287179487179,
+    "shock_breaker": 0.206177662684478
+   },
+   "taken": 167.2,
+   "taken_pct": 1.299,
+   "win": false
+  },
+  {
+   "boss": "shaman",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 6,
+   "wall": 17.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.304,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 14547.0,
+   "fight_t": 75.4,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.15|lshape:hoshiguma|op:hoshiguma\",\"1|0.2|lshape:wisadel|op:wisadel\"] 多 []",
+    "stats.max_hp: 136.538 -> 128.7"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "wisadel",
+   "level": 14,
+   "max_hp": 133.0,
+   "moves": {
+    "shaman:冰柱寒链": 10,
+    "shaman:反自然馈赠": 4,
+    "shaman:寒灾": 3,
+    "shaman:寒链·弹射": 10,
+    "shaman:踏雪·收屑": 3,
+    "shaman:霜陷·冰晶": 10,
+    "shaman:风雪·斜飘": 10
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "wisadel_m0_s6_slot1",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "specter_unchained"
+   ],
+   "src": {
+    "boss_shaman": 2.35922074592075,
+    "bullet": 0.115552447552448
+   },
+   "taken": 318.5,
+   "taken_pct": 2.475,
+   "win": false
+  },
+  {
+   "boss": "shaman",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 1,
+   "wall": 21.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 17763.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 17763.0,
+   "fight_t": 118.1,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:wisadel|op:wisadel\",\"1|0.15|lshape:hoshiguma|op:hoshiguma\"] 多 []",
+    "stats.max_hp: 148.468 -> 144.144"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.802,
+   "leader": "wisadel",
+   "level": 16,
+   "max_hp": 148.0,
+   "moves": {
+    "shaman:冰柱寒链": 17,
+    "shaman:反自然馈赠": 7,
+    "shaman:寒灾": 2,
+    "shaman:寒链·弹射": 17,
+    "shaman:踏雪·收屑": 2,
+    "shaman:霜陷·冰晶": 17,
+    "shaman:风雪·斜飘": 17
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s1_slot1",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "lumen"
+   ],
+   "src": {
+    "boss_shaman": 3.21922930785881,
+    "contact_husk": 0.0514938128131317
+   },
+   "taken": 471.5,
+   "taken_pct": 3.271,
+   "win": true
+  },
+  {
+   "boss": "shaman",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 2,
+   "wall": 17.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.392,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 12711.0,
+   "fight_t": 81.2,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.12|lshape:gladiia|op:gladiia\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:wisadel|op:wisadel\",\"1|0.25|lshape:gladiia|op:gladiia\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "wisadel",
+   "level": 14,
+   "max_hp": 144.0,
+   "moves": {
+    "shaman:冰柱寒链": 12,
+    "shaman:反自然馈赠": 5,
+    "shaman:寒灾": 2,
+    "shaman:寒链·弹射": 11,
+    "shaman:踏雪·收屑": 2,
+    "shaman:霜陷·冰晶": 12,
+    "shaman:风雪·斜飘": 11
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "wisadel_m18_s2_slot1",
+   "squad": [
+    "wisadel",
+    "lappland",
+    "gladiia"
+   ],
+   "src": {
+    "boss_shaman": 2.2893981018981,
+    "bullet": 0.191058941058941
+   },
+   "taken": 357.5,
+   "taken_pct": 2.48,
+   "win": false
+  },
+  {
+   "boss": "shaman",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 3,
+   "wall": 14.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.236,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 15967.0,
+   "fight_t": 32.5,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.08|lshape:logos|op:logos\",\"1|0.08|lshape:wisadel|op:wisadel\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "wisadel",
+   "level": 14,
+   "max_hp": 130.0,
+   "moves": {
+    "shaman:冰柱寒链": 5,
+    "shaman:反自然馈赠": 1,
+    "shaman:寒灾": 1,
+    "shaman:寒链·弹射": 4,
+    "shaman:踏雪·收屑": 1,
+    "shaman:霜陷·冰晶": 4,
+    "shaman:风雪·斜飘": 4
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "wisadel_m18_s3_slot1",
+   "squad": [
+    "wisadel",
+    "logos",
+    "suzuran"
+   ],
+   "src": {
+    "boss_shaman": 1.40482226107226
+   },
+   "taken": 202.5,
+   "taken_pct": 1.405,
+   "win": false
+  },
+  {
+   "boss": "shaman",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 4,
+   "wall": 15.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.52,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 10021.0,
+   "fight_t": 45.4,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:exusiai|op:exusiai\",\"1|0.2|lshape:wisadel|op:wisadel\"] 多 []",
+    "stats.max_hp: 133.621 -> 129.73"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 134.0,
+   "moves": {
+    "shaman:冰柱寒链": 7,
+    "shaman:反自然馈赠": 2,
+    "shaman:寒链·弹射": 7,
+    "shaman:霜陷·冰晶": 7,
+    "shaman:风雪·斜飘": 7
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "wisadel_m18_s4_slot1",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "exusiai"
+   ],
+   "src": {
+    "boss_shaman": 1.40490527990528,
+    "bullet": 0.127372627372627
+   },
+   "taken": 198.8,
+   "taken_pct": 1.532,
+   "win": false
+  },
+  {
+   "boss": "shaman",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 5,
+   "wall": 15.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.595,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 8461.0,
+   "fight_t": 53.2,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.08|lshape:wisadel|op:wisadel\",\"1|0.15|lshape:texas|op:texas\"] 多 []",
+    "mods.op_aspd: 多 [\"2|1.5|totem_2|\"]"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 144.0,
+   "moves": {
+    "shaman:冰柱寒链": 8,
+    "shaman:反自然馈赠": 3,
+    "shaman:寒链·弹射": 8,
+    "shaman:霜陷·冰晶": 8,
+    "shaman:风雪·斜飘": 8
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "wisadel_m18_s5_slot1",
+   "squad": [
+    "wisadel",
+    "texas",
+    "lappland"
+   ],
+   "src": {
+    "boss_shaman": 1.46966991341991,
+    "contact_drone": 0.0631819989007361
+   },
+   "taken": 221.0,
+   "taken_pct": 1.533,
+   "win": false
+  },
+  {
+   "boss": "shaman",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 6,
+   "wall": 16.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 20898.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 20898.0,
+   "fight_t": 51.4,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:logos|op:logos\",\"1|0.08|lshape:wisadel|op:wisadel\"] 多 []",
+    "stats.max_hp: 152.922 -> 144.144"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.792,
+   "leader": "wisadel",
+   "level": 14,
+   "max_hp": 148.0,
+   "moves": {
+    "shaman:冰柱寒链": 7,
+    "shaman:反自然馈赠": 2,
+    "shaman:寒灾": 3,
+    "shaman:寒链·弹射": 6,
+    "shaman:踏雪·收屑": 3,
+    "shaman:霜陷·冰晶": 6,
+    "shaman:风雪·斜飘": 6
+   },
+   "phases": [
+    [
+     "shaman",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s6_slot1",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "logos"
+   ],
+   "src": {
+    "boss_shaman": 1.1161858974359
+   },
+   "taken": 160.9,
+   "taken_pct": 1.116,
+   "win": true
+  }
+ ]
+}
