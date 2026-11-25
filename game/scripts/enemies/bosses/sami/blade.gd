@@ -429,11 +429,4 @@ func draw(e: Dictionary, cv) -> void:
 					cv.draw_arc(k.pos, float(k.r) + sw, 0.0, TAU, 40, Color(0.2, 0.2, 0.25, 0.45), maxf(2.0, sw * 0.5))
 
 
-## 预警画法：有 fx 机制时挂 skin sami_blade，通用描边 / 填充跳过（telegraph_draw.quiet），由 mech_fx 画裂缝 + 渗雾 + 刃尖（docs/401 §12）
-func _warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionary:
-	if g.mech("fx") != null:
-		d["skin"] = "sami_blade"
-	return super(e, shape, dur, d)
-
-
 ## 机器人主轴（同前）：没有 axis_do 覆写 = 走 mech_kingdom.bot_score（不站国度）+ 通用躲招

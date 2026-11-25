@@ -36,10 +36,10 @@ func _final_shots() -> Array:
 		{"name": "木裂 · 泯灭冲（墨绿剥落）", "dur": 5.0, "boss": "lead", "move": "泯灭冲", "orbit": 200.0},
 		{"name": "木裂 · 自我泯灭", "dur": 4.0, "boss": "lead", "move": "自我泯灭", "orbit": 200.0},
 		{"name": "克雷松 · 稳定场（锚桩光柱）+ 苗圃", "dur": 5.5, "boss": "cresson", "dev": true},
-		{"name": "哈兰杜汗 · 鞭扫", "dur": 3.0, "boss": "khan", "move": "鞭扫", "orbit": 110.0},
-		{"name": "哈兰杜汗 · 鞭影", "dur": 3.0, "boss": "khan", "move": "鞭影", "orbit": 110.0},
-		{"name": "哈兰杜汗 · 鞭链", "dur": 3.0, "boss": "khan", "move": "鞭链", "orbit": 200.0},
-		{"name": "路加萨尔古斯 · 日晷", "dur": 4.4, "boss": "lion", "move": "日晷", "orbit": 200.0},
+		{"name": "哈兰杜汗 · 鞭扫", "dur": 3.0, "boss": "khan", "move": "鞭扫", "orbit": 110.0, "sand": true},
+		{"name": "哈兰杜汗 · 鞭影", "dur": 3.0, "boss": "khan", "move": "鞭影", "orbit": 110.0, "sand": true},
+		{"name": "哈兰杜汗 · 鞭链", "dur": 3.0, "boss": "khan", "move": "鞭链", "orbit": 200.0, "sand": true},
+		{"name": "路加萨尔古斯 · 日晷", "dur": 4.4, "boss": "lion", "move": "日晷", "orbit": 200.0, "sand": true},
 	]
 
 
@@ -95,6 +95,8 @@ func _ready() -> void:
 				var el: float = frame_i * DT
 				g.t += DT
 				g.hp = g.max_hp
+				g.zone_r = 2400.0
+				g.zone_next_r = 2400.0   # 结局 Boss 会冻结场地缩圈；演示里推远，暴风雪白边不进画面
 				g.invuln = maxf(0.0, g.invuln - DT)
 				g.state = g.S.PLAY   # 开场飞行器只在 OPENING 画；游戏自己可能延后切回开场
 				var rad: float = float(seg.get("rad", 40.0))
@@ -174,6 +176,7 @@ func setup(seg: Dictionary) -> void:
 		fx.flakes.clear()
 		fx.trails.clear()
 		fx.cres_list.clear()
+		fx.sand_floor = seg.get("sand", false)
 		fx.blade_list.clear()
 	var foes = g.mech("foes")
 	if foes != null:

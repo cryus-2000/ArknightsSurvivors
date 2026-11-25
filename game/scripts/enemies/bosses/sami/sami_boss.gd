@@ -256,3 +256,15 @@ func _fx(kind: String, p: Vector2, a := 0.0, b := 0.0) -> void:
 	var fxm = g.mech("fx")
 	if fxm != null:
 		fxm.blade_event(kind, p, a, b)
+
+
+## 预警画法（docs/401 §12 / §15）：利刃 / 游荡者与结局四 Boss 有 fx 机制时挂 skin sami_blade，通用描边 / 填充跳过（telegraph_draw.quiet），
+## 由 mech_fx 按各自元素画有体积的预警（裂缝 / 渗雾 / 实物先冒头）；原 skin 存 skin0
+const FX_WARN := ["blade", "wanderer", "will", "lead", "cresson", "khan", "lion"]
+
+
+func _warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionary:
+	if g.mech("fx") != null and str(e.type) in FX_WARN:
+		d["skin0"] = d.get("skin", "")
+		d["skin"] = "sami_blade"
+	return super(e, shape, dur, d)

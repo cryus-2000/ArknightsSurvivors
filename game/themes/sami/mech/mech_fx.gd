@@ -63,8 +63,10 @@ var flakes: Array = []       # 木裂剥落片 [p0, v, t0, 寿命, 尺寸, 转�
 var trails: Array = []       # 木裂冲刺地痕 [a, b, t0]
 var teal_band: Texture2D
 var lil_puff: Array = []
+var sand_floor := false      # 演示夹具开：结局四 Boss 场地「时光之沙」地图还没做，临时铺程序沙地
+var sand_tex: Texture2D
 const GOUGE := [Color(0.1, 0.13, 0.2), Color(0.26, 0.32, 0.42), Color(0.93, 0.96, 1.0)]   # 爪痕：深槽 / 槽壁 / 翻起的雪唇
-const OWN := {"caster": "needle", "blade": "blade", "wanderer": "blade"}
+const OWN := {"caster": "needle", "blade": "blade", "wanderer": "blade", "khan": "kbul"}
 
 
 func _init(game: Game) -> void:
@@ -354,6 +356,8 @@ func _mark(pos: Vector2, ang: float, kind: int) -> void:
 
 
 func draw_ground(w) -> void:
+	if sand_floor:
+		_draw_sand_floor(w)
 	_draw_ice_ground(w, g.t)
 	_final_ground(w, g.t)
 	_blade_ground(w, g.t)
@@ -515,6 +519,16 @@ func _own_bullets(cv, now: float) -> void:
 		var d := Vector2.from_angle(a)
 		var nrm := d.orthogonal()
 		var bp: Vector2 = b.pos + Vector2(0, -16)
+		if kind == "kbul":
+			# 哈兰弹（协调人 11-25：按水月最终 Boss 同档放大）：白芯 + 暗红环 + 暗边，半径 11（判定不变），身后暗红锥尾
+			var R := 11.0
+			cv.draw_polygon(PackedVector2Array([bp + nrm * R * 0.8, bp - d * 34.0, bp - nrm * R * 0.8]),
+				PackedColorArray([Color(KHAN[2], 0.8), Color(KHAN[1], 0.0), Color(KHAN[2], 0.8)]))
+			cv.draw_circle(bp, R + 2.5, Color(0.1, 0.01, 0.01))
+			cv.draw_circle(bp, R, KHAN[2])
+			cv.draw_circle(bp, R * 0.78, KHAN[3])
+			cv.draw_circle(bp, R * 0.5, Color(1.0, 0.96, 0.92))
+			continue
 		if kind == "needle":
 			# 敌弹规格（docs/392 §6）：白芯 + 冰蓝色环 + 黑靛暗边（原作黑针收成暗边），沿飞行方向拉长的米粒；
 			# 身后一条由冰蓝到透明的锥形拖尾 + 白芯短尾 + 碎冰颗粒。1 倍全景（镜头缩小）在亮雪地上也要一眼看到（11-25 协调人退回）
@@ -612,7 +626,7 @@ func _draw_puffs(cv, arr: Array, now: float) -> Array:
 		var sz: float = lerpf(float(q[4]), float(q[5]), 1.0 - (1.0 - u) * (1.0 - u))
 		var al: float = float(q[7]) * pow(1.0 - u, 1.4) * minf(1.0, age * 12.0)
 		var r := Rect2(((pos - Vector2(sz, sz) * 0.5) / PX).floor() * PX, Vector2(sz, sz * 0.8))
-		var tx: Texture2D = ice_puff[int(q[6]) % 3] if int(q[8]) == 1 else fog_puff[int(q[6])]
+		var tx: Texture2D = ice_puff[int(q[6]) % 3] if int(q[8]) == 1 else (lil_puff[int(q[6]) % 3] if int(q[8]) == 2 else fog_puff[int(q[6])])
 		cv.draw_texture_rect(tx, r, false, Color(1, 1, 1, al))
 		if int(q[8]) == 1:
 			cv.draw_texture_rect(ice_puff[(int(q[6]) + 1) % 3], r.grow(-sz * 0.12), false, Color(1, 1, 1, al))   # 冰雾叠一层更浓
@@ -689,6 +703,10 @@ func _blade_ground(w, now: float) -> void:
 			continue
 		var k: float = clampf(float(t.t) / maxf(0.01, float(t.dur)), 0.0, 1.0)
 		var sd: int = absi(hash(Vector2i(int(t.pos.x), int(t.pos.y)))) % 9973
+		var ot: String = str(t.owner.get("type", "")) if t.get("owner") is Dictionary else ""
+		if ot != "" and ot != "blade" and ot != "wanderer":
+			_warn_final(w, cv, t, k, sd, ot)
+			continue
 		match t.shape:
 			"cone":
 				# 斩击：扇区里 7 道裂缝从它脚下往外裂，外弧一排刃尖冒头（r130 的边就是这排刃尖）
@@ -1106,13 +1124,13 @@ func _draw_whip_line(w, pts: PackedVector2Array, k: float, cols: Array) -> void:
 	var n: int = pts.size() - 1
 	for i in n:
 		var f: float = float(i) / float(n)
-		var wd: float = lerpf(10.0, 3.0, f) * k
+		var wd: float = lerpf(14.0, 4.0, f) * k
 		if wd < 1.0:
 			continue
 		w.tb_line(_snap(pts[i]), _snap(pts[i + 1]), cols[0], wd + 2.0)
 	for i in n:
 		var f2: float = float(i) / float(n)
-		var wd2: float = lerpf(10.0, 3.0, f2) * k
+		var wd2: float = lerpf(14.0, 4.0, f2) * k
 		if wd2 < 1.0:
 			continue
 		w.tb_line(_snap(pts[i]), _snap(pts[i + 1]), cols[1], wd2)
@@ -1287,7 +1305,7 @@ func _final_ground(w, now: float) -> void:
 func _final_front(w, cv, now: float) -> void:
 	# 意志【冰凌】坠冰：冰凌列的每个落点预警后段，一根冰凌从天上落下（冰白 + 暗紫边），落地碎开
 	for t in g.warns:
-		if str(t.get("skin", "")) != "ice_lance" or not (t.get("owner") is Dictionary) or str(t.owner.get("type", "")) != "will":
+		if str(t.get("skin0", t.get("skin", ""))) != "ice_lance" or not (t.get("owner") is Dictionary) or str(t.owner.get("type", "")) != "will":
 			continue
 		var k: float = clampf(float(t.t) / maxf(0.01, float(t.dur)), 0.0, 1.0)
 		var p: Vector2 = t.pos
@@ -1362,3 +1380,273 @@ func _final_front(w, cv, now: float) -> void:
 						var mp: Vector2 = d.pos + Vector2(cos(bb), sin(bb) * 0.62) * 170.0
 						_add(mp + Vector2(0, -rng.randf_range(0.0, 10.0)), Vector2(rng.randf_range(-6, 6), -rng.randf_range(40, 80)), 0.7, LIL[3] if rng.randf() < 0.6 else LIL[4], 2.0, 0)
 		w.tb_flush()
+
+
+
+## ==== 结局 Boss 有体积的预警（协调人 11-25 退回：和利刃同一套——裂缝 / 渗雾 / 实物先冒头，各按自己的元素）
+const SANDC := [Color(0.24, 0.16, 0.08), Color(0.45, 0.33, 0.2), Color(0.66, 0.53, 0.37), Color(0.82, 0.7, 0.52)]
+
+
+func _gpoly_ring(c: Vector2, r: float, gy: float, a: float) -> Vector2:
+	return c + Vector2(cos(a) * r, sin(a) * r * gy)
+
+
+func _crack_col(w, a: Vector2, ang: float, L: float, k: float, sd: int, core: Color, edge: Color, wd := 3.0) -> void:
+	var n: int = maxi(2, int(L / 14.0))
+	var prev: Vector2 = a
+	var d := Vector2.from_angle(ang)
+	var nv := d.orthogonal()
+	var lim: float = L * k
+	for i in range(1, n + 1):
+		var x: float = minf(L * float(i) / float(n), lim)
+		var j: float = float(absi(hash(Vector2i(sd, i))) % 100 - 50) / 50.0 * 6.0
+		var q: Vector2 = a + d * x + nv * j
+		w.tb_line(_snap(prev), _snap(q), edge, wd + 2.0)
+		w.tb_line(_snap(prev), _snap(q), core, maxf(1.0, wd - 1.0))
+		prev = q
+		if x >= lim:
+			break
+
+
+## 冰晶菱块（意志）
+func _crystal(w, q: Vector2, s: float) -> void:
+	if s < 1.0:
+		return
+	w.tb_poly(PackedVector2Array([q + Vector2(0, -s * 1.6 - 2), q + Vector2(s + 2, 0), q + Vector2(0, s * 0.6 + 2), q + Vector2(-s - 2, 0)]), WILLC[0])
+	w.tb_poly(PackedVector2Array([q + Vector2(0, -s * 1.6), q + Vector2(s, 0), q + Vector2(0, s * 0.6), q + Vector2(-s, 0)]), WILLC[2])
+	w.tb_poly(PackedVector2Array([q + Vector2(0, -s * 1.6), q + Vector2(s, 0), q]), WILLC[3])
+
+
+## 刻痕（木裂）：一道斜划深槽 + 翻起的亮唇
+func _gash(w, q: Vector2, ang: float, L: float) -> void:
+	if L < 2.0:
+		return
+	var d := Vector2.from_angle(ang)
+	var n := d.orthogonal()
+	var a: Vector2 = q - d * L * 0.5
+	var b: Vector2 = q + d * L * 0.5
+	var m: Vector2 = q
+	w.tb_poly(PackedVector2Array([a, m + n * 5.0, b, m - n * 5.0]), OLC)
+	w.tb_poly(PackedVector2Array([a, m + n * 3.5, b, m - n * 1.0]), TEALC[1])
+	w.tb_poly(PackedVector2Array([a.lerp(b, 0.15), m + n * 2.0, b.lerp(a, 0.15), m + n * 0.5]), TEALC[0])
+	w.tb_line(_snap(a.lerp(b, 0.2) - n * 3.0), _snap(b.lerp(a, 0.2) - n * 3.0), TEALC[4], 2.0)
+
+
+## 花瓣（克雷松）：根在 q、尖朝 ang，长 L
+func _petal(w, q: Vector2, ang: float, L: float) -> void:
+	if L < 2.0:
+		return
+	var d := Vector2.from_angle(ang)
+	var n := d.orthogonal()
+	var wd: float = L * 0.38
+	var pts := PackedVector2Array([q, q + d * L * 0.4 + n * wd, q + d * L, q + d * L * 0.4 - n * wd])
+	var big := PackedVector2Array([q - d * 2.0, q + d * L * 0.4 + n * (wd + 2.5), q + d * (L + 3.0), q + d * L * 0.4 - n * (wd + 2.5)])
+	w.tb_poly(big, LIL[0])
+	w.tb_poly(pts, LIL[2])
+	w.tb_poly(PackedVector2Array([q + d * 2.0, q + d * L * 0.45 + n * wd * 0.45, q + d * (L - 3.0)]), LIL[3])
+
+
+## 眼纹（克雷松）：杏仁形眼眶 + 虹膜 + 瞳孔，open 0–1 = 睁开程度
+func _eye(w, c: Vector2, rw: float, open: float) -> void:
+	var rh: float = rw * 0.42 * open
+	if rh < 1.5:
+		w.tb_line(_snap(c - Vector2(rw, 0)), _snap(c + Vector2(rw, 0)), LIL[0], 4.0)
+		return
+	var up := PackedVector2Array()
+	for i in 13:
+		var u: float = float(i) / 12.0
+		up.append(c + Vector2(lerpf(-rw, rw, u), -sin(u * PI) * rh))
+	for i in range(11, 0, -1):
+		var u2: float = float(i) / 12.0
+		up.append(c + Vector2(lerpf(-rw, rw, u2), sin(u2 * PI) * rh))
+	var big := PackedVector2Array()
+	for q in up:
+		big.append(c + (q - c) * Vector2(1.08, 1.25))
+	w.tb_poly(big, LIL[0])
+	w.tb_poly(up, LIL[3])
+	var ir: float = minf(rh * 0.95, rw * 0.36)
+	w.tb_circle(c, ir, LIL[1], 1.0, 14)
+	w.tb_circle(c, ir * 0.45, Color(0.08, 0.02, 0.14), 1.0, 10)
+	w.tb_quad(_snap(c + Vector2(-ir * 0.5, -ir * 0.6)), _snap(c + Vector2(-ir * 0.2, -ir * 0.6)), _snap(c + Vector2(-ir * 0.2, -ir * 0.3)), _snap(c + Vector2(-ir * 0.5, -ir * 0.3)), LIL[4])
+
+
+## 沙丘 / 沙陷（哈兰）：一团沙丘（暗底 + 亮顶）
+func _dune(w, q: Vector2, s: float) -> void:
+	if s < 1.0:
+		return
+	w.tb_poly(PackedVector2Array([q + Vector2(-s * 1.6, 1), q + Vector2(-s * 0.6, -s * 0.7), q + Vector2(s * 0.7, -s * 0.6), q + Vector2(s * 1.6, 1)]), SANDC[0])
+	w.tb_poly(PackedVector2Array([q + Vector2(-s * 1.2, 0), q + Vector2(-s * 0.4, -s * 0.55), q + Vector2(s * 0.5, -s * 0.45), q + Vector2(s * 1.2, 0)]), SANDC[2])
+	w.tb_poly(PackedVector2Array([q + Vector2(-s * 0.4, -s * 0.55), q + Vector2(s * 0.5, -s * 0.45), q + Vector2(0, -s * 0.2)]), SANDC[3])
+
+
+## 刻度（路加）：一道金黄刻线（暗褐边），沿 d 方向长 L
+func _tick(w, q: Vector2, d: Vector2, L: float, wd: float) -> void:
+	if L < 1.0:
+		return
+	w.tb_line(_snap(q - d * L * 0.5), _snap(q + d * L * 0.5), LUKA_D, wd + 2.0)
+	w.tb_line(_snap(q - d * L * 0.5), _snap(q + d * L * 0.5), LUKA, wd)
+
+
+func _warn_final(w, cv, t: Dictionary, k: float, sd: int, ot: String) -> void:
+	var gy: float = g.combat.GROUND_Y
+	var c: Vector2 = t.pos
+	match t.shape:
+		"circle":
+			var r: float = float(t.r)
+			match ot:
+				"will":
+					# 冰霜裂纹 + 落影：中心星形冰裂（冰白芯 + 暗紫边）往外爬，圈边冰晶一颗颗冒出，中间一团落影越来越浓（冰凌另画在顶层）
+					for i in 6:
+						_crack_col(w, c, TAU * float(i) / 6.0 + float(sd % 7) * 0.3, r * 0.95, k, sd + i, WILLC[2], WILLC[0], 3.0)
+					var nn: int = clampi(int(TAU * r / 18.0), 6, 30)
+					for i in nn:
+						var dl: float = float(absi(hash(Vector2i(sd, i + 40))) % 40) / 100.0
+						_crystal(w, _gpoly_ring(c, r, gy, TAU * float(i) / float(nn)), 5.0 * clampf((k - dl) / 0.45, 0.0, 1.0))
+					var sz: float = r * 1.6 * (0.4 + 0.6 * k)
+					cv.draw_texture_rect(fog_puff[sd % 4], Rect2(((c - Vector2(sz, sz * 0.6) * 0.5) / PX).floor() * PX, Vector2(sz, sz * 0.6)), false, Color(1, 1, 1, 0.25 + 0.5 * k))
+				"lead":
+					# 地面刻痕：圈边一道道深青斜刻痕按进度划开，圈里三道裂缝
+					var nn2: int = clampi(int(TAU * r / 26.0), 6, 24)
+					for i in nn2:
+						var dl2: float = float(absi(hash(Vector2i(sd, i + 60))) % 45) / 100.0
+						var aa: float = TAU * float(i) / float(nn2)
+						var hj: int = absi(hash(Vector2i(sd, i + 90)))
+						var rj: float = r * (0.92 + float(hj % 16) / 100.0)
+						_gash(w, _gpoly_ring(c, rj, gy, aa + float(hj % 9 - 4) * 0.03), aa + PI * 0.5 + 0.3 + float(hj % 7) * 0.12, (16.0 + float(hj % 18)) * clampf((k - dl2) / 0.4, 0.0, 1.0))   # 长短 / 角度 / 半径都错开，不排成虚线圈
+					for i in 3:
+						_crack_col(w, c, TAU * float(i) / 3.0 + 0.4, r * 0.85, k, sd + i, TEALC[3], OLC, 3.0)
+				"cresson":
+					# 花瓣 / 眼纹：圈边一圈淡紫花瓣朝里张开；大圈中间一只眼纹慢慢睁开
+					var nn3: int = clampi(int(TAU * r / 22.0), 5, 20)
+					for i in nn3:
+						var aa3: float = TAU * float(i) / float(nn3)
+						var q3: Vector2 = _gpoly_ring(c, r, gy, aa3)
+						_petal(w, q3, (c - q3).angle(), minf(r * 0.45, 22.0) * clampf(k * 1.4, 0.0, 1.0))
+					if r >= 50.0:
+						_eye(w, c, minf(r * 0.45, 40.0), clampf((k - 0.2) / 0.6, 0.0, 1.0))
+				"khan":
+					# 沙陷：圈边一圈沙丘被往里拽，中间沙窝越陷越深，沙粒往中间流
+					var nn4: int = clampi(int(TAU * r / 24.0), 6, 26)
+					for i in nn4:
+						var aa4: float = TAU * float(i) / float(nn4)
+						_dune(w, _gpoly_ring(c, r * (1.0 - 0.18 * k), gy, aa4), 8.0)
+					var hr: float = r * 0.55 * k
+					var pts := PackedVector2Array()
+					for i in 12:
+						var aa5: float = TAU * float(i) / 12.0
+						var jr: float = 1.0 + float(absi(hash(Vector2i(sd, i + 80))) % 30) / 100.0 - 0.15
+						pts.append(_gpoly_ring(c, hr * jr, gy, aa5))
+					if hr > 3.0:
+						w.tb_poly(pts, SANDC[1])
+						var pin := PackedVector2Array()
+						for q in pts:
+							pin.append(c + (q - c) * 0.55)
+						w.tb_poly(pin, SANDC[0])
+						for i in 3:
+							_crack_col(w, c, TAU * float(i) / 3.0 + 1.0, hr * 0.8, 1.0, sd + i, KHAN[2], SANDC[0], 2.0)
+					if rng.randf() < 0.7:
+						var aa6: float = rng.randf() * TAU
+						var q6: Vector2 = _gpoly_ring(c, r, gy, aa6)
+						_add(q6, (c - q6) * 1.4, 0.6, SANDC[rng.randi_range(1, 3)], 2.0, 0)
+				"lion":
+					# 刻度：圈边一圈金黄刻线按进度顺时针长出（每 5 道一长），中心一根暗褐晷针
+					var nn5: int = clampi(int(TAU * r / 16.0), 12, 40)
+					var lit: int = int(float(nn5) * clampf(k * 1.25, 0.0, 1.0))
+					for i in lit:
+						var aa7: float = TAU * float(i) / float(nn5) - PI * 0.5
+						var dd := Vector2(cos(aa7), sin(aa7) * gy)
+						var long: bool = i % 5 == 0
+						_tick(w, _gpoly_ring(c, r, gy, aa7), dd.normalized(), 18.0 if long else 11.0, 6.0 if long else 4.0)
+					var ga: float = TAU * k - PI * 0.5
+					w.tb_line(_snap(c), _snap(c + Vector2(cos(ga), sin(ga) * gy) * r * 0.7), LUKA_D, 5.0)
+		"line":
+			var d := Vector2.from_angle(float(t.ang))
+			var nv := d.orthogonal()
+			var L: float = float(t.len)
+			var hw: float = float(t.wid)
+			var x := 18.0
+			var idx := 0
+			while x < L * k:
+				var q: Vector2 = c + d * x
+				for sg in [-1.0, 1.0]:
+					var e: Vector2 = q + nv * hw * sg
+					match ot:
+						"will":
+							_crystal(w, e, 4.0)
+						"lead":
+							_gash(w, e, float(t.ang) + 0.6 * sg, 18.0)
+						"cresson":
+							_petal(w, e, (nv * -sg).angle(), 14.0)
+						"khan":
+							_dune(w, e, 6.0)
+						"lion":
+							_tick(w, e, nv, 14.0 if idx % 5 == 0 else 9.0, 5.0 if idx % 5 == 0 else 3.0)
+				x += 22.0
+				idx += 1
+			var cc: Color = {"will": WILLC[2], "lead": TEALC[3], "cresson": LIL[2], "khan": KHAN[2], "lion": LUKA}.get(ot, BLOOD[1])
+			var ce: Color = {"will": WILLC[0], "lead": OLC, "cresson": LIL[0], "khan": SANDC[0], "lion": LUKA_D}.get(ot, OLC)
+			_crack_col(w, c, float(t.ang), L, k, sd, cc, ce, 3.0)
+		"cone":
+			var r3: float = float(t.r)
+			var a0: float = float(t.ang) - float(t.half)
+			var a1: float = float(t.ang) + float(t.half)
+			var cc2: Color = {"will": WILLC[2], "lead": TEALC[3], "cresson": LIL[2], "khan": KHAN[2], "lion": LUKA}.get(ot, BLOOD[1])
+			var ce2: Color = {"will": WILLC[0], "lead": OLC, "cresson": LIL[0], "khan": SANDC[0], "lion": LUKA_D}.get(ot, OLC)
+			for i in 5:
+				_crack_col(w, c, lerpf(a0 + 0.08, a1 - 0.08, float(i) / 4.0), r3 - 8.0, k, sd + i * 13, cc2, ce2, 4.0)
+			var n3: int = int((a1 - a0) * r3 / 14.0)
+			for i in n3 + 1:
+				var aa8: float = lerpf(a0, a1, float(i) / float(n3))
+				var q8: Vector2 = c + Vector2.from_angle(aa8) * r3
+				var gk: float = clampf((k - float(absi(hash(Vector2i(sd, i + 300))) % 30) / 100.0) / 0.5, 0.0, 1.0)
+				match ot:
+					"will":
+						_crystal(w, q8, 5.0 * gk)
+					"lead":
+						_gash(w, q8, aa8 + PI * 0.5, 18.0 * gk)
+					"cresson":
+						_petal(w, q8, aa8 + PI, 16.0 * gk)
+					"khan":
+						_dune(w, q8, 8.0 * gk)
+					"lion":
+						_tick(w, q8, Vector2.from_angle(aa8), (16.0 if i % 5 == 0 else 10.0) * gk, 5.0 if i % 5 == 0 else 3.0)
+	if rng.randf() < 0.35 and ot != "lion" and ot != "khan":
+		var seep: Vector2 = c + (Vector2.from_angle(float(t.get("ang", 0.0))) * float(t.get("len", 0.0)) * k * rng.randf() if t.shape == "line" else Vector2.ZERO)
+		if ot == "will":
+			_icefog(seep, Vector2(rng.randf_range(-20, 20), -8), 0.7, 20.0, 0.6)
+		elif ot == "cresson":
+			if gpuffs.size() < PUFF_MAX:
+				gpuffs.append([seep, Vector2(rng.randf_range(-20, 20), -8), g.t, 0.7, 22.0, 40.0, rng.randi() % 3, 0.6, 2])
+		else:
+			_fog(seep, 1, 0.7, 0.0, true, 0.7)
+
+
+## 演示用沙地：米黄沙底 + 斜向黑色风沙条（原作时光之沙，实机 BV1Ds421A7E3 3615 s），128² 程序贴图按 2 倍平铺
+func _draw_sand_floor(w) -> void:
+	if sand_tex == null:
+		var n := FastNoiseLite.new()
+		n.seed = 77
+		n.frequency = 0.06
+		var img := Image.create(128, 128, false, Image.FORMAT_RGBA8)
+		for y in 128:
+			for x in 128:
+				var a: float = TAU * float(x) / 128.0
+				var b: float = TAU * float(y) / 128.0
+				var v: float = n.get_noise_4d(cos(a) * 12.0, sin(a) * 12.0, cos(b) * 12.0, sin(b) * 12.0) if n.has_method("get_noise_4d") else n.get_noise_3d(cos(a) * 12.0, sin(a) * 12.0, float(y) * 0.5)
+				var cc: Color = Color(0.78, 0.67, 0.52).lerp(Color(0.66, 0.55, 0.4), clampf(v * 0.8 + 0.5, 0.0, 1.0))
+				var streak: float = fmod(float(x) * 0.18 + float(y), 32.0)
+				var hs: int = absi(hash(Vector2i(int(x / 7), int((float(y) + float(x) * 0.18) / 32.0))))
+				if streak < 1.5 and hs % 5 < 2:   # 风沙条断断续续、长短不一
+					cc = Color(0.36, 0.27, 0.18)
+				img.set_pixel(x, y, cc)
+		sand_tex = ImageTexture.create_from_image(img)
+	var vr: Rect2 = w.view_rect(16.0)
+	var x0: float = floorf(vr.position.x / 256.0) * 256.0
+	var y0: float = floorf(vr.position.y / 256.0) * 256.0
+	var y := y0
+	while y < vr.end.y:
+		var x := x0
+		while x < vr.end.x:
+			g.wcv.draw_texture_rect(sand_tex, Rect2(x, y, 256.0, 256.0), false)
+			x += 256.0
+		y += 256.0
