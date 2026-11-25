@@ -2070,11 +2070,12 @@ func _warn_final(w, cv, t: Dictionary, k: float, sd: int, ot: String) -> void:
 						var jr: float = 1.0 + float(absi(hash(Vector2i(sd, i + 80))) % 30) / 100.0 - 0.15
 						pts.append(_gpoly_ring(c, hr * jr, gy, aa5))
 					if hr > 3.0:
-						w.tb_poly(pts, SANDC[1])
-						var pin := PackedVector2Array()
-						for q in pts:
-							pin.append(c + (q - c) * 0.55)
-						w.tb_poly(pin, SANDC[0])
+						_fin_tex()
+						for i in 5:
+							var aq: float = float(i) * 2.399 + float(sd % 7) + g.t * 0.6
+							var qq: Vector2 = c + (Vector2.ZERO if i == 0 else Vector2(cos(aq), sin(aq) * gy) * hr * 0.45)
+							var szq: float = hr * (1.5 if i == 0 else 0.9)
+							cv.draw_texture_rect(sand_puff, Rect2(_snap(qq - Vector2(szq, szq * gy) * 0.5), Vector2(szq, szq * gy)), false, Color(1, 1, 1, 0.35 + 0.45 * k))
 						for i in 3:
 							_crack_col(w, c, TAU * float(i) / 3.0 + 1.0, hr * 0.8, 1.0, sd + i, KHAN[2], SANDC[0], 2.0)
 					if rng.randf() < 0.7:
@@ -2112,8 +2113,10 @@ func _warn_final(w, cv, t: Dictionary, k: float, sd: int, ot: String) -> void:
 			var a1: float = float(t.ang) + float(t.half)
 			var cc2: Color = {"will": WILLC[2], "lead": TEALC[3], "cresson": LIL[2], "khan": KHAN[2], "lion": LUKA}.get(ot, BLOOD[1])
 			var ce2: Color = {"will": WILLC[0], "lead": OLC, "cresson": LIL[0], "khan": SANDC[0], "lion": LUKA_D}.get(ot, OLC)
-			for i in 5:
-				_crack_col(w, c, lerpf(a0 + 0.08, a1 - 0.08, float(i) / 4.0), r3 - 8.0, k, sd + i * 13, cc2, ce2, 4.0)
+			var ncr: int = 1 if r3 > 300.0 else 5
+			for i in ncr:
+				var ai: float = float(t.ang) if ncr == 1 else lerpf(a0 + 0.08, a1 - 0.08, float(i) / 4.0)
+				_crack_col(w, c, ai, r3 - 8.0, k, sd + i * 13, cc2, ce2, 5.0 if ncr == 1 else 4.0)
 			# 外弧一道连续元素纹理弧带（从中间往两头长），不再一排物件（读成虚线）
 			_fin_tex()
 			var btx2: Texture2D = {"will": ice_band, "lead": teal_band, "cresson": lil_band, "khan": sand_band, "lion": sand_band}.get(ot, fog_band)
@@ -2223,16 +2226,19 @@ func _obj_front(w, now: float) -> void:
 			if float(t.dead_t) > 0.0:
 				continue
 			var tp: Vector2 = t.pos
-			var tree := PackedVector2Array([tp + Vector2(-6, 2), tp + Vector2(-5, -14), tp + Vector2(-22, -18), tp + Vector2(-8, -26), tp + Vector2(-18, -34), tp + Vector2(-4, -40),
-				tp + Vector2(0, -56), tp + Vector2(4, -40), tp + Vector2(18, -34), tp + Vector2(8, -26), tp + Vector2(22, -18), tp + Vector2(5, -14), tp + Vector2(6, 2)])
-			_gold_beat(w, tree, tp + Vector2(0, -24), now)
-			var big2 := PackedVector2Array()
-			for q in tree:
-				big2.append(tp + Vector2(0, -24) + (q - tp - Vector2(0, -24)) * 1.1)
-			w.tb_poly(big2, WILLC[0])
-			w.tb_poly(tree, WILLC[1])
-			w.tb_poly(PackedVector2Array([tp + Vector2(0, -56), tp + Vector2(4, -40), tp + Vector2(18, -34), tp + Vector2(8, -26), tp + Vector2(22, -18), tp + Vector2(5, -14), tp + Vector2(0, -14)]), WILLC[2])
-			w.tb_line(_snap(tp + Vector2(0, -6)), _snap(tp + Vector2(0, -48)), WILLC[3], 2.0)
+			var tiers := [[-12.0, 26.0, -36.0], [-26.0, 21.0, -48.0], [-38.0, 15.0, -62.0]]   # 每层 [底 y, 半宽, 尖 y]
+			var trunk := PackedVector2Array([tp + Vector2(-4, 2), tp + Vector2(-4, -14), tp + Vector2(4, -14), tp + Vector2(4, 2)])
+			_gold_beat(w, trunk, tp + Vector2(0, -6), now)
+			for tr in tiers:
+				_gold_beat(w, PackedVector2Array([tp + Vector2(-tr[1], tr[0]), tp + Vector2(0, tr[2]), tp + Vector2(tr[1], tr[0])]), tp + Vector2(0, (tr[0] + tr[2]) * 0.5), now)
+			w.tb_poly(PackedVector2Array([tp + Vector2(-6, 3), tp + Vector2(-6, -16), tp + Vector2(6, -16), tp + Vector2(6, 3)]), WILLC[0])
+			w.tb_poly(trunk, Color(0.4, 0.36, 0.5))
+			for tr in tiers:
+				w.tb_poly(PackedVector2Array([tp + Vector2(-tr[1] - 3.0, tr[0] + 2.0), tp + Vector2(0, tr[2] - 3.0), tp + Vector2(tr[1] + 3.0, tr[0] + 2.0)]), WILLC[0])
+				w.tb_poly(PackedVector2Array([tp + Vector2(-tr[1], tr[0]), tp + Vector2(0, tr[2]), tp + Vector2(0, tr[0])]), WILLC[1])
+				w.tb_poly(PackedVector2Array([tp + Vector2(0, tr[0]), tp + Vector2(0, tr[2]), tp + Vector2(tr[1], tr[0])]), WILLC[2])
+				w.tb_poly(PackedVector2Array([tp + Vector2(-tr[1] * 0.9, tr[0] - 1.0), tp + Vector2(-tr[1] * 0.3, tr[0] - 6.0), tp + Vector2(tr[1] * 0.6, tr[0] - 3.0), tp + Vector2(tr[1] * 0.9, tr[0] - 1.0)]), WILLC[3])   # 积雪
+			w.tb_line(_snap(tp + Vector2(1, -16)), _snap(tp + Vector2(1, -56)), WILLC[3], 2.0)
 			for h in int(t.hits):
 				_crack_col(w, tp + Vector2(0, -30), PI * 0.5 + 1.2 * float(h) - 1.0, 18.0, 1.0, 50 + h, WILLC[3], WILLC[0], 2.0)
 	w.tb_flush()
@@ -2246,6 +2252,8 @@ var runners: Array = []      # 骑影 / 兽亲冲过 [种类, 起点, 方向角,
 const SP_MAX := 320
 var ice_band: Texture2D
 var sand_band: Texture2D
+var sand_puff: Texture2D
+var snow_puff: Texture2D
 const PAL := {
 	"will": [Color(0.3, 0.22, 0.45), Color(0.86, 0.86, 0.98), Color(1.0, 1.0, 1.0)],
 	"lead": [Color(0.02, 0.06, 0.05), Color(0.1, 0.44, 0.31), Color(0.55, 0.85, 0.72)],
@@ -2263,6 +2271,8 @@ func _fin_tex() -> void:
 	if ice_band == null:
 		ice_band = _fog_tex(128, 32, 1901, false, Color(0.55, 0.72, 0.88), Color(0.86, 0.95, 1.0))
 		sand_band = _fog_tex(128, 32, 1951, false, Color(0.5, 0.38, 0.22), Color(0.8, 0.68, 0.5))
+		sand_puff = _fog_tex(32, 32, 1971, true, Color(0.42, 0.3, 0.16), Color(0.22, 0.14, 0.07))
+		snow_puff = _fog_tex(32, 32, 1981, true, Color(0.62, 0.66, 0.8), Color(0.97, 0.98, 1.0))
 
 
 ## 爆点：从地上猛地顶出一根元素尖刺（0.08 秒顶到全高，停 0.15，0.25 秒缩回），暗边 + 本体 + 受光面
@@ -2770,11 +2780,17 @@ func _blizzard(w, cv, e: Dictionary, bz: Dictionary, y: float, now: float) -> vo
 			var yy: float = y0
 			var row := 0
 			while yy < y - 30.0:
-				cv.draw_texture_rect(ice_puff[(col + row) % 3], Rect2(_snap(Vector2(x - 34, yy - 30)), Vector2(68, 60)), false, Color(1, 1, 1, 0.42))
-				yy += 46.0
+				var hj: int = absi(hash(Vector2i(col, row)))
+				var jx: float = float(hj % 31) - 15.0 + 10.0 * sin(now * 1.3 + float(hj % 7))
+				var jy: float = float((hj >> 5) % 21) - 10.0
+				var sz: float = 70.0 + float((hj >> 9) % 40)
+				cv.draw_texture_rect(snow_puff, Rect2(_snap(Vector2(x + jx - sz * 0.5, yy + jy - sz * 0.4)), Vector2(sz, sz * 0.8)), false, Color(1, 1, 1, 0.55))
+				yy += 50.0
 				row += 1
 			var wob: float = 8.0 * sin(now * 4.0 + float(col))
-			cv.draw_texture_rect(ice_puff[col % 3], Rect2(_snap(Vector2(x - 40, y - 46 + wob)), Vector2(80, 70)), false, Color(1, 1, 1, 0.9))
+			var fz: float = 96.0 + 20.0 * sin(now * 2.0 + float(col) * 1.7)
+			cv.draw_texture_rect(snow_puff, Rect2(_snap(Vector2(x - fz * 0.5, y - fz * 0.7 + wob)), Vector2(fz, fz * 0.8)), false, Color(1, 1, 1, 0.95))
+			cv.draw_texture_rect(ice_puff[col % 3], Rect2(_snap(Vector2(x - fz * 0.35, y - fz * 0.62 + wob)), Vector2(fz * 0.7, fz * 0.56)), false, Color(1, 1, 1, 0.9))
 			if rng.randf() < 0.12:
 				_icefog(Vector2(x, y), Vector2(rng.randf_range(-20, 20), 40), 0.6, 40.0, 0.8)
 			if rng.randf() < 0.25:
