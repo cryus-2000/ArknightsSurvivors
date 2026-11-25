@@ -217,6 +217,10 @@ def build(a, commit, date, audience, label, encrypted_template, encryption_key):
     gpath = os.path.join(src, "game")
     # 运行时贴图都在 game/art（docs/189），随 pck 走：对外包去掉干员 @2x 回退条（docs/128，游戏读 @1x），副本 art/index.json 按剩下的重写
     # 整 2 倍放大的 @2x 换成 1 倍（在 prune_game_art 之前：加密包校验按它返回的 PNG 清单核对；tools/web_half.py 第 1 步，画面不变；docs/319 §16「哪项在哪个平台生效」）
+    # 暂不上线的干员不进包（11-25 协调人定：对外 / 对内包都不带，只有调试构建 --allops 看得到；operator_defs.HIDDEN）
+    hid, hfreed = release_slim.drop_hidden_ops(gpath)
+    release_slim.assert_no_hidden_ops(release_slim.tree_paths(gpath), hid, "打包副本")
+    print("[瘦身] 暂不上线干员（%s）不进包：%.2f MB" % ("、".join(hid), hfreed / 1e6), flush=True)
     import web_half
     print("[瘦身] " + web_half.report(web_half.make(gpath, lossy=False)), flush=True)
     game_art, freed = release_slim.prune_game_art(gpath, drop_fallback=not a.ea)

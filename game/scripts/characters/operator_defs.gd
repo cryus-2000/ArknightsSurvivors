@@ -32,10 +32,19 @@ static func hidden(cid: String) -> bool:
 	return not list_ids().has(cid) and HIDDEN.has(cid)
 
 
+## 存档里的干员 id 能不能用（11-25 老存档兜底）：在当前名单里才算。对外 / 对内包导出时 HIDDEN 的 6 人整块不进包（tools/release_slim.drop_hidden_ops），
+## 11-20 那版 Toy 里他们还可见，老存档的封面 / 意向 / 名册 / 刚解锁里可能有这些 id：读档和用的时候按这个静默跳过或退回缺省
+static func usable(cid: String) -> bool:
+	return cid != "" and list_ids().has(cid)
+
+
 static func load_def(cid: String) -> Dictionary:
-	var f := FileAccess.open(def_path(cid), FileAccess.READ)
+	var f := FileAccess.open(def_path(cid), FileAccess.READ) if FileAccess.file_exists(def_path(cid)) else null
 	if f == null:
-		push_error("character def missing: " + cid)
+		# 读不到：暂不上线的干员在导出包里整块删掉了（11-25），老存档 / 云存档里还可能有 id，静默返回空定义（调用方按 usable 过滤）；
+		# 开发版里别的 id 读不到仍报错（数据真丢了）
+		if OS.is_debug_build() and not HIDDEN.has(cid):
+			push_error("character def missing: " + cid)
 		return {"id": cid}
 	var d = JSON.parse_string(f.get_as_text())
 	if not (d is Dictionary):

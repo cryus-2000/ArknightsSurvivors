@@ -218,6 +218,87 @@ def prune_game_art(gpath, drop_fallback):
     return sorted((n, os.path.join(art, rp[len("res://art/"):].replace("/", os.sep))) for n, rp in idx.items()), freed
 
 
+def hidden_ops(gpath):
+    """暂不上线的干员 id（scripts/characters/operator_defs.gd 的 HIDDEN，唯一来源；11-25 协调人定：对外 / 对内包都不带，只有调试构建 --allops 看得到）"""
+    src = open(os.path.join(gpath, "scripts", "characters", "operator_defs.gd"), encoding="utf-8").read()
+    m = re.search(r"^const HIDDEN := \[([^\]]*)\]", src, re.M)
+    if not m:
+        raise SystemExit("operator_defs.gd 里找不到 const HIDDEN := [...]（改名了要同步 tools/release_slim.hidden_ops）")
+    return re.findall(r'"([a-z0-9_]+)"', m.group(1))
+
+
+# 积木单继承链上的段（op_blocks → seg_ling → seg_gladiia …，docs/319 §16.4）：删了整条链编译不过，先留在包里（11-25 协调人定）
+HIDDEN_KEEP_SCRIPTS = ("scripts/characters/blocks/seg_ling.gd",)
+
+
+def hidden_ops_rx(ids):
+    """包里 / 副本里属于暂不上线干员的路径：只认干员目录（art/operators、data/characters、scripts/characters）、
+    导入产物 / 翻译行不在这里查；敌人 / Boss 特效里同名的词（phantom 皮肤）不会命中"""
+    alt = "|".join(re.escape(i) for i in ids)
+    return re.compile(r"(art/operators/(%s)/|data/characters/(%s)\.json|scripts/characters/(.*/)?(op_|seg_)(%s)\.gd|\.godot/imported/op_(%s)_)" % (alt, alt, alt, alt))
+
+
+def drop_hidden_ops(gpath):
+    """导出副本 gpath（= 打包用的 game/）里删掉暂不上线干员（hidden_ops）的整块内容：data/characters/<id>.json、art/operators/<id>/（含 .import）、
+    JSON 里 script 字段指向的独立脚本（op_surtr.gd 之类，不在积木链上），以及 l10n/ops.csv 的 op.<id>.* 行。
+    要在 prune_game_art 之前调（它按剩下的文件重写副本的 art/index.json）。返回 (id 列表, 删掉的字节数)"""
+    import csv, shutil
+    ids = hidden_ops(gpath)
+    freed = 0
+
+    def rm(p):
+        nonlocal freed
+        if os.path.isdir(p):
+            for dp, _, fs in os.walk(p):
+                freed += sum(os.path.getsize(os.path.join(dp, f)) for f in fs)
+            shutil.rmtree(p)
+        elif os.path.isfile(p):
+            freed += os.path.getsize(p)
+            os.remove(p)
+
+    for cid in ids:
+        jp = os.path.join(gpath, "data", "characters", cid + ".json")
+        if os.path.isfile(jp):
+            d = json.load(open(jp, encoding="utf-8"))
+            sp = str(d.get("script", ""))
+            if sp.startswith("res://") and sp[len("res://"):] not in HIDDEN_KEEP_SCRIPTS:
+                p = os.path.join(gpath, sp[len("res://"):].replace("/", os.sep))
+                rm(p)
+                rm(p + ".uid")
+        rm(jp)
+        rm(os.path.join(gpath, "art", "operators", cid))
+    cp = os.path.join(gpath, "l10n", "ops.csv")
+    if os.path.isfile(cp):
+        raw = open(cp, encoding="utf-8", newline="").read()
+        rows = list(csv.reader(io.StringIO(raw)))
+        pre = tuple("op.%s." % i for i in ids)
+        keep = [r for r in rows if not (r and r[0].startswith(pre))]
+        if len(keep) != len(rows):
+            out = io.StringIO()
+            csv.writer(out, lineterminator="\n").writerows(keep)
+            freed += len(raw.encode("utf-8")) - len(out.getvalue().encode("utf-8"))
+            open(cp, "w", encoding="utf-8", newline="").write(out.getvalue())
+    return ids, freed
+
+
+def assert_no_hidden_ops(paths, ids, what):
+    """导出断言（11-25）：paths（pck 目录 / 副本文件列表，res:// 相对或绝对都行）里不许出现暂不上线干员的路径（白名单 HIDDEN_KEEP_SCRIPTS 除外）"""
+    rx = hidden_ops_rx(ids)
+    bad = sorted({p for p in paths if rx.search(p.replace(os.sep, "/")) and not any(p.replace(os.sep, "/").endswith(k) or p.replace(os.sep, "/").endswith(k + ".uid") for k in HIDDEN_KEEP_SCRIPTS)})
+    if bad:
+        raise SystemExit("%s里还有暂不上线干员（operator_defs.HIDDEN）的文件 %d 个，例如：%s" % (what, len(bad), "、".join(bad[:5])))
+    print("[检查] %s不含暂不上线干员（%s）" % (what, "、".join(ids)), flush=True)
+
+
+def tree_paths(gpath):
+    out = []
+    for dp, _, fs in os.walk(gpath):
+        if ".godot" in dp.replace(os.sep, "/").split("/"):
+            continue
+        out += [os.path.relpath(os.path.join(dp, f), gpath).replace(os.sep, "/") for f in fs]
+    return out
+
+
 def art_report(game=GAME, incoming=INCOMING):
     """把 art/incoming 根目录 PNG 分成：referenced（运行时文本里能找到名字或「前缀 + 后缀」拼法）、review（审阅图规则排除）、
     unreferenced（找不到引用、但不是审阅图，照旧随包）。violations = 被审阅图规则排除、却能在运行时文本里找到的（不许有）"""

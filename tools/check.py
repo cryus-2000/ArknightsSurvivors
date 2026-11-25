@@ -1258,6 +1258,7 @@ SCENE_REGRESSIONS = {
     "onboard_forced": ("新手引导强制部分（docs/219 §6）：第一次进游戏问题框无跳过、Esc 不选、两条线都走演示局（招募 / 连携 / 终结技 / 指挥）、连携一步到点直接触发、onboard_done 存档与云存档取或", "onboard_forced_test", r"ONBOARD FORCED failures=0", ["--balance", "--seed=1", "--op=mizuki", "--onboard=ask"]),
     "tour": ("首局聚光框引导 + 到点小提示（screens/tour.gd）：小提示每样只弹一次并记存档 / 排队、老存档不再弹、TIPS 与 Cfg.TIP_IDS 一致", "tour_test", r"TOUR failures=0", ["--roster=new"]),
     "theme_save": ("存档按主题分开（docs/366）：典型旧存档迁移前后可见进度一致、写出再读幂等、旧位置给旧版本、降级再升级不丢、第二主题各存各的、云存档 th 兼容与冲突合并", "theme_save_test", r"THEME SAVE checks=\d+ failures=0", []),
+    "hidden_ops_save": ("暂不上线干员的老存档兜底（11-25）：封面 / 意向 / 刚解锁里的 HIDDEN id 退回缺省、名册 id 留档但名册 / 寻访看不到；打包副本里 load_def 静默", "hidden_ops_save_test", r"HIDDEN OPS SAVE failures=0", ["--roster=keep"]),
     "save_migrate": ("存档迁移样本（docs/126 R1）：难度 diff_ver 1–5、旧倍速、旧亮度缺省、三种旧券、没有 [roster] 段的老存档", "save_migrate_test", r"SAVE MIGRATE failures=0", []),
     "medals": ("蚀刻章「深蓝之下」（core/medals.gd）：章表、藏品 49 / 50 边界与去重、结局 / 协同晋升 / 认知首次与全部、认知重置不收回、套组、读档补录、云存档合并与往返", "medals_test", r"MEDALS failures=0", []),
     "cloud_save": ("B站云存档：打包 / 分片 / 平台限制 / 校验 / 版本 / 合并规则 / Cfg 往返 / 非网页不启用（docs/89）", "cloud_save_test", r"CLOUD SAVE failures=0", []),

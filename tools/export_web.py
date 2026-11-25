@@ -218,6 +218,9 @@ def main():
     if a.worktree_presets:
         shutil.copy2(os.path.join(ROOT, "game", "export_presets.cfg"), os.path.join(src, "game", "export_presets.cfg"))
     # 运行时贴图都在 game/art（docs/189），随 pck 走；网页包（Toy 50 MB）不带干员 @2x 回退条，游戏读 @1x（docs/128）
+    hid, hfreed = release_slim.drop_hidden_ops(os.path.join(src, "game"))   # 暂不上线的干员不进包（11-25，operator_defs.HIDDEN；先删再重写 art/index.json）
+    release_slim.assert_no_hidden_ops(release_slim.tree_paths(os.path.join(src, "game")), hid, "打包副本")
+    print("[瘦身] 暂不上线干员（%s）不进包：%.2f MB" % ("、".join(hid), hfreed / 1e6), flush=True)
     _, freed = release_slim.prune_game_art(os.path.join(src, "game"), drop_fallback=True)
     print("[瘦身] 干员 @2x 回退条 + 转平面旧做法对照帧条不进网页包：%.2f MB" % (freed / 1e6))
     print("源码：%s @ %s" % (a.ref, commit))
@@ -367,6 +370,8 @@ def godot_export(gpath, tmp):
 def finish(a, tmp, out_dir, toy, commit, src):
     """导出之后：Toy 断言 → 分片压缩 → 拼加载器 → 拷到 out_dir → 大小检查 → Toy zip（itch 与 Toy 两份共用）"""
     print("[瘦身] pck：%.2f MB" % (os.path.getsize(os.path.join(tmp, "index.pck")) / 1e6), flush=True)
+    with open(os.path.join(tmp, "index.pck"), "rb") as fh:   # 导出断言（11-25）：pck 目录里没有暂不上线干员的文件（seg_ling.gd 在积木链上，白名单）
+        release_slim.assert_no_hidden_ops(pck_paths(fh.read()), release_slim.hidden_ops(os.path.join(src, "game")), "网页包 pck ")
     if toy:   # 导出断言（docs/276 §12）：Toy 包里没有英文资源（翻译表路径一个都不能出现）
         with open(os.path.join(tmp, "index.pck"), "rb") as fh:
             pk = fh.read()

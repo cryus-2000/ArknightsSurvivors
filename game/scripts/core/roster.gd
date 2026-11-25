@@ -295,7 +295,7 @@ static func redeem_ten_hunt() -> Array:
 
 ## 「刚解锁」高亮：解锁后还没在选人页 / 图鉴里看过的干员；表现层显示一次后调 mark_seen
 static func fresh() -> Array:
-	return Cfg.roster_fresh.duplicate()
+	return Cfg.roster_fresh.filter(func(c): return all_ids().has(c))   # 暂不上线 / 包里没有的不高亮（11-25 老存档兜底）
 
 
 static func mark_seen(cid: String) -> void:

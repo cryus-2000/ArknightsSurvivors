@@ -737,8 +737,8 @@ func _ready() -> void:
 ## 没写的键沿用当前值；版本迁移都在这里：难度 diff_ver（_migrate_progress）、观感 look_ver、旧倍速、旧券、没有 [roster] 段的老存档
 func _read_cfg(c: ConfigFile) -> void:
 	cover_character_id = str(c.get_value("display", "cover_character", "mizuki"))
-	if preload("res://scripts/characters/operator_defs.gd").hidden(cover_character_id):
-		cover_character_id = "mizuki"   # 11-23 暂不上线的干员（operator_defs.HIDDEN）：老存档选过的退回缺省
+	if not preload("res://scripts/characters/operator_defs.gd").usable(cover_character_id):
+		cover_character_id = "mizuki"   # 暂不上线（operator_defs.HIDDEN）或包里没有的干员：老存档选过的退回缺省（11-23 / 11-25）
 	play_speed = float(c.get_value("game", "play_speed", 1.0))
 	if play_speed == 2.0:   # 10-22 删 2× 倍速：旧存档回落到最接近的 1.5×
 		play_speed = 1.5
@@ -812,12 +812,13 @@ func _read_cfg(c: ConfigFile) -> void:
 	roster_spare = c.get_value("roster", "spare", roster_spare)
 	roster_tiers = c.get_value("roster", "tiers", roster_tiers)
 	roster_wish = str(c.get_value("roster", "wish", roster_wish))
-	if preload("res://scripts/characters/operator_defs.gd").hidden(roster_wish):
-		roster_wish = ""   # 意向干员是暂不上线的（operator_defs.HIDDEN）：清掉，免得保底指向抽不到的人
+	if roster_wish != "" and not preload("res://scripts/characters/operator_defs.gd").usable(roster_wish):
+		roster_wish = ""   # 意向干员暂不上线（operator_defs.HIDDEN）或包里没有：清掉，免得保底指向抽不到的人
 	roster_pity = int(c.get_value("roster", "pity", roster_pity))
 	roster_draws = int(c.get_value("roster", "draws", roster_draws))
 	roster_seed = int(c.get_value("roster", "seed", roster_seed))
 	roster_fresh = c.get_value("roster", "fresh", roster_fresh)
+	roster_fresh = roster_fresh.filter(func(x): return preload("res://scripts/characters/operator_defs.gd").usable(str(x)))   # 「刚解锁」高亮只本机存：暂不上线 / 包里没有的直接丢（11-25）；roster_unlocked 原样保留（以后上线还认），用的地方按名单过滤
 	roster_int_grant = bool(c.get_value("roster", "int_grant", roster_int_grant))
 	roster_v = int(c.get_value("roster", "v", 0))
 	toy_support = (c.get_value("toy", "support", []) as Array).map(func(x): return str(x)) if c.get_value("toy", "support", []) is Array else []
@@ -1404,7 +1405,7 @@ func cloud_apply(body: Dictionary) -> void:
 			roster_spare = (st0.sp as Dictionary).duplicate()
 		if st0.get("wish") is String:
 			roster_wish = st0.wish
-			if preload("res://scripts/characters/operator_defs.gd").hidden(roster_wish):
+			if roster_wish != "" and not preload("res://scripts/characters/operator_defs.gd").usable(roster_wish):
 				roster_wish = ""
 		for k in ["pity", "draws", "seed"]:
 			if st0.get(k) is float or st0.get(k) is int:
