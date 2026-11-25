@@ -200,6 +200,7 @@ func _start_ult(e: Dictionary, m, mode: String) -> void:
 	var dur: float = ULT_DUR if not e.get("decisive", false) else 1.8 + ULT_LOCK
 	var w := w_circle(e, p, ULT_R, dur, 0.30, nm, {"lock": true})
 	e["ult"] = {"w": w, "mode": mode, "t0": g.t, "dur": dur}
+	pose(e, dur)
 	e.channel = dur
 	if m != null and mode == "drag":
 		m["walk_to"] = e.pos + ((m.pos as Vector2) - e.pos).normalized() * 280.0   # 牵制王起身走来接手，停在离施放者 280 处（不理主轴时圈砸不到他）
@@ -443,7 +444,9 @@ func _final_ult(e: Dictionary) -> void:
 ## ---- 哈兰的招
 ## 鞭扫：120°、r260，只伤外缘弧带（内圈 100 安全）
 func _sweep(e: Dictionary, dir: Vector2, _d: float) -> float:
-	w_cone(e, dir.angle(), PI / 3.0, 260.0, 1.4, 0.16, "鞭扫", {"track": 0.3, "inner_r": 100.0, "skin": "ice_field", "arena_center": e.pos, "arena_radius": 99999.0})
+	var w := w_cone(e, dir.angle(), PI / 3.0, 260.0, 1.4, 0.16, "鞭扫", {"track": 0.3, "inner_r": 100.0, "skin": "ice_field", "arena_center": e.pos, "arena_radius": 99999.0})
+	pose(e, 1.4)
+	w.cb = func(ww): _fx("whip", e.pos, float(ww.ang), PI / 3.0)
 	return 1.6
 
 
@@ -451,7 +454,9 @@ func _sweep(e: Dictionary, dir: Vector2, _d: float) -> float:
 func _whip_tip(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var a: float = (g.ppos + g.pvel.limit_length(150.0) * 0.25 - e.pos).angle()
 	var w := w_line(e, a, 620.0, 20.0, 0.8, 0.15, "鞭梢", {"track": 0.4})
+	pose(e, 0.8)
 	w.cb = func(ww):
+		_fx("lash", e.pos, float(ww.ang), 620.0)
 		var tip: Vector2 = e.pos + Vector2.from_angle(float(ww.ang)) * 620.0
 		var nrm: Vector2 = Vector2.from_angle(float(ww.ang)).orthogonal()
 		for k in 8:
@@ -471,7 +476,9 @@ func _cavalry(e: Dictionary, _dir: Vector2, _d: float) -> float:
 		var p: Vector2 = g.ppos - Vector2.from_angle(a) * 640.0 + nrm * (off + shift)
 		var w := w_line(e, a, 1280.0, 26.0, 1.0, 0.18, "可汗冲阵" if first else "", {"lock": first})
 		w.pos = p
+		w.cb = func(ww): _fx("rider", ww.pos, float(ww.ang), 1280.0)
 		first = false
+	pose(e, 1.0)
 	return 1.4
 
 
@@ -482,7 +489,10 @@ func _lash3(e: Dictionary, _dir: Vector2, _d: float) -> float:
 		later(e, gap * k, func():
 			var a: float = (g.ppos - e.pos).angle() + (0.4 if k % 2 == 0 else -0.4)
 			var w := w_cone(e, a, deg_to_rad(25.0), 220.0, 0.8, 0.14, "战意鞭笞" if k == 0 else "", {"lock": k == 0})
-			w.cb = func(ww): fan(e, e.pos, float(ww.ang), deg_to_rad(25.0), 7, 230.0, 1, 0.08, {"life": 2.5}))
+			pose(e, 0.8)
+			w.cb = func(ww):
+				_fx("whip", e.pos, float(ww.ang), deg_to_rad(25.0))
+				fan(e, e.pos, float(ww.ang), deg_to_rad(25.0), 7, 230.0, 1, 0.08, {"life": 2.5}))
 	return 0.8 + gap * 3.0
 
 
@@ -495,8 +505,11 @@ func _shadow_whip(e: Dictionary, dir: Vector2, _d: float) -> float:
 		var w := w_cone(e, a, PI / 4.0, 200.0, 1.1, 0.16, "鞭影" if first else "", {"lock": first})
 		w.follow = false
 		w.pos = e.pos + nrm * 110.0 * s
+		w.cb = func(ww): _fx("shade", ww.pos, float(ww.ang), PI / 4.0)
 		first = false
-	w_cone(e, a, PI / 4.0, 200.0, 1.1, 0.16, "", {"lock": false})
+	var w0 := w_cone(e, a, PI / 4.0, 200.0, 1.1, 0.16, "", {"lock": false})
+	w0.cb = func(ww): _fx("whip", e.pos, float(ww.ang), PI / 4.0)
+	pose(e, 1.1)
 	return 1.4
 
 
@@ -504,10 +517,12 @@ func _shadow_whip(e: Dictionary, dir: Vector2, _d: float) -> float:
 func _skyway(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var a: float = (g.ppos - e.pos).angle()
 	w_stab(e, a, 520.0, 30.0, 0.8, 0.20, "天途", {"track": 0.3, "fit_len": true})
+	pose(e, 0.8)
 	for s in [-1.0, 1.0]:
 		for k in 2:
 			var w := w_line(e, a + s * (0.35 + 0.15 * k), 480.0, 24.0, 0.8, 0.14, "", {"lock": false})
 			w.pos = e.pos + Vector2.from_angle(a + s * PI * 0.5) * 60.0 * (k + 1)
+			w.cb = func(ww): _fx("rider", ww.pos, float(ww.ang), 480.0)
 	return 1.6
 
 
@@ -517,6 +532,8 @@ func _dial_ring(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var a0: float = (g.ppos - e.pos).angle()
 	e.move_name = "历盘"
 	e.move_t = g.t
+	pose(e, 0.0)
+	_fx("flash", e.pos, 0.0, PI)
 	for k in 6:
 		var ga: float = a0 + TAU / 24.0 * k
 		later(e, 0.5 * k, func():
@@ -545,7 +562,9 @@ func _blink(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var a: float = (g.ppos - e.pos).angle()
 	var from: Vector2 = e.pos
 	var w := w_line(e, a, 400.0, 30.0, 0.8, 0.18, "瞬身", {"track": 0.3})
+	pose(e, 0.8)
 	w.cb = func(ww):
+		_fx("flash", from, float(ww.ang), 0.8)
 		var to: Vector2 = g.combat.arena_clamp(from + Vector2.from_angle(float(ww.ang)) * 400.0, 60.0)
 		e["trail"] = {"a": from, "b": to, "until": g.t + 2.0}
 		e.pos = to
@@ -559,7 +578,9 @@ func _edict(e: Dictionary, _dir: Vector2, _d: float) -> float:
 		later(e, 0.5 * k, func():
 			var src: Vector2 = e.pos + Vector2.from_angle(TAU * k / 2.0 + g.t) * 60.0
 			var w := w_line(e, (g.ppos - src).angle(), 420.0, 26.0, 0.8, 0.14, "王令" if k == 0 else "", {"lock": k == 0, "track": 0.3})
-			w.pos = src)
+			w.pos = src
+			w.cb = func(ww): _fx("beast", ww.pos, float(ww.ang), 420.0))
+	pose(e, 0.8)
 	return 1.6
 
 
@@ -570,6 +591,7 @@ func _dial(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var w := w_line(e, a0, 400.0, 20.0, 1.0, 0.0, "日晷", {"lock": true})
 	w.pos = pin
 	e["sundial"] = {"pin": pin, "a0": a0, "t0": g.t + 1.0, "hit_t": 0.0}
+	pose(e, 1.0)
 	return 1.6
 
 
@@ -610,6 +632,7 @@ func _hourglass(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	e.move_name = "沙漏"
 	e.move_t = g.t
 	e["hourglass"] = {"tris": tris, "t": [g.t + 1.2, g.t + 2.2], "done": [false, false]}
+	pose(e, 1.2)
 	return 2.4
 
 
@@ -634,7 +657,12 @@ func _reverse(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	e.move_name = "逆历"
 	e.move_t = g.t
 	w_self(e, 50.0, 0.6, 0.0, "")
+	pose(e, 0.6)
 	later(e, 0.6, func():
+		_fx("flash", e.pos, 0.0, PI)
+		for x2 in e.get("my_shots", []):
+			if x2[0].life > 0.0:
+				_fx("rewind", x2[0].pos, 0.0, 0.0)
 		for x in e.get("my_shots", []):
 			var b: Dictionary = x[0]
 			if b.life <= 0.0:
@@ -737,6 +765,10 @@ func _duel(e: Dictionary, m) -> void:
 
 
 func draw(e: Dictionary, cv) -> void:
+	var fxm = g.mech("fx")
+	if fxm != null:
+		fxm.final_draw(e)   # 营地旗 / 刻度石、沙河、沙痕、日晷、沙漏、两军（docs/401 §18）
+		return
 	var c := _ctl(e)
 	if _khan(e):
 		var cp: Vector2 = center(e)

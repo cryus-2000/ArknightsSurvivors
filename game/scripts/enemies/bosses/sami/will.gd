@@ -519,6 +519,11 @@ func _sigh(e: Dictionary) -> void:
 
 
 func draw(e: Dictionary, cv) -> void:
+	var fxm = g.mech("fx")
+	if fxm != null:
+		fxm.final_draw(e)   # 冰桩 / 冰峰 / 冻原 / 暴风雪 / 冰河 / 寒息 / 冰壳（docs/401 §18）
+		fxm.obj_draw(e)     # 银凇 = 要去碰的东西：金色描边 + 心跳（docs/401 §16）
+		return
 	for t in e.get("trees", []):
 		if float(t.dead_t) > 0.0:
 			cv.draw_circle(t.orig, 10.0, Color(0.8, 0.9, 1.0, 0.35))

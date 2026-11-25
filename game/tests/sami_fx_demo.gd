@@ -75,6 +75,12 @@ func _ready() -> void:
 	title.add_theme_constant_override("shadow_offset_x", 2)
 	title.add_theme_constant_override("shadow_offset_y", 2)
 	overlay.add_child(title)
+	if "--ai" in OS.get_cmdline_user_args():
+		await _ai_run()
+		g.queue_free()
+		await get_tree().process_frame
+		get_tree().quit()
+		return
 	var counts := {}
 	var only := -1
 	var zooms := [1.0, 2.0]
@@ -252,3 +258,167 @@ func visual_step(dt: float, zk: float, seg: Dictionary) -> void:
 	g.fg.queue_redraw()
 	if g.foe_top != null:
 		g.foe_top.queue_redraw()
+
+
+## ==== 真 AI 全招式演示（协调人 11-26，docs/401 §18）：--ai [--boss=blade|wanderer|will|lead|cresson|twin]
+## Boss 按自己的 AI 走位（移速、雾行、跳点、双王导演都照常跑），每招按 all_moves 顺序逐个放（招间 1.4 秒）；
+## 自己挑招被 busy_t 挡住，只放演示点名的招。队长保持中距离（离 Boss 约 240）绕着走，看瞄准 / 落点追不追人。
+## 每招放之前把 gates_passed 设到这招所在的幕（结局 Boss 的场上图案按幕变）。镜头 1 倍跟队长与 Boss 中点。
+const AI_GROUPS := {
+	"blade": [["blade"], "“邪魔的利刃”"],
+	"wanderer": [["wanderer"], "“邪魔的利刃”，游荡者"],
+	"will": [["will"], "“萨米的意志”"],
+	"lead": [["lead"], "「木裂」埃克提尔尼尔"],
+	"cresson": [["cresson"], "无垠回荡克雷松"],
+	"twin": [["khan", "lion"], "哈兰杜汗与路加萨尔古斯"],
+}
+const AI_ORDER := ["blade", "wanderer", "will", "lead", "cresson", "twin"]
+const AI_SKIP := {"wanderer": ["斩击·横扫", "投刃·切雾", "雾中突袭", "黑毯·回旋", "追猎·折返", "国度猎斩"]}   # 游荡者只演和利刃不同的招
+
+
+func _ai_run() -> void:
+	var want := ""
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--boss="):
+			want = a.substr(7)
+	for key in AI_ORDER:
+		if want != "" and key != want:
+			continue
+		await _ai_group(key)
+	var fx = g.mech("fx")
+	print("SAMI_FX_DEMO_AI done hits=%s" % JSON.stringify(fx.hits if fx else {}))
+
+
+func _ai_moves(sc, b: Dictionary) -> Array:
+	var out: Array = []
+	for m in sc.all_moves(b):
+		out.append([b, str(m[0]), m[4]])
+	return out
+
+
+## 这招在哪一幕（结局 Boss 用 gates_passed 分幕；克雷松回荡段另有 echo）
+func _ai_act(sc, b: Dictionary, nm: String) -> Array:
+	if not sc.has_method("moves") or b.type in ["khan", "lion", "blade", "wanderer"]:
+		return []
+	for st in [[0, false], [1, false], [2, false], [3, false], [2, true]]:
+		b["gates_passed"] = st[0]
+		b["echo"] = st[1]
+		for m in sc.moves(b):
+			if str(m[0]) == nm:
+				return st
+	return [0, false]
+
+
+func _ai_group(key: String) -> void:
+	var grp: Array = AI_GROUPS[key]
+	setup({"name": "", "dur": 1.0})
+	var fx = g.mech("fx")
+	if fx != null:
+		fx.sand_floor = false   # 双王沙地由 mech_sand（claude/sami-sand-arena）画；没合入就是雪地
+	var bs: Array = []
+	var x0 := -120.0
+	for t in grp[0]:
+		var e: Dictionary = g.spawner.new_enemy(str(t), O + Vector2(x0, -60))
+		x0 += 240.0
+		e.age = 3.0
+		e.invuln = false
+		e.wind = 0.0
+		e.friendly = false
+		e.hp = 1e9
+		e.maxhp = 1e9
+		e.busy_t = g.t + 2.0
+		g.enemies.append(e)
+		bs.append(e)
+	g.bosses = bs
+	g.boss = bs[0]
+	g.ppos = O + Vector2(0, 220)
+	var plan: Array = []
+	for b in bs:
+		var sc = g.bai.boss(b.type)
+		for m in _ai_moves(sc, b):
+			if m[1] in AI_SKIP.get(key, []):
+				continue
+			plan.append(m)
+	var ang := PI * 0.5
+	var next_t: float = g.t + 1.8
+	var mi := 0
+	var cur := ""
+	var end_t := INF
+	var prev_p: Vector2 = g.ppos
+	while g.t < end_t:
+		g.t += DT
+		g.hp = g.max_hp
+		g.zone_r = 2400.0
+		g.zone_next_r = 2400.0
+		g.invuln = maxf(0.0, g.invuln - DT)
+		g.state = g.S.PLAY
+		# 队长：离最近的 Boss 保持约 240，绕着它慢慢走（每 6 秒换一次方向）；场地内
+		var foc: Dictionary = bs[0]
+		for b in bs:
+			if not b.dead and b.pos.distance_to(g.ppos) < foc.pos.distance_to(g.ppos):
+				foc = b
+		var rel: Vector2 = g.ppos - foc.pos
+		if rel.length() < 1.0:
+			rel = Vector2(0, 1)
+		var sgn: float = 1.0 if int(g.t / 6.0) % 2 == 0 else -1.0
+		var tang: Vector2 = rel.normalized().orthogonal() * sgn
+		var radial: Vector2 = rel.normalized() * clampf((240.0 - rel.length()) / 120.0, -1.0, 1.0)
+		var v: Vector2 = (tang * 0.75 + radial).limit_length(1.0) * 150.0
+		var np: Vector2 = g.ppos + v * DT
+		if np.length() > 470.0:
+			np = np.normalized() * 470.0
+		g.ppos = np
+		g.pvel = (g.ppos - prev_p) / DT
+		prev_p = g.ppos
+		g.doc_pos = g.ppos + Vector2(10, 35)
+		for b in bs:
+			if g.t < next_t:
+				b.busy_t = maxf(float(b.get("busy_t", 0.0)), next_t + 0.5)
+		if g.t >= next_t and end_t == INF:
+			if mi >= plan.size():
+				end_t = g.t + 2.5
+			else:
+				var it: Array = plan[mi]
+				mi += 1
+				var b: Dictionary = it[0]
+				var sc = g.bai.boss(b.type)
+				var st: Array = _ai_act(sc, b, str(it[1]))
+				if not st.is_empty():
+					b["gates_passed"] = st[0]
+					b["echo"] = st[1]
+				var dv: Vector2 = g.ppos - b.pos
+				var busy: float = float((it[2] as Callable).call(b, dv.normalized(), dv.length()))
+				cur = str(it[1])
+				if busy < 0.0:
+					next_t = g.t + 0.1
+					cur = ""
+				else:
+					b.busy_t = g.t + busy + 0.3
+					next_t = g.t + maxf(busy, 1.0) + 1.4
+		g.enemies_sys.build_grid()
+		var nfx: int = g.fx.size()
+		g.enemies_sys.update(DT)
+		g.vfx.mark_enemy_fx(nfx)
+		g.shots.step(DT)
+		g.tele.update_warns(DT)
+		g.enemies_sys.update_status(DT)
+		g.enemies = g.enemies.filter(func(e): return not e.dead)
+		title.text = "%s · %s" % [grp[1], cur] if cur != "" else str(grp[1])
+		g.vfx.update(DT)
+		g.fx = g.fx.filter(func(f): return f.life > 0.0)
+		for op in g.squad.ops:
+			op.pos = g.ppos if op.is_leader else g.ppos + Vector2(-45, 45)
+			op.anim_t += DT
+		g.cam.zoom = base_zoom
+		var mid: Vector2 = g.ppos
+		for b in bs:
+			mid += b.pos
+		g.cam.position = (mid / float(bs.size() + 1)).lerp(g.ppos, 0.35).round()
+		g.world.update_visuals(DT)
+		g.queue_redraw()
+		g.fx_add.queue_redraw()
+		g.fg.queue_redraw()
+		if g.foe_top != null:
+			g.foe_top.queue_redraw()
+		await get_tree().process_frame
+	print("SAMI_FX_DEMO_AI group=%s moves=%d" % [key, plan.size()])

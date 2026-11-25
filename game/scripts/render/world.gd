@@ -3019,6 +3019,13 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		g.wcv.draw_circle(Vector2.ZERO, e.r * 0.9 * alk.x, Color(0, 0, 0, 0.35 * (0.4 + 0.6 * alk.x)))
 		g.wcv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		g.draw_off.y -= e.air + alk.y
+	var snk: float = float(e.get("sfx_sink", 0.0))   # 萨米利刃 / 游荡者沉进国度（themes/sami/mech/mech_fx.blade_draw 写，纯画面）：往下沉、变淡；全沉下去只剩雾下黑影（mech_fx 画）
+	if snk > 0.0:
+		if snk >= 0.98:
+			g.draw_off = Vector2.ZERO
+			return
+		g.draw_off.y += snk * 34.0
+		col.a *= 1.0 - snk
 	# 轮廓光：深色怪物在灯光外也能看清（颜色 >1，抵消环境暗色）
 	if e.get("part", false):
 		# 部件（塑路者核心等）：心跳脉动——每拍一次放大 + 金色光晕；描边不受「怪物轮廓光」开关影响

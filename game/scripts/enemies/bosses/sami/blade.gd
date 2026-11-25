@@ -372,14 +372,12 @@ func _c_ambush(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	return 1.6
 
 
-		_fx("slash", e.pos, float(ww.ang))
 ## ---- D 黑毯·回旋（④）：本体把刃插进地里原地旋身一圈：两圈暗红斩波（中弹 30 + 30 发，第二圈错半格、慢一拍）显形后向外扩（170 / 130 每秒，扩到 660），
 ## 缺口 2 个开在正对队长和背对队长的两条黑毯上；同时四条黑毯（宽 90、长 330）十字铺开，只当场地（铺完 4 秒国度）
 func _d_carpet(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var a0: float = (_pred(0.6) - e.pos).angle()
 	var c: Vector2 = e.pos
 	for j in 4:
-		_fx("slash", e.pos, float(ww.ang))
 		w_line(e, a0 + PI * 0.5 * j, 330.0, 45.0, 0.9, 0.0, "黑毯·回旋" if j == 0 else "", {"lock": j == 0})
 	ring(e, c, 30, 170.0, 1, 0.12, [a0, a0 + PI], 0.0, {"hold": 0.9, "life": 660.0 / 170.0})
 	ring(e, c, 30, 130.0, 1, 0.10, [a0, a0 + PI], PI / 30.0, {"hold": 1.3, "life": 660.0 / 130.0})
@@ -420,7 +418,6 @@ func _f_hunt(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	if ks.is_empty():
 		return -1.0
 	ks.sort_custom(func(x, y): return x.pos.distance_to(g.ppos) < y.pos.distance_to(g.ppos))
-		_fx("slash", e.pos, float(ww.ang))
 	var pts: Array = ks.slice(0, 3).map(func(k): return k.pos)
 	var n: int = pts.size()
 	for i in n:
@@ -454,7 +451,6 @@ func _g_hunt(e: Dictionary, _dir: Vector2, _d: float) -> float:
 		pts.append(g.combat.arena_clamp(g.ppos + f * (-150.0 + 170.0 * k), 60.0))
 	for k in 4:
 		var p: Vector2 = pts[k]
-		_fx("slash", e.pos, float(ww.ang))
 		later(e, 0.15 * k, func(): km.add(p, 140.0, "boss", e, 12.0))
 	e.br_t = g.t
 	var prev: Vector2 = e.pos

@@ -391,6 +391,7 @@ func draw(e: Dictionary, cv) -> void:
 	var fxm = g.mech("fx")
 	if fxm != null:
 		fxm.lead_draw(e)   # 墨绿剥落（docs/401 §14）
+		fxm.final_draw(e)  # 冻土冰面 / 长冬冰柱 / 冬夜前沿 / 坍缩点 / 树痕之盔（docs/401 §18）
 		fxm.obj_draw(e)    # 停驻点 = 要去碰的东西：金色描边 + 心跳（docs/142b §1 第 2 条，docs/401 §16）
 		return
 	var ai: int = act_i(e)

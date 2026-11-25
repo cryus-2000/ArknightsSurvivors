@@ -521,14 +521,15 @@ func _tick_tomb(e: Dictionary) -> void:
 
 
 func draw(e: Dictionary, cv) -> void:
+	var fxm = g.mech("fx")
+	if fxm != null:
+		fxm.cresson_draw(e)   # 锚桩光柱稳定场（docs/401 §14）
+		fxm.final_draw(e)     # 检查点符印 / 跳跃 / 紫花 / 剪枝 / 维度回荡 / 花墓（docs/401 §18）
+		return
 	for p in e.get("cps", []):
 		cv.draw_arc(p, 16.0, 0.0, TAU, 16, Color(0.75, 0.6, 0.95, 0.3), 1.5)
 	if e.has("land_warned") and e.has("cps"):
 		cv.draw_circle(e.cps[int(e.next_cp)], 22.0, Color(0.78, 0.6, 1.0, 0.5))
-	var fxm = g.mech("fx")
-	if fxm != null:
-		fxm.cresson_draw(e)   # 锚桩光柱稳定场（docs/401 §14）
-		return
 	for d in e.get("devs", []):
 		var on: bool = float(d.field) > g.t
 		cv.draw_rect(Rect2(d.pos - Vector2(10, 10), Vector2(20, 20)), Color(1.0, 0.85, 0.4, 0.9) if g.t >= float(d.cd) else Color(0.5, 0.5, 0.5, 0.7))
