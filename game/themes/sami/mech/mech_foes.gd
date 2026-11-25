@@ -140,7 +140,8 @@ func _blast(e: Dictionary, db: Dictionary, d: Dictionary) -> void:
 	var r: float = float(db.get("r", 55.0))
 	var fx = g.mech("fx")
 	if fx != null:
-		fx.icebug_blast(e.pos, r)   # docs/401：冰蓝冲击环 + 雪屑（只画）
+		fx.icebug_blast(e.pos, r)   # docs/401 §13：碎冰飞溅 + 寒雾 + 留霜（只画）
+		e["no_body"] = true          # 本体（粉红源石晶体）不播死亡帧条、不碎像素（combat.kill 读）
 	else:
 		g.fx.append({"kind": "ring", "pos": e.pos, "r": r, "life": 0.35, "max": 0.35, "col": Color(0.7, 0.9, 1.0), "enemy": true})
 		g.vfx.sparks(e.pos, Vector2.UP, Color(0.8, 1.0, 1.4), 10, 200.0)

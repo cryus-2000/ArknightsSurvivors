@@ -17,7 +17,7 @@ func _shots() -> Array:
 	var a: Array = [
 		{"name": "染污躯壳 · 爪击 / 受击暴冲", "dur": 6.0, "spawn": [["husk", 6, 150.0]], "hurt": "husk"},
 		{"name": "歪曲施法者 · 法术弹", "dur": 6.0, "rad": 0.0, "spawn": [["caster", 3, 200.0]]},
-		{"name": "冰爆源石虫 · 死亡冰爆", "dur": 5.0, "spawn": [["icebug", 4, 110.0]], "kill": "icebug"},
+		{"name": "冰爆源石虫 · 死亡冰爆", "dur": 5.0, "spawn": [["icebug", 4, 170.0]], "kill": "icebug", "kill_t": 0.3},
 	]
 	for m in BLADE_MOVES:
 		a.append({"name": "邪魔的利刃 · " + m, "dur": 4.0, "boss": "blade", "move": m, "orbit": 200.0})
@@ -91,7 +91,7 @@ func _ready() -> void:
 				g.doc_pos = g.ppos + Vector2(10, 35)
 				if seg.has("hurt") and frame_i % 20 == 0:
 					_poke(str(seg.hurt))
-				if seg.has("kill") and el > 0.8 and frame_i % 30 == 0:
+				if seg.has("kill") and el > float(seg.get("kill_t", 0.8)) and frame_i % 30 == 0:
 					_kill_near(str(seg.kill))
 				if seg.has("move") and not moved and el >= 0.5:
 					moved = true
@@ -139,6 +139,9 @@ func setup(seg: Dictionary) -> void:
 		fx.rushers.clear()
 		fx.marks.clear()
 		fx.bevents.clear()
+		fx.ice_ev.clear()
+		fx.puffs.clear()
+		fx.gpuffs.clear()
 		fx.blade_list.clear()
 	var foes = g.mech("foes")
 	if foes != null:

@@ -1266,7 +1266,7 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 	var q: bool = quiet and not e.elite and not e.boss   # 静默：下面的画面 / 音效整段跳过（纯表现，掉落与结算照常）
 	if not q:
 		g.vfx.kill_burst(e, col, g.crit_hit, lean)   # 击杀爆点 / 击杀音按体型分档 + 大体型或暴击击杀的短顿帧（docs/53，纯画面与音效）
-	var body_on: bool = not q and (not g.optical_on or lean or Bal.v("render/optical_kill_body", 1.0) > 0.0)
+	var body_on: bool = not q and not e.get("no_body", false) and (not g.optical_on or lean or Bal.v("render/optical_kill_body", 1.0) > 0.0)
 	var shattered := false   # 碎屑已交给死亡帧条最后一帧（vfx.update 到点喷）
 	if not body_on:
 		pass
@@ -1291,7 +1291,7 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 		pass   # 光学 + 新击杀：没有死亡帧条的怪不画溶解，下面当帧碎
 	else:
 		g.vfx.fx_sprite("fx_death_dissolve", e.pos, g.PX * max(1.0, e.r / 12.0))
-	if not q and not shattered and g.optical_on and g.optical.particles != null and (lean or Bal.v("render/optical_kill_debris", 1.0) > 0.0):
+	if not q and not shattered and not e.get("no_body", false) and g.optical_on and g.optical.particles != null and (lean or Bal.v("render/optical_kill_debris", 1.0) > 0.0):
 		g.optical.particles.kill_burst(e)   # 光学观感原型：击杀碎屑（纯画面，GPU 随机，不碰模拟随机数）
 	if e.elite:
 		g.elites_killed += 1
