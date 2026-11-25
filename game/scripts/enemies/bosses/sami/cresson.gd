@@ -248,8 +248,8 @@ func _petal_wind_go(e: Dictionary, a: float) -> void:
 			if k.kind == "nursery" and k.pos.distance_to(e.pos) < 480.0 and absf(angle_difference((k.pos - e.pos).angle(), a)) < PI / 4.0:
 				srcs.append(k.pos)
 	for s in srcs.slice(0, 5):
-		for i in 5:
-			var aa: float = a + lerpf(-PI / 4.0, PI / 4.0, i / 4.0)
+		for i in 7:
+			var aa: float = a + lerpf(-PI / 4.0, PI / 4.0, i / 6.0)
 			shot(e, s, aa, 170.0, 2, 0.12, {"turn": 1.2 if i % 2 == 0 else -1.2, "turn_until": 1.2, "life": 3.0})
 
 
@@ -268,7 +268,8 @@ func _bloom(e: Dictionary, p: Vector2, nm: String) -> void:
 	if nm != "":
 		e.move_name = nm
 		e.move_t = g.t
-	ring(e, p, 36, 150.0, 2, 0.13, gaps, 0.0, {"hold": 0.9, "life": 4.4})
+	ring(e, p, 44, 150.0, 2, 0.13, gaps, 0.0, {"hold": 0.9, "life": 4.4})
+	ring(e, p, 44, 115.0, 1, 0.10, gaps, PI / 44.0, {"hold": 1.2, "life": 5.6})   # 第二层慢一档、错半格（11-26 加密）
 
 
 ## 萌发：每块苗圃长出一朵紫花（10 秒），队长走到 160 内时花朝他喷一口花粉（30° 小扇，0.6 秒花抖）
@@ -397,8 +398,8 @@ func _petal_rain(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	e.move_name = "花雨"
 	e.move_t = g.t
 	w_self(e, 60.0, 0.6, 0.0, "")
-	for k in 20:
-		later(e, 0.6 + 0.15 * k, func():
+	for k in 40:
+		later(e, 0.6 + 0.075 * k, func():
 			var a: float = float((k * 97) % 360) * PI / 180.0
 			shot(e, e.pos, a, 140.0, 2, 0.09, {"turn": 0.9 if k % 2 == 0 else -0.9, "life": 4.0}))
 	return 3.8
@@ -514,7 +515,8 @@ func _tick_tomb(e: Dictionary) -> void:
 			tb.named = true
 			e.move_name = "花墓"
 			e.move_t = g.t
-		shot(e, tb.pos, (g.ppos - tb.pos).angle(), 150.0, 2, 0.12, {"turn": 0.6, "turn_until": 1.0, "life": 4.0})
+		for s in [-0.35, 0.0, 0.35]:
+			shot(e, tb.pos, (g.ppos - tb.pos).angle() + s, 150.0, 2, 0.12, {"turn": 0.6, "turn_until": 1.0, "life": 4.0})
 
 
 func draw(e: Dictionary, cv) -> void:

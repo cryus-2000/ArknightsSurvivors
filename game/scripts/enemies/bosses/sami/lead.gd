@@ -79,7 +79,7 @@ func all_moves(_e: Dictionary) -> Array:
 func base_taken(e: Dictionary) -> float:
 	if float(e.get("annihil_t", 0.0)) > g.t:
 		return 0.2
-	return 1.8 if float(e.get("helm_until", 0.0)) > g.t else 0.3
+	return 2.1 if float(e.get("helm_until", 0.0)) > g.t else 0.3
 
 
 func _m_breath(e: Dictionary, _a: Vector2, _b: float) -> float:
@@ -280,8 +280,8 @@ func _kick(e: Dictionary, dir: Vector2, _d: float) -> float:
 func _kick_go(e: Dictionary, a: float, src: Array) -> void:
 	for x in src:
 		e.ice.erase(x)
-		for k in 5:
-			shot(e, x.pos, a + lerpf(-0.5, 0.5, k / 4.0), 260.0, 2, 0.12, {"life": 2.5})
+		for k in 8:
+			shot(e, x.pos, a + lerpf(-0.6, 0.6, k / 7.0), 260.0, 2, 0.12, {"life": 2.5})
 
 
 ## ---- 三幕
@@ -323,6 +323,7 @@ func _breaths(e: Dictionary, _dir: Vector2, _d: float) -> float:
 		var du: float = rs[k][1]
 		later(e, 0.6 * k, func():
 			var w := w_self(e, r, du, 0.10, "连息" if k == 0 else "")
+			later(e, du, func(): ring(e, e.pos, 16 + 8 * k, 170.0, 1, 0.08, gaps_at(e.pos), 0.0, {"life": 3.0}))   # 脉冲外沿溅冰屑（11-26 加密）
 			w.cb = func(_ww): _cold_hit(e, r))
 	e.channel = 4.6
 	return 4.6
@@ -350,6 +351,7 @@ func _sprint_one(e: Dictionary, k: int) -> void:
 	w.cb = func(_ww):
 		later(e, 0.55, func():
 			w_self(e, 120.0, 0.6, 0.08, "", {"lock": false})
+			ring(e, e.pos, 14, 180.0, 1, 0.08, gaps_at(e.pos), 0.0, {"hold": 0.6, "life": 3.0})
 			vuln(e, 1.2, 1.4))
 
 

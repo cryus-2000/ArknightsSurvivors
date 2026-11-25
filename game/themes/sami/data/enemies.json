@@ -943,9 +943,9 @@
     0.95
    ],
    "hover": true,
-   "phys_taken": 0.5,
-   "arts_taken": 0.5,
-   "stab_taken": 2.5,
+   "phys_taken": 0.25,
+   "arts_taken": 0.25,
+   "stab_taken": 3.0,
    "_taken": "用户 11-20 定（docs/393 §8 第 4 条）：不做真无敌，平时受伤 ×0.5（phys_taken / arts_taken，代码已读），空间稳定场里 ×1.0（stab_taken，代码未读，等稳定场单子）",
    "echo_hp_frac": 0.5,
    "echo_dmg_k": 1.5,

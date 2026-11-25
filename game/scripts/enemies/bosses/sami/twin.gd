@@ -18,7 +18,7 @@ const ULT_DUR := 2.8
 const ULT_LOCK := 0.7
 const DRAG_SPD := 90.0
 const STUN_T := 4.0
-const GUARD := 0.35        # 平时受伤（王者护卫；§15.4 A 原拟 0.6，11-26 测试台两轮后下调）
+const GUARD := 0.25        # 平时受伤（王者护卫；§15.4 A 原拟 0.6，11-26 测试台三轮后下调）
 const WINDOW := 3.0        # 被砸中窗口的总受伤倍率（§15.4 A 原拟 2.0）
 
 
@@ -229,8 +229,9 @@ func _ult_land(e: Dictionary, w: Dictionary) -> void:
 	var hit := false
 	if m != null and (m.pos as Vector2).distance_to(w.pos) < float(w.r) + float(m.r) * 0.5:
 		hit = true
-		g.combat.start_break(m, STUN_T)
-		vuln(m, STUN_T, WINDOW / GUARD / maxf(0.01, Bal.v("boss/break_mult", 1.4)))
+		var st: float = STUN_T if str(e.get("ult", {}).get("mode", "")) != "mate" else 1.5   # 二幕双大招互瞄是白给的窗口，缩到 1.5 秒
+		g.combat.start_break(m, st)
+		vuln(m, st, WINDOW / GUARD / maxf(0.01, Bal.v("boss/break_mult", 1.4)))
 		m.erase("walk_to")
 	if e.get("decisive", false):
 		vuln(e, 1.5, 1.5)
@@ -249,7 +250,7 @@ func _ult_land(e: Dictionary, w: Dictionary) -> void:
 func _support(e: Dictionary) -> void:
 	if g.t < float(e.get("small_t", 0.0)):
 		return
-	e.small_t = g.t + 3.0
+	e.small_t = g.t + 2.0
 	if _khan(e):
 		var a: float = (g.ppos - e.pos).angle()
 		for k in 5:
@@ -478,7 +479,8 @@ func _lash3(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	for k in 3:
 		later(e, gap * k, func():
 			var a: float = (g.ppos - e.pos).angle() + (0.4 if k % 2 == 0 else -0.4)
-			w_cone(e, a, deg_to_rad(25.0), 220.0, 0.8, 0.14, "战意鞭笞" if k == 0 else "", {"lock": k == 0}))
+			var w := w_cone(e, a, deg_to_rad(25.0), 220.0, 0.8, 0.14, "战意鞭笞" if k == 0 else "", {"lock": k == 0})
+			w.cb = func(ww): fan(e, e.pos, float(ww.ang), deg_to_rad(25.0), 7, 230.0, 1, 0.08, {"life": 2.5}))
 	return 0.8 + gap * 3.0
 
 
@@ -513,7 +515,7 @@ func _dial_ring(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var a0: float = (g.ppos - e.pos).angle()
 	e.move_name = "历盘"
 	e.move_t = g.t
-	for k in 4:
+	for k in 6:
 		var ga: float = a0 + TAU / 24.0 * k
 		later(e, 0.5 * k, func():
 			for i in 24:
@@ -725,7 +727,7 @@ func _duel(e: Dictionary, m) -> void:
 		e.hold_pos = e.pos
 		m.hold_pos = m.pos
 		g.vfx.shake_screen(0.3)
-		ring(e, x, 40, 200.0, 2, 0.15, gaps, 0.0, {"life": 1.9})
+		ring(e, x, 56, 200.0, 2, 0.15, gaps, 0.0, {"life": 1.9})
 		vuln(e, 1.5, 1.3 / GUARD)
 		vuln(m, 1.5, 1.3 / GUARD)
 		g.combat.start_break(e, 1.5)

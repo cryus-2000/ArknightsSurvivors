@@ -104,7 +104,7 @@ func all_moves(e: Dictionary) -> Array:
 
 ## 主轴收益（docs/392 §15.1 A「冰甲」）：平时受伤 ×0.5；银凇碎后 8 秒 ×1.5
 func base_taken(e: Dictionary) -> float:
-	return 0.4 if float(e.get("tree_vuln", 0.0)) <= g.t else 2.5
+	return 0.35 if float(e.get("tree_vuln", 0.0)) <= g.t else 3.5
 
 
 ## ---- 冰凌列：以 x 为列（宽 80），从北往南每 0.2 秒落一根；碰到完好银凇 / 冰桩 / 冰峰就停，银凇记一次
@@ -170,6 +170,7 @@ func _press(e: Dictionary) -> void:
 ## ---- 一幕
 func _m_lance(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	_column(e, g.ppos.x + g.pvel.x * 0.3, "冰凌")
+	_column(e, g.ppos.x + (240.0 if int(g.t) % 2 == 0 else -240.0), "", 0.3, 0.12, false)   # 密度（11-26 用户）：旁边再落一列
 	return 1.6
 
 
@@ -197,9 +198,10 @@ func _m_wave(e: Dictionary, _dir: Vector2, _d: float) -> float:
 
 
 func _wave_go(e: Dictionary, a: float) -> void:
-	for i in 15:
-		var aa: float = a + lerpf(-PI / 6.0, PI / 6.0, i / 14.0)
-		shot(e, e.pos + Vector2.from_angle(aa) * 40.0, aa, 150.0, 2, 0.15, {"life": 5.0})
+	for wv in 2:   # 两层弧面（第二层错开半格、晚 0.4 秒），11-26 加密
+		for i in 21:
+			var aa: float = a + lerpf(-PI / 6.0, PI / 6.0, (i + 0.5 * wv) / 20.5)
+			shot(e, e.pos + Vector2.from_angle(aa) * 40.0, aa, 150.0, 2 if wv == 0 else 1, 0.15, {"life": 5.0, "hold": 0.4 * wv})
 
 
 ## 冰凌林：队长周围 12 根冰凌落地插成两排交错冰桩（间距 ≥80），立 5 秒：挡路、挡冰凌
