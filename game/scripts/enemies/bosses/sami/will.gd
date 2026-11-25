@@ -185,6 +185,10 @@ func _m11(e: Dictionary, _dir: Vector2, _d: float) -> float:
 
 
 func draw(e: Dictionary, cv) -> void:
+	var fxm = g.mech("fx")
+	if fxm != null:
+		fxm.obj_draw(e)   # 银凇 = 要去碰的东西：金色描边 + 心跳（docs/401 §16）
+		return
 	for t in e.get("trees", []):
 		if float(t.dead_t) > 0.0:
 			continue

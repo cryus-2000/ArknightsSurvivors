@@ -235,6 +235,8 @@ func draw(e: Dictionary, cv) -> void:
 	var fxm = g.mech("fx")
 	if fxm != null:
 		fxm.lead_draw(e)   # 墨绿剥落（docs/401 §14）
+		fxm.obj_draw(e)    # 停驻点 = 要去碰的东西：金色描边 + 心跳（docs/142b §1 第 2 条，docs/401 §16）
+		return
 	var ai: int = act_i(e)
 	for s in e.get("stops", []):
 		if s.gone:

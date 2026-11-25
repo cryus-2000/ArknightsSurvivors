@@ -176,6 +176,7 @@ func setup(seg: Dictionary) -> void:
 		fx.flakes.clear()
 		fx.trails.clear()
 		fx.cres_list.clear()
+		fx.obj_list.clear()
 		fx.sand_floor = seg.get("sand", false)
 		fx.blade_list.clear()
 	var foes = g.mech("foes")
