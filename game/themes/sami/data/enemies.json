@@ -1,5 +1,5 @@
 {
- "_doc": "萨米主题敌人表（docs/392 §5、§11，11-20 落数据）。字段口径同 themes/deep_sea/data/enemies.json 的 _doc。贴图：11-25 起 tex = tex_final = e_sami_<本作 id>（萨米像素帧条，tools/install_sami_enemies.py 装进 art/enemies/sami/，规格在 themes/sami/data/enemy_pixels.json / enemy_redraw.json，docs/399 §10）；接了契约里的本体 / _move / _attack / _death / _wound，rush / attack_b / disguised / reveal / combat / surge_* / sigh / skill 等原作专属轨已出（tools/spine_px_enemy.py）但代码不读，没装。以 _todo 开头的字段 / 下列新字段代码还没读（T-B2 / T-B3 再接）：hurt_rush 受击暴冲、idle_rush 停火加速、pass_props 穿大型景物、death_blast 死亡冰爆、frosted_mult 打冰霜减速中的队长加伤、collapse 坍缩体（坍缩范式「非线性移动」与国度撑持体候选）、prop_ok 可当国度撑持体、flee_t 稀有逃跑时限。Boss 的 script 先借水月蔑视体 archon.gd 当占位（不刷小怪），招式与数值由 docs/393 定，T-B4 / T-B5 换成 scripts/enemies/bosses/blade.gd / will.gd。 带 full: true 的条目是全量敌人（docs/392 §11），只在 waves_full.json 里刷；样例 waves.json 不用它们。新字段：chill_aura 寒霜光环（范围内队员攻速）、horde_only 只随大群出现（代码未读，T-C 接）。",
+ "_doc": "萨米主题敌人表（docs/392 §5、§11，11-20 落数据）。字段口径同 themes/deep_sea/data/enemies.json 的 _doc。贴图：tex 先指水月同档的现成帧条当占位（样例能进局、看得见）；tex_final = e_sami_<本作 id>，是萨米帧条交付后要换成的名字（与美术会话 docs/399、tools/spine_run_trial/cfg/sami_enemies_sprites.json 对齐；后缀 _move / _attack / _death / _wound 同水月，另有 _rush / _attack_b / _disguised / _reveal / _combat / _surge_begin / _surge_loop / _surge_end / _sigh，代码未读）。以 _todo 开头的字段 / 下列新字段代码还没读（T-B2 / T-B3 再接）：hurt_rush 受击暴冲、idle_rush 停火加速、pass_props 穿大型景物、death_blast 死亡冰爆、frosted_mult 打冰霜减速中的队长加伤、collapse 坍缩体（坍缩范式「非线性移动」与国度撑持体候选）、prop_ok 可当国度撑持体、flee_t 稀有逃跑时限。Boss 的 script 先借水月蔑视体 archon.gd 当占位（不刷小怪），招式与数值由 docs/393 定，T-B4 / T-B5 换成 scripts/enemies/bosses/blade.gd / will.gd。 带 full: true 的条目是全量敌人（docs/392 §11），只在 waves_full.json 里刷；样例 waves.json 不用它们。新字段：chill_aura 寒霜光环（范围内队员攻速）、horde_only 只随大群出现（代码未读，T-C 接）。",
  "enemies": {
   "husk": {
    "gallery": "近战杂兵。受到伤害后短时间大幅加速冲向队长。",
@@ -10,7 +10,7 @@
    "dmg": 5.5,
    "r": 10.0,
    "xp": 1.0,
-   "tex": "e_sami_husk",
+   "tex": "e_bone",
    "tex_final": "e_sami_husk",
    "anchor": "foot",
    "ai": "melee",
@@ -46,7 +46,7 @@
    "dmg": 6.0,
    "r": 9.0,
    "xp": 1.0,
-   "tex": "e_sami_drone",
+   "tex": "e_fractal",
    "tex_final": "e_sami_drone",
    "anchor": "foot",
    "ai": "melee",
@@ -70,7 +70,7 @@
    "dmg": 7.0,
    "r": 12.0,
    "xp": 2.0,
-   "tex": "e_sami_caster",
+   "tex": "e_floater",
    "tex_final": "e_sami_caster",
    "anchor": "foot",
    "ai": "ranged",
@@ -102,7 +102,7 @@
    "dmg": 6.0,
    "r": 10.0,
    "xp": 1.0,
-   "tex": "e_sami_icebug",
+   "tex": "e_runner",
    "tex_final": "e_sami_icebug",
    "anchor": "foot",
    "ai": "melee",
@@ -130,7 +130,7 @@
    "dmg": 11.0,
    "r": 17.0,
    "xp": 5.0,
-   "tex": "e_sami_breaker",
+   "tex": "e_founder",
    "tex_final": "e_sami_breaker",
    "anchor": "foot",
    "ai": "melee",
@@ -161,7 +161,7 @@
    "dmg": 12.0,
    "r": 18.0,
    "xp": 2.0,
-   "tex": "e_sami_warrior",
+   "tex": "e_mimic",
    "tex_final": "e_sami_warrior",
    "anchor": "foot",
    "ai": "melee",
@@ -187,7 +187,7 @@
    "dmg": 0.0,
    "r": 16.0,
    "xp": 4.0,
-   "tex": "e_sami_vinebox",
+   "tex": "e_duck",
    "tex_final": "e_sami_vinebox",
    "anchor": "foot",
    "ai": "melee",
@@ -212,7 +212,7 @@
    "dmg": 18.0,
    "r": 24.0,
    "xp": 60.0,
-   "tex": "e_sami_blade",
+   "tex": "e_path",
    "tex_final": "e_sami_blade",
    "ai": "melee",
    "role": "boss",
@@ -268,7 +268,7 @@
    "dmg": 18.0,
    "r": 26.0,
    "xp": 60.0,
-   "tex": "e_sami_wanderer",
+   "tex": "e_path",
    "tex_final": "e_sami_wanderer",
    "ai": "melee",
    "role": "boss",
@@ -328,7 +328,7 @@
    "dmg": 16.0,
    "r": 40.0,
    "xp": 0.0,
-   "tex": "e_sami_will",
+   "tex": "e_paranoia",
    "tex_final": "e_sami_will",
    "ai": "melee",
    "range": 360.0,
@@ -340,9 +340,11 @@
    "arena_r": 520.0,
    "gates": [
     0.66,
-    0.33
+    0.33,
+    0.1
    ],
    "act_min": [
+    13.0,
     13.0,
     13.0,
     13.0
@@ -389,7 +391,7 @@
    "dmg": 6.0,
    "r": 10.0,
    "xp": 1.0,
-   "tex": "e_sami_snsbr",
+   "tex": "e_slider",
    "tex_final": "e_sami_snsbr",
    "anchor": "foot",
    "ai": "melee",
@@ -414,7 +416,7 @@
    "dmg": 6.0,
    "r": 9.0,
    "xp": 1.0,
-   "tex": "e_sami_uterer",
+   "tex": "e_runner",
    "tex_final": "e_sami_uterer",
    "anchor": "foot",
    "ai": "melee",
@@ -436,7 +438,7 @@
    "dmg": 8.0,
    "r": 11.0,
    "xp": 2.0,
-   "tex": "e_sami_uterer2",
+   "tex": "e_slider",
    "tex_final": "e_sami_uterer2",
    "anchor": "foot",
    "ai": "melee",
@@ -458,7 +460,7 @@
    "dmg": 7.0,
    "r": 12.0,
    "xp": 2.0,
-   "tex": "e_sami_mhshep",
+   "tex": "e_stone",
    "tex_final": "e_sami_mhshep",
    "anchor": "foot",
    "ai": "melee",
@@ -483,7 +485,7 @@
    "dmg": 9.0,
    "r": 13.0,
    "xp": 3.0,
-   "tex": "e_sami_snmage",
+   "tex": "e_spitter",
    "tex_final": "e_sami_snmage",
    "anchor": "foot",
    "ai": "ranged",
@@ -511,7 +513,7 @@
    "dmg": 14.0,
    "r": 18.0,
    "xp": 8.0,
-   "tex": "e_sami_rockback",
+   "tex": "e_founder",
    "tex_final": "e_sami_rockback",
    "anchor": "foot",
    "ai": "melee",
@@ -541,7 +543,7 @@
    "dmg": 11.0,
    "r": 16.0,
    "xp": 4.0,
-   "tex": "e_sami_hound",
+   "tex": "e_reaper",
    "tex_final": "e_sami_hound",
    "anchor": "foot",
    "ai": "melee",
@@ -569,7 +571,7 @@
    "dmg": 8.0,
    "r": 9.0,
    "xp": 1.0,
-   "tex": "e_sami_shadow",
+   "tex": "e_fractal",
    "tex_final": "e_sami_shadow",
    "anchor": "foot",
    "ai": "melee",
@@ -591,7 +593,7 @@
    "dmg": 6.0,
    "r": 16.0,
    "xp": 2.0,
-   "tex": "e_sami_frostd",
+   "tex": "e_mother",
    "tex_final": "e_sami_frostd",
    "anchor": "foot",
    "ai": "ranged",
@@ -625,7 +627,7 @@
    "dmg": 9.0,
    "r": 16.0,
    "xp": 2.0,
-   "tex": "e_sami_uamord",
+   "tex": "e_skimmer",
    "tex_final": "e_sami_uamord",
    "anchor": "foot",
    "ai": "ranged",
@@ -653,7 +655,7 @@
    "dmg": 16.0,
    "r": 22.0,
    "xp": 60.0,
-   "tex": "e_sami_shaman",
+   "tex": "e_saint",
    "tex_final": "e_sami_shaman",
    "ai": "ranged",
    "range": 300.0,
@@ -692,8 +694,7 @@
     1.0
    ],
    "cold_add": 30.0,
-   "_cold": "原作普攻附寒冷 4.5 秒并跳 3 个目标；寒链每根针 +30、链跳每跳同样加（Boss 来源最多加到 90）",
-   "no_outline": true
+   "_cold": "原作普攻附寒冷 4.5 秒并跳 3 个目标；寒链每根针 +30、链跳每跳同样加（Boss 来源最多加到 90）"
   },
   "vine": {
    "bossbar_motif": "ice",
@@ -704,7 +705,7 @@
    "dmg": 22.0,
    "r": 30.0,
    "xp": 60.0,
-   "tex": "e_sami_vine",
+   "tex": "e_path",
    "tex_final": "e_sami_vine",
    "ai": "melee",
    "role": "boss",
@@ -739,8 +740,7 @@
     0.45,
     0.85,
     0.35
-   ],
-   "no_outline": true
+   ]
   },
   "shaman2": {
    "bossbar_motif": "ice",
@@ -751,7 +751,7 @@
    "dmg": 18.0,
    "r": 24.0,
    "xp": 60.0,
-   "tex": "e_sami_shaman2",
+   "tex": "e_saint",
    "tex_final": "e_sami_shaman2",
    "ai": "ranged",
    "range": 300.0,
@@ -789,8 +789,7 @@
     0.95
    ],
    "cold_add": 30.0,
-   "_cold": "同陷落雪祀，链跳 4 次",
-   "no_outline": true
+   "_cold": "同陷落雪祀，链跳 4 次"
   },
   "vine2": {
    "bossbar_motif": "ice",
@@ -801,7 +800,7 @@
    "dmg": 22.0,
    "r": 32.0,
    "xp": 60.0,
-   "tex": "e_sami_vine2",
+   "tex": "e_path",
    "tex_final": "e_sami_vine2",
    "ai": "melee",
    "role": "boss",
@@ -835,19 +834,18 @@
     0.38,
     0.7,
     0.42
-   ],
-   "no_outline": true
+   ]
   },
   "lead": {
    "bossbar_motif": "ice",
    "gallery": "结局二「直至冬夜降临」的最终 Boss。",
    "name": "「木裂」埃克提尔尼尔",
    "hp": 6000.0,
-   "spd": 66.0,
+   "spd": 90.0,
    "dmg": 20.0,
    "r": 26.0,
    "xp": 0.0,
-   "tex": "e_sami_lead",
+   "tex": "e_knight",
    "tex_final": "e_sami_lead",
    "ai": "melee",
    "role": "boss",
@@ -905,7 +903,7 @@
    "dmg": 16.0,
    "r": 34.0,
    "xp": 0.0,
-   "tex": "e_sami_cresson",
+   "tex": "e_ishar",
    "tex_final": "e_sami_cresson",
    "ai": "melee",
    "range": 340.0,
@@ -923,9 +921,9 @@
     13.0
    ],
    "bcol": [
-    0.85,
-    0.7,
-    1.0
+    0.75,
+    0.6,
+    0.95
    ],
    "bcol_core": [
     1.0,
@@ -940,49 +938,36 @@
     "line": ""
    },
    "ecol": [
-    0.8,
-    0.92,
-    0.4
+    0.75,
+    0.6,
+    0.95
    ],
    "hover": true,
-   "phys_taken": 0.5,
-   "arts_taken": 0.5,
-   "stab_taken": 1.0,
+   "phys_taken": 0.2,
+   "arts_taken": 0.2,
+   "stab_taken": 3.5,
    "_taken": "用户 11-20 定（docs/393 §8 第 4 条）：不做真无敌，平时受伤 ×0.5（phys_taken / arts_taken，代码已读），空间稳定场里 ×1.0（stab_taken，代码未读，等稳定场单子）",
    "echo_hp_frac": 0.5,
    "echo_dmg_k": 1.5,
-   "_echo": "回荡段（形态变化）：额外生命 = 出场生命 × 0.5（约 16.1 千），伤害再 ×1.5；代码未读",
-   "bcol_trail": [
-    0.7,
-    0.46,
-    0.95
-   ],
-   "bcol_outline": [
-    0.3,
-    0.16,
-    0.45
-   ]
+   "_echo": "回荡段（形态变化）：额外生命 = 出场生命 × 0.5（约 16.1 千），伤害再 ×1.5；代码未读"
   },
   "khan": {
    "bossbar_motif": "ice",
    "gallery": "结局四「终始」的最终 Boss 之一，与路加萨尔古斯同时登场。",
    "name": "哈兰杜汗，大地之鞭",
    "hp": 3600.0,
-   "spd": 36.0,
+   "spd": 54.0,
    "dmg": 18.0,
    "r": 28.0,
    "xp": 0.0,
-   "tex": "e_sami_khan",
+   "tex": "e_izumik",
    "tex_final": "e_sami_khan",
    "ai": "melee",
    "role": "boss",
    "script": "sami/twin",
    "twin": "lion",
    "_script_ph": "占位：借蔑视体 archon.gd 的招式（不刷小怪）；招式见 docs/393 §3.4，Boss 会话的脚本单子换成 khan.gd",
-   "gates": [
-    0.66,
-    0.33
-   ],
+   "gates": [],
    "act_min": [
     13.0,
     13.0,
@@ -1014,7 +999,8 @@
    "decisive": {
     "spd_k": 2.0,
     "cd_k": 0.6,
-    "taken": 0.7
+    "taken": 1.0,
+    "spd": 100.0
    },
    "first_down_reward": false,
    "_pair": "双王：卡点按两王合计生命算；任一方倒下另一方进决胜（移速 ×2、冷却 ×0.6、受伤 ×0.7）；先倒下的不掉额外奖励（用户 11-20 定，docs/393 §8 第 7 条）。代码未读，等双王单子"
@@ -1024,35 +1010,32 @@
    "gallery": "结局四「终始」的最终 Boss 之一，与哈兰杜汗同时登场。",
    "name": "路加萨尔古斯，历法之王",
    "hp": 3600.0,
-   "spd": 36.0,
+   "spd": 54.0,
    "dmg": 16.0,
    "r": 26.0,
    "xp": 0.0,
-   "tex": "e_sami_lion",
+   "tex": "e_izumik",
    "tex_final": "e_sami_lion",
    "ai": "melee",
    "role": "boss",
    "script": "sami/twin",
    "twin": "khan",
    "_script_ph": "占位：借蔑视体 archon.gd 的招式（不刷小怪）；招式见 docs/393 §3.4，Boss 会话的脚本单子换成 lion.gd",
-   "gates": [
-    0.66,
-    0.33
-   ],
+   "gates": [],
    "act_min": [
     13.0,
     13.0,
     13.0
    ],
    "bcol": [
-    0.95,
-    1.0,
-    0.3
+    0.66,
+    0.58,
+    1.0
    ],
    "bcol_core": [
-    1.0,
-    1.0,
-    0.9
+    0.96,
+    0.95,
+    1.0
    ],
    "draw_full": true,
    "intro": {
@@ -1070,19 +1053,10 @@
    "decisive": {
     "spd_k": 2.0,
     "cd_k": 0.6,
-    "taken": 0.7
+    "taken": 1.0,
+    "spd": 100.0
    },
-   "first_down_reward": false,
-   "bcol_trail": [
-    0.82,
-    0.86,
-    0.2
-   ],
-   "bcol_outline": [
-    0.3,
-    0.2,
-    0.08
-   ]
+   "first_down_reward": false
   }
  }
 }

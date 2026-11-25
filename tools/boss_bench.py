@@ -43,7 +43,8 @@ BOSSES = {
     "cresson": (["cresson"], 3, "无垠回荡克雷松"),
     "khan+lion": (["khan", "lion"], 3, "哈兰杜汗 + 路加萨尔古斯"),
 }
-SAMI = ["blade", "wanderer", "will", "lead", "cresson", "khan+lion"]
+BOSSES.update({"shaman": (["shaman"], 1, "陷落雪祀"), "vine": (["vine"], 1, "纠缠藤蔓"), "shaman2": (["shaman2"], 2, "空洞雪祀"), "vine2": (["vine2"], 2, "古老藤蔓")})
+SAMI = ["blade", "wanderer", "shaman", "vine", "shaman2", "vine2", "will", "lead", "cresson", "khan+lion"]
 
 
 def seeds_of(spec):
@@ -168,7 +169,9 @@ def _agg(rs):
             "dead": sum(r["result"] == "dead" for r in ok) / n, "timeout": sum(r["result"] == "timeout" for r in ok) / n,
             "t_win": med([r["fight_t"] for r in wins]), "t_all": med([r["fight_t"] for r in ok]),
             "taken": statistics.mean(r["taken_pct"] for r in ok), "boss_left": statistics.mean(r["boss_hp_left"] for r in ok),
-            "brk_dmg": statistics.mean(r["brk_dmg_share"] for r in ok), "brk_t": statistics.mean(r["brk_time_share"] for r in ok),
+            "brk_dmg": statistics.mean(r["brk_dmg_share"] for r in ok),
+            "bsrc": statistics.mean(r.get("boss_src_share", 0.0) for r in ok),
+            "bavg": statistics.mean(r.get("bul_avg", 0.0) for r in ok), "bpk": max(r.get("bul_peak", 0) for r in ok), "brk_t": statistics.mean(r["brk_time_share"] for r in ok),
             "fp": sum(1 for r in ok if r.get("fp_diff")), "se": sum(1 for r in rs if r.get("script_errors"))}
 
 
@@ -178,8 +181,8 @@ def table(paths):
     L = ["# Boss 单场测试台结果（%s）" % " vs ".join(tags), "",
          "胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 %s 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；"
          "破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。" % "N", ""]
-    hdr = "| Boss | 认知 | 版本 | 局数 | 胜率 | 阵亡 | 超时 | 胜局用时 | 全部用时 | 承伤 | Boss 余血 | 破绽输出 | 破绽时间 | fp/se |"
-    L += [hdr, "|" + "---|" * 14]
+    hdr = "| Boss | 认知 | 版本 | 局数 | 胜率 | 阵亡 | 超时 | 胜局用时 | 全部用时 | 承伤 | Boss 来源占比 | Boss 弹均值 / 峰值 | Boss 余血 | 破绽输出 | 破绽时间 | fp/se |"
+    L += [hdr, "|" + "---|" * 16]
     keys = []
     for d in data:
         for r in d["records"]:
@@ -193,9 +196,9 @@ def table(paths):
                 s = _agg(rs)
                 if s is None:
                     continue
-                L.append("| %s | %s | %s | %d | **%.0f%%** | %.0f%% | %.0f%% | %.0f | %.0f | %.0f%% | %.0f%% | %.0f%% | %.0f%% | %d/%d |" % (
+                L.append("| %s | %s | %s | %d | **%.0f%%** | %.0f%% | %.0f%% | %.0f | %.0f | %.0f%% | %.0f%% | %.0f / %d | %.0f%% | %.0f%% | %.0f%% | %d/%d |" % (
                     BOSSES.get(k, (0, 0, k))[2], m, d["tag"], s["n"], s["win"] * 100, s["dead"] * 100, s["timeout"] * 100, s["t_win"], s["t_all"],
-                    s["taken"] * 100, s["boss_left"] * 100, s["brk_dmg"] * 100, s["brk_t"] * 100, s["fp"], s["se"]))
+                    s["taken"] * 100, s["bsrc"] * 100, s["bavg"], s["bpk"], s["boss_left"] * 100, s["brk_dmg"] * 100, s["brk_t"] * 100, s["fp"], s["se"]))
     if len(data) == 2:
         L += ["", "## 改版 − 对照（同快照配对）", "", "| Boss | 认知 | 配对 | 胜率差 | 两边都胜的用时差（中位） | 承伤差 | 破绽输出差 |", "|---|---|---|---|---|---|---|"]
         for k in keys:

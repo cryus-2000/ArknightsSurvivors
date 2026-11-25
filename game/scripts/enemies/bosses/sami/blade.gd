@@ -134,8 +134,13 @@ func _ent(e: Dictionary, d: Dictionary) -> void:
 	e.ents.append(d)
 
 
-func _hit_at(e: Dictionary, pos: Vector2, r: float, pct: float) -> void:
+func _hit_at(e: Dictionary, pos: Vector2, r: float, pct: float, src := "") -> void:
+	var hp0: float = g.hp
 	g.tele.warn_damage({"shape": "circle", "pos": pos, "r": r + 10.0, "owner": e, "dmg": pd(e, pct), "act": "lob", "corrode": 0.0})
+	if src != "" and g.hp < hp0:
+		var hl: Dictionary = e.get("hit_log", {})
+		hl[src] = float(hl.get(src, 0.0)) + (hp0 - g.hp) / maxf(1.0, g.max_hp)   # 测试台对账：脚本自己判定的几种伤害各吃了多少（占最大生命）
+		e["hit_log"] = hl
 
 
 func _ents(e: Dictionary, dt: float, km) -> void:
@@ -150,7 +155,7 @@ func _ents(e: Dictionary, dt: float, km) -> void:
 			_throw_step(e, x, km)
 		if not x.hit and g.combat.ground_d(g.ppos, x.pos) < float(x.r) + 10.0:
 			x.hit = true
-			_hit_at(e, x.pos, float(x.r), float(x.pct))
+			_hit_at(e, x.pos, float(x.r), float(x.pct), str(x.k))
 		if x.t < float(x.hold) + float(x.life):
 			keep.append(x)
 	e.ents = keep
@@ -178,6 +183,13 @@ func _throw_step(e: Dictionary, x: Dictionary, km) -> void:
 	x.was_in = inside
 
 
+## 场上实体生效期间挂一条只画不判的预警线（大刃片飞行路线、正在铺的黑毯、卷毯竖刃线）：玩家本来看得见实体，
+## 测试机器人只读 g.warns / 弹，不挂它会无视这些实体，承伤被高估（11-25 测试台）
+func _live(e: Dictionary, a: Vector2, ang: float, ln: float, hw: float, dur: float) -> void:
+	var w := w_line(e, ang, ln, hw, dur, 0.0, "", {"lock": false})
+	w.pos = a
+
+
 ## ---- 黑毯（D / E 共用）：{a, dir, len, spd, hw, t0, front, k, hit, roll_t, risen}
 func _carpets(e: Dictionary, km) -> void:
 	if not e.has("cps") or e.cps.is_empty():
@@ -191,7 +203,7 @@ func _carpets(e: Dictionary, km) -> void:
 			var q: Vector2 = Geometry2D.get_closest_point_to_segment(g.ppos, c.a, b)
 			if g.combat.ground_d(g.ppos, q) < float(c.hw) + 8.0 and q.distance_to(b) < 40.0:
 				c.hit = true
-				_hit_at(e, q, float(c.hw), float(c.pct))
+				_hit_at(e, q, float(c.hw), float(c.pct), "carpet")
 		if c.front >= float(c.len) and c.get("k") == null and km != null:
 			c.k = km.add_strip(c.a, c.a + c.dir * float(c.len), float(c.hw), e, float(c.stay))   # 铺完当临时国度
 			c.done_t = g.t
@@ -238,7 +250,7 @@ func _breath(e: Dictionary, km) -> void:
 			var d: float = g.combat.ground_d(g.ppos, k.pos)
 			if d >= float(k.r) and d < float(k.r) + sw and not km.inside(g.ppos):
 				e.br_hit = true
-				_hit_at(e, g.ppos, 1.0, 0.06)
+				_hit_at(e, g.ppos, 1.0, 0.06, "breath")
 				break
 
 
@@ -264,6 +276,7 @@ func _b_throw(e: Dictionary, _dir: Vector2, dist: float) -> float:
 	w.cb = func(ww):
 		var v: Vector2 = Vector2.from_angle(float(ww.ang)) * 260.0
 		_ent(e, {"k": "thrown", "pos": e.pos + v.normalized() * float(e.r), "vel": v, "r": THROW_R, "pct": 0.18, "life": float(ww.len) / 260.0, "ang": float(ww.ang)})
+		_live(e, e.pos, float(ww.ang), float(ww.len), THROW_R, float(ww.len) / 260.0)
 	return 1.0
 
 
@@ -315,6 +328,7 @@ func _d_carpet(e: Dictionary, _dir: Vector2, _d: float) -> float:
 func _cross(e: Dictionary, c: Vector2, a0: float) -> void:
 	for j in 4:
 		_lay(e, c, Vector2.from_angle(a0 + PI * 0.5 * j), 330.0, 150.0, 35.0, 0.12, 4.0)
+		_live(e, c, a0 + PI * 0.5 * j, 330.0, 35.0, 330.0 / 150.0)
 
 
 ## ---- E 追猎·卷毯（②）：朝队长预判位置冲 300（半宽 30，0.8 / 锁定 0.6），身后拖一条黑毯；
@@ -325,6 +339,7 @@ func _e_chase(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	w.cb = func(ww):
 		var dv: Vector2 = Vector2.from_angle(float(ww.ang))
 		_lay(e, e.pos, dv, 300.0, 2000.0, 30.0, 0.0, 3.0, true)
+		_live(e, e.pos, float(ww.ang), 300.0, RISE_R + 8.0, 1.5)
 	return 1.8
 
 

@@ -104,6 +104,46 @@ func w_stab(e: Dictionary, ang: float, ln: float, wid: float, dur: float, pct: f
 	return _warn(e, "line", dur, d)
 
 
+## ---- 直接判定（脚本自己的场上实体、地形推进等）：按落点圈结算一次，伤害口径同预警（docs/393 §12）
+func hit_now(e: Dictionary, pos: Vector2, r: float, pct: float, x := {}) -> bool:
+	var hp0: float = g.hp
+	var w := {"shape": "circle", "pos": pos, "r": r, "owner": e, "dmg": pd(e, pct), "act": "lob", "corrode": 0.0}
+	w.merge(x, true)
+	g.tele.warn_damage(w)
+	return g.hp < hp0
+
+
+## ---- 临时障碍（冰桩 / 冰峰 / 冰柱，docs/393 §11.10）：e.obst = [{pos, r, until}]；挡队长走路（每帧推出去），也挡 Boss 自己的弹
+func add_obst(e: Dictionary, pos: Vector2, r: float, life: float) -> void:
+	if not e.has("obst"):
+		e["obst"] = []
+	e.obst.append({"pos": pos, "r": r, "until": g.t + life})
+
+
+func obst_tick(e: Dictionary) -> void:
+	if not e.has("obst") or e.obst.is_empty():
+		return
+	e.obst = e.obst.filter(func(o): return float(o.until) > g.t)
+	for o in e.obst:
+		var d: Vector2 = g.ppos - o.pos
+		var rr: float = float(o.r) + 10.0
+		if d.length() < rr:
+			g.ppos = o.pos + (d.normalized() if d.length() > 0.1 else Vector2.DOWN) * rr
+	for b in g.ebullets:
+		if b.life > 0.0 and int(b.get("source_id", -1)) == int(e.id):
+			for o in e.obst:
+				if b.pos.distance_to(o.pos) < float(o.r):
+					b.life = 0.0
+					break
+
+
+func obst_at(e: Dictionary, p: Vector2, pad := 0.0) -> bool:
+	for o in e.get("obst", []):
+		if p.distance_to(o.pos) < float(o.r) + pad:
+			return true
+	return false
+
+
 ## ---- 延时队列
 func later(e: Dictionary, delay: float, f: Callable) -> void:
 	if not e.has("sq"):
@@ -129,19 +169,26 @@ func tick(e: Dictionary, dt: float) -> void:
 		_tint2(e, tint2_col)
 
 
-## 选招：本帧可以出招且不在上一招的占用时间里 → 按表顺序放第一条可放的
+## 选招：本帧可以出招且不在上一招的占用时间里 → 可放的招里挑最久没放过的（11-26：原来按表顺序放第一条，表尾的招会被冷却短的招一直挤掉）
 func pick(e: Dictionary, ready: bool, dir: Vector2, dist: float) -> void:
 	if not ready or g.t < float(e.get("busy_t", 0.0)) or e.get("coma", false):
 		return
+	if not e.has("used_t"):
+		e["used_t"] = {}
+	var cand: Array = []
 	for m in moves(e):
 		if dist < float(m[2]) or dist > float(m[3]):
 			continue
 		if float(e.get("cds", {}).get(str(m[0]), 0.0)) > g.t:
 			continue
+		cand.append(m)
+	cand.sort_custom(func(x, y): return float(e.used_t.get(str(x[0]), -1.0)) < float(e.used_t.get(str(y[0]), -1.0)))
+	for m in cand:
 		var busy: float = float((m[4] as Callable).call(e, dir, dist))
 		if busy < 0.0:
 			continue
 		_cd(e, str(m[0]), float(m[1]) * float(e.get("cd_k", 1.0)))
+		e.used_t[str(m[0])] = g.t
 		e.busy_t = g.t + busy
 		return
 
@@ -205,6 +252,51 @@ func kingdoms():
 ## 攻击特效模块（themes/sami/mech/mech_fx.gd，docs/401；只画）。没装（别的主题借脚本）时返回 null，调用方判空
 func sfx():
 	return g.mech("fx")
+
+
+## ---- 常驻弹幕（11-26 用户：结局 Boss 弹幕密度不低于水月最终 Boss，同屏均值 ≥60）：慢、可躲、低伤的底层图案，招式叠在上面
+## kind：snow（意志，北边落雪，银凇挡）/ shard（木裂，周身冰屑环，朝队长留缺口）/ petal（克雷松，苗圃飘出的打旋花瓣）/ sand（双王，自西向东的沙粒条）
+func ambient(e: Dictionary, dt: float, kind: String) -> void:
+	if e.get("coma", false) or e.get("invuln", false):
+		return
+	e["amb_acc"] = float(e.get("amb_acc", 0.0)) + dt
+	var c: Vector2 = center(e)
+	var ar: float = float(D.ENEMIES[e.type].get("arena_r", 520.0))
+	var k: int = int(e.get("amb_n", 0))
+	match kind:
+		"snow":
+			while float(e.amb_acc) >= 0.14:   # 每秒 7 片，速 90，约 9 秒落到底
+				e.amb_acc = float(e.amb_acc) - 0.14
+				k += 1
+				var x: float = c.x + (float((k * 7919) % 1000) / 1000.0 * 2.0 - 1.0) * ar
+				shot(e, Vector2(x, c.y - ar * 0.55), PI * 0.5 + (float((k * 31) % 7) - 3.0) * 0.04, 90.0, 1, 0.03, {"life": 9.5})
+		"shard":
+			while float(e.amb_acc) >= 1.3:   # 每 1.3 秒一圈 14 片，速 80，朝队长留缺口
+				e.amb_acc = float(e.amb_acc) - 1.3
+				k += 1
+				ring(e, e.pos, 14, 80.0, 1, 0.04, [(g.ppos - e.pos).angle()], float(k) * 0.26, {"life": 6.0})
+		"petal":
+			while float(e.amb_acc) >= 0.25:   # 每秒 4 片，从苗圃（没有就从本体）飘出、打旋
+				e.amb_acc = float(e.amb_acc) - 0.25
+				k += 1
+				var src: Vector2 = e.pos
+				var km = kingdoms()
+				if km != null:
+					var ns: Array = km.list.filter(func(x): return x.kind == "nursery")
+					if not ns.is_empty():
+						src = ns[k % ns.size()].pos
+				shot(e, src, float((k * 137) % 360) * PI / 180.0, 70.0, 1, 0.04, {"turn": 0.8 if k % 2 == 0 else -0.8, "life": 7.0})
+		"sand":
+			while float(e.amb_acc) >= 1.6:   # 每 1.6 秒一行 7 粒，自西向东 110，行内留一个空位
+				e.amb_acc = float(e.amb_acc) - 1.6
+				k += 1
+				var gap_i: int = k % 7
+				for i in 7:
+					if i == gap_i:
+						continue
+					var y: float = c.y - ar * 0.85 + ar * 1.7 * (float(i) + 0.5) / 7.0 + float(k % 3) * 20.0
+					shot(e, Vector2(c.x - ar - 20.0, y), 0.0, 110.0, 1, 0.04, {"life": 9.8})
+	e["amb_n"] = k
 
 
 ## 场地中心（最终 Boss 冻结场地 = 缩圈圆心；中期 Boss 用出场时队长的位置）
