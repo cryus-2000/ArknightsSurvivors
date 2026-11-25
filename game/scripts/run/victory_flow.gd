@@ -3,6 +3,7 @@ extends RefCounted
 ## 最终 Boss 击破演出（docs/38 §1.8，10-11）：真实时间约 2 秒的慢动作——画面步长 = 真实帧 × time_scale，
 ## 0.3 秒内 1.0 → 0.15，末 0.4 秒回到 1.0；只缩放画面推进（vfx / 世界视觉 / g.t），模拟 _update 在这里本来就不跑，
 ## 所以同 seed 对局逐字段不变；无头批跑 / 设置关 / 演练不演（boss_intro.finale_ok），平衡批跑仍然立即结算。
+const TT = preload("res://scripts/core/theme_text.gd")   # 主题文案覆盖（docs/412）
 const Game = preload("res://scripts/game.gd")
 const D = preload("res://scripts/data.gd")
 const DURATION := 1.7
@@ -37,7 +38,7 @@ func begin() -> void:
 	if finale:
 		g.boss_intro.on_finale(g.final_boss)
 	else:
-		g.vfx.show_banner("演练目标击破" if g.trial.active else "深海中的威胁已消散")
+		g.vfx.show_banner("演练目标击破" if g.trial.active else TT.t("run.win", "深海中的威胁已消散"))
 	record_win()
 	if g.mode == g.Mode.BALANCE and not finale:
 		finish()

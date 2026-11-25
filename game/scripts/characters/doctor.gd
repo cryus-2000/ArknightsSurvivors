@@ -465,6 +465,8 @@ func filler_cards() -> Array:
 	for c in FILLERS:
 		if not c.get("pool", true):
 			continue   # 「急救补给」停用（docs/203 §3：回血收成 5 条）
+		if str(c.get("effect", "")) == "lamp" and not preload("res://scripts/core/theme_pack.gd").has_mechanic("lamp"):
+			continue   # 无灯火主题不发「灯油补给」（docs/412 B34）
 		out.append({"kind": "filler", "id": str(c.id), "name": str(c.name), "desc": str(c.desc), "cat": "补给  SUPPLY"})
 	return out
 

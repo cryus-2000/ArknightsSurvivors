@@ -1,0 +1,3057 @@
+{
+ "_doc": "萨米藏品效果（docs/414 §2）：白名单件照抄水月 relic_effects（御2 去掉药枚前置）；3xxx 新件。sami_* 规则由 themes/sami/mech/mech_relics.gd 实现，其余是通用积木。",
+ "relics": {
+  "180": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "squad_scale",
+     "args": {
+      "stat": "dmg_taken",
+      "per": -0.03,
+      "count": "all",
+      "cap": 4
+     }
+    }
+   ],
+   "desc": "编队每有 1 名干员，队长受到的伤害 -3%（最多 -12%）",
+   "rarity": "基础",
+   "new": true
+  },
+  "181": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "squad_scale",
+     "args": {
+      "stat": "max_hp",
+      "per": 0.04,
+      "count": "all",
+      "cap": 4
+     }
+    }
+   ],
+   "desc": "编队每有 1 名干员，队长最大生命 +4%（最多 +16%）",
+   "rarity": "基础",
+   "new": true
+  },
+  "182": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "squad_scale",
+     "args": {
+      "stat": "dmg",
+      "per": 0.04,
+      "count": "all",
+      "cap": 4
+     }
+    },
+    {
+     "type": "stat",
+     "stat": "armor",
+     "op": "flat",
+     "value": 2
+    }
+   ],
+   "desc": "编队每有 1 名干员，全队伤害 +4%（最多 +16%）；队长物理减伤 +2",
+   "rarity": "基础",
+   "new": true
+  },
+  "183": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "squad_scale",
+     "args": {
+      "stat": "dmg",
+      "per": 0.04,
+      "count": "all",
+      "cap": 4
+     }
+    },
+    {
+     "type": "rule",
+     "rule": "squad_scale",
+     "args": {
+      "stat": "max_hp",
+      "per": 0.03,
+      "count": "all",
+      "cap": 4
+     }
+    }
+   ],
+   "desc": "编队每有 1 名干员，全队伤害 +4%、队长最大生命 +3%（最多 4 人）",
+   "brief": "每名干员：全队伤害 +4%、队长最大生命 +3%",
+   "rarity": "稀有",
+   "new": true
+  },
+  "9": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "ingots",
+     "args": {
+      "amount": 6
+     }
+    },
+    {
+     "type": "rule",
+     "rule": "choice_extra",
+     "value": 1
+    }
+   ],
+   "desc": "源石锭 +6；下一次三选一多一个选项",
+   "rarity": "基础",
+   "shop_allowed": true,
+   "late_weight": 0.3,
+   "new": true
+  },
+  "10": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "ingots",
+     "args": {
+      "amount": 12
+     }
+    },
+    {
+     "type": "trigger",
+     "event": "Recruited",
+     "do": "ingots",
+     "args": {
+      "amount": 12
+     }
+    }
+   ],
+   "desc": "源石锭 +12；此后每招募一名干员再 +12",
+   "rarity": "基础",
+   "new": true
+  },
+  "22": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "ingot_crate",
+     "value": 2
+    }
+   ],
+   "desc": "每打碎一个补给箱，源石锭 +2",
+   "rarity": "基础",
+   "late_weight": 0.3,
+   "new": true,
+   "late_fuse": 6
+  },
+  "23": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "ingots",
+     "args": {
+      "amount": 4
+     }
+    },
+    {
+     "type": "rule",
+     "rule": "ingot_level",
+     "value": 1
+    }
+   ],
+   "desc": "源石锭 +4；此后每升一级再 +1",
+   "rarity": "基础",
+   "late_weight": 0.3,
+   "new": true
+  },
+  "24": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "ingots",
+     "args": {
+      "amount": 4
+     }
+    },
+    {
+     "type": "rule",
+     "rule": "ingot_rebate",
+     "value": 3
+    }
+   ],
+   "desc": "源石锭 +4；此后在商人处每花费 10 枚源石锭，返还 3 枚",
+   "rarity": "基础",
+   "late_weight": 0.3,
+   "new": true,
+   "late_fuse": 8
+  },
+  "27": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "ingots",
+     "args": {
+      "amount": 10
+     }
+    }
+   ],
+   "late_weight": 0.3,
+   "rarity": "基础"
+  },
+  "28": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "ingots",
+     "args": {
+      "amount": 18
+     }
+    }
+   ],
+   "late_weight": 0.3,
+   "rarity": "基础"
+  },
+  "177": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "growth_pick"
+    }
+   ],
+   "desc": "立即获得 1 次成长三选一",
+   "rarity": "稀有"
+  },
+  "178": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "growth_pick",
+     "args": {
+      "n": 2
+     }
+    }
+   ],
+   "desc": "立即获得 2 次成长三选一",
+   "rarity": "稀有",
+   "new": true
+  },
+  "184": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "Recruited",
+     "do": "ingots",
+     "args": {
+      "amount": 10
+     }
+    }
+   ],
+   "desc": "招募干员时源石锭 +10",
+   "rarity": "基础",
+   "shop_allowed": true,
+   "new": true
+  },
+  "185": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "Recruited",
+     "do": "advance",
+     "args": {}
+    }
+   ],
+   "desc": "招募的干员入队时立即推进 1 个成长节点",
+   "rarity": "稀有",
+   "shop_allowed": true,
+   "new": true
+  },
+  "186": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "Recruited",
+     "do": "growth_pick",
+     "args": {
+      "n": 1
+     }
+    }
+   ],
+   "desc": "招募干员时获得一次成长三选一",
+   "rarity": "稀有",
+   "shop_allowed": true,
+   "new": true
+  },
+  "189": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "recruit_extra",
+     "value": 1
+    }
+   ],
+   "desc": "编队不满 3 人时，必定出现的招募画面多一个选项",
+   "rarity": "基础",
+   "new": true
+  },
+  "1": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "extra_slot"
+    },
+    {
+     "type": "stat",
+     "stat": "regen_pct",
+     "op": "flat",
+     "value": 0.005
+    }
+   ],
+   "desc": "编队上限 +1；队长每秒回复 0.5% 最大生命（每次探索最多 1 件编队上限类藏品）",
+   "rarity": "升华"
+  },
+  "8": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "ingots",
+     "args": {
+      "amount": 4
+     }
+    },
+    {
+     "type": "trigger",
+     "event": "Recruited",
+     "do": "ingots",
+     "args": {
+      "amount": 4
+     }
+    }
+   ],
+   "desc": "源石锭 +4；此后每招募一名干员再 +4",
+   "rarity": "基础",
+   "late_weight": 0.3,
+   "new": true
+  },
+  "11": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "ingots",
+     "args": {
+      "amount": 18
+     }
+    },
+    {
+     "type": "rule",
+     "rule": "choice_extra",
+     "value": 1
+    }
+   ],
+   "desc": "源石锭 +18；下一次三选一多一个选项",
+   "rarity": "基础",
+   "late_weight": 0.3,
+   "new": true
+  },
+  "12": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "ingots",
+     "args": {
+      "amount": 4
+     }
+    },
+    {
+     "type": "rule",
+     "rule": "ingot_merchant",
+     "value": 6
+    }
+   ],
+   "desc": "源石锭 +4；此后每位商人到来时再 +6",
+   "rarity": "基础",
+   "late_weight": 0.3,
+   "new": true,
+   "late_fuse": 8
+  },
+  "13": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "ingot_kills",
+     "value": 50
+    }
+   ],
+   "desc": "每击败 50 名敌人，源石锭 +1",
+   "rarity": "基础",
+   "late_weight": 0.3,
+   "new": true,
+   "late_fuse": 6
+  },
+  "14": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "ingots",
+     "args": {
+      "amount": 12
+     }
+    },
+    {
+     "type": "trigger",
+     "event": "BossKilled",
+     "do": "ingots",
+     "args": {
+      "ingots": 15
+     }
+    }
+   ],
+   "desc": "源石锭 +12；每击败一个 Boss 再 +15",
+   "rarity": "基础",
+   "new": true
+  },
+  "16": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "shield_max",
+     "op": "flat",
+     "value": 1
+    },
+    {
+     "type": "rule",
+     "rule": "shield_full_haste",
+     "args": {
+      "value": 0.15
+     }
+    }
+   ],
+   "desc": "队长护盾层数上限 +1（没有护盾时获得每 15 秒一层的护盾）；护盾满层时全队攻击速度 +15%",
+   "rarity": "稀有",
+   "new": true,
+   "trim": "play"
+  },
+  "17": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "max_hp",
+     "op": "flat",
+     "value": 10
+    },
+    {
+     "type": "on_gain",
+     "do": "ingots",
+     "args": {
+      "amount": 3
+     }
+    }
+   ],
+   "desc": "队长最大生命 +10；源石锭 +3",
+   "rarity": "基础",
+   "new": true
+  },
+  "20": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "max_hp",
+     "op": "flat",
+     "value": 30
+    }
+   ],
+   "desc": "队长最大生命 +30",
+   "rarity": "基础",
+   "new": true,
+   "filler": true
+  },
+  "21": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "max_hp",
+     "op": "flat",
+     "value": 50
+    }
+   ],
+   "desc": "队长最大生命 +50",
+   "rarity": "稀有",
+   "new": true,
+   "filler": true
+  },
+  "26": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "ingots",
+     "args": {
+      "amount": 30
+     }
+    },
+    {
+     "type": "stat",
+     "stat": "shop_price",
+     "op": "mult",
+     "value": 1.15
+    }
+   ],
+   "desc": "源石锭 +30；商人处所有商品价格 +15%",
+   "rarity": "稀有",
+   "late_weight": 0.3,
+   "new": true
+  },
+  "29": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "ingots",
+     "args": {
+      "amount": 25
+     }
+    }
+   ],
+   "late_weight": 0.3,
+   "rarity": "稀有"
+  },
+  "33": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "advance_class",
+     "args": {
+      "class": "先锋"
+     }
+    }
+   ],
+   "desc": "立即让 1 名先锋干员推进 1 个成长节点",
+   "rarity": "稀有",
+   "requires_class": [
+    "先锋"
+   ],
+   "shop_allowed": true
+  },
+  "34": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "advance_class",
+     "args": {
+      "class": "近卫"
+     }
+    }
+   ],
+   "desc": "立即让 1 名近卫干员推进 1 个成长节点",
+   "rarity": "稀有",
+   "requires_class": [
+    "近卫"
+   ],
+   "shop_allowed": true
+  },
+  "35": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "advance_class",
+     "args": {
+      "class": "重装"
+     }
+    }
+   ],
+   "desc": "立即让 1 名重装干员推进 1 个成长节点",
+   "rarity": "稀有",
+   "requires_class": [
+    "重装"
+   ],
+   "shop_allowed": true
+  },
+  "36": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "advance_class",
+     "args": {
+      "class": "狙击"
+     }
+    }
+   ],
+   "desc": "立即让 1 名狙击干员推进 1 个成长节点",
+   "rarity": "稀有",
+   "requires_class": [
+    "狙击"
+   ],
+   "shop_allowed": true
+  },
+  "37": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "advance_class",
+     "args": {
+      "class": "术师"
+     }
+    }
+   ],
+   "desc": "立即让 1 名术师干员推进 1 个成长节点",
+   "rarity": "稀有",
+   "requires_class": [
+    "术师"
+   ],
+   "shop_allowed": true
+  },
+  "38": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "advance_class",
+     "args": {
+      "class": "辅助"
+     }
+    }
+   ],
+   "desc": "立即让 1 名辅助干员推进 1 个成长节点",
+   "rarity": "稀有",
+   "requires_class": [
+    "辅助"
+   ],
+   "shop_allowed": true
+  },
+  "39": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "advance_class",
+     "args": {
+      "class": "医疗"
+     }
+    }
+   ],
+   "desc": "立即让 1 名医疗干员推进 1 个成长节点",
+   "rarity": "稀有",
+   "requires_class": [
+    "医疗"
+   ],
+   "shop_allowed": true
+  },
+  "40": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "advance_class",
+     "args": {
+      "class": "特种"
+     }
+    }
+   ],
+   "desc": "立即让 1 名特种干员推进 1 个成长节点",
+   "rarity": "稀有",
+   "requires_class": [
+    "特种"
+   ],
+   "shop_allowed": true
+  },
+  "106": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "squad_scale",
+     "args": {
+      "stat": "dmg",
+      "per": 0.1,
+      "count": [
+       "先锋",
+       "近卫"
+      ],
+      "classes": [
+       "先锋",
+       "近卫"
+      ]
+     }
+    }
+   ],
+   "desc": "编队每有 1 名先锋或近卫干员，先锋与近卫干员伤害 +10%",
+   "brief": "每名先锋或近卫：先锋与近卫伤害 +10%",
+   "rarity": "基础",
+   "requires_class": [
+    "先锋",
+    "近卫"
+   ],
+   "shop_allowed": true
+  },
+  "107": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "squad_scale",
+     "args": {
+      "stat": "dmg",
+      "per": 0.1,
+      "count": [
+       "重装",
+       "辅助"
+      ],
+      "classes": [
+       "重装",
+       "辅助"
+      ]
+     }
+    }
+   ],
+   "desc": "编队每有 1 名重装或辅助干员，重装与辅助干员伤害 +10%",
+   "brief": "每名重装或辅助：重装与辅助伤害 +10%",
+   "rarity": "基础",
+   "requires_class": [
+    "重装",
+    "辅助"
+   ]
+  },
+  "108": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "squad_scale",
+     "args": {
+      "stat": "dmg",
+      "per": 0.1,
+      "count": [
+       "医疗",
+       "狙击"
+      ],
+      "classes": [
+       "医疗",
+       "狙击"
+      ]
+     }
+    }
+   ],
+   "desc": "编队每有 1 名医疗或狙击干员，医疗与狙击干员伤害 +10%",
+   "brief": "每名医疗或狙击：医疗与狙击伤害 +10%",
+   "rarity": "基础",
+   "requires_class": [
+    "医疗",
+    "狙击"
+   ]
+  },
+  "109": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "squad_scale",
+     "args": {
+      "stat": "op_aspd",
+      "per": 0.08,
+      "count": [
+       "术师",
+       "特种"
+      ],
+      "classes": [
+       "术师",
+       "特种"
+      ]
+     }
+    }
+   ],
+   "desc": "编队每有 1 名术师或特种干员，术师与特种干员攻击速度 +8%",
+   "brief": "每名术师或特种：术师与特种攻击速度 +8%",
+   "rarity": "基础",
+   "requires_class": [
+    "术师",
+    "特种"
+   ]
+  },
+  "44": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "enemy_dmg",
+     "op": "mult",
+     "value": 0.83
+    }
+   ],
+   "desc": "所有敌人造成的伤害 -17%",
+   "rarity": "核心",
+   "filler": true
+  },
+  "45": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "weak_expose",
+     "args": {
+      "dur": 3.0,
+      "mult": 0.2
+     }
+    }
+   ],
+   "desc": "弱点收割干员命中弱点时给敌人挂「破绽」3 秒：期间它受到的所有伤害 +20%",
+   "brief": "命中弱点挂「破绽」：受到的伤害 +20%",
+   "rarity": "稀有",
+   "trim": "play"
+  },
+  "46": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "weak_crit",
+     "args": {
+      "chance": 0.25,
+      "kb": 160
+     }
+    }
+   ],
+   "desc": "弱点收割干员命中弱点时有 25% 概率造成双倍伤害并把敌人震退（Boss 只加伤不震退）",
+   "rarity": "基础",
+   "trim": "play"
+  },
+  "47": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "all_weak"
+    }
+   ],
+   "desc": "所有敌人对物理与法术伤害都视为弱点",
+   "rarity": "升华"
+  },
+  "50": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "weak_pass",
+     "args": {
+      "r": 160
+     }
+    }
+   ],
+   "rarity": "核心",
+   "desc": "弱点收割干员击败有弱点的敌人时，弱点转移到 160 范围内最近的另一名敌人（Boss 除外）",
+   "trim": "play"
+  },
+  "53": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "armor",
+     "op": "flat",
+     "value": 5
+    },
+    {
+     "type": "stat",
+     "stat": "dmg_taken",
+     "op": "add",
+     "value": -0.1
+    }
+   ],
+   "desc": "队长物理减伤 +5，受到的伤害 -10%",
+   "max_lv": 1,
+   "rarity": "核心",
+   "filler": true
+  },
+  "54": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "melee_sweep",
+     "args": {
+      "chance": 0.15,
+      "r": 110,
+      "mult": 0.5
+     }
+    }
+   ],
+   "desc": "近战扩域干员的近战命中有 15% 概率横扫：周围 110 范围内的其他敌人受到这次伤害的 50%",
+   "rarity": "基础",
+   "trim": "play"
+  },
+  "55": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "melee_thrust",
+     "args": {
+      "every": 4,
+      "len": 220,
+      "w": 26,
+      "mult": 1.0
+     }
+    }
+   ],
+   "desc": "近战扩域干员每第 4 次近战命中变为突刺：沿朝向 220 距离内的敌人都受到这次伤害",
+   "rarity": "稀有",
+   "trim": "play"
+  },
+  "56": {
+   "effects": [
+    {
+     "type": "growth",
+     "kind": "crowd",
+     "value": 0.25,
+     "min": 3
+    },
+    {
+     "type": "stat",
+     "stat": "melee_dmg",
+     "op": "add",
+     "value": 0.2,
+     "scope": "lane:melee"
+    }
+   ],
+   "desc": "近战扩域干员的近战伤害 +20%；近战扩域干员一次普攻判定（一道刀光、一次盾击或一段刺击）同时命中至少 3 名敌人时，这一下伤害再 ×1.25。普攻剑气逐个命中，只享受近战伤害加成。每多一层，增益递减",
+   "rarity": "核心",
+   "legacy": [
+    {
+     "type": "stat",
+     "stat": "melee_dmg",
+     "op": "add",
+     "value": 0.32
+    }
+   ],
+   "legacy_desc": "近战伤害 +32%（近战攻击与技能）",
+   "max_lv": 3
+  },
+  "57": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "multi_split",
+     "args": {
+      "n": 2,
+      "r": 140,
+      "mult": 0.4
+     }
+    }
+   ],
+   "desc": "多弹火力干员的远程命中会弹向附近 2 名敌人（140 范围内，各受这次伤害的 40%，不再弹）",
+   "rarity": "基础",
+   "trim": "play"
+  },
+  "58": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "ranged_dmg",
+     "op": "add",
+     "value": 0.1,
+     "scope": "lane:multi"
+    },
+    {
+     "type": "growth",
+     "kind": "scatter",
+     "eps": 0.15
+    }
+   ],
+   "desc": "散射：多弹火力干员每次普攻多射出 1 发小弹，射向另一名敌人（不够时扇形错开），伤害为普攻的 15%；多弹火力干员的远程伤害 +10%。每多一层，增益递减",
+   "rarity": "稀有",
+   "legacy": [
+    {
+     "type": "stat",
+     "stat": "ranged_dmg",
+     "op": "add",
+     "value": 0.2
+    }
+   ],
+   "legacy_desc": "远程伤害 +20%（远程攻击与技能）",
+   "max_lv": 3
+  },
+  "59": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "ranged_dmg",
+     "op": "add",
+     "value": 0.1,
+     "scope": "lane:multi"
+    },
+    {
+     "type": "growth",
+     "kind": "burst",
+     "eps": 0.25
+    }
+   ],
+   "desc": "连发：多弹火力干员每次普攻后 0.08 秒对同一方向补射 1 发小弹，伤害为普攻的 25%；多弹火力干员的远程伤害 +10%。每多一层，增益递减",
+   "rarity": "核心",
+   "legacy": [
+    {
+     "type": "stat",
+     "stat": "ranged_dmg",
+     "op": "add",
+     "value": 0.3
+    }
+   ],
+   "legacy_desc": "远程伤害 +30%（远程攻击与技能）",
+   "max_lv": 3
+  },
+  "60": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "max_hp",
+     "op": "add",
+     "value": 0.15
+    }
+   ],
+   "desc": "队长最大生命 +15%",
+   "rarity": "基础",
+   "filler": true
+  },
+  "61": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "max_hp",
+     "op": "add",
+     "value": 0.25
+    }
+   ],
+   "desc": "队长最大生命 +25%",
+   "rarity": "稀有",
+   "filler": true
+  },
+  "62": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "max_hp",
+     "op": "add",
+     "value": 0.5
+    }
+   ],
+   "desc": "队长最大生命 +50%",
+   "rarity": "核心",
+   "new": true
+  },
+  "63": {
+   "effects": [
+    {
+     "type": "growth",
+     "kind": "qi",
+     "mult": 0.35,
+     "hits": 1
+    }
+   ],
+   "desc": "剑气：近战扩域干员每次普攻额外从刀光边缘射出 1 道剑气，打普攻够不到的敌人（飞到普攻范围的 1.6 倍），伤害为普攻的 35%，命中 1 名敌人后消失。每多一层，增益递减",
+   "rarity": "基础",
+   "new": true,
+   "legacy": [
+    {
+     "type": "stat",
+     "stat": "physical_dmg",
+     "op": "add",
+     "value": 0.15
+    }
+   ],
+   "legacy_desc": "物理伤害 +15%",
+   "max_lv": 3
+  },
+  "64": {
+   "effects": [
+    {
+     "type": "growth",
+     "kind": "range",
+     "value": 0.18
+    },
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.08,
+     "scope": "lane:melee"
+    }
+   ],
+   "desc": "增幅：近战扩域干员攻击范围 +18%（刀光与判定一起放大，剑气飞得更远），伤害 +8%。已持有其他攻击范围藏品时，每多一层，增益递减",
+   "rarity": "稀有",
+   "new": true,
+   "legacy": [
+    {
+     "type": "stat",
+     "stat": "physical_dmg",
+     "op": "add",
+     "value": 0.25
+    }
+   ],
+   "legacy_desc": "物理伤害 +25%",
+   "max_lv": 3
+  },
+  "65": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "physical_dmg",
+     "op": "add",
+     "value": 0.35
+    }
+   ],
+   "desc": "物理伤害 +35%",
+   "rarity": "核心",
+   "new": true,
+   "filler": true
+  },
+  "67": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "arts_dmg",
+     "op": "add",
+     "value": 0.3
+    }
+   ],
+   "desc": "法术伤害 +30%",
+   "rarity": "稀有",
+   "filler": true
+  },
+  "68": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "arts_dmg",
+     "op": "add",
+     "value": 0.4
+    }
+   ],
+   "desc": "法术伤害 +40%",
+   "rarity": "核心",
+   "filler": true
+  },
+  "70": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "heal_mult",
+     "op": "add",
+     "value": 0.3
+    }
+   ],
+   "desc": "队长受到的治疗量 +30%",
+   "rarity": "稀有",
+   "new": true,
+   "filler": true
+  },
+  "72": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "regen_pct",
+     "op": "flat",
+     "value": 0.005
+    }
+   ],
+   "desc": "队长每秒回复 0.5% 最大生命",
+   "rarity": "稀有",
+   "filler": true
+  },
+  "75": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "dash_dodge",
+     "args": {
+      "dodge": 0.4,
+      "dur": 1.5,
+      "mult": 1.0,
+      "w": 40
+     }
+    }
+   ],
+   "desc": "冲刺后 1.5 秒内队长闪避率 +40%；冲刺路线上的敌人受到队长攻击 ×1 的伤害",
+   "rarity": "基础",
+   "trim": "play"
+  },
+  "76": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "levels",
+     "args": {
+      "n": 1
+     }
+    }
+   ],
+   "desc": "立即升 1 级",
+   "rarity": "基础",
+   "late_weight": 0.3,
+   "shop_allowed": true,
+   "new": true
+  },
+  "77": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "levels",
+     "args": {
+      "n": 2
+     }
+    }
+   ],
+   "desc": "立即升 2 级",
+   "rarity": "稀有",
+   "late_weight": 0.3,
+   "shop_allowed": true,
+   "new": true
+  },
+  "78": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "levels",
+     "args": {
+      "n": 3
+     }
+    }
+   ],
+   "desc": "立即升 3 级",
+   "rarity": "核心",
+   "late_weight": 0.3,
+   "shop_allowed": true,
+   "new": true
+  },
+  "81": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "op_range",
+     "op": "add",
+     "value": 0.25,
+     "scope": "lane:melee"
+    },
+    {
+     "type": "rule",
+     "rule": "melee_crowd",
+     "args": {
+      "r": 140,
+      "per": 0.03,
+      "cap": 0.3
+     }
+    }
+   ],
+   "desc": "近战扩域干员攻击范围 +25%；身边 140 范围内每有 1 名敌人，近战伤害 +3%（最多 +30%）",
+   "rarity": "稀有",
+   "shop_allowed": true,
+   "trim": "play"
+  },
+  "82": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "op_range",
+     "op": "add",
+     "value": 0.2,
+     "scope": "lane:multi"
+    },
+    {
+     "type": "rule",
+     "rule": "multi_far",
+     "args": {
+      "max": 0.3,
+      "at": 300
+     }
+    }
+   ],
+   "desc": "多弹火力干员攻击范围 +20%；远程命中离出手干员越远伤害越高（300 距离及以外 +30%）",
+   "rarity": "稀有",
+   "shop_allowed": true,
+   "trim": "play"
+  },
+  "85": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "SkillEnded",
+     "do": "sp",
+     "args": {
+      "pct": 0.12
+     }
+    }
+   ],
+   "desc": "干员的技能结束时，该干员的技能各回复 12% 技力",
+   "rarity": "稀有"
+  },
+  "86": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "sp",
+     "args": {
+      "pct": 0.2
+     }
+    },
+    {
+     "type": "trigger",
+     "event": "Recruited",
+     "do": "sp",
+     "args": {
+      "pct": 0.2
+     }
+    }
+   ],
+   "desc": "获得时全队技力 +20%；之后招募的干员入队时也获得 20% 技力",
+   "rarity": "基础",
+   "new": true
+  },
+  "87": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "sp",
+     "args": {
+      "pct": 0.3
+     }
+    },
+    {
+     "type": "trigger",
+     "event": "Recruited",
+     "do": "sp",
+     "args": {
+      "pct": 0.3
+     }
+    }
+   ],
+   "desc": "获得时全队技力 +30%；之后招募的干员入队时也获得 30% 技力",
+   "rarity": "稀有",
+   "new": true
+  },
+  "89": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "SkillStarted",
+     "do": "temp_stat",
+     "args": {
+      "stat": "op_aspd",
+      "op": "add",
+      "value": 0.2,
+      "dur": 5.0
+     }
+    }
+   ],
+   "desc": "干员开启技能后 5 秒内，全队攻击速度 +20%（再次开启技能刷新时长）",
+   "rarity": "核心",
+   "trim": "play"
+  },
+  "90": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "sp_gain",
+     "op": "add",
+     "value": 0.35
+    }
+   ],
+   "desc": "全队技力回复 +35%",
+   "rarity": "稀有",
+   "new": true,
+   "filler": true
+  },
+  "92": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "sp_pulse",
+     "args": {
+      "every": 2.5,
+      "pct": 0.02
+     }
+    },
+    {
+     "type": "stat",
+     "stat": "sp_gain",
+     "op": "add",
+     "value": 0.1
+    }
+   ],
+   "desc": "每 2.5 秒全队回复 2% 技力；全队技力回复 +10%",
+   "rarity": "稀有",
+   "new": true
+  },
+  "93": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "sp_pulse",
+     "args": {
+      "every": 1.5,
+      "pct": 0.02
+     }
+    }
+   ],
+   "desc": "每 1.5 秒全队回复 2% 技力",
+   "rarity": "核心",
+   "new": true
+  },
+  "95": {
+   "effects": [
+    {
+     "type": "status",
+     "status": "bind",
+     "args": {
+      "dot_mult": 0.5
+     }
+    },
+    {
+     "type": "status",
+     "status": "stun",
+     "args": {
+      "dot_mult": 0.5
+     }
+    }
+   ],
+   "desc": "队长周围（半径 700）被眩晕、束缚或减速的敌人每秒受到法术伤害：伤害 9，每分钟 +{9*$pm:1}（10:00 约 {9*$m10:0}）；与「童趣玩偶」不叠加，取较高",
+   "rarity": "核心"
+  },
+  "96": {
+   "effects": [
+    {
+     "type": "status",
+     "status": "bind",
+     "args": {
+      "dot_mult": 0.7
+     }
+    },
+    {
+     "type": "status",
+     "status": "stun",
+     "args": {
+      "dot_mult": 0.7
+     }
+    }
+   ],
+   "desc": "队长周围（半径 700）被眩晕、束缚或减速的敌人每秒受到法术伤害：伤害 12.6，每分钟 +{12.6*$pm:1}（10:00 约 {12.6*$m10:0}）；与「悬丝傀儡」不叠加，取较高",
+   "rarity": "升华"
+  },
+  "97": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "ctrl_amp",
+     "args": {
+      "mult": 0.2
+     }
+    }
+   ],
+   "desc": "处于眩晕或减速中的敌人受到的伤害 +20%",
+   "rarity": "稀有",
+   "trim": "play"
+  },
+  "98": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "ctrl_chain",
+     "args": {
+      "r": 90,
+      "stun": 0.5
+     }
+    }
+   ],
+   "desc": "敌人的眩晕自然结束时炸开：90 范围内的其他敌人眩晕 0.5 秒（被波及的不再炸开，Boss 除外）",
+   "rarity": "核心",
+   "trim": "play"
+  },
+  "99": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "control_dur",
+     "op": "add",
+     "value": 1.0
+    },
+    {
+     "type": "rule",
+     "rule": "ctrl_freeze",
+     "args": {
+      "r": 120,
+      "stun": 1.5
+     }
+    }
+   ],
+   "desc": "眩晕、束缚、减速的持续时间 +100%；处于眩晕或减速中的敌人被击败时，120 范围内的敌人冻结 1.5 秒（Boss 除外）",
+   "rarity": "升华",
+   "trim": "play"
+  },
+  "101": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "squad_scale",
+     "args": {
+      "stat": "dmg",
+      "per": 0.06,
+      "count": "distinct"
+     }
+    }
+   ],
+   "desc": "编队每有一种不同职业，全队伤害 +6%",
+   "rarity": "稀有"
+  },
+  "102": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "Healed",
+     "do": "damage_area",
+     "args": {
+      "radius": 150
+     }
+    }
+   ],
+   "desc": "每 0.5 秒把溢出的治疗量转为对队长周围（半径 150）敌人的法术伤害：开局为溢出量的 {$scavenge_mult} 倍，每分钟 +{$scavenge_mult*$pm:1} 倍（10:00 约 {$scavenge_mult*$m10:0} 倍）",
+   "rarity": "稀有"
+  },
+  "105": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "black_tulip",
+     "args": {
+      "max": 0.6,
+      "t": 60
+     }
+    }
+   ],
+   "desc": "没有技能生效时，全队伤害在累计 60 秒内逐渐提升至 +60%；任一技能生效时暂停计时、加成不生效（不清零）",
+   "rarity": "核心"
+  },
+  "110": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "SkillStarted",
+     "do": "temp_stat",
+     "args": {
+      "stat": "dmg",
+      "op": "add",
+      "value": 0.6,
+      "dur": 3.0
+     }
+    }
+   ],
+   "desc": "技能开启后 3 秒内全队伤害 +60%（再次开启技能刷新时长）",
+   "rarity": "核心"
+  },
+  "111": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "SkillStarted",
+     "do": "temp_stat",
+     "args": {
+      "stat": "dmg",
+      "op": "add",
+      "value": 1.0,
+      "dur": 1.0
+     }
+    }
+   ],
+   "desc": "任一干员技能开启后 1 秒内，全队伤害 +100%",
+   "rarity": "核心"
+  },
+  "114": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "king_gun"
+    }
+   ],
+   "desc": "全队攻击速度 +10%；队长生命低于 40% 时改为 +50%（国王套装）",
+   "rarity": "核心",
+   "set": "king"
+  },
+  "126": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "king_cake"
+    }
+   ],
+   "desc": "队长受到的伤害 -5%；队长生命低于 40% 时改为 -30%（国王套装）",
+   "rarity": "核心",
+   "set": "king"
+  },
+  "127": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "king_branch"
+    }
+   ],
+   "desc": "全队技力回复 +10%；队长生命低于 40% 时改为 +50%（国王套装）",
+   "rarity": "核心",
+   "set": "king"
+  },
+  "128": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "king_crown"
+    }
+   ],
+   "desc": "全队伤害 +10%；队长生命低于 40% 时改为 +50%，若已集齐 3 件国王套装（含本件）则为 +150%",
+   "rarity": "升华",
+   "set": "king"
+  },
+  "120": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dodge",
+     "op": "flat",
+     "value": 0.08
+    },
+    {
+     "type": "trigger",
+     "event": "Dodge",
+     "do": "temp_stat",
+     "args": {
+      "stat": "dmg",
+      "op": "add",
+      "value": 0.6,
+      "dur": 6.0
+     }
+    }
+   ],
+   "desc": "队长闪避率 +8%；闪避后 6 秒内全队伤害 +60%（再次闪避刷新时长）",
+   "rarity": "核心"
+  },
+  "121": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dodge",
+     "op": "flat",
+     "value": 0.08
+    },
+    {
+     "type": "trigger",
+     "event": "Dodge",
+     "do": "temp_stat",
+     "args": {
+      "stat": "dmg",
+      "op": "add",
+      "value": 1.3,
+      "dur": 6.0
+     }
+    }
+   ],
+   "desc": "队长闪避率 +8%；闪避后 6 秒内全队伤害 +130%（再次闪避刷新时长）",
+   "rarity": "升华"
+  },
+  "133": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.15,
+     "scope": "class:先锋"
+    },
+    {
+     "type": "stat",
+     "stat": "max_hp",
+     "op": "add",
+     "value": 0.2
+    }
+   ],
+   "desc": "先锋干员伤害 +15%；队长最大生命 +20%",
+   "rarity": "基础",
+   "requires_class": [
+    "先锋"
+   ],
+   "shop_allowed": true,
+   "new": true,
+   "filler": true
+  },
+  "134": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "op_skill_sp",
+     "op": "add",
+     "value": 0.3,
+     "scope": "class:先锋"
+    }
+   ],
+   "desc": "先锋干员技力回复 +30%",
+   "rarity": "稀有",
+   "requires_class": [
+    "先锋"
+   ],
+   "shop_allowed": true,
+   "new": true,
+   "filler": true
+  },
+  "135": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "SkillStarted",
+     "do": "refund",
+     "args": {
+      "class": "先锋",
+      "pct": 0.35
+     }
+    }
+   ],
+   "desc": "先锋干员施放技能后，该技能立即返还 35% 技力",
+   "rarity": "核心",
+   "requires_class": [
+    "先锋"
+   ],
+   "shop_allowed": true,
+   "new": true
+  },
+  "136": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.5,
+     "scope": "class:先锋"
+    },
+    {
+     "type": "stat",
+     "stat": "sp_gain",
+     "op": "add",
+     "value": 0.2
+    }
+   ],
+   "desc": "先锋干员伤害 +50%；全队技力回复 +20%",
+   "rarity": "升华",
+   "requires_class": [
+    "先锋"
+   ],
+   "shop_allowed": true,
+   "filler": true
+  },
+  "137": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.1,
+     "scope": "class:近卫"
+    },
+    {
+     "type": "stat",
+     "stat": "max_hp",
+     "op": "add",
+     "value": 0.2
+    }
+   ],
+   "desc": "近卫干员伤害 +10%；队长最大生命 +20%",
+   "rarity": "基础",
+   "requires_class": [
+    "近卫"
+   ],
+   "shop_allowed": true,
+   "new": true,
+   "filler": true
+  },
+  "138": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.25,
+     "scope": "class:近卫"
+    }
+   ],
+   "desc": "近卫干员伤害 +25%",
+   "rarity": "稀有",
+   "requires_class": [
+    "近卫"
+   ],
+   "shop_allowed": true,
+   "filler": true
+  },
+  "139": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "Hit",
+     "do": "sp",
+     "args": {
+      "pct": 0.0025,
+      "cap": 0.02,
+      "class": "近卫"
+     }
+    }
+   ],
+   "desc": "近卫干员每次命中回复 0.25% 技力（每名每秒最多 2%）",
+   "rarity": "稀有",
+   "requires_class": [
+    "近卫"
+   ],
+   "shop_allowed": true
+  },
+  "141": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.35,
+     "scope": "class:近卫"
+    },
+    {
+     "type": "stat",
+     "stat": "op_aspd",
+     "op": "add",
+     "value": 0.25,
+     "scope": "class:近卫"
+    },
+    {
+     "type": "stat",
+     "stat": "dmg_taken",
+     "op": "add",
+     "value": 0.15
+    }
+   ],
+   "desc": "近卫干员伤害 +35%、攻击速度 +25%；队长受到的伤害 +15%",
+   "rarity": "核心",
+   "requires_class": [
+    "近卫"
+   ],
+   "shop_allowed": true,
+   "filler": true
+  },
+  "143": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.4,
+     "scope": "class:重装"
+    }
+   ],
+   "desc": "重装干员伤害 +40%",
+   "rarity": "稀有",
+   "requires_class": [
+    "重装"
+   ],
+   "shop_allowed": true,
+   "filler": true
+  },
+  "145": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "DamageTaken",
+     "do": "sp",
+     "args": {
+      "pct": 0.05,
+      "class": "重装",
+      "icd": 0.5
+     }
+    }
+   ],
+   "desc": "队长每次受击，重装干员回复 5% 技力（0.5 秒内最多 1 次）",
+   "rarity": "稀有",
+   "requires_class": [
+    "重装"
+   ],
+   "shop_allowed": true
+  },
+  "147": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "Recruited",
+     "do": "advance",
+     "args": {
+      "class": "狙击"
+     }
+    }
+   ],
+   "desc": "招募狙击干员时，该干员立即推进 1 个成长节点",
+   "rarity": "基础",
+   "new": true
+  },
+  "149": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.4,
+     "scope": "class:狙击"
+    },
+    {
+     "type": "stat",
+     "stat": "op_aspd",
+     "op": "add",
+     "value": -0.2,
+     "scope": "class:狙击"
+    }
+   ],
+   "desc": "狙击干员伤害 +40%，攻击速度 -20%",
+   "rarity": "基础",
+   "requires_class": [
+    "狙击"
+   ],
+   "new": true,
+   "filler": true
+  },
+  "150": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "op_aspd",
+     "op": "add",
+     "value": 0.4,
+     "scope": "class:狙击"
+    }
+   ],
+   "desc": "狙击干员攻击速度 +40%",
+   "rarity": "稀有",
+   "requires_class": [
+    "狙击"
+   ],
+   "new": true,
+   "filler": true
+  },
+  "151": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "Recruited",
+     "do": "advance",
+     "args": {
+      "class": "术师"
+     }
+    }
+   ],
+   "desc": "招募术师干员时，该干员立即推进 1 个成长节点",
+   "rarity": "基础",
+   "new": true
+  },
+  "152": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.2,
+     "scope": "class:术师"
+    },
+    {
+     "type": "stat",
+     "stat": "op_aspd",
+     "op": "add",
+     "value": 0.1,
+     "scope": "class:术师"
+    }
+   ],
+   "desc": "术师干员伤害 +20%、攻击速度 +10%",
+   "rarity": "稀有",
+   "requires_class": [
+    "术师"
+   ],
+   "filler": true
+  },
+  "153": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "Tick",
+     "do": "damage_area",
+     "args": {
+      "every": 8,
+      "radius": 110,
+      "class": "术师",
+      "dmg": 40
+     }
+    }
+   ],
+   "desc": "术师干员每 8 秒对身边（半径 110）敌人引发一次法术爆炸：伤害 40，每分钟 +{40*$pm:0}（10:00 约 {40*$m10:0}）",
+   "rarity": "稀有",
+   "requires_class": [
+    "术师"
+   ],
+   "new": true
+  },
+  "154": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.5,
+     "scope": "class:术师"
+    },
+    {
+     "type": "stat",
+     "stat": "op_range",
+     "op": "add",
+     "value": -0.2,
+     "scope": "class:术师"
+    }
+   ],
+   "desc": "术师干员伤害 +50%，攻击范围 -20%",
+   "rarity": "基础",
+   "requires_class": [
+    "术师"
+   ],
+   "new": true,
+   "filler": true
+  },
+  "155": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "Recruited",
+     "do": "advance",
+     "args": {
+      "class": "辅助"
+     }
+    }
+   ],
+   "desc": "招募辅助干员时，该干员立即推进 1 个成长节点",
+   "rarity": "基础",
+   "new": true
+  },
+  "156": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "op_range",
+     "op": "add",
+     "value": 0.4,
+     "scope": "class:辅助"
+    }
+   ],
+   "desc": "辅助干员攻击范围 +40%",
+   "rarity": "基础",
+   "requires_class": [
+    "辅助"
+   ],
+   "new": true,
+   "filler": true
+  },
+  "157": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "squad_scale",
+     "args": {
+      "stat": "dmg",
+      "per": 0.15,
+      "count": [
+       "辅助"
+      ],
+      "cap": 1
+     }
+    }
+   ],
+   "desc": "编队有辅助干员时，全队伤害 +15%",
+   "rarity": "稀有",
+   "requires_class": [
+    "辅助"
+   ]
+  },
+  "158": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "arts_dmg",
+     "op": "add",
+     "value": 0.2
+    },
+    {
+     "type": "stat",
+     "stat": "enemy_dmg",
+     "op": "mult",
+     "value": 0.95
+    }
+   ],
+   "desc": "法术伤害 +20%，所有敌人造成的伤害 -5%",
+   "requires": [],
+   "requires_class": [
+    "辅助"
+   ],
+   "rarity": "稀有",
+   "filler": true
+  },
+  "160": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "op_aspd",
+     "op": "add",
+     "value": 0.3,
+     "scope": "class:医疗"
+    }
+   ],
+   "desc": "医疗干员攻击速度 +30%（治疗频率随之提高）",
+   "rarity": "基础",
+   "requires_class": [
+    "医疗"
+   ],
+   "new": true,
+   "filler": true
+  },
+  "161": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "heal_out",
+     "op": "add",
+     "value": 0.5,
+     "scope": "class:医疗"
+    }
+   ],
+   "desc": "医疗干员治疗量 +50%",
+   "rarity": "基础",
+   "requires_class": [
+    "医疗"
+   ],
+   "new": true,
+   "filler": true
+  },
+  "163": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.15,
+     "scope": "class:特种"
+    },
+    {
+     "type": "stat",
+     "stat": "max_hp",
+     "op": "add",
+     "value": 0.25
+    }
+   ],
+   "desc": "特种干员伤害 +15%；队长最大生命 +25%",
+   "rarity": "基础",
+   "requires_class": [
+    "特种"
+   ],
+   "new": true,
+   "filler": true
+  },
+  "164": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "op_aspd",
+     "op": "add",
+     "value": 0.2,
+     "scope": "class:特种"
+    }
+   ],
+   "desc": "特种干员攻击速度 +20%",
+   "rarity": "基础",
+   "requires_class": [
+    "特种"
+   ],
+   "new": true,
+   "filler": true
+  },
+  "166": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dodge",
+     "op": "flat",
+     "value": 0.08
+    },
+    {
+     "type": "trigger",
+     "event": "Dodge",
+     "do": "invuln",
+     "args": {
+      "dur": 1.0
+     }
+    }
+   ],
+   "desc": "队长闪避率 +8%；闪避后 1 秒内无敌",
+   "rarity": "稀有",
+   "new": true
+  },
+  "170": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "Hit",
+     "if": {
+      "tags_any": [
+       "follow_up",
+       "aftershock",
+       "detonation",
+       "entity"
+      ],
+      "lane": "summon"
+     },
+     "do": "bonus_current_hp",
+     "args": {
+      "pct": 0.03,
+      "boss_pct": 0.005,
+      "icd": 0.5
+     }
+    }
+   ],
+   "desc": "召唤驻场干员的追击命中时，额外造成目标当前生命 3% 的伤害（Boss 0.5%；同一敌人每 0.5 秒最多一次）",
+   "rarity": "核心"
+  },
+  "171": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "Hit",
+     "if": {
+      "tags_any": [
+       "follow_up",
+       "aftershock",
+       "detonation",
+       "entity"
+      ],
+      "lane": "summon"
+     },
+     "do": "sp",
+     "args": {
+      "pct": 0.005,
+      "cap": 0.025
+     }
+    }
+   ],
+   "desc": "召唤驻场干员的追击每命中一个敌人，该干员回复 0.5% 技力（每秒最多 2.5%）",
+   "rarity": "核心"
+  },
+  "172": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "squad_scale",
+     "value": 1,
+     "args": {
+      "stat": "op_aspd",
+      "per": 0.05,
+      "count": "all",
+      "cap": 4
+     }
+    }
+   ],
+   "desc": "编队每有 1 名干员，全队攻击速度 +5%（最多 +20%）",
+   "rarity": "稀有"
+  },
+  "174": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "Tick",
+     "do": "damage_area",
+     "args": {
+      "every": 1,
+      "radius": 120,
+      "class": "医疗"
+     }
+    }
+   ],
+   "desc": "医疗干员每秒对身边（半径 120）敌人造成法术伤害：伤害 {$dust_dmg}，每分钟 +{$dust_dmg*$pm:1}（10:00 约 {$dust_dmg*$m10:0}）",
+   "rarity": "核心",
+   "requires_class": [
+    "医疗"
+   ]
+  },
+  "175": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "Hit",
+     "do": "scale_hit",
+     "args": {
+      "per": 0.05,
+      "max": 10,
+      "reset": 3,
+      "class": "术师"
+     }
+    }
+   ],
+   "desc": "术师干员每次命中，术师伤害 +5%（最多 +50%）；3 秒没有命中就清空",
+   "rarity": "核心",
+   "requires_class": [
+    "术师"
+   ]
+  },
+  "176": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "SkillStarted",
+     "do": "stack_stat",
+     "args": {
+      "stat": "sp_gain",
+      "per": 0.12,
+      "max": 4
+     }
+    }
+   ],
+   "desc": "每施放一次技能，全队技力回复 +12%（最多 4 层）",
+   "rarity": "核心",
+   "new": true
+  },
+  "179": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "growth_pick",
+     "args": {
+      "n": 3
+     }
+    }
+   ],
+   "desc": "立即获得 3 次成长三选一",
+   "rarity": "核心",
+   "new": true
+  },
+  "187": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "Recruited",
+     "do": "advance",
+     "args": {
+      "once": true
+     }
+    }
+   ],
+   "desc": "下一次招募的干员立即推进 1 个成长节点",
+   "rarity": "基础",
+   "new": true
+  },
+  "190": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "four_choices"
+    }
+   ],
+   "desc": "升级与藏品的三选一各多一个选项（与「观望」叠加）",
+   "rarity": "核心"
+  },
+  "191": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "shield_interval",
+     "op": "add",
+     "value": -0.2
+    },
+    {
+     "type": "on_gain",
+     "do": "shield_fill",
+     "args": {
+      "ensure": 1
+     }
+    }
+   ],
+   "desc": "护盾生成间隔 -20%（没有护盾时获得每 15 秒一层的护盾），获得时补满护盾",
+   "rarity": "基础",
+   "late_weight": 0.3
+  },
+  "192": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "heal",
+     "args": {
+      "amount": 0.7
+     }
+    },
+    {
+     "type": "trigger",
+     "event": "BossKilled",
+     "do": "heal",
+     "args": {
+      "heal": 0.1
+     }
+    }
+   ],
+   "desc": "获得时队长回复 70% 最大生命；此后每击败一个 Boss 回复 10% 最大生命",
+   "rarity": "稀有",
+   "new": true
+  },
+  "199": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "shield_max",
+     "op": "flat",
+     "value": 1
+    }
+   ],
+   "desc": "队长护盾层数上限 +1",
+   "rarity": "基础",
+   "filler": true
+  },
+  "234": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "Hit",
+     "if": {
+      "tags_any": [
+       "follow_up",
+       "aftershock",
+       "detonation",
+       "entity"
+      ],
+      "lane": "summon"
+     },
+     "do": "damage_area",
+     "args": {
+      "radius": 130,
+      "cd": 8
+     }
+    }
+   ],
+   "desc": "每 8 秒，召唤驻场干员的下一次追击会在目标处引发一次法术爆炸（半径 130）：伤害 {$wrath_dmg}，每分钟 +{$wrath_dmg*$pm:0}（10:00 约 {$wrath_dmg*$m10:0}）",
+   "rarity": "核心",
+   "shop_allowed": true
+  },
+  "227": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "boss_dmg",
+     "op": "add",
+     "value": 0.5
+    }
+   ],
+   "desc": "对 Boss 造成的伤害 +50%",
+   "rarity": "稀有",
+   "new": true,
+   "filler": true
+  },
+  "228": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "revive_once"
+    }
+   ],
+   "desc": "每次探索限一次：队长生命归零时，以 50% 最大生命复活",
+   "rarity": "升华"
+  },
+  "231": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "DamageTaken",
+     "cooldown": 30,
+     "do": "stun_all",
+     "args": {
+      "dur": 3.0
+     }
+    }
+   ],
+   "desc": "队长受到伤害时，全场非 Boss 敌人眩晕 3 秒（冷却 30 秒）",
+   "rarity": "核心"
+  },
+  "232": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "DamageTaken",
+     "do": "damage_all",
+     "args": {
+      "cd": 30,
+      "dmg": 120,
+      "boss_pct": 0.03
+     }
+    }
+   ],
+   "desc": "队长受到伤害时，对全场敌人造成真实伤害：伤害 120，每分钟 +{120*$pm:0}（10:00 约 {120*$m10:0}）；对 Boss 最多 3% 最大生命；冷却 30 秒",
+   "rarity": "升华",
+   "new": true
+  },
+  "251": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "BossKilled",
+     "do": "growth_pick",
+     "args": {
+      "lose_hp": 0.2,
+      "ingots": 15,
+      "growth_pick": 1
+     }
+    }
+   ],
+   "desc": "每击败一个 Boss：队长失去 20% 当前生命，获得 15 源石锭和一次成长三选一",
+   "brief": "击败 Boss：源石锭 +15、成长三选一，失去 20% 生命",
+   "rarity": "稀有",
+   "new": true
+  },
+  "94": {
+   "effects": [
+    {
+     "type": "trigger",
+     "event": "DamageTaken",
+     "do": "sp",
+     "args": {
+      "pct": 0.03,
+      "corrode_extra": 0.03
+     }
+    }
+   ],
+   "desc": "队长每次受到伤害，全队回复 3% 技力；受到神经损伤时再回复 3%",
+   "rarity": "稀有"
+  },
+  "129": {
+   "effects": [
+    {
+     "type": "growth",
+     "kind": "summon_n"
+    },
+    {
+     "type": "stat",
+     "stat": "followup_dmg",
+     "op": "add",
+     "value": 0.15,
+     "scope": "lane:summon"
+    }
+   ],
+   "desc": "召唤驻场干员的追击与召唤物伤害 +15%；增殖：维什戴尔的魂灵之影 +1 个（副体：伤害为本体的 60%，体型 85%），水月的触手桩在场上限 +1（凯尔希的 Mon3tr、归溟幽灵鲨的替身只加伤害，数量不变）。召唤数量只加一次；每多一层，增益递减",
+   "rarity": "稀有",
+   "shop_allowed": true,
+   "legacy": [
+    {
+     "type": "stat",
+     "stat": "followup_dmg",
+     "op": "add",
+     "value": 0.35
+    }
+   ],
+   "legacy_desc": "追击与召唤物伤害 +35%",
+   "max_lv": 3,
+   "desc_squad": {
+    "head": "增殖：",
+    "ops": {
+     "wisadel": "维什戴尔的魂灵之影 +1 个（副体：伤害为本体的 60%，体型 85%）",
+     "mizuki": "水月的触手桩在场上限 +1"
+    },
+    "dmg_ops": {
+     "kaltsit": "对凯尔希：Mon3tr 伤害 +15%",
+     "specter_unchained": "对归溟幽灵鲨：替身伤害 +15%"
+    },
+    "dmg_tail": "。每多一层，增益递减",
+    "tail": "；召唤驻场干员的追击与召唤物伤害 +15%。召唤数量只加一次；每多一层，增益递减",
+    "none": "召唤驻场干员的追击与召唤物伤害 +15%；增殖：本编队暂无召唤物（维什戴尔 / 水月入队后生效）。每多一层，增益递减"
+   }
+  },
+  "3129": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.35
+    },
+    {
+     "type": "stat",
+     "stat": "op_aspd",
+     "op": "add",
+     "value": 0.2
+    },
+    {
+     "type": "rule",
+     "rule": "sami_drain",
+     "args": {
+      "pct": 0.006
+     }
+    }
+   ],
+   "desc": "全队伤害 +35%、攻击速度 +20%；队长每秒流失 0.6% 最大生命（不会因此倒下）",
+   "rarity": "核心",
+   "new": true
+  },
+  "3130": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "regen_pct",
+     "op": "flat",
+     "value": 0.018
+    },
+    {
+     "type": "stat",
+     "stat": "max_hp",
+     "op": "add",
+     "value": -0.2
+    }
+   ],
+   "desc": "队长每秒回复 1.8% 最大生命；队长最大生命 -20%",
+   "rarity": "核心",
+   "new": true
+  },
+  "3131": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "sami_whet",
+     "args": {
+      "every": 40.0,
+      "dur": 15.0,
+      "atk": 1.0
+     }
+    }
+   ],
+   "desc": "每 40 秒随机一名队员 15 秒内攻击力翻倍",
+   "rarity": "核心",
+   "new": true
+  },
+  "3132": {
+   "effects": [
+    {
+     "type": "spawn",
+     "every": 30.0,
+     "args": {
+      "what": "fill_random"
+     }
+    },
+    {
+     "type": "stat",
+     "stat": "sp_gain",
+     "op": "mult",
+     "value": 0.9
+    }
+   ],
+   "desc": "每 30 秒随机一名队员的技能立即充满；全队技力回复 -10%",
+   "rarity": "稀有",
+   "new": true,
+   "pool": false,
+   "source": "event"
+  },
+  "3134": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "shield_max",
+     "op": "flat",
+     "value": 1
+    },
+    {
+     "type": "on_gain",
+     "do": "shield_fill",
+     "args": {}
+    }
+   ],
+   "desc": "队长护盾层数上限 +1（没有护盾时获得每 15 秒一层的护盾），获得时补满护盾",
+   "rarity": "基础",
+   "new": true
+  },
+  "3135": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "shield_max",
+     "op": "flat",
+     "value": 1
+    },
+    {
+     "type": "stat",
+     "stat": "shield_interval",
+     "op": "add",
+     "value": -0.2
+    }
+   ],
+   "desc": "队长护盾层数上限 +1（没有护盾时获得每 15 秒一层的护盾），护盾生成间隔 -20%",
+   "rarity": "基础",
+   "new": true
+  },
+  "3136": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "sami_crowd",
+     "args": {
+      "n": 6,
+      "r": 120.0,
+      "dur": 10.0,
+      "cd": 20.0,
+      "stats": [
+       [
+        "dmg",
+        0.3
+       ],
+       [
+        "dmg_taken",
+        -0.2
+       ]
+      ]
+     }
+    }
+   ],
+   "desc": "队长身边 120 范围内有 6 名以上敌人时，10 秒内全队伤害 +30%、队长受到的伤害 -20%（冷却 20 秒）",
+   "rarity": "稀有",
+   "new": true
+  },
+  "3137": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "sami_crowd",
+     "args": {
+      "n": 10,
+      "r": 120.0,
+      "dur": 10.0,
+      "cd": 20.0,
+      "stats": [
+       [
+        "op_aspd",
+        0.5
+       ],
+       [
+        "dmg_taken",
+        -0.3
+       ]
+      ]
+     }
+    }
+   ],
+   "desc": "队长身边 120 范围内有 10 名以上敌人时，10 秒内全队攻击速度 +50%、队长受到的伤害 -30%（冷却 20 秒）",
+   "rarity": "核心",
+   "new": true
+  },
+  "3139": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "squad_scale",
+     "args": {
+      "stat": "dmg",
+      "per": 0.04,
+      "count": "all",
+      "cap": 4
+     }
+    }
+   ],
+   "desc": "编队每有 1 名干员，全队伤害 +4%（最多 4 人）",
+   "rarity": "基础",
+   "new": true
+  },
+  "3140": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "squad_scale",
+     "args": {
+      "stat": "op_aspd",
+      "per": 0.06,
+      "count": "all",
+      "cap": 4
+     }
+    }
+   ],
+   "desc": "编队每有 1 名干员，全队攻击速度 +6%（最多 4 人）",
+   "rarity": "稀有",
+   "new": true
+  },
+  "3141": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "shield_max",
+     "op": "flat",
+     "value": 1
+    },
+    {
+     "type": "on_gain",
+     "do": "shield_fill",
+     "args": {}
+    },
+    {
+     "type": "rule",
+     "rule": "shield_dr",
+     "args": {
+      "per": 0.2,
+      "cap": 0.2
+     }
+    }
+   ],
+   "desc": "队长护盾层数上限 +1，获得时补满护盾；持有护盾时受到的伤害 -20%",
+   "rarity": "稀有",
+   "new": true
+  },
+  "3144": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "enemy_speed",
+     "op": "mult",
+     "value": 0.85
+    },
+    {
+     "type": "stat",
+     "stat": "enemy_dmg",
+     "op": "mult",
+     "value": 0.9
+    }
+   ],
+   "desc": "所有敌人移动速度 -15%、造成的伤害 -10%",
+   "rarity": "核心",
+   "new": true
+  },
+  "3194": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "sami_gold",
+     "args": {
+      "per": 5,
+      "step": 0.01,
+      "cap": 0.4
+     }
+    }
+   ],
+   "desc": "每持有 5 枚源石锭，全队攻击速度 +1%（最多 +40%）",
+   "rarity": "核心",
+   "new": true
+  },
+  "3198": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "max_hp",
+     "op": "add",
+     "value": 0.15
+    },
+    {
+     "type": "rule",
+     "rule": "sami_collapse_once",
+     "args": {
+      "v": -2
+     }
+    }
+   ],
+   "desc": "坍缩值 -2；队长最大生命 +15%",
+   "rarity": "基础",
+   "new": true
+  },
+  "3201": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "sami_bell",
+     "args": {
+      "pct": 0.08
+     }
+    }
+   ],
+   "desc": "坍缩值每次上升时，队长回复 8% 最大生命",
+   "rarity": "稀有",
+   "new": true
+  },
+  "3202": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "sami_staff",
+     "args": {
+      "lv": 2,
+      "ingots": 10
+     }
+    }
+   ],
+   "desc": "坍缩等级不高于 2 时，每遇到一个路口源石锭 +10",
+   "rarity": "稀有",
+   "new": true
+  },
+  "3203": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "sami_hunter",
+     "args": {
+      "mult": 0.5,
+      "stun": 0.5,
+      "cd": 3.0
+     }
+    }
+   ],
+   "desc": "对坍缩体（坍缩构造体、歪曲施法者等）伤害 +50%，命中时使其停顿 0.5 秒（同一个敌人 3 秒一次）",
+   "rarity": "核心",
+   "new": true
+  },
+  "3205": {
+   "effects": [
+    {
+     "type": "on_gain",
+     "do": "random_relic",
+     "args": {
+      "n": 2,
+      "rarity": "基础"
+     }
+    }
+   ],
+   "desc": "立即获得 2 件随机基础藏品",
+   "rarity": "稀有",
+   "new": true
+  },
+  "3207": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "sami_altar",
+     "args": {
+      "p": 0.6,
+      "dmg": 0.03,
+      "armor": 1.0,
+      "cap": 10
+     }
+    }
+   ],
+   "desc": "每击败一个精英或 Boss，60% 概率全队伤害 +3%、队长物理减伤 +1（最多 10 层）",
+   "rarity": "基础",
+   "new": true
+  },
+  "3209": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "sami_sprout",
+     "args": {
+      "n": 1
+     }
+    }
+   ],
+   "desc": "每遇到一个路口，队长护盾 +1 层（没有护盾上限时先获得 1 层上限）",
+   "rarity": "基础",
+   "new": true
+  },
+  "3212": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "sami_blade_xp",
+     "args": {
+      "per": 0.08
+     }
+    }
+   ],
+   "desc": "坍缩每高一级，经验获取 +8%",
+   "rarity": "稀有",
+   "new": true
+  },
+  "3213": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "sami_fang",
+     "args": {
+      "p": 0.3
+     }
+    }
+   ],
+   "desc": "击败精英时额外有 30% 概率掉落 1 块密文板",
+   "rarity": "核心",
+   "new": true
+  },
+  "3236": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": 0.12
+    },
+    {
+     "type": "stat",
+     "stat": "max_hp",
+     "op": "add",
+     "value": 0.12
+    },
+    {
+     "type": "stat",
+     "stat": "armor",
+     "op": "flat",
+     "value": 2
+    }
+   ],
+   "desc": "全队伤害 +12%；队长最大生命 +12%、物理减伤 +2",
+   "rarity": "核心",
+   "new": true
+  },
+  "3256": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "sami_ode",
+     "args": {
+      "per": 0.03,
+      "cap": 15
+     }
+    }
+   ],
+   "desc": "每击败一个精英或 Boss，队长最大生命永久 +3%（最多 15 层）",
+   "rarity": "稀有",
+   "new": true
+  },
+  "3261": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "sami_neutral",
+     "args": {
+      "spd": 0.7
+     }
+    }
+   ],
+   "desc": "站在国度里的敌人移动速度 -30%",
+   "rarity": "稀有",
+   "new": true
+  },
+  "3262": {
+   "effects": [
+    {
+     "type": "rule",
+     "rule": "sami_pack",
+     "args": {
+      "dmg": 0.4,
+      "dur": 12.0
+     }
+    }
+   ],
+   "desc": "寒冷消退或冻结解除后 12 秒内，全队伤害 +40%",
+   "rarity": "稀有",
+   "new": true
+  },
+  "3239": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "dmg",
+     "op": "add",
+     "value": -0.15
+    },
+    {
+     "type": "stat",
+     "stat": "max_hp",
+     "op": "add",
+     "value": -0.15
+    }
+   ],
+   "desc": "全队伤害 -15%；队长最大生命 -15%",
+   "rarity": "遭诅古物",
+   "new": true,
+   "shop_allowed": false
+  },
+  "3241": {
+   "effects": [
+    {
+     "type": "stat",
+     "stat": "max_hp",
+     "op": "add",
+     "value": -0.2
+    }
+   ],
+   "desc": "队长最大生命 -20%",
+   "rarity": "遭诅古物",
+   "new": true,
+   "shop_allowed": false
+  }
+ }
+}

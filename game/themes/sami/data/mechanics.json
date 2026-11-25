@@ -1020,7 +1020,7 @@
    "next_boss": "下一个 Boss：整场",
    "next_mid_boss": "下一个中期 Boss：整场",
    "next_elites": "接下来 n 场精英",
-   "next_hordes": "接下来 n 次大群（每次从预警起最多 dur_cap 秒）",
+   "next_hordes": "接下来 n 次敌群来袭（每次从预警起最多 dur_cap 秒）",
    "stage_rest": "本阶段剩余时间（至少 min 秒）",
    "next_cross": "下一个路口",
    "next_cross_card": "下一个路口的 1 张卡（自选）",

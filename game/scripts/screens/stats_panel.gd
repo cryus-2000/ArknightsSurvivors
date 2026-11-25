@@ -122,16 +122,19 @@ func draw(vs: Vector2) -> void:
 	UI.gbar(g.hud, Rect2(b0.position.x + 70, y, barw, 10), g.hp / g.max_hp, UI.CYAN, 10)
 	UI.text(g.hud, g.font, Vector2(b0.position.x + 78 + barw, y + 11), "%d / %d" % [int(g.hp), int(g.max_hp)], fs_sub, UI.TEXT)
 	y += 26
-	UI.text(g.hud, g.font, Vector2(b0.position.x + 16, y + 12), "灯火", fs_sub, UI.SUB)
-	UI.gbar(g.hud, Rect2(b0.position.x + 70, y, barw, 10), g.lamp / 100.0, UI.GOLD, 10)
-	UI.text(g.hud, g.font, Vector2(b0.position.x + 78 + barw, y + 11), "%d" % int(g.lamp), fs_sub, UI.TEXT)
-	y += 30
+	if g.has_lamp:   # 无灯火主题（萨米）不画灯火条（docs/412 B36–B39）
+		UI.text(g.hud, g.font, Vector2(b0.position.x + 16, y + 12), "灯火", fs_sub, UI.SUB)
+		UI.gbar(g.hud, Rect2(b0.position.x + 70, y, barw, 10), g.lamp / 100.0, UI.GOLD, 10)
+		UI.text(g.hud, g.font, Vector2(b0.position.x + 78 + barw, y + 11), "%d" % int(g.lamp), fs_sub, UI.TEXT)
+		y += 30
 	var rows0 := [
 		["生命回复", regen_text()], ["物理减伤 / 法抗", armor_text()], ["闪避 物 / 法", "%d%% / %d%%" % [int(minf(g.dodge + g.dodge_phys, 0.6) * 100.0), int(minf(g.dodge + g.dodge_arts, 0.6) * 100.0)]],
 		["移动速度", "%d" % int(g.speed)], ["拾取范围", "%d" % int(g.pickup)], ["受击灯火损失", "×%.2f" % g.lamp_decay],
 		["照亮范围", "%d" % int(g.lamp_r())],
 		["护盾", ("%d / %d · 每 %.1f 秒" % [g.shield, g.shield_max, g.shield_every]) if g.shield_max > 0 else "无"],
 	]
+	if not g.has_lamp:
+		rows0 = rows0.filter(func(r): return r[0] != "受击灯火损失" and r[0] != "照亮范围")
 	var vx0: float = 130.0   # 数值列的 x
 	for row in rows0:
 		UI.text(g.hud, g.font, Vector2(b0.position.x + 16, y + 12), row[0], fs_row, UI.SUB)
@@ -394,16 +397,19 @@ func draw_phone(vs: Vector2) -> void:
 			UI.gbar(g.hud, Rect2(b.position.x + 80, y, barw, 12), g.hp / g.max_hp, UI.CYAN, 12)
 			UI.text(g.hud, g.font, Vector2(b.position.x + 92 + barw, y + 12), "%d / %d" % [int(g.hp), int(g.max_hp)], 18, UI.TEXT)
 			y += 32
-			UI.text(g.hud, g.font, Vector2(b.position.x + 16, y + 12), "灯火", 18, UI.SUB)
-			UI.gbar(g.hud, Rect2(b.position.x + 80, y, barw, 12), g.lamp / 100.0, UI.GOLD, 12)
-			UI.text(g.hud, g.font, Vector2(b.position.x + 92 + barw, y + 12), "%d" % int(g.lamp), 18, UI.TEXT)
-			y += 38
+			if g.has_lamp:   # 无灯火主题（萨米）不画灯火条（docs/412 B36–B39）
+				UI.text(g.hud, g.font, Vector2(b.position.x + 16, y + 12), "灯火", 18, UI.SUB)
+				UI.gbar(g.hud, Rect2(b.position.x + 80, y, barw, 12), g.lamp / 100.0, UI.GOLD, 12)
+				UI.text(g.hud, g.font, Vector2(b.position.x + 92 + barw, y + 12), "%d" % int(g.lamp), 18, UI.TEXT)
+				y += 38
 			var rows0 := [
 				["生命回复", regen_text()], ["物理减伤 / 法抗", armor_text()], ["闪避 物 / 法", "%d%% / %d%%" % [int(minf(g.dodge + g.dodge_phys, 0.6) * 100.0), int(minf(g.dodge + g.dodge_arts, 0.6) * 100.0)]],
 				["移动速度", "%d" % int(g.speed)], ["拾取范围", "%d" % int(g.pickup)], ["受击灯火损失", "×%.2f" % g.lamp_decay],
 				["照亮范围", "%d" % int(g.lamp_r())],
 				["护盾", ("%d / %d · 每 %.1f 秒" % [g.shield, g.shield_max, g.shield_every]) if g.shield_max > 0 else "无"],
 			]
+			if not g.has_lamp:
+				rows0 = rows0.filter(func(r): return r[0] != "受击灯火损失" and r[0] != "照亮范围")
 			_phone_rows(b, y, rows0, fs, half)
 		1:
 			UI.text(g.hud, g.font, b.position + Vector2(16, 28), "攻击", 18, UI.CYAN)
@@ -774,12 +780,13 @@ func _v3_survival(x: float, top: float, w: float) -> void:
 	var kv: float = _ak(ANIM_GAP, 0.4)   # 入场：数字从 0 滚到当前数、细线从 0 长到当前值
 	_hv.v2.big(Vector2(x + w - sw - 4, y + 8), "%d" % int(round(g.hp * kv)), 24, UI.RED if low else V3_WHITE, 2)
 	_v3_hair(gx, y + 16, bw, g.hp / g.max_hp * kv, UI.RED if low else V3_WHITE)
-	var li: Array = _hv.v2.lamp_item()
-	var lc: Color = UI.GOLD if g.lamp >= 30.0 else UI.RED
-	_hv.v2.txt(Vector2(gx, y + 42), "灯火", 13, V3_GREY)
-	_hv.v2.txt(Vector2(gx + 36, y + 42), str(li[0]).replace("灯火", ""), 13, lc)
-	_hv.v2.big(Vector2(x + w, y + 44), "%d" % int(round(g.lamp * kv)), 18, lc, 2)
-	_v3_hair(gx, y + 52, bw, g.lamp / 100.0 * kv, lc, [0.3, 0.7])
+	if g.has_lamp:   # 无灯火主题不画灯火条（docs/412 B38 / B39）
+		var li: Array = _hv.v2.lamp_item()
+		var lc: Color = UI.GOLD if g.lamp >= 30.0 else UI.RED
+		_hv.v2.txt(Vector2(gx, y + 42), "灯火", 13, V3_GREY)
+		_hv.v2.txt(Vector2(gx + 36, y + 42), str(li[0]).replace("灯火", ""), 13, lc)
+		_hv.v2.big(Vector2(x + w, y + 44), "%d" % int(round(g.lamp * kv)), 18, lc, 2)
+		_v3_hair(gx, y + 52, bw, g.lamp / 100.0 * kv, lc, [0.3, 0.7])
 	y += 86
 	var rows0 := [
 		["生命回复", regen_text()], ["物理减伤 / 法抗", armor_text()], ["闪避 物 / 法", "%d%% / %d%%" % [int(minf(g.dodge + g.dodge_phys, 0.6) * 100.0), int(minf(g.dodge + g.dodge_arts, 0.6) * 100.0)]],
@@ -787,6 +794,8 @@ func _v3_survival(x: float, top: float, w: float) -> void:
 		["照亮范围", "%d" % int(g.lamp_r())],
 		["护盾", ("%d / %d · 每 %.1f 秒" % [g.shield, g.shield_max, g.shield_every]) if g.shield_max > 0 else "无"],
 	]
+	if not g.has_lamp:
+		rows0 = rows0.filter(func(r): return r[0] != "受击灯火损失" and r[0] != "照亮范围")
 	for row in rows0:
 		_v3_row(x, y, w, row[0], row[1])
 		y += 30
@@ -1191,18 +1200,21 @@ func _phone_v3_survival(b: Rect2) -> void:
 	var sw: float = _hv.v2.big(Vector2(x + w, y + 12), "/ %d" % int(g.max_hp), 12, V3_GREY, 2)
 	_hv.v2.big(Vector2(x + w - sw - 4, y + 12), "%d" % int(round(g.hp * kv)), 26, UI.RED if low else V3_WHITE, 2)
 	_v3_hair(gx, y + 22, bw, g.hp / g.max_hp * kv, UI.RED if low else V3_WHITE)
-	var li: Array = _hv.v2.lamp_item()
-	var lc: Color = UI.GOLD if g.lamp >= 30.0 else UI.RED
-	_hv.v2.txt(Vector2(gx, y + 50), "灯火", 16, V3_GREY)
-	_hv.v2.txt(Vector2(gx + 44, y + 50), str(li[0]).replace("灯火", ""), 16, lc)
-	_hv.v2.big(Vector2(x + w, y + 52), "%d" % int(round(g.lamp * kv)), 20, lc, 2)
-	_v3_hair(gx, y + 62, bw, g.lamp / 100.0 * kv, lc, [0.3, 0.7])
+	if g.has_lamp:   # 无灯火主题不画灯火条（docs/412 B38 / B39）
+		var li: Array = _hv.v2.lamp_item()
+		var lc: Color = UI.GOLD if g.lamp >= 30.0 else UI.RED
+		_hv.v2.txt(Vector2(gx, y + 50), "灯火", 16, V3_GREY)
+		_hv.v2.txt(Vector2(gx + 44, y + 50), str(li[0]).replace("灯火", ""), 16, lc)
+		_hv.v2.big(Vector2(x + w, y + 52), "%d" % int(round(g.lamp * kv)), 20, lc, 2)
+		_v3_hair(gx, y + 62, bw, g.lamp / 100.0 * kv, lc, [0.3, 0.7])
 	var rows0 := [
 		["生命回复", regen_text()], ["物理减伤 / 法抗", armor_text()], ["闪避 物 / 法", "%d%% / %d%%" % [int(minf(g.dodge + g.dodge_phys, 0.6) * 100.0), int(minf(g.dodge + g.dodge_arts, 0.6) * 100.0)]],
 		["移动速度", "%d" % int(g.speed)], ["拾取范围", "%d" % int(g.pickup)], ["受击灯火损失", "×%.2f" % g.lamp_decay],
 		["照亮范围", "%d" % int(g.lamp_r())],
 		["护盾", ("%d / %d · 每 %.1f 秒" % [g.shield, g.shield_max, g.shield_every]) if g.shield_max > 0 else "无"],
 	]
+	if not g.has_lamp:
+		rows0 = rows0.filter(func(r): return r[0] != "受击灯火损失" and r[0] != "照亮范围")
 	_phone_v3_rows(b, y + 76.0, rows0, [["难度 / 结局", "%s  ·  %s" % [D.tier_name(g.tier), g.endg.cur_name()]]])   # 顶上灰字只留职业 / 编队，这两项挪到这里
 
 

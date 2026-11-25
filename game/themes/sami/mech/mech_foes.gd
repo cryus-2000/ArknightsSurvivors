@@ -65,6 +65,9 @@ func enemy_spd(e: Dictionary, spd: float, _dist: float, _dt: float) -> float:
 			spd *= 1.0 + cm.eff("chaos_3", "collapse_spd")
 	if float(e.get("gift_until", 0.0)) > g.t:
 		spd = minf(spd * 2.0, 140.0)   # 反自然馈赠：移速 ×2、封顶 140（docs/393 §2.3）
+	var rm = g.mech("relics")
+	if rm != null:
+		spd *= rm.enemy_spd_mult(e)   # 范式中和仪：国度里的敌人减速（docs/414）
 	if e.type == "vinebox":
 		return _vinebox(e, spd)
 	return spd
@@ -109,6 +112,9 @@ func on_enemy_killed(e: Dictionary) -> void:
 	var tm = g.mech("totem")
 	if tm != null:
 		tm.on_kill(e)   # 密文板掉落（精英 / 中期 Boss / 宝箱）
+	var rm = g.mech("relics")
+	if rm != null:
+		rm.on_kill(e)   # 萨米藏品：圆石祭坛 / 米诺斯颂诗 / 伶牙（docs/414）
 	var d: Dictionary = D.ENEMIES.get(e.type, {})
 	var db = d.get("death_blast", null)
 	if db is Dictionary:
@@ -155,6 +161,12 @@ func env_blast(pos: Vector2, r: float, dur: float) -> void:
 		var sc = g.bai.boss(b.type)
 		if sc != null and sc.has_method("on_env") and b.pos.distance_to(pos) < r + float(b.r):
 			sc.on_env(b, dur)
+
+
+## relic_fx._trim_mult：我方命中敌人 e 的主题倍率（萨米藏品「猎人的洞察」，docs/414）
+func hit_mult(e: Dictionary) -> float:
+	var rm = g.mech("relics")
+	return rm.hit_mult(e) if rm != null else 1.0
 
 
 func player_hit_mult(src: Dictionary) -> float:

@@ -3,6 +3,7 @@ extends RefCounted
 ## 敌人的行为在 enemies/enemy_ai.gd，敌人的逐帧更新仍在 game.gd _update_enemies。2026-09-26 从 game.gd 拆出。
 
 const D = preload("res://scripts/data.gd")
+const TT = preload("res://scripts/core/theme_text.gd")   # 主题文案覆盖（docs/412）
 const DmgCurve = preload("res://scripts/run/dmg_curve.gd")
 const UI = preload("res://scripts/ui.gd")
 const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数值旋钮（docs/27）
@@ -441,7 +442,7 @@ func update(dt: float) -> void:
 	if g.threat < D.THREAT.size() - 1 and g.t >= D.THREAT[g.threat + 1].t:
 		g.threat += 1
 		var tr: Dictionary = D.THREAT[g.threat]
-		g.vfx.show_banner("威胁上升 · %s —— 新的海嗣浮现" % tr.name)
+		g.vfx.show_banner(TT.t("threat.up", "威胁上升 · %s —— 新的海嗣浮现") % tr.name)   # docs/412 B19
 		Sfx.play("roar", -1.0, 0.75, 0.0)
 		g.vfx.shake_screen(0.8)
 		if mid_boss_up():

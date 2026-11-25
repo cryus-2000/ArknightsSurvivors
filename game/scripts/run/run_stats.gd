@@ -336,7 +336,8 @@ static func model(raw: Dictionary) -> Dictionary:
 		stats.append({"label": "翻开节点卡", "v": float(raw.nodes), "fmt": "n"})
 	if int(bc[0]) > 0 or int(bc[1]) > 0:
 		stats.append({"label": "点亮引航灯标", "v": float(bc[0]), "fmt": "n"})   # 只写点燃数：熄灭消散的灯标会从 g.beacons 移除，「出现数」不可靠
-	stats.append({"label": "通明时长", "v": (float(ls[0]) / lt * 100.0) if lt > 0.0 else 0.0, "fmt": "pct"})
+	if preload("res://scripts/core/theme_pack.gd").has_mechanic("lamp"):   # 无灯火主题不写（docs/412 B40）
+		stats.append({"label": "通明时长", "v": (float(ls[0]) / lt * 100.0) if lt > 0.0 else 0.0, "fmt": "pct"})
 	stats.append({"label": "冲刺", "v": float(raw.get("dashes", 0)), "fmt": "n"})
 	stats.append({"label": "技能发动", "v": float(casts_all), "fmt": "n"})
 	stats.append({"label": "藏品", "v": float(relic_list.size()), "fmt": "n"})
