@@ -67,6 +67,7 @@ var flakes: Array = []       # 木裂剥落片 [p0, v, t0, 寿命, 尺寸, 转�
 var trails: Array = []       # 木裂冲刺地痕 [a, b, t0]
 var teal_band: Texture2D
 var lil_puff: Array = []
+var lil_band: Texture2D
 var sand_floor := false      # 演示夹具开：结局四 Boss 场地「时光之沙」地图还没做，临时铺程序沙地
 var sand_tex: Texture2D
 const GOUGE := [Color(0.1, 0.13, 0.2), Color(0.26, 0.32, 0.42), Color(0.93, 0.96, 1.0)]   # 爪痕：深槽 / 槽壁 / 翻起的雪唇
@@ -97,6 +98,7 @@ func _init(game: Game) -> void:
 	for i in 3:
 		lil_puff.append(_fog_tex(32, 32, 1701 + i, true, Color(0.54, 0.28, 0.8), Color(0.85, 0.7, 1.0)))
 	grey_band = _fog_tex(128, 32, 1501, false, Color(0.5, 0.5, 0.54), Color(0.68, 0.68, 0.72))
+	lil_band = _fog_tex(128, 32, 1801, false, Color(0.54, 0.28, 0.8), Color(0.78, 0.6, 1.0))
 	var kd: PackedStringArray = OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()
 	for a in kd:
 		if a.begins_with("--kdir="):
@@ -527,10 +529,10 @@ func _own_bullets(cv, now: float) -> void:
 		var bp: Vector2 = b.pos + Vector2(0, -16)
 		if kind == "kbul":
 			# 哈兰弹（协调人 11-25：按水月最终 Boss 同档放大）：白芯 + 暗红环 + 暗边，半径 11（判定不变），身后暗红锥尾
-			var R := 11.0
-			cv.draw_polygon(PackedVector2Array([bp + nrm * R * 0.8, bp - d * 34.0, bp - nrm * R * 0.8]),
+			var R := 14.0
+			cv.draw_polygon(PackedVector2Array([bp + nrm * R * 0.8, bp - d * 44.0, bp - nrm * R * 0.8]),
 				PackedColorArray([Color(KHAN[2], 0.8), Color(KHAN[1], 0.0), Color(KHAN[2], 0.8)]))
-			cv.draw_circle(bp, R + 2.5, Color(0.1, 0.01, 0.01))
+			cv.draw_circle(bp, R + 3.5, Color(0.1, 0.01, 0.01))
 			cv.draw_circle(bp, R, KHAN[2])
 			cv.draw_circle(bp, R * 0.78, KHAN[3])
 			cv.draw_circle(bp, R * 0.5, Color(1.0, 0.96, 0.92))
@@ -597,6 +599,10 @@ func blade_event(kind: String, p: Vector2, a := 0.0, b := 0.0) -> void:
 			bevents.append([kind, p, a, g.t, false, b])
 		"dial":
 			bevents.append([kind, p, a, g.t, false, b, -1])
+		"flash":
+			# 路加出手火光（王令 / 历法环 / 逆历 / 瞬身）：手边一团金橙火花往外溅 + 金黄余烬
+			sparks(p + Vector2(0, -34), a, b if b > 0.0 else PI, 14, 280.0, [Color(1, 1, 0.92), LUKA, LUKA_O, LUKA_D], true, 0.35)
+			embers(p + Vector2(0, -30), 6, LUKA_O, 120.0, 200.0, 0.5, 4.0)
 
 
 ## 雾团：柔边雾贴图往外翻卷、慢慢胀大淡出（ground = 压在单位之下）
@@ -669,6 +675,54 @@ func _rise_blade(w, base: Vector2, h: float, ld: Vector2, lean: float, wd := 11.
 	w.tb_poly(PackedVector2Array([base - n * hw, base + up * h * m - n * hw, base + up * h, base + up * h * m + n * hw, base + n * hw]), BK)
 	w.tb_poly(PackedVector2Array([base + n * (hw - 3.0), base + up * h * m + n * (hw - 3.0), base + up * h, base + up * h * m + n * hw, base + n * hw]), BLOOD[2])
 	w.tb_line(_snap(base + up * 4.0), _snap(base + up * (h - 6.0)), Color(1.0, 0.95, 0.92), 2.0)
+
+
+## 刃林大刃的数量 / 位置 / 倒向（预警和结算共用，按国度圆心哈希定形，两边对得上）
+func _kb_n(r: float) -> int:
+	return clampi(int(r / 22.0), 3, 5)
+
+
+func _kb_pos(c: Vector2, r: float, j: int, n: int, sd: int, gy: float) -> Vector2:
+	if n >= 4 and j == 0:
+		return c + Vector2(0, 4)
+	var m: int = n - 1 if n >= 4 else n
+	var jj: int = j - 1 if n >= 4 else j
+	var a: float = float(sd % 628) / 100.0 + TAU * float(jj) / float(m)
+	return c + Vector2(cos(a), sin(a) * gy) * r * 0.55
+
+
+func _kb_dir(c: Vector2, q: Vector2, sd: int) -> Vector2:
+	var d: Vector2 = q - c
+	if d.length() < 8.0:
+		return Vector2.from_angle(float(sd % 628) / 100.0 + PI / 5.0)
+	return d.normalized()
+
+
+## 大刃（刃林）：底 base、高 h、宽 wd；lean 0 直立 → 1 朝 ld 倒地。刃身两面明暗（背光面黑钢、受光面钢灰）、
+## 一侧深红刃口、中脊白高光、暗描边；脚下落影 + 黑烟环（刃从烟里长出来）
+func _big_blade(w, base: Vector2, h: float, wd: float, ld: Vector2, lean: float) -> void:
+	if h < 2.0:
+		return
+	var gd := Vector2(ld.x, ld.y * 0.55).normalized()
+	var up: Vector2 = Vector2(0, -1).lerp(gd, lean).normalized()
+	var n := up.orthogonal()
+	var hw: float = wd * 0.5
+	var sl: float = h * (0.3 + 0.7 * lean)
+	var gn := gd.orthogonal()
+	w.tb_poly(PackedVector2Array([base - gn * (hw + 4.0), base + gd * sl - gn * 3.0, base + gd * (sl + 4.0), base + gd * sl + gn * 3.0, base + gn * (hw + 4.0)]), Color(0.05, 0.03, 0.06, 0.5))
+	var sh: float = h * 0.62
+	var tip: Vector2 = base + up * h
+	var L0: Vector2 = base - n * hw
+	var R0: Vector2 = base + n * hw
+	var L1: Vector2 = base + up * sh - n * hw
+	var R1: Vector2 = base + up * sh + n * hw * 0.9
+	var o: float = 2.5
+	w.tb_poly(PackedVector2Array([L0 - n * o + up * -1.0, L1 - n * o, tip + up * (o + 1.5), R1 + n * o, R0 + n * o + up * -1.0]), OLC)
+	w.tb_poly(PackedVector2Array([L0, L1, tip, base + up * sh * 0.95, base]), BK)
+	w.tb_poly(PackedVector2Array([base, base + up * sh * 0.95, tip, R1, R0]), STEEL[2])
+	w.tb_poly(PackedVector2Array([R0 - n * 3.0, R1 - n * 3.0, tip, R1, R0]), BLOOD[2])
+	w.tb_line(_snap(base + up * 6.0), _snap(base + up * (h - 8.0)), Color(1.0, 0.95, 0.92), 2.0)
+	w.tb_quad(_snap(base - n * (hw + 7.0) + Vector2(0, -2)), _snap(base + n * (hw + 7.0) + Vector2(0, -2)), _snap(base + n * (hw + 5.0) + Vector2(0, 4)), _snap(base - n * (hw + 5.0) + Vector2(0, 4)), FOG[0])
 
 
 ## 刃尖冒头：地上一点黑刃尖（高 h），预警进度越后越高
@@ -756,14 +810,31 @@ func _blade_ground(w, now: float) -> void:
 					for i in 5:
 						_crack(w, t.pos, TAU * float(i) / 5.0 + float(sd % 7), r, k, sd + i, 2.0)
 					continue
-				# 刃林圈（国度爆发 / 皇帝的猎杀）：圈边一圈刃尖冒头 + 圈里裂缝 + 黑雾渗出
-				var nn: int = clampi(int(TAU * r / 16.0), 12, 40)
-				for i in nn:
-					var dl2: float = float(absi(hash(Vector2i(sd, i + 500))) % 35) / 100.0
-					var aa2: float = TAU * float(i) / float(nn)
-					_tip(w, t.pos + Vector2(cos(aa2) * r, sin(aa2) * r * gy), 11.0 * clampf((k - dl2) / 0.5, 0.0, 1.0))
-				for i in 5:
-					_crack(w, t.pos, TAU * float(i) / 5.0 + 0.3, r * 0.85, k, sd + i * 7)
+				# 刃林圈（国度爆发 / 皇帝的猎杀，用户 11-25 第二次退回：不要点阵圈）：国度黑烟本身变浓（圈边 + 圈里黑烟团随进度加浓、胀大），
+				# 大刃要升起的几处地上先渗出刃形暗影（越来越长、越来越浓），后段刃尖从烟里慢慢冒头
+				var sdk: int = absi(hash(Vector2i(int(t.pos.x), int(t.pos.y)))) % 997
+				var ne: int = clampi(int(TAU * r / 34.0), 8, 24)
+				for i in ne:
+					var aa2: float = TAU * float(i) / float(ne) + 0.2 * sin(now * 0.7 + float(i))
+					var q2: Vector2 = t.pos + Vector2(cos(aa2), sin(aa2) * gy) * r * (0.9 + 0.06 * sin(now * 1.5 + float(i)))
+					var sz2: float = 54.0 * (0.85 + 0.45 * k)
+					cv.draw_texture_rect(fog_puff[(i + sdk) % 4], Rect2(((q2 - Vector2(sz2, sz2 * 0.8) * 0.5) / PX).floor() * PX, Vector2(sz2, sz2 * 0.8)), false, Color(1, 1, 1, 0.2 + 0.6 * k))
+				for i in 3:
+					var aa4: float = float(i) * 2.399 + float(sdk)
+					var q4: Vector2 = t.pos + Vector2(cos(aa4), sin(aa4) * gy) * r * 0.35
+					var sz4: float = r * (0.9 + 0.3 * k)
+					cv.draw_texture_rect(fog_puff[(i + 2) % 4], Rect2(((q4 - Vector2(sz4, sz4 * 0.8) * 0.5) / PX).floor() * PX, Vector2(sz4, sz4 * 0.8)), false, Color(1, 1, 1, 0.1 + 0.5 * k))
+				var nbk: int = _kb_n(r)
+				for j in nbk:
+					var bp: Vector2 = _kb_pos(t.pos, r, j, nbk, sdk, gy)
+					var od: Vector2 = _kb_dir(t.pos, bp, sdk)
+					var gd := Vector2(od.x, od.y * 0.55).normalized()
+					var sl: float = 8.0 + 46.0 * k
+					var sw: float = 9.0 + 5.0 * k
+					var nn2 := gd.orthogonal()
+					w.tb_poly(PackedVector2Array([bp - nn2 * sw, bp + gd * sl * 0.7 - nn2 * sw * 0.6, bp + gd * sl, bp + gd * sl * 0.7 + nn2 * sw * 0.6, bp + nn2 * sw]), Color(0.04, 0.02, 0.04, 0.25 + 0.5 * k))
+					if k > 0.55:
+						_big_blade(w, bp, 30.0 * (k - 0.55) / 0.45, 22.0, od, 0.0)
 				if rng.randf() < 0.4 + k * 0.6:
 					var aa3: float = rng.randf() * TAU
 					_fog(t.pos + Vector2(cos(aa3), sin(aa3) * gy) * rng.randf_range(0.0, r * 0.8), 1, 0.7, 0.0, true, 0.9)
@@ -865,7 +936,7 @@ func _blade_front(w, now: float) -> void:
 			_draw_flake(w, p, age, float(ev[5]))
 			continue
 		if ev[0] == "whip":
-			if age > 0.42:
+			if age > 0.5:
 				continue
 			keep.append(ev)
 			_draw_whip(w, ev, age)
@@ -909,25 +980,46 @@ func _blade_front(w, now: float) -> void:
 					w.tb_quad(p + Vector2.from_angle(b0) * ro, p + Vector2.from_angle(b1) * ro, p + Vector2.from_angle(b1) * ri1, p + Vector2.from_angle(b0) * ri0, cc)
 			continue
 		if ev[0] == "erupt":
-			if age > 0.6:
+			# 刃林（用户 11-25 第二次退回：成片、有体积、少而大）：预警后段已冒头的 3–5 把大刃，结算时 0.14 秒从黑烟里竖到全高，
+			# 停一拍，0.3–0.46 秒一起朝外倒下砸地（落地扬黑烟 + 火星），之后沉进烟里
+			if age > 0.85:
 				continue
 			keep.append(ev)
 			if age < 0.0:
 				continue
 			var kr: float = ev[2]
+			var gy2: float = g.combat.GROUND_Y
+			var sdk2: int = absi(hash(Vector2i(int(p.x), int(p.y)))) % 997
+			var nb: int = _kb_n(kr)
 			if not ev[4]:
 				ev[4] = true
-				for i in 18:
-					_fog(p + Vector2.from_angle(TAU * i / 18.0) * kr * rng.randf_range(0.3, 0.95), 1, 0.7)
-				sparks(p, 0.0, PI, 14, 300.0, BLOOD, true, 0.35)
-			var nb: int = clampi(int(kr / 6.0), 8, 16)
-			for i in nb:
-				var dl: float = float(i) * 0.012
-				var hk: float = clampf((age - dl) / 0.1, 0.0, 1.0)
+				for i in 12:
+					_fog(p + Vector2.from_angle(TAU * i / 12.0) * kr * rng.randf_range(0.3, 0.95), 1, 0.8, 0.0, false, 1.2)
+				for j in nb:
+					var bq: Vector2 = _kb_pos(p, kr, j, nb, sdk2, gy2)
+					_fog(bq, 3, 0.7, 0.0, false, 1.1, Vector2(0, -30))
+					sparks(bq + Vector2(0, -20), -PI * 0.5, 0.7, 6, 300.0, BLOOD, true, 0.35)
+			var landed: bool = ev.size() > 5
+			for j in nb:
+				var bq2: Vector2 = _kb_pos(p, kr, j, nb, sdk2, gy2)
+				var od2: Vector2 = _kb_dir(p, bq2, sdk2)
+				var H: float = 78.0 + 12.0 * float(j % 2)
+				var hk: float = clampf(age / 0.14, 0.0, 1.0)
 				hk = 1.0 - (1.0 - hk) * (1.0 - hk)
-				var sink: float = clampf((0.6 - age) / 0.2, 0.0, 1.0)
-				var q: Vector2 = p + Vector2.from_angle(float(i) * 2.399) * kr * 0.85 * sqrt((float(i) + 0.5) / float(nb))
-				_rise_blade(w, q, (30.0 + float(i % 3) * 6.0) * hk * sink, Vector2.RIGHT, 0.0, 9.0)
+				var hh: float = lerpf(30.0, H, hk)
+				var fall: float = clampf((age - 0.3) / 0.16, 0.0, 1.0)
+				fall = fall * fall
+				var sink: float = clampf((0.85 - age) / 0.3, 0.0, 1.0)
+				var trem: float = sin(age * 90.0 + float(j)) * 1.5 if age > 0.14 and age < 0.3 else 0.0
+				_big_blade(w, bq2 + Vector2(trem, 0), hh * (0.35 + 0.65 * sink), 22.0 + 4.0 * float(j % 2), od2, fall * 0.92)
+				if fall >= 1.0 and not landed:
+					var gd2 := Vector2(od2.x, od2.y * 0.55).normalized()
+					for s in 4:
+						_fog(bq2 + gd2 * H * (0.2 + 0.25 * float(s)), 1, 0.7, 0.0, true, 1.0, gd2.orthogonal() * (40.0 if s % 2 == 0 else -40.0))
+					sparks(bq2 + gd2 * H * 0.9, od2.angle(), 1.2, 8, 260.0, BLOOD, true, 0.3)
+					embers(bq2 + gd2 * H * 0.5, 5, FOG[2], 120.0, 260.0, 0.45, 4.0)
+			if age >= 0.46 and not landed:
+				ev.append(true)
 		else:
 			if age > 0.5:
 				continue
@@ -1130,18 +1222,18 @@ func _draw_whip_line(w, pts: PackedVector2Array, k: float, cols: Array) -> void:
 	var n: int = pts.size() - 1
 	for i in n:
 		var f: float = float(i) / float(n)
-		var wd: float = lerpf(14.0, 4.0, f) * k
+		var wd: float = lerpf(24.0, 7.0, f) * k
 		if wd < 1.0:
 			continue
-		w.tb_line(_snap(pts[i]), _snap(pts[i + 1]), cols[0], wd + 2.0)
+		w.tb_line(_snap(pts[i]), _snap(pts[i + 1]), cols[0], wd + 4.0)
 	for i in n:
 		var f2: float = float(i) / float(n)
-		var wd2: float = lerpf(14.0, 4.0, f2) * k
+		var wd2: float = lerpf(24.0, 7.0, f2) * k
 		if wd2 < 1.0:
 			continue
 		w.tb_line(_snap(pts[i]), _snap(pts[i + 1]), cols[1], wd2)
-		if wd2 >= 3.0:
-			w.tb_line(_snap(pts[i] + Vector2(0, -1)), _snap(pts[i + 1] + Vector2(0, -1)), cols[2], 1.0)
+		if wd2 >= 5.0:
+			w.tb_line(_snap(pts[i] + Vector2(0, -wd2 * 0.22)), _snap(pts[i + 1] + Vector2(0, -wd2 * 0.22)), cols[2], maxf(2.0, wd2 * 0.3))
 
 
 func _draw_whip(w, ev: Array, age: float) -> void:
@@ -1152,20 +1244,47 @@ func _draw_whip(w, ev: Array, age: float) -> void:
 	var L := 150.0
 	var a0: float = ca - half - 0.25
 	var a1: float = ca + half + 0.1
-	var fade: float = clampf((0.42 - age) / 0.18, 0.0, 1.0)
+	var fade: float = clampf((0.5 - age) / 0.2, 0.0, 1.0)
+	# 挥动弧：鞭身扫过的区域一层层暗红拖影（相邻时刻鞭身之间填成带子，越旧越暗越淡）
+	var prev := _whip_pts(hand, a0, a1, maxf(0.0, age - 0.1), L)
+	for gh in [3, 2, 1]:
+		var ta: float = age - 0.03 * float(gh)
+		if ta <= 0.0:
+			continue
+		var cur := _whip_pts(hand, a0, a1, ta, L)
+		var cc: Color = Color(KHAN[1 if gh > 1 else 2], (0.75 - 0.18 * float(gh)) * fade)
+		for i in range(2, cur.size() - 1):
+			w.tb_quad(_snap(prev[i]), _snap(prev[i + 1]), _snap(cur[i + 1]), _snap(cur[i]), cc)
+		prev = cur
 	for gh in [2, 1]:
-		var ta: float = age - 0.035 * float(gh)
-		if ta > 0.0:
-			_draw_whip_line(w, _whip_pts(hand, a0, a1, ta, L), (0.55 - 0.15 * float(gh)) * fade, [KHAN[0], KHAN[1], KHAN[1]])
+		var ta2: float = age - 0.035 * float(gh)
+		if ta2 > 0.0:
+			_draw_whip_line(w, _whip_pts(hand, a0, a1, ta2, L), (0.6 - 0.15 * float(gh)) * fade, [KHAN[0], KHAN[1], KHAN[2]])
 	var pts := _whip_pts(hand, a0, a1, age, L)
 	_draw_whip_line(w, pts, fade, [OLC, KHAN[2], KHAN[3]])
+	var tip: Vector2 = pts[pts.size() - 1]
+	if age >= 0.16 and age < 0.26:
+		_crack_star(w, tip, 1.0 - (age - 0.16) / 0.1)
 	if not ev[4] and age >= 0.16:
 		ev[4] = true
-		var tip: Vector2 = pts[pts.size() - 1]
-		sparks(tip, ca + half, 0.9, 10, 320.0, [Color(1.0, 0.95, 0.9), KHAN[3], KHAN[2], KHAN[1]], true, 0.3)
-		embers(tip + Vector2(0, 20), 6, Color(0.55, 0.42, 0.28), 120.0, 260.0, 0.5, 4.0)
+		sparks(tip, ca + half, 1.2, 16, 360.0, [Color(1.0, 0.95, 0.9), KHAN[3], KHAN[2], KHAN[1]], true, 0.32)
+		embers(tip + Vector2(0, 20), 8, Color(0.55, 0.42, 0.28), 140.0, 260.0, 0.5, 4.0)
+		_fog(tip + Vector2(0, 10), 3, 0.6, 0.0, true, 1.0)
 		for i in 5:
 			_fog(c + Vector2.from_angle(lerpf(a0, a1, float(i) / 4.0)) * 100.0 + Vector2(0, 18), 1, 0.6, 0.0, true, 0.7)
+
+
+## 鞭梢炸响：0.1 秒的八角爆星（白芯 + 暗红外圈 + 暗边），k 1 → 0 收掉
+func _crack_star(w, p: Vector2, k: float) -> void:
+	var R: float = 30.0 * (0.6 + 0.4 * k)
+	for layer in 3:
+		var rr: float = R * [1.15, 1.0, 0.55][layer]
+		var cc: Color = [OLC, KHAN[3], Color(1.0, 0.96, 0.9)][layer]
+		var pts := PackedVector2Array()
+		for i in 16:
+			var a: float = TAU * float(i) / 16.0 + 0.2
+			pts.append(p + Vector2(cos(a), sin(a) * 0.8) * (rr if i % 2 == 0 else rr * 0.42))
+		w.tb_poly(pts, cc)
 
 
 ## 哈兰【鞭链】：鞭沿直线抽出去（0.18 秒），鞭身有往前推的波，抽到头鞭梢炸响，再收回
@@ -1186,6 +1305,8 @@ func _draw_lash(w, ev: Array, age: float) -> void:
 		var amp: float = 14.0 * f * (1.0 - ext * 0.8)
 		pts.append(hand + d * L * ext * f + nv * sin(f * 9.0 - age * 40.0) * amp)
 	_draw_whip_line(w, pts, 1.0, [OLC, KHAN[2], KHAN[3]])
+	if age >= 0.18 and age < 0.28:
+		_crack_star(w, c + d * L, 1.0 - (age - 0.18) / 0.1)
 	if not ev[4] and age >= 0.18:
 		ev[4] = true
 		var tip: Vector2 = c + d * L
@@ -1287,17 +1408,77 @@ func _pillar(cv, base: Vector2, h: float, wd: float, al: float) -> void:
 		PackedColorArray([Color(LIL[4], al), Color(LIL[4], al), Color(LIL[4], 0.0), Color(LIL[4], 0.0)]))
 
 
-func _anchor(w, p: Vector2, lit: float) -> void:
-	w.tb_poly(PackedVector2Array([p + Vector2(-9, 2), p + Vector2(-6, -22), p + Vector2(6, -22), p + Vector2(9, 2)]), OLC)
-	w.tb_poly(PackedVector2Array([p + Vector2(-7, 0), p + Vector2(-5, -20), p + Vector2(5, -20), p + Vector2(7, 0)]), Color(0.18, 0.22, 0.3))
-	w.tb_poly(PackedVector2Array([p + Vector2(-5, 0), p + Vector2(-4, -20), p + Vector2(-1, -20), p + Vector2(-2, 0)]), Color(0.35, 0.42, 0.54))
-	var cc: Color = LIL[3].lerp(LIL[1], 1.0 - lit)
-	w.tb_poly(PackedVector2Array([p + Vector2(-5, -20), p + Vector2(0, -34), p + Vector2(5, -20)]), OLC)
-	w.tb_poly(PackedVector2Array([p + Vector2(-3, -21), p + Vector2(0, -31), p + Vector2(3, -21)]), cc)
+## 锚桩轮廓（金色描边用）：s = 缩放
+func _anchor_shape(p: Vector2, s: float) -> PackedVector2Array:
+	return PackedVector2Array([p + Vector2(-22, 4) * s, p + Vector2(-20, -6) * s, p + Vector2(-9, -9) * s, p + Vector2(-8, -38) * s, p + Vector2(0, -62) * s,
+		p + Vector2(8, -38) * s, p + Vector2(9, -9) * s, p + Vector2(20, -6) * s, p + Vector2(22, 4) * s])
+
+
+## 克雷松锚桩（协调人 11-25 退回：别像散落的子弹，要做成「设施」）：暗石底座（八角台） + 两面明暗的石柱 + 顶上淡紫晶尖，
+## 和停驻点 / 银凇同一档体量（高约 60）；lit 0 = 熄（晶尖暗紫）→ 1 = 亮（晶尖淡紫白 + 柱身紫纹）
+func _anchor(w, p: Vector2, lit: float, s := 1.0) -> void:
+	w.tb_poly(_anchor_shape(p, s * 1.06), OLC)
+	w.tb_poly(PackedVector2Array([p + Vector2(-20, 3) * s, p + Vector2(-18, -6) * s, p + Vector2(18, -6) * s, p + Vector2(20, 3) * s]), Color(0.14, 0.15, 0.2))
+	w.tb_poly(PackedVector2Array([p + Vector2(-18, -6) * s, p + Vector2(-10, -9) * s, p + Vector2(10, -9) * s, p + Vector2(18, -6) * s]), Color(0.3, 0.33, 0.42))
+	w.tb_poly(PackedVector2Array([p + Vector2(-8, -7) * s, p + Vector2(-7, -36) * s, p + Vector2(0, -38) * s, p + Vector2(0, -7) * s]), Color(0.36, 0.4, 0.5))
+	w.tb_poly(PackedVector2Array([p + Vector2(0, -7) * s, p + Vector2(0, -38) * s, p + Vector2(7, -36) * s, p + Vector2(8, -7) * s]), Color(0.17, 0.19, 0.26))
+	if lit > 0.0:
+		w.tb_line(_snap(p + Vector2(-3, -12) * s), _snap(p + Vector2(-3, -32) * s), LIL[2].lerp(LIL[3], lit), 2.0)
+	var c0: Color = LIL[1].lerp(LIL[3], lit)
+	var c1: Color = LIL[0].lerp(LIL[4], lit)
+	w.tb_poly(PackedVector2Array([p + Vector2(-8, -38) * s, p + Vector2(0, -62) * s, p + Vector2(0, -36) * s]), c1)
+	w.tb_poly(PackedVector2Array([p + Vector2(0, -36) * s, p + Vector2(0, -62) * s, p + Vector2(8, -38) * s]), c0)
+	if lit > 0.5:
+		w.tb_line(_snap(p + Vector2(-3, -42) * s), _snap(p + Vector2(-1, -54) * s), Color(1, 1, 1), 2.0)
+
+
+func _cres_ring(c: Vector2, k: int, gy: float) -> Vector2:
+	var aa: float = TAU * float(k) / 6.0 + 0.3
+	return c + Vector2(cos(aa), sin(aa) * gy) * 170.0
+
+
+## 起光：锚桩脚下一圈淡紫光尘往外翻 + 往上溅白紫火花
+func _cres_flash(p: Vector2) -> void:
+	sparks(p + Vector2(0, -40), -PI * 0.5, 0.9, 8, 260.0, [Color(1, 1, 1), LIL[4], LIL[3], LIL[2]], true, 0.4)
+	for i in 3:
+		puffs.append([p + Vector2(rng.randf_range(-10, 10), 0), Vector2(rng.randf_range(-40, 40), -rng.randf_range(5, 20)), g.t, 0.7, 30.0, 60.0, i, 0.7, 2])
+
+
+## 克雷松稳定场开着时的地面（142b §1 第 2 条「低亮度纹理 = 场地」）：圈内铺满淡紫雾纹（低亮度、低对比），
+## 中心到 6 根锚桩、锚桩之间连淡紫光带，读成「一片场」；压在单位 / 弹 / 预警之下
+func _cres_field(cv, now: float) -> void:
+	var gy: float = g.combat.GROUND_Y
+	for id in cres_list.keys():
+		var e: Dictionary = cres_list[id][0]
+		if e.dead:
+			continue
+		for d in e.get("devs", []):
+			if float(d.field) <= now:
+				continue
+			var al: float = clampf((float(d.field) - now) / 0.5, 0.0, 1.0)
+			var t0: float = float(d.get("fx_t0", now))
+			var sp: float = clampf((now - t0) / 0.5, 0.0, 1.0)
+			var c: Vector2 = d.pos
+			var R: float = 170.0 * sp
+			for i in 7:
+				var an: float = float(i) * 2.399 + now * 0.12
+				var q: Vector2 = c if i == 0 else c + Vector2(cos(an), sin(an) * gy) * R * 0.6
+				var sz: float = R * (1.3 if i == 0 else 0.9)
+				cv.draw_texture_rect(lil_puff[i % 3], Rect2(((q - Vector2(sz, sz * gy) * 0.5) / PX).floor() * PX, Vector2(sz, sz * gy)), false, Color(1, 1, 1, 0.22 * al))
+			for k in 6:
+				var a: Vector2 = c + (_cres_ring(c, k, gy) - c) * sp
+				var b: Vector2 = c + (_cres_ring(c, (k + 1) % 6, gy) - c) * sp
+				_band_tex(cv, lil_band, c, a, 9.0, 0.32 * al)
+				_band_tex(cv, lil_band, a, b, 11.0, 0.4 * al)
+			var pulse: float = fmod(now - t0, 1.2) / 1.2
+			for k in 6:
+				var a2: Vector2 = c + (_cres_ring(c, k, gy) - c) * pulse * sp
+				cv.draw_texture_rect(lil_puff[k % 3], Rect2(((a2 - Vector2(18, 14)) / PX).floor() * PX, Vector2(36, 28)), false, Color(1, 1, 1, 0.35 * al * (1.0 - pulse)))
 
 
 func _final_ground(w, now: float) -> void:
 	var cv = g.wcv
+	_cres_field(cv, now)
 	var keep: Array = []
 	for tr in trails:
 		var age: float = now - float(tr[2])
@@ -1363,30 +1544,48 @@ func _final_front(w, cv, now: float) -> void:
 		if e.dead or absf(now - float(it[1])) > 0.2:
 			cres_list.erase(id)
 			continue
+		var gy: float = g.combat.GROUND_Y
 		for d in e.get("devs", []):
 			var ready: bool = now >= float(d.cd)
 			var on: bool = float(d.field) > now
+			if on and float(d.get("fx_t0", -1.0)) < 0.0:
+				d["fx_t0"] = now
+				_cres_flash(d.pos)
+				for k in 6:
+					_cres_flash(_cres_ring(d.pos, k, gy))
+			elif not on:
+				d["fx_t0"] = -1.0
 			if ready and not on and float(d.charge) < 0.0:
-				_gold_beat(w, PackedVector2Array([d.pos + Vector2(-9, 2), d.pos + Vector2(-6, -22), d.pos + Vector2(-5, -20), d.pos + Vector2(0, -34), d.pos + Vector2(5, -20), d.pos + Vector2(6, -22), d.pos + Vector2(9, 2)]), d.pos + Vector2(0, -14), now)
-			_anchor(w, d.pos, 1.0 if (ready or on) else 0.0)
+				_gold_beat(w, _anchor_shape(d.pos, 1.25), d.pos + Vector2(0, -28), now)
+			var lit: float = 1.0 if (ready or on) else 0.0
 			if float(d.charge) > 0.0:
+				lit = clampf(1.0 - (float(d.charge) - now), 0.3, 1.0)
+			_anchor(w, d.pos, lit, 1.25)
+			if float(d.charge) > 0.0:
+				# 充能 1 秒：晶尖上方一道光柱慢慢往上长、越来越粗
 				var ck: float = clampf(1.0 - (float(d.charge) - now), 0.0, 1.0)
-				_pillar(cv, d.pos + Vector2(0, -30), 200.0 * ck, 20.0, 0.6 + 0.4 * ck)
+				_pillar(cv, d.pos + Vector2(0, -74), 260.0 * ck * ck, 14.0 + 26.0 * ck, 0.5 + 0.5 * ck)
+				if rng.randf() < 0.6:
+					var aq: float = rng.randf() * TAU
+					_add(d.pos + Vector2(cos(aq), sin(aq) * gy) * 50.0, (Vector2(0, -60) - Vector2(cos(aq), sin(aq) * gy) * 40.0), 0.6, LIL[3], 2.0, 0)
 			if on:
 				var left: float = float(d.field) - now
 				var al: float = clampf(left / 0.5, 0.0, 1.0)
-				_pillar(cv, d.pos + Vector2(0, -30), 190.0, 18.0, al * (0.85 + 0.15 * sin(now * 9.0)))
+				var up: float = clampf((now - float(d.fx_t0)) / 0.35, 0.0, 1.0)
+				up = 1.0 - (1.0 - up) * (1.0 - up)
+				_pillar(cv, d.pos + Vector2(0, -74), 260.0 * up, 40.0, al * (0.85 + 0.15 * sin(now * 9.0)))
 				for k in 6:
-					var aa: float = TAU * float(k) / 6.0 + 0.3
-					var ap: Vector2 = d.pos + Vector2(cos(aa), sin(aa) * 0.62) * 170.0
-					_anchor(w, ap, 1.0)
-					_pillar(cv, ap + Vector2(0, -30), 120.0 + 12.0 * sin(now * 5.0 + float(k)), 14.0, al * 0.9)
+					var ap: Vector2 = _cres_ring(d.pos, k, gy)
+					var uk: float = clampf((now - float(d.fx_t0) - 0.05 * float(k)) / 0.35, 0.0, 1.0)
+					uk = 1.0 - (1.0 - uk) * (1.0 - uk)
+					_anchor(w, ap, al, 1.0)
+					_pillar(cv, ap + Vector2(0, -60), (170.0 + 14.0 * sin(now * 5.0 + float(k))) * uk, 28.0, al * 0.9)
 					if rng.randf() < 0.3 * al:
 						_fog(ap, 1, 0.6, 0.0, true, 0.6, Vector2(0, -10))
-					if rng.randf() < 0.5 * al:
-						var bb: float = aa + TAU / 6.0 * rng.randf()
-						var mp: Vector2 = d.pos + Vector2(cos(bb), sin(bb) * 0.62) * 170.0
-						_add(mp + Vector2(0, -rng.randf_range(0.0, 10.0)), Vector2(rng.randf_range(-6, 6), -rng.randf_range(40, 80)), 0.7, LIL[3] if rng.randf() < 0.6 else LIL[4], 2.0, 0)
+				if rng.randf() < 0.7 * al:
+					var bb: float = rng.randf() * TAU
+					var mp: Vector2 = d.pos + Vector2(cos(bb), sin(bb) * gy) * 170.0 * sqrt(rng.randf())
+					_add(mp, Vector2(rng.randf_range(-6, 6), -rng.randf_range(30, 60)), 0.8, LIL[3] if rng.randf() < 0.6 else LIL[4], 2.0, 0)
 		w.tb_flush()
 
 

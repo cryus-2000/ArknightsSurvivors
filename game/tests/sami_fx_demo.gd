@@ -40,6 +40,7 @@ func _final_shots() -> Array:
 		{"name": "哈兰杜汗 · 鞭影", "dur": 3.0, "boss": "khan", "move": "鞭影", "orbit": 110.0, "sand": true},
 		{"name": "哈兰杜汗 · 鞭链", "dur": 3.0, "boss": "khan", "move": "鞭链", "orbit": 200.0, "sand": true},
 		{"name": "路加萨尔古斯 · 日晷", "dur": 4.4, "boss": "lion", "move": "日晷", "orbit": 200.0, "sand": true},
+		{"name": "路加萨尔古斯 · 王令弹幕", "dur": 3.0, "boss": "lion", "move": "王令弹幕", "orbit": 200.0, "sand": true},
 	]
 
 

@@ -2106,6 +2106,39 @@ func final_boss_animation(e: Dictionary) -> Dictionary:
 	return {}
 
 
+## 出招动作（萨米结局 Boss 等，docs/401 §17）：脚本写 e.sfx_pose = {t0, rel}（纯画面字段），按 <tex>_attack 帧条的出手帧（enemy_redraw event_frames）
+## 对齐 rel：预警比原作出手前时长长就先停在 f0、最后一段按原速播；短就把出手前段压缩进预警；出手后按原速播完收势
+func _sfx_pose(e: Dictionary) -> Dictionary:
+	var sp = e.get("sfx_pose")
+	if not (sp is Dictionary) or e.get("dead", false) or e.get("stun", 0.0) > 0.0 or e.get("break_t", 0.0) > 0.0:
+		return {}
+	var strip: String = str(e.get("tex", "")) + "_attack"
+	if _lazy_tex(strip) == null:
+		return {}
+	var rd := A.enemy_redraw(strip)
+	var times: Array = rd.get("sample_times", [])
+	var n: int = int(rd.get("frames", 0))
+	if times.is_empty() or n < 2:
+		return {}
+	var ev: Array = rd.get("event_frames", [])
+	var event: int = clampi(int(ev[0]) if not ev.is_empty() else n / 2, 1, n - 1)
+	var et: float = float(times[event])
+	var rel: float = float(sp.rel)
+	var at: float
+	if g.t < rel:
+		var wind: float = maxf(0.01, rel - float(sp.t0))
+		at = et - (rel - g.t) * (et / wind if wind < et else 1.0)
+	else:
+		at = et + (g.t - rel)
+		if at >= float(rd.get("duration", times[n - 1])):
+			return {}
+	var frame := 0
+	for i in n:
+		if float(times[i]) <= at:
+			frame = i
+	return {"name": strip, "frames": n, "frame": frame}
+
+
 ## 重画新增动作（10-23）的一次性画面：现形 reveal / 复苏 revive / 落地变身 change / 扎根收势 root_end，由触发点写 e.vis_act / e.vis_t0（纯画面字段）。
 ## 条名 = 基础帧条名 + "_" + 动作；时长取原作动画时长，播完清掉。没有这条帧条返回 {}
 func _vis_anim(e: Dictionary) -> Dictionary:
@@ -2942,6 +2975,11 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		name = final_pose.name
 		frames = final_pose.frames
 		frame = final_pose.frame
+	var sp := _sfx_pose(e)
+	if not sp.is_empty():
+		name = sp.name
+		frames = sp.frames
+		frame = sp.frame
 	var va := _vis_anim(e)
 	if not va.is_empty():
 		name = va.name

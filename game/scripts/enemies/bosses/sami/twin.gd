@@ -80,6 +80,7 @@ func _ult(e: Dictionary, m) -> void:
 	if e.get("decisive", false):
 		nm = "决胜·" + nm
 	var w := w_circle(e, p, r, 1.8 if e.get("decisive", false) else 2.5, 0.30, nm)
+	pose(e, float(w.dur))
 	w.cb = func(_ww):
 		var mm = mate_of(e)
 		if mm != null and mm.pos.distance_to(p) < r + float(mm.r) * 0.5:
@@ -125,6 +126,7 @@ func all_moves(e: Dictionary) -> Array:
 
 func _sweep(e: Dictionary, dir: Vector2, _d: float) -> float:
 	var w := w_cone(e, dir.angle(), deg_to_rad(50.0), 120.0, 1.1, 0.16, "鞭扫", {"track": 0.4})
+	pose(e, 1.1)
 	w.cb = func(ww):
 		_fx("whip", e.pos, float(ww.ang), deg_to_rad(50.0))
 		fan(e, e.pos, float(ww.ang), deg_to_rad(50.0), 6, 200.0, 0, 0.08)
@@ -133,6 +135,7 @@ func _sweep(e: Dictionary, dir: Vector2, _d: float) -> float:
 
 func _chain(e: Dictionary, dir: Vector2, _d: float) -> float:
 	var w := w_line(e, dir.angle(), 360.0, 40.0, 0.8, 0.15, "鞭链", {"track": 0.3})
+	pose(e, 0.8)
 	w.cb = func(ww):
 		_fx("lash", e.pos, float(ww.ang), 360.0)
 		ring(e, e.pos + Vector2.from_angle(float(ww.ang)) * 360.0, 8, 150.0, 0, 0.07)
@@ -143,11 +146,13 @@ func _charge(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	for k in 3:
 		later(e, 0.9 * k, func():
 			var w := w_stab(e, (g.ppos - e.pos).angle(), 200.0, 60.0, 0.7, 0.18, "可汗冲阵" if k == 0 else "")
+			pose(e, 0.7)
 			w.cb = func(_ww): later(e, 0.3, func(): summon(e, "shadow", 2, 40.0)))
 	return 2.9
 
 
 func _whip2(e: Dictionary, dir: Vector2, _d: float) -> float:
+	pose(e, 1.1)
 	for s in [0.0, PI]:
 		var w := w_cone(e, dir.angle() + s, deg_to_rad(45.0), 120.0, 1.1, 0.16, "鞭影" if s == 0.0 else "")
 		w.cb = func(ww):
@@ -157,6 +162,8 @@ func _whip2(e: Dictionary, dir: Vector2, _d: float) -> float:
 
 
 func _cal_ring(e: Dictionary, _dir: Vector2, _d: float) -> float:
+	pose(e, 0.0)
+	_fx("flash", e.pos, 0.0, PI)
 	ring(e, e.pos, 24, 160.0, 1, 0.13, gaps_at(e.pos), 0.0, {"hold": 0.9, "turn": deg_to_rad(15.0), "life": 6.0})
 	return 1.2
 
@@ -166,7 +173,9 @@ func _blink(e: Dictionary, dir: Vector2, _d: float) -> float:
 	var a: float = dir.angle()
 	var from: Vector2 = e.pos
 	var w := w_line(e, a, 300.0, 60.0, 0.8, 0.18, "瞬身", {"track": 0.3})
+	pose(e, 0.8)
 	w.cb = func(ww):
+		_fx("flash", from, float(ww.ang), 0.8)
 		var to: Vector2 = from + Vector2.from_angle(float(ww.ang)) * minf(300.0, from.distance_to(g.ppos) + 150.0)
 		for k in 6:
 			shot(e, from.lerp(to, k / 5.0), float(ww.ang) + PI * 0.5, 140.0, 0, 0.10, {"hold": 0.4})
@@ -175,6 +184,8 @@ func _blink(e: Dictionary, dir: Vector2, _d: float) -> float:
 
 
 func _edict_shots(e: Dictionary, _dir: Vector2, _d: float) -> float:
+	pose(e, 0.0)
+	_fx("flash", e.pos, 0.0, PI)
 	ring(e, e.pos, 16, 160.0, 0, 0.11, [], 0.0, {"hold": 0.6})
 	later(e, 0.6, func(): aim(e, e.pos, 3, 0.12, 300.0, 0, 0.11))
 	return 1.3
@@ -185,6 +196,7 @@ func _dial(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	e.move_name = "日晷"
 	e.move_t = g.t
 	_fx("dial", c, 110.0, 0.8)
+	pose(e, 0.8)
 	for i in 20:
 		var p: Vector2 = c + Vector2.from_angle(TAU * i / 20.0) * 110.0
 		later(e, 0.8 + 0.12 * i, func(): shot(e, p, (g.ppos - p).angle(), 260.0, 0, 0.12, {"hold": 0.0}))
@@ -192,6 +204,8 @@ func _dial(e: Dictionary, _dir: Vector2, _d: float) -> float:
 
 
 func _rev(e: Dictionary, _dir: Vector2, _d: float) -> float:
+	pose(e, 0.0)
+	_fx("flash", e.pos, 0.0, PI)
 	ring(e, e.pos, 24, 150.0, 1, 0.13, gaps_at(e.pos, 1), 0.0, {"hold": 1.0, "turn": deg_to_rad(20.0), "life": 6.0})
 	ring(e, e.pos, 24, 120.0, 1, 0.13, gaps_at(e.pos, 1), PI / 24.0, {"hold": 1.0, "turn": -deg_to_rad(20.0), "life": 6.0})
 	return 1.6
@@ -203,6 +217,7 @@ func _sand(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var c: Vector2 = g.ppos
 	var gap_i: int = 2 if _khan(e) else 7
 	e.move_name = "流沙"
+	pose(e, 0.0)
 	e.move_t = g.t
 	for i in 11:
 		if absi(i - gap_i) <= 1:
