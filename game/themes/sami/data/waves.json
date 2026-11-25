@@ -404,8 +404,8 @@
   ],
   "delay": 2.0,
   "weights": {
-   "wish": 25,
-   "rest": 20,
+   "wish": 35,
+   "rest": 15,
    "elite": 20,
    "shop": 15,
    "incident": 15,
