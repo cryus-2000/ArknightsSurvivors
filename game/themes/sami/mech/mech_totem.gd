@@ -86,7 +86,7 @@ func give(bid: String, quiet := false) -> void:
 
 
 ## 随机掉 1 块：稀有度按权重；手里布局 / 本因不均时 kind_balance 概率补少的那类；带 needs / only_with 的不进池
-func drop_one(force_pos := "") -> void:
+func drop_one(force_pos := "", force_rare := false) -> void:
 	var dr: Dictionary = T.get("drops", {})
 	var pos := force_pos
 	if pos == "":
@@ -106,6 +106,8 @@ func drop_one(force_pos := "") -> void:
 		if u <= 0.0:
 			rar = str(k)
 			break
+	if force_rare and rar == "NORMAL":
+		rar = "RARE"   # 事件「较为稀有的密文板」（请君入戏，docs/414）
 	var pool: Array = []
 	for b in T.get("boards", []):
 		if str(b.pos) == pos and str(b.rarity) == rar and _in_pool(b):
@@ -891,5 +893,11 @@ func draw_ground(_w) -> void:
 
 
 ## 批跑遥测（telemetry 收进 BALANCE 行的 mech_totem）
+## 事件 {"mech": {"totem": n, "rare": bool}}（docs/414）
+func event_op(d: Dictionary) -> void:
+	for k in int(d.get("totem", 0)):
+		drop_one("", bool(d.get("rare", false)))
+
+
 func report() -> Dictionary:
 	return {"decl": log_decl.size(), "syn": log_decl.filter(func(x): return x[3]).size(), "drops": drops, "held": hand.size(), "log": log_decl.duplicate(), "uses": uses.duplicate()}

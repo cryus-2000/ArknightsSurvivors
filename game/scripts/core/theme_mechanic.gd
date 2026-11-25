@@ -116,3 +116,8 @@ func choice_bot() -> int:
 
 func report() -> Dictionary:
 	return {}
+
+
+## event_op(d)            事件选项里的 {"mech": d}（endings._apply_op，docs/414）：各机制认自己的键，其余忽略
+func event_op(_d: Dictionary) -> void:
+	pass

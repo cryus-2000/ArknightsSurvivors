@@ -332,6 +332,8 @@ func _req_ok(ev: Dictionary) -> bool:
 		return false
 	if q.has("before") and g.t >= float(q.before):
 		return false
+	if q.has("after") and g.t < float(q.after):
+		return false   # 萨米事件按原作层数分时段（docs/414 §1）
 	if q.has("after_cross") and cross_done < int(q.after_cross):
 		return false
 	if q.has("tradeable") and _tradeable().is_empty():
@@ -686,6 +688,10 @@ func _blocked(op: Dictionary) -> String:
 		return "之后没有路口了"
 	if nd.has("room") and g.squad.is_full():
 		return "编队已满"
+	if nd.has("collapse_le"):
+		var cm = g.mech("collapse")   # 萨米（docs/414 §0）：原作「需要抗干扰指数 > k」折成坍缩等级门槛；没有坍缩机制的主题不限
+		if cm != null and int(cm.level) > int(nd.collapse_le):
+			return "坍缩等级高于 %d 时不可选" % int(nd.collapse_le) if int(nd.collapse_le) > 0 else "需要坍缩等级为 0"
 	return ""
 
 
@@ -721,6 +727,8 @@ func _v2_chips(op: Dictionary) -> Array:
 			out.append(["回复 %d%%" % int(round(float(o.heal) * 100.0)), Color(0.55, 1.0, 0.6)])
 		if o.has("stat"):
 			out.append([str(o.stat.get("text", "")), C_COST if o.stat.get("cost", false) else C_GAIN])
+		if o.has("mech") and str(o.get("chip", "")) != "":
+			out.append([str(o.chip), C_COST if float(o.get("v", 1.0)) < 0.0 else C_GAIN])   # 主题机制效果（萨米坍缩值 / 密文板 / 寒冷）：卡面字写在数据里
 	return out
 
 
@@ -866,6 +874,9 @@ func _apply_op(x: Dictionary) -> void:
 	if x.has("squad_now"):
 		squad_reward = "lane"
 		_spawn_elites()
+	if x.has("mech"):
+		for m in g.mechs:
+			m.event_op(x.mech)   # 主题机制的事件效果（萨米：坍缩值 ±、发密文板、寒冷清零，docs/414）；水月没有 mech 键
 
 
 ## 主流派藏品一件（docs/184 §2.2）：lanes 给定时从这些流派抽，否则主流派；rarity 限定稀有度；对口池空了退回同稀有度全池。
@@ -1373,6 +1384,8 @@ func _opt_cost(op: Dictionary) -> bool:
 			return true
 		if x.has("stat") and x.stat.get("cost", false):
 			return true
+		if x.has("mech") and float(x.get("v", 0.5)) < 0.0:
+			return true
 		for k in ["curse", "away", "leave", "threat", "ingots_all", "trouble", "squad_now"]:
 			if x.has(k):
 				return true
@@ -1415,6 +1428,8 @@ func _opt_value(op: Dictionary) -> float:
 			s += float(x.stat.get("v", -1.0 if x.stat.get("cost", false) else 1.0))
 		if x.has("shield"):
 			s += 0.6 * float(x.shield)
+		if x.has("mech"):
+			s += float(x.get("v", 0.5))
 		if x.has("elite_up"):
 			s += 3.0
 		if x.has("away"):

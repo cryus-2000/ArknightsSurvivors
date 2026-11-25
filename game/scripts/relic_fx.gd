@@ -1748,6 +1748,8 @@ func _trim_mult(h: Dictionary, e: Dictionary) -> float:
 		m *= 1.0 + float(_rule_args("weak_expose").get("mult", 0.2))   # 残破合影：破绽
 	if rule("ctrl_amp") > 0 and _ctrl_on(e):
 		m *= 1.0 + float(_rule_args("ctrl_amp").get("mult", 0.2))   # 凯旋号角
+	if g.foe != null:
+		m *= g.foe.hit_mult(e)   # 主题藏品（萨米猎人的洞察，docs/414）；水月 g.foe 为 null
 	var o = _trim_op(h)
 	if o == null:
 		return m

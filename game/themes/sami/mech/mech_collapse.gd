@@ -74,6 +74,13 @@ func add(v: float, why := "") -> void:
 	_relevel()
 
 
+## 事件 / 藏品 {"mech": {"collapse": ±n}}（docs/414）
+func event_op(d: Dictionary) -> void:
+	if d.has("collapse"):
+		add(float(d.collapse), "event")
+		g.vfx.add_text(g.ppos + Vector2(0, -110), "坍缩值 %+d" % int(d.collapse), Color(0.75, 0.6, 1.0), 15)
+
+
 func on_player_hit(dmg: float, _src: Dictionary) -> void:
 	if dmg <= 0.0:
 		return

@@ -104,6 +104,12 @@ func cleanse() -> void:
 
 
 ## 缩圈日程：照黑潮，只换横幅措辞（banner 在父类里写死「黑潮」，这里整段复写）
+## 事件 {"mech": {"cold_clear": true}}（度假胜地，docs/414）：寒冷清零
+func event_op(d: Dictionary) -> void:
+	if d.get("cold_clear", false):
+		cold = 0.0
+
+
 func _zone_schedule(dt: float) -> bool:
 	if g.zone_state == 0:
 		if g.t < ZONE_START:
