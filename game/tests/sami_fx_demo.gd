@@ -20,8 +20,8 @@ func _shots() -> Array:
 		{"name": "冰爆源石虫 · 死亡冰爆", "dur": 5.0, "spawn": [["icebug", 4, 110.0]], "kill": "icebug"},
 	]
 	for m in BLADE_MOVES:
-		a.append({"name": "邪魔的利刃 · " + m, "dur": 3.6, "boss": "blade", "move": m, "rad": 45.0})
-	a.append({"name": "邪魔的利刃，游荡者 · 皇帝的猎杀", "dur": 3.6, "boss": "wanderer", "move": "皇帝的猎杀", "rad": 45.0})
+		a.append({"name": "邪魔的利刃 · " + m, "dur": 4.0, "boss": "blade", "move": m, "orbit": 200.0})
+	a.append({"name": "邪魔的利刃，游荡者 · 皇帝的猎杀", "dur": 4.0, "boss": "wanderer", "move": "皇帝的猎杀", "orbit": 200.0})
 	a.append({"name": "邪魔的利刃 · 呼吸（国度外胀）", "dur": 4.2, "boss": "blade", "rad": 0.0, "kd": true})
 	return a
 
@@ -72,6 +72,7 @@ func _ready() -> void:
 			setup(seg)
 			var n: int = int(float(seg.dur) / DT)
 			var moved := false
+			var prev_p: Vector2 = g.ppos
 			for frame_i in n:
 				var el: float = frame_i * DT
 				g.t += DT
@@ -81,6 +82,12 @@ func _ready() -> void:
 				var rad: float = float(seg.get("rad", 40.0))
 				var a: float = el * 0.6
 				g.ppos = O + Vector2(cos(a), sin(a) * 0.75) * rad + Vector2(60, 0)
+				if seg.has("orbit"):
+					# 中距离绕 Boss 走（约 150–250），1.6 秒时掉头变向：看瞄准 / 落点是不是追着队长
+					var oa: float = -0.5 + el * 1.0 if el < 1.6 else 1.1 - (el - 1.6) * 1.3
+					g.ppos = O + Vector2(-90, 0) + Vector2(cos(oa), sin(oa) * 0.8) * float(seg.orbit)
+					g.pvel = (g.ppos - prev_p) / DT
+				prev_p = g.ppos
 				g.doc_pos = g.ppos + Vector2(10, 35)
 				if seg.has("hurt") and frame_i % 20 == 0:
 					_poke(str(seg.hurt))
@@ -156,6 +163,7 @@ func setup(seg: Dictionary) -> void:
 		e.hp = 1e9
 		e.maxhp = 1e9
 		e.busy_t = 1e9   # 不自己挑招，只放镜头指定的那招
+		e.spd = 0.0      # 站定不追人（队长中距离绕它走，看得出斩击距离和追踪）
 		e.lay_t = 1e9   # 镜头里不自己再铺国度（国度画面暂停；国度爆发只用下面摆好的几块）
 		g.enemies.append(e)
 		g.bosses = [e]

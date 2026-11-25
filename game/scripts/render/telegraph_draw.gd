@@ -17,6 +17,8 @@ static func quiet(w: Dictionary) -> bool:
 	var o = w.get("owner")
 	if str(w.get("skin", "")).begins_with("mc_"):
 		return true   # 塑路者 / 接潮组的颗粒点预警（render/mid_card_draw，docs/170）
+	if str(w.get("skin", "")).begins_with("sami_"):
+		return true   # 萨米主题自画预警（themes/sami/mech/mech_fx，docs/401 §12）
 	# skin gaze / howl：偏执泡影凝视、呼号自己画预警（render/paranoia_combo_draw.gd，docs/170）
 	return w.get("act", "") == "final_attack" or knight_line(w) or w.get("skin", "") in ["gaze", "howl"] or o is Dictionary and not o.get("boss", false) and str(w.get("act", "")) in ["shot", "extra_volley"]
 

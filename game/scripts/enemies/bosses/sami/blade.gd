@@ -307,7 +307,7 @@ func _d_carpet(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var a0: float = (_pred(0.6) - e.pos).angle()
 	var c: Vector2 = e.pos
 	for j in 4:
-		w_line(e, a0 + PI * 0.5 * j, 330.0, 35.0, 0.9, 0.0, "黑毯" if j == 0 else "", {"lock": j == 0})
+		w_line(e, a0 + PI * 0.5 * j, 330.0, 35.0, 0.9, 0.0, "黑毯" if j == 0 else "", {"lock": j == 0, "fx_carpet": true})
 	later(e, 0.9, _cross.bind(e, c, a0))
 	return 1.4
 
@@ -427,6 +427,13 @@ func draw(e: Dictionary, cv) -> void:
 			for k in km.list:
 				if int(k.owner_id) == int(e.id) and k.kind == "boss":
 					cv.draw_arc(k.pos, float(k.r) + sw, 0.0, TAU, 40, Color(0.2, 0.2, 0.25, 0.45), maxf(2.0, sw * 0.5))
+
+
+## 预警画法：有 fx 机制时挂 skin sami_blade，通用描边 / 填充跳过（telegraph_draw.quiet），由 mech_fx 画裂缝 + 渗雾 + 刃尖（docs/401 §12）
+func _warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionary:
+	if g.mech("fx") != null:
+		d["skin"] = "sami_blade"
+	return super(e, shape, dur, d)
 
 
 ## 特效挂钩：只画，不改玩法状态

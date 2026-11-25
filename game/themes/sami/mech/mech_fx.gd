@@ -40,6 +40,12 @@ const OLC := Color(0.02, 0.02, 0.04)
 const FOG := [Color(0.05, 0.035, 0.06), Color(0.11, 0.07, 0.11), Color(0.2, 0.13, 0.18)]
 var blade_list := {}         # id → [e, 最近一次 blade_draw 的 t]（blade.gd.draw 每帧登记，地面 / 顶层两处画）
 var bevents: Array = []      # [种类, 位置, a, 触发 t, 已触发]
+# 黑雾：程序噪声烤出的柔边雾贴图（alpha 分 5 级台阶保持像素感，1 纹素 = 2 世界像素），不用实心方块
+var fog_puff: Array = []     # 4 张 32×32 径向雾团
+var fog_band: Texture2D      # 128×32 横向可平铺的雾带（上下边柔）
+var puffs: Array = []        # 顶层雾团 [p0, v, 出生 t, 寿命, 尺寸 0, 尺寸 1, 图号, 不透明度]
+var gpuffs: Array = []       # 地面雾团（黑毯 / 呼吸 / 预警渗雾，压在单位之下）
+const PUFF_MAX := 160
 const GOUGE := [Color(0.1, 0.13, 0.2), Color(0.26, 0.32, 0.42), Color(0.93, 0.96, 1.0)]   # 爪痕：深槽 / 槽壁 / 翻起的雪唇
 const OWN := {"caster": "needle", "blade": "blade", "wanderer": "blade"}
 
@@ -58,6 +64,36 @@ func _init(game: Game) -> void:
 		var t = load(FX_DIR + "sfx_%s.png" % k)
 		if t != null:
 			tex[k] = t
+	for i in 4:
+		fog_puff.append(_fog_tex(32, 32, 911 + i, true))
+	fog_band = _fog_tex(128, 32, 977, false)
+
+
+## 雾贴图：分形噪声 × 边缘衰减（径向 / 上下），颜色在两档暗紫黑之间，alpha 量化 5 级
+func _fog_tex(w: int, h: int, seed: int, radial: bool) -> Texture2D:
+	var n := FastNoiseLite.new()
+	n.seed = seed
+	n.frequency = 0.11 if radial else 0.05
+	n.fractal_octaves = 3
+	var img := Image.create(w, h, false, Image.FORMAT_RGBA8)
+	for y in h:
+		for x in w:
+			var v: float
+			var f: float
+			if radial:
+				v = n.get_noise_2d(x, y) * 0.5 + 0.5
+				var dd: float = Vector2(x - w * 0.5 + 0.5, y - h * 0.5 + 0.5).length() / (w * 0.5)
+				f = clampf(1.0 - dd, 0.0, 1.0)
+			else:
+				var ang: float = TAU * float(x) / float(w)   # 沿长度方向绕圆柱取样 → 首尾无缝
+				v = n.get_noise_3d(cos(ang) * 20.0, sin(ang) * 20.0, float(y) * 1.4) * 0.5 + 0.5
+				f = clampf(1.0 - absf(y - h * 0.5 + 0.5) / (h * 0.5), 0.0, 1.0)
+			f = f * f * (3.0 - 2.0 * f)
+			var a: float = clampf((v * 1.5 - 0.2) * f * 1.5, 0.0, 1.0)
+			a = floorf(a * 5.0) / 5.0
+			var c: Color = FOG[2].lerp(FOG[0], clampf(v * 1.3 - 0.1, 0.0, 1.0))
+			img.set_pixel(x, y, Color(c.r, c.g, c.b, a))
+	return ImageTexture.create_from_image(img)
 
 
 ## ---- 入口
@@ -205,6 +241,7 @@ func draw_front(w) -> void:
 	var now: float = g.t
 	_tick_rush(now)
 	_own_bullets(cv, now)
+	puffs = _draw_puffs(cv, puffs, now)
 	_blade_front(w, now)
 	# 帧条（旋转要换画布变换，画完复位，后面的合批三角形要求单位矩阵）
 	var keep: Array = []
@@ -367,11 +404,50 @@ func blade_event(kind: String, p: Vector2, a := 0.0, b := 0.0) -> void:
 			bevents.append([kind, p, a, g.t + b, false])
 
 
-## 雾块：实心暗色方块，往上飘、慢慢缩小
-func _fog(p: Vector2, n: int, life := 0.7, delay := 0.0) -> void:
+## 雾团：柔边雾贴图往外翻卷、慢慢胀大淡出（ground = 压在单位之下）
+func _fog(p: Vector2, n: int, life := 0.7, delay := 0.0, ground := false, sz := 1.0, v := Vector2.INF) -> void:
+	var arr: Array = gpuffs if ground else puffs
 	for i in n:
-		_add(p + Vector2(rng.randf_range(-6, 6), rng.randf_range(-4, 4)), Vector2(rng.randf_range(-18, 18), -rng.randf_range(10, 30)),
-			life * rng.randf_range(0.7, 1.2), FOG[rng.randi() % 3], rng.randf_range(6.0, 11.0), 3, 0.0, delay)
+		if arr.size() >= PUFF_MAX:
+			arr.pop_front()
+		var vv: Vector2 = v if v != Vector2.INF else Vector2(rng.randf_range(-22, 22), -rng.randf_range(6, 22))
+		vv += Vector2(rng.randf_range(-8, 8), rng.randf_range(-6, 6))
+		var s0: float = rng.randf_range(22.0, 34.0) * sz
+		arr.append([p + Vector2(rng.randf_range(-6, 6), rng.randf_range(-4, 4)), vv, g.t + delay, life * rng.randf_range(0.8, 1.2), s0, s0 * rng.randf_range(1.6, 2.2), rng.randi() % 4, rng.randf_range(0.75, 0.95)])
+
+
+func _draw_puffs(cv, arr: Array, now: float) -> Array:
+	var live: Array = []
+	for q in arr:
+		var age: float = now - float(q[2])
+		if age >= float(q[3]):
+			continue
+		live.append(q)
+		if age < 0.0:
+			continue
+		var u: float = age / float(q[3])
+		var pos: Vector2 = q[0] + q[1] * age * (1.0 - 0.45 * u)
+		var sz: float = lerpf(float(q[4]), float(q[5]), 1.0 - (1.0 - u) * (1.0 - u))
+		var al: float = float(q[7]) * pow(1.0 - u, 1.4) * minf(1.0, age * 12.0)
+		var r := Rect2(((pos - Vector2(sz, sz) * 0.5) / PX).floor() * PX, Vector2(sz, sz * 0.8))
+		cv.draw_texture_rect(fog_puff[int(q[6])], r, false, Color(1, 1, 1, al))
+	return live
+
+
+## 雾带：沿 a→b 铺平铺雾贴图（宽 2·hw，上下边柔），al 控浓淡
+func _band(cv, a: Vector2, b: Vector2, hw: float, al: float) -> void:
+	var L: float = a.distance_to(b)
+	if L < 2.0:
+		return
+	cv.draw_set_transform(a, (b - a).angle(), Vector2.ONE)
+	var H: float = hw * 2.6
+	var x := 0.0
+	var seg: float = 256.0
+	while x < L:
+		var ln: float = minf(seg, L - x)
+		cv.draw_texture_rect_region(fog_band, Rect2(x, -H * 0.5, ln, H), Rect2(0, 0, 128.0 * ln / seg, 32), Color(1, 1, 1, al))
+		x += seg
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 ## 竖刃：底 base，高 h；lean 0 = 直立，1 = 朝 ld 倒伏；暗描边 → 黑刃身 → 一侧深红刃口 → 白芯线；脚下一道裂缝
@@ -390,74 +466,122 @@ func _rise_blade(w, base: Vector2, h: float, ld: Vector2, lean: float, wd := 11.
 	w.tb_line(_snap(base + up * 4.0), _snap(base + up * (h - 6.0)), Color(1.0, 0.95, 0.92), 2.0)
 
 
+## 刃尖冒头：地上一点黑刃尖（高 h），预警进度越后越高
+func _tip(w, base: Vector2, h: float) -> void:
+	if h < 1.5:
+		return
+	w.tb_poly(PackedVector2Array([base + Vector2(-6, 2), base + Vector2(0, -h - 3), base + Vector2(6, 2)]), OLC)
+	w.tb_poly(PackedVector2Array([base + Vector2(-4, 0), base + Vector2(0, -h), base + Vector2(4, 0)]), BK)
+	w.tb_poly(PackedVector2Array([base + Vector2(0, -h), base + Vector2(4, 0), base + Vector2(1, 0)]), BLOOD[2])
+
+
+## 地面裂缝：从 a 往 ang 方向长 L 的折线（种子 sd 定形状），k 控长出多少；暗槽 + 深红芯
+func _crack(w, a: Vector2, ang: float, L: float, k: float, sd: int, wd := 3.0) -> void:
+	var n: int = maxi(2, int(L / 14.0))
+	var prev: Vector2 = a
+	var d := Vector2.from_angle(ang)
+	var nv := d.orthogonal()
+	var lim: float = L * k
+	for i in range(1, n + 1):
+		var x: float = L * float(i) / float(n)
+		if x > lim + 0.01:
+			x = lim
+		var j: float = float(absi(hash(Vector2i(sd, i))) % 100 - 50) / 50.0 * 6.0
+		var q: Vector2 = a + d * x + nv * j
+		w.tb_line(_snap(prev), _snap(q), OLC, wd + 1.0)
+		w.tb_line(_snap(prev), _snap(q), BLOOD[1], 1.0)
+		prev = q
+		if x >= lim:
+			break
+
+
 func _blade_ground(w, now: float) -> void:
-	# 斩击·竖刃预警：扇形边 = 实心暗块 + 深红块（6 像素，r130 一眼看出范围）；黑雾从它脚下按进度往外铺
+	var cv = g.wcv
+	gpuffs = _draw_puffs(cv, gpuffs, now)
+	# 预警（通用画法已关：blade.gd 给这些预警挂 skin sami_blade，telegraph_draw.quiet 跳过）：裂缝 + 黑雾先渗出 + 刃尖先冒头，不画描边圈 / 半透明填充
 	for t in g.warns:
-		if t.done or t.shape != "cone" or str(t.get("name", "")) != "斩击·竖刃":
+		if t.done or str(t.get("skin", "")) != "sami_blade":
 			continue
 		var k: float = clampf(float(t.t) / maxf(0.01, float(t.dur)), 0.0, 1.0)
-		var r3: float = float(t.r)
-		var a0: float = float(t.ang) - float(t.half)
-		var a1: float = float(t.ang) + float(t.half)
-		var n3: int = int((a1 - a0) * r3 / 10.0)
-		for i in n3 + 1:
-			var q: Vector2 = _snap(t.pos + Vector2.from_angle(lerpf(a0, a1, float(i) / float(n3))) * r3)
-			var cc: Color = BLOOD[1] if i % 3 == 0 else FOG[0]
-			w.tb_quad(q, q + Vector2(6, 0), q + Vector2(6, 6), q + Vector2(0, 6), cc)
-		for sa in [a0, a1]:
-			var z := 18.0
-			while z < r3:
-				var q2: Vector2 = _snap(t.pos + Vector2.from_angle(sa) * z)
-				w.tb_quad(q2, q2 + Vector2(4, 0), q2 + Vector2(4, 4), q2 + Vector2(0, 4), FOG[0])
-				z += 10.0
-		var rr := 24.0
-		while rr < r3 * k:
-			var na: int = maxi(3, int((a1 - a0) * rr / 12.0))
-			for j in na:
-				var hsh: int = absi(hash(Vector2i(int(rr), j)))
-				if hsh % 100 < 38:
-					var q3: Vector2 = _snap(t.pos + Vector2.from_angle(lerpf(a0, a1, (float(j) + 0.5) / float(na))) * rr)
-					var sz: float = 6.0 + float(hsh % 2) * 2.0
-					w.tb_quad(q3, q3 + Vector2(sz, 0), q3 + Vector2(sz, sz), q3 + Vector2(0, sz), FOG[hsh % 3])
-			rr += 12.0
+		var sd: int = absi(hash(Vector2i(int(t.pos.x), int(t.pos.y)))) % 9973
+		match t.shape:
+			"cone":
+				# 斩击：扇区里 7 道裂缝从它脚下往外裂，外弧一排刃尖冒头（r130 的边就是这排刃尖）
+				var r3: float = float(t.r)
+				var a0: float = float(t.ang) - float(t.half)
+				var a1: float = float(t.ang) + float(t.half)
+				for i in 7:
+					_crack(w, t.pos, lerpf(a0 + 0.08, a1 - 0.08, float(i) / 6.0), r3 - 8.0, k, sd + i * 17, 4.0)
+				var n3: int = int((a1 - a0) * r3 / 12.0)
+				for i in n3 + 1:
+					var dl: float = float(absi(hash(Vector2i(sd, i + 300))) % 30) / 100.0
+					_tip(w, t.pos + Vector2.from_angle(lerpf(a0, a1, float(i) / float(n3))) * r3, 18.0 * clampf((k - dl) / 0.5, 0.0, 1.0))
+				if rng.randf() < 0.5 + k:
+					var aa: float = rng.randf_range(a0, a1)
+					_fog(t.pos + Vector2.from_angle(aa) * rng.randf_range(20.0, r3 * maxf(0.3, k)), 1, 0.7, 0.0, true, 0.8, Vector2.from_angle(aa) * 30.0)
+			"line":
+				var d := Vector2.from_angle(float(t.ang))
+				var L: float = float(t.len)
+				var hw: float = float(t.wid)
+				if str(t.get("name", "")) == "黑毯" or (t.get("fx_carpet", false)):
+					# 黑毯预警：雾先沿线渗出（窄、淡），铺到 k
+					_band(cv, t.pos, t.pos + d * L * k, hw * 0.55, 0.55)
+					continue
+				# 投刃 / 追猎：中线一道裂缝往前裂到 k，两侧每 22 像素一道斜刻痕标出宽度，起点渗雾
+				_crack(w, t.pos, float(t.ang), L, k, sd, 3.0)
+				var nv := d.orthogonal()
+				var x := 20.0
+				while x < L * k:
+					for sg in [-1.0, 1.0]:
+						var q: Vector2 = t.pos + d * x + nv * hw * sg
+						w.tb_line(_snap(q - d * 5.0 - nv * 3.0 * sg), _snap(q + d * 5.0), OLC, 3.0)
+						w.tb_line(_snap(q - d * 3.0 - nv * 2.0 * sg), _snap(q + d * 3.0), BLOOD[1], 1.0)
+					x += 22.0
+				if rng.randf() < 0.4:
+					_fog(t.pos + d * rng.randf_range(0.0, L * k), 1, 0.6, 0.0, true, 0.7)
+			"circle":
+				var r: float = float(t.r)
+				var gy: float = g.combat.GROUND_Y
+				if r <= 30.0:
+					# 刃雨小圈：落点星形裂缝 + 一点渗雾（刃从天上落，见顶层）
+					for i in 5:
+						_crack(w, t.pos, TAU * float(i) / 5.0 + float(sd % 7), r, k, sd + i, 2.0)
+					continue
+				# 刃林圈（国度爆发 / 皇帝的猎杀）：圈边一圈刃尖冒头 + 圈里裂缝 + 黑雾渗出
+				var nn: int = clampi(int(TAU * r / 16.0), 12, 40)
+				for i in nn:
+					var dl2: float = float(absi(hash(Vector2i(sd, i + 500))) % 35) / 100.0
+					var aa2: float = TAU * float(i) / float(nn)
+					_tip(w, t.pos + Vector2(cos(aa2) * r, sin(aa2) * r * gy), 11.0 * clampf((k - dl2) / 0.5, 0.0, 1.0))
+				for i in 5:
+					_crack(w, t.pos, TAU * float(i) / 5.0 + 0.3, r * 0.85, k, sd + i * 7)
+				if rng.randf() < 0.4 + k * 0.6:
+					var aa3: float = rng.randf() * TAU
+					_fog(t.pos + Vector2(cos(aa3), sin(aa3) * gy) * rng.randf_range(0.0, r * 0.8), 1, 0.7, 0.0, true, 0.9)
+	w.tb_flush()
 	for id in blade_list.keys():
 		var it: Array = blade_list[id]
 		var e: Dictionary = it[0]
 		if e.dead or now - float(it[1]) > 0.2:
 			blade_list.erase(id)
 			continue
-		# 黑毯（铺开中；铺完由国度占位接手）：带身 = 散布的实心雾块（按格子哈希，中线密、两侧疏），毯头 = 翻滚的大雾块
+		# 黑毯（铺开中；铺完由国度占位接手）：连续雾带（柔边贴图），毯头往前、往两侧翻卷雾团，偶尔崩出碎屑
 		for c in e.get("cps", []):
 			if float(c.front) <= 0.0 or c.get("k") != null:
 				continue
-			var a0: Vector2 = c.a
 			var dv: Vector2 = c.dir
-			var nv := dv.orthogonal()
-			var hw: float = float(c.hw)
-			var fr: float = float(c.front)
-			var si := 0.0
-			while si < fr:
-				var tj := -hw
-				while tj <= hw:
-					var hsh: int = absi(hash(Vector2i(int(si / 8.0), int(tj / 8.0)) + Vector2i(int(e.id) * 31, 0)))
-					var dens: float = 1.0 - absf(tj) / hw * 0.7
-					if float(hsh % 100) / 100.0 < dens * 0.75:
-						var q: Vector2 = _snap(a0 + dv * si + nv * tj)
-						var sz: float = 6.0 + float(hsh % 3) * 2.0
-						w.tb_quad(q, q + Vector2(sz, 0), q + Vector2(sz, sz), q + Vector2(0, sz), FOG[hsh % 2])
-					tj += 8.0
-				si += 8.0
-			var hd: Vector2 = a0 + dv * fr
-			for k in 7:
-				var ph: float = now * 9.0 + float(k) * 0.9
-				var q2: Vector2 = _snap(hd + nv * sin(ph) * hw * 0.8 + dv * (cos(ph * 0.7) * 6.0 - 4.0))
-				var s2: float = 10.0 + float(k % 3) * 3.0
-				w.tb_quad(q2, q2 + Vector2(s2, 0), q2 + Vector2(s2, s2), q2 + Vector2(0, s2), FOG[k % 3])
-			if rng.randf() < 0.6:
-				_fog(hd + nv * rng.randf_range(-hw, hw), 1, 0.5)
-			if rng.randf() < 0.25:
-				sparks(hd, dv.angle(), 0.6, 1, 160.0, BLOOD)
-	w.tb_flush()
+			var nv2 := dv.orthogonal()
+			var hw2: float = float(c.hw)
+			var hd: Vector2 = c.a + dv * float(c.front)
+			_band(cv, c.a, hd, hw2, 0.95)
+			_band(cv, c.a + dv * 10.0, hd - dv * 6.0, hw2 * 0.55, 0.8)
+			for sg in [-1.0, 1.0]:
+				if rng.randf() < 0.55:
+					_fog(hd - dv * rng.randf_range(0.0, 30.0) + nv2 * hw2 * 0.7 * sg, 1, 0.7, 0.0, true, 0.9, nv2 * sg * 45.0 + dv * 20.0)
+			if rng.randf() < 0.7:
+				_fog(hd + nv2 * rng.randf_range(-hw2, hw2) * 0.5, 1, 0.55, 0.0, true, 1.1, dv * 70.0)
+			if rng.randf() < 0.15:
+				embers(hd, 1, FOG[0], 140.0, 260.0, 0.4, 4.0)
 
 
 func _blade_front(w, now: float) -> void:
@@ -508,10 +632,13 @@ func _blade_front(w, now: float) -> void:
 				var sw: float = (35.0 if e.type == "wanderer" else 20.0) * sin(PI * (1.0 - (float(e.br_until) - now) / 0.6))
 				for k in km.list:
 					if int(k.owner_id) == int(e.id) and k.kind == "boss":
-						for j in 12:
+						for j in 3:
 							var aa: float = rng.randf() * TAU
-							var q: Vector2 = k.pos + Vector2.from_angle(aa) * (float(k.r) + sw)
-							_add(q, Vector2.from_angle(aa) * 50.0 + Vector2(0, -10), 0.45, FOG[rng.randi() % 3], rng.randf_range(8.0, 13.0), 3)
+							var q: Vector2 = k.pos + Vector2(cos(aa), sin(aa) * 0.8) * (float(k.r) + sw * 0.6)
+							_fog(q, 1, 0.6, 0.0, true, 1.0, Vector2.from_angle(aa) * 45.0)
+						if rng.randf() < 0.2:
+							var ab: float = rng.randf() * TAU
+							embers(k.pos + Vector2.from_angle(ab) * float(k.r), 1, FOG[0], 90.0, 200.0, 0.4, 4.0)
 	# 刃林喷发（国度爆发 / 皇帝的猎杀）、刃雨
 	var keep: Array = []
 	for ev in bevents:
