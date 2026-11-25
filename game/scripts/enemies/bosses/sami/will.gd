@@ -39,6 +39,7 @@ func _in_shadow(e: Dictionary, p: Vector2) -> bool:
 func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mate) -> void:
 	tick(e, dt)
 	obst_tick(e)
+	ambient(e, dt, "snow")
 	var c: Vector2 = center(e)
 	e.pos = c + Vector2(0, -_ar(e) * 0.55)
 	if not e.has("trees"):

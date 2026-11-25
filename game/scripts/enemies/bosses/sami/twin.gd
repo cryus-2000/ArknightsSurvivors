@@ -18,7 +18,7 @@ const ULT_DUR := 2.8
 const ULT_LOCK := 0.7
 const DRAG_SPD := 130.0   # 11-26 测试台：90 时 2 秒多只能拖 190，够不到牵制王
 const STUN_T := 4.0
-const GUARD := 0.25        # 平时受伤（王者护卫；§15.4 A 原拟 0.6，11-26 测试台三轮后下调）
+const GUARD := 0.2         # 平时受伤（王者护卫；§15.4 A 原拟 0.6，11-26 测试台多轮后下调）
 const WINDOW := 3.0        # 被砸中窗口的总受伤倍率（§15.4 A 原拟 2.0）
 
 
@@ -88,6 +88,8 @@ func _role(e: Dictionary, c: Dictionary, m) -> String:
 
 func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mate) -> void:
 	tick(e, dt)
+	if _khan(e):
+		ambient(e, dt, "sand")
 	var c := _ctl(e)
 	var m = mate_of(e)
 	if _khan(e) or m == null or m.dead:

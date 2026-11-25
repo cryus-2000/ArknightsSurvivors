@@ -30,6 +30,7 @@ func _nursery(e: Dictionary, p: Vector2, r: float, life: float) -> void:
 
 func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mate) -> void:
 	tick(e, dt)
+	ambient(e, dt, "petal")
 	var c: Vector2 = center(e)
 	if not e.has("cps"):
 		e["cps"] = []

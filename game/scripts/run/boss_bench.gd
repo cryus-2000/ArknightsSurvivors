@@ -96,6 +96,8 @@ func on_lose(amount: float) -> void:
 			f.taken += amount
 			var sk: String = str(g.dmg_src) + ("/" + str(g.trial.move) if g.trial.move != "" else "")
 			f.src[sk] = float(f.src.get(sk, 0.0)) + amount / maxf(1.0, float(f.maxhp0))   # 承伤来源（占登场时最大生命）
+			if str(g.dmg_src).begins_with("boss_") or str(g.dmg_src) == "bullet":
+				f["taken_boss"] = float(f.get("taken_boss", 0.0)) + amount   # Boss 来源（招式 + 敌弹）
 
 
 ## 打在 Boss 身上的实际伤害（combat._damage）；破绽 = e.break_t > 0 或 Boss 脚本受伤倍率 > 1（骑士撞柱 / 泡影坠地等）
@@ -164,6 +166,14 @@ func _tick_fights() -> void:
 				f.phases.append([str(e.type), ph, snappedf(g.t - float(f.t0), 0.1)])
 		if bh_any:
 			f.brk_t += dt
+		# 同屏敌弹（11-26 加：弹幕密度对照）：Boss 来源（b.boss）存活弹数，按帧取均值与峰值
+		var nb := 0
+		for b in g.ebullets:
+			if b.life > 0.0 and b.get("boss", false):
+				nb += 1
+		f.bul_sum = float(f.get("bul_sum", 0.0)) + nb
+		f.bul_n = int(f.get("bul_n", 0)) + 1
+		f.bul_peak = maxi(int(f.get("bul_peak", 0)), nb)
 		var fin: bool = int(f.slot) == D.BOSS_TIMES.size()
 		var all_dead: bool = f.targets.all(func(x): return x.dead)
 		var res := ""
@@ -191,6 +201,8 @@ func _finish(f: Dictionary, res: String) -> void:
 		hp_max += float(e.maxhp)
 	var r := {"result": res, "win": res == "win", "slot": f.slot, "boss": "+".join(f.group), "fight_t": snappedf(ft, 0.1),
 		"taken": snappedf(f.taken, 0.1), "taken_pct": snappedf(f.taken / maxf(1.0, float(f.maxhp0)), 0.001),
+		"boss_src_share": snappedf(float(f.get("taken_boss", 0.0)) / maxf(1.0, float(f.taken)), 0.001),
+		"bul_avg": snappedf(float(f.get("bul_sum", 0.0)) / maxf(1.0, float(f.get("bul_n", 0))), 0.1), "bul_peak": int(f.get("bul_peak", 0)),
 		"hp0_frac": snappedf(float(f.hp0) / maxf(1.0, float(f.maxhp0)), 0.001), "hp_end_frac": snappedf(maxf(0.0, g.hp) / maxf(1.0, g.max_hp), 0.001),
 		"boss_hp_left": snappedf(hp_left / maxf(1.0, hp_max), 0.001), "boss_maxhp": snappedf(hp_max, 1.0),
 		"dmg": snappedf(f.dmg, 1.0), "brk_dmg_share": snappedf(f.dmg_brk / maxf(1.0, f.dmg), 0.001),
