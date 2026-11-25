@@ -43,44 +43,10 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 	if act_i(e) >= 1 and g.t >= float(e.get("call_t", 0.0)):
 		e.call_t = g.t + 12.0
 		summon(e, "husk", 3, 70.0)
-	_mist_walk(e, km)
 	_breath(e, km)
 	_ents(e, dt, km)
 	_carpets(e, km)
 	_group_pick(e, ready, dir, dist)
-
-
-## ---- 雾行（§12.4 爆发位移，不算招）：每 9 秒沉进一块国度，0.6 秒后从另一块国度里升起（离队长 ≥250、跨度 ≥300），升起处 r90 刃林（0.8 / 0.7）
-func _mist_walk(e: Dictionary, km) -> void:
-	if km == null or e.get("coma", false):
-		return
-	if not e.has("mist_t"):
-		e.mist_t = g.t + 9.0
-	if e.has("mist_to"):
-		if g.t >= float(e.mist_at):
-			e.pos = e.mist_to
-			e.erase("mist_to")
-			e.invuln = false
-		else:
-			e.invuln = true
-		return
-	if g.t < float(e.mist_t) or g.t < float(e.get("busy_t", 0.0)):
-		return
-	e.mist_t = g.t + 9.0
-	var mine: Array = km.list.filter(func(k): return int(k.owner_id) == int(e.id) and k.kind == "boss")
-	var here = null
-	for k in mine:
-		if e.pos.distance_to(k.pos) < float(k.r) + 20.0:
-			here = k
-	var cands: Array = mine.filter(func(k): return k != here and k.pos.distance_to(g.ppos) >= 250.0 and k.pos.distance_to(e.pos) >= 300.0)
-	if here == null or cands.is_empty():
-		return
-	cands.sort_custom(func(x, y): return x.pos.distance_to(g.ppos) < y.pos.distance_to(g.ppos))
-	var to: Vector2 = cands[0].pos
-	e.mist_to = to
-	e.mist_at = g.t + 0.6
-	e.busy_t = g.t + 1.6
-	w_circle(e, to, 90.0, 0.8, 0.12, "", {"lock": false})
 
 
 ## ---- 招式表 [名, 冷却, 最近, 最远, 函数]
@@ -277,7 +243,7 @@ func _breath(e: Dictionary, km) -> void:
 		e.br_until = g.t + 0.6
 		e.br_hit = false
 	if float(e.get("br_until", 0.0)) > g.t and not e.get("br_hit", false):
-		var sw: float = (60.0 if _wand(e) else 40.0) * sin(PI * (1.0 - (float(e.br_until) - g.t) / 0.6))
+		var sw: float = (35.0 if _wand(e) else 20.0) * sin(PI * (1.0 - (float(e.br_until) - g.t) / 0.6))
 		for k in km.list:
 			if int(k.owner_id) != int(e.id) or k.kind != "boss":
 				continue
@@ -291,11 +257,11 @@ func _breath(e: Dictionary, km) -> void:
 ## ---- A 斩击·竖刃（③）：120° 扇形 r 130（§11.2 r 100 起），预警 1.4 = 追踪 0.3 + 锁定 1.1；
 ## 挥刃结算后扇区腾起黑雾，5 片竖刃从雾里竖起（立 0.4 秒）再向外倒伏滑出 40
 func _a_cleave(e: Dictionary, dir: Vector2, _d: float) -> float:
-	var w := w_cone(e, dir.angle(), PI / 3.0, 170.0, 1.7, 0.20, "斩击·竖刃", {"track": 0.1})
+	var w := w_cone(e, dir.angle(), PI / 3.0, 130.0, 1.4, 0.20, "斩击·竖刃", {"track": 0.3})
 	w.cb = func(ww):
 		for i in 5:
 			var a: float = float(ww.ang) + lerpf(-PI / 3.0 + 0.15, PI / 3.0 - 0.15, float(i) / 4.0)
-			var rr: float = 125.0 if i % 2 == 0 else 160.0
+			var rr: float = 95.0 if i % 2 == 0 else 120.0
 			_ent(e, {"k": "rise", "pos": e.pos + Vector2.from_angle(a) * rr, "vel": Vector2.from_angle(a) * 100.0, "r": RISE_R, "pct": 0.08, "hold": 0.4, "life": 0.4, "ang": a})
 	return 1.6
 
@@ -304,7 +270,7 @@ func _a_cleave(e: Dictionary, dir: Vector2, _d: float) -> float:
 ## 穿过国度时切开一道口子（1.5 秒内不减攻速、不吃 ×1.5），每次进出国度边界两侧各弹 1 片碎刃
 func _b_throw(e: Dictionary, _dir: Vector2, dist: float) -> float:
 	var a: float = (_pred(LEAD) - e.pos).angle()
-	var ln: float = 900.0
+	var ln: float = clampf(dist + 260.0, 420.0, 760.0)
 	var w := w_line(e, a, ln, THROW_R, 0.8, 0.0, "投刃·切雾", {"track": 0.2, "lead": LEAD})
 	w.cb = func(ww):
 		var v: Vector2 = Vector2.from_angle(float(ww.ang)) * 260.0
@@ -352,25 +318,25 @@ func _d_carpet(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var a0: float = (_pred(0.6) - e.pos).angle()
 	var c: Vector2 = e.pos
 	for j in 4:
-		w_line(e, a0 + PI * 0.5 * j, 660.0, 45.0, 0.9, 0.0, "黑毯" if j == 0 else "", {"lock": j == 0})
+		w_line(e, a0 + PI * 0.5 * j, 330.0, 35.0, 0.9, 0.0, "黑毯" if j == 0 else "", {"lock": j == 0})
 	later(e, 0.9, _cross.bind(e, c, a0))
 	return 1.4
 
 
 func _cross(e: Dictionary, c: Vector2, a0: float) -> void:
 	for j in 4:
-		_lay(e, c, Vector2.from_angle(a0 + PI * 0.5 * j), 660.0, 300.0, 45.0, 0.12, 4.0)
-		_live(e, c, a0 + PI * 0.5 * j, 660.0, 45.0, 660.0 / 300.0)
+		_lay(e, c, Vector2.from_angle(a0 + PI * 0.5 * j), 330.0, 150.0, 35.0, 0.12, 4.0)
+		_live(e, c, a0 + PI * 0.5 * j, 330.0, 35.0, 330.0 / 150.0)
 
 
 ## ---- E 追猎·卷毯（②）：朝队长预判位置冲 300（半宽 30，0.8 / 锁定 0.6），身后拖一条黑毯；
 ## 冲完黑毯从尾端往回卷（300/秒），卷到哪里竖刃竖到哪里（侧走一步就躲开）
 func _e_chase(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var a: float = (_pred(LEAD) - e.pos).angle()
-	var w := w_stab(e, a, 480.0, 36.0, 0.8, 0.22, "追猎·卷毯", {"track": 0.2, "lead": LEAD, "fit_len": true})
+	var w := w_stab(e, a, 300.0, 60.0, 0.8, 0.22, "追猎·卷毯", {"track": 0.2, "lead": LEAD})
 	w.cb = func(ww):
 		var dv: Vector2 = Vector2.from_angle(float(ww.ang))
-		_lay(e, e.pos, dv, 480.0, 2000.0, 36.0, 0.0, 3.0, true)
+		_lay(e, e.pos, dv, 300.0, 2000.0, 30.0, 0.0, 3.0, true)
 		_live(e, e.pos, float(ww.ang), 300.0, RISE_R + 8.0, 1.5)
 	return 1.8
 
@@ -409,18 +375,18 @@ func _g_hunt(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var f: Vector2 = _fwd(e)
 	var base: Vector2 = g.ppos
 	var pts: Array = []
-	for k in 4:
-		pts.append(g.combat.arena_clamp(base + f * (70.0 + 150.0 * k), 60.0))
-	for k in 4:
+	for k in 3:
+		pts.append(g.combat.arena_clamp(base + f * (70.0 + 120.0 * k), 60.0))
+	for k in 3:
 		var p: Vector2 = pts[k]
-		later(e, 0.25 * k, func(): km.add(p, 140.0, "boss", e, 40.0))
+		later(e, 0.25 * k, func(): km.add(p, _kr(e), "boss", e, 40.0))
 	later(e, 0.75, _hunt_burst.bind(e, pts))
 	return 2.0
 
 
 func _hunt_burst(e: Dictionary, pts: Array) -> void:
 	for k in pts.size():
-		w_circle(e, pts[k], 140.0, 1.5, 0.15, "皇帝的猎杀" if k == 0 else "", {"lock": k == 0})
+		w_circle(e, pts[k], _kr(e), 0.9, 0.15, "皇帝的猎杀" if k == 0 else "", {"lock": k == 0})
 
 
 ## 主轴：它的国度碎掉（mech_kingdom._break 通知）；6 秒内碎 3 块 → 踉跄 2.5 秒、受伤 ×1.5
@@ -463,7 +429,7 @@ func draw(e: Dictionary, cv) -> void:
 	if float(e.get("br_until", 0.0)) > g.t:
 		var km = kingdoms()
 		if km != null:
-			var sw: float = (60.0 if _wand(e) else 40.0) * sin(PI * (1.0 - (float(e.br_until) - g.t) / 0.6))
+			var sw: float = (35.0 if _wand(e) else 20.0) * sin(PI * (1.0 - (float(e.br_until) - g.t) / 0.6))
 			for k in km.list:
 				if int(k.owner_id) == int(e.id) and k.kind == "boss":
 					cv.draw_arc(k.pos, float(k.r) + sw, 0.0, TAU, 40, Color(0.2, 0.2, 0.25, 0.45), maxf(2.0, sw * 0.5))
