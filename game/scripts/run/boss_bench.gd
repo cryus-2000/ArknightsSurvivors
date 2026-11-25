@@ -124,7 +124,7 @@ func on_boss_group(slot: int, group: Array) -> Array:
 	if on and stage != 1:
 		return group   # 测试台只跟它自己那一场
 	fights.append({"slot": slot, "group": group.duplicate(), "t0": g.t, "n0": g.bosses.size(), "targets": [], "done": false,
-		"taken": 0.0, "dmg": 0.0, "dmg_brk": 0.0, "brk_t": 0.0, "last_t": g.t, "phases": [], "maxhp0": g.max_hp, "hp0": g.hp})
+		"taken": 0.0, "dmg": 0.0, "dmg_brk": 0.0, "brk_t": 0.0, "last_t": g.t, "phases": [], "maxhp0": g.max_hp, "hp0": g.hp, "moves": {}})
 	if on:
 		stage = 2
 	return group
@@ -146,6 +146,10 @@ func _tick_fights() -> void:
 		for e in f.targets:
 			if e.dead:
 				continue
+			if float(e.get("move_t", -1.0)) > float(e.get("bench_mt", -1.0)):
+				e["bench_mt"] = float(e.move_t)   # 招式出手计数（预警带名字的那一下，telegraph 写 move_name / move_t）
+				var mk: String = str(e.type) + ":" + str(e.get("move_name", ""))
+				f.moves[mk] = int(f.moves.get(mk, 0)) + 1
 			var bh = g.bai.boss(e.type)
 			if float(e.get("break_t", 0.0)) > 0.0 or (bh != null and bh.taken_mult(e) > 1.0):
 				bh_any = true
@@ -188,7 +192,7 @@ func _finish(f: Dictionary, res: String) -> void:
 		"hp0_frac": snappedf(float(f.hp0) / maxf(1.0, float(f.maxhp0)), 0.001), "hp_end_frac": snappedf(maxf(0.0, g.hp) / maxf(1.0, g.max_hp), 0.001),
 		"boss_hp_left": snappedf(hp_left / maxf(1.0, hp_max), 0.001), "boss_maxhp": snappedf(hp_max, 1.0),
 		"dmg": snappedf(f.dmg, 1.0), "brk_dmg_share": snappedf(f.dmg_brk / maxf(1.0, f.dmg), 0.001),
-		"brk_time_share": snappedf(f.brk_t / maxf(0.1, ft), 0.001), "phases": f.phases,
+		"brk_time_share": snappedf(f.brk_t / maxf(0.1, ft), 0.001), "phases": f.phases, "moves": f.moves,
 		"leader": str(g.ch.id) if g.ch != null else "", "squad": g.squad.ids(), "level": g.level, "max_hp": snappedf(g.max_hp, 1.0)}
 	if on:
 		r["snap"] = str(snap.get("name", ""))

@@ -25,6 +25,7 @@ var _seeded := false
 var breaks := 0               # 遥测：本局瓦解数
 var prop_kills := 0
 var in_t := 0.0               # 队长站在国度里的秒数
+var cuts: Array = []          # 投刃切口（利刃 B 投刃·切雾，docs/393 §11.2）：{a, b, w, until}，切口里不算国度
 
 
 func _init(game: Game) -> void:
@@ -95,8 +96,8 @@ func _add_chaos(p: Vector2) -> void:
 func add(p: Vector2, r: float, kind: String, owner, life := -1.0) -> Dictionary:
 	var k := {"pos": p, "r": r, "kind": kind, "crack": 0.0, "props": [], "owner_id": int(owner.id) if owner != null else -1,
 		"owner_type": str(owner.type) if owner != null else "", "life": life, "born": g.t, "far_t": 0.0, "dps": 0.0}
-	if kind != "chaos":
-		var mine: Array = list.filter(func(x): return x.kind != "chaos")
+	if kind != "chaos" and kind != "carpet":
+		var mine: Array = list.filter(func(x): return x.kind != "chaos" and x.kind != "carpet")
 		if mine.size() >= BOSS_CAP:
 			_remove(mine[0], false)
 	list.append(k)
@@ -141,14 +142,36 @@ func _spawn_props(k: Dictionary) -> void:
 		k.props.append(int(e.id))
 
 
+## 黑毯（利刃 D 黑毯 / E 追猎·卷毯，docs/393 §11.2）：a→b 的条带临时国度，半宽 hw、life 秒；不连片、不长裂纹、不占 12 块上限
+func add_strip(a: Vector2, b: Vector2, hw: float, owner, life: float) -> Dictionary:
+	var k := add(a, hw, "carpet", owner, life)
+	k["b"] = b
+	return k
+
+
+func add_cut(a: Vector2, b: Vector2, w: float, dur: float) -> Dictionary:
+	var c := {"a": a, "b": b, "w": w, "until": g.t + dur}
+	cuts.append(c)
+	return c
+
+
+func _in_cut(p: Vector2) -> bool:
+	for c in cuts:
+		if float(c.until) > g.t and Geometry2D.get_closest_point_to_segment(p, c.a, c.b).distance_to(p) < float(c.w):
+			return true
+	return false
+
+
 ## 点 p 在不在国度里（含连接带）；kinds 为空 = 全部种类
 func inside(p: Vector2, kinds: Array = []) -> bool:
 	return at(p, kinds) != null
 
 
 func at(p: Vector2, kinds: Array = []):
+	if not cuts.is_empty() and _in_cut(p):
+		return null
 	for k in list:
-		if (kinds.is_empty() or k.kind in kinds) and p.distance_to(k.pos) < k.r:
+		if (kinds.is_empty() or k.kind in kinds) and _kd(p, k) < k.r:
 			return k
 	if _links_dirty:
 		_relink()
@@ -161,6 +184,10 @@ func at(p: Vector2, kinds: Array = []):
 		if p.distance_to(q) < float(l[2]):
 			return a if p.distance_to(a.pos) < p.distance_to(b.pos) else b
 	return null
+
+
+func _kd(p: Vector2, k: Dictionary) -> float:
+	return Geometry2D.get_closest_point_to_segment(p, k.pos, k.b).distance_to(p) if k.has("b") else p.distance_to(k.pos)
 
 
 func _link_dist(k: Dictionary) -> float:
@@ -176,11 +203,11 @@ func _relink() -> void:
 	var lk: Dictionary = K.get("link", {})
 	for i in list.size():
 		var a: Dictionary = list[i]
-		if a.kind == "nursery":
+		if a.kind == "nursery" or a.kind == "carpet":
 			continue
 		for j in range(i + 1, list.size()):
 			var b: Dictionary = list[j]
-			if b.kind == "nursery":
+			if b.kind == "nursery" or b.kind == "carpet":
 				continue
 			var ld: float = maxf(_link_dist(a), _link_dist(b))
 			if a.pos.distance_to(b.pos) < ld:
@@ -203,7 +230,7 @@ func on_kill(e: Dictionary) -> void:
 	var best = null
 	var bd := INF
 	for k in list:
-		if k.kind == "nursery":
+		if k.kind == "nursery" or k.kind == "carpet":
 			continue
 		var d: float = e.pos.distance_to(k.pos) - k.r
 		if d < edge and d < bd:
@@ -211,7 +238,7 @@ func on_kill(e: Dictionary) -> void:
 			best = k
 	if best == null:
 		var k2 = at(e.pos)
-		if k2 != null and k2.kind != "nursery":
+		if k2 != null and k2.kind != "nursery" and k2.kind != "carpet":
 			best = k2
 	if best != null:
 		best.crack += float(K.get("crack", {}).get("per_kill", 0.08))
@@ -279,7 +306,9 @@ func clear_owner(owner_id: int) -> void:
 
 
 func on_world_tick(dt: float) -> void:
-	# 限时地块（苗圃、Boss 小块）
+	# 限时地块（苗圃、Boss 小块、黑毯）；过期切口
+	if not cuts.is_empty():
+		cuts = cuts.filter(func(c): return float(c.until) > g.t)
 	for k in list.duplicate():
 		if float(k.life) > 0.0 and g.t - float(k.born) >= float(k.life):
 			_remove(k, false)
@@ -364,6 +393,11 @@ func draw_ground(_w) -> void:
 	for l in links:
 		cv.draw_line(l[0].pos, l[1].pos, Color(0.35, 0.3, 0.5, 0.28), float(l[2]) * 2.0)
 	for k in list:
+		if k.has("b"):
+			cv.draw_line(k.pos, k.b, Color(0.08, 0.08, 0.1, 0.45), float(k.r) * 2.0)
+			cv.draw_circle(k.pos, k.r, Color(0.08, 0.08, 0.1, 0.45))
+			cv.draw_circle(k.b, k.r, Color(0.08, 0.08, 0.1, 0.45))
+			continue
 		var col: Color = Color(0.75, 0.85, 0.35, 0.22) if k.kind == "nursery" else (Color(0.35, 0.3, 0.55, 0.3) if k.kind == "chaos" else Color(0.15, 0.15, 0.2, 0.35))
 		cv.draw_circle(k.pos, k.r, col)
 		cv.draw_arc(k.pos, k.r, 0.0, TAU, 40, Color(col.r + 0.3, col.g + 0.3, col.b + 0.3, 0.6), 2.0)
@@ -373,6 +407,8 @@ func draw_ground(_w) -> void:
 			var e = g.enemies_sys.by_id(int(pid))
 			if e != null and not e.dead:
 				cv.draw_line(k.pos, e.pos, Color(0.6, 0.8, 1.0, 0.35), 1.5)
+	for c in cuts:
+		cv.draw_line(c.a, c.b, Color(0.85, 0.88, 0.95, 0.3 * clampf((float(c.until) - g.t) / 0.5, 0.0, 1.0)), float(c.w) * 2.0)
 
 
 ## 机器人：候选点在国度里扣分（攻速 −50% 的区域尽量不站）
