@@ -104,7 +104,7 @@ func all_moves(e: Dictionary) -> Array:
 
 ## 主轴收益（docs/392 §15.1 A「冰甲」）：平时受伤 ×0.5；银凇碎后 8 秒 ×1.5
 func base_taken(e: Dictionary) -> float:
-	return 0.35 if float(e.get("tree_vuln", 0.0)) <= g.t else 2.0
+	return 0.25 if float(e.get("tree_vuln", 0.0)) <= g.t else 2.5
 
 
 ## ---- 冰凌列：以 x 为列（宽 80），从北往南每 0.2 秒落一根；碰到完好银凇 / 冰桩 / 冰峰就停，银凇记一次

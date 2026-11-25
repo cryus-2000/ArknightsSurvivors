@@ -999,7 +999,7 @@
    "decisive": {
     "spd_k": 2.0,
     "cd_k": 0.6,
-    "taken": 0.7,
+    "taken": 1.0,
     "spd": 100.0
    },
    "first_down_reward": false,
@@ -1053,7 +1053,7 @@
    "decisive": {
     "spd_k": 2.0,
     "cd_k": 0.6,
-    "taken": 0.7,
+    "taken": 1.0,
     "spd": 100.0
    },
    "first_down_reward": false
