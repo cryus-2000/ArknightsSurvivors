@@ -88,6 +88,8 @@ func _role(e: Dictionary, c: Dictionary, m) -> String:
 
 func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mate) -> void:
 	tick(e, dt)
+	if _khan(e):
+		ambient(e, dt, "sand")
 	var c := _ctl(e)
 	var m = mate_of(e)
 	if _khan(e) or m == null or m.dead:

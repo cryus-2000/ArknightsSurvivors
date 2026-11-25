@@ -13,6 +13,7 @@ const STOP_R := 60.0
 func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mate) -> void:
 	tick(e, dt)
 	obst_tick(e)
+	ambient(e, dt, "shard")
 	var c: Vector2 = center(e)
 	if not e.has("stops"):
 		e["stops"] = []
