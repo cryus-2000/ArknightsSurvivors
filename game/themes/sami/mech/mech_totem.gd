@@ -2,7 +2,7 @@ extends "res://scripts/core/theme_mechanic.gd"
 ## 萨米主题机制 · 密文板（docs/394 §5 规则与数值、docs/411 本批范围；数据读 themes/sami/data/mechanics.json totem）。
 ## 布局（何时生效）+ 本因（给什么）组成一次宣告：随时按 T / 手柄 Y / 触屏「密文」键 → 暂停面板 → 选布局 → 选本因 →（自选时机）→ 两块消耗，坍缩值 −1。
 ## 同色或全色布局触发协语（本因按 synergy 结算）；无色空无 / 伤痕只能互配，宣告后下一个路口出结局二入口卡「木裂前兆」。
-## 时机：fight（立刻 N 秒 / 精英 / Boss / 中期 Boss / 大群 / 本阶段剩余）与 cross（下一个 / 之后 / 接下来 n 个 / 剩下所有路口）。
+## 时机：fight（立刻 N 秒 / 精英 / Boss / 中期 Boss / 敌群来袭 / 本阶段剩余）与 cross（下一个 / 之后 / 接下来 n 个 / 剩下所有路口）。
 ##   战斗类本因只在 fight 时机生效，路口类只在 cross 时机生效，「经过」类在每个时机结束时结算一次。
 ## 本批不进掉落池：带 needs 的 6 块（依赖萨米事件 / 招募卡 / 抗干扰）；协语友军「精英干员临时加入」下批（辩论协语只结算普通版）。
 ## 随机数走自己的 rng（种子 = 局种子 + "totem"），不动主 rng；机器人（g.bot）不开面板，直接按策略宣告。
@@ -283,7 +283,7 @@ func _ttext(t: Dictionary) -> String:
 		"next_elites":
 			return "接下来 %d 场精英" % int(t.get("n", 1))
 		"next_hordes":
-			return "接下来 %d 次大群" % int(t.get("n", 1))
+			return "接下来 %d 次敌群来袭" % int(t.get("n", 1))
 		"next_crosses":
 			return "接下来 %d 个路口" % int(t.get("n", 1))
 		"random":
