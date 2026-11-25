@@ -247,6 +247,7 @@ func _breath(e: Dictionary, km) -> void:
 func _a_cleave(e: Dictionary, dir: Vector2, _d: float) -> float:
 	var w := w_cone(e, dir.angle(), PI / 3.0, 130.0, 1.4, 0.20, "斩击·竖刃", {"track": 0.3})
 	w.cb = func(ww):
+		_fx("slash", e.pos, float(ww.ang))
 		for i in 5:
 			var a: float = float(ww.ang) + lerpf(-PI / 3.0 + 0.15, PI / 3.0 - 0.15, float(i) / 4.0)
 			var rr: float = 95.0 if i % 2 == 0 else 120.0
@@ -290,6 +291,7 @@ func _c_burst(e: Dictionary, _dir: Vector2, _d: float) -> float:
 func _burst_one(e: Dictionary, kp: Vector2, kr: float, dur: float, nm: String) -> void:
 	var w := w_circle(e, kp, kr, dur, 0.15, nm)
 	w.cb = func(_ww): _burst_slide(e, kp, kr)
+	_fx("erupt", kp, kr, dur)
 
 
 func _burst_slide(e: Dictionary, kp: Vector2, kr: float) -> void:
@@ -347,7 +349,9 @@ func _f_rain(e: Dictionary, _dir: Vector2, _d: float) -> float:
 				p = _pred(0.3)
 			var nm: String = "国度刃雨" if first else ""
 			first = false
-			later(e, 0.15 * j + 0.05 * n, func(): w_circle(e, p, 24.0, 0.7, 0.10, nm, {"lock": false}))
+			later(e, 0.15 * j + 0.05 * n, func():
+				w_circle(e, p, 24.0, 0.7, 0.10, nm, {"lock": false})
+				_fx("rain", p, 24.0, 0.7))
 		n += 1
 	return 1.3 + 0.05 * n
 
@@ -372,6 +376,7 @@ func _g_hunt(e: Dictionary, _dir: Vector2, _d: float) -> float:
 func _hunt_burst(e: Dictionary, pts: Array) -> void:
 	for k in pts.size():
 		w_circle(e, pts[k], _kr(e), 0.9, 0.15, "皇帝的猎杀" if k == 0 else "", {"lock": k == 0})
+		_fx("erupt", pts[k], _kr(e), 0.9)
 
 
 ## 主轴：它的国度碎掉（mech_kingdom._break 通知）；6 秒内碎 3 块 → 踉跄 2.5 秒、受伤 ×1.5
@@ -388,6 +393,10 @@ func on_kingdom_break(e: Dictionary) -> void:
 
 ## ---- 占位画面（fx-declutter 换正式特效）：竖刃 = 竖立的白芯黑刃，大刃片 = 旋转的黑菱形，黑毯 = 铺开的暗带，呼吸 = 国度外一圈薄雾
 func draw(e: Dictionary, cv) -> void:
+	var fxm = g.mech("fx")
+	if fxm != null:
+		fxm.blade_draw(e)   # 正式特效（themes/sami/mech/mech_fx.gd，docs/401 §11）；没有 fx 机制时画下面的占位
+		return
 	var cb: Color = col(e)
 	for c in e.get("cps", []):
 		if float(c.front) > 0.0 and c.get("k") == null:
@@ -418,6 +427,13 @@ func draw(e: Dictionary, cv) -> void:
 			for k in km.list:
 				if int(k.owner_id) == int(e.id) and k.kind == "boss":
 					cv.draw_arc(k.pos, float(k.r) + sw, 0.0, TAU, 40, Color(0.2, 0.2, 0.25, 0.45), maxf(2.0, sw * 0.5))
+
+
+## 特效挂钩：只画，不改玩法状态
+func _fx(kind: String, p: Vector2, a := 0.0, b := 0.0) -> void:
+	var fxm = g.mech("fx")
+	if fxm != null:
+		fxm.blade_event(kind, p, a, b)
 
 
 ## 机器人主轴（同前）：没有 axis_do 覆写 = 走 mech_kingdom.bot_score（不站国度）+ 通用躲招

@@ -1,7 +1,7 @@
 extends Node
 ## 萨米敌人攻击特效试点演示（docs/401 §4 / §9）：--theme=sami 下跑正式 enemies_sys / Boss 脚本 / 弹幕 / 预警。
 ## 每个镜头录两遍：先 1 倍全景，再 2 倍放大中心（同种子重放，画面一致）。镜头：染污躯壳（爪击 + 受击暴冲）→ 歪曲施法者（黑针法术弹）
-## → 冰爆源石虫（死亡冰爆）→ 邪魔的利刃逐招（斩击 / 投刃 / 回旋 / 国度爆发 / 追猎 / 刃雨，每招一个镜头）。
+## → 冰爆源石虫（死亡冰爆）→ 邪魔的利刃逐招（docs/393 §11.2 七招 + 呼吸，每招一个镜头；队长绕小圈走，看瞄准 / 落点跟人）。
 ## 队长不会死（每帧补满血，照常挨打好看命中件）；水下滤镜（含暗角）关掉。
 ## 录像：--write-movie <avi> --fixed-fps 30，加 --nokingdomdraw 不画国度占位（国度画面暂停）；--seg=N 只录第 N 个镜头；--z1 只录 1 倍不放大；--check 无头只跑模拟。
 var g
@@ -9,7 +9,8 @@ var title: Label
 var base_zoom := Vector2.ONE
 const DT := 1.0 / 30.0
 const O := Vector2(0, 0)
-const BLADE_MOVES := ["斩击", "投刃", "回旋", "国度爆发", "追猎", "刃雨"]
+const BLADE_MOVES := ["斩击·竖刃", "投刃·切雾", "国度爆发", "黑毯", "追猎·卷毯", "国度刃雨"]   # docs/393 §11.2 新招
+const KINGDOM_SEGS := ["国度爆发", "国度刃雨"]   # 这几镜先摆 3 块它的国度
 
 
 func _shots() -> Array:
@@ -19,7 +20,9 @@ func _shots() -> Array:
 		{"name": "冰爆源石虫 · 死亡冰爆", "dur": 5.0, "spawn": [["icebug", 4, 110.0]], "kill": "icebug"},
 	]
 	for m in BLADE_MOVES:
-		a.append({"name": "邪魔的利刃 · " + m, "dur": 3.6 if m != "国度爆发" else 3.2, "boss": "blade", "move": m, "rad": 0.0})
+		a.append({"name": "邪魔的利刃 · " + m, "dur": 3.6, "boss": "blade", "move": m, "rad": 45.0})
+	a.append({"name": "邪魔的利刃，游荡者 · 皇帝的猎杀", "dur": 3.6, "boss": "wanderer", "move": "皇帝的猎杀", "rad": 45.0})
+	a.append({"name": "邪魔的利刃 · 呼吸（国度外胀）", "dur": 4.2, "boss": "blade", "rad": 0.0, "kd": true})
 	return a
 
 
@@ -128,6 +131,8 @@ func setup(seg: Dictionary) -> void:
 		fx.parts.clear()
 		fx.rushers.clear()
 		fx.marks.clear()
+		fx.bevents.clear()
+		fx.blade_list.clear()
 	var foes = g.mech("foes")
 	if foes != null:
 		foes.ices.clear()
@@ -150,11 +155,12 @@ func setup(seg: Dictionary) -> void:
 		e.friendly = false
 		e.hp = 1e9
 		e.maxhp = 1e9
+		e.busy_t = 1e9   # 不自己挑招，只放镜头指定的那招
 		e.lay_t = 1e9   # 镜头里不自己再铺国度（国度画面暂停；国度爆发只用下面摆好的几块）
 		g.enemies.append(e)
 		g.bosses = [e]
 		g.boss = e
-		if km != null and str(seg.get("move", "")) == "国度爆发":
+		if km != null and (str(seg.get("move", "")) in KINGDOM_SEGS or seg.get("kd", false)):
 			for k in 3:
 				km.add(O + Vector2(-150 + 150 * k, 110 - 70 * (k % 2)), 70.0, "boss", e, 40.0)
 
