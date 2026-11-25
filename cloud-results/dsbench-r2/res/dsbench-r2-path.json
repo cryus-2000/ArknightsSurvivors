@@ -1,0 +1,1614 @@
+{
+ "tag": "dsbench-r2-path",
+ "game": "/home/user/ArknightsSurvivors/game",
+ "records": [
+  {
+   "boss": "path",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 1,
+   "wall": 21.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 0.513,
+   "brk_dmg_share": 0.624,
+   "brk_time_share": 0.382,
+   "bul_avg": 25.3,
+   "bul_peak": 62,
+   "dmg": 28415.0,
+   "fight_t": 97.2,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.3|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:wisadel|op:wisadel\",\"1|0.18|lshape:kaltsit|op:kaltsit\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.822,
+   "leader": "kaltsit",
+   "level": 14,
+   "max_hp": 140.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "kaltsit_m0_s1_slot1",
+   "squad": [
+    "kaltsit",
+    "wisadel",
+    "siege"
+   ],
+   "taken": 483.7,
+   "taken_pct": 3.445,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 2,
+   "wall": 15.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.594,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 0.527,
+   "brk_dmg_share": 0.503,
+   "brk_time_share": 0.372,
+   "bul_avg": 20.8,
+   "bul_peak": 42,
+   "dmg": 11540.0,
+   "fight_t": 36.9,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.12|lshape:gladiia|op:gladiia\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|0.3|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.18|lshape:kaltsit|op:kaltsit\",\"1|0.25|lshape:gladiia|op:gladiia\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "kaltsit",
+   "level": 13,
+   "max_hp": 146.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "kaltsit_m0_s2_slot1",
+   "squad": [
+    "kaltsit",
+    "irene",
+    "gladiia"
+   ],
+   "taken": 291.8,
+   "taken_pct": 2.078,
+   "win": false
+  },
+  {
+   "boss": "path",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 3,
+   "wall": 22.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 0.075,
+   "brk_dmg_share": 0.454,
+   "brk_time_share": 0.373,
+   "bul_avg": 27.2,
+   "bul_peak": 60,
+   "dmg": 28415.0,
+   "fight_t": 97.4,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.3|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.15|lshape:texas|op:texas\",\"1|0.18|lshape:kaltsit|op:kaltsit\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.993,
+   "leader": "kaltsit",
+   "level": 14,
+   "max_hp": 140.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "kaltsit_m0_s3_slot1",
+   "squad": [
+    "kaltsit",
+    "eyjafjalla",
+    "texas"
+   ],
+   "taken": 433.8,
+   "taken_pct": 3.09,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 4,
+   "wall": 16.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 24153.0,
+   "boss_src_share": 0.94,
+   "brk_dmg_share": 0.449,
+   "brk_time_share": 0.307,
+   "bul_avg": 28.3,
+   "bul_peak": 67,
+   "dmg": 24153.0,
+   "fight_t": 43.2,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.75|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.45|lshape:kaltsit|op:kaltsit\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.97,
+   "leader": "kaltsit",
+   "level": 13,
+   "max_hp": 126.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "kaltsit_m0_s4_slot1",
+   "squad": [
+    "kaltsit",
+    "logos",
+    "skadi"
+   ],
+   "taken": 46.8,
+   "taken_pct": 0.333,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 5,
+   "wall": 18.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 0.785,
+   "brk_dmg_share": 0.443,
+   "brk_time_share": 0.388,
+   "bul_avg": 27.8,
+   "bul_peak": 64,
+   "dmg": 28415.0,
+   "fight_t": 68.8,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.75|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:eyjafjalla|op:eyjafjalla\",\"1|0.45|lshape:kaltsit|op:kaltsit\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 14,
+   "max_hp": 105.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "kaltsit_m0_s5_slot1",
+   "squad": [
+    "kaltsit",
+    "eyjafjalla",
+    "lumen"
+   ],
+   "taken": 125.1,
+   "taken_pct": 1.188,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 6,
+   "wall": 19.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 0.642,
+   "brk_dmg_share": 0.237,
+   "brk_time_share": 0.172,
+   "bul_avg": 32.0,
+   "bul_peak": 64,
+   "dmg": 28415.0,
+   "fight_t": 78.9,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.75|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.15|lshape:ulpianus|op:ulpianus\",\"1|0.45|lshape:kaltsit|op:kaltsit\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.636,
+   "leader": "kaltsit",
+   "level": 14,
+   "max_hp": 146.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "kaltsit_m0_s6_slot1",
+   "squad": [
+    "kaltsit",
+    "ulpianus",
+    "wisadel"
+   ],
+   "taken": 239.7,
+   "taken_pct": 1.707,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 1,
+   "wall": 20.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 0.365,
+   "brk_dmg_share": 0.446,
+   "brk_time_share": 0.357,
+   "bul_avg": 29.1,
+   "bul_peak": 68,
+   "dmg": 28415.0,
+   "fight_t": 88.5,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.75|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.15|lshape:specter_unchained|op:specter_unchained\",\"1|0.45|lshape:kaltsit|op:kaltsit\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.828,
+   "leader": "kaltsit",
+   "level": 14,
+   "max_hp": 157.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "kaltsit_m18_s1_slot1",
+   "squad": [
+    "kaltsit",
+    "wisadel",
+    "specter_unchained"
+   ],
+   "taken": 399.2,
+   "taken_pct": 2.539,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 2,
+   "wall": 19.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 0.614,
+   "brk_dmg_share": 0.474,
+   "brk_time_share": 0.357,
+   "bul_avg": 27.8,
+   "bul_peak": 65,
+   "dmg": 28415.0,
+   "fight_t": 72.1,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.75|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.15|lshape:texas|op:texas\",\"1|0.45|lshape:kaltsit|op:kaltsit\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 14,
+   "max_hp": 157.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "kaltsit_m18_s2_slot1",
+   "squad": [
+    "kaltsit",
+    "skalter",
+    "texas"
+   ],
+   "taken": 31.5,
+   "taken_pct": 0.2,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 3,
+   "wall": 18.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 0.682,
+   "brk_dmg_share": 0.484,
+   "brk_time_share": 0.345,
+   "bul_avg": 27.7,
+   "bul_peak": 59,
+   "dmg": 28415.0,
+   "fight_t": 56.3,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.3|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:eyjafjalla|op:eyjafjalla\",\"1|0.18|lshape:kaltsit|op:kaltsit\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.881,
+   "leader": "kaltsit",
+   "level": 13,
+   "max_hp": 167.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "kaltsit_m18_s3_slot1",
+   "squad": [
+    "kaltsit",
+    "eyjafjalla",
+    "logos"
+   ],
+   "taken": 153.7,
+   "taken_pct": 0.919,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 4,
+   "wall": 14.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 0.298,
+   "brk_dmg_share": 0.437,
+   "brk_time_share": 0.292,
+   "bul_avg": 27.7,
+   "bul_peak": 72,
+   "dmg": 28415.0,
+   "fight_t": 27.1,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.75|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:logos|op:logos\",\"1|0.45|lshape:kaltsit|op:kaltsit\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.918,
+   "leader": "kaltsit",
+   "level": 13,
+   "max_hp": 157.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "kaltsit_m18_s4_slot1",
+   "squad": [
+    "kaltsit",
+    "logos",
+    "irene"
+   ],
+   "taken": 102.7,
+   "taken_pct": 0.653,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 5,
+   "wall": 19.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 0.371,
+   "brk_dmg_share": 0.472,
+   "brk_time_share": 0.355,
+   "bul_avg": 28.4,
+   "bul_peak": 65,
+   "dmg": 28415.0,
+   "fight_t": 73.7,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.75|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:exusiai|op:exusiai\",\"1|0.45|lshape:kaltsit|op:kaltsit\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.983,
+   "leader": "kaltsit",
+   "level": 14,
+   "max_hp": 227.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "kaltsit_m18_s5_slot1",
+   "squad": [
+    "kaltsit",
+    "exusiai",
+    "eyjafjalla"
+   ],
+   "taken": 184.5,
+   "taken_pct": 1.173,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 6,
+   "wall": 16.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.233,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 0.592,
+   "brk_dmg_share": 0.438,
+   "brk_time_share": 0.343,
+   "bul_avg": 28.3,
+   "bul_peak": 64,
+   "dmg": 21782.0,
+   "fight_t": 37.5,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.12|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|0.75|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.25|lshape:suzuran|op:suzuran\",\"1|0.45|lshape:kaltsit|op:kaltsit\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "kaltsit",
+   "level": 13,
+   "max_hp": 142.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "kaltsit_m18_s6_slot1",
+   "squad": [
+    "kaltsit",
+    "suzuran",
+    "specter_unchained"
+   ],
+   "taken": 292.8,
+   "taken_pct": 2.069,
+   "win": false
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 1,
+   "wall": 17.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.478,
+   "brk_time_share": 0.349,
+   "bul_avg": 29.3,
+   "bul_peak": 64,
+   "dmg": 28415.0,
+   "fight_t": 59.6,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.12|lshape:angelina|op:angelina\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.25|lshape:angelina|op:angelina\",\"1|0.375|lshape:skadi|op:skadi\"] 多 []",
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.936,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 137.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m0_s1_slot1",
+   "squad": [
+    "skadi",
+    "wisadel",
+    "angelina"
+   ],
+   "taken": 114.4,
+   "taken_pct": 0.835,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 2,
+   "wall": 15.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 0.836,
+   "brk_dmg_share": 0.372,
+   "brk_time_share": 0.291,
+   "bul_avg": 28.8,
+   "bul_peak": 63,
+   "dmg": 28415.0,
+   "fight_t": 29.5,
+   "fp_diff": [
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:eyjafjalla\",\"2|1.25|command|op:logos\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:eyjafjalla|op:eyjafjalla\",\"1|0.08|lshape:logos|op:logos\",\"1|0.15|lshape:skadi|op:skadi\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:eyjafjalla\",\"2|1.5|command|op:logos\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.872,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 160.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m0_s2_slot1",
+   "squad": [
+    "skadi",
+    "eyjafjalla",
+    "logos"
+   ],
+   "taken": 55.4,
+   "taken_pct": 0.347,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 3,
+   "wall": 16.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.487,
+   "brk_time_share": 0.337,
+   "bul_avg": 27.4,
+   "bul_peak": 69,
+   "dmg": 28415.0,
+   "fight_t": 44.9,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.15|lshape:hoshiguma|op:hoshiguma\",\"1|0.375|lshape:skadi|op:skadi\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.875,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m0_s3_slot1",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "exusiai"
+   ],
+   "taken": 129.2,
+   "taken_pct": 0.849,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 4,
+   "wall": 17.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.359,
+   "brk_time_share": 0.329,
+   "bul_avg": 27.2,
+   "bul_peak": 64,
+   "dmg": 28415.0,
+   "fight_t": 52.2,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.15|lshape:irene|op:irene\",\"1|0.15|lshape:skadi|op:skadi\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.793,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m0_s4_slot1",
+   "squad": [
+    "skadi",
+    "irene",
+    "suzuran"
+   ],
+   "taken": 141.2,
+   "taken_pct": 0.928,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 5,
+   "wall": 14.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.78,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.541,
+   "brk_time_share": 0.347,
+   "bul_avg": 16.6,
+   "bul_peak": 35,
+   "dmg": 6264.0,
+   "fight_t": 22.4,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.15|lshape:skadi|op:skadi\",\"1|0.15|lshape:texas|op:texas\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "skadi_m0_s5_slot1",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "texas"
+   ],
+   "taken": 179.5,
+   "taken_pct": 1.18,
+   "win": false
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 6,
+   "wall": 18.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 0.584,
+   "brk_dmg_share": 0.396,
+   "brk_time_share": 0.337,
+   "bul_avg": 29.2,
+   "bul_peak": 80,
+   "dmg": 28415.0,
+   "fight_t": 57.9,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.12|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.15|lshape:skadi|op:skadi\",\"1|0.25|lshape:suzuran|op:suzuran\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m0_s6_slot1",
+   "squad": [
+    "skadi",
+    "lumen",
+    "suzuran"
+   ],
+   "taken": 137.4,
+   "taken_pct": 0.904,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 1,
+   "wall": 17.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.45,
+   "brk_time_share": 0.324,
+   "bul_avg": 28.6,
+   "bul_peak": 60,
+   "dmg": 28415.0,
+   "fight_t": 61.6,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.15|lshape:hoshiguma|op:hoshiguma\",\"1|0.375|lshape:skadi|op:skadi\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.879,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 170.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s1_slot1",
+   "squad": [
+    "skadi",
+    "wisadel",
+    "hoshiguma"
+   ],
+   "taken": 113.5,
+   "taken_pct": 0.666,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 2,
+   "wall": 18.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 0.824,
+   "brk_dmg_share": 0.357,
+   "brk_time_share": 0.313,
+   "bul_avg": 30.1,
+   "bul_peak": 59,
+   "dmg": 28415.0,
+   "fight_t": 63.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.12|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.15|lshape:skadi|op:skadi\",\"1|0.25|lshape:suzuran|op:suzuran\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 170.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s2_slot1",
+   "squad": [
+    "skadi",
+    "lumen",
+    "suzuran"
+   ],
+   "taken": 66.5,
+   "taken_pct": 0.39,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 3,
+   "wall": 17.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 0.952,
+   "brk_dmg_share": 0.44,
+   "brk_time_share": 0.332,
+   "bul_avg": 28.6,
+   "bul_peak": 61,
+   "dmg": 28415.0,
+   "fight_t": 48.9,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.15|lshape:hoshiguma|op:hoshiguma\",\"1|0.375|lshape:skadi|op:skadi\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.69,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 170.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s3_slot1",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "skalter"
+   ],
+   "taken": 127.8,
+   "taken_pct": 0.75,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 4,
+   "wall": 16.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 0.671,
+   "brk_dmg_share": 0.413,
+   "brk_time_share": 0.362,
+   "bul_avg": 27.8,
+   "bul_peak": 53,
+   "dmg": 28415.0,
+   "fight_t": 33.2,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.375|lshape:skadi|op:skadi\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 170.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s4_slot1",
+   "squad": [
+    "skadi",
+    "irene",
+    "suzuran"
+   ],
+   "taken": 12.7,
+   "taken_pct": 0.074,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 5,
+   "wall": 17.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 0.753,
+   "brk_dmg_share": 0.453,
+   "brk_time_share": 0.324,
+   "bul_avg": 28.8,
+   "bul_peak": 63,
+   "dmg": 28415.0,
+   "fight_t": 54.2,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.15|lshape:hoshiguma|op:hoshiguma\",\"1|0.375|lshape:skadi|op:skadi\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 170.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s5_slot1",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "specter_unchained"
+   ],
+   "taken": 44.6,
+   "taken_pct": 0.262,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 6,
+   "wall": 17.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.351,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 0.439,
+   "brk_dmg_share": 0.488,
+   "brk_time_share": 0.365,
+   "bul_avg": 26.7,
+   "bul_peak": 59,
+   "dmg": 18445.0,
+   "fight_t": 45.1,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.08|lshape:lumen|op:lumen\",\"1|0.375|lshape:skadi|op:skadi\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 170.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "skadi_m18_s6_slot1",
+   "squad": [
+    "skadi",
+    "exusiai",
+    "lumen"
+   ],
+   "taken": 284.9,
+   "taken_pct": 1.672,
+   "win": false
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 1,
+   "wall": 18.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.451,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 0.491,
+   "brk_dmg_share": 0.256,
+   "brk_time_share": 0.218,
+   "bul_avg": 24.7,
+   "bul_peak": 69,
+   "dmg": 15603.0,
+   "fight_t": 64.0,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.08|lshape:wisadel|op:wisadel\",\"1|0.15|lshape:hoshiguma|op:hoshiguma\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "wisadel_m0_s1_slot1",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "ulpianus"
+   ],
+   "taken": 175.0,
+   "taken_pct": 1.36,
+   "win": false
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 2,
+   "wall": 20.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 0.599,
+   "brk_dmg_share": 0.441,
+   "brk_time_share": 0.376,
+   "bul_avg": 27.7,
+   "bul_peak": 56,
+   "dmg": 28415.0,
+   "fight_t": 69.0,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.15|lshape:saria|op:saria\",\"1|0.2|lshape:wisadel|op:wisadel\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.97,
+   "leader": "wisadel",
+   "level": 14,
+   "max_hp": 144.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s2_slot1",
+   "squad": [
+    "wisadel",
+    "saria",
+    "skalter"
+   ],
+   "taken": 121.9,
+   "taken_pct": 0.846,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 3,
+   "wall": 21.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 0.522,
+   "brk_dmg_share": 0.669,
+   "brk_time_share": 0.359,
+   "bul_avg": 27.6,
+   "bul_peak": 62,
+   "dmg": 28415.0,
+   "fight_t": 100.8,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.12|lshape:angelina|op:angelina\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:wisadel|op:wisadel\",\"1|0.25|lshape:angelina|op:angelina\"] 多 []",
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 14,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s3_slot1",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "angelina"
+   ],
+   "taken": 117.5,
+   "taken_pct": 0.913,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 4,
+   "wall": 15.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.77,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 0.889,
+   "brk_dmg_share": 0.448,
+   "brk_time_share": 0.299,
+   "bul_avg": 21.4,
+   "bul_peak": 34,
+   "dmg": 6539.0,
+   "fight_t": 21.4,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.08|lshape:wisadel|op:wisadel\",\"1|0.15|lshape:texas|op:texas\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "wisadel_m0_s4_slot1",
+   "squad": [
+    "wisadel",
+    "angelina",
+    "texas"
+   ],
+   "taken": 143.4,
+   "taken_pct": 1.114,
+   "win": false
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 5,
+   "wall": 22.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 0.51,
+   "brk_dmg_share": 0.09,
+   "brk_time_share": 0.095,
+   "bul_avg": 28.5,
+   "bul_peak": 56,
+   "dmg": 28415.0,
+   "fight_t": 96.8,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.08|lshape:wisadel|op:wisadel\",\"1|0.15|lshape:saria|op:saria\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 14,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s5_slot1",
+   "squad": [
+    "wisadel",
+    "saria",
+    "mizuki"
+   ],
+   "taken": 128.2,
+   "taken_pct": 0.996,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 6,
+   "wall": 20.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.472,
+   "brk_time_share": 0.352,
+   "bul_avg": 29.2,
+   "bul_peak": 64,
+   "dmg": 28415.0,
+   "fight_t": 78.7,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.08|lshape:wisadel|op:wisadel\",\"1|0.15|lshape:hoshiguma|op:hoshiguma\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 14,
+   "max_hp": 127.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s6_slot1",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "saria"
+   ],
+   "taken": 57.5,
+   "taken_pct": 0.447,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 1,
+   "wall": 18.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.222,
+   "brk_time_share": 0.132,
+   "bul_avg": 26.8,
+   "bul_peak": 68,
+   "dmg": 28415.0,
+   "fight_t": 46.7,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.15|lshape:ulpianus|op:ulpianus\",\"1|0.2|lshape:wisadel|op:wisadel\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 130.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s1_slot1",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "ulpianus"
+   ],
+   "taken": 46.1,
+   "taken_pct": 0.32,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 2,
+   "wall": 16.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.421,
+   "brk_time_share": 0.325,
+   "bul_avg": 28.3,
+   "bul_peak": 62,
+   "dmg": 28415.0,
+   "fight_t": 40.8,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.15|lshape:hoshiguma|op:hoshiguma\",\"1|0.2|lshape:wisadel|op:wisadel\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.992,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 144.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s2_slot1",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "eyjafjalla"
+   ],
+   "taken": 55.3,
+   "taken_pct": 0.384,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 3,
+   "wall": 15.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 0.671,
+   "brk_dmg_share": 0.464,
+   "brk_time_share": 0.369,
+   "bul_avg": 28.8,
+   "bul_peak": 64,
+   "dmg": 28415.0,
+   "fight_t": 34.5,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.08|lshape:logos|op:logos\",\"1|0.08|lshape:wisadel|op:wisadel\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.597,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 151.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s3_slot1",
+   "squad": [
+    "wisadel",
+    "logos",
+    "texas"
+   ],
+   "taken": 131.1,
+   "taken_pct": 0.866,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 4,
+   "wall": 18.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 0.702,
+   "brk_dmg_share": 0.437,
+   "brk_time_share": 0.358,
+   "bul_avg": 28.2,
+   "bul_peak": 61,
+   "dmg": 28415.0,
+   "fight_t": 78.3,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.15|lshape:hoshiguma|op:hoshiguma\",\"1|0.2|lshape:wisadel|op:wisadel\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 14,
+   "max_hp": 144.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s4_slot1",
+   "squad": [
+    "wisadel",
+    "angelina",
+    "hoshiguma"
+   ],
+   "taken": 69.2,
+   "taken_pct": 0.482,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 5,
+   "wall": 18.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 0.247,
+   "brk_dmg_share": 0.499,
+   "brk_time_share": 0.351,
+   "bul_avg": 29.5,
+   "bul_peak": 70,
+   "dmg": 28415.0,
+   "fight_t": 68.0,
+   "fp_diff": [
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:saria\",\"2|1.25|command|op:skadi\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:wisadel|op:wisadel\",\"1|0.15|lshape:saria|op:saria\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:saria\",\"2|1.5|command|op:skadi\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.725,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 130.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s5_slot1",
+   "squad": [
+    "wisadel",
+    "saria",
+    "skadi"
+   ],
+   "taken": 287.8,
+   "taken_pct": 2.219,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 6,
+   "wall": 14.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.602,
+   "boss_maxhp": 28415.0,
+   "boss_src_share": 0.728,
+   "brk_dmg_share": 0.481,
+   "brk_time_share": 0.347,
+   "bul_avg": 22.3,
+   "bul_peak": 46,
+   "dmg": 11306.0,
+   "fight_t": 28.3,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.08|lshape:wisadel|op:wisadel\",\"1|0.15|lshape:hoshiguma|op:hoshiguma\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 130.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "wisadel_m18_s6_slot1",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "exusiai"
+   ],
+   "taken": 169.5,
+   "taken_pct": 1.176,
+   "win": false
+  }
+ ]
+}
