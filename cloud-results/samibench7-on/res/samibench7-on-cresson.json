@@ -1,0 +1,2529 @@
+{
+ "tag": "samibench7-on-cresson",
+ "game": "/home/user/ArknightsSurvivors/game",
+ "records": [
+  {
+   "boss": "cresson",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 1,
+   "wall": 19.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 10433.0,
+   "brk_dmg_share": 0.47,
+   "brk_time_share": 0.097,
+   "dmg": 31300.0,
+   "fight_t": 95.2,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_4|\",\"2|1.03|totem_perm_5|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.525|lshape:skadi|op:skadi\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 138.077 -> 126.36"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 25,
+   "max_hp": 130.0,
+   "moves": {
+    "cresson:三跳": 1,
+    "cresson:剪枝": 2,
+    "cresson:双击": 7,
+    "cresson:回荡": 4,
+    "cresson:回荡·双击": 2,
+    "cresson:播种": 4,
+    "cresson:播种·环": 2,
+    "cresson:播种·终": 2,
+    "cresson:无之花": 3,
+    "cresson:眼中之园": 2,
+    "cresson:维度回荡": 2,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 4,
+    "cresson:花雨": 2,
+    "cresson:萌发": 4,
+    "cresson:裂隙": 3,
+    "cresson:闪现落击": 16,
+    "cresson:阖眼": 3
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s1_slot3",
+   "squad": [
+    "kaltsit",
+    "skadi",
+    "logos"
+   ],
+   "src": {
+    "": 0.00198,
+    "boss_cresson": 0.303622143209877,
+    "bullet": 0.271206538461538,
+    "contact_hound": 0.396818406702302
+   },
+   "taken": 123.0,
+   "taken_pct": 0.974,
+   "win": true
+  },
+  {
+   "boss": "cresson",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 2,
+   "wall": 16.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 10433.0,
+   "brk_dmg_share": 0.784,
+   "brk_time_share": 0.306,
+   "dmg": 31300.0,
+   "fight_t": 69.7,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:eyjafjalla|op:eyjafjalla\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 25,
+   "max_hp": 133.0,
+   "moves": {
+    "cresson:三跳": 2,
+    "cresson:剪枝": 1,
+    "cresson:双击": 6,
+    "cresson:回荡": 3,
+    "cresson:播种": 3,
+    "cresson:播种·环": 2,
+    "cresson:播种·终": 2,
+    "cresson:无之花": 1,
+    "cresson:眼中之园": 1,
+    "cresson:维度回荡": 1,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 3,
+    "cresson:花雨": 2,
+    "cresson:萌发": 3,
+    "cresson:裂隙": 1,
+    "cresson:闪现落击": 14,
+    "cresson:阖眼": 2
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s2_slot3",
+   "squad": [
+    "kaltsit",
+    "eyjafjalla",
+    "wisadel"
+   ],
+   "src": {
+    "": 0.00198,
+    "boss_cresson": 0.323246598833265,
+    "bullet": 0.494505494505494
+   },
+   "taken": 108.8,
+   "taken_pct": 0.82,
+   "win": true
+  },
+  {
+   "boss": "cresson",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 3,
+   "wall": 18.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 10433.0,
+   "brk_dmg_share": 0.189,
+   "brk_time_share": 0.085,
+   "dmg": 30674.0,
+   "fight_t": 72.2,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:gladiia|op:gladiia\",\"1|0.42|lshape:skalter|op:skalter\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.63|lshape:kaltsit|op:kaltsit\",\"1|0.875|lshape:gladiia|op:gladiia\",\"1|0.875|lshape:skalter|op:skalter\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.6|sami_chaos|\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 140.0,
+   "moves": {
+    "cresson:三跳": 2,
+    "cresson:剪枝": 2,
+    "cresson:双击": 7,
+    "cresson:回荡": 3,
+    "cresson:回荡·双击": 2,
+    "cresson:播种": 2,
+    "cresson:播种·环": 1,
+    "cresson:播种·终": 2,
+    "cresson:无之花": 2,
+    "cresson:眼中之园": 1,
+    "cresson:维度回荡": 1,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 2,
+    "cresson:花雨": 2,
+    "cresson:萌发": 2,
+    "cresson:裂隙": 2,
+    "cresson:闪现落击": 15,
+    "cresson:阖眼": 2
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s3_slot3",
+   "squad": [
+    "kaltsit",
+    "skalter",
+    "gladiia"
+   ],
+   "src": {
+    "boss_cresson": 0.0690337393162393,
+    "contact_hound": 0.410204807093142,
+    "shock_breaker": 0.337545315927809
+   },
+   "taken": 114.7,
+   "taken_pct": 0.817,
+   "win": true
+  },
+  {
+   "boss": "cresson",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 4,
+   "wall": 12.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.982,
+   "boss_maxhp": 20866.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 368.0,
+   "fight_t": 3.6,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_10|\",\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\",\"2|1.03|totem_perm_8|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:lumen|op:lumen\",\"1|0.525|lshape:specter_unchained|op:specter_unchained\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.6|sami_chaos|\"] 多 []",
+    "stats.max_hp: 142.219 -> 126.36"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "kaltsit",
+   "level": 25,
+   "max_hp": 126.0,
+   "moves": {
+    "cresson:回荡": 1
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "kaltsit_m0_s4_slot3",
+   "squad": [
+    "kaltsit",
+    "specter_unchained",
+    "lumen"
+   ],
+   "src": {
+    "contact_hound": 1.29685425937257
+   },
+   "taken": 163.9,
+   "taken_pct": 1.297,
+   "win": false
+  },
+  {
+   "boss": "cresson",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 5,
+   "wall": 12.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.976,
+   "boss_maxhp": 26083.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 625.0,
+   "fight_t": 4.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.63|lshape:kaltsit|op:kaltsit\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.6|sami_chaos|\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 140.0,
+   "moves": {
+    "cresson:回荡": 1,
+    "cresson:播种": 1
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "kaltsit_m0_s5_slot3",
+   "squad": [
+    "kaltsit",
+    "logos",
+    "suzuran"
+   ],
+   "src": {
+    "contact_hound": 1.25038931381078
+   },
+   "taken": 175.6,
+   "taken_pct": 1.25,
+   "win": false
+  },
+  {
+   "boss": "cresson",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 6,
+   "wall": 22.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 10433.0,
+   "brk_dmg_share": 0.56,
+   "brk_time_share": 0.183,
+   "dmg": 31300.0,
+   "fight_t": 122.2,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\",\"2|1.03|totem_perm_3|\",\"2|1.03|totem_perm_4|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:texas|op:texas\",\"1|0.63|lshape:kaltsit|op:kaltsit\",\"1|0.875|lshape:angelina|op:angelina\"] 多 []",
+    "stats.max_hp: 172.557 -> 154.429",
+    "stats.speed: 204.93 -> 165.0"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 25,
+   "max_hp": 163.0,
+   "moves": {
+    "cresson:三跳": 5,
+    "cresson:剪枝": 1,
+    "cresson:双击": 17,
+    "cresson:回荡": 3,
+    "cresson:回荡·双击": 1,
+    "cresson:播种": 3,
+    "cresson:播种·环": 3,
+    "cresson:播种·终": 2,
+    "cresson:无之花": 1,
+    "cresson:眼中之园": 3,
+    "cresson:维度回荡": 3,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 3,
+    "cresson:花雨": 3,
+    "cresson:萌发": 3,
+    "cresson:裂隙": 1,
+    "cresson:闪现落击": 32,
+    "cresson:阖眼": 3
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s6_slot3",
+   "squad": [
+    "kaltsit",
+    "angelina",
+    "texas"
+   ],
+   "src": {
+    "": 0.0122705416965553,
+    "boss_cresson": 0.131844747876595
+   },
+   "taken": 22.3,
+   "taken_pct": 0.144,
+   "win": true
+  },
+  {
+   "boss": "cresson",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 1,
+   "wall": 22.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 10433.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 31300.0,
+   "fight_t": 116.6,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:eyjafjalla|op:eyjafjalla\",\"1|0.525|lshape:irene|op:irene\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 131.192 -> 127.371"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 131.0,
+   "moves": {
+    "cresson:三跳": 3,
+    "cresson:剪枝": 2,
+    "cresson:双击": 14,
+    "cresson:回荡": 5,
+    "cresson:回荡·双击": 2,
+    "cresson:播种": 5,
+    "cresson:播种·环": 2,
+    "cresson:播种·终": 2,
+    "cresson:无之花": 3,
+    "cresson:眼中之园": 1,
+    "cresson:维度回荡": 1,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 5,
+    "cresson:花雨": 2,
+    "cresson:萌发": 5,
+    "cresson:裂隙": 2,
+    "cresson:闪现落击": 22,
+    "cresson:阖眼": 2
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s1_slot3",
+   "squad": [
+    "kaltsit",
+    "eyjafjalla",
+    "irene"
+   ],
+   "src": {
+    "boss_cresson": 0.224775206855696,
+    "bullet": 0.0779721428571429,
+    "contact_breaker": 0.160062696920256,
+    "contact_hound": 0.266451566418011,
+    "contact_rockback": 0.206927968484054
+   },
+   "taken": 119.2,
+   "taken_pct": 0.936,
+   "win": true
+  },
+  {
+   "boss": "cresson",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 2,
+   "wall": 12.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.973,
+   "boss_maxhp": 20866.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 569.0,
+   "fight_t": 3.6,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:texas\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:irene|op:irene\",\"1|0.525|lshape:texas|op:texas\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:texas\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "kaltsit",
+   "level": 24,
+   "max_hp": 164.0,
+   "moves": {
+    "cresson:回荡": 1
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "kaltsit_m18_s2_slot3",
+   "squad": [
+    "kaltsit",
+    "irene",
+    "texas"
+   ],
+   "src": {
+    "contact_hound": 1.1621008225898,
+    "contact_husk": 0.117927910810995
+   },
+   "taken": 209.3,
+   "taken_pct": 1.28,
+   "win": false
+  },
+  {
+   "boss": "cresson",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 3,
+   "wall": 17.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 10433.0,
+   "brk_dmg_share": 0.26,
+   "brk_time_share": 0.07,
+   "dmg": 30674.0,
+   "fight_t": 59.1,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_4|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:hoshiguma|op:hoshiguma\",\"1|0.525|lshape:ulpianus|op:ulpianus\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 224.149 -> 217.62"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 27,
+   "max_hp": 218.0,
+   "moves": {
+    "cresson:三跳": 2,
+    "cresson:剪枝": 1,
+    "cresson:双击": 6,
+    "cresson:回荡": 2,
+    "cresson:回荡·双击": 1,
+    "cresson:播种": 1,
+    "cresson:播种·环": 1,
+    "cresson:播种·终": 2,
+    "cresson:无之花": 1,
+    "cresson:眼中之园": 1,
+    "cresson:维度回荡": 1,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 1,
+    "cresson:花雨": 1,
+    "cresson:萌发": 1,
+    "cresson:裂隙": 1,
+    "cresson:闪现落击": 15,
+    "cresson:阖眼": 2
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s3_slot3",
+   "squad": [
+    "kaltsit",
+    "hoshiguma",
+    "ulpianus"
+   ],
+   "src": {
+    "boss_cresson": 0.0809282375902951
+   },
+   "taken": 17.6,
+   "taken_pct": 0.081,
+   "win": true
+  },
+  {
+   "boss": "cresson",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 4,
+   "wall": 19.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 13041.0,
+   "brk_dmg_share": 0.7,
+   "brk_time_share": 0.233,
+   "dmg": 39124.0,
+   "fight_t": 87.4,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:irene|op:irene\",\"1|0.525|lshape:specter_unchained|op:specter_unchained\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.8|sami_chaos|\"] 多 []",
+    "stats.max_hp: 170.25 -> 160.477"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 165.0,
+   "moves": {
+    "cresson:三跳": 4,
+    "cresson:双击": 11,
+    "cresson:回荡": 3,
+    "cresson:播种": 3,
+    "cresson:播种·环": 2,
+    "cresson:播种·终": 2,
+    "cresson:无之花": 1,
+    "cresson:眼中之园": 2,
+    "cresson:维度回荡": 2,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 3,
+    "cresson:花雨": 2,
+    "cresson:萌发": 3,
+    "cresson:裂隙": 1,
+    "cresson:闪现落击": 21,
+    "cresson:阖眼": 2
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s4_slot3",
+   "squad": [
+    "kaltsit",
+    "specter_unchained",
+    "irene"
+   ],
+   "src": {
+    "": 0.0099,
+    "boss_cresson": 0.461638129827789,
+    "bullet": 0.27054
+   },
+   "taken": 119.1,
+   "taken_pct": 0.742,
+   "win": true
+  },
+  {
+   "boss": "cresson",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 5,
+   "wall": 17.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 10433.0,
+   "brk_dmg_share": 0.338,
+   "brk_time_share": 0.079,
+   "dmg": 30674.0,
+   "fight_t": 50.2,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:skalter|op:skalter\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.63|lshape:kaltsit|op:kaltsit\",\"1|0.875|lshape:skalter|op:skalter\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 27,
+   "max_hp": 205.0,
+   "moves": {
+    "cresson:三跳": 1,
+    "cresson:剪枝": 2,
+    "cresson:双击": 2,
+    "cresson:回荡": 2,
+    "cresson:回荡·双击": 1,
+    "cresson:播种": 2,
+    "cresson:播种·环": 1,
+    "cresson:播种·终": 1,
+    "cresson:无之花": 2,
+    "cresson:眼中之园": 1,
+    "cresson:维度回荡": 1,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 1,
+    "cresson:花雨": 2,
+    "cresson:萌发": 1,
+    "cresson:裂隙": 2,
+    "cresson:闪现落击": 10,
+    "cresson:阖眼": 2
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s5_slot3",
+   "squad": [
+    "kaltsit",
+    "wisadel",
+    "skalter"
+   ],
+   "src": {
+    "boss_cresson": 0.0890235244392857
+   },
+   "taken": 18.2,
+   "taken_pct": 0.089,
+   "win": true
+  },
+  {
+   "boss": "cresson",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 6,
+   "wall": 19.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 10433.0,
+   "brk_dmg_share": 0.497,
+   "brk_time_share": 0.16,
+   "dmg": 30674.0,
+   "fight_t": 83.4,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:exusiai|op:exusiai\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:exusiai|op:exusiai\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.8|sami_chaos|\"] 多 []",
+    "stats.max_hp: 214.698 -> 204.096"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 215.0,
+   "moves": {
+    "cresson:三跳": 5,
+    "cresson:双击": 14,
+    "cresson:回荡": 2,
+    "cresson:播种": 2,
+    "cresson:播种·环": 1,
+    "cresson:播种·终": 2,
+    "cresson:无之花": 1,
+    "cresson:眼中之园": 1,
+    "cresson:维度回荡": 1,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 2,
+    "cresson:花雨": 1,
+    "cresson:萌发": 2,
+    "cresson:裂隙": 1,
+    "cresson:闪现落击": 22,
+    "cresson:阖眼": 2
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s6_slot3",
+   "squad": [
+    "kaltsit",
+    "wisadel",
+    "exusiai"
+   ],
+   "src": {
+    "boss_cresson": 0.00208285769379116,
+    "bullet": 0.163215523765287,
+    "contact_hound": 0.406886468390867
+   },
+   "taken": 116.8,
+   "taken_pct": 0.572,
+   "win": true
+  },
+  {
+   "boss": "cresson",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 1,
+   "wall": 19.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 10433.0,
+   "brk_dmg_share": 0.302,
+   "brk_time_share": 0.023,
+   "dmg": 31300.0,
+   "fight_t": 87.4,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:skadi|op:skadi\",\"1|0.63|lshape:kaltsit|op:kaltsit\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.max_hp: 211.789 -> 199.631"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 206.0,
+   "moves": {
+    "cresson:三跳": 1,
+    "cresson:剪枝": 3,
+    "cresson:双击": 8,
+    "cresson:回荡": 4,
+    "cresson:回荡·双击": 2,
+    "cresson:播种": 4,
+    "cresson:播种·环": 1,
+    "cresson:播种·终": 2,
+    "cresson:无之花": 3,
+    "cresson:眼中之园": 1,
+    "cresson:维度回荡": 1,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 3,
+    "cresson:花雨": 2,
+    "cresson:萌发": 3,
+    "cresson:裂隙": 3,
+    "cresson:闪现落击": 15,
+    "cresson:阖眼": 2
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m0_s1_slot3",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "suzuran"
+   ],
+   "src": {
+    "boss_cresson": 0.452097830374754,
+    "bullet": 0.180216213017752
+   },
+   "taken": 126.2,
+   "taken_pct": 0.632,
+   "win": true
+  },
+  {
+   "boss": "cresson",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 2,
+   "wall": 19.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 10433.0,
+   "brk_dmg_share": 0.584,
+   "brk_time_share": 0.162,
+   "dmg": 31300.0,
+   "fight_t": 92.6,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.28|lshape:eyjafjalla|op:eyjafjalla\",\"1|0.525|lshape:hoshiguma|op:hoshiguma\",\"1|0.525|lshape:skadi|op:skadi\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.9,
+   "leader": "skadi",
+   "level": 27,
+   "max_hp": 152.0,
+   "moves": {
+    "cresson:三跳": 2,
+    "cresson:剪枝": 1,
+    "cresson:双击": 7,
+    "cresson:回荡": 4,
+    "cresson:播种": 4,
+    "cresson:播种·环": 3,
+    "cresson:播种·终": 2,
+    "cresson:无之花": 1,
+    "cresson:眼中之园": 3,
+    "cresson:维度回荡": 3,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 3,
+    "cresson:花雨": 4,
+    "cresson:萌发": 3,
+    "cresson:裂隙": 1,
+    "cresson:闪现落击": 18,
+    "cresson:阖眼": 4
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m0_s2_slot3",
+   "squad": [
+    "skadi",
+    "eyjafjalla",
+    "hoshiguma"
+   ],
+   "src": {
+    "": 0.00198,
+    "boss_cresson": 0.269028257725181,
+    "bullet": 0.103526627218935
+   },
+   "taken": 57.0,
+   "taken_pct": 0.375,
+   "win": true
+  },
+  {
+   "boss": "cresson",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 3,
+   "wall": 24.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 10433.0,
+   "brk_dmg_share": 0.63,
+   "brk_time_share": 0.118,
+   "dmg": 30674.0,
+   "fight_t": 167.0,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:mizuki|op:mizuki\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:hoshiguma|op:hoshiguma\",\"1|0.525|lshape:skadi|op:skadi\",\"1|0.63|lshape:mizuki|op:mizuki\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.972,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 152.0,
+   "moves": {
+    "cresson:三跳": 6,
+    "cresson:剪枝": 3,
+    "cresson:双击": 25,
+    "cresson:回荡": 5,
+    "cresson:回荡·双击": 3,
+    "cresson:播种": 5,
+    "cresson:播种·终": 8,
+    "cresson:无之花": 3,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 4,
+    "cresson:花雨": 1,
+    "cresson:萌发": 4,
+    "cresson:裂隙": 3,
+    "cresson:闪现落击": 36,
+    "cresson:阖眼": 1
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m0_s3_slot3",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "mizuki"
+   ],
+   "src": {
+    "": 0.01188,
+    "boss_cresson": 0.746652057751477,
+    "bullet": 0.192738461538462,
+    "contact_cresson": 0.110467726495726
+   },
+   "taken": 161.5,
+   "taken_pct": 1.062,
+   "win": true
+  },
+  {
+   "boss": "cresson",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 4,
+   "wall": 24.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 10433.0,
+   "brk_dmg_share": 0.59,
+   "brk_time_share": 0.142,
+   "dmg": 31300.0,
+   "fight_t": 160.7,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:saria|op:saria\",\"1|0.525|lshape:skadi|op:skadi\"] 多 []",
+    "stats.max_hp: 161.363 -> 152.1"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 157.0,
+   "moves": {
+    "cresson:三跳": 8,
+    "cresson:剪枝": 1,
+    "cresson:双击": 26,
+    "cresson:回荡": 4,
+    "cresson:播种": 4,
+    "cresson:播种·环": 4,
+    "cresson:播种·终": 2,
+    "cresson:无之花": 1,
+    "cresson:眼中之园": 3,
+    "cresson:维度回荡": 3,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 3,
+    "cresson:花雨": 4,
+    "cresson:萌发": 3,
+    "cresson:裂隙": 1,
+    "cresson:闪现落击": 46,
+    "cresson:阖眼": 4
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m0_s4_slot3",
+   "squad": [
+    "skadi",
+    "saria",
+    "wisadel"
+   ],
+   "src": {
+    "boss_cresson": 0.528269375410913,
+    "bullet": 0.170291715976332
+   },
+   "taken": 106.3,
+   "taken_pct": 0.699,
+   "win": true
+  },
+  {
+   "boss": "cresson",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 5,
+   "wall": 21.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 10433.0,
+   "brk_dmg_share": 0.534,
+   "brk_time_share": 0.127,
+   "dmg": 31300.0,
+   "fight_t": 89.7,
+   "fp_diff": [
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:logos\"] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:exusiai|op:exusiai\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:exusiai|op:exusiai\",\"1|0.28|lshape:logos|op:logos\",\"1|0.525|lshape:skadi|op:skadi\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:logos\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.738,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 160.0,
+   "moves": {
+    "cresson:三跳": 3,
+    "cresson:双击": 10,
+    "cresson:回荡": 4,
+    "cresson:播种": 4,
+    "cresson:播种·环": 2,
+    "cresson:播种·终": 2,
+    "cresson:无之花": 1,
+    "cresson:眼中之园": 2,
+    "cresson:维度回荡": 2,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 3,
+    "cresson:花雨": 2,
+    "cresson:萌发": 3,
+    "cresson:裂隙": 1,
+    "cresson:闪现落击": 19,
+    "cresson:阖眼": 3
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m0_s5_slot3",
+   "squad": [
+    "skadi",
+    "logos",
+    "exusiai"
+   ],
+   "src": {
+    "boss_cresson": 0.522061623368084,
+    "bullet": 0.125391986475063,
+    "contact_cresson": 0.102676454087223,
+    "contact_rockback": 0.318769086657682,
+    "shock_rockback": 0.397550611324618
+   },
+   "taken": 234.2,
+   "taken_pct": 1.466,
+   "win": true
+  },
+  {
+   "boss": "cresson",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 6,
+   "wall": 20.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 10433.0,
+   "brk_dmg_share": 0.531,
+   "brk_time_share": 0.195,
+   "dmg": 30674.0,
+   "fight_t": 107.2,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\",\"2|1.03|totem_perm_3|\",\"2|1.03|totem_perm_4|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:saria|op:saria\",\"1|0.525|lshape:skadi|op:skadi\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 179.749 -> 159.705"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.939,
+   "leader": "skadi",
+   "level": 25,
+   "max_hp": 164.0,
+   "moves": {
+    "cresson:三跳": 4,
+    "cresson:剪枝": 3,
+    "cresson:双击": 14,
+    "cresson:回荡": 3,
+    "cresson:回荡·双击": 3,
+    "cresson:播种": 3,
+    "cresson:播种·环": 1,
+    "cresson:播种·终": 1,
+    "cresson:无之花": 4,
+    "cresson:眼中之园": 1,
+    "cresson:维度回荡": 1,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 3,
+    "cresson:花雨": 2,
+    "cresson:萌发": 3,
+    "cresson:裂隙": 3,
+    "cresson:闪现落击": 25,
+    "cresson:阖眼": 2
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m0_s6_slot3",
+   "squad": [
+    "skadi",
+    "saria",
+    "kaltsit"
+   ],
+   "src": {
+    "": 0.0020394,
+    "boss_cresson": 0.581714746852009
+   },
+   "taken": 93.2,
+   "taken_pct": 0.584,
+   "win": true
+  },
+  {
+   "boss": "cresson",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 1,
+   "wall": 21.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 10433.0,
+   "brk_dmg_share": 0.411,
+   "brk_time_share": 0.127,
+   "dmg": 31300.0,
+   "fight_t": 116.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\",\"2|1.5|totem_8|\",\"2|1.5|totem_9|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:skadi|op:skadi\",\"1|0.63|lshape:kaltsit|op:kaltsit\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.max_hp: 497.401 -> 208.377"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 215.0,
+   "moves": {
+    "cresson:三跳": 3,
+    "cresson:剪枝": 2,
+    "cresson:双击": 11,
+    "cresson:回荡": 4,
+    "cresson:回荡·双击": 2,
+    "cresson:播种": 4,
+    "cresson:播种·环": 3,
+    "cresson:播种·终": 2,
+    "cresson:无之花": 3,
+    "cresson:眼中之园": 3,
+    "cresson:维度回荡": 3,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 4,
+    "cresson:花雨": 3,
+    "cresson:萌发": 4,
+    "cresson:裂隙": 2,
+    "cresson:闪现落击": 22,
+    "cresson:阖眼": 3
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s1_slot3",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "suzuran"
+   ],
+   "src": {
+    "boss_cresson": 0.428898074978525,
+    "bullet": 0.06336,
+    "contact_cresson": 0.0296967899528259,
+    "shock_breaker": 0.215694741618742
+   },
+   "taken": 153.7,
+   "taken_pct": 0.738,
+   "win": true
+  },
+  {
+   "boss": "cresson",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 2,
+   "wall": 19.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 10433.0,
+   "brk_dmg_share": 0.291,
+   "brk_time_share": 0.111,
+   "dmg": 31300.0,
+   "fight_t": 74.4,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.5|totem_10|\",\"2|1.5|totem_9|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:lumen|op:lumen\",\"1|0.525|lshape:skadi|op:skadi\",\"1|0.525|lshape:specter_unchained|op:specter_unchained\"] 多 []",
+    "stats.max_hp: 383.292 -> 170.352"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 170.0,
+   "moves": {
+    "cresson:三跳": 2,
+    "cresson:剪枝": 1,
+    "cresson:双击": 7,
+    "cresson:回荡": 3,
+    "cresson:回荡·双击": 1,
+    "cresson:播种": 3,
+    "cresson:播种·环": 2,
+    "cresson:播种·终": 2,
+    "cresson:无之花": 2,
+    "cresson:眼中之园": 1,
+    "cresson:维度回荡": 2,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 2,
+    "cresson:花雨": 2,
+    "cresson:萌发": 2,
+    "cresson:裂隙": 1,
+    "cresson:闪现落击": 14,
+    "cresson:阖眼": 2
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s2_slot3",
+   "squad": [
+    "skadi",
+    "lumen",
+    "specter_unchained"
+   ],
+   "src": {
+    "boss_cresson": 0.168146095613788,
+    "contact_cresson": 0.0749882596036442,
+    "contact_hound": 0.220090177770461,
+    "shock_breaker": 0.556393377902982
+   },
+   "taken": 173.7,
+   "taken_pct": 1.02,
+   "win": true
+  },
+  {
+   "boss": "cresson",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 3,
+   "wall": 19.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 8868.0,
+   "brk_dmg_share": 0.438,
+   "brk_time_share": 0.147,
+   "dmg": 26605.0,
+   "fight_t": 100.2,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_7|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:hoshiguma\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:hoshiguma|op:hoshiguma\",\"1|0.525|lshape:skadi|op:skadi\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:hoshiguma\"] 多 []",
+    "stats.max_hp: 175.463 -> 170.352"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 25,
+   "max_hp": 170.0,
+   "moves": {
+    "cresson:三跳": 4,
+    "cresson:剪枝": 1,
+    "cresson:双击": 11,
+    "cresson:回荡": 3,
+    "cresson:回荡·双击": 1,
+    "cresson:播种": 3,
+    "cresson:播种·环": 3,
+    "cresson:播种·终": 2,
+    "cresson:无之花": 1,
+    "cresson:眼中之园": 2,
+    "cresson:维度回荡": 3,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 2,
+    "cresson:花雨": 3,
+    "cresson:萌发": 3,
+    "cresson:裂隙": 1,
+    "cresson:闪现落击": 24,
+    "cresson:阖眼": 3
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s3_slot3",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "kaltsit"
+   ],
+   "src": {
+    "boss_cresson": 0.134501388184465,
+    "bullet": 0.0446795604395605,
+    "contact_cresson": 0.02574
+   },
+   "taken": 34.9,
+   "taken_pct": 0.205,
+   "win": true
+  },
+  {
+   "boss": "cresson",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 4,
+   "wall": 24.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 10433.0,
+   "brk_dmg_share": 0.717,
+   "brk_time_share": 0.228,
+   "dmg": 31300.0,
+   "fight_t": 171.8,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:mizuki|op:mizuki\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:hoshiguma|op:hoshiguma\",\"1|0.525|lshape:skadi|op:skadi\",\"1|0.63|lshape:mizuki|op:mizuki\"] 多 []",
+    "stats.max_hp: 162.654 -> 153.317"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 25,
+   "max_hp": 158.0,
+   "moves": {
+    "cresson:三跳": 8,
+    "cresson:剪枝": 3,
+    "cresson:双击": 28,
+    "cresson:回荡": 3,
+    "cresson:回荡·双击": 3,
+    "cresson:播种": 2,
+    "cresson:播种·环": 2,
+    "cresson:播种·终": 6,
+    "cresson:无之花": 3,
+    "cresson:眼中之园": 1,
+    "cresson:维度回荡": 2,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 2,
+    "cresson:花雨": 2,
+    "cresson:萌发": 2,
+    "cresson:裂隙": 3,
+    "cresson:闪现落击": 47,
+    "cresson:阖眼": 2
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s4_slot3",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "mizuki"
+   ],
+   "src": {
+    "": 0.0198,
+    "boss_cresson": 0.223834455819584,
+    "bullet": 0.0998377683854606,
+    "contact_cresson": 0.202039359652693
+   },
+   "taken": 83.6,
+   "taken_pct": 0.546,
+   "win": true
+  },
+  {
+   "boss": "cresson",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 5,
+   "wall": 22.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 10433.0,
+   "brk_dmg_share": 0.28,
+   "brk_time_share": 0.044,
+   "dmg": 31300.0,
+   "fight_t": 121.6,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:mizuki|op:mizuki\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_5|\"] 多 []",
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.525|lshape:skadi|op:skadi\",\"1|0.63|lshape:mizuki|op:mizuki\"] 多 []",
+    "stats.max_hp: 225.36 -> 218.796"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 219.0,
+   "moves": {
+    "cresson:三跳": 1,
+    "cresson:剪枝": 1,
+    "cresson:双击": 6,
+    "cresson:回荡": 4,
+    "cresson:回荡·双击": 1,
+    "cresson:播种": 3,
+    "cresson:播种·环": 1,
+    "cresson:播种·终": 2,
+    "cresson:无之花": 2,
+    "cresson:眼中之园": 1,
+    "cresson:维度回荡": 1,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 3,
+    "cresson:花雨": 2,
+    "cresson:萌发": 3,
+    "cresson:裂隙": 2,
+    "cresson:闪现落击": 22,
+    "cresson:阖眼": 2
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s5_slot3",
+   "squad": [
+    "skadi",
+    "logos",
+    "mizuki"
+   ],
+   "src": {
+    "": 0.0099,
+    "boss_cresson": 0.251736685348465,
+    "contact_cresson": 0.0619390175819148
+   },
+   "taken": 70.8,
+   "taken_pct": 0.324,
+   "win": true
+  },
+  {
+   "boss": "cresson",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 6,
+   "wall": 22.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 10433.0,
+   "brk_dmg_share": 0.446,
+   "brk_time_share": 0.116,
+   "dmg": 31300.0,
+   "fight_t": 152.0,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\",\"2|1.03|totem_perm_3|\",\"2|1.03|totem_perm_4|\",\"2|1.03|totem_perm_5|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:saria|op:saria\",\"1|0.525|lshape:skadi|op:skadi\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 232.75 -> 200.772"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 24,
+   "max_hp": 207.0,
+   "moves": {
+    "cresson:三跳": 4,
+    "cresson:剪枝": 4,
+    "cresson:双击": 16,
+    "cresson:回荡": 3,
+    "cresson:回荡·双击": 4,
+    "cresson:播种": 3,
+    "cresson:播种·环": 4,
+    "cresson:播种·终": 2,
+    "cresson:无之花": 5,
+    "cresson:眼中之园": 4,
+    "cresson:维度回荡": 4,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 3,
+    "cresson:花雨": 5,
+    "cresson:萌发": 3,
+    "cresson:裂隙": 4,
+    "cresson:闪现落击": 32,
+    "cresson:阖眼": 5
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s6_slot3",
+   "squad": [
+    "skadi",
+    "saria",
+    "kaltsit"
+   ],
+   "src": {
+    "": 0.0081576,
+    "boss_cresson": 0.135602957579742,
+    "contact_cresson": 0.0387486
+   },
+   "taken": 36.6,
+   "taken_pct": 0.183,
+   "win": true
+  },
+  {
+   "boss": "cresson",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 1,
+   "wall": 27.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 10433.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 31300.0,
+   "fight_t": 177.8,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:hoshiguma|op:hoshiguma\",\"1|0.525|lshape:texas|op:texas\"] 多 []",
+    "stats.max_hp: 143.166 -> 138.996"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 25,
+   "max_hp": 143.0,
+   "moves": {
+    "cresson:三跳": 6,
+    "cresson:剪枝": 3,
+    "cresson:双击": 24,
+    "cresson:回荡": 6,
+    "cresson:回荡·双击": 3,
+    "cresson:播种": 6,
+    "cresson:播种·环": 3,
+    "cresson:播种·终": 2,
+    "cresson:无之花": 4,
+    "cresson:眼中之园": 3,
+    "cresson:维度回荡": 3,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 5,
+    "cresson:花雨": 4,
+    "cresson:萌发": 6,
+    "cresson:裂隙": 3,
+    "cresson:闪现落击": 41,
+    "cresson:阖眼": 4
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s1_slot3",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "texas"
+   ],
+   "src": {
+    "boss_cresson": 0.0926446861780195,
+    "bullet": 0.0834054545454545
+   },
+   "taken": 24.5,
+   "taken_pct": 0.176,
+   "win": true
+  },
+  {
+   "boss": "cresson",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 2,
+   "wall": 27.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.834,
+   "boss_maxhp": 10433.0,
+   "brk_dmg_share": 0.279,
+   "brk_time_share": 0.036,
+   "dmg": 21975.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:gladiia|op:gladiia\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:lappland|op:lappland\",\"1|0.875|lshape:gladiia|op:gladiia\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.6|sami_chaos|\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 25,
+   "max_hp": 144.0,
+   "moves": {
+    "cresson:三跳": 3,
+    "cresson:剪枝": 7,
+    "cresson:双击": 20,
+    "cresson:回荡": 9,
+    "cresson:回荡·双击": 7,
+    "cresson:播种": 8,
+    "cresson:播种·环": 1,
+    "cresson:播种·终": 2,
+    "cresson:无之花": 7,
+    "cresson:眼中之园": 1,
+    "cresson:维度回荡": 1,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 8,
+    "cresson:花雨": 1,
+    "cresson:萌发": 8,
+    "cresson:裂隙": 7,
+    "cresson:闪现落击": 22,
+    "cresson:阖眼": 2
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "wisadel_m0_s2_slot3",
+   "squad": [
+    "wisadel",
+    "lappland",
+    "gladiia"
+   ],
+   "src": {
+    "boss_cresson": 0.986733846153845,
+    "bullet": 0.182477742257742,
+    "contact_breaker": 0.07128,
+    "contact_cresson": 0.125205847485847
+   },
+   "taken": 196.9,
+   "taken_pct": 1.366,
+   "win": false
+  },
+  {
+   "boss": "cresson",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 3,
+   "wall": 19.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 10433.0,
+   "brk_dmg_share": 0.582,
+   "brk_time_share": 0.191,
+   "dmg": 30674.0,
+   "fight_t": 51.2,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_5|\",\"2|1.03|totem_perm_8|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:logos\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:logos\"] 多 []",
+    "stats.max_hp: 133.944 -> 126.255"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.696,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 126.0,
+   "moves": {
+    "cresson:三跳": 2,
+    "cresson:双击": 6,
+    "cresson:回荡": 3,
+    "cresson:播种": 3,
+    "cresson:播种·终": 2,
+    "cresson:无之花": 1,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 2,
+    "cresson:花雨": 1,
+    "cresson:萌发": 2,
+    "cresson:裂隙": 1,
+    "cresson:闪现落击": 10,
+    "cresson:阖眼": 1
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s3_slot3",
+   "squad": [
+    "wisadel",
+    "logos",
+    "suzuran"
+   ],
+   "src": {
+    "": 0.01782,
+    "boss_cresson": 0.349457162621272,
+    "bullet": 0.09108
+   },
+   "taken": 57.9,
+   "taken_pct": 0.458,
+   "win": true
+  },
+  {
+   "boss": "cresson",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 4,
+   "wall": 21.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 10433.0,
+   "brk_dmg_share": 0.705,
+   "brk_time_share": 0.19,
+   "dmg": 31300.0,
+   "fight_t": 104.3,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:exusiai|op:exusiai\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:exusiai|op:exusiai\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:hoshiguma|op:hoshiguma\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.8|sami_chaos|\"] 多 []",
+    "stats.max_hp: 100.642 -> 94.865"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 25,
+   "max_hp": 98.0,
+   "moves": {
+    "cresson:三跳": 2,
+    "cresson:剪枝": 4,
+    "cresson:双击": 10,
+    "cresson:回荡": 3,
+    "cresson:回荡·双击": 4,
+    "cresson:播种": 3,
+    "cresson:播种·环": 2,
+    "cresson:播种·终": 2,
+    "cresson:无之花": 4,
+    "cresson:眼中之园": 1,
+    "cresson:维度回荡": 2,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 2,
+    "cresson:花雨": 2,
+    "cresson:萌发": 2,
+    "cresson:裂隙": 4,
+    "cresson:闪现落击": 23,
+    "cresson:阖眼": 2
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s4_slot3",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "exusiai"
+   ],
+   "src": {
+    "boss_cresson": 0.841906240812052,
+    "bullet": 0.0940597863674786,
+    "contact_cresson": 0.323018400542161
+   },
+   "taken": 119.4,
+   "taken_pct": 1.259,
+   "win": true
+  },
+  {
+   "boss": "cresson",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 5,
+   "wall": 16.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.775,
+   "boss_maxhp": 20866.0,
+   "brk_dmg_share": 0.556,
+   "brk_time_share": 0.241,
+   "dmg": 4690.0,
+   "fight_t": 23.0,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_6|\",\"2|1.03|totem_perm_7|\",\"2|1.03|totem_perm_8|\"] 多 []",
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:lappland|op:lappland\",\"1|0.525|lshape:texas|op:texas\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.6|sami_chaos|\"] 多 []",
+    "stats.max_hp: 147.666 -> 135.135"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "wisadel",
+   "level": 25,
+   "max_hp": 135.0,
+   "moves": {
+    "cresson:双击": 2,
+    "cresson:回荡": 3,
+    "cresson:播种": 3,
+    "cresson:花瓣风": 2,
+    "cresson:萌发": 2
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "wisadel_m0_s5_slot3",
+   "squad": [
+    "wisadel",
+    "texas",
+    "lappland"
+   ],
+   "src": {
+    "boss_cresson": 0.298845641025641,
+    "bullet": 0.0843716283716283,
+    "contact_breaker": 0.311735438302657,
+    "shock_rockback": 0.737629770932431
+   },
+   "taken": 193.6,
+   "taken_pct": 1.433,
+   "win": false
+  },
+  {
+   "boss": "cresson",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 6,
+   "wall": 21.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 10433.0,
+   "brk_dmg_share": 0.619,
+   "brk_time_share": 0.127,
+   "dmg": 31300.0,
+   "fight_t": 124.1,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:hoshiguma\",\"2|1.25|command|op:logos\"] 多 [\"1|0.06|ve2:specter_unchained|op:specter_unchained\"]",
+    "mods.op_atk: 缺 [\"1|0.05|balance:logos|op:logos\"] 多 [\"1|0.12|ve2:specter_unchained|op:specter_unchained\"]",
+    "mods.op_range: 缺 [\"1|0.16|lshape:logos|op:logos\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:hoshiguma|op:hoshiguma\"] 多 [\"1|0.06|vnode:specter_unchained:1|op:specter_unchained\",\"1|0.06|vnode:specter_unchained:2|op:specter_unchained\",\"1|0.06|vnode:specter_unchained:4|op:specter_unchained\",\"1|0.06|vnode:specter_unchained:5|op:specter_unchained\"]",
+    "mods.op_skill_power: 缺 [\"1|0.05|balance:logos|op:logos\"] 多 [\"1|0.02|balance:specter_unchained|op:specter_unchained\"]",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:hoshiguma\",\"2|1.5|command|op:logos\"] 多 []",
+    "mods.dodge: 多 [\"0|0.04|vteam:specter_unchained|squad\"]",
+    "squad: [[\"wisadel\",2.0,6.0,\"ash\",true],[\"hoshiguma\",2.0,6.0,\"wall\",false],[\"logos\",1.0,4.0,\"metonymy\",false]] -> [[\"wisadel\",2.0,6.0,\"ash\",true],[\"hoshiguma\",2.0,6.0,\"wall\",false],[\"specter_unchained\",2.0,6.0,\"beast\",false]]",
+    "stats.dodge: 0.0 -> 0.04",
+    "stats.max_hp: 152.884 -> 145.83"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.738,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 153.0,
+   "moves": {
+    "cresson:三跳": 2,
+    "cresson:剪枝": 1,
+    "cresson:双击": 7,
+    "cresson:回荡": 4,
+    "cresson:播种": 4,
+    "cresson:播种·环": 6,
+    "cresson:播种·终": 2,
+    "cresson:无之花": 1,
+    "cresson:眼中之园": 6,
+    "cresson:维度回荡": 6,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 3,
+    "cresson:花雨": 6,
+    "cresson:萌发": 3,
+    "cresson:裂隙": 1,
+    "cresson:闪现落击": 27,
+    "cresson:阖眼": 7
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s6_slot3",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "specter_unchained"
+   ],
+   "src": {
+    "boss_cresson": 0.259112127075498,
+    "bullet": 0.284103588034561,
+    "contact_cresson": 0.153311382674758,
+    "shock_breaker": 0.236730230291865
+   },
+   "taken": 136.1,
+   "taken_pct": 0.933,
+   "win": true
+  },
+  {
+   "boss": "cresson",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 1,
+   "wall": 26.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.822,
+   "boss_maxhp": 8868.0,
+   "brk_dmg_share": 0.442,
+   "brk_time_share": 0.122,
+   "dmg": 19319.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:hoshiguma\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:lumen|op:lumen\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:hoshiguma|op:hoshiguma\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:hoshiguma\"] 多 []",
+    "stats.max_hp: 148.468 -> 144.144"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 24,
+   "max_hp": 148.0,
+   "moves": {
+    "cresson:三跳": 3,
+    "cresson:剪枝": 6,
+    "cresson:双击": 17,
+    "cresson:回荡": 3,
+    "cresson:回荡·双击": 6,
+    "cresson:播种": 3,
+    "cresson:播种·环": 6,
+    "cresson:播种·终": 2,
+    "cresson:无之花": 6,
+    "cresson:眼中之园": 6,
+    "cresson:维度回荡": 6,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 3,
+    "cresson:花雨": 6,
+    "cresson:萌发": 3,
+    "cresson:裂隙": 6,
+    "cresson:闪现落击": 38,
+    "cresson:阖眼": 6
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "wisadel_m18_s1_slot3",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "lumen"
+   ],
+   "src": {
+    "boss_cresson": 0.823067458075258,
+    "bullet": 0.394848336263736,
+    "contact_cresson": 0.03762,
+    "contact_hound": 0.460740646631474
+   },
+   "taken": 247.4,
+   "taken_pct": 1.716,
+   "win": false
+  },
+  {
+   "boss": "cresson",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 2,
+   "wall": 25.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 10433.0,
+   "brk_dmg_share": 0.295,
+   "brk_time_share": 0.048,
+   "dmg": 30674.0,
+   "fight_t": 168.6,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:gladiia|op:gladiia\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:lappland|op:lappland\",\"1|0.875|lshape:gladiia|op:gladiia\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.8|sami_chaos|\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 130.0,
+   "moves": {
+    "cresson:三跳": 7,
+    "cresson:剪枝": 4,
+    "cresson:双击": 27,
+    "cresson:回荡": 5,
+    "cresson:回荡·双击": 4,
+    "cresson:播种": 5,
+    "cresson:播种·环": 1,
+    "cresson:播种·终": 2,
+    "cresson:无之花": 5,
+    "cresson:眼中之园": 1,
+    "cresson:维度回荡": 1,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 4,
+    "cresson:花雨": 2,
+    "cresson:萌发": 4,
+    "cresson:裂隙": 5,
+    "cresson:闪现落击": 42,
+    "cresson:阖眼": 2
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s2_slot3",
+   "squad": [
+    "wisadel",
+    "lappland",
+    "gladiia"
+   ],
+   "src": {
+    "": 0.00594,
+    "boss_cresson": 1.37076498612499,
+    "bullet": 0.179975364635365,
+    "contact_cresson": 0.06534
+   },
+   "taken": 210.4,
+   "taken_pct": 1.622,
+   "win": true
+  },
+  {
+   "boss": "cresson",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 3,
+   "wall": 18.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 10433.0,
+   "brk_dmg_share": 0.502,
+   "brk_time_share": 0.184,
+   "dmg": 30674.0,
+   "fight_t": 66.7,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_4|\",\"2|1.03|totem_perm_5|\",\"2|1.03|totem_perm_6|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:logos\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:logos\"] 多 []",
+    "stats.max_hp: 165.386 -> 151.351"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 151.0,
+   "moves": {
+    "cresson:三跳": 2,
+    "cresson:剪枝": 1,
+    "cresson:双击": 6,
+    "cresson:回荡": 3,
+    "cresson:回荡·双击": 1,
+    "cresson:播种": 3,
+    "cresson:播种·环": 1,
+    "cresson:播种·终": 2,
+    "cresson:无之花": 1,
+    "cresson:眼中之园": 1,
+    "cresson:维度回荡": 1,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 2,
+    "cresson:花雨": 2,
+    "cresson:萌发": 3,
+    "cresson:裂隙": 1,
+    "cresson:闪现落击": 12,
+    "cresson:阖眼": 2
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s3_slot3",
+   "squad": [
+    "wisadel",
+    "logos",
+    "suzuran"
+   ],
+   "src": {
+    "": 0.00198,
+    "boss_cresson": 0.211478731427303,
+    "contact_cresson": 0.0099
+   },
+   "taken": 33.8,
+   "taken_pct": 0.223,
+   "win": true
+  },
+  {
+   "boss": "cresson",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 4,
+   "wall": 17.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 10433.0,
+   "brk_dmg_share": 0.795,
+   "brk_time_share": 0.309,
+   "dmg": 30674.0,
+   "fight_t": 56.4,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:exusiai|op:exusiai\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:exusiai|op:exusiai\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:hoshiguma|op:hoshiguma\"] 多 []",
+    "stats.max_hp: 123.867 -> 116.757"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 120.0,
+   "moves": {
+    "cresson:剪枝": 1,
+    "cresson:双击": 3,
+    "cresson:回荡": 3,
+    "cresson:回荡·双击": 1,
+    "cresson:播种": 3,
+    "cresson:播种·环": 1,
+    "cresson:播种·终": 1,
+    "cresson:无之花": 1,
+    "cresson:眼中之园": 1,
+    "cresson:维度回荡": 1,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 3,
+    "cresson:花雨": 2,
+    "cresson:萌发": 3,
+    "cresson:裂隙": 1,
+    "cresson:闪现落击": 7,
+    "cresson:阖眼": 2
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s4_slot3",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "exusiai"
+   ],
+   "src": {
+    "": 0.01386,
+    "boss_cresson": 0.0985148628326406,
+    "contact_cresson": 0.04752
+   },
+   "taken": 18.7,
+   "taken_pct": 0.16,
+   "win": true
+  },
+  {
+   "boss": "cresson",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 5,
+   "wall": 20.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 10433.0,
+   "brk_dmg_share": 0.542,
+   "brk_time_share": 0.123,
+   "dmg": 30674.0,
+   "fight_t": 117.3,
+   "fp_diff": [
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:lappland|op:lappland\",\"1|0.525|lshape:texas|op:texas\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.8|sami_chaos|\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.882,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 108.0,
+   "moves": {
+    "cresson:三跳": 5,
+    "cresson:剪枝": 2,
+    "cresson:双击": 20,
+    "cresson:回荡": 4,
+    "cresson:回荡·双击": 2,
+    "cresson:播种": 4,
+    "cresson:播种·环": 1,
+    "cresson:播种·终": 1,
+    "cresson:无之花": 3,
+    "cresson:维度回荡": 1,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 3,
+    "cresson:花雨": 1,
+    "cresson:萌发": 3,
+    "cresson:裂隙": 3,
+    "cresson:闪现落击": 28,
+    "cresson:阖眼": 1
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s5_slot3",
+   "squad": [
+    "wisadel",
+    "texas",
+    "lappland"
+   ],
+   "src": {
+    "boss_cresson": 0.727753654493654,
+    "contact_breaker": 0.352160529174078,
+    "shock_breaker": 0.421941392645728
+   },
+   "taken": 162.4,
+   "taken_pct": 1.502,
+   "win": true
+  },
+  {
+   "boss": "cresson",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 6,
+   "wall": 18.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 10433.0,
+   "brk_dmg_share": 0.454,
+   "brk_time_share": 0.099,
+   "dmg": 31300.0,
+   "fight_t": 76.7,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:hoshiguma\",\"2|1.25|command|op:logos\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:hoshiguma|op:hoshiguma\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:hoshiguma\",\"2|1.5|command|op:logos\"] 多 []",
+    "stats.max_hp: 152.922 -> 144.144"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 28,
+   "max_hp": 153.0,
+   "moves": {
+    "cresson:三跳": 1,
+    "cresson:剪枝": 1,
+    "cresson:双击": 6,
+    "cresson:回荡": 4,
+    "cresson:播种": 3,
+    "cresson:播种·环": 2,
+    "cresson:播种·终": 2,
+    "cresson:无之花": 1,
+    "cresson:眼中之园": 2,
+    "cresson:维度回荡": 2,
+    "cresson:花墓": 1,
+    "cresson:花瓣风": 3,
+    "cresson:花雨": 3,
+    "cresson:萌发": 3,
+    "cresson:裂隙": 1,
+    "cresson:闪现落击": 14,
+    "cresson:阖眼": 3
+   },
+   "phases": [
+    [
+     "cresson",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s6_slot3",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "logos"
+   ],
+   "src": {
+    "boss_cresson": 0.054615132,
+    "bullet": 0.20428021978022
+   },
+   "taken": 37.3,
+   "taken_pct": 0.259,
+   "win": true
+  }
+ ]
+}
