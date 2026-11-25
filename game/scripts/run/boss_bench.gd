@@ -95,9 +95,14 @@ func on_lose(amount: float) -> void:
 		if not f.done:
 			f.taken += amount
 			var sk: String = str(g.dmg_src) + ("/" + str(g.trial.move) if g.trial.move != "" else "")
+			if str(g.dmg_src) == "bullet":
+				sk = "bullet_" + str(g.telemetry.hit_type)   # 敌弹按发射者分开记（11-26：原来 Boss 弹和普通怪弹都记成 bullet）
 			f.src[sk] = float(f.src.get(sk, 0.0)) + amount / maxf(1.0, float(f.maxhp0))   # 承伤来源（占登场时最大生命）
 			if str(g.dmg_src).begins_with("boss_") or str(g.dmg_src) == "bullet":
 				f["taken_boss"] = float(f.get("taken_boss", 0.0)) + amount   # Boss 来源（招式 + 敌弹）
+			if not f.has("hit_max"):
+				f["hit_max"] = {}
+			f.hit_max[sk] = maxf(float(f.hit_max.get(sk, 0.0)), amount / maxf(1.0, float(f.maxhp0)))   # 单发最大（查单发上限 40%）
 
 
 ## 打在 Boss 身上的实际伤害（combat._damage）；破绽 = e.break_t > 0 或 Boss 脚本受伤倍率 > 1（骑士撞柱 / 泡影坠地等）
@@ -206,7 +211,7 @@ func _finish(f: Dictionary, res: String) -> void:
 		"hp0_frac": snappedf(float(f.hp0) / maxf(1.0, float(f.maxhp0)), 0.001), "hp_end_frac": snappedf(maxf(0.0, g.hp) / maxf(1.0, g.max_hp), 0.001),
 		"boss_hp_left": snappedf(hp_left / maxf(1.0, hp_max), 0.001), "boss_maxhp": snappedf(hp_max, 1.0),
 		"dmg": snappedf(f.dmg, 1.0), "brk_dmg_share": snappedf(f.dmg_brk / maxf(1.0, f.dmg), 0.001),
-		"brk_time_share": snappedf(f.brk_t / maxf(0.1, ft), 0.001), "phases": f.phases, "moves": f.moves, "src": f.src, "hit_log": f.targets.map(func(x): return x.get("hit_log", {})),
+		"brk_time_share": snappedf(f.brk_t / maxf(0.1, ft), 0.001), "phases": f.phases, "moves": f.moves, "src": f.src, "hit_max": f.get("hit_max", {}), "bul_avg": snappedf(float(f.get("bul_sum", 0.0)) / maxf(1.0, float(f.get("bul_n", 0))), 0.1), "bul_peak": int(f.get("bul_peak", 0)), "hit_log": f.targets.map(func(x): return x.get("hit_log", {})),
 		"leader": str(g.ch.id) if g.ch != null else "", "squad": g.squad.ids(), "level": g.level, "max_hp": snappedf(g.max_hp, 1.0)}
 	if on:
 		r["snap"] = str(snap.get("name", ""))

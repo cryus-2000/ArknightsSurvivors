@@ -56,6 +56,8 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 		g.in_type = in_type
 	if dmg_src != "":
 		g.dmg_src = dmg_src
+	if not bool(src.get("boss", false)) and g.spawner.mid_boss_up():
+		dmg *= g.spawner.mid_knob("mid_boss_mob_dmg")   # 中期 Boss 在场时普通怪伤害倍率（11-26 萨米 0.5，水月无 _sami 键 = 1.0）
 	if g.demo_op != "" and g.demo_enemy == "":
 		return
 	if g.ult != null and not src.is_empty():

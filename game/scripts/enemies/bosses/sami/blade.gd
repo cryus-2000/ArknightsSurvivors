@@ -1,16 +1,20 @@
-## “邪魔的利刃”（3:30）/ “邪魔的利刃”，游荡者（7:00）：招式按 docs/393 §11.2（11-25 差异化定稿：黑雾地毯 + 从雾里竖起的刃）。
+## “邪魔的利刃”（3:30）/ “邪魔的利刃”，游荡者（7:00）：招式按 docs/393 §11.2（11-26 改写：伤人的都是 Boss 本体，国度只做场地）+ §12.4 威慑改数。
+## 原作（PRTS）：远程、攻击范围 2.4 / 2.0 格；对国度里的单位攻击倍率 250%；国度本身只让我方攻速 −50。B 站 BV1ru41157cJ 166.6–167.2 秒：本体聚暗红漩涡 → 红色斩光。
 ## 主轴「裂国度」不变：它一路在身边铺国度（利刃 r 70、游荡者 r 90，每 4 秒一块；国度里的队员攻速 −50%、挨它的招 ×1.5——mech_foes.player_hit_mult）；
 ## 二幕起每 12 秒召 3 只染污躯壳；在国度里 / 边缘击杀让裂纹长，6 秒内碎 3 块 → 踉跄 2.5 秒、受伤 ×1.5。游荡者国度连片 220、碎一块相连的裂纹 +50%（mech_kingdom）。
-## 招：一幕 A 斩击·竖刃 ③ / B 投刃·切雾 ② / C 国度爆发 ① / D 黑毯 ④；二幕加 E 追猎·卷毯 ② / F 国度刃雨 ①；游荡者再加 G 皇帝的猎杀 ①链，整体冷却 ×0.9。
-## 持续压力「呼吸」：它的国度每 3 秒（二幕 2.4）往外胀一圈薄雾，胀出的边扫到队长 6%。
-## 出招组（每幕 2）：一幕「斩投」A→B→A、「黑毯」C→D；二幕「追猎」E→F→A、「刃雨」F→C→B（游荡者换「猎杀」G→F→E）。
-## 瞄准一律对队长当前位置或预判位置（协调人 11-25：用户嫌落点不追人）；大刃片、竖刃是脚本自己的场上实体（e.ents），碎刃走 mid_cards 中 / 大弹（不用小弹）。
-## 画面全是占位（draw），最终特效交 fx-declutter。
+## 国度里不冒刃、不爆、不扫边：所有伤害都从本体（挥刃、投刃、冲斩、从雾里钻出来斩、红漩斩光）出来。
+## 招：一幕 A 斩击·横扫 ③ / B 投刃·切雾 ② / C 雾中突袭 ① / D 黑毯·回旋 ④；二幕加 E 追猎·折返 ② ×2 / F 国度猎斩 ② ×3；游荡者再加 G 皇帝的猎杀 ② 折线，整体冷却 ×0.9。
+## 持续压力「呼吸」：它的国度每 3 秒（二幕 2.4）往外胀一圈（利刃 +40、游荡者 +60），0.6 秒后缩回，不伤人——胀进来就是站进了国度。
+## 常驻弹幕「碎刃」（11-26 协调人：密度高于水月中期）：本体每 1.6 秒（二幕 1.2）甩一扇暗红月牙碎刃；近战招结算后补一扇 / 一圈刃波（docs/392 §17）。
+## 位移「雾行」：每 9 秒沉进国度、雾下黑影滑到另一处（离队长 ≥250、跨度 ≥300）钻出，原地旋斩 r 90。
+## 出招组（每幕 2）：一幕「斩投」A→B→A、「突袭」C→D；二幕「追猎」E→F→A、「猎斩」F→C→B（游荡者换「猎杀」G→F→E）。
+## 画面全是占位（draw）：沉入 = 本体位置画黑影椭圆 + 露出雾面的刃尖；最终特效交 fx-declutter。
 extends "res://scripts/enemies/bosses/sami/sami_boss.gd"
 
 const LEAD := 0.35        # 预判秒数（落点类）
-const RISE_R := 16.0      # 竖刃判定半径
-const THROW_R := 24.0     # 投刃大刃片半宽（§11.2 半宽 24）
+const THROW_R := 24.0     # 投刃大刃片半宽（§11.2 半宽 24，§12.4 可见半径 24）
+const SWEEP_R := 170.0    # A 横扫半径（§12.4：r 170 ≈ 原作攻击范围 2.4 格）
+const GLIDE := 700.0      # 雾下黑影滑行速度
 
 
 func _wand(e: Dictionary) -> bool:
@@ -33,45 +37,52 @@ func _fwd(e: Dictionary) -> Vector2:
 	return d.normalized() if d.length() > 1.0 else Vector2.RIGHT
 
 
+func _sunk(e: Dictionary) -> bool:
+	return float(e.get("sunk_until", 0.0)) > g.t
+
+
 func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mate) -> void:
 	tick(e, dt)
 	e.cd_k = 0.9 if _wand(e) else 1.0
 	var km = kingdoms()
-	if km != null and g.t >= float(e.get("lay_t", 0.0)):
+	if km != null and g.t >= float(e.get("lay_t", 0.0)) and not _sunk(e):
 		e.lay_t = g.t + 4.0
 		km.add(e.pos + Vector2.from_angle(float(int(g.t * 7.0) % 628) / 100.0) * _kr(e) * 0.5, _kr(e), "boss", e, 40.0)
 	if act_i(e) >= 1 and g.t >= float(e.get("call_t", 0.0)):
 		e.call_t = g.t + 12.0
 		summon(e, "husk", 3, 70.0)
+	_glide(e, dt)
 	_breath(e, km)
 	_ents(e, dt, km)
 	_carpets(e, km)
+	_mistwalk(e, ready, km)
+	_shards(e)
 	_group_pick(e, ready, dir, dist)
 
 
 ## ---- 招式表 [名, 冷却, 最近, 最远, 函数]
 func _a() -> Array:
-	return ["斩击·竖刃", 4.0, 0.0, 200.0, _a_cleave]
+	return ["斩击·横扫", 4.0, 0.0, 240.0, _a_sweep]
 
 
 func _b() -> Array:
-	return ["投刃·切雾", 5.0, 90.0, 620.0, _b_throw]
+	return ["投刃·切雾", 5.0, 90.0, 900.0, _b_throw]
 
 
 func _c() -> Array:
-	return ["国度爆发", 9.0, 0.0, 9999.0, _c_burst]
+	return ["雾中突袭", 9.0, 180.0, 900.0, _c_ambush]
 
 
 func _d() -> Array:
-	return ["黑毯", 7.0, 0.0, 420.0, _d_carpet]
+	return ["黑毯·回旋", 7.0, 0.0, 9999.0, _d_carpet]
 
 
 func _e() -> Array:
-	return ["追猎·卷毯", 8.0, 100.0, 560.0, _e_chase]
+	return ["追猎·折返", 8.0, 100.0, 700.0, _e_chase]
 
 
 func _f() -> Array:
-	return ["国度刃雨", 10.0, 0.0, 9999.0, _f_rain]
+	return ["国度猎斩", 10.0, 0.0, 9999.0, _f_hunt]
 
 
 func _g() -> Array:
@@ -102,7 +113,7 @@ func _groups(e: Dictionary) -> Array:
 
 
 func _group_pick(e: Dictionary, ready: bool, dir: Vector2, dist: float) -> void:
-	if not ready or g.t < float(e.get("busy_t", 0.0)) or e.get("coma", false):
+	if not ready or g.t < float(e.get("busy_t", 0.0)) or e.get("coma", false) or _sunk(e):
 		return
 	if not e.has("grp_t"):
 		e.grp_t = g.t + 5.0
@@ -125,18 +136,78 @@ func _group_pick(e: Dictionary, ready: bool, dir: Vector2, dist: float) -> void:
 	pick(e, ready, dir, dist)
 
 
-## ---- 场上实体：大刃片（thrown）、竖刃（rise）；判定一次、画面占位
+## ---- 常驻压力「碎刃」（11-26 协调人：弹幕密度要高于水月中期 Boss）：不沉的时候每 1.6 秒（二幕 1.2）甩出一扇暗红月牙碎刃，
+## 单数次 5 发收拢瞄队长（间距 14°）、双数次 9 发 120° 散开；游荡者每次多 2 发。中弹 5%，230/秒飞 2.2 秒
+func _shards(e: Dictionary) -> void:
+	if _sunk(e) or e.get("coma", false):
+		return
+	if not e.has("sh_t"):
+		e.sh_t = g.t + 2.0
+	if g.t < float(e.sh_t):
+		return
+	e.sh_t = g.t + (1.2 if act_i(e) >= 1 else 1.6)
+	e.sh_n = int(e.get("sh_n", 0)) + 1
+	var x := 2 if _wand(e) else 0
+	if int(e.sh_n) % 2 == 1:
+		aim(e, e.pos, 5 + x, deg_to_rad(14.0), 230.0, 1, 0.05, {"life": 2.2})
+	else:
+		fan(e, e.pos, (g.ppos - e.pos).angle(), PI / 3.0, 9 + x, 200.0, 1, 0.05, {"life": 2.4})
+
+
+## 刃波：近战结算后沿出刀方向补一扇月牙（躲出范围的位置也压住）
+func _wave(e: Dictionary, c: Vector2, ang: float, half: float, n: int, spd: float, pct: float) -> void:
+	fan(e, c, ang, half, n, spd, 1, pct, {"life": 2.0})
+
+
+## ---- 沉入 / 雾下滑行 / 钻出：e.glide = {pts: [途经点…], spd}；滑行期间每帧直接改 e.pos（同克雷松闪现的写法），
+## 本体在 sunk_until 前画成黑影（draw），出招表不选新招
+func _sink(e: Dictionary, dur: float) -> void:
+	e.sunk_until = maxf(float(e.get("sunk_until", 0.0)), g.t + dur)
+
+
+func _glide_to(e: Dictionary, pts: Array, spd: float) -> void:
+	e.glide = {"pts": pts.duplicate(), "spd": spd}
+
+
+func _glide(e: Dictionary, dt: float) -> void:
+	var gl = e.get("glide")
+	if gl == null:
+		return
+	var pts: Array = gl.pts
+	var mv: float = float(gl.spd) * dt
+	while mv > 0.0 and not pts.is_empty():
+		var q: Vector2 = pts[0]
+		var d: float = e.pos.distance_to(q)
+		if d <= mv:
+			e.pos = q
+			mv -= d
+			pts.pop_front()
+		else:
+			e.pos = e.pos.move_toward(q, mv)
+			mv = 0.0
+	e.kb = Vector2.ZERO
+	if pts.is_empty():
+		e.erase("glide")
+
+
+func _mine(e: Dictionary, km) -> Array:
+	if km == null:
+		return []
+	return km.list.filter(func(k): return int(k.owner_id) == int(e.id) and k.kind == "boss")
+
+
+## ---- 场上实体：大刃片（thrown）、刀光（slash / upslash / spin / redslash，纯画面）、红漩（vortex，纯画面）；判定一次、画面占位
 ## {k, pos, vel, r, pct, t, hold, life, hit, ...}
 func _ent(e: Dictionary, d: Dictionary) -> void:
 	if not e.has("ents"):
 		e["ents"] = []
-	d.merge({"t": 0.0, "hold": 0.0, "hit": false, "vel": Vector2.ZERO}, false)
+	d.merge({"t": 0.0, "hold": 0.0, "hit": false, "vel": Vector2.ZERO, "pct": 0.0}, false)
 	e.ents.append(d)
 
 
 func _hit_at(e: Dictionary, pos: Vector2, r: float, pct: float, src := "") -> void:
 	var hp0: float = g.hp
-	g.tele.warn_damage({"shape": "circle", "pos": pos, "r": r + 10.0, "owner": e, "dmg": pd(e, pct), "act": "lob", "corrode": 0.0})
+	g.tele.warn_damage({"shape": "circle", "pos": pos, "r": r + 10.0, "owner": e, "dmg": pd(e, pct), "act": "lob", "corrode": 0.0, "mv": src})
 	if src != "" and g.hp < hp0:
 		var hl: Dictionary = e.get("hit_log", {})
 		hl[src] = float(hl.get(src, 0.0)) + (hp0 - g.hp) / maxf(1.0, g.max_hp)   # 测试台对账：脚本自己判定的几种伤害各吃了多少（占最大生命）
@@ -153,7 +224,7 @@ func _ents(e: Dictionary, dt: float, km) -> void:
 			x.pos += x.vel * dt
 		if x.k == "thrown":
 			_throw_step(e, x, km)
-		if not x.hit and g.combat.ground_d(g.ppos, x.pos) < float(x.r) + 10.0:
+		if float(x.pct) > 0.0 and not x.hit and g.combat.ground_d(g.ppos, x.pos) < float(x.r) + 10.0:
 			x.hit = true
 			_hit_at(e, x.pos, float(x.r), float(x.pct), str(x.k))
 		if x.t < float(x.hold) + float(x.life):
@@ -161,7 +232,7 @@ func _ents(e: Dictionary, dt: float, km) -> void:
 	e.ents = keep
 
 
-## 投刃穿过国度：切口跟着刃走（1.5 秒内这条线不算国度）；每次进出国度边界，切口两侧各弹 1 片碎刃（中弹）
+## 投刃穿过国度：切口跟着刃走（1.5 秒内这条线不算国度）；每次进出国度边界，切口两侧各崩 1 片碎刃（中弹）
 func _throw_step(e: Dictionary, x: Dictionary, km) -> void:
 	if km == null:
 		return
@@ -183,14 +254,14 @@ func _throw_step(e: Dictionary, x: Dictionary, km) -> void:
 	x.was_in = inside
 
 
-## 场上实体生效期间挂一条只画不判的预警线（大刃片飞行路线、正在铺的黑毯、卷毯竖刃线）：玩家本来看得见实体，
+## 场上实体生效期间挂一条只画不判的预警线（大刃片飞行路线）：玩家本来看得见实体，
 ## 测试机器人只读 g.warns / 弹，不挂它会无视这些实体，承伤被高估（11-25 测试台）
 func _live(e: Dictionary, a: Vector2, ang: float, ln: float, hw: float, dur: float) -> void:
 	var w := w_line(e, ang, ln, hw, dur, 0.0, "", {"lock": false})
 	w.pos = a
 
 
-## ---- 黑毯（D / E 共用）：{a, dir, len, spd, hw, t0, front, k, hit, roll_t, risen}
+## ---- 黑毯（D / E 共用，11-26 起只是场地）：{a, dir, len, spd, hw, t0, front, k}；铺完当临时国度
 func _carpets(e: Dictionary, km) -> void:
 	if not e.has("cps") or e.cps.is_empty():
 		return
@@ -198,41 +269,23 @@ func _carpets(e: Dictionary, km) -> void:
 	for c in e.cps:
 		var el: float = g.t - float(c.t0)
 		c.front = clampf(el * float(c.spd), 0.0, float(c.len))
-		var b: Vector2 = c.a + c.dir * float(c.front)
-		if not c.hit and c.front > 0.0 and float(c.pct) > 0.0:
-			var q: Vector2 = Geometry2D.get_closest_point_to_segment(g.ppos, c.a, b)
-			if g.combat.ground_d(g.ppos, q) < float(c.hw) + 8.0 and q.distance_to(b) < 40.0:
-				c.hit = true
-				_hit_at(e, q, float(c.hw), float(c.pct), "carpet")
 		if c.front >= float(c.len) and c.get("k") == null and km != null:
-			c.k = km.add_strip(c.a, c.a + c.dir * float(c.len), float(c.hw), e, float(c.stay))   # 铺完当临时国度
+			c.k = km.add_strip(c.a, c.a + c.dir * float(c.len), float(c.hw), e, float(c.stay))
 			c.done_t = g.t
-		# 卷毯（E）：铺完 0.3 秒后从尾端往回卷，卷到哪里竖刃竖到哪里
-		if c.get("roll", false) and c.has("done_t") and g.t >= float(c.done_t) + 0.3:
-			var rl: float = (g.t - float(c.done_t) - 0.3) * 300.0
-			while float(c.risen) * 30.0 <= minf(rl, float(c.len)):
-				var p: Vector2 = c.a + c.dir * (float(c.risen) * 30.0)
-				_ent(e, {"k": "rise", "pos": p, "r": RISE_R, "pct": 0.08, "life": 0.35})
-				c.risen = int(c.risen) + 1
-			if c.get("k") != null:
-				c.k.pos = c.a + c.dir * minf(rl, float(c.len))
-			if rl >= float(c.len):
-				if c.get("k") != null and km != null and c.k in km.list:
-					km.list.erase(c.k)
-				continue
 		if c.has("done_t") and g.t >= float(c.done_t) + float(c.stay):
 			continue
 		keep.append(c)
 	e.cps = keep
 
 
-func _lay(e: Dictionary, a: Vector2, dir: Vector2, ln: float, spd: float, hw: float, pct: float, stay: float, roll := false) -> void:
+func _lay(e: Dictionary, a: Vector2, dir: Vector2, ln: float, spd: float, hw: float, stay: float) -> void:
 	if not e.has("cps"):
 		e["cps"] = []
-	e.cps.append({"a": a, "dir": dir, "len": ln, "spd": spd, "hw": hw, "pct": pct, "t0": g.t, "front": 0.0, "k": null, "hit": false, "stay": stay, "roll": roll, "risen": 0})
+	e.cps.append({"a": a, "dir": dir, "len": ln, "spd": spd, "hw": hw, "t0": g.t, "front": 0.0, "k": null, "stay": stay})
 
 
-## ---- 持续压力「呼吸」：它的国度每 3 秒（二幕 2.4）往外胀一圈（利刃 +20、游荡者 +35），0.6 秒后缩回；胀出的边扫到队长 6%
+## ---- 持续压力「呼吸」：它的国度每 3 秒（二幕 2.4）往外胀一圈（利刃 +40、游荡者 +60），0.6 秒后缩回；不伤人，
+## 胀的时候真的把国度半径加大（攻速惩罚、×1.5 跟着变），缩回原半径 r0
 func _breath(e: Dictionary, km) -> void:
 	if km == null:
 		return
@@ -241,37 +294,57 @@ func _breath(e: Dictionary, km) -> void:
 	if g.t >= float(e.br_t):
 		e.br_t = g.t + (2.4 if act_i(e) >= 1 else 3.0)
 		e.br_until = g.t + 0.6
-		e.br_hit = false
-	if float(e.get("br_until", 0.0)) > g.t and not e.get("br_hit", false):
-		var sw: float = (35.0 if _wand(e) else 20.0) * sin(PI * (1.0 - (float(e.br_until) - g.t) / 0.6))
-		for k in km.list:
-			if int(k.owner_id) != int(e.id) or k.kind != "boss":
-				continue
-			var d: float = g.combat.ground_d(g.ppos, k.pos)
-			if d >= float(k.r) and d < float(k.r) + sw and not km.inside(g.ppos):
-				e.br_hit = true
-				_hit_at(e, g.ppos, 1.0, 0.06, "breath")
-				break
+	var sw := 0.0
+	if float(e.get("br_until", 0.0)) > g.t:
+		sw = (60.0 if _wand(e) else 40.0) * sin(PI * (1.0 - (float(e.br_until) - g.t) / 0.6))
+	for k in _mine(e, km):
+		if not k.has("r0"):
+			k.r0 = k.r
+		k.r = float(k.r0) + sw
 
 
-## ---- A 斩击·竖刃（③）：120° 扇形 r 130（§11.2 r 100 起），预警 1.4 = 追踪 0.3 + 锁定 1.1；
-## 挥刃结算后扇区腾起黑雾，5 片竖刃从雾里竖起（立 0.4 秒）再向外倒伏滑出 40
-func _a_cleave(e: Dictionary, dir: Vector2, _d: float) -> float:
-	var w := w_cone(e, dir.angle(), PI / 3.0, 130.0, 1.4, 0.20, "斩击·竖刃", {"track": 0.3})
+## ---- 位移「雾行」（不算招，§12.4）：每 9 秒沉进国度 0.4 秒，黑影滑到另一处（离队长 ≥250、离自己 ≥300；优先它自己的国度），
+## 钻出时原地旋斩 r 90（0.8 / 0.7，12%）
+func _mistwalk(e: Dictionary, ready: bool, km) -> void:
+	if not e.has("mw_t"):
+		e.mw_t = g.t + 9.0
+	if g.t < float(e.mw_t) or not ready or g.t < float(e.get("busy_t", 0.0)) or e.get("coma", false) or _sunk(e):
+		return
+	e.mw_t = g.t + 9.0
+	var to := Vector2.INF
+	for k in _mine(e, km):
+		if k.pos.distance_to(g.ppos) >= 250.0 and k.pos.distance_to(e.pos) >= 300.0:
+			to = k.pos
+			break
+	if to == Vector2.INF:
+		var side: Vector2 = (e.pos - g.ppos).normalized().rotated(PI * 0.5 * (1.0 if int(g.t) % 2 == 0 else -1.0))
+		to = g.combat.arena_clamp(g.ppos + side * 320.0, 80.0)
+	var d: float = e.pos.distance_to(to)
+	var travel: float = d / GLIDE
+	_sink(e, 0.4 + travel)
+	later(e, 0.4, func(): _glide_to(e, [to], GLIDE))
+	later(e, 0.4 + travel, func():
+		var w := w_self(e, 90.0, 0.8, 0.12, "")
+		w.cb = func(_ww): _ent(e, {"k": "spin", "pos": e.pos, "r": 90.0, "life": 0.3}))
+	e.busy_t = g.t + 0.4 + travel + 1.0
+
+
+## ---- A 斩击·横扫（③）：120° 扇形 r 170，预警 1.7 = 举刃追踪 0.1 + 锁定 1.6；结算后刀走过的地方留一道暗红月牙斩痕 0.3 秒（纯画面）
+func _a_sweep(e: Dictionary, dir: Vector2, _d: float) -> float:
+	var w := w_cone(e, dir.angle(), PI / 3.0, SWEEP_R, 1.7, 0.24, "斩击·横扫", {"track": 0.1})
 	w.cb = func(ww):
 		_fx("slash", e.pos, float(ww.ang))
-		for i in 5:
-			var a: float = float(ww.ang) + lerpf(-PI / 3.0 + 0.15, PI / 3.0 - 0.15, float(i) / 4.0)
-			var rr: float = 95.0 if i % 2 == 0 else 120.0
-			_ent(e, {"k": "rise", "pos": e.pos + Vector2.from_angle(a) * rr, "vel": Vector2.from_angle(a) * 100.0, "r": RISE_R, "pct": 0.08, "hold": 0.4, "life": 0.4, "ang": a})
-	return 1.6
+		_ent(e, {"k": "slash", "pos": e.pos, "ang": float(ww.ang), "r": SWEEP_R, "life": 0.3})
+		_wave(e, e.pos, float(ww.ang), PI / 3.0, 11, 260.0, 0.08)
+		later(e, 0.3, func(): _wave(e, e.pos, float(ww.ang) + 0.09, PI / 3.0, 10, 190.0, 0.08))
+	return 1.9
 
 
-## ---- B 投刃·切雾（②）：瞄队长预判位置，0.8 秒（锁定 0.6，半宽 24）后掷出一片慢速大刃（260/秒，不是光束）；
-## 穿过国度时切开一道口子（1.5 秒内不减攻速、不吃 ×1.5），每次进出国度边界两侧各弹 1 片碎刃
-func _b_throw(e: Dictionary, _dir: Vector2, dist: float) -> float:
+## ---- B 投刃·切雾（②）：瞄队长预判位置，0.8 秒（锁定 0.6，半宽 24）后掷出一片慢速大刃（260/秒，飞到 900）；
+## 穿过国度时切开一道口子（1.5 秒内不减攻速、不吃 ×1.5），每次进出国度边界两侧各崩 1 片碎刃
+func _b_throw(e: Dictionary, _dir: Vector2, _dist: float) -> float:
 	var a: float = (_pred(LEAD) - e.pos).angle()
-	var ln: float = clampf(dist + 260.0, 420.0, 760.0)
+	var ln := 900.0
 	var w := w_line(e, a, ln, THROW_R, 0.8, 0.0, "投刃·切雾", {"track": 0.2, "lead": LEAD})
 	w.cb = func(ww):
 		var v: Vector2 = Vector2.from_angle(float(ww.ang)) * 260.0
@@ -280,118 +353,124 @@ func _b_throw(e: Dictionary, _dir: Vector2, dist: float) -> float:
 	return 1.0
 
 
-## ---- C 国度爆发（①）：离队长最近的 6 块它的国度依次（0.15 秒）腾起刃林，圈 = 国度本身（利刃 0.9、游荡者 1.1）；
-## 爆完每块 4 片刃沿圈的切线贴地滑出（大弹）
-func _c_burst(e: Dictionary, _dir: Vector2, _d: float) -> float:
-	var km = kingdoms()
-	if km == null:
-		return -1.0
-	var mine: Array = km.list.filter(func(k): return int(k.owner_id) == int(e.id) and k.kind == "boss")
-	if mine.is_empty():
-		return -1.0
-	mine.sort_custom(func(x, y): return x.pos.distance_to(g.ppos) < y.pos.distance_to(g.ppos))
-	var dur: float = 1.1 if _wand(e) else 0.9
-	var i := 0
-	for k in mine.slice(0, 6):
-		var kp: Vector2 = k.pos
-		var kr: float = k.r
-		var nm: String = "国度爆发" if i == 0 else ""
-		later(e, 0.15 * i, _burst_one.bind(e, kp, kr, dur, nm))
-		i += 1
-	return 1.2 + 0.15 * i
+## ---- C 雾中突袭（①）：本体沉进国度 0.4 秒 → 雾下黑影朝预警圈滑（≥700/秒）→ 从地下钻出上撩一刀。
+## 圈 r 110 画在队长 1.0 秒后的预判位置，预警 1.3（锁定 ≥1.26）；滑行距离封顶 620
+func _c_ambush(e: Dictionary, _dir: Vector2, _d: float) -> float:
+	var p: Vector2 = _pred(1.0)
+	var off: Vector2 = p - e.pos
+	if off.length() > 620.0:
+		p = e.pos + off.normalized() * 620.0
+	var w := w_circle(e, p, 110.0, 1.3, 0.18, "雾中突袭", {"lock": false})
+	_sink(e, 1.3)
+	later(e, 0.4, func(): _glide_to(e, [p], maxf(GLIDE, e.pos.distance_to(p) / 0.85)))
+	w.cb = func(_ww):
+		e.pos = p
+		e.erase("glide")
+		e.sunk_until = g.t
+		_ent(e, {"k": "upslash", "pos": p, "r": 110.0, "life": 0.35})
+		ring(e, p, 16, 200.0, 1, 0.07, [], (g.ppos - p).angle() + PI / 16.0, {"life": 2.2})
+	return 1.6
 
 
-func _burst_one(e: Dictionary, kp: Vector2, kr: float, dur: float, nm: String) -> void:
-	var w := w_circle(e, kp, kr, dur, 0.15, nm)
-	w.cb = func(_ww): _burst_slide(e, kp, kr)
-	_fx("erupt", kp, kr, dur)
-
-
-func _burst_slide(e: Dictionary, kp: Vector2, kr: float) -> void:
-	var a0: float = (g.ppos - kp).angle()
-	for j in 4:
-		var a: float = a0 + TAU * float(j) / 4.0 + PI / 4.0
-		shot(e, kp + Vector2.from_angle(a) * kr, a + PI * 0.5, 150.0, 2, 0.08, {"life": 1.8})
-
-
-## ---- D 黑毯（④）：以自身为心，四条黑雾地毯（宽 70）呈十字向外铺（150/秒、长 330），一条正对队长；
-## 毯与毯之间的楔形空地 = 出口，先标 0.9 秒；毯头扫到 12%，铺完的毯当 4 秒临时国度
+		_fx("slash", e.pos, float(ww.ang))
+## ---- D 黑毯·回旋（④）：本体把刃插进地里原地旋身一圈：两圈暗红斩波（中弹 30 + 30 发，第二圈错半格、慢一拍）显形后向外扩（170 / 130 每秒，扩到 660），
+## 缺口 2 个开在正对队长和背对队长的两条黑毯上；同时四条黑毯（宽 90、长 330）十字铺开，只当场地（铺完 4 秒国度）
 func _d_carpet(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var a0: float = (_pred(0.6) - e.pos).angle()
 	var c: Vector2 = e.pos
 	for j in 4:
-		w_line(e, a0 + PI * 0.5 * j, 330.0, 35.0, 0.9, 0.0, "黑毯" if j == 0 else "", {"lock": j == 0, "fx_carpet": true})
-	later(e, 0.9, _cross.bind(e, c, a0))
+		_fx("slash", e.pos, float(ww.ang))
+		w_line(e, a0 + PI * 0.5 * j, 330.0, 45.0, 0.9, 0.0, "黑毯·回旋" if j == 0 else "", {"lock": j == 0})
+	ring(e, c, 30, 170.0, 1, 0.12, [a0, a0 + PI], 0.0, {"hold": 0.9, "life": 660.0 / 170.0})
+	ring(e, c, 30, 130.0, 1, 0.10, [a0, a0 + PI], PI / 30.0, {"hold": 1.3, "life": 660.0 / 130.0})
+	later(e, 0.9, func():
+		_ent(e, {"k": "spin", "pos": c, "r": 60.0, "life": 0.4})
+		for j in 4:
+			_lay(e, c, Vector2.from_angle(a0 + PI * 0.5 * j), 330.0, 150.0, 45.0, 4.0))
 	return 1.4
 
 
-func _cross(e: Dictionary, c: Vector2, a0: float) -> void:
-	for j in 4:
-		_lay(e, c, Vector2.from_angle(a0 + PI * 0.5 * j), 330.0, 150.0, 35.0, 0.12, 4.0)
-		_live(e, c, a0 + PI * 0.5 * j, 330.0, 35.0, 330.0 / 150.0)
-
-
-## ---- E 追猎·卷毯（②）：朝队长预判位置冲 300（半宽 30，0.8 / 锁定 0.6），身后拖一条黑毯；
-## 冲完黑毯从尾端往回卷（300/秒），卷到哪里竖刃竖到哪里（侧走一步就躲开）
+## ---- E 追猎·折返（② ×2）：朝队长预判位置冲 480（半宽 36，0.8 / 锁定 0.6；初速约 930），身后拖一条黑毯（场地）；
+## 冲到头转身，沿原线冲回来再斩一刀（回程线在去程结算 0.55 秒后画出，0.6 / 0.6）
 func _e_chase(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var a: float = (_pred(LEAD) - e.pos).angle()
-	var w := w_stab(e, a, 300.0, 60.0, 0.8, 0.22, "追猎·卷毯", {"track": 0.2, "lead": LEAD})
+	var w := w_stab(e, a, 480.0, 72.0, 0.8, 0.24, "追猎·折返", {"track": 0.2, "lead": LEAD})
 	w.cb = func(ww):
 		var dv: Vector2 = Vector2.from_angle(float(ww.ang))
-		_lay(e, e.pos, dv, 300.0, 2000.0, 30.0, 0.0, 3.0, true)
-		_live(e, e.pos, float(ww.ang), 300.0, RISE_R + 8.0, 1.5)
-	return 1.8
+		var from: Vector2 = e.pos
+		_lay(e, from, dv, 480.0, 1600.0, 36.0, 3.0)
+		for k in 6:
+			var q: Vector2 = from + dv * (80.0 * k + 40.0)
+			shot(e, q, dv.angle() + PI * 0.5, 120.0, 1, 0.06, {"hold": 0.5, "life": 2.6})
+			shot(e, q, dv.angle() - PI * 0.5, 120.0, 1, 0.06, {"hold": 0.5, "life": 2.6})
+		later(e, 0.55, func():
+			var back: float = (from - e.pos).angle()
+			var w2 := w_stab(e, back, maxf(120.0, e.pos.distance_to(from)), 72.0, 0.6, 0.20, "", {"lock": true})
+			w2.cb = func(ww2): later(e, 0.35, func(): _wave(e, e.pos, float(ww2.ang), PI / 4.0, 7, 240.0, 0.07)))
+	return 2.4
 
 
-## ---- F 国度刃雨（① 小圈群）：刃只落在国度里——离队长最近的 5 块（含黑毯不算），每块 6 个落点 r 24，0.15 秒错开；
-## 队长站在某块国度里时，那块的第一个落点就落在队长脚下（预判 0.3 秒）
-func _f_rain(e: Dictionary, _dir: Vector2, _d: float) -> float:
+## ---- F 国度猎斩（② ×3）：沉进国度，依次从离队长最近的 3 块国度里钻出（每块 1.3 秒）：钻出时刃尖聚一团暗红漩涡（0.7 秒预警，
+## 锁定 0.5，半宽 26，长 700），然后朝队长打出一道红色斩光；再沉下去，黑影滑到下一块
+func _f_hunt(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var km = kingdoms()
 	if km == null:
 		return -1.0
-	var ks: Array = km.list.filter(func(k): return k.kind == "boss" or k.kind == "chaos")
+	var ks: Array = km.list.filter(func(k): return (k.kind == "boss" or k.kind == "chaos") and k.pos.distance_to(g.ppos) > 140.0)
 	if ks.is_empty():
 		return -1.0
 	ks.sort_custom(func(x, y): return x.pos.distance_to(g.ppos) < y.pos.distance_to(g.ppos))
-	var n := 0
-	var first := true
-	for k in ks.slice(0, 5):
-		var kp: Vector2 = k.pos
-		var kr: float = k.r
-		for j in 6:
-			var p: Vector2 = kp + Vector2.from_angle(TAU * float(j) / 6.0 + float(n) * 0.7) * kr * (0.35 if j % 2 == 0 else 0.7)
-			if j == 0 and g.ppos.distance_to(kp) < kr:
-				p = _pred(0.3)
-			var nm: String = "国度刃雨" if first else ""
-			first = false
-			later(e, 0.15 * j + 0.05 * n, func():
-				w_circle(e, p, 24.0, 0.7, 0.10, nm, {"lock": false})
-				_fx("rain", p, 24.0, 0.7))
-		n += 1
-	return 1.3 + 0.05 * n
+		_fx("slash", e.pos, float(ww.ang))
+	var pts: Array = ks.slice(0, 3).map(func(k): return k.pos)
+	var n: int = pts.size()
+	for i in n:
+		var p: Vector2 = pts[i]
+		var t0: float = 0.3 + 1.3 * i
+		later(e, t0 - 0.3, func():
+			_sink(e, 0.3)
+			_glide_to(e, [p], maxf(GLIDE, e.pos.distance_to(p) / 0.28)))
+		later(e, t0, func():
+			e.pos = p
+			e.erase("glide")
+			e.sunk_until = g.t
+			_ent(e, {"k": "vortex", "pos": p, "r": 22.0, "life": 0.7})
+			var w := w_line(e, (g.ppos - p).angle(), 700.0, 52.0, 0.7, 0.14, "国度猎斩" if i == 0 else "", {"track": 0.2, "pos": p})
+			w.cb = func(ww):
+				_ent(e, {"k": "redslash", "pos": p, "ang": float(ww.ang), "r": 700.0, "life": 0.25})
+				_wave(e, p, float(ww.ang), PI / 5.0, 7, 280.0, 0.07))
+	_sink(e, 0.3)
+	return 0.3 + 1.3 * n
 
 
-## ---- G 皇帝的猎杀（游荡者，① 链）：在队长前进方向依次铺 3 块国度（自动连片）；游荡者「呼吸」一次，整条国度链同时喷刃
+## ---- G 皇帝的猎杀（游荡者，② 折线）：「呼吸」一次，在队长前进方向铺 4 块国度（r 140，场地）；然后本体沿 4 块中心一路冲斩过去
+## （800/秒，整条折线一起预警，半宽 40；每段的结算时刻 = 本体走到这段末端的时刻，锁定 ≥0.6）
 func _g_hunt(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var km = kingdoms()
 	if km == null:
 		return -1.0
 	var f: Vector2 = _fwd(e)
-	var base: Vector2 = g.ppos
 	var pts: Array = []
-	for k in 3:
-		pts.append(g.combat.arena_clamp(base + f * (70.0 + 120.0 * k), 60.0))
-	for k in 3:
+	for k in 4:
+		pts.append(g.combat.arena_clamp(g.ppos + f * (-150.0 + 170.0 * k), 60.0))
+	for k in 4:
 		var p: Vector2 = pts[k]
-		later(e, 0.25 * k, func(): km.add(p, _kr(e), "boss", e, 40.0))
-	later(e, 0.75, _hunt_burst.bind(e, pts))
-	return 2.0
-
-
-func _hunt_burst(e: Dictionary, pts: Array) -> void:
-	for k in pts.size():
-		w_circle(e, pts[k], _kr(e), 0.9, 0.15, "皇帝的猎杀" if k == 0 else "", {"lock": k == 0})
-		_fx("erupt", pts[k], _kr(e), 0.9)
+		_fx("slash", e.pos, float(ww.ang))
+		later(e, 0.15 * k, func(): km.add(p, 140.0, "boss", e, 12.0))
+	e.br_t = g.t
+	var prev: Vector2 = e.pos
+	var acc := 0.0
+	for k in 4:
+		var q: Vector2 = pts[k]
+		var ln: float = maxf(40.0, prev.distance_to(q))
+		acc += ln / 800.0
+		var w := w_line(e, (q - prev).angle(), ln, 80.0, 0.9 + acc, 0.20, "皇帝的猎杀" if k == 0 else "", {"pos": prev, "lock": k == 0})
+		var qq: Vector2 = q
+		w.cb = func(_ww):
+			_ent(e, {"k": "spin", "pos": qq, "r": 50.0, "life": 0.25})
+			ring(e, qq, 10, 170.0, 1, 0.07, [], float(k) * 0.3, {"life": 2.4})
+		prev = q
+	later(e, 0.9, func(): _glide_to(e, pts, 800.0))
+	return 1.2 + acc
 
 
 ## 主轴：它的国度碎掉（mech_kingdom._break 通知）；6 秒内碎 3 块 → 踉跄 2.5 秒、受伤 ×1.5
@@ -406,42 +485,62 @@ func on_kingdom_break(e: Dictionary) -> void:
 		vuln(e, 2.5, 1.5 / maxf(0.01, Bal.v("boss/break_mult", 1.4)))
 
 
-## ---- 占位画面（fx-declutter 换正式特效）：竖刃 = 竖立的白芯黑刃，大刃片 = 旋转的黑菱形，黑毯 = 铺开的暗带，呼吸 = 国度外一圈薄雾
+## ---- 占位画面（fx-declutter 换正式特效）：黑毯 = 铺开的暗带；大刃片 = 旋转的黑菱形；刀光 = 暗红月牙；红漩 = 暗红螺旋；
+## 沉入 = 黑影椭圆 + 一截刃尖；呼吸 = 国度半径本身在胀缩（mech_kingdom 照常画）
 func draw(e: Dictionary, cv) -> void:
 	var fxm = g.mech("fx")
 	if fxm != null:
 		fxm.blade_draw(e)   # 正式特效（themes/sami/mech/mech_fx.gd，docs/401 §11）；没有 fx 机制时画下面的占位
 		return
 	var cb: Color = col(e)
+	var red := Color(0.62, 0.08, 0.12)
 	for c in e.get("cps", []):
 		if float(c.front) > 0.0 and c.get("k") == null:
 			var b: Vector2 = c.a + c.dir * float(c.front)
-			cv.draw_line(c.a, b, Color(0.06, 0.06, 0.08, 0.55), float(c.hw) * 2.0)
-			cv.draw_circle(b, float(c.hw), Color(0.1, 0.1, 0.13, 0.7))
+			cv.draw_line(c.a, b, Color(0.06, 0.06, 0.08, 0.45), float(c.hw) * 2.0)
+	if _sunk(e):
+		cv.draw_set_transform(e.pos, 0.0, Vector2(1.0, 0.45))
+		cv.draw_circle(Vector2.ZERO, float(e.r) * 1.3, Color(0.03, 0.03, 0.05, 0.85))
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		cv.draw_line(e.pos + Vector2(4, -2), e.pos + Vector2(10, -20), Color(0.9, 0.92, 0.96, 0.9), 2.0)
 	for x in e.get("ents", []):
-		var up: float = clampf(float(x.t) / maxf(0.05, float(x.hold)), 0.0, 1.0) if float(x.hold) > 0.0 else 1.0
-		if x.k == "rise":
-			var hgt: float = 30.0 * up
-			var p: Vector2 = x.pos
-			cv.draw_colored_polygon(PackedVector2Array([p + Vector2(-7, 0), p + Vector2(0, -hgt - 6), p + Vector2(7, 0)]), Color(cb.r, cb.g, cb.b, 0.95))
-			cv.draw_line(p + Vector2(0, -2), p + Vector2(0, -hgt), Color(0.95, 0.97, 1.0, 0.9), 2.0)
-			cv.draw_arc(p, float(x.r), 0.0, TAU, 16, Color(0.86, 0.88, 0.92, 0.5), 1.5)
-		else:
-			var rot: float = float(x.t) * 14.0
-			var r: float = float(x.r)
-			var pts := PackedVector2Array()
-			for j in 4:
-				pts.append(x.pos + Vector2.from_angle(rot + PI * 0.5 * j) * (r * (1.3 if j % 2 == 0 else 0.45)))
-			cv.draw_colored_polygon(pts, Color(cb.r, cb.g, cb.b, 0.95))
-			cv.draw_polyline(pts + PackedVector2Array([pts[0]]), Color(0.86, 0.88, 0.92, 0.9), 2.0)
-			cv.draw_circle(x.pos, 4.0, Color(0.96, 0.97, 1.0))
-	if float(e.get("br_until", 0.0)) > g.t:
-		var km = kingdoms()
-		if km != null:
-			var sw: float = (35.0 if _wand(e) else 20.0) * sin(PI * (1.0 - (float(e.br_until) - g.t) / 0.6))
-			for k in km.list:
-				if int(k.owner_id) == int(e.id) and k.kind == "boss":
-					cv.draw_arc(k.pos, float(k.r) + sw, 0.0, TAU, 40, Color(0.2, 0.2, 0.25, 0.45), maxf(2.0, sw * 0.5))
+		var fade: float = clampf(1.0 - float(x.t) / maxf(0.05, float(x.life)), 0.0, 1.0)
+		match str(x.k):
+			"thrown":
+				var rot: float = float(x.t) * 14.0
+				var r: float = float(x.r)
+				var pts := PackedVector2Array()
+				for j in 4:
+					pts.append(x.pos + Vector2.from_angle(rot + PI * 0.5 * j) * (r * (1.3 if j % 2 == 0 else 0.45)))
+				cv.draw_colored_polygon(pts, Color(cb.r, cb.g, cb.b, 0.95))
+				cv.draw_polyline(pts + PackedVector2Array([pts[0]]), Color(0.86, 0.88, 0.92, 0.9), 2.0)
+			"slash":
+				cv.draw_arc(x.pos, float(x.r) * 0.85, float(x.ang) - PI / 3.0, float(x.ang) + PI / 3.0, 24, Color(red.r, red.g, red.b, 0.8 * fade), 10.0)
+			"upslash", "spin":
+				cv.draw_arc(x.pos, float(x.r) * 0.7, 0.0, TAU, 32, Color(red.r, red.g, red.b, 0.75 * fade), 8.0)
+			"vortex":
+				for j in 3:
+					var a0: float = float(x.t) * 9.0 + TAU * j / 3.0
+					cv.draw_arc(x.pos + Vector2(0, -24), 6.0 + 5.0 * j, a0, a0 + 2.2, 10, Color(0.75, 0.1, 0.15, 0.9), 2.5)
+			"redslash":
+				cv.draw_line(x.pos, x.pos + Vector2.from_angle(float(x.ang)) * float(x.r), Color(0.9, 0.12, 0.15, 0.85 * fade), 6.0)
 
 
 ## 机器人主轴（同前）：没有 axis_do 覆写 = 走 mech_kingdom.bot_score（不站国度）+ 通用躲招
+
+
+## 测试台逐招对账：没有名字的后续段（第 2、3 发、回程、碎片圈…）记到最近一次有名字的招下（boss_trial.move_tag 读 mv）
+func _warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionary:
+	if str(d.get("name", "")) != "":
+		e["cur_mv"] = str(d.name)
+	elif not d.has("mv"):
+		d["mv"] = str(e.get("cur_mv", ""))
+	return super(e, shape, dur, d)
+
+
+## 中期 Boss 的弹按自己写的 life 消失，不吃场地续飞（shot_pool._arena_fly 会给出界前的弹续 6 秒；11-26 雪祀慢雪片因此叠满 150 上限）
+func shot(e: Dictionary, pos: Vector2, ang: float, spd: float, tier: int, pct: float, o := {}) -> void:
+	var n0: int = g.ebullets.size()
+	super(e, pos, ang, spd, tier, pct, o)
+	if g.ebullets.size() > n0:
+		g.ebullets[g.ebullets.size() - 1]["no_extend"] = true
