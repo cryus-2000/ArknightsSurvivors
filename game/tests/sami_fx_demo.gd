@@ -14,6 +14,8 @@ const KINGDOM_SEGS := ["国度爆发", "国度刃雨"]   # 这几镜先摆 3 块
 
 
 func _shots() -> Array:
+	if "--final" in OS.get_cmdline_user_args():
+		return _final_shots()
 	var a: Array = [
 		{"name": "染污躯壳 · 爪击 / 受击暴冲", "dur": 6.0, "spawn": [["husk", 6, 150.0]], "hurt": "husk"},
 		{"name": "歪曲施法者 · 法术弹", "dur": 6.0, "rad": 0.0, "spawn": [["caster", 3, 200.0]]},
@@ -24,6 +26,21 @@ func _shots() -> Array:
 	a.append({"name": "邪魔的利刃，游荡者 · 皇帝的猎杀", "dur": 4.0, "boss": "wanderer", "move": "皇帝的猎杀", "orbit": 200.0})
 	a.append({"name": "邪魔的利刃 · 呼吸（国度外胀）", "dur": 4.2, "boss": "blade", "rad": 0.0, "kd": true})
 	return a
+
+
+## 结局四 Boss 招牌招（docs/401 §14）：--final 只录这一组
+func _final_shots() -> Array:
+	return [
+		{"name": "萨米的意志 · 冰凌连落（坠冰）", "dur": 4.0, "boss": "will", "move": "冰凌连落", "orbit": 200.0, "follow": true},
+		{"name": "萨米的意志 · 风雪环（雪花环）", "dur": 3.6, "boss": "will", "move": "风雪环", "orbit": 200.0, "follow": true},
+		{"name": "木裂 · 泯灭冲（墨绿剥落）", "dur": 5.0, "boss": "lead", "move": "泯灭冲", "orbit": 200.0},
+		{"name": "木裂 · 自我泯灭", "dur": 4.0, "boss": "lead", "move": "自我泯灭", "orbit": 200.0},
+		{"name": "克雷松 · 稳定场（锚桩光柱）+ 苗圃", "dur": 5.5, "boss": "cresson", "dev": true},
+		{"name": "哈兰杜汗 · 鞭扫", "dur": 3.0, "boss": "khan", "move": "鞭扫", "orbit": 110.0},
+		{"name": "哈兰杜汗 · 鞭影", "dur": 3.0, "boss": "khan", "move": "鞭影", "orbit": 110.0},
+		{"name": "哈兰杜汗 · 鞭链", "dur": 3.0, "boss": "khan", "move": "鞭链", "orbit": 200.0},
+		{"name": "路加萨尔古斯 · 日晷", "dur": 4.4, "boss": "lion", "move": "日晷", "orbit": 200.0},
+	]
 
 
 func _ready() -> void:
@@ -73,6 +90,7 @@ func _ready() -> void:
 			var n: int = int(float(seg.dur) / DT)
 			var moved := false
 			var prev_p: Vector2 = g.ppos
+			var dev_on := false
 			for frame_i in n:
 				var el: float = frame_i * DT
 				g.t += DT
@@ -82,10 +100,21 @@ func _ready() -> void:
 				var rad: float = float(seg.get("rad", 40.0))
 				var a: float = el * 0.6
 				g.ppos = O + Vector2(cos(a), sin(a) * 0.75) * rad + Vector2(60, 0)
+				if seg.has("dev") and not g.bosses.is_empty() and g.bosses[0].has("devs"):
+					# 克雷松：队长绕第一台稳定设施走，0.3 秒时启动它（1 秒充能后开场）；旁边摆一块苗圃
+					var dv0: Dictionary = g.bosses[0].devs[0]
+					g.ppos = dv0.pos + Vector2(cos(el * 1.2), sin(el * 1.2) * 0.8) * 70.0
+					if el > 0.3 and not dev_on:
+						dev_on = true
+						dv0.charge = g.t + 1.0
+						var kmm = g.mech("kingdom")
+						if kmm != null:
+							kmm.add(dv0.pos + Vector2(150, 50), 70.0, "nursery", g.bosses[0])
 				if seg.has("orbit"):
 					# 中距离绕 Boss 走（约 150–250），1.6 秒时掉头变向：看瞄准 / 落点是不是追着队长
 					var oa: float = -0.5 + el * 1.0 if el < 1.6 else 1.1 - (el - 1.6) * 1.3
-					g.ppos = O + Vector2(-90, 0) + Vector2(cos(oa), sin(oa) * 0.8) * float(seg.orbit)
+					var oc: Vector2 = (g.bosses[0].pos as Vector2) if seg.get("follow", false) and not g.bosses.is_empty() else O + Vector2(-90, 0)
+					g.ppos = oc + Vector2(cos(oa), sin(oa) * 0.8) * float(seg.orbit)
 					g.pvel = (g.ppos - prev_p) / DT
 				prev_p = g.ppos
 				g.doc_pos = g.ppos + Vector2(10, 35)
@@ -142,6 +171,9 @@ func setup(seg: Dictionary) -> void:
 		fx.ice_ev.clear()
 		fx.puffs.clear()
 		fx.gpuffs.clear()
+		fx.flakes.clear()
+		fx.trails.clear()
+		fx.cres_list.clear()
 		fx.blade_list.clear()
 	var foes = g.mech("foes")
 	if foes != null:

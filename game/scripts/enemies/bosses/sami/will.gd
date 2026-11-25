@@ -136,6 +136,7 @@ func _m6(e: Dictionary, _dir: Vector2, _d: float) -> float:
 
 ## 7 风雪环：32 发小圆弹（雪粒）、2 个缺口、扩散 160，环慢转 20°/秒
 func _m7(e: Dictionary, _dir: Vector2, _d: float) -> float:
+	_fx("flake", e.pos, 0.9)
 	ring(e, e.pos, 32, 160.0, 0, 0.13, gaps_at(e.pos), 0.0, {"hold": 0.9, "turn": deg_to_rad(20.0), "life": 6.0})
 	return 1.2
 

@@ -436,11 +436,4 @@ func _warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionar
 	return super(e, shape, dur, d)
 
 
-## 特效挂钩：只画，不改玩法状态
-func _fx(kind: String, p: Vector2, a := 0.0, b := 0.0) -> void:
-	var fxm = g.mech("fx")
-	if fxm != null:
-		fxm.blade_event(kind, p, a, b)
-
-
 ## 机器人主轴（同前）：没有 axis_do 覆写 = 走 mech_kingdom.bot_score（不站国度）+ 通用躲招

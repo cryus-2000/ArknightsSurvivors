@@ -125,13 +125,17 @@ func all_moves(e: Dictionary) -> Array:
 
 func _sweep(e: Dictionary, dir: Vector2, _d: float) -> float:
 	var w := w_cone(e, dir.angle(), deg_to_rad(50.0), 120.0, 1.1, 0.16, "鞭扫", {"track": 0.4})
-	w.cb = func(ww): fan(e, e.pos, float(ww.ang), deg_to_rad(50.0), 6, 200.0, 0, 0.08)
+	w.cb = func(ww):
+		_fx("whip", e.pos, float(ww.ang), deg_to_rad(50.0))
+		fan(e, e.pos, float(ww.ang), deg_to_rad(50.0), 6, 200.0, 0, 0.08)
 	return 1.3
 
 
 func _chain(e: Dictionary, dir: Vector2, _d: float) -> float:
 	var w := w_line(e, dir.angle(), 360.0, 40.0, 0.8, 0.15, "鞭链", {"track": 0.3})
-	w.cb = func(ww): ring(e, e.pos + Vector2.from_angle(float(ww.ang)) * 360.0, 8, 150.0, 0, 0.07)
+	w.cb = func(ww):
+		_fx("lash", e.pos, float(ww.ang), 360.0)
+		ring(e, e.pos + Vector2.from_angle(float(ww.ang)) * 360.0, 8, 150.0, 0, 0.07)
 	return 1.0
 
 
@@ -146,7 +150,9 @@ func _charge(e: Dictionary, _dir: Vector2, _d: float) -> float:
 func _whip2(e: Dictionary, dir: Vector2, _d: float) -> float:
 	for s in [0.0, PI]:
 		var w := w_cone(e, dir.angle() + s, deg_to_rad(45.0), 120.0, 1.1, 0.16, "鞭影" if s == 0.0 else "")
-		w.cb = func(ww): fan(e, e.pos, float(ww.ang), deg_to_rad(45.0), 5, 200.0, 0, 0.08)
+		w.cb = func(ww):
+			_fx("whip", e.pos, float(ww.ang), deg_to_rad(45.0))
+			fan(e, e.pos, float(ww.ang), deg_to_rad(45.0), 5, 200.0, 0, 0.08)
 	return 1.3
 
 
@@ -178,6 +184,7 @@ func _dial(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var c: Vector2 = e.pos
 	e.move_name = "日晷"
 	e.move_t = g.t
+	_fx("dial", c, 110.0, 0.8)
 	for i in 20:
 		var p: Vector2 = c + Vector2.from_angle(TAU * i / 20.0) * 110.0
 		later(e, 0.8 + 0.12 * i, func(): shot(e, p, (g.ppos - p).angle(), 260.0, 0, 0.12, {"hold": 0.0}))

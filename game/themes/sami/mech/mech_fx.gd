@@ -51,6 +51,18 @@ var grey_puff: Array = []    # 国度中间的浅灰雾
 var grey_band: Texture2D
 var kdir := 1
 var ice_ev: Array = []       # 冰爆 [位置, r, 出生 t, 冰块表, 霜点表]
+# 结局 Boss（docs/401 §14）
+const KHAN := [Color(0.16, 0.02, 0.02), Color(0.45, 0.05, 0.04), Color(0.72, 0.1, 0.06), Color(0.95, 0.32, 0.2)]   # 哈兰暗红 4°
+const LUKA := Color(0.95, 1.0, 0.3)          # 路加弹环 / 日晷：金黄 64°（docs/393 §11.11）
+const LUKA_D := Color(0.3, 0.2, 0.08)        # 路加暗边：深褐
+const LUKA_O := Color(1.0, 0.62, 0.15)       # 路加本体 / 出手火光：金橙
+const TEALC := [Color(0.0, 0.04, 0.025), Color(0.0, 0.15, 0.11), Color(0.04, 0.29, 0.21), Color(0.1, 0.44, 0.31), Color(0.29, 0.64, 0.48)]   # 木裂原作 smlead_buff 深青
+const LIL := [Color(0.3, 0.16, 0.45), Color(0.54, 0.28, 0.8), Color(0.7, 0.46, 0.95), Color(0.85, 0.7, 1.0), Color(1.0, 0.96, 1.0)]   # 克雷松淡紫 270°
+const WILLC := [Color(0.3, 0.22, 0.45), Color(0.62, 0.62, 0.8), Color(0.86, 0.86, 0.98), Color(1.0, 1.0, 1.0)]   # 意志冰白低饱和 + 暗紫边
+var flakes: Array = []       # 木裂剥落片 [p0, v, t0, 寿命, 尺寸, 转速, 色]
+var trails: Array = []       # 木裂冲刺地痕 [a, b, t0]
+var teal_band: Texture2D
+var lil_puff: Array = []
 const GOUGE := [Color(0.1, 0.13, 0.2), Color(0.26, 0.32, 0.42), Color(0.93, 0.96, 1.0)]   # 爪痕：深槽 / 槽壁 / 翻起的雪唇
 const OWN := {"caster": "needle", "blade": "blade", "wanderer": "blade"}
 
@@ -75,6 +87,9 @@ func _init(game: Game) -> void:
 	for i in 3:
 		ice_puff.append(_fog_tex(32, 32, 1301 + i, true, Color(0.5, 0.68, 0.9), Color(1.0, 1.0, 1.0)))   # 亮雪地上要读得出：浓处纯白（比雪亮）、稀处冰蓝
 		grey_puff.append(_fog_tex(32, 32, 1401 + i, true, Color(0.5, 0.5, 0.54), Color(0.7, 0.7, 0.74)))
+	teal_band = _fog_tex(128, 32, 1601, false, Color(0.04, 0.29, 0.21), Color(0.0, 0.06, 0.04))
+	for i in 3:
+		lil_puff.append(_fog_tex(32, 32, 1701 + i, true, Color(0.54, 0.28, 0.8), Color(0.85, 0.7, 1.0)))
 	grey_band = _fog_tex(128, 32, 1501, false, Color(0.5, 0.5, 0.54), Color(0.68, 0.68, 0.72))
 	var kd: PackedStringArray = OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()
 	for a in kd:
@@ -340,6 +355,7 @@ func _mark(pos: Vector2, ang: float, kind: int) -> void:
 
 func draw_ground(w) -> void:
 	_draw_ice_ground(w, g.t)
+	_final_ground(w, g.t)
 	_blade_ground(w, g.t)
 	if marks.is_empty():
 		return
@@ -401,6 +417,7 @@ func draw_front(w) -> void:
 	puffs = _draw_puffs(cv, puffs, now)
 	_blade_front(w, now)
 	_draw_ice_front(w, now)
+	_final_front(w, cv, now)
 	# 帧条（旋转要换画布变换，画完复位，后面的合批三角形要求单位矩阵）
 	var keep: Array = []
 	for s in strips:
@@ -556,6 +573,10 @@ func blade_event(kind: String, p: Vector2, a := 0.0, b := 0.0) -> void:
 			sparks(p + Vector2.from_angle(a) * 80.0, a, 1.0, 16, 360.0, BLOOD)
 		"erupt", "rain":
 			bevents.append([kind, p, a, g.t + b, false])
+		"flake", "whip", "lash":
+			bevents.append([kind, p, a, g.t, false, b])
+		"dial":
+			bevents.append([kind, p, a, g.t, false, b, -1])
 
 
 ## 雾团：柔边雾贴图往外翻卷、慢慢胀大淡出（ground = 压在单位之下）
@@ -726,7 +747,7 @@ func _blade_ground(w, now: float) -> void:
 	for id in blade_list.keys():
 		var it: Array = blade_list[id]
 		var e: Dictionary = it[0]
-		if e.dead or now - float(it[1]) > 0.2:
+		if e.dead or absf(now - float(it[1])) > 0.2:
 			blade_list.erase(id)
 			continue
 		# 黑毯（铺开中；铺完由国度占位接手）：连续雾带（柔边贴图），毯头往前、往两侧翻卷雾团，偶尔崩出碎屑
@@ -813,6 +834,30 @@ func _blade_front(w, now: float) -> void:
 		var tf: float = ev[3]
 		var age: float = now - tf
 		var p: Vector2 = ev[1]
+		if ev[0] == "flake":
+			if age > 1.4:
+				continue
+			keep.append(ev)
+			_draw_flake(w, p, age, float(ev[5]))
+			continue
+		if ev[0] == "whip":
+			if age > 0.42:
+				continue
+			keep.append(ev)
+			_draw_whip(w, ev, age)
+			continue
+		if ev[0] == "lash":
+			if age > 0.5:
+				continue
+			keep.append(ev)
+			_draw_lash(w, ev, age)
+			continue
+		if ev[0] == "dial":
+			if age > float(ev[5]) + 0.12 * 20.0 + 0.5:
+				continue
+			keep.append(ev)
+			_draw_dial(w, ev, age)
+			continue
 		if ev[0] == "slash":
 			# 挥刃：月牙刀带 0.1 秒从扇形一边扫到另一边（刀头白、刀身深红、尾巴黑），0.1–0.28 秒尾巴追上收掉
 			if age > 0.28:
@@ -918,6 +963,22 @@ func kingdom_draw(km) -> void:
 		_band_tex(cv, grey_band, l[0].pos, l[1].pos, float(l[2]) * 0.9, 0.55)
 	for k in km.list:
 		if k.kind == "nursery":
+			# 克雷松苗圃（原作淡紫带白闪）：几团淡紫雾 + 圈边淡紫雾团 + 一闪一闪的白点
+			var rn: float = float(k.r)
+			for i in 4:
+				var an: float = float(i) * 2.399 + now * 0.2
+				var qn: Vector2 = k.pos + Vector2(cos(an), sin(an) * gy) * rn * 0.35
+				cv.draw_texture_rect(lil_puff[i % 3], Rect2(((qn - Vector2(rn, rn * 0.8) * 0.6) / PX).floor() * PX, Vector2(rn, rn * 0.8) * 1.2), false, Color(1, 1, 1, 0.55))
+			var nn: int = maxi(6, int(TAU * rn / 30.0))
+			for i in nn:
+				var an2: float = TAU * float(i) / float(nn) + 0.1 * sin(now + float(i))
+				var q3: Vector2 = k.pos + Vector2(cos(an2), sin(an2) * gy) * rn
+				cv.draw_texture_rect(lil_puff[i % 3], Rect2(((q3 - Vector2(26, 21)) / PX).floor() * PX, Vector2(52, 42)), false, Color(1, 1, 1, 0.8))
+			for i in 6:
+				if int(now * 6.0 + float(i) * 3.7) % 5 == 0:
+					var an3: float = float(i) * 1.9 + floorf(now * 1.2)
+					var q4: Vector2 = _snap(k.pos + Vector2(cos(an3), sin(an3) * gy) * rn * 0.7)
+					cv.draw_rect(Rect2(q4, Vector2(4, 4)), Color(1.0, 0.96, 1.0))
 			continue
 		if k.has("b"):
 			_band(cv, k.pos, k.b, float(k.r), 0.85)
@@ -986,3 +1047,318 @@ func _crack_cv(cv, a: Vector2, ang: float, L: float, sd: int) -> void:
 		cv.draw_line(prev, q, OLC, 4.0)
 		cv.draw_line(prev, q, Color(1.0, 0.92, 0.75), 2.0)
 		prev = q
+
+
+
+## ==== 结局 Boss 招牌招（用户 11-25 定方向，docs/401 §14）
+
+## 意志【风雪环】：弹排好的 0.9 秒里，脚下一枚雪花印六臂长出（冰晶菱块 + 侧枝，冰白 + 暗紫边），到点迸散成冰屑
+func _draw_flake(w, c: Vector2, age: float, hold: float) -> void:
+	var grow: float = clampf(age / (hold * 0.6), 0.0, 1.0)
+	grow = 1.0 - (1.0 - grow) * (1.0 - grow)
+	var fade: float = clampf((1.4 - age) / 0.45, 0.0, 1.0)
+	if age >= hold and age - 1.0 / 30.0 < hold:
+		for k in 6:
+			sparks(c + Vector2.from_angle(TAU * k / 6.0) * 60.0, TAU * k / 6.0, 0.5, 4, 220.0, [WILLC[3], WILLC[2], WILLC[1], WILLC[0]], true, 0.35)
+	var L: float = 140.0 * grow   # 臂要伸出意志本体（本体约 70 宽）才看得见
+	for k in 6:
+		var a: float = TAU * float(k) / 6.0 + PI / 6.0
+		var d := Vector2(cos(a), sin(a) * 0.62)
+		var nv := Vector2(-d.y, d.x).normalized()
+		var x := 10.0
+		var i := 0
+		while x < L:
+			var q: Vector2 = c + d * x
+			var s: float = (7.0 - x / 22.0) * fade
+			if s > 1.0:
+				var dia := PackedVector2Array([q + d * (s + 2.0), q + nv * (s * 0.6 + 2.0), q - d * (s + 2.0), q - nv * (s * 0.6 + 2.0)])
+				w.tb_poly(dia, WILLC[0])
+				w.tb_poly(PackedVector2Array([q + d * s, q + nv * s * 0.6, q - d * s, q - nv * s * 0.6]), WILLC[2])
+				w.tb_poly(PackedVector2Array([q + d * s, q + nv * s * 0.6, q]), WILLC[3])
+				if i % 2 == 1 and x > 24.0:
+					for sg in [-1.0, 1.0]:
+						var br: Vector2 = (d * 0.5 + nv * sg * 0.85).normalized()
+						var bl: float = 14.0 * fade * grow
+						w.tb_line(_snap(q), _snap(q + br * bl), WILLC[0], 4.0)
+						w.tb_line(_snap(q), _snap(q + br * bl), WILLC[2], 2.0)
+			x += 14.0
+			i += 1
+
+
+## 哈兰【鞭扫 / 鞭影】：鞭从手里甩出扫过扇形（0.16 秒），鞭身各段按离手远近滞后 → 弯出挥鞭弧；身后留两道变暗的残影，
+## 扫到头鞭梢炸响（火星 + 沙尘），再往回收；粗 7 → 2 像素，暗红 + 亮脊 + 暗描边
+func _whip_pts(hand: Vector2, a0: float, a1: float, age: float, L: float) -> PackedVector2Array:
+	var pts := PackedVector2Array([hand])
+	var n := 16
+	var q: Vector2 = hand
+	for i in range(1, n + 1):
+		var tt: float = age - float(i) * 0.011
+		var u: float = clampf(tt / 0.16, 0.0, 1.0)
+		u = 1.0 - pow(1.0 - u, 2.2)
+		var over: float = 0.18 * sin(clampf((tt - 0.16) / 0.2, 0.0, 1.0) * PI) if tt > 0.16 else 0.0
+		var a: float = lerpf(a0, a1, u) + over * signf(a1 - a0)
+		q += Vector2(cos(a), sin(a) * 0.8) * (L / float(n))
+		pts.append(q)
+	return pts
+
+
+func _draw_whip_line(w, pts: PackedVector2Array, k: float, cols: Array) -> void:
+	var n: int = pts.size() - 1
+	for i in n:
+		var f: float = float(i) / float(n)
+		var wd: float = lerpf(10.0, 3.0, f) * k
+		if wd < 1.0:
+			continue
+		w.tb_line(_snap(pts[i]), _snap(pts[i + 1]), cols[0], wd + 2.0)
+	for i in n:
+		var f2: float = float(i) / float(n)
+		var wd2: float = lerpf(10.0, 3.0, f2) * k
+		if wd2 < 1.0:
+			continue
+		w.tb_line(_snap(pts[i]), _snap(pts[i + 1]), cols[1], wd2)
+		if wd2 >= 3.0:
+			w.tb_line(_snap(pts[i] + Vector2(0, -1)), _snap(pts[i + 1] + Vector2(0, -1)), cols[2], 1.0)
+
+
+func _draw_whip(w, ev: Array, age: float) -> void:
+	var c: Vector2 = ev[1]
+	var ca: float = ev[2]
+	var half: float = ev[5]
+	var hand: Vector2 = c + Vector2(0, -26)
+	var L := 150.0
+	var a0: float = ca - half - 0.25
+	var a1: float = ca + half + 0.1
+	var fade: float = clampf((0.42 - age) / 0.18, 0.0, 1.0)
+	for gh in [2, 1]:
+		var ta: float = age - 0.035 * float(gh)
+		if ta > 0.0:
+			_draw_whip_line(w, _whip_pts(hand, a0, a1, ta, L), (0.55 - 0.15 * float(gh)) * fade, [KHAN[0], KHAN[1], KHAN[1]])
+	var pts := _whip_pts(hand, a0, a1, age, L)
+	_draw_whip_line(w, pts, fade, [OLC, KHAN[2], KHAN[3]])
+	if not ev[4] and age >= 0.16:
+		ev[4] = true
+		var tip: Vector2 = pts[pts.size() - 1]
+		sparks(tip, ca + half, 0.9, 10, 320.0, [Color(1.0, 0.95, 0.9), KHAN[3], KHAN[2], KHAN[1]], true, 0.3)
+		embers(tip + Vector2(0, 20), 6, Color(0.55, 0.42, 0.28), 120.0, 260.0, 0.5, 4.0)
+		for i in 5:
+			_fog(c + Vector2.from_angle(lerpf(a0, a1, float(i) / 4.0)) * 100.0 + Vector2(0, 18), 1, 0.6, 0.0, true, 0.7)
+
+
+## 哈兰【鞭链】：鞭沿直线抽出去（0.18 秒），鞭身有往前推的波，抽到头鞭梢炸响，再收回
+func _draw_lash(w, ev: Array, age: float) -> void:
+	var c: Vector2 = ev[1]
+	var d := Vector2.from_angle(float(ev[2]))
+	var nv := d.orthogonal()
+	var L: float = ev[5]
+	var ext: float = clampf(age / 0.18, 0.0, 1.0)
+	ext = 1.0 - pow(1.0 - ext, 2.0)
+	if age > 0.3:
+		ext *= clampf(1.0 - (age - 0.3) / 0.2, 0.0, 1.0)
+	var hand: Vector2 = c + Vector2(0, -26)
+	var n := 22
+	var pts := PackedVector2Array()
+	for i in n + 1:
+		var f: float = float(i) / float(n)
+		var amp: float = 14.0 * f * (1.0 - ext * 0.8)
+		pts.append(hand + d * L * ext * f + nv * sin(f * 9.0 - age * 40.0) * amp)
+	_draw_whip_line(w, pts, 1.0, [OLC, KHAN[2], KHAN[3]])
+	if not ev[4] and age >= 0.18:
+		ev[4] = true
+		var tip: Vector2 = c + d * L
+		sparks(tip, 0.0, PI, 14, 300.0, [Color(1.0, 0.95, 0.9), KHAN[3], KHAN[2], KHAN[1]], true, 0.32)
+		embers(tip, 8, Color(0.55, 0.42, 0.28), 140.0, 260.0, 0.5, 4.0)
+		_fog(tip + Vector2(0, 6), 3, 0.7, 0.0, true, 0.9)
+
+
+## 路加【日晷】：地上 20 道金黄刻度依次长出（每 5 道一道长的），中间一根晷针投下暗影、按刻度顺时针扫；
+## 扫到哪道刻度，那道刻度闪金橙、弹从那里射出（弹本身走 mid_cards，弹环金黄 64°）
+func _draw_dial(w, ev: Array, age: float) -> void:
+	var c: Vector2 = ev[1]
+	var R: float = ev[2]
+	var delay: float = ev[5]
+	var gy := 0.62
+	var fade: float = clampf((delay + 0.12 * 20.0 + 0.5 - age) / 0.4, 0.0, 1.0)
+	var cur: int = int(floor((age - delay) / 0.12)) if age >= delay else -1
+	for i in 20:
+		var a: float = TAU * float(i) / 20.0 - PI * 0.5
+		var d := Vector2(cos(a), sin(a) * gy)
+		var grow: float = clampf((age - float(i) * 0.02) / 0.25, 0.0, 1.0) * fade
+		if grow <= 0.0:
+			continue
+		var long: bool = i % 5 == 0
+		var ln: float = (32.0 if long else 20.0) * grow
+		var wd: float = 9.0 if long else 6.0
+		var q0: Vector2 = c + d * (R - ln * 0.5)
+		var q1: Vector2 = c + d * (R + ln * 0.5)
+		var lit: bool = i <= cur and cur - i < 3
+		w.tb_line(_snap(q0), _snap(q1), LUKA_D, wd + 2.0)
+		w.tb_line(_snap(q0), _snap(q1), LUKA_O if lit else LUKA, wd)
+		if lit and cur == i:
+			w.tb_line(_snap(q0), _snap(q1), Color(1.0, 1.0, 0.9), maxf(2.0, wd - 3.0))
+		if i == cur and int(ev[6]) != i:
+			ev[6] = i
+			sparks(c + d * R, a, 0.8, 6, 200.0, [Color(1.0, 1.0, 0.9), LUKA, LUKA_O, LUKA_D], true, 0.28)
+	# 晷针影：暗褐三角，从圆心指向当前刻度（出弹前指向第 0 道、慢慢立起）
+	var ga: float = TAU * float(maxi(cur, 0)) / 20.0 - PI * 0.5
+	if cur >= 0:
+		ga += TAU / 20.0 * clampf((age - delay - 0.12 * float(cur)) / 0.12, 0.0, 1.0)
+	var gl: float = R * 0.85 * clampf(age / 0.5, 0.0, 1.0) * fade
+	if gl > 2.0:
+		var gd := Vector2(cos(ga), sin(ga) * gy)
+		var gn := Vector2(-gd.y, gd.x).normalized()
+		w.tb_poly(PackedVector2Array([c + gn * 7.0, c + gd * gl, c - gn * 7.0]), Color(0.18, 0.12, 0.05, 0.85))
+		w.tb_poly(PackedVector2Array([c + gn * 4.0, c + gd * gl * 0.92, c]), LUKA_D)
+	# 晷心：金橙小柱
+	w.tb_poly(PackedVector2Array([c + Vector2(-5, 0), c + Vector2(0, -22) * fade, c + Vector2(5, 0)]), LUKA_D)
+	w.tb_poly(PackedVector2Array([c + Vector2(-3, 0), c + Vector2(0, -19) * fade, c + Vector2(1, 0)]), LUKA_O)
+
+
+## 木裂【泯灭冲 / 自我泯灭】：冲刺时身上一片片墨绿（深青）甲片往后剥落、翻转飘走，脚下犁出一道深青雾痕；自我泯灭期间身上不停掉片
+func lead_draw(e: Dictionary) -> void:
+	var now: float = g.t
+	var pp: Vector2 = e.get("fx_pp", e.pos)
+	var tp: float = float(e.get("fx_pt", now))
+	e["fx_pp"] = e.pos
+	e["fx_pt"] = now
+	var dt: float = now - tp
+	if dt <= 0.0 or dt > 0.2:
+		return
+	var v: Vector2 = (e.pos - pp) / dt
+	var dash: bool = v.length() > 260.0
+	if dash:
+		if trails.size() > 40:
+			trails.pop_front()
+		trails.append([pp, e.pos, now])
+		for i in 3:
+			_flake(e.pos + Vector2(rng.randf_range(-14, 14), rng.randf_range(-48, -8)), -v * rng.randf_range(0.15, 0.35) + Vector2(rng.randf_range(-40, 40), -rng.randf_range(20, 60)))
+	elif float(e.get("annihil_t", 0.0)) > now and rng.randf() < 0.45:
+		_flake(e.pos + Vector2(rng.randf_range(-16, 16), rng.randf_range(-52, -10)), Vector2(rng.randf_range(-50, 50), -rng.randf_range(30, 70)))
+
+
+func _flake(p: Vector2, v: Vector2) -> void:
+	if flakes.size() > 120:
+		flakes.pop_front()
+	flakes.append([p, v, g.t, rng.randf_range(0.6, 1.0), rng.randf_range(4.0, 7.0), rng.randf_range(-9.0, 9.0), rng.randi() % 3])
+
+
+## 克雷松【稳定场】（方向 B 锚桩光柱）：稳定设施 = 暗石板锚桩 + 淡紫晶尖；充能时一根光柱从桩上长高；
+## 场开着时圈边 6 根锚桩各立一根光柱，柱间升起淡紫光尘帘（不画细环）
+var cres_list := {}
+
+
+func cresson_draw(e: Dictionary) -> void:
+	cres_list[int(e.id)] = [e, g.t]
+
+
+func _pillar(cv, base: Vector2, h: float, wd: float, al: float) -> void:
+	if h < 2.0 or al <= 0.0:
+		return
+	var hw: float = wd * 0.5
+	var top: Vector2 = base + Vector2(0, -h)
+	cv.draw_polygon(PackedVector2Array([base + Vector2(-hw - 4, 0), base + Vector2(hw + 4, 0), top + Vector2(hw + 2, 0), top + Vector2(-hw - 2, 0)]),
+		PackedColorArray([Color(LIL[1], 0.55 * al), Color(LIL[1], 0.55 * al), Color(LIL[1], 0.0), Color(LIL[1], 0.0)]))
+	cv.draw_polygon(PackedVector2Array([base + Vector2(-hw, 0), base + Vector2(hw, 0), top + Vector2(hw * 0.6, 0), top + Vector2(-hw * 0.6, 0)]),
+		PackedColorArray([Color(LIL[3], 0.95 * al), Color(LIL[3], 0.95 * al), Color(LIL[3], 0.0), Color(LIL[3], 0.0)]))
+	cv.draw_polygon(PackedVector2Array([base + Vector2(-1.5, 0), base + Vector2(1.5, 0), top + Vector2(1, h * 0.25), top + Vector2(-1, h * 0.25)]),
+		PackedColorArray([Color(LIL[4], al), Color(LIL[4], al), Color(LIL[4], 0.0), Color(LIL[4], 0.0)]))
+
+
+func _anchor(w, p: Vector2, lit: float) -> void:
+	w.tb_poly(PackedVector2Array([p + Vector2(-9, 2), p + Vector2(-6, -22), p + Vector2(6, -22), p + Vector2(9, 2)]), OLC)
+	w.tb_poly(PackedVector2Array([p + Vector2(-7, 0), p + Vector2(-5, -20), p + Vector2(5, -20), p + Vector2(7, 0)]), Color(0.18, 0.22, 0.3))
+	w.tb_poly(PackedVector2Array([p + Vector2(-5, 0), p + Vector2(-4, -20), p + Vector2(-1, -20), p + Vector2(-2, 0)]), Color(0.35, 0.42, 0.54))
+	var cc: Color = LIL[3].lerp(LIL[1], 1.0 - lit)
+	w.tb_poly(PackedVector2Array([p + Vector2(-5, -20), p + Vector2(0, -34), p + Vector2(5, -20)]), OLC)
+	w.tb_poly(PackedVector2Array([p + Vector2(-3, -21), p + Vector2(0, -31), p + Vector2(3, -21)]), cc)
+
+
+func _final_ground(w, now: float) -> void:
+	var cv = g.wcv
+	var keep: Array = []
+	for tr in trails:
+		var age: float = now - float(tr[2])
+		if age > 0.9:
+			continue
+		keep.append(tr)
+		_band_tex(cv, teal_band, tr[0], tr[1], 16.0, 0.9 * (1.0 - age / 0.9))
+	trails = keep
+
+
+func _final_front(w, cv, now: float) -> void:
+	# 意志【冰凌】坠冰：冰凌列的每个落点预警后段，一根冰凌从天上落下（冰白 + 暗紫边），落地碎开
+	for t in g.warns:
+		if str(t.get("skin", "")) != "ice_lance" or not (t.get("owner") is Dictionary) or str(t.owner.get("type", "")) != "will":
+			continue
+		var k: float = clampf(float(t.t) / maxf(0.01, float(t.dur)), 0.0, 1.0)
+		var p: Vector2 = t.pos
+		if t.done:
+			if not t.get("fx_hit", false):
+				t["fx_hit"] = true
+				sparks(p + Vector2(0, -6), -PI * 0.5, 1.4, 10, 260.0, [WILLC[3], WILLC[2], WILLC[1], WILLC[0]], true, 0.32)
+				embers(p, 6, WILLC[2], 130.0, 300.0, 0.5, 4.0)
+				for j in 3:
+					_icefog(p + Vector2(rng.randf_range(-10, 10), 0), Vector2(rng.randf_range(-40, 40), rng.randf_range(-10, 10)), 0.8, 22.0, 0.8)
+			continue
+		if k < 0.62:
+			continue
+		var f: float = (k - 0.62) / 0.38
+		var y: float = -200.0 * (1.0 - f * f)
+		var tip: Vector2 = p + Vector2(0, y)
+		w.tb_poly(PackedVector2Array([tip + Vector2(0, 4), tip + Vector2(-14, -36), tip + Vector2(0, -92), tip + Vector2(14, -36)]), WILLC[0])
+		w.tb_poly(PackedVector2Array([tip, tip + Vector2(-11, -36), tip + Vector2(0, -87), tip + Vector2(11, -36)]), WILLC[1])
+		w.tb_poly(PackedVector2Array([tip, tip + Vector2(0, -87), tip + Vector2(11, -36)]), WILLC[2])
+		w.tb_line(_snap(tip + Vector2(2, -12)), _snap(tip + Vector2(2, -70)), WILLC[3], 3.0)
+		var sh: float = 6.0 + 10.0 * f
+		w.tb_quad(_snap(p + Vector2(-sh, -1)), _snap(p + Vector2(sh, -1)), _snap(p + Vector2(sh * 0.7, 2)), _snap(p + Vector2(-sh * 0.7, 2)), Color(0.3, 0.32, 0.42, 0.55))
+	# 木裂剥落片：翻转的深青甲片（暗描边），往后飘、慢慢落
+	var keep: Array = []
+	for fl in flakes:
+		var age: float = now - float(fl[2])
+		if age >= float(fl[3]):
+			continue
+		keep.append(fl)
+		var u: float = age / float(fl[3])
+		var pos: Vector2 = fl[0] + fl[1] * age * (1.0 - 0.5 * u) + Vector2(0, 60.0 * age * age)
+		var s: float = float(fl[4]) * (1.0 - u * 0.5)
+		var an: float = float(fl[5]) * age
+		var sq: float = absf(cos(an * 1.7))   # 翻面：宽度随转角缩放
+		var a := Vector2(cos(an), sin(an)) * s
+		var b := Vector2(-sin(an), cos(an)) * s * maxf(0.25, sq)
+		var pts := PackedVector2Array([pos + a, pos + b, pos - a * 0.7, pos - b])
+		var big := PackedVector2Array()
+		for q in pts:
+			big.append(pos + (q - pos) * 1.35)
+		w.tb_poly(big, OLC)
+		w.tb_poly(pts, TEALC[2 + int(fl[6]) % 3] if sq > 0.5 else TEALC[1])
+	flakes = keep
+	w.tb_flush()
+	# 克雷松锚桩 / 光柱 / 光尘帘
+	for id in cres_list.keys():
+		var it: Array = cres_list[id]
+		var e: Dictionary = it[0]
+		if e.dead or absf(now - float(it[1])) > 0.2:
+			cres_list.erase(id)
+			continue
+		for d in e.get("devs", []):
+			var ready: bool = now >= float(d.cd)
+			var on: bool = float(d.field) > now
+			_anchor(w, d.pos, 1.0 if (ready or on) else 0.0)
+			if float(d.charge) > 0.0:
+				var ck: float = clampf(1.0 - (float(d.charge) - now), 0.0, 1.0)
+				_pillar(cv, d.pos + Vector2(0, -30), 200.0 * ck, 20.0, 0.6 + 0.4 * ck)
+			if on:
+				var left: float = float(d.field) - now
+				var al: float = clampf(left / 0.5, 0.0, 1.0)
+				_pillar(cv, d.pos + Vector2(0, -30), 190.0, 18.0, al * (0.85 + 0.15 * sin(now * 9.0)))
+				for k in 6:
+					var aa: float = TAU * float(k) / 6.0 + 0.3
+					var ap: Vector2 = d.pos + Vector2(cos(aa), sin(aa) * 0.62) * 170.0
+					_anchor(w, ap, 1.0)
+					_pillar(cv, ap + Vector2(0, -30), 120.0 + 12.0 * sin(now * 5.0 + float(k)), 14.0, al * 0.9)
+					if rng.randf() < 0.3 * al:
+						_fog(ap, 1, 0.6, 0.0, true, 0.6, Vector2(0, -10))
+					if rng.randf() < 0.5 * al:
+						var bb: float = aa + TAU / 6.0 * rng.randf()
+						var mp: Vector2 = d.pos + Vector2(cos(bb), sin(bb) * 0.62) * 170.0
+						_add(mp + Vector2(0, -rng.randf_range(0.0, 10.0)), Vector2(rng.randf_range(-6, 6), -rng.randf_range(40, 80)), 0.7, LIL[3] if rng.randf() < 0.6 else LIL[4], 2.0, 0)
+		w.tb_flush()

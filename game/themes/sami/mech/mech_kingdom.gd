@@ -392,10 +392,7 @@ func draw_ground(_w) -> void:
 		_relink()
 	var fxm = g.mech("fx")
 	if fxm != null:
-		fxm.kingdom_draw(self)   # 黑烟国度（themes/sami/mech/mech_fx.gd，docs/401 §13）；苗圃仍在下面画占位
-		for k in list:
-			if k.kind == "nursery":
-				cv.draw_circle(k.pos, k.r, Color(0.75, 0.85, 0.35, 0.22))
+		fxm.kingdom_draw(self)   # 黑烟国度 + 淡紫苗圃（themes/sami/mech/mech_fx.gd，docs/401 §13–14）
 		return
 	for l in links:
 		cv.draw_line(l[0].pos, l[1].pos, Color(0.35, 0.3, 0.5, 0.28), float(l[2]) * 2.0)

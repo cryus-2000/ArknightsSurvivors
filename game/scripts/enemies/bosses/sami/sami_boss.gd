@@ -249,3 +249,10 @@ func axis_ignore(_e: Dictionary, _p: Vector2) -> Vector2:
 func go_to(p: Vector2, q: Vector2, tol := 14.0) -> Vector2:
 	var d: Vector2 = q - p
 	return Vector2.ZERO if d.length() < tol else d.normalized()
+
+
+## 特效挂钩（docs/401 §11–14）：只画，不改玩法状态；没有 fx 机制时什么都不做
+func _fx(kind: String, p: Vector2, a := 0.0, b := 0.0) -> void:
+	var fxm = g.mech("fx")
+	if fxm != null:
+		fxm.blade_event(kind, p, a, b)

@@ -232,6 +232,9 @@ func _echo(e: Dictionary, _dir: Vector2, _d: float) -> float:
 
 
 func draw(e: Dictionary, cv) -> void:
+	var fxm = g.mech("fx")
+	if fxm != null:
+		fxm.lead_draw(e)   # 墨绿剥落（docs/401 §14）
 	var ai: int = act_i(e)
 	for s in e.get("stops", []):
 		if s.gone:
