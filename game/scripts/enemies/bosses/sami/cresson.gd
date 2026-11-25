@@ -557,7 +557,15 @@ func draw(e: Dictionary, cv) -> void:
 func axis_do(e: Dictionary, p: Vector2) -> Vector2:
 	if e.get("echo", false) or not e.has("devs"):
 		return Vector2.INF
-	var tgt: Vector2 = e.cps[int(e.get("next_cp", e.cp))] if e.has("land_warned") else e.pos
+	# 下一个落点旁有设施、离眼纹亮起还有 0.4 秒以上：先去开稳定场（设施在落击圈里，眼纹亮了就进不去）
+	var nxt: Vector2 = e.cps[int(e.get("next_cp", e.cp))]
+	var until_warn: float = float(e.blink_t) - 2.7 - g.t
+	for d in e.devs:
+		if d.pos.distance_to(nxt) < 170.0 and until_warn > 0.4 and g.t >= float(d.cd) and float(d.charge) < 0.0 and float(d.field) < float(e.blink_t) + 1.0:
+			if not (d.taps as Array).is_empty():
+				return go_to(p, d.pos + Vector2(70.0 if int(g.t * 2.0) % 2 == 0 else -70.0, 0), 10.0)
+			return go_to(p, d.pos, 12.0)
+	var tgt: Vector2 = nxt if e.has("land_warned") else e.pos
 	for d in e.devs:
 		if float(d.field) > g.t and tgt.distance_to(d.pos) < 170.0:
 			var q: Vector2 = d.pos + (tgt - d.pos) * 0.4

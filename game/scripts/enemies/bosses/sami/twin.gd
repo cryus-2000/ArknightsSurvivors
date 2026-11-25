@@ -18,7 +18,7 @@ const ULT_DUR := 2.8
 const ULT_LOCK := 0.7
 const DRAG_SPD := 90.0
 const STUN_T := 4.0
-const GUARD := 0.6         # 平时受伤（王者护卫）
+const GUARD := 0.45        # 平时受伤（王者护卫；§15.4 A 原拟 0.6，11-26 测试台下调）
 const WINDOW := 2.0        # 被砸中窗口的总受伤倍率
 
 
@@ -200,7 +200,7 @@ func _start_ult(e: Dictionary, m, mode: String) -> void:
 	e["ult"] = {"w": w, "mode": mode, "t0": g.t, "dur": dur}
 	e.channel = dur
 	if m != null and mode == "drag":
-		m["walk_to"] = e.pos   # 牵制王起身走来接手
+		m["walk_to"] = e.pos + ((m.pos as Vector2) - e.pos).normalized() * 320.0   # 牵制王起身走来接手，停在离施放者 320 处（不理主轴时圈砸不到他）
 	w.cb = func(ww): _ult_land(e, ww)
 
 

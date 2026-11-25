@@ -108,7 +108,7 @@ func base_taken(e: Dictionary) -> float:
 
 
 ## ---- 冰凌列：以 x 为列（宽 80），从北往南每 0.2 秒落一根；碰到完好银凇 / 冰桩 / 冰峰就停，银凇记一次
-func _column(e: Dictionary, x: float, nm: String, delay := 0.0, pct := 0.12) -> void:
+func _column(e: Dictionary, x: float, nm: String, delay := 0.0, pct := 0.12, aimed := true) -> void:
 	if not e.has("last_cols"):
 		e["last_cols"] = []
 	e.last_cols.append(x)
@@ -131,8 +131,8 @@ func _column(e: Dictionary, x: float, nm: String, delay := 0.0, pct := 0.12) -> 
 		later(e, delay + 0.2 * k, _lance_at.bind(e, Vector2(x, y), nm if k == 0 else "", pct))
 		y += COL_W
 		k += 1
-	if tree != null:
-		later(e, delay + 0.2 * k + 0.8, func(): _tree_hit(e, tree))
+	if tree != null and aimed:
+		later(e, delay + 0.2 * k + 0.8, func(): _tree_hit(e, tree))   # 只有瞄队长的那一列算砸银凇（主轴靠站位，不靠运气，11-26 测试台）
 
 
 func _lance_at(e: Dictionary, p: Vector2, nm: String, pct: float) -> void:
@@ -254,7 +254,7 @@ func _m_double(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	for t in _trees_alive(e):
 		if best == null or t.pos.distance_to(g.ppos) < best.pos.distance_to(g.ppos):
 			best = t
-	_column(e, (best.pos.x + COL_W) if best != null else g.ppos.x + 180.0, "")
+	_column(e, (best.pos.x + COL_W) if best != null else g.ppos.x + 180.0, "", 0.0, 0.12, false)
 	return 1.8
 
 
@@ -360,7 +360,7 @@ func _m_echo(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	e.move_name = "群山回响"
 	e.move_t = g.t
 	for dx in [0.0, -COL_W, COL_W]:
-		later(e, 1.2, func(): _column(e, last + dx, "群山回响" if dx == 0.0 else ""))
+		later(e, 1.2, func(): _column(e, last + dx, "群山回响" if dx == 0.0 else "", 0.0, 0.12, false))
 	return 2.6
 
 
@@ -554,11 +554,12 @@ func axis_do(e: Dictionary, p: Vector2) -> Vector2:
 			return go_to(p, o.pos, 10.0)
 	var best = null
 	for t in _trees_alive(e):
-		if best == null or t.pos.distance_to(p) < best.pos.distance_to(p):
+		var sc: float = t.pos.distance_to(e.pos) + t.pos.distance_to(p) * 0.5
+		if best == null or sc < best.pos.distance_to(e.pos) + best.pos.distance_to(p) * 0.5:
 			best = t
 	if best == null:
 		return Vector2.INF
-	return go_to(p, best.pos + Vector2(0, 70), 16.0)
+	return go_to(p, best.pos + Vector2(0, 70), 16.0)   # 离意志最近的那棵树身后（输出距离近）
 
 
 ## 不理主轴：离银凇所在的列远一点（站在两棵之间的空列）

@@ -7,7 +7,7 @@
 ## 三幕 树痕阵 ② / 长冬 ①+障碍 / 连息 ① / 劈山 ②；末段 泯灭冲 ②×4 / 坍缩 ①+牵引。画面全部占位，正式特效交 fx-declutter。
 extends "res://scripts/enemies/bosses/sami/sami_boss.gd"
 
-const STOP_R := 45.0
+const STOP_R := 60.0
 
 
 func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mate) -> void:
@@ -30,12 +30,12 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 				s.lit = g.t + 5.0
 			var on: bool = g.t >= float(s.next) and (ai == 0 or float(s.lit) > g.t)
 			if on and e.pos.distance_to(s.pos) < STOP_R + float(e.r):
-				s.next = g.t + 8.0
+				s.next = g.t + 6.0
 				s.lit = 0.0
 				e.channel = 2.5
-				e["helm_until"] = g.t + 4.0
-				e["brk_len"] = 4.0
-				e["break_ring_until"] = g.t + 4.0
+				e["helm_until"] = g.t + 5.0
+				e["brk_len"] = 5.0
+				e["break_ring_until"] = g.t + 5.0
 				g.combat.start_break(e, 2.5)
 	if e.get("channel", 0.0) > 0.0:
 		e.channel = maxf(0.0, e.channel - dt)
@@ -79,7 +79,7 @@ func all_moves(_e: Dictionary) -> Array:
 func base_taken(e: Dictionary) -> float:
 	if float(e.get("annihil_t", 0.0)) > g.t:
 		return 0.2
-	return 1.5 if float(e.get("helm_until", 0.0)) > g.t else 0.5
+	return 1.5 if float(e.get("helm_until", 0.0)) > g.t else 0.35
 
 
 func _m_breath(e: Dictionary, _a: Vector2, _b: float) -> float:
