@@ -186,6 +186,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		var la: Dictionary = e.get("last_act", {})
 		if str(la.get("act", "")) == "dash" and str(e.get("brk_label", "")) != "眩晕":
 			ice_shards(e, e.pos, aim(e.pos), int(round(3 * Bal.v("boss/knight_dense_k", 1.0))), 0.8, 150.0)   # 冰屑一律朝队长（10-28 用户「boss 的子弹没有追着人打」）
+			ice_boulder(e, e.pos, aim(e.pos))
 			if e.phase == 2:
 				_crack_charge(e, float(la.get("ang", 0.0)))
 	# 连冲：重生后一组 1 + knight_p2_chain 次（第一次全长、后两次 70%，docs/49d 11.8）；三幕冲锋后再转向冲一次。连冲完喘气 2.5 秒（普通破绽，docs/38 §8.8）
@@ -1033,6 +1034,16 @@ func on_kill(e: Dictionary) -> void:
 ## 冰屑弹（用户 10-27「可以增加一些弹幕，但是不用太多，因为是近战攻击为主」）：冰锋 / 冰波 / 冲锋自然收尾时碎出几片慢速冰屑，
 ## 同屏最多 SHARD_CAP（18）片；走公共 g.ebullets（判定、机器人躲避、干员消弹同一管线）。单发 e.dmg × 0.35 × knight_ice_dmg_k。
 ## 只在自然结束时出：被打断 / 撞柱 / 转幕不出。开关 boss/knight_shards（0 = 关）
+## 冰岩（11-26 水月加强，docs/418 / 359 §2.6 最终 Boss 每幕 ≥1 招可见半径 ≥24）：冲锋停下时朝队长推出一块大冰（判定 r21 = 可见约 24，170 px/s、4.5 秒），
+## 画法走普通敌弹圆（kind orb，冰屑贴图固定 36 像素放不大）；不计入冰屑上限
+func ice_boulder(e: Dictionary, from: Vector2, ang: float) -> void:
+	if Bal.v("boss/knight_boulder", 1.0) <= 0.0 or e.get("dead", false):
+		return
+	g.ebullets.append({"pos": from + Vector2.from_angle(ang) * 30.0, "vel": Vector2.from_angle(ang) * Bal.v("boss/knight_boulder_spd", 170.0),
+		"dmg": e.dmg * Bal.v("boss/knight_boulder_dmg", 0.5), "r": 21.0, "life": 4.5, "slow": false, "frost": 0.0, "corrode": 0.0, "nerve": 0.0, "true": false,
+		"kind": "orb", "home": false, "boss": true, "atk": "物理", "source_id": e.id, "col": Color(0.62, 0.88, 1.0), "src_type": e.type})
+
+
 ## 从 from 指向队长的角度：骑士所有冰屑扇 / 冰棱弹都按这个瞄准（螺旋雪片、回旋冰锥是图案弹，不瞄）
 func aim(from: Vector2) -> float:
 	return (g.ppos - from).angle() if g.ppos.distance_to(from) > 1.0 else 0.0

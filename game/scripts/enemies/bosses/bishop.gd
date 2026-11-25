@@ -140,24 +140,28 @@ func force_move(e: Dictionary, name: String, dir: Vector2, dist: float) -> bool:
 
 ## A · 潮汐柱（保留微调）：3 圈 r64 改为一条直线上等距三点——主控脚下 + 沿「主教 → 主控」方向前后各 110，同时锁定 1.1 秒；
 ## 侧向一步就全躲开（原来两个随机偏移圈读不出规律）；e.dmg × 1.1 法术 / 柱
+## 11-26 水月加强（docs/418，359 §2.6 中期每幕 ≥1 招 ≥12% 屏）：3 圈 r64 间距 110 → 5 圈 r100 间距 170（约 12% 屏），仍是一条直线、侧向一步躲开
 func _pillar(e: Dictionary, dir: Vector2) -> void:
-	for k in 3:
-		var off: Vector2 = dir * (0.0 if k == 0 else (110.0 if k == 1 else -110.0))
-		_warn(e, "circle", 1.1, {"pos": g.ppos + off, "r": 64.0, "act": "pillar", "name": "潮汐柱" if k == 0 else "", "col": Color(0.4, 0.9, 1.0), "dmg": e.dmg * 1.1, "lock": k == 0, "skin": "mc_pillar"})
+	var n: int = int(Bal.v("boss/tide_pillar_n", 5))
+	var spc: float = Bal.v("boss/tide_pillar_gap", 170.0)
+	for k in n:
+		var off: Vector2 = dir * spc * float((k + 1) / 2) * (1.0 if k % 2 == 1 else -1.0)
+		_warn(e, "circle", 1.1, {"pos": g.ppos + off, "r": Bal.v("boss/tide_pillar_r", 100.0), "act": "pillar", "name": "潮汐柱" if k == 0 else "", "col": Color(0.4, 0.9, 1.0), "dmg": e.dmg * 1.1, "lock": k == 0, "skin": "mc_pillar"})
 
 
 ## 二幕「换位」（docs/142b §3.8）：两体连线（双端跟随 0.6 秒后锁定，Kanpelle 靛蓝光束）+ 各自连向主控的两条线，1.0 秒同时结算；
 ## 连线结算那一刻两具互换位置（telegraph tide_link 的 swap）。读法：别站两体之间、也别站在任一体与自己的连线上，往三角外斜走，换完重新选边
 func _swap(e: Dictionary, mate: Dictionary) -> void:
-	_warn(e, "line", 1.0, {"ang": (mate.pos - e.pos).angle(), "len": e.pos.distance_to(mate.pos), "wid": 17.0, "track": 0.6, "act": "tide_link", "name": "换位",
+	_warn(e, "line", 1.0, {"ang": (mate.pos - e.pos).angle(), "len": e.pos.distance_to(mate.pos), "wid": 24.0, "track": 0.6, "act": "tide_link", "name": "换位",
 		"col": g.vfx.boss_color(e.type), "dmg": e.dmg * 0.47, "cancel_dead": true, "b_owner": mate, "lock": false, "swap": true, "kp": "bishop", "kp_k": 1.0, "skin": "mc_link"})
 	# 各自连向主控的线 + 穿过主控、与两体连线平行的第 4 道（10-25 加密：原三角 3 道；×0.78）
 	for src in [e, mate]:
 		var v: Vector2 = g.ppos - src.pos
-		_warn(e, "line", 1.0, {"pos": src.pos, "source": src, "aim_extend": true, "ang": v.angle(), "len": v.length() + 40.0, "wid": 14.0, "track": 0.4, "act": "shot", "name": "",
+		_warn(e, "line", 1.0, {"pos": src.pos, "source": src, "aim_extend": true, "ang": v.angle(), "len": v.length() + 40.0, "wid": 20.0, "track": 0.4, "act": "shot", "name": "",
 			"col": g.vfx.boss_color(src.type), "dmg": e.dmg * 0.39, "lock": false, "kp": "bishop", "kp_k": 1.0, "skin": "mc_link"})
 	var pa: float = (mate.pos - e.pos).angle()
-	_warn(e, "line", 1.15, {"pos": g.ppos - Vector2.from_angle(pa) * 420.0, "ang": pa, "len": 840.0, "wid": 14.0, "track": 0.5, "track_center": true, "act": "shot", "name": "",
+	# 11-26 水月加强（docs/418）：线宽 17 / 14 / 14 → 24 / 20 / 20，第 4 道 840 → 1100（换位合计约 11.5% → 16% 屏）
+	_warn(e, "line", 1.15, {"pos": g.ppos - Vector2.from_angle(pa) * 550.0, "ang": pa, "len": 1100.0, "wid": 20.0, "track": 0.5, "track_center": true, "act": "shot", "name": "",
 		"col": g.vfx.boss_color(e.type), "dmg": e.dmg * 0.39, "lock": false, "kp": "bishop", "kp_k": 1.0, "skin": "mc_link"})
 	g.vfx.add_alert(e.pos + Vector2(0, -50), "统一", Color(0.4, 0.9, 1.0), 16)
 
@@ -234,10 +238,11 @@ func _pat_beat(e: Dictionary, mate: Dictionary) -> void:
 ## 镜潮（一幕 A）：lead 朝队长放 5 向扇（出弹点离本体中心 28，两具一致才镜像得准）（间隔 0.2 弧度，120 px/s，中弹，0.25 秒显形）；0.6 秒后 other 放它的镜像（关于两体中垂线）
 func _mirror_fan(lead: Dictionary, other: Dictionary, dir: Vector2) -> void:
 	var angs: Array = []
-	for k in 5:
-		var a: float = dir.angle() + (float(k) - 2.0) * 0.2
+	# 11-26 水月加强（docs/418）：5 → 7 向、中弹 → 重弹（tier 3，可见约 14，359 §2.6 中期大弹）
+	for k in 7:
+		var a: float = dir.angle() + (float(k) - 3.0) * 0.2
 		angs.append(MC.mirror_ang(a, lead.pos, other.pos))
-		MC.shot(g, lead, lead.pos + Vector2.from_angle(a) * 28.0, a, 120.0, 1, {"hold": 0.25, "mult": 0.4, "col": _shot_col(lead)})
+		MC.shot(g, lead, lead.pos + Vector2.from_angle(a) * 28.0, a, 120.0, 3, {"hold": 0.25, "mult": 0.4, "col": _shot_col(lead)})
 	lead.mirror_q = {"at": g.t + 0.6, "src": other, "angs": angs}
 	lead.move_name = "镜潮"
 	lead.move_t = g.t
@@ -256,7 +261,7 @@ func _mirror_step(e: Dictionary, mate) -> void:
 		if src.dead or src.get("coma", false):
 			continue
 		for a in q.angs:
-			MC.shot(g, src, src.pos + Vector2.from_angle(float(a)) * 28.0, float(a), 120.0, 1, {"hold": 0.25, "mult": 0.4, "col": _shot_col(src)})
+			MC.shot(g, src, src.pos + Vector2.from_angle(float(a)) * 28.0, float(a), 120.0, 3, {"hold": 0.25, "mult": 0.4, "col": _shot_col(src)})
 
 
 ## 交错潮环（一幕 B）：两具同时放 16 向小弹环（90 px/s），主教的每秒左转 0.35 弧度、搭档的右转（2.2 秒后不再转），两环交出菱形格
@@ -265,8 +270,8 @@ func _twin_rings(e: Dictionary, mate: Dictionary) -> void:
 	for o in [e, mate]:
 		var sgn: float = 1.0 if is_same(o, e) else -1.0
 		var ob: float = MC.mirror_ang(base, e.pos, mate.pos) if is_same(o, mate) else base
-		for k in 16:
-			var a: float = ob + TAU * k / 16.0 + PI / 16.0 * float(int(e.beat_n) % 2)
+		for k in 20:   # 11-26 水月加强：16 → 20 向
+			var a: float = ob + TAU * k / 20.0 + PI / 20.0 * float(int(e.beat_n) % 2)
 			MC.shot(g, o, o.pos + Vector2.from_angle(a) * (float(o.r) + 4.0), a, 90.0, 0, {"hold": 0.2, "mult": 0.4, "col": _shot_col(o), "turn": 0.35 * sgn, "turn_until": 2.2, "life": 4.5})
 	e.move_name = "交错潮环"
 	e.move_t = g.t

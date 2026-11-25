@@ -94,7 +94,7 @@ func force_move(e: Dictionary, name: String, dir: Vector2, dist: float) -> bool:
 ## C · 迸发（本作原创，取材 PRTS「假死每秒回复 10%」与狂暴）：以自身为心 r120 实填圈，跟随本体 0.3 秒后锁定，总 0.9 秒；
 ## e.dmg × 1.2（狂暴期间 e.dmg 已 ×1.2，沿用）、侵蚀 0.5；结算 boss_ai erupt（Codex fx_immortal_burst）
 func _erupt(e: Dictionary) -> void:
-	_warn(e, "circle", 0.9, {"pos": e.pos, "r": 120.0, "track_pos": "self", "track": 0.3, "act": "erupt", "name": "迸发", "col": g.vfx.boss_color(e.type),
+	_warn(e, "circle", 0.9, {"pos": e.pos, "r": Bal.v("boss/immortal_erupt_r", 150.0), "track_pos": "self", "track": 0.3, "act": "erupt", "name": "迸发", "col": g.vfx.boss_color(e.type),
 		"dmg": e.dmg * 1.2, "corrode": 0.5, "skin": "mc_slam"})
 
 

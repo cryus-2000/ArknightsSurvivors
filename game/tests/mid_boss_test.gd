@@ -189,11 +189,11 @@ func tide_mirror() -> void:
 			la.append(s)
 		elif int(s.source_id) == int(b.id):
 			lb.append(s)
-	check(la.size() == 5 and lb.size() == 5, "mirror fan: 5 + 5 bullets")
-	if la.size() == 5 and lb.size() == 5:
+	check(la.size() == 7 and lb.size() == 7, "mirror fan: 7 + 7 bullets")   # 11-26 水月加强 5 → 7 向（docs/418）
+	if la.size() == 7 and lb.size() == 7:
 		var mid: Vector2 = (a.pos + b.pos) * 0.5
 		var axis: Vector2 = (b.pos - a.pos).normalized()
-		for i in 5:
+		for i in 7:
 			var pa: Vector2 = la[i].pos - mid
 			var reflected: Vector2 = pa - 2.0 * pa.dot(axis) * axis + mid
 			check(reflected.distance_to(lb[i].pos) < 1.0, "mirror fan bullet %d spawns at reflected point" % i)

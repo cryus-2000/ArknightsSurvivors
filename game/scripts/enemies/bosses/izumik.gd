@@ -733,7 +733,7 @@ func _emit_once(e: Dictionary, em: Dictionary) -> void:
 				var aim: float = (g.ppos - s.pos).angle()
 				var cnt: int = _cn(4 if me else 3, _dense("子代共鸣"))
 				for j in cnt:
-					_shot(e, s.pos, aim + (j - (cnt - 1) * 0.5) * 0.2, 150.0, 7.0, 4.5, 0.45, {"izu": "fan"})
+					_shot(e, s.pos, aim + (j - (cnt - 1) * 0.5) * 0.2, 150.0, 14.0 if j == cnt / 2 else 7.0, 4.5, 0.45, {"izu": "fan"})   # 11-26：中间一发重弹 r14 × 1.5 = 21（可见约 24，docs/418）
 			em.next = float(em.next) + 0.5
 		"螺旋弹臂":
 			var t: float = float(em.next) - float(em.t0)
@@ -747,7 +747,7 @@ func _emit_once(e: Dictionary, em: Dictionary) -> void:
 			var v0: float = 2.0 * (150.0 + 80.0 * n) / 0.9
 			for i in cnt:
 				var a: float = a0 + (float(i) + 0.5 * n) * TAU / cnt
-				_shot(e, e.pos, a, v0, 9.0, 5.0, 0.55, {"izu": "learn", "izu_v0": v0, "izu_ang": a})
+				_shot(e, e.pos, a, v0, 14.0 if i % 4 == 0 else 9.0, 5.0, 0.55, {"izu": "learn", "izu_v0": v0, "izu_ang": a})   # 11-26：每 4 发 1 发重弹（可见约 24，docs/418）
 			em.next = float(em.next) + 0.6
 		"回流弹":
 			# 两圈反向卷回的水流，交叉成格子
@@ -1038,6 +1038,8 @@ static func _n01(i: int) -> float:
 ## 一幕扎根不动；二幕每组连携换一个落点（场地中心 320 内）缓慢漂过去；三幕缓缓逼近队长，贴到 200 内停；出招预警（wind）期间都不动
 func _move_step(e: Dictionary, dt: float) -> void:
 	e.spd = 0.0
+	if _blink_step(e, dt):
+		return
 	var act: int = _act(e)
 	var v: float = ACT_MOVE[act]
 	if v <= 0.0 or float(e.get("wind", 0.0)) > 0.0 or float(e.get("break_t", 0.0)) > 0.0 or float(e.stun) > 0.0:
@@ -1048,12 +1050,53 @@ func _move_step(e: Dictionary, dt: float) -> void:
 		if int(e.get("izu_wander_n", -1)) != int(e.get("izu_card_n", 0)):
 			e.izu_wander_n = int(e.get("izu_card_n", 0))
 			e.izu_wander = c + Vector2.from_angle(g.rng_enemy.randf() * TAU) * g.rng_enemy.randf_range(120.0, 320.0)
+			if Bal.v("boss/izumik_blink", 1.0) > 0.0:
+				_blink_start(e, c)
+				return
 		goal = e.izu_wander
 	else:
 		if g.combat.ground_d(e.pos, g.ppos) < 200.0:
 			return
 		goal = g.ppos
 	e.pos = g.combat.arena_clamp(e.pos.move_toward(goal, v * dt), 80.0)
+
+
+## 沉潮闪现（二幕，11-26 水月加强，docs/418 / 393 §12.6、359 §2.6 最终 Boss 每幕爆发位移 ≥450 @ ≥700 px/s）：每组连携换点时不再 45 px/s 漂过去，
+## 而是在离她 ≥ izumik_blink_min（450）的点画落点圈（r izumik_blink_r 160，izumik_blink_t 1.2 秒），前 izumik_blink_dive（0.6）秒沉下去不动，后 0.6 秒贴地滑到落点（≥750 px/s），
+## 落地结算圈伤害 e.dmg × izumik_blink_dmg（1.0）。落点只看场地，不追队长；落地后照旧在新点放连携
+func _blink_start(e: Dictionary, c: Vector2) -> void:
+	var mn: float = Bal.v("boss/izumik_blink_min", 450.0)
+	var to: Vector2 = e.pos
+	for i in 8:
+		var cand: Vector2 = g.combat.arena_clamp(c + Vector2.from_angle(g.rng_enemy.randf() * TAU) * g.rng_enemy.randf_range(120.0, 360.0), 90.0)
+		if cand.distance_to(e.pos) >= mn:
+			to = cand
+			break
+	if to.distance_to(e.pos) < mn:
+		var away: Vector2 = (c - e.pos).normalized() if c.distance_to(e.pos) > 1.0 else Vector2.RIGHT
+		to = g.combat.arena_clamp(e.pos + away * mn, 90.0)
+	var dur: float = Bal.v("boss/izumik_blink_t", 1.2)
+	g.bai.finals._warn(e, "circle", dur, {"name": "沉潮闪现", "pos": to, "r": Bal.v("boss/izumik_blink_r", 160.0), "skin": "tentacle",
+		"dmg": e.dmg * Bal.v("boss/izumik_blink_dmg", 1.0)})   # 落点用触腕破土画法（最终 Boss 预警不退回通用画法，docs/215 §5）
+	e.izu_blink = {"from": e.pos, "to": to, "t": 0.0, "dur": dur, "dive": Bal.v("boss/izumik_blink_dive", 0.6)}
+	e.izu_wander = to
+	g.vfx.sparks(e.pos, Vector2.UP, COL, 14, 140.0)
+
+
+## 闪现进行中：返回 true（这一帧位置由它定）
+func _blink_step(e: Dictionary, dt: float) -> bool:
+	var b = e.get("izu_blink")
+	if not (b is Dictionary):
+		return false
+	b.t = float(b.t) + dt
+	var dive: float = float(b.dive)
+	var k: float = clampf((float(b.t) - dive) / maxf(0.05, float(b.dur) - dive), 0.0, 1.0)
+	e.pos = Vector2(b.from).lerp(Vector2(b.to), k)
+	if k > 0.0 and k < 1.0:
+		g.vfx.sparks(e.pos, Vector2(b.to) - Vector2(b.from), COL, 2, 90.0)
+	if float(b.t) >= float(b.dur):
+		e.erase("izu_blink")
+	return true
 
 
 ## ---- 子代化生（三幕独有，取材 PRTS 伊祖米克的子代：「被阻挡时立即变为随机敌人」）：她从身边放出 boss/izumik_brood_n（4）只子代直扑队长（每秒 60）；

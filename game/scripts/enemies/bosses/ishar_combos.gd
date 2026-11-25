@@ -322,7 +322,7 @@ func _emit_step(e: Dictionary) -> void:
 						b.vel = b.hold_v * float(b.get("spd_k", 1.0))   # 停住时记的是原速；弹速统一倍率（shot_pool._final_speed，docs/201）
 			"drop":
 				var p: Vector2 = src.pos if src is Dictionary else e.pos
-				var b = _shot_ref(e, own, p, float(d.ang), 72.0, 13.0, 0.42, "ishar_tear", 7.0)
+				var b = _shot_ref(e, own, p, float(d.ang), 72.0, Bal.v("boss/ishar_drop_r", 21.0), 0.42, "ishar_tear", 7.0)   # 11-26 水月加强 r13 → 21（可见约 24，docs/418）
 				if b != null:
 					own += 1
 					keep.append({"at": g.t + float(d.burst), "kind": "burst", "b": b})
@@ -332,8 +332,9 @@ func _emit_step(e: Dictionary) -> void:
 					b.life = 0.0
 					_grains(b.pos, 10, "bfx_burst", false)   # 泪碎：颗粒迸散（docs/136），不画实心环
 					var a0: float = b.vel.angle() + PI / 6.0
-					for k in 6:
-						own += _shot(e, own, b.pos, a0 + TAU * k / 6.0, 165.0, 5.0, 0.2, "ishar_shard", 2.4)
+					var nb: int = int(Bal.v("boss/ishar_burst_n", 8))   # 11-26 水月加强 6 → 8 片
+					for k in nb:
+						own += _shot(e, own, b.pos, a0 + TAU * k / float(nb), 165.0, 5.0, 0.2, "ishar_shard", 2.4)
 			"pulse":
 				# 歌声沿连线流向节点海嗣，到达时从节点向外散开
 				var node: Dictionary = src
@@ -356,7 +357,7 @@ func _emit_step(e: Dictionary) -> void:
 				for k in int(d.arms):
 					own += _shot(e, own, e.pos, float(d.a) + TAU * k / float(d.arms), 105.0, 6.0, 0.25, "ishar_tear", 5.5)
 			"seek":
-				var b = _shot_ref(e, own, e.pos + Vector2.from_angle(float(d.a)) * 40.0, float(d.a), 85.0, 9.0, 0.4, "ishar_tear", 7.0)
+				var b = _shot_ref(e, own, e.pos + Vector2.from_angle(float(d.a)) * 40.0, float(d.a), 85.0, Bal.v("boss/ishar_seek_r", 21.0), 0.4, "ishar_tear", 7.0)   # 11-26 水月加强 r9 → 21（可见约 24，docs/418）
 				if b != null:
 					own += 1
 					b.home = true
@@ -454,7 +455,7 @@ func _chorus_rings(e: Dictionary) -> void:
 func _tear_rain(e: Dictionary) -> void:
 	var n: int = [5, 6, 7][act_of(e)]   # 10-28：二幕 5 → 6
 	var aim: float = _aim(e.pos)
-	var spread := 1.3
+	var spread: float = Bal.v("boss/ishar_rain_spread", 1.8)   # 11-26 水月加强：大泪 r13 → 21，扇面 1.3 → 1.8 保留空隙
 	g.fx.append({"kind": "ring", "pos": e.pos, "r": 40.0, "life": 0.6, "max": 0.6, "col": COL, "enemy": true})
 	_grains(e.pos, 14, "mote_in", true)
 	for k in n:

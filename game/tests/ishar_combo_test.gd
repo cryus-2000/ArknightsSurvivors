@@ -124,7 +124,7 @@ func _ready() -> void:
 		g.t += DT
 		cards._emit_step(e)
 	var shards: int = g.ebullets.filter(func(b): return b.kind == "ishar_shard").size()
-	check(shards == big * 6, "every live drop bursts into six shards (%d)" % shards)
+	check(shards == big * int(Bal.v("boss/ishar_burst_n", 8)), "every live drop bursts into ishar_burst_n shards (%d)" % shards)   # 11-26 水月加强 6 → 8（docs/418）
 	check(g.ebullets.filter(func(b): return b.kind == "ishar_shard").all(func(b): return b.vel.length() > 2.0 * 72.0), "shards are the fast layer")
 	# 3b. 网鸣：歌声沿连线流到节点再散开；途中击破节点，这一路歌声消散
 	e = fresh(0)

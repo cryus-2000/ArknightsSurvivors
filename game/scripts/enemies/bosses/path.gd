@@ -30,6 +30,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 	_act_check(e, p2)
 	MC.step_shots(g, e, dt)
 	_wall_step(e)
+	_shock_step(e)
 	_paths_step(e, dt, p2)
 	_pat_beat(e, dir)
 	if MC.q_step(g, e, Callable(self, "_exec"), p2):
@@ -143,7 +144,7 @@ func _reflow(e: Dictionary, dir: Vector2) -> void:
 			gaps.append((p.pts[k] - e.pos).angle())
 	if gaps.is_empty():
 		gaps = [dir.angle() + 0.9, dir.angle() + 0.9 + PI]
-	var n := 22
+	var n: int = int(Bal.v("boss/path_reflow_n", 30))   # 11-26 水月加强（docs/418）：22 → 30 颗、半径 330 → 480
 	var off: float = (PI / n) * float(int(e.beat_n) % 2)
 	for k in n:
 		var a: float = TAU * k / n + off
@@ -154,8 +155,8 @@ func _reflow(e: Dictionary, dir: Vector2) -> void:
 				break
 		if blocked:
 			continue
-		var at: Vector2 = e.pos + Vector2.from_angle(a) * 330.0
-		MC.shot(g, e, at, a + PI, 85.0, 1, {"hold": 0.7, "mult": 0.35, "col": SHOT2, "life": 3.5})
+		var at: Vector2 = e.pos + Vector2.from_angle(a) * Bal.v("boss/path_reflow_r", 480.0)
+		MC.shot(g, e, at, a + PI, Bal.v("boss/path_reflow_spd", 100.0), 1, {"hold": 0.7, "mult": 0.35, "col": SHOT2, "life": 3.5})
 	e.move_name = "回流"
 	e.move_t = g.t
 
@@ -287,12 +288,45 @@ func _charge_ang(e: Dictionary, dir: Vector2) -> float:
 
 ## B · 震地：主控当前位置 r90 固定落点，1.1 秒；e.dmg × 1.3。二幕沿「塑路者 → 主控」方向 3 连（主控身后 / 脚下 / 身前各一圈，依次晚 0.4 秒）
 func _slam(e: Dictionary, dir: Vector2) -> void:
+	# 11-26 水月加强（docs/418，359 §2.6 威慑下限）：一幕 r90 → 140、二幕 r70 → 100（间距 90 → 130）；每次震地落点放一圈重弹冲击环
 	if int(e.get("gates_passed", 0)) < 1:
-		_warn(e, "circle", 1.1, {"pos": g.ppos, "r": 90.0, "act": "slam", "name": "震地", "col": Color(1.0, 0.55, 0.3), "dmg": e.dmg * 1.3, "skin": "mc_slam"})
+		_warn(e, "circle", 1.1, {"pos": g.ppos, "r": Bal.v("boss/path_slam_r", 140.0), "act": "slam", "name": "震地", "col": Color(1.0, 0.55, 0.3), "dmg": e.dmg * 1.3, "skin": "mc_slam"})
+		_shock(e, g.ppos, 1.1)
 		return
+	var r2: float = Bal.v("boss/path_slam_r2", 100.0)
 	for k in 3:
-		_warn(e, "circle", 1.1 + 0.4 * k, {"pos": g.combat.arena_clamp(g.ppos + dir * (float(k) - 1.0) * 90.0, 80.0), "r": 70.0, "act": "slam",
+		var at: Vector2 = g.combat.arena_clamp(g.ppos + dir * (float(k) - 1.0) * (r2 + 30.0), 80.0)
+		_warn(e, "circle", 1.1 + 0.4 * k, {"pos": at, "r": r2, "act": "slam",
 			"name": "震地" if k == 0 else "", "col": Color(1.0, 0.55, 0.3), "dmg": e.dmg * 1.1, "lock": k == 0, "skin": "mc_slam"})
+		if k == 1:
+			_shock(e, at, 1.5)
+
+
+## 震地冲击环（11-26 水月加强，docs/418）：震地结算那一刻（delay 秒后）从落点放 n 颗重弹（tier 3，可见约 14）向外扩，
+## 160 px/s × 4 秒 ≈ 640；8 颗在 r140 处弧距约 86（≥80 缺口），起始角随机。结算前不生弹（不在队长脚下显形）
+func _shock(e: Dictionary, at: Vector2, delay: float) -> void:
+	if int(Bal.v("boss/path_shock_n", 8)) <= 0:
+		return
+	var q: Array = e.get("shock_q", [])
+	q.append({"t": g.t + delay, "at": at})
+	e.shock_q = q
+
+
+func _shock_step(e: Dictionary) -> void:
+	var q: Array = e.get("shock_q", [])
+	if q.is_empty() or e.dead:
+		return
+	var keep: Array = []
+	for s in q:
+		if g.t < float(s.t):
+			keep.append(s)
+			continue
+		var n: int = int(Bal.v("boss/path_shock_n", 8))
+		var off: float = g.rng_enemy.randf() * TAU / float(n)
+		for k in n:
+			MC.shot(g, e, s.at, off + TAU * k / float(n), Bal.v("boss/path_shock_spd", 160.0), 3, {"mult": 0.4, "col": SHOT2, "life": 4.0})
+		_puff(s.at, SHOT2, 10)
+	e.shock_q = keep
 
 
 ## 原作「攻击 2 次后，下一次攻击时召唤 1 个分形」：一幕每第 3 招在脚边长 1 只（20 秒自灭，本体所属 <8）

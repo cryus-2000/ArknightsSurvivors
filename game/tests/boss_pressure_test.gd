@@ -1,4 +1,5 @@
 extends Node
+const Bal = preload("res://scripts/core/balance.gd")
 var g
 var failures := 0
 func check(ok: bool, label: String) -> void:
@@ -18,7 +19,7 @@ func _ready() -> void:
 	g.t = 100.0
 	var e := enemy("path")
 	g.bai._cd(e, "test", 10.0)
-	check(is_equal_approx(e.cds.test - g.t, 7.0), "boss cooldown reduced 30 percent")
+	check(is_equal_approx(e.cds.test - g.t, 7.0 * Bal.v("boss/tempo_k_path", 1.0)), "boss cooldown reduced 30 percent")   # 11-26 水月加强：塑路者 tempo_k_path 0.85（docs/418）
 	for entry in [["knight_boss", 145.0], ["archon", 165.0]]:
 		e = enemy(entry[0])
 		g.ppos = Vector2(entry[1], 0)

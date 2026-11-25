@@ -23,13 +23,14 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 			_sweep(e, dir)
 		elif dist >= 100.0 and dist <= 320.0 and _cd(e, "breath", 8.0):
 			_breath(e, dir)
-		elif dist >= 160.0 and dist < 520.0 and float(e.get("cds", {}).get("leap", 0.0)) <= g.t:
+		elif dist >= 160.0 and dist < Bal.v("boss/archon_leap_max", 640.0) and float(e.get("cds", {}).get("leap", 0.0)) <= g.t:
 			# 第二幕跃击带裂潮：第一次先亮「裂潮」0.6 秒（§0.2）
 			if (not p2 or _first_tell(e, "rift", "裂潮")) and _cd(e, "leap", 9.0):
 				_leap(e, p2)
 	if e.has("leap"):
 		var w2: Dictionary = e.leap
-		var k := clampf(w2.t / w2.dur, 0.0, 1.0)
+		# 11-26 水月加强（docs/418，359 §2.6 中期爆发位移 ≥300 @ ≥600 px/s）：前 0.4 蹲伏不动、后 0.6 飞到落点（400 像素 ≈ 667 px/s）；最远 520 → 640
+		var k := clampf((w2.t / w2.dur - 0.4) / 0.6, 0.0, 1.0)
 		e.pos = e.leap_from.lerp(w2.pos, k)
 		e.air = sin(k * PI) * 150.0
 		# 裂潮缺口：前 0.5 秒跟着「落点 → 主控」转，之后固定（结算前 ≥0.8 秒画好，§0.2）
@@ -81,7 +82,7 @@ func _sweep(e: Dictionary, dir: Vector2) -> void:
 ## B · 跃击（保留）：主控位置 r84 实填圈 1.0 秒，e.dmg × 1.5 侵蚀 0.5，冲击环 ≤ 预警圆；
 ## 第二幕同时以落点为心画出 D 裂潮的缺口环（同一次预警的两层，不另占令牌），落地后 0.3 秒结算 10 片刃弹
 func _leap(e: Dictionary, rift: bool) -> void:
-	var w := _warn(e, "circle", 1.0, {"pos": g.ppos, "r": 84.0, "act": "leap", "name": "跃击", "col": COL, "dmg": e.dmg * 1.5, "corrode": 0.5, "skin": "mc_slam"})
+	var w := _warn(e, "circle", 1.0, {"pos": g.ppos, "r": Bal.v("boss/archon_leap_r", 120.0), "act": "leap", "name": "跃击", "col": COL, "dmg": e.dmg * 1.5, "corrode": 0.5, "skin": "mc_slam"})
 	e.leap = w
 	e.leap_from = e.pos
 	e.erase("rift_w")

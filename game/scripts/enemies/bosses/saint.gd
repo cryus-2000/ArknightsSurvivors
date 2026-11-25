@@ -101,26 +101,23 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 					_smash(e, dir)
 	elif ready and e.channel <= 0.0:
 		if e.type == "iberia":
+			# 11-26 水月加强（docs/418，359 §2.6 中期爆发位移 ≥300 @ ≥600）：被贴近（< iberia_hop_near 150）就后跳 740 px/s（≈304 像素），冷却 iberia_hop_cd 8 秒
+			if dist < Bal.v("boss/iberia_hop_near", 150.0) and _cd(e, "hop", Bal.v("boss/iberia_hop_cd", 8.0)):
+				_hop(e, dir, Bal.v("boss/iberia_hop_spd", 740.0))
 			# 出招全部走当前出招组的队列（轰击 / 手炮 / 重炮弹共用 1 发弹药，打空就装填）
-			if e.ammo > 0:
+			elif e.ammo > 0:
 				_card_run(e, dir, dist)
 		elif e.type == "carmen":
-			# B 炮身横扫（两幕都有）：主控 <110，sweep 5 秒（弹药空的近战段 1.6 秒）
-			if dist < 110.0 and _cd(e, "sweep", 1.6 if e.ai == "melee" else 5.0):
+			# B 炮身横扫（两幕都有）：主控 < saint_sweep_r（11-26 水月加强 110 → 150），sweep 5 秒（弹药空的近战段 1.6 秒）
+			if dist < Bal.v("boss/saint_sweep_r", 150.0) and _cd(e, "sweep", 1.6 if e.ai == "melee" else 5.0):
 				_sweep(e, dir)
-			# 退避跳：冷却 5 → 9 秒、距离缩短（720 → 480，约 128 像素），落地后站定 boss/saint_stand 秒（给低射程编队输出窗口）
-			elif dist < 130.0 and _cd(e, "hop", Bal.v("boss/carmen_hop_cd", 9.0)):
-				e.kb = -dir * Bal.v("boss/carmen_hop_spd", 480.0)
-				e.wind = maxf(e.wind, 0.35 + Bal.v("boss/saint_stand", 1.5))
-				e.pose = 0.35
-				e.pose_max = 0.35
-				g.vfx.sparks(e.pos, dir, Color(0.8, 0.8, 0.7), 10, 160.0)
-				g.vfx.add_alert(e.pos + Vector2(0, -50), "退避", Color(0.9, 0.9, 0.8), 14)
-				Sfx.play("dodge", -8.0)
+			# 退避跳：冷却 9 秒，落地后站定 boss/saint_stand 秒（给低射程编队输出窗口）；11-26 水月加强 480 → 760 px/s（128 → 约 321 像素，docs/418）
+			elif dist < 170.0 and _cd(e, "hop", Bal.v("boss/carmen_hop_cd", 9.0)):
+				_hop(e, dir, Bal.v("boss/carmen_hop_spd", 760.0))
 			elif e.ammo > 0:
 				_card_run(e, dir, dist)
 	# 伊比利亚二幕：装填中主控靠近（iberia_swing_r 90 内）先抡一下（原作近战模式），每次装填一次；冲刺无敌可以穿过去
-	if e.type == "iberia" and p2 and e.channel > 0.0 and dist < Bal.v("boss/iberia_swing_r", 90.0) and not e.get("reload_swung", false):
+	if e.type == "iberia" and p2 and e.channel > 0.0 and dist < Bal.v("boss/iberia_swing_r", 140.0) and not e.get("reload_swung", false):
 		e.reload_swung = true
 		_sweep(e, dir, "抡击", Bal.v("boss/iberia_swing_mult", 1.2))
 	# 卡门二幕：装填中主控追到 100–240 内，炮身砸击一次（docs/142b §8.2「惩罚」）
@@ -174,7 +171,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 						fl.until = minf(float(fl.until), g.t + rt)
 					if p2:
 						var away: Vector2 = (e.pos - g.ppos).normalized() if e.pos.distance_to(g.ppos) > 1.0 else Vector2.RIGHT
-						e.kb = away * Bal.v("boss/carmen_reload_hop", 720.0)
+						e.kb = away * Bal.v("boss/carmen_reload_hop", 760.0)   # 11-26 水月加强 720 → 760（288 → 约 321 像素）
 						g.vfx.sparks(e.pos, away, Color(0.9, 0.9, 0.8), 12, 180.0)
 						g.vfx.add_alert(e.pos + Vector2(0, -50), "退避", Color(0.95, 0.92, 0.85), 14)
 				e.channel = rt
@@ -392,9 +389,20 @@ func _fire_step(e: Dictionary, dt: float) -> void:
 		break
 
 
-## 卡门 B · 炮身横扫（保留，两幕都有）：扇形 r110 半角 0.9，追踪 0.2 秒，总 0.8 秒（锁定 ≥ 0.51）；e.dmg × 1.4
+## 退避跳（卡门 / 伊比利亚）：反向弹开 spd px/s（按 900/s 衰减，距离 ≈ spd² / 1800），落地后站定 0.35 + saint_stand 秒
+func _hop(e: Dictionary, dir: Vector2, spd: float) -> void:
+	e.kb = -dir * spd
+	e.wind = maxf(e.wind, 0.35 + Bal.v("boss/saint_stand", 1.5))
+	e.pose = 0.35
+	e.pose_max = 0.35
+	g.vfx.sparks(e.pos, dir, Color(0.8, 0.8, 0.7), 10, 160.0)
+	g.vfx.add_alert(e.pos + Vector2(0, -50), "退避", Color(0.9, 0.9, 0.8), 14)
+	Sfx.play("dodge", -8.0)
+
+
+## 卡门 B · 炮身横扫（保留，两幕都有）：扇形半角 0.9；11-26 水月加强（docs/418，359 §2.6 中期近战 r ≥150）r110 → 150、总 0.8 → 1.2 秒（追踪 0.2，锁定 1.0）；e.dmg × 1.4
 func _sweep(e: Dictionary, dir: Vector2, nm := "炮身横扫", mult := 1.4) -> void:
-	_warn(e, "cone", 0.8, {"ang": dir.angle(), "half": 0.9, "r": 110.0, "track": 0.2, "act": "bite", "name": nm, "col": g.vfx.boss_color(e.type), "dmg": e.dmg * mult,
+	_warn(e, "cone", Bal.v("boss/saint_sweep_t", 1.2), {"ang": dir.angle(), "half": 0.9, "r": Bal.v("boss/saint_sweep_r", 150.0), "track": 0.2, "act": "bite", "name": nm, "col": g.vfx.boss_color(e.type), "dmg": e.dmg * mult,
 		"lock": e.channel <= 0.0})   # 装填中的抡击不占出招窗口（装填照常读条）
 
 
@@ -604,7 +612,8 @@ func _stream(e: Dictionary, dir: Vector2, cross: bool) -> void:
 	var delay: float = 0.6 if cross else 0.7
 	_muzzle_warn(e, dir, delay, "交叉弹列" if cross else "曳光弹列")
 	var angs: Array = [dir.angle()] if not cross else [dir.angle() + PI * 0.25, dir.angle() - PI * 0.25]
-	var n: int = 5 if cross else 7
+	var n: int = int(Bal.v("boss/carmen_stream_n2", 7)) if cross else int(Bal.v("boss/carmen_stream_n", 9))   # 11-26 水月加强（docs/418）：7 → 9 列、交叉 5 → 7 列、每列 4 → 5 发；空道宽不变
+	var per: int = int(Bal.v("boss/carmen_stream_per", 5))
 	var spc: float = 64.0 if cross else 56.0
 	var spd: float = 270.0 if cross else 300.0
 	for a in angs:
@@ -617,7 +626,7 @@ func _stream(e: Dictionary, dir: Vector2, cross: bool) -> void:
 			if k == gap_k:
 				continue
 			var o: Vector2 = center + side * (k - (n - 1) * 0.5) * spc
-			for j in 4:
+			for j in per:
 				_queue(e, o, fwd * spd, delay + j * 0.14, 5.0, 0.45, {"life": 2.8, "core_r": 2.0, "core_col": Color(2.0, 1.95, 1.8)}, j == 0)
 	e.wind = maxf(e.wind, delay + 0.6)
 	Sfx.play("skill", -8.0, 1.1)

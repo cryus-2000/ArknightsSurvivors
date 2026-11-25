@@ -33,7 +33,7 @@ static func shot(g, e: Dictionary, pos: Vector2, ang: float, spd: float, tier: i
 
 
 static func _add(g, e: Dictionary, pos: Vector2, ang: float, spd: float, tier: int, o: Dictionary) -> void:
-	var r: float = [5.0, 7.0, 10.0][clampi(tier, 0, 2)]
+	var r: float = [5.0, 7.0, 10.0, 12.0][clampi(tier, 0, 3)]   # tier 3 = 重弹（可见约 14，11-26 水月加强：docs/359 §2.6 中期每幕 ≥1 招可见半径 ≥14）
 	var hold: float = float(o.get("hold", 0.0))
 	var v0: Vector2 = Vector2.from_angle(ang) * spd
 	var b := {"pos": pos, "vel": Vector2.ZERO if hold > 0.0 else v0, "v0": v0, "dmg": e.dmg * float(o.get("mult", 0.45)) * Bal.v("boss/mid_pattern_dmg", 0.7), "r": r,

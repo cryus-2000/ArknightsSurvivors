@@ -61,7 +61,7 @@ const DENS := [
 	[10, 1, 0.18, 5, 3, 11, 7, 20, 0.52, 36.0, 64.0, 22],
 	[11, 1, 0.17, 5, 3, 12, 7, 22, 0.5, 34.0, 60.0, 22]]
 ## 弹体分级：r 判定半径、伤害倍率（× e.dmg）
-const TIER := {"s": [6.0, 0.34], "m": [9.0, 0.42], "l": [12.0, 0.5]}
+const TIER := {"s": [6.0, 0.34], "m": [9.0, 0.42], "l": [12.0, 0.5], "xl": [21.0, 0.55]}   # xl：11-26 水月加强重弹（可见约 24，docs/418 / 359 §2.6 最终 Boss 每幕 ≥1 招）
 const CORE := Color(0.85, 0.55, 1.0)   # 颗粒（泡破 / 聚光）同泡泡的紫
 ## 二阶段主色：海嗣青蓝（与一阶段紫色对比；她的档案「被那股力量拖着，一点点变成自己最痛恨的模样」）
 const SEA := Color(0.35, 0.9, 1.0)
@@ -356,7 +356,8 @@ func _fire(e: Dictionary, em: Dictionary, k: int) -> void:
 			var a: float = _aim(o)
 			var nw: int = int(_dn(e, 3))
 			for i in nw:
-				_shot(e, o, a + (i - (nw - 1) * 0.5) * 0.3, 165.0, "m")
+				var mid: bool = i == nw / 2
+				_shot(e, o, a + (i - (nw - 1) * 0.5) * 0.3, 130.0 if mid else 165.0, "xl" if mid else "m")   # 中间一发换重弹（11-26，docs/418）
 		"镜影齐射":
 			# 真身与幻影各放 3 向自机狙；只有真身的弹是实心、有伤害，幻影放的是空心泡
 			var srcs: Array = [e]
@@ -367,7 +368,7 @@ func _fire(e: Dictionary, em: Dictionary, k: int) -> void:
 				var aa: float = _aim(s.pos)
 				for i in 3:
 					if is_same(s, e):
-						_shot(e, s.pos, aa + (i - 1) * 0.26, 150.0, "m")
+						_shot(e, s.pos, aa + (i - 1) * 0.26, 120.0 if i == 1 else 150.0, "xl" if i == 1 else "m")   # 真身中间一发换重弹（11-26，docs/418）
 					else:
 						_fake(e, s.pos, aa + (i - 1) * 0.26, 150.0, 8.0)
 		"偏执双旋":
@@ -440,7 +441,7 @@ func _fire(e: Dictionary, em: Dictionary, k: int) -> void:
 ## 一发实弹（进 g.ebullets，判定 / 机器人躲避 / 干员消弹都走公共管线）；超上限返回 {}
 func _shot(e: Dictionary, from: Vector2, ang: float, spd: float, tier: String) -> Dictionary:
 	var buls: Array = e.get("pc_buls", [])
-	if buls.size() >= BUL_CAP:
+	if buls.size() >= int(Bal.v("boss/paranoia_bul_cap", BUL_CAP)):   # 11-26 水月加强：120 → 160（docs/418，原上限已卡住双旋 / 群愿）
 		return {}
 	var t: Array = TIER[tier]
 	var b := {"pos": from, "vel": Vector2.from_angle(ang) * spd, "dmg": e.dmg * float(t[1]) * (Bal.v("boss/paranoia_bullet_mult_p2", 1.3) if e.phase == 2 else Bal.v("boss/paranoia_bullet_mult", 1.0)), "slow": false, "r": float(t[0]),

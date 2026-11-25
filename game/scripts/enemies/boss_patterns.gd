@@ -212,7 +212,7 @@ func resolve(w: Dictionary) -> void:
 			angle = w.ang + lerpf(-float(move.spread) * 0.5, float(move.spread) * 0.5, float(i) / maxf(count - 1, 1))
 		var blade: bool = move.get("blade", false)
 		g.ebullets.append({"pos": w.pos, "vel": Vector2.from_angle(angle) * float(move.speed),
-			"dmg": w.dmg, "r": 12.0 if blade else 7.0, "life": float(move.get("life", 2.8)),
+			"dmg": w.dmg, "r": 12.0 if blade else float(move.get("r", 7.0)), "life": float(move.get("life", 2.8)),   # move.r：数据可指定弹体半径（11-26 水月加强加，缺省 7 不变）
 			"slow": false, "frost": e.get("frost", 0.0), "corrode": 0.15, "nerve": 0.0, "true": w.get("true", false),
 			"kind": "boss_blade" if blade else str(move.get("bullet", "nova")), "home": false, "boss": true,
 			"atk": "物理" if e.has("ammo") or blade else "法术", "hit_cap": e.get("hit_cap", 0.0),
