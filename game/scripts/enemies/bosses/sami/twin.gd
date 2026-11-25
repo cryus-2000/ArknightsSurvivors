@@ -18,8 +18,8 @@ const ULT_DUR := 2.8
 const ULT_LOCK := 0.7
 const DRAG_SPD := 90.0
 const STUN_T := 4.0
-const GUARD := 0.45        # 平时受伤（王者护卫；§15.4 A 原拟 0.6，11-26 测试台下调）
-const WINDOW := 2.0        # 被砸中窗口的总受伤倍率
+const GUARD := 0.35        # 平时受伤（王者护卫；§15.4 A 原拟 0.6，11-26 测试台两轮后下调）
+const WINDOW := 3.0        # 被砸中窗口的总受伤倍率（§15.4 A 原拟 2.0）
 
 
 func _khan(e: Dictionary) -> bool:

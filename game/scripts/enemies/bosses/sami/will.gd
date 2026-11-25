@@ -104,7 +104,7 @@ func all_moves(e: Dictionary) -> Array:
 
 ## 主轴收益（docs/392 §15.1 A「冰甲」）：平时受伤 ×0.5；银凇碎后 8 秒 ×1.5
 func base_taken(e: Dictionary) -> float:
-	return 0.5 if float(e.get("tree_vuln", 0.0)) <= g.t else 1.5
+	return 0.4 if float(e.get("tree_vuln", 0.0)) <= g.t else 2.5
 
 
 ## ---- 冰凌列：以 x 为列（宽 80），从北往南每 0.2 秒落一根；碰到完好银凇 / 冰桩 / 冰峰就停，银凇记一次
@@ -145,9 +145,9 @@ func _tree_hit(e: Dictionary, t: Dictionary) -> void:
 	t.hits = int(t.hits) + 1
 	if t.hits >= 2:
 		t.dead_t = g.t
-		e["tree_vuln"] = g.t + 8.0
-		e["brk_len"] = 8.0
-		e["break_ring_until"] = g.t + 8.0
+		e["tree_vuln"] = g.t + 10.0
+		e["brk_len"] = 10.0
+		e["break_ring_until"] = g.t + 10.0
 		_collapse_tree(e, t)
 
 
@@ -565,6 +565,6 @@ func axis_do(e: Dictionary, p: Vector2) -> Vector2:
 ## 不理主轴：离银凇所在的列远一点（站在两棵之间的空列）
 func axis_ignore(e: Dictionary, p: Vector2) -> Vector2:
 	for t in _trees_alive(e):
-		if absf(t.pos.x - p.x) < COL_W and p.y > t.pos.y:
-			return Vector2(signf(p.x - t.pos.x + 0.01), 0.0)
+		if absf(t.pos.x - p.x) < COL_W:
+			return Vector2(signf(p.x - t.pos.x + 0.01), 0.0)   # 整列都避开（站在树北边同一列，冰凌照样落到树上）
 	return Vector2.INF

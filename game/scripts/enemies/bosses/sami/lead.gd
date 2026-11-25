@@ -79,7 +79,7 @@ func all_moves(_e: Dictionary) -> Array:
 func base_taken(e: Dictionary) -> float:
 	if float(e.get("annihil_t", 0.0)) > g.t:
 		return 0.2
-	return 1.5 if float(e.get("helm_until", 0.0)) > g.t else 0.35
+	return 1.8 if float(e.get("helm_until", 0.0)) > g.t else 0.3
 
 
 func _m_breath(e: Dictionary, _a: Vector2, _b: float) -> float:
