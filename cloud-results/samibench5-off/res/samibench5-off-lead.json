@@ -1,0 +1,2463 @@
+{
+ "tag": "samibench5-off-lead",
+ "game": "/home/user/ArknightsSurvivors/game",
+ "records": [
+  {
+   "boss": "lead",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 1,
+   "wall": 20.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.299,
+   "brk_time_share": 0.095,
+   "dmg": 50287.0,
+   "fight_t": 131.6,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_4|\",\"2|1.03|totem_perm_5|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.525|lshape:skadi|op:skadi\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 138.077 -> 126.36"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 25,
+   "max_hp": 130.0,
+   "moves": {
+    "lead:冬夜": 1,
+    "lead:冰痕": 1,
+    "lead:冻土": 4,
+    "lead:劈山": 3,
+    "lead:坍缩": 2,
+    "lead:树痕劈": 9,
+    "lead:树痕阵": 3,
+    "lead:横踢冰屑": 4,
+    "lead:泯灭冲": 1,
+    "lead:自我泯灭": 3,
+    "lead:英雄之誓": 4,
+    "lead:连息": 3,
+    "lead:追迹": 4,
+    "lead:长冬": 4,
+    "lead:霜息": 11
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s1_slot3",
+   "squad": [
+    "kaltsit",
+    "skadi",
+    "logos"
+   ],
+   "src": {
+    "boss_lead": 0.204387464387464,
+    "bullet": 0.051,
+    "contact_lead": 0.268566001899335
+   },
+   "taken": 66.2,
+   "taken_pct": 0.524,
+   "win": true
+  },
+  {
+   "boss": "lead",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 2,
+   "wall": 19.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.176,
+   "brk_time_share": 0.064,
+   "dmg": 50287.0,
+   "fight_t": 117.0,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:eyjafjalla|op:eyjafjalla\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 25,
+   "max_hp": 133.0,
+   "moves": {
+    "lead:冬夜": 5,
+    "lead:冰痕": 5,
+    "lead:冻土": 2,
+    "lead:劈山": 2,
+    "lead:坍缩": 1,
+    "lead:树痕劈": 10,
+    "lead:树痕阵": 2,
+    "lead:横踢冰屑": 2,
+    "lead:泯灭冲": 1,
+    "lead:自我泯灭": 3,
+    "lead:英雄之誓": 3,
+    "lead:连息": 2,
+    "lead:追迹": 3,
+    "lead:长冬": 3,
+    "lead:霜息": 11
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s2_slot3",
+   "squad": [
+    "kaltsit",
+    "eyjafjalla",
+    "wisadel"
+   ],
+   "src": {
+    "boss_lead": 0.413801836024058,
+    "contact_breaker": 0.458682341698901,
+    "shock_breaker": 0.219954341206091
+   },
+   "taken": 144.9,
+   "taken_pct": 1.092,
+   "win": true
+  },
+  {
+   "boss": "lead",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 3,
+   "wall": 23.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 50287.0,
+   "fight_t": 167.4,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:gladiia|op:gladiia\",\"1|0.42|lshape:skalter|op:skalter\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.63|lshape:kaltsit|op:kaltsit\",\"1|0.875|lshape:gladiia|op:gladiia\",\"1|0.875|lshape:skalter|op:skalter\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.6|sami_chaos|\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 140.0,
+   "moves": {
+    "lead:冬夜": 9,
+    "lead:冰痕": 8,
+    "lead:冻土": 4,
+    "lead:劈山": 3,
+    "lead:坍缩": 2,
+    "lead:树痕劈": 15,
+    "lead:树痕阵": 3,
+    "lead:横踢冰屑": 4,
+    "lead:泯灭冲": 1,
+    "lead:自我泯灭": 3,
+    "lead:英雄之誓": 4,
+    "lead:连息": 3,
+    "lead:追迹": 4,
+    "lead:长冬": 4,
+    "lead:霜息": 17
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s3_slot3",
+   "squad": [
+    "kaltsit",
+    "skalter",
+    "gladiia"
+   ],
+   "src": {
+    "boss_lead": 0.518684765345694,
+    "bullet": 0.1026,
+    "contact_hound": 0.767087204660944,
+    "contact_lead": 0.149632478632479,
+    "contact_rockback": 0.13321076063261,
+    "shock_breaker": 0.337545315927809
+   },
+   "taken": 282.0,
+   "taken_pct": 2.009,
+   "win": true
+  },
+  {
+   "boss": "lead",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 4,
+   "wall": 19.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.194,
+   "brk_time_share": 0.017,
+   "dmg": 51842.0,
+   "fight_t": 147.8,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_10|\",\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\",\"2|1.03|totem_perm_8|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:lumen|op:lumen\",\"1|0.525|lshape:specter_unchained|op:specter_unchained\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.6|sami_chaos|\"] 多 []",
+    "stats.max_hp: 142.219 -> 126.36"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 25,
+   "max_hp": 130.0,
+   "moves": {
+    "lead:冬夜": 1,
+    "lead:冰痕": 1,
+    "lead:冻土": 4,
+    "lead:劈山": 3,
+    "lead:坍缩": 2,
+    "lead:树痕劈": 10,
+    "lead:树痕阵": 4,
+    "lead:横踢冰屑": 4,
+    "lead:泯灭冲": 2,
+    "lead:自我泯灭": 3,
+    "lead:英雄之誓": 5,
+    "lead:连息": 4,
+    "lead:追迹": 5,
+    "lead:长冬": 4,
+    "lead:霜息": 13
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s4_slot3",
+   "squad": [
+    "kaltsit",
+    "specter_unchained",
+    "lumen"
+   ],
+   "src": {
+    "boss_lead": 0.337059449192782,
+    "bullet": 0.0498,
+    "contact_breaker": 0.8070667778169,
+    "contact_hound": 1.06357638900759,
+    "contact_lead": 0.30277207977208
+   },
+   "taken": 323.5,
+   "taken_pct": 2.56,
+   "win": true
+  },
+  {
+   "boss": "lead",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 5,
+   "wall": 18.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 64802.0,
+   "brk_dmg_share": 0.064,
+   "brk_time_share": 0.043,
+   "dmg": 62858.0,
+   "fight_t": 89.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.63|lshape:kaltsit|op:kaltsit\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.6|sami_chaos|\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 140.0,
+   "moves": {
+    "lead:冬夜": 4,
+    "lead:冰痕": 4,
+    "lead:冻土": 1,
+    "lead:劈山": 2,
+    "lead:坍缩": 1,
+    "lead:树痕劈": 7,
+    "lead:树痕阵": 2,
+    "lead:横踢冰屑": 1,
+    "lead:泯灭冲": 1,
+    "lead:自我泯灭": 3,
+    "lead:英雄之誓": 2,
+    "lead:连息": 1,
+    "lead:追迹": 2,
+    "lead:长冬": 2,
+    "lead:霜息": 11
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s5_slot3",
+   "squad": [
+    "kaltsit",
+    "logos",
+    "suzuran"
+   ],
+   "src": {
+    "boss_lead": 0.743286324786325,
+    "contact_hound": 0.570817243418108
+   },
+   "taken": 184.5,
+   "taken_pct": 1.314,
+   "win": true
+  },
+  {
+   "boss": "lead",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 6,
+   "wall": 24.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.369,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.316,
+   "brk_time_share": 0.083,
+   "dmg": 32707.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\",\"2|1.03|totem_perm_3|\",\"2|1.03|totem_perm_4|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:texas|op:texas\",\"1|0.63|lshape:kaltsit|op:kaltsit\",\"1|0.875|lshape:angelina|op:angelina\"] 多 []",
+    "stats.max_hp: 172.557 -> 154.429",
+    "stats.speed: 204.93 -> 165.0"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 25,
+   "max_hp": 163.0,
+   "moves": {
+    "lead:冬夜": 9,
+    "lead:冰痕": 9,
+    "lead:冻土": 8,
+    "lead:劈山": 1,
+    "lead:树痕劈": 17,
+    "lead:树痕阵": 1,
+    "lead:横踢冰屑": 8,
+    "lead:自我泯灭": 2,
+    "lead:英雄之誓": 9,
+    "lead:连息": 1,
+    "lead:追迹": 5,
+    "lead:长冬": 1,
+    "lead:霜息": 22
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "kaltsit_m0_s6_slot3",
+   "squad": [
+    "kaltsit",
+    "angelina",
+    "texas"
+   ],
+   "src": {
+    "boss_lead": 0.1329772009852,
+    "bullet": 0.0490942532475017,
+    "contact_lead": 0.072110584067239
+   },
+   "taken": 39.3,
+   "taken_pct": 0.254,
+   "win": false
+  },
+  {
+   "boss": "lead",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 1,
+   "wall": 22.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 51842.0,
+   "fight_t": 137.8,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:eyjafjalla|op:eyjafjalla\",\"1|0.525|lshape:irene|op:irene\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 131.192 -> 127.371"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 131.0,
+   "moves": {
+    "lead:冬夜": 6,
+    "lead:冰痕": 6,
+    "lead:冻土": 3,
+    "lead:劈山": 2,
+    "lead:坍缩": 2,
+    "lead:树痕劈": 12,
+    "lead:树痕阵": 3,
+    "lead:横踢冰屑": 3,
+    "lead:泯灭冲": 1,
+    "lead:自我泯灭": 3,
+    "lead:英雄之誓": 3,
+    "lead:连息": 3,
+    "lead:追迹": 1,
+    "lead:长冬": 3,
+    "lead:霜息": 16
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s1_slot3",
+   "squad": [
+    "kaltsit",
+    "eyjafjalla",
+    "irene"
+   ],
+   "src": {
+    "boss_lead": 0.414459254737032,
+    "bullet": 0.0535714285714286,
+    "contact_breaker": 0.252591566418011,
+    "contact_lead": 0.125586005215635,
+    "shock_breaker": 0.317241838278016
+   },
+   "taken": 148.2,
+   "taken_pct": 1.163,
+   "win": true
+  },
+  {
+   "boss": "lead",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 2,
+   "wall": 24.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.091,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.277,
+   "brk_time_share": 0.098,
+   "dmg": 47116.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:texas\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:irene|op:irene\",\"1|0.525|lshape:texas|op:texas\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:texas\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 24,
+   "max_hp": 177.0,
+   "moves": {
+    "lead:冬夜": 5,
+    "lead:冰痕": 5,
+    "lead:冻土": 5,
+    "lead:劈山": 4,
+    "lead:坍缩": 1,
+    "lead:树痕劈": 15,
+    "lead:树痕阵": 5,
+    "lead:横踢冰屑": 5,
+    "lead:自我泯灭": 3,
+    "lead:英雄之誓": 6,
+    "lead:连息": 4,
+    "lead:追迹": 5,
+    "lead:长冬": 5,
+    "lead:霜息": 19
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "kaltsit_m18_s2_slot3",
+   "squad": [
+    "kaltsit",
+    "irene",
+    "texas"
+   ],
+   "src": {
+    "boss_lead": 0.321697866769982,
+    "bullet": 0.0327730674380629,
+    "contact_breaker": 0.427776965772552,
+    "contact_hound": 0.877108350745078,
+    "contact_husk": 0.117927910810995,
+    "shock_breaker": 0.29741422338564,
+    "shock_rockback": 0.252351462266604
+   },
+   "taken": 380.6,
+   "taken_pct": 2.327,
+   "win": false
+  },
+  {
+   "boss": "lead",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 3,
+   "wall": 16.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 50287.0,
+   "fight_t": 71.1,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_4|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:hoshiguma|op:hoshiguma\",\"1|0.525|lshape:ulpianus|op:ulpianus\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 224.149 -> 217.62"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 27,
+   "max_hp": 218.0,
+   "moves": {
+    "lead:冬夜": 3,
+    "lead:冰痕": 2,
+    "lead:冻土": 1,
+    "lead:劈山": 1,
+    "lead:坍缩": 1,
+    "lead:树痕劈": 5,
+    "lead:树痕阵": 1,
+    "lead:横踢冰屑": 1,
+    "lead:泯灭冲": 1,
+    "lead:自我泯灭": 3,
+    "lead:英雄之誓": 2,
+    "lead:连息": 1,
+    "lead:追迹": 2,
+    "lead:长冬": 2,
+    "lead:霜息": 8
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s3_slot3",
+   "squad": [
+    "kaltsit",
+    "hoshiguma",
+    "ulpianus"
+   ],
+   "src": {
+    "boss_lead": 0.116053103942652,
+    "bullet": 0.0266516129032258
+   },
+   "taken": 31.1,
+   "taken_pct": 0.143,
+   "win": true
+  },
+  {
+   "boss": "lead",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 4,
+   "wall": 21.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 64802.0,
+   "brk_dmg_share": 0.208,
+   "brk_time_share": 0.048,
+   "dmg": 64802.0,
+   "fight_t": 158.9,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:irene|op:irene\",\"1|0.525|lshape:specter_unchained|op:specter_unchained\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.8|sami_chaos|\"] 多 []",
+    "stats.max_hp: 170.25 -> 160.477"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 165.0,
+   "moves": {
+    "lead:冬夜": 3,
+    "lead:冰痕": 3,
+    "lead:冻土": 4,
+    "lead:劈山": 4,
+    "lead:坍缩": 2,
+    "lead:树痕劈": 11,
+    "lead:树痕阵": 4,
+    "lead:横踢冰屑": 3,
+    "lead:泯灭冲": 2,
+    "lead:自我泯灭": 3,
+    "lead:英雄之誓": 4,
+    "lead:连息": 4,
+    "lead:追迹": 4,
+    "lead:长冬": 5,
+    "lead:霜息": 15
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s4_slot3",
+   "squad": [
+    "kaltsit",
+    "specter_unchained",
+    "irene"
+   ],
+   "src": {
+    "boss_lead": 0.33069370602179,
+    "bullet": 0.0354330708661417,
+    "contact_lead": 0.180922897458331
+   },
+   "taken": 87.8,
+   "taken_pct": 0.547,
+   "win": true
+  },
+  {
+   "boss": "lead",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 5,
+   "wall": 17.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.262,
+   "brk_time_share": 0.067,
+   "dmg": 50287.0,
+   "fight_t": 75.1,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:skalter|op:skalter\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.63|lshape:kaltsit|op:kaltsit\",\"1|0.875|lshape:skalter|op:skalter\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 27,
+   "max_hp": 205.0,
+   "moves": {
+    "lead:冬夜": 2,
+    "lead:冰痕": 1,
+    "lead:冻土": 2,
+    "lead:劈山": 1,
+    "lead:坍缩": 1,
+    "lead:树痕劈": 4,
+    "lead:树痕阵": 2,
+    "lead:横踢冰屑": 2,
+    "lead:泯灭冲": 1,
+    "lead:自我泯灭": 3,
+    "lead:英雄之誓": 2,
+    "lead:连息": 1,
+    "lead:追迹": 2,
+    "lead:长冬": 2,
+    "lead:霜息": 8
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s5_slot3",
+   "squad": [
+    "kaltsit",
+    "wisadel",
+    "skalter"
+   ],
+   "src": {
+    "boss_lead": 0.189151190601808
+   },
+   "taken": 38.7,
+   "taken_pct": 0.189,
+   "win": true
+  },
+  {
+   "boss": "lead",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 6,
+   "wall": 18.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.2,
+   "brk_time_share": 0.044,
+   "dmg": 50287.0,
+   "fight_t": 98.2,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:exusiai|op:exusiai\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:exusiai|op:exusiai\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.8|sami_chaos|\"] 多 []",
+    "stats.max_hp: 214.698 -> 204.096"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 215.0,
+   "moves": {
+    "lead:冬夜": 3,
+    "lead:冰痕": 2,
+    "lead:冻土": 3,
+    "lead:劈山": 2,
+    "lead:坍缩": 1,
+    "lead:树痕劈": 7,
+    "lead:树痕阵": 2,
+    "lead:横踢冰屑": 2,
+    "lead:泯灭冲": 1,
+    "lead:自我泯灭": 3,
+    "lead:英雄之誓": 3,
+    "lead:连息": 2,
+    "lead:追迹": 1,
+    "lead:长冬": 3,
+    "lead:霜息": 10
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s6_slot3",
+   "squad": [
+    "kaltsit",
+    "wisadel",
+    "exusiai"
+   ],
+   "src": {
+    "boss_lead": 0.302340075258702,
+    "contact_hound": 0.17596735575002,
+    "contact_lead": 0.0545625587958608
+   },
+   "taken": 108.8,
+   "taken_pct": 0.533,
+   "win": true
+  },
+  {
+   "boss": "lead",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 1,
+   "wall": 18.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 50287.0,
+   "fight_t": 95.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:skadi|op:skadi\",\"1|0.63|lshape:kaltsit|op:kaltsit\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.max_hp: 211.789 -> 199.631"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 206.0,
+   "moves": {
+    "lead:冬夜": 6,
+    "lead:冰痕": 5,
+    "lead:冻土": 2,
+    "lead:劈山": 1,
+    "lead:坍缩": 1,
+    "lead:树痕劈": 8,
+    "lead:树痕阵": 2,
+    "lead:横踢冰屑": 1,
+    "lead:泯灭冲": 1,
+    "lead:自我泯灭": 3,
+    "lead:英雄之誓": 2,
+    "lead:连息": 2,
+    "lead:追迹": 2,
+    "lead:长冬": 2,
+    "lead:霜息": 11
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m0_s1_slot3",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "suzuran"
+   ],
+   "src": {
+    "boss_lead": 0.565252183713722
+   },
+   "taken": 112.8,
+   "taken_pct": 0.565,
+   "win": true
+  },
+  {
+   "boss": "lead",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 2,
+   "wall": 18.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.261,
+   "brk_time_share": 0.097,
+   "dmg": 50287.0,
+   "fight_t": 103.6,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.28|lshape:eyjafjalla|op:eyjafjalla\",\"1|0.525|lshape:hoshiguma|op:hoshiguma\",\"1|0.525|lshape:skadi|op:skadi\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 27,
+   "max_hp": 152.0,
+   "moves": {
+    "lead:冬夜": 3,
+    "lead:冰痕": 2,
+    "lead:冻土": 3,
+    "lead:劈山": 2,
+    "lead:坍缩": 1,
+    "lead:树痕劈": 7,
+    "lead:树痕阵": 2,
+    "lead:横踢冰屑": 3,
+    "lead:泯灭冲": 1,
+    "lead:自我泯灭": 3,
+    "lead:英雄之誓": 3,
+    "lead:连息": 2,
+    "lead:追迹": 2,
+    "lead:长冬": 3,
+    "lead:霜息": 9
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m0_s2_slot3",
+   "squad": [
+    "skadi",
+    "eyjafjalla",
+    "hoshiguma"
+   ],
+   "src": {
+    "boss_lead": 0.291014858645628
+   },
+   "taken": 44.3,
+   "taken_pct": 0.291,
+   "win": true
+  },
+  {
+   "boss": "lead",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 3,
+   "wall": 21.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.333,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 34585.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:mizuki|op:mizuki\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:hoshiguma|op:hoshiguma\",\"1|0.525|lshape:skadi|op:skadi\",\"1|0.63|lshape:mizuki|op:mizuki\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.982,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 152.0,
+   "moves": {
+    "lead:冬夜": 9,
+    "lead:冰痕": 8,
+    "lead:冻土": 4,
+    "lead:树痕劈": 13,
+    "lead:树痕阵": 1,
+    "lead:横踢冰屑": 4,
+    "lead:自我泯灭": 2,
+    "lead:英雄之誓": 4,
+    "lead:追迹": 4,
+    "lead:长冬": 1,
+    "lead:霜息": 11
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m0_s3_slot3",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "mizuki"
+   ],
+   "src": {
+    "boss_lead": 0.439312452333991,
+    "bullet": 0.120227218934911,
+    "contact_lead": 0.0952909927679158
+   },
+   "taken": 99.6,
+   "taken_pct": 0.655,
+   "win": false
+  },
+  {
+   "boss": "lead",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 4,
+   "wall": 20.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.302,
+   "brk_time_share": 0.099,
+   "dmg": 50287.0,
+   "fight_t": 143.6,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:saria|op:saria\",\"1|0.525|lshape:skadi|op:skadi\"] 多 []",
+    "stats.max_hp: 161.363 -> 152.1"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 157.0,
+   "moves": {
+    "lead:冬夜": 2,
+    "lead:冰痕": 2,
+    "lead:冻土": 4,
+    "lead:劈山": 4,
+    "lead:坍缩": 2,
+    "lead:树痕劈": 10,
+    "lead:树痕阵": 4,
+    "lead:横踢冰屑": 4,
+    "lead:泯灭冲": 1,
+    "lead:自我泯灭": 3,
+    "lead:英雄之誓": 4,
+    "lead:连息": 4,
+    "lead:追迹": 4,
+    "lead:长冬": 4,
+    "lead:霜息": 14
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m0_s4_slot3",
+   "squad": [
+    "skadi",
+    "saria",
+    "wisadel"
+   ],
+   "src": {
+    "boss_lead": 0.528460749506904,
+    "contact_lead": 0.198648257725181,
+    "shock_rockback": 0.495904632566329
+   },
+   "taken": 186.0,
+   "taken_pct": 1.223,
+   "win": true
+  },
+  {
+   "boss": "lead",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 5,
+   "wall": 19.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.098,
+   "brk_time_share": 0.036,
+   "dmg": 50287.0,
+   "fight_t": 105.9,
+   "fp_diff": [
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:logos\"] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:exusiai|op:exusiai\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:exusiai|op:exusiai\",\"1|0.28|lshape:logos|op:logos\",\"1|0.525|lshape:skadi|op:skadi\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:logos\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.9,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 160.0,
+   "moves": {
+    "lead:冬夜": 5,
+    "lead:冰痕": 5,
+    "lead:冻土": 2,
+    "lead:劈山": 1,
+    "lead:坍缩": 1,
+    "lead:树痕劈": 8,
+    "lead:树痕阵": 2,
+    "lead:横踢冰屑": 2,
+    "lead:泯灭冲": 1,
+    "lead:自我泯灭": 3,
+    "lead:英雄之誓": 2,
+    "lead:连息": 2,
+    "lead:追迹": 2,
+    "lead:长冬": 2,
+    "lead:霜息": 12
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m0_s5_slot3",
+   "squad": [
+    "skadi",
+    "logos",
+    "exusiai"
+   ],
+   "src": {
+    "boss_lead": 0.958648758648759
+   },
+   "taken": 153.1,
+   "taken_pct": 0.959,
+   "win": true
+  },
+  {
+   "boss": "lead",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 6,
+   "wall": 22.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.297,
+   "brk_time_share": 0.052,
+   "dmg": 51842.0,
+   "fight_t": 172.6,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\",\"2|1.03|totem_perm_3|\",\"2|1.03|totem_perm_4|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:saria|op:saria\",\"1|0.525|lshape:skadi|op:skadi\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 179.749 -> 159.705"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 25,
+   "max_hp": 169.0,
+   "moves": {
+    "lead:冬夜": 3,
+    "lead:冰痕": 2,
+    "lead:冻土": 5,
+    "lead:劈山": 5,
+    "lead:坍缩": 2,
+    "lead:树痕劈": 11,
+    "lead:树痕阵": 5,
+    "lead:横踢冰屑": 4,
+    "lead:泯灭冲": 2,
+    "lead:自我泯灭": 3,
+    "lead:英雄之誓": 5,
+    "lead:连息": 5,
+    "lead:追迹": 5,
+    "lead:长冬": 5,
+    "lead:霜息": 15
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m0_s6_slot3",
+   "squad": [
+    "skadi",
+    "saria",
+    "kaltsit"
+   ],
+   "src": {
+    "boss_lead": 0.678139219185373,
+    "bullet": 0.0960843956043956
+   },
+   "taken": 123.6,
+   "taken_pct": 0.774,
+   "win": true
+  },
+  {
+   "boss": "lead",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 1,
+   "wall": 22.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.098,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.094,
+   "brk_time_share": 0.028,
+   "dmg": 46764.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\",\"2|1.5|totem_8|\",\"2|1.5|totem_9|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:skadi|op:skadi\",\"1|0.63|lshape:kaltsit|op:kaltsit\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.max_hp: 497.401 -> 208.377"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 215.0,
+   "moves": {
+    "lead:冬夜": 8,
+    "lead:冰痕": 8,
+    "lead:冻土": 4,
+    "lead:劈山": 4,
+    "lead:树痕劈": 16,
+    "lead:树痕阵": 4,
+    "lead:横踢冰屑": 4,
+    "lead:自我泯灭": 3,
+    "lead:英雄之誓": 5,
+    "lead:连息": 4,
+    "lead:追迹": 5,
+    "lead:长冬": 4,
+    "lead:霜息": 20
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m18_s1_slot3",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "suzuran"
+   ],
+   "src": {
+    "boss_lead": 0.452730771630266,
+    "bullet": 0.0831235692998747,
+    "contact_breaker": 0.0954391634484915,
+    "contact_lead": 0.203037763284815,
+    "shock_breaker": 0.126044582052182
+   },
+   "taken": 200.1,
+   "taken_pct": 0.96,
+   "win": false
+  },
+  {
+   "boss": "lead",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 2,
+   "wall": 16.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.309,
+   "brk_time_share": 0.075,
+   "dmg": 50287.0,
+   "fight_t": 67.2,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.5|totem_10|\",\"2|1.5|totem_9|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:lumen|op:lumen\",\"1|0.525|lshape:skadi|op:skadi\",\"1|0.525|lshape:specter_unchained|op:specter_unchained\"] 多 []",
+    "stats.max_hp: 383.292 -> 170.352"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 170.0,
+   "moves": {
+    "lead:冬夜": 1,
+    "lead:冰痕": 1,
+    "lead:冻土": 2,
+    "lead:劈山": 1,
+    "lead:坍缩": 1,
+    "lead:树痕劈": 3,
+    "lead:树痕阵": 2,
+    "lead:横踢冰屑": 1,
+    "lead:泯灭冲": 1,
+    "lead:自我泯灭": 3,
+    "lead:英雄之誓": 2,
+    "lead:连息": 2,
+    "lead:追迹": 2,
+    "lead:长冬": 2,
+    "lead:霜息": 6
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s2_slot3",
+   "squad": [
+    "skadi",
+    "lumen",
+    "specter_unchained"
+   ],
+   "src": {
+    "boss_lead": 0.356872828026674,
+    "contact_hound": 0.220090177770461,
+    "contact_lead": 0.108716070254532
+   },
+   "taken": 116.8,
+   "taken_pct": 0.686,
+   "win": true
+  },
+  {
+   "boss": "lead",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 3,
+   "wall": 18.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 44066.0,
+   "brk_dmg_share": 0.22,
+   "brk_time_share": 0.038,
+   "dmg": 42744.0,
+   "fight_t": 107.1,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_7|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:hoshiguma\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:hoshiguma|op:hoshiguma\",\"1|0.525|lshape:skadi|op:skadi\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:hoshiguma\"] 多 []",
+    "stats.max_hp: 175.463 -> 170.352"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 25,
+   "max_hp": 170.0,
+   "moves": {
+    "lead:冬夜": 3,
+    "lead:冰痕": 2,
+    "lead:冻土": 3,
+    "lead:劈山": 2,
+    "lead:坍缩": 2,
+    "lead:树痕劈": 8,
+    "lead:树痕阵": 2,
+    "lead:横踢冰屑": 3,
+    "lead:泯灭冲": 1,
+    "lead:自我泯灭": 3,
+    "lead:英雄之誓": 4,
+    "lead:连息": 2,
+    "lead:追迹": 3,
+    "lead:长冬": 2,
+    "lead:霜息": 10
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s3_slot3",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "kaltsit"
+   ],
+   "src": {
+    "boss_lead": 0.0324802629848784
+   },
+   "taken": 5.5,
+   "taken_pct": 0.032,
+   "win": true
+  },
+  {
+   "boss": "lead",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 4,
+   "wall": 22.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.319,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.16,
+   "brk_time_share": 0.028,
+   "dmg": 35326.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:mizuki|op:mizuki\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:hoshiguma|op:hoshiguma\",\"1|0.525|lshape:skadi|op:skadi\",\"1|0.63|lshape:mizuki|op:mizuki\"] 多 []",
+    "stats.max_hp: 162.654 -> 153.317"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 25,
+   "max_hp": 153.0,
+   "moves": {
+    "lead:冬夜": 7,
+    "lead:冰痕": 6,
+    "lead:冻土": 4,
+    "lead:劈山": 1,
+    "lead:树痕劈": 12,
+    "lead:树痕阵": 2,
+    "lead:横踢冰屑": 4,
+    "lead:自我泯灭": 2,
+    "lead:英雄之誓": 5,
+    "lead:连息": 1,
+    "lead:追迹": 5,
+    "lead:长冬": 2,
+    "lead:霜息": 15
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m18_s4_slot3",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "mizuki"
+   ],
+   "src": {
+    "bullet": 0.0845308537616229,
+    "shock_rockback": 0.380986002519426
+   },
+   "taken": 71.4,
+   "taken_pct": 0.466,
+   "win": false
+  },
+  {
+   "boss": "lead",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 5,
+   "wall": 17.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.336,
+   "brk_time_share": 0.147,
+   "dmg": 50287.0,
+   "fight_t": 95.2,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:mizuki|op:mizuki\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_5|\"] 多 []",
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.525|lshape:skadi|op:skadi\",\"1|0.63|lshape:mizuki|op:mizuki\"] 多 []",
+    "stats.max_hp: 225.36 -> 218.796"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 233.0,
+   "moves": {
+    "lead:冻土": 1,
+    "lead:劈山": 1,
+    "lead:坍缩": 1,
+    "lead:树痕劈": 1,
+    "lead:树痕阵": 2,
+    "lead:泯灭冲": 1,
+    "lead:自我泯灭": 3,
+    "lead:英雄之誓": 1,
+    "lead:连息": 1,
+    "lead:追迹": 1,
+    "lead:长冬": 2,
+    "lead:霜息": 5
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s5_slot3",
+   "squad": [
+    "skadi",
+    "logos",
+    "mizuki"
+   ],
+   "src": {
+    "boss_lead": 0.279347163120324
+   },
+   "taken": 61.1,
+   "taken_pct": 0.279,
+   "win": true
+  },
+  {
+   "boss": "lead",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 6,
+   "wall": 22.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.184,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.092,
+   "brk_time_share": 0.021,
+   "dmg": 42280.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\",\"2|1.03|totem_perm_3|\",\"2|1.03|totem_perm_4|\",\"2|1.03|totem_perm_5|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:saria|op:saria\",\"1|0.525|lshape:skadi|op:skadi\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 232.75 -> 200.772"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 24,
+   "max_hp": 213.0,
+   "moves": {
+    "lead:冬夜": 9,
+    "lead:冰痕": 9,
+    "lead:冻土": 5,
+    "lead:劈山": 3,
+    "lead:树痕劈": 18,
+    "lead:树痕阵": 3,
+    "lead:横踢冰屑": 5,
+    "lead:自我泯灭": 2,
+    "lead:英雄之誓": 5,
+    "lead:连息": 3,
+    "lead:追迹": 5,
+    "lead:长冬": 4,
+    "lead:霜息": 22
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m18_s6_slot3",
+   "squad": [
+    "skadi",
+    "saria",
+    "kaltsit"
+   ],
+   "src": {
+    "boss_lead": 0.157383794553025,
+    "bullet": 0.0186722245671694
+   },
+   "taken": 35.3,
+   "taken_pct": 0.176,
+   "win": false
+  },
+  {
+   "boss": "lead",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 1,
+   "wall": 23.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 50287.0,
+   "fight_t": 178.2,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:hoshiguma|op:hoshiguma\",\"1|0.525|lshape:texas|op:texas\"] 多 []",
+    "stats.max_hp: 143.166 -> 138.996"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 143.0,
+   "moves": {
+    "lead:冬夜": 8,
+    "lead:冰痕": 8,
+    "lead:冻土": 4,
+    "lead:劈山": 4,
+    "lead:坍缩": 1,
+    "lead:树痕劈": 16,
+    "lead:树痕阵": 4,
+    "lead:横踢冰屑": 3,
+    "lead:泯灭冲": 1,
+    "lead:自我泯灭": 3,
+    "lead:英雄之誓": 4,
+    "lead:连息": 4,
+    "lead:追迹": 4,
+    "lead:长冬": 4,
+    "lead:霜息": 19
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s1_slot3",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "texas"
+   ],
+   "src": {
+    "boss_lead": 0.652240006906674,
+    "bullet": 0.0634032634032634,
+    "contact_lead": 0.0767048260381594
+   },
+   "taken": 110.1,
+   "taken_pct": 0.792,
+   "win": true
+  },
+  {
+   "boss": "lead",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 2,
+   "wall": 22.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.078,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.212,
+   "brk_time_share": 0.05,
+   "dmg": 47776.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:gladiia|op:gladiia\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:lappland|op:lappland\",\"1|0.875|lshape:gladiia|op:gladiia\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.6|sami_chaos|\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 25,
+   "max_hp": 144.0,
+   "moves": {
+    "lead:冬夜": 4,
+    "lead:冰痕": 4,
+    "lead:冻土": 5,
+    "lead:劈山": 4,
+    "lead:坍缩": 1,
+    "lead:树痕劈": 14,
+    "lead:树痕阵": 4,
+    "lead:横踢冰屑": 5,
+    "lead:泯灭冲": 1,
+    "lead:自我泯灭": 3,
+    "lead:英雄之誓": 6,
+    "lead:连息": 4,
+    "lead:追迹": 6,
+    "lead:长冬": 5,
+    "lead:霜息": 20
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "wisadel_m0_s2_slot3",
+   "squad": [
+    "wisadel",
+    "lappland",
+    "gladiia"
+   ],
+   "src": {
+    "boss_lead": 0.61938061938062,
+    "bullet": 0.0764235764235764,
+    "contact_lead": 0.139443889443889
+   },
+   "taken": 120.4,
+   "taken_pct": 0.835,
+   "win": false
+  },
+  {
+   "boss": "lead",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 3,
+   "wall": 16.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.241,
+   "brk_time_share": 0.117,
+   "dmg": 50287.0,
+   "fight_t": 64.2,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_5|\",\"2|1.03|totem_perm_8|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:logos\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:logos\"] 多 []",
+    "stats.max_hp: 133.944 -> 126.255"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.8,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 126.0,
+   "moves": {
+    "lead:冬夜": 2,
+    "lead:冰痕": 2,
+    "lead:冻土": 1,
+    "lead:劈山": 1,
+    "lead:坍缩": 1,
+    "lead:树痕劈": 4,
+    "lead:树痕阵": 1,
+    "lead:横踢冰屑": 1,
+    "lead:泯灭冲": 1,
+    "lead:自我泯灭": 3,
+    "lead:英雄之誓": 2,
+    "lead:连息": 1,
+    "lead:追迹": 2,
+    "lead:长冬": 1,
+    "lead:霜息": 6
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s3_slot3",
+   "squad": [
+    "wisadel",
+    "logos",
+    "suzuran"
+   ],
+   "src": {
+    "boss_lead": 0.2
+   },
+   "taken": 25.3,
+   "taken_pct": 0.2,
+   "win": true
+  },
+  {
+   "boss": "lead",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 4,
+   "wall": 21.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.269,
+   "brk_time_share": 0.082,
+   "dmg": 50287.0,
+   "fight_t": 121.1,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:exusiai|op:exusiai\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:exusiai|op:exusiai\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:hoshiguma|op:hoshiguma\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.8|sami_chaos|\"] 多 []",
+    "stats.max_hp: 100.642 -> 94.865"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 25,
+   "max_hp": 98.0,
+   "moves": {
+    "lead:冬夜": 3,
+    "lead:冰痕": 2,
+    "lead:冻土": 3,
+    "lead:劈山": 3,
+    "lead:坍缩": 2,
+    "lead:树痕劈": 8,
+    "lead:树痕阵": 3,
+    "lead:横踢冰屑": 3,
+    "lead:泯灭冲": 1,
+    "lead:自我泯灭": 3,
+    "lead:英雄之誓": 4,
+    "lead:连息": 3,
+    "lead:追迹": 3,
+    "lead:长冬": 3,
+    "lead:霜息": 10
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s4_slot3",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "exusiai"
+   ],
+   "src": {
+    "boss_lead": 0.774042797974422,
+    "bullet": 0.0888342426803965
+   },
+   "taken": 81.9,
+   "taken_pct": 0.863,
+   "win": true
+  },
+  {
+   "boss": "lead",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 5,
+   "wall": 13.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.971,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 1506.0,
+   "fight_t": 8.6,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_6|\",\"2|1.03|totem_perm_7|\",\"2|1.03|totem_perm_8|\"] 多 []",
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:lappland|op:lappland\",\"1|0.525|lshape:texas|op:texas\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.6|sami_chaos|\"] 多 []",
+    "stats.max_hp: 147.666 -> 135.135"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "wisadel",
+   "level": 25,
+   "max_hp": 135.0,
+   "moves": {
+    "lead:冬夜": 1,
+    "lead:冰痕": 1,
+    "lead:树痕劈": 2,
+    "lead:霜息": 1
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "wisadel_m0_s5_slot3",
+   "squad": [
+    "wisadel",
+    "texas",
+    "lappland"
+   ],
+   "src": {
+    "boss_lead": 0.108380508380508,
+    "contact_hound": 1.23948357547048
+   },
+   "taken": 182.1,
+   "taken_pct": 1.348,
+   "win": false
+  },
+  {
+   "boss": "lead",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 6,
+   "wall": 20.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.159,
+   "brk_time_share": 0.053,
+   "dmg": 51842.0,
+   "fight_t": 152.5,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:hoshiguma\",\"2|1.25|command|op:logos\"] 多 [\"1|0.06|ve2:specter_unchained|op:specter_unchained\"]",
+    "mods.op_atk: 缺 [\"1|0.05|balance:logos|op:logos\"] 多 [\"1|0.12|ve2:specter_unchained|op:specter_unchained\"]",
+    "mods.op_range: 缺 [\"1|0.16|lshape:logos|op:logos\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:hoshiguma|op:hoshiguma\"] 多 [\"1|0.06|vnode:specter_unchained:1|op:specter_unchained\",\"1|0.06|vnode:specter_unchained:2|op:specter_unchained\",\"1|0.06|vnode:specter_unchained:4|op:specter_unchained\",\"1|0.06|vnode:specter_unchained:5|op:specter_unchained\"]",
+    "mods.op_skill_power: 缺 [\"1|0.05|balance:logos|op:logos\"] 多 [\"1|0.02|balance:specter_unchained|op:specter_unchained\"]",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:hoshiguma\",\"2|1.5|command|op:logos\"] 多 []",
+    "mods.dodge: 多 [\"0|0.04|vteam:specter_unchained|squad\"]",
+    "squad: [[\"wisadel\",2.0,6.0,\"ash\",true],[\"hoshiguma\",2.0,6.0,\"wall\",false],[\"logos\",1.0,4.0,\"metonymy\",false]] -> [[\"wisadel\",2.0,6.0,\"ash\",true],[\"hoshiguma\",2.0,6.0,\"wall\",false],[\"specter_unchained\",2.0,6.0,\"beast\",false]]",
+    "stats.dodge: 0.0 -> 0.04",
+    "stats.max_hp: 152.884 -> 145.83"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.8,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 153.0,
+   "moves": {
+    "lead:冬夜": 4,
+    "lead:冰痕": 4,
+    "lead:冻土": 4,
+    "lead:劈山": 3,
+    "lead:坍缩": 2,
+    "lead:树痕劈": 10,
+    "lead:树痕阵": 4,
+    "lead:横踢冰屑": 3,
+    "lead:泯灭冲": 2,
+    "lead:自我泯灭": 3,
+    "lead:英雄之誓": 4,
+    "lead:连息": 4,
+    "lead:追迹": 4,
+    "lead:长冬": 4,
+    "lead:霜息": 14
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s6_slot3",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "specter_unchained"
+   ],
+   "src": {
+    "boss_lead": 0.745647154906398,
+    "bullet": 0.0755400123431393,
+    "contact_breaker": 0.150218366862347,
+    "contact_lead": 0.125982308167044
+   },
+   "taken": 160.0,
+   "taken_pct": 1.097,
+   "win": true
+  },
+  {
+   "boss": "lead",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 1,
+   "wall": 22.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.334,
+   "boss_maxhp": 44066.0,
+   "brk_dmg_share": 0.175,
+   "brk_time_share": 0.048,
+   "dmg": 29358.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:hoshiguma\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:lumen|op:lumen\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:hoshiguma|op:hoshiguma\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:hoshiguma\"] 多 []",
+    "stats.max_hp: 148.468 -> 144.144"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 24,
+   "max_hp": 148.0,
+   "moves": {
+    "lead:冬夜": 11,
+    "lead:冰痕": 11,
+    "lead:冻土": 6,
+    "lead:劈山": 1,
+    "lead:树痕劈": 18,
+    "lead:树痕阵": 1,
+    "lead:横踢冰屑": 6,
+    "lead:自我泯灭": 2,
+    "lead:英雄之誓": 7,
+    "lead:连息": 1,
+    "lead:追迹": 7,
+    "lead:长冬": 1,
+    "lead:霜息": 24
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "wisadel_m18_s1_slot3",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "lumen"
+   ],
+   "src": {
+    "boss_lead": 0.597788877788878,
+    "bullet": 0.198701298701299,
+    "contact_hound": 0.456780646631474
+   },
+   "taken": 180.7,
+   "taken_pct": 1.253,
+   "win": false
+  },
+  {
+   "boss": "lead",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 2,
+   "wall": 19.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.262,
+   "brk_time_share": 0.07,
+   "dmg": 50287.0,
+   "fight_t": 130.7,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:gladiia|op:gladiia\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:lappland|op:lappland\",\"1|0.875|lshape:gladiia|op:gladiia\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.8|sami_chaos|\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 130.0,
+   "moves": {
+    "lead:冬夜": 2,
+    "lead:冰痕": 2,
+    "lead:冻土": 4,
+    "lead:劈山": 3,
+    "lead:坍缩": 2,
+    "lead:树痕劈": 9,
+    "lead:树痕阵": 3,
+    "lead:横踢冰屑": 3,
+    "lead:泯灭冲": 1,
+    "lead:自我泯灭": 3,
+    "lead:英雄之誓": 4,
+    "lead:连息": 3,
+    "lead:追迹": 4,
+    "lead:长冬": 4,
+    "lead:霜息": 13
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s2_slot3",
+   "squad": [
+    "wisadel",
+    "lappland",
+    "gladiia"
+   ],
+   "src": {
+    "boss_lead": 0.914825914825915,
+    "bullet": 0.0849150849150849
+   },
+   "taken": 129.7,
+   "taken_pct": 1.0,
+   "win": true
+  },
+  {
+   "boss": "lead",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 3,
+   "wall": 16.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.282,
+   "brk_time_share": 0.07,
+   "dmg": 50287.0,
+   "fight_t": 71.5,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_4|\",\"2|1.03|totem_perm_5|\",\"2|1.03|totem_perm_6|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:logos\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:logos\"] 多 []",
+    "stats.max_hp: 165.386 -> 151.351"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 28,
+   "max_hp": 151.0,
+   "moves": {
+    "lead:冬夜": 2,
+    "lead:冰痕": 1,
+    "lead:冻土": 2,
+    "lead:劈山": 1,
+    "lead:坍缩": 1,
+    "lead:树痕劈": 5,
+    "lead:树痕阵": 2,
+    "lead:横踢冰屑": 2,
+    "lead:泯灭冲": 1,
+    "lead:自我泯灭": 3,
+    "lead:英雄之誓": 2,
+    "lead:连息": 2,
+    "lead:追迹": 1,
+    "lead:长冬": 2,
+    "lead:霜息": 8
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s3_slot3",
+   "squad": [
+    "wisadel",
+    "logos",
+    "suzuran"
+   ],
+   "src": {
+    "boss_lead": 0.449946878518307
+   },
+   "taken": 68.1,
+   "taken_pct": 0.45,
+   "win": true
+  },
+  {
+   "boss": "lead",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 4,
+   "wall": 19.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.121,
+   "brk_time_share": 0.076,
+   "dmg": 50287.0,
+   "fight_t": 112.5,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:exusiai|op:exusiai\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:exusiai|op:exusiai\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:hoshiguma|op:hoshiguma\"] 多 []",
+    "stats.max_hp: 123.867 -> 116.757"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 120.0,
+   "moves": {
+    "lead:冬夜": 5,
+    "lead:冰痕": 5,
+    "lead:冻土": 2,
+    "lead:劈山": 2,
+    "lead:坍缩": 2,
+    "lead:树痕劈": 9,
+    "lead:树痕阵": 2,
+    "lead:横踢冰屑": 2,
+    "lead:泯灭冲": 1,
+    "lead:自我泯灭": 3,
+    "lead:英雄之誓": 2,
+    "lead:连息": 2,
+    "lead:追迹": 2,
+    "lead:长冬": 2,
+    "lead:霜息": 12
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s4_slot3",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "exusiai"
+   ],
+   "src": {
+    "boss_lead": 0.197182652738208
+   },
+   "taken": 23.0,
+   "taken_pct": 0.197,
+   "win": true
+  },
+  {
+   "boss": "lead",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 5,
+   "wall": 20.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.216,
+   "brk_time_share": 0.057,
+   "dmg": 50287.0,
+   "fight_t": 132.1,
+   "fp_diff": [
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:lappland|op:lappland\",\"1|0.525|lshape:texas|op:texas\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.8|sami_chaos|\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 108.0,
+   "moves": {
+    "lead:冬夜": 3,
+    "lead:冰痕": 2,
+    "lead:冻土": 4,
+    "lead:劈山": 3,
+    "lead:坍缩": 2,
+    "lead:树痕劈": 9,
+    "lead:树痕阵": 3,
+    "lead:横踢冰屑": 4,
+    "lead:泯灭冲": 1,
+    "lead:自我泯灭": 3,
+    "lead:英雄之誓": 4,
+    "lead:连息": 3,
+    "lead:追迹": 4,
+    "lead:长冬": 3,
+    "lead:霜息": 14
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s5_slot3",
+   "squad": [
+    "wisadel",
+    "texas",
+    "lappland"
+   ],
+   "src": {
+    "boss_lead": 0.647315647315647,
+    "bullet": 0.101898101898102,
+    "contact_lead": 0.502275502275502
+   },
+   "taken": 135.3,
+   "taken_pct": 1.251,
+   "win": true
+  },
+  {
+   "boss": "lead",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 6,
+   "wall": 16.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 51842.0,
+   "brk_dmg_share": 0.236,
+   "brk_time_share": 0.033,
+   "dmg": 50287.0,
+   "fight_t": 75.3,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:hoshiguma\",\"2|1.25|command|op:logos\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:hoshiguma|op:hoshiguma\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:hoshiguma\",\"2|1.5|command|op:logos\"] 多 []",
+    "stats.max_hp: 152.922 -> 144.144"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 28,
+   "max_hp": 153.0,
+   "moves": {
+    "lead:冬夜": 2,
+    "lead:冰痕": 2,
+    "lead:冻土": 2,
+    "lead:劈山": 1,
+    "lead:坍缩": 1,
+    "lead:树痕劈": 5,
+    "lead:树痕阵": 1,
+    "lead:横踢冰屑": 2,
+    "lead:泯灭冲": 1,
+    "lead:自我泯灭": 3,
+    "lead:英雄之誓": 2,
+    "lead:连息": 1,
+    "lead:追迹": 2,
+    "lead:长冬": 2,
+    "lead:霜息": 8
+   },
+   "phases": [
+    [
+     "lead",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s6_slot3",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "logos"
+   ],
+   "src": {
+    "boss_lead": 0.25388011988012
+   },
+   "taken": 36.6,
+   "taken_pct": 0.254,
+   "win": true
+  }
+ ]
+}
