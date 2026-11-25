@@ -161,7 +161,7 @@ func on_boss_dmg(op: String, e: Dictionary, eff: float) -> void:
 static func move_tag(w: Dictionary) -> String:
 	var o = w.get("owner")
 	var ty: String = str(o.get("type", "")) if o is Dictionary else ""
-	var nm: String = str(w.get("name", ""))
+	var nm: String = str(w.get("mv", w.get("name", "")))   # mv：没有名字的后续段记到所属招式下（萨米中期 Boss 脚本写，测试台逐招对账）
 	if nm == "":
 		nm = str(w.get("skin", ""))
 	if nm == "":

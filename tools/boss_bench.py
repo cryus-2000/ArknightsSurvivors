@@ -38,12 +38,16 @@ BOSSES = {
     # 萨米（docs/393 §3；快照要用 --extra --theme=sami 录）
     "blade": (["blade"], 1, "“邪魔的利刃”"),
     "wanderer": (["wanderer"], 2, "“邪魔的利刃”，游荡者"),
+    "shaman": (["shaman"], 1, "陷落雪祀"),
+    "shaman2": (["shaman2"], 2, "空洞雪祀"),
+    "vine": (["vine"], 1, "纠缠藤蔓"),
+    "vine2": (["vine2"], 2, "古老藤蔓"),
     "will": (["will"], 3, "萨米的意志"),
     "lead": (["lead"], 3, "「木裂」埃克提尔尼尔"),
     "cresson": (["cresson"], 3, "无垠回荡克雷松"),
     "khan+lion": (["khan", "lion"], 3, "哈兰杜汗 + 路加萨尔古斯"),
 }
-SAMI = ["blade", "wanderer", "will", "lead", "cresson", "khan+lion"]
+SAMI = ["blade", "wanderer", "shaman", "shaman2", "vine", "vine2", "will", "lead", "cresson", "khan+lion"]
 
 
 def seeds_of(spec):
