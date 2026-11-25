@@ -818,6 +818,10 @@ func record(marks = null) -> Dictionary:
 			"src_max": g.stats.breakdown(&"shield_max").sources, "src_int": g.stats.breakdown(&"shield_interval").sources},
 		"sus": sus,   # docs/88：治疗分项 / 干员减伤 / 净化 / 照亮
 		"final_out": g.dmg_out, "ctrl": g.combat.ctrl_report(), "ctrl_src": g.combat.ctrl_src_report(), "bot": bot_block}
+	for m in g.mechs:
+		var mr0: Dictionary = m.report()   # 主题机制遥测（萨米密文板）；空 = 不加键，水月 BALANCE 键数不变
+		if not mr0.is_empty():
+			rec["mech_" + str(m.id)] = mr0
 	if rich:
 		rec["tel"] = "full"
 		rec["ult"] = ult

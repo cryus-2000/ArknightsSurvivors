@@ -270,3 +270,31 @@ func draw(e: Dictionary, cv) -> void:
 			cv.draw_arc(d.pos, 170.0, 0.0, TAU, 48, Color(1.0, 0.9, 0.5, 0.5), 2.5)
 		elif float(d.charge) > 0.0:
 			cv.draw_arc(d.pos, 30.0, 0.0, TAU * (1.0 - (float(d.charge) - g.t)), 20, Color(1.0, 0.9, 0.5, 0.8), 3.0)
+
+
+## 机器人主轴：去离他下一个（或当前）检查点最近、能启动的稳定设施；被苗圃缠住的设施来回过两次；稳定场开着时站在场里
+func axis_do(e: Dictionary, p: Vector2) -> Vector2:
+	if e.get("echo", false) or not e.has("devs"):
+		return Vector2.INF
+	var tgt: Vector2 = e.cps[int(e.get("next_cp", e.cp))] if e.has("next_shown") else e.pos
+	for d in e.devs:
+		if float(d.field) > g.t and tgt.distance_to(d.pos) < 170.0:
+			return go_to(p, d.pos + (tgt - d.pos) * 0.4, 30.0)
+	var best = null
+	for d in e.devs:
+		if g.t >= float(d.cd) and float(d.charge) < 0.0 and (best == null or d.pos.distance_to(tgt) < best.pos.distance_to(tgt)):
+			best = d
+	if best == null:
+		return Vector2.INF
+	if not (best.taps as Array).is_empty():
+		var off: float = 70.0 if int(g.t * 2.0) % 2 == 0 else -70.0   # 缠住的设施：在点两边来回跑，0.6 秒后再踩一次
+		return go_to(p, best.pos + Vector2(off, 0), 10.0)
+	return go_to(p, best.pos, 12.0)
+
+
+## 不理主轴：不碰稳定设施（离每台 80 以上）
+func axis_ignore(e: Dictionary, p: Vector2) -> Vector2:
+	for d in e.get("devs", []):
+		if d.pos.distance_to(p) < 80.0:
+			return (p - d.pos).normalized()
+	return Vector2.INF

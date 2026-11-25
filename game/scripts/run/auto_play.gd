@@ -158,6 +158,8 @@ func _pick() -> int:
 		return g.endg.bot_choice()
 	if k == "swap":
 		return g.progression.auto_swap_pick()
+	if k == "mech" and not g.choices.is_empty() and g.mech(str(g.choices[0].get("mech", ""))) != null:
+		return g.mech(str(g.choices[0].get("mech", ""))).choice_bot()
 	if k == "branch":
 		return g.progression.auto_branch_pick()
 	var idx: Array = g.progression.auto_choices()

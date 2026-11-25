@@ -569,6 +569,11 @@ func pick(i: int) -> void:
 	if g.choice_kind == "cross":
 		g.endg.flip(i)   # 翻节点卡（docs/154）：先翻面再兑现，面板由 endings 关
 		return
+	if g.choice_kind == "mech":
+		var mm = g.mech(str(g.choices[i].get("mech", "")))   # 主题机制自己的面板（萨米密文板宣告，docs/411）
+		if mm != null:
+			mm.choice_pick(i)
+		return
 	var o: Dictionary = g.choices[i]
 	if o.get("disabled", false):
 		Sfx.play("ui_move", -6.0, 0.7)   # 买不起的事件选项（深蓝之心的房间）

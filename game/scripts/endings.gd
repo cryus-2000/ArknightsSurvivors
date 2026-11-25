@@ -161,6 +161,8 @@ func _deal(n: int) -> void:
 
 func _show_deck(title: String) -> void:
 	flipped = -1
+	for m in g.mechs:
+		m.on_deck(deck)   # 主题机制改卡（萨米密文板，docs/411）；其余主题空操作
 	var opts: Array = []
 	for i in deck.size():
 		opts.append({"kind": "node", "id": str(i), "name": NodeIcons.NAMES[deck[i].type], "desc": "", "node": deck[i]})

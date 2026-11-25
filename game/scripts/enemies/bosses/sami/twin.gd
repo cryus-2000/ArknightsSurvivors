@@ -202,3 +202,19 @@ func _sand(e: Dictionary, _dir: Vector2, _d: float) -> float:
 			continue
 		shot(e, c + nrm * 380.0 + nrm.orthogonal() * (float(i) - 5.0) * 40.0, (-nrm).angle(), 110.0, 0, 0.13, {"hold": 1.0, "life": 7.0})
 	return 2.0
+
+
+## 机器人主轴：哪个王 2.5 秒内要蓄大招，就离他 140 以上（圈画到另一个王脚下）；圈落下前躲出圈交给机器人原来的躲预警
+func axis_do(e: Dictionary, p: Vector2) -> Vector2:
+	if not e.has("ult_t") or float(e.ult_t) - g.t > 2.5:
+		return Vector2.INF
+	if e.pos.distance_to(p) < 140.0:
+		return (p - e.pos).normalized()
+	return Vector2.INF
+
+
+## 不理主轴：蓄力前贴到施放者身边（圈画在自己身上，另一个王不会被砸）
+func axis_ignore(e: Dictionary, p: Vector2) -> Vector2:
+	if not e.has("ult_t") or float(e.ult_t) - g.t > 2.5 or mate_of(e) == null:
+		return Vector2.INF
+	return go_to(p, e.pos, 60.0)

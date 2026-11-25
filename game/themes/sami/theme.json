@@ -41,6 +41,10 @@
     {
       "id": "fx",
       "script": "res://themes/sami/mech/mech_fx.gd"
+    },
+    {
+      "id": "totem",
+      "script": "res://themes/sami/mech/mech_totem.gd"
     }
   ],
   "maps": {

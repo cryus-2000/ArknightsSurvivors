@@ -343,6 +343,11 @@ func aim_dir() -> Vector2:
 
 
 func _do(action: String) -> void:
+	if action.begins_with("mech:"):
+		var mm = g.mech(action.substr(5))
+		if mm != null:
+			mm.on_touch_btn()
+		return
 	match action:
 		"dash":
 			g._try_dash()
@@ -466,6 +471,7 @@ func _draw_hud_body(hud: CanvasItem, font: Font, vs: Vector2) -> void:
 		else:
 			_draw_cmd_old(hud, font, cc, cr, ce, st, scol, lit, ph)
 	_draw_side_buttons(hud, font, vs, L, ph)
+	_draw_mech_buttons(hud, vs)
 
 
 ## 指挥键旧画法（ui/hud_v2 0）
@@ -486,6 +492,19 @@ func _draw_cmd_old(hud: CanvasItem, font: Font, cc: Vector2, cr: float, ce: Dict
 
 
 ## 暂停 / 属性键。编辑式（docs/222 §15）：并到右上，和倍速三块小牌并排（hud_v2.right_top 画），这里只登记点击区
+## 主题机制按钮（萨米密文板「密文」，docs/411）：放在终结技键左上（原连携键位置，11-05 起空着）；没有这类机制的主题不画
+func _draw_mech_buttons(hud: CanvasItem, vs: Vector2) -> void:
+	for m in g.mechs:
+		var cn: String = m.touch_btn()
+		if cn == "":
+			continue
+		var cb: Dictionary = combo_btn(vs)
+		var r: float = maxf(22.0, float(cb.r))
+		var act: String = "mech:" + str(m.id)
+		btn_rects.append([Rect2(cb.c - Vector2(r, r), Vector2(r, r) * 2.0), act])
+		_v2_btn(hud, cb.c, r, flash.get(act, 0.0) > 0.0, cn, "TOTEM")
+
+
 func _draw_side_buttons(hud: CanvasItem, font: Font, vs: Vector2, L: Dictionary, ph: bool) -> void:
 	if (g.state == g.S.PLAY or g.state == g.S.PAUSE or g.state == g.S.STATS) and g.hud_view.v2.on():
 		var P: Dictionary = g.hud_view.v2.plates(vs)

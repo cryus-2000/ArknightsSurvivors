@@ -2243,6 +2243,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		if is_inside_tree():
 			get_viewport().set_input_as_handled()
 		return
+	if state == S.PLAY:
+		for m in mechs:
+			if m.on_key(k):   # 主题机制的按键（萨米密文板宣告 T，docs/411）；其余主题空操作
+				if is_inside_tree():
+					get_viewport().set_input_as_handled()
+				return
 	if k == KEY_F8 and state == S.PLAY and (OS.is_debug_build() or Cfg.build_audience() == "internal"):   # ④ 移动粘滞试手感（用户 10-24）：只在对内包 / 调试版
 		sticky_on = not sticky_on
 		_mv_s = Vector2.ZERO

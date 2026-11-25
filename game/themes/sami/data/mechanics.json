@@ -1,5 +1,5 @@
 {
- "_doc": "萨米主题机制数值（docs/394，11-20）。只有数据，代码未读：mech_collapse.gd / mech_kingdom.gd / 密文板面板按本文件实现（docs/391 T-A6–T-A13）。每项 src 写出处。",
+ "_doc": "萨米主题机制数值（docs/394，11-20）。mech_collapse.gd / mech_kingdom.gd / 密文板面板按本文件实现（docs/391 T-A6–T-A13）。每项 src 写出处。 11-25：totem 段由 themes/sami/mech/mech_totem.gd 读（docs/411）。",
  "collapse": {
   "_doc": "坍缩值（docs/394 §1）。src 标出处：原作 / 本作拟。代码未接（T-A mech_collapse.gd 读本段）。",
   "start": 0,
@@ -407,7 +407,8 @@
      "n": 1
     },
     "synergy": null,
-    "src": "本作拟"
+    "src": "本作拟",
+    "needs": "events"
    },
    {
     "id": "rogue_3_totem_G_L2",
@@ -799,7 +800,8 @@
     "synergy": {
      "card_recruit": "rare6"
     },
-    "src": "原作（4 或 5 星 / 4–6 星临时招募 → 招募三选一保底 5 星 / 保底 6 星）"
+    "src": "原作（4 或 5 星 / 4–6 星临时招募 → 招募三选一保底 5 星 / 保底 6 星）",
+    "needs": "recruit_card"
    },
    {
     "id": "rogue_3_totem_G_E4",
@@ -815,7 +817,8 @@
      "card": "sacrifice",
      "declare_collapse": -2
     },
-    "src": "原作"
+    "src": "原作",
+    "needs": "events"
    },
    {
     "id": "rogue_3_totem_G_E5",
@@ -846,7 +849,8 @@
     "synergy": {
      "card": "wish"
     },
-    "src": "原作（得偿所愿 → 藏品三选一卡）"
+    "src": "原作（得偿所愿 → 藏品三选一卡）",
+    "needs": "events"
    },
    {
     "id": "rogue_3_totem_G_E7",
@@ -889,13 +893,13 @@
     "rarity": "NORMAL",
     "kind": "pass",
     "normal": {
-     "shield_end": 0.15
+     "shield": 2
     },
     "synergy": {
-     "shield_end": 0.15,
+     "shield": 2,
      "maxhp_perm": 0.03
     },
-    "src": "原作（2 护盾值 → 护盾 15% 最大生命）"
+    "src": "原作（经过后 2 护盾值 / 另上限 +2）；本作护盾按层照搬（docs/411 §3）"
    },
    {
     "id": "rogue_3_totem_B_E3",
@@ -922,14 +926,13 @@
     "kind": "pass",
     "normal": {
      "ingots_end": 11,
-     "shield_end": 0.05
+     "shield": 1
     },
     "synergy": {
-     "ingots_end": 11,
-     "shield_end": 0.05,
-     "index": 1
+     "ingots_end": 16,
+     "shield": 1
     },
-    "src": "原作（1 源石锭 + 1 希望 + 1 护盾值）"
+    "src": "原作（源石锭 / 希望 / 护盾值各 1，协语另抗干扰 +1）；护盾按层，抗干扰 +1 折 5 源石锭（docs/411 §2.4）"
    },
    {
     "id": "rogue_3_totem_B_E5",
@@ -945,7 +948,8 @@
      "card": "ahead",
      "ingots_end": 20
     },
-    "src": "原作（先行一步 → 结局三线卡；没做结局三前退成「这个路口多 1 张卡」）"
+    "src": "原作（先行一步 → 结局三线卡；没做结局三前退成「这个路口多 1 张卡」）",
+    "needs": "events"
    },
    {
     "id": "rogue_3_totem_B_E6",
@@ -961,7 +965,8 @@
      "card": "hedge",
      "index_full": true
     },
-    "src": "原作（协语：树篱之途 → 深埋迷境卡，docs/394 §4）"
+    "src": "原作（协语：树篱之途 → 深埋迷境卡，docs/394 §4）",
+    "needs": "index"
    },
    {
     "id": "rogue_3_totem_B_E7",
@@ -1054,7 +1059,9 @@
     "interval": 0.8,
     "dur": "timing",
     "max_dur": 60,
-    "src": "原作（名字）/ 本作拟（数值）"
+    "src": "原作（名字）/ 本作拟（数值）",
+    "atk_base": 30,
+    "_atk_base": "本作拟：无人机伤害 = atk_base × atk_mult × 全队攻击倍率（op_atk）；atk_base 30 取高攻干员普攻量级（docs/382 维什戴尔 30）"
    },
    "guard": {
     "name": "友方盾卫",
@@ -1069,7 +1076,9 @@
     "pick": "未入队的随机 1 名、精二、等级 = 队内平均",
     "dur": "timing",
     "max_dur": 60,
-    "src": "原作（名字）/ 本作拟（数值）"
+    "src": "原作（名字）/ 本作拟（数值）",
+    "open": false,
+    "_open": "docs/411 §2.3：下一批做；本批辩论协语只结算普通版，面板写「协语效果暂未开放」"
    }
   },
   "rhetoric": {
@@ -1137,7 +1146,8 @@
    "limit": null,
    "limit_doc": "不设次数上限（肉鸽不设硬上限），靠掉率控制",
    "src": "原作（随时宣告、−1）/ 本作拟（暂停面板、Boss 战可用、无无敌帧）"
-  }
+  },
+  "_needs_doc": "needs：这块依赖的系统还没做，不进掉落池（docs/411 §2.2）：events 萨米事件、recruit_card 路口招募卡、index 抗干扰指数 / 深埋迷境。做完删掉 needs 即可"
  },
  "hedge_maze": {
   "_doc": "深埋迷境（原作隐藏区域，经树篱之途进入；docs/390 §13.2 P3）：全量做。只由迁徙协语 / 事件给入口卡。",

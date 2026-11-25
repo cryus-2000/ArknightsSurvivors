@@ -86,3 +86,38 @@ func bot_pull(pull: Vector2) -> Vector2:
 
 func bot_steer(_at, mv: Vector2) -> Vector2:
 	return mv
+
+
+## ---- 主题自有面板 / 输入 / 路口（11-25 萨米密文板，docs/411）：没实现的主题全是空操作 ----
+## on_deck(deck)          endings._show_deck 发牌前：改卡（萨米布局「下一个路口」）
+## on_key(k) -> bool      game._unhandled_input 对局中（PLAY）未绑定的按键：返回 true = 已处理
+## touch_btn() -> String  触屏终结技键左上角的主题按钮文字（"" = 不画）；on_touch_btn() 点了它
+## choice_pick(i)         progression.pick 在 choice_kind == "mech" 且选项 mech == 本机制 id 时转来
+## choice_bot() -> int    自动模式 / 测试选 "mech" 面板的哪一项
+## report() -> Dictionary 批跑遥测（非空才进 BALANCE 行的 mech_<id>）
+func on_deck(_deck: Array) -> void:
+	pass
+
+
+func on_key(_k: int) -> bool:
+	return false
+
+
+func touch_btn() -> String:
+	return ""
+
+
+func on_touch_btn() -> void:
+	pass
+
+
+func choice_pick(_i: int) -> void:
+	pass
+
+
+func choice_bot() -> int:
+	return 0
+
+
+func report() -> Dictionary:
+	return {}

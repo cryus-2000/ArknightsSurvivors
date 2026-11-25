@@ -35,7 +35,15 @@ BOSSES = {
     "knight_boss": (["knight_boss"], 3, "最后的骑士"),
     "ishar": (["ishar"], 3, "伊莎玛拉"),
     "izumik": (["izumik"], 3, "伊祖米克"),
+    # 萨米（docs/393 §3；快照要用 --extra --theme=sami 录）
+    "blade": (["blade"], 1, "“邪魔的利刃”"),
+    "wanderer": (["wanderer"], 2, "“邪魔的利刃”，游荡者"),
+    "will": (["will"], 3, "萨米的意志"),
+    "lead": (["lead"], 3, "「木裂」埃克提尔尼尔"),
+    "cresson": (["cresson"], 3, "无垠回荡克雷松"),
+    "khan+lion": (["khan", "lion"], 3, "哈兰杜汗 + 路加萨尔古斯"),
 }
+SAMI = ["blade", "wanderer", "will", "lead", "cresson", "khan+lion"]
 
 
 def seeds_of(spec):
@@ -94,7 +102,7 @@ def cmd_record(a):
 def cmd_run(a):
     game = os.path.abspath(a.game)
     GR.ensure_imported(game)
-    keys = list(BOSSES) if a.bosses == "all" else a.bosses.split(",")
+    keys = [k for k in BOSSES if k not in SAMI] if a.bosses == "all" else (SAMI if a.bosses == "sami" else a.bosses.split(","))
     snaps = sorted(f for f in os.listdir(a.snaps) if f.endswith(".json") and "_slot" in f)
     metas = set(int(x) for x in a.metas.split(",")) if a.metas else None
     ops = set(a.ops.split(",")) if a.ops else None
@@ -119,6 +127,8 @@ def cmd_run(a):
         snap = json.load(open(path, encoding="utf-8"))
         args = [GR.find_godot(), "--headless", "--path", game, "--", "--balance"] + snap["args"] + [
             "--bossbench=" + path, "--benchboss=" + "+".join(grp), "--benchmaxt=%d" % a.maxt] + a.extra
+        if k in SAMI and not any(x.startswith("--theme=") for x in args):
+            args.append("--theme=sami")   # 快照只存 seed / op / bot / tide / meta，主题要补上
         t0 = time.time()
         out, err, to = run(args, a.timeout)
         mm = re.search(r"^BENCH (\{.*\})\s*$", out, re.M)
