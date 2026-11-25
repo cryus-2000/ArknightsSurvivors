@@ -692,6 +692,10 @@ func _blocked(op: Dictionary) -> String:
 		var cm = g.mech("collapse")   # 萨米（docs/414 §0）：原作「需要抗干扰指数 > k」折成坍缩等级门槛；没有坍缩机制的主题不限
 		if cm != null and int(cm.level) > int(nd.collapse_le):
 			return "坍缩等级高于 %d 时不可选" % int(nd.collapse_le) if int(nd.collapse_le) > 0 else "需要坍缩等级为 0"
+	if nd.has("collapse_ge"):
+		var cm2 = g.mech("collapse")
+		if cm2 != null and int(cm2.level) < int(nd.collapse_ge):
+			return "需要坍缩等级 %d 以上" % int(nd.collapse_ge)
 	return ""
 
 
