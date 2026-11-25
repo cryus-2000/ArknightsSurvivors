@@ -94,6 +94,8 @@ func on_lose(amount: float) -> void:
 	for f in fights:
 		if not f.done:
 			f.taken += amount
+			var sk: String = str(g.dmg_src) + ("/" + str(g.trial.move) if g.trial.move != "" else "")
+			f.src[sk] = float(f.src.get(sk, 0.0)) + amount / maxf(1.0, float(f.maxhp0))   # 承伤来源（占登场时最大生命）
 
 
 ## 打在 Boss 身上的实际伤害（combat._damage）；破绽 = e.break_t > 0 或 Boss 脚本受伤倍率 > 1（骑士撞柱 / 泡影坠地等）
@@ -124,7 +126,7 @@ func on_boss_group(slot: int, group: Array) -> Array:
 	if on and stage != 1:
 		return group   # 测试台只跟它自己那一场
 	fights.append({"slot": slot, "group": group.duplicate(), "t0": g.t, "n0": g.bosses.size(), "targets": [], "done": false,
-		"taken": 0.0, "dmg": 0.0, "dmg_brk": 0.0, "brk_t": 0.0, "last_t": g.t, "phases": [], "maxhp0": g.max_hp, "hp0": g.hp, "moves": {}})
+		"taken": 0.0, "dmg": 0.0, "dmg_brk": 0.0, "brk_t": 0.0, "last_t": g.t, "phases": [], "maxhp0": g.max_hp, "hp0": g.hp, "moves": {}, "src": {}})
 	if on:
 		stage = 2
 	return group
@@ -192,7 +194,7 @@ func _finish(f: Dictionary, res: String) -> void:
 		"hp0_frac": snappedf(float(f.hp0) / maxf(1.0, float(f.maxhp0)), 0.001), "hp_end_frac": snappedf(maxf(0.0, g.hp) / maxf(1.0, g.max_hp), 0.001),
 		"boss_hp_left": snappedf(hp_left / maxf(1.0, hp_max), 0.001), "boss_maxhp": snappedf(hp_max, 1.0),
 		"dmg": snappedf(f.dmg, 1.0), "brk_dmg_share": snappedf(f.dmg_brk / maxf(1.0, f.dmg), 0.001),
-		"brk_time_share": snappedf(f.brk_t / maxf(0.1, ft), 0.001), "phases": f.phases, "moves": f.moves,
+		"brk_time_share": snappedf(f.brk_t / maxf(0.1, ft), 0.001), "phases": f.phases, "moves": f.moves, "src": f.src, "hit_log": f.targets.map(func(x): return x.get("hit_log", {})),
 		"leader": str(g.ch.id) if g.ch != null else "", "squad": g.squad.ids(), "level": g.level, "max_hp": snappedf(g.max_hp, 1.0)}
 	if on:
 		r["snap"] = str(snap.get("name", ""))
@@ -306,6 +308,10 @@ func _restore() -> void:
 		g.squad.swap_leader(ld)
 	var slot := int(snap.get("slot", 1))
 	g.spawner.boss_idx = slot - 1
+	# 快照在登场那一刻写，mid_used 已含这一场的抽签；复原后 spawner 会对同一位置再抽一次，
+	# 不退掉就会把这一位的候选全排除（萨米 3:30 三个本体共用 person，池空 → spawner 除以零，11-25）
+	if slot < D.BOSS_TIMES.size() and not g.spawner.mid_used.is_empty():
+		g.spawner.mid_used.pop_back()
 	g.t = float(D.BOSS_TIMES[slot - 1]) - 0.02
 	g.rng.state = int(str(snap.get("rng", "0")))
 	g.rng_spawn.state = int(str(snap.get("rng_spawn", "0")))
