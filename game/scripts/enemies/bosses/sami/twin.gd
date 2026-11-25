@@ -16,7 +16,7 @@ const CAMP_DX := 380.0
 const ULT_R := 240.0
 const ULT_DUR := 2.8
 const ULT_LOCK := 0.7
-const DRAG_SPD := 90.0
+const DRAG_SPD := 130.0   # 11-26 测试台：90 时 2 秒多只能拖 190，够不到牵制王
 const STUN_T := 4.0
 const GUARD := 0.25        # 平时受伤（王者护卫；§15.4 A 原拟 0.6，11-26 测试台三轮后下调）
 const WINDOW := 3.0        # 被砸中窗口的总受伤倍率（§15.4 A 原拟 2.0）
@@ -200,7 +200,7 @@ func _start_ult(e: Dictionary, m, mode: String) -> void:
 	e["ult"] = {"w": w, "mode": mode, "t0": g.t, "dur": dur}
 	e.channel = dur
 	if m != null and mode == "drag":
-		m["walk_to"] = e.pos + ((m.pos as Vector2) - e.pos).normalized() * 320.0   # 牵制王起身走来接手，停在离施放者 320 处（不理主轴时圈砸不到他）
+		m["walk_to"] = e.pos + ((m.pos as Vector2) - e.pos).normalized() * 280.0   # 牵制王起身走来接手，停在离施放者 280 处（不理主轴时圈砸不到他）
 	w.cb = func(ww): _ult_land(e, ww)
 
 

@@ -104,7 +104,7 @@ func all_moves(e: Dictionary) -> Array:
 
 ## 主轴收益（docs/392 §15.1 A「冰甲」）：平时受伤 ×0.5；银凇碎后 8 秒 ×1.5
 func base_taken(e: Dictionary) -> float:
-	return 0.35 if float(e.get("tree_vuln", 0.0)) <= g.t else 3.5
+	return 0.35 if float(e.get("tree_vuln", 0.0)) <= g.t else 2.0
 
 
 ## ---- 冰凌列：以 x 为列（宽 80），从北往南每 0.2 秒落一根；碰到完好银凇 / 冰桩 / 冰峰就停，银凇记一次
@@ -143,11 +143,11 @@ func _tree_hit(e: Dictionary, t: Dictionary) -> void:
 	if float(t.dead_t) > 0.0:
 		return
 	t.hits = int(t.hits) + 1
-	if t.hits >= 2:
+	if t.hits >= 1:   # 11-26 测试台：挨 1 次就碎（2 次时窗口只占约 10%，会主轴拉不开）
 		t.dead_t = g.t
-		e["tree_vuln"] = g.t + 10.0
-		e["brk_len"] = 10.0
-		e["break_ring_until"] = g.t + 10.0
+		e["tree_vuln"] = g.t + 8.0
+		e["brk_len"] = 8.0
+		e["break_ring_until"] = g.t + 8.0
 		_collapse_tree(e, t)
 
 
