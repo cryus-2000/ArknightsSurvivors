@@ -580,7 +580,7 @@ func _own_bullets(cv, now: float) -> void:
 			var up: float = clampf(ag / maxf(0.12, hold_t), 0.0, 1.0) if hold_t > 0.0 else clampf(ag / 0.1, 0.0, 1.0)
 			up = 1.0 - (1.0 - up) * (1.0 - up)
 			var base: Vector2 = b.pos
-			_stand_blade(cv, base, r0 * 3.4 * up, r0 * 1.2, d, 0.25)
+			_stand_blade(cv, base, maxf(r0 * 3.4, 32.0) * up, maxf(r0 * 1.2, 13.0), d, 0.25)
 			if now - float(b.get("sfx_tt", -9.0)) > 0.05:
 				b["sfx_tt"] = now
 				_fog(base - d * 10.0, 1, 0.45, 0.0, true, 0.55, -v * 0.15)
@@ -818,12 +818,7 @@ func _blade_ground(w, now: float) -> void:
 				var a1: float = float(t.ang) + float(t.half)
 				for i in 7:
 					_crack(w, t.pos, lerpf(a0 + 0.08, a1 - 0.08, float(i) / 6.0), r3 - 8.0, k, sd + i * 17, 4.0)
-				var n3: int = int((a1 - a0) * r3 / 20.0)
-				for i in n3 + 1:
-					var dl: float = float(absi(hash(Vector2i(sd, i + 300))) % 30) / 100.0
-					var aa9: float = lerpf(a0, a1, float(i) / float(n3))
-					var gk9: float = clampf((k - dl) / 0.5, 0.0, 1.0)
-					_crack(w, t.pos + Vector2.from_angle(aa9) * (r3 - 14.0 * gk9), aa9, 16.0 * gk9, 1.0, sd + i, 4.0)
+				_scar_arc(w, t.pos, r3 - 6.0, a0, a1, k)
 				if k > 0.7 and t.get("owner") is Dictionary:
 					var oe: Dictionary = t.owner
 					var gl: Vector2 = oe.pos + Vector2(0, -40) + Vector2.from_angle(float(t.ang) - PI * 0.6) * 18.0
@@ -840,16 +835,9 @@ func _blade_ground(w, now: float) -> void:
 					# 黑毯预警：雾先沿线渗出（窄、淡），铺到 k
 					_band(cv, t.pos, t.pos + d * L * k, hw * 0.55, 0.55)
 					continue
-				# 投刃 / 追猎：中线一道裂缝往前裂到 k，两侧每 22 像素一道斜刻痕标出宽度，起点渗雾
-				_crack(w, t.pos, float(t.ang), L, k, sd, 3.0)
-				var nv := d.orthogonal()
-				var x := 20.0
-				while x < L * k:
-					for sg in [-1.0, 1.0]:
-						var q: Vector2 = t.pos + d * x + nv * hw * sg
-						w.tb_line(_snap(q - d * 5.0 - nv * 3.0 * sg), _snap(q + d * 5.0), OLC, 3.0)
-						w.tb_line(_snap(q - d * 3.0 - nv * 2.0 * sg), _snap(q + d * 3.0), BLOOD[1], 1.0)
-					x += 22.0
+				# 投刃 / 追猎 / 猎斩：沿线一条连续黑雾带往前铺到 k（宽 = 判定宽，不画两侧刻痕——会读成虚线），中线一道暗红裂缝
+				_band(cv, t.pos, t.pos + d * L * k, hw * 0.75, 0.35 + 0.4 * k)
+				_crack(w, t.pos, float(t.ang), L, k, sd, 4.0)
 				if rng.randf() < 0.4:
 					_fog(t.pos + d * rng.randf_range(0.0, L * k), 1, 0.6, 0.0, true, 0.7)
 			"circle":
@@ -1124,6 +1112,24 @@ func _thrown(w, x: Dictionary, t: float, hold: float) -> void:
 		_fog(x.pos - dv * L, 1, 0.55, 0.0, true, 0.9, -x.vel * 0.15)
 		if rng.randf() < 0.4:
 			sparks(x.pos, x.vel.angle() + PI, 0.5, 1, 140.0, BLOOD)
+
+
+## 预警外弧：一道连续的暗红斩痕弧（暗边 + 深红芯，中间厚两头尖），k 0→1 从中间往两头长
+func _scar_arc(w, c: Vector2, r: float, a0: float, a1: float, k: float) -> void:
+	var m: float = (a0 + a1) * 0.5
+	var h: float = (a1 - a0) * 0.5 * clampf(k * 1.3, 0.0, 1.0)
+	if h < 0.02:
+		return
+	var n := 16
+	for pass_i in 2:
+		for j in n:
+			var f0: float = float(j) / float(n)
+			var f1: float = float(j + 1) / float(n)
+			var b0: float = lerpf(m - h, m + h, f0)
+			var b1: float = lerpf(m - h, m + h, f1)
+			var t0: float = 2.0 + 6.0 * sin(PI * f0) + (2.0 if pass_i == 0 else 0.0)
+			var t1: float = 2.0 + 6.0 * sin(PI * f1) + (2.0 if pass_i == 0 else 0.0)
+			w.tb_quad(c + Vector2.from_angle(b0) * (r + t0), c + Vector2.from_angle(b1) * (r + t1), c + Vector2.from_angle(b1) * (r - t1), c + Vector2.from_angle(b0) * (r - t0), OLC if pass_i == 0 else BLOOD[1])
 
 
 ## 斩痕：扇形外沿一道暗红月牙（地上），u 0→1 淡掉
@@ -2087,29 +2093,16 @@ func _warn_final(w, cv, t: Dictionary, k: float, sd: int, ot: String) -> void:
 					var ga: float = TAU * k - PI * 0.5
 					w.tb_line(_snap(c), _snap(c + Vector2(cos(ga), sin(ga) * gy) * r * 0.7), LUKA_D, 5.0)
 		"line":
-			var d := Vector2.from_angle(float(t.ang))
-			var nv := d.orthogonal()
+			# 沿线一条连续元素纹理带（宽 = 判定宽）往前铺到 k + 中线裂缝；两侧不再每 22 摆一个物件（读成虚线，协调人清单）
 			var L: float = float(t.len)
 			var hw: float = float(t.wid)
-			var x := 18.0
-			var idx := 0
-			while x < L * k:
-				var q: Vector2 = c + d * x
-				for sg in [-1.0, 1.0]:
-					var e: Vector2 = q + nv * hw * sg
-					match ot:
-						"will":
-							_crystal(w, e, 4.0)
-						"lead":
-							_gash(w, e, float(t.ang) + 0.6 * sg, 18.0)
-						"cresson":
-							_petal(w, e, (nv * -sg).angle(), 14.0)
-						"khan":
-							_dune(w, e, 6.0)
-						"lion":
-							_tick(w, e, nv, 14.0 if idx % 5 == 0 else 9.0, 5.0 if idx % 5 == 0 else 3.0)
-				x += 22.0
-				idx += 1
+			_fin_tex()
+			var btx: Texture2D = {"will": ice_band, "lead": teal_band, "cresson": lil_band, "khan": sand_band, "lion": sand_band}.get(ot, fog_band)
+			var d0 := Vector2.from_angle(float(t.ang))
+			var harm: bool = float(t.get("dmg", 0.0)) > 0.0
+			_band_tex(cv, btx, c, c + d0 * L * k, hw * 0.8, (0.35 + 0.4 * k) if harm else 0.3)
+			if not harm:
+				return   # 不伤人的出口 / 标记线：只铺一条淡纹理带，不画裂缝
 			var cc: Color = {"will": WILLC[2], "lead": TEALC[3], "cresson": LIL[2], "khan": KHAN[2], "lion": LUKA}.get(ot, BLOOD[1])
 			var ce: Color = {"will": WILLC[0], "lead": OLC, "cresson": LIL[0], "khan": SANDC[0], "lion": LUKA_D}.get(ot, OLC)
 			_crack_col(w, c, float(t.ang), L, k, sd, cc, ce, 3.0)
@@ -2121,22 +2114,16 @@ func _warn_final(w, cv, t: Dictionary, k: float, sd: int, ot: String) -> void:
 			var ce2: Color = {"will": WILLC[0], "lead": OLC, "cresson": LIL[0], "khan": SANDC[0], "lion": LUKA_D}.get(ot, OLC)
 			for i in 5:
 				_crack_col(w, c, lerpf(a0 + 0.08, a1 - 0.08, float(i) / 4.0), r3 - 8.0, k, sd + i * 13, cc2, ce2, 4.0)
-			var n3: int = int((a1 - a0) * r3 / 14.0)
-			for i in n3 + 1:
-				var aa8: float = lerpf(a0, a1, float(i) / float(n3))
-				var q8: Vector2 = c + Vector2.from_angle(aa8) * r3
-				var gk: float = clampf((k - float(absi(hash(Vector2i(sd, i + 300))) % 30) / 100.0) / 0.5, 0.0, 1.0)
-				match ot:
-					"will":
-						_crystal(w, q8, 5.0 * gk)
-					"lead":
-						_gash(w, q8, aa8 + PI * 0.5, 18.0 * gk)
-					"cresson":
-						_petal(w, q8, aa8 + PI, 16.0 * gk)
-					"khan":
-						_dune(w, q8, 8.0 * gk)
-					"lion":
-						_tick(w, q8, Vector2.from_angle(aa8), (16.0 if i % 5 == 0 else 10.0) * gk, 5.0 if i % 5 == 0 else 3.0)
+			# 外弧一道连续元素纹理弧带（从中间往两头长），不再一排物件（读成虚线）
+			_fin_tex()
+			var btx2: Texture2D = {"will": ice_band, "lead": teal_band, "cresson": lil_band, "khan": sand_band, "lion": sand_band}.get(ot, fog_band)
+			var na: int = maxi(3, int((a1 - a0) * r3 / 50.0))
+			var hk: float = (a1 - a0) * 0.5 * clampf(k * 1.3, 0.0, 1.0)
+			var am: float = (a0 + a1) * 0.5
+			for i in na:
+				var q0: Vector2 = c + Vector2.from_angle(lerpf(am - hk, am + hk, float(i) / float(na))) * (r3 - 12.0)
+				var q1: Vector2 = c + Vector2.from_angle(lerpf(am - hk, am + hk, float(i + 1) / float(na))) * (r3 - 12.0)
+				_band_tex(cv, btx2, q0, q1, 16.0, 0.5 + 0.4 * k)
 	if rng.randf() < 0.35 and ot != "lion" and ot != "khan":
 		var seep: Vector2 = c + (Vector2.from_angle(float(t.get("ang", 0.0))) * float(t.get("len", 0.0)) * k * rng.randf() if t.shape == "line" else Vector2.ZERO)
 		if ot == "will":
