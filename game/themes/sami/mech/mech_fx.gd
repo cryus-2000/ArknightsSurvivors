@@ -71,7 +71,7 @@ var lil_band: Texture2D
 var sand_floor := false      # 演示夹具开：结局四 Boss 场地「时光之沙」地图还没做，临时铺程序沙地
 var sand_tex: Texture2D
 const GOUGE := [Color(0.1, 0.13, 0.2), Color(0.26, 0.32, 0.42), Color(0.93, 0.96, 1.0)]   # 爪痕：深槽 / 槽壁 / 翻起的雪唇
-const OWN := {"caster": "needle", "blade": "blade", "wanderer": "blade", "khan": "kbul"}
+const OWN := {"caster": "needle", "blade": "blade", "wanderer": "blade", "khan": "kbul", "lion": "lbul"}
 
 
 func _init(game: Game) -> void:
@@ -536,6 +536,16 @@ func _own_bullets(cv, now: float) -> void:
 			cv.draw_circle(bp, R, KHAN[2])
 			cv.draw_circle(bp, R * 0.78, KHAN[3])
 			cv.draw_circle(bp, R * 0.5, Color(1.0, 0.96, 0.92))
+			continue
+		if kind == "lbul":
+			# 路加弹（协调人 11-25：别是一圈小点）：同哈兰弹档，白芯 + 金黄 64° 环 + 深褐暗边 + 金黄锥尾，可见半径 12（判定不变）
+			var RL := 12.0
+			cv.draw_polygon(PackedVector2Array([bp + nrm * RL * 0.8, bp - d * 38.0, bp - nrm * RL * 0.8]),
+				PackedColorArray([Color(LUKA, 0.75), Color(LUKA_O, 0.0), Color(LUKA, 0.75)]))
+			cv.draw_circle(bp, RL + 3.0, LUKA_D)
+			cv.draw_circle(bp, RL, LUKA_O)
+			cv.draw_circle(bp, RL * 0.8, LUKA)
+			cv.draw_circle(bp, RL * 0.48, Color(1.0, 1.0, 0.94))
 			continue
 		if kind == "needle":
 			# 敌弹规格（docs/392 §6）：白芯 + 冰蓝色环 + 黑靛暗边（原作黑针收成暗边），沿飞行方向拉长的米粒；
@@ -1410,8 +1420,8 @@ func _pillar(cv, base: Vector2, h: float, wd: float, al: float) -> void:
 
 ## 锚桩轮廓（金色描边用）：s = 缩放
 func _anchor_shape(p: Vector2, s: float) -> PackedVector2Array:
-	return PackedVector2Array([p + Vector2(-22, 4) * s, p + Vector2(-20, -6) * s, p + Vector2(-9, -9) * s, p + Vector2(-8, -38) * s, p + Vector2(0, -62) * s,
-		p + Vector2(8, -38) * s, p + Vector2(9, -9) * s, p + Vector2(20, -6) * s, p + Vector2(22, 4) * s])
+	return PackedVector2Array([p + Vector2(-22, 4) * s, p + Vector2(-20, -6) * s, p + Vector2(-9, -9) * s, p + Vector2(-8, -38) * s, p + Vector2(-14, -48) * s, p + Vector2(0, -66) * s,
+		p + Vector2(14, -48) * s, p + Vector2(8, -38) * s, p + Vector2(9, -9) * s, p + Vector2(20, -6) * s, p + Vector2(22, 4) * s])
 
 
 ## 克雷松锚桩（协调人 11-25 退回：别像散落的子弹，要做成「设施」）：暗石底座（八角台） + 两面明暗的石柱 + 顶上淡紫晶尖，
@@ -1426,8 +1436,8 @@ func _anchor(w, p: Vector2, lit: float, s := 1.0) -> void:
 		w.tb_line(_snap(p + Vector2(-3, -12) * s), _snap(p + Vector2(-3, -32) * s), LIL[2].lerp(LIL[3], lit), 2.0)
 	var c0: Color = LIL[1].lerp(LIL[3], lit)
 	var c1: Color = LIL[0].lerp(LIL[4], lit)
-	w.tb_poly(PackedVector2Array([p + Vector2(-8, -38) * s, p + Vector2(0, -62) * s, p + Vector2(0, -36) * s]), c1)
-	w.tb_poly(PackedVector2Array([p + Vector2(0, -36) * s, p + Vector2(0, -62) * s, p + Vector2(8, -38) * s]), c0)
+	w.tb_poly(PackedVector2Array([p + Vector2(0, -36) * s, p + Vector2(-6, -38) * s, p + Vector2(-12, -48) * s, p + Vector2(0, -64) * s]), c1)
+	w.tb_poly(PackedVector2Array([p + Vector2(0, -36) * s, p + Vector2(0, -64) * s, p + Vector2(12, -48) * s, p + Vector2(6, -38) * s]), c0)
 	if lit > 0.5:
 		w.tb_line(_snap(p + Vector2(-3, -42) * s), _snap(p + Vector2(-1, -54) * s), Color(1, 1, 1), 2.0)
 
@@ -1464,16 +1474,16 @@ func _cres_field(cv, now: float) -> void:
 				var an: float = float(i) * 2.399 + now * 0.12
 				var q: Vector2 = c if i == 0 else c + Vector2(cos(an), sin(an) * gy) * R * 0.6
 				var sz: float = R * (1.3 if i == 0 else 0.9)
-				cv.draw_texture_rect(lil_puff[i % 3], Rect2(((q - Vector2(sz, sz * gy) * 0.5) / PX).floor() * PX, Vector2(sz, sz * gy)), false, Color(1, 1, 1, 0.22 * al))
+				cv.draw_texture_rect(lil_puff[i % 3], Rect2(((q - Vector2(sz, sz * gy) * 0.5) / PX).floor() * PX, Vector2(sz, sz * gy)), false, Color(1, 1, 1, 0.42 * al))
 			for k in 6:
 				var a: Vector2 = c + (_cres_ring(c, k, gy) - c) * sp
 				var b: Vector2 = c + (_cres_ring(c, (k + 1) % 6, gy) - c) * sp
-				_band_tex(cv, lil_band, c, a, 9.0, 0.32 * al)
-				_band_tex(cv, lil_band, a, b, 11.0, 0.4 * al)
+				_band_tex(cv, lil_band, c, a, 10.0, 0.5 * al)
+				_band_tex(cv, lil_band, a, b, 13.0, 0.6 * al)
 			var pulse: float = fmod(now - t0, 1.2) / 1.2
 			for k in 6:
 				var a2: Vector2 = c + (_cres_ring(c, k, gy) - c) * pulse * sp
-				cv.draw_texture_rect(lil_puff[k % 3], Rect2(((a2 - Vector2(18, 14)) / PX).floor() * PX, Vector2(36, 28)), false, Color(1, 1, 1, 0.35 * al * (1.0 - pulse)))
+				cv.draw_texture_rect(lil_puff[k % 3], Rect2(((a2 - Vector2(18, 14)) / PX).floor() * PX, Vector2(36, 28)), false, Color(1, 1, 1, 0.55 * al * (1.0 - pulse)))
 
 
 func _final_ground(w, now: float) -> void:
