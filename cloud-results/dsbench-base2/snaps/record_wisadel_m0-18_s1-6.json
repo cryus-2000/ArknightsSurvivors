@@ -1,0 +1,1537 @@
+[
+ {
+  "op": "wisadel",
+  "meta": 0,
+  "seed": 1,
+  "wall": 62.1,
+  "real": [
+   {
+    "boss": "carmen",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 20821.0,
+    "boss_src_share": 0.765,
+    "brk_dmg_share": 0.317,
+    "brk_time_share": 0.234,
+    "bul_avg": 4.8,
+    "bul_peak": 92,
+    "dmg": 20821.0,
+    "fight_t": 67.1,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 0.558,
+    "leader": "wisadel",
+    "level": 14,
+    "max_hp": 129.0,
+    "phases": [
+     [
+      "carmen",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 1,
+    "squad": [
+     "wisadel",
+     "hoshiguma",
+     "ulpianus"
+    ],
+    "taken": 241.0,
+    "taken_pct": 1.872,
+    "win": true
+   },
+   {
+    "boss": "bishop+archon",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 52746.0,
+    "boss_src_share": 0.48,
+    "brk_dmg_share": 0.044,
+    "brk_time_share": 0.017,
+    "bul_avg": 26.1,
+    "bul_peak": 55,
+    "dmg": 108407.0,
+    "fight_t": 180.0,
+    "hp0_frac": 0.903,
+    "hp_end_frac": 0.849,
+    "leader": "wisadel",
+    "level": 24,
+    "max_hp": 204.0,
+    "phases": [
+     [
+      "bishop",
+      1,
+      0.0
+     ],
+     [
+      "archon",
+      1,
+      0.0
+     ]
+    ],
+    "result": "retreat",
+    "slot": 2,
+    "squad": [
+     "wisadel",
+     "hoshiguma",
+     "ulpianus"
+    ],
+    "taken": 539.4,
+    "taken_pct": 4.191,
+    "win": false
+   },
+   {
+    "boss": "paranoia",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 55944.0,
+    "boss_src_share": 0.873,
+    "brk_dmg_share": 0.181,
+    "brk_time_share": 0.105,
+    "bul_avg": 74.7,
+    "bul_peak": 217,
+    "dmg": 83916.0,
+    "fight_t": 130.4,
+    "hp0_frac": 0.849,
+    "hp_end_frac": 1.0,
+    "leader": "wisadel",
+    "level": 25,
+    "max_hp": 204.0,
+    "phases": [
+     [
+      "paranoia",
+      1,
+      0.0
+     ],
+     [
+      "paranoia",
+      2,
+      59.1
+     ]
+    ],
+    "result": "win",
+    "slot": 3,
+    "squad": [
+     "wisadel",
+     "hoshiguma",
+     "ulpianus"
+    ],
+    "taken": 296.2,
+    "taken_pct": 1.449,
+    "win": true
+   }
+  ],
+  "timeout": false,
+  "snaps": [
+   "BENCHSNAP slot=1 t=210.0 group=carmen events=14 mobs=29",
+   "BENCHSNAP slot=2 t=420.0 group=bishop+archon events=23 mobs=40",
+   "BENCHSNAP slot=3 t=600.0 group=paranoia events=32 mobs=34"
+  ],
+  "script_errors": 0,
+  "first_error": "",
+  "run_t": 730,
+  "floor_hits": 0
+ },
+ {
+  "op": "wisadel",
+  "meta": 0,
+  "seed": 2,
+  "wall": 61.5,
+  "real": [
+   {
+    "boss": "path",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 28414.0,
+    "boss_src_share": 0.0,
+    "brk_dmg_share": 0.497,
+    "brk_time_share": 0.355,
+    "bul_avg": 19.5,
+    "bul_peak": 50,
+    "dmg": 28414.0,
+    "fight_t": 67.4,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "wisadel",
+    "level": 14,
+    "max_hp": 144.0,
+    "phases": [
+     [
+      "path",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 1,
+    "squad": [
+     "wisadel",
+     "saria",
+     "skalter"
+    ],
+    "taken": 8.4,
+    "taken_pct": 0.059,
+    "win": true
+   },
+   {
+    "boss": "iberia",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 49816.0,
+    "boss_src_share": 0.528,
+    "brk_dmg_share": 0.159,
+    "brk_time_share": 0.181,
+    "bul_avg": 5.2,
+    "bul_peak": 41,
+    "dmg": 49816.0,
+    "fight_t": 64.8,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "wisadel",
+    "level": 22,
+    "max_hp": 144.0,
+    "phases": [
+     [
+      "iberia",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 2,
+    "squad": [
+     "wisadel",
+     "saria",
+     "skalter"
+    ],
+    "taken": 74.8,
+    "taken_pct": 0.519,
+    "win": true
+   },
+   {
+    "boss": "paranoia",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 55944.0,
+    "boss_src_share": 1.0,
+    "brk_dmg_share": 0.348,
+    "brk_time_share": 0.197,
+    "bul_avg": 61.1,
+    "bul_peak": 249,
+    "dmg": 80560.0,
+    "fight_t": 79.9,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "wisadel",
+    "level": 28,
+    "max_hp": 241.0,
+    "phases": [
+     [
+      "paranoia",
+      1,
+      0.0
+     ],
+     [
+      "paranoia",
+      2,
+      36.0
+     ]
+    ],
+    "result": "win",
+    "slot": 3,
+    "squad": [
+     "wisadel",
+     "saria",
+     "skalter"
+    ],
+    "taken": 321.5,
+    "taken_pct": 1.336,
+    "win": true
+   }
+  ],
+  "timeout": false,
+  "snaps": [
+   "BENCHSNAP slot=1 t=210.0 group=path events=16 mobs=24",
+   "BENCHSNAP slot=2 t=420.0 group=iberia events=29 mobs=33",
+   "BENCHSNAP slot=3 t=600.0 group=paranoia events=44 mobs=27"
+  ],
+  "script_errors": 0,
+  "first_error": "",
+  "run_t": 679,
+  "floor_hits": 0
+ },
+ {
+  "op": "wisadel",
+  "meta": 0,
+  "seed": 3,
+  "wall": 62.2,
+  "real": [
+   {
+    "boss": "carmen",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 20821.0,
+    "boss_src_share": 0.682,
+    "brk_dmg_share": 0.253,
+    "brk_time_share": 0.276,
+    "bul_avg": 8.5,
+    "bul_peak": 92,
+    "dmg": 20821.0,
+    "fight_t": 104.9,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 0.744,
+    "leader": "wisadel",
+    "level": 15,
+    "max_hp": 129.0,
+    "phases": [
+     [
+      "carmen",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 1,
+    "squad": [
+     "wisadel",
+     "hoshiguma",
+     "angelina"
+    ],
+    "taken": 227.6,
+    "taken_pct": 1.769,
+    "win": true
+   },
+   {
+    "boss": "bishop+archon",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 52746.0,
+    "boss_src_share": 0.205,
+    "brk_dmg_share": 0.585,
+    "brk_time_share": 0.326,
+    "bul_avg": 23.4,
+    "bul_peak": 53,
+    "dmg": 52733.0,
+    "fight_t": 61.7,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "wisadel",
+    "level": 22,
+    "max_hp": 129.0,
+    "phases": [
+     [
+      "bishop",
+      1,
+      0.0
+     ],
+     [
+      "archon",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 2,
+    "squad": [
+     "wisadel",
+     "hoshiguma",
+     "angelina"
+    ],
+    "taken": 135.4,
+    "taken_pct": 1.052,
+    "win": true
+   },
+   {
+    "boss": "paranoia",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 55944.0,
+    "boss_src_share": 1.0,
+    "brk_dmg_share": 0.391,
+    "brk_time_share": 0.195,
+    "bul_avg": 60.0,
+    "bul_peak": 240,
+    "dmg": 82238.0,
+    "fight_t": 104.3,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "wisadel",
+    "level": 28,
+    "max_hp": 161.0,
+    "phases": [
+     [
+      "paranoia",
+      1,
+      0.0
+     ],
+     [
+      "paranoia",
+      2,
+      46.5
+     ]
+    ],
+    "result": "win",
+    "slot": 3,
+    "squad": [
+     "wisadel",
+     "hoshiguma",
+     "angelina"
+    ],
+    "taken": 310.2,
+    "taken_pct": 1.928,
+    "win": true
+   }
+  ],
+  "timeout": false,
+  "snaps": [
+   "BENCHSNAP slot=1 t=210.0 group=carmen events=15 mobs=38",
+   "BENCHSNAP slot=2 t=420.0 group=bishop+archon events=29 mobs=42",
+   "BENCHSNAP slot=3 t=600.0 group=paranoia events=47 mobs=34"
+  ],
+  "script_errors": 0,
+  "first_error": "",
+  "run_t": 704,
+  "floor_hits": 0
+ },
+ {
+  "op": "wisadel",
+  "meta": 0,
+  "seed": 4,
+  "wall": 57.3,
+  "real": [
+   {
+    "boss": "carmen",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 20821.0,
+    "boss_src_share": 0.808,
+    "brk_dmg_share": 0.267,
+    "brk_time_share": 0.228,
+    "bul_avg": 6.8,
+    "bul_peak": 89,
+    "dmg": 20821.0,
+    "fight_t": 75.8,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 0.56,
+    "leader": "wisadel",
+    "level": 14,
+    "max_hp": 129.0,
+    "phases": [
+     [
+      "carmen",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 1,
+    "squad": [
+     "wisadel",
+     "angelina",
+     "texas"
+    ],
+    "taken": 328.6,
+    "taken_pct": 2.553,
+    "win": true
+   },
+   {
+    "boss": "path",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 35781.0,
+    "boss_src_share": 0.0,
+    "brk_dmg_share": 0.484,
+    "brk_time_share": 0.337,
+    "bul_avg": 19.0,
+    "bul_peak": 46,
+    "dmg": 35781.0,
+    "fight_t": 44.3,
+    "hp0_frac": 0.511,
+    "hp_end_frac": 1.0,
+    "leader": "wisadel",
+    "level": 22,
+    "max_hp": 159.0,
+    "phases": [
+     [
+      "path",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 2,
+    "squad": [
+     "wisadel",
+     "angelina",
+     "texas"
+    ],
+    "taken": 1.1,
+    "taken_pct": 0.007,
+    "win": true
+   },
+   {
+    "boss": "paranoia",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 55944.0,
+    "boss_src_share": 1.0,
+    "brk_dmg_share": 0.264,
+    "brk_time_share": 0.174,
+    "bul_avg": 68.5,
+    "bul_peak": 279,
+    "dmg": 83916.0,
+    "fight_t": 102.4,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 0.636,
+    "leader": "wisadel",
+    "level": 29,
+    "max_hp": 170.0,
+    "phases": [
+     [
+      "paranoia",
+      1,
+      0.0
+     ],
+     [
+      "paranoia",
+      2,
+      42.2
+     ]
+    ],
+    "result": "win",
+    "slot": 3,
+    "squad": [
+     "wisadel",
+     "angelina",
+     "texas"
+    ],
+    "taken": 444.0,
+    "taken_pct": 2.607,
+    "win": true
+   }
+  ],
+  "timeout": false,
+  "snaps": [
+   "BENCHSNAP slot=1 t=210.0 group=carmen events=14 mobs=30",
+   "BENCHSNAP slot=2 t=420.0 group=path events=28 mobs=36",
+   "BENCHSNAP slot=3 t=600.0 group=paranoia events=42 mobs=25"
+  ],
+  "script_errors": 0,
+  "first_error": "",
+  "run_t": 702,
+  "floor_hits": 0
+ },
+ {
+  "op": "wisadel",
+  "meta": 0,
+  "seed": 5,
+  "wall": 62.4,
+  "real": [
+   {
+    "boss": "path",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 28414.0,
+    "boss_src_share": 0.569,
+    "brk_dmg_share": 0.035,
+    "brk_time_share": 0.066,
+    "bul_avg": 19.7,
+    "bul_peak": 49,
+    "dmg": 28414.0,
+    "fight_t": 113.3,
+    "hp0_frac": 0.83,
+    "hp_end_frac": 1.0,
+    "leader": "wisadel",
+    "level": 14,
+    "max_hp": 129.0,
+    "phases": [
+     [
+      "path",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 1,
+    "squad": [
+     "wisadel",
+     "saria",
+     "mizuki"
+    ],
+    "taken": 187.6,
+    "taken_pct": 1.458,
+    "win": true
+   },
+   {
+    "boss": "iberia",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 49816.0,
+    "boss_src_share": 0.153,
+    "brk_dmg_share": 0.243,
+    "brk_time_share": 0.276,
+    "bul_avg": 1.6,
+    "bul_peak": 21,
+    "dmg": 49816.0,
+    "fight_t": 66.8,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "wisadel",
+    "level": 21,
+    "max_hp": 116.0,
+    "phases": [
+     [
+      "iberia",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 2,
+    "squad": [
+     "wisadel",
+     "saria",
+     "mizuki"
+    ],
+    "taken": 130.5,
+    "taken_pct": 1.126,
+    "win": true
+   },
+   {
+    "boss": "knight_boss",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 51667.0,
+    "boss_src_share": 0.945,
+    "brk_dmg_share": 0.419,
+    "brk_time_share": 0.191,
+    "bul_avg": 10.0,
+    "bul_peak": 78,
+    "dmg": 77501.0,
+    "fight_t": 140.2,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 0.874,
+    "leader": "wisadel",
+    "level": 27,
+    "max_hp": 133.0,
+    "phases": [
+     [
+      "knight_boss",
+      1,
+      0.0
+     ],
+     [
+      "knight_boss",
+      2,
+      87.1
+     ]
+    ],
+    "result": "win",
+    "slot": 3,
+    "squad": [
+     "wisadel",
+     "saria",
+     "mizuki"
+    ],
+    "taken": 878.4,
+    "taken_pct": 6.594,
+    "win": true
+   }
+  ],
+  "timeout": false,
+  "snaps": [
+   "BENCHSNAP slot=1 t=210.0 group=path events=13 mobs=34",
+   "BENCHSNAP slot=2 t=420.0 group=iberia events=25 mobs=50",
+   "BENCHSNAP slot=3 t=600.0 group=knight_boss events=37 mobs=38"
+  ],
+  "script_errors": 0,
+  "first_error": "",
+  "run_t": 740,
+  "floor_hits": 0
+ },
+ {
+  "op": "wisadel",
+  "meta": 0,
+  "seed": 6,
+  "wall": 68.0,
+  "real": [
+   {
+    "boss": "path",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 28414.0,
+    "boss_src_share": 0.658,
+    "brk_dmg_share": 0.453,
+    "brk_time_share": 0.372,
+    "bul_avg": 18.6,
+    "bul_peak": 49,
+    "dmg": 28414.0,
+    "fight_t": 102.1,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "wisadel",
+    "level": 14,
+    "max_hp": 129.0,
+    "phases": [
+     [
+      "path",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 1,
+    "squad": [
+     "wisadel",
+     "hoshiguma",
+     "saria"
+    ],
+    "taken": 182.3,
+    "taken_pct": 1.416,
+    "win": true
+   },
+   {
+    "boss": "carmen",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 26219.0,
+    "boss_src_share": 0.45,
+    "brk_dmg_share": 0.193,
+    "brk_time_share": 0.161,
+    "bul_avg": 5.8,
+    "bul_peak": 90,
+    "dmg": 26219.0,
+    "fight_t": 42.2,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "wisadel",
+    "level": 21,
+    "max_hp": 152.0,
+    "phases": [
+     [
+      "carmen",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 2,
+    "squad": [
+     "wisadel",
+     "hoshiguma",
+     "saria"
+    ],
+    "taken": 96.4,
+    "taken_pct": 0.634,
+    "win": true
+   },
+   {
+    "boss": "knight_boss",
+    "boss_hp_left": 0.108,
+    "boss_maxhp": 51667.0,
+    "boss_src_share": 0.86,
+    "brk_dmg_share": 0.691,
+    "brk_time_share": 0.328,
+    "bul_avg": 13.2,
+    "bul_peak": 77,
+    "dmg": 71911.0,
+    "fight_t": 190.0,
+    "hp0_frac": 0.799,
+    "hp_end_frac": 0.983,
+    "leader": "wisadel",
+    "level": 27,
+    "max_hp": 152.0,
+    "phases": [
+     [
+      "knight_boss",
+      1,
+      0.0
+     ],
+     [
+      "knight_boss",
+      2,
+      109.0
+     ]
+    ],
+    "result": "end",
+    "slot": 3,
+    "squad": [
+     "wisadel",
+     "hoshiguma",
+     "saria"
+    ],
+    "taken": 1541.2,
+    "taken_pct": 10.138,
+    "win": false
+   }
+  ],
+  "timeout": false,
+  "snaps": [
+   "BENCHSNAP slot=1 t=210.0 group=path events=14 mobs=28",
+   "BENCHSNAP slot=2 t=420.0 group=carmen events=26 mobs=47",
+   "BENCHSNAP slot=3 t=600.0 group=knight_boss events=37 mobs=48"
+  ],
+  "script_errors": 0,
+  "first_error": "",
+  "run_t": 790,
+  "floor_hits": 0
+ },
+ {
+  "op": "wisadel",
+  "meta": 18,
+  "seed": 1,
+  "wall": 56.7,
+  "real": [
+   {
+    "boss": "carmen",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 20821.0,
+    "boss_src_share": 1.0,
+    "brk_dmg_share": 0.22,
+    "brk_time_share": 0.183,
+    "bul_avg": 7.1,
+    "bul_peak": 92,
+    "dmg": 20821.0,
+    "fight_t": 36.7,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "wisadel",
+    "level": 14,
+    "max_hp": 144.0,
+    "phases": [
+     [
+      "carmen",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 1,
+    "squad": [
+     "wisadel",
+     "hoshiguma",
+     "ulpianus"
+    ],
+    "taken": 39.7,
+    "taken_pct": 0.275,
+    "win": true
+   },
+   {
+    "boss": "path",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 35781.0,
+    "boss_src_share": 0.564,
+    "brk_dmg_share": 0.099,
+    "brk_time_share": 0.055,
+    "bul_avg": 21.9,
+    "bul_peak": 55,
+    "dmg": 35781.0,
+    "fight_t": 31.5,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 0.935,
+    "leader": "wisadel",
+    "level": 22,
+    "max_hp": 162.0,
+    "phases": [
+     [
+      "path",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 2,
+    "squad": [
+     "wisadel",
+     "hoshiguma",
+     "ulpianus"
+    ],
+    "taken": 24.8,
+    "taken_pct": 0.153,
+    "win": true
+   },
+   {
+    "boss": "paranoia",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 55944.0,
+    "boss_src_share": 1.0,
+    "brk_dmg_share": 0.218,
+    "brk_time_share": 0.106,
+    "bul_avg": 56.3,
+    "bul_peak": 241,
+    "dmg": 80560.0,
+    "fight_t": 77.1,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "wisadel",
+    "level": 29,
+    "max_hp": 188.0,
+    "phases": [
+     [
+      "paranoia",
+      1,
+      0.0
+     ],
+     [
+      "paranoia",
+      2,
+      36.0
+     ]
+    ],
+    "result": "win",
+    "slot": 3,
+    "squad": [
+     "wisadel",
+     "hoshiguma",
+     "ulpianus"
+    ],
+    "taken": 34.9,
+    "taken_pct": 0.185,
+    "win": true
+   }
+  ],
+  "timeout": false,
+  "snaps": [
+   "BENCHSNAP slot=1 t=210.0 group=carmen events=15 mobs=23",
+   "BENCHSNAP slot=2 t=420.0 group=path events=29 mobs=27",
+   "BENCHSNAP slot=3 t=600.0 group=paranoia events=42 mobs=31"
+  ],
+  "script_errors": 0,
+  "first_error": "",
+  "run_t": 677,
+  "floor_hits": 0
+ },
+ {
+  "op": "wisadel",
+  "meta": 18,
+  "seed": 2,
+  "wall": 59.4,
+  "real": [
+   {
+    "boss": "carmen",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 20821.0,
+    "boss_src_share": 0.0,
+    "brk_dmg_share": 0.369,
+    "brk_time_share": 0.249,
+    "bul_avg": 5.9,
+    "bul_peak": 91,
+    "dmg": 20821.0,
+    "fight_t": 44.4,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "wisadel",
+    "level": 13,
+    "max_hp": 144.0,
+    "phases": [
+     [
+      "carmen",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 1,
+    "squad": [
+     "wisadel",
+     "hoshiguma",
+     "eyjafjalla"
+    ],
+    "taken": 0.0,
+    "taken_pct": 0.0,
+    "win": true
+   },
+   {
+    "boss": "bishop+immortal",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 45420.0,
+    "boss_src_share": 0.906,
+    "brk_dmg_share": 0.417,
+    "brk_time_share": 0.244,
+    "bul_avg": 20.9,
+    "bul_peak": 52,
+    "dmg": 45402.0,
+    "fight_t": 32.4,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "wisadel",
+    "level": 21,
+    "max_hp": 148.0,
+    "phases": [
+     [
+      "bishop",
+      1,
+      0.0
+     ],
+     [
+      "immortal",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 2,
+    "squad": [
+     "wisadel",
+     "hoshiguma",
+     "eyjafjalla"
+    ],
+    "taken": 57.1,
+    "taken_pct": 0.384,
+    "win": true
+   },
+   {
+    "boss": "paranoia",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 55944.0,
+    "boss_src_share": 0.878,
+    "brk_dmg_share": 0.315,
+    "brk_time_share": 0.174,
+    "bul_avg": 67.8,
+    "bul_peak": 241,
+    "dmg": 80560.0,
+    "fight_t": 83.5,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 0.892,
+    "leader": "wisadel",
+    "level": 28,
+    "max_hp": 154.0,
+    "phases": [
+     [
+      "paranoia",
+      1,
+      0.0
+     ],
+     [
+      "paranoia",
+      2,
+      38.8
+     ]
+    ],
+    "result": "win",
+    "slot": 3,
+    "squad": [
+     "wisadel",
+     "hoshiguma",
+     "eyjafjalla"
+    ],
+    "taken": 341.1,
+    "taken_pct": 2.209,
+    "win": true
+   }
+  ],
+  "timeout": false,
+  "snaps": [
+   "BENCHSNAP slot=1 t=210.0 group=carmen events=15 mobs=20",
+   "BENCHSNAP slot=2 t=420.0 group=bishop+immortal events=29 mobs=39",
+   "BENCHSNAP slot=3 t=600.0 group=paranoia events=42 mobs=49"
+  ],
+  "script_errors": 0,
+  "first_error": "",
+  "run_t": 683,
+  "floor_hits": 0
+ },
+ {
+  "op": "wisadel",
+  "meta": 18,
+  "seed": 3,
+  "wall": 56.1,
+  "real": [
+   {
+    "boss": "path",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 28414.0,
+    "boss_src_share": 0.152,
+    "brk_dmg_share": 0.308,
+    "brk_time_share": 0.3,
+    "bul_avg": 19.6,
+    "bul_peak": 46,
+    "dmg": 28414.0,
+    "fight_t": 36.7,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 0.773,
+    "leader": "wisadel",
+    "level": 13,
+    "max_hp": 151.0,
+    "phases": [
+     [
+      "path",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 1,
+    "squad": [
+     "wisadel",
+     "logos",
+     "texas"
+    ],
+    "taken": 47.5,
+    "taken_pct": 0.314,
+    "win": true
+   },
+   {
+    "boss": "bishop+archon",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 52746.0,
+    "boss_src_share": 0.447,
+    "brk_dmg_share": 0.554,
+    "brk_time_share": 0.294,
+    "bul_avg": 44.3,
+    "bul_peak": 73,
+    "dmg": 52746.0,
+    "fight_t": 24.9,
+    "hp0_frac": 0.807,
+    "hp_end_frac": 0.984,
+    "leader": "wisadel",
+    "level": 24,
+    "max_hp": 151.0,
+    "phases": [
+     [
+      "bishop",
+      1,
+      0.0
+     ],
+     [
+      "archon",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 2,
+    "squad": [
+     "wisadel",
+     "logos",
+     "texas"
+    ],
+    "taken": 33.1,
+    "taken_pct": 0.219,
+    "win": true
+   },
+   {
+    "boss": "paranoia",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 55944.0,
+    "boss_src_share": 0.0,
+    "brk_dmg_share": 0.357,
+    "brk_time_share": 0.114,
+    "bul_avg": 99.8,
+    "bul_peak": 272,
+    "dmg": 80560.0,
+    "fight_t": 53.2,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "wisadel",
+    "level": 30,
+    "max_hp": 151.0,
+    "phases": [
+     [
+      "paranoia",
+      1,
+      0.0
+     ],
+     [
+      "paranoia",
+      2,
+      22.8
+     ]
+    ],
+    "result": "win",
+    "slot": 3,
+    "squad": [
+     "wisadel",
+     "logos",
+     "texas"
+    ],
+    "taken": 0.0,
+    "taken_pct": 0.0,
+    "win": true
+   }
+  ],
+  "timeout": false,
+  "snaps": [
+   "BENCHSNAP slot=1 t=210.0 group=path events=16 mobs=28",
+   "BENCHSNAP slot=2 t=420.0 group=bishop+archon events=30 mobs=28",
+   "BENCHSNAP slot=3 t=600.0 group=paranoia events=44 mobs=29"
+  ],
+  "script_errors": 0,
+  "first_error": "",
+  "run_t": 653,
+  "floor_hits": 0
+ },
+ {
+  "op": "wisadel",
+  "meta": 18,
+  "seed": 4,
+  "wall": 53.9,
+  "real": [
+   {
+    "boss": "carmen",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 20821.0,
+    "boss_src_share": 0.885,
+    "brk_dmg_share": 0.391,
+    "brk_time_share": 0.303,
+    "bul_avg": 5.6,
+    "bul_peak": 92,
+    "dmg": 20821.0,
+    "fight_t": 65.5,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 0.875,
+    "leader": "wisadel",
+    "level": 14,
+    "max_hp": 144.0,
+    "phases": [
+     [
+      "carmen",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 1,
+    "squad": [
+     "wisadel",
+     "angelina",
+     "hoshiguma"
+    ],
+    "taken": 80.0,
+    "taken_pct": 0.557,
+    "win": true
+   },
+   {
+    "boss": "bishop+immortal",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 45420.0,
+    "boss_src_share": 0.0,
+    "brk_dmg_share": 0.352,
+    "brk_time_share": 0.28,
+    "bul_avg": 22.8,
+    "bul_peak": 53,
+    "dmg": 45420.0,
+    "fight_t": 58.5,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "wisadel",
+    "level": 23,
+    "max_hp": 174.0,
+    "phases": [
+     [
+      "bishop",
+      1,
+      0.0
+     ],
+     [
+      "immortal",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 2,
+    "squad": [
+     "wisadel",
+     "angelina",
+     "hoshiguma"
+    ],
+    "taken": 15.4,
+    "taken_pct": 0.089,
+    "win": true
+   },
+   {
+    "boss": "ishar",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 54432.0,
+    "boss_src_share": 0.0,
+    "brk_dmg_share": 0.296,
+    "brk_time_share": 0.187,
+    "bul_avg": 15.5,
+    "bul_peak": 103,
+    "dmg": 52928.0,
+    "fight_t": 30.0,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 0.8,
+    "leader": "wisadel",
+    "level": 29,
+    "max_hp": 165.0,
+    "phases": [
+     [
+      "ishar",
+      1,
+      0.0
+     ],
+     [
+      "ishar",
+      2,
+      4.2
+     ]
+    ],
+    "result": "win",
+    "slot": 3,
+    "squad": [
+     "wisadel",
+     "angelina",
+     "hoshiguma"
+    ],
+    "taken": 33.0,
+    "taken_pct": 0.189,
+    "win": true
+   }
+  ],
+  "timeout": false,
+  "snaps": [
+   "BENCHSNAP slot=1 t=210.0 group=carmen events=17 mobs=22",
+   "BENCHSNAP slot=2 t=420.0 group=bishop+immortal events=32 mobs=37",
+   "BENCHSNAP slot=3 t=600.0 group=ishar events=53 mobs=30"
+  ],
+  "script_errors": 0,
+  "first_error": "",
+  "run_t": 629,
+  "floor_hits": 0
+ },
+ {
+  "op": "wisadel",
+  "meta": 18,
+  "seed": 5,
+  "wall": 56.7,
+  "real": [
+   {
+    "boss": "carmen",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 20821.0,
+    "boss_src_share": 0.73,
+    "brk_dmg_share": 0.376,
+    "brk_time_share": 0.345,
+    "bul_avg": 7.6,
+    "bul_peak": 92,
+    "dmg": 20821.0,
+    "fight_t": 68.2,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 0.955,
+    "leader": "wisadel",
+    "level": 14,
+    "max_hp": 130.0,
+    "phases": [
+     [
+      "carmen",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 1,
+    "squad": [
+     "wisadel",
+     "saria",
+     "skadi"
+    ],
+    "taken": 311.9,
+    "taken_pct": 2.404,
+    "win": true
+   },
+   {
+    "boss": "bishop+immortal",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 45420.0,
+    "boss_src_share": 0.625,
+    "brk_dmg_share": 0.399,
+    "brk_time_share": 0.206,
+    "bul_avg": 17.4,
+    "bul_peak": 41,
+    "dmg": 45420.0,
+    "fight_t": 31.3,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "wisadel",
+    "level": 21,
+    "max_hp": 117.0,
+    "phases": [
+     [
+      "bishop",
+      1,
+      0.0
+     ],
+     [
+      "immortal",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 2,
+    "squad": [
+     "wisadel",
+     "saria",
+     "skadi"
+    ],
+    "taken": 110.9,
+    "taken_pct": 0.95,
+    "win": true
+   },
+   {
+    "boss": "paranoia",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 55944.0,
+    "boss_src_share": 0.942,
+    "brk_dmg_share": 0.347,
+    "brk_time_share": 0.207,
+    "bul_avg": 58.6,
+    "bul_peak": 243,
+    "dmg": 82238.0,
+    "fight_t": 91.1,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "wisadel",
+    "level": 28,
+    "max_hp": 105.0,
+    "phases": [
+     [
+      "paranoia",
+      1,
+      0.0
+     ],
+     [
+      "paranoia",
+      2,
+      40.9
+     ]
+    ],
+    "result": "win",
+    "slot": 3,
+    "squad": [
+     "wisadel",
+     "saria",
+     "skadi"
+    ],
+    "taken": 360.3,
+    "taken_pct": 3.428,
+    "win": true
+   }
+  ],
+  "timeout": false,
+  "snaps": [
+   "BENCHSNAP slot=1 t=210.0 group=carmen events=17 mobs=30",
+   "BENCHSNAP slot=2 t=420.0 group=bishop+immortal events=33 mobs=36",
+   "BENCHSNAP slot=3 t=600.0 group=paranoia events=50 mobs=36"
+  ],
+  "script_errors": 0,
+  "first_error": "",
+  "run_t": 691,
+  "floor_hits": 0
+ },
+ {
+  "op": "wisadel",
+  "meta": 18,
+  "seed": 6,
+  "wall": 58.6,
+  "real": [
+   {
+    "boss": "carmen",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 20821.0,
+    "boss_src_share": 0.862,
+    "brk_dmg_share": 0.235,
+    "brk_time_share": 0.229,
+    "bul_avg": 8.4,
+    "bul_peak": 92,
+    "dmg": 20821.0,
+    "fight_t": 69.0,
+    "hp0_frac": 0.756,
+    "hp_end_frac": 1.0,
+    "leader": "wisadel",
+    "level": 14,
+    "max_hp": 144.0,
+    "phases": [
+     [
+      "carmen",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 1,
+    "squad": [
+     "wisadel",
+     "hoshiguma",
+     "exusiai"
+    ],
+    "taken": 83.8,
+    "taken_pct": 0.581,
+    "win": true
+   },
+   {
+    "boss": "bishop+immortal",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 45420.0,
+    "boss_src_share": 0.0,
+    "brk_dmg_share": 0.418,
+    "brk_time_share": 0.189,
+    "bul_avg": 19.3,
+    "bul_peak": 52,
+    "dmg": 45420.0,
+    "fight_t": 34.2,
+    "hp0_frac": 0.974,
+    "hp_end_frac": 1.0,
+    "leader": "wisadel",
+    "level": 22,
+    "max_hp": 144.0,
+    "phases": [
+     [
+      "bishop",
+      1,
+      0.0
+     ],
+     [
+      "immortal",
+      1,
+      0.0
+     ]
+    ],
+    "result": "win",
+    "slot": 2,
+    "squad": [
+     "wisadel",
+     "hoshiguma",
+     "exusiai"
+    ],
+    "taken": 0.0,
+    "taken_pct": 0.0,
+    "win": true
+   },
+   {
+    "boss": "paranoia",
+    "boss_hp_left": 0.0,
+    "boss_maxhp": 55944.0,
+    "boss_src_share": 1.0,
+    "brk_dmg_share": 0.306,
+    "brk_time_share": 0.153,
+    "bul_avg": 51.9,
+    "bul_peak": 245,
+    "dmg": 80560.0,
+    "fight_t": 61.7,
+    "hp0_frac": 1.0,
+    "hp_end_frac": 1.0,
+    "leader": "wisadel",
+    "level": 28,
+    "max_hp": 174.0,
+    "phases": [
+     [
+      "paranoia",
+      1,
+      0.0
+     ],
+     [
+      "paranoia",
+      2,
+      28.8
+     ]
+    ],
+    "result": "win",
+    "slot": 3,
+    "squad": [
+     "wisadel",
+     "hoshiguma",
+     "exusiai"
+    ],
+    "taken": 150.6,
+    "taken_pct": 0.865,
+    "win": true
+   }
+  ],
+  "timeout": false,
+  "snaps": [
+   "BENCHSNAP slot=1 t=210.0 group=carmen events=15 mobs=33",
+   "BENCHSNAP slot=2 t=420.0 group=bishop+immortal events=32 mobs=28",
+   "BENCHSNAP slot=3 t=600.0 group=paranoia events=50 mobs=31"
+  ],
+  "script_errors": 0,
+  "first_error": "",
+  "run_t": 661,
+  "floor_hits": 0
+ }
+]
