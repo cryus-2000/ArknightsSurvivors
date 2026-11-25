@@ -3,7 +3,7 @@
 ## 队长碰到球 → 链断、雪祀冻僵 2.5 秒受伤 ×1.5（二幕两条链：挡一条 1.5 秒、两条 3 秒）；没挡住，跳到的小怪 10 秒移速 ×2（封顶 140，mech_foes）。
 ## 空洞雪祀：场上 2 棵族树，链的最后一跳附近有树就跳树，树腐化 20 秒、每 8 秒刷 3 只躯壳。
 ## 移动：ai ranged 保持 220–300；队长贴近 160 内「踏雪」跳开 120（冷却 4）。寒冷：命中 +30（cold_add，Boss 来源封顶 90）。
-## 招：一幕 A 寒链 ② / B 雪幕 ③ / C 霜陷 ① / D 冰环 ④；二幕加 E 寒灾（正反旋臂）/ F 踏雪折返 ②；空洞加 G 虚无道标 ①+②，冷却 ×0.9。
+## 招（docs/393 §11.3 + §12.4，11-26）：一幕 A 寒链·弹射 ② / B 风雪·斜飘 ③ / C 霜陷·冰晶 ① / D 冰柱寒链 ④；二幕加 E 寒灾（摆动雪带）/ F 踏雪·收屑 ②；空洞加 G 虚无道标（三角寒链），冷却 ×0.9；持续压力「风向」。画面占位。
 extends "res://scripts/enemies/bosses/sami/sami_boss.gd"
 
 
@@ -29,12 +29,23 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		if float(t.rot) > g.t and g.t >= float(t.next):
 			t.next = g.t + 8.0
 			summon(e, "husk", 3, 40.0, t.pos)
-	# 踏雪：队长贴近 160 内跳开 120
+	# 踏雪：队长贴近 160 内跳开 280；另外每 10 秒主动换位跳 ≥320，落地溅一圈雪粒 8 发（可见半径 12）（§12.4）
+	if not e.has("reloc_t"):
+		e.reloc_t = g.t + 10.0
 	if dist < 160.0 and float(e.get("hop_t", 0.0)) <= g.t and e.get("dash_t", 0.0) <= 0.0:
 		e.hop_t = g.t + 4.0
-		e.kb = -dir * sqrt(1800.0 * 120.0)
+		e.kb = -dir * sqrt(1800.0 * 280.0)
 		e.kb_self = true
 		e.dash_decel = 900.0
+	elif g.t >= float(e.reloc_t) and float(e.get("busy_t", 0.0)) <= g.t:
+		e.reloc_t = g.t + 10.0
+		var side: Vector2 = dir.orthogonal() * (1.0 if int(g.t) % 2 == 0 else -1.0)
+		e.kb = side * sqrt(1800.0 * 320.0)
+		e.kb_self = true
+		e.dash_decel = 900.0
+		later(e, 0.6, func(): ring(e, e.pos, 8, 150.0, 2, 0.06, [], 0.0, {"life": 1.5}))
+	_tick_wind(e, dt)
+	_tick_moves(e)
 	# 馈赠
 	if float(e.get("gift_cd", 0.0)) == 0.0:
 		e.gift_cd = g.t + 6.0
@@ -46,96 +57,238 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 
 
 func moves(e: Dictionary) -> Array:
-	var a: Array = [["寒链", 4.0, 0.0, 9999.0, _a_chain], ["雪幕", 7.0, 0.0, 520.0, _b_veil], ["霜陷", 8.0, 0.0, 9999.0, _c_trap], ["冰环", 8.0, 0.0, 520.0, _d_ring]]
+	var a: Array = [["冰柱寒链", 8.0, 0.0, 9999.0, _d_hex], ["霜陷·冰晶", 8.0, 0.0, 9999.0, _c_crystal], ["风雪·斜飘", 7.0, 0.0, 9999.0, _b_drift], ["寒链·弹射", 4.0, 0.0, 9999.0, _a_chain]]
 	if act_i(e) >= 1:
-		a = [["寒灾", 12.0, 0.0, 9999.0, _e_spiral], ["踏雪折返", 9.0, 0.0, 520.0, _f_hop]] + a
+		a = [["寒灾", 12.0, 0.0, 9999.0, _e_bands], ["踏雪·收屑", 9.0, 0.0, 9999.0, _f_hop]] + a
 		if _hol(e):
 			a.push_front(["虚无道标", 12.0, 0.0, 9999.0, _g_beacon])
 	return a
 
 
 func all_moves(e: Dictionary) -> Array:
-	var a: Array = [["寒链", 4.0, 0.0, 9999.0, _a_chain], ["雪幕", 7.0, 0.0, 9999.0, _b_veil], ["霜陷", 8.0, 0.0, 9999.0, _c_trap], ["冰环", 8.0, 0.0, 9999.0, _d_ring],
-		["寒灾", 12.0, 0.0, 9999.0, _e_spiral], ["踏雪折返", 9.0, 0.0, 9999.0, _f_hop]]
+	var a: Array = [["寒链·弹射", 4.0, 0.0, 9999.0, _a_chain], ["风雪·斜飘", 7.0, 0.0, 9999.0, _b_drift], ["霜陷·冰晶", 8.0, 0.0, 9999.0, _c_crystal], ["冰柱寒链", 8.0, 0.0, 9999.0, _d_hex],
+		["寒灾", 12.0, 0.0, 9999.0, _e_bands], ["踏雪·收屑", 9.0, 0.0, 9999.0, _f_hop]]
 	if _hol(e):
 		a.append(["虚无道标", 12.0, 0.0, 9999.0, _g_beacon])
 	return a
 
 
-## A 寒链：朝队长连射 3 根（空洞 4 根）针，间隔 0.6、每根重新瞄准，直线预警 0.7（半宽 10），伤害逐根 ×0.85
+## ---- 持续压力「风向」：每 12 秒换方向；雪祀自己的雪弹顺风偏 30 px/秒；队长逆风走 −10% 移速
+func _wind(e: Dictionary) -> Vector2:
+	if g.t >= float(e.get("wdir_t", 0.0)):
+		e.wdir_t = g.t + 12.0
+		e.wdir = Vector2.from_angle(float(int(g.t * 37.0) % 8) * PI / 4.0)
+	return e.get("wdir", Vector2.RIGHT)
+
+
+func _tick_wind(e: Dictionary, dt: float) -> void:
+	var w: Vector2 = _wind(e)
+	for b in g.ebullets:
+		if b.life > 0.0 and int(b.get("source_id", -1)) == int(e.id) and b.get("mc", false):
+			b.pos += w * 30.0 * dt
+	if g.pvel.length() > 20.0 and g.pvel.normalized().dot(w) < -0.5:
+		g.combat.slow_leader("shaman_wind", 0.2, 0.9)
+	# 冻地减速（霜陷·冰晶）
+	if e.has("icy"):
+		e.icy = e.icy.filter(func(x): return float(x[2]) > g.t)
+		for x in e.icy:
+			if g.ppos.distance_to(x[0]) < float(x[1]):
+				g.combat.slow_leader("shaman_icy", 0.3, 0.75)
+				break
+
+
+## A 寒链·弹射：3 根寒针（空洞 4 根），先打队长，命中后在 160（空洞 200）内的目标之间弹（最多 3 / 4 跳，每跳 ×0.85）；弹回队长时再打一次
 func _a_chain(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var n: int = 4 if _hol(e) else 3
 	for k in n:
-		var pct: float = 0.14 * pow(0.85, k)
-		later(e, 0.6 * k, func(): w_line(e, (g.ppos - e.pos).angle(), 420.0, 20.0, 0.7, pct, "寒链" if k == 0 else ""))
-	return 0.6 * n + 0.3
+		later(e, 0.5 * k, _needle.bind(e, k == 0))
+	return 0.5 * n + 0.4
 
 
-## B 雪幕：70° 扇形米弹 3 波，每波 9 发，间隔 0.3，弹速 210
-func _b_veil(e: Dictionary, dir: Vector2, _d: float) -> float:
+func _needle(e: Dictionary, first: bool) -> void:
+	var w := w_line(e, (g.ppos - e.pos).angle(), 560.0, 10.0, 0.7, 0.14, "寒链·弹射" if first else "", {"track": 0.2, "lock": first, "aim_extend": true})
+	w.cb = func(_ww): _bounce(e)
+
+
+func _bounce(e: Dictionary) -> void:
+	var hop: float = 200.0 if _hol(e) else 160.0
+	var hops: int = 4 if _hol(e) else 3
+	var pts: Array = []
+	for o in g.squad.ops:
+		if not o.is_leader and o.pos != Vector2.INF:
+			pts.append(o.pos)
+	var cur: Vector2 = g.ppos
+	var at_leader := true
+	var pct := 0.14
+	for i in hops:
+		var best = null
+		var cands: Array = pts.duplicate()
+		if not at_leader:
+			cands.append(g.ppos)
+		for p in cands:
+			var pv: Vector2 = p
+			if pv.distance_to(cur) < hop and pv.distance_to(cur) > 4.0 and (best == null or pv.distance_to(cur) < (best as Vector2).distance_to(cur)):
+				best = pv
+		if best == null:
+			return
+		pct *= 0.85
+		var to: Vector2 = best
+		var lw := w_line(e, (to - cur).angle(), cur.distance_to(to), 6.0, 0.6, 0.0, "", {"lock": false})
+		lw.pos = cur
+		at_leader = to.distance_to(g.ppos) < 4.0
+		if at_leader:
+			var hp: float = pct
+			later(e, 0.6, func(): hit_now(e, g.ppos, 1.0, hp))
+		cur = to
+
+
+## B 风雪·斜飘：前方 90°、r420 的扇区里原地生出一片雪片（可见半径 12），0.4 秒后整片顺风横飘（80 px/秒，0.8 秒）
+func _b_drift(e: Dictionary, dir: Vector2, _d: float) -> float:
 	var a: float = dir.angle()
-	for k in 3:
-		later(e, 0.8 + 0.3 * k, func(): fan(e, e.pos, a, deg_to_rad(35.0), 9, 210.0, 0, 0.12))
-	w_cone(e, a, deg_to_rad(35.0), 140.0, 0.8, 0.0, "雪幕")
+	w_cone(e, a, PI / 4.0, 420.0, 0.8, 0.0, "风雪·斜飘", {"track": 0.3})
+	later(e, 0.8, _drift_go.bind(e, a))
 	return 1.8
 
 
-## C 霜陷：在队长最近走过的 3 个点（空洞 4 个）依次落圈 r45（0.9 秒，间隔 0.6），落地各溅 6 发小圆弹
-func _c_trap(e: Dictionary, _dir: Vector2, _d: float) -> float:
-	var pts: Array = e.get("trail", [g.ppos]).duplicate()
-	pts.append(g.ppos)
-	var n: int = 4 if _hol(e) else 3
-	pts = pts.slice(maxi(0, pts.size() - n))
-	var k := 0
-	for p in pts:
-		var pp: Vector2 = p
-		later(e, 0.6 * k, func():
-			var w := w_circle(e, pp, 45.0, 0.9, 0.15, "霜陷" if k == 0 else "")
-			w.cb = func(_ww): ring(e, pp, 6, 150.0, 0, 0.06))
-		k += 1
-	return 0.6 * k + 0.5
+func _drift_go(e: Dictionary, a: float) -> void:
+	var w := _wind(e)
+	for ri in 4:
+		for ai in 5:
+			var p: Vector2 = e.pos + Vector2.from_angle(a + lerpf(-PI / 4.0, PI / 4.0, ai / 4.0)) * (120.0 + 90.0 * ri)
+			shot(e, p, w.angle(), 80.0, 2, 0.12, {"hold": 0.4, "life": 0.8})
 
 
-## D 冰环：20 发（空洞 24）中圆弹，2 个缺口，扩散 170，显形 0.9
-func _d_ring(e: Dictionary, _dir: Vector2, _d: float) -> float:
-	ring(e, e.pos, 24 if _hol(e) else 20, 170.0, 1, 0.12, gaps_at(e.pos), 0.0, {"hold": 0.9})
+## C 霜陷·冰晶：队长脚下落圈（r45，0.9 / 0.64），落地长出六角冰晶（6 根冰枝长 70、宽 16），地面冻 2 秒（减速）
+func _c_crystal(e: Dictionary, _dir: Vector2, _d: float) -> float:
+	var w := w_circle(e, g.ppos, 45.0, 0.9, 0.15, "霜陷·冰晶", {"track_pos": "leader", "track": 0.26})
+	w.cb = func(ww): _crystal_grow(e, ww.pos)
 	return 1.2
 
 
-## E 寒灾：两条旋臂小圆弹，正反各一，持续 3 秒，弹速 160
-func _e_spiral(e: Dictionary, _dir: Vector2, _d: float) -> float:
-	var a0: float = (g.ppos - e.pos).angle()
-	for k in 15:
-		later(e, 0.6 + 0.2 * k, func():
-			shot(e, e.pos, a0 + 0.35 * k, 160.0, 0, 0.10)
-			shot(e, e.pos, a0 + PI - 0.35 * k, 160.0, 0, 0.10))
-	return 3.8
+func _crystal_grow(e: Dictionary, p: Vector2) -> void:
+	for i in 6:
+		var lw := w_line(e, TAU * i / 6.0, 70.0, 8.0, 0.6, 0.06, "", {"lock": false})
+		lw.pos = p
+	if not e.has("icy"):
+		e["icy"] = []
+	e.icy.append([p, 80.0, g.t + 2.0])
 
 
-## F 踏雪折返：沿穿过队长身边的直线跳 260（半宽 30），沿路留 6 枚冰屑，0.6 秒后各炸成 3 发小圆弹
+## D 冰柱寒链：身边 6 根冰柱 + 柱间寒链组成六边形向外扩（170 px/秒，到 660）；2 段链断开 = 出口（提前 0.9 秒标出）
+func _d_hex(e: Dictionary, _dir: Vector2, _d: float) -> float:
+	var a0: float = float(int(g.t * 13.0) % 6) * PI / 3.0
+	var la: float = (g.ppos - e.pos).angle()
+	var k_lead: int = posmod(roundi((la - a0 - PI / 6.0) / (PI / 3.0)), 6)
+	var broken: Array = [(k_lead + 2) % 6, (k_lead + 4) % 6]
+	var first := true
+	for k in broken:
+		var w := w_line(e, a0 + PI / 3.0 * k + PI / 6.0, 660.0, 40.0, 0.9, 0.0, "冰柱寒链" if first else "", {"lock": first})
+		w.pos = e.pos
+		first = false
+	e["hex"] = {"c": e.pos, "a0": a0, "broken": broken, "t0": g.t + 0.9, "hit": false}
+	return 1.4
+
+
+## E 寒灾：上风处刮进 3 道正弦摆动的雪带（宽 90、摆幅 40、90 px/秒），每道留 1 个缺口；扫到 10% 并被风推开 30
+func _e_bands(e: Dictionary, _dir: Vector2, _d: float) -> float:
+	var w := _wind(e)
+	var c: Vector2 = g.ppos
+	var bands: Array = []
+	for k in 3:
+		bands.append({"s0": -520.0 - 160.0 * k, "gap": float((int(g.t * 7.0) + k * 3) % 5 - 2) * 140.0, "hit": false})
+	e["bands"] = {"c": c, "w": w, "t0": g.t + 1.0, "list": bands}
+	var nrm: Vector2 = w.orthogonal()
+	var first := true
+	for b in bands:
+		var gp: Vector2 = c + nrm * float(b.gap)
+		var lw := w_line(e, w.angle(), 700.0, 45.0, 1.0, 0.0, "寒灾" if first else "", {"lock": first})
+		lw.pos = gp - w * 520.0
+		first = false
+	return 1.4
+
+
+## F 踏雪·收屑：沿一条直线跳 420（半宽 30，0.8 / 0.6），留 6 个冰脚印；0.6 秒后脚印碎成冰屑全部飞回落点（200 px/秒）
 func _f_hop(e: Dictionary, dir: Vector2, _d: float) -> float:
 	var a: float = dir.rotated(0.25).angle()
 	var from: Vector2 = e.pos
-	var w := w_stab(e, a, 260.0, 60.0, 0.8, 0.16, "踏雪折返")
-	w.cb = func(ww):
-		for k in 6:
-			shot(e, from + Vector2.from_angle(float(ww.ang)) * (40.0 * k + 20.0), float(ww.ang) + PI * 0.5, 1.0, 0, 0.08,
-				{"split": {"t": 0.6, "n": 3, "spread": 0.5, "spd": 150.0, "tier": 0}})
-	return 1.5
+	var w := w_stab(e, a, 420.0, 30.0, 0.8, 0.16, "踏雪·收屑", {"fit_len": true})
+	w.cb = func(ww): _shards(e, from, float(ww.ang))
+	return 1.6
 
 
-## G 虚无道标（空洞）：雪祀到队长连线上依次立 3 个道标圈（r45，1.0 秒，间隔 0.4），立完沿连线射 12 发针弹列
+func _shards(e: Dictionary, from: Vector2, a: float) -> void:
+	var land: Vector2 = from + Vector2.from_angle(a) * 420.0
+	for k in 6:
+		var p: Vector2 = from + Vector2.from_angle(a) * (60.0 * k + 30.0)
+		later(e, 0.6, func(): shot(e, p, (land - p).angle(), 200.0, 2, 0.08, {"life": p.distance_to(land) / 200.0}))
+
+
+## G 虚无道标（空洞）：从光环上抛出 3 个道标，落在离雪祀约 350 的三角上（边长约 600），道标间寒链 2 秒（宽 16）；三角里面安全
 func _g_beacon(e: Dictionary, _dir: Vector2, _d: float) -> float:
-	var tgt: Vector2 = g.ppos
-	var from: Vector2 = e.pos
+	var a0: float = (g.ppos - e.pos).angle() + PI / 3.0
+	var pts: Array = []
 	for k in 3:
-		var p: Vector2 = from.lerp(tgt, (k + 1) / 3.0)
-		later(e, 0.4 * k, func(): w_circle(e, p, 45.0, 1.0, 0.14, "虚无道标" if k == 0 else ""))
-	later(e, 1.4, func():
-		w_line(e, (tgt - from).angle(), from.distance_to(tgt) + 200.0, 40.0, 0.8, 0.0, "")
-		for k in 12:
-			later(e, 0.8 + 0.06 * k, func(): shot(e, from, (tgt - from).angle(), 320.0, 0, 0.10)))
-	return 3.0
+		pts.append(g.combat.arena_clamp(e.pos + Vector2.from_angle(a0 + TAU * k / 3.0) * 350.0, 40.0))
+	var first := true
+	for k in 3:
+		var a: Vector2 = pts[k]
+		var b: Vector2 = pts[(k + 1) % 3]
+		var w := w_line(e, (b - a).angle(), a.distance_to(b), 8.0, 1.0, 0.14, "虚无道标" if first else "", {"lock": first})
+		w.pos = a
+		first = false
+	e["beacon"] = {"pts": pts, "t0": g.t + 1.0, "t1": g.t + 3.0, "hit_t": 0.0}
+	return 1.6
+
+
+func _tick_moves(e: Dictionary) -> void:
+	var hx = e.get("hex")
+	if hx is Dictionary and g.t >= float(hx.t0):
+		var r: float = (g.t - float(hx.t0)) * 170.0
+		hx["r"] = r
+		if r > 660.0:
+			e.erase("hex")
+		elif not hx.hit:
+			var dv: Vector2 = g.ppos - hx.c
+			if absf(dv.length() - r) < 14.0:
+				var side: int = posmod(floori((dv.angle() - float(hx.a0)) / (PI / 3.0)), 6)
+				if not (side in hx.broken):
+					hx.hit = true
+					hit_now(e, g.ppos, 1.0, 0.12, {"chill": 0.5})
+	var bd = e.get("bands")
+	if bd is Dictionary and g.t >= float(bd.t0):
+		var el: float = g.t - float(bd.t0)
+		var w: Vector2 = bd.w
+		var nrm: Vector2 = w.orthogonal()
+		var rel: Vector2 = g.ppos - bd.c
+		var along: float = rel.dot(w)
+		var lat: float = rel.dot(nrm)
+		var alive := false
+		for b in bd.list:
+			var s: float = float(b.s0) + el * 90.0
+			if s < 700.0:
+				alive = true
+			b["s"] = s
+			if b.hit:
+				continue
+			var off: float = 40.0 * sin(lat / 80.0 + el * 2.0)
+			if absf(along - (s + off)) < 45.0 and absf(lat - float(b.gap)) > 70.0:
+				b.hit = true
+				hit_now(e, g.ppos, 1.0, 0.10)
+				g.ppos += w * 30.0
+		if not alive:
+			e.erase("bands")
+	var bc = e.get("beacon")
+	if bc is Dictionary and g.t >= float(bc.t0):
+		if g.t > float(bc.t1):
+			e.erase("beacon")
+		elif g.t >= float(bc.hit_t):
+			for k in 3:
+				var a: Vector2 = bc.pts[k]
+				var b2: Vector2 = bc.pts[(k + 1) % 3]
+				if Geometry2D.get_closest_point_to_segment(g.ppos, a, b2).distance_to(g.ppos) < 18.0:
+					bc.hit_t = g.t + 1.0
+					hit_now(e, g.ppos, 1.0, 0.14)
+					break
 
 
 ## ---- 馈赠：链路 = 雪祀 → 最近的小怪（每跳 ≤ hop），球沿链跳；二幕两条（左右各一）
