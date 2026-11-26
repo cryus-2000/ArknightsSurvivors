@@ -19,7 +19,7 @@ func _old(e: Dictionary) -> bool:
 
 func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mate) -> void:
 	tick(e, dt)
-	e.cd_k = 0.9 if _old(e) else 1.0
+	e.cd_k = (0.9 if _old(e) else 1.0) * Bal.v("boss/cd_x_" + str(e.type), 1.0)   # 11-26 中期加强：出招间隔倍率
 	var c: Vector2 = center(e)
 	if not _old(e):
 		if not e.has("vents"):

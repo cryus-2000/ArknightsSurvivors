@@ -43,7 +43,7 @@ func _sunk(e: Dictionary) -> bool:
 
 func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mate) -> void:
 	tick(e, dt)
-	e.cd_k = 0.9 if _wand(e) else 1.0
+	e.cd_k = (0.9 if _wand(e) else 1.0) * Bal.v("boss/cd_x_" + str(e.type), 1.0)   # 11-26 中期加强：出招间隔倍率
 	var km = kingdoms()
 	if km != null and g.t >= float(e.get("lay_t", 0.0)) and not _sunk(e):
 		e.lay_t = g.t + 4.0
@@ -145,7 +145,7 @@ func _shards(e: Dictionary) -> void:
 		e.sh_t = g.t + 2.0
 	if g.t < float(e.sh_t):
 		return
-	e.sh_t = g.t + (1.2 if act_i(e) >= 1 else 1.6)
+	e.sh_t = g.t + (1.2 if act_i(e) >= 1 else 1.6) * float(e.get("cd_k", 1.0))
 	e.sh_n = int(e.get("sh_n", 0)) + 1
 	var x := 2 if _wand(e) else 0
 	if int(e.sh_n) % 2 == 1:

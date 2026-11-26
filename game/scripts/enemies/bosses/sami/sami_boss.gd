@@ -16,8 +16,12 @@ func base_dmg(e: Dictionary) -> float:
 
 
 ## 占队长最大生命 pct 的一下（再乘回荡段 / 决胜等脚本自己的倍率 e.dmg_k）
+## 11-26 中期 Boss 加强（只六只中期 Boss 有键，结局 Boss 不读）：boss/pat_x_<种类> 只乘招式与弹幕（接触伤害不变）；
+## boss/hit_cap_<种类> >0 时单下封顶到队长最大生命的这个比例（减伤前），抬高倍率后大招不越过单发上限 40%（docs/359 §2.6）
 func pd(e: Dictionary, pct: float) -> float:
-	return e.dmg * pct * 100.0 / base_dmg(e) * float(e.get("dmg_k", 1.0)) * Bal.v("boss/sami_dmg_k", 1.0)
+	var v: float = e.dmg * pct * 100.0 / base_dmg(e) * float(e.get("dmg_k", 1.0)) * Bal.v("boss/sami_dmg_k", 1.0) * Bal.v("boss/pat_x_" + str(e.type), 1.0)
+	var cap: float = Bal.v("boss/hit_cap_" + str(e.type), 0.0)
+	return minf(v, cap * g.max_hp) if cap > 0.0 else v
 
 
 func col(e: Dictionary) -> Color:
@@ -31,7 +35,9 @@ func act_i(e: Dictionary) -> int:
 ## ---- 弹幕（mid_cards 通用弹体：tier 0 小 / 1 中 / 2 大；o 同 MC.shot：hold 显形秒、acc、turn、split、life）
 func shot(e: Dictionary, pos: Vector2, ang: float, spd: float, tier: int, pct: float, o := {}) -> void:
 	var o2: Dictionary = o.duplicate()
-	o2["mult"] = pd(e, pct) / maxf(0.01, e.dmg) / maxf(0.01, Bal.v("boss/mid_pattern_dmg", 0.7) * Bal.v("enemy/bullet_dmg_mult", 0.75))
+	var bc: float = Bal.v("boss/bul_cap_" + str(e.type), 0.0)   # 11-26：弹体单发另封顶（比招式低，免得几发小弹叠成秒杀）
+	var dv: float = minf(pd(e, pct), bc * g.max_hp) if bc > 0.0 else pd(e, pct)
+	o2["mult"] = dv / maxf(0.01, e.dmg) / maxf(0.01, Bal.v("boss/mid_pattern_dmg", 0.7) * Bal.v("enemy/bullet_dmg_mult", 0.75))
 	MC.shot(g, e, pos, ang, spd, tier, o2)
 
 

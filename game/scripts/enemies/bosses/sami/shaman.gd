@@ -21,7 +21,7 @@ func _wind(e: Dictionary) -> Vector2:
 
 func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mate) -> void:
 	tick(e, dt)
-	e.cd_k = 0.9 if _hol(e) else 1.0
+	e.cd_k = (0.9 if _hol(e) else 1.0) * Bal.v("boss/cd_x_" + str(e.type), 1.0)   # 11-26 中期加强：出招间隔倍率
 	# 风向：每 12 秒换（先朝队长那边偏一点，免得一直从同一侧来）
 	if g.t >= float(e.get("wind_t", 0.0)):
 		e.wind_t = g.t + 12.0
