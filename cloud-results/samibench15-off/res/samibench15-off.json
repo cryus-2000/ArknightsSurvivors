@@ -1,0 +1,2546 @@
+{
+ "tag": "samibench15-off",
+ "game": "/home/user/ArknightsSurvivors/game",
+ "records": [
+  {
+   "boss": "will",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 1,
+   "wall": 13.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.998,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 16.1,
+   "bul_peak": 31,
+   "dmg": 193.0,
+   "fight_t": 4.9,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_4|\",\"2|1.03|totem_perm_5|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.525|lshape:skadi|op:skadi\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 138.077 -> 126.36"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "kaltsit",
+   "level": 25,
+   "max_hp": 126.0,
+   "moves": {
+    "will:冰凌林": 1,
+    "will:冰凌连落": 1
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "kaltsit_m0_s1_slot3",
+   "squad": [
+    "kaltsit",
+    "skadi",
+    "logos"
+   ],
+   "src": {
+    "contact_breaker": 0.190272414472703,
+    "contact_hound": 1.04108965789081
+   },
+   "taken": 155.6,
+   "taken_pct": 1.231,
+   "win": false
+  },
+  {
+   "boss": "will",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 2,
+   "wall": 27.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.291,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.779,
+   "brk_time_share": 0.134,
+   "bul_avg": 63.5,
+   "bul_peak": 109,
+   "dmg": 71779.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:eyjafjalla|op:eyjafjalla\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 25,
+   "max_hp": 133.0,
+   "moves": {
+    "will:冰凌": 5,
+    "will:冰凌交叉": 4,
+    "will:冰凌双列": 5,
+    "will:冰凌斜落": 5,
+    "will:冰凌林": 6,
+    "will:冰凌连落": 5,
+    "will:冰峰": 4,
+    "will:冰河": 4,
+    "will:冻原": 5,
+    "will:暴风雪": 5,
+    "will:群山回响": 8,
+    "will:自然涌动": 5,
+    "will:银凇塌落": 1,
+    "will:雪浪": 5,
+    "will:雪震": 5,
+    "will:鹿角": 5
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "kaltsit_m0_s2_slot3",
+   "squad": [
+    "kaltsit",
+    "eyjafjalla",
+    "wisadel"
+   ],
+   "src": {
+    "boss_will": 1.04624338624339,
+    "bullet": 0.084065934065934
+   },
+   "taken": 150.0,
+   "taken_pct": 1.13,
+   "win": false
+  },
+  {
+   "boss": "will",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 3,
+   "wall": 26.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 0.191,
+   "brk_dmg_share": 0.834,
+   "brk_time_share": 0.228,
+   "bul_avg": 69.2,
+   "bul_peak": 116,
+   "dmg": 98185.0,
+   "fight_t": 141.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:gladiia|op:gladiia\",\"1|0.42|lshape:skalter|op:skalter\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.63|lshape:kaltsit|op:kaltsit\",\"1|0.875|lshape:gladiia|op:gladiia\",\"1|0.875|lshape:skalter|op:skalter\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.6|sami_chaos|\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 140.0,
+   "moves": {
+    "will:冰凌": 5,
+    "will:冰凌交叉": 3,
+    "will:冰凌双列": 2,
+    "will:冰凌斜落": 2,
+    "will:冰凌林": 5,
+    "will:冰凌连落": 4,
+    "will:冰峰": 3,
+    "will:冰河": 3,
+    "will:冻原": 2,
+    "will:叹息": 1,
+    "will:寒息": 1,
+    "will:崩落": 2,
+    "will:暴风雪": 3,
+    "will:群山回响": 6,
+    "will:自然涌动": 2,
+    "will:银凇塌落": 2,
+    "will:雪浪": 4,
+    "will:雪震": 4,
+    "will:鹿角": 3
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s3_slot3",
+   "squad": [
+    "kaltsit",
+    "skalter",
+    "gladiia"
+   ],
+   "src": {
+    "boss_will": 0.167159978632479,
+    "bullet": 0.146500961538462,
+    "contact_hound": 0.767087204660944,
+    "contact_rockback": 0.13321076063261,
+    "contact_uterer": 0.089045537204001,
+    "shock_breaker": 0.337545315927809
+   },
+   "taken": 230.3,
+   "taken_pct": 1.641,
+   "win": true
+  },
+  {
+   "boss": "will",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 4,
+   "wall": 26.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.366,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 0.04,
+   "brk_dmg_share": 0.754,
+   "brk_time_share": 0.179,
+   "bul_avg": 69.2,
+   "bul_peak": 114,
+   "dmg": 64134.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_10|\",\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\",\"2|1.03|totem_perm_8|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:lumen|op:lumen\",\"1|0.525|lshape:specter_unchained|op:specter_unchained\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.6|sami_chaos|\"] 多 []",
+    "stats.max_hp: 142.219 -> 126.36"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 25,
+   "max_hp": 126.0,
+   "moves": {
+    "will:冰凌": 8,
+    "will:冰凌双列": 6,
+    "will:冰凌斜落": 7,
+    "will:冰凌林": 9,
+    "will:冰凌连落": 9,
+    "will:冻原": 7,
+    "will:自然涌动": 6,
+    "will:银凇塌落": 1,
+    "will:雪浪": 8,
+    "will:雪震": 9,
+    "will:鹿角": 7
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "kaltsit_m0_s4_slot3",
+   "squad": [
+    "kaltsit",
+    "specter_unchained",
+    "lumen"
+   ],
+   "src": {
+    "boss_will": 0.110403618233618,
+    "bullet": 0.0172384615384615,
+    "contact_breaker": 1.58258823029833,
+    "contact_drone": 0.0822791013252843,
+    "contact_hound": 0.906861111206068,
+    "shock_breaker": 0.491513354772073
+   },
+   "taken": 403.2,
+   "taken_pct": 3.191,
+   "win": false
+  },
+  {
+   "boss": "will",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 5,
+   "wall": 28.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 126527.0,
+   "boss_src_share": 0.445,
+   "brk_dmg_share": 0.624,
+   "brk_time_share": 0.136,
+   "bul_avg": 91.6,
+   "bul_peak": 150,
+   "dmg": 122730.0,
+   "fight_t": 163.4,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.63|lshape:kaltsit|op:kaltsit\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.6|sami_chaos|\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 140.0,
+   "moves": {
+    "will:冰凌": 5,
+    "will:冰凌交叉": 3,
+    "will:冰凌双列": 5,
+    "will:冰凌斜落": 5,
+    "will:冰凌林": 6,
+    "will:冰凌连落": 5,
+    "will:冰峰": 3,
+    "will:冰河": 3,
+    "will:冻原": 5,
+    "will:叹息": 1,
+    "will:崩落": 1,
+    "will:暴风雪": 3,
+    "will:群山回响": 6,
+    "will:自然涌动": 5,
+    "will:银凇塌落": 2,
+    "will:雪浪": 5,
+    "will:雪震": 5,
+    "will:鹿角": 5
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s5_slot3",
+   "squad": [
+    "kaltsit",
+    "logos",
+    "suzuran"
+   ],
+   "src": {
+    "boss_will": 0.749317094017094,
+    "bullet": 0.114230769230769,
+    "contact_hound": 1.07914414078535
+   },
+   "taken": 272.8,
+   "taken_pct": 1.943,
+   "win": true
+  },
+  {
+   "boss": "will",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 6,
+   "wall": 29.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.552,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.794,
+   "brk_time_share": 0.179,
+   "bul_avg": 71.7,
+   "bul_peak": 118,
+   "dmg": 45347.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:angelina|op:angelina\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\",\"2|1.03|totem_perm_3|\",\"2|1.03|totem_perm_4|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:texas|op:texas\",\"1|0.63|lshape:kaltsit|op:kaltsit\",\"1|0.875|lshape:angelina|op:angelina\"] 多 []",
+    "stats.max_hp: 172.557 -> 154.429",
+    "stats.speed: 204.93 -> 165.0"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 25,
+   "max_hp": 163.0,
+   "moves": {
+    "will:冰凌": 11,
+    "will:冰凌双列": 3,
+    "will:冰凌斜落": 3,
+    "will:冰凌林": 12,
+    "will:冰凌连落": 12,
+    "will:冻原": 3,
+    "will:自然涌动": 3,
+    "will:银凇塌落": 1,
+    "will:雪浪": 11,
+    "will:雪震": 12,
+    "will:鹿角": 3
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "kaltsit_m0_s6_slot3",
+   "squad": [
+    "kaltsit",
+    "angelina",
+    "texas"
+   ],
+   "src": {},
+   "taken": 0.0,
+   "taken_pct": 0.0,
+   "win": false
+  },
+  {
+   "boss": "will",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 1,
+   "wall": 28.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.5,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 0.1,
+   "brk_dmg_share": 0.506,
+   "brk_time_share": 0.045,
+   "bul_avg": 62.8,
+   "bul_peak": 102,
+   "dmg": 50659.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:eyjafjalla|op:eyjafjalla\",\"1|0.525|lshape:irene|op:irene\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 131.192 -> 127.371"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 131.0,
+   "moves": {
+    "will:冰凌": 8,
+    "will:冰凌双列": 9,
+    "will:冰凌斜落": 10,
+    "will:冰凌林": 9,
+    "will:冰凌连落": 8,
+    "will:冻原": 10,
+    "will:自然涌动": 8,
+    "will:雪浪": 8,
+    "will:雪震": 8,
+    "will:鹿角": 10
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "kaltsit_m18_s1_slot3",
+   "squad": [
+    "kaltsit",
+    "eyjafjalla",
+    "irene"
+   ],
+   "src": {
+    "boss_will": 0.0284019392815689,
+    "bullet": 0.121565934065934,
+    "contact_breaker": 0.281965810703012,
+    "contact_rockback": 0.492926292386205,
+    "contact_uterer": 0.132424203433914,
+    "shock_rockback": 0.446215588709427
+   },
+   "taken": 191.5,
+   "taken_pct": 1.503,
+   "win": false
+  },
+  {
+   "boss": "will",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 2,
+   "wall": 14.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.998,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 17.3,
+   "bul_peak": 33,
+   "dmg": 238.0,
+   "fight_t": 5.3,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:texas\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:irene|op:irene\",\"1|0.525|lshape:texas|op:texas\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:texas\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "kaltsit",
+   "level": 24,
+   "max_hp": 164.0,
+   "moves": {
+    "will:冰凌林": 1,
+    "will:冰凌连落": 1
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "kaltsit_m18_s2_slot3",
+   "squad": [
+    "kaltsit",
+    "irene",
+    "texas"
+   ],
+   "src": {
+    "contact_hound": 1.23488843818703,
+    "contact_husk": 0.117927910810995
+   },
+   "taken": 221.2,
+   "taken_pct": 1.353,
+   "win": false
+  },
+  {
+   "boss": "will",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 3,
+   "wall": 18.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 0.642,
+   "brk_dmg_share": 0.737,
+   "brk_time_share": 0.191,
+   "bul_avg": 60.7,
+   "bul_peak": 117,
+   "dmg": 98185.0,
+   "fight_t": 76.2,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_4|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:hoshiguma|op:hoshiguma\",\"1|0.525|lshape:ulpianus|op:ulpianus\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 224.149 -> 217.62"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 27,
+   "max_hp": 218.0,
+   "moves": {
+    "will:冰凌": 1,
+    "will:冰凌交叉": 3,
+    "will:冰凌林": 2,
+    "will:冰凌连落": 2,
+    "will:冰峰": 3,
+    "will:冰河": 3,
+    "will:叹息": 1,
+    "will:崩落": 1,
+    "will:暴风雪": 3,
+    "will:群山回响": 6,
+    "will:自然涌动": 1,
+    "will:银凇塌落": 1,
+    "will:雪浪": 1,
+    "will:雪震": 1,
+    "will:鹿角": 1
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s3_slot3",
+   "squad": [
+    "kaltsit",
+    "hoshiguma",
+    "ulpianus"
+   ],
+   "src": {
+    "boss_will": 0.144057070202371,
+    "contact_breaker": 0.0804965299932131
+   },
+   "taken": 48.9,
+   "taken_pct": 0.225,
+   "win": true
+  },
+  {
+   "boss": "will",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 4,
+   "wall": 28.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.306,
+   "boss_maxhp": 126527.0,
+   "boss_src_share": 0.164,
+   "brk_dmg_share": 0.796,
+   "brk_time_share": 0.155,
+   "bul_avg": 67.9,
+   "bul_peak": 107,
+   "dmg": 87752.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:irene|op:irene\",\"1|0.525|lshape:specter_unchained|op:specter_unchained\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.8|sami_chaos|\"] 多 []",
+    "stats.max_hp: 170.25 -> 160.477"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 160.0,
+   "moves": {
+    "will:冰凌": 10,
+    "will:冰凌双列": 5,
+    "will:冰凌斜落": 5,
+    "will:冰凌林": 11,
+    "will:冰凌连落": 10,
+    "will:冻原": 5,
+    "will:自然涌动": 5,
+    "will:银凇塌落": 2,
+    "will:雪浪": 10,
+    "will:雪震": 10,
+    "will:鹿角": 6
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "kaltsit_m18_s4_slot3",
+   "squad": [
+    "kaltsit",
+    "specter_unchained",
+    "irene"
+   ],
+   "src": {
+    "boss_will": 0.048764871271433,
+    "bullet": 0.0613264688067838,
+    "contact_hound": 0.301878216836034,
+    "shock_rockback": 0.260379020593825
+   },
+   "taken": 107.9,
+   "taken_pct": 0.672,
+   "win": false
+  },
+  {
+   "boss": "will",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 5,
+   "wall": 24.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.75,
+   "brk_time_share": 0.121,
+   "bul_avg": 64.3,
+   "bul_peak": 113,
+   "dmg": 101221.0,
+   "fight_t": 133.3,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:skalter|op:skalter\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.63|lshape:kaltsit|op:kaltsit\",\"1|0.875|lshape:skalter|op:skalter\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 27,
+   "max_hp": 205.0,
+   "moves": {
+    "will:冰凌": 9,
+    "will:冰凌交叉": 4,
+    "will:冰凌双列": 1,
+    "will:冰凌斜落": 1,
+    "will:冰凌林": 2,
+    "will:冰凌连落": 2,
+    "will:冰峰": 4,
+    "will:冰河": 4,
+    "will:冻原": 1,
+    "will:叹息": 1,
+    "will:寒息": 3,
+    "will:崩落": 4,
+    "will:暴风雪": 5,
+    "will:群山回响": 8,
+    "will:自然涌动": 1,
+    "will:银凇塌落": 1,
+    "will:雪浪": 2,
+    "will:雪震": 2,
+    "will:鹿角": 2
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s5_slot3",
+   "squad": [
+    "kaltsit",
+    "wisadel",
+    "skalter"
+   ],
+   "src": {
+    "boss_will": 0.612262257746826,
+    "bullet": 0.00758333333333333
+   },
+   "taken": 126.9,
+   "taken_pct": 0.62,
+   "win": true
+  },
+  {
+   "boss": "will",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 6,
+   "wall": 22.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 0.26,
+   "brk_dmg_share": 0.79,
+   "brk_time_share": 0.235,
+   "bul_avg": 68.4,
+   "bul_peak": 117,
+   "dmg": 101221.0,
+   "fight_t": 102.8,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:exusiai|op:exusiai\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:exusiai|op:exusiai\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.8|sami_chaos|\"] 多 []",
+    "stats.max_hp: 214.698 -> 204.096"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 215.0,
+   "moves": {
+    "will:冰凌": 9,
+    "will:冰凌双列": 4,
+    "will:冰凌斜落": 4,
+    "will:冰凌林": 1,
+    "will:冰凌连落": 1,
+    "will:冻原": 4,
+    "will:叹息": 1,
+    "will:寒息": 4,
+    "will:崩落": 5,
+    "will:暴风雪": 1,
+    "will:自然涌动": 4,
+    "will:银凇塌落": 2,
+    "will:鹿角": 5
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s6_slot3",
+   "squad": [
+    "kaltsit",
+    "wisadel",
+    "exusiai"
+   ],
+   "src": {
+    "boss_will": 0.123706491063029,
+    "contact_hound": 0.35193471150004
+   },
+   "taken": 97.1,
+   "taken_pct": 0.476,
+   "win": true
+  },
+  {
+   "boss": "will",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 1,
+   "wall": 26.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.227,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 0.481,
+   "brk_dmg_share": 0.724,
+   "brk_time_share": 0.089,
+   "bul_avg": 65.9,
+   "bul_peak": 115,
+   "dmg": 78264.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:skadi|op:skadi\",\"1|0.63|lshape:kaltsit|op:kaltsit\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.max_hp: 211.789 -> 199.631"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 206.0,
+   "moves": {
+    "will:冰凌": 8,
+    "will:冰凌交叉": 4,
+    "will:冰凌双列": 2,
+    "will:冰凌斜落": 2,
+    "will:冰凌林": 9,
+    "will:冰凌连落": 9,
+    "will:冰峰": 4,
+    "will:冰河": 4,
+    "will:冻原": 2,
+    "will:暴风雪": 4,
+    "will:群山回响": 7,
+    "will:自然涌动": 2,
+    "will:银凇塌落": 1,
+    "will:雪浪": 8,
+    "will:雪震": 8,
+    "will:鹿角": 3
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m0_s1_slot3",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "suzuran"
+   ],
+   "src": {
+    "boss_will": 0.59514008954009,
+    "bullet": 0.0947259509721048,
+    "contact_rockback": 0.745038567721223
+   },
+   "taken": 286.5,
+   "taken_pct": 1.435,
+   "win": false
+  },
+  {
+   "boss": "will",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 2,
+   "wall": 19.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.913,
+   "brk_time_share": 0.24,
+   "bul_avg": 64.0,
+   "bul_peak": 114,
+   "dmg": 98185.0,
+   "fight_t": 100.5,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.28|lshape:eyjafjalla|op:eyjafjalla\",\"1|0.525|lshape:hoshiguma|op:hoshiguma\",\"1|0.525|lshape:skadi|op:skadi\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 27,
+   "max_hp": 152.0,
+   "moves": {
+    "will:冰凌": 1,
+    "will:冰凌交叉": 3,
+    "will:冰凌双列": 2,
+    "will:冰凌斜落": 2,
+    "will:冰凌林": 2,
+    "will:冰凌连落": 1,
+    "will:冰峰": 3,
+    "will:冰河": 3,
+    "will:冻原": 2,
+    "will:叹息": 1,
+    "will:崩落": 2,
+    "will:暴风雪": 3,
+    "will:群山回响": 6,
+    "will:自然涌动": 2,
+    "will:银凇塌落": 2,
+    "will:雪浪": 1,
+    "will:雪震": 1,
+    "will:鹿角": 3
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m0_s2_slot3",
+   "squad": [
+    "skadi",
+    "eyjafjalla",
+    "hoshiguma"
+   ],
+   "src": {},
+   "taken": 0.0,
+   "taken_pct": 0.0,
+   "win": true
+  },
+  {
+   "boss": "will",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 3,
+   "wall": 25.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.434,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 0.331,
+   "brk_dmg_share": 0.906,
+   "brk_time_share": 0.134,
+   "bul_avg": 66.2,
+   "bul_peak": 109,
+   "dmg": 57341.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:mizuki|op:mizuki\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:hoshiguma|op:hoshiguma\",\"1|0.525|lshape:skadi|op:skadi\",\"1|0.63|lshape:mizuki|op:mizuki\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 152.0,
+   "moves": {
+    "will:冰凌": 7,
+    "will:冰凌双列": 7,
+    "will:冰凌斜落": 7,
+    "will:冰凌林": 7,
+    "will:冰凌连落": 7,
+    "will:冻原": 7,
+    "will:自然涌动": 7,
+    "will:银凇塌落": 1,
+    "will:雪浪": 7,
+    "will:雪震": 7,
+    "will:鹿角": 8
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m0_s3_slot3",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "mizuki"
+   ],
+   "src": {
+    "boss_will": 0.0576342553583169,
+    "bullet": 0.208452781065089,
+    "contact_breaker": 0.537202669049433
+   },
+   "taken": 122.2,
+   "taken_pct": 0.803,
+   "win": false
+  },
+  {
+   "boss": "will",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 4,
+   "wall": 26.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.251,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.9,
+   "brk_time_share": 0.134,
+   "bul_avg": 62.4,
+   "bul_peak": 111,
+   "dmg": 75853.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:saria|op:saria\",\"1|0.525|lshape:skadi|op:skadi\"] 多 []",
+    "stats.max_hp: 161.363 -> 152.1"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 152.0,
+   "moves": {
+    "will:冰凌": 2,
+    "will:冰凌交叉": 7,
+    "will:冰凌双列": 3,
+    "will:冰凌斜落": 3,
+    "will:冰凌林": 3,
+    "will:冰凌连落": 2,
+    "will:冰峰": 7,
+    "will:冰河": 8,
+    "will:冻原": 3,
+    "will:暴风雪": 8,
+    "will:群山回响": 14,
+    "will:自然涌动": 3,
+    "will:银凇塌落": 1,
+    "will:雪浪": 2,
+    "will:雪震": 2,
+    "will:鹿角": 4
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m0_s4_slot3",
+   "squad": [
+    "skadi",
+    "saria",
+    "wisadel"
+   ],
+   "src": {
+    "boss_will": 0.300702169625247,
+    "bullet": 0.151839053254438
+   },
+   "taken": 68.8,
+   "taken_pct": 0.453,
+   "win": false
+  },
+  {
+   "boss": "will",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 5,
+   "wall": 26.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 0.284,
+   "brk_dmg_share": 0.796,
+   "brk_time_share": 0.243,
+   "bul_avg": 113.6,
+   "bul_peak": 150,
+   "dmg": 101221.0,
+   "fight_t": 132.8,
+   "fp_diff": [
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:logos\"] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:exusiai|op:exusiai\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:exusiai|op:exusiai\",\"1|0.28|lshape:logos|op:logos\",\"1|0.525|lshape:skadi|op:skadi\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:logos\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.8,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 160.0,
+   "moves": {
+    "will:冰凌": 10,
+    "will:冰凌交叉": 1,
+    "will:冰凌双列": 2,
+    "will:冰凌斜落": 2,
+    "will:冰凌林": 5,
+    "will:冰凌连落": 4,
+    "will:冰峰": 1,
+    "will:冰河": 1,
+    "will:冻原": 2,
+    "will:叹息": 1,
+    "will:寒息": 3,
+    "will:崩落": 4,
+    "will:暴风雪": 1,
+    "will:群山回响": 2,
+    "will:自然涌动": 2,
+    "will:银凇塌落": 2,
+    "will:雪浪": 4,
+    "will:雪震": 4,
+    "will:鹿角": 3
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m0_s5_slot3",
+   "squad": [
+    "skadi",
+    "logos",
+    "exusiai"
+   ],
+   "src": {
+    "boss_will": 0.256353902507749,
+    "contact_hound": 0.247777906064001,
+    "shock_rockback": 0.397550611324618
+   },
+   "taken": 144.0,
+   "taken_pct": 0.902,
+   "win": true
+  },
+  {
+   "boss": "will",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 6,
+   "wall": 26.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.321,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.856,
+   "brk_time_share": 0.134,
+   "bul_avg": 67.0,
+   "bul_peak": 116,
+   "dmg": 68745.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\",\"2|1.03|totem_perm_3|\",\"2|1.03|totem_perm_4|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:saria|op:saria\",\"1|0.525|lshape:skadi|op:skadi\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 179.749 -> 159.705"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 25,
+   "max_hp": 164.0,
+   "moves": {
+    "will:冰凌": 7,
+    "will:冰凌交叉": 2,
+    "will:冰凌双列": 6,
+    "will:冰凌斜落": 6,
+    "will:冰凌林": 8,
+    "will:冰凌连落": 7,
+    "will:冰峰": 2,
+    "will:冰河": 2,
+    "will:冻原": 6,
+    "will:暴风雪": 2,
+    "will:群山回响": 4,
+    "will:自然涌动": 5,
+    "will:银凇塌落": 1,
+    "will:雪浪": 7,
+    "will:雪震": 7,
+    "will:鹿角": 7
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m0_s6_slot3",
+   "squad": [
+    "skadi",
+    "saria",
+    "kaltsit"
+   ],
+   "src": {
+    "boss_will": 0.433371843336151,
+    "bullet": 0.0166299915469146
+   },
+   "taken": 71.9,
+   "taken_pct": 0.45,
+   "win": false
+  },
+  {
+   "boss": "will",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 1,
+   "wall": 26.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.309,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 0.623,
+   "brk_dmg_share": 0.84,
+   "brk_time_share": 0.134,
+   "bul_avg": 68.7,
+   "bul_peak": 112,
+   "dmg": 69991.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\",\"2|1.5|totem_8|\",\"2|1.5|totem_9|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:skadi|op:skadi\",\"1|0.63|lshape:kaltsit|op:kaltsit\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.max_hp: 497.401 -> 208.377"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 215.0,
+   "moves": {
+    "will:冰凌": 9,
+    "will:冰凌交叉": 1,
+    "will:冰凌双列": 4,
+    "will:冰凌斜落": 5,
+    "will:冰凌林": 10,
+    "will:冰凌连落": 9,
+    "will:冰峰": 1,
+    "will:冰河": 2,
+    "will:冻原": 5,
+    "will:暴风雪": 2,
+    "will:群山回响": 2,
+    "will:自然涌动": 4,
+    "will:银凇塌落": 1,
+    "will:雪浪": 9,
+    "will:雪震": 9,
+    "will:鹿角": 5
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m18_s1_slot3",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "suzuran"
+   ],
+   "src": {
+    "boss_will": 0.180563085177347,
+    "bullet": 0.0998112555608344,
+    "contact_hound": 0.16995269842236
+   },
+   "taken": 93.8,
+   "taken_pct": 0.45,
+   "win": false
+  },
+  {
+   "boss": "will",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 2,
+   "wall": 18.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.896,
+   "brk_time_share": 0.311,
+   "bul_avg": 67.4,
+   "bul_peak": 121,
+   "dmg": 98185.0,
+   "fight_t": 77.6,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.5|totem_10|\",\"2|1.5|totem_9|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:lumen|op:lumen\",\"1|0.525|lshape:skadi|op:skadi\",\"1|0.525|lshape:specter_unchained|op:specter_unchained\"] 多 []",
+    "stats.max_hp: 383.292 -> 170.352"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 170.0,
+   "moves": {
+    "will:冰凌交叉": 2,
+    "will:冰凌双列": 2,
+    "will:冰凌斜落": 2,
+    "will:冰凌林": 1,
+    "will:冰凌连落": 1,
+    "will:冰峰": 2,
+    "will:冰河": 2,
+    "will:冻原": 2,
+    "will:叹息": 1,
+    "will:崩落": 1,
+    "will:暴风雪": 2,
+    "will:群山回响": 4,
+    "will:自然涌动": 2,
+    "will:银凇塌落": 2,
+    "will:鹿角": 3
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s2_slot3",
+   "squad": [
+    "skadi",
+    "lumen",
+    "specter_unchained"
+   ],
+   "src": {
+    "boss_will": 0.176179909833756
+   },
+   "taken": 30.0,
+   "taken_pct": 0.176,
+   "win": true
+  },
+  {
+   "boss": "will",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 3,
+   "wall": 26.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.259,
+   "boss_maxhp": 86038.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.774,
+   "brk_time_share": 0.089,
+   "bul_avg": 61.1,
+   "bul_peak": 110,
+   "dmg": 63780.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_7|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:hoshiguma\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:hoshiguma|op:hoshiguma\",\"1|0.525|lshape:skadi|op:skadi\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:hoshiguma\"] 多 []",
+    "stats.max_hp: 175.463 -> 170.352"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 25,
+   "max_hp": 170.0,
+   "moves": {
+    "will:冰凌": 3,
+    "will:冰凌交叉": 5,
+    "will:冰凌双列": 7,
+    "will:冰凌斜落": 7,
+    "will:冰凌林": 4,
+    "will:冰凌连落": 3,
+    "will:冰峰": 5,
+    "will:冰河": 5,
+    "will:冻原": 7,
+    "will:暴风雪": 5,
+    "will:群山回响": 10,
+    "will:自然涌动": 6,
+    "will:银凇塌落": 1,
+    "will:雪浪": 3,
+    "will:雪震": 3,
+    "will:鹿角": 8
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m18_s3_slot3",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "kaltsit"
+   ],
+   "src": {
+    "boss_will": 0.400883894899972
+   },
+   "taken": 68.3,
+   "taken_pct": 0.401,
+   "win": false
+  },
+  {
+   "boss": "will",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 4,
+   "wall": 25.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.484,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.861,
+   "brk_time_share": 0.165,
+   "bul_avg": 66.7,
+   "bul_peak": 113,
+   "dmg": 52272.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:mizuki|op:mizuki\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:hoshiguma|op:hoshiguma\",\"1|0.525|lshape:skadi|op:skadi\",\"1|0.63|lshape:mizuki|op:mizuki\"] 多 []",
+    "stats.max_hp: 162.654 -> 153.317"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 25,
+   "max_hp": 153.0,
+   "moves": {
+    "will:冰凌": 7,
+    "will:冰凌双列": 6,
+    "will:冰凌斜落": 6,
+    "will:冰凌林": 8,
+    "will:冰凌连落": 7,
+    "will:冻原": 6,
+    "will:自然涌动": 6,
+    "will:银凇塌落": 1,
+    "will:雪浪": 7,
+    "will:雪震": 7,
+    "will:鹿角": 7
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m18_s4_slot3",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "mizuki"
+   ],
+   "src": {},
+   "taken": 0.0,
+   "taken_pct": 0.0,
+   "win": false
+  },
+  {
+   "boss": "will",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 5,
+   "wall": 27.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.205,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.778,
+   "brk_time_share": 0.134,
+   "bul_avg": 93.9,
+   "bul_peak": 150,
+   "dmg": 80443.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:mizuki|op:mizuki\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_5|\"] 多 []",
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.525|lshape:skadi|op:skadi\",\"1|0.63|lshape:mizuki|op:mizuki\"] 多 []",
+    "stats.max_hp: 225.36 -> 218.796"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 219.0,
+   "moves": {
+    "will:冰凌": 5,
+    "will:冰凌交叉": 3,
+    "will:冰凌双列": 2,
+    "will:冰凌斜落": 2,
+    "will:冰凌林": 6,
+    "will:冰凌连落": 5,
+    "will:冰峰": 3,
+    "will:冰河": 3,
+    "will:冻原": 2,
+    "will:暴风雪": 3,
+    "will:群山回响": 6,
+    "will:自然涌动": 2,
+    "will:银凇塌落": 1,
+    "will:雪浪": 5,
+    "will:雪震": 5,
+    "will:鹿角": 2
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m18_s5_slot3",
+   "squad": [
+    "skadi",
+    "logos",
+    "mizuki"
+   ],
+   "src": {
+    "boss_will": 0.27834165958815,
+    "bullet": 0.0666374613595276
+   },
+   "taken": 75.5,
+   "taken_pct": 0.345,
+   "win": false
+  },
+  {
+   "boss": "will",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 6,
+   "wall": 26.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.202,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.915,
+   "brk_time_share": 0.224,
+   "bul_avg": 71.8,
+   "bul_peak": 133,
+   "dmg": 80812.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\",\"2|1.03|totem_perm_3|\",\"2|1.03|totem_perm_4|\",\"2|1.03|totem_perm_5|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:saria|op:saria\",\"1|0.525|lshape:skadi|op:skadi\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 232.75 -> 200.772"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 24,
+   "max_hp": 207.0,
+   "moves": {
+    "will:冰凌": 7,
+    "will:冰凌交叉": 2,
+    "will:冰凌双列": 4,
+    "will:冰凌斜落": 4,
+    "will:冰凌林": 8,
+    "will:冰凌连落": 8,
+    "will:冰峰": 2,
+    "will:冰河": 2,
+    "will:冻原": 4,
+    "will:暴风雪": 2,
+    "will:群山回响": 4,
+    "will:自然涌动": 4,
+    "will:银凇塌落": 2,
+    "will:雪浪": 7,
+    "will:雪震": 7,
+    "will:鹿角": 5
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m18_s6_slot3",
+   "squad": [
+    "skadi",
+    "saria",
+    "kaltsit"
+   ],
+   "src": {
+    "boss_will": 0.0210160492498955
+   },
+   "taken": 4.2,
+   "taken_pct": 0.021,
+   "win": false
+  },
+  {
+   "boss": "will",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 1,
+   "wall": 26.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.436,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.734,
+   "brk_time_share": 0.092,
+   "bul_avg": 66.8,
+   "bul_peak": 118,
+   "dmg": 57041.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:hoshiguma|op:hoshiguma\",\"1|0.525|lshape:texas|op:texas\"] 多 []",
+    "stats.max_hp: 143.166 -> 138.996"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 25,
+   "max_hp": 143.0,
+   "moves": {
+    "will:冰凌": 10,
+    "will:冰凌双列": 6,
+    "will:冰凌斜落": 6,
+    "will:冰凌林": 11,
+    "will:冰凌连落": 11,
+    "will:冻原": 6,
+    "will:自然涌动": 6,
+    "will:银凇塌落": 2,
+    "will:雪浪": 10,
+    "will:雪震": 10,
+    "will:鹿角": 6
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "wisadel_m0_s1_slot3",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "texas"
+   ],
+   "src": {
+    "bullet": 0.138020979020979
+   },
+   "taken": 19.2,
+   "taken_pct": 0.138,
+   "win": false
+  },
+  {
+   "boss": "will",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 2,
+   "wall": 26.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.351,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 0.7,
+   "brk_dmg_share": 0.84,
+   "brk_time_share": 0.224,
+   "bul_avg": 71.5,
+   "bul_peak": 118,
+   "dmg": 65704.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:gladiia|op:gladiia\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:lappland|op:lappland\",\"1|0.875|lshape:gladiia|op:gladiia\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.6|sami_chaos|\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 25,
+   "max_hp": 144.0,
+   "moves": {
+    "will:冰凌": 7,
+    "will:冰凌双列": 7,
+    "will:冰凌斜落": 7,
+    "will:冰凌林": 8,
+    "will:冰凌连落": 7,
+    "will:冻原": 8,
+    "will:自然涌动": 7,
+    "will:银凇塌落": 2,
+    "will:雪浪": 7,
+    "will:雪震": 7,
+    "will:鹿角": 8
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "wisadel_m0_s2_slot3",
+   "squad": [
+    "wisadel",
+    "lappland",
+    "gladiia"
+   ],
+   "src": {
+    "boss_will": 0.171078921078921,
+    "bullet": 0.171953046953047,
+    "contact_drone": 0.146903742045648
+   },
+   "taken": 70.6,
+   "taken_pct": 0.49,
+   "win": false
+  },
+  {
+   "boss": "will",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 3,
+   "wall": 23.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.716,
+   "brk_time_share": 0.147,
+   "bul_avg": 91.4,
+   "bul_peak": 141,
+   "dmg": 101221.0,
+   "fight_t": 109.6,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_5|\",\"2|1.03|totem_perm_8|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:logos\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:logos\"] 多 []",
+    "stats.max_hp: 133.944 -> 126.255"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.741,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 126.0,
+   "moves": {
+    "will:冰凌": 8,
+    "will:冰凌双列": 3,
+    "will:冰凌斜落": 3,
+    "will:冰凌林": 4,
+    "will:冰凌连落": 4,
+    "will:冰峰": 1,
+    "will:冰河": 1,
+    "will:冻原": 3,
+    "will:叹息": 1,
+    "will:寒息": 2,
+    "will:崩落": 3,
+    "will:暴风雪": 1,
+    "will:自然涌动": 3,
+    "will:银凇塌落": 1,
+    "will:雪浪": 3,
+    "will:雪震": 4,
+    "will:鹿角": 4
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s3_slot3",
+   "squad": [
+    "wisadel",
+    "logos",
+    "suzuran"
+   ],
+   "src": {
+    "boss_will": 0.52115562018681
+   },
+   "taken": 65.8,
+   "taken_pct": 0.521,
+   "win": true
+  },
+  {
+   "boss": "will",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 4,
+   "wall": 28.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.145,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 0.576,
+   "brk_dmg_share": 0.818,
+   "brk_time_share": 0.134,
+   "bul_avg": 67.3,
+   "bul_peak": 111,
+   "dmg": 86587.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:exusiai|op:exusiai\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:exusiai|op:exusiai\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:hoshiguma|op:hoshiguma\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.8|sami_chaos|\"] 多 []",
+    "stats.max_hp: 100.642 -> 94.865"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.602,
+   "leader": "wisadel",
+   "level": 25,
+   "max_hp": 95.0,
+   "moves": {
+    "will:冰凌": 8,
+    "will:冰凌交叉": 1,
+    "will:冰凌双列": 6,
+    "will:冰凌斜落": 6,
+    "will:冰凌林": 9,
+    "will:冰凌连落": 8,
+    "will:冰峰": 1,
+    "will:冰河": 1,
+    "will:冻原": 6,
+    "will:暴风雪": 2,
+    "will:群山回响": 2,
+    "will:自然涌动": 5,
+    "will:银凇塌落": 1,
+    "will:雪浪": 8,
+    "will:雪震": 8,
+    "will:鹿角": 7
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "wisadel_m0_s4_slot3",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "exusiai"
+   ],
+   "src": {
+    "boss_will": 0.846741988622331,
+    "bullet": 0.287404902789518,
+    "contact_hound": 0.834212345161291
+   },
+   "taken": 186.7,
+   "taken_pct": 1.968,
+   "win": false
+  },
+  {
+   "boss": "will",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 5,
+   "wall": 27.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.369,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.824,
+   "brk_time_share": 0.173,
+   "bul_avg": 67.0,
+   "bul_peak": 111,
+   "dmg": 63842.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_6|\",\"2|1.03|totem_perm_7|\",\"2|1.03|totem_perm_8|\"] 多 []",
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:lappland|op:lappland\",\"1|0.525|lshape:texas|op:texas\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.6|sami_chaos|\"] 多 []",
+    "stats.max_hp: 147.666 -> 135.135"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 25,
+   "max_hp": 135.0,
+   "moves": {
+    "will:冰凌": 7,
+    "will:冰凌双列": 8,
+    "will:冰凌斜落": 8,
+    "will:冰凌林": 8,
+    "will:冰凌连落": 8,
+    "will:冻原": 8,
+    "will:自然涌动": 7,
+    "will:银凇塌落": 2,
+    "will:雪浪": 7,
+    "will:雪震": 7,
+    "will:鹿角": 9
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "wisadel_m0_s5_slot3",
+   "squad": [
+    "wisadel",
+    "texas",
+    "lappland"
+   ],
+   "src": {
+    "boss_will": 0.501320901320901,
+    "bullet": 0.105464535464535
+   },
+   "taken": 82.0,
+   "taken_pct": 0.607,
+   "win": false
+  },
+  {
+   "boss": "will",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 6,
+   "wall": 14.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.913,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.469,
+   "brk_time_share": 0.138,
+   "bul_avg": 50.4,
+   "bul_peak": 96,
+   "dmg": 8824.0,
+   "fight_t": 14.9,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:hoshiguma\",\"2|1.25|command|op:logos\"] 多 [\"1|0.06|ve2:specter_unchained|op:specter_unchained\"]",
+    "mods.op_atk: 缺 [\"1|0.05|balance:logos|op:logos\"] 多 [\"1|0.12|ve2:specter_unchained|op:specter_unchained\"]",
+    "mods.op_range: 缺 [\"1|0.16|lshape:logos|op:logos\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:hoshiguma|op:hoshiguma\"] 多 [\"1|0.06|vnode:specter_unchained:1|op:specter_unchained\",\"1|0.06|vnode:specter_unchained:2|op:specter_unchained\",\"1|0.06|vnode:specter_unchained:4|op:specter_unchained\",\"1|0.06|vnode:specter_unchained:5|op:specter_unchained\"]",
+    "mods.op_skill_power: 缺 [\"1|0.05|balance:logos|op:logos\"] 多 [\"1|0.02|balance:specter_unchained|op:specter_unchained\"]",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:hoshiguma\",\"2|1.5|command|op:logos\"] 多 []",
+    "mods.dodge: 多 [\"0|0.04|vteam:specter_unchained|squad\"]",
+    "squad: [[\"wisadel\",2.0,6.0,\"ash\",true],[\"hoshiguma\",2.0,6.0,\"wall\",false],[\"logos\",1.0,4.0,\"metonymy\",false]] -> [[\"wisadel\",2.0,6.0,\"ash\",true],[\"hoshiguma\",2.0,6.0,\"wall\",false],[\"specter_unchained\",2.0,6.0,\"beast\",false]]",
+    "stats.dodge: 0.0 -> 0.04",
+    "stats.max_hp: 152.884 -> 145.83"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 149.0,
+   "moves": {
+    "will:冰凌": 1,
+    "will:冰凌林": 2,
+    "will:冰凌连落": 1,
+    "will:雪浪": 1,
+    "will:雪震": 1
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "wisadel_m0_s6_slot3",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "specter_unchained"
+   ],
+   "src": {
+    "contact_breaker": 0.150218366862347,
+    "contact_hound": 1.23458741239316,
+    "contact_rockback": 0.245061826467855,
+    "shock_breaker": 0.22659432883126,
+    "shock_rockback": 0.340463701147979
+   },
+   "taken": 320.4,
+   "taken_pct": 2.197,
+   "win": false
+  },
+  {
+   "boss": "will",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 1,
+   "wall": 26.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.508,
+   "boss_maxhp": 86038.0,
+   "boss_src_share": 0.131,
+   "brk_dmg_share": 0.829,
+   "brk_time_share": 0.179,
+   "bul_avg": 69.3,
+   "bul_peak": 111,
+   "dmg": 42362.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:hoshiguma\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:lumen|op:lumen\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:hoshiguma|op:hoshiguma\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:hoshiguma\"] 多 []",
+    "stats.max_hp: 148.468 -> 144.144"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 24,
+   "max_hp": 148.0,
+   "moves": {
+    "will:冰凌": 8,
+    "will:冰凌双列": 7,
+    "will:冰凌斜落": 7,
+    "will:冰凌林": 9,
+    "will:冰凌连落": 8,
+    "will:冻原": 7,
+    "will:自然涌动": 6,
+    "will:银凇塌落": 1,
+    "will:雪浪": 8,
+    "will:雪震": 8,
+    "will:鹿角": 8
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "wisadel_m18_s1_slot3",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "lumen"
+   ],
+   "src": {
+    "boss_will": 0.0516317016317016,
+    "bullet": 0.0171953046953047,
+    "contact_hound": 0.456780646631474
+   },
+   "taken": 75.8,
+   "taken_pct": 0.526,
+   "win": false
+  },
+  {
+   "boss": "will",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 2,
+   "wall": 27.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.254,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.768,
+   "brk_time_share": 0.134,
+   "bul_avg": 69.2,
+   "bul_peak": 114,
+   "dmg": 75530.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:gladiia|op:gladiia\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:lappland|op:lappland\",\"1|0.875|lshape:gladiia|op:gladiia\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.8|sami_chaos|\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 25,
+   "max_hp": 130.0,
+   "moves": {
+    "will:冰凌": 10,
+    "will:冰凌交叉": 1,
+    "will:冰凌双列": 3,
+    "will:冰凌斜落": 3,
+    "will:冰凌林": 10,
+    "will:冰凌连落": 10,
+    "will:冰峰": 2,
+    "will:冰河": 2,
+    "will:冻原": 3,
+    "will:暴风雪": 2,
+    "will:群山回响": 2,
+    "will:自然涌动": 3,
+    "will:银凇塌落": 2,
+    "will:雪浪": 10,
+    "will:雪震": 10,
+    "will:鹿角": 4
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "wisadel_m18_s2_slot3",
+   "squad": [
+    "wisadel",
+    "lappland",
+    "gladiia"
+   ],
+   "src": {
+    "boss_will": 0.126725126725127,
+    "bullet": 0.0955294705294705
+   },
+   "taken": 28.8,
+   "taken_pct": 0.222,
+   "win": false
+  },
+  {
+   "boss": "will",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 3,
+   "wall": 25.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 0.344,
+   "brk_dmg_share": 0.579,
+   "brk_time_share": 0.116,
+   "bul_avg": 86.9,
+   "bul_peak": 150,
+   "dmg": 101221.0,
+   "fight_t": 138.9,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_4|\",\"2|1.03|totem_perm_5|\",\"2|1.03|totem_perm_6|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:logos\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:logos\"] 多 []",
+    "stats.max_hp: 165.386 -> 151.351"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 151.0,
+   "moves": {
+    "will:冰凌": 6,
+    "will:冰凌双列": 9,
+    "will:冰凌斜落": 9,
+    "will:冰凌林": 3,
+    "will:冰凌连落": 1,
+    "will:冻原": 9,
+    "will:叹息": 1,
+    "will:寒息": 2,
+    "will:崩落": 3,
+    "will:暴风雪": 1,
+    "will:自然涌动": 8,
+    "will:银凇塌落": 1,
+    "will:雪浪": 2,
+    "will:雪震": 2,
+    "will:鹿角": 10
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s3_slot3",
+   "squad": [
+    "wisadel",
+    "logos",
+    "suzuran"
+   ],
+   "src": {
+    "boss_will": 0.330093187236044,
+    "shock_rockback": 0.629240009807635
+   },
+   "taken": 145.2,
+   "taken_pct": 0.959,
+   "win": true
+  },
+  {
+   "boss": "will",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 4,
+   "wall": 27.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.722,
+   "brk_time_share": 0.095,
+   "bul_avg": 66.8,
+   "bul_peak": 106,
+   "dmg": 101221.0,
+   "fight_t": 169.6,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:exusiai|op:exusiai\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:exusiai|op:exusiai\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:hoshiguma|op:hoshiguma\"] 多 []",
+    "stats.max_hp: 123.867 -> 116.757"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 120.0,
+   "moves": {
+    "will:冰凌": 14,
+    "will:冰凌双列": 4,
+    "will:冰凌斜落": 4,
+    "will:冰凌林": 9,
+    "will:冰凌连落": 9,
+    "will:冻原": 4,
+    "will:叹息": 1,
+    "will:寒息": 3,
+    "will:崩落": 4,
+    "will:暴风雪": 1,
+    "will:自然涌动": 4,
+    "will:银凇塌落": 1,
+    "will:雪浪": 8,
+    "will:雪震": 8,
+    "will:鹿角": 5
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s4_slot3",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "exusiai"
+   ],
+   "src": {
+    "boss_will": 0.0770834104167437,
+    "bullet": 0.0982892107892108
+   },
+   "taken": 20.5,
+   "taken_pct": 0.175,
+   "win": true
+  },
+  {
+   "boss": "will",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 5,
+   "wall": 28.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.067,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 0.432,
+   "brk_dmg_share": 0.832,
+   "brk_time_share": 0.179,
+   "bul_avg": 68.7,
+   "bul_peak": 113,
+   "dmg": 94472.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:lappland|op:lappland\",\"1|0.525|lshape:texas|op:texas\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.8|sami_chaos|\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 108.0,
+   "moves": {
+    "will:冰凌": 13,
+    "will:冰凌交叉": 2,
+    "will:冰凌双列": 2,
+    "will:冰凌斜落": 2,
+    "will:冰凌林": 8,
+    "will:冰凌连落": 8,
+    "will:冰峰": 2,
+    "will:冰河": 2,
+    "will:冻原": 2,
+    "will:寒息": 2,
+    "will:崩落": 4,
+    "will:暴风雪": 2,
+    "will:群山回响": 4,
+    "will:自然涌动": 2,
+    "will:银凇塌落": 1,
+    "will:雪浪": 7,
+    "will:雪震": 7,
+    "will:鹿角": 3
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "wisadel_m18_s5_slot3",
+   "squad": [
+    "wisadel",
+    "texas",
+    "lappland"
+   ],
+   "src": {
+    "boss_will": 0.396640396640396,
+    "bullet": 0.137562437562438,
+    "contact_hound": 0.702592635008893
+   },
+   "taken": 133.7,
+   "taken_pct": 1.237,
+   "win": false
+  },
+  {
+   "boss": "will",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 6,
+   "wall": 27.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.083,
+   "boss_maxhp": 101221.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.61,
+   "brk_time_share": 0.089,
+   "bul_avg": 88.6,
+   "bul_peak": 150,
+   "dmg": 92863.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:hoshiguma\",\"2|1.25|command|op:logos\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:hoshiguma|op:hoshiguma\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:hoshiguma\",\"2|1.5|command|op:logos\"] 多 []",
+    "stats.max_hp: 152.922 -> 144.144"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.869,
+   "leader": "wisadel",
+   "level": 28,
+   "max_hp": 153.0,
+   "moves": {
+    "will:冰凌": 6,
+    "will:冰凌交叉": 7,
+    "will:冰凌双列": 2,
+    "will:冰凌斜落": 2,
+    "will:冰凌林": 4,
+    "will:冰凌连落": 3,
+    "will:冰峰": 7,
+    "will:冰河": 8,
+    "will:冻原": 2,
+    "will:寒息": 1,
+    "will:崩落": 2,
+    "will:暴风雪": 8,
+    "will:群山回响": 14,
+    "will:自然涌动": 2,
+    "will:银凇塌落": 1,
+    "will:雪浪": 3,
+    "will:雪震": 3,
+    "will:鹿角": 3
+   },
+   "phases": [
+    [
+     "will",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "wisadel_m18_s6_slot3",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "logos"
+   ],
+   "src": {
+    "boss_will": 1.00116812076812
+   },
+   "taken": 144.3,
+   "taken_pct": 1.001,
+   "win": false
+  }
+ ]
+}
