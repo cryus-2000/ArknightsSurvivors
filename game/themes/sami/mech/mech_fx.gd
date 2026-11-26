@@ -1910,7 +1910,7 @@ func _final_front(w, cv, now: float) -> void:
 			elif not on:
 				d["fx_t0"] = -1.0
 			if ready and not on and float(d.charge) < 0.0:
-				_gold_beat(w, PackedVector2Array([d.pos + Vector2(-22, 2), d.pos + Vector2(22, 2), d.pos + Vector2(30, -40), d.pos + Vector2(26, -58), d.pos + Vector2(0, -80), d.pos + Vector2(-26, -58), d.pos + Vector2(-30, -40)]), d.pos + Vector2(0, -38), now)   # 花苞轮廓
+				_gold_beat(w, PackedVector2Array([d.pos + Vector2(-20, -4), d.pos + Vector2(20, -4), d.pos + Vector2(24, -30), d.pos + Vector2(18, -50), d.pos + Vector2(0, -70), d.pos + Vector2(-18, -50), d.pos + Vector2(-24, -30)]), d.pos + Vector2(0, -36), now)   # 花苞轮廓
 			var lit: float = 1.0 if (ready or on) else 0.0
 			if float(d.charge) > 0.0:
 				lit = clampf(1.0 - (float(d.charge) - now), 0.3, 1.0)
