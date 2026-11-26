@@ -2142,6 +2142,12 @@ func _warn_final(w, cv, t: Dictionary, k: float, sd: int, ot: String) -> void:
 			if r3 > 300.0 and (ot == "lion" or ot == "khan"):
 				_fin_tex()
 				_band_tex(cv, gold_band if ot == "lion" else sand_band, c, c + Vector2.from_angle(float(t.ang)) * (r3 - 8.0) * k, 14.0, 0.75)
+			if ot == "cresson":
+				# 克雷松扇形（花瓣风 / 萌发喷粉）：扇区里几片暗紫半透花瓣往外伸，不画裂缝和弧带（协调人 11-26：淡紫细弧线）
+				var npc: int = clampi(int((a1 - a0) * r3 / 60.0), 3, 7)
+				for i in npc:
+					_petal_dim(w, c, lerpf(a0 + 0.1, a1 - 0.1, (float(i) + 0.5) / float(npc)), r3 * 0.9 * clampf(k * 1.2, 0.0, 1.0), 1.0, 0.25 + 0.25 * k)
+				return
 			var ncr: int = 0 if r3 > 300.0 and (ot == "lion" or ot == "khan") else (1 if r3 > 300.0 else 5)
 			for i in ncr:
 				var ai: float = float(t.ang) if ncr == 1 else lerpf(a0 + 0.08, a1 - 0.08, float(i) / 4.0)
