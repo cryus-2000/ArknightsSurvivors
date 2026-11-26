@@ -1867,20 +1867,24 @@ func _final_front(w, cv, now: float) -> void:
 		if t.done:
 			if not t.get("fx_hit", false):
 				t["fx_hit"] = true
-				sparks(p + Vector2(0, -6), -PI * 0.5, 1.4, 10, 260.0, [WILLC[3], WILLC[2], WILLC[1], WILLC[0]], true, 0.32)
-				embers(p, 6, WILLC[2], 130.0, 300.0, 0.5, 4.0)
-				for j in 3:
-					_icefog(p + Vector2(rng.randf_range(-10, 10), 0), Vector2(rng.randf_range(-40, 40), rng.randf_range(-10, 10)), 0.8, 22.0, 0.8)
+				_shatter("icicle", p + Vector2(0, 2), 1.0, 220.0)
+				_glints(p, 6, 20.0)
+				glows.append([p, g.t, 90.0])
+				for j in 2:
+					_icefog(p + Vector2(rng.randf_range(-10, 10), 0), Vector2(rng.randf_range(-50, 50), rng.randf_range(-12, 4)), 0.8, 34.0, 0.8)
 			continue
 		if k < 0.62:
 			continue
 		var f: float = (k - 0.62) / 0.38
 		var y: float = -200.0 * (1.0 - f * f)
 		var tip: Vector2 = p + Vector2(0, y)
-		w.tb_poly(PackedVector2Array([tip + Vector2(0, 5), tip + Vector2(-16, -36), tip + Vector2(0, -95), tip + Vector2(16, -36)]), Color(0.12, 0.16, 0.28))
-		w.tb_poly(PackedVector2Array([tip, tip + Vector2(-12, -36), tip + Vector2(0, -88), tip + Vector2(12, -36)]), Color(0.5, 0.64, 0.86))
-		w.tb_poly(PackedVector2Array([tip, tip + Vector2(0, -87), tip + Vector2(11, -36)]), WILLC[2])
-		w.tb_line(_snap(tip + Vector2(2, -12)), _snap(tip + Vector2(2, -70)), WILLC[3], 3.0)
+		w.tb_flush()
+		# 像素冰凌（pixgen 像素化 14×46，尖朝下）从天上坠落：上方两道残影 + 落点影子由小变大
+		for gh in [2, 1]:
+			_wdraw("icicle", tip + Vector2(0, -22.0 * float(gh) * f), 1.0, Color(0.8, 0.92, 1.0, 0.22 / float(gh)))
+		_wdraw("icicle", tip)
+		if rng.randf() < 0.35:
+			_add(tip + Vector2(rng.randf_range(-8, 8), -rng.randf_range(20, 80)), Vector2(0, -40), 0.3, Color(1.3, 1.4, 1.5), 2.0, 3)
 		var sh: float = 6.0 + 10.0 * f
 		w.tb_quad(_snap(p + Vector2(-sh, -1)), _snap(p + Vector2(sh, -1)), _snap(p + Vector2(sh * 0.7, 2)), _snap(p + Vector2(-sh * 0.7, 2)), Color(0.3, 0.32, 0.42, 0.55))
 	# 木裂剥落片：翻转的深青甲片（暗描边），往后飘、慢慢落
@@ -2309,30 +2313,129 @@ func _obj_front(w, now: float) -> void:
 			w.tb_poly(big, OLC)
 			w.tb_poly(body, Color(0.22, 0.26, 0.32) if on else Color(0.16, 0.18, 0.22))
 			w.tb_poly(PackedVector2Array([p + Vector2(-8, -20), p + Vector2(-3, -30), p + Vector2(4, -28), p + Vector2(2, -22)]), WILLC[2] if on else WILLC[1])
-		# 意志银凇：冰晶树（树干 + 三层冰枝）；完好时金色描边 + 心跳，每挨一下冰凌多一道裂
+		# 意志银凇（用户 11-26：程序三角松是占位 → pixgen 出图像素化 23×42，同萨米地图景物画风）：完好时金色描边 + 心跳
 		for t in e.get("trees", []):
 			if float(t.dead_t) > 0.0:
 				continue
-			var tp: Vector2 = t.pos
-			var tiers := [[-16.0, 36.0, -50.0], [-36.0, 29.0, -67.0], [-53.0, 21.0, -87.0]]   # 每层 [底 y, 半宽, 尖 y]（11-26 放大 1.4 倍）
-			var trunk := PackedVector2Array([tp + Vector2(-5, 2), tp + Vector2(-5, -18), tp + Vector2(5, -18), tp + Vector2(5, 2)])
-			_gold_beat(w, trunk, tp + Vector2(0, -6), now)
-			for tr in tiers:
-				_gold_beat(w, PackedVector2Array([tp + Vector2(-tr[1], tr[0]), tp + Vector2(0, tr[2]), tp + Vector2(tr[1], tr[0])]), tp + Vector2(0, (tr[0] + tr[2]) * 0.5), now)
-			var TD := Color(0.12, 0.18, 0.3)    # 冰蓝银凇（11-26：原淡紫在亮雪地上太淡）：深蓝灰边 / 冰蓝暗面 / 冰白亮面
-			var TM := Color(0.46, 0.64, 0.86)
-			var TL := Color(0.8, 0.92, 1.0)
-			w.tb_poly(PackedVector2Array([tp + Vector2(-7, 3), tp + Vector2(-7, -20), tp + Vector2(7, -20), tp + Vector2(7, 3)]), TD)
-			w.tb_poly(trunk, Color(0.3, 0.32, 0.42))
-			for tr in tiers:
-				w.tb_poly(PackedVector2Array([tp + Vector2(-tr[1] - 3.0, tr[0] + 2.0), tp + Vector2(0, tr[2] - 3.0), tp + Vector2(tr[1] + 3.0, tr[0] + 2.0)]), TD)
-				w.tb_poly(PackedVector2Array([tp + Vector2(-tr[1], tr[0]), tp + Vector2(0, tr[2]), tp + Vector2(0, tr[0])]), TM)
-				w.tb_poly(PackedVector2Array([tp + Vector2(0, tr[0]), tp + Vector2(0, tr[2]), tp + Vector2(tr[1], tr[0])]), TL)
-				w.tb_poly(PackedVector2Array([tp + Vector2(-tr[1] * 0.9, tr[0] - 1.0), tp + Vector2(-tr[1] * 0.3, tr[0] - 6.0), tp + Vector2(tr[1] * 0.6, tr[0] - 3.0), tp + Vector2(tr[1] * 0.9, tr[0] - 1.0)]), WILLC[3])   # 积雪
-			w.tb_line(_snap(tp + Vector2(1, -20)), _snap(tp + Vector2(1, -78)), WILLC[3], 2.0)
-			for h in int(t.hits):
-				_crack_col(w, tp + Vector2(0, -30), PI * 0.5 + 1.2 * float(h) - 1.0, 18.0, 1.0, 50 + h, WILLC[3], WILLC[0], 2.0)
+			_rime_tree(w, t.pos, now, int(t.hits) > 0)
 	w.tb_flush()
+
+
+	w.tb_flush()
+
+
+## ---- 意志的像素贴图（themes/sami/fx/will/，pixgen 出图 + 像素化，docs/401 §21）：银凇、冰凌，各带 Voronoi 碎块
+var wtex := {}
+var wsil := {}
+var wchunks := {}
+var shards: Array = []   # 碎块 [贴图, 位置, 速度, 出生 t, 寿命, 转速, 落地 y, 缩放]
+
+
+func _wt(nm: String) -> Texture2D:
+	if not wtex.has(nm):
+		wtex[nm] = load("res://themes/sami/fx/will/%s.png" % nm)
+	return wtex[nm]
+
+
+func _wsil(nm: String) -> ImageTexture:
+	if not wsil.has(nm):
+		var img: Image = _wt(nm).get_image()
+		img.decompress()
+		for j in img.get_height():
+			for i in img.get_width():
+				img.set_pixel(i, j, Color.WHITE if img.get_pixel(i, j).a > 0.5 else Color(0, 0, 0, 0))
+		wsil[nm] = ImageTexture.create_from_image(img)
+	return wsil[nm]
+
+
+func _wchunks(nm: String) -> Dictionary:
+	if not wchunks.has(nm):
+		var f := FileAccess.open("res://themes/sami/fx/will/%s_chunks.json" % nm, FileAccess.READ)
+		wchunks[nm] = JSON.parse_string(f.get_as_text()) if f != null else {"tree": [1, 1], "chunks": []}
+	return wchunks[nm]
+
+
+## 贴图以「脚底中心」对齐 base 画（PX 倍 × s）；flip = 上下翻（冰桩尖朝上）
+func _wdraw(nm: String, base: Vector2, s := 1.0, col := Color.WHITE, sil := false) -> void:
+	var tx: Texture2D = _wsil(nm) if sil else _wt(nm)
+	var sz := Vector2(tx.get_width(), tx.get_height()) * PX * s
+	g.wcv.draw_texture_rect(tx, Rect2(_snap(base - Vector2(sz.x * 0.5, sz.y - 2.0 * s)), sz), false, col)
+
+
+func _rime_tree(w, tp: Vector2, now: float, cracked: bool) -> void:
+	w.tb_flush()
+	var hb: float = _beat(now)
+	var gs: float = 1.08 + 0.05 * hb
+	_wdraw("rime_tree", tp + Vector2(0, 2.0 * gs), gs, Color(GOLD.r * (1.0 + 0.3 * hb), GOLD.g * (1.0 + 0.3 * hb), GOLD.b * (1.0 + 0.2 * hb)), true)
+	_wdraw("rime_tree_cracked" if cracked else "rime_tree", tp)
+
+
+## 整体碎成 Voronoi 碎块：每块带重力往外翻滚飞，落到脚底高度停住、0.4 秒淡掉
+func _shatter(nm: String, base: Vector2, s: float, power: float) -> void:
+	var meta: Dictionary = _wchunks(nm)
+	var TW: float = float(meta.tree[0])
+	var TH: float = float(meta.tree[1])
+	var c0: Vector2 = Vector2(TW * 0.5, TH * 0.55)
+	for c in meta.chunks:
+		var tx: Texture2D = _wt(str(c.file).get_basename())
+		var mid := Vector2(float(c.x) + tx.get_width() * 0.5, float(c.y) + tx.get_height() * 0.5)
+		var wp: Vector2 = base + (mid - Vector2(TW * 0.5, TH)) * PX * s
+		var dv: Vector2 = (mid - c0).normalized() if mid.distance_to(c0) > 0.5 else Vector2.UP
+		var v: Vector2 = Vector2(dv.x * 1.2, dv.y * 0.7 - 0.6) * power * rng.randf_range(0.7, 1.2)
+		if shards.size() > 260:
+			shards.pop_front()
+		shards.append([tx, wp, v, g.t, rng.randf_range(0.7, 1.0), rng.randf_range(-7.0, 7.0), base.y + rng.randf_range(-4, 10), s])
+
+
+func _draw_shards(w, now: float) -> void:
+	if shards.is_empty():
+		return
+	w.tb_flush()
+	var cv = g.wcv
+	var keep: Array = []
+	for d in shards:
+		var age: float = now - float(d[3])
+		var life: float = float(d[4])
+		if age > life + 0.4:
+			continue
+		keep.append(d)
+		var ta: float = minf(age, life)
+		var q: Vector2 = d[1] + d[2] * ta + Vector2(0, 0.5 * 900.0 * ta * ta)
+		var landed: bool = q.y >= float(d[6])
+		if landed:
+			q.y = float(d[6])
+		var rot: float = 0.0 if landed else float(d[5]) * ta
+		var al: float = clampf((life + 0.4 - age) / 0.4, 0.0, 1.0)
+		var tx: Texture2D = d[0]
+		var sz := Vector2(tx.get_width(), tx.get_height()) * PX * float(d[7])
+		cv.draw_set_transform(_snap(q), rot, Vector2.ONE)
+		cv.draw_texture_rect(tx, Rect2(-sz * 0.5, sz), false, Color(1, 1, 1, al))
+	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	shards = keep
+
+
+## 落地短促光照：一团冰白柔光 0.15 秒（Noita 式照地，不是圆盘：柔边贴图、很快淡）
+var glows: Array = []
+
+
+func _draw_glows(now: float) -> void:
+	var keep: Array = []
+	for gl in glows:
+		var age: float = now - float(gl[1])
+		if age > 0.18:
+			continue
+		keep.append(gl)
+		var k: float = 1.0 - age / 0.18
+		var sz: float = float(gl[2]) * (0.8 + 0.4 * (1.0 - k))
+		g.wcv.draw_texture_rect(ice_puff[0], Rect2(_snap(gl[0] - Vector2(sz, sz * 0.6) * 0.5), Vector2(sz, sz * 0.6)), false, Color(1, 1, 1, 0.75 * k))
+	glows = keep
+
+
+## 亮点闪烁（Noita）：1–2 格冰白亮点，随机闪
+func _glints(p: Vector2, n: int, r: float) -> void:
+	for i in n:
+		var a: float = rng.randf() * TAU
+		_add(p + Vector2(cos(a), sin(a) * 0.6) * rng.randf_range(0.0, r), Vector2(cos(a), sin(a) * 0.5) * rng.randf_range(20.0, 90.0) + Vector2(0, -rng.randf_range(10, 60)), rng.randf_range(0.3, 0.7), Color(1.4, 1.5, 1.6), 2.0, 3, 120.0)
 
 
 ## ==== 结局四 Boss 11-26 新招（docs/393 §11.5–11.8 / §13，ee004b14c）：场上物件、专属弹体、结算爆点（docs/401 §18）
@@ -2689,7 +2792,10 @@ func _fin_front(w, cv, now: float) -> void:
 				embers(o.pos + Vector2(0, -20), 4, ICEL[3], 120.0, 300.0, 0.5, 5.0)
 			var r: float = float(o.r)
 			if r <= 18.0:
-				_ice_stake(w, o.pos, 80.0 * up, 26.0)
+				_icicle_stake(w, o.pos, up)
+				if left < 0.12 and not o.get("fx_shat", false):
+					o["fx_shat"] = true
+					_shatter("icicle", o.pos, 1.0, 160.0)
 			elif str(e.type) == "lead":
 				_ice_pillar(w, o.pos, 86.0 * up, r * 1.6)
 			else:
@@ -2814,6 +2920,8 @@ func _fin_front(w, cv, now: float) -> void:
 				_runner_pose(w, "beast", Vector2(lerpf(cp2.x + 600.0, float(ar2.x) + 20.0, k2), yy + 10.0), Vector2.LEFT, now, 1.0)
 	_draw_runners(w, now)
 	_draw_spikes(w, now)
+	_draw_shards(w, now)
+	_draw_glows(now)
 	_frozen_front(w)
 	w.tb_flush()
 
@@ -2830,9 +2938,9 @@ func _will_quake(w, cv, e: Dictionary, now: float) -> void:
 		if dt0 > 0.0 and float(t.get("fx_dead", -1.0)) != dt0:
 			t["fx_dead"] = dt0
 			var tp: Vector2 = t.pos
-			for i in 16:
-				var a: float = -PI * 0.5 + rng.randf_range(-1.5, 1.5)
-				ice_debris.append([tp + Vector2(rng.randf_range(-20, 20), -rng.randf_range(10, 70)), Vector2.from_angle(a) * rng.randf_range(160.0, 360.0), now, rng.randf_range(0.7, 1.1), rng.randf_range(10.0, 18.0), rng.randf_range(-8.0, 8.0)])
+			_shatter("rime_tree", tp, 1.0, 300.0)   # 银凇贴图按 Voronoi 碎块炸开（pixgen 像素贴图，docs/401 §21）
+			_glints(tp + Vector2(0, -40), 10, 40.0)
+			glows.append([tp + Vector2(0, -30), now, 140.0])
 			for i in 6:
 				_icefog(tp + Vector2(rng.randf_range(-30, 30), -rng.randf_range(0, 60)), Vector2(rng.randf_range(-70, 70), -rng.randf_range(10, 50)), 1.0, 88.0, 0.9)
 			white_flash.append([tp + Vector2(0, -40), now])
@@ -2952,6 +3060,21 @@ func _draw_white_flash(w, now: float) -> void:
 		w.tb_poly(PackedVector2Array([p + Vector2(0, -L), p + Vector2(6, 0), p + Vector2(0, L), p + Vector2(-6, 0)]), Color(1, 1, 1, k))
 		w.tb_poly(PackedVector2Array([p + Vector2(-L, 0), p + Vector2(0, -6), p + Vector2(L, 0), p + Vector2(0, 6)]), Color(1, 1, 1, k))
 	white_flash = keep
+
+
+## 冰凌林冰桩：像素冰凌上下翻（尖朝上）插在地里，按 up 从地里顶出（只露出尖那一段），脚下一圈碎雪
+func _icicle_stake(w, p: Vector2, up: float) -> void:
+	w.tb_flush()
+	var tx: Texture2D = _wt("icicle")
+	var TW: float = float(tx.get_width())
+	var TH: float = float(tx.get_height())
+	var vis: float = clampf(up, 0.0, 1.0) * TH * 0.85
+	if vis < 1.0:
+		return
+	var src := Rect2(0, TH - vis, TW, vis)   # 贴图下段 = 尖
+	var dst := Rect2(_snap(p - Vector2(TW * PX * 0.5, -2.0)), Vector2(TW * PX, -vis * PX))   # 高度取负 = 上下翻，尖朝上
+	g.wcv.draw_texture_rect_region(tx, dst, src)
+	w.tb_quad(_snap(p + Vector2(-16, 0)), _snap(p + Vector2(16, 0)), _snap(p + Vector2(12, 5)), _snap(p + Vector2(-12, 5)), Color(0.82, 0.9, 1.0, 0.85))
 
 
 func _ice_stake(w, p: Vector2, h: float, wd: float) -> void:
