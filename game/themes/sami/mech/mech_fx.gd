@@ -1838,6 +1838,15 @@ func _cres_field(cv, now: float) -> void:
 func _final_ground(w, now: float) -> void:
 	var cv = g.wcv
 	_cres_field(cv, now)
+	_fin_tex()
+	var kf: Array = []
+	for fr in snow_furrows:
+		var agf: float = now - float(fr[2])
+		if agf > 2.5:
+			continue
+		kf.append(fr)
+		_band_tex(cv, ice_band, fr[0], fr[1], 22.0, 0.65 * (1.0 - agf / 2.5))
+	snow_furrows = kf
 	var keep: Array = []
 	for tr in trails:
 		var age: float = now - float(tr[2])
@@ -2684,6 +2693,7 @@ func _fin_front(w, cv, now: float) -> void:
 				_ice_peak(w, o.pos, 64.0 * up, r * 2.2)
 		match str(e.type):
 			"will":
+				_will_quake(w, cv, e, now)
 				var tu = e.get("tundra")
 				if tu is Dictionary and now >= float(tu.t0):
 					# 冻原前沿：一整排冰晶从地里顶出往南推，银凇阴影里断开（出口），前沿冒冰雾
@@ -2803,6 +2813,113 @@ func _fin_front(w, cv, now: float) -> void:
 	_draw_spikes(w, now)
 	_frozen_front(w)
 	w.tb_flush()
+
+
+## ---- 意志「震落」（docs/392 §18，82480c2e8）：银凇被击碎 → 意志被震下山滑到碎树北边跪 8 秒（冰甲裂开、受伤 ×2.2、每 1.2 秒甩一圈冰甲碎片）→ 滑回北边；
+## 平时本体外一层冰壳（读成「现在打不动」）。全部纯画面
+var ice_debris: Array = []   # 碎冰块 [p0, v, t0, 寿命, 尺寸, 转速]
+
+
+func _will_quake(w, cv, e: Dictionary, now: float) -> void:
+	# 银凇被击碎：整棵树炸成大块碎冰往外飞（带重力、翻滚、落地停住）+ 树上积雪塌下一团冰雾 + 冰白火花
+	for t in e.get("trees", []):
+		var dt0: float = float(t.dead_t)
+		if dt0 > 0.0 and float(t.get("fx_dead", -1.0)) != dt0:
+			t["fx_dead"] = dt0
+			var tp: Vector2 = t.pos
+			for i in 12:
+				var a: float = -PI * 0.5 + rng.randf_range(-1.4, 1.4)
+				ice_debris.append([tp + Vector2(rng.randf_range(-14, 14), -rng.randf_range(10, 50)), Vector2.from_angle(a) * rng.randf_range(120.0, 300.0), now, rng.randf_range(0.6, 1.0), rng.randf_range(6.0, 13.0), rng.randf_range(-8.0, 8.0)])
+			for i in 5:
+				_icefog(tp + Vector2(rng.randf_range(-24, 24), -rng.randf_range(0, 40)), Vector2(rng.randf_range(-50, 50), -rng.randf_range(10, 40)), 0.9, 44.0, 0.85)
+			sparks(tp + Vector2(0, -30), -PI * 0.5, 1.6, 16, 360.0, [Color.WHITE, WILLC[3], ICEL[1], Color(0.45, 0.62, 0.9)], true, 0.4)
+	var keep: Array = []
+	for d in ice_debris:
+		var age: float = now - float(d[2])
+		if age >= float(d[3]) + 0.4:
+			continue
+		keep.append(d)
+		var ta: float = minf(age, float(d[3]))
+		var q: Vector2 = d[0] + d[1] * ta + Vector2(0, 0.5 * 700.0 * ta * ta)
+		var gy0: float = (d[0] as Vector2).y + 40.0
+		if q.y > gy0:
+			q.y = gy0
+		var al: float = clampf((float(d[3]) + 0.4 - age) / 0.4, 0.0, 1.0)
+		_ice_chunk(w, q, q.y, float(d[4]), float(d[5]) * ta, al)
+	ice_debris = keep
+	var home_y: float = e.pos.y
+	var kneel: bool = float(e.get("kneel_until", 0.0)) > now
+	var kp = e.get("kneel_pos")
+	# 滑行（震下山 / 滑回）：本体在动就在身后犁出一道雪沟 + 雪雾往两侧翻、雪粒往后溅
+	var last: Vector2 = e.get("fx_qp", e.pos)
+	e["fx_qp"] = e.pos
+	var mv: Vector2 = e.pos - last
+	if mv.length() > 3.0:
+		var dv: Vector2 = mv.normalized()
+		if trails.size() > 60:
+			trails.pop_front()
+		for k in 2:
+			var nside: Vector2 = dv.orthogonal() * (10.0 if k == 0 else -10.0)
+			_icefog(e.pos - dv * 30.0 + nside, -dv * 60.0 + nside * 4.0 + Vector2(0, -10), 0.7, 36.0, 0.8)
+		_add(e.pos - dv * 20.0 + Vector2(rng.randf_range(-12, 12), 0), -dv * 140.0 + Vector2(rng.randf_range(-40, 40), -rng.randf_range(40, 100)), 0.5, WILLC[3], 3.0, 0, 300.0)
+		snow_furrows.append([last, e.pos, now])
+	# 平时冰甲 / 跪地破甲：本体外一层冰壳（多面冰晶、白棱高光），平时完整读成「打不动」；
+	# 跪地时冰壳裂成几块往外歪、裂缝发白，块间露出本体（受伤 ×2.2），8 秒里碎块慢慢掉光
+	var vuln: bool = float(e.get("tree_vuln", 0.0)) > now
+	var c: Vector2 = e.pos + Vector2(0, -float(e.r) * 0.9)
+	var R: float = float(e.r) * 1.45
+	var gyk := 0.85
+	var n := 8
+	if not vuln:
+		var pts := PackedVector2Array()
+		for i in n:
+			var a: float = TAU * float(i) / float(n) + 0.2
+			pts.append(c + Vector2(cos(a), sin(a) * gyk) * R * (1.0 if i % 2 == 0 else 0.9))
+		w.tb_flush()
+		cv.draw_colored_polygon(pts, Color(0.72, 0.86, 1.0, 0.18))
+		for i in n:
+			var a0: Vector2 = pts[i]
+			var a1: Vector2 = pts[(i + 1) % n]
+			w.tb_line(_snap(a0), _snap(a1), Color(0.14, 0.2, 0.34, 0.85), 4.0)
+			w.tb_line(_snap(a0), _snap(a1), Color(0.86, 0.95, 1.0, 0.9), 2.0)
+			if i % 2 == 0:
+				w.tb_line(_snap(a0), _snap(c + (a0 - c) * 0.35), Color(0.86, 0.95, 1.0, 0.35), 2.0)   # 冰面棱线
+		var gl: float = fmod(now * 0.7, 1.0)
+		var gp: Vector2 = pts[int(gl * float(n)) % n].lerp(pts[(int(gl * float(n)) + 1) % n], fmod(gl * float(n), 1.0))
+		w.tb_poly(PackedVector2Array([gp + Vector2(0, -6), gp + Vector2(2, 0), gp + Vector2(0, 6), gp + Vector2(-2, 0)]), Color.WHITE)   # 沿冰壳绕行的一点白闪
+		w.tb_poly(PackedVector2Array([gp + Vector2(-6, 0), gp + Vector2(0, -2), gp + Vector2(6, 0), gp + Vector2(0, 2)]), Color.WHITE)
+	elif kneel:
+		var left: float = float(e.kneel_until) - now
+		var shown: int = clampi(int(ceil(left / 8.0 * float(n))), 0, n)
+		if not e.get("fx_crack", false):
+			e["fx_crack"] = true
+			sparks(c, -PI * 0.5, PI, 18, 300.0, [Color.WHITE, ICEL[0], ICEL[2], Color(0.45, 0.62, 0.9)], true, 0.4)
+			for i in 6:
+				_icefog(c + Vector2.from_angle(TAU * float(i) / 6.0) * R * 0.7, Vector2.from_angle(TAU * float(i) / 6.0) * 60.0, 0.7, 34.0, 0.8)
+		for i in shown:
+			var a0: float = TAU * float(i) / float(n) + 0.2
+			var a1: float = TAU * float(i + 1) / float(n) + 0.2
+			var push: Vector2 = Vector2(cos((a0 + a1) * 0.5), sin((a0 + a1) * 0.5) * gyk) * (8.0 + 4.0 * sin(now * 3.0 + float(i)))
+			var q0: Vector2 = c + push + Vector2(cos(a0), sin(a0) * gyk) * R
+			var q1: Vector2 = c + push + Vector2(cos(a1), sin(a1) * gyk) * R
+			var q2: Vector2 = c + push + Vector2(cos((a0 + a1) * 0.5), sin((a0 + a1) * 0.5) * gyk) * R * 0.62
+			w.tb_poly(PackedVector2Array([q0, q1, q2]), Color(0.7, 0.84, 0.98, 0.55))
+			w.tb_line(_snap(q0), _snap(q1), Color(0.14, 0.2, 0.34, 0.9), 4.0)
+			w.tb_line(_snap(q0), _snap(q1), Color(0.86, 0.95, 1.0), 2.0)
+			w.tb_line(_snap(q0), _snap(q2), Color(1, 1, 1, 0.9), 2.0)   # 发白的裂缝
+		if e.get("fx_shown", n) != shown:
+			if shown < int(e.get("fx_shown", n)):
+				var ai: float = TAU * (float(shown) + 0.5) / float(n) + 0.2
+				ice_debris.append([c + Vector2(cos(ai), sin(ai) * gyk) * R, Vector2(cos(ai), sin(ai)) * 120.0 + Vector2(0, -80), now, 0.7, 10.0, 6.0])
+			e["fx_shown"] = shown
+	else:
+		e["fx_crack"] = false
+		e["fx_shown"] = n
+	if kneel and kp is Dictionary:
+		pass
+
+
+var snow_furrows: Array = []   # 意志滑行犁出的雪沟 [a, b, t0]（地面层）
 
 
 func _ice_stake(w, p: Vector2, h: float, wd: float) -> void:

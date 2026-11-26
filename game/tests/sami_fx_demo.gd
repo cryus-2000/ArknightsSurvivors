@@ -293,6 +293,18 @@ func _ai_moves(sc, b: Dictionary) -> Array:
 	var out: Array = []
 	for m in sc.all_moves(b):
 		out.append([b, str(m[0]), m[4]])
+	if b.type == "will":
+		# 震落（docs/392 §18）：演示里直接让队长站到最近一棵银凇身后、砸碎它（正式局靠瞄队长的冰凌落到树上）
+		out.append([b, "震落", func(e, _d, _l):
+			var best = null
+			for t in e.get("trees", []):
+				if float(t.dead_t) <= 0.0 and (best == null or t.pos.distance_to(g.ppos) < best.pos.distance_to(g.ppos)):
+					best = t
+			if best == null:
+				return -1.0
+			g.ppos = best.pos + Vector2(0, 80)
+			sc._tree_hit(e, best)
+			return 11.0])
 	return out
 
 

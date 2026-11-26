@@ -53,7 +53,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 	if kneeling and g.t >= float(e.get("kneel_ring", 0.0)) and e.pos.distance_to(tgt) < 4.0:
 		e.kneel_ring = g.t + 1.2
 		e["kneel_k"] = int(e.get("kneel_k", 0)) + 1
-		ring(e, e.pos, 12, 80.0, 1, 0.03, [(g.ppos - e.pos).angle()], float(e.kneel_k) * 0.26, {"life": 6.0})
+		ring(e, e.pos, 12, 80.0, 1, 0.03, [(g.ppos - e.pos).angle()], float(e.kneel_k) * 0.26, {"life": 6.0, "small": true})   # small：萨米雪花小弹（画面）
 	if not e.has("trees"):
 		e["trees"] = []
 		for p in [Vector2(-240, -40), Vector2(0, 70), Vector2(240, -40), Vector2(-130, 200), Vector2(130, 200)]:
