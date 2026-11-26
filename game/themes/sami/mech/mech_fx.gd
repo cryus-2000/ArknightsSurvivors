@@ -1762,10 +1762,15 @@ func _anchor_shape(p: Vector2, s: float) -> PackedVector2Array:
 ## 克雷松锚桩（协调人 11-25 退回：别像散落的子弹，要做成「设施」）：暗石底座（八角台） + 两面明暗的石柱 + 顶上淡紫晶尖，
 ## 和停驻点 / 银凇同一档体量（高约 60）；lit 0 = 熄（晶尖暗紫）→ 1 = 亮（晶尖淡紫白 + 柱身紫纹）
 ## 稳定设施晶簇花苞（用户 11-26：锚桩像子弹 → 晶体 / 花苞形，样板 v3）：贴图 34×44，原点在底座；熄 = 压暗
-func _bud(w, p: Vector2, lit: float, s := 1.0) -> void:
+func _bud(w, p: Vector2, lit: float, s := 1.0, gold := false) -> void:
 	w.tb_flush()
 	var tx: ImageTexture = bul.bud()
 	var sz2 := Vector2(34, 44) * PX * s
+	if gold:
+		# 金色描边 + 心跳（docs/142b §1 第 2 条）：同一张贴图染金、按心跳放大一圈垫在下面，轮廓跟花苞走
+		var hb: float = _beat(g.t)
+		var gs: Vector2 = sz2 * (1.1 + 0.06 * hb)
+		g.wcv.draw_texture_rect(bul.bud_sil(), Rect2(_snap(p - Vector2(gs.x * 0.5, gs.y - 6.0 * s * 1.1)), gs), false, Color(GOLD.r * (1.0 + 0.3 * hb), GOLD.g * (1.0 + 0.3 * hb), GOLD.b * (1.0 + 0.2 * hb)))
 	var c: Color = Color(0.55, 0.52, 0.62).lerp(Color.WHITE, clampf(lit, 0.0, 1.0))
 	g.wcv.draw_texture_rect(tx, Rect2(_snap(p - Vector2(sz2.x * 0.5, sz2.y - 6.0 * s)), sz2), false, c)
 
@@ -1910,11 +1915,12 @@ func _final_front(w, cv, now: float) -> void:
 			elif not on:
 				d["fx_t0"] = -1.0
 			if ready and not on and float(d.charge) < 0.0:
-				_gold_beat(w, PackedVector2Array([d.pos + Vector2(-20, -4), d.pos + Vector2(20, -4), d.pos + Vector2(24, -30), d.pos + Vector2(18, -50), d.pos + Vector2(0, -70), d.pos + Vector2(-18, -50), d.pos + Vector2(-24, -30)]), d.pos + Vector2(0, -36), now)   # 花苞轮廓
+				d["fx_gold"] = true   # 能启动：花苞轮廓金色描边 + 心跳（_bud 里按贴图本身放大垫底）
 			var lit: float = 1.0 if (ready or on) else 0.0
 			if float(d.charge) > 0.0:
 				lit = clampf(1.0 - (float(d.charge) - now), 0.3, 1.0)
-			_bud(w, d.pos, lit, 1.0)
+			_bud(w, d.pos, lit, 1.0, d.get("fx_gold", false))
+			d["fx_gold"] = false
 			if float(d.charge) > 0.0:
 				# 充能 1 秒：晶尖上方一道光柱慢慢往上长、越来越粗
 				var ck: float = clampf(1.0 - (float(d.charge) - now), 0.0, 1.0)

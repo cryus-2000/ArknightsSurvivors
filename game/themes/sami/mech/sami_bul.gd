@@ -34,6 +34,7 @@ const KIND := {
 var cache := {}
 var queue: Array = []
 var _bud: ImageTexture
+var _bud_sil: ImageTexture
 
 
 func has_type(t: String) -> bool:
@@ -316,3 +317,18 @@ func bud() -> ImageTexture:
 						img2.set_pixel(i, j, Color(FROST, 0.8))
 	_bud = ImageTexture.create_from_image(img2)
 	return _bud
+
+
+## 花苞白剪影（金色描边垫底用：染成金色、放大一圈画在花苞下面）
+func bud_sil() -> ImageTexture:
+	if _bud_sil != null:
+		return _bud_sil
+	var img: Image = bud().get_image()
+	for j in img.get_height():
+		for i in img.get_width():
+			if img.get_pixel(i, j).a > 0.9:
+				img.set_pixel(i, j, Color.WHITE)
+			else:
+				img.set_pixel(i, j, Color(0, 0, 0, 0))
+	_bud_sil = ImageTexture.create_from_image(img)
+	return _bud_sil
