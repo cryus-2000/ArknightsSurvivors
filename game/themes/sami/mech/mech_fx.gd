@@ -1827,8 +1827,8 @@ func _cres_field(cv, now: float) -> void:
 			for k in 6:
 				var a: Vector2 = c + (_cres_ring(c, k, gy) - c) * sp
 				var b: Vector2 = c + (_cres_ring(c, (k + 1) % 6, gy) - c) * sp
-				_band_tex(cv, lil_band, c, a, 10.0, 0.5 * al)
-				_band_tex(cv, lil_band, a, b, 13.0, 0.6 * al)
+				_band_tex(cv, lil_band, c, a, 26.0, 0.28 * al)   # 宽而淡，读成场地纹理不读成细线（协调人 11-26：淡紫细弧线）
+				_band_tex(cv, lil_band, a, b, 28.0, 0.32 * al)
 			var pulse: float = fmod(now - t0, 1.2) / 1.2
 			for k in 6:
 				var a2: Vector2 = c + (_cres_ring(c, k, gy) - c) * pulse * sp
