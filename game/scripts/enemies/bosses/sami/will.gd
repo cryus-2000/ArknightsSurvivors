@@ -58,6 +58,13 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		e["trees"] = []
 		for p in [Vector2(-240, -40), Vector2(0, 70), Vector2(240, -40), Vector2(-130, 200), Vector2(130, 200)]:
 			e.trees.append({"pos": c + p, "hits": 0, "dead_t": -1.0, "orig": c + p})
+		e["tree_c"] = c
+	if (e.tree_c as Vector2).distance_to(c) > 1.0:   # 场地中心出场后才冻结到缩圈圆心（11-26 seed 1：银凇留在旧中心、离场地 600 px，一局砸不到）
+		var sh: Vector2 = c - (e.tree_c as Vector2)
+		for t in e.trees:
+			t.pos += sh
+			t.orig += sh
+		e.tree_c = c
 	for t in e.trees:
 		if float(t.dead_t) > 0.0 and g.t - float(t.dead_t) > 20.0 and not e.get("fell", false):
 			t.dead_t = -1.0
@@ -124,6 +131,11 @@ func base_taken(e: Dictionary) -> float:
 
 ## ---- 冰凌列：以 x 为列（宽 80），从北往南每 0.2 秒落一根；碰到完好银凇 / 冰桩 / 冰峰就停，银凇记一次
 func _column(e: Dictionary, x: float, nm: String, delay := 0.0, pct := 0.12, aimed := true) -> void:
+	if aimed:
+		for t in _trees_alive(e):
+			if absf(g.ppos.x - t.pos.x) < SHADOW_HW and g.ppos.y > t.pos.y:
+				x = t.pos.x   # 队长躲在银凇身后：瞄队长的冰凌正落在这棵树上（站对了就一定砸得到，不靠提前量碰运气）
+				break
 	if not e.has("last_cols"):
 		e["last_cols"] = []
 	e.last_cols.append(x)
