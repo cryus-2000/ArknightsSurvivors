@@ -2078,7 +2078,7 @@ func _warn_final(w, cv, t: Dictionary, k: float, sd: int, ot: String) -> void:
 					for i in 6:
 						_crack_col(w, c, TAU * float(i) / 6.0 + float(sd % 7) * 0.3, r * 0.95, k, sd + i, WILLC[2], WILLC[0], 3.0)
 					_fin_tex()
-					var nn: int = clampi(int(TAU * r / 40.0), 8, 40)
+					var nn: int = clampi(int(TAU * r / 40.0), 8, 40) if r > 60.0 else 0   # 小落点（冰凌 r40、塌雪 r20…）只用冰裂纹（协调人 11-26：白细圆）
 					var hk: float = PI * clampf(k * 1.3, 0.0, 1.0)
 					for i in nn:
 						var a0w: float = -PI * 0.5 - hk + 2.0 * hk * float(i) / float(nn)
@@ -2792,6 +2792,7 @@ func _fin_front(w, cv, now: float) -> void:
 				_runner_pose(w, "beast", Vector2(lerpf(cp2.x + 600.0, float(ar2.x) + 20.0, k2), yy + 10.0), Vector2.LEFT, now, 1.0)
 	_draw_runners(w, now)
 	_draw_spikes(w, now)
+	_frozen_front(w)
 	w.tb_flush()
 
 
@@ -2852,6 +2853,37 @@ func _ice_pillar(w, p: Vector2, h: float, wd: float) -> void:
 	# 底部一圈碎冰块
 	for i in 3:
 		_ice_chunk(w, p + Vector2(-hw - 4 + (hw + 4) * float(i), 2), p.y + 2.0, 5.0, float(sd + i), 1.0)
+
+
+## 寒冷条 / 冻结（themes/sami/mech/mech_cold.draw_ground 调，协调人 11-26：脚下细弧 / 冻结细圈读成白细圆）：
+## 寒冷值 = 脚下一段连续霜带弧（冰带贴图，宽 6）；冻结 = 队长身上罩一块冰壳（冰晶块 + 霜点，不画圈）
+func cold_draw(cold: float, frozen: float) -> void:
+	_fin_tex()
+	var cv = g.wcv
+	var gy: float = g.combat.GROUND_Y
+	var p: Vector2 = g.ppos + Vector2(0, 6)
+	var k: float = clampf(cold / 100.0, 0.0, 1.0)
+	var n: int = int(24.0 * k)
+	for i in n:
+		var a0: float = -PI * 0.5 + TAU * float(i) / 24.0
+		var a1: float = -PI * 0.5 + TAU * float(i + 1) / 24.0
+		_band_tex(cv, ice_band, _gpoly_ring(p, 26.0, gy, a0), _gpoly_ring(p, 26.0, gy, a1), 6.0, 0.95)
+	if frozen > 0.0:
+		frozen_shell = frozen
+
+
+var frozen_shell := 0.0
+
+
+func _frozen_front(w) -> void:
+	if frozen_shell <= 0.0 or g.frozen_t <= 0.0:
+		frozen_shell = 0.0
+		return
+	var p: Vector2 = g.ppos
+	for q in [[Vector2(-14, -6), 13.0, 0.3], [Vector2(12, -12), 15.0, 1.4], [Vector2(-4, -34), 14.0, 2.2], [Vector2(10, -42), 10.0, 0.9], [Vector2(-12, -52), 9.0, 2.8]]:
+		_ice_chunk(w, p + q[0], p.y + q[0].y, float(q[1]), float(q[2]), 0.85)
+	if rng.randf() < 0.3:
+		_icefog(p + Vector2(rng.randf_range(-16, 16), -10), Vector2(0, -12), 0.6, 24.0, 0.6)
 
 
 ## 自然涌动：被冻住的队友罩在一块冰壳里（冰白半透 + 暗紫边），金色描边 + 心跳 = 冲过去救
@@ -2981,10 +3013,15 @@ func _shear(w, piv: Vector2, a: float, L: float) -> void:
 	var d := Vector2.from_angle(a)
 	var n := d.orthogonal()
 	var p0: Vector2 = piv + Vector2(0, -10)
-	w.tb_poly(PackedVector2Array([p0 - n * 20.0, p0 + d * L * 0.7 - n * 12.0, p0 + d * (L + 6.0), p0 + d * L * 0.7 + n * 12.0, p0 + n * 20.0]), LIL[0])
-	w.tb_poly(PackedVector2Array([p0 - n * 17.0, p0 + d * L * 0.7 - n * 9.0, p0 + d * L, p0 + d * L * 0.7 + n * 9.0, p0 + n * 17.0]), LIL[1])
-	w.tb_poly(PackedVector2Array([p0, p0 + d * L * 0.7 + n * 9.0, p0 + d * L, p0 + n * 17.0]), LIL[2])
-	w.tb_line(_snap(p0 + n * 13.0 + d * 10.0), _snap(p0 + d * (L - 10.0) + n * 2.0), LIL[4], 3.0)
+	# 暗紫晶刃（协调人 11-26：亮紫平涂长三角 → 降一档）：暗紫两面明暗 + 一道白芯中线 + 刃口淡紫细亮边，刃面随长度分段错色（晶体感）
+	w.tb_poly(PackedVector2Array([p0 - n * 18.0, p0 + d * L * 0.7 - n * 11.0, p0 + d * (L + 6.0), p0 + d * L * 0.7 + n * 11.0, p0 + n * 18.0]), Color(0.1, 0.04, 0.16))
+	w.tb_poly(PackedVector2Array([p0 - n * 15.0, p0 + d * L * 0.7 - n * 8.0, p0 + d * L, p0]), Color(0.24, 0.13, 0.36))
+	w.tb_poly(PackedVector2Array([p0, p0 + d * L, p0 + d * L * 0.7 + n * 8.0, p0 + n * 15.0]), Color(0.36, 0.22, 0.52))
+	for i in 4:
+		var f0: float = 0.12 + 0.2 * float(i)
+		w.tb_line(_snap(p0 + d * L * f0 - n * (15.0 - 9.0 * f0)), _snap(p0 + d * L * (f0 + 0.06)), Color(0.16, 0.08, 0.26), 2.0)
+	w.tb_line(_snap(p0 + n * 13.0 + d * 10.0), _snap(p0 + d * (L - 10.0) + n * 2.0), LIL[1], 2.0)
+	w.tb_line(_snap(p0 + d * 8.0), _snap(p0 + d * (L - 14.0)), Color(1, 1, 1), 2.0)
 
 
 ## 日晷：场中一根金橙晷针（光柱从针顶往上淡出），针影 = 暗褐楔形贴地转动，针脚一圈金黄刻度

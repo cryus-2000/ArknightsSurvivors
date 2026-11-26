@@ -91,7 +91,8 @@ func _freeze(zone: bool) -> void:
 	g.hurt_flash = maxf(g.hurt_flash, 0.12)
 	g.head_bar_t = 2.0
 	g.vfx.add_text(g.ppos + Vector2(0, -96), "冻结", Color(0.75, 0.92, 1.0), 18)
-	g.fx.append({"kind": "ring", "pos": g.ppos, "r": 34.0, "life": g.frozen_t, "max": g.frozen_t, "col": Color(0.7, 0.9, 1.0)})
+	if g.mech("fx") == null:   # 萨米 mech_fx 在：冻结画成冰壳（mech_fx.cold_draw），不画通用细圈（协调人 11-26）
+		g.fx.append({"kind": "ring", "pos": g.ppos, "r": 34.0, "life": g.frozen_t, "max": g.frozen_t, "col": Color(0.7, 0.9, 1.0)})
 	Sfx.play("skill", -6.0, 0.6)
 
 
@@ -151,6 +152,10 @@ func _zone_schedule(dt: float) -> bool:
 ## 寒冷条占位画法：队长脚下一段弧（寒冷值 / 100）
 func draw_ground(w) -> void:
 	if cold <= 0.0 and g.frozen_t <= 0.0:
+		return
+	var fxm = g.mech("fx")
+	if fxm != null and fxm.has_method("cold_draw"):
+		fxm.cold_draw(cold, g.frozen_t)   # 萨米：连续霜带弧 + 冻结冰壳（不画细弧 / 半透明圆）
 		return
 	var cv = g.wcv
 	var p: Vector2 = g.ppos + Vector2(0, 14)
