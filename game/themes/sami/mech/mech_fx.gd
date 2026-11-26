@@ -2866,8 +2866,8 @@ func _will_quake(w, cv, e: Dictionary, now: float) -> void:
 	# 平时冰甲 / 跪地破甲：本体外一层冰壳（多面冰晶、白棱高光），平时完整读成「打不动」；
 	# 跪地时冰壳裂成几块往外歪、裂缝发白，块间露出本体（受伤 ×2.2），8 秒里碎块慢慢掉光
 	var vuln: bool = float(e.get("tree_vuln", 0.0)) > now
-	var c: Vector2 = e.pos + Vector2(0, -float(e.r) * 0.9)
-	var R: float = float(e.r) * 1.45
+	var c: Vector2 = e.pos + Vector2(0, -float(e.r) * 1.35)   # 意志本体帧条约 160×110（e.r 40），冰壳要罩住整只
+	var R: float = float(e.r) * 2.4
 	var gyk := 0.85
 	var n := 8
 	if not vuln:
@@ -2876,12 +2876,12 @@ func _will_quake(w, cv, e: Dictionary, now: float) -> void:
 			var a: float = TAU * float(i) / float(n) + 0.2
 			pts.append(c + Vector2(cos(a), sin(a) * gyk) * R * (1.0 if i % 2 == 0 else 0.9))
 		w.tb_flush()
-		cv.draw_colored_polygon(pts, Color(0.72, 0.86, 1.0, 0.18))
+		cv.draw_colored_polygon(pts, Color(0.72, 0.86, 1.0, 0.24))
 		for i in n:
 			var a0: Vector2 = pts[i]
 			var a1: Vector2 = pts[(i + 1) % n]
-			w.tb_line(_snap(a0), _snap(a1), Color(0.14, 0.2, 0.34, 0.85), 4.0)
-			w.tb_line(_snap(a0), _snap(a1), Color(0.86, 0.95, 1.0, 0.9), 2.0)
+			w.tb_line(_snap(a0), _snap(a1), Color(0.14, 0.2, 0.34, 0.9), 6.0)
+			w.tb_line(_snap(a0), _snap(a1), Color(0.86, 0.95, 1.0, 0.95), 3.0)
 			if i % 2 == 0:
 				w.tb_line(_snap(a0), _snap(c + (a0 - c) * 0.35), Color(0.86, 0.95, 1.0, 0.35), 2.0)   # 冰面棱线
 		var gl: float = fmod(now * 0.7, 1.0)
