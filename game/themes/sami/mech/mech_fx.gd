@@ -2314,19 +2314,22 @@ func _obj_front(w, now: float) -> void:
 			if float(t.dead_t) > 0.0:
 				continue
 			var tp: Vector2 = t.pos
-			var tiers := [[-12.0, 26.0, -36.0], [-26.0, 21.0, -48.0], [-38.0, 15.0, -62.0]]   # 每层 [底 y, 半宽, 尖 y]
-			var trunk := PackedVector2Array([tp + Vector2(-4, 2), tp + Vector2(-4, -14), tp + Vector2(4, -14), tp + Vector2(4, 2)])
+			var tiers := [[-16.0, 36.0, -50.0], [-36.0, 29.0, -67.0], [-53.0, 21.0, -87.0]]   # 每层 [底 y, 半宽, 尖 y]（11-26 放大 1.4 倍）
+			var trunk := PackedVector2Array([tp + Vector2(-5, 2), tp + Vector2(-5, -18), tp + Vector2(5, -18), tp + Vector2(5, 2)])
 			_gold_beat(w, trunk, tp + Vector2(0, -6), now)
 			for tr in tiers:
 				_gold_beat(w, PackedVector2Array([tp + Vector2(-tr[1], tr[0]), tp + Vector2(0, tr[2]), tp + Vector2(tr[1], tr[0])]), tp + Vector2(0, (tr[0] + tr[2]) * 0.5), now)
-			w.tb_poly(PackedVector2Array([tp + Vector2(-6, 3), tp + Vector2(-6, -16), tp + Vector2(6, -16), tp + Vector2(6, 3)]), WILLC[0])
-			w.tb_poly(trunk, Color(0.4, 0.36, 0.5))
+			var TD := Color(0.12, 0.18, 0.3)    # 冰蓝银凇（11-26：原淡紫在亮雪地上太淡）：深蓝灰边 / 冰蓝暗面 / 冰白亮面
+			var TM := Color(0.46, 0.64, 0.86)
+			var TL := Color(0.8, 0.92, 1.0)
+			w.tb_poly(PackedVector2Array([tp + Vector2(-7, 3), tp + Vector2(-7, -20), tp + Vector2(7, -20), tp + Vector2(7, 3)]), TD)
+			w.tb_poly(trunk, Color(0.3, 0.32, 0.42))
 			for tr in tiers:
-				w.tb_poly(PackedVector2Array([tp + Vector2(-tr[1] - 3.0, tr[0] + 2.0), tp + Vector2(0, tr[2] - 3.0), tp + Vector2(tr[1] + 3.0, tr[0] + 2.0)]), WILLC[0])
-				w.tb_poly(PackedVector2Array([tp + Vector2(-tr[1], tr[0]), tp + Vector2(0, tr[2]), tp + Vector2(0, tr[0])]), WILLC[1])
-				w.tb_poly(PackedVector2Array([tp + Vector2(0, tr[0]), tp + Vector2(0, tr[2]), tp + Vector2(tr[1], tr[0])]), WILLC[2])
+				w.tb_poly(PackedVector2Array([tp + Vector2(-tr[1] - 3.0, tr[0] + 2.0), tp + Vector2(0, tr[2] - 3.0), tp + Vector2(tr[1] + 3.0, tr[0] + 2.0)]), TD)
+				w.tb_poly(PackedVector2Array([tp + Vector2(-tr[1], tr[0]), tp + Vector2(0, tr[2]), tp + Vector2(0, tr[0])]), TM)
+				w.tb_poly(PackedVector2Array([tp + Vector2(0, tr[0]), tp + Vector2(0, tr[2]), tp + Vector2(tr[1], tr[0])]), TL)
 				w.tb_poly(PackedVector2Array([tp + Vector2(-tr[1] * 0.9, tr[0] - 1.0), tp + Vector2(-tr[1] * 0.3, tr[0] - 6.0), tp + Vector2(tr[1] * 0.6, tr[0] - 3.0), tp + Vector2(tr[1] * 0.9, tr[0] - 1.0)]), WILLC[3])   # 积雪
-			w.tb_line(_snap(tp + Vector2(1, -16)), _snap(tp + Vector2(1, -56)), WILLC[3], 2.0)
+			w.tb_line(_snap(tp + Vector2(1, -20)), _snap(tp + Vector2(1, -78)), WILLC[3], 2.0)
 			for h in int(t.hits):
 				_crack_col(w, tp + Vector2(0, -30), PI * 0.5 + 1.2 * float(h) - 1.0, 18.0, 1.0, 50 + h, WILLC[3], WILLC[0], 2.0)
 	w.tb_flush()
@@ -2827,11 +2830,12 @@ func _will_quake(w, cv, e: Dictionary, now: float) -> void:
 		if dt0 > 0.0 and float(t.get("fx_dead", -1.0)) != dt0:
 			t["fx_dead"] = dt0
 			var tp: Vector2 = t.pos
-			for i in 12:
-				var a: float = -PI * 0.5 + rng.randf_range(-1.4, 1.4)
-				ice_debris.append([tp + Vector2(rng.randf_range(-14, 14), -rng.randf_range(10, 50)), Vector2.from_angle(a) * rng.randf_range(120.0, 300.0), now, rng.randf_range(0.6, 1.0), rng.randf_range(6.0, 13.0), rng.randf_range(-8.0, 8.0)])
-			for i in 5:
-				_icefog(tp + Vector2(rng.randf_range(-24, 24), -rng.randf_range(0, 40)), Vector2(rng.randf_range(-50, 50), -rng.randf_range(10, 40)), 0.9, 44.0, 0.85)
+			for i in 16:
+				var a: float = -PI * 0.5 + rng.randf_range(-1.5, 1.5)
+				ice_debris.append([tp + Vector2(rng.randf_range(-20, 20), -rng.randf_range(10, 70)), Vector2.from_angle(a) * rng.randf_range(160.0, 360.0), now, rng.randf_range(0.7, 1.1), rng.randf_range(10.0, 18.0), rng.randf_range(-8.0, 8.0)])
+			for i in 6:
+				_icefog(tp + Vector2(rng.randf_range(-30, 30), -rng.randf_range(0, 60)), Vector2(rng.randf_range(-70, 70), -rng.randf_range(10, 50)), 1.0, 88.0, 0.9)
+			white_flash.append([tp + Vector2(0, -40), now])
 			sparks(tp + Vector2(0, -30), -PI * 0.5, 1.6, 16, 360.0, [Color.WHITE, WILLC[3], ICEL[1], Color(0.45, 0.62, 0.9)], true, 0.4)
 	var keep: Array = []
 	for d in ice_debris:
@@ -2847,6 +2851,7 @@ func _will_quake(w, cv, e: Dictionary, now: float) -> void:
 		var al: float = clampf((float(d[3]) + 0.4 - age) / 0.4, 0.0, 1.0)
 		_ice_chunk(w, q, q.y, float(d[4]), float(d[5]) * ta, al)
 	ice_debris = keep
+	_draw_white_flash(w, now)
 	var home_y: float = e.pos.y
 	var kneel: bool = float(e.get("kneel_until", 0.0)) > now
 	var kp = e.get("kneel_pos")
@@ -2890,9 +2895,17 @@ func _will_quake(w, cv, e: Dictionary, now: float) -> void:
 		w.tb_poly(PackedVector2Array([gp + Vector2(-6, 0), gp + Vector2(0, -2), gp + Vector2(6, 0), gp + Vector2(0, 2)]), Color.WHITE)
 	elif kneel:
 		var left: float = float(e.kneel_until) - now
-		var shown: int = clampi(int(ceil(left / 8.0 * float(n))), 0, n)
+		var shown: int = clampi(int(ceil(left / 8.0 * float(n - 4))), 0, n - 4)   # 破甲瞬间先崩 4 块，剩下的按剩余时间掉
+		# 金色描边 + 心跳（docs/142b §1.2「要去打的目标」）：剩余时间越少描边越暗、心跳越快
+		var hb: float = _beat(now * (1.0 + (8.0 - left) / 8.0))
+		var gk: float = 0.55 + 0.45 * clampf(left / 8.0, 0.0, 1.0)
+		e["sfx_rim"] = Color(GOLD.r * (1.4 + 1.2 * hb) * gk, GOLD.g * (1.4 + 1.2 * hb) * gk, GOLD.b * (1.3 + 0.8 * hb) * gk, 0.9)
 		if not e.get("fx_crack", false):
 			e["fx_crack"] = true
+			e["fx_shown"] = n - 4
+			for i in range(n - 4, n):
+				var ai2: float = TAU * (float(i) + 0.5) / float(n) + 0.2
+				ice_debris.append([c + Vector2(cos(ai2), sin(ai2) * gyk) * R, Vector2(cos(ai2), sin(ai2)) * rng.randf_range(160.0, 260.0) + Vector2(0, -120), now, 0.9, 16.0, rng.randf_range(-7.0, 7.0)])
 			sparks(c, -PI * 0.5, PI, 18, 300.0, [Color.WHITE, ICEL[0], ICEL[2], Color(0.45, 0.62, 0.9)], true, 0.4)
 			for i in 6:
 				_icefog(c + Vector2.from_angle(TAU * float(i) / 6.0) * R * 0.7, Vector2.from_angle(TAU * float(i) / 6.0) * 60.0, 0.7, 34.0, 0.8)
@@ -2915,11 +2928,30 @@ func _will_quake(w, cv, e: Dictionary, now: float) -> void:
 	else:
 		e["fx_crack"] = false
 		e["fx_shown"] = n
+	if not kneel:
+		e.erase("sfx_rim")
 	if kneel and kp is Dictionary:
 		pass
 
 
 var snow_furrows: Array = []   # 意志滑行犁出的雪沟 [a, b, t0]（地面层）
+var white_flash: Array = []    # 银凇碎裂的短促冰白闪 [位置, t0]（0.15 秒四芒星 + 白圆）
+
+
+func _draw_white_flash(w, now: float) -> void:
+	var keep: Array = []
+	for f in white_flash:
+		var age: float = now - float(f[1])
+		if age > 0.15:
+			continue
+		keep.append(f)
+		var k: float = 1.0 - age / 0.15
+		var p: Vector2 = f[0]
+		var L: float = 70.0 * (0.6 + 0.4 * k)
+		w.tb_circle(p, 26.0 * k + 6.0, Color(1, 1, 1, 0.85 * k), 1.0, 16)
+		w.tb_poly(PackedVector2Array([p + Vector2(0, -L), p + Vector2(6, 0), p + Vector2(0, L), p + Vector2(-6, 0)]), Color(1, 1, 1, k))
+		w.tb_poly(PackedVector2Array([p + Vector2(-L, 0), p + Vector2(0, -6), p + Vector2(L, 0), p + Vector2(0, 6)]), Color(1, 1, 1, k))
+	white_flash = keep
 
 
 func _ice_stake(w, p: Vector2, h: float, wd: float) -> void:

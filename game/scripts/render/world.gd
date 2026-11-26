@@ -3034,6 +3034,10 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		g.wcv.draw_circle(e.pos, e.r * (1.3 + 0.5 * hb), Color(PART_COL.r * 1.4, PART_COL.g * 1.4, PART_COL.b * 1.4, 0.22 + 0.3 * hb))
 		if not Cfg.outline and g.tex.has(name + "_white"):
 			_spr_outline(name, frames, frame, bpos, sc, flip, Color(PART_COL.r * 2.0, PART_COL.g * 2.0, PART_COL.b * 2.0, 0.8), anc, sq)
+	var srim = e.get("sfx_rim")   # 主题机制要求的本体描边（萨米意志震落跪地：金色描边 + 心跳 = 现在去打，themes/sami/mech/mech_fx._will_quake 写，纯画面）
+	if srim is Color and g.tex.has(name + "_white"):
+		_espr_outline(name, frames, frame, bpos, sc, flip, srim, anc, sq)
+		_espr_outline(name, frames, frame, bpos + Vector2(0, -2), sc, flip, srim, anc, sq)
 	# 描边只给 Boss 和部件（docs/50 §12 A：普通怪 / 精英取消描边，少一层贴图切换）
 	# 精英冷色描边（render/elite_rim）不受「Boss 轮廓光」开关影响
 	# enemies.json no_outline（萨米陷落雪祀 / 纠缠藤蔓 / 空洞雪祀 / 古老藤蔓，11-25）：细枝 / 藤蔓镂空多，1 像素白描边把缝全填白、成一片白点阵，这几只不画 Boss 白描边
