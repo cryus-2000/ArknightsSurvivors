@@ -541,7 +541,7 @@ func _dial_ring(e: Dictionary, _dir: Vector2, _d: float) -> float:
 				var a: float = TAU * i / 24.0
 				if absf(angle_difference(a, ga)) < TAU / 48.0 + 0.01:
 					continue
-				_lion_shot(e, e.pos + Vector2.from_angle(a) * 80.0, a, 160.0, 1, 0.13, {"hold": 0.5, "life": 3.8}))
+				_lion_shot(e, e.pos + Vector2.from_angle(a) * 80.0, a, 160.0, 1, 0.13, {"hold": 0.5, "life": 3.8, "small": true}))
 	return 2.4
 
 
@@ -757,7 +757,7 @@ func _duel(e: Dictionary, m) -> void:
 		e.hold_pos = e.pos
 		m.hold_pos = m.pos
 		g.vfx.shake_screen(0.3)
-		ring(e, x, 56, 200.0, 2, 0.15, gaps, 0.0, {"life": 1.9})
+		ring(e, x, 56, 200.0, 2, 0.15, gaps, 0.0, {"life": 1.9, "small": true})
 		vuln(e, 1.5, 1.3 / GUARD)
 		vuln(m, 1.5, 1.3 / GUARD)
 		g.combat.start_break(e, 1.5)

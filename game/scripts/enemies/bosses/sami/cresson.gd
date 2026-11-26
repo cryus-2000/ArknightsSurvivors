@@ -269,8 +269,8 @@ func _bloom(e: Dictionary, p: Vector2, nm: String) -> void:
 	if nm != "":
 		e.move_name = nm
 		e.move_t = g.t
-	ring(e, p, 44, 150.0, 2, 0.13, gaps, 0.0, {"hold": 0.9, "life": 4.4})
-	ring(e, p, 44, 115.0, 1, 0.10, gaps, PI / 44.0, {"hold": 1.2, "life": 5.6})   # 第二层慢一档、错半格（11-26 加密）
+	ring(e, p, 44, 150.0, 2, 0.13, gaps, 0.0, {"hold": 0.9, "life": 4.4, "small": true})
+	ring(e, p, 44, 115.0, 1, 0.10, gaps, PI / 44.0, {"hold": 1.2, "life": 5.6, "small": true})   # 第二层慢一档、错半格（11-26 加密）
 
 
 ## 萌发：每块苗圃长出一朵紫花（10 秒），队长走到 160 内时花朝他喷一口花粉（30° 小扇，0.6 秒花抖）

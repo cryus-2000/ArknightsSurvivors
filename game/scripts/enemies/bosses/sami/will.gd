@@ -202,7 +202,7 @@ func _wave_go(e: Dictionary, a: float) -> void:
 	for wv in 2:   # 两层弧面（第二层错开半格、晚 0.4 秒），11-26 加密
 		for i in 21:
 			var aa: float = a + lerpf(-PI / 6.0, PI / 6.0, (i + 0.5 * wv) / 20.5)
-			shot(e, e.pos + Vector2.from_angle(aa) * 40.0, aa, 150.0, 2 if wv == 0 else 1, 0.15, {"life": 5.0, "hold": 0.4 * wv})
+			shot(e, e.pos + Vector2.from_angle(aa) * 40.0, aa, 150.0, 2 if wv == 0 else 1, 0.15, {"life": 5.0, "hold": 0.4 * wv, "small": true})
 
 
 ## 冰凌林：队长周围 12 根冰凌落地插成两排交错冰桩（间距 ≥80），立 5 秒：挡路、挡冰凌

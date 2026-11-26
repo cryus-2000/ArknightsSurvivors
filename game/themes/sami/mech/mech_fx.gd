@@ -26,6 +26,7 @@ const ICEL := [Color(0.97, 0.99, 1.0), Color(0.78, 0.93, 1.0), Color(0.58, 0.82,
 const BLOOD := [Color(0.04, 0.0, 0.0), Color(0.62, 0.0, 0.0), Color(1.0, 0.17, 0.11), Color(1.0, 0.58, 0.26)]
 
 var g: Game
+var bul = preload("res://themes/sami/mech/sami_bul.gd").new()   # 萨米 Boss 弹体贴图（样板 v3，docs/401 §19）
 var tex := {}
 var meta := {}
 var strips: Array = []       # [键, 位置, 角度, 出生 t, 缩放]
@@ -426,6 +427,7 @@ func draw_front(w) -> void:
 	var cv = g.wcv
 	var now: float = g.t
 	_tick_rush(now)
+	bul.tick()
 	_own_bullets(cv, now)
 	puffs = _draw_puffs(cv, puffs, now)
 	_blade_front(w, now)
@@ -514,6 +516,9 @@ func _own_bullets(cv, now: float) -> void:
 		if b.life <= 0.0:
 			continue
 		var st: String = str(b.get("src_type", ""))
+		if b.get("mc", false) and bul.has_type(st):
+			_sami_bullet(cv, b, st)
+			continue
 		var kind: String = OWN.get(st, "")
 		if kind == "":
 			continue
@@ -587,6 +592,33 @@ func _own_bullets(cv, now: float) -> void:
 				if rng.randf() < 0.5:
 					_add(base, -v * 0.2 + nrm * rng.randf_range(-30, 30), 0.25, BLOOD[rng.randi_range(2, 3)], 2.0, 2)
 
+
+
+## 萨米 Boss 弹（用户 11-26 通过样板 v3）：白芯 + 原作意象形状 + 霜气贴图，按飞行方向取 16 向之一；
+## 尺寸：主力 24 / 米弹叶形 24×13 / 月牙 22；成片铺满的招（b.sfx_small，sami_boss.shot 的 small）和 tier 0 用 19；显形期（hold）淡入 + 由小变大
+func _sami_bullet(cv, b: Dictionary, st: String) -> void:
+	if not b.get("sfx_seen", false):
+		b["sfx_seen"] = true
+		b["own_draw"] = true
+		b["sfx_own"] = true
+		bul.warm(st)
+	var v: Vector2 = b.vel
+	if v.length_squared() < 1.0:
+		v = b.get("v0", Vector2.RIGHT)
+	var a: float = v.angle()
+	var crescent: bool = st == "blade" or st == "wanderer"
+	var sz: int = 22 if crescent else (19 if (b.get("sfx_small", false) or int(b.get("tier", 1)) == 0) else 24)
+	var tx: ImageTexture = bul.tex(st, sz, a)
+	var k: float = 1.0
+	var al: float = 1.0
+	var hold: float = float(b.get("hold", 0.0))
+	if hold > 0.0 and float(b.get("age", 0.0)) < hold:
+		var u: float = clampf(float(b.age) / hold, 0.0, 1.0)
+		k = 0.6 + 0.4 * u
+		al = 0.35 + 0.65 * u
+	var sz2: Vector2 = Vector2(tx.get_width(), tx.get_height()) * PX * k
+	var bp: Vector2 = b.pos + Vector2(0, -16)
+	cv.draw_texture_rect(tx, Rect2(_snap(bp - sz2 * 0.5), sz2), false, Color(1, 1, 1, al))
 
 
 ## 月牙片：前凸后凹，d 朝前、nrm 朝凸面
@@ -1093,25 +1125,14 @@ func _blade_front(w, now: float) -> void:
 ## ---- 利刃 / 游荡者 11-26 新招画面（docs/393 §11.2：伤人的都是本体或它手里的刃）
 ## 大刃片（投刃·切雾）：沿飞行方向的重刃贴地低飞，刃尖朝前，地上一道影子，身后犁出黑雾
 func _thrown(w, x: Dictionary, t: float, hold: float) -> void:
+	# 投刃大刃片（用户 11-26 样板 v3）：月牙刃 32 贴图（白刃口 + 暗红刃身 + 身后黑烟 + 霜点），朝飞行方向
 	var dv: Vector2 = x.vel.normalized() if x.vel.length() > 1.0 else Vector2.from_angle(float(x.get("ang", 0.0)))
-	var nv: Vector2 = dv.orthogonal()
-	var R: float = float(x.r)
-	var c: Vector2 = x.pos + Vector2(0, -10)
-	var L: float = R * 1.6
-	var Wb: float = R * 0.42
-	w.tb_quad(_snap(x.pos - dv * L * 0.9 + nv * 4.0), _snap(x.pos + dv * L * 0.9 + nv * 4.0), _snap(x.pos + dv * L * 0.9 - nv * 4.0), _snap(x.pos - dv * L * 0.9 - nv * 4.0), Color(0.3, 0.3, 0.36, 0.5))
-	var body := PackedVector2Array([c + dv * L, c + dv * L * 0.25 + nv * Wb, c - dv * L * 0.85 + nv * Wb * 0.7, c - dv * L, c - dv * L * 0.85 - nv * Wb * 0.5, c + dv * L * 0.25 - nv * Wb * 0.6])
-	var big := PackedVector2Array()
-	for q in body:
-		big.append(c + (q - c) * 1.12)
-	w.tb_poly(big, OLC)
-	w.tb_poly(body, BK)
-	w.tb_poly(PackedVector2Array([c + dv * L, c + dv * L * 0.25 + nv * Wb, c - dv * L * 0.85 + nv * Wb * 0.7, c - dv * L * 0.7 + nv * Wb * 0.35, c + dv * L * 0.2 + nv * Wb * 0.55]), BLOOD[2])
-	w.tb_line(_snap(c - dv * L * 0.6 + nv * Wb * 0.2), _snap(c + dv * (L - 6.0)), Color(1.0, 0.95, 0.92), 2.0)
+	var tx: ImageTexture = bul.tex("blade", 32, dv.angle())
+	var sz2 := Vector2(tx.get_width(), tx.get_height()) * PX
+	w.tb_flush()
+	g.wcv.draw_texture_rect(tx, Rect2(_snap(x.pos + Vector2(0, -12) - sz2 * 0.5), sz2), false)
 	if t >= hold:
-		_fog(x.pos - dv * L, 1, 0.55, 0.0, true, 0.9, -x.vel * 0.15)
-		if rng.randf() < 0.4:
-			sparks(x.pos, x.vel.angle() + PI, 0.5, 1, 140.0, BLOOD)
+		_fog(x.pos - dv * 30.0, 1, 0.55, 0.0, true, 0.9, -x.vel * 0.15)
 
 
 ## 预警外弧：一道连续的暗红斩痕弧（暗边 + 深红芯，中间厚两头尖），k 0→1 从中间往两头长
@@ -1740,6 +1761,15 @@ func _anchor_shape(p: Vector2, s: float) -> PackedVector2Array:
 
 ## 克雷松锚桩（协调人 11-25 退回：别像散落的子弹，要做成「设施」）：暗石底座（八角台） + 两面明暗的石柱 + 顶上淡紫晶尖，
 ## 和停驻点 / 银凇同一档体量（高约 60）；lit 0 = 熄（晶尖暗紫）→ 1 = 亮（晶尖淡紫白 + 柱身紫纹）
+## 稳定设施晶簇花苞（用户 11-26：锚桩像子弹 → 晶体 / 花苞形，样板 v3）：贴图 34×44，原点在底座；熄 = 压暗
+func _bud(w, p: Vector2, lit: float, s := 1.0) -> void:
+	w.tb_flush()
+	var tx: ImageTexture = bul.bud()
+	var sz2 := Vector2(34, 44) * PX * s
+	var c: Color = Color(0.55, 0.52, 0.62).lerp(Color.WHITE, clampf(lit, 0.0, 1.0))
+	g.wcv.draw_texture_rect(tx, Rect2(_snap(p - Vector2(sz2.x * 0.5, sz2.y - 6.0 * s)), sz2), false, c)
+
+
 func _anchor(w, p: Vector2, lit: float, s := 1.0) -> void:
 	w.tb_poly(_anchor_shape(p, s * 1.06), OLC)
 	w.tb_poly(PackedVector2Array([p + Vector2(-20, 3) * s, p + Vector2(-18, -6) * s, p + Vector2(18, -6) * s, p + Vector2(20, 3) * s]), Color(0.14, 0.15, 0.2))
@@ -1884,11 +1914,11 @@ func _final_front(w, cv, now: float) -> void:
 			var lit: float = 1.0 if (ready or on) else 0.0
 			if float(d.charge) > 0.0:
 				lit = clampf(1.0 - (float(d.charge) - now), 0.3, 1.0)
-			_anchor(w, d.pos, lit, 1.25)
+			_bud(w, d.pos, lit, 1.0)
 			if float(d.charge) > 0.0:
 				# 充能 1 秒：晶尖上方一道光柱慢慢往上长、越来越粗
 				var ck: float = clampf(1.0 - (float(d.charge) - now), 0.0, 1.0)
-				_pillar(cv, d.pos + Vector2(0, -74), 260.0 * ck * ck, 14.0 + 26.0 * ck, 0.5 + 0.5 * ck)
+				_pillar(cv, d.pos + Vector2(0, -80), 260.0 * ck * ck, 14.0 + 26.0 * ck, 0.5 + 0.5 * ck)
 				if rng.randf() < 0.6:
 					var aq: float = rng.randf() * TAU
 					_add(d.pos + Vector2(cos(aq), sin(aq) * gy) * 50.0, (Vector2(0, -60) - Vector2(cos(aq), sin(aq) * gy) * 40.0), 0.6, LIL[3], 2.0, 0)
@@ -1897,13 +1927,13 @@ func _final_front(w, cv, now: float) -> void:
 				var al: float = clampf(left / 0.5, 0.0, 1.0)
 				var up: float = clampf((now - float(d.fx_t0)) / 0.35, 0.0, 1.0)
 				up = 1.0 - (1.0 - up) * (1.0 - up)
-				_pillar(cv, d.pos + Vector2(0, -74), 260.0 * up, 40.0, al * (0.85 + 0.15 * sin(now * 9.0)))
+				_pillar(cv, d.pos + Vector2(0, -80), 260.0 * up, 40.0, al * (0.85 + 0.15 * sin(now * 9.0)))
 				for k in 6:
 					var ap: Vector2 = _cres_ring(d.pos, k, gy)
 					var uk: float = clampf((now - float(d.fx_t0) - 0.05 * float(k)) / 0.35, 0.0, 1.0)
 					uk = 1.0 - (1.0 - uk) * (1.0 - uk)
-					_anchor(w, ap, al, 1.0)
-					_pillar(cv, ap + Vector2(0, -60), (170.0 + 14.0 * sin(now * 5.0 + float(k))) * uk, 28.0, al * 0.9)
+					_bud(w, ap, al, 0.8)
+					_pillar(cv, ap + Vector2(0, -64), (170.0 + 14.0 * sin(now * 5.0 + float(k))) * uk, 28.0, al * 0.9)
 					if rng.randf() < 0.3 * al:
 						_fog(ap, 1, 0.6, 0.0, true, 0.6, Vector2(0, -10))
 				if rng.randf() < 0.7 * al:
@@ -2300,6 +2330,8 @@ const PAL := {
 
 
 func final_draw(e: Dictionary) -> void:
+	if not fin_list.has(int(e.id)):
+		bul.warm(str(e.type))
 	fin_list[int(e.id)] = [e, g.t]
 
 

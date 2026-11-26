@@ -32,7 +32,10 @@ func act_i(e: Dictionary) -> int:
 func shot(e: Dictionary, pos: Vector2, ang: float, spd: float, tier: int, pct: float, o := {}) -> void:
 	var o2: Dictionary = o.duplicate()
 	o2["mult"] = pd(e, pct) / maxf(0.01, e.dmg) / maxf(0.01, Bal.v("boss/mid_pattern_dmg", 0.7) * Bal.v("enemy/bullet_dmg_mult", 0.75))
+	var n0: int = g.ebullets.size()
 	MC.shot(g, e, pos, ang, spd, tier, o2)
+	if o.get("small", false) and g.ebullets.size() > n0:
+		g.ebullets[g.ebullets.size() - 1]["sfx_small"] = true   # 画面：成片铺满的招用 19 号小弹（docs/401 §19）
 
 
 func ring(e: Dictionary, c: Vector2, n: int, spd: float, tier: int, pct: float, gaps: Array = [], a0 := 0.0, o := {}) -> void:
@@ -269,12 +272,12 @@ func ambient(e: Dictionary, dt: float, kind: String) -> void:
 				e.amb_acc = float(e.amb_acc) - 0.14
 				k += 1
 				var x: float = c.x + (float((k * 7919) % 1000) / 1000.0 * 2.0 - 1.0) * ar
-				shot(e, Vector2(x, c.y - ar * 0.55), PI * 0.5 + (float((k * 31) % 7) - 3.0) * 0.04, 90.0, 1, 0.03, {"life": 9.5})
+				shot(e, Vector2(x, c.y - ar * 0.55), PI * 0.5 + (float((k * 31) % 7) - 3.0) * 0.04, 90.0, 1, 0.03, {"life": 9.5, "small": true})
 		"shard":
 			while float(e.amb_acc) >= 1.3:   # 每 1.3 秒一圈 14 片，速 80，朝队长留缺口
 				e.amb_acc = float(e.amb_acc) - 1.3
 				k += 1
-				ring(e, e.pos, 14, 80.0, 1, 0.04, [(g.ppos - e.pos).angle()], float(k) * 0.26, {"life": 6.0})
+				ring(e, e.pos, 14, 80.0, 1, 0.04, [(g.ppos - e.pos).angle()], float(k) * 0.26, {"life": 6.0, "small": true})
 		"petal":
 			while float(e.amb_acc) >= 0.25:   # 每秒 4 片，从苗圃（没有就从本体）飘出、打旋
 				e.amb_acc = float(e.amb_acc) - 0.25
@@ -285,7 +288,7 @@ func ambient(e: Dictionary, dt: float, kind: String) -> void:
 					var ns: Array = km.list.filter(func(x): return x.kind == "nursery")
 					if not ns.is_empty():
 						src = ns[k % ns.size()].pos
-				shot(e, src, float((k * 137) % 360) * PI / 180.0, 70.0, 1, 0.04, {"turn": 0.8 if k % 2 == 0 else -0.8, "life": 7.0})
+				shot(e, src, float((k * 137) % 360) * PI / 180.0, 70.0, 1, 0.04, {"turn": 0.8 if k % 2 == 0 else -0.8, "life": 7.0, "small": true})
 		"sand":
 			while float(e.amb_acc) >= 1.6:   # 每 1.6 秒一行 7 粒，自西向东 110，行内留一个空位
 				e.amb_acc = float(e.amb_acc) - 1.6
@@ -295,7 +298,7 @@ func ambient(e: Dictionary, dt: float, kind: String) -> void:
 					if i == gap_i:
 						continue
 					var y: float = c.y - ar * 0.85 + ar * 1.7 * (float(i) + 0.5) / 7.0 + float(k % 3) * 20.0
-					shot(e, Vector2(c.x - ar - 20.0, y), 0.0, 110.0, 1, 0.04, {"life": 9.8})
+					shot(e, Vector2(c.x - ar - 20.0, y), 0.0, 110.0, 1, 0.04, {"life": 9.8, "small": true})
 	e["amb_n"] = k
 
 
