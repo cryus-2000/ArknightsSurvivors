@@ -2129,7 +2129,10 @@ func _warn_final(w, cv, t: Dictionary, k: float, sd: int, ot: String) -> void:
 				return   # 不伤人的出口 / 标记线：只铺一条淡纹理带，不画裂缝
 			var cc: Color = {"will": WILLC[2], "lead": TEALC[3], "cresson": LIL[2], "khan": KHAN[2], "lion": LUKA}.get(ot, BLOOD[1])
 			var ce: Color = {"will": WILLC[0], "lead": OLC, "cresson": LIL[0], "khan": SANDC[0], "lion": LUKA_D}.get(ot, OLC)
-			_crack_col(w, c, float(t.ang), L, k, sd, cc, ce, 5.0)
+			if ot == "cresson":
+				_band_tex(cv, lil_band, c, c + d0 * L * k, hw * 0.45, 0.35 + 0.3 * k)   # 克雷松线预警只用连续淡紫带（中线裂缝读成淡紫细弧线，协调人 11-26）
+			else:
+				_crack_col(w, c, float(t.ang), L, k, sd, cc, ce, 5.0)
 		"cone":
 			var r3: float = float(t.r)
 			var a0: float = float(t.ang) - float(t.half)
