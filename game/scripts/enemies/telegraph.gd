@@ -270,12 +270,8 @@ func warn_resolve(w: Dictionary) -> void:
 	_resolve(w)
 	var e: Dictionary = w.owner
 	if str(w.get("skin", "")) == "sami_blade":
-		# 萨米主题自画结算爆点（themes/sami/mech/mech_fx._warn_burst，docs/401 §18）：通用细环 / 光芒 / 一圈颗粒都不画（协调人 11-26：敕令粉圆盘 + 细同心环）
-		var keep: Array = g.fx.slice(0, n0)
-		for i in range(n0, g.fx.size()):
-			if not (str(g.fx[i].get("kind", "")) in ["ring", "rays", "final_impact"]):
-				keep.append(g.fx[i])
-		g.fx = keep
+		# 萨米主题自画结算爆点（themes/sami/mech/mech_fx._warn_burst，docs/401 §18）：通用细环 / 淡色圆盘 / 光芒 / 一圈颗粒都不画（协调人 11-26：敕令粉圆盘 + 细同心环、木裂泯灭冲白细圆）
+		g.fx = g.fx.slice(0, n0)   # 结算时通用加的画面（ring / explode 淡色圆盘 / tracer / rays …）全部不要，萨米自画
 		return
 	if e.get("boss", false) and Bal.v("render/boss_fx_grains", 1.0) > 0.0:
 		var bc: Color = g.vfx.boss_color(str(e.type))
