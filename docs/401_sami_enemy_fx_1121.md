@@ -397,3 +397,9 @@
 - 冰甲碎片环：will.gd 的 ring 加 small（画面标记），用萨米 19 号雪花小弹；判定不动。
 - 演示：`--moves=震落` 让队长站到最近银凇身后并直接砸碎（正式局靠瞄队长的冰凌）。录像 `sami_ai_will_quake_t2.mp4`（冰凌 + 震落，1 倍 30 帧静音，20 秒）。
 - 第二轮（协调人 11-26）：跪地 8 秒本体加金色描边 + 心跳（142b §1.2「要去打的目标」；world.gd 读 `e.sfx_rim`，四向偏移各画一遍描边加粗到约 2 格，剩余时间越少越暗、心跳越快）；破甲瞬间先崩 4 块冰壳飞出、剩下 4 块按剩余时间掉；银凇放大 1.4 倍、改冰蓝（深蓝灰边 / 冰蓝暗面 / 冰白亮面），碎裂碎冰块 10–18 像素 ×16、冰雾半径 88、加 0.15 秒冰白闪（四芒星 + 白圆）。录像 `sami_ai_will_quake_t4.mp4`。
+
+## 21. 意志像素贴图（用户 11-26：银凇是占位三角松 / 冰凌类平面矢量感）
+- 原作「积雪银凇」是关卡装置，本地没有它的原作贴图（PRTS 上次被人机验证拦下）；按口径用 pixgen（Vertex，gemini-3.1-flash-image）出图，参照萨米地图景物 prop_sami_tree 定画风，自写像素化（洋红抠图 → 每格众数 → 16 色 → 1 像素深色外描边）。
+- 资源 `game/themes/sami/fx/will/`（共约 40 KB）：`rime_tree.png` 23×42（= 46×84 世界像素）、`rime_tree_cracked.png`（白色分叉冰裂）、`rime_chunkNN.png` Voronoi 11 块 + `rime_chunks.json`；`icicle.png` 14×46、`icicle_chunkNN.png` 11 块 + `icicle_chunks.json`。原图在 `build/imagegen/sami_rime_tree/`、`build/imagegen/sami_icicle/`（不进 git）。
+- 画法（mech_fx `_wdraw / _shatter / _glints / glows`）：银凇贴图 + 白剪影染金放大垫底 = 金色描边心跳；击碎 = 贴图按 Voronoi 碎块带重力翻滚飞散（落到脚底停住、0.4 秒淡）+ 亮点闪烁 + 0.18 秒冰白照地光 + 冰雾；冰凌坠落 = 像素冰凌 + 两道残影 + 落影，落地 = 冰凌碎块 + 亮点 + 照地光 + 冰雾；冰凌林冰桩 = 同一根冰凌上下翻（尖朝上）按进度从地里顶出、到期碎块。意志其他有伤预警的结算爆点也改成冰凌碎块 + 冰雾 + 亮点（去平面三角尖刺），小落点去细裂纹只留落影 + 冰雾。同招元素：主形（冰凌 / 碎块）+ 冰雾 + 亮点 3 种。
+- 样板 `F:\sami_enemy_fx_ref\sami_rime_tree_1126.png`；录像 `sami_ai_will_icicle_t2.mp4`（冰凌连落 / 冰凌林 / 震落，24 秒）。
