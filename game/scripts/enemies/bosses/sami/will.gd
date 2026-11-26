@@ -3,6 +3,8 @@
 ## （银凇挡 2 次碎掉 → 意志受伤 ×1.5 持续 8 秒，平时 ×0.5「冰甲」，docs/392 §15.1；银凇原地塌落，20 秒后重新长出）。整只的读法：北边落、南边躲、银凇挡。
 ## 一幕：冰凌 ② / 冰凌连落 ② / 雪震 ① / 雪浪 ③ / 冰凌林（桩林）；二幕：自然涌动 / 冰凌双列 ② / 冻原 ④ / 鹿角 ② / 冰凌斜落 ②；银凇塌落（自动）；
 ## 三幕：暴风雪（北侧压下）/ 冰凌交叉 ② / 群山回响（回声）/ 冰峰 ①链 / 冰河 ②（弯曲）；叹息段（最后一道卡点后）：崩落 / 寒息 / 叹息（最后 3%）。
+## 震落（11-26 用户批改招式）：银凇被冰凌砸碎时，意志被震下山，滑到碎树原址北侧跪 8 秒（受伤 ×2.2、不出新招、周身每 1.2 秒碎冰甲一圈，朝队长留缺口），
+## 之后滑回北侧。会主轴 = 引冰凌砸树把意志拽到近战够得着的地方；不理主轴 = 意志一直留在北边，冰甲 ×0.25、近战够不着。
 ## 持续威压（不算招）：每幕开头和每次过卡点，本体阴影向南压到场地 1/3 处，1.2 秒，阴影里 10%。
 ## 画面全部占位（draw），正式特效交 fx-declutter。
 extends "res://scripts/enemies/bosses/sami/sami_boss.gd"
@@ -41,11 +43,28 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 	obst_tick(e)
 	ambient(e, dt, "snow")
 	var c: Vector2 = center(e)
-	e.pos = c + Vector2(0, -_ar(e) * 0.55)
+	var home: Vector2 = c + Vector2(0, -_ar(e) * 0.55)
+	var kneeling: bool = float(e.get("kneel_until", 0.0)) > g.t
+	if not e.has("home_set"):
+		e["home_set"] = true
+		e.pos = home
+	var tgt: Vector2 = (e.kneel_pos as Vector2) if kneeling else home
+	e.pos = e.pos.move_toward(tgt, 520.0 * dt)
+	if kneeling and g.t >= float(e.get("kneel_ring", 0.0)) and e.pos.distance_to(tgt) < 4.0:
+		e.kneel_ring = g.t + 1.2
+		e["kneel_k"] = int(e.get("kneel_k", 0)) + 1
+		ring(e, e.pos, 12, 80.0, 1, 0.03, [(g.ppos - e.pos).angle()], float(e.kneel_k) * 0.26, {"life": 6.0})
 	if not e.has("trees"):
 		e["trees"] = []
 		for p in [Vector2(-240, -40), Vector2(0, 70), Vector2(240, -40), Vector2(-130, 200), Vector2(130, 200)]:
 			e.trees.append({"pos": c + p, "hits": 0, "dead_t": -1.0, "orig": c + p})
+		e["tree_c"] = c
+	if (e.tree_c as Vector2).distance_to(c) > 1.0:   # 场地中心出场后才冻结到缩圈圆心（11-26 seed 1：银凇留在旧中心、离场地 600 px，一局砸不到）
+		var sh: Vector2 = c - (e.tree_c as Vector2)
+		for t in e.trees:
+			t.pos += sh
+			t.orig += sh
+		e.tree_c = c
 	for t in e.trees:
 		if float(t.dead_t) > 0.0 and g.t - float(t.dead_t) > 20.0 and not e.get("fell", false):
 			t.dead_t = -1.0
@@ -73,6 +92,8 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 	if not e.get("sighed", false) and e.hp <= e.maxhp * 0.03 and act_i(e) >= 3:
 		e.sighed = true
 		_sigh(e)
+	if kneeling or e.pos.distance_to(home) > 4.0:
+		return   # 震落 / 回山途中不出新招（已排好的冰凌照落）
 	pick(e, ready, dir, dist)
 
 
@@ -105,11 +126,16 @@ func all_moves(e: Dictionary) -> Array:
 
 ## 主轴收益（docs/392 §15.1 A「冰甲」）：平时受伤 ×0.5；银凇碎后 8 秒 ×1.5
 func base_taken(e: Dictionary) -> float:
-	return 0.25 if float(e.get("tree_vuln", 0.0)) <= g.t else 2.5
+	return 0.25 if float(e.get("tree_vuln", 0.0)) <= g.t else 2.2
 
 
 ## ---- 冰凌列：以 x 为列（宽 80），从北往南每 0.2 秒落一根；碰到完好银凇 / 冰桩 / 冰峰就停，银凇记一次
 func _column(e: Dictionary, x: float, nm: String, delay := 0.0, pct := 0.12, aimed := true) -> void:
+	if aimed:
+		for t in _trees_alive(e):
+			if absf(g.ppos.x - t.pos.x) < SHADOW_HW and g.ppos.y > t.pos.y:
+				x = t.pos.x   # 队长躲在银凇身后：瞄队长的冰凌正落在这棵树上（站对了就一定砸得到，不靠提前量碰运气）
+				break
 	if not e.has("last_cols"):
 		e["last_cols"] = []
 	e.last_cols.append(x)
@@ -143,12 +169,17 @@ func _lance_at(e: Dictionary, p: Vector2, nm: String, pct: float) -> void:
 func _tree_hit(e: Dictionary, t: Dictionary) -> void:
 	if float(t.dead_t) > 0.0:
 		return
+	if not (absf(g.ppos.x - t.pos.x) < SHADOW_HW and g.ppos.y > t.pos.y):
+		return   # 只有队长站在这棵树身后（借银凇）时砸碎才算，误砸不算（11-26 测试台：不理主轴也有 26% 时间在窗口里）
 	t.hits = int(t.hits) + 1
 	if t.hits >= 1:   # 11-26 测试台：挨 1 次就碎（2 次时窗口只占约 10%，会主轴拉不开）
 		t.dead_t = g.t
 		e["tree_vuln"] = g.t + 8.0
 		e["brk_len"] = 8.0
 		e["break_ring_until"] = g.t + 8.0
+		e["kneel_until"] = g.t + 8.0
+		e["kneel_pos"] = (t.orig as Vector2) + Vector2(0, -30)
+		e["kneel_ring"] = 0.0
 		_collapse_tree(e, t)
 
 
@@ -554,8 +585,10 @@ func draw(e: Dictionary, cv) -> void:
 			cv.draw_arc(o.pos, 30.0, 0.0, TAU, 20, Color(0.7, 0.9, 1.2), 4.0)
 
 
-## 机器人主轴：站到最近一棵完好银凇正南 70（冰凌瞄队长这一列落下，先砸到银凇）；队友被冻时冲过去
+## 机器人主轴：站到最近一棵完好银凇正南 70（冰凌瞄队长这一列落下，先砸到银凇）；队友被冻时冲过去；意志震落时贴上去打
 func axis_do(e: Dictionary, p: Vector2) -> Vector2:
+	if float(e.get("kneel_until", 0.0)) > g.t:
+		return go_to(p, (e.kneel_pos as Vector2) + Vector2(0, 100), 16.0)
 	if str(e.get("surge_op", "")) != "":
 		var o = g.squad.get_op(str(e.surge_op))
 		if o != null and o.pos != Vector2.INF:
