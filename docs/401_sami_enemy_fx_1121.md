@@ -380,3 +380,9 @@
 - 显形期（hold）：整颗淡入 + 0.6→1 倍长大，代替 mid_card_draw 的点环（读成虚线）。萨米 Boss 的 mc 弹由 mech_fx 自画（own_draw），通用 mid_card / bbv2 不画；水月不动。
 - 克雷松稳定设施：锚桩（像子弹）→ 晶簇花苞贴图（34×44：三枚淡紫晶瓣 + 白芯 + 暗石底座 + 霜点），能启动时金色描边 = 花苞白剪影染金、按心跳放大一圈垫底。
 - 录像（--ai，1 倍 30 帧静音）：`sami_ai_blade_t7`、`sami_ai_will_t7`、`sami_ai_lead_t7`、`sami_ai_twin_t7`、`sami_ai_cresson_t10`（`F:\sami_enemy_fx_ref\`）。
+
+### 19.1 白细圆 / 剪枝（协调人 11-26 按秒数指出）
+- 白细圆来源两处：① 寒冷 / 冻结（mech_cold）——脚下寒冷值细弧、冻结时通用 g.fx 细圈 + 半透明圆；萨米下改由 mech_fx.cold_draw 画脚下连续霜带弧，冻结 = 队长身上一团冰晶块 + 冰雾，不画圈。② telegraph 结算 lob 时通用加的 explode 淡色圆盘（上一轮只滤掉 ring / rays / final_impact）；现在 skin sami_blade 结算时新加的 g.fx 全部去掉。
+- 意志小落点（冰凌 r40、塌雪 r20 等，r ≤ 60）只画冰裂纹 + 落影，不画冰带圈。
+- 克雷松剪枝：暗紫晶刃（两面明暗 + 分段错色）+ 白芯中线 + 淡紫细刃口，亮度降一档。
+- 局部重录：`sami_ai_lead_part_t12.mp4`（泯灭冲 / 自我泯灭）、`sami_ai_will_part_t12.mp4`（冰凌斜落 / 群山回响）、`sami_ai_cresson_part_t11.mp4`（剪枝）。
