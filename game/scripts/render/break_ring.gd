@@ -13,6 +13,10 @@ static func draw(g) -> void:
 			continue
 		var bt: float = float(e.break_t)
 		var frac: float = clampf(bt / maxf(0.1, float(e.get("brk_len", bt))), 0.0, 1.0)
+		var sfx = g.mech("fx")
+		if sfx != null and sfx.has_method("break_ring"):
+			sfx.break_ring(e, frac)   # 萨米主题：连续金沙带（themes/sami/mech/mech_fx.gd，docs/401 §18.2）
+			continue
 		var r: float = float(e.r) * 1.5 + 3.0 * sin(g.t * 3.0)
 		g.wcv.draw_set_transform(e.pos, 0.0, Vector2(1.0, g.world.ground_y()))
 		g.wcv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 48, Color(0, 0, 0, 0.45), 7.0)

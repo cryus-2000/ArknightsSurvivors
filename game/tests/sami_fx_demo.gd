@@ -338,6 +338,8 @@ func _ai_group(key: String) -> void:
 		for m in _ai_moves(sc, b):
 			if m[1] in AI_SKIP.get(key, []):
 				continue
+			if not _ai_only().is_empty() and not (m[1] in _ai_only()):
+				continue
 			plan.append(m)
 	var ang := PI * 0.5
 	var next_t: float = g.t + 1.8
@@ -422,3 +424,11 @@ func _ai_group(key: String) -> void:
 			g.foe_top.queue_redraw()
 		await get_tree().process_frame
 	print("SAMI_FX_DEMO_AI group=%s moves=%d" % [key, plan.size()])
+
+
+## --moves=招1,招2：只演这几招（局部确认录像用）
+func _ai_only() -> Array:
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--moves="):
+			return Array(a.substr(8).split(","))
+	return []

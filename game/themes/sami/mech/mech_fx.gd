@@ -1977,6 +1977,18 @@ func _petal(w, q: Vector2, ang: float, L: float) -> void:
 	w.tb_poly(PackedVector2Array([q + d * 2.0, q + d * L * 0.45 + n * wd * 0.45, q + d * (L - 3.0)]), LIL[3])
 
 
+## 暗花瓣（克雷松场地花纹）：贴地压扁、暗紫半透（低亮度纹理，不平涂高亮），中间一道稍亮的叶脉
+func _petal_dim(w, q: Vector2, ang: float, L: float, gy: float, al: float) -> void:
+	if L < 4.0:
+		return
+	var d := Vector2(cos(ang), sin(ang) * gy)
+	var n := Vector2(-sin(ang), cos(ang) * gy)
+	var wd: float = L * 0.3
+	w.tb_poly(PackedVector2Array([q, q + d * L * 0.45 + n * wd, q + d * L, q + d * L * 0.45 - n * wd]), Color(0.22, 0.12, 0.32, al))
+	w.tb_poly(PackedVector2Array([q + d * L * 0.1, q + d * L * 0.45 + n * wd * 0.55, q + d * L * 0.9, q + d * L * 0.45 - n * wd * 0.55]), Color(0.36, 0.22, 0.5, al))
+	w.tb_line(_snap(q + d * L * 0.12), _snap(q + d * L * 0.85), Color(0.55, 0.4, 0.72, al), 2.0)
+
+
 ## 眼纹（克雷松）：杏仁形眼眶 + 虹膜 + 瞳孔，open 0–1 = 睁开程度
 func _eye(w, c: Vector2, rw: float, open: float) -> void:
 	var rh: float = rw * 0.42 * open
@@ -2029,10 +2041,13 @@ func _warn_final(w, cv, t: Dictionary, k: float, sd: int, ot: String) -> void:
 					# 冰霜裂纹 + 落影：中心星形冰裂（冰白芯 + 暗紫边）往外爬，圈边冰晶一颗颗冒出，中间一团落影越来越浓（冰凌另画在顶层）
 					for i in 6:
 						_crack_col(w, c, TAU * float(i) / 6.0 + float(sd % 7) * 0.3, r * 0.95, k, sd + i, WILLC[2], WILLC[0], 3.0)
-					var nn: int = clampi(int(TAU * r / 18.0), 6, 30)
+					_fin_tex()
+					var nn: int = clampi(int(TAU * r / 40.0), 8, 40)
+					var hk: float = PI * clampf(k * 1.3, 0.0, 1.0)
 					for i in nn:
-						var dl: float = float(absi(hash(Vector2i(sd, i + 40))) % 40) / 100.0
-						_crystal(w, _gpoly_ring(c, r, gy, TAU * float(i) / float(nn)), 5.0 * clampf((k - dl) / 0.45, 0.0, 1.0))
+						var a0w: float = -PI * 0.5 - hk + 2.0 * hk * float(i) / float(nn)
+						var a1w: float = -PI * 0.5 - hk + 2.0 * hk * float(i + 1) / float(nn)
+						_band_tex(cv, ice_band, _gpoly_ring(c, r - 4.0, gy, a0w), _gpoly_ring(c, r - 4.0, gy, a1w), 10.0, 0.6 + 0.35 * k)
 					var sz: float = r * 1.6 * (0.4 + 0.6 * k)
 					cv.draw_texture_rect(fog_puff[sd % 4], Rect2(((c - Vector2(sz, sz * 0.6) * 0.5) / PX).floor() * PX, Vector2(sz, sz * 0.6)), false, Color(1, 1, 1, 0.25 + 0.5 * k))
 				"lead":
@@ -2054,11 +2069,11 @@ func _warn_final(w, cv, t: Dictionary, k: float, sd: int, ot: String) -> void:
 						var af: float = float(i) * 2.399 + float(sd % 5)
 						var qf: Vector2 = c + (Vector2.ZERO if i == 0 else Vector2(cos(af), sin(af) * gy) * r * 0.45)
 						var sf: float = fsz * (1.0 if i == 0 else 0.6)
-						cv.draw_texture_rect(lil_puff[i % 3], Rect2(_snap(qf - Vector2(sf, sf * gy) * 0.5), Vector2(sf, sf * gy)), false, Color(1, 1, 1, 0.2 + 0.4 * k))
+						cv.draw_texture_rect(lil_puff[i % 3], Rect2(_snap(qf - Vector2(sf, sf * gy) * 0.5), Vector2(sf, sf * gy)), false, Color(0.55, 0.5, 0.6, 0.12 + 0.2 * k))
 					var np: int = clampi(int(r / 14.0), 4, 9)
 					for i in np:
 						var ap: float = TAU * float(i) / float(np) + float(sd % 7) * 0.2
-						_petal(w, c, ap, r * 0.8 * clampf(k * 1.2, 0.0, 1.0))
+						_petal_dim(w, c, ap, r * 0.8 * clampf(k * 1.2, 0.0, 1.0), gy, 0.22 + 0.22 * k)
 					if r >= 50.0:
 						_eye(w, c, minf(r * 0.45, 40.0), clampf((k - 0.2) / 0.6, 0.0, 1.0))
 				"khan", "lion":
@@ -2141,6 +2156,20 @@ func _sand_close(w, cv, c: Vector2, r: float, k: float, sd: int, gold: bool) -> 
 		var a6: float = rng.randf() * TAU
 		var q6: Vector2 = _gpoly_ring(c, r, gy, a6)
 		_add(q6, (c - q6) * 1.2, 0.6, (SANDC[rng.randi_range(1, 3)] if not gold else [LUKA, LUKA_O, SANDC[2]][rng.randi() % 3]), 3.0, 0)
+
+
+## 破绽（render/break_ring 调，萨米结局 Boss）：脚下一圈连续金沙带慢呼吸 + 剩余时间那段加粗加亮（不画细描边环）
+func break_ring(e: Dictionary, frac: float) -> void:
+	_fin_tex()
+	var cv = g.wcv
+	var gy: float = g.combat.GROUND_Y
+	var r: float = float(e.r) * 1.5 + 3.0 * sin(g.t * 3.0)
+	var n := 24
+	for i in n:
+		var a0: float = -PI * 0.5 + TAU * float(i) / float(n)
+		var a1: float = -PI * 0.5 + TAU * float(i + 1) / float(n)
+		var lit: bool = float(i) / float(n) < frac
+		_band_tex(cv, gold_band, _gpoly_ring(e.pos, r, gy, a0), _gpoly_ring(e.pos, r, gy, a1), 9.0 if lit else 6.0, 0.95 if lit else 0.35)
 
 
 ## 演示用沙地：米黄沙底 + 斜向黑色风沙条（原作时光之沙，实机 BV1Ds421A7E3 3615 s），128² 程序贴图按 2 倍平铺
@@ -2347,7 +2376,13 @@ func _warn_burst(t: Dictionary, ot: String) -> void:
 			var a0: float = float(t.ang) - float(t.half)
 			var a1: float = float(t.ang) + float(t.half)
 			var inner: float = float(t.get("inner_r", 0.0))
-			var n3: int = clampi(int((a1 - a0) * r3 / 30.0), 3, 16)
+			var n3: int = 2 if (ot == "khan" or ot == "lion") else clampi(int((a1 - a0) * r3 / 30.0), 3, 16)
+			if ot == "khan" or ot == "lion":
+				for i in 9:
+					var as0: float = lerpf(a0, a1, float(i) / 8.0)
+					if gpuffs.size() < PUFF_MAX:
+						gpuffs.append([c + Vector2.from_angle(as0) * r3 * 0.9, Vector2.from_angle(as0) * 60.0 + Vector2(0, -10), g.t, 0.7, 40.0, 70.0, rng.randi() % 4, 0.55, 0])
+					embers(c + Vector2.from_angle(as0) * r3 * 0.9, 2, SANDC[2], 120.0, 260.0, 0.5, 4.0)
 			for i in n3 + 1:
 				var aa: float = lerpf(a0, a1, float(i) / float(n3))
 				_spike(c + Vector2.from_angle(aa) * r3 * 0.92, 34.0, 14.0, ot, cos(aa) * 0.3)
@@ -2947,11 +2982,8 @@ func _hourglass(w, hg: Dictionary, now: float) -> void:
 		for e2 in 3:
 			var a: Vector2 = tri[e2]
 			var b: Vector2 = tri[(e2 + 1) % 3]
-			var L: float = a.distance_to(b)
-			var x := 0.0
-			while x < L:
-				_dune(w, a.lerp(b, x / L), (5.0 + 4.0 * k) * (1.0 if i == 0 or k > 0.3 else 0.5))
-				x += 30.0
+			_fin_tex()
+			_band_tex(g.wcv, sand_band, a, b, 10.0 + 6.0 * k, (0.55 + 0.4 * k) if i == 0 or k > 0.3 else 0.35)
 		if rng.randf() < 0.9 * (1.0 if i == 0 else k):
 			var u: float = rng.randf()
 			var v: float = rng.randf()
