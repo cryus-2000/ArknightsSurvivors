@@ -2087,9 +2087,9 @@ func _warn_final(w, cv, t: Dictionary, k: float, sd: int, ot: String) -> void:
 			var r: float = float(t.r)
 			match ot:
 				"will":
-					# 冰霜裂纹 + 落影：中心星形冰裂（冰白芯 + 暗紫边）往外爬，圈边冰晶一颗颗冒出，中间一团落影越来越浓（冰凌另画在顶层）
-					for i in 6:
-						_crack_col(w, c, TAU * float(i) / 6.0 + float(sd % 7) * 0.3, r * 0.95, k, sd + i, WILLC[2], WILLC[0], 3.0)
+					# 落影 + 冰雾（11-26：细裂纹读成平面矢量 → 去掉）：中间一团落影越来越浓，大圈再加圈边冰带（冰凌另画在顶层）
+					if rng.randf() < 0.15 + 0.3 * k:
+						_icefog(c + Vector2(rng.randf_range(-r, r) * 0.6, rng.randf_range(-r, r) * 0.3), Vector2(0, -12), 0.6, 26.0, 0.5)
 					_fin_tex()
 					var nn: int = clampi(int(TAU * r / 40.0), 8, 40) if r > 60.0 else 0   # 小落点（冰凌 r40、塌雪 r20…）只用冰裂纹（协调人 11-26：白细圆）
 					var hk: float = PI * clampf(k * 1.3, 0.0, 1.0)
@@ -2511,6 +2511,9 @@ func _warn_burst(t: Dictionary, ot: String) -> void:
 	var c: Vector2 = t.pos
 	var gy: float = g.combat.GROUND_Y
 	var pal: Array = PAL.get(ot, PAL.will)
+	if ot == "will":
+		_will_burst(t)   # 意志：像素冰凌碎块 + 冰雾 + 亮点（用户 11-26：平面矢量尖刺 → pixelfx 主形 + Noita 粒子）
+		return
 	match t.shape:
 		"circle":
 			var r: float = float(t.r)
@@ -2561,6 +2564,37 @@ func _warn_burst(t: Dictionary, ot: String) -> void:
 			embers(c, 6, SANDC[2], 140.0, 280.0, 0.5, 4.0)
 		_:
 			_fog(c, 2, 0.6, 0.0, true, 0.8)
+
+
+func _will_burst(t: Dictionary) -> void:
+	var c: Vector2 = t.pos
+	var gy: float = g.combat.GROUND_Y
+	var pts: Array = []
+	match t.shape:
+		"circle":
+			var r: float = float(t.r)
+			if r <= 30.0:
+				return   # 冰凌林 / 小落点：冰桩自己从地里顶出，不再另爆
+			pts.append(c)
+			var n: int = clampi(int(r / 60.0), 0, 6)
+			for i in n:
+				var a: float = TAU * float(i) / float(maxi(n, 1)) + 0.4
+				pts.append(c + Vector2(cos(a), sin(a) * gy) * r * 0.6)
+		"line":
+			var d := Vector2.from_angle(float(t.ang))
+			var x := 30.0
+			while x < float(t.len) and pts.size() < 8:
+				pts.append(c + d * x)
+				x += 70.0
+		"cone":
+			for i in 4:
+				pts.append(c + Vector2.from_angle(lerpf(float(t.ang) - float(t.half), float(t.ang) + float(t.half), (float(i) + 0.5) / 4.0)) * float(t.r) * 0.8)
+	for q in pts:
+		_shatter("icicle", q, 0.7, 180.0)
+		_glints(q, 3, 16.0)
+		_icefog(q, Vector2(rng.randf_range(-30, 30), -10), 0.7, 40.0, 0.75)
+	if not pts.is_empty():
+		glows.append([pts[0], g.t, 120.0])
 
 
 ## 骑影 / 兽亲：可汗片影 = 暗红骑影（马身 + 骑者 + 长鬃旗，拖沙尘）；王者友伴 = 金橙兽影（伏身扑击）
