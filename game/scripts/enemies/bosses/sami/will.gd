@@ -157,6 +157,8 @@ func _lance_at(e: Dictionary, p: Vector2, nm: String, pct: float) -> void:
 func _tree_hit(e: Dictionary, t: Dictionary) -> void:
 	if float(t.dead_t) > 0.0:
 		return
+	if not (absf(g.ppos.x - t.pos.x) < SHADOW_HW and g.ppos.y > t.pos.y):
+		return   # 只有队长站在这棵树身后（借银凇）时砸碎才算，误砸不算（11-26 测试台：不理主轴也有 26% 时间在窗口里）
 	t.hits = int(t.hits) + 1
 	if t.hits >= 1:   # 11-26 测试台：挨 1 次就碎（2 次时窗口只占约 10%，会主轴拉不开）
 		t.dead_t = g.t
