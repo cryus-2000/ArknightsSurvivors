@@ -2336,7 +2336,7 @@ func _will_lightpass(w, cv, now: float) -> void:
 				_ground_shadow(t.pos + Vector2(4, 2), 22.0)
 		for o in e.get("obst", []):
 			if float(o.r) <= 18.0 and o.has("fx_t0"):
-				_ground_shadow(o.pos + Vector2(2, 2), 9.0 * clampf((now - float(o.fx_t0)) / 0.15, 0.0, 1.0))
+				_ground_shadow(o.pos + Vector2(5, 3), 11.0 * clampf((now - float(o.fx_t0)) / 0.15, 0.0, 1.0))
 	for t in g.warns:
 		if t.done or str(t.get("skin0", t.get("skin", ""))) != "ice_lance":
 			continue
@@ -3189,7 +3189,7 @@ func _icicle_stake(w, p: Vector2, up: float) -> void:
 	var src := Rect2(0, TH - vis, TW, vis)   # 贴图下段 = 尖
 	var dst := Rect2(_snap(p - Vector2(TW * PX * 0.5, -2.0)), Vector2(TW * PX, -vis * PX))   # 高度取负 = 上下翻，尖朝上
 	g.wcv.draw_texture_rect_region(tx, dst, src)
-	w.tb_quad(_snap(p + Vector2(-16, 0)), _snap(p + Vector2(16, 0)), _snap(p + Vector2(12, 5)), _snap(p + Vector2(-12, 5)), Color(0.82, 0.9, 1.0, 0.85))
+	w.tb_quad(_snap(p + Vector2(-16, 0)), _snap(p + Vector2(16, 0)), _snap(p + Vector2(12, 5)), _snap(p + Vector2(-12, 5)), Color(0.82, 0.9, 1.0, 0.85 if sfx_flat else 0.4))   # 打光版雪堆压淡，让接地影子透出来
 
 
 func _ice_stake(w, p: Vector2, h: float, wd: float) -> void:
