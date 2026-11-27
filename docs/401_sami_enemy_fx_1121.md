@@ -403,3 +403,13 @@
 - 资源 `game/themes/sami/fx/will/`（共约 40 KB）：`rime_tree.png` 23×42（= 46×84 世界像素）、`rime_tree_cracked.png`（白色分叉冰裂）、`rime_chunkNN.png` Voronoi 11 块 + `rime_chunks.json`；`icicle.png` 14×46、`icicle_chunkNN.png` 11 块 + `icicle_chunks.json`。原图在 `build/imagegen/sami_rime_tree/`、`build/imagegen/sami_icicle/`（不进 git）。
 - 画法（mech_fx `_wdraw / _shatter / _glints / glows`）：银凇贴图 + 白剪影染金放大垫底 = 金色描边心跳；击碎 = 贴图按 Voronoi 碎块带重力翻滚飞散（落到脚底停住、0.4 秒淡）+ 亮点闪烁 + 0.18 秒冰白照地光 + 冰雾；冰凌坠落 = 像素冰凌 + 两道残影 + 落影，落地 = 冰凌碎块 + 亮点 + 照地光 + 冰雾；冰凌林冰桩 = 同一根冰凌上下翻（尖朝上）按进度从地里顶出、到期碎块。意志其他有伤预警的结算爆点也改成冰凌碎块 + 冰雾 + 亮点（去平面三角尖刺），小落点去细裂纹只留落影 + 冰雾。同招元素：主形（冰凌 / 碎块）+ 冰雾 + 亮点 3 种。
 - 样板 `F:\sami_enemy_fx_ref\sami_rime_tree_1126.png`；录像 `sami_ai_will_icicle_t2.mp4`（冰凌连落 / 冰凌林 / 震落，24 秒）。
+
+## 22. 意志打光（用户 11-27：新东西没打光和阴影，和画面割裂）
+- 先只做银凇和冰凌林。主光统一左上（同萨米雪地景物 / 干员帧条）。
+- 贴图重打光版 `*_lit.png`（`relight.py`，原版保留作对照）：黑描边 (14,22,38) → 深冷色 (46,62,92)；右下邻格透明的像素压暗 22% 且偏冷（蓝通道少压），左上邻格透明的像素提亮 18%（受光棱）；整体左→右 / 上→下 ±8% 明暗渐变。冰桩是冰凌贴图上下翻着画的，`icicle_lit` 按立起来的方向打光再翻回去。
+- 接地影子（mech_fx `_will_lightpass`，地面层，同 world._draw_shadows 的 shadow 贴图与比例）：银凇半宽 22、冰桩 11（随顶出长大）、坠落冰凌 3→10 越落越实、碎块 3.5；影子都往右下偏 2–5 像素。打光版冰桩底雪堆压淡到 0.4，让影子透出来。
+- 子弹照地冷光：意志 mc 弹下一团 60×36 柔边径向光（色 0.7/0.88/1.0，α0.22），无硬边无环；亮雪地上几乎看不出，暗处才显。
+- 亮点（_glints）偏向受光侧 0.9π–1.6π。
+- `--sfx_flat`（仅 debug）= 旧画法，对照用。
+- 对照图 `F:\sami_enemy_fx_ref\sami_will_light_ab_1127.png`（同一帧 t=3.3 s，1 倍 / 3 倍）；录像 `sami_will_light_flat.mp4` / `sami_will_light_lit.mp4`。
+- 意志弹 B 冰棱针宽版 24×12 + 冷光样板：`sami_will_bullet_B_wide_1127.png`（有 / 无霜点，1 倍 / 3 倍 / 3 倍不带冷光）、`_crowd.png`（30 颗同屏）。霜点去留等用户定。
