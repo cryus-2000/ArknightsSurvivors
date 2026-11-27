@@ -2324,6 +2324,40 @@ func _obj_front(w, now: float) -> void:
 	w.tb_flush()
 
 
+func _will_lightpass(w, cv, now: float) -> void:
+	if sfx_flat:
+		return
+	for id in fin_list.keys():
+		var e: Dictionary = fin_list[id][0]
+		if e.dead or str(e.type) != "will":
+			continue
+		for t in e.get("trees", []):
+			if float(t.dead_t) <= 0.0:
+				_ground_shadow(t.pos + Vector2(4, 2), 22.0)
+		for o in e.get("obst", []):
+			if float(o.r) <= 18.0 and o.has("fx_t0"):
+				_ground_shadow(o.pos + Vector2(2, 2), 9.0 * clampf((now - float(o.fx_t0)) / 0.15, 0.0, 1.0))
+	for t in g.warns:
+		if t.done or str(t.get("skin0", t.get("skin", ""))) != "ice_lance":
+			continue
+		var k: float = clampf(float(t.t) / maxf(0.01, float(t.dur)), 0.0, 1.0)
+		if k >= 0.62:
+			var f: float = (k - 0.62) / 0.38
+			_ground_shadow(t.pos + Vector2(2, 2), 3.0 + 7.0 * f, 0.4 + 0.6 * f)   # 冰凌越落越近，影子越实越大
+	for d in shards:
+		var q: Vector2 = _shard_pos(d, now)
+		_ground_shadow(Vector2(q.x + 2, float(d[6]) + 2), 3.5, 0.7)
+	_bullet_glows(cv)
+
+
+func _shard_pos(d: Array, now: float) -> Vector2:
+	var ta: float = minf(now - float(d[3]), float(d[4]))
+	var q: Vector2 = d[1] + d[2] * ta + Vector2(0, 0.5 * 900.0 * ta * ta)
+	if q.y > float(d[6]):
+		q.y = float(d[6])
+	return q
+
+
 ## ---- 意志的像素贴图（themes/sami/fx/will/，pixgen 出图 + 像素化，docs/401 §21）：银凇、冰凌，各带 Voronoi 碎块
 var wtex := {}
 var wsil := {}
@@ -2331,10 +2365,56 @@ var wchunks := {}
 var shards: Array = []   # 碎块 [贴图, 位置, 速度, 出生 t, 寿命, 转速, 落地 y, 缩放]
 
 
+## 打光（用户 11-27：新东西没有打光和阴影，和画面割裂）：贴图用重打光版 *_lit（左上主光、深冷色描边、背光面冷暗），
+## 立在地上的东西画接地影子（同干员 / 怪物的 shadow 贴图与比例），子弹在雪地上投一小团冷色柔光。--sfx_flat = 旧画法（对照用）
+var sfx_flat: bool = (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--sfx_flat")
+
+
 func _wt(nm: String) -> Texture2D:
-	if not wtex.has(nm):
-		wtex[nm] = load("res://themes/sami/fx/will/%s.png" % nm)
-	return wtex[nm]
+	var key: String = nm if sfx_flat else nm + "_lit"
+	if not wtex.has(key):
+		wtex[key] = load("res://themes/sami/fx/will/%s.png" % key)
+	return wtex[key]
+
+
+## 接地影子：同 world._draw_shadows（shadow 贴图，缩放 = PX × 半宽 / 10）
+func _ground_shadow(p: Vector2, half_w: float, al := 1.0) -> void:
+	if sfx_flat:
+		return
+	var stx: Texture2D = g.tex.get("shadow")
+	if stx == null:
+		return
+	var sz: Vector2 = stx.get_size() * PX * half_w / 10.0
+	g.wcv.draw_texture_rect(stx, Rect2((p - sz * 0.5).round(), sz), false, Color(1, 1, 1, al))
+
+
+## 子弹照地冷光：一团柔边径向光（无硬边、无环），低亮度，只照弹下一小圈
+var cold_glow: Texture2D
+
+
+func _glow_tex() -> Texture2D:
+	if cold_glow == null:
+		var n := 32
+		var img := Image.create(n, n, false, Image.FORMAT_RGBA8)
+		for j in n:
+			for i in n:
+				var d: float = Vector2(float(i) + 0.5 - n * 0.5, float(j) + 0.5 - n * 0.5).length() / (n * 0.5)
+				var a: float = clampf(1.0 - d, 0.0, 1.0)
+				a = a * a * (3.0 - 2.0 * a)
+				img.set_pixel(i, j, Color(1, 1, 1, a))
+		cold_glow = ImageTexture.create_from_image(img)
+	return cold_glow
+
+
+func _bullet_glows(cv) -> void:
+	if sfx_flat:
+		return
+	var tx: Texture2D = _glow_tex()
+	for b in g.ebullets:
+		if b.life <= 0.0 or str(b.get("src_type", "")) != "will" or not b.get("mc", false):
+			continue
+		var sz := Vector2(60, 36)
+		cv.draw_texture_rect(tx, Rect2((b.pos + Vector2(0, 2) - sz * 0.5).round(), sz), false, Color(0.7, 0.88, 1.0, 0.22))
 
 
 func _wsil(nm: String) -> ImageTexture:
@@ -2434,7 +2514,7 @@ func _draw_glows(now: float) -> void:
 ## 亮点闪烁（Noita）：1–2 格冰白亮点，随机闪
 func _glints(p: Vector2, n: int, r: float) -> void:
 	for i in n:
-		var a: float = rng.randf() * TAU
+		var a: float = rng.randf_range(PI * 0.9, PI * 1.6) if not sfx_flat else rng.randf() * TAU   # 亮点朝光（左上）
 		_add(p + Vector2(cos(a), sin(a) * 0.6) * rng.randf_range(0.0, r), Vector2(cos(a), sin(a) * 0.5) * rng.randf_range(20.0, 90.0) + Vector2(0, -rng.randf_range(10, 60)), rng.randf_range(0.3, 0.7), Color(1.4, 1.5, 1.6), 2.0, 3, 120.0)
 
 
@@ -2699,6 +2779,7 @@ func _fin_bullet(cv, b: Dictionary, kind: String, now: float) -> void:
 ## 地面层：冰面 / 冻原 / 河道 / 沙河 / 沙痕 / 苗圃标记 / 花墓 / 场地标记
 func _fin_ground(w, cv, now: float) -> void:
 	_fin_tex()
+	_will_lightpass(w, cv, now)
 	var gy: float = g.combat.GROUND_Y
 	for id in fin_list.keys():
 		var it: Array = fin_list[id]
