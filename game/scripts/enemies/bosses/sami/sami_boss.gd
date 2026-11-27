@@ -18,9 +18,13 @@ func base_dmg(e: Dictionary) -> float:
 ## 占队长最大生命 pct 的一下（再乘回荡段 / 决胜等脚本自己的倍率 e.dmg_k）
 ## 11-26 中期 Boss 加强（只六只中期 Boss 有键，结局 Boss 不读）：boss/pat_x_<种类> 只乘招式与弹幕（接触伤害不变）；
 ## boss/hit_cap_<种类> >0 时单下封顶到队长最大生命的这个比例（减伤前），抬高倍率后大招不越过单发上限 40%（docs/359 §2.6）
-func pd(e: Dictionary, pct: float) -> float:
+## tele = true：w_cone / w_line / w_circle / w_self / w_stab 这类有显形预警、能躲开的大招，改读 boss/tele_cap_<种类>
+## （11-27 用户选方案 1：放到 45–50%）；无预警的地面残留、弹射、弹体仍按 hit_cap / bul_cap
+func pd(e: Dictionary, pct: float, tele := false) -> float:
 	var v: float = e.dmg * pct * 100.0 / base_dmg(e) * float(e.get("dmg_k", 1.0)) * Bal.v("boss/sami_dmg_k", 1.0) * Bal.v("boss/pat_x_" + str(e.type), 1.0)
 	var cap: float = Bal.v("boss/hit_cap_" + str(e.type), 0.0)
+	if tele:
+		cap = Bal.v("boss/tele_cap_" + str(e.type), cap)
 	return minf(v, cap * g.max_hp) if cap > 0.0 else v
 
 
@@ -70,7 +74,7 @@ func gaps_at(c: Vector2, k := 2) -> Array:
 
 ## ---- 预警（结算走 telegraph 现成 act：sweep 扇形 / shot 直线 / lob 落点圈 / stab 突进）
 func w_cone(e: Dictionary, ang: float, half: float, r: float, dur: float, pct: float, nm: String, x := {}) -> Dictionary:
-	var d := {"ang": ang, "half": half, "r": r, "follow": true, "act": "sweep", "name": nm, "col": col(e), "dmg": pd(e, pct), "skin": "mc_cone"}
+	var d := {"ang": ang, "half": half, "r": r, "follow": true, "act": "sweep", "name": nm, "col": col(e), "dmg": pd(e, pct, true), "skin": "mc_cone"}
 	if pct <= 0.0:
 		d.act = "tell"   # 只画预警（雪幕扇形、道标线等弹幕前的提示），结算不判伤害
 	d.merge(x, true)
@@ -78,7 +82,7 @@ func w_cone(e: Dictionary, ang: float, half: float, r: float, dur: float, pct: f
 
 
 func w_line(e: Dictionary, ang: float, ln: float, wid: float, dur: float, pct: float, nm: String, x := {}) -> Dictionary:
-	var d := {"ang": ang, "len": ln, "wid": wid, "act": "shot", "name": nm, "col": col(e), "dmg": pd(e, pct), "skin": "mc_line"}
+	var d := {"ang": ang, "len": ln, "wid": wid, "act": "shot", "name": nm, "col": col(e), "dmg": pd(e, pct, true), "skin": "mc_line"}
 	if pct <= 0.0:
 		d.act = "tell"   # 只画预警（雪幕扇形、道标线等弹幕前的提示），结算不判伤害
 	d.merge(x, true)
@@ -86,7 +90,7 @@ func w_line(e: Dictionary, ang: float, ln: float, wid: float, dur: float, pct: f
 
 
 func w_circle(e: Dictionary, pos: Vector2, r: float, dur: float, pct: float, nm: String, x := {}) -> Dictionary:
-	var d := {"pos": pos, "r": r, "act": "lob", "name": nm, "col": col(e), "dmg": pd(e, pct)}
+	var d := {"pos": pos, "r": r, "act": "lob", "name": nm, "col": col(e), "dmg": pd(e, pct, true)}
 	if pct <= 0.0:
 		d.act = "tell"   # 只画预警（雪幕扇形、道标线等弹幕前的提示），结算不判伤害
 	d.merge(x, true)
@@ -94,7 +98,7 @@ func w_circle(e: Dictionary, pos: Vector2, r: float, dur: float, pct: float, nm:
 
 
 func w_self(e: Dictionary, r: float, dur: float, pct: float, nm: String, x := {}) -> Dictionary:
-	var d := {"follow": true, "r": r, "act": "lob", "name": nm, "col": col(e), "dmg": pd(e, pct)}
+	var d := {"follow": true, "r": r, "act": "lob", "name": nm, "col": col(e), "dmg": pd(e, pct, true)}
 	if pct <= 0.0:
 		d.act = "tell"   # 只画预警（雪幕扇形、道标线等弹幕前的提示），结算不判伤害
 	d.merge(x, true)
@@ -103,7 +107,7 @@ func w_self(e: Dictionary, r: float, dur: float, pct: float, nm: String, x := {}
 
 ## 直线突进：沿线冲 ln（结算时一次性判定整条线 + 本体被推过去），冲完 e.kb 按 900/s² 减速
 func w_stab(e: Dictionary, ang: float, ln: float, wid: float, dur: float, pct: float, nm: String, x := {}) -> Dictionary:
-	var d := {"ang": ang, "len": ln, "wid": wid, "act": "stab", "spd": sqrt(1800.0 * ln), "name": nm, "col": col(e), "dmg": pd(e, pct), "skin": "mc_line"}
+	var d := {"ang": ang, "len": ln, "wid": wid, "act": "stab", "spd": sqrt(1800.0 * ln), "name": nm, "col": col(e), "dmg": pd(e, pct, true), "skin": "mc_line"}
 	if pct <= 0.0:
 		d.act = "tell"   # 只画预警（雪幕扇形、道标线等弹幕前的提示），结算不判伤害
 	d.merge(x, true)
