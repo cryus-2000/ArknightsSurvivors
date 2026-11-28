@@ -478,7 +478,11 @@ func _draw_gift(e: Dictionary, cv) -> void:
 
 ## 占位画法：馈赠 + 弹跳细链、冰脚印、道标、风向箭头（雪祀头顶）
 func draw(e: Dictionary, cv) -> void:
-	_draw_gift(e, cv)
+	var fxm = g.mech("fx")
+	if fxm != null:
+		fxm.shaman_draw(e)   # 馈赠 = 靛色冰链弹跳（11-28，fm_s1；themes/sami/mech/mech_fx.gd）
+	else:
+		_draw_gift(e, cv)
 	var ind := Color(0.55, 0.6, 1.0)
 	for l in e.get("links", []):
 		if float(l.until) > g.t:

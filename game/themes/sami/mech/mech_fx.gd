@@ -2613,6 +2613,7 @@ const PAL := {
 	"cresson": [Color(0.3, 0.16, 0.45), Color(0.7, 0.46, 0.95), Color(0.95, 0.88, 1.0)],
 	"khan": [Color(0.24, 0.16, 0.08), Color(0.66, 0.53, 0.37), Color(0.9, 0.8, 0.62)],
 	"lion": [Color(0.3, 0.2, 0.08), Color(1.0, 0.62, 0.15), Color(1.0, 1.0, 0.75)],
+	"shaman": [Color(0.094, 0.11, 0.44), Color(0.28, 0.32, 0.87), Color(0.82, 0.85, 1.0)],
 }
 
 
@@ -2862,6 +2863,7 @@ func _fin_ground(w, cv, now: float) -> void:
 	_will_lightpass(w, cv, now)
 	_draw_wcracks(w, cv, now)
 	_cimp_ground(cv, w, now)
+	_sham_ground(cv, now)
 	var gy: float = g.combat.GROUND_Y
 	for id in fin_list.keys():
 		var it: Array = fin_list[id]
@@ -3122,6 +3124,7 @@ func _fin_front(w, cv, now: float) -> void:
 	_draw_spikes(w, now)
 	_draw_shards(w, now)
 	_cimp_front(w, now)
+	_sham_front(w, now)
 	_draw_glows(now)
 	_frozen_front(w)
 	w.tb_flush()
@@ -3735,6 +3738,140 @@ func _cimp_front(w, now: float) -> void:
 			w.tb_poly(PackedVector2Array([base, tip, base + nv * hw * lit_side]), Color(0.42, 0.2, 0.58))
 			w.tb_line(_snap(base.lerp(tip, 0.15)), _snap(base.lerp(tip, 0.85)), Color(0.95, 0.4, 0.9, 0.9), 2.0)   # 品红棱
 	cimps = keep
+	w.tb_flush()
+
+
+## ==== 雪祀「冰链弹跳」（11-28 用户：每只 Boss 一种主表现，概念图 fm_s1）：馈赠沿链在小怪之间折线跳 = 一道靛色冰链
+## 从上一个落点拱起一道弧连到链头（链身暗靛描边 + 靛色 + 冰白芯，带轻微电弧抖动），链头一团冰白靛光；
+## 每跳到一只小怪脚下炸出一簇靛色冰晶，沿途地上冒小冰晶；被跳过（拿到馈赠）的小怪身上泛靛光、往上飘靛色光点。判定 / 数值不动
+const IND := [Color(0.094, 0.11, 0.44), Color(0.28, 0.32, 0.87), Color(0.67, 0.71, 1.0), Color(0.93, 0.95, 1.0)]
+var sham_list := {}
+var ctrails: Array = []   # 已跳过的链段 [a, b, 出生 t, 种子]
+
+
+func shaman_draw(e: Dictionary) -> void:
+	sham_list[int(e.id)] = [e, g.t]
+
+
+func _arc_pts(a: Vector2, b: Vector2, h: float, sd: int, jit: float) -> PackedVector2Array:
+	var pts := PackedVector2Array()
+	var n := 12
+	var nv: Vector2 = (b - a).orthogonal().normalized()
+	var fr: int = int(g.t * 20.0)
+	for i in n + 1:
+		var f: float = float(i) / float(n)
+		var j: float = 0.0
+		if i > 0 and i < n:
+			j = (float(absi(hash(Vector2i(sd + fr, i))) % 100) / 50.0 - 1.0) * jit
+		pts.append(_snap(a.lerp(b, f) + Vector2(0, -h * sin(PI * f)) + nv * j))
+	return pts
+
+
+func _chain_draw(w, pts: PackedVector2Array, al: float) -> void:
+	for pass_i in 3:
+		var wd: float = [11.0, 6.0, 2.0][pass_i]
+		var c: Color = [IND[0], IND[1], IND[3]][pass_i]
+		c.a = al
+		for i in pts.size() - 1:
+			w.tb_line(pts[i], pts[i + 1], c, wd)
+
+
+func _sham_burst(p: Vector2) -> void:
+	for i in 5:
+		var a: float = TAU * float(i) / 5.0 + rng.randf_range(-0.3, 0.3)
+		_spike(p + Vector2(cos(a), sin(a) * 0.5) * rng.randf_range(10.0, 22.0), rng.randf_range(30.0, 50.0), rng.randf_range(12.0, 18.0), "shaman", cos(a) * 0.35)
+	_spike(p, 62.0, 20.0, "shaman")
+	sparks(p + Vector2(0, -20), -PI * 0.5, 1.2, 10, 300.0, [IND[3], IND[2], IND[1], IND[0]], true, 0.3)
+	glows.append([p, g.t, 110.0])
+
+
+func _sham_ground(cv, now: float) -> void:
+	if sham_list.is_empty():
+		return
+	var gt: Texture2D = _glow_tex()
+	# 拿到馈赠的小怪：脚下一团靛光
+	for m in g.enemies:
+		if m.dead or float(m.get("gift_until", 0.0)) <= now:
+			continue
+		var pul: float = 0.75 + 0.25 * sin(now * 6.0 + float(m.id))
+		cv.draw_texture_rect(gt, Rect2(((m.pos - Vector2(56, 32)) / PX).floor() * PX, Vector2(112, 64)), false, Color(0.4, 0.45, 1.0, 0.8 * pul))
+	for id in sham_list.keys():
+		var e: Dictionary = sham_list[id][0]
+		for b in e.get("balls", []):
+			if b.dead or now >= float(b.t0):
+				continue
+			# 链路预画 0.8 秒：沿将要跳的路线地上亮起一串靛色柔光（越来越亮），让队长看清往哪拦
+			var k: float = clampf(1.0 - (float(b.t0) - now) / 0.8, 0.0, 1.0)
+			var path: Array = b.path
+			for i in path.size() - 1:
+				var a: Vector2 = path[i]
+				var c: Vector2 = path[i + 1]
+				var n: int = maxi(2, int(a.distance_to(c) / 30.0))
+				for j in n:
+					var q: Vector2 = a.lerp(c, (float(j) + 0.5) / float(n))
+					cv.draw_texture_rect(gt, Rect2(((q - Vector2(22, 12)) / PX).floor() * PX, Vector2(44, 24)), false, Color(0.45, 0.5, 1.0, 0.45 * k))
+
+
+func _sham_front(w, now: float) -> void:
+	var keep: Array = []
+	for tr in ctrails:
+		var age: float = now - float(tr[2])
+		if age > 0.6:
+			continue
+		keep.append(tr)
+		_chain_draw(w, _arc_pts(tr[0], tr[1], 62.0 * (1.0 - age / 0.6), int(tr[3]), 4.0), 1.0 - age / 0.6)
+	ctrails = keep
+	for id in sham_list.keys():
+		var it: Array = sham_list[id]
+		var e: Dictionary = it[0]
+		if e.dead or absf(now - float(it[1])) > 0.2:
+			sham_list.erase(id)
+			continue
+		for b in e.get("balls", []):
+			var path: Array = b.path
+			var seg: int = int(b.seg)
+			if int(b.get("fx_seg", 0)) != seg:
+				# 跳到一个落点：冰晶炸开 + 刚走完的一段留成余链
+				for s2 in range(int(b.get("fx_seg", 0)) + 1, seg + 1):
+					if s2 < path.size():
+						_sham_burst(path[s2])
+						ctrails.append([path[s2 - 1], path[s2], now, rng.randi() % 997])
+				b["fx_seg"] = seg
+			if b.dead or now < float(b.t0) or seg + 1 >= path.size():
+				continue
+			var a: Vector2 = path[seg]
+			var p: Vector2 = b.p
+			var to: Vector2 = path[seg + 1]
+			var L: float = a.distance_to(to)
+			var f: float = clampf(a.distance_to(p) / maxf(1.0, L), 0.0, 1.0)
+			var h: float = 62.0
+			var head: Vector2 = p + Vector2(0, -h * sin(PI * f))
+			# 链身：从上一个落点拱到链头（只画走过的那段弧）
+			var pts := PackedVector2Array()
+			var n := maxi(2, int(12.0 * f))
+			var nv: Vector2 = (to - a).orthogonal().normalized()
+			for i in n + 1:
+				var ff: float = f * float(i) / float(n)
+				var j: float = 0.0 if i == 0 or i == n else (float(absi(hash(Vector2i(int(now * 20.0), i))) % 100) / 50.0 - 1.0) * 4.0
+				pts.append(_snap(a.lerp(to, ff) + Vector2(0, -h * sin(PI * ff)) + nv * j))
+			_chain_draw(w, pts, 1.0)
+			# 沿途地上冒小冰晶（每 34 一簇）
+			var dl: float = a.distance_to(p)
+			if dl - float(b.get("fx_d", 0.0)) > 34.0 or dl < float(b.get("fx_d", 0.0)):
+				b["fx_d"] = dl
+				_spike(p + nv * rng.randf_range(-10, 10), rng.randf_range(16.0, 26.0), 10.0, "shaman", rng.randf_range(-0.3, 0.3))
+			# 链头：冰白靛光团
+			w.tb_flush()
+			var gt: Texture2D = _glow_tex()
+			g.wcv.draw_texture_rect(gt, Rect2(((head - Vector2(30, 30)) / PX).floor() * PX, Vector2(60, 60)), false, Color(0.55, 0.6, 1.0, 0.7))
+			w.tb_poly(PackedVector2Array([head + Vector2(0, -10), head + Vector2(7, 0), head + Vector2(0, 10), head + Vector2(-7, 0)]), IND[0])
+			w.tb_poly(PackedVector2Array([head + Vector2(0, -7), head + Vector2(4, 0), head + Vector2(0, 7), head + Vector2(-4, 0)]), IND[3])
+			if rng.randf() < 0.6:
+				_add(head, Vector2(rng.randf_range(-40, 40), rng.randf_range(-40, 20)), 0.3, IND[2], 4.0, 3, 0.0)
+	# 拿到馈赠的小怪：往上飘靛色光点
+	for m in g.enemies:
+		if not m.dead and float(m.get("gift_until", 0.0)) > now and rng.randf() < 0.25:
+			_add(m.pos + Vector2(rng.randf_range(-14, 14), -rng.randf_range(0, 30)), Vector2(0, -rng.randf_range(30, 60)), 0.6, IND[2] if rng.randf() < 0.6 else IND[3], 4.0, 3, 0.0)
 	w.tb_flush()
 
 

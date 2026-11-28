@@ -270,9 +270,10 @@ const AI_GROUPS := {
 	"will": [["will"], "“萨米的意志”"],
 	"lead": [["lead"], "「木裂」埃克提尔尼尔"],
 	"cresson": [["cresson"], "无垠回荡克雷松"],
+	"shaman": [["shaman"], "陷落雪祀"],
 	"twin": [["khan", "lion"], "哈兰杜汗与路加萨尔古斯"],
 }
-const AI_ORDER := ["blade", "wanderer", "will", "lead", "cresson", "twin"]
+const AI_ORDER := ["blade", "wanderer", "will", "lead", "cresson", "shaman", "twin"]
 const AI_SKIP := {"wanderer": ["斩击·横扫", "投刃·切雾", "雾中突袭", "黑毯·回旋", "追猎·折返", "国度猎斩"]}   # 游荡者只演和利刃不同的招
 
 
@@ -293,6 +294,23 @@ func _ai_moves(sc, b: Dictionary) -> Array:
 	var out: Array = []
 	for m in sc.all_moves(b):
 		out.append([b, str(m[0]), m[4]])
+	if b.type == "shaman":
+		# 反自然馈赠（主轴，平时每 15 秒自动）：演示里先在雪祀身侧摆一串慢走的小怪（间距约 95，折线），再立刻放一次
+		out.append([b, "反自然馈赠", func(e, _d, _l):
+			var side: Vector2 = (g.ppos - e.pos).normalized().orthogonal()
+			var fw: Vector2 = (g.ppos - e.pos).normalized()
+			for k in 5:
+				var q: Vector2 = e.pos + fw * (70.0 + 76.0 * k) + side * (34.0 if k % 2 == 0 else -34.0)   # 朝队长方向一串折线（链在镜头里、队长看得见往哪拦）
+				var m: Dictionary = g.spawner.new_enemy("husk", q)
+				m.age = 3.0
+				m.spd = 8.0
+				m.hp = 1e6
+				m.maxhp = 1e6
+				g.enemies.append(m)
+			sc._gift(e)
+			for bb in e.get("balls", []):
+				bb.t0 = g.t + 0.8
+			return 4.5])
 	if b.type == "will":
 		# 震落（docs/392 §18）：演示里直接让队长站到最近一棵银凇身后、砸碎它（正式局靠瞄队长的冰凌落到树上）
 		out.append([b, "震落", func(e, _d, _l):
