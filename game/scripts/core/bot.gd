@@ -270,6 +270,8 @@ func _score_point(q: Vector2, _near: Array) -> float:
 			continue
 		if _in_warn(wv, q, 36.0):
 			s -= 25.0
+	if _boss_hazard(q, 36.0):
+		s -= 25.0
 	for m in g.mires:
 		if g.combat.ground_d(q, m.pos) < float(m.r) + 26.0:
 			s -= 18.0
@@ -356,6 +358,8 @@ func _in_danger(q: Vector2, pad: float) -> bool:
 	for wv in g.warns:
 		if not wv.done and _in_warn(wv, q, pad):
 			return true
+	if _boss_hazard(q, pad):
+		return true
 	for m in g.mires:
 		if g.combat.ground_d(q, m.pos) < float(m.r) + pad:
 			return true
@@ -755,6 +759,20 @@ func _shop_master() -> int:
 			best_s = s
 			best = i
 	return best
+
+
+## Boss 脚本自己结算的危险区（萨米 11-28：雪浪积雪面、苗圃环、雪幕、冰链围笼、链扫…不进 g.warns，机器人原来看不见）；
+## 脚本有 bot_hazard 就问它（水月 Boss 没有这个函数 = 原样）
+func _boss_hazard(q: Vector2, pad: float) -> bool:
+	if h_on and h_blind > 0.0:
+		return false
+	for bb in g.bosses:
+		if bb.dead:
+			continue
+		var sc = g.bai.boss(bb.type)
+		if sc != null and sc.has_method("bot_hazard") and sc.bot_hazard(bb, q, pad):
+			return true
+	return false
 
 
 ## Boss 战站位：生命 35% 以上就按主控射程贴上去（近战主控 60–120，远程 170–260），不像 expert 那样一律站 200–320 外；

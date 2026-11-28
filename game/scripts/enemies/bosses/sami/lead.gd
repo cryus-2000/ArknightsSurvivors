@@ -446,3 +446,17 @@ func axis_ignore(e: Dictionary, p: Vector2) -> Vector2:
 		if not s.gone and s.pos.distance_to(p) < 120.0:
 			return (p - s.pos).normalized()
 	return Vector2.INF
+
+
+## 机器人危险区：冬夜冰雾前沿（外扩环，停驻点方向的出口除外）
+func bot_hazard(e: Dictionary, q: Vector2, pad: float) -> bool:
+	var wi = e.get("winter")
+	if wi is Dictionary and g.t >= float(wi.t0) - 0.3:
+		var dv: Vector2 = q - (wi.c as Vector2)
+		var r: float = maxf(0.0, (g.t - float(wi.t0)) * 170.0)
+		if front_hit(dv.length(), r, 170.0, pad, 14.0):
+			for a in wi.gaps:
+				if absf(angle_difference(dv.angle(), float(a))) < atan2(50.0, maxf(40.0, dv.length())) * 0.8:
+					return false
+			return true
+	return false

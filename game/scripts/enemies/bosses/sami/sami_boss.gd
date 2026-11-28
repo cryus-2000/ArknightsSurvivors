@@ -378,3 +378,15 @@ func _warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionar
 		d["skin0"] = d.get("skin", "")
 		d["skin"] = "sami_blade"
 	return super(e, shape, dur, d)
+
+
+## ---- 测试机器人看的危险区（11-28，docs/393 §14.15）：脚本自己结算、不进 g.warns 的东西（推进的地形前沿、环带、雪幕、围笼…）
+## 子类覆写；q 在危险区（含 pad 余量）返回 true。只给 core/bot.gd 打分用，不画、不判伤。
+## 前沿类按「已经在前沿上 + 前沿 0.7 秒内会扫到」算，免得机器人站在前沿正前方等着挨
+func bot_hazard(_e: Dictionary, _q: Vector2, _pad: float) -> bool:
+	return false
+
+
+## 推进前沿：前沿当前在 fr、速度 spd，点到起点的距离 d；在 [fr − pad, fr + spd × 0.7 + pad] 里算危险
+func front_hit(d: float, fr: float, spd: float, pad: float, wid := 30.0) -> bool:
+	return d > fr - wid - pad and d < fr + wid + spd * 0.7 + pad

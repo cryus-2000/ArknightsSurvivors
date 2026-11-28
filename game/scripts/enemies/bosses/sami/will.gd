@@ -678,3 +678,35 @@ func axis_ignore(e: Dictionary, p: Vector2) -> Vector2:
 		if absf(t.pos.x - p.x) < COL_W:
 			return Vector2(signf(p.x - t.pos.x + 0.01), 0.0)   # 整列都避开（站在树北边同一列，冰凌照样落到树上）
 	return Vector2.INF
+
+
+## 机器人危险区：雪浪积雪面、三幕常驻雪幕、冻原前沿、暴风雪、寒息雾锥（都是脚本自己结算的）
+func bot_hazard(e: Dictionary, q: Vector2, pad: float) -> bool:
+	var sw = e.get("swave")
+	if sw is Dictionary:
+		var dv: Vector2 = q - (sw.o as Vector2)
+		if absf(angle_difference(dv.angle(), float(sw.a))) < PI / 6.0 + 0.1 and front_hit(dv.length(), _swave_front(sw), 150.0, pad) and not _in_shadow(e, q):
+			return true
+	if act_i(e) >= 2 and q.y < _curtain_y(e) + pad and not _in_shadow(e, q):
+		return true
+	var tu = e.get("tundra")
+	if tu is Dictionary and g.t >= float(tu.t0) and not _in_shadow(e, q):
+		var y: float = float(tu.y0) + (g.t - float(tu.t0)) * float(tu.spd)
+		if front_hit(q.y - float(tu.y0), y - float(tu.y0), float(tu.spd), pad, 14.0):
+			return true
+	var bz = e.get("blizz")
+	if bz is Dictionary and not _in_shadow(e, q):
+		if q.y < float(bz.stop) + pad:   # 风雪会压到 stop：整片都算
+			var safe := false
+			for x in bz.gaps:
+				if absf(q.x - float(x)) < 45.0 - 10.0:
+					safe = true
+			if not safe:
+				return true
+	var br = e.get("breath")
+	if br is Dictionary and g.t >= float(br.t0):
+		var dv2: Vector2 = q - e.pos
+		var half: float = deg_to_rad(lerpf(30.0, 50.0, clampf((g.t - float(br.t0)) / 3.0, 0.0, 1.0)))
+		if dv2.length() < 600.0 + pad and absf(angle_difference(dv2.angle(), float(br.a))) < half + 0.1:
+			return true
+	return false

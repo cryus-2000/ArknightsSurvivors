@@ -709,3 +709,33 @@ func axis_ignore(e: Dictionary, p: Vector2) -> Vector2:
 		if d.pos.distance_to(p) < 80.0:
 			return (p - d.pos).normalized()
 	return Vector2.INF
+
+
+## 机器人危险区：苗圃环（环带前沿，出口除外）、剪枝刃、花墓苗圃
+func bot_hazard(e: Dictionary, q: Vector2, pad: float) -> bool:
+	for b in e.get("bands", []):
+		if g.t < float(b.t0) - 0.3:
+			continue
+		var dv: Vector2 = q - (b.c as Vector2)
+		var fr: float = _band_front(b) if g.t >= float(b.t0) else 60.0
+		if front_hit(dv.length(), fr, 150.0, pad):
+			var in_gap := false
+			for ga in b.gaps:
+				if absf(angle_difference(dv.angle(), float(ga))) < _band_gap(maxf(fr, dv.length())) * 0.8:
+					in_gap = true
+			if not in_gap:
+				return true
+	var sc = e.get("scissor")
+	if sc is Dictionary and g.t >= float(sc.t0) - 0.2:
+		var half: float = float(sc.get("half", deg_to_rad(60.0)))
+		for s in [-1.0, 1.0]:
+			var bb: Vector2 = sc.pivot + Vector2.from_angle(float(sc.a0) + s * half) * 640.0
+			if Geometry2D.get_closest_point_to_segment(q, sc.pivot, bb).distance_to(q) < 32.0 + pad:
+				return true
+		var dq: Vector2 = q - (sc.pivot as Vector2)
+		if dq.length() < 640.0 and absf(angle_difference(dq.angle(), float(sc.a0))) < half:
+			return true   # 剪口正在合拢：站在两刃之间也危险
+	var tb = e.get("tomb")
+	if tb is Dictionary and g.combat.ground_d(q, tb.pos) < float(tb.get("r", 120.0)) + 80.0 + pad:
+		return true
+	return false

@@ -483,3 +483,20 @@ func shot(e: Dictionary, pos: Vector2, ang: float, spd: float, tier: int, pct: f
 	super(e, pos, ang, spd, tier, pct, o)
 	if g.ebullets.size() > n0:
 		g.ebullets[g.ebullets.size() - 1]["no_extend"] = true
+
+
+## 机器人危险区：荆棘地（抽过的扇区）、藤痕（着火的段更要躲）、地下根土线将要破土的位置（土线头附近）
+func bot_hazard(e: Dictionary, q: Vector2, pad: float) -> bool:
+	for t in e.get("thorns", []):
+		var d: Vector2 = q - t.pos
+		if d.length() < LASH_R + pad and absf(angle_difference(float(t.ang), d.angle())) < deg_to_rad(50.0) + 0.1:
+			return true
+	for p in e.get("vtrail", []):
+		if g.combat.ground_d(q, p.pos) < 24.0 + pad * 0.5:
+			return true
+	var ms: Array = e.get("mounds", [])
+	if not ms.is_empty():
+		var head: Vector2 = ms[ms.size() - 1].pos
+		if q.distance_to(head) < 60.0 + pad:
+			return true
+	return false

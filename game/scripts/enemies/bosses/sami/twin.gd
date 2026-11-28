@@ -829,3 +829,27 @@ func axis_ignore(e: Dictionary, p: Vector2) -> Vector2:
 	if left > ULT_LOCK + 0.2:
 		return go_to(p, e.pos, 60.0)
 	return (p - (u.w.pos as Vector2)).normalized()
+
+
+## 机器人危险区：日晷影子（扫向的那一侧也算）、沙漏落沙三角、流沙河道
+func bot_hazard(e: Dictionary, q: Vector2, pad: float) -> bool:
+	var sd = e.get("sundial")
+	if sd is Dictionary and g.t >= float(sd.t0) - 0.3:
+		var a: float = float(sd.get("a", sd.a0))
+		for k in 3:   # 当前影子 + 0.35 / 0.7 秒后的位置
+			var b: Vector2 = sd.pin + Vector2.from_angle(a + deg_to_rad(30.0) * 0.35 * k) * 400.0
+			if Geometry2D.get_closest_point_to_segment(q, sd.pin, b).distance_to(q) < 32.0 + pad:
+				return true
+	var hg = e.get("hourglass")
+	if hg is Dictionary:
+		for i in 2:
+			if not hg.done[i] and Geometry2D.is_point_in_polygon(q, hg.tris[i]):
+				return true
+	var c = g.get_meta("twin_ctl") if g.has_meta("twin_ctl") else null   # 只读，不像 _ctl 那样会新建
+	var rv = c.get("river", {}) if c is Dictionary else {}
+	if rv is Dictionary and not rv.is_empty() and g.t <= float(rv.until):
+		var pts: Array = rv.pts
+		for k in pts.size() - 1:
+			if Geometry2D.get_closest_point_to_segment(q, pts[k], pts[k + 1]).distance_to(q) < 50.0 + pad * 0.5:
+				return true
+	return false

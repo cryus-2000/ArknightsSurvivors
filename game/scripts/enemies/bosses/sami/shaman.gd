@@ -519,3 +519,27 @@ func shot(e: Dictionary, pos: Vector2, ang: float, spd: float, tier: int, pct: f
 	super(e, pos, ang, spd, tier, pct, o)
 	if g.ebullets.size() > n0:
 		g.ebullets[g.ebullets.size() - 1]["no_extend"] = true
+
+
+## 机器人危险区：冰链围笼（链所在的圈，断口除外；收拢中算到 r1）、链扫前沿（断口除外）
+func bot_hazard(e: Dictionary, q: Vector2, pad: float) -> bool:
+	var cg = e.get("cage")
+	if cg is Dictionary:
+		var dv: Vector2 = q - (cg.c as Vector2)
+		var r: float = _cage_r(cg) if g.t >= float(cg.t0) else CAGE_R0
+		var d: float = dv.length()
+		if d > CAGE_R1 - 22.0 - pad and d < r + 22.0 + pad:
+			var in_gap := false
+			for ga in cg.gaps:
+				if absf(angle_difference(dv.angle(), float(ga))) < PI / 6.0 * 0.8:
+					in_gap = true
+			if not in_gap:
+				return true
+	for sw in e.get("sweeps", []):
+		if g.t < float(sw.t0) - 0.3:
+			continue
+		var dv2: Vector2 = q - (sw.p0 as Vector2)
+		var fr: float = _sweep_front(sw) if g.t >= float(sw.t0) else 0.0
+		if absf(dv2.dot(sw.n)) < 700.0 and absf(dv2.dot(sw.n) - float(sw.gap)) > SWEEP_GAP - 20.0 and front_hit(dv2.dot(sw.w), fr, SWEEP_SPD, pad, 22.0):
+			return true
+	return false
