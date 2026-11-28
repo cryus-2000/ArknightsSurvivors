@@ -4379,22 +4379,29 @@ func _ichain(w, cv, a: Vector2, b: Vector2, h: float, wid: float, al: float, sd:
 	var m: int = maxi(1, int(ceilf(float(n) * grow)))
 	for i in m + 1:
 		var f: float = minf(float(i) / float(n), grow)
-		var j: float = 0.0 if i == 0 or f >= 1.0 else (float(absi(hash(Vector2i(sd + fr, i))) % 100) / 50.0 - 1.0) * 4.0
+		var j: float = 0.0 if i == 0 or f >= 1.0 else (float(absi(hash(Vector2i(sd + fr, i))) % 100) / 50.0 - 1.0) * 7.0   # 电弧抖动（1× 下看得见）
 		pts.append(_snap(a.lerp(b, f) + Vector2(0, -h * sin(PI * f)) + nv * j))
 	var gt: Texture2D = _glow_tex()
 	for i in range(0, m + 1, 3):
 		var q: Vector2 = a.lerp(b, minf(float(i) / float(n), grow))
 		cv.draw_texture_rect(gt, Rect2(((q - Vector2(30, 16)) / PX).floor() * PX, Vector2(60, 32)), false, Color(0.45, 0.5, 1.0, 0.35 * al))
-	for pass_i in 3:
-		var wd: float = [wid + 8.0, wid, maxf(2.0, wid * 0.35)][pass_i]
-		var c: Color = [IND[0], IND[1], IND[3]][pass_i]
-		c.a = al
-		for i in pts.size() - 1:
-			w.tb_line(pts[i], pts[i + 1], c, wd)
-	# 链节冰晶：每隔几节一颗小菱晶
-	for i in range(2, pts.size() - 1, 4):
+	# 链节：一节亮一节暗（亮节带冰白芯），读得出是一节节的链
+	for i in pts.size() - 1:
+		w.tb_line(pts[i], pts[i + 1], Color(IND[0], al), wid + 8.0)
+	for i in pts.size() - 1:
+		var lit: bool = i % 2 == 0
+		var mid: Vector2 = pts[i].lerp(pts[i + 1], 0.5)
+		var hl: Vector2 = (pts[i + 1] - pts[i]) * 0.42
+		w.tb_line(mid - hl, mid + hl, Color(IND[2] if lit else IND[1], al), wid if lit else wid * 0.7)
+		if lit:
+			w.tb_line(mid - hl * 0.6, mid + hl * 0.6, Color(IND[3], al), maxf(2.0, wid * 0.35))
+	if rng.randf() < 0.5 * al:
+		var ri: int = rng.randi() % maxi(1, pts.size() - 1)
+		_add(pts[ri], Vector2(rng.randf_range(-60, 60), rng.randf_range(-60, 20)), 0.18, IND[3], 3.0, 2, 0.0)   # 电火花
+	# 冰结：每三节一颗菱晶
+	for i in range(2, pts.size() - 1, 3):
 		var q2: Vector2 = pts[i]
-		var s: float = wid * 0.55
+		var s: float = wid * 0.7
 		w.tb_poly(PackedVector2Array([q2 + Vector2(0, -s * 1.6 - 2), q2 + Vector2(s + 2, 0), q2 + Vector2(0, s * 0.7 + 2), q2 + Vector2(-s - 2, 0)]), Color(IND[0], al))
 		w.tb_poly(PackedVector2Array([q2 + Vector2(0, -s * 1.6), q2 + Vector2(s, 0), q2 + Vector2(0, s * 0.7), q2 + Vector2(-s, 0)]), Color(IND[2], al))
 		w.tb_poly(PackedVector2Array([q2 + Vector2(0, -s * 1.6), q2 + Vector2(-s, 0), q2]), Color(IND[3], al))
@@ -4449,11 +4456,16 @@ func _sham_moves(w, cv, e: Dictionary, now: float) -> void:
 		var ctr: Vector2 = (sw.p0 as Vector2) + (sw.w as Vector2) * (now - float(sw.t0)) * 90.0
 		var nn: Vector2 = sw.n
 		var g0: float = float(sw.gap)
-		_ichain(w, cv, ctr - nn * 700.0, ctr + nn * (g0 - 60.0), 0.0, 12.0, 1.0, sd0 + 3)
-		_ichain(w, cv, ctr + nn * (g0 + 60.0), ctr + nn * 700.0, 0.0, 12.0, 1.0, sd0 + 5)
+		var sway: float = sin(now * 3.0 + float(sd0)) * 18.0
+		var lift := Vector2(0, -22)
+		# 链身两段，各自下垂成弧（h 取负 = 往下垂）并随风摆；断口两头各立一根冰柱拴住链
+		_ichain(w, cv, ctr - nn * 700.0 + lift, ctr + nn * (g0 - 60.0) + lift, -(46.0 + sway), 12.0, 1.0, sd0 + 3)
+		_ichain(w, cv, ctr + nn * (g0 + 60.0) + lift, ctr + nn * 700.0 + lift, -(46.0 - sway), 12.0, 1.0, sd0 + 5)
 		w.tb_flush()
-		_ipost(ctr - nn * 700.0, 0.55)
-		_ipost(ctr + nn * 700.0, 0.55)
+		_ipost(ctr - nn * 700.0, 0.6)
+		_ipost(ctr + nn * 700.0, 0.6)
+		_ipost(ctr + nn * (g0 - 60.0), 0.6)
+		_ipost(ctr + nn * (g0 + 60.0), 0.6)
 		for s2 in [-1.0, 1.0]:
 			if rng.randf() < 0.5:
 				_add(ctr + nn * (g0 + s2 * 60.0), Vector2(rng.randf_range(-30, 30), -rng.randf_range(30, 80)), 0.4, IND[2], 4.0, 3, 200.0)

@@ -19,16 +19,16 @@ var RAMP := {
 	"cresson": _ramp(Color8(176, 120, 236), Color8(104, 60, 166), Color8(226, 196, 255)),
 	"khan": _ramp(Color8(196, 40, 30), Color8(110, 14, 10), Color8(250, 120, 92)),
 	"lion": _ramp(Color8(244, 172, 36), Color8(164, 98, 12), Color8(255, 230, 124)),
-	"shaman": _ramp(Color8(104, 136, 248), Color8(50, 70, 184), Color8(188, 204, 255)),
-	"vine": _ramp(Color8(92, 190, 70), Color8(36, 110, 34), Color8(180, 236, 140)),
+	"shaman": _ramp(Color8(150, 172, 250), Color8(64, 86, 196), Color8(214, 226, 255)),   # 11-28 冰屑：冰白 + 浅靛
+	"vine": _ramp(Color8(120, 84, 52), Color8(62, 40, 26), Color8(176, 132, 86)),          # 11-28 土块 / 木屑：土褐
 }
 ## 敌人种类 → [配色, 形状, 是否对称, 尘]
 const KIND := {
 	"blade": ["blade", "crescent", false, "smoke"], "wanderer": ["blade", "crescent", false, "smoke"],
 	"will": ["will", "snow", true, "snow"], "lead": ["lead", "leaf", false, "snow"], "cresson": ["cresson", "petal", false, "snow"],
 	"khan": ["khan", "lance", false, "sand"], "lion": ["lion", "sun", true, "sand"],
-	"shaman": ["shaman", "cone", false, "snow"], "shaman2": ["shaman", "cone", false, "snow"],
-	"vine": ["vine", "pod", false, "snow"], "vine2": ["vine", "pod", false, "snow"],
+	"shaman": ["shaman", "shard", false, "snow"], "shaman2": ["shaman", "shard", false, "snow"],   # 11-28：水滴形 → 不规则棱角碎冰
+	"vine": ["vine", "shard", false, "snow"], "vine2": ["vine", "shard", false, "snow"],           # 11-28：绿叶片 → 土块
 }
 
 var cache := {}
@@ -174,6 +174,21 @@ func _shape(kind: String, sz: float, u: float, v: float) -> float:
 			if absf(v) < 1.0:
 				return 0.0
 			return 0.3 + 0.7 * absf(v) / maxf(0.5, wm5)
+		"shard":
+			# 不规则棱角碎块：五边形（各顶点半径不同），按面分明暗（一面亮一面暗），中心一点白芯
+			var R7: float = sz * 0.48
+			var r7: float = Vector2(u, v).length()
+			var a7: float = fposmod(atan2(v, u), TAU)
+			var vr: Array = [1.0, 0.6, 0.86, 0.52, 0.76]
+			var fa: float = a7 / (TAU / 5.0)
+			var i7: int = int(fa) % 5
+			var rr7: float = R7 * lerpf(float(vr[i7]), float(vr[(i7 + 1) % 5]), fa - floorf(fa))
+			if r7 > rr7:
+				return -1.0
+			if r7 < rr7 * 0.22:
+				return 0.0
+			var shade: Array = [0.4, 0.62, 0.92, 0.78, 0.5]
+			return float(shade[i7]) * (0.75 + 0.25 * r7 / rr7)
 		"pod":
 			var hl6: float = sz * 0.5
 			var W6: float = sz * 0.54
