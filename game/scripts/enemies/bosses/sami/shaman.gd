@@ -255,8 +255,9 @@ func _tick_cage(e: Dictionary) -> void:
 		e.erase("cage")
 
 
-## ---- E 寒灾（11-28 改链扫）：上风处场边立两根冰柱，柱间一根冰链（宽 30）顺风扫过（90 px/秒，扫 840），链上留 1 个断口（宽 120）；
-## 一共两道，间隔 2.4 秒，断口错开；断口预先画 1.0 秒。链扫过队长（不在断口里）10%，每道一次
+## ---- E 寒灾（11-28 改链扫；补充 3 提速）：上风处立两根冰柱，柱间一根冰链（宽 30）顺风扫过（200 px/秒，从队长上风 280 扫到下风 280，共 560），
+## 链上留 1 个断口（宽 140）；两道，间隔 1.2 秒，断口错开约 140；断口预先画 1.0 秒。整招 1.0 + 1.2 + 2.8 = 5.0 秒结束。
+## 扫速超过步行（150），只能靠断口躲：断口离队长最远约 100，预警 1.0 + 链走到队长 1.4 秒 = 2.4 秒够走到；扫到 10%，每道一次
 func _e_bands(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var wv: Vector2 = _wind(e)
 	var nrm: Vector2 = wv.orthogonal()
@@ -264,16 +265,21 @@ func _e_bands(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	if not e.has("sweeps"):
 		e["sweeps"] = []
 	for k in 2:
-		var gap_off: float = [-90.0, 110.0][k] + g.rng_enemy.randf_range(-40.0, 40.0)
-		later(e, 2.4 * k, func():
-			var p0: Vector2 = c - wv * 420.0
-			w_line(e, wv.angle(), 840.0, 60.0, 1.0, 0.0, "寒灾" if k == 0 else "", {"lock": k == 0, "pos": p0 + nrm * gap_off})
+		var gap_off: float = [-70.0, 70.0][k] + g.rng_enemy.randf_range(-20.0, 20.0)   # 两道断口相距 100–180，第二道晚 1.2 秒到，走得过去
+		later(e, 1.2 * k, func():
+			var p0: Vector2 = c - wv * SWEEP_LEN * 0.5
+			w_line(e, wv.angle(), SWEEP_LEN, 70.0, 1.0, 0.0, "寒灾" if k == 0 else "", {"lock": k == 0, "pos": p0 + nrm * gap_off})
 			e.sweeps.append({"p0": p0, "w": wv, "n": nrm, "gap": gap_off, "t0": g.t + 1.0, "hit": false}))
-	return 3.6
+	return 5.0
+
+
+const SWEEP_SPD := 200.0
+const SWEEP_LEN := 560.0
+const SWEEP_GAP := 70.0   # 断口半宽（宽 140）
 
 
 func _sweep_front(sw: Dictionary) -> float:
-	return (g.t - float(sw.t0)) * 90.0
+	return (g.t - float(sw.t0)) * SWEEP_SPD
 
 
 func _tick_sweep(e: Dictionary) -> void:
@@ -285,13 +291,13 @@ func _tick_sweep(e: Dictionary) -> void:
 			keep.append(sw)
 			continue
 		var fr: float = _sweep_front(sw)
-		if fr > 840.0:
+		if fr > SWEEP_LEN:
 			continue
 		keep.append(sw)
 		if sw.hit:
 			continue
 		var dv: Vector2 = g.ppos - (sw.p0 as Vector2)
-		if absf(dv.dot(sw.w) - fr) < 22.0 and absf(dv.dot(sw.n) - float(sw.gap)) > 60.0 and absf(dv.dot(sw.n)) < 700.0:
+		if absf(dv.dot(sw.w) - fr) < 22.0 and absf(dv.dot(sw.n) - float(sw.gap)) > SWEEP_GAP and absf(dv.dot(sw.n)) < 700.0:
 			sw.hit = true
 			hit_now(e, g.ppos, 1.0, 0.10)
 	e.sweeps = keep
@@ -480,8 +486,8 @@ func draw(e: Dictionary, cv) -> void:
 		if g.t >= float(sw.t0):
 			var ctr: Vector2 = (sw.p0 as Vector2) + (sw.w as Vector2) * _sweep_front(sw)
 			var n: Vector2 = sw.n
-			cv.draw_line(ctr - n * 700.0, ctr + n * (float(sw.gap) - 60.0), Color(ind.r, ind.g, ind.b, 0.9), 8.0)
-			cv.draw_line(ctr + n * (float(sw.gap) + 60.0), ctr + n * 700.0, Color(ind.r, ind.g, ind.b, 0.9), 8.0)
+			cv.draw_line(ctr - n * 700.0, ctr + n * (float(sw.gap) - SWEEP_GAP), Color(ind.r, ind.g, ind.b, 0.9), 8.0)
+			cv.draw_line(ctr + n * (float(sw.gap) + SWEEP_GAP), ctr + n * 700.0, Color(ind.r, ind.g, ind.b, 0.9), 8.0)
 	var pr = e.get("prints")
 	if pr != null and float(pr.until) > g.t:
 		for p in pr.pts:
