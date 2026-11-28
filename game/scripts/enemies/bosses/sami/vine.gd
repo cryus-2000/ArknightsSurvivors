@@ -13,7 +13,7 @@
 ## 画面占位；未做：藤痕减速 0.85（要动公共移动代码）。
 extends "res://scripts/enemies/bosses/sami/sami_boss.gd"
 
-const LASH_R := 170.0
+const LASH_R := 200.0   # 11-28 难度 r3：170 → 200（+18%，覆盖面属数值，协调人授权）
 
 
 func _old(e: Dictionary) -> bool:
@@ -135,7 +135,7 @@ func _count(e: Dictionary) -> void:
 ## ---- A 抽击·荆地（③）：100° 扇形 r 170（1.6 / 1.5），横抽一记；抽过的扇区长出荆棘 2 秒（每 0.5 秒站在里面 2%）
 func _a_lash(e: Dictionary, dir: Vector2, _d: float) -> float:
 	_count(e)
-	var w := w_cone(e, dir.angle(), deg_to_rad(50.0), LASH_R, 1.6, 0.22, "抽击·荆地", {"track": 0.1})
+	var w := w_cone(e, dir.angle(), deg_to_rad(50.0), LASH_R, 1.7, 0.22, "抽击·荆地", {"track": 0.1})
 	w.cb = func(ww):
 		_chips(e, e.pos + Vector2.from_angle(float(ww.ang)) * LASH_R, float(ww.ang), 3, 0.5)   # 11-28：两扇 9 + 8 发荆刺 → 鞭梢甩 3 根
 		if not e.has("thorns"):
@@ -165,7 +165,7 @@ func _hit_at(e: Dictionary, pos: Vector2, r: float, pct: float) -> void:
 
 
 ## ---- B 致幻缠绕（11-28 改地下根）：每 3 次攻击后一次。根须钻进地里，地面隆起一条土线朝队长追（每 0.1 秒走 42、最多转 20°），
-## 追到离队长 ≤50 或走满 14 步后破土：破土圈 r 60（0.9 / 锁定 0.79），队长 16%（古老 25%，两条根，开局左右各偏 25°）；破土崩 4 块土块；
+## 追到离队长 ≤50 或走满 14 步后破土：破土圈 r 75（11-28 r3 从 60 放大；锁定按公式 0.95），队长 16%（古老 25%，两条根，开局左右各偏 25°）；破土崩 4 块土块；
 ## 破土点离熔岩口 ≤90 时那个口提前喷发。土线（e.mounds）只画不判
 func _b_root(e: Dictionary, dir: Vector2, d: float) -> float:
 	if int(e.get("atk_n", 0)) < 3:
@@ -195,7 +195,7 @@ func _root_go(e: Dictionary, from: Vector2, a: float, i: int, left: int, pct: fl
 		e["mounds"] = []
 	e.mounds.append({"pos": p, "until": g.t + 1.6})
 	if left <= 1 or p.distance_to(g.ppos) <= 50.0:
-		_surface(e, p, 60.0, pct, nm)
+		_surface(e, p, 75.0, pct, nm)   # 11-28 r3：破土 r 60 → 75
 		return
 	later(e, 0.1, _root_go.bind(e, p, a, i + 1, left - 1, pct, nm, turn, stp))
 
@@ -283,7 +283,7 @@ func _d_coil(e: Dictionary, _dir: Vector2, _d: float) -> float:
 		for k in 4:
 			var u: float = float(k + 1) / 4.0
 			var q: Vector2 = st.lerp(c, u) + (c - st).orthogonal().normalized() * sin(PI * u) * 50.0 * sg
-			w_line(e, (q - prev).angle(), prev.distance_to(q) + 6.0, 36.0, 0.8 + 0.15 * k, 0.12, "缠绕" if n == 0 and k == 0 else "", {"pos": prev, "lock": n == 0 and k == 0, "vseg": k, "vn": 4})   # vseg：画面按第几节收细
+			w_line(e, (q - prev).angle(), prev.distance_to(q) + 6.0, 44.0, 0.8 + 0.15 * k, 0.12, "缠绕" if n == 0 and k == 0 else "", {"pos": prev, "lock": n == 0 and k == 0, "vseg": k, "vn": 4})   # vseg：画面按第几节收细
 			prev = q
 		n += 1
 	return 1.6
@@ -316,7 +316,7 @@ func _f_fire(e: Dictionary) -> void:
 		w_circle(e, p, 30.0, 0.8, 0.10, "", {"lock": false})
 
 
-## ---- G 盘根（古老，11-28 改）：两条古老根系同时从脚下朝队长钻过来（左右各偏 30°），每条 5 个破土点（r 45，0.9 / 0.64，14%），
+## ---- G 盘根（古老，11-28 改）：两条古老根系同时从脚下朝队长钻过来（左右各偏 30°），每条 5 个破土点（r 55，11-28 r3 从 45 放大；0.9 / 0.74，14%），
 ## 每步 70、最多转 30°、间隔 0.25–0.35 秒随机；每个破土点崩 2 块土块，离熔岩口 ≤90 会引爆
 func _g_track(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var a: float = (g.ppos - e.pos).angle()
@@ -331,7 +331,7 @@ func _g_step(e: Dictionary, from: Vector2, a: float, k: int, named: bool) -> voi
 	var want: float = (g.ppos - from).angle()
 	a += clampf(wrapf(want - a, -PI, PI), -PI / 6.0, PI / 6.0)
 	var p: Vector2 = g.combat.arena_clamp(from + Vector2.from_angle(a) * 70.0, 40.0)
-	var w := w_circle(e, p, 45.0, 0.9, 0.14, "盘根" if named and k == 0 else "", {"lock": named and k == 0})
+	var w := w_circle(e, p, 55.0, 0.9, 0.14, "盘根" if named and k == 0 else "", {"lock": named and k == 0})
 	w.cb = func(_ww):
 		_chips(e, p, a, 2, 0.8)
 		_vent_near(e, p, 90.0)

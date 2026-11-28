@@ -150,7 +150,7 @@ func _group_pick(e: Dictionary, ready: bool, dir: Vector2, dist: float) -> void:
 
 ## ---- A 寒链·弹射（11-28 改冰链，按概念图 fm_s1）：冰链从雪祀射出，在小怪之间弹跳——第一跳找离雪祀 ≤520 的小怪，之后每跳找
 ## 离上一个落点 ≤240（空洞 ≤300）、离队长最近的小怪，最多 3 跳（空洞 4 跳），最后一跳跳向队长。每个落点 0.3 秒后依次亮一个冰晶圈
-## （r 70，0.9 / 锁定 0.88），到点炸开（小怪落点 12%、队长落点 16%，空洞每跳 ×0.9），炸开处崩 2 片冰屑。没有小怪就直接一跳打队长。
+## （r 85，11-28 r3 从 70 放大；1.05 / 锁定 1.02），到点炸开（小怪落点 12%、队长落点 16%，空洞每跳 ×0.9），炸开处崩 2 片冰屑。没有小怪就直接一跳打队长。
 ## 链本身是空中的弧（只画），伤人的是每个落点的冰晶；离小怪远就安全
 func _a_chain(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var hop: float = 300.0 if _hol(e) else 240.0
@@ -183,7 +183,7 @@ func _a_chain(e: Dictionary, _dir: Vector2, _d: float) -> float:
 		var p: Vector2 = Vector2.INF if last else path[i]
 		later(e, 0.3 * (i - 1), func():
 			var q: Vector2 = g.ppos if last else p
-			var w := w_circle(e, q, 70.0, 0.9, pct, "寒链·弹射" if i == 1 else "", {"lock": i == 1, "track_pos": "leader" if last else "", "track": 0.2 if last else 0.0})
+			var w := w_circle(e, q, 85.0, 1.05, pct, "寒链·弹射" if i == 1 else "", {"lock": i == 1, "track_pos": "leader" if last else "", "track": 0.2 if last else 0.0})
 			w.cb = func(ww):
 				_chips(e, ww.pos, (ww.pos - e.pos).angle(), 2, 0.8))
 	var full: Array = path.duplicate()
@@ -235,7 +235,7 @@ func _tick_cage(e: Dictionary) -> void:
 		return
 	var r: float = _cage_r(cg)
 	var dv: Vector2 = g.ppos - (cg.c as Vector2)
-	if not cg.hit and absf(dv.length() - r) < 22.0:
+	if not cg.hit and absf(dv.length() - r) < 28.0:   # 11-28 r3：链判定半宽 22 → 28
 		var in_gap := false
 		for ga in cg.gaps:
 			if absf(angle_difference(dv.angle(), float(ga))) < PI / 6.0:
@@ -256,7 +256,7 @@ func _tick_cage(e: Dictionary) -> void:
 
 
 ## ---- E 寒灾（11-28 改链扫；补充 3 提速）：上风处立两根冰柱，柱间一根冰链（宽 30）顺风扫过（200 px/秒，从队长上风 280 扫到下风 280，共 560），
-## 链上留 1 个断口（宽 140）；两道，间隔 1.2 秒，断口错开约 140；断口预先画 1.0 秒。整招 1.0 + 1.2 + 2.8 = 5.0 秒结束。
+## 链上留 1 个断口（宽 120，11-28 r3 从 140 收窄）；两道，间隔 1.2 秒，断口错开约 140；断口预先画 1.0 秒。整招 1.0 + 1.2 + 2.8 = 5.0 秒结束。
 ## 扫速超过步行（150），只能靠断口躲：断口离队长最远约 100，预警 1.0 + 链走到队长 1.4 秒 = 2.4 秒够走到；扫到 10%，每道一次
 func _e_bands(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var wv: Vector2 = _wind(e)
@@ -275,7 +275,7 @@ func _e_bands(e: Dictionary, _dir: Vector2, _d: float) -> float:
 
 const SWEEP_SPD := 200.0
 const SWEEP_LEN := 560.0
-const SWEEP_GAP := 70.0   # 断口半宽（宽 140）
+const SWEEP_GAP := 60.0   # 断口半宽（宽 120；11-28 r3 从 140 收窄）
 
 
 func _sweep_front(sw: Dictionary) -> float:
