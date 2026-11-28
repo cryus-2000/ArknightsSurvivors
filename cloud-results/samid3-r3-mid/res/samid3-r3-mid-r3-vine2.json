@@ -1,0 +1,2340 @@
+{
+ "tag": "samid3-r3-mid-r3-vine2",
+ "game": "/home/user/ArknightsSurvivors/game",
+ "records": [
+  {
+   "boss": "vine2",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 1,
+   "wall": 14.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.955,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 0.0,
+   "bul_peak": 0,
+   "dmg": 1550.0,
+   "fight_t": 7.0,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.9|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.225|lshape:irene|op:irene\",\"1|0.24|lshape:eyjafjalla|op:eyjafjalla\",\"1|0.54|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 136.658 -> 132.678"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_hound": 0.276230094071405
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "kaltsit",
+   "level": 19,
+   "max_hp": 139.0,
+   "moves": {
+    "vine2:缠绕": 2,
+    "vine2:落种·食草花": 2
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "kaltsit_m0_s1_slot2",
+   "squad": [
+    "kaltsit",
+    "irene",
+    "eyjafjalla"
+   ],
+   "src": {
+    "contact_hound": 1.9249536553056
+   },
+   "taken": 255.4,
+   "taken_pct": 1.925,
+   "win": false
+  },
+  {
+   "boss": "vine2",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 2,
+   "wall": 20.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.226,
+   "brk_time_share": 0.076,
+   "bul_avg": 0.4,
+   "bul_peak": 8,
+   "dmg": 34741.0,
+   "fight_t": 79.1,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:saria|op:saria\",\"1|0.525|lshape:ulpianus|op:ulpianus\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {},
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 21,
+   "max_hp": 136.0,
+   "moves": {
+    "vine2:抽击·荆地": 3,
+    "vine2:缠绕": 3,
+    "vine2:致幻缠绕": 2,
+    "vine2:落种·食草花": 3
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "kaltsit_m0_s2_slot2",
+   "squad": [
+    "kaltsit",
+    "ulpianus",
+    "saria"
+   ],
+   "src": {},
+   "taken": 0.0,
+   "taken_pct": 0.0,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 3,
+   "wall": 18.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.105,
+   "brk_time_share": 0.06,
+   "bul_avg": 1.5,
+   "bul_peak": 16,
+   "dmg": 34741.0,
+   "fight_t": 43.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.24|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:wisadel\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.5|lshape:suzuran|op:suzuran\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:wisadel\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_hound": 0.248607084664264,
+    "contact_uterer": 0.101739637829883
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 21,
+   "max_hp": 147.0,
+   "moves": {
+    "vine2:抽击·荆地": 4,
+    "vine2:根网": 3,
+    "vine2:盘根": 1,
+    "vine2:缠绕": 3,
+    "vine2:致幻缠绕": 2,
+    "vine2:落种·食草花": 3
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "kaltsit_m0_s3_slot2",
+   "squad": [
+    "kaltsit",
+    "suzuran",
+    "wisadel"
+   ],
+   "src": {
+    "contact_hound": 0.775668104884239,
+    "contact_uterer": 0.101739637829883
+   },
+   "taken": 129.3,
+   "taken_pct": 0.877,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 4,
+   "wall": 19.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.251,
+   "brk_time_share": 0.102,
+   "bul_avg": 1.8,
+   "bul_peak": 16,
+   "dmg": 34741.0,
+   "fight_t": 58.6,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.6|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:irene\",\"2|1.25|command|op:wisadel\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.36|lshape:kaltsit|op:kaltsit\",\"1|0.525|lshape:irene|op:irene\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.8|sami_chaos|\",\"2|1.5|command|op:irene\",\"2|1.5|command|op:wisadel\"] 多 []",
+    "stats.max_hp: 164.218 -> 154.791"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_breaker": 0.169832832775167,
+    "contact_hound": 0.131917705619264,
+    "contact_uterer": 0.0736709567215491
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.448,
+   "leader": "kaltsit",
+   "level": 21,
+   "max_hp": 148.0,
+   "moves": {
+    "vine2:抽击·荆地": 7,
+    "vine2:根网": 3,
+    "vine2:盘根": 2,
+    "vine2:缠绕": 3,
+    "vine2:致幻缠绕": 3,
+    "vine2:落种·食草花": 4
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "kaltsit_m0_s4_slot2",
+   "squad": [
+    "kaltsit",
+    "wisadel",
+    "irene"
+   ],
+   "src": {
+    "contact_breaker": 0.276832504020689,
+    "contact_hound": 1.35414534153845,
+    "contact_uterer": 0.0736709567215491
+   },
+   "taken": 263.9,
+   "taken_pct": 1.705,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 5,
+   "wall": 19.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.167,
+   "brk_time_share": 0.124,
+   "bul_avg": 3.7,
+   "bul_peak": 24,
+   "dmg": 34741.0,
+   "fight_t": 48.5,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.525|lshape:specter_unchained|op:specter_unchained\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.shield_max: 缺 [\"0|1.0|relic_sprout|\"] 多 []",
+    "stats.shield_max: 1.0 -> 0.0"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "atk_icebug": 0.123626381013376,
+    "contact_hound": 0.131144532638181
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.887,
+   "leader": "kaltsit",
+   "level": 20,
+   "max_hp": 114.0,
+   "moves": {
+    "vine2:抽击·荆地": 5,
+    "vine2:根网": 4,
+    "vine2:盘根": 3,
+    "vine2:缠绕": 3,
+    "vine2:致幻缠绕": 2,
+    "vine2:落种·食草花": 3
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "kaltsit_m0_s5_slot2",
+   "squad": [
+    "kaltsit",
+    "specter_unchained",
+    "logos"
+   ],
+   "src": {
+    "atk_icebug": 0.123626381013376,
+    "contact_hound": 0.280006830313628
+   },
+   "taken": 45.9,
+   "taken_pct": 0.404,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 6,
+   "wall": 22.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.4,
+   "bul_peak": 14,
+   "dmg": 34741.0,
+   "fight_t": 72.5,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\",\"2|1.03|totem_perm_4|\",\"2|1.03|totem_perm_5|\",\"2|1.03|totem_perm_6|\"] 多 []",
+    "mods.op_atk: 缺 [\"1|1.0|sami_whet|op:exusiai\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:exusiai|op:exusiai\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:exusiai|op:exusiai\",\"1|0.3|lshape:ulpianus|op:ulpianus\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 186.281 -> 160.688"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "atk_husk/husk/bite": 0.00622324781346188,
+    "contact_hound": 0.170249869266756,
+    "contact_rockback": 0.134440129082907,
+    "shock_rockback": 0.543895645533754
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.908,
+   "leader": "kaltsit",
+   "level": 22,
+   "max_hp": 161.0,
+   "moves": {
+    "vine2:抽击·荆地": 8,
+    "vine2:根网": 3,
+    "vine2:盘根": 2,
+    "vine2:缠绕": 6,
+    "vine2:致幻缠绕": 4,
+    "vine2:落种·食草花": 6
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "kaltsit_m0_s6_slot2",
+   "squad": [
+    "kaltsit",
+    "ulpianus",
+    "exusiai"
+   ],
+   "src": {
+    "atk_husk/husk/bite": 0.00622324781346188,
+    "contact_hound": 0.239115722429062,
+    "contact_rockback": 0.134440129082907,
+    "shock_rockback": 0.543895645533754
+   },
+   "taken": 148.4,
+   "taken_pct": 0.924,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 1,
+   "wall": 15.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.408,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.423,
+   "brk_time_share": 0.271,
+   "bul_avg": 1.4,
+   "bul_peak": 9,
+   "dmg": 20549.0,
+   "fight_t": 22.2,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.525|lshape:lappland|op:lappland\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 161.965 -> 157.248"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_breaker": 0.376207471105365,
+    "contact_hound": 0.237026321124917,
+    "contact_rockback": 0.284009146972445
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "kaltsit",
+   "level": 20,
+   "max_hp": 157.0,
+   "moves": {
+    "vine2:抽击·荆地": 3,
+    "vine2:根网": 1,
+    "vine2:缠绕": 2,
+    "vine2:致幻缠绕": 1,
+    "vine2:落种·食草花": 3
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "kaltsit_m18_s1_slot2",
+   "squad": [
+    "kaltsit",
+    "logos",
+    "lappland"
+   ],
+   "src": {
+    "contact_breaker": 0.376207471105365,
+    "contact_hound": 0.769027628865057,
+    "contact_rockback": 0.482374297592437
+   },
+   "taken": 255.9,
+   "taken_pct": 1.628,
+   "win": false
+  },
+  {
+   "boss": "vine2",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 2,
+   "wall": 18.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.351,
+   "brk_time_share": 0.264,
+   "bul_avg": 1.5,
+   "bul_peak": 16,
+   "dmg": 34741.0,
+   "fight_t": 48.2,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.3|lshape:saria|op:saria\",\"1|0.63|lshape:kaltsit|op:kaltsit\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.3|totem_5|\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "": 0.001188
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 21,
+   "max_hp": 134.0,
+   "moves": {
+    "vine2:抽击·荆地": 4,
+    "vine2:根网": 3,
+    "vine2:盘根": 2,
+    "vine2:缠绕": 3,
+    "vine2:致幻缠绕": 2,
+    "vine2:落种·食草花": 3
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "kaltsit_m18_s2_slot2",
+   "squad": [
+    "kaltsit",
+    "suzuran",
+    "saria"
+   ],
+   "src": {
+    "": 0.003564
+   },
+   "taken": 0.5,
+   "taken_pct": 0.004,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 3,
+   "wall": 26.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.193,
+   "brk_time_share": 0.225,
+   "bul_avg": 1.0,
+   "bul_peak": 8,
+   "dmg": 34741.0,
+   "fight_t": 106.7,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.9|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_3|\",\"2|1.03|totem_perm_4|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.225|lshape:texas|op:texas\",\"1|0.45|lshape:saria|op:saria\",\"1|0.54|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 166.824 -> 157.248"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_breaker": 0.203956156203329,
+    "contact_hound": 0.262588234597606,
+    "shock_breaker": 0.286601824039739
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 21,
+   "max_hp": 183.0,
+   "moves": {
+    "vine2:抽击·荆地": 10,
+    "vine2:缠绕": 7,
+    "vine2:致幻缠绕": 5,
+    "vine2:落种·食草花": 8
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "kaltsit_m18_s3_slot2",
+   "squad": [
+    "kaltsit",
+    "saria",
+    "texas"
+   ],
+   "src": {
+    "contact_breaker": 0.203956156203329,
+    "contact_hound": 0.583920615323686,
+    "shock_breaker": 0.286601824039739
+   },
+   "taken": 169.0,
+   "taken_pct": 1.074,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 4,
+   "wall": 19.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 2.0,
+   "bul_peak": 16,
+   "dmg": 34741.0,
+   "fight_t": 66.0,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.16|lshape:wisadel|op:wisadel\",\"1|0.28|lshape:eyjafjalla|op:eyjafjalla\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 166.824 -> 157.248"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_hound": 0.1854
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.806,
+   "leader": "kaltsit",
+   "level": 21,
+   "max_hp": 150.0,
+   "moves": {
+    "vine2:抽击·荆地": 6,
+    "vine2:根网": 3,
+    "vine2:盘根": 3,
+    "vine2:缠绕": 4,
+    "vine2:致幻缠绕": 3,
+    "vine2:落种·食草花": 5
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "kaltsit_m18_s4_slot2",
+   "squad": [
+    "kaltsit",
+    "eyjafjalla",
+    "wisadel"
+   ],
+   "src": {
+    "contact_hound": 0.1854
+   },
+   "taken": 29.2,
+   "taken_pct": 0.185,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 5,
+   "wall": 17.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.606,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.1,
+   "bul_peak": 16,
+   "dmg": 34741.0,
+   "fight_t": 54.4,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\",\"1|1.05|lshape:mizuki|op:mizuki\"] 多 []",
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_pierce: 缺 [\"0|1.0|lshape:exusiai|op:exusiai\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.16|lshape:exusiai|op:exusiai\",\"1|0.63|lshape:kaltsit|op:kaltsit\",\"1|0.63|lshape:mizuki|op:mizuki\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "bullet_vine2": 0.167383125,
+    "contact_hound": 0.108779000406414
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 21,
+   "max_hp": 189.0,
+   "moves": {
+    "vine2:抽击·荆地": 3,
+    "vine2:根网": 2,
+    "vine2:盘根": 1,
+    "vine2:缠绕": 2,
+    "vine2:致幻缠绕": 2,
+    "vine2:落种·食草花": 3
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "kaltsit_m18_s5_slot2",
+   "squad": [
+    "kaltsit",
+    "exusiai",
+    "mizuki"
+   ],
+   "src": {
+    "bullet_vine2": 0.167383125,
+    "contact_hound": 0.108779000406414
+   },
+   "taken": 45.6,
+   "taken_pct": 0.276,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 6,
+   "wall": 20.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 0.6,
+   "bul_peak": 8,
+   "dmg": 34741.0,
+   "fight_t": 70.9,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"1|0.12|sami_ode|\",\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\",\"2|1.03|totem_perm_4|\",\"2|1.03|totem_perm_5|\",\"2|1.03|totem_perm_6|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:irene|op:irene\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 188.967 -> 147.841"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_hound": 0.131324813162393
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 21,
+   "max_hp": 180.0,
+   "moves": {
+    "vine2:抽击·荆地": 3,
+    "vine2:缠绕": 3,
+    "vine2:致幻缠绕": 2,
+    "vine2:落种·食草花": 3
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "kaltsit_m18_s6_slot2",
+   "squad": [
+    "kaltsit",
+    "irene",
+    "wisadel"
+   ],
+   "src": {
+    "contact_hound": 0.239394168362691
+   },
+   "taken": 35.4,
+   "taken_pct": 0.239,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 1,
+   "wall": 19.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.379,
+   "brk_time_share": 0.176,
+   "bul_avg": 2.8,
+   "bul_peak": 14,
+   "dmg": 34741.0,
+   "fight_t": 68.1,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.28|lshape:lumen|op:lumen\",\"1|0.525|lshape:skadi|op:skadi\"] 多 []",
+    "stats.max_hp: 125.33 -> 121.68"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_hound": 0.23384361605032
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 122.0,
+   "moves": {
+    "vine2:抽击·荆地": 8,
+    "vine2:根网": 2,
+    "vine2:盘根": 2,
+    "vine2:缠绕": 5,
+    "vine2:致幻缠绕": 4,
+    "vine2:落种·食草花": 6
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m0_s1_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "logos"
+   ],
+   "src": {
+    "contact_hound": 0.985112201020455
+   },
+   "taken": 119.9,
+   "taken_pct": 0.985,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 2,
+   "wall": 20.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.309,
+   "brk_time_share": 0.164,
+   "bul_avg": 2.2,
+   "bul_peak": 16,
+   "dmg": 34741.0,
+   "fight_t": 73.3,
+   "fp_diff": [
+    "mods.op_pierce: 缺 [\"0|1.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.16|lshape:lumen|op:lumen\",\"1|0.525|lshape:irene|op:irene\",\"1|0.525|lshape:skadi|op:skadi\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_hound": 0.174255923470143
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.374,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 161.0,
+   "moves": {
+    "vine2:抽击·荆地": 7,
+    "vine2:根网": 6,
+    "vine2:盘根": 4,
+    "vine2:缠绕": 4,
+    "vine2:致幻缠绕": 3,
+    "vine2:落种·食草花": 5
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m0_s2_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "irene"
+   ],
+   "src": {
+    "contact_hound": 1.5866826508626
+   },
+   "taken": 255.4,
+   "taken_pct": 1.587,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 3,
+   "wall": 22.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.613,
+   "brk_time_share": 0.137,
+   "bul_avg": 1.7,
+   "bul_peak": 16,
+   "dmg": 34741.0,
+   "fight_t": 87.4,
+   "fp_diff": [
+    "mods.armor: 缺 [\"0|4.0|sami_altar|\"] 多 []",
+    "mods.dmg: 缺 [\"1|0.12|sami_altar|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.225|lshape:lappland|op:lappland\",\"1|0.24|lshape:lumen|op:lumen\",\"1|0.45|lshape:skadi|op:skadi\"] 多 []",
+    "stats.armor: 6.0 -> 2.0",
+    "stats.dmg_mult: 1.12 -> 1.0"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_breaker": 0.125890019755259,
+    "contact_hound": 0.23514342207641,
+    "contact_husk": 0.0871168408040806,
+    "shock_rockback": 0.378997100891033
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.772,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 154.0,
+   "moves": {
+    "vine2:抽击·荆地": 11,
+    "vine2:根网": 1,
+    "vine2:盘根": 2,
+    "vine2:缠绕": 8,
+    "vine2:致幻缠绕": 6,
+    "vine2:落种·食草花": 9
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m0_s3_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "lappland"
+   ],
+   "src": {
+    "contact_breaker": 0.125890019755259,
+    "contact_hound": 0.990431123639074,
+    "contact_husk": 0.0871168408040806,
+    "shock_rockback": 0.378997100891033
+   },
+   "taken": 243.3,
+   "taken_pct": 1.582,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 4,
+   "wall": 22.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.422,
+   "brk_dmg_share": 0.051,
+   "brk_time_share": 0.137,
+   "bul_avg": 1.6,
+   "bul_peak": 16,
+   "dmg": 34741.0,
+   "fight_t": 87.8,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.18|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.24|lshape:lumen|op:lumen\",\"1|0.375|lshape:suzuran|op:suzuran\",\"1|0.45|lshape:skadi|op:skadi\"] 多 []",
+    "stats.max_hp: 161.363 -> 152.1"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_vine2/vine2/缠绕": 0.44908,
+    "contact_hound": 0.129741701363545
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.829,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 176.0,
+   "moves": {
+    "vine2:抽击·荆地": 12,
+    "vine2:根网": 3,
+    "vine2:盘根": 1,
+    "vine2:缠绕": 8,
+    "vine2:致幻缠绕": 6,
+    "vine2:落种·食草花": 9
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m0_s4_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "suzuran"
+   ],
+   "src": {
+    "boss_vine2/vine2/缠绕": 0.44908,
+    "contact_hound": 0.614090918303195
+   },
+   "taken": 161.7,
+   "taken_pct": 1.063,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 5,
+   "wall": 21.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 2.0,
+   "bul_peak": 14,
+   "dmg": 34741.0,
+   "fight_t": 88.4,
+   "fp_diff": [
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.12|lshape:wisadel|op:wisadel\",\"1|0.45|lshape:saria|op:saria\",\"1|0.45|lshape:skadi|op:skadi\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_hound": 0.0972270854337788,
+    "contact_rockback": 0.128002960846357,
+    "shock_rockback": 0.167915655239818
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 168.0,
+   "moves": {
+    "vine2:抽击·荆地": 9,
+    "vine2:根网": 6,
+    "vine2:盘根": 5,
+    "vine2:缠绕": 4,
+    "vine2:致幻缠绕": 4,
+    "vine2:落种·食草花": 5
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m0_s5_slot2",
+   "squad": [
+    "skadi",
+    "saria",
+    "wisadel"
+   ],
+   "src": {
+    "contact_hound": 0.0972270854337788,
+    "contact_rockback": 0.256005921692713,
+    "shock_rockback": 0.167915655239818
+   },
+   "taken": 87.4,
+   "taken_pct": 0.521,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 6,
+   "wall": 16.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.279,
+   "brk_time_share": 0.1,
+   "bul_avg": 2.4,
+   "bul_peak": 14,
+   "dmg": 34741.0,
+   "fight_t": 47.3,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.3|lshape:irene|op:irene\",\"1|0.525|lshape:skadi|op:skadi\"] 多 []",
+    "stats.max_hp: 150.31 -> 141.681"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_rockback": 0.155882833325545,
+    "contact_uterer": 0.105966461300954
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 159.0,
+   "moves": {
+    "vine2:抽击·荆地": 5,
+    "vine2:根网": 2,
+    "vine2:盘根": 1,
+    "vine2:缠绕": 4,
+    "vine2:致幻缠绕": 3,
+    "vine2:落种·食草花": 4
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m0_s6_slot2",
+   "squad": [
+    "skadi",
+    "logos",
+    "irene"
+   ],
+   "src": {
+    "contact_rockback": 0.155882833325545,
+    "contact_uterer": 0.105966461300954
+   },
+   "taken": 37.1,
+   "taken_pct": 0.262,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 1,
+   "wall": 22.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.369,
+   "brk_time_share": 0.155,
+   "bul_avg": 2.0,
+   "bul_peak": 16,
+   "dmg": 34741.0,
+   "fight_t": 89.2,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|0.7|sami_aspd|op:wisadel\",\"2|1.25|command|op:wisadel\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.24|lshape:lumen|op:lumen\",\"1|0.24|lshape:wisadel|op:wisadel\",\"1|0.45|lshape:skadi|op:skadi\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:wisadel\"] 多 []",
+    "stats.max_hp: 116.745 -> 113.345"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_hound": 0.318934950249255
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 117.0,
+   "moves": {
+    "vine2:抽击·荆地": 9,
+    "vine2:根网": 5,
+    "vine2:盘根": 4,
+    "vine2:缠绕": 6,
+    "vine2:致幻缠绕": 4,
+    "vine2:落种·食草花": 6
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s1_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "wisadel"
+   ],
+   "src": {
+    "contact_hound": 0.637869900498511
+   },
+   "taken": 72.3,
+   "taken_pct": 0.638,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 2,
+   "wall": 20.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.509,
+   "brk_time_share": 0.246,
+   "bul_avg": 1.8,
+   "bul_peak": 16,
+   "dmg": 34741.0,
+   "fight_t": 71.9,
+   "fp_diff": [
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:lumen|op:lumen\",\"1|0.525|lshape:skadi|op:skadi\",\"1|0.525|lshape:ulpianus|op:ulpianus\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_hound": 0.2
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.834,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 224.0,
+   "moves": {
+    "vine2:抽击·荆地": 7,
+    "vine2:根网": 4,
+    "vine2:盘根": 3,
+    "vine2:缠绕": 4,
+    "vine2:致幻缠绕": 3,
+    "vine2:落种·食草花": 4
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s2_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "ulpianus"
+   ],
+   "src": {
+    "contact_hound": 0.274127510675447
+   },
+   "taken": 61.4,
+   "taken_pct": 0.274,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 3,
+   "wall": 14.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.941,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.546,
+   "brk_time_share": 0.389,
+   "bul_avg": 0.0,
+   "bul_peak": 3,
+   "dmg": 2056.0,
+   "fight_t": 8.3,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_3|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:lumen|op:lumen\",\"1|0.525|lshape:lappland|op:lappland\",\"1|0.525|lshape:skadi|op:skadi\"] 多 []",
+    "stats.max_hp: 151.336 -> 146.929"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_hound": 0.317342408566941
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 147.0,
+   "moves": {
+    "vine2:抽击·荆地": 1,
+    "vine2:缠绕": 1,
+    "vine2:落种·食草花": 2
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m18_s3_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "lappland"
+   ],
+   "src": {
+    "contact_hound": 1.34328740151934
+   },
+   "taken": 197.4,
+   "taken_pct": 1.343,
+   "win": false
+  },
+  {
+   "boss": "vine2",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 4,
+   "wall": 19.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.474,
+   "brk_time_share": 0.271,
+   "bul_avg": 1.3,
+   "bul_peak": 16,
+   "dmg": 34741.0,
+   "fight_t": 66.5,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.9|lshape:mizuki|op:mizuki\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|1.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.12|lshape:lumen|op:lumen\",\"1|0.45|lshape:skadi|op:skadi\",\"1|0.54|lshape:mizuki|op:mizuki\"] 多 []",
+    "stats.max_hp: 148.454 -> 139.932"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_hound": 0.118746677668637,
+    "contact_uterer": 0.104073320174221
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 134.0,
+   "moves": {
+    "vine2:抽击·荆地": 4,
+    "vine2:根网": 3,
+    "vine2:盘根": 2,
+    "vine2:缠绕": 2,
+    "vine2:致幻缠绕": 2,
+    "vine2:落种·食草花": 3
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s4_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "mizuki"
+   ],
+   "src": {
+    "contact_hound": 0.460221994515885,
+    "contact_uterer": 0.104073320174221
+   },
+   "taken": 79.0,
+   "taken_pct": 0.564,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 5,
+   "wall": 19.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.245,
+   "brk_time_share": 0.15,
+   "bul_avg": 2.0,
+   "bul_peak": 14,
+   "dmg": 34741.0,
+   "fight_t": 67.5,
+   "fp_diff": [
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:saria\"] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.12|lshape:wisadel|op:wisadel\",\"1|0.45|lshape:saria|op:saria\",\"1|0.45|lshape:skadi|op:skadi\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:saria\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {},
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 179.0,
+   "moves": {
+    "vine2:抽击·荆地": 6,
+    "vine2:根网": 4,
+    "vine2:盘根": 3,
+    "vine2:缠绕": 4,
+    "vine2:致幻缠绕": 3,
+    "vine2:落种·食草花": 4
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s5_slot2",
+   "squad": [
+    "skadi",
+    "saria",
+    "wisadel"
+   ],
+   "src": {},
+   "taken": 0.0,
+   "taken_pct": 0.0,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 6,
+   "wall": 18.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.064,
+   "brk_time_share": 0.093,
+   "bul_avg": 1.1,
+   "bul_peak": 14,
+   "dmg": 34741.0,
+   "fight_t": 64.5,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.525|lshape:irene|op:irene\",\"1|0.525|lshape:skadi|op:skadi\"] 多 []",
+    "stats.max_hp: 180.726 -> 170.352"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {},
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 151.0,
+   "moves": {
+    "vine2:抽击·荆地": 3,
+    "vine2:缠绕": 3,
+    "vine2:致幻缠绕": 2,
+    "vine2:落种·食草花": 3
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s6_slot2",
+   "squad": [
+    "skadi",
+    "logos",
+    "irene"
+   ],
+   "src": {},
+   "taken": 0.0,
+   "taken_pct": 0.0,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 1,
+   "wall": 19.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.284,
+   "brk_time_share": 0.265,
+   "bul_avg": 0.4,
+   "bul_peak": 8,
+   "dmg": 34741.0,
+   "fight_t": 67.9,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_aspd: 缺 [\"1|0.14|sami_gold|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:eyjafjalla|op:eyjafjalla\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 132.561 -> 128.7"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_hound": 0.161752517532288,
+    "contact_husk": 0.0670714692568048
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 152.0,
+   "moves": {
+    "vine2:抽击·荆地": 3,
+    "vine2:缠绕": 3,
+    "vine2:致幻缠绕": 2,
+    "vine2:落种·食草花": 3
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s1_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "eyjafjalla"
+   ],
+   "src": {
+    "contact_hound": 0.714509979701625,
+    "contact_husk": 0.0670714692568048
+   },
+   "taken": 100.6,
+   "taken_pct": 0.782,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 2,
+   "wall": 18.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.288,
+   "brk_time_share": 0.098,
+   "bul_avg": 1.7,
+   "bul_peak": 16,
+   "dmg": 34741.0,
+   "fight_t": 61.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.24|lshape:gladiia|op:gladiia\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.5|lshape:gladiia|op:gladiia\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_hound": 0.0603824552721755,
+    "contact_husk": 0.0790561775153976,
+    "contact_uterer": 0.0557472326000204
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 145.0,
+   "moves": {
+    "vine2:抽击·荆地": 7,
+    "vine2:根网": 3,
+    "vine2:盘根": 2,
+    "vine2:缠绕": 4,
+    "vine2:致幻缠绕": 3,
+    "vine2:落种·食草花": 4
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s2_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "gladiia"
+   ],
+   "src": {
+    "contact_hound": 0.0603824552721755,
+    "contact_husk": 0.0790561775153976,
+    "contact_uterer": 0.0557472326000204
+   },
+   "taken": 28.3,
+   "taken_pct": 0.195,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 3,
+   "wall": 21.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.506,
+   "brk_time_share": 0.232,
+   "bul_avg": 1.7,
+   "bul_peak": 14,
+   "dmg": 34741.0,
+   "fight_t": 81.2,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.6|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_5|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:lumen|op:lumen\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.36|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 119.305 -> 115.83"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_drone": 0.0732054510899584,
+    "contact_hound": 0.0961424286006746
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.963,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 119.0,
+   "moves": {
+    "vine2:抽击·荆地": 10,
+    "vine2:根网": 3,
+    "vine2:盘根": 2,
+    "vine2:缠绕": 7,
+    "vine2:致幻缠绕": 5,
+    "vine2:落种·食草花": 8
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s3_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "lumen"
+   ],
+   "src": {
+    "contact_drone": 0.146410902179917,
+    "contact_hound": 0.0961424286006746
+   },
+   "taken": 28.1,
+   "taken_pct": 0.243,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 4,
+   "wall": 16.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.342,
+   "brk_time_share": 0.235,
+   "bul_avg": 1.7,
+   "bul_peak": 16,
+   "dmg": 34741.0,
+   "fight_t": 51.1,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:lumen|op:lumen\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.max_hp: 136.538 -> 128.7"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_icebug": 0.206
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.806,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 137.0,
+   "moves": {
+    "vine2:抽击·荆地": 5,
+    "vine2:根网": 2,
+    "vine2:盘根": 2,
+    "vine2:缠绕": 4,
+    "vine2:致幻缠绕": 3,
+    "vine2:落种·食草花": 4
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s4_slot2",
+   "squad": [
+    "wisadel",
+    "suzuran",
+    "lumen"
+   ],
+   "src": {
+    "contact_icebug": 0.323959290303163
+   },
+   "taken": 41.7,
+   "taken_pct": 0.324,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 5,
+   "wall": 19.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.7,
+   "bul_peak": 16,
+   "dmg": 34741.0,
+   "fight_t": 71.7,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:saria|op:saria\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "": 0.001386
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 111.0,
+   "moves": {
+    "vine2:抽击·荆地": 8,
+    "vine2:根网": 3,
+    "vine2:盘根": 2,
+    "vine2:缠绕": 5,
+    "vine2:致幻缠绕": 4,
+    "vine2:落种·食草花": 6
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s5_slot2",
+   "squad": [
+    "wisadel",
+    "saria",
+    "kaltsit"
+   ],
+   "src": {
+    "": 0.004158
+   },
+   "taken": 0.4,
+   "taken_pct": 0.004,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 6,
+   "wall": 18.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.175,
+   "brk_time_share": 0.107,
+   "bul_avg": 2.8,
+   "bul_peak": 18,
+   "dmg": 34741.0,
+   "fight_t": 56.3,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:logos\",\"2|1.25|command|op:saria\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:saria|op:saria\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:logos\",\"2|1.5|command|op:saria\"] 多 []",
+    "stats.max_hp: 183.944 -> 176.255"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {},
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 167.0,
+   "moves": {
+    "vine2:抽击·荆地": 6,
+    "vine2:根网": 4,
+    "vine2:盘根": 3,
+    "vine2:缠绕": 2,
+    "vine2:致幻缠绕": 2,
+    "vine2:落种·食草花": 3
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s6_slot2",
+   "squad": [
+    "wisadel",
+    "saria",
+    "logos"
+   ],
+   "src": {},
+   "taken": 0.0,
+   "taken_pct": 0.0,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 1,
+   "wall": 20.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.123,
+   "brk_time_share": 0.084,
+   "bul_avg": 2.0,
+   "bul_peak": 16,
+   "dmg": 34741.0,
+   "fight_t": 71.1,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.6|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:siege\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.36|lshape:kaltsit|op:kaltsit\",\"1|0.525|lshape:siege|op:siege\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:siege\"] 多 []",
+    "stats.max_hp: 133.621 -> 129.73"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_hound": 0.282508050754846,
+    "contact_husk": 0.0577656847821753,
+    "contact_rockback": 0.168786149630692
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.8,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 115.0,
+   "moves": {
+    "vine2:抽击·荆地": 8,
+    "vine2:根网": 4,
+    "vine2:盘根": 3,
+    "vine2:缠绕": 4,
+    "vine2:致幻缠绕": 3,
+    "vine2:落种·食草花": 5
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s1_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "siege"
+   ],
+   "src": {
+    "contact_hound": 1.33845693034948,
+    "contact_husk": 0.101665730295413,
+    "contact_rockback": 0.168786149630692
+   },
+   "taken": 208.7,
+   "taken_pct": 1.609,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 2,
+   "wall": 21.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.215,
+   "brk_time_share": 0.108,
+   "bul_avg": 1.9,
+   "bul_peak": 16,
+   "dmg": 34741.0,
+   "fight_t": 81.0,
+   "fp_diff": [
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:hoshiguma\",\"2|1.25|command|op:irene\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:hoshiguma|op:hoshiguma\",\"1|0.525|lshape:irene|op:irene\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.3|totem_5|\",\"2|1.5|command|op:hoshiguma\",\"2|1.5|command|op:irene\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_hound": 0.120043008785703,
+    "contact_uterer": 0.0923383547280445,
+    "shock_breaker": 0.222619817690306
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.901,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 172.0,
+   "moves": {
+    "vine2:抽击·荆地": 9,
+    "vine2:根网": 4,
+    "vine2:盘根": 3,
+    "vine2:缠绕": 6,
+    "vine2:致幻缠绕": 4,
+    "vine2:落种·食草花": 6
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s2_slot2",
+   "squad": [
+    "wisadel",
+    "irene",
+    "hoshiguma"
+   ],
+   "src": {
+    "contact_hound": 0.240086017571406,
+    "contact_uterer": 0.0923383547280445,
+    "shock_breaker": 0.222619817690306
+   },
+   "taken": 84.0,
+   "taken_pct": 0.555,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 3,
+   "wall": 21.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 0.8,
+   "bul_peak": 11,
+   "dmg": 34741.0,
+   "fight_t": 90.1,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.6|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_5|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:lumen|op:lumen\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.36|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 168.352 -> 163.449"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "atk_icebug": 0.190856663294312,
+    "contact_drone": 0.0537204815912114,
+    "contact_hound": 0.117654403878094,
+    "contact_icebug": 0.157517690323342,
+    "contact_uterer": 0.0523693082569951,
+    "shock_breaker": 0.125198933896059
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 22,
+   "max_hp": 163.0,
+   "moves": {
+    "vine2:抽击·荆地": 7,
+    "vine2:缠绕": 6,
+    "vine2:致幻缠绕": 4,
+    "vine2:落种·食草花": 6
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s3_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "lumen"
+   ],
+   "src": {
+    "atk_icebug": 0.300602000941945,
+    "contact_drone": 0.107384881509424,
+    "contact_hound": 0.277679750174289,
+    "contact_icebug": 0.157517690323342,
+    "contact_uterer": 0.0523693082569951,
+    "shock_breaker": 0.125198933896059
+   },
+   "taken": 166.8,
+   "taken_pct": 1.021,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 4,
+   "wall": 21.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.145,
+   "brk_time_share": 0.063,
+   "bul_avg": 1.7,
+   "bul_peak": 16,
+   "dmg": 34741.0,
+   "fight_t": 84.7,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.24|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:lumen|op:lumen\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.5|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.max_hp: 152.922 -> 144.144"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_uterer": 0.206
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.815,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 153.0,
+   "moves": {
+    "vine2:抽击·荆地": 9,
+    "vine2:根网": 5,
+    "vine2:盘根": 3,
+    "vine2:缠绕": 5,
+    "vine2:致幻缠绕": 4,
+    "vine2:落种·食草花": 5
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s4_slot2",
+   "squad": [
+    "wisadel",
+    "suzuran",
+    "lumen"
+   ],
+   "src": {
+    "contact_uterer": 0.206
+   },
+   "taken": 29.7,
+   "taken_pct": 0.206,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 5,
+   "wall": 19.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.145,
+   "brk_time_share": 0.085,
+   "bul_avg": 2.0,
+   "bul_peak": 16,
+   "dmg": 34741.0,
+   "fight_t": 70.4,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.45|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.24|lshape:wisadel|op:wisadel\",\"1|0.27|lshape:kaltsit|op:kaltsit\",\"1|0.45|lshape:saria|op:saria\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {},
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 128.0,
+   "moves": {
+    "vine2:抽击·荆地": 7,
+    "vine2:根网": 3,
+    "vine2:盘根": 3,
+    "vine2:缠绕": 5,
+    "vine2:致幻缠绕": 3,
+    "vine2:落种·食草花": 5
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s5_slot2",
+   "squad": [
+    "wisadel",
+    "saria",
+    "kaltsit"
+   ],
+   "src": {},
+   "taken": 0.0,
+   "taken_pct": 0.0,
+   "win": true
+  },
+  {
+   "boss": "vine2",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 6,
+   "wall": 18.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 34741.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 3.4,
+   "bul_peak": 22,
+   "dmg": 34741.0,
+   "fight_t": 68.4,
+   "fp_diff": [
+    "mods.armor: 缺 [\"0|3.0|sami_altar|\"] 多 []",
+    "mods.dmg: 缺 [\"1|0.09|sami_altar|\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.16|lshape:logos|op:logos\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:saria|op:saria\"] 多 []",
+    "stats.armor: 4.5 -> 1.5",
+    "stats.dmg_mult: 1.09 -> 1.0",
+    "stats.max_hp: 170.108 -> 160.343"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {},
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 165.0,
+   "moves": {
+    "vine2:抽击·荆地": 7,
+    "vine2:根网": 4,
+    "vine2:盘根": 3,
+    "vine2:缠绕": 4,
+    "vine2:致幻缠绕": 3,
+    "vine2:落种·食草花": 4
+   },
+   "phases": [
+    [
+     "vine2",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s6_slot2",
+   "squad": [
+    "wisadel",
+    "saria",
+    "logos"
+   ],
+   "src": {},
+   "taken": 0.0,
+   "taken_pct": 0.0,
+   "win": true
+  }
+ ]
+}

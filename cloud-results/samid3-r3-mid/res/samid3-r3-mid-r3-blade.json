@@ -1,0 +1,2315 @@
+{
+ "tag": "samid3-r3-mid-r3-blade",
+ "game": "/home/user/ArknightsSurvivors/game",
+ "records": [
+  {
+   "boss": "blade",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 1,
+   "wall": 17.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.208,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 0.748,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.1,
+   "bul_peak": 8,
+   "dmg": 9835.0,
+   "fight_t": 83.3,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.3|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.15|lshape:irene|op:irene\",\"1|0.18|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 130.151 -> 126.36"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_blade/blade/国度猎斩": 0.4,
+    "boss_blade/blade/追猎·折返": 0.4,
+    "contact_husk": 0.0786608504089243,
+    "contact_snsbr": 0.0347889042925715,
+    "contact_uterer": 0.074770500802109
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "kaltsit",
+   "level": 14,
+   "max_hp": 126.0,
+   "moves": {
+    "blade:国度猎斩": 2,
+    "blade:投刃·切雾": 6,
+    "blade:斩击·横扫": 8,
+    "blade:追猎·折返": 1,
+    "blade:雾中突袭": 4,
+    "blade:黑毯·回旋": 2
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "kaltsit_m0_s1_slot1",
+   "squad": [
+    "kaltsit",
+    "irene",
+    "eyjafjalla"
+   ],
+   "src": {
+    "boss_blade/blade/国度猎斩": 0.739129154795821,
+    "boss_blade/blade/追猎·折返": 0.4,
+    "contact_husk": 0.21172852002303,
+    "contact_snsbr": 0.0347889042925715,
+    "contact_uterer": 0.13817921280414
+   },
+   "taken": 192.6,
+   "taken_pct": 1.524,
+   "win": false
+  },
+  {
+   "boss": "blade",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 2,
+   "wall": 15.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 0.918,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.0,
+   "bul_peak": 4,
+   "dmg": 12419.0,
+   "fight_t": 51.0,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.75|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.15|lshape:ulpianus|op:ulpianus\",\"1|0.45|lshape:kaltsit|op:kaltsit\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_blade/blade/追猎·折返": 0.4,
+    "contact_mhshep": 0.03570428830848
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 14,
+   "max_hp": 140.0,
+   "moves": {
+    "blade:国度猎斩": 3,
+    "blade:投刃·切雾": 3,
+    "blade:斩击·横扫": 4,
+    "blade:追猎·折返": 1,
+    "blade:雾中突袭": 2
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "kaltsit_m0_s2_slot1",
+   "squad": [
+    "kaltsit",
+    "ulpianus",
+    "saria"
+   ],
+   "src": {
+    "boss_blade/blade/追猎·折返": 0.4,
+    "contact_mhshep": 0.03570428830848
+   },
+   "taken": 61.2,
+   "taken_pct": 0.436,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 3,
+   "wall": 16.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 0.484,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.0,
+   "bul_peak": 8,
+   "dmg": 12419.0,
+   "fight_t": 70.0,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.3|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:wisadel|op:wisadel\",\"1|0.18|lshape:kaltsit|op:kaltsit\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_blade/blade/追猎·折返": 0.36,
+    "contact_blade": 0.139166239316239,
+    "contact_drone": 0.0596079446687069,
+    "contact_husk": 0.0296112265963572,
+    "contact_mhshep": 0.0425414669159597
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 14,
+   "max_hp": 126.0,
+   "moves": {
+    "blade:国度猎斩": 3,
+    "blade:投刃·切雾": 4,
+    "blade:斩击·横扫": 7,
+    "blade:追猎·折返": 1,
+    "blade:雾中突袭": 3,
+    "blade:黑毯·回旋": 1
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "kaltsit_m0_s3_slot1",
+   "squad": [
+    "kaltsit",
+    "suzuran",
+    "wisadel"
+   ],
+   "src": {
+    "boss_blade/blade/追猎·折返": 0.36,
+    "contact_blade": 0.139166239316239,
+    "contact_drone": 0.171794663470874,
+    "contact_husk": 0.0296112265963572,
+    "contact_mhshep": 0.0425414669159597
+   },
+   "taken": 104.3,
+   "taken_pct": 0.743,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 4,
+   "wall": 16.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 0.976,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.0,
+   "bul_peak": 8,
+   "dmg": 12419.0,
+   "fight_t": 70.6,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.3|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:wisadel|op:wisadel\",\"1|0.18|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 151.843 -> 147.42"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_blade/blade/国度猎斩": 0.412,
+    "boss_blade/blade/追猎·折返": 0.35135498982499,
+    "contact_husk": 0.0253855803233198
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.805,
+   "leader": "kaltsit",
+   "level": 14,
+   "max_hp": 156.0,
+   "moves": {
+    "blade:国度猎斩": 3,
+    "blade:投刃·切雾": 4,
+    "blade:斩击·横扫": 7,
+    "blade:追猎·折返": 1,
+    "blade:雾中突袭": 3,
+    "blade:黑毯·回旋": 1
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "kaltsit_m0_s4_slot1",
+   "squad": [
+    "kaltsit",
+    "wisadel",
+    "irene"
+   ],
+   "src": {
+    "boss_blade/blade/国度猎斩": 0.7004,
+    "boss_blade/blade/追猎·折返": 0.35135498982499,
+    "contact_husk": 0.0253855803233198
+   },
+   "taken": 158.8,
+   "taken_pct": 1.077,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 5,
+   "wall": 16.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.147,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 0.678,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 0.8,
+   "bul_peak": 4,
+   "dmg": 10598.0,
+   "fight_t": 63.6,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.3|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.15|lshape:specter_unchained|op:specter_unchained\",\"1|0.18|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_aspd: 多 [\"2|1.5|totem_2|\"]"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_blade/blade/国度猎斩": 0.4,
+    "boss_blade/blade/追猎·折返": 0.4,
+    "contact_blade": 0.272744539411206,
+    "contact_drone": 0.0415524433273698,
+    "contact_husk": 0.0658440218626271,
+    "contact_uterer": 0.0737680129754152
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "kaltsit",
+   "level": 13,
+   "max_hp": 126.0,
+   "moves": {
+    "blade:国度猎斩": 3,
+    "blade:投刃·切雾": 3,
+    "blade:斩击·横扫": 4,
+    "blade:追猎·折返": 2,
+    "blade:雾中突袭": 3,
+    "blade:黑毯·回旋": 1
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "kaltsit_m0_s5_slot1",
+   "squad": [
+    "kaltsit",
+    "specter_unchained",
+    "logos"
+   ],
+   "src": {
+    "boss_blade/blade/国度猎斩": 0.8,
+    "boss_blade/blade/追猎·折返": 0.671379022669052,
+    "contact_blade": 0.272744539411206,
+    "contact_drone": 0.0415524433273698,
+    "contact_husk": 0.311237560317252,
+    "contact_uterer": 0.0737680129754152
+   },
+   "taken": 274.3,
+   "taken_pct": 2.171,
+   "win": false
+  },
+  {
+   "boss": "blade",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 6,
+   "wall": 15.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 0.901,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 0.9,
+   "bul_peak": 8,
+   "dmg": 12419.0,
+   "fight_t": 52.3,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.3|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:exusiai\",\"2|1.25|command|op:ulpianus\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:exusiai|op:exusiai\",\"1|0.18|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:exusiai\",\"2|1.5|command|op:ulpianus\"] 多 []",
+    "stats.max_hp: 162.356 -> 153.036"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_blade/blade/国度猎斩": 0.351728384693798,
+    "boss_blade/blade/追猎·折返": 0.412,
+    "contact_husk": 0.0486701264749322,
+    "contact_snsbr": 0.0352758462170651
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.691,
+   "leader": "kaltsit",
+   "level": 13,
+   "max_hp": 158.0,
+   "moves": {
+    "blade:国度猎斩": 2,
+    "blade:投刃·切雾": 2,
+    "blade:斩击·横扫": 4,
+    "blade:追猎·折返": 1,
+    "blade:雾中突袭": 3,
+    "blade:黑毯·回旋": 1
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "kaltsit_m0_s6_slot1",
+   "squad": [
+    "kaltsit",
+    "ulpianus",
+    "exusiai"
+   ],
+   "src": {
+    "boss_blade/blade/国度猎斩": 0.351728384693798,
+    "boss_blade/blade/追猎·折返": 0.412,
+    "contact_husk": 0.0486701264749322,
+    "contact_snsbr": 0.0352758462170651
+   },
+   "taken": 129.7,
+   "taken_pct": 0.848,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 1,
+   "wall": 13.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 0.6,
+   "bul_peak": 3,
+   "dmg": 12419.0,
+   "fight_t": 30.4,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.75|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:logos|op:logos\",\"1|0.45|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 161.965 -> 157.248"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {},
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 13,
+   "max_hp": 157.0,
+   "moves": {
+    "blade:国度猎斩": 1,
+    "blade:投刃·切雾": 2,
+    "blade:斩击·横扫": 3,
+    "blade:雾中突袭": 2
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "kaltsit_m18_s1_slot1",
+   "squad": [
+    "kaltsit",
+    "logos",
+    "lappland"
+   ],
+   "src": {},
+   "taken": 0.0,
+   "taken_pct": 0.0,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 2,
+   "wall": 14.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.2,
+   "bul_peak": 6,
+   "dmg": 12419.0,
+   "fight_t": 43.8,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.12|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|0.75|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.25|lshape:suzuran|op:suzuran\",\"1|0.45|lshape:kaltsit|op:kaltsit\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {},
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 13,
+   "max_hp": 165.0,
+   "moves": {
+    "blade:国度猎斩": 2,
+    "blade:投刃·切雾": 3,
+    "blade:斩击·横扫": 3,
+    "blade:追猎·折返": 1,
+    "blade:雾中突袭": 2
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "kaltsit_m18_s2_slot1",
+   "squad": [
+    "kaltsit",
+    "suzuran",
+    "saria"
+   ],
+   "src": {},
+   "taken": 0.0,
+   "taken_pct": 0.0,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 3,
+   "wall": 19.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 0.8,
+   "bul_peak": 8,
+   "dmg": 12419.0,
+   "fight_t": 100.5,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.3|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.15|lshape:texas|op:texas\",\"1|0.18|lshape:kaltsit|op:kaltsit\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_blade/blade/追猎·折返": 0.4
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 15,
+   "max_hp": 157.0,
+   "moves": {
+    "blade:国度猎斩": 4,
+    "blade:投刃·切雾": 4,
+    "blade:斩击·横扫": 8,
+    "blade:追猎·折返": 3,
+    "blade:雾中突袭": 4,
+    "blade:黑毯·回旋": 2
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "kaltsit_m18_s3_slot1",
+   "squad": [
+    "kaltsit",
+    "saria",
+    "texas"
+   ],
+   "src": {
+    "boss_blade/blade/追猎·折返": 0.4
+   },
+   "taken": 62.9,
+   "taken_pct": 0.4,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 4,
+   "wall": 17.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 0.9,
+   "bul_peak": 8,
+   "dmg": 12419.0,
+   "fight_t": 77.4,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.75|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:eyjafjalla|op:eyjafjalla\",\"1|0.45|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 161.965 -> 157.248"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {},
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 14,
+   "max_hp": 175.0,
+   "moves": {
+    "blade:国度猎斩": 3,
+    "blade:投刃·切雾": 4,
+    "blade:斩击·横扫": 7,
+    "blade:追猎·折返": 1,
+    "blade:雾中突袭": 4,
+    "blade:黑毯·回旋": 1
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "kaltsit_m18_s4_slot1",
+   "squad": [
+    "kaltsit",
+    "eyjafjalla",
+    "wisadel"
+   ],
+   "src": {},
+   "taken": 0.0,
+   "taken_pct": 0.0,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 5,
+   "wall": 21.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 0.712,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 0.8,
+   "bul_peak": 8,
+   "dmg": 12419.0,
+   "fight_t": 136.0,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.3|lshape:kaltsit|op:kaltsit\",\"1|0.3|lshape:mizuki|op:mizuki\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:exusiai\",\"2|1.25|command|op:mizuki\"] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.18|lshape:kaltsit|op:kaltsit\",\"1|0.18|lshape:mizuki|op:mizuki\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:exusiai\",\"2|1.5|command|op:mizuki\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_blade/blade/国度猎斩": 0.4578,
+    "boss_blade/blade/追猎·折返": 0.352008477960928,
+    "contact_drone": 0.0529295173339294,
+    "contact_husk": 0.0777899825730989
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 16,
+   "max_hp": 180.0,
+   "moves": {
+    "blade:国度猎斩": 5,
+    "blade:投刃·切雾": 5,
+    "blade:斩击·横扫": 8,
+    "blade:追猎·折返": 3,
+    "blade:雾中突袭": 5,
+    "blade:黑毯·回旋": 2
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "kaltsit_m18_s5_slot1",
+   "squad": [
+    "kaltsit",
+    "exusiai",
+    "mizuki"
+   ],
+   "src": {
+    "boss_blade/blade/国度猎斩": 0.4578,
+    "boss_blade/blade/追猎·折返": 0.352008477960928,
+    "contact_drone": 0.0529295173339294,
+    "contact_husk": 0.274806815812679
+   },
+   "taken": 178.9,
+   "taken_pct": 1.138,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 6,
+   "wall": 17.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 0.786,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 0.9,
+   "bul_peak": 8,
+   "dmg": 12419.0,
+   "fight_t": 82.6,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.3|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:wisadel|op:wisadel\",\"1|0.18|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 123.331 -> 116.251"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_blade/blade/追猎·折返": 0.348626907386763,
+    "contact_mhshep": 0.0948549926050369
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 14,
+   "max_hp": 120.0,
+   "moves": {
+    "blade:国度猎斩": 3,
+    "blade:投刃·切雾": 5,
+    "blade:斩击·横扫": 7,
+    "blade:追猎·折返": 2,
+    "blade:雾中突袭": 4,
+    "blade:黑毯·回旋": 1
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "kaltsit_m18_s6_slot1",
+   "squad": [
+    "kaltsit",
+    "irene",
+    "wisadel"
+   ],
+   "src": {
+    "boss_blade/blade/追猎·折返": 0.348626907386763,
+    "contact_mhshep": 0.0948549926050369
+   },
+   "taken": 51.6,
+   "taken_pct": 0.443,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 1,
+   "wall": 14.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 0.8,
+   "bul_peak": 8,
+   "dmg": 12419.0,
+   "fight_t": 48.0,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:logos|op:logos\",\"1|0.375|lshape:skadi|op:skadi\"] 多 []",
+    "stats.max_hp: 125.33 -> 121.68"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_breaker": 0.256154104901097
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 122.0,
+   "moves": {
+    "blade:国度猎斩": 2,
+    "blade:投刃·切雾": 2,
+    "blade:斩击·横扫": 5,
+    "blade:追猎·折返": 1,
+    "blade:雾中突袭": 2,
+    "blade:黑毯·回旋": 1
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m0_s1_slot1",
+   "squad": [
+    "skadi",
+    "lumen",
+    "logos"
+   ],
+   "src": {
+    "contact_breaker": 0.256154104901097
+   },
+   "taken": 31.2,
+   "taken_pct": 0.256,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 2,
+   "wall": 17.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 0.936,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.1,
+   "bul_peak": 8,
+   "dmg": 12419.0,
+   "fight_t": 81.6,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.15|lshape:irene|op:irene\",\"1|0.375|lshape:skadi|op:skadi\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_blade/blade/斩击·横扫": 0.4,
+    "boss_blade/blade/追猎·折返": 0.4,
+    "contact_uterer": 0.0547707839376241
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.721,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 160.0,
+   "moves": {
+    "blade:国度猎斩": 2,
+    "blade:投刃·切雾": 6,
+    "blade:斩击·横扫": 8,
+    "blade:追猎·折返": 1,
+    "blade:雾中突袭": 4,
+    "blade:黑毯·回旋": 2
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m0_s2_slot1",
+   "squad": [
+    "skadi",
+    "lumen",
+    "irene"
+   ],
+   "src": {
+    "boss_blade/blade/斩击·横扫": 0.4,
+    "boss_blade/blade/追猎·折返": 0.4,
+    "contact_uterer": 0.0547707839376241
+   },
+   "taken": 136.5,
+   "taken_pct": 0.855,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 3,
+   "wall": 20.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.1,
+   "bul_peak": 8,
+   "dmg": 12419.0,
+   "fight_t": 111.8,
+   "fp_diff": [
+    "mods.armor: 缺 [\"0|1.0|sami_altar|\"] 多 []",
+    "mods.dmg: 缺 [\"1|0.03|sami_altar|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:lumen|op:lumen\",\"1|0.15|lshape:skadi|op:skadi\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.3|totem_3|\"] 多 []",
+    "stats.armor: 3.0 -> 2.0",
+    "stats.dmg_mult: 1.03 -> 1.0"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_blade/blade/斩击·横扫": 0.362467612584824
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 15,
+   "max_hp": 147.0,
+   "moves": {
+    "blade:国度猎斩": 1,
+    "blade:投刃·切雾": 7,
+    "blade:斩击·横扫": 12,
+    "blade:雾中突袭": 7,
+    "blade:黑毯·回旋": 4
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m0_s3_slot1",
+   "squad": [
+    "skadi",
+    "lumen",
+    "lappland"
+   ],
+   "src": {
+    "boss_blade/blade/斩击·横扫": 0.362467612584824
+   },
+   "taken": 58.8,
+   "taken_pct": 0.362,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 4,
+   "wall": 18.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.1,
+   "bul_peak": 8,
+   "dmg": 12419.0,
+   "fight_t": 91.3,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.375|lshape:skadi|op:skadi\"] 多 []",
+    "stats.max_hp: 156.663 -> 152.1"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_blade/blade/国度猎斩": 0.4326,
+    "boss_blade/blade/追猎·折返": 0.4326
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.199,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 169.0,
+   "moves": {
+    "blade:国度猎斩": 3,
+    "blade:投刃·切雾": 6,
+    "blade:斩击·横扫": 9,
+    "blade:追猎·折返": 1,
+    "blade:雾中突袭": 4,
+    "blade:黑毯·回旋": 2
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m0_s4_slot1",
+   "squad": [
+    "skadi",
+    "lumen",
+    "suzuran"
+   ],
+   "src": {
+    "boss_blade/blade/国度猎斩": 0.73542,
+    "boss_blade/blade/追猎·折返": 0.4326
+   },
+   "taken": 177.7,
+   "taken_pct": 1.168,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 5,
+   "wall": 20.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 0.779,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.0,
+   "bul_peak": 8,
+   "dmg": 12419.0,
+   "fight_t": 134.0,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.15|lshape:saria|op:saria\",\"1|0.15|lshape:skadi|op:skadi\"] 多 []",
+    "mods.op_aspd: 多 [\"2|1.5|totem_2|\"]"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_blade/blade/国度猎斩": 0.4,
+    "boss_blade/blade/追猎·折返": 0.4,
+    "contact_blade": 0.284727967189506,
+    "shock_rockback": 0.134932769909371
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.821,
+   "leader": "skadi",
+   "level": 15,
+   "max_hp": 240.0,
+   "moves": {
+    "blade:国度猎斩": 4,
+    "blade:投刃·切雾": 7,
+    "blade:斩击·横扫": 10,
+    "blade:追猎·折返": 4,
+    "blade:雾中突袭": 6,
+    "blade:黑毯·回旋": 3
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m0_s5_slot1",
+   "squad": [
+    "skadi",
+    "saria",
+    "wisadel"
+   ],
+   "src": {
+    "boss_blade/blade/国度猎斩": 0.4,
+    "boss_blade/blade/追猎·折返": 1.08,
+    "contact_blade": 0.284727967189506,
+    "shock_rockback": 0.134932769909371
+   },
+   "taken": 303.4,
+   "taken_pct": 1.9,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 6,
+   "wall": 14.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.01,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 0.686,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 0.9,
+   "bul_peak": 8,
+   "dmg": 12294.0,
+   "fight_t": 42.8,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.375|lshape:skadi|op:skadi\"] 多 []",
+    "stats.max_hp: 167.011 -> 157.424"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_blade/blade/国度猎斩": 0.471534,
+    "boss_blade/blade/追猎·折返": 0.471534,
+    "contact_blade": 0.215749236930954
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 186.0,
+   "moves": {
+    "blade:国度猎斩": 1,
+    "blade:投刃·切雾": 2,
+    "blade:斩击·横扫": 3,
+    "blade:追猎·折返": 2,
+    "blade:雾中突袭": 2,
+    "blade:黑毯·回旋": 1
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "skadi_m0_s6_slot1",
+   "squad": [
+    "skadi",
+    "logos",
+    "irene"
+   ],
+   "src": {
+    "boss_blade/blade/国度猎斩": 0.471534,
+    "boss_blade/blade/追猎·折返": 0.471534,
+    "contact_blade": 0.431498473861908
+   },
+   "taken": 216.4,
+   "taken_pct": 1.375,
+   "win": false
+  },
+  {
+   "boss": "blade",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 1,
+   "wall": 17.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 0.8,
+   "bul_peak": 8,
+   "dmg": 12419.0,
+   "fight_t": 83.8,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:lumen|op:lumen\",\"1|0.375|lshape:skadi|op:skadi\"] 多 []",
+    "stats.max_hp: 129.717 -> 125.939"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_blade": 0.269686546163692
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 126.0,
+   "moves": {
+    "blade:国度猎斩": 2,
+    "blade:投刃·切雾": 4,
+    "blade:斩击·横扫": 7,
+    "blade:追猎·折返": 3,
+    "blade:雾中突袭": 4,
+    "blade:黑毯·回旋": 2
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s1_slot1",
+   "squad": [
+    "skadi",
+    "lumen",
+    "wisadel"
+   ],
+   "src": {
+    "contact_blade": 0.539373092327384
+   },
+   "taken": 67.9,
+   "taken_pct": 0.539,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 2,
+   "wall": 16.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.0,
+   "bul_peak": 8,
+   "dmg": 12419.0,
+   "fight_t": 66.9,
+   "fp_diff": [
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:ulpianus\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:lumen|op:lumen\",\"1|0.375|lshape:skadi|op:skadi\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:ulpianus\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_blade/blade/国度猎斩": 0.436
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.708,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 202.0,
+   "moves": {
+    "blade:国度猎斩": 2,
+    "blade:投刃·切雾": 4,
+    "blade:斩击·横扫": 7,
+    "blade:追猎·折返": 1,
+    "blade:雾中突袭": 3,
+    "blade:黑毯·回旋": 1
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s2_slot1",
+   "squad": [
+    "skadi",
+    "lumen",
+    "ulpianus"
+   ],
+   "src": {
+    "boss_blade/blade/国度猎斩": 0.436
+   },
+   "taken": 81.0,
+   "taken_pct": 0.436,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 3,
+   "wall": 17.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.0,
+   "bul_peak": 8,
+   "dmg": 12419.0,
+   "fight_t": 82.2,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.15|lshape:lappland|op:lappland\",\"1|0.15|lshape:skadi|op:skadi\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_blade/blade/追猎·折返": 0.4
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.724,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 179.0,
+   "moves": {
+    "blade:国度猎斩": 2,
+    "blade:投刃·切雾": 5,
+    "blade:斩击·横扫": 8,
+    "blade:追猎·折返": 1,
+    "blade:雾中突袭": 4,
+    "blade:黑毯·回旋": 2
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s3_slot1",
+   "squad": [
+    "skadi",
+    "lumen",
+    "lappland"
+   ],
+   "src": {
+    "boss_blade/blade/追猎·折返": 0.4
+   },
+   "taken": 71.5,
+   "taken_pct": 0.4,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 4,
+   "wall": 19.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.0,
+   "bul_peak": 8,
+   "dmg": 12419.0,
+   "fight_t": 110.9,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:mizuki\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:lumen|op:lumen\",\"1|0.375|lshape:skadi|op:skadi\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:mizuki\"] 多 []",
+    "stats.max_hp: 175.463 -> 170.352"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_blade/blade/追猎·折返": 0.412
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.89,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 181.0,
+   "moves": {
+    "blade:国度猎斩": 4,
+    "blade:投刃·切雾": 5,
+    "blade:斩击·横扫": 10,
+    "blade:追猎·折返": 2,
+    "blade:雾中突袭": 5,
+    "blade:黑毯·回旋": 3
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s4_slot1",
+   "squad": [
+    "skadi",
+    "lumen",
+    "mizuki"
+   ],
+   "src": {
+    "boss_blade/blade/追猎·折返": 0.412
+   },
+   "taken": 70.2,
+   "taken_pct": 0.412,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 5,
+   "wall": 20.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 0.88,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 0.9,
+   "bul_peak": 8,
+   "dmg": 12419.0,
+   "fight_t": 106.3,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.15|lshape:saria|op:saria\",\"1|0.15|lshape:skadi|op:skadi\"] 多 []",
+    "mods.op_aspd: 多 [\"2|1.5|totem_2|\"]"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_blade": 0.121572627932751,
+    "boss_blade/blade/追猎·折返": 0.6,
+    "contact_blade": 0.16575382289668,
+    "shock_breaker": 0.0983054165489026
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.324,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 268.0,
+   "moves": {
+    "blade:国度猎斩": 2,
+    "blade:投刃·切雾": 5,
+    "blade:斩击·横扫": 9,
+    "blade:追猎·折返": 3,
+    "blade:雾中突袭": 5,
+    "blade:黑毯·回旋": 3
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s5_slot1",
+   "squad": [
+    "skadi",
+    "saria",
+    "wisadel"
+   ],
+   "src": {
+    "boss_blade": 0.121572627932751,
+    "boss_blade/blade/追猎·折返": 1.82,
+    "contact_blade": 0.16575382289668,
+    "shock_breaker": 0.0983054165489026
+   },
+   "taken": 394.5,
+   "taken_pct": 2.206,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 6,
+   "wall": 13.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 0.8,
+   "bul_peak": 4,
+   "dmg": 12419.0,
+   "fight_t": 42.4,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:logos|op:logos\",\"1|0.375|lshape:skadi|op:skadi\"] 多 []",
+    "stats.max_hp: 180.726 -> 170.352"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {},
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 175.0,
+   "moves": {
+    "blade:国度猎斩": 2,
+    "blade:投刃·切雾": 3,
+    "blade:斩击·横扫": 3,
+    "blade:追猎·折返": 1,
+    "blade:雾中突袭": 2
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s6_slot1",
+   "squad": [
+    "skadi",
+    "logos",
+    "irene"
+   ],
+   "src": {},
+   "taken": 0.0,
+   "taken_pct": 0.0,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 1,
+   "wall": 15.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 0.8,
+   "bul_peak": 4,
+   "dmg": 12419.0,
+   "fight_t": 61.6,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.3|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.18|lshape:kaltsit|op:kaltsit\",\"1|0.2|lshape:wisadel|op:wisadel\"] 多 []",
+    "stats.max_hp: 132.561 -> 128.7"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_blade/blade/追猎·折返": 0.4
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.603,
+   "leader": "wisadel",
+   "level": 14,
+   "max_hp": 129.0,
+   "moves": {
+    "blade:国度猎斩": 2,
+    "blade:投刃·切雾": 3,
+    "blade:斩击·横扫": 4,
+    "blade:追猎·折返": 3,
+    "blade:雾中突袭": 3,
+    "blade:黑毯·回旋": 1
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s1_slot1",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "eyjafjalla"
+   ],
+   "src": {
+    "boss_blade/blade/追猎·折返": 1.48
+   },
+   "taken": 190.5,
+   "taken_pct": 1.48,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 2,
+   "wall": 15.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 0.8,
+   "bul_peak": 8,
+   "dmg": 12419.0,
+   "fight_t": 64.7,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.2|lshape:wisadel|op:wisadel\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {},
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 129.0,
+   "moves": {
+    "blade:国度猎斩": 2,
+    "blade:投刃·切雾": 3,
+    "blade:斩击·横扫": 5,
+    "blade:追猎·折返": 2,
+    "blade:雾中突袭": 3,
+    "blade:黑毯·回旋": 1
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s2_slot1",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "gladiia"
+   ],
+   "src": {},
+   "taken": 0.0,
+   "taken_pct": 0.0,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 3,
+   "wall": 16.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 0.9,
+   "bul_peak": 8,
+   "dmg": 12419.0,
+   "fight_t": 70.5,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.3|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.18|lshape:kaltsit|op:kaltsit\",\"1|0.2|lshape:wisadel|op:wisadel\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_blade/blade/国度猎斩": 0.4,
+    "boss_blade/blade/追猎·折返": 0.4
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.608,
+   "leader": "wisadel",
+   "level": 14,
+   "max_hp": 129.0,
+   "moves": {
+    "blade:国度猎斩": 3,
+    "blade:投刃·切雾": 4,
+    "blade:斩击·横扫": 7,
+    "blade:追猎·折返": 1,
+    "blade:雾中突袭": 3,
+    "blade:黑毯·回旋": 1
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s3_slot1",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "lumen"
+   ],
+   "src": {
+    "boss_blade/blade/国度猎斩": 0.4,
+    "boss_blade/blade/追猎·折返": 0.68
+   },
+   "taken": 139.0,
+   "taken_pct": 1.08,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 4,
+   "wall": 13.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.1,
+   "bul_peak": 6,
+   "dmg": 12419.0,
+   "fight_t": 39.1,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:lumen|op:lumen\",\"1|0.2|lshape:wisadel|op:wisadel\"] 多 []",
+    "stats.max_hp: 132.561 -> 128.7"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_blade": 0.132940465897436,
+    "boss_blade/blade/追猎·折返": 0.3708
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.586,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 123.0,
+   "moves": {
+    "blade:国度猎斩": 2,
+    "blade:投刃·切雾": 3,
+    "blade:斩击·横扫": 3,
+    "blade:追猎·折返": 1,
+    "blade:雾中突袭": 2
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s4_slot1",
+   "squad": [
+    "wisadel",
+    "suzuran",
+    "lumen"
+   ],
+   "src": {
+    "boss_blade": 0.132940465897436,
+    "boss_blade/blade/追猎·折返": 0.63036
+   },
+   "taken": 98.2,
+   "taken_pct": 0.763,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 5,
+   "wall": 17.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.0,
+   "bul_peak": 8,
+   "dmg": 12419.0,
+   "fight_t": 85.3,
+   "fp_diff": [
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.2|lshape:wisadel|op:wisadel\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_blade/blade/国度猎斩": 0.436,
+    "boss_blade/blade/追猎·折返": 0.436
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.843,
+   "leader": "wisadel",
+   "level": 14,
+   "max_hp": 116.0,
+   "moves": {
+    "blade:国度猎斩": 3,
+    "blade:投刃·切雾": 5,
+    "blade:斩击·横扫": 7,
+    "blade:追猎·折返": 2,
+    "blade:雾中突袭": 4,
+    "blade:黑毯·回旋": 1
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s5_slot1",
+   "squad": [
+    "wisadel",
+    "saria",
+    "kaltsit"
+   ],
+   "src": {
+    "boss_blade/blade/国度猎斩": 0.872,
+    "boss_blade/blade/追猎·折返": 0.872
+   },
+   "taken": 184.9,
+   "taken_pct": 1.744,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 6,
+   "wall": 14.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 0.8,
+   "bul_peak": 4,
+   "dmg": 12419.0,
+   "fight_t": 43.4,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:logos\",\"2|1.25|command|op:saria\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:logos|op:logos\",\"1|0.08|lshape:wisadel|op:wisadel\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:logos\",\"2|1.5|command|op:saria\"] 多 []",
+    "stats.max_hp: 148.826 -> 140.283"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {},
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 157.0,
+   "moves": {
+    "blade:国度猎斩": 2,
+    "blade:投刃·切雾": 3,
+    "blade:斩击·横扫": 3,
+    "blade:追猎·折返": 1,
+    "blade:雾中突袭": 2
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m0_s6_slot1",
+   "squad": [
+    "wisadel",
+    "saria",
+    "logos"
+   ],
+   "src": {},
+   "taken": 0.0,
+   "taken_pct": 0.0,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 1,
+   "wall": 20.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 0.645,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.0,
+   "bul_peak": 8,
+   "dmg": 12419.0,
+   "fight_t": 104.1,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:wisadel|op:wisadel\",\"1|0.15|lshape:siege|op:siege\"] 多 []",
+    "stats.max_hp: 133.621 -> 129.73"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_blade/blade/国度猎斩": 0.4,
+    "boss_blade/blade/追猎·折返": 0.4,
+    "contact_blade": 0.265660265660266,
+    "contact_husk": 0.109373593946091
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.332,
+   "leader": "wisadel",
+   "level": 15,
+   "max_hp": 130.0,
+   "moves": {
+    "blade:国度猎斩": 3,
+    "blade:投刃·切雾": 7,
+    "blade:斩击·横扫": 9,
+    "blade:追猎·折返": 2,
+    "blade:雾中突袭": 5,
+    "blade:黑毯·回旋": 2
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s1_slot1",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "siege"
+   ],
+   "src": {
+    "boss_blade/blade/国度猎斩": 0.4,
+    "boss_blade/blade/追猎·折返": 0.4,
+    "contact_blade": 0.265660265660266,
+    "contact_husk": 0.174557999358542
+   },
+   "taken": 160.9,
+   "taken_pct": 1.24,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 2,
+   "wall": 15.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 0.78,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 0.8,
+   "bul_peak": 8,
+   "dmg": 12419.0,
+   "fight_t": 60.5,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.15|lshape:hoshiguma|op:hoshiguma\",\"1|0.2|lshape:wisadel|op:wisadel\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_blade/blade/国度猎斩": 0.398571428571429,
+    "boss_blade/blade/追猎·折返": 0.398571428571429,
+    "contact_blade": 0.225219225219225
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.172,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 144.0,
+   "moves": {
+    "blade:国度猎斩": 2,
+    "blade:投刃·切雾": 3,
+    "blade:斩击·横扫": 5,
+    "blade:追猎·折返": 2,
+    "blade:雾中突袭": 3,
+    "blade:黑毯·回旋": 1
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s2_slot1",
+   "squad": [
+    "wisadel",
+    "irene",
+    "hoshiguma"
+   ],
+   "src": {
+    "boss_blade/blade/国度猎斩": 0.398571428571429,
+    "boss_blade/blade/追猎·折返": 0.398571428571429,
+    "contact_blade": 0.225219225219225
+   },
+   "taken": 147.4,
+   "taken_pct": 1.022,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 3,
+   "wall": 16.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 0.9,
+   "bul_peak": 8,
+   "dmg": 12419.0,
+   "fight_t": 67.5,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.2|lshape:wisadel|op:wisadel\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_blade/blade/国度猎斩": 0.36
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.863,
+   "leader": "wisadel",
+   "level": 14,
+   "max_hp": 130.0,
+   "moves": {
+    "blade:国度猎斩": 2,
+    "blade:投刃·切雾": 4,
+    "blade:斩击·横扫": 7,
+    "blade:追猎·折返": 1,
+    "blade:雾中突袭": 3,
+    "blade:黑毯·回旋": 1
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s3_slot1",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "lumen"
+   ],
+   "src": {
+    "boss_blade/blade/国度猎斩": 0.36
+   },
+   "taken": 51.9,
+   "taken_pct": 0.36,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 4,
+   "wall": 13.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 0.9,
+   "bul_peak": 6,
+   "dmg": 12419.0,
+   "fight_t": 35.4,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:lumen|op:lumen\",\"1|0.2|lshape:wisadel|op:wisadel\"] 多 []",
+    "stats.max_hp: 148.468 -> 144.144"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {},
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 153.0,
+   "moves": {
+    "blade:国度猎斩": 1,
+    "blade:投刃·切雾": 3,
+    "blade:斩击·横扫": 3,
+    "blade:追猎·折返": 1,
+    "blade:雾中突袭": 2
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s4_slot1",
+   "squad": [
+    "wisadel",
+    "suzuran",
+    "lumen"
+   ],
+   "src": {},
+   "taken": 0.0,
+   "taken_pct": 0.0,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 5,
+   "wall": 16.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.1,
+   "bul_peak": 8,
+   "dmg": 12419.0,
+   "fight_t": 73.1,
+   "fp_diff": [
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.2|lshape:wisadel|op:wisadel\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {},
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 14,
+   "max_hp": 133.0,
+   "moves": {
+    "blade:国度猎斩": 3,
+    "blade:投刃·切雾": 4,
+    "blade:斩击·横扫": 7,
+    "blade:追猎·折返": 1,
+    "blade:雾中突袭": 3,
+    "blade:黑毯·回旋": 1
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s5_slot1",
+   "squad": [
+    "wisadel",
+    "saria",
+    "kaltsit"
+   ],
+   "src": {},
+   "taken": 0.0,
+   "taken_pct": 0.0,
+   "win": true
+  },
+  {
+   "boss": "blade",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 6,
+   "wall": 14.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12419.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 0.9,
+   "bul_peak": 4,
+   "dmg": 12419.0,
+   "fight_t": 39.9,
+   "fp_diff": [
+    "mods.armor: 缺 [\"0|1.0|sami_altar|\"] 多 []",
+    "mods.dmg: 缺 [\"1|0.03|sami_altar|\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.08|lshape:logos|op:logos\",\"1|0.2|lshape:wisadel|op:wisadel\"] 多 []",
+    "stats.armor: 2.5 -> 1.5",
+    "stats.dmg_mult: 1.03 -> 1.0",
+    "stats.max_hp: 166.685 -> 157.117"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {},
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 13,
+   "max_hp": 162.0,
+   "moves": {
+    "blade:国度猎斩": 2,
+    "blade:投刃·切雾": 3,
+    "blade:斩击·横扫": 3,
+    "blade:追猎·折返": 1,
+    "blade:雾中突袭": 2
+   },
+   "phases": [
+    [
+     "blade",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "wisadel_m18_s6_slot1",
+   "squad": [
+    "wisadel",
+    "saria",
+    "logos"
+   ],
+   "src": {},
+   "taken": 0.0,
+   "taken_pct": 0.0,
+   "win": true
+  }
+ ]
+}
