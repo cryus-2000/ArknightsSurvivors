@@ -7,6 +7,9 @@
 ## 「回荡」段：第一条命打空后倒下 3 秒，以一半最大生命重生，招式伤害 ×1.5，设施自动轮流启动；倒下处留「花墓」。
 ## 招：一幕 双击 ② / 播种 ① / 花瓣风 ③ / 回荡 ④ / 萌发 ③；二幕 裂隙 ② / 无之花 ① / 回荡·双击 ② / 剪枝 ②（闪现落击 = 每次落地）；
 ## 三幕 阖眼 ① / 花雨 / 维度回荡 / 播种·环 ① / 眼中之园 ①；回荡段 三跳 ① / 播种·终 ① / 花墓 ③。画面全部占位。
+## 11-28 表现改版（docs/393 §14.9）：主要表现 = 空间侵蚀（苗圃吃地 + 闪现落地内爆）。删萌发、花雨、常驻花瓣；花瓣风 → 苗圃蔓延；
+## 回荡 → 苗圃环（地面环带外推，不再是两层弹圈）；每次落地 0.5 秒后内爆：300 内它的苗圃往落点收 40% 并合成一块；花墓改成脉动的苗圃；
+## 播种 / 播种·终 / 眼中之园 / 落地铺苗圃都按簇落、相邻并块（_nursery_merge）。弹只剩苗圃边缘飘出的少量花瓣。
 extends "res://scripts/enemies/bosses/sami/sami_boss.gd"
 
 const CP_R := 320.0
@@ -30,7 +33,6 @@ func _nursery(e: Dictionary, p: Vector2, r: float, life: float) -> void:
 
 func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mate) -> void:
 	tick(e, dt)
-	ambient(e, dt, "petal")
 	var c: Vector2 = center(e)
 	if not e.has("cps"):
 		e["cps"] = []
@@ -46,7 +48,8 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		e.blink_t = g.t + 6.0
 		e.next_cp = ORDER[1]
 	_tick_jump(e)
-	_tick_flowers(e)
+	_tick_bands(e)
+	_tick_implode(e)
 	_tick_scissor(e)
 	_tick_hex(e, dt)
 	_tick_tomb(e)
@@ -95,9 +98,10 @@ func _land(e: Dictionary) -> void:
 	else:
 		e.blink_t = g.t + _gap(e)
 	var land: Vector2 = e.pos
+	later(e, 0.5, _implode.bind(e, land))
 	later(e, 1.2, func():
 		for k in 2:
-			_nursery(e, land + Vector2.from_angle(TAU * k / 2.0 + g.t) * 110.0, 60.0, 20.0))
+			_nursery_merge(e, land + Vector2.from_angle(TAU * k / 2.0 + g.t) * 110.0, 60.0, 20.0))
 
 
 ## ---- 设施
@@ -178,12 +182,12 @@ func moves(e: Dictionary) -> Array:
 		return [["三跳", 12.0, 0.0, 9999.0, _triple], ["播种·终", 12.0, 0.0, 9999.0, _sow_all], ["双击", 4.0, 0.0, 9999.0, _double]]
 	match act_i(e):
 		0:
-			return [["回荡", 9.0, 0.0, 9999.0, _echo_ring], ["萌发", 9.0, 0.0, 9999.0, _sprout], ["播种", 8.0, 0.0, 9999.0, _sow],
+			return [["回荡", 9.0, 0.0, 9999.0, _echo_ring], ["播种", 8.0, 0.0, 9999.0, _sow],   # 11-28 删萌发
 				["花瓣风", 6.0, 0.0, 9999.0, _petal_wind], ["双击", 4.0, 0.0, 9999.0, _double]]
 		1:
 			return [["无之花", 10.0, 0.0, 9999.0, _flower], ["裂隙", 8.0, 0.0, 9999.0, _rift], ["剪枝", 8.0, 0.0, 9999.0, _scissor],
 				["回荡·双击", 7.0, 0.0, 9999.0, _echo_double], ["双击", 4.0, 0.0, 9999.0, _double]]
-	return [["阖眼", 13.0, 0.0, 9999.0, _close_eye], ["花雨", 12.0, 0.0, 9999.0, _petal_rain], ["播种·环", 12.0, 0.0, 9999.0, _sow_ring],
+	return [["阖眼", 13.0, 0.0, 9999.0, _close_eye], ["播种·环", 12.0, 0.0, 9999.0, _sow_ring],   # 11-28 删花雨
 		["维度回荡", 10.0, 0.0, 9999.0, _dim_echo], ["眼中之园", 9.0, 0.0, 9999.0, _eye_garden]]
 
 
@@ -221,40 +225,54 @@ func _double_from(e: Dictionary, p: Vector2, nm: String, pct: float) -> void:
 	w2.pos = p
 
 
-## 播种：4 个追踪落点（r45，1.0 / 0.64），落地留 6 秒小苗圃
+## 播种（11-28 改）：2 簇 × 2 圈（r45，1.0 / 0.64）。每簇第一圈追踪队长 0.36 秒，第二圈落在第一圈旁 60–70 处、晚 0.2 秒；
+## 落地留 6 秒苗圃，相邻的并成一块
 func _sow(e: Dictionary, _dir: Vector2, _d: float) -> float:
-	for k in 4:
-		later(e, 0.5 * k, _sow_one.bind(e, k == 0))
+	for k in 2:
+		later(e, 0.9 * k, _sow_one.bind(e, k == 0))
 	return 2.4
 
 
 func _sow_one(e: Dictionary, first: bool) -> void:
 	var w := w_circle(e, g.ppos, 45.0, 1.0, 0.12, "播种" if first else "", {"track_pos": "leader", "track": 0.36, "lock": first})
-	w.cb = func(ww): _nursery(e, ww.pos, 50.0, 6.0)
+	w.cb = func(ww): _nursery_merge(e, ww.pos, 50.0, 6.0)
+	later(e, 0.2, func():
+		var p2: Vector2 = w.pos + Vector2.from_angle(g.rng_enemy.randf() * TAU) * g.rng_enemy.randf_range(60.0, 70.0)
+		var w2 := w_circle(e, p2, 45.0, 1.0, 0.12, "", {"lock": false})
+		w2.cb = func(ww2): _nursery_merge(e, ww2.pos, 50.0, 6.0))
 
 
-## 花瓣风：身前 90°、r480 里的苗圃花瓣被掀起，打着旋往外飘（花瓣可见半径 14 → 大弹）
+## 花瓣风（11-28 改成苗圃蔓延）：身前 90°、r480 里它的苗圃 0.8 秒后一起往外长 60（封顶 150，长出来的部分就是苗圃，照样伤人）；
+## 扇区里一块苗圃都没有时，改成在队长预判位置落一簇 2 圈（r50）铺出新苗圃。蔓延的每块边缘飘 4 片花瓣（短程余波）
 func _petal_wind(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var a: float = (g.ppos - e.pos).angle()
-	w_cone(e, a, PI / 4.0, 480.0, 0.8, 0.0, "花瓣风", {"track": 0.3})
-	later(e, 0.8, _petal_wind_go.bind(e, a))
+	var w := w_cone(e, a, PI / 4.0, 480.0, 0.8, 0.0, "花瓣风", {"track": 0.3})
+	later(e, 0.8, func(): _petal_wind_go(e, float(w.ang)))
 	return 1.6
 
 
 func _petal_wind_go(e: Dictionary, a: float) -> void:
-	var srcs: Array = [e.pos]
 	var km = kingdoms()
+	var grown := 0
 	if km != null:
 		for k in km.list:
-			if k.kind == "nursery" and k.pos.distance_to(e.pos) < 480.0 and absf(angle_difference((k.pos - e.pos).angle(), a)) < PI / 4.0:
-				srcs.append(k.pos)
-	for s in srcs.slice(0, 5):
-		for i in 7:
-			var aa: float = a + lerpf(-PI / 4.0, PI / 4.0, i / 6.0)
-			shot(e, s, aa, 170.0, 2, 0.12, {"turn": 1.2 if i % 2 == 0 else -1.2, "turn_until": 1.2, "life": 3.0})
+			if k.kind == "nursery" and int(k.owner_id) == int(e.id) and k.pos.distance_to(e.pos) < 480.0 and absf(angle_difference((k.pos - e.pos).angle(), a)) < PI / 4.0:
+				k["grow"] = {"r0": float(k.r), "r1": minf(150.0, float(k.r) + 60.0), "t0": g.t}
+				grown += 1
+				if grown <= 4:
+					for i in 4:
+						var aa: float = (k.pos - e.pos).angle() + lerpf(-0.6, 0.6, i / 3.0)
+						shot(e, k.pos + Vector2.from_angle(aa) * (float(k.r) + 50.0), aa, 120.0, 1, 0.05, {"turn": 1.0 if i % 2 == 0 else -1.0, "turn_until": 0.8, "life": 1.6})
+	if grown == 0:
+		var p: Vector2 = g.ppos + g.pvel.limit_length(150.0) * 0.4
+		for i in 2:
+			var q: Vector2 = p + Vector2.from_angle(a + PI * 0.5 * (1.0 if i == 0 else -1.0)) * 35.0
+			var w := w_circle(e, q, 50.0, 0.9, 0.12, "", {"lock": false})
+			w.cb = func(ww): _nursery_merge(e, ww.pos, 50.0, 8.0)
 
 
-## 回荡：花苞一圈绽开，花瓣弧外扩（150 px/秒，到 660），对着稳定设施的方向不开花 = 出口；0.8 秒后上一个落点再绽一次
+## 回荡（11-28 改成苗圃环）：一圈苗圃从落点往外推（环带宽 60，150 px/秒，推到 660），对着稳定设施的方向不长 = 出口（缺口弧长 ≥100）；
+## 0.8 秒后上一个落点再推一次。环带扫过队长（不在出口里）→ 13%，每圈一次。预警 0.9 秒：落点处的圈 + 出口方向的线
 func _echo_ring(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	_bloom(e, e.pos, "回荡")
 	var pp: Vector2 = e.get("prev_pos", e.pos)
@@ -266,40 +284,103 @@ func _bloom(e: Dictionary, p: Vector2, nm: String) -> void:
 	var gaps: Array = []
 	for d in e.devs:
 		gaps.append((d.pos - p).angle())
-	if nm != "":
-		e.move_name = nm
-		e.move_t = g.t
-	ring(e, p, 44, 150.0, 2, 0.13, gaps, 0.0, {"hold": 0.9, "life": 4.4})
-	ring(e, p, 44, 115.0, 1, 0.10, gaps, PI / 44.0, {"hold": 1.2, "life": 5.6})   # 第二层慢一档、错半格（11-26 加密）
+	w_circle(e, p, 60.0, 0.9, 0.0, nm, {"lock": nm != ""})
+	for ga in gaps:
+		var w := w_line(e, float(ga), 660.0, 30.0, 0.9, 0.0, "", {"lock": false})
+		w.pos = p
+	if not e.has("bands"):
+		e["bands"] = []
+	e.bands.append({"c": p, "t0": g.t + 0.9, "gaps": gaps, "hit": false})
 
 
-## 萌发：每块苗圃长出一朵紫花（10 秒），队长走到 160 内时花朝他喷一口花粉（30° 小扇，0.6 秒花抖）
-func _sprout(e: Dictionary, _dir: Vector2, _d: float) -> float:
+func _band_front(b: Dictionary) -> float:
+	return 60.0 + (g.t - float(b.t0)) * 150.0
+
+
+func _band_gap(fr: float) -> float:
+	return maxf(0.25, 50.0 / maxf(1.0, fr))   # 半个缺口角：弧长 ≥100
+
+
+func _tick_bands(e: Dictionary) -> void:
+	if not e.has("bands"):
+		return
+	var keep: Array = []
+	for b in e.bands:
+		if g.t < float(b.t0):
+			keep.append(b)
+			continue
+		var fr: float = _band_front(b)
+		if fr > 660.0:
+			continue
+		keep.append(b)
+		if b.hit:
+			continue
+		var dv: Vector2 = g.ppos - (b.c as Vector2)
+		if absf(dv.length() - fr) < 30.0:
+			var in_gap := false
+			for ga in b.gaps:
+				if absf(angle_difference(dv.angle(), float(ga))) < _band_gap(fr):
+					in_gap = true
+			if not in_gap:
+				b.hit = true
+				hit_now(e, g.ppos, 1.0, 0.13)
+	e.bands = keep
+
+
+## 闪现内爆（11-28，docs/393 §14.9）：落地 0.5 秒后，落点 300 内它的苗圃 0.5 秒里往落点收 40%（收的过程中照样伤人），收完合成一块
+## （圆心 = 面积加权、半径 = 面积相加开方，封顶 150）；每块被吸的苗圃边缘飘 2 片花瓣
+func _implode(e: Dictionary, c: Vector2) -> void:
 	var km = kingdoms()
 	if km == null:
-		return -1.0
-	var ns: Array = km.list.filter(func(k): return k.kind == "nursery").slice(0, 8)
-	if ns.is_empty():
-		return -1.0
-	e.move_name = "萌发"
-	e.move_t = g.t
-	if not e.has("flowers"):
-		e["flowers"] = []
-	for k in ns:
-		e.flowers.append({"pos": k.pos, "until": g.t + 10.0, "cd": g.t + 0.6})
-	return 1.0
-
-
-func _tick_flowers(e: Dictionary) -> void:
-	if not e.has("flowers"):
 		return
-	e.flowers = e.flowers.filter(func(f): return float(f.until) > g.t)
-	for f in e.flowers:
-		if g.t >= float(f.cd) and f.pos.distance_to(g.ppos) < 160.0:
-			f.cd = g.t + 2.5
-			var w := w_cone(e, (g.ppos - f.pos).angle(), deg_to_rad(15.0), 170.0, 0.6, 0.10, "", {"lock": false})
-			w.pos = f.pos
-			w.follow = false
+	var ks: Array = km.list.filter(func(k): return k.kind == "nursery" and int(k.owner_id) == int(e.id) and (k.pos as Vector2).distance_to(c) < 300.0)
+	if ks.is_empty():
+		return
+	var arr: Array = []
+	for k in ks:
+		arr.append({"k": k, "p0": k.pos})
+		var aa: float = (c - (k.pos as Vector2)).angle() + PI
+		for s2 in [-0.5, 0.5]:
+			shot(e, (k.pos as Vector2) + Vector2.from_angle(aa + s2) * float(k.r), aa + s2, 110.0, 1, 0.05, {"turn": 1.0 if s2 > 0.0 else -1.0, "turn_until": 0.6, "life": 1.4})
+	e["imp"] = {"c": c, "t0": g.t, "ks": arr}
+
+
+func _tick_implode(e: Dictionary) -> void:
+	# 苗圃蔓延（花瓣风）：0.8 秒长满
+	var km = kingdoms()
+	if km != null:
+		for k in km.list:
+			if k.has("grow"):
+				var u: float = clampf((g.t - float(k.grow.t0)) / 0.8, 0.0, 1.0)
+				k.r = lerpf(float(k.grow.r0), float(k.grow.r1), u)
+				if u >= 1.0:
+					k.erase("grow")
+	var im = e.get("imp")
+	if not (im is Dictionary) or km == null:
+		return
+	var u2: float = clampf((g.t - float(im.t0)) / 0.5, 0.0, 1.0)
+	var live: Array = (im.ks as Array).filter(func(x): return km.list.has(x.k))
+	for x in live:
+		x.k.pos = (x.p0 as Vector2).lerp(im.c, 0.4 * u2)
+	if u2 < 1.0:
+		return
+	e.erase("imp")
+	if live.size() < 2:
+		return
+	var sa := 0.0
+	var sp := Vector2.ZERO
+	var life := 0.0
+	for x in live:
+		var a: float = float(x.k.r) * float(x.k.r)
+		sa += a
+		sp += (x.k.pos as Vector2) * a
+		life = maxf(life, float(x.k.life) - (g.t - float(x.k.born)))
+	var keep: Dictionary = live[0].k
+	keep.pos = sp / sa
+	keep.r = minf(150.0, sqrt(sa))
+	keep.life = (g.t - float(keep.born)) + maxf(life, 4.0)
+	for i in range(1, live.size()):
+		km._remove(live[i].k, false)
 
 
 ## ---- 二幕
@@ -394,18 +475,6 @@ func _close_eye_go(e: Dictionary, pts: Array) -> void:
 			return
 
 
-## 花雨：头顶撒下一团紫色花瓣，每片一边打旋一边往外飘（3 秒）
-func _petal_rain(e: Dictionary, _dir: Vector2, _d: float) -> float:
-	e.move_name = "花雨"
-	e.move_t = g.t
-	w_self(e, 60.0, 0.6, 0.0, "")
-	for k in 40:
-		later(e, 0.6 + 0.075 * k, func():
-			var a: float = float((k * 97) % 360) * PI / 180.0
-			shot(e, e.pos, a, 140.0, 2, 0.09, {"turn": 0.9 if k % 2 == 0 else -0.9, "life": 4.0}))
-	return 3.8
-
-
 ## 维度回荡：6 个检查点连成的六边形上，花瓣串沿边绕圈（逆时针 120 px/秒），当前和上一个落点各一串
 func _dim_echo(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var first := true
@@ -487,14 +556,14 @@ func _eye_garden(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var side: Vector2 = (tgt - e.pos).orthogonal().normalized()
 	for k in 5:
 		var u: float = float(k) / 4.0
-		var p: Vector2 = tgt + side * lerpf(-200.0, 200.0, u) + (tgt - e.pos).normalized() * (sin(PI * u) * -80.0)
+		var p: Vector2 = tgt + side * lerpf(-140.0, 140.0, u) + (tgt - e.pos).normalized() * (sin(PI * u) * -50.0)   # 11-28：间距 70，相邻落点压在一起并块
 		later(e, 0.25 * k, _seed_one.bind(e, p, k == 0))
 	return 2.0
 
 
 func _seed_one(e: Dictionary, p: Vector2, first: bool) -> void:
 	var w := w_circle(e, p, 45.0, 0.9, 0.13, "眼中之园" if first else "", {"lock": first})
-	w.cb = func(ww): _nursery(e, ww.pos, 50.0, 10.0)
+	w.cb = func(ww): _nursery_merge(e, ww.pos, 50.0, 10.0)
 
 
 ## ---- 回荡段
@@ -518,19 +587,22 @@ func _triple(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	return 0.5
 
 
-## 播种·终：全场 3 波落点雨（r45，0.9 / 0.64），落地全变苗圃
+## 播种·终（11-28 改）：全场 3 波，每波 4 簇 × 3 圈（r45，0.9 / 0.64，簇内间距 55–65），落地全变苗圃，相邻并块
 func _sow_all(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var c: Vector2 = center(e)
 	for wv in 3:
 		later(e, 0.6 * wv, func():
-			for k in 10:
-				var p: Vector2 = c + Vector2.from_angle(TAU * k / 10.0 + wv * 0.7) * (120.0 + 70.0 * ((k + wv) % 4))
-				var w := w_circle(e, p, 45.0, 0.9, 0.15, "播种·终" if wv == 0 and k == 0 else "", {"lock": false})
-				w.cb = func(ww): _nursery(e, ww.pos, 45.0, 12.0))
+			for k in 4:
+				var core: Vector2 = c + Vector2.from_angle(TAU * k / 4.0 + wv * 0.8) * (150.0 + 90.0 * ((k + wv) % 3))
+				var a0: float = g.rng_enemy.randf() * TAU
+				for j in 3:
+					var p: Vector2 = core + (Vector2.ZERO if j == 0 else Vector2.from_angle(a0 + j * TAU / 3.0) * g.rng_enemy.randf_range(55.0, 65.0))
+					var w := w_circle(e, p, 45.0, 0.9, 0.15, "播种·终" if wv == 0 and k == 0 and j == 0 else "", {"lock": false})
+					w.cb = func(ww): _nursery_merge(e, ww.pos, 45.0, 12.0))
 	return 2.6
 
 
-## 花墓：第一条命倒下的地方留一朵巨花（r180），每 1.5 秒朝队长吐一片打旋的大花瓣
+## 花墓（11-28 改）：第一条命倒下的地方留一朵巨花，身下一片苗圃（r120，自己结算、不占国度名额），每 3 秒往外长到 r200 再缩回（1.2 秒一个来回）；不再吐花瓣弹
 func _m_tomb(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	e["tomb"] = {"pos": e.pos, "next": g.t}
 	return 0.5
@@ -541,13 +613,18 @@ func _tick_tomb(e: Dictionary) -> void:
 	if not (tb is Dictionary) or e.get("coma", false):
 		return
 	if g.t >= float(tb.next):
-		tb.next = g.t + 1.5
+		tb.next = g.t + 3.0
+		tb.pulse = g.t
 		if tb.get("named", false) == false:
 			tb.named = true
 			e.move_name = "花墓"
 			e.move_t = g.t
-		for s in [-0.35, 0.0, 0.35]:
-			shot(e, tb.pos, (g.ppos - tb.pos).angle() + s, 150.0, 2, 0.12, {"turn": 0.6, "turn_until": 1.0, "life": 4.0})
+	var u: float = (g.t - float(tb.get("pulse", -99.0))) / 1.2
+	tb.r = 120.0 + 80.0 * sin(PI * u) if u >= 0.0 and u <= 1.0 else 120.0
+	# 不占国度名额（BOSS_CAP 12，常驻的会被挤掉再补、来回抖）：自己按苗圃同口径结算，站在里面每 0.25 秒 0.75%（3% / 秒）
+	if g.combat.ground_d(g.ppos, tb.pos) < float(tb.r) and g.t >= float(tb.get("tick", 0.0)):
+		tb.tick = g.t + 0.25
+		hit_now(e, g.ppos, 1.0, 0.0075)
 
 
 func draw(e: Dictionary, cv) -> void:
@@ -569,8 +646,12 @@ func draw(e: Dictionary, cv) -> void:
 			var p: Vector2 = (j.from as Vector2).lerp(j.to, u) - Vector2(0, sin(PI * u) * 120.0)
 			cv.draw_circle(p, 22.0, Color(0.78, 0.6, 1.0, 0.25 - 0.05 * k))
 		cv.draw_circle(e.pos, 18.0, Color(0.2, 0.1, 0.3, 0.4))   # 地上投影
-	for f in e.get("flowers", []):
-		cv.draw_circle(f.pos, 12.0, Color(0.78, 0.55, 1.0, 0.85))
+	for b in e.get("bands", []):   # 苗圃环（占位）
+		if g.t >= float(b.t0):
+			var fr: float = _band_front(b)
+			cv.draw_arc(b.c, fr, 0.0, TAU, 64, Color(0.75, 0.85, 0.35, 0.45), 60.0)
+			for ga in b.gaps:
+				cv.draw_arc(b.c, fr, float(ga) - _band_gap(fr), float(ga) + _band_gap(fr), 8, Color(0.08, 0.06, 0.1, 0.9), 62.0)
 	var sc = e.get("scissor")
 	if sc is Dictionary and sc.has("half"):
 		for s in [-1.0, 1.0]:
@@ -582,7 +663,7 @@ func draw(e: Dictionary, cv) -> void:
 				cv.draw_circle(r.pos, 16.0, Color(0.8, 0.6, 1.0, 0.9))
 	var tb = e.get("tomb")
 	if tb is Dictionary:
-		cv.draw_circle(tb.pos, 180.0, Color(0.7, 0.5, 0.95, 0.15))
+		cv.draw_circle(tb.pos, float(tb.get("r", 120.0)), Color(0.75, 0.85, 0.35, 0.18))
 		cv.draw_circle(tb.pos, 30.0, Color(0.8, 0.55, 1.0, 0.8))
 
 

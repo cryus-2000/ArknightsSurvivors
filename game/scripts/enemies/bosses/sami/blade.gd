@@ -5,7 +5,8 @@
 ## 国度里不冒刃、不爆、不扫边：所有伤害都从本体（挥刃、投刃、冲斩、从雾里钻出来斩、红漩斩光）出来。
 ## 招：一幕 A 斩击·横扫 ③ / B 投刃·切雾 ② / C 雾中突袭 ① / D 黑毯·回旋 ④；二幕加 E 追猎·折返 ② ×2 / F 国度猎斩 ② ×3；游荡者再加 G 皇帝的猎杀 ② 折线，整体冷却 ×0.9。
 ## 持续压力「呼吸」：它的国度每 3 秒（二幕 2.4）往外胀一圈（利刃 +40、游荡者 +60），0.6 秒后缩回，不伤人——胀进来就是站进了国度。
-## 常驻弹幕「碎刃」（11-26 协调人：密度高于水月中期）：本体每 1.6 秒（二幕 1.2）甩一扇暗红月牙碎刃；近战招结算后补一扇 / 一圈刃波（docs/392 §17）。
+## 11-28 表现改版（docs/393 §14.4）：主要表现 = 国度 + 斩击；常驻「碎刃」与各招的月牙弹扇 / 弹圈全部删掉，只在刀口 / 斩光尽头溅 2–3 片短程碎屑（chips）。
+## A 大横斩按概念图 fm_b1 放大到 r 300，出招前先沉进国度、从黑雾里冲出来再斩（国度是出招起点）；E 改三段突进斩；D 改旋身斩 r 200。
 ## 位移「雾行」：每 9 秒沉进国度、雾下黑影滑到另一处（离队长 ≥250、跨度 ≥300）钻出，原地旋斩 r 90。
 ## 出招组（每幕 2）：一幕「斩投」A→B→A、「突袭」C→D；二幕「追猎」E→F→A、「猎斩」F→C→B（游荡者换「猎杀」G→F→E）。
 ## 画面全是占位（draw）：沉入 = 本体位置画黑影椭圆 + 露出雾面的刃尖；最终特效交 fx-declutter。
@@ -13,7 +14,9 @@ extends "res://scripts/enemies/bosses/sami/sami_boss.gd"
 
 const LEAD := 0.35        # 预判秒数（落点类）
 const THROW_R := 24.0     # 投刃大刃片半宽（§11.2 半宽 24，§12.4 可见半径 24）
-const SWEEP_R := 170.0    # A 横扫半径（§12.4：r 170 ≈ 原作攻击范围 2.4 格）
+const SWEEP_R := 300.0    # A 大横斩半径（11-28 协调人：按概念图 fm_b1 一刀扫过小半个屏幕；120° r 300 ≈ 10% 屏）
+const SWEEP_T := 2.8      # A 预警总长：120° r 300 → 半宽 260，锁定 ≥ (260 + 12) / 105 + 0.1 = 2.69（95 §0.2 / 359 §2.3）；沉入 + 滑行 + 冲出 + 举刃都算在里面
+const CHIP_SPD := 190.0   # 刀口碎屑：短程（约 200 px）、低伤，只是余波
 const GLIDE := 700.0      # 雾下黑影滑行速度
 
 
@@ -56,13 +59,12 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 	_ents(e, dt, km)
 	_carpets(e, km)
 	_mistwalk(e, ready, km)
-	_shards(e)
 	_group_pick(e, ready, dir, dist)
 
 
 ## ---- 招式表 [名, 冷却, 最近, 最远, 函数]
 func _a() -> Array:
-	return ["斩击·横扫", 4.0, 0.0, 240.0, _a_sweep]
+	return ["斩击·横扫", 4.0, 0.0, 700.0, _a_sweep]   # 11-28：会先潜进离队长最近的国度再冲出来，射程放到 700
 
 
 func _b() -> Array:
@@ -136,27 +138,27 @@ func _group_pick(e: Dictionary, ready: bool, dir: Vector2, dist: float) -> void:
 	pick(e, ready, dir, dist)
 
 
-## ---- 常驻压力「碎刃」（11-26 协调人：弹幕密度要高于水月中期 Boss）：不沉的时候每 1.6 秒（二幕 1.2）甩出一扇暗红月牙碎刃，
-## 单数次 5 发收拢瞄队长（间距 14°）、双数次 9 发 120° 散开；游荡者每次多 2 发。中弹 5%，230/秒飞 2.2 秒
-func _shards(e: Dictionary) -> void:
-	if _sunk(e) or e.get("coma", false):
-		return
-	if not e.has("sh_t"):
-		e.sh_t = g.t + 2.0
-	if g.t < float(e.sh_t):
-		return
-	e.sh_t = g.t + (1.2 if act_i(e) >= 1 else 1.6) * float(e.get("cd_k", 1.0))
-	e.sh_n = int(e.get("sh_n", 0)) + 1
-	var x := 2 if _wand(e) else 0
-	if int(e.sh_n) % 2 == 1:
-		aim(e, e.pos, 5 + x, deg_to_rad(14.0), 230.0, 1, 0.05, {"life": 2.2})
-	else:
-		fan(e, e.pos, (g.ppos - e.pos).angle(), PI / 3.0, 9 + x, 200.0, 1, 0.05, {"life": 2.4})
+## ---- 余波碎屑（11-28，docs/393 §14.1）：刀口 / 斩光尽头溅出 n 片短程碎刃，沿 ang 两侧 ±spread 散开；不瞄队长，飞约 200 就消失
+func _chips(e: Dictionary, p: Vector2, ang: float, n: int, spread := 0.5) -> void:
+	for i in n:
+		var u: float = 0.0 if n == 1 else (float(i) / float(n - 1) * 2.0 - 1.0)
+		shot(e, p, ang + u * spread, CHIP_SPD, 1, 0.05, {"life": 1.05})
 
 
-## 刃波：近战结算后沿出刀方向补一扇月牙（躲出范围的位置也压住）
-func _wave(e: Dictionary, c: Vector2, ang: float, half: float, n: int, spd: float, pct: float) -> void:
-	fan(e, c, ang, half, n, spd, 1, pct, {"life": 2.0})
+## 离点 p 最近的一块国度（它自己的优先，其次混沌国度）；没有就返回 {}
+func _near_kingdom(e: Dictionary, p: Vector2, km) -> Dictionary:
+	if km == null:
+		return {}
+	var best: Dictionary = {}
+	var bd := INF
+	for k in km.list:
+		if k.kind != "boss" and k.kind != "chaos":
+			continue
+		var d: float = (k.pos as Vector2).distance_to(p) - (60.0 if int(k.owner_id) == int(e.id) else 0.0)
+		if d < bd:
+			bd = d
+			best = k
+	return best
 
 
 ## ---- 沉入 / 雾下滑行 / 钻出：e.glide = {pts: [途经点…], spd}；滑行期间每帧直接改 e.pos（同克雷松闪现的写法），
@@ -329,14 +331,36 @@ func _mistwalk(e: Dictionary, ready: bool, km) -> void:
 	e.busy_t = g.t + 0.4 + travel + 1.0
 
 
-## ---- A 斩击·横扫（③）：120° 扇形 r 170，预警 1.7 = 举刃追踪 0.1 + 锁定 1.6；结算后刀走过的地方留一道暗红月牙斩痕 0.3 秒（纯画面）
-func _a_sweep(e: Dictionary, dir: Vector2, _d: float) -> float:
-	var w := w_cone(e, dir.angle(), PI / 3.0, SWEEP_R, 1.7, 0.24, "斩击·横扫", {"track": 0.1})
+## ---- A 斩击·横扫（③，11-28 改大横斩）：先沉进脚下的雾（0.4 秒），黑影滑到离队长最近的那块国度（≤1.4 秒），
+## 再从黑雾里**冲出来**（0.3 秒冲到斩点 O，O = 从那块国度朝队长方向、离队长 200 处），举刃，一刀横扫 120° r 300。
+## 扇形一开始就画在 O 上（不跟本体），总长 2.8 秒（锁定 2.7）；滑行太远（国度离队长 >700）就不滑，原地沉下去直接冲。
+## 结算后刀口两端各溅 1–2 片碎屑
+func _a_sweep(e: Dictionary, _dir: Vector2, _d: float) -> float:
+	var km = kingdoms()
+	var k: Dictionary = _near_kingdom(e, g.ppos, km)
+	var fog: Vector2 = e.pos
+	if not k.is_empty() and (k.pos as Vector2).distance_to(g.ppos) <= 700.0:
+		fog = k.pos
+	var to_p: Vector2 = g.ppos - fog
+	var o: Vector2 = fog if to_p.length() <= 200.0 else g.combat.arena_clamp(g.ppos - to_p.normalized() * 200.0, 60.0)
+	var ang: float = (g.ppos - o).angle()
+	var w := w_cone(e, ang, PI / 3.0, SWEEP_R, SWEEP_T, 0.24, "斩击·横扫", {"track": 0.1, "follow": false, "pos": o})
+	_sink(e, 1.8)
+	later(e, 0.4, func(): _glide_to(e, [fog], maxf(GLIDE, e.pos.distance_to(fog) / 1.4)))
+	later(e, 1.8, func():
+		e.erase("glide")
+		e.pos = fog
+		e.sunk_until = g.t
+		_ent(e, {"k": "burst", "pos": fog, "ang": (o - fog).angle(), "r": 40.0, "life": 0.35})
+		_glide_to(e, [o], maxf(600.0, fog.distance_to(o) / 0.3)))
 	w.cb = func(ww):
-		_ent(e, {"k": "slash", "pos": e.pos, "ang": float(ww.ang), "r": SWEEP_R, "life": 0.3})
-		_wave(e, e.pos, float(ww.ang), PI / 3.0, 11, 260.0, 0.08)
-		later(e, 0.3, func(): _wave(e, e.pos, float(ww.ang) + 0.09, PI / 3.0, 10, 190.0, 0.08))
-	return 1.9
+		e.erase("glide")
+		e.pos = o
+		_ent(e, {"k": "slash", "pos": o, "ang": float(ww.ang), "r": SWEEP_R, "life": 0.35})
+		for sd in [-1.0, 1.0]:
+			var tip: Vector2 = o + Vector2.from_angle(float(ww.ang) + sd * PI / 3.0) * SWEEP_R
+			_chips(e, tip, float(ww.ang) + sd * PI / 3.0 + sd * PI * 0.5, 2 if sd > 0.0 else 1, 0.35)
+	return SWEEP_T + 0.2
 
 
 ## ---- B 投刃·切雾（②）：瞄队长预判位置，0.8 秒（锁定 0.6，半宽 24）后掷出一片慢速大刃（260/秒，飞到 900）；
@@ -353,7 +377,7 @@ func _b_throw(e: Dictionary, _dir: Vector2, _dist: float) -> float:
 
 
 ## ---- C 雾中突袭（①）：本体沉进国度 0.4 秒 → 雾下黑影朝预警圈滑（≥700/秒）→ 从地下钻出上撩一刀。
-## 圈 r 110 画在队长 1.0 秒后的预判位置，预警 1.3（锁定 ≥1.26）；滑行距离封顶 620
+## 圈 r 110 画在队长 1.0 秒后的预判位置，预警 1.3（锁定 ≥1.26）；滑行距离封顶 620。11-28：删钻出时的 16 发弹圈，改成钻出后接一记横斩 120° r 180
 func _c_ambush(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var p: Vector2 = _pred(1.0)
 	var off: Vector2 = p - e.pos
@@ -367,48 +391,61 @@ func _c_ambush(e: Dictionary, _dir: Vector2, _d: float) -> float:
 		e.erase("glide")
 		e.sunk_until = g.t
 		_ent(e, {"k": "upslash", "pos": p, "r": 110.0, "life": 0.35})
-		ring(e, p, 16, 200.0, 1, 0.07, [], (g.ppos - p).angle() + PI / 16.0, {"life": 2.2})
-	return 1.6
+		var w2 := w_cone(e, (g.ppos - p).angle(), PI / 3.0, 180.0, 1.7, 0.18, "", {"track": 0.15})   # 钻出后接横斩（120° r 180，锁定 ≥1.7）
+		w2.cb = func(ww2):
+			_ent(e, {"k": "slash", "pos": e.pos, "ang": float(ww2.ang), "r": 180.0, "life": 0.3})
+			_chips(e, e.pos + Vector2.from_angle(float(ww2.ang) + PI / 3.0) * 180.0, float(ww2.ang) + PI * 0.8, 2, 0.3)
+	return 3.4
 
 
-## ---- D 黑毯·回旋（④）：本体把刃插进地里原地旋身一圈：两圈暗红斩波（中弹 30 + 30 发，第二圈错半格、慢一拍）显形后向外扩（170 / 130 每秒，扩到 660），
-## 缺口 2 个开在正对队长和背对队长的两条黑毯上；同时四条黑毯（宽 90、长 330）十字铺开，只当场地（铺完 4 秒国度）
+## ---- D 黑毯·回旋（11-28 改）：删掉两圈斩波弹。本体把刃插进地里原地旋身一圈：旋身斩 r 200（本体圈，预警 2.2，锁定 ≥ 212 / 105 + 0.1 = 2.12）；
+## 同时四条黑毯（宽 90、长 330）十字铺开，只当场地（铺完 4 秒国度）；斩完四条黑毯末端各溅 2 片碎屑
 func _d_carpet(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var a0: float = (_pred(0.6) - e.pos).angle()
 	var c: Vector2 = e.pos
 	for j in 4:
-		w_line(e, a0 + PI * 0.5 * j, 330.0, 45.0, 0.9, 0.0, "黑毯·回旋" if j == 0 else "", {"lock": j == 0})
-	ring(e, c, 30, 170.0, 1, 0.12, [a0, a0 + PI], 0.0, {"hold": 0.9, "life": 660.0 / 170.0})
-	ring(e, c, 30, 130.0, 1, 0.10, [a0, a0 + PI], PI / 30.0, {"hold": 1.3, "life": 660.0 / 130.0})
+		w_line(e, a0 + PI * 0.5 * j, 330.0, 45.0, 0.9, 0.0, "", {"lock": false})
+	var w := w_self(e, 200.0, 2.2, 0.16, "黑毯·回旋")
 	later(e, 0.9, func():
-		_ent(e, {"k": "spin", "pos": c, "r": 60.0, "life": 0.4})
 		for j in 4:
 			_lay(e, c, Vector2.from_angle(a0 + PI * 0.5 * j), 330.0, 150.0, 45.0, 4.0))
-	return 1.4
-
-
-## ---- E 追猎·折返（② ×2）：朝队长预判位置冲 480（半宽 36，0.8 / 锁定 0.6；初速约 930），身后拖一条黑毯（场地）；
-## 冲到头转身，沿原线冲回来再斩一刀（回程线在去程结算 0.55 秒后画出，0.6 / 0.6）
-func _e_chase(e: Dictionary, _dir: Vector2, _d: float) -> float:
-	var a: float = (_pred(LEAD) - e.pos).angle()
-	var w := w_stab(e, a, 480.0, 72.0, 0.8, 0.24, "追猎·折返", {"track": 0.2, "lead": LEAD})
-	w.cb = func(ww):
-		var dv: Vector2 = Vector2.from_angle(float(ww.ang))
-		var from: Vector2 = e.pos
-		_lay(e, from, dv, 480.0, 1600.0, 36.0, 3.0)
-		for k in 6:
-			var q: Vector2 = from + dv * (80.0 * k + 40.0)
-			shot(e, q, dv.angle() + PI * 0.5, 120.0, 1, 0.06, {"hold": 0.5, "life": 2.6})
-			shot(e, q, dv.angle() - PI * 0.5, 120.0, 1, 0.06, {"hold": 0.5, "life": 2.6})
-		later(e, 0.55, func():
-			var back: float = (from - e.pos).angle()
-			var w2 := w_stab(e, back, maxf(120.0, e.pos.distance_to(from)), 72.0, 0.6, 0.20, "", {"lock": true})
-			w2.cb = func(ww2): later(e, 0.35, func(): _wave(e, e.pos, float(ww2.ang), PI / 4.0, 7, 240.0, 0.07)))
+	w.cb = func(_ww):
+		_ent(e, {"k": "spin", "pos": e.pos, "r": 200.0, "life": 0.4})
+		for j in 4:
+			var dv: Vector2 = Vector2.from_angle(a0 + PI * 0.5 * j)
+			_chips(e, c + dv * 330.0, dv.angle(), 2, 0.4)
 	return 2.4
 
 
+## ---- E 追猎·折返（11-28 改三段突进斩）：连冲三段，每段都重新瞄队长预判位置，长 300–420（半宽 36；第一段 0.8 / 锁定 0.6，后两段 0.6 / 0.6；
+## 冲速 sqrt(1800 × 长) ≈ 735–870 px/秒），段间停 0.35 秒；每段身后拖一条黑毯（场地 3 秒）；第三段冲完收尾横斩 120° r 180（锁定 ≥1.7），刀口溅 3 片
+func _e_chase(e: Dictionary, _dir: Vector2, _d: float) -> float:
+	_dash_seg(e, 0)
+	return 0.8 + 0.6 * 2 + 0.35 * 2 + 1.8
+
+
+func _dash_seg(e: Dictionary, i: int) -> void:
+	if e.get("dead", false):
+		return
+	var tgt: Vector2 = _pred(LEAD)
+	var a: float = (tgt - e.pos).angle()
+	var ln: float = clampf(e.pos.distance_to(tgt) + 60.0, 300.0, 420.0)
+	var w := w_stab(e, a, ln, 72.0, 0.8 if i == 0 else 0.6, 0.22 if i == 0 else 0.16, "追猎·折返" if i == 0 else "", {"track": 0.2 if i == 0 else 0.0, "lead": LEAD})
+	var from: Vector2 = e.pos
+	w.cb = func(ww):
+		_lay(e, from, Vector2.from_angle(float(ww.ang)), float(ww.len), 1600.0, 36.0, 3.0)
+		if i < 2:
+			later(e, 0.35, func(): _dash_seg(e, i + 1))
+		else:
+			later(e, 0.35, func():
+				var w2 := w_cone(e, (g.ppos - e.pos).angle(), PI / 3.0, 180.0, 1.7, 0.18, "", {"track": 0.15})
+				w2.cb = func(ww2):
+					_ent(e, {"k": "slash", "pos": e.pos, "ang": float(ww2.ang), "r": 180.0, "life": 0.3})
+					_chips(e, e.pos + Vector2.from_angle(float(ww2.ang)) * 180.0, float(ww2.ang), 3, 0.5))
+
+
 ## ---- F 国度猎斩（② ×3）：沉进国度，依次从离队长最近的 3 块国度里钻出（每块 1.3 秒）：钻出时刃尖聚一团暗红漩涡（0.7 秒预警，
-## 锁定 0.5，半宽 26，长 700），然后朝队长打出一道红色斩光；再沉下去，黑影滑到下一块
+## 锁定 0.5，半宽 26，长 900——11-28 从 700 提到 900、删掉斩光后的 7 发月牙扇），然后朝队长打出一道红色斩光，尽头溅 2 片碎屑；再沉下去，黑影滑到下一块
 func _f_hunt(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var km = kingdoms()
 	if km == null:
@@ -430,10 +467,10 @@ func _f_hunt(e: Dictionary, _dir: Vector2, _d: float) -> float:
 			e.erase("glide")
 			e.sunk_until = g.t
 			_ent(e, {"k": "vortex", "pos": p, "r": 22.0, "life": 0.7})
-			var w := w_line(e, (g.ppos - p).angle(), 700.0, 52.0, 0.7, 0.14, "国度猎斩" if i == 0 else "", {"track": 0.2, "pos": p})
+			var w := w_line(e, (g.ppos - p).angle(), 900.0, 52.0, 0.7, 0.14, "国度猎斩" if i == 0 else "", {"track": 0.2, "pos": p})
 			w.cb = func(ww):
-				_ent(e, {"k": "redslash", "pos": p, "ang": float(ww.ang), "r": 700.0, "life": 0.25})
-				_wave(e, p, float(ww.ang), PI / 5.0, 7, 280.0, 0.07))
+				_ent(e, {"k": "redslash", "pos": p, "ang": float(ww.ang), "r": 900.0, "life": 0.25})
+				_chips(e, p + Vector2.from_angle(float(ww.ang)) * 900.0, float(ww.ang) + PI, 2, 0.6))
 	_sink(e, 0.3)
 	return 0.3 + 1.3 * n
 
@@ -462,7 +499,7 @@ func _g_hunt(e: Dictionary, _dir: Vector2, _d: float) -> float:
 		var qq: Vector2 = q
 		w.cb = func(_ww):
 			_ent(e, {"k": "spin", "pos": qq, "r": 50.0, "life": 0.25})
-			ring(e, qq, 10, 170.0, 1, 0.07, [], float(k) * 0.3, {"life": 2.4})
+			_chips(e, qq, (qq - g.ppos).angle(), 2, 0.6)   # 11-28：每块国度中心的 10 发弹圈 → 2 片碎屑
 		prev = q
 	later(e, 0.9, func(): _glide_to(e, pts, 800.0))
 	return 1.2 + acc
@@ -513,6 +550,10 @@ func draw(e: Dictionary, cv) -> void:
 				for j in 3:
 					var a0: float = float(x.t) * 9.0 + TAU * j / 3.0
 					cv.draw_arc(x.pos + Vector2(0, -24), 6.0 + 5.0 * j, a0, a0 + 2.2, 10, Color(0.75, 0.1, 0.15, 0.9), 2.5)
+			"burst":   # 从黑雾里冲出来：一团向冲出方向喷开的黑雾（占位）
+				for j in 5:
+					var q: Vector2 = x.pos + Vector2.from_angle(float(x.ang) + (j - 2) * 0.35) * (20.0 + 50.0 * (1.0 - fade))
+					cv.draw_circle(q, 14.0 * fade + 4.0, Color(0.04, 0.04, 0.06, 0.7 * fade))
 			"redslash":
 				cv.draw_line(x.pos, x.pos + Vector2.from_angle(float(x.ang)) * float(x.r), Color(0.9, 0.12, 0.15, 0.85 * fade), 6.0)
 
