@@ -4542,6 +4542,7 @@ func _sham_crystal_burst(p: Vector2, r: float) -> void:
 var vroots2: Array = []    # [根脚, 出生 t, 高, 粗, 弯, 扭, 种子]
 var vcraters: Array = []   # [中心, 出生 t, 半径, 种子]
 var vents_fx := {}         # 熔岩口喷发 t（按坐标键）
+var vine_big_t := -9.0     # 最近一次大爆（破土 / 喷发）：同一刻只放一次大爆，另一个降成小火星
 
 
 func vine_draw(e: Dictionary) -> void:
@@ -4561,12 +4562,12 @@ func _mound_ridge(w, a: Vector2, b: Vector2, al: float, sd: int, crack: float) -
 	var nv := d.orthogonal()
 	var ns: int = maxi(2, int(L / 12.0))
 	var prev_c: Vector2 = a
-	var prev_w: float = 16.0
+	var prev_w: float = 26.0
 	for i in range(1, ns + 1):
 		var c2: Vector2 = a + d * L * float(i) / float(ns)
 		var hh: int = absi(hash(Vector2i(sd, i)))
-		var w2: float = 16.0 * (0.75 + float(hh % 45) / 100.0)
-		var lift := Vector2(0, -(8.0 + float((hh / 45) % 6)))
+		var w2: float = 26.0 * (0.75 + float(hh % 45) / 100.0)
+		var lift := Vector2(0, -(13.0 + float((hh / 45) % 8)))
 		w.tb_poly(PackedVector2Array([_snap(prev_c + nv * prev_w + Vector2(3, 4)), _snap(c2 + nv * w2 + Vector2(3, 4)), _snap(c2 - nv * w2 + Vector2(3, 4)), _snap(prev_c - nv * prev_w + Vector2(3, 4))]), Color(A1_SH, 0.45 * al))
 		w.tb_poly(PackedVector2Array([_snap(prev_c + nv * prev_w), _snap(c2 + nv * w2), _snap(c2 - nv * w2), _snap(prev_c - nv * prev_w)]), Color(A1_BACK, al))
 		w.tb_poly(PackedVector2Array([_snap(prev_c + nv * prev_w * 0.55 + lift), _snap(c2 + nv * w2 * 0.55 + lift), _snap(c2 - nv * w2 * 0.45 + lift), _snap(prev_c - nv * prev_w * 0.45 + lift)]), Color(A1_LIT, al))
@@ -4690,17 +4691,19 @@ func _root2_draw(w, rt: Array, now: float) -> void:
 ## 破土：坑 + 一簇根（主根最粗、前端最大）+ 土块爆团（大块少、碎屑多）+ 冰块 / 木屑
 func vine_surface(p: Vector2, r: float, big: bool) -> void:
 	var sd: int = absi(hash(Vector2i(int(p.x), int(p.y)))) % 9973
-	var k: float = r / 60.0 * (1.35 if big else 1.0)
-	vcraters.append([p, g.t, r * 0.75, sd])
-	var nroot: int = 5 if big else 3
+	var k: float = r / 60.0 * (1.4 if big else 1.0)
+	vine_big_t = g.t
+	vcraters.append([p, g.t, r * (1.35 if big else 1.0), sd])   # 坑放大（11-28 协调人：1.5–2 倍）
+	var nroot: int = 6 if big else 3
 	for i in nroot:
 		var main: bool = i == 0
-		vroots2.append([p + Vector2(rng.randf_range(-16, 16), rng.randf_range(-4, 6)) * k, g.t + rng.randf_range(0.0, 0.06),
-			(92.0 if main else rng.randf_range(40.0, 60.0)) * k, (30.0 if main else rng.randf_range(10.0, 15.0)) * k,
-			rng.randf_range(-0.8, 0.8), rng.randf_range(0.0, 6.0), sd + i])
-	for i in int(26.0 * k):
+		# 主根长 >= 队长身高 2 倍（前端那簇约 190）；副根 0.45–0.65 倍
+		vroots2.append([p + Vector2(rng.randf_range(-22, 22), rng.randf_range(-4, 8)) * k, g.t + rng.randf_range(0.0, 0.06),
+			(136.0 if main else rng.randf_range(60.0, 88.0)) * k, (34.0 if main else rng.randf_range(12.0, 18.0)) * k,
+			rng.randf_range(-0.6, 0.6) * (0.5 if main else 1.0), rng.randf_range(0.0, 6.0), sd + i])
+	for i in int(40.0 * k):
 		var a: float = rng.randf_range(-PI, 0.0)
-		var sp: float = rng.randf_range(120.0, 360.0) * k
+		var sp: float = rng.randf_range(160.0, 520.0) * k
 		var bigc: bool = i < 3
 		_add(p + Vector2(rng.randf_range(-20, 20), -6) * k, Vector2(cos(a) * sp, sin(a) * sp * 0.8 - 120.0), rng.randf_range(0.6, 0.95), SOIL[rng.randi() % 3], (rng.randf_range(12.0, 18.0) if bigc else rng.randf_range(4.0, 8.0)) * minf(k, 1.4), 3, 1100.0)
 	for i in 6:
@@ -4713,30 +4716,56 @@ func vine_surface(p: Vector2, r: float, big: bool) -> void:
 
 ## 地面根线（缠绕 / 根网的线）：预警时一条褐色根沿线往前爬（越来越粗，节上冒刺），结算时根线整条一绷、崩土
 func _rootline_warn(w, t: Dictionary, k: float, sd: int) -> void:
+	# 一整条根按节收细：靠根部（第 0 节）粗、往外端细；每节内也连续收细，表面起伏，偶尔分叉；节间搭接 + 圆节，无分段感
 	var a: Vector2 = t.pos
 	var d := Vector2.from_angle(float(t.ang))
 	var L: float = float(t.len) * clampf(k * 1.25, 0.0, 1.0)
 	if L < 3.0:
 		return
 	var nv := d.orthogonal()
-	var n: int = maxi(3, int(L / 16.0))
-	var wid0: float = float(t.wid) * (0.3 + 0.35 * k)
-	var prev: Vector2 = a - d * 8.0   # 和上一段搭接，不留缝
-	var pw: float = wid0
-	for i in range(1, n + 1):
+	var vi: float = float(t.get("vseg", 0))
+	var vn: float = maxf(1.0, float(t.get("vn", 1)))
+	var base: float = float(t.wid) * (0.55 + 0.45 * k)
+	var n: int = maxi(4, int(L / 10.0))
+	var lp := PackedVector2Array()
+	var rp := PackedVector2Array()
+	var cp := PackedVector2Array()
+	for i in n + 1:
 		var f: float = float(i) / float(n)
-		var q: Vector2 = a + d * L * f + nv * sin(f * 6.0 + float(sd)) * 6.0
-		var wid: float = wid0 * (0.85 + 0.25 * sin(f * 9.0 + float(sd % 7)))
-		w.tb_circle(prev, (pw + 4.0) * 0.5, ROOT[0], 1.0, 8)   # 圆节盖住折角（不读成木板拼接）
-		w.tb_line(prev, q, ROOT[0], wid + 4.0)
-		w.tb_circle(prev, pw * 0.5, ROOT[1], 1.0, 8)
-		w.tb_line(prev, q, ROOT[1], wid)
-		w.tb_line(prev + Vector2(-1, -wid * 0.25), q + Vector2(-1, -wid * 0.25), ROOT[2], maxf(2.0, wid * 0.3))
-		pw = wid
-		if i % 3 == 0 and k > 0.4:
-			var sgn: float = 1.0 if i % 2 == 0 else -1.0
-			w.tb_poly(PackedVector2Array([q + nv * wid * 0.4 * sgn, q + nv * (wid + 10.0) * sgn + d * 4.0, q + nv * wid * 0.4 * sgn + d * 6.0]), ROOT[0])
-		prev = q
+		var along: float = (vi + f * (L / float(t.len))) / vn
+		var wd: float = base * (1.0 - 0.78 * along) * (1.0 + 0.12 * sin(f * 13.0 + float(sd)))
+		var q: Vector2 = a - d * 6.0 + d * (L + 6.0) * f + nv * sin(f * 5.0 + float(sd) + vi) * 7.0
+		cp.append(q)
+		lp.append(q + nv * wd * 0.5)
+		rp.append(q - nv * wd * 0.5)
+	var outl := PackedVector2Array()
+	for q in lp:
+		outl.append(q + nv * 2.0)
+	for i in range(n, -1, -1):
+		outl.append(rp[i] - nv * 2.0)
+	w.tb_polygon(outl, ROOT[0])
+	var body := PackedVector2Array(lp)
+	for i in range(n, -1, -1):
+		body.append(rp[i])
+	w.tb_polygon(body, ROOT[1])
+	var lit := PackedVector2Array()
+	for i in n + 1:
+		lit.append(lp[i].lerp(cp[i], 0.15))
+	for i in range(n, -1, -1):
+		lit.append(lp[i].lerp(cp[i], 0.6))
+	w.tb_polygon(lit, ROOT[2])
+	var w0: float = base * (1.0 - 0.78 * vi / vn)
+	w.tb_circle(a, w0 * 0.5 + 2.0, ROOT[0], 1.0, 10)
+	w.tb_circle(a, w0 * 0.5, ROOT[1], 1.0, 10)
+	for i in range(2, n - 1, 3):
+		w.tb_line(lp[i].lerp(cp[i], 0.1), rp[i].lerp(cp[i], 0.3), ROOT[0], 2.0)
+	if int(vi) % 2 == 1 and k > 0.5:
+		var bi: int = n / 2
+		var sg: float = 1.0 if sd % 2 == 0 else -1.0
+		var bw: float = base * (1.0 - 0.78 * (vi + 0.5) / vn) * 0.45
+		var bt: Vector2 = cp[bi] + nv * sg * 46.0 + d * 26.0
+		w.tb_poly(PackedVector2Array([cp[bi] - d * bw, bt, cp[bi] + d * bw]), ROOT[0])
+		w.tb_poly(PackedVector2Array([cp[bi] - d * bw * 0.6, bt - nv * sg * 2.0, cp[bi] + d * bw * 0.6]), ROOT[1])
 	w.tb_flush()
 
 
@@ -4744,15 +4773,20 @@ func _rootline_warn(w, t: Dictionary, k: float, sd: int) -> void:
 func _vent_draw(w, cv, p: Vector2, now: float, hot: float) -> void:
 	var gt: Texture2D = _glow_tex()
 	var pul: float = 0.75 + 0.25 * sin(now * 4.0 + p.x * 0.01)
-	var gsz := Vector2(120, 64) * (1.0 + hot)
-	cv.draw_texture_rect(gt, Rect2(((p - gsz * 0.5) / PX).floor() * PX, gsz), false, Color(1.0, 0.5, 0.2, (0.35 + 0.4 * hot) * pul))
 	var rs: Array = _organic_rs(absi(int(p.x * 7.0 + p.y)) % 997, 16)
+	var wet := PackedVector2Array()
+	for i in 16:
+		var a0: float = TAU * float(i) / 16.0
+		wet.append(p + Vector2(cos(a0), sin(a0) * 0.6) * 76.0 * float(rs[(i + 5) % 16]))
+	w.tb_polygon(wet, Color(0.36, 0.4, 0.46, 0.4))   # 熔光化开的一圈湿暗雪
+	var gsz := Vector2(200, 110) * (1.0 + 0.5 * hot)
+	cv.draw_texture_rect(gt, Rect2(((p - gsz * 0.5) / PX).floor() * PX, gsz), false, Color(1.0, 0.5, 0.2, (0.45 + 0.4 * hot) * pul))
 	var ring := PackedVector2Array()
 	var core := PackedVector2Array()
 	for i in 16:
 		var a: float = TAU * float(i) / 16.0
-		ring.append(_snap(p + Vector2(cos(a), sin(a) * 0.6) * 28.0 * float(rs[i])))
-		core.append(_snap(p + Vector2(cos(a), sin(a) * 0.6) * 15.0 * float(rs[i]) + Vector2(1, 1)))
+		ring.append(p + Vector2(cos(a), sin(a) * 0.6) * 36.0 * float(rs[i]))
+		core.append(p + Vector2(cos(a), sin(a) * 0.6) * 21.0 * float(rs[i]) + Vector2(1, 1))
 	w.tb_polygon(ring, Color(0.18, 0.13, 0.13))
 	w.tb_polygon(core, Color(1.0, 0.45 + 0.25 * hot, 0.15).lerp(Color(1, 0.9, 0.6), hot * 0.6))
 	w.tb_flush()
@@ -4867,6 +4901,10 @@ func _vine_wburst(t: Dictionary) -> void:
 				if (v as Vector2).distance_to(c) < 4.0:
 					is_vent = true
 		if is_vent:
+			if g.t - vine_big_t < 0.2:
+				embers(c, 6, EMBER, 160.0, 300.0, 0.5, 4.0)   # 和破土同一刻：只放小火星
+				return
+			vine_big_t = g.t
 			# 熔岩喷发：熔红火柱一冲（火星 + 熔块 + 一下亮光）
 			embers(c, 18, EMBER, 260.0, 360.0, 0.8, 5.0)
 			embers(c, 8, Color(1.0, 0.85, 0.5), 200.0, 300.0, 0.6, 4.0)

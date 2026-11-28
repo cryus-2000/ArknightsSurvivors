@@ -283,7 +283,7 @@ func _d_coil(e: Dictionary, _dir: Vector2, _d: float) -> float:
 		for k in 4:
 			var u: float = float(k + 1) / 4.0
 			var q: Vector2 = st.lerp(c, u) + (c - st).orthogonal().normalized() * sin(PI * u) * 50.0 * sg
-			w_line(e, (q - prev).angle(), prev.distance_to(q) + 6.0, 36.0, 0.8 + 0.15 * k, 0.12, "缠绕" if n == 0 and k == 0 else "", {"pos": prev, "lock": n == 0 and k == 0})
+			w_line(e, (q - prev).angle(), prev.distance_to(q) + 6.0, 36.0, 0.8 + 0.15 * k, 0.12, "缠绕" if n == 0 and k == 0 else "", {"pos": prev, "lock": n == 0 and k == 0, "vseg": k, "vn": 4})   # vseg：画面按第几节收细
 			prev = q
 		n += 1
 	return 1.6
@@ -302,7 +302,7 @@ func _e_roots(e: Dictionary, _dir: Vector2, _d: float) -> float:
 			var na: float = a + sin(float(k) * 1.7 + float(r)) * 0.35
 			var q: Vector2 = prev + Vector2.from_angle(na) * 170.0
 			dist += 170.0
-			var w := w_line(e, (q - prev).angle(), 172.0, 48.0, 1.0 + dist / 400.0, 0.10, "根网" if r == 0 and k == 0 else "", {"pos": prev, "lock": r == 0 and k == 0})
+			var w := w_line(e, (q - prev).angle(), 172.0, 48.0, 1.0 + dist / 400.0, 0.10, "根网" if r == 0 and k == 0 else "", {"pos": prev, "lock": r == 0 and k == 0, "vseg": k, "vn": 4})
 			var qq: Vector2 = q
 			w.cb = func(_ww): _vent_near(e, qq, 90.0)   # 11-28：根爬过熔岩口就引爆它
 			prev = q
