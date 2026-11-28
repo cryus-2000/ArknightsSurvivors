@@ -4545,9 +4545,9 @@ func _crater_draw(w, cv, cr: Array, now: float) -> void:
 	for i in 32:
 		var a: float = TAU * float(i) / 32.0
 		var q := Vector2(cos(a), sin(a) * gy) * r * float(rs[i])
-		outer.append(_snap(c + q))
-		lip.append(_snap(c + q * 1.22 + Vector2(0, -2)))
-		core.append(_snap(c + q * 0.55 + Vector2(2, 3)))
+		outer.append(c + q)   # 不取整：小坑取整后相邻点重合，三角化失败整块不画
+		lip.append(c + q * 1.22 + Vector2(0, -2))
+		core.append(c + q * 0.55 + Vector2(2, 3))
 	w.tb_polygon(lip, Color(A1_LIT, 0.95 * al))   # 连续雪唇（整圈翻起；南半边被土面压住只剩北侧露亮）
 	w.tb_polygon(outer, Color(SOIL[1], al))
 	w.tb_polygon(core, Color(SOIL[0], al))
@@ -4555,7 +4555,7 @@ func _crater_draw(w, cv, cr: Array, now: float) -> void:
 	var litp := PackedVector2Array()
 	for i in range(18, 30):
 		litp.append(outer[i])
-	litp.append(_snap(c + Vector2(-r * 0.2, -r * 0.15 * gy)))
+	litp.append(c + Vector2(-r * 0.2, -r * 0.15 * gy))
 	w.tb_polygon(litp, Color(SOIL[2], al))
 	# 坑边大土块（少，2–3 块）+ 碎屑（多）
 	for i in 3:
@@ -4673,14 +4673,19 @@ func _rootline_warn(w, t: Dictionary, k: float, sd: int) -> void:
 		return
 	var nv := d.orthogonal()
 	var n: int = maxi(3, int(L / 16.0))
-	var wid: float = float(t.wid) * (0.25 + 0.35 * k)
-	var prev: Vector2 = a
+	var wid0: float = float(t.wid) * (0.3 + 0.35 * k)
+	var prev: Vector2 = a - d * 8.0   # 和上一段搭接，不留缝
+	var pw: float = wid0
 	for i in range(1, n + 1):
 		var f: float = float(i) / float(n)
 		var q: Vector2 = a + d * L * f + nv * sin(f * 6.0 + float(sd)) * 6.0
-		w.tb_line(_snap(prev), _snap(q), ROOT[0], wid + 4.0)
-		w.tb_line(_snap(prev), _snap(q), ROOT[1], wid)
-		w.tb_line(_snap(prev + Vector2(-1, -wid * 0.25)), _snap(q + Vector2(-1, -wid * 0.25)), ROOT[2], maxf(2.0, wid * 0.3))
+		var wid: float = wid0 * (0.85 + 0.25 * sin(f * 9.0 + float(sd % 7)))
+		w.tb_circle(prev, (pw + 4.0) * 0.5, ROOT[0], 1.0, 8)   # 圆节盖住折角（不读成木板拼接）
+		w.tb_line(prev, q, ROOT[0], wid + 4.0)
+		w.tb_circle(prev, pw * 0.5, ROOT[1], 1.0, 8)
+		w.tb_line(prev, q, ROOT[1], wid)
+		w.tb_line(prev + Vector2(-1, -wid * 0.25), q + Vector2(-1, -wid * 0.25), ROOT[2], maxf(2.0, wid * 0.3))
+		pw = wid
 		if i % 3 == 0 and k > 0.4:
 			var sgn: float = 1.0 if i % 2 == 0 else -1.0
 			w.tb_poly(PackedVector2Array([q + nv * wid * 0.4 * sgn, q + nv * (wid + 10.0) * sgn + d * 4.0, q + nv * wid * 0.4 * sgn + d * 6.0]), ROOT[0])
