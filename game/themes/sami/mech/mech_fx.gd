@@ -5173,7 +5173,7 @@ func _dash_ghost(w, ev: Array, age: float) -> void:
 		var b: Vector2 = a + d * L * (0.35 + 0.65 * (1.0 - sh))
 		var a2: Vector2 = a + d * L * (0.05 + 0.2 * sh)
 		var wd: float = 26.0 * (1.0 - sh * 0.4)
-		w.tb_poly(PackedVector2Array([a2, b + nv * wd + Vector2(0, -30), b + d * 18.0 + Vector2(0, -34), b - nv * wd + Vector2(0, -30)]), Color(BK, (0.75 - 0.2 * float(k)) * al))
+		w.tb_poly(PackedVector2Array([a2 + Vector2(0, -28), b + nv * wd + Vector2(0, -30), b + d * 18.0 + Vector2(0, -34), b - nv * wd + Vector2(0, -30)]), Color(BK, (0.45 - 0.12 * float(k)) * al))
 	w.tb_line(_snap(a + Vector2(0, -30)), _snap(a + d * L + Vector2(0, -32)), Color(BLOOD[2], 0.7 * al), 3.0)
 
 
@@ -5236,10 +5236,10 @@ func _kd_ink(cv, km, now: float) -> void:
 			var a: float = float(hs % 628) / 100.0 + now * (0.1 + 0.05 * float(hs % 3)) * (1.0 if hs % 2 == 0 else -1.0)
 			var rr: float = r * 0.62 * sqrt(float((hs / 628) % 100) / 100.0) * rev
 			var q2: Vector2 = (k.pos as Vector2) + Vector2(cos(a), sin(a) * 0.75) * rr
-			var s: float = r * (0.85 + 0.35 * float((hs / 62800) % 100) / 100.0) * (0.92 + 0.12 * sin(now * 0.9 + float(i) * 1.3))
+			var s: float = r * (1.15 + 0.45 * float((hs / 62800) % 100) / 100.0) * (0.92 + 0.12 * sin(now * 0.9 + float(i) * 1.3))
 			if km._in_cut(q2):
 				continue
-			cv.draw_texture_rect(fog_puff[hs % 4], Rect2(_snap(q2 - Vector2(s, s * 0.75) * 0.5), Vector2(s, s * 0.75)), false, Color(1, 1, 1, 0.62 * KD_WISP * al))
+			cv.draw_texture_rect(fog_puff[hs % 4], Rect2(_snap(q2 - Vector2(s, s * 0.75) * 0.5), Vector2(s, s * 0.75)), false, Color(1, 1, 1, 0.85 * KD_WISP * al))
 		# 边缘烟丝：小雾团从边上往外飘、变淡（循环）
 		var m: int = clampi(int(TAU * r / 22.0), 8, 40)
 		for i in m:
