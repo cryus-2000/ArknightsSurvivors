@@ -4931,7 +4931,7 @@ func _will_storm_ground(w, cv, e: Dictionary, bz: Dictionary, y: float, now: flo
 		var ga: float = 1.0
 		for gx in bz.gaps:
 			ga = minf(ga, clampf((absf(xm - float(gx)) - 40.0) / 24.0, 0.0, 1.0))
-		var y_cut: float = y
+		var y_cut: float = y + 9.0 * sin(xm * 0.025 + now * 2.1) + 6.0 * sin(xm * 0.061 - now * 3.3)   # 前沿起伏（和雪墙同相）
 		for t2 in e.get("trees", []):
 			if float(t2.dead_t) <= 0.0 and absf(xm - (t2.pos as Vector2).x) < 46.0:
 				y_cut = minf(y_cut, (t2.pos as Vector2).y)
@@ -4999,6 +4999,17 @@ func _will_curtain_front(w, cv, e: Dictionary, now: float) -> void:
 	var cy: float = float(ar_d.n) + (float(ar_d.s) - float(ar_d.n)) / 3.0
 	var x: float = (ar_d.c as Vector2).x - float(ar_d.ar) * 3.0
 	var x1: float = (ar_d.c as Vector2).x + float(ar_d.ar) * 3.0
+	# 雪檐下沿一道连续冷影（边界清楚，不断成虚线）
+	var xs: float = x
+	var prev := Vector2.INF
+	while xs <= x1:
+		var ys: float = cy + 6.0 * sin(xs * 0.03 + now * 1.4) + 4.0 * sin(xs * 0.07 - now * 2.2)
+		var q := Vector2(xs, ys + 2.0)
+		if prev != Vector2.INF and not _tree_shade(e, xs, ys - 1.0):
+			w.tb_line(_snap(prev), _snap(q), Color(A1_BACK, 0.75), 5.0)
+		prev = q
+		xs += 12.0
+	w.tb_flush()
 	var col := 0
 	while x <= x1:
 		var hj: int = absi(hash(Vector2i(col, 733)))
@@ -5006,7 +5017,6 @@ func _will_curtain_front(w, cv, e: Dictionary, now: float) -> void:
 		if not _tree_shade(e, x, yy - 1.0):
 			var sz: float = 70.0 + float(hj % 40)
 			cv.draw_texture_rect(snow_puff, Rect2(_snap(Vector2(x - sz * 0.5, yy - sz * 0.75)), Vector2(sz, sz * 0.75)), false, Color(1, 1, 1, 0.95))
-			w.tb_line(_snap(Vector2(x - 18.0, yy - 2.0)), _snap(Vector2(x + 18.0, yy - 2.0)), Color(A1_BACK, 0.7), 4.0)   # 雪檐下沿一道冷影，边界清楚
 			if rng.randf() < 0.04:
 				_icefog(Vector2(x, yy), Vector2(rng.randf_range(-20, 20), 20), 0.8, 50.0, 0.7)
 		x += 36.0 + float(hj % 14)
