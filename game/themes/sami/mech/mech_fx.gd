@@ -4983,7 +4983,7 @@ func _will_wave(w, cv, e: Dictionary, now: float) -> void:
 	var prof: Array = []
 	for i in n + 1:
 		var b: float = a - half + 2.0 * half * float(i) / float(n)
-		var hh: float = H * (0.85 + 0.15 * sin(float(i) * 0.9 + now * 5.0)) * clampf(0.55 + fr / 400.0, 0.55, 1.0)
+		var hh: float = H * (0.85 + 0.15 * sin(float(i) * 0.9 + now * 5.0)) * clampf(0.8 + fr / 600.0, 0.8, 1.0)
 		var ok: bool = not _tree_shade(e, (rad.call(b, fr) as Vector2).x, (rad.call(b, fr) as Vector2).y)
 		prof.append([
 			rad.call(b, maxf(10.0, fr - 150.0)),                                  # 后坡起点（地面）
@@ -5004,11 +5004,15 @@ func _will_wave(w, cv, e: Dictionary, now: float) -> void:
 			w.tb_quad(p0[s], p1[s], p1[s + 1], p0[s + 1], cols[s])
 	w.tb_flush()
 	# 浪顶往前翻落的大团雪粉 + 浪后拖雪雾
-	for i in range(0, n + 1, 2):
+	for i in range(0, n + 1):
 		var pf: Array = prof[i]
 		if not pf[6]:
 			continue
-		var sz: float = 70.0 + float((i * 37) % 40)
+		# 后坡上一层雪团打散板状轮廓
+		var sb: float = 60.0 + float((i * 53) % 30)
+		var qb: Vector2 = (pf[1] as Vector2).lerp(pf[2], 0.4)
+		cv.draw_texture_rect(snow_puff, Rect2(_snap(qb - Vector2(sb, sb * 0.7) * 0.5), Vector2(sb, sb * 0.7)), false, Color(1, 1, 1, 0.75))
+		var sz: float = 95.0 + float((i * 37) % 40)
 		var curl: float = fposmod(now * 2.2 + float(i) * 0.31, 1.0)
 		var fwd: Vector2 = ((pf[5] as Vector2) - (pf[0] as Vector2)).normalized()
 		var q2: Vector2 = (pf[2] as Vector2).lerp(pf[4], curl) + fwd * 14.0 * curl
