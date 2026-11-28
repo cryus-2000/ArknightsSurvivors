@@ -1,0 +1,2518 @@
+{
+ "tag": "samid3-mid-m2-m2-wanderer",
+ "game": "/home/user/ArknightsSurvivors/game",
+ "records": [
+  {
+   "boss": "wanderer",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 1,
+   "wall": 18.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.531,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.2,
+   "bul_peak": 8,
+   "dmg": 13669.0,
+   "fight_t": 56.0,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.9|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_aspd: 缺 [\"1|0.21|sami_gold|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.225|lshape:irene|op:irene\",\"1|0.24|lshape:eyjafjalla|op:eyjafjalla\",\"1|0.54|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.8|sami_chaos|\"] 多 []",
+    "stats.max_hp: 136.658 -> 132.678"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_hound": 0.276230094071405
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "kaltsit",
+   "level": 20,
+   "max_hp": 133.0,
+   "moves": {
+    "wanderer:投刃·切雾": 4,
+    "wanderer:斩击·横扫": 7,
+    "wanderer:雾中突袭": 3,
+    "wanderer:黑毯·回旋": 2
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "kaltsit_m0_s1_slot2",
+   "squad": [
+    "kaltsit",
+    "irene",
+    "eyjafjalla"
+   ],
+   "src": {
+    "contact_hound": 2.88395868262682
+   },
+   "taken": 382.6,
+   "taken_pct": 2.884,
+   "win": false
+  },
+  {
+   "boss": "wanderer",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 2,
+   "wall": 20.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.1,
+   "bul_peak": 8,
+   "dmg": 29150.0,
+   "fight_t": 84.3,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.3|lshape:ulpianus|op:ulpianus\",\"1|0.525|lshape:saria|op:saria\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_wanderer/wanderer/追猎·折返": 0.432
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 21,
+   "max_hp": 152.0,
+   "moves": {
+    "wanderer:国度猎斩": 2,
+    "wanderer:投刃·切雾": 4,
+    "wanderer:斩击·横扫": 8,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 2,
+    "wanderer:雾中突袭": 3,
+    "wanderer:黑毯·回旋": 2
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "kaltsit_m0_s2_slot2",
+   "squad": [
+    "kaltsit",
+    "ulpianus",
+    "saria"
+   ],
+   "src": {
+    "boss_wanderer/wanderer/追猎·折返": 0.988855838632479
+   },
+   "taken": 138.8,
+   "taken_pct": 0.989,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 3,
+   "wall": 18.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.0,
+   "bul_peak": 8,
+   "dmg": 29150.0,
+   "fight_t": 50.4,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.63|lshape:kaltsit|op:kaltsit\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {},
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 21,
+   "max_hp": 127.0,
+   "moves": {
+    "wanderer:国度猎斩": 2,
+    "wanderer:投刃·切雾": 2,
+    "wanderer:斩击·横扫": 4,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 1,
+    "wanderer:雾中突袭": 2,
+    "wanderer:黑毯·回旋": 1
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "kaltsit_m0_s3_slot2",
+   "squad": [
+    "kaltsit",
+    "suzuran",
+    "wisadel"
+   ],
+   "src": {},
+   "taken": 0.0,
+   "taken_pct": 0.0,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 4,
+   "wall": 17.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.529,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 0.9,
+   "bul_peak": 8,
+   "dmg": 29150.0,
+   "fight_t": 49.7,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.3|lshape:irene|op:irene\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 164.218 -> 154.791"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_wanderer/wanderer/国度猎斩": 0.44908,
+    "boss_wanderer/wanderer/追猎·折返": 0.297682320119038,
+    "contact_hound": 0.12407766951498,
+    "contact_wanderer": 0.171157237823904
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.763,
+   "leader": "kaltsit",
+   "level": 21,
+   "max_hp": 179.0,
+   "moves": {
+    "wanderer:国度猎斩": 2,
+    "wanderer:投刃·切雾": 2,
+    "wanderer:斩击·横扫": 4,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 2,
+    "wanderer:雾中突袭": 1
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "kaltsit_m0_s4_slot2",
+   "squad": [
+    "kaltsit",
+    "wisadel",
+    "irene"
+   ],
+   "src": {
+    "boss_wanderer/wanderer/国度猎斩": 0.44908,
+    "boss_wanderer/wanderer/追猎·折返": 0.297682320119038,
+    "contact_hound": 0.493807750109732,
+    "contact_wanderer": 0.171157237823904
+   },
+   "taken": 218.5,
+   "taken_pct": 1.412,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 5,
+   "wall": 18.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.487,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.8,
+   "bul_peak": 10,
+   "dmg": 29150.0,
+   "fight_t": 61.2,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_10|\",\"2|1.03|totem_perm_8|\",\"2|1.03|totem_perm_9|\"] 多 []",
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.16|lshape:logos|op:logos\",\"1|0.525|lshape:specter_unchained|op:specter_unchained\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.shield_max: 缺 [\"0|1.0|relic_sprout|\"] 多 []",
+    "stats.max_hp: 138.077 -> 126.36",
+    "stats.shield_max: 1.0 -> 0.0"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_wanderer/wanderer/国度猎斩": 0.32,
+    "boss_wanderer/wanderer/追猎·折返": 0.32,
+    "contact_hound": 0.259850354377059,
+    "contact_wanderer": 0.32,
+    "shock_rockback": 0.35402898983005
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.336,
+   "leader": "kaltsit",
+   "level": 21,
+   "max_hp": 101.0,
+   "moves": {
+    "wanderer:国度猎斩": 2,
+    "wanderer:投刃·切雾": 3,
+    "wanderer:斩击·横扫": 5,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 2,
+    "wanderer:雾中突袭": 2,
+    "wanderer:黑毯·回旋": 1
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "kaltsit_m0_s5_slot2",
+   "squad": [
+    "kaltsit",
+    "specter_unchained",
+    "logos"
+   ],
+   "src": {
+    "boss_wanderer/wanderer/国度猎斩": 0.527153154795822,
+    "boss_wanderer/wanderer/追猎·折返": 0.713830272214782,
+    "contact_hound": 0.632328770041986,
+    "contact_wanderer": 0.32,
+    "shock_rockback": 0.35402898983005
+   },
+   "taken": 321.9,
+   "taken_pct": 2.547,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 6,
+   "wall": 16.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.466,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 0.8,
+   "bul_peak": 8,
+   "dmg": 29150.0,
+   "fight_t": 44.1,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\",\"2|1.03|totem_perm_4|\",\"2|1.03|totem_perm_5|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:exusiai\",\"2|1.25|command|op:ulpianus\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:exusiai|op:exusiai\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:exusiai|op:exusiai\",\"1|0.3|lshape:ulpianus|op:ulpianus\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:exusiai\",\"2|1.5|command|op:ulpianus\"] 多 []",
+    "stats.max_hp: 180.856 -> 160.688"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_wanderer/wanderer/追猎·折返": 0.316610712652883,
+    "bullet_wanderer": 0.1626885,
+    "contact_hound": 0.169312477249387,
+    "contact_wanderer": 0.268570482637761
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.133,
+   "leader": "kaltsit",
+   "level": 20,
+   "max_hp": 179.0,
+   "moves": {
+    "wanderer:国度猎斩": 1,
+    "wanderer:投刃·切雾": 2,
+    "wanderer:斩击·横扫": 3,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 2,
+    "wanderer:雾中突袭": 1
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "kaltsit_m0_s6_slot2",
+   "squad": [
+    "kaltsit",
+    "ulpianus",
+    "exusiai"
+   ],
+   "src": {
+    "boss_wanderer/wanderer/追猎·折返": 0.5937435,
+    "bullet_wanderer": 0.1626885,
+    "contact_hound": 0.599757583897297,
+    "contact_wanderer": 0.268570482637761
+   },
+   "taken": 261.1,
+   "taken_pct": 1.625,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 1,
+   "wall": 18.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.182,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.4,
+   "bul_peak": 8,
+   "dmg": 29150.0,
+   "fight_t": 51.9,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:lappland\",\"2|1.25|command|op:logos\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.525|lshape:lappland|op:lappland\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:lappland\",\"2|1.5|command|op:logos\"] 多 []",
+    "stats.max_hp: 184.981 -> 179.884"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "atk_husk/husk/bite": 0.00555913811122723,
+    "boss_wanderer/wanderer/追猎·折返": 0.210267602277023,
+    "contact_drone": 0.0550177850851871,
+    "contact_hound": 0.117115718323137
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.688,
+   "leader": "kaltsit",
+   "level": 21,
+   "max_hp": 180.0,
+   "moves": {
+    "wanderer:国度猎斩": 2,
+    "wanderer:投刃·切雾": 2,
+    "wanderer:斩击·横扫": 4,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 2,
+    "wanderer:雾中突袭": 1
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "kaltsit_m18_s1_slot2",
+   "squad": [
+    "kaltsit",
+    "logos",
+    "lappland"
+   ],
+   "src": {
+    "atk_husk/husk/bite": 0.00555913811122723,
+    "boss_wanderer/wanderer/追猎·折返": 0.210267602277023,
+    "contact_drone": 0.0550177850851871,
+    "contact_hound": 0.885221197140888
+   },
+   "taken": 208.0,
+   "taken_pct": 1.156,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 2,
+   "wall": 17.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.1,
+   "bul_peak": 8,
+   "dmg": 29150.0,
+   "fight_t": 49.7,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.36|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|0.9|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:saria\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.45|lshape:saria|op:saria\",\"1|0.54|lshape:kaltsit|op:kaltsit\",\"1|0.75|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:saria\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_wanderer": 0.193832642540126
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 20,
+   "max_hp": 156.0,
+   "moves": {
+    "wanderer:国度猎斩": 2,
+    "wanderer:投刃·切雾": 2,
+    "wanderer:斩击·横扫": 4,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 1,
+    "wanderer:雾中突袭": 2,
+    "wanderer:黑毯·回旋": 1
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "kaltsit_m18_s2_slot2",
+   "squad": [
+    "kaltsit",
+    "suzuran",
+    "saria"
+   ],
+   "src": {
+    "contact_wanderer": 0.193832642540126
+   },
+   "taken": 33.6,
+   "taken_pct": 0.194,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 3,
+   "wall": 21.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.2,
+   "bul_peak": 8,
+   "dmg": 29150.0,
+   "fight_t": 87.5,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.9|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_3|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:saria\",\"2|1.25|command|op:texas\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.225|lshape:texas|op:texas\",\"1|0.45|lshape:saria|op:saria\",\"1|0.54|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:saria\",\"2|1.5|command|op:texas\"] 多 []",
+    "stats.max_hp: 145.769 -> 141.523"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {},
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 21,
+   "max_hp": 142.0,
+   "moves": {
+    "wanderer:国度猎斩": 1,
+    "wanderer:投刃·切雾": 5,
+    "wanderer:斩击·横扫": 9,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 1,
+    "wanderer:雾中突袭": 4,
+    "wanderer:黑毯·回旋": 3
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "kaltsit_m18_s3_slot2",
+   "squad": [
+    "kaltsit",
+    "saria",
+    "texas"
+   ],
+   "src": {},
+   "taken": 0.0,
+   "taken_pct": 0.0,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 4,
+   "wall": 19.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.0,
+   "bul_peak": 8,
+   "dmg": 29150.0,
+   "fight_t": 80.0,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.16|lshape:eyjafjalla|op:eyjafjalla\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 184.698 -> 174.096"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_wanderer": 0.0739606653800202
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 21,
+   "max_hp": 166.0,
+   "moves": {
+    "wanderer:国度猎斩": 2,
+    "wanderer:投刃·切雾": 3,
+    "wanderer:斩击·横扫": 6,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 3,
+    "wanderer:雾中突袭": 3,
+    "wanderer:黑毯·回旋": 2
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "kaltsit_m18_s4_slot2",
+   "squad": [
+    "kaltsit",
+    "eyjafjalla",
+    "wisadel"
+   ],
+   "src": {
+    "contact_wanderer": 0.0739606653800202
+   },
+   "taken": 12.9,
+   "taken_pct": 0.074,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 5,
+   "wall": 20.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.443,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.0,
+   "bul_peak": 8,
+   "dmg": 29150.0,
+   "fight_t": 81.5,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.9|lshape:kaltsit|op:kaltsit\",\"1|0.9|lshape:mizuki|op:mizuki\"] 多 []",
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_pierce: 缺 [\"0|1.0|lshape:exusiai|op:exusiai\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.12|lshape:exusiai|op:exusiai\",\"1|0.54|lshape:kaltsit|op:kaltsit\",\"1|0.54|lshape:mizuki|op:mizuki\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_wanderer/wanderer/国度猎斩": 0.4,
+    "boss_wanderer/wanderer/追猎·折返": 0.4,
+    "contact_hound": 0.213824900800686,
+    "contact_husk": 0.102536729281503,
+    "contact_wanderer": 0.172718464002868
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.747,
+   "leader": "kaltsit",
+   "level": 21,
+   "max_hp": 171.0,
+   "moves": {
+    "wanderer:国度猎斩": 3,
+    "wanderer:投刃·切雾": 3,
+    "wanderer:斩击·横扫": 6,
+    "wanderer:皇帝的猎杀": 2,
+    "wanderer:追猎·折返": 3,
+    "wanderer:雾中突袭": 1,
+    "wanderer:黑毯·回旋": 1
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "kaltsit_m18_s5_slot2",
+   "squad": [
+    "kaltsit",
+    "exusiai",
+    "mizuki"
+   ],
+   "src": {
+    "boss_wanderer/wanderer/国度猎斩": 0.8,
+    "boss_wanderer/wanderer/追猎·折返": 0.4,
+    "contact_hound": 1.15265579685351,
+    "contact_husk": 0.184361965439341,
+    "contact_wanderer": 0.172718464002868
+   },
+   "taken": 464.4,
+   "taken_pct": 2.71,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 6,
+   "wall": 20.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.279,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.1,
+   "bul_peak": 8,
+   "dmg": 29150.0,
+   "fight_t": 81.4,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.9|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\",\"2|1.03|totem_perm_4|\",\"2|1.03|totem_perm_5|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.225|lshape:irene|op:irene\",\"1|0.24|lshape:wisadel|op:wisadel\",\"1|0.54|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 137.384 -> 122.064"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_wanderer/wanderer/国度猎斩": 0.301037340368345,
+    "boss_wanderer/wanderer/追猎·折返": 0.301037340368345,
+    "bullet_snmage": 0.106632202596369,
+    "contact_hound": 0.16172904252798,
+    "contact_rockback": 0.243587777359497,
+    "shock_rockback": 0.715997890859652
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.324,
+   "leader": "kaltsit",
+   "level": 21,
+   "max_hp": 126.0,
+   "moves": {
+    "wanderer:国度猎斩": 2,
+    "wanderer:投刃·切雾": 4,
+    "wanderer:斩击·横扫": 7,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 2,
+    "wanderer:雾中突袭": 3,
+    "wanderer:黑毯·回旋": 2
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "kaltsit_m18_s6_slot2",
+   "squad": [
+    "kaltsit",
+    "irene",
+    "wisadel"
+   ],
+   "src": {
+    "boss_wanderer/wanderer/国度猎斩": 0.840446821105036,
+    "boss_wanderer/wanderer/追猎·折返": 0.301037340368345,
+    "bullet_snmage": 0.106632202596369,
+    "contact_hound": 0.830348260064499,
+    "contact_rockback": 1.00323122471702,
+    "shock_rockback": 1.3913437443369
+   },
+   "taken": 546.0,
+   "taken_pct": 4.473,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 1,
+   "wall": 21.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.405,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.8,
+   "bul_peak": 8,
+   "dmg": 29150.0,
+   "fight_t": 87.6,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|1.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.16|lshape:lumen|op:lumen\",\"1|0.28|lshape:logos|op:logos\",\"1|0.525|lshape:skadi|op:skadi\"] 多 []",
+    "stats.max_hp: 131.597 -> 127.764"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_wanderer/wanderer/国度猎斩": 0.24,
+    "boss_wanderer/wanderer/追猎·折返": 0.412,
+    "contact_drone": 0.189834344504836,
+    "contact_hound": 0.36501253130121,
+    "contact_rockback": 0.647265307905658
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.725,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 132.0,
+   "moves": {
+    "wanderer:国度猎斩": 3,
+    "wanderer:投刃·切雾": 3,
+    "wanderer:斩击·横扫": 6,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 3,
+    "wanderer:雾中突袭": 3,
+    "wanderer:黑毯·回旋": 2
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m0_s1_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "logos"
+   ],
+   "src": {
+    "boss_wanderer/wanderer/国度猎斩": 0.24,
+    "boss_wanderer/wanderer/追猎·折返": 1.5124,
+    "contact_drone": 0.189834344504836,
+    "contact_hound": 1.73392777594046,
+    "contact_rockback": 0.647265307905658
+   },
+   "taken": 552.4,
+   "taken_pct": 4.323,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 2,
+   "wall": 20.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.226,
+   "brk_dmg_share": 0.024,
+   "brk_time_share": 0.029,
+   "bul_avg": 1.1,
+   "bul_peak": 8,
+   "dmg": 29150.0,
+   "fight_t": 87.6,
+   "fp_diff": [
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.24|lshape:lumen|op:lumen\",\"1|0.45|lshape:irene|op:irene\",\"1|0.45|lshape:skadi|op:skadi\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_wanderer/wanderer/追猎·折返": 0.339771250110486,
+    "contact_breaker": 0.085789796444487,
+    "contact_drone": 0.100682238516167,
+    "contact_hound": 0.171427410999256,
+    "contact_icebug": 0.0994011248107313,
+    "contact_rockback": 0.200615732352787,
+    "shock_breaker": 0.116936250811472
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.964,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 144.0,
+   "moves": {
+    "wanderer:国度猎斩": 2,
+    "wanderer:投刃·切雾": 4,
+    "wanderer:斩击·横扫": 8,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 1,
+    "wanderer:雾中突袭": 4,
+    "wanderer:黑毯·回旋": 3
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m0_s2_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "irene"
+   ],
+   "src": {
+    "boss_wanderer/wanderer/追猎·折返": 0.577611125187826,
+    "contact_breaker": 0.257241311969932,
+    "contact_drone": 0.200232875224155,
+    "contact_hound": 1.1050383753208,
+    "contact_icebug": 0.0994011248107313,
+    "contact_rockback": 0.200615732352787,
+    "shock_breaker": 0.116936250811472
+   },
+   "taken": 433.9,
+   "taken_pct": 2.557,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 3,
+   "wall": 21.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.826,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 0.9,
+   "bul_peak": 8,
+   "dmg": 29150.0,
+   "fight_t": 87.0,
+   "fp_diff": [
+    "mods.armor: 缺 [\"0|4.0|sami_altar|\"] 多 []",
+    "mods.dmg: 缺 [\"1|0.12|sami_altar|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.24|lshape:lumen|op:lumen\",\"1|0.45|lshape:lappland|op:lappland\",\"1|0.45|lshape:skadi|op:skadi\"] 多 []",
+    "stats.armor: 8.0 -> 4.0",
+    "stats.dmg_mult: 1.24 -> 1.12"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_wanderer/wanderer/国度猎斩": 0.362357031319054,
+    "boss_wanderer/wanderer/追猎·折返": 0.362357031319054,
+    "contact_hound": 0.0853337339010968
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.638,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 154.0,
+   "moves": {
+    "wanderer:国度猎斩": 2,
+    "wanderer:投刃·切雾": 4,
+    "wanderer:斩击·横扫": 8,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 1,
+    "wanderer:雾中突袭": 4,
+    "wanderer:黑毯·回旋": 3
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m0_s3_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "lappland"
+   ],
+   "src": {
+    "boss_wanderer/wanderer/国度猎斩": 0.724714062638107,
+    "boss_wanderer/wanderer/追猎·折返": 0.362357031319054,
+    "contact_hound": 0.228625476137059
+   },
+   "taken": 223.3,
+   "taken_pct": 1.316,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 4,
+   "wall": 21.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.047,
+   "brk_time_share": 0.03,
+   "bul_avg": 1.1,
+   "bul_peak": 8,
+   "dmg": 29150.0,
+   "fight_t": 90.8,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:lumen|op:lumen\",\"1|0.525|lshape:skadi|op:skadi\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.max_hp: 169.431 -> 159.705"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_hound": 0.138743280393488,
+    "shock_breaker": 0.14758091046289
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.893,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 152.0,
+   "moves": {
+    "wanderer:国度猎斩": 2,
+    "wanderer:投刃·切雾": 4,
+    "wanderer:斩击·横扫": 8,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 2,
+    "wanderer:雾中突袭": 4,
+    "wanderer:黑毯·回旋": 3
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m0_s4_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "suzuran"
+   ],
+   "src": {
+    "contact_hound": 0.21678959988379,
+    "shock_breaker": 0.14758091046289
+   },
+   "taken": 58.2,
+   "taken_pct": 0.364,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 5,
+   "wall": 22.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.312,
+   "brk_dmg_share": 0.017,
+   "brk_time_share": 0.023,
+   "bul_avg": 1.0,
+   "bul_peak": 8,
+   "dmg": 29150.0,
+   "fight_t": 107.7,
+   "fp_diff": [
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:saria\",\"2|1.25|command|op:wisadel\"] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.16|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:saria|op:saria\",\"1|0.525|lshape:skadi|op:skadi\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:saria\",\"2|1.5|command|op:wisadel\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_wanderer/wanderer/雾中突袭": 0.32,
+    "contact_hound": 0.112871041677103,
+    "contact_husk": 0.124398003363799,
+    "contact_wanderer": 0.283121204721205
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 22,
+   "max_hp": 128.0,
+   "moves": {
+    "wanderer:国度猎斩": 3,
+    "wanderer:投刃·切雾": 4,
+    "wanderer:斩击·横扫": 8,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 3,
+    "wanderer:雾中突袭": 4,
+    "wanderer:黑毯·回旋": 3
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m0_s5_slot2",
+   "squad": [
+    "skadi",
+    "saria",
+    "wisadel"
+   ],
+   "src": {
+    "boss_wanderer/wanderer/雾中突袭": 0.32,
+    "contact_hound": 0.112871041677103,
+    "contact_husk": 0.124398003363799,
+    "contact_wanderer": 0.467694311386619
+   },
+   "taken": 163.7,
+   "taken_pct": 1.025,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 6,
+   "wall": 17.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 2.2,
+   "bul_peak": 8,
+   "dmg": 29150.0,
+   "fight_t": 60.9,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.3|lshape:irene|op:irene\",\"1|0.525|lshape:skadi|op:skadi\"] 多 []",
+    "stats.max_hp: 167.011 -> 157.424"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_hound": 0.114165746624048,
+    "shock_rockback": 0.298326607511182
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.74,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 176.0,
+   "moves": {
+    "wanderer:国度猎斩": 2,
+    "wanderer:投刃·切雾": 2,
+    "wanderer:斩击·横扫": 4,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 3,
+    "wanderer:雾中突袭": 2,
+    "wanderer:黑毯·回旋": 1
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m0_s6_slot2",
+   "squad": [
+    "skadi",
+    "logos",
+    "irene"
+   ],
+   "src": {
+    "contact_hound": 0.114165746624048,
+    "shock_rockback": 0.298326607511182
+   },
+   "taken": 64.9,
+   "taken_pct": 0.412,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 1,
+   "wall": 21.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.1,
+   "bul_peak": 8,
+   "dmg": 29150.0,
+   "fight_t": 86.1,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.12|lshape:wisadel|op:wisadel\",\"1|0.24|lshape:lumen|op:lumen\",\"1|0.45|lshape:skadi|op:skadi\"] 多 []",
+    "stats.max_hp: 116.745 -> 113.345"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_hound": 0.173884479931308
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 117.0,
+   "moves": {
+    "wanderer:国度猎斩": 1,
+    "wanderer:投刃·切雾": 4,
+    "wanderer:斩击·横扫": 8,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 1,
+    "wanderer:雾中突袭": 4,
+    "wanderer:黑毯·回旋": 3
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s1_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "wisadel"
+   ],
+   "src": {
+    "contact_hound": 0.500286809055783
+   },
+   "taken": 56.7,
+   "taken_pct": 0.5,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 2,
+   "wall": 19.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.223,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.0,
+   "bul_peak": 8,
+   "dmg": 29150.0,
+   "fight_t": 82.2,
+   "fp_diff": [
+    "mods.op_pierce: 缺 [\"0|1.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.12|lshape:lumen|op:lumen\",\"1|0.45|lshape:skadi|op:skadi\",\"1|0.45|lshape:ulpianus|op:ulpianus\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "atk_icebug": 0.0933247931588367,
+    "boss_wanderer/wanderer/追猎·折返": 0.4,
+    "contact_hound": 0.0901552335259249,
+    "contact_uterer": 0.113040906365253,
+    "contact_wanderer": 0.213773349506118,
+    "shock_breaker": 0.219152091607007
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 209.0,
+   "moves": {
+    "wanderer:国度猎斩": 3,
+    "wanderer:投刃·切雾": 3,
+    "wanderer:斩击·横扫": 6,
+    "wanderer:皇帝的猎杀": 2,
+    "wanderer:追猎·折返": 3,
+    "wanderer:雾中突袭": 2,
+    "wanderer:黑毯·回旋": 1
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s2_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "ulpianus"
+   ],
+   "src": {
+    "atk_icebug": 0.0933247931588367,
+    "boss_wanderer/wanderer/追猎·折返": 0.4,
+    "contact_hound": 0.612085497374987,
+    "contact_uterer": 0.113040906365253,
+    "contact_wanderer": 0.353097506708422,
+    "shock_breaker": 0.219152091607007
+   },
+   "taken": 374.1,
+   "taken_pct": 1.791,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 3,
+   "wall": 22.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.1,
+   "bul_peak": 8,
+   "dmg": 29150.0,
+   "fight_t": 107.2,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_3|\",\"2|1.03|totem_perm_4|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:lappland\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|1.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.12|lshape:lumen|op:lumen\",\"1|0.45|lshape:lappland|op:lappland\",\"1|0.45|lshape:skadi|op:skadi\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:lappland\"] 多 []",
+    "stats.max_hp: 170.786 -> 160.983"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "atk_icebug": 0.10380690239585,
+    "contact_drone": 0.13214872322868,
+    "contact_hound": 0.18
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.8,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 145.0,
+   "moves": {
+    "wanderer:国度猎斩": 1,
+    "wanderer:投刃·切雾": 6,
+    "wanderer:斩击·横扫": 11,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 1,
+    "wanderer:雾中突袭": 5,
+    "wanderer:黑毯·回旋": 4
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s3_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "lappland"
+   ],
+   "src": {
+    "atk_icebug": 0.10380690239585,
+    "contact_drone": 0.13214872322868,
+    "contact_hound": 0.659672520305185
+   },
+   "taken": 144.2,
+   "taken_pct": 0.896,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 4,
+   "wall": 30.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.456,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.0,
+   "bul_peak": 8,
+   "dmg": 27185.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.45|lshape:mizuki|op:mizuki\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|1.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.12|lshape:lumen|op:lumen\",\"1|0.27|lshape:mizuki|op:mizuki\",\"1|0.45|lshape:skadi|op:skadi\"] 多 []",
+    "stats.max_hp: 284.935 -> 268.578"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "atk_icebug": 0.0673304972275172,
+    "boss_wanderer/wanderer/国度猎斩": 0.412,
+    "boss_wanderer/wanderer/斩击·横扫": 0.412,
+    "boss_wanderer/wanderer/追猎·折返": 0.412,
+    "contact_breaker": 0.0694102693093988,
+    "contact_drone": 0.0530628801269793,
+    "contact_hound": 0.108605889515063,
+    "contact_rockback": 0.157065024556067,
+    "shock_breaker": 0.089847388021641
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 23,
+   "max_hp": 285.0,
+   "moves": {
+    "wanderer:国度猎斩": 5,
+    "wanderer:投刃·切雾": 6,
+    "wanderer:斩击·横扫": 13,
+    "wanderer:皇帝的猎杀": 3,
+    "wanderer:追猎·折返": 5,
+    "wanderer:雾中突袭": 5,
+    "wanderer:黑毯·回旋": 4
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "retreat",
+   "slot": 2,
+   "snap": "skadi_m18_s4_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "mizuki"
+   ],
+   "src": {
+    "atk_icebug": 0.0673304972275172,
+    "boss_wanderer/wanderer/国度猎斩": 0.824,
+    "boss_wanderer/wanderer/斩击·横扫": 0.412,
+    "boss_wanderer/wanderer/追猎·折返": 1.5244,
+    "contact_breaker": 0.206246740654912,
+    "contact_drone": 0.105869040280093,
+    "contact_hound": 2.58553748097979,
+    "contact_rockback": 0.233317007319694,
+    "shock_breaker": 0.089847388021641
+   },
+   "taken": 1624.5,
+   "taken_pct": 6.049,
+   "win": false
+  },
+  {
+   "boss": "wanderer",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 5,
+   "wall": 20.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.847,
+   "brk_dmg_share": 0.421,
+   "brk_time_share": 0.054,
+   "bul_avg": 1.0,
+   "bul_peak": 8,
+   "dmg": 29150.0,
+   "fight_t": 92.9,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_7|\"] 多 []",
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.12|lshape:wisadel|op:wisadel\",\"1|0.45|lshape:saria|op:saria\",\"1|0.45|lshape:skadi|op:skadi\"] 多 []",
+    "stats.max_hp: 200.817 -> 194.968"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_wanderer/wanderer/追猎·折返": 0.328039042065722,
+    "bullet_wanderer": 0.162642857142857,
+    "contact_wanderer": 0.130131804695773
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.424,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 160.0,
+   "moves": {
+    "wanderer:国度猎斩": 1,
+    "wanderer:投刃·切雾": 5,
+    "wanderer:斩击·横扫": 9,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 1,
+    "wanderer:雾中突袭": 4,
+    "wanderer:黑毯·回旋": 3
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s5_slot2",
+   "squad": [
+    "skadi",
+    "saria",
+    "wisadel"
+   ],
+   "src": {
+    "boss_wanderer/wanderer/追猎·折返": 0.558571428571428,
+    "bullet_wanderer": 0.162642857142857,
+    "contact_wanderer": 0.130131804695773
+   },
+   "taken": 166.0,
+   "taken_pct": 0.851,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 6,
+   "wall": 16.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.581,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.3,
+   "bul_peak": 8,
+   "dmg": 29150.0,
+   "fight_t": 54.1,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.525|lshape:irene|op:irene\",\"1|0.525|lshape:skadi|op:skadi\"] 多 []",
+    "stats.max_hp: 191.699 -> 180.695"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_wanderer/wanderer/追猎·折返": 0.412,
+    "contact_hound": 0.104186265590572,
+    "shock_rockback": 0.242244427608372
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.086,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 186.0,
+   "moves": {
+    "wanderer:国度猎斩": 2,
+    "wanderer:投刃·切雾": 2,
+    "wanderer:斩击·横扫": 4,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 2,
+    "wanderer:雾中突袭": 2,
+    "wanderer:黑毯·回旋": 1
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s6_slot2",
+   "squad": [
+    "skadi",
+    "logos",
+    "irene"
+   ],
+   "src": {
+    "boss_wanderer/wanderer/追猎·折返": 0.625290987527543,
+    "contact_hound": 0.208372531181143,
+    "shock_rockback": 0.242244427608372
+   },
+   "taken": 194.4,
+   "taken_pct": 1.076,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 1,
+   "wall": 17.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.195,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.0,
+   "bul_peak": 8,
+   "dmg": 29150.0,
+   "fight_t": 65.7,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:eyjafjalla\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.16|lshape:eyjafjalla|op:eyjafjalla\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:eyjafjalla\"] 多 []",
+    "stats.max_hp: 132.561 -> 128.7"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "atk_icebug": 0.0842262676354471,
+    "boss_wanderer/wanderer/国度猎斩": 0.265166988344988,
+    "boss_wanderer/wanderer/追猎·折返": 0.237484788344988,
+    "contact_hound": 0.297843376839692,
+    "shock_breaker": 0.291324649034663
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.04,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 129.0,
+   "moves": {
+    "wanderer:国度猎斩": 1,
+    "wanderer:投刃·切雾": 3,
+    "wanderer:斩击·横扫": 6,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 1,
+    "wanderer:雾中突袭": 3,
+    "wanderer:黑毯·回旋": 2
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s1_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "eyjafjalla"
+   ],
+   "src": {
+    "atk_icebug": 0.0842262676354471,
+    "boss_wanderer/wanderer/国度猎斩": 0.265166988344988,
+    "boss_wanderer/wanderer/追猎·折返": 0.237484788344988,
+    "contact_hound": 1.70449672385488,
+    "shock_breaker": 0.291324649034663
+   },
+   "taken": 332.4,
+   "taken_pct": 2.583,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 2,
+   "wall": 20.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.418,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.0,
+   "bul_peak": 8,
+   "dmg": 29150.0,
+   "fight_t": 87.5,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:gladiia|op:gladiia\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|0.6|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:gladiia\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.36|lshape:kaltsit|op:kaltsit\",\"1|0.875|lshape:gladiia|op:gladiia\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:gladiia\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_wanderer/wanderer/追猎·折返": 0.399144016873457,
+    "bullet_wanderer": 0.1243125,
+    "contact_drone": 0.0462727243128844,
+    "contact_hound": 0.218352067819034
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 159.0,
+   "moves": {
+    "wanderer:国度猎斩": 3,
+    "wanderer:投刃·切雾": 3,
+    "wanderer:斩击·横扫": 6,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 3,
+    "wanderer:雾中突袭": 3,
+    "wanderer:黑毯·回旋": 2
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s2_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "gladiia"
+   ],
+   "src": {
+    "boss_wanderer/wanderer/追猎·折返": 0.399144016873457,
+    "bullet_wanderer": 0.1243125,
+    "contact_drone": 0.0462727243128844,
+    "contact_hound": 0.682490869515631
+   },
+   "taken": 198.7,
+   "taken_pct": 1.252,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 3,
+   "wall": 16.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.259,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.135,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.1,
+   "bul_peak": 8,
+   "dmg": 21608.0,
+   "fight_t": 49.2,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_5|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|1.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.16|lshape:lumen|op:lumen\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 132.561 -> 128.7"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_wanderer/wanderer/追猎·折返": 0.4,
+    "contact_breaker": 0.212754779929202,
+    "contact_hound": 0.187865684884728,
+    "contact_uterer": 0.0639958931789859,
+    "shock_rockback": 0.747409623819386
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 129.0,
+   "moves": {
+    "wanderer:国度猎斩": 1,
+    "wanderer:投刃·切雾": 3,
+    "wanderer:斩击·横扫": 5,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 1,
+    "wanderer:雾中突袭": 2,
+    "wanderer:黑毯·回旋": 1
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "wisadel_m0_s3_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "lumen"
+   ],
+   "src": {
+    "boss_wanderer/wanderer/追猎·折返": 0.4,
+    "contact_breaker": 0.638264339787607,
+    "contact_hound": 1.11701145946974,
+    "contact_uterer": 0.0639958931789859,
+    "shock_rockback": 0.747409623819386
+   },
+   "taken": 381.8,
+   "taken_pct": 2.967,
+   "win": false
+  },
+  {
+   "boss": "wanderer",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 4,
+   "wall": 16.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.338,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.0,
+   "bul_peak": 8,
+   "dmg": 29150.0,
+   "fight_t": 64.5,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:lumen|op:lumen\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.max_hp: 136.538 -> 128.7"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_wanderer": 0.0469219257340966,
+    "boss_wanderer/wanderer/国度猎斩": 0.412,
+    "contact_hound": 0.150698851266991
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.206,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 137.0,
+   "moves": {
+    "wanderer:国度猎斩": 2,
+    "wanderer:投刃·切雾": 3,
+    "wanderer:斩击·横扫": 6,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 2,
+    "wanderer:雾中突袭": 2,
+    "wanderer:黑毯·回旋": 1
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s4_slot2",
+   "squad": [
+    "wisadel",
+    "suzuran",
+    "lumen"
+   ],
+   "src": {
+    "boss_wanderer": 0.0469219257340966,
+    "boss_wanderer/wanderer/国度猎斩": 0.412,
+    "contact_hound": 0.898817545794258
+   },
+   "taken": 174.7,
+   "taken_pct": 1.358,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 5,
+   "wall": 20.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.815,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.1,
+   "bul_peak": 8,
+   "dmg": 29150.0,
+   "fight_t": 85.3,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:saria|op:saria\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_wanderer/wanderer/追猎·折返": 0.344635077107626,
+    "contact_hound": 0.198027974261283
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 22,
+   "max_hp": 117.0,
+   "moves": {
+    "wanderer:国度猎斩": 2,
+    "wanderer:投刃·切雾": 4,
+    "wanderer:斩击·横扫": 8,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 2,
+    "wanderer:雾中突袭": 3,
+    "wanderer:黑毯·回旋": 2
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s5_slot2",
+   "squad": [
+    "wisadel",
+    "saria",
+    "kaltsit"
+   ],
+   "src": {
+    "boss_wanderer/wanderer/追猎·折返": 0.873857991617126,
+    "contact_hound": 0.198027974261283
+   },
+   "taken": 145.8,
+   "taken_pct": 1.072,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 6,
+   "wall": 18.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.0,
+   "bul_peak": 9,
+   "dmg": 29150.0,
+   "fight_t": 58.3,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.225|lshape:saria|op:saria\",\"1|0.24|lshape:logos|op:logos\",\"1|0.24|lshape:wisadel|op:wisadel\"] 多 []",
+    "stats.max_hp: 148.826 -> 140.283"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_wanderer/wanderer/追猎·折返": 0.412
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.631,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 144.0,
+   "moves": {
+    "wanderer:国度猎斩": 2,
+    "wanderer:投刃·切雾": 2,
+    "wanderer:斩击·横扫": 4,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 2,
+    "wanderer:雾中突袭": 2,
+    "wanderer:黑毯·回旋": 1
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m0_s6_slot2",
+   "squad": [
+    "wisadel",
+    "saria",
+    "logos"
+   ],
+   "src": {
+    "boss_wanderer/wanderer/追猎·折返": 0.412
+   },
+   "taken": 57.8,
+   "taken_pct": 0.412,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 1,
+   "wall": 17.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.475,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.0,
+   "bul_peak": 8,
+   "dmg": 29150.0,
+   "fight_t": 53.3,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.9|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_atk: 缺 [\"1|1.0|sami_whet|op:wisadel\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.12|lshape:wisadel|op:wisadel\",\"1|0.225|lshape:siege|op:siege\",\"1|0.54|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 120.259 -> 116.757"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_wanderer/wanderer/国度猎斩": 0.260932764930543,
+    "contact_hound": 0.127739785112814,
+    "contact_wanderer": 0.160312938090716
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.854,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 117.0,
+   "moves": {
+    "wanderer:国度猎斩": 1,
+    "wanderer:投刃·切雾": 3,
+    "wanderer:斩击·横扫": 5,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 2,
+    "wanderer:雾中突袭": 2,
+    "wanderer:黑毯·回旋": 1
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s1_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "siege"
+   ],
+   "src": {
+    "boss_wanderer/wanderer/国度猎斩": 0.260932764930543,
+    "contact_hound": 0.127739785112814,
+    "contact_wanderer": 0.160312938090716
+   },
+   "taken": 64.1,
+   "taken_pct": 0.549,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 2,
+   "wall": 19.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 0.9,
+   "bul_peak": 8,
+   "dmg": 29150.0,
+   "fight_t": 76.4,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:hoshiguma|op:hoshiguma\",\"1|0.525|lshape:irene|op:irene\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "contact_hound": 0.10782103071926,
+    "contact_husk": 0.097711945646718
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 130.0,
+   "moves": {
+    "wanderer:国度猎斩": 2,
+    "wanderer:投刃·切雾": 3,
+    "wanderer:斩击·横扫": 6,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 2,
+    "wanderer:雾中突袭": 3,
+    "wanderer:黑毯·回旋": 2
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s2_slot2",
+   "squad": [
+    "wisadel",
+    "irene",
+    "hoshiguma"
+   ],
+   "src": {
+    "contact_hound": 0.10782103071926,
+    "contact_husk": 0.097711945646718
+   },
+   "taken": 26.7,
+   "taken_pct": 0.206,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 3,
+   "wall": 21.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.104,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.1,
+   "bul_peak": 8,
+   "dmg": 29150.0,
+   "fight_t": 89.0,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|0.45|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.24|lshape:lumen|op:lumen\",\"1|0.24|lshape:wisadel|op:wisadel\",\"1|0.27|lshape:kaltsit|op:kaltsit\"] 多 []"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "atk_icebug": 0.0600526209942393,
+    "bullet_wanderer": 0.11188125,
+    "contact_hound": 0.241592621483325,
+    "contact_husk": 0.0733352126191185,
+    "contact_icebug": 0.048309474094156,
+    "contact_wanderer": 0.168694638694639
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 21,
+   "max_hp": 144.0,
+   "moves": {
+    "wanderer:国度猎斩": 2,
+    "wanderer:投刃·切雾": 4,
+    "wanderer:斩击·横扫": 8,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 1,
+    "wanderer:雾中突袭": 4,
+    "wanderer:黑毯·回旋": 3
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s3_slot2",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "lumen"
+   ],
+   "src": {
+    "atk_icebug": 0.0600526209942393,
+    "bullet_wanderer": 0.11188125,
+    "contact_hound": 0.516360292991824,
+    "contact_husk": 0.0733352126191185,
+    "contact_icebug": 0.048309474094156,
+    "contact_wanderer": 0.263062404262404
+   },
+   "taken": 154.7,
+   "taken_pct": 1.073,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 4,
+   "wall": 18.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.575,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.0,
+   "bul_peak": 8,
+   "dmg": 29150.0,
+   "fight_t": 68.6,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:lumen|op:lumen\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.max_hp: 152.922 -> 144.144"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_wanderer/wanderer/追猎·折返": 0.44908,
+    "contact_breaker": 0.126086316403833,
+    "contact_wanderer": 0.205377955377955
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.935,
+   "leader": "wisadel",
+   "level": 22,
+   "max_hp": 167.0,
+   "moves": {
+    "wanderer:国度猎斩": 2,
+    "wanderer:投刃·切雾": 3,
+    "wanderer:斩击·横扫": 6,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 2,
+    "wanderer:雾中突袭": 2,
+    "wanderer:黑毯·回旋": 1
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s4_slot2",
+   "squad": [
+    "wisadel",
+    "suzuran",
+    "lumen"
+   ],
+   "src": {
+    "boss_wanderer/wanderer/追猎·折返": 0.44908,
+    "contact_breaker": 0.126086316403833,
+    "contact_wanderer": 0.205377955377955
+   },
+   "taken": 112.5,
+   "taken_pct": 0.781,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 5,
+   "wall": 20.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.549,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 0.9,
+   "bul_peak": 8,
+   "dmg": 29150.0,
+   "fight_t": 92.6,
+   "fp_diff": [
+    "mods.armor: 缺 [\"0|2.0|sami_altar|\"] 多 []",
+    "mods.dmg: 缺 [\"1|0.06|sami_altar|\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|0.45|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.225|lshape:saria|op:saria\",\"1|0.24|lshape:wisadel|op:wisadel\",\"1|0.27|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.armor: 3.5 -> 1.5",
+    "stats.dmg_mult: 1.06 -> 1.0"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_wanderer/wanderer/追猎·折返": 0.33745488064583,
+    "contact_wanderer": 0.276848614543845
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.578,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 109.0,
+   "moves": {
+    "wanderer:国度猎斩": 1,
+    "wanderer:投刃·切雾": 5,
+    "wanderer:斩击·横扫": 9,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 2,
+    "wanderer:雾中突袭": 4,
+    "wanderer:黑毯·回旋": 3
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s5_slot2",
+   "squad": [
+    "wisadel",
+    "saria",
+    "kaltsit"
+   ],
+   "src": {
+    "boss_wanderer/wanderer/追猎·折返": 0.33745488064583,
+    "contact_wanderer": 0.276848614543845
+   },
+   "taken": 78.7,
+   "taken_pct": 0.614,
+   "win": true
+  },
+  {
+   "boss": "wanderer",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 6,
+   "wall": 17.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 29150.0,
+   "boss_src_share": 0.762,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "bul_avg": 1.9,
+   "bul_peak": 15,
+   "dmg": 29150.0,
+   "fight_t": 61.0,
+   "fp_diff": [
+    "mods.armor: 缺 [\"0|3.0|sami_altar|\"] 多 []",
+    "mods.dmg: 缺 [\"1|0.09|sami_altar|\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.3|lshape:saria|op:saria\"] 多 []",
+    "stats.armor: 4.5 -> 1.5",
+    "stats.dmg_mult: 1.09 -> 1.0",
+    "stats.max_hp: 150.017 -> 141.405"
+   ],
+   "hit_log": [
+    {}
+   ],
+   "hit_max": {
+    "boss_wanderer/wanderer/皇帝的猎杀": 0.42436,
+    "boss_wanderer/wanderer/追猎·折返": 0.42436,
+    "contact_wanderer": 0.272672168696633
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.657,
+   "leader": "wisadel",
+   "level": 20,
+   "max_hp": 150.0,
+   "moves": {
+    "wanderer:国度猎斩": 2,
+    "wanderer:投刃·切雾": 3,
+    "wanderer:斩击·横扫": 5,
+    "wanderer:皇帝的猎杀": 1,
+    "wanderer:追猎·折返": 2,
+    "wanderer:雾中突袭": 2,
+    "wanderer:黑毯·回旋": 1
+   },
+   "phases": [
+    [
+     "wanderer",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "wisadel_m18_s6_slot2",
+   "squad": [
+    "wisadel",
+    "saria",
+    "logos"
+   ],
+   "src": {
+    "boss_wanderer/wanderer/皇帝的猎杀": 0.42436,
+    "boss_wanderer/wanderer/追猎·折返": 0.448739831303367,
+    "contact_wanderer": 0.272672168696633
+   },
+   "taken": 162.0,
+   "taken_pct": 1.146,
+   "win": true
+  }
+ ]
+}
