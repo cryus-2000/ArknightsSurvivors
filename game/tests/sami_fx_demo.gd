@@ -362,6 +362,16 @@ func _ai_group(key: String) -> void:
 		bs.append(e)
 	g.bosses = bs
 	g.boss = bs[0]
+	if key == "shaman":
+		# 寒链弹跳要有小怪可跳：雪祀和队长之间、两侧先摆 7 只慢走的小怪（跳距 240 内成串）
+		for k in 7:
+			var q: Vector2 = O + Vector2(-260.0 + 85.0 * k, 40.0 + (70.0 if k % 2 == 0 else -50.0))
+			var m: Dictionary = g.spawner.new_enemy("husk", q)
+			m.age = 3.0
+			m.spd = 6.0
+			m.hp = 1e6
+			m.maxhp = 1e6
+			g.enemies.append(m)
 	g.ppos = O + Vector2(0, 220)
 	var plan: Array = []
 	for b in bs:
