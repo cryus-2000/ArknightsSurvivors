@@ -190,17 +190,25 @@ func _shape(kind: String, sz: float, u: float, v: float) -> float:
 			var shade: Array = [0.38, 0.55, 0.78, 0.7, 0.4]   # 受光面冰白 → 背光面浅靛（不到最深那档）
 			return float(shade[i7])
 		"clod":
-			# 棱角土块：四边形不规则，两面深褐 / 两面浅褐，无白芯
-			var R8: float = sz * 0.46
-			var r8: float = Vector2(u, v).length()
-			var a8: float = fposmod(atan2(v, u) + 0.4, TAU)
-			var vr8: Array = [1.0, 0.7, 0.92, 0.62]
-			var fa8: float = a8 / (TAU / 4.0)
-			var i8: int = int(fa8) % 4
-			var rr8: float = R8 * lerpf(float(vr8[i8]), float(vr8[(i8 + 1) % 4]), fa8 - floorf(fa8))
-			if r8 > rr8:
-				return -1.0
-			return [0.6, 0.78, 0.92, 0.78][i8]
+			# 棱角土块（协调人 11-28：1× 下仍像圆蛋）：压扁的不规则凸五边形，真直边（按边做半平面判定，不按极坐标插值），
+			# 上两面浅褐（受光）、下三面深褐，无白芯
+			var vs8: Array = [Vector2(0.52, 0.02), Vector2(0.18, -0.26), Vector2(-0.4, -0.2), Vector2(-0.5, 0.12), Vector2(0.06, 0.28)]
+			var p8 := Vector2(u, v) / float(sz)
+			var face := -1
+			var best := -INF
+			for e8 in 5:
+				var a0: Vector2 = vs8[e8]
+				var a1: Vector2 = vs8[(e8 + 1) % 5]
+				var ed: Vector2 = a1 - a0
+				var cr: float = ed.x * (p8.y - a0.y) - ed.y * (p8.x - a0.x)
+				if cr > 0.0:
+					return -1.0   # 在这条边外面
+				var mid: Vector2 = (a0 + a1) * 0.5
+				var dd: float = p8.dot(mid.normalized())
+				if dd > best:
+					best = dd
+					face = e8
+			return [0.92, 0.6, 0.6, 0.78, 0.92][face]
 		"pod":
 			var hl6: float = sz * 0.5
 			var W6: float = sz * 0.54
