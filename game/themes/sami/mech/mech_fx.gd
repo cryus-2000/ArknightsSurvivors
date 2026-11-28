@@ -2923,6 +2923,10 @@ func _fin_ground(w, cv, now: float) -> void:
 			continue
 		match str(e.type):
 			"will":
+				var bz0 = e.get("blizz")
+				if bz0 is Dictionary and e.has("blizz_y") and now >= float(bz0.t0):
+					_will_storm_ground(w, cv, e, bz0, float(e.blizz_y), now)   # 暴风雪：压暗 + 横向飞雪条纹（11-28）
+				_will_curtain_ground(w, cv, e, now)   # 三幕北侧雪幕
 				var tu = e.get("tundra")
 				if tu is Dictionary and now >= float(tu.t0):
 					# 冻原：意志脚下的冻结地面往南推（冰面 = 低亮度冰蓝纹理；推进前沿另画在顶层）
@@ -3059,6 +3063,8 @@ func _fin_front(w, cv, now: float) -> void:
 		match str(e.type):
 			"will":
 				_will_quake(w, cv, e, now)
+				_will_wave(w, cv, e, now)            # 雪浪积雪墙（11-28）
+				_will_curtain_front(w, cv, e, now)   # 北侧雪幕边界
 				var tu = e.get("tundra")
 				if tu is Dictionary and now >= float(tu.t0):
 					# 冻原前沿：一整排冰晶从地里顶出往南推，银凇阴影里断开（出口），前沿冒冰雾
@@ -4834,6 +4840,178 @@ func _vine_wburst(t: Dictionary) -> void:
 			_add(q, Vector2(rng.randf_range(-80, 80), -rng.randf_range(80, 180)), 0.5, SOIL[rng.randi() % 3], rng.randf_range(4.0, 9.0), 3, 900.0)
 
 
+## ==== 意志新判定三项（11-28 协调人，fm_w3 / fm_w4）：雪浪 = 整块往前滚的积雪墙；暴风雪 = 横向狂风雪带（压暗 + 飞雪条纹 + 冰屑，半场边界一眼看清）；
+## 三幕北侧雪幕 = 持续雪墙 / 白雾，边界清楚。银凇阴影里断开（安全）
+func _will_arena(e: Dictionary) -> Dictionary:
+	var sc = g.bai.boss("will")
+	return {"n": float(sc._north(e)), "s": float(sc._south(e)), "c": sc.center(e) as Vector2, "ar": float(sc._ar(e))}
+
+
+func _tree_shade(e: Dictionary, x: float, y: float) -> bool:
+	for t2 in e.get("trees", []):
+		if float(t2.dead_t) <= 0.0 and absf(x - (t2.pos as Vector2).x) < 46.0 and y > (t2.pos as Vector2).y:
+			return true
+	return false
+
+
+## 雪浪：楔形 60°，前沿半径 fr（40 → 600，150 px/秒）。前沿 = 一堵往前滚的积雪墙（背光正面 + 受光翻卷顶 + 顶上卷起的雪团），
+## 墙后是被推平的雪面（淡），墙前 20–70 地面先裂开，前沿往前抛雪块
+func _will_wave(w, cv, e: Dictionary, now: float) -> void:
+	var sw = e.get("swave")
+	if not (sw is Dictionary):
+		return
+	var fr: float = 40.0 + (now - float(sw.t0)) * 150.0
+	if fr > 600.0:
+		return
+	var o: Vector2 = sw.o
+	var a: float = float(sw.a)
+	var gy: float = g.combat.GROUND_Y
+	var half: float = PI / 6.0
+	var n: int = clampi(int(2.0 * half * fr / 22.0), 6, 60)
+	_fin_tex()
+	# 墙后推平的雪面：一条淡雪带
+	for i in n:
+		var b0: float = a - half + 2.0 * half * float(i) / float(n)
+		var b1: float = a - half + 2.0 * half * float(i + 1) / float(n)
+		var q0: Vector2 = o + Vector2(cos(b0), sin(b0) * gy) * fr
+		if _tree_shade(e, q0.x, q0.y):
+			continue
+		var q1: Vector2 = o + Vector2(cos(b1), sin(b1) * gy) * fr
+		var p0: Vector2 = o + Vector2(cos(b0), sin(b0) * gy) * maxf(30.0, fr - 140.0)
+		var p1: Vector2 = o + Vector2(cos(b1), sin(b1) * gy) * maxf(30.0, fr - 140.0)
+		w.tb_quad(p0, p1, q1, q0, Color(A1_LIT, 0.35))
+	w.tb_flush()
+	# 墙前地面裂开（短裂缝往前爬）
+	for i in range(0, n, 2):
+		var b: float = a - half + 2.0 * half * (float(i) + 0.5) / float(n)
+		var q: Vector2 = o + Vector2(cos(b), sin(b) * gy) * (fr + 14.0)
+		if _tree_shade(e, q.x, q.y):
+			continue
+		var dv := Vector2(cos(b), sin(b) * gy)
+		_crack_col(w, q, dv.angle() + float((i * 7) % 5 - 2) * 0.12, 40.0 + float((i * 13) % 4) * 10.0, clampf((fr - 40.0) / 60.0, 0.0, 1.0), i * 17 + int(fr / 60.0), A1_BACK, A1_SH, 4.0)
+	w.tb_flush()
+	# 积雪墙：每格一段——背光正面（冷暗）+ 受光顶（亮）+ 顶上卷起的雪团（雪雾贴图），起伏
+	for i in n:
+		var b: float = a - half + 2.0 * half * (float(i) + 0.5) / float(n)
+		var q: Vector2 = o + Vector2(cos(b), sin(b) * gy) * fr
+		if _tree_shade(e, q.x, q.y):
+			continue
+		var hh: float = 34.0 + 10.0 * sin(float(i) * 1.7 + now * 6.0) + 6.0 * sin(float(i) * 0.6 - now * 3.0)
+		var wd: float = 2.0 * half * fr / float(n) * 0.62 + 4.0
+		var tng := Vector2(-sin(b), cos(b) * gy).normalized()
+		w.tb_quad(_snap(q - tng * wd + Vector2(0, 4)), _snap(q + tng * wd + Vector2(0, 4)), _snap(q + tng * wd + Vector2(0, -hh * 0.55)), _snap(q - tng * wd + Vector2(0, -hh * 0.55)), A1_BACK)
+		w.tb_quad(_snap(q - tng * wd + Vector2(0, -hh * 0.5)), _snap(q + tng * wd + Vector2(0, -hh * 0.5)), _snap(q + tng * wd * 0.8 + Vector2(0, -hh)), _snap(q - tng * wd * 0.8 + Vector2(0, -hh)), A1_LIT)
+	w.tb_flush()
+	for i in n:
+		var b: float = a - half + 2.0 * half * (float(i) + 0.5) / float(n)
+		var q: Vector2 = o + Vector2(cos(b), sin(b) * gy) * fr
+		if _tree_shade(e, q.x, q.y):
+			continue
+		var hh: float = 34.0 + 10.0 * sin(float(i) * 1.7 + now * 6.0)
+		var sz: float = 50.0 + float((i * 37) % 30)
+		cv.draw_texture_rect(snow_puff, Rect2(_snap(q + Vector2(-sz * 0.5, -hh - sz * 0.55)), Vector2(sz, sz * 0.7)), false, Color(1, 1, 1, 0.92))
+		if rng.randf() < 0.18:
+			var dv2 := Vector2(cos(b), sin(b) * gy)
+			_add(q + Vector2(0, -hh), dv2 * rng.randf_range(80, 200) + Vector2(0, -rng.randf_range(80, 200)), rng.randf_range(0.5, 0.8), A1_LIT if rng.randf() < 0.6 else Color(0.78, 0.87, 0.92), rng.randf_range(6.0, 12.0), 3, 800.0)
+
+
+## 暴风雪地面层（单位之下）：风雪带范围（北 → 前沿 y）整片压暗 + 横向飞雪条纹往风向刮；3 条缝和银凇阴影里不压（安全道一眼看清）
+func _will_storm_ground(w, cv, e: Dictionary, bz: Dictionary, y: float, now: float) -> void:
+	var ar_d: Dictionary = _will_arena(e)
+	var x0: float = (ar_d.c as Vector2).x - float(ar_d.ar) * 1.2
+	var x1: float = (ar_d.c as Vector2).x + float(ar_d.ar) * 1.2
+	var yn: float = float(ar_d.n) - 120.0
+	# 按 24 宽一列压暗；缝 / 银凇阴影那列跳过
+	var x: float = x0
+	while x < x1:
+		var xm: float = x + 12.0
+		var gap := false
+		for gx in bz.gaps:
+			if absf(xm - float(gx)) < 45.0:
+				gap = true
+		var y_cut: float = y
+		for t2 in e.get("trees", []):
+			if float(t2.dead_t) <= 0.0 and absf(xm - (t2.pos as Vector2).x) < 46.0:
+				y_cut = minf(y_cut, (t2.pos as Vector2).y)
+		if not gap:
+			w.tb_quad(Vector2(x, yn), Vector2(x + 24.0, yn), Vector2(x + 24.0, y_cut), Vector2(x, y_cut), Color(0.2, 0.28, 0.4, 0.38))
+		x += 24.0
+	w.tb_flush()
+	# 横向飞雪条纹：一批按哈希定位的短粗条，往东南刮（风 (+1, 0.12)），循环
+	var area_h: float = maxf(0.0, y - yn)
+	var ns: int = clampi(int(area_h * (x1 - x0) / 2600.0), 0, 260)
+	for i in ns:
+		var hs: int = absi(hash(Vector2i(i, 4417)))
+		var spd: float = 520.0 + float(hs % 300)
+		var px: float = x0 + fposmod(float(hs % 2000) / 2000.0 * (x1 - x0) + now * spd, x1 - x0)
+		var py: float = yn + float((hs / 2000) % 1000) / 1000.0 * area_h + (px - x0) * 0.12 * 0.15
+		var gap2 := false
+		for gx in bz.gaps:
+			if absf(px - float(gx)) < 45.0:
+				gap2 = true
+		if gap2 or py > y or _tree_shade(e, px, py):
+			continue
+		var ln: float = 18.0 + float(hs % 30)
+		var col: Color = Color(0.92, 0.96, 1.0, 0.55 + 0.35 * float((hs / 7) % 3) / 2.0)
+		w.tb_line(_snap(Vector2(px, py)), _snap(Vector2(px + ln, py + ln * 0.12)), col, 2.0 if hs % 3 else 4.0)
+		if hs % 11 == 0:
+			cv.draw_rect(Rect2(_snap(Vector2(px + ln, py)), Vector2(4, 4)), Color(0.75, 0.88, 1.0))   # 冰屑
+	w.tb_flush()
+
+
+## 三幕北侧雪幕：北 1/3 一直是白雾雪墙——范围内提白（冷白雾）+ 斜飘雪条，边界一排翻滚的密雪团 + 受光雪檐（清楚的边）；银凇阴影列不罩
+func _will_curtain_ground(w, cv, e: Dictionary, now: float) -> void:
+	if int(e.get("gates_passed", 0)) < 2:
+		return
+	var ar_d: Dictionary = _will_arena(e)
+	var cy: float = float(ar_d.n) + (float(ar_d.s) - float(ar_d.n)) / 3.0
+	var x0: float = (ar_d.c as Vector2).x - float(ar_d.ar) * 1.25
+	var x1: float = (ar_d.c as Vector2).x + float(ar_d.ar) * 1.25
+	var yn: float = float(ar_d.n) - 160.0
+	var x: float = x0
+	while x < x1:
+		var xm: float = x + 12.0
+		var y_cut: float = cy + 6.0 * sin(xm * 0.03 + now * 1.4)
+		for t2 in e.get("trees", []):
+			if float(t2.dead_t) <= 0.0 and absf(xm - (t2.pos as Vector2).x) < 46.0:
+				y_cut = minf(y_cut, (t2.pos as Vector2).y)
+		w.tb_quad(Vector2(x, yn), Vector2(x + 24.0, yn), Vector2(x + 24.0, y_cut), Vector2(x, y_cut), Color(0.88, 0.94, 1.0, 0.42))
+		x += 24.0
+	w.tb_flush()
+	var area_h: float = cy - yn
+	for i in 140:
+		var hs: int = absi(hash(Vector2i(i, 6113)))
+		var px: float = x0 + fposmod(float(hs % 2000) / 2000.0 * (x1 - x0) + now * (120.0 + float(hs % 80)), x1 - x0)
+		var py: float = yn + fposmod(float((hs / 2000) % 1000) / 1000.0 * area_h + now * (60.0 + float(hs % 40)), area_h)
+		if _tree_shade(e, px, py):
+			continue
+		w.tb_line(_snap(Vector2(px, py)), _snap(Vector2(px + 10.0, py + 6.0)), Color(1, 1, 1, 0.7), 2.0)
+	w.tb_flush()
+
+
+func _will_curtain_front(w, cv, e: Dictionary, now: float) -> void:
+	if int(e.get("gates_passed", 0)) < 2:
+		return
+	_fin_tex()
+	var ar_d: Dictionary = _will_arena(e)
+	var cy: float = float(ar_d.n) + (float(ar_d.s) - float(ar_d.n)) / 3.0
+	var x: float = (ar_d.c as Vector2).x - float(ar_d.ar) * 1.25
+	var x1: float = (ar_d.c as Vector2).x + float(ar_d.ar) * 1.25
+	var col := 0
+	while x <= x1:
+		var hj: int = absi(hash(Vector2i(col, 733)))
+		var yy: float = cy + 6.0 * sin(x * 0.03 + now * 1.4) + 4.0 * sin(x * 0.07 - now * 2.2)
+		if not _tree_shade(e, x, yy - 1.0):
+			var sz: float = 70.0 + float(hj % 40)
+			cv.draw_texture_rect(snow_puff, Rect2(_snap(Vector2(x - sz * 0.5, yy - sz * 0.75)), Vector2(sz, sz * 0.75)), false, Color(1, 1, 1, 0.95))
+			w.tb_line(_snap(Vector2(x - 18.0, yy - 2.0)), _snap(Vector2(x + 18.0, yy - 2.0)), Color(A1_BACK, 0.7), 4.0)   # 雪檐下沿一道冷影，边界清楚
+			if rng.randf() < 0.04:
+				_icefog(Vector2(x, yy), Vector2(rng.randf_range(-20, 20), 20), 0.8, 50.0, 0.7)
+		x += 36.0 + float(hj % 14)
+		col += 1
+	w.tb_flush()
+
+
 func _ice_peak(w, p: Vector2, h: float, wd: float) -> void:
 	if h < 2.0:
 		return
@@ -4933,7 +5111,7 @@ func _blizzard(w, cv, e: Dictionary, bz: Dictionary, y: float, now: float) -> vo
 	# 不规则雪幕（协调人 11-26：仍是一块块方格）：按哈希撒雪雾团（位置 / 大小 / 浓淡都不齐，慢慢漂），
 	# 前沿是一条起伏的雪墙（相位不同的两层正弦），三条缝和银凇阴影里不画
 	var area: float = (2.0 * ar) * maxf(0.0, y - y0)
-	var n: int = clampi(int(area / 4200.0), 0, 90)
+	var n: int = clampi(int(area / 14000.0), 0, 24)   # 11-28：风雪带改压暗 + 飞雪条纹（_will_storm_ground），雪团只留少量
 	for i in n:
 		var hj: int = absi(hash(Vector2i(i, 7193)))
 		var x: float = e.pos.x - ar + float(hj % 1000) / 1000.0 * 2.0 * ar + 14.0 * sin(now * 0.9 + float(i))
