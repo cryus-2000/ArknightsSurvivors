@@ -1059,7 +1059,8 @@ func _blade_front(w, now: float) -> void:
 			var hf: float = PI if spin else PI / 3.0
 			if not ev[4]:
 				ev[4] = true
-				barcs.append([p, float(ev[2]) - hf - 0.12, float(ev[2]) + hf + 0.12, sr, now])
+				if not spin:   # 旋身斩一整圈的斩痕读成细环（协调人 11-28），只给扇形斩留斩痕
+					barcs.append([p, float(ev[2]) - hf - 0.12, float(ev[2]) + hf + 0.12, sr, now])
 			_big_slash2(w, g.wcv, p, float(ev[2]), sr, age, hf, 0.2 if spin else 0.12)
 			continue
 		if ev[0] == "dash":
@@ -5372,7 +5373,9 @@ func _kd_ink(cv, km, now: float) -> void:
 				if not vr.has_point(q):
 					continue
 				var s2: float = r * 2.2 * (0.85 + 0.25 * sin(now * 0.7 + float(i)))
-				cv.draw_texture_rect(fog_puff[(i + sd) % 4], Rect2(_snap(q - Vector2(s2, s2 * 0.75) * 0.5), Vector2(s2, s2 * 0.75)), false, Color(1, 1, 1, 0.55 * KD_WISP * al))
+				cv.draw_texture_rect(fog_puff[(i + sd) % 4], Rect2(_snap(q - Vector2(s2, s2 * 0.75) * 0.5), Vector2(s2, s2 * 0.75)), false, Color(1, 1, 1, 0.35 * KD_WISP * al))
+				if i % 2 == 0:
+					cv.draw_texture_rect(_glow_tex(), Rect2(_snap(q - Vector2(s2 * 0.7, s2 * 0.45) * 0.5), Vector2(s2 * 0.7, s2 * 0.45)), false, Color(0.04, 0.025, 0.05, 0.85 * al))   # 黑毯：隔一团一个实墨芯
 			continue
 		if not vr.grow(r).has_point(k.pos):
 			continue
@@ -5385,9 +5388,9 @@ func _kd_ink(cv, km, now: float) -> void:
 			var s: float = r * (0.7 + 0.3 * float((hs / 62800) % 100) / 100.0) * (0.92 + 0.12 * sin(now * 0.9 + float(i) * 1.3))
 			if km._in_cut(q2):
 				continue
-			cv.draw_texture_rect(fog_puff[hs % 4], Rect2(_snap(q2 - Vector2(s, s * 0.75) * 0.5), Vector2(s, s * 0.75)), false, Color(1, 1, 1, 0.8 * KD_WISP * al))
-			var sc2: float = s * 0.5   # 团心：再叠一层小而实的黑芯
-			cv.draw_texture_rect(fog_puff[(hs + 1) % 4], Rect2(_snap(q2 - Vector2(sc2, sc2 * 0.75) * 0.5), Vector2(sc2, sc2 * 0.75)), false, Color(0.55, 0.5, 0.55, 1.0 * al))
+			cv.draw_texture_rect(fog_puff[hs % 4], Rect2(_snap(q2 - Vector2(s, s * 0.75) * 0.5), Vector2(s, s * 0.75)), false, Color(1, 1, 1, 0.5 * KD_WISP * al))
+			var sc2: float = s * 0.62   # 团心：一团柔边的实黑墨（平滑径向，不带颗粒），外面才是颗粒烟
+			cv.draw_texture_rect(_glow_tex(), Rect2(_snap(q2 - Vector2(sc2, sc2 * 0.7) * 0.5), Vector2(sc2, sc2 * 0.7)), false, Color(0.04, 0.025, 0.05, 0.92 * al))
 		# 边缘烟丝：小雾团从边上往外飘、变淡（循环）
 		var m: int = clampi(int(TAU * r / 22.0), 8, 40)
 		for i in m:
