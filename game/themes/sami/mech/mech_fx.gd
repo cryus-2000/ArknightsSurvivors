@@ -968,7 +968,16 @@ func _blade_front(w, now: float) -> void:
 					var ld: Vector2 = Vector2.from_angle(float(x.get("ang", 0.0))) if x.has("ang") else Vector2.RIGHT
 					_rise_blade(w, x.pos, 38.0 * hk * sink, ld, lean)
 				"slash":
-					_slash_scar(w, x.pos, float(x.ang), float(x.r), u)   # 横扫后刀走过的地方留一道暗红月牙斩痕（0.3 秒）
+					if first:
+						blade_event("slash", x.pos, float(x.ang), float(x.r))   # 大横斩刀带（11-28 新判定 r300 / 收尾斩 r180）：刀带本身就是读法，不再另画暗红斩痕
+				"burst":
+					if first:
+						# 从国度黑雾里冲出（大横斩第 1.8 秒）：脚下黑雾整团往冲出方向翻涌 + 暗红火星，地上压一圈黑雾
+						var bd := Vector2.from_angle(float(x.get("ang", 0.0)))
+						for j in 14:
+							_fog(x.pos + Vector2(rng.randf_range(-30, 30), rng.randf_range(-16, 16)), 1, 0.9, 0.02 * float(j % 4), false, 2.0, bd * rng.randf_range(80.0, 200.0) + Vector2(0, -rng.randf_range(10, 50)))
+						_fog(x.pos, 8, 1.2, 0.0, true, 1.8)
+						sparks(x.pos + Vector2(0, -20), float(x.get("ang", 0.0)), 0.8, 12, 320.0, BLOOD, true, 0.35)
 				"upslash":
 					_upslash(w, x, u, first)
 				"spin":
@@ -1162,7 +1171,7 @@ func _big_slash(w, cv, p: Vector2, ca: float, SR: float, age: float) -> void:
 	var tl: float = maxf(e0, maxf(hd - 1.7, lerpf(e0, e1, clampf((age - 0.12) / 0.33, 0.0, 1.0))))
 	if hd - tl < 0.03:
 		return
-	var R: float = SR * 1.08
+	var R: float = SR
 	var fade: float = clampf((age - 0.3) / 0.2, 0.0, 1.0)
 	var hp: Vector2 = p + Vector2.from_angle(hd) * (R - 20.0)
 	var gt: Texture2D = _glow_tex()
@@ -1174,8 +1183,9 @@ func _big_slash(w, cv, p: Vector2, ca: float, SR: float, age: float) -> void:
 			var f1: float = float(j + 1) / float(ns)
 			var b0: float = lerpf(tl, hd, f0)
 			var b1: float = lerpf(tl, hd, f1)
-			var t0: float = (4.0 + 86.0 * pow(f0, 1.2) * pow(1.0 - f0, 0.3)) * (1.0 - 0.6 * fade)   # 两头尖的月牙：最厚处在刀头后一点
-			var t1: float = (4.0 + 86.0 * pow(f1, 1.2) * pow(1.0 - f1, 0.3)) * (1.0 - 0.6 * fade)
+			var tm: float = 0.42 * R / 0.47   # 最厚 ≈ 0.42R（静态对照 r300 过审）
+			var t0: float = (4.0 + tm * pow(f0, 1.2) * pow(1.0 - f0, 0.3)) * (1.0 - 0.6 * fade)   # 两头尖的月牙：最厚处在刀头后一点
+			var t1: float = (4.0 + tm * pow(f1, 1.2) * pow(1.0 - f1, 0.3)) * (1.0 - 0.6 * fade)
 			var ro: float = R
 			var r0i: float = R - t0
 			var r1i: float = R - t1
@@ -1189,13 +1199,13 @@ func _big_slash(w, cv, p: Vector2, ca: float, SR: float, age: float) -> void:
 				1:
 					cc = BK
 				2:
-					r0i = R - t0 * 0.42
-					r1i = R - t1 * 0.42
+					r0i = R - t0 * 0.3   # 暗红带收到刀身 30%，黑刀身为主
+					r1i = R - t1 * 0.3
 					cc = BLOOD[1].lerp(BLOOD[2], f0)
 				_:
-					r0i = R - 3.0 - 3.0 * f0
-					r1i = R - 3.0 - 3.0 * f1
-					cc = Color(1.0, 0.95, 0.88) if f0 > 0.35 else BLOOD[3]
+					r0i = R - 4.0 - 5.0 * f0
+					r1i = R - 4.0 - 5.0 * f1
+					cc = Color(1.0, 1.0, 0.97) if f0 > 0.3 else BLOOD[3]
 			if fade > 0.0:
 				cc.a = 1.0 - fade
 			w.tb_quad(p + Vector2.from_angle(b0) * ro, p + Vector2.from_angle(b1) * ro, p + Vector2.from_angle(b1) * r1i, p + Vector2.from_angle(b0) * r0i, cc)
@@ -1442,8 +1452,8 @@ func kingdom_draw(km) -> void:
 ## 不冒刃、不发光。新铺的国度从圆心往外一格格冒出来（0.35 秒一圈），到期 0.6 秒淡掉；投刃切开的口子里烟丝压下去
 const KC_W := 64.0
 const KC_H := 48.0
-const KD_FLOOR := 0.17       # 每格浅灰地面
-const KD_WISP := 0.62        # 黑烟丝
+const KD_FLOOR := 0.28       # 每格浅灰地面（11-28 协调人：演示里国度黑雾看不见 → 0.17 提到 0.28）
+const KD_WISP := 0.8         # 黑烟丝（同上，0.62 → 0.8）
 var wisp_tex: Array = []
 
 
