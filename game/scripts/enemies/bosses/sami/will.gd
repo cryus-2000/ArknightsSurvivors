@@ -452,7 +452,10 @@ func _peak_step(e: Dictionary, from: Vector2, a: float, i: int, main: bool, r: f
 		a += clampf(wrapf(want - a, -PI, PI), -deg_to_rad(28.0), deg_to_rad(28.0))
 	a += rng.randf_range(-0.2, 0.2)
 	var p: Vector2 = from + Vector2.from_angle(a) * rng.randf_range(60.0, 90.0)
-	_peak(e, p, i == 0 and main, r)
+	var fxm = g.mech("fx")
+	if fxm != null:
+		fxm.will_crack(from, p, 1, 0.22, 0.9 + 3.0, 0.0, r / 40.0)   # 冰柱破土（11-28，fm_w4）：这一节裂纹 0.22 秒从上一节长过来，冰柱从缝里顶出
+	_peak(e, p, i == 0 and main, r, a)
 	if main and (i == 2 or i == 5):
 		var side: float = 1.0 if rng.randf() < 0.5 else -1.0
 		var ba: float = a + side * deg_to_rad(rng.randf_range(30.0, 45.0))
@@ -462,9 +465,13 @@ func _peak_step(e: Dictionary, from: Vector2, a: float, i: int, main: bool, r: f
 	later(e, rng.randf_range(0.22, 0.36), _peak_step.bind(e, p, a, i + 1, main, r, left - 1))
 
 
-func _peak(e: Dictionary, p: Vector2, first: bool, r := 40.0) -> void:
-	var w := w_circle(e, p, r, 0.9, 0.14, "冰峰" if first else "", {"lock": first})
-	w.cb = func(_ww): add_obst(e, p, r * 0.65, 3.0)
+func _peak(e: Dictionary, p: Vector2, first: bool, r := 40.0, ang := PI * 0.5) -> void:
+	var w := w_circle(e, p, r, 0.9, 0.14, "冰峰" if first else "", {"lock": first, "skin": "will_pillar", "pang": ang, "ps": r / 40.0})
+	w.cb = func(_ww):
+		add_obst(e, p, r * 0.65, 3.0)
+		e.obst.back()["kind"] = "pillar"
+		e.obst.back()["ps"] = r / 40.0   # 支干冰柱小一档
+		e.obst.back()["ang"] = ang       # 簇朝裂纹走向斜
 
 
 ## 冰河：一条冰河从北往南蜿蜒流下（宽 90，河道先画 1.2 秒），冰块顺河道流下（碰到 13%）

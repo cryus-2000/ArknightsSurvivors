@@ -3312,7 +3312,7 @@ var wcracks: Array = []      # {pts, cum, br, t0, n, step, until}
 var ptex := {}
 
 
-func will_crack(a: Vector2, b: Vector2, n: int, step: float, hold: float) -> void:
+func will_crack(a: Vector2, b: Vector2, n: int, step: float, hold: float, lead := 1.0, wk := 1.0) -> void:
 	var d: Vector2 = b - a
 	var L: float = d.length()
 	if L < 10.0:
@@ -3346,7 +3346,7 @@ func will_crack(a: Vector2, b: Vector2, n: int, step: float, hold: float) -> voi
 			br.append([float(cum[i]), bp])
 			sg = -sg
 		i += rng.randi_range(2, 4)
-	wcracks.append({"pts": pts, "cum": cum, "br": br, "t0": g.t, "n": n, "step": step, "L": float(cum.back()), "until": g.t + step * float(n) + hold})
+	wcracks.append({"pts": pts, "cum": cum, "br": br, "t0": g.t, "n": n, "step": step, "L": float(cum.back()), "until": g.t + step * float(n) + hold, "lead": lead, "wk": wk})
 
 
 func _crack_seg(w, a: Vector2, b: Vector2, core: Color, wd: float, al: float) -> void:
@@ -3369,7 +3369,8 @@ func _draw_wcracks(w, cv, now: float) -> void:
 		var n: int = int(c.n)
 		var L: float = float(c.L)
 		var al: float = clampf((float(c.until) - now) / 0.6, 0.0, 1.0)
-		var f: float = clampf((age + step) / (step * float(n)), 0.0, 1.0) * clampf(age / 0.15, 0.0, 1.0)
+		var lead: float = float(c.get("lead", 1.0))
+		var f: float = clampf((age + step * lead) / (step * float(n)), 0.0, 1.0) * (clampf(age / 0.15, 0.0, 1.0) if lead > 0.0 else 1.0)
 		var head: float = f * L
 		var pts: PackedVector2Array = c.pts
 		var cum: Array = c.cum
@@ -3389,7 +3390,7 @@ func _draw_wcracks(w, cv, now: float) -> void:
 			var hot: float = clampf(1.0 - (age - erupt) / 0.4, 0.0, 1.0)
 			var pulse: float = 0.85 + 0.15 * sin(now * 14.0 + x1 * 0.05)
 			var core: Color = CRK_COOL.lerp(CRK_HOT, hot * pulse)
-			var wd: float = 16.0 if x1 < head - 40.0 else 11.0
+			var wd: float = (16.0 if x1 < head - 40.0 else 11.0) * float(c.get("wk", 1.0))
 			_crack_seg(w, pts[i - 1], b, core, wd, al)
 			if hot > 0.3 and i % 3 == 0:
 				cv.draw_texture_rect(gt, Rect2(((b - Vector2(50, 28)) / PX).floor() * PX, Vector2(100, 56)), false, Color(0.75, 0.92, 1.0, 0.3 * hot * al))
@@ -3426,34 +3427,32 @@ func _ice_bits(p: Vector2, n: int, power: float) -> void:
 		_add(p + Vector2(rng.randf_range(-20, 20), rng.randf_range(-30, 10)), Vector2(cos(a) * sp, sin(a) * sp * 0.8 - 80.0 * power), rng.randf_range(0.5, 0.8), cols[i % 4], rng.randf_range(6.0, 12.0), 3, 1000.0)
 
 
-func _ptex(i: int) -> Texture2D:
-	var nm: String = ["pillar_a", "pillar_b", "pillar_c"][i % 3]
+func _ptex2(v: int, li: int) -> Texture2D:
+	var nm: String = "pillar2_%d_%d" % [v, li]
 	if not ptex.has(nm):
 		ptex[nm] = load("res://themes/sami/fx/will/%s.png" % nm)
 	return ptex[nm]
 
 
 func _pvar(p: Vector2) -> int:
-	return absi(hash(Vector2i(int(p.x), int(p.y)))) % 3
+	return absi(hash(Vector2i(int(p.x), int(p.y)))) % 2
 
 
-## 冰柱贴图从地里往上顶：只露出贴图上段 vis 格（底边贴地），ys = 纵向过冲
-func _pillar_draw(p: Vector2, vi: int, vis_k: float, ys := 1.0, jit := 0.0, col := Color.WHITE) -> void:
-	var tx: Texture2D = _ptex(vi)
+## 冰柱簇 v2（静态对照 11-28 过审）：一大簇 + 小晶、三档明暗 + 白热棱、顶上压雪、根部翻土碎冰；2 种高度 × 5 档斜度，
+## 按裂纹走向挑斜度（ang = 这一节裂纹的方向），ps = 支干小一档；贴图从地里往上顶：只露出上段 vis（底边贴地，贴图底下 8 格在地面以下）
+func _pillar_draw(p: Vector2, ang: float, ps: float, vis_k: float, ys := 1.0, jit := 0.0, col := Color.WHITE) -> void:
+	var li: int = clampi(int(roundf((cos(ang) * 0.3 + 0.3) / 0.15)), 0, 4)
+	var tx: Texture2D = _ptex2(_pvar(p), li)
 	var TW: float = float(tx.get_width())
 	var TH: float = float(tx.get_height())
 	var vis: float = floorf(clampf(vis_k, 0.0, 1.0) * TH)
 	if vis < 1.0:
 		return
-	# 每根大小 / 朝向 / 微偏不同（vreview 11-28：一排同形冰柱像贴纸）：按位置哈希取 0.8–1.2 倍、左右翻、横偏 ±10
 	var hh: int = absi(hash(Vector2i(int(p.x) * 3, int(p.y) * 7)))
-	var sc: float = 0.8 + float(hh % 41) / 100.0
-	var ox: float = float((hh / 41) % 21) - 10.0
+	var sc: float = ps * (0.9 + float(hh % 21) / 100.0)
 	var hgt: float = vis * PX * ys * sc
 	var wd: float = roundf(TW * sc) * PX
-	var dst := Rect2(_snap(Vector2(p.x + ox - wd * 0.5 + jit, p.y + 6.0 - hgt)), Vector2(wd, roundf(hgt / PX) * PX))
-	if (hh / 997) % 2 == 1:
-		dst = Rect2(dst.position, Vector2(-dst.size.x, dst.size.y))   # 负宽 = 原位左右翻（Godot 不挪位置；原来加了宽度导致整排冰柱偏离裂纹约一身宽）
+	var dst := Rect2(_snap(Vector2(p.x - wd * 0.5 + jit, p.y + 8.0 * PX * sc - hgt)), Vector2(wd, roundf(hgt / PX) * PX))
 	g.wcv.draw_texture_rect_region(tx, dst, Rect2(0, 0, TW, vis), col)
 
 
@@ -3475,7 +3474,7 @@ func _pillar_warn(w, cv, t: Dictionary, k: float, sd: int) -> void:
 	cv.draw_texture_rect(gt, Rect2(((c - hs * 0.5) / PX).floor() * PX, hs), false, Color(0.9, 0.98, 1.0, 0.25 + 0.5 * k))
 	w.tb_flush()
 	if k > 0.55:
-		_pillar_draw(c, _pvar(c), (k - 0.55) / 0.45 * 0.28, 1.0, (1.0 if int(g.t * 30.0) % 2 == 0 else -1.0) * 2.0)
+		_pillar_draw(c, float(t.get("pang", PI * 0.5)), float(t.get("ps", 1.0)), (k - 0.55) / 0.45 * 0.28, 1.0, (1.0 if int(g.t * 30.0) % 2 == 0 else -1.0) * 2.0)
 	if rng.randf() < 0.25 + 0.6 * k:
 		var aq: float = rng.randf() * TAU
 		_add(c + Vector2(cos(aq), sin(aq) * 0.5) * r * 0.5 * rng.randf(), Vector2(rng.randf_range(-20, 20), -rng.randf_range(40, 110)), 0.45, A1_LIT if rng.randf() < 0.7 else A1_MID, 8.0, 3, 500.0)
@@ -3484,7 +3483,8 @@ func _pillar_warn(w, cv, t: Dictionary, k: float, sd: int) -> void:
 ## 冰柱：0.14 秒顶到全高（纵向过冲后回弹）+ 雪块往外飞 + 冰屑 + 冰雾 + 一下冷光；立着时有右下接地影、照地冷光；到期碎掉
 func _will_pillar(w, o: Dictionary, now: float) -> void:
 	var p: Vector2 = o.pos
-	var vi: int = _pvar(p)
+	var pa: float = float(o.get("ang", PI * 0.5))
+	var ps: float = float(o.get("ps", 1.0))
 	if not o.has("fx_t0"):
 		o["fx_t0"] = now
 		var gy: float = g.combat.GROUND_Y
@@ -3514,13 +3514,15 @@ func _will_pillar(w, o: Dictionary, now: float) -> void:
 	var ys: float = 1.0 + 0.12 * clampf(1.0 - (age - 0.14) / 0.16, 0.0, 1.0) * (1.0 if age > 0.1 else 0.0)
 	var jit: float = (sin(age * 70.0) * 2.0) if age < 0.3 else 0.0
 	# 接地影（光从左上来 → 影子落右下）+ 冰柱自己的低亮度冷光照地
-	_ground_shadow(p + Vector2(16, 6), 26.0 * hk, 0.95)
+	_ground_shadow(p + Vector2(18, 7) * ps, 30.0 * hk * ps, 0.95)
 	var gt: Texture2D = _glow_tex()
-	var gk: float = 0.14 + 0.3 * clampf(1.0 - age / 0.5, 0.0, 1.0)
-	g.wcv.draw_texture_rect(gt, Rect2(((p - Vector2(60, 26)) / PX).floor() * PX, Vector2(120, 52)), false, Color(0.75, 0.92, 1.0, gk))
-	_pillar_draw(p, vi, hk, ys, jit)
+	# 顶出那一下雪地被冷光照亮（大团、亮），0.8 秒退到常亮的一小团
+	var fl: float = clampf(1.0 - age / 0.8, 0.0, 1.0)
+	var gs := Vector2(160, 70) + Vector2(220, 96) * fl
+	g.wcv.draw_texture_rect(gt, Rect2(((p - gs * 0.5) / PX).floor() * PX, gs), false, Color(0.88, 0.97, 1.0, 0.16 + 0.6 * fl * fl))
+	_pillar_draw(p, pa, ps, hk, ys, jit)
 	if age < 0.12:
-		_pillar_draw(p, vi, hk, ys, jit, Color(1.6, 1.7, 1.8, 0.5 * (1.0 - age / 0.12)))   # 顶出那一下爆亮再冷却
+		_pillar_draw(p, pa, ps, hk, ys, jit, Color(1.6, 1.7, 1.8, 0.5 * (1.0 - age / 0.12)))   # 顶出那一下爆亮再冷却
 
 
 ## ==== 克雷松「苗圃吞地」（11-28 用户：每只 Boss 一种主表现，概念图 fm_c3 / fm_c4）：苗圃 = 地面一块块被「无」吃掉，
