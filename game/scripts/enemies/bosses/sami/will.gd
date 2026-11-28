@@ -403,15 +403,20 @@ func _m_peaks(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var tgt: Vector2 = g.ppos + g.pvel.limit_length(150.0) * 0.4
 	var d: Vector2 = tgt - e.pos
 	var n: int = clampi(int(d.length() / 75.0), 4, 12)
+	var fxm = g.mech("fx")
+	if fxm != null:
+		fxm.will_crack(e.pos, e.pos + d, n, 0.3, 0.9 + 3.0)   # 冰柱破土（11-28）：冰面裂纹从意志往队长分叉推进，冰柱沿裂纹依次顶出
 	for k in n:
 		var p: Vector2 = e.pos + d * float(k + 1) / float(n)
-		later(e, 0.3 * k, _peak.bind(e, p, k == 0))
+		later(e, 0.3 * k, _peak.bind(e, p, k == 0, k))
 	return 1.2 + 0.3 * n
 
 
-func _peak(e: Dictionary, p: Vector2, first: bool) -> void:
-	var w := w_circle(e, p, 40.0, 0.9, 0.14, "冰峰" if first else "", {"lock": first})
-	w.cb = func(_ww): add_obst(e, p, 26.0, 3.0)
+func _peak(e: Dictionary, p: Vector2, first: bool, k := 0) -> void:
+	var w := w_circle(e, p, 40.0, 0.9, 0.14, "冰峰" if first else "", {"lock": first, "skin": "will_pillar"})
+	w.cb = func(_ww):
+		add_obst(e, p, 26.0, 3.0)
+		e.obst.back()["kind"] = "pillar"
 
 
 ## 冰河：一条冰河从北往南蜿蜒流下（宽 90，河道先画 1.2 秒），冰块顺河道流下（碰到 13%）

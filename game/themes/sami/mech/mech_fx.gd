@@ -2087,6 +2087,9 @@ func _warn_final(w, cv, t: Dictionary, k: float, sd: int, ot: String) -> void:
 			var r: float = float(t.r)
 			match ot:
 				"will":
+					if str(t.get("skin0", "")) == "will_pillar":
+						_pillar_warn(w, cv, t, k, sd)
+						return
 					# 落影 + 冰雾（11-26：细裂纹读成平面矢量 → 去掉）：中间一团落影越来越浓，大圈再加圈边冰带（冰凌另画在顶层）
 					if rng.randf() < 0.15 + 0.3 * k:
 						_icefog(c + Vector2(rng.randf_range(-r, r) * 0.6, rng.randf_range(-r, r) * 0.3), Vector2(0, -12), 0.6, 26.0, 0.5)
@@ -2780,6 +2783,7 @@ func _fin_bullet(cv, b: Dictionary, kind: String, now: float) -> void:
 func _fin_ground(w, cv, now: float) -> void:
 	_fin_tex()
 	_will_lightpass(w, cv, now)
+	_draw_wcracks(w, cv, now)
 	var gy: float = g.combat.GROUND_Y
 	for id in fin_list.keys():
 		var it: Array = fin_list[id]
@@ -2883,7 +2887,7 @@ func _fin_front(w, cv, now: float) -> void:
 		if not (ow is Dictionary):
 			continue
 		var ot: String = str(ow.get("type", ""))
-		if not PAL.has(ot) or str(t.get("skin0", "")) == "ice_lance" or float(t.get("dmg", 0.0)) <= 0.0:
+		if not PAL.has(ot) or str(t.get("skin0", "")) in ["ice_lance", "will_pillar"] or float(t.get("dmg", 0.0)) <= 0.0:
 			continue
 		_warn_burst(t, ot)
 	for id in fin_list.keys():
@@ -2894,6 +2898,9 @@ func _fin_front(w, cv, now: float) -> void:
 			continue
 		# 障碍：冰凌林冰桩（r≤18）/ 冰峰（意志）/ 长冬冰柱（木裂）——从地里顶出 0.15 秒、到期碎掉
 		for o in e.get("obst", []):
+			if str(o.get("kind", "")) == "pillar":
+				_will_pillar(w, o, now)
+				continue
 			if not o.has("fx_t0"):
 				o["fx_t0"] = now
 				for i in 3:
@@ -3200,6 +3207,231 @@ func _ice_stake(w, p: Vector2, h: float, wd: float) -> void:
 	w.tb_poly(PackedVector2Array([p + Vector2(-hw, 0), p + Vector2(-hw * 0.6, -h * 0.7), p + Vector2(0, -h), p + Vector2(0, 0)]), Color(0.5, 0.64, 0.86))
 	w.tb_poly(PackedVector2Array([p, p + Vector2(0, -h), p + Vector2(hw * 0.6, -h * 0.7), p + Vector2(hw, 0)]), WILLC[2])
 	w.tb_line(_snap(p + Vector2(2, -6)), _snap(p + Vector2(1, -h * 0.8)), WILLC[3], 2.0)
+
+
+## ==== 意志「冰柱破土」（11-28 用户：每只 Boss 一种主表现，概念图 fm_w4）：冰面裂纹从意志往队长分叉推进，
+## 冰柱沿裂纹依次顶出、雪块飞溅；还没顶出的那段 = 发光隆起的裂缝（就是预警）。判定照旧挂在「冰峰」（r40 / 0.9 秒 / 障碍 3 秒）
+const A1_OL := Color(0.173, 0.227, 0.298)     # 深冷描边 #2C3A4C（docs/396 §14.1）
+const A1_SH := Color(0.118, 0.204, 0.275)     # 接地影 / 裂缝深槽 #1E3446
+const A1_LIT := Color(0.902, 0.949, 0.973)    # 积雪受光 #E6F2F8
+const A1_MID := Color(0.569, 0.702, 0.761)    # 雪面中间调 #91B3C2
+const A1_BACK := Color(0.369, 0.525, 0.635)   # 背光冷面 #5E86A2
+const CRK_HOT := Color(0.86, 0.97, 1.0)       # 裂缝里透出的冰光（未顶出段）
+const CRK_COOL := Color(0.3, 0.46, 0.6)       # 顶出后裂缝冷下来
+var wcracks: Array = []      # {pts, cum, br, t0, n, step, until}
+var ptex := {}
+
+
+func will_crack(a: Vector2, b: Vector2, n: int, step: float, hold: float) -> void:
+	var d: Vector2 = b - a
+	var L: float = d.length()
+	if L < 10.0:
+		return
+	var u: Vector2 = d / L
+	var nv: Vector2 = u.orthogonal()
+	var pts := PackedVector2Array([a])
+	var cum: Array = [0.0]
+	var x := 0.0
+	var off := 0.0
+	while x < L:
+		x = minf(L, x + rng.randf_range(12.0, 20.0))
+		off = clampf(off + rng.randf_range(-7.0, 7.0), -14.0, 14.0)
+		if x >= L:
+			off *= 0.3
+		var q: Vector2 = a + u * x + nv * off
+		cum.append(float(cum.back()) + q.distance_to(pts[pts.size() - 1]))
+		pts.append(q)
+	# 分叉：沿主裂缝每隔一段往两侧斜出一道（2–4 段折线），偶尔再分一次
+	var br: Array = []
+	var i := 2
+	while i < pts.size() - 1:
+		var sg: float = 1.0 if rng.randf() < 0.5 else -1.0
+		for rep in (2 if rng.randf() < 0.3 else 1):
+			var ang: float = u.angle() + sg * rng.randf_range(0.5, 1.1)
+			var bp := PackedVector2Array([pts[i]])
+			var segs: int = rng.randi_range(2, 4)
+			for j in segs:
+				ang += rng.randf_range(-0.35, 0.35)
+				bp.append(bp[bp.size() - 1] + Vector2.from_angle(ang) * rng.randf_range(10.0, 18.0))
+			br.append([float(cum[i]), bp])
+			sg = -sg
+		i += rng.randi_range(2, 4)
+	wcracks.append({"pts": pts, "cum": cum, "br": br, "t0": g.t, "n": n, "step": step, "L": float(cum.back()), "until": g.t + step * float(n) + hold})
+
+
+func _crack_seg(w, a: Vector2, b: Vector2, core: Color, wd: float, al: float) -> void:
+	w.tb_line(_snap(a), _snap(b), Color(A1_SH, 0.9 * al), wd + 4.0)
+	w.tb_line(_snap(a + Vector2(1, 3)), _snap(b + Vector2(1, 3)), Color(A1_LIT, 0.85 * al), 2.0)   # 背光侧槽壁受光（光从左上来，照亮裂缝的右下壁）
+	w.tb_line(_snap(a), _snap(b), Color(core, al), maxf(2.0, wd - 2.0))
+
+
+func _draw_wcracks(w, cv, now: float) -> void:
+	if wcracks.is_empty():
+		return
+	var gt: Texture2D = _glow_tex()
+	var keep: Array = []
+	for c in wcracks:
+		if now > float(c.until):
+			continue
+		keep.append(c)
+		var age: float = now - float(c.t0)
+		var step: float = float(c.step)
+		var n: int = int(c.n)
+		var L: float = float(c.L)
+		var al: float = clampf((float(c.until) - now) / 0.6, 0.0, 1.0)
+		var f: float = clampf((age + step) / (step * float(n)), 0.0, 1.0) * clampf(age / 0.15, 0.0, 1.0)
+		var head: float = f * L
+		var pts: PackedVector2Array = c.pts
+		var cum: Array = c.cum
+		var seg_len: float = L / float(n)
+		var hp: Vector2 = pts[0]
+		for i in range(1, pts.size()):
+			var x0: float = float(cum[i - 1])
+			if x0 >= head:
+				break
+			var x1: float = float(cum[i])
+			var b: Vector2 = pts[i]
+			if x1 > head:
+				b = pts[i - 1].lerp(pts[i], (head - x0) / maxf(0.01, x1 - x0))
+			# 这一段对应第几根冰柱：顶出前发冰光（越靠近顶出越亮），顶出后冷下来
+			var kk: int = clampi(int(x1 / seg_len), 0, n - 1)
+			var erupt: float = step * float(kk) + 0.9
+			var hot: float = clampf(1.0 - (age - erupt) / 0.4, 0.0, 1.0)
+			var pulse: float = 0.85 + 0.15 * sin(now * 14.0 + x1 * 0.05)
+			var core: Color = CRK_COOL.lerp(CRK_HOT, hot * pulse)
+			var wd: float = 6.0 if x1 < head - 24.0 else 4.0
+			_crack_seg(w, pts[i - 1], b, core, wd, al)
+			if hot > 0.3 and i % 3 == 0:
+				cv.draw_texture_rect(gt, Rect2(((b - Vector2(28, 16)) / PX).floor() * PX, Vector2(56, 32)), false, Color(0.75, 0.92, 1.0, 0.22 * hot * al))
+			hp = b
+		for bb in c.br:
+			var s0: float = float(bb[0])
+			if s0 >= head:
+				continue
+			var bp: PackedVector2Array = bb[1]
+			var grow: float = clampf((head - s0) / 40.0, 0.0, 1.0)
+			var kk2: int = clampi(int(s0 / seg_len), 0, n - 1)
+			var hot2: float = clampf(1.0 - (age - step * float(kk2) - 0.9) / 0.4, 0.0, 1.0)
+			var nseg: float = float(bp.size() - 1) * grow
+			for j in range(1, bp.size()):
+				if float(j - 1) >= nseg:
+					break
+				var e2: Vector2 = bp[j] if float(j) <= nseg else bp[j - 1].lerp(bp[j], nseg - float(j - 1))
+				_crack_seg(w, bp[j - 1], e2, CRK_COOL.lerp(CRK_HOT, hot2 * 0.8), 3.0 if j > 1 else 4.0, al)
+		# 裂缝前端：一团冰光照在雪上 + 往前蹦的冰屑
+		if f < 1.0:
+			cv.draw_texture_rect(gt, Rect2(((hp - Vector2(44, 25)) / PX).floor() * PX, Vector2(88, 50)), false, Color(0.75, 0.92, 1.0, 0.4))
+			if rng.randf() < 0.7:
+				_add(hp + Vector2(rng.randf_range(-6, 6), 0), Vector2(rng.randf_range(-50, 50), -rng.randf_range(60, 140)), 0.4, A1_LIT if rng.randf() < 0.6 else ICEL[1], 4.0, 3, 500.0)
+	wcracks = keep
+	w.tb_flush()
+
+
+func _ptex(i: int) -> Texture2D:
+	var nm: String = ["pillar_a", "pillar_b", "pillar_c"][i % 3]
+	if not ptex.has(nm):
+		ptex[nm] = load("res://themes/sami/fx/will/%s.png" % nm)
+	return ptex[nm]
+
+
+func _pvar(p: Vector2) -> int:
+	return absi(hash(Vector2i(int(p.x), int(p.y)))) % 3
+
+
+## 冰柱贴图从地里往上顶：只露出贴图上段 vis 格（底边贴地），ys = 纵向过冲
+func _pillar_draw(p: Vector2, vi: int, vis_k: float, ys := 1.0, jit := 0.0, col := Color.WHITE) -> void:
+	var tx: Texture2D = _ptex(vi)
+	var TW: float = float(tx.get_width())
+	var TH: float = float(tx.get_height())
+	var vis: float = floorf(clampf(vis_k, 0.0, 1.0) * TH)
+	if vis < 1.0:
+		return
+	var hgt: float = vis * PX * ys
+	var dst := Rect2(_snap(Vector2(p.x - TW * PX * 0.5 + jit, p.y + 6.0 - hgt)), Vector2(TW * PX, roundf(hgt / PX) * PX))
+	g.wcv.draw_texture_rect_region(tx, dst, Rect2(0, 0, TW, vis), col)
+
+
+## 预警：发光隆起的裂缝。地上一团冰光、几道发光裂缝从中心往外爬到判定边、雪面拱起，最后 0.25 秒冰尖先冒头
+func _pillar_warn(w, cv, t: Dictionary, k: float, sd: int) -> void:
+	var c: Vector2 = t.pos
+	var r: float = float(t.r)
+	var gy: float = g.combat.GROUND_Y
+	var gt: Texture2D = _glow_tex()
+	var gsz := Vector2(r * 2.8, r * 2.8 * gy)
+	cv.draw_texture_rect(gt, Rect2(((c - gsz * 0.5) / PX).floor() * PX, gsz), false, Color(0.75, 0.92, 1.0, 0.2 + 0.35 * k))
+	var nc := 6
+	for i in nc:
+		var a: float = TAU * float(i) / float(nc) + float(sd % 7) * 0.3 + float(absi(hash(Vector2i(sd, i))) % 40) / 100.0
+		var dv := Vector2(cos(a), sin(a) * gy)
+		_crack_col(w, c, dv.angle(), r * dv.length() * (0.95 + 0.1 * float(i % 2)), clampf(k * 1.4, 0.0, 1.0), sd + i * 7, CRK_HOT.lerp(Color.WHITE, k * 0.5), A1_SH, 3.0)
+	# 雪面拱起：背光一侧冷暗、受光一侧亮，越来越高
+	var hv: float = 2.0 + 8.0 * k
+	var rx: float = r * (0.38 + 0.2 * k)
+	var ry: float = rx * 0.45
+	var bump := PackedVector2Array()
+	var lit := PackedVector2Array()
+	for i in 14:
+		var a2: float = TAU * float(i) / 14.0
+		var q := Vector2(cos(a2) * rx, sin(a2) * ry)
+		bump.append(_snap(c + q + Vector2(0, -hv * (0.5 - 0.5 * sin(a2)) * 0.6)))
+		lit.append(_snap(c + q * 0.7 + Vector2(-rx * 0.15, -hv * 0.6 - ry * 0.1)))
+	w.tb_poly(PackedVector2Array(Array(bump).map(func(q): return q + Vector2(2, 2))), Color(A1_SH, 0.55))
+	w.tb_poly(bump, A1_BACK)
+	w.tb_poly(lit, A1_LIT)
+	# 拱顶裂开：三道短亮缝
+	for i in 3:
+		var a3: float = float(sd % 5) + TAU * float(i) / 3.0
+		var q0: Vector2 = c + Vector2(0, -hv * 0.6)
+		w.tb_line(_snap(q0), _snap(q0 + Vector2(cos(a3) * rx * 0.8, sin(a3) * ry * 0.8)), Color(A1_SH), 4.0)
+		w.tb_line(_snap(q0), _snap(q0 + Vector2(cos(a3) * rx * 0.7, sin(a3) * ry * 0.7)), CRK_HOT.lerp(Color.WHITE, k), 2.0)
+	w.tb_flush()
+	if k > 0.72:
+		_pillar_draw(c, _pvar(c), (k - 0.72) / 0.28 * 0.2, 1.0, (1.0 if int(g.t * 30.0) % 2 == 0 else -1.0) * 2.0)
+	if rng.randf() < 0.25 + 0.6 * k:
+		var aq: float = rng.randf() * TAU
+		_add(c + Vector2(cos(aq) * rx, sin(aq) * ry) * rng.randf(), Vector2(rng.randf_range(-20, 20), -rng.randf_range(40, 110)), 0.4, A1_LIT if rng.randf() < 0.7 else A1_MID, 4.0, 3, 400.0)
+
+
+## 冰柱：0.14 秒顶到全高（纵向过冲后回弹）+ 雪块往外飞 + 冰屑 + 冰雾 + 一下冷光；立着时有右下接地影、照地冷光；到期碎掉
+func _will_pillar(w, o: Dictionary, now: float) -> void:
+	var p: Vector2 = o.pos
+	var vi: int = _pvar(p)
+	if not o.has("fx_t0"):
+		o["fx_t0"] = now
+		var gy: float = g.combat.GROUND_Y
+		for i in 18:
+			var a: float = rng.randf() * TAU
+			var sp: float = rng.randf_range(60.0, 220.0)
+			var col: Color = [A1_LIT, A1_LIT, Color(0.78, 0.87, 0.92), A1_MID][rng.randi() % 4]
+			_add(p + Vector2(cos(a) * 18.0, sin(a) * 18.0 * gy), Vector2(cos(a) * sp, sin(a) * sp * gy - rng.randf_range(160.0, 320.0)), rng.randf_range(0.55, 0.85), col, rng.randf_range(4.0, 9.0), 3, 900.0)
+		_shatter("icicle", p + Vector2(0, -10), 0.8, 200.0)
+		for i in 4:
+			_icefog(p + Vector2(rng.randf_range(-24, 24), rng.randf_range(-4, 6)), Vector2(rng.randf_range(-60, 60), rng.randf_range(-20, 0)), 0.8, 34.0, 0.75)
+		_glints(p + Vector2(0, -50), 6, 30.0)
+		glows.append([p + Vector2(0, -20), now, 160.0])
+	var age: float = now - float(o.fx_t0)
+	var left: float = float(o.until) - now
+	if left < 0.14:
+		if not o.get("fx_shat", false):
+			o["fx_shat"] = true
+			_shatter("icicle", p + Vector2(-10, -6), 1.2, 200.0)
+			_shatter("icicle", p + Vector2(10, -2), 1.0, 180.0)
+			embers(p + Vector2(0, -40), 8, ICEL[1], 160.0, 320.0, 0.5, 5.0)
+			for i in 2:
+				_icefog(p + Vector2(rng.randf_range(-16, 16), 0), Vector2(rng.randf_range(-40, 40), -10), 0.7, 30.0, 0.7)
+		return
+	var s: float = clampf(age / 0.14, 0.0, 1.0)
+	var hk: float = 1.0 - pow(1.0 - s, 3.0)
+	var ys: float = 1.0 + 0.12 * clampf(1.0 - (age - 0.14) / 0.16, 0.0, 1.0) * (1.0 if age > 0.1 else 0.0)
+	var jit: float = (sin(age * 70.0) * 2.0) if age < 0.3 else 0.0
+	# 接地影（光从左上来 → 影子落右下）+ 冰柱自己的低亮度冷光照地
+	_ground_shadow(p + Vector2(16, 6), 26.0 * hk, 0.95)
+	var gt: Texture2D = _glow_tex()
+	var gk: float = 0.14 + 0.3 * clampf(1.0 - age / 0.5, 0.0, 1.0)
+	g.wcv.draw_texture_rect(gt, Rect2(((p - Vector2(60, 26)) / PX).floor() * PX, Vector2(120, 52)), false, Color(0.75, 0.92, 1.0, gk))
+	_pillar_draw(p, vi, hk, ys, jit)
+	if age < 0.12:
+		_pillar_draw(p, vi, hk, ys, jit, Color(1.6, 1.7, 1.8, 0.5 * (1.0 - age / 0.12)))   # 顶出那一下爆亮再冷却
 
 
 func _ice_peak(w, p: Vector2, h: float, wd: float) -> void:
