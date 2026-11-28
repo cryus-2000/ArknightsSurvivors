@@ -269,6 +269,8 @@ def main():
     t = sub.add_parser("table")
     t.add_argument("paths", nargs="+")
     a = ap.parse_args()
+    if hasattr(a, "extra"):
+        a.extra = [y for x in a.extra for y in x.split()]   # 11-28：--extra="--bal=a=1 --bal=b=2" 一次传多个覆盖（argparse 不收以 -- 开头的多值）
     if a.cmd == "record":
         cmd_record(a)
     elif a.cmd == "run":
