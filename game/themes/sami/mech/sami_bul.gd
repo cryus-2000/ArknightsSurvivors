@@ -20,7 +20,7 @@ var RAMP := {
 	"khan": _ramp(Color8(196, 40, 30), Color8(110, 14, 10), Color8(250, 120, 92)),
 	"lion": _ramp(Color8(244, 172, 36), Color8(164, 98, 12), Color8(255, 230, 124)),
 	"shaman": _ramp(Color8(150, 172, 250), Color8(64, 86, 196), Color8(214, 226, 255)),   # 11-28 冰屑：冰白 + 浅靛
-	"vine": _ramp(Color8(120, 84, 52), Color8(62, 40, 26), Color8(176, 132, 86)),          # 11-28 土块 / 木屑：土褐
+	"vine": _ramp(Color8(96, 62, 38), Color8(54, 34, 22), Color8(142, 100, 64)),           # 11-28 土块：深褐 + 浅褐
 }
 ## 敌人种类 → [配色, 形状, 是否对称, 尘]
 const KIND := {
@@ -28,7 +28,7 @@ const KIND := {
 	"will": ["will", "snow", true, "snow"], "lead": ["lead", "leaf", false, "snow"], "cresson": ["cresson", "petal", false, "snow"],
 	"khan": ["khan", "lance", false, "sand"], "lion": ["lion", "sun", true, "sand"],
 	"shaman": ["shaman", "shard", false, "snow"], "shaman2": ["shaman", "shard", false, "snow"],   # 11-28：水滴形 → 不规则棱角碎冰
-	"vine": ["vine", "shard", false, "snow"], "vine2": ["vine", "shard", false, "snow"],           # 11-28：绿叶片 → 土块
+	"vine": ["vine", "clod", false, "snow"], "vine2": ["vine", "clod", false, "snow"],             # 11-28：绿叶片 → 棱角土块
 }
 
 var cache := {}
@@ -187,8 +187,20 @@ func _shape(kind: String, sz: float, u: float, v: float) -> float:
 				return -1.0
 			if r7 < rr7 * 0.22:
 				return 0.0
-			var shade: Array = [0.4, 0.62, 0.92, 0.78, 0.5]
-			return float(shade[i7]) * (0.75 + 0.25 * r7 / rr7)
+			var shade: Array = [0.38, 0.55, 0.78, 0.7, 0.4]   # 受光面冰白 → 背光面浅靛（不到最深那档）
+			return float(shade[i7])
+		"clod":
+			# 棱角土块：四边形不规则，两面深褐 / 两面浅褐，无白芯
+			var R8: float = sz * 0.46
+			var r8: float = Vector2(u, v).length()
+			var a8: float = fposmod(atan2(v, u) + 0.4, TAU)
+			var vr8: Array = [1.0, 0.7, 0.92, 0.62]
+			var fa8: float = a8 / (TAU / 4.0)
+			var i8: int = int(fa8) % 4
+			var rr8: float = R8 * lerpf(float(vr8[i8]), float(vr8[(i8 + 1) % 4]), fa8 - floorf(fa8))
+			if r8 > rr8:
+				return -1.0
+			return [0.6, 0.78, 0.92, 0.78][i8]
 		"pod":
 			var hl6: float = sz * 0.5
 			var W6: float = sz * 0.54
@@ -250,6 +262,20 @@ func _make(t: String, sz: int, d: int) -> ImageTexture:
 						best = c2
 				img.set_pixel(i, j, best)
 				mask[j * S + i] = 1
+	# 碎冰 / 土块：实心不透明、外沿 1 格本色最深一档描边，不加霜点和尘（霜点让碎块读成半透明白椭圆）
+	if kind == "shard" or kind == "clod":
+		var oc: Color = Color(rp[4]).darkened(0.35)
+		for j in S:
+			for i in S:
+				if mask[j * S + i] == 1:
+					continue
+				for dd in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+					var xx: int = i + dd.x
+					var yy: int = j + dd.y
+					if xx >= 0 and yy >= 0 and xx < S and yy < S and mask[yy * S + xx] == 1:
+						img.set_pixel(i, j, oc)
+						break
+		return ImageTexture.create_from_image(img)
 	# 霜点：外缘 1 格棋盘抖动、2 格稀疏
 	for j in S:
 		for i in S:

@@ -888,6 +888,13 @@ func _blade_ground(w, now: float) -> void:
 				# 雾中突袭 / 雾行旋斩（§11.2，11-26：伤人的只有本体，地上不冒刃）：圈里星形裂缝往外爬、圈边一圈低亮度黑雾慢慢加浓；
 				# 本体沉在雾下滑过来时，后 40% 圆心先顶出它自己的一截刃尖（黑刃 + 红刃口），读成「它要从这里钻出来」
 				var sdk: int = absi(hash(Vector2i(int(t.pos.x), int(t.pos.y)))) % 997
+				if r >= 150.0:
+					# 旋身斩 r200（11-28 协调人）：和大横斩同一套——一圈裂缝从脚下往外爬到判定边，不画边上一圈雾团（读成细环）
+					for i in 12:
+						var ai: float = TAU * float(i) / 12.0 + float(sdk % 7) * 0.2
+						var dvi := Vector2(cos(ai), sin(ai) * gy)
+						_crack(w, t.pos, dvi.angle(), r * dvi.length(), k, sdk + i, 5.0)
+					continue
 				for i in 6:
 					_crack(w, t.pos, TAU * float(i) / 6.0 + float(sdk % 7) * 0.3, r * 0.92, k, sdk + i, 4.0)
 				var ne: int = clampi(int(TAU * r / 40.0), 8, 20)
@@ -3168,7 +3175,12 @@ func _fin_front(w, cv, now: float) -> void:
 				var sc = e.get("scissor")
 				if sc is Dictionary and sc.has("half"):
 					for s in [-1.0, 1.0]:
-						_shear(w, sc.pivot, float(sc.a0) + s * float(sc.half), 640.0)
+						var dsh := Vector2.from_angle(float(sc.a0) + s * float(sc.half))
+						var sdc: int = 4100 + int(s * 7.0)
+						w.tb_polygon(_rift_pts(sc.pivot, dsh, 640.0, 26.0, sdc), RIFT_EDGE)   # 11-28：剪刃 = 空间切开（原淡紫直光束）
+						w.tb_polygon(_rift_pts(sc.pivot, dsh, 640.0, 18.0, sdc), RIFT_IN)
+						if rng.randf() < 0.5:
+							_add(sc.pivot + dsh * rng.randf_range(40.0, 640.0), Vector2(rng.randf_range(-40, 40), -rng.randf_range(20, 60)), 0.3, RIFT_EDGE, 4.0, 3, 0.0)
 					w.tb_circle(sc.pivot, 12.0, OLC, 1.0, 12)
 					w.tb_circle(sc.pivot, 9.0, LIL[3], 1.0, 12)
 					w.tb_circle(sc.pivot, 4.0, LIL[4], 1.0, 8)
@@ -4774,11 +4786,30 @@ func _vent_draw(w, cv, p: Vector2, now: float, hot: float) -> void:
 	var gt: Texture2D = _glow_tex()
 	var pul: float = 0.75 + 0.25 * sin(now * 4.0 + p.x * 0.01)
 	var rs: Array = _organic_rs(absi(int(p.x * 7.0 + p.y)) % 997, 16)
+	# 熔光化开的暗雪斑：有机外形（多点 + 碎边），中间更湿更暗，边上几块碎斑，里面几点积水反光
+	var rw: Array = _organic_rs(absi(int(p.x * 3.0 + p.y * 7.0)) % 997, 40)
 	var wet := PackedVector2Array()
-	for i in 16:
-		var a0: float = TAU * float(i) / 16.0
-		wet.append(p + Vector2(cos(a0), sin(a0) * 0.6) * 76.0 * float(rs[(i + 5) % 16]))
-	w.tb_polygon(wet, Color(0.36, 0.4, 0.46, 0.4))   # 熔光化开的一圈湿暗雪
+	var wet2 := PackedVector2Array()
+	for i in 40:
+		var a0: float = TAU * float(i) / 40.0
+		var jag: float = 1.0 + (0.12 if i % 3 == 0 else -0.05)
+		wet.append(p + Vector2(cos(a0), sin(a0) * 0.6) * 78.0 * float(rw[i]) * jag)
+		wet2.append(p + Vector2(cos(a0), sin(a0) * 0.6) * 54.0 * float(rw[(i + 7) % 40]))
+	w.tb_polygon(wet, Color(0.45, 0.52, 0.6, 0.55))
+	w.tb_polygon(wet2, Color(0.33, 0.38, 0.46, 0.6))
+	for i in 5:
+		var hs: int = absi(hash(Vector2i(int(p.x) + i, int(p.y))))
+		var aa: float = float(hs % 628) / 100.0
+		var q: Vector2 = p + Vector2(cos(aa), sin(aa) * 0.6) * (88.0 + float(hs % 20))
+		var ss: float = 6.0 + float((hs / 7) % 6)
+		w.tb_poly(PackedVector2Array([q + Vector2(-ss, 0), q + Vector2(-ss * 0.3, -ss * 0.5), q + Vector2(ss, -ss * 0.2), q + Vector2(ss * 0.4, ss * 0.5)]), Color(0.45, 0.52, 0.6, 0.5))
+	w.tb_flush()
+	for i in 4:
+		var hs2: int = absi(hash(Vector2i(int(p.y) + i * 13, int(p.x))))
+		var a2: float = float(hs2 % 628) / 100.0
+		var q2: Vector2 = p + Vector2(cos(a2), sin(a2) * 0.6) * (44.0 + float(hs2 % 24))
+		if int(now * 3.0 + float(i)) % 3 != 0:
+			cv.draw_rect(Rect2(_snap(q2), Vector2(4, 2)), Color(0.85, 0.95, 1.0, 0.85))   # 积水反光
 	var gsz := Vector2(200, 110) * (1.0 + 0.5 * hot)
 	cv.draw_texture_rect(gt, Rect2(((p - gsz * 0.5) / PX).floor() * PX, gsz), false, Color(1.0, 0.5, 0.2, (0.45 + 0.4 * hot) * pul))
 	var ring := PackedVector2Array()
@@ -4787,7 +4818,17 @@ func _vent_draw(w, cv, p: Vector2, now: float, hot: float) -> void:
 		var a: float = TAU * float(i) / 16.0
 		ring.append(p + Vector2(cos(a), sin(a) * 0.6) * 36.0 * float(rs[i]))
 		core.append(p + Vector2(cos(a), sin(a) * 0.6) * 21.0 * float(rs[i]) + Vector2(1, 1))
-	w.tb_polygon(ring, Color(0.18, 0.13, 0.13))
+	# 岩唇：先画往下错开的暗侧壁（隆起），再画岩面，左上一段受光
+	var side := PackedVector2Array()
+	for q in ring:
+		side.append(q + Vector2(2, 7))
+	w.tb_polygon(side, Color(0.1, 0.07, 0.07))
+	w.tb_polygon(ring, Color(0.24, 0.18, 0.17))
+	var litr := PackedVector2Array()
+	for i in range(9, 15):
+		litr.append(ring[i])
+	litr.append(p + Vector2(-6, -6))
+	w.tb_polygon(litr, Color(0.42, 0.34, 0.3))
 	w.tb_polygon(core, Color(1.0, 0.45 + 0.25 * hot, 0.15).lerp(Color(1, 0.9, 0.6), hot * 0.6))
 	w.tb_flush()
 	if rng.randf() < 0.06 + 0.5 * hot:
@@ -5335,16 +5376,18 @@ func _kd_ink(cv, km, now: float) -> void:
 			continue
 		if not vr.grow(r).has_point(k.pos):
 			continue
-		var n: int = clampi(int(r * r / 1600.0), 3, 14)
+		var n: int = clampi(int(r * r / 3200.0), 2, 9)
 		for i in n:
 			var hs: int = absi(hash(Vector2i(sd, i)))
 			var a: float = float(hs % 628) / 100.0 + now * (0.1 + 0.05 * float(hs % 3)) * (1.0 if hs % 2 == 0 else -1.0)
 			var rr: float = r * 0.62 * sqrt(float((hs / 628) % 100) / 100.0) * rev
 			var q2: Vector2 = (k.pos as Vector2) + Vector2(cos(a), sin(a) * 0.75) * rr
-			var s: float = r * (1.15 + 0.45 * float((hs / 62800) % 100) / 100.0) * (0.92 + 0.12 * sin(now * 0.9 + float(i) * 1.3))
+			var s: float = r * (0.7 + 0.3 * float((hs / 62800) % 100) / 100.0) * (0.92 + 0.12 * sin(now * 0.9 + float(i) * 1.3))
 			if km._in_cut(q2):
 				continue
-			cv.draw_texture_rect(fog_puff[hs % 4], Rect2(_snap(q2 - Vector2(s, s * 0.75) * 0.5), Vector2(s, s * 0.75)), false, Color(1, 1, 1, 0.85 * KD_WISP * al))
+			cv.draw_texture_rect(fog_puff[hs % 4], Rect2(_snap(q2 - Vector2(s, s * 0.75) * 0.5), Vector2(s, s * 0.75)), false, Color(1, 1, 1, 0.8 * KD_WISP * al))
+			var sc2: float = s * 0.5   # 团心：再叠一层小而实的黑芯
+			cv.draw_texture_rect(fog_puff[(hs + 1) % 4], Rect2(_snap(q2 - Vector2(sc2, sc2 * 0.75) * 0.5), Vector2(sc2, sc2 * 0.75)), false, Color(0.55, 0.5, 0.55, 1.0 * al))
 		# 边缘烟丝：小雾团从边上往外飘、变淡（循环）
 		var m: int = clampi(int(TAU * r / 22.0), 8, 40)
 		for i in m:
@@ -5353,7 +5396,7 @@ func _kd_ink(cv, km, now: float) -> void:
 			var a2: float = TAU * float(i) / float(m) + float(hs2 % 50) / 100.0
 			var q3: Vector2 = (k.pos as Vector2) + Vector2(cos(a2), sin(a2) * 0.75) * r * (0.8 + 0.35 * ph) * rev + Vector2(0, -16.0 * ph)
 			var s3: float = (26.0 + float(hs2 % 20)) * (1.0 - 0.4 * ph)
-			cv.draw_texture_rect(fog_puff[(hs2 / 3) % 4], Rect2(_snap(q3 - Vector2(s3, s3 * 0.8) * 0.5), Vector2(s3, s3 * 0.8)), false, Color(1, 1, 1, 0.55 * KD_WISP * al * (1.0 - ph)))
+			cv.draw_texture_rect(fog_puff[(hs2 / 3) % 4], Rect2(_snap(q3 - Vector2(s3, s3 * 0.8) * 0.5), Vector2(s3, s3 * 0.8)), false, Color(1, 1, 1, 0.38 * KD_WISP * al * (1.0 - ph)))
 	for l in km.links:
 		var a3: Vector2 = l[0].pos
 		var b3: Vector2 = l[1].pos
