@@ -2698,7 +2698,7 @@ func _warn_burst(t: Dictionary, ot: String) -> void:
 		cres_implode(c, float(t.r))   # 克雷松闪现落地内爆（11-28，fm_c4）
 		return
 	if ot.begins_with("shaman"):
-		_sham_burst(t)
+		_sham_wburst(t)
 		return
 	if ot == "cresson" and t.shape == "line":
 		cres_rift(t)   # 双击 / 裂隙：空间被切开
@@ -4459,7 +4459,7 @@ func _sham_warn(w, cv, t: Dictionary, k: float, sd: int) -> void:
 				_crack_col(w, c, float(t.ang), L, k, sd, IND[2], IND[0], 4.0)
 
 
-func _sham_burst(t: Dictionary) -> void:
+func _sham_wburst(t: Dictionary) -> void:
 	if t.shape == "circle":
 		_sham_crystal_burst(t.pos, float(t.r))
 	elif t.shape == "line":
