@@ -42,6 +42,7 @@ func shot(e: Dictionary, pos: Vector2, ang: float, spd: float, tier: int, pct: f
 	var bc: float = Bal.v("boss/bul_cap_" + str(e.type), 0.0)   # 11-26：弹体单发另封顶（比招式低，免得几发小弹叠成秒杀）
 	var dv: float = minf(pd(e, pct), bc * g.max_hp) if bc > 0.0 else pd(e, pct)
 	o2["mult"] = dv / maxf(0.01, e.dmg) / maxf(0.01, Bal.v("boss/mid_pattern_dmg", 0.7) * Bal.v("enemy/bullet_dmg_mult", 0.75))
+	var n0: int = g.ebullets.size()
 	MC.shot(g, e, pos, ang, spd, tier, o2)
 	if o.get("small", false) and g.ebullets.size() > n0:
 		g.ebullets[g.ebullets.size() - 1]["sfx_small"] = true   # 画面：成片铺满的招用 19 号小弹（docs/401 §19）
