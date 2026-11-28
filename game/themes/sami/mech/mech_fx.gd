@@ -4865,6 +4865,17 @@ func _vine_warn2(w, cv, t: Dictionary, k: float, sd: int) -> void:
 			if float(t.get("dmg", 0.0)) <= 0.0:
 				_mound_ridge(w, c - Vector2(14, 0), c + Vector2(14, 0), 1.0, sd, 0.0)   # 根头土包
 				return
+			if r <= 35.0:
+				# 焚根落火（r30）：地上一团熔光 + 几道熔红裂缝，不画拱起（小圈拱起读成白圆盘）
+				var fsz := Vector2(r * 3.0, r * 1.8)
+				cv.draw_texture_rect(_glow_tex(), Rect2(((c - fsz * 0.5) / PX).floor() * PX, fsz), false, Color(1.0, 0.5, 0.2, 0.25 + 0.4 * k))
+				for i in 5:
+					var af: float = TAU * float(i) / 5.0 + float(sd % 5)
+					var dvf := Vector2(cos(af), sin(af) * gy)
+					_crack_col(w, c, dvf.angle(), r * dvf.length(), clampf(k * 1.3, 0.0, 1.0), sd + i * 3, EMBER, SOIL[0], 3.0)
+				if rng.randf() < 0.3 + 0.5 * k:
+					_add(c + Vector2(rng.randf_range(-r, r) * 0.5, 0), Vector2(rng.randf_range(-20, 20), -rng.randf_range(40, 100)), 0.4, EMBER, 3.0, 3, 0.0)
+				return
 			# 破土：地面拱起（背光冷面 + 受光雪顶）、土缝里透火光、雪土往上蹦
 			var hv: float = 4.0 + 12.0 * k
 			var bump := PackedVector2Array()
