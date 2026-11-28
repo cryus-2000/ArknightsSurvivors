@@ -4944,8 +4944,8 @@ func _tree_shade(e: Dictionary, x: float, y: float) -> bool:
 	return false
 
 
-## 雪浪：楔形 60°，前沿半径 fr（40 → 600，150 px/秒）。前沿 = 一堵往前滚的积雪墙（背光正面 + 受光翻卷顶 + 顶上卷起的雪团），
-## 墙后是被推平的雪面（淡），墙前 20–70 地面先裂开，前沿往前抛雪块
+## 雪浪 v2（协调人 11-28：贴地滚的浪头，不是悬空厚板）：每个弧片画一个截面——后坡（受光、从地面缓升）→ 浪顶（最亮）→ 前沿卷起往前翻落（冷面）→ 贴地前脚 + 接地冷影；
+## 高 ≥ 队长 1.5 倍（≈ 110）；顶上大团雪粉往前翻落，浪后拖雪雾；前方地面横向不规则龟裂（沿弧方向的锯齿裂 + 少量连接短裂）
 func _will_wave(w, cv, e: Dictionary, now: float) -> void:
 	var sw = e.get("swave")
 	if not (sw is Dictionary):
@@ -4956,128 +4956,176 @@ func _will_wave(w, cv, e: Dictionary, now: float) -> void:
 	var o: Vector2 = sw.o
 	var a: float = float(sw.a)
 	var gy: float = g.combat.GROUND_Y
-	var half: float = PI / 6.0
-	var n: int = clampi(int(2.0 * half * fr / 22.0), 6, 60)
+	var half: float = PI / 6.0 + 0.06
+	var n: int = clampi(int(2.0 * half * maxf(fr, 120.0) / 16.0), 10, 72)
+	var H: float = 110.0
 	_fin_tex()
-	# 墙后推平的雪面：一条淡雪带
-	for i in n:
-		var b0: float = a - half + 2.0 * half * float(i) / float(n)
-		var b1: float = a - half + 2.0 * half * float(i + 1) / float(n)
-		var q0: Vector2 = o + Vector2(cos(b0), sin(b0) * gy) * fr
-		if _tree_shade(e, q0.x, q0.y):
-			continue
-		var q1: Vector2 = o + Vector2(cos(b1), sin(b1) * gy) * fr
-		var p0: Vector2 = o + Vector2(cos(b0), sin(b0) * gy) * maxf(30.0, fr - 140.0)
-		var p1: Vector2 = o + Vector2(cos(b1), sin(b1) * gy) * maxf(30.0, fr - 140.0)
-		w.tb_quad(p0, p1, q1, q0, Color(A1_LIT, 0.35))
+	var rad := func(b: float, r: float) -> Vector2:
+		return o + Vector2(cos(b), sin(b) * gy) * r
+	# 前方龟裂：沿弧方向两三道锯齿裂 + 少量短连接裂（横向，不是一根根竖线）
+	var ck: float = clampf((fr - 40.0) / 80.0, 0.0, 1.0)
+	for row in 3:
+		var rr: float = fr + 26.0 + 22.0 * float(row)
+		var prev := Vector2.INF
+		for i in n + 1:
+			var b: float = a - half + 2.0 * half * float(i) / float(n)
+			var jit: float = float(absi(hash(Vector2i(i, row * 31 + int(fr / 40.0)))) % 100) / 100.0 * 10.0 - 5.0
+			var q: Vector2 = rad.call(b, rr + jit)
+			var cut: bool = _tree_shade(e, q.x, q.y) or (absi(hash(Vector2i(i, row))) % 5 == 0)
+			if prev != Vector2.INF and not cut:
+				w.tb_line(_snap(prev), _snap(q), Color(A1_SH, 0.75 * ck * (1.0 - 0.25 * float(row))), 3.0)
+				w.tb_line(_snap(prev + Vector2(1, 2)), _snap(q + Vector2(1, 2)), Color(A1_LIT, 0.6 * ck), 2.0)
+			prev = Vector2.INF if cut else q
+			if i % 4 == 2 and row < 2 and not cut:
+				w.tb_line(_snap(q), _snap(rad.call(b + 0.02, rr + 22.0)), Color(A1_SH, 0.6 * ck), 2.0)
 	w.tb_flush()
-	# 墙前地面裂开（短裂缝往前爬）
-	for i in range(0, n, 2):
-		var b: float = a - half + 2.0 * half * (float(i) + 0.5) / float(n)
-		var q: Vector2 = o + Vector2(cos(b), sin(b) * gy) * (fr + 14.0)
-		if _tree_shade(e, q.x, q.y):
-			continue
-		var dv := Vector2(cos(b), sin(b) * gy)
-		_crack_col(w, q, dv.angle() + float((i * 7) % 5 - 2) * 0.12, 40.0 + float((i * 13) % 4) * 10.0, clampf((fr - 40.0) / 60.0, 0.0, 1.0), i * 17 + int(fr / 60.0), A1_BACK, A1_SH, 4.0)
-	w.tb_flush()
-	# 积雪墙：每格一段——背光正面（冷暗）+ 受光顶（亮）+ 顶上卷起的雪团（雪雾贴图），起伏
+	# 浪头截面：逐弧片画四段（后坡低 / 后坡高 / 前沿卷 / 前脚），相邻弧片共边，连成整体贴地
+	var prof: Array = []
+	for i in n + 1:
+		var b: float = a - half + 2.0 * half * float(i) / float(n)
+		var hh: float = H * (0.85 + 0.15 * sin(float(i) * 0.9 + now * 5.0)) * clampf(0.55 + fr / 400.0, 0.55, 1.0)
+		var ok: bool = not _tree_shade(e, (rad.call(b, fr) as Vector2).x, (rad.call(b, fr) as Vector2).y)
+		prof.append([
+			rad.call(b, maxf(10.0, fr - 150.0)),                                  # 后坡起点（地面）
+			rad.call(b, fr - 70.0) + Vector2(0, -hh * 0.45),                       # 后坡中
+			rad.call(b, fr - 14.0) + Vector2(0, -hh),                              # 浪顶
+			rad.call(b, fr + 8.0) + Vector2(0, -hh * 0.72),                        # 前沿卷出去
+			rad.call(b, fr + 14.0) + Vector2(0, -hh * 0.25),                       # 前沿下垂
+			rad.call(b, fr + 10.0),                                                # 前脚（地面）
+			ok])
+	var cols: Array = [Color(0.8, 0.88, 0.93), A1_LIT, Color(1, 1, 1), Color(0.66, 0.77, 0.85), A1_BACK]
 	for i in n:
-		var b: float = a - half + 2.0 * half * (float(i) + 0.5) / float(n)
-		var q: Vector2 = o + Vector2(cos(b), sin(b) * gy) * fr
-		if _tree_shade(e, q.x, q.y):
+		var p0: Array = prof[i]
+		var p1: Array = prof[i + 1]
+		if not p0[6] or not p1[6]:
 			continue
-		var hh: float = 58.0 + 14.0 * sin(float(i) * 1.7 + now * 6.0) + 8.0 * sin(float(i) * 0.6 - now * 3.0)
-		var wd: float = 2.0 * half * fr / float(n) * 0.62 + 4.0
-		var tng := Vector2(-sin(b), cos(b) * gy).normalized()
-		w.tb_quad(_snap(q - tng * wd + Vector2(0, 4)), _snap(q + tng * wd + Vector2(0, 4)), _snap(q + tng * wd + Vector2(0, -hh * 0.55)), _snap(q - tng * wd + Vector2(0, -hh * 0.55)), A1_BACK)
-		w.tb_quad(_snap(q - tng * wd + Vector2(0, -hh * 0.5)), _snap(q + tng * wd + Vector2(0, -hh * 0.5)), _snap(q + tng * wd * 0.8 + Vector2(0, -hh)), _snap(q - tng * wd * 0.8 + Vector2(0, -hh)), A1_LIT)
+		w.tb_quad(p0[5] + Vector2(4, 4), p1[5] + Vector2(4, 4), p1[5] + Vector2(-6, 2), p0[5] + Vector2(-6, 2), Color(A1_SH, 0.5))   # 前脚接地冷影
+		for s in 5:
+			w.tb_quad(p0[s], p1[s], p1[s + 1], p0[s + 1], cols[s])
 	w.tb_flush()
-	for i in n:
-		var b: float = a - half + 2.0 * half * (float(i) + 0.5) / float(n)
-		var q: Vector2 = o + Vector2(cos(b), sin(b) * gy) * fr
-		if _tree_shade(e, q.x, q.y):
+	# 浪顶往前翻落的大团雪粉 + 浪后拖雪雾
+	for i in range(0, n + 1, 2):
+		var pf: Array = prof[i]
+		if not pf[6]:
 			continue
-		var hh: float = 58.0 + 14.0 * sin(float(i) * 1.7 + now * 6.0)
-		var sz: float = 80.0 + float((i * 37) % 40)
-		cv.draw_texture_rect(snow_puff, Rect2(_snap(q + Vector2(-sz * 0.5, -hh - sz * 0.5)), Vector2(sz, sz * 0.7)), false, Color(1, 1, 1, 0.95))   # 翻卷顶
-		var sz2: float = sz * 0.7
-		var curl: float = fposmod(now * 2.5 + float(i) * 0.37, 1.0)   # 卷起的雪团从顶往前翻落
-		cv.draw_texture_rect(snow_puff, Rect2(_snap(q + Vector2(cos(b), sin(b) * gy) * 20.0 * curl + Vector2(-sz2 * 0.5, -hh * (1.0 - curl * 0.6) - sz2 * 0.4)), Vector2(sz2, sz2 * 0.7)), false, Color(1, 1, 1, 0.8 * (1.0 - curl)))
-		if rng.randf() < 0.18:
-			var dv2 := Vector2(cos(b), sin(b) * gy)
-			_add(q + Vector2(0, -hh), dv2 * rng.randf_range(80, 200) + Vector2(0, -rng.randf_range(80, 200)), rng.randf_range(0.5, 0.8), A1_LIT if rng.randf() < 0.6 else Color(0.78, 0.87, 0.92), rng.randf_range(6.0, 12.0), 3, 800.0)
+		var sz: float = 70.0 + float((i * 37) % 40)
+		var curl: float = fposmod(now * 2.2 + float(i) * 0.31, 1.0)
+		var fwd: Vector2 = ((pf[5] as Vector2) - (pf[0] as Vector2)).normalized()
+		var q2: Vector2 = (pf[2] as Vector2).lerp(pf[4], curl) + fwd * 14.0 * curl
+		cv.draw_texture_rect(snow_puff, Rect2(_snap(q2 - Vector2(sz, sz * 0.7) * 0.5), Vector2(sz, sz * 0.7)), false, Color(1, 1, 1, 0.9 * (1.0 - curl * 0.6)))
+		if rng.randf() < 0.12:
+			_icefog((pf[0] as Vector2).lerp(pf[1], 0.5), -fwd * 30.0 + Vector2(0, -6), 1.0, 60.0, 0.55)
+		if rng.randf() < 0.2:
+			_add(pf[3], fwd * rng.randf_range(120, 240) + Vector2(0, -rng.randf_range(40, 140)), rng.randf_range(0.5, 0.8), A1_LIT if rng.randf() < 0.6 else Color(0.78, 0.87, 0.92), rng.randf_range(6.0, 12.0), 3, 800.0)
 
 
-## 暴风雪地面层（单位之下）：风雪带范围（北 → 前沿 y）整片压暗 + 横向飞雪条纹往风向刮；3 条缝和银凇阴影里不压（安全道一眼看清）
+## 暴风雪 v2：压暗用一片片柔边暗雾团（随风漂、边缘不规则），主体是两层斜向（往东南）高速雪条 + 雪粒（远层细慢淡、近层粗快亮）；
+## 安全缝 = 风小雪少：缝里雪条稀、雪粒慢、暗雾淡，按距离渐变；前沿密雪墙两排、翻滚
+func _bz_gapk(bz: Dictionary, x: float) -> float:
+	var k := 1.0
+	for gx in bz.gaps:
+		k = minf(k, clampf((absf(x - float(gx)) - 30.0) / 50.0, 0.0, 1.0))
+	return k
+
+
 func _will_storm_ground(w, cv, e: Dictionary, bz: Dictionary, y: float, now: float) -> void:
 	var ar_d: Dictionary = _will_arena(e)
-	var x0: float = (ar_d.c as Vector2).x - float(ar_d.ar) * 3.0   # 左右 / 北边都铺出画面外，不露矩形边
-	var x1: float = (ar_d.c as Vector2).x + float(ar_d.ar) * 3.0
-	var yn: float = float(ar_d.n) - 900.0
-	# 按 16 宽一列压暗；缝 / 银凇阴影附近按距离渐淡（软边），缝中心完全不压
-	var x: float = x0
-	while x < x1:
-		var xm: float = x + 8.0
-		var ga: float = 1.0
-		for gx in bz.gaps:
-			ga = minf(ga, clampf((absf(xm - float(gx)) - 40.0) / 24.0, 0.0, 1.0))
-		var y_cut: float = y + 9.0 * sin(xm * 0.025 + now * 2.1) + 6.0 * sin(xm * 0.061 - now * 3.3)   # 前沿起伏（和雪墙同相）
-		for t2 in e.get("trees", []):
-			if float(t2.dead_t) <= 0.0 and absf(xm - (t2.pos as Vector2).x) < 46.0:
-				y_cut = minf(y_cut, (t2.pos as Vector2).y)
-		if ga > 0.0:
-			w.tb_quad(Vector2(x, yn), Vector2(x + 16.0, yn), Vector2(x + 16.0, y_cut), Vector2(x, y_cut), Color(0.2, 0.28, 0.4, 0.38 * ga))
-		x += 16.0
-	w.tb_flush()
-	# 横向飞雪条纹：一批按哈希定位的短粗条，往东南刮（风 (+1, 0.12)），循环
-	var area_h: float = maxf(0.0, y - yn)
-	var ns: int = clampi(int(area_h * (x1 - x0) / 2600.0), 0, 260)
-	for i in ns:
-		var hs: int = absi(hash(Vector2i(i, 4417)))
-		var spd: float = 520.0 + float(hs % 300)
-		var px: float = x0 + fposmod(float(hs % 2000) / 2000.0 * (x1 - x0) + now * spd, x1 - x0)
-		var py: float = yn + float((hs / 2000) % 1000) / 1000.0 * area_h + (px - x0) * 0.12 * 0.15
-		var gap2 := false
-		for gx in bz.gaps:
-			if absf(px - float(gx)) < 45.0:
-				gap2 = true
-		if gap2 or py > y or _tree_shade(e, px, py):
-			continue
-		var ln: float = 18.0 + float(hs % 30)
-		var col: Color = Color(0.92, 0.96, 1.0, 0.55 + 0.35 * float((hs / 7) % 3) / 2.0)
-		w.tb_line(_snap(Vector2(px, py)), _snap(Vector2(px + ln, py + ln * 0.12)), col, 2.0 if hs % 3 else 4.0)
-		if hs % 11 == 0:
-			cv.draw_rect(Rect2(_snap(Vector2(px + ln, py)), Vector2(4, 4)), Color(0.75, 0.88, 1.0))   # 冰屑
+	var cx: float = (ar_d.c as Vector2).x
+	var x0: float = cx - float(ar_d.ar) * 3.0
+	var x1: float = cx + float(ar_d.ar) * 3.0
+	var yn: float = float(ar_d.n) - 700.0
+	var gt: Texture2D = _glow_tex()
+	# 柔边暗雾团：网格 + 抖动 + 随风漂；靠前沿那排往前探、深浅不一 → 不规则软边
+	var sp := 150.0
+	var iy := 0
+	var yy: float = yn
+	while yy < y + 40.0:
+		var xx: float = x0 + fposmod(now * 60.0 + float(iy) * 53.0, sp)
+		while xx < x1:
+			var hs: int = absi(hash(Vector2i(int(xx / sp), iy)))
+			var px: float = xx + float(hs % 60) - 30.0
+			var py: float = yy + float((hs / 60) % 50) - 25.0 + sin(now * 0.8 + float(hs % 7)) * 10.0
+			if py > y + 20.0:
+				xx += sp
+				continue
+			var gk: float = _bz_gapk(bz, px)
+			if _tree_shade(e, px, py):
+				gk *= 0.2
+			var edge: float = clampf((y + 20.0 - py) / 120.0, 0.0, 1.0)
+			var s: float = 300.0 + float(hs % 120)
+			cv.draw_texture_rect(gt, Rect2(_snap(Vector2(px - s * 0.5, py - s * 0.3)), Vector2(s, s * 0.6)), false, Color(0.16, 0.22, 0.33, 0.32 * gk * edge))
+			xx += sp
+		yy += sp * 0.6
+		iy += 1
+	# 两层雪条（远 / 近），往东南高速刮；缝里稀、慢
+	var area_h: float = maxf(0.0, y - (float(ar_d.n) - 200.0))
+	var ytop: float = float(ar_d.n) - 200.0
+	for layer in 2:
+		var cnt: int = 260 if layer == 0 else 160
+		for i in cnt:
+			var hs2: int = absi(hash(Vector2i(i, 4417 + layer * 97)))
+			var spd: float = (380.0 if layer == 0 else 760.0) + float(hs2 % 200)
+			var bx: float = float(hs2 % 3000) / 3000.0 * (x1 - x0)
+			var px2: float = x0 + fposmod(bx + now * spd, x1 - x0)
+			var gk2: float = _bz_gapk(bz, px2)
+			if float((hs2 / 3000) % 100) / 100.0 > 0.15 + 0.85 * gk2:
+				continue   # 缝里风小：大部分雪条不画
+			var py2: float = ytop + fposmod(float((hs2 / 7) % 1000) / 1000.0 * area_h + now * spd * 0.35, maxf(1.0, area_h))
+			if py2 > y or _tree_shade(e, px2, py2):
+				continue
+			var ln: float = (14.0 if layer == 0 else 30.0) + float(hs2 % 20)
+			var col := Color(0.9, 0.95, 1.0, (0.35 if layer == 0 else 0.75) * (0.5 + 0.5 * gk2))
+			w.tb_line(_snap(Vector2(px2, py2)), _snap(Vector2(px2 + ln, py2 + ln * 0.35)), col, 2.0 if layer == 0 else 4.0)
+			if layer == 1 and hs2 % 9 == 0:
+				cv.draw_rect(Rect2(_snap(Vector2(px2 + ln, py2 + ln * 0.35)), Vector2(4, 4)), Color(0.78, 0.9, 1.0))   # 冰屑
+	# 缝里：零星慢落的雪粒（风小）
+	for gx in bz.gaps:
+		for j in 10:
+			var hs3: int = absi(hash(Vector2i(j, int(float(gx)))))
+			var qx: float = float(gx) + float(hs3 % 50) - 25.0
+			var qy: float = ytop + fposmod(float(hs3 % 700) + now * 50.0, maxf(1.0, area_h))
+			if qy < y:
+				cv.draw_rect(Rect2(_snap(Vector2(qx, qy)), Vector2(2, 2)), Color(1, 1, 1, 0.7))
 	w.tb_flush()
 
 
-## 三幕北侧雪幕：北 1/3 一直是白雾雪墙——范围内提白（冷白雾）+ 斜飘雪条，边界一排翻滚的密雪团 + 受光雪檐（清楚的边）；银凇阴影列不罩
+## 雪幕 v2：北 1/3 一堵白雾雪墙——雾从边界往北越来越浓（几排柔边白雾团，越北越浓），雾里斜飘雪；边界一排翻滚大雪团 + 宽冷影
 func _will_curtain_ground(w, cv, e: Dictionary, now: float) -> void:
 	if int(e.get("gates_passed", 0)) < 2:
 		return
 	var ar_d: Dictionary = _will_arena(e)
 	var cy: float = float(ar_d.n) + (float(ar_d.s) - float(ar_d.n)) / 3.0
-	var x0: float = (ar_d.c as Vector2).x - float(ar_d.ar) * 3.0
-	var x1: float = (ar_d.c as Vector2).x + float(ar_d.ar) * 3.0
-	var yn: float = float(ar_d.n) - 900.0
-	var x: float = x0
-	while x < x1:
-		var xm: float = x + 12.0
-		var y_cut: float = cy + 6.0 * sin(xm * 0.03 + now * 1.4)
-		for t2 in e.get("trees", []):
-			if float(t2.dead_t) <= 0.0 and absf(xm - (t2.pos as Vector2).x) < 46.0:
-				y_cut = minf(y_cut, (t2.pos as Vector2).y)
-		w.tb_quad(Vector2(x, yn), Vector2(x + 24.0, yn), Vector2(x + 24.0, y_cut), Vector2(x, y_cut), Color(0.88, 0.94, 1.0, 0.42))
-		x += 24.0
-	w.tb_flush()
-	var area_h: float = cy - yn
-	for i in 420:
-		var hs: int = absi(hash(Vector2i(i, 6113)))
-		var px: float = x0 + fposmod(float(hs % 2000) / 2000.0 * (x1 - x0) + now * (120.0 + float(hs % 80)), x1 - x0)
-		var py: float = yn + fposmod(float((hs / 2000) % 1000) / 1000.0 * area_h + now * (60.0 + float(hs % 40)), area_h)
-		if _tree_shade(e, px, py):
+	var cx: float = (ar_d.c as Vector2).x
+	var x0: float = cx - float(ar_d.ar) * 3.0
+	var x1: float = cx + float(ar_d.ar) * 3.0
+	var gt: Texture2D = _glow_tex()
+	# 边界下沿宽冷影（柔边，贴着雾墙脚）
+	var xs: float = x0
+	while xs < x1:
+		if not _tree_shade(e, xs, cy):
+			cv.draw_texture_rect(gt, Rect2(_snap(Vector2(xs - 90.0, cy - 14.0)), Vector2(180, 44)), false, Color(0.2, 0.3, 0.42, 0.35))
+		xs += 70.0
+	for row in 6:
+		var ry: float = cy - 30.0 - float(row) * 70.0
+		var al: float = 0.3 + 0.12 * float(row)
+		var xx: float = x0 + fposmod(now * (20.0 + 6.0 * float(row)) + float(row) * 41.0, 120.0)
+		while xx < x1:
+			var hs: int = absi(hash(Vector2i(int(xx / 120.0), row)))
+			var px: float = xx + float(hs % 40) - 20.0
+			var py: float = ry + float((hs / 40) % 30) - 15.0
+			var s: float = 260.0 + float(hs % 100)
+			var tk: float = 0.35 if _tree_shade(e, px, cy - 1.0) and row < 2 else 1.0
+			cv.draw_texture_rect(gt, Rect2(_snap(Vector2(px - s * 0.5, py - s * 0.3)), Vector2(s, s * 0.6)), false, Color(0.92, 0.96, 1.0, al * tk))
+			xx += 120.0
+	# 雾里斜飘雪
+	var top: float = cy - 460.0
+	for i in 300:
+		var hs2: int = absi(hash(Vector2i(i, 6113)))
+		var px2: float = x0 + fposmod(float(hs2 % 2000) / 2000.0 * (x1 - x0) + now * (140.0 + float(hs2 % 80)), x1 - x0)
+		var py2: float = top + fposmod(float((hs2 / 2000) % 1000) / 1000.0 * (cy - top) + now * (70.0 + float(hs2 % 40)), cy - top)
+		if _tree_shade(e, px2, py2):
 			continue
-		w.tb_line(_snap(Vector2(px, py)), _snap(Vector2(px + 10.0, py + 6.0)), Color(1, 1, 1, 0.7), 2.0)
+		w.tb_line(_snap(Vector2(px2, py2)), _snap(Vector2(px2 + 12.0, py2 + 7.0)), Color(1, 1, 1, 0.75), 2.0)
 	w.tb_flush()
 
 
@@ -5089,236 +5137,20 @@ func _will_curtain_front(w, cv, e: Dictionary, now: float) -> void:
 	var cy: float = float(ar_d.n) + (float(ar_d.s) - float(ar_d.n)) / 3.0
 	var x: float = (ar_d.c as Vector2).x - float(ar_d.ar) * 3.0
 	var x1: float = (ar_d.c as Vector2).x + float(ar_d.ar) * 3.0
-	# 雪檐下沿一道连续冷影（边界清楚，不断成虚线）
-	var xs: float = x
-	var prev := Vector2.INF
-	while xs <= x1:
-		var ys: float = cy + 6.0 * sin(xs * 0.03 + now * 1.4) + 4.0 * sin(xs * 0.07 - now * 2.2)
-		var q := Vector2(xs, ys + 2.0)
-		if prev != Vector2.INF and not _tree_shade(e, xs, ys - 1.0):
-			w.tb_line(_snap(prev), _snap(q), Color(A1_BACK, 0.75), 5.0)
-		prev = q
-		xs += 12.0
-	w.tb_flush()
 	var col := 0
 	while x <= x1:
 		var hj: int = absi(hash(Vector2i(col, 733)))
-		var yy: float = cy + 6.0 * sin(x * 0.03 + now * 1.4) + 4.0 * sin(x * 0.07 - now * 2.2)
+		var roll: float = sin(now * 2.0 + float(col) * 0.7)
+		var yy: float = cy + 8.0 * sin(x * 0.03 + now * 1.4)
 		if not _tree_shade(e, x, yy - 1.0):
-			var sz: float = 70.0 + float(hj % 40)
-			cv.draw_texture_rect(snow_puff, Rect2(_snap(Vector2(x - sz * 0.5, yy - sz * 0.75)), Vector2(sz, sz * 0.75)), false, Color(1, 1, 1, 0.95))
-			if rng.randf() < 0.04:
-				_icefog(Vector2(x, yy), Vector2(rng.randf_range(-20, 20), 20), 0.8, 50.0, 0.7)
-		x += 36.0 + float(hj % 14)
+			for rr in 2:
+				var sz: float = (130.0 + float(hj % 50)) * (1.0 - 0.25 * float(rr)) * (1.0 + 0.08 * roll)
+				var oy: float = -sz * (0.55 + 0.35 * float(rr)) - 6.0 * roll
+				cv.draw_texture_rect(snow_puff, Rect2(_snap(Vector2(x - sz * 0.5 + 20.0 * float(rr), yy + oy)), Vector2(sz, sz * 0.75)), false, Color(1, 1, 1, 0.95))
+			if rng.randf() < 0.05:
+				_icefog(Vector2(x, yy), Vector2(rng.randf_range(-20, 20), 24), 0.9, 60.0, 0.7)
+		x += 60.0 + float(hj % 20)
 		col += 1
-	w.tb_flush()
-
-
-## ==== 利刃 v3（协调人 11-28）：大横斩刀带扫过后残留 0.35 秒再碎散、地上留弧形斩痕 1.5 秒；旋身斩 = 一整圈刀带；三段突进留黑色残影 + 斩痕；
-## 猎斩 = 贴地飞行的窄斩波；国度 = 成团墨状黑雾（大团缓慢翻涌、边缘烟丝），不再格子短线
-var barcs: Array = []   # 地上弧形斩痕 [圆心, a0, a1, R, 出生 t]
-
-
-## 刀带（大横斩 / 收尾斩 / 旋身斩共用）：half = 半张角（旋身斩 PI = 一整圈），sweep = 扫过用时
-func _big_slash2(w, cv, p: Vector2, ca: float, SR: float, age: float, half: float, sweep: float) -> void:
-	var e0: float = ca - half - 0.12
-	var e1: float = ca + half + 0.12
-	var hd: float = lerpf(e0, e1, 1.0 - pow(1.0 - clampf(age / sweep, 0.0, 1.0), 2.0))
-	var hold_end: float = sweep + 0.35
-	var tl: float = lerpf(e0, e1, clampf((age - hold_end) / 0.25, 0.0, 1.0))
-	if hd - tl < 0.03:
-		return
-	var R: float = SR
-	var fade: float = clampf((age - hold_end) / 0.3, 0.0, 1.0)
-	var hp: Vector2 = p + Vector2.from_angle(hd) * (R - 20.0)
-	var gt: Texture2D = _glow_tex()
-	if age < hold_end:
-		cv.draw_texture_rect(gt, Rect2(((hp - Vector2(80, 46)) / PX).floor() * PX, Vector2(160, 92)), false, Color(1.0, 0.32, 0.26, 0.24))
-	var ns: int = clampi(int((e1 - e0) * 14.0), 26, 90)
-	var tm: float = 0.42 * R / 0.47
-	for pass_i in 4:
-		for j in ns:
-			var f0: float = float(j) / float(ns)
-			var f1: float = float(j + 1) / float(ns)
-			var b0: float = lerpf(e0, e1, f0)
-			var b1: float = lerpf(e0, e1, f1)
-			if b1 < tl or b0 > hd:
-				continue
-			b0 = maxf(b0, tl)
-			b1 = minf(b1, hd)
-			var t0: float = (4.0 + tm * pow(f0, 1.2) * pow(1.0 - f0, 0.3)) if half < 3.0 else (tm * 0.55)
-			var t1: float = (4.0 + tm * pow(f1, 1.2) * pow(1.0 - f1, 0.3)) if half < 3.0 else (tm * 0.55)
-			if half >= 3.0:   # 一整圈：刀头附近厚、往后渐薄
-				var dh0: float = clampf((hd - b0) / 2.2, 0.0, 1.0)
-				var dh1: float = clampf((hd - b1) / 2.2, 0.0, 1.0)
-				t0 = 4.0 + tm * 0.6 * (1.0 - dh0)
-				t1 = 4.0 + tm * 0.6 * (1.0 - dh1)
-			t0 *= 1.0 - 0.6 * fade
-			t1 *= 1.0 - 0.6 * fade
-			var ro: float = R
-			var r0i: float = R - t0
-			var r1i: float = R - t1
-			var cc: Color
-			match pass_i:
-				0:
-					ro = R + 3.0
-					r0i -= 3.0
-					r1i -= 3.0
-					cc = OLC
-				1:
-					cc = BK
-				2:
-					r0i = R - t0 * 0.3
-					r1i = R - t1 * 0.3
-					cc = BLOOD[1].lerp(BLOOD[2], f0)
-				_:
-					r0i = R - 4.0 - 5.0 * f0
-					r1i = R - 4.0 - 5.0 * f1
-					cc = Color(1.0, 1.0, 0.97)
-			if fade > 0.0:
-				cc.a = 1.0 - fade
-			w.tb_quad(p + Vector2.from_angle(b0) * ro, p + Vector2.from_angle(b1) * ro, p + Vector2.from_angle(b1) * r1i, p + Vector2.from_angle(b0) * r0i, cc)
-	if age < sweep + 0.1:
-		for i in 3:
-			var bq: float = lerpf(tl, hd, rng.randf() * 0.8)
-			_fog(p + Vector2.from_angle(bq) * (R - 30.0), 1, 0.8, 0.0, false, 2.2, Vector2.from_angle(bq) * 60.0 + Vector2.from_angle(bq - PI * 0.5) * 40.0)
-		sparks(hp, hd + PI * 0.5, 0.6, 3, 320.0, [Color(1, 0.96, 0.9), Color(1.0, 0.62, 0.3), BLOOD[3], BLOOD[2]], true, 0.3)
-	elif age > hold_end and age < hold_end + 0.25:
-		# 碎散：尾巴追上时刀带一段段崩成黑红碎片往外落
-		for i in 4:
-			var bq2: float = tl + rng.randf_range(-0.05, 0.15)
-			var q: Vector2 = p + Vector2.from_angle(bq2) * (R - rng.randf_range(4.0, tm * 0.4))
-			_add(q, Vector2.from_angle(bq2) * rng.randf_range(40, 140) + Vector2(0, -rng.randf_range(20, 80)), rng.randf_range(0.4, 0.7), [BK, BK, BLOOD[1], BLOOD[2]][i], rng.randf_range(5.0, 10.0), 3, 500.0)
-
-
-## 地上弧形斩痕：黑底 + 暗红芯，锯齿边，1.5 秒淡掉
-func _draw_barcs(w, now: float) -> void:
-	if barcs.is_empty():
-		return
-	var keep: Array = []
-	for b in barcs:
-		var age: float = now - float(b[4])
-		if age > 1.5:
-			continue
-		keep.append(b)
-		var al: float = clampf((1.5 - age) / 0.6, 0.0, 1.0)
-		var c: Vector2 = b[0]
-		var a0: float = b[1]
-		var a1: float = b[2]
-		var R: float = float(b[3]) * 0.9
-		var ns: int = clampi(int((a1 - a0) * R / 18.0), 8, 90)
-		for j in ns:
-			var f0: float = float(j) / float(ns)
-			var f1: float = float(j + 1) / float(ns)
-			var b0: float = lerpf(a0, a1, f0)
-			var b1: float = lerpf(a0, a1, f1)
-			var th0: float = (6.0 + 12.0 * sin(PI * f0)) * (0.7 + 0.3 * float(absi(hash(Vector2i(j, int(c.x)))) % 10) / 10.0)
-			var th1: float = (6.0 + 12.0 * sin(PI * f1)) * (0.7 + 0.3 * float(absi(hash(Vector2i(j + 1, int(c.x)))) % 10) / 10.0)
-			if a1 - a0 > 5.0:
-				th0 = 12.0
-				th1 = 12.0
-			w.tb_quad(c + Vector2.from_angle(b0) * (R + th0 * 0.5), c + Vector2.from_angle(b1) * (R + th1 * 0.5), c + Vector2.from_angle(b1) * (R - th1 * 0.5), c + Vector2.from_angle(b0) * (R - th0 * 0.5), Color(BK, 0.9 * al))
-			w.tb_quad(c + Vector2.from_angle(b0) * (R + th0 * 0.12), c + Vector2.from_angle(b1) * (R + th1 * 0.12), c + Vector2.from_angle(b1) * (R - th1 * 0.12), c + Vector2.from_angle(b0) * (R - th0 * 0.12), Color(BLOOD[2], al * (0.6 + 0.4 * sin(now * 16.0 + float(j)))))
-	barcs = keep
-	w.tb_flush()
-
-
-## 三段突进的残影：沿冲刺路线一条从后往前变宽的黑影（像刀身拖过去），0.5 秒淡掉，路上翻黑雾
-func _dash_ghost(w, ev: Array, age: float) -> void:
-	var a: Vector2 = ev[1]
-	var d := Vector2.from_angle(float(ev[2]))
-	var L: float = float(ev[5])
-	var nv := d.orthogonal()
-	var al: float = clampf(1.0 - age / 0.5, 0.0, 1.0)
-	for k in 3:
-		var sh: float = float(k) * 0.33
-		var b: Vector2 = a + d * L * (0.35 + 0.65 * (1.0 - sh))
-		var a2: Vector2 = a + d * L * (0.05 + 0.2 * sh)
-		var wd: float = 26.0 * (1.0 - sh * 0.4)
-		w.tb_poly(PackedVector2Array([a2 + Vector2(0, -28), b + nv * wd + Vector2(0, -30), b + d * 18.0 + Vector2(0, -34), b - nv * wd + Vector2(0, -30)]), Color(BK, (0.45 - 0.12 * float(k)) * al))
-	w.tb_line(_snap(a + Vector2(0, -30)), _snap(a + d * L + Vector2(0, -32)), Color(BLOOD[2], 0.7 * al), 3.0)
-
-
-## 猎斩斩波：贴地飞的一道窄月牙（黑刃 + 暗红芯 + 白刃口朝前），后面拖一条渐淡黑痕
-func _redslash2(w, x: Dictionary, u: float, first: bool) -> void:
-	var p: Vector2 = x.pos
-	var d := Vector2.from_angle(float(x.ang))
-	var nv := d.orthogonal()
-	var L: float = float(x.r)
-	if first:
-		bscars.append([p + d * 10.0, p + d * L, g.t, 26.0, rng.randi() % 997])
-		sparks(p, float(x.ang), 0.5, 10, 380.0, [Color(1, 0.95, 0.92), BLOOD[3], BLOOD[2], BLOOD[1]], true, 0.3)
-	var hu: float = clampf(u * 1.15, 0.0, 1.0)
-	var h: Vector2 = p + d * L * hu
-	var tail: Vector2 = p + d * L * maxf(0.0, hu - 0.35)
-	var al: float = clampf((1.0 - u) / 0.3, 0.0, 1.0)
-	w.tb_poly(PackedVector2Array([tail, h + nv * 10.0, h - nv * 10.0]), Color(BK, 0.6 * al))
-	var W := 38.0
-	var back: float = 16.0
-	var pts_o := PackedVector2Array([h + nv * (W + 3.0) - d * (back + 3.0), h + d * 6.0, h - nv * (W + 3.0) - d * (back + 3.0), h - d * 4.0])
-	var pts := PackedVector2Array([h + nv * W - d * back, h + d * 3.0, h - nv * W - d * back, h - d * 1.0])
-	w.tb_poly(pts_o, Color(OLC, al))
-	w.tb_poly(pts, Color(BK, al))
-	w.tb_poly(PackedVector2Array([h + nv * W * 0.6 - d * back * 0.6, h + d * 2.0, h - nv * W * 0.6 - d * back * 0.6, h]), Color(BLOOD[2], al))
-	w.tb_line(_snap(h + nv * W * 0.8 - d * back * 0.55), _snap(h + d * 3.0), Color(1, 1, 0.97, al), 2.0)
-	w.tb_line(_snap(h - nv * W * 0.8 - d * back * 0.55), _snap(h + d * 3.0), Color(1, 1, 0.97, al), 2.0)
-
-
-## 国度：成团墨状黑雾（fm_b1）——每块国度几团大雾缓慢翻涌（位置转、大小呼吸），边缘烟丝往外飘散；黑毯 / 连片沿线铺雾团
-func _kd_ink(cv, km, now: float) -> void:
-	var vr: Rect2 = Rect2(g.cam.position - get_viewport_half() - Vector2(200, 200), get_viewport_half() * 2.0 + Vector2(400, 400))
-	for k in km.list:
-		if k.kind == "nursery":
-			continue
-		var age: float = now - float(k.born)
-		var fade: float = 1.0
-		if float(k.life) > 0.0:
-			fade = clampf((float(k.born) + float(k.life) - now) / 0.6, 0.0, 1.0)
-		if fade <= 0.0:
-			continue
-		var rev: float = clampf(age / 0.6, 0.0, 1.0)
-		var al: float = fade * rev
-		var r: float = float(k.r)
-		var sd: int = absi(hash(Vector2i(int(k.pos.x), int(k.pos.y)))) % 9973
-		if k.has("b"):
-			var L: float = (k.pos as Vector2).distance_to(k.b)
-			var n2: int = maxi(2, int(L / 40.0))
-			for i in n2 + 1:
-				var q: Vector2 = (k.pos as Vector2).lerp(k.b, float(i) / float(n2))
-				if not vr.has_point(q):
-					continue
-				var s2: float = r * 2.2 * (0.85 + 0.25 * sin(now * 0.7 + float(i)))
-				cv.draw_texture_rect(fog_puff[(i + sd) % 4], Rect2(_snap(q - Vector2(s2, s2 * 0.75) * 0.5), Vector2(s2, s2 * 0.75)), false, Color(1, 1, 1, 0.55 * KD_WISP * al))
-			continue
-		if not vr.grow(r).has_point(k.pos):
-			continue
-		var n: int = clampi(int(r * r / 1600.0), 3, 14)
-		for i in n:
-			var hs: int = absi(hash(Vector2i(sd, i)))
-			var a: float = float(hs % 628) / 100.0 + now * (0.1 + 0.05 * float(hs % 3)) * (1.0 if hs % 2 == 0 else -1.0)
-			var rr: float = r * 0.62 * sqrt(float((hs / 628) % 100) / 100.0) * rev
-			var q2: Vector2 = (k.pos as Vector2) + Vector2(cos(a), sin(a) * 0.75) * rr
-			var s: float = r * (1.15 + 0.45 * float((hs / 62800) % 100) / 100.0) * (0.92 + 0.12 * sin(now * 0.9 + float(i) * 1.3))
-			if km._in_cut(q2):
-				continue
-			cv.draw_texture_rect(fog_puff[hs % 4], Rect2(_snap(q2 - Vector2(s, s * 0.75) * 0.5), Vector2(s, s * 0.75)), false, Color(1, 1, 1, 0.85 * KD_WISP * al))
-		# 边缘烟丝：小雾团从边上往外飘、变淡（循环）
-		var m: int = clampi(int(TAU * r / 22.0), 8, 40)
-		for i in m:
-			var hs2: int = absi(hash(Vector2i(sd + 9, i)))
-			var ph: float = fmod(now * (0.35 + float(hs2 % 20) / 100.0) + float(hs2 % 100) / 100.0, 1.0)
-			var a2: float = TAU * float(i) / float(m) + float(hs2 % 50) / 100.0
-			var q3: Vector2 = (k.pos as Vector2) + Vector2(cos(a2), sin(a2) * 0.75) * r * (0.8 + 0.35 * ph) * rev + Vector2(0, -16.0 * ph)
-			var s3: float = (26.0 + float(hs2 % 20)) * (1.0 - 0.4 * ph)
-			cv.draw_texture_rect(fog_puff[(hs2 / 3) % 4], Rect2(_snap(q3 - Vector2(s3, s3 * 0.8) * 0.5), Vector2(s3, s3 * 0.8)), false, Color(1, 1, 1, 0.55 * KD_WISP * al * (1.0 - ph)))
-	for l in km.links:
-		var a3: Vector2 = l[0].pos
-		var b3: Vector2 = l[1].pos
-		var n3: int = maxi(2, int(a3.distance_to(b3) / 50.0))
-		for i in n3:
-			var q4: Vector2 = a3.lerp(b3, (float(i) + 0.5) / float(n3))
-			var s4: float = float(l[2]) * 2.0
-			cv.draw_texture_rect(fog_puff[i % 4], Rect2(_snap(q4 - Vector2(s4, s4 * 0.75) * 0.5), Vector2(s4, s4 * 0.75)), false, Color(1, 1, 1, 0.45 * KD_WISP))
 
 
 func _ice_peak(w, p: Vector2, h: float, wd: float) -> void:
@@ -5436,8 +5268,9 @@ func _blizzard(w, cv, e: Dictionary, bz: Dictionary, y: float, now: float) -> vo
 		var xx: float = x2 + float(hj2 % 24) - 12.0
 		if not _bz_gap(e, bz, xx, y):
 			var fy: float = y + 10.0 * sin(xx * 0.021 + now * 2.1) + 7.0 * sin(xx * 0.053 - now * 3.3)
-			var fz: float = 80.0 + float((hj2 >> 6) % 50)
-			cv.draw_texture_rect(snow_puff, Rect2(_snap(Vector2(xx - fz * 0.5, fy - fz * 0.7)), Vector2(fz, fz * 0.8)), false, Color(1, 1, 1, 0.95))
+			var fz: float = (120.0 + float((hj2 >> 6) % 60)) * (1.0 + 0.1 * sin(now * 3.0 + float(col)))
+			cv.draw_texture_rect(snow_puff, Rect2(_snap(Vector2(xx - fz * 0.5, fy - fz * 1.1)), Vector2(fz, fz * 0.8)), false, Color(1, 1, 1, 0.9))   # 后排（更高）
+			cv.draw_texture_rect(snow_puff, Rect2(_snap(Vector2(xx - fz * 0.5 + 18.0, fy - fz * 0.7 + 6.0 * sin(now * 4.0 + float(col)))), Vector2(fz, fz * 0.8)), false, Color(1, 1, 1, 0.95))
 			cv.draw_texture_rect(ice_puff[col % 3], Rect2(_snap(Vector2(xx - fz * 0.3, fy - fz * 0.6)), Vector2(fz * 0.6, fz * 0.5)), false, Color(1, 1, 1, 0.9))
 			if rng.randf() < 0.1:
 				_icefog(Vector2(xx, fy), Vector2(rng.randf_range(-20, 20), 40), 0.6, 40.0, 0.8)
