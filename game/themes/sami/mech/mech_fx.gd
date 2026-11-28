@@ -2191,20 +2191,26 @@ func _warn_final(w, cv, t: Dictionary, k: float, sd: int, ot: String) -> void:
 					for i in 3:
 						_crack_col(w, c, TAU * float(i) / 3.0 + 0.4, r * 0.85, k, sd + i, TEALC[3], OLC, 3.0)
 				"cresson":
-					# 实心低亮度花纹场地（协调人 11-26：圈边一圈小花瓣读成细花圈）：淡紫雾纹铺满圈、随进度变浓，
-					# 圈里几片花瓣从圆心往外伸；大圈中间一只眼纹慢慢睁开
-					var fsz: float = r * 2.0
-					for i in 4:
-						var af: float = float(i) * 2.399 + float(sd % 5)
-						var qf: Vector2 = c + (Vector2.ZERO if i == 0 else Vector2(cos(af), sin(af) * gy) * r * 0.45)
-						var sf: float = fsz * (1.0 if i == 0 else 0.6)
-						cv.draw_texture_rect(lil_puff[i % 3], Rect2(_snap(qf - Vector2(sf, sf * gy) * 0.5), Vector2(sf, sf * gy)), false, Color(0.55, 0.5, 0.6, 0.12 + 0.2 * k))
-					var np: int = clampi(int(r / 14.0), 4, 9)
-					for i in np:
-						var ap: float = TAU * float(i) / float(np) + float(sd % 7) * 0.2
-						_petal_dim(w, c, ap, r * 0.8 * clampf(k * 1.2, 0.0, 1.0), gy, 0.22 + 0.22 * k)
-					if r >= 50.0:
-						_eye(w, c, minf(r * 0.45, 40.0), clampf((k - 0.2) / 0.6, 0.0, 1.0))
+					# 11-28 苗圃吞地：播种类落点 = 地面先发裂、往下塌（洞的张开过程就是预警，不立光柱 / 花瓣 / 眼纹）；
+					# 闪现落地 r250 = 圈边几道暗裂缝往落点收 + 落点一小团地面下陷（不铺平涂圆盘）
+					var nc2: int = 6 if r < 120.0 else 10
+					for i in nc2:
+						var ac: float = TAU * float(i) / float(nc2) + float(sd % 7) * 0.3
+						var dv2 := Vector2(cos(ac), sin(ac) * gy)
+						if r < 120.0:
+							_crack_col(w, c, dv2.angle(), r * dv2.length() * (0.8 + 0.25 * float(i % 2)), clampf(k * 1.3, 0.0, 1.0), sd + i * 7, Color(0.3, 0.22, 0.42), A1_SH, 4.0)
+						else:
+							var q0: Vector2 = c + dv2 * r
+							_crack_col(w, q0, (c - q0).angle(), r * dv2.length() * 0.55, k, sd + i * 7, Color(0.3, 0.22, 0.42), A1_SH, 4.0)
+					var sg: float = (r if r < 120.0 else 60.0) * (0.5 + 0.5 * k)
+					var sag := PackedVector2Array()
+					for i in 12:
+						var aa2: float = TAU * float(i) / 12.0
+						sag.append(_snap(c + Vector2(cos(aa2), sin(aa2) * gy) * sg * (0.85 + 0.15 * float(absi(hash(Vector2i(sd, i))) % 10) / 10.0)))
+					w.tb_polygon(sag, Color(A1_BACK, 0.25 + 0.35 * k))
+					if rng.randf() < 0.3 + 0.5 * k:
+						_add(c + Vector2(rng.randf_range(-sg, sg), rng.randf_range(-sg, sg) * gy) * 0.7, Vector2(0, rng.randf_range(10, 30)), 0.4, A1_LIT, 4.0, 3, 0.0)
+					return
 				"khan", "lion":
 					# 沙雾从外往里收（协调人 11-26：敕令粉圆盘 / 路加刻度短划圈退回）：圈边一道连续沙带（路加金沙），
 					# 一圈沙雾墙从圈边往圆心收拢，墙外到圈边铺满沙雾；圆心三道地裂往外爬，沙粒往里流
@@ -2869,6 +2875,9 @@ func _fin_ground(w, cv, now: float) -> void:
 	_will_lightpass(w, cv, now)
 	_draw_wcracks(w, cv, now)
 	_cimp_ground(cv, w, now)
+	for it in cres_list.values():
+		if not it[0].dead:
+			_band_draw(w, cv, it[0], now, g.combat.GROUND_Y)   # 苗圃环（回荡新判定）
 	_sham_ground(cv, now)
 	_vtrench_draw(w, cv, now)
 	var gy: float = g.combat.GROUND_Y
@@ -3577,79 +3586,191 @@ func _void_pts(k: Dictionary, open: float, gy: float, devs: Array, scale := 1.0)
 	return pts
 
 
+## 洞 v2（静态对照 A 版过审，11-28）：无亮描边，深度靠明暗——北侧远壁雪层断面四层（3/4 俯视看得到的是远壁）、洞里星空明显暗于地面、
+## 每洞各自一两段弯曲斜向浓淡不匀的星云、星点大小三档会闪；北雪唇受光、南外沿一点冷影；崩口挂着要掉的雪块、雪块往洞里落。
+## 画面半径 = 判定 × 1.2（相邻洞在画面上连成一片，判定不动）。张开过程：先裂（0–0.35 秒）再塌（0.35–1.0 秒）
+const WALL := [Color(0.81, 0.87, 0.92), Color(0.59, 0.67, 0.75), Color(0.38, 0.42, 0.52), Color(0.2, 0.18, 0.29)]
+const SKY := Color(0.1, 0.063, 0.18)
+const NEB := Color(0.7, 0.55, 0.89)
+const VIS_K := 1.2
+
+
+func _shift(pts: PackedVector2Array, d: Vector2) -> PackedVector2Array:
+	var o := PackedVector2Array()
+	for q in pts:
+		o.append(q + d)
+	return o
+
+
+func _clip_fill(w, a: PackedVector2Array, b: PackedVector2Array, col: Color) -> Array:
+	var res: Array = Geometry2D.intersect_polygons(a, b)
+	for poly in res:
+		if (poly as PackedVector2Array).size() >= 3:
+			w.tb_polygon(poly, col)
+	return res
+
+
 func _void_draw(cv, w, k: Dictionary, now: float, gy: float) -> void:
 	if not k.has("fx_rs"):
 		_void_shape(k)
 	var age: float = now - float(k.born)
-	var open: float = clampf(age / 0.7, 0.0, 1.0)
+	var c: Vector2 = k.pos
+	var r: float = float(k.r)
+	var sd: int = int(k.fx_sd)
+	# 先裂：0.35 秒内几道暗裂缝从中心往外爬（地面还没塌）
+	if age < 0.35:
+		var kc: float = age / 0.35
+		for i in 5:
+			var a: float = TAU * float(i) / 5.0 + float(sd % 7) * 0.4
+			var dv := Vector2(cos(a), sin(a) * gy)
+			_crack_col(w, c, dv.angle(), r * VIS_K * dv.length() * 0.9, kc, sd + i * 5, Color(0.25, 0.2, 0.35), A1_SH, 4.0)
+		w.tb_flush()
+		if rng.randf() < 0.5:
+			_add(c + Vector2(rng.randf_range(-r, r), rng.randf_range(-r, r) * gy) * 0.5, Vector2(0, -rng.randf_range(20, 60)), 0.35, A1_LIT, 4.0, 3, 300.0)
+		return
+	var open: float = clampf((age - 0.35) / 0.65, 0.0, 1.0)
 	open = 1.0 - (1.0 - open) * (1.0 - open)
 	if float(k.life) > 0.0:
-		open *= clampf((float(k.born) + float(k.life) - now) / 0.6, 0.0, 1.0)   # 到期 0.6 秒地面合上
+		open *= clampf((float(k.born) + float(k.life) - now) / 0.6, 0.0, 1.0)
 	if open <= 0.02:
 		return
 	var devs: Array = []
-	for it in cres_list.values():   # 克雷松 draw() 每帧登记（cresson_draw）
+	for it in cres_list.values():
 		if not it[0].dead:
 			devs.append_array(it[0].get("devs", []))
-	var c: Vector2 = k.pos
-	var r: float = float(k.r)
+	var outer: PackedVector2Array = _void_pts(k, open, gy, devs, VIS_K)
+	var R: float = r * VIS_K * open
+	var D: float = clampf(R * 0.32, 8.0, 30.0)   # 远壁可见厚度
+	# 南外沿冷影（洞外，往下错开一点）+ 洞口照地一点淡紫（很弱）
 	var gt: Texture2D = _glow_tex()
-	# 洞口往外照一圈淡紫光（照在雪上，柔边）
-	var gsz := Vector2(r * 3.0, r * 3.0 * gy) * open
-	cv.draw_texture_rect(gt, Rect2(((c - gsz * 0.5) / PX).floor() * PX, gsz), false, Color(VOID_RIM.r, VOID_RIM.g, VOID_RIM.b, 0.45))
-	var outer: PackedVector2Array = _void_pts(k, open, gy, devs, 1.0)
-	# 洞边崩开的雪唇：外圈一道受光雪边（左上亮）+ 深冷描边
-	var lip := PackedVector2Array()
-	for q in outer:
-		lip.append(c + (q - c) * 1.0 + (q - c).normalized() * 6.0)
-	w.tb_polygon(lip, A1_OL)
-	w.tb_polygon(outer, VOID_D)
-	# 洞壁：北侧露出的一段深壁（星空往下错开 10 像素）
-	var sky := PackedVector2Array()
-	for q in outer:
-		var dq: Vector2 = q - c
-		sky.append(_snap(c + dq * 0.94 + Vector2(0, 8.0 * open)))
-	w.tb_polygon(sky, VOID_M)
-	var neb := PackedVector2Array()
-	for q in sky:
-		neb.append(_snap(c + Vector2(0, 8.0 * open) + (q - c - Vector2(0, 8.0 * open)) * 0.55))
-	w.tb_polygon(neb, Color(VOID_L, 0.8))
+	var gsz := Vector2(R * 2.6, R * 2.6 * gy)
+	cv.draw_texture_rect(gt, Rect2(((c - gsz * 0.5) / PX).floor() * PX, gsz), false, Color(VOID_RIM.r, VOID_RIM.g, VOID_RIM.b, 0.16))
+	w.tb_polygon(_shift(outer, Vector2(2, 4)), Color(A1_BACK, 0.55))
+	# 远壁四层：整个洞先铺最亮层，再依次铺往下错开的层（裁在洞里），最后星空 = 往下错开 D 的洞形
+	w.tb_polygon(outer, WALL[0])
+	for i in range(1, 4):
+		_clip_fill(w, outer, _shift(outer, Vector2(0, D * float(i) / 4.0)), WALL[i])
+	var skies: Array = _clip_fill(w, outer, _shift(outer, Vector2(0, D)), SKY)
 	w.tb_flush()
-	# 星云慢转（低亮度雾团，只在洞中间）
-	for i in 2:
-		var an: float = now * 0.5 + float(i) * PI + float(k.fx_sd)
-		var qn: Vector2 = c + Vector2(0, 8.0 * open) + Vector2(cos(an), sin(an) * gy) * r * 0.2 * open
-		var sz := Vector2(r, r * gy) * 0.9 * open
-		cv.draw_texture_rect(lil_puff[i % 3], Rect2(((qn - sz * 0.5) / PX).floor() * PX, sz), false, Color(1, 1, 1, 0.35))
-	# 星点：白 / 淡紫 2–4 像素，各自闪
-	for s in k.fx_stars:
-		var a: float = float(s[0]) + now * 0.15
-		var q: Vector2 = c + Vector2(0, 8.0 * open) + Vector2(cos(a), sin(a) * gy) * r * float(s[1]) * open
-		var tw: float = 0.5 + 0.5 * sin(now * 5.0 + float(s[2]) * 20.0)
-		var ss: float = 4.0 if tw > 0.8 else 2.0
-		cv.draw_rect(Rect2(_snap(q), Vector2(ss, ss)), Color(1.0, 0.95, 1.0, 0.5 + 0.5 * tw) if float(s[2]) > 0.4 else Color(VOID_RIM, 0.6 + 0.4 * tw))
-	# 洞边淡紫亮线（宽 6 外光 + 2 白芯）+ 北半边受光雪唇
+	if skies.is_empty():
+		return
+	var sky: PackedVector2Array = skies[0]
+	var sc: Vector2 = c + Vector2(0, D * 0.6)
+	# 星云：每洞 1–2 段弯曲斜向的月牙形云（浓淡两层），裁在星空里
+	for ni in (2 if r > 70.0 else 1):
+		var a0: float = float((sd * 7 + ni * 131) % 628) / 100.0 + now * 0.05
+		var tilt: float = -0.5 + float((sd + ni * 3) % 10) / 10.0
+		var ln: float = R * 0.9
+		var th: float = R * 0.18
+		var o1 := PackedVector2Array()
+		var o2 := PackedVector2Array()
+		for j in 9:
+			var f: float = float(j) / 8.0
+			var x: float = (f - 0.5) * ln
+			var y: float = sin(f * PI * 1.2 + a0) * R * 0.18 + x * tilt * 0.4
+			var wdt: float = th * sin(PI * f) * (0.7 + 0.3 * sin(f * 9.0 + a0 * 3.0))
+			o1.append(sc + Vector2(x, y * gy - wdt))
+			o2.append(sc + Vector2(x, y * gy + wdt))
+		var cloud := PackedVector2Array(o1)
+		for j in range(8, -1, -1):
+			cloud.append(o2[j])
+		_clip_fill(w, sky, cloud, Color(NEB, 0.28))
+		var core := PackedVector2Array()
+		for j in cloud.size():
+			core.append(sc + (cloud[j] - sc) * 0.55 + Vector2((cloud[j] - sc).x * 0.3, 0))
+		_clip_fill(w, sky, core, Color(NEB, 0.4))
+	w.tb_flush()
+	# 星点：密度按面积，三档大小，各自闪
+	var ns: int = int(clampf(R * R / 120.0, 12.0, 120.0))
+	for i in ns:
+		var hs: int = absi(hash(Vector2i(sd + 77, i)))
+		var q: Vector2 = sc + Vector2(float(hs % 200) / 100.0 - 1.0, (float((hs / 200) % 200) / 100.0 - 1.0) * gy) * R * 0.85
+		if not Geometry2D.is_point_in_polygon(q, sky):
+			continue
+		var tw: float = 0.5 + 0.5 * sin(now * (3.0 + float(hs % 5)) + float(hs % 97))
+		var sz: int = [1, 1, 1, 2, 2, 3][hs % 6]
+		var col: Color = Color(1.0, 0.97, 1.0) if hs % 3 else Color(0.85, 0.72, 1.0)
+		col.a = 0.35 + 0.65 * tw
+		var qq: Vector2 = _snap(q)
+		if sz == 3 and tw > 0.6:
+			cv.draw_rect(Rect2(qq + Vector2(-4, 0), Vector2(10, 2)), col)
+			cv.draw_rect(Rect2(qq + Vector2(0, -4), Vector2(2, 10)), col)
+		else:
+			cv.draw_rect(Rect2(qq, Vector2(2 * sz, 2 * sz)), col)
+	# 北雪唇受光（外沿北半边一条亮雪边，连成一条）
 	var n: int = outer.size()
 	for i in n:
-		var a0: Vector2 = outer[i]
-		var a1: Vector2 = outer[(i + 1) % n]
-		w.tb_line(a0, a1, Color(VOID_RIM, 0.75), 6.0)
-		w.tb_line(a0, a1, Color(1.0, 0.92, 1.0, 0.9), 2.0)
-		if a0.y < c.y - r * 0.15 * gy:
-			var o0: Vector2 = a0 + (a0 - c).normalized() * 7.0
-			var o1: Vector2 = a1 + (a1 - c).normalized() * 7.0
-			w.tb_line(_snap(o0), _snap(o1), A1_LIT, 4.0)
+		var a0p: Vector2 = outer[i]
+		var a1p: Vector2 = outer[(i + 1) % n]
+		if a0p.y < c.y and a1p.y < c.y:
+			w.tb_line(_snap(a0p + (a0p - c).normalized() * 3.0), _snap(a1p + (a1p - c).normalized() * 3.0), A1_LIT, 5.0)
+	# 崩口挂雪块：北沿 4–6 块，轻轻抖
+	for i in 5:
+		var hs2: int = absi(hash(Vector2i(sd + 5, i)))
+		var vi: int = hs2 % n
+		var q2: Vector2 = outer[vi]
+		if q2.y > c.y:
+			continue
+		var s2: float = 5.0 + float(hs2 % 5)
+		var jg: float = sin(now * 7.0 + float(i)) * 1.0
+		var qd: Vector2 = q2 + (c - q2).normalized() * 3.0 + Vector2(jg, 0)
+		w.tb_poly(PackedVector2Array([_snap(qd + Vector2(-s2 - 2, -2)), _snap(qd + Vector2(s2 + 2, -3)), _snap(qd + Vector2(s2, s2 * 0.7 + 2)), _snap(qd + Vector2(-s2, s2 * 0.6 + 2))]), A1_OL)
+		w.tb_poly(PackedVector2Array([_snap(qd + Vector2(-s2, 0)), _snap(qd + Vector2(s2, -1)), _snap(qd + Vector2(s2 - 1, s2 * 0.7)), _snap(qd + Vector2(-s2 + 1, s2 * 0.6))]), Color(0.69, 0.8, 0.86))
+		w.tb_line(_snap(qd + Vector2(-s2, 0)), _snap(qd + Vector2(s2, -1)), A1_LIT, 2.0)
 	w.tb_flush()
 	for d in devs:
 		if c.distance_to(d.pos) < DEV_SAFE * 0.9:
 			_void_island(w, d.pos, open, gy, clampf(r * open * 0.62, 18.0, DEV_SAFE * 0.6))
-	# 崩塌：边上的雪块往洞里滑落、缩小（开洞时一大批，之后零星）
-	var rate: float = (0.9 if age < 0.8 else 0.12) * clampf(r / 50.0, 0.6, 2.0)
-	if rng.randf() < rate:
-		var q2: Vector2 = outer[rng.randi() % n]
-		var to_c: Vector2 = (c - q2)
-		var col: Color = A1_LIT if rng.randf() < 0.6 else A1_MID
-		_add(q2, to_c * rng.randf_range(0.8, 1.4) + Vector2(0, 20), rng.randf_range(0.6, 0.9), col, rng.randf_range(6.0, 12.0), 3, 0.0)
+	# 雪块往洞里落（从北沿掉下去、缩小）
+	if rng.randf() < (0.9 if age < 1.2 else 0.18) * clampf(R / 60.0, 0.6, 2.5):
+		var q3: Vector2 = outer[rng.randi() % n]
+		if q3.y < c.y:
+			_add(q3, Vector2(rng.randf_range(-10, 10), rng.randf_range(30, 70)), rng.randf_range(0.5, 0.8), A1_LIT if rng.randf() < 0.6 else Color(0.69, 0.8, 0.86), rng.randf_range(6.0, 10.0), 3, 120.0)
+
+
+## 苗圃环（回荡，新判定）：一圈「无」吃掉的环带从落点往外推，带里同样是星空 + 北侧远壁，对着设施的出口不吃
+func _band_draw(w, cv, e: Dictionary, now: float, gy: float) -> void:
+	for b in e.get("bands", []):
+		if now < float(b.t0):
+			continue
+		var fr: float = 60.0 + (now - float(b.t0)) * 150.0
+		if fr > 660.0:
+			continue
+		var c: Vector2 = b.c
+		var hw: float = 30.0
+		var gapk: float = maxf(0.25, 50.0 / maxf(1.0, fr))
+		var nseg: int = clampi(int(TAU * fr / 26.0), 24, 140)
+		for i in nseg:
+			var a0: float = TAU * float(i) / float(nseg)
+			var a1: float = TAU * float(i + 1) / float(nseg)
+			var am: float = (a0 + a1) * 0.5
+			var in_gap := false
+			for ga in b.gaps:
+				if absf(angle_difference(am, float(ga))) < gapk:
+					in_gap = true
+			if in_gap:
+				continue
+			var j0: float = float(absi(hash(Vector2i(i, int(c.x)))) % 9) - 4.0
+			var ro0: float = fr + hw + j0
+			var ri0: float = fr - hw - j0 * 0.5
+			var p00 := c + Vector2(cos(a0), sin(a0) * gy) * ri0
+			var p01 := c + Vector2(cos(a1), sin(a1) * gy) * ri0
+			var p10 := c + Vector2(cos(a0), sin(a0) * gy) * ro0
+			var p11 := c + Vector2(cos(a1), sin(a1) * gy) * ro0
+			var north: bool = sin(am) < 0.0
+			# 环带 = 一条沟：沟的北边是远壁（北半圈在外缘、南半圈在内缘），其余是星空；北边沿外一条受光雪唇
+			w.tb_quad(p00, p01, p11, p10, SKY)
+			if north:
+				w.tb_quad(p10, p11, p11.lerp(p01, 0.38), p10.lerp(p00, 0.38), WALL[1])
+				w.tb_quad(p10, p11, p11.lerp(p01, 0.14), p10.lerp(p00, 0.14), WALL[0])
+				w.tb_line(_snap(p10), _snap(p11), A1_LIT, 4.0)
+			else:
+				w.tb_quad(p00, p01, p01.lerp(p11, 0.38), p00.lerp(p10, 0.38), WALL[1])
+				w.tb_quad(p00, p01, p01.lerp(p11, 0.14), p00.lerp(p10, 0.14), WALL[0])
+				w.tb_line(_snap(p00), _snap(p01), A1_LIT, 4.0)
+			if (i * 7 + int(now * 4.0)) % 5 == 0:
+				cv.draw_rect(Rect2(_snap(p00.lerp(p11, 0.55)), Vector2(2, 2)), Color(1, 0.96, 1, 0.9))
+	w.tb_flush()
 
 
 ## 设施脚下一座没被吃掉的雪岛：不规则雪面 + 北侧受光雪唇 + 洞边淡紫亮线（设施画在它上面）

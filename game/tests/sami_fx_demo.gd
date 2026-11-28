@@ -408,6 +408,10 @@ func _ai_group(key: String) -> void:
 		for b in bs:
 			if g.t < next_t:
 				b.busy_t = maxf(float(b.get("busy_t", 0.0)), next_t + 0.5)
+			if b.type == "cresson":
+				for dv in b.get("devs", []):
+					dv.cd = 1e9   # 演示只看招式：稳定设施不被队长路过触发（光柱 / 花苞稳定场是主轴画面，另录）
+					dv.charge = -1.0
 			if b.type == "will":
 				b["press_act"] = g.bai.boss("will").act_i(b)   # 演示只看招式本身：关掉幕开头的本体南压与三幕召怪
 				b["call_t"] = 1e9
