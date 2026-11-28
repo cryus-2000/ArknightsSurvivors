@@ -3453,7 +3453,7 @@ func _pillar_draw(p: Vector2, vi: int, vis_k: float, ys := 1.0, jit := 0.0, col 
 	var wd: float = roundf(TW * sc) * PX
 	var dst := Rect2(_snap(Vector2(p.x + ox - wd * 0.5 + jit, p.y + 6.0 - hgt)), Vector2(wd, roundf(hgt / PX) * PX))
 	if (hh / 997) % 2 == 1:
-		dst = Rect2(dst.position + Vector2(dst.size.x, 0), Vector2(-dst.size.x, dst.size.y))
+		dst = Rect2(dst.position, Vector2(-dst.size.x, dst.size.y))   # 负宽 = 原位左右翻（Godot 不挪位置；原来加了宽度导致整排冰柱偏离裂纹约一身宽）
 	g.wcv.draw_texture_rect_region(tx, dst, Rect2(0, 0, TW, vis), col)
 
 
