@@ -376,7 +376,8 @@ func _ai_group(key: String) -> void:
 			rel = Vector2(0, 1)
 		var sgn: float = 1.0 if int(g.t / 6.0) % 2 == 0 else -1.0
 		var tang: Vector2 = rel.normalized().orthogonal() * sgn
-		var radial: Vector2 = rel.normalized() * clampf((240.0 - rel.length()) / 120.0, -1.0, 1.0)
+		var keep_d: float = 420.0 if foc.type == "will" else 240.0   # 意志冰柱破土：离远一点，冰柱一排更长
+		var radial: Vector2 = rel.normalized() * clampf((keep_d - rel.length()) / 120.0, -1.0, 1.0)
 		var v: Vector2 = (tang * 0.75 + radial).limit_length(1.0) * 150.0
 		var np: Vector2 = g.ppos + v * DT
 		if np.length() > 470.0:
@@ -388,6 +389,9 @@ func _ai_group(key: String) -> void:
 		for b in bs:
 			if g.t < next_t:
 				b.busy_t = maxf(float(b.get("busy_t", 0.0)), next_t + 0.5)
+			if b.type == "will":
+				b["press_act"] = g.bai.boss("will").act_i(b)   # 演示只看招式本身：关掉幕开头的本体南压与三幕召怪
+				b["call_t"] = 1e9
 		if g.t >= next_t and end_t == INF:
 			if mi >= plan.size():
 				end_t = g.t + 2.5
@@ -400,6 +404,8 @@ func _ai_group(key: String) -> void:
 				if not st.is_empty():
 					b["gates_passed"] = st[0]
 					b["echo"] = st[1]
+					if b.type == "will":
+						b["press_act"] = sc.act_i(b)
 				var dv: Vector2 = g.ppos - b.pos
 				var busy: float = float((it[2] as Callable).call(b, dv.normalized(), dv.length()))
 				cur = str(it[1])

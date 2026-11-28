@@ -3234,8 +3234,8 @@ func will_crack(a: Vector2, b: Vector2, n: int, step: float, hold: float) -> voi
 	var x := 0.0
 	var off := 0.0
 	while x < L:
-		x = minf(L, x + rng.randf_range(12.0, 20.0))
-		off = clampf(off + rng.randf_range(-7.0, 7.0), -14.0, 14.0)
+		x = minf(L, x + rng.randf_range(18.0, 30.0))
+		off = clampf(off + rng.randf_range(-12.0, 12.0), -24.0, 24.0)
 		if x >= L:
 			off *= 0.3
 		var q: Vector2 = a + u * x + nv * off
@@ -3252,7 +3252,7 @@ func will_crack(a: Vector2, b: Vector2, n: int, step: float, hold: float) -> voi
 			var segs: int = rng.randi_range(2, 4)
 			for j in segs:
 				ang += rng.randf_range(-0.35, 0.35)
-				bp.append(bp[bp.size() - 1] + Vector2.from_angle(ang) * rng.randf_range(10.0, 18.0))
+				bp.append(bp[bp.size() - 1] + Vector2.from_angle(ang) * rng.randf_range(18.0, 30.0))
 			br.append([float(cum[i]), bp])
 			sg = -sg
 		i += rng.randi_range(2, 4)
@@ -3260,9 +3260,9 @@ func will_crack(a: Vector2, b: Vector2, n: int, step: float, hold: float) -> voi
 
 
 func _crack_seg(w, a: Vector2, b: Vector2, core: Color, wd: float, al: float) -> void:
-	w.tb_line(_snap(a), _snap(b), Color(A1_SH, 0.9 * al), wd + 4.0)
-	w.tb_line(_snap(a + Vector2(1, 3)), _snap(b + Vector2(1, 3)), Color(A1_LIT, 0.85 * al), 2.0)   # 背光侧槽壁受光（光从左上来，照亮裂缝的右下壁）
-	w.tb_line(_snap(a), _snap(b), Color(core, al), maxf(2.0, wd - 2.0))
+	w.tb_line(_snap(a), _snap(b), Color(A1_SH, 0.92 * al), wd + 6.0)
+	w.tb_line(_snap(a + Vector2(2, 0.5 * wd + 3.0)), _snap(b + Vector2(2, 0.5 * wd + 3.0)), Color(A1_LIT, 0.9 * al), 4.0)   # 背光侧槽壁受光（光从左上来，照亮裂缝的右下壁）
+	w.tb_line(_snap(a), _snap(b), Color(core, al), maxf(4.0, wd - 4.0))
 
 
 func _draw_wcracks(w, cv, now: float) -> void:
@@ -3299,17 +3299,17 @@ func _draw_wcracks(w, cv, now: float) -> void:
 			var hot: float = clampf(1.0 - (age - erupt) / 0.4, 0.0, 1.0)
 			var pulse: float = 0.85 + 0.15 * sin(now * 14.0 + x1 * 0.05)
 			var core: Color = CRK_COOL.lerp(CRK_HOT, hot * pulse)
-			var wd: float = 6.0 if x1 < head - 24.0 else 4.0
+			var wd: float = 16.0 if x1 < head - 40.0 else 11.0
 			_crack_seg(w, pts[i - 1], b, core, wd, al)
 			if hot > 0.3 and i % 3 == 0:
-				cv.draw_texture_rect(gt, Rect2(((b - Vector2(28, 16)) / PX).floor() * PX, Vector2(56, 32)), false, Color(0.75, 0.92, 1.0, 0.22 * hot * al))
+				cv.draw_texture_rect(gt, Rect2(((b - Vector2(50, 28)) / PX).floor() * PX, Vector2(100, 56)), false, Color(0.75, 0.92, 1.0, 0.3 * hot * al))
 			hp = b
 		for bb in c.br:
 			var s0: float = float(bb[0])
 			if s0 >= head:
 				continue
 			var bp: PackedVector2Array = bb[1]
-			var grow: float = clampf((head - s0) / 40.0, 0.0, 1.0)
+			var grow: float = clampf((head - s0) / 60.0, 0.0, 1.0)
 			var kk2: int = clampi(int(s0 / seg_len), 0, n - 1)
 			var hot2: float = clampf(1.0 - (age - step * float(kk2) - 0.9) / 0.4, 0.0, 1.0)
 			var nseg: float = float(bp.size() - 1) * grow
@@ -3317,14 +3317,23 @@ func _draw_wcracks(w, cv, now: float) -> void:
 				if float(j - 1) >= nseg:
 					break
 				var e2: Vector2 = bp[j] if float(j) <= nseg else bp[j - 1].lerp(bp[j], nseg - float(j - 1))
-				_crack_seg(w, bp[j - 1], e2, CRK_COOL.lerp(CRK_HOT, hot2 * 0.8), 3.0 if j > 1 else 4.0, al)
+				_crack_seg(w, bp[j - 1], e2, CRK_COOL.lerp(CRK_HOT, hot2 * 0.8), 6.0 if j > 1 else 9.0, al)
 		# 裂缝前端：一团冰光照在雪上 + 往前蹦的冰屑
 		if f < 1.0:
-			cv.draw_texture_rect(gt, Rect2(((hp - Vector2(44, 25)) / PX).floor() * PX, Vector2(88, 50)), false, Color(0.75, 0.92, 1.0, 0.4))
+			cv.draw_texture_rect(gt, Rect2(((hp - Vector2(80, 45)) / PX).floor() * PX, Vector2(160, 90)), false, Color(0.75, 0.92, 1.0, 0.5))
 			if rng.randf() < 0.7:
-				_add(hp + Vector2(rng.randf_range(-6, 6), 0), Vector2(rng.randf_range(-50, 50), -rng.randf_range(60, 140)), 0.4, A1_LIT if rng.randf() < 0.6 else ICEL[1], 4.0, 3, 500.0)
+				_add(hp + Vector2(rng.randf_range(-6, 6), 0), Vector2(rng.randf_range(-50, 50), -rng.randf_range(60, 140)), 0.45, A1_LIT if rng.randf() < 0.6 else ICEL[1], 8.0, 3, 600.0)
 	wcracks = keep
 	w.tb_flush()
+
+
+## 冰屑：浅冰色方块（白 / 浅青 / 中蓝），往上往外飞、带重力落地（碎块贴图在 A1 雪上缩小后读成暗点，不用）
+func _ice_bits(p: Vector2, n: int, power: float) -> void:
+	var cols := [Color.WHITE, Color(0.84, 0.93, 0.98), Color(0.59, 0.84, 0.95), Color(0.25, 0.59, 0.81)]
+	for i in n:
+		var a: float = rng.randf_range(-PI, 0.0)
+		var sp: float = rng.randf_range(120.0, 340.0) * power
+		_add(p + Vector2(rng.randf_range(-20, 20), rng.randf_range(-30, 10)), Vector2(cos(a) * sp, sin(a) * sp * 0.8 - 80.0 * power), rng.randf_range(0.5, 0.8), cols[i % 4], rng.randf_range(6.0, 12.0), 3, 1000.0)
 
 
 func _ptex(i: int) -> Texture2D:
@@ -3363,33 +3372,16 @@ func _pillar_warn(w, cv, t: Dictionary, k: float, sd: int) -> void:
 	for i in nc:
 		var a: float = TAU * float(i) / float(nc) + float(sd % 7) * 0.3 + float(absi(hash(Vector2i(sd, i))) % 40) / 100.0
 		var dv := Vector2(cos(a), sin(a) * gy)
-		_crack_col(w, c, dv.angle(), r * dv.length() * (0.95 + 0.1 * float(i % 2)), clampf(k * 1.4, 0.0, 1.0), sd + i * 7, CRK_HOT.lerp(Color.WHITE, k * 0.5), A1_SH, 3.0)
-	# 雪面拱起：背光一侧冷暗、受光一侧亮，越来越高
-	var hv: float = 2.0 + 8.0 * k
-	var rx: float = r * (0.38 + 0.2 * k)
-	var ry: float = rx * 0.45
-	var bump := PackedVector2Array()
-	var lit := PackedVector2Array()
-	for i in 14:
-		var a2: float = TAU * float(i) / 14.0
-		var q := Vector2(cos(a2) * rx, sin(a2) * ry)
-		bump.append(_snap(c + q + Vector2(0, -hv * (0.5 - 0.5 * sin(a2)) * 0.6)))
-		lit.append(_snap(c + q * 0.7 + Vector2(-rx * 0.15, -hv * 0.6 - ry * 0.1)))
-	w.tb_poly(PackedVector2Array(Array(bump).map(func(q): return q + Vector2(2, 2))), Color(A1_SH, 0.55))
-	w.tb_poly(bump, A1_BACK)
-	w.tb_poly(lit, A1_LIT)
-	# 拱顶裂开：三道短亮缝
-	for i in 3:
-		var a3: float = float(sd % 5) + TAU * float(i) / 3.0
-		var q0: Vector2 = c + Vector2(0, -hv * 0.6)
-		w.tb_line(_snap(q0), _snap(q0 + Vector2(cos(a3) * rx * 0.8, sin(a3) * ry * 0.8)), Color(A1_SH), 4.0)
-		w.tb_line(_snap(q0), _snap(q0 + Vector2(cos(a3) * rx * 0.7, sin(a3) * ry * 0.7)), CRK_HOT.lerp(Color.WHITE, k), 2.0)
+		_crack_col(w, c, dv.angle(), r * dv.length() * (0.95 + 0.1 * float(i % 2)), clampf(k * 1.4, 0.0, 1.0), sd + i * 7, CRK_HOT.lerp(Color.WHITE, k * 0.5), A1_SH, 8.0)
+	# 中心一团冰光越来越亮（发光隆起的裂缝），0.55 之后冰尖从缝里往上顶、抖
+	var hs := Vector2(r * 1.1, r * 0.6) * (0.6 + 0.4 * k)
+	cv.draw_texture_rect(gt, Rect2(((c - hs * 0.5) / PX).floor() * PX, hs), false, Color(0.9, 0.98, 1.0, 0.25 + 0.5 * k))
 	w.tb_flush()
-	if k > 0.72:
-		_pillar_draw(c, _pvar(c), (k - 0.72) / 0.28 * 0.2, 1.0, (1.0 if int(g.t * 30.0) % 2 == 0 else -1.0) * 2.0)
+	if k > 0.55:
+		_pillar_draw(c, _pvar(c), (k - 0.55) / 0.45 * 0.28, 1.0, (1.0 if int(g.t * 30.0) % 2 == 0 else -1.0) * 2.0)
 	if rng.randf() < 0.25 + 0.6 * k:
 		var aq: float = rng.randf() * TAU
-		_add(c + Vector2(cos(aq) * rx, sin(aq) * ry) * rng.randf(), Vector2(rng.randf_range(-20, 20), -rng.randf_range(40, 110)), 0.4, A1_LIT if rng.randf() < 0.7 else A1_MID, 4.0, 3, 400.0)
+		_add(c + Vector2(cos(aq), sin(aq) * 0.5) * r * 0.5 * rng.randf(), Vector2(rng.randf_range(-20, 20), -rng.randf_range(40, 110)), 0.45, A1_LIT if rng.randf() < 0.7 else A1_MID, 8.0, 3, 500.0)
 
 
 ## 冰柱：0.14 秒顶到全高（纵向过冲后回弹）+ 雪块往外飞 + 冰屑 + 冰雾 + 一下冷光；立着时有右下接地影、照地冷光；到期碎掉
@@ -3403,8 +3395,8 @@ func _will_pillar(w, o: Dictionary, now: float) -> void:
 			var a: float = rng.randf() * TAU
 			var sp: float = rng.randf_range(60.0, 220.0)
 			var col: Color = [A1_LIT, A1_LIT, Color(0.78, 0.87, 0.92), A1_MID][rng.randi() % 4]
-			_add(p + Vector2(cos(a) * 18.0, sin(a) * 18.0 * gy), Vector2(cos(a) * sp, sin(a) * sp * gy - rng.randf_range(160.0, 320.0)), rng.randf_range(0.55, 0.85), col, rng.randf_range(4.0, 9.0), 3, 900.0)
-		_shatter("icicle", p + Vector2(0, -10), 0.8, 200.0)
+			_add(p + Vector2(cos(a) * 30.0, sin(a) * 30.0 * gy), Vector2(cos(a) * sp * 1.4, sin(a) * sp * 1.4 * gy - rng.randf_range(220.0, 420.0)), rng.randf_range(0.6, 0.9), col, rng.randf_range(8.0, 16.0), 3, 1100.0)
+		_ice_bits(p + Vector2(0, -30), 14, 1.0)
 		for i in 4:
 			_icefog(p + Vector2(rng.randf_range(-24, 24), rng.randf_range(-4, 6)), Vector2(rng.randf_range(-60, 60), rng.randf_range(-20, 0)), 0.8, 34.0, 0.75)
 		_glints(p + Vector2(0, -50), 6, 30.0)
@@ -3414,8 +3406,8 @@ func _will_pillar(w, o: Dictionary, now: float) -> void:
 	if left < 0.14:
 		if not o.get("fx_shat", false):
 			o["fx_shat"] = true
-			_shatter("icicle", p + Vector2(-10, -6), 1.2, 200.0)
-			_shatter("icicle", p + Vector2(10, -2), 1.0, 180.0)
+			_ice_bits(p + Vector2(0, -50), 26, 1.0)
+			_ice_bits(p + Vector2(0, -16), 14, 0.7)
 			embers(p + Vector2(0, -40), 8, ICEL[1], 160.0, 320.0, 0.5, 5.0)
 			for i in 2:
 				_icefog(p + Vector2(rng.randf_range(-16, 16), 0), Vector2(rng.randf_range(-40, 40), -10), 0.7, 30.0, 0.7)
