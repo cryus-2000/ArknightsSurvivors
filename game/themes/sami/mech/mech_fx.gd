@@ -43,6 +43,7 @@ const OLC := Color(0.02, 0.02, 0.04)
 const FOG := [Color(0.05, 0.035, 0.06), Color(0.11, 0.07, 0.11), Color(0.2, 0.13, 0.18)]
 var blade_list := {}         # id → [e, 最近一次 blade_draw 的 t]（blade.gd.draw 每帧登记，地面 / 顶层两处画）
 var bevents: Array = []      # [种类, 位置, a, 触发 t, 已触发]
+var bscars: Array = []       # 地上斩痕 [起点, 终点, 出生 t, 宽, 种子]
 # 黑雾：程序噪声烤出的柔边雾贴图（alpha 分 5 级台阶保持像素感，1 纹素 = 2 世界像素），不用实心方块
 var fog_puff: Array = []     # 4 张 32×32 径向雾团
 var fog_band: Texture2D      # 128×32 横向可平铺的雾带（上下边柔）
@@ -832,6 +833,7 @@ func _crack(w, a: Vector2, ang: float, L: float, k: float, sd: int, wd := 3.0) -
 func _blade_ground(w, now: float) -> void:
 	var cv = g.wcv
 	gpuffs = _draw_puffs(cv, gpuffs, now)
+	_draw_bscars(w, cv, now)
 	# 预警（通用画法已关：blade.gd 给这些预警挂 skin sami_blade，telegraph_draw.quiet 跳过）：裂缝 + 黑雾先渗出 + 刃尖先冒头，不画描边圈 / 半透明填充
 	for t in g.warns:
 		if t.done or str(t.get("skin", "")) != "sami_blade":
@@ -1022,31 +1024,11 @@ func _blade_front(w, now: float) -> void:
 			_draw_dial(w, ev, age)
 			continue
 		if ev[0] == "slash":
-			# 挥刃：月牙刀带 0.1 秒从扇形一边扫到另一边（刀头白、刀身深红、尾巴黑），0.1–0.28 秒尾巴追上收掉
-			if age > 0.28:
+			# 国度 + 横斩（11-28 用户：每只 Boss 一种主表现，概念图 fm_b1）：从黑雾里冲出一记大横斩
+			if age > 0.5:
 				continue
 			keep.append(ev)
-			var ca: float = ev[2]
-			var e0: float = ca - PI / 3.0 - 0.1
-			var e1: float = ca + PI / 3.0 + 0.1
-			var hd: float = lerpf(e0, e1, 1.0 - pow(1.0 - clampf(age / 0.1, 0.0, 1.0), 2.0))
-			var tl: float = maxf(e0, maxf(hd - 1.5, lerpf(e0, e1, clampf((age - 0.1) / 0.18, 0.0, 1.0))))
-			var ns := 18
-			var SR: float = float(ev[5]) if ev.size() > 5 else 130.0
-			for pass_i in 2:
-				for j in ns:
-					var f0: float = float(j) / float(ns)
-					var f1: float = float(j + 1) / float(ns)
-					var b0: float = lerpf(tl, hd, f0)
-					var b1: float = lerpf(tl, hd, f1)
-					var o: float = 3.0 if pass_i == 0 else 0.0
-					var ro: float = SR + o
-					var ri0: float = SR - (6.0 + 34.0 * f0) - o   # 尾细头粗
-					var ri1: float = SR - (6.0 + 34.0 * f1) - o
-					var cc: Color = OLC
-					if pass_i == 1:
-						cc = Color(1.0, 0.95, 0.92) if f0 > 0.86 else (BLOOD[2] if f0 > 0.55 else (BLOOD[1] if f0 > 0.25 else BK))
-					w.tb_quad(p + Vector2.from_angle(b0) * ro, p + Vector2.from_angle(b1) * ro, p + Vector2.from_angle(b1) * ri1, p + Vector2.from_angle(b0) * ri0, cc)
+			_big_slash(w, g.wcv, p, float(ev[2]), float(ev[5]) if ev.size() > 5 else 170.0, age)
 			continue
 		if ev[0] == "erupt":
 			# 刃林（用户 11-25 第二次退回：成片、有体积、少而大）：预警后段已冒头的 3–5 把大刃，结算时 0.14 秒从黑烟里竖到全高，
@@ -1171,6 +1153,109 @@ func _slash_scar(w, c: Vector2, ang: float, r: float, u: float) -> void:
 		w.tb_quad(c + Vector2.from_angle(b0) * ro, c + Vector2.from_angle(b1) * ro, c + Vector2.from_angle(b1) * (ro - th1), c + Vector2.from_angle(b0) * (ro - th0), Color(BLOOD[1], al))
 
 
+## 大横斩：刀带 0.12 秒从扇形一边扫到另一边，尾巴 0.12–0.45 秒追上收掉；刀头厚 70、尾细；外沿白热刃口 + 暗红带 + 黑刀身 + 深色描边；
+## 扫过时刀背后翻出黑雾（从国度里冲出来的读法）、刃尖甩白橙火星；照地红光只在刀头下一小团（红光不铺满屏）
+func _big_slash(w, cv, p: Vector2, ca: float, SR: float, age: float) -> void:
+	var e0: float = ca - PI / 3.0 - 0.12
+	var e1: float = ca + PI / 3.0 + 0.12
+	var hd: float = lerpf(e0, e1, 1.0 - pow(1.0 - clampf(age / 0.12, 0.0, 1.0), 2.0))
+	var tl: float = maxf(e0, maxf(hd - 1.7, lerpf(e0, e1, clampf((age - 0.12) / 0.33, 0.0, 1.0))))
+	if hd - tl < 0.03:
+		return
+	var R: float = SR * 1.08
+	var fade: float = clampf((age - 0.3) / 0.2, 0.0, 1.0)
+	var hp: Vector2 = p + Vector2.from_angle(hd) * (R - 20.0)
+	var gt: Texture2D = _glow_tex()
+	cv.draw_texture_rect(gt, Rect2(((hp - Vector2(80, 46)) / PX).floor() * PX, Vector2(160, 92)), false, Color(1.0, 0.32, 0.26, 0.24 * (1.0 - fade)))
+	var ns := 26
+	for pass_i in 4:
+		for j in ns:
+			var f0: float = float(j) / float(ns)
+			var f1: float = float(j + 1) / float(ns)
+			var b0: float = lerpf(tl, hd, f0)
+			var b1: float = lerpf(tl, hd, f1)
+			var t0: float = (4.0 + 86.0 * pow(f0, 1.2) * pow(1.0 - f0, 0.3)) * (1.0 - 0.6 * fade)   # 两头尖的月牙：最厚处在刀头后一点
+			var t1: float = (4.0 + 86.0 * pow(f1, 1.2) * pow(1.0 - f1, 0.3)) * (1.0 - 0.6 * fade)
+			var ro: float = R
+			var r0i: float = R - t0
+			var r1i: float = R - t1
+			var cc: Color
+			match pass_i:
+				0:
+					ro = R + 3.0
+					r0i -= 3.0
+					r1i -= 3.0
+					cc = OLC
+				1:
+					cc = BK
+				2:
+					r0i = R - t0 * 0.42
+					r1i = R - t1 * 0.42
+					cc = BLOOD[1].lerp(BLOOD[2], f0)
+				_:
+					r0i = R - 3.0 - 3.0 * f0
+					r1i = R - 3.0 - 3.0 * f1
+					cc = Color(1.0, 0.95, 0.88) if f0 > 0.35 else BLOOD[3]
+			if fade > 0.0:
+				cc.a = 1.0 - fade
+			w.tb_quad(p + Vector2.from_angle(b0) * ro, p + Vector2.from_angle(b1) * ro, p + Vector2.from_angle(b1) * r1i, p + Vector2.from_angle(b0) * r0i, cc)
+	if age < 0.3:
+		for i in 3:
+			var bq: float = lerpf(tl, hd, rng.randf() * 0.8)
+			var q: Vector2 = p + Vector2.from_angle(bq) * (R - 30.0)
+			_fog(q, 1, 0.8, 0.0, false, 2.2, Vector2.from_angle(bq) * 60.0 + Vector2.from_angle(bq - PI * 0.5) * 40.0)
+		sparks(hp, hd + PI * 0.5, 0.6, 3, 320.0, [Color(1, 0.96, 0.9), Color(1.0, 0.62, 0.3), BLOOD[3], BLOOD[2]], true, 0.3)
+
+
+## 地上斩痕（国度猎斩，fm_b2）：锯齿黑痕 + 暗红芯，1.4 秒淡掉，芯里零星火星；只一条窄带，不铺红光
+func _draw_bscars(w, cv, now: float) -> void:
+	if bscars.is_empty():
+		return
+	var keep: Array = []
+	for sc in bscars:
+		var age: float = now - float(sc[2])
+		if age > 1.4:
+			continue
+		keep.append(sc)
+		var a: Vector2 = sc[0]
+		var b: Vector2 = sc[1]
+		var d: Vector2 = (b - a)
+		var L: float = d.length()
+		if L < 2.0:
+			continue
+		d /= L
+		var nv := d.orthogonal()
+		var al: float = clampf((1.4 - age) / 0.5, 0.0, 1.0)
+		var grow: float = clampf(age / 0.08, 0.0, 1.0)
+		var Wd: float = float(sc[3])
+		var sd: int = int(sc[4])
+		var n: int = maxi(4, int(L / 22.0))
+		var top := PackedVector2Array()
+		var bot := PackedVector2Array()
+		var core_t := PackedVector2Array()
+		var core_b := PackedVector2Array()
+		for i in n + 1:
+			var f: float = float(i) / float(n)
+			var q: Vector2 = a + d * L * f * grow
+			var taper: float = sin(PI * clampf(f, 0.02, 0.98))
+			var jg: float = (float(absi(hash(Vector2i(sd, i))) % 100) / 100.0) * 0.6 + 0.4
+			top.append(_snap(q + nv * Wd * 0.5 * taper * jg))
+			bot.append(_snap(q - nv * Wd * 0.5 * taper * (1.4 - jg)))
+			core_t.append(_snap(q + nv * Wd * 0.14 * taper))
+			core_b.append(_snap(q - nv * Wd * 0.14 * taper))
+		var poly := PackedVector2Array(top)
+		var cpoly := PackedVector2Array(core_t)
+		for i in range(n, -1, -1):
+			poly.append(bot[i])
+			cpoly.append(core_b[i])
+		w.tb_polygon(poly, Color(BK, 0.9 * al))
+		w.tb_polygon(cpoly, Color(BLOOD[2], al * (0.6 + 0.4 * sin(now * 18.0 + float(sd)))))
+		if rng.randf() < 0.3 * al:
+			embers(a + d * L * rng.randf(), 1, BLOOD[3], 60.0, 120.0, 0.5, 3.0)
+	bscars = keep
+	w.tb_flush()
+
+
 ## 刀光带：以 c 为心、从 tl 到 hd 角的一段月牙（白头 + 深红身 + 黑尾，暗描边），sy = 纵向压扁，th = 头部最大厚度
 func _arc_band(w, c: Vector2, R: float, tl: float, hd: float, sy: float, th: float) -> void:
 	if absf(hd - tl) < 0.03:
@@ -1262,8 +1347,10 @@ func _redslash(w, x: Dictionary, u: float, first: bool) -> void:
 		for i in 8:
 			sparks(p + d * L * float(i) / 8.0, float(x.ang) + PI * 0.5 * (1.0 if i % 2 == 0 else -1.0), 0.6, 2, 220.0, BLOOD, true, 0.3)
 		sparks(p, float(x.ang), 0.5, 10, 380.0, [Color(1, 0.95, 0.92), BLOOD[3], BLOOD[2], BLOOD[1]], true, 0.3)
+	if first:
+		bscars.append([x.pos + d * 10.0, x.pos + d * L, g.t, 26.0, rng.randi() % 997])   # 斩光过后地上留一道锯齿斩痕（fm_b2）
 	var a: float = 1.0 - u
-	var W: float = 16.0 * (1.0 - 0.6 * u)
+	var W: float = 26.0 * (1.0 - 0.6 * u)
 	w.tb_poly(PackedVector2Array([p - nv * (W + 3.0), p + d * L * 0.35 - nv * (W * 0.7 + 3.0), p + d * (L + 6.0), p + d * L * 0.35 + nv * (W * 0.7 + 3.0), p + nv * (W + 3.0)]), Color(OLC, a))
 	w.tb_poly(PackedVector2Array([p - nv * W, p + d * L * 0.35 - nv * W * 0.7, p + d * L, p + d * L * 0.35 + nv * W * 0.7, p + nv * W]), Color(BLOOD[2], a))
 	w.tb_poly(PackedVector2Array([p - nv * W * 0.35, p + d * L * 0.4 - nv * W * 0.2, p + d * (L - 10.0), p + d * L * 0.4 + nv * W * 0.2, p + nv * W * 0.35]), Color(1.0, 0.95, 0.92, a))
