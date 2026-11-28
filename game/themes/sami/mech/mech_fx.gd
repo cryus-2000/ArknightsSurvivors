@@ -3449,7 +3449,7 @@ func _pillar_draw(p: Vector2, ang: float, ps: float, vis_k: float, ys := 1.0, ji
 	if vis < 1.0:
 		return
 	var hh: int = absi(hash(Vector2i(int(p.x) * 3, int(p.y) * 7)))
-	var sc: float = ps * (0.9 + float(hh % 21) / 100.0)
+	var sc: float = ps * (0.66 + float(hh % 17) / 100.0)   # 节距 60–90，贴图原尺寸会挤成一堵墙；缩到 0.66–0.82
 	var hgt: float = vis * PX * ys * sc
 	var wd: float = roundf(TW * sc) * PX
 	var dst := Rect2(_snap(Vector2(p.x - wd * 0.5 + jit, p.y + 8.0 * PX * sc - hgt)), Vector2(wd, roundf(hgt / PX) * PX))
