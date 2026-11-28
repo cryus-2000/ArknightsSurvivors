@@ -6,6 +6,8 @@
 ## 震落（11-26 用户批改招式）：银凇被冰凌砸碎时，意志被震下山，滑到碎树原址北侧跪 8 秒（受伤 ×2.2、不出新招、周身每 1.2 秒碎冰甲一圈，朝队长留缺口），
 ## 之后滑回北侧。会主轴 = 引冰凌砸树把意志拽到近战够得着的地方；不理主轴 = 意志一直留在北边，冰甲 ×0.25、近战够不着。
 ## 持续威压（不算招）：每幕开头和每次过卡点，本体阴影向南压到场地 1/3 处，1.2 秒，阴影里 10%。
+## 11-28 表现改版（docs/393 §14.7）：主要表现 = 天气 / 地形。常驻落雪不再判伤（只留画面，交特效）；雪浪从弧形弹改成推进的积雪面；
+## 暴风雪挪到二幕（压到场地 1/2），三幕起北侧 1/3 常驻雪幕（3% / 秒 + 寒冷），冰凌斜落挪到三幕；震落时的冰甲弹圈改成 6 片短程碎屑。
 ## 画面全部占位（draw），正式特效交 fx-declutter。
 extends "res://scripts/enemies/bosses/sami/sami_boss.gd"
 
@@ -41,7 +43,6 @@ func _in_shadow(e: Dictionary, p: Vector2) -> bool:
 func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mate) -> void:
 	tick(e, dt)
 	obst_tick(e)
-	ambient(e, dt, "snow")
 	var c: Vector2 = center(e)
 	var home: Vector2 = c + Vector2(0, -_ar(e) * 0.55)
 	var kneeling: bool = float(e.get("kneel_until", 0.0)) > g.t
@@ -53,7 +54,9 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 	if kneeling and g.t >= float(e.get("kneel_ring", 0.0)) and e.pos.distance_to(tgt) < 4.0:
 		e.kneel_ring = g.t + 1.2
 		e["kneel_k"] = int(e.get("kneel_k", 0)) + 1
-		ring(e, e.pos, 12, 80.0, 1, 0.03, [(g.ppos - e.pos).angle()], float(e.kneel_k) * 0.26, {"life": 6.0, "small": true})   # small：萨米雪花小弹（画面）
+		for j in 6:   # 11-28：冰甲碎屑 6 片（原来 12 发弹圈，飞 6 秒），朝队长那侧不出，飞约 110 就落地
+			var aj: float = (g.ppos - e.pos).angle() + PI / 6.0 + TAU * (float(j) + 0.5) / 7.0 + float(e.kneel_k) * 0.26
+			shot(e, e.pos, aj, 80.0, 1, 0.03, {"life": 1.4})
 	if not e.has("trees"):
 		e["trees"] = []
 		for p in [Vector2(-240, -40), Vector2(0, 70), Vector2(240, -40), Vector2(-130, 200), Vector2(130, 200)]:
@@ -86,6 +89,8 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 	_tick_surge(e)
 	_tick_breath(e, dt)
 	_tick_river(e, dt)
+	_tick_swave(e)
+	_tick_curtain(e)
 	if act_i(e) >= 3 and not e.get("fell", false):
 		e.fell = true
 		_fall(e)
@@ -103,11 +108,11 @@ func moves(e: Dictionary) -> Array:
 			return [["冰凌林", 10.0, 0.0, 9999.0, _m_forest], ["冰凌连落", 9.0, 0.0, 9999.0, _m_triple], ["雪震", 8.0, 0.0, 9999.0, _m_quake],
 				["雪浪", 7.0, 0.0, 9999.0, _m_wave], ["冰凌", 4.0, 0.0, 9999.0, _m_lance]]
 		1:
-			return [["自然涌动", 14.0, 0.0, 9999.0, _m_surge], ["鹿角", 10.0, 0.0, 9999.0, _m_antler], ["冻原", 9.0, 0.0, 9999.0, _m_tundra],
-				["冰凌斜落", 8.0, 0.0, 9999.0, _m_diag], ["冰凌双列", 6.0, 0.0, 9999.0, _m_double]]
+			return [["暴风雪", 16.0, 0.0, 9999.0, _m_blizzard], ["自然涌动", 14.0, 0.0, 9999.0, _m_surge], ["鹿角", 10.0, 0.0, 9999.0, _m_antler],
+				["冻原", 9.0, 0.0, 9999.0, _m_tundra], ["冰凌双列", 6.0, 0.0, 9999.0, _m_double]]   # 11-28：暴风雪挪到二幕（用户定），冰凌斜落挪到三幕
 		2:
 			return [["暴风雪", 16.0, 0.0, 9999.0, _m_blizzard], ["冰河", 12.0, 0.0, 9999.0, _m_river], ["冰峰", 11.0, 0.0, 9999.0, _m_peaks],
-				["群山回响", 9.0, 0.0, 9999.0, _m_echo], ["冰凌交叉", 7.0, 0.0, 9999.0, _m_cross]]
+				["群山回响", 9.0, 0.0, 9999.0, _m_echo], ["冰凌斜落", 8.0, 0.0, 9999.0, _m_diag], ["冰凌交叉", 7.0, 0.0, 9999.0, _m_cross]]
 	return [["崩落", 12.0, 0.0, 9999.0, _m_fall], ["寒息", 10.0, 0.0, 9999.0, _m_breath], ["冰凌", 4.0, 0.0, 9999.0, _m_lance]]
 
 
@@ -221,19 +226,46 @@ func _m_quake(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	return 2.5
 
 
-## 雪浪：60° 弧面从意志向南推进（150 px/秒），碰到银凇断开（大弹排成弧面）
+## 雪浪（11-28 改，docs/393 §14.7）：不再是两层大弹弧面，改成一整块积雪面从意志向南推进：60° 楔形，前沿从 40 推到 600（150 px/秒），
+## 前沿扫过队长（前沿厚 30）且队长不在银凇阴影里 → 15%，一次；画面 = 推进的雪面（draw 占位），预警仍是 0.8 秒的扇形
 func _m_wave(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var a: float = (g.ppos - e.pos).angle()
-	w_cone(e, a, PI / 6.0, 520.0, 0.8, 0.0, "雪浪", {"track": 0.3})
-	later(e, 0.8, _wave_go.bind(e, a))
+	var w := w_cone(e, a, PI / 6.0, 600.0, 0.8, 0.0, "雪浪", {"track": 0.3})
+	later(e, 0.8, func(): e["swave"] = {"t0": g.t, "a": float(w.ang), "o": e.pos, "hit": false})
 	return 1.8
 
 
-func _wave_go(e: Dictionary, a: float) -> void:
-	for wv in 2:   # 两层弧面（第二层错开半格、晚 0.4 秒），11-26 加密
-		for i in 21:
-			var aa: float = a + lerpf(-PI / 6.0, PI / 6.0, (i + 0.5 * wv) / 20.5)
-			shot(e, e.pos + Vector2.from_angle(aa) * 40.0, aa, 150.0, 2 if wv == 0 else 1, 0.15, {"life": 5.0, "hold": 0.4 * wv, "small": true})
+func _swave_front(sw: Dictionary) -> float:
+	return 40.0 + (g.t - float(sw.t0)) * 150.0
+
+
+func _tick_swave(e: Dictionary) -> void:
+	var sw = e.get("swave")
+	if not (sw is Dictionary):
+		return
+	var fr: float = _swave_front(sw)
+	if fr > 600.0:
+		e.erase("swave")
+		return
+	if sw.hit:
+		return
+	var dv: Vector2 = g.ppos - (sw.o as Vector2)
+	if absf(angle_difference(dv.angle(), float(sw.a))) < PI / 6.0 and absf(dv.length() - fr) < 30.0 and not _in_shadow(e, g.ppos):
+		sw.hit = true
+		hit_now(e, g.ppos, 1.0, 0.15)
+
+
+## 三幕起常驻雪幕（11-28，不算招）：北侧 1/3 一直是暴风雪（0 样式场地），队长在里面且不在银凇阴影里 → 每 0.25 秒 0.75%（3% / 秒）+ 寒冷
+func _curtain_y(e: Dictionary) -> float:
+	return _north(e) + (_south(e) - _north(e)) / 3.0
+
+
+func _tick_curtain(e: Dictionary) -> void:
+	if act_i(e) < 2:
+		return
+	if g.ppos.y < _curtain_y(e) and not _in_shadow(e, g.ppos) and g.t >= float(e.get("cur_tick", 0.0)):
+		e.cur_tick = g.t + 0.25
+		hit_now(e, g.ppos, 1.0, 0.0075, {"chill": 0.5})
 
 
 ## 冰凌林：队长周围 12 根冰凌落地插成两排交错冰桩（间距 ≥80），立 5 秒：挡路、挡冰凌
@@ -353,7 +385,7 @@ func _m_diag(e: Dictionary, _dir: Vector2, _d: float) -> float:
 
 
 ## ---- 三幕
-## 暴风雪：风雪从北侧整片往南压到场地 2/3 处再退回；安全的是银凇阴影和 3 条宽 90 的缝（开场就画）
+## 暴风雪（11-28 挪到二幕，三幕照放）：风雪从北侧整片往南压到场地 1/2 处再退回；安全的是银凇阴影和 3 条宽 90 的缝（开场就画）
 func _m_blizzard(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	var c: Vector2 = center(e)
 	var ar: float = _ar(e)
@@ -366,7 +398,7 @@ func _m_blizzard(e: Dictionary, _dir: Vector2, _d: float) -> float:
 		var w := w_line(e, PI * 0.5, ar * 1.5, 45.0, 1.2, 0.0, "暴风雪" if first else "", {"lock": first})
 		w.pos = Vector2(x, _north(e))
 		first = false
-	e["blizz"] = {"t0": g.t + 1.2, "gaps": xs, "stop": _north(e) + (_south(e) - _north(e)) * 0.66, "hit": false}
+	e["blizz"] = {"t0": g.t + 1.2, "gaps": xs, "stop": _north(e) + (_south(e) - _north(e)) * 0.5, "hit": false}
 	return 4.0
 
 
@@ -398,25 +430,41 @@ func _m_echo(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	return 2.6
 
 
-## 冰峰：从意志到队长，冰峰一个接一个拱起（间隔 0.3、r40、0.9 / 0.6），留 3 秒当障碍，也挡冰凌
+## 冰峰（11-28 改，docs/393 §12.2）：冰峰沿一条裂纹从意志脚下朝队长推进——每一步重新瞄准队长当下位置（每步最多转 28°）、
+## 步长 60–90、间隔 0.22–0.36 秒随机，第 3 / 6 步各岔出一条 2 节的短支（±30–45°，r32）；冲过队长 80 后收尾。
+## 单节 r40、0.9 / 0.6 不变，留 3 秒当障碍，也挡冰凌
+const PEAK_MAX := 12
+
+
 func _m_peaks(e: Dictionary, _dir: Vector2, _d: float) -> float:
-	var tgt: Vector2 = g.ppos + g.pvel.limit_length(150.0) * 0.4
-	var d: Vector2 = tgt - e.pos
-	var n: int = clampi(int(d.length() / 75.0), 4, 12)
-	var fxm = g.mech("fx")
-	if fxm != null:
-		fxm.will_crack(e.pos, e.pos + d, n, 0.3, 0.9 + 3.0)   # 冰柱破土（11-28）：冰面裂纹从意志往队长分叉推进，冰柱沿裂纹依次顶出
-	for k in n:
-		var p: Vector2 = e.pos + d * float(k + 1) / float(n)
-		later(e, 0.3 * k, _peak.bind(e, p, k == 0, k))
-	return 1.2 + 0.3 * n
+	var a: float = (g.ppos - e.pos).angle()
+	_peak_step(e, e.pos, a, 0, true, 40.0, PEAK_MAX)
+	return 1.2 + 0.29 * PEAK_MAX * 0.75
 
 
-func _peak(e: Dictionary, p: Vector2, first: bool, k := 0) -> void:
-	var w := w_circle(e, p, 40.0, 0.9, 0.14, "冰峰" if first else "", {"lock": first, "skin": "will_pillar"})
-	w.cb = func(_ww):
-		add_obst(e, p, 26.0, 3.0)
-		e.obst.back()["kind"] = "pillar"
+## 裂纹往前长一节：i = 第几节，left = 这条裂纹还能长几节；主干 r40，支干 r32
+func _peak_step(e: Dictionary, from: Vector2, a: float, i: int, main: bool, r: float, left: int) -> void:
+	if left <= 0 or not e.get("alive", true):
+		return
+	var rng: RandomNumberGenerator = g.rng_enemy
+	if main:
+		var want: float = (g.ppos - from).angle()
+		a += clampf(wrapf(want - a, -PI, PI), -deg_to_rad(28.0), deg_to_rad(28.0))
+	a += rng.randf_range(-0.2, 0.2)
+	var p: Vector2 = from + Vector2.from_angle(a) * rng.randf_range(60.0, 90.0)
+	_peak(e, p, i == 0 and main, r)
+	if main and (i == 2 or i == 5):
+		var side: float = 1.0 if rng.randf() < 0.5 else -1.0
+		var ba: float = a + side * deg_to_rad(rng.randf_range(30.0, 45.0))
+		later(e, rng.randf_range(0.18, 0.3), _peak_step.bind(e, p, ba, i + 1, false, 32.0, 2))
+	if main and p.distance_to(g.ppos) > 80.0 and (p - from).dot(g.ppos - p) < 0.0:
+		left = mini(left, 1)   # 已冲过队长：再长一节就收
+	later(e, rng.randf_range(0.22, 0.36), _peak_step.bind(e, p, a, i + 1, main, r, left - 1))
+
+
+func _peak(e: Dictionary, p: Vector2, first: bool, r := 40.0) -> void:
+	var w := w_circle(e, p, r, 0.9, 0.14, "冰峰" if first else "", {"lock": first})
+	w.cb = func(_ww): add_obst(e, p, r * 0.65, 3.0)
 
 
 ## 冰河：一条冰河从北往南蜿蜒流下（宽 90，河道先画 1.2 秒），冰块顺河道流下（碰到 13%）
@@ -568,6 +616,15 @@ func draw(e: Dictionary, cv) -> void:
 		cv.draw_line(t.pos, Vector2(t.pos.x, _south(e)), Color(0.4, 0.5, 0.7, 0.12), SHADOW_HW * 2.0)
 		for h in int(t.hits):
 			cv.draw_circle(t.pos + Vector2(-10 + 10 * h, -34), 3.0, Color(0.6, 0.5, 1.0, 0.9))
+	var sw = e.get("swave")   # 雪浪积雪面（占位）：楔形里前沿以内铺白
+	if sw is Dictionary:
+		var fr: float = _swave_front(sw)
+		cv.draw_arc(sw.o, fr * 0.5, float(sw.a) - PI / 6.0, float(sw.a) + PI / 6.0, 20, Color(0.92, 0.96, 1.0, 0.25), fr)
+		cv.draw_arc(sw.o, fr, float(sw.a) - PI / 6.0, float(sw.a) + PI / 6.0, 20, Color(0.95, 0.98, 1.0, 0.8), 6.0)
+	if act_i(e) >= 2:   # 三幕常驻雪幕（占位）
+		var cy: float = _curtain_y(e)
+		var ar: float = _ar(e)
+		cv.draw_rect(Rect2(center(e).x - ar * 1.2, _north(e) - 80.0, ar * 2.4, cy - _north(e) + 80.0), Color(0.85, 0.9, 1.0, 0.12))
 	for o in e.get("obst", []):
 		cv.draw_circle(o.pos, float(o.r), Color(0.8, 0.92, 1.0, 0.9))
 		cv.draw_arc(o.pos, float(o.r), 0.0, TAU, 16, Color(0.95, 0.98, 1.0), 2.0)

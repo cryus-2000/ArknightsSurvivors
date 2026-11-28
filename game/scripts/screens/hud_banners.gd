@@ -2,6 +2,7 @@ extends RefCounted
 const D = preload("res://scripts/data.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const UI = preload("res://scripts/ui.gd")
+const TT = preload("res://scripts/core/theme_text.gd")   # 主题文案覆盖（docs/412）
 const PlayKeys = preload("res://scripts/core/play_keys.gd")   # 局内键名按当前绑定（可改键）
 const UM = preload("res://scripts/ui_motion.gd")
 const A = preload("res://scripts/art.gd")
@@ -452,12 +453,12 @@ func draw_zone_warning(vs: Vector2) -> void:
 			if not (g.hp < g.max_hp * 0.3 and g.hp > 0.0):   # 生命垂危的红暗角优先
 				h.edge_glow(vs, Color(0.55, 0.1, 0.8, 0.4 + 0.3 * pz), 140.0)
 			# 指向安全区的箭头与掉血倒计时见 draw_zone_hint
-			UI.text(g.hud, g.font, Vector2(0, vs.y * 0.5 - 130), "身处黑潮！返回安全区", 20, Color(1.0, 0.7, 1.0, 0.7 + 0.3 * pz), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 5)
+			UI.text(g.hud, g.font, Vector2(0, vs.y * 0.5 - 130), TT.t("zone.out", "身处黑潮！返回安全区"), 20, Color(1.0, 0.7, 1.0, 0.7 + 0.3 * pz), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 5)
 		else:
 			# 顶栏楼层条下方；有 Boss 血条时再往下让出位置
 			var zy := maxf(116.0, h.bars.boss_bottom + 22.0)
-			if g.zone_state == 1:
-				UI.text(g.hud, g.font, Vector2(0, zy), "黑潮将至  %d" % int(ceil(20.0 - g.zone_t)), 15, Color(0.9, 0.6, 1.0), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
+			if g.zone_state == 1 and TT.t("zone.soon", "黑潮将至  %d") != "":   # 萨米：空串 = 不画（mech_cold 自己出「风雪将至」横幅，docs/412 B16）
+				UI.text(g.hud, g.font, Vector2(0, zy), TT.t("zone.soon", "黑潮将至  %d") % int(ceil(20.0 - g.zone_t)), 15, Color(0.9, 0.6, 1.0), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
 			elif g.zone_state == 2:
 				UI.text(g.hud, g.font, Vector2(0, zy), "安全区收缩中", 15, Color(0.9, 0.6, 1.0, 0.6 + 0.4 * sin(g.t * 6.0)), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
 

@@ -1236,7 +1236,7 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 		for k in g.rng_drop.randi_range(3, 6):
 			g.pickups.drop(e.pos + Vector2.from_angle(g.rng_drop.randf() * TAU) * g.rng_drop.randf_range(4.0, 18.0), "ingot", 1.0)
 		if g.rng_drop.randf() < 0.3:
-			g.pickups.drop(e.pos + Vector2(10, 6), "oil", 15.0)
+			if g.has_lamp: g.pickups.drop(e.pos + Vector2(10, 6), "oil", 15.0)   # 无灯火主题不掉灯油（docs/412 B26）
 		# 补给箱回血（docs/133，用户 10-24：参照吸血鬼幸存者靠打可破坏道具回血）：箱子里主要是应急补给（回 crate/pack_pct 最大生命，不吃 heal_mult），
 		# 少量磁铁 / 临时护盾；伪装箱形恐鱼（现形）和祭坛不走这里。crate/pack_p 0 = 关（旧行为：只有源石锭 / 灯油）
 		var cpk: float = Bal.v("crate/pack_p", 0.9)
@@ -1333,7 +1333,7 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 	if e.xp > 0.0:
 		g.pickups.drop(e.pos, "xp", e.xp * g.xp_mult)
 	if g.rng_drop.randf() < Bal.v("lamp/oil_kill_chance", 0.006) * float(g.dmod.oil_drop):
-		g.pickups.drop(e.pos + Vector2(8, 0), "oil", 15.0 * dk)
+		if g.has_lamp: g.pickups.drop(e.pos + Vector2(8, 0), "oil", 15.0 * dk)
 	# 特殊道具：磁铁 / 回复（小怪低概率，精英与 Boss 必掉其一）；旋钮在 balance.json pickup 段
 	if e.elite or e.boss:
 		var mag: bool = g.rng_drop.randf() < Bal.v("pickup/elite_magnet_share", 0.5)
@@ -1380,7 +1380,7 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 		if elite_drops_relic():
 			g.pickups.drop(e.pos, "chest", 1.0, "elite")
 		if g.rng_drop.randf() < Bal.v("lamp/elite_oil_chance", 0.65):
-			g.pickups.drop(e.pos + Vector2(20, 10), "oil", Bal.v("lamp/elite_oil_amount", 25.0))
+			if g.has_lamp: g.pickups.drop(e.pos + Vector2(20, 10), "oil", Bal.v("lamp/elite_oil_amount", 25.0))
 	if float(e.get("scream_t1", INF)) > g.t and D.ENEMIES.get(e.type, {}).has("scream_ingot_mult"):
 		ing = int(round(ing * float(D.ENEMIES[e.type].scream_ingot_mult)))   # 箱形恐鱼尖叫结束前击倒（含还没尖叫）：源石锭 ×1.5（docs/145 §4 A，原作宝箱恐鱼）
 	if e.boss:

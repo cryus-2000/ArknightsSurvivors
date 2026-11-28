@@ -2,7 +2,7 @@ extends "res://scripts/core/theme_mechanic.gd"
 ## 萨米主题机制 · 密文板（docs/394 §5 规则与数值、docs/411 本批范围；数据读 themes/sami/data/mechanics.json totem）。
 ## 布局（何时生效）+ 本因（给什么）组成一次宣告：随时按 T / 手柄 Y / 触屏「密文」键 → 暂停面板 → 选布局 → 选本因 →（自选时机）→ 两块消耗，坍缩值 −1。
 ## 同色或全色布局触发协语（本因按 synergy 结算）；无色空无 / 伤痕只能互配，宣告后下一个路口出结局二入口卡「木裂前兆」。
-## 时机：fight（立刻 N 秒 / 精英 / Boss / 中期 Boss / 大群 / 本阶段剩余）与 cross（下一个 / 之后 / 接下来 n 个 / 剩下所有路口）。
+## 时机：fight（立刻 N 秒 / 精英 / Boss / 中期 Boss / 敌群来袭 / 本阶段剩余）与 cross（下一个 / 之后 / 接下来 n 个 / 剩下所有路口）。
 ##   战斗类本因只在 fight 时机生效，路口类只在 cross 时机生效，「经过」类在每个时机结束时结算一次。
 ## 本批不进掉落池：带 needs 的 6 块（依赖萨米事件 / 招募卡 / 抗干扰）；协语友军「精英干员临时加入」下批（辩论协语只结算普通版）。
 ## 随机数走自己的 rng（种子 = 局种子 + "totem"），不动主 rng；机器人（g.bot）不开面板，直接按策略宣告。
@@ -86,7 +86,7 @@ func give(bid: String, quiet := false) -> void:
 
 
 ## 随机掉 1 块：稀有度按权重；手里布局 / 本因不均时 kind_balance 概率补少的那类；带 needs / only_with 的不进池
-func drop_one(force_pos := "") -> void:
+func drop_one(force_pos := "", force_rare := false) -> void:
 	var dr: Dictionary = T.get("drops", {})
 	var pos := force_pos
 	if pos == "":
@@ -106,6 +106,8 @@ func drop_one(force_pos := "") -> void:
 		if u <= 0.0:
 			rar = str(k)
 			break
+	if force_rare and rar == "NORMAL":
+		rar = "RARE"   # 事件「较为稀有的密文板」（请君入戏，docs/414）
 	var pool: Array = []
 	for b in T.get("boards", []):
 		if str(b.pos) == pos and str(b.rarity) == rar and _in_pool(b):
@@ -283,7 +285,7 @@ func _ttext(t: Dictionary) -> String:
 		"next_elites":
 			return "接下来 %d 场精英" % int(t.get("n", 1))
 		"next_hordes":
-			return "接下来 %d 次大群" % int(t.get("n", 1))
+			return "接下来 %d 次敌群来袭" % int(t.get("n", 1))
 		"next_crosses":
 			return "接下来 %d 个路口" % int(t.get("n", 1))
 		"random":
@@ -891,5 +893,11 @@ func draw_ground(_w) -> void:
 
 
 ## 批跑遥测（telemetry 收进 BALANCE 行的 mech_totem）
+## 事件 {"mech": {"totem": n, "rare": bool}}（docs/414）
+func event_op(d: Dictionary) -> void:
+	for k in int(d.get("totem", 0)):
+		drop_one("", bool(d.get("rare", false)))
+
+
 func report() -> Dictionary:
 	return {"decl": log_decl.size(), "syn": log_decl.filter(func(x): return x[3]).size(), "drops": drops, "held": hand.size(), "log": log_decl.duplicate(), "uses": uses.duplicate()}

@@ -47,7 +47,8 @@ BOSSES = {
     "cresson": (["cresson"], 3, "无垠回荡克雷松"),
     "khan+lion": (["khan", "lion"], 3, "哈兰杜汗 + 路加萨尔古斯"),
 }
-SAMI = ["blade", "wanderer", "shaman", "shaman2", "vine", "vine2", "will", "lead", "cresson", "khan+lion"]
+BOSSES.update({"shaman": (["shaman"], 1, "陷落雪祀"), "vine": (["vine"], 1, "纠缠藤蔓"), "shaman2": (["shaman2"], 2, "空洞雪祀"), "vine2": (["vine2"], 2, "古老藤蔓")})
+SAMI = ["blade", "wanderer", "shaman", "vine", "shaman2", "vine2", "will", "lead", "cresson", "khan+lion"]
 
 
 def seeds_of(spec):

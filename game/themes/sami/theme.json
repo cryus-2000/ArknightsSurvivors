@@ -5,14 +5,14 @@
   "data": {
     "waves": "res://themes/sami/data/waves_full.json",
     "enemies": "res://themes/sami/data/enemies.json",
-    "events_v2": "res://themes/deep_sea/data/events_v2.json",
-    "relics": "res://themes/deep_sea/data/relics.json",
-    "relic_effects": "res://themes/deep_sea/data/relic_effects.json",
+    "events_v2": "res://themes/sami/data/events_v2.json",
+    "relics": "res://themes/sami/data/relics.json",
+    "relic_effects": "res://themes/sami/data/relic_effects.json",
     "meta_tree": "res://data/meta_tree.json",
     "meta_roots": "res://data/meta_roots.json",
     "guide": "res://themes/deep_sea/data/guide.json",
     "onboard": "res://themes/deep_sea/data/onboard.json",
-    "lore": "res://themes/deep_sea/data/lore.json",
+    "lore": "res://themes/sami/data/lore.json",
     "medals": "res://themes/deep_sea/data/medals.json",
     "medals_layout": "res://themes/deep_sea/data/medals_layout.json",
     "doctor": "res://data/doctor.json",
@@ -45,6 +45,10 @@
     {
       "id": "totem",
       "script": "res://themes/sami/mech/mech_totem.gd"
+    },
+    {
+      "id": "relics",
+      "script": "res://themes/sami/mech/mech_relics.gd"
     }
   ],
   "maps": {
