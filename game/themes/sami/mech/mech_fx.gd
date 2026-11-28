@@ -3906,15 +3906,34 @@ func _vine_warn(w, cv, t: Dictionary, k: float, sd: int) -> void:
 	var nv := d.orthogonal()
 	var hw: float = float(t.wid) * 0.45
 	var lift: float = 6.0 + 6.0 * k
-	# 背光冷面（右下）→ 拱身 → 拱顶受光雪 → 顶上裂开的土缝
-	w.tb_poly(PackedVector2Array([_snap(a + nv * hw + Vector2(3, 4)), _snap(b + nv * hw + Vector2(3, 4)), _snap(b - nv * hw + Vector2(3, 4)), _snap(a - nv * hw + Vector2(3, 4))]), Color(A1_SH, 0.5))
-	w.tb_poly(PackedVector2Array([_snap(a + nv * hw), _snap(b + nv * hw), _snap(b - nv * hw), _snap(a - nv * hw)]), A1_BACK)
+	# 背光冷面（右下）→ 拱身 → 拱顶受光雪 → 顶上裂开的土缝；按 14 像素一小段走，宽窄 / 拱顶起伏按哈希抖（vreview：整段矩形像贴纸），段首补一个圆头接住拐角
 	var top: Vector2 = Vector2(0, -lift)
-	w.tb_poly(PackedVector2Array([_snap(a + nv * hw * 0.6 + top), _snap(b + nv * hw * 0.6 + top), _snap(b - nv * hw * 0.5 + top), _snap(a - nv * hw * 0.5 + top)]), A1_LIT)
+	var ns: int = maxi(2, int(L / 14.0))
+	var prev_c: Vector2 = a
+	var prev_w: float = hw
+	for i in range(1, ns + 1):
+		var c2: Vector2 = a + d * L * float(i) / float(ns)
+		var hh: int = absi(hash(Vector2i(sd + vi * 31, i)))
+		var w2: float = hw * (0.78 + float(hh % 40) / 100.0)
+		var bump: Vector2 = top * (0.75 + float((hh / 40) % 50) / 100.0)
+		w.tb_poly(PackedVector2Array([_snap(prev_c + nv * prev_w + Vector2(3, 4)), _snap(c2 + nv * w2 + Vector2(3, 4)), _snap(c2 - nv * w2 + Vector2(3, 4)), _snap(prev_c - nv * prev_w + Vector2(3, 4))]), Color(A1_SH, 0.5))
+		w.tb_poly(PackedVector2Array([_snap(prev_c + nv * prev_w), _snap(c2 + nv * w2), _snap(c2 - nv * w2), _snap(prev_c - nv * prev_w)]), A1_BACK)
+		w.tb_poly(PackedVector2Array([_snap(prev_c + nv * prev_w * 0.55 + bump), _snap(c2 + nv * w2 * 0.55 + bump), _snap(c2 - nv * w2 * 0.45 + bump), _snap(prev_c - nv * prev_w * 0.45 + bump)]), A1_LIT)
+		prev_c = c2
+		prev_w = w2
+	var cap := PackedVector2Array()
+	for i in 10:
+		var aa: float = TAU * float(i) / 10.0
+		cap.append(_snap(a + Vector2(cos(aa), sin(aa) * 0.6) * hw + top * 0.8))
+	w.tb_poly(cap, A1_LIT)
 	if k > 0.35:
 		var cw: float = 4.0 + 6.0 * (k - 0.35)
-		w.tb_line(_snap(a + top), _snap(b + top), SOIL[0], cw + 2.0)
-		w.tb_line(_snap(a + top), _snap(b + top), EMBER if int(g.t * 12.0 + float(vi)) % 3 else SOIL[2], maxf(2.0, cw - 4.0))
+		var q0: Vector2 = a + top
+		for i in range(1, ns + 1):
+			var q1: Vector2 = a + d * L * float(i) / float(ns) + top + nv * (float(absi(hash(Vector2i(sd, i + 70))) % 7) - 3.0)
+			w.tb_line(_snap(q0), _snap(q1), SOIL[0], cw + 2.0)
+			w.tb_line(_snap(q0), _snap(q1), EMBER if (i + int(g.t * 12.0)) % 3 else SOIL[2], maxf(2.0, cw - 4.0))
+			q0 = q1
 	w.tb_flush()
 	# 拱痕前端：雪和土往上蹦（只有正在推进的那一段）
 	if f < 1.0 and rng.randf() < 0.9:
