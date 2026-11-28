@@ -271,9 +271,10 @@ const AI_GROUPS := {
 	"lead": [["lead"], "「木裂」埃克提尔尼尔"],
 	"cresson": [["cresson"], "无垠回荡克雷松"],
 	"shaman": [["shaman"], "陷落雪祀"],
+	"vine": [["vine"], "纠缠藤蔓"],
 	"twin": [["khan", "lion"], "哈兰杜汗与路加萨尔古斯"],
 }
-const AI_ORDER := ["blade", "wanderer", "will", "lead", "cresson", "shaman", "twin"]
+const AI_ORDER := ["blade", "wanderer", "will", "lead", "cresson", "shaman", "vine", "twin"]
 const AI_SKIP := {"wanderer": ["斩击·横扫", "投刃·切雾", "雾中突袭", "黑毯·回旋", "追猎·折返", "国度猎斩"]}   # 游荡者只演和利刃不同的招
 
 

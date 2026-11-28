@@ -2154,6 +2154,9 @@ func _tick(w, q: Vector2, d: Vector2, L: float, wd: float) -> void:
 
 
 func _warn_final(w, cv, t: Dictionary, k: float, sd: int, ot: String) -> void:
+	if str(t.get("skin0", "")) == "vine_burrow":
+		_vine_warn(w, cv, t, k, sd)   # 藤蔓根须钻地拱痕（11-28，fm_v1）
+		return
 	var gy: float = g.combat.GROUND_Y
 	var c: Vector2 = t.pos
 	match t.shape:
@@ -2864,6 +2867,7 @@ func _fin_ground(w, cv, now: float) -> void:
 	_draw_wcracks(w, cv, now)
 	_cimp_ground(cv, w, now)
 	_sham_ground(cv, now)
+	_vtrench_draw(w, cv, now)
 	var gy: float = g.combat.GROUND_Y
 	for id in fin_list.keys():
 		var it: Array = fin_list[id]
@@ -2967,6 +2971,9 @@ func _fin_front(w, cv, now: float) -> void:
 		if not (ow is Dictionary):
 			continue
 		var ot: String = str(ow.get("type", ""))
+		if str(t.get("skin0", "")) == "vine_burrow":
+			_vine_burst(t)
+			continue
 		if not PAL.has(ot) or str(t.get("skin0", "")) in ["ice_lance", "will_pillar"] or float(t.get("dmg", 0.0)) <= 0.0:
 			continue
 		_warn_burst(t, ot)
@@ -3125,6 +3132,7 @@ func _fin_front(w, cv, now: float) -> void:
 	_draw_shards(w, now)
 	_cimp_front(w, now)
 	_sham_front(w, now)
+	_vroots_draw(w, now)
 	_draw_glows(now)
 	_frozen_front(w)
 	w.tb_flush()
@@ -3873,6 +3881,148 @@ func _sham_front(w, now: float) -> void:
 	for m in g.enemies:
 		if not m.dead and float(m.get("gift_until", 0.0)) > now and rng.randf() < 0.25:
 			_add(m.pos + Vector2(rng.randf_range(-14, 14), -rng.randf_range(0, 30)), Vector2(0, -rng.randf_range(30, 60)), 0.6, IND[2] if rng.randf() < 0.6 else IND[3], 4.0, 3, 0.0)
+	w.tb_flush()
+
+
+## ==== 藤蔓「根须钻地」（11-28 用户：每只 Boss 一种主表现，概念图 fm_v1）：致幻缠绕的 S 形路线 = 雪下一道隆起的拱痕
+## 从藤蔓脚下往队长追过去（拱顶受光雪 + 背光冷面 + 顶上裂开露出土和熔红缝），结算时整条拱痕破土：根须一根根顶出来，
+## 土块 / 冰块 / 木屑往外飞，地上留一道翻开的土沟（边上熔红余烬），最前端那一下最大。判定照旧（6 段直线，一条只挨一下）
+const SOIL := [Color(0.13, 0.085, 0.06), Color(0.3, 0.2, 0.13), Color(0.45, 0.31, 0.2)]
+const ROOT := [Color(0.1, 0.065, 0.05), Color(0.33, 0.22, 0.15), Color(0.52, 0.37, 0.24)]
+const EMBER := Color(1.0, 0.5, 0.18)
+var vroots: Array = []    # [位置, 出生 t, 高, 弯, 粗]
+var vtrench: Array = []   # [a, b, 出生 t, 宽]
+
+
+func _vine_warn(w, cv, t: Dictionary, k: float, sd: int) -> void:
+	var vi: int = int(t.get("vi", 1))
+	var f: float = clampf(k * 1.3 * 6.0 - float(vi - 1), 0.0, 1.0)   # 拱痕从藤蔓脚下往队长推进：第 vi 段在 0.9 秒里依次隆起
+	if f <= 0.0:
+		return
+	var a: Vector2 = t.pos
+	var d := Vector2.from_angle(float(t.ang))
+	var L: float = float(t.len) * f
+	var b: Vector2 = a + d * L
+	var nv := d.orthogonal()
+	var hw: float = float(t.wid) * 0.45
+	var lift: float = 6.0 + 6.0 * k
+	# 背光冷面（右下）→ 拱身 → 拱顶受光雪 → 顶上裂开的土缝
+	w.tb_poly(PackedVector2Array([_snap(a + nv * hw + Vector2(3, 4)), _snap(b + nv * hw + Vector2(3, 4)), _snap(b - nv * hw + Vector2(3, 4)), _snap(a - nv * hw + Vector2(3, 4))]), Color(A1_SH, 0.5))
+	w.tb_poly(PackedVector2Array([_snap(a + nv * hw), _snap(b + nv * hw), _snap(b - nv * hw), _snap(a - nv * hw)]), A1_BACK)
+	var top: Vector2 = Vector2(0, -lift)
+	w.tb_poly(PackedVector2Array([_snap(a + nv * hw * 0.6 + top), _snap(b + nv * hw * 0.6 + top), _snap(b - nv * hw * 0.5 + top), _snap(a - nv * hw * 0.5 + top)]), A1_LIT)
+	if k > 0.35:
+		var cw: float = 4.0 + 6.0 * (k - 0.35)
+		w.tb_line(_snap(a + top), _snap(b + top), SOIL[0], cw + 2.0)
+		w.tb_line(_snap(a + top), _snap(b + top), EMBER if int(g.t * 12.0 + float(vi)) % 3 else SOIL[2], maxf(2.0, cw - 4.0))
+	w.tb_flush()
+	# 拱痕前端：雪和土往上蹦（只有正在推进的那一段）
+	if f < 1.0 and rng.randf() < 0.9:
+		_add(b + nv * rng.randf_range(-hw, hw), Vector2(rng.randf_range(-60, 60), -rng.randf_range(100, 200)), 0.45, A1_LIT if rng.randf() < 0.5 else SOIL[1], rng.randf_range(5.0, 9.0), 3, 700.0)
+
+
+func _vine_burst(t: Dictionary) -> void:
+	var a: Vector2 = t.pos
+	var d := Vector2.from_angle(float(t.ang))
+	var L: float = float(t.len)
+	var nv := d.orthogonal()
+	var front: bool = int(t.get("vi", 1)) == 6
+	vtrench.append([a, a + d * L, g.t, float(t.wid) * 0.8])
+	var n: int = 2 if not front else 3
+	for i in n:
+		var q: Vector2 = a + d * L * (float(i) + rng.randf_range(0.3, 0.8)) / float(n) + nv * rng.randf_range(-12, 12)
+		vroots.append([q, g.t + rng.randf_range(0.0, 0.08), rng.randf_range(54.0, 84.0) * (1.4 if front and i == n - 1 else 1.0), rng.randf_range(-0.6, 0.6), rng.randf_range(16.0, 24.0)])
+	# 土块 / 冰块 / 木屑
+	var cnt: int = 10 if not front else 22
+	for i in cnt:
+		var q2: Vector2 = a + d * L * rng.randf()
+		var ang: float = rng.randf_range(-PI, 0.0)
+		var sp: float = rng.randf_range(140.0, 340.0) * (1.3 if front else 1.0)
+		var kind: int = i % 3
+		var col: Color = [SOIL[1], Color(0.78, 0.9, 0.97), Color(0.62, 0.42, 0.24)][kind]
+		var sz: float = [rng.randf_range(8.0, 14.0), rng.randf_range(6.0, 11.0), 6.0][kind]
+		if kind == 2:
+			_add(q2, Vector2(cos(ang) * sp, sin(ang) * sp * 0.8 - 100.0), rng.randf_range(0.5, 0.8), col, 6.0, 2, 900.0)   # 木屑：拉伸细条
+		else:
+			_add(q2, Vector2(cos(ang) * sp, sin(ang) * sp * 0.8 - 100.0), rng.randf_range(0.55, 0.85), col, sz, 3, 1000.0)
+	if front:
+		embers(a + d * L, 10, EMBER, 160.0, 300.0, 0.6, 4.0)
+		glows.append([a + d * L, g.t, 120.0])
+
+
+func _vtrench_draw(w, cv, now: float) -> void:
+	if vtrench.is_empty():
+		return
+	var gt: Texture2D = _glow_tex()
+	var keep: Array = []
+	for tr in vtrench:
+		var age: float = now - float(tr[2])
+		if age > 1.6:
+			continue
+		keep.append(tr)
+		var al: float = clampf((1.6 - age) / 0.6, 0.0, 1.0)
+		var a: Vector2 = tr[0]
+		var b: Vector2 = tr[1]
+		var nv: Vector2 = (b - a).orthogonal().normalized()
+		var hw: float = float(tr[3]) * 0.5
+		w.tb_poly(PackedVector2Array([_snap(a + nv * (hw + 4.0)), _snap(b + nv * (hw + 4.0)), _snap(b - nv * (hw + 4.0)), _snap(a - nv * (hw + 4.0))]), Color(A1_LIT, 0.8 * al))   # 翻起的雪唇
+		w.tb_poly(PackedVector2Array([_snap(a + nv * hw), _snap(b + nv * hw), _snap(b - nv * hw), _snap(a - nv * hw)]), Color(SOIL[1], al))
+		w.tb_poly(PackedVector2Array([_snap(a + nv * hw * 0.4), _snap(b + nv * hw * 0.4), _snap(b - nv * hw * 0.4), _snap(a - nv * hw * 0.4)]), Color(SOIL[0], al))
+		w.tb_line(_snap(a), _snap(b), Color(EMBER, al * (0.5 + 0.5 * sin(now * 14.0 + a.x))), 2.0)   # 土沟底熔红缝
+		if age < 0.5:
+			var m: Vector2 = (a + b) * 0.5
+			cv.draw_texture_rect(gt, Rect2(((m - Vector2(50, 28)) / PX).floor() * PX, Vector2(100, 56)), false, Color(1.0, 0.55, 0.3, 0.22 * (1.0 - age / 0.5)))
+	vtrench = keep
+	w.tb_flush()
+
+
+## 根须：0.1 秒从土里顶出（弯着往上长），停 0.35 秒，0.4 秒缩回土里；深色描边 + 木身 + 受光面（左上）+ 熔红节
+func _vroots_draw(w, now: float) -> void:
+	var keep: Array = []
+	for r in vroots:
+		var age: float = now - float(r[1])
+		if age > 0.9:
+			continue
+		keep.append(r)
+		if age < 0.0:
+			continue
+		var up: float = clampf(age / 0.1, 0.0, 1.0)
+		up = 1.0 - (1.0 - up) * (1.0 - up)
+		if age > 0.45:
+			up *= clampf(1.0 - (age - 0.45) / 0.4, 0.0, 1.0)
+		var H: float = float(r[2]) * up
+		if H < 3.0:
+			continue
+		var p: Vector2 = r[0]
+		var bend: float = float(r[3])
+		var W: float = float(r[4])
+		var n := 6
+		var lp := PackedVector2Array()
+		var rp := PackedVector2Array()
+		for i in n + 1:
+			var f: float = float(i) / float(n)
+			var c: Vector2 = p + Vector2(bend * H * f * f, -H * f)
+			var hw: float = W * 0.5 * (1.0 - f * 0.85)
+			lp.append(c + Vector2(-hw, 0))
+			rp.append(c + Vector2(hw, 0))
+		var outl := PackedVector2Array()
+		var body := PackedVector2Array()
+		var lit := PackedVector2Array()
+		for i in n + 1:
+			outl.append(lp[i] + Vector2(-3, 0))
+			body.append(lp[i])
+			lit.append(lp[i])
+		for i in range(n, -1, -1):
+			outl.append(rp[i] + Vector2(3, 0))
+			body.append(rp[i])
+			lit.append(lp[i].lerp(rp[i], 0.4))
+		w.tb_polygon(outl, ROOT[0])
+		w.tb_polygon(body, ROOT[1])
+		w.tb_polygon(lit, ROOT[2])
+		for i in [2, 4]:
+			w.tb_line(_snap(lp[i].lerp(rp[i], 0.3)), _snap(lp[i].lerp(rp[i], 0.7)), EMBER, 2.0)
+		w.tb_quad(_snap(p + Vector2(-W, -2)), _snap(p + Vector2(W, -2)), _snap(p + Vector2(W * 0.8, 4)), _snap(p + Vector2(-W * 0.8, 4)), SOIL[0])   # 根脚翻开的土
+	vroots = keep
 	w.tb_flush()
 
 

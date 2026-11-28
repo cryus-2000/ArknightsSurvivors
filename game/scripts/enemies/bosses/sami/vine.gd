@@ -189,7 +189,10 @@ func _s_path(e: Dictionary, a: float, sgn: float, wid: float, nm: String) -> voi
 	for k in range(1, 7):
 		var s: float = float(k) / 6.0
 		var q: Vector2 = e.pos + fwd * (600.0 * s) + side * sin(TAU * s) * 70.0
-		var w := w_line(e, (q - prev).angle(), prev.distance_to(q) + 8.0, wid, 0.9, 0.25 if _old(e) else 0.16, nm if k == 1 else "", {"pos": prev, "lock": k == 1, "track": 0.0})
+		var x := {"pos": prev, "lock": k == 1, "track": 0.0}
+		if g.mech("fx") != null:
+			x.merge({"skin": "sami_blade", "skin0": "vine_burrow", "vi": k}, true)   # 根须钻地（11-28，fm_v1）：mech_fx 画雪下拱痕 + 破土，通用描边跳过
+		var w := w_line(e, (q - prev).angle(), prev.distance_to(q) + 8.0, wid, 0.9, 0.25 if _old(e) else 0.16, nm if k == 1 else "", x)
 		w.cb = func(ww):
 			# 一条 S 路线只挨一下（11-26：6 段各自结算时，一次没躲开会连吃 2–3 段，等于单发 50–75%，破单发上限 40%）
 			if g.t < float(e.get("sp_hit_until", 0.0)):
