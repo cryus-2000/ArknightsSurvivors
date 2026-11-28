@@ -4896,7 +4896,7 @@ func _will_wave(w, cv, e: Dictionary, now: float) -> void:
 		var q: Vector2 = o + Vector2(cos(b), sin(b) * gy) * fr
 		if _tree_shade(e, q.x, q.y):
 			continue
-		var hh: float = 34.0 + 10.0 * sin(float(i) * 1.7 + now * 6.0) + 6.0 * sin(float(i) * 0.6 - now * 3.0)
+		var hh: float = 58.0 + 14.0 * sin(float(i) * 1.7 + now * 6.0) + 8.0 * sin(float(i) * 0.6 - now * 3.0)
 		var wd: float = 2.0 * half * fr / float(n) * 0.62 + 4.0
 		var tng := Vector2(-sin(b), cos(b) * gy).normalized()
 		w.tb_quad(_snap(q - tng * wd + Vector2(0, 4)), _snap(q + tng * wd + Vector2(0, 4)), _snap(q + tng * wd + Vector2(0, -hh * 0.55)), _snap(q - tng * wd + Vector2(0, -hh * 0.55)), A1_BACK)
@@ -4907,9 +4907,12 @@ func _will_wave(w, cv, e: Dictionary, now: float) -> void:
 		var q: Vector2 = o + Vector2(cos(b), sin(b) * gy) * fr
 		if _tree_shade(e, q.x, q.y):
 			continue
-		var hh: float = 34.0 + 10.0 * sin(float(i) * 1.7 + now * 6.0)
-		var sz: float = 50.0 + float((i * 37) % 30)
-		cv.draw_texture_rect(snow_puff, Rect2(_snap(q + Vector2(-sz * 0.5, -hh - sz * 0.55)), Vector2(sz, sz * 0.7)), false, Color(1, 1, 1, 0.92))
+		var hh: float = 58.0 + 14.0 * sin(float(i) * 1.7 + now * 6.0)
+		var sz: float = 80.0 + float((i * 37) % 40)
+		cv.draw_texture_rect(snow_puff, Rect2(_snap(q + Vector2(-sz * 0.5, -hh - sz * 0.5)), Vector2(sz, sz * 0.7)), false, Color(1, 1, 1, 0.95))   # 翻卷顶
+		var sz2: float = sz * 0.7
+		var curl: float = fposmod(now * 2.5 + float(i) * 0.37, 1.0)   # 卷起的雪团从顶往前翻落
+		cv.draw_texture_rect(snow_puff, Rect2(_snap(q + Vector2(cos(b), sin(b) * gy) * 20.0 * curl + Vector2(-sz2 * 0.5, -hh * (1.0 - curl * 0.6) - sz2 * 0.4)), Vector2(sz2, sz2 * 0.7)), false, Color(1, 1, 1, 0.8 * (1.0 - curl)))
 		if rng.randf() < 0.18:
 			var dv2 := Vector2(cos(b), sin(b) * gy)
 			_add(q + Vector2(0, -hh), dv2 * rng.randf_range(80, 200) + Vector2(0, -rng.randf_range(80, 200)), rng.randf_range(0.5, 0.8), A1_LIT if rng.randf() < 0.6 else Color(0.78, 0.87, 0.92), rng.randf_range(6.0, 12.0), 3, 800.0)
@@ -4918,24 +4921,23 @@ func _will_wave(w, cv, e: Dictionary, now: float) -> void:
 ## 暴风雪地面层（单位之下）：风雪带范围（北 → 前沿 y）整片压暗 + 横向飞雪条纹往风向刮；3 条缝和银凇阴影里不压（安全道一眼看清）
 func _will_storm_ground(w, cv, e: Dictionary, bz: Dictionary, y: float, now: float) -> void:
 	var ar_d: Dictionary = _will_arena(e)
-	var x0: float = (ar_d.c as Vector2).x - float(ar_d.ar) * 1.2
-	var x1: float = (ar_d.c as Vector2).x + float(ar_d.ar) * 1.2
-	var yn: float = float(ar_d.n) - 120.0
-	# 按 24 宽一列压暗；缝 / 银凇阴影那列跳过
+	var x0: float = (ar_d.c as Vector2).x - float(ar_d.ar) * 3.0   # 左右 / 北边都铺出画面外，不露矩形边
+	var x1: float = (ar_d.c as Vector2).x + float(ar_d.ar) * 3.0
+	var yn: float = float(ar_d.n) - 900.0
+	# 按 16 宽一列压暗；缝 / 银凇阴影附近按距离渐淡（软边），缝中心完全不压
 	var x: float = x0
 	while x < x1:
-		var xm: float = x + 12.0
-		var gap := false
+		var xm: float = x + 8.0
+		var ga: float = 1.0
 		for gx in bz.gaps:
-			if absf(xm - float(gx)) < 45.0:
-				gap = true
+			ga = minf(ga, clampf((absf(xm - float(gx)) - 40.0) / 24.0, 0.0, 1.0))
 		var y_cut: float = y
 		for t2 in e.get("trees", []):
 			if float(t2.dead_t) <= 0.0 and absf(xm - (t2.pos as Vector2).x) < 46.0:
 				y_cut = minf(y_cut, (t2.pos as Vector2).y)
-		if not gap:
-			w.tb_quad(Vector2(x, yn), Vector2(x + 24.0, yn), Vector2(x + 24.0, y_cut), Vector2(x, y_cut), Color(0.2, 0.28, 0.4, 0.38))
-		x += 24.0
+		if ga > 0.0:
+			w.tb_quad(Vector2(x, yn), Vector2(x + 16.0, yn), Vector2(x + 16.0, y_cut), Vector2(x, y_cut), Color(0.2, 0.28, 0.4, 0.38 * ga))
+		x += 16.0
 	w.tb_flush()
 	# 横向飞雪条纹：一批按哈希定位的短粗条，往东南刮（风 (+1, 0.12)），循环
 	var area_h: float = maxf(0.0, y - yn)
@@ -4965,9 +4967,9 @@ func _will_curtain_ground(w, cv, e: Dictionary, now: float) -> void:
 		return
 	var ar_d: Dictionary = _will_arena(e)
 	var cy: float = float(ar_d.n) + (float(ar_d.s) - float(ar_d.n)) / 3.0
-	var x0: float = (ar_d.c as Vector2).x - float(ar_d.ar) * 1.25
-	var x1: float = (ar_d.c as Vector2).x + float(ar_d.ar) * 1.25
-	var yn: float = float(ar_d.n) - 160.0
+	var x0: float = (ar_d.c as Vector2).x - float(ar_d.ar) * 3.0
+	var x1: float = (ar_d.c as Vector2).x + float(ar_d.ar) * 3.0
+	var yn: float = float(ar_d.n) - 900.0
 	var x: float = x0
 	while x < x1:
 		var xm: float = x + 12.0
@@ -4979,7 +4981,7 @@ func _will_curtain_ground(w, cv, e: Dictionary, now: float) -> void:
 		x += 24.0
 	w.tb_flush()
 	var area_h: float = cy - yn
-	for i in 140:
+	for i in 420:
 		var hs: int = absi(hash(Vector2i(i, 6113)))
 		var px: float = x0 + fposmod(float(hs % 2000) / 2000.0 * (x1 - x0) + now * (120.0 + float(hs % 80)), x1 - x0)
 		var py: float = yn + fposmod(float((hs / 2000) % 1000) / 1000.0 * area_h + now * (60.0 + float(hs % 40)), area_h)
@@ -4995,8 +4997,8 @@ func _will_curtain_front(w, cv, e: Dictionary, now: float) -> void:
 	_fin_tex()
 	var ar_d: Dictionary = _will_arena(e)
 	var cy: float = float(ar_d.n) + (float(ar_d.s) - float(ar_d.n)) / 3.0
-	var x: float = (ar_d.c as Vector2).x - float(ar_d.ar) * 1.25
-	var x1: float = (ar_d.c as Vector2).x + float(ar_d.ar) * 1.25
+	var x: float = (ar_d.c as Vector2).x - float(ar_d.ar) * 3.0
+	var x1: float = (ar_d.c as Vector2).x + float(ar_d.ar) * 3.0
 	var col := 0
 	while x <= x1:
 		var hj: int = absi(hash(Vector2i(col, 733)))
