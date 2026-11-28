@@ -444,6 +444,13 @@ func on_crystal(e: Dictionary, pos: Vector2) -> void:
 
 ## 占位画法：熔岩口、藤痕（着火变橙）、荆棘地、食草花（抖动时变红）、钻地时的土包
 func draw(e: Dictionary, cv) -> void:
+	var fxm = g.mech("fx")
+	if fxm != null:
+		fxm.vine_draw(e)   # 根须钻地 / 破土坑 / 根簇 / 地面根线 / 熔岩口（11-28，fm_v1；themes/sami/mech/mech_fx.gd）
+		for f in e.get("flowers", []):   # 食草花还是占位
+			var shake0: float = sin(g.t * 60.0) * 3.0 if f.armed else 0.0
+			cv.draw_circle(f.pos + Vector2(shake0, 0), 18.0, Color(0.85, 0.2, 0.25, 0.9) if f.armed else Color(0.5, 0.8, 0.3, 0.85))
+		return
 	for p in e.get("vents", []):
 		cv.draw_circle(p, 22.0, Color(0.9, 0.35, 0.1, 0.55))
 		cv.draw_arc(p, 70.0, 0.0, TAU, 28, Color(0.9, 0.4, 0.1, 0.25), 1.5)

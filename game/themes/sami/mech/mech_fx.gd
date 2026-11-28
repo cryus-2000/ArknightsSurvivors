@@ -2170,6 +2170,9 @@ func _warn_final(w, cv, t: Dictionary, k: float, sd: int, ot: String) -> void:
 	if ot.begins_with("shaman"):
 		_sham_warn(w, cv, t, k, sd)   # 雪祀冰链系预警（11-28）
 		return
+	if ot.begins_with("vine"):
+		_vine_warn2(w, cv, t, k, sd)   # 藤蔓破土 / 根线 / 熔岩口预警（11-28 新判定）
+		return
 	var gy: float = g.combat.GROUND_Y
 	var c: Vector2 = t.pos
 	match t.shape:
@@ -2641,6 +2644,8 @@ const PAL := {
 	"lion": [Color(0.3, 0.2, 0.08), Color(1.0, 0.62, 0.15), Color(1.0, 1.0, 0.75)],
 	"shaman": [Color(0.094, 0.11, 0.44), Color(0.28, 0.32, 0.87), Color(0.82, 0.85, 1.0)],
 	"shaman2": [Color(0.094, 0.11, 0.44), Color(0.28, 0.32, 0.87), Color(0.82, 0.85, 1.0)],
+	"vine": [Color(0.13, 0.085, 0.06), Color(0.3, 0.2, 0.13), Color(0.45, 0.31, 0.2)],
+	"vine2": [Color(0.13, 0.085, 0.06), Color(0.3, 0.2, 0.13), Color(0.45, 0.31, 0.2)],
 }
 
 
@@ -2699,6 +2704,9 @@ func _warn_burst(t: Dictionary, ot: String) -> void:
 		return
 	if ot.begins_with("shaman"):
 		_sham_wburst(t)
+		return
+	if ot.begins_with("vine"):
+		_vine_wburst(t)
 		return
 	if ot == "cresson" and t.shape == "line":
 		cres_rift(t)   # 双击 / 裂隙：空间被切开
@@ -2903,6 +2911,7 @@ func _fin_ground(w, cv, now: float) -> void:
 		if not it[0].dead:
 			_band_draw(w, cv, it[0], now, g.combat.GROUND_Y)   # 苗圃环（回荡新判定）
 	_cvoids_draw(w, cv, now, g.combat.GROUND_Y)
+	_vine_ground(w, cv, now)
 	_crifts_draw(w, cv, now)
 	_sham_ground(cv, now)
 	_vtrench_draw(w, cv, now)
@@ -3171,6 +3180,7 @@ func _fin_front(w, cv, now: float) -> void:
 	_cimp_front(w, now)
 	_sham_front(w, now)
 	_vroots_draw(w, now)
+	_vine_front(w, now)
 	_draw_glows(now)
 	_frozen_front(w)
 	w.tb_flush()
@@ -4478,6 +4488,345 @@ func _sham_crystal_burst(p: Vector2, r: float) -> void:
 	sparks(p + Vector2(0, -24), -PI * 0.5, 1.2, 14, 340.0, [IND[3], IND[2], IND[1], IND[0]], true, 0.35)
 	_ice_bits(p + Vector2(0, -20), 10, 0.9)
 	glows.append([p, g.t, 150.0])
+
+
+## ==== 藤蔓 v2（11-28 新判定：根须钻地破土为主、熔岩口喷发为辅）——静态对照意见：翻土大块少碎屑多、无逐块描边、雪唇连成一条；
+## 根须主根粗过土沟一半宽、树皮纹 + 疙瘩、尖头压暗、带分叉，成簇粗细差 2–3 倍、前端最大；破土土块爆团有体积
+var vroots2: Array = []    # [根脚, 出生 t, 高, 粗, 弯, 扭, 种子]
+var vcraters: Array = []   # [中心, 出生 t, 半径, 种子]
+var vents_fx := {}         # 熔岩口喷发 t（按坐标键）
+
+
+func vine_draw(e: Dictionary) -> void:
+	vine_list[int(e.id)] = [e, g.t]
+
+
+var vine_list := {}
+
+
+## 地下根拱起的土脊（B 致幻缠绕的 mounds 点串）：相邻点之间一段雪下拱痕，后段裂开露土和熔红缝，前端雪土往上蹦
+func _mound_ridge(w, a: Vector2, b: Vector2, al: float, sd: int, crack: float) -> void:
+	var d: Vector2 = b - a
+	var L: float = d.length()
+	if L < 2.0:
+		return
+	d /= L
+	var nv := d.orthogonal()
+	var ns: int = maxi(2, int(L / 12.0))
+	var prev_c: Vector2 = a
+	var prev_w: float = 16.0
+	for i in range(1, ns + 1):
+		var c2: Vector2 = a + d * L * float(i) / float(ns)
+		var hh: int = absi(hash(Vector2i(sd, i)))
+		var w2: float = 16.0 * (0.75 + float(hh % 45) / 100.0)
+		var lift := Vector2(0, -(8.0 + float((hh / 45) % 6)))
+		w.tb_poly(PackedVector2Array([_snap(prev_c + nv * prev_w + Vector2(3, 4)), _snap(c2 + nv * w2 + Vector2(3, 4)), _snap(c2 - nv * w2 + Vector2(3, 4)), _snap(prev_c - nv * prev_w + Vector2(3, 4))]), Color(A1_SH, 0.45 * al))
+		w.tb_poly(PackedVector2Array([_snap(prev_c + nv * prev_w), _snap(c2 + nv * w2), _snap(c2 - nv * w2), _snap(prev_c - nv * prev_w)]), Color(A1_BACK, al))
+		w.tb_poly(PackedVector2Array([_snap(prev_c + nv * prev_w * 0.55 + lift), _snap(c2 + nv * w2 * 0.55 + lift), _snap(c2 - nv * w2 * 0.45 + lift), _snap(prev_c - nv * prev_w * 0.45 + lift)]), Color(A1_LIT, al))
+		if crack > 0.0:
+			w.tb_line(_snap(prev_c + lift), _snap(c2 + lift), Color(SOIL[0], al * crack), 6.0)
+			w.tb_line(_snap(prev_c + lift), _snap(c2 + lift), Color(EMBER.lerp(SOIL[2], 0.4 + 0.3 * sin(g.t * 9.0 + float(i))), al * crack), 2.0)
+		prev_c = c2
+		prev_w = w2
+
+
+## 破土坑：不规则翻土（有机外形）——深土芯 + 土面受光（左上）+ 一条连续翻起的雪唇（北半边亮）+ 坑边几块大土块、一圈碎屑（无逐块描边，明暗分前后）
+func _crater_draw(w, cv, cr: Array, now: float) -> void:
+	var age: float = now - float(cr[1])
+	var al: float = clampf((2.6 - age) / 0.6, 0.0, 1.0)
+	var c: Vector2 = cr[0]
+	var r: float = float(cr[2]) * clampf(age / 0.1, 0.3, 1.0)
+	var sd: int = cr[3]
+	var gy: float = g.combat.GROUND_Y
+	var rs: Array = _organic_rs(sd, 32)
+	var outer := PackedVector2Array()
+	var lip := PackedVector2Array()
+	var core := PackedVector2Array()
+	for i in 32:
+		var a: float = TAU * float(i) / 32.0
+		var q := Vector2(cos(a), sin(a) * gy) * r * float(rs[i])
+		outer.append(_snap(c + q))
+		lip.append(_snap(c + q * 1.22 + Vector2(0, -2)))
+		core.append(_snap(c + q * 0.55 + Vector2(2, 3)))
+	w.tb_polygon(lip, Color(A1_LIT, 0.95 * al))   # 连续雪唇（整圈翻起；南半边被土面压住只剩北侧露亮）
+	w.tb_polygon(outer, Color(SOIL[1], al))
+	w.tb_polygon(core, Color(SOIL[0], al))
+	# 受光土面：左上一片亮
+	var litp := PackedVector2Array()
+	for i in range(18, 30):
+		litp.append(outer[i])
+	litp.append(_snap(c + Vector2(-r * 0.2, -r * 0.15 * gy)))
+	w.tb_polygon(litp, Color(SOIL[2], al))
+	# 坑边大土块（少，2–3 块）+ 碎屑（多）
+	for i in 3:
+		var hs: int = absi(hash(Vector2i(sd + 11, i)))
+		var a2: float = float(hs % 628) / 100.0
+		var q2: Vector2 = c + Vector2(cos(a2), sin(a2) * gy) * r * 1.15
+		var s: float = r * (0.22 + float((hs / 628) % 10) / 100.0)
+		w.tb_poly(PackedVector2Array([_snap(q2 + Vector2(-s, s * 0.3)), _snap(q2 + Vector2(-s * 0.6, -s * 0.6)), _snap(q2 + Vector2(s * 0.5, -s * 0.7)), _snap(q2 + Vector2(s, s * 0.2)), _snap(q2 + Vector2(s * 0.3, s * 0.6))]), Color(SOIL[1], al))
+		w.tb_poly(PackedVector2Array([_snap(q2 + Vector2(-s * 0.6, -s * 0.6)), _snap(q2 + Vector2(s * 0.5, -s * 0.7)), _snap(q2 + Vector2(s * 0.2, -s * 0.1)), _snap(q2 + Vector2(-s * 0.4, -s * 0.05))]), Color(SOIL[2], al))
+	for i in 18:
+		var hs2: int = absi(hash(Vector2i(sd + 23, i)))
+		var a3: float = float(hs2 % 628) / 100.0
+		var q3: Vector2 = c + Vector2(cos(a3), sin(a3) * gy) * r * (1.1 + float((hs2 / 628) % 60) / 100.0)
+		var s3: float = 2.0 + float(hs2 % 3) * 2.0
+		cv.draw_rect(Rect2(_snap(q3), Vector2(s3, s3 * 0.8)), Color(SOIL[(hs2 / 7) % 3], al))
+
+
+## 根须：0.12 秒顶出、停 0.6、0.4 秒缩回；粗身 + 树皮纹 + 疙瘩 + 尖头压暗 + 一根分叉；扭转 = 受光条左右来回
+func _root2_draw(w, rt: Array, now: float) -> void:
+	var age: float = now - float(rt[1])
+	if age < 0.0 or age > 1.12:
+		return
+	var up: float = clampf(age / 0.12, 0.0, 1.0)
+	up = 1.0 - (1.0 - up) * (1.0 - up)
+	if age > 0.72:
+		up *= clampf(1.0 - (age - 0.72) / 0.4, 0.0, 1.0)
+	var H: float = float(rt[2]) * up
+	if H < 3.0:
+		return
+	var p: Vector2 = rt[0]
+	var W: float = rt[3]
+	var bend: float = rt[4]
+	var tw: float = rt[5]
+	var n := 10
+	var L := PackedVector2Array()
+	var R := PackedVector2Array()
+	var C := PackedVector2Array()
+	for i in n + 1:
+		var f: float = float(i) / float(n)
+		var c: Vector2 = p + Vector2(bend * H * f * f + sin(f * 4.0 + tw) * W * 0.6 * f, -H * f * (1.0 - 0.12 * f))
+		var hw: float = W * 0.5 * (1.0 - f * 0.72) * (1.0 + 0.14 * sin(f * 11.0 + tw))
+		C.append(c)
+		L.append(c + Vector2(-hw, 0))
+		R.append(c + Vector2(hw, 0))
+	var outl := PackedVector2Array()
+	for q in L:
+		outl.append(q + Vector2(-2, 0))
+	outl.append(C[n] + Vector2(0, -3))
+	for i in range(n, -1, -1):
+		outl.append(R[i] + Vector2(2, 0))
+	w.tb_polygon(outl, ROOT[0])
+	var body := PackedVector2Array(L)
+	for i in range(n, -1, -1):
+		body.append(R[i])
+	w.tb_polygon(body, ROOT[1])
+	# 扭转受光条
+	var lit := PackedVector2Array()
+	var lit2 := PackedVector2Array()
+	for i in n + 1:
+		var s: float = 0.5 + 0.4 * sin(float(i) / float(n) * 7.0 + tw)
+		lit.append(L[i].lerp(R[i], maxf(0.0, s - 0.22)))
+		lit2.append(L[i].lerp(R[i], minf(1.0, s + 0.05)))
+	var lp := PackedVector2Array(lit)
+	for i in range(n, -1, -1):
+		lp.append(lit2[i])
+	w.tb_polygon(lp, ROOT[2])
+	# 树皮纹（横向短纹）+ 尖头压暗
+	for i in range(1, n - 1):
+		if i % 2 == 0:
+			w.tb_line(_snap(L[i].lerp(R[i], 0.2)), _snap(L[i].lerp(R[i], 0.75)), ROOT[0], 2.0)
+	var tip := PackedVector2Array([L[n - 2], L[n], C[n] + Vector2(0, -3), R[n], R[n - 2]])
+	w.tb_polygon(tip, ROOT[0])
+	# 分叉：从 0.55 处斜出一根细根
+	if W > 14.0:
+		var bp: Vector2 = C[5]
+		var sgn: float = 1.0 if int(rt[6]) % 2 == 0 else -1.0
+		var bt: Vector2 = bp + Vector2(sgn * W * 1.4, -H * 0.28)
+		w.tb_poly(PackedVector2Array([bp + Vector2(-W * 0.18, 2), bt, bp + Vector2(W * 0.18, -2)]), ROOT[0])
+		w.tb_poly(PackedVector2Array([bp + Vector2(-W * 0.1, 1), bt + Vector2(-sgn, 1), bp + Vector2(W * 0.1, -1)]), ROOT[1])
+	# 熔红节：两处疙瘩里透一点火光
+	for i in [3, 6]:
+		w.tb_line(_snap(L[i].lerp(R[i], 0.35)), _snap(L[i].lerp(R[i], 0.6)), EMBER, 2.0)
+
+
+## 破土：坑 + 一簇根（主根最粗、前端最大）+ 土块爆团（大块少、碎屑多）+ 冰块 / 木屑
+func vine_surface(p: Vector2, r: float, big: bool) -> void:
+	var sd: int = absi(hash(Vector2i(int(p.x), int(p.y)))) % 9973
+	var k: float = r / 60.0 * (1.35 if big else 1.0)
+	vcraters.append([p, g.t, r * 0.75, sd])
+	var nroot: int = 5 if big else 3
+	for i in nroot:
+		var main: bool = i == 0
+		vroots2.append([p + Vector2(rng.randf_range(-16, 16), rng.randf_range(-4, 6)) * k, g.t + rng.randf_range(0.0, 0.06),
+			(92.0 if main else rng.randf_range(40.0, 60.0)) * k, (30.0 if main else rng.randf_range(10.0, 15.0)) * k,
+			rng.randf_range(-0.8, 0.8), rng.randf_range(0.0, 6.0), sd + i])
+	for i in int(26.0 * k):
+		var a: float = rng.randf_range(-PI, 0.0)
+		var sp: float = rng.randf_range(120.0, 360.0) * k
+		var bigc: bool = i < 3
+		_add(p + Vector2(rng.randf_range(-20, 20), -6) * k, Vector2(cos(a) * sp, sin(a) * sp * 0.8 - 120.0), rng.randf_range(0.6, 0.95), SOIL[rng.randi() % 3], (rng.randf_range(12.0, 18.0) if bigc else rng.randf_range(4.0, 8.0)) * minf(k, 1.4), 3, 1100.0)
+	for i in 6:
+		var a2: float = rng.randf_range(-PI, 0.0)
+		_add(p, Vector2(cos(a2), sin(a2)) * rng.randf_range(160, 300), 0.6, Color(0.78, 0.9, 0.97), rng.randf_range(5.0, 9.0), 3, 1000.0)
+		_add(p, Vector2(cos(a2 + 0.4), sin(a2 + 0.4)) * rng.randf_range(160, 300), 0.6, Color(0.62, 0.42, 0.24), 6.0, 2, 900.0)
+	embers(p, 6, EMBER, 150.0, 280.0, 0.6, 4.0)
+	glows.append([p, g.t, 110.0 * k])
+
+
+## 地面根线（缠绕 / 根网的线）：预警时一条褐色根沿线往前爬（越来越粗，节上冒刺），结算时根线整条一绷、崩土
+func _rootline_warn(w, t: Dictionary, k: float, sd: int) -> void:
+	var a: Vector2 = t.pos
+	var d := Vector2.from_angle(float(t.ang))
+	var L: float = float(t.len) * clampf(k * 1.25, 0.0, 1.0)
+	if L < 3.0:
+		return
+	var nv := d.orthogonal()
+	var n: int = maxi(3, int(L / 16.0))
+	var wid: float = float(t.wid) * (0.25 + 0.35 * k)
+	var prev: Vector2 = a
+	for i in range(1, n + 1):
+		var f: float = float(i) / float(n)
+		var q: Vector2 = a + d * L * f + nv * sin(f * 6.0 + float(sd)) * 6.0
+		w.tb_line(_snap(prev), _snap(q), ROOT[0], wid + 4.0)
+		w.tb_line(_snap(prev), _snap(q), ROOT[1], wid)
+		w.tb_line(_snap(prev + Vector2(-1, -wid * 0.25)), _snap(q + Vector2(-1, -wid * 0.25)), ROOT[2], maxf(2.0, wid * 0.3))
+		if i % 3 == 0 and k > 0.4:
+			var sgn: float = 1.0 if i % 2 == 0 else -1.0
+			w.tb_poly(PackedVector2Array([q + nv * wid * 0.4 * sgn, q + nv * (wid + 10.0) * sgn + d * 4.0, q + nv * wid * 0.4 * sgn + d * 6.0]), ROOT[0])
+		prev = q
+	w.tb_flush()
+
+
+## 熔岩口：暗色岩环 + 中间熔红光（脉动）+ 偶尔冒火星；喷发预警 = 熔光变亮、裂缝往外爬、冒泡
+func _vent_draw(w, cv, p: Vector2, now: float, hot: float) -> void:
+	var gt: Texture2D = _glow_tex()
+	var pul: float = 0.75 + 0.25 * sin(now * 4.0 + p.x * 0.01)
+	var gsz := Vector2(120, 64) * (1.0 + hot)
+	cv.draw_texture_rect(gt, Rect2(((p - gsz * 0.5) / PX).floor() * PX, gsz), false, Color(1.0, 0.5, 0.2, (0.35 + 0.4 * hot) * pul))
+	var rs: Array = _organic_rs(absi(int(p.x * 7.0 + p.y)) % 997, 16)
+	var ring := PackedVector2Array()
+	var core := PackedVector2Array()
+	for i in 16:
+		var a: float = TAU * float(i) / 16.0
+		ring.append(_snap(p + Vector2(cos(a), sin(a) * 0.6) * 28.0 * float(rs[i])))
+		core.append(_snap(p + Vector2(cos(a), sin(a) * 0.6) * 15.0 * float(rs[i]) + Vector2(1, 1)))
+	w.tb_polygon(ring, Color(0.18, 0.13, 0.13))
+	w.tb_polygon(core, Color(1.0, 0.45 + 0.25 * hot, 0.15).lerp(Color(1, 0.9, 0.6), hot * 0.6))
+	w.tb_flush()
+	if rng.randf() < 0.06 + 0.5 * hot:
+		_add(p + Vector2(rng.randf_range(-8, 8), -4), Vector2(rng.randf_range(-40, 40), -rng.randf_range(60, 160)), 0.6, EMBER, 4.0, 3, 300.0)
+
+
+func _vine_moves(w, cv, now: float) -> void:
+	for id in vine_list.keys():
+		var it: Array = vine_list[id]
+		var e: Dictionary = it[0]
+		if e.dead or absf(now - float(it[1])) > 0.2:
+			vine_list.erase(id)
+			continue
+		for v in e.get("vents", []):
+			_vent_draw(w, cv, v, now, 0.0)
+		var ms: Array = e.get("mounds", [])
+		for i in range(1, ms.size()):
+			var a: Dictionary = ms[i - 1]
+			var b: Dictionary = ms[i]
+			if (a.pos as Vector2).distance_to(b.pos) > 80.0:
+				continue   # 另一条根 / 新一轮
+			var al: float = clampf((float(b.until) - now) / 0.4, 0.0, 1.0)
+			var age_b: float = 1.6 - (float(b.until) - now)
+			_mound_ridge(w, a.pos, b.pos, al, int(id) * 13 + i, clampf((age_b - 0.25) / 0.3, 0.0, 1.0))
+			if age_b < 0.12 and rng.randf() < 0.8:
+				_add(b.pos, Vector2(rng.randf_range(-60, 60), -rng.randf_range(100, 200)), 0.45, A1_LIT if rng.randf() < 0.5 else SOIL[1], rng.randf_range(5.0, 9.0), 3, 700.0)
+	w.tb_flush()
+
+
+func _vine_ground(w, cv, now: float) -> void:
+	var keep: Array = []
+	for cr in vcraters:
+		if now - float(cr[1]) > 2.6:
+			continue
+		keep.append(cr)
+		_crater_draw(w, cv, cr, now)
+	vcraters = keep
+	w.tb_flush()
+	_vine_moves(w, cv, now)
+
+
+func _vine_front(w, now: float) -> void:
+	var keep: Array = []
+	for rt in vroots2:
+		if now - float(rt[1]) > 1.12:
+			continue
+		keep.append(rt)
+	keep.sort_custom(func(x, y): return (x[0] as Vector2).y < (y[0] as Vector2).y)
+	for rt in keep:
+		_root2_draw(w, rt, now)
+	vroots2 = keep
+	w.tb_flush()
+
+
+## 藤蔓预警（11-28 起挂 sami_blade 自画）：熔岩口 = 熔光变亮 + 熔红裂缝往外爬；破土圈 = 地面拱起、土缝透火光；不伤人的小圈 = 根头土包；线 = 根线往前爬
+func _vine_warn2(w, cv, t: Dictionary, k: float, sd: int) -> void:
+	var c: Vector2 = t.pos
+	var gy: float = g.combat.GROUND_Y
+	var ow = t.get("owner")
+	var is_vent := false
+	if ow is Dictionary:
+		for v in ow.get("vents", []):
+			if (v as Vector2).distance_to(c) < 4.0:
+				is_vent = true
+	match t.shape:
+		"circle":
+			var r: float = float(t.r)
+			if is_vent:
+				_vent_draw(w, cv, c, g.t, k)
+				for i in 7:
+					var a: float = TAU * float(i) / 7.0 + float(sd % 5)
+					var dv := Vector2(cos(a), sin(a) * gy)
+					_crack_col(w, c, dv.angle(), r * dv.length(), clampf(k * 1.2, 0.0, 1.0), sd + i * 3, EMBER, SOIL[0], 4.0)
+				return
+			if float(t.get("dmg", 0.0)) <= 0.0:
+				_mound_ridge(w, c - Vector2(14, 0), c + Vector2(14, 0), 1.0, sd, 0.0)   # 根头土包
+				return
+			# 破土：地面拱起（背光冷面 + 受光雪顶）、土缝里透火光、雪土往上蹦
+			var hv: float = 4.0 + 12.0 * k
+			var bump := PackedVector2Array()
+			var top := PackedVector2Array()
+			for i in 14:
+				var a2: float = TAU * float(i) / 14.0
+				var q := Vector2(cos(a2), sin(a2) * gy) * r * (0.55 + 0.25 * k)
+				bump.append(_snap(c + q))
+				top.append(_snap(c + q * 0.7 + Vector2(-q.x * 0.1, -hv)))
+			w.tb_polygon(_shift(bump, Vector2(3, 4)), Color(A1_SH, 0.5))
+			w.tb_polygon(bump, A1_BACK)
+			w.tb_polygon(top, A1_LIT)
+			for i in 4:
+				var a3: float = float(sd % 6) + TAU * float(i) / 4.0
+				var q0: Vector2 = c + Vector2(0, -hv)
+				var q1: Vector2 = q0 + Vector2(cos(a3), sin(a3) * gy) * r * 0.5 * k
+				w.tb_line(_snap(q0), _snap(q1), SOIL[0], 6.0)
+				w.tb_line(_snap(q0), _snap(q1), EMBER, 2.0)
+			w.tb_flush()
+			if rng.randf() < 0.3 + 0.6 * k:
+				_add(c + Vector2(rng.randf_range(-r, r) * 0.4, -hv), Vector2(rng.randf_range(-30, 30), -rng.randf_range(60, 140)), 0.4, A1_LIT if rng.randf() < 0.5 else SOIL[1], 5.0, 3, 600.0)
+		"line":
+			if float(t.get("dmg", 0.0)) > 0.0:
+				_rootline_warn(w, t, k, sd)
+
+
+func _vine_wburst(t: Dictionary) -> void:
+	var c: Vector2 = t.pos
+	var ow = t.get("owner")
+	if t.shape == "circle":
+		var is_vent := false
+		if ow is Dictionary:
+			for v in ow.get("vents", []):
+				if (v as Vector2).distance_to(c) < 4.0:
+					is_vent = true
+		if is_vent:
+			# 熔岩喷发：熔红火柱一冲（火星 + 熔块 + 一下亮光）
+			embers(c, 18, EMBER, 260.0, 360.0, 0.8, 5.0)
+			embers(c, 8, Color(1.0, 0.85, 0.5), 200.0, 300.0, 0.6, 4.0)
+			sparks(c + Vector2(0, -20), -PI * 0.5, 0.7, 16, 420.0, [Color(1, 0.95, 0.7), EMBER, Color(0.85, 0.3, 0.1), SOIL[0]], true, 0.4)
+			glows.append([c, g.t, 160.0])
+			return
+		vine_surface(c, float(t.r), float(t.r) >= 55.0)
+	elif t.shape == "line":
+		var d := Vector2.from_angle(float(t.ang))
+		for i in 6:
+			var q: Vector2 = c + d * float(t.len) * rng.randf()
+			_add(q, Vector2(rng.randf_range(-80, 80), -rng.randf_range(80, 180)), 0.5, SOIL[rng.randi() % 3], rng.randf_range(4.0, 9.0), 3, 900.0)
 
 
 func _ice_peak(w, p: Vector2, h: float, wd: float) -> void:
