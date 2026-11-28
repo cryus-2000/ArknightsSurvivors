@@ -4368,7 +4368,7 @@ func _vroots_draw(w, now: float) -> void:
 
 ## ==== 雪祀 v2（11-28 新判定：冰链是主表现，跳距 240 / 300 按 fm_s1 放大）：粗冰链通用画法 + 寒链弹跳 / 冰链围笼 / 链扫 / 踏雪连链 / 道标围笼
 ## 冰链 = 暗靛描边 + 靛色链身 + 冰白芯（宽 18 / 11 / 4），轻微电弧抖动，链下雪地投一串靛光；链节上零星结冰晶
-func _ichain(w, cv, a: Vector2, b: Vector2, h: float, wid: float, al: float, sd: int, grow := 1.0) -> void:
+func _ichain(w, cv, a: Vector2, b: Vector2, h: float, wid: float, al: float, sd: int, grow := 1.0, bow := Vector2(0, -1)) -> void:
 	var L: float = a.distance_to(b)
 	if L < 4.0 or grow <= 0.0:
 		return
@@ -4380,7 +4380,7 @@ func _ichain(w, cv, a: Vector2, b: Vector2, h: float, wid: float, al: float, sd:
 	for i in m + 1:
 		var f: float = minf(float(i) / float(n), grow)
 		var j: float = 0.0 if i == 0 or f >= 1.0 else (float(absi(hash(Vector2i(sd + fr, i))) % 100) / 50.0 - 1.0) * 7.0   # 电弧抖动（1× 下看得见）
-		pts.append(_snap(a.lerp(b, f) + Vector2(0, -h * sin(PI * f)) + nv * j))
+		pts.append(_snap(a.lerp(b, f) + bow * h * sin(PI * f) + nv * j))
 	var gt: Texture2D = _glow_tex()
 	for i in range(0, m + 1, 3):
 		var q: Vector2 = a.lerp(b, minf(float(i) / float(n), grow))
@@ -4459,8 +4459,9 @@ func _sham_moves(w, cv, e: Dictionary, now: float) -> void:
 		var sway: float = sin(now * 3.0 + float(sd0)) * 18.0
 		var lift := Vector2(0, -22)
 		# 链身两段，各自下垂成弧（h 取负 = 往下垂）并随风摆；断口两头各立一根冰柱拴住链
-		_ichain(w, cv, ctr - nn * 700.0 + lift, ctr + nn * (g0 - 60.0) + lift, -(46.0 + sway), 12.0, 1.0, sd0 + 3)
-		_ichain(w, cv, ctr + nn * (g0 + 60.0) + lift, ctr + nn * 700.0 + lift, -(46.0 - sway), 12.0, 1.0, sd0 + 5)
+		var back: Vector2 = -(sw.w as Vector2)   # 链被风拖着扫：中段往后（逆风）弯成弧，随风摆
+		_ichain(w, cv, ctr - nn * 700.0 + lift, ctr + nn * (g0 - 60.0) + lift, 70.0 + sway, 12.0, 1.0, sd0 + 3, 1.0, back)
+		_ichain(w, cv, ctr + nn * (g0 + 60.0) + lift, ctr + nn * 700.0 + lift, 70.0 - sway, 12.0, 1.0, sd0 + 5, 1.0, back)
 		w.tb_flush()
 		_ipost(ctr - nn * 700.0, 0.6)
 		_ipost(ctr + nn * 700.0, 0.6)
