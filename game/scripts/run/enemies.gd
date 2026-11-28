@@ -317,6 +317,7 @@ static func _build_drain() -> Dictionary:
 
 func update(dt: float) -> void:
 	var dark_mod: float = Bal.v("lamp/dark_enemy", 1.1) if g.lamp < 30.0 else 1.0   # 灯火暗淡时敌人移速 / 接触伤害倍率（docs/88 旋钮，缺省 1.2 不变）
+	var mob_spd_k: float = g.spawner.mid_knob("mid_boss_mob_spd") if g.spawner.mid_boss_up() else 1.0   # 中期 Boss 在场时普通怪移速倍率（11-26 萨米 0.6，水月无 _sami 键 = 1.0）
 	# 敌人更新分三段（docs/101 B7 ③，10-15 起换基线）：
 	#   A 决策（逐只：计时、持续伤害、远距回收、进化、Boss 步、AI 意图 → 本帧速度 v）
 	#   B 运动（逐只：分离、积分、场地约束、景物推出；不抽随机数、不回调——将来的原生 EnemyCore.step）
@@ -431,6 +432,8 @@ func update(dt: float) -> void:
 		# 重型怪只削外来击退；自己冲锋 / 突刺（kb_self，boss_ai 的 dash / stab）不削，否则骑士冲锋只冲出 1/3（用户实机反馈 9/27）
 		var v: Vector2 = e.kb * (0.3 if (D.ENEMIES[e.type].get("heavy", false) or e.get("heavy", false)) and not e.get("kb_self", false) else 1.0)
 		var spd: float = e.spd * dark_mod * (0.65 if e.slow > 0.0 else 1.0)
+		if not e.boss:
+			spd *= mob_spd_k
 		if float(e.get("lite_slow_t", 0.0)) > g.t:
 			spd *= 1.0 - float(e.lite_slow)   # 轻减速（lite_slow，铃兰狐火命中，10-29）：与普通减速乘算
 		if e.get("lead_charge", false) and dist < Bal.v("enemy/horde_lead_charge_r", 320.0) and e.get("wake_t", 0.0) <= 0.0 and e.get("depart_t", 0.0) <= 0.0 and e.stun <= 0.0 and not g.eai.busy(e):

@@ -7,6 +7,7 @@ const TT = preload("res://scripts/core/theme_text.gd")   # 主题文案覆盖（
 const DmgCurve = preload("res://scripts/run/dmg_curve.gd")
 const UI = preload("res://scripts/ui.gd")
 const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数值旋钮（docs/27）
+const ThemePack = preload("res://scripts/core/theme_pack.gd")   # 主题门面（萨米中期 Boss 刷怪旋钮）
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
@@ -242,7 +243,7 @@ func boss_mob_room() -> int:
 			cap = int(final_knob("trickle_cap"))   # 少量补怪的存活杂兵上限（final/trickle_cap，直接数值）
 			raw = true
 	elif mid_boss_up():
-		return int(max_alive() * Bal.v("spawn/mid_boss_cap_mult", 1.0)) - mob_count()
+		return int(max_alive() * mid_knob("mid_boss_cap_mult")) - mob_count()
 	if cap <= 0:
 		return max_alive()
 	return (cap if raw else dens_cap(cap)) - mob_count()
@@ -265,6 +266,13 @@ func mobs_stopped() -> bool:
 		if not b.dead and is_final_boss_type(str(b.get("type", ""))):
 			return true
 	return false
+
+
+## 中期 Boss 在场时的刷怪旋钮：萨米主题优先读 spawn/<键>_sami（协调人 11-26：萨米中期 Boss 要让玩家怕 Boss 本人，普通怪再压低；水月不动）
+func mid_knob(key: String) -> float:
+	if ThemePack.id() == "sami" and Bal.v("spawn/" + key + "_sami", -1.0) >= 0.0:
+		return Bal.v("spawn/" + key + "_sami", 1.0)
+	return Bal.v("spawn/" + key, 1.0)
 
 
 ## 中期 Boss（3:30 / 7:00）在场且最终 Boss 未到：普通刷怪照常（× spawn/mid_boss_rate、上限 × mid_boss_cap_mult），
@@ -463,7 +471,7 @@ func update(dt: float) -> void:
 		elif fin:
 			rate *= Bal.v("enemy/spawn_boss_mult_final", Bal.v("enemy/spawn_boss_mult", 0.8))
 		else:
-			rate *= Bal.v("spawn/mid_boss_rate", 1.0)
+			rate *= mid_knob("mid_boss_rate")
 	if g.lamp < 30.0:
 		rate *= Bal.v("enemy/spawn_dark_mult", 1.15)
 	var dens := density()
