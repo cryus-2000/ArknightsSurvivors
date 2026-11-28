@@ -2532,6 +2532,9 @@ func _rime_tree(w, tp: Vector2, now: float, cracked: bool) -> void:
 
 ## 整体碎成 Voronoi 碎块：每块带重力往外翻滚飞，落到脚底高度停住、0.4 秒淡掉
 func _shatter(nm: String, base: Vector2, s: float, power: float) -> void:
+	if nm == "icicle":
+		_ice_bits(base + Vector2(0, -14.0 * s), int(10.0 * s) + 4, power / 220.0)   # 冰凌碎块贴图在 A1 雪上缩小读成暗点（协调人退回），全换浅冰色碎屑
+		return
 	var meta: Dictionary = _wchunks(nm)
 	var TW: float = float(meta.tree[0])
 	var TH: float = float(meta.tree[1])
