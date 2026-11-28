@@ -5385,11 +5385,11 @@ func _kd_ink(cv, km, now: float) -> void:
 			var a: float = float(hs % 628) / 100.0 + now * (0.1 + 0.05 * float(hs % 3)) * (1.0 if hs % 2 == 0 else -1.0)
 			var rr: float = r * 0.62 * sqrt(float((hs / 628) % 100) / 100.0) * rev
 			var q2: Vector2 = (k.pos as Vector2) + Vector2(cos(a), sin(a) * 0.75) * rr
-			var s: float = r * (0.7 + 0.3 * float((hs / 62800) % 100) / 100.0) * (0.92 + 0.12 * sin(now * 0.9 + float(i) * 1.3))
+			var s: float = r * (1.0 + 0.3 * float((hs / 62800) % 100) / 100.0) * (0.92 + 0.12 * sin(now * 0.9 + float(i) * 1.3))
 			if km._in_cut(q2):
 				continue
 			cv.draw_texture_rect(fog_puff[hs % 4], Rect2(_snap(q2 - Vector2(s, s * 0.75) * 0.5), Vector2(s, s * 0.75)), false, Color(1, 1, 1, 0.5 * KD_WISP * al))
-			var sc2: float = s * 0.62   # 团心：一团柔边的实黑墨（平滑径向，不带颗粒），外面才是颗粒烟
+			var sc2: float = s * 0.8   # 团心：一团柔边的实黑墨（平滑径向，不带颗粒），外面才是颗粒烟
 			cv.draw_texture_rect(_glow_tex(), Rect2(_snap(q2 - Vector2(sc2, sc2 * 0.7) * 0.5), Vector2(sc2, sc2 * 0.7)), false, Color(0.04, 0.025, 0.05, 0.92 * al))
 		# 边缘烟丝：小雾团从边上往外飘、变淡（循环）
 		var m: int = clampi(int(TAU * r / 22.0), 8, 40)
