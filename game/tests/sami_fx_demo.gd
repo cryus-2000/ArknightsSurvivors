@@ -435,6 +435,8 @@ func _ai_group(key: String) -> void:
 			mid += b.pos
 		g.cam.position = (mid / float(bs.size() + 1)).lerp(g.ppos, 0.35).round()
 		g.world.update_visuals(DT)
+		if bs[0].type == "will":
+			g.cam.position = ((g.ppos + bs[0].pos) * 0.5).round()   # 意志：镜头取 Boss 与队长正中（update_visuals 会按队长重设镜头），整排冰柱都在画面里
 		g.queue_redraw()
 		g.fx_add.queue_redraw()
 		g.fg.queue_redraw()

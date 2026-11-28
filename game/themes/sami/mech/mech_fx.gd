@@ -3355,8 +3355,15 @@ func _pillar_draw(p: Vector2, vi: int, vis_k: float, ys := 1.0, jit := 0.0, col 
 	var vis: float = floorf(clampf(vis_k, 0.0, 1.0) * TH)
 	if vis < 1.0:
 		return
-	var hgt: float = vis * PX * ys
-	var dst := Rect2(_snap(Vector2(p.x - TW * PX * 0.5 + jit, p.y + 6.0 - hgt)), Vector2(TW * PX, roundf(hgt / PX) * PX))
+	# 每根大小 / 朝向 / 微偏不同（vreview 11-28：一排同形冰柱像贴纸）：按位置哈希取 0.8–1.2 倍、左右翻、横偏 ±10
+	var hh: int = absi(hash(Vector2i(int(p.x) * 3, int(p.y) * 7)))
+	var sc: float = 0.8 + float(hh % 41) / 100.0
+	var ox: float = float((hh / 41) % 21) - 10.0
+	var hgt: float = vis * PX * ys * sc
+	var wd: float = roundf(TW * sc) * PX
+	var dst := Rect2(_snap(Vector2(p.x + ox - wd * 0.5 + jit, p.y + 6.0 - hgt)), Vector2(wd, roundf(hgt / PX) * PX))
+	if (hh / 997) % 2 == 1:
+		dst = Rect2(dst.position + Vector2(dst.size.x, 0), Vector2(-dst.size.x, dst.size.y))
 	g.wcv.draw_texture_rect_region(tx, dst, Rect2(0, 0, TW, vis), col)
 
 
