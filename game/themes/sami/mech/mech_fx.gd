@@ -5035,7 +5035,7 @@ func _will_wave(w, cv, e: Dictionary, now: float) -> void:
 			rad.call(b, fr + 14.0) + Vector2(0, -hh * 0.25),                       # 前沿下垂
 			rad.call(b, fr + 10.0),                                                # 前脚（地面）
 			ok])
-	var cols: Array = [Color(0.8, 0.88, 0.93), A1_LIT, Color(1, 1, 1), Color(0.66, 0.77, 0.85), A1_BACK]
+	var cols: Array = [Color(0.8, 0.9, 0.95), Color(0.9, 0.97, 1.0), Color(0.97, 1.0, 1.0), Color(0.62, 0.8, 0.88), Color(0.45, 0.64, 0.74)]   # 冷白 + 浅青阴影（协调人 11-28：原来偏粉白）
 	for i in n:
 		var p0: Array = prof[i]
 		var p1: Array = prof[i + 1]
@@ -5053,12 +5053,12 @@ func _will_wave(w, cv, e: Dictionary, now: float) -> void:
 		# 后坡上一层雪团打散板状轮廓
 		var sb: float = 60.0 + float((i * 53) % 30)
 		var qb: Vector2 = (pf[1] as Vector2).lerp(pf[2], 0.4)
-		cv.draw_texture_rect(snow_puff, Rect2(_snap(qb - Vector2(sb, sb * 0.7) * 0.5), Vector2(sb, sb * 0.7)), false, Color(1, 1, 1, 0.75))
+		cv.draw_texture_rect(ice_puff[i % 3], Rect2(_snap(qb - Vector2(sb, sb * 0.7) * 0.5), Vector2(sb, sb * 0.7)), false, Color(1, 1, 1, 0.75))
 		var sz: float = 95.0 + float((i * 37) % 40)
 		var curl: float = fposmod(now * 2.2 + float(i) * 0.31, 1.0)
 		var fwd: Vector2 = ((pf[5] as Vector2) - (pf[0] as Vector2)).normalized()
 		var q2: Vector2 = (pf[2] as Vector2).lerp(pf[4], curl) + fwd * 14.0 * curl
-		cv.draw_texture_rect(snow_puff, Rect2(_snap(q2 - Vector2(sz, sz * 0.7) * 0.5), Vector2(sz, sz * 0.7)), false, Color(1, 1, 1, 0.9 * (1.0 - curl * 0.6)))
+		cv.draw_texture_rect(ice_puff[i % 3], Rect2(_snap(q2 - Vector2(sz, sz * 0.7) * 0.5), Vector2(sz, sz * 0.7)), false, Color(1, 1, 1, 0.9 * (1.0 - curl * 0.6)))
 		if rng.randf() < 0.12:
 			_icefog((pf[0] as Vector2).lerp(pf[1], 0.5), -fwd * 30.0 + Vector2(0, -6), 1.0, 60.0, 0.55)
 		if rng.randf() < 0.2:
