@@ -441,14 +441,44 @@ func _tick_hex(e: Dictionary, dt: float) -> void:
 				hit_now(e, tail, 20.0, 0.12)
 
 
-## 播种·环：6 个检查点同时落圈（r60，1.0 / 0.79）并变成苗圃
+## 播种·环（11-28 改，docs/393 §12.2）：不再 6 个检查点各落一圈，改成离队长最近的 2 个检查点 + 队长脚下各落一簇，
+## 每簇 3 圈（r55，簇内间距 50–70、错开 0–0.25 秒）互相压住连成一片；落地变苗圃，碰到自己已有的苗圃就并进去（见 _nursery_merge）
 func _sow_ring(e: Dictionary, _dir: Vector2, _d: float) -> float:
+	var rng: RandomNumberGenerator = g.rng_enemy
+	var cps: Array = (e.cps as Array).duplicate()
+	cps.sort_custom(func(x, y): return (x as Vector2).distance_squared_to(g.ppos) < (y as Vector2).distance_squared_to(g.ppos))
+	var cores: Array = [cps[0], cps[1], g.ppos]
 	var first := true
-	for p in e.cps:
-		var w := w_circle(e, p, 60.0, 1.0, 0.14, "播种·环" if first else "", {"lock": first})
-		w.cb = func(ww): _nursery(e, ww.pos, 60.0, 12.0)
-		first = false
-	return 1.4
+	for ci in cores.size():
+		var c0: Vector2 = cores[ci]
+		var a0: float = rng.randf() * TAU
+		for k in 3:
+			var p: Vector2 = c0 + (Vector2.ZERO if k == 0 else Vector2.from_angle(a0 + k * TAU / 3.0 + rng.randf_range(-0.4, 0.4)) * rng.randf_range(50.0, 70.0))
+			var nm: String = "播种·环" if first else ""
+			var lk: bool = first
+			first = false
+			later(e, 0.35 * ci + rng.randf_range(0.0, 0.25), func():
+				var w := w_circle(e, p, 55.0, 1.0, 0.14, nm, {"lock": lk})
+				w.cb = func(ww): _nursery_merge(e, ww.pos, 55.0, 12.0))
+	return 2.0
+
+
+## 苗圃落地：离自己已有的苗圃够近（圆心距 < 两半径和的 0.8）就并成一块——圆心按面积加权、半径按面积相加（封顶 150）、寿命取长
+func _nursery_merge(e: Dictionary, p: Vector2, r: float, life: float) -> void:
+	var km = kingdoms()
+	if km == null:
+		return
+	for k in km.list:
+		if k.kind == "nursery" and int(k.owner_id) == int(e.id) and (k.pos as Vector2).distance_to(p) < (float(k.r) + r) * 0.8:
+			var a1: float = float(k.r) * float(k.r)
+			var a2: float = r * r
+			k.pos = ((k.pos as Vector2) * a1 + p * a2) / (a1 + a2)
+			k.r = minf(150.0, sqrt(a1 + a2))
+			var left: float = float(k.life) - (g.t - float(k.born))
+			if float(k.life) > 0.0 and left < life:
+				k.life = float(k.life) + (life - left)
+			return
+	_nursery(e, p, r, life)
 
 
 ## 眼中之园：从眼里抛出 5 团种子，沿抛物弧线依次落到队长附近（r45，0.9 / 0.64），落地变苗圃

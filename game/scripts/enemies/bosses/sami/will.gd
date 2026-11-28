@@ -398,20 +398,41 @@ func _m_echo(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	return 2.6
 
 
-## 冰峰：从意志到队长，冰峰一个接一个拱起（间隔 0.3、r40、0.9 / 0.6），留 3 秒当障碍，也挡冰凌
+## 冰峰（11-28 改，docs/393 §12.2）：冰峰沿一条裂纹从意志脚下朝队长推进——每一步重新瞄准队长当下位置（每步最多转 28°）、
+## 步长 60–90、间隔 0.22–0.36 秒随机，第 3 / 6 步各岔出一条 2 节的短支（±30–45°，r32）；冲过队长 80 后收尾。
+## 单节 r40、0.9 / 0.6 不变，留 3 秒当障碍，也挡冰凌
+const PEAK_MAX := 12
+
+
 func _m_peaks(e: Dictionary, _dir: Vector2, _d: float) -> float:
-	var tgt: Vector2 = g.ppos + g.pvel.limit_length(150.0) * 0.4
-	var d: Vector2 = tgt - e.pos
-	var n: int = clampi(int(d.length() / 75.0), 4, 12)
-	for k in n:
-		var p: Vector2 = e.pos + d * float(k + 1) / float(n)
-		later(e, 0.3 * k, _peak.bind(e, p, k == 0))
-	return 1.2 + 0.3 * n
+	var a: float = (g.ppos - e.pos).angle()
+	_peak_step(e, e.pos, a, 0, true, 40.0, PEAK_MAX)
+	return 1.2 + 0.29 * PEAK_MAX * 0.75
 
 
-func _peak(e: Dictionary, p: Vector2, first: bool) -> void:
-	var w := w_circle(e, p, 40.0, 0.9, 0.14, "冰峰" if first else "", {"lock": first})
-	w.cb = func(_ww): add_obst(e, p, 26.0, 3.0)
+## 裂纹往前长一节：i = 第几节，left = 这条裂纹还能长几节；主干 r40，支干 r32
+func _peak_step(e: Dictionary, from: Vector2, a: float, i: int, main: bool, r: float, left: int) -> void:
+	if left <= 0 or not e.get("alive", true):
+		return
+	var rng: RandomNumberGenerator = g.rng_enemy
+	if main:
+		var want: float = (g.ppos - from).angle()
+		a += clampf(wrapf(want - a, -PI, PI), -deg_to_rad(28.0), deg_to_rad(28.0))
+	a += rng.randf_range(-0.2, 0.2)
+	var p: Vector2 = from + Vector2.from_angle(a) * rng.randf_range(60.0, 90.0)
+	_peak(e, p, i == 0 and main, r)
+	if main and (i == 2 or i == 5):
+		var side: float = 1.0 if rng.randf() < 0.5 else -1.0
+		var ba: float = a + side * deg_to_rad(rng.randf_range(30.0, 45.0))
+		later(e, rng.randf_range(0.18, 0.3), _peak_step.bind(e, p, ba, i + 1, false, 32.0, 2))
+	if main and p.distance_to(g.ppos) > 80.0 and (p - from).dot(g.ppos - p) < 0.0:
+		left = mini(left, 1)   # 已冲过队长：再长一节就收
+	later(e, rng.randf_range(0.22, 0.36), _peak_step.bind(e, p, a, i + 1, main, r, left - 1))
+
+
+func _peak(e: Dictionary, p: Vector2, first: bool, r := 40.0) -> void:
+	var w := w_circle(e, p, r, 0.9, 0.14, "冰峰" if first else "", {"lock": first})
+	w.cb = func(_ww): add_obst(e, p, r * 0.65, 3.0)
 
 
 ## 冰河：一条冰河从北往南蜿蜒流下（宽 90，河道先画 1.2 秒），冰块顺河道流下（碰到 13%）
