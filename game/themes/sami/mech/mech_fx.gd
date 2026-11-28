@@ -3855,11 +3855,12 @@ func _sham_front(w, now: float) -> void:
 				var j: float = 0.0 if i == 0 or i == n else (float(absi(hash(Vector2i(int(now * 20.0), i))) % 100) / 50.0 - 1.0) * 4.0
 				pts.append(_snap(a.lerp(to, ff) + Vector2(0, -h * sin(PI * ff)) + nv * j))
 			_chain_draw(w, pts, 1.0)
-			# 沿途地上冒小冰晶（每 34 一簇）
+			# 沿途地上冒小冰晶（间距 20–56 随机）
 			var dl: float = a.distance_to(p)
-			if dl - float(b.get("fx_d", 0.0)) > 34.0 or dl < float(b.get("fx_d", 0.0)):
+			if dl - float(b.get("fx_d", 0.0)) > float(b.get("fx_gap", 30.0)) or dl < float(b.get("fx_d", 0.0)):
 				b["fx_d"] = dl
-				_spike(p + nv * rng.randf_range(-10, 10), rng.randf_range(16.0, 26.0), 10.0, "shaman", rng.randf_range(-0.3, 0.3))
+				b["fx_gap"] = rng.randf_range(20.0, 56.0)   # 间距 / 大小 / 偏移都随机（vreview：等距冰晶像贴纸）
+				_spike(p + nv * rng.randf_range(-16, 16), rng.randf_range(12.0, 32.0), rng.randf_range(8.0, 14.0), "shaman", rng.randf_range(-0.45, 0.45))
 			# 链头：冰白靛光团
 			w.tb_flush()
 			var gt: Texture2D = _glow_tex()
