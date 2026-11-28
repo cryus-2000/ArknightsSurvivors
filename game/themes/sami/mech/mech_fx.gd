@@ -659,6 +659,8 @@ func blade_event(kind: String, p: Vector2, a := 0.0, b := 0.0) -> void:
 				var q: Vector2 = p + Vector2.from_angle(a + rng.randf_range(-PI / 3.0, PI / 3.0)) * rng.randf_range(40.0, sr)
 				_fog(q, 1, 0.5, 0.15 * float(i % 5) / 5.0)
 			sparks(p + Vector2.from_angle(a) * sr * 0.6, a, 1.0, 16, 360.0, BLOOD)
+		"spin", "dash":
+			bevents.append([kind, p, a, g.t, false, b])
 		"erupt", "rain":
 			bevents.append([kind, p, a, g.t + b, false])
 		"flake", "lash":
@@ -834,6 +836,7 @@ func _blade_ground(w, now: float) -> void:
 	var cv = g.wcv
 	gpuffs = _draw_puffs(cv, gpuffs, now)
 	_draw_bscars(w, cv, now)
+	_draw_barcs(w, now)
 	# 预警（通用画法已关：blade.gd 给这些预警挂 skin sami_blade，telegraph_draw.quiet 跳过）：裂缝 + 黑雾先渗出 + 刃尖先冒头，不画描边圈 / 半透明填充
 	for t in g.warns:
 		if t.done or str(t.get("skin", "")) != "sami_blade":
@@ -981,11 +984,18 @@ func _blade_front(w, now: float) -> void:
 				"upslash":
 					_upslash(w, x, u, first)
 				"spin":
-					_spin(w, x, u, first)
+					if first:
+						var gy2: float = g.combat.GROUND_Y
+						var Rs: float = maxf(60.0, float(x.r))
+						for i in 16:
+							var aa: float = TAU * float(i) / 16.0
+							_fog(x.pos + Vector2(cos(aa), sin(aa) * gy2) * Rs * 0.85, 1, 0.8, 0.0, true, 1.5, Vector2(cos(aa), sin(aa) * gy2) * 110.0)   # 一圈翻起的黑雾
+						sparks(x.pos + Vector2(0, -10), 0.0, PI, 14, 320.0, BLOOD, true, 0.3)
+						blade_event("spin", x.pos, (g.ppos - (x.pos as Vector2)).angle(), Rs)   # 旋身斩 = 一整圈刀带
 				"vortex":
 					_vortex(w, x, t, life, first)
 				"redslash":
-					_redslash(w, x, u, first)
+					_redslash2(w, x, u, first)   # 11-28：贴地飞行的窄斩波（原红光柱像激光）
 				_:
 					_thrown(w, x, t, hold)
 		# 呼吸：它的国度往外胀时，边上一圈雾块往外涌（不画细环）
@@ -1032,12 +1042,30 @@ func _blade_front(w, now: float) -> void:
 			keep.append(ev)
 			_draw_dial(w, ev, age)
 			continue
-		if ev[0] == "slash":
-			# 国度 + 横斩（11-28 用户：每只 Boss 一种主表现，概念图 fm_b1）：从黑雾里冲出一记大横斩
+		if ev[0] == "slash" or ev[0] == "spin":
+			# 国度 + 横斩（fm_b1）：刀带扫过后残留 0.35 秒再碎散，地上留弧形斩痕；spin = 旋身斩一整圈
+			var spin: bool = ev[0] == "spin"
+			if age > 0.95:
+				continue
+			keep.append(ev)
+			var sr: float = float(ev[5]) if ev.size() > 5 else 170.0
+			var hf: float = PI if spin else PI / 3.0
+			if not ev[4]:
+				ev[4] = true
+				barcs.append([p, float(ev[2]) - hf - 0.12, float(ev[2]) + hf + 0.12, sr, now])
+			_big_slash2(w, g.wcv, p, float(ev[2]), sr, age, hf, 0.2 if spin else 0.12)
+			continue
+		if ev[0] == "dash":
 			if age > 0.5:
 				continue
 			keep.append(ev)
-			_big_slash(w, g.wcv, p, float(ev[2]), float(ev[5]) if ev.size() > 5 else 170.0, age)
+			if not ev[4]:
+				ev[4] = true
+				var dd := Vector2.from_angle(float(ev[2]))
+				bscars.append([p, p + dd * float(ev[5]), now, 30.0, rng.randi() % 997])
+				for j in 6:
+					_fog(p + dd * float(ev[5]) * (float(j) + 0.5) / 6.0, 1, 0.7, 0.03 * float(j), true, 1.4, dd * 40.0)
+			_dash_ghost(w, ev, age)
 			continue
 		if ev[0] == "erupt":
 			# 刃林（用户 11-25 第二次退回：成片、有体积、少而大）：预警后段已冒头的 3–5 把大刃，结算时 0.14 秒从黑烟里竖到全高，
@@ -1393,7 +1421,7 @@ func kingdom_draw(km) -> void:
 	var now: float = g.t
 	var gy: float = g.combat.GROUND_Y
 	if kdir == 0:
-		_kd_grid(cv, km, now)
+		_kd_ink(cv, km, now)   # 11-28：成团墨状黑雾（原按格竖烟丝 _kd_grid 读成影线 / 草）
 	else:
 		for l in km.links:
 			_band_tex(cv, grey_band, l[0].pos, l[1].pos, float(l[2]) * 0.9, 0.55)
@@ -5022,6 +5050,213 @@ func _will_curtain_front(w, cv, e: Dictionary, now: float) -> void:
 		x += 36.0 + float(hj % 14)
 		col += 1
 	w.tb_flush()
+
+
+## ==== 利刃 v3（协调人 11-28）：大横斩刀带扫过后残留 0.35 秒再碎散、地上留弧形斩痕 1.5 秒；旋身斩 = 一整圈刀带；三段突进留黑色残影 + 斩痕；
+## 猎斩 = 贴地飞行的窄斩波；国度 = 成团墨状黑雾（大团缓慢翻涌、边缘烟丝），不再格子短线
+var barcs: Array = []   # 地上弧形斩痕 [圆心, a0, a1, R, 出生 t]
+
+
+## 刀带（大横斩 / 收尾斩 / 旋身斩共用）：half = 半张角（旋身斩 PI = 一整圈），sweep = 扫过用时
+func _big_slash2(w, cv, p: Vector2, ca: float, SR: float, age: float, half: float, sweep: float) -> void:
+	var e0: float = ca - half - 0.12
+	var e1: float = ca + half + 0.12
+	var hd: float = lerpf(e0, e1, 1.0 - pow(1.0 - clampf(age / sweep, 0.0, 1.0), 2.0))
+	var hold_end: float = sweep + 0.35
+	var tl: float = lerpf(e0, e1, clampf((age - hold_end) / 0.25, 0.0, 1.0))
+	if hd - tl < 0.03:
+		return
+	var R: float = SR
+	var fade: float = clampf((age - hold_end) / 0.3, 0.0, 1.0)
+	var hp: Vector2 = p + Vector2.from_angle(hd) * (R - 20.0)
+	var gt: Texture2D = _glow_tex()
+	if age < hold_end:
+		cv.draw_texture_rect(gt, Rect2(((hp - Vector2(80, 46)) / PX).floor() * PX, Vector2(160, 92)), false, Color(1.0, 0.32, 0.26, 0.24))
+	var ns: int = clampi(int((e1 - e0) * 14.0), 26, 90)
+	var tm: float = 0.42 * R / 0.47
+	for pass_i in 4:
+		for j in ns:
+			var f0: float = float(j) / float(ns)
+			var f1: float = float(j + 1) / float(ns)
+			var b0: float = lerpf(e0, e1, f0)
+			var b1: float = lerpf(e0, e1, f1)
+			if b1 < tl or b0 > hd:
+				continue
+			b0 = maxf(b0, tl)
+			b1 = minf(b1, hd)
+			var t0: float = (4.0 + tm * pow(f0, 1.2) * pow(1.0 - f0, 0.3)) if half < 3.0 else (tm * 0.55)
+			var t1: float = (4.0 + tm * pow(f1, 1.2) * pow(1.0 - f1, 0.3)) if half < 3.0 else (tm * 0.55)
+			if half >= 3.0:   # 一整圈：刀头附近厚、往后渐薄
+				var dh0: float = clampf((hd - b0) / 2.2, 0.0, 1.0)
+				var dh1: float = clampf((hd - b1) / 2.2, 0.0, 1.0)
+				t0 = 4.0 + tm * 0.6 * (1.0 - dh0)
+				t1 = 4.0 + tm * 0.6 * (1.0 - dh1)
+			t0 *= 1.0 - 0.6 * fade
+			t1 *= 1.0 - 0.6 * fade
+			var ro: float = R
+			var r0i: float = R - t0
+			var r1i: float = R - t1
+			var cc: Color
+			match pass_i:
+				0:
+					ro = R + 3.0
+					r0i -= 3.0
+					r1i -= 3.0
+					cc = OLC
+				1:
+					cc = BK
+				2:
+					r0i = R - t0 * 0.3
+					r1i = R - t1 * 0.3
+					cc = BLOOD[1].lerp(BLOOD[2], f0)
+				_:
+					r0i = R - 4.0 - 5.0 * f0
+					r1i = R - 4.0 - 5.0 * f1
+					cc = Color(1.0, 1.0, 0.97)
+			if fade > 0.0:
+				cc.a = 1.0 - fade
+			w.tb_quad(p + Vector2.from_angle(b0) * ro, p + Vector2.from_angle(b1) * ro, p + Vector2.from_angle(b1) * r1i, p + Vector2.from_angle(b0) * r0i, cc)
+	if age < sweep + 0.1:
+		for i in 3:
+			var bq: float = lerpf(tl, hd, rng.randf() * 0.8)
+			_fog(p + Vector2.from_angle(bq) * (R - 30.0), 1, 0.8, 0.0, false, 2.2, Vector2.from_angle(bq) * 60.0 + Vector2.from_angle(bq - PI * 0.5) * 40.0)
+		sparks(hp, hd + PI * 0.5, 0.6, 3, 320.0, [Color(1, 0.96, 0.9), Color(1.0, 0.62, 0.3), BLOOD[3], BLOOD[2]], true, 0.3)
+	elif age > hold_end and age < hold_end + 0.25:
+		# 碎散：尾巴追上时刀带一段段崩成黑红碎片往外落
+		for i in 4:
+			var bq2: float = tl + rng.randf_range(-0.05, 0.15)
+			var q: Vector2 = p + Vector2.from_angle(bq2) * (R - rng.randf_range(4.0, tm * 0.4))
+			_add(q, Vector2.from_angle(bq2) * rng.randf_range(40, 140) + Vector2(0, -rng.randf_range(20, 80)), rng.randf_range(0.4, 0.7), [BK, BK, BLOOD[1], BLOOD[2]][i], rng.randf_range(5.0, 10.0), 3, 500.0)
+
+
+## 地上弧形斩痕：黑底 + 暗红芯，锯齿边，1.5 秒淡掉
+func _draw_barcs(w, now: float) -> void:
+	if barcs.is_empty():
+		return
+	var keep: Array = []
+	for b in barcs:
+		var age: float = now - float(b[4])
+		if age > 1.5:
+			continue
+		keep.append(b)
+		var al: float = clampf((1.5 - age) / 0.6, 0.0, 1.0)
+		var c: Vector2 = b[0]
+		var a0: float = b[1]
+		var a1: float = b[2]
+		var R: float = float(b[3]) * 0.9
+		var ns: int = clampi(int((a1 - a0) * R / 18.0), 8, 90)
+		for j in ns:
+			var f0: float = float(j) / float(ns)
+			var f1: float = float(j + 1) / float(ns)
+			var b0: float = lerpf(a0, a1, f0)
+			var b1: float = lerpf(a0, a1, f1)
+			var th0: float = (6.0 + 12.0 * sin(PI * f0)) * (0.7 + 0.3 * float(absi(hash(Vector2i(j, int(c.x)))) % 10) / 10.0)
+			var th1: float = (6.0 + 12.0 * sin(PI * f1)) * (0.7 + 0.3 * float(absi(hash(Vector2i(j + 1, int(c.x)))) % 10) / 10.0)
+			if a1 - a0 > 5.0:
+				th0 = 12.0
+				th1 = 12.0
+			w.tb_quad(c + Vector2.from_angle(b0) * (R + th0 * 0.5), c + Vector2.from_angle(b1) * (R + th1 * 0.5), c + Vector2.from_angle(b1) * (R - th1 * 0.5), c + Vector2.from_angle(b0) * (R - th0 * 0.5), Color(BK, 0.9 * al))
+			w.tb_quad(c + Vector2.from_angle(b0) * (R + th0 * 0.12), c + Vector2.from_angle(b1) * (R + th1 * 0.12), c + Vector2.from_angle(b1) * (R - th1 * 0.12), c + Vector2.from_angle(b0) * (R - th0 * 0.12), Color(BLOOD[2], al * (0.6 + 0.4 * sin(now * 16.0 + float(j)))))
+	barcs = keep
+	w.tb_flush()
+
+
+## 三段突进的残影：沿冲刺路线一条从后往前变宽的黑影（像刀身拖过去），0.5 秒淡掉，路上翻黑雾
+func _dash_ghost(w, ev: Array, age: float) -> void:
+	var a: Vector2 = ev[1]
+	var d := Vector2.from_angle(float(ev[2]))
+	var L: float = float(ev[5])
+	var nv := d.orthogonal()
+	var al: float = clampf(1.0 - age / 0.5, 0.0, 1.0)
+	for k in 3:
+		var sh: float = float(k) * 0.33
+		var b: Vector2 = a + d * L * (0.35 + 0.65 * (1.0 - sh))
+		var a2: Vector2 = a + d * L * (0.05 + 0.2 * sh)
+		var wd: float = 26.0 * (1.0 - sh * 0.4)
+		w.tb_poly(PackedVector2Array([a2, b + nv * wd + Vector2(0, -30), b + d * 18.0 + Vector2(0, -34), b - nv * wd + Vector2(0, -30)]), Color(BK, (0.75 - 0.2 * float(k)) * al))
+	w.tb_line(_snap(a + Vector2(0, -30)), _snap(a + d * L + Vector2(0, -32)), Color(BLOOD[2], 0.7 * al), 3.0)
+
+
+## 猎斩斩波：贴地飞的一道窄月牙（黑刃 + 暗红芯 + 白刃口朝前），后面拖一条渐淡黑痕
+func _redslash2(w, x: Dictionary, u: float, first: bool) -> void:
+	var p: Vector2 = x.pos
+	var d := Vector2.from_angle(float(x.ang))
+	var nv := d.orthogonal()
+	var L: float = float(x.r)
+	if first:
+		bscars.append([p + d * 10.0, p + d * L, g.t, 26.0, rng.randi() % 997])
+		sparks(p, float(x.ang), 0.5, 10, 380.0, [Color(1, 0.95, 0.92), BLOOD[3], BLOOD[2], BLOOD[1]], true, 0.3)
+	var hu: float = clampf(u * 1.15, 0.0, 1.0)
+	var h: Vector2 = p + d * L * hu
+	var tail: Vector2 = p + d * L * maxf(0.0, hu - 0.35)
+	var al: float = clampf((1.0 - u) / 0.3, 0.0, 1.0)
+	w.tb_poly(PackedVector2Array([tail, h + nv * 10.0, h - nv * 10.0]), Color(BK, 0.6 * al))
+	var W := 38.0
+	var back: float = 16.0
+	var pts_o := PackedVector2Array([h + nv * (W + 3.0) - d * (back + 3.0), h + d * 6.0, h - nv * (W + 3.0) - d * (back + 3.0), h - d * 4.0])
+	var pts := PackedVector2Array([h + nv * W - d * back, h + d * 3.0, h - nv * W - d * back, h - d * 1.0])
+	w.tb_poly(pts_o, Color(OLC, al))
+	w.tb_poly(pts, Color(BK, al))
+	w.tb_poly(PackedVector2Array([h + nv * W * 0.6 - d * back * 0.6, h + d * 2.0, h - nv * W * 0.6 - d * back * 0.6, h]), Color(BLOOD[2], al))
+	w.tb_line(_snap(h + nv * W * 0.8 - d * back * 0.55), _snap(h + d * 3.0), Color(1, 1, 0.97, al), 2.0)
+	w.tb_line(_snap(h - nv * W * 0.8 - d * back * 0.55), _snap(h + d * 3.0), Color(1, 1, 0.97, al), 2.0)
+
+
+## 国度：成团墨状黑雾（fm_b1）——每块国度几团大雾缓慢翻涌（位置转、大小呼吸），边缘烟丝往外飘散；黑毯 / 连片沿线铺雾团
+func _kd_ink(cv, km, now: float) -> void:
+	var vr: Rect2 = Rect2(g.cam.position - get_viewport_half() - Vector2(200, 200), get_viewport_half() * 2.0 + Vector2(400, 400))
+	for k in km.list:
+		if k.kind == "nursery":
+			continue
+		var age: float = now - float(k.born)
+		var fade: float = 1.0
+		if float(k.life) > 0.0:
+			fade = clampf((float(k.born) + float(k.life) - now) / 0.6, 0.0, 1.0)
+		if fade <= 0.0:
+			continue
+		var rev: float = clampf(age / 0.6, 0.0, 1.0)
+		var al: float = fade * rev
+		var r: float = float(k.r)
+		var sd: int = absi(hash(Vector2i(int(k.pos.x), int(k.pos.y)))) % 9973
+		if k.has("b"):
+			var L: float = (k.pos as Vector2).distance_to(k.b)
+			var n2: int = maxi(2, int(L / 40.0))
+			for i in n2 + 1:
+				var q: Vector2 = (k.pos as Vector2).lerp(k.b, float(i) / float(n2))
+				if not vr.has_point(q):
+					continue
+				var s2: float = r * 2.2 * (0.85 + 0.25 * sin(now * 0.7 + float(i)))
+				cv.draw_texture_rect(fog_puff[(i + sd) % 4], Rect2(_snap(q - Vector2(s2, s2 * 0.75) * 0.5), Vector2(s2, s2 * 0.75)), false, Color(1, 1, 1, 0.55 * KD_WISP * al))
+			continue
+		if not vr.grow(r).has_point(k.pos):
+			continue
+		var n: int = clampi(int(r * r / 1600.0), 3, 14)
+		for i in n:
+			var hs: int = absi(hash(Vector2i(sd, i)))
+			var a: float = float(hs % 628) / 100.0 + now * (0.1 + 0.05 * float(hs % 3)) * (1.0 if hs % 2 == 0 else -1.0)
+			var rr: float = r * 0.62 * sqrt(float((hs / 628) % 100) / 100.0) * rev
+			var q2: Vector2 = (k.pos as Vector2) + Vector2(cos(a), sin(a) * 0.75) * rr
+			var s: float = r * (0.85 + 0.35 * float((hs / 62800) % 100) / 100.0) * (0.92 + 0.12 * sin(now * 0.9 + float(i) * 1.3))
+			if km._in_cut(q2):
+				continue
+			cv.draw_texture_rect(fog_puff[hs % 4], Rect2(_snap(q2 - Vector2(s, s * 0.75) * 0.5), Vector2(s, s * 0.75)), false, Color(1, 1, 1, 0.62 * KD_WISP * al))
+		# 边缘烟丝：小雾团从边上往外飘、变淡（循环）
+		var m: int = clampi(int(TAU * r / 22.0), 8, 40)
+		for i in m:
+			var hs2: int = absi(hash(Vector2i(sd + 9, i)))
+			var ph: float = fmod(now * (0.35 + float(hs2 % 20) / 100.0) + float(hs2 % 100) / 100.0, 1.0)
+			var a2: float = TAU * float(i) / float(m) + float(hs2 % 50) / 100.0
+			var q3: Vector2 = (k.pos as Vector2) + Vector2(cos(a2), sin(a2) * 0.75) * r * (0.8 + 0.35 * ph) * rev + Vector2(0, -16.0 * ph)
+			var s3: float = (26.0 + float(hs2 % 20)) * (1.0 - 0.4 * ph)
+			cv.draw_texture_rect(fog_puff[(hs2 / 3) % 4], Rect2(_snap(q3 - Vector2(s3, s3 * 0.8) * 0.5), Vector2(s3, s3 * 0.8)), false, Color(1, 1, 1, 0.55 * KD_WISP * al * (1.0 - ph)))
+	for l in km.links:
+		var a3: Vector2 = l[0].pos
+		var b3: Vector2 = l[1].pos
+		var n3: int = maxi(2, int(a3.distance_to(b3) / 50.0))
+		for i in n3:
+			var q4: Vector2 = a3.lerp(b3, (float(i) + 0.5) / float(n3))
+			var s4: float = float(l[2]) * 2.0
+			cv.draw_texture_rect(fog_puff[i % 4], Rect2(_snap(q4 - Vector2(s4, s4 * 0.75) * 0.5), Vector2(s4, s4 * 0.75)), false, Color(1, 1, 1, 0.45 * KD_WISP))
 
 
 func _ice_peak(w, p: Vector2, h: float, wd: float) -> void:

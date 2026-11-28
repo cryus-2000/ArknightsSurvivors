@@ -433,6 +433,7 @@ func _dash_seg(e: Dictionary, i: int) -> void:
 	var w := w_stab(e, a, ln, 72.0, 0.8 if i == 0 else 0.6, 0.22 if i == 0 else 0.16, "追猎·折返" if i == 0 else "", {"track": 0.2 if i == 0 else 0.0, "lead": LEAD})
 	var from: Vector2 = e.pos
 	w.cb = func(ww):
+		_fx("dash", from, float(ww.ang), float(ww.len))   # 画面：冲刺黑色残影 + 地上斩痕（mech_fx）
 		_lay(e, from, Vector2.from_angle(float(ww.ang)), float(ww.len), 1600.0, 36.0, 3.0)
 		if i < 2:
 			later(e, 0.35, func(): _dash_seg(e, i + 1))
