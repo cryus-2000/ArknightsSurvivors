@@ -1,0 +1,3037 @@
+{
+ "tag": "samid3-fin-base-base-khan_lion",
+ "game": "/home/user/ArknightsSurvivors/game",
+ "records": [
+  {
+   "boss": "khan+lion",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 1,
+   "wall": 16.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 0.401,
+   "brk_dmg_share": 0.6,
+   "brk_time_share": 0.191,
+   "bul_avg": 57.3,
+   "bul_peak": 187,
+   "dmg": 63766.0,
+   "fight_t": 115.8,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|0.7|sami_aspd|op:irene\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:eyjafjalla|op:eyjafjalla\",\"1|0.525|lshape:irene|op:irene\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.6|sami_chaos|\"] 多 []",
+    "stats.max_hp: 136.658 -> 132.678"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_khan/khan/征服": 0.281734726179171,
+    "boss_khan/khan/鞭扫": 0.0902817347261791,
+    "boss_lion/lion/敕令": 0.160123004567449,
+    "contact_drone": 0.159599127160704,
+    "contact_husk": 0.145357069325552,
+    "contact_rockback": 0.247899885738648,
+    "shock_breaker": 0.375990326848019
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 24,
+   "max_hp": 137.0,
+   "moves": {
+    "khan:两军": 1,
+    "khan:决胜·征服": 1,
+    "khan:可汗冲阵": 2,
+    "khan:对决": 1,
+    "khan:征服": 4,
+    "khan:战意鞭笞": 1,
+    "khan:流沙": 1,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 5,
+    "lion:日晷": 2,
+    "lion:沙漏": 1,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s1_slot3",
+   "squad": [
+    "kaltsit",
+    "irene",
+    "eyjafjalla"
+   ],
+   "src": {
+    "boss_khan/khan/征服": 0.281734726179171,
+    "boss_khan/khan/鞭扫": 0.180563469452358,
+    "boss_lion/lion/敕令": 0.160123004567449,
+    "contact_drone": 0.159599127160704,
+    "contact_husk": 0.145357069325552,
+    "contact_rockback": 0.247899885738648,
+    "shock_breaker": 0.375990326848019
+   },
+   "taken": 205.8,
+   "taken_pct": 1.551,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 2,
+   "wall": 18.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.596,
+   "brk_time_share": 0.158,
+   "bul_avg": 52.6,
+   "bul_peak": 180,
+   "dmg": 63766.0,
+   "fight_t": 145.9,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:saria\",\"2|1.25|command|op:ulpianus\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:saria|op:saria\",\"1|0.525|lshape:ulpianus|op:ulpianus\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:saria\",\"2|1.5|command|op:ulpianus\"] 多 []"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_khan/khan/征服": 0.183030705919595,
+    "boss_khan/khan/鞭扫": 0.104432415321304,
+    "boss_lion/lion/lob": 0.0486276289965179,
+    "boss_lion/lion/敕令": 0.115507628996518,
+    "bullet_khan": 0.0964615384615384,
+    "bullet_lion": 0.0418
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 152.0,
+   "moves": {
+    "khan:两军": 1,
+    "khan:决胜·征服": 1,
+    "khan:可汗冲阵": 3,
+    "khan:对决": 2,
+    "khan:征服": 6,
+    "khan:战意鞭笞": 2,
+    "khan:流沙": 1,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 6,
+    "lion:日晷": 3,
+    "lion:沙漏": 2,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s2_slot3",
+   "squad": [
+    "kaltsit",
+    "ulpianus",
+    "saria"
+   ],
+   "src": {
+    "boss_khan/khan/征服": 0.366061411839189,
+    "boss_khan/khan/鞭扫": 0.104432415321304,
+    "boss_lion/lion/lob": 0.0486276289965179,
+    "boss_lion/lion/敕令": 0.115507628996518,
+    "bullet_khan": 0.175881538461538,
+    "bullet_lion": 0.0418
+   },
+   "taken": 129.2,
+   "taken_pct": 0.852,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 3,
+   "wall": 16.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.606,
+   "brk_time_share": 0.142,
+   "bul_avg": 58.1,
+   "bul_peak": 189,
+   "dmg": 63766.0,
+   "fight_t": 110.8,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_5|\",\"2|1.03|totem_perm_6|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.63|lshape:kaltsit|op:kaltsit\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.max_hp: 150.142 -> 141.523"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_khan/khan/sami_blade": 0.0557138849912947,
+    "boss_lion/lion/敕令": 0.181537822491295,
+    "bullet_khan": 0.0446915625
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 142.0,
+   "moves": {
+    "khan:两军": 1,
+    "khan:可汗冲阵": 2,
+    "khan:对决": 2,
+    "khan:征服": 5,
+    "khan:战意鞭笞": 1,
+    "khan:流沙": 1,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 5,
+    "lion:日晷": 2,
+    "lion:沙漏": 1,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s3_slot3",
+   "squad": [
+    "kaltsit",
+    "suzuran",
+    "wisadel"
+   ],
+   "src": {
+    "boss_khan/khan/sami_blade": 0.0557138849912947,
+    "boss_lion/lion/敕令": 0.181537822491295,
+    "bullet_khan": 0.0446915625
+   },
+   "taken": 39.9,
+   "taken_pct": 0.282,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 4,
+   "wall": 12.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 0.351,
+   "brk_dmg_share": 0.72,
+   "brk_time_share": 0.246,
+   "bul_avg": 62.2,
+   "bul_peak": 186,
+   "dmg": 63766.0,
+   "fight_t": 61.4,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:irene\",\"2|1.25|command|op:wisadel\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:irene|op:irene\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:irene\",\"2|1.5|command|op:wisadel\"] 多 []",
+    "stats.max_hp: 193.12 -> 182.034"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_khan/khan/征服": 0.130590833538679,
+    "boss_lion/lion/敕令": 0.130590833538679,
+    "bullet_lion": 0.083298625572678,
+    "contact_hound": 0.197293861716393
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 187.0,
+   "moves": {
+    "khan:两军": 1,
+    "khan:可汗冲阵": 1,
+    "khan:对决": 1,
+    "khan:征服": 3,
+    "khan:战意鞭笞": 1,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 2,
+    "lion:日晷": 1,
+    "lion:沙漏": 1,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s4_slot3",
+   "squad": [
+    "kaltsit",
+    "wisadel",
+    "irene"
+   ],
+   "src": {
+    "boss_khan/khan/征服": 0.130590833538679,
+    "boss_lion/lion/敕令": 0.130590833538679,
+    "bullet_lion": 0.197602850664075,
+    "contact_hound": 0.846706140438753
+   },
+   "taken": 237.6,
+   "taken_pct": 1.305,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 5,
+   "wall": 14.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 0.344,
+   "brk_dmg_share": 0.453,
+   "brk_time_share": 0.126,
+   "bul_avg": 94.4,
+   "bul_peak": 204,
+   "dmg": 63766.0,
+   "fight_t": 88.3,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_10|\",\"2|1.03|totem_perm_8|\",\"2|1.03|totem_perm_9|\"] 多 []",
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.525|lshape:specter_unchained|op:specter_unchained\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.6|sami_chaos|\"] 多 []",
+    "mods.shield_max: 缺 [\"0|1.0|relic_sprout|\"] 多 []",
+    "stats.max_hp: 138.077 -> 126.36",
+    "stats.shield_max: 1.0 -> 0.0"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_khan/khan/sami_blade": 0.154283000949668,
+    "boss_khan/khan/征服": 0.295821462488129,
+    "boss_lion/lion/敕令": 0.295821462488129,
+    "contact_breaker": 0.317120690787838,
+    "contact_hound": 0.312356477196535,
+    "contact_khan": 0.172744539411206,
+    "shock_breaker": 0.39478984319042,
+    "shock_rockback": 0.502459800424171
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 126.0,
+   "moves": {
+    "khan:两军": 1,
+    "khan:决胜·征服": 1,
+    "khan:可汗冲阵": 2,
+    "khan:征服": 4,
+    "khan:战意鞭笞": 1,
+    "khan:流沙": 1,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 4,
+    "lion:日晷": 2,
+    "lion:沙漏": 1,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s5_slot3",
+   "squad": [
+    "kaltsit",
+    "specter_unchained",
+    "logos"
+   ],
+   "src": {
+    "boss_khan/khan/sami_blade": 0.308566001899335,
+    "boss_khan/khan/征服": 0.483950617283951,
+    "boss_lion/lion/敕令": 0.295821462488129,
+    "contact_breaker": 0.317120690787838,
+    "contact_hound": 0.69290130614194,
+    "contact_khan": 0.172744539411206,
+    "shock_breaker": 0.39478984319042,
+    "shock_rockback": 0.502459800424171
+   },
+   "taken": 400.4,
+   "taken_pct": 3.168,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 6,
+   "wall": 17.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 0.705,
+   "brk_dmg_share": 0.565,
+   "brk_time_share": 0.129,
+   "bul_avg": 58.7,
+   "bul_peak": 186,
+   "dmg": 63766.0,
+   "fight_t": 106.8,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_10|\",\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\",\"2|1.03|totem_perm_4|\",\"2|1.03|totem_perm_5|\",\"2|1.03|totem_perm_9|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:exusiai|op:exusiai\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:exusiai|op:exusiai\",\"1|0.525|lshape:ulpianus|op:ulpianus\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.6|sami_chaos|\"] 多 []",
+    "stats.max_hp: 236.0 -> 197.646"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_khan": 0.206,
+    "boss_khan/khan/可汗冲阵": 0.100320778573433,
+    "boss_khan/khan/征服": 0.179006916780716,
+    "boss_lion/lion/敕令": 0.179006916780717,
+    "boss_lion/lion/王令": 0.0740920658376714,
+    "bullet_khan": 0.0170486632782448,
+    "contact_hound": 0.192624043207024,
+    "contact_rockback": 0.249987444646438
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.8,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 204.0,
+   "moves": {
+    "khan:两军": 1,
+    "khan:可汗冲阵": 2,
+    "khan:对决": 2,
+    "khan:征服": 5,
+    "khan:战意鞭笞": 1,
+    "khan:流沙": 1,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 5,
+    "lion:日晷": 2,
+    "lion:沙漏": 1,
+    "lion:王令": 1,
+    "lion:瞬身": 1
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s6_slot3",
+   "squad": [
+    "kaltsit",
+    "ulpianus",
+    "exusiai"
+   ],
+   "src": {
+    "boss_khan": 0.412,
+    "boss_khan/khan/可汗冲阵": 0.100320778573433,
+    "boss_khan/khan/征服": 0.276376965171376,
+    "boss_lion/lion/敕令": 0.179006916780717,
+    "boss_lion/lion/王令": 0.0740920658376714,
+    "bullet_khan": 0.0170486632782448,
+    "contact_hound": 0.192624043207024,
+    "contact_rockback": 0.249987444646438
+   },
+   "taken": 296.8,
+   "taken_pct": 1.501,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 1,
+   "wall": 13.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.136,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 0.601,
+   "brk_dmg_share": 0.737,
+   "brk_time_share": 0.202,
+   "bul_avg": 133.4,
+   "bul_peak": 217,
+   "dmg": 55085.0,
+   "fight_t": 55.0,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.525|lshape:lappland|op:lappland\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 190.23 -> 179.884"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_khan/khan/sami_blade": 0.0584049276200218,
+    "boss_lion/lion/敕令": 0.121431144515354,
+    "bullet_lion": 0.0758648907073447,
+    "contact_rockback": 0.20210971380211
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 180.0,
+   "moves": {
+    "khan:两军": 1,
+    "khan:可汗冲阵": 1,
+    "khan:对决": 1,
+    "khan:征服": 3,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 2,
+    "lion:日晷": 1,
+    "lion:沙漏": 1,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s1_slot3",
+   "squad": [
+    "kaltsit",
+    "logos",
+    "lappland"
+   ],
+   "src": {
+    "boss_khan/khan/sami_blade": 0.0584049276200218,
+    "boss_lion/lion/敕令": 0.121431144515354,
+    "bullet_lion": 0.125177069667119,
+    "contact_rockback": 0.20210971380211
+   },
+   "taken": 91.2,
+   "taken_pct": 0.507,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 2,
+   "wall": 15.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.49,
+   "brk_time_share": 0.078,
+   "bul_avg": 54.9,
+   "bul_peak": 188,
+   "dmg": 63766.0,
+   "fight_t": 110.2,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:saria|op:saria\",\"1|0.63|lshape:kaltsit|op:kaltsit\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {},
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 231.0,
+   "moves": {
+    "khan:决胜·征服": 2,
+    "khan:可汗冲阵": 3,
+    "khan:征服": 5,
+    "khan:战意鞭笞": 2,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 4,
+    "lion:日晷": 3,
+    "lion:沙漏": 2,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s2_slot3",
+   "squad": [
+    "kaltsit",
+    "suzuran",
+    "saria"
+   ],
+   "src": {},
+   "taken": 0.0,
+   "taken_pct": 0.0,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 3,
+   "wall": 20.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.541,
+   "brk_time_share": 0.153,
+   "bul_avg": 54.8,
+   "bul_peak": 181,
+   "dmg": 63766.0,
+   "fight_t": 158.8,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_3|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:saria\",\"2|1.25|command|op:texas\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.525|lshape:saria|op:saria\",\"1|0.525|lshape:texas|op:texas\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:saria\",\"2|1.5|command|op:texas\"] 多 []",
+    "stats.max_hp: 155.769 -> 151.523"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_lion/lion/敕令": 0.122195307385272,
+    "bullet_khan": 0.0440315938417351
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 24,
+   "max_hp": 152.0,
+   "moves": {
+    "khan:两军": 1,
+    "khan:决胜·征服": 2,
+    "khan:可汗冲阵": 3,
+    "khan:征服": 7,
+    "khan:战意鞭笞": 3,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 5,
+    "lion:日晷": 3,
+    "lion:沙漏": 3,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s3_slot3",
+   "squad": [
+    "kaltsit",
+    "saria",
+    "texas"
+   ],
+   "src": {
+    "boss_lion/lion/敕令": 0.122195307385272,
+    "bullet_khan": 0.0887405968194969
+   },
+   "taken": 32.0,
+   "taken_pct": 0.211,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 4,
+   "wall": 14.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 0.666,
+   "brk_dmg_share": 0.522,
+   "brk_time_share": 0.104,
+   "bul_avg": 54.5,
+   "bul_peak": 183,
+   "dmg": 63766.0,
+   "fight_t": 82.5,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:eyjafjalla|op:eyjafjalla\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 182.315 -> 171.85"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_khan/khan/sami_blade": 0.101805299517718,
+    "contact_khan": 0.0511039420516545
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 177.0,
+   "moves": {
+    "khan:两军": 1,
+    "khan:决胜·征服": 1,
+    "khan:可汗冲阵": 2,
+    "khan:征服": 3,
+    "khan:战意鞭笞": 1,
+    "khan:流沙": 1,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 4,
+    "lion:日晷": 2,
+    "lion:沙漏": 1,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s4_slot3",
+   "squad": [
+    "kaltsit",
+    "eyjafjalla",
+    "wisadel"
+   ],
+   "src": {
+    "boss_khan/khan/sami_blade": 0.101805299517718,
+    "contact_khan": 0.0511039420516545
+   },
+   "taken": 26.3,
+   "taken_pct": 0.153,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 5,
+   "wall": 16.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 0.241,
+   "brk_dmg_share": 0.602,
+   "brk_time_share": 0.168,
+   "bul_avg": 52.0,
+   "bul_peak": 177,
+   "dmg": 63766.0,
+   "fight_t": 117.3,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\",\"1|1.05|lshape:mizuki|op:mizuki\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_13|\",\"2|1.03|totem_perm_14|\",\"2|1.03|totem_perm_15|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:exusiai\",\"2|1.25|command|op:mizuki\"] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:exusiai|op:exusiai\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:exusiai|op:exusiai\",\"1|0.63|lshape:kaltsit|op:kaltsit\",\"1|0.63|lshape:mizuki|op:mizuki\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:exusiai\",\"2|1.5|command|op:mizuki\"] 多 []",
+    "stats.max_hp: 187.294 -> 171.4"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_lion/lion/lob": 0.0819835108825934,
+    "bullet_khan": 0.0663499344692005,
+    "contact_hound": 0.233788189473341
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 25,
+   "max_hp": 171.0,
+   "moves": {
+    "khan:两军": 1,
+    "khan:可汗冲阵": 2,
+    "khan:对决": 3,
+    "khan:征服": 6,
+    "khan:战意鞭笞": 2,
+    "khan:流沙": 1,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 1,
+    "lion:敕令": 4,
+    "lion:日晷": 2,
+    "lion:沙漏": 2,
+    "lion:王令": 1,
+    "lion:瞬身": 1
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s5_slot3",
+   "squad": [
+    "kaltsit",
+    "exusiai",
+    "mizuki"
+   ],
+   "src": {
+    "boss_lion/lion/lob": 0.0819835108825934,
+    "bullet_khan": 0.0663499344692005,
+    "contact_hound": 0.467576378946681
+   },
+   "taken": 105.6,
+   "taken_pct": 0.616,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 6,
+   "wall": 16.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.591,
+   "brk_time_share": 0.154,
+   "bul_avg": 55.0,
+   "bul_peak": 189,
+   "dmg": 63766.0,
+   "fight_t": 138.3,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\",\"2|1.03|totem_perm_4|\",\"2|1.03|totem_perm_5|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:irene|op:irene\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.8|sami_chaos|\"] 多 []",
+    "mods.xp_gain: 缺 [\"2|1.24|sami_bxp|\"] 多 []",
+    "stats.max_hp: 123.645 -> 109.857"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_khan/khan/征服": 0.193385271216726,
+    "boss_lion/lion/lob": 0.113754756803603,
+    "bullet_lion": 0.0897170462387854
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 24,
+   "max_hp": 117.0,
+   "moves": {
+    "khan:两军": 1,
+    "khan:决胜·征服": 1,
+    "khan:可汗冲阵": 3,
+    "khan:对决": 2,
+    "khan:征服": 6,
+    "khan:战意鞭笞": 2,
+    "khan:流沙": 1,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 6,
+    "lion:日晷": 3,
+    "lion:沙漏": 2,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s6_slot3",
+   "squad": [
+    "kaltsit",
+    "irene",
+    "wisadel"
+   ],
+   "src": {
+    "boss_khan/khan/征服": 0.193385271216726,
+    "boss_lion/lion/lob": 0.182916425535857,
+    "bullet_lion": 0.0897170462387854
+   },
+   "taken": 51.2,
+   "taken_pct": 0.466,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 1,
+   "wall": 17.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 0.485,
+   "brk_dmg_share": 0.648,
+   "brk_time_share": 0.172,
+   "bul_avg": 93.8,
+   "bul_peak": 205,
+   "dmg": 63766.0,
+   "fight_t": 104.9,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.5|totem_9|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.28|lshape:lumen|op:lumen\",\"1|0.525|lshape:skadi|op:skadi\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.8|sami_chaos|\"] 多 []",
+    "stats.max_hp: 207.395 -> 137.764"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_khan/khan/sami_blade": 0.154815481548155,
+    "boss_khan/khan/征服": 0.267704189773816,
+    "shock_rockback": 0.449438258390863
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 142.0,
+   "moves": {
+    "khan:两军": 1,
+    "khan:决胜·征服": 1,
+    "khan:可汗冲阵": 2,
+    "khan:对决": 1,
+    "khan:征服": 5,
+    "khan:战意鞭笞": 1,
+    "khan:流沙": 1,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 4,
+    "lion:日晷": 2,
+    "lion:沙漏": 1,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m0_s1_slot3",
+   "squad": [
+    "skadi",
+    "lumen",
+    "logos"
+   ],
+   "src": {
+    "boss_khan/khan/sami_blade": 0.154815481548155,
+    "boss_khan/khan/征服": 0.267704189773816,
+    "shock_rockback": 0.449438258390863
+   },
+   "taken": 120.1,
+   "taken_pct": 0.872,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 2,
+   "wall": 15.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.028,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 0.504,
+   "brk_dmg_share": 0.656,
+   "brk_time_share": 0.163,
+   "bul_avg": 63.0,
+   "bul_peak": 188,
+   "dmg": 61967.0,
+   "fight_t": 103.2,
+   "fp_diff": [
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:lumen|op:lumen\",\"1|0.525|lshape:irene|op:irene\",\"1|0.525|lshape:skadi|op:skadi\"] 多 []"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_khan/khan/sami_blade": 0.125723243644075,
+    "boss_khan/khan/征服": 0.226884661543115,
+    "boss_lion/lion/敕令": 0.226884661543115,
+    "boss_lion/lion/瞬身": 0.125723243644075,
+    "bullet_khan": 0.1264517723738,
+    "bullet_lion": 0.109591536057294,
+    "contact_rockback": 0.318139500142552,
+    "shock_rockback": 0.412990060016445
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 25,
+   "max_hp": 154.0,
+   "moves": {
+    "khan:两军": 1,
+    "khan:可汗冲阵": 2,
+    "khan:对决": 3,
+    "khan:征服": 6,
+    "khan:战意鞭笞": 2,
+    "khan:流沙": 1,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 4,
+    "lion:日晷": 2,
+    "lion:沙漏": 2,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m0_s2_slot3",
+   "squad": [
+    "skadi",
+    "lumen",
+    "irene"
+   ],
+   "src": {
+    "boss_khan/khan/sami_blade": 0.125723243644075,
+    "boss_khan/khan/征服": 0.226884661543115,
+    "boss_lion/lion/敕令": 0.226884661543115,
+    "boss_lion/lion/瞬身": 0.125723243644075,
+    "bullet_khan": 0.2529035447476,
+    "bullet_lion": 0.328774608171881,
+    "contact_rockback": 0.852651100256594,
+    "shock_rockback": 0.412990060016445
+   },
+   "taken": 392.4,
+   "taken_pct": 2.553,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 3,
+   "wall": 14.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.332,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 0.325,
+   "brk_dmg_share": 0.692,
+   "brk_time_share": 0.119,
+   "bul_avg": 63.4,
+   "bul_peak": 182,
+   "dmg": 42601.0,
+   "fight_t": 96.3,
+   "fp_diff": [
+    "mods.armor: 缺 [\"0|10.0|sami_altar|\"] 多 []",
+    "mods.dmg: 缺 [\"1|0.3|sami_altar|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:lumen|op:lumen\",\"1|0.525|lshape:lappland|op:lappland\",\"1|0.525|lshape:skadi|op:skadi\"] 多 []",
+    "stats.armor: 16.0 -> 6.0",
+    "stats.dmg_mult: 1.583 -> 1.283"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_khan/khan/sami_blade": 0.0811565228072702,
+    "boss_lion/lion/lob": 0.0537090140499053,
+    "boss_lion/lion/敕令": 0.163499049079365,
+    "bullet_khan": 0.0274475087573649,
+    "bullet_lion": 0.0892044034614358,
+    "contact_hound": 0.188338252889566,
+    "shock_rockback": 0.336162200701427
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 25,
+   "max_hp": 189.0,
+   "moves": {
+    "khan:可汗冲阵": 3,
+    "khan:征服": 5,
+    "khan:战意鞭笞": 2,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 5,
+    "lion:日晷": 3,
+    "lion:沙漏": 2,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m0_s3_slot3",
+   "squad": [
+    "skadi",
+    "lumen",
+    "lappland"
+   ],
+   "src": {
+    "boss_khan/khan/sami_blade": 0.0811565228072702,
+    "boss_lion/lion/lob": 0.0537090140499053,
+    "boss_lion/lion/敕令": 0.163499049079365,
+    "bullet_khan": 0.0274475087573649,
+    "bullet_lion": 0.178408806922872,
+    "contact_hound": 0.376676505779132,
+    "shock_rockback": 0.672324401402854
+   },
+   "taken": 293.4,
+   "taken_pct": 1.553,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 4,
+   "wall": 18.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 0.836,
+   "brk_dmg_share": 0.65,
+   "brk_time_share": 0.129,
+   "bul_avg": 55.5,
+   "bul_peak": 189,
+   "dmg": 63766.0,
+   "fight_t": 165.1,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\",\"2|1.03|totem_perm_6|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:lumen|op:lumen\",\"1|0.525|lshape:skadi|op:skadi\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.max_hp: 174.514 -> 159.705"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_khan/khan/sami_blade": 0.0876315707084938,
+    "boss_khan/khan/决胜·征服": 0.175273159888544,
+    "boss_khan/khan/征服": 0.175273159888544,
+    "boss_lion/lion/敕令": 0.175273159888545,
+    "bullet_khan": 0.0730346576500423,
+    "bullet_lion": 0.0949450549450549,
+    "contact_rockback": 0.403413624678614
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 25,
+   "max_hp": 164.0,
+   "moves": {
+    "khan:两军": 1,
+    "khan:决胜·征服": 1,
+    "khan:可汗冲阵": 4,
+    "khan:对决": 1,
+    "khan:征服": 8,
+    "khan:战意鞭笞": 3,
+    "khan:流沙": 1,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 7,
+    "lion:日晷": 4,
+    "lion:沙漏": 3,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m0_s4_slot3",
+   "squad": [
+    "skadi",
+    "lumen",
+    "suzuran"
+   ],
+   "src": {
+    "boss_khan/khan/sami_blade": 0.262894712125481,
+    "boss_khan/khan/决胜·征服": 0.175273159888544,
+    "boss_khan/khan/征服": 0.701092639554178,
+    "boss_lion/lion/敕令": 0.525819479665634,
+    "bullet_khan": 0.204497041420118,
+    "bullet_lion": 0.18989010989011,
+    "contact_rockback": 0.403413624678614
+   },
+   "taken": 393.3,
+   "taken_pct": 2.463,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 5,
+   "wall": 15.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.037,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 0.886,
+   "brk_dmg_share": 0.683,
+   "brk_time_share": 0.132,
+   "bul_avg": 62.9,
+   "bul_peak": 183,
+   "dmg": 61403.0,
+   "fight_t": 99.0,
+   "fp_diff": [
+    "mods.op_aspd: 缺 [\"2|1.5|totem_9|\"] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:saria|op:saria\",\"1|0.525|lshape:skadi|op:skadi\"] 多 []"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_khan/khan/sami_blade": 0.116017908017908,
+    "boss_khan/khan/征服": 0.201711906327291,
+    "boss_lion/lion/敕令": 0.201711906327291,
+    "bullet_khan": 0.107117497886729,
+    "contact_khan": 0.116017908017908
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 23,
+   "max_hp": 160.0,
+   "moves": {
+    "khan:两军": 1,
+    "khan:可汗冲阵": 1,
+    "khan:对决": 3,
+    "khan:征服": 5,
+    "khan:战意鞭笞": 1,
+    "khan:流沙": 1,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 4,
+    "lion:日晷": 1,
+    "lion:沙漏": 1,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m0_s5_slot3",
+   "squad": [
+    "skadi",
+    "saria",
+    "wisadel"
+   ],
+   "src": {
+    "boss_khan/khan/sami_blade": 0.116017908017908,
+    "boss_khan/khan/征服": 0.403423812654582,
+    "boss_lion/lion/敕令": 0.201711906327291,
+    "bullet_khan": 0.178529163144548,
+    "contact_khan": 0.116017908017908
+   },
+   "taken": 162.2,
+   "taken_pct": 1.016,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 6,
+   "wall": 14.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.477,
+   "brk_time_share": 0.121,
+   "bul_avg": 77.8,
+   "bul_peak": 208,
+   "dmg": 63766.0,
+   "fight_t": 71.1,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.525|lshape:irene|op:irene\",\"1|0.525|lshape:skadi|op:skadi\"] 多 []",
+    "stats.max_hp: 251.605 -> 237.162"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {},
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 252.0,
+   "moves": {
+    "khan:决胜·征服": 2,
+    "khan:可汗冲阵": 2,
+    "khan:征服": 3,
+    "khan:战意鞭笞": 1,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 2,
+    "lion:日晷": 2,
+    "lion:沙漏": 1,
+    "lion:王令": 1
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m0_s6_slot3",
+   "squad": [
+    "skadi",
+    "logos",
+    "irene"
+   ],
+   "src": {},
+   "taken": 0.0,
+   "taken_pct": 0.0,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 1,
+   "wall": 15.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.547,
+   "brk_time_share": 0.222,
+   "bul_avg": 56.4,
+   "bul_peak": 190,
+   "dmg": 63766.0,
+   "fight_t": 117.9,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_8|\",\"2|1.03|totem_perm_9|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:lumen|op:lumen\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:skadi|op:skadi\"] 多 []",
+    "stats.max_hp: 123.855 -> 113.345"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_khan/khan/征服": 0.291076124099783,
+    "boss_lion/lion/lob": 0.126424721990187,
+    "bullet_lion": 0.133779264214047
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 25,
+   "max_hp": 113.0,
+   "moves": {
+    "khan:两军": 1,
+    "khan:决胜·征服": 1,
+    "khan:可汗冲阵": 2,
+    "khan:对决": 2,
+    "khan:征服": 5,
+    "khan:战意鞭笞": 2,
+    "khan:流沙": 1,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 4,
+    "lion:日晷": 2,
+    "lion:沙漏": 2,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s1_slot3",
+   "squad": [
+    "skadi",
+    "lumen",
+    "wisadel"
+   ],
+   "src": {
+    "boss_khan/khan/征服": 0.291076124099783,
+    "boss_lion/lion/lob": 0.126424721990187,
+    "bullet_lion": 0.133779264214047
+   },
+   "taken": 62.5,
+   "taken_pct": 0.551,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 2,
+   "wall": 15.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.611,
+   "brk_time_share": 0.159,
+   "bul_avg": 57.5,
+   "bul_peak": 180,
+   "dmg": 63766.0,
+   "fight_t": 104.6,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"1|0.18|sami_ode|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:ulpianus\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:lumen|op:lumen\",\"1|0.525|lshape:skadi|op:skadi\",\"1|0.525|lshape:ulpianus|op:ulpianus\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:ulpianus\"] 多 []",
+    "stats.max_hp: 240.228 -> 208.894"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_khan/khan/sami_blade": 0.102099561050396,
+    "boss_lion/lion/敕令": 0.176548753354211
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 263.0,
+   "moves": {
+    "khan:两军": 1,
+    "khan:决胜·征服": 1,
+    "khan:可汗冲阵": 2,
+    "khan:对决": 2,
+    "khan:征服": 5,
+    "khan:战意鞭笞": 2,
+    "khan:流沙": 1,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 4,
+    "lion:日晷": 2,
+    "lion:沙漏": 2,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s2_slot3",
+   "squad": [
+    "skadi",
+    "lumen",
+    "ulpianus"
+   ],
+   "src": {
+    "boss_khan/khan/sami_blade": 0.204199122100792,
+    "boss_lion/lion/敕令": 0.176548753354211
+   },
+   "taken": 79.5,
+   "taken_pct": 0.381,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 3,
+   "wall": 15.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.277,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 0.441,
+   "brk_dmg_share": 0.782,
+   "brk_time_share": 0.173,
+   "bul_avg": 61.0,
+   "bul_peak": 183,
+   "dmg": 46121.0,
+   "fight_t": 103.6,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_3|\",\"2|1.03|totem_perm_4|\",\"2|1.03|totem_perm_5|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:lappland\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:lumen|op:lumen\",\"1|0.525|lshape:lappland|op:lappland\",\"1|0.525|lshape:skadi|op:skadi\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:lappland\"] 多 []",
+    "stats.max_hp: 175.91 -> 160.983"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_khan/khan/征服": 0.207356519932832,
+    "boss_lion": 0.2,
+    "bullet_khan": 0.0732600732600732,
+    "bullet_lion": 0.0952380952380952,
+    "contact_hound": 0.222570254432624,
+    "contact_lion": 0.10479241736873,
+    "contact_rockback": 0.436201121959908
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.8,
+   "leader": "skadi",
+   "level": 24,
+   "max_hp": 161.0,
+   "moves": {
+    "khan:两军": 1,
+    "khan:可汗冲阵": 3,
+    "khan:征服": 5,
+    "khan:战意鞭笞": 2,
+    "khan:流沙": 1,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 6,
+    "lion:日晷": 3,
+    "lion:沙漏": 2,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s3_slot3",
+   "squad": [
+    "skadi",
+    "lumen",
+    "lappland"
+   ],
+   "src": {
+    "boss_khan/khan/征服": 0.207356519932832,
+    "boss_lion": 0.2,
+    "bullet_khan": 0.0732600732600732,
+    "bullet_lion": 0.380952380952381,
+    "contact_hound": 0.445140508865249,
+    "contact_lion": 0.20958483473746,
+    "contact_rockback": 0.436201121959908
+   },
+   "taken": 314.3,
+   "taken_pct": 1.952,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 4,
+   "wall": 18.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 0.724,
+   "brk_dmg_share": 0.764,
+   "brk_time_share": 0.157,
+   "bul_avg": 57.0,
+   "bul_peak": 188,
+   "dmg": 63766.0,
+   "fight_t": 164.5,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:mizuki|op:mizuki\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:lumen|op:lumen\",\"1|0.525|lshape:skadi|op:skadi\",\"1|0.63|lshape:mizuki|op:mizuki\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.8|sami_chaos|\"] 多 []",
+    "stats.max_hp: 284.935 -> 268.578"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_khan/khan/sami_blade": 0.0676415932225023,
+    "boss_khan/khan/征服": 0.117700402914339,
+    "boss_khan/khan/鞭扫": 0.0592984582738627,
+    "boss_lion/lion/lob": 0.0426121883765837,
+    "boss_lion/lion/敕令": 0.117700402914339,
+    "bullet_khan": 0.0166862698972791,
+    "bullet_lion": 0.054230377166157,
+    "contact_hound": 0.126363391794649,
+    "shock_breaker": 0.160572015731883
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 24,
+   "max_hp": 277.0,
+   "moves": {
+    "khan:两军": 1,
+    "khan:可汗冲阵": 5,
+    "khan:对决": 2,
+    "khan:征服": 9,
+    "khan:战意鞭笞": 4,
+    "khan:流沙": 1,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 8,
+    "lion:日晷": 5,
+    "lion:沙漏": 4,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s4_slot3",
+   "squad": [
+    "skadi",
+    "lumen",
+    "mizuki"
+   ],
+   "src": {
+    "boss_khan/khan/sami_blade": 0.0676415932225023,
+    "boss_khan/khan/征服": 0.117700402914339,
+    "boss_khan/khan/鞭扫": 0.0592984582738627,
+    "boss_lion/lion/lob": 0.0852243767531673,
+    "boss_lion/lion/敕令": 0.353101208743018,
+    "bullet_khan": 0.0166862698972791,
+    "bullet_lion": 0.054230377166157,
+    "contact_hound": 0.126363391794649,
+    "shock_breaker": 0.160572015731883
+   },
+   "taken": 279.5,
+   "taken_pct": 1.041,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 5,
+   "wall": 15.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.532,
+   "brk_time_share": 0.129,
+   "bul_avg": 56.5,
+   "bul_peak": 185,
+   "dmg": 63766.0,
+   "fight_t": 98.1,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_7|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:saria\"] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:saria|op:saria\",\"1|0.525|lshape:skadi|op:skadi\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:saria\"] 多 []",
+    "stats.max_hp: 210.858 -> 204.716"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_khan/khan/sami_blade": 0.0905088841180709,
+    "boss_lion/lion/敕令": 0.157361220064353
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 205.0,
+   "moves": {
+    "khan:两军": 1,
+    "khan:决胜·征服": 1,
+    "khan:可汗冲阵": 2,
+    "khan:征服": 4,
+    "khan:战意鞭笞": 1,
+    "khan:流沙": 1,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 4,
+    "lion:日晷": 2,
+    "lion:沙漏": 1,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s5_slot3",
+   "squad": [
+    "skadi",
+    "saria",
+    "wisadel"
+   ],
+   "src": {
+    "boss_khan/khan/sami_blade": 0.0905088841180709,
+    "boss_lion/lion/敕令": 0.157361220064353
+   },
+   "taken": 50.7,
+   "taken_pct": 0.248,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 6,
+   "wall": 13.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 0.0,
+   "brk_dmg_share": 0.5,
+   "brk_time_share": 0.143,
+   "bul_avg": 104.9,
+   "bul_peak": 221,
+   "dmg": 63766.0,
+   "fight_t": 65.9,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.525|lshape:irene|op:irene\",\"1|0.525|lshape:skadi|op:skadi\"] 多 []",
+    "stats.max_hp: 191.699 -> 180.695"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {},
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 192.0,
+   "moves": {
+    "khan:决胜·征服": 1,
+    "khan:可汗冲阵": 1,
+    "khan:征服": 2,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 1,
+    "lion:日晷": 1,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s6_slot3",
+   "squad": [
+    "skadi",
+    "logos",
+    "irene"
+   ],
+   "src": {},
+   "taken": 0.0,
+   "taken_pct": 0.0,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 1,
+   "wall": 15.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 0.466,
+   "brk_dmg_share": 0.432,
+   "brk_time_share": 0.11,
+   "bul_avg": 54.4,
+   "bul_peak": 188,
+   "dmg": 63766.0,
+   "fight_t": 77.7,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:eyjafjalla|op:eyjafjalla\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "stats.max_hp: 142.561 -> 138.7"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_khan/khan/sami_blade": 0.0328332573900505,
+    "boss_lion/lion/敕令": 0.0859645854361933,
+    "bullet_khan": 0.0643328046142754,
+    "bullet_lion": 0.0752693813987022,
+    "contact_hound": 0.171633230610789
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 27,
+   "max_hp": 143.0,
+   "moves": {
+    "khan:决胜·征服": 1,
+    "khan:可汗冲阵": 2,
+    "khan:征服": 3,
+    "khan:战意鞭笞": 1,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 3,
+    "lion:日晷": 2,
+    "lion:沙漏": 1,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s1_slot3",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "eyjafjalla"
+   ],
+   "src": {
+    "boss_khan/khan/sami_blade": 0.0328332573900505,
+    "boss_lion/lion/敕令": 0.0859645854361933,
+    "bullet_khan": 0.0643328046142754,
+    "bullet_lion": 0.199463860706561,
+    "contact_hound": 0.438425753980884
+   },
+   "taken": 113.9,
+   "taken_pct": 0.821,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 2,
+   "wall": 17.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 0.481,
+   "brk_dmg_share": 0.633,
+   "brk_time_share": 0.168,
+   "bul_avg": 57.8,
+   "bul_peak": 187,
+   "dmg": 63766.0,
+   "fight_t": 107.1,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:gladiia|op:gladiia\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.63|lshape:kaltsit|op:kaltsit\",\"1|0.875|lshape:gladiia|op:gladiia\"] 多 []"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_lion/lion/敕令": 0.198453434463167,
+    "contact_hound": 0.213717645852474
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 159.0,
+   "moves": {
+    "khan:两军": 1,
+    "khan:决胜·征服": 1,
+    "khan:可汗冲阵": 2,
+    "khan:对决": 1,
+    "khan:征服": 5,
+    "khan:战意鞭笞": 1,
+    "khan:流沙": 1,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 4,
+    "lion:日晷": 2,
+    "lion:沙漏": 1,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s2_slot3",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "gladiia"
+   ],
+   "src": {
+    "boss_lion/lion/敕令": 0.198453434463167,
+    "contact_hound": 0.213717645852474
+   },
+   "taken": 65.4,
+   "taken_pct": 0.412,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 3,
+   "wall": 15.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.643,
+   "brk_time_share": 0.148,
+   "bul_avg": 62.9,
+   "bul_peak": 190,
+   "dmg": 63766.0,
+   "fight_t": 74.9,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_10|\",\"2|1.03|totem_perm_5|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:lumen|op:lumen\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.6|sami_chaos|\"] 多 []",
+    "stats.max_hp: 184.326 -> 173.745"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_lion/lion/敕令": 0.182695329361996,
+    "boss_lion/lion/瞬身": 0.0585230216696883
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 205.0,
+   "moves": {
+    "khan:两军": 1,
+    "khan:决胜·征服": 1,
+    "khan:可汗冲阵": 1,
+    "khan:征服": 4,
+    "khan:战意鞭笞": 1,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 2,
+    "lion:日晷": 1,
+    "lion:沙漏": 1,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s3_slot3",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "lumen"
+   ],
+   "src": {
+    "boss_lion/lion/敕令": 0.182695329361996,
+    "boss_lion/lion/瞬身": 0.0585230216696883
+   },
+   "taken": 41.9,
+   "taken_pct": 0.241,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 4,
+   "wall": 14.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 0.344,
+   "brk_dmg_share": 0.444,
+   "brk_time_share": 0.144,
+   "bul_avg": 61.1,
+   "bul_peak": 188,
+   "dmg": 63766.0,
+   "fight_t": 77.0,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:lumen|op:lumen\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.max_hp: 136.538 -> 128.7"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_khan": 0.2,
+    "boss_khan/khan/sami_blade": 0.16960372960373,
+    "contact_rockback": 0.363000118773882,
+    "shock_rockback": 0.723991750920267
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.806,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 133.0,
+   "moves": {
+    "khan:决胜·征服": 1,
+    "khan:可汗冲阵": 1,
+    "khan:征服": 3,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 2,
+    "lion:日晷": 1,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s4_slot3",
+   "squad": [
+    "wisadel",
+    "suzuran",
+    "lumen"
+   ],
+   "src": {
+    "boss_khan": 0.4,
+    "boss_khan/khan/sami_blade": 0.16960372960373,
+    "contact_rockback": 0.363000118773882,
+    "shock_rockback": 0.723991750920267
+   },
+   "taken": 213.2,
+   "taken_pct": 1.657,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 5,
+   "wall": 15.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.588,
+   "brk_time_share": 0.205,
+   "bul_avg": 61.5,
+   "bul_peak": 185,
+   "dmg": 63766.0,
+   "fight_t": 79.1,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_aspd: 缺 [] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:saria|op:saria\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_khan/khan/可汗冲阵": 0.103286373712962,
+    "bullet_khan": 0.015839860285427,
+    "bullet_lion": 0.0514795459276377
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 136.0,
+   "moves": {
+    "khan:两军": 1,
+    "khan:决胜·征服": 1,
+    "khan:可汗冲阵": 1,
+    "khan:征服": 4,
+    "khan:战意鞭笞": 1,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 2,
+    "lion:日晷": 1,
+    "lion:沙漏": 1,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s5_slot3",
+   "squad": [
+    "wisadel",
+    "saria",
+    "kaltsit"
+   ],
+   "src": {
+    "boss_khan/khan/可汗冲阵": 0.103286373712962,
+    "bullet_khan": 0.015839860285427,
+    "bullet_lion": 0.0514795459276377
+   },
+   "taken": 23.2,
+   "taken_pct": 0.171,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 6,
+   "wall": 19.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.01,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.605,
+   "brk_time_share": 0.124,
+   "bul_avg": 105.2,
+   "bul_peak": 226,
+   "dmg": 63113.0,
+   "fight_t": 135.2,
+   "fp_diff": [
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:saria|op:saria\"] 多 []",
+    "stats.max_hp: 148.826 -> 140.283"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_khan/khan/征服": 0.233202882744167,
+    "boss_lion/lion/lob": 0.103125253950942,
+    "bullet_lion": 0.0898348623853211
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 25,
+   "max_hp": 149.0,
+   "moves": {
+    "khan:两军": 1,
+    "khan:可汗冲阵": 3,
+    "khan:对决": 2,
+    "khan:征服": 7,
+    "khan:战意鞭笞": 2,
+    "khan:流沙": 1,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 6,
+    "lion:日晷": 3,
+    "lion:沙漏": 2,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s6_slot3",
+   "squad": [
+    "wisadel",
+    "saria",
+    "logos"
+   ],
+   "src": {
+    "boss_khan/khan/征服": 0.233202882744167,
+    "boss_lion/lion/lob": 0.103125253950942,
+    "bullet_lion": 0.0898348623853211
+   },
+   "taken": 59.8,
+   "taken_pct": 0.426,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 1,
+   "wall": 14.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 0.292,
+   "brk_dmg_share": 0.529,
+   "brk_time_share": 0.133,
+   "bul_avg": 54.1,
+   "bul_peak": 176,
+   "dmg": 63766.0,
+   "fight_t": 64.5,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_4|\",\"2|1.03|totem_perm_5|\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:siege|op:siege\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.6|sami_chaos|\"] 多 []",
+    "stats.max_hp: 141.253 -> 129.266"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_khan/khan/可汗冲阵": 0.0784959542426687,
+    "bullet_lion": 0.0648093841642229,
+    "shock_breaker": 0.347322442689519
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 25,
+   "max_hp": 133.0,
+   "moves": {
+    "khan:两军": 1,
+    "khan:决胜·征服": 1,
+    "khan:可汗冲阵": 2,
+    "khan:征服": 3,
+    "khan:战意鞭笞": 1,
+    "khan:流沙": 1,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 2,
+    "lion:日晷": 2,
+    "lion:沙漏": 1,
+    "lion:王令": 1
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s1_slot3",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "siege"
+   ],
+   "src": {
+    "boss_khan/khan/可汗冲阵": 0.0784959542426687,
+    "bullet_lion": 0.0648093841642229,
+    "shock_breaker": 0.347322442689519
+   },
+   "taken": 63.4,
+   "taken_pct": 0.491,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 2,
+   "wall": 15.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 0.701,
+   "brk_dmg_share": 0.498,
+   "brk_time_share": 0.142,
+   "bul_avg": 58.6,
+   "bul_peak": 184,
+   "dmg": 63766.0,
+   "fight_t": 88.9,
+   "fp_diff": [
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:hoshiguma|op:hoshiguma\",\"1|0.525|lshape:irene|op:irene\"] 多 []"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_khan/khan/征服": 0.275836130621609,
+    "boss_lion/lion/sami_blade": 0.0842305085209376,
+    "contact_khan": 0.153534669706287
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 117.0,
+   "moves": {
+    "khan:决胜·征服": 1,
+    "khan:可汗冲阵": 2,
+    "khan:征服": 4,
+    "khan:战意鞭笞": 1,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 3,
+    "lion:日晷": 2,
+    "lion:沙漏": 1,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s2_slot3",
+   "squad": [
+    "wisadel",
+    "irene",
+    "hoshiguma"
+   ],
+   "src": {
+    "boss_khan/khan/征服": 0.275836130621609,
+    "boss_lion/lion/sami_blade": 0.0842305085209376,
+    "contact_khan": 0.153534669706287
+   },
+   "taken": 60.1,
+   "taken_pct": 0.514,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 3,
+   "wall": 15.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 0.614,
+   "brk_dmg_share": 0.575,
+   "brk_time_share": 0.204,
+   "bul_avg": 61.3,
+   "bul_peak": 190,
+   "dmg": 63766.0,
+   "fight_t": 93.8,
+   "fp_diff": [
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_5|\",\"2|1.03|totem_perm_6|\",\"2|1.03|totem_perm_7|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:lumen|op:lumen\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|0.8|sami_chaos|\"] 多 []",
+    "stats.max_hp: 157.51 -> 144.144"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_khan/khan/可汗冲阵": 0.110486846486846,
+    "boss_khan/khan/征服": 0.120561272061272,
+    "boss_lion/lion/敕令": 0.120561272061272,
+    "bullet_khan": 0.0371074675324675,
+    "shock_rockback": 0.320803861100202
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 25,
+   "max_hp": 144.0,
+   "moves": {
+    "khan:两军": 1,
+    "khan:决胜·征服": 1,
+    "khan:可汗冲阵": 1,
+    "khan:对决": 2,
+    "khan:征服": 4,
+    "khan:战意鞭笞": 1,
+    "khan:流沙": 1,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 3,
+    "lion:日晷": 1,
+    "lion:沙漏": 1,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s3_slot3",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "lumen"
+   ],
+   "src": {
+    "boss_khan/khan/可汗冲阵": 0.110486846486846,
+    "boss_khan/khan/征服": 0.120561272061272,
+    "boss_lion/lion/敕令": 0.241122544122544,
+    "bullet_khan": 0.0371074675324675,
+    "shock_rockback": 0.320803861100202
+   },
+   "taken": 119.7,
+   "taken_pct": 0.83,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 4,
+   "wall": 14.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 0.379,
+   "brk_dmg_share": 0.525,
+   "brk_time_share": 0.191,
+   "bul_avg": 63.2,
+   "bul_peak": 189,
+   "dmg": 63766.0,
+   "fight_t": 78.9,
+   "fp_diff": [
+    "mods.control_dur: 缺 [\"1|0.42|lshape:suzuran|op:suzuran\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_pierce: 缺 [\"0|2.0|lshape:lumen|op:lumen\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:lumen|op:lumen\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.875|lshape:suzuran|op:suzuran\"] 多 []",
+    "stats.max_hp: 147.63 -> 139.73"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_khan/khan/征服": 0.239691518475684,
+    "boss_lion/lion/敕令": 0.239691518475684,
+    "bullet_lion": 0.0922404415385144,
+    "shock_breaker": 0.321314024565928,
+    "shock_rockback": 0.613417683262226
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 144.0,
+   "moves": {
+    "khan:决胜·征服": 1,
+    "khan:可汗冲阵": 1,
+    "khan:征服": 3,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 2,
+    "lion:日晷": 1,
+    "lion:沙漏": 1,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s4_slot3",
+   "squad": [
+    "wisadel",
+    "suzuran",
+    "lumen"
+   ],
+   "src": {
+    "boss_khan/khan/征服": 0.239691518475684,
+    "boss_lion/lion/敕令": 0.239691518475684,
+    "bullet_lion": 0.0922404415385144,
+    "shock_breaker": 0.321314024565928,
+    "shock_rockback": 0.613417683262226
+   },
+   "taken": 210.5,
+   "taken_pct": 1.506,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 5,
+   "wall": 18.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.678,
+   "brk_time_share": 0.167,
+   "bul_avg": 55.5,
+   "bul_peak": 185,
+   "dmg": 63766.0,
+   "fight_t": 142.1,
+   "fp_diff": [
+    "mods.armor: 缺 [\"0|6.0|sami_altar|\"] 多 []",
+    "mods.dmg: 缺 [\"1|0.18|sami_altar|\"] 多 []",
+    "mods.followup_dmg: 缺 [\"1|1.05|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:saria\"] 多 [\"2|1.5|totem_2|\"]",
+    "mods.op_range: 缺 [\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:saria|op:saria\",\"1|0.63|lshape:kaltsit|op:kaltsit\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:saria\"] 多 []",
+    "stats.armor: 7.5 -> 1.5",
+    "stats.dmg_mult: 1.241 -> 1.061"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_khan/khan/征服": 0.213136456277022,
+    "boss_lion/lion/敕令": 0.213136456277022,
+    "bullet_khan": 0.0664294759693662,
+    "bullet_lion": 0.0984140384731351
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 25,
+   "max_hp": 128.0,
+   "moves": {
+    "khan:两军": 1,
+    "khan:决胜·征服": 1,
+    "khan:可汗冲阵": 3,
+    "khan:对决": 1,
+    "khan:征服": 5,
+    "khan:战意鞭笞": 2,
+    "khan:流沙": 1,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 6,
+    "lion:日晷": 3,
+    "lion:沙漏": 2,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s5_slot3",
+   "squad": [
+    "wisadel",
+    "saria",
+    "kaltsit"
+   ],
+   "src": {
+    "boss_khan/khan/征服": 0.213136456277022,
+    "boss_lion/lion/敕令": 0.342108870601906,
+    "bullet_khan": 0.0841440028945305,
+    "bullet_lion": 0.0984140384731351
+   },
+   "taken": 94.5,
+   "taken_pct": 0.738,
+   "win": true
+  },
+  {
+   "boss": "khan+lion",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 6,
+   "wall": 16.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 63766.0,
+   "boss_src_share": 1.0,
+   "brk_dmg_share": 0.731,
+   "brk_time_share": 0.168,
+   "bul_avg": 87.9,
+   "bul_peak": 207,
+   "dmg": 63766.0,
+   "fight_t": 99.3,
+   "fp_diff": [
+    "mods.armor: 缺 [\"0|9.0|sami_altar|\"] 多 []",
+    "mods.dmg: 缺 [\"1|0.27|sami_altar|\"] 多 []",
+    "mods.max_hp: 缺 [\"2|1.03|totem_perm_1|\",\"2|1.03|totem_perm_2|\"] 多 []",
+    "mods.op_aspd: 缺 [\"2|1.25|command|op:logos\",\"2|1.25|command|op:saria\"] 多 []",
+    "mods.op_range: 缺 [\"1|0.28|lshape:logos|op:logos\",\"1|0.28|lshape:wisadel|op:wisadel\",\"1|0.525|lshape:saria|op:saria\"] 多 []",
+    "mods.op_skill_sp: 缺 [\"2|1.5|command|op:logos\",\"2|1.5|command|op:saria\"] 多 []",
+    "stats.armor: 10.5 -> 1.5",
+    "stats.dmg_mult: 1.299 -> 1.029",
+    "stats.max_hp: 150.017 -> 141.405"
+   ],
+   "hit_log": [
+    {},
+    {}
+   ],
+   "hit_max": {
+    "boss_khan/khan/sami_blade": 0.112978651204951,
+    "boss_lion/lion/lob": 0.0839434662064631,
+    "bullet_khan": 0.0616997681217864
+   },
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 150.0,
+   "moves": {
+    "khan:两军": 1,
+    "khan:可汗冲阵": 2,
+    "khan:对决": 1,
+    "khan:征服": 4,
+    "khan:战意鞭笞": 1,
+    "khan:流沙": 1,
+    "khan:鞭扫": 3,
+    "khan:鞭梢": 2,
+    "lion:历盘": 2,
+    "lion:敕令": 5,
+    "lion:日晷": 2,
+    "lion:沙漏": 1,
+    "lion:王令": 1,
+    "lion:瞬身": 2
+   },
+   "phases": [
+    [
+     "khan",
+     1,
+     0.0
+    ],
+    [
+     "lion",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s6_slot3",
+   "squad": [
+    "wisadel",
+    "saria",
+    "logos"
+   ],
+   "src": {
+    "boss_khan/khan/sami_blade": 0.112978651204951,
+    "boss_lion/lion/lob": 0.0839434662064631,
+    "bullet_khan": 0.0616997681217864
+   },
+   "taken": 36.6,
+   "taken_pct": 0.259,
+   "win": true
+  }
+ ]
+}
