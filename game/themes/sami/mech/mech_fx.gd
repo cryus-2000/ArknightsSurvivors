@@ -3932,7 +3932,7 @@ func _vine_warn(w, cv, t: Dictionary, k: float, sd: int) -> void:
 		for i in range(1, ns + 1):
 			var q1: Vector2 = a + d * L * float(i) / float(ns) + top + nv * (float(absi(hash(Vector2i(sd, i + 70))) % 7) - 3.0)
 			w.tb_line(_snap(q0), _snap(q1), SOIL[0], cw + 2.0)
-			w.tb_line(_snap(q0), _snap(q1), EMBER if (i + int(g.t * 12.0)) % 3 else SOIL[2], maxf(2.0, cw - 4.0))
+			w.tb_line(_snap(q0), _snap(q1), EMBER.lerp(SOIL[2], 0.35 + 0.35 * sin(g.t * 9.0 + float(i) * 0.7)), maxf(2.0, cw - 4.0))   # 连续熔红缝，亮度沿缝慢慢流动（不交替成虚线）
 			q0 = q1
 	w.tb_flush()
 	# 拱痕前端：雪和土往上蹦（只有正在推进的那一段）
