@@ -5,7 +5,7 @@
 ## 招：一幕 A 抽击·荆地 ③ / B 致幻缠绕 ② S 形（每 3 次攻击一次）/ C 落种·食草花 ①（接近触发）/ D 缠绕 ④（根须弧线爬向队长，留荆棘）；常驻「荆刺」地刺 / 藤鞭；
 ## 二幕加 E 根网（6 根蜿蜒根）/ F 焚根（脆弱结束自动放，身边 6 团火）；古老加 G 盘根（9 步追踪根），冷却 ×0.9。
 ## 持续压力「藤痕」：走过的路留 6 秒藤痕（每秒 2%）；熔岩口喷发时，连着喷口的藤痕一起着火 2 秒（踩上 10%）。
-## 位移「破土」（§12.4）：每 12 秒钻地 1.0 秒，从队长侧面 280–360 处钻出，钻出圈 r 150（1.6 / 1.6）；不选熔岩口 r 内的落点。
+## 位移「破土」（§12.4；11-28 r4 冷却 12 → 9）：每 9 秒钻地 1.0 秒，从队长侧面 280–360 处钻出，钻出圈 r 150（1.6 / 1.6）；不选熔岩口 r 内的落点。
 ## 出招组（每幕 2）：一幕「抽缠」A→B、「落种」C→D→A；二幕「根网」E→B→A、「缠绕」D→C；古老二幕「缠绕」换「盘根」G→E。
 ## 11-28 表现改版（docs/393 §14.6）：主要表现 = 根须钻地破土，熔岩口喷发为辅。常驻「荆刺」（地刺 / 藤鞭）删掉；B 改地下根追踪后破土；
 ## D 缠绕的根尖 / 荆棘弹改成往里长的地面根线；E 根网爬过熔岩口会引爆它；G 盘根改两条地下根同时追；破土点离熔岩口 ≤90 也会引爆。
@@ -31,7 +31,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 				e.vents.append(c + Vector2.from_angle(TAU * k / 4.0 + 0.4) * 230.0)
 			e.vent_t = g.t + 5.0
 		if g.t >= float(e.vent_t):
-			e.vent_t = g.t + 10.0
+			e.vent_t = g.t + 7.0   # 11-28 r4 节奏：10 → 7 秒一轮
 			_erupt(e)
 	else:
 		if not e.has("bug_t"):
@@ -62,7 +62,7 @@ func _a() -> Array:
 
 
 func _b() -> Array:
-	return ["致幻缠绕", 10.0, 0.0, 700.0, _b_root]
+	return ["致幻缠绕", 7.0, 0.0, 700.0, _b_root]   # 11-28 r4：冷却 10 → 7
 
 
 func _c() -> Array:
@@ -70,7 +70,7 @@ func _c() -> Array:
 
 
 func _d() -> Array:
-	return ["缠绕", 9.0, 0.0, 9999.0, _d_coil]
+	return ["缠绕", 7.0, 0.0, 9999.0, _d_coil]   # 11-28 r4：冷却 9 → 7
 
 
 func _e() -> Array:
@@ -132,7 +132,7 @@ func _count(e: Dictionary) -> void:
 	e["atk_n"] = int(e.get("atk_n", 0)) + 1
 
 
-## ---- A 抽击·荆地（③）：100° 扇形 r 170（1.6 / 1.5），横抽一记；抽过的扇区长出荆棘 2 秒（每 0.5 秒站在里面 2%）
+## ---- A 抽击·荆地（③）：100° 扇形 r 200（1.7 / 1.67），横抽一记，0.6 秒后回手再抽一记（11-28 r4）；抽过的扇区长出荆棘 2 秒（每 0.5 秒站在里面 2%）
 func _a_lash(e: Dictionary, dir: Vector2, _d: float) -> float:
 	_count(e)
 	var w := w_cone(e, dir.angle(), deg_to_rad(50.0), LASH_R, 1.7, 0.22, "抽击·荆地", {"track": 0.1})
@@ -141,7 +141,14 @@ func _a_lash(e: Dictionary, dir: Vector2, _d: float) -> float:
 		if not e.has("thorns"):
 			e["thorns"] = []
 		e.thorns.append({"pos": e.pos, "ang": float(ww.ang), "until": g.t + 2.0, "next": g.t + 0.5})
-	return 1.8
+	# 11-28 r4 连段：0.6 秒后回手再抽一记（重新瞄队长当下位置，预警同样 1.7 秒、18%），躲第一下时往往正好进第二下
+	later(e, 0.6, func():
+		if e.get("dead", false) or e.get("under", false):
+			return
+		var w2 := w_cone(e, (g.ppos - e.pos).angle(), deg_to_rad(50.0), LASH_R, 1.7, 0.18, "", {"track": 0.1})
+		w2.cb = func(ww2):
+			e.thorns.append({"pos": e.pos, "ang": float(ww2.ang), "until": g.t + 2.0, "next": g.t + 0.5}))
+	return 2.4
 
 
 func _thorns(e: Dictionary) -> void:
@@ -168,7 +175,7 @@ func _hit_at(e: Dictionary, pos: Vector2, r: float, pct: float) -> void:
 ## 追到离队长 ≤50 或走满 14 步后破土：破土圈 r 75（11-28 r3 从 60 放大；锁定按公式 0.95），队长 16%（古老 25%，两条根，开局左右各偏 25°）；破土崩 4 块土块；
 ## 破土点离熔岩口 ≤90 时那个口提前喷发。土线（e.mounds）只画不判
 func _b_root(e: Dictionary, dir: Vector2, d: float) -> float:
-	if int(e.get("atk_n", 0)) < 3:
+	if int(e.get("atk_n", 0)) < 1:   # 11-28 r4：每 3 次攻击 → 每 1 次（远程队长不进抽击范围时原来几乎不出）
 		return -1.0
 	return _b_root_force(e, dir, d)
 
@@ -177,10 +184,11 @@ func _b_root_force(e: Dictionary, _dir: Vector2, _d: float) -> float:
 	e.atk_n = 0
 	var a: float = (g.ppos - e.pos).angle()
 	if _old(e):
-		_root_go(e, e.pos, a - 0.44, 0, 14, 0.25, "致幻缠绕", 20.0, 42.0)
-		_root_go(e, e.pos, a + 0.44, 0, 14, 0.25, "", 20.0, 42.0)
+		_root_go(e, e.pos, a - 0.44, 0, 14, 0.25, "致幻缠绕", 24.0, 52.0)
+		_root_go(e, e.pos, a + 0.44, 0, 14, 0.25, "", 24.0, 52.0)
 	else:
-		_root_go(e, e.pos, a, 0, 14, 0.16, "致幻缠绕", 20.0, 42.0)
+		_root_go(e, e.pos, a - 0.44, 0, 14, 0.16, "致幻缠绕", 24.0, 52.0)   # 11-28 r4：纠缠也两条根（左右各偏 25°），每步 42 → 52、转角 20° → 24°
+		_root_go(e, e.pos, a + 0.44, 0, 14, 0.16, "", 24.0, 52.0)
 	return 1.0
 
 
@@ -383,10 +391,10 @@ func _ignite(e: Dictionary, p: Vector2, r: float) -> void:
 ## ---- 位移「破土」（§12.4）：每 12 秒钻地 1.0 秒，从队长侧面 280–360 处钻出（不落在熔岩口 r 70+40 内），钻出圈 r 150（1.6 / 1.6，16%）
 func _burrow(e: Dictionary, ready: bool) -> void:
 	if not e.has("bur_t"):
-		e.bur_t = g.t + 12.0
+		e.bur_t = g.t + 9.0
 	if e.get("under", false) or g.t < float(e.bur_t) or not ready or g.t < float(e.get("busy_t", 0.0)) or e.get("coma", false):
 		return
-	e.bur_t = g.t + 12.0
+	e.bur_t = g.t + 9.0
 	var side: Vector2 = (g.ppos - e.pos).orthogonal().normalized() * (1.0 if int(g.t) % 2 == 0 else -1.0)
 	var to: Vector2 = g.combat.arena_clamp(g.ppos + side * 320.0, 80.0)
 	for v in e.get("vents", []):
@@ -402,12 +410,15 @@ func _burrow(e: Dictionary, ready: bool) -> void:
 		_chips(e, to, (g.ppos - to).angle(), 4, PI * 0.6)
 
 
-## 熔岩口喷发：2 个依次（间隔 0.6），① r70 预警 1.2；二幕再沿相邻两口之间的裂缝烧一道 ②；喷发点连着的藤痕一起着火
+## 熔岩口喷发（11-28 r4：每 7 秒 3 个、先喷离队长最近的口、r85）：依次（间隔 0.6），① 预警 1.2；二幕再沿相邻两口之间的裂缝烧一道 ②；喷发点连着的藤痕一起着火
 func _erupt(e: Dictionary) -> void:
 	var vs: Array = e.vents
-	var i0: int = int(g.t) % vs.size()
-	for k in 2:
-		var p: Vector2 = vs[(i0 + k * 2) % vs.size()]
+	var i0: int = 0   # 11-28 r4：先喷离队长最近的口（原来按时间轮转），再喷对角那个、再喷第三个
+	for j in vs.size():
+		if (vs[j] as Vector2).distance_to(g.ppos) < (vs[i0] as Vector2).distance_to(g.ppos):
+			i0 = j
+	for k in 3:
+		var p: Vector2 = vs[(i0 + k * 2 + (1 if k == 2 else 0)) % vs.size()]
 		later(e, 0.6 * k, _erupt_one.bind(e, p))
 		if act_i(e) >= 1:
 			var q: Vector2 = vs[(i0 + k * 2 + 1) % vs.size()]
@@ -420,12 +431,12 @@ func _erupt(e: Dictionary) -> void:
 
 ## 单个熔岩口喷发：① r70 预警 1.2；喷发溅 6 粒火星（全场唯一的火弹，短程余波），点燃相连藤痕，环境伤害（藤蔓在圈里 → 脆弱）
 func _erupt_one(e: Dictionary, p: Vector2) -> void:
-	var w := w_circle(e, p, 70.0, 1.2, 0.15, "")
+	var w := w_circle(e, p, 85.0, 1.2, 0.15, "")   # 11-28 r4：r70 → 85（锁定 ≥1.02，1.2 够）
 	w.cb = func(_ww):
-		_ignite(e, p, 70.0)
+		_ignite(e, p, 85.0)
 		_chips(e, p, (g.ppos - p).angle(), 6, PI)
 		if g.foe != null:
-			g.foe.env_blast(p, 70.0, 10.0)
+			g.foe.env_blast(p, 85.0, 10.0)
 
 
 ## 环境伤害打到它：脆弱 dur 秒、受伤 ×2.0（古老的结晶 6 秒由 on_crystal 传）
