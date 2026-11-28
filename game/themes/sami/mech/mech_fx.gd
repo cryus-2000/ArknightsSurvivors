@@ -2167,6 +2167,9 @@ func _warn_final(w, cv, t: Dictionary, k: float, sd: int, ot: String) -> void:
 	if str(t.get("skin0", "")) == "vine_burrow":
 		_vine_warn(w, cv, t, k, sd)   # 藤蔓根须钻地拱痕（11-28，fm_v1）
 		return
+	if ot.begins_with("shaman"):
+		_sham_warn(w, cv, t, k, sd)   # 雪祀冰链系预警（11-28）
+		return
 	var gy: float = g.combat.GROUND_Y
 	var c: Vector2 = t.pos
 	match t.shape:
@@ -2637,6 +2640,7 @@ const PAL := {
 	"khan": [Color(0.24, 0.16, 0.08), Color(0.66, 0.53, 0.37), Color(0.9, 0.8, 0.62)],
 	"lion": [Color(0.3, 0.2, 0.08), Color(1.0, 0.62, 0.15), Color(1.0, 1.0, 0.75)],
 	"shaman": [Color(0.094, 0.11, 0.44), Color(0.28, 0.32, 0.87), Color(0.82, 0.85, 1.0)],
+	"shaman2": [Color(0.094, 0.11, 0.44), Color(0.28, 0.32, 0.87), Color(0.82, 0.85, 1.0)],
 }
 
 
@@ -2692,6 +2696,9 @@ func _warn_burst(t: Dictionary, ot: String) -> void:
 	var c: Vector2 = t.pos
 	if ot == "cresson" and t.shape == "circle" and absf(float(t.r) - 250.0) < 1.0:
 		cres_implode(c, float(t.r))   # 克雷松闪现落地内爆（11-28，fm_c4）
+		return
+	if ot.begins_with("shaman"):
+		_sham_burst(t)
 		return
 	if ot == "cresson" and t.shape == "line":
 		cres_rift(t)   # 双击 / 裂隙：空间被切开
@@ -4046,7 +4053,7 @@ func _arc_pts(a: Vector2, b: Vector2, h: float, sd: int, jit: float) -> PackedVe
 
 func _chain_draw(w, pts: PackedVector2Array, al: float) -> void:
 	for pass_i in 3:
-		var wd: float = [11.0, 6.0, 2.0][pass_i]
+		var wd: float = [19.0, 11.0, 4.0][pass_i]
 		var c: Color = [IND[0], IND[1], IND[3]][pass_i]
 		c.a = al
 		for i in pts.size() - 1:
@@ -4104,6 +4111,7 @@ func _sham_front(w, now: float) -> void:
 		if e.dead or absf(now - float(it[1])) > 0.2:
 			sham_list.erase(id)
 			continue
+		_sham_moves(w, g.wcv, e, now)
 		for b in e.get("balls", []):
 			var path: Array = b.path
 			var seg: int = int(b.seg)
@@ -4312,6 +4320,164 @@ func _vroots_draw(w, now: float) -> void:
 		w.tb_quad(_snap(p + Vector2(-W, -2)), _snap(p + Vector2(W, -2)), _snap(p + Vector2(W * 0.8, 4)), _snap(p + Vector2(-W * 0.8, 4)), SOIL[0])   # 根脚翻开的土
 	vroots = keep
 	w.tb_flush()
+
+
+## ==== 雪祀 v2（11-28 新判定：冰链是主表现，跳距 240 / 300 按 fm_s1 放大）：粗冰链通用画法 + 寒链弹跳 / 冰链围笼 / 链扫 / 踏雪连链 / 道标围笼
+## 冰链 = 暗靛描边 + 靛色链身 + 冰白芯（宽 18 / 11 / 4），轻微电弧抖动，链下雪地投一串靛光；链节上零星结冰晶
+func _ichain(w, cv, a: Vector2, b: Vector2, h: float, wid: float, al: float, sd: int, grow := 1.0) -> void:
+	var L: float = a.distance_to(b)
+	if L < 4.0 or grow <= 0.0:
+		return
+	var n: int = clampi(int(L / 22.0), 4, 40)
+	var nv: Vector2 = (b - a).orthogonal().normalized()
+	var fr: int = int(g.t * 20.0)
+	var pts := PackedVector2Array()
+	var m: int = maxi(1, int(ceilf(float(n) * grow)))
+	for i in m + 1:
+		var f: float = minf(float(i) / float(n), grow)
+		var j: float = 0.0 if i == 0 or f >= 1.0 else (float(absi(hash(Vector2i(sd + fr, i))) % 100) / 50.0 - 1.0) * 4.0
+		pts.append(_snap(a.lerp(b, f) + Vector2(0, -h * sin(PI * f)) + nv * j))
+	var gt: Texture2D = _glow_tex()
+	for i in range(0, m + 1, 3):
+		var q: Vector2 = a.lerp(b, minf(float(i) / float(n), grow))
+		cv.draw_texture_rect(gt, Rect2(((q - Vector2(30, 16)) / PX).floor() * PX, Vector2(60, 32)), false, Color(0.45, 0.5, 1.0, 0.35 * al))
+	for pass_i in 3:
+		var wd: float = [wid + 8.0, wid, maxf(2.0, wid * 0.35)][pass_i]
+		var c: Color = [IND[0], IND[1], IND[3]][pass_i]
+		c.a = al
+		for i in pts.size() - 1:
+			w.tb_line(pts[i], pts[i + 1], c, wd)
+	# 链节冰晶：每隔几节一颗小菱晶
+	for i in range(2, pts.size() - 1, 4):
+		var q2: Vector2 = pts[i]
+		var s: float = wid * 0.55
+		w.tb_poly(PackedVector2Array([q2 + Vector2(0, -s * 1.6 - 2), q2 + Vector2(s + 2, 0), q2 + Vector2(0, s * 0.7 + 2), q2 + Vector2(-s - 2, 0)]), Color(IND[0], al))
+		w.tb_poly(PackedVector2Array([q2 + Vector2(0, -s * 1.6), q2 + Vector2(s, 0), q2 + Vector2(0, s * 0.7), q2 + Vector2(-s, 0)]), Color(IND[2], al))
+		w.tb_poly(PackedVector2Array([q2 + Vector2(0, -s * 1.6), q2 + Vector2(-s, 0), q2]), Color(IND[3], al))
+
+
+## 靛色冰柱（围笼 / 链扫 / 道标的桩）：意志冰柱簇贴图缩小、染靛
+func _ipost(p: Vector2, s: float, up := 1.0) -> void:
+	_ground_shadow(p + Vector2(10, 4) * s, 18.0 * s, 0.8)
+	_pillar_draw(p, PI * 0.5, s, up, 1.0, 0.0, Color(0.72, 0.78, 1.0))
+
+
+func _sham_moves(w, cv, e: Dictionary, now: float) -> void:
+	var sd0: int = int(e.id) * 31
+	# A 寒链·弹射：链从雪祀一节节拱到每只小怪、最后到队长（每节 0.3 秒，0.25 秒长满）
+	for l in e.get("links", []):
+		if now > float(l.until):
+			continue
+		var pts: Array = l.path
+		var t0: float = float(l.t0)
+		var al: float = clampf((float(l.until) - now) / 0.4, 0.0, 1.0)
+		for i in range(pts.size() - 1):
+			var ts: float = t0 + 0.3 * float(i)
+			if now < ts:
+				break
+			var gr: float = clampf((now - ts) / 0.25, 0.0, 1.0)
+			var a: Vector2 = pts[i]
+			var b: Vector2 = pts[i + 1]
+			_ichain(w, cv, a, b, minf(110.0, a.distance_to(b) * 0.38), 11.0, al, sd0 + i * 7, gr)
+	# D 冰链围笼：6 根靛色冰柱 + 柱间冰链（断口不连），收拢
+	var cg = e.get("cage")
+	if cg is Dictionary:
+		var r: float = 220.0 if now < float(cg.t0) else lerpf(220.0, 120.0, clampf((now - float(cg.t0)) / 1.2, 0.0, 1.0))
+		var up: float = clampf((now - (float(cg.t0) - 0.9)) / 0.3, 0.0, 1.0)
+		var vs: Array = []
+		for k in 6:
+			vs.append((cg.c as Vector2) + Vector2.from_angle(float(cg.a0) + TAU * k / 6.0) * r)
+		for k in 6:
+			var mid: float = float(cg.a0) + TAU * (float(k) + 0.5) / 6.0
+			var broken := false
+			for ga in cg.gaps:
+				if absf(angle_difference(mid, float(ga))) < PI / 6.0:
+					broken = true
+			if not broken and now >= float(cg.t0) - 0.3:
+				_ichain(w, cv, vs[k] + Vector2(0, -20), vs[(k + 1) % 6] + Vector2(0, -20), 10.0, 11.0, 1.0, sd0 + k, clampf((now - (float(cg.t0) - 0.3)) / 0.3, 0.0, 1.0))
+		w.tb_flush()
+		for k in 6:
+			_ipost(vs[k], 0.5, up)
+	# E 链扫：两头冰柱 + 横贯的冰链顺风扫过，断口不连
+	for sw in e.get("sweeps", []):
+		if now < float(sw.t0):
+			continue
+		var ctr: Vector2 = (sw.p0 as Vector2) + (sw.w as Vector2) * (now - float(sw.t0)) * 90.0
+		var nn: Vector2 = sw.n
+		var g0: float = float(sw.gap)
+		_ichain(w, cv, ctr - nn * 700.0, ctr + nn * (g0 - 60.0), 0.0, 12.0, 1.0, sd0 + 3)
+		_ichain(w, cv, ctr + nn * (g0 + 60.0), ctr + nn * 700.0, 0.0, 12.0, 1.0, sd0 + 5)
+		w.tb_flush()
+		_ipost(ctr - nn * 700.0, 0.55)
+		_ipost(ctr + nn * 700.0, 0.55)
+		for s2 in [-1.0, 1.0]:
+			if rng.randf() < 0.5:
+				_add(ctr + nn * (g0 + s2 * 60.0), Vector2(rng.randf_range(-30, 30), -rng.randf_range(30, 80)), 0.4, IND[2], 4.0, 3, 200.0)
+	# F 踏雪：冰脚印之间连成冰链
+	var pr = e.get("prints")
+	if pr is Dictionary and float(pr.until) > now:
+		var pp: Array = pr.pts
+		var al2: float = clampf((float(pr.until) - now) / 0.3, 0.0, 1.0)
+		for i in range(pp.size() - 1):
+			_ichain(w, cv, pp[i], pp[i + 1], 14.0, 9.0, al2, sd0 + 40 + i)
+	# G 道标围笼：4 根冰柱 + 方形冰链
+	var bc = e.get("beacons")
+	if bc is Dictionary and float(bc.until) > now:
+		var vs2: Array = bc.pts
+		for k in 4:
+			_ichain(w, cv, vs2[k] + Vector2(0, -20), vs2[(k + 1) % 4] + Vector2(0, -20), 12.0, 10.0, 1.0, sd0 + 60 + k)
+		w.tb_flush()
+		for p in vs2:
+			_ipost(p, 0.55)
+	w.tb_flush()
+
+
+## 预警（雪祀，11-28 起挂 sami_blade）：落点 = 地上一团靛光 + 冰裂纹往外爬到判定边 + 中心冰晶冒头；线 = 一条冰霜带；不伤人的出口线只铺淡带
+func _sham_warn(w, cv, t: Dictionary, k: float, sd: int) -> void:
+	var c: Vector2 = t.pos
+	var gy: float = g.combat.GROUND_Y
+	var gt: Texture2D = _glow_tex()
+	var harm: bool = float(t.get("dmg", 0.0)) > 0.0
+	match t.shape:
+		"circle":
+			var r: float = float(t.r)
+			if not harm:
+				return   # 围笼的外圈只是提示（链本身就是读法）
+			var gsz := Vector2(r * 2.6, r * 2.6 * gy)
+			cv.draw_texture_rect(gt, Rect2(((c - gsz * 0.5) / PX).floor() * PX, gsz), false, Color(0.45, 0.5, 1.0, 0.2 + 0.35 * k))
+			for i in 6:
+				var a: float = TAU * float(i) / 6.0 + float(sd % 7) * 0.3
+				var dv := Vector2(cos(a), sin(a) * gy)
+				_crack_col(w, c, dv.angle(), r * dv.length(), clampf(k * 1.3, 0.0, 1.0), sd + i * 7, IND[2].lerp(Color.WHITE, k * 0.4), IND[0], 4.0)
+			if k > 0.6:
+				_crystal(w, c, 6.0 + 10.0 * (k - 0.6) / 0.4)
+		"line":
+			var d0 := Vector2.from_angle(float(t.ang))
+			var L: float = float(t.len)
+			_band_tex(cv, ice_band, c, c + d0 * L * (1.0 if not harm else k), float(t.wid) * 0.8, (0.4 + 0.4 * k) if harm else 0.3)
+			if harm:
+				_crack_col(w, c, float(t.ang), L, k, sd, IND[2], IND[0], 4.0)
+
+
+func _sham_burst(t: Dictionary) -> void:
+	if t.shape == "circle":
+		_sham_crystal_burst(t.pos, float(t.r))
+	elif t.shape == "line":
+		var d := Vector2.from_angle(float(t.ang))
+		for i in 4:
+			var q: Vector2 = (t.pos as Vector2) + d * float(t.len) * (float(i) + 0.5) / 4.0
+			_spike(q, 26.0, 12.0, "shaman", d.x * 0.3)
+
+
+func _sham_crystal_burst(p: Vector2, r: float) -> void:
+	var k: float = clampf(r / 70.0, 0.6, 1.4)
+	for i in 7:
+		var a: float = TAU * float(i) / 7.0 + rng.randf_range(-0.3, 0.3)
+		_spike(p + Vector2(cos(a), sin(a) * 0.5) * rng.randf_range(14.0, 34.0) * k, rng.randf_range(34.0, 60.0) * k, rng.randf_range(14.0, 22.0) * k, "shaman", cos(a) * 0.35)
+	_spike(p, 80.0 * k, 26.0 * k, "shaman")
+	sparks(p + Vector2(0, -24), -PI * 0.5, 1.2, 14, 340.0, [IND[3], IND[2], IND[1], IND[0]], true, 0.35)
+	_ice_bits(p + Vector2(0, -20), 10, 0.9)
+	glows.append([p, g.t, 150.0])
 
 
 func _ice_peak(w, p: Vector2, h: float, wd: float) -> void:

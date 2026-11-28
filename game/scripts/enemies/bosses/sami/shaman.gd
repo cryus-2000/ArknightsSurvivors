@@ -446,9 +446,9 @@ func _draw_gift(e: Dictionary, cv) -> void:
 func draw(e: Dictionary, cv) -> void:
 	var fxm = g.mech("fx")
 	if fxm != null:
-		fxm.shaman_draw(e)   # 馈赠 = 靛色冰链弹跳（11-28，fm_s1；themes/sami/mech/mech_fx.gd）
-	else:
-		_draw_gift(e, cv)
+		fxm.shaman_draw(e)   # 冰链（寒链 / 围笼 / 链扫 / 踏雪 / 道标 / 馈赠）全由 mech_fx 画（11-28，fm_s1）；下面是没有 fx 机制时的占位
+		return
+	_draw_gift(e, cv)
 	var ind := Color(0.55, 0.6, 1.0)
 	for l in e.get("links", []):   # 冰链（占位）：相邻落点之间画上拱的弧，链粗 6
 		if float(l.until) > g.t:
